@@ -16,10 +16,10 @@ import './monster_test_my_game.example2_generated.dart' as example2;
 
 main() {
   defineReflectiveSuite(() {
-    // defineReflectiveTests(BuilderTest);
+    defineReflectiveTests(BuilderTest);
     defineReflectiveTests(ObjectAPITest);
-    // defineReflectiveTests(CheckOtherLangaugesData);
-    // defineReflectiveTests(GeneratorTest);
+    defineReflectiveTests(CheckOtherLangaugesData);
+    defineReflectiveTests(GeneratorTest);
   });
 }
 

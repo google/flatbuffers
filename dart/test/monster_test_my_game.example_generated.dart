@@ -3,7 +3,6 @@
 
 library my_game.example;
 
-import 'dart:collection';
 import 'dart:typed_data' show Uint8List;
 import 'package:flat_buffers/flat_buffers.dart' as fb;
 
@@ -252,21 +251,7 @@ class TestT {
       this.a,
       this.b});
 
-  int pack(fb.Builder fbBuilder) => _pack(fbBuilder, HashMap<Object, int>());
-
-  /// Write the object to the [Builder] only once and reuse the same offset on
-  /// subsequent references of the same object.
-  ///
-  /// Note that this method assumes you call it using the same [Builder]
-  /// instance every time. The returned offset is only good for the [Builder]
-  /// used in the first call to this method.
-  int packOnce(fb.Builder fbBuilder, Map<Object, int> existingOffsets) {
-    assert(existingOffsets != null);
-    return existingOffsets[this] ??= _pack(fbBuilder, existingOffsets);
-  }
-
-  int _pack(fb.Builder fbBuilder, Map<Object, int> existingOffsets) {
-    assert(existingOffsets != null);
+  int pack(fb.Builder fbBuilder) {
     assert(fbBuilder != null);
 
     fbBuilder.pad(1);
@@ -373,21 +358,7 @@ class TestSimpleTableWithEnumT {
   TestSimpleTableWithEnumT({
       this.color});
 
-  int pack(fb.Builder fbBuilder) => _pack(fbBuilder, HashMap<Object, int>());
-
-  /// Write the object to the [Builder] only once and reuse the same offset on
-  /// subsequent references of the same object.
-  ///
-  /// Note that this method assumes you call it using the same [Builder]
-  /// instance every time. The returned offset is only good for the [Builder]
-  /// used in the first call to this method.
-  int packOnce(fb.Builder fbBuilder, Map<Object, int> existingOffsets) {
-    assert(existingOffsets != null);
-    return existingOffsets[this] ??= _pack(fbBuilder, existingOffsets);
-  }
-
-  int _pack(fb.Builder fbBuilder, Map<Object, int> existingOffsets) {
-    assert(existingOffsets != null);
+  int pack(fb.Builder fbBuilder) {
     assert(fbBuilder != null);
 
     fbBuilder.startTable();
@@ -507,21 +478,7 @@ class Vec3T {
       this.test2,
       this.test3});
 
-  int pack(fb.Builder fbBuilder) => _pack(fbBuilder, HashMap<Object, int>());
-
-  /// Write the object to the [Builder] only once and reuse the same offset on
-  /// subsequent references of the same object.
-  ///
-  /// Note that this method assumes you call it using the same [Builder]
-  /// instance every time. The returned offset is only good for the [Builder]
-  /// used in the first call to this method.
-  int packOnce(fb.Builder fbBuilder, Map<Object, int> existingOffsets) {
-    assert(existingOffsets != null);
-    return existingOffsets[this] ??= _pack(fbBuilder, existingOffsets);
-  }
-
-  int _pack(fb.Builder fbBuilder, Map<Object, int> existingOffsets) {
-    assert(existingOffsets != null);
+  int pack(fb.Builder fbBuilder) {
     assert(fbBuilder != null);
 
     fbBuilder.pad(2);
@@ -658,21 +615,7 @@ class AbilityT {
       this.id,
       this.distance});
 
-  int pack(fb.Builder fbBuilder) => _pack(fbBuilder, HashMap<Object, int>());
-
-  /// Write the object to the [Builder] only once and reuse the same offset on
-  /// subsequent references of the same object.
-  ///
-  /// Note that this method assumes you call it using the same [Builder]
-  /// instance every time. The returned offset is only good for the [Builder]
-  /// used in the first call to this method.
-  int packOnce(fb.Builder fbBuilder, Map<Object, int> existingOffsets) {
-    assert(existingOffsets != null);
-    return existingOffsets[this] ??= _pack(fbBuilder, existingOffsets);
-  }
-
-  int _pack(fb.Builder fbBuilder, Map<Object, int> existingOffsets) {
-    assert(existingOffsets != null);
+  int pack(fb.Builder fbBuilder) {
     assert(fbBuilder != null);
 
     fbBuilder.putUint32(distance);
@@ -780,21 +723,7 @@ class StructOfStructsT {
       this.b,
       this.c});
 
-  int pack(fb.Builder fbBuilder) => _pack(fbBuilder, HashMap<Object, int>());
-
-  /// Write the object to the [Builder] only once and reuse the same offset on
-  /// subsequent references of the same object.
-  ///
-  /// Note that this method assumes you call it using the same [Builder]
-  /// instance every time. The returned offset is only good for the [Builder]
-  /// used in the first call to this method.
-  int packOnce(fb.Builder fbBuilder, Map<Object, int> existingOffsets) {
-    assert(existingOffsets != null);
-    return existingOffsets[this] ??= _pack(fbBuilder, existingOffsets);
-  }
-
-  int _pack(fb.Builder fbBuilder, Map<Object, int> existingOffsets) {
-    assert(existingOffsets != null);
+  int pack(fb.Builder fbBuilder) {
     assert(fbBuilder != null);
 
     c.pack(fbBuilder);
@@ -912,21 +841,7 @@ class StatT {
       this.val,
       this.count});
 
-  int pack(fb.Builder fbBuilder) => _pack(fbBuilder, HashMap<Object, int>());
-
-  /// Write the object to the [Builder] only once and reuse the same offset on
-  /// subsequent references of the same object.
-  ///
-  /// Note that this method assumes you call it using the same [Builder]
-  /// instance every time. The returned offset is only good for the [Builder]
-  /// used in the first call to this method.
-  int packOnce(fb.Builder fbBuilder, Map<Object, int> existingOffsets) {
-    assert(existingOffsets != null);
-    return existingOffsets[this] ??= _pack(fbBuilder, existingOffsets);
-  }
-
-  int _pack(fb.Builder fbBuilder, Map<Object, int> existingOffsets) {
-    assert(existingOffsets != null);
+  int pack(fb.Builder fbBuilder) {
     assert(fbBuilder != null);
     final int idOffset = fbBuilder.writeString(id);
 
@@ -1054,21 +969,7 @@ class ReferrableT {
   ReferrableT({
       this.id});
 
-  int pack(fb.Builder fbBuilder) => _pack(fbBuilder, HashMap<Object, int>());
-
-  /// Write the object to the [Builder] only once and reuse the same offset on
-  /// subsequent references of the same object.
-  ///
-  /// Note that this method assumes you call it using the same [Builder]
-  /// instance every time. The returned offset is only good for the [Builder]
-  /// used in the first call to this method.
-  int packOnce(fb.Builder fbBuilder, Map<Object, int> existingOffsets) {
-    assert(existingOffsets != null);
-    return existingOffsets[this] ??= _pack(fbBuilder, existingOffsets);
-  }
-
-  int _pack(fb.Builder fbBuilder, Map<Object, int> existingOffsets) {
-    assert(existingOffsets != null);
+  int pack(fb.Builder fbBuilder) {
     assert(fbBuilder != null);
 
     fbBuilder.startTable();
@@ -1395,27 +1296,13 @@ class MonsterT {
       this.testrequirednestedflatbuffer,
       this.scalarKeySortedTables});
 
-  int pack(fb.Builder fbBuilder) => _pack(fbBuilder, HashMap<Object, int>());
-
-  /// Write the object to the [Builder] only once and reuse the same offset on
-  /// subsequent references of the same object.
-  ///
-  /// Note that this method assumes you call it using the same [Builder]
-  /// instance every time. The returned offset is only good for the [Builder]
-  /// used in the first call to this method.
-  int packOnce(fb.Builder fbBuilder, Map<Object, int> existingOffsets) {
-    assert(existingOffsets != null);
-    return existingOffsets[this] ??= _pack(fbBuilder, existingOffsets);
-  }
-
-  int _pack(fb.Builder fbBuilder, Map<Object, int> existingOffsets) {
-    assert(existingOffsets != null);
+  int pack(fb.Builder fbBuilder) {
     assert(fbBuilder != null);
     final int nameOffset = fbBuilder.writeString(name);
     final int inventoryOffset = inventory?.isNotEmpty == true
         ? fbBuilder.writeListUint8(inventory)
         : null;
-    final int testOffset = test?.packOnce(fbBuilder, existingOffsets);
+    final int testOffset = test?.pack(fbBuilder);
     int test4Offset = null;
     if (test4?.isNotEmpty == true) {
       test4.forEach((e) => e.pack(fbBuilder));
@@ -1425,13 +1312,13 @@ class MonsterT {
         ? fbBuilder.writeList(testarrayofstring.map((b) => fbBuilder.writeString(b)).toList())
         : null;
     final int testarrayoftablesOffset = testarrayoftables?.isNotEmpty == true
-        ? fbBuilder.writeList(testarrayoftables.map((b) => b.packOnce(fbBuilder, existingOffsets)).toList())
+        ? fbBuilder.writeList(testarrayoftables.map((b) => b.pack(fbBuilder)).toList())
         : null;
-    final int enemyOffset = enemy?.packOnce(fbBuilder, existingOffsets);
+    final int enemyOffset = enemy?.pack(fbBuilder);
     final int testnestedflatbufferOffset = testnestedflatbuffer?.isNotEmpty == true
         ? fbBuilder.writeListUint8(testnestedflatbuffer)
         : null;
-    final int testemptyOffset = testempty?.packOnce(fbBuilder, existingOffsets);
+    final int testemptyOffset = testempty?.pack(fbBuilder);
     final int testarrayofboolsOffset = testarrayofbools?.isNotEmpty == true
         ? fbBuilder.writeListBool(testarrayofbools)
         : null;
@@ -1457,15 +1344,15 @@ class MonsterT {
     final int vectorOfDoublesOffset = vectorOfDoubles?.isNotEmpty == true
         ? fbBuilder.writeListFloat64(vectorOfDoubles)
         : null;
-    final int parentNamespaceTestOffset = parentNamespaceTest?.packOnce(fbBuilder, existingOffsets);
+    final int parentNamespaceTestOffset = parentNamespaceTest?.pack(fbBuilder);
     final int vectorOfReferrablesOffset = vectorOfReferrables?.isNotEmpty == true
-        ? fbBuilder.writeList(vectorOfReferrables.map((b) => b.packOnce(fbBuilder, existingOffsets)).toList())
+        ? fbBuilder.writeList(vectorOfReferrables.map((b) => b.pack(fbBuilder)).toList())
         : null;
     final int vectorOfWeakReferencesOffset = vectorOfWeakReferences?.isNotEmpty == true
         ? fbBuilder.writeListUint64(vectorOfWeakReferences)
         : null;
     final int vectorOfStrongReferrablesOffset = vectorOfStrongReferrables?.isNotEmpty == true
-        ? fbBuilder.writeList(vectorOfStrongReferrables.map((b) => b.packOnce(fbBuilder, existingOffsets)).toList())
+        ? fbBuilder.writeList(vectorOfStrongReferrables.map((b) => b.pack(fbBuilder)).toList())
         : null;
     final int vectorOfCoOwningReferencesOffset = vectorOfCoOwningReferences?.isNotEmpty == true
         ? fbBuilder.writeListUint64(vectorOfCoOwningReferences)
@@ -1473,8 +1360,8 @@ class MonsterT {
     final int vectorOfNonOwningReferencesOffset = vectorOfNonOwningReferences?.isNotEmpty == true
         ? fbBuilder.writeListUint64(vectorOfNonOwningReferences)
         : null;
-    final int anyUniqueOffset = anyUnique?.packOnce(fbBuilder, existingOffsets);
-    final int anyAmbiguousOffset = anyAmbiguous?.packOnce(fbBuilder, existingOffsets);
+    final int anyUniqueOffset = anyUnique?.pack(fbBuilder);
+    final int anyAmbiguousOffset = anyAmbiguous?.pack(fbBuilder);
     final int vectorOfEnumsOffset = vectorOfEnums?.isNotEmpty == true
         ? fbBuilder.writeListUint8(vectorOfEnums.map((f) => f.value).toList())
         : null;
@@ -1482,7 +1369,7 @@ class MonsterT {
         ? fbBuilder.writeListUint8(testrequirednestedflatbuffer)
         : null;
     final int scalarKeySortedTablesOffset = scalarKeySortedTables?.isNotEmpty == true
-        ? fbBuilder.writeList(scalarKeySortedTables.map((b) => b.packOnce(fbBuilder, existingOffsets)).toList())
+        ? fbBuilder.writeList(scalarKeySortedTables.map((b) => b.pack(fbBuilder)).toList())
         : null;
 
     fbBuilder.startTable();
@@ -2250,21 +2137,7 @@ class TypeAliasesT {
       this.v8,
       this.vf64});
 
-  int pack(fb.Builder fbBuilder) => _pack(fbBuilder, HashMap<Object, int>());
-
-  /// Write the object to the [Builder] only once and reuse the same offset on
-  /// subsequent references of the same object.
-  ///
-  /// Note that this method assumes you call it using the same [Builder]
-  /// instance every time. The returned offset is only good for the [Builder]
-  /// used in the first call to this method.
-  int packOnce(fb.Builder fbBuilder, Map<Object, int> existingOffsets) {
-    assert(existingOffsets != null);
-    return existingOffsets[this] ??= _pack(fbBuilder, existingOffsets);
-  }
-
-  int _pack(fb.Builder fbBuilder, Map<Object, int> existingOffsets) {
-    assert(existingOffsets != null);
+  int pack(fb.Builder fbBuilder) {
     assert(fbBuilder != null);
     final int v8Offset = v8?.isNotEmpty == true
         ? fbBuilder.writeListInt8(v8)

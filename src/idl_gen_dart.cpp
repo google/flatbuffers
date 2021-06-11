@@ -68,9 +68,6 @@ class DartGenerator : public BaseGenerator {
 
       if (!kv->first.empty()) { code += "library " + kv->first + ";\n\n"; }
 
-      if (parser_.opts.generate_object_based_api) {
-        code += "import 'dart:collection';\n";
-      }
       code += "import 'dart:typed_data' show Uint8List;\n";
       code += "import 'package:flat_buffers/flat_buffers.dart' as " + _kFb +
               ";\n\n";
@@ -516,7 +513,7 @@ class DartGenerator : public BaseGenerator {
     }
 
     if (!constructor_args.empty()) {
-      code += "\n  " + class_name + "({\n" + constructor_args + "});\n";
+      code += "\n  " + class_name + "({\n" + constructor_args + "});\n\n";
     }
 
     code += GenStructObjectAPIPack(struct_def, non_deprecated_fields);
@@ -560,23 +557,7 @@ class DartGenerator : public BaseGenerator {
       const std::vector<std::pair<int, FieldDef *>> &non_deprecated_fields) {
     std::string code;
 
-    code += R"(
-  int pack(fb.Builder fbBuilder) => _pack(fbBuilder, HashMap<Object, int>());
-
-  /// Write the object to the [Builder] only once and reuse the same offset on
-  /// subsequent references of the same object.
-  ///
-  /// Note that this method assumes you call it using the same [Builder]
-  /// instance every time. The returned offset is only good for the [Builder]
-  /// used in the first call to this method.
-  int packOnce(fb.Builder fbBuilder, Map<Object, int> existingOffsets) {
-    assert(existingOffsets != null);
-    return existingOffsets[this] ??= _pack(fbBuilder, existingOffsets);
-  }
-
-  int _pack(fb.Builder fbBuilder, Map<Object, int> existingOffsets) {
-    assert(existingOffsets != null);
-)";
+    code += "  int pack(fb.Builder fbBuilder) {\n";
     code += GenObjectBuilderImplementation(struct_def, non_deprecated_fields,
                                            false, true);
     code += "  }\n";
@@ -975,9 +956,8 @@ class DartGenerator : public BaseGenerator {
               code += "OfStructs(" + field_name + ")";
             } else {
               code += "(" + field_name + ".map((b) => b." +
-                      (pack ? "packOnce(fbBuilder, existingOffsets)"
-                            : "getOrCreateOffset(fbBuilder)") +
-                      ").toList())";
+                      (pack ? "pack" : "getOrCreateOffset") +
+                      "(fbBuilder)).toList())";
             }
             break;
           default:
@@ -992,9 +972,7 @@ class DartGenerator : public BaseGenerator {
         code += " = fbBuilder.writeString(" + field_name + ");\n";
       } else {
         code += " = " + field_name + "?." +
-                (pack ? "packOnce(fbBuilder, existingOffsets)"
-                      : "getOrCreateOffset(fbBuilder)") +
-                ";\n";
+                (pack ? "pack" : "getOrCreateOffset") + "(fbBuilder);\n";
       }
     }
     code += "\n";
