@@ -27,6 +27,44 @@ class TableInC {
   String toString() {
     return 'TableInC{referToA1: $referToA1, referToA2: $referToA2}';
   }
+
+  TableInCT unpack() => TableInCT(
+      referToA1: referToA1?.unpack(),
+      referToA2: referToA2?.unpack());
+
+  static int pack(fb.Builder fbBuilder, TableInCT object) {
+    if (object == null) return 0;
+    return object.pack(fbBuilder);
+  }
+}
+
+class TableInCT {
+  namespace_a.TableInFirstNST referToA1;
+  namespace_a.SecondTableInAT referToA2;
+
+  TableInCT({
+      this.referToA1,
+      this.referToA2});
+
+  int pack(fb.Builder fbBuilder) {
+    assert(fbBuilder != null);
+    final int referToA1Offset = referToA1?.pack(fbBuilder);
+    final int referToA2Offset = referToA2?.pack(fbBuilder);
+
+    fbBuilder.startTable();
+    if (referToA1Offset != null) {
+      fbBuilder.addOffset(0, referToA1Offset);
+    }
+    if (referToA2Offset != null) {
+      fbBuilder.addOffset(1, referToA2Offset);
+    }
+    return fbBuilder.endTable();
+  }
+
+  @override
+  String toString() {
+    return 'TableInCT{referToA1: $referToA1, referToA2: $referToA2}';
+  }
 }
 
 class _TableInCReader extends fb.TableReader<TableInC> {

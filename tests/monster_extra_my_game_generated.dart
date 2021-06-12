@@ -34,6 +34,80 @@ class MonsterExtra {
   String toString() {
     return 'MonsterExtra{d0: $d0, d1: $d1, d2: $d2, d3: $d3, f0: $f0, f1: $f1, f2: $f2, f3: $f3, dvec: $dvec, fvec: $fvec}';
   }
+
+  MonsterExtraT unpack() => MonsterExtraT(
+      d0: d0,
+      d1: d1,
+      d2: d2,
+      d3: d3,
+      f0: f0,
+      f1: f1,
+      f2: f2,
+      f3: f3,
+      dvec: dvec,
+      fvec: fvec);
+
+  static int pack(fb.Builder fbBuilder, MonsterExtraT object) {
+    if (object == null) return 0;
+    return object.pack(fbBuilder);
+  }
+}
+
+class MonsterExtraT {
+  double d0;
+  double d1;
+  double d2;
+  double d3;
+  double f0;
+  double f1;
+  double f2;
+  double f3;
+  List<double> dvec;
+  List<double> fvec;
+
+  MonsterExtraT({
+      this.d0,
+      this.d1,
+      this.d2,
+      this.d3,
+      this.f0,
+      this.f1,
+      this.f2,
+      this.f3,
+      this.dvec,
+      this.fvec});
+
+  int pack(fb.Builder fbBuilder) {
+    assert(fbBuilder != null);
+    final int dvecOffset = dvec?.isNotEmpty == true
+        ? fbBuilder.writeListFloat64(dvec)
+        : null;
+    final int fvecOffset = fvec?.isNotEmpty == true
+        ? fbBuilder.writeListFloat32(fvec)
+        : null;
+
+    fbBuilder.startTable();
+    fbBuilder.addFloat64(0, d0);
+    fbBuilder.addFloat64(1, d1);
+    fbBuilder.addFloat64(2, d2);
+    fbBuilder.addFloat64(3, d3);
+    fbBuilder.addFloat32(4, f0);
+    fbBuilder.addFloat32(5, f1);
+    fbBuilder.addFloat32(6, f2);
+    fbBuilder.addFloat32(7, f3);
+    if (dvecOffset != null) {
+      fbBuilder.addOffset(8, dvecOffset);
+    }
+    if (fvecOffset != null) {
+      fbBuilder.addOffset(9, fvecOffset);
+    }
+    return fbBuilder.endTable();
+  }
+
+  @override
+  String toString() {
+    return 'MonsterExtraT{d0: $d0, d1: $d1, d2: $d2, d3: $d3, f0: $f0, f1: $f1, f2: $f2, f3: $f3, dvec: $dvec, fvec: $fvec}';
+  }
 }
 
 class _MonsterExtraReader extends fb.TableReader<MonsterExtra> {
