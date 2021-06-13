@@ -118,11 +118,11 @@ class Builder {
   /// The maximum alignment that has been seen so far.  If [_buf] has to be
   /// reallocated in the future (to insert room at its start for more bytes) the
   /// reallocation will need to be a multiple of this many bytes.
-  int _maxAlign;
+  int _maxAlign = 1;
 
   /// The number of bytes that have been written to the buffer so far.  The
   /// most recently written byte is this many bytes from the end of [_buf].
-  int _tail;
+  int _tail = 0;
 
   /// The location of the end of the current table, measured in bytes from the
   /// end of [_buf], or `null` if a table is not currently being built.
@@ -142,11 +142,11 @@ class Builder {
   /// automatically grow the array if/as needed.  `internStrings`, if set to
   /// true, will cause [writeString] to pool strings in the buffer so that
   /// identical strings will always use the same offset in tables.
-  Builder({this.initialSize: 1024, bool internStrings = false}) {
+  Builder({this.initialSize: 1024, bool internStrings = false})
+      : _buf = ByteData(initialSize) {
     if (internStrings == true) {
       _strings = new Map<String, int>();
     }
-    reset();
   }
 
   /// Calculate the finished buffer size (aligned).
@@ -441,7 +441,6 @@ class Builder {
 
   /// Reset the builder and make it ready for filling a new buffer.
   void reset() {
-    _buf = new ByteData(initialSize);
     _maxAlign = 1;
     _tail = 0;
     _currentVTable = null;

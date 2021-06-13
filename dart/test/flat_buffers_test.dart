@@ -135,8 +135,8 @@ class CheckOtherLangaugesData {
 
 @reflectiveTest
 class BuilderTest {
-  void test_monsterBuilder() {
-    final fbBuilder = new Builder();
+  void test_monsterBuilder([Builder builder]) {
+    final fbBuilder = builder ?? new Builder();
     final str = fbBuilder.writeString('MyMonster');
 
     fbBuilder.writeString('test1');
@@ -181,8 +181,8 @@ class BuilderTest {
     fbBuilder.finish(mon);
   }
 
-  void test_error_addInt32_withoutStartTable() {
-    Builder builder = new Builder();
+  void test_error_addInt32_withoutStartTable([Builder builder]) {
+    builder ??= new Builder();
     expect(() {
       builder.addInt32(0, 0);
     }, throwsStateError);
@@ -286,10 +286,10 @@ class BuilderTest {
         20);
   }
 
-  void test_table_format() {
+  void test_table_format([Builder builder]) {
     Uint8List byteList;
     {
-      Builder builder = new Builder(initialSize: 0);
+      builder ??= new Builder(initialSize: 0);
       builder.startTable();
       builder.addInt32(0, 10);
       builder.addInt32(1, 20);
@@ -341,10 +341,10 @@ class BuilderTest {
         unicodeString);
   }
 
-  void test_table_types() {
+  void test_table_types([Builder builder]) {
     List<int> byteList;
     {
-      Builder builder = new Builder(initialSize: 0);
+      builder ??= new Builder(initialSize: 0);
       int stringOffset = builder.writeString('12345');
       builder.startTable();
       builder.addBool(0, true);
@@ -486,10 +486,10 @@ class BuilderTest {
     }
   }
 
-  void test_writeList_ofObjects() {
+  void test_writeList_ofObjects([Builder builder]) {
     List<int> byteList;
     {
-      Builder builder = new Builder(initialSize: 0);
+      builder ??= new Builder(initialSize: 0);
       // write the object #1
       int object1;
       {
@@ -539,10 +539,10 @@ class BuilderTest {
     expect(items, contains('ABC'));
   }
 
-  void test_writeList_ofStrings_inObject() {
+  void test_writeList_ofStrings_inObject([Builder builder]) {
     List<int> byteList;
     {
-      Builder builder = new Builder(initialSize: 0);
+      builder ??= new Builder(initialSize: 0);
       int listOffset = builder.writeList(
           [builder.writeString('12345'), builder.writeString('ABC')]);
       builder.startTable();
@@ -599,6 +599,71 @@ class BuilderTest {
     List<int> items = const Uint8ListReader().read(buf, 0);
     expect(items, hasLength(5));
     expect(items, orderedEquals(<int>[1, 2, 3, 4, 0x9A]));
+  }
+
+  void test_reset() {
+    // We'll run a selection of tests , reusing the builder between them.
+    final testCases = <void Function(Builder)>[
+      test_monsterBuilder,
+      test_error_addInt32_withoutStartTable,
+      test_table_format,
+      test_table_types,
+      test_writeList_ofObjects,
+      test_writeList_ofStrings_inObject
+    ];
+
+    // Execute all test cases in all permutations of their order.
+    // To do that, we generate permutations of test case indexes.
+    final testCasesPermutations =
+        _permutationsOf(List.generate(testCases.length, (index) => index));
+    expect(testCasesPermutations.length, _factorial(testCases.length));
+
+    testCasesPermutations.forEach((List<int> indexes) {
+      // print the order so failures are reproducible
+      printOnFailure('Running reset() test cases in order: $indexes');
+
+      Builder builder;
+      indexes.forEach((index) {
+        if (builder == null) {
+          // Initial size small enough so at least one test case increases it.
+          // On the other hand, it's large enough so that some test cases don't.
+          builder = Builder(initialSize: 32);
+        } else {
+          builder.reset();
+        }
+        testCases[index](builder);
+      });
+    });
+  }
+
+  // Generate permutations of the given list
+  List<List<T>> _permutationsOf<T>(List<T> source) {
+    final result = <List<T>>[];
+
+    void permutate(List<T> items, int startAt) {
+      for (var i = startAt; i < items.length; i++) {
+        List<T> permutation = items.toList(growable: false);
+        permutation[i] = items[startAt];
+        permutation[startAt] = items[i];
+
+        // add the current list upon reaching the end
+        if (startAt == items.length - 1) {
+          result.add(items);
+        } else {
+          permutate(permutation, startAt + 1);
+        }
+      }
+    }
+
+    permutate(source, 0);
+    return result;
+  }
+
+  // a very simple implementation of n!
+  int _factorial(int n) {
+    var result = 1;
+    for (var i = 2; i <= n; i++) result *= i;
+    return result;
   }
 }
 
