@@ -104,6 +104,34 @@ class TableInNestedNS {
   String toString() {
     return 'TableInNestedNS{foo: $foo}';
   }
+
+  TableInNestedNST unpack() => TableInNestedNST(
+      foo: foo);
+
+  static int pack(fb.Builder fbBuilder, TableInNestedNST object) {
+    if (object == null) return 0;
+    return object.pack(fbBuilder);
+  }
+}
+
+class TableInNestedNST {
+  int foo;
+
+  TableInNestedNST({
+      this.foo});
+
+  int pack(fb.Builder fbBuilder) {
+    assert(fbBuilder != null);
+
+    fbBuilder.startTable();
+    fbBuilder.addInt32(0, foo);
+    return fbBuilder.endTable();
+  }
+
+  @override
+  String toString() {
+    return 'TableInNestedNST{foo: $foo}';
+  }
 }
 
 class _TableInNestedNSReader extends fb.TableReader<TableInNestedNS> {
@@ -176,6 +204,37 @@ class StructInNestedNS {
   @override
   String toString() {
     return 'StructInNestedNS{a: $a, b: $b}';
+  }
+
+  StructInNestedNST unpack() => StructInNestedNST(
+      a: a,
+      b: b);
+
+  static int pack(fb.Builder fbBuilder, StructInNestedNST object) {
+    if (object == null) return 0;
+    return object.pack(fbBuilder);
+  }
+}
+
+class StructInNestedNST {
+  int a;
+  int b;
+
+  StructInNestedNST({
+      this.a,
+      this.b});
+
+  int pack(fb.Builder fbBuilder) {
+    assert(fbBuilder != null);
+
+    fbBuilder.putInt32(b);
+    fbBuilder.putInt32(a);
+    return fbBuilder.offset;
+  }
+
+  @override
+  String toString() {
+    return 'StructInNestedNST{a: $a, b: $b}';
   }
 }
 

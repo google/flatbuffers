@@ -35,6 +35,58 @@ class TableInFirstNS {
   String toString() {
     return 'TableInFirstNS{fooTable: $fooTable, fooEnum: $fooEnum, fooUnionType: $fooUnionType, fooUnion: $fooUnion, fooStruct: $fooStruct}';
   }
+
+  TableInFirstNST unpack() => TableInFirstNST(
+      fooTable: fooTable?.unpack(),
+      fooEnum: fooEnum,
+      fooUnionType: fooUnionType,
+      fooUnion: fooUnion,
+      fooStruct: fooStruct?.unpack());
+
+  static int pack(fb.Builder fbBuilder, TableInFirstNST object) {
+    if (object == null) return 0;
+    return object.pack(fbBuilder);
+  }
+}
+
+class TableInFirstNST {
+  namespace_a_namespace_b.TableInNestedNST fooTable;
+  EnumInNestedNS fooEnum;
+  UnionInNestedNSTypeId fooUnionType;
+  dynamic fooUnion;
+  namespace_a_namespace_b.StructInNestedNST fooStruct;
+
+  TableInFirstNST({
+      this.fooTable,
+      this.fooEnum,
+      this.fooUnionType,
+      this.fooUnion,
+      this.fooStruct});
+
+  int pack(fb.Builder fbBuilder) {
+    assert(fbBuilder != null);
+    final int fooTableOffset = fooTable?.pack(fbBuilder);
+    final int fooUnionOffset = fooUnion?.pack(fbBuilder);
+
+    fbBuilder.startTable();
+    if (fooTableOffset != null) {
+      fbBuilder.addOffset(0, fooTableOffset);
+    }
+    fbBuilder.addInt8(1, fooEnum?.value);
+    fbBuilder.addUint8(2, fooUnionType?.value);
+    if (fooUnionOffset != null) {
+      fbBuilder.addOffset(3, fooUnionOffset);
+    }
+    if (fooStruct != null) {
+      fbBuilder.addStruct(4, fooStruct.pack(fbBuilder));
+    }
+    return fbBuilder.endTable();
+  }
+
+  @override
+  String toString() {
+    return 'TableInFirstNST{fooTable: $fooTable, fooEnum: $fooEnum, fooUnionType: $fooUnionType, fooUnion: $fooUnion, fooStruct: $fooStruct}';
+  }
 }
 
 class _TableInFirstNSReader extends fb.TableReader<TableInFirstNS> {
@@ -150,6 +202,37 @@ class SecondTableInA {
   @override
   String toString() {
     return 'SecondTableInA{referToC: $referToC}';
+  }
+
+  SecondTableInAT unpack() => SecondTableInAT(
+      referToC: referToC?.unpack());
+
+  static int pack(fb.Builder fbBuilder, SecondTableInAT object) {
+    if (object == null) return 0;
+    return object.pack(fbBuilder);
+  }
+}
+
+class SecondTableInAT {
+  namespace_c.TableInCT referToC;
+
+  SecondTableInAT({
+      this.referToC});
+
+  int pack(fb.Builder fbBuilder) {
+    assert(fbBuilder != null);
+    final int referToCOffset = referToC?.pack(fbBuilder);
+
+    fbBuilder.startTable();
+    if (referToCOffset != null) {
+      fbBuilder.addOffset(0, referToCOffset);
+    }
+    return fbBuilder.endTable();
+  }
+
+  @override
+  String toString() {
+    return 'SecondTableInAT{referToC: $referToC}';
   }
 }
 
