@@ -13,10 +13,10 @@ class InParentNamespace {
   InParentNamespace._(this._bc, this._bcOffset);
   factory InParentNamespace(List<int> bytes) {
     fb.BufferContext rootRef = new fb.BufferContext.fromBytes(bytes);
-    return reader.read(rootRef, 0);
+    return reader.read(rootRef, 0)!;
   }
 
-  static const fb.Reader<InParentNamespace> reader = const _InParentNamespaceReader();
+  static const fb.Reader<InParentNamespace?> reader = const _InParentNamespaceReader();
 
   final fb.BufferContext _bc;
   final int _bcOffset;
@@ -49,7 +49,7 @@ class InParentNamespaceT {
   }
 }
 
-class _InParentNamespaceReader extends fb.TableReader<InParentNamespace> {
+class _InParentNamespaceReader extends fb.TableReader<InParentNamespace?> {
   const _InParentNamespaceReader();
 
   @override
@@ -73,7 +73,7 @@ class InParentNamespaceObjectBuilder extends fb.ObjectBuilder {
 
   /// Convenience method to serialize to byte list.
   @override
-  Uint8List toBytes([String fileIdentifier]) {
+  Uint8List toBytes([String? fileIdentifier]) {
     fb.Builder fbBuilder = new fb.Builder();
     int offset = finish(fbBuilder);
     return fbBuilder.finish(offset, fileIdentifier);

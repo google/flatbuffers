@@ -39,13 +39,13 @@ class CheckOtherLangaugesData {
     expect(mon.hp, 80);
     expect(mon.mana, 150);
     expect(mon.name, 'MyMonster');
-    expect(mon.pos.x, 1.0);
-    expect(mon.pos.y, 2.0);
-    expect(mon.pos.z, 3.0);
-    expect(mon.pos.test1, 3.0);
-    expect(mon.pos.test2.value, 2.0);
-    expect(mon.pos.test3.a, 5);
-    expect(mon.pos.test3.b, 6);
+    expect(mon.pos!.x, 1.0);
+    expect(mon.pos!.y, 2.0);
+    expect(mon.pos!.z, 3.0);
+    expect(mon.pos!.test1, 3.0);
+    expect(mon.pos!.test2.value, 2.0);
+    expect(mon.pos!.test3.a, 5);
+    expect(mon.pos!.test3.b, 6);
     expect(mon.testType.value, example.AnyTypeId.Monster.value);
     expect(mon.test is example.Monster, true);
     final monster2 = mon.test as example.Monster;
@@ -137,7 +137,7 @@ class CheckOtherLangaugesData {
 
 @reflectiveTest
 class BuilderTest {
-  void test_monsterBuilder([Builder builder]) {
+  void test_monsterBuilder([Builder? builder]) {
     final fbBuilder = builder ?? new Builder();
     final str = fbBuilder.writeString('MyMonster');
 
@@ -183,10 +183,10 @@ class BuilderTest {
     fbBuilder.finish(mon);
   }
 
-  void test_error_addInt32_withoutStartTable([Builder builder]) {
+  void test_error_addInt32_withoutStartTable([Builder? builder]) {
     builder ??= new Builder();
     expect(() {
-      builder.addInt32(0, 0);
+      builder!.addInt32(0, 0);
     }, throwsStateError);
   }
 
@@ -288,7 +288,7 @@ class BuilderTest {
         20);
   }
 
-  void test_table_format([Builder builder]) {
+  void test_table_format([Builder? builder]) {
     Uint8List byteList;
     {
       builder ??= new Builder(initialSize: 0);
@@ -326,8 +326,8 @@ class BuilderTest {
     List<int> byteList;
     {
       Builder builder = new Builder(initialSize: 0);
-      int latinStringOffset = builder.writeString(latinString);
-      int unicodeStringOffset = builder.writeString(unicodeString);
+      int? latinStringOffset = builder.writeString(latinString);
+      int? unicodeStringOffset = builder.writeString(unicodeString);
       builder.startTable();
       builder.addOffset(0, latinStringOffset);
       builder.addOffset(1, unicodeStringOffset);
@@ -345,11 +345,11 @@ class BuilderTest {
         unicodeString);
   }
 
-  void test_table_types([Builder builder]) {
+  void test_table_types([Builder? builder]) {
     List<int> byteList;
     {
       builder ??= new Builder(initialSize: 0);
-      int stringOffset = builder.writeString('12345');
+      int? stringOffset = builder.writeString('12345');
       builder.startTable();
       builder.addBool(0, true);
       builder.addInt8(1, 10);
@@ -497,7 +497,7 @@ class BuilderTest {
     }
   }
 
-  void test_writeList_ofObjects([Builder builder]) {
+  void test_writeList_ofObjects([Builder? builder]) {
     List<int> byteList;
     {
       builder ??= new Builder(initialSize: 0);
@@ -536,9 +536,9 @@ class BuilderTest {
     List<int> byteList;
     {
       Builder builder = new Builder(initialSize: 0);
-      int str1 = builder.writeString('12345');
-      int str2 = builder.writeString('ABC');
-      int offset = builder.writeList([str1, str2]);
+      int? str1 = builder.writeString('12345');
+      int? str2 = builder.writeString('ABC');
+      int offset = builder.writeList([str1!, str2!]);
       byteList = builder.finish(offset);
     }
     // read and verify
@@ -550,12 +550,12 @@ class BuilderTest {
     expect(items, contains('ABC'));
   }
 
-  void test_writeList_ofStrings_inObject([Builder builder]) {
+  void test_writeList_ofStrings_inObject([Builder? builder]) {
     List<int> byteList;
     {
       builder ??= new Builder(initialSize: 0);
       int listOffset = builder.writeList(
-          [builder.writeString('12345'), builder.writeString('ABC')]);
+          [builder.writeString('12345')!, builder.writeString('ABC')!]);
       builder.startTable();
       builder.addOffset(0, listOffset);
       int offset = builder.endTable();
@@ -564,7 +564,7 @@ class BuilderTest {
     // read and verify
     BufferContext buf = new BufferContext.fromBytes(byteList);
     StringListWrapperImpl reader = new StringListWrapperReader().read(buf, 0);
-    List<String> items = reader.items;
+    List<String>? items = reader.items;
     expect(items, hasLength(2));
     expect(items, contains('12345'));
     expect(items, contains('ABC'));
@@ -614,7 +614,7 @@ class BuilderTest {
 
   void test_reset() {
     // We'll run a selection of tests , reusing the builder between them.
-    final testCases = <void Function(Builder)>[
+    final testCases = <void Function(Builder?)>[
       test_monsterBuilder,
       test_error_addInt32_withoutStartTable,
       test_table_format,
@@ -633,14 +633,14 @@ class BuilderTest {
       // print the order so failures are reproducible
       printOnFailure('Running reset() test cases in order: $indexes');
 
-      Builder builder;
+      Builder? builder;
       indexes.forEach((index) {
         if (builder == null) {
           // Initial size small enough so at least one test case increases it.
           // On the other hand, it's large enough so that some test cases don't.
           builder = Builder(initialSize: 32);
         } else {
-          builder.reset();
+          builder!.reset();
         }
         testCases[index](builder);
       });
@@ -748,7 +748,7 @@ class StringListWrapperImpl {
 
   StringListWrapperImpl(this.bp, this.offset);
 
-  List<String> get items => const ListReader<String>(const StringReader())
+  List<String>? get items => const ListReader<String>(const StringReader())
       .vTableGetNullable(bp, offset, indexToField(0));
 }
 

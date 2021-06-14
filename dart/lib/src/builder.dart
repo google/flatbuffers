@@ -25,7 +25,7 @@ class Builder {
   /// Use this method in order to turn an object into a FlexBuffer directly.
   ///
   /// Use the manual instantiation of the [Builder] and gradual addition of values, if performance is more important than convenience.
-  static ByteBuffer buildFromObject(Object value) {
+  static ByteBuffer buildFromObject(Object? value) {
     final builder = Builder();
     builder._add(value);
     final buffer = builder.finish();
@@ -34,7 +34,7 @@ class Builder {
     return byteData.buffer;
   }
 
-  void _add(Object value) {
+  void _add(Object? value) {
     if (value == null) {
       addNull();
     } else if (value is bool) {
@@ -95,7 +95,7 @@ class Builder {
   void addString(String value) {
     _integrityCheckOnValueAddition();
     if (_stringCache.containsKey(value)) {
-      _stack.add(_stringCache[value]/*!*/);
+      _stack.add(_stringCache[value]!);
       return;
     }
     final utf8String = utf8.encode(value);
@@ -118,7 +118,7 @@ class Builder {
   void addKey(String value) {
     _integrityCheckOnKeyAddition();
     if (_keyCache.containsKey(value)) {
-      _stack.add(_keyCache[value]/*!*/);
+      _stack.add(_keyCache[value]!);
       return;
     }
     final utf8String = utf8.encode(value);
@@ -158,7 +158,7 @@ class Builder {
   void addIntIndirectly(int value, {bool cache = false}) {
     _integrityCheckOnValueAddition();
     if (_indirectIntCache.containsKey(value)) {
-      _stack.add(_indirectIntCache[value]/*!*/);
+      _stack.add(_indirectIntCache[value]!);
       return;
     }
     final stackValue = _StackValue.WithInt(value);
@@ -182,7 +182,7 @@ class Builder {
   void addDoubleIndirectly(double value, {bool cache = false}) {
     _integrityCheckOnValueAddition();
     if (cache && _indirectDoubleCache.containsKey(value)) {
-      _stack.add(_indirectDoubleCache[value]/*!*/);
+      _stack.add(_indirectDoubleCache[value]!);
       return;
     }
     final stackValue = _StackValue.WithDouble(value);
@@ -289,7 +289,7 @@ class Builder {
     _finished = true;
   }
   
-  _StackValue _createVector(int start, int vecLength, int step, [_StackValue keys]) {
+  _StackValue _createVector(int start, int vecLength, int step, [_StackValue? keys]) {
     var bitWidth = BitWidthUtil.uwidth(vecLength);
     var prefixElements = 1;
     if (keys != null) {
@@ -388,7 +388,7 @@ class Builder {
     final vecLength = (_stack.length - pointer.stackPosition) >> 1;
     final offsets = <int>[];
     for (var i = pointer.stackPosition; i < _stack.length; i += 2) {
-      offsets.add(_stack[i].offset/*!*/);
+      offsets.add(_stack[i].offset!);
     }
     final keysHash = _KeysHash(offsets);
     var keysStackValue;
@@ -411,8 +411,8 @@ class Builder {
     var c1, c2;
     var index = 0;
     do {
-      c1 = _buffer.getUint8(v1.offset + index);
-      c2 = _buffer.getUint8(v2.offset + index);
+      c1 = _buffer.getUint8(v1.offset! + index);
+      c2 = _buffer.getUint8(v2.offset! + index);
       if (c2 < c1) return true;
       if (c1 < c2) return false;
       index += 1;
@@ -429,7 +429,7 @@ class Builder {
   void _writeStackValue(_StackValue value, int byteWidth) {
     final newOffset = _newOffset(byteWidth);
     if (value.isOffset) {
-      final relativeOffset = _offset - value.offset;
+      final relativeOffset = _offset - value.offset!;
       if (byteWidth == 8 || relativeOffset < (1 << (byteWidth * 8))) {
         _writeUInt(relativeOffset, byteWidth);
       } else {
@@ -505,8 +505,8 @@ class Builder {
 }
 
 class _StackValue {
-  Object _value;
-  int _offset;
+  late Object _value;
+  int? _offset;
   ValueType _type;
   BitWidth _width;
 
@@ -555,7 +555,7 @@ class _StackValue {
     for(var i = 0; i < 4; i++) {
       final width = 1 << i;
       final offsetLoc = size + BitWidthUtil.paddingSize(size, width) + index * width;
-      final offset = offsetLoc - _offset;
+      final offset = offsetLoc - _offset!;
       final bitWidth = BitWidthUtil.uwidth(offset);
       if (1 << bitWidth.index == width) {
         return bitWidth;
@@ -569,30 +569,30 @@ class _StackValue {
       if (_type == ValueType.Float) {
         if (width == BitWidth.width32) {
           final result = ByteData(4);
-          result.setFloat32(0, _value, Endian.little);
+          result.setFloat32(0, _value as double, Endian.little);
           return result.buffer.asUint8List();
         } else {
           final result = ByteData(8);
-          result.setFloat64(0, _value, Endian.little);
+          result.setFloat64(0, _value as double, Endian.little);
           return result.buffer.asUint8List();
         }
       } else {
         switch(width) {
           case BitWidth.width8:
             final result = ByteData(1);
-            result.setInt8(0, _value);
+            result.setInt8(0, _value as int);
             return result.buffer.asUint8List();
           case BitWidth.width16:
             final result = ByteData(2);
-            result.setInt16(0, _value, Endian.little);
+            result.setInt16(0, _value as int, Endian.little);
             return result.buffer.asUint8List();
           case BitWidth.width32:
             final result = ByteData(4);
-            result.setInt32(0, _value, Endian.little);
+            result.setInt32(0, _value as int, Endian.little);
             return result.buffer.asUint8List();
           case BitWidth.width64:
             final result = ByteData(8);
-            result.setInt64(0, _value, Endian.little);
+            result.setInt64(0, _value as int, Endian.little);
             return result.buffer.asUint8List();
         }
       }
@@ -604,7 +604,7 @@ class _StackValue {
     }
     if (_type == ValueType.Bool) {
       final result = ByteData(1);
-      result.setInt8(0, _value ? 1 : 0);
+      result.setInt8(0, _value as bool ? 1 : 0);
       return result.buffer.asUint8List();
     }
 
@@ -622,7 +622,7 @@ class _StackValue {
   bool get isOffset {
     return !ValueTypeUtils.isInline(_type);
   }
-  int get offset => _offset;
+  int? get offset => _offset;
 
   bool get isFloat32 {
     return _type == ValueType.Float && _width == BitWidth.width32;

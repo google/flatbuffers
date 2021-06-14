@@ -13,10 +13,10 @@ class Monster {
   Monster._(this._bc, this._bcOffset);
   factory Monster(List<int> bytes) {
     fb.BufferContext rootRef = new fb.BufferContext.fromBytes(bytes);
-    return reader.read(rootRef, 0);
+    return reader.read(rootRef, 0)!;
   }
 
-  static const fb.Reader<Monster> reader = const _MonsterReader();
+  static const fb.Reader<Monster?> reader = const _MonsterReader();
 
   final fb.BufferContext _bc;
   final int _bcOffset;
@@ -49,7 +49,7 @@ class MonsterT {
   }
 }
 
-class _MonsterReader extends fb.TableReader<Monster> {
+class _MonsterReader extends fb.TableReader<Monster?> {
   const _MonsterReader();
 
   @override
@@ -73,7 +73,7 @@ class MonsterObjectBuilder extends fb.ObjectBuilder {
 
   /// Convenience method to serialize to byte list.
   @override
-  Uint8List toBytes([String fileIdentifier]) {
+  Uint8List toBytes([String? fileIdentifier]) {
     fb.Builder fbBuilder = new fb.Builder();
     int offset = finish(fbBuilder);
     return fbBuilder.finish(offset, fileIdentifier);

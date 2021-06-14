@@ -13,10 +13,10 @@ class Reference {
   final String _path;
   final int _byteWidth;
   final ValueType _valueType;
-  int _length;
+  int? _length;
 
   Reference._(this._buffer, this._offset, this._parentWidth, int packedType,
-      this._path, [int/*?*/ byteWidth, ValueType/*?*/ valueType])
+      this._path, [int? byteWidth, ValueType? valueType])
       :
         _byteWidth = byteWidth ?? 1 << (packedType & 3),
         _valueType = valueType ?? ValueTypeUtils.fromInt(packedType >> 2) {
@@ -55,7 +55,7 @@ class Reference {
   bool get isMap => _valueType == ValueType.Map;
 
   /// If this [isBool], returns the bool value. Otherwise, returns null.
-  bool get boolValue {
+  bool? get boolValue {
     if(_valueType == ValueType.Bool) {
       return _readInt(_offset, _parentWidth) != 0;
     }
@@ -65,7 +65,7 @@ class Reference {
   /// Returns an [int], if the underlying value can be represented as an int.
   ///
   /// Otherwise returns [null].
-  int get intValue {
+  int? get intValue {
     if (_valueType == ValueType.Int) {
       return _readInt(_offset, _parentWidth);
     }
@@ -84,7 +84,7 @@ class Reference {
   /// Returns [double], if the underlying value [isDouble].
   ///
   /// Otherwise returns [null].
-  double get doubleValue {
+  double? get doubleValue {
     if (_valueType == ValueType.Float) {
       return _readFloat(_offset, _parentWidth);
     }
@@ -97,12 +97,12 @@ class Reference {
   /// Returns [num], if the underlying value is numeric, be it int uint, or float (direct or indirect).
   ///
   /// Otherwise returns [null].
-  num get numValue => doubleValue ?? intValue;
+  num? get numValue => doubleValue ?? intValue;
 
   /// Returns [String] value or null otherwise.
   /// 
   /// This method performers a utf8 decoding, as FlexBuffers format stores strings in utf8 encoding. 
-  String get stringValue {
+  String? get stringValue {
     if (_valueType == ValueType.String || _valueType == ValueType.Key) {
       return utf8.decode(_buffer.buffer.asUint8List(_indirect, length));
     }
@@ -110,7 +110,7 @@ class Reference {
   }
 
   /// Returns [Uint8List] value or null otherwise.
-  Uint8List get blobValue {
+  Uint8List? get blobValue {
     if (_valueType == ValueType.Blob) {
       return _buffer.buffer.asUint8List(_indirect, length);
     }
@@ -129,8 +129,8 @@ class Reference {
       }
       final elementOffset = _indirect + index * _byteWidth;
       int packedType = 0;
-      int/*?*/ byteWidth;
-      ValueType/*?*/ valueType;
+      int? byteWidth;
+      ValueType? valueType;
       if (ValueTypeUtils.isTypedVector(_valueType)) {
         byteWidth = 1;
         valueType = ValueTypeUtils.typedVectorElementType(_valueType);
@@ -183,7 +183,7 @@ class Reference {
   /// If the underlying value is a number, or a bool, the length is 1.
   /// If the underlying value is a vector, or map, the length reflects number of elements / element pairs.
   /// If the values is a string or a blob, the length reflects a number of bytes the value occupies (strings are encoded in utf8 format).
-  int/*!*/ get length {
+  int get length {
     if (_length == null) {
       // needs to be checked before more generic isAVector
       if (ValueTypeUtils.isFixedTypedVector(_valueType)) {
@@ -216,7 +216,7 @@ class Reference {
         _length = 1;
       }
     }
-    return _length;
+    return _length!;
   }
 
 
@@ -227,7 +227,7 @@ class Reference {
   /// Blob values are represented as base64 encoded string.
   String get json {
     if(_valueType == ValueType.Bool) {
-      return boolValue ? 'true' : 'false';
+      return boolValue! ? 'true' : 'false';
     }
     if (_valueType == ValueType.Null) {
       return 'null';
@@ -239,7 +239,7 @@ class Reference {
       return jsonEncode(stringValue);
     }
     if (_valueType == ValueType.Blob) {
-      return jsonEncode(base64Encode(blobValue));
+      return jsonEncode(base64Encode(blobValue!));
     }
     if (ValueTypeUtils.isAVector(_valueType)) {
       final result = StringBuffer();
@@ -327,7 +327,7 @@ class Reference {
     }
   }
 
-  int _keyIndex(String key) {
+  int? _keyIndex(String key) {
     final input = utf8.encode(key);
     final keysVectorOffset = _indirect - _byteWidth * 3;
     final indirectOffset = keysVectorOffset - _readUInt(keysVectorOffset, BitWidthUtil.fromByteWidth(_byteWidth));

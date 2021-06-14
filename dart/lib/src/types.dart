@@ -20,7 +20,7 @@ class BitWidthUtil {
       if (v >> 31 == 0) return BitWidth.width32;
       return BitWidth.width64;
     }
-    return value == _toF32(value) ? BitWidth.width32 : BitWidth.width64;
+    return value == _toF32(value as double) ? BitWidth.width32 : BitWidth.width64;
   }
   static BitWidth uwidth(num value) {
     if (value.toInt() == value) {
@@ -30,7 +30,7 @@ class BitWidthUtil {
       if (v >> 32 == 0) return BitWidth.width32;
       return BitWidth.width64;
     }
-    return value == _toF32(value) ? BitWidth.width32 : BitWidth.width64;
+    return value == _toF32(value as double) ? BitWidth.width32 : BitWidth.width64;
   }
   static BitWidth fromByteWidth(int value) {
     if (value == 1) {

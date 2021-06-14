@@ -19,7 +19,7 @@ class Color {
     if (!values.containsKey(value)) {
       throw new StateError('Invalid value $value for bit flag enum Color');
     }
-    return values[value];
+    return values[value]!;
   }
 
   static bool containsValue(int value) => values.containsKey(value);
@@ -62,7 +62,7 @@ class Race {
     if (!values.containsKey(value)) {
       throw new StateError('Invalid value $value for bit flag enum Race');
     }
-    return values[value];
+    return values[value]!;
   }
 
   static const int minValue = -1;
@@ -103,7 +103,7 @@ class AnyTypeId {
     if (!values.containsKey(value)) {
       throw new StateError('Invalid value $value for bit flag enum AnyTypeId');
     }
-    return values[value];
+    return values[value]!;
   }
 
   static const int minValue = 0;
@@ -144,7 +144,7 @@ class AnyUniqueAliasesTypeId {
     if (!values.containsKey(value)) {
       throw new StateError('Invalid value $value for bit flag enum AnyUniqueAliasesTypeId');
     }
-    return values[value];
+    return values[value]!;
   }
 
   static const int minValue = 0;
@@ -185,7 +185,7 @@ class AnyAmbiguousAliasesTypeId {
     if (!values.containsKey(value)) {
       throw new StateError('Invalid value $value for bit flag enum AnyAmbiguousAliasesTypeId');
     }
-    return values[value];
+    return values[value]!;
   }
 
   static const int minValue = 0;
@@ -294,12 +294,12 @@ class TestBuilder {
 }
 
 class TestObjectBuilder extends fb.ObjectBuilder {
-  final int _a;
-  final int _b;
+  final int? _a;
+  final int? _b;
 
   TestObjectBuilder({
-    int a,
-    int b,
+    int? a,
+    int? b,
   })
       : _a = a,
         _b = b;
@@ -311,14 +311,14 @@ class TestObjectBuilder extends fb.ObjectBuilder {
     assert(fbBuilder != null);
 
     fbBuilder.pad(1);
-    fbBuilder.putInt8(_b);
-    fbBuilder.putInt16(_a);
+    fbBuilder.putInt8(_b!);
+    fbBuilder.putInt16(_a!);
     return fbBuilder.offset;
   }
 
   /// Convenience method to serialize to byte list.
   @override
-  Uint8List toBytes([String fileIdentifier]) {
+  Uint8List toBytes([String? fileIdentifier]) {
     fb.Builder fbBuilder = new fb.Builder();
     int offset = finish(fbBuilder);
     return fbBuilder.finish(offset, fileIdentifier);
@@ -328,10 +328,10 @@ class TestSimpleTableWithEnum {
   TestSimpleTableWithEnum._(this._bc, this._bcOffset);
   factory TestSimpleTableWithEnum(List<int> bytes) {
     fb.BufferContext rootRef = new fb.BufferContext.fromBytes(bytes);
-    return reader.read(rootRef, 0);
+    return reader.read(rootRef, 0)!;
   }
 
-  static const fb.Reader<TestSimpleTableWithEnum> reader = const _TestSimpleTableWithEnumReader();
+  static const fb.Reader<TestSimpleTableWithEnum?> reader = const _TestSimpleTableWithEnumReader();
 
   final fb.BufferContext _bc;
   final int _bcOffset;
@@ -372,7 +372,7 @@ class TestSimpleTableWithEnumT {
   }
 }
 
-class _TestSimpleTableWithEnumReader extends fb.TableReader<TestSimpleTableWithEnum> {
+class _TestSimpleTableWithEnumReader extends fb.TableReader<TestSimpleTableWithEnum?> {
   const _TestSimpleTableWithEnumReader();
 
   @override
@@ -402,10 +402,10 @@ class TestSimpleTableWithEnumBuilder {
 }
 
 class TestSimpleTableWithEnumObjectBuilder extends fb.ObjectBuilder {
-  final Color _color;
+  final Color? _color;
 
   TestSimpleTableWithEnumObjectBuilder({
-    Color color,
+    Color? color,
   })
       : _color = color;
 
@@ -422,7 +422,7 @@ class TestSimpleTableWithEnumObjectBuilder extends fb.ObjectBuilder {
 
   /// Convenience method to serialize to byte list.
   @override
-  Uint8List toBytes([String fileIdentifier]) {
+  Uint8List toBytes([String? fileIdentifier]) {
     fb.Builder fbBuilder = new fb.Builder();
     int offset = finish(fbBuilder);
     return fbBuilder.finish(offset, fileIdentifier);
@@ -431,7 +431,7 @@ class TestSimpleTableWithEnumObjectBuilder extends fb.ObjectBuilder {
 class Vec3 {
   Vec3._(this._bc, this._bcOffset);
 
-  static const fb.Reader<Vec3> reader = const _Vec3Reader();
+  static const fb.Reader<Vec3?> reader = const _Vec3Reader();
 
   final fb.BufferContext _bc;
   final int _bcOffset;
@@ -499,7 +499,7 @@ class Vec3T {
   }
 }
 
-class _Vec3Reader extends fb.StructReader<Vec3> {
+class _Vec3Reader extends fb.StructReader<Vec3?> {
   const _Vec3Reader();
 
   @override
@@ -533,20 +533,20 @@ class Vec3Builder {
 }
 
 class Vec3ObjectBuilder extends fb.ObjectBuilder {
-  final double _x;
-  final double _y;
-  final double _z;
-  final double _test1;
-  final Color _test2;
-  final TestObjectBuilder _test3;
+  final double? _x;
+  final double? _y;
+  final double? _z;
+  final double? _test1;
+  final Color? _test2;
+  final TestObjectBuilder? _test3;
 
   Vec3ObjectBuilder({
-    double x,
-    double y,
-    double z,
-    double test1,
-    Color test2,
-    TestObjectBuilder test3,
+    double? x,
+    double? y,
+    double? z,
+    double? test1,
+    Color? test2,
+    TestObjectBuilder? test3,
   })
       : _x = x,
         _y = y,
@@ -562,20 +562,20 @@ class Vec3ObjectBuilder extends fb.ObjectBuilder {
     assert(fbBuilder != null);
 
     fbBuilder.pad(2);
-    _test3.finish(fbBuilder);
+    _test3!.finish(fbBuilder);
     fbBuilder.pad(1);
     fbBuilder.putUint8(_test2?.value);
-    fbBuilder.putFloat64(_test1);
+    fbBuilder.putFloat64(_test1!);
     fbBuilder.pad(4);
-    fbBuilder.putFloat32(_z);
-    fbBuilder.putFloat32(_y);
-    fbBuilder.putFloat32(_x);
+    fbBuilder.putFloat32(_z!);
+    fbBuilder.putFloat32(_y!);
+    fbBuilder.putFloat32(_x!);
     return fbBuilder.offset;
   }
 
   /// Convenience method to serialize to byte list.
   @override
-  Uint8List toBytes([String fileIdentifier]) {
+  Uint8List toBytes([String? fileIdentifier]) {
     fb.Builder fbBuilder = new fb.Builder();
     int offset = finish(fbBuilder);
     return fbBuilder.finish(offset, fileIdentifier);
@@ -656,12 +656,12 @@ class AbilityBuilder {
 }
 
 class AbilityObjectBuilder extends fb.ObjectBuilder {
-  final int _id;
-  final int _distance;
+  final int? _id;
+  final int? _distance;
 
   AbilityObjectBuilder({
-    int id,
-    int distance,
+    int? id,
+    int? distance,
   })
       : _id = id,
         _distance = distance;
@@ -672,14 +672,14 @@ class AbilityObjectBuilder extends fb.ObjectBuilder {
     fb.Builder fbBuilder) {
     assert(fbBuilder != null);
 
-    fbBuilder.putUint32(_distance);
-    fbBuilder.putUint32(_id);
+    fbBuilder.putUint32(_distance!);
+    fbBuilder.putUint32(_id!);
     return fbBuilder.offset;
   }
 
   /// Convenience method to serialize to byte list.
   @override
-  Uint8List toBytes([String fileIdentifier]) {
+  Uint8List toBytes([String? fileIdentifier]) {
     fb.Builder fbBuilder = new fb.Builder();
     int offset = finish(fbBuilder);
     return fbBuilder.finish(offset, fileIdentifier);
@@ -766,14 +766,14 @@ class StructOfStructsBuilder {
 }
 
 class StructOfStructsObjectBuilder extends fb.ObjectBuilder {
-  final AbilityObjectBuilder _a;
-  final TestObjectBuilder _b;
-  final AbilityObjectBuilder _c;
+  final AbilityObjectBuilder? _a;
+  final TestObjectBuilder? _b;
+  final AbilityObjectBuilder? _c;
 
   StructOfStructsObjectBuilder({
-    AbilityObjectBuilder a,
-    TestObjectBuilder b,
-    AbilityObjectBuilder c,
+    AbilityObjectBuilder? a,
+    TestObjectBuilder? b,
+    AbilityObjectBuilder? c,
   })
       : _a = a,
         _b = b,
@@ -785,15 +785,15 @@ class StructOfStructsObjectBuilder extends fb.ObjectBuilder {
     fb.Builder fbBuilder) {
     assert(fbBuilder != null);
 
-    _c.finish(fbBuilder);
-    _b.finish(fbBuilder);
-    _a.finish(fbBuilder);
+    _c!.finish(fbBuilder);
+    _b!.finish(fbBuilder);
+    _a!.finish(fbBuilder);
     return fbBuilder.offset;
   }
 
   /// Convenience method to serialize to byte list.
   @override
-  Uint8List toBytes([String fileIdentifier]) {
+  Uint8List toBytes([String? fileIdentifier]) {
     fb.Builder fbBuilder = new fb.Builder();
     int offset = finish(fbBuilder);
     return fbBuilder.finish(offset, fileIdentifier);
@@ -803,10 +803,10 @@ class Stat {
   Stat._(this._bc, this._bcOffset);
   factory Stat(List<int> bytes) {
     fb.BufferContext rootRef = new fb.BufferContext.fromBytes(bytes);
-    return reader.read(rootRef, 0);
+    return reader.read(rootRef, 0)!;
   }
 
-  static const fb.Reader<Stat> reader = const _StatReader();
+  static const fb.Reader<Stat?> reader = const _StatReader();
 
   final fb.BufferContext _bc;
   final int _bcOffset;
@@ -860,7 +860,7 @@ class StatT {
   }
 }
 
-class _StatReader extends fb.TableReader<Stat> {
+class _StatReader extends fb.TableReader<Stat?> {
   const _StatReader();
 
   @override
@@ -898,14 +898,14 @@ class StatBuilder {
 }
 
 class StatObjectBuilder extends fb.ObjectBuilder {
-  final String _id;
-  final int _val;
-  final int _count;
+  final String? _id;
+  final int? _val;
+  final int? _count;
 
   StatObjectBuilder({
-    String id,
-    int val,
-    int count,
+    String? id,
+    int? val,
+    int? count,
   })
       : _id = id,
         _val = val,
@@ -916,7 +916,7 @@ class StatObjectBuilder extends fb.ObjectBuilder {
   int finish(
     fb.Builder fbBuilder) {
     assert(fbBuilder != null);
-    final int idOffset = fbBuilder.writeString(_id);
+    final int? idOffset = fbBuilder.writeString(_id);
 
     fbBuilder.startTable();
     if (idOffset != null) {
@@ -929,7 +929,7 @@ class StatObjectBuilder extends fb.ObjectBuilder {
 
   /// Convenience method to serialize to byte list.
   @override
-  Uint8List toBytes([String fileIdentifier]) {
+  Uint8List toBytes([String? fileIdentifier]) {
     fb.Builder fbBuilder = new fb.Builder();
     int offset = finish(fbBuilder);
     return fbBuilder.finish(offset, fileIdentifier);
@@ -1013,10 +1013,10 @@ class ReferrableBuilder {
 }
 
 class ReferrableObjectBuilder extends fb.ObjectBuilder {
-  final int _id;
+  final int? _id;
 
   ReferrableObjectBuilder({
-    int id,
+    int? id,
   })
       : _id = id;
 
@@ -1033,7 +1033,7 @@ class ReferrableObjectBuilder extends fb.ObjectBuilder {
 
   /// Convenience method to serialize to byte list.
   @override
-  Uint8List toBytes([String fileIdentifier]) {
+  Uint8List toBytes([String? fileIdentifier]) {
     fb.Builder fbBuilder = new fb.Builder();
     int offset = finish(fbBuilder);
     return fbBuilder.finish(offset, fileIdentifier);
@@ -1044,15 +1044,15 @@ class Monster {
   Monster._(this._bc, this._bcOffset);
   factory Monster(List<int> bytes) {
     fb.BufferContext rootRef = new fb.BufferContext.fromBytes(bytes);
-    return reader.read(rootRef, 0);
+    return reader.read(rootRef, 0)!;
   }
 
-  static const fb.Reader<Monster> reader = const _MonsterReader();
+  static const fb.Reader<Monster?> reader = const _MonsterReader();
 
   final fb.BufferContext _bc;
   final int _bcOffset;
 
-  Vec3 get pos => Vec3.reader.vTableGet(_bc, _bcOffset, 4, null);
+  Vec3? get pos => Vec3.reader.vTableGet(_bc, _bcOffset, 4, null);
   int get mana => const fb.Int16Reader().vTableGet(_bc, _bcOffset, 6, 150);
   int get hp => const fb.Int16Reader().vTableGet(_bc, _bcOffset, 8, 100);
   String get name => const fb.StringReader().vTableGet(_bc, _bcOffset, 10, null);
@@ -1071,10 +1071,10 @@ class Monster {
   List<String> get testarrayofstring => const fb.ListReader<String>(const fb.StringReader()).vTableGet(_bc, _bcOffset, 24, null);
   ///  an example documentation comment: this will end up in the generated code
   ///  multiline too
-  List<Monster> get testarrayoftables => const fb.ListReader<Monster>(Monster.reader).vTableGet(_bc, _bcOffset, 26, null);
-  Monster get enemy => Monster.reader.vTableGet(_bc, _bcOffset, 28, null);
+  List<Monster?> get testarrayoftables => const fb.ListReader<Monster?>(Monster.reader).vTableGet(_bc, _bcOffset, 26, null);
+  Monster? get enemy => Monster.reader.vTableGet(_bc, _bcOffset, 28, null);
   List<int> get testnestedflatbuffer => const fb.ListReader<int>(const fb.Uint8Reader()).vTableGet(_bc, _bcOffset, 30, null);
-  Stat get testempty => Stat.reader.vTableGet(_bc, _bcOffset, 32, null);
+  Stat? get testempty => Stat.reader.vTableGet(_bc, _bcOffset, 32, null);
   bool get testbool => const fb.BoolReader().vTableGet(_bc, _bcOffset, 34, false);
   int get testhashs32Fnv1 => const fb.Int32Reader().vTableGet(_bc, _bcOffset, 36, 0);
   int get testhashu32Fnv1 => const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 38, 0);
@@ -1094,7 +1094,7 @@ class Monster {
   List<Test> get test5 => const fb.ListReader<Test>(Test.reader).vTableGet(_bc, _bcOffset, 66, null);
   List<int> get vectorOfLongs => const fb.ListReader<int>(const fb.Int64Reader()).vTableGet(_bc, _bcOffset, 68, null);
   List<double> get vectorOfDoubles => const fb.ListReader<double>(const fb.Float64Reader()).vTableGet(_bc, _bcOffset, 70, null);
-  my_game.InParentNamespace get parentNamespaceTest => my_game.InParentNamespace.reader.vTableGet(_bc, _bcOffset, 72, null);
+  my_game.InParentNamespace? get parentNamespaceTest => my_game.InParentNamespace.reader.vTableGet(_bc, _bcOffset, 72, null);
   List<Referrable> get vectorOfReferrables => const fb.ListReader<Referrable>(Referrable.reader).vTableGet(_bc, _bcOffset, 74, null);
   int get singleWeakReference => const fb.Uint64Reader().vTableGet(_bc, _bcOffset, 76, 0);
   List<int> get vectorOfWeakReferences => const fb.ListReader<int>(const fb.Uint64Reader()).vTableGet(_bc, _bcOffset, 78, null);
@@ -1124,7 +1124,7 @@ class Monster {
   List<Color> get vectorOfEnums => const fb.ListReader<Color>(Color.reader).vTableGet(_bc, _bcOffset, 98, null);
   Race get signedEnum => new Race.fromValue(const fb.Int8Reader().vTableGet(_bc, _bcOffset, 100, -1));
   List<int> get testrequirednestedflatbuffer => const fb.ListReader<int>(const fb.Uint8Reader()).vTableGet(_bc, _bcOffset, 102, null);
-  List<Stat> get scalarKeySortedTables => const fb.ListReader<Stat>(Stat.reader).vTableGet(_bc, _bcOffset, 104, null);
+  List<Stat?> get scalarKeySortedTables => const fb.ListReader<Stat?>(Stat.reader).vTableGet(_bc, _bcOffset, 104, null);
 
   @override
   String toString() {
@@ -1488,7 +1488,7 @@ class MonsterT {
   }
 }
 
-class _MonsterReader extends fb.TableReader<Monster> {
+class _MonsterReader extends fb.TableReader<Monster?> {
   const _MonsterReader();
 
   @override
@@ -1519,7 +1519,7 @@ class MonsterBuilder {
     fbBuilder.addInt16(2, hp);
     return fbBuilder.offset;
   }
-  int addNameOffset(int offset) {
+  int addNameOffset(int? offset) {
     fbBuilder.addOffset(3, offset);
     return fbBuilder.offset;
   }
@@ -1714,108 +1714,108 @@ class MonsterBuilder {
 }
 
 class MonsterObjectBuilder extends fb.ObjectBuilder {
-  final Vec3ObjectBuilder _pos;
-  final int _mana;
-  final int _hp;
-  final String _name;
-  final List<int> _inventory;
-  final Color _color;
-  final AnyTypeId _testType;
+  final Vec3ObjectBuilder? _pos;
+  final int? _mana;
+  final int? _hp;
+  final String? _name;
+  final List<int>? _inventory;
+  final Color? _color;
+  final AnyTypeId? _testType;
   final dynamic _test;
-  final List<TestObjectBuilder> _test4;
-  final List<String> _testarrayofstring;
-  final List<MonsterObjectBuilder> _testarrayoftables;
-  final MonsterObjectBuilder _enemy;
-  final List<int> _testnestedflatbuffer;
-  final StatObjectBuilder _testempty;
-  final bool _testbool;
-  final int _testhashs32Fnv1;
-  final int _testhashu32Fnv1;
-  final int _testhashs64Fnv1;
-  final int _testhashu64Fnv1;
-  final int _testhashs32Fnv1a;
-  final int _testhashu32Fnv1a;
-  final int _testhashs64Fnv1a;
-  final int _testhashu64Fnv1a;
-  final List<bool> _testarrayofbools;
-  final double _testf;
-  final double _testf2;
-  final double _testf3;
-  final List<String> _testarrayofstring2;
-  final List<AbilityObjectBuilder> _testarrayofsortedstruct;
-  final List<int> _flex;
-  final List<TestObjectBuilder> _test5;
-  final List<int> _vectorOfLongs;
-  final List<double> _vectorOfDoubles;
-  final my_game.InParentNamespaceObjectBuilder _parentNamespaceTest;
-  final List<ReferrableObjectBuilder> _vectorOfReferrables;
-  final int _singleWeakReference;
-  final List<int> _vectorOfWeakReferences;
-  final List<ReferrableObjectBuilder> _vectorOfStrongReferrables;
-  final int _coOwningReference;
-  final List<int> _vectorOfCoOwningReferences;
-  final int _nonOwningReference;
-  final List<int> _vectorOfNonOwningReferences;
-  final AnyUniqueAliasesTypeId _anyUniqueType;
+  final List<TestObjectBuilder>? _test4;
+  final List<String>? _testarrayofstring;
+  final List<MonsterObjectBuilder>? _testarrayoftables;
+  final MonsterObjectBuilder? _enemy;
+  final List<int>? _testnestedflatbuffer;
+  final StatObjectBuilder? _testempty;
+  final bool? _testbool;
+  final int? _testhashs32Fnv1;
+  final int? _testhashu32Fnv1;
+  final int? _testhashs64Fnv1;
+  final int? _testhashu64Fnv1;
+  final int? _testhashs32Fnv1a;
+  final int? _testhashu32Fnv1a;
+  final int? _testhashs64Fnv1a;
+  final int? _testhashu64Fnv1a;
+  final List<bool>? _testarrayofbools;
+  final double? _testf;
+  final double? _testf2;
+  final double? _testf3;
+  final List<String>? _testarrayofstring2;
+  final List<AbilityObjectBuilder>? _testarrayofsortedstruct;
+  final List<int>? _flex;
+  final List<TestObjectBuilder>? _test5;
+  final List<int>? _vectorOfLongs;
+  final List<double>? _vectorOfDoubles;
+  final my_game.InParentNamespaceObjectBuilder? _parentNamespaceTest;
+  final List<ReferrableObjectBuilder>? _vectorOfReferrables;
+  final int? _singleWeakReference;
+  final List<int>? _vectorOfWeakReferences;
+  final List<ReferrableObjectBuilder>? _vectorOfStrongReferrables;
+  final int? _coOwningReference;
+  final List<int>? _vectorOfCoOwningReferences;
+  final int? _nonOwningReference;
+  final List<int>? _vectorOfNonOwningReferences;
+  final AnyUniqueAliasesTypeId? _anyUniqueType;
   final dynamic _anyUnique;
-  final AnyAmbiguousAliasesTypeId _anyAmbiguousType;
+  final AnyAmbiguousAliasesTypeId? _anyAmbiguousType;
   final dynamic _anyAmbiguous;
-  final List<Color> _vectorOfEnums;
-  final Race _signedEnum;
-  final List<int> _testrequirednestedflatbuffer;
-  final List<StatObjectBuilder> _scalarKeySortedTables;
+  final List<Color>? _vectorOfEnums;
+  final Race? _signedEnum;
+  final List<int>? _testrequirednestedflatbuffer;
+  final List<StatObjectBuilder>? _scalarKeySortedTables;
 
   MonsterObjectBuilder({
-    Vec3ObjectBuilder pos,
-    int mana,
-    int hp,
-    String name,
-    List<int> inventory,
-    Color color,
-    AnyTypeId testType,
+    Vec3ObjectBuilder? pos,
+    int? mana,
+    int? hp,
+    String? name,
+    List<int>? inventory,
+    Color? color,
+    AnyTypeId? testType,
     dynamic test,
-    List<TestObjectBuilder> test4,
-    List<String> testarrayofstring,
-    List<MonsterObjectBuilder> testarrayoftables,
-    MonsterObjectBuilder enemy,
-    List<int> testnestedflatbuffer,
-    StatObjectBuilder testempty,
-    bool testbool,
-    int testhashs32Fnv1,
-    int testhashu32Fnv1,
-    int testhashs64Fnv1,
-    int testhashu64Fnv1,
-    int testhashs32Fnv1a,
-    int testhashu32Fnv1a,
-    int testhashs64Fnv1a,
-    int testhashu64Fnv1a,
-    List<bool> testarrayofbools,
-    double testf,
-    double testf2,
-    double testf3,
-    List<String> testarrayofstring2,
-    List<AbilityObjectBuilder> testarrayofsortedstruct,
-    List<int> flex,
-    List<TestObjectBuilder> test5,
-    List<int> vectorOfLongs,
-    List<double> vectorOfDoubles,
-    my_game.InParentNamespaceObjectBuilder parentNamespaceTest,
-    List<ReferrableObjectBuilder> vectorOfReferrables,
-    int singleWeakReference,
-    List<int> vectorOfWeakReferences,
-    List<ReferrableObjectBuilder> vectorOfStrongReferrables,
-    int coOwningReference,
-    List<int> vectorOfCoOwningReferences,
-    int nonOwningReference,
-    List<int> vectorOfNonOwningReferences,
-    AnyUniqueAliasesTypeId anyUniqueType,
+    List<TestObjectBuilder>? test4,
+    List<String>? testarrayofstring,
+    List<MonsterObjectBuilder>? testarrayoftables,
+    MonsterObjectBuilder? enemy,
+    List<int>? testnestedflatbuffer,
+    StatObjectBuilder? testempty,
+    bool? testbool,
+    int? testhashs32Fnv1,
+    int? testhashu32Fnv1,
+    int? testhashs64Fnv1,
+    int? testhashu64Fnv1,
+    int? testhashs32Fnv1a,
+    int? testhashu32Fnv1a,
+    int? testhashs64Fnv1a,
+    int? testhashu64Fnv1a,
+    List<bool>? testarrayofbools,
+    double? testf,
+    double? testf2,
+    double? testf3,
+    List<String>? testarrayofstring2,
+    List<AbilityObjectBuilder>? testarrayofsortedstruct,
+    List<int>? flex,
+    List<TestObjectBuilder>? test5,
+    List<int>? vectorOfLongs,
+    List<double>? vectorOfDoubles,
+    my_game.InParentNamespaceObjectBuilder? parentNamespaceTest,
+    List<ReferrableObjectBuilder>? vectorOfReferrables,
+    int? singleWeakReference,
+    List<int>? vectorOfWeakReferences,
+    List<ReferrableObjectBuilder>? vectorOfStrongReferrables,
+    int? coOwningReference,
+    List<int>? vectorOfCoOwningReferences,
+    int? nonOwningReference,
+    List<int>? vectorOfNonOwningReferences,
+    AnyUniqueAliasesTypeId? anyUniqueType,
     dynamic anyUnique,
-    AnyAmbiguousAliasesTypeId anyAmbiguousType,
+    AnyAmbiguousAliasesTypeId? anyAmbiguousType,
     dynamic anyAmbiguous,
-    List<Color> vectorOfEnums,
-    Race signedEnum,
-    List<int> testrequirednestedflatbuffer,
-    List<StatObjectBuilder> scalarKeySortedTables,
+    List<Color>? vectorOfEnums,
+    Race? signedEnum,
+    List<int>? testrequirednestedflatbuffer,
+    List<StatObjectBuilder>? scalarKeySortedTables,
   })
       : _pos = pos,
         _mana = mana,
@@ -1873,77 +1873,77 @@ class MonsterObjectBuilder extends fb.ObjectBuilder {
   int finish(
     fb.Builder fbBuilder) {
     assert(fbBuilder != null);
-    final int nameOffset = fbBuilder.writeString(_name);
-    final int inventoryOffset = _inventory?.isNotEmpty == true
-        ? fbBuilder.writeListUint8(_inventory)
+    final int? nameOffset = fbBuilder.writeString(_name);
+    final int? inventoryOffset = _inventory?.isNotEmpty == true
+        ? fbBuilder.writeListUint8(_inventory!)
         : null;
-    final int testOffset = _test?.getOrCreateOffset(fbBuilder);
-    final int test4Offset = _test4?.isNotEmpty == true
-        ? fbBuilder.writeListOfStructs(_test4)
+    final int? testOffset = _test?.getOrCreateOffset(fbBuilder);
+    final int? test4Offset = _test4?.isNotEmpty == true
+        ? fbBuilder.writeListOfStructs(_test4!)
         : null;
-    final int testarrayofstringOffset = _testarrayofstring?.isNotEmpty == true
-        ? fbBuilder.writeList(_testarrayofstring.map((b) => fbBuilder.writeString(b)).toList())
+    final int? testarrayofstringOffset = _testarrayofstring?.isNotEmpty == true
+        ? fbBuilder.writeList(_testarrayofstring!.map((b) => fbBuilder.writeString(b)).toList() as List<int>)
         : null;
-    final int testarrayoftablesOffset = _testarrayoftables?.isNotEmpty == true
-        ? fbBuilder.writeList(_testarrayoftables.map((b) => b.getOrCreateOffset(fbBuilder)).toList())
+    final int? testarrayoftablesOffset = _testarrayoftables?.isNotEmpty == true
+        ? fbBuilder.writeList(_testarrayoftables!.map((b) => b.getOrCreateOffset(fbBuilder)).toList())
         : null;
-    final int enemyOffset = _enemy?.getOrCreateOffset(fbBuilder);
-    final int testnestedflatbufferOffset = _testnestedflatbuffer?.isNotEmpty == true
-        ? fbBuilder.writeListUint8(_testnestedflatbuffer)
+    final int? enemyOffset = _enemy?.getOrCreateOffset(fbBuilder);
+    final int? testnestedflatbufferOffset = _testnestedflatbuffer?.isNotEmpty == true
+        ? fbBuilder.writeListUint8(_testnestedflatbuffer!)
         : null;
-    final int testemptyOffset = _testempty?.getOrCreateOffset(fbBuilder);
-    final int testarrayofboolsOffset = _testarrayofbools?.isNotEmpty == true
-        ? fbBuilder.writeListBool(_testarrayofbools)
+    final int? testemptyOffset = _testempty?.getOrCreateOffset(fbBuilder);
+    final int? testarrayofboolsOffset = _testarrayofbools?.isNotEmpty == true
+        ? fbBuilder.writeListBool(_testarrayofbools!)
         : null;
-    final int testarrayofstring2Offset = _testarrayofstring2?.isNotEmpty == true
-        ? fbBuilder.writeList(_testarrayofstring2.map((b) => fbBuilder.writeString(b)).toList())
+    final int? testarrayofstring2Offset = _testarrayofstring2?.isNotEmpty == true
+        ? fbBuilder.writeList(_testarrayofstring2!.map((b) => fbBuilder.writeString(b)).toList() as List<int>)
         : null;
-    final int testarrayofsortedstructOffset = _testarrayofsortedstruct?.isNotEmpty == true
-        ? fbBuilder.writeListOfStructs(_testarrayofsortedstruct)
+    final int? testarrayofsortedstructOffset = _testarrayofsortedstruct?.isNotEmpty == true
+        ? fbBuilder.writeListOfStructs(_testarrayofsortedstruct!)
         : null;
-    final int flexOffset = _flex?.isNotEmpty == true
-        ? fbBuilder.writeListUint8(_flex)
+    final int? flexOffset = _flex?.isNotEmpty == true
+        ? fbBuilder.writeListUint8(_flex!)
         : null;
-    final int test5Offset = _test5?.isNotEmpty == true
-        ? fbBuilder.writeListOfStructs(_test5)
+    final int? test5Offset = _test5?.isNotEmpty == true
+        ? fbBuilder.writeListOfStructs(_test5!)
         : null;
-    final int vectorOfLongsOffset = _vectorOfLongs?.isNotEmpty == true
-        ? fbBuilder.writeListInt64(_vectorOfLongs)
+    final int? vectorOfLongsOffset = _vectorOfLongs?.isNotEmpty == true
+        ? fbBuilder.writeListInt64(_vectorOfLongs!)
         : null;
-    final int vectorOfDoublesOffset = _vectorOfDoubles?.isNotEmpty == true
-        ? fbBuilder.writeListFloat64(_vectorOfDoubles)
+    final int? vectorOfDoublesOffset = _vectorOfDoubles?.isNotEmpty == true
+        ? fbBuilder.writeListFloat64(_vectorOfDoubles!)
         : null;
-    final int parentNamespaceTestOffset = _parentNamespaceTest?.getOrCreateOffset(fbBuilder);
-    final int vectorOfReferrablesOffset = _vectorOfReferrables?.isNotEmpty == true
-        ? fbBuilder.writeList(_vectorOfReferrables.map((b) => b.getOrCreateOffset(fbBuilder)).toList())
+    final int? parentNamespaceTestOffset = _parentNamespaceTest?.getOrCreateOffset(fbBuilder);
+    final int? vectorOfReferrablesOffset = _vectorOfReferrables?.isNotEmpty == true
+        ? fbBuilder.writeList(_vectorOfReferrables!.map((b) => b.getOrCreateOffset(fbBuilder)).toList())
         : null;
-    final int vectorOfWeakReferencesOffset = _vectorOfWeakReferences?.isNotEmpty == true
-        ? fbBuilder.writeListUint64(_vectorOfWeakReferences)
+    final int? vectorOfWeakReferencesOffset = _vectorOfWeakReferences?.isNotEmpty == true
+        ? fbBuilder.writeListUint64(_vectorOfWeakReferences!)
         : null;
-    final int vectorOfStrongReferrablesOffset = _vectorOfStrongReferrables?.isNotEmpty == true
-        ? fbBuilder.writeList(_vectorOfStrongReferrables.map((b) => b.getOrCreateOffset(fbBuilder)).toList())
+    final int? vectorOfStrongReferrablesOffset = _vectorOfStrongReferrables?.isNotEmpty == true
+        ? fbBuilder.writeList(_vectorOfStrongReferrables!.map((b) => b.getOrCreateOffset(fbBuilder)).toList())
         : null;
-    final int vectorOfCoOwningReferencesOffset = _vectorOfCoOwningReferences?.isNotEmpty == true
-        ? fbBuilder.writeListUint64(_vectorOfCoOwningReferences)
+    final int? vectorOfCoOwningReferencesOffset = _vectorOfCoOwningReferences?.isNotEmpty == true
+        ? fbBuilder.writeListUint64(_vectorOfCoOwningReferences!)
         : null;
-    final int vectorOfNonOwningReferencesOffset = _vectorOfNonOwningReferences?.isNotEmpty == true
-        ? fbBuilder.writeListUint64(_vectorOfNonOwningReferences)
+    final int? vectorOfNonOwningReferencesOffset = _vectorOfNonOwningReferences?.isNotEmpty == true
+        ? fbBuilder.writeListUint64(_vectorOfNonOwningReferences!)
         : null;
-    final int anyUniqueOffset = _anyUnique?.getOrCreateOffset(fbBuilder);
-    final int anyAmbiguousOffset = _anyAmbiguous?.getOrCreateOffset(fbBuilder);
-    final int vectorOfEnumsOffset = _vectorOfEnums?.isNotEmpty == true
-        ? fbBuilder.writeListUint8(_vectorOfEnums.map((f) => f.value).toList())
+    final int? anyUniqueOffset = _anyUnique?.getOrCreateOffset(fbBuilder);
+    final int? anyAmbiguousOffset = _anyAmbiguous?.getOrCreateOffset(fbBuilder);
+    final int? vectorOfEnumsOffset = _vectorOfEnums?.isNotEmpty == true
+        ? fbBuilder.writeListUint8(_vectorOfEnums!.map((f) => f.value).toList())
         : null;
-    final int testrequirednestedflatbufferOffset = _testrequirednestedflatbuffer?.isNotEmpty == true
-        ? fbBuilder.writeListUint8(_testrequirednestedflatbuffer)
+    final int? testrequirednestedflatbufferOffset = _testrequirednestedflatbuffer?.isNotEmpty == true
+        ? fbBuilder.writeListUint8(_testrequirednestedflatbuffer!)
         : null;
-    final int scalarKeySortedTablesOffset = _scalarKeySortedTables?.isNotEmpty == true
-        ? fbBuilder.writeList(_scalarKeySortedTables.map((b) => b.getOrCreateOffset(fbBuilder)).toList())
+    final int? scalarKeySortedTablesOffset = _scalarKeySortedTables?.isNotEmpty == true
+        ? fbBuilder.writeList(_scalarKeySortedTables!.map((b) => b.getOrCreateOffset(fbBuilder)).toList())
         : null;
 
     fbBuilder.startTable();
     if (_pos != null) {
-      fbBuilder.addStruct(0, _pos.finish(fbBuilder));
+      fbBuilder.addStruct(0, _pos!.finish(fbBuilder));
     }
     fbBuilder.addInt16(1, _mana);
     fbBuilder.addInt16(2, _hp);
@@ -2053,7 +2053,7 @@ class MonsterObjectBuilder extends fb.ObjectBuilder {
 
   /// Convenience method to serialize to byte list.
   @override
-  Uint8List toBytes([String fileIdentifier]) {
+  Uint8List toBytes([String? fileIdentifier]) {
     fb.Builder fbBuilder = new fb.Builder();
     int offset = finish(fbBuilder);
     return fbBuilder.finish(offset, fileIdentifier);
@@ -2246,32 +2246,32 @@ class TypeAliasesBuilder {
 }
 
 class TypeAliasesObjectBuilder extends fb.ObjectBuilder {
-  final int _i8;
-  final int _u8;
-  final int _i16;
-  final int _u16;
-  final int _i32;
-  final int _u32;
-  final int _i64;
-  final int _u64;
-  final double _f32;
-  final double _f64;
-  final List<int> _v8;
-  final List<double> _vf64;
+  final int? _i8;
+  final int? _u8;
+  final int? _i16;
+  final int? _u16;
+  final int? _i32;
+  final int? _u32;
+  final int? _i64;
+  final int? _u64;
+  final double? _f32;
+  final double? _f64;
+  final List<int>? _v8;
+  final List<double>? _vf64;
 
   TypeAliasesObjectBuilder({
-    int i8,
-    int u8,
-    int i16,
-    int u16,
-    int i32,
-    int u32,
-    int i64,
-    int u64,
-    double f32,
-    double f64,
-    List<int> v8,
-    List<double> vf64,
+    int? i8,
+    int? u8,
+    int? i16,
+    int? u16,
+    int? i32,
+    int? u32,
+    int? i64,
+    int? u64,
+    double? f32,
+    double? f64,
+    List<int>? v8,
+    List<double>? vf64,
   })
       : _i8 = i8,
         _u8 = u8,
@@ -2291,11 +2291,11 @@ class TypeAliasesObjectBuilder extends fb.ObjectBuilder {
   int finish(
     fb.Builder fbBuilder) {
     assert(fbBuilder != null);
-    final int v8Offset = _v8?.isNotEmpty == true
-        ? fbBuilder.writeListInt8(_v8)
+    final int? v8Offset = _v8?.isNotEmpty == true
+        ? fbBuilder.writeListInt8(_v8!)
         : null;
-    final int vf64Offset = _vf64?.isNotEmpty == true
-        ? fbBuilder.writeListFloat64(_vf64)
+    final int? vf64Offset = _vf64?.isNotEmpty == true
+        ? fbBuilder.writeListFloat64(_vf64!)
         : null;
 
     fbBuilder.startTable();
@@ -2320,7 +2320,7 @@ class TypeAliasesObjectBuilder extends fb.ObjectBuilder {
 
   /// Convenience method to serialize to byte list.
   @override
-  Uint8List toBytes([String fileIdentifier]) {
+  Uint8List toBytes([String? fileIdentifier]) {
     fb.Builder fbBuilder = new fb.Builder();
     int offset = finish(fbBuilder);
     return fbBuilder.finish(offset, fileIdentifier);
