@@ -10,8 +10,9 @@ There are some quirks:
 - Tables and Structs are serialized as `Object`s.
 - Unions and Enums are serialized as `Enum`s.
 - It is the responsibility of the code generator to check the `advanced_features`
-  field of `Schema`. These mark the presence of new, backwards incompatible, features.
-  Code generators must error if generating a schema with unrecognized advanced features.
+  field of `Schema`. These mark the presence of new, backwards incompatible,
+  schema features. Code generators must error if generating a schema with
+  unrecognized advanced features.
 
 
 ## Invocation 
