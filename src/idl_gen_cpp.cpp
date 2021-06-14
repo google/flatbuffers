@@ -350,6 +350,12 @@ class CppGenerator : public BaseGenerator {
     if (opts_.include_dependence_headers) { GenIncludeDependencies(); }
     GenExtraIncludes();
 
+    if (opts_.cpp_static_reflection) {
+      code_ += "#include <array>";
+      code_ += "#include <type_traits>";
+      code_ += "";
+    }
+
     FLATBUFFERS_ASSERT(!cur_name_space_);
 
     // Generate forward declarations for all structs/tables, since they may
