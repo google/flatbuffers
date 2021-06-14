@@ -6,32 +6,21 @@ import 'types.dart';
 /// The main builder class for creation of a FlexBuffer.
 class Builder {
   ByteData _buffer;
-  List<_StackValue> _stack;
-  List<_StackPointer> _stackPointers;
-  int _offset;
-  bool _finished;
-  Map<String, _StackValue> _stringCache;
-  Map<String, _StackValue> _keyCache;
-  Map<_KeysHash, _StackValue> _keyVectorCache;
-  Map<int, _StackValue> _indirectIntCache;
-  Map<double, _StackValue> _indirectDoubleCache;
+  List<_StackValue> _stack = [];
+  List<_StackPointer> _stackPointers = [];
+  int _offset = 0;
+  bool _finished = false;
+  Map<String, _StackValue> _stringCache = {};
+  Map<String, _StackValue> _keyCache = {};
+  Map<_KeysHash, _StackValue> _keyVectorCache = {};
+  Map<int, _StackValue> _indirectIntCache = {};
+  Map<double, _StackValue> _indirectDoubleCache = {};
 
   /// Instantiate the builder if you intent to gradually build up the buffer by calling
   /// add... methods and calling [finish] to receive the the resulting byte array.
   ///
   /// The default size of internal buffer is set to 2048. Provide a different value in order to avoid buffer copies.
-  Builder({int size = 2048}) {
-    _buffer = ByteData(size);
-    _stack = [];
-    _stackPointers = [];
-    _offset = 0;
-    _finished = false;
-    _stringCache = {};
-    _keyCache = {};
-    _keyVectorCache = {};
-    _indirectIntCache = {};
-    _indirectDoubleCache = {};
-  }
+  Builder({int size = 2048}) : _buffer = ByteData(size) {}
 
   /// Use this method in order to turn an object into a FlexBuffer directly.
   ///
@@ -106,7 +95,7 @@ class Builder {
   void addString(String value) {
     _integrityCheckOnValueAddition();
     if (_stringCache.containsKey(value)) {
-      _stack.add(_stringCache[value]);
+      _stack.add(_stringCache[value]/*!*/);
       return;
     }
     final utf8String = utf8.encode(value);
@@ -129,7 +118,7 @@ class Builder {
   void addKey(String value) {
     _integrityCheckOnKeyAddition();
     if (_keyCache.containsKey(value)) {
-      _stack.add(_keyCache[value]);
+      _stack.add(_keyCache[value]/*!*/);
       return;
     }
     final utf8String = utf8.encode(value);
@@ -169,7 +158,7 @@ class Builder {
   void addIntIndirectly(int value, {bool cache = false}) {
     _integrityCheckOnValueAddition();
     if (_indirectIntCache.containsKey(value)) {
-      _stack.add(_indirectIntCache[value]);
+      _stack.add(_indirectIntCache[value]/*!*/);
       return;
     }
     final stackValue = _StackValue.WithInt(value);
@@ -193,7 +182,7 @@ class Builder {
   void addDoubleIndirectly(double value, {bool cache = false}) {
     _integrityCheckOnValueAddition();
     if (cache && _indirectDoubleCache.containsKey(value)) {
-      _stack.add(_indirectDoubleCache[value]);
+      _stack.add(_indirectDoubleCache[value]/*!*/);
       return;
     }
     final stackValue = _StackValue.WithDouble(value);
@@ -399,7 +388,7 @@ class Builder {
     final vecLength = (_stack.length - pointer.stackPosition) >> 1;
     final offsets = <int>[];
     for (var i = pointer.stackPosition; i < _stack.length; i += 2) {
-      offsets.add(_stack[i].offset);
+      offsets.add(_stack[i].offset/*!*/);
     }
     final keysHash = _KeysHash(offsets);
     var keysStackValue;
@@ -520,30 +509,38 @@ class _StackValue {
   int _offset;
   ValueType _type;
   BitWidth _width;
-  _StackValue.WithNull() {
-    _type = ValueType.Null;
-    _width = BitWidth.width8;
-  }
-  _StackValue.WithInt(int value) {
-    _type = value != null ? ValueType.Int : ValueType.Null;
-    _width = BitWidthUtil.width(value);
-    _value = value;
-  }
-  _StackValue.WithBool(bool value) {
-    _type = value != null ? ValueType.Bool : ValueType.Null;
-    _width = BitWidth.width8;
-    _value = value;
-  }
-  _StackValue.WithDouble(double value) {
-    _type = value != null ? ValueType.Float : ValueType.Null;
-    _width = BitWidthUtil.width(value);
-    _value = value;
-  }
-  _StackValue.WithOffset(int value, ValueType type, BitWidth width) {
-    _offset = value;
-    _type = type;
-    _width = width;
-  }
+
+  _StackValue.WithNull()
+      :
+        _type = ValueType.Null,
+        _width = BitWidth.width8
+  {}
+
+  _StackValue.WithInt(int value)
+      : _type = ValueType.Int,
+        _width = BitWidthUtil.width(value),
+        _value = value {}
+
+  _StackValue.WithBool(bool value)
+      :
+        _type = ValueType.Bool,
+        _width = BitWidth.width8,
+        _value = value
+  {}
+
+  _StackValue.WithDouble(double value)
+      :
+        _type = ValueType.Float,
+        _width = BitWidthUtil.width(value),
+        _value = value
+  {}
+
+  _StackValue.WithOffset(int value, ValueType type, BitWidth width)
+      :
+        _offset = value,
+        _type = type,
+        _width = width
+  {}
 
   BitWidth storedWidth({BitWidth width = BitWidth.width8}) {
     return ValueTypeUtils.isInline(_type) ? BitWidthUtil.max(_width, width) : _width;

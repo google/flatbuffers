@@ -11,13 +11,15 @@ class Reference {
   final int _offset;
   final BitWidth _parentWidth;
   final String _path;
-  int _byteWidth;
-  ValueType _valueType;
+  final int _byteWidth;
+  final ValueType _valueType;
   int _length;
 
-  Reference._(this._buffer, this._offset, this._parentWidth, int packedType, this._path) {
-    _byteWidth = 1 << (packedType & 3);
-    _valueType = ValueTypeUtils.fromInt(packedType >> 2);
+  Reference._(this._buffer, this._offset, this._parentWidth, int packedType,
+      this._path, [int/*?*/ byteWidth, ValueType/*?*/ valueType])
+      :
+        _byteWidth = byteWidth ?? 1 << (packedType & 3),
+        _valueType = valueType ?? ValueTypeUtils.fromInt(packedType >> 2) {
   }
 
   /// Use this method to access the root value of a FlexBuffer.
@@ -126,18 +128,19 @@ class Reference {
         throw ArgumentError('Key: [$key] is not applicable on: $_path of: $_valueType length: $length');
       }
       final elementOffset = _indirect + index * _byteWidth;
-      final reference = Reference._(_buffer, elementOffset, BitWidthUtil.fromByteWidth(_byteWidth), 0, "$_path[$index]");
-      reference._byteWidth = 1;
+      int packedType = 0;
+      int/*?*/ byteWidth;
+      ValueType/*?*/ valueType;
       if (ValueTypeUtils.isTypedVector(_valueType)) {
-        reference._valueType = ValueTypeUtils.typedVectorElementType(_valueType);
-        return reference;
+        byteWidth = 1;
+        valueType = ValueTypeUtils.typedVectorElementType(_valueType);
+      } else if(ValueTypeUtils.isFixedTypedVector(_valueType)) {
+        byteWidth = 1;
+        valueType = ValueTypeUtils.fixedTypedVectorElementType(_valueType);
+      } else {
+        packedType = _buffer.getUint8(_indirect + length * _byteWidth + index);
       }
-      if(ValueTypeUtils.isFixedTypedVector(_valueType)) {
-        reference._valueType = ValueTypeUtils.fixedTypedVectorElementType(_valueType);
-        return reference;
-      }
-      final packedType = _buffer.getUint8(_indirect + length * _byteWidth + index);
-      return Reference._(_buffer, elementOffset, BitWidthUtil.fromByteWidth(_byteWidth), packedType, "$_path[$index]");
+      return Reference._(_buffer, elementOffset, BitWidthUtil.fromByteWidth(_byteWidth), packedType, "$_path[$index]", byteWidth, valueType);
     }
     if (key is String && _valueType == ValueType.Map) {
       final index = _keyIndex(key);
@@ -180,35 +183,38 @@ class Reference {
   /// If the underlying value is a number, or a bool, the length is 1.
   /// If the underlying value is a vector, or map, the length reflects number of elements / element pairs.
   /// If the values is a string or a blob, the length reflects a number of bytes the value occupies (strings are encoded in utf8 format).
-  int get length {
-    if (_length != null) {
-      return _length;
-    }
-    // needs to be checked before more generic isAVector
-    if(ValueTypeUtils.isFixedTypedVector(_valueType)) {
-      _length = ValueTypeUtils.fixedTypedVectorElementSize(_valueType);
-    } else if(_valueType == ValueType.Blob || ValueTypeUtils.isAVector(_valueType) || _valueType == ValueType.Map){
-      _length = _readUInt(_indirect - _byteWidth, BitWidthUtil.fromByteWidth(_byteWidth));
-    } else if (_valueType == ValueType.Null) {
-      _length = 0;
-    } else if (_valueType == ValueType.String) {
-      final indirect = _indirect;
-      var size_byte_width = _byteWidth;
-      var size = _readUInt(indirect - size_byte_width, BitWidthUtil.fromByteWidth(size_byte_width));
-      while (_buffer.getInt8(indirect + size) != 0) {
-        size_byte_width <<= 1;
-        size = _readUInt(indirect - size_byte_width, BitWidthUtil.fromByteWidth(size_byte_width));
+  int/*!*/ get length {
+    if (_length == null) {
+      // needs to be checked before more generic isAVector
+      if (ValueTypeUtils.isFixedTypedVector(_valueType)) {
+        _length = ValueTypeUtils.fixedTypedVectorElementSize(_valueType);
+      } else if (_valueType == ValueType.Blob ||
+          ValueTypeUtils.isAVector(_valueType) || _valueType == ValueType.Map) {
+        _length = _readUInt(
+            _indirect - _byteWidth, BitWidthUtil.fromByteWidth(_byteWidth));
+      } else if (_valueType == ValueType.Null) {
+        _length = 0;
+      } else if (_valueType == ValueType.String) {
+        final indirect = _indirect;
+        var size_byte_width = _byteWidth;
+        var size = _readUInt(indirect - size_byte_width,
+            BitWidthUtil.fromByteWidth(size_byte_width));
+        while (_buffer.getInt8(indirect + size) != 0) {
+          size_byte_width <<= 1;
+          size = _readUInt(indirect - size_byte_width,
+              BitWidthUtil.fromByteWidth(size_byte_width));
+        }
+        _length = size;
+      } else if (_valueType == ValueType.Key) {
+        final indirect = _indirect;
+        var size = 1;
+        while (_buffer.getInt8(indirect + size) != 0) {
+          size += 1;
+        }
+        _length = size;
+      } else {
+        _length = 1;
       }
-      _length = size;
-    } else if (_valueType == ValueType.Key) {
-      final indirect = _indirect;
-      var size = 1;
-      while (_buffer.getInt8(indirect + size) != 0) {
-        size += 1;
-      }
-      _length = size;
-    } else {
-      _length = 1;
     }
     return _length;
   }
@@ -384,11 +390,9 @@ class Reference {
 
 class _VectorIterator with IterableMixin<Reference> implements Iterator<Reference> {
   final Reference _vector;
-  int index;
+  int index = -1;
 
-  _VectorIterator(this._vector) {
-    index = -1;
-  }
+  _VectorIterator(this._vector);
 
   @override
   Reference get current => _vector[index];
@@ -405,11 +409,9 @@ class _VectorIterator with IterableMixin<Reference> implements Iterator<Referenc
 
 class _MapKeyIterator with IterableMixin<String> implements Iterator<String> {
   final Reference _map;
-  int index;
+  int index = -1;
 
-  _MapKeyIterator(this._map) {
-    index = -1;
-  }
+  _MapKeyIterator(this._map);
 
   @override
   String get current => _map._keyForIndex(index);
@@ -426,11 +428,9 @@ class _MapKeyIterator with IterableMixin<String> implements Iterator<String> {
 
 class _MapValueIterator with IterableMixin<Reference> implements Iterator<Reference> {
   final Reference _map;
-  int index;
+  int index = -1;
 
-  _MapValueIterator(this._map) {
-    index = -1;
-  }
+  _MapValueIterator(this._map);
 
   @override
   Reference get current => _map._valueForIndex(index);

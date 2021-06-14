@@ -337,9 +337,11 @@ class BuilderTest {
     // read and verify
     BufferContext buf = new BufferContext.fromBytes(byteList);
     int objectOffset = buf.derefObject(0);
-    expect(const StringReader().vTableGet(buf, objectOffset, indexToField(0)),
+    expect(const StringReader().vTableGetNullable(
+        buf, objectOffset, indexToField(0)),
         latinString);
-    expect(const StringReader().vTableGet(buf, objectOffset, indexToField(1)),
+    expect(const StringReader().vTableGetNullable(
+        buf, objectOffset, indexToField(1)),
         unicodeString);
   }
 
@@ -363,18 +365,25 @@ class BuilderTest {
     BufferContext buf = new BufferContext.fromBytes(byteList);
     int objectOffset = buf.derefObject(0);
     expect(
-        const BoolReader().vTableGet(buf, objectOffset, indexToField(0)), true);
+        const BoolReader().vTableGetNullable(
+            buf, objectOffset, indexToField(0)), true);
     expect(
-        const Int8Reader().vTableGet(buf, objectOffset, indexToField(1)), 10);
+        const Int8Reader().vTableGetNullable(
+            buf, objectOffset, indexToField(1)), 10);
     expect(
-        const Int32Reader().vTableGet(buf, objectOffset, indexToField(2)), 20);
-    expect(const StringReader().vTableGet(buf, objectOffset, indexToField(3)),
+        const Int32Reader().vTableGetNullable(
+            buf, objectOffset, indexToField(2)), 20);
+    expect(const StringReader().vTableGetNullable(
+        buf, objectOffset, indexToField(3)),
         '12345');
     expect(
-        const Int32Reader().vTableGet(buf, objectOffset, indexToField(4)), 40);
-    expect(const Uint32Reader().vTableGet(buf, objectOffset, indexToField(5)),
+        const Int32Reader().vTableGetNullable(
+            buf, objectOffset, indexToField(4)), 40);
+    expect(const Uint32Reader().vTableGetNullable(
+        buf, objectOffset, indexToField(5)),
         0x9ABCDEF0);
-    expect(const Uint8Reader().vTableGet(buf, objectOffset, indexToField(6)),
+    expect(const Uint8Reader().vTableGetNullable(
+        buf, objectOffset, indexToField(6)),
         0x9A);
   }
 
@@ -740,7 +749,7 @@ class StringListWrapperImpl {
   StringListWrapperImpl(this.bp, this.offset);
 
   List<String> get items => const ListReader<String>(const StringReader())
-      .vTableGet(bp, offset, indexToField(0));
+      .vTableGetNullable(bp, offset, indexToField(0));
 }
 
 class StringListWrapperReader extends TableReader<StringListWrapperImpl> {
