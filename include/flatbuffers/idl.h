@@ -266,7 +266,8 @@ struct Definition {
         defined_namespace(nullptr),
         serialized_location(0),
         index(-1),
-        refcount(1) {}
+        refcount(1),
+        declaration_file(nullptr) {}
 
   flatbuffers::Offset<
       flatbuffers::Vector<flatbuffers::Offset<reflection::KeyValue>>>
@@ -286,7 +287,7 @@ struct Definition {
   uoffset_t serialized_location;
   int index;  // Inside the vector it is stored.
   int refcount;
-  std::string declaration_file;
+  const std::string *declaration_file;
 };
 
 struct FieldDef : public Definition {
@@ -984,6 +985,8 @@ class Parser : public ParserState {
   FLATBUFFERS_CHECKED_ERROR RecurseError();
   template<typename F> CheckedError Recurse(F f);
 
+  const std::string &GetPooledString(const std::string &s) const;
+
  public:
   SymbolTable<Type> types_;
   SymbolTable<StructDef> structs_;
@@ -1018,6 +1021,10 @@ class Parser : public ParserState {
   std::string file_being_parsed_;
 
   std::vector<std::pair<Value, FieldDef *>> field_stack_;
+
+  // TODO(cneo): Refactor parser to use string_cache more often to save
+  // on memory usage.
+  mutable std::set<std::string> string_cache_;
 
   int anonymous_counter_;
   int parse_depth_counter_;  // stack-overflow guard
