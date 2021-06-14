@@ -63,7 +63,7 @@ class DartGenerator : public BaseGenerator {
       code.clear();
       code = code + "// " + FlatBuffersGeneratedWarning() + "\n";
       code = code +
-             "// ignore_for_file: unused_import, unused_field, "
+             "// ignore_for_file: unused_import, unused_field, unused_element, "
              "unused_local_variable\n\n";
 
       if (!kv->first.empty()) { code += "library " + kv->first + ";\n\n"; }
@@ -231,16 +231,17 @@ class DartGenerator : public BaseGenerator {
     code += "  final int value;\n";
     code += "  const " + name + "._(this.value);\n\n";
     code += "  factory " + name + ".fromValue(int value) {\n";
-    code += "    if (value == null) value = 0;\n";
-
     code += "    if (!values.containsKey(value)) {\n";
     code +=
         "      throw new StateError('Invalid value $value for bit flag enum ";
     code += name + "');\n";
     code += "    }\n";
 
-    code += "    return values[value];\n";
+    code += "    return values[value]!;\n";
     code += "  }\n\n";
+
+    code += "  static " + name + "? _createOrNull(int? value) => \n";
+    code += "      value == null ? null : " + name + ".fromValue(value);\n\n";
 
     // this is meaningless for bit_flags
     // however, note that unlike "regular" dart enums this enum can still have
@@ -267,10 +268,11 @@ class DartGenerator : public BaseGenerator {
       code += "const " + name + "._(" + enum_def.ToString(ev) + ");\n";
     }
 
-    code += "  static const Map<int," + name + "> values = {";
+    code += "  static const Map<int, " + name + "> values = {\n";
     for (auto it = enum_def.Vals().begin(); it != enum_def.Vals().end(); ++it) {
       auto &ev = **it;
-      code += enum_def.ToString(ev) + ": " + ev.name + ",";
+      if (it != enum_def.Vals().begin()) code += ",\n";
+      code += "    " + enum_def.ToString(ev) + ": " + ev.name;
     }
     code += "};\n\n";
 
@@ -430,8 +432,6 @@ class DartGenerator : public BaseGenerator {
     code += "class " + object_name + " {\n";
 
     code += "  " + object_name + "._(this._bc, this._bcOffset);\n";
-    // TODO why not generate the (reader) factory constructor for "structs"?
-    //      Currently only genreated for "tables" but should work for both...
     if (!struct_def.fixed) {
       code += "  factory " + object_name + "(List<int> bytes) {\n";
       code += "    " + _kFb + ".BufferContext rootRef = new " + _kFb +
@@ -463,7 +463,7 @@ class DartGenerator : public BaseGenerator {
           "\n" + GenStructObjectAPIUnpack(struct_def, non_deprecated_fields);
 
       code += "\n  static int pack(fb.Builder fbBuilder, " + struct_def.name +
-              "T object) {\n";
+              "T? object) {\n";
       code += "    if (object == null) return 0;\n";
       code += "    return object.pack(fbBuilder);\n";
       code += "  }\n";
@@ -505,12 +505,31 @@ class DartGenerator : public BaseGenerator {
       std::string type_name = GenDartTypeName(
           field.value.type, struct_def.defined_namespace, field, "T");
 
+      std::string defaultValue = getDefaultValue(field.value);
+      bool isNullable = defaultValue.empty() && !struct_def.fixed;
+
       GenDocComment(field.doc_comment, &code, "", "  ");
-      code += "  " + type_name + " " + field_name + ";\n";
+      code += "  " + type_name + (isNullable ? "? " : " ") + field_name + ";\n";
 
       if (!constructor_args.empty()) constructor_args += ",\n";
-      // TODO for null safety: add `required` if struct_def.fixed
-      constructor_args += "      this." + field_name;
+      constructor_args += "      ";
+      constructor_args += (struct_def.fixed ? "required " : "");
+      constructor_args += "this." + field_name;
+      if (!struct_def.fixed && !defaultValue.empty()) {
+        if (IsEnum(field.value.type)) {
+          auto &enum_def = *field.value.type.enum_def;
+          for (auto enumIt = enum_def.Vals().begin();
+               enumIt != enum_def.Vals().end(); ++enumIt) {
+            auto &ev = **enumIt;
+            if (enum_def.ToString(ev) == defaultValue) {
+              constructor_args += " = " + enum_def.name + "." + ev.name;
+              break;
+            }
+          }
+        } else {
+          constructor_args += " = " + defaultValue;
+        }
+      }
     }
 
     if (!constructor_args.empty()) {
@@ -539,11 +558,15 @@ class DartGenerator : public BaseGenerator {
       constructor_args += "      " + field_name + ": " + field_name;
 
       const Type &type = field.value.type;
+      bool isNullable =
+          getDefaultValue(field.value).empty() && !struct_def.fixed;
+      std::string nullableValueAccessOperator = isNullable ? "?" : "";
       if (type.base_type == BASE_TYPE_STRUCT) {
-        constructor_args += "?.unpack()";
+        constructor_args += nullableValueAccessOperator + ".unpack()";
       } else if (type.base_type == BASE_TYPE_VECTOR &&
                  type.VectorType().base_type == BASE_TYPE_STRUCT) {
-        constructor_args += "?.map((e) => e.unpack())?.toList()";
+        constructor_args +=
+            nullableValueAccessOperator + ".map((e) => e.unpack()).toList()";
       }
     }
 
@@ -613,8 +636,11 @@ class DartGenerator : public BaseGenerator {
           field.value.type, struct_def.defined_namespace, field);
 
       GenDocComment(field.doc_comment, &code, "", "  ");
+      std::string defaultValue = getDefaultValue(field.value);
+      bool isNullable = defaultValue.empty() && !struct_def.fixed;
 
-      code += "  " + type_name + " get " + field_name;
+      code += "  " + type_name + (isNullable ? "?" : "");
+      code += " get " + field_name;
       if (field.value.type.base_type == BASE_TYPE_UNION) {
         code += " {\n";
         code += "    switch (" + field_name + "Type?.value) {\n";
@@ -626,8 +652,8 @@ class DartGenerator : public BaseGenerator {
           auto enum_name = NamespaceAliasFromUnionType(
               enum_def.defined_namespace, ev.union_type);
           code += "      case " + enum_def.ToString(ev) + ": return " +
-                  enum_name + ".reader.vTableGet(_bc, _bcOffset, " +
-                  NumToString(field.value.offset) + ", null);\n";
+                  enum_name + ".reader.vTableGetNullable(_bc, _bcOffset, " +
+                  NumToString(field.value.offset) + ");\n";
         }
         code += "      default: return null;\n";
         code += "    }\n";
@@ -636,10 +662,9 @@ class DartGenerator : public BaseGenerator {
         code += " => ";
         if (field.value.type.enum_def &&
             field.value.type.base_type != BASE_TYPE_VECTOR) {
-          code += "new " +
-                  GenDartTypeName(field.value.type,
+          code += GenDartTypeName(field.value.type,
                                   struct_def.defined_namespace, field) +
-                  ".fromValue(";
+                  (isNullable ? "._createOrNull(" : ".fromValue(");
         }
 
         code += GenReaderTypeName(field.value.type,
@@ -648,33 +673,13 @@ class DartGenerator : public BaseGenerator {
           code +=
               ".read(_bc, _bcOffset + " + NumToString(field.value.offset) + ")";
         } else {
-          code += ".vTableGet(_bc, _bcOffset, " +
-                  NumToString(field.value.offset) + ", ";
-          if (!field.value.constant.empty() && field.value.constant != "0") {
-            if (IsBool(field.value.type.base_type)) {
-              code += "true";
-            } else if (field.value.constant == "nan" ||
-                       field.value.constant == "+nan" ||
-                       field.value.constant == "-nan") {
-              code += "double.nan";
-            } else if (field.value.constant == "inf" ||
-                       field.value.constant == "+inf") {
-              code += "double.infinity";
-            } else if (field.value.constant == "-inf") {
-              code += "double.negativeInfinity";
-            } else {
-              code += field.value.constant;
-            }
+          code += ".vTableGet";
+          std::string offset = NumToString(field.value.offset);
+          if (isNullable) {
+            code += "Nullable(_bc, _bcOffset, " + offset + ")";
           } else {
-            if (IsBool(field.value.type.base_type)) {
-              code += "false";
-            } else if (IsScalar(field.value.type.base_type)) {
-              code += "0";
-            } else {
-              code += "null";
-            }
+            code += "(_bc, _bcOffset, " + offset + ", " + defaultValue + ")";
           }
-          code += ")";
         }
         if (field.value.type.enum_def &&
             field.value.type.base_type != BASE_TYPE_VECTOR) {
@@ -706,6 +711,26 @@ class DartGenerator : public BaseGenerator {
     code += "}';\n";
     code += "  }\n";
     return code;
+  }
+
+  std::string getDefaultValue(const Value &value) const {
+    // NOTE: currently there's no way to recognize fields explicitly defaulted
+    // to 0 and those that don't have a default value in .fbs at all...
+    if (value.constant != "0") {
+      if (IsBool(value.type.base_type)) {
+        return "true";
+      } else if (value.constant == "nan" || value.constant == "+nan" ||
+                 value.constant == "-nan") {
+        return "double.nan";
+      } else if (value.constant == "inf" || value.constant == "+inf") {
+        return "double.infinity";
+      } else if (value.constant == "-inf") {
+        return "double.negativeInfinity";
+      } else {
+        return value.constant;
+      }
+    }
+    return "";
   }
 
   void GenReader(const StructDef &struct_def, std::string *reader_name_ptr,
@@ -742,9 +767,7 @@ class DartGenerator : public BaseGenerator {
     auto &builder_name = *builder_name_ptr;
 
     code += "class " + builder_name + " {\n";
-    code += "  " + builder_name + "(this.fbBuilder) {\n";
-    code += "    assert(fbBuilder != null);\n";
-    code += "  }\n\n";
+    code += "  " + builder_name + "(this.fbBuilder) {}\n\n";
     code += "  final " + _kFb + ".Builder fbBuilder;\n\n";
 
     if (struct_def.fixed) {
@@ -793,7 +816,7 @@ class DartGenerator : public BaseGenerator {
       } else {
         code += "    fbBuilder.put" + GenType(field.value.type) + "(";
         code += field.name;
-        if (field.value.type.enum_def) { code += "?.value"; }
+        if (field.value.type.enum_def) { code += ".value"; }
         code += ");\n";
       }
     }
@@ -821,7 +844,7 @@ class DartGenerator : public BaseGenerator {
         code += "  int add" + MakeCamel(field.name) + "(";
         code += GenDartTypeName(field.value.type, struct_def.defined_namespace,
                                 field);
-        code += " " + MakeCamel(field.name, false) + ") {\n";
+        code += "? " + MakeCamel(field.name, false) + ") {\n";
         code += "    fbBuilder.add" + GenType(field.value.type) + "(" +
                 NumToString(offset) + ", ";
         code += MakeCamel(field.name, false);
@@ -862,7 +885,8 @@ class DartGenerator : public BaseGenerator {
       code += "  final " +
               GenDartTypeName(field.value.type, struct_def.defined_namespace,
                               field, "ObjectBuilder") +
-              " _" + MakeCamel(field.name, false) + ";\n";
+              (struct_def.fixed ? "" : "?") + " _" +
+              MakeCamel(field.name, false) + ";\n";
     }
     code += "\n";
     code += "  " + builder_name + "(";
@@ -874,10 +898,12 @@ class DartGenerator : public BaseGenerator {
         auto pair = *it;
         auto &field = *pair.second;
 
-        code += "    " +
+        code += "    ";
+        code += (struct_def.fixed ? "required " : "") +
                 GenDartTypeName(field.value.type, struct_def.defined_namespace,
                                 field, "ObjectBuilder") +
-                " " + MakeCamel(field.name, false) + ",\n";
+                (struct_def.fixed ? "" : "?") + " " +
+                MakeCamel(field.name, false) + ",\n";
       }
       code += "  })\n";
       code += "      : ";
@@ -900,14 +926,13 @@ class DartGenerator : public BaseGenerator {
 
     code += "  /// Finish building, and store into the [fbBuilder].\n";
     code += "  @override\n";
-    code += "  int finish(\n";
-    code += "    " + _kFb + ".Builder fbBuilder) {\n";
+    code += "  int finish(" + _kFb + ".Builder fbBuilder) {\n";
     code += GenObjectBuilderImplementation(struct_def, non_deprecated_fields);
     code += "  }\n\n";
 
     code += "  /// Convenience method to serialize to byte list.\n";
     code += "  @override\n";
-    code += "  Uint8List toBytes([String fileIdentifier]) {\n";
+    code += "  Uint8List toBytes([String? fileIdentifier]) {\n";
     code += "    " + _kFb + ".Builder fbBuilder = new ";
     code += _kFb + ".Builder();\n";
     code += "    int offset = finish(fbBuilder);\n";
@@ -920,7 +945,7 @@ class DartGenerator : public BaseGenerator {
       const StructDef &struct_def,
       const std::vector<std::pair<int, FieldDef *>> &non_deprecated_fields,
       bool prependUnderscore = true, bool pack = false) {
-    std::string code = "    assert(fbBuilder != null);\n";
+    std::string code;
     for (auto it = non_deprecated_fields.begin();
          it != non_deprecated_fields.end(); ++it) {
       const FieldDef &field = *it->second;
@@ -936,36 +961,39 @@ class DartGenerator : public BaseGenerator {
       if (pack && IsVector(field.value.type) &&
           field.value.type.VectorType().base_type == BASE_TYPE_STRUCT &&
           field.value.type.struct_def->fixed) {
-        code += "    int " + offset_name + " = null;\n";
+        code += "    int? " + offset_name + " = null;\n";
         code += "    if (" + field_name + "?.isNotEmpty == true) {\n";
-        code += "      " + field_name + ".forEach((e) => e.pack(fbBuilder));\n";
+        code +=
+            "      " + field_name + "!.forEach((e) => e.pack(fbBuilder));\n";
         code += "      " + MakeCamel(field.name, false) +
                 "Offset = fbBuilder.endStructVector(" + field_name +
-                ".length);\n";
+                "!.length);\n";
         code += "    }\n";
         continue;
       }
 
-      code += "    final int " + offset_name;
+      code += "    final int? " + offset_name;
       if (IsVector(field.value.type)) {
         code += " = " + field_name + "?.isNotEmpty == true\n";
         code += "        ? fbBuilder.writeList";
         switch (field.value.type.VectorType().base_type) {
           case BASE_TYPE_STRING:
-            code += "(" + field_name +
-                    ".map((b) => fbBuilder.writeString(b)).toList())";
+            code +=
+                "(" + field_name +
+                "!.map((b) => fbBuilder.writeString(b)).toList() as List<int>)";
             break;
           case BASE_TYPE_STRUCT:
             if (field.value.type.struct_def->fixed) {
-              code += "OfStructs(" + field_name + ")";
+              code += "OfStructs(" + field_name + "!)";
             } else {
-              code += "(" + field_name + ".map((b) => b." +
+              code += "(" + field_name + "!.map((b) => b." +
                       (pack ? "pack" : "getOrCreateOffset") +
                       "(fbBuilder)).toList())";
             }
             break;
           default:
-            code += GenType(field.value.type.VectorType()) + "(" + field_name;
+            code +=
+                GenType(field.value.type.VectorType()) + "(" + field_name + "!";
             if (field.value.type.enum_def) {
               code += ".map((f) => f.value).toList()";
             }
@@ -979,7 +1007,7 @@ class DartGenerator : public BaseGenerator {
                 (pack ? "pack" : "getOrCreateOffset") + "(fbBuilder);\n";
       }
     }
-    code += "\n";
+
     if (struct_def.fixed) {
       code += StructObjectBuilderBody(non_deprecated_fields, prependUnderscore,
                                       pack);
@@ -1012,7 +1040,7 @@ class DartGenerator : public BaseGenerator {
         code += "    fbBuilder.put" + GenType(field.value.type) + "(";
         if (prependUnderscore) { code += "_"; }
         code += field.name;
-        if (field.value.type.enum_def) { code += "?.value"; }
+        if (field.value.type.enum_def) { code += ".value"; }
         code += ");\n";
       }
     }
@@ -1039,19 +1067,19 @@ class DartGenerator : public BaseGenerator {
       if (IsScalar(field.value.type.base_type)) {
         code += "    fbBuilder.add" + GenType(field.value.type) + "(" +
                 NumToString(offset) + ", " + field_name;
-        if (field.value.type.enum_def) { code += "?.value"; }
+        if (field.value.type.enum_def) {
+          bool isNullable = getDefaultValue(field.value).empty();
+          code += (isNullable || !pack) ? "?.value" : ".value";
+        }
         code += ");\n";
       } else if (IsStruct(field.value.type)) {
         code += "    if (" + field_name + " != null) {\n";
         code += "      fbBuilder.addStruct(" + NumToString(offset) + ", " +
-                field_name + (pack ? ".pack" : ".finish") + "(fbBuilder));\n";
+                field_name + (pack ? "!.pack" : "!.finish") + "(fbBuilder));\n";
         code += "    }\n";
       } else {
-        code +=
-            "    if (" + MakeCamel(field.name, false) + "Offset != null) {\n";
-        code += "      fbBuilder.addOffset(" + NumToString(offset) + ", " +
+        code += "    fbBuilder.addOffset(" + NumToString(offset) + ", " +
                 MakeCamel(field.name, false) + "Offset);\n";
-        code += "    }\n";
       }
     }
     code += "    return fbBuilder.endTable();\n";
