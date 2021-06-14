@@ -497,8 +497,9 @@ class DartGenerator : public BaseGenerator {
     code += "class " + class_name + " {\n";
 
     std::string constructor_args;
-    for (const auto &pair : non_deprecated_fields) {
-      const FieldDef &field = *pair.second;
+    for (auto it = non_deprecated_fields.begin();
+         it != non_deprecated_fields.end(); ++it) {
+      const FieldDef &field = *it->second;
 
       std::string field_name = MakeCamel(field.name, false);
       std::string type_name = GenDartTypeName(
@@ -529,8 +530,10 @@ class DartGenerator : public BaseGenerator {
       const StructDef &struct_def,
       const std::vector<std::pair<int, FieldDef *>> &non_deprecated_fields) {
     std::string constructor_args;
-    for (const auto &pair : non_deprecated_fields) {
-      const auto &field = *pair.second;
+    for (auto it = non_deprecated_fields.begin();
+         it != non_deprecated_fields.end(); ++it) {
+      const FieldDef &field = *it->second;
+
       std::string field_name = MakeCamel(field.name, false);
       if (!constructor_args.empty()) constructor_args += ",\n";
       constructor_args += "      " + field_name + ": " + field_name;
@@ -918,8 +921,9 @@ class DartGenerator : public BaseGenerator {
       const std::vector<std::pair<int, FieldDef *>> &non_deprecated_fields,
       bool prependUnderscore = true, bool pack = false) {
     std::string code = "    assert(fbBuilder != null);\n";
-    for (const auto &pair : non_deprecated_fields) {
-      auto &field = *pair.second;
+    for (auto it = non_deprecated_fields.begin();
+         it != non_deprecated_fields.end(); ++it) {
+      const FieldDef &field = *it->second;
 
       if (IsScalar(field.value.type.base_type) || IsStruct(field.value.type))
         continue;
@@ -1023,7 +1027,9 @@ class DartGenerator : public BaseGenerator {
     std::string code;
     code += "    fbBuilder.startTable();\n";
 
-    for (const auto &pair : non_deprecated_fields) {
+    for (auto it = non_deprecated_fields.begin();
+         it != non_deprecated_fields.end(); ++it) {
+      auto pair = *it;
       auto &field = *pair.second;
       auto offset = pair.first;
 
