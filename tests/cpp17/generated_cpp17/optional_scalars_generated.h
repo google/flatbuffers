@@ -6,6 +6,9 @@
 
 #include "flatbuffers/flatbuffers.h"
 
+#include <array>
+#include <type_traits>
+
 namespace optional_scalars {
 
 struct ScalarStuff;
