@@ -114,16 +114,16 @@ class MonsterExtraObjectBuilder extends fb.ObjectBuilder {
   final List<double> _fvec;
 
   MonsterExtraObjectBuilder({
-    double d0,
-    double d1,
-    double d2,
-    double d3,
-    double f0,
-    double f1,
-    double f2,
-    double f3,
-    List<double> dvec,
-    List<double> fvec,
+    required double d0,
+    required double d1,
+    required double d2,
+    required double d3,
+    required double f0,
+    required double f1,
+    required double f2,
+    required double f3,
+    required List<double> dvec,
+    required List<double> fvec,
   })
       : _d0 = d0,
         _d1 = d1,
@@ -168,7 +168,7 @@ class MonsterExtraObjectBuilder extends fb.ObjectBuilder {
 
   /// Convenience method to serialize to byte list.
   @override
-  Uint8List toBytes([String fileIdentifier]) {
+  Uint8List toBytes([String? fileIdentifier]) {
     fb.Builder fbBuilder = new fb.Builder();
     int offset = finish(fbBuilder);
     return fbBuilder.finish(offset, fileIdentifier);

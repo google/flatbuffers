@@ -67,8 +67,8 @@ class TableInCObjectBuilder extends fb.ObjectBuilder {
   final namespace_a.SecondTableInAObjectBuilder _referToA2;
 
   TableInCObjectBuilder({
-    namespace_a.TableInFirstNSObjectBuilder referToA1,
-    namespace_a.SecondTableInAObjectBuilder referToA2,
+    required namespace_a.TableInFirstNSObjectBuilder referToA1,
+    required namespace_a.SecondTableInAObjectBuilder referToA2,
   })
       : _referToA1 = referToA1,
         _referToA2 = referToA2;
@@ -93,7 +93,7 @@ class TableInCObjectBuilder extends fb.ObjectBuilder {
 
   /// Convenience method to serialize to byte list.
   @override
-  Uint8List toBytes([String fileIdentifier]) {
+  Uint8List toBytes([String? fileIdentifier]) {
     fb.Builder fbBuilder = new fb.Builder();
     int offset = finish(fbBuilder);
     return fbBuilder.finish(offset, fileIdentifier);

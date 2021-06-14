@@ -90,11 +90,11 @@ class TableInFirstNSObjectBuilder extends fb.ObjectBuilder {
   final namespace_a_namespace_b.StructInNestedNSObjectBuilder _fooStruct;
 
   TableInFirstNSObjectBuilder({
-    namespace_a_namespace_b.TableInNestedNSObjectBuilder fooTable,
-    EnumInNestedNS fooEnum,
-    UnionInNestedNSTypeId fooUnionType,
-    dynamic fooUnion,
-    namespace_a_namespace_b.StructInNestedNSObjectBuilder fooStruct,
+    required namespace_a_namespace_b.TableInNestedNSObjectBuilder fooTable,
+    required EnumInNestedNS fooEnum,
+    required UnionInNestedNSTypeId fooUnionType,
+    required dynamic fooUnion,
+    required namespace_a_namespace_b.StructInNestedNSObjectBuilder fooStruct,
   })
       : _fooTable = fooTable,
         _fooEnum = fooEnum,
@@ -127,7 +127,7 @@ class TableInFirstNSObjectBuilder extends fb.ObjectBuilder {
 
   /// Convenience method to serialize to byte list.
   @override
-  Uint8List toBytes([String fileIdentifier]) {
+  Uint8List toBytes([String? fileIdentifier]) {
     fb.Builder fbBuilder = new fb.Builder();
     int offset = finish(fbBuilder);
     return fbBuilder.finish(offset, fileIdentifier);
@@ -186,7 +186,7 @@ class SecondTableInAObjectBuilder extends fb.ObjectBuilder {
   final namespace_c.TableInCObjectBuilder _referToC;
 
   SecondTableInAObjectBuilder({
-    namespace_c.TableInCObjectBuilder referToC,
+    required namespace_c.TableInCObjectBuilder referToC,
   })
       : _referToC = referToC;
 
@@ -206,7 +206,7 @@ class SecondTableInAObjectBuilder extends fb.ObjectBuilder {
 
   /// Convenience method to serialize to byte list.
   @override
-  Uint8List toBytes([String fileIdentifier]) {
+  Uint8List toBytes([String? fileIdentifier]) {
     fb.Builder fbBuilder = new fb.Builder();
     int offset = finish(fbBuilder);
     return fbBuilder.finish(offset, fileIdentifier);
