@@ -105,4 +105,27 @@ Please see the C++ documentation for more on text parsing (note that this is
 not currently an option in Flutter - follow [this issue](https://github.com/flutter/flutter/issues/7053)
 for the latest).
 
-<br>
+## Object based API
+
+FlatBuffers is all about memory efficiency, which is why its base API is written
+around using as little as possible of it. This does make the API clumsier
+(requiring pre-order construction of all data, and making mutation harder).
+
+For times when efficiency is less important a more convenient object based API
+can be used (through `--gen-object-api`) that is able to unpack & pack a FlatBuffer
+into objects and lists, allowing for convenient construction, access and mutation.
+
+To use:
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.dart}
+    // Deserialize from buffer into object.
+    MonsterT monster = Monster(flatbuffer).unpack();
+
+    // Update object directly like a Dart class instance.
+    print(monster.Name);
+    monster.Name = "Bob";  // Change the name.
+
+    // Serialize into new flatbuffer.
+    final fbb = Builder();
+    fbb.Finish(monster.pack(fbb));
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

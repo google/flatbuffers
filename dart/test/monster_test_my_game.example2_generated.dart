@@ -26,6 +26,27 @@ class Monster {
   String toString() {
     return 'Monster{}';
   }
+
+  MonsterT unpack() => MonsterT();
+
+  static int pack(fb.Builder fbBuilder, MonsterT object) {
+    if (object == null) return 0;
+    return object.pack(fbBuilder);
+  }
+}
+
+class MonsterT {
+  int pack(fb.Builder fbBuilder) {
+    assert(fbBuilder != null);
+
+    fbBuilder.startTable();
+    return fbBuilder.endTable();
+  }
+
+  @override
+  String toString() {
+    return 'MonsterT{}';
+  }
 }
 
 class _MonsterReader extends fb.TableReader<Monster> {
