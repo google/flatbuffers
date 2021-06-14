@@ -3,13 +3,15 @@
 We use [reflection.fbs](https://github.com/google/flatbuffers/blob/master/reflection/reflection.fbs)
 as our intermediate representation. `flatc` parses `.fbs` files, checks them for
 errors and stores the resulting data in this IR, outputting `.bfbs` files.
-Since this IR is a Flatbuffer, you can load and use it at runtime for runtime reflection purposes.
+Since this IR is a Flatbuffer, you can load and use it at runtime for runtime
+reflection purposes.
 
 There are some quirks: 
 - Tables and Structs are serialized as `Object`s.
 - Unions and Enums are serialized as `Enum`s.
 - It is the responsibility of the code generator to check the `advanced_features`
-  field of the `Schema` for new features that may break previous assumptions.
+  field of `Schema`. These mark the presence of new, backwards incompatible, features.
+  Code generators must error if generating a schema with unrecognized advanced features.
 
 
 ## Invocation 
