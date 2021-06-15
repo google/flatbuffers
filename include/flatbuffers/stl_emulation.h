@@ -511,6 +511,11 @@ namespace internal {
     using reference = T&;
     using pointer   = T*;
 
+    // Convince MSVC compiler that this iterator is trusted (it is verified).
+#ifdef _MSC_VER
+    using _Unchecked_type = pointer;
+#endif // _MSC_VER
+
     SpanIterator(pointer ptr) : ptr_(ptr) {}
     reference operator*() const { return *ptr_; }
     pointer operator->() { return ptr_; }
