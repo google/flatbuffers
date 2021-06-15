@@ -172,14 +172,13 @@ class JsonSchemaGenerator : public BaseGenerator {
       const auto &comment_line = *line_iterator;
 
       // remove leading and trailing spaces from comment line
-      const auto start =
-          std::find_if(comment_line.begin(), comment_line.end(),
-                       [](char c) { return !isspace(c); });
-      const auto end =
-          std::find_if(comment_line.rbegin(), comment_line.rend(),
-                       [](char c) { return !isspace(c); })
-              .base();
-      std::string trimmed_line(start < end ?  std::string(start, end) : comment_line);      
+      const auto start = std::find_if(comment_line.begin(), comment_line.end(),
+                                      [](char c) { return !isspace(c); });
+      const auto end = std::find_if(comment_line.rbegin(), comment_line.rend(),
+                                    [](char c) { return !isspace(c); })
+                           .base();
+      std::string trimmed_line(start < end ? std::string(start, end)
+                                           : comment_line);
 
       comment.append(trimmed_line);
       if (line_iterator + 1 != comment_lines.cend()) comment.append("\n");
