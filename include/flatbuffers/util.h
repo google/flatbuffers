@@ -679,7 +679,6 @@ inline std::string BufferToHexText(const void *buffer, size_t buffer_size,
 
 // Remove paired quotes in a string: "text"|'text' -> text.
 std::string RemoveStringQuotes(const std::string &s);
-std::string Trim(const std::string &s);
 
 // Change th global C-locale to locale with name <locale_name>.
 // Returns an actual locale name in <_value>, useful if locale_name is "" or
