@@ -231,13 +231,14 @@ class DartGenerator : public BaseGenerator {
     code += "  final int value;\n";
     code += "  const " + name + "._(this.value);\n\n";
     code += "  factory " + name + ".fromValue(int value) {\n";
-    code += "    if (!values.containsKey(value)) {\n";
+    code += "    final result = values[value];\n";
+    code += "    if (result == null) {\n";
     code +=
         "      throw new StateError('Invalid value $value for bit flag enum ";
     code += name + "');\n";
     code += "    }\n";
 
-    code += "    return values[value]!;\n";
+    code += "    return result;\n";
     code += "  }\n\n";
 
     code += "  static " + name + "? _createOrNull(int? value) => \n";
@@ -714,9 +715,7 @@ class DartGenerator : public BaseGenerator {
   }
 
   std::string getDefaultValue(const Value &value) const {
-    // NOTE: currently there's no way to recognize fields explicitly defaulted
-    // to 0 and those that don't have a default value in .fbs at all...
-    if (value.constant != "0") {
+    if (!value.constant.empty() && value.constant != "0") {
       if (IsBool(value.type.base_type)) {
         return "true";
       } else if (value.constant == "nan" || value.constant == "+nan" ||
@@ -729,8 +728,13 @@ class DartGenerator : public BaseGenerator {
       } else {
         return value.constant;
       }
+    } else if (IsBool(value.type.base_type)) {
+      return "false";
+    } else if (IsScalar(value.type.base_type) && !IsUnion(value.type)) {
+      return "0";
+    } else {
+      return "";
     }
-    return "";
   }
 
   void GenReader(const StructDef &struct_def, std::string *reader_name_ptr,
@@ -855,7 +859,7 @@ class DartGenerator : public BaseGenerator {
         code +=
             "    fbBuilder.addStruct(" + NumToString(offset) + ", offset);\n";
       } else {
-        code += "  int add" + MakeCamel(field.name) + "Offset(int offset) {\n";
+        code += "  int add" + MakeCamel(field.name) + "Offset(int? offset) {\n";
         code +=
             "    fbBuilder.addOffset(" + NumToString(offset) + ", offset);\n";
       }
@@ -978,9 +982,8 @@ class DartGenerator : public BaseGenerator {
         code += "        ? fbBuilder.writeList";
         switch (field.value.type.VectorType().base_type) {
           case BASE_TYPE_STRING:
-            code +=
-                "(" + field_name +
-                "!.map((b) => fbBuilder.writeString(b)).toList() as List<int>)";
+            code += "(" + field_name +
+                    "!.map((b) => fbBuilder.writeString(b)!).toList())";
             break;
           case BASE_TYPE_STRUCT:
             if (field.value.type.struct_def->fixed) {

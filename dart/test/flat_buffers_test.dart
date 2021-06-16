@@ -46,19 +46,19 @@ class CheckOtherLangaugesData {
     expect(mon.pos!.test2.value, 2.0);
     expect(mon.pos!.test3.a, 5);
     expect(mon.pos!.test3.b, 6);
-    expect(mon.testType.value, example.AnyTypeId.Monster.value);
+    expect(mon.testType!.value, example.AnyTypeId.Monster.value);
     expect(mon.test is example.Monster, true);
     final monster2 = mon.test as example.Monster;
     expect(monster2.name, "Fred");
 
-    expect(mon.inventory.length, 5);
-    expect(mon.inventory.reduce((cur, next) => cur + next), 10);
-    expect(mon.test4.length, 2);
-    expect(
-        mon.test4[0].a + mon.test4[0].b + mon.test4[1].a + mon.test4[1].b, 100);
-    expect(mon.testarrayofstring.length, 2);
-    expect(mon.testarrayofstring[0], "test1");
-    expect(mon.testarrayofstring[1], "test2");
+    expect(mon.inventory!.length, 5);
+    expect(mon.inventory!.reduce((cur, next) => cur + next), 10);
+    final test4 = mon.test4!;
+    expect(test4.length, 2);
+    expect(test4[0].a + test4[0].b + test4[1].a + test4[1].b, 100);
+    expect(mon.testarrayofstring!.length, 2);
+    expect(mon.testarrayofstring![0], "test1");
+    expect(mon.testarrayofstring![1], "test2");
 
     // this will fail if accessing any field fails.
     expect(
@@ -68,7 +68,7 @@ class CheckOtherLangaugesData {
       'mana: 150, hp: 80, name: MyMonster, inventory: [0, 1, 2, 3, 4], '
       'color: Color{value: 8}, testType: AnyTypeId{value: 1}, '
       'test: Monster{pos: null, mana: 150, hp: 100, name: Fred, '
-      'inventory: null, color: Color{value: 8}, testType: AnyTypeId{value: 0}, '
+      'inventory: null, color: Color{value: 8}, testType: null, '
       'test: null, test4: null, testarrayofstring: null, '
       'testarrayoftables: null, enemy: null, testnestedflatbuffer: null, '
       'testempty: null, testbool: false, testhashs32Fnv1: 0, '
@@ -82,14 +82,13 @@ class CheckOtherLangaugesData {
       'vectorOfWeakReferences: null, vectorOfStrongReferrables: null, '
       'coOwningReference: 0, vectorOfCoOwningReferences: null, '
       'nonOwningReference: 0, vectorOfNonOwningReferences: null, '
-      'anyUniqueType: AnyUniqueAliasesTypeId{value: 0}, anyUnique: null, '
-      'anyAmbiguousType: AnyAmbiguousAliasesTypeId{value: 0}, '
+      'anyUniqueType: null, anyUnique: null, anyAmbiguousType: null, '
       'anyAmbiguous: null, vectorOfEnums: null, signedEnum: Race{value: -1}, '
       'testrequirednestedflatbuffer: null, scalarKeySortedTables: null}, '
       'test4: [Test{a: 10, b: 20}, Test{a: 30, b: 40}], '
       'testarrayofstring: [test1, test2], testarrayoftables: null, '
       'enemy: Monster{pos: null, mana: 150, hp: 100, name: Fred, '
-      'inventory: null, color: Color{value: 8}, testType: AnyTypeId{value: 0}, '
+      'inventory: null, color: Color{value: 8}, testType: null, '
       'test: null, test4: null, testarrayofstring: null, '
       'testarrayoftables: null, enemy: null, testnestedflatbuffer: null, '
       'testempty: null, testbool: false, testhashs32Fnv1: 0, '
@@ -103,8 +102,7 @@ class CheckOtherLangaugesData {
       'vectorOfWeakReferences: null, vectorOfStrongReferrables: null, '
       'coOwningReference: 0, vectorOfCoOwningReferences: null, '
       'nonOwningReference: 0, vectorOfNonOwningReferences: null, '
-      'anyUniqueType: AnyUniqueAliasesTypeId{value: 0}, anyUnique: null, '
-      'anyAmbiguousType: AnyAmbiguousAliasesTypeId{value: 0}, '
+      'anyUniqueType: null, anyUnique: null, anyAmbiguousType: null, '
       'anyAmbiguous: null, vectorOfEnums: null, signedEnum: Race{value: -1}, '
       'testrequirednestedflatbuffer: null, scalarKeySortedTables: null}, '
       'testnestedflatbuffer: null, testempty: null, testbool: true, '
@@ -126,8 +124,8 @@ class CheckOtherLangaugesData {
       'vectorOfStrongReferrables: null, coOwningReference: 0, '
       'vectorOfCoOwningReferences: null, nonOwningReference: 0, '
       'vectorOfNonOwningReferences: null, '
-      'anyUniqueType: AnyUniqueAliasesTypeId{value: 0}, anyUnique: null, '
-      'anyAmbiguousType: AnyAmbiguousAliasesTypeId{value: 0}, '
+      'anyUniqueType: null, anyUnique: null, '
+      'anyAmbiguousType: null, '
       'anyAmbiguous: null, vectorOfEnums: null, signedEnum: Race{value: -1}, '
       'testrequirednestedflatbuffer: null, scalarKeySortedTables: [Stat{id: '
       'miss, val: 0, count: 0}, Stat{id: hit, val: 10, count: 1}]}',
@@ -337,11 +335,13 @@ class BuilderTest {
     // read and verify
     BufferContext buf = new BufferContext.fromBytes(byteList);
     int objectOffset = buf.derefObject(0);
-    expect(const StringReader().vTableGetNullable(
-        buf, objectOffset, indexToField(0)),
+    expect(
+        const StringReader()
+            .vTableGetNullable(buf, objectOffset, indexToField(0)),
         latinString);
-    expect(const StringReader().vTableGetNullable(
-        buf, objectOffset, indexToField(1)),
+    expect(
+        const StringReader()
+            .vTableGetNullable(buf, objectOffset, indexToField(1)),
         unicodeString);
   }
 
@@ -365,25 +365,32 @@ class BuilderTest {
     BufferContext buf = new BufferContext.fromBytes(byteList);
     int objectOffset = buf.derefObject(0);
     expect(
-        const BoolReader().vTableGetNullable(
-            buf, objectOffset, indexToField(0)), true);
+        const BoolReader()
+            .vTableGetNullable(buf, objectOffset, indexToField(0)),
+        true);
     expect(
-        const Int8Reader().vTableGetNullable(
-            buf, objectOffset, indexToField(1)), 10);
+        const Int8Reader()
+            .vTableGetNullable(buf, objectOffset, indexToField(1)),
+        10);
     expect(
-        const Int32Reader().vTableGetNullable(
-            buf, objectOffset, indexToField(2)), 20);
-    expect(const StringReader().vTableGetNullable(
-        buf, objectOffset, indexToField(3)),
+        const Int32Reader()
+            .vTableGetNullable(buf, objectOffset, indexToField(2)),
+        20);
+    expect(
+        const StringReader()
+            .vTableGetNullable(buf, objectOffset, indexToField(3)),
         '12345');
     expect(
-        const Int32Reader().vTableGetNullable(
-            buf, objectOffset, indexToField(4)), 40);
-    expect(const Uint32Reader().vTableGetNullable(
-        buf, objectOffset, indexToField(5)),
+        const Int32Reader()
+            .vTableGetNullable(buf, objectOffset, indexToField(4)),
+        40);
+    expect(
+        const Uint32Reader()
+            .vTableGetNullable(buf, objectOffset, indexToField(5)),
         0x9ABCDEF0);
-    expect(const Uint8Reader().vTableGetNullable(
-        buf, objectOffset, indexToField(6)),
+    expect(
+        const Uint8Reader()
+            .vTableGetNullable(buf, objectOffset, indexToField(6)),
         0x9A);
   }
 
