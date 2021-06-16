@@ -1966,8 +1966,8 @@ class CppGenerator : public BaseGenerator {
     code_ += "  }";
 
     if (is_string) {
-      code_ += "  int KeyCompareWithValue(const char *val) const {";
-      code_ += "    return strcmp({{FIELD_NAME}}()->c_str(), val);";
+      code_ += "  int KeyCompareWithValue(const char *a_val) const {";
+      code_ += "    return strcmp({{FIELD_NAME}}()->c_str(), a_val);";
       code_ += "  }";
     } else {
       FLATBUFFERS_ASSERT(IsScalar(field.value.type.base_type));
@@ -1978,10 +1978,10 @@ class CppGenerator : public BaseGenerator {
       }
       // Returns {field<val: -1, field==val: 0, field>val: +1}.
       code_.SetValue("KEY_TYPE", type);
-      code_ += "  int KeyCompareWithValue({{KEY_TYPE}} val) const {";
+      code_ += "  int KeyCompareWithValue({{KEY_TYPE}} a_val) const {";
       code_ +=
-          "    return static_cast<int>({{FIELD_NAME}}() > val) - "
-          "static_cast<int>({{FIELD_NAME}}() < val);";
+          "    return static_cast<int>({{FIELD_NAME}}() > a_val) - "
+          "static_cast<int>({{FIELD_NAME}}() < a_val);";
       code_ += "  }";
     }
   }
