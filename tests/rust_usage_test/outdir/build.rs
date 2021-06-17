@@ -1,6 +1,5 @@
 fn main() {
     use std::process::Command;
-    
     let project_root = std::env::current_dir()
         .unwrap()
         .parent()  // flatbuffers/tests/rust_usage test
@@ -10,7 +9,6 @@ fn main() {
         .parent()  // flatbuffers/
         .unwrap()
         .to_path_buf();
-    
     let sample_schema = {
         let mut s = project_root.to_path_buf();
         s.push("samples");
@@ -35,5 +33,6 @@ fn main() {
         .expect("Failed to generate file");
 
     let genfile = "monster_gen.rs";
-    std::fs::rename(&genfile, out_dir.join("monster_generated.rs")).unwrap();
+    std::fs::rename(&genfile, out_dir.join("monster_generated.rs"))
+        .expect("Could not rename monster_ge.rs to monster_generated.rs");
 }

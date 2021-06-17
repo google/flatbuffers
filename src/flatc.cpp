@@ -149,6 +149,8 @@ std::string FlatCompiler::GetUsageString(const char *program_name) const {
     "  --oneof-union          Translate .proto oneofs to flatbuffer unions.\n"
     "  --grpc                 Generate GRPC interfaces for the specified languages.\n"
     "  --schema               Serialize schemas instead of JSON (use with -b).\n"
+    "  --bfbs-filenames PATH  Adds declaration filenames, relative to PATH and prefixed with"
+    "                         `//`, to the binary schema.\n"
     "  --bfbs-comments        Add doc comments to the binary schema files.\n"
     "  --bfbs-builtins        Add builtin attributes to the binary schema files.\n"
     "  --bfbs-gen-embed       Generate code to embed the bfbs schema to the source.\n"
@@ -221,6 +223,11 @@ int FlatCompiler::Compile(int argc, const char **argv) {
             flatbuffers::PosixPath(argv[argi]));
         include_directories.push_back(
             include_directories_storage.back().c_str());
+      } else if (arg == "--bfbs-filenames") {
+        if (++argi > argc) Error("missing path following: " + arg, true);
+        opts.project_root = argv[argi];
+        if (!DirExists(opts.project_root.c_str()))
+          Error(arg + " is not a directory: " + opts.project_root);
       } else if (arg == "--conform") {
         if (++argi >= argc) Error("missing path following: " + arg, true);
         conform_to_schema = flatbuffers::PosixPath(argv[argi]);
@@ -436,8 +443,8 @@ int FlatCompiler::Compile(int argc, const char **argv) {
     bool is_binary =
         static_cast<size_t>(file_it - filenames.begin()) >= binary_files_from;
     auto ext = flatbuffers::GetExtension(filename);
-    auto is_schema = ext == "fbs" || ext == "proto";
-    auto is_binary_schema = ext == reflection::SchemaExtension();
+    const bool is_schema = ext == "fbs" || ext == "proto";
+    const bool is_binary_schema = ext == reflection::SchemaExtension();
     if (is_binary) {
       parser->builder_.Clear();
       parser->builder_.PushFlatBuffer(
