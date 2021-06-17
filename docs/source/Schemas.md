@@ -637,10 +637,14 @@ optional type.
 Some `FlatBufferBuilder` implementations have an option called `force_defaults`
 that circumvents this "not writing defaults" behavior you can then use
 `IsFieldPresent` to query presence.
-
+/
 Another option that works in all languages is to wrap a scalar field in a
 struct. This way it will return null if it is not present. This will be slightly
 less ergonomic but structs don't take up any more space than the scalar they
 represent.
 
    [Interface Definition Language]: https://en.wikipedia.org/wiki/Interface_description_language
+
+## Writing your own code generator.
+
+See [our intermediate representation](@ref intermediate_representation).

@@ -66,6 +66,8 @@
         title="FlatBuffers white paper"/>
     <tab type="user" url="@ref flatbuffers_internals"
         title="FlatBuffers internals"/>
+    <tab type="user" url="@ref intermediate_representation"
+        title="Intermediate Representation"/>
     <tab type="user" url="@ref flatbuffers_grammar"
         title="Grammar of the schema language"/>
     <tab type="usergroup" url="" title="API Reference">
