@@ -16,7 +16,6 @@
  compatibility helpers for numpy. """
 
 import sys
-import imp
 
 PY2 = sys.version_info[0] == 2
 PY26 = sys.version_info[0:2] == (2, 6)
@@ -26,12 +25,14 @@ PY3 = sys.version_info[0] == 3
 PY34 = sys.version_info[0:2] >= (3, 4)
 
 if PY3:
+    import importlib.machinery
     string_types = (str,)
     binary_types = (bytes,bytearray)
     range_func = range
     memoryview_type = memoryview
     struct_bool_decl = "?"
 else:
+    import imp
     string_types = (unicode,)
     if PY26 or PY27:
         binary_types = (str,bytearray)
@@ -52,11 +53,15 @@ def import_numpy():
     Returns the numpy module if it exists on the system,
     otherwise returns None.
     """
-    try:
-        imp.find_module('numpy')
-        numpy_exists = True
-    except ImportError:
-        numpy_exists = False
+    if PY3:
+        numpy_exists = (
+            importlib.machinery.PathFinder.find_spec('numpy') is not None)
+    else:
+        try:
+            imp.find_module('numpy')
+            numpy_exists = True
+        except ImportError:
+            numpy_exists = False
 
     if numpy_exists:
         # We do this outside of try/except block in case numpy exists
