@@ -1077,7 +1077,7 @@ static startScalarKeySortedTablesVector(builder:flatbuffers.Builder, numElems:nu
 
 static endMonster(builder:flatbuffers.Builder):flatbuffers.Offset {
   const offset = builder.endObject();
-  builder.IsRequired()Field(offset, 10) // name
+  builder.requiredField(offset, 10) // name
   return offset;
 }
 
