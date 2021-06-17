@@ -2,6 +2,7 @@
 
 package NamespaceA.NamespaceB;
 
+@SuppressWarnings("unused")
 public final class UnionInNestedNS {
   private UnionInNestedNS() { }
   public static final byte NONE = 0;

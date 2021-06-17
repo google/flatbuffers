@@ -12,10 +12,12 @@ import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import './monster_test_my_game.example_generated.dart' as example;
+import './monster_test_my_game.example2_generated.dart' as example2;
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(BuilderTest);
+    defineReflectiveTests(ObjectAPITest);
     defineReflectiveTests(CheckOtherLangaugesData);
     defineReflectiveTests(GeneratorTest);
   });
@@ -29,7 +31,8 @@ int indexToField(int index) {
 class CheckOtherLangaugesData {
   test_cppData() async {
     List<int> data = await new io.File(path.join(
-      path.dirname(io.Platform.script.path),
+      path.context.current,
+      'test',
       'monsterdata_test.mon',
     )).readAsBytes();
     example.Monster mon = new example.Monster(data);
@@ -82,7 +85,7 @@ class CheckOtherLangaugesData {
       'anyUniqueType: AnyUniqueAliasesTypeId{value: 0}, anyUnique: null, '
       'anyAmbiguousType: AnyAmbiguousAliasesTypeId{value: 0}, '
       'anyAmbiguous: null, vectorOfEnums: null, signedEnum: Race{value: -1}, '
-      'testrequirednestedflatbuffer: null}, '
+      'testrequirednestedflatbuffer: null, scalarKeySortedTables: null}, '
       'test4: [Test{a: 10, b: 20}, Test{a: 30, b: 40}], '
       'testarrayofstring: [test1, test2], testarrayoftables: null, '
       'enemy: Monster{pos: null, mana: 150, hp: 100, name: Fred, '
@@ -103,7 +106,7 @@ class CheckOtherLangaugesData {
       'anyUniqueType: AnyUniqueAliasesTypeId{value: 0}, anyUnique: null, '
       'anyAmbiguousType: AnyAmbiguousAliasesTypeId{value: 0}, '
       'anyAmbiguous: null, vectorOfEnums: null, signedEnum: Race{value: -1}, '
-      'testrequirednestedflatbuffer: null}, '
+      'testrequirednestedflatbuffer: null, scalarKeySortedTables: null}, '
       'testnestedflatbuffer: null, testempty: null, testbool: true, '
       'testhashs32Fnv1: -579221183, testhashu32Fnv1: 3715746113, '
       'testhashs64Fnv1: 7930699090847568257, '
@@ -112,7 +115,9 @@ class CheckOtherLangaugesData {
       'testhashs64Fnv1a: 4898026182817603057, '
       'testhashu64Fnv1a: 4898026182817603057, '
       'testarrayofbools: [true, false, true], testf: 3.14159, testf2: 3.0, '
-      'testf3: 0.0, testarrayofstring2: null, testarrayofsortedstruct: null, '
+      'testf3: 0.0, testarrayofstring2: null, testarrayofsortedstruct: ['
+      'Ability{id: 0, distance: 45}, Ability{id: 1, distance: 21}, '
+      'Ability{id: 5, distance: 12}], '
       'flex: null, test5: [Test{a: 10, b: 20}, Test{a: 30, b: 40}], '
       'vectorOfLongs: [1, 100, 10000, 1000000, 100000000], '
       'vectorOfDoubles: [-1.7976931348623157e+308, 0.0, 1.7976931348623157e+308], '
@@ -124,15 +129,16 @@ class CheckOtherLangaugesData {
       'anyUniqueType: AnyUniqueAliasesTypeId{value: 0}, anyUnique: null, '
       'anyAmbiguousType: AnyAmbiguousAliasesTypeId{value: 0}, '
       'anyAmbiguous: null, vectorOfEnums: null, signedEnum: Race{value: -1}, '
-      'testrequirednestedflatbuffer: null}',
+      'testrequirednestedflatbuffer: null, scalarKeySortedTables: [Stat{id: '
+      'miss, val: 0, count: 0}, Stat{id: hit, val: 10, count: 1}]}',
     );
   }
 }
 
 @reflectiveTest
 class BuilderTest {
-  void test_monsterBuilder() {
-    final fbBuilder = new Builder();
+  void test_monsterBuilder([Builder builder]) {
+    final fbBuilder = builder ?? new Builder();
     final str = fbBuilder.writeString('MyMonster');
 
     fbBuilder.writeString('test1');
@@ -177,8 +183,8 @@ class BuilderTest {
     fbBuilder.finish(mon);
   }
 
-  void test_error_addInt32_withoutStartTable() {
-    Builder builder = new Builder();
+  void test_error_addInt32_withoutStartTable([Builder builder]) {
+    builder ??= new Builder();
     expect(() {
       builder.addInt32(0, 0);
     }, throwsStateError);
@@ -282,10 +288,10 @@ class BuilderTest {
         20);
   }
 
-  void test_table_format() {
+  void test_table_format([Builder builder]) {
     Uint8List byteList;
     {
-      Builder builder = new Builder(initialSize: 0);
+      builder ??= new Builder(initialSize: 0);
       builder.startTable();
       builder.addInt32(0, 10);
       builder.addInt32(1, 20);
@@ -337,10 +343,10 @@ class BuilderTest {
         unicodeString);
   }
 
-  void test_table_types() {
+  void test_table_types([Builder builder]) {
     List<int> byteList;
     {
-      Builder builder = new Builder(initialSize: 0);
+      builder ??= new Builder(initialSize: 0);
       int stringOffset = builder.writeString('12345');
       builder.startTable();
       builder.addBool(0, true);
@@ -482,10 +488,10 @@ class BuilderTest {
     }
   }
 
-  void test_writeList_ofObjects() {
+  void test_writeList_ofObjects([Builder builder]) {
     List<int> byteList;
     {
-      Builder builder = new Builder(initialSize: 0);
+      builder ??= new Builder(initialSize: 0);
       // write the object #1
       int object1;
       {
@@ -535,10 +541,10 @@ class BuilderTest {
     expect(items, contains('ABC'));
   }
 
-  void test_writeList_ofStrings_inObject() {
+  void test_writeList_ofStrings_inObject([Builder builder]) {
     List<int> byteList;
     {
-      Builder builder = new Builder(initialSize: 0);
+      builder ??= new Builder(initialSize: 0);
       int listOffset = builder.writeList(
           [builder.writeString('12345'), builder.writeString('ABC')]);
       builder.startTable();
@@ -596,6 +602,135 @@ class BuilderTest {
     expect(items, hasLength(5));
     expect(items, orderedEquals(<int>[1, 2, 3, 4, 0x9A]));
   }
+
+  void test_reset() {
+    // We'll run a selection of tests , reusing the builder between them.
+    final testCases = <void Function(Builder)>[
+      test_monsterBuilder,
+      test_error_addInt32_withoutStartTable,
+      test_table_format,
+      test_table_types,
+      test_writeList_ofObjects,
+      test_writeList_ofStrings_inObject
+    ];
+
+    // Execute all test cases in all permutations of their order.
+    // To do that, we generate permutations of test case indexes.
+    final testCasesPermutations =
+        _permutationsOf(List.generate(testCases.length, (index) => index));
+    expect(testCasesPermutations.length, _factorial(testCases.length));
+
+    testCasesPermutations.forEach((List<int> indexes) {
+      // print the order so failures are reproducible
+      printOnFailure('Running reset() test cases in order: $indexes');
+
+      Builder builder;
+      indexes.forEach((index) {
+        if (builder == null) {
+          // Initial size small enough so at least one test case increases it.
+          // On the other hand, it's large enough so that some test cases don't.
+          builder = Builder(initialSize: 32);
+        } else {
+          builder.reset();
+        }
+        testCases[index](builder);
+      });
+    });
+  }
+
+  // Generate permutations of the given list
+  List<List<T>> _permutationsOf<T>(List<T> source) {
+    final result = <List<T>>[];
+
+    void permutate(List<T> items, int startAt) {
+      for (var i = startAt; i < items.length; i++) {
+        List<T> permutation = items.toList(growable: false);
+        permutation[i] = items[startAt];
+        permutation[startAt] = items[i];
+
+        // add the current list upon reaching the end
+        if (startAt == items.length - 1) {
+          result.add(items);
+        } else {
+          permutate(permutation, startAt + 1);
+        }
+      }
+    }
+
+    permutate(source, 0);
+    return result;
+  }
+
+  // a very simple implementation of n!
+  int _factorial(int n) {
+    var result = 1;
+    for (var i = 2; i <= n; i++) result *= i;
+    return result;
+  }
+}
+
+@reflectiveTest
+class ObjectAPITest {
+  void test_tableStat() {
+    final object1 = example.StatT(count: 3, id: "foo", val: 4);
+    final fbb = Builder();
+    final data = fbb.finish(object1.pack(fbb));
+    final object2 = example.Stat(data).unpack();
+    expect(object2.count, object1.count);
+    expect(object2.id, object1.id);
+    expect(object2.val, object1.val);
+    expect(object2.toString(), object1.toString());
+  }
+
+  void test_tableMonster() {
+    final monster = example.MonsterT()
+      ..pos = example.Vec3T(
+          x: 1,
+          y: 2,
+          z: 3,
+          test1: 4.0,
+          test2: example.Color.Red,
+          test3: example.TestT(a: 1, b: 2))
+      ..mana = 2
+      ..name = 'Monstrous'
+      ..inventory = [24, 42]
+      ..color = example.Color.Green
+      // TODO be smarter for unions and automatically set the `type` field?
+      ..testType = example.AnyTypeId.MyGame_Example2_Monster
+      ..test = example2.MonsterT()
+      ..test4 = [example.TestT(a: 3, b: 4), example.TestT(a: 5, b: 6)]
+      ..testarrayofstring = ["foo", "bar"]
+      ..testarrayoftables = [example.MonsterT(name: 'Oof')]
+      ..enemy = example.MonsterT(name: 'Enemy')
+      ..testarrayofbools = [false, true, false]
+      ..testf = 42.24
+      ..testarrayofsortedstruct = [
+        example.AbilityT(id: 1, distance: 5),
+        example.AbilityT(id: 3, distance: 7)
+      ]
+      ..vectorOfLongs = [5, 6, 7]
+      ..vectorOfDoubles = [8.9, 9.0, 10.1, 11.2]
+      ..anyAmbiguousType = example.AnyAmbiguousAliasesTypeId.M2
+      ..anyAmbiguous = null
+      ..vectorOfEnums = [example.Color.Blue, example.Color.Green]
+      ..signedEnum = example.Race.None;
+
+    final fbBuilder = Builder();
+    final offset = monster.pack(fbBuilder);
+    expect(offset, isNonZero);
+    final data = fbBuilder.finish(offset);
+
+    // TODO currently broken because of struct builder issue, see #6688
+    // final monster2 = example.Monster(data); // Monster (reader)
+    // expect(
+    //     // map Monster => MonsterT, Vec3 => Vec3T, ...
+    //     monster2.toString().replaceAllMapped(
+    //         RegExp('([a-zA-z0-9]+){'), (match) => match.group(1) + 'T{'),
+    //     monster.toString());
+    //
+    // final monster3 = monster2.unpack(); // MonsterT
+    // expect(monster3.toString(), monster.toString());
+  }
 }
 
 class StringListWrapperImpl {
@@ -643,7 +778,9 @@ class GeneratorTest {
     expect(example.Color.values, same(example.Color.values));
     expect(example.Race.values, same(example.Race.values));
     expect(example.AnyTypeId.values, same(example.AnyTypeId.values));
-    expect(example.AnyUniqueAliasesTypeId.values, same(example.AnyUniqueAliasesTypeId.values));
-    expect(example.AnyAmbiguousAliasesTypeId.values, same(example.AnyAmbiguousAliasesTypeId.values));
+    expect(example.AnyUniqueAliasesTypeId.values,
+        same(example.AnyUniqueAliasesTypeId.values));
+    expect(example.AnyAmbiguousAliasesTypeId.values,
+        same(example.AnyAmbiguousAliasesTypeId.values));
   }
 }

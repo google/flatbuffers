@@ -1,8 +1,8 @@
 --swiftversion 5.1
 
 # format
---allman true
 --indent 2
+--maxwidth 80
 
 # options
 --self remove # redundantSelf

@@ -498,15 +498,19 @@ CheckedError Parser::Next() {
         }
         FLATBUFFERS_FALLTHROUGH();  // else fall thru
       default:
-        const auto has_sign = (c == '+') || (c == '-');
-        // '-'/'+' and following identifier - can be a predefined constant like:
-        // NAN, INF, PI, etc or it can be a function name like cos/sin/deg.
-        if (IsIdentifierStart(c) || (has_sign && IsIdentifierStart(*cursor_))) {
+        if (IsIdentifierStart(c)) {
           // Collect all chars of an identifier:
           const char *start = cursor_ - 1;
           while (IsIdentifierStart(*cursor_) || is_digit(*cursor_)) cursor_++;
           attribute_.append(start, cursor_);
-          token_ = has_sign ? kTokenStringConstant : kTokenIdentifier;
+          token_ = kTokenIdentifier;
+          return NoError();
+        }
+
+        const auto has_sign = (c == '+') || (c == '-');
+        if (has_sign && IsIdentifierStart(*cursor_)) {
+          // '-'/'+' and following identifier - it could be a predefined
+          // constant. Return the sign in token_, see ParseSingleValue.
           return NoError();
         }
 
@@ -761,10 +765,13 @@ CheckedError Parser::ParseField(StructDef &struct_def) {
   if (!struct_def.fixed && IsArray(type))
     return Error("fixed-length array in table must be wrapped in struct");
 
-  if (IsArray(type) && !SupportsAdvancedArrayFeatures()) {
-    return Error(
-        "Arrays are not yet supported in all "
-        "the specified programming languages.");
+  if (IsArray(type)) {
+    advanced_features_ |= reflection::AdvancedArrayFeatures;
+    if (!SupportsAdvancedArrayFeatures()) {
+      return Error(
+          "Arrays are not yet supported in all "
+          "the specified programming languages.");
+    }
   }
 
   FieldDef *typefield = nullptr;
@@ -774,6 +781,7 @@ CheckedError Parser::ParseField(StructDef &struct_def) {
     ECHECK(AddField(struct_def, name + UnionTypeFieldSuffix(),
                     type.enum_def->underlying_type, &typefield));
   } else if (IsVector(type) && type.element == BASE_TYPE_UNION) {
+    advanced_features_ |= reflection::AdvancedUnionFeatures;
     // Only cpp, js and ts supports the union vector feature so far.
     if (!SupportsAdvancedUnionFeatures()) {
       return Error(
@@ -798,11 +806,16 @@ CheckedError Parser::ParseField(StructDef &struct_def) {
       return Error(
           "default values are not supported for struct fields, table fields, "
           "or in structs.");
-    if ((IsString(type) || IsVector(type)) && field->value.constant != "0" &&
-        field->value.constant != "null" && !SupportsDefaultVectorsAndStrings())
-      return Error(
-          "Default values for strings and vectors are not supported in one of "
-          "the specified programming languages");
+    if (IsString(type) || IsVector(type)) {
+      advanced_features_ |= reflection::DefaultVectorsAndStrings;
+      if (field->value.constant != "0" && field->value.constant != "null" &&
+          !SupportsDefaultVectorsAndStrings()) {
+        return Error(
+            "Default values for strings and vectors are not supported in one "
+            "of the specified programming languages");
+      }
+    }
+
     if (IsVector(type) && field->value.constant != "0" &&
         field->value.constant != "[]") {
       return Error("The only supported default for vectors is `[]`.");
@@ -887,6 +900,7 @@ CheckedError Parser::ParseField(StructDef &struct_def) {
   }
 
   if (field->IsScalarOptional()) {
+    advanced_features_ |= reflection::OptionalScalars;
     if (type.enum_def && type.enum_def->Lookup("null")) {
       FLATBUFFERS_ASSERT(IsInteger(type.base_type));
       return Error(
@@ -906,24 +920,32 @@ CheckedError Parser::ParseField(StructDef &struct_def) {
   }
 
   if (type.enum_def) {
-    // The type.base_type can only be scalar, union, array or vector.
-    // Table, struct or string can't have enum_def.
-    // Default value of union and vector in NONE, NULL translated to "0".
-    FLATBUFFERS_ASSERT(IsInteger(type.base_type) ||
-                       (type.base_type == BASE_TYPE_UNION) || IsVector(type) ||
-                       IsArray(type));
-    if (IsVector(type)) {
-      // Vector can't use initialization list.
-      FLATBUFFERS_ASSERT(field->value.constant == "0");
+    // Verify the enum's type and default value.
+    const std::string &constant = field->value.constant;
+    if (type.base_type == BASE_TYPE_UNION) {
+      if (constant != "0") { return Error("Union defaults must be NONE"); }
+    } else if (IsVector(type)) {
+      if (constant != "0" && constant != "[]") {
+        return Error("Vector defaults may only be `[]`.");
+      }
+    } else if (IsArray(type)) {
+      if (constant != "0") {
+        return Error("Array defaults are not supported yet.");
+      }
     } else {
-      // All unions should have the NONE ("0") enum value.
-      auto in_enum = field->IsOptional() ||
-                     type.enum_def->attributes.Lookup("bit_flags") ||
-                     type.enum_def->FindByValue(field->value.constant);
-      if (false == in_enum)
-        return Error("default value of " + field->value.constant +
-                     " for field " + name + " is not part of enum " +
-                     type.enum_def->name);
+      if (!IsInteger(type.base_type)) {
+        return Error("Enums must have integer base types");
+      }
+      // Optional and bitflags enums may have default constants that are not
+      // their specified variants.
+      if (!field->IsOptional() &&
+          type.enum_def->attributes.Lookup("bit_flags") == nullptr) {
+        if (type.enum_def->FindByValue(constant) == nullptr) {
+          return Error("default value of `" + constant + "` for " + "field `" +
+                       name + "` is not part of enum `" + type.enum_def->name +
+                       "`.");
+        }
+      }
     }
   }
 
@@ -1852,56 +1874,61 @@ CheckedError Parser::ParseFunction(const std::string *name, Value &e) {
 CheckedError Parser::TryTypedValue(const std::string *name, int dtoken,
                                    bool check, Value &e, BaseType req,
                                    bool *destmatch) {
-  bool match = dtoken == token_;
-  if (match) {
-    FLATBUFFERS_ASSERT(*destmatch == false);
-    *destmatch = true;
-    e.constant = attribute_;
-    // Check token match
-    if (!check) {
-      if (e.type.base_type == BASE_TYPE_NONE) {
-        e.type.base_type = req;
-      } else {
-        return Error(
-            std::string("type mismatch: expecting: ") +
-            kTypeNames[e.type.base_type] + ", found: " + kTypeNames[req] +
-            ", name: " + (name ? *name : "") + ", value: " + e.constant);
-      }
+  FLATBUFFERS_ASSERT(*destmatch == false && dtoken == token_);
+  *destmatch = true;
+  e.constant = attribute_;
+  // Check token match
+  if (!check) {
+    if (e.type.base_type == BASE_TYPE_NONE) {
+      e.type.base_type = req;
+    } else {
+      return Error(std::string("type mismatch: expecting: ") +
+                   kTypeNames[e.type.base_type] +
+                   ", found: " + kTypeNames[req] +
+                   ", name: " + (name ? *name : "") + ", value: " + e.constant);
     }
-    // The exponent suffix of hexadecimal float-point number is mandatory.
-    // A hex-integer constant is forbidden as an initializer of float number.
-    if ((kTokenFloatConstant != dtoken) && IsFloat(e.type.base_type)) {
-      const auto &s = e.constant;
-      const auto k = s.find_first_of("0123456789.");
-      if ((std::string::npos != k) && (s.length() > (k + 1)) &&
-          (s[k] == '0' && is_alpha_char(s[k + 1], 'X')) &&
-          (std::string::npos == s.find_first_of("pP", k + 2))) {
-        return Error(
-            "invalid number, the exponent suffix of hexadecimal "
-            "floating-point literals is mandatory: \"" +
-            s + "\"");
-      }
-    }
-    NEXT();
   }
+  // The exponent suffix of hexadecimal float-point number is mandatory.
+  // A hex-integer constant is forbidden as an initializer of float number.
+  if ((kTokenFloatConstant != dtoken) && IsFloat(e.type.base_type)) {
+    const auto &s = e.constant;
+    const auto k = s.find_first_of("0123456789.");
+    if ((std::string::npos != k) && (s.length() > (k + 1)) &&
+        (s[k] == '0' && is_alpha_char(s[k + 1], 'X')) &&
+        (std::string::npos == s.find_first_of("pP", k + 2))) {
+      return Error(
+          "invalid number, the exponent suffix of hexadecimal "
+          "floating-point literals is mandatory: \"" +
+          s + "\"");
+    }
+  }
+  NEXT();
   return NoError();
 }
 
 CheckedError Parser::ParseSingleValue(const std::string *name, Value &e,
                                       bool check_now) {
+  if (token_ == '+' || token_ == '-') {
+    const char sign = static_cast<char>(token_);
+    // Get an indentifier: NAN, INF, or function name like cos/sin/deg.
+    NEXT();
+    if (token_ != kTokenIdentifier) return Error("constant name expected");
+    attribute_.insert(0, 1, sign);
+  }
+
   const auto in_type = e.type.base_type;
   const auto is_tok_ident = (token_ == kTokenIdentifier);
   const auto is_tok_string = (token_ == kTokenStringConstant);
 
-  // First see if this could be a conversion function:
+  // First see if this could be a conversion function.
   if (is_tok_ident && *cursor_ == '(') { return ParseFunction(name, e); }
 
   // clang-format off
   auto match = false;
 
   #define IF_ECHECK_(force, dtoken, check, req)    \
-    if (!match && ((check) || IsConstTrue(force))) \
-    ECHECK(TryTypedValue(name, dtoken, check, e, req, &match))
+    if (!match && ((dtoken) == token_) && ((check) || IsConstTrue(force))) \
+      ECHECK(TryTypedValue(name, dtoken, check, e, req, &match))
   #define TRY_ECHECK(dtoken, check, req) IF_ECHECK_(false, dtoken, check, req)
   #define FORCE_ECHECK(dtoken, check, req) IF_ECHECK_(true, dtoken, check, req)
   // clang-format on
@@ -2380,14 +2407,18 @@ CheckedError Parser::ParseEnum(const bool is_union, EnumDef **dest) {
   }
 
   if (dest) *dest = enum_def;
-  types_.Add(current_namespace_->GetFullyQualifiedName(enum_def->name),
-             new Type(BASE_TYPE_UNION, nullptr, enum_def));
+  const auto qualified_name =
+      current_namespace_->GetFullyQualifiedName(enum_def->name);
+  if (types_.Add(qualified_name, new Type(BASE_TYPE_UNION, nullptr, enum_def)))
+    return Error("datatype already exists: " + qualified_name);
   return NoError();
 }
 
 CheckedError Parser::StartStruct(const std::string &name, StructDef **dest) {
   auto &struct_def = *LookupCreateStruct(name, true, true);
-  if (!struct_def.predecl) return Error("datatype already exists: " + name);
+  if (!struct_def.predecl)
+    return Error("datatype already exists: " +
+                 current_namespace_->GetFullyQualifiedName(name));
   struct_def.predecl = false;
   struct_def.name = name;
   struct_def.file = file_being_parsed_;
@@ -2450,7 +2481,7 @@ bool Parser::SupportsAdvancedArrayFeatures() const {
   return (opts.lang_to_generate &
           ~(IDLOptions::kCpp | IDLOptions::kPython | IDLOptions::kJava |
             IDLOptions::kCSharp | IDLOptions::kJsonSchema | IDLOptions::kJson |
-            IDLOptions::kBinary)) == 0;
+            IDLOptions::kBinary | IDLOptions::kRust)) == 0;
 }
 
 Namespace *Parser::UniqueNamespace(Namespace *ns) {
@@ -2567,8 +2598,11 @@ CheckedError Parser::ParseDecl() {
   ECHECK(CheckClash(fields, struct_def, "_byte_vector", BASE_TYPE_STRING));
   ECHECK(CheckClash(fields, struct_def, "ByteVector", BASE_TYPE_STRING));
   EXPECT('}');
-  types_.Add(current_namespace_->GetFullyQualifiedName(struct_def->name),
-             new Type(BASE_TYPE_STRUCT, struct_def, nullptr));
+  const auto qualified_name =
+      current_namespace_->GetFullyQualifiedName(struct_def->name);
+  if (types_.Add(qualified_name,
+                 new Type(BASE_TYPE_STRUCT, struct_def, nullptr)))
+    return Error("datatype already exists: " + qualified_name);
   return NoError();
 }
 
@@ -2720,17 +2754,17 @@ CheckedError Parser::ParseProtoDecl() {
   return NoError();
 }
 
-CheckedError Parser::StartEnum(const std::string &enum_name, bool is_union,
+CheckedError Parser::StartEnum(const std::string &name, bool is_union,
                                EnumDef **dest) {
   auto &enum_def = *new EnumDef();
-  enum_def.name = enum_name;
+  enum_def.name = name;
   enum_def.file = file_being_parsed_;
   enum_def.doc_comment = doc_comment_;
   enum_def.is_union = is_union;
   enum_def.defined_namespace = current_namespace_;
-  if (enums_.Add(current_namespace_->GetFullyQualifiedName(enum_name),
-                 &enum_def))
-    return Error("enum already exists: " + enum_name);
+  const auto qualified_name = current_namespace_->GetFullyQualifiedName(name);
+  if (enums_.Add(qualified_name, &enum_def))
+    return Error("enum already exists: " + qualified_name);
   enum_def.underlying_type.base_type =
       is_union ? BASE_TYPE_UTYPE : BASE_TYPE_INT;
   enum_def.underlying_type.enum_def = &enum_def;
@@ -3000,6 +3034,15 @@ CheckedError Parser::SkipAnyJsonValue() {
   return NoError();
 }
 
+CheckedError Parser::ParseFlexBufferNumericConstant(
+    flexbuffers::Builder *builder) {
+  double d;
+  if (!StringToNumber(attribute_.c_str(), &d))
+    return Error("unexpected floating-point constant: " + attribute_);
+  builder->Double(d);
+  return NoError();
+}
+
 CheckedError Parser::ParseFlexBufferValue(flexbuffers::Builder *builder) {
   ParseDepthGuard depth_guard(this);
   ECHECK(depth_guard.Check());
@@ -3047,6 +3090,18 @@ CheckedError Parser::ParseFlexBufferValue(flexbuffers::Builder *builder) {
       EXPECT(kTokenFloatConstant);
       break;
     }
+    case '-':
+    case '+': {
+      // `[-+]?(nan|inf|infinity)`, see ParseSingleValue().
+      const auto sign = static_cast<char>(token_);
+      NEXT();
+      if (token_ != kTokenIdentifier)
+        return Error("floating-point constant expected");
+      attribute_.insert(0, 1, sign);
+      ECHECK(ParseFlexBufferNumericConstant(builder));
+      NEXT();
+      break;
+    }
     default:
       if (IsIdent("true")) {
         builder->Bool(true);
@@ -3056,6 +3111,9 @@ CheckedError Parser::ParseFlexBufferValue(flexbuffers::Builder *builder) {
         NEXT();
       } else if (IsIdent("null")) {
         builder->Null();
+        NEXT();
+      } else if (IsIdent("inf") || IsIdent("infinity") || IsIdent("nan")) {
+        ECHECK(ParseFlexBufferNumericConstant(builder));
         NEXT();
       } else
         return TokenError();
@@ -3189,16 +3247,38 @@ CheckedError Parser::ParseRoot(const char *source, const char **include_paths,
       }
     }
   }
+  // Parse JSON object only if the scheme has been parsed.
+  if (token_ == '{') { ECHECK(DoParseJson()); }
+  EXPECT(kTokenEof);
   return NoError();
+}
+
+// Generate a unique hash for a file based on its name and contents (if any).
+static uint64_t HashFile(const char *source_filename, const char *source) {
+  uint64_t hash = 0;
+
+  if (source_filename)
+    hash = HashFnv1a<uint64_t>(StripPath(source_filename).c_str());
+
+  if (source && *source) hash ^= HashFnv1a<uint64_t>(source);
+
+  return hash;
 }
 
 CheckedError Parser::DoParse(const char *source, const char **include_paths,
                              const char *source_filename,
                              const char *include_filename) {
+  uint64_t source_hash = 0;
   if (source_filename) {
-    if (included_files_.find(source_filename) == included_files_.end()) {
-      included_files_[source_filename] =
-          include_filename ? include_filename : "";
+    // If the file is in-memory, don't include its contents in the hash as we
+    // won't be able to load them later.
+    if (FileExists(source_filename))
+      source_hash = HashFile(source_filename, source);
+    else
+      source_hash = HashFile(source_filename, nullptr);
+
+    if (included_files_.find(source_hash) == included_files_.end()) {
+      included_files_[source_hash] = include_filename ? include_filename : "";
       files_included_per_file_[source_filename] = std::set<std::string>();
     } else {
       return NoError();
@@ -3249,12 +3329,14 @@ CheckedError Parser::DoParse(const char *source, const char **include_paths,
         return Error("unable to locate include file: " + name);
       if (source_filename)
         files_included_per_file_[source_filename].insert(filepath);
-      if (included_files_.find(filepath) == included_files_.end()) {
+
+      std::string contents;
+      bool file_loaded = LoadFile(filepath.c_str(), true, &contents);
+      if (included_files_.find(HashFile(filepath.c_str(), contents.c_str())) ==
+          included_files_.end()) {
         // We found an include file that we have not parsed yet.
-        // Load it and parse it.
-        std::string contents;
-        if (!LoadFile(filepath.c_str(), true, &contents))
-          return Error("unable to load include file: " + name);
+        // Parse it.
+        if (!file_loaded) return Error("unable to load include file: " + name);
         ECHECK(DoParse(contents.c_str(), include_paths, filepath.c_str(),
                        name.c_str()));
         // We generally do not want to output code for any included files:
@@ -3271,7 +3353,7 @@ CheckedError Parser::DoParse(const char *source, const char **include_paths,
         // entered into included_files_.
         // This is recursive, but only go as deep as the number of include
         // statements.
-        if (source_filename) { included_files_.erase(source_filename); }
+        included_files_.erase(source_hash);
         return DoParse(source, include_paths, source_filename,
                        include_filename);
       }
@@ -3287,7 +3369,7 @@ CheckedError Parser::DoParse(const char *source, const char **include_paths,
     } else if (IsIdent("namespace")) {
       ECHECK(ParseNamespace());
     } else if (token_ == '{') {
-      ECHECK(DoParseJson());
+      return NoError();
     } else if (IsIdent("enum")) {
       ECHECK(ParseEnum(false, nullptr));
     } else if (IsIdent("union")) {
@@ -3433,7 +3515,8 @@ void Parser::Serialize() {
   auto serv__ = builder_.CreateVectorOfSortedTables(&service_offsets);
   auto schema_offset = reflection::CreateSchema(
       builder_, objs__, enum__, fiid__, fext__,
-      (root_struct_def_ ? root_struct_def_->serialized_location : 0), serv__);
+      (root_struct_def_ ? root_struct_def_->serialized_location : 0), serv__,
+      static_cast<reflection::AdvancedFeatures>(advanced_features_));
   if (opts.size_prefixed) {
     builder_.FinishSizePrefixed(schema_offset, reflection::SchemaIdentifier());
   } else {
@@ -3674,10 +3757,7 @@ Offset<reflection::EnumVal> EnumVal::Serialize(FlatBufferBuilder *builder,
   auto docs__ = parser.opts.binary_schema_comments
                     ? builder->CreateVectorOfStrings(doc_comment)
                     : 0;
-  return reflection::CreateEnumVal(
-      *builder, name__, value,
-      union_type.struct_def ? union_type.struct_def->serialized_location : 0,
-      type__, docs__);
+  return reflection::CreateEnumVal(*builder, name__, value, type__, docs__);
 }
 
 bool EnumVal::Deserialize(const Parser &parser,
@@ -3850,7 +3930,7 @@ bool Parser::Deserialize(const reflection::Schema *schema) {
       }
     }
   }
-
+  advanced_features_ = schema->advanced_features();
   return true;
 }
 

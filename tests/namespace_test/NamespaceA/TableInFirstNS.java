@@ -9,7 +9,7 @@ import com.google.flatbuffers.*;
 
 @SuppressWarnings("unused")
 public final class TableInFirstNS extends Table {
-  public static void ValidateVersion() { Constants.FLATBUFFERS_1_12_0(); }
+  public static void ValidateVersion() { Constants.FLATBUFFERS_2_0_0(); }
   public static TableInFirstNS getRootAsTableInFirstNS(ByteBuffer _bb) { return getRootAsTableInFirstNS(_bb, new TableInFirstNS()); }
   public static TableInFirstNS getRootAsTableInFirstNS(ByteBuffer _bb, TableInFirstNS obj) { _bb.order(ByteOrder.LITTLE_ENDIAN); return (obj.__assign(_bb.getInt(_bb.position()) + _bb.position(), _bb)); }
   public void __init(int _i, ByteBuffer _bb) { __reset(_i, _bb); }
@@ -40,6 +40,44 @@ public final class TableInFirstNS extends Table {
 
     public TableInFirstNS get(int j) { return get(new TableInFirstNS(), j); }
     public TableInFirstNS get(TableInFirstNS obj, int j) {  return obj.__assign(__indirect(__element(j), bb), bb); }
+  }
+  public TableInFirstNST unpack() {
+    TableInFirstNST _o = new TableInFirstNST();
+    unpackTo(_o);
+    return _o;
+  }
+  public void unpackTo(TableInFirstNST _o) {
+    if (fooTable() != null) _o.setFooTable(fooTable().unpack());
+    else _o.setFooTable(null);
+    byte _oFooEnum = fooEnum();
+    _o.setFooEnum(_oFooEnum);
+    NamespaceA.NamespaceB.UnionInNestedNSUnion _oFooUnion = new NamespaceA.NamespaceB.UnionInNestedNSUnion();
+    byte _oFooUnionType = fooUnionType();
+    _oFooUnion.setType(_oFooUnionType);
+    Table _oFooUnionValue;
+    switch (_oFooUnionType) {
+      case NamespaceA.NamespaceB.UnionInNestedNS.TableInNestedNS:
+        _oFooUnionValue = fooUnion(new NamespaceA.NamespaceB.TableInNestedNS());
+        _oFooUnion.setValue(_oFooUnionValue != null ? ((NamespaceA.NamespaceB.TableInNestedNS) _oFooUnionValue).unpack() : null);
+        break;
+      default: break;
+    }
+    _o.setFooUnion(_oFooUnion);
+    if (fooStruct() != null) fooStruct().unpackTo(_o.getFooStruct());
+    else _o.setFooStruct(null);
+  }
+  public static int pack(FlatBufferBuilder builder, TableInFirstNST _o) {
+    if (_o == null) return 0;
+    int _foo_table = _o.getFooTable() == null ? 0 : NamespaceA.NamespaceB.TableInNestedNS.pack(builder, _o.getFooTable());
+    byte _fooUnionType = _o.getFooUnion() == null ? NamespaceA.NamespaceB.UnionInNestedNS.NONE : _o.getFooUnion().getType();
+    int _fooUnion = _o.getFooUnion() == null ? 0 : NamespaceA.NamespaceB.UnionInNestedNSUnion.pack(builder, _o.getFooUnion());
+    startTableInFirstNS(builder);
+    addFooTable(builder, _foo_table);
+    addFooEnum(builder, _o.getFooEnum());
+    addFooUnionType(builder, _fooUnionType);
+    addFooUnion(builder, _fooUnion);
+    addFooStruct(builder, NamespaceA.NamespaceB.StructInNestedNS.pack(builder, _o.getFooStruct()));
+    return endTableInFirstNS(builder);
   }
 }
 

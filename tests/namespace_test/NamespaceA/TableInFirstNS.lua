@@ -13,6 +13,9 @@ function TableInFirstNS.New()
     return o
 end
 function TableInFirstNS.GetRootAsTableInFirstNS(buf, offset)
+    if type(buf) == "string" then
+        buf = flatbuffers.binaryArray.New(buf)
+    end
     local n = flatbuffers.N.UOffsetT:Unpack(buf, offset)
     local o = TableInFirstNS.New()
     o:Init(buf, n + offset)

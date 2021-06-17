@@ -25,5 +25,20 @@ public final class Rapunzel extends Struct {
     public Rapunzel get(int j) { return get(new Rapunzel(), j); }
     public Rapunzel get(Rapunzel obj, int j) {  return obj.__assign(__element(j), bb); }
   }
+  public RapunzelT unpack() {
+    RapunzelT _o = new RapunzelT();
+    unpackTo(_o);
+    return _o;
+  }
+  public void unpackTo(RapunzelT _o) {
+    int _oHairLength = hairLength();
+    _o.setHairLength(_oHairLength);
+  }
+  public static int pack(FlatBufferBuilder builder, RapunzelT _o) {
+    if (_o == null) return 0;
+    return createRapunzel(
+      builder,
+      _o.getHairLength());
+  }
 }
 

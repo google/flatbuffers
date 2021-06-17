@@ -25,10 +25,12 @@ let package = Package(
   ],
   dependencies: [
     .package(path: "../../swift/"),
-    .package(url: "https://github.com/grpc/grpc-swift.git", .exact("1.0.0-alpha.24")),
+    .package(url: "https://github.com/grpc/grpc-swift.git", from: "1.0.0"),
   ],
   targets: [
-    .target(name: "SwiftFlatBuffers"),
+    .target(
+      name: "SwiftFlatBuffers",
+      dependencies: ["FlatBuffers"]),
     .testTarget(
       name: "FlatBuffers.Test.SwiftTests",
       dependencies: ["FlatBuffers", "GRPC"]),

@@ -28,6 +28,7 @@
 //! At this time, to generate Rust code, you will need the latest `master` version of `flatc`, available from here: <https://github.com/google/flatbuffers>
 //! (On OSX, you can install FlatBuffers from `HEAD` with the Homebrew package manager.)
 
+mod array;
 mod builder;
 mod endian_scalar;
 mod follow;
@@ -40,6 +41,7 @@ mod verifier;
 mod vtable;
 mod vtable_writer;
 
+pub use crate::array::{array_init, emplace_scalar_array, Array};
 pub use crate::builder::FlatBufferBuilder;
 pub use crate::endian_scalar::{
     byte_swap_f32, byte_swap_f64, emplace_scalar, read_scalar, read_scalar_at, EndianScalar,

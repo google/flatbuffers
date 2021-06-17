@@ -2,24 +2,24 @@
 
 
 
-use crate::include_test1_generated::*;
 use crate::include_test2_generated::*;
+use crate::include_test1_generated::*;
 use std::mem;
 use std::cmp::Ordering;
 
 extern crate flatbuffers;
-use self::flatbuffers::EndianScalar;
+use self::flatbuffers::{EndianScalar, Follow};
 
 #[allow(unused_imports, dead_code)]
 pub mod my_game {
 
-  use crate::include_test1_generated::*;
   use crate::include_test2_generated::*;
+  use crate::include_test1_generated::*;
   use std::mem;
   use std::cmp::Ordering;
 
   extern crate flatbuffers;
-  use self::flatbuffers::EndianScalar;
+  use self::flatbuffers::{EndianScalar, Follow};
 
 pub enum InParentNamespaceOffset {}
 #[derive(Copy, Clone, PartialEq)]
@@ -127,13 +127,13 @@ impl InParentNamespaceT {
 #[allow(unused_imports, dead_code)]
 pub mod example_2 {
 
-  use crate::include_test1_generated::*;
   use crate::include_test2_generated::*;
+  use crate::include_test1_generated::*;
   use std::mem;
   use std::cmp::Ordering;
 
   extern crate flatbuffers;
-  use self::flatbuffers::EndianScalar;
+  use self::flatbuffers::{EndianScalar, Follow};
 
 pub enum MonsterOffset {}
 #[derive(Copy, Clone, PartialEq)]
@@ -243,13 +243,13 @@ impl MonsterT {
 #[allow(unused_imports, dead_code)]
 pub mod example {
 
-  use crate::include_test1_generated::*;
   use crate::include_test2_generated::*;
+  use crate::include_test1_generated::*;
   use std::mem;
   use std::cmp::Ordering;
 
   extern crate flatbuffers;
-  use self::flatbuffers::EndianScalar;
+  use self::flatbuffers::{EndianScalar, Follow};
 
 #[allow(non_upper_case_globals)]
 mod bitflags_color {
@@ -272,7 +272,9 @@ impl<'a> flatbuffers::Follow<'a> for Color {
   type Inner = Self;
   #[inline]
   fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
-    let b = flatbuffers::read_scalar_at::<u8>(buf, loc);
+    let b = unsafe {
+      flatbuffers::read_scalar_at::<u8>(buf, loc)
+    };
     unsafe { Self::from_bits_unchecked(b) }
   }
 }
@@ -281,7 +283,7 @@ impl flatbuffers::Push for Color {
     type Output = Color;
     #[inline]
     fn push(&self, dst: &mut [u8], _rest: &[u8]) {
-        flatbuffers::emplace_scalar::<u8>(dst, self.bits());
+        unsafe { flatbuffers::emplace_scalar::<u8>(dst, self.bits()); }
     }
 }
 
@@ -292,6 +294,7 @@ impl flatbuffers::EndianScalar for Color {
     unsafe { Self::from_bits_unchecked(b) }
   }
   #[inline]
+  #[allow(clippy::wrong_self_convention)]
   fn from_little_endian(self) -> Self {
     let b = u8::from_le(self.bits());
     unsafe { Self::from_bits_unchecked(b) }
@@ -364,7 +367,9 @@ impl<'a> flatbuffers::Follow<'a> for Race {
   type Inner = Self;
   #[inline]
   fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
-    let b = flatbuffers::read_scalar_at::<i8>(buf, loc);
+    let b = unsafe {
+      flatbuffers::read_scalar_at::<i8>(buf, loc)
+    };
     Self(b)
   }
 }
@@ -373,7 +378,7 @@ impl flatbuffers::Push for Race {
     type Output = Race;
     #[inline]
     fn push(&self, dst: &mut [u8], _rest: &[u8]) {
-        flatbuffers::emplace_scalar::<i8>(dst, self.0);
+        unsafe { flatbuffers::emplace_scalar::<i8>(dst, self.0); }
     }
 }
 
@@ -384,6 +389,7 @@ impl flatbuffers::EndianScalar for Race {
     Self(b)
   }
   #[inline]
+  #[allow(clippy::wrong_self_convention)]
   fn from_little_endian(self) -> Self {
     let b = i8::from_le(self.0);
     Self(b)
@@ -456,7 +462,9 @@ impl<'a> flatbuffers::Follow<'a> for Any {
   type Inner = Self;
   #[inline]
   fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
-    let b = flatbuffers::read_scalar_at::<u8>(buf, loc);
+    let b = unsafe {
+      flatbuffers::read_scalar_at::<u8>(buf, loc)
+    };
     Self(b)
   }
 }
@@ -465,7 +473,7 @@ impl flatbuffers::Push for Any {
     type Output = Any;
     #[inline]
     fn push(&self, dst: &mut [u8], _rest: &[u8]) {
-        flatbuffers::emplace_scalar::<u8>(dst, self.0);
+        unsafe { flatbuffers::emplace_scalar::<u8>(dst, self.0); }
     }
 }
 
@@ -476,6 +484,7 @@ impl flatbuffers::EndianScalar for Any {
     Self(b)
   }
   #[inline]
+  #[allow(clippy::wrong_self_convention)]
   fn from_little_endian(self) -> Self {
     let b = u8::from_le(self.0);
     Self(b)
@@ -644,7 +653,9 @@ impl<'a> flatbuffers::Follow<'a> for AnyUniqueAliases {
   type Inner = Self;
   #[inline]
   fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
-    let b = flatbuffers::read_scalar_at::<u8>(buf, loc);
+    let b = unsafe {
+      flatbuffers::read_scalar_at::<u8>(buf, loc)
+    };
     Self(b)
   }
 }
@@ -653,7 +664,7 @@ impl flatbuffers::Push for AnyUniqueAliases {
     type Output = AnyUniqueAliases;
     #[inline]
     fn push(&self, dst: &mut [u8], _rest: &[u8]) {
-        flatbuffers::emplace_scalar::<u8>(dst, self.0);
+        unsafe { flatbuffers::emplace_scalar::<u8>(dst, self.0); }
     }
 }
 
@@ -664,6 +675,7 @@ impl flatbuffers::EndianScalar for AnyUniqueAliases {
     Self(b)
   }
   #[inline]
+  #[allow(clippy::wrong_self_convention)]
   fn from_little_endian(self) -> Self {
     let b = u8::from_le(self.0);
     Self(b)
@@ -832,7 +844,9 @@ impl<'a> flatbuffers::Follow<'a> for AnyAmbiguousAliases {
   type Inner = Self;
   #[inline]
   fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
-    let b = flatbuffers::read_scalar_at::<u8>(buf, loc);
+    let b = unsafe {
+      flatbuffers::read_scalar_at::<u8>(buf, loc)
+    };
     Self(b)
   }
 }
@@ -841,7 +855,7 @@ impl flatbuffers::Push for AnyAmbiguousAliases {
     type Output = AnyAmbiguousAliases;
     #[inline]
     fn push(&self, dst: &mut [u8], _rest: &[u8]) {
-        flatbuffers::emplace_scalar::<u8>(dst, self.0);
+        unsafe { flatbuffers::emplace_scalar::<u8>(dst, self.0); }
     }
 }
 
@@ -852,6 +866,7 @@ impl flatbuffers::EndianScalar for AnyAmbiguousAliases {
     Self(b)
   }
   #[inline]
+  #[allow(clippy::wrong_self_convention)]
   fn from_little_endian(self) -> Self {
     let b = u8::from_le(self.0);
     Self(b)
@@ -967,8 +982,13 @@ impl AnyAmbiguousAliasesT {
 }
 // struct Test, aligned to 2
 #[repr(transparent)]
-#[derive(Clone, Copy, PartialEq, Default)]
+#[derive(Clone, Copy, PartialEq)]
 pub struct Test(pub [u8; 4]);
+impl Default for Test { 
+  fn default() -> Self { 
+    Self([0; 4])
+  }
+}
 impl std::fmt::Debug for Test {
   fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
     f.debug_struct("Test")
@@ -1025,7 +1045,7 @@ impl<'a> flatbuffers::Verifiable for Test {
     v.in_buffer::<Self>(pos)
   }
 }
-impl Test {
+impl<'a> Test {
   #[allow(clippy::too_many_arguments)]
   pub fn new(
     a: i16,
@@ -1111,8 +1131,13 @@ impl TestT {
 
 // struct Vec3, aligned to 8
 #[repr(transparent)]
-#[derive(Clone, Copy, PartialEq, Default)]
+#[derive(Clone, Copy, PartialEq)]
 pub struct Vec3(pub [u8; 32]);
+impl Default for Vec3 { 
+  fn default() -> Self { 
+    Self([0; 32])
+  }
+}
 impl std::fmt::Debug for Vec3 {
   fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
     f.debug_struct("Vec3")
@@ -1173,7 +1198,7 @@ impl<'a> flatbuffers::Verifiable for Vec3 {
     v.in_buffer::<Self>(pos)
   }
 }
-impl Vec3 {
+impl<'a> Vec3 {
   #[allow(clippy::too_many_arguments)]
   pub fn new(
     x: f32,
@@ -1356,8 +1381,13 @@ impl Vec3T {
 
 // struct Ability, aligned to 4
 #[repr(transparent)]
-#[derive(Clone, Copy, PartialEq, Default)]
+#[derive(Clone, Copy, PartialEq)]
 pub struct Ability(pub [u8; 8]);
+impl Default for Ability { 
+  fn default() -> Self { 
+    Self([0; 8])
+  }
+}
 impl std::fmt::Debug for Ability {
   fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
     f.debug_struct("Ability")
@@ -1414,7 +1444,7 @@ impl<'a> flatbuffers::Verifiable for Ability {
     v.in_buffer::<Self>(pos)
   }
 }
-impl Ability {
+impl<'a> Ability {
   #[allow(clippy::too_many_arguments)]
   pub fn new(
     id: u32,
@@ -1504,6 +1534,139 @@ impl AbilityT {
     Ability::new(
       self.id,
       self.distance,
+    )
+  }
+}
+
+// struct StructOfStructs, aligned to 4
+#[repr(transparent)]
+#[derive(Clone, Copy, PartialEq)]
+pub struct StructOfStructs(pub [u8; 20]);
+impl Default for StructOfStructs { 
+  fn default() -> Self { 
+    Self([0; 20])
+  }
+}
+impl std::fmt::Debug for StructOfStructs {
+  fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+    f.debug_struct("StructOfStructs")
+      .field("a", &self.a())
+      .field("b", &self.b())
+      .field("c", &self.c())
+      .finish()
+  }
+}
+
+impl flatbuffers::SimpleToVerifyInSlice for StructOfStructs {}
+impl flatbuffers::SafeSliceAccess for StructOfStructs {}
+impl<'a> flatbuffers::Follow<'a> for StructOfStructs {
+  type Inner = &'a StructOfStructs;
+  #[inline]
+  fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
+    <&'a StructOfStructs>::follow(buf, loc)
+  }
+}
+impl<'a> flatbuffers::Follow<'a> for &'a StructOfStructs {
+  type Inner = &'a StructOfStructs;
+  #[inline]
+  fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
+    flatbuffers::follow_cast_ref::<StructOfStructs>(buf, loc)
+  }
+}
+impl<'b> flatbuffers::Push for StructOfStructs {
+    type Output = StructOfStructs;
+    #[inline]
+    fn push(&self, dst: &mut [u8], _rest: &[u8]) {
+        let src = unsafe {
+            ::std::slice::from_raw_parts(self as *const StructOfStructs as *const u8, Self::size())
+        };
+        dst.copy_from_slice(src);
+    }
+}
+impl<'b> flatbuffers::Push for &'b StructOfStructs {
+    type Output = StructOfStructs;
+
+    #[inline]
+    fn push(&self, dst: &mut [u8], _rest: &[u8]) {
+        let src = unsafe {
+            ::std::slice::from_raw_parts(*self as *const StructOfStructs as *const u8, Self::size())
+        };
+        dst.copy_from_slice(src);
+    }
+}
+
+impl<'a> flatbuffers::Verifiable for StructOfStructs {
+  #[inline]
+  fn run_verifier(
+    v: &mut flatbuffers::Verifier, pos: usize
+  ) -> Result<(), flatbuffers::InvalidFlatbuffer> {
+    use self::flatbuffers::Verifiable;
+    v.in_buffer::<Self>(pos)
+  }
+}
+impl<'a> StructOfStructs {
+  #[allow(clippy::too_many_arguments)]
+  pub fn new(
+    a: &Ability,
+    b: &Test,
+    c: &Ability,
+  ) -> Self {
+    let mut s = Self([0; 20]);
+    s.set_a(&a);
+    s.set_b(&b);
+    s.set_c(&c);
+    s
+  }
+
+    pub const fn get_fully_qualified_name() -> &'static str {
+        "MyGame.Example.StructOfStructs"
+    }
+
+  pub fn a(&self) -> &Ability {
+    unsafe { &*(self.0[0..].as_ptr() as *const Ability) }
+  }
+
+  pub fn set_a(&mut self, x: &Ability) {
+    self.0[0..0+8].copy_from_slice(&x.0)
+  }
+
+  pub fn b(&self) -> &Test {
+    unsafe { &*(self.0[8..].as_ptr() as *const Test) }
+  }
+
+  pub fn set_b(&mut self, x: &Test) {
+    self.0[8..8+4].copy_from_slice(&x.0)
+  }
+
+  pub fn c(&self) -> &Ability {
+    unsafe { &*(self.0[12..].as_ptr() as *const Ability) }
+  }
+
+  pub fn set_c(&mut self, x: &Ability) {
+    self.0[12..12+8].copy_from_slice(&x.0)
+  }
+
+  pub fn unpack(&self) -> StructOfStructsT {
+    StructOfStructsT {
+      a: self.a().unpack(),
+      b: self.b().unpack(),
+      c: self.c().unpack(),
+    }
+  }
+}
+
+#[derive(Debug, Clone, PartialEq, Default)]
+pub struct StructOfStructsT {
+  pub a: AbilityT,
+  pub b: TestT,
+  pub c: AbilityT,
+}
+impl StructOfStructsT {
+  pub fn pack(&self) -> StructOfStructs {
+    StructOfStructs::new(
+      &self.a.pack(),
+      &self.b.pack(),
+      &self.c.pack(),
     )
   }
 }

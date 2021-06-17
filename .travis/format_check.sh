@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Copyright 2020 Google Inc. All rights reserved.
+# Copyright 2021 Google Inc. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -21,7 +21,16 @@ source ~/.nvm/nvm.sh
 nvm alias default node
 nvm use default
 
-sh src/clang-format-git.sh
+sh scripts/clang-format-git.sh
+
+# Check formatting for go lang
+
+cd go
+gofmt -w .
+cd ..
+cd grpc/examples/go
+sh format.sh
+cd ../../..
 
 node_modules/.bin/eslint ts/** --ext .ts --quiet --fix
 
@@ -29,6 +38,7 @@ node_modules/.bin/eslint ts/** --ext .ts --quiet --fix
 pylint python/** --disable=all
 
 swiftformat --config swift.swiftformat .
+
 
 if ! git diff --quiet; then
   echo >&2

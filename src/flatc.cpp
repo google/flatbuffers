@@ -121,11 +121,19 @@ std::string FlatCompiler::GetUsageString(const char *program_name) const {
     "                         (see the --cpp-str-flex-ctor option to change this behavior).\n"
     "  --cpp-str-flex-ctor    Don't construct custom string types by passing std::string\n"
     "                         from Flatbuffers, but (char* + length).\n"
+    "  --cpp-field-case-style STYLE Generate C++ fields using selected case style.\n"
+    "                         Supported STYLE values:\n"
+    "                          * 'unchanged' - leave unchanged (default);\n"
+    "                          * 'upper' - schema snake_case emits UpperCamel;\n"
+    "                          * 'lower' - schema snake_case emits lowerCamel.\n"
     "  --cpp-std CPP_STD      Generate a C++ code using features of selected C++ standard.\n"
     "                         Supported CPP_STD values:\n"
     "                          * 'c++0x' - generate code compatible with old compilers;\n"
     "                          * 'c++11' - use C++11 code generator (default);\n"
     "                          * 'c++17' - use C++17 features in generated code (experimental).\n"
+    "  --cpp-static-reflection When using C++17, generate extra code to provide compile-time\n"
+    "                          (static) reflection of Flatbuffers types.  Requires --cpp-std\n"
+    "                          to be \"c++17\" or higher.\n"
     "  --object-prefix        Customise class prefix for C++ object-based API.\n"
     "  --object-suffix        Customise class suffix for C++ object-based API.\n"
     "                         Default value is \"T\".\n"
@@ -272,6 +280,17 @@ int FlatCompiler::Compile(int argc, const char **argv) {
         opts.cpp_object_api_string_flexible_constructor = true;
       } else if (arg == "--no-cpp-direct-copy") {
         opts.cpp_direct_copy = false;
+      } else if (arg == "--cpp-field-case-style") {
+        if (++argi >= argc) Error("missing case style following: " + arg, true);
+        if (!strcmp(argv[argi], "unchanged"))
+          opts.cpp_object_api_field_case_style =
+              IDLOptions::CaseStyle_Unchanged;
+        else if (!strcmp(argv[argi], "upper"))
+          opts.cpp_object_api_field_case_style = IDLOptions::CaseStyle_Upper;
+        else if (!strcmp(argv[argi], "lower"))
+          opts.cpp_object_api_field_case_style = IDLOptions::CaseStyle_Lower;
+        else
+          Error("unknown case style: " + std::string(argv[argi]), true);
       } else if (arg == "--gen-nullable") {
         opts.gen_nullable = true;
       } else if (arg == "--java-checkerframework") {
@@ -360,6 +379,8 @@ int FlatCompiler::Compile(int argc, const char **argv) {
         opts.cpp_std = argv[argi];
       } else if (arg.rfind("--cpp-std=", 0) == 0) {
         opts.cpp_std = arg.substr(std::string("--cpp-std=").size());
+      } else if (arg == "--cpp-static-reflection") {
+        opts.cpp_static_reflection = true;
       } else {
         for (size_t i = 0; i < params_.num_generators; ++i) {
           if (arg == params_.generators[i].generator_opt_long ||

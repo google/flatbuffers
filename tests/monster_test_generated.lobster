@@ -54,6 +54,8 @@ class Vec3
 
 class Ability
 
+class StructOfStructs
+
 class Stat
 
 class Referrable
@@ -162,6 +164,28 @@ def CreateAbility(b_:flatbuffers_builder, id:int, distance:int):
     b_.Prep(4, 8)
     b_.PrependUint32(distance)
     b_.PrependUint32(id)
+    return b_.Offset()
+
+class StructOfStructs : flatbuffers_handle
+    def a():
+        return MyGame_Example_Ability{ buf_, pos_ + 0 }
+    def b():
+        return MyGame_Example_Test{ buf_, pos_ + 8 }
+    def c():
+        return MyGame_Example_Ability{ buf_, pos_ + 12 }
+
+def CreateStructOfStructs(b_:flatbuffers_builder, a_id:int, a_distance:int, b_a:int, b_b:int, c_id:int, c_distance:int):
+    b_.Prep(4, 20)
+    b_.Prep(4, 8)
+    b_.PrependUint32(c_distance)
+    b_.PrependUint32(c_id)
+    b_.Prep(2, 4)
+    b_.Pad(1)
+    b_.PrependInt8(b_b)
+    b_.PrependInt16(b_a)
+    b_.Prep(4, 8)
+    b_.PrependUint32(a_distance)
+    b_.PrependUint32(a_id)
     return b_.Offset()
 
 class Stat : flatbuffers_handle

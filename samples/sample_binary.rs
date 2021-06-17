@@ -72,7 +72,7 @@ fn main() {
   // Create the monster using the `Monster::create` helper function. This
   // function accepts a `MonsterArgs` struct, which supplies all of the data
   // needed to build a `Monster`. To supply empty/default fields, just use the
-  // Rust built-in `Default::default()` function, as demononstrated below.
+  // Rust built-in `Default::default()` function, as demonstrated below.
   let orc = Monster::create(&mut builder, &MonsterArgs{
       pos: Some(&Vec3::new(1.0f32, 2.0f32, 3.0f32)),
       mana: 150,

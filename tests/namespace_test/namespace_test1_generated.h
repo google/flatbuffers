@@ -170,7 +170,7 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) StructInNestedNS FLATBUFFERS_FINAL_CLASS 
   static const flatbuffers::TypeTable *MiniReflectTypeTable() {
     return StructInNestedNSTypeTable();
   }
-  static FLATBUFFERS_CONSTEXPR const char *GetFullyQualifiedName() {
+  static FLATBUFFERS_CONSTEXPR_CPP11 const char *GetFullyQualifiedName() {
     return "NamespaceA.NamespaceB.StructInNestedNS";
   }
   StructInNestedNS()
@@ -209,7 +209,7 @@ inline bool operator!=(const StructInNestedNS &lhs, const StructInNestedNS &rhs)
 
 struct TableInNestedNST : public flatbuffers::NativeTable {
   typedef TableInNestedNS TableType;
-  static FLATBUFFERS_CONSTEXPR const char *GetFullyQualifiedName() {
+  static FLATBUFFERS_CONSTEXPR_CPP11 const char *GetFullyQualifiedName() {
     return "NamespaceA.NamespaceB.TableInNestedNST";
   }
   int32_t foo = 0;
@@ -221,7 +221,7 @@ struct TableInNestedNS FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   static const flatbuffers::TypeTable *MiniReflectTypeTable() {
     return TableInNestedNSTypeTable();
   }
-  static FLATBUFFERS_CONSTEXPR const char *GetFullyQualifiedName() {
+  static FLATBUFFERS_CONSTEXPR_CPP11 const char *GetFullyQualifiedName() {
     return "NamespaceA.NamespaceB.TableInNestedNS";
   }
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {

@@ -14,15 +14,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-pushd "$(dirname $0)" >/dev/null
+set -e
 
 # clean node_modules to make sure we depend on latest local flatbuffers at ../
 rm -rf node_modules
 npm install
 
-../flatc --ts --gen-name-strings --gen-mutable --gen-object-api -o ts -I include_test monster_test.fbs
-../flatc --gen-object-api -b -I include_test monster_test.fbs unicode_test.json
-../flatc --ts --gen-name-strings --gen-object-api -o ts union_vector/union_vector.fbs
+if [ -x ../flatc ]; then
+    ../flatc --ts --gen-name-strings --gen-mutable --gen-object-api -I include_test monster_test.fbs
+    ../flatc --gen-object-api -b -I include_test monster_test.fbs unicode_test.json
+    ../flatc --ts --gen-name-strings --gen-mutable --gen-object-api -o union_vector union_vector/union_vector.fbs
+fi
 tsc
 node -r esm JavaScriptTest
 node -r esm JavaScriptUnionVectorTest

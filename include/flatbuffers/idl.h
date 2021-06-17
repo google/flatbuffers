@@ -307,15 +307,9 @@ struct FieldDef : public Definition {
   bool IsScalarOptional() const {
     return IsScalar(value.type.base_type) && IsOptional();
   }
-  bool IsOptional() const {
-    return presence == kOptional;
-  }
-  bool IsRequired() const {
-    return presence == kRequired;
-  }
-  bool IsDefault() const {
-    return presence == kDefault;
-  }
+  bool IsOptional() const { return presence == kOptional; }
+  bool IsRequired() const { return presence == kRequired; }
+  bool IsDefault() const { return presence == kDefault; }
 
   Value value;
   bool deprecated;  // Field is allowed to be present in old data, but can't be.
@@ -542,6 +536,9 @@ struct ServiceDef : public Definition {
 
 // Container of options that may apply to any of the source/text generators.
 struct IDLOptions {
+  // field case style options for C++
+  enum CaseStyle { CaseStyle_Unchanged = 0, CaseStyle_Upper, CaseStyle_Lower };
+
   bool gen_jvmstatic;
   // Use flexbuffers instead for binary and text generation
   bool use_flexbuffers;
@@ -564,6 +561,7 @@ struct IDLOptions {
   std::string cpp_object_api_pointer_type;
   std::string cpp_object_api_string_type;
   bool cpp_object_api_string_flexible_constructor;
+  CaseStyle cpp_object_api_field_case_style;
   bool cpp_direct_copy;
   bool gen_nullable;
   bool java_checkerframework;
@@ -588,6 +586,7 @@ struct IDLOptions {
   bool cs_gen_json_serializer;
   std::vector<std::string> cpp_includes;
   std::string cpp_std;
+  bool cpp_static_reflection;
   std::string proto_namespace_suffix;
   std::string filename_suffix;
   std::string filename_extension;
@@ -656,6 +655,7 @@ struct IDLOptions {
         gen_compare(false),
         cpp_object_api_pointer_type("std::unique_ptr"),
         cpp_object_api_string_flexible_constructor(false),
+        cpp_object_api_field_case_style(CaseStyle_Unchanged),
         cpp_direct_copy(true),
         gen_nullable(false),
         java_checkerframework(false),
@@ -673,6 +673,7 @@ struct IDLOptions {
         force_defaults(false),
         java_primitive_has_method(false),
         cs_gen_json_serializer(false),
+        cpp_static_reflection(false),
         filename_suffix("_generated"),
         filename_extension(),
         no_warnings(false),
@@ -778,6 +779,7 @@ class Parser : public ParserState {
         root_struct_def_(nullptr),
         opts(options),
         uses_flexbuffers_(false),
+        advanced_features_(0),
         source_(nullptr),
         anonymous_counter_(0),
         parse_depth_counter_(0) {
@@ -807,6 +809,7 @@ class Parser : public ParserState {
     known_attributes_["native_inline"] = true;
     known_attributes_["native_custom_alloc"] = true;
     known_attributes_["native_type"] = true;
+    known_attributes_["native_type_pack_name"] = true;
     known_attributes_["native_default"] = true;
     known_attributes_["flexbuffer"] = true;
     known_attributes_["private"] = true;
@@ -954,6 +957,8 @@ class Parser : public ParserState {
   FLATBUFFERS_CHECKED_ERROR ParseProtoCurliesOrIdent();
   FLATBUFFERS_CHECKED_ERROR ParseTypeFromProtoType(Type *type);
   FLATBUFFERS_CHECKED_ERROR SkipAnyJsonValue();
+  FLATBUFFERS_CHECKED_ERROR ParseFlexBufferNumericConstant(
+      flexbuffers::Builder *builder);
   FLATBUFFERS_CHECKED_ERROR ParseFlexBufferValue(flexbuffers::Builder *builder);
   FLATBUFFERS_CHECKED_ERROR StartParseFile(const char *source,
                                            const char *source_filename);
@@ -997,7 +1002,7 @@ class Parser : public ParserState {
   std::string file_identifier_;
   std::string file_extension_;
 
-  std::map<std::string, std::string> included_files_;
+  std::map<uint64_t, std::string> included_files_;
   std::map<std::string, std::set<std::string>> files_included_per_file_;
   std::vector<std::string> native_included_files_;
 
@@ -1005,6 +1010,8 @@ class Parser : public ParserState {
 
   IDLOptions opts;
   bool uses_flexbuffers_;
+
+  uint64_t advanced_features_;
 
  private:
   const char *source_;

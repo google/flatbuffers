@@ -1,3 +1,7 @@
+local compat = require("flatbuffers.compat")
+local string_unpack = compat.string_unpack
+
+
 local m = {}
 local mt = {}
 
@@ -12,13 +16,12 @@ local function enforceOffset(off)
     end
 end
 
-local unpack = string.unpack
 local function unPackUoffset(bytes, off)
-    return unpack("<I4", bytes.str, off + 1)
+    return string_unpack("<I4", bytes.str, off + 1)
 end
 
 local function unPackVoffset(bytes, off)
-    return unpack("<I2", bytes.str, off + 1)
+    return string_unpack("<I2", bytes.str, off + 1)
 end
 
 function m.New(buf, pos)
@@ -71,6 +74,17 @@ function mt:Vector(off)
     enforceOffset(off)
     off = off + self.pos
     return off + self:Get(N.UOffsetT, off) + 4
+end
+
+function mt:VectorAsString(off, start, stop)
+    local o = self:Offset(off)
+    if o ~= 0 then
+        start = start or 1
+        stop = stop or self:VectorLen(o)
+        local a = self:Vector(o) + start - 1
+        return self.bytes:Slice(a, a + stop - start + 1)
+    end
+    return nil
 end
 
 function mt:Union(t2, off)

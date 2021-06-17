@@ -232,6 +232,38 @@ class Test {
   String toString() {
     return 'Test{a: $a, b: $b}';
   }
+
+  TestT unpack() => TestT(
+      a: a,
+      b: b);
+
+  static int pack(fb.Builder fbBuilder, TestT object) {
+    if (object == null) return 0;
+    return object.pack(fbBuilder);
+  }
+}
+
+class TestT {
+  int a;
+  int b;
+
+  TestT({
+      this.a,
+      this.b});
+
+  int pack(fb.Builder fbBuilder) {
+    assert(fbBuilder != null);
+
+    fbBuilder.pad(1);
+    fbBuilder.putInt8(b);
+    fbBuilder.putInt16(a);
+    return fbBuilder.offset;
+  }
+
+  @override
+  String toString() {
+    return 'TestT{a: $a, b: $b}';
+  }
 }
 
 class _TestReader extends fb.StructReader<Test> {
@@ -310,6 +342,34 @@ class TestSimpleTableWithEnum {
   String toString() {
     return 'TestSimpleTableWithEnum{color: $color}';
   }
+
+  TestSimpleTableWithEnumT unpack() => TestSimpleTableWithEnumT(
+      color: color);
+
+  static int pack(fb.Builder fbBuilder, TestSimpleTableWithEnumT object) {
+    if (object == null) return 0;
+    return object.pack(fbBuilder);
+  }
+}
+
+class TestSimpleTableWithEnumT {
+  Color color;
+
+  TestSimpleTableWithEnumT({
+      this.color});
+
+  int pack(fb.Builder fbBuilder) {
+    assert(fbBuilder != null);
+
+    fbBuilder.startTable();
+    fbBuilder.addUint8(0, color?.value);
+    return fbBuilder.endTable();
+  }
+
+  @override
+  String toString() {
+    return 'TestSimpleTableWithEnumT{color: $color}';
+  }
 }
 
 class _TestSimpleTableWithEnumReader extends fb.TableReader<TestSimpleTableWithEnum> {
@@ -386,6 +446,56 @@ class Vec3 {
   @override
   String toString() {
     return 'Vec3{x: $x, y: $y, z: $z, test1: $test1, test2: $test2, test3: $test3}';
+  }
+
+  Vec3T unpack() => Vec3T(
+      x: x,
+      y: y,
+      z: z,
+      test1: test1,
+      test2: test2,
+      test3: test3?.unpack());
+
+  static int pack(fb.Builder fbBuilder, Vec3T object) {
+    if (object == null) return 0;
+    return object.pack(fbBuilder);
+  }
+}
+
+class Vec3T {
+  double x;
+  double y;
+  double z;
+  double test1;
+  Color test2;
+  TestT test3;
+
+  Vec3T({
+      this.x,
+      this.y,
+      this.z,
+      this.test1,
+      this.test2,
+      this.test3});
+
+  int pack(fb.Builder fbBuilder) {
+    assert(fbBuilder != null);
+
+    fbBuilder.pad(2);
+    test3.pack(fbBuilder);
+    fbBuilder.pad(1);
+    fbBuilder.putUint8(test2?.value);
+    fbBuilder.putFloat64(test1);
+    fbBuilder.pad(4);
+    fbBuilder.putFloat32(z);
+    fbBuilder.putFloat32(y);
+    fbBuilder.putFloat32(x);
+    return fbBuilder.offset;
+  }
+
+  @override
+  String toString() {
+    return 'Vec3T{x: $x, y: $y, z: $z, test1: $test1, test2: $test2, test3: $test3}';
   }
 }
 
@@ -486,6 +596,37 @@ class Ability {
   String toString() {
     return 'Ability{id: $id, distance: $distance}';
   }
+
+  AbilityT unpack() => AbilityT(
+      id: id,
+      distance: distance);
+
+  static int pack(fb.Builder fbBuilder, AbilityT object) {
+    if (object == null) return 0;
+    return object.pack(fbBuilder);
+  }
+}
+
+class AbilityT {
+  int id;
+  int distance;
+
+  AbilityT({
+      this.id,
+      this.distance});
+
+  int pack(fb.Builder fbBuilder) {
+    assert(fbBuilder != null);
+
+    fbBuilder.putUint32(distance);
+    fbBuilder.putUint32(id);
+    return fbBuilder.offset;
+  }
+
+  @override
+  String toString() {
+    return 'AbilityT{id: $id, distance: $distance}';
+  }
 }
 
 class _AbilityReader extends fb.StructReader<Ability> {
@@ -544,6 +685,120 @@ class AbilityObjectBuilder extends fb.ObjectBuilder {
     return fbBuilder.finish(offset, fileIdentifier);
   }
 }
+class StructOfStructs {
+  StructOfStructs._(this._bc, this._bcOffset);
+
+  static const fb.Reader<StructOfStructs> reader = const _StructOfStructsReader();
+
+  final fb.BufferContext _bc;
+  final int _bcOffset;
+
+  Ability get a => Ability.reader.read(_bc, _bcOffset + 0);
+  Test get b => Test.reader.read(_bc, _bcOffset + 8);
+  Ability get c => Ability.reader.read(_bc, _bcOffset + 12);
+
+  @override
+  String toString() {
+    return 'StructOfStructs{a: $a, b: $b, c: $c}';
+  }
+
+  StructOfStructsT unpack() => StructOfStructsT(
+      a: a?.unpack(),
+      b: b?.unpack(),
+      c: c?.unpack());
+
+  static int pack(fb.Builder fbBuilder, StructOfStructsT object) {
+    if (object == null) return 0;
+    return object.pack(fbBuilder);
+  }
+}
+
+class StructOfStructsT {
+  AbilityT a;
+  TestT b;
+  AbilityT c;
+
+  StructOfStructsT({
+      this.a,
+      this.b,
+      this.c});
+
+  int pack(fb.Builder fbBuilder) {
+    assert(fbBuilder != null);
+
+    c.pack(fbBuilder);
+    b.pack(fbBuilder);
+    a.pack(fbBuilder);
+    return fbBuilder.offset;
+  }
+
+  @override
+  String toString() {
+    return 'StructOfStructsT{a: $a, b: $b, c: $c}';
+  }
+}
+
+class _StructOfStructsReader extends fb.StructReader<StructOfStructs> {
+  const _StructOfStructsReader();
+
+  @override
+  int get size => 20;
+
+  @override
+  StructOfStructs createObject(fb.BufferContext bc, int offset) => 
+    new StructOfStructs._(bc, offset);
+}
+
+class StructOfStructsBuilder {
+  StructOfStructsBuilder(this.fbBuilder) {
+    assert(fbBuilder != null);
+  }
+
+  final fb.Builder fbBuilder;
+
+  int finish(fb.StructBuilder a, fb.StructBuilder b, fb.StructBuilder c) {
+    c();
+    b();
+    a();
+    return fbBuilder.offset;
+  }
+
+}
+
+class StructOfStructsObjectBuilder extends fb.ObjectBuilder {
+  final AbilityObjectBuilder _a;
+  final TestObjectBuilder _b;
+  final AbilityObjectBuilder _c;
+
+  StructOfStructsObjectBuilder({
+    AbilityObjectBuilder a,
+    TestObjectBuilder b,
+    AbilityObjectBuilder c,
+  })
+      : _a = a,
+        _b = b,
+        _c = c;
+
+  /// Finish building, and store into the [fbBuilder].
+  @override
+  int finish(
+    fb.Builder fbBuilder) {
+    assert(fbBuilder != null);
+
+    _c.finish(fbBuilder);
+    _b.finish(fbBuilder);
+    _a.finish(fbBuilder);
+    return fbBuilder.offset;
+  }
+
+  /// Convenience method to serialize to byte list.
+  @override
+  Uint8List toBytes([String fileIdentifier]) {
+    fb.Builder fbBuilder = new fb.Builder();
+    int offset = finish(fbBuilder);
+    return fbBuilder.finish(offset, fileIdentifier);
+  }
+}
 class Stat {
   Stat._(this._bc, this._bcOffset);
   factory Stat(List<int> bytes) {
@@ -563,6 +818,45 @@ class Stat {
   @override
   String toString() {
     return 'Stat{id: $id, val: $val, count: $count}';
+  }
+
+  StatT unpack() => StatT(
+      id: id,
+      val: val,
+      count: count);
+
+  static int pack(fb.Builder fbBuilder, StatT object) {
+    if (object == null) return 0;
+    return object.pack(fbBuilder);
+  }
+}
+
+class StatT {
+  String id;
+  int val;
+  int count;
+
+  StatT({
+      this.id,
+      this.val,
+      this.count});
+
+  int pack(fb.Builder fbBuilder) {
+    assert(fbBuilder != null);
+    final int idOffset = fbBuilder.writeString(id);
+
+    fbBuilder.startTable();
+    if (idOffset != null) {
+      fbBuilder.addOffset(0, idOffset);
+    }
+    fbBuilder.addInt64(1, val);
+    fbBuilder.addUint16(2, count);
+    return fbBuilder.endTable();
+  }
+
+  @override
+  String toString() {
+    return 'StatT{id: $id, val: $val, count: $count}';
   }
 }
 
@@ -658,6 +952,34 @@ class Referrable {
   @override
   String toString() {
     return 'Referrable{id: $id}';
+  }
+
+  ReferrableT unpack() => ReferrableT(
+      id: id);
+
+  static int pack(fb.Builder fbBuilder, ReferrableT object) {
+    if (object == null) return 0;
+    return object.pack(fbBuilder);
+  }
+}
+
+class ReferrableT {
+  int id;
+
+  ReferrableT({
+      this.id});
+
+  int pack(fb.Builder fbBuilder) {
+    assert(fbBuilder != null);
+
+    fbBuilder.startTable();
+    fbBuilder.addUint64(0, id);
+    return fbBuilder.endTable();
+  }
+
+  @override
+  String toString() {
+    return 'ReferrableT{id: $id}';
   }
 }
 
@@ -807,6 +1129,362 @@ class Monster {
   @override
   String toString() {
     return 'Monster{pos: $pos, mana: $mana, hp: $hp, name: $name, inventory: $inventory, color: $color, testType: $testType, test: $test, test4: $test4, testarrayofstring: $testarrayofstring, testarrayoftables: $testarrayoftables, enemy: $enemy, testnestedflatbuffer: $testnestedflatbuffer, testempty: $testempty, testbool: $testbool, testhashs32Fnv1: $testhashs32Fnv1, testhashu32Fnv1: $testhashu32Fnv1, testhashs64Fnv1: $testhashs64Fnv1, testhashu64Fnv1: $testhashu64Fnv1, testhashs32Fnv1a: $testhashs32Fnv1a, testhashu32Fnv1a: $testhashu32Fnv1a, testhashs64Fnv1a: $testhashs64Fnv1a, testhashu64Fnv1a: $testhashu64Fnv1a, testarrayofbools: $testarrayofbools, testf: $testf, testf2: $testf2, testf3: $testf3, testarrayofstring2: $testarrayofstring2, testarrayofsortedstruct: $testarrayofsortedstruct, flex: $flex, test5: $test5, vectorOfLongs: $vectorOfLongs, vectorOfDoubles: $vectorOfDoubles, parentNamespaceTest: $parentNamespaceTest, vectorOfReferrables: $vectorOfReferrables, singleWeakReference: $singleWeakReference, vectorOfWeakReferences: $vectorOfWeakReferences, vectorOfStrongReferrables: $vectorOfStrongReferrables, coOwningReference: $coOwningReference, vectorOfCoOwningReferences: $vectorOfCoOwningReferences, nonOwningReference: $nonOwningReference, vectorOfNonOwningReferences: $vectorOfNonOwningReferences, anyUniqueType: $anyUniqueType, anyUnique: $anyUnique, anyAmbiguousType: $anyAmbiguousType, anyAmbiguous: $anyAmbiguous, vectorOfEnums: $vectorOfEnums, signedEnum: $signedEnum, testrequirednestedflatbuffer: $testrequirednestedflatbuffer, scalarKeySortedTables: $scalarKeySortedTables}';
+  }
+
+  MonsterT unpack() => MonsterT(
+      pos: pos?.unpack(),
+      mana: mana,
+      hp: hp,
+      name: name,
+      inventory: inventory,
+      color: color,
+      testType: testType,
+      test: test,
+      test4: test4?.map((e) => e.unpack())?.toList(),
+      testarrayofstring: testarrayofstring,
+      testarrayoftables: testarrayoftables?.map((e) => e.unpack())?.toList(),
+      enemy: enemy?.unpack(),
+      testnestedflatbuffer: testnestedflatbuffer,
+      testempty: testempty?.unpack(),
+      testbool: testbool,
+      testhashs32Fnv1: testhashs32Fnv1,
+      testhashu32Fnv1: testhashu32Fnv1,
+      testhashs64Fnv1: testhashs64Fnv1,
+      testhashu64Fnv1: testhashu64Fnv1,
+      testhashs32Fnv1a: testhashs32Fnv1a,
+      testhashu32Fnv1a: testhashu32Fnv1a,
+      testhashs64Fnv1a: testhashs64Fnv1a,
+      testhashu64Fnv1a: testhashu64Fnv1a,
+      testarrayofbools: testarrayofbools,
+      testf: testf,
+      testf2: testf2,
+      testf3: testf3,
+      testarrayofstring2: testarrayofstring2,
+      testarrayofsortedstruct: testarrayofsortedstruct?.map((e) => e.unpack())?.toList(),
+      flex: flex,
+      test5: test5?.map((e) => e.unpack())?.toList(),
+      vectorOfLongs: vectorOfLongs,
+      vectorOfDoubles: vectorOfDoubles,
+      parentNamespaceTest: parentNamespaceTest?.unpack(),
+      vectorOfReferrables: vectorOfReferrables?.map((e) => e.unpack())?.toList(),
+      singleWeakReference: singleWeakReference,
+      vectorOfWeakReferences: vectorOfWeakReferences,
+      vectorOfStrongReferrables: vectorOfStrongReferrables?.map((e) => e.unpack())?.toList(),
+      coOwningReference: coOwningReference,
+      vectorOfCoOwningReferences: vectorOfCoOwningReferences,
+      nonOwningReference: nonOwningReference,
+      vectorOfNonOwningReferences: vectorOfNonOwningReferences,
+      anyUniqueType: anyUniqueType,
+      anyUnique: anyUnique,
+      anyAmbiguousType: anyAmbiguousType,
+      anyAmbiguous: anyAmbiguous,
+      vectorOfEnums: vectorOfEnums,
+      signedEnum: signedEnum,
+      testrequirednestedflatbuffer: testrequirednestedflatbuffer,
+      scalarKeySortedTables: scalarKeySortedTables?.map((e) => e.unpack())?.toList());
+
+  static int pack(fb.Builder fbBuilder, MonsterT object) {
+    if (object == null) return 0;
+    return object.pack(fbBuilder);
+  }
+}
+
+///  an example documentation comment: "monster object"
+class MonsterT {
+  Vec3T pos;
+  int mana;
+  int hp;
+  String name;
+  List<int> inventory;
+  Color color;
+  AnyTypeId testType;
+  dynamic test;
+  List<TestT> test4;
+  List<String> testarrayofstring;
+  ///  an example documentation comment: this will end up in the generated code
+  ///  multiline too
+  List<MonsterT> testarrayoftables;
+  MonsterT enemy;
+  List<int> testnestedflatbuffer;
+  StatT testempty;
+  bool testbool;
+  int testhashs32Fnv1;
+  int testhashu32Fnv1;
+  int testhashs64Fnv1;
+  int testhashu64Fnv1;
+  int testhashs32Fnv1a;
+  int testhashu32Fnv1a;
+  int testhashs64Fnv1a;
+  int testhashu64Fnv1a;
+  List<bool> testarrayofbools;
+  double testf;
+  double testf2;
+  double testf3;
+  List<String> testarrayofstring2;
+  List<AbilityT> testarrayofsortedstruct;
+  List<int> flex;
+  List<TestT> test5;
+  List<int> vectorOfLongs;
+  List<double> vectorOfDoubles;
+  my_game.InParentNamespaceT parentNamespaceTest;
+  List<ReferrableT> vectorOfReferrables;
+  int singleWeakReference;
+  List<int> vectorOfWeakReferences;
+  List<ReferrableT> vectorOfStrongReferrables;
+  int coOwningReference;
+  List<int> vectorOfCoOwningReferences;
+  int nonOwningReference;
+  List<int> vectorOfNonOwningReferences;
+  AnyUniqueAliasesTypeId anyUniqueType;
+  dynamic anyUnique;
+  AnyAmbiguousAliasesTypeId anyAmbiguousType;
+  dynamic anyAmbiguous;
+  List<Color> vectorOfEnums;
+  Race signedEnum;
+  List<int> testrequirednestedflatbuffer;
+  List<StatT> scalarKeySortedTables;
+
+  MonsterT({
+      this.pos,
+      this.mana,
+      this.hp,
+      this.name,
+      this.inventory,
+      this.color,
+      this.testType,
+      this.test,
+      this.test4,
+      this.testarrayofstring,
+      this.testarrayoftables,
+      this.enemy,
+      this.testnestedflatbuffer,
+      this.testempty,
+      this.testbool,
+      this.testhashs32Fnv1,
+      this.testhashu32Fnv1,
+      this.testhashs64Fnv1,
+      this.testhashu64Fnv1,
+      this.testhashs32Fnv1a,
+      this.testhashu32Fnv1a,
+      this.testhashs64Fnv1a,
+      this.testhashu64Fnv1a,
+      this.testarrayofbools,
+      this.testf,
+      this.testf2,
+      this.testf3,
+      this.testarrayofstring2,
+      this.testarrayofsortedstruct,
+      this.flex,
+      this.test5,
+      this.vectorOfLongs,
+      this.vectorOfDoubles,
+      this.parentNamespaceTest,
+      this.vectorOfReferrables,
+      this.singleWeakReference,
+      this.vectorOfWeakReferences,
+      this.vectorOfStrongReferrables,
+      this.coOwningReference,
+      this.vectorOfCoOwningReferences,
+      this.nonOwningReference,
+      this.vectorOfNonOwningReferences,
+      this.anyUniqueType,
+      this.anyUnique,
+      this.anyAmbiguousType,
+      this.anyAmbiguous,
+      this.vectorOfEnums,
+      this.signedEnum,
+      this.testrequirednestedflatbuffer,
+      this.scalarKeySortedTables});
+
+  int pack(fb.Builder fbBuilder) {
+    assert(fbBuilder != null);
+    final int nameOffset = fbBuilder.writeString(name);
+    final int inventoryOffset = inventory?.isNotEmpty == true
+        ? fbBuilder.writeListUint8(inventory)
+        : null;
+    final int testOffset = test?.pack(fbBuilder);
+    int test4Offset = null;
+    if (test4?.isNotEmpty == true) {
+      test4.forEach((e) => e.pack(fbBuilder));
+      test4Offset = fbBuilder.endStructVector(test4.length);
+    }
+    final int testarrayofstringOffset = testarrayofstring?.isNotEmpty == true
+        ? fbBuilder.writeList(testarrayofstring.map((b) => fbBuilder.writeString(b)).toList())
+        : null;
+    final int testarrayoftablesOffset = testarrayoftables?.isNotEmpty == true
+        ? fbBuilder.writeList(testarrayoftables.map((b) => b.pack(fbBuilder)).toList())
+        : null;
+    final int enemyOffset = enemy?.pack(fbBuilder);
+    final int testnestedflatbufferOffset = testnestedflatbuffer?.isNotEmpty == true
+        ? fbBuilder.writeListUint8(testnestedflatbuffer)
+        : null;
+    final int testemptyOffset = testempty?.pack(fbBuilder);
+    final int testarrayofboolsOffset = testarrayofbools?.isNotEmpty == true
+        ? fbBuilder.writeListBool(testarrayofbools)
+        : null;
+    final int testarrayofstring2Offset = testarrayofstring2?.isNotEmpty == true
+        ? fbBuilder.writeList(testarrayofstring2.map((b) => fbBuilder.writeString(b)).toList())
+        : null;
+    int testarrayofsortedstructOffset = null;
+    if (testarrayofsortedstruct?.isNotEmpty == true) {
+      testarrayofsortedstruct.forEach((e) => e.pack(fbBuilder));
+      testarrayofsortedstructOffset = fbBuilder.endStructVector(testarrayofsortedstruct.length);
+    }
+    final int flexOffset = flex?.isNotEmpty == true
+        ? fbBuilder.writeListUint8(flex)
+        : null;
+    int test5Offset = null;
+    if (test5?.isNotEmpty == true) {
+      test5.forEach((e) => e.pack(fbBuilder));
+      test5Offset = fbBuilder.endStructVector(test5.length);
+    }
+    final int vectorOfLongsOffset = vectorOfLongs?.isNotEmpty == true
+        ? fbBuilder.writeListInt64(vectorOfLongs)
+        : null;
+    final int vectorOfDoublesOffset = vectorOfDoubles?.isNotEmpty == true
+        ? fbBuilder.writeListFloat64(vectorOfDoubles)
+        : null;
+    final int parentNamespaceTestOffset = parentNamespaceTest?.pack(fbBuilder);
+    final int vectorOfReferrablesOffset = vectorOfReferrables?.isNotEmpty == true
+        ? fbBuilder.writeList(vectorOfReferrables.map((b) => b.pack(fbBuilder)).toList())
+        : null;
+    final int vectorOfWeakReferencesOffset = vectorOfWeakReferences?.isNotEmpty == true
+        ? fbBuilder.writeListUint64(vectorOfWeakReferences)
+        : null;
+    final int vectorOfStrongReferrablesOffset = vectorOfStrongReferrables?.isNotEmpty == true
+        ? fbBuilder.writeList(vectorOfStrongReferrables.map((b) => b.pack(fbBuilder)).toList())
+        : null;
+    final int vectorOfCoOwningReferencesOffset = vectorOfCoOwningReferences?.isNotEmpty == true
+        ? fbBuilder.writeListUint64(vectorOfCoOwningReferences)
+        : null;
+    final int vectorOfNonOwningReferencesOffset = vectorOfNonOwningReferences?.isNotEmpty == true
+        ? fbBuilder.writeListUint64(vectorOfNonOwningReferences)
+        : null;
+    final int anyUniqueOffset = anyUnique?.pack(fbBuilder);
+    final int anyAmbiguousOffset = anyAmbiguous?.pack(fbBuilder);
+    final int vectorOfEnumsOffset = vectorOfEnums?.isNotEmpty == true
+        ? fbBuilder.writeListUint8(vectorOfEnums.map((f) => f.value).toList())
+        : null;
+    final int testrequirednestedflatbufferOffset = testrequirednestedflatbuffer?.isNotEmpty == true
+        ? fbBuilder.writeListUint8(testrequirednestedflatbuffer)
+        : null;
+    final int scalarKeySortedTablesOffset = scalarKeySortedTables?.isNotEmpty == true
+        ? fbBuilder.writeList(scalarKeySortedTables.map((b) => b.pack(fbBuilder)).toList())
+        : null;
+
+    fbBuilder.startTable();
+    if (pos != null) {
+      fbBuilder.addStruct(0, pos.pack(fbBuilder));
+    }
+    fbBuilder.addInt16(1, mana);
+    fbBuilder.addInt16(2, hp);
+    if (nameOffset != null) {
+      fbBuilder.addOffset(3, nameOffset);
+    }
+    if (inventoryOffset != null) {
+      fbBuilder.addOffset(5, inventoryOffset);
+    }
+    fbBuilder.addUint8(6, color?.value);
+    fbBuilder.addUint8(7, testType?.value);
+    if (testOffset != null) {
+      fbBuilder.addOffset(8, testOffset);
+    }
+    if (test4Offset != null) {
+      fbBuilder.addOffset(9, test4Offset);
+    }
+    if (testarrayofstringOffset != null) {
+      fbBuilder.addOffset(10, testarrayofstringOffset);
+    }
+    if (testarrayoftablesOffset != null) {
+      fbBuilder.addOffset(11, testarrayoftablesOffset);
+    }
+    if (enemyOffset != null) {
+      fbBuilder.addOffset(12, enemyOffset);
+    }
+    if (testnestedflatbufferOffset != null) {
+      fbBuilder.addOffset(13, testnestedflatbufferOffset);
+    }
+    if (testemptyOffset != null) {
+      fbBuilder.addOffset(14, testemptyOffset);
+    }
+    fbBuilder.addBool(15, testbool);
+    fbBuilder.addInt32(16, testhashs32Fnv1);
+    fbBuilder.addUint32(17, testhashu32Fnv1);
+    fbBuilder.addInt64(18, testhashs64Fnv1);
+    fbBuilder.addUint64(19, testhashu64Fnv1);
+    fbBuilder.addInt32(20, testhashs32Fnv1a);
+    fbBuilder.addUint32(21, testhashu32Fnv1a);
+    fbBuilder.addInt64(22, testhashs64Fnv1a);
+    fbBuilder.addUint64(23, testhashu64Fnv1a);
+    if (testarrayofboolsOffset != null) {
+      fbBuilder.addOffset(24, testarrayofboolsOffset);
+    }
+    fbBuilder.addFloat32(25, testf);
+    fbBuilder.addFloat32(26, testf2);
+    fbBuilder.addFloat32(27, testf3);
+    if (testarrayofstring2Offset != null) {
+      fbBuilder.addOffset(28, testarrayofstring2Offset);
+    }
+    if (testarrayofsortedstructOffset != null) {
+      fbBuilder.addOffset(29, testarrayofsortedstructOffset);
+    }
+    if (flexOffset != null) {
+      fbBuilder.addOffset(30, flexOffset);
+    }
+    if (test5Offset != null) {
+      fbBuilder.addOffset(31, test5Offset);
+    }
+    if (vectorOfLongsOffset != null) {
+      fbBuilder.addOffset(32, vectorOfLongsOffset);
+    }
+    if (vectorOfDoublesOffset != null) {
+      fbBuilder.addOffset(33, vectorOfDoublesOffset);
+    }
+    if (parentNamespaceTestOffset != null) {
+      fbBuilder.addOffset(34, parentNamespaceTestOffset);
+    }
+    if (vectorOfReferrablesOffset != null) {
+      fbBuilder.addOffset(35, vectorOfReferrablesOffset);
+    }
+    fbBuilder.addUint64(36, singleWeakReference);
+    if (vectorOfWeakReferencesOffset != null) {
+      fbBuilder.addOffset(37, vectorOfWeakReferencesOffset);
+    }
+    if (vectorOfStrongReferrablesOffset != null) {
+      fbBuilder.addOffset(38, vectorOfStrongReferrablesOffset);
+    }
+    fbBuilder.addUint64(39, coOwningReference);
+    if (vectorOfCoOwningReferencesOffset != null) {
+      fbBuilder.addOffset(40, vectorOfCoOwningReferencesOffset);
+    }
+    fbBuilder.addUint64(41, nonOwningReference);
+    if (vectorOfNonOwningReferencesOffset != null) {
+      fbBuilder.addOffset(42, vectorOfNonOwningReferencesOffset);
+    }
+    fbBuilder.addUint8(43, anyUniqueType?.value);
+    if (anyUniqueOffset != null) {
+      fbBuilder.addOffset(44, anyUniqueOffset);
+    }
+    fbBuilder.addUint8(45, anyAmbiguousType?.value);
+    if (anyAmbiguousOffset != null) {
+      fbBuilder.addOffset(46, anyAmbiguousOffset);
+    }
+    if (vectorOfEnumsOffset != null) {
+      fbBuilder.addOffset(47, vectorOfEnumsOffset);
+    }
+    fbBuilder.addInt8(48, signedEnum?.value);
+    if (testrequirednestedflatbufferOffset != null) {
+      fbBuilder.addOffset(49, testrequirednestedflatbufferOffset);
+    }
+    if (scalarKeySortedTablesOffset != null) {
+      fbBuilder.addOffset(50, scalarKeySortedTablesOffset);
+    }
+    return fbBuilder.endTable();
+  }
+
+  @override
+  String toString() {
+    return 'MonsterT{pos: $pos, mana: $mana, hp: $hp, name: $name, inventory: $inventory, color: $color, testType: $testType, test: $test, test4: $test4, testarrayofstring: $testarrayofstring, testarrayoftables: $testarrayoftables, enemy: $enemy, testnestedflatbuffer: $testnestedflatbuffer, testempty: $testempty, testbool: $testbool, testhashs32Fnv1: $testhashs32Fnv1, testhashu32Fnv1: $testhashu32Fnv1, testhashs64Fnv1: $testhashs64Fnv1, testhashu64Fnv1: $testhashu64Fnv1, testhashs32Fnv1a: $testhashs32Fnv1a, testhashu32Fnv1a: $testhashu32Fnv1a, testhashs64Fnv1a: $testhashs64Fnv1a, testhashu64Fnv1a: $testhashu64Fnv1a, testarrayofbools: $testarrayofbools, testf: $testf, testf2: $testf2, testf3: $testf3, testarrayofstring2: $testarrayofstring2, testarrayofsortedstruct: $testarrayofsortedstruct, flex: $flex, test5: $test5, vectorOfLongs: $vectorOfLongs, vectorOfDoubles: $vectorOfDoubles, parentNamespaceTest: $parentNamespaceTest, vectorOfReferrables: $vectorOfReferrables, singleWeakReference: $singleWeakReference, vectorOfWeakReferences: $vectorOfWeakReferences, vectorOfStrongReferrables: $vectorOfStrongReferrables, coOwningReference: $coOwningReference, vectorOfCoOwningReferences: $vectorOfCoOwningReferences, nonOwningReference: $nonOwningReference, vectorOfNonOwningReferences: $vectorOfNonOwningReferences, anyUniqueType: $anyUniqueType, anyUnique: $anyUnique, anyAmbiguousType: $anyAmbiguousType, anyAmbiguous: $anyAmbiguous, vectorOfEnums: $vectorOfEnums, signedEnum: $signedEnum, testrequirednestedflatbuffer: $testrequirednestedflatbuffer, scalarKeySortedTables: $scalarKeySortedTables}';
   }
 }
 
@@ -1254,7 +1932,7 @@ class MonsterObjectBuilder extends fb.ObjectBuilder {
     final int anyUniqueOffset = _anyUnique?.getOrCreateOffset(fbBuilder);
     final int anyAmbiguousOffset = _anyAmbiguous?.getOrCreateOffset(fbBuilder);
     final int vectorOfEnumsOffset = _vectorOfEnums?.isNotEmpty == true
-        ? fbBuilder.writeListUint8(_vectorOfEnums.map((f) => f.value))
+        ? fbBuilder.writeListUint8(_vectorOfEnums.map((f) => f.value).toList())
         : null;
     final int testrequirednestedflatbufferOffset = _testrequirednestedflatbuffer?.isNotEmpty == true
         ? fbBuilder.writeListUint8(_testrequirednestedflatbuffer)
@@ -1409,6 +2087,88 @@ class TypeAliases {
   @override
   String toString() {
     return 'TypeAliases{i8: $i8, u8: $u8, i16: $i16, u16: $u16, i32: $i32, u32: $u32, i64: $i64, u64: $u64, f32: $f32, f64: $f64, v8: $v8, vf64: $vf64}';
+  }
+
+  TypeAliasesT unpack() => TypeAliasesT(
+      i8: i8,
+      u8: u8,
+      i16: i16,
+      u16: u16,
+      i32: i32,
+      u32: u32,
+      i64: i64,
+      u64: u64,
+      f32: f32,
+      f64: f64,
+      v8: v8,
+      vf64: vf64);
+
+  static int pack(fb.Builder fbBuilder, TypeAliasesT object) {
+    if (object == null) return 0;
+    return object.pack(fbBuilder);
+  }
+}
+
+class TypeAliasesT {
+  int i8;
+  int u8;
+  int i16;
+  int u16;
+  int i32;
+  int u32;
+  int i64;
+  int u64;
+  double f32;
+  double f64;
+  List<int> v8;
+  List<double> vf64;
+
+  TypeAliasesT({
+      this.i8,
+      this.u8,
+      this.i16,
+      this.u16,
+      this.i32,
+      this.u32,
+      this.i64,
+      this.u64,
+      this.f32,
+      this.f64,
+      this.v8,
+      this.vf64});
+
+  int pack(fb.Builder fbBuilder) {
+    assert(fbBuilder != null);
+    final int v8Offset = v8?.isNotEmpty == true
+        ? fbBuilder.writeListInt8(v8)
+        : null;
+    final int vf64Offset = vf64?.isNotEmpty == true
+        ? fbBuilder.writeListFloat64(vf64)
+        : null;
+
+    fbBuilder.startTable();
+    fbBuilder.addInt8(0, i8);
+    fbBuilder.addUint8(1, u8);
+    fbBuilder.addInt16(2, i16);
+    fbBuilder.addUint16(3, u16);
+    fbBuilder.addInt32(4, i32);
+    fbBuilder.addUint32(5, u32);
+    fbBuilder.addInt64(6, i64);
+    fbBuilder.addUint64(7, u64);
+    fbBuilder.addFloat32(8, f32);
+    fbBuilder.addFloat64(9, f64);
+    if (v8Offset != null) {
+      fbBuilder.addOffset(10, v8Offset);
+    }
+    if (vf64Offset != null) {
+      fbBuilder.addOffset(11, vf64Offset);
+    }
+    return fbBuilder.endTable();
+  }
+
+  @override
+  String toString() {
+    return 'TypeAliasesT{i8: $i8, u8: $u8, i16: $i16, u16: $u16, i32: $i32, u32: $u32, i64: $i64, u64: $u64, f32: $f32, f64: $f64, v8: $v8, vf64: $vf64}';
   }
 }
 
