@@ -323,7 +323,7 @@ flatbuffers::Offset<ArrayTable> CreateArrayTable(flatbuffers::FlatBufferBuilder 
 
 inline bool operator==(const ArrayTableT &lhs, const ArrayTableT &rhs) {
   return
-      ((!lhs.a && !rhs.a) || (lhs.a && rhs.a && *lhs.a == *rhs.a) || (lhs.a && !rhs.a && *lhs.a == decltype(lhs.a)::element_type()) || (rhs.a && !lhs.a && *rhs.a == decltype(rhs.a)::element_type()));
+      ((lhs.a == rhs.a) || (lhs.a && rhs.a && *lhs.a == *rhs.a));
 }
 
 inline bool operator!=(const ArrayTableT &lhs, const ArrayTableT &rhs) {

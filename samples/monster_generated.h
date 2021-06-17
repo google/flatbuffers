@@ -533,7 +533,7 @@ flatbuffers::Offset<Weapon> CreateWeapon(flatbuffers::FlatBufferBuilder &_fbb, c
 
 inline bool operator==(const MonsterT &lhs, const MonsterT &rhs) {
   return
-      ((!lhs.pos && !rhs.pos) || (lhs.pos && rhs.pos && *lhs.pos == *rhs.pos) || (lhs.pos && !rhs.pos && *lhs.pos == decltype(lhs.pos)::element_type()) || (rhs.pos && !lhs.pos && *rhs.pos == decltype(rhs.pos)::element_type())) &&
+      ((lhs.pos == rhs.pos) || (lhs.pos && rhs.pos && *lhs.pos == *rhs.pos)) &&
       (lhs.mana == rhs.mana) &&
       (lhs.hp == rhs.hp) &&
       (lhs.name == rhs.name) &&

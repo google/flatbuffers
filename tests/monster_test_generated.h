@@ -2503,7 +2503,7 @@ inline flatbuffers::Offset<Referrable> CreateReferrable(flatbuffers::FlatBufferB
 
 inline bool operator==(const MonsterT &lhs, const MonsterT &rhs) {
   return
-      ((!lhs.pos && !rhs.pos) || (lhs.pos && rhs.pos && *lhs.pos == *rhs.pos) || (lhs.pos && !rhs.pos && *lhs.pos == decltype(lhs.pos)::element_type()) || (rhs.pos && !lhs.pos && *rhs.pos == decltype(rhs.pos)::element_type())) &&
+      ((lhs.pos == rhs.pos) || (lhs.pos && rhs.pos && *lhs.pos == *rhs.pos)) &&
       (lhs.mana == rhs.mana) &&
       (lhs.hp == rhs.hp) &&
       (lhs.name == rhs.name) &&
@@ -2513,9 +2513,9 @@ inline bool operator==(const MonsterT &lhs, const MonsterT &rhs) {
       (lhs.test4 == rhs.test4) &&
       (lhs.testarrayofstring == rhs.testarrayofstring) &&
       (lhs.testarrayoftables == rhs.testarrayoftables) &&
-      ((!lhs.enemy && !rhs.enemy) || (lhs.enemy && rhs.enemy && *lhs.enemy == *rhs.enemy) || (lhs.enemy && !rhs.enemy && *lhs.enemy == decltype(lhs.enemy)::element_type()) || (rhs.enemy && !lhs.enemy && *rhs.enemy == decltype(rhs.enemy)::element_type())) &&
+      ((lhs.enemy == rhs.enemy) || (lhs.enemy && rhs.enemy && *lhs.enemy == *rhs.enemy)) &&
       (lhs.testnestedflatbuffer == rhs.testnestedflatbuffer) &&
-      ((!lhs.testempty && !rhs.testempty) || (lhs.testempty && rhs.testempty && *lhs.testempty == *rhs.testempty) || (lhs.testempty && !rhs.testempty && *lhs.testempty == decltype(lhs.testempty)::element_type()) || (rhs.testempty && !lhs.testempty && *rhs.testempty == decltype(rhs.testempty)::element_type())) &&
+      ((lhs.testempty == rhs.testempty) || (lhs.testempty && rhs.testempty && *lhs.testempty == *rhs.testempty)) &&
       (lhs.testbool == rhs.testbool) &&
       (lhs.testhashs32_fnv1 == rhs.testhashs32_fnv1) &&
       (lhs.testhashu32_fnv1 == rhs.testhashu32_fnv1) &&
@@ -2535,7 +2535,7 @@ inline bool operator==(const MonsterT &lhs, const MonsterT &rhs) {
       (lhs.test5 == rhs.test5) &&
       (lhs.vector_of_longs == rhs.vector_of_longs) &&
       (lhs.vector_of_doubles == rhs.vector_of_doubles) &&
-      ((!lhs.parent_namespace_test && !rhs.parent_namespace_test) || (lhs.parent_namespace_test && rhs.parent_namespace_test && *lhs.parent_namespace_test == *rhs.parent_namespace_test) || (lhs.parent_namespace_test && !rhs.parent_namespace_test && *lhs.parent_namespace_test == decltype(lhs.parent_namespace_test)::element_type()) || (rhs.parent_namespace_test && !lhs.parent_namespace_test && *rhs.parent_namespace_test == decltype(rhs.parent_namespace_test)::element_type())) &&
+      ((lhs.parent_namespace_test == rhs.parent_namespace_test) || (lhs.parent_namespace_test && rhs.parent_namespace_test && *lhs.parent_namespace_test == *rhs.parent_namespace_test)) &&
       (lhs.vector_of_referrables == rhs.vector_of_referrables) &&
       (lhs.single_weak_reference == rhs.single_weak_reference) &&
       (lhs.vector_of_weak_references == rhs.vector_of_weak_references) &&

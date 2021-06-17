@@ -339,10 +339,10 @@ flatbuffers::Offset<SecondTableInA> CreateSecondTableInA(flatbuffers::FlatBuffer
 
 inline bool operator==(const TableInFirstNST &lhs, const TableInFirstNST &rhs) {
   return
-      ((!lhs.foo_table && !rhs.foo_table) || (lhs.foo_table && rhs.foo_table && *lhs.foo_table == *rhs.foo_table) || (lhs.foo_table && !rhs.foo_table && *lhs.foo_table == decltype(lhs.foo_table)::element_type()) || (rhs.foo_table && !lhs.foo_table && *rhs.foo_table == decltype(rhs.foo_table)::element_type())) &&
+      ((lhs.foo_table == rhs.foo_table) || (lhs.foo_table && rhs.foo_table && *lhs.foo_table == *rhs.foo_table)) &&
       (lhs.foo_enum == rhs.foo_enum) &&
       (lhs.foo_union == rhs.foo_union) &&
-      ((!lhs.foo_struct && !rhs.foo_struct) || (lhs.foo_struct && rhs.foo_struct && *lhs.foo_struct == *rhs.foo_struct) || (lhs.foo_struct && !rhs.foo_struct && *lhs.foo_struct == decltype(lhs.foo_struct)::element_type()) || (rhs.foo_struct && !lhs.foo_struct && *rhs.foo_struct == decltype(rhs.foo_struct)::element_type()));
+      ((lhs.foo_struct == rhs.foo_struct) || (lhs.foo_struct && rhs.foo_struct && *lhs.foo_struct == *rhs.foo_struct));
 }
 
 inline bool operator!=(const TableInFirstNST &lhs, const TableInFirstNST &rhs) {
@@ -395,8 +395,8 @@ namespace NamespaceC {
 
 inline bool operator==(const TableInCT &lhs, const TableInCT &rhs) {
   return
-      ((!lhs.refer_to_a1 && !rhs.refer_to_a1) || (lhs.refer_to_a1 && rhs.refer_to_a1 && *lhs.refer_to_a1 == *rhs.refer_to_a1) || (lhs.refer_to_a1 && !rhs.refer_to_a1 && *lhs.refer_to_a1 == decltype(lhs.refer_to_a1)::element_type()) || (rhs.refer_to_a1 && !lhs.refer_to_a1 && *rhs.refer_to_a1 == decltype(rhs.refer_to_a1)::element_type())) &&
-      ((!lhs.refer_to_a2 && !rhs.refer_to_a2) || (lhs.refer_to_a2 && rhs.refer_to_a2 && *lhs.refer_to_a2 == *rhs.refer_to_a2) || (lhs.refer_to_a2 && !rhs.refer_to_a2 && *lhs.refer_to_a2 == decltype(lhs.refer_to_a2)::element_type()) || (rhs.refer_to_a2 && !lhs.refer_to_a2 && *rhs.refer_to_a2 == decltype(rhs.refer_to_a2)::element_type()));
+      ((lhs.refer_to_a1 == rhs.refer_to_a1) || (lhs.refer_to_a1 && rhs.refer_to_a1 && *lhs.refer_to_a1 == *rhs.refer_to_a1)) &&
+      ((lhs.refer_to_a2 == rhs.refer_to_a2) || (lhs.refer_to_a2 && rhs.refer_to_a2 && *lhs.refer_to_a2 == *rhs.refer_to_a2));
 }
 
 inline bool operator!=(const TableInCT &lhs, const TableInCT &rhs) {
@@ -440,7 +440,7 @@ namespace NamespaceA {
 
 inline bool operator==(const SecondTableInAT &lhs, const SecondTableInAT &rhs) {
   return
-      ((!lhs.refer_to_c && !rhs.refer_to_c) || (lhs.refer_to_c && rhs.refer_to_c && *lhs.refer_to_c == *rhs.refer_to_c) || (lhs.refer_to_c && !rhs.refer_to_c && *lhs.refer_to_c == decltype(lhs.refer_to_c)::element_type()) || (rhs.refer_to_c && !lhs.refer_to_c && *rhs.refer_to_c == decltype(rhs.refer_to_c)::element_type()));
+      ((lhs.refer_to_c == rhs.refer_to_c) || (lhs.refer_to_c && rhs.refer_to_c && *lhs.refer_to_c == *rhs.refer_to_c));
 }
 
 inline bool operator!=(const SecondTableInAT &lhs, const SecondTableInAT &rhs) {

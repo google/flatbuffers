@@ -1800,20 +1800,13 @@ class CppGenerator : public BaseGenerator {
             field.value.type.base_type != BASE_TYPE_STRUCT) {
           compare_op += "(lhs." + accessor + " == rhs." + accessor + ")";
         } else {
-          // Deep compare of std::unique_ptr.
-          std::string both_null = "(!lhs." + accessor +
-              " && !rhs." + accessor + ")";
-          std::string both_not_null = "(lhs." + accessor +
+          // Deep compare of std::unique_ptr. Null is not equal to empty.
+          std::string both_null = "(lhs." + accessor +
+              " == rhs." + accessor + ")";
+          std::string not_null_and_equal = "(lhs." + accessor +
               " && rhs." + accessor + " && *lhs." + accessor +
               " == *rhs." + accessor + ")";
-          std::string lhs_not_null = "(lhs." + accessor +
-              " && !rhs." + accessor + " && *lhs." + accessor +
-              " == decltype(lhs." + accessor + ")::element_type())";
-          std::string rhs_not_null = "(rhs." + accessor +
-              " && !lhs." + accessor + " && *rhs." + accessor +
-              " == decltype(rhs." + accessor + ")::element_type())";
-          compare_op += "(" + both_null + " || " + both_not_null + " || " +
-              lhs_not_null + " || " + rhs_not_null + ")";
+          compare_op += "(" + both_null + " || " + not_null_and_equal + ")";
         }
       }
     }
