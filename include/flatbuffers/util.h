@@ -468,6 +468,7 @@ std::string ConCatPathFileName(const std::string &path,
 
 // Replaces any '\\' separators with '/'
 std::string PosixPath(const char *path);
+std::string PosixPath(const std::string &path);
 
 // This function ensure a directory exists, by recursively
 // creating dirs for any parts of the path that don't exist yet.
@@ -476,6 +477,10 @@ void EnsureDirExists(const std::string &filepath);
 // Obtains the absolute path from any other path.
 // Returns the input path if the absolute path couldn't be resolved.
 std::string AbsolutePath(const std::string &filepath);
+
+// Returns files relative to the --project_root path, prefixed with `//`.
+std::string RelativeToRootPath(const std::string &project,
+                               const std::string &filepath);
 
 // To and from UTF-8 unicode conversion functions
 

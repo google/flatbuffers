@@ -919,7 +919,30 @@ void ReflectionTest(uint8_t *flatbuf, size_t length) {
   // Make sure the schema is what we expect it to be.
   auto &schema = *reflection::GetSchema(bfbsfile.c_str());
   auto root_table = schema.root_table();
+  // Check the declaration files.
   TEST_EQ_STR(root_table->name()->c_str(), "MyGame.Example.Monster");
+  TEST_EQ_STR(root_table->declaration_file()->c_str(), "//monster_test.fbs");
+  TEST_EQ_STR(
+      schema.objects()->LookupByKey("TableA")->declaration_file()->c_str(),
+      "//include_test/include_test1.fbs");
+  TEST_EQ_STR(schema.objects()
+                  ->LookupByKey("MyGame.OtherNameSpace.Unused")
+                  ->declaration_file()
+                  ->c_str(),
+              "//include_test/sub/include_test2.fbs");
+  TEST_EQ_STR(schema.enums()
+                  ->LookupByKey("MyGame.OtherNameSpace.FromInclude")
+                  ->declaration_file()
+                  ->c_str(),
+              "//include_test/sub/include_test2.fbs");
+  TEST_EQ(schema.fbs_files()->size(), 3);
+  TEST_EQ_STR(schema.fbs_files()->Get(0)->c_str(),
+              "//include_test/include_test1.fbs");
+  TEST_EQ_STR(schema.fbs_files()->Get(1)->c_str(),
+              "//include_test/sub/include_test2.fbs");
+  TEST_EQ_STR(schema.fbs_files()->Get(2)->c_str(), "//monster_test.fbs");
+
+  // Check Root table fields
   auto fields = root_table->fields();
   auto hp_field_ptr = fields->LookupByKey("hp");
   TEST_NOTNULL(hp_field_ptr);
@@ -1290,6 +1313,7 @@ void ParseProtoTestWithIncludes() {
   flatbuffers::IDLOptions opts;
   opts.include_dependence_headers = true;
   opts.proto_mode = true;
+  opts.project_root = test_data_path;
 
   // Parse proto.
   flatbuffers::Parser parser(opts);
@@ -1307,10 +1331,16 @@ void ParseProtoTestWithIncludes() {
   auto import_fbs = flatbuffers::GenerateFBS(import_parser, "test");
 
   // Ensure generated file is parsable.
-  flatbuffers::Parser parser2;
-  TEST_EQ(
-      parser2.Parse(import_fbs.c_str(), include_directories, "imported.fbs"),
-      true);
+  flatbuffers::IDLOptions opts2;
+  opts2.project_root = protopath;
+  flatbuffers::Parser parser2(opts2);
+  // Since `imported.fbs` isn't in the filesystem AbsolutePath can't figure it
+  // out by itself. We manually construct it so Parser works.
+  std::string imported_fbs = flatbuffers::PosixPath(
+      flatbuffers::AbsolutePath(protopath) + "/imported.fbs");
+  TEST_EQ(parser2.Parse(import_fbs.c_str(), include_directories,
+                        imported_fbs.c_str()),
+          true);
   TEST_EQ(parser2.Parse(fbs.c_str(), nullptr), true);
   TEST_EQ_STR(fbs.c_str(), goldenfile.c_str());
 
@@ -1324,7 +1354,8 @@ void ParseProtoTestWithIncludes() {
 
   // Ensure generated file is parsable.
   flatbuffers::Parser parser4;
-  TEST_EQ(parser4.Parse(import_fbs.c_str(), nullptr, "imported.fbs"), true);
+  TEST_EQ(parser4.Parse(import_fbs.c_str(), nullptr, imported_fbs.c_str()),
+          true);
   TEST_EQ(parser4.Parse(fbs_union.c_str(), nullptr), true);
   TEST_EQ_STR(fbs_union.c_str(), goldenunionfile.c_str());
 }
