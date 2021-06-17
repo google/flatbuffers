@@ -1824,11 +1824,11 @@ class CppGenerator : public BaseGenerator {
           compare_op += "(lhs." + accessor + " == rhs." + accessor + ")";
         } else {
           // Deep compare of std::unique_ptr. Null is not equal to empty.
-          std::string both_null = "(lhs." + accessor +
-              " == rhs." + accessor + ")";
-          std::string not_null_and_equal = "(lhs." + accessor +
-              " && rhs." + accessor + " && *lhs." + accessor +
-              " == *rhs." + accessor + ")";
+          std::string both_null =
+              "(lhs." + accessor + " == rhs." + accessor + ")";
+          std::string not_null_and_equal = "(lhs." + accessor + " && rhs." +
+                                           accessor + " && *lhs." + accessor +
+                                           " == *rhs." + accessor + ")";
           compare_op += "(" + both_null + " || " + not_null_and_equal + ")";
         }
       }
