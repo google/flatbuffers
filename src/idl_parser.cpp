@@ -3982,6 +3982,15 @@ bool Parser::Deserialize(const reflection::Schema *schema) {
     }
   }
   advanced_features_ = schema->advanced_features();
+
+  for (auto s = schema->fbs_files()->begin(); s != schema->fbs_files()->end();
+       ++s) {
+    for (auto f = s->included_filenames()->begin();
+         f != s->included_filenames()->end(); ++f) {
+      files_included_per_file_[s->filename()->str()].insert(f->str());
+    }
+  }
+
   return true;
 }
 
