@@ -177,10 +177,12 @@ class JsonSchemaGenerator : public BaseGenerator {
       const auto end = std::find_if(comment_line.rbegin(), comment_line.rend(),
                                     [](char c) { return !isspace(c); })
                            .base();
-      std::string trimmed_line(start < end ? std::string(start, end)
-                                           : comment_line);
+      if (start < end) {
+        comment.append(start,end);
+      } else {
+        comment.append(comment_line);
+      }
 
-      comment.append(trimmed_line);
       if (line_iterator + 1 != comment_lines.cend()) comment.append("\n");
     }
     if (!comment.empty()) {
