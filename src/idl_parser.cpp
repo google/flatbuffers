@@ -3532,6 +3532,8 @@ void Parser::Serialize() {
   }
 
   // Create Schemafiles vector of tables.
+  flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<reflection::SchemaFile>>> schema_files__;
+  if (!opts.project_root.empty()) {
   std::vector<Offset<reflection::SchemaFile>> schema_files;
   std::vector<Offset<flatbuffers::String>> included_files;
   for (auto f = files_included_per_file_.begin();
@@ -3548,8 +3550,9 @@ void Parser::Serialize() {
     schema_files.push_back(
         reflection::CreateSchemaFile(builder_, filename__, included_files__));
   }
-  const auto schema_files__ =
+  schema_files__ =
       builder_.CreateVectorOfSortedTables(&schema_files);
+  }
 
   const auto objs__ = builder_.CreateVectorOfSortedTables(&object_offsets);
   const auto enum__ = builder_.CreateVectorOfSortedTables(&enum_offsets);
