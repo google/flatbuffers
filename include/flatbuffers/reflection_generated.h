@@ -32,6 +32,9 @@ struct RPCCallBuilder;
 struct Service;
 struct ServiceBuilder;
 
+struct SchemaFile;
+struct SchemaFileBuilder;
+
 struct Schema;
 struct SchemaBuilder;
 
@@ -1126,6 +1129,84 @@ inline flatbuffers::Offset<Service> CreateServiceDirect(
       declaration_file__);
 }
 
+/// File specific information.
+/// Symbols declared within a file may be recovered by iterating over all
+/// symbols and examining the `declaration_file` field.
+struct SchemaFile FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+  typedef SchemaFileBuilder Builder;
+  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
+    VT_FILENAME = 4,
+    VT_INCLUDED_FILENAMES = 6
+  };
+  /// Filename, relative to project root.
+  const flatbuffers::String *filename() const {
+    return GetPointer<const flatbuffers::String *>(VT_FILENAME);
+  }
+  bool KeyCompareLessThan(const SchemaFile *o) const {
+    return *filename() < *o->filename();
+  }
+  int KeyCompareWithValue(const char *val) const {
+    return strcmp(filename()->c_str(), val);
+  }
+  /// Names of included files, relative to project root.
+  const flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>> *included_filenames() const {
+    return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>> *>(VT_INCLUDED_FILENAMES);
+  }
+  bool Verify(flatbuffers::Verifier &verifier) const {
+    return VerifyTableStart(verifier) &&
+           VerifyOffsetRequired(verifier, VT_FILENAME) &&
+           verifier.VerifyString(filename()) &&
+           VerifyOffset(verifier, VT_INCLUDED_FILENAMES) &&
+           verifier.VerifyVector(included_filenames()) &&
+           verifier.VerifyVectorOfStrings(included_filenames()) &&
+           verifier.EndTable();
+  }
+};
+
+struct SchemaFileBuilder {
+  typedef SchemaFile Table;
+  flatbuffers::FlatBufferBuilder &fbb_;
+  flatbuffers::uoffset_t start_;
+  void add_filename(flatbuffers::Offset<flatbuffers::String> filename) {
+    fbb_.AddOffset(SchemaFile::VT_FILENAME, filename);
+  }
+  void add_included_filenames(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>>> included_filenames) {
+    fbb_.AddOffset(SchemaFile::VT_INCLUDED_FILENAMES, included_filenames);
+  }
+  explicit SchemaFileBuilder(flatbuffers::FlatBufferBuilder &_fbb)
+        : fbb_(_fbb) {
+    start_ = fbb_.StartTable();
+  }
+  flatbuffers::Offset<SchemaFile> Finish() {
+    const auto end = fbb_.EndTable(start_);
+    auto o = flatbuffers::Offset<SchemaFile>(end);
+    fbb_.Required(o, SchemaFile::VT_FILENAME);
+    return o;
+  }
+};
+
+inline flatbuffers::Offset<SchemaFile> CreateSchemaFile(
+    flatbuffers::FlatBufferBuilder &_fbb,
+    flatbuffers::Offset<flatbuffers::String> filename = 0,
+    flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>>> included_filenames = 0) {
+  SchemaFileBuilder builder_(_fbb);
+  builder_.add_included_filenames(included_filenames);
+  builder_.add_filename(filename);
+  return builder_.Finish();
+}
+
+inline flatbuffers::Offset<SchemaFile> CreateSchemaFileDirect(
+    flatbuffers::FlatBufferBuilder &_fbb,
+    const char *filename = nullptr,
+    const std::vector<flatbuffers::Offset<flatbuffers::String>> *included_filenames = nullptr) {
+  auto filename__ = filename ? _fbb.CreateString(filename) : 0;
+  auto included_filenames__ = included_filenames ? _fbb.CreateVector<flatbuffers::Offset<flatbuffers::String>>(*included_filenames) : 0;
+  return reflection::CreateSchemaFile(
+      _fbb,
+      filename__,
+      included_filenames__);
+}
+
 struct Schema FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   typedef SchemaBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
@@ -1161,8 +1242,8 @@ struct Schema FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   }
   /// All the files used in this compilation. Files are relative to where
   /// flatc was invoked.
-  const flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>> *fbs_files() const {
-    return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>> *>(VT_FBS_FILES);
+  const flatbuffers::Vector<flatbuffers::Offset<reflection::SchemaFile>> *fbs_files() const {
+    return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<reflection::SchemaFile>> *>(VT_FBS_FILES);
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
@@ -1184,7 +1265,7 @@ struct Schema FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
            VerifyField<uint64_t>(verifier, VT_ADVANCED_FEATURES) &&
            VerifyOffset(verifier, VT_FBS_FILES) &&
            verifier.VerifyVector(fbs_files()) &&
-           verifier.VerifyVectorOfStrings(fbs_files()) &&
+           verifier.VerifyVectorOfTables(fbs_files()) &&
            verifier.EndTable();
   }
 };
@@ -1214,7 +1295,7 @@ struct SchemaBuilder {
   void add_advanced_features(reflection::AdvancedFeatures advanced_features) {
     fbb_.AddElement<uint64_t>(Schema::VT_ADVANCED_FEATURES, static_cast<uint64_t>(advanced_features), 0);
   }
-  void add_fbs_files(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>>> fbs_files) {
+  void add_fbs_files(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<reflection::SchemaFile>>> fbs_files) {
     fbb_.AddOffset(Schema::VT_FBS_FILES, fbs_files);
   }
   explicit SchemaBuilder(flatbuffers::FlatBufferBuilder &_fbb)
@@ -1239,7 +1320,7 @@ inline flatbuffers::Offset<Schema> CreateSchema(
     flatbuffers::Offset<reflection::Object> root_table = 0,
     flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<reflection::Service>>> services = 0,
     reflection::AdvancedFeatures advanced_features = static_cast<reflection::AdvancedFeatures>(0),
-    flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>>> fbs_files = 0) {
+    flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<reflection::SchemaFile>>> fbs_files = 0) {
   SchemaBuilder builder_(_fbb);
   builder_.add_advanced_features(advanced_features);
   builder_.add_fbs_files(fbs_files);
@@ -1261,13 +1342,13 @@ inline flatbuffers::Offset<Schema> CreateSchemaDirect(
     flatbuffers::Offset<reflection::Object> root_table = 0,
     std::vector<flatbuffers::Offset<reflection::Service>> *services = nullptr,
     reflection::AdvancedFeatures advanced_features = static_cast<reflection::AdvancedFeatures>(0),
-    const std::vector<flatbuffers::Offset<flatbuffers::String>> *fbs_files = nullptr) {
+    std::vector<flatbuffers::Offset<reflection::SchemaFile>> *fbs_files = nullptr) {
   auto objects__ = objects ? _fbb.CreateVectorOfSortedTables<reflection::Object>(objects) : 0;
   auto enums__ = enums ? _fbb.CreateVectorOfSortedTables<reflection::Enum>(enums) : 0;
   auto file_ident__ = file_ident ? _fbb.CreateString(file_ident) : 0;
   auto file_ext__ = file_ext ? _fbb.CreateString(file_ext) : 0;
   auto services__ = services ? _fbb.CreateVectorOfSortedTables<reflection::Service>(services) : 0;
-  auto fbs_files__ = fbs_files ? _fbb.CreateVector<flatbuffers::Offset<flatbuffers::String>>(*fbs_files) : 0;
+  auto fbs_files__ = fbs_files ? _fbb.CreateVectorOfSortedTables<reflection::SchemaFile>(fbs_files) : 0;
   return reflection::CreateSchema(
       _fbb,
       objects__,
