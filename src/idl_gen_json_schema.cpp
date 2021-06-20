@@ -178,7 +178,7 @@ class JsonSchemaGenerator : public BaseGenerator {
                                     [](char c) { return !isspace(c); })
                            .base();
       if (start < end) {
-        comment.append(start,end);
+        comment.append(start, end);
       } else {
         comment.append(comment_line);
       }
