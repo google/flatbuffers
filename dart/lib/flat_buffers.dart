@@ -30,12 +30,14 @@ class BufferContext {
 
   ByteData get buffer => _buffer;
 
+  /// Create from a FlatBuffer represented by a list of bytes (uint8).
   factory BufferContext.fromBytes(List<int> byteList) {
     Uint8List uint8List = _asUint8List(byteList);
     ByteData buf = new ByteData.view(uint8List.buffer, uint8List.offsetInBytes);
     return BufferContext(buf);
   }
 
+  /// Create from a FlatBuffer represented by ByteData.
   BufferContext(this._buffer);
 
   int derefObject(int offset) {
@@ -112,7 +114,6 @@ class Builder {
   final int initialSize;
 
   /// The list of existing VTable(s).
-  //final List<_VTable> _vTables = <_VTable>[];
   final List<int> _vTables = List<int>.filled(16, 0, growable: true)
     ..length = 0;
 
@@ -128,7 +129,7 @@ class Builder {
   int _tail = 0;
 
   /// The location of the end of the current table, measured in bytes from the
-  /// end of [_buf], or `null` if a table is not currently being built.
+  /// end of [_buf].
   int _currentTableEndTail = 0;
 
   _VTable? _currentVTable;

@@ -256,7 +256,7 @@ class Builder {
     bd.buffer.asUint8List().setAll(0, buffer);
     return bd.buffer;
   }
-  
+
   void _integrityCheckOnValueAddition() {
     if (_finished) {
       throw StateError('Adding values after finish is prohibited');
@@ -288,7 +288,7 @@ class Builder {
     _writeUInt(byteWidth, 1);
     _finished = true;
   }
-  
+
   _StackValue _createVector(int start, int vecLength, int step, [_StackValue? keys]) {
     var bitWidth = BitWidthUtil.uwidth(vecLength);
     var prefixElements = 1;
@@ -383,7 +383,7 @@ class Builder {
     }
     _endMap(pointer);
   }
-  
+
   void _endMap(_StackPointer pointer) {
     final vecLength = (_stack.length - pointer.stackPosition) >> 1;
     final offsets = <int>[];
@@ -552,10 +552,10 @@ class _StackValue {
 
   BitWidth elementWidth(int size, int index) {
     if (ValueTypeUtils.isInline(_type)) return _width;
+    final offset = offsetLoc - _offset!;
     for(var i = 0; i < 4; i++) {
       final width = 1 << i;
       final offsetLoc = size + BitWidthUtil.paddingSize(size, width) + index * width;
-      final offset = offsetLoc - _offset!;
       final bitWidth = BitWidthUtil.uwidth(offset);
       if (1 << bitWidth.index == width) {
         return bitWidth;
