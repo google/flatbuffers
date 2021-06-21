@@ -432,6 +432,7 @@ int FlatCompiler::Compile(int argc, const char **argv) {
   }
 
   std::unique_ptr<flatbuffers::Parser> parser(new flatbuffers::Parser(opts));
+  bool first_schema = true;
 
   for (auto file_it = filenames.begin(); file_it != filenames.end();
        ++file_it) {
@@ -444,6 +445,12 @@ int FlatCompiler::Compile(int argc, const char **argv) {
         static_cast<size_t>(file_it - filenames.begin()) >= binary_files_from;
     auto ext = flatbuffers::GetExtension(filename);
     const bool is_schema = ext == "fbs" || ext == "proto";
+    if (is_schema && first_schema) {
+      first_schema = false;
+      if (opts.project_root.empty()) {
+        opts.project_root = StripFileName(filename);
+      }
+    }
     const bool is_binary_schema = ext == reflection::SchemaExtension();
     if (is_binary) {
       parser->builder_.Clear();
