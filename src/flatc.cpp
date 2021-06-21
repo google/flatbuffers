@@ -149,8 +149,11 @@ std::string FlatCompiler::GetUsageString(const char *program_name) const {
     "  --oneof-union          Translate .proto oneofs to flatbuffer unions.\n"
     "  --grpc                 Generate GRPC interfaces for the specified languages.\n"
     "  --schema               Serialize schemas instead of JSON (use with -b).\n"
-    "  --bfbs-filenames PATH  Adds declaration filenames, relative to PATH and prefixed with"
-    "                         `//`, to the binary schema.\n"
+    "  --bfbs-filenames PATH  Sets the root path where reflection filenames in \n"
+    "                         reflection.fbs are relative to. The 'root' is denoted with \n"
+    "                         `//`. E.g. if PATH=/a/b/c \n then /a/d/e.fbs will be serialized\n"
+    "                         as //../d/e.fbs. (PATH defaults to the directory of the first\n"
+    "                         provided schema file.)\n"
     "  --bfbs-comments        Add doc comments to the binary schema files.\n"
     "  --bfbs-builtins        Add builtin attributes to the binary schema files.\n"
     "  --bfbs-gen-embed       Generate code to embed the bfbs schema to the source.\n"
@@ -432,7 +435,6 @@ int FlatCompiler::Compile(int argc, const char **argv) {
   }
 
   std::unique_ptr<flatbuffers::Parser> parser(new flatbuffers::Parser(opts));
-  bool first_schema = true;
 
   for (auto file_it = filenames.begin(); file_it != filenames.end();
        ++file_it) {
@@ -445,11 +447,8 @@ int FlatCompiler::Compile(int argc, const char **argv) {
         static_cast<size_t>(file_it - filenames.begin()) >= binary_files_from;
     auto ext = flatbuffers::GetExtension(filename);
     const bool is_schema = ext == "fbs" || ext == "proto";
-    if (is_schema && first_schema) {
-      first_schema = false;
-      if (opts.project_root.empty()) {
-        opts.project_root = StripFileName(filename);
-      }
+    if (is_schema && opts.project_root.empty()) {
+      opts.project_root = StripFileName(filename);
     }
     const bool is_binary_schema = ext == reflection::SchemaExtension();
     if (is_binary) {
