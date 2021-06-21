@@ -3320,6 +3320,31 @@ void EqualOperatorTest() {
   TEST_EQ(b == a, true);
   TEST_EQ(b != a, false);
 
+  a.enemy.reset(new MonsterT());
+  TEST_EQ(b != a, true);
+  a.enemy->mana = 33;
+  TEST_EQ(b == a, false);
+  TEST_EQ(b != a, true);
+
+  b.enemy.reset(new MonsterT());
+  TEST_EQ(b == a, false);
+  TEST_EQ(b != a, true);
+  b.enemy->mana = 33;
+  TEST_EQ(b == a, true);
+  TEST_EQ(b != a, false);
+
+  a.enemy.reset(nullptr);
+  TEST_EQ(b == a, false);
+  TEST_EQ(b != a, true);
+  b.enemy->mana = 150;
+  TEST_EQ(b == a, false);
+  TEST_EQ(b != a, true);
+  a.enemy.reset(new MonsterT());
+  TEST_EQ(b == a, true);
+  TEST_EQ(b != a, false);
+
+  b.enemy.reset(nullptr);
+
   b.test.type = Any_Monster;
   TEST_EQ(b == a, false);
   TEST_EQ(b != a, true);

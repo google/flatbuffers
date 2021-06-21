@@ -31,25 +31,6 @@ struct MonsterExtraT : public flatbuffers::NativeTable {
   std::vector<float> fvec{};
 };
 
-inline bool operator==(const MonsterExtraT &lhs, const MonsterExtraT &rhs) {
-  return
-      (lhs.d0 == rhs.d0) &&
-      (lhs.d1 == rhs.d1) &&
-      (lhs.d2 == rhs.d2) &&
-      (lhs.d3 == rhs.d3) &&
-      (lhs.f0 == rhs.f0) &&
-      (lhs.f1 == rhs.f1) &&
-      (lhs.f2 == rhs.f2) &&
-      (lhs.f3 == rhs.f3) &&
-      (lhs.dvec == rhs.dvec) &&
-      (lhs.fvec == rhs.fvec);
-}
-
-inline bool operator!=(const MonsterExtraT &lhs, const MonsterExtraT &rhs) {
-    return !(lhs == rhs);
-}
-
-
 struct MonsterExtra FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   typedef MonsterExtraT NativeTableType;
   typedef MonsterExtraBuilder Builder;
@@ -249,6 +230,26 @@ inline flatbuffers::Offset<MonsterExtra> CreateMonsterExtraDirect(
 }
 
 flatbuffers::Offset<MonsterExtra> CreateMonsterExtra(flatbuffers::FlatBufferBuilder &_fbb, const MonsterExtraT *_o, const flatbuffers::rehasher_function_t *_rehasher = nullptr);
+
+
+inline bool operator==(const MonsterExtraT &lhs, const MonsterExtraT &rhs) {
+  return
+      (lhs.d0 == rhs.d0) &&
+      (lhs.d1 == rhs.d1) &&
+      (lhs.d2 == rhs.d2) &&
+      (lhs.d3 == rhs.d3) &&
+      (lhs.f0 == rhs.f0) &&
+      (lhs.f1 == rhs.f1) &&
+      (lhs.f2 == rhs.f2) &&
+      (lhs.f3 == rhs.f3) &&
+      (lhs.dvec == rhs.dvec) &&
+      (lhs.fvec == rhs.fvec);
+}
+
+inline bool operator!=(const MonsterExtraT &lhs, const MonsterExtraT &rhs) {
+    return !(lhs == rhs);
+}
+
 
 inline MonsterExtraT *MonsterExtra::UnPack(const flatbuffers::resolver_function_t *_resolver) const {
   auto _o = std::unique_ptr<MonsterExtraT>(new MonsterExtraT());

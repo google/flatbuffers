@@ -68,19 +68,6 @@ struct TableInFirstNST : public flatbuffers::NativeTable {
   flatbuffers::unique_ptr<NamespaceA::NamespaceB::StructInNestedNS> foo_struct{};
 };
 
-inline bool operator==(const TableInFirstNST &lhs, const TableInFirstNST &rhs) {
-  return
-      (lhs.foo_table == rhs.foo_table) &&
-      (lhs.foo_enum == rhs.foo_enum) &&
-      (lhs.foo_union == rhs.foo_union) &&
-      (lhs.foo_struct == rhs.foo_struct);
-}
-
-inline bool operator!=(const TableInFirstNST &lhs, const TableInFirstNST &rhs) {
-    return !(lhs == rhs);
-}
-
-
 struct TableInFirstNS FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   typedef TableInFirstNST NativeTableType;
   typedef TableInFirstNSBuilder Builder;
@@ -209,17 +196,6 @@ struct TableInCT : public flatbuffers::NativeTable {
   flatbuffers::unique_ptr<NamespaceA::SecondTableInAT> refer_to_a2{};
 };
 
-inline bool operator==(const TableInCT &lhs, const TableInCT &rhs) {
-  return
-      (lhs.refer_to_a1 == rhs.refer_to_a1) &&
-      (lhs.refer_to_a2 == rhs.refer_to_a2);
-}
-
-inline bool operator!=(const TableInCT &lhs, const TableInCT &rhs) {
-    return !(lhs == rhs);
-}
-
-
 struct TableInC FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   typedef TableInCT NativeTableType;
   typedef TableInCBuilder Builder;
@@ -303,16 +279,6 @@ struct SecondTableInAT : public flatbuffers::NativeTable {
   flatbuffers::unique_ptr<NamespaceC::TableInCT> refer_to_c{};
 };
 
-inline bool operator==(const SecondTableInAT &lhs, const SecondTableInAT &rhs) {
-  return
-      (lhs.refer_to_c == rhs.refer_to_c);
-}
-
-inline bool operator!=(const SecondTableInAT &lhs, const SecondTableInAT &rhs) {
-    return !(lhs == rhs);
-}
-
-
 struct SecondTableInA FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   typedef SecondTableInAT NativeTableType;
   typedef SecondTableInABuilder Builder;
@@ -370,6 +336,20 @@ inline flatbuffers::Offset<SecondTableInA> CreateSecondTableInA(
 
 flatbuffers::Offset<SecondTableInA> CreateSecondTableInA(flatbuffers::FlatBufferBuilder &_fbb, const SecondTableInAT *_o, const flatbuffers::rehasher_function_t *_rehasher = nullptr);
 
+
+inline bool operator==(const TableInFirstNST &lhs, const TableInFirstNST &rhs) {
+  return
+      ((lhs.foo_table == rhs.foo_table) || (lhs.foo_table && rhs.foo_table && *lhs.foo_table == *rhs.foo_table)) &&
+      (lhs.foo_enum == rhs.foo_enum) &&
+      (lhs.foo_union == rhs.foo_union) &&
+      ((lhs.foo_struct == rhs.foo_struct) || (lhs.foo_struct && rhs.foo_struct && *lhs.foo_struct == *rhs.foo_struct));
+}
+
+inline bool operator!=(const TableInFirstNST &lhs, const TableInFirstNST &rhs) {
+    return !(lhs == rhs);
+}
+
+
 inline TableInFirstNST *TableInFirstNS::UnPack(const flatbuffers::resolver_function_t *_resolver) const {
   auto _o = std::unique_ptr<TableInFirstNST>(new TableInFirstNST());
   UnPackTo(_o.get(), _resolver);
@@ -412,6 +392,18 @@ inline flatbuffers::Offset<TableInFirstNS> CreateTableInFirstNS(flatbuffers::Fla
 
 namespace NamespaceC {
 
+
+inline bool operator==(const TableInCT &lhs, const TableInCT &rhs) {
+  return
+      ((lhs.refer_to_a1 == rhs.refer_to_a1) || (lhs.refer_to_a1 && rhs.refer_to_a1 && *lhs.refer_to_a1 == *rhs.refer_to_a1)) &&
+      ((lhs.refer_to_a2 == rhs.refer_to_a2) || (lhs.refer_to_a2 && rhs.refer_to_a2 && *lhs.refer_to_a2 == *rhs.refer_to_a2));
+}
+
+inline bool operator!=(const TableInCT &lhs, const TableInCT &rhs) {
+    return !(lhs == rhs);
+}
+
+
 inline TableInCT *TableInC::UnPack(const flatbuffers::resolver_function_t *_resolver) const {
   auto _o = std::unique_ptr<TableInCT>(new TableInCT());
   UnPackTo(_o.get(), _resolver);
@@ -444,6 +436,17 @@ inline flatbuffers::Offset<TableInC> CreateTableInC(flatbuffers::FlatBufferBuild
 }  // namespace NamespaceC
 
 namespace NamespaceA {
+
+
+inline bool operator==(const SecondTableInAT &lhs, const SecondTableInAT &rhs) {
+  return
+      ((lhs.refer_to_c == rhs.refer_to_c) || (lhs.refer_to_c && rhs.refer_to_c && *lhs.refer_to_c == *rhs.refer_to_c));
+}
+
+inline bool operator!=(const SecondTableInAT &lhs, const SecondTableInAT &rhs) {
+    return !(lhs == rhs);
+}
+
 
 inline SecondTableInAT *SecondTableInA::UnPack(const flatbuffers::resolver_function_t *_resolver) const {
   auto _o = std::unique_ptr<SecondTableInAT>(new SecondTableInAT());
