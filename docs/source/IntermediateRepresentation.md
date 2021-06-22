@@ -13,6 +13,9 @@ There are some quirks:
   field of `Schema`. These mark the presence of new, backwards incompatible,
   schema features. Code generators must error if generating a schema with
   unrecognized advanced features.
+- Filenames are relative to a "project root" denoted by "//" in the path. This
+  may be specified in flatc with `--bfbs-filenames=$PROJECT_ROOT`, or it will be
+  inferred to be the directory containing the first provided schema file.
 
 
 ## Invocation 

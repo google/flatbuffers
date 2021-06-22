@@ -1339,7 +1339,6 @@ void ParseProtoTestWithIncludes() {
   flatbuffers::IDLOptions opts;
   opts.include_dependence_headers = true;
   opts.proto_mode = true;
-  opts.project_root = test_data_path;
 
   // Parse proto.
   flatbuffers::Parser parser(opts);
@@ -1357,9 +1356,7 @@ void ParseProtoTestWithIncludes() {
   auto import_fbs = flatbuffers::GenerateFBS(import_parser, "test");
 
   // Ensure generated file is parsable.
-  flatbuffers::IDLOptions opts2;
-  opts2.project_root = protopath;
-  flatbuffers::Parser parser2(opts2);
+  flatbuffers::Parser parser2;
   // Since `imported.fbs` isn't in the filesystem AbsolutePath can't figure it
   // out by itself. We manually construct it so Parser works.
   std::string imported_fbs = flatbuffers::PosixPath(
