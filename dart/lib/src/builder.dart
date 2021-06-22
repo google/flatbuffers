@@ -6,37 +6,26 @@ import 'types.dart';
 /// The main builder class for creation of a FlexBuffer.
 class Builder {
   ByteData _buffer;
-  List<_StackValue> _stack;
-  List<_StackPointer> _stackPointers;
-  int _offset;
-  bool _finished;
-  Map<String, _StackValue> _stringCache;
-  Map<String, _StackValue> _keyCache;
-  Map<_KeysHash, _StackValue> _keyVectorCache;
-  Map<int, _StackValue> _indirectIntCache;
-  Map<double, _StackValue> _indirectDoubleCache;
+  List<_StackValue> _stack = [];
+  List<_StackPointer> _stackPointers = [];
+  int _offset = 0;
+  bool _finished = false;
+  Map<String, _StackValue> _stringCache = {};
+  Map<String, _StackValue> _keyCache = {};
+  Map<_KeysHash, _StackValue> _keyVectorCache = {};
+  Map<int, _StackValue> _indirectIntCache = {};
+  Map<double, _StackValue> _indirectDoubleCache = {};
 
   /// Instantiate the builder if you intent to gradually build up the buffer by calling
   /// add... methods and calling [finish] to receive the the resulting byte array.
   ///
   /// The default size of internal buffer is set to 2048. Provide a different value in order to avoid buffer copies.
-  Builder({int size = 2048}) {
-    _buffer = ByteData(size);
-    _stack = [];
-    _stackPointers = [];
-    _offset = 0;
-    _finished = false;
-    _stringCache = {};
-    _keyCache = {};
-    _keyVectorCache = {};
-    _indirectIntCache = {};
-    _indirectDoubleCache = {};
-  }
+  Builder({int size = 2048}) : _buffer = ByteData(size) {}
 
   /// Use this method in order to turn an object into a FlexBuffer directly.
   ///
   /// Use the manual instantiation of the [Builder] and gradual addition of values, if performance is more important than convenience.
-  static ByteBuffer buildFromObject(Object value) {
+  static ByteBuffer buildFromObject(Object? value) {
     final builder = Builder();
     builder._add(value);
     final buffer = builder.finish();
@@ -45,7 +34,7 @@ class Builder {
     return byteData.buffer;
   }
 
-  void _add(Object value) {
+  void _add(Object? value) {
     if (value == null) {
       addNull();
     } else if (value is bool) {
@@ -106,7 +95,7 @@ class Builder {
   void addString(String value) {
     _integrityCheckOnValueAddition();
     if (_stringCache.containsKey(value)) {
-      _stack.add(_stringCache[value]);
+      _stack.add(_stringCache[value]!);
       return;
     }
     final utf8String = utf8.encode(value);
@@ -118,7 +107,8 @@ class Builder {
     final newOffset = _newOffset(length + 1);
     _pushBuffer(utf8String);
     _offset = newOffset;
-    final stackValue = _StackValue.WithOffset(stringOffset, ValueType.String, bitWidth);
+    final stackValue =
+        _StackValue.WithOffset(stringOffset, ValueType.String, bitWidth);
     _stack.add(stackValue);
     _stringCache[value] = stackValue;
   }
@@ -129,7 +119,7 @@ class Builder {
   void addKey(String value) {
     _integrityCheckOnKeyAddition();
     if (_keyCache.containsKey(value)) {
-      _stack.add(_keyCache[value]);
+      _stack.add(_keyCache[value]!);
       return;
     }
     final utf8String = utf8.encode(value);
@@ -138,7 +128,8 @@ class Builder {
     final newOffset = _newOffset(length + 1);
     _pushBuffer(utf8String);
     _offset = newOffset;
-    final stackValue = _StackValue.WithOffset(keyOffset, ValueType.Key, BitWidth.width8);
+    final stackValue =
+        _StackValue.WithOffset(keyOffset, ValueType.Key, BitWidth.width8);
     _stack.add(stackValue);
     _keyCache[value] = stackValue;
   }
@@ -156,7 +147,8 @@ class Builder {
     final newOffset = _newOffset(length);
     _pushBuffer(value.asUint8List());
     _offset = newOffset;
-    final stackValue = _StackValue.WithOffset(blobOffset, ValueType.Blob, bitWidth);
+    final stackValue =
+        _StackValue.WithOffset(blobOffset, ValueType.Blob, bitWidth);
     _stack.add(stackValue);
   }
 
@@ -169,7 +161,7 @@ class Builder {
   void addIntIndirectly(int value, {bool cache = false}) {
     _integrityCheckOnValueAddition();
     if (_indirectIntCache.containsKey(value)) {
-      _stack.add(_indirectIntCache[value]);
+      _stack.add(_indirectIntCache[value]!);
       return;
     }
     final stackValue = _StackValue.WithInt(value);
@@ -177,7 +169,8 @@ class Builder {
     final newOffset = _newOffset(byteWidth);
     final valueOffset = _offset;
     _pushBuffer(stackValue.asU8List(stackValue.width));
-    final stackOffset = _StackValue.WithOffset(valueOffset, ValueType.IndirectInt, stackValue.width);
+    final stackOffset = _StackValue.WithOffset(
+        valueOffset, ValueType.IndirectInt, stackValue.width);
     _stack.add(stackOffset);
     _offset = newOffset;
     if (cache) {
@@ -193,7 +186,7 @@ class Builder {
   void addDoubleIndirectly(double value, {bool cache = false}) {
     _integrityCheckOnValueAddition();
     if (cache && _indirectDoubleCache.containsKey(value)) {
-      _stack.add(_indirectDoubleCache[value]);
+      _stack.add(_indirectDoubleCache[value]!);
       return;
     }
     final stackValue = _StackValue.WithDouble(value);
@@ -201,7 +194,8 @@ class Builder {
     final newOffset = _newOffset(byteWidth);
     final valueOffset = _offset;
     _pushBuffer(stackValue.asU8List(stackValue.width));
-    final stackOffset = _StackValue.WithOffset(valueOffset, ValueType.IndirectFloat, stackValue.width);
+    final stackOffset = _StackValue.WithOffset(
+        valueOffset, ValueType.IndirectFloat, stackValue.width);
     _stack.add(stackOffset);
     _offset = newOffset;
     if (cache) {
@@ -258,8 +252,10 @@ class Builder {
     tmp._offset = _offset;
     tmp._stack = List.from(_stack);
     tmp._stackPointers = List.from(_stackPointers);
-    tmp._buffer.buffer.asUint8List().setAll(0, _buffer.buffer.asUint8List(0, _offset));
-    for (var i = 0; i < tmp._stackPointers.length; i++){
+    tmp._buffer.buffer
+        .asUint8List()
+        .setAll(0, _buffer.buffer.asUint8List(0, _offset));
+    for (var i = 0; i < tmp._stackPointers.length; i++) {
       tmp.end();
     }
     final buffer = tmp.finish();
@@ -267,14 +263,15 @@ class Builder {
     bd.buffer.asUint8List().setAll(0, buffer);
     return bd.buffer;
   }
-  
+
   void _integrityCheckOnValueAddition() {
     if (_finished) {
       throw StateError('Adding values after finish is prohibited');
     }
     if (_stackPointers.isNotEmpty && _stackPointers.last.isVector == false) {
       if (_stack.last.type != ValueType.Key) {
-        throw StateError('Adding value to a map before adding a key is prohibited');
+        throw StateError(
+            'Adding value to a map before adding a key is prohibited');
       }
     }
   }
@@ -290,7 +287,8 @@ class Builder {
 
   void _finish() {
     if (_stack.length != 1) {
-      throw StateError('Stack has to be exactly 1, but is ${_stack.length}. You have to end all started vectors and maps, before calling [finish]');
+      throw StateError(
+          'Stack has to be exactly 1, but is ${_stack.length}. You have to end all started vectors and maps, before calling [finish]');
     }
     final value = _stack[0];
     final byteWidth = _align(value.elementWidth(_offset, 0));
@@ -299,8 +297,9 @@ class Builder {
     _writeUInt(byteWidth, 1);
     _finished = true;
   }
-  
-  _StackValue _createVector(int start, int vecLength, int step, [_StackValue keys]) {
+
+  _StackValue _createVector(int start, int vecLength, int step,
+      [_StackValue? keys]) {
     var bitWidth = BitWidthUtil.uwidth(vecLength);
     var prefixElements = 1;
     if (keys != null) {
@@ -327,7 +326,9 @@ class Builder {
       }
     }
     final byteWidth = _align(bitWidth);
-    final fix = typed & ValueTypeUtils.isNumber(vectorType) && vecLength >= 2 && vecLength <= 4;
+    final fix = typed & ValueTypeUtils.isNumber(vectorType) &&
+        vecLength >= 2 &&
+        vecLength <= 4;
     if (keys != null) {
       _writeStackValue(keys, byteWidth);
       _writeUInt(1 << keys.width.index, byteWidth);
@@ -348,7 +349,8 @@ class Builder {
       return _StackValue.WithOffset(vecOffset, ValueType.Map, bitWidth);
     }
     if (typed) {
-      final vType = ValueTypeUtils.toTypedVector(vectorType, fix ? vecLength : 0);
+      final vType =
+          ValueTypeUtils.toTypedVector(vectorType, fix ? vecLength : 0);
       return _StackValue.WithOffset(vecOffset, vType, bitWidth);
     }
     return _StackValue.WithOffset(vecOffset, ValueType.Vector, bitWidth);
@@ -363,12 +365,13 @@ class Builder {
 
   void _sortKeysAndEndMap(_StackPointer pointer) {
     if (((_stack.length - pointer.stackPosition) & 1) == 1) {
-      throw StateError('The stack needs to hold key value pairs (even number of elements). Check if you combined [addKey] with add... method calls properly.');
+      throw StateError(
+          'The stack needs to hold key value pairs (even number of elements). Check if you combined [addKey] with add... method calls properly.');
     }
 
     var sorted = true;
     for (var i = pointer.stackPosition; i < _stack.length - 2; i += 2) {
-      if (_shouldFlip(_stack[i], _stack[i+2])) {
+      if (_shouldFlip(_stack[i], _stack[i + 2])) {
         sorted = false;
         break;
       }
@@ -394,12 +397,12 @@ class Builder {
     }
     _endMap(pointer);
   }
-  
+
   void _endMap(_StackPointer pointer) {
     final vecLength = (_stack.length - pointer.stackPosition) >> 1;
     final offsets = <int>[];
     for (var i = pointer.stackPosition; i < _stack.length; i += 2) {
-      offsets.add(_stack[i].offset);
+      offsets.add(_stack[i].offset!);
     }
     final keysHash = _KeysHash(offsets);
     var keysStackValue;
@@ -409,21 +412,23 @@ class Builder {
       keysStackValue = _createVector(pointer.stackPosition, vecLength, 2);
       _keyVectorCache[keysHash] = keysStackValue;
     }
-    final vec = _createVector(pointer.stackPosition + 1, vecLength, 2, keysStackValue);
+    final vec =
+        _createVector(pointer.stackPosition + 1, vecLength, 2, keysStackValue);
     _stack.removeRange(pointer.stackPosition, _stack.length);
     _stack.add(vec);
   }
 
   bool _shouldFlip(_StackValue v1, _StackValue v2) {
     if (v1.type != ValueType.Key || v2.type != ValueType.Key) {
-      throw StateError('Stack values are not keys $v1 | $v2. Check if you combined [addKey] with add... method calls properly.');
+      throw StateError(
+          'Stack values are not keys $v1 | $v2. Check if you combined [addKey] with add... method calls properly.');
     }
 
     var c1, c2;
     var index = 0;
     do {
-      c1 = _buffer.getUint8(v1.offset + index);
-      c2 = _buffer.getUint8(v2.offset + index);
+      c1 = _buffer.getUint8(v1.offset! + index);
+      c2 = _buffer.getUint8(v2.offset! + index);
       if (c2 < c1) return true;
       if (c1 < c2) return false;
       index += 1;
@@ -440,11 +445,12 @@ class Builder {
   void _writeStackValue(_StackValue value, int byteWidth) {
     final newOffset = _newOffset(byteWidth);
     if (value.isOffset) {
-      final relativeOffset = _offset - value.offset;
+      final relativeOffset = _offset - value.offset!;
       if (byteWidth == 8 || relativeOffset < (1 << (byteWidth * 8))) {
         _writeUInt(relativeOffset, byteWidth);
       } else {
-        throw StateError('Unexpected size $byteWidth. This might be a bug. Please create an issue https://github.com/google/flatbuffers/issues/new');
+        throw StateError(
+            'Unexpected size $byteWidth. This might be a bug. Please create an issue https://github.com/google/flatbuffers/issues/new');
       }
     } else {
       _pushBuffer(value.asU8List(BitWidthUtil.fromByteWidth(byteWidth)));
@@ -467,16 +473,13 @@ class Builder {
     }
     if (prevSize < size) {
       final newBuf = ByteData(size);
-      newBuf.buffer
-          .asUint8List()
-          .setAll(0, _buffer.buffer.asUint8List());
+      newBuf.buffer.asUint8List().setAll(0, _buffer.buffer.asUint8List());
     }
     return newOffset;
   }
 
   void _pushInt(int value, BitWidth width) {
     switch (width) {
-
       case BitWidth.width8:
         _buffer.setInt8(_offset, value);
         break;
@@ -494,7 +497,6 @@ class Builder {
 
   void _pushUInt(int value, BitWidth width) {
     switch (width) {
-
       case BitWidth.width8:
         _buffer.setUint8(_offset, value);
         break;
@@ -516,37 +518,39 @@ class Builder {
 }
 
 class _StackValue {
-  Object _value;
-  int _offset;
+  late Object _value;
+  int? _offset;
   ValueType _type;
   BitWidth _width;
-  _StackValue.WithNull() {
-    _type = ValueType.Null;
-    _width = BitWidth.width8;
-  }
-  _StackValue.WithInt(int value) {
-    _type = value != null ? ValueType.Int : ValueType.Null;
-    _width = BitWidthUtil.width(value);
-    _value = value;
-  }
-  _StackValue.WithBool(bool value) {
-    _type = value != null ? ValueType.Bool : ValueType.Null;
-    _width = BitWidth.width8;
-    _value = value;
-  }
-  _StackValue.WithDouble(double value) {
-    _type = value != null ? ValueType.Float : ValueType.Null;
-    _width = BitWidthUtil.width(value);
-    _value = value;
-  }
-  _StackValue.WithOffset(int value, ValueType type, BitWidth width) {
-    _offset = value;
-    _type = type;
-    _width = width;
-  }
+
+  _StackValue.WithNull()
+      : _type = ValueType.Null,
+        _width = BitWidth.width8 {}
+
+  _StackValue.WithInt(int value)
+      : _type = ValueType.Int,
+        _width = BitWidthUtil.width(value),
+        _value = value {}
+
+  _StackValue.WithBool(bool value)
+      : _type = ValueType.Bool,
+        _width = BitWidth.width8,
+        _value = value {}
+
+  _StackValue.WithDouble(double value)
+      : _type = ValueType.Float,
+        _width = BitWidthUtil.width(value),
+        _value = value {}
+
+  _StackValue.WithOffset(int value, ValueType type, BitWidth width)
+      : _offset = value,
+        _type = type,
+        _width = width {}
 
   BitWidth storedWidth({BitWidth width = BitWidth.width8}) {
-    return ValueTypeUtils.isInline(_type) ? BitWidthUtil.max(_width, width) : _width;
+    return ValueTypeUtils.isInline(_type)
+        ? BitWidthUtil.max(_width, width)
+        : _width;
   }
 
   int storedPackedType({BitWidth width = BitWidth.width8}) {
@@ -555,16 +559,18 @@ class _StackValue {
 
   BitWidth elementWidth(int size, int index) {
     if (ValueTypeUtils.isInline(_type)) return _width;
-    for(var i = 0; i < 4; i++) {
+    final offset = offsetLoc - _offset!;
+    for (var i = 0; i < 4; i++) {
       final width = 1 << i;
-      final offsetLoc = size + BitWidthUtil.paddingSize(size, width) + index * width;
-      final offset = offsetLoc - _offset;
+      final offsetLoc =
+          size + BitWidthUtil.paddingSize(size, width) + index * width;
       final bitWidth = BitWidthUtil.uwidth(offset);
       if (1 << bitWidth.index == width) {
         return bitWidth;
       }
     }
-    throw StateError('Element is of unknown. Size: $size at index: $index. This might be a bug. Please create an issue https://github.com/google/flatbuffers/issues/new');
+    throw StateError(
+        'Element is of unknown. Size: $size at index: $index. This might be a bug. Please create an issue https://github.com/google/flatbuffers/issues/new');
   }
 
   List<int> asU8List(BitWidth width) {
@@ -572,30 +578,30 @@ class _StackValue {
       if (_type == ValueType.Float) {
         if (width == BitWidth.width32) {
           final result = ByteData(4);
-          result.setFloat32(0, _value, Endian.little);
+          result.setFloat32(0, _value as double, Endian.little);
           return result.buffer.asUint8List();
         } else {
           final result = ByteData(8);
-          result.setFloat64(0, _value, Endian.little);
+          result.setFloat64(0, _value as double, Endian.little);
           return result.buffer.asUint8List();
         }
       } else {
-        switch(width) {
+        switch (width) {
           case BitWidth.width8:
             final result = ByteData(1);
-            result.setInt8(0, _value);
+            result.setInt8(0, _value as int);
             return result.buffer.asUint8List();
           case BitWidth.width16:
             final result = ByteData(2);
-            result.setInt16(0, _value, Endian.little);
+            result.setInt16(0, _value as int, Endian.little);
             return result.buffer.asUint8List();
           case BitWidth.width32:
             final result = ByteData(4);
-            result.setInt32(0, _value, Endian.little);
+            result.setInt32(0, _value as int, Endian.little);
             return result.buffer.asUint8List();
           case BitWidth.width64:
             final result = ByteData(8);
-            result.setInt64(0, _value, Endian.little);
+            result.setInt64(0, _value as int, Endian.little);
             return result.buffer.asUint8List();
         }
       }
@@ -607,11 +613,12 @@ class _StackValue {
     }
     if (_type == ValueType.Bool) {
       final result = ByteData(1);
-      result.setInt8(0, _value ? 1 : 0);
+      result.setInt8(0, _value as bool ? 1 : 0);
       return result.buffer.asUint8List();
     }
 
-    throw StateError('Unexpected type: $_type. This might be a bug. Please create an issue https://github.com/google/flatbuffers/issues/new');
+    throw StateError(
+        'Unexpected type: $_type. This might be a bug. Please create an issue https://github.com/google/flatbuffers/issues/new');
   }
 
   ValueType get type {
@@ -625,7 +632,8 @@ class _StackValue {
   bool get isOffset {
     return !ValueTypeUtils.isInline(_type);
   }
-  int get offset => _offset;
+
+  int? get offset => _offset;
 
   bool get isFloat32 {
     return _type == ValueType.Float && _width == BitWidth.width32;

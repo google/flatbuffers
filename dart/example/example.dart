@@ -26,10 +26,10 @@ void main() {
 
 void builderTest() {
   final builder = new fb.Builder(initialSize: 1024);
-  final int weaponOneName = builder.writeString("Sword");
+  final int? weaponOneName = builder.writeString("Sword");
   final int weaponOneDamage = 3;
 
-  final int weaponTwoName = builder.writeString("Axe");
+  final int? weaponTwoName = builder.writeString("Axe");
   final int weaponTwoDamage = 5;
 
   final swordBuilder = new myGame.WeaponBuilder(builder)
@@ -45,7 +45,7 @@ void builderTest() {
   final int axe = axeBuilder.finish();
 
   // Serialize a name for our monster, called "Orc".
-  final int name = builder.writeString('Orc');
+  final int? name = builder.writeString('Orc');
 
   // Create a list representing the inventory of the Orc. Each number
   // could correspond to an item that can be claimed after he is slain.
@@ -122,27 +122,25 @@ bool verify(List<int> buffer) {
   assert(monster.name == "MyMonster");
 
   // Get and test a field of the FlatBuffer's `struct`.
-  var pos = monster.pos;
-  assert(pos != null);
+  var pos = monster.pos!;
   assert(pos.z == 3.0);
 
   // Get a test an element from the `inventory` FlatBuffer's `vector`.
-  var inv = monster.inventory;
-  assert(inv != null);
+  var inv = monster.inventory!;
   assert(inv.length == 10);
   assert(inv[9] == 9);
 
   // Get and test the `weapons` FlatBuffers's `vector`.
   var expected_weapon_names = ["Sword", "Axe"];
   var expected_weapon_damages = [3, 5];
-  var weps = monster.weapons;
+  var weps = monster.weapons!;
   for (int i = 0; i < weps.length; i++) {
     assert(weps[i].name == expected_weapon_names[i]);
     assert(weps[i].damage == expected_weapon_damages[i]);
   }
 
   // Get and test the `Equipment` union (`equipped` field).
-  assert(monster.equippedType.value == myGame.EquipmentTypeId.Weapon.value);
+  assert(monster.equippedType!.value == myGame.EquipmentTypeId.Weapon.value);
   assert(monster.equippedType == myGame.EquipmentTypeId.Weapon);
 
   assert(monster.equipped is myGame.Weapon);
