@@ -228,24 +228,23 @@ std::string RelativeToRootPath(const std::string &project,
 
   // Find the first character where they disagree.
   // The previous directory is the lowest common ancestor;
-  const char* a = absolute_project.c_str();
-  const char* b = absolute_filepath.c_str();
+  const char *a = absolute_project.c_str();
+  const char *b = absolute_filepath.c_str();
   size_t common_prefix_len = 0;
-  while (*a != '\0' && *b  != '\0' && *a == *b) {
+  while (*a != '\0' && *b != '\0' && *a == *b) {
     if (*a == '/') common_prefix_len = a - absolute_project.c_str();
     a++;
     b++;
   }
   // the number of ../ to prepend to b depends on the number of remaining
   // directories in A.
-  const char* suffix = absolute_project.c_str() + common_prefix_len;
+  const char *suffix = absolute_project.c_str() + common_prefix_len;
   size_t num_up = 0;
-  while (*suffix != '\0') if (*suffix++ == '/') num_up++;
+  while (*suffix != '\0')
+    if (*suffix++ == '/') num_up++;
   num_up--;  // last one is known to be '/'.
   std::string result = "//";
-  for (size_t i=0; i<num_up; i++) {
-    result += "../";
-  }
+  for (size_t i = 0; i < num_up; i++) result += "../";
   result += absolute_filepath.substr(common_prefix_len + 1);
 
   return result;
