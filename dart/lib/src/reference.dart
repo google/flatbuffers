@@ -15,12 +15,11 @@ class Reference {
   final ValueType _valueType;
   int? _length;
 
-  Reference._(this._buffer, this._offset, this._parentWidth, int packedType,
-      this._path, [int? byteWidth, ValueType? valueType])
-      :
-        _byteWidth = byteWidth ?? 1 << (packedType & 3),
-        _valueType = valueType ?? ValueTypeUtils.fromInt(packedType >> 2) {
-  }
+  Reference._(
+      this._buffer, this._offset, this._parentWidth, int packedType, this._path,
+      [int? byteWidth, ValueType? valueType])
+      : _byteWidth = byteWidth ?? 1 << (packedType & 3),
+        _valueType = valueType ?? ValueTypeUtils.fromInt(packedType >> 2) {}
 
   /// Use this method to access the root value of a FlexBuffer.
   static Reference fromBuffer(ByteBuffer buffer) {
@@ -32,31 +31,44 @@ class Reference {
     final byteWidth = byteData.getUint8(len - 1);
     final packedType = byteData.getUint8(len - 2);
     final offset = len - byteWidth - 2;
-    return Reference._(ByteData.view(buffer), offset, BitWidthUtil.fromByteWidth(byteWidth), packedType, "/");
+    return Reference._(ByteData.view(buffer), offset,
+        BitWidthUtil.fromByteWidth(byteWidth), packedType, "/");
   }
 
   /// Returns true if the underlying value is null.
   bool get isNull => _valueType == ValueType.Null;
+
   /// Returns true if the underlying value can be represented as [num].
-  bool get isNum => ValueTypeUtils.isNumber(_valueType) || ValueTypeUtils.isIndirectNumber(_valueType);
+  bool get isNum =>
+      ValueTypeUtils.isNumber(_valueType) ||
+      ValueTypeUtils.isIndirectNumber(_valueType);
+
   /// Returns true if the underlying value was encoded as a float (direct or indirect).
-  bool get isDouble => _valueType == ValueType.Float || _valueType == ValueType.IndirectFloat;
+  bool get isDouble =>
+      _valueType == ValueType.Float || _valueType == ValueType.IndirectFloat;
+
   /// Returns true if the underlying value was encoded as an int or uint (direct or indirect).
   bool get isInt => isNum && !isDouble;
+
   /// Returns true if the underlying value was encoded as a string or a key.
-  bool get isString => _valueType == ValueType.String || _valueType == ValueType.Key;
+  bool get isString =>
+      _valueType == ValueType.String || _valueType == ValueType.Key;
+
   /// Returns true if the underlying value was encoded as a bool.
   bool get isBool => _valueType == ValueType.Bool;
+
   /// Returns true if the underlying value was encoded as a blob.
   bool get isBlob => _valueType == ValueType.Blob;
+
   /// Returns true if the underlying value points to a vector.
   bool get isVector => ValueTypeUtils.isAVector(_valueType);
+
   /// Returns true if the underlying value points to a map.
   bool get isMap => _valueType == ValueType.Map;
 
   /// If this [isBool], returns the bool value. Otherwise, returns null.
   bool? get boolValue {
-    if(_valueType == ValueType.Bool) {
+    if (_valueType == ValueType.Bool) {
       return _readInt(_offset, _parentWidth) != 0;
     }
     return null;
@@ -100,8 +112,8 @@ class Reference {
   num? get numValue => doubleValue ?? intValue;
 
   /// Returns [String] value or null otherwise.
-  /// 
-  /// This method performers a utf8 decoding, as FlexBuffers format stores strings in utf8 encoding. 
+  ///
+  /// This method performers a utf8 decoding, as FlexBuffers format stores strings in utf8 encoding.
   String? get stringValue {
     if (_valueType == ValueType.String || _valueType == ValueType.Key) {
       return utf8.decode(_buffer.buffer.asUint8List(_indirect, length));
@@ -124,8 +136,9 @@ class Reference {
   Reference operator [](Object key) {
     if (key is int && ValueTypeUtils.isAVector(_valueType)) {
       final index = key;
-      if(index >= length || index < 0) {
-        throw ArgumentError('Key: [$key] is not applicable on: $_path of: $_valueType length: $length');
+      if (index >= length || index < 0) {
+        throw ArgumentError(
+            'Key: [$key] is not applicable on: $_path of: $_valueType length: $length');
       }
       final elementOffset = _indirect + index * _byteWidth;
       int packedType = 0;
@@ -134,13 +147,20 @@ class Reference {
       if (ValueTypeUtils.isTypedVector(_valueType)) {
         byteWidth = 1;
         valueType = ValueTypeUtils.typedVectorElementType(_valueType);
-      } else if(ValueTypeUtils.isFixedTypedVector(_valueType)) {
+      } else if (ValueTypeUtils.isFixedTypedVector(_valueType)) {
         byteWidth = 1;
         valueType = ValueTypeUtils.fixedTypedVectorElementType(_valueType);
       } else {
         packedType = _buffer.getUint8(_indirect + length * _byteWidth + index);
       }
-      return Reference._(_buffer, elementOffset, BitWidthUtil.fromByteWidth(_byteWidth), packedType, "$_path[$index]", byteWidth, valueType);
+      return Reference._(
+          _buffer,
+          elementOffset,
+          BitWidthUtil.fromByteWidth(_byteWidth),
+          packedType,
+          "$_path[$index]",
+          byteWidth,
+          valueType);
     }
     if (key is String && _valueType == ValueType.Map) {
       final index = _keyIndex(key);
@@ -148,13 +168,14 @@ class Reference {
         return _valueForIndexWithKey(index, key);
       }
     }
-    throw ArgumentError('Key: [$key] is not applicable on: $_path of: $_valueType');
+    throw ArgumentError(
+        'Key: [$key] is not applicable on: $_path of: $_valueType');
   }
 
   /// Get an iterable if the underlying flexBuffer value is a vector.
   /// Otherwise throws an exception.
   Iterable<Reference> get vectorIterable {
-    if(isVector == false) {
+    if (isVector == false) {
       throw UnsupportedError('Value is not a vector. It is: $_valueType');
     }
     return _VectorIterator(this);
@@ -163,7 +184,7 @@ class Reference {
   /// Get an iterable for keys if the underlying flexBuffer value is a map.
   /// Otherwise throws an exception.
   Iterable<String> get mapKeyIterable {
-    if(isMap == false) {
+    if (isMap == false) {
       throw UnsupportedError('Value is not a map. It is: $_valueType');
     }
     return _MapKeyIterator(this);
@@ -172,7 +193,7 @@ class Reference {
   /// Get an iterable for values if the underlying flexBuffer value is a map.
   /// Otherwise throws an exception.
   Iterable<Reference> get mapValueIterable {
-    if(isMap == false) {
+    if (isMap == false) {
       throw UnsupportedError('Value is not a map. It is: $_valueType');
     }
     return _MapValueIterator(this);
@@ -189,7 +210,8 @@ class Reference {
       if (ValueTypeUtils.isFixedTypedVector(_valueType)) {
         _length = ValueTypeUtils.fixedTypedVectorElementSize(_valueType);
       } else if (_valueType == ValueType.Blob ||
-          ValueTypeUtils.isAVector(_valueType) || _valueType == ValueType.Map) {
+          ValueTypeUtils.isAVector(_valueType) ||
+          _valueType == ValueType.Map) {
         _length = _readUInt(
             _indirect - _byteWidth, BitWidthUtil.fromByteWidth(_byteWidth));
       } else if (_valueType == ValueType.Null) {
@@ -219,20 +241,19 @@ class Reference {
     return _length!;
   }
 
-
   /// Returns a minified JSON representation of the underlying FlexBuffer value.
   ///
   /// This method involves materializing the entire object tree, which may be
   /// expensive. It is more efficient to work with [Reference] and access only the needed data.
   /// Blob values are represented as base64 encoded string.
   String get json {
-    if(_valueType == ValueType.Bool) {
+    if (_valueType == ValueType.Bool) {
       return boolValue! ? 'true' : 'false';
     }
     if (_valueType == ValueType.Null) {
       return 'null';
     }
-    if(ValueTypeUtils.isNumber(_valueType)) {
+    if (ValueTypeUtils.isNumber(_valueType)) {
       return jsonEncode(numValue);
     }
     if (_valueType == ValueType.String) {
@@ -267,7 +288,8 @@ class Reference {
       result.write('}');
       return result.toString();
     }
-    throw UnsupportedError('Type: $_valueType is not supported for JSON conversion');
+    throw UnsupportedError(
+        'Type: $_valueType is not supported for JSON conversion');
   }
 
   /// Computes the indirect offset of the value.
@@ -322,7 +344,9 @@ class Reference {
   }
 
   void _validateOffset(int offset, BitWidth width) {
-    if (_offset < 0 || _buffer.lengthInBytes <= offset + width.index || offset & (BitWidthUtil.toByteWidth(width) - 1) != 0) {
+    if (_offset < 0 ||
+        _buffer.lengthInBytes <= offset + width.index ||
+        offset & (BitWidthUtil.toByteWidth(width) - 1) != 0) {
       throw StateError('Bad offset: $offset, width: $width');
     }
   }
@@ -330,8 +354,10 @@ class Reference {
   int? _keyIndex(String key) {
     final input = utf8.encode(key);
     final keysVectorOffset = _indirect - _byteWidth * 3;
-    final indirectOffset = keysVectorOffset - _readUInt(keysVectorOffset, BitWidthUtil.fromByteWidth(_byteWidth));
-    final byteWidth = _readUInt(keysVectorOffset + _byteWidth, BitWidthUtil.fromByteWidth(_byteWidth));
+    final indirectOffset = keysVectorOffset -
+        _readUInt(keysVectorOffset, BitWidthUtil.fromByteWidth(_byteWidth));
+    final byteWidth = _readUInt(
+        keysVectorOffset + _byteWidth, BitWidthUtil.fromByteWidth(_byteWidth));
     var low = 0;
     var high = length - 1;
     while (low <= high) {
@@ -347,9 +373,11 @@ class Reference {
     return null;
   }
 
-  int _diffKeys(List<int> input, int index, int indirect_offset, int byteWidth) {
+  int _diffKeys(
+      List<int> input, int index, int indirect_offset, int byteWidth) {
     final keyOffset = indirect_offset + index * byteWidth;
-    final keyIndirectOffset = keyOffset - _readUInt(keyOffset, BitWidthUtil.fromByteWidth(byteWidth));
+    final keyIndirectOffset =
+        keyOffset - _readUInt(keyOffset, BitWidthUtil.fromByteWidth(byteWidth));
     for (var i = 0; i < input.length; i++) {
       final dif = input[i] - _buffer.getUint8(keyIndirectOffset + i);
       if (dif != 0) {
@@ -363,32 +391,38 @@ class Reference {
     final indirect = _indirect;
     final elementOffset = indirect + index * _byteWidth;
     final packedType = _buffer.getUint8(indirect + length * _byteWidth + index);
-    return Reference._(_buffer, elementOffset, BitWidthUtil.fromByteWidth(_byteWidth), packedType, "$_path/$key");
+    return Reference._(_buffer, elementOffset,
+        BitWidthUtil.fromByteWidth(_byteWidth), packedType, "$_path/$key");
   }
 
   Reference _valueForIndex(int index) {
     final indirect = _indirect;
     final elementOffset = indirect + index * _byteWidth;
     final packedType = _buffer.getUint8(indirect + length * _byteWidth + index);
-    return Reference._(_buffer, elementOffset, BitWidthUtil.fromByteWidth(_byteWidth), packedType, "$_path/[$index]");
+    return Reference._(_buffer, elementOffset,
+        BitWidthUtil.fromByteWidth(_byteWidth), packedType, "$_path/[$index]");
   }
 
   String _keyForIndex(int index) {
     final keysVectorOffset = _indirect - _byteWidth * 3;
-    final indirectOffset = keysVectorOffset - _readUInt(keysVectorOffset, BitWidthUtil.fromByteWidth(_byteWidth));
-    final byteWidth = _readUInt(keysVectorOffset + _byteWidth, BitWidthUtil.fromByteWidth(_byteWidth));
+    final indirectOffset = keysVectorOffset -
+        _readUInt(keysVectorOffset, BitWidthUtil.fromByteWidth(_byteWidth));
+    final byteWidth = _readUInt(
+        keysVectorOffset + _byteWidth, BitWidthUtil.fromByteWidth(_byteWidth));
     final keyOffset = indirectOffset + index * byteWidth;
-    final keyIndirectOffset = keyOffset - _readUInt(keyOffset, BitWidthUtil.fromByteWidth(byteWidth));
+    final keyIndirectOffset =
+        keyOffset - _readUInt(keyOffset, BitWidthUtil.fromByteWidth(byteWidth));
     var length = 0;
     while (_buffer.getUint8(keyIndirectOffset + length) != 0) {
       length += 1;
     }
     return utf8.decode(_buffer.buffer.asUint8List(keyIndirectOffset, length));
   }
-
 }
 
-class _VectorIterator with IterableMixin<Reference> implements Iterator<Reference> {
+class _VectorIterator
+    with IterableMixin<Reference>
+    implements Iterator<Reference> {
   final Reference _vector;
   int index = -1;
 
@@ -426,7 +460,9 @@ class _MapKeyIterator with IterableMixin<String> implements Iterator<String> {
   Iterator<String> get iterator => this;
 }
 
-class _MapValueIterator with IterableMixin<Reference> implements Iterator<Reference> {
+class _MapValueIterator
+    with IterableMixin<Reference>
+    implements Iterator<Reference> {
   final Reference _map;
   int index = -1;
 

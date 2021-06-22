@@ -47,31 +47,23 @@ class BufferContext {
   Uint8List _asUint8LIst(int offset, int length) =>
       _buffer.buffer.asUint8List(_buffer.offsetInBytes + offset, length);
 
-  double _getFloat64(int offset) =>
-      _buffer.getFloat64(offset, Endian.little);
+  double _getFloat64(int offset) => _buffer.getFloat64(offset, Endian.little);
 
-  double _getFloat32(int offset) =>
-      _buffer.getFloat32(offset, Endian.little);
+  double _getFloat32(int offset) => _buffer.getFloat32(offset, Endian.little);
 
-  int _getInt64(int offset) =>
-      _buffer.getInt64(offset, Endian.little);
+  int _getInt64(int offset) => _buffer.getInt64(offset, Endian.little);
 
-  int _getInt32(int offset) =>
-      _buffer.getInt32(offset, Endian.little);
+  int _getInt32(int offset) => _buffer.getInt32(offset, Endian.little);
 
-  int _getInt16(int offset) =>
-      _buffer.getInt16(offset, Endian.little);
+  int _getInt16(int offset) => _buffer.getInt16(offset, Endian.little);
 
   int _getInt8(int offset) => _buffer.getInt8(offset);
 
-  int _getUint64(int offset) =>
-      _buffer.getUint64(offset, Endian.little);
+  int _getUint64(int offset) => _buffer.getUint64(offset, Endian.little);
 
-  int _getUint32(int offset) =>
-      _buffer.getUint32(offset, Endian.little);
+  int _getUint32(int offset) => _buffer.getUint32(offset, Endian.little);
 
-  int _getUint16(int offset) =>
-      _buffer.getUint16(offset, Endian.little);
+  int _getUint16(int offset) => _buffer.getUint16(offset, Endian.little);
 
   int _getUint8(int offset) => _buffer.getUint8(offset);
 
@@ -701,8 +693,7 @@ class Builder {
 
   /// Zero-pads the buffer, which may be required for some struct layouts.
   void pad(int howManyBytes) {
-    for (int i = 0; i < howManyBytes; i++)
-      putUint8(0);
+    for (int i = 0; i < howManyBytes; i++) putUint8(0);
   }
 
   /// Prepare for writing the given `count` of scalars of the given `size`.
@@ -718,7 +709,7 @@ class Builder {
     int alignDelta = (-(_tail + dataSize)) % size;
     int bufSize = alignDelta + dataSize;
     // Ensure that we have the required amount of space.
-        {
+    {
       int oldCapacity = _buf.lengthInBytes;
       if (_tail + bufSize > oldCapacity) {
         int desiredNewCapacity = (oldCapacity + bufSize) * 2;
@@ -1220,8 +1211,7 @@ class _VTable {
   bool _offsetsMatch(int vt2Start, ByteData buf) {
     for (int i = 0; i < fieldOffsets.length; i++) {
       if (fieldOffsets[i] !=
-          buf.getUint16(
-              vt2Start + _metadataLength + (2 * i), Endian.little)) {
+          buf.getUint16(vt2Start + _metadataLength + (2 * i), Endian.little)) {
         return false;
       }
     }
