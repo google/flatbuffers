@@ -225,20 +225,29 @@ std::string RelativeToRootPath(const std::string &project,
   std::string absolute_project = PosixPath(AbsolutePath(project));
   if (absolute_project.back() != '/') absolute_project += "/";
   std::string absolute_filepath = PosixPath(AbsolutePath(filepath));
-  if (absolute_filepath.size() < absolute_project.size() ||
-      absolute_filepath.substr(0, absolute_project.size()) !=
-          absolute_project) {
-    printf(
-        "The --bfbs-filenames directory must contain all files and included "
-        "files.\n");
-    printf("project:          %s\n", project.c_str());
-    printf("filepath:         %s\n", filepath.c_str());
-    printf("absolute_project: %s\n", absolute_project.c_str());
-    printf("absolute_filepath:%s\n", absolute_filepath.c_str());
-    FLATBUFFERS_ASSERT(0);
+
+  // Find the first character where they disagree.
+  // The previous directory is the lowest common ancestor;
+  const char *a = absolute_project.c_str();
+  const char *b = absolute_filepath.c_str();
+  size_t common_prefix_len = 0;
+  while (*a != '\0' && *b != '\0' && *a == *b) {
+    if (*a == '/') common_prefix_len = a - absolute_project.c_str();
+    a++;
+    b++;
   }
-  const std::string relpath = absolute_filepath.substr(absolute_project.size());
-  return "//" + relpath;
+  // the number of ../ to prepend to b depends on the number of remaining
+  // directories in A.
+  const char *suffix = absolute_project.c_str() + common_prefix_len;
+  size_t num_up = 0;
+  while (*suffix != '\0')
+    if (*suffix++ == '/') num_up++;
+  num_up--;  // last one is known to be '/'.
+  std::string result = "//";
+  for (size_t i = 0; i < num_up; i++) result += "../";
+  result += absolute_filepath.substr(common_prefix_len + 1);
+
+  return result;
 }
 
 // Locale-independent code.
