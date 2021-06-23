@@ -1967,6 +1967,9 @@ class FlatBufferBuilder {
 
   /// @cond FLATBUFFERS_INTERNAL
   template<typename T> struct StructKeyComparator {
+    StructKeyComparator() {}
+    StructKeyComparator(const StructKeyComparator &) {}
+
     bool operator()(const T &a, const T &b) const {
       return a.KeyCompareLessThan(&b);
     }
