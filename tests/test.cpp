@@ -919,6 +919,7 @@ void ReflectionTest(uint8_t *flatbuf, size_t length) {
   // Make sure the schema is what we expect it to be.
   auto &schema = *reflection::GetSchema(bfbsfile.c_str());
   auto root_table = schema.root_table();
+
   // Check the declaration files.
   TEST_EQ_STR(root_table->name()->c_str(), "MyGame.Example.Monster");
   TEST_EQ_STR(root_table->declaration_file()->c_str(), "//monster_test.fbs");
@@ -935,12 +936,37 @@ void ReflectionTest(uint8_t *flatbuf, size_t length) {
                   ->declaration_file()
                   ->c_str(),
               "//include_test/sub/include_test2.fbs");
+
+  // Check scheam filenames and their includes.
   TEST_EQ(schema.fbs_files()->size(), 3);
-  TEST_EQ_STR(schema.fbs_files()->Get(0)->c_str(),
+
+  const auto fbs0 = schema.fbs_files()->Get(0);
+  TEST_EQ_STR(fbs0->filename()->c_str(), "//include_test/include_test1.fbs");
+  const auto fbs0_includes = fbs0->included_filenames();
+  TEST_EQ(fbs0_includes->size(), 2);
+
+  // TODO(caspern): Should we force or disallow inclusion of self?
+  TEST_EQ_STR(fbs0_includes->Get(0)->c_str(),
               "//include_test/include_test1.fbs");
-  TEST_EQ_STR(schema.fbs_files()->Get(1)->c_str(),
+  TEST_EQ_STR(fbs0_includes->Get(1)->c_str(),
               "//include_test/sub/include_test2.fbs");
-  TEST_EQ_STR(schema.fbs_files()->Get(2)->c_str(), "//monster_test.fbs");
+
+  const auto fbs1 = schema.fbs_files()->Get(1);
+  TEST_EQ_STR(fbs1->filename()->c_str(),
+              "//include_test/sub/include_test2.fbs");
+  const auto fbs1_includes = fbs1->included_filenames();
+  TEST_EQ(fbs1_includes->size(), 2);
+  TEST_EQ_STR(fbs1_includes->Get(0)->c_str(),
+              "//include_test/include_test1.fbs");
+  TEST_EQ_STR(fbs1_includes->Get(1)->c_str(),
+              "//include_test/sub/include_test2.fbs");
+
+  const auto fbs2 = schema.fbs_files()->Get(2);
+  TEST_EQ_STR(fbs2->filename()->c_str(), "//monster_test.fbs");
+  const auto fbs2_includes = fbs2->included_filenames();
+  TEST_EQ(fbs2_includes->size(), 1);
+  TEST_EQ_STR(fbs2_includes->Get(0)->c_str(),
+              "//include_test/include_test1.fbs");
 
   // Check Root table fields
   auto fields = root_table->fields();
@@ -1313,7 +1339,6 @@ void ParseProtoTestWithIncludes() {
   flatbuffers::IDLOptions opts;
   opts.include_dependence_headers = true;
   opts.proto_mode = true;
-  opts.project_root = test_data_path;
 
   // Parse proto.
   flatbuffers::Parser parser(opts);
@@ -1331,9 +1356,7 @@ void ParseProtoTestWithIncludes() {
   auto import_fbs = flatbuffers::GenerateFBS(import_parser, "test");
 
   // Ensure generated file is parsable.
-  flatbuffers::IDLOptions opts2;
-  opts2.project_root = protopath;
-  flatbuffers::Parser parser2(opts2);
+  flatbuffers::Parser parser2;
   // Since `imported.fbs` isn't in the filesystem AbsolutePath can't figure it
   // out by itself. We manually construct it so Parser works.
   std::string imported_fbs = flatbuffers::PosixPath(
@@ -3293,6 +3316,31 @@ void EqualOperatorTest() {
   b.inventory.clear();
   TEST_EQ(b == a, true);
   TEST_EQ(b != a, false);
+
+  a.enemy.reset(new MonsterT());
+  TEST_EQ(b != a, true);
+  a.enemy->mana = 33;
+  TEST_EQ(b == a, false);
+  TEST_EQ(b != a, true);
+
+  b.enemy.reset(new MonsterT());
+  TEST_EQ(b == a, false);
+  TEST_EQ(b != a, true);
+  b.enemy->mana = 33;
+  TEST_EQ(b == a, true);
+  TEST_EQ(b != a, false);
+
+  a.enemy.reset(nullptr);
+  TEST_EQ(b == a, false);
+  TEST_EQ(b != a, true);
+  b.enemy->mana = 150;
+  TEST_EQ(b == a, false);
+  TEST_EQ(b != a, true);
+  a.enemy.reset(new MonsterT());
+  TEST_EQ(b == a, true);
+  TEST_EQ(b != a, false);
+
+  b.enemy.reset(nullptr);
 
   b.test.type = Any_Monster;
   TEST_EQ(b == a, false);

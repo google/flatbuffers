@@ -116,6 +116,16 @@ enum AdvancedFeatures : ulong (bit_flags) {
     DefaultVectorsAndStrings,
 }
 
+/// File specific information.
+/// Symbols declared within a file may be recovered by iterating over all
+/// symbols and examining the `declaration_file` field.
+table SchemaFile {
+  /// Filename, relative to project root.
+  filename:string (required, key);
+  /// Names of included files, relative to project root.
+  included_filenames:[string];
+}
+
 table Schema {
     objects:[Object] (required);    // Sorted.
     enums:[Enum] (required);        // Sorted.
@@ -126,7 +136,7 @@ table Schema {
     advanced_features:AdvancedFeatures;
     /// All the files used in this compilation. Files are relative to where
     /// flatc was invoked.
-    fbs_files:[string];
+    fbs_files:[SchemaFile];         // Sorted.
 }
 
 root_type Schema;

@@ -3530,10 +3530,29 @@ void Parser::Serialize() {
     const std::string *file = (*it)->declaration_file;
     if (file) files.insert(*file);
   }
-  // TODO(caspern): CreateVectorOfSharedStrings
-  std::vector<Offset<flatbuffers::String>> file_offsets;
-  for (auto it = files.begin(); it != files.end(); it++) {
-    file_offsets.push_back(builder_.CreateSharedString(*it));
+
+  // Create Schemafiles vector of tables.
+  flatbuffers::Offset<
+      flatbuffers::Vector<flatbuffers::Offset<reflection::SchemaFile>>>
+      schema_files__;
+  if (!opts.project_root.empty()) {
+    std::vector<Offset<reflection::SchemaFile>> schema_files;
+    std::vector<Offset<flatbuffers::String>> included_files;
+    for (auto f = files_included_per_file_.begin();
+         f != files_included_per_file_.end(); f++) {
+      const auto filename__ = builder_.CreateSharedString(
+          RelativeToRootPath(opts.project_root, f->first));
+      for (auto i = f->second.begin(); i != f->second.end(); i++) {
+        included_files.push_back(builder_.CreateSharedString(
+            RelativeToRootPath(opts.project_root, *i)));
+      }
+      const auto included_files__ = builder_.CreateVector(included_files);
+      included_files.clear();
+
+      schema_files.push_back(
+          reflection::CreateSchemaFile(builder_, filename__, included_files__));
+    }
+    schema_files__ = builder_.CreateVectorOfSortedTables(&schema_files);
   }
 
   const auto objs__ = builder_.CreateVectorOfSortedTables(&object_offsets);
@@ -3541,11 +3560,11 @@ void Parser::Serialize() {
   const auto fiid__ = builder_.CreateString(file_identifier_);
   const auto fext__ = builder_.CreateString(file_extension_);
   const auto serv__ = builder_.CreateVectorOfSortedTables(&service_offsets);
-  const auto files__ = builder_.CreateVector(file_offsets);
   const auto schema_offset = reflection::CreateSchema(
       builder_, objs__, enum__, fiid__, fext__,
       (root_struct_def_ ? root_struct_def_->serialized_location : 0), serv__,
-      static_cast<reflection::AdvancedFeatures>(advanced_features_), files__);
+      static_cast<reflection::AdvancedFeatures>(advanced_features_),
+      schema_files__);
   if (opts.size_prefixed) {
     builder_.FinishSizePrefixed(schema_offset, reflection::SchemaIdentifier());
   } else {
@@ -3967,6 +3986,16 @@ bool Parser::Deserialize(const reflection::Schema *schema) {
     }
   }
   advanced_features_ = schema->advanced_features();
+
+  if (schema->fbs_files())
+    for (auto s = schema->fbs_files()->begin(); s != schema->fbs_files()->end();
+         ++s) {
+      for (auto f = s->included_filenames()->begin();
+           f != s->included_filenames()->end(); ++f) {
+        files_included_per_file_[s->filename()->str()].insert(f->str());
+      }
+    }
+
   return true;
 }
 
