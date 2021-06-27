@@ -403,28 +403,32 @@ template<typename T> class Vector {
 template<class U>
 FLATBUFFERS_CONSTEXPR_CPP11 flatbuffers::span<U> make_span(Vector<U> &vec)
     FLATBUFFERS_NOEXCEPT {
-  static_assert(Vector<U>::is_span_observable, "wrong type U");
+  static_assert(Vector<U>::is_span_observable,
+                "wrong type U, only LE-scalar, or byte types are allowed");
   return span<U>(vec.data(), vec.size());
 }
 
 template<class U>
 FLATBUFFERS_CONSTEXPR_CPP11 flatbuffers::span<const U> make_span(
     const Vector<U> &vec) FLATBUFFERS_NOEXCEPT {
-  static_assert(Vector<U>::is_span_observable, "wrong type U");
+  static_assert(Vector<U>::is_span_observable,
+                "wrong type U, only LE-scalar, or byte types are allowed");
   return span<const U>(vec.data(), vec.size());
 }
 
 template<class U>
 FLATBUFFERS_CONSTEXPR_CPP11 flatbuffers::span<uint8_t> make_bytes_span(
     Vector<U> &vec) FLATBUFFERS_NOEXCEPT {
-  static_assert(Vector<U>::scalar_tag::value, "wrong type U");
+  static_assert(Vector<U>::scalar_tag::value,
+                "wrong type U, only LE-scalar, or byte types are allowed");
   return span<uint8_t>(vec.Data(), vec.size() * sizeof(U));
 }
 
 template<class U>
 FLATBUFFERS_CONSTEXPR_CPP11 flatbuffers::span<const uint8_t> make_bytes_span(
     const Vector<U> &vec) FLATBUFFERS_NOEXCEPT {
-  static_assert(Vector<U>::scalar_tag::value, "wrong type U");
+  static_assert(Vector<U>::scalar_tag::value,
+                "wrong type U, only LE-scalar, or byte types are allowed");
   return span<const uint8_t>(vec.Data(), vec.size() * sizeof(U));
 }
 
@@ -628,26 +632,34 @@ template<typename T, uint16_t length> class Array<Offset<T>, length> {
 template<class U, uint16_t N>
 FLATBUFFERS_CONSTEXPR_CPP11 flatbuffers::span<U, N> make_span(Array<U, N> &arr)
     FLATBUFFERS_NOEXCEPT {
-  static_assert(Array<U, N>::is_span_observable, "wrong type U");
+  static_assert(
+      Array<U, N>::is_span_observable,
+      "wrong type U, only plain struct, LE-scalar, or byte types are allowed");
   return span<U, N>(arr.data(), N);
 }
 
 template<class U, uint16_t N>
 FLATBUFFERS_CONSTEXPR_CPP11 flatbuffers::span<const U, N> make_span(
     const Array<U, N> &arr) FLATBUFFERS_NOEXCEPT {
-  static_assert(Array<U, N>::is_span_observable, "wrong type U");
+  static_assert(
+      Array<U, N>::is_span_observable,
+      "wrong type U, only plain struct, LE-scalar, or byte types are allowed");
   return span<const U, N>(arr.data(), N);
 }
 
 template<class U, uint16_t N>
 FLATBUFFERS_CONSTEXPR_CPP11 flatbuffers::span<uint8_t, sizeof(U) * N>
 make_bytes_span(Array<U, N> &arr) FLATBUFFERS_NOEXCEPT {
+  static_assert(Array<U, N>::is_span_observable,
+                "internal error, Array<T> might hold only scalars or structs");
   return span<uint8_t, sizeof(U) * N>(arr.Data(), sizeof(U) * N);
 }
 
 template<class U, uint16_t N>
 FLATBUFFERS_CONSTEXPR_CPP11 flatbuffers::span<const uint8_t, sizeof(U) * N>
 make_bytes_span(const Array<U, N> &arr) FLATBUFFERS_NOEXCEPT {
+  static_assert(Array<U, N>::is_span_observable,
+                "internal error, Array<T> might hold only scalars or structs");
   return span<const uint8_t, sizeof(U) * N>(arr.Data(), sizeof(U) * N);
 }
 

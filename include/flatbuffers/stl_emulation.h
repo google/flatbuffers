@@ -195,7 +195,7 @@ inline void vector_emplace_back(std::vector<T> *vector, V &&data) {
     using bool_constant = integral_constant<bool, B>;
     using true_type  = bool_constant<true>;
     using false_type = bool_constant<false>;
-#endif  // !FLATBUFFERS_CPP98_STL
+  #endif  // !FLATBUFFERS_CPP98_STL
 #else
   // MSVC 2010 doesn't support C++11 aliases.
   template <typename T> struct is_scalar : public std::is_scalar<T> {};
@@ -502,8 +502,7 @@ namespace internal {
   };
 
   template<typename T>
-  struct SpanIterator
-  {
+  struct SpanIterator {
     // TODO: upgrade to std::random_access_iterator_tag.
     using iterator_category = std::forward_iterator_tag;
     using difference_type  = std::ptrdiff_t;
@@ -512,9 +511,9 @@ namespace internal {
     using pointer   = T*;
 
     // Convince MSVC compiler that this iterator is trusted (it is verified).
-#ifdef _MSC_VER
-    using _Unchecked_type = pointer;
-#endif // _MSC_VER
+    #ifdef _MSC_VER
+      using _Unchecked_type = pointer;
+    #endif // _MSC_VER
 
     SpanIterator(pointer ptr) : ptr_(ptr) {}
     reference operator*() const { return *ptr_; }
@@ -567,16 +566,16 @@ class span FLATBUFFERS_FINAL_CLASS {
     return data_;
   }
 
-#if !defined(FLATBUFFERS_SPAN_MINIMAL)
-  using Iterator = internal::SpanIterator<T>;
-  using ConstIterator = internal::SpanIterator<const T>;
+  #if !defined(FLATBUFFERS_SPAN_MINIMAL)
+    using Iterator = internal::SpanIterator<T>;
+    using ConstIterator = internal::SpanIterator<const T>;
 
-  Iterator begin() const { return Iterator(data()); }
-  Iterator end() const   { return Iterator(data() + size()); }
+    Iterator begin() const { return Iterator(data()); }
+    Iterator end() const   { return Iterator(data() + size()); }
 
-  ConstIterator cbegin() const { return ConstIterator(data()); }
-  ConstIterator cend() const  { return ConstIterator(data() + size()); }
-#endif
+    ConstIterator cbegin() const { return ConstIterator(data()); }
+    ConstIterator cend() const  { return ConstIterator(data() + size()); }
+  #endif
 
   // Returns a reference to the idx-th element of the sequence.
   // The behavior is undefined if the idx is greater than or equal to size().
