@@ -1970,9 +1970,6 @@ class FlatBufferBuilder {
     bool operator()(const T &a, const T &b) const {
       return a.KeyCompareLessThan(&b);
     }
-
-    FLATBUFFERS_DELETE_FUNC(
-        StructKeyComparator &operator=(const StructKeyComparator &));
   };
   /// @endcond
 
