@@ -259,6 +259,12 @@ template<typename T> class Vector {
   typedef VectorReverseIterator<iterator> reverse_iterator;
   typedef VectorReverseIterator<const_iterator> const_reverse_iterator;
 
+  typedef typename flatbuffers::bool_constant<flatbuffers::is_scalar<T>::value>
+      scalar_tag;
+
+  static FLATBUFFERS_CONSTEXPR bool is_span_observable =
+      scalar_tag::value && (FLATBUFFERS_LITTLEENDIAN || sizeof(T) == 1);
+
   uoffset_t size() const { return EndianScalar(length_); }
 
   // Deprecated: use size(). Here for backwards compatibility.
@@ -394,6 +400,38 @@ template<typename T> class Vector {
   }
 };
 
+template<class U>
+FLATBUFFERS_CONSTEXPR_CPP11 flatbuffers::span<U> make_span(Vector<U> &vec)
+    FLATBUFFERS_NOEXCEPT {
+  static_assert(Vector<U>::is_span_observable,
+                "wrong type U, only LE-scalar, or byte types are allowed");
+  return span<U>(vec.data(), vec.size());
+}
+
+template<class U>
+FLATBUFFERS_CONSTEXPR_CPP11 flatbuffers::span<const U> make_span(
+    const Vector<U> &vec) FLATBUFFERS_NOEXCEPT {
+  static_assert(Vector<U>::is_span_observable,
+                "wrong type U, only LE-scalar, or byte types are allowed");
+  return span<const U>(vec.data(), vec.size());
+}
+
+template<class U>
+FLATBUFFERS_CONSTEXPR_CPP11 flatbuffers::span<uint8_t> make_bytes_span(
+    Vector<U> &vec) FLATBUFFERS_NOEXCEPT {
+  static_assert(Vector<U>::scalar_tag::value,
+                "wrong type U, only LE-scalar, or byte types are allowed");
+  return span<uint8_t>(vec.Data(), vec.size() * sizeof(U));
+}
+
+template<class U>
+FLATBUFFERS_CONSTEXPR_CPP11 flatbuffers::span<const uint8_t> make_bytes_span(
+    const Vector<U> &vec) FLATBUFFERS_NOEXCEPT {
+  static_assert(Vector<U>::scalar_tag::value,
+                "wrong type U, only LE-scalar, or byte types are allowed");
+  return span<const uint8_t>(vec.Data(), vec.size() * sizeof(U));
+}
+
 // Represent a vector much like the template above, but in this case we
 // don't know what the element types are (used with reflection.h).
 class VectorOfAny {
@@ -437,10 +475,9 @@ template<typename T> static inline size_t VectorLength(const Vector<T> *v) {
 
 // This is used as a helper type for accessing arrays.
 template<typename T, uint16_t length> class Array {
-  typedef
-      typename flatbuffers::integral_constant<bool,
-                                              flatbuffers::is_scalar<T>::value>
-          scalar_tag;
+  // Array<T> can carry only POD data types (scalars or structs).
+  typedef typename flatbuffers::bool_constant<flatbuffers::is_scalar<T>::value>
+      scalar_tag;
   typedef
       typename flatbuffers::conditional<scalar_tag::value, T, const T *>::type
           IndirectHelperType;
@@ -450,6 +487,11 @@ template<typename T, uint16_t length> class Array {
   typedef typename IndirectHelper<IndirectHelperType>::return_type return_type;
   typedef VectorIterator<T, return_type> const_iterator;
   typedef VectorReverseIterator<const_iterator> const_reverse_iterator;
+
+  // If T is a LE-scalar or a struct (!scalar_tag::value).
+  static FLATBUFFERS_CONSTEXPR bool is_span_observable =
+      (scalar_tag::value && (FLATBUFFERS_LITTLEENDIAN || sizeof(T) == 1)) ||
+      !scalar_tag::value;
 
   FLATBUFFERS_CONSTEXPR uint16_t size() const { return length; }
 
@@ -515,26 +557,20 @@ template<typename T, uint16_t length> class Array {
                        !(p2 >= p1 && p2 < (p1 + length)));
     (void)p1;
     (void)p2;
-
-    CopyFromSpanImpl(
-        flatbuffers::integral_constant < bool,
-        !scalar_tag::value || sizeof(T) == 1 || FLATBUFFERS_LITTLEENDIAN > (),
-        src);
+    CopyFromSpanImpl(flatbuffers::bool_constant<is_span_observable>(), src);
   }
 
  protected:
-  void MutateImpl(flatbuffers::integral_constant<bool, true>, uoffset_t i,
-                  const T &val) {
+  void MutateImpl(flatbuffers::true_type, uoffset_t i, const T &val) {
     FLATBUFFERS_ASSERT(i < size());
     WriteScalar(data() + i, val);
   }
 
-  void MutateImpl(flatbuffers::integral_constant<bool, false>, uoffset_t i,
-                  const T &val) {
+  void MutateImpl(flatbuffers::false_type, uoffset_t i, const T &val) {
     *(GetMutablePointer(i)) = val;
   }
 
-  void CopyFromSpanImpl(flatbuffers::integral_constant<bool, true>,
+  void CopyFromSpanImpl(flatbuffers::true_type,
                         flatbuffers::span<const T, length> src) {
     // Use std::memcpy() instead of std::copy() to avoid preformance degradation
     // due to aliasing if T is char or unsigned char.
@@ -543,7 +579,7 @@ template<typename T, uint16_t length> class Array {
   }
 
   // Copy data from flatbuffers::span with endian conversion.
-  void CopyFromSpanImpl(flatbuffers::integral_constant<bool, false>,
+  void CopyFromSpanImpl(flatbuffers::false_type,
                         flatbuffers::span<const T, length> src) {
     for (size_type k = 0; k < length; k++) { Mutate(k, src[k]); }
   }
@@ -593,8 +629,43 @@ template<typename T, uint16_t length> class Array<Offset<T>, length> {
   uint8_t data_[1];
 };
 
+template<class U, uint16_t N>
+FLATBUFFERS_CONSTEXPR_CPP11 flatbuffers::span<U, N> make_span(Array<U, N> &arr)
+    FLATBUFFERS_NOEXCEPT {
+  static_assert(
+      Array<U, N>::is_span_observable,
+      "wrong type U, only plain struct, LE-scalar, or byte types are allowed");
+  return span<U, N>(arr.data(), N);
+}
+
+template<class U, uint16_t N>
+FLATBUFFERS_CONSTEXPR_CPP11 flatbuffers::span<const U, N> make_span(
+    const Array<U, N> &arr) FLATBUFFERS_NOEXCEPT {
+  static_assert(
+      Array<U, N>::is_span_observable,
+      "wrong type U, only plain struct, LE-scalar, or byte types are allowed");
+  return span<const U, N>(arr.data(), N);
+}
+
+template<class U, uint16_t N>
+FLATBUFFERS_CONSTEXPR_CPP11 flatbuffers::span<uint8_t, sizeof(U) * N>
+make_bytes_span(Array<U, N> &arr) FLATBUFFERS_NOEXCEPT {
+  static_assert(Array<U, N>::is_span_observable,
+                "internal error, Array<T> might hold only scalars or structs");
+  return span<uint8_t, sizeof(U) * N>(arr.Data(), sizeof(U) * N);
+}
+
+template<class U, uint16_t N>
+FLATBUFFERS_CONSTEXPR_CPP11 flatbuffers::span<const uint8_t, sizeof(U) * N>
+make_bytes_span(const Array<U, N> &arr) FLATBUFFERS_NOEXCEPT {
+  static_assert(Array<U, N>::is_span_observable,
+                "internal error, Array<T> might hold only scalars or structs");
+  return span<const uint8_t, sizeof(U) * N>(arr.Data(), sizeof(U) * N);
+}
+
 // Cast a raw T[length] to a raw flatbuffers::Array<T, length>
 // without endian conversion. Use with care.
+// TODO: move these Cast-methods to `internal` namespace.
 template<typename T, uint16_t length>
 Array<T, length> &CastToArray(T (&arr)[length]) {
   return *reinterpret_cast<Array<T, length> *>(arr);

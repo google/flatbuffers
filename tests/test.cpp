@@ -3499,9 +3499,9 @@ void FlatbuffersSpanTest() {
 void FlatbuffersSpanTest() {}
 #endif
 
-void FixedLengthArrayTest() {
-  // VS10 does not support typed enums, exclude from tests
+// VS10 does not support typed enums, exclude from tests
 #if !defined(_MSC_VER) || _MSC_VER >= 1700
+void FixedLengthArrayTest() {
   // Generate an ArrayTable containing one ArrayStruct.
   flatbuffers::FlatBufferBuilder fbb;
   MyGame::Example::NestedStruct nStruct0(MyGame::Example::TestEnum::B);
@@ -3535,10 +3535,10 @@ void FixedLengthArrayTest() {
   aStruct.mutable_d()->Mutate(1, nStruct1);
   auto aTable = MyGame::Example::CreateArrayTable(fbb, &aStruct);
   MyGame::Example::FinishArrayTableBuffer(fbb, aTable);
-
   // Verify correctness of the ArrayTable.
   flatbuffers::Verifier verifier(fbb.GetBufferPointer(), fbb.GetSize());
-  MyGame::Example::VerifyArrayTableBuffer(verifier);
+  TEST_ASSERT(MyGame::Example::VerifyArrayTableBuffer(verifier));
+  // Do test.
   auto p = MyGame::Example::GetMutableArrayTable(fbb.GetBufferPointer());
   auto mArStruct = p->mutable_a();
   TEST_NOTNULL(mArStruct);
@@ -3548,10 +3548,10 @@ void FixedLengthArrayTest() {
   TEST_NOTNULL(mArStruct->mutable_b());
   TEST_NOTNULL(mArStruct->mutable_d());
   TEST_NOTNULL(mArStruct->mutable_f());
-  mArStruct->mutable_b()->Mutate(14, -14);
   TEST_EQ(mArStruct->a(), 2);
   TEST_EQ(mArStruct->b()->size(), 15);
-  TEST_EQ(mArStruct->b()->Get(aStruct.b()->size() - 1), -14);
+  mArStruct->mutable_b()->Mutate(14, -14);
+  TEST_EQ(mArStruct->b()->Get(14), -14);
   TEST_EQ(mArStruct->c(), 12);
   TEST_NOTNULL(mArStruct->d()->Get(0));
   TEST_NOTNULL(mArStruct->d()->Get(0)->a());
@@ -3603,8 +3603,10 @@ void FixedLengthArrayTest() {
 #  endif
   (void)ap;
   for (size_t i = 0; i < arr_size; ++i) { TEST_EQ(non_zero_memory[i], 0); }
-#endif
 }
+#else
+void FixedLengthArrayTest() {}
+#endif  // !defined(_MSC_VER) || _MSC_VER >= 1700
 
 #if !defined(FLATBUFFERS_SPAN_MINIMAL) && \
     (!defined(_MSC_VER) || _MSC_VER >= 1700)
@@ -3689,9 +3691,9 @@ void NativeTypeTest() {
   }
 }
 
-void FixedLengthArrayJsonTest(bool binary) {
-  // VS10 does not support typed enums, exclude from tests
+// VS10 does not support typed enums, exclude from tests
 #if !defined(_MSC_VER) || _MSC_VER >= 1700
+void FixedLengthArrayJsonTest(bool binary) {
   // load FlatBuffer schema (.fbs) and JSON from disk
   std::string schemafile;
   std::string jsonfile;
@@ -3748,10 +3750,85 @@ void FixedLengthArrayJsonTest(bool binary) {
                       parserGen.builder_.GetBufferPointer(),
                       parserOrg.builder_.GetSize()),
           0);
-#else
-  (void)binary;
-#endif
 }
+
+void FixedLengthArraySpanTest() {
+  // load FlatBuffer schema (.fbs) and JSON from disk
+  std::string schemafile;
+  std::string jsonfile;
+  TEST_EQ(flatbuffers::LoadFile((test_data_path + "arrays_test.fbs").c_str(),
+                                false, &schemafile),
+          true);
+  TEST_EQ(flatbuffers::LoadFile((test_data_path + "arrays_test.golden").c_str(),
+                                false, &jsonfile),
+          true);
+
+  // parse schema first, so we can use it to parse the data after
+  flatbuffers::Parser parser;
+  TEST_EQ(parser.Parse(schemafile.c_str()), true);
+  TEST_EQ(parser.Parse(jsonfile.c_str()), true);
+  auto &fbb = parser.builder_;
+  auto verifier = flatbuffers::Verifier(fbb.GetBufferPointer(), fbb.GetSize());
+  TEST_EQ(true, VerifyArrayTableBuffer(verifier));
+
+  auto p = MyGame::Example::GetMutableArrayTable(fbb.GetBufferPointer());
+  TEST_NOTNULL(p);
+  auto table_struct = p->mutable_a();
+  TEST_NOTNULL(table_struct);
+  TEST_EQ(2, table_struct->d()->size());
+  TEST_NOTNULL(table_struct->d());
+  TEST_NOTNULL(table_struct->mutable_d());
+  // test array of structs
+  auto const_d = flatbuffers::make_span(*table_struct->d());
+  auto mutable_d = flatbuffers::make_span(*table_struct->mutable_d());
+  TEST_EQ(2, const_d.size());
+  TEST_EQ(2, mutable_d.size());
+  TEST_ASSERT(const_d[0] == mutable_d[0]);
+  TEST_ASSERT(const_d[1] == mutable_d[1]);
+  mutable_d[0] = const_d[0];  // mutate
+  // test scalars
+  auto &const_nested = const_d[0];
+  auto &mutable_nested = mutable_d[0];
+  static_assert(sizeof(MyGame::Example::TestEnum) == sizeof(uint8_t),
+                "TestEnum's underlaying type must by byte");
+  TEST_NOTNULL(const_nested.d());
+  TEST_NOTNULL(mutable_nested.d());
+  {
+    flatbuffers::span<const MyGame::Example::TestEnum, 2> const_d_c =
+        flatbuffers::make_span(*const_nested.c());
+    auto mutable_d_c = flatbuffers::make_span(*mutable_nested.mutable_c());
+    TEST_EQ(2, const_d_c.size());
+    TEST_EQ(2, mutable_d_c.size());
+    TEST_EQ(MyGame::Example::TestEnum::C, const_d_c[0]);
+    TEST_EQ(MyGame::Example::TestEnum::B, const_d_c[1]);
+    TEST_ASSERT(mutable_d_c.end() == std::copy(const_d_c.cbegin(),
+                                               const_d_c.cend(),
+                                               mutable_d_c.begin()));
+    TEST_ASSERT(
+        std::equal(const_d_c.cbegin(), const_d_c.cend(), mutable_d_c.cbegin()));
+  }
+  // test little endian array of int32
+#  if FLATBUFFERS_LITTLEENDIAN
+  {
+    flatbuffers::span<const int32_t, 2> const_d_a =
+        flatbuffers::make_span(*const_nested.a());
+    auto mutable_d_a = flatbuffers::make_span(*mutable_nested.mutable_a());
+    TEST_EQ(2, const_d_a.size());
+    TEST_EQ(2, mutable_d_a.size());
+    TEST_EQ(-1, const_d_a[0]);
+    TEST_EQ(2, const_d_a[1]);
+    TEST_ASSERT(mutable_d_a.end() == std::copy(const_d_a.cbegin(),
+                                               const_d_a.cend(),
+                                               mutable_d_a.begin()));
+    TEST_ASSERT(
+        std::equal(const_d_a.cbegin(), const_d_a.cend(), mutable_d_a.cbegin()));
+  }
+#  endif
+}
+#else
+void FixedLengthArrayJsonTest(bool /*binary*/) {}
+void FixedLengthArraySpanTest() {}
+#endif
 
 void TestEmbeddedBinarySchema() {
   // load JSON from disk
@@ -4147,6 +4224,7 @@ int FlatBufferTests() {
   ParseIncorrectMonsterJsonTest();
   FlexBuffersFloatingPointTest();
   FlatbuffersIteratorsTest();
+  FixedLengthArraySpanTest();
   return 0;
 }
 
