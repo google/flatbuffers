@@ -166,6 +166,8 @@ inline void vector_emplace_back(std::vector<T> *vector, V &&data) {
     using integral_constant = std::integral_constant<T, v>;
     template <bool B>
     using bool_constant = integral_constant<bool, B>;
+    using true_type  = std::true_type;
+    using false_type = std::false_type;
   #else
     // Map C++ TR1 templates defined by stlport.
     template <typename T> using is_scalar = std::tr1::is_scalar<T>;
@@ -191,6 +193,8 @@ inline void vector_emplace_back(std::vector<T> *vector, V &&data) {
     using integral_constant = std::tr1::integral_constant<T, v>;
     template <bool B>
     using bool_constant = integral_constant<bool, B>;
+    using true_type  = bool_constant<true>;
+    using false_type = bool_constant<false>;
   #endif  // !FLATBUFFERS_CPP98_STL
 #else
   // MSVC 2010 doesn't support C++11 aliases.
@@ -207,6 +211,8 @@ inline void vector_emplace_back(std::vector<T> *vector, V &&data) {
   struct integral_constant : public std::integral_constant<T, v> {};
   template <bool B>
   struct bool_constant : public integral_constant<bool, B> {};
+  typedef bool_constant<true>  true_type;
+  typedef bool_constant<false> false_type;
 #endif  // defined(FLATBUFFERS_TEMPLATES_ALIASES)
 
 #ifndef FLATBUFFERS_CPP98_STL
@@ -495,6 +501,32 @@ namespace internal {
                                 int, void>::type;
   };
 
+  template<typename T>
+  struct SpanIterator {
+    // TODO: upgrade to std::random_access_iterator_tag.
+    using iterator_category = std::forward_iterator_tag;
+    using difference_type  = std::ptrdiff_t;
+    using value_type = typename std::remove_cv<T>::type;
+    using reference = T&;
+    using pointer   = T*;
+
+    // Convince MSVC compiler that this iterator is trusted (it is verified).
+    #ifdef _MSC_VER
+      using _Unchecked_type = pointer;
+    #endif // _MSC_VER
+
+    SpanIterator(pointer ptr) : ptr_(ptr) {}
+    reference operator*() const { return *ptr_; }
+    pointer operator->() { return ptr_; }
+    SpanIterator& operator++() { ptr_++; return *this; }  
+    SpanIterator  operator++(int) { auto tmp = *this; ++(*this); return tmp; }
+
+    friend bool operator== (const SpanIterator& lhs, const SpanIterator& rhs) { return lhs.ptr_ == rhs.ptr_; }
+    friend bool operator!= (const SpanIterator& lhs, const SpanIterator& rhs) { return lhs.ptr_ != rhs.ptr_; }
+
+   private:
+    pointer ptr_;
+  };
 }  // namespace internal
 #endif  // !defined(FLATBUFFERS_SPAN_MINIMAL)
 
@@ -533,6 +565,17 @@ class span FLATBUFFERS_FINAL_CLASS {
   FLATBUFFERS_CONSTEXPR_CPP11 pointer data() const FLATBUFFERS_NOEXCEPT {
     return data_;
   }
+
+  #if !defined(FLATBUFFERS_SPAN_MINIMAL)
+    using Iterator = internal::SpanIterator<T>;
+    using ConstIterator = internal::SpanIterator<const T>;
+
+    Iterator begin() const { return Iterator(data()); }
+    Iterator end() const   { return Iterator(data() + size()); }
+
+    ConstIterator cbegin() const { return ConstIterator(data()); }
+    ConstIterator cend() const  { return ConstIterator(data() + size()); }
+  #endif
 
   // Returns a reference to the idx-th element of the sequence.
   // The behavior is undefined if the idx is greater than or equal to size().
@@ -627,46 +670,45 @@ class span FLATBUFFERS_FINAL_CLASS {
   pointer const data_;
   const size_type count_;
 };
-
- #if !defined(FLATBUFFERS_SPAN_MINIMAL)
-  template<class U, std::size_t N>
-  FLATBUFFERS_CONSTEXPR_CPP11
-  flatbuffers::span<U, N> make_span(U(&arr)[N]) FLATBUFFERS_NOEXCEPT {
-    return span<U, N>(arr);
-  }
-
-  template<class U, std::size_t N>
-  FLATBUFFERS_CONSTEXPR_CPP11
-  flatbuffers::span<const U, N> make_span(const U(&arr)[N]) FLATBUFFERS_NOEXCEPT {
-    return span<const U, N>(arr);
-  }
-
-  template<class U, std::size_t N>
-  FLATBUFFERS_CONSTEXPR_CPP11
-  flatbuffers::span<U, N> make_span(std::array<U, N> &arr) FLATBUFFERS_NOEXCEPT {
-    return span<U, N>(arr);
-  }
-
-  template<class U, std::size_t N>
-  FLATBUFFERS_CONSTEXPR_CPP11
-  flatbuffers::span<const U, N> make_span(const std::array<U, N> &arr) FLATBUFFERS_NOEXCEPT {
-    return span<const U, N>(arr);
-  }
-
-  template<class U, std::size_t N>
-  FLATBUFFERS_CONSTEXPR_CPP11
-  flatbuffers::span<U, dynamic_extent> make_span(U *first, std::size_t count) FLATBUFFERS_NOEXCEPT {
-    return span<U, dynamic_extent>(first, count);
-  }
-
-  template<class U, std::size_t N>
-  FLATBUFFERS_CONSTEXPR_CPP11
-  flatbuffers::span<const U, dynamic_extent> make_span(const U *first, std::size_t count) FLATBUFFERS_NOEXCEPT {
-    return span<const U, dynamic_extent>(first, count);
-  }
-#endif
-
 #endif  // defined(FLATBUFFERS_USE_STD_SPAN)
+
+#if !defined(FLATBUFFERS_SPAN_MINIMAL)
+template<class U, std::size_t N>
+FLATBUFFERS_CONSTEXPR_CPP11
+flatbuffers::span<U, N> make_span(U(&arr)[N]) FLATBUFFERS_NOEXCEPT {
+  return span<U, N>(arr);
+}
+
+template<class U, std::size_t N>
+FLATBUFFERS_CONSTEXPR_CPP11
+flatbuffers::span<const U, N> make_span(const U(&arr)[N]) FLATBUFFERS_NOEXCEPT {
+  return span<const U, N>(arr);
+}
+
+template<class U, std::size_t N>
+FLATBUFFERS_CONSTEXPR_CPP11
+flatbuffers::span<U, N> make_span(std::array<U, N> &arr) FLATBUFFERS_NOEXCEPT {
+  return span<U, N>(arr);
+}
+
+template<class U, std::size_t N>
+FLATBUFFERS_CONSTEXPR_CPP11
+flatbuffers::span<const U, N> make_span(const std::array<U, N> &arr) FLATBUFFERS_NOEXCEPT {
+  return span<const U, N>(arr);
+}
+
+template<class U, std::size_t N>
+FLATBUFFERS_CONSTEXPR_CPP11
+flatbuffers::span<U, dynamic_extent> make_span(U *first, std::size_t count) FLATBUFFERS_NOEXCEPT {
+  return span<U, dynamic_extent>(first, count);
+}
+
+template<class U, std::size_t N>
+FLATBUFFERS_CONSTEXPR_CPP11
+flatbuffers::span<const U, dynamic_extent> make_span(const U *first, std::size_t count) FLATBUFFERS_NOEXCEPT {
+  return span<const U, dynamic_extent>(first, count);
+}
+#endif // !defined(FLATBUFFERS_SPAN_MINIMAL)
 
 }  // namespace flatbuffers
 
