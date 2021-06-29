@@ -111,6 +111,8 @@ class Builder {
 
   ByteData _buf;
 
+  final Allocator _allocator;
+
   /// The maximum alignment that has been seen so far.  If [_buf] has to be
   /// reallocated in the future (to insert room at its start for more bytes) the
   /// reallocation will need to be a multiple of this many bytes.
@@ -138,9 +140,13 @@ class Builder {
   /// automatically grow the array if/as needed.  `internStrings`, if set to
   /// true, will cause [writeString] to pool strings in the buffer so that
   /// identical strings will always use the same offset in tables.
-  Builder({this.initialSize: 1024, bool internStrings = false})
-      : _buf = ByteData(initialSize) {
-    if (internStrings == true) {
+  Builder({
+    this.initialSize: 1024,
+    bool internStrings = false,
+    Allocator allocator = const DefaultAllocator(),
+  })  : _allocator = allocator,
+        _buf = allocator.allocate(initialSize) {
+    if (internStrings) {
       _strings = new Map<String, int>();
     }
   }
@@ -330,12 +336,14 @@ class Builder {
     return tableTail;
   }
 
-  /// This method low level method can be used to return a raw piece of the buffer
-  /// after using the the put* methods.
+  /// This method low level method can be used to return a raw piece of the
+  /// buffer after using the put* methods.
   ///
   /// Most clients should prefer calling [finish].
   Uint8List lowFinish() {
-    return _buf.buffer.asUint8List(_buf.lengthInBytes - size());
+    final finishedSize = size();
+    return _buf.buffer
+        .asUint8List(_buf.lengthInBytes - finishedSize, finishedSize);
   }
 
   /// Finish off the creation of the buffer.  The given [offset] is used as the
@@ -353,7 +361,8 @@ class Builder {
             fileIdentifier.codeUnitAt(i));
       }
     }
-    return _buf.buffer.asUint8List(_buf.lengthInBytes - finishedSize);
+    return _buf.buffer
+        .asUint8List(_buf.lengthInBytes - finishedSize, finishedSize);
   }
 
   /// Writes a Float64 to the tail of the buffer after preparing space for it.
@@ -716,11 +725,7 @@ class Builder {
         int deltaCapacity = desiredNewCapacity - oldCapacity;
         deltaCapacity += (-deltaCapacity) % _maxAlign;
         int newCapacity = oldCapacity + deltaCapacity;
-        ByteData newBuf = new ByteData(newCapacity);
-        newBuf.buffer
-            .asUint8List()
-            .setAll(deltaCapacity, _buf.buffer.asUint8List());
-        _buf = newBuf;
+        _buf = _allocator.resize(_buf, newCapacity, oldCapacity, 0);
       }
     }
     // Update the tail pointer.
@@ -1241,5 +1246,58 @@ class _VTable {
       buf.setUint16(bufOffset, fieldOffset, Endian.little);
       bufOffset += 2;
     }
+  }
+}
+
+/// The interface that [Builder] uses to allocate buffers for encoding.
+abstract class Allocator {
+  const Allocator();
+
+  /// Allocate a [ByteData] buffer of a given size.
+  ByteData allocate(int size);
+
+  /// Free the given [ByteData] buffer previously allocated by [allocate].
+  void deallocate(ByteData data);
+
+  /// Reallocate [newSize] bytes of memory, replacing the old [oldData]. This
+  /// grows downwards, and is intended specifically for use with [Builder].
+  /// Params [inUseBack] and [inUseFront] indicate how much of [oldData] is
+  /// actually in use at each end, and needs to be copied.
+  ByteData resize(
+      ByteData oldData, int newSize, int inUseBack, int inUseFront) {
+    final newData = allocate(newSize);
+    _copyDownward(oldData, newData, inUseBack, inUseFront);
+    deallocate(oldData);
+    return newData;
+  }
+
+  /// Called by [resize] to copy memory from [oldData] to [newData]. Only
+  /// memory of size [inUseFront] and [inUseBack] will be copied from the front
+  /// and back of the old memory allocation.
+  void _copyDownward(
+      ByteData oldData, ByteData newData, int inUseBack, int inUseFront) {
+    if (inUseBack != 0) {
+      newData.buffer.asUint8List().setAll(
+          newData.lengthInBytes - inUseBack,
+          oldData.buffer.asUint8List().getRange(
+              oldData.lengthInBytes - inUseBack, oldData.lengthInBytes));
+    }
+    if (inUseFront != 0) {
+      newData.buffer
+          .asUint8List()
+          .setAll(0, oldData.buffer.asUint8List().getRange(0, inUseFront));
+    }
+  }
+}
+
+class DefaultAllocator extends Allocator {
+  const DefaultAllocator();
+
+  @override
+  ByteData allocate(int size) => ByteData(size);
+
+  @override
+  void deallocate(ByteData _) {
+    // nothing to do, it's garbage-collected
   }
 }
