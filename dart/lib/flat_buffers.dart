@@ -336,11 +336,11 @@ class Builder {
     return tableTail;
   }
 
-  /// This method low level method can be used to return a raw piece of the
-  /// buffer after using the put* methods.
+  /// Returns the current buffer. In most cases, you should only use this after
+  /// calling [finish()] with the root table offset.
   ///
-  /// Most clients should prefer calling [finish].
-  Uint8List lowFinish() {
+  /// This can also be used to get a low-level buffer after using put* methods.
+  Uint8List get buffer {
     final finishedSize = size();
     return _buf.buffer
         .asUint8List(_buf.lengthInBytes - finishedSize, finishedSize);
@@ -351,7 +351,7 @@ class Builder {
   /// written object.  If [fileIdentifier] is specified (and not `null`), it is
   /// interpreted as a 4-byte Latin-1 encoded string that should be placed at
   /// bytes 4-7 of the file.
-  Uint8List finish(int offset, [String? fileIdentifier]) {
+  void finish(int offset, [String? fileIdentifier]) {
     final sizeBeforePadding = size();
     final requiredBytes = _sizeofUint32 * (fileIdentifier == null ? 1 : 2);
     _prepare(max(requiredBytes, _maxAlign), 1);
@@ -370,9 +370,6 @@ class Builder {
         i++) {
       _setUint8AtTail(_buf, i, 0);
     }
-
-    return _buf.buffer
-        .asUint8List(_buf.lengthInBytes - finishedSize, finishedSize);
   }
 
   /// Writes a Float64 to the tail of the buffer after preparing space for it.

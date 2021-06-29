@@ -64,71 +64,71 @@ class CheckOtherLangaugesData {
     expect(
       mon.toString(),
       'Monster{'
-      'pos: Vec3{x: 1.0, y: 2.0, z: 3.0, test1: 3.0, test2: Color{value: 2}, test3: Test{a: 5, b: 6}}, '
-      'mana: 150, hp: 80, name: MyMonster, inventory: [0, 1, 2, 3, 4], '
-      'color: Color{value: 8}, testType: AnyTypeId{value: 1}, '
-      'test: Monster{pos: null, mana: 150, hp: 100, name: Fred, '
-      'inventory: null, color: Color{value: 8}, testType: null, '
-      'test: null, test4: null, testarrayofstring: null, '
-      'testarrayoftables: null, enemy: null, testnestedflatbuffer: null, '
-      'testempty: null, testbool: false, testhashs32Fnv1: 0, '
-      'testhashu32Fnv1: 0, testhashs64Fnv1: 0, testhashu64Fnv1: 0, '
-      'testhashs32Fnv1a: 0, testhashu32Fnv1a: 0, testhashs64Fnv1a: 0, '
-      'testhashu64Fnv1a: 0, testarrayofbools: null, testf: 3.14159, '
-      'testf2: 3.0, testf3: 0.0, testarrayofstring2: null, '
-      'testarrayofsortedstruct: null, flex: null, test5: null, '
-      'vectorOfLongs: null, vectorOfDoubles: null, parentNamespaceTest: null, '
-      'vectorOfReferrables: null, singleWeakReference: 0, '
-      'vectorOfWeakReferences: null, vectorOfStrongReferrables: null, '
-      'coOwningReference: 0, vectorOfCoOwningReferences: null, '
-      'nonOwningReference: 0, vectorOfNonOwningReferences: null, '
-      'anyUniqueType: null, anyUnique: null, anyAmbiguousType: null, '
-      'anyAmbiguous: null, vectorOfEnums: null, signedEnum: Race{value: -1}, '
-      'testrequirednestedflatbuffer: null, scalarKeySortedTables: null}, '
-      'test4: [Test{a: 10, b: 20}, Test{a: 30, b: 40}], '
-      'testarrayofstring: [test1, test2], testarrayoftables: null, '
-      'enemy: Monster{pos: null, mana: 150, hp: 100, name: Fred, '
-      'inventory: null, color: Color{value: 8}, testType: null, '
-      'test: null, test4: null, testarrayofstring: null, '
-      'testarrayoftables: null, enemy: null, testnestedflatbuffer: null, '
-      'testempty: null, testbool: false, testhashs32Fnv1: 0, '
-      'testhashu32Fnv1: 0, testhashs64Fnv1: 0, testhashu64Fnv1: 0, '
-      'testhashs32Fnv1a: 0, testhashu32Fnv1a: 0, testhashs64Fnv1a: 0, '
-      'testhashu64Fnv1a: 0, testarrayofbools: null, testf: 3.14159, '
-      'testf2: 3.0, testf3: 0.0, testarrayofstring2: null, '
-      'testarrayofsortedstruct: null, flex: null, test5: null, '
-      'vectorOfLongs: null, vectorOfDoubles: null, parentNamespaceTest: null, '
-      'vectorOfReferrables: null, singleWeakReference: 0, '
-      'vectorOfWeakReferences: null, vectorOfStrongReferrables: null, '
-      'coOwningReference: 0, vectorOfCoOwningReferences: null, '
-      'nonOwningReference: 0, vectorOfNonOwningReferences: null, '
-      'anyUniqueType: null, anyUnique: null, anyAmbiguousType: null, '
-      'anyAmbiguous: null, vectorOfEnums: null, signedEnum: Race{value: -1}, '
-      'testrequirednestedflatbuffer: null, scalarKeySortedTables: null}, '
-      'testnestedflatbuffer: null, testempty: null, testbool: true, '
-      'testhashs32Fnv1: -579221183, testhashu32Fnv1: 3715746113, '
-      'testhashs64Fnv1: 7930699090847568257, '
-      'testhashu64Fnv1: 7930699090847568257, '
-      'testhashs32Fnv1a: -1904106383, testhashu32Fnv1a: 2390860913, '
-      'testhashs64Fnv1a: 4898026182817603057, '
-      'testhashu64Fnv1a: 4898026182817603057, '
-      'testarrayofbools: [true, false, true], testf: 3.14159, testf2: 3.0, '
-      'testf3: 0.0, testarrayofstring2: null, testarrayofsortedstruct: ['
-      'Ability{id: 0, distance: 45}, Ability{id: 1, distance: 21}, '
-      'Ability{id: 5, distance: 12}], '
-      'flex: null, test5: [Test{a: 10, b: 20}, Test{a: 30, b: 40}], '
-      'vectorOfLongs: [1, 100, 10000, 1000000, 100000000], '
-      'vectorOfDoubles: [-1.7976931348623157e+308, 0.0, 1.7976931348623157e+308], '
-      'parentNamespaceTest: null, vectorOfReferrables: null, '
-      'singleWeakReference: 0, vectorOfWeakReferences: null, '
-      'vectorOfStrongReferrables: null, coOwningReference: 0, '
-      'vectorOfCoOwningReferences: null, nonOwningReference: 0, '
-      'vectorOfNonOwningReferences: null, '
-      'anyUniqueType: null, anyUnique: null, '
-      'anyAmbiguousType: null, '
-      'anyAmbiguous: null, vectorOfEnums: null, signedEnum: Race{value: -1}, '
-      'testrequirednestedflatbuffer: null, scalarKeySortedTables: [Stat{id: '
-      'miss, val: 0, count: 0}, Stat{id: hit, val: 10, count: 1}]}',
+          'pos: Vec3{x: 1.0, y: 2.0, z: 3.0, test1: 3.0, test2: Color{value: 2}, test3: Test{a: 5, b: 6}}, '
+          'mana: 150, hp: 80, name: MyMonster, inventory: [0, 1, 2, 3, 4], '
+          'color: Color{value: 8}, testType: AnyTypeId{value: 1}, '
+          'test: Monster{pos: null, mana: 150, hp: 100, name: Fred, '
+          'inventory: null, color: Color{value: 8}, testType: null, '
+          'test: null, test4: null, testarrayofstring: null, '
+          'testarrayoftables: null, enemy: null, testnestedflatbuffer: null, '
+          'testempty: null, testbool: false, testhashs32Fnv1: 0, '
+          'testhashu32Fnv1: 0, testhashs64Fnv1: 0, testhashu64Fnv1: 0, '
+          'testhashs32Fnv1a: 0, testhashu32Fnv1a: 0, testhashs64Fnv1a: 0, '
+          'testhashu64Fnv1a: 0, testarrayofbools: null, testf: 3.14159, '
+          'testf2: 3.0, testf3: 0.0, testarrayofstring2: null, '
+          'testarrayofsortedstruct: null, flex: null, test5: null, '
+          'vectorOfLongs: null, vectorOfDoubles: null, parentNamespaceTest: null, '
+          'vectorOfReferrables: null, singleWeakReference: 0, '
+          'vectorOfWeakReferences: null, vectorOfStrongReferrables: null, '
+          'coOwningReference: 0, vectorOfCoOwningReferences: null, '
+          'nonOwningReference: 0, vectorOfNonOwningReferences: null, '
+          'anyUniqueType: null, anyUnique: null, anyAmbiguousType: null, '
+          'anyAmbiguous: null, vectorOfEnums: null, signedEnum: Race{value: -1}, '
+          'testrequirednestedflatbuffer: null, scalarKeySortedTables: null}, '
+          'test4: [Test{a: 10, b: 20}, Test{a: 30, b: 40}], '
+          'testarrayofstring: [test1, test2], testarrayoftables: null, '
+          'enemy: Monster{pos: null, mana: 150, hp: 100, name: Fred, '
+          'inventory: null, color: Color{value: 8}, testType: null, '
+          'test: null, test4: null, testarrayofstring: null, '
+          'testarrayoftables: null, enemy: null, testnestedflatbuffer: null, '
+          'testempty: null, testbool: false, testhashs32Fnv1: 0, '
+          'testhashu32Fnv1: 0, testhashs64Fnv1: 0, testhashu64Fnv1: 0, '
+          'testhashs32Fnv1a: 0, testhashu32Fnv1a: 0, testhashs64Fnv1a: 0, '
+          'testhashu64Fnv1a: 0, testarrayofbools: null, testf: 3.14159, '
+          'testf2: 3.0, testf3: 0.0, testarrayofstring2: null, '
+          'testarrayofsortedstruct: null, flex: null, test5: null, '
+          'vectorOfLongs: null, vectorOfDoubles: null, parentNamespaceTest: null, '
+          'vectorOfReferrables: null, singleWeakReference: 0, '
+          'vectorOfWeakReferences: null, vectorOfStrongReferrables: null, '
+          'coOwningReference: 0, vectorOfCoOwningReferences: null, '
+          'nonOwningReference: 0, vectorOfNonOwningReferences: null, '
+          'anyUniqueType: null, anyUnique: null, anyAmbiguousType: null, '
+          'anyAmbiguous: null, vectorOfEnums: null, signedEnum: Race{value: -1}, '
+          'testrequirednestedflatbuffer: null, scalarKeySortedTables: null}, '
+          'testnestedflatbuffer: null, testempty: null, testbool: true, '
+          'testhashs32Fnv1: -579221183, testhashu32Fnv1: 3715746113, '
+          'testhashs64Fnv1: 7930699090847568257, '
+          'testhashu64Fnv1: 7930699090847568257, '
+          'testhashs32Fnv1a: -1904106383, testhashu32Fnv1a: 2390860913, '
+          'testhashs64Fnv1a: 4898026182817603057, '
+          'testhashu64Fnv1a: 4898026182817603057, '
+          'testarrayofbools: [true, false, true], testf: 3.14159, testf2: 3.0, '
+          'testf3: 0.0, testarrayofstring2: null, testarrayofsortedstruct: ['
+          'Ability{id: 0, distance: 45}, Ability{id: 1, distance: 21}, '
+          'Ability{id: 5, distance: 12}], '
+          'flex: null, test5: [Test{a: 10, b: 20}, Test{a: 30, b: 40}], '
+          'vectorOfLongs: [1, 100, 10000, 1000000, 100000000], '
+          'vectorOfDoubles: [-1.7976931348623157e+308, 0.0, 1.7976931348623157e+308], '
+          'parentNamespaceTest: null, vectorOfReferrables: null, '
+          'singleWeakReference: 0, vectorOfWeakReferences: null, '
+          'vectorOfStrongReferrables: null, coOwningReference: 0, '
+          'vectorOfCoOwningReferences: null, nonOwningReference: 0, '
+          'vectorOfNonOwningReferences: null, '
+          'anyUniqueType: null, anyUnique: null, '
+          'anyAmbiguousType: null, '
+          'anyAmbiguous: null, vectorOfEnums: null, signedEnum: Race{value: -1}, '
+          'testrequirednestedflatbuffer: null, scalarKeySortedTables: [Stat{id: '
+          'miss, val: 0, count: 0}, Stat{id: hit, val: 10, count: 1}]}',
     );
   }
 }
@@ -183,7 +183,7 @@ class BuilderTest {
           3.0,
           3.0,
           example.Color.Green,
-          () => testBuilder.finish(5, 6),
+              () => testBuilder.finish(5, 6),
         ),
       )
       ..addHp(80)
@@ -240,7 +240,8 @@ class BuilderTest {
       Builder builder = new Builder(initialSize: 0);
       builder.startTable();
       int offset = builder.endTable();
-      byteList = builder.finish(offset, 'Az~ÿ');
+      builder.finish(offset, 'Az~ÿ');
+      byteList = builder.buffer;
     }
     // Convert byteList to a ByteData so that we can read data from it.
     ByteData byteData = byteList.buffer.asByteData(byteList.offsetInBytes);
@@ -264,15 +265,12 @@ class BuilderTest {
 
   void test_low() {
     final builder = Builder(initialSize: 0, allocator: CustomAllocator());
-    expect((builder..putUint8(1)).lowFinish(), [1]);
-    expect((builder..putUint32(2)).lowFinish(), [2, 0, 0, 0, 0, 0, 0, 1]);
-    expect((builder..putUint8(3)).lowFinish(),
-        [0, 0, 0, 3, 2, 0, 0, 0, 0, 0, 0, 1]);
-    expect((builder..putUint8(4)).lowFinish(),
-        [0, 0, 4, 3, 2, 0, 0, 0, 0, 0, 0, 1]);
-    expect((builder..putUint8(5)).lowFinish(),
-        [0, 5, 4, 3, 2, 0, 0, 0, 0, 0, 0, 1]);
-    expect((builder..putUint32(6)).lowFinish(),
+    expect((builder..putUint8(1)).buffer, [1]);
+    expect((builder..putUint32(2)).buffer, [2, 0, 0, 0, 0, 0, 0, 1]);
+    expect((builder..putUint8(3)).buffer, [0, 0, 0, 3, 2, 0, 0, 0, 0, 0, 0, 1]);
+    expect((builder..putUint8(4)).buffer, [0, 0, 4, 3, 2, 0, 0, 0, 0, 0, 0, 1]);
+    expect((builder..putUint8(5)).buffer, [0, 5, 4, 3, 2, 0, 0, 0, 0, 0, 0, 1]);
+    expect((builder..putUint32(6)).buffer,
         [6, 0, 0, 0, 0, 5, 4, 3, 2, 0, 0, 0, 0, 0, 0, 1]);
   }
 
@@ -284,7 +282,8 @@ class BuilderTest {
       builder.addInt32(0, 10, 10);
       builder.addInt32(1, 20, 10);
       int offset = builder.endTable();
-      byteList = builder.finish(offset);
+      builder.finish(offset);
+      byteList = builder.buffer;
       expect(builder.size(), byteList.length);
     }
     // read and verify
@@ -310,7 +309,8 @@ class BuilderTest {
       builder.addInt32(0, 10);
       builder.addInt32(1, 20);
       builder.addInt32(2, 30);
-      byteList = builder.finish(builder.endTable());
+      builder.finish(builder.endTable());
+      byteList = builder.buffer;
     }
     // Convert byteList to a ByteData so that we can read data from it.
     ByteData byteData = byteList.buffer.asByteData(byteList.offsetInBytes);
@@ -346,7 +346,8 @@ class BuilderTest {
       builder.addOffset(0, latinStringOffset);
       builder.addOffset(1, unicodeStringOffset);
       int offset = builder.endTable();
-      byteList = builder.finish(offset);
+      builder.finish(offset);
+      byteList = builder.buffer;
     }
     // read and verify
     BufferContext buf = new BufferContext.fromBytes(byteList);
@@ -375,7 +376,8 @@ class BuilderTest {
       builder.addUint32(5, 0x9ABCDEF0);
       builder.addUint8(6, 0x9A);
       int offset = builder.endTable();
-      byteList = builder.finish(offset);
+      builder.finish(offset);
+      byteList = builder.buffer;
     }
     // read and verify
     BufferContext buf = new BufferContext.fromBytes(byteList);
@@ -417,7 +419,8 @@ class BuilderTest {
     {
       Builder builder = new Builder(initialSize: 0);
       int offset = builder.writeListUint32(values);
-      byteList = builder.finish(offset);
+      builder.finish(offset);
+      byteList = builder.buffer;
     }
     // read and verify
     BufferContext buf = new BufferContext.fromBytes(byteList);
@@ -437,7 +440,8 @@ class BuilderTest {
           values[bit] = true;
         }
         int offset = builder.writeListBool(values);
-        byteList = builder.finish(offset);
+        builder.finish(offset);
+        byteList = builder.buffer;
       }
       // read and verify
       BufferContext buf = new BufferContext.fromBytes(byteList);
@@ -473,7 +477,8 @@ class BuilderTest {
     {
       Builder builder = new Builder(initialSize: 0);
       int offset = builder.writeListInt32(<int>[1, 2, 3, 4, 5]);
-      byteList = builder.finish(offset);
+      builder.finish(offset);
+      byteList = builder.buffer;
     }
     // read and verify
     BufferContext buf = new BufferContext.fromBytes(byteList);
@@ -489,7 +494,8 @@ class BuilderTest {
     {
       Builder builder = new Builder(initialSize: 0);
       int offset = builder.writeListFloat64(values);
-      byteList = builder.finish(offset);
+      builder.finish(offset);
+      byteList = builder.buffer;
     }
 
     // read and verify
@@ -509,7 +515,8 @@ class BuilderTest {
     {
       Builder builder = new Builder(initialSize: 0);
       int offset = builder.writeListFloat32(values);
-      byteList = builder.finish(offset);
+      builder.finish(offset);
+      byteList = builder.buffer;
     }
     // read and verify
     BufferContext buf = new BufferContext.fromBytes(byteList);
@@ -542,12 +549,13 @@ class BuilderTest {
       }
       // write the list
       int offset = builder.writeList([object1, object2]);
-      byteList = builder.finish(offset);
+      builder.finish(offset);
+      byteList = builder.buffer;
     }
     // read and verify
     BufferContext buf = new BufferContext.fromBytes(byteList);
     List<TestPointImpl> items =
-        const ListReader<TestPointImpl>(const TestPointReader()).read(buf, 0);
+    const ListReader<TestPointImpl>(const TestPointReader()).read(buf, 0);
     expect(items, hasLength(2));
     expect(items[0].x, 10);
     expect(items[0].y, 20);
@@ -562,12 +570,13 @@ class BuilderTest {
       int? str1 = builder.writeString('12345');
       int? str2 = builder.writeString('ABC');
       int offset = builder.writeList([str1!, str2!]);
-      byteList = builder.finish(offset);
+      builder.finish(offset);
+      byteList = builder.buffer;
     }
     // read and verify
     BufferContext buf = new BufferContext.fromBytes(byteList);
     List<String> items =
-        const ListReader<String>(const StringReader()).read(buf, 0);
+    const ListReader<String>(const StringReader()).read(buf, 0);
     expect(items, hasLength(2));
     expect(items, contains('12345'));
     expect(items, contains('ABC'));
@@ -582,7 +591,8 @@ class BuilderTest {
       builder.startTable();
       builder.addOffset(0, listOffset);
       int offset = builder.endTable();
-      byteList = builder.finish(offset);
+      builder.finish(offset);
+      byteList = builder.buffer;
     }
     // read and verify
     BufferContext buf = new BufferContext.fromBytes(byteList);
@@ -598,7 +608,8 @@ class BuilderTest {
     {
       Builder builder = new Builder(initialSize: 0);
       int offset = builder.writeListUint32(<int>[1, 2, 0x9ABCDEF0]);
-      byteList = builder.finish(offset);
+      builder.finish(offset);
+      byteList = builder.buffer;
     }
     // read and verify
     BufferContext buf = new BufferContext.fromBytes(byteList);
@@ -612,7 +623,8 @@ class BuilderTest {
     {
       Builder builder = new Builder(initialSize: 0);
       int offset = builder.writeListUint16(<int>[1, 2, 60000]);
-      byteList = builder.finish(offset);
+      builder.finish(offset);
+      byteList = builder.buffer;
     }
     // read and verify
     BufferContext buf = new BufferContext.fromBytes(byteList);
@@ -626,7 +638,8 @@ class BuilderTest {
     {
       Builder builder = new Builder(initialSize: 0);
       int offset = builder.writeListUint8(<int>[1, 2, 3, 4, 0x9A]);
-      byteList = builder.finish(offset);
+      builder.finish(offset);
+      byteList = builder.buffer;
     }
     // read and verify
     BufferContext buf = new BufferContext.fromBytes(byteList);
@@ -649,7 +662,7 @@ class BuilderTest {
     // Execute all test cases in all permutations of their order.
     // To do that, we generate permutations of test case indexes.
     final testCasesPermutations =
-        _permutationsOf(List.generate(testCases.length, (index) => index));
+    _permutationsOf(List.generate(testCases.length, (index) => index));
     expect(testCasesPermutations.length, _factorial(testCases.length));
 
     testCasesPermutations.forEach((List<int> indexes) {
@@ -696,7 +709,8 @@ class BuilderTest {
   // a very simple implementation of n!
   int _factorial(int n) {
     var result = 1;
-    for (var i = 2; i <= n; i++) result *= i;
+    for (var i = 2; i <= n; i++)
+      result *= i;
     return result;
   }
 }
@@ -706,8 +720,8 @@ class ObjectAPITest {
   void test_tableStat() {
     final object1 = example.StatT(count: 3, id: "foo", val: 4);
     final fbb = Builder();
-    final data = fbb.finish(object1.pack(fbb));
-    final object2 = example.Stat(data).unpack();
+    fbb.finish(object1.pack(fbb));
+    final object2 = example.Stat(fbb.buffer).unpack();
     expect(object2.count, object1.count);
     expect(object2.id, object1.id);
     expect(object2.val, object1.val);
@@ -727,7 +741,7 @@ class ObjectAPITest {
       ..name = 'Monstrous'
       ..inventory = [24, 42]
       ..color = example.Color.Green
-      // TODO be smarter for unions and automatically set the `type` field?
+    // TODO be smarter for unions and automatically set the `type` field?
       ..testType = example.AnyTypeId.MyGame_Example2_Monster
       ..test = example2.MonsterT()
       ..test4 = [example.TestT(a: 3, b: 4), example.TestT(a: 5, b: 6)]
@@ -750,7 +764,8 @@ class ObjectAPITest {
     final fbBuilder = Builder();
     final offset = monster.pack(fbBuilder);
     expect(offset, isNonZero);
-    final data = fbBuilder.finish(offset);
+    fbBuilder.finish(offset);
+    final data = fbBuilder.buffer;
 
     // TODO currently broken because of struct builder issue, see #6688
     // final monster2 = example.Monster(data); // Monster (reader)
@@ -793,8 +808,9 @@ class StringListWrapperImpl {
 
   StringListWrapperImpl(this.bp, this.offset);
 
-  List<String>? get items => const ListReader<String>(const StringReader())
-      .vTableGetNullable(bp, offset, indexToField(0));
+  List<String>? get items =>
+      const ListReader<String>(const StringReader())
+          .vTableGetNullable(bp, offset, indexToField(0));
 }
 
 class StringListWrapperReader extends TableReader<StringListWrapperImpl> {

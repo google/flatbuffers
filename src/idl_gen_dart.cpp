@@ -955,7 +955,8 @@ class DartGenerator : public BaseGenerator {
     code += "    " + _kFb + ".Builder fbBuilder = new ";
     code += _kFb + ".Builder();\n";
     code += "    int offset = finish(fbBuilder);\n";
-    code += "    return fbBuilder.finish(offset, fileIdentifier);\n";
+    code += "    fbBuilder.finish(offset, fileIdentifier);\n";
+    code += "    return fbBuilder.buffer;\n";
     code += "  }\n";
     code += "}\n";
   }
