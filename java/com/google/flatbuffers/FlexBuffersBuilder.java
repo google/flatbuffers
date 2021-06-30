@@ -452,8 +452,8 @@ public class FlexBuffersBuilder {
      * Finishes a vector, but writing the information in the buffer
      * @param key   key used to store element in map
      * @param start reference for begining of the vector. Returned by {@link startVector()}
-     * @param typed boolean indicating wether vector is typed
-     * @param fixed boolean indicating wether vector is fixed
+     * @param typed boolean indicating whether vector is typed
+     * @param fixed boolean indicating whether vector is fixed
      * @return      Reference to the vector
      */
     public int endVector(String key, int start, boolean typed, boolean fixed) {
