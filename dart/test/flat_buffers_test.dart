@@ -64,71 +64,71 @@ class CheckOtherLangaugesData {
     expect(
       mon.toString(),
       'Monster{'
-          'pos: Vec3{x: 1.0, y: 2.0, z: 3.0, test1: 3.0, test2: Color{value: 2}, test3: Test{a: 5, b: 6}}, '
-          'mana: 150, hp: 80, name: MyMonster, inventory: [0, 1, 2, 3, 4], '
-          'color: Color{value: 8}, testType: AnyTypeId{value: 1}, '
-          'test: Monster{pos: null, mana: 150, hp: 100, name: Fred, '
-          'inventory: null, color: Color{value: 8}, testType: null, '
-          'test: null, test4: null, testarrayofstring: null, '
-          'testarrayoftables: null, enemy: null, testnestedflatbuffer: null, '
-          'testempty: null, testbool: false, testhashs32Fnv1: 0, '
-          'testhashu32Fnv1: 0, testhashs64Fnv1: 0, testhashu64Fnv1: 0, '
-          'testhashs32Fnv1a: 0, testhashu32Fnv1a: 0, testhashs64Fnv1a: 0, '
-          'testhashu64Fnv1a: 0, testarrayofbools: null, testf: 3.14159, '
-          'testf2: 3.0, testf3: 0.0, testarrayofstring2: null, '
-          'testarrayofsortedstruct: null, flex: null, test5: null, '
-          'vectorOfLongs: null, vectorOfDoubles: null, parentNamespaceTest: null, '
-          'vectorOfReferrables: null, singleWeakReference: 0, '
-          'vectorOfWeakReferences: null, vectorOfStrongReferrables: null, '
-          'coOwningReference: 0, vectorOfCoOwningReferences: null, '
-          'nonOwningReference: 0, vectorOfNonOwningReferences: null, '
-          'anyUniqueType: null, anyUnique: null, anyAmbiguousType: null, '
-          'anyAmbiguous: null, vectorOfEnums: null, signedEnum: Race{value: -1}, '
-          'testrequirednestedflatbuffer: null, scalarKeySortedTables: null}, '
-          'test4: [Test{a: 10, b: 20}, Test{a: 30, b: 40}], '
-          'testarrayofstring: [test1, test2], testarrayoftables: null, '
-          'enemy: Monster{pos: null, mana: 150, hp: 100, name: Fred, '
-          'inventory: null, color: Color{value: 8}, testType: null, '
-          'test: null, test4: null, testarrayofstring: null, '
-          'testarrayoftables: null, enemy: null, testnestedflatbuffer: null, '
-          'testempty: null, testbool: false, testhashs32Fnv1: 0, '
-          'testhashu32Fnv1: 0, testhashs64Fnv1: 0, testhashu64Fnv1: 0, '
-          'testhashs32Fnv1a: 0, testhashu32Fnv1a: 0, testhashs64Fnv1a: 0, '
-          'testhashu64Fnv1a: 0, testarrayofbools: null, testf: 3.14159, '
-          'testf2: 3.0, testf3: 0.0, testarrayofstring2: null, '
-          'testarrayofsortedstruct: null, flex: null, test5: null, '
-          'vectorOfLongs: null, vectorOfDoubles: null, parentNamespaceTest: null, '
-          'vectorOfReferrables: null, singleWeakReference: 0, '
-          'vectorOfWeakReferences: null, vectorOfStrongReferrables: null, '
-          'coOwningReference: 0, vectorOfCoOwningReferences: null, '
-          'nonOwningReference: 0, vectorOfNonOwningReferences: null, '
-          'anyUniqueType: null, anyUnique: null, anyAmbiguousType: null, '
-          'anyAmbiguous: null, vectorOfEnums: null, signedEnum: Race{value: -1}, '
-          'testrequirednestedflatbuffer: null, scalarKeySortedTables: null}, '
-          'testnestedflatbuffer: null, testempty: null, testbool: true, '
-          'testhashs32Fnv1: -579221183, testhashu32Fnv1: 3715746113, '
-          'testhashs64Fnv1: 7930699090847568257, '
-          'testhashu64Fnv1: 7930699090847568257, '
-          'testhashs32Fnv1a: -1904106383, testhashu32Fnv1a: 2390860913, '
-          'testhashs64Fnv1a: 4898026182817603057, '
-          'testhashu64Fnv1a: 4898026182817603057, '
-          'testarrayofbools: [true, false, true], testf: 3.14159, testf2: 3.0, '
-          'testf3: 0.0, testarrayofstring2: null, testarrayofsortedstruct: ['
-          'Ability{id: 0, distance: 45}, Ability{id: 1, distance: 21}, '
-          'Ability{id: 5, distance: 12}], '
-          'flex: null, test5: [Test{a: 10, b: 20}, Test{a: 30, b: 40}], '
-          'vectorOfLongs: [1, 100, 10000, 1000000, 100000000], '
-          'vectorOfDoubles: [-1.7976931348623157e+308, 0.0, 1.7976931348623157e+308], '
-          'parentNamespaceTest: null, vectorOfReferrables: null, '
-          'singleWeakReference: 0, vectorOfWeakReferences: null, '
-          'vectorOfStrongReferrables: null, coOwningReference: 0, '
-          'vectorOfCoOwningReferences: null, nonOwningReference: 0, '
-          'vectorOfNonOwningReferences: null, '
-          'anyUniqueType: null, anyUnique: null, '
-          'anyAmbiguousType: null, '
-          'anyAmbiguous: null, vectorOfEnums: null, signedEnum: Race{value: -1}, '
-          'testrequirednestedflatbuffer: null, scalarKeySortedTables: [Stat{id: '
-          'miss, val: 0, count: 0}, Stat{id: hit, val: 10, count: 1}]}',
+      'pos: Vec3{x: 1.0, y: 2.0, z: 3.0, test1: 3.0, test2: Color{value: 2}, test3: Test{a: 5, b: 6}}, '
+      'mana: 150, hp: 80, name: MyMonster, inventory: [0, 1, 2, 3, 4], '
+      'color: Color{value: 8}, testType: AnyTypeId{value: 1}, '
+      'test: Monster{pos: null, mana: 150, hp: 100, name: Fred, '
+      'inventory: null, color: Color{value: 8}, testType: null, '
+      'test: null, test4: null, testarrayofstring: null, '
+      'testarrayoftables: null, enemy: null, testnestedflatbuffer: null, '
+      'testempty: null, testbool: false, testhashs32Fnv1: 0, '
+      'testhashu32Fnv1: 0, testhashs64Fnv1: 0, testhashu64Fnv1: 0, '
+      'testhashs32Fnv1a: 0, testhashu32Fnv1a: 0, testhashs64Fnv1a: 0, '
+      'testhashu64Fnv1a: 0, testarrayofbools: null, testf: 3.14159, '
+      'testf2: 3.0, testf3: 0.0, testarrayofstring2: null, '
+      'testarrayofsortedstruct: null, flex: null, test5: null, '
+      'vectorOfLongs: null, vectorOfDoubles: null, parentNamespaceTest: null, '
+      'vectorOfReferrables: null, singleWeakReference: 0, '
+      'vectorOfWeakReferences: null, vectorOfStrongReferrables: null, '
+      'coOwningReference: 0, vectorOfCoOwningReferences: null, '
+      'nonOwningReference: 0, vectorOfNonOwningReferences: null, '
+      'anyUniqueType: null, anyUnique: null, anyAmbiguousType: null, '
+      'anyAmbiguous: null, vectorOfEnums: null, signedEnum: Race{value: -1}, '
+      'testrequirednestedflatbuffer: null, scalarKeySortedTables: null}, '
+      'test4: [Test{a: 10, b: 20}, Test{a: 30, b: 40}], '
+      'testarrayofstring: [test1, test2], testarrayoftables: null, '
+      'enemy: Monster{pos: null, mana: 150, hp: 100, name: Fred, '
+      'inventory: null, color: Color{value: 8}, testType: null, '
+      'test: null, test4: null, testarrayofstring: null, '
+      'testarrayoftables: null, enemy: null, testnestedflatbuffer: null, '
+      'testempty: null, testbool: false, testhashs32Fnv1: 0, '
+      'testhashu32Fnv1: 0, testhashs64Fnv1: 0, testhashu64Fnv1: 0, '
+      'testhashs32Fnv1a: 0, testhashu32Fnv1a: 0, testhashs64Fnv1a: 0, '
+      'testhashu64Fnv1a: 0, testarrayofbools: null, testf: 3.14159, '
+      'testf2: 3.0, testf3: 0.0, testarrayofstring2: null, '
+      'testarrayofsortedstruct: null, flex: null, test5: null, '
+      'vectorOfLongs: null, vectorOfDoubles: null, parentNamespaceTest: null, '
+      'vectorOfReferrables: null, singleWeakReference: 0, '
+      'vectorOfWeakReferences: null, vectorOfStrongReferrables: null, '
+      'coOwningReference: 0, vectorOfCoOwningReferences: null, '
+      'nonOwningReference: 0, vectorOfNonOwningReferences: null, '
+      'anyUniqueType: null, anyUnique: null, anyAmbiguousType: null, '
+      'anyAmbiguous: null, vectorOfEnums: null, signedEnum: Race{value: -1}, '
+      'testrequirednestedflatbuffer: null, scalarKeySortedTables: null}, '
+      'testnestedflatbuffer: null, testempty: null, testbool: true, '
+      'testhashs32Fnv1: -579221183, testhashu32Fnv1: 3715746113, '
+      'testhashs64Fnv1: 7930699090847568257, '
+      'testhashu64Fnv1: 7930699090847568257, '
+      'testhashs32Fnv1a: -1904106383, testhashu32Fnv1a: 2390860913, '
+      'testhashs64Fnv1a: 4898026182817603057, '
+      'testhashu64Fnv1a: 4898026182817603057, '
+      'testarrayofbools: [true, false, true], testf: 3.14159, testf2: 3.0, '
+      'testf3: 0.0, testarrayofstring2: null, testarrayofsortedstruct: ['
+      'Ability{id: 0, distance: 45}, Ability{id: 1, distance: 21}, '
+      'Ability{id: 5, distance: 12}], '
+      'flex: null, test5: [Test{a: 10, b: 20}, Test{a: 30, b: 40}], '
+      'vectorOfLongs: [1, 100, 10000, 1000000, 100000000], '
+      'vectorOfDoubles: [-1.7976931348623157e+308, 0.0, 1.7976931348623157e+308], '
+      'parentNamespaceTest: null, vectorOfReferrables: null, '
+      'singleWeakReference: 0, vectorOfWeakReferences: null, '
+      'vectorOfStrongReferrables: null, coOwningReference: 0, '
+      'vectorOfCoOwningReferences: null, nonOwningReference: 0, '
+      'vectorOfNonOwningReferences: null, '
+      'anyUniqueType: null, anyUnique: null, '
+      'anyAmbiguousType: null, '
+      'anyAmbiguous: null, vectorOfEnums: null, signedEnum: Race{value: -1}, '
+      'testrequirednestedflatbuffer: null, scalarKeySortedTables: [Stat{id: '
+      'miss, val: 0, count: 0}, Stat{id: hit, val: 10, count: 1}]}',
     );
   }
 }
@@ -136,12 +136,16 @@ class CheckOtherLangaugesData {
 /// Test a custom, fixed-memory allocator (no actual allocations performed)
 class CustomAllocator extends Allocator {
   final _memory = ByteData(10 * 1024);
+  int _used = 0;
+
+  Uint8List buffer(int size) => _memory.buffer.asUint8List(_used - size, size);
 
   @override
   ByteData allocate(int size) {
     if (size > _memory.lengthInBytes) {
       throw UnsupportedError('Trying to allocate too much');
     }
+    _used = size;
     return ByteData.sublistView(_memory, 0, size);
   }
 
@@ -183,7 +187,7 @@ class BuilderTest {
           3.0,
           3.0,
           example.Color.Green,
-              () => testBuilder.finish(5, 6),
+          () => testBuilder.finish(5, 6),
         ),
       )
       ..addHp(80)
@@ -264,13 +268,29 @@ class BuilderTest {
   }
 
   void test_low() {
-    final builder = Builder(initialSize: 0, allocator: CustomAllocator());
-    expect((builder..putUint8(1)).buffer, [1]);
-    expect((builder..putUint32(2)).buffer, [2, 0, 0, 0, 0, 0, 0, 1]);
-    expect((builder..putUint8(3)).buffer, [0, 0, 0, 3, 2, 0, 0, 0, 0, 0, 0, 1]);
-    expect((builder..putUint8(4)).buffer, [0, 0, 4, 3, 2, 0, 0, 0, 0, 0, 0, 1]);
-    expect((builder..putUint8(5)).buffer, [0, 5, 4, 3, 2, 0, 0, 0, 0, 0, 0, 1]);
-    expect((builder..putUint32(6)).buffer,
+    final allocator = CustomAllocator();
+    final builder = Builder(initialSize: 0, allocator: allocator);
+
+    builder.putUint8(1);
+    expect(allocator.buffer(builder.size()), [1]);
+
+    builder.putUint32(2);
+    expect(allocator.buffer(builder.size()), [2, 0, 0, 0, 0, 0, 0, 1]);
+
+    builder.putUint8(3);
+    expect(
+        allocator.buffer(builder.size()), [0, 0, 0, 3, 2, 0, 0, 0, 0, 0, 0, 1]);
+
+    builder.putUint8(4);
+    expect(
+        allocator.buffer(builder.size()), [0, 0, 4, 3, 2, 0, 0, 0, 0, 0, 0, 1]);
+
+    builder.putUint8(5);
+    expect(
+        allocator.buffer(builder.size()), [0, 5, 4, 3, 2, 0, 0, 0, 0, 0, 0, 1]);
+
+    builder.putUint32(6);
+    expect(allocator.buffer(builder.size()),
         [6, 0, 0, 0, 0, 5, 4, 3, 2, 0, 0, 0, 0, 0, 0, 1]);
   }
 
@@ -555,7 +575,7 @@ class BuilderTest {
     // read and verify
     BufferContext buf = new BufferContext.fromBytes(byteList);
     List<TestPointImpl> items =
-    const ListReader<TestPointImpl>(const TestPointReader()).read(buf, 0);
+        const ListReader<TestPointImpl>(const TestPointReader()).read(buf, 0);
     expect(items, hasLength(2));
     expect(items[0].x, 10);
     expect(items[0].y, 20);
@@ -576,7 +596,7 @@ class BuilderTest {
     // read and verify
     BufferContext buf = new BufferContext.fromBytes(byteList);
     List<String> items =
-    const ListReader<String>(const StringReader()).read(buf, 0);
+        const ListReader<String>(const StringReader()).read(buf, 0);
     expect(items, hasLength(2));
     expect(items, contains('12345'));
     expect(items, contains('ABC'));
@@ -662,7 +682,7 @@ class BuilderTest {
     // Execute all test cases in all permutations of their order.
     // To do that, we generate permutations of test case indexes.
     final testCasesPermutations =
-    _permutationsOf(List.generate(testCases.length, (index) => index));
+        _permutationsOf(List.generate(testCases.length, (index) => index));
     expect(testCasesPermutations.length, _factorial(testCases.length));
 
     testCasesPermutations.forEach((List<int> indexes) {
@@ -709,8 +729,7 @@ class BuilderTest {
   // a very simple implementation of n!
   int _factorial(int n) {
     var result = 1;
-    for (var i = 2; i <= n; i++)
-      result *= i;
+    for (var i = 2; i <= n; i++) result *= i;
     return result;
   }
 }
@@ -741,7 +760,7 @@ class ObjectAPITest {
       ..name = 'Monstrous'
       ..inventory = [24, 42]
       ..color = example.Color.Green
-    // TODO be smarter for unions and automatically set the `type` field?
+      // TODO be smarter for unions and automatically set the `type` field?
       ..testType = example.AnyTypeId.MyGame_Example2_Monster
       ..test = example2.MonsterT()
       ..test4 = [example.TestT(a: 3, b: 4), example.TestT(a: 5, b: 6)]
@@ -785,14 +804,14 @@ class ObjectAPITest {
     final fbb = Builder();
 
     final object1 = example.TypeAliasesT(v8: [1, 2, 3], vf64: [5, 6]);
-    final data1 = fbb.finish(object1.pack(fbb));
-    final object1Read = example.TypeAliases(data1).unpack();
+    fbb.finish(object1.pack(fbb));
+    final object1Read = example.TypeAliases(fbb.buffer).unpack();
 
     // overwrite the original buffer by writing to the same builder
     fbb.reset();
     final object2 = example.TypeAliasesT(v8: [7, 8, 9], vf64: [10, 11]);
-    final data2 = fbb.finish(object2.pack(fbb));
-    final object2Read = example.TypeAliases(data2).unpack();
+    fbb.finish(object2.pack(fbb));
+    final object2Read = example.TypeAliases(fbb.buffer).unpack();
 
     // this is fine even with lazy lists:
     expect(object2.toString(), object2Read.toString());
@@ -808,9 +827,8 @@ class StringListWrapperImpl {
 
   StringListWrapperImpl(this.bp, this.offset);
 
-  List<String>? get items =>
-      const ListReader<String>(const StringReader())
-          .vTableGetNullable(bp, offset, indexToField(0));
+  List<String>? get items => const ListReader<String>(const StringReader())
+      .vTableGetNullable(bp, offset, indexToField(0));
 }
 
 class StringListWrapperReader extends TableReader<StringListWrapperImpl> {

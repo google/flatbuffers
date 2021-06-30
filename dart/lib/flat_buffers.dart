@@ -103,6 +103,8 @@ abstract class ObjectBuilder {
 
 /// Class that helps building flat buffers.
 class Builder {
+  bool _finished = false;
+
   final int initialSize;
 
   /// The list of existing VTable(s).
@@ -336,11 +338,9 @@ class Builder {
     return tableTail;
   }
 
-  /// Returns the current buffer. In most cases, you should only use this after
-  /// calling [finish()] with the root table offset.
-  ///
-  /// This can also be used to get a low-level buffer after using put* methods.
+  /// Returns the finished buffer. You must call [finish] before accessing this.
   Uint8List get buffer {
+    assert(_finished);
     final finishedSize = size();
     return _buf.buffer
         .asUint8List(_buf.lengthInBytes - finishedSize, finishedSize);
@@ -352,6 +352,7 @@ class Builder {
   /// interpreted as a 4-byte Latin-1 encoded string that should be placed at
   /// bytes 4-7 of the file.
   void finish(int offset, [String? fileIdentifier]) {
+    assert(!_finished);
     final sizeBeforePadding = size();
     final requiredBytes = _sizeofUint32 * (fileIdentifier == null ? 1 : 2);
     _prepare(max(requiredBytes, _maxAlign), 1);
@@ -370,6 +371,7 @@ class Builder {
         i++) {
       _setUint8AtTail(_buf, i, 0);
     }
+    _finished = true;
   }
 
   /// Writes a Float64 to the tail of the buffer after preparing space for it.
@@ -454,6 +456,7 @@ class Builder {
 
   /// Reset the builder and make it ready for filling a new buffer.
   void reset() {
+    _finished = false;
     _maxAlign = 1;
     _tail = 0;
     _currentVTable = null;
