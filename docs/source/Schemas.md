@@ -592,7 +592,7 @@ we keep the sequence of ids.
 
     table { b:int; }
 
-NOT ok. We can only remove a field by deprecation, regardless of wether we use
+NOT ok. We can only remove a field by deprecation, regardless of whether we use
 explicit ids or not.
 
     table { a:uint; b:uint; }
