@@ -71,7 +71,7 @@ Using FlatBuffers in Lobster should be relatively fast, as the implementation
 makes use of native support for writing binary values, and access of vtables.
 Both generated code and the runtime library are therefore small and fast.
 
-Actual speed will depend on wether you use Lobster as bytecode VM or compiled to
+Actual speed will depend on whether you use Lobster as bytecode VM or compiled to
 C++.
 
 ## Text Parsing
