@@ -725,7 +725,7 @@ class Builder {
         int deltaCapacity = desiredNewCapacity - oldCapacity;
         deltaCapacity += (-deltaCapacity) % _maxAlign;
         int newCapacity = oldCapacity + deltaCapacity;
-        _buf = _allocator.resize(_buf, newCapacity, oldCapacity, 0);
+        _buf = _allocator.resize(_buf, newCapacity, _tail, 0);
       }
     }
     // Update the tail pointer.
