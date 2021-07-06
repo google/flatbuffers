@@ -891,20 +891,34 @@ class Int8Reader extends Reader<int> {
   int read(BufferContext bc, int offset) => bc._getInt8(offset);
 }
 
-/// The reader of lists of objects.
-///
-/// The returned unmodifiable lists lazily read objects on access.
+/// The reader of lists of objects. Lazy by default - see [lazy].
 class ListReader<E> extends Reader<List<E>> {
   final Reader<E> _elementReader;
 
-  const ListReader(this._elementReader);
+  /// Enables lazy reading of the list
+  ///
+  /// If true, the returned unmodifiable list lazily reads objects on access.
+  /// Therefore, the underlying buffer must not change while accessing the list.
+  ///
+  /// If false, reads the whole list immediately on access.
+  final bool lazy;
+
+  const ListReader(this._elementReader, {this.lazy = true});
 
   @override
   int get size => _sizeofUint32;
 
   @override
-  List<E> read(BufferContext bc, int offset) =>
-      new _FbGenericList<E>(_elementReader, bc, bc.derefObject(offset));
+  List<E> read(BufferContext bc, int offset) {
+    final listOffset = bc.derefObject(offset);
+    return lazy
+        ? _FbGenericList<E>(_elementReader, bc, listOffset)
+        : List<E>.generate(
+            bc.buffer.getUint32(listOffset, Endian.little),
+            (int index) => _elementReader.read(
+                bc, listOffset + size + _elementReader.size * index),
+            growable: true);
+  }
 }
 
 /// Object that can read a value at a [BufferContext].

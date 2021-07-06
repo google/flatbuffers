@@ -330,7 +330,8 @@ class DartGenerator : public BaseGenerator {
 
   std::string GenReaderTypeName(const Type &type, Namespace *current_namespace,
                                 const FieldDef &def,
-                                bool parent_is_vector = false) {
+                                bool parent_is_vector = false,
+                                bool lazy = true) {
     if (type.base_type == BASE_TYPE_BOOL) {
       return "const " + _kFb + ".BoolReader()";
     } else if (IsVector(type)) {
@@ -338,7 +339,7 @@ class DartGenerator : public BaseGenerator {
              GenDartTypeName(type.VectorType(), current_namespace, def) + ">(" +
              GenReaderTypeName(type.VectorType(), current_namespace, def,
                                true) +
-             ")";
+             (lazy ? ")" : ", lazy: false)");
     } else if (IsString(type)) {
       return "const " + _kFb + ".StringReader()";
     }
@@ -556,18 +557,32 @@ class DartGenerator : public BaseGenerator {
 
       std::string field_name = MakeCamel(field.name, false);
       if (!constructor_args.empty()) constructor_args += ",\n";
-      constructor_args += "      " + field_name + ": " + field_name;
+      constructor_args += "      " + field_name + ": ";
 
       const Type &type = field.value.type;
-      bool isNullable =
-          getDefaultValue(field.value).empty() && !struct_def.fixed;
+      std::string defaultValue = getDefaultValue(field.value);
+      bool isNullable = defaultValue.empty() && !struct_def.fixed;
       std::string nullableValueAccessOperator = isNullable ? "?" : "";
       if (type.base_type == BASE_TYPE_STRUCT) {
-        constructor_args += nullableValueAccessOperator + ".unpack()";
-      } else if (type.base_type == BASE_TYPE_VECTOR &&
-                 type.VectorType().base_type == BASE_TYPE_STRUCT) {
         constructor_args +=
-            nullableValueAccessOperator + ".map((e) => e.unpack()).toList()";
+            field_name + nullableValueAccessOperator + ".unpack()";
+      } else if (type.base_type == BASE_TYPE_VECTOR) {
+        if (type.VectorType().base_type == BASE_TYPE_STRUCT) {
+          constructor_args += field_name + nullableValueAccessOperator +
+                              ".map((e) => e.unpack()).toList()";
+        } else {
+          constructor_args +=
+              GenReaderTypeName(field.value.type, struct_def.defined_namespace,
+                                field, false, false);
+          constructor_args += ".vTableGet";
+          std::string offset = NumToString(field.value.offset);
+          constructor_args +=
+              isNullable
+                  ? "Nullable(_bc, _bcOffset, " + offset + ")"
+                  : "(_bc, _bcOffset, " + offset + ", " + defaultValue + ")";
+        }
+      } else {
+        constructor_args += field_name;
       }
     }
 
