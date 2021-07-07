@@ -2636,9 +2636,9 @@ inline void Monster::UnPackTo(MonsterT *_o, const flatbuffers::resolver_function
   { auto _e = test4(); if (_e) { _o->test4.resize(_e->size()); for (flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->test4[_i] = *_e->Get(_i); } } }
   { auto _e = testarrayofstring(); if (_e) { _o->testarrayofstring.resize(_e->size()); for (flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->testarrayofstring[_i] = _e->Get(_i)->str(); } } }
   { auto _e = testarrayoftables(); if (_e) { _o->testarrayoftables.resize(_e->size()); for (flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { if(_o->testarrayoftables[_i]) { _e->Get(_i)->UnPackTo(_o->testarrayoftables[_i].get(), _resolver); } else { _o->testarrayoftables[_i] = flatbuffers::unique_ptr<MyGame::Example::MonsterT>(_e->Get(_i)->UnPack(_resolver)); }; } } }
-  { auto _e = enemy(); if (_e) if(_o->enemy) { _e->UnPackTo(_o->enemy.get(), _resolver); } else { _o->enemy = flatbuffers::unique_ptr<MyGame::Example::MonsterT>(_e->UnPack(_resolver)); } }
+  { auto _e = enemy(); if (_e) { if(_o->enemy) { _e->UnPackTo(_o->enemy.get(), _resolver); } else { _o->enemy = flatbuffers::unique_ptr<MyGame::Example::MonsterT>(_e->UnPack(_resolver)); } } }
   { auto _e = testnestedflatbuffer(); if (_e) { _o->testnestedflatbuffer.resize(_e->size()); std::copy(_e->begin(), _e->end(), _o->testnestedflatbuffer.begin()); } }
-  { auto _e = testempty(); if (_e) if(_o->testempty) { _e->UnPackTo(_o->testempty.get(), _resolver); } else { _o->testempty = flatbuffers::unique_ptr<MyGame::Example::StatT>(_e->UnPack(_resolver)); } }
+  { auto _e = testempty(); if (_e) { if(_o->testempty) { _e->UnPackTo(_o->testempty.get(), _resolver); } else { _o->testempty = flatbuffers::unique_ptr<MyGame::Example::StatT>(_e->UnPack(_resolver)); } } }
   { auto _e = testbool(); _o->testbool = _e; }
   { auto _e = testhashs32_fnv1(); _o->testhashs32_fnv1 = _e; }
   { auto _e = testhashu32_fnv1(); _o->testhashu32_fnv1 = _e; }
@@ -2659,7 +2659,7 @@ if (_resolver) (*_resolver)(reinterpret_cast<void **>(&_o->testhashu32_fnv1a), s
   { auto _e = test5(); if (_e) { _o->test5.resize(_e->size()); for (flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->test5[_i] = *_e->Get(_i); } } }
   { auto _e = vector_of_longs(); if (_e) { _o->vector_of_longs.resize(_e->size()); for (flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->vector_of_longs[_i] = _e->Get(_i); } } }
   { auto _e = vector_of_doubles(); if (_e) { _o->vector_of_doubles.resize(_e->size()); for (flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->vector_of_doubles[_i] = _e->Get(_i); } } }
-  { auto _e = parent_namespace_test(); if (_e) if(_o->parent_namespace_test) { _e->UnPackTo(_o->parent_namespace_test.get(), _resolver); } else { _o->parent_namespace_test = flatbuffers::unique_ptr<MyGame::InParentNamespaceT>(_e->UnPack(_resolver)); } }
+  { auto _e = parent_namespace_test(); if (_e) { if(_o->parent_namespace_test) { _e->UnPackTo(_o->parent_namespace_test.get(), _resolver); } else { _o->parent_namespace_test = flatbuffers::unique_ptr<MyGame::InParentNamespaceT>(_e->UnPack(_resolver)); } } }
   { auto _e = vector_of_referrables(); if (_e) { _o->vector_of_referrables.resize(_e->size()); for (flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { if(_o->vector_of_referrables[_i]) { _e->Get(_i)->UnPackTo(_o->vector_of_referrables[_i].get(), _resolver); } else { _o->vector_of_referrables[_i] = flatbuffers::unique_ptr<MyGame::Example::ReferrableT>(_e->Get(_i)->UnPack(_resolver)); }; } } }
   { auto _e = single_weak_reference(); //scalar resolver, naked 
 if (_resolver) (*_resolver)(reinterpret_cast<void **>(&_o->single_weak_reference), static_cast<flatbuffers::hash_value_t>(_e)); else _o->single_weak_reference = nullptr; }

@@ -2826,13 +2826,13 @@ class CppGenerator : public BaseGenerator {
               field.value.type.base_type == BASE_TYPE_STRUCT &&
               !IsStruct(field.value.type);
           if (is_pointer) {
-            code += "if(_o->" + Name(field) + ") { ";
+            code += "{ if(_o->" + Name(field) + ") { ";
             code += "_e->UnPackTo(_o->" + Name(field) + ".get(), _resolver);";
             code += " } else { ";
           }
           code += "_o->" + Name(field) + " = ";
           code += GenUnpackVal(field.value.type, "_e", false, field) + ";";
-          if (is_pointer) { code += " }"; }
+          if (is_pointer) { code += " } }"; }
         }
         break;
       }
