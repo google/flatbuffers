@@ -264,9 +264,7 @@ inline bool operator!=(const ArrayStruct &lhs, const ArrayStruct &rhs) {
 
 struct ArrayTableT : public flatbuffers::NativeTable {
   typedef ArrayTable TableType;
-  flatbuffers::unique_ptr<MyGame::Example::ArrayStruct> a;
-  ArrayTableT() {
-  }
+  flatbuffers::unique_ptr<MyGame::Example::ArrayStruct> a{};
 };
 
 struct ArrayTable FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
@@ -334,7 +332,7 @@ inline bool operator!=(const ArrayTableT &lhs, const ArrayTableT &rhs) {
 
 
 inline ArrayTableT *ArrayTable::UnPack(const flatbuffers::resolver_function_t *_resolver) const {
-  flatbuffers::unique_ptr<MyGame::Example::ArrayTableT> _o = flatbuffers::unique_ptr<MyGame::Example::ArrayTableT>(new ArrayTableT());
+  auto _o = std::unique_ptr<ArrayTableT>(new ArrayTableT());
   UnPackTo(_o.get(), _resolver);
   return _o.release();
 }
