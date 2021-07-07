@@ -2763,15 +2763,19 @@ class CppGenerator : public BaseGenerator {
               code += "/* else do nothing */";
             }
           } else {
-            if (field.value.type.VectorType().base_type == BASE_TYPE_STRUCT && !IsStruct(field.value.type.VectorType())) {
+            const bool is_pointer =
+                field.value.type.VectorType().base_type == BASE_TYPE_STRUCT &&
+                !IsStruct(field.value.type.VectorType());
+            if (is_pointer) {
               code += "if(_o->" + name + "[_i]" + ") { ";
               code += indexing + "->UnPackTo(_o->" + name +
                       "[_i].get(), _resolver);";
-              code += " } else ";
+              code += " } else { ";
             }
             code += "_o->" + name + "[_i]" + access + " = ";
             code += GenUnpackVal(field.value.type.VectorType(), indexing, true,
                                  field);
+            if (is_pointer) { code += "; }"; }
           }
           code += "; } }";
         }
@@ -2818,13 +2822,17 @@ class CppGenerator : public BaseGenerator {
         } else {
           // Generate code for assigning the value, of the form:
           //  _o->field = value;
-          if (field.value.type.base_type == BASE_TYPE_STRUCT && !IsStruct(field.value.type)) {
+          const bool is_pointer =
+              field.value.type.base_type == BASE_TYPE_STRUCT &&
+              !IsStruct(field.value.type);
+          if (is_pointer) {
             code += "if(_o->" + Name(field) + ") { ";
             code += "_e->UnPackTo(_o->" + Name(field) + ".get(), _resolver);";
-            code += " } else ";
+            code += " } else { ";
           }
           code += "_o->" + Name(field) + " = ";
           code += GenUnpackVal(field.value.type, "_e", false, field) + ";";
+          if (is_pointer) { code += " }"; }
         }
         break;
       }

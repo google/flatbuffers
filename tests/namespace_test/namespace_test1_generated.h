@@ -24,7 +24,7 @@ inline const flatbuffers::TypeTable *TableInNestedNSTypeTable();
 
 inline const flatbuffers::TypeTable *StructInNestedNSTypeTable();
 
-enum UnionInNestedNS : uint8_t {
+enum UnionInNestedNS {
   UnionInNestedNS_NONE = 0,
   UnionInNestedNS_TableInNestedNS = 1,
   UnionInNestedNS_MIN = UnionInNestedNS_NONE,
@@ -128,7 +128,7 @@ inline bool operator!=(const UnionInNestedNSUnion &lhs, const UnionInNestedNSUni
 bool VerifyUnionInNestedNS(flatbuffers::Verifier &verifier, const void *obj, UnionInNestedNS type);
 bool VerifyUnionInNestedNSVector(flatbuffers::Verifier &verifier, const flatbuffers::Vector<flatbuffers::Offset<void>> *values, const flatbuffers::Vector<uint8_t> *types);
 
-enum EnumInNestedNS : int8_t {
+enum EnumInNestedNS {
   EnumInNestedNS_A = 0,
   EnumInNestedNS_B = 1,
   EnumInNestedNS_C = 2,
@@ -212,7 +212,10 @@ struct TableInNestedNST : public flatbuffers::NativeTable {
   static FLATBUFFERS_CONSTEXPR_CPP11 const char *GetFullyQualifiedName() {
     return "NamespaceA.NamespaceB.TableInNestedNST";
   }
-  int32_t foo = 0;
+  int32_t foo;
+  TableInNestedNST()
+      : foo(0) {
+  }
 };
 
 struct TableInNestedNS FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
@@ -283,7 +286,7 @@ inline bool operator!=(const TableInNestedNST &lhs, const TableInNestedNST &rhs)
 
 
 inline TableInNestedNST *TableInNestedNS::UnPack(const flatbuffers::resolver_function_t *_resolver) const {
-  auto _o = std::unique_ptr<TableInNestedNST>(new TableInNestedNST());
+  flatbuffers::unique_ptr<NamespaceA::NamespaceB::TableInNestedNST> _o = flatbuffers::unique_ptr<NamespaceA::NamespaceB::TableInNestedNST>(new TableInNestedNST());
   UnPackTo(_o.get(), _resolver);
   return _o.release();
 }
