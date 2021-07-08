@@ -133,6 +133,22 @@ class CheckOtherLangaugesData {
   }
 }
 
+/// Test a custom, fixed-memory allocator (no actual allocations performed)
+class CustomAllocator extends Allocator {
+  final _memory = ByteData(10 * 1024);
+
+  @override
+  ByteData allocate(int size) {
+    if (size > _memory.lengthInBytes) {
+      throw UnsupportedError('Trying to allocate too much');
+    }
+    return ByteData.sublistView(_memory, 0, size);
+  }
+
+  @override
+  void deallocate(ByteData _) {}
+}
+
 @reflectiveTest
 class BuilderTest {
   void test_monsterBuilder([Builder? builder]) {
@@ -247,7 +263,7 @@ class BuilderTest {
   }
 
   void test_low() {
-    Builder builder = new Builder(initialSize: 0);
+    final builder = Builder(initialSize: 0, allocator: CustomAllocator());
     expect((builder..putUint8(1)).lowFinish(), [1]);
     expect((builder..putUint32(2)).lowFinish(), [2, 0, 0, 0, 0, 0, 0, 1]);
     expect((builder..putUint8(3)).lowFinish(),
@@ -263,7 +279,7 @@ class BuilderTest {
   void test_table_default() {
     List<int> byteList;
     {
-      Builder builder = new Builder(initialSize: 0);
+      final builder = Builder(initialSize: 0, allocator: CustomAllocator());
       builder.startTable();
       builder.addInt32(0, 10, 10);
       builder.addInt32(1, 20, 10);
