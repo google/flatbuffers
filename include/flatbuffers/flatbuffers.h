@@ -1914,7 +1914,9 @@ class FlatBufferBuilder {
   template<typename T>
   Offset<Vector<const T *>> CreateVectorOfStructs(const T *v, size_t len) {
     StartVector(len * sizeof(T) / AlignOf<T>(), AlignOf<T>());
-    PushBytes(reinterpret_cast<const uint8_t *>(v), sizeof(T) * len);
+    if (len > 0) {
+      PushBytes(reinterpret_cast<const uint8_t *>(v), sizeof(T) * len);
+    }
     return Offset<Vector<const T *>>(EndVector(len));
   }
 
