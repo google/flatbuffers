@@ -1820,7 +1820,7 @@ Here is a repetition of these lines, to help highlight them more clearly:
 <div class="language-cpp">
   ~~~{.cpp}
     monster_builder.add_equipped_type(Equipment_Weapon); // Union type
-    monster_builder.add_equipped(axe); // Union data
+    monster_builder.add_equipped(axe.Union()); // Union data
   ~~~
 </div>
 <div class="language-java">
