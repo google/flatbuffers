@@ -960,7 +960,7 @@ class RustGenerator : public BaseGenerator {
             field.IsRequired() ? "\"\"" : "\"" + field.value.constant + "\"";
         if (context == kObject) return defval + ".to_string()";
         if (context == kAccessor) return "&" + defval;
-        FLATBUFFERS_ASSERT("Unreachable.");
+        FLATBUFFERS_ASSERT(false);
         return "INVALID_CODE_GENERATION";
       }
 
@@ -986,7 +986,7 @@ class RustGenerator : public BaseGenerator {
         return "Default::default()";
       }
     }
-    FLATBUFFERS_ASSERT("Unreachable.");
+    FLATBUFFERS_ASSERT(false);
     return "INVALID_CODE_GENERATION";
   }
 

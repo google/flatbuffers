@@ -14,7 +14,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        cxx: [g++-11, clang++-11]
+        cxx: [g++-10, clang++-12]
     steps:
     - uses: actions/checkout@v1
     - name: cmake
@@ -103,7 +103,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        cxx: [g++-11, clang++-11]
+        cxx: [g++-10, clang++-12]
     steps:
     - uses: actions/checkout@v1
     - name: cmake

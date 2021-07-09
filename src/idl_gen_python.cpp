@@ -478,7 +478,7 @@ class PythonGenerator : public BaseGenerator {
         // a nested struct, prefix the name with the field name.
         auto subprefix = nameprefix;
         if (has_field_name) {
-          subprefix += NormalizedName(field) + fieldname_suffix;
+          subprefix += MakeLowerCamel(field) + fieldname_suffix;
         }
         StructBuilderArgs(*field.value.type.struct_def, subprefix, namesuffix,
                           has_field_name, fieldname_suffix, code_ptr);
@@ -518,7 +518,7 @@ class PythonGenerator : public BaseGenerator {
             indent + "    builder.Pad(" + NumToString(field.padding) + ")\n";
       if (IsStruct(field_type)) {
         StructBuilderBody(*field_type.struct_def,
-                          (nameprefix + (NormalizedName(field) + "_")).c_str(),
+                          (nameprefix + (MakeLowerCamel(field) + "_")).c_str(),
                           code_ptr, index, in_array);
       } else {
         const auto index_var = "_idx" + NumToString(index);
@@ -531,7 +531,7 @@ class PythonGenerator : public BaseGenerator {
         if (IsStruct(type)) {
           StructBuilderBody(
               *field_type.struct_def,
-              (nameprefix + (NormalizedName(field) + "_")).c_str(), code_ptr,
+              (nameprefix + (MakeLowerCamel(field) + "_")).c_str(), code_ptr,
               index + 1, in_array);
         } else {
           code += IsArray(field_type) ? "    " : "";

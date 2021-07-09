@@ -41,7 +41,7 @@ generator="--grpc $current_dir/greeter.fbs"
 cd go
 
 cd greeter
-fbc --go ${generator}
+fbc --bfbs-filenames ../.. --go ${generator}
 
 cd ${current_dir}
 
@@ -50,7 +50,7 @@ cd python
 
 cd greeter
 
-fbc --python ${generator}
+fbc --bfbs-filenames ../.. --python ${generator}
 
 cd ${current_dir}
 
@@ -58,7 +58,7 @@ cd ${current_dir}
 cd swift
 
 cd Greeter/Sources/Model
-fbc --swift ${generator}
+fbc --bfbs-filenames ../../../.. --swift ${generator}
 
 cd ${current_dir}
 
@@ -66,6 +66,6 @@ cd ${current_dir}
 cd ts
 
 cd greeter/src
-fbc --ts ${generator}
+fbc --bfbs-filenames ../../.. --ts ${generator}
 
 cd ${current_dir}

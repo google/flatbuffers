@@ -90,51 +90,6 @@ struct ScalarStuffT : public flatbuffers::NativeTable {
   optional_scalars::OptionalByte default_enum = optional_scalars::OptionalByte_One;
 };
 
-inline bool operator==(const ScalarStuffT &lhs, const ScalarStuffT &rhs) {
-  return
-      (lhs.just_i8 == rhs.just_i8) &&
-      (lhs.maybe_i8 == rhs.maybe_i8) &&
-      (lhs.default_i8 == rhs.default_i8) &&
-      (lhs.just_u8 == rhs.just_u8) &&
-      (lhs.maybe_u8 == rhs.maybe_u8) &&
-      (lhs.default_u8 == rhs.default_u8) &&
-      (lhs.just_i16 == rhs.just_i16) &&
-      (lhs.maybe_i16 == rhs.maybe_i16) &&
-      (lhs.default_i16 == rhs.default_i16) &&
-      (lhs.just_u16 == rhs.just_u16) &&
-      (lhs.maybe_u16 == rhs.maybe_u16) &&
-      (lhs.default_u16 == rhs.default_u16) &&
-      (lhs.just_i32 == rhs.just_i32) &&
-      (lhs.maybe_i32 == rhs.maybe_i32) &&
-      (lhs.default_i32 == rhs.default_i32) &&
-      (lhs.just_u32 == rhs.just_u32) &&
-      (lhs.maybe_u32 == rhs.maybe_u32) &&
-      (lhs.default_u32 == rhs.default_u32) &&
-      (lhs.just_i64 == rhs.just_i64) &&
-      (lhs.maybe_i64 == rhs.maybe_i64) &&
-      (lhs.default_i64 == rhs.default_i64) &&
-      (lhs.just_u64 == rhs.just_u64) &&
-      (lhs.maybe_u64 == rhs.maybe_u64) &&
-      (lhs.default_u64 == rhs.default_u64) &&
-      (lhs.just_f32 == rhs.just_f32) &&
-      (lhs.maybe_f32 == rhs.maybe_f32) &&
-      (lhs.default_f32 == rhs.default_f32) &&
-      (lhs.just_f64 == rhs.just_f64) &&
-      (lhs.maybe_f64 == rhs.maybe_f64) &&
-      (lhs.default_f64 == rhs.default_f64) &&
-      (lhs.just_bool == rhs.just_bool) &&
-      (lhs.maybe_bool == rhs.maybe_bool) &&
-      (lhs.default_bool == rhs.default_bool) &&
-      (lhs.just_enum == rhs.just_enum) &&
-      (lhs.maybe_enum == rhs.maybe_enum) &&
-      (lhs.default_enum == rhs.default_enum);
-}
-
-inline bool operator!=(const ScalarStuffT &lhs, const ScalarStuffT &rhs) {
-    return !(lhs == rhs);
-}
-
-
 struct ScalarStuff FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   typedef ScalarStuffT NativeTableType;
   typedef ScalarStuffBuilder Builder;
@@ -642,6 +597,52 @@ inline flatbuffers::Offset<ScalarStuff> CreateScalarStuff(
 }
 
 flatbuffers::Offset<ScalarStuff> CreateScalarStuff(flatbuffers::FlatBufferBuilder &_fbb, const ScalarStuffT *_o, const flatbuffers::rehasher_function_t *_rehasher = nullptr);
+
+
+inline bool operator==(const ScalarStuffT &lhs, const ScalarStuffT &rhs) {
+  return
+      (lhs.just_i8 == rhs.just_i8) &&
+      (lhs.maybe_i8 == rhs.maybe_i8) &&
+      (lhs.default_i8 == rhs.default_i8) &&
+      (lhs.just_u8 == rhs.just_u8) &&
+      (lhs.maybe_u8 == rhs.maybe_u8) &&
+      (lhs.default_u8 == rhs.default_u8) &&
+      (lhs.just_i16 == rhs.just_i16) &&
+      (lhs.maybe_i16 == rhs.maybe_i16) &&
+      (lhs.default_i16 == rhs.default_i16) &&
+      (lhs.just_u16 == rhs.just_u16) &&
+      (lhs.maybe_u16 == rhs.maybe_u16) &&
+      (lhs.default_u16 == rhs.default_u16) &&
+      (lhs.just_i32 == rhs.just_i32) &&
+      (lhs.maybe_i32 == rhs.maybe_i32) &&
+      (lhs.default_i32 == rhs.default_i32) &&
+      (lhs.just_u32 == rhs.just_u32) &&
+      (lhs.maybe_u32 == rhs.maybe_u32) &&
+      (lhs.default_u32 == rhs.default_u32) &&
+      (lhs.just_i64 == rhs.just_i64) &&
+      (lhs.maybe_i64 == rhs.maybe_i64) &&
+      (lhs.default_i64 == rhs.default_i64) &&
+      (lhs.just_u64 == rhs.just_u64) &&
+      (lhs.maybe_u64 == rhs.maybe_u64) &&
+      (lhs.default_u64 == rhs.default_u64) &&
+      (lhs.just_f32 == rhs.just_f32) &&
+      (lhs.maybe_f32 == rhs.maybe_f32) &&
+      (lhs.default_f32 == rhs.default_f32) &&
+      (lhs.just_f64 == rhs.just_f64) &&
+      (lhs.maybe_f64 == rhs.maybe_f64) &&
+      (lhs.default_f64 == rhs.default_f64) &&
+      (lhs.just_bool == rhs.just_bool) &&
+      (lhs.maybe_bool == rhs.maybe_bool) &&
+      (lhs.default_bool == rhs.default_bool) &&
+      (lhs.just_enum == rhs.just_enum) &&
+      (lhs.maybe_enum == rhs.maybe_enum) &&
+      (lhs.default_enum == rhs.default_enum);
+}
+
+inline bool operator!=(const ScalarStuffT &lhs, const ScalarStuffT &rhs) {
+    return !(lhs == rhs);
+}
+
 
 inline ScalarStuffT *ScalarStuff::UnPack(const flatbuffers::resolver_function_t *_resolver) const {
   auto _o = std::unique_ptr<ScalarStuffT>(new ScalarStuffT());

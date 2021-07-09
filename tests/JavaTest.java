@@ -109,6 +109,8 @@ class JavaTest {
 
         TestScalarOptional();
 
+        TestPackUnpack(bb);
+
         System.out.println("FlatBuffers test: completed successfully");
     }
 
@@ -1059,7 +1061,7 @@ class JavaTest {
         FlexBuffersBuilder failBuilder = new FlexBuffersBuilder(ByteBuffer.allocate(1));
         failBuilder.putString(someString);
     }
-    
+
     public static void testFlexBuffersUtf8Map() {
         FlexBuffersBuilder builder = new FlexBuffersBuilder(ByteBuffer.allocate(512),
                 FlexBuffersBuilder.BUILDER_FLAG_SHARE_KEYS_AND_STRINGS);
@@ -1400,6 +1402,122 @@ class JavaTest {
         TestEq(scalarStuff.hasMaybeF64(), true);
         TestEq(scalarStuff.hasMaybeBool(), true);
         TestEq(scalarStuff.hasMaybeEnum(), true);
+    }
+
+    static void TestObject(MonsterT monster) {
+        TestEq(monster.getHp(), (short) 80);
+        TestEq(monster.getMana(), (short) 150);  // default
+
+        TestEq(monster.getName(), "MyMonster");
+        TestEq(monster.getColor(), Color.Blue);
+        // monster.friendly() // can't access, deprecated
+
+        Vec3T pos = monster.getPos();
+        TestEq(pos.getX(), 1.0f);
+        TestEq(pos.getY(), 2.0f);
+        TestEq(pos.getZ(), 3.0f);
+        TestEq(pos.getTest1(), 3.0);
+        // issue: int != byte
+        TestEq(pos.getTest2(), (int) Color.Green);
+        TestT t = pos.getTest3();
+        TestEq(t.getA(), (short) 5);
+        TestEq(t.getB(), (byte) 6);
+
+        TestEq(monster.getTest().getType(), (byte) Any.Monster);
+        MonsterT monster2 = (MonsterT) monster.getTest().getValue();
+        TestEq(monster2 != null, true);
+        TestEq(monster2.getName(), "Fred");
+
+        int[] inv = monster.getInventory();
+        TestEq(inv.length, 5);
+        int[] expInv = {0, 1, 2, 3, 4};
+        for (int i = 0; i < inv.length; i++)
+            TestEq(expInv[i], inv[i]);
+
+        TestT[] test4 = monster.getTest4();
+        TestT test_0 = test4[0];
+        TestT test_1 = test4[1];
+        TestEq(test4.length, 2);
+        TestEq(test_0.getA(), (short) 10);
+        TestEq(test_0.getB(), (byte) 20);
+        TestEq(test_1.getA(), (short) 30);
+        TestEq(test_1.getB(), (byte) 40);
+
+        String[] testarrayofstring = monster.getTestarrayofstring();
+        TestEq(testarrayofstring.length, 2);
+        TestEq(testarrayofstring[0], "test1");
+        TestEq(testarrayofstring[1], "test2");
+
+        MonsterT[] testarrayoftables = monster.getTestarrayoftables();
+        TestEq(testarrayoftables.length, 0);
+
+        MonsterT enemy = monster.getEnemy();
+        TestEq(enemy != null, true);
+        TestEq(enemy.getName(), "Fred");
+
+        int[] testnestedflatbuffer = monster.getTestnestedflatbuffer();
+        TestEq(testnestedflatbuffer.length, 0);
+
+        TestEq(monster.getTestempty() == null, true);
+
+        TestEq(monster.getTestbool(), true);
+
+        boolean[] testarrayofbools = monster.getTestarrayofbools();
+        TestEq(testarrayofbools.length, 3);
+        TestEq(testarrayofbools[0], true);
+        TestEq(testarrayofbools[1], false);
+        TestEq(testarrayofbools[2], true);
+
+        TestEq(monster.getTestf(), 3.14159f);
+        TestEq(monster.getTestf2(), 3.0f);
+        TestEq(monster.getTestf3(), 0.0f);
+        TestEq(monster.getTestf3(), 0.0f);
+
+        AbilityT[] testarrayofsortedstruct = monster.getTestarrayofsortedstruct();
+        TestEq(testarrayofsortedstruct.length, 3);
+        TestEq(testarrayofsortedstruct[0].getId(), (long) 0);
+        TestEq(testarrayofsortedstruct[1].getId(), (long) 1);
+        TestEq(testarrayofsortedstruct[2].getId(), (long) 5);
+        TestEq(testarrayofsortedstruct[0].getDistance(), (long) 45);
+        TestEq(testarrayofsortedstruct[1].getDistance(), (long) 21);
+        TestEq(testarrayofsortedstruct[2].getDistance(), (long) 12);
+
+        int[] flex = monster.getFlex();
+        TestEq(flex.length, 0);
+
+        long[] vectorOfLongs = monster.getVectorOfLongs();
+        TestEq(vectorOfLongs.length, 5);
+        long l = 1;
+        for (int i = 0; i < vectorOfLongs.length; i++) {
+            TestEq(vectorOfLongs[i], l);
+            l *= 100;
+        }
+
+        double[] vectorOfDoubles = monster.getVectorOfDoubles();
+        TestEq(vectorOfDoubles.length, 3);
+        TestEq(vectorOfDoubles[0], -1.7976931348623157E308);
+        TestEq(vectorOfDoubles[1], 0.0);
+        TestEq(vectorOfDoubles[2], 1.7976931348623157E308);
+
+        TestEq(monster.getParentNamespaceTest() == null, true);
+        ReferrableT[] vectorOfReferrables = monster.getVectorOfReferrables();
+        TestEq(vectorOfReferrables.length, 0);
+
+        TestEq(monster.getSignedEnum(), (byte) -1);
+    }
+
+    static void TestPackUnpack(ByteBuffer bb) {
+        Monster m = Monster.getRootAsMonster(bb);
+        MonsterT mObject = m.unpack();
+        TestObject(mObject);
+        FlatBufferBuilder fbb = new FlatBufferBuilder();
+        int monster = Monster.pack(fbb, mObject);
+        Monster.finishMonsterBuffer(fbb, monster);
+        TestBuffer(fbb.dataBuffer());
+
+        byte[] bytes = mObject.serializeToBinary();
+        MonsterT newMonsterT = MonsterT.deserializeFromBinary(bytes);
+        TestObject(newMonsterT);
     }
 
     static <T> void TestEq(T a, T b) {

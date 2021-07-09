@@ -235,24 +235,6 @@ struct MonsterT : public flatbuffers::NativeTable {
   std::vector<MyGame::Sample::Vec3> path{};
 };
 
-inline bool operator==(const MonsterT &lhs, const MonsterT &rhs) {
-  return
-      (lhs.pos == rhs.pos) &&
-      (lhs.mana == rhs.mana) &&
-      (lhs.hp == rhs.hp) &&
-      (lhs.name == rhs.name) &&
-      (lhs.inventory == rhs.inventory) &&
-      (lhs.color == rhs.color) &&
-      (lhs.weapons == rhs.weapons) &&
-      (lhs.equipped == rhs.equipped) &&
-      (lhs.path == rhs.path);
-}
-
-inline bool operator!=(const MonsterT &lhs, const MonsterT &rhs) {
-    return !(lhs == rhs);
-}
-
-
 struct Monster FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   typedef MonsterT NativeTableType;
   typedef MonsterBuilder Builder;
@@ -470,17 +452,6 @@ struct WeaponT : public flatbuffers::NativeTable {
   int16_t damage = 0;
 };
 
-inline bool operator==(const WeaponT &lhs, const WeaponT &rhs) {
-  return
-      (lhs.name == rhs.name) &&
-      (lhs.damage == rhs.damage);
-}
-
-inline bool operator!=(const WeaponT &lhs, const WeaponT &rhs) {
-    return !(lhs == rhs);
-}
-
-
 struct Weapon FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   typedef WeaponT NativeTableType;
   typedef WeaponBuilder Builder;
@@ -559,6 +530,25 @@ inline flatbuffers::Offset<Weapon> CreateWeaponDirect(
 
 flatbuffers::Offset<Weapon> CreateWeapon(flatbuffers::FlatBufferBuilder &_fbb, const WeaponT *_o, const flatbuffers::rehasher_function_t *_rehasher = nullptr);
 
+
+inline bool operator==(const MonsterT &lhs, const MonsterT &rhs) {
+  return
+      ((lhs.pos == rhs.pos) || (lhs.pos && rhs.pos && *lhs.pos == *rhs.pos)) &&
+      (lhs.mana == rhs.mana) &&
+      (lhs.hp == rhs.hp) &&
+      (lhs.name == rhs.name) &&
+      (lhs.inventory == rhs.inventory) &&
+      (lhs.color == rhs.color) &&
+      (lhs.weapons == rhs.weapons) &&
+      (lhs.equipped == rhs.equipped) &&
+      (lhs.path == rhs.path);
+}
+
+inline bool operator!=(const MonsterT &lhs, const MonsterT &rhs) {
+    return !(lhs == rhs);
+}
+
+
 inline MonsterT *Monster::UnPack(const flatbuffers::resolver_function_t *_resolver) const {
   auto _o = std::unique_ptr<MonsterT>(new MonsterT());
   UnPackTo(_o.get(), _resolver);
@@ -611,6 +601,18 @@ inline flatbuffers::Offset<Monster> CreateMonster(flatbuffers::FlatBufferBuilder
       _equipped,
       _path);
 }
+
+
+inline bool operator==(const WeaponT &lhs, const WeaponT &rhs) {
+  return
+      (lhs.name == rhs.name) &&
+      (lhs.damage == rhs.damage);
+}
+
+inline bool operator!=(const WeaponT &lhs, const WeaponT &rhs) {
+    return !(lhs == rhs);
+}
+
 
 inline WeaponT *Weapon::UnPack(const flatbuffers::resolver_function_t *_resolver) const {
   auto _o = std::unique_ptr<WeaponT>(new WeaponT());

@@ -50,14 +50,14 @@ $TEST_NOINCL_FLAGS $TEST_CPP_FLAGS $TEST_CS_FLAGS $TEST_TS_FLAGS -o namespace_te
 ../flatc --ts --gen-name-strings $TEST_BASE_FLAGS $TEST_TS_FLAGS -o union_vector union_vector/union_vector.fbs
 ../flatc --rust -I include_test -o include_test include_test/include_test1.fbs
 ../flatc --rust -I include_test -o include_test/sub include_test/sub/include_test2.fbs
-../flatc -b --schema --bfbs-comments --bfbs-builtins -I include_test monster_test.fbs
+../flatc -b --schema --bfbs-comments --bfbs-filenames . --bfbs-builtins -I include_test monster_test.fbs
 ../flatc --cpp --bfbs-comments --bfbs-builtins --bfbs-gen-embed $TEST_NOINCL_FLAGS $TEST_CPP_FLAGS -I include_test monster_test.fbs
 ../flatc -b --schema --bfbs-comments --bfbs-builtins -I include_test arrays_test.fbs
 ../flatc --jsonschema --schema -I include_test monster_test.fbs
 ../flatc --cpp --java --kotlin --csharp --python $TEST_NOINCL_FLAGS $TEST_CPP_FLAGS $TEST_CS_FLAGS monster_extra.fbs monsterdata_extra.json
 ../flatc --cpp --java --csharp --jsonschema --rust $TEST_NOINCL_FLAGS $TEST_CPP_FLAGS $TEST_CS_FLAGS --scoped-enums arrays_test.fbs
 ../flatc --python $TEST_BASE_FLAGS arrays_test.fbs
-../flatc --dart monster_extra.fbs
+../flatc --dart --gen-object-api monster_extra.fbs
 
 # Generate optional scalar code for tests.
 ../flatc --java --kotlin --lobster --ts optional_scalars.fbs
@@ -72,10 +72,10 @@ $TEST_NOINCL_FLAGS $TEST_CPP_FLAGS $TEST_CS_FLAGS $TEST_TS_FLAGS -o namespace_te
 
 working_dir=`pwd`
 cd FlatBuffers.Test.Swift/Tests/FlatBuffers.Test.SwiftTests
-$working_dir/../flatc --swift --grpc $TEST_NOINCL_FLAGS $TEST_CPP_FLAGS $TEST_CS_FLAGS -I ${working_dir}/include_test ${working_dir}/monster_test.fbs
-$working_dir/../flatc --swift $TEST_BASE_FLAGS $TEST_CPP_FLAGS $TEST_CS_FLAGS ${working_dir}/union_vector/union_vector.fbs
-$working_dir/../flatc --swift ${working_dir}/optional_scalars.fbs
-$working_dir/../flatc --swift --gen-object-api ${working_dir}/more_defaults.fbs
+$working_dir/../flatc --bfbs-filenames $working_dir --swift --grpc $TEST_NOINCL_FLAGS $TEST_CPP_FLAGS $TEST_CS_FLAGS -I ${working_dir}/include_test ${working_dir}/monster_test.fbs
+$working_dir/../flatc --bfbs-filenames $working_dir --swift $TEST_BASE_FLAGS $TEST_CPP_FLAGS $TEST_CS_FLAGS ${working_dir}/union_vector/union_vector.fbs
+$working_dir/../flatc --bfbs-filenames $working_dir --swift ${working_dir}/optional_scalars.fbs
+$working_dir/../flatc --bfbs-filenames $working_dir --swift --gen-object-api ${working_dir}/more_defaults.fbs
 cd $working_dir
 
 # Tests if the --filename-suffix and --filename-ext works and produces the same

@@ -233,6 +233,30 @@ class CppGenerator : public BaseGenerator {
     return keywords_.find(name) == keywords_.end() ? name : name + "_";
   }
 
+  std::string Name(const FieldDef &field) const {
+    // the union type field suffix is immutable.
+    static size_t union_suffix_len = strlen(UnionTypeFieldSuffix());
+    const bool is_union_type = field.value.type.base_type == BASE_TYPE_UTYPE;
+    // early return if no case transformation required
+    if (opts_.cpp_object_api_field_case_style ==
+        IDLOptions::CaseStyle_Unchanged)
+      return EscapeKeyword(field.name);
+    std::string name = field.name;
+    // do not change the case style of the union type field suffix
+    if (is_union_type) {
+      FLATBUFFERS_ASSERT(name.length() > union_suffix_len);
+      name.erase(name.length() - union_suffix_len, union_suffix_len);
+    }
+    if (opts_.cpp_object_api_field_case_style == IDLOptions::CaseStyle_Upper)
+      name = MakeCamel(name, true); /* upper */
+    else if (opts_.cpp_object_api_field_case_style ==
+             IDLOptions::CaseStyle_Lower)
+      name = MakeCamel(name, false); /* lower */
+    // restore the union field type suffix
+    if (is_union_type) name.append(UnionTypeFieldSuffix(), union_suffix_len);
+    return EscapeKeyword(name);
+  }
+
   std::string Name(const Definition &def) const {
     return EscapeKeyword(def.name);
   }
@@ -667,9 +691,7 @@ class CppGenerator : public BaseGenerator {
       }
       case BASE_TYPE_UNION:
         // fall through
-      default: {
-        return "void";
-      }
+      default: { return "void"; }
     }
   }
 
@@ -1009,9 +1031,10 @@ class CppGenerator : public BaseGenerator {
                     ? bt - BASE_TYPE_UTYPE + ET_UTYPE
                     : ET_SEQUENCE;
       int ref_idx = -1;
-      std::string ref_name = type.struct_def ? WrapInNameSpace(*type.struct_def)
-                             : type.enum_def ? WrapInNameSpace(*type.enum_def)
-                                             : "";
+      std::string ref_name =
+          type.struct_def
+              ? WrapInNameSpace(*type.struct_def)
+              : type.enum_def ? WrapInNameSpace(*type.enum_def) : "";
       if (!ref_name.empty()) {
         auto rit = type_refs.begin();
         for (; rit != type_refs.end(); ++rit) {
@@ -1796,7 +1819,18 @@ class CppGenerator : public BaseGenerator {
            field.value.type.element != BASE_TYPE_UTYPE)) {
         if (!compare_op.empty()) { compare_op += " &&\n      "; }
         auto accessor = Name(field) + accessSuffix;
-        compare_op += "(lhs." + accessor + " == rhs." + accessor + ")";
+        if (struct_def.fixed ||
+            field.value.type.base_type != BASE_TYPE_STRUCT) {
+          compare_op += "(lhs." + accessor + " == rhs." + accessor + ")";
+        } else {
+          // Deep compare of std::unique_ptr. Null is not equal to empty.
+          std::string both_null =
+              "(lhs." + accessor + " == rhs." + accessor + ")";
+          std::string not_null_and_equal = "(lhs." + accessor + " && rhs." +
+                                           accessor + " && *lhs." + accessor +
+                                           " == *rhs." + accessor + ")";
+          compare_op += "(" + both_null + " || " + not_null_and_equal + ")";
+        }
       }
     }
 
@@ -1862,8 +1896,17 @@ class CppGenerator : public BaseGenerator {
     GenOperatorNewDelete(struct_def);
     GenDefaultConstructor(struct_def);
     code_ += "};";
-    if (opts_.gen_compare) GenCompareOperator(struct_def);
     code_ += "";
+  }
+
+  void GenNativeTablePost(const StructDef &struct_def) {
+    if (opts_.gen_compare) {
+      const auto native_name = NativeName(Name(struct_def), &struct_def, opts_);
+      code_.SetValue("STRUCT_NAME", Name(struct_def));
+      code_.SetValue("NATIVE_NAME", native_name);
+      GenCompareOperator(struct_def);
+      code_ += "";
+    }
   }
 
   // Generate the code to call the appropriate Verify function(s) for a field.
@@ -1924,9 +1967,7 @@ class CppGenerator : public BaseGenerator {
         }
         break;
       }
-      default: {
-        break;
-      }
+      default: { break; }
     }
   }
 
@@ -2978,6 +3019,8 @@ class CppGenerator : public BaseGenerator {
 
   // Generate code for tables that needs to come after the regular definition.
   void GenTablePost(const StructDef &struct_def) {
+    if (opts_.generate_object_based_api) { GenNativeTablePost(struct_def); }
+
     code_.SetValue("STRUCT_NAME", Name(struct_def));
     code_.SetValue("NATIVE_NAME",
                    NativeName(Name(struct_def), &struct_def, opts_));

@@ -34,5 +34,20 @@ public final class ArrayTable extends Table {
     public ArrayTable get(int j) { return get(new ArrayTable(), j); }
     public ArrayTable get(ArrayTable obj, int j) {  return obj.__assign(__indirect(__element(j), bb), bb); }
   }
+  public ArrayTableT unpack() {
+    ArrayTableT _o = new ArrayTableT();
+    unpackTo(_o);
+    return _o;
+  }
+  public void unpackTo(ArrayTableT _o) {
+    if (a() != null) a().unpackTo(_o.getA());
+    else _o.setA(null);
+  }
+  public static int pack(FlatBufferBuilder builder, ArrayTableT _o) {
+    if (_o == null) return 0;
+    startArrayTable(builder);
+    addA(builder, MyGame.Example.ArrayStruct.pack(builder, _o.getA()));
+    return endArrayTable(builder);
+  }
 }
 

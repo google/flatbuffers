@@ -266,7 +266,8 @@ struct Definition {
         defined_namespace(nullptr),
         serialized_location(0),
         index(-1),
-        refcount(1) {}
+        refcount(1),
+        declaration_file(nullptr) {}
 
   flatbuffers::Offset<
       flatbuffers::Vector<flatbuffers::Offset<reflection::KeyValue>>>
@@ -286,6 +287,7 @@ struct Definition {
   uoffset_t serialized_location;
   int index;  // Inside the vector it is stored.
   int refcount;
+  const std::string *declaration_file;
 };
 
 struct FieldDef : public Definition {
@@ -536,6 +538,9 @@ struct ServiceDef : public Definition {
 
 // Container of options that may apply to any of the source/text generators.
 struct IDLOptions {
+  // field case style options for C++
+  enum CaseStyle { CaseStyle_Unchanged = 0, CaseStyle_Upper, CaseStyle_Lower };
+
   bool gen_jvmstatic;
   // Use flexbuffers instead for binary and text generation
   bool use_flexbuffers;
@@ -558,6 +563,7 @@ struct IDLOptions {
   std::string cpp_object_api_pointer_type;
   std::string cpp_object_api_string_type;
   bool cpp_object_api_string_flexible_constructor;
+  CaseStyle cpp_object_api_field_case_style;
   bool cpp_direct_copy;
   bool gen_nullable;
   bool java_checkerframework;
@@ -587,6 +593,7 @@ struct IDLOptions {
   std::string filename_suffix;
   std::string filename_extension;
   bool no_warnings;
+  std::string project_root;
 
   // Possible options for the more general generator below.
   enum Language {
@@ -651,6 +658,7 @@ struct IDLOptions {
         gen_compare(false),
         cpp_object_api_pointer_type("std::unique_ptr"),
         cpp_object_api_string_flexible_constructor(false),
+        cpp_object_api_field_case_style(CaseStyle_Unchanged),
         cpp_direct_copy(true),
         gen_nullable(false),
         java_checkerframework(false),
@@ -672,6 +680,7 @@ struct IDLOptions {
         filename_suffix("_generated"),
         filename_extension(),
         no_warnings(false),
+        project_root(""),
         lang(IDLOptions::kJava),
         mini_reflect(IDLOptions::kNone),
         require_explicit_ids(false),
@@ -936,14 +945,15 @@ class Parser : public ParserState {
   StructDef *LookupCreateStruct(const std::string &name,
                                 bool create_if_new = true,
                                 bool definition = false);
-  FLATBUFFERS_CHECKED_ERROR ParseEnum(bool is_union, EnumDef **dest);
+  FLATBUFFERS_CHECKED_ERROR ParseEnum(bool is_union, EnumDef **dest,
+                                      const char *filename);
   FLATBUFFERS_CHECKED_ERROR ParseNamespace();
   FLATBUFFERS_CHECKED_ERROR StartStruct(const std::string &name,
                                         StructDef **dest);
   FLATBUFFERS_CHECKED_ERROR StartEnum(const std::string &name, bool is_union,
                                       EnumDef **dest);
-  FLATBUFFERS_CHECKED_ERROR ParseDecl();
-  FLATBUFFERS_CHECKED_ERROR ParseService();
+  FLATBUFFERS_CHECKED_ERROR ParseDecl(const char *filename);
+  FLATBUFFERS_CHECKED_ERROR ParseService(const char *filename);
   FLATBUFFERS_CHECKED_ERROR ParseProtoFields(StructDef *struct_def,
                                              bool isextend, bool inside_oneof);
   FLATBUFFERS_CHECKED_ERROR ParseProtoOption();
@@ -980,6 +990,8 @@ class Parser : public ParserState {
   FLATBUFFERS_CHECKED_ERROR RecurseError();
   template<typename F> CheckedError Recurse(F f);
 
+  const std::string &GetPooledString(const std::string &s) const;
+
  public:
   SymbolTable<Type> types_;
   SymbolTable<StructDef> structs_;
@@ -1014,6 +1026,10 @@ class Parser : public ParserState {
   std::string file_being_parsed_;
 
   std::vector<std::pair<Value, FieldDef *>> field_stack_;
+
+  // TODO(cneo): Refactor parser to use string_cache more often to save
+  // on memory usage.
+  mutable std::set<std::string> string_cache_;
 
   int anonymous_counter_;
   int parse_depth_counter_;  // stack-overflow guard

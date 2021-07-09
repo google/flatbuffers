@@ -60,6 +60,8 @@ table Enum {
     underlying_type:Type (required);
     attributes:[KeyValue];
     documentation:[string];
+    /// File that this Enum is declared in.
+    declaration_file: string;
 }
 
 table Field {
@@ -85,6 +87,8 @@ table Object {  // Used for both tables and structs.
     bytesize:int;  // For structs.
     attributes:[KeyValue];
     documentation:[string];
+    /// File that this Object is declared in.
+    declaration_file: string;
 }
 
 table RPCCall {
@@ -100,14 +104,26 @@ table Service {
     calls:[RPCCall];
     attributes:[KeyValue];
     documentation:[string];
+    /// File that this Service is declared in.
+    declaration_file: string;
 }
 
-// New schema language features that are not supported by old code generators.
+/// New schema language features that are not supported by old code generators.
 enum AdvancedFeatures : ulong (bit_flags) {
     AdvancedArrayFeatures,
     AdvancedUnionFeatures,
     OptionalScalars,
     DefaultVectorsAndStrings,
+}
+
+/// File specific information.
+/// Symbols declared within a file may be recovered by iterating over all
+/// symbols and examining the `declaration_file` field.
+table SchemaFile {
+  /// Filename, relative to project root.
+  filename:string (required, key);
+  /// Names of included files, relative to project root.
+  included_filenames:[string];
 }
 
 table Schema {
@@ -118,6 +134,9 @@ table Schema {
     root_table:Object;
     services:[Service];             // Sorted.
     advanced_features:AdvancedFeatures;
+    /// All the files used in this compilation. Files are relative to where
+    /// flatc was invoked.
+    fbs_files:[SchemaFile];         // Sorted.
 }
 
 root_type Schema;

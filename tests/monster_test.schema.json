@@ -162,7 +162,7 @@
     },
     "MyGame_Example_Monster" : {
       "type" : "object",
-      "description" : " an example documentation comment: \"monster object\"",
+      "description" : "an example documentation comment: \"monster object\"",
       "properties" : {
         "pos" : {
                 "$ref" : "#/definitions/MyGame_Example_Vec3"
@@ -178,7 +178,7 @@
               },
         "friendly" : {
                 "type" : "boolean",
-                "deprecated" : true,
+                "deprecated" : true
               },
         "inventory" : {
                 "type" : "array", "items" : {"type" : "integer", "minimum" : 0, "maximum" :255}
@@ -199,7 +199,8 @@
                 "type" : "array", "items" : {"type" : "string"}
               },
         "testarrayoftables" : {
-                "type" : "array", "items" : {"$ref" : "#/definitions/MyGame_Example_Monster"}
+                "type" : "array", "items" : {"$ref" : "#/definitions/MyGame_Example_Monster"},
+                "description" : "an example documentation comment: this will end up in the generated code\nmultiline too"
               },
         "enemy" : {
                 "$ref" : "#/definitions/MyGame_Example_Monster"
