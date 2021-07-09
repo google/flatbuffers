@@ -352,7 +352,9 @@ class Builder {
   /// interpreted as a 4-byte Latin-1 encoded string that should be placed at
   /// bytes 4-7 of the file.
   Uint8List finish(int offset, [String? fileIdentifier]) {
-    _prepare(max(_sizeofUint32, _maxAlign), fileIdentifier == null ? 1 : 2);
+    final sizeBeforePadding = size();
+    final requiredBytes = _sizeofUint32 * (fileIdentifier == null ? 1 : 2);
+    _prepare(max(requiredBytes, _maxAlign), 1);
     final finishedSize = size();
     _setUint32AtTail(_buf, finishedSize, finishedSize - offset);
     if (fileIdentifier != null) {
@@ -361,6 +363,14 @@ class Builder {
             fileIdentifier.codeUnitAt(i));
       }
     }
+
+    // zero out the added padding
+    for (var i = sizeBeforePadding + 1;
+        i <= finishedSize - requiredBytes;
+        i++) {
+      _setUint8AtTail(_buf, i, 0);
+    }
+
     return _buf.buffer
         .asUint8List(_buf.lengthInBytes - finishedSize, finishedSize);
   }
@@ -728,6 +738,12 @@ class Builder {
         _buf = _allocator.resize(_buf, newCapacity, _tail, 0);
       }
     }
+
+    // zero out the added padding
+    for (var i = _tail + 1; i <= _tail + alignDelta; i++) {
+      _setUint8AtTail(_buf, i, 0);
+    }
+
     // Update the tail pointer.
     _tail += bufSize;
   }
