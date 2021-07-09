@@ -763,6 +763,28 @@ class ObjectAPITest {
     // final monster3 = monster2.unpack(); // MonsterT
     // expect(monster3.toString(), monster.toString());
   }
+
+  void test_Lists() {
+    // Ensure unpack() reads lists eagerly by reusing the same builder and
+    // overwriting data. Why: because standard reader reads lists lazily...
+    final fbb = Builder();
+
+    final object1 = example.TypeAliasesT(v8: [1, 2, 3], vf64: [5, 6]);
+    final data1 = fbb.finish(object1.pack(fbb));
+    final object1Read = example.TypeAliases(data1).unpack();
+
+    // overwrite the original buffer by writing to the same builder
+    fbb.reset();
+    final object2 = example.TypeAliasesT(v8: [7, 8, 9], vf64: [10, 11]);
+    final data2 = fbb.finish(object2.pack(fbb));
+    final object2Read = example.TypeAliases(data2).unpack();
+
+    // this is fine even with lazy lists:
+    expect(object2.toString(), object2Read.toString());
+
+    // this fails with lazy lists:
+    expect(object1.toString(), object1Read.toString());
+  }
 }
 
 class StringListWrapperImpl {
