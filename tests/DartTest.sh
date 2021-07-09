@@ -27,7 +27,7 @@ cd ../dart
 # update packages
 dart pub get
 # Execute the sample.
-dart test/flat_buffers_test.dart
+dart test
 
 # cleanup
 rm ../dart/test/monsterdata_test.mon

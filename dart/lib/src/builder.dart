@@ -559,12 +559,13 @@ class _StackValue {
 
   BitWidth elementWidth(int size, int index) {
     if (ValueTypeUtils.isInline(_type)) return _width;
-    final offset = offsetLoc - _offset!;
+    final offset = _offset!;
     for (var i = 0; i < 4; i++) {
       final width = 1 << i;
-      final offsetLoc =
-          size + BitWidthUtil.paddingSize(size, width) + index * width;
-      final bitWidth = BitWidthUtil.uwidth(offset);
+      final bitWidth = BitWidthUtil.uwidth(size +
+          BitWidthUtil.paddingSize(size, width) +
+          index * width -
+          offset);
       if (1 << bitWidth.index == width) {
         return bitWidth;
       }
@@ -643,6 +644,7 @@ class _StackValue {
 class _StackPointer {
   int stackPosition;
   bool isVector;
+
   _StackPointer(this.stackPosition, this.isVector);
 }
 
