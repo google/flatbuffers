@@ -982,7 +982,7 @@ class DartGenerator : public BaseGenerator {
           field.value.type.VectorType().base_type == BASE_TYPE_STRUCT &&
           field.value.type.struct_def->fixed) {
         code += "    int? " + offset_name + " = null;\n";
-        code += "    if (" + field_name + "?.isNotEmpty == true) {\n";
+        code += "    if (" + field_name + " != null) {\n";
         code +=
             "      " + field_name + "!.forEach((e) => e.pack(fbBuilder));\n";
         code += "      " + MakeCamel(field.name, false) +
@@ -994,20 +994,20 @@ class DartGenerator : public BaseGenerator {
 
       code += "    final int? " + offset_name;
       if (IsVector(field.value.type)) {
-        code += " = " + field_name + "?.isNotEmpty == true\n";
-        code += "        ? fbBuilder.writeList";
+        code += " = " + field_name + " == null ? null\n";
+        code += "        : fbBuilder.writeList";
         switch (field.value.type.VectorType().base_type) {
           case BASE_TYPE_STRING:
             code += "(" + field_name +
-                    "!.map((b) => fbBuilder.writeString(b)!).toList())";
+                    "!.map((b) => fbBuilder.writeString(b)!).toList());\n";
             break;
           case BASE_TYPE_STRUCT:
             if (field.value.type.struct_def->fixed) {
-              code += "OfStructs(" + field_name + "!)";
+              code += "OfStructs(" + field_name + "!);\n";
             } else {
               code += "(" + field_name + "!.map((b) => b." +
                       (pack ? "pack" : "getOrCreateOffset") +
-                      "(fbBuilder)).toList())";
+                      "(fbBuilder)).toList());\n";
             }
             break;
           default:
@@ -1016,9 +1016,8 @@ class DartGenerator : public BaseGenerator {
             if (field.value.type.enum_def) {
               code += ".map((f) => f.value).toList()";
             }
-            code += ")";
+            code += ");\n";
         }
-        code += "\n        : null;\n";
       } else if (IsString(field.value.type)) {
         code += " = fbBuilder.writeString(" + field_name + ");\n";
       } else {
