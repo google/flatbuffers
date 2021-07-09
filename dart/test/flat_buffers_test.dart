@@ -136,12 +136,16 @@ class CheckOtherLangaugesData {
 /// Test a custom, fixed-memory allocator (no actual allocations performed)
 class CustomAllocator extends Allocator {
   final _memory = ByteData(10 * 1024);
+  int _used = 0;
+
+  Uint8List buffer(int size) => _memory.buffer.asUint8List(_used - size, size);
 
   @override
   ByteData allocate(int size) {
     if (size > _memory.lengthInBytes) {
       throw UnsupportedError('Trying to allocate too much');
     }
+    _used = size;
     return ByteData.sublistView(_memory, 0, size);
   }
 
@@ -240,7 +244,8 @@ class BuilderTest {
       Builder builder = new Builder(initialSize: 0);
       builder.startTable();
       int offset = builder.endTable();
-      byteList = builder.finish(offset, 'Az~ÿ');
+      builder.finish(offset, 'Az~ÿ');
+      byteList = builder.buffer;
     }
     // Convert byteList to a ByteData so that we can read data from it.
     ByteData byteData = byteList.buffer.asByteData(byteList.offsetInBytes);
@@ -263,16 +268,29 @@ class BuilderTest {
   }
 
   void test_low() {
-    final builder = Builder(initialSize: 0, allocator: CustomAllocator());
-    expect((builder..putUint8(1)).lowFinish(), [1]);
-    expect((builder..putUint32(2)).lowFinish(), [2, 0, 0, 0, 0, 0, 0, 1]);
-    expect((builder..putUint8(3)).lowFinish(),
-        [0, 0, 0, 3, 2, 0, 0, 0, 0, 0, 0, 1]);
-    expect((builder..putUint8(4)).lowFinish(),
-        [0, 0, 4, 3, 2, 0, 0, 0, 0, 0, 0, 1]);
-    expect((builder..putUint8(5)).lowFinish(),
-        [0, 5, 4, 3, 2, 0, 0, 0, 0, 0, 0, 1]);
-    expect((builder..putUint32(6)).lowFinish(),
+    final allocator = CustomAllocator();
+    final builder = Builder(initialSize: 0, allocator: allocator);
+
+    builder.putUint8(1);
+    expect(allocator.buffer(builder.size()), [1]);
+
+    builder.putUint32(2);
+    expect(allocator.buffer(builder.size()), [2, 0, 0, 0, 0, 0, 0, 1]);
+
+    builder.putUint8(3);
+    expect(
+        allocator.buffer(builder.size()), [0, 0, 0, 3, 2, 0, 0, 0, 0, 0, 0, 1]);
+
+    builder.putUint8(4);
+    expect(
+        allocator.buffer(builder.size()), [0, 0, 4, 3, 2, 0, 0, 0, 0, 0, 0, 1]);
+
+    builder.putUint8(5);
+    expect(
+        allocator.buffer(builder.size()), [0, 5, 4, 3, 2, 0, 0, 0, 0, 0, 0, 1]);
+
+    builder.putUint32(6);
+    expect(allocator.buffer(builder.size()),
         [6, 0, 0, 0, 0, 5, 4, 3, 2, 0, 0, 0, 0, 0, 0, 1]);
   }
 
@@ -284,7 +302,8 @@ class BuilderTest {
       builder.addInt32(0, 10, 10);
       builder.addInt32(1, 20, 10);
       int offset = builder.endTable();
-      byteList = builder.finish(offset);
+      builder.finish(offset);
+      byteList = builder.buffer;
       expect(builder.size(), byteList.length);
     }
     // read and verify
@@ -310,7 +329,8 @@ class BuilderTest {
       builder.addInt32(0, 10);
       builder.addInt32(1, 20);
       builder.addInt32(2, 30);
-      byteList = builder.finish(builder.endTable());
+      builder.finish(builder.endTable());
+      byteList = builder.buffer;
     }
     // Convert byteList to a ByteData so that we can read data from it.
     ByteData byteData = byteList.buffer.asByteData(byteList.offsetInBytes);
@@ -346,7 +366,8 @@ class BuilderTest {
       builder.addOffset(0, latinStringOffset);
       builder.addOffset(1, unicodeStringOffset);
       int offset = builder.endTable();
-      byteList = builder.finish(offset);
+      builder.finish(offset);
+      byteList = builder.buffer;
     }
     // read and verify
     BufferContext buf = new BufferContext.fromBytes(byteList);
@@ -375,7 +396,8 @@ class BuilderTest {
       builder.addUint32(5, 0x9ABCDEF0);
       builder.addUint8(6, 0x9A);
       int offset = builder.endTable();
-      byteList = builder.finish(offset);
+      builder.finish(offset);
+      byteList = builder.buffer;
     }
     // read and verify
     BufferContext buf = new BufferContext.fromBytes(byteList);
@@ -417,7 +439,8 @@ class BuilderTest {
     {
       Builder builder = new Builder(initialSize: 0);
       int offset = builder.writeListUint32(values);
-      byteList = builder.finish(offset);
+      builder.finish(offset);
+      byteList = builder.buffer;
     }
     // read and verify
     BufferContext buf = new BufferContext.fromBytes(byteList);
@@ -437,7 +460,8 @@ class BuilderTest {
           values[bit] = true;
         }
         int offset = builder.writeListBool(values);
-        byteList = builder.finish(offset);
+        builder.finish(offset);
+        byteList = builder.buffer;
       }
       // read and verify
       BufferContext buf = new BufferContext.fromBytes(byteList);
@@ -473,7 +497,8 @@ class BuilderTest {
     {
       Builder builder = new Builder(initialSize: 0);
       int offset = builder.writeListInt32(<int>[1, 2, 3, 4, 5]);
-      byteList = builder.finish(offset);
+      builder.finish(offset);
+      byteList = builder.buffer;
     }
     // read and verify
     BufferContext buf = new BufferContext.fromBytes(byteList);
@@ -489,7 +514,8 @@ class BuilderTest {
     {
       Builder builder = new Builder(initialSize: 0);
       int offset = builder.writeListFloat64(values);
-      byteList = builder.finish(offset);
+      builder.finish(offset);
+      byteList = builder.buffer;
     }
 
     // read and verify
@@ -509,7 +535,8 @@ class BuilderTest {
     {
       Builder builder = new Builder(initialSize: 0);
       int offset = builder.writeListFloat32(values);
-      byteList = builder.finish(offset);
+      builder.finish(offset);
+      byteList = builder.buffer;
     }
     // read and verify
     BufferContext buf = new BufferContext.fromBytes(byteList);
@@ -542,7 +569,8 @@ class BuilderTest {
       }
       // write the list
       int offset = builder.writeList([object1, object2]);
-      byteList = builder.finish(offset);
+      builder.finish(offset);
+      byteList = builder.buffer;
     }
     // read and verify
     BufferContext buf = new BufferContext.fromBytes(byteList);
@@ -562,7 +590,8 @@ class BuilderTest {
       int? str1 = builder.writeString('12345');
       int? str2 = builder.writeString('ABC');
       int offset = builder.writeList([str1!, str2!]);
-      byteList = builder.finish(offset);
+      builder.finish(offset);
+      byteList = builder.buffer;
     }
     // read and verify
     BufferContext buf = new BufferContext.fromBytes(byteList);
@@ -582,7 +611,8 @@ class BuilderTest {
       builder.startTable();
       builder.addOffset(0, listOffset);
       int offset = builder.endTable();
-      byteList = builder.finish(offset);
+      builder.finish(offset);
+      byteList = builder.buffer;
     }
     // read and verify
     BufferContext buf = new BufferContext.fromBytes(byteList);
@@ -598,7 +628,8 @@ class BuilderTest {
     {
       Builder builder = new Builder(initialSize: 0);
       int offset = builder.writeListUint32(<int>[1, 2, 0x9ABCDEF0]);
-      byteList = builder.finish(offset);
+      builder.finish(offset);
+      byteList = builder.buffer;
     }
     // read and verify
     BufferContext buf = new BufferContext.fromBytes(byteList);
@@ -612,7 +643,8 @@ class BuilderTest {
     {
       Builder builder = new Builder(initialSize: 0);
       int offset = builder.writeListUint16(<int>[1, 2, 60000]);
-      byteList = builder.finish(offset);
+      builder.finish(offset);
+      byteList = builder.buffer;
     }
     // read and verify
     BufferContext buf = new BufferContext.fromBytes(byteList);
@@ -626,7 +658,8 @@ class BuilderTest {
     {
       Builder builder = new Builder(initialSize: 0);
       int offset = builder.writeListUint8(<int>[1, 2, 3, 4, 0x9A]);
-      byteList = builder.finish(offset);
+      builder.finish(offset);
+      byteList = builder.buffer;
     }
     // read and verify
     BufferContext buf = new BufferContext.fromBytes(byteList);
@@ -706,8 +739,8 @@ class ObjectAPITest {
   void test_tableStat() {
     final object1 = example.StatT(count: 3, id: "foo", val: 4);
     final fbb = Builder();
-    final data = fbb.finish(object1.pack(fbb));
-    final object2 = example.Stat(data).unpack();
+    fbb.finish(object1.pack(fbb));
+    final object2 = example.Stat(fbb.buffer).unpack();
     expect(object2.count, object1.count);
     expect(object2.id, object1.id);
     expect(object2.val, object1.val);
@@ -750,7 +783,8 @@ class ObjectAPITest {
     final fbBuilder = Builder();
     final offset = monster.pack(fbBuilder);
     expect(offset, isNonZero);
-    final data = fbBuilder.finish(offset);
+    fbBuilder.finish(offset);
+    final data = fbBuilder.buffer;
 
     // TODO currently broken because of struct builder issue, see #6688
     // final monster2 = example.Monster(data); // Monster (reader)
@@ -770,14 +804,14 @@ class ObjectAPITest {
     final fbb = Builder();
 
     final object1 = example.TypeAliasesT(v8: [1, 2, 3], vf64: [5, 6]);
-    final data1 = fbb.finish(object1.pack(fbb));
-    final object1Read = example.TypeAliases(data1).unpack();
+    fbb.finish(object1.pack(fbb));
+    final object1Read = example.TypeAliases(fbb.buffer).unpack();
 
     // overwrite the original buffer by writing to the same builder
     fbb.reset();
     final object2 = example.TypeAliasesT(v8: [7, 8, 9], vf64: [10, 11]);
-    final data2 = fbb.finish(object2.pack(fbb));
-    final object2Read = example.TypeAliases(data2).unpack();
+    fbb.finish(object2.pack(fbb));
+    final object2Read = example.TypeAliases(fbb.buffer).unpack();
 
     // this is fine even with lazy lists:
     expect(object2.toString(), object2Read.toString());

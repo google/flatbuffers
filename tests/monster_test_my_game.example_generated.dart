@@ -348,7 +348,8 @@ class TestObjectBuilder extends fb.ObjectBuilder {
   Uint8List toBytes([String? fileIdentifier]) {
     fb.Builder fbBuilder = new fb.Builder();
     int offset = finish(fbBuilder);
-    return fbBuilder.finish(offset, fileIdentifier);
+    fbBuilder.finish(offset, fileIdentifier);
+    return fbBuilder.buffer;
   }
 }
 class TestSimpleTableWithEnum {
@@ -445,7 +446,8 @@ class TestSimpleTableWithEnumObjectBuilder extends fb.ObjectBuilder {
   Uint8List toBytes([String? fileIdentifier]) {
     fb.Builder fbBuilder = new fb.Builder();
     int offset = finish(fbBuilder);
-    return fbBuilder.finish(offset, fileIdentifier);
+    fbBuilder.finish(offset, fileIdentifier);
+    return fbBuilder.buffer;
   }
 }
 class Vec3 {
@@ -591,7 +593,8 @@ class Vec3ObjectBuilder extends fb.ObjectBuilder {
   Uint8List toBytes([String? fileIdentifier]) {
     fb.Builder fbBuilder = new fb.Builder();
     int offset = finish(fbBuilder);
-    return fbBuilder.finish(offset, fileIdentifier);
+    fbBuilder.finish(offset, fileIdentifier);
+    return fbBuilder.buffer;
   }
 }
 class Ability {
@@ -688,7 +691,8 @@ class AbilityObjectBuilder extends fb.ObjectBuilder {
   Uint8List toBytes([String? fileIdentifier]) {
     fb.Builder fbBuilder = new fb.Builder();
     int offset = finish(fbBuilder);
-    return fbBuilder.finish(offset, fileIdentifier);
+    fbBuilder.finish(offset, fileIdentifier);
+    return fbBuilder.buffer;
   }
 }
 class StructOfStructs {
@@ -795,7 +799,8 @@ class StructOfStructsObjectBuilder extends fb.ObjectBuilder {
   Uint8List toBytes([String? fileIdentifier]) {
     fb.Builder fbBuilder = new fb.Builder();
     int offset = finish(fbBuilder);
-    return fbBuilder.finish(offset, fileIdentifier);
+    fbBuilder.finish(offset, fileIdentifier);
+    return fbBuilder.buffer;
   }
 }
 class Stat {
@@ -920,7 +925,8 @@ class StatObjectBuilder extends fb.ObjectBuilder {
   Uint8List toBytes([String? fileIdentifier]) {
     fb.Builder fbBuilder = new fb.Builder();
     int offset = finish(fbBuilder);
-    return fbBuilder.finish(offset, fileIdentifier);
+    fbBuilder.finish(offset, fileIdentifier);
+    return fbBuilder.buffer;
   }
 }
 class Referrable {
@@ -1017,7 +1023,8 @@ class ReferrableObjectBuilder extends fb.ObjectBuilder {
   Uint8List toBytes([String? fileIdentifier]) {
     fb.Builder fbBuilder = new fb.Builder();
     int offset = finish(fbBuilder);
-    return fbBuilder.finish(offset, fileIdentifier);
+    fbBuilder.finish(offset, fileIdentifier);
+    return fbBuilder.buffer;
   }
 }
 ///  an example documentation comment: "monster object"
@@ -1922,7 +1929,8 @@ class MonsterObjectBuilder extends fb.ObjectBuilder {
   Uint8List toBytes([String? fileIdentifier]) {
     fb.Builder fbBuilder = new fb.Builder();
     int offset = finish(fbBuilder);
-    return fbBuilder.finish(offset, fileIdentifier);
+    fbBuilder.finish(offset, fileIdentifier);
+    return fbBuilder.buffer;
   }
 }
 class TypeAliases {
@@ -2174,6 +2182,7 @@ class TypeAliasesObjectBuilder extends fb.ObjectBuilder {
   Uint8List toBytes([String? fileIdentifier]) {
     fb.Builder fbBuilder = new fb.Builder();
     int offset = finish(fbBuilder);
-    return fbBuilder.finish(offset, fileIdentifier);
+    fbBuilder.finish(offset, fileIdentifier);
+    return fbBuilder.buffer;
   }
 }
