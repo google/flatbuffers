@@ -167,7 +167,8 @@ class TableInFirstNSObjectBuilder extends fb.ObjectBuilder {
   Uint8List toBytes([String? fileIdentifier]) {
     fb.Builder fbBuilder = new fb.Builder();
     int offset = finish(fbBuilder);
-    return fbBuilder.finish(offset, fileIdentifier);
+    fbBuilder.finish(offset, fileIdentifier);
+    return fbBuilder.buffer;
   }
 }
 class SecondTableInA {
@@ -266,6 +267,7 @@ class SecondTableInAObjectBuilder extends fb.ObjectBuilder {
   Uint8List toBytes([String? fileIdentifier]) {
     fb.Builder fbBuilder = new fb.Builder();
     int offset = finish(fbBuilder);
-    return fbBuilder.finish(offset, fileIdentifier);
+    fbBuilder.finish(offset, fileIdentifier);
+    return fbBuilder.buffer;
   }
 }

@@ -103,6 +103,8 @@ abstract class ObjectBuilder {
 
 /// Class that helps building flat buffers.
 class Builder {
+  bool _finished = false;
+
   final int initialSize;
 
   /// The list of existing VTable(s).
@@ -336,11 +338,9 @@ class Builder {
     return tableTail;
   }
 
-  /// This method low level method can be used to return a raw piece of the
-  /// buffer after using the put* methods.
-  ///
-  /// Most clients should prefer calling [finish].
-  Uint8List lowFinish() {
+  /// Returns the finished buffer. You must call [finish] before accessing this.
+  Uint8List get buffer {
+    assert(_finished);
     final finishedSize = size();
     return _buf.buffer
         .asUint8List(_buf.lengthInBytes - finishedSize, finishedSize);
@@ -351,7 +351,7 @@ class Builder {
   /// written object.  If [fileIdentifier] is specified (and not `null`), it is
   /// interpreted as a 4-byte Latin-1 encoded string that should be placed at
   /// bytes 4-7 of the file.
-  Uint8List finish(int offset, [String? fileIdentifier]) {
+  void finish(int offset, [String? fileIdentifier]) {
     final sizeBeforePadding = size();
     final requiredBytes = _sizeofUint32 * (fileIdentifier == null ? 1 : 2);
     _prepare(max(requiredBytes, _maxAlign), 1);
@@ -370,9 +370,7 @@ class Builder {
         i++) {
       _setUint8AtTail(_buf, i, 0);
     }
-
-    return _buf.buffer
-        .asUint8List(_buf.lengthInBytes - finishedSize, finishedSize);
+    _finished = true;
   }
 
   /// Writes a Float64 to the tail of the buffer after preparing space for it.
@@ -457,6 +455,7 @@ class Builder {
 
   /// Reset the builder and make it ready for filling a new buffer.
   void reset() {
+    _finished = false;
     _maxAlign = 1;
     _tail = 0;
     _currentVTable = null;
@@ -719,6 +718,7 @@ class Builder {
   /// Additionally allocate the specified `additionalBytes`. Update the current
   /// tail pointer to point at the allocated space.
   void _prepare(int size, int count, {int additionalBytes = 0}) {
+    assert(!_finished);
     // Update the alignment.
     if (_maxAlign < size) {
       _maxAlign = size;
