@@ -352,7 +352,6 @@ class Builder {
   /// interpreted as a 4-byte Latin-1 encoded string that should be placed at
   /// bytes 4-7 of the file.
   void finish(int offset, [String? fileIdentifier]) {
-    assert(!_finished);
     final sizeBeforePadding = size();
     final requiredBytes = _sizeofUint32 * (fileIdentifier == null ? 1 : 2);
     _prepare(max(requiredBytes, _maxAlign), 1);
@@ -719,6 +718,7 @@ class Builder {
   /// Additionally allocate the specified `additionalBytes`. Update the current
   /// tail pointer to point at the allocated space.
   void _prepare(int size, int count, {int additionalBytes = 0}) {
+    assert(!_finished);
     // Update the alignment.
     if (_maxAlign < size) {
       _maxAlign = size;
