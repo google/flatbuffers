@@ -78,12 +78,10 @@ class MonsterExtraT {
       this.fvec});
 
   int pack(fb.Builder fbBuilder) {
-    final int? dvecOffset = dvec?.isNotEmpty == true
-        ? fbBuilder.writeListFloat64(dvec!)
-        : null;
-    final int? fvecOffset = fvec?.isNotEmpty == true
-        ? fbBuilder.writeListFloat32(fvec!)
-        : null;
+    final int? dvecOffset = dvec == null ? null
+        : fbBuilder.writeListFloat64(dvec!);
+    final int? fvecOffset = fvec == null ? null
+        : fbBuilder.writeListFloat32(fvec!);
     fbBuilder.startTable();
     fbBuilder.addFloat64(0, d0);
     fbBuilder.addFloat64(1, d1);
@@ -205,12 +203,10 @@ class MonsterExtraObjectBuilder extends fb.ObjectBuilder {
   /// Finish building, and store into the [fbBuilder].
   @override
   int finish(fb.Builder fbBuilder) {
-    final int? dvecOffset = _dvec?.isNotEmpty == true
-        ? fbBuilder.writeListFloat64(_dvec!)
-        : null;
-    final int? fvecOffset = _fvec?.isNotEmpty == true
-        ? fbBuilder.writeListFloat32(_fvec!)
-        : null;
+    final int? dvecOffset = _dvec == null ? null
+        : fbBuilder.writeListFloat64(_dvec!);
+    final int? fvecOffset = _fvec == null ? null
+        : fbBuilder.writeListFloat32(_fvec!);
     fbBuilder.startTable();
     fbBuilder.addFloat64(0, _d0);
     fbBuilder.addFloat64(1, _d1);

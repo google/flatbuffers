@@ -818,6 +818,13 @@ class ObjectAPITest {
 
     // this fails with lazy lists:
     expect(object1.toString(), object1Read.toString());
+
+    // empty list must be serialized as such (were stored NULL before v2.0)
+    fbb.reset();
+    final object3 = example.TypeAliasesT(v8: [], vf64: null);
+    fbb.finish(object3.pack(fbb));
+    final object3Read = example.TypeAliases(fbb.buffer).unpack();
+    expect(object3.toString(), object3Read.toString());
   }
 }
 
