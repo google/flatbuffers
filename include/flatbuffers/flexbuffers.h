@@ -1072,6 +1072,15 @@ class Builder FLATBUFFERS_FINAL_CLASS {
     return CreateBlob(flatbuffers::vector_data(v), v.size(), 0, FBT_BLOB);
   }
 
+  void Blob(const char *key, const void *data, size_t len) {
+    Key(key);
+    Blob(data, len);
+  }
+  void Blob(const char *key, const std::vector<uint8_t> &v) {
+    Key(key);
+    Blob(v);
+  }
+
   // TODO(wvo): support all the FlexBuffer types (like flexbuffers::String),
   // e.g. Vector etc. Also in overloaded versions.
   // Also some FlatBuffers types?
