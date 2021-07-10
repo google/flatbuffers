@@ -22,17 +22,12 @@ fn main() {
         f
     };
 
-    let out_dir = std::path::Path::new(&std::env::var("OUT_DIR").unwrap()).to_path_buf();
-
+    // DO NOT SUBMIT: CASPER: Can you put generated code in outdir?
     Command::new(&flatc)
+        .arg("-o")
+        .arg("src/generated/")
         .arg("--rust")
         .arg(&sample_schema)
-        .arg("--filename-suffix")
-        .arg("_gen")
         .output()
         .expect("Failed to generate file");
-
-    let genfile = "monster_gen.rs";
-    std::fs::rename(&genfile, out_dir.join("monster_generated.rs"))
-        .expect("Could not rename monster_ge.rs to monster_generated.rs");
 }
