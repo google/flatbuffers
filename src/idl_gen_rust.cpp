@@ -419,11 +419,10 @@ class RustGenerator : public BaseGenerator {
       // DO NOT SUBMIT: CASPER: Refactor out common path name generation.
       if (symbol.defined_namespace)
       for (
-        auto it = symbol.defined_namespace->components.begin();
-        it != symbol.defined_namespace->components.end();
-        it++
+        auto i = symbol.defined_namespace->components.begin();
+        i != symbol.defined_namespace->components.end(); i++
       ) {
-        file_path << MakeSnakeCase(*it) << kPathSeparator;
+        file_path << MakeSnakeCase(*i) << kPathSeparator;
         EnsureDirExists(file_path.str());
       }
       file_path << MakeSnakeCase(symbol.name)
