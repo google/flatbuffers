@@ -39,26 +39,26 @@ class CheckOtherLangaugesData {
     expect(mon.hp, 80);
     expect(mon.mana, 150);
     expect(mon.name, 'MyMonster');
-    expect(mon.pos.x, 1.0);
-    expect(mon.pos.y, 2.0);
-    expect(mon.pos.z, 3.0);
-    expect(mon.pos.test1, 3.0);
-    expect(mon.pos.test2.value, 2.0);
-    expect(mon.pos.test3.a, 5);
-    expect(mon.pos.test3.b, 6);
-    expect(mon.testType.value, example.AnyTypeId.Monster.value);
+    expect(mon.pos!.x, 1.0);
+    expect(mon.pos!.y, 2.0);
+    expect(mon.pos!.z, 3.0);
+    expect(mon.pos!.test1, 3.0);
+    expect(mon.pos!.test2.value, 2.0);
+    expect(mon.pos!.test3.a, 5);
+    expect(mon.pos!.test3.b, 6);
+    expect(mon.testType!.value, example.AnyTypeId.Monster.value);
     expect(mon.test is example.Monster, true);
     final monster2 = mon.test as example.Monster;
     expect(monster2.name, "Fred");
 
-    expect(mon.inventory.length, 5);
-    expect(mon.inventory.reduce((cur, next) => cur + next), 10);
-    expect(mon.test4.length, 2);
-    expect(
-        mon.test4[0].a + mon.test4[0].b + mon.test4[1].a + mon.test4[1].b, 100);
-    expect(mon.testarrayofstring.length, 2);
-    expect(mon.testarrayofstring[0], "test1");
-    expect(mon.testarrayofstring[1], "test2");
+    expect(mon.inventory!.length, 5);
+    expect(mon.inventory!.reduce((cur, next) => cur + next), 10);
+    final test4 = mon.test4!;
+    expect(test4.length, 2);
+    expect(test4[0].a + test4[0].b + test4[1].a + test4[1].b, 100);
+    expect(mon.testarrayofstring!.length, 2);
+    expect(mon.testarrayofstring![0], "test1");
+    expect(mon.testarrayofstring![1], "test2");
 
     // this will fail if accessing any field fails.
     expect(
@@ -68,7 +68,7 @@ class CheckOtherLangaugesData {
       'mana: 150, hp: 80, name: MyMonster, inventory: [0, 1, 2, 3, 4], '
       'color: Color{value: 8}, testType: AnyTypeId{value: 1}, '
       'test: Monster{pos: null, mana: 150, hp: 100, name: Fred, '
-      'inventory: null, color: Color{value: 8}, testType: AnyTypeId{value: 0}, '
+      'inventory: null, color: Color{value: 8}, testType: null, '
       'test: null, test4: null, testarrayofstring: null, '
       'testarrayoftables: null, enemy: null, testnestedflatbuffer: null, '
       'testempty: null, testbool: false, testhashs32Fnv1: 0, '
@@ -82,14 +82,13 @@ class CheckOtherLangaugesData {
       'vectorOfWeakReferences: null, vectorOfStrongReferrables: null, '
       'coOwningReference: 0, vectorOfCoOwningReferences: null, '
       'nonOwningReference: 0, vectorOfNonOwningReferences: null, '
-      'anyUniqueType: AnyUniqueAliasesTypeId{value: 0}, anyUnique: null, '
-      'anyAmbiguousType: AnyAmbiguousAliasesTypeId{value: 0}, '
+      'anyUniqueType: null, anyUnique: null, anyAmbiguousType: null, '
       'anyAmbiguous: null, vectorOfEnums: null, signedEnum: Race{value: -1}, '
       'testrequirednestedflatbuffer: null, scalarKeySortedTables: null}, '
       'test4: [Test{a: 10, b: 20}, Test{a: 30, b: 40}], '
       'testarrayofstring: [test1, test2], testarrayoftables: null, '
       'enemy: Monster{pos: null, mana: 150, hp: 100, name: Fred, '
-      'inventory: null, color: Color{value: 8}, testType: AnyTypeId{value: 0}, '
+      'inventory: null, color: Color{value: 8}, testType: null, '
       'test: null, test4: null, testarrayofstring: null, '
       'testarrayoftables: null, enemy: null, testnestedflatbuffer: null, '
       'testempty: null, testbool: false, testhashs32Fnv1: 0, '
@@ -103,8 +102,7 @@ class CheckOtherLangaugesData {
       'vectorOfWeakReferences: null, vectorOfStrongReferrables: null, '
       'coOwningReference: 0, vectorOfCoOwningReferences: null, '
       'nonOwningReference: 0, vectorOfNonOwningReferences: null, '
-      'anyUniqueType: AnyUniqueAliasesTypeId{value: 0}, anyUnique: null, '
-      'anyAmbiguousType: AnyAmbiguousAliasesTypeId{value: 0}, '
+      'anyUniqueType: null, anyUnique: null, anyAmbiguousType: null, '
       'anyAmbiguous: null, vectorOfEnums: null, signedEnum: Race{value: -1}, '
       'testrequirednestedflatbuffer: null, scalarKeySortedTables: null}, '
       'testnestedflatbuffer: null, testempty: null, testbool: true, '
@@ -126,8 +124,8 @@ class CheckOtherLangaugesData {
       'vectorOfStrongReferrables: null, coOwningReference: 0, '
       'vectorOfCoOwningReferences: null, nonOwningReference: 0, '
       'vectorOfNonOwningReferences: null, '
-      'anyUniqueType: AnyUniqueAliasesTypeId{value: 0}, anyUnique: null, '
-      'anyAmbiguousType: AnyAmbiguousAliasesTypeId{value: 0}, '
+      'anyUniqueType: null, anyUnique: null, '
+      'anyAmbiguousType: null, '
       'anyAmbiguous: null, vectorOfEnums: null, signedEnum: Race{value: -1}, '
       'testrequirednestedflatbuffer: null, scalarKeySortedTables: [Stat{id: '
       'miss, val: 0, count: 0}, Stat{id: hit, val: 10, count: 1}]}',
@@ -135,9 +133,29 @@ class CheckOtherLangaugesData {
   }
 }
 
+/// Test a custom, fixed-memory allocator (no actual allocations performed)
+class CustomAllocator extends Allocator {
+  final _memory = ByteData(10 * 1024);
+  int _used = 0;
+
+  Uint8List buffer(int size) => _memory.buffer.asUint8List(_used - size, size);
+
+  @override
+  ByteData allocate(int size) {
+    if (size > _memory.lengthInBytes) {
+      throw UnsupportedError('Trying to allocate too much');
+    }
+    _used = size;
+    return ByteData.sublistView(_memory, 0, size);
+  }
+
+  @override
+  void deallocate(ByteData _) {}
+}
+
 @reflectiveTest
 class BuilderTest {
-  void test_monsterBuilder([Builder builder]) {
+  void test_monsterBuilder([Builder? builder]) {
     final fbBuilder = builder ?? new Builder();
     final str = fbBuilder.writeString('MyMonster');
 
@@ -183,10 +201,10 @@ class BuilderTest {
     fbBuilder.finish(mon);
   }
 
-  void test_error_addInt32_withoutStartTable([Builder builder]) {
+  void test_error_addInt32_withoutStartTable([Builder? builder]) {
     builder ??= new Builder();
     expect(() {
-      builder.addInt32(0, 0);
+      builder!.addInt32(0, 0);
     }, throwsStateError);
   }
 
@@ -226,7 +244,8 @@ class BuilderTest {
       Builder builder = new Builder(initialSize: 0);
       builder.startTable();
       int offset = builder.endTable();
-      byteList = builder.finish(offset, 'Az~ÿ');
+      builder.finish(offset, 'Az~ÿ');
+      byteList = builder.buffer;
     }
     // Convert byteList to a ByteData so that we can read data from it.
     ByteData byteData = byteList.buffer.asByteData(byteList.offsetInBytes);
@@ -249,28 +268,42 @@ class BuilderTest {
   }
 
   void test_low() {
-    Builder builder = new Builder(initialSize: 0);
-    expect((builder..putUint8(1)).lowFinish(), [1]);
-    expect((builder..putUint32(2)).lowFinish(), [2, 0, 0, 0, 0, 0, 0, 1]);
-    expect((builder..putUint8(3)).lowFinish(),
-        [0, 0, 0, 3, 2, 0, 0, 0, 0, 0, 0, 1]);
-    expect((builder..putUint8(4)).lowFinish(),
-        [0, 0, 4, 3, 2, 0, 0, 0, 0, 0, 0, 1]);
-    expect((builder..putUint8(5)).lowFinish(),
-        [0, 5, 4, 3, 2, 0, 0, 0, 0, 0, 0, 1]);
-    expect((builder..putUint32(6)).lowFinish(),
+    final allocator = CustomAllocator();
+    final builder = Builder(initialSize: 0, allocator: allocator);
+
+    builder.putUint8(1);
+    expect(allocator.buffer(builder.size()), [1]);
+
+    builder.putUint32(2);
+    expect(allocator.buffer(builder.size()), [2, 0, 0, 0, 0, 0, 0, 1]);
+
+    builder.putUint8(3);
+    expect(
+        allocator.buffer(builder.size()), [0, 0, 0, 3, 2, 0, 0, 0, 0, 0, 0, 1]);
+
+    builder.putUint8(4);
+    expect(
+        allocator.buffer(builder.size()), [0, 0, 4, 3, 2, 0, 0, 0, 0, 0, 0, 1]);
+
+    builder.putUint8(5);
+    expect(
+        allocator.buffer(builder.size()), [0, 5, 4, 3, 2, 0, 0, 0, 0, 0, 0, 1]);
+
+    builder.putUint32(6);
+    expect(allocator.buffer(builder.size()),
         [6, 0, 0, 0, 0, 5, 4, 3, 2, 0, 0, 0, 0, 0, 0, 1]);
   }
 
   void test_table_default() {
     List<int> byteList;
     {
-      Builder builder = new Builder(initialSize: 0);
+      final builder = Builder(initialSize: 0, allocator: CustomAllocator());
       builder.startTable();
       builder.addInt32(0, 10, 10);
       builder.addInt32(1, 20, 10);
       int offset = builder.endTable();
-      byteList = builder.finish(offset);
+      builder.finish(offset);
+      byteList = builder.buffer;
       expect(builder.size(), byteList.length);
     }
     // read and verify
@@ -288,7 +321,7 @@ class BuilderTest {
         20);
   }
 
-  void test_table_format([Builder builder]) {
+  void test_table_format([Builder? builder]) {
     Uint8List byteList;
     {
       builder ??= new Builder(initialSize: 0);
@@ -296,7 +329,8 @@ class BuilderTest {
       builder.addInt32(0, 10);
       builder.addInt32(1, 20);
       builder.addInt32(2, 30);
-      byteList = builder.finish(builder.endTable());
+      builder.finish(builder.endTable());
+      byteList = builder.buffer;
     }
     // Convert byteList to a ByteData so that we can read data from it.
     ByteData byteData = byteList.buffer.asByteData(byteList.offsetInBytes);
@@ -326,28 +360,33 @@ class BuilderTest {
     List<int> byteList;
     {
       Builder builder = new Builder(initialSize: 0);
-      int latinStringOffset = builder.writeString(latinString);
-      int unicodeStringOffset = builder.writeString(unicodeString);
+      int? latinStringOffset = builder.writeString(latinString);
+      int? unicodeStringOffset = builder.writeString(unicodeString);
       builder.startTable();
       builder.addOffset(0, latinStringOffset);
       builder.addOffset(1, unicodeStringOffset);
       int offset = builder.endTable();
-      byteList = builder.finish(offset);
+      builder.finish(offset);
+      byteList = builder.buffer;
     }
     // read and verify
     BufferContext buf = new BufferContext.fromBytes(byteList);
     int objectOffset = buf.derefObject(0);
-    expect(const StringReader().vTableGet(buf, objectOffset, indexToField(0)),
+    expect(
+        const StringReader()
+            .vTableGetNullable(buf, objectOffset, indexToField(0)),
         latinString);
-    expect(const StringReader().vTableGet(buf, objectOffset, indexToField(1)),
+    expect(
+        const StringReader()
+            .vTableGetNullable(buf, objectOffset, indexToField(1)),
         unicodeString);
   }
 
-  void test_table_types([Builder builder]) {
+  void test_table_types([Builder? builder]) {
     List<int> byteList;
     {
       builder ??= new Builder(initialSize: 0);
-      int stringOffset = builder.writeString('12345');
+      int? stringOffset = builder.writeString('12345');
       builder.startTable();
       builder.addBool(0, true);
       builder.addInt8(1, 10);
@@ -357,24 +396,39 @@ class BuilderTest {
       builder.addUint32(5, 0x9ABCDEF0);
       builder.addUint8(6, 0x9A);
       int offset = builder.endTable();
-      byteList = builder.finish(offset);
+      builder.finish(offset);
+      byteList = builder.buffer;
     }
     // read and verify
     BufferContext buf = new BufferContext.fromBytes(byteList);
     int objectOffset = buf.derefObject(0);
     expect(
-        const BoolReader().vTableGet(buf, objectOffset, indexToField(0)), true);
+        const BoolReader()
+            .vTableGetNullable(buf, objectOffset, indexToField(0)),
+        true);
     expect(
-        const Int8Reader().vTableGet(buf, objectOffset, indexToField(1)), 10);
+        const Int8Reader()
+            .vTableGetNullable(buf, objectOffset, indexToField(1)),
+        10);
     expect(
-        const Int32Reader().vTableGet(buf, objectOffset, indexToField(2)), 20);
-    expect(const StringReader().vTableGet(buf, objectOffset, indexToField(3)),
+        const Int32Reader()
+            .vTableGetNullable(buf, objectOffset, indexToField(2)),
+        20);
+    expect(
+        const StringReader()
+            .vTableGetNullable(buf, objectOffset, indexToField(3)),
         '12345');
     expect(
-        const Int32Reader().vTableGet(buf, objectOffset, indexToField(4)), 40);
-    expect(const Uint32Reader().vTableGet(buf, objectOffset, indexToField(5)),
+        const Int32Reader()
+            .vTableGetNullable(buf, objectOffset, indexToField(4)),
+        40);
+    expect(
+        const Uint32Reader()
+            .vTableGetNullable(buf, objectOffset, indexToField(5)),
         0x9ABCDEF0);
-    expect(const Uint8Reader().vTableGet(buf, objectOffset, indexToField(6)),
+    expect(
+        const Uint8Reader()
+            .vTableGetNullable(buf, objectOffset, indexToField(6)),
         0x9A);
   }
 
@@ -385,7 +439,8 @@ class BuilderTest {
     {
       Builder builder = new Builder(initialSize: 0);
       int offset = builder.writeListUint32(values);
-      byteList = builder.finish(offset);
+      builder.finish(offset);
+      byteList = builder.buffer;
     }
     // read and verify
     BufferContext buf = new BufferContext.fromBytes(byteList);
@@ -405,7 +460,8 @@ class BuilderTest {
           values[bit] = true;
         }
         int offset = builder.writeListBool(values);
-        byteList = builder.finish(offset);
+        builder.finish(offset);
+        byteList = builder.buffer;
       }
       // read and verify
       BufferContext buf = new BufferContext.fromBytes(byteList);
@@ -441,7 +497,8 @@ class BuilderTest {
     {
       Builder builder = new Builder(initialSize: 0);
       int offset = builder.writeListInt32(<int>[1, 2, 3, 4, 5]);
-      byteList = builder.finish(offset);
+      builder.finish(offset);
+      byteList = builder.buffer;
     }
     // read and verify
     BufferContext buf = new BufferContext.fromBytes(byteList);
@@ -457,7 +514,8 @@ class BuilderTest {
     {
       Builder builder = new Builder(initialSize: 0);
       int offset = builder.writeListFloat64(values);
-      byteList = builder.finish(offset);
+      builder.finish(offset);
+      byteList = builder.buffer;
     }
 
     // read and verify
@@ -477,7 +535,8 @@ class BuilderTest {
     {
       Builder builder = new Builder(initialSize: 0);
       int offset = builder.writeListFloat32(values);
-      byteList = builder.finish(offset);
+      builder.finish(offset);
+      byteList = builder.buffer;
     }
     // read and verify
     BufferContext buf = new BufferContext.fromBytes(byteList);
@@ -488,7 +547,7 @@ class BuilderTest {
     }
   }
 
-  void test_writeList_ofObjects([Builder builder]) {
+  void test_writeList_ofObjects([Builder? builder]) {
     List<int> byteList;
     {
       builder ??= new Builder(initialSize: 0);
@@ -510,7 +569,8 @@ class BuilderTest {
       }
       // write the list
       int offset = builder.writeList([object1, object2]);
-      byteList = builder.finish(offset);
+      builder.finish(offset);
+      byteList = builder.buffer;
     }
     // read and verify
     BufferContext buf = new BufferContext.fromBytes(byteList);
@@ -527,10 +587,11 @@ class BuilderTest {
     List<int> byteList;
     {
       Builder builder = new Builder(initialSize: 0);
-      int str1 = builder.writeString('12345');
-      int str2 = builder.writeString('ABC');
-      int offset = builder.writeList([str1, str2]);
-      byteList = builder.finish(offset);
+      int? str1 = builder.writeString('12345');
+      int? str2 = builder.writeString('ABC');
+      int offset = builder.writeList([str1!, str2!]);
+      builder.finish(offset);
+      byteList = builder.buffer;
     }
     // read and verify
     BufferContext buf = new BufferContext.fromBytes(byteList);
@@ -541,21 +602,22 @@ class BuilderTest {
     expect(items, contains('ABC'));
   }
 
-  void test_writeList_ofStrings_inObject([Builder builder]) {
+  void test_writeList_ofStrings_inObject([Builder? builder]) {
     List<int> byteList;
     {
       builder ??= new Builder(initialSize: 0);
       int listOffset = builder.writeList(
-          [builder.writeString('12345'), builder.writeString('ABC')]);
+          [builder.writeString('12345')!, builder.writeString('ABC')!]);
       builder.startTable();
       builder.addOffset(0, listOffset);
       int offset = builder.endTable();
-      byteList = builder.finish(offset);
+      builder.finish(offset);
+      byteList = builder.buffer;
     }
     // read and verify
     BufferContext buf = new BufferContext.fromBytes(byteList);
     StringListWrapperImpl reader = new StringListWrapperReader().read(buf, 0);
-    List<String> items = reader.items;
+    List<String>? items = reader.items;
     expect(items, hasLength(2));
     expect(items, contains('12345'));
     expect(items, contains('ABC'));
@@ -566,7 +628,8 @@ class BuilderTest {
     {
       Builder builder = new Builder(initialSize: 0);
       int offset = builder.writeListUint32(<int>[1, 2, 0x9ABCDEF0]);
-      byteList = builder.finish(offset);
+      builder.finish(offset);
+      byteList = builder.buffer;
     }
     // read and verify
     BufferContext buf = new BufferContext.fromBytes(byteList);
@@ -580,7 +643,8 @@ class BuilderTest {
     {
       Builder builder = new Builder(initialSize: 0);
       int offset = builder.writeListUint16(<int>[1, 2, 60000]);
-      byteList = builder.finish(offset);
+      builder.finish(offset);
+      byteList = builder.buffer;
     }
     // read and verify
     BufferContext buf = new BufferContext.fromBytes(byteList);
@@ -594,7 +658,8 @@ class BuilderTest {
     {
       Builder builder = new Builder(initialSize: 0);
       int offset = builder.writeListUint8(<int>[1, 2, 3, 4, 0x9A]);
-      byteList = builder.finish(offset);
+      builder.finish(offset);
+      byteList = builder.buffer;
     }
     // read and verify
     BufferContext buf = new BufferContext.fromBytes(byteList);
@@ -605,7 +670,7 @@ class BuilderTest {
 
   void test_reset() {
     // We'll run a selection of tests , reusing the builder between them.
-    final testCases = <void Function(Builder)>[
+    final testCases = <void Function(Builder?)>[
       test_monsterBuilder,
       test_error_addInt32_withoutStartTable,
       test_table_format,
@@ -624,14 +689,14 @@ class BuilderTest {
       // print the order so failures are reproducible
       printOnFailure('Running reset() test cases in order: $indexes');
 
-      Builder builder;
+      Builder? builder;
       indexes.forEach((index) {
         if (builder == null) {
           // Initial size small enough so at least one test case increases it.
           // On the other hand, it's large enough so that some test cases don't.
           builder = Builder(initialSize: 32);
         } else {
-          builder.reset();
+          builder!.reset();
         }
         testCases[index](builder);
       });
@@ -674,8 +739,8 @@ class ObjectAPITest {
   void test_tableStat() {
     final object1 = example.StatT(count: 3, id: "foo", val: 4);
     final fbb = Builder();
-    final data = fbb.finish(object1.pack(fbb));
-    final object2 = example.Stat(data).unpack();
+    fbb.finish(object1.pack(fbb));
+    final object2 = example.Stat(fbb.buffer).unpack();
     expect(object2.count, object1.count);
     expect(object2.id, object1.id);
     expect(object2.val, object1.val);
@@ -718,7 +783,8 @@ class ObjectAPITest {
     final fbBuilder = Builder();
     final offset = monster.pack(fbBuilder);
     expect(offset, isNonZero);
-    final data = fbBuilder.finish(offset);
+    fbBuilder.finish(offset);
+    final data = fbBuilder.buffer;
 
     // TODO currently broken because of struct builder issue, see #6688
     // final monster2 = example.Monster(data); // Monster (reader)
@@ -731,6 +797,35 @@ class ObjectAPITest {
     // final monster3 = monster2.unpack(); // MonsterT
     // expect(monster3.toString(), monster.toString());
   }
+
+  void test_Lists() {
+    // Ensure unpack() reads lists eagerly by reusing the same builder and
+    // overwriting data. Why: because standard reader reads lists lazily...
+    final fbb = Builder();
+
+    final object1 = example.TypeAliasesT(v8: [1, 2, 3], vf64: [5, 6]);
+    fbb.finish(object1.pack(fbb));
+    final object1Read = example.TypeAliases(fbb.buffer).unpack();
+
+    // overwrite the original buffer by writing to the same builder
+    fbb.reset();
+    final object2 = example.TypeAliasesT(v8: [7, 8, 9], vf64: [10, 11]);
+    fbb.finish(object2.pack(fbb));
+    final object2Read = example.TypeAliases(fbb.buffer).unpack();
+
+    // this is fine even with lazy lists:
+    expect(object2.toString(), object2Read.toString());
+
+    // this fails with lazy lists:
+    expect(object1.toString(), object1Read.toString());
+
+    // empty list must be serialized as such (were stored NULL before v2.0)
+    fbb.reset();
+    final object3 = example.TypeAliasesT(v8: [], vf64: null);
+    fbb.finish(object3.pack(fbb));
+    final object3Read = example.TypeAliases(fbb.buffer).unpack();
+    expect(object3.toString(), object3Read.toString());
+  }
 }
 
 class StringListWrapperImpl {
@@ -739,8 +834,8 @@ class StringListWrapperImpl {
 
   StringListWrapperImpl(this.bp, this.offset);
 
-  List<String> get items => const ListReader<String>(const StringReader())
-      .vTableGet(bp, offset, indexToField(0));
+  List<String>? get items => const ListReader<String>(const StringReader())
+      .vTableGetNullable(bp, offset, indexToField(0));
 }
 
 class StringListWrapperReader extends TableReader<StringListWrapperImpl> {
