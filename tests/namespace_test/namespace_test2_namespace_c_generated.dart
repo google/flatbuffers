@@ -49,7 +49,7 @@ class TableInCT {
   int pack(fb.Builder fbBuilder) {
     final int? referToA1Offset = referToA1?.pack(fbBuilder);
     final int? referToA2Offset = referToA2?.pack(fbBuilder);
-    fbBuilder.startTable();
+    fbBuilder.startTable(2);
     fbBuilder.addOffset(0, referToA1Offset);
     fbBuilder.addOffset(1, referToA2Offset);
     return fbBuilder.endTable();
@@ -75,7 +75,7 @@ class TableInCBuilder {
   final fb.Builder fbBuilder;
 
   void begin() {
-    fbBuilder.startTable();
+    fbBuilder.startTable(2);
   }
 
   int addReferToA1Offset(int? offset) {
@@ -108,7 +108,7 @@ class TableInCObjectBuilder extends fb.ObjectBuilder {
   int finish(fb.Builder fbBuilder) {
     final int? referToA1Offset = _referToA1?.getOrCreateOffset(fbBuilder);
     final int? referToA2Offset = _referToA2?.getOrCreateOffset(fbBuilder);
-    fbBuilder.startTable();
+    fbBuilder.startTable(2);
     fbBuilder.addOffset(0, referToA1Offset);
     fbBuilder.addOffset(1, referToA2Offset);
     return fbBuilder.endTable();

@@ -82,7 +82,7 @@ class MonsterExtraT {
         : fbBuilder.writeListFloat64(dvec!);
     final int? fvecOffset = fvec == null ? null
         : fbBuilder.writeListFloat32(fvec!);
-    fbBuilder.startTable();
+    fbBuilder.startTable(10);
     fbBuilder.addFloat64(0, d0);
     fbBuilder.addFloat64(1, d1);
     fbBuilder.addFloat64(2, d2);
@@ -116,7 +116,7 @@ class MonsterExtraBuilder {
   final fb.Builder fbBuilder;
 
   void begin() {
-    fbBuilder.startTable();
+    fbBuilder.startTable(10);
   }
 
   int addD0(double? d0) {
@@ -207,7 +207,7 @@ class MonsterExtraObjectBuilder extends fb.ObjectBuilder {
         : fbBuilder.writeListFloat64(_dvec!);
     final int? fvecOffset = _fvec == null ? null
         : fbBuilder.writeListFloat32(_fvec!);
-    fbBuilder.startTable();
+    fbBuilder.startTable(10);
     fbBuilder.addFloat64(0, _d0);
     fbBuilder.addFloat64(1, _d1);
     fbBuilder.addFloat64(2, _d2);

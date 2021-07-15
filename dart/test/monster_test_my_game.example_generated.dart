@@ -387,7 +387,7 @@ class TestSimpleTableWithEnumT {
       this.color = Color.Green});
 
   int pack(fb.Builder fbBuilder) {
-    fbBuilder.startTable();
+    fbBuilder.startTable(1);
     fbBuilder.addUint8(0, color.value);
     return fbBuilder.endTable();
   }
@@ -412,7 +412,7 @@ class TestSimpleTableWithEnumBuilder {
   final fb.Builder fbBuilder;
 
   void begin() {
-    fbBuilder.startTable();
+    fbBuilder.startTable(1);
   }
 
   int addColor(Color? color) {
@@ -436,7 +436,7 @@ class TestSimpleTableWithEnumObjectBuilder extends fb.ObjectBuilder {
   /// Finish building, and store into the [fbBuilder].
   @override
   int finish(fb.Builder fbBuilder) {
-    fbBuilder.startTable();
+    fbBuilder.startTable(1);
     fbBuilder.addUint8(0, _color?.value);
     return fbBuilder.endTable();
   }
@@ -847,7 +847,7 @@ class StatT {
 
   int pack(fb.Builder fbBuilder) {
     final int? idOffset = fbBuilder.writeString(id);
-    fbBuilder.startTable();
+    fbBuilder.startTable(3);
     fbBuilder.addOffset(0, idOffset);
     fbBuilder.addInt64(1, val);
     fbBuilder.addUint16(2, count);
@@ -874,7 +874,7 @@ class StatBuilder {
   final fb.Builder fbBuilder;
 
   void begin() {
-    fbBuilder.startTable();
+    fbBuilder.startTable(3);
   }
 
   int addIdOffset(int? offset) {
@@ -913,7 +913,7 @@ class StatObjectBuilder extends fb.ObjectBuilder {
   @override
   int finish(fb.Builder fbBuilder) {
     final int? idOffset = fbBuilder.writeString(_id);
-    fbBuilder.startTable();
+    fbBuilder.startTable(3);
     fbBuilder.addOffset(0, idOffset);
     fbBuilder.addInt64(1, _val);
     fbBuilder.addUint16(2, _count);
@@ -964,7 +964,7 @@ class ReferrableT {
       this.id = 0});
 
   int pack(fb.Builder fbBuilder) {
-    fbBuilder.startTable();
+    fbBuilder.startTable(1);
     fbBuilder.addUint64(0, id);
     return fbBuilder.endTable();
   }
@@ -989,7 +989,7 @@ class ReferrableBuilder {
   final fb.Builder fbBuilder;
 
   void begin() {
-    fbBuilder.startTable();
+    fbBuilder.startTable(1);
   }
 
   int addId(int? id) {
@@ -1013,7 +1013,7 @@ class ReferrableObjectBuilder extends fb.ObjectBuilder {
   /// Finish building, and store into the [fbBuilder].
   @override
   int finish(fb.Builder fbBuilder) {
-    fbBuilder.startTable();
+    fbBuilder.startTable(1);
     fbBuilder.addUint64(0, _id);
     return fbBuilder.endTable();
   }
@@ -1341,7 +1341,7 @@ class MonsterT {
         : fbBuilder.writeListUint8(testrequirednestedflatbuffer!);
     final int? scalarKeySortedTablesOffset = scalarKeySortedTables == null ? null
         : fbBuilder.writeList(scalarKeySortedTables!.map((b) => b.pack(fbBuilder)).toList());
-    fbBuilder.startTable();
+    fbBuilder.startTable(50);
     if (pos != null) {
       fbBuilder.addStruct(0, pos!.pack(fbBuilder));
     }
@@ -1417,7 +1417,7 @@ class MonsterBuilder {
   final fb.Builder fbBuilder;
 
   void begin() {
-    fbBuilder.startTable();
+    fbBuilder.startTable(50);
   }
 
   int addPos(int offset) {
@@ -1831,7 +1831,7 @@ class MonsterObjectBuilder extends fb.ObjectBuilder {
         : fbBuilder.writeListUint8(_testrequirednestedflatbuffer!);
     final int? scalarKeySortedTablesOffset = _scalarKeySortedTables == null ? null
         : fbBuilder.writeList(_scalarKeySortedTables!.map((b) => b.getOrCreateOffset(fbBuilder)).toList());
-    fbBuilder.startTable();
+    fbBuilder.startTable(50);
     if (_pos != null) {
       fbBuilder.addStruct(0, _pos!.finish(fbBuilder));
     }
@@ -1979,7 +1979,7 @@ class TypeAliasesT {
         : fbBuilder.writeListInt8(v8!);
     final int? vf64Offset = vf64 == null ? null
         : fbBuilder.writeListFloat64(vf64!);
-    fbBuilder.startTable();
+    fbBuilder.startTable(12);
     fbBuilder.addInt8(0, i8);
     fbBuilder.addUint8(1, u8);
     fbBuilder.addInt16(2, i16);
@@ -2015,7 +2015,7 @@ class TypeAliasesBuilder {
   final fb.Builder fbBuilder;
 
   void begin() {
-    fbBuilder.startTable();
+    fbBuilder.startTable(12);
   }
 
   int addI8(int? i8) {
@@ -2120,7 +2120,7 @@ class TypeAliasesObjectBuilder extends fb.ObjectBuilder {
         : fbBuilder.writeListInt8(_v8!);
     final int? vf64Offset = _vf64 == null ? null
         : fbBuilder.writeListFloat64(_vf64!);
-    fbBuilder.startTable();
+    fbBuilder.startTable(12);
     fbBuilder.addInt8(0, _i8);
     fbBuilder.addUint8(1, _u8);
     fbBuilder.addInt16(2, _i16);
