@@ -75,8 +75,8 @@ void builderTest() {
     ..addColor(myGame.Color.Red);
 
   final int monsteroff = monster.finish();
-  final buffer = builder.finish(monsteroff);
-  if (verify(buffer)) {
+  builder.finish(monsteroff);
+  if (verify(builder.buffer)) {
     print(
         "The FlatBuffer was successfully created with a builder and verified!");
   }
