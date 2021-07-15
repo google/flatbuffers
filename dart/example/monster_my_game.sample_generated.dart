@@ -166,7 +166,7 @@ class Vec3ObjectBuilder extends fb.ObjectBuilder {
   /// Convenience method to serialize to byte list.
   @override
   Uint8List toBytes([String? fileIdentifier]) {
-    fb.Builder fbBuilder = new fb.Builder();
+    fb.Builder fbBuilder = new fb.Builder(deduplicateTables: false);
     int offset = finish(fbBuilder);
     return fbBuilder.finish(offset, fileIdentifier);
   }
@@ -336,7 +336,7 @@ class MonsterObjectBuilder extends fb.ObjectBuilder {
   /// Convenience method to serialize to byte list.
   @override
   Uint8List toBytes([String? fileIdentifier]) {
-    fb.Builder fbBuilder = new fb.Builder();
+    fb.Builder fbBuilder = new fb.Builder(deduplicateTables: false);
     int offset = finish(fbBuilder);
     return fbBuilder.finish(offset, fileIdentifier);
   }
@@ -417,7 +417,7 @@ class WeaponObjectBuilder extends fb.ObjectBuilder {
   /// Convenience method to serialize to byte list.
   @override
   Uint8List toBytes([String? fileIdentifier]) {
-    fb.Builder fbBuilder = new fb.Builder();
+    fb.Builder fbBuilder = new fb.Builder(deduplicateTables: false);
     int offset = finish(fbBuilder);
     return fbBuilder.finish(offset, fileIdentifier);
   }

@@ -953,7 +953,7 @@ class DartGenerator : public BaseGenerator {
     code += "  @override\n";
     code += "  Uint8List toBytes([String? fileIdentifier]) {\n";
     code += "    " + _kFb + ".Builder fbBuilder = new ";
-    code += _kFb + ".Builder();\n";
+    code += _kFb + ".Builder(deduplicateTables: false);\n";
     code += "    int offset = finish(fbBuilder);\n";
     code += "    fbBuilder.finish(offset, fileIdentifier);\n";
     code += "    return fbBuilder.buffer;\n";
