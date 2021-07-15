@@ -47,7 +47,4 @@ echo Running the Dart sample.
 # Execute the sample.
 dart example.dart
 
-# Cleanup temporary files.
-git checkout monster_my_game.sample_generated.dart
-
 cd ../../samples
