@@ -168,7 +168,8 @@ class Vec3ObjectBuilder extends fb.ObjectBuilder {
   Uint8List toBytes([String? fileIdentifier]) {
     fb.Builder fbBuilder = new fb.Builder();
     int offset = finish(fbBuilder);
-    return fbBuilder.finish(offset, fileIdentifier);
+    fbBuilder.finish(offset, fileIdentifier);
+    return fbBuilder.buffer;
   }
 }
 class Monster {
@@ -307,16 +308,13 @@ class MonsterObjectBuilder extends fb.ObjectBuilder {
   @override
   int finish(fb.Builder fbBuilder) {
     final int? nameOffset = fbBuilder.writeString(_name);
-    final int? inventoryOffset = _inventory?.isNotEmpty == true
-        ? fbBuilder.writeListUint8(_inventory!)
-        : null;
-    final int? weaponsOffset = _weapons?.isNotEmpty == true
-        ? fbBuilder.writeList(_weapons!.map((b) => b.getOrCreateOffset(fbBuilder)).toList())
-        : null;
+    final int? inventoryOffset = _inventory == null ? null
+        : fbBuilder.writeListUint8(_inventory!);
+    final int? weaponsOffset = _weapons == null ? null
+        : fbBuilder.writeList(_weapons!.map((b) => b.getOrCreateOffset(fbBuilder)).toList());
     final int? equippedOffset = _equipped?.getOrCreateOffset(fbBuilder);
-    final int? pathOffset = _path?.isNotEmpty == true
-        ? fbBuilder.writeListOfStructs(_path!)
-        : null;
+    final int? pathOffset = _path == null ? null
+        : fbBuilder.writeListOfStructs(_path!);
     fbBuilder.startTable();
     if (_pos != null) {
       fbBuilder.addStruct(0, _pos!.finish(fbBuilder));
@@ -338,7 +336,8 @@ class MonsterObjectBuilder extends fb.ObjectBuilder {
   Uint8List toBytes([String? fileIdentifier]) {
     fb.Builder fbBuilder = new fb.Builder();
     int offset = finish(fbBuilder);
-    return fbBuilder.finish(offset, fileIdentifier);
+    fbBuilder.finish(offset, fileIdentifier);
+    return fbBuilder.buffer;
   }
 }
 class Weapon {
@@ -419,6 +418,7 @@ class WeaponObjectBuilder extends fb.ObjectBuilder {
   Uint8List toBytes([String? fileIdentifier]) {
     fb.Builder fbBuilder = new fb.Builder();
     int offset = finish(fbBuilder);
-    return fbBuilder.finish(offset, fileIdentifier);
+    fbBuilder.finish(offset, fileIdentifier);
+    return fbBuilder.buffer;
   }
 }
