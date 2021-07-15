@@ -679,18 +679,48 @@ class Builder {
   }
 
   int _writeString(String value) {
-    // TODO(scheglov) optimize for ASCII strings
-    List<int> bytes = utf8.encode(value);
-    int length = bytes.length;
+    // [utf8.encode()] is slow (up to at least Dart SDK 2.13). If the given
+    // string is ASCII we can just write it directly, without any conversion.
+    final originalTail = _tail;
+    if (!_tryWriteASCIIString(value)) {
+      // reset the output buffer position for [_writeUTFString()]
+      _tail = originalTail;
+      _writeUTFString(value);
+    }
+    return _tail;
+  }
+
+  // Try to write the string as ASCII, return false if there's a non-ascii char.
+  @pragma('vm:prefer-inline')
+  bool _tryWriteASCIIString(String value) {
+    _prepare(4, 1, additionalBytes: value.length + 1);
+    final length = value.length;
+    var offset = _buf.lengthInBytes - _tail + 4;
+    for (var i = 0; i < length; i++) {
+      // utf16 code unit, e.g. for '†' it's [0x20 0x20], which is 8224 decimal.
+      // ASCII characters go from 0x00 to 0x7F (which is 0 to 127 decimal).
+      final char = value.codeUnitAt(i);
+      if ((char & ~0x7F) != 0) {
+        return false;
+      }
+      _buf.setUint8(offset++, char);
+    }
+    _buf.setUint8(offset, 0); // trailing zero
+    _setUint32AtTail(_buf, _tail, value.length);
+    return true;
+  }
+
+  @pragma('vm:prefer-inline')
+  void _writeUTFString(String value) {
+    final bytes = utf8.encode(value) as Uint8List;
+    final length = bytes.length;
     _prepare(4, 1, additionalBytes: length + 1);
-    final int result = _tail;
     _setUint32AtTail(_buf, _tail, length);
-    int offset = _buf.lengthInBytes - _tail + 4;
+    var offset = _buf.lengthInBytes - _tail + 4;
     for (int i = 0; i < length; i++) {
       _buf.setUint8(offset++, bytes[i]);
     }
     _buf.setUint8(offset, 0); // trailing zero
-    return result;
   }
 
   /// Throw an exception if there is not currently a vtable.
