@@ -307,7 +307,8 @@ class MonsterObjectBuilder extends fb.ObjectBuilder {
   /// Finish building, and store into the [fbBuilder].
   @override
   int finish(fb.Builder fbBuilder) {
-    final int? nameOffset = fbBuilder.writeString(_name);
+    final int? nameOffset = _name == null ? null
+        : fbBuilder.writeString(_name!);
     final int? inventoryOffset = _inventory == null ? null
         : fbBuilder.writeListUint8(_inventory!);
     final int? weaponsOffset = _weapons == null ? null
@@ -406,7 +407,8 @@ class WeaponObjectBuilder extends fb.ObjectBuilder {
   /// Finish building, and store into the [fbBuilder].
   @override
   int finish(fb.Builder fbBuilder) {
-    final int? nameOffset = fbBuilder.writeString(_name);
+    final int? nameOffset = _name == null ? null
+        : fbBuilder.writeString(_name!);
     fbBuilder.startTable(2);
     fbBuilder.addOffset(0, nameOffset);
     fbBuilder.addInt16(1, _damage);
