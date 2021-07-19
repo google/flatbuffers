@@ -850,7 +850,8 @@ class DartGenerator : public BaseGenerator {
     auto &code = *code_ptr;
 
     code += "  void begin() {\n";
-    code += "    fbBuilder.startTable();\n";
+    code += "    fbBuilder.startTable(" +
+            NumToString(non_deprecated_fields.size()) + ");\n";
     code += "  }\n\n";
 
     for (auto it = non_deprecated_fields.begin();
@@ -1071,7 +1072,8 @@ class DartGenerator : public BaseGenerator {
       const std::vector<std::pair<int, FieldDef *>> &non_deprecated_fields,
       bool prependUnderscore = true, bool pack = false) {
     std::string code;
-    code += "    fbBuilder.startTable();\n";
+    code += "    fbBuilder.startTable(" +
+            NumToString(non_deprecated_fields.size()) + ");\n";
 
     for (auto it = non_deprecated_fields.begin();
          it != non_deprecated_fields.end(); ++it) {

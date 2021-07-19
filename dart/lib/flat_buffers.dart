@@ -472,12 +472,12 @@ class Builder {
     }
   }
 
-  /// Start a new table.  Must be finished with [endTable] invocation.
-  void startTable() {
+  /// Start a new table. Must be finished with [endTable] invocation.
+  void startTable(int numFields) {
     if (_currentVTable != null) {
       throw new StateError('Inline tables are not supported.');
     }
-    _currentVTable = new _VTable();
+    _currentVTable = new _VTable(numFields);
     _currentTableEndTail = _tail;
   }
 
@@ -1229,8 +1229,14 @@ class _FbBoolList extends _FbList<bool> {
 class _VTable {
   static const int _metadataLength = 4;
 
-  final fieldTails = <int?>[];
-  final fieldOffsets = <int>[];
+  final int numFields;
+
+  // Note: fieldOffsets start as "tail offsets" and are then transformed by
+  // [computeFieldOffsets()] to actual offsets when a table is finished.
+  final Uint32List fieldOffsets;
+  bool offsetsComputed = false;
+
+  _VTable(this.numFields) : fieldOffsets = Uint32List(numFields);
 
   /// The size of the table that uses this VTable.
   int tableSize = 0;
@@ -1241,17 +1247,20 @@ class _VTable {
 
   int get _vTableSize => numOfUint16 * _sizeofUint16;
 
-  int get numOfUint16 => 1 + 1 + fieldTails.length;
+  int get numOfUint16 => 1 + 1 + numFields;
 
+  @pragma('vm:prefer-inline')
   void addField(int field, int offset) {
-    while (fieldTails.length <= field) {
-      fieldTails.add(null);
-    }
-    fieldTails[field] = offset;
+    assert(!offsetsComputed);
+    assert(offset > 0); // it's impossible for field to start at the buffer end
+    assert(offset <= 4294967295); // uint32 max
+    fieldOffsets[field] = offset;
   }
 
+  @pragma('vm:prefer-inline')
   bool _offsetsMatch(int vt2Start, ByteData buf) {
-    for (int i = 0; i < fieldOffsets.length; i++) {
+    assert(offsetsComputed);
+    for (int i = 0; i < numFields; i++) {
       if (fieldOffsets[i] !=
           buf.getUint16(vt2Start + _metadataLength + (2 * i), Endian.little)) {
         return false;
@@ -1261,17 +1270,22 @@ class _VTable {
   }
 
   /// Fill the [fieldOffsets] field.
+  @pragma('vm:prefer-inline')
   void computeFieldOffsets(int tableTail) {
-    assert(fieldOffsets.isEmpty);
-    for (int? fieldTail in fieldTails) {
-      int fieldOffset = fieldTail == null ? 0 : tableTail - fieldTail;
-      fieldOffsets.add(fieldOffset);
+    assert(!offsetsComputed);
+    offsetsComputed = true;
+    for (var i = 0; i < numFields; i++) {
+      if (fieldOffsets[i] != 0) {
+        fieldOffsets[i] = tableTail - fieldOffsets[i];
+      }
     }
   }
 
   /// Outputs this VTable to [buf], which is is expected to be aligned to 16-bit
   /// and have at least [numOfUint16] 16-bit words available.
+  @pragma('vm:prefer-inline')
   void output(ByteData buf, int bufOffset) {
+    assert(offsetsComputed);
     // VTable size.
     buf.setUint16(bufOffset, numOfUint16 * 2, Endian.little);
     bufOffset += 2;
@@ -1279,8 +1293,8 @@ class _VTable {
     buf.setUint16(bufOffset, tableSize, Endian.little);
     bufOffset += 2;
     // Field offsets.
-    for (int fieldOffset in fieldOffsets) {
-      buf.setUint16(bufOffset, fieldOffset, Endian.little);
+    for (int i = 0; i < numFields; i++) {
+      buf.setUint16(bufOffset, fieldOffsets[i], Endian.little);
       bufOffset += 2;
     }
   }
