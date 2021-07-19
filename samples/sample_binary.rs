@@ -33,7 +33,7 @@ pub use monster_generated::my_game::sample::{Color, Equipment,
 fn main() {
   // Build up a serialized buffer algorithmically.
   // Initialize it with a capacity of 1024 bytes.
-  let mut builder = flatbuffers::FlatBufferBuilder::new_with_capacity(1024);
+  let mut builder = flatbuffers::FlatBufferBuilder::with_capacity(1024);
 
   // Serialize some weapons for the Monster: A 'sword' and an 'axe'.
   let weapon_one_name = builder.create_string("Sword");

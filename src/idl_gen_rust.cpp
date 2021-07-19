@@ -2589,9 +2589,10 @@ class RustGenerator : public BaseGenerator {
       // Setter.
       if (IsStruct(field.value.type)) {
         code_.SetValue("FIELD_SIZE", NumToString(InlineSize(field.value.type)));
+        code_ += " #[allow(clippy::identity_op)]";  // If FIELD_OFFSET=0.
         code_ += "  pub fn set_{{FIELD_NAME}}(&mut self, x: &{{FIELD_TYPE}}) {";
         code_ +=
-            "    self.0[{{FIELD_OFFSET}}..{{FIELD_OFFSET}}+{{FIELD_SIZE}}]"
+            "    self.0[{{FIELD_OFFSET}}..{{FIELD_OFFSET}} + {{FIELD_SIZE}}]"
             ".copy_from_slice(&x.0)";
       } else if (IsArray(field.value.type)) {
         if (GetFullType(field.value.type) == ftArrayOfBuiltin) {

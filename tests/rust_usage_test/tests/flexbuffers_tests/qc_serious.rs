@@ -1,7 +1,6 @@
 use super::rwyw::NonNullString;
 use flexbuffers::*;
 use quickcheck::{Arbitrary, Gen};
-use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
