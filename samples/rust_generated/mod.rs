@@ -3,15 +3,15 @@ pub mod my_game {
     use super::*;
     pub mod sample {
         use super::*;
-        pub mod color_generated;
+        mod color_generated;
         pub use self::color_generated::*;
-        pub mod equipment_generated;
+        mod equipment_generated;
         pub use self::equipment_generated::*;
-        pub mod vec_3_generated;
+        mod vec_3_generated;
         pub use self::vec_3_generated::*;
-        pub mod monster_generated;
+        mod monster_generated;
         pub use self::monster_generated::*;
-        pub mod weapon_generated;
+        mod weapon_generated;
         pub use self::weapon_generated::*;
     } // sample
 } // my_game

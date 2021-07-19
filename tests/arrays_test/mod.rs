@@ -3,13 +3,13 @@ pub mod my_game {
     use super::*;
     pub mod example {
         use super::*;
-        pub mod test_enum_generated;
+        mod test_enum_generated;
         pub use self::test_enum_generated::*;
-        pub mod nested_struct_generated;
+        mod nested_struct_generated;
         pub use self::nested_struct_generated::*;
-        pub mod array_struct_generated;
+        mod array_struct_generated;
         pub use self::array_struct_generated::*;
-        pub mod array_table_generated;
+        mod array_table_generated;
         pub use self::array_table_generated::*;
     } // example
 } // my_game

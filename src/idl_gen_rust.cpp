@@ -241,7 +241,7 @@ bool GenerateRustModuleRootFile(const Parser &parser,
       }
       for (auto it = generated_files.begin(); it != generated_files.end();
            it++) {
-        code += "pub mod " + *it + ";";
+        code += "mod " + *it + ";";
         code += "pub use self::" + *it + "::*;";
       }
     }
