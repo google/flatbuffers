@@ -392,7 +392,7 @@ class RustGenerator : public BaseGenerator {
 
   template<typename T>
   bool GenerateSymbols(const SymbolTable<T> &symbols,
-                       std::function<void(const T &)> generate) {
+                       std::function<void(const T &)> gen_symbol) {
     for (auto it = symbols.vec.begin(); it != symbols.vec.end(); it++) {
       const T &symbol = **it;
       if (symbol.generated) continue;
@@ -404,7 +404,7 @@ class RustGenerator : public BaseGenerator {
       code_ += "use self::flatbuffers::{EndianScalar, Follow};";
       code_ += "use super::*;";
       cur_name_space_ = symbol.defined_namespace;
-      generate(symbol);
+      gen_symbol(symbol);
       std::stringstream file_path;
       file_path << path_;
       // DO NOT SUBMIT: CASPER: Refactor out common path name generation.
