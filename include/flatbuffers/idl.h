@@ -1204,7 +1204,7 @@ extern bool GenerateSwiftGRPC(const Parser &parser, const std::string &path,
 extern bool GenerateTSGRPC(const Parser &parser, const std::string &path,
                            const std::string &file_name);
 
-extern bool GenerateRustModuleRootFile(const Parser& parser,
+extern bool GenerateRustModuleRootFile(const Parser &parser,
                                        const std::string &path);
 }  // namespace flatbuffers
 
