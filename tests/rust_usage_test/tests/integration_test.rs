@@ -364,7 +364,7 @@ fn test_object_api_reads_correctly() -> Result<(), &'static str>{
 #[should_panic]
 #[test]
 fn builder_abort_with_greater_than_maximum_buffer_size() {
-    flatbuffers::FlatBufferBuilder::new_with_capacity(flatbuffers::FLATBUFFERS_MAX_BUFFER_SIZE+1);
+    flatbuffers::FlatBufferBuilder::with_capacity(flatbuffers::FLATBUFFERS_MAX_BUFFER_SIZE+1);
 }
 
 #[test]
@@ -2605,7 +2605,7 @@ mod byte_layouts {
 
     #[test]
     fn layout_03b_11xbyte_vector_matches_builder_size() {
-        let mut b = flatbuffers::FlatBufferBuilder::new_with_capacity(12);
+        let mut b = flatbuffers::FlatBufferBuilder::with_capacity(12);
         b.start_vector::<u8>(8);
 
         let mut gold = vec![0u8; 0];
