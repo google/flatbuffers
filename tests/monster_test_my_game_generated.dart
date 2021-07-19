@@ -37,7 +37,7 @@ class InParentNamespace {
 
 class InParentNamespaceT {
   int pack(fb.Builder fbBuilder) {
-    fbBuilder.startTable();
+    fbBuilder.startTable(0);
     return fbBuilder.endTable();
   }
 
@@ -62,7 +62,7 @@ class InParentNamespaceObjectBuilder extends fb.ObjectBuilder {
   /// Finish building, and store into the [fbBuilder].
   @override
   int finish(fb.Builder fbBuilder) {
-    fbBuilder.startTable();
+    fbBuilder.startTable(0);
     return fbBuilder.endTable();
   }
 
