@@ -2,11 +2,11 @@ fn main() {
     use std::process::Command;
     let project_root = std::env::current_dir()
         .unwrap()
-        .parent()  // flatbuffers/tests/rust_usage test
+        .parent() // flatbuffers/tests/rust_usage test
         .unwrap()
-        .parent()  // flatbuffers/tests
+        .parent() // flatbuffers/tests
         .unwrap()
-        .parent()  // flatbuffers/
+        .parent() // flatbuffers/
         .unwrap()
         .to_path_buf();
     let sample_schema = {
@@ -22,12 +22,35 @@ fn main() {
         f
     };
 
-    // DO NOT SUBMIT: CASPER: Can you put generated code in outdir?
+    let out_dir = {
+        let mut d = std::path::Path::new(&std::env::var("OUT_DIR").unwrap()).to_path_buf();
+        d.push("flatbuffers");
+        d
+    };
+
     Command::new(&flatc)
         .arg("-o")
-        .arg("src/generated/")
+        .arg(&out_dir)
         .arg("--rust")
         .arg(&sample_schema)
         .output()
         .expect("Failed to generate file");
+
+    assert!(out_dir.exists());
+
+    let generated = std::path::Path::new("src/generated");
+    #[cfg(target_os = "windows")]
+    {
+        if generated.exists() {
+            std::fs::remove_dir(generated).unwrap();
+        }
+        std::os::windows::fs::symlink_dir(out_dir, generated).unwrap();
+    }
+    #[cfg(not(target_os = "windows"))]
+    {
+        if generated.exists() {
+            std::fs::remove_file(generated).unwrap();
+        }
+        std::os::unix::fs::symlink(out_dir, generated).unwrap();
+    }
 }
