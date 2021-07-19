@@ -34,19 +34,7 @@ TEST_NOINCL_FLAGS="$TEST_BASE_FLAGS --no-includes"
 
 ../flatc --binary --cpp --java --kotlin  --csharp --dart --go --lobster --lua --ts --php --grpc \
 $TEST_NOINCL_FLAGS $TEST_CPP_FLAGS $TEST_CS_FLAGS -I include_test monster_test.fbs monsterdata_test.json
-
-# Generate all Rust code together so they can all be imported by the same base
-# flatbuffers_generated.rs module.
-# DO NOT SUBMIT: CASPER:
-# It might be cleaner to put all the rust generated code in one directory. However, the mod.rs thing means it can
-# all only come from one invocation. It is unclear to me if that's a dealbreaker somehow.
-../flatc --rust $TEST_RUST_FLAGS -o monster_test -I include_test monster_test.fbs
-../flatc --rust $TEST_RUST_FLAGS -o optional_scalars optional_scalars.fbs
-../flatc --rust $TEST_RUST_FLAGS -o more_defaults more_defaults.fbs
-../flatc --rust $TEST_RUST_FLAGS -o arrays_test arrays_test.fbs
-../flatc --rust $TEST_RUST_FLAGS -o namespace_test namespace_test/*.fbs
-../flatc --rust $TEST_RUST_FLAGS -o include_test1 -I include_test include_test/include_test1.fbs
-../flatc --rust $TEST_RUST_FLAGS -o include_test2 -I include_test include_test/sub/include_test2.fbs
+../flatc --rust $TEST_RUST_FLAGS -o monster_test -I include_test monster_test.fbs monsterdata_test.json
 
 ../flatc --python $TEST_BASE_FLAGS -I include_test monster_test.fbs monsterdata_test.json
 
@@ -55,30 +43,32 @@ $TEST_NOINCL_FLAGS $TEST_CPP_FLAGS $TEST_CS_FLAGS $TEST_TS_FLAGS -o namespace_te
 
 # For Rust we currently generate two independent schemas, with namespace_test2
 # duplicating the types in namespace_test1
-# ../flatc --rust --gen-all $TEST_RUST_FLAGS -o namespace_test namespace_test/namespace_test1.fbs namespace_test/namespace_test2.fbs
+../flatc --rust --gen-all $TEST_RUST_FLAGS -o namespace_test namespace_test/namespace_test1.fbs namespace_test/namespace_test2.fbs
 
 ../flatc --cpp --java --kotlin --csharp --ts --php $TEST_BASE_FLAGS $TEST_CPP_FLAGS $TEST_CS_FLAGS $TEST_TS_FLAGS -o union_vector ./union_vector/union_vector.fbs
 ../flatc --ts --gen-name-strings --gen-mutable $TEST_BASE_FLAGS $TEST_TS_FLAGS -I include_test monster_test.fbs
 ../flatc $TEST_BASE_FLAGS $TEST_TS_FLAGS -b -I include_test monster_test.fbs unicode_test.json
 ../flatc --ts --gen-name-strings $TEST_BASE_FLAGS $TEST_TS_FLAGS -o union_vector union_vector/union_vector.fbs
-# ../flatc --rust -I include_test -o include_test include_test/include_test1.fbs
-# ../flatc --rust -I include_test -o include_test/sub include_test/sub/include_test2.fbs
+../flatc --rust $TEST_RUST_FLAGS -o include_test1 -I include_test include_test/include_test1.fbs
+../flatc --rust $TEST_RUST_FLAGS -o include_test2 -I include_test include_test/sub/include_test2.fbs
 ../flatc -b --schema --bfbs-comments --bfbs-filenames . --bfbs-builtins -I include_test monster_test.fbs
 ../flatc --cpp --bfbs-comments --bfbs-builtins --bfbs-gen-embed $TEST_NOINCL_FLAGS $TEST_CPP_FLAGS -I include_test monster_test.fbs
 ../flatc -b --schema --bfbs-comments --bfbs-builtins -I include_test arrays_test.fbs
 ../flatc --jsonschema --schema -I include_test monster_test.fbs
 ../flatc --cpp --java --kotlin --csharp --python $TEST_NOINCL_FLAGS $TEST_CPP_FLAGS $TEST_CS_FLAGS monster_extra.fbs monsterdata_extra.json
-# ../flatc --cpp --java --csharp --jsonschema --rust $TEST_NOINCL_FLAGS $TEST_CPP_FLAGS $TEST_CS_FLAGS --scoped-enums arrays_test.fbs
+../flatc --cpp --java --csharp --jsonschema $TEST_NOINCL_FLAGS $TEST_CPP_FLAGS $TEST_CS_FLAGS --scoped-enums arrays_test.fbs
+../flatc --rust $TEST_RUST_FLAGS -o arrays_test arrays_test.fbs
 ../flatc --python $TEST_BASE_FLAGS arrays_test.fbs
 ../flatc --dart --gen-object-api monster_extra.fbs
 
 # Generate optional scalar code for tests.
 ../flatc --java --kotlin --lobster --ts optional_scalars.fbs
-# ../flatc --csharp --rust --gen-object-api optional_scalars.fbs
+../flatc --csharp --gen-object-api optional_scalars.fbs
+../flatc --rust $TEST_RUST_FLAGS -o optional_scalars optional_scalars.fbs
 ../flatc $TEST_NOINCL_FLAGS $TEST_CPP_FLAGS --cpp optional_scalars.fbs
 
 # Generate string/vector default code for tests
-# ../flatc --rust --gen-object-api more_defaults.fbs
+../flatc --rust $TEST_RUST_FLAGS -o more_defaults more_defaults.fbs
 
 # Generate the schema evolution tests
 ../flatc --cpp --scoped-enums $TEST_CPP_FLAGS -o evolution_test ./evolution_test/evolution_v*.fbs
