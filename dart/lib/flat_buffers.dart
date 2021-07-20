@@ -668,25 +668,34 @@ class Builder {
     return result;
   }
 
-  /// Write the given string [value] and return its offset.
-  int writeString(String value) {
+  /// Write the given string [value] and return its offset
+  ///
+  /// Dart strings are UTF-16 but must be stored as UTF-8 in FlatBuffers.
+  /// If the given string consists only of ASCII characters, you can indicate
+  /// enable [asciiOptimization]. In this mode, [writeString()] first tries to
+  /// copy the ASCII string directly to the output buffer and if that fails
+  /// (because there are no-ASCII characters in the string) it falls back and to
+  /// the default UTF-16 -> UTF-8 conversion (with slight performance penalty).
+  int? writeString(String value, {bool asciiOptimization = false}) {
     _ensureNoVTable();
     if (_strings != null) {
-      return _strings!.putIfAbsent(value, () => _writeString(value));
+      return _strings!
+          .putIfAbsent(value, () => _writeString(value, asciiOptimization));
     } else {
-      return _writeString(value);
+      return _writeString(value, asciiOptimization);
     }
   }
 
-  int _writeString(String value) {
-    // [utf8.encode()] is slow (up to at least Dart SDK 2.13). If the given
-    // string is ASCII we can just write it directly, without any conversion.
-    final originalTail = _tail;
-    if (!_tryWriteASCIIString(value)) {
-      // reset the output buffer position for [_writeUTFString()]
+  int _writeString(String value, bool asciiOptimization) {
+    if (asciiOptimization) {
+      // [utf8.encode()] is slow (up to at least Dart SDK 2.13). If the given
+      // string is ASCII we can just write it directly, without any conversion.
+      final originalTail = _tail;
+      if (_tryWriteASCIIString(value)) return _tail;
+      // if non-ASCII: reset the output buffer position for [_writeUTFString()]
       _tail = originalTail;
-      _writeUTFString(value);
     }
+    _writeUTFString(value);
     return _tail;
   }
 
