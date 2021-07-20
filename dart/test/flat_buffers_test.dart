@@ -224,15 +224,15 @@ class BuilderTest {
 
   void test_error_startTable_duringTable() {
     Builder builder = new Builder();
-    builder.startTable();
+    builder.startTable(0);
     expect(() {
-      builder.startTable();
+      builder.startTable(0);
     }, throwsStateError);
   }
 
   void test_error_writeString_duringTable() {
     Builder builder = new Builder();
-    builder.startTable();
+    builder.startTable(1);
     expect(() {
       builder.writeString('12345');
     }, throwsStateError);
@@ -242,7 +242,7 @@ class BuilderTest {
     Uint8List byteList;
     {
       Builder builder = new Builder(initialSize: 0);
-      builder.startTable();
+      builder.startTable(0);
       int offset = builder.endTable();
       builder.finish(offset, 'Az~ÿ');
       byteList = builder.buffer;
@@ -298,7 +298,7 @@ class BuilderTest {
     List<int> byteList;
     {
       final builder = Builder(initialSize: 0, allocator: CustomAllocator());
-      builder.startTable();
+      builder.startTable(2);
       builder.addInt32(0, 10, 10);
       builder.addInt32(1, 20, 10);
       int offset = builder.endTable();
@@ -325,7 +325,7 @@ class BuilderTest {
     Uint8List byteList;
     {
       builder ??= new Builder(initialSize: 0);
-      builder.startTable();
+      builder.startTable(3);
       builder.addInt32(0, 10);
       builder.addInt32(1, 20);
       builder.addInt32(2, 30);
@@ -362,7 +362,7 @@ class BuilderTest {
       Builder builder = new Builder(initialSize: 0);
       int? latinStringOffset = builder.writeString(latinString);
       int? unicodeStringOffset = builder.writeString(unicodeString);
-      builder.startTable();
+      builder.startTable(2);
       builder.addOffset(0, latinStringOffset);
       builder.addOffset(1, unicodeStringOffset);
       int offset = builder.endTable();
@@ -387,7 +387,7 @@ class BuilderTest {
     {
       builder ??= new Builder(initialSize: 0);
       int? stringOffset = builder.writeString('12345');
-      builder.startTable();
+      builder.startTable(7);
       builder.addBool(0, true);
       builder.addInt8(1, 10);
       builder.addInt32(2, 20);
@@ -554,7 +554,7 @@ class BuilderTest {
       // write the object #1
       int object1;
       {
-        builder.startTable();
+        builder.startTable(2);
         builder.addInt32(0, 10);
         builder.addInt32(1, 20);
         object1 = builder.endTable();
@@ -562,7 +562,7 @@ class BuilderTest {
       // write the object #1
       int object2;
       {
-        builder.startTable();
+        builder.startTable(2);
         builder.addInt32(0, 100);
         builder.addInt32(1, 200);
         object2 = builder.endTable();
@@ -589,7 +589,7 @@ class BuilderTest {
       Builder builder = new Builder(initialSize: 0);
       int? str1 = builder.writeString('12345');
       int? str2 = builder.writeString('ABC');
-      int offset = builder.writeList([str1!, str2!]);
+      int offset = builder.writeList([str1, str2]);
       builder.finish(offset);
       byteList = builder.buffer;
     }
@@ -607,8 +607,8 @@ class BuilderTest {
     {
       builder ??= new Builder(initialSize: 0);
       int listOffset = builder.writeList(
-          [builder.writeString('12345')!, builder.writeString('ABC')!]);
-      builder.startTable();
+          [builder.writeString('12345'), builder.writeString('ABC')]);
+      builder.startTable(1);
       builder.addOffset(0, listOffset);
       int offset = builder.endTable();
       builder.finish(offset);

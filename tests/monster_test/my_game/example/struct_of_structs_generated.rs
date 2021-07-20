@@ -92,24 +92,27 @@ impl<'a> StructOfStructs {
     unsafe { &*(self.0[0..].as_ptr() as *const Ability) }
   }
 
+ #[allow(clippy::identity_op)]
   pub fn set_a(&mut self, x: &Ability) {
-    self.0[0..0+8].copy_from_slice(&x.0)
+    self.0[0..0 + 8].copy_from_slice(&x.0)
   }
 
   pub fn b(&self) -> &Test {
     unsafe { &*(self.0[8..].as_ptr() as *const Test) }
   }
 
+ #[allow(clippy::identity_op)]
   pub fn set_b(&mut self, x: &Test) {
-    self.0[8..8+4].copy_from_slice(&x.0)
+    self.0[8..8 + 4].copy_from_slice(&x.0)
   }
 
   pub fn c(&self) -> &Ability {
     unsafe { &*(self.0[12..].as_ptr() as *const Ability) }
   }
 
+ #[allow(clippy::identity_op)]
   pub fn set_c(&mut self, x: &Ability) {
-    self.0[12..12+8].copy_from_slice(&x.0)
+    self.0[12..12 + 8].copy_from_slice(&x.0)
   }
 
   pub fn unpack(&self) -> StructOfStructsT {

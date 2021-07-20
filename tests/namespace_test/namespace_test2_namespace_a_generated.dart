@@ -66,7 +66,7 @@ class TableInFirstNST {
   int pack(fb.Builder fbBuilder) {
     final int? fooTableOffset = fooTable?.pack(fbBuilder);
     final int? fooUnionOffset = fooUnion?.pack(fbBuilder);
-    fbBuilder.startTable();
+    fbBuilder.startTable(5);
     fbBuilder.addOffset(0, fooTableOffset);
     fbBuilder.addInt8(1, fooEnum.value);
     fbBuilder.addUint8(2, fooUnionType?.value);
@@ -97,7 +97,7 @@ class TableInFirstNSBuilder {
   final fb.Builder fbBuilder;
 
   void begin() {
-    fbBuilder.startTable();
+    fbBuilder.startTable(5);
   }
 
   int addFooTableOffset(int? offset) {
@@ -151,7 +151,7 @@ class TableInFirstNSObjectBuilder extends fb.ObjectBuilder {
   int finish(fb.Builder fbBuilder) {
     final int? fooTableOffset = _fooTable?.getOrCreateOffset(fbBuilder);
     final int? fooUnionOffset = _fooUnion?.getOrCreateOffset(fbBuilder);
-    fbBuilder.startTable();
+    fbBuilder.startTable(5);
     fbBuilder.addOffset(0, fooTableOffset);
     fbBuilder.addInt8(1, _fooEnum?.value);
     fbBuilder.addUint8(2, _fooUnionType?.value);
@@ -207,7 +207,7 @@ class SecondTableInAT {
 
   int pack(fb.Builder fbBuilder) {
     final int? referToCOffset = referToC?.pack(fbBuilder);
-    fbBuilder.startTable();
+    fbBuilder.startTable(1);
     fbBuilder.addOffset(0, referToCOffset);
     return fbBuilder.endTable();
   }
@@ -232,7 +232,7 @@ class SecondTableInABuilder {
   final fb.Builder fbBuilder;
 
   void begin() {
-    fbBuilder.startTable();
+    fbBuilder.startTable(1);
   }
 
   int addReferToCOffset(int? offset) {
@@ -257,7 +257,7 @@ class SecondTableInAObjectBuilder extends fb.ObjectBuilder {
   @override
   int finish(fb.Builder fbBuilder) {
     final int? referToCOffset = _referToC?.getOrCreateOffset(fbBuilder);
-    fbBuilder.startTable();
+    fbBuilder.startTable(1);
     fbBuilder.addOffset(0, referToCOffset);
     return fbBuilder.endTable();
   }

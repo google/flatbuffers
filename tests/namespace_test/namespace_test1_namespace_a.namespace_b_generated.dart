@@ -132,7 +132,7 @@ class TableInNestedNST {
       this.foo = 0});
 
   int pack(fb.Builder fbBuilder) {
-    fbBuilder.startTable();
+    fbBuilder.startTable(1);
     fbBuilder.addInt32(0, foo);
     return fbBuilder.endTable();
   }
@@ -157,7 +157,7 @@ class TableInNestedNSBuilder {
   final fb.Builder fbBuilder;
 
   void begin() {
-    fbBuilder.startTable();
+    fbBuilder.startTable(1);
   }
 
   int addFoo(int? foo) {
@@ -181,7 +181,7 @@ class TableInNestedNSObjectBuilder extends fb.ObjectBuilder {
   /// Finish building, and store into the [fbBuilder].
   @override
   int finish(fb.Builder fbBuilder) {
-    fbBuilder.startTable();
+    fbBuilder.startTable(1);
     fbBuilder.addInt32(0, _foo);
     return fbBuilder.endTable();
   }
