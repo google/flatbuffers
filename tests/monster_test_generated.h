@@ -1025,8 +1025,8 @@ struct Stat FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   bool KeyCompareLessThan(const Stat *o) const {
     return count() < o->count();
   }
-  int KeyCompareWithValue(uint16_t val) const {
-    return static_cast<int>(count() > val) - static_cast<int>(count() < val);
+  int KeyCompareWithValue(uint16_t val_) const {
+    return static_cast<int>(count() > val_) - static_cast<int>(count() < val_);
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
