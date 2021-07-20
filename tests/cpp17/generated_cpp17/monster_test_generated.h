@@ -7,6 +7,9 @@
 #include "flatbuffers/flatbuffers.h"
 #include "flatbuffers/flexbuffers.h"
 
+#include <array>
+#include <type_traits>
+
 namespace MyGame {
 
 struct InParentNamespace;
