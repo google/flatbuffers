@@ -589,7 +589,7 @@ class BuilderTest {
       Builder builder = new Builder(initialSize: 0);
       int? str1 = builder.writeString('12345');
       int? str2 = builder.writeString('ABC');
-      int offset = builder.writeList([str1!, str2!]);
+      int offset = builder.writeList([str1, str2]);
       builder.finish(offset);
       byteList = builder.buffer;
     }
@@ -607,7 +607,7 @@ class BuilderTest {
     {
       builder ??= new Builder(initialSize: 0);
       int listOffset = builder.writeList(
-          [builder.writeString('12345')!, builder.writeString('ABC')!]);
+          [builder.writeString('12345'), builder.writeString('ABC')]);
       builder.startTable(1);
       builder.addOffset(0, listOffset);
       int offset = builder.endTable();

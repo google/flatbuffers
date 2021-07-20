@@ -999,8 +999,8 @@ class DartGenerator : public BaseGenerator {
         code += "        : fbBuilder.writeList";
         switch (field.value.type.VectorType().base_type) {
           case BASE_TYPE_STRING:
-            code += "(" + field_name +
-                    "!.map((b) => fbBuilder.writeString(b)!).toList());\n";
+            code +=
+                "(" + field_name + "!.map(fbBuilder.writeString).toList());\n";
             break;
           case BASE_TYPE_STRUCT:
             if (field.value.type.struct_def->fixed) {
@@ -1020,7 +1020,8 @@ class DartGenerator : public BaseGenerator {
             code += ");\n";
         }
       } else if (IsString(field.value.type)) {
-        code += " = fbBuilder.writeString(" + field_name + ");\n";
+        code += " = " + field_name + " == null ? null\n";
+        code += "        : fbBuilder.writeString(" + field_name + "!);\n";
       } else {
         code += " = " + field_name + "?." +
                 (pack ? "pack" : "getOrCreateOffset") + "(fbBuilder);\n";

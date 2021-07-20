@@ -668,18 +668,14 @@ class Builder {
     return result;
   }
 
-  /// Write the given string [value] and return its offset, or `null` if
-  /// the [value] is `null`.
-  int? writeString(String? value) {
+  /// Write the given string [value] and return its offset.
+  int writeString(String value) {
     _ensureNoVTable();
-    if (value != null) {
-      if (_strings != null) {
-        return _strings!.putIfAbsent(value, () => _writeString(value));
-      } else {
-        return _writeString(value);
-      }
+    if (_strings != null) {
+      return _strings!.putIfAbsent(value, () => _writeString(value));
+    } else {
+      return _writeString(value);
     }
-    return null;
   }
 
   int _writeString(String value) {
