@@ -11,6 +11,7 @@ class Stat(object):
 
     @classmethod
     def GetRootAs(cls, buf, offset=0):
+        buf = flatbuffers.compat.memoryview_type(buf) if not isinstance(buf, flatbuffers.compat.memoryview_type) else buf
         n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, offset)
         x = Stat()
         x.Init(buf, n + offset)

@@ -23,7 +23,7 @@ FILE_IDENTIFIER_LENGTH=4
 
 def Get(packer_type, buf, head):
     """ Get decodes a value at buf[head] using `packer_type`. """
-    return packer_type.unpack_from(memoryview_type(buf), head)[0]
+    return packer_type.unpack_from(buf, head)[0]
 
 
 def GetVectorAsNumpy(numpy_type, buf, count, offset):
@@ -32,7 +32,8 @@ def GetVectorAsNumpy(numpy_type, buf, count, offset):
     if np is not None:
         # TODO: could set .flags.writeable = False to make users jump through
         #       hoops before modifying...
-        return np.frombuffer(buf, dtype=numpy_type, count=count, offset=offset)
+        # NOTE: np.frombuffer raises error with python 2.7 memoryview
+        return np.frombuffer(buf.tobytes(), dtype=numpy_type, count=count, offset=offset)
     else:
         raise NumpyRequiredForThisFeature('Numpy was not found.')
 

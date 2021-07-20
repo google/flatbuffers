@@ -129,6 +129,11 @@ class PythonGenerator : public BaseGenerator {
     code += "(cls, buf, offset=0):";
     code += "\n";
     code += Indent + Indent;
+    code += "buf = flatbuffers.compat.memoryview_type(buf) ";
+    code += "if not isinstance(buf, flatbuffers.compat.memoryview_type) ";
+    code += "else buf";
+    code += "\n";
+    code += Indent + Indent;
     code += "n = flatbuffers.encode.Get";
     code += "(flatbuffers.packer.uoffset, buf, offset)\n";
     code += Indent + Indent + "x = " + NormalizedName(struct_def) + "()\n";

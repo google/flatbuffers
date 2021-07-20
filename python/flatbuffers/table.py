@@ -51,7 +51,7 @@ class Table(object):
         off += encode.Get(N.UOffsetTFlags.packer_type, self.Bytes, off)
         start = off + N.UOffsetTFlags.bytewidth
         length = encode.Get(N.UOffsetTFlags.packer_type, self.Bytes, off)
-        return bytes(self.Bytes[start:start+length])
+        return self.Bytes[start:start+length].tobytes()
 
     def VectorLen(self, off):
         """VectorLen retrieves the length of the vector whose offset is stored

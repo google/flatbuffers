@@ -2316,7 +2316,7 @@ def BenchmarkVtableDeduplication(count):
 
         duration = timeit.timeit(stmt=f, number=count)
         rate = float(count) / duration
-        print(('vtable deduplication rate (n=%d, vtables=%d): %.2f sec' % (
+        print(('vtable deduplication rate (n=%d, vtables=%d): %.2f/sec' % (
             prePop,
             len(builder.vtables),
             rate))
