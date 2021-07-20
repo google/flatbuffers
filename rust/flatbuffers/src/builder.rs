@@ -22,7 +22,7 @@ use std::marker::PhantomData;
 use std::ptr::write_bytes;
 use std::slice::from_raw_parts;
 
-use crate::endian_scalar::{emplace_scalar, read_scalar_at};
+use crate::endian_scalar::EndianScalar;
 use crate::primitives::*;
 use crate::push::{Push, PushAlignment};
 use crate::table::Table;
@@ -582,14 +582,11 @@ impl<'fbb> FlatBufferBuilder<'fbb> {
 
         {
             let n = self.head + self.used_space() - object_revloc_to_vtable.value() as usize;
-            let saw = unsafe { read_scalar_at::<UOffsetT>(&self.owned_buf, n) };
+            let saw = UOffsetT::from_le_chunk(&self.owned_buf[n..n + UOffsetT::N]);
             debug_assert_eq!(saw, 0xF0F0_F0F0);
-            unsafe {
-                emplace_scalar::<SOffsetT>(
-                    &mut self.owned_buf[n..n + SIZE_SOFFSET],
-                    vt_use as SOffsetT - object_revloc_to_vtable.value() as SOffsetT,
-                );
-            }
+            let offset = vt_use as SOffsetT - object_revloc_to_vtable.value() as SOffsetT;
+            let slice = &mut self.owned_buf[n..n + SIZE_SOFFSET];
+            slice.copy_from_slice(offset.to_le_bytes().as_ref())
         }
 
         self.field_locs.clear();

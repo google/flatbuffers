@@ -93,18 +93,12 @@ pub fn emplace_scalar_array<T: EndianScalar, const N: usize>(
     loc: usize,
     src: &[T; N],
 ) {
-    let mut buf_ptr = buf[loc..].as_mut_ptr();
-    for item in src.iter() {
-        let item_le = item.to_little_endian();
-        unsafe {
-            core::ptr::copy_nonoverlapping(
-                &item_le as *const T as *const u8,
-                buf_ptr,
-                size_of::<T>(),
-            );
-            buf_ptr = buf_ptr.add(size_of::<T>());
-        }
-    }
+    let chunks = &mut buf[loc..].chunks_exact_mut(N);
+
+    chunks.zip(src.iter()).for_each(|(dst, item)| {
+        //let item = ;
+        dst.copy_from_slice(item.to_le_bytes().as_ref());
+    });
 }
 
 impl<'a, T: Follow<'a> + 'a, const N: usize> IntoIterator for Array<'a, T, N> {

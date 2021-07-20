@@ -16,7 +16,7 @@
 
 use std::ptr::write_bytes;
 
-use crate::endian_scalar::{emplace_scalar, read_scalar_at};
+use crate::endian_scalar::EndianScalar;
 use crate::primitives::*;
 
 /// VTableWriter compartmentalizes actions needed to create a vtable.
@@ -40,18 +40,14 @@ impl<'a> VTableWriter<'a> {
     /// to the provided value.
     #[inline(always)]
     pub fn write_vtable_byte_length(&mut self, n: VOffsetT) {
-        unsafe {
-            emplace_scalar::<VOffsetT>(&mut self.buf[..SIZE_VOFFSET], n);
-        }
+        self.buf[..SIZE_VOFFSET].copy_from_slice(n.to_le_bytes().as_ref());
         debug_assert_eq!(n as usize, self.buf.len());
     }
 
     /// Writes an object length (in bytes) into the vtable.
     #[inline(always)]
     pub fn write_object_inline_size(&mut self, n: VOffsetT) {
-        unsafe {
-            emplace_scalar::<VOffsetT>(&mut self.buf[SIZE_VOFFSET..2 * SIZE_VOFFSET], n);
-        }
+        self.buf[SIZE_VOFFSET..2 * SIZE_VOFFSET].copy_from_slice(n.to_le_bytes().as_ref());
     }
 
     /// Gets an object field offset from the vtable. Only used for debugging.
@@ -61,7 +57,7 @@ impl<'a> VTableWriter<'a> {
     #[inline(always)]
     pub fn get_field_offset(&self, vtable_offset: VOffsetT) -> VOffsetT {
         let idx = vtable_offset as usize;
-        unsafe { read_scalar_at::<VOffsetT>(&self.buf, idx) }
+        VOffsetT::from_le_chunk(&self.buf[idx * VOffsetT::N..(idx + 1) * VOffsetT::N])
     }
 
     /// Writes an object field offset into the vtable.
@@ -71,9 +67,8 @@ impl<'a> VTableWriter<'a> {
     #[inline(always)]
     pub fn write_field_offset(&mut self, vtable_offset: VOffsetT, object_data_offset: VOffsetT) {
         let idx = vtable_offset as usize;
-        unsafe {
-            emplace_scalar::<VOffsetT>(&mut self.buf[idx..idx + SIZE_VOFFSET], object_data_offset);
-        }
+        self.buf[idx..idx + SIZE_VOFFSET]
+            .copy_from_slice(object_data_offset.to_le_bytes().as_ref());
     }
 
     /// Clears all data in this VTableWriter. Used to cleanly undo a

@@ -43,9 +43,7 @@ mod vtable_writer;
 
 pub use crate::array::{array_init, emplace_scalar_array, Array};
 pub use crate::builder::FlatBufferBuilder;
-pub use crate::endian_scalar::{
-    byte_swap_f32, byte_swap_f64, emplace_scalar, read_scalar, read_scalar_at, EndianScalar,
-};
+pub use crate::endian_scalar::EndianScalar;
 pub use crate::follow::{Follow, FollowStart};
 pub use crate::primitives::*;
 pub use crate::push::Push;

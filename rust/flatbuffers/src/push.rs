@@ -17,7 +17,7 @@
 use std::cmp::max;
 use std::mem::{align_of, size_of};
 
-use crate::endian_scalar::emplace_scalar;
+use crate::endian_scalar::EndianScalar;
 
 /// Trait to abstract over functionality needed to write values (either owned
 /// or referenced). Used in FlatBufferBuilder and implemented for generated
@@ -61,9 +61,7 @@ macro_rules! impl_push_for_endian_scalar {
 
             #[inline]
             fn push(&self, dst: &mut [u8], _rest: &[u8]) {
-                unsafe {
-                    emplace_scalar::<$ty>(dst, *self);
-                }
+                dst.copy_from_slice((*self).to_le_bytes().as_ref())
             }
         }
     };
