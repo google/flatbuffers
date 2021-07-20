@@ -3359,8 +3359,9 @@ void LoadVerifyBinaryTest() {
   }
 }
 
-void CreateSharedStringTest() {
+void CreateSharedStringTest(flatbuffers::StringPoolMap *map) {
   flatbuffers::FlatBufferBuilder builder;
+  if (map) { builder.SetStringPool(map); }
   const auto one1 = builder.CreateSharedString("one");
   const auto two = builder.CreateSharedString("two");
   const auto one2 = builder.CreateSharedString("one");
@@ -4201,7 +4202,9 @@ int FlatBufferTests() {
   ParseProtoBufAsciiTest();
   TypeAliasesTest();
   EndianSwapTest();
-  CreateSharedStringTest();
+  CreateSharedStringTest(nullptr);
+  flatbuffers::StringPoolMap shared_pool_map;
+  CreateSharedStringTest(&shared_pool_map);
   JsonDefaultTest();
   JsonEnumsTest();
   FlexBuffersTest();

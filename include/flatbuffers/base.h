@@ -45,6 +45,7 @@
 #include <algorithm>
 #include <iterator>
 #include <memory>
+#include <map>
 
 #if defined(__unix__) && !defined(FLATBUFFERS_LOCALE_INDEPENDENT)
   #include <unistd.h>
