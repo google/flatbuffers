@@ -400,7 +400,7 @@ class RustGenerator : public BaseGenerator {
       code_ += "// " + std::string(FlatBuffersGeneratedWarning());
       code_ += "use std::mem;";
       code_ += "use std::cmp::Ordering;";
-      code_ += "extern crate flatbuffers;";
+      code_ += "use flatbuffers;";
       code_ += "use self::flatbuffers::{EndianScalar, Follow};";
       code_ += "use super::*;";
       cur_name_space_ = symbol.defined_namespace;
@@ -1966,7 +1966,7 @@ class RustGenerator : public BaseGenerator {
         // All types besides unions.
         code_.SetValue("TY", FollowType(field.value.type, "'_"));
         code_ +=
-            "\n     .visit_field::<{{TY}}>(&\"{{FIELD_NAME}}\", "
+            "\n     .visit_field::<{{TY}}>(\"{{FIELD_NAME}}\", "
             "Self::{{OFFSET_NAME}}, {{IS_REQ}})?\\";
         return;
       }
@@ -1975,8 +1975,8 @@ class RustGenerator : public BaseGenerator {
       code_.SetValue("UNION_TYPE", WrapInNameSpace(union_def));
       code_ +=
           "\n     .visit_union::<{{UNION_TYPE}}, _>("
-          "&\"{{FIELD_NAME}}_type\", Self::{{OFFSET_NAME}}_TYPE, "
-          "&\"{{FIELD_NAME}}\", Self::{{OFFSET_NAME}}, {{IS_REQ}}, "
+          "\"{{FIELD_NAME}}_type\", Self::{{OFFSET_NAME}}_TYPE, "
+          "\"{{FIELD_NAME}}\", Self::{{OFFSET_NAME}}, {{IS_REQ}}, "
           "|key, v, pos| {";
       code_ += "        match key {";
       ForAllUnionVariantsBesidesNone(union_def, [&](const EnumVal &unused) {
