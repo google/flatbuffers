@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+use flatbuffers;
 use bencher::Bencher;
 
 
