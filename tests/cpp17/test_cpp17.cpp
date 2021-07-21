@@ -15,7 +15,7 @@
  */
 
 // This is a sandbox for modeling C++17 code generator.
-// C++17 code generator: "flatc --cpp_std c++17".
+// C++17 code generator: "flatc --cpp-std c++17".
 // Warning:
 // This is an experimental feature and could change at any time.
 
@@ -32,6 +32,7 @@
 namespace cpp17 {
 #include "generated_cpp17/monster_test_generated.h"
 #include "generated_cpp17/optional_scalars_generated.h"
+#include "generated_cpp17/union_vector_generated.h"
 }  // namespace cpp17
 
 namespace cpp11 {
