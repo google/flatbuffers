@@ -93,6 +93,7 @@ impl<'a> flatbuffers::Verifiable for UnionInNestedNS {
 impl flatbuffers::SimpleToVerifyInSlice for UnionInNestedNS {}
 pub struct UnionInNestedNSUnionTableOffset {}
 
+#[allow(clippy::upper_case_acronyms)]
 #[non_exhaustive]
 #[derive(Debug, Clone, PartialEq)]
 pub enum UnionInNestedNST {

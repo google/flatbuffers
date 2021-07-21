@@ -365,7 +365,7 @@ impl<'a> Monster<'a> {
   #[inline]
   pub fn key_compare_with_value(&self, val: & str) ->  ::std::cmp::Ordering {
     let key = self.name();
-    key.cmp(&val)
+    key.cmp(val)
   }
   #[inline]
   pub fn inventory(&self) -> Option<&'a [u8]> {

@@ -938,6 +938,7 @@ class RustGenerator : public BaseGenerator {
     code_.SetValue("NATIVE_NAME", NativeName(enum_def));
 
     // Generate native union.
+    code_ += "#[allow(clippy::upper_case_acronyms)]";  // NONE's spelling is intended.
     code_ += "#[non_exhaustive]";
     code_ += "#[derive(Debug, Clone, PartialEq)]";
     code_ += "pub enum {{NATIVE_NAME}} {";
@@ -2303,6 +2304,7 @@ class RustGenerator : public BaseGenerator {
     FLATBUFFERS_ASSERT(field.key);
 
     code_.SetValue("KEY_TYPE", GenTableAccessorFuncReturnType(field, ""));
+    code_.SetValue("REF", IsString(field.value.type) ? "" : "&");
 
     code_ += "  #[inline]";
     code_ +=
@@ -2316,7 +2318,7 @@ class RustGenerator : public BaseGenerator {
         "  pub fn key_compare_with_value(&self, val: {{KEY_TYPE}}) -> "
         " ::std::cmp::Ordering {";
     code_ += "    let key = self.{{FIELD_NAME}}();";
-    code_ += "    key.cmp(&val)";
+    code_ += "    key.cmp({{REF}}val)";
     code_ += "  }";
   }
 
@@ -2659,7 +2661,7 @@ class RustGenerator : public BaseGenerator {
     code_ += "    let mut s = Self([0; {{STRUCT_SIZE}}]);";
     ForAllStructFields(struct_def, [&](const FieldDef &unused) {
       (void)unused;
-      code_ += "    s.set_{{FIELD_NAME}}({{REF}}{{FIELD_NAME}});";
+      code_ += "    s.set_{{FIELD_NAME}}({{FIELD_NAME}});";
     });
     code_ += "    s";
     code_ += "  }";

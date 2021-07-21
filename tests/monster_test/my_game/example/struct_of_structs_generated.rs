@@ -78,9 +78,9 @@ impl<'a> StructOfStructs {
     c: &Ability,
   ) -> Self {
     let mut s = Self([0; 20]);
-    s.set_a(&a);
-    s.set_b(&b);
-    s.set_c(&c);
+    s.set_a(a);
+    s.set_b(b);
+    s.set_c(c);
     s
   }
 

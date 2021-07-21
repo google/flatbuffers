@@ -89,7 +89,7 @@ impl<'a> Vec3 {
     s.set_z(z);
     s.set_test1(test1);
     s.set_test2(test2);
-    s.set_test3(&test3);
+    s.set_test3(test3);
     s
   }
 

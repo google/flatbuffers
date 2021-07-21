@@ -101,6 +101,7 @@ impl<'a> flatbuffers::Verifiable for Any {
 impl flatbuffers::SimpleToVerifyInSlice for Any {}
 pub struct AnyUnionTableOffset {}
 
+#[allow(clippy::upper_case_acronyms)]
 #[non_exhaustive]
 #[derive(Debug, Clone, PartialEq)]
 pub enum AnyT {

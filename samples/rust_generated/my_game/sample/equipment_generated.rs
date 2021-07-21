@@ -93,6 +93,7 @@ impl<'a> flatbuffers::Verifiable for Equipment {
 impl flatbuffers::SimpleToVerifyInSlice for Equipment {}
 pub struct EquipmentUnionTableOffset {}
 
+#[allow(clippy::upper_case_acronyms)]
 #[non_exhaustive]
 #[derive(Debug, Clone, PartialEq)]
 pub enum EquipmentT {

@@ -101,6 +101,7 @@ impl<'a> flatbuffers::Verifiable for AnyUniqueAliases {
 impl flatbuffers::SimpleToVerifyInSlice for AnyUniqueAliases {}
 pub struct AnyUniqueAliasesUnionTableOffset {}
 
+#[allow(clippy::upper_case_acronyms)]
 #[non_exhaustive]
 #[derive(Debug, Clone, PartialEq)]
 pub enum AnyUniqueAliasesT {

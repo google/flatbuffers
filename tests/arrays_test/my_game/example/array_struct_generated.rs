@@ -85,11 +85,11 @@ impl<'a> ArrayStruct {
   ) -> Self {
     let mut s = Self([0; 160]);
     s.set_a(a);
-    s.set_b(&b);
+    s.set_b(b);
     s.set_c(c);
-    s.set_d(&d);
+    s.set_d(d);
     s.set_e(e);
-    s.set_f(&f);
+    s.set_f(f);
     s
   }
 

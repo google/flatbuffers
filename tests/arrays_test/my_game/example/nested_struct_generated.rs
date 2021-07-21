@@ -80,10 +80,10 @@ impl<'a> NestedStruct {
     d: &[i64; 2],
   ) -> Self {
     let mut s = Self([0; 32]);
-    s.set_a(&a);
+    s.set_a(a);
     s.set_b(b);
-    s.set_c(&c);
-    s.set_d(&d);
+    s.set_c(c);
+    s.set_d(d);
     s
   }
 
