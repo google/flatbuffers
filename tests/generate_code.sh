@@ -91,9 +91,10 @@ else
 fi
 
 # Flag c++17 requires Clang6, GCC7, MSVC2017 (_MSC_VER >= 1914)  or higher.
-TEST_CPP17_FLAGS="--cpp --cpp-std c++17 --cpp-static-reflection -o ./cpp17/generated_cpp17 $TEST_NOINCL_FLAGS"
+TEST_CPP17_FLAGS="--cpp --cpp-std c++17 --cpp-static-reflection --gen-object-api -o ./cpp17/generated_cpp17 $TEST_NOINCL_FLAGS"
 ../flatc $TEST_CPP17_FLAGS -I include_test monster_test.fbs
 ../flatc $TEST_CPP17_FLAGS optional_scalars.fbs
+../flatc $TEST_CPP17_FLAGS union_vector/union_vector.fbs
 
 cd ../samples
 ../flatc --cpp --rust --lobster $TEST_BASE_FLAGS $TEST_CPP_FLAGS monster.fbs
