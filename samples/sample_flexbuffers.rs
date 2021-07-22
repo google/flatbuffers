@@ -16,7 +16,6 @@ extern crate flexbuffers;
 
 use flexbuffers::{BitWidth, Builder, Reader, ReaderError};
 
-
 // In this Example we're creating a monster that corresponds to the following JSON:
 // {
 //     "coins": [5, 10, 25, 25, 25, 100],

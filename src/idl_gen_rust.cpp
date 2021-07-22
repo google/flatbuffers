@@ -938,7 +938,8 @@ class RustGenerator : public BaseGenerator {
     code_.SetValue("NATIVE_NAME", NativeName(enum_def));
 
     // Generate native union.
-    code_ += "#[allow(clippy::upper_case_acronyms)]";  // NONE's spelling is intended.
+    code_ += "#[allow(clippy::upper_case_acronyms)]";  // NONE's spelling is
+                                                       // intended.
     code_ += "#[non_exhaustive]";
     code_ += "#[derive(Debug, Clone, PartialEq)]";
     code_ += "pub enum {{NATIVE_NAME}} {";
