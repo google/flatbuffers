@@ -87,7 +87,7 @@ if NOT "%MONSTER_EXTRA%"=="skip" (
   @rem..\%buildtype%\flatc.exe %TEST_CPP17_FLAGS% arrays_test.fbs                   || goto FAIL
   @rem..\%buildtype%\flatc.exe %TEST_CPP17_FLAGS% native_type_test.fbs              || goto FAIL
   @rem..\%buildtype%\flatc.exe %TEST_CPP17_FLAGS% monster_extra.fbs                 || goto FAIL
-  @rem..\%buildtype%\flatc.exe %TEST_CPP17_FLAGS% ./union_vector/union_vector.fbs   || goto FAIL
+  ..\%buildtype%\flatc.exe %TEST_CPP17_FLAGS% ./union_vector/union_vector.fbs   || goto FAIL
 )
 
 cd ../samples
