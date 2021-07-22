@@ -160,7 +160,7 @@ class BuilderTest {
     final str = fbBuilder.writeString('MyMonster');
 
     fbBuilder.writeString('test1');
-    fbBuilder.writeString('test2');
+    fbBuilder.writeString('test2', asciiOptimization: true);
     final testArrayOfString = fbBuilder.endStructVector(2);
 
     final fred = fbBuilder.writeString('Fred');
@@ -360,8 +360,10 @@ class BuilderTest {
     List<int> byteList;
     {
       Builder builder = new Builder(initialSize: 0);
-      int? latinStringOffset = builder.writeString(latinString);
-      int? unicodeStringOffset = builder.writeString(unicodeString);
+      int? latinStringOffset =
+          builder.writeString(latinString, asciiOptimization: true);
+      int? unicodeStringOffset =
+          builder.writeString(unicodeString, asciiOptimization: true);
       builder.startTable(2);
       builder.addOffset(0, latinStringOffset);
       builder.addOffset(1, unicodeStringOffset);
