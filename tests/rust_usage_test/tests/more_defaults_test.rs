@@ -1,5 +1,5 @@
 #[allow(dead_code, unused_imports)]
-#[path = "../../more_defaults_generated.rs"]
+#[path = "../../more_defaults/mod.rs"]
 mod more_defaults_generated;
 use self::more_defaults_generated::*;
 

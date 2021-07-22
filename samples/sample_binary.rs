@@ -19,10 +19,9 @@ extern crate flatbuffers;
 
 // import the generated code
 #[allow(dead_code, unused_imports)]
-#[path = "./monster_generated.rs"]
 #[allow(clippy::approx_constant)]  // We use low precision PI as a default value.
-mod monster_generated;
-pub use monster_generated::my_game::sample::{Color, Equipment,
+mod rust_generated;
+pub use rust_generated::my_game::sample::{Color, Equipment,
                                              Monster, MonsterArgs,
                                              Vec3,
                                              Weapon, WeaponArgs};

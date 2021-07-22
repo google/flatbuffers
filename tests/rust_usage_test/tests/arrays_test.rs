@@ -1,6 +1,6 @@
 extern crate array_init;
 #[allow(dead_code, unused_imports)]
-#[path = "../../arrays_test_generated.rs"]
+#[path = "../../arrays_test/mod.rs"]
 mod arrays_test_generated;
 use std::fmt::Debug;
 
