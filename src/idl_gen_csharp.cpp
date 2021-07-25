@@ -1319,11 +1319,9 @@ class CSharpGenerator : public BaseGenerator {
       code += "  " + accessibility + " " + type_name + " As" + ev.name +
               "() { return this.As<" + type_name + ">(); }\n";
       // From
-      std::string lower_ev_name;
-      for (auto name_it = ev.name.begin(); name_it != ev.name.end();
-           ++name_it) {
-        lower_ev_name += CharToLower(*name_it);
-      }
+      auto lower_ev_name = ev.name;
+      std::transform(lower_ev_name.begin(), lower_ev_name.end(),
+                     lower_ev_name.begin(), CharToLower);
       code += "  " + accessibility + " static " + union_name + " From" +
               ev.name + "(" + type_name + " _" + lower_ev_name +
               ") { return new " + union_name + "{ Type = " + enum_def.name +
