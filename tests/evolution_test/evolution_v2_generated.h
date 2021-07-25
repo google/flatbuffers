@@ -112,7 +112,7 @@ template<> struct UnionTraits<Evolution::V2::TableC> {
 };
 
 bool VerifyUnion(flatbuffers::Verifier &verifier, const void *obj, Union type);
-bool VerifyUnionVector(flatbuffers::Verifier &verifier, const flatbuffers::Vector<flatbuffers::Offset<void>> *values, const flatbuffers::Vector<uint8_t> *types);
+bool VerifyUnionVector(flatbuffers::Verifier &verifier, const flatbuffers::Vector<flatbuffers::Offset<void>> *values, const flatbuffers::Vector<Union> *types);
 
 FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(8) Struct FLATBUFFERS_FINAL_CLASS {
  private:
@@ -552,7 +552,7 @@ inline bool VerifyUnion(flatbuffers::Verifier &verifier, const void *obj, Union 
   }
 }
 
-inline bool VerifyUnionVector(flatbuffers::Verifier &verifier, const flatbuffers::Vector<flatbuffers::Offset<void>> *values, const flatbuffers::Vector<uint8_t> *types) {
+inline bool VerifyUnionVector(flatbuffers::Verifier &verifier, const flatbuffers::Vector<flatbuffers::Offset<void>> *values, const flatbuffers::Vector<Union> *types) {
   if (!values || !types) return !values && !types;
   if (values->size() != types->size()) return false;
   for (flatbuffers::uoffset_t i = 0; i < values->size(); ++i) {
