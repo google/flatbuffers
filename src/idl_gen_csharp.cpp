@@ -1305,19 +1305,29 @@ class CSharpGenerator : public BaseGenerator {
     code += "  }\n\n";
     // As<T>
     code += "  public T As<T>() where T : class { return this.Value as T; }\n";
-    // As
+    // As, From
     for (auto it = enum_def.Vals().begin(); it != enum_def.Vals().end(); ++it) {
       auto &ev = **it;
       if (ev.union_type.base_type == BASE_TYPE_NONE) continue;
       auto type_name = GenTypeGet_ObjectAPI(ev.union_type, opts);
-      if (ev.union_type.base_type == BASE_TYPE_STRUCT &&
-          ev.union_type.struct_def->attributes.Lookup("private")) {
-        code += "  internal ";
-      } else {
-        code += "  public ";
+      std::string accessibility =
+          (ev.union_type.base_type == BASE_TYPE_STRUCT &&
+           ev.union_type.struct_def->attributes.Lookup("private"))
+              ? "internal"
+              : "public";
+      // As
+      code += "  " + accessibility + " " + type_name + " As" + ev.name +
+              "() { return this.As<" + type_name + ">(); }\n";
+      // From
+      std::string lower_ev_name;
+      for (auto name_it = ev.name.begin(); name_it != ev.name.end();
+           ++name_it) {
+        lower_ev_name += static_cast<char>(std::tolower(*name_it));
       }
-      code += type_name + " As" + ev.name + "() { return this.As<" + type_name +
-              ">(); }\n";
+      code += "  " + accessibility + " static " + union_name + " From" +
+              ev.name + "(" + type_name + " _" + lower_ev_name +
+              ") { return new " + union_name + "{ Type = " + enum_def.name +
+              "." + ev.name + ", Value = _" + lower_ev_name + " }; }\n";
     }
     code += "\n";
     // Pack()
