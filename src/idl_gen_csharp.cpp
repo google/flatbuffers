@@ -1322,7 +1322,7 @@ class CSharpGenerator : public BaseGenerator {
       std::string lower_ev_name;
       for (auto name_it = ev.name.begin(); name_it != ev.name.end();
            ++name_it) {
-        lower_ev_name += static_cast<char>(std::tolower(*name_it));
+        lower_ev_name += CharToLower(*name_it);
       }
       code += "  " + accessibility + " static " + union_name + " From" +
               ev.name + "(" + type_name + " _" + lower_ev_name +
