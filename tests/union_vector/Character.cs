@@ -25,11 +25,17 @@ public class CharacterUnion {
 
   public T As<T>() where T : class { return this.Value as T; }
   public AttackerT AsMuLan() { return this.As<AttackerT>(); }
+  public static CharacterUnion FromMuLan(AttackerT _mulan) { return new CharacterUnion{ Type = Character.MuLan, Value = _mulan }; }
   public RapunzelT AsRapunzel() { return this.As<RapunzelT>(); }
+  public static CharacterUnion FromRapunzel(RapunzelT _rapunzel) { return new CharacterUnion{ Type = Character.Rapunzel, Value = _rapunzel }; }
   public BookReaderT AsBelle() { return this.As<BookReaderT>(); }
+  public static CharacterUnion FromBelle(BookReaderT _belle) { return new CharacterUnion{ Type = Character.Belle, Value = _belle }; }
   public BookReaderT AsBookFan() { return this.As<BookReaderT>(); }
+  public static CharacterUnion FromBookFan(BookReaderT _bookfan) { return new CharacterUnion{ Type = Character.BookFan, Value = _bookfan }; }
   public string AsOther() { return this.As<string>(); }
+  public static CharacterUnion FromOther(string _other) { return new CharacterUnion{ Type = Character.Other, Value = _other }; }
   public string AsUnused() { return this.As<string>(); }
+  public static CharacterUnion FromUnused(string _unused) { return new CharacterUnion{ Type = Character.Unused, Value = _unused }; }
 
   public static int Pack(FlatBuffers.FlatBufferBuilder builder, CharacterUnion _o) {
     switch (_o.Type) {
