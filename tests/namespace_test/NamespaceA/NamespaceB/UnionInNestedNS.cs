@@ -23,6 +23,7 @@ public class UnionInNestedNSUnion {
 
   public T As<T>() where T : class { return this.Value as T; }
   public NamespaceA.NamespaceB.TableInNestedNST AsTableInNestedNS() { return this.As<NamespaceA.NamespaceB.TableInNestedNST>(); }
+  public static UnionInNestedNSUnion FromTableInNestedNS(NamespaceA.NamespaceB.TableInNestedNST _tableinnestedns) { return new UnionInNestedNSUnion{ Type = UnionInNestedNS.TableInNestedNS, Value = _tableinnestedns }; }
 
   public static int Pack(FlatBuffers.FlatBufferBuilder builder, UnionInNestedNSUnion _o) {
     switch (_o.Type) {

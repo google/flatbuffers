@@ -488,6 +488,26 @@ namespace FlatBuffers.Test
             TestObjectAPI(movie);
         }
 
+        [FlatBuffersTestMethod]
+        public void TestUnionUtility()
+        {
+            var movie = new MovieT
+            {
+                MainCharacter = CharacterUnion.FromRapunzel(new RapunzelT { HairLength = 40 }),
+                Characters = new System.Collections.Generic.List<CharacterUnion>
+                {
+                    CharacterUnion.FromMuLan(new AttackerT { SwordAttackDamage = 10 }),
+                    CharacterUnion.FromBelle(new BookReaderT { BooksRead = 20 }),
+                    CharacterUnion.FromOther("Chip"),
+                },
+            };
+
+            var fbb = new FlatBufferBuilder(100);
+            Movie.FinishMovieBuffer(fbb, Movie.Pack(fbb, movie));
+
+            TestObjectAPI(Movie.GetRootAsMovie(fbb.DataBuffer));
+        }
+
         private void AreEqual(Monster a, MonsterT b)
         {
             Assert.AreEqual(a.Hp, b.Hp);
