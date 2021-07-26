@@ -205,21 +205,21 @@ class BuilderTest {
     builder ??= new Builder();
     expect(() {
       builder!.addInt32(0, 0);
-    }, throwsStateError);
+    }, throwsA(isA<AssertionError>()));
   }
 
   void test_error_addOffset_withoutStartTable() {
     Builder builder = new Builder();
     expect(() {
       builder.addOffset(0, 0);
-    }, throwsStateError);
+    }, throwsA(isA<AssertionError>()));
   }
 
   void test_error_endTable_withoutStartTable() {
     Builder builder = new Builder();
     expect(() {
       builder.endTable();
-    }, throwsStateError);
+    }, throwsA(isA<AssertionError>()));
   }
 
   void test_error_startTable_duringTable() {
@@ -227,7 +227,7 @@ class BuilderTest {
     builder.startTable(0);
     expect(() {
       builder.startTable(0);
-    }, throwsStateError);
+    }, throwsA(isA<AssertionError>()));
   }
 
   void test_error_writeString_duringTable() {
@@ -235,7 +235,7 @@ class BuilderTest {
     builder.startTable(1);
     expect(() {
       builder.writeString('12345');
-    }, throwsStateError);
+    }, throwsA(isA<AssertionError>()));
   }
 
   void test_file_identifier() {

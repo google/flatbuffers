@@ -163,7 +163,7 @@ class Builder {
   /// the [value] is equal to [def].  Booleans are stored as 8-bit fields with
   /// `0` for `false` and `1` for `true`.
   void addBool(int field, bool? value, [bool? def]) {
-    _ensureCurrentVTable();
+    assert(_inVTable);
     if (value != null && value != def) {
       _prepare(_sizeofUint8, 1);
       _trackField(field);
@@ -174,7 +174,7 @@ class Builder {
   /// Add the [field] with the given 32-bit signed integer [value].  The field is
   /// not added if the [value] is equal to [def].
   void addInt32(int field, int? value, [int? def]) {
-    _ensureCurrentVTable();
+    assert(_inVTable);
     if (value != null && value != def) {
       _prepare(_sizeofInt32, 1);
       _trackField(field);
@@ -185,7 +185,7 @@ class Builder {
   /// Add the [field] with the given 32-bit signed integer [value].  The field is
   /// not added if the [value] is equal to [def].
   void addInt16(int field, int? value, [int? def]) {
-    _ensureCurrentVTable();
+    assert(_inVTable);
     if (value != null && value != def) {
       _prepare(_sizeofInt16, 1);
       _trackField(field);
@@ -196,7 +196,7 @@ class Builder {
   /// Add the [field] with the given 8-bit signed integer [value].  The field is
   /// not added if the [value] is equal to [def].
   void addInt8(int field, int? value, [int? def]) {
-    _ensureCurrentVTable();
+    assert(_inVTable);
     if (value != null && value != def) {
       _prepare(_sizeofInt8, 1);
       _trackField(field);
@@ -205,14 +205,14 @@ class Builder {
   }
 
   void addStruct(int field, int offset) {
-    _ensureCurrentVTable();
+    assert(_inVTable);
     _trackField(field);
     _currentVTable!.addField(field, offset);
   }
 
   /// Add the [field] referencing an object with the given [offset].
   void addOffset(int field, int? offset) {
-    _ensureCurrentVTable();
+    assert(_inVTable);
     if (offset != null) {
       _prepare(_sizeofUint32, 1);
       _trackField(field);
@@ -223,7 +223,7 @@ class Builder {
   /// Add the [field] with the given 32-bit unsigned integer [value].  The field
   /// is not added if the [value] is equal to [def].
   void addUint32(int field, int? value, [int? def]) {
-    _ensureCurrentVTable();
+    assert(_inVTable);
     if (value != null && value != def) {
       _prepare(_sizeofUint32, 1);
       _trackField(field);
@@ -234,7 +234,7 @@ class Builder {
   /// Add the [field] with the given 32-bit unsigned integer [value].  The field
   /// is not added if the [value] is equal to [def].
   void addUint16(int field, int? value, [int? def]) {
-    _ensureCurrentVTable();
+    assert(_inVTable);
     if (value != null && value != def) {
       _prepare(_sizeofUint16, 1);
       _trackField(field);
@@ -245,7 +245,7 @@ class Builder {
   /// Add the [field] with the given 8-bit unsigned integer [value].  The field
   /// is not added if the [value] is equal to [def].
   void addUint8(int field, int? value, [int? def]) {
-    _ensureCurrentVTable();
+    assert(_inVTable);
     if (value != null && value != def) {
       _prepare(_sizeofUint8, 1);
       _trackField(field);
@@ -256,7 +256,7 @@ class Builder {
   /// Add the [field] with the given 32-bit float [value].  The field
   /// is not added if the [value] is equal to [def].
   void addFloat32(int field, double? value, [double? def]) {
-    _ensureCurrentVTable();
+    assert(_inVTable);
     if (value != null && value != def) {
       _prepare(_sizeofFloat32, 1);
       _trackField(field);
@@ -267,7 +267,7 @@ class Builder {
   /// Add the [field] with the given 64-bit double [value].  The field
   /// is not added if the [value] is equal to [def].
   void addFloat64(int field, double? value, [double? def]) {
-    _ensureCurrentVTable();
+    assert(_inVTable);
     if (value != null && value != def) {
       _prepare(_sizeofFloat64, 1);
       _trackField(field);
@@ -278,7 +278,7 @@ class Builder {
   /// Add the [field] with the given 64-bit unsigned integer [value].  The field
   /// is not added if the [value] is equal to [def].
   void addUint64(int field, int? value, [double? def]) {
-    _ensureCurrentVTable();
+    assert(_inVTable);
     if (value != null && value != def) {
       _prepare(_sizeofUint64, 1);
       _trackField(field);
@@ -289,7 +289,7 @@ class Builder {
   /// Add the [field] with the given 64-bit unsigned integer [value].  The field
   /// is not added if the [value] is equal to [def].
   void addInt64(int field, int? value, [double? def]) {
-    _ensureCurrentVTable();
+    assert(_inVTable);
     if (value != null && value != def) {
       _prepare(_sizeofInt64, 1);
       _trackField(field);
@@ -299,9 +299,7 @@ class Builder {
 
   /// End the current table and return its offset.
   int endTable() {
-    if (_currentVTable == null) {
-      throw new StateError('Start a table before ending it.');
-    }
+    assert(_inVTable);
     // Prepare for writing the VTable.
     _prepare(_sizeofInt32, 1);
     int tableTail = _tail;
@@ -475,9 +473,7 @@ class Builder {
 
   /// Start a new table. Must be finished with [endTable] invocation.
   void startTable(int numFields) {
-    if (_currentVTable != null) {
-      throw new StateError('Inline tables are not supported.');
-    }
+    assert(!_inVTable); // Inline tables are not supported.
     _currentVTable = _VTable(numFields);
     _currentTableEndTail = _tail;
   }
@@ -492,7 +488,7 @@ class Builder {
 
   /// Writes a list of Structs to the buffer, returning the offset
   int writeListOfStructs(List<ObjectBuilder> structBuilders) {
-    _ensureNoVTable();
+    assert(!_inVTable);
     for (int i = structBuilders.length - 1; i >= 0; i--) {
       structBuilders[i].finish(this);
     }
@@ -501,7 +497,7 @@ class Builder {
 
   /// Write the given list of [values].
   int writeList(List<int> values) {
-    _ensureNoVTable();
+    assert(!_inVTable);
     _prepare(_sizeofUint32, 1 + values.length);
     final int result = _tail;
     int tail = _tail;
@@ -516,7 +512,7 @@ class Builder {
 
   /// Write the given list of 64-bit float [values].
   int writeListFloat64(List<double> values) {
-    _ensureNoVTable();
+    assert(!_inVTable);
     _prepare(_sizeofFloat64, values.length, additionalBytes: _sizeofUint32);
     final int result = _tail;
     int tail = _tail;
@@ -531,7 +527,7 @@ class Builder {
 
   /// Write the given list of 32-bit float [values].
   int writeListFloat32(List<double> values) {
-    _ensureNoVTable();
+    assert(!_inVTable);
     _prepare(_sizeofFloat32, 1 + values.length);
     final int result = _tail;
     int tail = _tail;
@@ -546,7 +542,7 @@ class Builder {
 
   /// Write the given list of signed 64-bit integer [values].
   int writeListInt64(List<int> values) {
-    _ensureNoVTable();
+    assert(!_inVTable);
     _prepare(_sizeofInt64, values.length, additionalBytes: _sizeofUint32);
     final int result = _tail;
     int tail = _tail;
@@ -561,7 +557,7 @@ class Builder {
 
   /// Write the given list of signed 64-bit integer [values].
   int writeListUint64(List<int> values) {
-    _ensureNoVTable();
+    assert(!_inVTable);
     _prepare(_sizeofUint64, values.length, additionalBytes: _sizeofUint32);
     final int result = _tail;
     int tail = _tail;
@@ -576,7 +572,7 @@ class Builder {
 
   /// Write the given list of signed 32-bit integer [values].
   int writeListInt32(List<int> values) {
-    _ensureNoVTable();
+    assert(!_inVTable);
     _prepare(_sizeofUint32, 1 + values.length);
     final int result = _tail;
     int tail = _tail;
@@ -591,7 +587,7 @@ class Builder {
 
   /// Write the given list of unsigned 32-bit integer [values].
   int writeListUint32(List<int> values) {
-    _ensureNoVTable();
+    assert(!_inVTable);
     _prepare(_sizeofUint32, 1 + values.length);
     final int result = _tail;
     int tail = _tail;
@@ -606,7 +602,7 @@ class Builder {
 
   /// Write the given list of signed 16-bit integer [values].
   int writeListInt16(List<int> values) {
-    _ensureNoVTable();
+    assert(!_inVTable);
     _prepare(_sizeofUint32, 1, additionalBytes: 2 * values.length);
     final int result = _tail;
     int tail = _tail;
@@ -621,7 +617,7 @@ class Builder {
 
   /// Write the given list of unsigned 16-bit integer [values].
   int writeListUint16(List<int> values) {
-    _ensureNoVTable();
+    assert(!_inVTable);
     _prepare(_sizeofUint32, 1, additionalBytes: 2 * values.length);
     final int result = _tail;
     int tail = _tail;
@@ -641,7 +637,7 @@ class Builder {
 
   /// Write the given list of signed 8-bit integer [values].
   int writeListInt8(List<int> values) {
-    _ensureNoVTable();
+    assert(!_inVTable);
     _prepare(_sizeofUint32, 1, additionalBytes: values.length);
     final int result = _tail;
     int tail = _tail;
@@ -656,7 +652,7 @@ class Builder {
 
   /// Write the given list of unsigned 8-bit integer [values].
   int writeListUint8(List<int> values) {
-    _ensureNoVTable();
+    assert(!_inVTable);
     _prepare(_sizeofUint32, 1, additionalBytes: values.length);
     final int result = _tail;
     int tail = _tail;
@@ -678,7 +674,7 @@ class Builder {
   /// (because there are no-ASCII characters in the string) it falls back and to
   /// the default UTF-16 -> UTF-8 conversion (with slight performance penalty).
   int writeString(String value, {bool asciiOptimization = false}) {
-    _ensureNoVTable();
+    assert(!_inVTable);
     if (_strings != null) {
       return _strings!
           .putIfAbsent(value, () => _writeString(value, asciiOptimization));
@@ -733,20 +729,18 @@ class Builder {
     _buf.setUint8(offset, 0); // trailing zero
   }
 
-  /// Throw an exception if there is not currently a vtable.
-  void _ensureCurrentVTable() {
-    if (_currentVTable == null) {
-      throw new StateError('Start a table before adding values.');
-    }
-  }
-
-  /// Throw an exception if there is currently a vtable.
-  void _ensureNoVTable() {
-    if (_currentVTable != null) {
-      throw new StateError(
-          'Cannot write a non-scalar value while writing a table.');
-    }
-  }
+  /// Used to assert whether a "Table" is currently being built.
+  ///
+  /// If you hit `assert(!_inVTable())`, you're trying to add table fields
+  /// without starting a table with [Builder.startTable()].
+  ///
+  /// If you hit `assert(_inVTable())`, you're trying to construct a
+  /// Table/Vector/String during the construction of its parent table,
+  /// between the MyTableBuilder and [Builder.endTable()].
+  /// Move the creation of these sub-objects to before the MyTableBuilder to
+  /// not get this assert.
+  @pragma('vm:prefer-inline')
+  bool get _inVTable => _currentVTable != null;
 
   /// The number of bytes that have been written to the buffer so far.  The
   /// most recently written byte is this many bytes from the end of the buffer.
