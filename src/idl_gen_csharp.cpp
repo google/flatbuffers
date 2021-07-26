@@ -619,6 +619,7 @@ class CSharpGenerator : public BaseGenerator {
       std::string dest_cast = DestinationCast(field.value.type);
       std::string src_cast = SourceCast(field.value.type);
       std::string field_name_camel = MakeCamel(field.name, true);
+      if (field_name_camel == struct_def.name) { field_name_camel += "_"; }
       std::string method_start =
           "  public " + type_name_dest + optional + " " + field_name_camel;
       std::string obj = "(new " + type_name + "())";
