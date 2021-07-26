@@ -668,7 +668,7 @@ class Builder {
     return result;
   }
 
-  /// Write the given string [value] and return its offset
+  /// Write the given string [value] and return its offset.
   ///
   /// Dart strings are UTF-16 but must be stored as UTF-8 in FlatBuffers.
   /// If the given string consists only of ASCII characters, you can indicate
@@ -676,7 +676,7 @@ class Builder {
   /// copy the ASCII string directly to the output buffer and if that fails
   /// (because there are no-ASCII characters in the string) it falls back and to
   /// the default UTF-16 -> UTF-8 conversion (with slight performance penalty).
-  int? writeString(String value, {bool asciiOptimization = false}) {
+  int writeString(String value, {bool asciiOptimization = false}) {
     _ensureNoVTable();
     if (_strings != null) {
       return _strings!
