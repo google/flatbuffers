@@ -20,20 +20,37 @@ import Foundation
 /// since now we will be serializing native structs into the buffer.
 public protocol NativeStruct {}
 
-/// FlatbufferObject structures all the Flatbuffers objects
-public protocol FlatBufferObject {
-  var __buffer: ByteBuffer! { get }
+/// FlatbuffersInitializable is a protocol that allows any object to be
+/// Initialized from a ByteBuffer
+public protocol FlatbuffersInitializable {
   init(_ bb: ByteBuffer, o: Int32)
 }
 
-public protocol ObjectAPI {
-  associatedtype T
-  static func pack(_ builder: inout FlatBufferBuilder, obj: inout T) -> Offset<UOffset>
-  mutating func unpack() -> T
+/// FlatbufferObject structures all the Flatbuffers objects
+public protocol FlatBufferObject: FlatbuffersInitializable {
+  var __buffer: ByteBuffer! { get }
 }
 
-public protocol Enum {
-  associatedtype T: Scalar
-  static var byteSize: Int { get }
-  var value: T { get }
+/// `ObjectAPIPacker` is a protocol that allows object to pack and unpack from a
+/// `NativeObject` to a flatbuffers Object and vice versa.
+public protocol ObjectAPIPacker {
+  /// associatedtype to the object that should be unpacked.
+  associatedtype T
+
+  /// `pack` tries packs the variables of a native Object into the `ByteBuffer` by using
+  /// the FlatBufferBuilder
+  /// - Parameters:
+  ///   - builder: FlatBufferBuilder that will host incoming data
+  ///   - obj: Object of associatedtype to the current implementer
+  static func pack(_ builder: inout FlatBufferBuilder, obj: inout T?) -> Offset
+
+  /// `pack` packs the variables of a native Object into the `ByteBuffer` by using
+  /// the FlatBufferBuilder
+  /// - Parameters:
+  ///   - builder: FlatBufferBuilder that will host incoming data
+  ///   - obj: Object of associatedtype to the current implementer
+  static func pack(_ builder: inout FlatBufferBuilder, obj: inout T) -> Offset
+
+  /// `Unpack` unpacks a flatbuffers object into a `NativeObject`
+  mutating func unpack() -> T
 }

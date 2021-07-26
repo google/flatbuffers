@@ -2,6 +2,7 @@
 *_wire.bin
 .DS_Store
 **/.build
+build
 **/Packages
 /*.xcodeproj
 **/xcuserdata/
@@ -69,10 +70,7 @@ tests/monsterdata_go_wire.mon
 tests/monsterdata_javascript_wire.mon
 tests/monsterdata_lobster_wire.mon
 tests/monsterdata_rust_wire.mon
-tests/unicode_test.mon
-tests/ts/
 tests/php/
-tests/js/
 CMakeLists.txt.user
 CMakeScripts/**
 CTestTestfile.cmake
@@ -131,11 +129,12 @@ package-lock.json
 /*.ilk
 /*.pdb
 .clwb
-js/**/*.js
-js/**/*.d.ts
-mjs/**/*.js
-mjs/**/*.d.ts
 yarn-error.log
 .cache/
 /flatbuffers.lib
 .cmake/
+**/dist
+**/vendor
+**/go.sum
+flatbuffers.pc
+**/FlatBuffers.Test.Swift.xcodeproj

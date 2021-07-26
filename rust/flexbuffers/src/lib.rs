@@ -41,10 +41,13 @@ extern crate num_enum;
 extern crate serde;
 
 mod bitwidth;
+mod buffer;
 mod builder;
 mod flexbuffer_type;
 mod reader;
+
 pub use bitwidth::BitWidth;
+pub use buffer::Buffer;
 pub use builder::Error as SerializationError;
 pub use builder::{
     singleton, Builder, BuilderOptions, FlexbufferSerializer, MapBuilder, Pushable, VectorBuilder,
@@ -64,17 +67,32 @@ pub fn to_vec<T: Serialize>(x: T) -> Result<Vec<u8>, SerializationError> {
     x.serialize(&mut s)?;
     Ok(s.take_buffer())
 }
+
 /// Deserialize a type from a flexbuffer.
 pub fn from_slice<'de, T: Deserialize<'de>>(buf: &'de [u8]) -> Result<T, DeserializationError> {
     let r = Reader::get_root(buf)?;
     T::deserialize(r)
 }
 
+/// Deserialize a type from a flexbuffer.
+pub fn from_buffer<'de, T: Deserialize<'de>, B: Buffer>(
+    buf: &'de B,
+) -> Result<T, DeserializationError> {
+    let r = Reader::get_root(buf as &'de [u8])?;
+    T::deserialize(r)
+}
+
 /// This struct, when pushed will be serialized as a `FlexBufferType::Blob`.
 ///
 /// A `Blob` is a variable width `length` followed by that many bytes of data.
-#[derive(Debug, Copy, Clone, PartialEq, Eq)]
-pub struct Blob<'a>(pub &'a [u8]);
+#[derive(Debug, PartialEq, Eq)]
+pub struct Blob<B>(pub B);
+
+impl<B: Buffer> Clone for Blob<B> {
+    fn clone(&self) -> Self {
+        Blob(self.0.shallow_copy())
+    }
+}
 
 /// This struct, when pushed, will be serialized as a `FlexBufferType::IndirectUInt`.
 ///

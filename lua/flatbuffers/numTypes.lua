@@ -73,7 +73,7 @@ local bool_mt =
     ValidNumber = function(self, n) return true end, -- anything is a valid boolean in Lua
     EnforceNumber = function(self, n) end, -- anything is a valid boolean in Lua
     EnforceNumbers = function(self, a, b) end, -- anything is a valid boolean in Lua
-    EnforceNumberAndPack = function(self, n) return self:Pack(value) end,
+    EnforceNumberAndPack = function(self, n) return self:Pack(n) end,
 }
 
 local uint8_mt = 

@@ -16,7 +16,7 @@
  */
 
 #[macro_use]
-#[cfg(not(miri))]  // slow.
+#[cfg(not(miri))] // slow.
 extern crate quickcheck;
 extern crate flatbuffers;
 extern crate flexbuffers;
@@ -24,37 +24,38 @@ extern crate rand;
 extern crate serde;
 #[macro_use]
 extern crate serde_derive;
-#[cfg(not(miri))]  // slow.
+#[cfg(not(miri))] // slow.
 #[macro_use]
 extern crate quickcheck_derive;
 
 mod flexbuffers_tests;
+mod more_defaults_test;
 mod optional_scalars_test;
 
 #[allow(dead_code, unused_imports)]
-#[path = "../../include_test/include_test1_generated.rs"]
+#[path = "../../include_test1/mod.rs"]
 pub mod include_test1_generated;
 
 #[allow(dead_code, unused_imports)]
-#[path = "../../include_test/sub/include_test2_generated.rs"]
+#[path = "../../include_test2/mod.rs"]
 pub mod include_test2_generated;
 
 #[allow(dead_code, unused_imports)]
-#[path = "../../namespace_test/namespace_test1_generated.rs"]
-pub mod namespace_test1_generated;
+#[path = "../../namespace_test/mod.rs"]
+pub mod namespace_test_generated;
 
 #[allow(dead_code, unused_imports)]
-#[path = "../../namespace_test/namespace_test2_generated.rs"]
-pub mod namespace_test2_generated;
-
-#[allow(dead_code, unused_imports)]
-#[path = "../../monster_test_generated.rs"]
+#[path = "../../monster_test/mod.rs"]
 mod monster_test_generated;
 pub use monster_test_generated::my_game;
 
 #[allow(dead_code, unused_imports)]
-#[path = "../../optional_scalars_generated.rs"]
+#[path = "../../optional_scalars/mod.rs"]
 mod optional_scalars_generated;
+
+#[allow(dead_code, unused_imports)]
+#[path = "../../arrays_test/mod.rs"]
+mod arrays_test_generated;
 
 #[rustfmt::skip] // TODO: Use standard rust formatting and remove dead code.
 #[allow(dead_code)]
@@ -359,7 +360,7 @@ fn test_object_api_reads_correctly() -> Result<(), &'static str>{
 #[should_panic]
 #[test]
 fn builder_abort_with_greater_than_maximum_buffer_size() {
-    flatbuffers::FlatBufferBuilder::new_with_capacity(flatbuffers::FLATBUFFERS_MAX_BUFFER_SIZE+1);
+    flatbuffers::FlatBufferBuilder::with_capacity(flatbuffers::FLATBUFFERS_MAX_BUFFER_SIZE+1);
 }
 
 #[test]
@@ -1110,6 +1111,40 @@ mod roundtrip_byteswap {
     // fn fuzz_f64() { quickcheck::QuickCheck::new().max_tests(N).quickcheck(prop_f64 as fn(f64)); }
 }
 
+#[cfg(not(miri))]
+quickcheck! {
+  fn struct_of_structs(
+    a_id: u32,
+    a_distance: u32,
+    b_a: i16,
+    b_b: i8,
+    c_id: u32,
+    c_distance: u32
+  ) -> bool {
+    use my_game::example::*;
+    let mut sos = StructOfStructs::default();
+    let mut a = Ability::default();
+    a.set_id(a_id);
+    a.set_distance(a_distance);
+    let mut b = Test::default();
+    b.set_a(b_a);
+    b.set_b(b_b);
+    let mut c = Ability::default();
+    c.set_id(c_id);
+    c.set_distance(c_distance);
+    sos.set_a(&a);
+    sos.set_b(&b);
+    sos.set_c(&c);
+
+    sos.a().id() == a_id &&
+    sos.a().distance() == a_distance &&
+    sos.b().a() == b_a &&
+    sos.b().b() == b_b &&
+    sos.c().id() == c_id &&
+    sos.c().distance() == c_distance
+  }
+}
+
 #[cfg(not(miri))]  // slow.
 #[cfg(test)]
 mod roundtrip_vectors {
@@ -1475,8 +1510,7 @@ mod roundtrip_table {
         assert!(values_generated > 0);
         assert!(min_tests_per_choice > 0);
         for i in 0..test_value_types_max as u64 {
-            assert!(stats[&i] >= min_tests_per_choice,
-                    format!("inadequately-tested fuzz case: {}", i));
+            assert!(stats[&i] >= min_tests_per_choice, "inadequately-tested fuzz case: {}", i);
         }
     }
 
@@ -1645,8 +1679,10 @@ mod roundtrip_scalars {
 
     fn prop<T: PartialEq + ::std::fmt::Debug + Copy + flatbuffers::EndianScalar>(x: T) {
         let mut buf = vec![0u8; ::std::mem::size_of::<T>()];
-        flatbuffers::emplace_scalar(&mut buf[..], x);
-        let y = flatbuffers::read_scalar(&buf[..]);
+        let y = unsafe {
+            flatbuffers::emplace_scalar(&mut buf[..], x);
+            flatbuffers::read_scalar(&buf[..])
+        };
         assert_eq!(x, y);
     }
 
@@ -1986,23 +2022,17 @@ mod generated_key_comparisons {
 
 #[cfg(test)]
 mod included_schema_generated_code {
-    extern crate flatbuffers;
 
-    //extern crate rust_usage_test;
+    #[test]
+    #[allow(unused_imports)]
+    fn namespace_test_mod_is_importable() {
+        use super::namespace_test_generated::{
+            namespace_a,
+            namespace_a::namespace_b,
+            namespace_c,
+        };
 
-    // TODO(rw): make generated sub-namespace files importable
-    //#[test]
-    //fn namespace_test_mod_is_importable() {
-    //    use rust_usage_test::namespace_test;
-    //}
-    //#[test]
-    //fn namespace_test1_mod_is_importable() {
-    //    use rust_usage_test::namespace_test::namespace_test1_generated;
-    //}
-    //#[test]
-    //fn namespace_test2_mod_is_importable() {
-    //    use rust_usage_test::namespace_test::namespace_test2_generated;
-    //}
+    }
 }
 
 #[cfg(test)]
@@ -2073,7 +2103,7 @@ mod follow_impls {
     // Define a test struct to use in a few tests. This replicates the work that the code generator
     // would normally do when defining a FlatBuffer struct. For reference, compare the following
     // `FooStruct` code with the code generated for the `Vec3` struct in
-    // `../../monster_test_generated.rs`.
+    // `../../monster_test/mod.rs`.
     use flatbuffers::EndianScalar;
     #[derive(Copy, Clone, Debug, PartialEq)]
     #[repr(C, packed)]
@@ -2565,7 +2595,7 @@ mod byte_layouts {
 
     #[test]
     fn layout_03b_11xbyte_vector_matches_builder_size() {
-        let mut b = flatbuffers::FlatBufferBuilder::new_with_capacity(12);
+        let mut b = flatbuffers::FlatBufferBuilder::with_capacity(12);
         b.start_vector::<u8>(8);
 
         let mut gold = vec![0u8; 0];

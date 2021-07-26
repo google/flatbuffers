@@ -121,11 +121,19 @@ std::string FlatCompiler::GetUsageString(const char *program_name) const {
     "                         (see the --cpp-str-flex-ctor option to change this behavior).\n"
     "  --cpp-str-flex-ctor    Don't construct custom string types by passing std::string\n"
     "                         from Flatbuffers, but (char* + length).\n"
+    "  --cpp-field-case-style STYLE Generate C++ fields using selected case style.\n"
+    "                         Supported STYLE values:\n"
+    "                          * 'unchanged' - leave unchanged (default);\n"
+    "                          * 'upper' - schema snake_case emits UpperCamel;\n"
+    "                          * 'lower' - schema snake_case emits lowerCamel.\n"
     "  --cpp-std CPP_STD      Generate a C++ code using features of selected C++ standard.\n"
     "                         Supported CPP_STD values:\n"
     "                          * 'c++0x' - generate code compatible with old compilers;\n"
     "                          * 'c++11' - use C++11 code generator (default);\n"
     "                          * 'c++17' - use C++17 features in generated code (experimental).\n"
+    "  --cpp-static-reflection When using C++17, generate extra code to provide compile-time\n"
+    "                          (static) reflection of Flatbuffers types.  Requires --cpp-std\n"
+    "                          to be \"c++17\" or higher.\n"
     "  --object-prefix        Customise class prefix for C++ object-based API.\n"
     "  --object-suffix        Customise class suffix for C++ object-based API.\n"
     "                         Default value is \"T\".\n"
@@ -141,6 +149,11 @@ std::string FlatCompiler::GetUsageString(const char *program_name) const {
     "  --oneof-union          Translate .proto oneofs to flatbuffer unions.\n"
     "  --grpc                 Generate GRPC interfaces for the specified languages.\n"
     "  --schema               Serialize schemas instead of JSON (use with -b).\n"
+    "  --bfbs-filenames PATH  Sets the root path where reflection filenames in \n"
+    "                         reflection.fbs are relative to. The 'root' is denoted with \n"
+    "                         `//`. E.g. if PATH=/a/b/c \n then /a/d/e.fbs will be serialized\n"
+    "                         as //../d/e.fbs. (PATH defaults to the directory of the first\n"
+    "                         provided schema file.)\n"
     "  --bfbs-comments        Add doc comments to the binary schema files.\n"
     "  --bfbs-builtins        Add builtin attributes to the binary schema files.\n"
     "  --bfbs-gen-embed       Generate code to embed the bfbs schema to the source.\n"
@@ -213,6 +226,11 @@ int FlatCompiler::Compile(int argc, const char **argv) {
             flatbuffers::PosixPath(argv[argi]));
         include_directories.push_back(
             include_directories_storage.back().c_str());
+      } else if (arg == "--bfbs-filenames") {
+        if (++argi > argc) Error("missing path following: " + arg, true);
+        opts.project_root = argv[argi];
+        if (!DirExists(opts.project_root.c_str()))
+          Error(arg + " is not a directory: " + opts.project_root);
       } else if (arg == "--conform") {
         if (++argi >= argc) Error("missing path following: " + arg, true);
         conform_to_schema = flatbuffers::PosixPath(argv[argi]);
@@ -272,6 +290,17 @@ int FlatCompiler::Compile(int argc, const char **argv) {
         opts.cpp_object_api_string_flexible_constructor = true;
       } else if (arg == "--no-cpp-direct-copy") {
         opts.cpp_direct_copy = false;
+      } else if (arg == "--cpp-field-case-style") {
+        if (++argi >= argc) Error("missing case style following: " + arg, true);
+        if (!strcmp(argv[argi], "unchanged"))
+          opts.cpp_object_api_field_case_style =
+              IDLOptions::CaseStyle_Unchanged;
+        else if (!strcmp(argv[argi], "upper"))
+          opts.cpp_object_api_field_case_style = IDLOptions::CaseStyle_Upper;
+        else if (!strcmp(argv[argi], "lower"))
+          opts.cpp_object_api_field_case_style = IDLOptions::CaseStyle_Lower;
+        else
+          Error("unknown case style: " + std::string(argv[argi]), true);
       } else if (arg == "--gen-nullable") {
         opts.gen_nullable = true;
       } else if (arg == "--java-checkerframework") {
@@ -360,6 +389,8 @@ int FlatCompiler::Compile(int argc, const char **argv) {
         opts.cpp_std = argv[argi];
       } else if (arg.rfind("--cpp-std=", 0) == 0) {
         opts.cpp_std = arg.substr(std::string("--cpp-std=").size());
+      } else if (arg == "--cpp-static-reflection") {
+        opts.cpp_static_reflection = true;
       } else {
         for (size_t i = 0; i < params_.num_generators; ++i) {
           if (arg == params_.generators[i].generator_opt_long ||
@@ -415,8 +446,11 @@ int FlatCompiler::Compile(int argc, const char **argv) {
     bool is_binary =
         static_cast<size_t>(file_it - filenames.begin()) >= binary_files_from;
     auto ext = flatbuffers::GetExtension(filename);
-    auto is_schema = ext == "fbs" || ext == "proto";
-    auto is_binary_schema = ext == reflection::SchemaExtension();
+    const bool is_schema = ext == "fbs" || ext == "proto";
+    if (is_schema && opts.project_root.empty()) {
+      opts.project_root = StripFileName(filename);
+    }
+    const bool is_binary_schema = ext == reflection::SchemaExtension();
     if (is_binary) {
       parser->builder_.Clear();
       parser->builder_.PushFlatBuffer(
@@ -542,6 +576,9 @@ int FlatCompiler::Compile(int argc, const char **argv) {
     // We do not want to generate code for the definitions in this file
     // in any files coming up next.
     parser->MarkGenerated();
+  }
+  if (opts.lang_to_generate & IDLOptions::kRust && !parser->opts.one_file) {
+    GenerateRustModuleRootFile(*parser, output_path);
   }
   return 0;
 }

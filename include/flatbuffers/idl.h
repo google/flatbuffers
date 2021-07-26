@@ -266,7 +266,8 @@ struct Definition {
         defined_namespace(nullptr),
         serialized_location(0),
         index(-1),
-        refcount(1) {}
+        refcount(1),
+        declaration_file(nullptr) {}
 
   flatbuffers::Offset<
       flatbuffers::Vector<flatbuffers::Offset<reflection::KeyValue>>>
@@ -286,6 +287,7 @@ struct Definition {
   uoffset_t serialized_location;
   int index;  // Inside the vector it is stored.
   int refcount;
+  const std::string *declaration_file;
 };
 
 struct FieldDef : public Definition {
@@ -307,15 +309,9 @@ struct FieldDef : public Definition {
   bool IsScalarOptional() const {
     return IsScalar(value.type.base_type) && IsOptional();
   }
-  bool IsOptional() const {
-    return presence == kOptional;
-  }
-  bool IsRequired() const {
-    return presence == kRequired;
-  }
-  bool IsDefault() const {
-    return presence == kDefault;
-  }
+  bool IsOptional() const { return presence == kOptional; }
+  bool IsRequired() const { return presence == kRequired; }
+  bool IsDefault() const { return presence == kDefault; }
 
   Value value;
   bool deprecated;  // Field is allowed to be present in old data, but can't be.
@@ -337,6 +333,7 @@ struct FieldDef : public Definition {
     kDefault,
   };
   Presence static MakeFieldPresence(bool optional, bool required) {
+    FLATBUFFERS_ASSERT(!(required && optional));
     // clang-format off
     return required ? FieldDef::kRequired
          : optional ? FieldDef::kOptional
@@ -541,6 +538,9 @@ struct ServiceDef : public Definition {
 
 // Container of options that may apply to any of the source/text generators.
 struct IDLOptions {
+  // field case style options for C++
+  enum CaseStyle { CaseStyle_Unchanged = 0, CaseStyle_Upper, CaseStyle_Lower };
+
   bool gen_jvmstatic;
   // Use flexbuffers instead for binary and text generation
   bool use_flexbuffers;
@@ -563,6 +563,7 @@ struct IDLOptions {
   std::string cpp_object_api_pointer_type;
   std::string cpp_object_api_string_type;
   bool cpp_object_api_string_flexible_constructor;
+  CaseStyle cpp_object_api_field_case_style;
   bool cpp_direct_copy;
   bool gen_nullable;
   bool java_checkerframework;
@@ -587,10 +588,12 @@ struct IDLOptions {
   bool cs_gen_json_serializer;
   std::vector<std::string> cpp_includes;
   std::string cpp_std;
+  bool cpp_static_reflection;
   std::string proto_namespace_suffix;
   std::string filename_suffix;
   std::string filename_extension;
   bool no_warnings;
+  std::string project_root;
 
   // Possible options for the more general generator below.
   enum Language {
@@ -655,6 +658,7 @@ struct IDLOptions {
         gen_compare(false),
         cpp_object_api_pointer_type("std::unique_ptr"),
         cpp_object_api_string_flexible_constructor(false),
+        cpp_object_api_field_case_style(CaseStyle_Unchanged),
         cpp_direct_copy(true),
         gen_nullable(false),
         java_checkerframework(false),
@@ -672,9 +676,11 @@ struct IDLOptions {
         force_defaults(false),
         java_primitive_has_method(false),
         cs_gen_json_serializer(false),
+        cpp_static_reflection(false),
         filename_suffix("_generated"),
         filename_extension(),
         no_warnings(false),
+        project_root(""),
         lang(IDLOptions::kJava),
         mini_reflect(IDLOptions::kNone),
         require_explicit_ids(false),
@@ -777,6 +783,7 @@ class Parser : public ParserState {
         root_struct_def_(nullptr),
         opts(options),
         uses_flexbuffers_(false),
+        advanced_features_(0),
         source_(nullptr),
         anonymous_counter_(0),
         parse_depth_counter_(0) {
@@ -806,6 +813,7 @@ class Parser : public ParserState {
     known_attributes_["native_inline"] = true;
     known_attributes_["native_custom_alloc"] = true;
     known_attributes_["native_type"] = true;
+    known_attributes_["native_type_pack_name"] = true;
     known_attributes_["native_default"] = true;
     known_attributes_["flexbuffer"] = true;
     known_attributes_["private"] = true;
@@ -937,14 +945,15 @@ class Parser : public ParserState {
   StructDef *LookupCreateStruct(const std::string &name,
                                 bool create_if_new = true,
                                 bool definition = false);
-  FLATBUFFERS_CHECKED_ERROR ParseEnum(bool is_union, EnumDef **dest);
+  FLATBUFFERS_CHECKED_ERROR ParseEnum(bool is_union, EnumDef **dest,
+                                      const char *filename);
   FLATBUFFERS_CHECKED_ERROR ParseNamespace();
   FLATBUFFERS_CHECKED_ERROR StartStruct(const std::string &name,
                                         StructDef **dest);
   FLATBUFFERS_CHECKED_ERROR StartEnum(const std::string &name, bool is_union,
                                       EnumDef **dest);
-  FLATBUFFERS_CHECKED_ERROR ParseDecl();
-  FLATBUFFERS_CHECKED_ERROR ParseService();
+  FLATBUFFERS_CHECKED_ERROR ParseDecl(const char *filename);
+  FLATBUFFERS_CHECKED_ERROR ParseService(const char *filename);
   FLATBUFFERS_CHECKED_ERROR ParseProtoFields(StructDef *struct_def,
                                              bool isextend, bool inside_oneof);
   FLATBUFFERS_CHECKED_ERROR ParseProtoOption();
@@ -953,6 +962,8 @@ class Parser : public ParserState {
   FLATBUFFERS_CHECKED_ERROR ParseProtoCurliesOrIdent();
   FLATBUFFERS_CHECKED_ERROR ParseTypeFromProtoType(Type *type);
   FLATBUFFERS_CHECKED_ERROR SkipAnyJsonValue();
+  FLATBUFFERS_CHECKED_ERROR ParseFlexBufferNumericConstant(
+      flexbuffers::Builder *builder);
   FLATBUFFERS_CHECKED_ERROR ParseFlexBufferValue(flexbuffers::Builder *builder);
   FLATBUFFERS_CHECKED_ERROR StartParseFile(const char *source,
                                            const char *source_filename);
@@ -967,14 +978,19 @@ class Parser : public ParserState {
   FLATBUFFERS_CHECKED_ERROR CheckClash(std::vector<FieldDef *> &fields,
                                        StructDef *struct_def,
                                        const char *suffix, BaseType baseType);
+  FLATBUFFERS_CHECKED_ERROR ParseAlignAttribute(
+      const std::string &align_constant, size_t min_align, size_t *align);
 
   bool SupportsAdvancedUnionFeatures() const;
   bool SupportsAdvancedArrayFeatures() const;
   bool SupportsOptionalScalars() const;
+  bool SupportsDefaultVectorsAndStrings() const;
   Namespace *UniqueNamespace(Namespace *ns);
 
   FLATBUFFERS_CHECKED_ERROR RecurseError();
   template<typename F> CheckedError Recurse(F f);
+
+  const std::string &GetPooledString(const std::string &s) const;
 
  public:
   SymbolTable<Type> types_;
@@ -993,7 +1009,7 @@ class Parser : public ParserState {
   std::string file_identifier_;
   std::string file_extension_;
 
-  std::map<std::string, std::string> included_files_;
+  std::map<uint64_t, std::string> included_files_;
   std::map<std::string, std::set<std::string>> files_included_per_file_;
   std::vector<std::string> native_included_files_;
 
@@ -1002,12 +1018,18 @@ class Parser : public ParserState {
   IDLOptions opts;
   bool uses_flexbuffers_;
 
+  uint64_t advanced_features_;
+
  private:
   const char *source_;
 
   std::string file_being_parsed_;
 
   std::vector<std::pair<Value, FieldDef *>> field_stack_;
+
+  // TODO(cneo): Refactor parser to use string_cache more often to save
+  // on memory usage.
+  mutable std::set<std::string> string_cache_;
 
   int anonymous_counter_;
   int parse_depth_counter_;  // stack-overflow guard
@@ -1181,6 +1203,9 @@ extern bool GenerateSwiftGRPC(const Parser &parser, const std::string &path,
 
 extern bool GenerateTSGRPC(const Parser &parser, const std::string &path,
                            const std::string &file_name);
+
+extern bool GenerateRustModuleRootFile(const Parser &parser,
+                                       const std::string &path);
 }  // namespace flatbuffers
 
 #endif  // FLATBUFFERS_IDL_H_

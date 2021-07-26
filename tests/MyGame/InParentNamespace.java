@@ -9,7 +9,7 @@ import com.google.flatbuffers.*;
 
 @SuppressWarnings("unused")
 public final class InParentNamespace extends Table {
-  public static void ValidateVersion() { Constants.FLATBUFFERS_1_12_0(); }
+  public static void ValidateVersion() { Constants.FLATBUFFERS_2_0_0(); }
   public static InParentNamespace getRootAsInParentNamespace(ByteBuffer _bb) { return getRootAsInParentNamespace(_bb, new InParentNamespace()); }
   public static InParentNamespace getRootAsInParentNamespace(ByteBuffer _bb, InParentNamespace obj) { _bb.order(ByteOrder.LITTLE_ENDIAN); return (obj.__assign(_bb.getInt(_bb.position()) + _bb.position(), _bb)); }
   public void __init(int _i, ByteBuffer _bb) { __reset(_i, _bb); }
@@ -27,6 +27,18 @@ public final class InParentNamespace extends Table {
 
     public InParentNamespace get(int j) { return get(new InParentNamespace(), j); }
     public InParentNamespace get(InParentNamespace obj, int j) {  return obj.__assign(__indirect(__element(j), bb), bb); }
+  }
+  public InParentNamespaceT unpack() {
+    InParentNamespaceT _o = new InParentNamespaceT();
+    unpackTo(_o);
+    return _o;
+  }
+  public void unpackTo(InParentNamespaceT _o) {
+  }
+  public static int pack(FlatBufferBuilder builder, InParentNamespaceT _o) {
+    if (_o == null) return 0;
+    startInParentNamespace(builder);
+    return endInParentNamespace(builder);
   }
 }
 

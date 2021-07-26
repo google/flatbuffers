@@ -18,14 +18,14 @@ use flexbuffers::*;
 fn read_golden_flexbuffer() {
     let s =
         std::fs::read("../gold_flexbuffer_example.bin").expect("Unable to read golden flexbuffer.");
-    let r = Reader::get_root(&s).unwrap();
+    let r = Reader::get_root(s.as_ref()).unwrap();
     let m = r.as_map();
 
     let vec = m.idx("vec").as_vector();
     assert_eq!(vec.idx(0).as_i8(), -100);
     assert_eq!(vec.idx(1).as_str(), "Fred");
     assert_eq!(vec.idx(2).as_f32(), 4.0);
-    assert_eq!(vec.idx(3).as_blob(), Blob(&[77]));
+    assert_eq!(vec.idx(3).as_blob(), Blob([77].as_ref()));
     assert_eq!(vec.idx(4).flexbuffer_type(), FlexBufferType::Bool);
     assert_eq!(vec.idx(4).as_bool(), false);
     assert_eq!(vec.idx(5).as_f64(), 4.0);

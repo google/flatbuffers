@@ -1,4 +1,16 @@
 package.path = string.format("../lua/?.lua;./?.lua;%s",package.path)
+local compat = require("flatbuffers.compat")
+
+local performBenchmarkTests = false
+
+if #arg > 1 then
+    print("usage: lua luatests [benchmark]");
+    return
+elseif #arg > 0 then 
+    if(arg[1] == "benchmark") then
+        performBenchmarkTests = true
+    end 
+end
 
 local function checkReadBuffer(buf, offset, sizePrefix)
     offset = offset or 0
@@ -9,7 +21,7 @@ local function checkReadBuffer(buf, offset, sizePrefix)
     
     if sizePrefix then               
         local size = flatbuffers.N.Int32:Unpack(buf, offset)
-        assert(size == #buf - offset - 4)
+        assert(size == buf.size - offset - 4)
         offset = offset + flatbuffers.N.Int32.bytewidth
     end    
     
@@ -17,6 +29,7 @@ local function checkReadBuffer(buf, offset, sizePrefix)
     assert(mon:Hp() == 80, "Monster Hp is not 80")
     assert(mon:Mana() == 150, "Monster Mana is not 150")
     assert(mon:Name() == "MyMonster", "Monster Name is not MyMonster")
+    assert(mon:Testbool() == true)
     
     local vec = assert(mon:Pos(), "Monster Position is nil")
     assert(vec:X() == 1.0)
@@ -209,6 +222,18 @@ local function testCanonicalData()
     checkReadBuffer(wireData)  
 end    
     
+local function testCreateEmptyString()
+    local b = flatbuffers.Builder(0)
+    local str = b:CreateString("")
+    monster.Start(b)
+    monster.AddName(b, str)
+    b:Finish(monster.End(b))
+    local s = b:Output()
+    local data = flatbuffers.binaryArray.New(s)
+    local mon = monster.GetRootAsMonster(data, 0)
+    assert(mon:Name() == "")
+end
+
 local function benchmarkMakeMonster(count, reuseBuilder)
     local fbb = reuseBuilder and flatbuffers.Builder(0)
     local length = #(generateMonster(false, fbb))
@@ -247,7 +272,51 @@ local function benchmarkReadBuffer(count)
     print(string.format('traversed %d %d-byte flatbuffers in %.2fsec: %.2f/msec, %.2fMB/sec',
         count, #buf, dur, rate, dataRate))
 end
+
+local function getRootAs_canAcceptString()
+    local f = assert(io.open('monsterdata_test.mon', 'rb'))
+    local wireData = f:read("*a")
+    f:close() 
+    assert(type(wireData) == "string", "Data is not a string");
+    local mon = monster.GetRootAsMonster(wireData, 0)
+    assert(mon:Hp() == 80, "Monster Hp is not 80")
+end
     
+local function testAccessByteVectorAsString()
+    local f = assert(io.open('monsterdata_test.mon', 'rb'))
+    local wireData = f:read("*a")
+    f:close()
+    local mon = monster.GetRootAsMonster(wireData, 0)
+    -- the data of byte array Inventory is [0, 1, 2, 3, 4]
+    local s = mon:InventoryAsString(1, 3)
+    assert(#s == 3)
+    for i = 1, #s do
+        assert(string.byte(s, i) == i - 1)
+    end
+
+    local s = mon:InventoryAsString(2, 5)
+    assert(#s == 4)
+    for i = 1, #s do
+        assert(string.byte(s, i) == i)
+    end
+
+    local s = mon:InventoryAsString(5, 5)
+    assert(#s == 1)
+    assert(string.byte(s, 1) == 4)
+
+    local s = mon:InventoryAsString(2)
+    assert(#s == 4)
+    for i = 1, #s do
+        assert(string.byte(s, i) == i)
+    end
+
+    local s = mon:InventoryAsString()
+    assert(#s == 5)
+    for i = 1, #s do
+        assert(string.byte(s, i) == i - 1)
+    end
+end
+
 local tests = 
 { 
     {   
@@ -263,6 +332,22 @@ local tests =
         f = testCanonicalData, 
         d = "Tests Canonical flatbuffer file included in repo"       
     },
+    {
+        f = testCreateEmptyString,
+        d = "Avoid infinite loop when creating empty string"
+    },
+    {
+        f = getRootAs_canAcceptString,
+        d = "Tests that GetRootAs<type>() generated methods accept strings"
+    },
+    {
+        f = testAccessByteVectorAsString,
+        d = "Access byte vector as string"
+    },
+}
+
+local benchmarks = 
+{
     {
         f = benchmarkMakeMonster,
         d = "Benchmark making monsters",
@@ -301,6 +386,12 @@ local result, err = xpcall(function()
         return s:sub(1,-2)
     end
     
+    if performBenchmarkTests then
+        for _,benchmark in ipairs(benchmarks) do
+            table.insert(tests, benchmark)
+        end
+    end
+
     local testsPassed, testsFailed = 0,0
     for _,test in ipairs(tests) do
         local allargs = test.args or {{}}
@@ -334,4 +425,4 @@ if not result then
     print("Unable to run tests due to test framework error: ",err)
 end
 
-os.exit(result or -1)
+os.exit(result and 0 or -1)

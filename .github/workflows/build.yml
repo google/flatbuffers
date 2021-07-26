@@ -14,7 +14,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        cxx: [g++-9, clang++-9]
+        cxx: [g++-10, clang++-12]
     steps:
     - uses: actions/checkout@v1
     - name: cmake
@@ -37,7 +37,7 @@ jobs:
     - name: Add msbuild to PATH
       uses: microsoft/setup-msbuild@v1.0.2
     - name: cmake
-      run: cmake -G "Visual Studio 16 2019" -A x64 -DCMAKE_BUILD_TYPE=Release .
+      run: cmake -G "Visual Studio 16 2019" -A x64 -DCMAKE_BUILD_TYPE=Release -DFLATBUFFERS_BUILD_CPP17=ON .
     - name: build
       run: msbuild.exe FlatBuffers.sln /p:Configuration=Release /p:Platform=x64
     - name: test
@@ -98,6 +98,19 @@ jobs:
      working-directory: android
      run: bash ./gradlew clean build
 
+  build-generator:
+    name: Check Generated Code
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        cxx: [g++-10, clang++-12]
+    steps:
+    - uses: actions/checkout@v1
+    - name: cmake
+      run: CXX=${{ matrix.cxx }} cmake -G "Unix Makefiles" -DFLATBUFFERS_BUILD_TESTS=OFF -DCMAKE_BUILD_TYPE=Release . && make -j4
+    - name: Generate
+      run: bash scripts/check-generate-code.sh && bash scripts/check-grpc-generated-code.sh
+
   build-java:
     name: Build Java
     runs-on: ubuntu-latest
@@ -106,7 +119,7 @@ jobs:
     - name: test
       working-directory: tests
       run: bash JavaTest.sh
-  
+
   build-kotlin:
     name: Build Kotlin
     runs-on: macos-latest
@@ -114,13 +127,13 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v1
     - name: Build
-      working-directory: kotlin  
+      working-directory: kotlin
       run: ./gradlew clean build allTests
     - name: Run Benchmark
-      working-directory: kotlin  
+      working-directory: kotlin
       run: ./gradlew benchmark
     - name: Generate Benchmark Report
-      working-directory: kotlin  
+      working-directory: kotlin
       run: |
         ./gradlew jmhReport;
         mv benchmark/build/reports/benchmarks/main/* benchmark_latest
@@ -150,18 +163,6 @@ jobs:
   #  - name: test
   #    working-directory: tests
   #    run: bash JavaScriptTest.sh
-
-  #build-ts:
-  #  name: Build TS
-  #  runs-on: ubuntu-latest
-  #  steps:
-  #  - uses: actions/checkout@v1
-  #  - name: flatc
-  #    # FIXME: make test script not rely on flatc
-  #    run: cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release -DFLATBUFFERS_BUILD_TESTS=OFF -DFLATBUFFERS_INSTALL=OFF -DFLATBUFFERS_BUILD_FLATLIB=OFF -DFLATBUFFERS_BUILD_FLATHASH=OFF . && make -j4
-  #  - name: test
-  #    working-directory: tests
-  #    run: bash TypeScriptTest.sh
 
   build-python:
     name: Build Python
@@ -215,3 +216,29 @@ jobs:
     - name: test
       working-directory: tests/FlatBuffers.Test.Swift
       run: sh SwiftTest.sh
+
+  build-ts:
+    name: Build TS
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v1
+    - name: compile
+      run: npm run compile
+    - name: test
+      working-directory: tests
+      run: sh TypeScriptTest.sh
+
+  build-dart:
+    name: Build Dart
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v1
+      - uses: dart-lang/setup-dart@v1
+        with:
+          sdk: stable
+      - name: flatc
+        # FIXME: make test script not rely on flatc
+        run: cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release -DFLATBUFFERS_BUILD_TESTS=OFF -DFLATBUFFERS_INSTALL=OFF -DFLATBUFFERS_BUILD_FLATLIB=OFF -DFLATBUFFERS_BUILD_FLATHASH=OFF . && make -j4
+      - name: test
+        working-directory: tests
+        run: bash DartTest.sh

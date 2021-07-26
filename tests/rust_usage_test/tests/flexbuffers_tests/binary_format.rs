@@ -311,7 +311,7 @@ fn utf8_snowman() {
             1,      // Root bytes
         ]
     );
-    let r = Reader::get_root(&buf).unwrap();
+    let r = Reader::get_root(buf.as_ref()).unwrap();
     assert_eq!(r.get_str(), Ok("snowman ☃︎"));
 }
 #[test]

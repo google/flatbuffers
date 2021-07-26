@@ -19,10 +19,9 @@ extern crate flatbuffers;
 
 // import the generated code
 #[allow(dead_code, unused_imports)]
-#[path = "./monster_generated.rs"]
 #[allow(clippy::approx_constant)]  // We use low precision PI as a default value.
-mod monster_generated;
-pub use monster_generated::my_game::sample::{Color, Equipment,
+mod rust_generated;
+pub use rust_generated::my_game::sample::{Color, Equipment,
                                              Monster, MonsterArgs,
                                              Vec3,
                                              Weapon, WeaponArgs};
@@ -33,7 +32,7 @@ pub use monster_generated::my_game::sample::{Color, Equipment,
 fn main() {
   // Build up a serialized buffer algorithmically.
   // Initialize it with a capacity of 1024 bytes.
-  let mut builder = flatbuffers::FlatBufferBuilder::new_with_capacity(1024);
+  let mut builder = flatbuffers::FlatBufferBuilder::with_capacity(1024);
 
   // Serialize some weapons for the Monster: A 'sword' and an 'axe'.
   let weapon_one_name = builder.create_string("Sword");
@@ -72,7 +71,7 @@ fn main() {
   // Create the monster using the `Monster::create` helper function. This
   // function accepts a `MonsterArgs` struct, which supplies all of the data
   // needed to build a `Monster`. To supply empty/default fields, just use the
-  // Rust built-in `Default::default()` function, as demononstrated below.
+  // Rust built-in `Default::default()` function, as demonstrated below.
   let orc = Monster::create(&mut builder, &MonsterArgs{
       pos: Some(&Vec3::new(1.0f32, 2.0f32, 3.0f32)),
       mana: 150,

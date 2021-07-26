@@ -9,7 +9,7 @@ import com.google.flatbuffers.*;
 
 @SuppressWarnings("unused")
 public final class Stat extends Table {
-  public static void ValidateVersion() { Constants.FLATBUFFERS_1_12_0(); }
+  public static void ValidateVersion() { Constants.FLATBUFFERS_2_0_0(); }
   public static Stat getRootAsStat(ByteBuffer _bb) { return getRootAsStat(_bb, new Stat()); }
   public static Stat getRootAsStat(ByteBuffer _bb, Stat obj) { _bb.order(ByteOrder.LITTLE_ENDIAN); return (obj.__assign(_bb.getInt(_bb.position()) + _bb.position(), _bb)); }
   public void __init(int _i, ByteBuffer _bb) { __reset(_i, _bb); }
@@ -21,7 +21,7 @@ public final class Stat extends Table {
   public long val() { int o = __offset(6); return o != 0 ? bb.getLong(o + bb_pos) : 0L; }
   public boolean mutateVal(long val) { int o = __offset(6); if (o != 0) { bb.putLong(o + bb_pos, val); return true; } else { return false; } }
   public int count() { int o = __offset(8); return o != 0 ? bb.getShort(o + bb_pos) & 0xFFFF : 0; }
-  public boolean mutateCount(int count) { int o = __offset(8); if (o != 0) { bb.putShort(o + bb_pos, (short)count); return true; } else { return false; } }
+  public boolean mutateCount(int count) { int o = __offset(8); if (o != 0) { bb.putShort(o + bb_pos, (short) count); return true; } else { return false; } }
 
   public static int createStat(FlatBufferBuilder builder,
       int idOffset,
@@ -37,7 +37,7 @@ public final class Stat extends Table {
   public static void startStat(FlatBufferBuilder builder) { builder.startTable(3); }
   public static void addId(FlatBufferBuilder builder, int idOffset) { builder.addOffset(0, idOffset, 0); }
   public static void addVal(FlatBufferBuilder builder, long val) { builder.addLong(1, val, 0L); }
-  public static void addCount(FlatBufferBuilder builder, int count) { builder.addShort(2, (short)count, (short)0); }
+  public static void addCount(FlatBufferBuilder builder, int count) { builder.addShort(2, (short) count, (short) 0); }
   public static int endStat(FlatBufferBuilder builder) {
     int o = builder.endTable();
     return o;
@@ -78,6 +78,28 @@ public final class Stat extends Table {
     public Stat get(Stat obj, int j) {  return obj.__assign(__indirect(__element(j), bb), bb); }
     public Stat getByKey(int key) {  return __lookup_by_key(null, __vector(), key, bb); }
     public Stat getByKey(Stat obj, int key) {  return __lookup_by_key(obj, __vector(), key, bb); }
+  }
+  public StatT unpack() {
+    StatT _o = new StatT();
+    unpackTo(_o);
+    return _o;
+  }
+  public void unpackTo(StatT _o) {
+    String _oId = id();
+    _o.setId(_oId);
+    long _oVal = val();
+    _o.setVal(_oVal);
+    int _oCount = count();
+    _o.setCount(_oCount);
+  }
+  public static int pack(FlatBufferBuilder builder, StatT _o) {
+    if (_o == null) return 0;
+    int _id = _o.getId() == null ? 0 : builder.createString(_o.getId());
+    return createStat(
+      builder,
+      _id,
+      _o.getVal(),
+      _o.getCount());
   }
 }
 

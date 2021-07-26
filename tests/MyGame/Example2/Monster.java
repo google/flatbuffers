@@ -9,7 +9,7 @@ import com.google.flatbuffers.*;
 
 @SuppressWarnings("unused")
 public final class Monster extends Table {
-  public static void ValidateVersion() { Constants.FLATBUFFERS_1_12_0(); }
+  public static void ValidateVersion() { Constants.FLATBUFFERS_2_0_0(); }
   public static Monster getRootAsMonster(ByteBuffer _bb) { return getRootAsMonster(_bb, new Monster()); }
   public static Monster getRootAsMonster(ByteBuffer _bb, Monster obj) { _bb.order(ByteOrder.LITTLE_ENDIAN); return (obj.__assign(_bb.getInt(_bb.position()) + _bb.position(), _bb)); }
   public void __init(int _i, ByteBuffer _bb) { __reset(_i, _bb); }
@@ -27,6 +27,18 @@ public final class Monster extends Table {
 
     public Monster get(int j) { return get(new Monster(), j); }
     public Monster get(Monster obj, int j) {  return obj.__assign(__indirect(__element(j), bb), bb); }
+  }
+  public MonsterT unpack() {
+    MonsterT _o = new MonsterT();
+    unpackTo(_o);
+    return _o;
+  }
+  public void unpackTo(MonsterT _o) {
+  }
+  public static int pack(FlatBufferBuilder builder, MonsterT _o) {
+    if (_o == null) return 0;
+    startMonster(builder);
+    return endMonster(builder);
   }
 }
 

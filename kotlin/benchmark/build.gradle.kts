@@ -3,8 +3,9 @@ import org.jetbrains.kotlin.ir.backend.js.compile
 plugins {
   kotlin("multiplatform") version "1.4.20"
   id("org.jetbrains.kotlin.plugin.allopen") version "1.4.20"
-  id("kotlinx.benchmark") version "0.2.0-dev-20"
+  id("org.jetbrains.kotlinx.benchmark") version "0.3.0"
   id("io.morethan.jmhreport") version "0.9.0"
+  id("de.undercouch.download") version "4.1.1"
 }
 
 // allOpen plugin is needed for the benchmark annotations.
@@ -14,7 +15,7 @@ allOpen {
 }
 
 group = "com.google.flatbuffers.jmh"
-version = "1.12.0-SNAPSHOT"
+version = "2.0.0-SNAPSHOT"
 
 // This plugin generates a static html page with the aggregation
 // of all benchmarks ran. very useful visualization tool.
@@ -32,6 +33,8 @@ benchmark {
       iterations = 5
       iterationTime = 300
       iterationTimeUnit = "ms"
+      // uncomment for benchmarking JSON op only
+      // include(".*JsonBenchmark.*")
     }
   }
   targets {
@@ -69,13 +72,17 @@ kotlin {
     }
     val jvmMain by getting {
       dependencies {
-        implementation("org.jetbrains.kotlinx:kotlinx.benchmark.runtime:0.2.0-dev-20")
+        implementation("org.jetbrains.kotlinx:kotlinx-benchmark-runtime:0.3.0")
         implementation(kotlin("stdlib-common"))
         implementation(project(":flatbuffers-kotlin"))
-        implementation("org.jetbrains.kotlinx:kotlinx.benchmark.runtime-jvm:0.2.0-dev-20")
         implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
         implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.4.1")
 
+        //moshi
+        implementation("com.squareup.moshi:moshi-kotlin:1.11.0")
+
+        //gson
+        implementation("com.google.code.gson:gson:2.8.5")
       }
     }
 
@@ -87,4 +94,18 @@ kotlin {
       targetFromPreset(presets.getAt("jvm"))
     }
   }
+}
+
+// This task download all JSON files used for benchmarking
+tasks.register<de.undercouch.gradle.tasks.download.Download>("downloadMultipleFiles") {
+  // We are downloading json benchmark samples from serdes-rs project.
+  // see: https://github.com/serde-rs/json-benchmark/blob/master/data
+  val baseUrl = "https://github.com/serde-rs/json-benchmark/raw/master/data/"
+  src(listOf("$baseUrl/canada.json", "$baseUrl/twitter.json", "$baseUrl/citm_catalog.json"))
+  dest(File("${project.projectDir.absolutePath}/src/jvmMain/resources"))
+  overwrite(false)
+}
+
+project.tasks.named("compileKotlinJvm") {
+  dependsOn("downloadMultipleFiles")
 }
