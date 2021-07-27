@@ -35,8 +35,7 @@ template<class T> class Message {
  public:
   Message() {}
 
-  Message(::grpc::Slice slice)
-      : slice_(slice) {}
+  Message(::grpc::Slice slice) : slice_(slice) {}
 
   Message &operator=(const Message &other) = delete;
 
@@ -97,7 +96,7 @@ class SliceAllocator : public Allocator {
     swap(slice_, other.slice_);
   }
 
-  virtual ~SliceAllocator() { }
+  virtual ~SliceAllocator() {}
 
   virtual uint8_t *allocate(size_t size) override {
     FLATBUFFERS_ASSERT(slice_.size() == 0);
@@ -119,7 +118,7 @@ class SliceAllocator : public Allocator {
     FLATBUFFERS_ASSERT(new_size > old_size);
     ::grpc::Slice old_slice = slice_;
     ::grpc::Slice new_slice = ::grpc::Slice(new_size);
-    uint8_t *new_p = const_cast<uint8_t*>(new_slice.begin());
+    uint8_t *new_p = const_cast<uint8_t *>(new_slice.begin());
     memcpy_downward(old_p, old_size, new_p, new_size, in_use_back,
                     in_use_front);
     slice_ = new_slice;
