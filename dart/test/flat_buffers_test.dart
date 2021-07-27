@@ -379,7 +379,7 @@ class BuilderTest {
             .vTableGetNullable(buf, objectOffset, indexToField(0)),
         latinString);
     expect(
-        const StringReader()
+        const StringReader(asciiOptimization: true)
             .vTableGetNullable(buf, objectOffset, indexToField(1)),
         unicodeString);
   }
