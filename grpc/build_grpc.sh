@@ -10,7 +10,7 @@ function build_grpc () {
   # Install absl (absl won't be installed down below)
   mkdir ../abseil_build
   pushd ../abseil_build
-  cmake ../grpc/third_party/abseil-cpp -DCMAKE_POSITION_INDEPENDENT_CODE=TRUE -DCMAKE_INSTALL_PREFIX=`pwd`/../grpc/install
+  cmake ../grpc/third_party/abseil-cpp -DCMAKE_CXX_STANDARD=11 -DCMAKE_POSITION_INDEPENDENT_CODE=TRUE -DCMAKE_INSTALL_PREFIX=`pwd`/../grpc/install
   cmake --build . --target install ${JOBS:+-j$JOBS}
   popd
   # Apply boringssl build patch
