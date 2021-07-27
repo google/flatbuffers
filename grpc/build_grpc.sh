@@ -7,19 +7,13 @@ function build_grpc () {
   cd google/grpc
   git checkout ${grpc_1_39_0_githash}
   git submodule update --init
-  # Install absl (absl won't be installed down below)
-  mkdir ../abseil_build
-  pushd ../abseil_build
-  cmake ../grpc/third_party/abseil-cpp -DCMAKE_CXX_STANDARD=11 -DCMAKE_POSITION_INDEPENDENT_CODE=TRUE -DCMAKE_INSTALL_PREFIX=`pwd`/../grpc/install
-  cmake --build . --target install ${JOBS:+-j$JOBS}
-  popd
   # Apply boringssl build patch
   cd third_party/boringssl-with-bazel
   git apply ../../../../grpc/boringssl.patch
   cd ../..
   mkdir ../grpc_build
   cd ../grpc_build
-  cmake ../grpc -DgRPC_INSTALL=ON -DgRPC_BUILD_TESTS=OFF -DgRPC_ABSL_PROVIDER=package -DBUILD_SHARED_LIBS=ON -DCMAKE_INSTALL_PREFIX=`pwd`/../grpc/install
+  cmake ../grpc -DgRPC_INSTALL=ON -DgRPC_BUILD_TESTS=OFF -DABSL_ENABLE_INSTALL=ON -DBUILD_SHARED_LIBS=ON -DCMAKE_INSTALL_PREFIX=`pwd`/../grpc/install
   cmake --build . --target install ${JOBS:+-j$JOBS}
   cd ../..
 }
