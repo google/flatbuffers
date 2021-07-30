@@ -240,6 +240,24 @@ fn create_byte_vector_100_optimal(bench: &mut Bencher) {
     bench.bytes = v.len() as u64;
 }
 
+fn create_many_tables(bench: &mut Bencher) {
+    let builder = &mut flatbuffers::FlatBufferBuilder::new_with_capacity(1 << 20);
+    // create 2^16 tables
+    bench.iter(|| {
+        for i in 0..(1u16 << 10) {
+            let t = builder.start_table();
+            for j in 0..15 {
+                if i & (1 << j) == 1 {
+                    builder.push_slot_always(i * 2, 42u8);
+                }
+            }
+            builder.end_table(t);
+        }
+        builder.reset();
+    });
+    bench.bytes = 1 << 15;
+}
+
 benchmark_group!(
     benches,
     create_byte_vector_100_naive,
@@ -247,5 +265,6 @@ benchmark_group!(
     traverse_canonical_buffer,
     create_canonical_buffer_then_reset,
     create_string_10,
-    create_string_100
+    create_string_100,
+    create_many_tables,
 );
