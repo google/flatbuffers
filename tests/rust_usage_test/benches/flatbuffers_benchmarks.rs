@@ -242,7 +242,7 @@ fn create_byte_vector_100_optimal(bench: &mut Bencher) {
 
 fn create_many_tables(bench: &mut Bencher) {
     let builder = &mut flatbuffers::FlatBufferBuilder::new_with_capacity(1 << 20);
-    // create 2^16 tables
+    // We test vtable overhead by making many unique tables of up to 16 fields of u8s.
     bench.iter(|| {
         for i in 0..(1u16 << 10) {
             let t = builder.start_table();
