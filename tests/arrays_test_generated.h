@@ -312,7 +312,7 @@ struct ArrayTableBuilder {
 
 inline flatbuffers::Offset<ArrayTable> CreateArrayTable(
     flatbuffers::FlatBufferBuilder &_fbb,
-    const MyGame::Example::ArrayStruct *a = 0) {
+    const MyGame::Example::ArrayStruct *a = nullptr) {
   ArrayTableBuilder builder_(_fbb);
   builder_.add_a(a);
   return builder_.Finish();

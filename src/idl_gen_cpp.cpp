@@ -1683,6 +1683,8 @@ class CppGenerator : public BaseGenerator {
       } else {
         return "0";
       }
+    } else if (IsStruct(type) && (field.value.constant == "0")) {
+      return "nullptr";
     } else {
       return GenDefaultConstant(field);
     }
