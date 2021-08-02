@@ -171,7 +171,7 @@ inline flatbuffers::Offset<TableInFirstNS> CreateTableInFirstNS(
     NamespaceA::NamespaceB::EnumInNestedNS foo_enum = NamespaceA::NamespaceB::EnumInNestedNS_A,
     NamespaceA::NamespaceB::UnionInNestedNS foo_union_type = NamespaceA::NamespaceB::UnionInNestedNS_NONE,
     flatbuffers::Offset<void> foo_union = 0,
-    const NamespaceA::NamespaceB::StructInNestedNS *foo_struct = 0) {
+    const NamespaceA::NamespaceB::StructInNestedNS *foo_struct = nullptr) {
   TableInFirstNSBuilder builder_(_fbb);
   builder_.add_foo_struct(foo_struct);
   builder_.add_foo_union(foo_union);
