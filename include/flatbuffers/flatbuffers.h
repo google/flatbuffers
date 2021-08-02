@@ -1932,7 +1932,7 @@ class FlatBufferBuilder {
   /// where the vector is stored.
   template<typename T, typename S>
   Offset<Vector<const T *>> CreateVectorOfNativeStructs(
-      const S *v, size_t len, T((*const pack_func)(const S &))) {
+      const S *v, size_t len, T (*const pack_func)(const S &)) {
     FLATBUFFERS_ASSERT(pack_func);
     auto structs = StartVectorOfStructs<T>(len);
     for (size_t i = 0; i < len; i++) { structs[i] = pack_func(v[i]); }
@@ -2020,7 +2020,7 @@ class FlatBufferBuilder {
   /// where the vector is stored.
   template<typename T, typename S>
   Offset<Vector<const T *>> CreateVectorOfNativeStructs(
-      const std::vector<S> &v, T((*const pack_func)(const S &))) {
+      const std::vector<S> &v, T (*const pack_func)(const S &)) {
     return CreateVectorOfNativeStructs<T, S>(data(v), v.size(), pack_func);
   }
 
