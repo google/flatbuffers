@@ -354,7 +354,7 @@ fn test_object_api_reads_correctly() -> Result<(), &'static str>{
 // Disabled due to Windows CI limitations.
 // #[test]
 // fn builder_initializes_with_maximum_buffer_size() {
-//     flatbuffers::FlatBufferBuilder::new_with_capacity(flatbuffers::FLATBUFFERS_MAX_BUFFER_SIZE);
+//     flatbuffers::FlatBufferBuilder::with_capacity(flatbuffers::FLATBUFFERS_MAX_BUFFER_SIZE);
 // }
 
 #[should_panic]

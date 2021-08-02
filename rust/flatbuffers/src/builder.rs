@@ -593,20 +593,6 @@ impl<'fbb> FlatBufferBuilder<'fbb> {
         object_revloc_to_vtable
     }
 
-    #[inline]
-    fn find_duplicate_stored_vtable_revloc(&self, needle: VTable) -> Option<UOffsetT> {
-        for &revloc in self.written_vtable_revpos.iter().rev() {
-            let o = VTable::init(
-                &self.owned_buf[..],
-                self.head + self.used_space() - revloc as usize,
-            );
-            if needle == o {
-                return Some(revloc);
-            }
-        }
-        None
-    }
-
     // Only call this when you know it is safe to double the size of the buffer.
     #[inline]
     fn grow_owned_buf(&mut self) {
