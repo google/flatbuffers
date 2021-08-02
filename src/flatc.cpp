@@ -106,6 +106,8 @@ std::string FlatCompiler::GetUsageString(const char *program_name) const {
     "  --gen-nullable         Add Clang _Nullable for C++ pointer. or @Nullable for Java\n"
     "  --java-checkerframe    work Add @Pure for Java.\n"
     "  --gen-generated        Add @Generated annotation for Java\n"
+    "  --gen-jvmstatic        Add @JvmStatic annotation for Kotlin methods\n"
+    "                         in companion object for interop from Java to Kotlin.\n"
     "  --gen-all              Generate not just code for the current schema files,\n"
     "                         but for all files it includes as well.\n"
     "                         If the language uses a single file for output (by default\n"
@@ -119,21 +121,26 @@ std::string FlatCompiler::GetUsageString(const char *program_name) const {
     "                         (see the --cpp-str-flex-ctor option to change this behavior).\n"
     "  --cpp-str-flex-ctor    Don't construct custom string types by passing std::string\n"
     "                         from Flatbuffers, but (char* + length).\n"
+    "  --cpp-field-case-style STYLE Generate C++ fields using selected case style.\n"
+    "                         Supported STYLE values:\n"
+    "                          * 'unchanged' - leave unchanged (default);\n"
+    "                          * 'upper' - schema snake_case emits UpperCamel;\n"
+    "                          * 'lower' - schema snake_case emits lowerCamel.\n"
     "  --cpp-std CPP_STD      Generate a C++ code using features of selected C++ standard.\n"
     "                         Supported CPP_STD values:\n"
     "                          * 'c++0x' - generate code compatible with old compilers;\n"
     "                          * 'c++11' - use C++11 code generator (default);\n"
     "                          * 'c++17' - use C++17 features in generated code (experimental).\n"
+    "  --cpp-static-reflection When using C++17, generate extra code to provide compile-time\n"
+    "                          (static) reflection of Flatbuffers types.  Requires --cpp-std\n"
+    "                          to be \"c++17\" or higher.\n"
     "  --object-prefix        Customise class prefix for C++ object-based API.\n"
     "  --object-suffix        Customise class suffix for C++ object-based API.\n"
     "                         Default value is \"T\".\n"
-    "  --no-js-exports        Removes Node.js style export lines in JS.\n"
-    "  --goog-js-export       Uses goog.exports* for closure compiler exporting in JS.\n"
-    "  --es6-js-export        Uses ECMAScript 6 export style lines in JS.\n"
-    "  --go-namespace         Generate the overrided namespace in Golang.\n"
-    "  --go-import            Generate the overrided import for flatbuffers in Golang\n"
+    "  --go-namespace         Generate the overriding namespace in Golang.\n"
+    "  --go-import            Generate the overriding import for flatbuffers in Golang\n"
     "                         (default is \"github.com/google/flatbuffers/go\").\n"
-    "  --raw-binary           Allow binaries without file_indentifier to be read.\n"
+    "  --raw-binary           Allow binaries without file_identifier to be read.\n"
     "                         This may crash flatc given a mismatched schema.\n"
     "  --size-prefixed        Input binaries are size prefixed buffers.\n"
     "  --proto                Input is a .proto, translate to .fbs.\n"
@@ -142,6 +149,11 @@ std::string FlatCompiler::GetUsageString(const char *program_name) const {
     "  --oneof-union          Translate .proto oneofs to flatbuffer unions.\n"
     "  --grpc                 Generate GRPC interfaces for the specified languages.\n"
     "  --schema               Serialize schemas instead of JSON (use with -b).\n"
+    "  --bfbs-filenames PATH  Sets the root path where reflection filenames in \n"
+    "                         reflection.fbs are relative to. The 'root' is denoted with \n"
+    "                         `//`. E.g. if PATH=/a/b/c \n then /a/d/e.fbs will be serialized\n"
+    "                         as //../d/e.fbs. (PATH defaults to the directory of the first\n"
+    "                         provided schema file.)\n"
     "  --bfbs-comments        Add doc comments to the binary schema files.\n"
     "  --bfbs-builtins        Add builtin attributes to the binary schema files.\n"
     "  --bfbs-gen-embed       Generate code to embed the bfbs schema to the source.\n"
@@ -155,12 +167,10 @@ std::string FlatCompiler::GetUsageString(const char *program_name) const {
     "  --include-prefix       Prefix this path to any generated include statements.\n"
     "    PATH\n"
     "  --keep-prefix          Keep original prefix of schema include statement.\n"
-    "  --no-fb-import         Don't include flatbuffers import statement for TypeScript.\n"
-    "  --no-ts-reexport       Don't re-export imported dependencies for TypeScript.\n"
-    "  --short-names          Use short function names for JS and TypeScript.\n"
     "  --reflect-types        Add minimal type reflection to code generation.\n"
     "  --reflect-names        Add minimal type/name reflection.\n"
     "  --root-type T          Select or override the default root_type\n"
+    "  --require-explicit-ids When parsing schemas, require explicit ids (id: x).\n"
     "  --force-defaults       Emit default values in binary output from JSON\n"
     "  --force-empty          When serializing from object API representation,\n"
     "                         force strings and vectors to empty rather than null.\n"
@@ -168,6 +178,7 @@ std::string FlatCompiler::GetUsageString(const char *program_name) const {
     "                         force vectors to empty rather than null.\n"
     "  --flexbuffers          Used with \"binary\" and \"json\" options, it generates\n"
     "                         data using schema-less FlexBuffers.\n"
+    "  --no-warnings          Inhibit all warning messages.\n"
     "FILEs may be schemas (must end in .fbs), binary schemas (must end in .bfbs),\n"
     "or JSON files (conforming to preceding schema). FILEs after the -- must be\n"
     "binary flatbuffer format files.\n"
@@ -215,6 +226,11 @@ int FlatCompiler::Compile(int argc, const char **argv) {
             flatbuffers::PosixPath(argv[argi]));
         include_directories.push_back(
             include_directories_storage.back().c_str());
+      } else if (arg == "--bfbs-filenames") {
+        if (++argi > argc) Error("missing path following: " + arg, true);
+        opts.project_root = argv[argi];
+        if (!DirExists(opts.project_root.c_str()))
+          Error(arg + " is not a directory: " + opts.project_root);
       } else if (arg == "--conform") {
         if (++argi >= argc) Error("missing path following: " + arg, true);
         conform_to_schema = flatbuffers::PosixPath(argv[argi]);
@@ -236,14 +252,6 @@ int FlatCompiler::Compile(int argc, const char **argv) {
         opts.allow_non_utf8 = true;
       } else if (arg == "--natural-utf8") {
         opts.natural_utf8 = true;
-      } else if (arg == "--no-js-exports") {
-        opts.skip_js_exports = true;
-      } else if (arg == "--goog-js-export") {
-        opts.use_goog_js_export_format = true;
-        opts.use_ES6_js_export_format = false;
-      } else if (arg == "--es6-js-export") {
-        opts.use_goog_js_export_format = false;
-        opts.use_ES6_js_export_format = true;
       } else if (arg == "--go-namespace") {
         if (++argi >= argc) Error("missing golang namespace" + arg, true);
         opts.go_namespace = argv[argi];
@@ -280,6 +288,19 @@ int FlatCompiler::Compile(int argc, const char **argv) {
         opts.cpp_object_api_string_type = argv[argi];
       } else if (arg == "--cpp-str-flex-ctor") {
         opts.cpp_object_api_string_flexible_constructor = true;
+      } else if (arg == "--no-cpp-direct-copy") {
+        opts.cpp_direct_copy = false;
+      } else if (arg == "--cpp-field-case-style") {
+        if (++argi >= argc) Error("missing case style following: " + arg, true);
+        if (!strcmp(argv[argi], "unchanged"))
+          opts.cpp_object_api_field_case_style =
+              IDLOptions::CaseStyle_Unchanged;
+        else if (!strcmp(argv[argi], "upper"))
+          opts.cpp_object_api_field_case_style = IDLOptions::CaseStyle_Upper;
+        else if (!strcmp(argv[argi], "lower"))
+          opts.cpp_object_api_field_case_style = IDLOptions::CaseStyle_Lower;
+        else
+          Error("unknown case style: " + std::string(argv[argi]), true);
       } else if (arg == "--gen-nullable") {
         opts.gen_nullable = true;
       } else if (arg == "--java-checkerframework") {
@@ -330,16 +351,12 @@ int FlatCompiler::Compile(int argc, const char **argv) {
         opts.binary_schema_builtins = true;
       } else if (arg == "--bfbs-gen-embed") {
         opts.binary_schema_gen_embed = true;
-      } else if (arg == "--no-fb-import") {
-        opts.skip_flatbuffers_import = true;
-      } else if (arg == "--no-ts-reexport") {
-        opts.reexport_ts_modules = false;
-      } else if (arg == "--short-names") {
-        opts.js_ts_short_names = true;
       } else if (arg == "--reflect-types") {
         opts.mini_reflect = IDLOptions::kTypes;
       } else if (arg == "--reflect-names") {
         opts.mini_reflect = IDLOptions::kTypesAndNames;
+      } else if (arg == "--require-explicit-ids") {
+        opts.require_explicit_ids = true;
       } else if (arg == "--root-type") {
         if (++argi >= argc) Error("missing type following: " + arg, true);
         opts.root_type = argv[argi];
@@ -362,10 +379,18 @@ int FlatCompiler::Compile(int argc, const char **argv) {
         opts.cs_gen_json_serializer = true;
       } else if (arg == "--flexbuffers") {
         opts.use_flexbuffers = true;
+      } else if (arg == "--gen-jvmstatic") {
+        opts.gen_jvmstatic = true;
+      } else if (arg == "--no-warnings") {
+        opts.no_warnings = true;
       } else if (arg == "--cpp-std") {
         if (++argi >= argc)
           Error("missing C++ standard specification" + arg, true);
         opts.cpp_std = argv[argi];
+      } else if (arg.rfind("--cpp-std=", 0) == 0) {
+        opts.cpp_std = arg.substr(std::string("--cpp-std=").size());
+      } else if (arg == "--cpp-static-reflection") {
+        opts.cpp_static_reflection = true;
       } else {
         for (size_t i = 0; i < params_.num_generators; ++i) {
           if (arg == params_.generators[i].generator_opt_long ||
@@ -421,8 +446,11 @@ int FlatCompiler::Compile(int argc, const char **argv) {
     bool is_binary =
         static_cast<size_t>(file_it - filenames.begin()) >= binary_files_from;
     auto ext = flatbuffers::GetExtension(filename);
-    auto is_schema = ext == "fbs" || ext == "proto";
-    auto is_binary_schema = ext == reflection::SchemaExtension();
+    const bool is_schema = ext == "fbs" || ext == "proto";
+    if (is_schema && opts.project_root.empty()) {
+      opts.project_root = StripFileName(filename);
+    }
+    const bool is_binary_schema = ext == reflection::SchemaExtension();
     if (is_binary) {
       parser->builder_.Clear();
       parser->builder_.PushFlatBuffer(
@@ -548,6 +576,9 @@ int FlatCompiler::Compile(int argc, const char **argv) {
     // We do not want to generate code for the definitions in this file
     // in any files coming up next.
     parser->MarkGenerated();
+  }
+  if (opts.lang_to_generate & IDLOptions::kRust && !parser->opts.one_file) {
+    GenerateRustModuleRootFile(*parser, output_path);
   }
   return 0;
 }

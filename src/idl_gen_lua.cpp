@@ -124,6 +124,10 @@ class LuaGenerator : public BaseGenerator {
 
     code += "function " + NormalizedName(struct_def) + ".GetRootAs" +
             NormalizedName(struct_def) + "(buf, offset)\n";
+    code += std::string(Indent) + "if type(buf) == \"string\" then\n";
+    code += std::string(Indent) + Indent +
+            "buf = flatbuffers.binaryArray.New(buf)\n";
+    code += std::string(Indent) + "end\n";
     code += std::string(Indent) +
             "local n = flatbuffers.N.UOffsetT:Unpack(buf, offset)\n";
     code += std::string(Indent) + "local o = " + NormalizedName(struct_def) +
@@ -327,11 +331,23 @@ class LuaGenerator : public BaseGenerator {
     code += "a + ((j-1) * ";
     code += NumToString(InlineSize(vectortype)) + "))\n";
     code += std::string(Indent) + End;
-    if (vectortype.base_type == BASE_TYPE_STRING) {
+    if (IsString(vectortype)) {
       code += std::string(Indent) + "return ''\n";
     } else {
       code += std::string(Indent) + "return 0\n";
     }
+    code += EndFunc;
+  }
+
+  // Access a byte/ubyte vector as a string
+  void AccessByteVectorAsString(const StructDef &struct_def,
+                                const FieldDef &field, std::string *code_ptr) {
+    std::string &code = *code_ptr;
+    GenReceiver(struct_def, code_ptr);
+    code += MakeCamel(NormalizedName(field));
+    code += "AsString(start, stop)\n";
+    code += std::string(Indent) + "return " + SelfData + ":VectorAsString(" +
+            NumToString(field.value.offset) + ", start, stop)\n";
     code += EndFunc;
   }
 
@@ -495,6 +511,10 @@ class LuaGenerator : public BaseGenerator {
             GetMemberOfVectorOfStruct(struct_def, field, code_ptr);
           } else {
             GetMemberOfVectorOfNonStruct(struct_def, field, code_ptr);
+            if (vectortype.base_type == BASE_TYPE_CHAR ||
+                vectortype.base_type == BASE_TYPE_UCHAR) {
+              AccessByteVectorAsString(struct_def, field, code_ptr);
+            }
           }
           break;
         }
@@ -502,7 +522,7 @@ class LuaGenerator : public BaseGenerator {
         default: FLATBUFFERS_ASSERT(0);
       }
     }
-    if (field.value.type.base_type == BASE_TYPE_VECTOR) {
+    if (IsVector(field.value.type)) {
       GetVectorLen(struct_def, field, code_ptr);
     }
   }
@@ -518,7 +538,7 @@ class LuaGenerator : public BaseGenerator {
 
       auto offset = it - struct_def.fields.vec.begin();
       BuildFieldOfTable(struct_def, field, offset, code_ptr);
-      if (field.value.type.base_type == BASE_TYPE_VECTOR) {
+      if (IsVector(field.value.type)) {
         BuildVectorOfTable(struct_def, field, code_ptr);
       }
     }

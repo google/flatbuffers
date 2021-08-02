@@ -49,18 +49,10 @@ func GetRootAsReferrable(buf []byte, offset flatbuffers.UOffsetT) *Referrable {
 	return x
 }
 
-// GetTableVectorAsReferrable shortcut to access table in vector of  unions
-func GetTableVectorAsReferrable(table *flatbuffers.Table) *Referrable {
-	n := flatbuffers.GetUOffsetT(table.Bytes[table.Pos:])
+func GetSizePrefixedRootAsReferrable(buf []byte, offset flatbuffers.UOffsetT) *Referrable {
+	n := flatbuffers.GetUOffsetT(buf[offset+flatbuffers.SizeUint32:])
 	x := &Referrable{}
-	x.Init(table.Bytes, n+table.Pos)
-	return x
-}
-
-// GetTableAsReferrable shortcut to access table in single union field
-func GetTableAsReferrable(table *flatbuffers.Table) *Referrable {
-	x := &Referrable{}
-	x.Init(table.Bytes, table.Pos)
+	x.Init(buf, n+offset+flatbuffers.SizeUint32)
 	return x
 }
 

@@ -1,0 +1,7 @@
+{
+    "dependencies": {
+        "esm": "^3.2.25",
+        "flatbuffers": "../",
+        "grpc": "^1.24.6"
+    }
+}

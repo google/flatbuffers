@@ -2,6 +2,8 @@
 import static com.google.flatbuffers.Constants.*;
 
 import MyGame.Example.*;
+import optional_scalars.ScalarStuff;
+import optional_scalars.OptionalByte;
 import MyGame.MonsterExtra;
 import NamespaceA.*;
 import NamespaceA.NamespaceB.*;
@@ -23,7 +25,9 @@ import java.io.*;
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.nio.CharBuffer;
 import java.nio.channels.FileChannel;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
@@ -100,6 +104,12 @@ class JavaTest {
         TestFlexBuffers();
 
         TestVectorOfBytes();
+
+        TestSharedStringPool();
+
+        TestScalarOptional();
+
+        TestPackUnpack(bb);
 
         System.out.println("FlatBuffers test: completed successfully");
     }
@@ -591,7 +601,17 @@ class JavaTest {
     public static void testFlexBuffersTest() {
         FlexBuffersBuilder builder = new FlexBuffersBuilder(ByteBuffer.allocate(512),
                 FlexBuffersBuilder.BUILDER_FLAG_SHARE_KEYS_AND_STRINGS);
+        testFlexBuffersTest(builder);
+        int bufferLimit1 = ((ArrayReadWriteBuf) builder.getBuffer()).limit();
 
+        // Repeat after clearing the builder to ensure the builder is reusable
+        builder.clear();
+        testFlexBuffersTest(builder);
+        int bufferLimit2 = ((ArrayReadWriteBuf) builder.getBuffer()).limit();
+        TestEq(bufferLimit1, bufferLimit2);
+    }
+
+    public static void testFlexBuffersTest(FlexBuffersBuilder builder) {
         // Write the equivalent of:
         // { vec: [ -100, "Fred", 4.0, false ], bar: [ 1, 2, 3 ], bar3: [ 1, 2, 3 ],
         // foo: 100, bool: true, mymap: { foo: "Fred" } }
@@ -844,6 +864,27 @@ class JavaTest {
         TestEq((byte)-1, result[3]);
     }
 
+    public static void testSingleElementLongBlob() {
+
+        // verifies blobs of up to 2^16 in length
+        for (int i = 2; i <= 1<<16; i = i<<1) {
+            byte[] input = new byte[i-1];
+            for (int index = 0; index < input.length; index++) {
+                input[index] = (byte)(index % 64);
+            }
+
+            FlexBuffersBuilder builder = new FlexBuffersBuilder();
+            builder.putBlob(input);
+            ByteBuffer b = builder.finish();
+            FlexBuffers.Reference r = FlexBuffers.getRoot(b);
+            byte[] result = r.asBlob().getBytes();
+            
+            for (int index = 0; index < input.length; index++) {
+                TestEq((byte)(index % 64), result[index]);
+            }
+        }
+    }
+
     public static void testSingleElementUByte() {
         FlexBuffersBuilder builder = new FlexBuffersBuilder();
         builder.putUInt(0xFF);
@@ -1012,21 +1053,15 @@ class JavaTest {
 
     public static void testBuilderGrowth() {
         FlexBuffersBuilder builder = new FlexBuffersBuilder();
-        builder.putString("This is a small string");
+        String someString = "This is a small string";
+        builder.putString(someString);
         ByteBuffer b = builder.finish();
-        TestEq("This is a small string", FlexBuffers.getRoot(b).asString());
+        TestEq(someString, FlexBuffers.getRoot(b).asString());
 
         FlexBuffersBuilder failBuilder = new FlexBuffersBuilder(ByteBuffer.allocate(1));
-        try {
-            failBuilder.putString("This is a small string");
-            // This should never be reached, it should throw an exception
-            // since ByteBuffers do not grow
-            assert(false);
-        } catch (java.lang.ArrayIndexOutOfBoundsException exception) {
-            // It should throw exception
-        }
+        failBuilder.putString(someString);
     }
-    
+
     public static void testFlexBuffersUtf8Map() {
         FlexBuffersBuilder builder = new FlexBuffersBuilder(ByteBuffer.allocate(512),
                 FlexBuffersBuilder.BUILDER_FLAG_SHARE_KEYS_AND_STRINGS);
@@ -1072,6 +1107,7 @@ class JavaTest {
         testSingleElementSmallString();
         testSingleElementBigString();
         testSingleElementBlob();
+        testSingleElementLongBlob();
         testSingleElementVector();
         testSingleFixedTypeVector();
         testSingleElementUShort();
@@ -1205,8 +1241,287 @@ class JavaTest {
         TestEq(monsterObject8.inventoryLength(), 2048);
     }
 
+    static void TestSharedStringPool() {
+        FlatBufferBuilder fb = new FlatBufferBuilder(1);
+        String testString = "My string";
+        int offset = fb.createSharedString(testString);
+        for (int i=0; i< 10; i++) {
+            TestEq(offset, fb.createSharedString(testString));
+        }
+    }
+
+    static void TestScalarOptional() {
+        FlatBufferBuilder fbb = new FlatBufferBuilder(1);
+        ScalarStuff.startScalarStuff(fbb);
+        int pos = ScalarStuff.endScalarStuff(fbb);
+        fbb.finish(pos);
+
+        ScalarStuff scalarStuff = ScalarStuff.getRootAsScalarStuff(fbb.dataBuffer());
+        TestEq(scalarStuff.justI8(), (byte)0);
+        TestEq(scalarStuff.maybeI8(), (byte)0);
+        TestEq(scalarStuff.defaultI8(), (byte)42);
+        TestEq(scalarStuff.justU8(), 0);
+        TestEq(scalarStuff.maybeU8(), 0);
+        TestEq(scalarStuff.defaultU8(), 42);
+        TestEq(scalarStuff.justI16(), (short)0);
+        TestEq(scalarStuff.maybeI16(), (short)0);
+        TestEq(scalarStuff.defaultI16(), (short)42);
+        TestEq(scalarStuff.justU16(), 0);
+        TestEq(scalarStuff.maybeU16(), 0);
+        TestEq(scalarStuff.defaultU16(), 42);
+        TestEq(scalarStuff.justI32(), 0);
+        TestEq(scalarStuff.maybeI32(), 0);
+        TestEq(scalarStuff.defaultI32(), 42);
+        TestEq(scalarStuff.justU32(), 0L);
+        TestEq(scalarStuff.maybeU32(), 0L);
+        TestEq(scalarStuff.defaultU32(), 42L);
+        TestEq(scalarStuff.justI64(), 0L);
+        TestEq(scalarStuff.maybeI64(), 0L);
+        TestEq(scalarStuff.defaultI64(), 42L);
+        TestEq(scalarStuff.justU64(), 0L);
+        TestEq(scalarStuff.maybeU64(), 0L);
+        TestEq(scalarStuff.defaultU64(), 42L);
+        TestEq(scalarStuff.justF32(), 0.0f);
+        TestEq(scalarStuff.maybeF32(), 0f);
+        TestEq(scalarStuff.defaultF32(), 42.0f);
+        TestEq(scalarStuff.justF64(), 0.0);
+        TestEq(scalarStuff.maybeF64(), 0.0);
+        TestEq(scalarStuff.defaultF64(), 42.0);
+        TestEq(scalarStuff.justBool(), false);
+        TestEq(scalarStuff.maybeBool(), false);
+        TestEq(scalarStuff.defaultBool(), true);
+        TestEq(scalarStuff.justEnum(), OptionalByte.None);
+        TestEq(scalarStuff.maybeEnum(), OptionalByte.None);
+        TestEq(scalarStuff.defaultEnum(), OptionalByte.One);
+
+        TestEq(scalarStuff.hasMaybeI8(), false);
+        TestEq(scalarStuff.hasMaybeI16(), false);
+        TestEq(scalarStuff.hasMaybeI32(), false);
+        TestEq(scalarStuff.hasMaybeI64(), false);
+        TestEq(scalarStuff.hasMaybeU8(), false);
+        TestEq(scalarStuff.hasMaybeU16(), false);
+        TestEq(scalarStuff.hasMaybeU32(), false);
+        TestEq(scalarStuff.hasMaybeU64(), false);
+        TestEq(scalarStuff.hasMaybeF32(), false);
+        TestEq(scalarStuff.hasMaybeF64(), false);
+        TestEq(scalarStuff.hasMaybeBool(), false);
+        TestEq(scalarStuff.hasMaybeEnum(), false);
+
+        fbb.clear();
+
+        ScalarStuff.startScalarStuff(fbb);
+        ScalarStuff.addJustI8(fbb, (byte)5);
+        ScalarStuff.addMaybeI8(fbb, (byte)5);
+        ScalarStuff.addDefaultI8(fbb, (byte)5);
+        ScalarStuff.addJustU8(fbb, 6);
+        ScalarStuff.addMaybeU8(fbb, 6);
+        ScalarStuff.addDefaultU8(fbb, 6);
+        ScalarStuff.addJustI16(fbb, (short)7);
+        ScalarStuff.addMaybeI16(fbb, (short)7);
+        ScalarStuff.addDefaultI16(fbb, (short)7);
+        ScalarStuff.addJustU16(fbb, 8);
+        ScalarStuff.addMaybeU16(fbb, 8);
+        ScalarStuff.addDefaultU16(fbb, 8);
+        ScalarStuff.addJustI32(fbb, 9);
+        ScalarStuff.addMaybeI32(fbb, 9);
+        ScalarStuff.addDefaultI32(fbb, 9);
+        ScalarStuff.addJustU32(fbb, (long)10);
+        ScalarStuff.addMaybeU32(fbb, (long)10);
+        ScalarStuff.addDefaultU32(fbb, (long)10);
+        ScalarStuff.addJustI64(fbb, 11L);
+        ScalarStuff.addMaybeI64(fbb, 11L);
+        ScalarStuff.addDefaultI64(fbb, 11L);
+        ScalarStuff.addJustU64(fbb, 12L);
+        ScalarStuff.addMaybeU64(fbb, 12L);
+        ScalarStuff.addDefaultU64(fbb, 12L);
+        ScalarStuff.addJustF32(fbb, 13.0f);
+        ScalarStuff.addMaybeF32(fbb, 13.0f);
+        ScalarStuff.addDefaultF32(fbb, 13.0f);
+        ScalarStuff.addJustF64(fbb, 14.0);
+        ScalarStuff.addMaybeF64(fbb, 14.0);
+        ScalarStuff.addDefaultF64(fbb, 14.0);
+        ScalarStuff.addJustBool(fbb, true);
+        ScalarStuff.addMaybeBool(fbb, true);
+        ScalarStuff.addDefaultBool(fbb, true);
+        ScalarStuff.addJustEnum(fbb, OptionalByte.Two);
+        ScalarStuff.addMaybeEnum(fbb, OptionalByte.Two);
+        ScalarStuff.addDefaultEnum(fbb, OptionalByte.Two);
+
+        pos = ScalarStuff.endScalarStuff(fbb);
+
+        fbb.finish(pos);
+
+        scalarStuff = ScalarStuff.getRootAsScalarStuff(fbb.dataBuffer());
+
+        TestEq(scalarStuff.justI8(), (byte)5);
+        TestEq(scalarStuff.maybeI8(), (byte)5);
+        TestEq(scalarStuff.defaultI8(), (byte)5);
+        TestEq(scalarStuff.justU8(), 6);
+        TestEq(scalarStuff.maybeU8(), 6);
+        TestEq(scalarStuff.defaultU8(), 6);
+        TestEq(scalarStuff.justI16(), (short)7);
+        TestEq(scalarStuff.maybeI16(), (short)7);
+        TestEq(scalarStuff.defaultI16(), (short)7);
+        TestEq(scalarStuff.justU16(), 8);
+        TestEq(scalarStuff.maybeU16(), 8);
+        TestEq(scalarStuff.defaultU16(), 8);
+        TestEq(scalarStuff.justI32(), 9);
+        TestEq(scalarStuff.maybeI32(), 9);
+        TestEq(scalarStuff.defaultI32(), 9);
+        TestEq(scalarStuff.justU32(), 10L);
+        TestEq(scalarStuff.maybeU32(), 10L);
+        TestEq(scalarStuff.defaultU32(), 10L);
+        TestEq(scalarStuff.justI64(), 11L);
+        TestEq(scalarStuff.maybeI64(), 11L);
+        TestEq(scalarStuff.defaultI64(), 11L);
+        TestEq(scalarStuff.justU64(), 12L);
+        TestEq(scalarStuff.maybeU64(), 12L);
+        TestEq(scalarStuff.defaultU64(), 12L);
+        TestEq(scalarStuff.justF32(), 13.0f);
+        TestEq(scalarStuff.maybeF32(), 13.0f);
+        TestEq(scalarStuff.defaultF32(), 13.0f);
+        TestEq(scalarStuff.justF64(), 14.0);
+        TestEq(scalarStuff.maybeF64(), 14.0);
+        TestEq(scalarStuff.defaultF64(), 14.0);
+        TestEq(scalarStuff.justBool(), true);
+        TestEq(scalarStuff.maybeBool(), true);
+        TestEq(scalarStuff.defaultBool(), true);
+        TestEq(scalarStuff.justEnum(), OptionalByte.Two);
+        TestEq(scalarStuff.maybeEnum(), OptionalByte.Two);
+        TestEq(scalarStuff.defaultEnum(), OptionalByte.Two);
+
+        TestEq(scalarStuff.hasMaybeI8(), true);
+        TestEq(scalarStuff.hasMaybeI16(), true);
+        TestEq(scalarStuff.hasMaybeI32(), true);
+        TestEq(scalarStuff.hasMaybeI64(), true);
+        TestEq(scalarStuff.hasMaybeU8(), true);
+        TestEq(scalarStuff.hasMaybeU16(), true);
+        TestEq(scalarStuff.hasMaybeU32(), true);
+        TestEq(scalarStuff.hasMaybeU64(), true);
+        TestEq(scalarStuff.hasMaybeF32(), true);
+        TestEq(scalarStuff.hasMaybeF64(), true);
+        TestEq(scalarStuff.hasMaybeBool(), true);
+        TestEq(scalarStuff.hasMaybeEnum(), true);
+    }
+
+    static void TestObject(MonsterT monster) {
+        TestEq(monster.getHp(), (short) 80);
+        TestEq(monster.getMana(), (short) 150);  // default
+
+        TestEq(monster.getName(), "MyMonster");
+        TestEq(monster.getColor(), Color.Blue);
+        // monster.friendly() // can't access, deprecated
+
+        Vec3T pos = monster.getPos();
+        TestEq(pos.getX(), 1.0f);
+        TestEq(pos.getY(), 2.0f);
+        TestEq(pos.getZ(), 3.0f);
+        TestEq(pos.getTest1(), 3.0);
+        // issue: int != byte
+        TestEq(pos.getTest2(), (int) Color.Green);
+        TestT t = pos.getTest3();
+        TestEq(t.getA(), (short) 5);
+        TestEq(t.getB(), (byte) 6);
+
+        TestEq(monster.getTest().getType(), (byte) Any.Monster);
+        MonsterT monster2 = (MonsterT) monster.getTest().getValue();
+        TestEq(monster2 != null, true);
+        TestEq(monster2.getName(), "Fred");
+
+        int[] inv = monster.getInventory();
+        TestEq(inv.length, 5);
+        int[] expInv = {0, 1, 2, 3, 4};
+        for (int i = 0; i < inv.length; i++)
+            TestEq(expInv[i], inv[i]);
+
+        TestT[] test4 = monster.getTest4();
+        TestT test_0 = test4[0];
+        TestT test_1 = test4[1];
+        TestEq(test4.length, 2);
+        TestEq(test_0.getA(), (short) 10);
+        TestEq(test_0.getB(), (byte) 20);
+        TestEq(test_1.getA(), (short) 30);
+        TestEq(test_1.getB(), (byte) 40);
+
+        String[] testarrayofstring = monster.getTestarrayofstring();
+        TestEq(testarrayofstring.length, 2);
+        TestEq(testarrayofstring[0], "test1");
+        TestEq(testarrayofstring[1], "test2");
+
+        MonsterT[] testarrayoftables = monster.getTestarrayoftables();
+        TestEq(testarrayoftables.length, 0);
+
+        MonsterT enemy = monster.getEnemy();
+        TestEq(enemy != null, true);
+        TestEq(enemy.getName(), "Fred");
+
+        int[] testnestedflatbuffer = monster.getTestnestedflatbuffer();
+        TestEq(testnestedflatbuffer.length, 0);
+
+        TestEq(monster.getTestempty() == null, true);
+
+        TestEq(monster.getTestbool(), true);
+
+        boolean[] testarrayofbools = monster.getTestarrayofbools();
+        TestEq(testarrayofbools.length, 3);
+        TestEq(testarrayofbools[0], true);
+        TestEq(testarrayofbools[1], false);
+        TestEq(testarrayofbools[2], true);
+
+        TestEq(monster.getTestf(), 3.14159f);
+        TestEq(monster.getTestf2(), 3.0f);
+        TestEq(monster.getTestf3(), 0.0f);
+        TestEq(monster.getTestf3(), 0.0f);
+
+        AbilityT[] testarrayofsortedstruct = monster.getTestarrayofsortedstruct();
+        TestEq(testarrayofsortedstruct.length, 3);
+        TestEq(testarrayofsortedstruct[0].getId(), (long) 0);
+        TestEq(testarrayofsortedstruct[1].getId(), (long) 1);
+        TestEq(testarrayofsortedstruct[2].getId(), (long) 5);
+        TestEq(testarrayofsortedstruct[0].getDistance(), (long) 45);
+        TestEq(testarrayofsortedstruct[1].getDistance(), (long) 21);
+        TestEq(testarrayofsortedstruct[2].getDistance(), (long) 12);
+
+        int[] flex = monster.getFlex();
+        TestEq(flex.length, 0);
+
+        long[] vectorOfLongs = monster.getVectorOfLongs();
+        TestEq(vectorOfLongs.length, 5);
+        long l = 1;
+        for (int i = 0; i < vectorOfLongs.length; i++) {
+            TestEq(vectorOfLongs[i], l);
+            l *= 100;
+        }
+
+        double[] vectorOfDoubles = monster.getVectorOfDoubles();
+        TestEq(vectorOfDoubles.length, 3);
+        TestEq(vectorOfDoubles[0], -1.7976931348623157E308);
+        TestEq(vectorOfDoubles[1], 0.0);
+        TestEq(vectorOfDoubles[2], 1.7976931348623157E308);
+
+        TestEq(monster.getParentNamespaceTest() == null, true);
+        ReferrableT[] vectorOfReferrables = monster.getVectorOfReferrables();
+        TestEq(vectorOfReferrables.length, 0);
+
+        TestEq(monster.getSignedEnum(), (byte) -1);
+    }
+
+    static void TestPackUnpack(ByteBuffer bb) {
+        Monster m = Monster.getRootAsMonster(bb);
+        MonsterT mObject = m.unpack();
+        TestObject(mObject);
+        FlatBufferBuilder fbb = new FlatBufferBuilder();
+        int monster = Monster.pack(fbb, mObject);
+        Monster.finishMonsterBuffer(fbb, monster);
+        TestBuffer(fbb.dataBuffer());
+
+        byte[] bytes = mObject.serializeToBinary();
+        MonsterT newMonsterT = MonsterT.deserializeFromBinary(bytes);
+        TestObject(newMonsterT);
+    }
+
     static <T> void TestEq(T a, T b) {
-        if (!a.equals(b)) {
+        if ((a == null && a != b) || (a != null && !a.equals(b))) {
             System.out.println("" + a.getClass().getName() + " " + b.getClass().getName());
             System.out.println("FlatBuffers test FAILED: \'" + a + "\' != \'" + b + "\'");
             new Throwable().printStackTrace();
@@ -1214,4 +1529,5 @@ class JavaTest {
             System.exit(1);
         }
     }
+
 }

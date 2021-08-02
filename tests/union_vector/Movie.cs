@@ -10,7 +10,7 @@ public struct Movie : IFlatbufferObject
 {
   private Table __p;
   public ByteBuffer ByteBuffer { get { return __p.bb; } }
-  public static void ValidateVersion() { FlatBufferConstants.FLATBUFFERS_1_12_0(); }
+  public static void ValidateVersion() { FlatBufferConstants.FLATBUFFERS_2_0_0(); }
   public static Movie GetRootAsMovie(ByteBuffer _bb) { return GetRootAsMovie(_bb, new Movie()); }
   public static Movie GetRootAsMovie(ByteBuffer _bb, Movie obj) { return (obj.__assign(_bb.GetInt(_bb.Position) + _bb.Position, _bb)); }
   public static bool MovieBufferHasIdentifier(ByteBuffer _bb) { return Table.__has_identifier(_bb, "MOVI"); }
@@ -20,6 +20,12 @@ public struct Movie : IFlatbufferObject
   public Character MainCharacterType { get { int o = __p.__offset(4); return o != 0 ? (Character)__p.bb.Get(o + __p.bb_pos) : Character.NONE; } }
   public TTable? MainCharacter<TTable>() where TTable : struct, IFlatbufferObject { int o = __p.__offset(6); return o != 0 ? (TTable?)__p.__union<TTable>(o + __p.bb_pos) : null; }
   public string MainCharacterAsString() { int o = __p.__offset(6); return o != 0 ? __p.__string(o + __p.bb_pos) : null; }
+  public Attacker MainCharacterAsMuLan() { return MainCharacter<Attacker>().Value; }
+  public Rapunzel MainCharacterAsRapunzel() { return MainCharacter<Rapunzel>().Value; }
+  public BookReader MainCharacterAsBelle() { return MainCharacter<BookReader>().Value; }
+  public BookReader MainCharacterAsBookFan() { return MainCharacter<BookReader>().Value; }
+  public string MainCharacterAsOther() { return MainCharacterAsString(); }
+  public string MainCharacterAsUnused() { return MainCharacterAsString(); }
   public Character CharactersType(int j) { int o = __p.__offset(8); return o != 0 ? (Character)__p.bb.Get(__p.__vector(o) + j * 1) : (Character)0; }
   public int CharactersTypeLength { get { int o = __p.__offset(8); return o != 0 ? __p.__vector_len(o) : 0; } }
 #if ENABLE_SPAN_T
@@ -196,7 +202,7 @@ public class MovieT
   }
   public byte[] SerializeToBinary() {
     var fbb = new FlatBufferBuilder(0x10000);
-    fbb.Finish(Movie.Pack(fbb, this).Value);
+    Movie.FinishMovieBuffer(fbb, Movie.Pack(fbb, this));
     return fbb.DataBuffer.ToSizedArray();
   }
 }

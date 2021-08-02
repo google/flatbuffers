@@ -23,7 +23,7 @@
 namespace flatbuffers {
 
 int64_t GetAnyValueI(reflection::BaseType type, const uint8_t *data) {
-  // clang-format off
+// clang-format off
   #define FLATBUFFERS_GET(T) static_cast<int64_t>(ReadScalar<T>(data))
   switch (type) {
     case reflection::UType:
@@ -121,7 +121,7 @@ std::string GetAnyValueS(reflection::BaseType type, const uint8_t *data,
 }
 
 void SetAnyValueI(reflection::BaseType type, uint8_t *data, int64_t val) {
-  // clang-format off
+// clang-format off
   #define FLATBUFFERS_SET(T) WriteScalar(data, static_cast<T>(val))
   switch (type) {
     case reflection::UType:
@@ -195,7 +195,7 @@ class ResizeContext {
     if (delta_ > 0)
       buf_.insert(buf_.begin() + start, delta_, 0);
     else
-      buf_.erase(buf_.begin() + start, buf_.begin() + start - delta_);
+      buf_.erase(buf_.begin() + start + delta_, buf_.begin() + start);
   }
 
   // Check if the range between first (lower address) and second straddles
@@ -396,16 +396,17 @@ Offset<const Table *> CopyTable(FlatBufferBuilder &fbb,
       case reflection::Obj: {
         auto &subobjectdef = *schema.objects()->Get(fielddef.type()->index());
         if (!subobjectdef.is_struct()) {
-          offset =
-              CopyTable(fbb, schema, subobjectdef, *GetFieldT(table, fielddef))
-                  .o;
+          offset = CopyTable(fbb, schema, subobjectdef,
+                             *GetFieldT(table, fielddef), use_string_pooling)
+                       .o;
         }
         break;
       }
       case reflection::Union: {
         auto &subobjectdef = GetUnionType(schema, objectdef, fielddef, table);
-        offset =
-            CopyTable(fbb, schema, subobjectdef, *GetFieldT(table, fielddef)).o;
+        offset = CopyTable(fbb, schema, subobjectdef,
+                           *GetFieldT(table, fielddef), use_string_pooling)
+                     .o;
         break;
       }
       case reflection::Vector: {
@@ -432,8 +433,8 @@ Offset<const Table *> CopyTable(FlatBufferBuilder &fbb,
             if (!elemobjectdef->is_struct()) {
               std::vector<Offset<const Table *>> elements(vec->size());
               for (uoffset_t i = 0; i < vec->size(); i++) {
-                elements[i] =
-                    CopyTable(fbb, schema, *elemobjectdef, *vec->Get(i));
+                elements[i] = CopyTable(fbb, schema, *elemobjectdef,
+                                        *vec->Get(i), use_string_pooling);
               }
               offset = fbb.CreateVector(elements).o;
               break;
@@ -703,8 +704,7 @@ bool VerifyObject(flatbuffers::Verifier &v, const reflection::Schema &schema,
 }
 
 bool Verify(const reflection::Schema &schema, const reflection::Object &root,
-            const uint8_t *buf, size_t length,
-            uoffset_t max_depth /*= 64*/,
+            const uint8_t *buf, size_t length, uoffset_t max_depth /*= 64*/,
             uoffset_t max_tables /*= 1000000*/) {
   Verifier v(buf, length, max_depth, max_tables);
   return VerifyObject(v, schema, root, flatbuffers::GetAnyRoot(buf), true);

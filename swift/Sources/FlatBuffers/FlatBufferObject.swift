@@ -1,96 +1,56 @@
+/*
+ * Copyright 2021 Google Inc. All rights reserved.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 import Foundation
 
+/// NativeStruct is a protocol that indicates if the struct is a native `swift` struct
+/// since now we will be serializing native structs into the buffer.
+public protocol NativeStruct {}
+
+/// FlatbuffersInitializable is a protocol that allows any object to be
+/// Initialized from a ByteBuffer
+public protocol FlatbuffersInitializable {
+  init(_ bb: ByteBuffer, o: Int32)
+}
+
 /// FlatbufferObject structures all the Flatbuffers objects
-public protocol FlatBufferObject {
-    var __buffer: ByteBuffer! { get }
-    init(_ bb: ByteBuffer, o: Int32)
+public protocol FlatBufferObject: FlatbuffersInitializable {
+  var __buffer: ByteBuffer! { get }
 }
 
-public protocol NativeTable {}
+/// `ObjectAPIPacker` is a protocol that allows object to pack and unpack from a
+/// `NativeObject` to a flatbuffers Object and vice versa.
+public protocol ObjectAPIPacker {
+  /// associatedtype to the object that should be unpacked.
+  associatedtype T
 
-public protocol ObjectAPI {
-    associatedtype T
-    static func pack(_ builder: inout FlatBufferBuilder, obj: inout T) -> Offset<UOffset>
-    mutating func unpack() -> T
-}
+  /// `pack` tries packs the variables of a native Object into the `ByteBuffer` by using
+  /// the FlatBufferBuilder
+  /// - Parameters:
+  ///   - builder: FlatBufferBuilder that will host incoming data
+  ///   - obj: Object of associatedtype to the current implementer
+  static func pack(_ builder: inout FlatBufferBuilder, obj: inout T?) -> Offset
 
-/// Readable is structures all the Flatbuffers structs
-///
-/// Readable is a procotol that each Flatbuffer struct should confirm to since
-/// FlatBufferBuilder would require a Type to both create(struct:) and createVector(structs:) functions
-public protocol Readable: FlatBufferObject {
-    static var size: Int { get }
-    static var alignment: Int { get }
-}
+  /// `pack` packs the variables of a native Object into the `ByteBuffer` by using
+  /// the FlatBufferBuilder
+  /// - Parameters:
+  ///   - builder: FlatBufferBuilder that will host incoming data
+  ///   - obj: Object of associatedtype to the current implementer
+  static func pack(_ builder: inout FlatBufferBuilder, obj: inout T) -> Offset
 
-public protocol Enum {
-    associatedtype T: Scalar
-    static var byteSize: Int { get }
-    var value: T { get }
+  /// `Unpack` unpacks a flatbuffers object into a `NativeObject`
+  mutating func unpack() -> T
 }
-
-/// Mutable is a protocol that allows us to mutate Scalar values within the buffer
-public protocol Mutable {
-    /// makes Flatbuffer accessed within the Protocol
-    var bb: ByteBuffer { get }
-    /// makes position of the table/struct  accessed within the Protocol
-    var postion: Int32 { get }
-}
-
-extension Mutable {
-    
-    /// Mutates the memory in the buffer, this is only called from the access function of table and structs
-    /// - Parameters:
-    ///   - value: New value to be inserted to the buffer
-    ///   - index: index of the Element
-    func mutate<T: Scalar>(value: T, o: Int32) -> Bool {
-        guard o != 0 else { return false }
-        bb.write(value: value, index: Int(o), direct: true)
-        return true
-    }
-}
-
-extension Mutable where Self == Table {
-    
-    /// Mutates a value by calling mutate with respect to the position in the table
-    /// - Parameters:
-    ///   - value: New value to be inserted to the buffer
-    ///   - index: index of the Element
-    public func mutate<T: Scalar>(_ value: T, index: Int32) -> Bool {
-        guard index != 0 else { return false }
-        return mutate(value: value, o: index + postion)
-    }
-    
-    /// Directly mutates the element by calling mutate
-    ///
-    /// Mutates the Element at index ignoring the current position by calling mutate
-    /// - Parameters:
-    ///   - value: New value to be inserted to the buffer
-    ///   - index: index of the Element
-    public func directMutate<T: Scalar>(_ value: T, index: Int32) -> Bool {
-        return mutate(value: value, o: index)
-    }
-}
-
-extension Mutable where Self == Struct {
-    
-    /// Mutates a value by calling mutate with respect to the position in the struct
-    /// - Parameters:
-    ///   - value: New value to be inserted to the buffer
-    ///   - index: index of the Element
-    public func mutate<T: Scalar>(_ value: T, index: Int32) -> Bool {
-        return mutate(value: value, o: index + postion)
-    }
-    
-    /// Directly mutates the element by calling mutate
-    ///
-    /// Mutates the Element at index ignoring the current position by calling mutate
-    /// - Parameters:
-    ///   - value: New value to be inserted to the buffer
-    ///   - index: index of the Element
-    public func directMutate<T: Scalar>(_ value: T, index: Int32) -> Bool {
-        return mutate(value: value, o: index)
-    }
-}
-extension Struct: Mutable {}
-extension Table: Mutable {}

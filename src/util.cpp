@@ -16,7 +16,13 @@
 
 // clang-format off
 // Dont't remove `format off`, it prevent reordering of win-includes.
-#define _POSIX_C_SOURCE 200112L // For stat from stat/stat.h and fseeko() (POSIX extensions).
+
+#if defined(__MINGW32__) || defined(__MINGW64__) || defined(__CYGWIN__) || \
+    defined(__QNXNTO__)
+#  define _POSIX_C_SOURCE 200809L
+#  define _XOPEN_SOURCE 700L
+#endif
+
 #ifdef _WIN32
 #  ifndef WIN32_LEAN_AND_MEAN
 #    define WIN32_LEAN_AND_MEAN
@@ -31,18 +37,18 @@
 #  include <direct.h>
 #  include <winbase.h>
 #  undef interface  // This is also important because of reasons
-#else
-#  define _XOPEN_SOURCE 600 // For PATH_MAX from limits.h (SUSv2 extension) 
-#  include <limits.h>
 #endif
 // clang-format on
 
-#include "flatbuffers/base.h"
 #include "flatbuffers/util.h"
 
 #include <sys/stat.h>
+
 #include <clocale>
+#include <cstdlib>
 #include <fstream>
+
+#include "flatbuffers/base.h"
 
 namespace flatbuffers {
 
@@ -172,6 +178,9 @@ std::string PosixPath(const char *path) {
   std::replace(p.begin(), p.end(), '\\', '/');
   return p;
 }
+std::string PosixPath(const std::string &path) {
+  return PosixPath(path.c_str());
+}
 
 void EnsureDirExists(const std::string &filepath) {
   auto parent = StripFileName(filepath);
@@ -196,13 +205,49 @@ std::string AbsolutePath(const std::string &filepath) {
       char abs_path[MAX_PATH];
       return GetFullPathNameA(filepath.c_str(), MAX_PATH, abs_path, nullptr)
     #else
-      char abs_path[PATH_MAX];
-      return realpath(filepath.c_str(), abs_path)
+      char *abs_path_temp = realpath(filepath.c_str(), nullptr);
+      bool success = abs_path_temp != nullptr;
+      std::string abs_path;
+      if(success) {
+        abs_path = abs_path_temp;
+        free(abs_path_temp);
+      }
+      return success
     #endif
       ? abs_path
       : filepath;
   #endif // FLATBUFFERS_NO_ABSOLUTE_PATH_RESOLUTION
   // clang-format on
+}
+
+std::string RelativeToRootPath(const std::string &project,
+                               const std::string &filepath) {
+  std::string absolute_project = PosixPath(AbsolutePath(project));
+  if (absolute_project.back() != '/') absolute_project += "/";
+  std::string absolute_filepath = PosixPath(AbsolutePath(filepath));
+
+  // Find the first character where they disagree.
+  // The previous directory is the lowest common ancestor;
+  const char *a = absolute_project.c_str();
+  const char *b = absolute_filepath.c_str();
+  size_t common_prefix_len = 0;
+  while (*a != '\0' && *b != '\0' && *a == *b) {
+    if (*a == '/') common_prefix_len = a - absolute_project.c_str();
+    a++;
+    b++;
+  }
+  // the number of ../ to prepend to b depends on the number of remaining
+  // directories in A.
+  const char *suffix = absolute_project.c_str() + common_prefix_len;
+  size_t num_up = 0;
+  while (*suffix != '\0')
+    if (*suffix++ == '/') num_up++;
+  num_up--;  // last one is known to be '/'.
+  std::string result = "//";
+  for (size_t i = 0; i < num_up; i++) result += "../";
+  result += absolute_filepath.substr(common_prefix_len + 1);
+
+  return result;
 }
 
 // Locale-independent code.

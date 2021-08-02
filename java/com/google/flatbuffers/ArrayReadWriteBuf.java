@@ -35,6 +35,11 @@ public class ArrayReadWriteBuf implements ReadWriteBuf {
   }
 
   @Override
+  public void clear() {
+    this.writePos = 0;
+  }
+
+  @Override
   public boolean getBoolean(int index) {
     return buffer[index] != 0;
   }
@@ -229,12 +234,18 @@ public class ArrayReadWriteBuf implements ReadWriteBuf {
 
   @Override
   public boolean requestCapacity(int capacity) {
-    if (buffer.length > capacity) {
+    if (capacity < 0) {
+      throw new IllegalArgumentException("Capacity may not be negative (likely a previous int overflow)");
+    }
+    if (buffer.length >= capacity) {
       return true;
     }
     // implemented in the same growing fashion as ArrayList
     int oldCapacity = buffer.length;
     int newCapacity = oldCapacity + (oldCapacity >> 1);
+    if (newCapacity < capacity) {  // Note: this also catches newCapacity int overflow
+      newCapacity = capacity;
+    }
     buffer = Arrays.copyOf(buffer, newCapacity);
     return true;
   }

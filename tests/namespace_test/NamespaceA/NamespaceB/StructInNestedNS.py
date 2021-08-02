@@ -9,6 +9,10 @@ np = import_numpy()
 class StructInNestedNS(object):
     __slots__ = ['_tab']
 
+    @classmethod
+    def SizeOf(cls):
+        return 8
+
     # StructInNestedNS
     def Init(self, buf, pos):
         self._tab = flatbuffers.table.Table(buf, pos)

@@ -7,8 +7,8 @@ import (
 )
 
 type StatT struct {
-	Id string
-	Val int64
+	Id    string
+	Val   int64
 	Count uint16
 }
 
@@ -59,18 +59,10 @@ func GetRootAsStat(buf []byte, offset flatbuffers.UOffsetT) *Stat {
 	return x
 }
 
-// GetTableVectorAsStat shortcut to access table in vector of  unions
-func GetTableVectorAsStat(table *flatbuffers.Table) *Stat {
-	n := flatbuffers.GetUOffsetT(table.Bytes[table.Pos:])
+func GetSizePrefixedRootAsStat(buf []byte, offset flatbuffers.UOffsetT) *Stat {
+	n := flatbuffers.GetUOffsetT(buf[offset+flatbuffers.SizeUint32:])
 	x := &Stat{}
-	x.Init(table.Bytes, n+table.Pos)
-	return x
-}
-
-// GetTableAsStat shortcut to access table in single union field
-func GetTableAsStat(table *flatbuffers.Table) *Stat {
-	x := &Stat{}
-	x.Init(table.Bytes, table.Pos)
+	x.Init(buf, n+offset+flatbuffers.SizeUint32)
 	return x
 }
 

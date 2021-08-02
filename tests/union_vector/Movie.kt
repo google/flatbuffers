@@ -58,7 +58,7 @@ class Movie : Table() {
     fun characters(obj: Table, j: Int) : Table? {
         val o = __offset(10)
         return if (o != 0) {
-            __union(obj, __vector(o) + j * 4 - bb_pos)
+            __union(obj, __vector(o) + j * 4)
         } else {
             null
         }
@@ -68,7 +68,7 @@ class Movie : Table() {
             val o = __offset(10); return if (o != 0) __vector_len(o) else 0
         }
     companion object {
-        fun validateVersion() = Constants.FLATBUFFERS_1_12_0()
+        fun validateVersion() = Constants.FLATBUFFERS_2_0_0()
         fun getRootAsMovie(_bb: ByteBuffer): Movie = getRootAsMovie(_bb, Movie())
         fun getRootAsMovie(_bb: ByteBuffer, obj: Movie): Movie {
             _bb.order(ByteOrder.LITTLE_ENDIAN)

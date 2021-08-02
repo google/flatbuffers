@@ -57,11 +57,12 @@ cp -a ./go_test.go ./go_gen/src/
 # Developers may also wish to run benchmarks, which may be achieved with the
 # flag -test.bench and the wildcard regexp ".":
 #   go -test -test.bench=. ...
-cd ${go_src}
-go test . \
-                     --test.coverpkg=github.com/google/flatbuffers/go \
-                     --test.bench=. \
-                     --test.benchtime 3s \
+GOPATH=${go_path} go test flatbuffers_test \
+                     --coverpkg=github.com/google/flatbuffers/go \
+                     --cpp_data=${test_dir}/monsterdata_test.mon \
+                     --out_data=${test_dir}/monsterdata_go_wire.mon \
+                     --bench=. \
+                     --benchtime=3s \
                      --fuzz=true \
                      --fuzz_fields=4 \
                      --fuzz_objects=10000 \

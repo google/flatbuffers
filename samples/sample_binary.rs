@@ -18,21 +18,21 @@
 extern crate flatbuffers;
 
 // import the generated code
-#[path = "./monster_generated.rs"]
-mod monster_generated;
-pub use monster_generated::my_game::sample::{get_root_as_monster,
-                                             Color, Equipment,
+#[allow(dead_code, unused_imports)]
+#[allow(clippy::approx_constant)]  // We use low precision PI as a default value.
+mod rust_generated;
+pub use rust_generated::my_game::sample::{Color, Equipment,
                                              Monster, MonsterArgs,
                                              Vec3,
                                              Weapon, WeaponArgs};
 
 
 // Example how to use FlatBuffers to create and read binary buffers.
-
+#[allow(clippy::float_cmp)]
 fn main() {
   // Build up a serialized buffer algorithmically.
   // Initialize it with a capacity of 1024 bytes.
-  let mut builder = flatbuffers::FlatBufferBuilder::new_with_capacity(1024);
+  let mut builder = flatbuffers::FlatBufferBuilder::with_capacity(1024);
 
   // Serialize some weapons for the Monster: A 'sword' and an 'axe'.
   let weapon_one_name = builder.create_string("Sword");
@@ -71,7 +71,7 @@ fn main() {
   // Create the monster using the `Monster::create` helper function. This
   // function accepts a `MonsterArgs` struct, which supplies all of the data
   // needed to build a `Monster`. To supply empty/default fields, just use the
-  // Rust built-in `Default::default()` function, as demononstrated below.
+  // Rust built-in `Default::default()` function, as demonstrated below.
   let orc = Monster::create(&mut builder, &MonsterArgs{
       pos: Some(&Vec3::new(1.0f32, 2.0f32, 3.0f32)),
       mana: 150,
@@ -98,7 +98,7 @@ fn main() {
   let buf = builder.finished_data(); // Of type `&[u8]`
 
   // Get access to the root:
-  let monster = get_root_as_monster(buf);
+  let monster = flatbuffers::root::<Monster>(buf).unwrap();
 
   // Get and test some scalar types from the FlatBuffer.
   let hp = monster.hp();
@@ -152,4 +152,11 @@ fn main() {
   //assert_eq!(monster.path().unwrap()[1].x(), 4.0);
 
   println!("The FlatBuffer was successfully created and accessed!");
+  dbg!(monster);
+}
+
+#[cfg(test)]
+#[test]
+fn test_main() {
+    main()
 }

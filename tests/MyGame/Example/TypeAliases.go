@@ -7,17 +7,17 @@ import (
 )
 
 type TypeAliasesT struct {
-	I8 int8
-	U8 byte
-	I16 int16
-	U16 uint16
-	I32 int32
-	U32 uint32
-	I64 int64
-	U64 uint64
-	F32 float32
-	F64 float64
-	V8 []int8
+	I8   int8
+	U8   byte
+	I16  int16
+	U16  uint16
+	I32  int32
+	U32  uint32
+	I64  int64
+	U64  uint64
+	F32  float32
+	F64  float64
+	V8   []int8
 	Vf64 []float64
 }
 
@@ -78,11 +78,13 @@ func (rcv *TypeAliases) UnPackTo(t *TypeAliasesT) {
 	v8Length := rcv.V8Length()
 	t.V8 = make([]int8, v8Length)
 	for j := 0; j < v8Length; j++ {
-		t.V8[j] = rcv.V8(j)	}
+		t.V8[j] = rcv.V8(j)
+	}
 	vf64Length := rcv.Vf64Length()
 	t.Vf64 = make([]float64, vf64Length)
 	for j := 0; j < vf64Length; j++ {
-		t.Vf64[j] = rcv.Vf64(j)	}
+		t.Vf64[j] = rcv.Vf64(j)
+	}
 }
 
 func (rcv *TypeAliases) UnPack() *TypeAliasesT {
@@ -106,18 +108,10 @@ func GetRootAsTypeAliases(buf []byte, offset flatbuffers.UOffsetT) *TypeAliases 
 	return x
 }
 
-// GetTableVectorAsTypeAliases shortcut to access table in vector of  unions
-func GetTableVectorAsTypeAliases(table *flatbuffers.Table) *TypeAliases {
-	n := flatbuffers.GetUOffsetT(table.Bytes[table.Pos:])
+func GetSizePrefixedRootAsTypeAliases(buf []byte, offset flatbuffers.UOffsetT) *TypeAliases {
+	n := flatbuffers.GetUOffsetT(buf[offset+flatbuffers.SizeUint32:])
 	x := &TypeAliases{}
-	x.Init(table.Bytes, n+table.Pos)
-	return x
-}
-
-// GetTableAsTypeAliases shortcut to access table in single union field
-func GetTableAsTypeAliases(table *flatbuffers.Table) *TypeAliases {
-	x := &TypeAliases{}
-	x.Init(table.Bytes, table.Pos)
+	x.Init(buf, n+offset+flatbuffers.SizeUint32)
 	return x
 }
 
@@ -271,7 +265,7 @@ func (rcv *TypeAliases) MutateV8(j int, n int8) bool {
 	o := flatbuffers.UOffsetT(rcv._tab.Offset(24))
 	if o != 0 {
 		a := rcv._tab.Vector(o)
-		return rcv._tab.MutateInt8(a + flatbuffers.UOffsetT(j*1), n)
+		return rcv._tab.MutateInt8(a+flatbuffers.UOffsetT(j*1), n)
 	}
 	return false
 }
@@ -297,7 +291,7 @@ func (rcv *TypeAliases) MutateVf64(j int, n float64) bool {
 	o := flatbuffers.UOffsetT(rcv._tab.Offset(26))
 	if o != 0 {
 		a := rcv._tab.Vector(o)
-		return rcv._tab.MutateFloat64(a + flatbuffers.UOffsetT(j*8), n)
+		return rcv._tab.MutateFloat64(a+flatbuffers.UOffsetT(j*8), n)
 	}
 	return false
 }

@@ -768,6 +768,7 @@ INPUT = "FlatBuffers.md" \
         "WhitePaper.md" \
         "FlexBuffers.md" \
         "Internals.md" \
+        "IntermediateRepresentation.md" \
         "Grammar.md" \
         "../../CONTRIBUTING.md" \
         "Tutorial.md" \

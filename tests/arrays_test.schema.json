@@ -1,5 +1,5 @@
 {
-  "$schema": "http://json-schema.org/draft-04/schema#",
+  "$schema": "https://json-schema.org/draft/2019-09/schema",
   "definitions": {
     "MyGame_Example_TestEnum" : {
       "type" : "string",
@@ -9,7 +9,7 @@
       "type" : "object",
       "properties" : {
         "a" : {
-                "type" : "array", "items" : { "type" : "number" },
+                "type" : "array", "items" : {"type" : "integer", "minimum" : -2147483648, "maximum" : 2147483647},
                 "minItems": 2,
                 "maxItems": 2
               },
@@ -17,12 +17,12 @@
                 "$ref" : "#/definitions/MyGame_Example_TestEnum"
               },
         "c" : {
-                "$ref" : "#/definitions/MyGame_Example_TestEnum",
+                "type" : "array", "items" : {"$ref" : "#/definitions/MyGame_Example_TestEnum"},
                 "minItems": 2,
                 "maxItems": 2
               },
         "d" : {
-                "type" : "array", "items" : { "type" : "number" },
+                "type" : "array", "items" : {"type" : "integer", "minimum" : -9223372036854775808, "maximum" : 9223372036854775807},
                 "minItems": 2,
                 "maxItems": 2
               }
@@ -36,23 +36,23 @@
                 "type" : "number"
               },
         "b" : {
-                "type" : "array", "items" : { "type" : "number" },
+                "type" : "array", "items" : {"type" : "integer", "minimum" : -2147483648, "maximum" : 2147483647},
                 "minItems": 15,
                 "maxItems": 15
               },
         "c" : {
-                "type" : "number"
+                "type" : "integer", "minimum" : -128, "maximum" : 127
               },
         "d" : {
-                "type" : "array", "items" : { "$ref" : "#/definitions/MyGame_Example_NestedStruct" },
+                "type" : "array", "items" : {"$ref" : "#/definitions/MyGame_Example_NestedStruct"},
                 "minItems": 2,
                 "maxItems": 2
               },
         "e" : {
-                "type" : "number"
+                "type" : "integer", "minimum" : -2147483648, "maximum" : 2147483647
               },
         "f" : {
-                "type" : "array", "items" : { "type" : "number" },
+                "type" : "array", "items" : {"type" : "integer", "minimum" : -9223372036854775808, "maximum" : 9223372036854775807},
                 "minItems": 2,
                 "maxItems": 2
               }

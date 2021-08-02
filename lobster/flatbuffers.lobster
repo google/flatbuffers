@@ -257,6 +257,10 @@ class builder:
             f(x)
             Slot(o)
 
+    def PrependSlot(o:int, x, f):
+        f(x)
+        Slot(o)
+
     def PrependBoolSlot(o, x, d): PrependSlot(o, x, d): PrependBool(_)
     def PrependByteSlot(o, x, d): PrependSlot(o, x, d): PrependByte(_)
     def PrependUint8Slot(o, x, d): PrependSlot(o, x, d): PrependUint8(_)
@@ -269,6 +273,19 @@ class builder:
     def PrependInt64Slot(o, x, d): PrependSlot(o, x, d): PrependInt64(_)
     def PrependFloat32Slot(o, x, d): PrependSlot(o, x, d): PrependFloat32(_)
     def PrependFloat64Slot(o, x, d): PrependSlot(o, x, d): PrependFloat64(_)
+
+    def PrependBoolSlot(o, x): PrependSlot(o, x): PrependBool(_)
+    def PrependByteSlot(o, x): PrependSlot(o, x): PrependByte(_)
+    def PrependUint8Slot(o, x): PrependSlot(o, x): PrependUint8(_)
+    def PrependUint16Slot(o, x): PrependSlot(o, x): PrependUint16(_)
+    def PrependUint32Slot(o, x): PrependSlot(o, x): PrependUint32(_)
+    def PrependUint64Slot(o, x): PrependSlot(o, x): PrependUint64(_)
+    def PrependInt8Slot(o, x): PrependSlot(o, x): PrependInt8(_)
+    def PrependInt16Slot(o, x): PrependSlot(o, x): PrependInt16(_)
+    def PrependInt32Slot(o, x): PrependSlot(o, x): PrependInt32(_)
+    def PrependInt64Slot(o, x): PrependSlot(o, x): PrependInt64(_)
+    def PrependFloat32Slot(o, x): PrependSlot(o, x): PrependFloat32(_)
+    def PrependFloat64Slot(o, x): PrependSlot(o, x): PrependFloat64(_)
 
     def PrependUOffsetTRelativeSlot(o:int, x:offset):
         if x.o:

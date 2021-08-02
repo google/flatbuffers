@@ -3,8 +3,8 @@
 package NamespaceA
 
 import (
-	flatbuffers "github.com/google/flatbuffers/go"
 	NamespaceC "NamespaceC"
+	flatbuffers "github.com/google/flatbuffers/go"
 )
 
 type SecondTableInAT struct {
@@ -51,18 +51,10 @@ func GetRootAsSecondTableInA(buf []byte, offset flatbuffers.UOffsetT) *SecondTab
 	return x
 }
 
-// GetTableVectorAsSecondTableInA shortcut to access table in vector of  unions
-func GetTableVectorAsSecondTableInA(table *flatbuffers.Table) *SecondTableInA {
-	n := flatbuffers.GetUOffsetT(table.Bytes[table.Pos:])
+func GetSizePrefixedRootAsSecondTableInA(buf []byte, offset flatbuffers.UOffsetT) *SecondTableInA {
+	n := flatbuffers.GetUOffsetT(buf[offset+flatbuffers.SizeUint32:])
 	x := &SecondTableInA{}
-	x.Init(table.Bytes, n+table.Pos)
-	return x
-}
-
-// GetTableAsSecondTableInA shortcut to access table in single union field
-func GetTableAsSecondTableInA(table *flatbuffers.Table) *SecondTableInA {
-	x := &SecondTableInA{}
-	x.Init(table.Bytes, table.Pos)
+	x.Init(buf, n+offset+flatbuffers.SizeUint32)
 	return x
 }
 

@@ -14,20 +14,42 @@
  * limitations under the License.
  */
 
+use std::fmt::{Debug, Formatter, Result};
 use std::iter::{DoubleEndedIterator, ExactSizeIterator, FusedIterator};
 use std::marker::PhantomData;
 use std::mem::size_of;
 use std::slice::from_raw_parts;
 use std::str::from_utf8_unchecked;
 
-use endian_scalar::read_scalar_at;
+use crate::endian_scalar::read_scalar_at;
 #[cfg(target_endian = "little")]
-use endian_scalar::EndianScalar;
-use follow::Follow;
-use primitives::*;
+use crate::endian_scalar::EndianScalar;
+use crate::follow::Follow;
+use crate::primitives::*;
 
-#[derive(Debug)]
 pub struct Vector<'a, T: 'a>(&'a [u8], usize, PhantomData<T>);
+
+impl<'a, T: 'a> Default for Vector<'a, T> {
+    fn default() -> Self {
+        // Static, length 0 vector.
+        // Note that derived default causes UB due to issues in read_scalar_at /facepalm.
+        Self(
+            &[0; core::mem::size_of::<UOffsetT>()],
+            0,
+            Default::default(),
+        )
+    }
+}
+
+impl<'a, T> Debug for Vector<'a, T>
+where
+    T: 'a + Follow<'a>,
+    <T as Follow<'a>>::Inner: Debug,
+{
+    fn fmt(&self, f: &mut Formatter) -> Result {
+        f.debug_list().entries(self.iter()).finish()
+    }
+}
 
 // We cannot use derive for these two impls, as it would only implement Copy
 // and Clone for `T: Copy` and `T: Clone` respectively. However `Vector<'a, T>`
@@ -51,7 +73,7 @@ impl<'a, T: 'a> Vector<'a, T> {
 
     #[inline(always)]
     pub fn len(&self) -> usize {
-        read_scalar_at::<UOffsetT>(&self.0, self.1) as usize
+        unsafe { read_scalar_at::<UOffsetT>(&self.0, self.1) as usize }
     }
     #[inline(always)]
     pub fn is_empty(&self) -> bool {
@@ -62,7 +84,7 @@ impl<'a, T: 'a> Vector<'a, T> {
 impl<'a, T: Follow<'a> + 'a> Vector<'a, T> {
     #[inline(always)]
     pub fn get(&self, idx: usize) -> T::Inner {
-        debug_assert!(idx < read_scalar_at::<u32>(&self.0, self.1) as usize);
+        debug_assert!(idx < self.len() as usize);
         let sz = size_of::<T>();
         debug_assert!(sz > 0);
         T::follow(self.0, self.1 as usize + SIZE_UOFFSET + sz * idx)
@@ -70,7 +92,7 @@ impl<'a, T: Follow<'a> + 'a> Vector<'a, T> {
 
     #[inline(always)]
     pub fn iter(&self) -> VectorIter<'a, T> {
-        VectorIter::new(*self)
+        VectorIter::from_vector(*self)
     }
 }
 
@@ -81,7 +103,7 @@ impl<'a, T: SafeSliceAccess + 'a> Vector<'a, T> {
         let loc = self.1;
         let sz = size_of::<T>();
         debug_assert!(sz > 0);
-        let len = read_scalar_at::<UOffsetT>(&buf, loc) as usize;
+        let len = unsafe { read_scalar_at::<UOffsetT>(&buf, loc) } as usize;
         let data_buf = &buf[loc + SIZE_UOFFSET..loc + SIZE_UOFFSET + len * sz];
         let ptr = data_buf.as_ptr() as *const T;
         let s: &'a [T] = unsafe { from_raw_parts(ptr, len) };
@@ -93,6 +115,8 @@ impl SafeSliceAccess for u8 {}
 impl SafeSliceAccess for i8 {}
 impl SafeSliceAccess for bool {}
 
+// TODO(caspern): Get rid of this. Conditional compliation is unnecessary complexity.
+// Vectors of primitives just don't work on big endian machines!!!
 #[cfg(target_endian = "little")]
 mod le_safe_slice_impls {
     impl super::SafeSliceAccess for u16 {}
@@ -120,7 +144,7 @@ pub fn follow_cast_ref<'a, T: Sized + 'a>(buf: &'a [u8], loc: usize) -> &'a T {
 impl<'a> Follow<'a> for &'a str {
     type Inner = &'a str;
     fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
-        let len = read_scalar_at::<UOffsetT>(&buf, loc) as usize;
+        let len = unsafe { read_scalar_at::<UOffsetT>(&buf, loc) } as usize;
         let slice = &buf[loc + SIZE_UOFFSET..loc + SIZE_UOFFSET + len];
         unsafe { from_utf8_unchecked(slice) }
     }
@@ -130,7 +154,7 @@ impl<'a> Follow<'a> for &'a str {
 fn follow_slice_helper<T>(buf: &[u8], loc: usize) -> &[T] {
     let sz = size_of::<T>();
     debug_assert!(sz > 0);
-    let len = read_scalar_at::<UOffsetT>(&buf, loc) as usize;
+    let len = unsafe { read_scalar_at::<UOffsetT>(&buf, loc) as usize };
     let data_buf = &buf[loc + SIZE_UOFFSET..loc + SIZE_UOFFSET + len * sz];
     let ptr = data_buf.as_ptr() as *const T;
     let s: &[T] = unsafe { from_raw_parts(ptr, len) };
@@ -165,7 +189,7 @@ pub struct VectorIter<'a, T: 'a> {
 
 impl<'a, T: 'a> VectorIter<'a, T> {
     #[inline]
-    pub fn new(inner: Vector<'a, T>) -> Self {
+    pub fn from_vector(inner: Vector<'a, T>) -> Self {
         VectorIter {
             buf: inner.0,
             // inner.1 is the location of the data for the vector.
@@ -173,6 +197,16 @@ impl<'a, T: 'a> VectorIter<'a, T> {
             // that to get to the actual vector content.
             loc: inner.1 + SIZE_UOFFSET,
             remaining: inner.len(),
+            phantom: PhantomData,
+        }
+    }
+
+    #[inline]
+    pub fn from_slice(buf: &'a [u8], items_num: usize) -> Self {
+        VectorIter {
+            buf,
+            loc: 0,
+            remaining: items_num,
             phantom: PhantomData,
         }
     }

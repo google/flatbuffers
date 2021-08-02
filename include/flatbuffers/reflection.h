@@ -46,7 +46,32 @@ inline bool IsLong(reflection::BaseType t) {
 // Size of a basic type, don't use with structs.
 inline size_t GetTypeSize(reflection::BaseType base_type) {
   // This needs to correspond to the BaseType enum.
-  static size_t sizes[] = { 0, 1, 1, 1, 1, 2, 2, 4, 4, 8, 8, 4, 8, 4, 4, 4, 4 };
+  static size_t sizes[] = {
+    0,  // None
+    1,  // UType
+    1,  // Bool
+    1,  // Byte
+    1,  // UByte
+    2,  // Short
+    2,  // UShort
+    4,  // Int
+    4,  // UInt
+    8,  // Long
+    8,  // ULong
+    4,  // Float
+    8,  // Double
+    4,  // String
+    4,  // Vector
+    4,  // Obj
+    4,  // Union
+    0,  // Array. Only used in structs. 0 was chosen to prevent out-of-bounds
+        // errors.
+
+    0  // MaxBaseType. This must be kept the last entry in this array.
+  };
+  static_assert(sizeof(sizes) / sizeof(size_t) == reflection::MaxBaseType + 1,
+                "Size of sizes[] array does not match the count of BaseType "
+                "enum values.");
   return sizes[base_type];
 }
 
@@ -387,7 +412,7 @@ inline const reflection::Object &GetUnionType(
   FLATBUFFERS_ASSERT(type_field);
   auto union_type = GetFieldI<uint8_t>(table, *type_field);
   auto enumval = enumdef->values()->LookupByKey(union_type);
-  return *enumval->object();
+  return *schema.objects()->Get(enumval->union_type()->index());
 }
 
 // Changes the contents of a string inside a FlatBuffer. FlatBuffer must
@@ -469,8 +494,7 @@ Offset<const Table *> CopyTable(FlatBufferBuilder &fbb,
 // buf should point to the start of flatbuffer data.
 // length specifies the size of the flatbuffer data.
 bool Verify(const reflection::Schema &schema, const reflection::Object &root,
-            const uint8_t *buf, size_t length,
-            uoffset_t max_depth = 64,
+            const uint8_t *buf, size_t length, uoffset_t max_depth = 64,
             uoffset_t max_tables = 1000000);
 
 }  // namespace flatbuffers

@@ -46,18 +46,10 @@ func GetRootAsMonster(buf []byte, offset flatbuffers.UOffsetT) *Monster {
 	return x
 }
 
-// GetTableVectorAsMonster shortcut to access table in vector of  unions
-func GetTableVectorAsMonster(table *flatbuffers.Table) *Monster {
-	n := flatbuffers.GetUOffsetT(table.Bytes[table.Pos:])
+func GetSizePrefixedRootAsMonster(buf []byte, offset flatbuffers.UOffsetT) *Monster {
+	n := flatbuffers.GetUOffsetT(buf[offset+flatbuffers.SizeUint32:])
 	x := &Monster{}
-	x.Init(table.Bytes, n+table.Pos)
-	return x
-}
-
-// GetTableAsMonster shortcut to access table in single union field
-func GetTableAsMonster(table *flatbuffers.Table) *Monster {
-	x := &Monster{}
-	x.Init(table.Bytes, table.Pos)
+	x.Init(buf, n+offset+flatbuffers.SizeUint32)
 	return x
 }
 

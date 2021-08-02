@@ -9,7 +9,7 @@ import com.google.flatbuffers.*;
 
 @SuppressWarnings("unused")
 public final class MonsterExtra extends Table {
-  public static void ValidateVersion() { Constants.FLATBUFFERS_1_12_0(); }
+  public static void ValidateVersion() { Constants.FLATBUFFERS_2_0_0(); }
   public static MonsterExtra getRootAsMonsterExtra(ByteBuffer _bb) { return getRootAsMonsterExtra(_bb, new MonsterExtra()); }
   public static MonsterExtra getRootAsMonsterExtra(ByteBuffer _bb, MonsterExtra obj) { _bb.order(ByteOrder.LITTLE_ENDIAN); return (obj.__assign(_bb.getInt(_bb.position()) + _bb.position(), _bb)); }
   public static boolean MonsterExtraBufferHasIdentifier(ByteBuffer _bb) { return __has_identifier(_bb, "MONE"); }
@@ -99,6 +99,58 @@ public final class MonsterExtra extends Table {
 
     public MonsterExtra get(int j) { return get(new MonsterExtra(), j); }
     public MonsterExtra get(MonsterExtra obj, int j) {  return obj.__assign(__indirect(__element(j), bb), bb); }
+  }
+  public MonsterExtraT unpack() {
+    MonsterExtraT _o = new MonsterExtraT();
+    unpackTo(_o);
+    return _o;
+  }
+  public void unpackTo(MonsterExtraT _o) {
+    double _oD0 = d0();
+    _o.setD0(_oD0);
+    double _oD1 = d1();
+    _o.setD1(_oD1);
+    double _oD2 = d2();
+    _o.setD2(_oD2);
+    double _oD3 = d3();
+    _o.setD3(_oD3);
+    float _oF0 = f0();
+    _o.setF0(_oF0);
+    float _oF1 = f1();
+    _o.setF1(_oF1);
+    float _oF2 = f2();
+    _o.setF2(_oF2);
+    float _oF3 = f3();
+    _o.setF3(_oF3);
+    double[] _oDvec = new double[dvecLength()];
+    for (int _j = 0; _j < dvecLength(); ++_j) {_oDvec[_j] = dvec(_j);}
+    _o.setDvec(_oDvec);
+    float[] _oFvec = new float[fvecLength()];
+    for (int _j = 0; _j < fvecLength(); ++_j) {_oFvec[_j] = fvec(_j);}
+    _o.setFvec(_oFvec);
+  }
+  public static int pack(FlatBufferBuilder builder, MonsterExtraT _o) {
+    if (_o == null) return 0;
+    int _dvec = 0;
+    if (_o.getDvec() != null) {
+      _dvec = createDvecVector(builder, _o.getDvec());
+    }
+    int _fvec = 0;
+    if (_o.getFvec() != null) {
+      _fvec = createFvecVector(builder, _o.getFvec());
+    }
+    return createMonsterExtra(
+      builder,
+      _o.getD0(),
+      _o.getD1(),
+      _o.getD2(),
+      _o.getD3(),
+      _o.getF0(),
+      _o.getF1(),
+      _o.getF2(),
+      _o.getF3(),
+      _dvec,
+      _fvec);
   }
 }
 

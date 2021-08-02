@@ -49,6 +49,7 @@ func GetRootAsTestSimpleTableWithEnum(buf []byte, offset flatbuffers.UOffsetT) *
 	return x
 }
 
+<<<<<<< HEAD
 // GetTableVectorAsTestSimpleTableWithEnum shortcut to access table in vector of  unions
 func GetTableVectorAsTestSimpleTableWithEnum(table *flatbuffers.Table) *TestSimpleTableWithEnum {
 	n := flatbuffers.GetUOffsetT(table.Bytes[table.Pos:])
@@ -61,6 +62,12 @@ func GetTableVectorAsTestSimpleTableWithEnum(table *flatbuffers.Table) *TestSimp
 func GetTableAsTestSimpleTableWithEnum(table *flatbuffers.Table) *TestSimpleTableWithEnum {
 	x := &TestSimpleTableWithEnum{}
 	x.Init(table.Bytes, table.Pos)
+=======
+func GetSizePrefixedRootAsTestSimpleTableWithEnum(buf []byte, offset flatbuffers.UOffsetT) *TestSimpleTableWithEnum {
+	n := flatbuffers.GetUOffsetT(buf[offset+flatbuffers.SizeUint32:])
+	x := &TestSimpleTableWithEnum{}
+	x.Init(buf, n+offset+flatbuffers.SizeUint32)
+>>>>>>> origin
 	return x
 }
 

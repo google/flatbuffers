@@ -49,18 +49,10 @@ func GetRootAsTableInNestedNS(buf []byte, offset flatbuffers.UOffsetT) *TableInN
 	return x
 }
 
-// GetTableVectorAsTableInNestedNS shortcut to access table in vector of  unions
-func GetTableVectorAsTableInNestedNS(table *flatbuffers.Table) *TableInNestedNS {
-	n := flatbuffers.GetUOffsetT(table.Bytes[table.Pos:])
+func GetSizePrefixedRootAsTableInNestedNS(buf []byte, offset flatbuffers.UOffsetT) *TableInNestedNS {
+	n := flatbuffers.GetUOffsetT(buf[offset+flatbuffers.SizeUint32:])
 	x := &TableInNestedNS{}
-	x.Init(table.Bytes, n+table.Pos)
-	return x
-}
-
-// GetTableAsTableInNestedNS shortcut to access table in single union field
-func GetTableAsTableInNestedNS(table *flatbuffers.Table) *TableInNestedNS {
-	x := &TableInNestedNS{}
-	x.Init(table.Bytes, table.Pos)
+	x.Init(buf, n+offset+flatbuffers.SizeUint32)
 	return x
 }
 

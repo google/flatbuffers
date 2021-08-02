@@ -9,6 +9,7 @@
     <RootNamespace>FlatBuffers.Test</RootNamespace>
     <AssemblyName>FlatBuffers.Test</AssemblyName>
     <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
+    <RuntimeIdentifier>win</RuntimeIdentifier>
     <LangVersion>4</LangVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>
@@ -37,12 +38,16 @@
     <DefineConstants>$(DefineConstants);UNSAFE_BYTEBUFFER</DefineConstants>
   </PropertyGroup>
   <ItemGroup>
+    <PackageReference Include="Newtonsoft.Json">
+      <Version>12.0.3</Version>
+    </PackageReference>
+  </ItemGroup>
+  <ItemGroup>
     <Reference Include="Newtonsoft.Json, Version=12.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <HintPath>packages\Newtonsoft.Json.12.0.3\lib\net35\Newtonsoft.Json.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core">
-      <RequiredTargetFramework>3.5</RequiredTargetFramework>
     </Reference>
   </ItemGroup>
   <ItemGroup>
@@ -136,6 +141,9 @@
     <Compile Include="..\namespace_test\NamespaceA\NamespaceB\TableInNestedNS.cs">
       <Link>NamespaceA\NamespaceB\TableInNestedNS.cs</Link>
     </Compile>
+    <Compile Include="..\namespace_test\NamespaceA\NamespaceB\UnionInNestedNS.cs">
+      <Link>NamespaceA\NamespaceB\UnionInNestedNS.cs</Link>
+    </Compile>
     <Compile Include="..\namespace_test\NamespaceA\TableInFirstNS.cs">
       <Link>NamespaceA\TableInFirstNS.cs</Link>
     </Compile>
@@ -153,6 +161,12 @@
     </Compile>
     <Compile Include="..\union_vector\Rapunzel.cs">
       <Link>union_vector\Rapunzel.cs</Link>
+    </Compile>
+    <Compile Include="..\optional_scalars\OptionalByte.cs">
+      <Link>optional_scalars\OptionalByte.cs</Link>
+    </Compile>
+    <Compile Include="..\optional_scalars\ScalarStuff.cs">
+      <Link>optional_scalars\ScalarStuff.cs</Link>
     </Compile>
     <Compile Include="Assert.cs" />
     <Compile Include="ByteBufferTests.cs" />

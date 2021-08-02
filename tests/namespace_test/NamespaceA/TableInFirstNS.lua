@@ -13,6 +13,9 @@ function TableInFirstNS.New()
     return o
 end
 function TableInFirstNS.GetRootAsTableInFirstNS(buf, offset)
+    if type(buf) == "string" then
+        buf = flatbuffers.binaryArray.New(buf)
+    end
     local n = flatbuffers.N.UOffsetT:Unpack(buf, offset)
     local o = TableInFirstNS.New()
     o:Init(buf, n + offset)
@@ -37,8 +40,23 @@ function TableInFirstNS_mt:FooEnum()
     end
     return 0
 end
-function TableInFirstNS_mt:FooStruct()
+function TableInFirstNS_mt:FooUnionType()
     local o = self.view:Offset(8)
+    if o ~= 0 then
+        return self.view:Get(flatbuffers.N.Uint8, o + self.view.pos)
+    end
+    return 0
+end
+function TableInFirstNS_mt:FooUnion()
+    local o = self.view:Offset(10)
+    if o ~= 0 then
+        local obj = flatbuffers.view.New(require('flatbuffers.binaryarray').New(0), 0)
+        self.view:Union(obj, o)
+        return obj
+    end
+end
+function TableInFirstNS_mt:FooStruct()
+    local o = self.view:Offset(12)
     if o ~= 0 then
         local x = o + self.view.pos
         local obj = require('NamespaceA.NamespaceB.StructInNestedNS').New()
@@ -46,10 +64,12 @@ function TableInFirstNS_mt:FooStruct()
         return obj
     end
 end
-function TableInFirstNS.Start(builder) builder:StartObject(3) end
+function TableInFirstNS.Start(builder) builder:StartObject(5) end
 function TableInFirstNS.AddFooTable(builder, fooTable) builder:PrependUOffsetTRelativeSlot(0, fooTable, 0) end
 function TableInFirstNS.AddFooEnum(builder, fooEnum) builder:PrependInt8Slot(1, fooEnum, 0) end
-function TableInFirstNS.AddFooStruct(builder, fooStruct) builder:PrependStructSlot(2, fooStruct, 0) end
+function TableInFirstNS.AddFooUnionType(builder, fooUnionType) builder:PrependUint8Slot(2, fooUnionType, 0) end
+function TableInFirstNS.AddFooUnion(builder, fooUnion) builder:PrependUOffsetTRelativeSlot(3, fooUnion, 0) end
+function TableInFirstNS.AddFooStruct(builder, fooStruct) builder:PrependStructSlot(4, fooStruct, 0) end
 function TableInFirstNS.End(builder) return builder:EndObject() end
 
 return TableInFirstNS -- return the module

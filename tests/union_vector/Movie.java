@@ -7,7 +7,7 @@ import com.google.flatbuffers.*;
 
 @SuppressWarnings("unused")
 public final class Movie extends Table {
-  public static void ValidateVersion() { Constants.FLATBUFFERS_1_12_0(); }
+  public static void ValidateVersion() { Constants.FLATBUFFERS_2_0_0(); }
   public static Movie getRootAsMovie(ByteBuffer _bb) { return getRootAsMovie(_bb, new Movie()); }
   public static Movie getRootAsMovie(ByteBuffer _bb, Movie obj) { _bb.order(ByteOrder.LITTLE_ENDIAN); return (obj.__assign(_bb.getInt(_bb.position()) + _bb.position(), _bb)); }
   public static boolean MovieBufferHasIdentifier(ByteBuffer _bb) { return __has_identifier(_bb, "MOVI"); }
@@ -28,15 +28,15 @@ public final class Movie extends Table {
   public UnionVector charactersVector(UnionVector obj) { int o = __offset(10); return o != 0 ? obj.__assign(__vector(o), 4, bb) : null; }
 
   public static int createMovie(FlatBufferBuilder builder,
-      byte main_character_type,
-      int main_characterOffset,
-      int characters_typeOffset,
+      byte mainCharacterType,
+      int mainCharacterOffset,
+      int charactersTypeOffset,
       int charactersOffset) {
     builder.startTable(4);
     Movie.addCharacters(builder, charactersOffset);
-    Movie.addCharactersType(builder, characters_typeOffset);
-    Movie.addMainCharacter(builder, main_characterOffset);
-    Movie.addMainCharacterType(builder, main_character_type);
+    Movie.addCharactersType(builder, charactersTypeOffset);
+    Movie.addMainCharacter(builder, mainCharacterOffset);
+    Movie.addMainCharacterType(builder, mainCharacterType);
     return Movie.endMovie(builder);
   }
 
@@ -61,6 +61,66 @@ public final class Movie extends Table {
 
     public Movie get(int j) { return get(new Movie(), j); }
     public Movie get(Movie obj, int j) {  return obj.__assign(__indirect(__element(j), bb), bb); }
+  }
+  public MovieT unpack() {
+    MovieT _o = new MovieT();
+    unpackTo(_o);
+    return _o;
+  }
+  public void unpackTo(MovieT _o) {
+    CharacterUnion _oMainCharacter = new CharacterUnion();
+    byte _oMainCharacterType = mainCharacterType();
+    _oMainCharacter.setType(_oMainCharacterType);
+    Table _oMainCharacterValue;
+    switch (_oMainCharacterType) {
+      case Character.MuLan:
+        _oMainCharacterValue = mainCharacter(new Attacker());
+        _oMainCharacter.setValue(_oMainCharacterValue != null ? ((Attacker) _oMainCharacterValue).unpack() : null);
+        break;
+      default: break;
+    }
+    _o.setMainCharacter(_oMainCharacter);
+    CharacterUnion[] _oCharacters = new CharacterUnion[charactersLength()];
+    for (int _j = 0; _j < charactersLength(); ++_j) {
+      CharacterUnion _oCharactersElement = new CharacterUnion();
+      byte _oCharactersElementType = charactersType(_j);
+      _oCharactersElement.setType(_oCharactersElementType);
+      Table _oCharactersElementValue;
+      switch (_oCharactersElementType) {
+        case Character.MuLan:
+          _oCharactersElementValue = characters(new Attacker(), _j);
+          _oCharactersElement.setValue(_oCharactersElementValue != null ? ((Attacker) _oCharactersElementValue).unpack() : null);
+          break;
+        default: break;
+      }
+      _oCharacters[_j] = _oCharactersElement;
+    }
+    _o.setCharacters(_oCharacters);
+  }
+  public static int pack(FlatBufferBuilder builder, MovieT _o) {
+    if (_o == null) return 0;
+    byte _mainCharacterType = _o.getMainCharacter() == null ? Character.NONE : _o.getMainCharacter().getType();
+    int _mainCharacter = _o.getMainCharacter() == null ? 0 : CharacterUnion.pack(builder, _o.getMainCharacter());
+    int _charactersType = 0;
+    if (_o.getCharacters() != null) {
+      byte[] __charactersType = new byte[_o.getCharacters().length];
+      int _j = 0;
+      for (CharacterUnion _e : _o.getCharacters()) { __charactersType[_j] = _o.getCharacters()[_j].getType(); _j++;}
+      _charactersType = createCharactersTypeVector(builder, __charactersType);
+    }
+    int _characters = 0;
+    if (_o.getCharacters() != null) {
+      int[] __characters = new int[_o.getCharacters().length];
+      int _j = 0;
+      for (CharacterUnion _e : _o.getCharacters()) { __characters[_j] = CharacterUnion.pack(builder,  _o.getCharacters()[_j]); _j++;}
+      _characters = createCharactersVector(builder, __characters);
+    }
+    return createMovie(
+      builder,
+      _mainCharacterType,
+      _mainCharacter,
+      _charactersType,
+      _characters);
   }
 }
 

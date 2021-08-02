@@ -10,12 +10,16 @@ class SecondTableInA(object):
     __slots__ = ['_tab']
 
     @classmethod
-    def GetRootAsSecondTableInA(cls, buf, offset):
+    def GetRootAs(cls, buf, offset=0):
         n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, offset)
         x = SecondTableInA()
         x.Init(buf, n + offset)
         return x
 
+    @classmethod
+    def GetRootAsSecondTableInA(cls, buf, offset=0):
+        """This method is deprecated. Please switch to GetRootAs."""
+        return cls.GetRootAs(buf, offset)
     # SecondTableInA
     def Init(self, buf, pos):
         self._tab = flatbuffers.table.Table(buf, pos)
@@ -30,10 +34,18 @@ class SecondTableInA(object):
             return obj
         return None
 
-def SecondTableInAStart(builder): builder.StartObject(1)
-def SecondTableInAAddReferToC(builder, referToC): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(referToC), 0)
-def SecondTableInAEnd(builder): return builder.EndObject()
-
+def Start(builder): builder.StartObject(1)
+def SecondTableInAStart(builder):
+    """This method is deprecated. Please switch to Start."""
+    return Start(builder)
+def AddReferToC(builder, referToC): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(referToC), 0)
+def SecondTableInAAddReferToC(builder, referToC):
+    """This method is deprecated. Please switch to AddReferToC."""
+    return AddReferToC(builder, referToC)
+def End(builder): return builder.EndObject()
+def SecondTableInAEnd(builder):
+    """This method is deprecated. Please switch to End."""
+    return End(builder)
 try:
     from typing import Optional
 except:
@@ -68,8 +80,8 @@ class SecondTableInAT(object):
     def Pack(self, builder):
         if self.referToC is not None:
             referToC = self.referToC.Pack(builder)
-        SecondTableInAStart(builder)
+        Start(builder)
         if self.referToC is not None:
-            SecondTableInAAddReferToC(builder, referToC)
-        secondTableInA = SecondTableInAEnd(builder)
+            AddReferToC(builder, referToC)
+        secondTableInA = End(builder)
         return secondTableInA

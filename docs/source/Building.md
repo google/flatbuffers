@@ -29,6 +29,27 @@ Building should also produce two sample executables, `flatsamplebinary` and
 *Note that you MUST be in the root of the FlatBuffers distribution when you
 run 'flattests' or `flatsampletext`, or it will fail to load its files.*
 
+### Make all warnings into errors
+
+By default all Flatbuffers `cmake` targets are build with `-Werror` flag.
+With this flag (or `/WX` for MSVC) C++ compiler will treat all warnings as errors.
+Additionally `-Wall -pedantic -Wextra` (or `/W4` form MSVC) flags are set.
+These flags minimize the number of possible defects in code and keep code highly portable.
+Using these flags is considered good practice but sometimes it can break dependent projects 
+if a compiler is upgraded or a toolset is changed.
+Usually, newer compiler versions add new compile-time diagnostics that were unavailable before.
+These new diagnostic warnings could stop the build process if `-Werror` flag is set.
+
+It is possible to cancel `warnings as errors` flag at `cmake` configuration stage using 
+`FLATBUFFERS_CXX_FLAGS` option. Compilation flags declared in `FLATBUFFERS_CXX_FLAGS` will be 
+appended to the project-level `CMAKE_CXX_FLAGS` variable.
+Examples:
+
+- GCC and Clang: `cmake . -D FLATBUFFERS_CXX_FLAGS="-Wno-error"`
+- MSVC: `cmake . -D FLATBUFFERS_CXX_FLAGS="/WX-"`
+- MSVC: `cmake . -D FLATBUFFERS_CXX_FLAGS="/Wv <compiler.version>"`
+
+
 ## Building with VCPKG
 
 You can download and install flatbuffers using the [vcpkg](https://github.com/Microsoft/vcpkg/) dependency manager:

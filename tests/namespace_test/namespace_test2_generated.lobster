@@ -19,8 +19,12 @@ class TableInFirstNS : flatbuffers_handle
         return if o: NamespaceA_NamespaceB_TableInNestedNS { buf_, o } else: nil
     def foo_enum():
         return EnumInNestedNS(buf_.flatbuffers_field_int8(pos_, 6, 0))
+    def foo_union_type():
+        return UnionInNestedNS(buf_.flatbuffers_field_int8(pos_, 8, 0))
+    def foo_union_as_TableInNestedNS():
+        return NamespaceA_NamespaceB_TableInNestedNS { buf_, buf_.flatbuffers_field_table(pos_, 10) }
     def foo_struct():
-        let o = buf_.flatbuffers_field_struct(pos_, 8)
+        let o = buf_.flatbuffers_field_struct(pos_, 12)
         return if o: NamespaceA_NamespaceB_StructInNestedNS { buf_, o } else: nil
 
 def GetRootAsTableInFirstNS(buf:string): return TableInFirstNS { buf, buf.flatbuffers_indirect(0) }
@@ -28,7 +32,7 @@ def GetRootAsTableInFirstNS(buf:string): return TableInFirstNS { buf, buf.flatbu
 struct TableInFirstNSBuilder:
     b_:flatbuffers_builder
     def start():
-        b_.StartObject(3)
+        b_.StartObject(5)
         return this
     def add_foo_table(foo_table:flatbuffers_offset):
         b_.PrependUOffsetTRelativeSlot(0, foo_table)
@@ -36,8 +40,14 @@ struct TableInFirstNSBuilder:
     def add_foo_enum(foo_enum:EnumInNestedNS):
         b_.PrependInt8Slot(1, foo_enum, 0)
         return this
+    def add_foo_union_type(foo_union_type:UnionInNestedNS):
+        b_.PrependUint8Slot(2, foo_union_type, 0)
+        return this
+    def add_foo_union(foo_union:flatbuffers_offset):
+        b_.PrependUOffsetTRelativeSlot(3, foo_union)
+        return this
     def add_foo_struct(foo_struct:flatbuffers_offset):
-        b_.PrependStructSlot(2, foo_struct)
+        b_.PrependStructSlot(4, foo_struct)
         return this
     def end():
         return b_.EndObject()

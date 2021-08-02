@@ -52,8 +52,13 @@ class Stat : Table() {
             false
         }
     }
+    override fun keysCompare(o1: Int, o2: Int, _bb: ByteBuffer) : Int {
+        val val_1 = _bb.getShort(__offset(8, o1, _bb))
+        val val_2 = _bb.getShort(__offset(8, o2, _bb))
+        return (val_1 - val_2).sign
+    }
     companion object {
-        fun validateVersion() = Constants.FLATBUFFERS_1_12_0()
+        fun validateVersion() = Constants.FLATBUFFERS_2_0_0()
         fun getRootAsStat(_bb: ByteBuffer): Stat = getRootAsStat(_bb, Stat())
         fun getRootAsStat(_bb: ByteBuffer, obj: Stat): Stat {
             _bb.order(ByteOrder.LITTLE_ENDIAN)
@@ -73,6 +78,28 @@ class Stat : Table() {
         fun endStat(builder: FlatBufferBuilder) : Int {
             val o = builder.endTable()
             return o
+        }
+        fun __lookup_by_key(obj: Stat?, vectorLocation: Int, key: UShort, bb: ByteBuffer) : Stat? {
+            var span = bb.getInt(vectorLocation - 4)
+            var start = 0
+            while (span != 0) {
+                var middle = span / 2
+                val tableOffset = __indirect(vectorLocation + 4 * (start + middle), bb)
+                val value = bb.getShort(__offset(8, bb.capacity() - tableOffset, bb)).toUShort()
+                val comp = value.compareTo(key)
+                when {
+                    comp > 0 -> span = middle
+                    comp < 0 -> {
+                        middle++
+                        start += middle
+                        span -= middle
+                    }
+                    else -> {
+                        return (obj ?: Stat()).__assign(tableOffset, bb)
+                    }
+                }
+            }
+            return null
         }
     }
 }

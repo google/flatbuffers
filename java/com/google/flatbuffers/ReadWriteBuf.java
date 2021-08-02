@@ -4,7 +4,14 @@ package com.google.flatbuffers;
  * Interface to represent a read-write buffer. This interface will be used to access and write
  * FlexBuffers message.
  */
-interface ReadWriteBuf extends ReadBuf {
+public interface ReadWriteBuf extends ReadBuf {
+
+    /**
+     * Clears (resets) the buffer so that it can be reused. Write position will be set to the
+     * start.
+     */
+    void clear();
+
     /**
      * Put a boolean into the buffer at {@code writePosition()} . Booleans as stored as single
      * byte. Write position will be incremented.

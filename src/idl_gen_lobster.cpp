@@ -62,7 +62,7 @@ class LobsterGenerator : public BaseGenerator {
     auto bits = NumToString(SizeOf(type.base_type) * 8);
     if (IsInteger(type.base_type)) return "int" + bits;
     if (IsFloat(type.base_type)) return "float" + bits;
-    if (type.base_type == BASE_TYPE_STRING) return "string";
+    if (IsString(type)) return "string";
     if (type.base_type == BASE_TYPE_STRUCT) return "table";
     return "none";
   }
@@ -110,11 +110,14 @@ class LobsterGenerator : public BaseGenerator {
               offsets + ")";
 
       } else {
+        auto defval = field.IsOptional() ? "0" : field.value.constant;
         acc = "buf_.flatbuffers_field_" + GenTypeName(field.value.type) +
-              "(pos_, " + offsets + ", " + field.value.constant + ")";
+              "(pos_, " + offsets + ", " + defval + ")";
       }
       if (field.value.type.enum_def)
         acc = NormalizedName(*field.value.type.enum_def) + "(" + acc + ")";
+      if (field.IsOptional())
+        acc += ", buf_.flatbuffers_field_present(pos_, " + offsets + ")";
       code += def + "():\n        return " + acc + "\n";
       return;
     }
@@ -149,7 +152,7 @@ class LobsterGenerator : public BaseGenerator {
           code += NamespacedName(*field.value.type.struct_def) + " { buf_, " +
                   start + " }\n";
         } else {
-          if (vectortype.base_type == BASE_TYPE_STRING)
+          if (IsString(vectortype))
             code += "buf_.flatbuffers_string";
           else
             code += "buf_.read_" + GenTypeName(vectortype) + "_le";
@@ -173,7 +176,7 @@ class LobsterGenerator : public BaseGenerator {
       }
       default: FLATBUFFERS_ASSERT(0);
     }
-    if (field.value.type.base_type == BASE_TYPE_VECTOR) {
+    if (IsVector(field.value.type)) {
       code += def +
               "_length():\n        return "
               "buf_.flatbuffers_field_vector_len(pos_, " +
@@ -198,7 +201,7 @@ class LobsterGenerator : public BaseGenerator {
               NormalizedName(field) + ":" + LobsterType(field.value.type) +
               "):\n        b_.Prepend" + GenMethod(field.value.type) + "Slot(" +
               NumToString(offset) + ", " + NormalizedName(field);
-      if (IsScalar(field.value.type.base_type))
+      if (IsScalar(field.value.type.base_type) && !field.IsOptional())
         code += ", " + field.value.constant;
       code += ")\n        return this\n";
     }
@@ -207,7 +210,7 @@ class LobsterGenerator : public BaseGenerator {
          it != struct_def.fields.vec.end(); ++it) {
       auto &field = **it;
       if (field.deprecated) continue;
-      if (field.value.type.base_type == BASE_TYPE_VECTOR) {
+      if (IsVector(field.value.type)) {
         code += "def " + NormalizedName(struct_def) + "Start" +
                 MakeCamel(NormalizedName(field)) +
                 "Vector(b_:flatbuffers_builder, n_:int):\n    b_.StartVector(";

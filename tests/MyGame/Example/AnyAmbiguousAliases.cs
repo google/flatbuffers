@@ -25,8 +25,11 @@ public class AnyAmbiguousAliasesUnion {
 
   public T As<T>() where T : class { return this.Value as T; }
   public MyGame.Example.MonsterT AsM1() { return this.As<MyGame.Example.MonsterT>(); }
+  public static AnyAmbiguousAliasesUnion FromM1(MyGame.Example.MonsterT _m1) { return new AnyAmbiguousAliasesUnion{ Type = AnyAmbiguousAliases.M1, Value = _m1 }; }
   public MyGame.Example.MonsterT AsM2() { return this.As<MyGame.Example.MonsterT>(); }
+  public static AnyAmbiguousAliasesUnion FromM2(MyGame.Example.MonsterT _m2) { return new AnyAmbiguousAliasesUnion{ Type = AnyAmbiguousAliases.M2, Value = _m2 }; }
   public MyGame.Example.MonsterT AsM3() { return this.As<MyGame.Example.MonsterT>(); }
+  public static AnyAmbiguousAliasesUnion FromM3(MyGame.Example.MonsterT _m3) { return new AnyAmbiguousAliasesUnion{ Type = AnyAmbiguousAliases.M3, Value = _m3 }; }
 
   public static int Pack(FlatBuffers.FlatBufferBuilder builder, AnyAmbiguousAliasesUnion _o) {
     switch (_o.Type) {

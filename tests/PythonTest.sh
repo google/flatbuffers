@@ -21,6 +21,7 @@ runtime_library_dir=${test_dir}/../python
 
 # Emit Python code for the example schema in the test dir:
 ${test_dir}/../flatc -p -o ${gen_code_path} -I include_test monster_test.fbs --gen-object-api
+${test_dir}/../flatc -p -o ${gen_code_path} -I include_test monster_extra.fbs --gen-object-api
 
 # Syntax: run_tests <interpreter> <benchmark vtable dedupes>
 #                   <benchmark read count> <benchmark build count>
@@ -35,6 +36,11 @@ function run_tests() {
     COMPARE_GENERATED_TO_GO=0 \
     COMPARE_GENERATED_TO_JAVA=0 \
     $1 py_test.py $2 $3 $4
+    if [ $1 = python3 ]; then
+      PYTHONDONTWRITEBYTECODE=1 \
+      PYTHONPATH=${runtime_library_dir}:${gen_code_path} \
+      $1 py_flexbuffers_test.py
+    fi
     interpreters_tested+=(${1})
     echo
   fi

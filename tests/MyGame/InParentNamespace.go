@@ -46,18 +46,10 @@ func GetRootAsInParentNamespace(buf []byte, offset flatbuffers.UOffsetT) *InPare
 	return x
 }
 
-// GetTableVectorAsInParentNamespace shortcut to access table in vector of  unions
-func GetTableVectorAsInParentNamespace(table *flatbuffers.Table) *InParentNamespace {
-	n := flatbuffers.GetUOffsetT(table.Bytes[table.Pos:])
+func GetSizePrefixedRootAsInParentNamespace(buf []byte, offset flatbuffers.UOffsetT) *InParentNamespace {
+	n := flatbuffers.GetUOffsetT(buf[offset+flatbuffers.SizeUint32:])
 	x := &InParentNamespace{}
-	x.Init(table.Bytes, n+table.Pos)
-	return x
-}
-
-// GetTableAsInParentNamespace shortcut to access table in single union field
-func GetTableAsInParentNamespace(table *flatbuffers.Table) *InParentNamespace {
-	x := &InParentNamespace{}
-	x.Init(table.Bytes, table.Pos)
+	x.Init(buf, n+offset+flatbuffers.SizeUint32)
 	return x
 }
 

@@ -10,12 +10,16 @@ class ArrayTable(object):
     __slots__ = ['_tab']
 
     @classmethod
-    def GetRootAsArrayTable(cls, buf, offset):
+    def GetRootAs(cls, buf, offset=0):
         n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, offset)
         x = ArrayTable()
         x.Init(buf, n + offset)
         return x
 
+    @classmethod
+    def GetRootAsArrayTable(cls, buf, offset=0):
+        """This method is deprecated. Please switch to GetRootAs."""
+        return cls.GetRootAs(buf, offset)
     @classmethod
     def ArrayTableBufferHasIdentifier(cls, buf, offset, size_prefixed=False):
         return flatbuffers.util.BufferHasIdentifier(buf, offset, b"\x41\x52\x52\x54", size_prefixed=size_prefixed)
@@ -35,10 +39,18 @@ class ArrayTable(object):
             return obj
         return None
 
-def ArrayTableStart(builder): builder.StartObject(1)
-def ArrayTableAddA(builder, a): builder.PrependStructSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(a), 0)
-def ArrayTableEnd(builder): return builder.EndObject()
-
+def Start(builder): builder.StartObject(1)
+def ArrayTableStart(builder):
+    """This method is deprecated. Please switch to Start."""
+    return Start(builder)
+def AddA(builder, a): builder.PrependStructSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(a), 0)
+def ArrayTableAddA(builder, a):
+    """This method is deprecated. Please switch to AddA."""
+    return AddA(builder, a)
+def End(builder): return builder.EndObject()
+def ArrayTableEnd(builder):
+    """This method is deprecated. Please switch to End."""
+    return End(builder)
 import MyGame.Example.ArrayStruct
 try:
     from typing import Optional
@@ -72,9 +84,9 @@ class ArrayTableT(object):
 
     # ArrayTableT
     def Pack(self, builder):
-        ArrayTableStart(builder)
+        Start(builder)
         if self.a is not None:
             a = self.a.Pack(builder)
-            ArrayTableAddA(builder, a)
-        arrayTable = ArrayTableEnd(builder)
+            AddA(builder, a)
+        arrayTable = End(builder)
         return arrayTable

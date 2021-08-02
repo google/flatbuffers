@@ -54,6 +54,8 @@ class Vec3
 
 class Ability
 
+class StructOfStructs
+
 class Stat
 
 class Referrable
@@ -162,6 +164,28 @@ def CreateAbility(b_:flatbuffers_builder, id:int, distance:int):
     b_.Prep(4, 8)
     b_.PrependUint32(distance)
     b_.PrependUint32(id)
+    return b_.Offset()
+
+class StructOfStructs : flatbuffers_handle
+    def a():
+        return MyGame_Example_Ability{ buf_, pos_ + 0 }
+    def b():
+        return MyGame_Example_Test{ buf_, pos_ + 8 }
+    def c():
+        return MyGame_Example_Ability{ buf_, pos_ + 12 }
+
+def CreateStructOfStructs(b_:flatbuffers_builder, a_id:int, a_distance:int, b_a:int, b_b:int, c_id:int, c_distance:int):
+    b_.Prep(4, 20)
+    b_.Prep(4, 8)
+    b_.PrependUint32(c_distance)
+    b_.PrependUint32(c_id)
+    b_.Prep(2, 4)
+    b_.Pad(1)
+    b_.PrependInt8(b_b)
+    b_.PrependInt16(b_a)
+    b_.Prep(4, 8)
+    b_.PrependUint32(a_distance)
+    b_.PrependUint32(a_id)
     return b_.Offset()
 
 class Stat : flatbuffers_handle
@@ -360,13 +384,21 @@ class Monster : flatbuffers_handle
         return buf_.flatbuffers_field_vector_len(pos_, 98)
     def signed_enum():
         return Race(buf_.flatbuffers_field_int8(pos_, 100, -1))
+    def testrequirednestedflatbuffer(i:int):
+        return buf_.read_int8_le(buf_.flatbuffers_field_vector(pos_, 102) + i * 1)
+    def testrequirednestedflatbuffer_length():
+        return buf_.flatbuffers_field_vector_len(pos_, 102)
+    def scalar_key_sorted_tables(i:int):
+        return MyGame_Example_Stat { buf_, buf_.flatbuffers_indirect(buf_.flatbuffers_field_vector(pos_, 104) + i * 4) }
+    def scalar_key_sorted_tables_length():
+        return buf_.flatbuffers_field_vector_len(pos_, 104)
 
 def GetRootAsMonster(buf:string): return Monster { buf, buf.flatbuffers_indirect(0) }
 
 struct MonsterBuilder:
     b_:flatbuffers_builder
     def start():
-        b_.StartObject(49)
+        b_.StartObject(51)
         return this
     def add_pos(pos:flatbuffers_offset):
         b_.PrependStructSlot(0, pos)
@@ -512,6 +544,12 @@ struct MonsterBuilder:
     def add_signed_enum(signed_enum:Race):
         b_.PrependInt8Slot(48, signed_enum, -1)
         return this
+    def add_testrequirednestedflatbuffer(testrequirednestedflatbuffer:flatbuffers_offset):
+        b_.PrependUOffsetTRelativeSlot(49, testrequirednestedflatbuffer)
+        return this
+    def add_scalar_key_sorted_tables(scalar_key_sorted_tables:flatbuffers_offset):
+        b_.PrependUOffsetTRelativeSlot(50, scalar_key_sorted_tables)
+        return this
     def end():
         return b_.EndObject()
 
@@ -627,6 +665,20 @@ def MonsterStartVectorOfEnumsVector(b_:flatbuffers_builder, n_:int):
 def MonsterCreateVectorOfEnumsVector(b_:flatbuffers_builder, v_:[Color]):
     b_.StartVector(1, v_.length, 1)
     reverse(v_) e_: b_.PrependUint8(e_)
+    return b_.EndVector(v_.length)
+
+def MonsterStartTestrequirednestedflatbufferVector(b_:flatbuffers_builder, n_:int):
+    b_.StartVector(1, n_, 1)
+def MonsterCreateTestrequirednestedflatbufferVector(b_:flatbuffers_builder, v_:[int]):
+    b_.StartVector(1, v_.length, 1)
+    reverse(v_) e_: b_.PrependUint8(e_)
+    return b_.EndVector(v_.length)
+
+def MonsterStartScalarKeySortedTablesVector(b_:flatbuffers_builder, n_:int):
+    b_.StartVector(4, n_, 4)
+def MonsterCreateScalarKeySortedTablesVector(b_:flatbuffers_builder, v_:[flatbuffers_offset]):
+    b_.StartVector(4, v_.length, 4)
+    reverse(v_) e_: b_.PrependUOffsetTRelative(e_)
     return b_.EndVector(v_.length)
 
 class TypeAliases : flatbuffers_handle

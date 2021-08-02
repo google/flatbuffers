@@ -62,7 +62,7 @@ when needed. Unsigned means they can only point in one direction, which
 typically is forward (towards a higher memory location). Any backwards
 offsets will be explicitly marked as such.
 
-The format starts with an `uoffset_t` to the root object in the buffer.
+The format starts with an `uoffset_t` to the root table in the buffer.
 
 We have two kinds of objects, structs and tables.
 
@@ -88,7 +88,9 @@ They start with an `soffset_t` to a vtable. This is a signed version of
 This offset is substracted (not added) from the object start to arrive at
 the vtable start. This offset is followed by all the
 fields as aligned scalars (or offsets). Unlike structs, not all fields
-need to be present. There is no set order and layout.
+need to be present. There is no set order and layout. A table may contain
+field offsets that point to the same value if the user explicitly
+serializes the same offset twice.
 
 To be able to access fields regardless of these uncertainties, we go
 through a vtable of offsets. Vtables are shared between any objects that
@@ -111,13 +113,21 @@ is 0, that means the field is not present in this object, and the
 default value is return. Otherwise, the entry is used as offset to the
 field to be read.
 
+### Unions
+
+Unions are encoded as the combination of two fields: an enum representing the
+union choice and the offset to the actual element. FlatBuffers reserves the
+enumeration constant `NONE` (encoded as 0) to mean that the union field is not
+set.
+
 ### Strings and Vectors
 
 Strings are simply a vector of bytes, and are always
 null-terminated. Vectors are stored as contiguous aligned scalar
 elements prefixed by a 32bit element count (not including any
 null termination). Neither is stored inline in their parent, but are referred to
-by offset.
+by offset. A vector may consist of more than one offset pointing to the same
+value if the user explicitly serializes the same offset twice.
 
 ### Construction
 
@@ -345,6 +355,9 @@ field, so the size field is effectively at index -1).
 Since this is an untyped vector `SL_VECTOR`, it is followed by 3 type
 bytes (one per element of the vector), which are always following the vector,
 and are always a uint8_t even if the vector is made up of bigger scalars.
+
+A vector may include more than one offset pointing to the same value if the
+user explicitly serializes the same offset twice.
 
 ### Types
 

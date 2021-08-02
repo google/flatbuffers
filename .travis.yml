@@ -104,6 +104,7 @@ matrix:
       - if [ "$TRAVIS_OS_NAME" == "linux" ]; then sudo ln -s -v -f $(which gcc-$GCC_VERSION) /usr/bin/gcc; fi
 
       script:
+      - pip install cmake
       - bash .travis/check-sources.sh
       - bash grpc/build_grpc.sh
       - cmake .
@@ -114,7 +115,7 @@ matrix:
         -DFLATBUFFERS_CODE_SANITIZE=ON
       - cmake --build . --target all --clean-first -- -j${JOBS}
       - LD_LIBRARY_PATH=$TRAVIS_BUILD_DIR/google/grpc/install/lib ctest --extra-verbose --output-on-failure
-      - bash .travis/check-generate-code.sh
+      - bash scripts/check-generate-code.sh
 
     - language: cpp
       os: osx
@@ -125,6 +126,11 @@ matrix:
           - BUILD_TYPE=Release
 
       script:
+      - pip install --user cmake
+      - mkdir ~/cmake_path
+      - ln -s $(find ~/Library/Python -name cmake -type f | head -n 1) ~/cmake_path/cmake
+      - ln -s $(find ~/Library/Python -name ctest -type f | head -n 1) ~/cmake_path/ctest
+      - export PATH=~/cmake_path:${PATH}
       - bash grpc/build_grpc.sh
       - cmake .
         -DCMAKE_BUILD_TYPE=$BUILD_TYPE
@@ -134,7 +140,7 @@ matrix:
         -DFLATBUFFERS_CODE_SANITIZE=ON
       - cmake --build . -- -j${JOBS}
       - DYLD_LIBRARY_PATH=$TRAVIS_BUILD_DIR/google/grpc/install/lib ctest --extra-verbose --output-on-failure
-      - bash .travis/check-generate-code.sh
+      - bash scripts/check-generate-code.sh
 
     - <<: *conan-linux-master
       env: CONAN_GCC_VERSIONS=8 CONAN_DOCKER_IMAGE=conanio/gcc8
@@ -185,37 +191,27 @@ matrix:
         components:
           - tools
           - platform-tools
-          - build-tools-25.0.2
-          - android-25
           - extra-android-m2repository
+        licenses:
+          - 'android-sdk-preview-license-52d11cd2'
+          - 'android-sdk-license-.+'
+          - 'google-gdk-license-.+'
       compiler:
         - gcc
-
       before_install:
-        # Output something every 10 minutes or Travis kills the job
-        - while sleep 540; do echo "=====[ $SECONDS seconds still running ]====="; done &
-        # Install the r17c version of the NDK that still so that we can continue to test with gnustl
-        # and stlport.
-        - export ANDROID_NDK_HOME=$HOME/android-ndk
-        - NDK_ZIP=$ANDROID_NDK_HOME/ndk.zip
-        - mkdir -p $ANDROID_NDK_HOME
-        - curl -o $NDK_ZIP https://dl.google.com/android/repository/android-ndk-r17c-linux-x86_64.zip
-        - unzip -q -d $ANDROID_NDK_HOME $NDK_ZIP
-        - rm $NDK_ZIP
-        - mv $ANDROID_NDK_HOME/android-ndk-*/* $ANDROID_NDK_HOME
-        - rmdir $ANDROID_NDK_HOME/android-ndk-*
-        - export CMAKE=$(which cmake)
-        # libc required for prebuilt llvm toolchain the NDK r17c.
-        - if [ "$TRAVIS_OS_NAME" == "linux" ]; then sudo apt-get update -qq; fi
-        - if [ "$TRAVIS_OS_NAME" == "linux" ]; then sudo apt-get install -qq libc6; fi
-        # Setup environment for Linux build which is required to build the sample.
-        - if [ "$TRAVIS_OS_NAME" == "linux" ]; then sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test; fi
-        - if [ "$TRAVIS_OS_NAME" == "linux" ]; then sudo apt-get update -qq; fi
-        - if [ "$TRAVIS_OS_NAME" == "linux" ]; then sudo apt-get install -qq g++-$GCC_VERSION; fi
-        - if [ "$TRAVIS_OS_NAME" == "linux" ]; then sudo apt-get install -qq gcc-$GCC_VERSION; fi
-        - if [ "$TRAVIS_OS_NAME" == "linux" ]; then sudo ln -s -v -f $(which g++-$GCC_VERSION) /usr/bin/g++; fi
-        - if [ "$TRAVIS_OS_NAME" == "linux" ]; then sudo ln -s -v -f $(which gcc-$GCC_VERSION) /usr/bin/gcc; fi
+        - echo y | sdkmanager "platforms;android-30"
+        - echo y | sdkmanager "build-tools;30.0.2"
+        - echo y | sdkmanager "ndk-bundle"
+        - echo y | sdkmanager "cmake;3.6.4111459"
       script:
-        - failed=0; for build_gradle in $(git ls-files | grep build.gradle); do ( cd "$(dirname "${build_gradle}")" && ./gradlew build ) || failed=1; done; exit $((failed))
-        # Kill the sleep loop
-        - kill %1
+        - cmake -DFLATBUFFERS_BUILD_TESTS=OFF -DFLATBUFFERS_BUILD_FLATLIB=OFF -DFLATBUFFERS_BUILD_FLATHASH=OFF .; make; export PATH="$PATH:${PWD}"
+        - cd android; ./gradlew clean build
+
+    - language: generic
+      if: type IN (pull_request)
+      os: linux
+      install:
+        - bash .travis/format_install.sh
+
+      script:
+        - bash .travis/format_check.sh

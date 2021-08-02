@@ -1,0 +1,144 @@
+apply plugin: 'com.android.application'
+apply plugin: 'kotlin-android'
+apply plugin: 'kotlin-android-extensions'
+
+android {
+  compileSdkVersion 30
+  buildToolsVersion "30.0.2"
+
+  defaultConfig {
+    applicationId "com.flatbuffers.app"
+    minSdkVersion 16
+    targetSdkVersion 30
+    versionCode 1
+    versionName "1.0"
+
+    compileOptions {
+      sourceCompatibility JavaVersion.VERSION_1_8
+      targetCompatibility JavaVersion.VERSION_1_8
+    }
+
+    testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+    externalNativeBuild {
+      cmake {
+        arguments "-DFLATBUFFERS_SRC=${rootProject.projectDir}/.."
+      }
+    }
+  }
+
+  buildTypes {
+    release {
+      minifyEnabled false
+      proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+    }
+  }
+
+  ndkVersion "21.3.6528147"
+  externalNativeBuild {
+    cmake {
+      path "src/main/cpp/CMakeLists.txt"
+    }
+  }
+
+  task generateFbsCpp(type: Exec) {
+    def inputDir = file("$projectDir/src/main/fbs")
+    def outputCppDir = file("$projectDir/src/main/cpp/generated/")
+    def fbsFiles = layout.files { file(inputDir).listFiles() }.filter { File f -> f.name.endsWith(".fbs") }.toList()
+    ignoreExitValue(true)
+
+    standardOutput = new ByteArrayOutputStream()
+    errorOutput = new ByteArrayOutputStream()
+    def commandLineArgs = ['flatc', '-o', outputCppDir, '--cpp']
+    fbsFiles.forEach{
+      commandLineArgs.add(it.path)
+    }
+    commandLine commandLineArgs
+
+    doFirst {
+      delete "$outputCppDir/"
+      mkdir "$outputCppDir/"
+    }
+    doLast {
+      if (execResult.getExitValue() != 0) {
+        println(standardOutput.toString())
+        throw new GradleException("flatc command line failed")
+      }
+    }
+  }
+
+  task generateFbsKotlin(type: Exec) {
+    def inputDir = file("$projectDir/src/main/fbs")
+    def outputKotlinDir = file("$projectDir/src/main/java/generated/")
+    def fbsFiles = layout.files { file(inputDir).listFiles() }.filter { File f -> f.name.endsWith(".fbs") }.toList()
+    ignoreExitValue(true)
+
+    standardOutput = new ByteArrayOutputStream()
+    errorOutput = new ByteArrayOutputStream()
+    def commandLineArgs = ['flatc', '-o', outputKotlinDir, '--kotlin']
+    fbsFiles.forEach{
+      commandLineArgs.add(it.path)
+    }
+    commandLine commandLineArgs
+
+    doFirst {
+      delete "$outputKotlinDir/"
+      mkdir "$outputKotlinDir/"
+    }
+    doLast {
+      if (execResult.getExitValue() != 0) {
+        println(standardOutput.toString())
+        throw new GradleException("flatc command line failed")
+      }
+    }
+  }
+
+  afterEvaluate {
+    android.applicationVariants.all { variant ->
+      variant.javaCompiler.dependsOn(generateFbsKotlin)
+      variant.javaCompiler.dependsOn(generateFbsCpp)
+    }
+  }
+
+  flavorDimensions "stl-variant"
+  productFlavors {
+    stlport {
+      dimension "stl-variant"
+      applicationIdSuffix ".stlport"
+      versionNameSuffix "-stlport"
+      externalNativeBuild {
+        ndkBuild {
+          arguments "APP_STL=stlport_static"
+        }
+      }
+    }
+    gnustl {
+      dimension "stl-variant"
+      applicationIdSuffix ".gnustl"
+      versionNameSuffix "-gnustl"
+      externalNativeBuild {
+        ndkBuild {
+          arguments "APP_STL=gnustl_static"
+        }
+      }
+    }
+    libcpp {
+      dimension "stl-variant"
+      applicationIdSuffix ".libcpp"
+      versionNameSuffix "-libcpp"
+      externalNativeBuild {
+        ndkBuild {
+          arguments "APP_STL=c++_static"
+        }
+      }
+    }
+  }
+}
+
+dependencies {
+  implementation fileTree(dir: "libs", include: ["*.jar"])
+  implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
+  implementation 'androidx.core:core-ktx:1.3.2'
+  implementation 'androidx.appcompat:appcompat:1.2.0'
+  implementation 'com.google.flatbuffers:flatbuffers-java:2.0.0'
+
+}

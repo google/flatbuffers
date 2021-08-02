@@ -3,8 +3,8 @@
 package NamespaceC
 
 import (
-	flatbuffers "github.com/google/flatbuffers/go"
 	NamespaceA "NamespaceA"
+	flatbuffers "github.com/google/flatbuffers/go"
 )
 
 type TableInCT struct {
@@ -55,18 +55,10 @@ func GetRootAsTableInC(buf []byte, offset flatbuffers.UOffsetT) *TableInC {
 	return x
 }
 
-// GetTableVectorAsTableInC shortcut to access table in vector of  unions
-func GetTableVectorAsTableInC(table *flatbuffers.Table) *TableInC {
-	n := flatbuffers.GetUOffsetT(table.Bytes[table.Pos:])
+func GetSizePrefixedRootAsTableInC(buf []byte, offset flatbuffers.UOffsetT) *TableInC {
+	n := flatbuffers.GetUOffsetT(buf[offset+flatbuffers.SizeUint32:])
 	x := &TableInC{}
-	x.Init(table.Bytes, n+table.Pos)
-	return x
-}
-
-// GetTableAsTableInC shortcut to access table in single union field
-func GetTableAsTableInC(table *flatbuffers.Table) *TableInC {
-	x := &TableInC{}
-	x.Init(table.Bytes, table.Pos)
+	x.Init(buf, n+offset+flatbuffers.SizeUint32)
 	return x
 }
 

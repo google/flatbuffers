@@ -1,0 +1,16 @@
+{
+  "compilerOptions": {
+    "target": "ES2017",
+    "module": "ES2015",
+    "lib": ["ES2017", "ES2020.BigInt", "DOM"],
+    "declaration": true,
+    "outDir": "./mjs",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true, 
+    "forceConsistentCasingInFileNames": true
+  },
+  "include": [
+    "ts/**/*.ts"
+  ]
+}

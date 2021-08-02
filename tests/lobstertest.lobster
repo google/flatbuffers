@@ -14,6 +14,7 @@
 
 import from "../lobster/"
 import monster_test_generated
+import optional_scalars_generated
 
 def check_read_buffer(buf):
     // CheckReadBuffer checks that the given buffer is evaluated correctly as the example Monster.
@@ -108,6 +109,63 @@ def make_monster_from_generated_code():
 
     return b.SizedCopy()
 
+def test_optional_scalars():
+    def build(add_fields):
+        let b = flatbuffers_builder {}
+        let ss = optional_scalars_ScalarStuffBuilder { b }.start()
+        if add_fields:
+            ss.add_just_i8(1)
+            ss.add_maybe_i8(1)
+            ss.add_default_i8(1)
+            ss.add_just_f64(1.0)
+            ss.add_maybe_f64(1.0)
+            ss.add_default_f64(1.0)
+            ss.add_just_bool(true)
+            ss.add_maybe_bool(true)
+            ss.add_default_bool(true)
+            ss.add_just_enum(optional_scalars_OptionalByte_Two)
+            ss.add_maybe_enum(optional_scalars_OptionalByte_Two)
+            ss.add_default_enum(optional_scalars_OptionalByte_Two)
+        b.Finish(ss.end())
+        return optional_scalars_GetRootAsScalarStuff(b.SizedCopy())
+
+    var root = build(true)
+
+    assert root.just_i8() == 1 and root.default_i8() == 1
+    var maybe_val_i8, maybe_present_i8 = root.maybe_i8()
+    assert maybe_val_i8 == 1 and maybe_present_i8 == true
+
+    assert root.just_f64() == 1.0 and root.default_f64() == 1.0
+    var maybe_val_f64, maybe_present_f64 = root.maybe_f64()
+    assert maybe_val_f64 == 1.0 and maybe_present_f64 == true
+
+    assert root.just_bool() == true and root.default_bool() == true
+    var maybe_val_bool, maybe_present_bool = root.maybe_bool()
+    assert maybe_val_bool == true and maybe_present_bool == true
+
+    assert root.just_enum() == optional_scalars_OptionalByte_Two and root.default_enum() == optional_scalars_OptionalByte_Two
+    var maybe_val_enum, maybe_present_enum = root.maybe_enum()
+    assert maybe_val_enum == optional_scalars_OptionalByte_Two and maybe_present_enum == true
+
+    root = build(false)
+
+    assert root.just_i8() == 0 and root.default_i8() == 42
+    maybe_val_i8, maybe_present_i8 = root.maybe_i8()
+    assert maybe_val_i8 == 0 and maybe_present_i8 == false
+
+    assert root.just_f64() == 0.0 and root.default_f64() == 42.0
+    maybe_val_f64, maybe_present_f64 = root.maybe_f64()
+    assert maybe_val_f64 == 0.0 and maybe_present_f64 == false
+
+    assert root.just_bool() == false and root.default_bool() == true
+    maybe_val_bool, maybe_present_bool = root.maybe_bool()
+    assert maybe_val_bool == false and maybe_present_bool == false
+
+    assert root.just_enum() == optional_scalars_OptionalByte_None and root.default_enum() == optional_scalars_OptionalByte_One
+    maybe_val_enum, maybe_present_enum = root.maybe_enum()
+    assert maybe_val_enum == optional_scalars_OptionalByte_None and maybe_present_enum == false
+
+
 // Verify that the canonical flatbuffer file (produced by the C++ implementation)
 // is readable by the generated Lobster code.
 let fb2 = read_file("monsterdata_test.mon")
@@ -133,5 +191,8 @@ let fb3, err2 = flatbuffers_json_to_binary(schema, json, includedirs)
 assert not err2
 // Check the resulting binary again (full roundtrip test):
 check_read_buffer(fb3)
+
+// Additional tests.
+test_optional_scalars()
 
 print "Lobster test succesful!"

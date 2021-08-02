@@ -10,6 +10,7 @@ import (
 type TableInFirstNST struct {
 	FooTable *NamespaceA__NamespaceB.TableInNestedNST
 	FooEnum NamespaceA__NamespaceB.EnumInNestedNS
+	FooUnion *NamespaceA__NamespaceB.UnionInNestedNST
 	FooStruct *NamespaceA__NamespaceB.StructInNestedNST
 }
 
@@ -19,12 +20,15 @@ func (t *TableInFirstNST) Pack(builder *flatbuffers.Builder) flatbuffers.UOffset
 		return 0
 	}
 	fooTableOffset := t.FooTable.Pack(builder)
-
-	// pack process all field
-
+	fooUnionOffset := t.FooUnion.Pack(builder)
+	
 	TableInFirstNSStart(builder)
 	TableInFirstNSAddFooTable(builder, fooTableOffset)
 	TableInFirstNSAddFooEnum(builder, t.FooEnum)
+	if t.FooUnion != nil {
+		TableInFirstNSAddFooUnionType(builder, t.FooUnion.Type)
+	}
+	TableInFirstNSAddFooUnion(builder, fooUnionOffset)
 	fooStructOffset := t.FooStruct.Pack(builder)
 	TableInFirstNSAddFooStruct(builder, fooStructOffset)
 	return TableInFirstNSEnd(builder)
@@ -34,6 +38,10 @@ func (t *TableInFirstNST) Pack(builder *flatbuffers.Builder) flatbuffers.UOffset
 func (rcv *TableInFirstNS) UnPackTo(t *TableInFirstNST) {
 	t.FooTable = rcv.FooTable(nil).UnPack()
 	t.FooEnum = rcv.FooEnum()
+	fooUnionTable := flatbuffers.Table{}
+	if rcv.FooUnion(&fooUnionTable) {
+		t.FooUnion = rcv.FooUnionType().UnPack(fooUnionTable)
+	}
 	t.FooStruct = rcv.FooStruct(nil).UnPack()
 }
 
@@ -58,6 +66,7 @@ func GetRootAsTableInFirstNS(buf []byte, offset flatbuffers.UOffsetT) *TableInFi
 	return x
 }
 
+<<<<<<< HEAD
 // GetTableVectorAsTableInFirstNS shortcut to access table in vector of  unions
 func GetTableVectorAsTableInFirstNS(table *flatbuffers.Table) *TableInFirstNS {
 	n := flatbuffers.GetUOffsetT(table.Bytes[table.Pos:])
@@ -70,6 +79,12 @@ func GetTableVectorAsTableInFirstNS(table *flatbuffers.Table) *TableInFirstNS {
 func GetTableAsTableInFirstNS(table *flatbuffers.Table) *TableInFirstNS {
 	x := &TableInFirstNS{}
 	x.Init(table.Bytes, table.Pos)
+=======
+func GetSizePrefixedRootAsTableInFirstNS(buf []byte, offset flatbuffers.UOffsetT) *TableInFirstNS {
+	n := flatbuffers.GetUOffsetT(buf[offset+flatbuffers.SizeUint32:])
+	x := &TableInFirstNS{}
+	x.Init(buf, n+offset+flatbuffers.SizeUint32)
+>>>>>>> origin
 	return x
 }
 
@@ -107,8 +122,29 @@ func (rcv *TableInFirstNS) MutateFooEnum(n NamespaceA__NamespaceB.EnumInNestedNS
 	return rcv._tab.MutateInt8Slot(6, int8(n))
 }
 
-func (rcv *TableInFirstNS) FooStruct(obj *NamespaceA__NamespaceB.StructInNestedNS) *NamespaceA__NamespaceB.StructInNestedNS {
+func (rcv *TableInFirstNS) FooUnionType() NamespaceA__NamespaceB.UnionInNestedNS {
 	o := flatbuffers.UOffsetT(rcv._tab.Offset(8))
+	if o != 0 {
+		return NamespaceA__NamespaceB.UnionInNestedNS(rcv._tab.GetByte(o + rcv._tab.Pos))
+	}
+	return 0
+}
+
+func (rcv *TableInFirstNS) MutateFooUnionType(n NamespaceA__NamespaceB.UnionInNestedNS) bool {
+	return rcv._tab.MutateByteSlot(8, byte(n))
+}
+
+func (rcv *TableInFirstNS) FooUnion(obj *flatbuffers.Table) bool {
+	o := flatbuffers.UOffsetT(rcv._tab.Offset(10))
+	if o != 0 {
+		rcv._tab.Union(obj, o)
+		return true
+	}
+	return false
+}
+
+func (rcv *TableInFirstNS) FooStruct(obj *NamespaceA__NamespaceB.StructInNestedNS) *NamespaceA__NamespaceB.StructInNestedNS {
+	o := flatbuffers.UOffsetT(rcv._tab.Offset(12))
 	if o != 0 {
 		x := o + rcv._tab.Pos
 		if obj == nil {
@@ -121,7 +157,7 @@ func (rcv *TableInFirstNS) FooStruct(obj *NamespaceA__NamespaceB.StructInNestedN
 }
 
 func TableInFirstNSStart(builder *flatbuffers.Builder) {
-	builder.StartObject(3)
+	builder.StartObject(5)
 }
 
 func TableInFirstNSAddFooTable(builder *flatbuffers.Builder, fooTable flatbuffers.UOffsetT) {
@@ -131,9 +167,18 @@ func TableInFirstNSAddFooTable(builder *flatbuffers.Builder, fooTable flatbuffer
 func TableInFirstNSAddFooEnum(builder *flatbuffers.Builder, fooEnum NamespaceA__NamespaceB.EnumInNestedNS) {
 	builder.PrependInt8Slot(1, int8(fooEnum), 0)
 }
+<<<<<<< HEAD
 
+=======
+func TableInFirstNSAddFooUnionType(builder *flatbuffers.Builder, fooUnionType NamespaceA__NamespaceB.UnionInNestedNS) {
+	builder.PrependByteSlot(2, byte(fooUnionType), 0)
+}
+func TableInFirstNSAddFooUnion(builder *flatbuffers.Builder, fooUnion flatbuffers.UOffsetT) {
+	builder.PrependUOffsetTSlot(3, flatbuffers.UOffsetT(fooUnion), 0)
+}
+>>>>>>> origin
 func TableInFirstNSAddFooStruct(builder *flatbuffers.Builder, fooStruct flatbuffers.UOffsetT) {
-	builder.PrependStructSlot(2, flatbuffers.UOffsetT(fooStruct), 0)
+	builder.PrependStructSlot(4, flatbuffers.UOffsetT(fooStruct), 0)
 }
 
 func TableInFirstNSEnd(builder *flatbuffers.Builder) flatbuffers.UOffsetT {

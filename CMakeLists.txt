@@ -98,7 +98,7 @@ set(FlatBuffers_Compiler_SRCS
   src/idl_gen_kotlin.cpp
   src/idl_gen_go.cpp
   src/idl_gen_java.cpp
-  src/idl_gen_js_ts.cpp
+  src/idl_gen_ts.cpp
   src/idl_gen_php.cpp
   src/idl_gen_python.cpp
   src/idl_gen_lobster.cpp
@@ -120,10 +120,11 @@ set(FlatBuffers_Compiler_SRCS
   grpc/src/compiler/java_generator.h
   grpc/src/compiler/java_generator.cc
   grpc/src/compiler/python_generator.h
-  grpc/src/compiler/python_private_generator.h
   grpc/src/compiler/python_generator.cc
   grpc/src/compiler/swift_generator.h
   grpc/src/compiler/swift_generator.cc
+  grpc/src/compiler/ts_generator.h
+  grpc/src/compiler/ts_generator.cc
 )
 
 set(FlatHash_SRCS
@@ -158,6 +159,8 @@ set(FlatBuffers_Tests_SRCS
   ${CMAKE_CURRENT_BINARY_DIR}/tests/monster_extra_generated.h
   # file generate by running compiler on tests/monster_test.fbs
   ${CMAKE_CURRENT_BINARY_DIR}/tests/monster_test_bfbs_generated.h
+  # file generate by running compiler on tests/optional_scalars.fbs
+  ${CMAKE_CURRENT_BINARY_DIR}/tests/optional_scalars_generated.h
 )
 
 set(FlatBuffers_Tests_CPP17_SRCS
@@ -168,6 +171,8 @@ set(FlatBuffers_Tests_CPP17_SRCS
   # file generate by running compiler on tests/monster_test.fbs
   ${CMAKE_CURRENT_BINARY_DIR}/tests/cpp17/generated_cpp17/monster_test_generated.h
   ${CMAKE_CURRENT_BINARY_DIR}/tests/monster_test_generated.h
+  ${CMAKE_CURRENT_BINARY_DIR}/tests/cpp17/generated_cpp17/optional_scalars_generated.h
+  ${CMAKE_CURRENT_BINARY_DIR}/tests/optional_scalars_generated.h
 )
 
 set(FlatBuffers_Sample_Binary_SRCS
@@ -273,7 +278,17 @@ elseif(MSVC)
   # warning C4512: assignment operator could not be generated
   # warning C4316: object allocated on the heap may not be aligned
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W4 /WX /wd4512 /wd4316")
+
+  # multi-core build.
+  add_definitions("/MP")
 endif()
+
+# Append FLATBUFFERS_CXX_FLAGS to CMAKE_CXX_FLAGS.
+if(DEFINED FLATBUFFERS_CXX_FLAGS AND NOT EXISTS "${CMAKE_TOOLCHAIN_FILE}")
+  message(STATUS "extend CXX_FLAGS with ${FLATBUFFERS_CXX_FLAGS}")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${FLATBUFFERS_CXX_FLAGS}")
+endif()
+message(STATUS "CMAKE_CXX_FLAGS: ${CMAKE_CXX_FLAGS}")
 
 if(FLATBUFFERS_CODE_COVERAGE)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -fprofile-arcs -ftest-coverage")
@@ -367,8 +382,8 @@ if(FLATBUFFERS_BUILD_SHAREDLIB)
   # - micro updated every release when there is no API/ABI changes
   # - minor updated when there are additions in API/ABI
   # - major (ABI number) updated when there are changes in ABI (or removals)
-  set(FlatBuffers_Library_SONAME_MAJOR "1")
-  set(FlatBuffers_Library_SONAME_FULL "${FlatBuffers_Library_SONAME_MAJOR}.12.0")
+  set(FlatBuffers_Library_SONAME_MAJOR "2")
+  set(FlatBuffers_Library_SONAME_FULL "${FlatBuffers_Library_SONAME_MAJOR}.0.0")
   set_target_properties(flatbuffers_shared PROPERTIES OUTPUT_NAME flatbuffers
                         SOVERSION "${FlatBuffers_Library_SONAME_MAJOR}"
                         VERSION "${FlatBuffers_Library_SONAME_FULL}")
@@ -428,6 +443,7 @@ function(compile_flatbuffers_schema_to_binary SRC_FBS)
     OUTPUT ${GEN_BINARY_SCHEMA}
     COMMAND "${FLATBUFFERS_FLATC_EXECUTABLE}"
             -b --schema --bfbs-comments --bfbs-builtins
+            --bfbs-filenames ${SRC_FBS_DIR}
             -I "${CMAKE_CURRENT_SOURCE_DIR}/tests/include_test"
             -o "${SRC_FBS_DIR}"
             "${CMAKE_CURRENT_SOURCE_DIR}/${SRC_FBS}"
@@ -453,6 +469,7 @@ function(compile_flatbuffers_schema_to_embedded_binary SRC_FBS OPT)
           --cpp-ptr-type flatbuffers::unique_ptr # Used to test with C++98 STLs
           ${OPT}
           --bfbs-comments --bfbs-builtins --bfbs-gen-embed
+          --bfbs-filenames ${SRC_FBS_DIR}
           -I "${CMAKE_CURRENT_SOURCE_DIR}/tests/include_test"
           -o "${SRC_FBS_DIR}"
           "${CMAKE_CURRENT_SOURCE_DIR}/${SRC_FBS}"
@@ -468,9 +485,10 @@ if(FLATBUFFERS_BUILD_TESTS)
   # TODO Add (monster_test.fbs monsterdata_test.json)->monsterdata_test.mon
   compile_flatbuffers_schema_to_cpp(tests/monster_test.fbs)
   compile_flatbuffers_schema_to_binary(tests/monster_test.fbs)
-  compile_flatbuffers_schema_to_cpp(tests/namespace_test/namespace_test1.fbs)
-  compile_flatbuffers_schema_to_cpp(tests/namespace_test/namespace_test2.fbs)
-  compile_flatbuffers_schema_to_cpp(tests/union_vector/union_vector.fbs)
+  compile_flatbuffers_schema_to_cpp_opt(tests/namespace_test/namespace_test1.fbs "--no-includes;--gen-compare;--gen-name-strings")
+  compile_flatbuffers_schema_to_cpp_opt(tests/namespace_test/namespace_test2.fbs "--no-includes;--gen-compare;--gen-name-strings")
+  compile_flatbuffers_schema_to_cpp_opt(tests/union_vector/union_vector.fbs "--no-includes;--gen-compare;--gen-name-strings")
+  compile_flatbuffers_schema_to_cpp(tests/optional_scalars.fbs)
   compile_flatbuffers_schema_to_cpp_opt(tests/native_type_test.fbs "")
   compile_flatbuffers_schema_to_cpp_opt(tests/arrays_test.fbs "--scoped-enums;--gen-compare")
   compile_flatbuffers_schema_to_binary(tests/arrays_test.fbs)
@@ -527,10 +545,13 @@ if(FLATBUFFERS_BUILD_GRPCTEST)
   endif()
   INCLUDE_DIRECTORIES(${GRPC_INSTALL_PATH}/include)
   INCLUDE_DIRECTORIES(${PROTOBUF_DOWNLOAD_PATH}/src)
-  LINK_DIRECTORIES(${GRPC_INSTALL_PATH}/lib)
+  find_package(Threads REQUIRED)
+  list(APPEND CMAKE_PREFIX_PATH ${GRPC_INSTALL_PATH})
+  find_package(protobuf CONFIG REQUIRED)
+  find_package(gRPC CONFIG REQUIRED)
   add_executable(grpctest ${FlatBuffers_GRPCTest_SRCS})
   add_dependencies(grpctest generated_code)
-  target_link_libraries(grpctest PRIVATE grpc++_unsecure grpc_unsecure gpr pthread dl)
+  target_link_libraries(grpctest PRIVATE gRPC::grpc++_unsecure gRPC::grpc_unsecure gRPC::gpr pthread dl)
   if(FLATBUFFERS_CODE_SANITIZE AND NOT WIN32)
     # GRPC test has problems with alignment and will fail under ASAN/UBSAN.
     # add_fsanitize_to_target(grpctest ${FLATBUFFERS_CODE_SANITIZE})
@@ -611,6 +632,14 @@ if(FLATBUFFERS_INSTALL)
       NAMESPACE flatbuffers::
       DESTINATION ${FB_CMAKE_DIR}
     )
+  endif()
+
+  if(FLATBUFFERS_BUILD_SHAREDLIB OR FLATBUFFERS_BUILD_FLATLIB)
+      configure_file(CMake/flatbuffers.pc.in flatbuffers.pc @ONLY)
+      install(
+        FILES "${CMAKE_CURRENT_BINARY_DIR}/flatbuffers.pc"
+        DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig
+      )
   endif()
 endif()
 
