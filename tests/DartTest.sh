@@ -21,6 +21,7 @@ command -v dart >/dev/null 2>&1 || { echo >&2 "Dart tests require dart to be in 
 # distribute them and more people can more easily run the dart tests
 ../flatc --dart --gen-object-api -I include_test -o ../dart/test monster_test.fbs
 cp monsterdata_test.mon ../dart/test
+cp monster_test.fbs ../dart/test
 
 cd ../dart
 
@@ -28,6 +29,3 @@ cd ../dart
 dart pub get
 # Execute the sample.
 dart test
-
-# cleanup
-rm ../dart/test/monsterdata_test.mon
