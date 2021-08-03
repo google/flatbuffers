@@ -24,11 +24,11 @@ public struct Vec3 : IFlatbufferObject
   public void MutateZ(float z) { __p.bb.PutFloat(__p.bb_pos + 8, z); }
   public double Test1 { get { return __p.bb.GetDouble(__p.bb_pos + 16); } }
   public void MutateTest1(double test1) { __p.bb.PutDouble(__p.bb_pos + 16, test1); }
-  public MyGame.Example.Color Test2 { get { return (MyGame.Example.Color)__p.bb.Get(__p.bb_pos + 24); } }
-  public void MutateTest2(MyGame.Example.Color test2) { __p.bb.Put(__p.bb_pos + 24, (byte)test2); }
-  public MyGame.Example.Test Test3 { get { return (new MyGame.Example.Test()).__assign(__p.bb_pos + 26, __p.bb); } }
+  public global::MyGame.Example.Color Test2 { get { return (global::MyGame.Example.Color)__p.bb.Get(__p.bb_pos + 24); } }
+  public void MutateTest2(global::MyGame.Example.Color test2) { __p.bb.Put(__p.bb_pos + 24, (byte)test2); }
+  public global::MyGame.Example.Test Test3 { get { return (new global::MyGame.Example.Test()).__assign(__p.bb_pos + 26, __p.bb); } }
 
-  public static Offset<MyGame.Example.Vec3> CreateVec3(FlatBufferBuilder builder, float X, float Y, float Z, double Test1, MyGame.Example.Color Test2, short test3_A, sbyte test3_B) {
+  public static Offset<global::MyGame.Example.Vec3> CreateVec3(FlatBufferBuilder builder, float X, float Y, float Z, double Test1, global::MyGame.Example.Color Test2, short test3_A, sbyte test3_B) {
     builder.Prep(8, 32);
     builder.Pad(2);
     builder.Prep(2, 4);
@@ -42,7 +42,7 @@ public struct Vec3 : IFlatbufferObject
     builder.PutFloat(Z);
     builder.PutFloat(Y);
     builder.PutFloat(X);
-    return new Offset<MyGame.Example.Vec3>(builder.Offset);
+    return new Offset<global::MyGame.Example.Vec3>(builder.Offset);
   }
   public Vec3T UnPack() {
     var _o = new Vec3T();
@@ -57,8 +57,8 @@ public struct Vec3 : IFlatbufferObject
     _o.Test2 = this.Test2;
     _o.Test3 = this.Test3.UnPack();
   }
-  public static Offset<MyGame.Example.Vec3> Pack(FlatBufferBuilder builder, Vec3T _o) {
-    if (_o == null) return default(Offset<MyGame.Example.Vec3>);
+  public static Offset<global::MyGame.Example.Vec3> Pack(FlatBufferBuilder builder, Vec3T _o) {
+    if (_o == null) return default(Offset<global::MyGame.Example.Vec3>);
     var _test3_a = _o.Test3.A;
     var _test3_b = _o.Test3.B;
     return CreateVec3(
@@ -84,9 +84,9 @@ public class Vec3T
   [Newtonsoft.Json.JsonProperty("test1")]
   public double Test1 { get; set; }
   [Newtonsoft.Json.JsonProperty("test2")]
-  public MyGame.Example.Color Test2 { get; set; }
+  public global::MyGame.Example.Color Test2 { get; set; }
   [Newtonsoft.Json.JsonProperty("test3")]
-  public MyGame.Example.TestT Test3 { get; set; }
+  public global::MyGame.Example.TestT Test3 { get; set; }
 
   public Vec3T() {
     this.X = 0.0f;
@@ -94,7 +94,7 @@ public class Vec3T
     this.Z = 0.0f;
     this.Test1 = 0.0;
     this.Test2 = 0;
-    this.Test3 = new MyGame.Example.TestT();
+    this.Test3 = new global::MyGame.Example.TestT();
   }
 }
 

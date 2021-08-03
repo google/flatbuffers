@@ -22,13 +22,13 @@ public struct ArrayStruct : IFlatbufferObject
   public void MutateB(int j, int b) { __p.bb.PutInt(__p.bb_pos + 4 + j * 4, b); }
   public sbyte C { get { return __p.bb.GetSbyte(__p.bb_pos + 64); } }
   public void MutateC(sbyte c) { __p.bb.PutSbyte(__p.bb_pos + 64, c); }
-  public MyGame.Example.NestedStruct D(int j) { return (new MyGame.Example.NestedStruct()).__assign(__p.bb_pos + 72 + j * 32, __p.bb); }
+  public global::MyGame.Example.NestedStruct D(int j) { return (new global::MyGame.Example.NestedStruct()).__assign(__p.bb_pos + 72 + j * 32, __p.bb); }
   public int E { get { return __p.bb.GetInt(__p.bb_pos + 136); } }
   public void MutateE(int e) { __p.bb.PutInt(__p.bb_pos + 136, e); }
   public long F(int j) { return __p.bb.GetLong(__p.bb_pos + 144 + j * 8); }
   public void MutateF(int j, long f) { __p.bb.PutLong(__p.bb_pos + 144 + j * 8, f); }
 
-  public static Offset<MyGame.Example.ArrayStruct> CreateArrayStruct(FlatBufferBuilder builder, float A, int[] B, sbyte C, int[,] d_A, MyGame.Example.TestEnum[] d_B, MyGame.Example.TestEnum[,] d_C, long[,] d_D, int E, long[] F) {
+  public static Offset<global::MyGame.Example.ArrayStruct> CreateArrayStruct(FlatBufferBuilder builder, float A, int[] B, sbyte C, int[,] d_A, global::MyGame.Example.TestEnum[] d_B, global::MyGame.Example.TestEnum[,] d_C, long[,] d_D, int E, long[] F) {
     builder.Prep(8, 160);
     for (int _idx0 = 2; _idx0 > 0; _idx0--) {
       builder.PutLong(F[_idx0-1]);
@@ -55,7 +55,7 @@ public struct ArrayStruct : IFlatbufferObject
       builder.PutInt(B[_idx0-1]);
     }
     builder.PutFloat(A);
-    return new Offset<MyGame.Example.ArrayStruct>(builder.Offset);
+    return new Offset<global::MyGame.Example.ArrayStruct>(builder.Offset);
   }
   public ArrayStructT UnPack() {
     var _o = new ArrayStructT();
@@ -67,20 +67,20 @@ public struct ArrayStruct : IFlatbufferObject
     _o.B = new int[15];
     for (var _j = 0; _j < 15; ++_j) { _o.B[_j] = this.B(_j); }
     _o.C = this.C;
-    _o.D = new MyGame.Example.NestedStructT[2];
+    _o.D = new global::MyGame.Example.NestedStructT[2];
     for (var _j = 0; _j < 2; ++_j) { _o.D[_j] = this.D(_j).UnPack(); }
     _o.E = this.E;
     _o.F = new long[2];
     for (var _j = 0; _j < 2; ++_j) { _o.F[_j] = this.F(_j); }
   }
-  public static Offset<MyGame.Example.ArrayStruct> Pack(FlatBufferBuilder builder, ArrayStructT _o) {
-    if (_o == null) return default(Offset<MyGame.Example.ArrayStruct>);
+  public static Offset<global::MyGame.Example.ArrayStruct> Pack(FlatBufferBuilder builder, ArrayStructT _o) {
+    if (_o == null) return default(Offset<global::MyGame.Example.ArrayStruct>);
     var _b = _o.B;
     var _d_a = new int[2,2];
     for (var idx0 = 0; idx0 < 2; ++idx0) {for (var idx1 = 0; idx1 < 2; ++idx1) {_d_a[idx0,idx1] = _o.D[idx0].A[idx1];}}
-    var _d_b = new MyGame.Example.TestEnum[2];
+    var _d_b = new global::MyGame.Example.TestEnum[2];
     for (var idx0 = 0; idx0 < 2; ++idx0) {_d_b[idx0] = _o.D[idx0].B;}
-    var _d_c = new MyGame.Example.TestEnum[2,2];
+    var _d_c = new global::MyGame.Example.TestEnum[2,2];
     for (var idx0 = 0; idx0 < 2; ++idx0) {for (var idx1 = 0; idx1 < 2; ++idx1) {_d_c[idx0,idx1] = _o.D[idx0].C[idx1];}}
     var _d_d = new long[2,2];
     for (var idx0 = 0; idx0 < 2; ++idx0) {for (var idx1 = 0; idx1 < 2; ++idx1) {_d_d[idx0,idx1] = _o.D[idx0].D[idx1];}}
@@ -108,7 +108,7 @@ public class ArrayStructT
   [Newtonsoft.Json.JsonProperty("c")]
   public sbyte C { get; set; }
   [Newtonsoft.Json.JsonProperty("d")]
-  public MyGame.Example.NestedStructT[] D { get; set; }
+  public global::MyGame.Example.NestedStructT[] D { get; set; }
   [Newtonsoft.Json.JsonProperty("e")]
   public int E { get; set; }
   [Newtonsoft.Json.JsonProperty("f")]
@@ -118,7 +118,7 @@ public class ArrayStructT
     this.A = 0.0f;
     this.B = new int[15];
     this.C = 0;
-    this.D = new MyGame.Example.NestedStructT[2];
+    this.D = new global::MyGame.Example.NestedStructT[2];
     this.E = 0;
     this.F = new long[2];
   }

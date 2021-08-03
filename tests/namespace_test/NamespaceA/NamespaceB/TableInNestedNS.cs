@@ -22,7 +22,7 @@ public struct TableInNestedNS : IFlatbufferObject
   public int Foo { get { int o = __p.__offset(4); return o != 0 ? __p.bb.GetInt(o + __p.bb_pos) : (int)0; } }
   public bool MutateFoo(int foo) { int o = __p.__offset(4); if (o != 0) { __p.bb.PutInt(o + __p.bb_pos, foo); return true; } else { return false; } }
 
-  public static Offset<NamespaceA.NamespaceB.TableInNestedNS> CreateTableInNestedNS(FlatBufferBuilder builder,
+  public static Offset<global::NamespaceA.NamespaceB.TableInNestedNS> CreateTableInNestedNS(FlatBufferBuilder builder,
       int foo = 0) {
     builder.StartTable(1);
     TableInNestedNS.AddFoo(builder, foo);
@@ -31,9 +31,9 @@ public struct TableInNestedNS : IFlatbufferObject
 
   public static void StartTableInNestedNS(FlatBufferBuilder builder) { builder.StartTable(1); }
   public static void AddFoo(FlatBufferBuilder builder, int foo) { builder.AddInt(0, foo, 0); }
-  public static Offset<NamespaceA.NamespaceB.TableInNestedNS> EndTableInNestedNS(FlatBufferBuilder builder) {
+  public static Offset<global::NamespaceA.NamespaceB.TableInNestedNS> EndTableInNestedNS(FlatBufferBuilder builder) {
     int o = builder.EndTable();
-    return new Offset<NamespaceA.NamespaceB.TableInNestedNS>(o);
+    return new Offset<global::NamespaceA.NamespaceB.TableInNestedNS>(o);
   }
   public TableInNestedNST UnPack() {
     var _o = new TableInNestedNST();
@@ -43,8 +43,8 @@ public struct TableInNestedNS : IFlatbufferObject
   public void UnPackTo(TableInNestedNST _o) {
     _o.Foo = this.Foo;
   }
-  public static Offset<NamespaceA.NamespaceB.TableInNestedNS> Pack(FlatBufferBuilder builder, TableInNestedNST _o) {
-    if (_o == null) return default(Offset<NamespaceA.NamespaceB.TableInNestedNS>);
+  public static Offset<global::NamespaceA.NamespaceB.TableInNestedNS> Pack(FlatBufferBuilder builder, TableInNestedNST _o) {
+    if (_o == null) return default(Offset<global::NamespaceA.NamespaceB.TableInNestedNS>);
     return CreateTableInNestedNS(
       builder,
       _o.Foo);

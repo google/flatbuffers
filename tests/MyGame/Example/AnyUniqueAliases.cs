@@ -24,19 +24,19 @@ public class AnyUniqueAliasesUnion {
   }
 
   public T As<T>() where T : class { return this.Value as T; }
-  public MyGame.Example.MonsterT AsM() { return this.As<MyGame.Example.MonsterT>(); }
-  public static AnyUniqueAliasesUnion FromM(MyGame.Example.MonsterT _m) { return new AnyUniqueAliasesUnion{ Type = AnyUniqueAliases.M, Value = _m }; }
-  internal MyGame.Example.TestSimpleTableWithEnumT AsTS() { return this.As<MyGame.Example.TestSimpleTableWithEnumT>(); }
-  internal static AnyUniqueAliasesUnion FromTS(MyGame.Example.TestSimpleTableWithEnumT _ts) { return new AnyUniqueAliasesUnion{ Type = AnyUniqueAliases.TS, Value = _ts }; }
-  public MyGame.Example2.MonsterT AsM2() { return this.As<MyGame.Example2.MonsterT>(); }
-  public static AnyUniqueAliasesUnion FromM2(MyGame.Example2.MonsterT _m2) { return new AnyUniqueAliasesUnion{ Type = AnyUniqueAliases.M2, Value = _m2 }; }
+  public global::MyGame.Example.MonsterT AsM() { return this.As<global::MyGame.Example.MonsterT>(); }
+  public static AnyUniqueAliasesUnion FromM(global::MyGame.Example.MonsterT _m) { return new AnyUniqueAliasesUnion{ Type = AnyUniqueAliases.M, Value = _m }; }
+  internal global::MyGame.Example.TestSimpleTableWithEnumT AsTS() { return this.As<global::MyGame.Example.TestSimpleTableWithEnumT>(); }
+  internal static AnyUniqueAliasesUnion FromTS(global::MyGame.Example.TestSimpleTableWithEnumT _ts) { return new AnyUniqueAliasesUnion{ Type = AnyUniqueAliases.TS, Value = _ts }; }
+  public global::MyGame.Example2.MonsterT AsM2() { return this.As<global::MyGame.Example2.MonsterT>(); }
+  public static AnyUniqueAliasesUnion FromM2(global::MyGame.Example2.MonsterT _m2) { return new AnyUniqueAliasesUnion{ Type = AnyUniqueAliases.M2, Value = _m2 }; }
 
   public static int Pack(FlatBuffers.FlatBufferBuilder builder, AnyUniqueAliasesUnion _o) {
     switch (_o.Type) {
       default: return 0;
-      case AnyUniqueAliases.M: return MyGame.Example.Monster.Pack(builder, _o.AsM()).Value;
-      case AnyUniqueAliases.TS: return MyGame.Example.TestSimpleTableWithEnum.Pack(builder, _o.AsTS()).Value;
-      case AnyUniqueAliases.M2: return MyGame.Example2.Monster.Pack(builder, _o.AsM2()).Value;
+      case AnyUniqueAliases.M: return global::MyGame.Example.Monster.Pack(builder, _o.AsM()).Value;
+      case AnyUniqueAliases.TS: return global::MyGame.Example.TestSimpleTableWithEnum.Pack(builder, _o.AsTS()).Value;
+      case AnyUniqueAliases.M2: return global::MyGame.Example2.Monster.Pack(builder, _o.AsM2()).Value;
     }
   }
 }
@@ -76,9 +76,9 @@ public class AnyUniqueAliasesUnion_JsonConverter : Newtonsoft.Json.JsonConverter
     if (_o == null) return null;
     switch (_o.Type) {
       default: break;
-      case AnyUniqueAliases.M: _o.Value = serializer.Deserialize<MyGame.Example.MonsterT>(reader); break;
-      case AnyUniqueAliases.TS: _o.Value = serializer.Deserialize<MyGame.Example.TestSimpleTableWithEnumT>(reader); break;
-      case AnyUniqueAliases.M2: _o.Value = serializer.Deserialize<MyGame.Example2.MonsterT>(reader); break;
+      case AnyUniqueAliases.M: _o.Value = serializer.Deserialize<global::MyGame.Example.MonsterT>(reader); break;
+      case AnyUniqueAliases.TS: _o.Value = serializer.Deserialize<global::MyGame.Example.TestSimpleTableWithEnumT>(reader); break;
+      case AnyUniqueAliases.M2: _o.Value = serializer.Deserialize<global::MyGame.Example2.MonsterT>(reader); break;
     }
     return _o;
   }

@@ -21,9 +21,9 @@ public struct InParentNamespace : IFlatbufferObject
 
 
   public static void StartInParentNamespace(FlatBufferBuilder builder) { builder.StartTable(0); }
-  public static Offset<MyGame.InParentNamespace> EndInParentNamespace(FlatBufferBuilder builder) {
+  public static Offset<global::MyGame.InParentNamespace> EndInParentNamespace(FlatBufferBuilder builder) {
     int o = builder.EndTable();
-    return new Offset<MyGame.InParentNamespace>(o);
+    return new Offset<global::MyGame.InParentNamespace>(o);
   }
   public InParentNamespaceT UnPack() {
     var _o = new InParentNamespaceT();
@@ -32,8 +32,8 @@ public struct InParentNamespace : IFlatbufferObject
   }
   public void UnPackTo(InParentNamespaceT _o) {
   }
-  public static Offset<MyGame.InParentNamespace> Pack(FlatBufferBuilder builder, InParentNamespaceT _o) {
-    if (_o == null) return default(Offset<MyGame.InParentNamespace>);
+  public static Offset<global::MyGame.InParentNamespace> Pack(FlatBufferBuilder builder, InParentNamespaceT _o) {
+    if (_o == null) return default(Offset<global::MyGame.InParentNamespace>);
     StartInParentNamespace(builder);
     return EndInParentNamespace(builder);
   }

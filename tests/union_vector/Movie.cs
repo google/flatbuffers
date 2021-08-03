@@ -17,29 +17,29 @@ public struct Movie : IFlatbufferObject
   public void __init(int _i, ByteBuffer _bb) { __p = new Table(_i, _bb); }
   public Movie __assign(int _i, ByteBuffer _bb) { __init(_i, _bb); return this; }
 
-  public Character MainCharacterType { get { int o = __p.__offset(4); return o != 0 ? (Character)__p.bb.Get(o + __p.bb_pos) : Character.NONE; } }
+  public global::Character MainCharacterType { get { int o = __p.__offset(4); return o != 0 ? (global::Character)__p.bb.Get(o + __p.bb_pos) : global::Character.NONE; } }
   public TTable? MainCharacter<TTable>() where TTable : struct, IFlatbufferObject { int o = __p.__offset(6); return o != 0 ? (TTable?)__p.__union<TTable>(o + __p.bb_pos) : null; }
   public string MainCharacterAsString() { int o = __p.__offset(6); return o != 0 ? __p.__string(o + __p.bb_pos) : null; }
-  public Attacker MainCharacterAsMuLan() { return MainCharacter<Attacker>().Value; }
-  public Rapunzel MainCharacterAsRapunzel() { return MainCharacter<Rapunzel>().Value; }
-  public BookReader MainCharacterAsBelle() { return MainCharacter<BookReader>().Value; }
-  public BookReader MainCharacterAsBookFan() { return MainCharacter<BookReader>().Value; }
+  public global::Attacker MainCharacterAsMuLan() { return MainCharacter<global::Attacker>().Value; }
+  public global::Rapunzel MainCharacterAsRapunzel() { return MainCharacter<global::Rapunzel>().Value; }
+  public global::BookReader MainCharacterAsBelle() { return MainCharacter<global::BookReader>().Value; }
+  public global::BookReader MainCharacterAsBookFan() { return MainCharacter<global::BookReader>().Value; }
   public string MainCharacterAsOther() { return MainCharacterAsString(); }
   public string MainCharacterAsUnused() { return MainCharacterAsString(); }
-  public Character CharactersType(int j) { int o = __p.__offset(8); return o != 0 ? (Character)__p.bb.Get(__p.__vector(o) + j * 1) : (Character)0; }
+  public global::Character CharactersType(int j) { int o = __p.__offset(8); return o != 0 ? (global::Character)__p.bb.Get(__p.__vector(o) + j * 1) : (global::Character)0; }
   public int CharactersTypeLength { get { int o = __p.__offset(8); return o != 0 ? __p.__vector_len(o) : 0; } }
 #if ENABLE_SPAN_T
-  public Span<Character> GetCharactersTypeBytes() { return __p.__vector_as_span<Character>(8, 1); }
+  public Span<global::Character> GetCharactersTypeBytes() { return __p.__vector_as_span<global::Character>(8, 1); }
 #else
   public ArraySegment<byte>? GetCharactersTypeBytes() { return __p.__vector_as_arraysegment(8); }
 #endif
-  public Character[] GetCharactersTypeArray() { int o = __p.__offset(8); if (o == 0) return null; int p = __p.__vector(o); int l = __p.__vector_len(o); Character[] a = new Character[l]; for (int i = 0; i < l; i++) { a[i] = (Character)__p.bb.Get(p + i * 1); } return a; }
+  public global::Character[] GetCharactersTypeArray() { int o = __p.__offset(8); if (o == 0) return null; int p = __p.__vector(o); int l = __p.__vector_len(o); global::Character[] a = new global::Character[l]; for (int i = 0; i < l; i++) { a[i] = (global::Character)__p.bb.Get(p + i * 1); } return a; }
   public TTable? Characters<TTable>(int j) where TTable : struct, IFlatbufferObject { int o = __p.__offset(10); return o != 0 ? (TTable?)__p.__union<TTable>(__p.__vector(o) + j * 4) : null; }
   public string CharactersAsString(int j) { int o = __p.__offset(10); return o != 0 ? __p.__string(__p.__vector(o) + j * 4) : null; }
   public int CharactersLength { get { int o = __p.__offset(10); return o != 0 ? __p.__vector_len(o) : 0; } }
 
-  public static Offset<Movie> CreateMovie(FlatBufferBuilder builder,
-      Character main_character_type = Character.NONE,
+  public static Offset<global::Movie> CreateMovie(FlatBufferBuilder builder,
+      global::Character main_character_type = global::Character.NONE,
       int main_characterOffset = 0,
       VectorOffset characters_typeOffset = default(VectorOffset),
       VectorOffset charactersOffset = default(VectorOffset)) {
@@ -52,93 +52,93 @@ public struct Movie : IFlatbufferObject
   }
 
   public static void StartMovie(FlatBufferBuilder builder) { builder.StartTable(4); }
-  public static void AddMainCharacterType(FlatBufferBuilder builder, Character mainCharacterType) { builder.AddByte(0, (byte)mainCharacterType, 0); }
+  public static void AddMainCharacterType(FlatBufferBuilder builder, global::Character mainCharacterType) { builder.AddByte(0, (byte)mainCharacterType, 0); }
   public static void AddMainCharacter(FlatBufferBuilder builder, int mainCharacterOffset) { builder.AddOffset(1, mainCharacterOffset, 0); }
   public static void AddCharactersType(FlatBufferBuilder builder, VectorOffset charactersTypeOffset) { builder.AddOffset(2, charactersTypeOffset.Value, 0); }
-  public static VectorOffset CreateCharactersTypeVector(FlatBufferBuilder builder, Character[] data) { builder.StartVector(1, data.Length, 1); for (int i = data.Length - 1; i >= 0; i--) builder.AddByte((byte)data[i]); return builder.EndVector(); }
-  public static VectorOffset CreateCharactersTypeVectorBlock(FlatBufferBuilder builder, Character[] data) { builder.StartVector(1, data.Length, 1); builder.Add(data); return builder.EndVector(); }
+  public static VectorOffset CreateCharactersTypeVector(FlatBufferBuilder builder, global::Character[] data) { builder.StartVector(1, data.Length, 1); for (int i = data.Length - 1; i >= 0; i--) builder.AddByte((byte)data[i]); return builder.EndVector(); }
+  public static VectorOffset CreateCharactersTypeVectorBlock(FlatBufferBuilder builder, global::Character[] data) { builder.StartVector(1, data.Length, 1); builder.Add(data); return builder.EndVector(); }
   public static void StartCharactersTypeVector(FlatBufferBuilder builder, int numElems) { builder.StartVector(1, numElems, 1); }
   public static void AddCharacters(FlatBufferBuilder builder, VectorOffset charactersOffset) { builder.AddOffset(3, charactersOffset.Value, 0); }
   public static VectorOffset CreateCharactersVector(FlatBufferBuilder builder, int[] data) { builder.StartVector(4, data.Length, 4); for (int i = data.Length - 1; i >= 0; i--) builder.AddOffset(data[i]); return builder.EndVector(); }
   public static VectorOffset CreateCharactersVectorBlock(FlatBufferBuilder builder, int[] data) { builder.StartVector(4, data.Length, 4); builder.Add(data); return builder.EndVector(); }
   public static void StartCharactersVector(FlatBufferBuilder builder, int numElems) { builder.StartVector(4, numElems, 4); }
-  public static Offset<Movie> EndMovie(FlatBufferBuilder builder) {
+  public static Offset<global::Movie> EndMovie(FlatBufferBuilder builder) {
     int o = builder.EndTable();
-    return new Offset<Movie>(o);
+    return new Offset<global::Movie>(o);
   }
-  public static void FinishMovieBuffer(FlatBufferBuilder builder, Offset<Movie> offset) { builder.Finish(offset.Value, "MOVI"); }
-  public static void FinishSizePrefixedMovieBuffer(FlatBufferBuilder builder, Offset<Movie> offset) { builder.FinishSizePrefixed(offset.Value, "MOVI"); }
+  public static void FinishMovieBuffer(FlatBufferBuilder builder, Offset<global::Movie> offset) { builder.Finish(offset.Value, "MOVI"); }
+  public static void FinishSizePrefixedMovieBuffer(FlatBufferBuilder builder, Offset<global::Movie> offset) { builder.FinishSizePrefixed(offset.Value, "MOVI"); }
   public MovieT UnPack() {
     var _o = new MovieT();
     this.UnPackTo(_o);
     return _o;
   }
   public void UnPackTo(MovieT _o) {
-    _o.MainCharacter = new CharacterUnion();
+    _o.MainCharacter = new global::CharacterUnion();
     _o.MainCharacter.Type = this.MainCharacterType;
     switch (this.MainCharacterType) {
       default: break;
-      case Character.MuLan:
-        _o.MainCharacter.Value = this.MainCharacter<Attacker>().HasValue ? this.MainCharacter<Attacker>().Value.UnPack() : null;
+      case global::Character.MuLan:
+        _o.MainCharacter.Value = this.MainCharacter<global::Attacker>().HasValue ? this.MainCharacter<global::Attacker>().Value.UnPack() : null;
         break;
-      case Character.Rapunzel:
-        _o.MainCharacter.Value = this.MainCharacter<Rapunzel>().HasValue ? this.MainCharacter<Rapunzel>().Value.UnPack() : null;
+      case global::Character.Rapunzel:
+        _o.MainCharacter.Value = this.MainCharacter<global::Rapunzel>().HasValue ? this.MainCharacter<global::Rapunzel>().Value.UnPack() : null;
         break;
-      case Character.Belle:
-        _o.MainCharacter.Value = this.MainCharacter<BookReader>().HasValue ? this.MainCharacter<BookReader>().Value.UnPack() : null;
+      case global::Character.Belle:
+        _o.MainCharacter.Value = this.MainCharacter<global::BookReader>().HasValue ? this.MainCharacter<global::BookReader>().Value.UnPack() : null;
         break;
-      case Character.BookFan:
-        _o.MainCharacter.Value = this.MainCharacter<BookReader>().HasValue ? this.MainCharacter<BookReader>().Value.UnPack() : null;
+      case global::Character.BookFan:
+        _o.MainCharacter.Value = this.MainCharacter<global::BookReader>().HasValue ? this.MainCharacter<global::BookReader>().Value.UnPack() : null;
         break;
-      case Character.Other:
+      case global::Character.Other:
         _o.MainCharacter.Value = this.MainCharacterAsString();
         break;
-      case Character.Unused:
+      case global::Character.Unused:
         _o.MainCharacter.Value = this.MainCharacterAsString();
         break;
     }
-    _o.Characters = new List<CharacterUnion>();
+    _o.Characters = new List<global::CharacterUnion>();
     for (var _j = 0; _j < this.CharactersLength; ++_j) {
-      var _o_Characters = new CharacterUnion();
+      var _o_Characters = new global::CharacterUnion();
       _o_Characters.Type = this.CharactersType(_j);
       switch (this.CharactersType(_j)) {
         default: break;
-        case Character.MuLan:
-          _o_Characters.Value = this.Characters<Attacker>(_j).HasValue ? this.Characters<Attacker>(_j).Value.UnPack() : null;
+        case global::Character.MuLan:
+          _o_Characters.Value = this.Characters<global::Attacker>(_j).HasValue ? this.Characters<global::Attacker>(_j).Value.UnPack() : null;
           break;
-        case Character.Rapunzel:
-          _o_Characters.Value = this.Characters<Rapunzel>(_j).HasValue ? this.Characters<Rapunzel>(_j).Value.UnPack() : null;
+        case global::Character.Rapunzel:
+          _o_Characters.Value = this.Characters<global::Rapunzel>(_j).HasValue ? this.Characters<global::Rapunzel>(_j).Value.UnPack() : null;
           break;
-        case Character.Belle:
-          _o_Characters.Value = this.Characters<BookReader>(_j).HasValue ? this.Characters<BookReader>(_j).Value.UnPack() : null;
+        case global::Character.Belle:
+          _o_Characters.Value = this.Characters<global::BookReader>(_j).HasValue ? this.Characters<global::BookReader>(_j).Value.UnPack() : null;
           break;
-        case Character.BookFan:
-          _o_Characters.Value = this.Characters<BookReader>(_j).HasValue ? this.Characters<BookReader>(_j).Value.UnPack() : null;
+        case global::Character.BookFan:
+          _o_Characters.Value = this.Characters<global::BookReader>(_j).HasValue ? this.Characters<global::BookReader>(_j).Value.UnPack() : null;
           break;
-        case Character.Other:
+        case global::Character.Other:
           _o_Characters.Value = this.CharactersAsString(_j);
           break;
-        case Character.Unused:
+        case global::Character.Unused:
           _o_Characters.Value = this.CharactersAsString(_j);
           break;
       }
       _o.Characters.Add(_o_Characters);
     }
   }
-  public static Offset<Movie> Pack(FlatBufferBuilder builder, MovieT _o) {
-    if (_o == null) return default(Offset<Movie>);
-    var _main_character_type = _o.MainCharacter == null ? Character.NONE : _o.MainCharacter.Type;
-    var _main_character = _o.MainCharacter == null ? 0 : CharacterUnion.Pack(builder, _o.MainCharacter);
+  public static Offset<global::Movie> Pack(FlatBufferBuilder builder, MovieT _o) {
+    if (_o == null) return default(Offset<global::Movie>);
+    var _main_character_type = _o.MainCharacter == null ? global::Character.NONE : _o.MainCharacter.Type;
+    var _main_character = _o.MainCharacter == null ? 0 : global::CharacterUnion.Pack(builder, _o.MainCharacter);
     var _characters_type = default(VectorOffset);
     if (_o.Characters != null) {
-      var __characters_type = new Character[_o.Characters.Count];
+      var __characters_type = new global::Character[_o.Characters.Count];
       for (var _j = 0; _j < __characters_type.Length; ++_j) { __characters_type[_j] = _o.Characters[_j].Type; }
       _characters_type = CreateCharactersTypeVector(builder, __characters_type);
     }
     var _characters = default(VectorOffset);
     if (_o.Characters != null) {
       var __characters = new int[_o.Characters.Count];
-      for (var _j = 0; _j < __characters.Length; ++_j) { __characters[_j] = CharacterUnion.Pack(builder,  _o.Characters[_j]); }
+      for (var _j = 0; _j < __characters.Length; ++_j) { __characters[_j] = global::CharacterUnion.Pack(builder,  _o.Characters[_j]); }
       _characters = CreateCharactersVector(builder, __characters);
     }
     return CreateMovie(
@@ -153,38 +153,38 @@ public struct Movie : IFlatbufferObject
 public class MovieT
 {
   [Newtonsoft.Json.JsonProperty("main_character_type")]
-  private Character MainCharacterType {
+  private global::Character MainCharacterType {
     get {
-      return this.MainCharacter != null ? this.MainCharacter.Type : Character.NONE;
+      return this.MainCharacter != null ? this.MainCharacter.Type : global::Character.NONE;
     }
     set {
-      this.MainCharacter = new CharacterUnion();
+      this.MainCharacter = new global::CharacterUnion();
       this.MainCharacter.Type = value;
     }
   }
   [Newtonsoft.Json.JsonProperty("main_character")]
-  [Newtonsoft.Json.JsonConverter(typeof(CharacterUnion_JsonConverter))]
-  public CharacterUnion MainCharacter { get; set; }
+  [Newtonsoft.Json.JsonConverter(typeof(global::CharacterUnion_JsonConverter))]
+  public global::CharacterUnion MainCharacter { get; set; }
   [Newtonsoft.Json.JsonProperty("characters_type")]
-  private Character[] CharactersType {
+  private global::Character[] CharactersType {
     get {
       if (this.Characters == null) return null;
-      var _o = new Character[this.Characters.Count];
+      var _o = new global::Character[this.Characters.Count];
       for (var _j = 0; _j < _o.Length; ++_j) { _o[_j] = this.Characters[_j].Type; }
       return _o;
     }
     set {
-      this.Characters = new List<CharacterUnion>();
+      this.Characters = new List<global::CharacterUnion>();
       for (var _j = 0; _j < value.Length; ++_j) {
-        var _o = new CharacterUnion();
+        var _o = new global::CharacterUnion();
         _o.Type = value[_j];
         this.Characters.Add(_o);
       }
     }
   }
   [Newtonsoft.Json.JsonProperty("characters")]
-  [Newtonsoft.Json.JsonConverter(typeof(CharacterUnion_JsonConverter))]
-  public List<CharacterUnion> Characters { get; set; }
+  [Newtonsoft.Json.JsonConverter(typeof(global::CharacterUnion_JsonConverter))]
+  public List<global::CharacterUnion> Characters { get; set; }
 
   public MovieT() {
     this.MainCharacter = null;

@@ -19,21 +19,21 @@ internal partial struct TestSimpleTableWithEnum : IFlatbufferObject
   public void __init(int _i, ByteBuffer _bb) { __p = new Table(_i, _bb); }
   public TestSimpleTableWithEnum __assign(int _i, ByteBuffer _bb) { __init(_i, _bb); return this; }
 
-  public MyGame.Example.Color Color { get { int o = __p.__offset(4); return o != 0 ? (MyGame.Example.Color)__p.bb.Get(o + __p.bb_pos) : MyGame.Example.Color.Green; } }
-  public bool MutateColor(MyGame.Example.Color color) { int o = __p.__offset(4); if (o != 0) { __p.bb.Put(o + __p.bb_pos, (byte)color); return true; } else { return false; } }
+  public global::MyGame.Example.Color Color { get { int o = __p.__offset(4); return o != 0 ? (global::MyGame.Example.Color)__p.bb.Get(o + __p.bb_pos) : global::MyGame.Example.Color.Green; } }
+  public bool MutateColor(global::MyGame.Example.Color color) { int o = __p.__offset(4); if (o != 0) { __p.bb.Put(o + __p.bb_pos, (byte)color); return true; } else { return false; } }
 
-  public static Offset<MyGame.Example.TestSimpleTableWithEnum> CreateTestSimpleTableWithEnum(FlatBufferBuilder builder,
-      MyGame.Example.Color color = MyGame.Example.Color.Green) {
+  public static Offset<global::MyGame.Example.TestSimpleTableWithEnum> CreateTestSimpleTableWithEnum(FlatBufferBuilder builder,
+      global::MyGame.Example.Color color = global::MyGame.Example.Color.Green) {
     builder.StartTable(1);
     TestSimpleTableWithEnum.AddColor(builder, color);
     return TestSimpleTableWithEnum.EndTestSimpleTableWithEnum(builder);
   }
 
   public static void StartTestSimpleTableWithEnum(FlatBufferBuilder builder) { builder.StartTable(1); }
-  public static void AddColor(FlatBufferBuilder builder, MyGame.Example.Color color) { builder.AddByte(0, (byte)color, 2); }
-  public static Offset<MyGame.Example.TestSimpleTableWithEnum> EndTestSimpleTableWithEnum(FlatBufferBuilder builder) {
+  public static void AddColor(FlatBufferBuilder builder, global::MyGame.Example.Color color) { builder.AddByte(0, (byte)color, 2); }
+  public static Offset<global::MyGame.Example.TestSimpleTableWithEnum> EndTestSimpleTableWithEnum(FlatBufferBuilder builder) {
     int o = builder.EndTable();
-    return new Offset<MyGame.Example.TestSimpleTableWithEnum>(o);
+    return new Offset<global::MyGame.Example.TestSimpleTableWithEnum>(o);
   }
   public TestSimpleTableWithEnumT UnPack() {
     var _o = new TestSimpleTableWithEnumT();
@@ -43,8 +43,8 @@ internal partial struct TestSimpleTableWithEnum : IFlatbufferObject
   public void UnPackTo(TestSimpleTableWithEnumT _o) {
     _o.Color = this.Color;
   }
-  public static Offset<MyGame.Example.TestSimpleTableWithEnum> Pack(FlatBufferBuilder builder, TestSimpleTableWithEnumT _o) {
-    if (_o == null) return default(Offset<MyGame.Example.TestSimpleTableWithEnum>);
+  public static Offset<global::MyGame.Example.TestSimpleTableWithEnum> Pack(FlatBufferBuilder builder, TestSimpleTableWithEnumT _o) {
+    if (_o == null) return default(Offset<global::MyGame.Example.TestSimpleTableWithEnum>);
     return CreateTestSimpleTableWithEnum(
       builder,
       _o.Color);
@@ -54,10 +54,10 @@ internal partial struct TestSimpleTableWithEnum : IFlatbufferObject
 internal partial class TestSimpleTableWithEnumT
 {
   [Newtonsoft.Json.JsonProperty("color")]
-  public MyGame.Example.Color Color { get; set; }
+  public global::MyGame.Example.Color Color { get; set; }
 
   public TestSimpleTableWithEnumT() {
-    this.Color = MyGame.Example.Color.Green;
+    this.Color = global::MyGame.Example.Color.Green;
   }
 }
 

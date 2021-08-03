@@ -21,12 +21,12 @@ public struct Test : IFlatbufferObject
   public sbyte B { get { return __p.bb.GetSbyte(__p.bb_pos + 2); } }
   public void MutateB(sbyte b) { __p.bb.PutSbyte(__p.bb_pos + 2, b); }
 
-  public static Offset<MyGame.Example.Test> CreateTest(FlatBufferBuilder builder, short A, sbyte B) {
+  public static Offset<global::MyGame.Example.Test> CreateTest(FlatBufferBuilder builder, short A, sbyte B) {
     builder.Prep(2, 4);
     builder.Pad(1);
     builder.PutSbyte(B);
     builder.PutShort(A);
-    return new Offset<MyGame.Example.Test>(builder.Offset);
+    return new Offset<global::MyGame.Example.Test>(builder.Offset);
   }
   public TestT UnPack() {
     var _o = new TestT();
@@ -37,8 +37,8 @@ public struct Test : IFlatbufferObject
     _o.A = this.A;
     _o.B = this.B;
   }
-  public static Offset<MyGame.Example.Test> Pack(FlatBufferBuilder builder, TestT _o) {
-    if (_o == null) return default(Offset<MyGame.Example.Test>);
+  public static Offset<global::MyGame.Example.Test> Pack(FlatBufferBuilder builder, TestT _o) {
+    if (_o == null) return default(Offset<global::MyGame.Example.Test>);
     return CreateTest(
       builder,
       _o.A,

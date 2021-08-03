@@ -21,11 +21,11 @@ public struct StructInNestedNS : IFlatbufferObject
   public int B { get { return __p.bb.GetInt(__p.bb_pos + 4); } }
   public void MutateB(int b) { __p.bb.PutInt(__p.bb_pos + 4, b); }
 
-  public static Offset<NamespaceA.NamespaceB.StructInNestedNS> CreateStructInNestedNS(FlatBufferBuilder builder, int A, int B) {
+  public static Offset<global::NamespaceA.NamespaceB.StructInNestedNS> CreateStructInNestedNS(FlatBufferBuilder builder, int A, int B) {
     builder.Prep(4, 8);
     builder.PutInt(B);
     builder.PutInt(A);
-    return new Offset<NamespaceA.NamespaceB.StructInNestedNS>(builder.Offset);
+    return new Offset<global::NamespaceA.NamespaceB.StructInNestedNS>(builder.Offset);
   }
   public StructInNestedNST UnPack() {
     var _o = new StructInNestedNST();
@@ -36,8 +36,8 @@ public struct StructInNestedNS : IFlatbufferObject
     _o.A = this.A;
     _o.B = this.B;
   }
-  public static Offset<NamespaceA.NamespaceB.StructInNestedNS> Pack(FlatBufferBuilder builder, StructInNestedNST _o) {
-    if (_o == null) return default(Offset<NamespaceA.NamespaceB.StructInNestedNS>);
+  public static Offset<global::NamespaceA.NamespaceB.StructInNestedNS> Pack(FlatBufferBuilder builder, StructInNestedNST _o) {
+    if (_o == null) return default(Offset<global::NamespaceA.NamespaceB.StructInNestedNS>);
     return CreateStructInNestedNS(
       builder,
       _o.A,

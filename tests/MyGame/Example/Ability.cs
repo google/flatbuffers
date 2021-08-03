@@ -21,11 +21,11 @@ public struct Ability : IFlatbufferObject
   public uint Distance { get { return __p.bb.GetUint(__p.bb_pos + 4); } }
   public void MutateDistance(uint distance) { __p.bb.PutUint(__p.bb_pos + 4, distance); }
 
-  public static Offset<MyGame.Example.Ability> CreateAbility(FlatBufferBuilder builder, uint Id, uint Distance) {
+  public static Offset<global::MyGame.Example.Ability> CreateAbility(FlatBufferBuilder builder, uint Id, uint Distance) {
     builder.Prep(4, 8);
     builder.PutUint(Distance);
     builder.PutUint(Id);
-    return new Offset<MyGame.Example.Ability>(builder.Offset);
+    return new Offset<global::MyGame.Example.Ability>(builder.Offset);
   }
   public AbilityT UnPack() {
     var _o = new AbilityT();
@@ -36,8 +36,8 @@ public struct Ability : IFlatbufferObject
     _o.Id = this.Id;
     _o.Distance = this.Distance;
   }
-  public static Offset<MyGame.Example.Ability> Pack(FlatBufferBuilder builder, AbilityT _o) {
-    if (_o == null) return default(Offset<MyGame.Example.Ability>);
+  public static Offset<global::MyGame.Example.Ability> Pack(FlatBufferBuilder builder, AbilityT _o) {
+    if (_o == null) return default(Offset<global::MyGame.Example.Ability>);
     return CreateAbility(
       builder,
       _o.Id,

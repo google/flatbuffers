@@ -31,7 +31,7 @@ public struct Stat : IFlatbufferObject
   public ushort Count { get { int o = __p.__offset(8); return o != 0 ? __p.bb.GetUshort(o + __p.bb_pos) : (ushort)0; } }
   public bool MutateCount(ushort count) { int o = __p.__offset(8); if (o != 0) { __p.bb.PutUshort(o + __p.bb_pos, count); return true; } else { return false; } }
 
-  public static Offset<MyGame.Example.Stat> CreateStat(FlatBufferBuilder builder,
+  public static Offset<global::MyGame.Example.Stat> CreateStat(FlatBufferBuilder builder,
       StringOffset idOffset = default(StringOffset),
       long val = 0,
       ushort count = 0) {
@@ -46,9 +46,9 @@ public struct Stat : IFlatbufferObject
   public static void AddId(FlatBufferBuilder builder, StringOffset idOffset) { builder.AddOffset(0, idOffset.Value, 0); }
   public static void AddVal(FlatBufferBuilder builder, long val) { builder.AddLong(1, val, 0); }
   public static void AddCount(FlatBufferBuilder builder, ushort count) { builder.AddUshort(2, count, 0); }
-  public static Offset<MyGame.Example.Stat> EndStat(FlatBufferBuilder builder) {
+  public static Offset<global::MyGame.Example.Stat> EndStat(FlatBufferBuilder builder) {
     int o = builder.EndTable();
-    return new Offset<MyGame.Example.Stat>(o);
+    return new Offset<global::MyGame.Example.Stat>(o);
   }
 
   public static VectorOffset CreateSortedVectorOfStat(FlatBufferBuilder builder, Offset<Stat>[] offsets) {
@@ -85,8 +85,8 @@ public struct Stat : IFlatbufferObject
     _o.Val = this.Val;
     _o.Count = this.Count;
   }
-  public static Offset<MyGame.Example.Stat> Pack(FlatBufferBuilder builder, StatT _o) {
-    if (_o == null) return default(Offset<MyGame.Example.Stat>);
+  public static Offset<global::MyGame.Example.Stat> Pack(FlatBufferBuilder builder, StatT _o) {
+    if (_o == null) return default(Offset<global::MyGame.Example.Stat>);
     var _id = _o.Id == null ? default(StringOffset) : builder.CreateString(_o.Id);
     return CreateStat(
       builder,
