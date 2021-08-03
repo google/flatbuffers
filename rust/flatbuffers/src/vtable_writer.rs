@@ -16,7 +16,7 @@
 
 use std::ptr::write_bytes;
 
-use crate::endian_scalar::{emplace_scalar, read_scalar_at};
+use crate::endian_scalar::emplace_scalar;
 use crate::primitives::*;
 
 /// VTableWriter compartmentalizes actions needed to create a vtable.
@@ -52,16 +52,6 @@ impl<'a> VTableWriter<'a> {
         unsafe {
             emplace_scalar::<VOffsetT>(&mut self.buf[SIZE_VOFFSET..2 * SIZE_VOFFSET], n);
         }
-    }
-
-    /// Gets an object field offset from the vtable. Only used for debugging.
-    ///
-    /// Note that this expects field offsets (which are like pointers), not
-    /// field ids (which are like array indices).
-    #[inline(always)]
-    pub fn get_field_offset(&self, vtable_offset: VOffsetT) -> VOffsetT {
-        let idx = vtable_offset as usize;
-        unsafe { read_scalar_at::<VOffsetT>(&self.buf, idx) }
     }
 
     /// Writes an object field offset into the vtable.

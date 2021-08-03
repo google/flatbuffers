@@ -554,61 +554,43 @@ impl<'fbb> FlatBufferBuilder<'fbb> {
             // serialize every FieldLoc to the vtable:
             for &fl in self.field_locs.iter() {
                 let pos: VOffsetT = (object_revloc_to_vtable.value() - fl.off) as VOffsetT;
-                debug_assert_eq!(
-                    vtfw.get_field_offset(fl.id),
-                    0,
-                    "tried to write a vtable field multiple times"
-                );
                 vtfw.write_field_offset(fl.id, pos);
             }
         }
-        let dup_vt_use = {
-            let this_vt = VTable::init(&self.owned_buf[..], self.head);
-            self.find_duplicate_stored_vtable_revloc(this_vt)
-        };
-
-        let vt_use = match dup_vt_use {
-            Some(n) => {
+        let new_vt_bytes = &self.owned_buf[vt_start_pos..vt_end_pos];
+        let found = self.written_vtable_revpos.binary_search_by(|old_vtable_revpos: &UOffsetT| {
+            let old_vtable_pos = self.owned_buf.len() - *old_vtable_revpos as usize;
+            let old_vtable = VTable::init(&self.owned_buf, old_vtable_pos);
+            new_vt_bytes.cmp(old_vtable.as_bytes())
+        });
+        let final_vtable_revpos = match found {
+            Ok(i) => {
+                // The new vtable is a duplicate so clear it.
                 VTableWriter::init(&mut self.owned_buf[vt_start_pos..vt_end_pos]).clear();
                 self.head += vtable_byte_len;
-                n
+                self.written_vtable_revpos[i]
             }
-            None => {
-                let new_vt_use = self.used_space() as UOffsetT;
-                self.written_vtable_revpos.push(new_vt_use);
-                new_vt_use
+            Err(i) => {
+                // This is a new vtable. Add it to the cache.
+                let new_vt_revpos = self.used_space() as UOffsetT;
+                self.written_vtable_revpos.insert(i, new_vt_revpos);
+                new_vt_revpos
             }
         };
-
-        {
-            let n = self.head + self.used_space() - object_revloc_to_vtable.value() as usize;
-            let saw = unsafe { read_scalar_at::<UOffsetT>(&self.owned_buf, n) };
-            debug_assert_eq!(saw, 0xF0F0_F0F0);
-            unsafe {
-                emplace_scalar::<SOffsetT>(
-                    &mut self.owned_buf[n..n + SIZE_SOFFSET],
-                    vt_use as SOffsetT - object_revloc_to_vtable.value() as SOffsetT,
-                );
-            }
+        // Write signed offset from table to its vtable.
+        let table_pos = self.owned_buf.len() - object_revloc_to_vtable.value() as usize;
+        let tmp_soffset_to_vt = unsafe { read_scalar_at::<UOffsetT>(&self.owned_buf, table_pos) };
+        debug_assert_eq!(tmp_soffset_to_vt, 0xF0F0_F0F0);
+        unsafe {
+            emplace_scalar::<SOffsetT>(
+                &mut self.owned_buf[table_pos..table_pos + SIZE_SOFFSET],
+                final_vtable_revpos as SOffsetT - object_revloc_to_vtable.value() as SOffsetT
+            );
         }
 
         self.field_locs.clear();
 
         object_revloc_to_vtable
-    }
-
-    #[inline]
-    fn find_duplicate_stored_vtable_revloc(&self, needle: VTable) -> Option<UOffsetT> {
-        for &revloc in self.written_vtable_revpos.iter().rev() {
-            let o = VTable::init(
-                &self.owned_buf[..],
-                self.head + self.used_space() - revloc as usize,
-            );
-            if needle == o {
-                return Some(revloc);
-            }
-        }
-        None
     }
 
     // Only call this when you know it is safe to double the size of the buffer.
