@@ -177,12 +177,12 @@ struct Rapunzel::Traits {
   using type = Rapunzel;
   static constexpr auto name = "Rapunzel";
   static constexpr auto fully_qualified_name = "Rapunzel";
-  static constexpr std::array<const char *, 1> field_names = {
+  static constexpr size_t fields_number = 1;
+  static constexpr std::array<const char *, fields_number> field_names = {
     "hair_length"
   };
   template<size_t Index>
   using FieldType = decltype(std::declval<type>().get_field<Index>());
-  static constexpr size_t fields_number = 1;
 };
 
 FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) BookReader FLATBUFFERS_FINAL_CLASS {
@@ -218,12 +218,12 @@ struct BookReader::Traits {
   using type = BookReader;
   static constexpr auto name = "BookReader";
   static constexpr auto fully_qualified_name = "BookReader";
-  static constexpr std::array<const char *, 1> field_names = {
+  static constexpr size_t fields_number = 1;
+  static constexpr std::array<const char *, fields_number> field_names = {
     "books_read"
   };
   template<size_t Index>
   using FieldType = decltype(std::declval<type>().get_field<Index>());
-  static constexpr size_t fields_number = 1;
 };
 
 struct AttackerT : public flatbuffers::NativeTable {
@@ -293,12 +293,12 @@ struct Attacker::Traits {
   static auto constexpr Create = CreateAttacker;
   static constexpr auto name = "Attacker";
   static constexpr auto fully_qualified_name = "Attacker";
-  static constexpr std::array<const char *, 1> field_names = {
+  static constexpr size_t fields_number = 1;
+  static constexpr std::array<const char *, fields_number> field_names = {
     "sword_attack_damage"
   };
   template<size_t Index>
   using FieldType = decltype(std::declval<type>().get_field<Index>());
-  static constexpr size_t fields_number = 1;
 };
 
 flatbuffers::Offset<Attacker> CreateAttacker(flatbuffers::FlatBufferBuilder &_fbb, const AttackerT *_o, const flatbuffers::rehasher_function_t *_rehasher = nullptr);
@@ -432,7 +432,8 @@ struct Movie::Traits {
   static auto constexpr Create = CreateMovie;
   static constexpr auto name = "Movie";
   static constexpr auto fully_qualified_name = "Movie";
-  static constexpr std::array<const char *, 4> field_names = {
+  static constexpr size_t fields_number = 4;
+  static constexpr std::array<const char *, fields_number> field_names = {
     "main_character_type",
     "main_character",
     "characters_type",
@@ -440,7 +441,6 @@ struct Movie::Traits {
   };
   template<size_t Index>
   using FieldType = decltype(std::declval<type>().get_field<Index>());
-  static constexpr size_t fields_number = 4;
 };
 
 inline flatbuffers::Offset<Movie> CreateMovieDirect(
