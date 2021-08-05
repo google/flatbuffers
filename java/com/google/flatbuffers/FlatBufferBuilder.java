@@ -1089,10 +1089,10 @@ public class FlatBufferBuilder {
      */
     public InputStream sizedInputStream() {
         finished();
-        ByteBuffer duplicate = bb.duplicate();
-        ((Buffer) duplicate).position(space);
+        Buffer duplicate = ((Buffer) bb).duplicate();
+        duplicate.position(space);
         duplicate.limit(bb.capacity());
-        return new ByteBufferBackedInputStream(duplicate);
+        return new ByteBufferBackedInputStream((ByteBuffer) duplicate);
     }
 
     /**
