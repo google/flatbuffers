@@ -96,7 +96,7 @@ template<> struct UnionTraits<Evolution::V1::TableB> {
 };
 
 bool VerifyUnion(flatbuffers::Verifier &verifier, const void *obj, Union type);
-bool VerifyUnionVector(flatbuffers::Verifier &verifier, const flatbuffers::Vector<flatbuffers::Offset<void>> *values, const flatbuffers::Vector<uint8_t> *types);
+bool VerifyUnionVector(flatbuffers::Verifier &verifier, const flatbuffers::Vector<flatbuffers::Offset<void>> *values, const flatbuffers::Vector<Union> *types);
 
 FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(8) Struct FLATBUFFERS_FINAL_CLASS {
  private:
@@ -394,7 +394,7 @@ inline flatbuffers::Offset<Root> CreateRoot(
     flatbuffers::Offset<void> c = 0,
     Evolution::V1::Enum d = Evolution::V1::Enum::King,
     flatbuffers::Offset<Evolution::V1::TableA> e = 0,
-    const Evolution::V1::Struct *f = 0,
+    const Evolution::V1::Struct *f = nullptr,
     flatbuffers::Offset<flatbuffers::Vector<int32_t>> g = 0,
     flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<Evolution::V1::TableB>>> h = 0,
     int32_t i = 1234,
@@ -424,7 +424,7 @@ inline flatbuffers::Offset<Root> CreateRootDirect(
     flatbuffers::Offset<void> c = 0,
     Evolution::V1::Enum d = Evolution::V1::Enum::King,
     flatbuffers::Offset<Evolution::V1::TableA> e = 0,
-    const Evolution::V1::Struct *f = 0,
+    const Evolution::V1::Struct *f = nullptr,
     const std::vector<int32_t> *g = nullptr,
     const std::vector<flatbuffers::Offset<Evolution::V1::TableB>> *h = nullptr,
     int32_t i = 1234,
@@ -465,7 +465,7 @@ inline bool VerifyUnion(flatbuffers::Verifier &verifier, const void *obj, Union 
   }
 }
 
-inline bool VerifyUnionVector(flatbuffers::Verifier &verifier, const flatbuffers::Vector<flatbuffers::Offset<void>> *values, const flatbuffers::Vector<uint8_t> *types) {
+inline bool VerifyUnionVector(flatbuffers::Verifier &verifier, const flatbuffers::Vector<flatbuffers::Offset<void>> *values, const flatbuffers::Vector<Union> *types) {
   if (!values || !types) return !values && !types;
   if (values->size() != types->size()) return false;
   for (flatbuffers::uoffset_t i = 0; i < values->size(); ++i) {

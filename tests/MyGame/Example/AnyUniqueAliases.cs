@@ -25,8 +25,11 @@ public class AnyUniqueAliasesUnion {
 
   public T As<T>() where T : class { return this.Value as T; }
   public MyGame.Example.MonsterT AsM() { return this.As<MyGame.Example.MonsterT>(); }
+  public static AnyUniqueAliasesUnion FromM(MyGame.Example.MonsterT _m) { return new AnyUniqueAliasesUnion{ Type = AnyUniqueAliases.M, Value = _m }; }
   internal MyGame.Example.TestSimpleTableWithEnumT AsTS() { return this.As<MyGame.Example.TestSimpleTableWithEnumT>(); }
+  internal static AnyUniqueAliasesUnion FromTS(MyGame.Example.TestSimpleTableWithEnumT _ts) { return new AnyUniqueAliasesUnion{ Type = AnyUniqueAliases.TS, Value = _ts }; }
   public MyGame.Example2.MonsterT AsM2() { return this.As<MyGame.Example2.MonsterT>(); }
+  public static AnyUniqueAliasesUnion FromM2(MyGame.Example2.MonsterT _m2) { return new AnyUniqueAliasesUnion{ Type = AnyUniqueAliases.M2, Value = _m2 }; }
 
   public static int Pack(FlatBuffers.FlatBufferBuilder builder, AnyUniqueAliasesUnion _o) {
     switch (_o.Type) {

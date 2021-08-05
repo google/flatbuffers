@@ -19,15 +19,13 @@ pushd "$(dirname $0)" >/dev/null
 command -v dart >/dev/null 2>&1 || { echo >&2 "Dart tests require dart to be in path but it's not installed.  Aborting."; exit 1; }
 # output required files to the dart folder so that pub will be able to
 # distribute them and more people can more easily run the dart tests
-../flatc --dart -I include_test -o ../dart/test monster_test.fbs
+../flatc --dart --gen-object-api -I include_test -o ../dart/test monster_test.fbs
 cp monsterdata_test.mon ../dart/test
+cp monster_test.fbs ../dart/test
 
 cd ../dart
 
 # update packages
 dart pub get
 # Execute the sample.
-dart test/flat_buffers_test.dart
-
-# cleanup
-rm ../dart/test/monsterdata_test.mon
+dart test

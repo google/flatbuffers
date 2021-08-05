@@ -443,6 +443,7 @@ function(compile_flatbuffers_schema_to_binary SRC_FBS)
     OUTPUT ${GEN_BINARY_SCHEMA}
     COMMAND "${FLATBUFFERS_FLATC_EXECUTABLE}"
             -b --schema --bfbs-comments --bfbs-builtins
+            --bfbs-filenames ${SRC_FBS_DIR}
             -I "${CMAKE_CURRENT_SOURCE_DIR}/tests/include_test"
             -o "${SRC_FBS_DIR}"
             "${CMAKE_CURRENT_SOURCE_DIR}/${SRC_FBS}"
@@ -468,6 +469,7 @@ function(compile_flatbuffers_schema_to_embedded_binary SRC_FBS OPT)
           --cpp-ptr-type flatbuffers::unique_ptr # Used to test with C++98 STLs
           ${OPT}
           --bfbs-comments --bfbs-builtins --bfbs-gen-embed
+          --bfbs-filenames ${SRC_FBS_DIR}
           -I "${CMAKE_CURRENT_SOURCE_DIR}/tests/include_test"
           -o "${SRC_FBS_DIR}"
           "${CMAKE_CURRENT_SOURCE_DIR}/${SRC_FBS}"
@@ -483,9 +485,9 @@ if(FLATBUFFERS_BUILD_TESTS)
   # TODO Add (monster_test.fbs monsterdata_test.json)->monsterdata_test.mon
   compile_flatbuffers_schema_to_cpp(tests/monster_test.fbs)
   compile_flatbuffers_schema_to_binary(tests/monster_test.fbs)
-  compile_flatbuffers_schema_to_cpp(tests/namespace_test/namespace_test1.fbs)
-  compile_flatbuffers_schema_to_cpp(tests/namespace_test/namespace_test2.fbs)
-  compile_flatbuffers_schema_to_cpp(tests/union_vector/union_vector.fbs)
+  compile_flatbuffers_schema_to_cpp_opt(tests/namespace_test/namespace_test1.fbs "--no-includes;--gen-compare;--gen-name-strings")
+  compile_flatbuffers_schema_to_cpp_opt(tests/namespace_test/namespace_test2.fbs "--no-includes;--gen-compare;--gen-name-strings")
+  compile_flatbuffers_schema_to_cpp_opt(tests/union_vector/union_vector.fbs "--no-includes;--gen-compare;--gen-name-strings")
   compile_flatbuffers_schema_to_cpp(tests/optional_scalars.fbs)
   compile_flatbuffers_schema_to_cpp_opt(tests/native_type_test.fbs "")
   compile_flatbuffers_schema_to_cpp_opt(tests/arrays_test.fbs "--scoped-enums;--gen-compare")
@@ -545,6 +547,7 @@ if(FLATBUFFERS_BUILD_GRPCTEST)
   INCLUDE_DIRECTORIES(${PROTOBUF_DOWNLOAD_PATH}/src)
   find_package(Threads REQUIRED)
   list(APPEND CMAKE_PREFIX_PATH ${GRPC_INSTALL_PATH})
+  find_package(absl CONFIG REQUIRED)
   find_package(protobuf CONFIG REQUIRED)
   find_package(gRPC CONFIG REQUIRED)
   add_executable(grpctest ${FlatBuffers_GRPCTest_SRCS})

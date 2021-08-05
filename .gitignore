@@ -129,10 +129,6 @@ package-lock.json
 /*.ilk
 /*.pdb
 .clwb
-js/**/*.js
-js/**/*.d.ts
-mjs/**/*.js
-mjs/**/*.d.ts
 yarn-error.log
 .cache/
 /flatbuffers.lib
@@ -141,3 +137,4 @@ yarn-error.log
 **/vendor
 **/go.sum
 flatbuffers.pc
+**/FlatBuffers.Test.Swift.xcodeproj

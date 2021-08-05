@@ -202,7 +202,7 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) Rapunzel FLATBUFFERS_FINAL_CLASS {
   static const flatbuffers::TypeTable *MiniReflectTypeTable() {
     return RapunzelTypeTable();
   }
-  static FLATBUFFERS_CONSTEXPR const char *GetFullyQualifiedName() {
+  static FLATBUFFERS_CONSTEXPR_CPP11 const char *GetFullyQualifiedName() {
     return "Rapunzel";
   }
   Rapunzel()
@@ -238,7 +238,7 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) BookReader FLATBUFFERS_FINAL_CLASS {
   static const flatbuffers::TypeTable *MiniReflectTypeTable() {
     return BookReaderTypeTable();
   }
-  static FLATBUFFERS_CONSTEXPR const char *GetFullyQualifiedName() {
+  static FLATBUFFERS_CONSTEXPR_CPP11 const char *GetFullyQualifiedName() {
     return "BookReader";
   }
   BookReader()
@@ -268,21 +268,11 @@ inline bool operator!=(const BookReader &lhs, const BookReader &rhs) {
 
 struct AttackerT : public flatbuffers::NativeTable {
   typedef Attacker TableType;
-  static FLATBUFFERS_CONSTEXPR const char *GetFullyQualifiedName() {
+  static FLATBUFFERS_CONSTEXPR_CPP11 const char *GetFullyQualifiedName() {
     return "AttackerT";
   }
   int32_t sword_attack_damage = 0;
 };
-
-inline bool operator==(const AttackerT &lhs, const AttackerT &rhs) {
-  return
-      (lhs.sword_attack_damage == rhs.sword_attack_damage);
-}
-
-inline bool operator!=(const AttackerT &lhs, const AttackerT &rhs) {
-    return !(lhs == rhs);
-}
-
 
 struct Attacker FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   typedef AttackerT NativeTableType;
@@ -290,7 +280,7 @@ struct Attacker FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   static const flatbuffers::TypeTable *MiniReflectTypeTable() {
     return AttackerTypeTable();
   }
-  static FLATBUFFERS_CONSTEXPR const char *GetFullyQualifiedName() {
+  static FLATBUFFERS_CONSTEXPR_CPP11 const char *GetFullyQualifiedName() {
     return "Attacker";
   }
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
@@ -342,23 +332,12 @@ flatbuffers::Offset<Attacker> CreateAttacker(flatbuffers::FlatBufferBuilder &_fb
 
 struct MovieT : public flatbuffers::NativeTable {
   typedef Movie TableType;
-  static FLATBUFFERS_CONSTEXPR const char *GetFullyQualifiedName() {
+  static FLATBUFFERS_CONSTEXPR_CPP11 const char *GetFullyQualifiedName() {
     return "MovieT";
   }
   CharacterUnion main_character{};
   std::vector<CharacterUnion> characters{};
 };
-
-inline bool operator==(const MovieT &lhs, const MovieT &rhs) {
-  return
-      (lhs.main_character == rhs.main_character) &&
-      (lhs.characters == rhs.characters);
-}
-
-inline bool operator!=(const MovieT &lhs, const MovieT &rhs) {
-    return !(lhs == rhs);
-}
-
 
 struct Movie FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   typedef MovieT NativeTableType;
@@ -366,7 +345,7 @@ struct Movie FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   static const flatbuffers::TypeTable *MiniReflectTypeTable() {
     return MovieTypeTable();
   }
-  static FLATBUFFERS_CONSTEXPR const char *GetFullyQualifiedName() {
+  static FLATBUFFERS_CONSTEXPR_CPP11 const char *GetFullyQualifiedName() {
     return "Movie";
   }
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
@@ -490,6 +469,17 @@ inline flatbuffers::Offset<Movie> CreateMovieDirect(
 
 flatbuffers::Offset<Movie> CreateMovie(flatbuffers::FlatBufferBuilder &_fbb, const MovieT *_o, const flatbuffers::rehasher_function_t *_rehasher = nullptr);
 
+
+inline bool operator==(const AttackerT &lhs, const AttackerT &rhs) {
+  return
+      (lhs.sword_attack_damage == rhs.sword_attack_damage);
+}
+
+inline bool operator!=(const AttackerT &lhs, const AttackerT &rhs) {
+    return !(lhs == rhs);
+}
+
+
 inline AttackerT *Attacker::UnPack(const flatbuffers::resolver_function_t *_resolver) const {
   auto _o = std::unique_ptr<AttackerT>(new AttackerT());
   UnPackTo(_o.get(), _resolver);
@@ -515,6 +505,18 @@ inline flatbuffers::Offset<Attacker> CreateAttacker(flatbuffers::FlatBufferBuild
       _fbb,
       _sword_attack_damage);
 }
+
+
+inline bool operator==(const MovieT &lhs, const MovieT &rhs) {
+  return
+      (lhs.main_character == rhs.main_character) &&
+      (lhs.characters == rhs.characters);
+}
+
+inline bool operator!=(const MovieT &lhs, const MovieT &rhs) {
+    return !(lhs == rhs);
+}
+
 
 inline MovieT *Movie::UnPack(const flatbuffers::resolver_function_t *_resolver) const {
   auto _o = std::unique_ptr<MovieT>(new MovieT());

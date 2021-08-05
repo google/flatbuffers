@@ -209,7 +209,7 @@ def flatbuffer_cc_library(
         Happy dependent Flatbuffering!
     '''
     output_headers = [
-        (out_prefix + "%s_generated.h") % (s.replace(".fbs", "").split("/")[-1])
+        (out_prefix + "%s_generated.h") % (s.replace(".fbs", "").split("/")[-1].split(":")[-1])
         for s in srcs
     ]
     reflection_name = "%s_reflection" % name if gen_reflections else ""

@@ -33,32 +33,28 @@ mod more_defaults_test;
 mod optional_scalars_test;
 
 #[allow(dead_code, unused_imports)]
-#[path = "../../include_test/include_test1_generated.rs"]
+#[path = "../../include_test1/mod.rs"]
 pub mod include_test1_generated;
 
 #[allow(dead_code, unused_imports)]
-#[path = "../../include_test/sub/include_test2_generated.rs"]
+#[path = "../../include_test2/mod.rs"]
 pub mod include_test2_generated;
 
 #[allow(dead_code, unused_imports)]
-#[path = "../../namespace_test/namespace_test1_generated.rs"]
-pub mod namespace_test1_generated;
+#[path = "../../namespace_test/mod.rs"]
+pub mod namespace_test_generated;
 
 #[allow(dead_code, unused_imports)]
-#[path = "../../namespace_test/namespace_test2_generated.rs"]
-pub mod namespace_test2_generated;
-
-#[allow(dead_code, unused_imports)]
-#[path = "../../monster_test_generated.rs"]
+#[path = "../../monster_test/mod.rs"]
 mod monster_test_generated;
 pub use monster_test_generated::my_game;
 
 #[allow(dead_code, unused_imports)]
-#[path = "../../optional_scalars_generated.rs"]
+#[path = "../../optional_scalars/mod.rs"]
 mod optional_scalars_generated;
 
 #[allow(dead_code, unused_imports)]
-#[path = "../../arrays_test_generated.rs"]
+#[path = "../../arrays_test/mod.rs"]
 mod arrays_test_generated;
 
 #[rustfmt::skip] // TODO: Use standard rust formatting and remove dead code.
@@ -358,13 +354,13 @@ fn test_object_api_reads_correctly() -> Result<(), &'static str>{
 // Disabled due to Windows CI limitations.
 // #[test]
 // fn builder_initializes_with_maximum_buffer_size() {
-//     flatbuffers::FlatBufferBuilder::new_with_capacity(flatbuffers::FLATBUFFERS_MAX_BUFFER_SIZE);
+//     flatbuffers::FlatBufferBuilder::with_capacity(flatbuffers::FLATBUFFERS_MAX_BUFFER_SIZE);
 // }
 
 #[should_panic]
 #[test]
 fn builder_abort_with_greater_than_maximum_buffer_size() {
-    flatbuffers::FlatBufferBuilder::new_with_capacity(flatbuffers::FLATBUFFERS_MAX_BUFFER_SIZE+1);
+    flatbuffers::FlatBufferBuilder::with_capacity(flatbuffers::FLATBUFFERS_MAX_BUFFER_SIZE+1);
 }
 
 #[test]
@@ -2026,23 +2022,17 @@ mod generated_key_comparisons {
 
 #[cfg(test)]
 mod included_schema_generated_code {
-    extern crate flatbuffers;
 
-    //extern crate rust_usage_test;
+    #[test]
+    #[allow(unused_imports)]
+    fn namespace_test_mod_is_importable() {
+        use super::namespace_test_generated::{
+            namespace_a,
+            namespace_a::namespace_b,
+            namespace_c,
+        };
 
-    // TODO(rw): make generated sub-namespace files importable
-    //#[test]
-    //fn namespace_test_mod_is_importable() {
-    //    use rust_usage_test::namespace_test;
-    //}
-    //#[test]
-    //fn namespace_test1_mod_is_importable() {
-    //    use rust_usage_test::namespace_test::namespace_test1_generated;
-    //}
-    //#[test]
-    //fn namespace_test2_mod_is_importable() {
-    //    use rust_usage_test::namespace_test::namespace_test2_generated;
-    //}
+    }
 }
 
 #[cfg(test)]
@@ -2113,7 +2103,7 @@ mod follow_impls {
     // Define a test struct to use in a few tests. This replicates the work that the code generator
     // would normally do when defining a FlatBuffer struct. For reference, compare the following
     // `FooStruct` code with the code generated for the `Vec3` struct in
-    // `../../monster_test_generated.rs`.
+    // `../../monster_test/mod.rs`.
     use flatbuffers::EndianScalar;
     #[derive(Copy, Clone, Debug, PartialEq)]
     #[repr(C, packed)]
@@ -2605,7 +2595,7 @@ mod byte_layouts {
 
     #[test]
     fn layout_03b_11xbyte_vector_matches_builder_size() {
-        let mut b = flatbuffers::FlatBufferBuilder::new_with_capacity(12);
+        let mut b = flatbuffers::FlatBufferBuilder::with_capacity(12);
         b.start_vector::<u8>(8);
 
         let mut gold = vec![0u8; 0];

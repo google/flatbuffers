@@ -31,12 +31,12 @@ set TEST_CPP_FLAGS=--gen-compare --cpp-ptr-type flatbuffers::unique_ptr %TEST_CP
 set TEST_CS_FLAGS=--cs-gen-json-serializer
 set TEST_TS_FLAGS=--gen-name-strings
 set TEST_BASE_FLAGS=--reflect-names --gen-mutable --gen-object-api
-set TEST_RUST_FLAGS=%TEST_BASE_FLAGS% --gen-name-strings
+set TEST_RUST_FLAGS=%TEST_BASE_FLAGS% --gen-name-strings --gen-all
 set TEST_NOINCL_FLAGS=%TEST_BASE_FLAGS% --no-includes
 
 ..\%buildtype%\flatc.exe --binary --cpp --java --kotlin --csharp --dart --go --lobster --lua --ts --php --grpc ^
 %TEST_NOINCL_FLAGS% %TEST_CPP_FLAGS% %TEST_CS_FLAGS% -I include_test monster_test.fbs monsterdata_test.json || goto FAIL
-..\%buildtype%\flatc.exe --rust %TEST_RUST_FLAGS% -I include_test monster_test.fbs monsterdata_test.json || goto FAIL
+..\%buildtype%\flatc.exe --rust %TEST_RUST_FLAGS% -I include_test -o monster_test monster_test.fbs monsterdata_test.json || goto FAIL
 
 ..\%buildtype%\flatc.exe --python %TEST_BASE_FLAGS% -I include_test monster_test.fbs monsterdata_test.json || goto FAIL
 
@@ -45,25 +45,27 @@ set TEST_NOINCL_FLAGS=%TEST_BASE_FLAGS% --no-includes
 
 @rem For Rust we currently generate two independent schemas, with namespace_test2
 @rem duplicating the types in namespace_test1
-..\%buildtype%\flatc.exe --rust --gen-all %TEST_RUST_FLAGS% -o namespace_test namespace_test/namespace_test1.fbs namespace_test/namespace_test2.fbs || goto FAIL
+..\%buildtype%\flatc.exe --rust %TEST_RUST_FLAGS% -o namespace_test namespace_test/namespace_test1.fbs namespace_test/namespace_test2.fbs || goto FAIL
 
 ..\%buildtype%\flatc.exe --cpp --java --csharp --ts --php %TEST_BASE_FLAGS% %TEST_CPP_FLAGS% %TEST_CS_FLAGS% %TEST_TS_FLAGS% -o union_vector ./union_vector/union_vector.fbs || goto FAIL
 ..\%buildtype%\flatc.exe --ts --gen-name-strings --gen-mutable %TEST_BASE_FLAGS% %TEST_TS_FLAGS% -I include_test monster_test.fbs
 ..\%buildtype%\flatc.exe %TEST_BASE_FLAGS% %TEST_TS_FLAGS% -b -I include_test monster_test.fbs unicode_test.json
 ..\%buildtype%\flatc.exe --ts --gen-name-strings %TEST_BASE_FLAGS% %TEST_TS_FLAGS% -o union_vector union_vector/union_vector.fbs
-..\%buildtype%\flatc.exe --rust -I include_test -o include_test include_test/include_test1.fbs || goto FAIL
-..\%buildtype%\flatc.exe --rust -I include_test -o include_test/sub include_test/sub/include_test2.fbs || goto FAIL
-..\%buildtype%\flatc.exe -b --schema --bfbs-comments --bfbs-builtins -I include_test monster_test.fbs || goto FAIL
+..\%buildtype%\flatc.exe --rust %TEST_RUST_FLAGS% -I include_test -o include_test1 include_test/include_test1.fbs || goto FAIL
+..\%buildtype%\flatc.exe --rust %TEST_RUST_FLAGS% -I include_test -o include_test2 include_test/sub/include_test2.fbs || goto FAIL
+..\%buildtype%\flatc.exe -b --schema --bfbs-comments --bfbs-filenames . --bfbs-builtins -I include_test monster_test.fbs || goto FAIL
 ..\%buildtype%\flatc.exe --cpp --bfbs-comments --bfbs-builtins --bfbs-gen-embed %TEST_NOINCL_FLAGS% %TEST_CPP_FLAGS% -I include_test monster_test.fbs || goto FAIL
 ..\%buildtype%\flatc.exe -b --schema --bfbs-comments --bfbs-builtins -I include_test arrays_test.fbs || goto FAIL
 ..\%buildtype%\flatc.exe --jsonschema --schema -I include_test monster_test.fbs || goto FAIL
-..\%buildtype%\flatc.exe --cpp --java --csharp --jsonschema --rust %TEST_NOINCL_FLAGS% %TEST_CPP_FLAGS% %TEST_CS_FLAGS% --scoped-enums arrays_test.fbs || goto FAIL
+..\%buildtype%\flatc.exe --cpp --java --csharp --jsonschema %TEST_NOINCL_FLAGS% %TEST_CPP_FLAGS% %TEST_CS_FLAGS% --scoped-enums arrays_test.fbs || goto FAIL
+..\%buildtype%\flatc.exe --rust %TEST_RUST_FLAGS% -o arrays_test arrays_test.fbs || goto FAIL
 ..\%buildtype%\flatc.exe --python %TEST_BASE_FLAGS% arrays_test.fbs || goto FAIL
 ..\%buildtype%\flatc.exe --cpp %TEST_BASE_FLAGS% --cpp-ptr-type flatbuffers::unique_ptr native_type_test.fbs || goto FAIL
 
 @rem Generate the optional scalar code for tests.
 ..\%buildtype%\flatc.exe --java --kotlin --lobster --ts optional_scalars.fbs || goto FAIL
-..\%buildtype%\flatc.exe --csharp --rust --gen-object-api optional_scalars.fbs || goto FAIL
+..\%buildtype%\flatc.exe --csharp --gen-object-api optional_scalars.fbs || goto FAIL
+..\%buildtype%\flatc.exe --rust %TEST_RUST_FLAGS% -o optional_scalars optional_scalars.fbs || goto FAIL
 ..\%buildtype%\flatc.exe %TEST_NOINCL_FLAGS% %TEST_CPP_FLAGS% --cpp optional_scalars.fbs || goto FAIL
 
 @rem Generate the schema evolution tests
@@ -85,7 +87,7 @@ if NOT "%MONSTER_EXTRA%"=="skip" (
   @rem..\%buildtype%\flatc.exe %TEST_CPP17_FLAGS% arrays_test.fbs                   || goto FAIL
   @rem..\%buildtype%\flatc.exe %TEST_CPP17_FLAGS% native_type_test.fbs              || goto FAIL
   @rem..\%buildtype%\flatc.exe %TEST_CPP17_FLAGS% monster_extra.fbs                 || goto FAIL
-  @rem..\%buildtype%\flatc.exe %TEST_CPP17_FLAGS% ./union_vector/union_vector.fbs   || goto FAIL
+  ..\%buildtype%\flatc.exe %TEST_CPP17_FLAGS% ./union_vector/union_vector.fbs   || goto FAIL
 )
 
 cd ../samples

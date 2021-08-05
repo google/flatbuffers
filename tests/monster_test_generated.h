@@ -842,15 +842,6 @@ struct InParentNamespaceT : public flatbuffers::NativeTable {
   typedef InParentNamespace TableType;
 };
 
-inline bool operator==(const InParentNamespaceT &, const InParentNamespaceT &) {
-  return true;
-}
-
-inline bool operator!=(const InParentNamespaceT &lhs, const InParentNamespaceT &rhs) {
-    return !(lhs == rhs);
-}
-
-
 struct InParentNamespace FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   typedef InParentNamespaceT NativeTableType;
   typedef InParentNamespaceBuilder Builder;
@@ -894,15 +885,6 @@ namespace Example2 {
 struct MonsterT : public flatbuffers::NativeTable {
   typedef Monster TableType;
 };
-
-inline bool operator==(const MonsterT &, const MonsterT &) {
-  return true;
-}
-
-inline bool operator!=(const MonsterT &lhs, const MonsterT &rhs) {
-    return !(lhs == rhs);
-}
-
 
 struct Monster FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   typedef MonsterT NativeTableType;
@@ -950,16 +932,6 @@ struct TestSimpleTableWithEnumT : public flatbuffers::NativeTable {
   typedef TestSimpleTableWithEnum TableType;
   MyGame::Example::Color color = MyGame::Example::Color_Green;
 };
-
-inline bool operator==(const TestSimpleTableWithEnumT &lhs, const TestSimpleTableWithEnumT &rhs) {
-  return
-      (lhs.color == rhs.color);
-}
-
-inline bool operator!=(const TestSimpleTableWithEnumT &lhs, const TestSimpleTableWithEnumT &rhs) {
-    return !(lhs == rhs);
-}
-
 
 struct TestSimpleTableWithEnum FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   typedef TestSimpleTableWithEnumT NativeTableType;
@@ -1020,18 +992,6 @@ struct StatT : public flatbuffers::NativeTable {
   int64_t val = 0;
   uint16_t count = 0;
 };
-
-inline bool operator==(const StatT &lhs, const StatT &rhs) {
-  return
-      (lhs.id == rhs.id) &&
-      (lhs.val == rhs.val) &&
-      (lhs.count == rhs.count);
-}
-
-inline bool operator!=(const StatT &lhs, const StatT &rhs) {
-    return !(lhs == rhs);
-}
-
 
 struct Stat FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   typedef StatT NativeTableType;
@@ -1136,16 +1096,6 @@ struct ReferrableT : public flatbuffers::NativeTable {
   typedef Referrable TableType;
   uint64_t id = 0;
 };
-
-inline bool operator==(const ReferrableT &lhs, const ReferrableT &rhs) {
-  return
-      (lhs.id == rhs.id);
-}
-
-inline bool operator!=(const ReferrableT &lhs, const ReferrableT &rhs) {
-    return !(lhs == rhs);
-}
-
 
 struct Referrable FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   typedef ReferrableT NativeTableType;
@@ -1256,62 +1206,6 @@ struct MonsterT : public flatbuffers::NativeTable {
   std::vector<uint8_t> testrequirednestedflatbuffer{};
   std::vector<flatbuffers::unique_ptr<MyGame::Example::StatT>> scalar_key_sorted_tables{};
 };
-
-inline bool operator==(const MonsterT &lhs, const MonsterT &rhs) {
-  return
-      (lhs.pos == rhs.pos) &&
-      (lhs.mana == rhs.mana) &&
-      (lhs.hp == rhs.hp) &&
-      (lhs.name == rhs.name) &&
-      (lhs.inventory == rhs.inventory) &&
-      (lhs.color == rhs.color) &&
-      (lhs.test == rhs.test) &&
-      (lhs.test4 == rhs.test4) &&
-      (lhs.testarrayofstring == rhs.testarrayofstring) &&
-      (lhs.testarrayoftables == rhs.testarrayoftables) &&
-      (lhs.enemy == rhs.enemy) &&
-      (lhs.testnestedflatbuffer == rhs.testnestedflatbuffer) &&
-      (lhs.testempty == rhs.testempty) &&
-      (lhs.testbool == rhs.testbool) &&
-      (lhs.testhashs32_fnv1 == rhs.testhashs32_fnv1) &&
-      (lhs.testhashu32_fnv1 == rhs.testhashu32_fnv1) &&
-      (lhs.testhashs64_fnv1 == rhs.testhashs64_fnv1) &&
-      (lhs.testhashu64_fnv1 == rhs.testhashu64_fnv1) &&
-      (lhs.testhashs32_fnv1a == rhs.testhashs32_fnv1a) &&
-      (lhs.testhashu32_fnv1a == rhs.testhashu32_fnv1a) &&
-      (lhs.testhashs64_fnv1a == rhs.testhashs64_fnv1a) &&
-      (lhs.testhashu64_fnv1a == rhs.testhashu64_fnv1a) &&
-      (lhs.testarrayofbools == rhs.testarrayofbools) &&
-      (lhs.testf == rhs.testf) &&
-      (lhs.testf2 == rhs.testf2) &&
-      (lhs.testf3 == rhs.testf3) &&
-      (lhs.testarrayofstring2 == rhs.testarrayofstring2) &&
-      (lhs.testarrayofsortedstruct == rhs.testarrayofsortedstruct) &&
-      (lhs.flex == rhs.flex) &&
-      (lhs.test5 == rhs.test5) &&
-      (lhs.vector_of_longs == rhs.vector_of_longs) &&
-      (lhs.vector_of_doubles == rhs.vector_of_doubles) &&
-      (lhs.parent_namespace_test == rhs.parent_namespace_test) &&
-      (lhs.vector_of_referrables == rhs.vector_of_referrables) &&
-      (lhs.single_weak_reference == rhs.single_weak_reference) &&
-      (lhs.vector_of_weak_references == rhs.vector_of_weak_references) &&
-      (lhs.vector_of_strong_referrables == rhs.vector_of_strong_referrables) &&
-      (lhs.co_owning_reference == rhs.co_owning_reference) &&
-      (lhs.vector_of_co_owning_references == rhs.vector_of_co_owning_references) &&
-      (lhs.non_owning_reference == rhs.non_owning_reference) &&
-      (lhs.vector_of_non_owning_references == rhs.vector_of_non_owning_references) &&
-      (lhs.any_unique == rhs.any_unique) &&
-      (lhs.any_ambiguous == rhs.any_ambiguous) &&
-      (lhs.vector_of_enums == rhs.vector_of_enums) &&
-      (lhs.signed_enum == rhs.signed_enum) &&
-      (lhs.testrequirednestedflatbuffer == rhs.testrequirednestedflatbuffer) &&
-      (lhs.scalar_key_sorted_tables == rhs.scalar_key_sorted_tables);
-}
-
-inline bool operator!=(const MonsterT &lhs, const MonsterT &rhs) {
-    return !(lhs == rhs);
-}
-
 
 /// an example documentation comment: "monster object"
 struct Monster FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
@@ -1993,7 +1887,7 @@ struct MonsterBuilder {
 
 inline flatbuffers::Offset<Monster> CreateMonster(
     flatbuffers::FlatBufferBuilder &_fbb,
-    const MyGame::Example::Vec3 *pos = 0,
+    const MyGame::Example::Vec3 *pos = nullptr,
     int16_t mana = 150,
     int16_t hp = 100,
     flatbuffers::Offset<flatbuffers::String> name = 0,
@@ -2099,7 +1993,7 @@ inline flatbuffers::Offset<Monster> CreateMonster(
 
 inline flatbuffers::Offset<Monster> CreateMonsterDirect(
     flatbuffers::FlatBufferBuilder &_fbb,
-    const MyGame::Example::Vec3 *pos = 0,
+    const MyGame::Example::Vec3 *pos = nullptr,
     int16_t mana = 150,
     int16_t hp = 100,
     const char *name = nullptr,
@@ -2241,27 +2135,6 @@ struct TypeAliasesT : public flatbuffers::NativeTable {
   std::vector<int8_t> v8{};
   std::vector<double> vf64{};
 };
-
-inline bool operator==(const TypeAliasesT &lhs, const TypeAliasesT &rhs) {
-  return
-      (lhs.i8 == rhs.i8) &&
-      (lhs.u8 == rhs.u8) &&
-      (lhs.i16 == rhs.i16) &&
-      (lhs.u16 == rhs.u16) &&
-      (lhs.i32 == rhs.i32) &&
-      (lhs.u32 == rhs.u32) &&
-      (lhs.i64 == rhs.i64) &&
-      (lhs.u64 == rhs.u64) &&
-      (lhs.f32 == rhs.f32) &&
-      (lhs.f64 == rhs.f64) &&
-      (lhs.v8 == rhs.v8) &&
-      (lhs.vf64 == rhs.vf64);
-}
-
-inline bool operator!=(const TypeAliasesT &lhs, const TypeAliasesT &rhs) {
-    return !(lhs == rhs);
-}
-
 
 struct TypeAliases FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   typedef TypeAliasesT NativeTableType;
@@ -2495,6 +2368,16 @@ flatbuffers::Offset<TypeAliases> CreateTypeAliases(flatbuffers::FlatBufferBuilde
 
 }  // namespace Example
 
+
+inline bool operator==(const InParentNamespaceT &, const InParentNamespaceT &) {
+  return true;
+}
+
+inline bool operator!=(const InParentNamespaceT &lhs, const InParentNamespaceT &rhs) {
+    return !(lhs == rhs);
+}
+
+
 inline InParentNamespaceT *InParentNamespace::UnPack(const flatbuffers::resolver_function_t *_resolver) const {
   auto _o = std::unique_ptr<InParentNamespaceT>(new InParentNamespaceT());
   UnPackTo(_o.get(), _resolver);
@@ -2519,6 +2402,16 @@ inline flatbuffers::Offset<InParentNamespace> CreateInParentNamespace(flatbuffer
 }
 
 namespace Example2 {
+
+
+inline bool operator==(const MonsterT &, const MonsterT &) {
+  return true;
+}
+
+inline bool operator!=(const MonsterT &lhs, const MonsterT &rhs) {
+    return !(lhs == rhs);
+}
+
 
 inline MonsterT *Monster::UnPack(const flatbuffers::resolver_function_t *_resolver) const {
   auto _o = std::unique_ptr<MonsterT>(new MonsterT());
@@ -2547,6 +2440,17 @@ inline flatbuffers::Offset<Monster> CreateMonster(flatbuffers::FlatBufferBuilder
 
 namespace Example {
 
+
+inline bool operator==(const TestSimpleTableWithEnumT &lhs, const TestSimpleTableWithEnumT &rhs) {
+  return
+      (lhs.color == rhs.color);
+}
+
+inline bool operator!=(const TestSimpleTableWithEnumT &lhs, const TestSimpleTableWithEnumT &rhs) {
+    return !(lhs == rhs);
+}
+
+
 inline TestSimpleTableWithEnumT *TestSimpleTableWithEnum::UnPack(const flatbuffers::resolver_function_t *_resolver) const {
   auto _o = std::unique_ptr<TestSimpleTableWithEnumT>(new TestSimpleTableWithEnumT());
   UnPackTo(_o.get(), _resolver);
@@ -2572,6 +2476,19 @@ inline flatbuffers::Offset<TestSimpleTableWithEnum> CreateTestSimpleTableWithEnu
       _fbb,
       _color);
 }
+
+
+inline bool operator==(const StatT &lhs, const StatT &rhs) {
+  return
+      (lhs.id == rhs.id) &&
+      (lhs.val == rhs.val) &&
+      (lhs.count == rhs.count);
+}
+
+inline bool operator!=(const StatT &lhs, const StatT &rhs) {
+    return !(lhs == rhs);
+}
+
 
 inline StatT *Stat::UnPack(const flatbuffers::resolver_function_t *_resolver) const {
   auto _o = std::unique_ptr<StatT>(new StatT());
@@ -2605,6 +2522,17 @@ inline flatbuffers::Offset<Stat> CreateStat(flatbuffers::FlatBufferBuilder &_fbb
       _count);
 }
 
+
+inline bool operator==(const ReferrableT &lhs, const ReferrableT &rhs) {
+  return
+      (lhs.id == rhs.id);
+}
+
+inline bool operator!=(const ReferrableT &lhs, const ReferrableT &rhs) {
+    return !(lhs == rhs);
+}
+
+
 inline ReferrableT *Referrable::UnPack(const flatbuffers::resolver_function_t *_resolver) const {
   auto _o = std::unique_ptr<ReferrableT>(new ReferrableT());
   UnPackTo(_o.get(), _resolver);
@@ -2630,6 +2558,63 @@ inline flatbuffers::Offset<Referrable> CreateReferrable(flatbuffers::FlatBufferB
       _fbb,
       _id);
 }
+
+
+inline bool operator==(const MonsterT &lhs, const MonsterT &rhs) {
+  return
+      ((lhs.pos == rhs.pos) || (lhs.pos && rhs.pos && *lhs.pos == *rhs.pos)) &&
+      (lhs.mana == rhs.mana) &&
+      (lhs.hp == rhs.hp) &&
+      (lhs.name == rhs.name) &&
+      (lhs.inventory == rhs.inventory) &&
+      (lhs.color == rhs.color) &&
+      (lhs.test == rhs.test) &&
+      (lhs.test4 == rhs.test4) &&
+      (lhs.testarrayofstring == rhs.testarrayofstring) &&
+      (lhs.testarrayoftables == rhs.testarrayoftables) &&
+      ((lhs.enemy == rhs.enemy) || (lhs.enemy && rhs.enemy && *lhs.enemy == *rhs.enemy)) &&
+      (lhs.testnestedflatbuffer == rhs.testnestedflatbuffer) &&
+      ((lhs.testempty == rhs.testempty) || (lhs.testempty && rhs.testempty && *lhs.testempty == *rhs.testempty)) &&
+      (lhs.testbool == rhs.testbool) &&
+      (lhs.testhashs32_fnv1 == rhs.testhashs32_fnv1) &&
+      (lhs.testhashu32_fnv1 == rhs.testhashu32_fnv1) &&
+      (lhs.testhashs64_fnv1 == rhs.testhashs64_fnv1) &&
+      (lhs.testhashu64_fnv1 == rhs.testhashu64_fnv1) &&
+      (lhs.testhashs32_fnv1a == rhs.testhashs32_fnv1a) &&
+      (lhs.testhashu32_fnv1a == rhs.testhashu32_fnv1a) &&
+      (lhs.testhashs64_fnv1a == rhs.testhashs64_fnv1a) &&
+      (lhs.testhashu64_fnv1a == rhs.testhashu64_fnv1a) &&
+      (lhs.testarrayofbools == rhs.testarrayofbools) &&
+      (lhs.testf == rhs.testf) &&
+      (lhs.testf2 == rhs.testf2) &&
+      (lhs.testf3 == rhs.testf3) &&
+      (lhs.testarrayofstring2 == rhs.testarrayofstring2) &&
+      (lhs.testarrayofsortedstruct == rhs.testarrayofsortedstruct) &&
+      (lhs.flex == rhs.flex) &&
+      (lhs.test5 == rhs.test5) &&
+      (lhs.vector_of_longs == rhs.vector_of_longs) &&
+      (lhs.vector_of_doubles == rhs.vector_of_doubles) &&
+      ((lhs.parent_namespace_test == rhs.parent_namespace_test) || (lhs.parent_namespace_test && rhs.parent_namespace_test && *lhs.parent_namespace_test == *rhs.parent_namespace_test)) &&
+      (lhs.vector_of_referrables == rhs.vector_of_referrables) &&
+      (lhs.single_weak_reference == rhs.single_weak_reference) &&
+      (lhs.vector_of_weak_references == rhs.vector_of_weak_references) &&
+      (lhs.vector_of_strong_referrables == rhs.vector_of_strong_referrables) &&
+      (lhs.co_owning_reference == rhs.co_owning_reference) &&
+      (lhs.vector_of_co_owning_references == rhs.vector_of_co_owning_references) &&
+      (lhs.non_owning_reference == rhs.non_owning_reference) &&
+      (lhs.vector_of_non_owning_references == rhs.vector_of_non_owning_references) &&
+      (lhs.any_unique == rhs.any_unique) &&
+      (lhs.any_ambiguous == rhs.any_ambiguous) &&
+      (lhs.vector_of_enums == rhs.vector_of_enums) &&
+      (lhs.signed_enum == rhs.signed_enum) &&
+      (lhs.testrequirednestedflatbuffer == rhs.testrequirednestedflatbuffer) &&
+      (lhs.scalar_key_sorted_tables == rhs.scalar_key_sorted_tables);
+}
+
+inline bool operator!=(const MonsterT &lhs, const MonsterT &rhs) {
+    return !(lhs == rhs);
+}
+
 
 inline MonsterT *Monster::UnPack(const flatbuffers::resolver_function_t *_resolver) const {
   auto _o = std::unique_ptr<MonsterT>(new MonsterT());
@@ -2810,6 +2795,28 @@ inline flatbuffers::Offset<Monster> CreateMonster(flatbuffers::FlatBufferBuilder
       _testrequirednestedflatbuffer,
       _scalar_key_sorted_tables);
 }
+
+
+inline bool operator==(const TypeAliasesT &lhs, const TypeAliasesT &rhs) {
+  return
+      (lhs.i8 == rhs.i8) &&
+      (lhs.u8 == rhs.u8) &&
+      (lhs.i16 == rhs.i16) &&
+      (lhs.u16 == rhs.u16) &&
+      (lhs.i32 == rhs.i32) &&
+      (lhs.u32 == rhs.u32) &&
+      (lhs.i64 == rhs.i64) &&
+      (lhs.u64 == rhs.u64) &&
+      (lhs.f32 == rhs.f32) &&
+      (lhs.f64 == rhs.f64) &&
+      (lhs.v8 == rhs.v8) &&
+      (lhs.vf64 == rhs.vf64);
+}
+
+inline bool operator!=(const TypeAliasesT &lhs, const TypeAliasesT &rhs) {
+    return !(lhs == rhs);
+}
+
 
 inline TypeAliasesT *TypeAliases::UnPack(const flatbuffers::resolver_function_t *_resolver) const {
   auto _o = std::unique_ptr<TypeAliasesT>(new TypeAliasesT());

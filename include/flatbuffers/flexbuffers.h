@@ -155,7 +155,8 @@ inline uint64_t ReadUInt64(const uint8_t *data, uint8_t byte_width) {
   // constant, which here it isn't. Test if memcpy is still faster than
   // the conditionals in ReadSizedScalar. Can also use inline asm.
   // clang-format off
-  #if defined(_MSC_VER) && ((defined(_M_X64) && !defined(_M_ARM64EC)) || defined _M_IX86)
+  #if defined(_MSC_VER) && defined(_M_X64) && !defined(_M_ARM64EC)
+  // This is 64-bit Windows only, __movsb does not work on 32-bit Windows.
     uint64_t u = 0;
     __movsb(reinterpret_cast<uint8_t *>(&u),
             reinterpret_cast<const uint8_t *>(data), byte_width);
@@ -1069,6 +1070,15 @@ class Builder FLATBUFFERS_FINAL_CLASS {
   }
   size_t Blob(const std::vector<uint8_t> &v) {
     return CreateBlob(flatbuffers::vector_data(v), v.size(), 0, FBT_BLOB);
+  }
+
+  void Blob(const char *key, const void *data, size_t len) {
+    Key(key);
+    Blob(data, len);
+  }
+  void Blob(const char *key, const std::vector<uint8_t> &v) {
+    Key(key);
+    Blob(v);
   }
 
   // TODO(wvo): support all the FlexBuffer types (like flexbuffers::String),

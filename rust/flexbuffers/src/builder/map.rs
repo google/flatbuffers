@@ -97,8 +97,7 @@ pub(super) fn sort_map_by_keys(values: &mut [Value], buffer: &[u8]) {
     // preferred over custom sorting or adding another dependency. By construction, this part
     // of the values stack must be alternating (key, value) pairs. The public API must not be
     // able to trigger the above debug_assets that protect this unsafe usage.
-    let pairs: &mut [[Value; 2]] =
-        unsafe { std::slice::from_raw_parts_mut(raw_pairs, pairs_len) };
+    let pairs: &mut [[Value; 2]] = unsafe { std::slice::from_raw_parts_mut(raw_pairs, pairs_len) };
     #[rustfmt::skip]
     pairs.sort_unstable_by(|[key1, _], [key2, _]| {
         if let Value::Key(a1) = *key1 {

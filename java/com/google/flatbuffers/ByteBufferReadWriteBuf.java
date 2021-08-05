@@ -2,6 +2,7 @@ package com.google.flatbuffers;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.nio.Buffer;
 
 public class ByteBufferReadWriteBuf implements ReadWriteBuf {
 
@@ -14,7 +15,7 @@ public class ByteBufferReadWriteBuf implements ReadWriteBuf {
 
   @Override
   public void clear() {
-    buffer.clear();
+    ((Buffer) buffer).clear();
   }
 
   @Override
@@ -117,9 +118,9 @@ public class ByteBufferReadWriteBuf implements ReadWriteBuf {
   public void set(int index, byte[] value, int start, int length) {
     requestCapacity(index + (length - start));
     int curPos = buffer.position();
-    buffer.position(index);
+    ((Buffer) buffer).position(index);
     buffer.put(value, start, length);
-    buffer.position(curPos);
+    ((Buffer) buffer).position(curPos);
   }
 
   @Override

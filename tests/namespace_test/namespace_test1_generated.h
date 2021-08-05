@@ -170,7 +170,7 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) StructInNestedNS FLATBUFFERS_FINAL_CLASS 
   static const flatbuffers::TypeTable *MiniReflectTypeTable() {
     return StructInNestedNSTypeTable();
   }
-  static FLATBUFFERS_CONSTEXPR const char *GetFullyQualifiedName() {
+  static FLATBUFFERS_CONSTEXPR_CPP11 const char *GetFullyQualifiedName() {
     return "NamespaceA.NamespaceB.StructInNestedNS";
   }
   StructInNestedNS()
@@ -209,21 +209,11 @@ inline bool operator!=(const StructInNestedNS &lhs, const StructInNestedNS &rhs)
 
 struct TableInNestedNST : public flatbuffers::NativeTable {
   typedef TableInNestedNS TableType;
-  static FLATBUFFERS_CONSTEXPR const char *GetFullyQualifiedName() {
+  static FLATBUFFERS_CONSTEXPR_CPP11 const char *GetFullyQualifiedName() {
     return "NamespaceA.NamespaceB.TableInNestedNST";
   }
   int32_t foo = 0;
 };
-
-inline bool operator==(const TableInNestedNST &lhs, const TableInNestedNST &rhs) {
-  return
-      (lhs.foo == rhs.foo);
-}
-
-inline bool operator!=(const TableInNestedNST &lhs, const TableInNestedNST &rhs) {
-    return !(lhs == rhs);
-}
-
 
 struct TableInNestedNS FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   typedef TableInNestedNST NativeTableType;
@@ -231,7 +221,7 @@ struct TableInNestedNS FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   static const flatbuffers::TypeTable *MiniReflectTypeTable() {
     return TableInNestedNSTypeTable();
   }
-  static FLATBUFFERS_CONSTEXPR const char *GetFullyQualifiedName() {
+  static FLATBUFFERS_CONSTEXPR_CPP11 const char *GetFullyQualifiedName() {
     return "NamespaceA.NamespaceB.TableInNestedNS";
   }
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
@@ -280,6 +270,17 @@ inline flatbuffers::Offset<TableInNestedNS> CreateTableInNestedNS(
 }
 
 flatbuffers::Offset<TableInNestedNS> CreateTableInNestedNS(flatbuffers::FlatBufferBuilder &_fbb, const TableInNestedNST *_o, const flatbuffers::rehasher_function_t *_rehasher = nullptr);
+
+
+inline bool operator==(const TableInNestedNST &lhs, const TableInNestedNST &rhs) {
+  return
+      (lhs.foo == rhs.foo);
+}
+
+inline bool operator!=(const TableInNestedNST &lhs, const TableInNestedNST &rhs) {
+    return !(lhs == rhs);
+}
+
 
 inline TableInNestedNST *TableInNestedNS::UnPack(const flatbuffers::resolver_function_t *_resolver) const {
   auto _o = std::unique_ptr<TableInNestedNST>(new TableInNestedNST());

@@ -619,6 +619,7 @@ class CSharpGenerator : public BaseGenerator {
       std::string dest_cast = DestinationCast(field.value.type);
       std::string src_cast = SourceCast(field.value.type);
       std::string field_name_camel = MakeCamel(field.name, true);
+      if (field_name_camel == struct_def.name) { field_name_camel += "_"; }
       std::string method_start =
           "  public " + type_name_dest + optional + " " + field_name_camel;
       std::string obj = "(new " + type_name + "())";
@@ -1305,19 +1306,27 @@ class CSharpGenerator : public BaseGenerator {
     code += "  }\n\n";
     // As<T>
     code += "  public T As<T>() where T : class { return this.Value as T; }\n";
-    // As
+    // As, From
     for (auto it = enum_def.Vals().begin(); it != enum_def.Vals().end(); ++it) {
       auto &ev = **it;
       if (ev.union_type.base_type == BASE_TYPE_NONE) continue;
       auto type_name = GenTypeGet_ObjectAPI(ev.union_type, opts);
-      if (ev.union_type.base_type == BASE_TYPE_STRUCT &&
-          ev.union_type.struct_def->attributes.Lookup("private")) {
-        code += "  internal ";
-      } else {
-        code += "  public ";
-      }
-      code += type_name + " As" + ev.name + "() { return this.As<" + type_name +
-              ">(); }\n";
+      std::string accessibility =
+          (ev.union_type.base_type == BASE_TYPE_STRUCT &&
+           ev.union_type.struct_def->attributes.Lookup("private"))
+              ? "internal"
+              : "public";
+      // As
+      code += "  " + accessibility + " " + type_name + " As" + ev.name +
+              "() { return this.As<" + type_name + ">(); }\n";
+      // From
+      auto lower_ev_name = ev.name;
+      std::transform(lower_ev_name.begin(), lower_ev_name.end(),
+                     lower_ev_name.begin(), CharToLower);
+      code += "  " + accessibility + " static " + union_name + " From" +
+              ev.name + "(" + type_name + " _" + lower_ev_name +
+              ") { return new " + union_name + "{ Type = " + enum_def.name +
+              "." + ev.name + ", Value = _" + lower_ev_name + " }; }\n";
     }
     code += "\n";
     // Pack()

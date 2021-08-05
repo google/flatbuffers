@@ -4,8 +4,13 @@
 
 import FlatBuffers
 
-public enum Character: UInt8, Enum {
+public enum Character: UInt8, UnionEnum {
   public typealias T = UInt8
+
+  public init?(value: T) {
+    self.init(rawValue: value)
+  }
+
   public static var byteSize: Int { return MemoryLayout<UInt8>.size }
   public var value: UInt8 { return self.rawValue }
   case none_ = 0
@@ -15,7 +20,6 @@ public enum Character: UInt8, Enum {
   case bookfan = 4
   case other = 5
   case unused = 6
-  
 
   public static var max: Character { return .unused }
   public static var min: Character { return .none_ }
@@ -52,7 +56,7 @@ public struct CharacterUnion {
     }
   }
 }
-public struct Rapunzel: NativeStruct, NativeObject {
+public struct Rapunzel: NativeStruct, Verifiable, NativeObject {
 
   static func validateVersion() { FlatBuffersVersion_2_0_0() }
 
@@ -71,6 +75,10 @@ public struct Rapunzel: NativeStruct, NativeObject {
   }
 
   public var hairLength: Int32 { _hairLength }
+
+  public static func verify<T>(_ verifier: inout Verifier, at position: Int, of type: T.Type) throws where T: Verifiable {
+    try verifier.inBuffer(position: position, of: Rapunzel.self)
+  }
 }
 
 public struct Rapunzel_Mutable: FlatBufferObject {
@@ -98,7 +106,7 @@ public struct Rapunzel_Mutable: FlatBufferObject {
   }
 }
 
-public struct BookReader: NativeStruct, NativeObject {
+public struct BookReader: NativeStruct, Verifiable, NativeObject {
 
   static func validateVersion() { FlatBuffersVersion_2_0_0() }
 
@@ -117,6 +125,10 @@ public struct BookReader: NativeStruct, NativeObject {
   }
 
   public var booksRead: Int32 { _booksRead }
+
+  public static func verify<T>(_ verifier: inout Verifier, at position: Int, of type: T.Type) throws where T: Verifiable {
+    try verifier.inBuffer(position: position, of: BookReader.self)
+  }
 }
 
 public struct BookReader_Mutable: FlatBufferObject {
@@ -144,7 +156,7 @@ public struct BookReader_Mutable: FlatBufferObject {
   }
 }
 
-public struct Attacker: FlatBufferObject, ObjectAPIPacker {
+public struct Attacker: FlatBufferObject, Verifiable, ObjectAPIPacker {
 
   static func validateVersion() { FlatBuffersVersion_2_0_0() }
   public var __buffer: ByteBuffer! { return _accessor.bb }
@@ -190,6 +202,12 @@ public struct Attacker: FlatBufferObject, ObjectAPIPacker {
     Attacker.add(swordAttackDamage: obj.swordAttackDamage, &builder)
     return Attacker.endAttacker(&builder, start: __root)
   }
+
+  public static func verify<T>(_ verifier: inout Verifier, at position: Int, of type: T.Type) throws where T: Verifiable {
+    var _v = try verifier.visitTable(at: position)
+    try _v.visit(field: VTOFFSET.swordAttackDamage.p, fieldName: "swordAttackDamage", required: false, type: Int32.self)
+    _v.finish()
+  }
 }
 
 public class AttackerT: NativeObject {
@@ -207,7 +225,7 @@ public class AttackerT: NativeObject {
   public func serialize() -> ByteBuffer { return serialize(type: Attacker.self) }
 
 }
-public struct Movie: FlatBufferObject, ObjectAPIPacker {
+public struct Movie: FlatBufferObject, Verifiable, ObjectAPIPacker {
 
   static func validateVersion() { FlatBuffersVersion_2_0_0() }
   public var __buffer: ByteBuffer! { return _accessor.bb }
@@ -282,6 +300,47 @@ public struct Movie: FlatBufferObject, ObjectAPIPacker {
     Movie.addVectorOf(charactersType: __charactersType, &builder)
     Movie.addVectorOf(characters: __characters, &builder)
     return Movie.endMovie(&builder, start: __root)
+  }
+
+  public static func verify<T>(_ verifier: inout Verifier, at position: Int, of type: T.Type) throws where T: Verifiable {
+    var _v = try verifier.visitTable(at: position)
+    try _v.visit(unionKey: VTOFFSET.mainCharacterType.p, unionField: VTOFFSET.mainCharacter.p, unionKeyName: "mainCharacterType", fieldName: "mainCharacter", required: false, completion: { (verifier, key: Character, pos) in
+      switch key {
+      case .none_:
+        break // NOTE - SWIFT doesnt support none
+      case .mulan:
+        try ForwardOffset<Attacker>.verify(&verifier, at: pos, of: Attacker.self)
+      case .rapunzel:
+        try Rapunzel.verify(&verifier, at: pos, of: Rapunzel.self)
+      case .belle:
+        try BookReader.verify(&verifier, at: pos, of: BookReader.self)
+      case .bookfan:
+        try BookReader.verify(&verifier, at: pos, of: BookReader.self)
+      case .other:
+        try ForwardOffset<String>.verify(&verifier, at: pos, of: String.self)
+      case .unused:
+        try ForwardOffset<String>.verify(&verifier, at: pos, of: String.self)
+      }
+    })
+    try _v.visitUnionVector(unionKey: VTOFFSET.charactersType.p, unionField: VTOFFSET.characters.p, unionKeyName: "charactersType", fieldName: "characters", required: false, completion: { (verifier, key: Character, pos) in
+      switch key {
+      case .none_:
+        break // NOTE - SWIFT doesnt support none
+      case .mulan:
+        try ForwardOffset<Attacker>.verify(&verifier, at: pos, of: Attacker.self)
+      case .rapunzel:
+        try Rapunzel.verify(&verifier, at: pos, of: Rapunzel.self)
+      case .belle:
+        try BookReader.verify(&verifier, at: pos, of: BookReader.self)
+      case .bookfan:
+        try BookReader.verify(&verifier, at: pos, of: BookReader.self)
+      case .other:
+        try ForwardOffset<String>.verify(&verifier, at: pos, of: String.self)
+      case .unused:
+        try ForwardOffset<String>.verify(&verifier, at: pos, of: String.self)
+      }
+    })
+    _v.finish()
   }
 }
 

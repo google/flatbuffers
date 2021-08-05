@@ -16,11 +16,22 @@
 
 import Foundation
 
+/// `Table` is a Flatbuffers object that can read,
+/// mutate scalar fields within a valid flatbuffers buffer
 @frozen
 public struct Table {
+
+  /// Hosting Bytebuffer
   public private(set) var bb: ByteBuffer
+  /// Current position of the table within the buffer
   public private(set) var postion: Int32
 
+  /// Initializer for the table interface to allow generated code to read
+  /// data from memory
+  /// - Parameters:
+  ///   - bb: ByteBuffer that stores data
+  ///   - position: Current table position
+  /// - Note: This will `CRASH` if read on a big endian machine
   public init(bb: ByteBuffer, position: Int32 = 0) {
     guard isLitteEndian else {
       fatalError("Reading/Writing a buffer in big endian machine is not supported on swift")
@@ -29,6 +40,10 @@ public struct Table {
     postion = position
   }
 
+  /// Gets the offset of the current field within the buffer by reading
+  /// the vtable
+  /// - Parameter o: current offset
+  /// - Returns: offset of field within buffer
   public func offset(_ o: Int32) -> Int32 {
     let vtable = postion - bb.read(def: Int32.self, position: Int(postion))
     return o < bb.read(def: VOffset.self, position: Int(vtable)) ? Int32(bb.read(
@@ -36,7 +51,13 @@ public struct Table {
       position: Int(vtable + o))) : 0
   }
 
-  public func indirect(_ o: Int32) -> Int32 { o + bb.read(def: Int32.self, position: Int(o)) }
+  /// Gets the indirect offset of the current stored object
+  /// (applicable only for object arrays)
+  /// - Parameter o: current offset
+  /// - Returns: offset of field within buffer
+  public func indirect(_ o: Int32) -> Int32 {
+    o + bb.read(def: Int32.self, position: Int(o))
+  }
 
   /// String reads from the buffer with respect to position of the current table.
   /// - Parameter offset: Offset of the string
@@ -45,14 +66,15 @@ public struct Table {
   }
 
   /// Direct string reads from the buffer disregarding the position of the table.
-  /// It would be preferable to use string unless the current position of the table is not needed
+  /// It would be preferable to use string unless the current position of the table
+  /// is not needed
   /// - Parameter offset: Offset of the string
   public func directString(at offset: Int32) -> String? {
     var offset = offset
     offset += bb.read(def: Int32.self, position: Int(offset))
     let count = bb.read(def: Int32.self, position: Int(offset))
-    let position = offset + Int32(MemoryLayout<Int32>.size)
-    return bb.readString(at: position, count: count)
+    let position = Int(offset) + MemoryLayout<Int32>.size
+    return bb.readString(at: position, count: Int(count))
   }
 
   /// Reads from the buffer with respect to the position in the table.
@@ -81,19 +103,30 @@ public struct Table {
     return r
   }
 
+  /// Returns that current `Union` object at a specific offset
+  /// by adding offset to the current position of table
+  /// - Parameter o: offset
+  /// - Returns: A flatbuffers object
   public func union<T: FlatbuffersInitializable>(_ o: Int32) -> T {
     let o = o + postion
     return directUnion(o)
   }
 
+  /// Returns a direct `Union` object at a specific offset
+  /// - Parameter o: offset
+  /// - Returns: A flatbuffers object
   public func directUnion<T: FlatbuffersInitializable>(_ o: Int32) -> T {
     T.init(bb, o: o + bb.read(def: Int32.self, position: Int(o)))
   }
 
+  /// Returns a vector of type T at a specific offset
+  /// This should only be used by `Scalars`
+  /// - Parameter off: Readable offset
+  /// - Returns: Returns a vector of type [T]
   public func getVector<T>(at off: Int32) -> [T]? {
     let o = offset(off)
     guard o != 0 else { return nil }
-    return bb.readSlice(index: vector(at: o), count: vector(count: o))
+    return bb.readSlice(index: Int(vector(at: o)), count: Int(vector(count: o)))
   }
 
   /// Vector count gets the count of Elements within the array
@@ -115,17 +148,36 @@ public struct Table {
     return o + bb.read(def: Int32.self, position: Int(o)) + 4
   }
 
-  static public func indirect(_ o: Int32, _ fbb: ByteBuffer) -> Int32 { o + fbb.read(
-    def: Int32.self,
-    position: Int(o)) }
+  /// Reading an indirect offset of a table.
+  /// - Parameters:
+  ///   - o: position within the buffer
+  ///   - fbb: ByteBuffer
+  /// - Returns: table offset
+  static public func indirect(_ o: Int32, _ fbb: ByteBuffer) -> Int32 {
+    o + fbb.read(def: Int32.self, position: Int(o))
+  }
 
+  /// Gets a vtable value according to an table Offset and a field offset
+  /// - Parameters:
+  ///   - o: offset relative to entire buffer
+  ///   - vOffset: Field offset within a vtable
+  ///   - fbb: ByteBuffer
+  /// - Returns: an position of a field
   static public func offset(_ o: Int32, vOffset: Int32, fbb: ByteBuffer) -> Int32 {
     let vTable = Int32(fbb.capacity) - o
     return vTable + Int32(fbb.read(
       def: Int16.self,
-      position: Int(vTable + vOffset - fbb.read(def: Int32.self, position: Int(vTable)))))
+      position: Int(vTable + vOffset - fbb.read(
+        def: Int32.self,
+        position: Int(vTable)))))
   }
 
+  /// Compares two objects at offset A and offset B within a ByteBuffer
+  /// - Parameters:
+  ///   - off1: first offset to compare
+  ///   - off2: second offset to compare
+  ///   - fbb: Bytebuffer
+  /// - Returns: returns the difference between
   static public func compare(_ off1: Int32, _ off2: Int32, fbb: ByteBuffer) -> Int32 {
     let memorySize = Int32(MemoryLayout<Int32>.size)
     let _off1 = off1 + fbb.read(def: Int32.self, position: Int(off1))
@@ -145,6 +197,12 @@ public struct Table {
     return len1 - len2
   }
 
+  /// Compares two objects at offset A and array of `Bytes` within a ByteBuffer
+  /// - Parameters:
+  ///   - off1: Offset to compare to
+  ///   - key: bytes array to compare to
+  ///   - fbb: Bytebuffer
+  /// - Returns: returns the difference between
   static public func compare(_ off1: Int32, _ key: [Byte], fbb: ByteBuffer) -> Int32 {
     let memorySize = Int32(MemoryLayout<Int32>.size)
     let _off1 = off1 + fbb.read(def: Int32.self, position: Int(off1))

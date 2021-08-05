@@ -21,17 +21,12 @@ set -e
 
 command -v dart >/dev/null 2>&1 || { echo >&2 "Require `dart` but it's not installed.  Aborting."; exit 1; }
 
-cp ../samples/monster.fbs example/
-cp ../tests/monster_test.fbs test/
-cp -r ../tests/include_test/*.fbs test/
-cp -r ../tests/include_test/sub test/
-
-pushd example
-../../flatc --dart ./monster.fbs
+pushd ../tests
+./DartTest.sh
 popd
 
-pushd test
-../../flatc --dart ./monster_test.fbs
+pushd ../samples
+./dart_sample.sh
 popd
 
 dart pub publish

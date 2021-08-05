@@ -259,6 +259,12 @@ template<typename T> class Vector {
   typedef VectorReverseIterator<iterator> reverse_iterator;
   typedef VectorReverseIterator<const_iterator> const_reverse_iterator;
 
+  typedef typename flatbuffers::bool_constant<flatbuffers::is_scalar<T>::value>
+      scalar_tag;
+
+  static FLATBUFFERS_CONSTEXPR bool is_span_observable =
+      scalar_tag::value && (FLATBUFFERS_LITTLEENDIAN || sizeof(T) == 1);
+
   uoffset_t size() const { return EndianScalar(length_); }
 
   // Deprecated: use size(). Here for backwards compatibility.
@@ -394,6 +400,38 @@ template<typename T> class Vector {
   }
 };
 
+template<class U>
+FLATBUFFERS_CONSTEXPR_CPP11 flatbuffers::span<U> make_span(Vector<U> &vec)
+    FLATBUFFERS_NOEXCEPT {
+  static_assert(Vector<U>::is_span_observable,
+                "wrong type U, only LE-scalar, or byte types are allowed");
+  return span<U>(vec.data(), vec.size());
+}
+
+template<class U>
+FLATBUFFERS_CONSTEXPR_CPP11 flatbuffers::span<const U> make_span(
+    const Vector<U> &vec) FLATBUFFERS_NOEXCEPT {
+  static_assert(Vector<U>::is_span_observable,
+                "wrong type U, only LE-scalar, or byte types are allowed");
+  return span<const U>(vec.data(), vec.size());
+}
+
+template<class U>
+FLATBUFFERS_CONSTEXPR_CPP11 flatbuffers::span<uint8_t> make_bytes_span(
+    Vector<U> &vec) FLATBUFFERS_NOEXCEPT {
+  static_assert(Vector<U>::scalar_tag::value,
+                "wrong type U, only LE-scalar, or byte types are allowed");
+  return span<uint8_t>(vec.Data(), vec.size() * sizeof(U));
+}
+
+template<class U>
+FLATBUFFERS_CONSTEXPR_CPP11 flatbuffers::span<const uint8_t> make_bytes_span(
+    const Vector<U> &vec) FLATBUFFERS_NOEXCEPT {
+  static_assert(Vector<U>::scalar_tag::value,
+                "wrong type U, only LE-scalar, or byte types are allowed");
+  return span<const uint8_t>(vec.Data(), vec.size() * sizeof(U));
+}
+
 // Represent a vector much like the template above, but in this case we
 // don't know what the element types are (used with reflection.h).
 class VectorOfAny {
@@ -437,10 +475,9 @@ template<typename T> static inline size_t VectorLength(const Vector<T> *v) {
 
 // This is used as a helper type for accessing arrays.
 template<typename T, uint16_t length> class Array {
-  typedef
-      typename flatbuffers::integral_constant<bool,
-                                              flatbuffers::is_scalar<T>::value>
-          scalar_tag;
+  // Array<T> can carry only POD data types (scalars or structs).
+  typedef typename flatbuffers::bool_constant<flatbuffers::is_scalar<T>::value>
+      scalar_tag;
   typedef
       typename flatbuffers::conditional<scalar_tag::value, T, const T *>::type
           IndirectHelperType;
@@ -450,6 +487,11 @@ template<typename T, uint16_t length> class Array {
   typedef typename IndirectHelper<IndirectHelperType>::return_type return_type;
   typedef VectorIterator<T, return_type> const_iterator;
   typedef VectorReverseIterator<const_iterator> const_reverse_iterator;
+
+  // If T is a LE-scalar or a struct (!scalar_tag::value).
+  static FLATBUFFERS_CONSTEXPR bool is_span_observable =
+      (scalar_tag::value && (FLATBUFFERS_LITTLEENDIAN || sizeof(T) == 1)) ||
+      !scalar_tag::value;
 
   FLATBUFFERS_CONSTEXPR uint16_t size() const { return length; }
 
@@ -515,26 +557,20 @@ template<typename T, uint16_t length> class Array {
                        !(p2 >= p1 && p2 < (p1 + length)));
     (void)p1;
     (void)p2;
-
-    CopyFromSpanImpl(
-        flatbuffers::integral_constant < bool,
-        !scalar_tag::value || sizeof(T) == 1 || FLATBUFFERS_LITTLEENDIAN > (),
-        src);
+    CopyFromSpanImpl(flatbuffers::bool_constant<is_span_observable>(), src);
   }
 
  protected:
-  void MutateImpl(flatbuffers::integral_constant<bool, true>, uoffset_t i,
-                  const T &val) {
+  void MutateImpl(flatbuffers::true_type, uoffset_t i, const T &val) {
     FLATBUFFERS_ASSERT(i < size());
     WriteScalar(data() + i, val);
   }
 
-  void MutateImpl(flatbuffers::integral_constant<bool, false>, uoffset_t i,
-                  const T &val) {
+  void MutateImpl(flatbuffers::false_type, uoffset_t i, const T &val) {
     *(GetMutablePointer(i)) = val;
   }
 
-  void CopyFromSpanImpl(flatbuffers::integral_constant<bool, true>,
+  void CopyFromSpanImpl(flatbuffers::true_type,
                         flatbuffers::span<const T, length> src) {
     // Use std::memcpy() instead of std::copy() to avoid preformance degradation
     // due to aliasing if T is char or unsigned char.
@@ -543,7 +579,7 @@ template<typename T, uint16_t length> class Array {
   }
 
   // Copy data from flatbuffers::span with endian conversion.
-  void CopyFromSpanImpl(flatbuffers::integral_constant<bool, false>,
+  void CopyFromSpanImpl(flatbuffers::false_type,
                         flatbuffers::span<const T, length> src) {
     for (size_type k = 0; k < length; k++) { Mutate(k, src[k]); }
   }
@@ -593,8 +629,43 @@ template<typename T, uint16_t length> class Array<Offset<T>, length> {
   uint8_t data_[1];
 };
 
+template<class U, uint16_t N>
+FLATBUFFERS_CONSTEXPR_CPP11 flatbuffers::span<U, N> make_span(Array<U, N> &arr)
+    FLATBUFFERS_NOEXCEPT {
+  static_assert(
+      Array<U, N>::is_span_observable,
+      "wrong type U, only plain struct, LE-scalar, or byte types are allowed");
+  return span<U, N>(arr.data(), N);
+}
+
+template<class U, uint16_t N>
+FLATBUFFERS_CONSTEXPR_CPP11 flatbuffers::span<const U, N> make_span(
+    const Array<U, N> &arr) FLATBUFFERS_NOEXCEPT {
+  static_assert(
+      Array<U, N>::is_span_observable,
+      "wrong type U, only plain struct, LE-scalar, or byte types are allowed");
+  return span<const U, N>(arr.data(), N);
+}
+
+template<class U, uint16_t N>
+FLATBUFFERS_CONSTEXPR_CPP11 flatbuffers::span<uint8_t, sizeof(U) * N>
+make_bytes_span(Array<U, N> &arr) FLATBUFFERS_NOEXCEPT {
+  static_assert(Array<U, N>::is_span_observable,
+                "internal error, Array<T> might hold only scalars or structs");
+  return span<uint8_t, sizeof(U) * N>(arr.Data(), sizeof(U) * N);
+}
+
+template<class U, uint16_t N>
+FLATBUFFERS_CONSTEXPR_CPP11 flatbuffers::span<const uint8_t, sizeof(U) * N>
+make_bytes_span(const Array<U, N> &arr) FLATBUFFERS_NOEXCEPT {
+  static_assert(Array<U, N>::is_span_observable,
+                "internal error, Array<T> might hold only scalars or structs");
+  return span<const uint8_t, sizeof(U) * N>(arr.Data(), sizeof(U) * N);
+}
+
 // Cast a raw T[length] to a raw flatbuffers::Array<T, length>
 // without endian conversion. Use with care.
+// TODO: move these Cast-methods to `internal` namespace.
 template<typename T, uint16_t length>
 Array<T, length> &CastToArray(T (&arr)[length]) {
   return *reinterpret_cast<Array<T, length> *>(arr);
@@ -1356,9 +1427,8 @@ class FlatBufferBuilder {
   // Write a single aligned scalar to the buffer
   template<typename T> uoffset_t PushElement(T element) {
     AssertScalarT<T>();
-    T litle_endian_element = EndianScalar(element);
     Align(sizeof(T));
-    buf_.push_small(litle_endian_element);
+    buf_.push_small(EndianScalar(element));
     return GetSize();
   }
 
@@ -1601,11 +1671,13 @@ class FlatBufferBuilder {
 
   /// @brief Store a string in the buffer, which can contain any binary data.
   /// If a string with this exact contents has already been serialized before,
-  /// instead simply returns the offset of the existing string.
+  /// instead simply returns the offset of the existing string. This uses a map
+  /// stored on the heap, but only stores the numerical offsets.
   /// @param[in] str A const char pointer to the data to be stored as a string.
   /// @param[in] len The number of bytes that should be stored from `str`.
   /// @return Returns the offset in the buffer where the string starts.
   Offset<String> CreateSharedString(const char *str, size_t len) {
+    FLATBUFFERS_ASSERT(FLATBUFFERS_GENERAL_HEAP_ALLOC_OK);
     if (!string_pool)
       string_pool = new StringOffsetMap(StringOffsetCompare(buf_));
     auto size_before_string = buf_.size();
@@ -1627,7 +1699,8 @@ class FlatBufferBuilder {
 #ifdef FLATBUFFERS_HAS_STRING_VIEW
   /// @brief Store a string in the buffer, which can contain any binary data.
   /// If a string with this exact contents has already been serialized before,
-  /// instead simply returns the offset of the existing string.
+  /// instead simply returns the offset of the existing string. This uses a map
+  /// stored on the heap, but only stores the numerical offsets.
   /// @param[in] str A const std::string_view to store in the buffer.
   /// @return Returns the offset in the buffer where the string starts
   Offset<String> CreateSharedString(const flatbuffers::string_view str) {
@@ -1636,7 +1709,8 @@ class FlatBufferBuilder {
 #else
   /// @brief Store a string in the buffer, which null-terminated.
   /// If a string with this exact contents has already been serialized before,
-  /// instead simply returns the offset of the existing string.
+  /// instead simply returns the offset of the existing string. This uses a map
+  /// stored on the heap, but only stores the numerical offsets.
   /// @param[in] str A const char pointer to a C-string to add to the buffer.
   /// @return Returns the offset in the buffer where the string starts.
   Offset<String> CreateSharedString(const char *str) {
@@ -1645,7 +1719,8 @@ class FlatBufferBuilder {
 
   /// @brief Store a string in the buffer, which can contain any binary data.
   /// If a string with this exact contents has already been serialized before,
-  /// instead simply returns the offset of the existing string.
+  /// instead simply returns the offset of the existing string. This uses a map
+  /// stored on the heap, but only stores the numerical offsets.
   /// @param[in] str A const reference to a std::string to store in the buffer.
   /// @return Returns the offset in the buffer where the string starts.
   Offset<String> CreateSharedString(const std::string &str) {
@@ -1655,7 +1730,8 @@ class FlatBufferBuilder {
 
   /// @brief Store a string in the buffer, which can contain any binary data.
   /// If a string with this exact contents has already been serialized before,
-  /// instead simply returns the offset of the existing string.
+  /// instead simply returns the offset of the existing string. This uses a map
+  /// stored on the heap, but only stores the numerical offsets.
   /// @param[in] str A const pointer to a `String` struct to add to the buffer.
   /// @return Returns the offset in the buffer where the string starts
   Offset<String> CreateSharedString(const String *str) {
@@ -1762,15 +1838,18 @@ class FlatBufferBuilder {
   /// where the vector is stored.
   template<typename T> Offset<Vector<T>> CreateVector(size_t vector_size,
       const std::function<T (size_t i)> &f) {
+    FLATBUFFERS_ASSERT(FLATBUFFERS_GENERAL_HEAP_ALLOC_OK);
     std::vector<T> elems(vector_size);
     for (size_t i = 0; i < vector_size; i++) elems[i] = f(i);
     return CreateVector(elems);
   }
-  #endif
+  #endif // FLATBUFFERS_CPP98_STL
   // clang-format on
 
   /// @brief Serialize values returned by a function into a FlatBuffer `vector`.
-  /// This is a convenience function that takes care of iteration for you.
+  /// This is a convenience function that takes care of iteration for you. This
+  /// uses a vector stored on the heap to store the intermediate results of the
+  /// iteration.
   /// @tparam T The data type of the `std::vector` elements.
   /// @param f A function that takes the current iteration 0..vector_size-1,
   /// and the state parameter returning any type that you can construct a
@@ -1780,6 +1859,7 @@ class FlatBufferBuilder {
   /// where the vector is stored.
   template<typename T, typename F, typename S>
   Offset<Vector<T>> CreateVector(size_t vector_size, F f, S *state) {
+    FLATBUFFERS_ASSERT(FLATBUFFERS_GENERAL_HEAP_ALLOC_OK);
     std::vector<T> elems(vector_size);
     for (size_t i = 0; i < vector_size; i++) elems[i] = f(i, state);
     return CreateVector(elems);
@@ -1793,9 +1873,35 @@ class FlatBufferBuilder {
   /// where the vector is stored.
   Offset<Vector<Offset<String>>> CreateVectorOfStrings(
       const std::vector<std::string> &v) {
-    std::vector<Offset<String>> offsets(v.size());
-    for (size_t i = 0; i < v.size(); i++) offsets[i] = CreateString(v[i]);
-    return CreateVector(offsets);
+    return CreateVectorOfStrings(v.cbegin(), v.cend());
+  }
+
+  /// @brief Serialize a collection of Strings into a FlatBuffer `vector`.
+  /// This is a convenience function for a common case.
+  /// @param begin The begining iterator of the collection
+  /// @param end The ending iterator of the collection
+  /// @return Returns a typed `Offset` into the serialized data indicating
+  /// where the vector is stored.
+  template<class It>
+  Offset<Vector<Offset<String>>> CreateVectorOfStrings(It begin, It end) {
+    auto size = std::distance(begin, end);
+    auto scratch_buffer_usage = size * sizeof(Offset<String>);
+    // If there is not enough space to store the offsets, there definitely won't
+    // be enough space to store all the strings. So ensuring space for the
+    // scratch region is OK, for it it fails, it would have failed later.
+    buf_.ensure_space(scratch_buffer_usage);
+    for (auto it = begin; it != end; ++it) {
+      buf_.scratch_push_small(CreateString(*it));
+    }
+    StartVector(size, sizeof(Offset<String>));
+    for (auto i = 1; i <= size; i++) {
+      // Note we re-evaluate the buf location each iteration to account for any
+      // underlying buffer resizing that may occur.
+      PushElement(*reinterpret_cast<Offset<String> *>(
+          buf_.scratch_end() - i * sizeof(Offset<String>)));
+    }
+    buf_.scratch_pop(scratch_buffer_usage);
+    return Offset<Vector<Offset<String>>>(EndVector(size));
   }
 
   /// @brief Serialize an array of structs into a FlatBuffer `vector`.
@@ -1808,7 +1914,9 @@ class FlatBufferBuilder {
   template<typename T>
   Offset<Vector<const T *>> CreateVectorOfStructs(const T *v, size_t len) {
     StartVector(len * sizeof(T) / AlignOf<T>(), AlignOf<T>());
-    PushBytes(reinterpret_cast<const uint8_t *>(v), sizeof(T) * len);
+    if (len > 0) {
+      PushBytes(reinterpret_cast<const uint8_t *>(v), sizeof(T) * len);
+    }
     return Offset<Vector<const T *>>(EndVector(len));
   }
 
@@ -1824,11 +1932,11 @@ class FlatBufferBuilder {
   /// where the vector is stored.
   template<typename T, typename S>
   Offset<Vector<const T *>> CreateVectorOfNativeStructs(
-      const S *v, size_t len, T((*const pack_func)(const S &))) {
+      const S *v, size_t len, T (*const pack_func)(const S &)) {
     FLATBUFFERS_ASSERT(pack_func);
-    std::vector<T> vv(len);
-    std::transform(v, v + len, vv.begin(), pack_func);
-    return CreateVectorOfStructs<T>(data(vv), vv.size());
+    auto structs = StartVectorOfStructs<T>(len);
+    for (size_t i = 0; i < len; i++) { structs[i] = pack_func(v[i]); }
+    return EndVectorOfStructs<T>(len);
   }
 
   /// @brief Serialize an array of native structs into a FlatBuffer `vector`.
@@ -1912,7 +2020,7 @@ class FlatBufferBuilder {
   /// where the vector is stored.
   template<typename T, typename S>
   Offset<Vector<const T *>> CreateVectorOfNativeStructs(
-      const std::vector<S> &v, T((*const pack_func)(const S &))) {
+      const std::vector<S> &v, T (*const pack_func)(const S &)) {
     return CreateVectorOfNativeStructs<T, S>(data(v), v.size(), pack_func);
   }
 
@@ -1935,9 +2043,6 @@ class FlatBufferBuilder {
     bool operator()(const T &a, const T &b) const {
       return a.KeyCompareLessThan(&b);
     }
-
-    FLATBUFFERS_DELETE_FUNC(
-        StructKeyComparator &operator=(const StructKeyComparator &));
   };
   /// @endcond
 
@@ -1994,10 +2099,10 @@ class FlatBufferBuilder {
   Offset<Vector<const T *>> CreateVectorOfSortedNativeStructs(S *v,
                                                               size_t len) {
     extern T Pack(const S &);
-    typedef T (*Pack_t)(const S &);
-    std::vector<T> vv(len);
-    std::transform(v, v + len, vv.begin(), static_cast<Pack_t &>(Pack));
-    return CreateVectorOfSortedStructs<T>(vv, len);
+    auto structs = StartVectorOfStructs<T>(len);
+    for (size_t i = 0; i < len; i++) { structs[i] = Pack(v[i]); }
+    std::sort(structs, structs + len, StructKeyComparator<T>());
+    return EndVectorOfStructs<T>(len);
   }
 
   /// @cond FLATBUFFERS_INTERNAL

@@ -1,5 +1,5 @@
 #ifndef FLATBUFFERS_BASE_H_
-#define FLATBUFFERS_BASE_H_
+#  define FLATBUFFERS_BASE_H_
 
 // clang-format off
 
@@ -246,6 +246,11 @@ namespace flatbuffers {
     #endif
   #endif // __has_include
 #endif // !FLATBUFFERS_HAS_STRING_VIEW
+
+#ifndef FLATBUFFERS_GENERAL_HEAP_ALLOC_OK
+  // Allow heap allocations to be used
+  #define FLATBUFFERS_GENERAL_HEAP_ALLOC_OK 1
+#endif // !FLATBUFFERS_GENERAL_HEAP_ALLOC_OK
 
 #ifndef FLATBUFFERS_HAS_NEW_STRTOD
   // Modern (C++11) strtod and strtof functions are available for use.
