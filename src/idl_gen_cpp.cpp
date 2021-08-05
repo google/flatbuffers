@@ -2156,14 +2156,8 @@ class CppGenerator : public BaseGenerator {
   //   };
   //
   void GenFieldNames(const StructDef &struct_def) {
-    auto non_deprecated_field_count = std::count_if(
-        struct_def.fields.vec.begin(), struct_def.fields.vec.end(),
-        [](const FieldDef *field) { return !field->deprecated; });
     code_ += "  static constexpr std::array<\\";
-    code_.SetValue(
-        "FIELD_COUNT",
-        std::to_string(static_cast<long long>(non_deprecated_field_count)));
-    code_ += "const char *, {{FIELD_COUNT}}> field_names = {\\";
+    code_ += "const char *, fields_number> field_names = {\\";
     if (struct_def.fields.vec.empty()) {
       code_ += "};";
       return;
@@ -2185,7 +2179,7 @@ class CppGenerator : public BaseGenerator {
   }
 
   void GenFieldsNumber(const StructDef &struct_def) {
-    auto non_deprecated_field_count = std::count_if(
+    const auto non_deprecated_field_count = std::count_if(
         struct_def.fields.vec.begin(), struct_def.fields.vec.end(),
         [](const FieldDef *field) { return !field->deprecated; });
     code_.SetValue(
@@ -2209,9 +2203,9 @@ class CppGenerator : public BaseGenerator {
       code_ +=
           "  static constexpr auto fully_qualified_name = "
           "\"{{FULLY_QUALIFIED_NAME}}\";";
+      GenFieldsNumber(struct_def);
       GenFieldNames(struct_def);
       GenFieldTypeHelper(struct_def);
-      GenFieldsNumber(struct_def);
     }
     code_ += "};";
     code_ += "";
