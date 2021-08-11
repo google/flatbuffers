@@ -44,98 +44,98 @@
     <Compile Include="..\..\net\FlatBuffers\Table.cs">
       <Link>FlatBuffers\Table.cs</Link>
     </Compile>
-    <Compile Include="..\MyGame\Example2\Monster.cs">
-      <Link>MyGame\Example2\Monster.cs</Link>
+    <Compile Include="..\MyGame\Example2\Monster_generated.cs">
+      <Link>MyGame\Example2\Monster_generated.cs</Link>
     </Compile>
-    <Compile Include="..\MyGame\Example\Any.cs">
-      <Link>MyGame\Example\Any.cs</Link>
+    <Compile Include="..\MyGame\Example\Any_generated.cs">
+      <Link>MyGame\Example\Any_generated.cs</Link>
     </Compile>
-    <Compile Include="..\MyGame\Example\AnyAmbiguousAliases.cs">
-      <Link>MyGame\Example\AnyAmbiguousAliases.cs</Link>
+    <Compile Include="..\MyGame\Example\AnyAmbiguousAliases_generated.cs">
+      <Link>MyGame\Example\AnyAmbiguousAliases_generated.cs</Link>
     </Compile>
-    <Compile Include="..\MyGame\Example\AnyUniqueAliases.cs">
-      <Link>MyGame\Example\AnyUniqueAliases.cs</Link>
+    <Compile Include="..\MyGame\Example\AnyUniqueAliases_generated.cs">
+      <Link>MyGame\Example\AnyUniqueAliases_generated.cs</Link>
     </Compile>
-    <Compile Include="..\MyGame\Example\Color.cs">
-      <Link>MyGame\Example\Color.cs</Link>
+    <Compile Include="..\MyGame\Example\Color_generated.cs">
+      <Link>MyGame\Example\Color_generated.cs</Link>
     </Compile>
-    <Compile Include="..\MyGame\Example\Race.cs">
-      <Link>MyGame\Example\Race.cs</Link>
+    <Compile Include="..\MyGame\Example\Race_generated.cs">
+      <Link>MyGame\Example\Race_generated.cs</Link>
     </Compile>
-    <Compile Include="..\MyGame\Example\Monster.cs">
-      <Link>MyGame\Example\Monster.cs</Link>
+    <Compile Include="..\MyGame\Example\Monster_generated.cs">
+      <Link>MyGame\Example\Monster_generated.cs</Link>
     </Compile>
-    <Compile Include="..\MyGame\Example\Referrable.cs">
-      <Link>MyGame\Example\Referrable.cs</Link>
+    <Compile Include="..\MyGame\Example\Referrable_generated.cs">
+      <Link>MyGame\Example\Referrable_generated.cs</Link>
     </Compile>
-    <Compile Include="..\MyGame\Example\Stat.cs">
-      <Link>MyGame\Example\Stat.cs</Link>
+    <Compile Include="..\MyGame\Example\Stat_generated.cs">
+      <Link>MyGame\Example\Stat_generated.cs</Link>
     </Compile>
-    <Compile Include="..\MyGame\Example\Test.cs">
-      <Link>MyGame\Example\Test.cs</Link>
+    <Compile Include="..\MyGame\Example\Test_generated.cs">
+      <Link>MyGame\Example\Test_generated.cs</Link>
     </Compile>
-    <Compile Include="..\MyGame\Example\TestSimpleTableWithEnum.cs">
-      <Link>MyGame\Example\TestSimpleTableWithEnum.cs</Link>
+    <Compile Include="..\MyGame\Example\TestSimpleTableWithEnum_generated.cs">
+      <Link>MyGame\Example\TestSimpleTableWithEnum_generated.cs</Link>
     </Compile>
-    <Compile Include="..\MyGame\Example\TypeAliases.cs">
-      <Link>MyGame\Example\TypeAliases.cs</Link>
+    <Compile Include="..\MyGame\Example\TypeAliases_generated.cs">
+      <Link>MyGame\Example\TypeAliases_generated.cs</Link>
     </Compile>
-    <Compile Include="..\MyGame\Example\Vec3.cs">
-      <Link>MyGame\Example\Vec3.cs</Link>
+    <Compile Include="..\MyGame\Example\Vec3_generated.cs">
+      <Link>MyGame\Example\Vec3_generated.cs</Link>
     </Compile>
-    <Compile Include="..\MyGame\Example\Ability.cs">
-      <Link>MyGame\Example\Ability.cs</Link>
+    <Compile Include="..\MyGame\Example\Ability_generated.cs">
+      <Link>MyGame\Example\Ability_generated.cs</Link>
     </Compile>
-    <Compile Include="..\MyGame\Example\ArrayTable.cs">
-      <Link>MyGame\Example\ArrayTable.cs</Link>
+    <Compile Include="..\MyGame\Example\ArrayTable_generated.cs">
+      <Link>MyGame\Example\ArrayTable_generated.cs</Link>
     </Compile>
-    <Compile Include="..\MyGame\Example\ArrayStruct.cs">
-      <Link>MyGame\Example\ArrayStruct.cs</Link>
+    <Compile Include="..\MyGame\Example\ArrayStruct_generated.cs">
+      <Link>MyGame\Example\ArrayStruct_generated.cs</Link>
     </Compile>
-    <Compile Include="..\MyGame\Example\NestedStruct.cs">
-      <Link>MyGame\Example\NestedStruct.cs</Link>
+    <Compile Include="..\MyGame\Example\NestedStruct_generated.cs">
+      <Link>MyGame\Example\NestedStruct_generated.cs</Link>
     </Compile>
-    <Compile Include="..\MyGame\Example\TestEnum.cs">
-      <Link>MyGame\Example\TestEnum.cs</Link>
+    <Compile Include="..\MyGame\Example\TestEnum_generated.cs">
+      <Link>MyGame\Example\TestEnum_generated.cs</Link>
     </Compile>
-    <Compile Include="..\MyGame\InParentNamespace.cs">
-      <Link>MyGame\InParentNamespace.cs</Link>
+    <Compile Include="..\MyGame\InParentNamespace_generated.cs">
+      <Link>MyGame\InParentNamespace_generated.cs</Link>
     </Compile>
-    <Compile Include="..\namespace_test\NamespaceA\NamespaceB\EnumInNestedNS.cs">
-      <Link>NamespaceA\NamespaceB\EnumInNestedNS.cs</Link>
+    <Compile Include="..\namespace_test\NamespaceA\NamespaceB\EnumInNestedNS_generated.cs">
+      <Link>NamespaceA\NamespaceB\EnumInNestedNS_generated.cs</Link>
     </Compile>
-    <Compile Include="..\namespace_test\NamespaceA\NamespaceB\StructInNestedNS.cs">
-      <Link>NamespaceA\NamespaceB\StructInNestedNS.cs</Link>
+    <Compile Include="..\namespace_test\NamespaceA\NamespaceB\StructInNestedNS_generated.cs">
+      <Link>NamespaceA\NamespaceB\StructInNestedNS_generated.cs</Link>
     </Compile>
-    <Compile Include="..\namespace_test\NamespaceA\NamespaceB\TableInNestedNS.cs">
-      <Link>NamespaceA\NamespaceB\TableInNestedNS.cs</Link>
+    <Compile Include="..\namespace_test\NamespaceA\NamespaceB\TableInNestedNS_generated.cs">
+      <Link>NamespaceA\NamespaceB\TableInNestedNS_generated.cs</Link>
     </Compile>
-    <Compile Include="..\namespace_test\NamespaceA\NamespaceB\UnionInNestedNS.cs">
-      <Link>NamespaceA\NamespaceB\UnionInNestedNS.cs</Link>
+    <Compile Include="..\namespace_test\NamespaceA\NamespaceB\UnionInNestedNS_generated.cs">
+      <Link>NamespaceA\NamespaceB\UnionInNestedNS_generated.cs</Link>
     </Compile>
-    <Compile Include="..\namespace_test\NamespaceA\TableInFirstNS.cs">
-      <Link>NamespaceA\TableInFirstNS.cs</Link>
+    <Compile Include="..\namespace_test\NamespaceA\TableInFirstNS_generated.cs">
+      <Link>NamespaceA\TableInFirstNS_generated.cs</Link>
     </Compile>
-    <Compile Include="..\union_vector\Attacker.cs">
-      <Link>union_vector\Attacker.cs</Link>
+    <Compile Include="..\union_vector\Attacker_generated.cs">
+      <Link>union_vector\Attacker_generated.cs</Link>
     </Compile>
-    <Compile Include="..\union_vector\BookReader.cs">
-      <Link>union_vector\BookReader.cs</Link>
+    <Compile Include="..\union_vector\BookReader_generated_generated.cs">
+      <Link>union_vector\BookReader_generated.cs</Link>
     </Compile>
-    <Compile Include="..\union_vector\Character.cs">
-      <Link>union_vector\Character.cs</Link>
+    <Compile Include="..\union_vector\Character_generated.cs">
+      <Link>union_vector\Character_generated.cs</Link>
     </Compile>
-    <Compile Include="..\union_vector\Movie.cs">
-      <Link>union_vector\Movie.cs</Link>
+    <Compile Include="..\union_vector\Movie_generated.cs">
+      <Link>union_vector\Movie_generated.cs</Link>
     </Compile>
-    <Compile Include="..\union_vector\Rapunzel.cs">
-      <Link>union_vector\Rapunzel.cs</Link>
+    <Compile Include="..\union_vector\Rapunzel_generated.cs">
+      <Link>union_vector\Rapunzel_generated.cs</Link>
     </Compile>
-    <Compile Include="..\optional_scalars\OptionalByte.cs">
-      <Link>optional_scalars\OptionalByte.cs</Link>
+    <Compile Include="..\optional_scalars\OptionalByte_generated.cs">
+      <Link>optional_scalars\OptionalByte_generated.cs</Link>
     </Compile>
-    <Compile Include="..\optional_scalars\ScalarStuff.cs">
-      <Link>optional_scalars\ScalarStuff.cs</Link>
+    <Compile Include="..\optional_scalars\ScalarStuff_generated.cs">
+      <Link>optional_scalars\ScalarStuff_generated.cs</Link>
     </Compile>
   </ItemGroup>
 
