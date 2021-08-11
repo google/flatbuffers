@@ -50,7 +50,6 @@ class CSharpGenerator : public BaseGenerator {
                   const std::string &file_name)
       : BaseGenerator(parser, path, file_name, "", ".", "cs"),
         cur_name_space_(nullptr) {
-
     // clang-format off
 
     // List of keywords retrieved from here:
