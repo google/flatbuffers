@@ -51,8 +51,12 @@ class CSharpGenerator : public BaseGenerator {
       : BaseGenerator(parser, path, file_name, "", ".", "cs"),
         cur_name_space_(nullptr) {
 
+    // clang-format off
+
     // List of keywords retrieved from here:
     // https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/
+
+    // One per line to ease comparisons to that list are easier
 
     static const char *const keywords[] = {
       "abstract",
@@ -133,6 +137,7 @@ class CSharpGenerator : public BaseGenerator {
       "volatile",
       "while",
       nullptr,
+      // clang-format on
     };
 
     for (auto kw = keywords; *kw; kw++) keywords_.insert(*kw);
@@ -202,9 +207,7 @@ class CSharpGenerator : public BaseGenerator {
     return WrapInNameSpace(def.defined_namespace, Name(def));
   }
 
-  std::string Name(const EnumVal &ev) const {
-    return EscapeKeyword(ev.name);
-  }
+  std::string Name(const EnumVal &ev) const { return EscapeKeyword(ev.name); }
 
   // Save out the generated code for a single class while adding
   // declaration boilerplate.
@@ -508,7 +511,8 @@ class CSharpGenerator : public BaseGenerator {
         // don't clash, and to make it obvious these arguments are constructing
         // a nested struct, prefix the name with the field name.
         GenStructArgs(*field_type.struct_def, code_ptr,
-                      (nameprefix + (EscapeKeyword(field.name) + "_")).c_str(), array_cnt);
+                      (nameprefix + (EscapeKeyword(field.name) + "_")).c_str(),
+                      array_cnt);
       } else {
         code += ", ";
         code += GenTypeBasic(type);
@@ -859,8 +863,7 @@ class CSharpGenerator : public BaseGenerator {
                 HasUnionStringValue(*vectortype.enum_def)) {
               code += member_suffix;
               code += "}\n";
-              code += "  public string " + Name(field) +
-                      "AsString(int j)";
+              code += "  public string " + Name(field) + "AsString(int j)";
               code += offset_prefix + GenGetter(Type(BASE_TYPE_STRING));
               code += "(" + index + ") : null";
             }
@@ -873,8 +876,7 @@ class CSharpGenerator : public BaseGenerator {
             if (HasUnionStringValue(*field.value.type.enum_def)) {
               code += member_suffix;
               code += "}\n";
-              code += "  public string " + Name(field) +
-                      "AsString()";
+              code += "  public string " + Name(field) + "AsString()";
               code += offset_prefix + GenGetter(Type(BASE_TYPE_STRING));
               code += "(o + __p.bb_pos) : null";
             }
@@ -1018,15 +1020,16 @@ class CSharpGenerator : public BaseGenerator {
             is_series ? field.value.type.VectorType() : field.value.type;
         // Boolean parameters have to be explicitly converted to byte
         // representation.
-        auto setter_parameter = underlying_type.base_type == BASE_TYPE_BOOL
-                                    ? "(byte)(" + EscapeKeyword(field.name) + " ? 1 : 0)"
-                                    : EscapeKeyword(field.name);
+        auto setter_parameter =
+            underlying_type.base_type == BASE_TYPE_BOOL
+                ? "(byte)(" + EscapeKeyword(field.name) + " ? 1 : 0)"
+                : EscapeKeyword(field.name);
         auto mutator_prefix = MakeCamel("mutate", true);
         // A vector mutator also needs the index of the vector element it should
         // mutate.
         auto mutator_params = (is_series ? "(int j, " : "(") +
-                              GenTypeGet(underlying_type) + " " + EscapeKeyword(field.name) +
-                              ") { ";
+                              GenTypeGet(underlying_type) + " " +
+                              EscapeKeyword(field.name) + ") { ";
         auto setter_index =
             is_series
                 ? "__p." +
