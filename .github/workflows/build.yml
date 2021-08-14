@@ -120,18 +120,36 @@ jobs:
       working-directory: tests
       run: bash JavaTest.sh
 
-  build-kotlin:
-    name: Build Kotlin
+  build-kotlin-macos:
+    name: Build Kotlin MacOS
     runs-on: macos-latest
     steps:
     - name: Checkout
-      uses: actions/checkout@v1
+      uses: actions/checkout@v2
+    - uses: actions/setup-java@v2
+      with:
+        distribution: 'adopt-hotspot'
+        java-version: '11'
     - name: Build
       working-directory: kotlin
-      run: ./gradlew clean build allTests
+      run: ./gradlew clean iosX64Test macosX64Test jsTest jsBrowserTest
+  
+  build-kotlin-linux:
+    name: Build Kotlin Linux
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+    - uses: actions/setup-java@v2
+      with:
+        distribution: 'adopt-hotspot'
+        java-version: '11'
+    - name: Build
+      working-directory: kotlin
+      run: ./gradlew jvmMainClasses jvmTest
     - name: Run Benchmark
       working-directory: kotlin
-      run: ./gradlew benchmark
+      run: ./gradlew jvmBenchmark
     - name: Generate Benchmark Report
       working-directory: kotlin
       run: |
