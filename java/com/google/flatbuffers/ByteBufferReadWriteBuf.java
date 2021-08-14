@@ -15,7 +15,7 @@ public class ByteBufferReadWriteBuf implements ReadWriteBuf {
 
   @Override
   public void clear() {
-    ((Buffer) buffer).clear();
+    buffer.clear();
   }
 
   @Override
