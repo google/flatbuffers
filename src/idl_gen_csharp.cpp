@@ -65,7 +65,7 @@ class CSharpGenerator : public BaseGenerator {
         one_file_code += enumcode;
       } else {
         if (!SaveType(enum_def.name, *enum_def.defined_namespace, enumcode,
-                      false, parser_.opts))
+                      false))
           return false;
       }
     }
@@ -81,14 +81,14 @@ class CSharpGenerator : public BaseGenerator {
         one_file_code += declcode;
       } else {
         if (!SaveType(struct_def.name, *struct_def.defined_namespace, declcode,
-                      true, parser_.opts))
+                      true))
           return false;
       }
     }
 
     if (parser_.opts.one_file) {
       return SaveType(file_name_, *parser_.current_namespace_, one_file_code,
-                      true, parser_.opts);
+                      true);
     }
     return true;
   }
@@ -96,8 +96,7 @@ class CSharpGenerator : public BaseGenerator {
   // Save out the generated code for a single class while adding
   // declaration boilerplate.
   bool SaveType(const std::string &defname, const Namespace &ns,
-                const std::string &classcode, bool needs_includes,
-                const IDLOptions &options) const {
+                const std::string &classcode, bool needs_includes) const {
     if (!classcode.length()) return true;
 
     std::string code =
@@ -118,7 +117,7 @@ class CSharpGenerator : public BaseGenerator {
     }
     code += classcode;
     if (!namespace_name.empty()) { code += "\n}\n"; }
-    auto filename = GeneratedFileName(NamespaceDir(ns), defname, options);
+    auto filename = NamespaceDir(ns) + defname + ".cs";
     return SaveFile(filename.c_str(), code, false);
   }
 
