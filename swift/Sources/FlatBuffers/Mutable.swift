@@ -16,17 +16,17 @@
 
 import Foundation
 
-/// Mutable is a protocol that allows us to mutate Scalar values within the buffer
+/// Mutable is a protocol that allows us to mutate Scalar values within a ``ByteBuffer``
 public protocol Mutable {
   /// makes Flatbuffer accessed within the Protocol
   var bb: ByteBuffer { get }
-  /// makes position of the table/struct  accessed within the Protocol
+  /// makes position of the ``Table``/``struct`` accessed within the Protocol
   var postion: Int32 { get }
 }
 
 extension Mutable {
 
-  /// Mutates the memory in the buffer, this is only called from the access function of table and structs
+  /// Mutates the memory in the buffer, this is only called from the access function of ``Table`` and ``struct``
   /// - Parameters:
   ///   - value: New value to be inserted to the buffer
   ///   - index: index of the Element
@@ -39,7 +39,7 @@ extension Mutable {
 
 extension Mutable where Self == Table {
 
-  /// Mutates a value by calling mutate with respect to the position in the table
+  /// Mutates a value by calling mutate with respect to the position in a ``Table``
   /// - Parameters:
   ///   - value: New value to be inserted to the buffer
   ///   - index: index of the Element

@@ -1,4 +1,4 @@
-// swift-tools-version:5.2
+// swift-tools-version:5.5
 /*
  * Copyright 2020 Google Inc. All rights reserved.
  *
@@ -31,6 +31,6 @@ let package = Package(
   targets: [
     .target(
       name: "FlatBuffers",
-      dependencies: [],
-      exclude: ["Documentation.docc/Resources/code/swift"]),
+      dependencies: []),
   ])
+

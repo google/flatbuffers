@@ -29,6 +29,8 @@ public enum FlatBuffersUtils {
   /// creates a new buffer use `readPrefixedSizeCheckedRoot` instead
   /// unless a completely new buffer is required
   /// - Parameter bb: Flatbuffer object
+  ///
+  ///
   public static func removeSizePrefix(bb: ByteBuffer) -> ByteBuffer {
     bb.duplicate(removing: MemoryLayout<Int32>.size)
   }
