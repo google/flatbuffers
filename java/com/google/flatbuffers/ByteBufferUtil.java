@@ -49,9 +49,9 @@ public class ByteBufferUtil {
      *         size prefix
      */
     public static ByteBuffer removeSizePrefix(ByteBuffer bb) {
-        Buffer s = ((Buffer) bb).duplicate();
-        s.position(s.position() + SIZE_PREFIX_LENGTH);
-        return (ByteBuffer) s;
+        ByteBuffer s = bb.duplicate();
+        ((Buffer) s).position(s.position() + SIZE_PREFIX_LENGTH);
+        return s;
     }
 
 }

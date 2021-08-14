@@ -151,9 +151,9 @@ public class Table {
   protected ByteBuffer __vector_as_bytebuffer(int vector_offset, int elem_size) {
     int o = __offset(vector_offset);
     if (o == 0) return null;
-    ByteBuffer bb = ((ByteBuffer) (((Buffer) this.bb).duplicate())).order(ByteOrder.LITTLE_ENDIAN);
+    ByteBuffer bb = this.bb.duplicate().order(ByteOrder.LITTLE_ENDIAN);
     int vectorstart = __vector(o);
-    bb.position(vectorstart);
+    ((Buffer) bb).position(vectorstart);
     bb.limit(vectorstart + __vector_len(o) * elem_size);
     return bb;
   }

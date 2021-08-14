@@ -87,11 +87,11 @@ public class Utf8Old extends Utf8 {
   public String decodeUtf8(ByteBuffer buffer, int offset, int length) {
     CharsetDecoder decoder = CACHE.get().decoder;
     decoder.reset();
-    Buffer b = ((Buffer) buffer).duplicate();
-    b.position(offset);
-    b.limit(offset + length);
+    buffer = buffer.duplicate();
+    ((Buffer) buffer).position(offset);
+    buffer.limit(offset + length);
     try {
-      CharBuffer result = decoder.decode((ByteBuffer) b);
+      CharBuffer result = decoder.decode(buffer);
       return result.toString();
     } catch (CharacterCodingException e) {
       throw new IllegalArgumentException("Bad encoding", e);
