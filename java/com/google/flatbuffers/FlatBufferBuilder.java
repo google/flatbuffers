@@ -273,10 +273,10 @@ public class FlatBufferBuilder {
             new_buf_size = (old_buf_size & 0xC0000000) != 0 ? MAX_BUFFER_SIZE : old_buf_size << 1;
         }
 
-        ((Buffer) bb).position(0);
+        bb.position(0);
         ByteBuffer nbb = bb_factory.newByteBuffer(new_buf_size);
         new_buf_size = nbb.clear().capacity(); // Ensure the returned buffer is treated as empty
-        ((Buffer) nbb).position(new_buf_size - old_buf_size);
+        nbb.position(new_buf_size - old_buf_size);
         nbb.put(bb);
         return nbb;
     }
@@ -527,7 +527,7 @@ public class FlatBufferBuilder {
         int length = elem_size * num_elems;
         startVector(elem_size, num_elems, alignment);
 
-        ((Buffer) bb).position(space -= length);
+        bb.position(space -= length);
 
         // Slice and limit the copy vector to point to the 'array'
         ByteBuffer copy = bb.slice().order(ByteOrder.LITTLE_ENDIAN);
@@ -602,7 +602,7 @@ public class FlatBufferBuilder {
         int length = utf8.encodedLength(s);
         addByte((byte)0);
         startVector(1, length, 1);
-        ((Buffer) bb).position(space -= length);
+        bb.position(space -= length);
         utf8.encodeUtf8(s, bb);
         return endVector();
     }
@@ -617,7 +617,7 @@ public class FlatBufferBuilder {
         int length = s.remaining();
         addByte((byte)0);
         startVector(1, length, 1);
-        ((Buffer) bb).position(space -= length);
+        bb.position(space -= length);
         bb.put(s);
         return endVector();
     }
@@ -631,7 +631,7 @@ public class FlatBufferBuilder {
     public int createByteVector(byte[] arr) {
         int length = arr.length;
         startVector(1, length, 1);
-        ((Buffer) bb).position(space -= length);
+        bb.position(space -= length);
         bb.put(arr);
         return endVector();
     }
@@ -646,7 +646,7 @@ public class FlatBufferBuilder {
      */
     public int createByteVector(byte[] arr, int offset, int length) {
         startVector(1, length, 1);
-        ((Buffer) bb).position(space -= length);
+        bb.position(space -= length);
         bb.put(arr, offset, length);
         return endVector();
     }
@@ -663,7 +663,7 @@ public class FlatBufferBuilder {
     public int createByteVector(ByteBuffer byteBuffer) {
         int length = byteBuffer.remaining();
         startVector(1, length, 1);
-        ((Buffer) bb).position(space -= length);
+        bb.position(space -= length);
         bb.put(byteBuffer);
         return endVector();
     }
@@ -953,7 +953,7 @@ public class FlatBufferBuilder {
         if (size_prefix) {
             addInt(bb.capacity() - space);
         }
-        ((Buffer) bb).position(space);
+        bb.position(space);
         finished = true;
     }
 
@@ -1067,7 +1067,7 @@ public class FlatBufferBuilder {
     public byte[] sizedByteArray(int start, int length){
         finished();
         byte[] array = new byte[length];
-        ((Buffer) bb).position(start);
+        bb.position(start);
         bb.get(array);
         return array;
     }
@@ -1090,7 +1090,7 @@ public class FlatBufferBuilder {
     public InputStream sizedInputStream() {
         finished();
         ByteBuffer duplicate = bb.duplicate();
-        ((Buffer) duplicate).position(space);
+        duplicate.position(space);
         duplicate.limit(bb.capacity());
         return new ByteBufferBackedInputStream(duplicate);
     }
