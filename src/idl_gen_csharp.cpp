@@ -121,7 +121,7 @@ class CSharpGenerator : public BaseGenerator {
     auto filename = NamespaceDir(ns) + defname;
     if (options.one_file) { filename += options.filename_suffix; }
     filename +=
-      options.filename_extension.empty() ? ".cs" : options.filename_extension;
+        options.filename_extension.empty() ? ".cs" : options.filename_extension;
     return SaveFile(filename.c_str(), code, false);
   }
 
