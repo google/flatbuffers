@@ -75,7 +75,7 @@ class GoGenerator : public BaseGenerator {
 
   bool generate() {
     std::string one_file_code;
-    bool needs_imports;
+    bool needs_imports = false;
     // generate enums and union
     for (auto it = parser_.enums_.vec.begin(); it != parser_.enums_.vec.end();
          ++it) {
@@ -205,25 +205,7 @@ class GoGenerator : public BaseGenerator {
   // End enum code.
   void EndEnum(const EnumDef &enum_def, std::string *code_ptr) {
     std::string &code = *code_ptr;
-
-    if (!(enum_def.attributes.Lookup("bit_flags"))) {
-      const EnumVal *minv = enum_def.MinValue();
-      const EnumVal *maxv = enum_def.MaxValue();
-      code += "\n\t";
-      code += enum_def.name;
-      code += "VerifyValueMin ";
-      code += GetEnumTypeName(enum_def);
-      code += " = ";
-      code += enum_def.ToString(*minv) + "\n";
-
-      code += "\t";
-      code += enum_def.name;
-      code += "VerifyValueMax ";
-      code += GetEnumTypeName(enum_def);
-      code += " = ";
-      code += enum_def.ToString(*maxv) + "\n";
-    }
-    code += ")\n\n";
+    code += "\n";
   }
 
   // Begin enum name map.
@@ -1742,10 +1724,10 @@ class GoGenerator : public BaseGenerator {
   std::string GenTypeBasic(const Type &type) {
     // clang-format off
     static const char *ctypename[] = {
-#define FLATBUFFERS_TD(ENUM, IDLTYPE, CTYPE, JTYPE, GTYPE, ...) \
+      #define FLATBUFFERS_TD(ENUM, IDLTYPE, CTYPE, JTYPE, GTYPE, ...) \
         #GTYPE,
         FLATBUFFERS_GEN_TYPES(FLATBUFFERS_TD)
-#undef FLATBUFFERS_TD
+      #undef FLATBUFFERS_TD
     };
     // clang-format on
     return ctypename[type.base_type];

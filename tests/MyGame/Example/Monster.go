@@ -83,9 +83,6 @@ func (t *MonsterT) Pack(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
 		test4Offset = MonsterEndTest4Vector(builder, test4Length)
 	}
 	testarrayofstringOffset := flatbuffers.UOffsetT(0)
-	if t.Testarrayofstring != nil {
-		testarrayofstringOffset = builder.StringsVector(t.Testarrayofstring...)
-	}
 	// vector of tables 
 	testarrayoftablesOffset := flatbuffers.UOffsetT(0)
 	if t.Testarrayoftables != nil {
@@ -116,9 +113,6 @@ func (t *MonsterT) Pack(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
 		testarrayofboolsOffset = MonsterEndTestarrayofboolsVector(builder, testarrayofboolsLength)
 	}
 	testarrayofstring2Offset := flatbuffers.UOffsetT(0)
-	if t.Testarrayofstring2 != nil {
-		testarrayofstring2Offset = builder.StringsVector(t.Testarrayofstring2...)
-	}
 	testarrayofsortedstructOffset := flatbuffers.UOffsetT(0)
 	if t.Testarrayofsortedstruct != nil {
 		testarrayofsortedstructLength := len(t.Testarrayofsortedstruct)

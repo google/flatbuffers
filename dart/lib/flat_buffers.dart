@@ -1033,21 +1033,20 @@ abstract class Reader<T> {
 
 /// The reader of string values.
 class StringReader extends Reader<String> {
-  final bool asciiOptimization;
-  const StringReader({this.asciiOptimization = false}) : super();
+  const StringReader() : super();
 
   @override
   @pragma('vm:prefer-inline')
-  int get size => _sizeofUint32;
+  int get size => 4;
 
   @override
   @pragma('vm:prefer-inline')
   String read(BufferContext bc, int offset) {
     int strOffset = bc.derefObject(offset);
     int length = bc._getUint32(strOffset);
-    Uint8List bytes = bc._asUint8List(strOffset + _sizeofUint32, length);
-    if (asciiOptimization && _isLatin(bytes)) {
-      return String.fromCharCodes(bytes);
+    Uint8List bytes = bc._asUint8List(strOffset + 4, length);
+    if (_isLatin(bytes)) {
+      return new String.fromCharCodes(bytes);
     }
     return utf8.decode(bytes);
   }

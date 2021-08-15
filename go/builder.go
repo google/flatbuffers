@@ -291,31 +291,6 @@ func (b *Builder) PrependUOffsetT(off UOffsetT) {
 	b.PlaceUOffsetT(off2)
 }
 
-// StringsVector  a shortcut to pack []string
-func (b *Builder) StringsVector(str ...string) UOffsetT {
-	l := len(str)
-	if l == 0 {
-		return UOffsetT(0)
-	}
-	namesOffsets := make([]UOffsetT, l)
-	for j := l - 1; j >= 0; j-- {
-		namesOffsets[j] = b.CreateString(str[j])
-	}
-	return b.VectorArray(namesOffsets...)
-}
-
-// VectorArray  shortcut for vector array ( UOffset array ) like strings / tables / unions
-func (b *Builder) VectorArray(off ...UOffsetT) UOffsetT {
-	if len(off) == 0 {
-		return UOffsetT(0)
-	}
-	b.StartVector(4, len(off), 4)
-	for j := len(off) - 1; j >= 0; j-- {
-		b.PrependUOffsetT(off[j])
-	}
-	return b.EndVector(len(off))
-}
-
 // StartVector initializes bookkeeping for writing a new vector.
 //
 // A vector has the following format:
@@ -356,9 +331,6 @@ func (b *Builder) CreateSharedString(s string) UOffsetT {
 
 // CreateString writes a null-terminated string as a vector.
 func (b *Builder) CreateString(s string) UOffsetT {
-	if len(s) == 0 {
-		return UOffsetT(0)
-	}
 	b.assertNotNested()
 	b.nested = true
 
@@ -391,9 +363,6 @@ func (b *Builder) CreateByteString(s []byte) UOffsetT {
 
 // CreateByteVector writes a ubyte vector
 func (b *Builder) CreateByteVector(v []byte) UOffsetT {
-	if len(v) == 0 {
-		return UOffsetT(0)
-	}
 	b.assertNotNested()
 	b.nested = true
 
