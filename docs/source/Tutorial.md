@@ -2970,7 +2970,7 @@ We can access the type to dynamically cast the data as needed (since the
 
 <div class="language-cpp">
 ~~~{.cpp}
-  auto union_type = monster.equipped_type();
+  auto union_type = monster->equipped_type();
 
   if (union_type == Equipment_Weapon) {
     auto weapon = static_cast<const Weapon*>(monster->equipped()); // Requires `static_cast`
