@@ -1,0 +1,14 @@
+
+enum ABC: int { void, where, stackalloc }
+
+enum public: int { }
+
+table KeywordsInTable {
+  is: ABC = void;
+  private: public;
+}
+
+union KeywordsInUnion {
+  static: KeywordsInTable,
+  internal: string
+}

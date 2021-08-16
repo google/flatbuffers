@@ -137,6 +137,18 @@
     <Compile Include="..\optional_scalars\ScalarStuff.cs">
       <Link>optional_scalars\ScalarStuff.cs</Link>
     </Compile>
+    <Compile Include="..\keyword_test\ABC.cs">
+      <Link>keyword_test\ABC.cs</Link>
+    </Compile>
+    <Compile Include="..\keyword_test\public.cs">
+      <Link>keyword_test\public.cs</Link>
+    </Compile>
+    <Compile Include="..\keyword_test\KeywordsInTable.cs">
+      <Link>keyword_test\KeywordsInTable.cs</Link>
+    </Compile>
+    <Compile Include="..\keyword_test\KeywordsInUnion.cs">
+      <Link>keyword_test\KeywordsInUnion.cs</Link>
+    </Compile>
   </ItemGroup>
 
   <ItemGroup>
