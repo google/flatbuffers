@@ -71,6 +71,9 @@ set TEST_NOINCL_FLAGS=%TEST_BASE_FLAGS% --no-includes
 @rem Generate the schema evolution tests
 ..\%buildtype%\flatc.exe --cpp --scoped-enums %TEST_CPP_FLAGS% -o evolution_test ./evolution_test/evolution_v1.fbs ./evolution_test/evolution_v2.fbs || goto FAIL
 
+@rem Generate the keywords tests
+..\%buildtype%\flatc.exe --csharp --scoped-enums %TEST_BASE_FLAGS% %TEST_CS_FLAGS% -o keyword_test keyword_test.fbs || goto FAIL
+
 if NOT "%MONSTER_EXTRA%"=="skip" (
   @echo Generate MosterExtra
   ..\%buildtype%\flatc.exe --cpp --java --csharp %TEST_NOINCL_FLAGS% %TEST_CPP_FLAGS% %TEST_CS_FLAGS% monster_extra.fbs monsterdata_extra.json || goto FAIL
