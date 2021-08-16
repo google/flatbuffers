@@ -519,13 +519,13 @@ struct Test::Traits {
   using type = Test;
   static constexpr auto name = "Test";
   static constexpr auto fully_qualified_name = "MyGame.Example.Test";
-  static constexpr std::array<const char *, 2> field_names = {
+  static constexpr size_t fields_number = 2;
+  static constexpr std::array<const char *, fields_number> field_names = {
     "a",
     "b"
   };
   template<size_t Index>
   using FieldType = decltype(std::declval<type>().get_field<Index>());
-  static constexpr size_t fields_number = 2;
 };
 
 FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(8) Vec3 FLATBUFFERS_FINAL_CLASS {
@@ -626,7 +626,8 @@ struct Vec3::Traits {
   using type = Vec3;
   static constexpr auto name = "Vec3";
   static constexpr auto fully_qualified_name = "MyGame.Example.Vec3";
-  static constexpr std::array<const char *, 6> field_names = {
+  static constexpr size_t fields_number = 6;
+  static constexpr std::array<const char *, fields_number> field_names = {
     "x",
     "y",
     "z",
@@ -636,7 +637,6 @@ struct Vec3::Traits {
   };
   template<size_t Index>
   using FieldType = decltype(std::declval<type>().get_field<Index>());
-  static constexpr size_t fields_number = 6;
 };
 
 FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) Ability FLATBUFFERS_FINAL_CLASS {
@@ -688,13 +688,13 @@ struct Ability::Traits {
   using type = Ability;
   static constexpr auto name = "Ability";
   static constexpr auto fully_qualified_name = "MyGame.Example.Ability";
-  static constexpr std::array<const char *, 2> field_names = {
+  static constexpr size_t fields_number = 2;
+  static constexpr std::array<const char *, fields_number> field_names = {
     "id",
     "distance"
   };
   template<size_t Index>
   using FieldType = decltype(std::declval<type>().get_field<Index>());
-  static constexpr size_t fields_number = 2;
 };
 
 FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) StructOfStructs FLATBUFFERS_FINAL_CLASS {
@@ -750,14 +750,14 @@ struct StructOfStructs::Traits {
   using type = StructOfStructs;
   static constexpr auto name = "StructOfStructs";
   static constexpr auto fully_qualified_name = "MyGame.Example.StructOfStructs";
-  static constexpr std::array<const char *, 3> field_names = {
+  static constexpr size_t fields_number = 3;
+  static constexpr std::array<const char *, fields_number> field_names = {
     "a",
     "b",
     "c"
   };
   template<size_t Index>
   using FieldType = decltype(std::declval<type>().get_field<Index>());
-  static constexpr size_t fields_number = 3;
 };
 
 }  // namespace Example
@@ -808,8 +808,8 @@ struct InParentNamespace::Traits {
   static auto constexpr Create = CreateInParentNamespace;
   static constexpr auto name = "InParentNamespace";
   static constexpr auto fully_qualified_name = "MyGame.InParentNamespace";
-  static constexpr std::array<const char *, 0> field_names = {};
   static constexpr size_t fields_number = 0;
+  static constexpr std::array<const char *, fields_number> field_names = {};
 };
 
 flatbuffers::Offset<InParentNamespace> CreateInParentNamespace(flatbuffers::FlatBufferBuilder &_fbb, const InParentNamespaceT *_o, const flatbuffers::rehasher_function_t *_rehasher = nullptr);
@@ -862,8 +862,8 @@ struct Monster::Traits {
   static auto constexpr Create = CreateMonster;
   static constexpr auto name = "Monster";
   static constexpr auto fully_qualified_name = "MyGame.Example2.Monster";
-  static constexpr std::array<const char *, 0> field_names = {};
   static constexpr size_t fields_number = 0;
+  static constexpr std::array<const char *, fields_number> field_names = {};
 };
 
 flatbuffers::Offset<Monster> CreateMonster(flatbuffers::FlatBufferBuilder &_fbb, const MonsterT *_o, const flatbuffers::rehasher_function_t *_rehasher = nullptr);
@@ -939,12 +939,12 @@ struct TestSimpleTableWithEnum::Traits {
   static auto constexpr Create = CreateTestSimpleTableWithEnum;
   static constexpr auto name = "TestSimpleTableWithEnum";
   static constexpr auto fully_qualified_name = "MyGame.Example.TestSimpleTableWithEnum";
-  static constexpr std::array<const char *, 1> field_names = {
+  static constexpr size_t fields_number = 1;
+  static constexpr std::array<const char *, fields_number> field_names = {
     "color"
   };
   template<size_t Index>
   using FieldType = decltype(std::declval<type>().get_field<Index>());
-  static constexpr size_t fields_number = 1;
 };
 
 flatbuffers::Offset<TestSimpleTableWithEnum> CreateTestSimpleTableWithEnum(flatbuffers::FlatBufferBuilder &_fbb, const TestSimpleTableWithEnumT *_o, const flatbuffers::rehasher_function_t *_rehasher = nullptr);
@@ -1053,14 +1053,14 @@ struct Stat::Traits {
   static auto constexpr Create = CreateStat;
   static constexpr auto name = "Stat";
   static constexpr auto fully_qualified_name = "MyGame.Example.Stat";
-  static constexpr std::array<const char *, 3> field_names = {
+  static constexpr size_t fields_number = 3;
+  static constexpr std::array<const char *, fields_number> field_names = {
     "id",
     "val",
     "count"
   };
   template<size_t Index>
   using FieldType = decltype(std::declval<type>().get_field<Index>());
-  static constexpr size_t fields_number = 3;
 };
 
 inline flatbuffers::Offset<Stat> CreateStatDirect(
@@ -1151,12 +1151,12 @@ struct Referrable::Traits {
   static auto constexpr Create = CreateReferrable;
   static constexpr auto name = "Referrable";
   static constexpr auto fully_qualified_name = "MyGame.Example.Referrable";
-  static constexpr std::array<const char *, 1> field_names = {
+  static constexpr size_t fields_number = 1;
+  static constexpr std::array<const char *, fields_number> field_names = {
     "id"
   };
   template<size_t Index>
   using FieldType = decltype(std::declval<type>().get_field<Index>());
-  static constexpr size_t fields_number = 1;
 };
 
 flatbuffers::Offset<Referrable> CreateReferrable(flatbuffers::FlatBufferBuilder &_fbb, const ReferrableT *_o, const flatbuffers::rehasher_function_t *_rehasher = nullptr);
@@ -2056,7 +2056,8 @@ struct Monster::Traits {
   static auto constexpr Create = CreateMonster;
   static constexpr auto name = "Monster";
   static constexpr auto fully_qualified_name = "MyGame.Example.Monster";
-  static constexpr std::array<const char *, 50> field_names = {
+  static constexpr size_t fields_number = 50;
+  static constexpr std::array<const char *, fields_number> field_names = {
     "pos",
     "mana",
     "hp",
@@ -2110,7 +2111,6 @@ struct Monster::Traits {
   };
   template<size_t Index>
   using FieldType = decltype(std::declval<type>().get_field<Index>());
-  static constexpr size_t fields_number = 50;
 };
 
 inline flatbuffers::Offset<Monster> CreateMonsterDirect(
@@ -2476,7 +2476,8 @@ struct TypeAliases::Traits {
   static auto constexpr Create = CreateTypeAliases;
   static constexpr auto name = "TypeAliases";
   static constexpr auto fully_qualified_name = "MyGame.Example.TypeAliases";
-  static constexpr std::array<const char *, 12> field_names = {
+  static constexpr size_t fields_number = 12;
+  static constexpr std::array<const char *, fields_number> field_names = {
     "i8",
     "u8",
     "i16",
@@ -2492,7 +2493,6 @@ struct TypeAliases::Traits {
   };
   template<size_t Index>
   using FieldType = decltype(std::declval<type>().get_field<Index>());
-  static constexpr size_t fields_number = 12;
 };
 
 inline flatbuffers::Offset<TypeAliases> CreateTypeAliasesDirect(
@@ -2686,10 +2686,10 @@ inline void Monster::UnPackTo(MonsterT *_o, const flatbuffers::resolver_function
   { auto _e = test(); if (_e) _o->test.value = MyGame::Example::AnyUnion::UnPack(_e, test_type(), _resolver); }
   { auto _e = test4(); if (_e) { _o->test4.resize(_e->size()); for (flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->test4[_i] = *_e->Get(_i); } } }
   { auto _e = testarrayofstring(); if (_e) { _o->testarrayofstring.resize(_e->size()); for (flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->testarrayofstring[_i] = _e->Get(_i)->str(); } } }
-  { auto _e = testarrayoftables(); if (_e) { _o->testarrayoftables.resize(_e->size()); for (flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->testarrayoftables[_i] = std::unique_ptr<MyGame::Example::MonsterT>(_e->Get(_i)->UnPack(_resolver)); } } }
-  { auto _e = enemy(); if (_e) _o->enemy = std::unique_ptr<MyGame::Example::MonsterT>(_e->UnPack(_resolver)); }
+  { auto _e = testarrayoftables(); if (_e) { _o->testarrayoftables.resize(_e->size()); for (flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { if(_o->testarrayoftables[_i]) { _e->Get(_i)->UnPackTo(_o->testarrayoftables[_i].get(), _resolver); } else { _o->testarrayoftables[_i] = std::unique_ptr<MyGame::Example::MonsterT>(_e->Get(_i)->UnPack(_resolver)); }; } } }
+  { auto _e = enemy(); if (_e) { if(_o->enemy) { _e->UnPackTo(_o->enemy.get(), _resolver); } else { _o->enemy = std::unique_ptr<MyGame::Example::MonsterT>(_e->UnPack(_resolver)); } } }
   { auto _e = testnestedflatbuffer(); if (_e) { _o->testnestedflatbuffer.resize(_e->size()); std::copy(_e->begin(), _e->end(), _o->testnestedflatbuffer.begin()); } }
-  { auto _e = testempty(); if (_e) _o->testempty = std::unique_ptr<MyGame::Example::StatT>(_e->UnPack(_resolver)); }
+  { auto _e = testempty(); if (_e) { if(_o->testempty) { _e->UnPackTo(_o->testempty.get(), _resolver); } else { _o->testempty = std::unique_ptr<MyGame::Example::StatT>(_e->UnPack(_resolver)); } } }
   { auto _e = testbool(); _o->testbool = _e; }
   { auto _e = testhashs32_fnv1(); _o->testhashs32_fnv1 = _e; }
   { auto _e = testhashu32_fnv1(); _o->testhashu32_fnv1 = _e; }
@@ -2710,13 +2710,13 @@ if (_resolver) (*_resolver)(reinterpret_cast<void **>(&_o->testhashu32_fnv1a), s
   { auto _e = test5(); if (_e) { _o->test5.resize(_e->size()); for (flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->test5[_i] = *_e->Get(_i); } } }
   { auto _e = vector_of_longs(); if (_e) { _o->vector_of_longs.resize(_e->size()); for (flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->vector_of_longs[_i] = _e->Get(_i); } } }
   { auto _e = vector_of_doubles(); if (_e) { _o->vector_of_doubles.resize(_e->size()); for (flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->vector_of_doubles[_i] = _e->Get(_i); } } }
-  { auto _e = parent_namespace_test(); if (_e) _o->parent_namespace_test = std::unique_ptr<MyGame::InParentNamespaceT>(_e->UnPack(_resolver)); }
-  { auto _e = vector_of_referrables(); if (_e) { _o->vector_of_referrables.resize(_e->size()); for (flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->vector_of_referrables[_i] = std::unique_ptr<MyGame::Example::ReferrableT>(_e->Get(_i)->UnPack(_resolver)); } } }
+  { auto _e = parent_namespace_test(); if (_e) { if(_o->parent_namespace_test) { _e->UnPackTo(_o->parent_namespace_test.get(), _resolver); } else { _o->parent_namespace_test = std::unique_ptr<MyGame::InParentNamespaceT>(_e->UnPack(_resolver)); } } }
+  { auto _e = vector_of_referrables(); if (_e) { _o->vector_of_referrables.resize(_e->size()); for (flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { if(_o->vector_of_referrables[_i]) { _e->Get(_i)->UnPackTo(_o->vector_of_referrables[_i].get(), _resolver); } else { _o->vector_of_referrables[_i] = std::unique_ptr<MyGame::Example::ReferrableT>(_e->Get(_i)->UnPack(_resolver)); }; } } }
   { auto _e = single_weak_reference(); //scalar resolver, naked 
 if (_resolver) (*_resolver)(reinterpret_cast<void **>(&_o->single_weak_reference), static_cast<flatbuffers::hash_value_t>(_e)); else _o->single_weak_reference = nullptr; }
   { auto _e = vector_of_weak_references(); if (_e) { _o->vector_of_weak_references.resize(_e->size()); for (flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { //vector resolver, naked
 if (_resolver) (*_resolver)(reinterpret_cast<void **>(&_o->vector_of_weak_references[_i]), static_cast<flatbuffers::hash_value_t>(_e->Get(_i))); else _o->vector_of_weak_references[_i] = nullptr; } } }
-  { auto _e = vector_of_strong_referrables(); if (_e) { _o->vector_of_strong_referrables.resize(_e->size()); for (flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->vector_of_strong_referrables[_i] = std::unique_ptr<MyGame::Example::ReferrableT>(_e->Get(_i)->UnPack(_resolver)); } } }
+  { auto _e = vector_of_strong_referrables(); if (_e) { _o->vector_of_strong_referrables.resize(_e->size()); for (flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { if(_o->vector_of_strong_referrables[_i]) { _e->Get(_i)->UnPackTo(_o->vector_of_strong_referrables[_i].get(), _resolver); } else { _o->vector_of_strong_referrables[_i] = std::unique_ptr<MyGame::Example::ReferrableT>(_e->Get(_i)->UnPack(_resolver)); }; } } }
   { auto _e = co_owning_reference(); //scalar resolver, naked 
 if (_resolver) (*_resolver)(reinterpret_cast<void **>(&_o->co_owning_reference), static_cast<flatbuffers::hash_value_t>(_e)); else _o->co_owning_reference = nullptr; }
   { auto _e = vector_of_co_owning_references(); if (_e) { _o->vector_of_co_owning_references.resize(_e->size()); for (flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { //vector resolver, default_ptr_type
@@ -2732,7 +2732,7 @@ if (_resolver) (*_resolver)(reinterpret_cast<void **>(&_o->vector_of_non_owning_
   { auto _e = vector_of_enums(); if (_e) { _o->vector_of_enums.resize(_e->size()); for (flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->vector_of_enums[_i] = static_cast<MyGame::Example::Color>(_e->Get(_i)); } } }
   { auto _e = signed_enum(); _o->signed_enum = _e; }
   { auto _e = testrequirednestedflatbuffer(); if (_e) { _o->testrequirednestedflatbuffer.resize(_e->size()); std::copy(_e->begin(), _e->end(), _o->testrequirednestedflatbuffer.begin()); } }
-  { auto _e = scalar_key_sorted_tables(); if (_e) { _o->scalar_key_sorted_tables.resize(_e->size()); for (flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->scalar_key_sorted_tables[_i] = std::unique_ptr<MyGame::Example::StatT>(_e->Get(_i)->UnPack(_resolver)); } } }
+  { auto _e = scalar_key_sorted_tables(); if (_e) { _o->scalar_key_sorted_tables.resize(_e->size()); for (flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { if(_o->scalar_key_sorted_tables[_i]) { _e->Get(_i)->UnPackTo(_o->scalar_key_sorted_tables[_i].get(), _resolver); } else { _o->scalar_key_sorted_tables[_i] = std::unique_ptr<MyGame::Example::StatT>(_e->Get(_i)->UnPack(_resolver)); }; } } }
 }
 
 inline flatbuffers::Offset<Monster> Monster::Pack(flatbuffers::FlatBufferBuilder &_fbb, const MonsterT* _o, const flatbuffers::rehasher_function_t *_rehasher) {
