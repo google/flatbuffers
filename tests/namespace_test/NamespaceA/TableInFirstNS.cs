@@ -83,7 +83,7 @@ public struct TableInFirstNS : IFlatbufferObject
       _foo_union,
       _o.FooStruct);
   }
-};
+}
 
 public class TableInFirstNST
 {

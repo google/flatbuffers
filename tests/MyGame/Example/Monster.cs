@@ -741,7 +741,7 @@ public struct Monster : IFlatbufferObject
       _testrequirednestedflatbuffer,
       _scalar_key_sorted_tables);
   }
-};
+}
 
 public class MonsterT
 {
