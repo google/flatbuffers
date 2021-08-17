@@ -43,7 +43,7 @@ public struct StructInNestedNS : IFlatbufferObject
       _o.A,
       _o.B);
   }
-};
+}
 
 public class StructInNestedNST
 {
