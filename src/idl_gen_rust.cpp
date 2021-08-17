@@ -412,7 +412,7 @@ class RustGenerator : public BaseGenerator {
       gen_symbol(symbol);
       std::stringstream file_path;
       file_path << path_;
-      // DO NOT SUBMIT: CASPER: Refactor out common path name generation.
+      // Create filepath.
       if (symbol.defined_namespace)
         for (auto i = symbol.defined_namespace->components.begin();
              i != symbol.defined_namespace->components.end(); i++) {
