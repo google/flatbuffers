@@ -46,7 +46,7 @@ public struct Attacker : IFlatbufferObject
       builder,
       _o.SwordAttackDamage);
   }
-};
+}
 
 public class AttackerT
 {

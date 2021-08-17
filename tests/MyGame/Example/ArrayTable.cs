@@ -44,7 +44,7 @@ public struct ArrayTable : IFlatbufferObject
     AddA(builder, MyGame.Example.ArrayStruct.Pack(builder, _o.A));
     return EndArrayTable(builder);
   }
-};
+}
 
 public class ArrayTableT
 {

@@ -94,7 +94,7 @@ public struct Stat : IFlatbufferObject
       _o.Val,
       _o.Count);
   }
-};
+}
 
 public class StatT
 {

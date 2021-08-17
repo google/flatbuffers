@@ -60,7 +60,7 @@ public struct KeywordsInTable : IFlatbufferObject
       _o.Private,
       _o.Type);
   }
-};
+}
 
 public class KeywordsInTableT
 {
