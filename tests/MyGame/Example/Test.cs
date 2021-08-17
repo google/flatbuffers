@@ -44,7 +44,7 @@ public struct Test : IFlatbufferObject
       _o.A,
       _o.B);
   }
-};
+}
 
 public class TestT
 {

@@ -71,7 +71,7 @@ public struct Vec3 : IFlatbufferObject
       _test3_a,
       _test3_b);
   }
-};
+}
 
 public class Vec3T
 {

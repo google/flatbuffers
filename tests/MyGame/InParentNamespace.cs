@@ -37,7 +37,7 @@ public struct InParentNamespace : IFlatbufferObject
     StartInParentNamespace(builder);
     return EndInParentNamespace(builder);
   }
-};
+}
 
 public class InParentNamespaceT
 {

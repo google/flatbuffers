@@ -43,7 +43,7 @@ public struct Ability : IFlatbufferObject
       _o.Id,
       _o.Distance);
   }
-};
+}
 
 public class AbilityT
 {
