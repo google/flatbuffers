@@ -37,7 +37,7 @@ public struct Monster : IFlatbufferObject
     StartMonster(builder);
     return EndMonster(builder);
   }
-};
+}
 
 public class MonsterT
 {

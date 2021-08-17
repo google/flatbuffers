@@ -158,7 +158,7 @@ public struct TypeAliases : IFlatbufferObject
       _v8,
       _vf64);
   }
-};
+}
 
 public class TypeAliasesT
 {

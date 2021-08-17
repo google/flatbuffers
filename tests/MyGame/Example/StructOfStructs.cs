@@ -61,7 +61,7 @@ public struct StructOfStructs : IFlatbufferObject
       _c_id,
       _c_distance);
   }
-};
+}
 
 public class StructOfStructsT
 {

@@ -66,7 +66,7 @@ public struct NestedStruct : IFlatbufferObject
       _c,
       _d);
   }
-};
+}
 
 public class NestedStructT
 {

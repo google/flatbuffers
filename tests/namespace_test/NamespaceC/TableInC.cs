@@ -56,7 +56,7 @@ public struct TableInC : IFlatbufferObject
       _refer_to_a1,
       _refer_to_a2);
   }
-};
+}
 
 public class TableInCT
 {

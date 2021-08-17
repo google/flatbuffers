@@ -35,7 +35,7 @@ public struct Rapunzel : IFlatbufferObject
       builder,
       _o.HairLength);
   }
-};
+}
 
 public class RapunzelT
 {

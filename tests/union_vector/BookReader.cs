@@ -35,7 +35,7 @@ public struct BookReader : IFlatbufferObject
       builder,
       _o.BooksRead);
   }
-};
+}
 
 public class BookReaderT
 {

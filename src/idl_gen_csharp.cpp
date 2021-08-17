@@ -1335,7 +1335,7 @@ class CSharpGenerator : public BaseGenerator {
       GenPackUnPack_ObjectAPI(struct_def, code_ptr, opts, struct_has_create,
                               field_has_create_set);
     }
-    code += "};\n\n";
+    code += "}\n\n";
 
     if (opts.generate_object_based_api) {
       GenStruct_ObjectAPI(struct_def, code_ptr, opts);

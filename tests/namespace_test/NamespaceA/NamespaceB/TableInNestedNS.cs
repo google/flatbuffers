@@ -49,7 +49,7 @@ public struct TableInNestedNS : IFlatbufferObject
       builder,
       _o.Foo);
   }
-};
+}
 
 public class TableInNestedNST
 {

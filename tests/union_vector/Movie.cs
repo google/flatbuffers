@@ -148,7 +148,7 @@ public struct Movie : IFlatbufferObject
       _characters_type,
       _characters);
   }
-};
+}
 
 public class MovieT
 {

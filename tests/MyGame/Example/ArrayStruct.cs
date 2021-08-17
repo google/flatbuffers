@@ -97,7 +97,7 @@ public struct ArrayStruct : IFlatbufferObject
       _o.E,
       _f);
   }
-};
+}
 
 public class ArrayStructT
 {

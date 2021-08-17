@@ -74,7 +74,7 @@ public struct Referrable : IFlatbufferObject
       builder,
       _o.Id);
   }
-};
+}
 
 public class ReferrableT
 {

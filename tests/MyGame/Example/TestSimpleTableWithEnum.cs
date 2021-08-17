@@ -49,7 +49,7 @@ internal partial struct TestSimpleTableWithEnum : IFlatbufferObject
       builder,
       _o.Color);
   }
-};
+}
 
 internal partial class TestSimpleTableWithEnumT
 {

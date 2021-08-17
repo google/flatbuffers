@@ -49,7 +49,7 @@ public struct SecondTableInA : IFlatbufferObject
       builder,
       _refer_to_c);
   }
-};
+}
 
 public class SecondTableInAT
 {

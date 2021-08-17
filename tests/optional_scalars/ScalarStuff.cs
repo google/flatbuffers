@@ -261,7 +261,7 @@ public struct ScalarStuff : IFlatbufferObject
       _o.MaybeEnum,
       _o.DefaultEnum);
   }
-};
+}
 
 public class ScalarStuffT
 {
