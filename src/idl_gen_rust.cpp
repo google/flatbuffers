@@ -51,9 +51,8 @@ std::string MakeUpper(const std::string &in) {
   return s;
 }
 
-
 std::string UnionTypeFieldName(const FieldDef &field) {
-    return MakeSnakeCase(field.name + "_type");
+  return MakeSnakeCase(field.name + "_type");
 }
 
 // Encapsulate all logical field types in this enum. This allows us to write
@@ -1983,7 +1982,7 @@ class RustGenerator : public BaseGenerator {
       // consistency. We do not call Name() because it inconsistently
       // escapes keywords.
       code_.SetValue("UNION_TYPE_OFFSET_NAME",
-              "VT_" + MakeUpper(field.name + "_type"));
+                     "VT_" + MakeUpper(field.name + "_type"));
       code_ +=
           "\n     .visit_union::<{{UNION_TYPE}}, _>("
           "\"{{FIELD_NAME}}_type\", Self::{{UNION_TYPE_OFFSET_NAME}}, "
