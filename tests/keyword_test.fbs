@@ -6,9 +6,10 @@ enum public: int { }
 table KeywordsInTable {
   is: ABC = void;
   private: public;
+  type: int;
 }
 
 union KeywordsInUnion {
   static: KeywordsInTable,
-  internal: string
+  internal: KeywordsInTable,
 }
