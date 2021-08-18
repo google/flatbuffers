@@ -471,6 +471,10 @@ inline bool IsUnion(const Type &type) {
   return type.enum_def != nullptr && type.enum_def->is_union;
 }
 
+inline bool IsDefaultUnionUnderlyingType(const EnumDef &def) {
+  return def.underlying_type.base_type == BASE_TYPE_UTYPE;
+}
+
 inline bool IsVector(const Type &type) {
   return type.base_type == BASE_TYPE_VECTOR;
 }

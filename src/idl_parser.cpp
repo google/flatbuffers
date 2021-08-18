@@ -690,6 +690,9 @@ CheckedError Parser::ParseType(Type &type) {
       // easier to work around with a struct around the inner vector.
       return Error("nested vector types not supported (wrap in table first)");
     }
+    if (IsUnion(subtype) && !IsDefaultUnionUnderlyingType(*subtype.enum_def)) {
+      return Error("collections of unions with custom are not yet supported");
+    }
     if (token_ == ':') {
       NEXT();
       if (token_ != kTokenIntegerConstant) {
@@ -2314,6 +2317,19 @@ CheckedError Parser::ParseEnum(const bool is_union, EnumDef **dest,
       return Error("underlying enum type must be integral");
     // Make this type refer back to the enum it was derived from.
     enum_def->underlying_type.enum_def = enum_def;
+  } else if (is_union) {
+    // Allow for optional union underlying type.
+    if (Is(':')) {
+      NEXT();
+
+      ECHECK(ParseType(enum_def->underlying_type));
+      if (!IsInteger(enum_def->underlying_type.base_type)) {
+        return Error("underlying union type must be integral");
+      }
+
+      // Make this type refer back to the enum it was derived from.
+      enum_def->underlying_type.enum_def = enum_def;
+    }
   }
   ECHECK(ParseMetaData(&enum_def->attributes));
   const auto underlying_type = enum_def->underlying_type.base_type;
@@ -2449,10 +2465,13 @@ CheckedError Parser::CheckClash(std::vector<FieldDef *> &fields,
         (*it)->value.type.base_type != BASE_TYPE_UTYPE) {
       auto field =
           struct_def->fields.Lookup(fname.substr(0, fname.length() - len));
-      if (field && field->value.type.base_type == basetype)
+      if (field && field->value.type.base_type == basetype &&
+          (!IsUnion(field->value.type) ||
+           fname != field->name + UnionTypeFieldSuffix())) {
         return Error("Field " + fname +
                      " would clash with generated functions for field " +
                      field->name);
+      }
     }
   }
   return NoError();

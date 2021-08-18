@@ -40,6 +40,7 @@
 #  include "evolution_test/evolution_v1_generated.h"
 #  include "evolution_test/evolution_v2_generated.h"
 #  include "monster_extra_generated.h"
+#  include "union_underlying_type/union_underlying_type_generated.h"
 #endif
 
 #include "flatbuffers/flexbuffers.h"
@@ -60,24 +61,32 @@ static_assert(flatbuffers::is_same<uint8_t, char>::value ||
                 std::numeric_limits<double>::is_iec559,
                 "IEC-559 (IEEE-754) standard required");
 #endif
-// clang-format on
 
-// Shortcuts for the infinity.
-static const auto infinity_f = std::numeric_limits<float>::infinity();
-static const auto infinity_d = std::numeric_limits<double>::infinity();
+#if !defined(_MSC_VER) || _MSC_VER >= 1700
+// Statically check for union underlying type support.
+static_assert(
+    flatbuffers::is_same<int32_t, std::underlying_type<union_underlying_type::AB>::type>::value,
+    "mismatched union underlying type"
+);
+#endif
+  // clang-format on
 
-using namespace MyGame::Example;
+  // Shortcuts for the infinity.
+  static const auto infinity_f = std::numeric_limits<float>::infinity();
+  static const auto infinity_d = std::numeric_limits<double>::infinity();
 
-void FlatBufferBuilderTest();
+  using namespace MyGame::Example;
 
-// Include simple random number generator to ensure results will be the
-// same cross platform.
-// http://en.wikipedia.org/wiki/Park%E2%80%93Miller_random_number_generator
-uint32_t lcg_seed = 48271;
-uint32_t lcg_rand() {
-  return lcg_seed =
-             (static_cast<uint64_t>(lcg_seed) * 279470273UL) % 4294967291UL;
-}
+  void FlatBufferBuilderTest();
+
+  // Include simple random number generator to ensure results will be the
+  // same cross platform.
+  // http://en.wikipedia.org/wiki/Park%E2%80%93Miller_random_number_generator
+  uint32_t lcg_seed = 48271;
+  uint32_t lcg_rand() {
+    return lcg_seed =
+               (static_cast<uint64_t>(lcg_seed) * 279470273UL) % 4294967291UL;
+  }
 void lcg_reset() { lcg_seed = 48271; }
 
 std::string test_data_path =
@@ -85,6 +94,22 @@ std::string test_data_path =
     "../com_github_google_flatbuffers/tests/";
 #else
     "tests/";
+#endif
+
+#if !defined(_MSC_VER) || _MSC_VER >= 1700
+void UnionUnderlyingTypeTest() {
+  flatbuffers::FlatBufferBuilder builder;
+
+  const auto a = union_underlying_type::CreateA(builder);
+  const auto ab = union_underlying_type::CreateABTable(
+      builder, union_underlying_type::AB::AB_A, a.Union());
+
+  union_underlying_type::FinishABTableBuffer(builder, ab);
+
+  const auto parsed_ab =
+      union_underlying_type::GetABTable(builder.GetBufferPointer());
+  TEST_EQ(parsed_ab->ab_type(), union_underlying_type::AB::AB_A);
+}
 #endif
 
 // example of how to build up a serialized buffer algorithmically:

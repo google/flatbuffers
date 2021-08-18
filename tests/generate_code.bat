@@ -48,6 +48,7 @@ set TEST_NOINCL_FLAGS=%TEST_BASE_FLAGS% --no-includes
 ..\%buildtype%\flatc.exe --rust %TEST_RUST_FLAGS% -o namespace_test namespace_test/namespace_test1.fbs namespace_test/namespace_test2.fbs || goto FAIL
 
 ..\%buildtype%\flatc.exe --cpp --java --csharp --ts --php %TEST_BASE_FLAGS% %TEST_CPP_FLAGS% %TEST_CS_FLAGS% %TEST_TS_FLAGS% -o union_vector ./union_vector/union_vector.fbs || goto FAIL
+..\%buildtype%\flatc.exe --cpp --java --csharp --ts --php --rust --lobster --dart %TEST_BASE_FLAGS% %TEST_CPP_FLAGS% %TEST_CS_FLAGS% %TEST_TS_FLAGS% -o union_underlying_type union_underlying_type.fbs || goto FAIL
 ..\%buildtype%\flatc.exe --ts --gen-name-strings --gen-mutable %TEST_BASE_FLAGS% %TEST_TS_FLAGS% -I include_test monster_test.fbs
 ..\%buildtype%\flatc.exe %TEST_BASE_FLAGS% %TEST_TS_FLAGS% -b -I include_test monster_test.fbs unicode_test.json
 ..\%buildtype%\flatc.exe --ts --gen-name-strings %TEST_BASE_FLAGS% %TEST_TS_FLAGS% -o union_vector union_vector/union_vector.fbs

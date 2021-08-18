@@ -1,0 +1,15 @@
+namespace union_underlying_type;
+
+table A {}
+table B {}
+
+union AB : int {
+  A,
+  B,
+}
+
+table ABTable {
+  ab:AB;
+}
+
+root_type ABTable;

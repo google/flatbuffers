@@ -46,6 +46,7 @@ $TEST_NOINCL_FLAGS $TEST_CPP_FLAGS $TEST_CS_FLAGS $TEST_TS_FLAGS -o namespace_te
 ../flatc --rust --gen-all $TEST_RUST_FLAGS -o namespace_test namespace_test/namespace_test1.fbs namespace_test/namespace_test2.fbs
 
 ../flatc --cpp --java --kotlin --csharp --ts --php $TEST_BASE_FLAGS $TEST_CPP_FLAGS $TEST_CS_FLAGS $TEST_TS_FLAGS -o union_vector ./union_vector/union_vector.fbs
+../flatc --cpp --java --kotlin --csharp --ts --php --rust --lobster --dart $TEST_BASE_FLAGS $TEST_CPP_FLAGS $TEST_CS_FLAGS $TEST_TS_FLAGS -o union_underlying_type union_underlying_type.fbs
 ../flatc --ts --gen-name-strings --gen-mutable $TEST_BASE_FLAGS $TEST_TS_FLAGS -I include_test monster_test.fbs
 ../flatc $TEST_BASE_FLAGS $TEST_TS_FLAGS -b -I include_test monster_test.fbs unicode_test.json
 ../flatc --ts --gen-name-strings $TEST_BASE_FLAGS $TEST_TS_FLAGS -o union_vector union_vector/union_vector.fbs

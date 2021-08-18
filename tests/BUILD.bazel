@@ -21,6 +21,7 @@ cc_test(
         "test_assert.h",
         "test_builder.cpp",
         "test_builder.h",
+        "union_underlying_type/union_underlying_type_generated.h",
         "union_vector/union_vector_generated.h",
     ],
     copts = [
