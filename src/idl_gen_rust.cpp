@@ -51,6 +51,10 @@ std::string MakeUpper(const std::string &in) {
   return s;
 }
 
+std::string UnionTypeFieldName(const FieldDef &field) {
+  return MakeSnakeCase(field.name + "_type");
+}
+
 // Encapsulate all logical field types in this enum. This allows us to write
 // field logic based on type switches, instead of branches on the properties
 // set on the Type.
@@ -407,7 +411,7 @@ class RustGenerator : public BaseGenerator {
       gen_symbol(symbol);
       std::stringstream file_path;
       file_path << path_;
-      // DO NOT SUBMIT: CASPER: Refactor out common path name generation.
+      // Create filepath.
       if (symbol.defined_namespace)
         for (auto i = symbol.defined_namespace->components.begin();
              i != symbol.defined_namespace->components.end(); i++) {
@@ -1634,6 +1638,7 @@ class RustGenerator : public BaseGenerator {
       code_.SetValue("OFFSET_VALUE", NumToString(field.value.offset));
       code_.SetValue("FIELD_NAME", Name(field));
       code_.SetValue("BLDR_DEF_VAL", GetDefaultValue(field, kBuilder));
+      code_.SetValue("DISCRIMINANT", UnionTypeFieldName(field));
       cb(field);
     };
     const auto &fields = struct_def.fields.vec;
@@ -1905,7 +1910,6 @@ class RustGenerator : public BaseGenerator {
     // Explicit specializations for union accessors
     ForAllTableFields(struct_def, [&](const FieldDef &field) {
       if (field.value.type.base_type != BASE_TYPE_UNION) return;
-      code_.SetValue("FIELD_TYPE_FIELD_NAME", field.name);
       ForAllUnionVariantsBesidesNone(
           *field.value.type.enum_def, [&](const EnumVal &unused) {
             (void)unused;
@@ -1926,8 +1930,7 @@ class RustGenerator : public BaseGenerator {
             //
             // To avoid this problem the type field name is used unescaped here:
             code_ +=
-                "    if self.{{FIELD_TYPE_FIELD_NAME}}_type() == "
-                "{{U_ELEMENT_ENUM_TYPE}} {";
+                "    if self.{{DISCRIMINANT}}() == {{U_ELEMENT_ENUM_TYPE}} {";
 
             // The following logic is not tested in the integration test,
             // as of April 10, 2020
@@ -1973,11 +1976,16 @@ class RustGenerator : public BaseGenerator {
         return;
       }
       // Unions.
-      EnumDef &union_def = *field.value.type.enum_def;
+      const EnumDef &union_def = *field.value.type.enum_def;
       code_.SetValue("UNION_TYPE", WrapInNameSpace(union_def));
+      // TODO: Use the same function that generates the _type field for
+      // consistency. We do not call Name() because it inconsistently
+      // escapes keywords.
+      code_.SetValue("UNION_TYPE_OFFSET_NAME",
+                     "VT_" + MakeUpper(field.name + "_type"));
       code_ +=
           "\n     .visit_union::<{{UNION_TYPE}}, _>("
-          "\"{{FIELD_NAME}}_type\", Self::{{OFFSET_NAME}}_TYPE, "
+          "\"{{FIELD_NAME}}_type\", Self::{{UNION_TYPE_OFFSET_NAME}}, "
           "\"{{FIELD_NAME}}\", Self::{{OFFSET_NAME}}, {{IS_REQ}}, "
           "|key, v, pos| {";
       code_ += "        match key {";
@@ -2101,19 +2109,18 @@ class RustGenerator : public BaseGenerator {
       if (GetFullType(field.value.type) == ftUnionValue) {
         // Generate a match statement to handle unions properly.
         code_.SetValue("KEY_TYPE", GenTableAccessorFuncReturnType(field, ""));
-        code_.SetValue("FIELD_TYPE_FIELD_NAME", field.name);
         code_.SetValue("UNION_ERR",
                        "&\"InvalidFlatbuffer: Union discriminant"
                        " does not match value.\"");
 
-        code_ += "      match self.{{FIELD_NAME}}_type() {";
+        code_ += "      match self.{{DISCRIMINANT}}() {";
         ForAllUnionVariantsBesidesNone(
             *field.value.type.enum_def, [&](const EnumVal &unused) {
               (void)unused;
               code_ += "        {{U_ELEMENT_ENUM_TYPE}} => {";
               code_ +=
                   "          if let Some(x) = "
-                  "self.{{FIELD_TYPE_FIELD_NAME}}_as_"
+                  "self.{{FIELD_NAME}}_as_"
                   "{{U_ELEMENT_NAME}}() {";
               code_ += "            ds.field(\"{{FIELD_NAME}}\", &x)";
               code_ += "          } else {";

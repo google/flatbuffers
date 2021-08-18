@@ -57,6 +57,10 @@ mod optional_scalars_generated;
 #[path = "../../arrays_test/mod.rs"]
 mod arrays_test_generated;
 
+#[allow(dead_code, unused_imports)]
+#[path = "../../keyword_test/mod.rs"]
+mod keyword_test_generated;
+
 #[rustfmt::skip] // TODO: Use standard rust formatting and remove dead code.
 #[allow(dead_code)]
 mod flatbuffers_tests {
