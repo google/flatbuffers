@@ -75,6 +75,7 @@ $TEST_NOINCL_FLAGS $TEST_CPP_FLAGS $TEST_CS_FLAGS $TEST_TS_FLAGS -o namespace_te
 
 # Generate the keywords tests
 ../flatc --csharp $TEST_BASE_FLAGS $TEST_CS_FLAGS -o keyword_test ./keyword_test.fbs
+../flatc --rust $TEST_RUST_FLAGS -o keyword_test ./keyword_test.fbs
 
 working_dir=`pwd`
 cd FlatBuffers.Test.Swift/Tests/FlatBuffers.Test.SwiftTests
