@@ -1,0 +1,7 @@
+include "namespace_test3.fbs";
+
+namespace NamespaceA.NamespaceB;
+
+table ColorTestTable {
+  color:NamespaceB.Color = Blue;
+}

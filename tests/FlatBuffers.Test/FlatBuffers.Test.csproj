@@ -147,6 +147,15 @@
     <Compile Include="..\namespace_test\NamespaceA\TableInFirstNS.cs">
       <Link>NamespaceA\TableInFirstNS.cs</Link>
     </Compile>
+    <Compile Include="..\namespace_test\NamespaceA\NamespaceB\Color.cs">
+      <Link>NamespaceA\NamespaceB\Color.cs</Link>
+    </Compile>
+    <Compile Include="..\namespace_test\NamespaceA\NamespaceB\ColorTestTable.cs">
+      <Link>NamespaceA\NamespaceB\ColorTestTable.cs</Link>
+    </Compile>
+    <Compile Include="..\namespace_test\NamespaceB\Color.cs">
+      <Link>NamespaceB\Color.cs</Link>
+    </Compile>
     <Compile Include="..\union_vector\Attacker.cs">
       <Link>union_vector\Attacker.cs</Link>
     </Compile>
