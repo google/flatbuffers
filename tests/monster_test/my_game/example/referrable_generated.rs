@@ -12,50 +12,52 @@ pub struct Referrable<'a> {
 }
 
 impl<'a> flatbuffers::Follow<'a> for Referrable<'a> {
-    type Inner = Referrable<'a>;
-    #[inline]
-    fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
-        Self { _tab: flatbuffers::Table { buf, loc } }
-    }
+  type Inner = Referrable<'a>;
+  #[inline]
+  fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
+    Self { _tab: flatbuffers::Table { buf, loc } }
+  }
 }
 
 impl<'a> Referrable<'a> {
-    pub const fn get_fully_qualified_name() -> &'static str {
-        "MyGame.Example.Referrable"
-    }
+  pub const VT_ID: flatbuffers::VOffsetT = 4;
 
-    #[inline]
-    pub fn init_from_table(table: flatbuffers::Table<'a>) -> Self {
-        Referrable { _tab: table }
-    }
-    #[allow(unused_mut)]
-    pub fn create<'bldr: 'args, 'args: 'mut_bldr, 'mut_bldr>(
-        _fbb: &'mut_bldr mut flatbuffers::FlatBufferBuilder<'bldr>,
-        args: &'args ReferrableArgs) -> flatbuffers::WIPOffset<Referrable<'bldr>> {
-      let mut builder = ReferrableBuilder::new(_fbb);
-      builder.add_id(args.id);
-      builder.finish()
-    }
+  pub const fn get_fully_qualified_name() -> &'static str {
+    "MyGame.Example.Referrable"
+  }
 
-    pub fn unpack(&self) -> ReferrableT {
-      let id = self.id();
-      ReferrableT {
-        id,
-      }
+  #[inline]
+  pub fn init_from_table(table: flatbuffers::Table<'a>) -> Self {
+    Referrable { _tab: table }
+  }
+  #[allow(unused_mut)]
+  pub fn create<'bldr: 'args, 'args: 'mut_bldr, 'mut_bldr>(
+    _fbb: &'mut_bldr mut flatbuffers::FlatBufferBuilder<'bldr>,
+    args: &'args ReferrableArgs
+  ) -> flatbuffers::WIPOffset<Referrable<'bldr>> {
+    let mut builder = ReferrableBuilder::new(_fbb);
+    builder.add_id(args.id);
+    builder.finish()
+  }
+
+  pub fn unpack(&self) -> ReferrableT {
+    let id = self.id();
+    ReferrableT {
+      id,
     }
-    pub const VT_ID: flatbuffers::VOffsetT = 4;
+  }
 
   #[inline]
   pub fn id(&self) -> u64 {
     self._tab.get::<u64>(Referrable::VT_ID, Some(0)).unwrap()
   }
   #[inline]
-  pub fn key_compare_less_than(&self, o: &Referrable) ->  bool {
+  pub fn key_compare_less_than(&self, o: &Referrable) -> bool {
     self.id() < o.id()
   }
 
   #[inline]
-  pub fn key_compare_with_value(&self, val: u64) ->  ::std::cmp::Ordering {
+  pub fn key_compare_with_value(&self, val: u64) -> ::std::cmp::Ordering {
     let key = self.id();
     key.cmp(&val)
   }
@@ -77,12 +79,12 @@ pub struct ReferrableArgs {
     pub id: u64,
 }
 impl<'a> Default for ReferrableArgs {
-    #[inline]
-    fn default() -> Self {
-        ReferrableArgs {
-            id: 0,
-        }
+  #[inline]
+  fn default() -> Self {
+    ReferrableArgs {
+      id: 0,
     }
+  }
 }
 pub struct ReferrableBuilder<'a: 'b, 'b> {
   fbb_: &'b mut flatbuffers::FlatBufferBuilder<'a>,

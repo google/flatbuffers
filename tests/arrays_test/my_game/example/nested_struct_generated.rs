@@ -87,9 +87,9 @@ impl<'a> NestedStruct {
     s
   }
 
-    pub const fn get_fully_qualified_name() -> &'static str {
-        "MyGame.Example.NestedStruct"
-    }
+  pub const fn get_fully_qualified_name() -> &'static str {
+    "MyGame.Example.NestedStruct"
+  }
 
   pub fn a(&'a self) -> flatbuffers::Array<'a, i32, 2> {
     flatbuffers::Array::follow(&self.0, 0)

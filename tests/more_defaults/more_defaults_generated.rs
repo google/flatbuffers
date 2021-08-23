@@ -12,76 +12,78 @@ pub struct MoreDefaults<'a> {
 }
 
 impl<'a> flatbuffers::Follow<'a> for MoreDefaults<'a> {
-    type Inner = MoreDefaults<'a>;
-    #[inline]
-    fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
-        Self { _tab: flatbuffers::Table { buf, loc } }
-    }
+  type Inner = MoreDefaults<'a>;
+  #[inline]
+  fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
+    Self { _tab: flatbuffers::Table { buf, loc } }
+  }
 }
 
 impl<'a> MoreDefaults<'a> {
-    pub const fn get_fully_qualified_name() -> &'static str {
-        "MoreDefaults"
-    }
+  pub const VT_INTS: flatbuffers::VOffsetT = 4;
+  pub const VT_FLOATS: flatbuffers::VOffsetT = 6;
+  pub const VT_EMPTY_STRING: flatbuffers::VOffsetT = 8;
+  pub const VT_SOME_STRING: flatbuffers::VOffsetT = 10;
+  pub const VT_ABCS: flatbuffers::VOffsetT = 12;
+  pub const VT_BOOLS: flatbuffers::VOffsetT = 14;
 
-    #[inline]
-    pub fn init_from_table(table: flatbuffers::Table<'a>) -> Self {
-        MoreDefaults { _tab: table }
-    }
-    #[allow(unused_mut)]
-    pub fn create<'bldr: 'args, 'args: 'mut_bldr, 'mut_bldr>(
-        _fbb: &'mut_bldr mut flatbuffers::FlatBufferBuilder<'bldr>,
-        args: &'args MoreDefaultsArgs<'args>) -> flatbuffers::WIPOffset<MoreDefaults<'bldr>> {
-      let mut builder = MoreDefaultsBuilder::new(_fbb);
-      if let Some(x) = args.bools { builder.add_bools(x); }
-      if let Some(x) = args.abcs { builder.add_abcs(x); }
-      if let Some(x) = args.some_string { builder.add_some_string(x); }
-      if let Some(x) = args.empty_string { builder.add_empty_string(x); }
-      if let Some(x) = args.floats { builder.add_floats(x); }
-      if let Some(x) = args.ints { builder.add_ints(x); }
-      builder.finish()
-    }
+  pub const fn get_fully_qualified_name() -> &'static str {
+    "MoreDefaults"
+  }
 
-    pub fn unpack(&self) -> MoreDefaultsT {
-      let ints = {
-        let x = self.ints();
-        x.into_iter().collect()
-      };
-      let floats = {
-        let x = self.floats();
-        x.into_iter().collect()
-      };
-      let empty_string = {
-        let x = self.empty_string();
-        x.to_string()
-      };
-      let some_string = {
-        let x = self.some_string();
-        x.to_string()
-      };
-      let abcs = {
-        let x = self.abcs();
-        x.into_iter().collect()
-      };
-      let bools = {
-        let x = self.bools();
-        x.to_vec()
-      };
-      MoreDefaultsT {
-        ints,
-        floats,
-        empty_string,
-        some_string,
-        abcs,
-        bools,
-      }
+  #[inline]
+  pub fn init_from_table(table: flatbuffers::Table<'a>) -> Self {
+    MoreDefaults { _tab: table }
+  }
+  #[allow(unused_mut)]
+  pub fn create<'bldr: 'args, 'args: 'mut_bldr, 'mut_bldr>(
+    _fbb: &'mut_bldr mut flatbuffers::FlatBufferBuilder<'bldr>,
+    args: &'args MoreDefaultsArgs<'args>
+  ) -> flatbuffers::WIPOffset<MoreDefaults<'bldr>> {
+    let mut builder = MoreDefaultsBuilder::new(_fbb);
+    if let Some(x) = args.bools { builder.add_bools(x); }
+    if let Some(x) = args.abcs { builder.add_abcs(x); }
+    if let Some(x) = args.some_string { builder.add_some_string(x); }
+    if let Some(x) = args.empty_string { builder.add_empty_string(x); }
+    if let Some(x) = args.floats { builder.add_floats(x); }
+    if let Some(x) = args.ints { builder.add_ints(x); }
+    builder.finish()
+  }
+
+  pub fn unpack(&self) -> MoreDefaultsT {
+    let ints = {
+      let x = self.ints();
+      x.into_iter().collect()
+    };
+    let floats = {
+      let x = self.floats();
+      x.into_iter().collect()
+    };
+    let empty_string = {
+      let x = self.empty_string();
+      x.to_string()
+    };
+    let some_string = {
+      let x = self.some_string();
+      x.to_string()
+    };
+    let abcs = {
+      let x = self.abcs();
+      x.into_iter().collect()
+    };
+    let bools = {
+      let x = self.bools();
+      x.to_vec()
+    };
+    MoreDefaultsT {
+      ints,
+      floats,
+      empty_string,
+      some_string,
+      abcs,
+      bools,
     }
-    pub const VT_INTS: flatbuffers::VOffsetT = 4;
-    pub const VT_FLOATS: flatbuffers::VOffsetT = 6;
-    pub const VT_EMPTY_STRING: flatbuffers::VOffsetT = 8;
-    pub const VT_SOME_STRING: flatbuffers::VOffsetT = 10;
-    pub const VT_ABCS: flatbuffers::VOffsetT = 12;
-    pub const VT_BOOLS: flatbuffers::VOffsetT = 14;
+  }
 
   #[inline]
   pub fn ints(&self) -> flatbuffers::Vector<'a, i32> {
@@ -135,17 +137,17 @@ pub struct MoreDefaultsArgs<'a> {
     pub bools: Option<flatbuffers::WIPOffset<flatbuffers::Vector<'a, bool>>>,
 }
 impl<'a> Default for MoreDefaultsArgs<'a> {
-    #[inline]
-    fn default() -> Self {
-        MoreDefaultsArgs {
-            ints: None,
-            floats: None,
-            empty_string: None,
-            some_string: None,
-            abcs: None,
-            bools: None,
-        }
+  #[inline]
+  fn default() -> Self {
+    MoreDefaultsArgs {
+      ints: None,
+      floats: None,
+      empty_string: None,
+      some_string: None,
+      abcs: None,
+      bools: None,
     }
+  }
 }
 pub struct MoreDefaultsBuilder<'a: 'b, 'b> {
   fbb_: &'b mut flatbuffers::FlatBufferBuilder<'a>,

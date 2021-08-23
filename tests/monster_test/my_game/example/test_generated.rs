@@ -81,9 +81,9 @@ impl<'a> Test {
     s
   }
 
-    pub const fn get_fully_qualified_name() -> &'static str {
-        "MyGame.Example.Test"
-    }
+  pub const fn get_fully_qualified_name() -> &'static str {
+    "MyGame.Example.Test"
+  }
 
   pub fn a(&self) -> i16 {
     let mut mem = core::mem::MaybeUninit::<i16>::uninit();

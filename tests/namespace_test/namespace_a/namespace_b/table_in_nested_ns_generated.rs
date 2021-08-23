@@ -12,38 +12,40 @@ pub struct TableInNestedNS<'a> {
 }
 
 impl<'a> flatbuffers::Follow<'a> for TableInNestedNS<'a> {
-    type Inner = TableInNestedNS<'a>;
-    #[inline]
-    fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
-        Self { _tab: flatbuffers::Table { buf, loc } }
-    }
+  type Inner = TableInNestedNS<'a>;
+  #[inline]
+  fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
+    Self { _tab: flatbuffers::Table { buf, loc } }
+  }
 }
 
 impl<'a> TableInNestedNS<'a> {
-    pub const fn get_fully_qualified_name() -> &'static str {
-        "NamespaceA.NamespaceB.TableInNestedNS"
-    }
+  pub const VT_FOO: flatbuffers::VOffsetT = 4;
 
-    #[inline]
-    pub fn init_from_table(table: flatbuffers::Table<'a>) -> Self {
-        TableInNestedNS { _tab: table }
-    }
-    #[allow(unused_mut)]
-    pub fn create<'bldr: 'args, 'args: 'mut_bldr, 'mut_bldr>(
-        _fbb: &'mut_bldr mut flatbuffers::FlatBufferBuilder<'bldr>,
-        args: &'args TableInNestedNSArgs) -> flatbuffers::WIPOffset<TableInNestedNS<'bldr>> {
-      let mut builder = TableInNestedNSBuilder::new(_fbb);
-      builder.add_foo(args.foo);
-      builder.finish()
-    }
+  pub const fn get_fully_qualified_name() -> &'static str {
+    "NamespaceA.NamespaceB.TableInNestedNS"
+  }
 
-    pub fn unpack(&self) -> TableInNestedNST {
-      let foo = self.foo();
-      TableInNestedNST {
-        foo,
-      }
+  #[inline]
+  pub fn init_from_table(table: flatbuffers::Table<'a>) -> Self {
+    TableInNestedNS { _tab: table }
+  }
+  #[allow(unused_mut)]
+  pub fn create<'bldr: 'args, 'args: 'mut_bldr, 'mut_bldr>(
+    _fbb: &'mut_bldr mut flatbuffers::FlatBufferBuilder<'bldr>,
+    args: &'args TableInNestedNSArgs
+  ) -> flatbuffers::WIPOffset<TableInNestedNS<'bldr>> {
+    let mut builder = TableInNestedNSBuilder::new(_fbb);
+    builder.add_foo(args.foo);
+    builder.finish()
+  }
+
+  pub fn unpack(&self) -> TableInNestedNST {
+    let foo = self.foo();
+    TableInNestedNST {
+      foo,
     }
-    pub const VT_FOO: flatbuffers::VOffsetT = 4;
+  }
 
   #[inline]
   pub fn foo(&self) -> i32 {
@@ -67,12 +69,12 @@ pub struct TableInNestedNSArgs {
     pub foo: i32,
 }
 impl<'a> Default for TableInNestedNSArgs {
-    #[inline]
-    fn default() -> Self {
-        TableInNestedNSArgs {
-            foo: 0,
-        }
+  #[inline]
+  fn default() -> Self {
+    TableInNestedNSArgs {
+      foo: 0,
     }
+  }
 }
 pub struct TableInNestedNSBuilder<'a: 'b, 'b> {
   fbb_: &'b mut flatbuffers::FlatBufferBuilder<'a>,
