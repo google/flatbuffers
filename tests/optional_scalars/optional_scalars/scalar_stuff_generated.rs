@@ -12,178 +12,180 @@ pub struct ScalarStuff<'a> {
 }
 
 impl<'a> flatbuffers::Follow<'a> for ScalarStuff<'a> {
-    type Inner = ScalarStuff<'a>;
-    #[inline]
-    fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
-        Self { _tab: flatbuffers::Table { buf, loc } }
-    }
+  type Inner = ScalarStuff<'a>;
+  #[inline]
+  fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
+    Self { _tab: flatbuffers::Table { buf, loc } }
+  }
 }
 
 impl<'a> ScalarStuff<'a> {
-    pub const fn get_fully_qualified_name() -> &'static str {
-        "optional_scalars.ScalarStuff"
-    }
+  pub const VT_JUST_I8: flatbuffers::VOffsetT = 4;
+  pub const VT_MAYBE_I8: flatbuffers::VOffsetT = 6;
+  pub const VT_DEFAULT_I8: flatbuffers::VOffsetT = 8;
+  pub const VT_JUST_U8: flatbuffers::VOffsetT = 10;
+  pub const VT_MAYBE_U8: flatbuffers::VOffsetT = 12;
+  pub const VT_DEFAULT_U8: flatbuffers::VOffsetT = 14;
+  pub const VT_JUST_I16: flatbuffers::VOffsetT = 16;
+  pub const VT_MAYBE_I16: flatbuffers::VOffsetT = 18;
+  pub const VT_DEFAULT_I16: flatbuffers::VOffsetT = 20;
+  pub const VT_JUST_U16: flatbuffers::VOffsetT = 22;
+  pub const VT_MAYBE_U16: flatbuffers::VOffsetT = 24;
+  pub const VT_DEFAULT_U16: flatbuffers::VOffsetT = 26;
+  pub const VT_JUST_I32: flatbuffers::VOffsetT = 28;
+  pub const VT_MAYBE_I32: flatbuffers::VOffsetT = 30;
+  pub const VT_DEFAULT_I32: flatbuffers::VOffsetT = 32;
+  pub const VT_JUST_U32: flatbuffers::VOffsetT = 34;
+  pub const VT_MAYBE_U32: flatbuffers::VOffsetT = 36;
+  pub const VT_DEFAULT_U32: flatbuffers::VOffsetT = 38;
+  pub const VT_JUST_I64: flatbuffers::VOffsetT = 40;
+  pub const VT_MAYBE_I64: flatbuffers::VOffsetT = 42;
+  pub const VT_DEFAULT_I64: flatbuffers::VOffsetT = 44;
+  pub const VT_JUST_U64: flatbuffers::VOffsetT = 46;
+  pub const VT_MAYBE_U64: flatbuffers::VOffsetT = 48;
+  pub const VT_DEFAULT_U64: flatbuffers::VOffsetT = 50;
+  pub const VT_JUST_F32: flatbuffers::VOffsetT = 52;
+  pub const VT_MAYBE_F32: flatbuffers::VOffsetT = 54;
+  pub const VT_DEFAULT_F32: flatbuffers::VOffsetT = 56;
+  pub const VT_JUST_F64: flatbuffers::VOffsetT = 58;
+  pub const VT_MAYBE_F64: flatbuffers::VOffsetT = 60;
+  pub const VT_DEFAULT_F64: flatbuffers::VOffsetT = 62;
+  pub const VT_JUST_BOOL: flatbuffers::VOffsetT = 64;
+  pub const VT_MAYBE_BOOL: flatbuffers::VOffsetT = 66;
+  pub const VT_DEFAULT_BOOL: flatbuffers::VOffsetT = 68;
+  pub const VT_JUST_ENUM: flatbuffers::VOffsetT = 70;
+  pub const VT_MAYBE_ENUM: flatbuffers::VOffsetT = 72;
+  pub const VT_DEFAULT_ENUM: flatbuffers::VOffsetT = 74;
 
-    #[inline]
-    pub fn init_from_table(table: flatbuffers::Table<'a>) -> Self {
-        ScalarStuff { _tab: table }
-    }
-    #[allow(unused_mut)]
-    pub fn create<'bldr: 'args, 'args: 'mut_bldr, 'mut_bldr>(
-        _fbb: &'mut_bldr mut flatbuffers::FlatBufferBuilder<'bldr>,
-        args: &'args ScalarStuffArgs) -> flatbuffers::WIPOffset<ScalarStuff<'bldr>> {
-      let mut builder = ScalarStuffBuilder::new(_fbb);
-      builder.add_default_f64(args.default_f64);
-      if let Some(x) = args.maybe_f64 { builder.add_maybe_f64(x); }
-      builder.add_just_f64(args.just_f64);
-      builder.add_default_u64(args.default_u64);
-      if let Some(x) = args.maybe_u64 { builder.add_maybe_u64(x); }
-      builder.add_just_u64(args.just_u64);
-      builder.add_default_i64(args.default_i64);
-      if let Some(x) = args.maybe_i64 { builder.add_maybe_i64(x); }
-      builder.add_just_i64(args.just_i64);
-      builder.add_default_f32(args.default_f32);
-      if let Some(x) = args.maybe_f32 { builder.add_maybe_f32(x); }
-      builder.add_just_f32(args.just_f32);
-      builder.add_default_u32(args.default_u32);
-      if let Some(x) = args.maybe_u32 { builder.add_maybe_u32(x); }
-      builder.add_just_u32(args.just_u32);
-      builder.add_default_i32(args.default_i32);
-      if let Some(x) = args.maybe_i32 { builder.add_maybe_i32(x); }
-      builder.add_just_i32(args.just_i32);
-      builder.add_default_u16(args.default_u16);
-      if let Some(x) = args.maybe_u16 { builder.add_maybe_u16(x); }
-      builder.add_just_u16(args.just_u16);
-      builder.add_default_i16(args.default_i16);
-      if let Some(x) = args.maybe_i16 { builder.add_maybe_i16(x); }
-      builder.add_just_i16(args.just_i16);
-      builder.add_default_enum(args.default_enum);
-      if let Some(x) = args.maybe_enum { builder.add_maybe_enum(x); }
-      builder.add_just_enum(args.just_enum);
-      builder.add_default_bool(args.default_bool);
-      if let Some(x) = args.maybe_bool { builder.add_maybe_bool(x); }
-      builder.add_just_bool(args.just_bool);
-      builder.add_default_u8(args.default_u8);
-      if let Some(x) = args.maybe_u8 { builder.add_maybe_u8(x); }
-      builder.add_just_u8(args.just_u8);
-      builder.add_default_i8(args.default_i8);
-      if let Some(x) = args.maybe_i8 { builder.add_maybe_i8(x); }
-      builder.add_just_i8(args.just_i8);
-      builder.finish()
-    }
+  pub const fn get_fully_qualified_name() -> &'static str {
+    "optional_scalars.ScalarStuff"
+  }
 
-    pub fn unpack(&self) -> ScalarStuffT {
-      let just_i8 = self.just_i8();
-      let maybe_i8 = self.maybe_i8();
-      let default_i8 = self.default_i8();
-      let just_u8 = self.just_u8();
-      let maybe_u8 = self.maybe_u8();
-      let default_u8 = self.default_u8();
-      let just_i16 = self.just_i16();
-      let maybe_i16 = self.maybe_i16();
-      let default_i16 = self.default_i16();
-      let just_u16 = self.just_u16();
-      let maybe_u16 = self.maybe_u16();
-      let default_u16 = self.default_u16();
-      let just_i32 = self.just_i32();
-      let maybe_i32 = self.maybe_i32();
-      let default_i32 = self.default_i32();
-      let just_u32 = self.just_u32();
-      let maybe_u32 = self.maybe_u32();
-      let default_u32 = self.default_u32();
-      let just_i64 = self.just_i64();
-      let maybe_i64 = self.maybe_i64();
-      let default_i64 = self.default_i64();
-      let just_u64 = self.just_u64();
-      let maybe_u64 = self.maybe_u64();
-      let default_u64 = self.default_u64();
-      let just_f32 = self.just_f32();
-      let maybe_f32 = self.maybe_f32();
-      let default_f32 = self.default_f32();
-      let just_f64 = self.just_f64();
-      let maybe_f64 = self.maybe_f64();
-      let default_f64 = self.default_f64();
-      let just_bool = self.just_bool();
-      let maybe_bool = self.maybe_bool();
-      let default_bool = self.default_bool();
-      let just_enum = self.just_enum();
-      let maybe_enum = self.maybe_enum();
-      let default_enum = self.default_enum();
-      ScalarStuffT {
-        just_i8,
-        maybe_i8,
-        default_i8,
-        just_u8,
-        maybe_u8,
-        default_u8,
-        just_i16,
-        maybe_i16,
-        default_i16,
-        just_u16,
-        maybe_u16,
-        default_u16,
-        just_i32,
-        maybe_i32,
-        default_i32,
-        just_u32,
-        maybe_u32,
-        default_u32,
-        just_i64,
-        maybe_i64,
-        default_i64,
-        just_u64,
-        maybe_u64,
-        default_u64,
-        just_f32,
-        maybe_f32,
-        default_f32,
-        just_f64,
-        maybe_f64,
-        default_f64,
-        just_bool,
-        maybe_bool,
-        default_bool,
-        just_enum,
-        maybe_enum,
-        default_enum,
-      }
+  #[inline]
+  pub fn init_from_table(table: flatbuffers::Table<'a>) -> Self {
+    ScalarStuff { _tab: table }
+  }
+  #[allow(unused_mut)]
+  pub fn create<'bldr: 'args, 'args: 'mut_bldr, 'mut_bldr>(
+    _fbb: &'mut_bldr mut flatbuffers::FlatBufferBuilder<'bldr>,
+    args: &'args ScalarStuffArgs
+  ) -> flatbuffers::WIPOffset<ScalarStuff<'bldr>> {
+    let mut builder = ScalarStuffBuilder::new(_fbb);
+    builder.add_default_f64(args.default_f64);
+    if let Some(x) = args.maybe_f64 { builder.add_maybe_f64(x); }
+    builder.add_just_f64(args.just_f64);
+    builder.add_default_u64(args.default_u64);
+    if let Some(x) = args.maybe_u64 { builder.add_maybe_u64(x); }
+    builder.add_just_u64(args.just_u64);
+    builder.add_default_i64(args.default_i64);
+    if let Some(x) = args.maybe_i64 { builder.add_maybe_i64(x); }
+    builder.add_just_i64(args.just_i64);
+    builder.add_default_f32(args.default_f32);
+    if let Some(x) = args.maybe_f32 { builder.add_maybe_f32(x); }
+    builder.add_just_f32(args.just_f32);
+    builder.add_default_u32(args.default_u32);
+    if let Some(x) = args.maybe_u32 { builder.add_maybe_u32(x); }
+    builder.add_just_u32(args.just_u32);
+    builder.add_default_i32(args.default_i32);
+    if let Some(x) = args.maybe_i32 { builder.add_maybe_i32(x); }
+    builder.add_just_i32(args.just_i32);
+    builder.add_default_u16(args.default_u16);
+    if let Some(x) = args.maybe_u16 { builder.add_maybe_u16(x); }
+    builder.add_just_u16(args.just_u16);
+    builder.add_default_i16(args.default_i16);
+    if let Some(x) = args.maybe_i16 { builder.add_maybe_i16(x); }
+    builder.add_just_i16(args.just_i16);
+    builder.add_default_enum(args.default_enum);
+    if let Some(x) = args.maybe_enum { builder.add_maybe_enum(x); }
+    builder.add_just_enum(args.just_enum);
+    builder.add_default_bool(args.default_bool);
+    if let Some(x) = args.maybe_bool { builder.add_maybe_bool(x); }
+    builder.add_just_bool(args.just_bool);
+    builder.add_default_u8(args.default_u8);
+    if let Some(x) = args.maybe_u8 { builder.add_maybe_u8(x); }
+    builder.add_just_u8(args.just_u8);
+    builder.add_default_i8(args.default_i8);
+    if let Some(x) = args.maybe_i8 { builder.add_maybe_i8(x); }
+    builder.add_just_i8(args.just_i8);
+    builder.finish()
+  }
+
+  pub fn unpack(&self) -> ScalarStuffT {
+    let just_i8 = self.just_i8();
+    let maybe_i8 = self.maybe_i8();
+    let default_i8 = self.default_i8();
+    let just_u8 = self.just_u8();
+    let maybe_u8 = self.maybe_u8();
+    let default_u8 = self.default_u8();
+    let just_i16 = self.just_i16();
+    let maybe_i16 = self.maybe_i16();
+    let default_i16 = self.default_i16();
+    let just_u16 = self.just_u16();
+    let maybe_u16 = self.maybe_u16();
+    let default_u16 = self.default_u16();
+    let just_i32 = self.just_i32();
+    let maybe_i32 = self.maybe_i32();
+    let default_i32 = self.default_i32();
+    let just_u32 = self.just_u32();
+    let maybe_u32 = self.maybe_u32();
+    let default_u32 = self.default_u32();
+    let just_i64 = self.just_i64();
+    let maybe_i64 = self.maybe_i64();
+    let default_i64 = self.default_i64();
+    let just_u64 = self.just_u64();
+    let maybe_u64 = self.maybe_u64();
+    let default_u64 = self.default_u64();
+    let just_f32 = self.just_f32();
+    let maybe_f32 = self.maybe_f32();
+    let default_f32 = self.default_f32();
+    let just_f64 = self.just_f64();
+    let maybe_f64 = self.maybe_f64();
+    let default_f64 = self.default_f64();
+    let just_bool = self.just_bool();
+    let maybe_bool = self.maybe_bool();
+    let default_bool = self.default_bool();
+    let just_enum = self.just_enum();
+    let maybe_enum = self.maybe_enum();
+    let default_enum = self.default_enum();
+    ScalarStuffT {
+      just_i8,
+      maybe_i8,
+      default_i8,
+      just_u8,
+      maybe_u8,
+      default_u8,
+      just_i16,
+      maybe_i16,
+      default_i16,
+      just_u16,
+      maybe_u16,
+      default_u16,
+      just_i32,
+      maybe_i32,
+      default_i32,
+      just_u32,
+      maybe_u32,
+      default_u32,
+      just_i64,
+      maybe_i64,
+      default_i64,
+      just_u64,
+      maybe_u64,
+      default_u64,
+      just_f32,
+      maybe_f32,
+      default_f32,
+      just_f64,
+      maybe_f64,
+      default_f64,
+      just_bool,
+      maybe_bool,
+      default_bool,
+      just_enum,
+      maybe_enum,
+      default_enum,
     }
-    pub const VT_JUST_I8: flatbuffers::VOffsetT = 4;
-    pub const VT_MAYBE_I8: flatbuffers::VOffsetT = 6;
-    pub const VT_DEFAULT_I8: flatbuffers::VOffsetT = 8;
-    pub const VT_JUST_U8: flatbuffers::VOffsetT = 10;
-    pub const VT_MAYBE_U8: flatbuffers::VOffsetT = 12;
-    pub const VT_DEFAULT_U8: flatbuffers::VOffsetT = 14;
-    pub const VT_JUST_I16: flatbuffers::VOffsetT = 16;
-    pub const VT_MAYBE_I16: flatbuffers::VOffsetT = 18;
-    pub const VT_DEFAULT_I16: flatbuffers::VOffsetT = 20;
-    pub const VT_JUST_U16: flatbuffers::VOffsetT = 22;
-    pub const VT_MAYBE_U16: flatbuffers::VOffsetT = 24;
-    pub const VT_DEFAULT_U16: flatbuffers::VOffsetT = 26;
-    pub const VT_JUST_I32: flatbuffers::VOffsetT = 28;
-    pub const VT_MAYBE_I32: flatbuffers::VOffsetT = 30;
-    pub const VT_DEFAULT_I32: flatbuffers::VOffsetT = 32;
-    pub const VT_JUST_U32: flatbuffers::VOffsetT = 34;
-    pub const VT_MAYBE_U32: flatbuffers::VOffsetT = 36;
-    pub const VT_DEFAULT_U32: flatbuffers::VOffsetT = 38;
-    pub const VT_JUST_I64: flatbuffers::VOffsetT = 40;
-    pub const VT_MAYBE_I64: flatbuffers::VOffsetT = 42;
-    pub const VT_DEFAULT_I64: flatbuffers::VOffsetT = 44;
-    pub const VT_JUST_U64: flatbuffers::VOffsetT = 46;
-    pub const VT_MAYBE_U64: flatbuffers::VOffsetT = 48;
-    pub const VT_DEFAULT_U64: flatbuffers::VOffsetT = 50;
-    pub const VT_JUST_F32: flatbuffers::VOffsetT = 52;
-    pub const VT_MAYBE_F32: flatbuffers::VOffsetT = 54;
-    pub const VT_DEFAULT_F32: flatbuffers::VOffsetT = 56;
-    pub const VT_JUST_F64: flatbuffers::VOffsetT = 58;
-    pub const VT_MAYBE_F64: flatbuffers::VOffsetT = 60;
-    pub const VT_DEFAULT_F64: flatbuffers::VOffsetT = 62;
-    pub const VT_JUST_BOOL: flatbuffers::VOffsetT = 64;
-    pub const VT_MAYBE_BOOL: flatbuffers::VOffsetT = 66;
-    pub const VT_DEFAULT_BOOL: flatbuffers::VOffsetT = 68;
-    pub const VT_JUST_ENUM: flatbuffers::VOffsetT = 70;
-    pub const VT_MAYBE_ENUM: flatbuffers::VOffsetT = 72;
-    pub const VT_DEFAULT_ENUM: flatbuffers::VOffsetT = 74;
+  }
 
   #[inline]
   pub fn just_i8(&self) -> i8 {
@@ -417,47 +419,47 @@ pub struct ScalarStuffArgs {
     pub default_enum: OptionalByte,
 }
 impl<'a> Default for ScalarStuffArgs {
-    #[inline]
-    fn default() -> Self {
-        ScalarStuffArgs {
-            just_i8: 0,
-            maybe_i8: None,
-            default_i8: 42,
-            just_u8: 0,
-            maybe_u8: None,
-            default_u8: 42,
-            just_i16: 0,
-            maybe_i16: None,
-            default_i16: 42,
-            just_u16: 0,
-            maybe_u16: None,
-            default_u16: 42,
-            just_i32: 0,
-            maybe_i32: None,
-            default_i32: 42,
-            just_u32: 0,
-            maybe_u32: None,
-            default_u32: 42,
-            just_i64: 0,
-            maybe_i64: None,
-            default_i64: 42,
-            just_u64: 0,
-            maybe_u64: None,
-            default_u64: 42,
-            just_f32: 0.0,
-            maybe_f32: None,
-            default_f32: 42.0,
-            just_f64: 0.0,
-            maybe_f64: None,
-            default_f64: 42.0,
-            just_bool: false,
-            maybe_bool: None,
-            default_bool: true,
-            just_enum: OptionalByte::None,
-            maybe_enum: None,
-            default_enum: OptionalByte::One,
-        }
+  #[inline]
+  fn default() -> Self {
+    ScalarStuffArgs {
+      just_i8: 0,
+      maybe_i8: None,
+      default_i8: 42,
+      just_u8: 0,
+      maybe_u8: None,
+      default_u8: 42,
+      just_i16: 0,
+      maybe_i16: None,
+      default_i16: 42,
+      just_u16: 0,
+      maybe_u16: None,
+      default_u16: 42,
+      just_i32: 0,
+      maybe_i32: None,
+      default_i32: 42,
+      just_u32: 0,
+      maybe_u32: None,
+      default_u32: 42,
+      just_i64: 0,
+      maybe_i64: None,
+      default_i64: 42,
+      just_u64: 0,
+      maybe_u64: None,
+      default_u64: 42,
+      just_f32: 0.0,
+      maybe_f32: None,
+      default_f32: 42.0,
+      just_f64: 0.0,
+      maybe_f64: None,
+      default_f64: 42.0,
+      just_bool: false,
+      maybe_bool: None,
+      default_bool: true,
+      just_enum: OptionalByte::None,
+      maybe_enum: None,
+      default_enum: OptionalByte::One,
     }
+  }
 }
 pub struct ScalarStuffBuilder<'a: 'b, 'b> {
   fbb_: &'b mut flatbuffers::FlatBufferBuilder<'a>,

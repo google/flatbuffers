@@ -12,86 +12,88 @@ pub struct TypeAliases<'a> {
 }
 
 impl<'a> flatbuffers::Follow<'a> for TypeAliases<'a> {
-    type Inner = TypeAliases<'a>;
-    #[inline]
-    fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
-        Self { _tab: flatbuffers::Table { buf, loc } }
-    }
+  type Inner = TypeAliases<'a>;
+  #[inline]
+  fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
+    Self { _tab: flatbuffers::Table { buf, loc } }
+  }
 }
 
 impl<'a> TypeAliases<'a> {
-    pub const fn get_fully_qualified_name() -> &'static str {
-        "MyGame.Example.TypeAliases"
-    }
+  pub const VT_I8_: flatbuffers::VOffsetT = 4;
+  pub const VT_U8_: flatbuffers::VOffsetT = 6;
+  pub const VT_I16_: flatbuffers::VOffsetT = 8;
+  pub const VT_U16_: flatbuffers::VOffsetT = 10;
+  pub const VT_I32_: flatbuffers::VOffsetT = 12;
+  pub const VT_U32_: flatbuffers::VOffsetT = 14;
+  pub const VT_I64_: flatbuffers::VOffsetT = 16;
+  pub const VT_U64_: flatbuffers::VOffsetT = 18;
+  pub const VT_F32_: flatbuffers::VOffsetT = 20;
+  pub const VT_F64_: flatbuffers::VOffsetT = 22;
+  pub const VT_V8: flatbuffers::VOffsetT = 24;
+  pub const VT_VF64: flatbuffers::VOffsetT = 26;
 
-    #[inline]
-    pub fn init_from_table(table: flatbuffers::Table<'a>) -> Self {
-        TypeAliases { _tab: table }
-    }
-    #[allow(unused_mut)]
-    pub fn create<'bldr: 'args, 'args: 'mut_bldr, 'mut_bldr>(
-        _fbb: &'mut_bldr mut flatbuffers::FlatBufferBuilder<'bldr>,
-        args: &'args TypeAliasesArgs<'args>) -> flatbuffers::WIPOffset<TypeAliases<'bldr>> {
-      let mut builder = TypeAliasesBuilder::new(_fbb);
-      builder.add_f64_(args.f64_);
-      builder.add_u64_(args.u64_);
-      builder.add_i64_(args.i64_);
-      if let Some(x) = args.vf64 { builder.add_vf64(x); }
-      if let Some(x) = args.v8 { builder.add_v8(x); }
-      builder.add_f32_(args.f32_);
-      builder.add_u32_(args.u32_);
-      builder.add_i32_(args.i32_);
-      builder.add_u16_(args.u16_);
-      builder.add_i16_(args.i16_);
-      builder.add_u8_(args.u8_);
-      builder.add_i8_(args.i8_);
-      builder.finish()
-    }
+  pub const fn get_fully_qualified_name() -> &'static str {
+    "MyGame.Example.TypeAliases"
+  }
 
-    pub fn unpack(&self) -> TypeAliasesT {
-      let i8_ = self.i8_();
-      let u8_ = self.u8_();
-      let i16_ = self.i16_();
-      let u16_ = self.u16_();
-      let i32_ = self.i32_();
-      let u32_ = self.u32_();
-      let i64_ = self.i64_();
-      let u64_ = self.u64_();
-      let f32_ = self.f32_();
-      let f64_ = self.f64_();
-      let v8 = self.v8().map(|x| {
-        x.to_vec()
-      });
-      let vf64 = self.vf64().map(|x| {
-        x.into_iter().collect()
-      });
-      TypeAliasesT {
-        i8_,
-        u8_,
-        i16_,
-        u16_,
-        i32_,
-        u32_,
-        i64_,
-        u64_,
-        f32_,
-        f64_,
-        v8,
-        vf64,
-      }
+  #[inline]
+  pub fn init_from_table(table: flatbuffers::Table<'a>) -> Self {
+    TypeAliases { _tab: table }
+  }
+  #[allow(unused_mut)]
+  pub fn create<'bldr: 'args, 'args: 'mut_bldr, 'mut_bldr>(
+    _fbb: &'mut_bldr mut flatbuffers::FlatBufferBuilder<'bldr>,
+    args: &'args TypeAliasesArgs<'args>
+  ) -> flatbuffers::WIPOffset<TypeAliases<'bldr>> {
+    let mut builder = TypeAliasesBuilder::new(_fbb);
+    builder.add_f64_(args.f64_);
+    builder.add_u64_(args.u64_);
+    builder.add_i64_(args.i64_);
+    if let Some(x) = args.vf64 { builder.add_vf64(x); }
+    if let Some(x) = args.v8 { builder.add_v8(x); }
+    builder.add_f32_(args.f32_);
+    builder.add_u32_(args.u32_);
+    builder.add_i32_(args.i32_);
+    builder.add_u16_(args.u16_);
+    builder.add_i16_(args.i16_);
+    builder.add_u8_(args.u8_);
+    builder.add_i8_(args.i8_);
+    builder.finish()
+  }
+
+  pub fn unpack(&self) -> TypeAliasesT {
+    let i8_ = self.i8_();
+    let u8_ = self.u8_();
+    let i16_ = self.i16_();
+    let u16_ = self.u16_();
+    let i32_ = self.i32_();
+    let u32_ = self.u32_();
+    let i64_ = self.i64_();
+    let u64_ = self.u64_();
+    let f32_ = self.f32_();
+    let f64_ = self.f64_();
+    let v8 = self.v8().map(|x| {
+      x.to_vec()
+    });
+    let vf64 = self.vf64().map(|x| {
+      x.into_iter().collect()
+    });
+    TypeAliasesT {
+      i8_,
+      u8_,
+      i16_,
+      u16_,
+      i32_,
+      u32_,
+      i64_,
+      u64_,
+      f32_,
+      f64_,
+      v8,
+      vf64,
     }
-    pub const VT_I8_: flatbuffers::VOffsetT = 4;
-    pub const VT_U8_: flatbuffers::VOffsetT = 6;
-    pub const VT_I16_: flatbuffers::VOffsetT = 8;
-    pub const VT_U16_: flatbuffers::VOffsetT = 10;
-    pub const VT_I32_: flatbuffers::VOffsetT = 12;
-    pub const VT_U32_: flatbuffers::VOffsetT = 14;
-    pub const VT_I64_: flatbuffers::VOffsetT = 16;
-    pub const VT_U64_: flatbuffers::VOffsetT = 18;
-    pub const VT_F32_: flatbuffers::VOffsetT = 20;
-    pub const VT_F64_: flatbuffers::VOffsetT = 22;
-    pub const VT_V8: flatbuffers::VOffsetT = 24;
-    pub const VT_VF64: flatbuffers::VOffsetT = 26;
+  }
 
   #[inline]
   pub fn i8_(&self) -> i8 {
@@ -181,23 +183,23 @@ pub struct TypeAliasesArgs<'a> {
     pub vf64: Option<flatbuffers::WIPOffset<flatbuffers::Vector<'a, f64>>>,
 }
 impl<'a> Default for TypeAliasesArgs<'a> {
-    #[inline]
-    fn default() -> Self {
-        TypeAliasesArgs {
-            i8_: 0,
-            u8_: 0,
-            i16_: 0,
-            u16_: 0,
-            i32_: 0,
-            u32_: 0,
-            i64_: 0,
-            u64_: 0,
-            f32_: 0.0,
-            f64_: 0.0,
-            v8: None,
-            vf64: None,
-        }
+  #[inline]
+  fn default() -> Self {
+    TypeAliasesArgs {
+      i8_: 0,
+      u8_: 0,
+      i16_: 0,
+      u16_: 0,
+      i32_: 0,
+      u32_: 0,
+      i64_: 0,
+      u64_: 0,
+      f32_: 0.0,
+      f64_: 0.0,
+      v8: None,
+      vf64: None,
     }
+  }
 }
 pub struct TypeAliasesBuilder<'a: 'b, 'b> {
   fbb_: &'b mut flatbuffers::FlatBufferBuilder<'a>,

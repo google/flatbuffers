@@ -12,34 +12,36 @@ pub struct Monster<'a> {
 }
 
 impl<'a> flatbuffers::Follow<'a> for Monster<'a> {
-    type Inner = Monster<'a>;
-    #[inline]
-    fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
-        Self { _tab: flatbuffers::Table { buf, loc } }
-    }
+  type Inner = Monster<'a>;
+  #[inline]
+  fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
+    Self { _tab: flatbuffers::Table { buf, loc } }
+  }
 }
 
 impl<'a> Monster<'a> {
-    pub const fn get_fully_qualified_name() -> &'static str {
-        "MyGame.Example2.Monster"
-    }
 
-    #[inline]
-    pub fn init_from_table(table: flatbuffers::Table<'a>) -> Self {
-        Monster { _tab: table }
-    }
-    #[allow(unused_mut)]
-    pub fn create<'bldr: 'args, 'args: 'mut_bldr, 'mut_bldr>(
-        _fbb: &'mut_bldr mut flatbuffers::FlatBufferBuilder<'bldr>,
-        _args: &'args MonsterArgs) -> flatbuffers::WIPOffset<Monster<'bldr>> {
-      let mut builder = MonsterBuilder::new(_fbb);
-      builder.finish()
-    }
+  pub const fn get_fully_qualified_name() -> &'static str {
+    "MyGame.Example2.Monster"
+  }
 
-    pub fn unpack(&self) -> MonsterT {
-      MonsterT {
-      }
+  #[inline]
+  pub fn init_from_table(table: flatbuffers::Table<'a>) -> Self {
+    Monster { _tab: table }
+  }
+  #[allow(unused_mut)]
+  pub fn create<'bldr: 'args, 'args: 'mut_bldr, 'mut_bldr>(
+    _fbb: &'mut_bldr mut flatbuffers::FlatBufferBuilder<'bldr>,
+    _args: &'args MonsterArgs
+  ) -> flatbuffers::WIPOffset<Monster<'bldr>> {
+    let mut builder = MonsterBuilder::new(_fbb);
+    builder.finish()
+  }
+
+  pub fn unpack(&self) -> MonsterT {
+    MonsterT {
     }
+  }
 }
 
 impl flatbuffers::Verifiable for Monster<'_> {
@@ -56,11 +58,11 @@ impl flatbuffers::Verifiable for Monster<'_> {
 pub struct MonsterArgs {
 }
 impl<'a> Default for MonsterArgs {
-    #[inline]
-    fn default() -> Self {
-        MonsterArgs {
-        }
+  #[inline]
+  fn default() -> Self {
+    MonsterArgs {
     }
+  }
 }
 pub struct MonsterBuilder<'a: 'b, 'b> {
   fbb_: &'b mut flatbuffers::FlatBufferBuilder<'a>,

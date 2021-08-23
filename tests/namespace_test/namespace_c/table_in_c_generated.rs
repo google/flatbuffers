@@ -12,46 +12,48 @@ pub struct TableInC<'a> {
 }
 
 impl<'a> flatbuffers::Follow<'a> for TableInC<'a> {
-    type Inner = TableInC<'a>;
-    #[inline]
-    fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
-        Self { _tab: flatbuffers::Table { buf, loc } }
-    }
+  type Inner = TableInC<'a>;
+  #[inline]
+  fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
+    Self { _tab: flatbuffers::Table { buf, loc } }
+  }
 }
 
 impl<'a> TableInC<'a> {
-    pub const fn get_fully_qualified_name() -> &'static str {
-        "NamespaceC.TableInC"
-    }
+  pub const VT_REFER_TO_A1: flatbuffers::VOffsetT = 4;
+  pub const VT_REFER_TO_A2: flatbuffers::VOffsetT = 6;
 
-    #[inline]
-    pub fn init_from_table(table: flatbuffers::Table<'a>) -> Self {
-        TableInC { _tab: table }
-    }
-    #[allow(unused_mut)]
-    pub fn create<'bldr: 'args, 'args: 'mut_bldr, 'mut_bldr>(
-        _fbb: &'mut_bldr mut flatbuffers::FlatBufferBuilder<'bldr>,
-        args: &'args TableInCArgs<'args>) -> flatbuffers::WIPOffset<TableInC<'bldr>> {
-      let mut builder = TableInCBuilder::new(_fbb);
-      if let Some(x) = args.refer_to_a2 { builder.add_refer_to_a2(x); }
-      if let Some(x) = args.refer_to_a1 { builder.add_refer_to_a1(x); }
-      builder.finish()
-    }
+  pub const fn get_fully_qualified_name() -> &'static str {
+    "NamespaceC.TableInC"
+  }
 
-    pub fn unpack(&self) -> TableInCT {
-      let refer_to_a1 = self.refer_to_a1().map(|x| {
-        Box::new(x.unpack())
-      });
-      let refer_to_a2 = self.refer_to_a2().map(|x| {
-        Box::new(x.unpack())
-      });
-      TableInCT {
-        refer_to_a1,
-        refer_to_a2,
-      }
+  #[inline]
+  pub fn init_from_table(table: flatbuffers::Table<'a>) -> Self {
+    TableInC { _tab: table }
+  }
+  #[allow(unused_mut)]
+  pub fn create<'bldr: 'args, 'args: 'mut_bldr, 'mut_bldr>(
+    _fbb: &'mut_bldr mut flatbuffers::FlatBufferBuilder<'bldr>,
+    args: &'args TableInCArgs<'args>
+  ) -> flatbuffers::WIPOffset<TableInC<'bldr>> {
+    let mut builder = TableInCBuilder::new(_fbb);
+    if let Some(x) = args.refer_to_a2 { builder.add_refer_to_a2(x); }
+    if let Some(x) = args.refer_to_a1 { builder.add_refer_to_a1(x); }
+    builder.finish()
+  }
+
+  pub fn unpack(&self) -> TableInCT {
+    let refer_to_a1 = self.refer_to_a1().map(|x| {
+      Box::new(x.unpack())
+    });
+    let refer_to_a2 = self.refer_to_a2().map(|x| {
+      Box::new(x.unpack())
+    });
+    TableInCT {
+      refer_to_a1,
+      refer_to_a2,
     }
-    pub const VT_REFER_TO_A1: flatbuffers::VOffsetT = 4;
-    pub const VT_REFER_TO_A2: flatbuffers::VOffsetT = 6;
+  }
 
   #[inline]
   pub fn refer_to_a1(&self) -> Option<super::namespace_a::TableInFirstNS<'a>> {
@@ -81,13 +83,13 @@ pub struct TableInCArgs<'a> {
     pub refer_to_a2: Option<flatbuffers::WIPOffset<super::namespace_a::SecondTableInA<'a>>>,
 }
 impl<'a> Default for TableInCArgs<'a> {
-    #[inline]
-    fn default() -> Self {
-        TableInCArgs {
-            refer_to_a1: None,
-            refer_to_a2: None,
-        }
+  #[inline]
+  fn default() -> Self {
+    TableInCArgs {
+      refer_to_a1: None,
+      refer_to_a2: None,
     }
+  }
 }
 pub struct TableInCBuilder<'a: 'b, 'b> {
   fbb_: &'b mut flatbuffers::FlatBufferBuilder<'a>,
