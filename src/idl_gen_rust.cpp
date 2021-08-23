@@ -1582,8 +1582,8 @@ class RustGenerator : public BaseGenerator {
   // Generates a fully-qualified name getter for use with --gen-name-strings
   void GenFullyQualifiedNameGetter(const StructDef &struct_def,
                                    const std::string &name) {
-    const std::string fully_qualified_name = 
-             struct_def.defined_namespace->GetFullyQualifiedName(name);
+    const std::string fully_qualified_name =
+        struct_def.defined_namespace->GetFullyQualifiedName(name);
     code_ += "  pub const fn get_fully_qualified_name() -> &'static str {";
     code_ += "    \"" + fully_qualified_name + "\"";
     code_ += "  }";
@@ -1661,7 +1661,7 @@ class RustGenerator : public BaseGenerator {
     code_ += "}";
     code_ += "";
     code_ += "impl<'a> {{STRUCT_NAME}}<'a> {";
-    
+
     // Generate field id constants.
     ForAllTableFields(struct_def, [&](const FieldDef &unused) {
       (void)unused;
@@ -1738,14 +1738,12 @@ class RustGenerator : public BaseGenerator {
             code_.SetValue("NATIVE_ENUM_NAME", NamespacedNativeName(enum_def));
             code_ +=
                 "  let {{FIELD_NAME}} = match self.{{FIELD_NAME}}_type() {";
-            code_ +=
-                "    {{ENUM_NAME}}::NONE => {{NATIVE_ENUM_NAME}}::NONE,";
+            code_ += "    {{ENUM_NAME}}::NONE => {{NATIVE_ENUM_NAME}}::NONE,";
             ForAllUnionObjectVariantsBesidesNone(enum_def, [&] {
               code_ +=
                   "  {{ENUM_NAME}}::{{VARIANT_NAME}} => "
                   "{{NATIVE_ENUM_NAME}}::{{NATIVE_VARIANT}}(Box::new(";
-              code_ +=
-                  "    self.{{FIELD_NAME}}_as_{{U_ELEMENT_NAME}}()";
+              code_ += "    self.{{FIELD_NAME}}_as_{{U_ELEMENT_NAME}}()";
               code_ +=
                   "        .expect(\"Invalid union table, "
                   "expected `{{ENUM_NAME}}::{{VARIANT_NAME}}`.\")";
@@ -1917,8 +1915,7 @@ class RustGenerator : public BaseGenerator {
             // as of April 10, 2020
             if (field.IsRequired()) {
               code_ += "    let u = self.{{FIELD_NAME}}();";
-              code_ +=
-                  "    Some({{U_ELEMENT_TABLE_TYPE}}::init_from_table(u))";
+              code_ += "    Some({{U_ELEMENT_TABLE_TYPE}}::init_from_table(u))";
             } else {
               code_ +=
                   "    self.{{FIELD_NAME}}().map("
@@ -2105,8 +2102,7 @@ class RustGenerator : public BaseGenerator {
                   "{{U_ELEMENT_NAME}}() {";
               code_ += "          ds.field(\"{{FIELD_NAME}}\", &x)";
               code_ += "        } else {";
-              code_ +=
-                  "          ds.field(\"{{FIELD_NAME}}\", {{UNION_ERR}})";
+              code_ += "          ds.field(\"{{FIELD_NAME}}\", {{UNION_ERR}})";
               code_ += "        }";
               code_ += "      },";
             });
@@ -2720,8 +2716,7 @@ class RustGenerator : public BaseGenerator {
         } else {
           code_.SetValue("FIELD_SIZE",
                          NumToString(InlineSize(field.value.type)));
-          code_ +=
-              "pub fn set_{{FIELD_NAME}}(&mut self, x: &{{FIELD_TYPE}}) {";
+          code_ += "pub fn set_{{FIELD_NAME}}(&mut self, x: &{{FIELD_TYPE}}) {";
           code_ += "  unsafe {";
           code_ += "    std::ptr::copy(";
           code_ += "      x.as_ptr() as *const u8,";
