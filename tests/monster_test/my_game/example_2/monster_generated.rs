@@ -56,11 +56,11 @@ impl flatbuffers::Verifiable for Monster<'_> {
 pub struct MonsterArgs {
 }
 impl<'a> Default for MonsterArgs {
-    #[inline]
-    fn default() -> Self {
-        MonsterArgs {
-        }
+  #[inline]
+  fn default() -> Self {
+    MonsterArgs {
     }
+  }
 }
 pub struct MonsterBuilder<'a: 'b, 'b> {
   fbb_: &'b mut flatbuffers::FlatBufferBuilder<'a>,

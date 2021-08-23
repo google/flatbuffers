@@ -187,21 +187,21 @@ pub struct MonsterArgs<'a> {
     pub path: Option<flatbuffers::WIPOffset<flatbuffers::Vector<'a, Vec3>>>,
 }
 impl<'a> Default for MonsterArgs<'a> {
-    #[inline]
-    fn default() -> Self {
-        MonsterArgs {
-            pos: None,
-            mana: 150,
-            hp: 100,
-            name: None,
-            inventory: None,
-            color: Color::Blue,
-            weapons: None,
-            equipped_type: Equipment::NONE,
-            equipped: None,
-            path: None,
-        }
+  #[inline]
+  fn default() -> Self {
+    MonsterArgs {
+      pos: None,
+      mana: 150,
+      hp: 100,
+      name: None,
+      inventory: None,
+      color: Color::Blue,
+      weapons: None,
+      equipped_type: Equipment::NONE,
+      equipped: None,
+      path: None,
     }
+  }
 }
 pub struct MonsterBuilder<'a: 'b, 'b> {
   fbb_: &'b mut flatbuffers::FlatBufferBuilder<'a>,

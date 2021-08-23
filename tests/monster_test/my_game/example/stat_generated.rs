@@ -99,14 +99,14 @@ pub struct StatArgs<'a> {
     pub count: u16,
 }
 impl<'a> Default for StatArgs<'a> {
-    #[inline]
-    fn default() -> Self {
-        StatArgs {
-            id: None,
-            val: 0,
-            count: 0,
-        }
+  #[inline]
+  fn default() -> Self {
+    StatArgs {
+      id: None,
+      val: 0,
+      count: 0,
     }
+  }
 }
 pub struct StatBuilder<'a: 'b, 'b> {
   fbb_: &'b mut flatbuffers::FlatBufferBuilder<'a>,

@@ -181,23 +181,23 @@ pub struct TypeAliasesArgs<'a> {
     pub vf64: Option<flatbuffers::WIPOffset<flatbuffers::Vector<'a, f64>>>,
 }
 impl<'a> Default for TypeAliasesArgs<'a> {
-    #[inline]
-    fn default() -> Self {
-        TypeAliasesArgs {
-            i8_: 0,
-            u8_: 0,
-            i16_: 0,
-            u16_: 0,
-            i32_: 0,
-            u32_: 0,
-            i64_: 0,
-            u64_: 0,
-            f32_: 0.0,
-            f64_: 0.0,
-            v8: None,
-            vf64: None,
-        }
+  #[inline]
+  fn default() -> Self {
+    TypeAliasesArgs {
+      i8_: 0,
+      u8_: 0,
+      i16_: 0,
+      u16_: 0,
+      i32_: 0,
+      u32_: 0,
+      i64_: 0,
+      u64_: 0,
+      f32_: 0.0,
+      f64_: 0.0,
+      v8: None,
+      vf64: None,
     }
+  }
 }
 pub struct TypeAliasesBuilder<'a: 'b, 'b> {
   fbb_: &'b mut flatbuffers::FlatBufferBuilder<'a>,

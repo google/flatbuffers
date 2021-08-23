@@ -56,11 +56,11 @@ impl flatbuffers::Verifiable for InParentNamespace<'_> {
 pub struct InParentNamespaceArgs {
 }
 impl<'a> Default for InParentNamespaceArgs {
-    #[inline]
-    fn default() -> Self {
-        InParentNamespaceArgs {
-        }
+  #[inline]
+  fn default() -> Self {
+    InParentNamespaceArgs {
     }
+  }
 }
 pub struct InParentNamespaceBuilder<'a: 'b, 'b> {
   fbb_: &'b mut flatbuffers::FlatBufferBuilder<'a>,

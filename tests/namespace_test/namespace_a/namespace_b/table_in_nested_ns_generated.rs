@@ -67,12 +67,12 @@ pub struct TableInNestedNSArgs {
     pub foo: i32,
 }
 impl<'a> Default for TableInNestedNSArgs {
-    #[inline]
-    fn default() -> Self {
-        TableInNestedNSArgs {
-            foo: 0,
-        }
+  #[inline]
+  fn default() -> Self {
+    TableInNestedNSArgs {
+      foo: 0,
     }
+  }
 }
 pub struct TableInNestedNSBuilder<'a: 'b, 'b> {
   fbb_: &'b mut flatbuffers::FlatBufferBuilder<'a>,

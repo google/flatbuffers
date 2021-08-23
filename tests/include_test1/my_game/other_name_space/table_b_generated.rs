@@ -69,12 +69,12 @@ pub struct TableBArgs<'a> {
     pub a: Option<flatbuffers::WIPOffset<super::super::TableA<'a>>>,
 }
 impl<'a> Default for TableBArgs<'a> {
-    #[inline]
-    fn default() -> Self {
-        TableBArgs {
-            a: None,
-        }
+  #[inline]
+  fn default() -> Self {
+    TableBArgs {
+      a: None,
     }
+  }
 }
 pub struct TableBBuilder<'a: 'b, 'b> {
   fbb_: &'b mut flatbuffers::FlatBufferBuilder<'a>,

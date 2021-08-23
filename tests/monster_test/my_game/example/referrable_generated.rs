@@ -77,12 +77,12 @@ pub struct ReferrableArgs {
     pub id: u64,
 }
 impl<'a> Default for ReferrableArgs {
-    #[inline]
-    fn default() -> Self {
-        ReferrableArgs {
-            id: 0,
-        }
+  #[inline]
+  fn default() -> Self {
+    ReferrableArgs {
+      id: 0,
     }
+  }
 }
 pub struct ReferrableBuilder<'a: 'b, 'b> {
   fbb_: &'b mut flatbuffers::FlatBufferBuilder<'a>,

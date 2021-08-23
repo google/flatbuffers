@@ -1730,18 +1730,15 @@ class RustGenerator : public BaseGenerator {
             code_.SetValue("ENUM_NAME", WrapInNameSpace(enum_def));
             code_.SetValue("NATIVE_ENUM_NAME", NamespacedNativeName(enum_def));
             code_ +=
-                "    let {{FIELD_NAME}} = match "
-                "self.{{FIELD_NAME}}_type() {";
+                "    let {{FIELD_NAME}} = match self.{{FIELD_NAME}}_type() {";
             code_ +=
-                "      {{ENUM_NAME}}::NONE =>"
-                " {{NATIVE_ENUM_NAME}}::NONE,";
+                "      {{ENUM_NAME}}::NONE => {{NATIVE_ENUM_NAME}}::NONE,";
             ForAllUnionObjectVariantsBesidesNone(enum_def, [&] {
               code_ +=
                   "    {{ENUM_NAME}}::{{VARIANT_NAME}} => "
                   "{{NATIVE_ENUM_NAME}}::{{NATIVE_VARIANT}}(Box::new(";
               code_ +=
-                  "      self.{{FIELD_NAME}}_as_"
-                  "{{U_ELEMENT_NAME}}()";
+                  "      self.{{FIELD_NAME}}_as_{{U_ELEMENT_NAME}}()";
               code_ +=
                   "          .expect(\"Invalid union table, "
                   "expected `{{ENUM_NAME}}::{{VARIANT_NAME}}`.\")";
@@ -2001,15 +1998,15 @@ class RustGenerator : public BaseGenerator {
 
     // Generate an impl of Default for the *Args type:
     code_ += "impl<'a> Default for {{STRUCT_NAME}}Args{{MAYBE_LT}} {";
-    code_ += "    #[inline]";
-    code_ += "    fn default() -> Self {";
-    code_ += "        {{STRUCT_NAME}}Args {";
+    code_ += "  #[inline]";
+    code_ += "  fn default() -> Self {";
+    code_ += "    {{STRUCT_NAME}}Args {";
     ForAllTableFields(struct_def, [&](const FieldDef &field) {
-      code_ += "          {{FIELD_NAME}}: {{BLDR_DEF_VAL}},\\";
+      code_ += "    {{FIELD_NAME}}: {{BLDR_DEF_VAL}},\\";
       code_ += field.IsRequired() ? " // required field" : "";
     });
-    code_ += "        }";
     code_ += "    }";
+    code_ += "  }";
     code_ += "}";
 
     // Generate a builder struct:

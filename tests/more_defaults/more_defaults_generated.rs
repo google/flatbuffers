@@ -135,17 +135,17 @@ pub struct MoreDefaultsArgs<'a> {
     pub bools: Option<flatbuffers::WIPOffset<flatbuffers::Vector<'a, bool>>>,
 }
 impl<'a> Default for MoreDefaultsArgs<'a> {
-    #[inline]
-    fn default() -> Self {
-        MoreDefaultsArgs {
-            ints: None,
-            floats: None,
-            empty_string: None,
-            some_string: None,
-            abcs: None,
-            bools: None,
-        }
+  #[inline]
+  fn default() -> Self {
+    MoreDefaultsArgs {
+      ints: None,
+      floats: None,
+      empty_string: None,
+      some_string: None,
+      abcs: None,
+      bools: None,
     }
+  }
 }
 pub struct MoreDefaultsBuilder<'a: 'b, 'b> {
   fbb_: &'b mut flatbuffers::FlatBufferBuilder<'a>,

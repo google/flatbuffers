@@ -67,12 +67,12 @@ pub struct TestSimpleTableWithEnumArgs {
     pub color: Color,
 }
 impl<'a> Default for TestSimpleTableWithEnumArgs {
-    #[inline]
-    fn default() -> Self {
-        TestSimpleTableWithEnumArgs {
-            color: Color::Green,
-        }
+  #[inline]
+  fn default() -> Self {
+    TestSimpleTableWithEnumArgs {
+      color: Color::Green,
     }
+  }
 }
 pub struct TestSimpleTableWithEnumBuilder<'a: 'b, 'b> {
   fbb_: &'b mut flatbuffers::FlatBufferBuilder<'a>,

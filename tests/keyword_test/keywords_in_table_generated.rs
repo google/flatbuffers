@@ -87,14 +87,14 @@ pub struct KeywordsInTableArgs {
     pub type_: i32,
 }
 impl<'a> Default for KeywordsInTableArgs {
-    #[inline]
-    fn default() -> Self {
-        KeywordsInTableArgs {
-            is: ABC::void,
-            private: public::NONE,
-            type_: 0,
-        }
+  #[inline]
+  fn default() -> Self {
+    KeywordsInTableArgs {
+      is: ABC::void,
+      private: public::NONE,
+      type_: 0,
     }
+  }
 }
 pub struct KeywordsInTableBuilder<'a: 'b, 'b> {
   fbb_: &'b mut flatbuffers::FlatBufferBuilder<'a>,

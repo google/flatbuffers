@@ -69,12 +69,12 @@ pub struct ArrayTableArgs<'a> {
     pub a: Option<&'a ArrayStruct>,
 }
 impl<'a> Default for ArrayTableArgs<'a> {
-    #[inline]
-    fn default() -> Self {
-        ArrayTableArgs {
-            a: None,
-        }
+  #[inline]
+  fn default() -> Self {
+    ArrayTableArgs {
+      a: None,
     }
+  }
 }
 pub struct ArrayTableBuilder<'a: 'b, 'b> {
   fbb_: &'b mut flatbuffers::FlatBufferBuilder<'a>,

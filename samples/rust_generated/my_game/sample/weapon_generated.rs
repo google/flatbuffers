@@ -79,13 +79,13 @@ pub struct WeaponArgs<'a> {
     pub damage: i16,
 }
 impl<'a> Default for WeaponArgs<'a> {
-    #[inline]
-    fn default() -> Self {
-        WeaponArgs {
-            name: None,
-            damage: 0,
-        }
+  #[inline]
+  fn default() -> Self {
+    WeaponArgs {
+      name: None,
+      damage: 0,
     }
+  }
 }
 pub struct WeaponBuilder<'a: 'b, 'b> {
   fbb_: &'b mut flatbuffers::FlatBufferBuilder<'a>,

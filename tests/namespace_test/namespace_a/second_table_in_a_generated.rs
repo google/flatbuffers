@@ -69,12 +69,12 @@ pub struct SecondTableInAArgs<'a> {
     pub refer_to_c: Option<flatbuffers::WIPOffset<super::namespace_c::TableInC<'a>>>,
 }
 impl<'a> Default for SecondTableInAArgs<'a> {
-    #[inline]
-    fn default() -> Self {
-        SecondTableInAArgs {
-            refer_to_c: None,
-        }
+  #[inline]
+  fn default() -> Self {
+    SecondTableInAArgs {
+      refer_to_c: None,
     }
+  }
 }
 pub struct SecondTableInABuilder<'a: 'b, 'b> {
   fbb_: &'b mut flatbuffers::FlatBufferBuilder<'a>,

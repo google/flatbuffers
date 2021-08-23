@@ -131,16 +131,16 @@ pub struct TableInFirstNSArgs<'a> {
     pub foo_struct: Option<&'a namespace_b::StructInNestedNS>,
 }
 impl<'a> Default for TableInFirstNSArgs<'a> {
-    #[inline]
-    fn default() -> Self {
-        TableInFirstNSArgs {
-            foo_table: None,
-            foo_enum: namespace_b::EnumInNestedNS::A,
-            foo_union_type: namespace_b::UnionInNestedNS::NONE,
-            foo_union: None,
-            foo_struct: None,
-        }
+  #[inline]
+  fn default() -> Self {
+    TableInFirstNSArgs {
+      foo_table: None,
+      foo_enum: namespace_b::EnumInNestedNS::A,
+      foo_union_type: namespace_b::UnionInNestedNS::NONE,
+      foo_union: None,
+      foo_struct: None,
     }
+  }
 }
 pub struct TableInFirstNSBuilder<'a: 'b, 'b> {
   fbb_: &'b mut flatbuffers::FlatBufferBuilder<'a>,

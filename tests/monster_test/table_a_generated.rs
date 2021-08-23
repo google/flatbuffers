@@ -69,12 +69,12 @@ pub struct TableAArgs<'a> {
     pub b: Option<flatbuffers::WIPOffset<my_game::other_name_space::TableB<'a>>>,
 }
 impl<'a> Default for TableAArgs<'a> {
-    #[inline]
-    fn default() -> Self {
-        TableAArgs {
-            b: None,
-        }
+  #[inline]
+  fn default() -> Self {
+    TableAArgs {
+      b: None,
     }
+  }
 }
 pub struct TableABuilder<'a: 'b, 'b> {
   fbb_: &'b mut flatbuffers::FlatBufferBuilder<'a>,
