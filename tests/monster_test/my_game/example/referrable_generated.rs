@@ -50,12 +50,12 @@ impl<'a> Referrable<'a> {
     self._tab.get::<u64>(Referrable::VT_ID, Some(0)).unwrap()
   }
   #[inline]
-  pub fn key_compare_less_than(&self, o: &Referrable) ->  bool {
+  pub fn key_compare_less_than(&self, o: &Referrable) -> bool {
     self.id() < o.id()
   }
 
   #[inline]
-  pub fn key_compare_with_value(&self, val: u64) ->  ::std::cmp::Ordering {
+  pub fn key_compare_with_value(&self, val: u64) -> ::std::cmp::Ordering {
     let key = self.id();
     key.cmp(&val)
   }

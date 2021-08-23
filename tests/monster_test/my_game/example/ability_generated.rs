@@ -109,12 +109,12 @@ impl<'a> Ability {
   }
 
   #[inline]
-  pub fn key_compare_less_than(&self, o: &Ability) ->  bool {
+  pub fn key_compare_less_than(&self, o: &Ability) -> bool {
     self.id() < o.id()
   }
 
   #[inline]
-  pub fn key_compare_with_value(&self, val: u32) ->  ::std::cmp::Ordering {
+  pub fn key_compare_with_value(&self, val: u32) -> ::std::cmp::Ordering {
     let key = self.id();
     key.cmp(&val)
   }

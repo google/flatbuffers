@@ -216,7 +216,7 @@ impl<'a> Vec3 {
     unsafe { &*(self.0[26..].as_ptr() as *const Test) }
   }
 
- #[allow(clippy::identity_op)]
+  #[allow(clippy::identity_op)]
   pub fn set_test3(&mut self, x: &Test) {
     self.0[26..26 + 4].copy_from_slice(&x.0)
   }

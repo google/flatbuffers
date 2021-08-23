@@ -68,12 +68,12 @@ impl<'a> Stat<'a> {
     self._tab.get::<u16>(Stat::VT_COUNT, Some(0)).unwrap()
   }
   #[inline]
-  pub fn key_compare_less_than(&self, o: &Stat) ->  bool {
+  pub fn key_compare_less_than(&self, o: &Stat) -> bool {
     self.count() < o.count()
   }
 
   #[inline]
-  pub fn key_compare_with_value(&self, val: u16) ->  ::std::cmp::Ordering {
+  pub fn key_compare_with_value(&self, val: u16) -> ::std::cmp::Ordering {
     let key = self.count();
     key.cmp(&val)
   }

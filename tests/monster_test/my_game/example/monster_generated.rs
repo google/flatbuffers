@@ -358,12 +358,12 @@ impl<'a> Monster<'a> {
     self._tab.get::<flatbuffers::ForwardsUOffset<&str>>(Monster::VT_NAME, None).unwrap()
   }
   #[inline]
-  pub fn key_compare_less_than(&self, o: &Monster) ->  bool {
+  pub fn key_compare_less_than(&self, o: &Monster) -> bool {
     self.name() < o.name()
   }
 
   #[inline]
-  pub fn key_compare_with_value(&self, val: & str) ->  ::std::cmp::Ordering {
+  pub fn key_compare_with_value(&self, val: & str) -> ::std::cmp::Ordering {
     let key = self.name();
     key.cmp(val)
   }
