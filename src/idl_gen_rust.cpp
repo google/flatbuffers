@@ -756,7 +756,7 @@ class RustGenerator : public BaseGenerator {
       code_ += "    #[derive(Default)]";
       code_ += "    pub struct {{ENUM_NAME}}: {{BASE_TYPE}} {";
       ForAllEnumValues1(enum_def, [&](const EnumVal &ev) {
-        GenComment(ev.doc_comment, "    ");
+        this->GenComment(ev.doc_comment, "    ");
         code_ += "    const {{VARIANT}} = {{VALUE}};";
       });
       code_ += "    }";
