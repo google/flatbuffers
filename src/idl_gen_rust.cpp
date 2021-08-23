@@ -182,30 +182,8 @@ FullType GetFullType(const Type &type) {
   return ftBool;
 }
 
-// If the second parameter is false then wrap the first with Option<...>
-std::string WrapInOptionIfNotRequired(std::string s, bool required) {
-  if (required) {
-    return s;
-  } else {
-    return "Option<" + s + ">";
-  }
-}
-
-// If the second parameter is false then add .unwrap()
-std::string AddUnwrapIfRequired(std::string s, bool required) {
-  if (required) {
-    return s + ".unwrap()";
-  } else {
-    return s;
-  }
-}
-
 bool IsBitFlagsEnum(const EnumDef &enum_def) {
   return enum_def.attributes.Lookup("bit_flags") != nullptr;
-}
-bool IsBitFlagsEnum(const FieldDef &field) {
-  EnumDef *ed = field.value.type.enum_def;
-  return ed && IsBitFlagsEnum(*ed);
 }
 
 // TableArgs make required non-scalars "Option<_>".
