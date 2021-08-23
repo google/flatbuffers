@@ -12,40 +12,42 @@ pub struct SecondTableInA<'a> {
 }
 
 impl<'a> flatbuffers::Follow<'a> for SecondTableInA<'a> {
-    type Inner = SecondTableInA<'a>;
-    #[inline]
-    fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
-        Self { _tab: flatbuffers::Table { buf, loc } }
-    }
+  type Inner = SecondTableInA<'a>;
+  #[inline]
+  fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
+    Self { _tab: flatbuffers::Table { buf, loc } }
+  }
 }
 
 impl<'a> SecondTableInA<'a> {
-    pub const fn get_fully_qualified_name() -> &'static str {
-        "NamespaceA.SecondTableInA"
-    }
+  pub const VT_REFER_TO_C: flatbuffers::VOffsetT = 4;
 
-    #[inline]
-    pub fn init_from_table(table: flatbuffers::Table<'a>) -> Self {
-        SecondTableInA { _tab: table }
-    }
-    #[allow(unused_mut)]
-    pub fn create<'bldr: 'args, 'args: 'mut_bldr, 'mut_bldr>(
-        _fbb: &'mut_bldr mut flatbuffers::FlatBufferBuilder<'bldr>,
-        args: &'args SecondTableInAArgs<'args>) -> flatbuffers::WIPOffset<SecondTableInA<'bldr>> {
-      let mut builder = SecondTableInABuilder::new(_fbb);
-      if let Some(x) = args.refer_to_c { builder.add_refer_to_c(x); }
-      builder.finish()
-    }
+  pub const fn get_fully_qualified_name() -> &'static str {
+    "NamespaceA.SecondTableInA"
+  }
 
-    pub fn unpack(&self) -> SecondTableInAT {
-      let refer_to_c = self.refer_to_c().map(|x| {
-        Box::new(x.unpack())
-      });
-      SecondTableInAT {
-        refer_to_c,
-      }
+  #[inline]
+  pub fn init_from_table(table: flatbuffers::Table<'a>) -> Self {
+    SecondTableInA { _tab: table }
+  }
+  #[allow(unused_mut)]
+  pub fn create<'bldr: 'args, 'args: 'mut_bldr, 'mut_bldr>(
+    _fbb: &'mut_bldr mut flatbuffers::FlatBufferBuilder<'bldr>,
+    args: &'args SecondTableInAArgs<'args>
+  ) -> flatbuffers::WIPOffset<SecondTableInA<'bldr>> {
+    let mut builder = SecondTableInABuilder::new(_fbb);
+    if let Some(x) = args.refer_to_c { builder.add_refer_to_c(x); }
+    builder.finish()
+  }
+
+  pub fn unpack(&self) -> SecondTableInAT {
+    let refer_to_c = self.refer_to_c().map(|x| {
+      Box::new(x.unpack())
+    });
+    SecondTableInAT {
+      refer_to_c,
     }
-    pub const VT_REFER_TO_C: flatbuffers::VOffsetT = 4;
+  }
 
   #[inline]
   pub fn refer_to_c(&self) -> Option<super::namespace_c::TableInC<'a>> {

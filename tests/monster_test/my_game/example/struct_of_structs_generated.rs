@@ -84,9 +84,9 @@ impl<'a> StructOfStructs {
     s
   }
 
-    pub const fn get_fully_qualified_name() -> &'static str {
-        "MyGame.Example.StructOfStructs"
-    }
+  pub const fn get_fully_qualified_name() -> &'static str {
+    "MyGame.Example.StructOfStructs"
+  }
 
   pub fn a(&self) -> &Ability {
     unsafe { &*(self.0[0..].as_ptr() as *const Ability) }

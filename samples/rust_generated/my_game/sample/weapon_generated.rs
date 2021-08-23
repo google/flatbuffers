@@ -12,44 +12,46 @@ pub struct Weapon<'a> {
 }
 
 impl<'a> flatbuffers::Follow<'a> for Weapon<'a> {
-    type Inner = Weapon<'a>;
-    #[inline]
-    fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
-        Self { _tab: flatbuffers::Table { buf, loc } }
-    }
+  type Inner = Weapon<'a>;
+  #[inline]
+  fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
+    Self { _tab: flatbuffers::Table { buf, loc } }
+  }
 }
 
 impl<'a> Weapon<'a> {
-    pub const fn get_fully_qualified_name() -> &'static str {
-        "MyGame.Sample.Weapon"
-    }
+  pub const VT_NAME: flatbuffers::VOffsetT = 4;
+  pub const VT_DAMAGE: flatbuffers::VOffsetT = 6;
 
-    #[inline]
-    pub fn init_from_table(table: flatbuffers::Table<'a>) -> Self {
-        Weapon { _tab: table }
-    }
-    #[allow(unused_mut)]
-    pub fn create<'bldr: 'args, 'args: 'mut_bldr, 'mut_bldr>(
-        _fbb: &'mut_bldr mut flatbuffers::FlatBufferBuilder<'bldr>,
-        args: &'args WeaponArgs<'args>) -> flatbuffers::WIPOffset<Weapon<'bldr>> {
-      let mut builder = WeaponBuilder::new(_fbb);
-      if let Some(x) = args.name { builder.add_name(x); }
-      builder.add_damage(args.damage);
-      builder.finish()
-    }
+  pub const fn get_fully_qualified_name() -> &'static str {
+    "MyGame.Sample.Weapon"
+  }
 
-    pub fn unpack(&self) -> WeaponT {
-      let name = self.name().map(|x| {
-        x.to_string()
-      });
-      let damage = self.damage();
-      WeaponT {
-        name,
-        damage,
-      }
+  #[inline]
+  pub fn init_from_table(table: flatbuffers::Table<'a>) -> Self {
+    Weapon { _tab: table }
+  }
+  #[allow(unused_mut)]
+  pub fn create<'bldr: 'args, 'args: 'mut_bldr, 'mut_bldr>(
+    _fbb: &'mut_bldr mut flatbuffers::FlatBufferBuilder<'bldr>,
+    args: &'args WeaponArgs<'args>
+  ) -> flatbuffers::WIPOffset<Weapon<'bldr>> {
+    let mut builder = WeaponBuilder::new(_fbb);
+    if let Some(x) = args.name { builder.add_name(x); }
+    builder.add_damage(args.damage);
+    builder.finish()
+  }
+
+  pub fn unpack(&self) -> WeaponT {
+    let name = self.name().map(|x| {
+      x.to_string()
+    });
+    let damage = self.damage();
+    WeaponT {
+      name,
+      damage,
     }
-    pub const VT_NAME: flatbuffers::VOffsetT = 4;
-    pub const VT_DAMAGE: flatbuffers::VOffsetT = 6;
+  }
 
   #[inline]
   pub fn name(&self) -> Option<&'a str> {

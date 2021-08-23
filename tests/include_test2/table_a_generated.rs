@@ -12,40 +12,42 @@ pub struct TableA<'a> {
 }
 
 impl<'a> flatbuffers::Follow<'a> for TableA<'a> {
-    type Inner = TableA<'a>;
-    #[inline]
-    fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
-        Self { _tab: flatbuffers::Table { buf, loc } }
-    }
+  type Inner = TableA<'a>;
+  #[inline]
+  fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
+    Self { _tab: flatbuffers::Table { buf, loc } }
+  }
 }
 
 impl<'a> TableA<'a> {
-    pub const fn get_fully_qualified_name() -> &'static str {
-        "TableA"
-    }
+  pub const VT_B: flatbuffers::VOffsetT = 4;
 
-    #[inline]
-    pub fn init_from_table(table: flatbuffers::Table<'a>) -> Self {
-        TableA { _tab: table }
-    }
-    #[allow(unused_mut)]
-    pub fn create<'bldr: 'args, 'args: 'mut_bldr, 'mut_bldr>(
-        _fbb: &'mut_bldr mut flatbuffers::FlatBufferBuilder<'bldr>,
-        args: &'args TableAArgs<'args>) -> flatbuffers::WIPOffset<TableA<'bldr>> {
-      let mut builder = TableABuilder::new(_fbb);
-      if let Some(x) = args.b { builder.add_b(x); }
-      builder.finish()
-    }
+  pub const fn get_fully_qualified_name() -> &'static str {
+    "TableA"
+  }
 
-    pub fn unpack(&self) -> TableAT {
-      let b = self.b().map(|x| {
-        Box::new(x.unpack())
-      });
-      TableAT {
-        b,
-      }
+  #[inline]
+  pub fn init_from_table(table: flatbuffers::Table<'a>) -> Self {
+    TableA { _tab: table }
+  }
+  #[allow(unused_mut)]
+  pub fn create<'bldr: 'args, 'args: 'mut_bldr, 'mut_bldr>(
+    _fbb: &'mut_bldr mut flatbuffers::FlatBufferBuilder<'bldr>,
+    args: &'args TableAArgs<'args>
+  ) -> flatbuffers::WIPOffset<TableA<'bldr>> {
+    let mut builder = TableABuilder::new(_fbb);
+    if let Some(x) = args.b { builder.add_b(x); }
+    builder.finish()
+  }
+
+  pub fn unpack(&self) -> TableAT {
+    let b = self.b().map(|x| {
+      Box::new(x.unpack())
+    });
+    TableAT {
+      b,
     }
-    pub const VT_B: flatbuffers::VOffsetT = 4;
+  }
 
   #[inline]
   pub fn b(&self) -> Option<my_game::other_name_space::TableB<'a>> {

@@ -78,9 +78,9 @@ impl<'a> Unused {
     s
   }
 
-    pub const fn get_fully_qualified_name() -> &'static str {
-        "MyGame.OtherNameSpace.Unused"
-    }
+  pub const fn get_fully_qualified_name() -> &'static str {
+    "MyGame.OtherNameSpace.Unused"
+  }
 
   pub fn a(&self) -> i32 {
     let mut mem = core::mem::MaybeUninit::<i32>::uninit();

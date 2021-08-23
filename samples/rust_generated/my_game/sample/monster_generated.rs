@@ -12,90 +12,92 @@ pub struct Monster<'a> {
 }
 
 impl<'a> flatbuffers::Follow<'a> for Monster<'a> {
-    type Inner = Monster<'a>;
-    #[inline]
-    fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
-        Self { _tab: flatbuffers::Table { buf, loc } }
-    }
+  type Inner = Monster<'a>;
+  #[inline]
+  fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
+    Self { _tab: flatbuffers::Table { buf, loc } }
+  }
 }
 
 impl<'a> Monster<'a> {
-    pub const fn get_fully_qualified_name() -> &'static str {
-        "MyGame.Sample.Monster"
-    }
+  pub const VT_POS: flatbuffers::VOffsetT = 4;
+  pub const VT_MANA: flatbuffers::VOffsetT = 6;
+  pub const VT_HP: flatbuffers::VOffsetT = 8;
+  pub const VT_NAME: flatbuffers::VOffsetT = 10;
+  pub const VT_INVENTORY: flatbuffers::VOffsetT = 14;
+  pub const VT_COLOR: flatbuffers::VOffsetT = 16;
+  pub const VT_WEAPONS: flatbuffers::VOffsetT = 18;
+  pub const VT_EQUIPPED_TYPE: flatbuffers::VOffsetT = 20;
+  pub const VT_EQUIPPED: flatbuffers::VOffsetT = 22;
+  pub const VT_PATH: flatbuffers::VOffsetT = 24;
 
-    #[inline]
-    pub fn init_from_table(table: flatbuffers::Table<'a>) -> Self {
-        Monster { _tab: table }
-    }
-    #[allow(unused_mut)]
-    pub fn create<'bldr: 'args, 'args: 'mut_bldr, 'mut_bldr>(
-        _fbb: &'mut_bldr mut flatbuffers::FlatBufferBuilder<'bldr>,
-        args: &'args MonsterArgs<'args>) -> flatbuffers::WIPOffset<Monster<'bldr>> {
-      let mut builder = MonsterBuilder::new(_fbb);
-      if let Some(x) = args.path { builder.add_path(x); }
-      if let Some(x) = args.equipped { builder.add_equipped(x); }
-      if let Some(x) = args.weapons { builder.add_weapons(x); }
-      if let Some(x) = args.inventory { builder.add_inventory(x); }
-      if let Some(x) = args.name { builder.add_name(x); }
-      if let Some(x) = args.pos { builder.add_pos(x); }
-      builder.add_hp(args.hp);
-      builder.add_mana(args.mana);
-      builder.add_equipped_type(args.equipped_type);
-      builder.add_color(args.color);
-      builder.finish()
-    }
+  pub const fn get_fully_qualified_name() -> &'static str {
+    "MyGame.Sample.Monster"
+  }
 
-    pub fn unpack(&self) -> MonsterT {
-      let pos = self.pos().map(|x| {
-        x.unpack()
-      });
-      let mana = self.mana();
-      let hp = self.hp();
-      let name = self.name().map(|x| {
-        x.to_string()
-      });
-      let inventory = self.inventory().map(|x| {
-        x.to_vec()
-      });
-      let color = self.color();
-      let weapons = self.weapons().map(|x| {
-        x.iter().map(|t| t.unpack()).collect()
-      });
-      let equipped = match self.equipped_type() {
-        Equipment::NONE => EquipmentT::NONE,
-        Equipment::Weapon => EquipmentT::Weapon(Box::new(
-          self.equipped_as_weapon()
-              .expect("Invalid union table, expected `Equipment::Weapon`.")
-              .unpack()
-        )),
-        _ => EquipmentT::NONE,
-      };
-      let path = self.path().map(|x| {
-        x.iter().map(|t| t.unpack()).collect()
-      });
-      MonsterT {
-        pos,
-        mana,
-        hp,
-        name,
-        inventory,
-        color,
-        weapons,
-        equipped,
-        path,
-      }
+  #[inline]
+  pub fn init_from_table(table: flatbuffers::Table<'a>) -> Self {
+    Monster { _tab: table }
+  }
+  #[allow(unused_mut)]
+  pub fn create<'bldr: 'args, 'args: 'mut_bldr, 'mut_bldr>(
+    _fbb: &'mut_bldr mut flatbuffers::FlatBufferBuilder<'bldr>,
+    args: &'args MonsterArgs<'args>
+  ) -> flatbuffers::WIPOffset<Monster<'bldr>> {
+    let mut builder = MonsterBuilder::new(_fbb);
+    if let Some(x) = args.path { builder.add_path(x); }
+    if let Some(x) = args.equipped { builder.add_equipped(x); }
+    if let Some(x) = args.weapons { builder.add_weapons(x); }
+    if let Some(x) = args.inventory { builder.add_inventory(x); }
+    if let Some(x) = args.name { builder.add_name(x); }
+    if let Some(x) = args.pos { builder.add_pos(x); }
+    builder.add_hp(args.hp);
+    builder.add_mana(args.mana);
+    builder.add_equipped_type(args.equipped_type);
+    builder.add_color(args.color);
+    builder.finish()
+  }
+
+  pub fn unpack(&self) -> MonsterT {
+    let pos = self.pos().map(|x| {
+      x.unpack()
+    });
+    let mana = self.mana();
+    let hp = self.hp();
+    let name = self.name().map(|x| {
+      x.to_string()
+    });
+    let inventory = self.inventory().map(|x| {
+      x.to_vec()
+    });
+    let color = self.color();
+    let weapons = self.weapons().map(|x| {
+      x.iter().map(|t| t.unpack()).collect()
+    });
+    let equipped = match self.equipped_type() {
+      Equipment::NONE => EquipmentT::NONE,
+      Equipment::Weapon => EquipmentT::Weapon(Box::new(
+        self.equipped_as_weapon()
+            .expect("Invalid union table, expected `Equipment::Weapon`.")
+            .unpack()
+      )),
+      _ => EquipmentT::NONE,
+    };
+    let path = self.path().map(|x| {
+      x.iter().map(|t| t.unpack()).collect()
+    });
+    MonsterT {
+      pos,
+      mana,
+      hp,
+      name,
+      inventory,
+      color,
+      weapons,
+      equipped,
+      path,
     }
-    pub const VT_POS: flatbuffers::VOffsetT = 4;
-    pub const VT_MANA: flatbuffers::VOffsetT = 6;
-    pub const VT_HP: flatbuffers::VOffsetT = 8;
-    pub const VT_NAME: flatbuffers::VOffsetT = 10;
-    pub const VT_INVENTORY: flatbuffers::VOffsetT = 14;
-    pub const VT_COLOR: flatbuffers::VOffsetT = 16;
-    pub const VT_WEAPONS: flatbuffers::VOffsetT = 18;
-    pub const VT_EQUIPPED_TYPE: flatbuffers::VOffsetT = 20;
-    pub const VT_EQUIPPED: flatbuffers::VOffsetT = 22;
-    pub const VT_PATH: flatbuffers::VOffsetT = 24;
+  }
 
   #[inline]
   pub fn pos(&self) -> Option<&'a Vec3> {

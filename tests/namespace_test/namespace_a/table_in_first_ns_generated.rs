@@ -12,64 +12,66 @@ pub struct TableInFirstNS<'a> {
 }
 
 impl<'a> flatbuffers::Follow<'a> for TableInFirstNS<'a> {
-    type Inner = TableInFirstNS<'a>;
-    #[inline]
-    fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
-        Self { _tab: flatbuffers::Table { buf, loc } }
-    }
+  type Inner = TableInFirstNS<'a>;
+  #[inline]
+  fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
+    Self { _tab: flatbuffers::Table { buf, loc } }
+  }
 }
 
 impl<'a> TableInFirstNS<'a> {
-    pub const fn get_fully_qualified_name() -> &'static str {
-        "NamespaceA.TableInFirstNS"
-    }
+  pub const VT_FOO_TABLE: flatbuffers::VOffsetT = 4;
+  pub const VT_FOO_ENUM: flatbuffers::VOffsetT = 6;
+  pub const VT_FOO_UNION_TYPE: flatbuffers::VOffsetT = 8;
+  pub const VT_FOO_UNION: flatbuffers::VOffsetT = 10;
+  pub const VT_FOO_STRUCT: flatbuffers::VOffsetT = 12;
 
-    #[inline]
-    pub fn init_from_table(table: flatbuffers::Table<'a>) -> Self {
-        TableInFirstNS { _tab: table }
-    }
-    #[allow(unused_mut)]
-    pub fn create<'bldr: 'args, 'args: 'mut_bldr, 'mut_bldr>(
-        _fbb: &'mut_bldr mut flatbuffers::FlatBufferBuilder<'bldr>,
-        args: &'args TableInFirstNSArgs<'args>) -> flatbuffers::WIPOffset<TableInFirstNS<'bldr>> {
-      let mut builder = TableInFirstNSBuilder::new(_fbb);
-      if let Some(x) = args.foo_struct { builder.add_foo_struct(x); }
-      if let Some(x) = args.foo_union { builder.add_foo_union(x); }
-      if let Some(x) = args.foo_table { builder.add_foo_table(x); }
-      builder.add_foo_union_type(args.foo_union_type);
-      builder.add_foo_enum(args.foo_enum);
-      builder.finish()
-    }
+  pub const fn get_fully_qualified_name() -> &'static str {
+    "NamespaceA.TableInFirstNS"
+  }
 
-    pub fn unpack(&self) -> TableInFirstNST {
-      let foo_table = self.foo_table().map(|x| {
-        Box::new(x.unpack())
-      });
-      let foo_enum = self.foo_enum();
-      let foo_union = match self.foo_union_type() {
-        namespace_b::UnionInNestedNS::NONE => namespace_b::UnionInNestedNST::NONE,
-        namespace_b::UnionInNestedNS::TableInNestedNS => namespace_b::UnionInNestedNST::TableInNestedNS(Box::new(
-          self.foo_union_as_table_in_nested_ns()
-              .expect("Invalid union table, expected `namespace_b::UnionInNestedNS::TableInNestedNS`.")
-              .unpack()
-        )),
-        _ => namespace_b::UnionInNestedNST::NONE,
-      };
-      let foo_struct = self.foo_struct().map(|x| {
-        x.unpack()
-      });
-      TableInFirstNST {
-        foo_table,
-        foo_enum,
-        foo_union,
-        foo_struct,
-      }
+  #[inline]
+  pub fn init_from_table(table: flatbuffers::Table<'a>) -> Self {
+    TableInFirstNS { _tab: table }
+  }
+  #[allow(unused_mut)]
+  pub fn create<'bldr: 'args, 'args: 'mut_bldr, 'mut_bldr>(
+    _fbb: &'mut_bldr mut flatbuffers::FlatBufferBuilder<'bldr>,
+    args: &'args TableInFirstNSArgs<'args>
+  ) -> flatbuffers::WIPOffset<TableInFirstNS<'bldr>> {
+    let mut builder = TableInFirstNSBuilder::new(_fbb);
+    if let Some(x) = args.foo_struct { builder.add_foo_struct(x); }
+    if let Some(x) = args.foo_union { builder.add_foo_union(x); }
+    if let Some(x) = args.foo_table { builder.add_foo_table(x); }
+    builder.add_foo_union_type(args.foo_union_type);
+    builder.add_foo_enum(args.foo_enum);
+    builder.finish()
+  }
+
+  pub fn unpack(&self) -> TableInFirstNST {
+    let foo_table = self.foo_table().map(|x| {
+      Box::new(x.unpack())
+    });
+    let foo_enum = self.foo_enum();
+    let foo_union = match self.foo_union_type() {
+      namespace_b::UnionInNestedNS::NONE => namespace_b::UnionInNestedNST::NONE,
+      namespace_b::UnionInNestedNS::TableInNestedNS => namespace_b::UnionInNestedNST::TableInNestedNS(Box::new(
+        self.foo_union_as_table_in_nested_ns()
+            .expect("Invalid union table, expected `namespace_b::UnionInNestedNS::TableInNestedNS`.")
+            .unpack()
+      )),
+      _ => namespace_b::UnionInNestedNST::NONE,
+    };
+    let foo_struct = self.foo_struct().map(|x| {
+      x.unpack()
+    });
+    TableInFirstNST {
+      foo_table,
+      foo_enum,
+      foo_union,
+      foo_struct,
     }
-    pub const VT_FOO_TABLE: flatbuffers::VOffsetT = 4;
-    pub const VT_FOO_ENUM: flatbuffers::VOffsetT = 6;
-    pub const VT_FOO_UNION_TYPE: flatbuffers::VOffsetT = 8;
-    pub const VT_FOO_UNION: flatbuffers::VOffsetT = 10;
-    pub const VT_FOO_STRUCT: flatbuffers::VOffsetT = 12;
+  }
 
   #[inline]
   pub fn foo_table(&self) -> Option<namespace_b::TableInNestedNS<'a>> {

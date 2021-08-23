@@ -13,333 +13,335 @@ pub struct Monster<'a> {
 }
 
 impl<'a> flatbuffers::Follow<'a> for Monster<'a> {
-    type Inner = Monster<'a>;
-    #[inline]
-    fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
-        Self { _tab: flatbuffers::Table { buf, loc } }
-    }
+  type Inner = Monster<'a>;
+  #[inline]
+  fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
+    Self { _tab: flatbuffers::Table { buf, loc } }
+  }
 }
 
 impl<'a> Monster<'a> {
-    pub const fn get_fully_qualified_name() -> &'static str {
-        "MyGame.Example.Monster"
-    }
+  pub const VT_POS: flatbuffers::VOffsetT = 4;
+  pub const VT_MANA: flatbuffers::VOffsetT = 6;
+  pub const VT_HP: flatbuffers::VOffsetT = 8;
+  pub const VT_NAME: flatbuffers::VOffsetT = 10;
+  pub const VT_INVENTORY: flatbuffers::VOffsetT = 14;
+  pub const VT_COLOR: flatbuffers::VOffsetT = 16;
+  pub const VT_TEST_TYPE: flatbuffers::VOffsetT = 18;
+  pub const VT_TEST: flatbuffers::VOffsetT = 20;
+  pub const VT_TEST4: flatbuffers::VOffsetT = 22;
+  pub const VT_TESTARRAYOFSTRING: flatbuffers::VOffsetT = 24;
+  pub const VT_TESTARRAYOFTABLES: flatbuffers::VOffsetT = 26;
+  pub const VT_ENEMY: flatbuffers::VOffsetT = 28;
+  pub const VT_TESTNESTEDFLATBUFFER: flatbuffers::VOffsetT = 30;
+  pub const VT_TESTEMPTY: flatbuffers::VOffsetT = 32;
+  pub const VT_TESTBOOL: flatbuffers::VOffsetT = 34;
+  pub const VT_TESTHASHS32_FNV1: flatbuffers::VOffsetT = 36;
+  pub const VT_TESTHASHU32_FNV1: flatbuffers::VOffsetT = 38;
+  pub const VT_TESTHASHS64_FNV1: flatbuffers::VOffsetT = 40;
+  pub const VT_TESTHASHU64_FNV1: flatbuffers::VOffsetT = 42;
+  pub const VT_TESTHASHS32_FNV1A: flatbuffers::VOffsetT = 44;
+  pub const VT_TESTHASHU32_FNV1A: flatbuffers::VOffsetT = 46;
+  pub const VT_TESTHASHS64_FNV1A: flatbuffers::VOffsetT = 48;
+  pub const VT_TESTHASHU64_FNV1A: flatbuffers::VOffsetT = 50;
+  pub const VT_TESTARRAYOFBOOLS: flatbuffers::VOffsetT = 52;
+  pub const VT_TESTF: flatbuffers::VOffsetT = 54;
+  pub const VT_TESTF2: flatbuffers::VOffsetT = 56;
+  pub const VT_TESTF3: flatbuffers::VOffsetT = 58;
+  pub const VT_TESTARRAYOFSTRING2: flatbuffers::VOffsetT = 60;
+  pub const VT_TESTARRAYOFSORTEDSTRUCT: flatbuffers::VOffsetT = 62;
+  pub const VT_FLEX: flatbuffers::VOffsetT = 64;
+  pub const VT_TEST5: flatbuffers::VOffsetT = 66;
+  pub const VT_VECTOR_OF_LONGS: flatbuffers::VOffsetT = 68;
+  pub const VT_VECTOR_OF_DOUBLES: flatbuffers::VOffsetT = 70;
+  pub const VT_PARENT_NAMESPACE_TEST: flatbuffers::VOffsetT = 72;
+  pub const VT_VECTOR_OF_REFERRABLES: flatbuffers::VOffsetT = 74;
+  pub const VT_SINGLE_WEAK_REFERENCE: flatbuffers::VOffsetT = 76;
+  pub const VT_VECTOR_OF_WEAK_REFERENCES: flatbuffers::VOffsetT = 78;
+  pub const VT_VECTOR_OF_STRONG_REFERRABLES: flatbuffers::VOffsetT = 80;
+  pub const VT_CO_OWNING_REFERENCE: flatbuffers::VOffsetT = 82;
+  pub const VT_VECTOR_OF_CO_OWNING_REFERENCES: flatbuffers::VOffsetT = 84;
+  pub const VT_NON_OWNING_REFERENCE: flatbuffers::VOffsetT = 86;
+  pub const VT_VECTOR_OF_NON_OWNING_REFERENCES: flatbuffers::VOffsetT = 88;
+  pub const VT_ANY_UNIQUE_TYPE: flatbuffers::VOffsetT = 90;
+  pub const VT_ANY_UNIQUE: flatbuffers::VOffsetT = 92;
+  pub const VT_ANY_AMBIGUOUS_TYPE: flatbuffers::VOffsetT = 94;
+  pub const VT_ANY_AMBIGUOUS: flatbuffers::VOffsetT = 96;
+  pub const VT_VECTOR_OF_ENUMS: flatbuffers::VOffsetT = 98;
+  pub const VT_SIGNED_ENUM: flatbuffers::VOffsetT = 100;
+  pub const VT_TESTREQUIREDNESTEDFLATBUFFER: flatbuffers::VOffsetT = 102;
+  pub const VT_SCALAR_KEY_SORTED_TABLES: flatbuffers::VOffsetT = 104;
 
-    #[inline]
-    pub fn init_from_table(table: flatbuffers::Table<'a>) -> Self {
-        Monster { _tab: table }
-    }
-    #[allow(unused_mut)]
-    pub fn create<'bldr: 'args, 'args: 'mut_bldr, 'mut_bldr>(
-        _fbb: &'mut_bldr mut flatbuffers::FlatBufferBuilder<'bldr>,
-        args: &'args MonsterArgs<'args>) -> flatbuffers::WIPOffset<Monster<'bldr>> {
-      let mut builder = MonsterBuilder::new(_fbb);
-      builder.add_non_owning_reference(args.non_owning_reference);
-      builder.add_co_owning_reference(args.co_owning_reference);
-      builder.add_single_weak_reference(args.single_weak_reference);
-      builder.add_testhashu64_fnv1a(args.testhashu64_fnv1a);
-      builder.add_testhashs64_fnv1a(args.testhashs64_fnv1a);
-      builder.add_testhashu64_fnv1(args.testhashu64_fnv1);
-      builder.add_testhashs64_fnv1(args.testhashs64_fnv1);
-      if let Some(x) = args.scalar_key_sorted_tables { builder.add_scalar_key_sorted_tables(x); }
-      if let Some(x) = args.testrequirednestedflatbuffer { builder.add_testrequirednestedflatbuffer(x); }
-      if let Some(x) = args.vector_of_enums { builder.add_vector_of_enums(x); }
-      if let Some(x) = args.any_ambiguous { builder.add_any_ambiguous(x); }
-      if let Some(x) = args.any_unique { builder.add_any_unique(x); }
-      if let Some(x) = args.vector_of_non_owning_references { builder.add_vector_of_non_owning_references(x); }
-      if let Some(x) = args.vector_of_co_owning_references { builder.add_vector_of_co_owning_references(x); }
-      if let Some(x) = args.vector_of_strong_referrables { builder.add_vector_of_strong_referrables(x); }
-      if let Some(x) = args.vector_of_weak_references { builder.add_vector_of_weak_references(x); }
-      if let Some(x) = args.vector_of_referrables { builder.add_vector_of_referrables(x); }
-      if let Some(x) = args.parent_namespace_test { builder.add_parent_namespace_test(x); }
-      if let Some(x) = args.vector_of_doubles { builder.add_vector_of_doubles(x); }
-      if let Some(x) = args.vector_of_longs { builder.add_vector_of_longs(x); }
-      if let Some(x) = args.test5 { builder.add_test5(x); }
-      if let Some(x) = args.flex { builder.add_flex(x); }
-      if let Some(x) = args.testarrayofsortedstruct { builder.add_testarrayofsortedstruct(x); }
-      if let Some(x) = args.testarrayofstring2 { builder.add_testarrayofstring2(x); }
-      builder.add_testf3(args.testf3);
-      builder.add_testf2(args.testf2);
-      builder.add_testf(args.testf);
-      if let Some(x) = args.testarrayofbools { builder.add_testarrayofbools(x); }
-      builder.add_testhashu32_fnv1a(args.testhashu32_fnv1a);
-      builder.add_testhashs32_fnv1a(args.testhashs32_fnv1a);
-      builder.add_testhashu32_fnv1(args.testhashu32_fnv1);
-      builder.add_testhashs32_fnv1(args.testhashs32_fnv1);
-      if let Some(x) = args.testempty { builder.add_testempty(x); }
-      if let Some(x) = args.testnestedflatbuffer { builder.add_testnestedflatbuffer(x); }
-      if let Some(x) = args.enemy { builder.add_enemy(x); }
-      if let Some(x) = args.testarrayoftables { builder.add_testarrayoftables(x); }
-      if let Some(x) = args.testarrayofstring { builder.add_testarrayofstring(x); }
-      if let Some(x) = args.test4 { builder.add_test4(x); }
-      if let Some(x) = args.test { builder.add_test(x); }
-      if let Some(x) = args.inventory { builder.add_inventory(x); }
-      if let Some(x) = args.name { builder.add_name(x); }
-      if let Some(x) = args.pos { builder.add_pos(x); }
-      builder.add_hp(args.hp);
-      builder.add_mana(args.mana);
-      builder.add_signed_enum(args.signed_enum);
-      builder.add_any_ambiguous_type(args.any_ambiguous_type);
-      builder.add_any_unique_type(args.any_unique_type);
-      builder.add_testbool(args.testbool);
-      builder.add_test_type(args.test_type);
-      builder.add_color(args.color);
-      builder.finish()
-    }
+  pub const fn get_fully_qualified_name() -> &'static str {
+    "MyGame.Example.Monster"
+  }
 
-    pub fn unpack(&self) -> MonsterT {
-      let pos = self.pos().map(|x| {
-        x.unpack()
-      });
-      let mana = self.mana();
-      let hp = self.hp();
-      let name = {
-        let x = self.name();
-        x.to_string()
-      };
-      let inventory = self.inventory().map(|x| {
-        x.to_vec()
-      });
-      let color = self.color();
-      let test = match self.test_type() {
-        Any::NONE => AnyT::NONE,
-        Any::Monster => AnyT::Monster(Box::new(
-          self.test_as_monster()
-              .expect("Invalid union table, expected `Any::Monster`.")
-              .unpack()
-        )),
-        Any::TestSimpleTableWithEnum => AnyT::TestSimpleTableWithEnum(Box::new(
-          self.test_as_test_simple_table_with_enum()
-              .expect("Invalid union table, expected `Any::TestSimpleTableWithEnum`.")
-              .unpack()
-        )),
-        Any::MyGame_Example2_Monster => AnyT::MyGameExample2Monster(Box::new(
-          self.test_as_my_game_example_2_monster()
-              .expect("Invalid union table, expected `Any::MyGame_Example2_Monster`.")
-              .unpack()
-        )),
-        _ => AnyT::NONE,
-      };
-      let test4 = self.test4().map(|x| {
-        x.iter().map(|t| t.unpack()).collect()
-      });
-      let testarrayofstring = self.testarrayofstring().map(|x| {
-        x.iter().map(|s| s.to_string()).collect()
-      });
-      let testarrayoftables = self.testarrayoftables().map(|x| {
-        x.iter().map(|t| t.unpack()).collect()
-      });
-      let enemy = self.enemy().map(|x| {
-        Box::new(x.unpack())
-      });
-      let testnestedflatbuffer = self.testnestedflatbuffer().map(|x| {
-        x.to_vec()
-      });
-      let testempty = self.testempty().map(|x| {
-        Box::new(x.unpack())
-      });
-      let testbool = self.testbool();
-      let testhashs32_fnv1 = self.testhashs32_fnv1();
-      let testhashu32_fnv1 = self.testhashu32_fnv1();
-      let testhashs64_fnv1 = self.testhashs64_fnv1();
-      let testhashu64_fnv1 = self.testhashu64_fnv1();
-      let testhashs32_fnv1a = self.testhashs32_fnv1a();
-      let testhashu32_fnv1a = self.testhashu32_fnv1a();
-      let testhashs64_fnv1a = self.testhashs64_fnv1a();
-      let testhashu64_fnv1a = self.testhashu64_fnv1a();
-      let testarrayofbools = self.testarrayofbools().map(|x| {
-        x.to_vec()
-      });
-      let testf = self.testf();
-      let testf2 = self.testf2();
-      let testf3 = self.testf3();
-      let testarrayofstring2 = self.testarrayofstring2().map(|x| {
-        x.iter().map(|s| s.to_string()).collect()
-      });
-      let testarrayofsortedstruct = self.testarrayofsortedstruct().map(|x| {
-        x.iter().map(|t| t.unpack()).collect()
-      });
-      let flex = self.flex().map(|x| {
-        x.to_vec()
-      });
-      let test5 = self.test5().map(|x| {
-        x.iter().map(|t| t.unpack()).collect()
-      });
-      let vector_of_longs = self.vector_of_longs().map(|x| {
-        x.into_iter().collect()
-      });
-      let vector_of_doubles = self.vector_of_doubles().map(|x| {
-        x.into_iter().collect()
-      });
-      let parent_namespace_test = self.parent_namespace_test().map(|x| {
-        Box::new(x.unpack())
-      });
-      let vector_of_referrables = self.vector_of_referrables().map(|x| {
-        x.iter().map(|t| t.unpack()).collect()
-      });
-      let single_weak_reference = self.single_weak_reference();
-      let vector_of_weak_references = self.vector_of_weak_references().map(|x| {
-        x.into_iter().collect()
-      });
-      let vector_of_strong_referrables = self.vector_of_strong_referrables().map(|x| {
-        x.iter().map(|t| t.unpack()).collect()
-      });
-      let co_owning_reference = self.co_owning_reference();
-      let vector_of_co_owning_references = self.vector_of_co_owning_references().map(|x| {
-        x.into_iter().collect()
-      });
-      let non_owning_reference = self.non_owning_reference();
-      let vector_of_non_owning_references = self.vector_of_non_owning_references().map(|x| {
-        x.into_iter().collect()
-      });
-      let any_unique = match self.any_unique_type() {
-        AnyUniqueAliases::NONE => AnyUniqueAliasesT::NONE,
-        AnyUniqueAliases::M => AnyUniqueAliasesT::M(Box::new(
-          self.any_unique_as_m()
-              .expect("Invalid union table, expected `AnyUniqueAliases::M`.")
-              .unpack()
-        )),
-        AnyUniqueAliases::TS => AnyUniqueAliasesT::TS(Box::new(
-          self.any_unique_as_ts()
-              .expect("Invalid union table, expected `AnyUniqueAliases::TS`.")
-              .unpack()
-        )),
-        AnyUniqueAliases::M2 => AnyUniqueAliasesT::M2(Box::new(
-          self.any_unique_as_m2()
-              .expect("Invalid union table, expected `AnyUniqueAliases::M2`.")
-              .unpack()
-        )),
-        _ => AnyUniqueAliasesT::NONE,
-      };
-      let any_ambiguous = match self.any_ambiguous_type() {
-        AnyAmbiguousAliases::NONE => AnyAmbiguousAliasesT::NONE,
-        AnyAmbiguousAliases::M1 => AnyAmbiguousAliasesT::M1(Box::new(
-          self.any_ambiguous_as_m1()
-              .expect("Invalid union table, expected `AnyAmbiguousAliases::M1`.")
-              .unpack()
-        )),
-        AnyAmbiguousAliases::M2 => AnyAmbiguousAliasesT::M2(Box::new(
-          self.any_ambiguous_as_m2()
-              .expect("Invalid union table, expected `AnyAmbiguousAliases::M2`.")
-              .unpack()
-        )),
-        AnyAmbiguousAliases::M3 => AnyAmbiguousAliasesT::M3(Box::new(
-          self.any_ambiguous_as_m3()
-              .expect("Invalid union table, expected `AnyAmbiguousAliases::M3`.")
-              .unpack()
-        )),
-        _ => AnyAmbiguousAliasesT::NONE,
-      };
-      let vector_of_enums = self.vector_of_enums().map(|x| {
-        x.into_iter().collect()
-      });
-      let signed_enum = self.signed_enum();
-      let testrequirednestedflatbuffer = self.testrequirednestedflatbuffer().map(|x| {
-        x.to_vec()
-      });
-      let scalar_key_sorted_tables = self.scalar_key_sorted_tables().map(|x| {
-        x.iter().map(|t| t.unpack()).collect()
-      });
-      MonsterT {
-        pos,
-        mana,
-        hp,
-        name,
-        inventory,
-        color,
-        test,
-        test4,
-        testarrayofstring,
-        testarrayoftables,
-        enemy,
-        testnestedflatbuffer,
-        testempty,
-        testbool,
-        testhashs32_fnv1,
-        testhashu32_fnv1,
-        testhashs64_fnv1,
-        testhashu64_fnv1,
-        testhashs32_fnv1a,
-        testhashu32_fnv1a,
-        testhashs64_fnv1a,
-        testhashu64_fnv1a,
-        testarrayofbools,
-        testf,
-        testf2,
-        testf3,
-        testarrayofstring2,
-        testarrayofsortedstruct,
-        flex,
-        test5,
-        vector_of_longs,
-        vector_of_doubles,
-        parent_namespace_test,
-        vector_of_referrables,
-        single_weak_reference,
-        vector_of_weak_references,
-        vector_of_strong_referrables,
-        co_owning_reference,
-        vector_of_co_owning_references,
-        non_owning_reference,
-        vector_of_non_owning_references,
-        any_unique,
-        any_ambiguous,
-        vector_of_enums,
-        signed_enum,
-        testrequirednestedflatbuffer,
-        scalar_key_sorted_tables,
-      }
+  #[inline]
+  pub fn init_from_table(table: flatbuffers::Table<'a>) -> Self {
+    Monster { _tab: table }
+  }
+  #[allow(unused_mut)]
+  pub fn create<'bldr: 'args, 'args: 'mut_bldr, 'mut_bldr>(
+    _fbb: &'mut_bldr mut flatbuffers::FlatBufferBuilder<'bldr>,
+    args: &'args MonsterArgs<'args>
+  ) -> flatbuffers::WIPOffset<Monster<'bldr>> {
+    let mut builder = MonsterBuilder::new(_fbb);
+    builder.add_non_owning_reference(args.non_owning_reference);
+    builder.add_co_owning_reference(args.co_owning_reference);
+    builder.add_single_weak_reference(args.single_weak_reference);
+    builder.add_testhashu64_fnv1a(args.testhashu64_fnv1a);
+    builder.add_testhashs64_fnv1a(args.testhashs64_fnv1a);
+    builder.add_testhashu64_fnv1(args.testhashu64_fnv1);
+    builder.add_testhashs64_fnv1(args.testhashs64_fnv1);
+    if let Some(x) = args.scalar_key_sorted_tables { builder.add_scalar_key_sorted_tables(x); }
+    if let Some(x) = args.testrequirednestedflatbuffer { builder.add_testrequirednestedflatbuffer(x); }
+    if let Some(x) = args.vector_of_enums { builder.add_vector_of_enums(x); }
+    if let Some(x) = args.any_ambiguous { builder.add_any_ambiguous(x); }
+    if let Some(x) = args.any_unique { builder.add_any_unique(x); }
+    if let Some(x) = args.vector_of_non_owning_references { builder.add_vector_of_non_owning_references(x); }
+    if let Some(x) = args.vector_of_co_owning_references { builder.add_vector_of_co_owning_references(x); }
+    if let Some(x) = args.vector_of_strong_referrables { builder.add_vector_of_strong_referrables(x); }
+    if let Some(x) = args.vector_of_weak_references { builder.add_vector_of_weak_references(x); }
+    if let Some(x) = args.vector_of_referrables { builder.add_vector_of_referrables(x); }
+    if let Some(x) = args.parent_namespace_test { builder.add_parent_namespace_test(x); }
+    if let Some(x) = args.vector_of_doubles { builder.add_vector_of_doubles(x); }
+    if let Some(x) = args.vector_of_longs { builder.add_vector_of_longs(x); }
+    if let Some(x) = args.test5 { builder.add_test5(x); }
+    if let Some(x) = args.flex { builder.add_flex(x); }
+    if let Some(x) = args.testarrayofsortedstruct { builder.add_testarrayofsortedstruct(x); }
+    if let Some(x) = args.testarrayofstring2 { builder.add_testarrayofstring2(x); }
+    builder.add_testf3(args.testf3);
+    builder.add_testf2(args.testf2);
+    builder.add_testf(args.testf);
+    if let Some(x) = args.testarrayofbools { builder.add_testarrayofbools(x); }
+    builder.add_testhashu32_fnv1a(args.testhashu32_fnv1a);
+    builder.add_testhashs32_fnv1a(args.testhashs32_fnv1a);
+    builder.add_testhashu32_fnv1(args.testhashu32_fnv1);
+    builder.add_testhashs32_fnv1(args.testhashs32_fnv1);
+    if let Some(x) = args.testempty { builder.add_testempty(x); }
+    if let Some(x) = args.testnestedflatbuffer { builder.add_testnestedflatbuffer(x); }
+    if let Some(x) = args.enemy { builder.add_enemy(x); }
+    if let Some(x) = args.testarrayoftables { builder.add_testarrayoftables(x); }
+    if let Some(x) = args.testarrayofstring { builder.add_testarrayofstring(x); }
+    if let Some(x) = args.test4 { builder.add_test4(x); }
+    if let Some(x) = args.test { builder.add_test(x); }
+    if let Some(x) = args.inventory { builder.add_inventory(x); }
+    if let Some(x) = args.name { builder.add_name(x); }
+    if let Some(x) = args.pos { builder.add_pos(x); }
+    builder.add_hp(args.hp);
+    builder.add_mana(args.mana);
+    builder.add_signed_enum(args.signed_enum);
+    builder.add_any_ambiguous_type(args.any_ambiguous_type);
+    builder.add_any_unique_type(args.any_unique_type);
+    builder.add_testbool(args.testbool);
+    builder.add_test_type(args.test_type);
+    builder.add_color(args.color);
+    builder.finish()
+  }
+
+  pub fn unpack(&self) -> MonsterT {
+    let pos = self.pos().map(|x| {
+      x.unpack()
+    });
+    let mana = self.mana();
+    let hp = self.hp();
+    let name = {
+      let x = self.name();
+      x.to_string()
+    };
+    let inventory = self.inventory().map(|x| {
+      x.to_vec()
+    });
+    let color = self.color();
+    let test = match self.test_type() {
+      Any::NONE => AnyT::NONE,
+      Any::Monster => AnyT::Monster(Box::new(
+        self.test_as_monster()
+            .expect("Invalid union table, expected `Any::Monster`.")
+            .unpack()
+      )),
+      Any::TestSimpleTableWithEnum => AnyT::TestSimpleTableWithEnum(Box::new(
+        self.test_as_test_simple_table_with_enum()
+            .expect("Invalid union table, expected `Any::TestSimpleTableWithEnum`.")
+            .unpack()
+      )),
+      Any::MyGame_Example2_Monster => AnyT::MyGameExample2Monster(Box::new(
+        self.test_as_my_game_example_2_monster()
+            .expect("Invalid union table, expected `Any::MyGame_Example2_Monster`.")
+            .unpack()
+      )),
+      _ => AnyT::NONE,
+    };
+    let test4 = self.test4().map(|x| {
+      x.iter().map(|t| t.unpack()).collect()
+    });
+    let testarrayofstring = self.testarrayofstring().map(|x| {
+      x.iter().map(|s| s.to_string()).collect()
+    });
+    let testarrayoftables = self.testarrayoftables().map(|x| {
+      x.iter().map(|t| t.unpack()).collect()
+    });
+    let enemy = self.enemy().map(|x| {
+      Box::new(x.unpack())
+    });
+    let testnestedflatbuffer = self.testnestedflatbuffer().map(|x| {
+      x.to_vec()
+    });
+    let testempty = self.testempty().map(|x| {
+      Box::new(x.unpack())
+    });
+    let testbool = self.testbool();
+    let testhashs32_fnv1 = self.testhashs32_fnv1();
+    let testhashu32_fnv1 = self.testhashu32_fnv1();
+    let testhashs64_fnv1 = self.testhashs64_fnv1();
+    let testhashu64_fnv1 = self.testhashu64_fnv1();
+    let testhashs32_fnv1a = self.testhashs32_fnv1a();
+    let testhashu32_fnv1a = self.testhashu32_fnv1a();
+    let testhashs64_fnv1a = self.testhashs64_fnv1a();
+    let testhashu64_fnv1a = self.testhashu64_fnv1a();
+    let testarrayofbools = self.testarrayofbools().map(|x| {
+      x.to_vec()
+    });
+    let testf = self.testf();
+    let testf2 = self.testf2();
+    let testf3 = self.testf3();
+    let testarrayofstring2 = self.testarrayofstring2().map(|x| {
+      x.iter().map(|s| s.to_string()).collect()
+    });
+    let testarrayofsortedstruct = self.testarrayofsortedstruct().map(|x| {
+      x.iter().map(|t| t.unpack()).collect()
+    });
+    let flex = self.flex().map(|x| {
+      x.to_vec()
+    });
+    let test5 = self.test5().map(|x| {
+      x.iter().map(|t| t.unpack()).collect()
+    });
+    let vector_of_longs = self.vector_of_longs().map(|x| {
+      x.into_iter().collect()
+    });
+    let vector_of_doubles = self.vector_of_doubles().map(|x| {
+      x.into_iter().collect()
+    });
+    let parent_namespace_test = self.parent_namespace_test().map(|x| {
+      Box::new(x.unpack())
+    });
+    let vector_of_referrables = self.vector_of_referrables().map(|x| {
+      x.iter().map(|t| t.unpack()).collect()
+    });
+    let single_weak_reference = self.single_weak_reference();
+    let vector_of_weak_references = self.vector_of_weak_references().map(|x| {
+      x.into_iter().collect()
+    });
+    let vector_of_strong_referrables = self.vector_of_strong_referrables().map(|x| {
+      x.iter().map(|t| t.unpack()).collect()
+    });
+    let co_owning_reference = self.co_owning_reference();
+    let vector_of_co_owning_references = self.vector_of_co_owning_references().map(|x| {
+      x.into_iter().collect()
+    });
+    let non_owning_reference = self.non_owning_reference();
+    let vector_of_non_owning_references = self.vector_of_non_owning_references().map(|x| {
+      x.into_iter().collect()
+    });
+    let any_unique = match self.any_unique_type() {
+      AnyUniqueAliases::NONE => AnyUniqueAliasesT::NONE,
+      AnyUniqueAliases::M => AnyUniqueAliasesT::M(Box::new(
+        self.any_unique_as_m()
+            .expect("Invalid union table, expected `AnyUniqueAliases::M`.")
+            .unpack()
+      )),
+      AnyUniqueAliases::TS => AnyUniqueAliasesT::TS(Box::new(
+        self.any_unique_as_ts()
+            .expect("Invalid union table, expected `AnyUniqueAliases::TS`.")
+            .unpack()
+      )),
+      AnyUniqueAliases::M2 => AnyUniqueAliasesT::M2(Box::new(
+        self.any_unique_as_m2()
+            .expect("Invalid union table, expected `AnyUniqueAliases::M2`.")
+            .unpack()
+      )),
+      _ => AnyUniqueAliasesT::NONE,
+    };
+    let any_ambiguous = match self.any_ambiguous_type() {
+      AnyAmbiguousAliases::NONE => AnyAmbiguousAliasesT::NONE,
+      AnyAmbiguousAliases::M1 => AnyAmbiguousAliasesT::M1(Box::new(
+        self.any_ambiguous_as_m1()
+            .expect("Invalid union table, expected `AnyAmbiguousAliases::M1`.")
+            .unpack()
+      )),
+      AnyAmbiguousAliases::M2 => AnyAmbiguousAliasesT::M2(Box::new(
+        self.any_ambiguous_as_m2()
+            .expect("Invalid union table, expected `AnyAmbiguousAliases::M2`.")
+            .unpack()
+      )),
+      AnyAmbiguousAliases::M3 => AnyAmbiguousAliasesT::M3(Box::new(
+        self.any_ambiguous_as_m3()
+            .expect("Invalid union table, expected `AnyAmbiguousAliases::M3`.")
+            .unpack()
+      )),
+      _ => AnyAmbiguousAliasesT::NONE,
+    };
+    let vector_of_enums = self.vector_of_enums().map(|x| {
+      x.into_iter().collect()
+    });
+    let signed_enum = self.signed_enum();
+    let testrequirednestedflatbuffer = self.testrequirednestedflatbuffer().map(|x| {
+      x.to_vec()
+    });
+    let scalar_key_sorted_tables = self.scalar_key_sorted_tables().map(|x| {
+      x.iter().map(|t| t.unpack()).collect()
+    });
+    MonsterT {
+      pos,
+      mana,
+      hp,
+      name,
+      inventory,
+      color,
+      test,
+      test4,
+      testarrayofstring,
+      testarrayoftables,
+      enemy,
+      testnestedflatbuffer,
+      testempty,
+      testbool,
+      testhashs32_fnv1,
+      testhashu32_fnv1,
+      testhashs64_fnv1,
+      testhashu64_fnv1,
+      testhashs32_fnv1a,
+      testhashu32_fnv1a,
+      testhashs64_fnv1a,
+      testhashu64_fnv1a,
+      testarrayofbools,
+      testf,
+      testf2,
+      testf3,
+      testarrayofstring2,
+      testarrayofsortedstruct,
+      flex,
+      test5,
+      vector_of_longs,
+      vector_of_doubles,
+      parent_namespace_test,
+      vector_of_referrables,
+      single_weak_reference,
+      vector_of_weak_references,
+      vector_of_strong_referrables,
+      co_owning_reference,
+      vector_of_co_owning_references,
+      non_owning_reference,
+      vector_of_non_owning_references,
+      any_unique,
+      any_ambiguous,
+      vector_of_enums,
+      signed_enum,
+      testrequirednestedflatbuffer,
+      scalar_key_sorted_tables,
     }
-    pub const VT_POS: flatbuffers::VOffsetT = 4;
-    pub const VT_MANA: flatbuffers::VOffsetT = 6;
-    pub const VT_HP: flatbuffers::VOffsetT = 8;
-    pub const VT_NAME: flatbuffers::VOffsetT = 10;
-    pub const VT_INVENTORY: flatbuffers::VOffsetT = 14;
-    pub const VT_COLOR: flatbuffers::VOffsetT = 16;
-    pub const VT_TEST_TYPE: flatbuffers::VOffsetT = 18;
-    pub const VT_TEST: flatbuffers::VOffsetT = 20;
-    pub const VT_TEST4: flatbuffers::VOffsetT = 22;
-    pub const VT_TESTARRAYOFSTRING: flatbuffers::VOffsetT = 24;
-    pub const VT_TESTARRAYOFTABLES: flatbuffers::VOffsetT = 26;
-    pub const VT_ENEMY: flatbuffers::VOffsetT = 28;
-    pub const VT_TESTNESTEDFLATBUFFER: flatbuffers::VOffsetT = 30;
-    pub const VT_TESTEMPTY: flatbuffers::VOffsetT = 32;
-    pub const VT_TESTBOOL: flatbuffers::VOffsetT = 34;
-    pub const VT_TESTHASHS32_FNV1: flatbuffers::VOffsetT = 36;
-    pub const VT_TESTHASHU32_FNV1: flatbuffers::VOffsetT = 38;
-    pub const VT_TESTHASHS64_FNV1: flatbuffers::VOffsetT = 40;
-    pub const VT_TESTHASHU64_FNV1: flatbuffers::VOffsetT = 42;
-    pub const VT_TESTHASHS32_FNV1A: flatbuffers::VOffsetT = 44;
-    pub const VT_TESTHASHU32_FNV1A: flatbuffers::VOffsetT = 46;
-    pub const VT_TESTHASHS64_FNV1A: flatbuffers::VOffsetT = 48;
-    pub const VT_TESTHASHU64_FNV1A: flatbuffers::VOffsetT = 50;
-    pub const VT_TESTARRAYOFBOOLS: flatbuffers::VOffsetT = 52;
-    pub const VT_TESTF: flatbuffers::VOffsetT = 54;
-    pub const VT_TESTF2: flatbuffers::VOffsetT = 56;
-    pub const VT_TESTF3: flatbuffers::VOffsetT = 58;
-    pub const VT_TESTARRAYOFSTRING2: flatbuffers::VOffsetT = 60;
-    pub const VT_TESTARRAYOFSORTEDSTRUCT: flatbuffers::VOffsetT = 62;
-    pub const VT_FLEX: flatbuffers::VOffsetT = 64;
-    pub const VT_TEST5: flatbuffers::VOffsetT = 66;
-    pub const VT_VECTOR_OF_LONGS: flatbuffers::VOffsetT = 68;
-    pub const VT_VECTOR_OF_DOUBLES: flatbuffers::VOffsetT = 70;
-    pub const VT_PARENT_NAMESPACE_TEST: flatbuffers::VOffsetT = 72;
-    pub const VT_VECTOR_OF_REFERRABLES: flatbuffers::VOffsetT = 74;
-    pub const VT_SINGLE_WEAK_REFERENCE: flatbuffers::VOffsetT = 76;
-    pub const VT_VECTOR_OF_WEAK_REFERENCES: flatbuffers::VOffsetT = 78;
-    pub const VT_VECTOR_OF_STRONG_REFERRABLES: flatbuffers::VOffsetT = 80;
-    pub const VT_CO_OWNING_REFERENCE: flatbuffers::VOffsetT = 82;
-    pub const VT_VECTOR_OF_CO_OWNING_REFERENCES: flatbuffers::VOffsetT = 84;
-    pub const VT_NON_OWNING_REFERENCE: flatbuffers::VOffsetT = 86;
-    pub const VT_VECTOR_OF_NON_OWNING_REFERENCES: flatbuffers::VOffsetT = 88;
-    pub const VT_ANY_UNIQUE_TYPE: flatbuffers::VOffsetT = 90;
-    pub const VT_ANY_UNIQUE: flatbuffers::VOffsetT = 92;
-    pub const VT_ANY_AMBIGUOUS_TYPE: flatbuffers::VOffsetT = 94;
-    pub const VT_ANY_AMBIGUOUS: flatbuffers::VOffsetT = 96;
-    pub const VT_VECTOR_OF_ENUMS: flatbuffers::VOffsetT = 98;
-    pub const VT_SIGNED_ENUM: flatbuffers::VOffsetT = 100;
-    pub const VT_TESTREQUIREDNESTEDFLATBUFFER: flatbuffers::VOffsetT = 102;
-    pub const VT_SCALAR_KEY_SORTED_TABLES: flatbuffers::VOffsetT = 104;
+  }
 
   #[inline]
   pub fn pos(&self) -> Option<&'a Vec3> {

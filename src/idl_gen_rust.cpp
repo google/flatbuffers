@@ -1582,10 +1582,11 @@ class RustGenerator : public BaseGenerator {
   // Generates a fully-qualified name getter for use with --gen-name-strings
   void GenFullyQualifiedNameGetter(const StructDef &struct_def,
                                    const std::string &name) {
-    code_ += "    pub const fn get_fully_qualified_name() -> &'static str {";
-    code_ += "        \"" +
-             struct_def.defined_namespace->GetFullyQualifiedName(name) + "\"";
-    code_ += "    }";
+    const std::string fully_qualified_name = 
+             struct_def.defined_namespace->GetFullyQualifiedName(name);
+    code_ += "  pub const fn get_fully_qualified_name() -> &'static str {";
+    code_ += "    \"" + fully_qualified_name + "\"";
+    code_ += "  }";
     code_ += "";
   }
 
@@ -1652,41 +1653,47 @@ class RustGenerator : public BaseGenerator {
     code_ += "}";
     code_ += "";
     code_ += "impl<'a> flatbuffers::Follow<'a> for {{STRUCT_NAME}}<'a> {";
-    code_ += "    type Inner = {{STRUCT_NAME}}<'a>;";
-    code_ += "    #[inline]";
-    code_ += "    fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {";
-    code_ += "        Self { _tab: flatbuffers::Table { buf, loc } }";
-    code_ += "    }";
+    code_ += "  type Inner = {{STRUCT_NAME}}<'a>;";
+    code_ += "  #[inline]";
+    code_ += "  fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {";
+    code_ += "    Self { _tab: flatbuffers::Table { buf, loc } }";
+    code_ += "  }";
     code_ += "}";
     code_ += "";
     code_ += "impl<'a> {{STRUCT_NAME}}<'a> {";
+    
+    // Generate field id constants.
+    ForAllTableFields(struct_def, [&](const FieldDef &unused) {
+      (void)unused;
+      code_ +=
+          "pub const {{OFFSET_NAME}}: flatbuffers::VOffsetT = "
+          "{{OFFSET_VALUE}};";
+    });
+    code_ += "";
 
     if (parser_.opts.generate_name_strings) {
       GenFullyQualifiedNameGetter(struct_def, struct_def.name);
     }
 
-    code_ += "    #[inline]";
+    code_ += "  #[inline]";
     code_ +=
-        "    pub fn init_from_table(table: flatbuffers::Table<'a>) -> "
+        "  pub fn init_from_table(table: flatbuffers::Table<'a>) -> "
         "Self {";
-    code_ += "        {{STRUCT_NAME}} { _tab: table }";
-    code_ += "    }";
+    code_ += "    {{STRUCT_NAME}} { _tab: table }";
+    code_ += "  }";
 
     // Generate a convenient create* function that uses the above builder
     // to create a table in one function call.
     code_.SetValue("MAYBE_US", struct_def.fields.vec.size() == 0 ? "_" : "");
     code_.SetValue("MAYBE_LT",
                    TableBuilderArgsNeedsLifetime(struct_def) ? "<'args>" : "");
-    code_ += "    #[allow(unused_mut)]";
-    code_ += "    pub fn create<'bldr: 'args, 'args: 'mut_bldr, 'mut_bldr>(";
-    code_ +=
-        "        _fbb: "
-        "&'mut_bldr mut flatbuffers::FlatBufferBuilder<'bldr>,";
-    code_ +=
-        "        {{MAYBE_US}}args: &'args {{STRUCT_NAME}}Args{{MAYBE_LT}})"
-        " -> flatbuffers::WIPOffset<{{STRUCT_NAME}}<'bldr>> {";
+    code_ += "  #[allow(unused_mut)]";
+    code_ += "  pub fn create<'bldr: 'args, 'args: 'mut_bldr, 'mut_bldr>(";
+    code_ += "    _fbb: &'mut_bldr mut flatbuffers::FlatBufferBuilder<'bldr>,";
+    code_ += "    {{MAYBE_US}}args: &'args {{STRUCT_NAME}}Args{{MAYBE_LT}}";
+    code_ += "  ) -> flatbuffers::WIPOffset<{{STRUCT_NAME}}<'bldr>> {";
 
-    code_ += "      let mut builder = {{STRUCT_NAME}}Builder::new(_fbb);";
+    code_ += "    let mut builder = {{STRUCT_NAME}}Builder::new(_fbb);";
     for (size_t size = struct_def.sortbysize ? sizeof(largest_scalar_t) : 1;
          size; size /= 2) {
       ForAllTableFields(
@@ -1697,23 +1704,23 @@ class RustGenerator : public BaseGenerator {
               return;
             if (IsOptionalToBuilder(field)) {
               code_ +=
-                  "    if let Some(x) = args.{{FIELD_NAME}} "
+                  "  if let Some(x) = args.{{FIELD_NAME}} "
                   "{ builder.add_{{FIELD_NAME}}(x); }";
             } else {
-              code_ += "    builder.add_{{FIELD_NAME}}(args.{{FIELD_NAME}});";
+              code_ += "  builder.add_{{FIELD_NAME}}(args.{{FIELD_NAME}});";
             }
           },
           /*reverse=*/true);
     }
-    code_ += "      builder.finish()";
-    code_ += "    }";
+    code_ += "    builder.finish()";
+    code_ += "  }";
     code_ += "";
     // Generate Object API Packer function.
     if (parser_.opts.generate_object_based_api) {
       // TODO(cneo): Replace more for loops with ForAllX stuff.
       // TODO(cneo): Manage indentation with IncrementIdentLevel?
       code_.SetValue("OBJECT_NAME", NativeName(struct_def));
-      code_ += "    pub fn unpack(&self) -> {{OBJECT_NAME}} {";
+      code_ += "  pub fn unpack(&self) -> {{OBJECT_NAME}} {";
       ForAllObjectTableFields(struct_def, [&](const FieldDef &field) {
         const Type &type = field.value.type;
         switch (GetFullType(type)) {
@@ -1721,7 +1728,7 @@ class RustGenerator : public BaseGenerator {
           case ftBool:
           case ftFloat:
           case ftEnumKey: {
-            code_ += "    let {{FIELD_NAME}} = self.{{FIELD_NAME}}();";
+            code_ += "  let {{FIELD_NAME}} = self.{{FIELD_NAME}}();";
             return;
           }
           case ftUnionKey: return;
@@ -1730,24 +1737,24 @@ class RustGenerator : public BaseGenerator {
             code_.SetValue("ENUM_NAME", WrapInNameSpace(enum_def));
             code_.SetValue("NATIVE_ENUM_NAME", NamespacedNativeName(enum_def));
             code_ +=
-                "    let {{FIELD_NAME}} = match self.{{FIELD_NAME}}_type() {";
+                "  let {{FIELD_NAME}} = match self.{{FIELD_NAME}}_type() {";
             code_ +=
-                "      {{ENUM_NAME}}::NONE => {{NATIVE_ENUM_NAME}}::NONE,";
+                "    {{ENUM_NAME}}::NONE => {{NATIVE_ENUM_NAME}}::NONE,";
             ForAllUnionObjectVariantsBesidesNone(enum_def, [&] {
               code_ +=
-                  "    {{ENUM_NAME}}::{{VARIANT_NAME}} => "
+                  "  {{ENUM_NAME}}::{{VARIANT_NAME}} => "
                   "{{NATIVE_ENUM_NAME}}::{{NATIVE_VARIANT}}(Box::new(";
               code_ +=
-                  "      self.{{FIELD_NAME}}_as_{{U_ELEMENT_NAME}}()";
+                  "    self.{{FIELD_NAME}}_as_{{U_ELEMENT_NAME}}()";
               code_ +=
-                  "          .expect(\"Invalid union table, "
+                  "        .expect(\"Invalid union table, "
                   "expected `{{ENUM_NAME}}::{{VARIANT_NAME}}`.\")";
-              code_ += "          .unpack()";
-              code_ += "    )),";
+              code_ += "        .unpack()";
+              code_ += "  )),";
             });
             // Maybe we shouldn't throw away unknown discriminants?
-            code_ += "      _ => {{NATIVE_ENUM_NAME}}::NONE,";
-            code_ += "    };";
+            code_ += "    _ => {{NATIVE_ENUM_NAME}}::NONE,";
+            code_ += "  };";
             return;
           }
           // The rest of the types need special handling based on if the field
@@ -1802,32 +1809,25 @@ class RustGenerator : public BaseGenerator {
           }
         }
         if (field.IsOptional()) {
-          code_ += "    let {{FIELD_NAME}} = self.{{FIELD_NAME}}().map(|x| {";
-          code_ += "      {{EXPR}}";
-          code_ += "    });";
+          code_ += "  let {{FIELD_NAME}} = self.{{FIELD_NAME}}().map(|x| {";
+          code_ += "    {{EXPR}}";
+          code_ += "  });";
         } else {
-          code_ += "    let {{FIELD_NAME}} = {";
-          code_ += "      let x = self.{{FIELD_NAME}}();";
-          code_ += "      {{EXPR}}";
-          code_ += "    };";
+          code_ += "  let {{FIELD_NAME}} = {";
+          code_ += "    let x = self.{{FIELD_NAME}}();";
+          code_ += "    {{EXPR}}";
+          code_ += "  };";
         }
       });
-      code_ += "      {{OBJECT_NAME}} {";
+      code_ += "    {{OBJECT_NAME}} {";
       ForAllObjectTableFields(struct_def, [&](const FieldDef &field) {
         if (field.value.type.base_type == BASE_TYPE_UTYPE) return;
-        code_ += "      {{FIELD_NAME}},";
+        code_ += "    {{FIELD_NAME}},";
       });
-      code_ += "      }";
       code_ += "    }";
+      code_ += "  }";
     }
 
-    // Generate field id constants.
-    ForAllTableFields(struct_def, [&](const FieldDef &unused) {
-      (void)unused;
-      code_ +=
-          "  pub const {{OFFSET_NAME}}: flatbuffers::VOffsetT = "
-          "{{OFFSET_VALUE}};";
-    });
     if (struct_def.fields.vec.size() > 0) code_ += "";
 
     // Generate the accessors. Each has one of two forms:

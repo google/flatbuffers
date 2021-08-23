@@ -81,9 +81,9 @@ impl<'a> Ability {
     s
   }
 
-    pub const fn get_fully_qualified_name() -> &'static str {
-        "MyGame.Example.Ability"
-    }
+  pub const fn get_fully_qualified_name() -> &'static str {
+    "MyGame.Example.Ability"
+  }
 
   pub fn id(&self) -> u32 {
     let mut mem = core::mem::MaybeUninit::<u32>::uninit();

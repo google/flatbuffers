@@ -12,48 +12,50 @@ pub struct Stat<'a> {
 }
 
 impl<'a> flatbuffers::Follow<'a> for Stat<'a> {
-    type Inner = Stat<'a>;
-    #[inline]
-    fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
-        Self { _tab: flatbuffers::Table { buf, loc } }
-    }
+  type Inner = Stat<'a>;
+  #[inline]
+  fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
+    Self { _tab: flatbuffers::Table { buf, loc } }
+  }
 }
 
 impl<'a> Stat<'a> {
-    pub const fn get_fully_qualified_name() -> &'static str {
-        "MyGame.Example.Stat"
-    }
+  pub const VT_ID: flatbuffers::VOffsetT = 4;
+  pub const VT_VAL: flatbuffers::VOffsetT = 6;
+  pub const VT_COUNT: flatbuffers::VOffsetT = 8;
 
-    #[inline]
-    pub fn init_from_table(table: flatbuffers::Table<'a>) -> Self {
-        Stat { _tab: table }
-    }
-    #[allow(unused_mut)]
-    pub fn create<'bldr: 'args, 'args: 'mut_bldr, 'mut_bldr>(
-        _fbb: &'mut_bldr mut flatbuffers::FlatBufferBuilder<'bldr>,
-        args: &'args StatArgs<'args>) -> flatbuffers::WIPOffset<Stat<'bldr>> {
-      let mut builder = StatBuilder::new(_fbb);
-      builder.add_val(args.val);
-      if let Some(x) = args.id { builder.add_id(x); }
-      builder.add_count(args.count);
-      builder.finish()
-    }
+  pub const fn get_fully_qualified_name() -> &'static str {
+    "MyGame.Example.Stat"
+  }
 
-    pub fn unpack(&self) -> StatT {
-      let id = self.id().map(|x| {
-        x.to_string()
-      });
-      let val = self.val();
-      let count = self.count();
-      StatT {
-        id,
-        val,
-        count,
-      }
+  #[inline]
+  pub fn init_from_table(table: flatbuffers::Table<'a>) -> Self {
+    Stat { _tab: table }
+  }
+  #[allow(unused_mut)]
+  pub fn create<'bldr: 'args, 'args: 'mut_bldr, 'mut_bldr>(
+    _fbb: &'mut_bldr mut flatbuffers::FlatBufferBuilder<'bldr>,
+    args: &'args StatArgs<'args>
+  ) -> flatbuffers::WIPOffset<Stat<'bldr>> {
+    let mut builder = StatBuilder::new(_fbb);
+    builder.add_val(args.val);
+    if let Some(x) = args.id { builder.add_id(x); }
+    builder.add_count(args.count);
+    builder.finish()
+  }
+
+  pub fn unpack(&self) -> StatT {
+    let id = self.id().map(|x| {
+      x.to_string()
+    });
+    let val = self.val();
+    let count = self.count();
+    StatT {
+      id,
+      val,
+      count,
     }
-    pub const VT_ID: flatbuffers::VOffsetT = 4;
-    pub const VT_VAL: flatbuffers::VOffsetT = 6;
-    pub const VT_COUNT: flatbuffers::VOffsetT = 8;
+  }
 
   #[inline]
   pub fn id(&self) -> Option<&'a str> {

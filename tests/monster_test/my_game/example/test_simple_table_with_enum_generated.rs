@@ -12,38 +12,40 @@ pub struct TestSimpleTableWithEnum<'a> {
 }
 
 impl<'a> flatbuffers::Follow<'a> for TestSimpleTableWithEnum<'a> {
-    type Inner = TestSimpleTableWithEnum<'a>;
-    #[inline]
-    fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
-        Self { _tab: flatbuffers::Table { buf, loc } }
-    }
+  type Inner = TestSimpleTableWithEnum<'a>;
+  #[inline]
+  fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
+    Self { _tab: flatbuffers::Table { buf, loc } }
+  }
 }
 
 impl<'a> TestSimpleTableWithEnum<'a> {
-    pub const fn get_fully_qualified_name() -> &'static str {
-        "MyGame.Example.TestSimpleTableWithEnum"
-    }
+  pub const VT_COLOR: flatbuffers::VOffsetT = 4;
 
-    #[inline]
-    pub fn init_from_table(table: flatbuffers::Table<'a>) -> Self {
-        TestSimpleTableWithEnum { _tab: table }
-    }
-    #[allow(unused_mut)]
-    pub fn create<'bldr: 'args, 'args: 'mut_bldr, 'mut_bldr>(
-        _fbb: &'mut_bldr mut flatbuffers::FlatBufferBuilder<'bldr>,
-        args: &'args TestSimpleTableWithEnumArgs) -> flatbuffers::WIPOffset<TestSimpleTableWithEnum<'bldr>> {
-      let mut builder = TestSimpleTableWithEnumBuilder::new(_fbb);
-      builder.add_color(args.color);
-      builder.finish()
-    }
+  pub const fn get_fully_qualified_name() -> &'static str {
+    "MyGame.Example.TestSimpleTableWithEnum"
+  }
 
-    pub fn unpack(&self) -> TestSimpleTableWithEnumT {
-      let color = self.color();
-      TestSimpleTableWithEnumT {
-        color,
-      }
+  #[inline]
+  pub fn init_from_table(table: flatbuffers::Table<'a>) -> Self {
+    TestSimpleTableWithEnum { _tab: table }
+  }
+  #[allow(unused_mut)]
+  pub fn create<'bldr: 'args, 'args: 'mut_bldr, 'mut_bldr>(
+    _fbb: &'mut_bldr mut flatbuffers::FlatBufferBuilder<'bldr>,
+    args: &'args TestSimpleTableWithEnumArgs
+  ) -> flatbuffers::WIPOffset<TestSimpleTableWithEnum<'bldr>> {
+    let mut builder = TestSimpleTableWithEnumBuilder::new(_fbb);
+    builder.add_color(args.color);
+    builder.finish()
+  }
+
+  pub fn unpack(&self) -> TestSimpleTableWithEnumT {
+    let color = self.color();
+    TestSimpleTableWithEnumT {
+      color,
     }
-    pub const VT_COLOR: flatbuffers::VOffsetT = 4;
+  }
 
   #[inline]
   pub fn color(&self) -> Color {

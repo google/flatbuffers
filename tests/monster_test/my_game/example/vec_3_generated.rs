@@ -93,9 +93,9 @@ impl<'a> Vec3 {
     s
   }
 
-    pub const fn get_fully_qualified_name() -> &'static str {
-        "MyGame.Example.Vec3"
-    }
+  pub const fn get_fully_qualified_name() -> &'static str {
+    "MyGame.Example.Vec3"
+  }
 
   pub fn x(&self) -> f32 {
     let mut mem = core::mem::MaybeUninit::<f32>::uninit();

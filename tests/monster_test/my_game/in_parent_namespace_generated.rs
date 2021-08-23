@@ -12,34 +12,36 @@ pub struct InParentNamespace<'a> {
 }
 
 impl<'a> flatbuffers::Follow<'a> for InParentNamespace<'a> {
-    type Inner = InParentNamespace<'a>;
-    #[inline]
-    fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
-        Self { _tab: flatbuffers::Table { buf, loc } }
-    }
+  type Inner = InParentNamespace<'a>;
+  #[inline]
+  fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
+    Self { _tab: flatbuffers::Table { buf, loc } }
+  }
 }
 
 impl<'a> InParentNamespace<'a> {
-    pub const fn get_fully_qualified_name() -> &'static str {
-        "MyGame.InParentNamespace"
-    }
 
-    #[inline]
-    pub fn init_from_table(table: flatbuffers::Table<'a>) -> Self {
-        InParentNamespace { _tab: table }
-    }
-    #[allow(unused_mut)]
-    pub fn create<'bldr: 'args, 'args: 'mut_bldr, 'mut_bldr>(
-        _fbb: &'mut_bldr mut flatbuffers::FlatBufferBuilder<'bldr>,
-        _args: &'args InParentNamespaceArgs) -> flatbuffers::WIPOffset<InParentNamespace<'bldr>> {
-      let mut builder = InParentNamespaceBuilder::new(_fbb);
-      builder.finish()
-    }
+  pub const fn get_fully_qualified_name() -> &'static str {
+    "MyGame.InParentNamespace"
+  }
 
-    pub fn unpack(&self) -> InParentNamespaceT {
-      InParentNamespaceT {
-      }
+  #[inline]
+  pub fn init_from_table(table: flatbuffers::Table<'a>) -> Self {
+    InParentNamespace { _tab: table }
+  }
+  #[allow(unused_mut)]
+  pub fn create<'bldr: 'args, 'args: 'mut_bldr, 'mut_bldr>(
+    _fbb: &'mut_bldr mut flatbuffers::FlatBufferBuilder<'bldr>,
+    _args: &'args InParentNamespaceArgs
+  ) -> flatbuffers::WIPOffset<InParentNamespace<'bldr>> {
+    let mut builder = InParentNamespaceBuilder::new(_fbb);
+    builder.finish()
+  }
+
+  pub fn unpack(&self) -> InParentNamespaceT {
+    InParentNamespaceT {
     }
+  }
 }
 
 impl flatbuffers::Verifiable for InParentNamespace<'_> {
