@@ -3883,6 +3883,7 @@ void StringVectorDefaultsTest() {
   schemas.push_back("table Monster { mana: string = \"\"; }");
   schemas.push_back("table Monster { mana: string = \"mystr\"; }");
   schemas.push_back("table Monster { mana: string = \"  \"; }");
+  schemas.push_back("table Monster { mana: string = \"null\"; }");
   schemas.push_back("table Monster { mana: [int] = []; }");
   schemas.push_back("table Monster { mana: [uint] = [  ]; }");
   schemas.push_back("table Monster { mana: [byte] = [\t\t\n]; }");

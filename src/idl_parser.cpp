@@ -812,8 +812,7 @@ CheckedError Parser::ParseField(StructDef &struct_def) {
           "or in structs.");
     if (IsString(type) || IsVector(type)) {
       advanced_features_ |= reflection::DefaultVectorsAndStrings;
-      if (field->value.constant != "0" && field->value.constant != "null" &&
-          !SupportsDefaultVectorsAndStrings()) {
+      if (field->value.constant != "0" && !SupportsDefaultVectorsAndStrings()) {
         return Error(
             "Default values for strings and vectors are not supported in one "
             "of the specified programming languages");
