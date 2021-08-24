@@ -512,7 +512,8 @@ class CppGenerator : public BaseGenerator {
             "*{{NULLABLE_EXT}}GetMutableSizePrefixed{{STRUCT_NAME}}(void "
             "*buf) {";
         code_ +=
-            "  return flatbuffers::GetMutableSizePrefixedRoot<{{CPP_NAME}}>(buf);";
+            "  return "
+            "flatbuffers::GetMutableSizePrefixedRoot<{{CPP_NAME}}>(buf);";
         code_ += "}";
         code_ += "";
       }
