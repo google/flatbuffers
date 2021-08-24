@@ -505,6 +505,16 @@ class CppGenerator : public BaseGenerator {
         code_ += "  return flatbuffers::GetMutableRoot<{{STRUCT_NAME}}>(buf);";
         code_ += "}";
         code_ += "";
+
+        code_ += "inline \\";
+        code_ +=
+            "{{CPP_NAME}} "
+            "*{{NULLABLE_EXT}}GetMutableSizePrefixed{{STRUCT_NAME}}(void "
+            "*buf) {";
+        code_ +=
+            "  return flatbuffers::GetMutableSizePrefixedRoot<{{CPP_NAME}}>(buf);";
+        code_ += "}";
+        code_ += "";
       }
 
       if (parser_.file_identifier_.length()) {
