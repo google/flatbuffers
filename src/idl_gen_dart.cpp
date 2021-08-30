@@ -48,9 +48,12 @@ class DartGenerator : public BaseGenerator {
  public:
   typedef std::map<std::string, std::string> namespace_code_map;
 
+  const bool generate_object_based_api_;
+
   DartGenerator(const Parser &parser, const std::string &path,
                 const std::string &file_name)
-      : BaseGenerator(parser, path, file_name, "", ".", "dart") {}
+      : BaseGenerator(parser, path, file_name, "", ".", "dart"),
+        generate_object_based_api_(parser.opts.generate_object_based_api) {}
   // Iterate through all definitions we haven't generate code for (enums,
   // structs, and tables) and output them to a single file.
   bool generate() {
@@ -469,7 +472,7 @@ class DartGenerator : public BaseGenerator {
 
     GenImplementationGetters(struct_def, non_deprecated_fields, &code);
 
-    if (parser_.opts.generate_object_based_api) {
+    if (generate_object_based_api_) {
       code +=
           "\n" + GenStructObjectAPIUnpack(struct_def, non_deprecated_fields);
 
@@ -482,7 +485,7 @@ class DartGenerator : public BaseGenerator {
 
     code += "}\n\n";
 
-    if (parser_.opts.generate_object_based_api) {
+    if (generate_object_based_api_) {
       code += GenStructObjectAPI(struct_def, non_deprecated_fields);
     }
 
@@ -1122,8 +1125,6 @@ bool GenerateDart(const Parser &parser, const std::string &path,
 
 std::string DartMakeRule(const Parser &parser, const std::string &path,
                          const std::string &file_name) {
-  assert(parser.opts.lang <= IDLOptions::kMAX);
-
   auto filebase =
       flatbuffers::StripPath(flatbuffers::StripExtension(file_name));
   dart::DartGenerator generator(parser, path, file_name);

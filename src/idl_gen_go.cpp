@@ -55,11 +55,29 @@ static std::string GoIdentity(const std::string &name) {
 }
 
 class GoGenerator : public BaseGenerator {
+  struct GoOptions {
+    bool generate_object_based_api;
+    const std::string &go_import;
+    const std::string &go_namespace;
+    const std::string &object_prefix;
+    const std::string &object_suffix;
+    bool one_file;
+    GoOptions(const IDLOptions &opts)
+        : generate_object_based_api(opts.generate_object_based_api),
+          go_import(opts.go_import),
+          go_namespace(opts.go_namespace),
+          object_prefix(opts.object_prefix),
+          object_suffix(opts.object_suffix),
+          one_file(opts.one_file) {}
+  };
+  const GoOptions opts_;
+
  public:
   GoGenerator(const Parser &parser, const std::string &path,
               const std::string &file_name, const std::string &go_namespace)
       : BaseGenerator(parser, path, file_name, "" /* not used*/,
                       "" /* not used */, "go"),
+        opts_(parser.opts),
         cur_name_space_(nullptr) {
     std::istringstream iss(go_namespace);
     std::string component;
@@ -77,13 +95,13 @@ class GoGenerator : public BaseGenerator {
       needs_imports = false;
       std::string enumcode;
       GenEnum(**it, &enumcode);
-      if ((*it)->is_union && parser_.opts.generate_object_based_api) {
+      if ((*it)->is_union && opts_.generate_object_based_api) {
         GenNativeUnion(**it, &enumcode);
         GenNativeUnionPack(**it, &enumcode);
         GenNativeUnionUnPack(**it, &enumcode);
         needs_imports = true;
       }
-      if (parser_.opts.one_file) {
+      if (opts_.one_file) {
         one_file_code += enumcode;
       } else {
         if (!SaveType(**it, enumcode, needs_imports, true)) return false;
@@ -95,14 +113,14 @@ class GoGenerator : public BaseGenerator {
       tracked_imported_namespaces_.clear();
       std::string declcode;
       GenStruct(**it, &declcode);
-      if (parser_.opts.one_file) {
+      if (opts_.one_file) {
         one_file_code += declcode;
       } else {
         if (!SaveType(**it, declcode, true, false)) return false;
       }
     }
 
-    if (parser_.opts.one_file) {
+    if (opts_.one_file) {
       std::string code = "";
       const bool is_enum = !parser_.enums_.vec.empty();
       BeginFile(LastNamespacePart(go_namespace_), true, is_enum, &code);
@@ -754,7 +772,7 @@ class GoGenerator : public BaseGenerator {
     cur_name_space_ = struct_def.defined_namespace;
 
     GenComment(struct_def.doc_comment, code_ptr, nullptr);
-    if (parser_.opts.generate_object_based_api) {
+    if (opts_.generate_object_based_api) {
       GenNativeStruct(struct_def, code_ptr);
     }
     BeginClass(struct_def, code_ptr);
@@ -1224,13 +1242,11 @@ class GoGenerator : public BaseGenerator {
   }
 
   std::string NativeName(const StructDef &struct_def) {
-    return parser_.opts.object_prefix + struct_def.name +
-           parser_.opts.object_suffix;
+    return opts_.object_prefix + struct_def.name + opts_.object_suffix;
   }
 
   std::string NativeName(const EnumDef &enum_def) {
-    return parser_.opts.object_prefix + enum_def.name +
-           parser_.opts.object_suffix;
+    return opts_.object_prefix + enum_def.name + opts_.object_suffix;
   }
 
   std::string NativeType(const Type &type) {
@@ -1274,8 +1290,8 @@ class GoGenerator : public BaseGenerator {
     if (needs_imports) {
       code += "import (\n";
       if (is_enum) { code += "\t\"strconv\"\n\n"; }
-      if (!parser_.opts.go_import.empty()) {
-        code += "\tflatbuffers \"" + parser_.opts.go_import + "\"\n";
+      if (!opts_.go_import.empty()) {
+        code += "\tflatbuffers \"" + opts_.go_import + "\"\n";
       } else {
         code += "\tflatbuffers \"github.com/google/flatbuffers/go\"\n";
       }

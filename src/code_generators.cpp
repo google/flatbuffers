@@ -164,12 +164,19 @@ std::string BaseGenerator::GetNameSpace(const Definition &def) const {
   return qualified_name;
 }
 
+std::string BaseGenerator::GeneratedFileName(
+    const std::string &path, const std::string &file_name,
+    const std::string &filename_suffix,
+    const std::string &filename_extension) const {
+  return path + file_name + filename_suffix + "." +
+         (filename_extension.empty() ? default_extension_ : filename_extension);
+}
+
 std::string BaseGenerator::GeneratedFileName(const std::string &path,
                                              const std::string &file_name,
                                              const IDLOptions &options) const {
-  return path + file_name + options.filename_suffix + "." +
-         (options.filename_extension.empty() ? default_extension_
-                                             : options.filename_extension);
+  return GeneratedFileName(path, file_name, options.filename_suffix,
+                           options.filename_extension);
 }
 
 // Generate a documentation comment, if available.

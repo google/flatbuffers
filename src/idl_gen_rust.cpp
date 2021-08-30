@@ -256,6 +256,14 @@ class RustGenerator : public BaseGenerator {
   RustGenerator(const Parser &parser, const std::string &path,
                 const std::string &file_name)
       : BaseGenerator(parser, path, file_name, "", "::", "rs"),
+        filename_suffix_(parser.opts.filename_suffix),
+        generate_all_(parser.opts.generate_all),
+        generate_name_strings_(parser.opts.generate_name_strings),
+        generate_object_based_api_(parser.opts.generate_object_based_api),
+        include_prefix_(parser.opts.include_prefix),
+        object_prefix_(parser.opts.object_prefix),
+        object_suffix_(parser.opts.object_suffix),
+        one_file_(parser.opts.one_file),
         cur_name_space_(nullptr) {
     const char *keywords[] = {
       // clang-format off
@@ -366,7 +374,7 @@ class RustGenerator : public BaseGenerator {
   }
 
   bool generate() {
-    if (parser_.opts.one_file) {
+    if (one_file_) {
       return GenerateOneFile();
     } else {
       return GenerateIndividualFiles();
@@ -397,8 +405,7 @@ class RustGenerator : public BaseGenerator {
           file_path << MakeSnakeCase(*i) << kPathSeparator;
           EnsureDirExists(file_path.str());
         }
-      file_path << MakeSnakeCase(symbol.name) << parser_.opts.filename_suffix
-                << ".rs";
+      file_path << MakeSnakeCase(symbol.name) << filename_suffix_ << ".rs";
       const bool save_success =
           SaveFile(file_path.str().c_str(), code_.ToString(),
                    /*binary=*/false);
@@ -418,7 +425,7 @@ class RustGenerator : public BaseGenerator {
                    this->GenStruct(s);
                  } else {
                    this->GenTable(s);
-                   if (this->parser_.opts.generate_object_based_api) {
+                   if (this->generate_object_based_api_) {
                      this->GenTableObject(s);
                    }
                  }
@@ -481,9 +488,7 @@ class RustGenerator : public BaseGenerator {
             !struct_def.generated) {
           SetNameSpace(struct_def.defined_namespace);
           GenTable(struct_def);
-          if (parser_.opts.generate_object_based_api) {
-            GenTableObject(struct_def);
-          }
+          if (generate_object_based_api_) { GenTableObject(struct_def); }
         }
       }
 
@@ -506,6 +511,16 @@ class RustGenerator : public BaseGenerator {
   CodeWriter code_;
 
   std::set<std::string> keywords_;
+
+  // Generator CLI options.
+  const std::string &filename_suffix_;
+  const bool generate_all_;
+  const bool generate_name_strings_;
+  const bool generate_object_based_api_;
+  const std::string &include_prefix_;
+  const std::string &object_prefix_;
+  const std::string &object_suffix_;
+  const bool one_file_;
 
   // This tracks the current namespace so we can insert namespace declarations.
   const Namespace *cur_name_space_;
@@ -553,7 +568,7 @@ class RustGenerator : public BaseGenerator {
   }
 
   std::string NativeName(const Definition &def) {
-    return parser_.opts.object_prefix + Name(def) + parser_.opts.object_suffix;
+    return object_prefix_ + Name(def) + object_suffix_;
   }
 
   std::string Name(const Definition &def) const {
@@ -899,7 +914,7 @@ class RustGenerator : public BaseGenerator {
       code_.SetValue("UNION_OFFSET_NAME", Name(enum_def) + "UnionTableOffset");
       code_ += "pub struct {{UNION_OFFSET_NAME}} {}";
       code_ += "";
-      if (parser_.opts.generate_object_based_api) { GenUnionObject(enum_def); }
+      if (generate_object_based_api_) { GenUnionObject(enum_def); }
     }
   }
 
@@ -1671,7 +1686,7 @@ class RustGenerator : public BaseGenerator {
     });
     code_ += "";
 
-    if (parser_.opts.generate_name_strings) {
+    if (generate_name_strings_) {
       GenFullyQualifiedNameGetter(struct_def, struct_def.name);
     }
 
@@ -1716,7 +1731,7 @@ class RustGenerator : public BaseGenerator {
     code_ += "  }";
     code_ += "";
     // Generate Object API Packer function.
-    if (parser_.opts.generate_object_based_api) {
+    if (generate_object_based_api_) {
       // TODO(cneo): Replace more for loops with ForAllX stuff.
       // TODO(cneo): Manage indentation with IncrementIdentLevel?
       code_.SetValue("OBJECT_NAME", NativeName(struct_def));
@@ -2655,7 +2670,7 @@ class RustGenerator : public BaseGenerator {
     code_ += "  }";
     code_ += "";
 
-    if (parser_.opts.generate_name_strings) {
+    if (generate_name_strings_) {
       GenFullyQualifiedNameGetter(struct_def, struct_def.name);
     }
 
@@ -2743,7 +2758,7 @@ class RustGenerator : public BaseGenerator {
     });
 
     // Generate Object API unpack method.
-    if (parser_.opts.generate_object_based_api) {
+    if (generate_object_based_api_) {
       code_.SetValue("NATIVE_STRUCT_NAME", NativeName(struct_def));
       code_ += "  pub fn unpack(&self) -> {{NATIVE_STRUCT_NAME}} {";
       code_ += "    {{NATIVE_STRUCT_NAME}} {";
@@ -2770,7 +2785,7 @@ class RustGenerator : public BaseGenerator {
     code_ += "";
 
     // Generate Struct Object.
-    if (parser_.opts.generate_object_based_api) {
+    if (generate_object_based_api_) {
       // Struct declaration
       code_ += "#[derive(Debug, Clone, PartialEq, Default)]";
       code_ += "pub struct {{NATIVE_STRUCT_NAME}} {";
@@ -2812,22 +2827,22 @@ class RustGenerator : public BaseGenerator {
     // See: https://github.com/google/flatbuffers/issues/6261
     std::string indent = std::string(white_spaces, ' ');
     code_ += "";
-    if (!parser_.opts.generate_all) {
+    if (!generate_all_) {
       for (auto it = parser_.included_files_.begin();
            it != parser_.included_files_.end(); ++it) {
         if (it->second.empty()) continue;
         auto noext = flatbuffers::StripExtension(it->second);
         auto basename = flatbuffers::StripPath(noext);
 
-        if (parser_.opts.include_prefix.empty()) {
-          code_ += indent + "use crate::" + basename +
-                   parser_.opts.filename_suffix + "::*;";
+        if (include_prefix_.empty()) {
+          code_ +=
+              indent + "use crate::" + basename + filename_suffix_ + "::*;";
         } else {
-          auto prefix = parser_.opts.include_prefix;
+          auto prefix = include_prefix_;
           prefix.pop_back();
 
           code_ += indent + "use crate::" + prefix + "::" + basename +
-                   parser_.opts.filename_suffix + "::*;";
+                   filename_suffix_ + "::*;";
         }
       }
     }

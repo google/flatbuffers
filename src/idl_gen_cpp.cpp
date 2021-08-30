@@ -79,13 +79,67 @@ enum GenArrayArgMode {
 };
 
 // Extension of IDLOptions for cpp-generator.
-struct IDLOptionsCpp : public IDLOptions {
+struct IDLOptionsCpp {
   // All fields start with 'g_' prefix to distinguish from the base IDLOptions.
+  const bool binary_schema_gen_embed;
+  const bool cpp_direct_copy;
+  const std::vector<std::string> &cpp_includes;
+  const IDLOptions::CaseStyle cpp_object_api_field_case_style;
+  const std::string &cpp_object_api_pointer_type;
+  const bool cpp_object_api_string_flexible_constructor;
+  const std::string &cpp_object_api_string_type;
+  const bool cpp_static_reflection;
+  const std::string &cpp_std;
+  const std::string &filename_suffix;
+  const std::string &filename_extension;
+  const bool gen_compare;
+  const bool gen_nullable;
+  const bool generate_name_strings;
+  const bool generate_object_based_api;
+  const bool include_dependence_headers;
+  const std::string &include_prefix;
+  const bool keep_include_path;
+  const IDLOptions::MiniReflect mini_reflect;
+  const bool mutable_buffer;
+  const std::string &object_prefix;
+  const std::string &object_suffix;
+  bool prefixed_enums;
+  bool scoped_enums;
+  const bool set_empty_strings_to_null;
+  const bool set_empty_vectors_to_null;
   CppStandard g_cpp_std;    // Base version of C++ standard.
   bool g_only_fixed_enums;  // Generate underlaying type for all enums.
 
   IDLOptionsCpp(const IDLOptions &opts)
-      : IDLOptions(opts), g_cpp_std(CPP_STD_11), g_only_fixed_enums(true) {}
+      : binary_schema_gen_embed(opts.binary_schema_gen_embed),
+        cpp_direct_copy(opts.cpp_direct_copy),
+        cpp_includes(opts.cpp_includes),
+        cpp_object_api_field_case_style(opts.cpp_object_api_field_case_style),
+        cpp_object_api_pointer_type(opts.cpp_object_api_pointer_type),
+        cpp_object_api_string_flexible_constructor(
+            opts.cpp_object_api_string_flexible_constructor),
+        cpp_object_api_string_type(opts.cpp_object_api_string_type),
+        cpp_static_reflection(opts.cpp_static_reflection),
+        cpp_std(opts.cpp_std),
+        filename_suffix(opts.filename_suffix),
+        filename_extension(opts.filename_extension),
+        gen_compare(opts.gen_compare),
+        gen_nullable(opts.gen_nullable),
+        generate_name_strings(opts.generate_name_strings),
+        generate_object_based_api(opts.generate_object_based_api),
+        include_dependence_headers(opts.include_dependence_headers),
+        include_prefix(opts.include_prefix),
+        keep_include_path(opts.keep_include_path),
+        mini_reflect(opts.mini_reflect),
+        mutable_buffer(opts.mutable_buffer),
+        object_prefix(opts.object_prefix),
+        object_suffix(opts.object_suffix),
+        prefixed_enums(opts.prefixed_enums),
+        scoped_enums(opts.scoped_enums),
+        set_empty_strings_to_null(opts.set_empty_strings_to_null),
+        set_empty_vectors_to_null(opts.set_empty_vectors_to_null),
+        g_cpp_std(CPP_STD_11),
+        g_only_fixed_enums(true) {}
 };
 
 class CppGenerator : public BaseGenerator {
@@ -213,9 +267,9 @@ class CppGenerator : public BaseGenerator {
       if (it->second.empty()) continue;
       auto noext = flatbuffers::StripExtension(it->second);
       auto basename = flatbuffers::StripPath(noext);
-      auto includeName =
-          GeneratedFileName(opts_.include_prefix,
-                            opts_.keep_include_path ? noext : basename, opts_);
+      auto includeName = GeneratedFileName(
+          opts_.include_prefix, opts_.keep_include_path ? noext : basename,
+          opts_.filename_suffix, opts_.filename_extension);
       code_ += "#include \"" + includeName + "\"";
       num_includes++;
     }
@@ -321,7 +375,8 @@ class CppGenerator : public BaseGenerator {
 
     // We are just adding "_bfbs" to the generated filename.
     const auto file_path =
-        GeneratedFileName(path_, file_name_ + "_bfbs", opts_);
+        GeneratedFileName(path_, file_name_ + "_bfbs", opts_.filename_suffix,
+                          opts_.filename_extension);
     const auto final_code = code_.ToString();
 
     return SaveFile(file_path.c_str(), final_code, false);
@@ -614,7 +669,8 @@ class CppGenerator : public BaseGenerator {
     // Close the include guard.
     code_ += "#endif  // " + include_guard;
 
-    const auto file_path = GeneratedFileName(path_, file_name_, opts_);
+    const auto file_path = GeneratedFileName(
+        path_, file_name_, opts_.filename_suffix, opts_.filename_extension);
     const auto final_code = code_.ToString();
 
     // Save the file and optionally generate the binary schema code.
@@ -736,13 +792,13 @@ class CppGenerator : public BaseGenerator {
   }
 
   static std::string NativeName(const std::string &name, const StructDef *sd,
-                                const IDLOptions &opts) {
+                                const IDLOptionsCpp &opts) {
     return sd && !sd->fixed ? opts.object_prefix + name + opts.object_suffix
                             : name;
   }
 
   std::string WrapNativeNameInNameSpace(const StructDef &struct_def,
-                                        const IDLOptions &opts) {
+                                        const IDLOptionsCpp &opts) {
     return WrapInNameSpace(struct_def.defined_namespace,
                            NativeName(Name(struct_def), &struct_def, opts));
   }
@@ -918,7 +974,7 @@ class CppGenerator : public BaseGenerator {
   }
 
   std::string GetUnionElement(const EnumVal &ev, bool native_type,
-                              const IDLOptions &opts) {
+                              const IDLOptionsCpp &opts) {
     if (ev.union_type.base_type == BASE_TYPE_STRUCT) {
       auto name = ev.union_type.struct_def->name;
       if (native_type) {
@@ -964,7 +1020,7 @@ class CppGenerator : public BaseGenerator {
   }
 
   std::string TableCreateSignature(const StructDef &struct_def, bool predecl,
-                                   const IDLOptions &opts) {
+                                   const IDLOptionsCpp &opts) {
     return "flatbuffers::Offset<" + Name(struct_def) + "> Create" +
            Name(struct_def) + "(flatbuffers::FlatBufferBuilder &_fbb, const " +
            NativeName(Name(struct_def), &struct_def, opts) +
@@ -973,7 +1029,7 @@ class CppGenerator : public BaseGenerator {
   }
 
   std::string TablePackSignature(const StructDef &struct_def, bool inclass,
-                                 const IDLOptions &opts) {
+                                 const IDLOptionsCpp &opts) {
     return std::string(inclass ? "static " : "") + "flatbuffers::Offset<" +
            Name(struct_def) + "> " + (inclass ? "" : Name(struct_def) + "::") +
            "Pack(flatbuffers::FlatBufferBuilder &_fbb, " + "const " +
@@ -983,7 +1039,7 @@ class CppGenerator : public BaseGenerator {
   }
 
   std::string TableUnPackSignature(const StructDef &struct_def, bool inclass,
-                                   const IDLOptions &opts) {
+                                   const IDLOptionsCpp &opts) {
     return NativeName(Name(struct_def), &struct_def, opts) + " *" +
            (inclass ? "" : Name(struct_def) + "::") +
            "UnPack(const flatbuffers::resolver_function_t *_resolver" +
@@ -991,7 +1047,7 @@ class CppGenerator : public BaseGenerator {
   }
 
   std::string TableUnPackToSignature(const StructDef &struct_def, bool inclass,
-                                     const IDLOptions &opts) {
+                                     const IDLOptionsCpp &opts) {
     return "void " + (inclass ? "" : Name(struct_def) + "::") + "UnPackTo(" +
            NativeName(Name(struct_def), &struct_def, opts) + " *" +
            "_o, const flatbuffers::resolver_function_t *_resolver" +

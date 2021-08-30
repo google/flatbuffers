@@ -44,11 +44,37 @@ class CSharpGenerator : public BaseGenerator {
     std::string name;
     int length;
   };
+  struct CSharpOpts {
+    bool cs_gen_json_serializer;
+    const std::string &filename_extension;
+    const std::string &filename_suffix;
+    bool gen_nullable;
+    bool generate_object_based_api;
+    bool java_primitive_has_method;
+    bool mutable_buffer;
+    const std::string &object_prefix;
+    const std::string &object_suffix;
+    bool one_file;
+
+    explicit CSharpOpts(const IDLOptions &opts)
+        : cs_gen_json_serializer(opts.cs_gen_json_serializer),
+          filename_extension(opts.filename_extension),
+          filename_suffix(opts.filename_suffix),
+          gen_nullable(opts.gen_nullable),
+          generate_object_based_api(opts.generate_object_based_api),
+          java_primitive_has_method(opts.java_primitive_has_method),
+          mutable_buffer(opts.mutable_buffer),
+          object_prefix(opts.object_prefix),
+          object_suffix(opts.object_suffix),
+          one_file(opts.one_file){};
+  };
+  const CSharpOpts opts_;
 
  public:
   CSharpGenerator(const Parser &parser, const std::string &path,
                   const std::string &file_name)
       : BaseGenerator(parser, path, file_name, "", ".", "cs"),
+        opts_(CSharpOpts(parser.opts)),
         cur_name_space_(nullptr) {
     // clang-format off
 
@@ -152,13 +178,13 @@ class CSharpGenerator : public BaseGenerator {
          ++it) {
       std::string enumcode;
       auto &enum_def = **it;
-      if (!parser_.opts.one_file) cur_name_space_ = enum_def.defined_namespace;
-      GenEnum(enum_def, &enumcode, parser_.opts);
-      if (parser_.opts.one_file) {
+      if (!opts_.one_file) cur_name_space_ = enum_def.defined_namespace;
+      GenEnum(enum_def, &enumcode);
+      if (opts_.one_file) {
         one_file_code += enumcode;
       } else {
         if (!SaveType(enum_def.name, *enum_def.defined_namespace, enumcode,
-                      false, parser_.opts))
+                      false))
           return false;
       }
     }
@@ -167,21 +193,20 @@ class CSharpGenerator : public BaseGenerator {
          it != parser_.structs_.vec.end(); ++it) {
       std::string declcode;
       auto &struct_def = **it;
-      if (!parser_.opts.one_file)
-        cur_name_space_ = struct_def.defined_namespace;
-      GenStruct(struct_def, &declcode, parser_.opts);
-      if (parser_.opts.one_file) {
+      if (!opts_.one_file) cur_name_space_ = struct_def.defined_namespace;
+      GenStruct(struct_def, &declcode);
+      if (opts_.one_file) {
         one_file_code += declcode;
       } else {
         if (!SaveType(struct_def.name, *struct_def.defined_namespace, declcode,
-                      true, parser_.opts))
+                      true))
           return false;
       }
     }
 
-    if (parser_.opts.one_file) {
+    if (opts_.one_file) {
       return SaveType(file_name_, *parser_.current_namespace_, one_file_code,
-                      true, parser_.opts);
+                      true);
     }
     return true;
   }
@@ -211,8 +236,7 @@ class CSharpGenerator : public BaseGenerator {
   // Save out the generated code for a single class while adding
   // declaration boilerplate.
   bool SaveType(const std::string &defname, const Namespace &ns,
-                const std::string &classcode, bool needs_includes,
-                const IDLOptions &options) const {
+                const std::string &classcode, bool needs_includes) const {
     if (!classcode.length()) return true;
 
     std::string code =
@@ -234,9 +258,9 @@ class CSharpGenerator : public BaseGenerator {
     code += classcode;
     if (!namespace_name.empty()) { code += "\n}\n"; }
     auto filename = NamespaceDir(ns) + defname;
-    if (options.one_file) { filename += options.filename_suffix; }
+    if (opts_.one_file) { filename += opts_.filename_suffix; }
     filename +=
-        options.filename_extension.empty() ? ".cs" : options.filename_extension;
+        opts_.filename_extension.empty() ? ".cs" : opts_.filename_extension;
     return SaveFile(filename.c_str(), code, false);
   }
 
@@ -386,8 +410,7 @@ class CSharpGenerator : public BaseGenerator {
     return GenDefaultValueBasic(field, true);
   }
 
-  void GenEnum(EnumDef &enum_def, std::string *code_ptr,
-               const IDLOptions &opts) const {
+  void GenEnum(EnumDef &enum_def, std::string *code_ptr) const {
     std::string &code = *code_ptr;
     if (enum_def.generated) return;
 
@@ -398,7 +421,7 @@ class CSharpGenerator : public BaseGenerator {
     // That, and Java Enums are expensive, and not universally liked.
     GenComment(enum_def.doc_comment, code_ptr, &comment_config);
 
-    if (opts.cs_gen_json_serializer && opts.generate_object_based_api) {
+    if (opts_.cs_gen_json_serializer && opts_.generate_object_based_api) {
       code +=
           "[Newtonsoft.Json.JsonConverter(typeof(Newtonsoft.Json.Converters."
           "StringEnumConverter))]\n";
@@ -426,8 +449,8 @@ class CSharpGenerator : public BaseGenerator {
     // Close the class
     code += "};\n\n";
 
-    if (opts.generate_object_based_api) {
-      GenEnum_ObjectAPI(enum_def, code_ptr, opts);
+    if (opts_.generate_object_based_api) {
+      GenEnum_ObjectAPI(enum_def, code_ptr);
     }
   }
 
@@ -638,8 +661,7 @@ class CSharpGenerator : public BaseGenerator {
     return key_getter;
   }
 
-  void GenStruct(StructDef &struct_def, std::string *code_ptr,
-                 const IDLOptions &opts) const {
+  void GenStruct(StructDef &struct_def, std::string *code_ptr) const {
     if (struct_def.generated) return;
     std::string &code = *code_ptr;
 
@@ -1017,7 +1039,7 @@ class CSharpGenerator : public BaseGenerator {
         code += "__p.bb) : null; }\n";
       }
       // Generate mutators for scalar fields or vectors of scalars.
-      if (parser_.opts.mutable_buffer) {
+      if (opts_.mutable_buffer) {
         auto is_series = (IsSeries(field.value.type));
         const auto &underlying_type =
             is_series ? field.value.type.VectorType() : field.value.type;
@@ -1060,7 +1082,7 @@ class CSharpGenerator : public BaseGenerator {
           }
         }
       }
-      if (parser_.opts.java_primitive_has_method &&
+      if (opts_.java_primitive_has_method &&
           IsScalar(field.value.type.base_type) && !struct_def.fixed) {
         auto vt_offset_constant = "  public static final int VT_" +
                                   MakeScreamingCamel(field.name) + " = " +
@@ -1104,7 +1126,7 @@ class CSharpGenerator : public BaseGenerator {
       }
       // JVM specifications restrict default constructor params to be < 255.
       // Longs and doubles take up 2 units, so we set the limit to be < 127.
-      if ((has_no_struct_fields || opts.generate_object_based_api) &&
+      if ((has_no_struct_fields || opts_.generate_object_based_api) &&
           num_fields && num_fields < 127) {
         struct_has_create = true;
         // Generate a table constructor of the form:
@@ -1117,10 +1139,10 @@ class CSharpGenerator : public BaseGenerator {
           auto &field = **it;
           if (field.deprecated) continue;
           code += ",\n      ";
-          if (IsStruct(field.value.type) && opts.generate_object_based_api) {
+          if (IsStruct(field.value.type) && opts_.generate_object_based_api) {
             code += WrapInNameSpace(
                 field.value.type.struct_def->defined_namespace,
-                GenTypeName_ObjectAPI(field.value.type.struct_def->name, opts));
+                GenTypeName_ObjectAPI(field.value.type.struct_def->name));
             code += " ";
             code += EscapeKeyword(field.name);
             code += " = null";
@@ -1150,7 +1172,7 @@ class CSharpGenerator : public BaseGenerator {
               code += "Add";
               code += Name(field) + "(builder, ";
               if (IsStruct(field.value.type) &&
-                  opts.generate_object_based_api) {
+                  opts_.generate_object_based_api) {
                 code += GenTypePointer(field.value.type) + ".Pack(builder, " +
                         EscapeKeyword(field.name) + ")";
               } else {
@@ -1333,14 +1355,14 @@ class CSharpGenerator : public BaseGenerator {
       code += "  }\n";
     }
 
-    if (opts.generate_object_based_api) {
-      GenPackUnPack_ObjectAPI(struct_def, code_ptr, opts, struct_has_create,
+    if (opts_.generate_object_based_api) {
+      GenPackUnPack_ObjectAPI(struct_def, code_ptr, struct_has_create,
                               field_has_create_set);
     }
     code += "}\n\n";
 
-    if (opts.generate_object_based_api) {
-      GenStruct_ObjectAPI(struct_def, code_ptr, opts);
+    if (opts_.generate_object_based_api) {
+      GenStruct_ObjectAPI(struct_def, code_ptr);
     }
   }
 
@@ -1376,8 +1398,7 @@ class CSharpGenerator : public BaseGenerator {
       for (auto kit = fields.begin(); kit != fields.end(); ++kit) {
         auto &key_field = **kit;
         if (key_field.key) {
-          auto nullable_annotation =
-              parser_.opts.gen_nullable ? "@Nullable " : "";
+          auto nullable_annotation = opts_.gen_nullable ? "@Nullable " : "";
           code += method_indent + nullable_annotation;
           code += "public " + type_name + "? ";
           code += "GetByKey(";
@@ -1402,8 +1423,7 @@ class CSharpGenerator : public BaseGenerator {
     code += "  }\n";
   }
 
-  void GenEnum_ObjectAPI(EnumDef &enum_def, std::string *code_ptr,
-                         const IDLOptions &opts) const {
+  void GenEnum_ObjectAPI(EnumDef &enum_def, std::string *code_ptr) const {
     auto &code = *code_ptr;
     if (enum_def.generated) return;
     if (!enum_def.is_union) return;
@@ -1431,7 +1451,7 @@ class CSharpGenerator : public BaseGenerator {
     for (auto it = enum_def.Vals().begin(); it != enum_def.Vals().end(); ++it) {
       auto &ev = **it;
       if (ev.union_type.base_type == BASE_TYPE_NONE) continue;
-      auto type_name = GenTypeGet_ObjectAPI(ev.union_type, opts);
+      auto type_name = GenTypeGet_ObjectAPI(ev.union_type);
       std::string accessibility =
           (ev.union_type.base_type == BASE_TYPE_STRUCT &&
            ev.union_type.struct_def->attributes.Lookup("private"))
@@ -1472,7 +1492,7 @@ class CSharpGenerator : public BaseGenerator {
     code += "  }\n";
     code += "}\n\n";
     // JsonConverter
-    if (opts.cs_gen_json_serializer) {
+    if (opts_.cs_gen_json_serializer) {
       if (enum_def.attributes.Lookup("private")) {
         code += "internal ";
       } else {
@@ -1543,7 +1563,7 @@ class CSharpGenerator : public BaseGenerator {
         if (ev.union_type.base_type == BASE_TYPE_NONE) {
           code += "      default: break;\n";
         } else {
-          auto type_name = GenTypeGet_ObjectAPI(ev.union_type, opts);
+          auto type_name = GenTypeGet_ObjectAPI(ev.union_type);
           code += "      case " + Name(enum_def) + "." + Name(ev) +
                   ": _o.Value = serializer.Deserialize<" + type_name +
                   ">(reader); break;\n";
@@ -1556,9 +1576,8 @@ class CSharpGenerator : public BaseGenerator {
     }
   }
 
-  std::string GenTypeName_ObjectAPI(const std::string &name,
-                                    const IDLOptions &opts) const {
-    return opts.object_prefix + name + opts.object_suffix;
+  std::string GenTypeName_ObjectAPI(const std::string &name) const {
+    return opts_.object_prefix + name + opts_.object_suffix;
   }
 
   void GenUnionUnPack_ObjectAPI(const EnumDef &enum_def, std::string *code_ptr,
@@ -1612,11 +1631,10 @@ class CSharpGenerator : public BaseGenerator {
   }
 
   void GenPackUnPack_ObjectAPI(
-      StructDef &struct_def, std::string *code_ptr, const IDLOptions &opts,
-      bool struct_has_create,
+      StructDef &struct_def, std::string *code_ptr, bool struct_has_create,
       const std::set<FieldDef *> &field_has_create) const {
     auto &code = *code_ptr;
-    auto struct_name = GenTypeName_ObjectAPI(struct_def.name, opts);
+    auto struct_name = GenTypeName_ObjectAPI(struct_def.name);
     // UnPack()
     code += "  public " + struct_name + " UnPack() {\n";
     code += "    var _o = new " + struct_name + "();\n";
@@ -1643,7 +1661,7 @@ class CSharpGenerator : public BaseGenerator {
           break;
         }
         case BASE_TYPE_ARRAY: {
-          auto type_name = GenTypeGet_ObjectAPI(field.value.type, opts);
+          auto type_name = GenTypeGet_ObjectAPI(field.value.type);
           auto length_str = NumToString(field.value.type.fixed_length);
           auto unpack_method = field.value.type.struct_def == nullptr
                                    ? ""
@@ -1659,8 +1677,8 @@ class CSharpGenerator : public BaseGenerator {
         }
         case BASE_TYPE_VECTOR:
           if (field.value.type.element == BASE_TYPE_UNION) {
-            code += start + "new " +
-                    GenTypeGet_ObjectAPI(field.value.type, opts) + "();\n";
+            code += start + "new " + GenTypeGet_ObjectAPI(field.value.type) +
+                    "();\n";
             code += "    for (var _j = 0; _j < this." + camel_name +
                     "Length; ++_j) {\n";
             GenUnionUnPack_ObjectAPI(*field.value.type.enum_def, code_ptr,
@@ -1668,8 +1686,8 @@ class CSharpGenerator : public BaseGenerator {
             code += "    }\n";
           } else if (field.value.type.element != BASE_TYPE_UTYPE) {
             auto fixed = field.value.type.struct_def == nullptr;
-            code += start + "new " +
-                    GenTypeGet_ObjectAPI(field.value.type, opts) + "();\n";
+            code += start + "new " + GenTypeGet_ObjectAPI(field.value.type) +
+                    "();\n";
             code += "    for (var _j = 0; _j < this." + camel_name +
                     "Length; ++_j) {";
             code += "_o." + camel_name + ".Add(";
@@ -1820,10 +1838,9 @@ class CSharpGenerator : public BaseGenerator {
           code += "    var _" + field.name + "_type = _o." + camel_name +
                   " == null ? " + NamespacedName(*field.value.type.enum_def) +
                   ".NONE : " + "_o." + camel_name + ".Type;\n";
-          code +=
-              "    var _" + field.name + " = _o." + camel_name +
-              " == null ? 0 : " + GenTypeGet_ObjectAPI(field.value.type, opts) +
-              ".Pack(builder, _o." + camel_name + ");\n";
+          code += "    var _" + field.name + " = _o." + camel_name +
+                  " == null ? 0 : " + GenTypeGet_ObjectAPI(field.value.type) +
+                  ".Pack(builder, _o." + camel_name + ");\n";
           break;
         }
         default: break;
@@ -1847,7 +1864,7 @@ class CSharpGenerator : public BaseGenerator {
             } else {
               code += ",\n";
               if (field.value.type.struct_def->fixed) {
-                if (opts.generate_object_based_api)
+                if (opts_.generate_object_based_api)
                   code += "      _o." + camel_name;
                 else
                   code += "      " + GenTypeGet(field.value.type) +
@@ -2026,8 +2043,7 @@ class CSharpGenerator : public BaseGenerator {
     }
   }
 
-  std::string GenTypeGet_ObjectAPI(flatbuffers::Type type,
-                                   const IDLOptions &opts) const {
+  std::string GenTypeGet_ObjectAPI(flatbuffers::Type type) const {
     auto type_name = GenTypeGet(type);
     // Replace to ObjectBaseAPI Type Name
     switch (type.base_type) {
@@ -2036,8 +2052,7 @@ class CSharpGenerator : public BaseGenerator {
       case BASE_TYPE_VECTOR: {
         if (type.struct_def != nullptr) {
           auto type_name_length = type.struct_def->name.length();
-          auto new_type_name =
-              GenTypeName_ObjectAPI(type.struct_def->name, opts);
+          auto new_type_name = GenTypeName_ObjectAPI(type.struct_def->name);
           type_name.replace(type_name.length() - type_name_length,
                             type_name_length, new_type_name);
         } else if (type.element == BASE_TYPE_UNION) {
@@ -2067,8 +2082,7 @@ class CSharpGenerator : public BaseGenerator {
     return type_name;
   }
 
-  void GenStruct_ObjectAPI(StructDef &struct_def, std::string *code_ptr,
-                           const IDLOptions &opts) const {
+  void GenStruct_ObjectAPI(StructDef &struct_def, std::string *code_ptr) const {
     auto &code = *code_ptr;
     if (struct_def.attributes.Lookup("private")) {
       code += "internal ";
@@ -2079,7 +2093,7 @@ class CSharpGenerator : public BaseGenerator {
       // generate a partial class for this C# struct/table
       code += "partial ";
     }
-    auto class_name = GenTypeName_ObjectAPI(struct_def.name, opts);
+    auto class_name = GenTypeName_ObjectAPI(struct_def.name);
     code += "class " + class_name;
     code += "\n{\n";
     // Generate Properties
@@ -2089,10 +2103,10 @@ class CSharpGenerator : public BaseGenerator {
       if (field.deprecated) continue;
       if (field.value.type.base_type == BASE_TYPE_UTYPE) continue;
       if (field.value.type.element == BASE_TYPE_UTYPE) continue;
-      auto type_name = GenTypeGet_ObjectAPI(field.value.type, opts);
+      auto type_name = GenTypeGet_ObjectAPI(field.value.type);
       if (field.IsScalarOptional()) type_name += "?";
       auto camel_name = Name(field);
-      if (opts.cs_gen_json_serializer) {
+      if (opts_.cs_gen_json_serializer) {
         if (IsUnion(field.value.type)) {
           auto utype_name = NamespacedName(*field.value.type.enum_def);
           code +=
@@ -2137,7 +2151,7 @@ class CSharpGenerator : public BaseGenerator {
         if (IsUnion(field.value.type)) {
           auto union_name =
               (IsVector(field.value.type))
-                  ? GenTypeGet_ObjectAPI(field.value.type.VectorType(), opts)
+                  ? GenTypeGet_ObjectAPI(field.value.type.VectorType())
                   : type_name;
           code += "  [Newtonsoft.Json.JsonConverter(typeof(" + union_name +
                   "_JsonConverter))]\n";
@@ -2158,7 +2172,7 @@ class CSharpGenerator : public BaseGenerator {
       if (field.value.type.base_type == BASE_TYPE_UTYPE) continue;
       if (field.value.type.element == BASE_TYPE_UTYPE) continue;
       code += "    this." + Name(field) + " = ";
-      auto type_name = GenTypeGet_ObjectAPI(field.value.type, opts);
+      auto type_name = GenTypeGet_ObjectAPI(field.value.type);
       if (IsScalar(field.value.type.base_type)) {
         code += GenDefaultValue(field) + ";\n";
       } else {
@@ -2185,7 +2199,7 @@ class CSharpGenerator : public BaseGenerator {
     }
     code += "  }\n";
     // Generate Serialization
-    if (opts.cs_gen_json_serializer &&
+    if (opts_.cs_gen_json_serializer &&
         parser_.root_struct_def_ == &struct_def) {
       code += "\n";
       code += "  public static " + class_name +

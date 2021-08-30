@@ -101,6 +101,10 @@ class BaseGenerator {
 
   std::string GeneratedFileName(const std::string &path,
                                 const std::string &file_name,
+                                const std::string &filename_suffix,
+                                const std::string &filename_extension) const;
+  std::string GeneratedFileName(const std::string &path,
+                                const std::string &file_name,
                                 const IDLOptions &options) const;
 
  protected:
