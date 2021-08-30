@@ -83,6 +83,8 @@ std::string StringifyTableOrStructImpl(const FBS &fbs,
 
 template<typename FBS>
 std::string StringifyTableOrStruct(const FBS &fbs, const std::string &indent) {
+  (void)fbs;
+  (void)indent;
   static constexpr size_t field_count = FBS::Traits::fields_number;
   std::string out;
   if constexpr (field_count > 0) {
@@ -125,6 +127,7 @@ template<typename T> std::string StringifyArithmeticType(T val) {
 template<typename T>
 std::optional<std::string> StringifyFlatbufferValue(T &&val,
                                                     const std::string &indent) {
+  (void)indent;
   constexpr bool is_pointer = std::is_pointer_v<std::remove_reference_t<T>>;
   if constexpr (is_pointer) {
     if (val == nullptr) return std::nullopt;  // Field is absent.
