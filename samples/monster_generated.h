@@ -834,6 +834,10 @@ inline Monster *GetMutableMonster(void *buf) {
   return flatbuffers::GetMutableRoot<Monster>(buf);
 }
 
+inline MyGame::Sample::Monster *GetMutableSizePrefixedMonster(void *buf) {
+  return flatbuffers::GetMutableSizePrefixedRoot<MyGame::Sample::Monster>(buf);
+}
+
 inline bool VerifyMonsterBuffer(
     flatbuffers::Verifier &verifier) {
   return verifier.VerifyBuffer<MyGame::Sample::Monster>(nullptr);

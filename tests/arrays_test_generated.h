@@ -457,6 +457,10 @@ inline ArrayTable *GetMutableArrayTable(void *buf) {
   return flatbuffers::GetMutableRoot<ArrayTable>(buf);
 }
 
+inline MyGame::Example::ArrayTable *GetMutableSizePrefixedArrayTable(void *buf) {
+  return flatbuffers::GetMutableSizePrefixedRoot<MyGame::Example::ArrayTable>(buf);
+}
+
 inline const char *ArrayTableIdentifier() {
   return "ARRT";
 }

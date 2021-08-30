@@ -798,6 +798,10 @@ inline Movie *GetMutableMovie(void *buf) {
   return flatbuffers::GetMutableRoot<Movie>(buf);
 }
 
+inline Movie *GetMutableSizePrefixedMovie(void *buf) {
+  return flatbuffers::GetMutableSizePrefixedRoot<Movie>(buf);
+}
+
 inline const char *MovieIdentifier() {
   return "MOVI";
 }

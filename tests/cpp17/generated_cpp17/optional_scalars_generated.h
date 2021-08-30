@@ -933,6 +933,10 @@ inline ScalarStuff *GetMutableScalarStuff(void *buf) {
   return flatbuffers::GetMutableRoot<ScalarStuff>(buf);
 }
 
+inline optional_scalars::ScalarStuff *GetMutableSizePrefixedScalarStuff(void *buf) {
+  return flatbuffers::GetMutableSizePrefixedRoot<optional_scalars::ScalarStuff>(buf);
+}
+
 inline const char *ScalarStuffIdentifier() {
   return "NULL";
 }

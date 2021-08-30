@@ -2327,6 +2327,11 @@ template<typename T> T *GetMutableRoot(void *buf) {
       EndianScalar(*reinterpret_cast<uoffset_t *>(buf)));
 }
 
+template<typename T> T *GetMutableSizePrefixedRoot(void *buf) {
+  return GetMutableRoot<T>(reinterpret_cast<uint8_t *>(buf) +
+                           sizeof(uoffset_t));
+}
+
 template<typename T> const T *GetRoot(const void *buf) {
   return GetMutableRoot<T>(const_cast<void *>(buf));
 }
