@@ -138,3 +138,5 @@ yarn-error.log
 **/go.sum
 flatbuffers.pc
 **/FlatBuffers.Test.Swift.xcodeproj
+**/html/**
+**/latex/**
