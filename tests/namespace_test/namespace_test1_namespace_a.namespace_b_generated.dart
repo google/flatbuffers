@@ -14,7 +14,7 @@ class UnionInNestedNSTypeId {
   factory UnionInNestedNSTypeId.fromValue(int value) {
     final result = values[value];
     if (result == null) {
-      throw new StateError('Invalid value $value for bit flag enum UnionInNestedNSTypeId');
+      throw StateError('Invalid value $value for bit flag enum UnionInNestedNSTypeId');
     }
     return result;
   }
@@ -26,13 +26,13 @@ class UnionInNestedNSTypeId {
   static const int maxValue = 1;
   static bool containsValue(int value) => values.containsKey(value);
 
-  static const UnionInNestedNSTypeId NONE = const UnionInNestedNSTypeId._(0);
-  static const UnionInNestedNSTypeId TableInNestedNS = const UnionInNestedNSTypeId._(1);
+  static const UnionInNestedNSTypeId NONE = UnionInNestedNSTypeId._(0);
+  static const UnionInNestedNSTypeId TableInNestedNS = UnionInNestedNSTypeId._(1);
   static const Map<int, UnionInNestedNSTypeId> values = {
     0: NONE,
     1: TableInNestedNS};
 
-  static const fb.Reader<UnionInNestedNSTypeId> reader = const _UnionInNestedNSTypeIdReader();
+  static const fb.Reader<UnionInNestedNSTypeId> reader = _UnionInNestedNSTypeIdReader();
 
   @override
   String toString() {
@@ -48,7 +48,7 @@ class _UnionInNestedNSTypeIdReader extends fb.Reader<UnionInNestedNSTypeId> {
 
   @override
   UnionInNestedNSTypeId read(fb.BufferContext bc, int offset) =>
-      new UnionInNestedNSTypeId.fromValue(const fb.Uint8Reader().read(bc, offset));
+      UnionInNestedNSTypeId.fromValue(const fb.Uint8Reader().read(bc, offset));
 }
 
 class EnumInNestedNS {
@@ -58,7 +58,7 @@ class EnumInNestedNS {
   factory EnumInNestedNS.fromValue(int value) {
     final result = values[value];
     if (result == null) {
-      throw new StateError('Invalid value $value for bit flag enum EnumInNestedNS');
+      throw StateError('Invalid value $value for bit flag enum EnumInNestedNS');
     }
     return result;
   }
@@ -70,15 +70,15 @@ class EnumInNestedNS {
   static const int maxValue = 2;
   static bool containsValue(int value) => values.containsKey(value);
 
-  static const EnumInNestedNS A = const EnumInNestedNS._(0);
-  static const EnumInNestedNS B = const EnumInNestedNS._(1);
-  static const EnumInNestedNS C = const EnumInNestedNS._(2);
+  static const EnumInNestedNS A = EnumInNestedNS._(0);
+  static const EnumInNestedNS B = EnumInNestedNS._(1);
+  static const EnumInNestedNS C = EnumInNestedNS._(2);
   static const Map<int, EnumInNestedNS> values = {
     0: A,
     1: B,
     2: C};
 
-  static const fb.Reader<EnumInNestedNS> reader = const _EnumInNestedNSReader();
+  static const fb.Reader<EnumInNestedNS> reader = _EnumInNestedNSReader();
 
   @override
   String toString() {
@@ -94,17 +94,17 @@ class _EnumInNestedNSReader extends fb.Reader<EnumInNestedNS> {
 
   @override
   EnumInNestedNS read(fb.BufferContext bc, int offset) =>
-      new EnumInNestedNS.fromValue(const fb.Int8Reader().read(bc, offset));
+      EnumInNestedNS.fromValue(const fb.Int8Reader().read(bc, offset));
 }
 
 class TableInNestedNS {
   TableInNestedNS._(this._bc, this._bcOffset);
   factory TableInNestedNS(List<int> bytes) {
-    fb.BufferContext rootRef = new fb.BufferContext.fromBytes(bytes);
+    final rootRef = fb.BufferContext.fromBytes(bytes);
     return reader.read(rootRef, 0);
   }
 
-  static const fb.Reader<TableInNestedNS> reader = const _TableInNestedNSReader();
+  static const fb.Reader<TableInNestedNS> reader = _TableInNestedNSReader();
 
   final fb.BufferContext _bc;
   final int _bcOffset;
@@ -148,11 +148,11 @@ class _TableInNestedNSReader extends fb.TableReader<TableInNestedNS> {
 
   @override
   TableInNestedNS createObject(fb.BufferContext bc, int offset) => 
-    new TableInNestedNS._(bc, offset);
+    TableInNestedNS._(bc, offset);
 }
 
 class TableInNestedNSBuilder {
-  TableInNestedNSBuilder(this.fbBuilder) {}
+  TableInNestedNSBuilder(this.fbBuilder);
 
   final fb.Builder fbBuilder;
 
@@ -189,16 +189,15 @@ class TableInNestedNSObjectBuilder extends fb.ObjectBuilder {
   /// Convenience method to serialize to byte list.
   @override
   Uint8List toBytes([String? fileIdentifier]) {
-    fb.Builder fbBuilder = new fb.Builder(deduplicateTables: false);
-    int offset = finish(fbBuilder);
-    fbBuilder.finish(offset, fileIdentifier);
+    final fbBuilder = fb.Builder(deduplicateTables: false);
+    fbBuilder.finish(finish(fbBuilder), fileIdentifier);
     return fbBuilder.buffer;
   }
 }
 class StructInNestedNS {
   StructInNestedNS._(this._bc, this._bcOffset);
 
-  static const fb.Reader<StructInNestedNS> reader = const _StructInNestedNSReader();
+  static const fb.Reader<StructInNestedNS> reader = _StructInNestedNSReader();
 
   final fb.BufferContext _bc;
   final int _bcOffset;
@@ -249,11 +248,11 @@ class _StructInNestedNSReader extends fb.StructReader<StructInNestedNS> {
 
   @override
   StructInNestedNS createObject(fb.BufferContext bc, int offset) => 
-    new StructInNestedNS._(bc, offset);
+    StructInNestedNS._(bc, offset);
 }
 
 class StructInNestedNSBuilder {
-  StructInNestedNSBuilder(this.fbBuilder) {}
+  StructInNestedNSBuilder(this.fbBuilder);
 
   final fb.Builder fbBuilder;
 
@@ -287,9 +286,8 @@ class StructInNestedNSObjectBuilder extends fb.ObjectBuilder {
   /// Convenience method to serialize to byte list.
   @override
   Uint8List toBytes([String? fileIdentifier]) {
-    fb.Builder fbBuilder = new fb.Builder(deduplicateTables: false);
-    int offset = finish(fbBuilder);
-    fbBuilder.finish(offset, fileIdentifier);
+    final fbBuilder = fb.Builder(deduplicateTables: false);
+    fbBuilder.finish(finish(fbBuilder), fileIdentifier);
     return fbBuilder.buffer;
   }
 }
