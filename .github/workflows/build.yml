@@ -143,7 +143,7 @@ jobs:
     - uses: actions/setup-java@v2
       with:
         distribution: 'adopt-hotspot'
-        java-version: '11'
+        java-version: '8'
     - name: Build
       working-directory: kotlin
       run: ./gradlew jvmMainClasses jvmTest

@@ -31,7 +31,6 @@
 package com.google.flatbuffers;
 
 import java.nio.ByteBuffer;
-import java.nio.Buffer;
 import static java.lang.Character.MAX_SURROGATE;
 import static java.lang.Character.MIN_SUPPLEMENTARY_CODE_POINT;
 import static java.lang.Character.MIN_SURROGATE;
@@ -311,7 +310,7 @@ final public class Utf8Safe extends Utf8 {
       }
       if (inIx == inLength) {
         // Successfully encoded the entire string.
-        ((Buffer) out).position(outIx + inIx);
+        out.position(outIx + inIx);
         return;
       }
 
@@ -354,7 +353,7 @@ final public class Utf8Safe extends Utf8 {
       }
 
       // Successfully encoded the entire string.
-      ((Buffer) out).position(outIx);
+      out.position(outIx);
     } catch (IndexOutOfBoundsException e) {
       // TODO(nathanmittler): Consider making the API throw IndexOutOfBoundsException instead.
 
@@ -435,7 +434,7 @@ final public class Utf8Safe extends Utf8 {
       int start = out.arrayOffset();
       int end = encodeUtf8Array(in, out.array(), start + out.position(),
           out.remaining());
-      ((Buffer) out).position(end - start);
+      out.position(end - start);
     } else {
       encodeUtf8Buffer(in, out);
     }

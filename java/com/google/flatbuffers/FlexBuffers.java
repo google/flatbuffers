@@ -23,7 +23,6 @@ import static com.google.flatbuffers.FlexBuffers.Unsigned.shortToUnsignedInt;
 
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
-import java.nio.Buffer;
 import java.nio.charset.StandardCharsets;
 
 /// @file
@@ -689,7 +688,7 @@ public class FlexBuffers {
          */
         public ByteBuffer data() {
             ByteBuffer dup = ByteBuffer.wrap(bb.data());
-            ((Buffer) dup).position(end);
+            dup.position(end);
             dup.limit(end + size());
             return dup.asReadOnlyBuffer().slice();
         }
