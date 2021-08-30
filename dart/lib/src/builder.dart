@@ -5,22 +5,22 @@ import 'types.dart';
 
 /// The main builder class for creation of a FlexBuffer.
 class Builder {
-  ByteData _buffer;
+  final ByteData _buffer;
   List<_StackValue> _stack = [];
   List<_StackPointer> _stackPointers = [];
   int _offset = 0;
   bool _finished = false;
-  Map<String, _StackValue> _stringCache = {};
-  Map<String, _StackValue> _keyCache = {};
-  Map<_KeysHash, _StackValue> _keyVectorCache = {};
-  Map<int, _StackValue> _indirectIntCache = {};
-  Map<double, _StackValue> _indirectDoubleCache = {};
+  final Map<String, _StackValue> _stringCache = {};
+  final Map<String, _StackValue> _keyCache = {};
+  final Map<_KeysHash, _StackValue> _keyVectorCache = {};
+  final Map<int, _StackValue> _indirectIntCache = {};
+  final Map<double, _StackValue> _indirectDoubleCache = {};
 
   /// Instantiate the builder if you intent to gradually build up the buffer by calling
   /// add... methods and calling [finish] to receive the the resulting byte array.
   ///
   /// The default size of internal buffer is set to 2048. Provide a different value in order to avoid buffer copies.
-  Builder({int size = 2048}) : _buffer = ByteData(size) {}
+  Builder({int size = 2048}) : _buffer = ByteData(size);
 
   /// Use this method in order to turn an object into a FlexBuffer directly.
   ///
@@ -70,25 +70,25 @@ class Builder {
   /// Specifically useful when building up a vector where values can be null.
   void addNull() {
     _integrityCheckOnValueAddition();
-    _stack.add(_StackValue.WithNull());
+    _stack.add(_StackValue.withNull());
   }
 
   /// Adds a string value.
   void addInt(int value) {
     _integrityCheckOnValueAddition();
-    _stack.add(_StackValue.WithInt(value));
+    _stack.add(_StackValue.withInt(value));
   }
 
   /// Adds a bool value.
   void addBool(bool value) {
     _integrityCheckOnValueAddition();
-    _stack.add(_StackValue.WithBool(value));
+    _stack.add(_StackValue.withBool(value));
   }
 
   /// Adds a double value.
   void addDouble(double value) {
     _integrityCheckOnValueAddition();
-    _stack.add(_StackValue.WithDouble(value));
+    _stack.add(_StackValue.withDouble(value));
   }
 
   /// Adds a string value.
@@ -108,7 +108,7 @@ class Builder {
     _pushBuffer(utf8String);
     _offset = newOffset;
     final stackValue =
-        _StackValue.WithOffset(stringOffset, ValueType.String, bitWidth);
+        _StackValue.withOffset(stringOffset, ValueType.String, bitWidth);
     _stack.add(stackValue);
     _stringCache[value] = stackValue;
   }
@@ -129,7 +129,7 @@ class Builder {
     _pushBuffer(utf8String);
     _offset = newOffset;
     final stackValue =
-        _StackValue.WithOffset(keyOffset, ValueType.Key, BitWidth.width8);
+        _StackValue.withOffset(keyOffset, ValueType.Key, BitWidth.width8);
     _stack.add(stackValue);
     _keyCache[value] = stackValue;
   }
@@ -148,7 +148,7 @@ class Builder {
     _pushBuffer(value.asUint8List());
     _offset = newOffset;
     final stackValue =
-        _StackValue.WithOffset(blobOffset, ValueType.Blob, bitWidth);
+        _StackValue.withOffset(blobOffset, ValueType.Blob, bitWidth);
     _stack.add(stackValue);
   }
 
@@ -164,12 +164,12 @@ class Builder {
       _stack.add(_indirectIntCache[value]!);
       return;
     }
-    final stackValue = _StackValue.WithInt(value);
+    final stackValue = _StackValue.withInt(value);
     final byteWidth = _align(stackValue.width);
     final newOffset = _newOffset(byteWidth);
     final valueOffset = _offset;
     _pushBuffer(stackValue.asU8List(stackValue.width));
-    final stackOffset = _StackValue.WithOffset(
+    final stackOffset = _StackValue.withOffset(
         valueOffset, ValueType.IndirectInt, stackValue.width);
     _stack.add(stackOffset);
     _offset = newOffset;
@@ -189,12 +189,12 @@ class Builder {
       _stack.add(_indirectDoubleCache[value]!);
       return;
     }
-    final stackValue = _StackValue.WithDouble(value);
+    final stackValue = _StackValue.withDouble(value);
     final byteWidth = _align(stackValue.width);
     final newOffset = _newOffset(byteWidth);
     final valueOffset = _offset;
     _pushBuffer(stackValue.asU8List(stackValue.width));
-    final stackOffset = _StackValue.WithOffset(
+    final stackOffset = _StackValue.withOffset(
         valueOffset, ValueType.IndirectFloat, stackValue.width);
     _stack.add(stackOffset);
     _offset = newOffset;
@@ -346,14 +346,14 @@ class Builder {
       }
     }
     if (keys != null) {
-      return _StackValue.WithOffset(vecOffset, ValueType.Map, bitWidth);
+      return _StackValue.withOffset(vecOffset, ValueType.Map, bitWidth);
     }
     if (typed) {
       final vType =
           ValueTypeUtils.toTypedVector(vectorType, fix ? vecLength : 0);
-      return _StackValue.WithOffset(vecOffset, vType, bitWidth);
+      return _StackValue.withOffset(vecOffset, vType, bitWidth);
     }
-    return _StackValue.WithOffset(vecOffset, ValueType.Vector, bitWidth);
+    return _StackValue.withOffset(vecOffset, ValueType.Vector, bitWidth);
   }
 
   void _endVector(_StackPointer pointer) {
@@ -405,7 +405,7 @@ class Builder {
       offsets.add(_stack[i].offset!);
     }
     final keysHash = _KeysHash(offsets);
-    var keysStackValue;
+    _StackValue? keysStackValue;
     if (_keyVectorCache.containsKey(keysHash)) {
       keysStackValue = _keyVectorCache[keysHash];
     } else {
@@ -424,7 +424,7 @@ class Builder {
           'Stack values are not keys $v1 | $v2. Check if you combined [addKey] with add... method calls properly.');
     }
 
-    var c1, c2;
+    late int c1, c2;
     var index = 0;
     do {
       c1 = _buffer.getUint8(v1.offset! + index);
@@ -520,32 +520,32 @@ class Builder {
 class _StackValue {
   late Object _value;
   int? _offset;
-  ValueType _type;
-  BitWidth _width;
+  final ValueType _type;
+  final BitWidth _width;
 
-  _StackValue.WithNull()
+  _StackValue.withNull()
       : _type = ValueType.Null,
-        _width = BitWidth.width8 {}
+        _width = BitWidth.width8;
 
-  _StackValue.WithInt(int value)
+  _StackValue.withInt(int value)
       : _type = ValueType.Int,
         _width = BitWidthUtil.width(value),
-        _value = value {}
+        _value = value;
 
-  _StackValue.WithBool(bool value)
+  _StackValue.withBool(bool value)
       : _type = ValueType.Bool,
         _width = BitWidth.width8,
-        _value = value {}
+        _value = value;
 
-  _StackValue.WithDouble(double value)
+  _StackValue.withDouble(double value)
       : _type = ValueType.Float,
         _width = BitWidthUtil.width(value),
-        _value = value {}
+        _value = value;
 
-  _StackValue.WithOffset(int value, ValueType type, BitWidth width)
+  _StackValue.withOffset(int value, ValueType type, BitWidth width)
       : _offset = value,
         _type = type,
-        _width = width {}
+        _width = width;
 
   BitWidth storedWidth({BitWidth width = BitWidth.width8}) {
     return ValueTypeUtils.isInline(_type)

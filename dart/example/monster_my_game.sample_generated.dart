@@ -14,7 +14,7 @@ class Color {
   factory Color.fromValue(int value) {
     final result = values[value];
     if (result == null) {
-      throw new StateError('Invalid value $value for bit flag enum Color');
+      throw StateError('Invalid value $value for bit flag enum Color');
     }
     return result;
   }
@@ -26,15 +26,15 @@ class Color {
   static const int maxValue = 2;
   static bool containsValue(int value) => values.containsKey(value);
 
-  static const Color Red = const Color._(0);
-  static const Color Green = const Color._(1);
-  static const Color Blue = const Color._(2);
+  static const Color Red = Color._(0);
+  static const Color Green = Color._(1);
+  static const Color Blue = Color._(2);
   static const Map<int, Color> values = {
     0: Red,
     1: Green,
     2: Blue};
 
-  static const fb.Reader<Color> reader = const _ColorReader();
+  static const fb.Reader<Color> reader = _ColorReader();
 
   @override
   String toString() {
@@ -50,7 +50,7 @@ class _ColorReader extends fb.Reader<Color> {
 
   @override
   Color read(fb.BufferContext bc, int offset) =>
-      new Color.fromValue(const fb.Int8Reader().read(bc, offset));
+      Color.fromValue(const fb.Int8Reader().read(bc, offset));
 }
 
 class EquipmentTypeId {
@@ -60,7 +60,7 @@ class EquipmentTypeId {
   factory EquipmentTypeId.fromValue(int value) {
     final result = values[value];
     if (result == null) {
-      throw new StateError('Invalid value $value for bit flag enum EquipmentTypeId');
+      throw StateError('Invalid value $value for bit flag enum EquipmentTypeId');
     }
     return result;
   }
@@ -72,13 +72,13 @@ class EquipmentTypeId {
   static const int maxValue = 1;
   static bool containsValue(int value) => values.containsKey(value);
 
-  static const EquipmentTypeId NONE = const EquipmentTypeId._(0);
-  static const EquipmentTypeId Weapon = const EquipmentTypeId._(1);
+  static const EquipmentTypeId NONE = EquipmentTypeId._(0);
+  static const EquipmentTypeId Weapon = EquipmentTypeId._(1);
   static const Map<int, EquipmentTypeId> values = {
     0: NONE,
     1: Weapon};
 
-  static const fb.Reader<EquipmentTypeId> reader = const _EquipmentTypeIdReader();
+  static const fb.Reader<EquipmentTypeId> reader = _EquipmentTypeIdReader();
 
   @override
   String toString() {
@@ -94,13 +94,13 @@ class _EquipmentTypeIdReader extends fb.Reader<EquipmentTypeId> {
 
   @override
   EquipmentTypeId read(fb.BufferContext bc, int offset) =>
-      new EquipmentTypeId.fromValue(const fb.Uint8Reader().read(bc, offset));
+      EquipmentTypeId.fromValue(const fb.Uint8Reader().read(bc, offset));
 }
 
 class Vec3 {
   Vec3._(this._bc, this._bcOffset);
 
-  static const fb.Reader<Vec3> reader = const _Vec3Reader();
+  static const fb.Reader<Vec3> reader = _Vec3Reader();
 
   final fb.BufferContext _bc;
   final int _bcOffset;
@@ -123,11 +123,11 @@ class _Vec3Reader extends fb.StructReader<Vec3> {
 
   @override
   Vec3 createObject(fb.BufferContext bc, int offset) => 
-    new Vec3._(bc, offset);
+    Vec3._(bc, offset);
 }
 
 class Vec3Builder {
-  Vec3Builder(this.fbBuilder) {}
+  Vec3Builder(this.fbBuilder);
 
   final fb.Builder fbBuilder;
 
@@ -166,20 +166,19 @@ class Vec3ObjectBuilder extends fb.ObjectBuilder {
   /// Convenience method to serialize to byte list.
   @override
   Uint8List toBytes([String? fileIdentifier]) {
-    fb.Builder fbBuilder = new fb.Builder(deduplicateTables: false);
-    int offset = finish(fbBuilder);
-    fbBuilder.finish(offset, fileIdentifier);
+    final fbBuilder = fb.Builder(deduplicateTables: false);
+    fbBuilder.finish(finish(fbBuilder), fileIdentifier);
     return fbBuilder.buffer;
   }
 }
 class Monster {
   Monster._(this._bc, this._bcOffset);
   factory Monster(List<int> bytes) {
-    fb.BufferContext rootRef = new fb.BufferContext.fromBytes(bytes);
+    final rootRef = fb.BufferContext.fromBytes(bytes);
     return reader.read(rootRef, 0);
   }
 
-  static const fb.Reader<Monster> reader = const _MonsterReader();
+  static const fb.Reader<Monster> reader = _MonsterReader();
 
   final fb.BufferContext _bc;
   final int _bcOffset;
@@ -188,11 +187,11 @@ class Monster {
   int get mana => const fb.Int16Reader().vTableGet(_bc, _bcOffset, 6, 150);
   int get hp => const fb.Int16Reader().vTableGet(_bc, _bcOffset, 8, 100);
   String? get name => const fb.StringReader().vTableGetNullable(_bc, _bcOffset, 10);
-  List<int>? get inventory => const fb.ListReader<int>(const fb.Uint8Reader()).vTableGetNullable(_bc, _bcOffset, 14);
+  List<int>? get inventory => const fb.ListReader<int>(fb.Uint8Reader()).vTableGetNullable(_bc, _bcOffset, 14);
   Color get color => Color.fromValue(const fb.Int8Reader().vTableGet(_bc, _bcOffset, 16, 2));
   List<Weapon>? get weapons => const fb.ListReader<Weapon>(Weapon.reader).vTableGetNullable(_bc, _bcOffset, 18);
   EquipmentTypeId? get equippedType => EquipmentTypeId._createOrNull(const fb.Uint8Reader().vTableGetNullable(_bc, _bcOffset, 20));
-  dynamic? get equipped {
+  dynamic get equipped {
     switch (equippedType?.value) {
       case 1: return Weapon.reader.vTableGetNullable(_bc, _bcOffset, 22);
       default: return null;
@@ -211,11 +210,11 @@ class _MonsterReader extends fb.TableReader<Monster> {
 
   @override
   Monster createObject(fb.BufferContext bc, int offset) => 
-    new Monster._(bc, offset);
+    Monster._(bc, offset);
 }
 
 class MonsterBuilder {
-  MonsterBuilder(this.fbBuilder) {}
+  MonsterBuilder(this.fbBuilder);
 
   final fb.Builder fbBuilder;
 
@@ -278,7 +277,7 @@ class MonsterObjectBuilder extends fb.ObjectBuilder {
   final Color? _color;
   final List<WeaponObjectBuilder>? _weapons;
   final EquipmentTypeId? _equippedType;
-  final dynamic? _equipped;
+  final dynamic _equipped;
   final List<Vec3ObjectBuilder>? _path;
 
   MonsterObjectBuilder({
@@ -290,7 +289,7 @@ class MonsterObjectBuilder extends fb.ObjectBuilder {
     Color? color,
     List<WeaponObjectBuilder>? weapons,
     EquipmentTypeId? equippedType,
-    dynamic? equipped,
+    dynamic equipped,
     List<Vec3ObjectBuilder>? path,
   })
       : _pos = pos,
@@ -335,20 +334,19 @@ class MonsterObjectBuilder extends fb.ObjectBuilder {
   /// Convenience method to serialize to byte list.
   @override
   Uint8List toBytes([String? fileIdentifier]) {
-    fb.Builder fbBuilder = new fb.Builder(deduplicateTables: false);
-    int offset = finish(fbBuilder);
-    fbBuilder.finish(offset, fileIdentifier);
+    final fbBuilder = fb.Builder(deduplicateTables: false);
+    fbBuilder.finish(finish(fbBuilder), fileIdentifier);
     return fbBuilder.buffer;
   }
 }
 class Weapon {
   Weapon._(this._bc, this._bcOffset);
   factory Weapon(List<int> bytes) {
-    fb.BufferContext rootRef = new fb.BufferContext.fromBytes(bytes);
+    final rootRef = fb.BufferContext.fromBytes(bytes);
     return reader.read(rootRef, 0);
   }
 
-  static const fb.Reader<Weapon> reader = const _WeaponReader();
+  static const fb.Reader<Weapon> reader = _WeaponReader();
 
   final fb.BufferContext _bc;
   final int _bcOffset;
@@ -367,11 +365,11 @@ class _WeaponReader extends fb.TableReader<Weapon> {
 
   @override
   Weapon createObject(fb.BufferContext bc, int offset) => 
-    new Weapon._(bc, offset);
+    Weapon._(bc, offset);
 }
 
 class WeaponBuilder {
-  WeaponBuilder(this.fbBuilder) {}
+  WeaponBuilder(this.fbBuilder);
 
   final fb.Builder fbBuilder;
 
@@ -418,9 +416,8 @@ class WeaponObjectBuilder extends fb.ObjectBuilder {
   /// Convenience method to serialize to byte list.
   @override
   Uint8List toBytes([String? fileIdentifier]) {
-    fb.Builder fbBuilder = new fb.Builder(deduplicateTables: false);
-    int offset = finish(fbBuilder);
-    fbBuilder.finish(offset, fileIdentifier);
+    final fbBuilder = fb.Builder(deduplicateTables: false);
+    fbBuilder.finish(finish(fbBuilder), fileIdentifier);
     return fbBuilder.buffer;
   }
 }

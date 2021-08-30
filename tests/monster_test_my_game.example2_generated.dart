@@ -12,11 +12,11 @@ import './monster_test_my_game.example_generated.dart' as my_game_example;
 class Monster {
   Monster._(this._bc, this._bcOffset);
   factory Monster(List<int> bytes) {
-    fb.BufferContext rootRef = new fb.BufferContext.fromBytes(bytes);
+    final rootRef = fb.BufferContext.fromBytes(bytes);
     return reader.read(rootRef, 0);
   }
 
-  static const fb.Reader<Monster> reader = const _MonsterReader();
+  static const fb.Reader<Monster> reader = _MonsterReader();
 
   final fb.BufferContext _bc;
   final int _bcOffset;
@@ -52,7 +52,7 @@ class _MonsterReader extends fb.TableReader<Monster> {
 
   @override
   Monster createObject(fb.BufferContext bc, int offset) => 
-    new Monster._(bc, offset);
+    Monster._(bc, offset);
 }
 
 class MonsterObjectBuilder extends fb.ObjectBuilder {
@@ -69,9 +69,8 @@ class MonsterObjectBuilder extends fb.ObjectBuilder {
   /// Convenience method to serialize to byte list.
   @override
   Uint8List toBytes([String? fileIdentifier]) {
-    fb.Builder fbBuilder = new fb.Builder(deduplicateTables: false);
-    int offset = finish(fbBuilder);
-    fbBuilder.finish(offset, fileIdentifier);
+    final fbBuilder = fb.Builder(deduplicateTables: false);
+    fbBuilder.finish(finish(fbBuilder), fileIdentifier);
     return fbBuilder.buffer;
   }
 }

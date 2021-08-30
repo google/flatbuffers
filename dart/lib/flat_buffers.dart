@@ -22,7 +22,7 @@ const int _sizeofFloat64 = 8;
 ///
 /// This callback is used by other struct's `finish` methods to write the nested
 /// struct's fields inline.
-typedef void StructBuilder();
+typedef StructBuilder = void Function();
 
 /// Buffer with data and some context about it.
 class BufferContext {
@@ -143,7 +143,7 @@ class Builder {
   /// true, will cause [writeString] to pool strings in the buffer so that
   /// identical strings will always use the same offset in tables.
   Builder({
-    this.initialSize: 1024,
+    this.initialSize = 1024,
     bool internStrings = false,
     Allocator allocator = const DefaultAllocator(),
     this.deduplicateTables = true,
@@ -155,8 +155,7 @@ class Builder {
     }
   }
 
-  /// Calculate the finished buffer size (aligned).
-  @pragma('vm:prefer-inline')
+  /// Calculate the finished buffer size (aligned).@pragma('vm:prefer-inline')
   int size() => _tail + ((-_tail) & (_maxAlign - 1));
 
   /// Add the [field] with the given boolean [value].  The field is not added if
@@ -750,7 +749,9 @@ class Builder {
   /// Zero-pads the buffer, which may be required for some struct layouts.
   @pragma('vm:prefer-inline')
   void pad(int howManyBytes) {
-    for (int i = 0; i < howManyBytes; i++) putUint8(0);
+    for (int i = 0; i < howManyBytes; i++) {
+      putUint8(0);
+    }
   }
 
   /// Prepare for writing the given `count` of scalars of the given `size`.
@@ -875,7 +876,7 @@ class Float64ListReader extends Reader<List<double>> {
   @override
   @pragma('vm:prefer-inline')
   List<double> read(BufferContext bc, int offset) =>
-      new _FbFloat64List(bc, bc.derefObject(offset));
+      _FbFloat64List(bc, bc.derefObject(offset));
 }
 
 class Float32ListReader extends Reader<List<double>> {
@@ -888,7 +889,7 @@ class Float32ListReader extends Reader<List<double>> {
   @override
   @pragma('vm:prefer-inline')
   List<double> read(BufferContext bc, int offset) =>
-      new _FbFloat32List(bc, bc.derefObject(offset));
+      _FbFloat32List(bc, bc.derefObject(offset));
 }
 
 class Float64Reader extends Reader<double> {
@@ -1034,6 +1035,7 @@ abstract class Reader<T> {
 /// The reader of string values.
 class StringReader extends Reader<String> {
   final bool asciiOptimization;
+
   const StringReader({this.asciiOptimization = false}) : super();
 
   @override
@@ -1071,8 +1073,9 @@ abstract class StructReader<T> extends Reader<T> {
   /// Return the object at `offset`.
   T createObject(BufferContext bc, int offset);
 
-  T read(BufferContext bp, int offset) {
-    return createObject(bp, offset);
+  @override
+  T read(BufferContext bc, int offset) {
+    return createObject(bc, offset);
   }
 }
 
@@ -1088,9 +1091,9 @@ abstract class TableReader<T> extends Reader<T> {
   T createObject(BufferContext bc, int offset);
 
   @override
-  T read(BufferContext bp, int offset) {
-    int objectOffset = bp.derefObject(offset);
-    return createObject(bp, objectOffset);
+  T read(BufferContext bc, int offset) {
+    int objectOffset = bc.derefObject(offset);
+    return createObject(bc, objectOffset);
   }
 }
 
@@ -1249,12 +1252,11 @@ abstract class _FbList<E> extends Object with ListMixin<E> implements List<E> {
   int get length => _length ??= bc._getUint32(offset);
 
   @override
-  void set length(int i) =>
-      throw new StateError('Attempt to modify immutable list');
+  set length(int i) => throw StateError('Attempt to modify immutable list');
 
   @override
   void operator []=(int i, E e) =>
-      throw new StateError('Attempt to modify immutable list');
+      throw StateError('Attempt to modify immutable list');
 }
 
 /// List backed by 32-bit unsigned integers.
@@ -1416,7 +1418,7 @@ class DefaultAllocator extends Allocator {
   ByteData allocate(int size) => ByteData(size);
 
   @override
-  void deallocate(ByteData _) {
+  void deallocate(ByteData data) {
     // nothing to do, it's garbage-collected
   }
 }

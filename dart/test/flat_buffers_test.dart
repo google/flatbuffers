@@ -30,12 +30,12 @@ int indexToField(int index) {
 @reflectiveTest
 class CheckOtherLangaugesData {
   test_cppData() async {
-    List<int> data = await new io.File(path.join(
+    List<int> data = await io.File(path.join(
       path.context.current,
       'test',
       'monsterdata_test.mon',
     )).readAsBytes();
-    example.Monster mon = new example.Monster(data);
+    example.Monster mon = example.Monster(data);
     expect(mon.hp, 80);
     expect(mon.mana, 150);
     expect(mon.name, 'MyMonster');
@@ -156,7 +156,7 @@ class CustomAllocator extends Allocator {
 @reflectiveTest
 class BuilderTest {
   void test_monsterBuilder([Builder? builder]) {
-    final fbBuilder = builder ?? new Builder();
+    final fbBuilder = builder ?? Builder();
     final str = fbBuilder.writeString('MyMonster');
 
     fbBuilder.writeString('test1');
@@ -168,12 +168,12 @@ class BuilderTest {
     final List<int> treasure = [0, 1, 2, 3, 4];
     final inventory = fbBuilder.writeListUint8(treasure);
 
-    final monBuilder = new example.MonsterBuilder(fbBuilder)
+    final monBuilder = example.MonsterBuilder(fbBuilder)
       ..begin()
       ..addNameOffset(fred);
     final mon2 = monBuilder.finish();
 
-    final testBuilder = new example.TestBuilder(fbBuilder);
+    final testBuilder = example.TestBuilder(fbBuilder);
     testBuilder.finish(10, 20);
     testBuilder.finish(30, 40);
     final test4 = fbBuilder.endStructVector(2);
@@ -181,7 +181,7 @@ class BuilderTest {
     monBuilder
       ..begin()
       ..addPos(
-        new example.Vec3Builder(fbBuilder).finish(
+        example.Vec3Builder(fbBuilder).finish(
           1.0,
           2.0,
           3.0,
@@ -202,28 +202,28 @@ class BuilderTest {
   }
 
   void test_error_addInt32_withoutStartTable([Builder? builder]) {
-    builder ??= new Builder();
+    builder ??= Builder();
     expect(() {
       builder!.addInt32(0, 0);
     }, throwsA(isA<AssertionError>()));
   }
 
   void test_error_addOffset_withoutStartTable() {
-    Builder builder = new Builder();
+    Builder builder = Builder();
     expect(() {
       builder.addOffset(0, 0);
     }, throwsA(isA<AssertionError>()));
   }
 
   void test_error_endTable_withoutStartTable() {
-    Builder builder = new Builder();
+    Builder builder = Builder();
     expect(() {
       builder.endTable();
     }, throwsA(isA<AssertionError>()));
   }
 
   void test_error_startTable_duringTable() {
-    Builder builder = new Builder();
+    Builder builder = Builder();
     builder.startTable(0);
     expect(() {
       builder.startTable(0);
@@ -231,7 +231,7 @@ class BuilderTest {
   }
 
   void test_error_writeString_duringTable() {
-    Builder builder = new Builder();
+    Builder builder = Builder();
     builder.startTable(1);
     expect(() {
       builder.writeString('12345');
@@ -241,7 +241,7 @@ class BuilderTest {
   void test_file_identifier() {
     Uint8List byteList;
     {
-      Builder builder = new Builder(initialSize: 0);
+      Builder builder = Builder(initialSize: 0);
       builder.startTable(0);
       int offset = builder.endTable();
       builder.finish(offset, 'Az~ÿ');
@@ -307,7 +307,7 @@ class BuilderTest {
       expect(builder.size(), byteList.length);
     }
     // read and verify
-    BufferContext buffer = new BufferContext.fromBytes(byteList);
+    BufferContext buffer = BufferContext.fromBytes(byteList);
     int objectOffset = buffer.derefObject(0);
     // was not written, so uses the new default value
     expect(
@@ -324,7 +324,7 @@ class BuilderTest {
   void test_table_format([Builder? builder]) {
     Uint8List byteList;
     {
-      builder ??= new Builder(initialSize: 0);
+      builder ??= Builder(initialSize: 0);
       builder.startTable(3);
       builder.addInt32(0, 10);
       builder.addInt32(1, 20);
@@ -359,7 +359,7 @@ class BuilderTest {
     String unicodeString = 'Проба пера';
     List<int> byteList;
     {
-      Builder builder = new Builder(initialSize: 0);
+      Builder builder = Builder(initialSize: 0);
       int? latinStringOffset =
           builder.writeString(latinString, asciiOptimization: true);
       int? unicodeStringOffset =
@@ -372,7 +372,7 @@ class BuilderTest {
       byteList = builder.buffer;
     }
     // read and verify
-    BufferContext buf = new BufferContext.fromBytes(byteList);
+    BufferContext buf = BufferContext.fromBytes(byteList);
     int objectOffset = buf.derefObject(0);
     expect(
         const StringReader()
@@ -387,7 +387,7 @@ class BuilderTest {
   void test_table_types([Builder? builder]) {
     List<int> byteList;
     {
-      builder ??= new Builder(initialSize: 0);
+      builder ??= Builder(initialSize: 0);
       int? stringOffset = builder.writeString('12345');
       builder.startTable(7);
       builder.addBool(0, true);
@@ -402,7 +402,7 @@ class BuilderTest {
       byteList = builder.buffer;
     }
     // read and verify
-    BufferContext buf = new BufferContext.fromBytes(byteList);
+    BufferContext buf = BufferContext.fromBytes(byteList);
     int objectOffset = buf.derefObject(0);
     expect(
         const BoolReader()
@@ -439,13 +439,13 @@ class BuilderTest {
     // write
     List<int> byteList;
     {
-      Builder builder = new Builder(initialSize: 0);
+      Builder builder = Builder(initialSize: 0);
       int offset = builder.writeListUint32(values);
       builder.finish(offset);
       byteList = builder.buffer;
     }
     // read and verify
-    BufferContext buf = new BufferContext.fromBytes(byteList);
+    BufferContext buf = BufferContext.fromBytes(byteList);
     List<int> items = const Uint32ListReader().read(buf, 0);
     expect(items, hasLength(4));
     expect(items, orderedEquals(values));
@@ -456,8 +456,8 @@ class BuilderTest {
       // write
       List<int> byteList;
       {
-        Builder builder = new Builder(initialSize: 0);
-        List<bool> values = new List<bool>.filled(len, false);
+        Builder builder = Builder(initialSize: 0);
+        List<bool> values = List<bool>.filled(len, false);
         for (int bit in trueBits) {
           values[bit] = true;
         }
@@ -466,7 +466,7 @@ class BuilderTest {
         byteList = builder.buffer;
       }
       // read and verify
-      BufferContext buf = new BufferContext.fromBytes(byteList);
+      BufferContext buf = BufferContext.fromBytes(byteList);
       List<bool> items = const BoolListReader().read(buf, 0);
       expect(items, hasLength(len));
       for (int i = 0; i < items.length; i++) {
@@ -485,26 +485,26 @@ class BuilderTest {
     verifyListBooleans(33, <int>[1, 2, 24, 25, 31, 32]);
     verifyListBooleans(63, <int>[]);
     verifyListBooleans(63, <int>[0, 1, 2, 61, 62]);
-    verifyListBooleans(63, new List<int>.generate(63, (i) => i));
+    verifyListBooleans(63, List<int>.generate(63, (i) => i));
     verifyListBooleans(64, <int>[]);
     verifyListBooleans(64, <int>[0, 1, 2, 61, 62, 63]);
     verifyListBooleans(64, <int>[1, 2, 62]);
     verifyListBooleans(64, <int>[0, 1, 2, 63]);
-    verifyListBooleans(64, new List<int>.generate(64, (i) => i));
+    verifyListBooleans(64, List<int>.generate(64, (i) => i));
     verifyListBooleans(100, <int>[0, 3, 30, 60, 90, 99]);
   }
 
   void test_writeList_ofInt32() {
     List<int> byteList;
     {
-      Builder builder = new Builder(initialSize: 0);
+      Builder builder = Builder(initialSize: 0);
       int offset = builder.writeListInt32(<int>[1, 2, 3, 4, 5]);
       builder.finish(offset);
       byteList = builder.buffer;
     }
     // read and verify
-    BufferContext buf = new BufferContext.fromBytes(byteList);
-    List<int> items = const ListReader<int>(const Int32Reader()).read(buf, 0);
+    BufferContext buf = BufferContext.fromBytes(byteList);
+    List<int> items = const ListReader<int>(Int32Reader()).read(buf, 0);
     expect(items, hasLength(5));
     expect(items, orderedEquals(<int>[1, 2, 3, 4, 5]));
   }
@@ -514,14 +514,14 @@ class BuilderTest {
     // write
     List<int> byteList;
     {
-      Builder builder = new Builder(initialSize: 0);
+      Builder builder = Builder(initialSize: 0);
       int offset = builder.writeListFloat64(values);
       builder.finish(offset);
       byteList = builder.buffer;
     }
 
     // read and verify
-    BufferContext buf = new BufferContext.fromBytes(byteList);
+    BufferContext buf = BufferContext.fromBytes(byteList);
     List<double> items = const Float64ListReader().read(buf, 0);
 
     expect(items, hasLength(values.length));
@@ -535,13 +535,13 @@ class BuilderTest {
     // write
     List<int> byteList;
     {
-      Builder builder = new Builder(initialSize: 0);
+      Builder builder = Builder(initialSize: 0);
       int offset = builder.writeListFloat32(values);
       builder.finish(offset);
       byteList = builder.buffer;
     }
     // read and verify
-    BufferContext buf = new BufferContext.fromBytes(byteList);
+    BufferContext buf = BufferContext.fromBytes(byteList);
     List<double> items = const Float32ListReader().read(buf, 0);
     expect(items, hasLength(5));
     for (int i = 0; i < values.length; i++) {
@@ -552,7 +552,7 @@ class BuilderTest {
   void test_writeList_ofObjects([Builder? builder]) {
     List<int> byteList;
     {
-      builder ??= new Builder(initialSize: 0);
+      builder ??= Builder(initialSize: 0);
       // write the object #1
       int object1;
       {
@@ -575,9 +575,9 @@ class BuilderTest {
       byteList = builder.buffer;
     }
     // read and verify
-    BufferContext buf = new BufferContext.fromBytes(byteList);
+    BufferContext buf = BufferContext.fromBytes(byteList);
     List<TestPointImpl> items =
-        const ListReader<TestPointImpl>(const TestPointReader()).read(buf, 0);
+        const ListReader<TestPointImpl>(TestPointReader()).read(buf, 0);
     expect(items, hasLength(2));
     expect(items[0].x, 10);
     expect(items[0].y, 20);
@@ -588,7 +588,7 @@ class BuilderTest {
   void test_writeList_ofStrings_asRoot() {
     List<int> byteList;
     {
-      Builder builder = new Builder(initialSize: 0);
+      Builder builder = Builder(initialSize: 0);
       int? str1 = builder.writeString('12345');
       int? str2 = builder.writeString('ABC');
       int offset = builder.writeList([str1, str2]);
@@ -596,9 +596,8 @@ class BuilderTest {
       byteList = builder.buffer;
     }
     // read and verify
-    BufferContext buf = new BufferContext.fromBytes(byteList);
-    List<String> items =
-        const ListReader<String>(const StringReader()).read(buf, 0);
+    BufferContext buf = BufferContext.fromBytes(byteList);
+    List<String> items = const ListReader<String>(StringReader()).read(buf, 0);
     expect(items, hasLength(2));
     expect(items, contains('12345'));
     expect(items, contains('ABC'));
@@ -607,7 +606,7 @@ class BuilderTest {
   void test_writeList_ofStrings_inObject([Builder? builder]) {
     List<int> byteList;
     {
-      builder ??= new Builder(initialSize: 0);
+      builder ??= Builder(initialSize: 0);
       int listOffset = builder.writeList(
           [builder.writeString('12345'), builder.writeString('ABC')]);
       builder.startTable(1);
@@ -617,8 +616,8 @@ class BuilderTest {
       byteList = builder.buffer;
     }
     // read and verify
-    BufferContext buf = new BufferContext.fromBytes(byteList);
-    StringListWrapperImpl reader = new StringListWrapperReader().read(buf, 0);
+    BufferContext buf = BufferContext.fromBytes(byteList);
+    StringListWrapperImpl reader = StringListWrapperReader().read(buf, 0);
     List<String>? items = reader.items;
     expect(items, hasLength(2));
     expect(items, contains('12345'));
@@ -628,13 +627,13 @@ class BuilderTest {
   void test_writeList_ofUint32() {
     List<int> byteList;
     {
-      Builder builder = new Builder(initialSize: 0);
+      Builder builder = Builder(initialSize: 0);
       int offset = builder.writeListUint32(<int>[1, 2, 0x9ABCDEF0]);
       builder.finish(offset);
       byteList = builder.buffer;
     }
     // read and verify
-    BufferContext buf = new BufferContext.fromBytes(byteList);
+    BufferContext buf = BufferContext.fromBytes(byteList);
     List<int> items = const Uint32ListReader().read(buf, 0);
     expect(items, hasLength(3));
     expect(items, orderedEquals(<int>[1, 2, 0x9ABCDEF0]));
@@ -643,13 +642,13 @@ class BuilderTest {
   void test_writeList_ofUint16() {
     List<int> byteList;
     {
-      Builder builder = new Builder(initialSize: 0);
+      Builder builder = Builder(initialSize: 0);
       int offset = builder.writeListUint16(<int>[1, 2, 60000]);
       builder.finish(offset);
       byteList = builder.buffer;
     }
     // read and verify
-    BufferContext buf = new BufferContext.fromBytes(byteList);
+    BufferContext buf = BufferContext.fromBytes(byteList);
     List<int> items = const Uint16ListReader().read(buf, 0);
     expect(items, hasLength(3));
     expect(items, orderedEquals(<int>[1, 2, 60000]));
@@ -658,13 +657,13 @@ class BuilderTest {
   void test_writeList_ofUint8() {
     List<int> byteList;
     {
-      Builder builder = new Builder(initialSize: 0);
+      Builder builder = Builder(initialSize: 0);
       int offset = builder.writeListUint8(<int>[1, 2, 3, 4, 0x9A]);
       builder.finish(offset);
       byteList = builder.buffer;
     }
     // read and verify
-    BufferContext buf = new BufferContext.fromBytes(byteList);
+    BufferContext buf = BufferContext.fromBytes(byteList);
     List<int> items = const Uint8ListReader().read(buf, 0);
     expect(items, hasLength(5));
     expect(items, orderedEquals(<int>[1, 2, 3, 4, 0x9A]));
@@ -687,22 +686,22 @@ class BuilderTest {
         _permutationsOf(List.generate(testCases.length, (index) => index));
     expect(testCasesPermutations.length, _factorial(testCases.length));
 
-    testCasesPermutations.forEach((List<int> indexes) {
+    for (var indexes in testCasesPermutations) {
       // print the order so failures are reproducible
       printOnFailure('Running reset() test cases in order: $indexes');
 
       Builder? builder;
-      indexes.forEach((index) {
+      for (var index in indexes) {
         if (builder == null) {
           // Initial size small enough so at least one test case increases it.
           // On the other hand, it's large enough so that some test cases don't.
           builder = Builder(initialSize: 32);
         } else {
-          builder!.reset();
+          builder.reset();
         }
         testCases[index](builder);
-      });
-    });
+      }
+    }
   }
 
   // Generate permutations of the given list
@@ -731,7 +730,9 @@ class BuilderTest {
   // a very simple implementation of n!
   int _factorial(int n) {
     var result = 1;
-    for (var i = 2; i <= n; i++) result *= i;
+    for (var i = 2; i <= n; i++) {
+      result *= i;
+    }
     return result;
   }
 }
@@ -836,7 +837,7 @@ class StringListWrapperImpl {
 
   StringListWrapperImpl(this.bp, this.offset);
 
-  List<String>? get items => const ListReader<String>(const StringReader())
+  List<String>? get items => const ListReader<String>(StringReader())
       .vTableGetNullable(bp, offset, indexToField(0));
 }
 
@@ -845,7 +846,7 @@ class StringListWrapperReader extends TableReader<StringListWrapperImpl> {
 
   @override
   StringListWrapperImpl createObject(BufferContext object, int offset) {
-    return new StringListWrapperImpl(object, offset);
+    return StringListWrapperImpl(object, offset);
   }
 }
 
@@ -865,7 +866,7 @@ class TestPointReader extends TableReader<TestPointImpl> {
 
   @override
   TestPointImpl createObject(BufferContext object, int offset) {
-    return new TestPointImpl(object, offset);
+    return TestPointImpl(object, offset);
   }
 }
 

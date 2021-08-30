@@ -233,8 +233,7 @@ class DartGenerator : public BaseGenerator {
     code += "  factory " + name + ".fromValue(int value) {\n";
     code += "    final result = values[value];\n";
     code += "    if (result == null) {\n";
-    code +=
-        "      throw new StateError('Invalid value $value for bit flag enum ";
+    code += "      throw StateError('Invalid value $value for bit flag enum ";
     code += name + "');\n";
     code += "    }\n";
 
@@ -265,8 +264,8 @@ class DartGenerator : public BaseGenerator {
         if (it != enum_def.Vals().begin()) { code += '\n'; }
         GenDocComment(ev.doc_comment, &code, "", "  ");
       }
-      code += "  static const " + name + " " + ev.name + " = ";
-      code += "const " + name + "._(" + enum_def.ToString(ev) + ");\n";
+      code += "  static const " + name + " " + ev.name + " = " + name + "._(" +
+              enum_def.ToString(ev) + ");\n";
     }
 
     code += "  static const Map<int, " + name + "> values = {\n";
@@ -277,8 +276,8 @@ class DartGenerator : public BaseGenerator {
     }
     code += "};\n\n";
 
-    code += "  static const " + _kFb + ".Reader<" + name +
-            "> reader = const _" + name + "Reader();\n\n";
+    code += "  static const " + _kFb + ".Reader<" + name + "> reader = _" +
+            name + "Reader();\n\n";
     code += "  @override\n";
     code += "  String toString() {\n";
     code += "    return '" + name + "{value: $value}';\n";
@@ -301,7 +300,7 @@ class DartGenerator : public BaseGenerator {
     code += "  @override\n";
     code +=
         "  " + name + " read(" + _kFb + ".BufferContext bc, int offset) =>\n";
-    code += "      new " + name + ".fromValue(const " + _kFb + "." +
+    code += "      " + name + ".fromValue(const " + _kFb + "." +
             GenType(enum_def.underlying_type) + "Reader().read(bc, offset));\n";
     code += "}\n\n";
   }
@@ -330,24 +329,25 @@ class DartGenerator : public BaseGenerator {
 
   std::string GenReaderTypeName(const Type &type, Namespace *current_namespace,
                                 const FieldDef &def,
-                                bool parent_is_vector = false,
-                                bool lazy = true) {
+                                bool parent_is_vector = false, bool lazy = true,
+                                bool constConstruct = true) {
+    std::string prefix = (constConstruct ? "const " : "") + _kFb;
     if (type.base_type == BASE_TYPE_BOOL) {
-      return "const " + _kFb + ".BoolReader()";
+      return prefix + ".BoolReader()";
     } else if (IsVector(type)) {
-      return "const " + _kFb + ".ListReader<" +
+      return prefix + ".ListReader<" +
              GenDartTypeName(type.VectorType(), current_namespace, def) + ">(" +
-             GenReaderTypeName(type.VectorType(), current_namespace, def,
-                               true) +
+             GenReaderTypeName(type.VectorType(), current_namespace, def, true,
+                               true, false) +
              (lazy ? ")" : ", lazy: false)");
     } else if (IsString(type)) {
-      return "const " + _kFb + ".StringReader()";
+      return prefix + ".StringReader()";
     }
     if (IsScalar(type.base_type)) {
       if (type.enum_def && parent_is_vector) {
         return GenDartTypeName(type, current_namespace, def) + ".reader";
       }
-      return "const " + _kFb + "." + GenType(type) + "Reader()";
+      return prefix + "." + GenType(type) + "Reader()";
     } else {
       return GenDartTypeName(type, current_namespace, def) + ".reader";
     }
@@ -389,6 +389,15 @@ class DartGenerator : public BaseGenerator {
                ">";
       default: assert(0); return "dynamic";
     }
+  }
+
+  std::string GenDartTypeName(const Type &type, Namespace *current_namespace,
+                              const FieldDef &def, bool nullable,
+                              std::string struct_type_suffix) {
+    std::string typeName =
+        GenDartTypeName(type, current_namespace, def, struct_type_suffix);
+    if (nullable && typeName != "dynamic") typeName += "?";
+    return typeName;
   }
 
   static const std::string MaybeWrapNamespace(const std::string &type_name,
@@ -436,15 +445,15 @@ class DartGenerator : public BaseGenerator {
     code += "  " + object_name + "._(this._bc, this._bcOffset);\n";
     if (!struct_def.fixed) {
       code += "  factory " + object_name + "(List<int> bytes) {\n";
-      code += "    " + _kFb + ".BufferContext rootRef = new " + _kFb +
-              ".BufferContext.fromBytes(bytes);\n";
+      code +=
+          "    final rootRef = " + _kFb + ".BufferContext.fromBytes(bytes);\n";
       code += "    return reader.read(rootRef, 0);\n";
       code += "  }\n";
     }
 
     code += "\n";
     code += "  static const " + _kFb + ".Reader<" + object_name +
-            "> reader = const " + reader_name + "();\n\n";
+            "> reader = " + reader_name + "();\n\n";
 
     code += "  final " + _kFb + ".BufferContext _bc;\n";
     code += "  final int _bcOffset;\n\n";
@@ -504,14 +513,13 @@ class DartGenerator : public BaseGenerator {
       const FieldDef &field = *it->second;
 
       std::string field_name = MakeCamel(field.name, false);
-      std::string type_name = GenDartTypeName(
-          field.value.type, struct_def.defined_namespace, field, "T");
-
       std::string defaultValue = getDefaultValue(field.value);
-      bool isNullable = defaultValue.empty() && !struct_def.fixed;
+      std::string type_name =
+          GenDartTypeName(field.value.type, struct_def.defined_namespace, field,
+                          defaultValue.empty() && !struct_def.fixed, "T");
 
       GenDocComment(field.doc_comment, &code, "", "  ");
-      code += "  " + type_name + (isNullable ? "? " : " ") + field_name + ";\n";
+      code += "  " + type_name + " " + field_name + ";\n";
 
       if (!constructor_args.empty()) constructor_args += ",\n";
       constructor_args += "      ";
@@ -648,15 +656,15 @@ class DartGenerator : public BaseGenerator {
       auto &field = *pair.second;
 
       std::string field_name = MakeCamel(field.name, false);
-      std::string type_name = GenDartTypeName(
-          field.value.type, struct_def.defined_namespace, field);
-
-      GenDocComment(field.doc_comment, &code, "", "  ");
       std::string defaultValue = getDefaultValue(field.value);
       bool isNullable = defaultValue.empty() && !struct_def.fixed;
+      std::string type_name =
+          GenDartTypeName(field.value.type, struct_def.defined_namespace, field,
+                          isNullable, "");
 
-      code += "  " + type_name + (isNullable ? "?" : "");
-      code += " get " + field_name;
+      GenDocComment(field.doc_comment, &code, "", "  ");
+
+      code += "  " + type_name + " get " + field_name;
       if (field.value.type.base_type == BASE_TYPE_UNION) {
         code += " {\n";
         code += "    switch (" + field_name + "Type?.value) {\n";
@@ -773,7 +781,7 @@ class DartGenerator : public BaseGenerator {
     }
     code += "  @override\n";
     code += "  " + impl_name +
-            " createObject(fb.BufferContext bc, int offset) => \n    new " +
+            " createObject(fb.BufferContext bc, int offset) => \n    " +
             impl_name + "._(bc, offset);\n";
     code += "}\n\n";
   }
@@ -786,7 +794,7 @@ class DartGenerator : public BaseGenerator {
     auto &builder_name = *builder_name_ptr;
 
     code += "class " + builder_name + " {\n";
-    code += "  " + builder_name + "(this.fbBuilder) {}\n\n";
+    code += "  " + builder_name + "(this.fbBuilder);\n\n";
     code += "  final " + _kFb + ".Builder fbBuilder;\n\n";
 
     if (struct_def.fixed) {
@@ -904,9 +912,8 @@ class DartGenerator : public BaseGenerator {
 
       code += "  final " +
               GenDartTypeName(field.value.type, struct_def.defined_namespace,
-                              field, "ObjectBuilder") +
-              (struct_def.fixed ? "" : "?") + " _" +
-              MakeCamel(field.name, false) + ";\n";
+                              field, !struct_def.fixed, "ObjectBuilder") +
+              " _" + MakeCamel(field.name, false) + ";\n";
     }
     code += "\n";
     code += "  " + builder_name + "(";
@@ -921,9 +928,8 @@ class DartGenerator : public BaseGenerator {
         code += "    ";
         code += (struct_def.fixed ? "required " : "") +
                 GenDartTypeName(field.value.type, struct_def.defined_namespace,
-                                field, "ObjectBuilder") +
-                (struct_def.fixed ? "" : "?") + " " +
-                MakeCamel(field.name, false) + ",\n";
+                                field, !struct_def.fixed, "ObjectBuilder") +
+                " " + MakeCamel(field.name, false) + ",\n";
       }
       code += "  })\n";
       code += "      : ";
@@ -953,10 +959,9 @@ class DartGenerator : public BaseGenerator {
     code += "  /// Convenience method to serialize to byte list.\n";
     code += "  @override\n";
     code += "  Uint8List toBytes([String? fileIdentifier]) {\n";
-    code += "    " + _kFb + ".Builder fbBuilder = new ";
-    code += _kFb + ".Builder(deduplicateTables: false);\n";
-    code += "    int offset = finish(fbBuilder);\n";
-    code += "    fbBuilder.finish(offset, fileIdentifier);\n";
+    code += "    final fbBuilder = " + _kFb +
+            ".Builder(deduplicateTables: false);\n";
+    code += "    fbBuilder.finish(finish(fbBuilder), fileIdentifier);\n";
     code += "    return fbBuilder.buffer;\n";
     code += "  }\n";
     code += "}\n";
@@ -982,10 +987,10 @@ class DartGenerator : public BaseGenerator {
       if (pack && IsVector(field.value.type) &&
           field.value.type.VectorType().base_type == BASE_TYPE_STRUCT &&
           field.value.type.struct_def->fixed) {
-        code += "    int? " + offset_name + " = null;\n";
+        code += "    int? " + offset_name + ";\n";
         code += "    if (" + field_name + " != null) {\n";
         code +=
-            "      " + field_name + "!.forEach((e) => e.pack(fbBuilder));\n";
+            "      for (var e in " + field_name + "!) { e.pack(fbBuilder); }\n";
         code += "      " + MakeCamel(field.name, false) +
                 "Offset = fbBuilder.endStructVector(" + field_name +
                 "!.length);\n";

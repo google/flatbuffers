@@ -47,7 +47,7 @@ class BitWidthUtil {
     if (value == 8) {
       return BitWidth.width64;
     }
-    throw Exception('Unexpected value ${value}');
+    throw Exception('Unexpected value $value');
   }
 
   static int paddingSize(int bufSize, int scalarSize) {
