@@ -67,10 +67,11 @@ class JavaGenerator : public BaseGenerator {
   const JavaOptions opts_;
 
  public:
-  JavaGenerator(const Parser &parser, const std::string &path,
+  JavaGenerator(const Parser &parser, const IDLOptions &opts,
+                const std::string &path,
                 const std::string &file_name)
       : BaseGenerator(parser, path, file_name, "", ".", "java"),
-        opts_(JavaOptions(parser.opts)),
+        opts_(opts),
         cur_name_space_(nullptr) {}
 
   JavaGenerator &operator=(const JavaGenerator &);
@@ -2151,7 +2152,7 @@ class JavaGenerator : public BaseGenerator {
 bool GenerateJava(const Parser &parser, const IDLOptions &options,
                   const std::string &path, const std::string &file_name) {
   (void)options;  // unused.
-  java::JavaGenerator generator(parser, path, file_name);
+  java::JavaGenerator generator(parser, options, path, file_name);
   return generator.generate();
 }
 

@@ -149,10 +149,10 @@ class JsonSchemaGenerator : public BaseGenerator {
   const JsonSchemaOptions opts_;
 
  public:
-  JsonSchemaGenerator(const Parser &parser, const std::string &path,
+  JsonSchemaGenerator(const Parser &parser, const IDLOptions &opts, const std::string &path,
                       const std::string &file_name)
       : BaseGenerator(parser, path, file_name, "", "", "json"),
-        opts_(parser_.opts) {}
+        opts_(opts) {}
 
   // If indentation is less than 0, that indicates we don't want any newlines
   // either.
@@ -307,16 +307,14 @@ class JsonSchemaGenerator : public BaseGenerator {
 
 bool GenerateJsonSchema(const Parser &parser, const IDLOptions &options,
                         const std::string &path, const std::string &file_name) {
-  (void)options;  // unused.
-  jsons::JsonSchemaGenerator generator(parser, path, file_name);
+  jsons::JsonSchemaGenerator generator(parser, options, path, file_name);
   if (!generator.generate()) { return false; }
   return generator.save();
 }
 
 bool GenerateJsonSchema(const Parser &parser, const IDLOptions &options,
                         std::string *json) {
-  (void)options;  // unused.
-  jsons::JsonSchemaGenerator generator(parser, "", "");
+  jsons::JsonSchemaGenerator generator(parser, options, "", "");
   if (!generator.generate()) { return false; }
   *json = generator.getJson();
   return true;

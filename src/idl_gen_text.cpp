@@ -340,8 +340,8 @@ struct JsonPrinter {
     return true;
   }
 
-  JsonPrinter(const Parser &parser, std::string &dest)
-      : opts(parser.opts), text(dest) {
+  JsonPrinter(const Parser &parser, const IDLOptions &opts, std::string &dest)
+      : opts(opts), text(dest) {
     text.reserve(1024);  // Reduce amount of inevitable reallocs.
   }
 
@@ -349,10 +349,10 @@ struct JsonPrinter {
   std::string &text;
 };
 
-static bool GenerateTextImpl(const Parser &parser,
+static bool GenerateTextImpl(const Parser &parser, const IDLOptions &opts,
                              const Table *table, const StructDef &struct_def,
                              std::string *_text) {
-  JsonPrinter printer(parser, *_text);
+  JsonPrinter printer(parser, opts, *_text);
   if (!printer.GenStruct(struct_def, table, 0)) { return false; }
   printer.AddNewLine();
   return true;
@@ -362,11 +362,10 @@ static bool GenerateTextImpl(const Parser &parser,
 bool GenerateTextFromTable(const Parser &parser, const IDLOptions &options,
                            const void *table, const std::string &table_name,
                            std::string *_text) {
-  (void)options;  // unused.
   auto struct_def = parser.LookupStruct(table_name);
   if (struct_def == nullptr) { return false; }
   auto root = static_cast<const Table *>(table);
-  return GenerateTextImpl(parser, root, *struct_def, _text);
+  return GenerateTextImpl(parser, options, root, *struct_def, _text);
 }
 
 // Generate a text representation of a flatbuffer in JSON format.
@@ -375,7 +374,7 @@ bool GenerateText(const Parser &parser, const IDLOptions &options,
   FLATBUFFERS_ASSERT(parser.root_struct_def_);  // call SetRootType()
   auto root = options.size_prefixed ? GetSizePrefixedRoot<Table>(flatbuffer)
                                     : GetRoot<Table>(flatbuffer);
-  return GenerateTextImpl(parser, root, *parser.root_struct_def_,
+  return GenerateTextImpl(parser, options, root, *parser.root_struct_def_,
                           _text);
 }
 

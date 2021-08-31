@@ -61,10 +61,10 @@ class TsGenerator : public BaseGenerator {
  public:
   typedef std::map<std::string, ImportDefinition> import_set;
 
-  TsGenerator(const Parser &parser, const std::string &path,
-              const std::string &file_name)
+  TsGenerator(const Parser &parser, const IDLOptions &opts,
+              const std::string &path, const std::string &file_name)
       : BaseGenerator(parser, path, file_name, "", ".", "ts"),
-        opts_(TsOptions(parser.opts)) {}
+        opts_(TsOptions(opts)) {}
   bool generate() {
     generateEnums();
     generateStructs();
@@ -1607,7 +1607,7 @@ class TsGenerator : public BaseGenerator {
 
 bool GenerateTS(const Parser &parser, const IDLOptions &options,
                 const std::string &path, const std::string &file_name) {
-  ts::TsGenerator generator(parser, path, file_name);
+  ts::TsGenerator generator(parser, options, path, file_name);
   return generator.generate();
 }
 
@@ -1617,9 +1617,9 @@ std::string TSMakeRule(const Parser &parser, const IDLOptions &options,
 
   std::string filebase =
       flatbuffers::StripPath(flatbuffers::StripExtension(file_name));
-  ts::TsGenerator generator(parser, path, file_name);
+  ts::TsGenerator generator(parser, options, path, file_name);
   std::string make_rule =
-      generator.GeneratedFileName(path, filebase, parser.opts) + ": ";
+      generator.GeneratedFileName(path, filebase, options) + ": ";
 
   auto included_files = parser.GetIncludedFilesRecursive(file_name);
   for (auto it = included_files.begin(); it != included_files.end(); ++it) {

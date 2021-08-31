@@ -275,10 +275,10 @@ class RustGenerator : public BaseGenerator {
   const RustOptions opts_;
 
  public:
-  RustGenerator(const Parser &parser, const std::string &path,
+  RustGenerator(const Parser &parser, const IDLOptions &opts, const std::string &path,
                 const std::string &file_name)
       : BaseGenerator(parser, path, file_name, "", "::", "rs"),
-        opts_(parser.opts),
+        opts_(opts),
         cur_name_space_(nullptr) {
     const char *keywords[] = {
       // clang-format off
@@ -2907,7 +2907,7 @@ class RustGenerator : public BaseGenerator {
 bool GenerateRust(const Parser &parser, const IDLOptions &options,
                   const std::string &path, const std::string &file_name) {
   (void)options;  // unused.
-  rust::RustGenerator generator(parser, path, file_name);
+  rust::RustGenerator generator(parser, options, path, file_name);
   return generator.generate();
 }
 
@@ -2916,7 +2916,7 @@ std::string RustMakeRule(const Parser &parser, const IDLOptions &options,
                          const std::string &file_name) {
   std::string filebase =
       flatbuffers::StripPath(flatbuffers::StripExtension(file_name));
-  rust::RustGenerator generator(parser, path, file_name);
+  rust::RustGenerator generator(parser, options, path, file_name);
   std::string make_rule =
       generator.GeneratedFileName(path, filebase, options) + ": ";
 

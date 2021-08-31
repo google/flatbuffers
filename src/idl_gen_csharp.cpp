@@ -71,10 +71,10 @@ class CSharpGenerator : public BaseGenerator {
   const CSharpOpts opts_;
 
  public:
-  CSharpGenerator(const Parser &parser, const std::string &path,
+  CSharpGenerator(const Parser &parser, const IDLOptions &opts, const std::string &path,
                   const std::string &file_name)
       : BaseGenerator(parser, path, file_name, "", ".", "cs"),
-        opts_(CSharpOpts(parser.opts)),
+        opts_(opts),
         cur_name_space_(nullptr) {
     // clang-format off
 
@@ -2237,8 +2237,7 @@ class CSharpGenerator : public BaseGenerator {
 
 bool GenerateCSharp(const Parser &parser, const IDLOptions &options,
                     const std::string &path, const std::string &file_name) {
-  (void)options;  // unused.
-  csharp::CSharpGenerator generator(parser, path, file_name);
+  csharp::CSharpGenerator generator(parser, options, path, file_name);
   return generator.generate();
 }
 

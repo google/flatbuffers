@@ -56,10 +56,11 @@ class SwiftGenerator : public BaseGenerator {
   SwiftOptions opts_;
 
  public:
-  SwiftGenerator(const Parser &parser, const std::string &path,
+  SwiftGenerator(const Parser &parser, const IDLOptions &opts,
+                 const std::string &path,
                  const std::string &file_name)
       : BaseGenerator(parser, path, file_name, "", "_", "swift"),
-        opts_(SwiftOptions(parser.opts)) {
+        opts_(SwiftOptions(opts)) {
     namespace_depth = 0;
     code_.SetPadding("  ");
     static const char *const keywords[] = {
@@ -1714,7 +1715,7 @@ class SwiftGenerator : public BaseGenerator {
 bool GenerateSwift(const Parser &parser, const IDLOptions &options,
                    const std::string &path, const std::string &file_name) {
   (void)options;  // unused.
-  swift::SwiftGenerator generator(parser, path, file_name);
+  swift::SwiftGenerator generator(parser, options, path, file_name);
   return generator.generate();
 }
 }  // namespace flatbuffers

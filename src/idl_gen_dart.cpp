@@ -50,10 +50,10 @@ class DartGenerator : public BaseGenerator {
 
   const bool generate_object_based_api_;
 
-  DartGenerator(const Parser &parser, const std::string &path,
+  DartGenerator(const Parser &parser, bool generate_object_based_api, const std::string &path,
                 const std::string &file_name)
       : BaseGenerator(parser, path, file_name, "", ".", "dart"),
-        generate_object_based_api_(parser.opts.generate_object_based_api) {}
+        generate_object_based_api_(generate_object_based_api) {}
   // Iterate through all definitions we haven't generate code for (enums,
   // structs, and tables) and output them to a single file.
   bool generate() {
@@ -1119,8 +1119,7 @@ class DartGenerator : public BaseGenerator {
 
 bool GenerateDart(const Parser &parser, const IDLOptions &options,
                   const std::string &path, const std::string &file_name) {
-  (void)options;  // unused.
-  dart::DartGenerator generator(parser, path, file_name);
+  dart::DartGenerator generator(parser, options.generate_object_based_api, path, file_name);
   return generator.generate();
 }
 
@@ -1129,7 +1128,7 @@ std::string DartMakeRule(const Parser &parser, const IDLOptions &options,
                          const std::string &file_name) {
   auto filebase =
       flatbuffers::StripPath(flatbuffers::StripExtension(file_name));
-  dart::DartGenerator generator(parser, path, file_name);
+  dart::DartGenerator generator(parser, options.generate_object_based_api, path, file_name);
   auto make_rule = generator.GeneratedFileName(path, file_name, options) + ": ";
 
   auto included_files = parser.GetIncludedFilesRecursive(file_name);

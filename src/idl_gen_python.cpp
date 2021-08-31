@@ -45,11 +45,11 @@ class PythonGenerator : public BaseGenerator {
   const PythonOptions opts_;
 
  public:
-  PythonGenerator(const Parser &parser, const std::string &path,
+  PythonGenerator(const Parser &parser, const IDLOptions &opts, const std::string &path,
                   const std::string &file_name)
       : BaseGenerator(parser, path, file_name, "" /* not used */,
                       "" /* not used */, "py"),
-        opts_(PythonOptions(parser.opts)),
+        opts_(opts),
         float_const_gen_("float('nan')", "float('inf')", "float('-inf')") {
     static const char *const keywords[] = {
       "False",   "None",     "True",     "and",    "as",   "assert", "break",
@@ -1791,7 +1791,7 @@ class PythonGenerator : public BaseGenerator {
 bool GeneratePython(const Parser &parser, const IDLOptions &options,
                     const std::string &path, const std::string &file_name) {
   (void)options;  // unused.
-  python::PythonGenerator generator(parser, path, file_name);
+  python::PythonGenerator generator(parser, options, path, file_name);
   return generator.generate();
 }
 
