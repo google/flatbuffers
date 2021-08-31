@@ -500,6 +500,15 @@ void MutateFlatBuffersTest(uint8_t *flatbuf, std::size_t length) {
   TEST_EQ(first->hp(), 0);
   first->mutate_hp(1000);
 
+  // Mutate via LookupByKey
+  TEST_NOTNULL(tables->mutable_LookupByKey("Barney"));
+  TEST_EQ(static_cast<Monster *>(nullptr),
+          tables->mutable_LookupByKey("DoesntExist"));
+  TEST_EQ(tables->mutable_LookupByKey("Barney")->hp(), 1000);
+  TEST_EQ(tables->mutable_LookupByKey("Barney")->mutate_hp(0), true);
+  TEST_EQ(tables->LookupByKey("Barney")->hp(), 0);
+  TEST_EQ(tables->mutable_LookupByKey("Barney")->mutate_hp(1000), true);
+
   // Run the verifier and the regular test to make sure we didn't trample on
   // anything.
   AccessFlatBufferTest(flatbuf, length);
