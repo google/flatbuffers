@@ -1117,19 +1117,20 @@ class DartGenerator : public BaseGenerator {
 };
 }  // namespace dart
 
-bool GenerateDart(const Parser &parser, const std::string &path,
-                  const std::string &file_name) {
+bool GenerateDart(const Parser &parser, const IDLOptions &options,
+                  const std::string &path, const std::string &file_name) {
+  (void)options;  // unused.
   dart::DartGenerator generator(parser, path, file_name);
   return generator.generate();
 }
 
-std::string DartMakeRule(const Parser &parser, const std::string &path,
+std::string DartMakeRule(const Parser &parser, const IDLOptions &options,
+                         const std::string &path,
                          const std::string &file_name) {
   auto filebase =
       flatbuffers::StripPath(flatbuffers::StripExtension(file_name));
   dart::DartGenerator generator(parser, path, file_name);
-  auto make_rule =
-      generator.GeneratedFileName(path, file_name, parser.opts) + ": ";
+  auto make_rule = generator.GeneratedFileName(path, file_name, options) + ": ";
 
   auto included_files = parser.GetIncludedFilesRecursive(file_name);
   for (auto it = included_files.begin(); it != included_files.end(); ++it) {

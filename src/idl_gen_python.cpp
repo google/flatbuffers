@@ -1788,8 +1788,9 @@ class PythonGenerator : public BaseGenerator {
 
 }  // namespace python
 
-bool GeneratePython(const Parser &parser, const std::string &path,
-                    const std::string &file_name) {
+bool GeneratePython(const Parser &parser, const IDLOptions &options,
+                    const std::string &path, const std::string &file_name) {
+  (void)options;  // unused.
   python::PythonGenerator generator(parser, path, file_name);
   return generator.generate();
 }

@@ -54,7 +54,8 @@ static void GenNameSpace(const Namespace &name_space, std::string *_schema,
 }
 
 // Generate a flatbuffer schema from the Parser's internal representation.
-std::string GenerateFBS(const Parser &parser, const std::string &file_name) {
+std::string GenerateFBS(const Parser &parser, const IDLOptions &options,
+                        const std::string &file_name) {
   // Proto namespaces may clash with table names, escape the ones that were
   // generated from a table:
   for (auto it = parser.namespaces_.begin(); it != parser.namespaces_.end();
@@ -64,17 +65,17 @@ std::string GenerateFBS(const Parser &parser, const std::string &file_name) {
       ns.components[ns.components.size() - 1 - i] += "_";
     }
 
-    if (parser.opts.proto_mode && !parser.opts.proto_namespace_suffix.empty()) {
+    if (options.proto_mode && !options.proto_namespace_suffix.empty()) {
       // Since we know that all these namespaces come from a .proto, and all are
       // being converted, we can simply apply this suffix to all of them.
       ns.components.insert(ns.components.end() - ns.from_table,
-                           parser.opts.proto_namespace_suffix);
+                           options.proto_namespace_suffix);
     }
   }
 
   std::string schema;
   schema += "// Generated from " + file_name + ".proto\n\n";
-  if (parser.opts.include_dependence_headers) {
+  if (options.include_dependence_headers) {
     // clang-format off
     int num_includes = 0;
     for (auto it = parser.included_files_.begin();
@@ -82,7 +83,7 @@ std::string GenerateFBS(const Parser &parser, const std::string &file_name) {
       if (it->second.empty())
         continue;
       std::string basename;
-      if(parser.opts.keep_include_path) {
+      if(options.keep_include_path) {
         basename = flatbuffers::StripExtension(it->second);
       } else {
         basename = flatbuffers::StripPath(
@@ -99,9 +100,7 @@ std::string GenerateFBS(const Parser &parser, const std::string &file_name) {
   for (auto enum_def_it = parser.enums_.vec.begin();
        enum_def_it != parser.enums_.vec.end(); ++enum_def_it) {
     EnumDef &enum_def = **enum_def_it;
-    if (parser.opts.include_dependence_headers && enum_def.generated) {
-      continue;
-    }
+    if (options.include_dependence_headers && enum_def.generated) { continue; }
     GenNameSpace(*enum_def.defined_namespace, &schema, &last_namespace);
     GenComment(enum_def.doc_comment, &schema, nullptr);
     if (enum_def.is_union)
@@ -123,7 +122,7 @@ std::string GenerateFBS(const Parser &parser, const std::string &file_name) {
   for (auto it = parser.structs_.vec.begin(); it != parser.structs_.vec.end();
        ++it) {
     StructDef &struct_def = **it;
-    if (parser.opts.include_dependence_headers && struct_def.generated) {
+    if (options.include_dependence_headers && struct_def.generated) {
       continue;
     }
     GenNameSpace(*struct_def.defined_namespace, &schema, &last_namespace);
@@ -145,10 +144,11 @@ std::string GenerateFBS(const Parser &parser, const std::string &file_name) {
   return schema;
 }
 
-bool GenerateFBS(const Parser &parser, const std::string &path,
-                 const std::string &file_name) {
+bool GenerateFBS(const Parser &parser, const IDLOptions &options,
+                 const std::string &path, const std::string &file_name) {
+  (void)options;  // unused.
   return SaveFile((path + file_name + ".fbs").c_str(),
-                  GenerateFBS(parser, file_name), false);
+                  GenerateFBS(parser, options, file_name), false);
 }
 
 }  // namespace flatbuffers

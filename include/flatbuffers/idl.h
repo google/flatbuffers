@@ -1049,162 +1049,183 @@ extern std::string MakeScreamingCamel(const std::string &in);
 // strict_json adds "quotes" around field names if true.
 // If the flatbuffer cannot be encoded in JSON (e.g., it contains non-UTF-8
 // byte arrays in String values), returns false.
-extern bool GenerateTextFromTable(const Parser &parser, const void *table,
+extern bool GenerateTextFromTable(const Parser &parser, const IDLOptions &opts,
+                                  const void *table,
                                   const std::string &tablename,
                                   std::string *text);
-extern bool GenerateText(const Parser &parser, const void *flatbuffer,
-                         std::string *text);
-extern bool GenerateTextFile(const Parser &parser, const std::string &path,
+extern bool GenerateText(const Parser &parser, const IDLOptions &opts,
+                         const void *flatbuffer, std::string *text);
+extern bool GenerateTextFile(const Parser &parser, const IDLOptions &opts,
+                             const std::string &path,
                              const std::string &file_name);
 
 // Generate Json schema to string
 // See idl_gen_json_schema.cpp.
-extern bool GenerateJsonSchema(const Parser &parser, std::string *json);
+extern bool GenerateJsonSchema(const Parser &parser, const IDLOptions &opts,
+                               std::string *json);
 
 // Generate binary files from a given FlatBuffer, and a given Parser
 // object that has been populated with the corresponding schema.
 // See code_generators.cpp.
-extern bool GenerateBinary(const Parser &parser, const std::string &path,
+extern bool GenerateBinary(const Parser &parser, const IDLOptions &opts,
+                           const std::string &path,
                            const std::string &file_name);
 
 // Generate a C++ header from the definitions in the Parser object.
 // See idl_gen_cpp.
-extern bool GenerateCPP(const Parser &parser, const std::string &path,
-                        const std::string &file_name);
+extern bool GenerateCPP(const Parser &parser, const IDLOptions &opts,
+                        const std::string &path, const std::string &file_name);
 
 // Generate C# files from the definitions in the Parser object.
 // See idl_gen_csharp.cpp.
-extern bool GenerateCSharp(const Parser &parser, const std::string &path,
+extern bool GenerateCSharp(const Parser &parser, const IDLOptions &opts,
+                           const std::string &path,
                            const std::string &file_name);
 
-extern bool GenerateDart(const Parser &parser, const std::string &path,
-                         const std::string &file_name);
+extern bool GenerateDart(const Parser &parser, const IDLOptions &opts,
+                         const std::string &path, const std::string &file_name);
 
 // Generate Java files from the definitions in the Parser object.
 // See idl_gen_java.cpp.
-extern bool GenerateJava(const Parser &parser, const std::string &path,
-                         const std::string &file_name);
+extern bool GenerateJava(const Parser &parser, const IDLOptions &opts,
+                         const std::string &path, const std::string &file_name);
 
 // Generate JavaScript or TypeScript code from the definitions in the Parser
 // object. See idl_gen_js.
-extern bool GenerateTS(const Parser &parser, const std::string &path,
-                       const std::string &file_name);
+extern bool GenerateTS(const Parser &parser, const IDLOptions &opts,
+                       const std::string &path, const std::string &file_name);
 
 // Generate Go files from the definitions in the Parser object.
 // See idl_gen_go.cpp.
-extern bool GenerateGo(const Parser &parser, const std::string &path,
-                       const std::string &file_name);
+extern bool GenerateGo(const Parser &parser, const IDLOptions &opts,
+                       const std::string &path, const std::string &file_name);
 
 // Generate Php code from the definitions in the Parser object.
 // See idl_gen_php.
-extern bool GeneratePhp(const Parser &parser, const std::string &path,
-                        const std::string &file_name);
+extern bool GeneratePhp(const Parser &parser, const IDLOptions &opts,
+                        const std::string &path, const std::string &file_name);
 
 // Generate Python files from the definitions in the Parser object.
 // See idl_gen_python.cpp.
-extern bool GeneratePython(const Parser &parser, const std::string &path,
+extern bool GeneratePython(const Parser &parser, const IDLOptions &opts,
+                           const std::string &path,
                            const std::string &file_name);
 
 // Generate Lobster files from the definitions in the Parser object.
 // See idl_gen_lobster.cpp.
-extern bool GenerateLobster(const Parser &parser, const std::string &path,
+extern bool GenerateLobster(const Parser &parser, const IDLOptions &opts,
+                            const std::string &path,
                             const std::string &file_name);
 
 // Generate Lua files from the definitions in the Parser object.
 // See idl_gen_lua.cpp.
-extern bool GenerateLua(const Parser &parser, const std::string &path,
-                        const std::string &file_name);
+extern bool GenerateLua(const Parser &parser, const IDLOptions &opts,
+                        const std::string &path, const std::string &file_name);
 
 // Generate Rust files from the definitions in the Parser object.
 // See idl_gen_rust.cpp.
-extern bool GenerateRust(const Parser &parser, const std::string &path,
-                         const std::string &file_name);
+extern bool GenerateRust(const Parser &parser, const IDLOptions &opts,
+                         const std::string &path, const std::string &file_name);
 
 // Generate Json schema file
 // See idl_gen_json_schema.cpp.
-extern bool GenerateJsonSchema(const Parser &parser, const std::string &path,
+extern bool GenerateJsonSchema(const Parser &parser, const IDLOptions &opts,
+                               const std::string &path,
                                const std::string &file_name);
 
-extern bool GenerateKotlin(const Parser &parser, const std::string &path,
+extern bool GenerateKotlin(const Parser &parser, const IDLOptions &opts,
+                           const std::string &path,
                            const std::string &file_name);
 
 // Generate Swift classes.
 // See idl_gen_swift.cpp
-extern bool GenerateSwift(const Parser &parser, const std::string &path,
+extern bool GenerateSwift(const Parser &parser, const IDLOptions &opts,
+                          const std::string &path,
                           const std::string &file_name);
 
 // Generate a schema file from the internal representation, useful after
 // parsing a .proto schema.
-extern std::string GenerateFBS(const Parser &parser,
+extern std::string GenerateFBS(const Parser &parser, const IDLOptions &opts,
                                const std::string &file_name);
-extern bool GenerateFBS(const Parser &parser, const std::string &path,
-                        const std::string &file_name);
+extern bool GenerateFBS(const Parser &parser, const IDLOptions &opts,
+                        const std::string &path, const std::string &file_name);
 
 // Generate a make rule for the generated TypeScript code.
 // See idl_gen_ts.cpp.
-extern std::string TSMakeRule(const Parser &parser, const std::string &path,
+extern std::string TSMakeRule(const Parser &parser, const IDLOptions &options,
+                              const std::string &path,
                               const std::string &file_name);
 
 // Generate a make rule for the generated C++ header.
 // See idl_gen_cpp.cpp.
-extern std::string CPPMakeRule(const Parser &parser, const std::string &path,
+extern std::string CPPMakeRule(const Parser &parser, const IDLOptions &options,
+                               const std::string &path,
                                const std::string &file_name);
 
 // Generate a make rule for the generated Dart code
 // see idl_gen_dart.cpp
-extern std::string DartMakeRule(const Parser &parser, const std::string &path,
+extern std::string DartMakeRule(const Parser &parser, const IDLOptions &options,
+                                const std::string &path,
                                 const std::string &file_name);
 
 // Generate a make rule for the generated Rust code.
 // See idl_gen_rust.cpp.
-extern std::string RustMakeRule(const Parser &parser, const std::string &path,
+extern std::string RustMakeRule(const Parser &parser, const IDLOptions &options,
+                                const std::string &path,
                                 const std::string &file_name);
 
 // Generate a make rule for generated Java or C# files.
 // See code_generators.cpp.
 extern std::string JavaCSharpMakeRule(const Parser &parser,
+                                      const IDLOptions &options,
                                       const std::string &path,
                                       const std::string &file_name);
 
 // Generate a make rule for the generated text (JSON) files.
 // See idl_gen_text.cpp.
-extern std::string TextMakeRule(const Parser &parser, const std::string &path,
+extern std::string TextMakeRule(const Parser &parser, const IDLOptions &options,
+                                const std::string &path,
                                 const std::string &file_names);
 
 // Generate a make rule for the generated binary files.
 // See code_generators.cpp.
-extern std::string BinaryMakeRule(const Parser &parser, const std::string &path,
+extern std::string BinaryMakeRule(const Parser &parser,
+                                  const IDLOptions &options,
+                                  const std::string &path,
                                   const std::string &file_name);
 
 // Generate GRPC Cpp interfaces.
 // See idl_gen_grpc.cpp.
-bool GenerateCppGRPC(const Parser &parser, const std::string &path,
-                     const std::string &file_name);
+bool GenerateCppGRPC(const Parser &parser, const IDLOptions &options,
+                     const std::string &path, const std::string &file_name);
 
 // Generate GRPC Go interfaces.
 // See idl_gen_grpc.cpp.
-bool GenerateGoGRPC(const Parser &parser, const std::string &path,
-                    const std::string &file_name);
+bool GenerateGoGRPC(const Parser &parser, const IDLOptions &options,
+                    const std::string &path, const std::string &file_name);
 
 // Generate GRPC Java classes.
 // See idl_gen_grpc.cpp
-bool GenerateJavaGRPC(const Parser &parser, const std::string &path,
-                      const std::string &file_name);
+bool GenerateJavaGRPC(const Parser &parser, const IDLOptions &options,
+                      const std::string &path, const std::string &file_name);
 
 // Generate GRPC Python interfaces.
 // See idl_gen_grpc.cpp.
-bool GeneratePythonGRPC(const Parser &parser, const std::string &path,
-                        const std::string &file_name);
+bool GeneratePythonGRPC(const Parser &parser, const IDLOptions &options,
+                        const std::string &path, const std::string &file_name);
 
 // Generate GRPC Swift interfaces.
 // See idl_gen_grpc.cpp.
-extern bool GenerateSwiftGRPC(const Parser &parser, const std::string &path,
+extern bool GenerateSwiftGRPC(const Parser &parser, const IDLOptions &options,
+                              const std::string &path,
                               const std::string &file_name);
 
-extern bool GenerateTSGRPC(const Parser &parser, const std::string &path,
+extern bool GenerateTSGRPC(const Parser &parser, const IDLOptions &options,
+                           const std::string &path,
                            const std::string &file_name);
 
 extern bool GenerateRustModuleRootFile(const Parser &parser,
+                                       const IDLOptions &options,
                                        const std::string &path);
 }  // namespace flatbuffers
 

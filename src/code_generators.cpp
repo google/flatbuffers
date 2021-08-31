@@ -321,13 +321,14 @@ std::string SimpleFloatConstantGenerator::NaN(float v) const {
   return this->NaN(static_cast<double>(v));
 }
 
-std::string JavaCSharpMakeRule(const Parser &parser, const std::string &path,
+std::string JavaCSharpMakeRule(const Parser &parser, const IDLOptions &options,
+                               const std::string &path,
                                const std::string &file_name) {
-  FLATBUFFERS_ASSERT(parser.opts.lang == IDLOptions::kJava ||
-                     parser.opts.lang == IDLOptions::kCSharp);
+  FLATBUFFERS_ASSERT(options.lang == IDLOptions::kJava ||
+                     options.lang == IDLOptions::kCSharp);
 
   std::string file_extension =
-      (parser.opts.lang == IDLOptions::kJava) ? ".java" : ".cs";
+      (options.lang == IDLOptions::kJava) ? ".java" : ".cs";
 
   std::string make_rule;
 
@@ -363,9 +364,9 @@ std::string BinaryFileName(const Parser &parser, const std::string &path,
   return path + file_name + "." + ext;
 }
 
-bool GenerateBinary(const Parser &parser, const std::string &path,
-                    const std::string &file_name) {
-  if (parser.opts.use_flexbuffers) {
+bool GenerateBinary(const Parser &parser, const IDLOptions &options,
+                    const std::string &path, const std::string &file_name) {
+  if (options.use_flexbuffers) {
     auto data_vec = parser.flex_builder_.GetBuffer();
     auto data_ptr = reinterpret_cast<char *>(data(data_vec));
     return !parser.flex_builder_.GetSize() ||
@@ -380,8 +381,10 @@ bool GenerateBinary(const Parser &parser, const std::string &path,
              parser.builder_.GetSize(), true);
 }
 
-std::string BinaryMakeRule(const Parser &parser, const std::string &path,
+std::string BinaryMakeRule(const Parser &parser, const IDLOptions &options,
+                           const std::string &path,
                            const std::string &file_name) {
+  (void)options;  // unused.
   if (!parser.builder_.GetSize()) return "";
   std::string filebase =
       flatbuffers::StripPath(flatbuffers::StripExtension(file_name));

@@ -3587,9 +3587,9 @@ class CppGenerator : public BaseGenerator {
 
 }  // namespace cpp
 
-bool GenerateCPP(const Parser &parser, const std::string &path,
-                 const std::string &file_name) {
-  cpp::IDLOptionsCpp opts(parser.opts);
+bool GenerateCPP(const Parser &parser, const IDLOptions &options,
+                 const std::string &path, const std::string &file_name) {
+  cpp::IDLOptionsCpp opts(options);
   // The '--cpp_std' argument could be extended (like ASAN):
   // Example: "flatc --cpp_std c++17:option1:option2".
   auto cpp_std = !opts.cpp_std.empty() ? opts.cpp_std : "C++11";
@@ -3626,14 +3626,14 @@ bool GenerateCPP(const Parser &parser, const std::string &path,
   return generator.generate();
 }
 
-std::string CPPMakeRule(const Parser &parser, const std::string &path,
-                        const std::string &file_name) {
+std::string CPPMakeRule(const Parser &parser, const IDLOptions &options,
+                        const std::string &path, const std::string &file_name) {
   const auto filebase =
       flatbuffers::StripPath(flatbuffers::StripExtension(file_name));
-  cpp::CppGenerator geneartor(parser, path, file_name, parser.opts);
+  cpp::CppGenerator geneartor(parser, path, file_name, options);
   const auto included_files = parser.GetIncludedFilesRecursive(file_name);
   std::string make_rule =
-      geneartor.GeneratedFileName(path, filebase, parser.opts) + ": ";
+      geneartor.GeneratedFileName(path, filebase, options) + ": ";
   for (auto it = included_files.begin(); it != included_files.end(); ++it) {
     make_rule += " " + *it;
   }

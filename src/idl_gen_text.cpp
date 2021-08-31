@@ -349,8 +349,9 @@ struct JsonPrinter {
   std::string &text;
 };
 
-static bool GenerateTextImpl(const Parser &parser, const Table *table,
-                             const StructDef &struct_def, std::string *_text) {
+static bool GenerateTextImpl(const Parser &parser, const IDLOptions &options,
+                             const Table *table, const StructDef &struct_def,
+                             std::string *_text) {
   JsonPrinter printer(parser, *_text);
   if (!printer.GenStruct(struct_def, table, 0)) { return false; }
   printer.AddNewLine();
@@ -358,21 +359,23 @@ static bool GenerateTextImpl(const Parser &parser, const Table *table,
 }
 
 // Generate a text representation of a flatbuffer in JSON format.
-bool GenerateTextFromTable(const Parser &parser, const void *table,
-                           const std::string &table_name, std::string *_text) {
+bool GenerateTextFromTable(const Parser &parser, const IDLOptions &options,
+                           const void *table, const std::string &table_name,
+                           std::string *_text) {
   auto struct_def = parser.LookupStruct(table_name);
   if (struct_def == nullptr) { return false; }
   auto root = static_cast<const Table *>(table);
-  return GenerateTextImpl(parser, root, *struct_def, _text);
+  return GenerateTextImpl(parser, options, root, *struct_def, _text);
 }
 
 // Generate a text representation of a flatbuffer in JSON format.
-bool GenerateText(const Parser &parser, const void *flatbuffer,
-                  std::string *_text) {
+bool GenerateText(const Parser &parser, const IDLOptions &options,
+                  const void *flatbuffer, std::string *_text) {
   FLATBUFFERS_ASSERT(parser.root_struct_def_);  // call SetRootType()
-  auto root = parser.opts.size_prefixed ? GetSizePrefixedRoot<Table>(flatbuffer)
-                                        : GetRoot<Table>(flatbuffer);
-  return GenerateTextImpl(parser, root, *parser.root_struct_def_, _text);
+  auto root = options.size_prefixed ? GetSizePrefixedRoot<Table>(flatbuffer)
+                                    : GetRoot<Table>(flatbuffer);
+  return GenerateTextImpl(parser, options, root, *parser.root_struct_def_,
+                          _text);
 }
 
 static std::string TextFileName(const std::string &path,
@@ -380,24 +383,26 @@ static std::string TextFileName(const std::string &path,
   return path + file_name + ".json";
 }
 
-bool GenerateTextFile(const Parser &parser, const std::string &path,
-                      const std::string &file_name) {
-  if (parser.opts.use_flexbuffers) {
+bool GenerateTextFile(const Parser &parser, const IDLOptions &options,
+                      const std::string &path, const std::string &file_name) {
+  if (options.use_flexbuffers) {
     std::string json;
-    parser.flex_root_.ToString(true, parser.opts.strict_json, json);
+    parser.flex_root_.ToString(true, options.strict_json, json);
     return flatbuffers::SaveFile(TextFileName(path, file_name).c_str(),
                                  json.c_str(), json.size(), true);
   }
   if (!parser.builder_.GetSize() || !parser.root_struct_def_) return true;
   std::string text;
-  if (!GenerateText(parser, parser.builder_.GetBufferPointer(), &text)) {
+  if (!GenerateText(parser, options, parser.builder_.GetBufferPointer(),
+                    &text)) {
     return false;
   }
   return flatbuffers::SaveFile(TextFileName(path, file_name).c_str(), text,
                                false);
 }
 
-std::string TextMakeRule(const Parser &parser, const std::string &path,
+std::string TextMakeRule(const Parser &parser, const IDLOptions &options,
+                         const std::string &path,
                          const std::string &file_name) {
   if (!parser.builder_.GetSize() || !parser.root_struct_def_) return "";
   std::string filebase =

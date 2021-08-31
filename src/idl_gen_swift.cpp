@@ -1711,8 +1711,9 @@ class SwiftGenerator : public BaseGenerator {
   }
 };
 }  // namespace swift
-bool GenerateSwift(const Parser &parser, const std::string &path,
-                   const std::string &file_name) {
+bool GenerateSwift(const Parser &parser, const IDLOptions &options,
+                   const std::string &path, const std::string &file_name) {
+  (void)options;  // unused.
   swift::SwiftGenerator generator(parser, path, file_name);
   return generator.generate();
 }

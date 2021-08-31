@@ -332,8 +332,8 @@ class GoGRPCGenerator : public flatbuffers::BaseGenerator {
   const std::string &path_, &file_name_;
 };
 
-bool GenerateGoGRPC(const Parser &parser, const std::string &path,
-                    const std::string &file_name) {
+bool GenerateGoGRPC(const Parser &parser, const IDLOptions &options,
+                    const std::string &path, const std::string &file_name) {
   int nservices = 0;
   for (auto it = parser.services_.vec.begin(); it != parser.services_.vec.end();
        ++it) {
@@ -343,8 +343,8 @@ bool GenerateGoGRPC(const Parser &parser, const std::string &path,
   return GoGRPCGenerator(parser, path, file_name).generate();
 }
 
-bool GenerateCppGRPC(const Parser &parser, const std::string &path,
-                     const std::string &file_name) {
+bool GenerateCppGRPC(const Parser &parser, const IDLOptions &options,
+                     const std::string &path, const std::string &file_name) {
   int nservices = 0;
   for (auto it = parser.services_.vec.begin(); it != parser.services_.vec.end();
        ++it) {
@@ -400,8 +400,8 @@ class JavaGRPCGenerator : public flatbuffers::BaseGenerator {
   }
 };
 
-bool GenerateJavaGRPC(const Parser &parser, const std::string &path,
-                      const std::string &file_name) {
+bool GenerateJavaGRPC(const Parser &parser, const IDLOptions &options,
+                      const std::string &path, const std::string &file_name) {
   int nservices = 0;
   for (auto it = parser.services_.vec.begin(); it != parser.services_.vec.end();
        ++it) {
@@ -450,7 +450,8 @@ class PythonGRPCGenerator : public flatbuffers::BaseGenerator {
   }
 };
 
-bool GeneratePythonGRPC(const Parser &parser, const std::string & /*path*/,
+bool GeneratePythonGRPC(const Parser &parser, const IDLOptions &options,
+                        const std::string & /*path*/,
                         const std::string &file_name) {
   int nservices = 0;
   for (auto it = parser.services_.vec.begin(); it != parser.services_.vec.end();
@@ -491,8 +492,8 @@ class SwiftGRPCGenerator : public flatbuffers::BaseGenerator {
   }
 };
 
-bool GenerateSwiftGRPC(const Parser &parser, const std::string &path,
-                       const std::string &file_name) {
+bool GenerateSwiftGRPC(const Parser &parser, const IDLOptions &options,
+                       const std::string &path, const std::string &file_name) {
   int nservices = 0;
   for (auto it = parser.services_.vec.begin(); it != parser.services_.vec.end();
        ++it) {
@@ -539,8 +540,9 @@ class TSGRPCGenerator : public flatbuffers::BaseGenerator {
   }
 };
 
-bool GenerateTSGRPC(const Parser &parser, const std::string &path,
-                    const std::string &file_name) {
+bool GenerateTSGRPC(const Parser &parser, const IDLOptions &options,
+                    const std::string &path, const std::string &file_name) {
+  (void)options;  // unused.
   int nservices = 0;
   for (auto it = parser.services_.vec.begin(); it != parser.services_.vec.end();
        ++it) {

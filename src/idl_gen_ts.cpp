@@ -1605,15 +1605,15 @@ class TsGenerator : public BaseGenerator {
 };  // namespace ts
 }  // namespace ts
 
-bool GenerateTS(const Parser &parser, const std::string &path,
-                const std::string &file_name) {
+bool GenerateTS(const Parser &parser, const IDLOptions &options,
+                const std::string &path, const std::string &file_name) {
   ts::TsGenerator generator(parser, path, file_name);
   return generator.generate();
 }
 
-std::string TSMakeRule(const Parser &parser, const std::string &path,
-                       const std::string &file_name) {
-  FLATBUFFERS_ASSERT(parser.opts.lang <= IDLOptions::kMAX);
+std::string TSMakeRule(const Parser &parser, const IDLOptions &options,
+                       const std::string &path, const std::string &file_name) {
+  FLATBUFFERS_ASSERT(options.lang <= IDLOptions::kMAX);
 
   std::string filebase =
       flatbuffers::StripPath(flatbuffers::StripExtension(file_name));

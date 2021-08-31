@@ -533,7 +533,7 @@ int FlatCompiler::Compile(int argc, const char **argv) {
           flatbuffers::EnsureDirExists(output_path);
           if ((!params_.generators[i].schema_only ||
                (is_schema || is_binary_schema)) &&
-              !params_.generators[i].generate(*parser.get(), output_path,
+              !params_.generators[i].generate(*parser.get(), opts, output_path,
                                               filebase)) {
             Error(std::string("Unable to generate ") +
                   params_.generators[i].lang_name + " for " + filebase);
@@ -544,7 +544,7 @@ int FlatCompiler::Compile(int argc, const char **argv) {
                   params_.generators[i].lang_name);
           } else {
             std::string make_rule = params_.generators[i].make_rule(
-                *parser.get(), output_path, filename);
+                *parser.get(), opts, output_path, filename);
             if (!make_rule.empty())
               printf("%s\n",
                      flatbuffers::WordWrap(make_rule, 80, " ", " \\").c_str());
@@ -552,8 +552,8 @@ int FlatCompiler::Compile(int argc, const char **argv) {
         }
         if (grpc_enabled) {
           if (params_.generators[i].generateGRPC != nullptr) {
-            if (!params_.generators[i].generateGRPC(*parser.get(), output_path,
-                                                    filebase)) {
+            if (!params_.generators[i].generateGRPC(*parser.get(), opts,
+                                                    output_path, filebase)) {
               Error(std::string("Unable to generate GRPC interface for") +
                     params_.generators[i].lang_name);
             }
@@ -572,14 +572,15 @@ int FlatCompiler::Compile(int argc, const char **argv) {
         Error("root type must be a table");
     }
 
-    if (opts.proto_mode) GenerateFBS(*parser.get(), output_path, filebase);
+    if (opts.proto_mode)
+      GenerateFBS(*parser.get(), opts, output_path, filebase);
 
     // We do not want to generate code for the definitions in this file
     // in any files coming up next.
     parser->MarkGenerated();
   }
   if (opts.lang_to_generate & IDLOptions::kRust && !parser->opts.one_file) {
-    GenerateRustModuleRootFile(*parser, output_path);
+    GenerateRustModuleRootFile(*parser, opts, output_path);
   }
   return 0;
 }

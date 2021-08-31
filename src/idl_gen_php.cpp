@@ -931,8 +931,9 @@ class PhpGenerator : public BaseGenerator {
 };
 }  // namespace php
 
-bool GeneratePhp(const Parser &parser, const std::string &path,
-                 const std::string &file_name) {
+bool GeneratePhp(const Parser &parser, const IDLOptions &options,
+                 const std::string &path, const std::string &file_name) {
+  (void)options;  // unused.
   php::PhpGenerator generator(parser, path, file_name);
   return generator.generate();
 }

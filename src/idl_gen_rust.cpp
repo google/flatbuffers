@@ -192,7 +192,7 @@ bool IsOptionalToBuilder(const FieldDef &field) {
   return field.IsOptional() || !IsScalar(field.value.type.base_type);
 }
 
-bool GenerateRustModuleRootFile(const Parser &parser,
+bool GenerateRustModuleRootFile(const Parser &parser, const IDLOptions &options,
                                 const std::string &output_dir) {
   // We gather the symbols into a tree of namespaces (which are rust mods) and
   // generate a file that gathers them all.
@@ -231,11 +231,11 @@ bool GenerateRustModuleRootFile(const Parser &parser,
   Module root_module;
   for (auto it = parser.enums_.vec.begin(); it != parser.enums_.vec.end();
        it++) {
-    root_module.Insert(*it, parser.opts.filename_suffix);
+    root_module.Insert(*it, options.filename_suffix);
   }
   for (auto it = parser.structs_.vec.begin(); it != parser.structs_.vec.end();
        it++) {
-    root_module.Insert(*it, parser.opts.filename_suffix);
+    root_module.Insert(*it, options.filename_suffix);
   }
   CodeWriter code("  ");
   // TODO(caspern): Move generated warning out of BaseGenerator.
@@ -2904,19 +2904,21 @@ class RustGenerator : public BaseGenerator {
 
 }  // namespace rust
 
-bool GenerateRust(const Parser &parser, const std::string &path,
-                  const std::string &file_name) {
+bool GenerateRust(const Parser &parser, const IDLOptions &options,
+                  const std::string &path, const std::string &file_name) {
+  (void)options;  // unused.
   rust::RustGenerator generator(parser, path, file_name);
   return generator.generate();
 }
 
-std::string RustMakeRule(const Parser &parser, const std::string &path,
+std::string RustMakeRule(const Parser &parser, const IDLOptions &options,
+                         const std::string &path,
                          const std::string &file_name) {
   std::string filebase =
       flatbuffers::StripPath(flatbuffers::StripExtension(file_name));
   rust::RustGenerator generator(parser, path, file_name);
   std::string make_rule =
-      generator.GeneratedFileName(path, filebase, parser.opts) + ": ";
+      generator.GeneratedFileName(path, filebase, options) + ": ";
 
   auto included_files = parser.GetIncludedFilesRecursive(file_name);
   for (auto it = included_files.begin(); it != included_files.end(); ++it) {

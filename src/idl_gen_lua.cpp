@@ -736,8 +736,9 @@ class LuaGenerator : public BaseGenerator {
 
 }  // namespace lua
 
-bool GenerateLua(const Parser &parser, const std::string &path,
-                 const std::string &file_name) {
+bool GenerateLua(const Parser &parser, const IDLOptions &options,
+                 const std::string &path, const std::string &file_name) {
+  (void)options;  // unused.
   lua::LuaGenerator generator(parser, path, file_name);
   return generator.generate();
 }
