@@ -123,7 +123,7 @@ class TsGenerator : public BaseGenerator {
       AddImport(bare_imports, "* as flatbuffers", "flatbuffers");
       auto &struct_def = **it;
       std::string declcode;
-      GenStruct(parser_, struct_def, &declcode, imports);
+      GenStruct(struct_def, &declcode, imports);
       SaveType(struct_def, declcode, imports, bare_imports);
       imports_all_.insert(imports.begin(), imports.end());
     }
