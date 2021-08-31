@@ -56,10 +56,22 @@ static std::string Esc(const std::string &name) {
 }
 
 class KotlinGenerator : public BaseGenerator {
+  struct KotlinOptions {
+    bool gen_jvmstatic;
+    bool mutable_buffer;
+    bool one_file;
+    explicit KotlinOptions(const IDLOptions opts)
+        : gen_jvmstatic(opts.gen_jvmstatic),
+          mutable_buffer(opts.mutable_buffer),
+          one_file(opts.one_file) {}
+  };
+  const KotlinOptions opts_;
+
  public:
   KotlinGenerator(const Parser &parser, const std::string &path,
                   const std::string &file_name)
       : BaseGenerator(parser, path, file_name, "", ".", "kt"),
+        opts_(KotlinOptions(parser.opts)),
         cur_name_space_(nullptr) {}
 
   KotlinGenerator &operator=(const KotlinGenerator &);
@@ -71,9 +83,9 @@ class KotlinGenerator : public BaseGenerator {
          ++it) {
       CodeWriter enumWriter(ident_pad);
       auto &enum_def = **it;
-      if (!parser_.opts.one_file) cur_name_space_ = enum_def.defined_namespace;
+      if (!opts_.one_file) cur_name_space_ = enum_def.defined_namespace;
       GenEnum(enum_def, enumWriter);
-      if (parser_.opts.one_file) {
+      if (opts_.one_file) {
         one_file_code += enumWriter.ToString();
       } else {
         if (!SaveType(enum_def.name, *enum_def.defined_namespace,
@@ -86,10 +98,9 @@ class KotlinGenerator : public BaseGenerator {
          it != parser_.structs_.vec.end(); ++it) {
       CodeWriter structWriter(ident_pad);
       auto &struct_def = **it;
-      if (!parser_.opts.one_file)
-        cur_name_space_ = struct_def.defined_namespace;
+      if (!opts_.one_file) cur_name_space_ = struct_def.defined_namespace;
       GenStruct(struct_def, structWriter, parser_.opts);
-      if (parser_.opts.one_file) {
+      if (opts_.one_file) {
         one_file_code += structWriter.ToString();
       } else {
         if (!SaveType(struct_def.name, *struct_def.defined_namespace,
@@ -98,7 +109,7 @@ class KotlinGenerator : public BaseGenerator {
       }
     }
 
-    if (parser_.opts.one_file) {
+    if (opts_.one_file) {
       return SaveType(file_name_, *parser_.current_namespace_, one_file_code,
                       true);
     }
@@ -303,15 +314,15 @@ class KotlinGenerator : public BaseGenerator {
           }
           writer += ")";
         });
-        GenerateFunOneLine(writer, "name", "e: Int", "String",
-                           [&]() {
-                             writer += "names[e\\";
-                             if (enum_def.MinValue()->IsNonZero())
-                               writer += " - " + enum_def.MinValue()->name +
-                                         ".toInt()\\";
-                             writer += "]";
-                           },
-                           parser_.opts.gen_jvmstatic);
+        GenerateFunOneLine(
+            writer, "name", "e: Int", "String",
+            [&]() {
+              writer += "names[e\\";
+              if (enum_def.MinValue()->IsNonZero())
+                writer += " - " + enum_def.MinValue()->name + ".toInt()\\";
+              writer += "]";
+            },
+            opts_.gen_jvmstatic);
       }
     });
     writer.DecrementIdentLevel();
@@ -1133,7 +1144,7 @@ class KotlinGenerator : public BaseGenerator {
       }
 
       // Generate mutators for scalar fields or vectors of scalars.
-      if (parser_.opts.mutable_buffer) {
+      if (opts_.mutable_buffer) {
         auto value_type = field.value.type;
         auto underlying_type = value_base_type == BASE_TYPE_VECTOR
                                    ? value_type.VectorType()

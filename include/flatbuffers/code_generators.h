@@ -99,6 +99,8 @@ class BaseGenerator {
 
   static std::string ToDasherizedCase(const std::string pascal_case);
 
+  // TODO(caspern): Deprecate dependence on IDLOptions.
+  // Add const std::string& filename_suffix_, file_extension_;
   std::string GeneratedFileName(const std::string &path,
                                 const std::string &file_name,
                                 const std::string &filename_suffix,

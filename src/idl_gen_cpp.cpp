@@ -333,9 +333,7 @@ class CppGenerator : public BaseGenerator {
       code_ += "#ifndef " + include_guard;
       code_ += "#define " + include_guard;
       code_ += "";
-      if (parser_.opts.gen_nullable) {
-        code_ += "#pragma clang system_header\n\n";
-      }
+      if (opts_.gen_nullable) { code_ += "#pragma clang system_header\n\n"; }
 
       SetNameSpace(struct_def.defined_namespace);
       auto name = Name(struct_def);
@@ -675,7 +673,7 @@ class CppGenerator : public BaseGenerator {
 
     // Save the file and optionally generate the binary schema code.
     return SaveFile(file_path.c_str(), final_code, false) &&
-           (!parser_.opts.binary_schema_gen_embed || generate_bfbs_embed());
+           (!opts_.binary_schema_gen_embed || generate_bfbs_embed());
   }
 
  private:
@@ -3120,7 +3118,7 @@ class CppGenerator : public BaseGenerator {
           "inline " + TableUnPackSignature(struct_def, false, opts_) + " {";
 
       if (opts_.g_cpp_std == cpp::CPP_STD_X0) {
-        auto native_name = WrapNativeNameInNameSpace(struct_def, parser_.opts);
+        auto native_name = WrapNativeNameInNameSpace(struct_def, opts_);
         code_.SetValue("POINTER_TYPE",
                        GenTypeNativePtr(native_name, nullptr, false));
         code_ +=

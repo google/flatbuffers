@@ -137,30 +137,29 @@ std::string GenType(const Type &type) {
 class JsonSchemaGenerator : public BaseGenerator {
  private:
   std::string code_;
+  struct JsonSchemaOptions {
+    const std::string &filename_suffix;
+    const std::string &filename_extension;
+    int indent_step;
+    explicit JsonSchemaOptions(const IDLOptions &opts)
+        : filename_suffix(opts.filename_suffix),
+          filename_extension(opts.filename_extension),
+          indent_step(opts.indent_step) {}
+  };
+  const JsonSchemaOptions opts_;
 
  public:
   JsonSchemaGenerator(const Parser &parser, const std::string &path,
                       const std::string &file_name)
-      : BaseGenerator(parser, path, file_name, "", "", "json") {}
-
-  explicit JsonSchemaGenerator(const BaseGenerator &base_generator)
-      : BaseGenerator(base_generator) {}
-
-  std::string GeneratedFileName(const std::string &path,
-                                const std::string &file_name,
-                                const IDLOptions &options /* unused */) const {
-    (void)options;
-    return path + file_name + ".schema.json";
-  }
+      : BaseGenerator(parser, path, file_name, "", "", "json"),
+        opts_(parser_.opts) {}
 
   // If indentation is less than 0, that indicates we don't want any newlines
   // either.
-  std::string NewLine() const {
-    return parser_.opts.indent_step >= 0 ? "\n" : "";
-  }
+  std::string NewLine() const { return opts_.indent_step >= 0 ? "\n" : ""; }
 
   std::string Indent(int indent) const {
-    const auto num_spaces = indent * std::max(parser_.opts.indent_step, 0);
+    const auto num_spaces = indent * std::max(opts_.indent_step, 0);
     return std::string(num_spaces, ' ');
   }
 
@@ -298,7 +297,7 @@ class JsonSchemaGenerator : public BaseGenerator {
   }
 
   bool save() const {
-    const auto file_path = GeneratedFileName(path_, file_name_, parser_.opts);
+    const auto file_path = path_ + file_name_ + ".schema.json";
     return SaveFile(file_path.c_str(), code_, false);
   }
 

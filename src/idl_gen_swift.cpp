@@ -42,10 +42,24 @@ class SwiftGenerator : public BaseGenerator {
   std::unordered_set<std::string> keywords_;
   int namespace_depth;
 
+  struct SwiftOptions {
+    bool generate_object_based_api;
+    bool mutable_buffer;
+    const std::string &object_prefix;
+    const std::string &object_suffix;
+    explicit SwiftOptions(const IDLOptions &opts)
+        : generate_object_based_api(opts.generate_object_based_api),
+          mutable_buffer(opts.mutable_buffer),
+          object_prefix(opts.object_prefix),
+          object_suffix(opts.object_suffix) {}
+  };
+  SwiftOptions opts_;
+
  public:
   SwiftGenerator(const Parser &parser, const std::string &path,
                  const std::string &file_name)
-      : BaseGenerator(parser, path, file_name, "", "_", "swift") {
+      : BaseGenerator(parser, path, file_name, "", "_", "swift"),
+        opts_(SwiftOptions(parser.opts)) {
     namespace_depth = 0;
     code_.SetPadding("  ");
     static const char *const keywords[] = {
@@ -163,9 +177,7 @@ class SwiftGenerator : public BaseGenerator {
       const auto &struct_def = **it;
       if (!struct_def.fixed && !struct_def.generated) {
         GenTable(struct_def);
-        if (parser_.opts.generate_object_based_api) {
-          GenObjectAPI(struct_def);
-        }
+        if (opts_.generate_object_based_api) { GenObjectAPI(struct_def); }
       }
     }
 
@@ -189,7 +201,7 @@ class SwiftGenerator : public BaseGenerator {
     code_.SetValue("STRUCTNAME", NameWrappedInNameSpace(struct_def));
     code_ +=
         "{{ACCESS_TYPE}} struct {{STRUCTNAME}}: NativeStruct, Verifiable\\";
-    if (parser_.opts.generate_object_based_api) code_ += ", NativeObject\\";
+    if (opts_.generate_object_based_api) code_ += ", NativeObject\\";
     code_ += " {";
     code_ += "";
     Indent();
@@ -232,7 +244,7 @@ class SwiftGenerator : public BaseGenerator {
     BuildObjectConstructor(main_constructor, constructor);
     BuildObjectConstructor(base_constructor, "");
 
-    if (parser_.opts.generate_object_based_api)
+    if (opts_.generate_object_based_api)
       GenerateObjectAPIStructConstructor(struct_def);
 
     for (auto it = struct_def.fields.vec.begin();
@@ -293,11 +305,11 @@ class SwiftGenerator : public BaseGenerator {
         code_ += GenReaderMainBody() + "return " +
                  GenConstructor("{{ACCESS}}.postion + {{OFFSET}}");
       }
-      if (parser_.opts.mutable_buffer && !IsStruct(field.value.type))
+      if (opts_.mutable_buffer && !IsStruct(field.value.type))
         code_ += GenMutate("{{OFFSET}}", "", IsEnum(field.value.type));
     }
 
-    if (parser_.opts.generate_object_based_api) {
+    if (opts_.generate_object_based_api) {
       GenerateObjectAPIExtensionHeader(NameWrappedInNameSpace(struct_def));
       code_ += "return builder.create(struct: obj)";
       Outdent();
@@ -383,7 +395,7 @@ class SwiftGenerator : public BaseGenerator {
     GenTableAccessors(struct_def);
     GenTableReader(struct_def);
     GenTableWriter(struct_def);
-    if (parser_.opts.generate_object_based_api)
+    if (opts_.generate_object_based_api)
       GenerateObjectAPITableExtension(struct_def);
     code_ += "";
     GenerateVerifier(struct_def);
@@ -423,7 +435,7 @@ class SwiftGenerator : public BaseGenerator {
     code_ +=
         "{{ACCESS_TYPE}} struct {{STRUCTNAME}}{{MUTABLE}}: FlatBufferObject\\";
     if (!struct_def.fixed) code_ += ", Verifiable\\";
-    if (!struct_def.fixed && parser_.opts.generate_object_based_api)
+    if (!struct_def.fixed && opts_.generate_object_based_api)
       code_ += ", ObjectAPIPacker\\";
     code_ += " {\n";
     Indent();
@@ -674,7 +686,7 @@ class SwiftGenerator : public BaseGenerator {
         !IsBool(field.value.type.base_type)) {
       code_ += GenReaderMainBody(optional) + GenOffset() + const_string +
                GenReader("VALUETYPE", "o") + " }";
-      if (parser_.opts.mutable_buffer) code_ += GenMutate("o", GenOffset());
+      if (opts_.mutable_buffer) code_ += GenMutate("o", GenOffset());
       return;
     }
 
@@ -687,7 +699,7 @@ class SwiftGenerator : public BaseGenerator {
       code_.SetValue("VALUETYPE", "Byte");
       code_ += GenOffset() + "return o == 0 ? {{CONSTANT}} : 0 != " +
                GenReader("VALUETYPE", "o") + " }";
-      if (parser_.opts.mutable_buffer) code_ += GenMutate("o", GenOffset());
+      if (opts_.mutable_buffer) code_ += GenMutate("o", GenOffset());
       return;
     }
 
@@ -698,7 +710,7 @@ class SwiftGenerator : public BaseGenerator {
       code_ += GenReaderMainBody(optional) + "\\";
       code_ += GenOffset() + "return o == 0 ? " + default_value + " : " +
                GenEnumConstructor("o") + "?? " + default_value + " }";
-      if (parser_.opts.mutable_buffer && !IsUnion(field.value.type))
+      if (opts_.mutable_buffer && !IsUnion(field.value.type))
         code_ += GenMutate("o", GenOffset(), true);
       return;
     }
@@ -790,7 +802,7 @@ class SwiftGenerator : public BaseGenerator {
       code_ +=
           "{{ACCESS_TYPE}} var {{VALUENAME}}: [{{VALUETYPE}}] { return "
           "{{ACCESS}}.getVector(at: {{TABLEOFFSET}}.{{OFFSET}}.v) ?? [] }";
-      if (parser_.opts.mutable_buffer) code_ += GenMutateArray();
+      if (opts_.mutable_buffer) code_ += GenMutateArray();
       return;
     }
 
@@ -1002,7 +1014,7 @@ class SwiftGenerator : public BaseGenerator {
     AddMinOrMaxEnumValue(Name(*enum_def.MinValue()), "min");
     Outdent();
     code_ += "}\n";
-    if (parser_.opts.generate_object_based_api && enum_def.is_union) {
+    if (opts_.generate_object_based_api && enum_def.is_union) {
       code_ += "{{ACCESS_TYPE}} struct {{ENUM_NAME}}Union {";
       Indent();
       code_ += "{{ACCESS_TYPE}} var type: {{ENUM_NAME}}";
@@ -1648,7 +1660,7 @@ class SwiftGenerator : public BaseGenerator {
   }
 
   std::string ObjectAPIName(const std::string &name) const {
-    return parser_.opts.object_prefix + name + parser_.opts.object_suffix;
+    return opts_.object_prefix + name + opts_.object_suffix;
   }
 
   void Indent() { code_.IncrementIdentLevel(); }

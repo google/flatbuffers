@@ -35,11 +35,21 @@ const CommentConfig def_comment = { nullptr, "#", nullptr };
 const std::string Indent = "    ";
 
 class PythonGenerator : public BaseGenerator {
+  struct PythonOptions {
+    bool generate_object_based_api;
+    bool include_dependence_headers;
+    explicit PythonOptions(const IDLOptions opts)
+        : generate_object_based_api(opts.generate_object_based_api),
+          include_dependence_headers(opts.include_dependence_headers) {}
+  };
+  const PythonOptions opts_;
+
  public:
   PythonGenerator(const Parser &parser, const std::string &path,
                   const std::string &file_name)
       : BaseGenerator(parser, path, file_name, "" /* not used */,
                       "" /* not used */, "py"),
+        opts_(PythonOptions(parser.opts)),
         float_const_gen_("float('nan')", "float('inf')", "float('-inf')") {
     static const char *const keywords[] = {
       "False",   "None",     "True",     "and",    "as",   "assert", "break",
@@ -272,7 +282,7 @@ class PythonGenerator : public BaseGenerator {
       code += Indent + Indent + Indent;
       code += "x = self._tab.Indirect(o + self._tab.Pos)\n";
     }
-    if (parser_.opts.include_dependence_headers) {
+    if (opts_.include_dependence_headers) {
       code += Indent + Indent + Indent;
       code += "from " + GenPackageReference(field.value.type) + " import " +
               TypeName(field) + "\n";
@@ -309,7 +319,7 @@ class PythonGenerator : public BaseGenerator {
     if (is_native_table) {
       code +=
           Indent + Indent + Indent + "from flatbuffers.table import Table\n";
-    } else if (parser_.opts.include_dependence_headers) {
+    } else if (opts_.include_dependence_headers) {
       code += Indent + Indent + Indent;
       code += "from " + GenPackageReference(field.value.type) + " import " +
               TypeName(field) + "\n";
@@ -351,7 +361,7 @@ class PythonGenerator : public BaseGenerator {
     if (!(vectortype.struct_def->fixed)) {
       code += Indent + Indent + Indent + "x = self._tab.Indirect(x)\n";
     }
-    if (parser_.opts.include_dependence_headers) {
+    if (opts_.include_dependence_headers) {
       code += Indent + Indent + Indent;
       code += "from " + GenPackageReference(field.value.type) + " import " +
               TypeName(field) + "\n";
@@ -898,7 +908,7 @@ class PythonGenerator : public BaseGenerator {
       switch (ev.union_type.base_type) {
         case BASE_TYPE_STRUCT:
           field_type = GenTypeGet(ev.union_type) + "T";
-          if (parser_.opts.include_dependence_headers) {
+          if (opts_.include_dependence_headers) {
             auto package_reference = GenPackageReference(ev.union_type);
             field_type = package_reference + "." + field_type;
             import_list->insert("import " + package_reference);
@@ -916,7 +926,7 @@ class PythonGenerator : public BaseGenerator {
     field_types += "]";
 
     // Gets the import lists for the union.
-    if (parser_.opts.include_dependence_headers) {
+    if (opts_.include_dependence_headers) {
       // The package reference is generated based on enum_def, instead
       // of struct_def in field.type. That's why GenPackageReference() is
       // not used.
@@ -933,7 +943,7 @@ class PythonGenerator : public BaseGenerator {
                      std::set<std::string> *import_typing_list) {
     import_typing_list->insert("Optional");
     auto &field_type = *field_type_ptr;
-    if (parser_.opts.include_dependence_headers) {
+    if (opts_.include_dependence_headers) {
       auto package_reference = GenPackageReference(field.value.type);
       field_type = package_reference + "." + TypeName(field) + "T]";
       import_list->insert("import " + package_reference);
@@ -951,7 +961,7 @@ class PythonGenerator : public BaseGenerator {
     auto base_type = field.value.type.VectorType().base_type;
     if (base_type == BASE_TYPE_STRUCT) {
       field_type = GenTypeGet(field.value.type.VectorType()) + "T]";
-      if (parser_.opts.include_dependence_headers) {
+      if (opts_.include_dependence_headers) {
         auto package_reference =
             GenPackageReference(field.value.type.VectorType());
         field_type = package_reference + "." +
@@ -1079,7 +1089,7 @@ class PythonGenerator : public BaseGenerator {
     auto field_accessor_name = MakeUpperCamel(field);
     auto field_type = TypeName(field);
 
-    if (parser_.opts.include_dependence_headers) {
+    if (opts_.include_dependence_headers) {
       auto package_reference = GenPackageReference(field.value.type);
       field_type = package_reference + "." + TypeName(field);
     }
@@ -1109,7 +1119,7 @@ class PythonGenerator : public BaseGenerator {
     auto struct_instance_name = MakeLowerCamel(struct_def);
     auto union_name = MakeUpperCamel(*(field.value.type.enum_def));
 
-    if (parser_.opts.include_dependence_headers) {
+    if (opts_.include_dependence_headers) {
       Namespace *namespaces = field.value.type.enum_def->defined_namespace;
       auto package_reference = namespaces->GetFullyQualifiedName(
           MakeUpperCamel(*(field.value.type.enum_def)));
@@ -1137,7 +1147,7 @@ class PythonGenerator : public BaseGenerator {
     auto one_instance = field_type_name + "_";
     one_instance[0] = CharToLower(one_instance[0]);
 
-    if (parser_.opts.include_dependence_headers) {
+    if (opts_.include_dependence_headers) {
       auto package_reference = GenPackageReference(field.value.type);
       field_type_name = package_reference + "." + TypeName(field);
     }
@@ -1571,7 +1581,7 @@ class PythonGenerator : public BaseGenerator {
 
     code += GenIndents(1) + "if unionType == " + union_name + "()." +
             field_name + ":";
-    if (parser_.opts.include_dependence_headers) {
+    if (opts_.include_dependence_headers) {
       auto package_reference = GenPackageReference(ev.union_type);
       code += GenIndents(2) + "import " + package_reference;
       field_type = package_reference + "." + field_type;
@@ -1714,7 +1724,7 @@ class PythonGenerator : public BaseGenerator {
       auto &enum_def = **it;
       std::string enumcode;
       GenEnum(enum_def, &enumcode);
-      if (parser_.opts.generate_object_based_api & enum_def.is_union) {
+      if (opts_.generate_object_based_api & enum_def.is_union) {
         GenUnionCreator(enum_def, &enumcode);
       }
       if (!SaveType(enum_def, enumcode, false)) return false;
@@ -1728,7 +1738,7 @@ class PythonGenerator : public BaseGenerator {
       auto &struct_def = **it;
       std::string declcode;
       GenStruct(struct_def, &declcode);
-      if (parser_.opts.generate_object_based_api) {
+      if (opts_.generate_object_based_api) {
         GenStructForObjectAPI(struct_def, &declcode);
       }
       if (!SaveType(struct_def, declcode, true)) return false;

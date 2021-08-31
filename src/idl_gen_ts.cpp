@@ -43,12 +43,28 @@ namespace ts {
 // Iterate through all definitions we haven't generate code for (enums, structs,
 // and tables) and output them to a single file.
 class TsGenerator : public BaseGenerator {
+  struct TsOptions {
+    bool generate_name_strings;
+    bool generate_object_based_api;
+    bool mutable_buffer;
+    const std::string &object_prefix;
+    const std::string &object_suffix;
+    explicit TsOptions(const IDLOptions &opts)
+        : generate_name_strings(opts.generate_name_strings),
+          generate_object_based_api(opts.generate_object_based_api),
+          mutable_buffer(opts.mutable_buffer),
+          object_prefix(opts.object_prefix),
+          object_suffix(opts.object_suffix) {}
+  };
+  const TsOptions opts_;
+
  public:
   typedef std::map<std::string, ImportDefinition> import_set;
 
   TsGenerator(const Parser &parser, const std::string &path,
               const std::string &file_name)
-      : BaseGenerator(parser, path, file_name, "", ".", "ts") {}
+      : BaseGenerator(parser, path, file_name, "", ".", "ts"),
+        opts_(TsOptions(parser.opts)) {}
   bool generate() {
     generateEnums();
     generateStructs();
@@ -413,14 +429,12 @@ class TsGenerator : public BaseGenerator {
     }
   }
 
-  static std::string GetObjApiClassName(const StructDef &sd,
-                                        const IDLOptions &opts) {
-    return GetObjApiClassName(sd.name, opts);
+  std::string GetObjApiClassName(const StructDef &sd) const {
+    return GetObjApiClassName(sd.name);
   }
 
-  static std::string GetObjApiClassName(const std::string &name,
-                                        const IDLOptions &opts) {
-    return opts.object_prefix + name + opts.object_suffix;
+  std::string GetObjApiClassName(const std::string &name) const {
+    return opts_.object_prefix + name + opts_.object_suffix;
   }
 
   bool UnionHasStringType(const EnumDef &union_enum) {
@@ -488,11 +502,11 @@ class TsGenerator : public BaseGenerator {
     std::string symbols_expression;
     if (long_import_name.empty()) {
       symbols_expression += import_name;
-      if (parser_.opts.generate_object_based_api)
+      if (opts_.generate_object_based_api)
         symbols_expression += ", " + import_name + "T";
     } else {
       symbols_expression += dependency.name + " as " + long_import_name;
-      if (parser_.opts.generate_object_based_api)
+      if (opts_.generate_object_based_api)
         symbols_expression +=
             ", " + dependency.name + "T as " + long_import_name + "T";
     }
@@ -588,7 +602,7 @@ class TsGenerator : public BaseGenerator {
   }
 
   // Generate a TS union type based on a union's enum
-  std::string GenObjApiUnionTypeTS(import_set &imports, const IDLOptions &opts,
+  std::string GenObjApiUnionTypeTS(import_set &imports,
                                    const EnumDef &union_enum) {
     std::string ret = "";
     std::set<std::string> type_list;
@@ -603,7 +617,7 @@ class TsGenerator : public BaseGenerator {
         type = "string";  // no need to wrap string type in namespace
       } else if (ev.union_type.base_type == BASE_TYPE_STRUCT) {
         type = GetObjApiClassName(
-            AddImport(imports, union_enum, *ev.union_type.struct_def), opts);
+            AddImport(imports, union_enum, *ev.union_type.struct_def));
       } else {
         FLATBUFFERS_ASSERT(false);
       }
@@ -787,10 +801,9 @@ class TsGenerator : public BaseGenerator {
     return ret;
   }
 
-  void GenObjApi(const Parser &parser, StructDef &struct_def,
-                 std::string &obj_api_unpack_func, std::string &obj_api_class,
-                 import_set &imports) {
-    const auto class_name = GetObjApiClassName(struct_def, parser.opts);
+  void GenObjApi(StructDef &struct_def, std::string &obj_api_unpack_func,
+                 std::string &obj_api_class, import_set &imports) {
+    const auto class_name = GetObjApiClassName(struct_def);
 
     std::string unpack_func = "\nunpack(): " + class_name +
                               " {\n  return new " + class_name + "(" +
@@ -873,7 +886,7 @@ class TsGenerator : public BaseGenerator {
         switch (field.value.type.base_type) {
           case BASE_TYPE_STRUCT: {
             const auto &sd = *field.value.type.struct_def;
-            field_type += GetObjApiClassName(sd, parser.opts);
+            field_type += GetObjApiClassName(sd);
 
             const std::string field_accessor = "this." + field_name + "()";
             field_val = GenNullCheckConditional(field_accessor,
@@ -902,7 +915,7 @@ class TsGenerator : public BaseGenerator {
             switch (vectortype.base_type) {
               case BASE_TYPE_STRUCT: {
                 const auto &sd = *field.value.type.struct_def;
-                field_type += GetObjApiClassName(sd, parser.opts);
+                field_type += GetObjApiClassName(sd);
                 field_type += ")[]";
 
                 field_val = GenBBAccess() + ".createObjList(" +
@@ -939,8 +952,8 @@ class TsGenerator : public BaseGenerator {
               }
 
               case BASE_TYPE_UNION: {
-                field_type += GenObjApiUnionTypeTS(imports, parser.opts,
-                                                   *(vectortype.enum_def));
+                field_type +=
+                    GenObjApiUnionTypeTS(imports, *(vectortype.enum_def));
                 field_type += ")[]";
                 field_val =
                     GenUnionValTS(imports, field_name, vectortype, true);
@@ -977,8 +990,8 @@ class TsGenerator : public BaseGenerator {
           }
 
           case BASE_TYPE_UNION: {
-            field_type += GenObjApiUnionTypeTS(imports, parser.opts,
-                                               *(field.value.type.enum_def));
+            field_type +=
+                GenObjApiUnionTypeTS(imports, *(field.value.type.enum_def));
 
             field_val = GenUnionValTS(imports, field_name, field.value.type);
             field_offset_decl =
@@ -1049,8 +1062,7 @@ class TsGenerator : public BaseGenerator {
                                GetPrefixedName(struct_def) + "(builder);";
     }
 
-    obj_api_class = "\nexport class " +
-                    GetObjApiClassName(struct_def, parser.opts) + " {\n";
+    obj_api_class = "\nexport class " + GetObjApiClassName(struct_def) + " {\n";
 
     obj_api_class += constructor_func;
     obj_api_class += pack_func_prototype + pack_func_offset_decl +
@@ -1299,7 +1311,7 @@ class TsGenerator : public BaseGenerator {
       code += "}\n\n";
 
       // Adds the mutable scalar value to the output
-      if (IsScalar(field.value.type.base_type) && parser.opts.mutable_buffer &&
+      if (IsScalar(field.value.type.base_type) && opts_.mutable_buffer &&
           !IsUnion(field.value.type)) {
         std::string type =
             GenTypeName(imports, struct_def, field.value.type, true);
@@ -1359,7 +1371,7 @@ class TsGenerator : public BaseGenerator {
     }
 
     // Emit the fully qualified name
-    if (parser_.opts.generate_name_strings) {
+    if (opts_.generate_name_strings) {
       GenDocComment(code_ptr);
       code += "static getFullyQualifiedName():string {\n";
       code += "  return '" + WrapInNameSpace(struct_def) + "';\n";
@@ -1558,11 +1570,10 @@ class TsGenerator : public BaseGenerator {
       code += "}\n";
     }
 
-    if (parser_.opts.generate_object_based_api) {
+    if (opts_.generate_object_based_api) {
       std::string obj_api_class;
       std::string obj_api_unpack_func;
-      GenObjApi(parser_, struct_def, obj_api_unpack_func, obj_api_class,
-                imports);
+      GenObjApi(struct_def, obj_api_unpack_func, obj_api_class, imports);
 
       code += obj_api_unpack_func + "}\n" + obj_api_class;
     } else {

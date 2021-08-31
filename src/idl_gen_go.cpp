@@ -62,7 +62,7 @@ class GoGenerator : public BaseGenerator {
     const std::string &object_prefix;
     const std::string &object_suffix;
     bool one_file;
-    GoOptions(const IDLOptions &opts)
+    explicit GoOptions(const IDLOptions &opts)
         : generate_object_based_api(opts.generate_object_based_api),
           go_import(opts.go_import),
           go_namespace(opts.go_namespace),
