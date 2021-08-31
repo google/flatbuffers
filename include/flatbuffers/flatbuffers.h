@@ -376,7 +376,7 @@ template<typename T> class Vector {
     return IndirectHelper<T>::Read(element, 0);
   }
 
-  template<typename K> mutable_return_type mutable_LookupByKey(K key) {
+  template<typename K> mutable_return_type MutableLookupByKey(K key) {
     return const_cast<mutable_return_type>(LookupByKey(key));
   }
 
