@@ -12,40 +12,42 @@ pub struct ArrayTable<'a> {
 }
 
 impl<'a> flatbuffers::Follow<'a> for ArrayTable<'a> {
-    type Inner = ArrayTable<'a>;
-    #[inline]
-    fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
-        Self { _tab: flatbuffers::Table { buf, loc } }
-    }
+  type Inner = ArrayTable<'a>;
+  #[inline]
+  fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
+    Self { _tab: flatbuffers::Table { buf, loc } }
+  }
 }
 
 impl<'a> ArrayTable<'a> {
-    pub const fn get_fully_qualified_name() -> &'static str {
-        "MyGame.Example.ArrayTable"
-    }
+  pub const VT_A: flatbuffers::VOffsetT = 4;
 
-    #[inline]
-    pub fn init_from_table(table: flatbuffers::Table<'a>) -> Self {
-        ArrayTable { _tab: table }
-    }
-    #[allow(unused_mut)]
-    pub fn create<'bldr: 'args, 'args: 'mut_bldr, 'mut_bldr>(
-        _fbb: &'mut_bldr mut flatbuffers::FlatBufferBuilder<'bldr>,
-        args: &'args ArrayTableArgs<'args>) -> flatbuffers::WIPOffset<ArrayTable<'bldr>> {
-      let mut builder = ArrayTableBuilder::new(_fbb);
-      if let Some(x) = args.a { builder.add_a(x); }
-      builder.finish()
-    }
+  pub const fn get_fully_qualified_name() -> &'static str {
+    "MyGame.Example.ArrayTable"
+  }
 
-    pub fn unpack(&self) -> ArrayTableT {
-      let a = self.a().map(|x| {
-        x.unpack()
-      });
-      ArrayTableT {
-        a,
-      }
+  #[inline]
+  pub fn init_from_table(table: flatbuffers::Table<'a>) -> Self {
+    ArrayTable { _tab: table }
+  }
+  #[allow(unused_mut)]
+  pub fn create<'bldr: 'args, 'args: 'mut_bldr, 'mut_bldr>(
+    _fbb: &'mut_bldr mut flatbuffers::FlatBufferBuilder<'bldr>,
+    args: &'args ArrayTableArgs<'args>
+  ) -> flatbuffers::WIPOffset<ArrayTable<'bldr>> {
+    let mut builder = ArrayTableBuilder::new(_fbb);
+    if let Some(x) = args.a { builder.add_a(x); }
+    builder.finish()
+  }
+
+  pub fn unpack(&self) -> ArrayTableT {
+    let a = self.a().map(|x| {
+      x.unpack()
+    });
+    ArrayTableT {
+      a,
     }
-    pub const VT_A: flatbuffers::VOffsetT = 4;
+  }
 
   #[inline]
   pub fn a(&self) -> Option<&'a ArrayStruct> {
@@ -69,12 +71,12 @@ pub struct ArrayTableArgs<'a> {
     pub a: Option<&'a ArrayStruct>,
 }
 impl<'a> Default for ArrayTableArgs<'a> {
-    #[inline]
-    fn default() -> Self {
-        ArrayTableArgs {
-            a: None,
-        }
+  #[inline]
+  fn default() -> Self {
+    ArrayTableArgs {
+      a: None,
     }
+  }
 }
 pub struct ArrayTableBuilder<'a: 'b, 'b> {
   fbb_: &'b mut flatbuffers::FlatBufferBuilder<'a>,

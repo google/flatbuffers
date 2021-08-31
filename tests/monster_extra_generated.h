@@ -349,6 +349,10 @@ inline MonsterExtra *GetMutableMonsterExtra(void *buf) {
   return flatbuffers::GetMutableRoot<MonsterExtra>(buf);
 }
 
+inline MyGame::MonsterExtra *GetMutableSizePrefixedMonsterExtra(void *buf) {
+  return flatbuffers::GetMutableSizePrefixedRoot<MyGame::MonsterExtra>(buf);
+}
+
 inline const char *MonsterExtraIdentifier() {
   return "MONE";
 }

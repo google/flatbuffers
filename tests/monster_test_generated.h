@@ -3648,6 +3648,10 @@ inline Monster *GetMutableMonster(void *buf) {
   return flatbuffers::GetMutableRoot<Monster>(buf);
 }
 
+inline MyGame::Example::Monster *GetMutableSizePrefixedMonster(void *buf) {
+  return flatbuffers::GetMutableSizePrefixedRoot<MyGame::Example::Monster>(buf);
+}
+
 inline const char *MonsterIdentifier() {
   return "MONS";
 }

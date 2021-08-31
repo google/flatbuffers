@@ -93,9 +93,9 @@ impl<'a> ArrayStruct {
     s
   }
 
-    pub const fn get_fully_qualified_name() -> &'static str {
-        "MyGame.Example.ArrayStruct"
-    }
+  pub const fn get_fully_qualified_name() -> &'static str {
+    "MyGame.Example.ArrayStruct"
+  }
 
   pub fn a(&self) -> f32 {
     let mut mem = core::mem::MaybeUninit::<f32>::uninit();

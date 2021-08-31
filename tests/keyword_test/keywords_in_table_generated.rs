@@ -12,46 +12,48 @@ pub struct KeywordsInTable<'a> {
 }
 
 impl<'a> flatbuffers::Follow<'a> for KeywordsInTable<'a> {
-    type Inner = KeywordsInTable<'a>;
-    #[inline]
-    fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
-        Self { _tab: flatbuffers::Table { buf, loc } }
-    }
+  type Inner = KeywordsInTable<'a>;
+  #[inline]
+  fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
+    Self { _tab: flatbuffers::Table { buf, loc } }
+  }
 }
 
 impl<'a> KeywordsInTable<'a> {
-    pub const fn get_fully_qualified_name() -> &'static str {
-        "KeywordsInTable"
-    }
+  pub const VT_IS: flatbuffers::VOffsetT = 4;
+  pub const VT_PRIVATE: flatbuffers::VOffsetT = 6;
+  pub const VT_TYPE_: flatbuffers::VOffsetT = 8;
 
-    #[inline]
-    pub fn init_from_table(table: flatbuffers::Table<'a>) -> Self {
-        KeywordsInTable { _tab: table }
-    }
-    #[allow(unused_mut)]
-    pub fn create<'bldr: 'args, 'args: 'mut_bldr, 'mut_bldr>(
-        _fbb: &'mut_bldr mut flatbuffers::FlatBufferBuilder<'bldr>,
-        args: &'args KeywordsInTableArgs) -> flatbuffers::WIPOffset<KeywordsInTable<'bldr>> {
-      let mut builder = KeywordsInTableBuilder::new(_fbb);
-      builder.add_type_(args.type_);
-      builder.add_private(args.private);
-      builder.add_is(args.is);
-      builder.finish()
-    }
+  pub const fn get_fully_qualified_name() -> &'static str {
+    "KeywordsInTable"
+  }
 
-    pub fn unpack(&self) -> KeywordsInTableT {
-      let is = self.is();
-      let private = self.private();
-      let type_ = self.type_();
-      KeywordsInTableT {
-        is,
-        private,
-        type_,
-      }
+  #[inline]
+  pub fn init_from_table(table: flatbuffers::Table<'a>) -> Self {
+    KeywordsInTable { _tab: table }
+  }
+  #[allow(unused_mut)]
+  pub fn create<'bldr: 'args, 'args: 'mut_bldr, 'mut_bldr>(
+    _fbb: &'mut_bldr mut flatbuffers::FlatBufferBuilder<'bldr>,
+    args: &'args KeywordsInTableArgs
+  ) -> flatbuffers::WIPOffset<KeywordsInTable<'bldr>> {
+    let mut builder = KeywordsInTableBuilder::new(_fbb);
+    builder.add_type_(args.type_);
+    builder.add_private(args.private);
+    builder.add_is(args.is);
+    builder.finish()
+  }
+
+  pub fn unpack(&self) -> KeywordsInTableT {
+    let is = self.is();
+    let private = self.private();
+    let type_ = self.type_();
+    KeywordsInTableT {
+      is,
+      private,
+      type_,
     }
-    pub const VT_IS: flatbuffers::VOffsetT = 4;
-    pub const VT_PRIVATE: flatbuffers::VOffsetT = 6;
-    pub const VT_TYPE_: flatbuffers::VOffsetT = 8;
+  }
 
   #[inline]
   pub fn is(&self) -> ABC {
@@ -87,14 +89,14 @@ pub struct KeywordsInTableArgs {
     pub type_: i32,
 }
 impl<'a> Default for KeywordsInTableArgs {
-    #[inline]
-    fn default() -> Self {
-        KeywordsInTableArgs {
-            is: ABC::void,
-            private: public::NONE,
-            type_: 0,
-        }
+  #[inline]
+  fn default() -> Self {
+    KeywordsInTableArgs {
+      is: ABC::void,
+      private: public::NONE,
+      type_: 0,
     }
+  }
 }
 pub struct KeywordsInTableBuilder<'a: 'b, 'b> {
   fbb_: &'b mut flatbuffers::FlatBufferBuilder<'a>,
