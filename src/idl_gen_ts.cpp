@@ -1089,8 +1089,8 @@ class TsGenerator : public BaseGenerator {
   }
 
   // Generate an accessor struct with constructor for a flatbuffers struct.
-  void GenStruct(const Parser &parser, StructDef &struct_def,
-                 std::string *code_ptr, import_set &imports) {
+  void GenStruct(StructDef &struct_def, std::string *code_ptr,
+                 import_set &imports) {
     if (struct_def.generated) return;
     std::string &code = *code_ptr;
 

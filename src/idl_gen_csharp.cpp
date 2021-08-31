@@ -66,7 +66,7 @@ class CSharpGenerator : public BaseGenerator {
           mutable_buffer(opts.mutable_buffer),
           object_prefix(opts.object_prefix),
           object_suffix(opts.object_suffix),
-          one_file(opts.one_file){};
+          one_file(opts.one_file) {}
   };
   const CSharpOpts opts_;
 
