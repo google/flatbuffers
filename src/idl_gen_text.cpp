@@ -349,7 +349,7 @@ struct JsonPrinter {
   std::string &text;
 };
 
-static bool GenerateTextImpl(const Parser &parser, const IDLOptions &options,
+static bool GenerateTextImpl(const Parser &parser,
                              const Table *table, const StructDef &struct_def,
                              std::string *_text) {
   JsonPrinter printer(parser, *_text);
@@ -362,10 +362,11 @@ static bool GenerateTextImpl(const Parser &parser, const IDLOptions &options,
 bool GenerateTextFromTable(const Parser &parser, const IDLOptions &options,
                            const void *table, const std::string &table_name,
                            std::string *_text) {
+  (void)options;  // unused.
   auto struct_def = parser.LookupStruct(table_name);
   if (struct_def == nullptr) { return false; }
   auto root = static_cast<const Table *>(table);
-  return GenerateTextImpl(parser, options, root, *struct_def, _text);
+  return GenerateTextImpl(parser, root, *struct_def, _text);
 }
 
 // Generate a text representation of a flatbuffer in JSON format.
@@ -374,7 +375,7 @@ bool GenerateText(const Parser &parser, const IDLOptions &options,
   FLATBUFFERS_ASSERT(parser.root_struct_def_);  // call SetRootType()
   auto root = options.size_prefixed ? GetSizePrefixedRoot<Table>(flatbuffer)
                                     : GetRoot<Table>(flatbuffer);
-  return GenerateTextImpl(parser, options, root, *parser.root_struct_def_,
+  return GenerateTextImpl(parser, root, *parser.root_struct_def_,
                           _text);
 }
 
@@ -404,6 +405,7 @@ bool GenerateTextFile(const Parser &parser, const IDLOptions &options,
 std::string TextMakeRule(const Parser &parser, const IDLOptions &options,
                          const std::string &path,
                          const std::string &file_name) {
+  (void)options;  // unused.
   if (!parser.builder_.GetSize() || !parser.root_struct_def_) return "";
   std::string filebase =
       flatbuffers::StripPath(flatbuffers::StripExtension(file_name));
