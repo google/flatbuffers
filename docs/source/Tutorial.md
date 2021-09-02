@@ -231,7 +231,7 @@ fields, such as `mana:short = 150`. If unspecified, scalar fields (like `int`,
 `uint`, or `float`) will be given a default of `0` while strings and tables will
 be given a default of `null`. Another thing to note is the line `friendly:bool =
 false (deprecated);`. Since you cannot delete fields from a `table` (to support
-backwards compatability), you can set fields as `deprecated`, which will prevent
+backwards compatibility), you can set fields as `deprecated`, which will prevent
 the generation of accessors for this field in the generated code. Be careful
 when using `deprecated`, however, as it may break legacy code that used this
 accessor.
@@ -1090,7 +1090,7 @@ traversal. This is generally easy to do on any tree structures.
 </div>
 <div class="language-lua">
 ~~~{.py}
-    -- Serialize a name for our mosnter, called 'orc'
+    -- Serialize a name for our monster, called 'orc'
     local name = builder:CreateString("Orc")
 
     -- Create a `vector` representing the inventory of the Orc. Each number
