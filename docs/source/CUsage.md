@@ -7,7 +7,7 @@ The `flatcc` C schema compiler can generate code offline as well as
 online via a C library. It can also generate buffer verifiers and fast
 JSON parsers, printers.
 
-Great care has been taken to ensure compatibily with the main `flatc`
+Great care has been taken to ensure compatibility with the main `flatc`
 project.
 
 ## General Documention
