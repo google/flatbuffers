@@ -23,7 +23,7 @@ https://www.npmjs.com/package/flatbuffers. To use it from sources:
 1. In your project, install it as a normal dependency, using the flatbuffers
 folder as the source.
 
-## Using the FlatBuffers JavaScript libary
+## Using the FlatBuffers JavaScript library
 
 *Note: See [Tutorial](@ref flatbuffers_guide_tutorial) for a more in-depth
 example of how to use FlatBuffers.*

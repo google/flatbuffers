@@ -26,7 +26,7 @@ flatbuffers/blob/master/tests/TypeScriptTest.sh) shell script.
 
 *Note: The TypeScript test file requires [Node.js](https://nodejs.org/en/).*
 
-## Using the FlatBuffers TypeScript libary
+## Using the FlatBuffers TypeScript library
 
 *Note: See [Tutorial](@ref flatbuffers_guide_tutorial) for a more in-depth
 example of how to use FlatBuffers in TypeScript.*

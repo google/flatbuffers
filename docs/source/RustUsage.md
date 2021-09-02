@@ -36,7 +36,7 @@ The test code itself is located in
 [integration_test.rs](https://github.com/google/flatbuffers/blob/master/tests/rust_usage_test/tests/integration_test.rs)
 
 This test file requires `flatc` to be present. To review how to build the project,
-please read the [Building](@ref flatbuffers_guide_building) documenation.
+please read the [Building](@ref flatbuffers_guide_building) documentation.
 
 To run the tests, execute `RustTest.sh` from the `flatbuffers/tests` directory.
 For example, on [Linux](https://en.wikipedia.org/wiki/Linux), you would simply
