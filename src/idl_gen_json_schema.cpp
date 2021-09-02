@@ -198,7 +198,10 @@ class JsonSchemaGenerator : public BaseGenerator {
 
   bool generate() {
     code_ = "";
-    if (parser_.root_struct_def_ == nullptr) { return false; }
+    if (parser_.root_struct_def_ == nullptr) { 
+      std::cerr << "Error: Binary schema not generated, no root struct found\n";
+      return false; 
+    }
     code_ += "{" + NewLine();
     code_ += Indent(1) +
              "\"$schema\": \"https://json-schema.org/draft/2019-09/schema\"," +
