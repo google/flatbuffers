@@ -25,7 +25,7 @@ impl<'a> KeywordsInTable<'a> {
   pub const VT_TYPE_: flatbuffers::VOffsetT = 8;
 
   pub const fn get_fully_qualified_name() -> &'static str {
-    "KeywordsInTable"
+    "KeywordTest.KeywordsInTable"
   }
 
   #[inline]

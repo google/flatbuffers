@@ -1,3 +1,4 @@
+namespace KeywordTest;
 
 enum ABC: int { void, where, stackalloc }
 
