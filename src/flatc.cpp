@@ -492,25 +492,23 @@ int FlatCompiler::Compile(int argc, const char **argv) {
       // schema)
       if (is_binary_schema) {
         LoadBinarySchema(*parser.get(), filename, contents);
-      } else {
-        if (opts.use_flexbuffers) {
-          if (opts.lang_to_generate == IDLOptions::kJson) {
-            parser->flex_root_ = flexbuffers::GetRoot(
-                reinterpret_cast<const uint8_t *>(contents.c_str()),
-                contents.size());
-          } else {
-            parser->flex_builder_.Clear();
-            ParseFile(*parser.get(), filename, contents, include_directories);
-          }
+      } else if (opts.use_flexbuffers) {
+        if (opts.lang_to_generate == IDLOptions::kJson) {
+          parser->flex_root_ = flexbuffers::GetRoot(
+              reinterpret_cast<const uint8_t *>(contents.c_str()),
+              contents.size());
         } else {
+          parser->flex_builder_.Clear();
           ParseFile(*parser.get(), filename, contents, include_directories);
-          if (!is_schema && !parser->builder_.GetSize()) {
-            // If a file doesn't end in .fbs, it must be json/binary. Ensure we
-            // didn't just parse a schema with a different extension.
-            Error("input file is neither json nor a .fbs (schema) file: " +
-                      filename,
-                  true);
-          }
+        }
+      } else {
+        ParseFile(*parser.get(), filename, contents, include_directories);
+        if (!is_schema && !parser->builder_.GetSize()) {
+          // If a file doesn't end in .fbs, it must be json/binary. Ensure we
+          // didn't just parse a schema with a different extension.
+          Error("input file is neither json nor a .fbs (schema) file: " +
+                    filename,
+                true);
         }
       }
       if ((is_schema || is_binary_schema) && !conform_to_schema.empty()) {
