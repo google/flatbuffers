@@ -1117,5 +1117,18 @@ namespace FlatBuffers.Test
             Assert.AreEqual(OptionalByte.Two, scalarStuff.MaybeEnum);
             Assert.AreEqual(OptionalByte.Two, scalarStuff.DefaultEnum);
         }
+
+
+        [FlatBuffersTestMethod]
+        public void AddOptionalEnum_WhenPassNull_ShouldWorkProperly() {
+          var fbb = new FlatBufferBuilder(1);
+          ScalarStuff.StartScalarStuff(fbb);
+          ScalarStuff.AddMaybeEnum(fbb, null);
+          var offset = ScalarStuff.EndScalarStuff(fbb);
+          ScalarStuff.FinishScalarStuffBuffer(fbb, offset);
+          
+          ScalarStuff scalarStuff = ScalarStuff.GetRootAsScalarStuff(fbb.DataBuffer);
+          Assert.AreEqual(null, scalarStuff.MaybeEnum);
+        }
     }
 }
