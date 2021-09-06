@@ -309,17 +309,17 @@ class CSharpGenerator : public BaseGenerator {
   // would be cast down to int before being put onto the buffer. In C#, one cast
   // directly cast an Enum to its underlying type, which is essential before
   // putting it onto the buffer.
-  std::string SourceCast(const Type &type) const {
+  std::string SourceCast(const Type &type, const bool isOptional=false) const {
     if (IsSeries(type)) {
       return SourceCast(type.VectorType());
     } else {
-      if (IsEnum(type)) return "(" + GenTypeBasic(type, false) + ")";
+      if (IsEnum(type)) return "(" + GenTypeBasic(type, false) + (isOptional ? "?": "") + ")";
     }
     return "";
   }
 
-  std::string SourceCastBasic(const Type &type) const {
-    return IsScalar(type.base_type) ? SourceCast(type) : "";
+  std::string SourceCastBasic(const FieldDef &field) const {
+    return IsScalar(field.value.type.base_type) ? SourceCast(field.value.type, field.IsScalarOptional()) : "";
   }
 
   std::string GenEnumDefaultValue(const FieldDef &field) const {
@@ -1191,7 +1191,7 @@ class CSharpGenerator : public BaseGenerator {
         code += " " + EscapeKeyword(argname) + ") { builder.Add";
         code += GenMethod(field.value.type) + "(";
         code += NumToString(it - struct_def.fields.vec.begin()) + ", ";
-        code += SourceCastBasic(field.value.type);
+        code += SourceCastBasic(field);
         code += EscapeKeyword(argname);
         if (!IsScalar(field.value.type.base_type) &&
             field.value.type.base_type != BASE_TYPE_UNION) {
@@ -1225,7 +1225,7 @@ class CSharpGenerator : public BaseGenerator {
             code += "Add";
             code += GenMethod(vector_type);
             code += "(";
-            code += SourceCastBasic(vector_type);
+            code += SourceCastBasic(field);
             code += "data[i]";
             if (vector_type.base_type == BASE_TYPE_STRUCT ||
                 IsString(vector_type))
