@@ -318,8 +318,8 @@ class CSharpGenerator : public BaseGenerator {
     return "";
   }
 
-  std::string SourceCastBasic(const FieldDef &field) const {
-    return IsScalar(field.value.type.base_type) ? SourceCast(field.value.type, field.IsScalarOptional()) : "";
+  std::string SourceCastBasic(const Type &type, const bool isOptional) const {
+    return IsScalar(type.base_type) ? SourceCast(type, isOptional) : "";
   }
 
   std::string GenEnumDefaultValue(const FieldDef &field) const {
@@ -1191,7 +1191,7 @@ class CSharpGenerator : public BaseGenerator {
         code += " " + EscapeKeyword(argname) + ") { builder.Add";
         code += GenMethod(field.value.type) + "(";
         code += NumToString(it - struct_def.fields.vec.begin()) + ", ";
-        code += SourceCastBasic(field);
+        code += SourceCastBasic(field.value.type, field.IsScalarOptional());
         code += EscapeKeyword(argname);
         if (!IsScalar(field.value.type.base_type) &&
             field.value.type.base_type != BASE_TYPE_UNION) {
@@ -1225,7 +1225,7 @@ class CSharpGenerator : public BaseGenerator {
             code += "Add";
             code += GenMethod(vector_type);
             code += "(";
-            code += SourceCastBasic(field);
+            code += SourceCastBasic(vector_type, false);
             code += "data[i]";
             if (vector_type.base_type == BASE_TYPE_STRUCT ||
                 IsString(vector_type))
