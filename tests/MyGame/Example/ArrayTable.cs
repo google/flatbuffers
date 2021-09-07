@@ -20,16 +20,16 @@ public struct ArrayTable : IFlatbufferObject
   public void __init(int _i, ByteBuffer _bb) { __p = new Table(_i, _bb); }
   public ArrayTable __assign(int _i, ByteBuffer _bb) { __init(_i, _bb); return this; }
 
-  public global::MyGame.Example.ArrayStruct? A { get { int o = __p.__offset(4); return o != 0 ? (global::MyGame.Example.ArrayStruct?)(new global::MyGame.Example.ArrayStruct()).__assign(o + __p.bb_pos, __p.bb) : null; } }
+  public MyGame.Example.ArrayStruct? A { get { int o = __p.__offset(4); return o != 0 ? (MyGame.Example.ArrayStruct?)(new MyGame.Example.ArrayStruct()).__assign(o + __p.bb_pos, __p.bb) : null; } }
 
   public static void StartArrayTable(FlatBufferBuilder builder) { builder.StartTable(1); }
-  public static void AddA(FlatBufferBuilder builder, Offset<global::MyGame.Example.ArrayStruct> aOffset) { builder.AddStruct(0, aOffset.Value, 0); }
-  public static Offset<global::MyGame.Example.ArrayTable> EndArrayTable(FlatBufferBuilder builder) {
+  public static void AddA(FlatBufferBuilder builder, Offset<MyGame.Example.ArrayStruct> aOffset) { builder.AddStruct(0, aOffset.Value, 0); }
+  public static Offset<MyGame.Example.ArrayTable> EndArrayTable(FlatBufferBuilder builder) {
     int o = builder.EndTable();
-    return new Offset<global::MyGame.Example.ArrayTable>(o);
+    return new Offset<MyGame.Example.ArrayTable>(o);
   }
-  public static void FinishArrayTableBuffer(FlatBufferBuilder builder, Offset<global::MyGame.Example.ArrayTable> offset) { builder.Finish(offset.Value, "ARRT"); }
-  public static void FinishSizePrefixedArrayTableBuffer(FlatBufferBuilder builder, Offset<global::MyGame.Example.ArrayTable> offset) { builder.FinishSizePrefixed(offset.Value, "ARRT"); }
+  public static void FinishArrayTableBuffer(FlatBufferBuilder builder, Offset<MyGame.Example.ArrayTable> offset) { builder.Finish(offset.Value, "ARRT"); }
+  public static void FinishSizePrefixedArrayTableBuffer(FlatBufferBuilder builder, Offset<MyGame.Example.ArrayTable> offset) { builder.FinishSizePrefixed(offset.Value, "ARRT"); }
   public ArrayTableT UnPack() {
     var _o = new ArrayTableT();
     this.UnPackTo(_o);
@@ -38,10 +38,10 @@ public struct ArrayTable : IFlatbufferObject
   public void UnPackTo(ArrayTableT _o) {
     _o.A = this.A.HasValue ? this.A.Value.UnPack() : null;
   }
-  public static Offset<global::MyGame.Example.ArrayTable> Pack(FlatBufferBuilder builder, ArrayTableT _o) {
-    if (_o == null) return default(Offset<global::MyGame.Example.ArrayTable>);
+  public static Offset<MyGame.Example.ArrayTable> Pack(FlatBufferBuilder builder, ArrayTableT _o) {
+    if (_o == null) return default(Offset<MyGame.Example.ArrayTable>);
     StartArrayTable(builder);
-    AddA(builder, global::MyGame.Example.ArrayStruct.Pack(builder, _o.A));
+    AddA(builder, MyGame.Example.ArrayStruct.Pack(builder, _o.A));
     return EndArrayTable(builder);
   }
 }
@@ -49,10 +49,10 @@ public struct ArrayTable : IFlatbufferObject
 public class ArrayTableT
 {
   [Newtonsoft.Json.JsonProperty("a")]
-  public global::MyGame.Example.ArrayStructT A { get; set; }
+  public MyGame.Example.ArrayStructT A { get; set; }
 
   public ArrayTableT() {
-    this.A = new global::MyGame.Example.ArrayStructT();
+    this.A = new MyGame.Example.ArrayStructT();
   }
 
   public static ArrayTableT DeserializeFromJson(string jsonText) {

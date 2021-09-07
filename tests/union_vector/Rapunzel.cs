@@ -16,10 +16,10 @@ public struct Rapunzel : IFlatbufferObject
   public int HairLength { get { return __p.bb.GetInt(__p.bb_pos + 0); } }
   public void MutateHairLength(int hair_length) { __p.bb.PutInt(__p.bb_pos + 0, hair_length); }
 
-  public static Offset<global::Rapunzel> CreateRapunzel(FlatBufferBuilder builder, int HairLength) {
+  public static Offset<Rapunzel> CreateRapunzel(FlatBufferBuilder builder, int HairLength) {
     builder.Prep(4, 4);
     builder.PutInt(HairLength);
-    return new Offset<global::Rapunzel>(builder.Offset);
+    return new Offset<Rapunzel>(builder.Offset);
   }
   public RapunzelT UnPack() {
     var _o = new RapunzelT();
@@ -29,8 +29,8 @@ public struct Rapunzel : IFlatbufferObject
   public void UnPackTo(RapunzelT _o) {
     _o.HairLength = this.HairLength;
   }
-  public static Offset<global::Rapunzel> Pack(FlatBufferBuilder builder, RapunzelT _o) {
-    if (_o == null) return default(Offset<global::Rapunzel>);
+  public static Offset<Rapunzel> Pack(FlatBufferBuilder builder, RapunzelT _o) {
+    if (_o == null) return default(Offset<Rapunzel>);
     return CreateRapunzel(
       builder,
       _o.HairLength);

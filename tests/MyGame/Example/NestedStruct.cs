@@ -18,14 +18,14 @@ public struct NestedStruct : IFlatbufferObject
 
   public int A(int j) { return __p.bb.GetInt(__p.bb_pos + 0 + j * 4); }
   public void MutateA(int j, int a) { __p.bb.PutInt(__p.bb_pos + 0 + j * 4, a); }
-  public global::MyGame.Example.TestEnum B { get { return (global::MyGame.Example.TestEnum)__p.bb.GetSbyte(__p.bb_pos + 8); } }
-  public void MutateB(global::MyGame.Example.TestEnum b) { __p.bb.PutSbyte(__p.bb_pos + 8, (sbyte)b); }
-  public global::MyGame.Example.TestEnum C(int j) { return (global::MyGame.Example.TestEnum)__p.bb.GetSbyte(__p.bb_pos + 9 + j * 1); }
-  public void MutateC(int j, global::MyGame.Example.TestEnum c) { __p.bb.PutSbyte(__p.bb_pos + 9 + j * 1, (sbyte)c); }
+  public MyGame.Example.TestEnum B { get { return (MyGame.Example.TestEnum)__p.bb.GetSbyte(__p.bb_pos + 8); } }
+  public void MutateB(MyGame.Example.TestEnum b) { __p.bb.PutSbyte(__p.bb_pos + 8, (sbyte)b); }
+  public MyGame.Example.TestEnum C(int j) { return (MyGame.Example.TestEnum)__p.bb.GetSbyte(__p.bb_pos + 9 + j * 1); }
+  public void MutateC(int j, MyGame.Example.TestEnum c) { __p.bb.PutSbyte(__p.bb_pos + 9 + j * 1, (sbyte)c); }
   public long D(int j) { return __p.bb.GetLong(__p.bb_pos + 16 + j * 8); }
   public void MutateD(int j, long d) { __p.bb.PutLong(__p.bb_pos + 16 + j * 8, d); }
 
-  public static Offset<global::MyGame.Example.NestedStruct> CreateNestedStruct(FlatBufferBuilder builder, int[] A, global::MyGame.Example.TestEnum B, global::MyGame.Example.TestEnum[] C, long[] D) {
+  public static Offset<MyGame.Example.NestedStruct> CreateNestedStruct(FlatBufferBuilder builder, int[] A, MyGame.Example.TestEnum B, MyGame.Example.TestEnum[] C, long[] D) {
     builder.Prep(8, 32);
     for (int _idx0 = 2; _idx0 > 0; _idx0--) {
       builder.PutLong(D[_idx0-1]);
@@ -38,7 +38,7 @@ public struct NestedStruct : IFlatbufferObject
     for (int _idx0 = 2; _idx0 > 0; _idx0--) {
       builder.PutInt(A[_idx0-1]);
     }
-    return new Offset<global::MyGame.Example.NestedStruct>(builder.Offset);
+    return new Offset<MyGame.Example.NestedStruct>(builder.Offset);
   }
   public NestedStructT UnPack() {
     var _o = new NestedStructT();
@@ -49,13 +49,13 @@ public struct NestedStruct : IFlatbufferObject
     _o.A = new int[2];
     for (var _j = 0; _j < 2; ++_j) { _o.A[_j] = this.A(_j); }
     _o.B = this.B;
-    _o.C = new global::MyGame.Example.TestEnum[2];
+    _o.C = new MyGame.Example.TestEnum[2];
     for (var _j = 0; _j < 2; ++_j) { _o.C[_j] = this.C(_j); }
     _o.D = new long[2];
     for (var _j = 0; _j < 2; ++_j) { _o.D[_j] = this.D(_j); }
   }
-  public static Offset<global::MyGame.Example.NestedStruct> Pack(FlatBufferBuilder builder, NestedStructT _o) {
-    if (_o == null) return default(Offset<global::MyGame.Example.NestedStruct>);
+  public static Offset<MyGame.Example.NestedStruct> Pack(FlatBufferBuilder builder, NestedStructT _o) {
+    if (_o == null) return default(Offset<MyGame.Example.NestedStruct>);
     var _a = _o.A;
     var _c = _o.C;
     var _d = _o.D;
@@ -73,16 +73,16 @@ public class NestedStructT
   [Newtonsoft.Json.JsonProperty("a")]
   public int[] A { get; set; }
   [Newtonsoft.Json.JsonProperty("b")]
-  public global::MyGame.Example.TestEnum B { get; set; }
+  public MyGame.Example.TestEnum B { get; set; }
   [Newtonsoft.Json.JsonProperty("c")]
-  public global::MyGame.Example.TestEnum[] C { get; set; }
+  public MyGame.Example.TestEnum[] C { get; set; }
   [Newtonsoft.Json.JsonProperty("d")]
   public long[] D { get; set; }
 
   public NestedStructT() {
     this.A = new int[2];
-    this.B = global::MyGame.Example.TestEnum.A;
-    this.C = new global::MyGame.Example.TestEnum[2];
+    this.B = MyGame.Example.TestEnum.A;
+    this.C = new MyGame.Example.TestEnum[2];
     this.D = new long[2];
   }
 }

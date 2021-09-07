@@ -48,7 +48,7 @@ class CSharpGenerator : public BaseGenerator {
  public:
   CSharpGenerator(const Parser &parser, const std::string &path,
                   const std::string &file_name)
-      : BaseGenerator(parser, path, file_name, "global::", ".", "cs"),
+      : BaseGenerator(parser, path, file_name, "", ".", "cs"),
         cur_name_space_(nullptr) {
     // clang-format off
 

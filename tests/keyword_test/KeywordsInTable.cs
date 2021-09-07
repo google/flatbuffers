@@ -16,16 +16,16 @@ public struct KeywordsInTable : IFlatbufferObject
   public void __init(int _i, ByteBuffer _bb) { __p = new Table(_i, _bb); }
   public KeywordsInTable __assign(int _i, ByteBuffer _bb) { __init(_i, _bb); return this; }
 
-  public global::ABC Is { get { int o = __p.__offset(4); return o != 0 ? (global::ABC)__p.bb.GetInt(o + __p.bb_pos) : global::ABC.void_; } }
-  public bool MutateIs(global::ABC is_) { int o = __p.__offset(4); if (o != 0) { __p.bb.PutInt(o + __p.bb_pos, (int)is_); return true; } else { return false; } }
-  public global::public_ Private { get { int o = __p.__offset(6); return o != 0 ? (global::public_)__p.bb.GetInt(o + __p.bb_pos) : global::public_.NONE; } }
-  public bool MutatePrivate(global::public_ private_) { int o = __p.__offset(6); if (o != 0) { __p.bb.PutInt(o + __p.bb_pos, (int)private_); return true; } else { return false; } }
+  public ABC Is { get { int o = __p.__offset(4); return o != 0 ? (ABC)__p.bb.GetInt(o + __p.bb_pos) : ABC.void_; } }
+  public bool MutateIs(ABC is_) { int o = __p.__offset(4); if (o != 0) { __p.bb.PutInt(o + __p.bb_pos, (int)is_); return true; } else { return false; } }
+  public public_ Private { get { int o = __p.__offset(6); return o != 0 ? (public_)__p.bb.GetInt(o + __p.bb_pos) : public_.NONE; } }
+  public bool MutatePrivate(public_ private_) { int o = __p.__offset(6); if (o != 0) { __p.bb.PutInt(o + __p.bb_pos, (int)private_); return true; } else { return false; } }
   public int Type { get { int o = __p.__offset(8); return o != 0 ? __p.bb.GetInt(o + __p.bb_pos) : (int)0; } }
   public bool MutateType(int type) { int o = __p.__offset(8); if (o != 0) { __p.bb.PutInt(o + __p.bb_pos, type); return true; } else { return false; } }
 
-  public static Offset<global::KeywordsInTable> CreateKeywordsInTable(FlatBufferBuilder builder,
-      global::ABC is_ = global::ABC.void_,
-      global::public_ private_ = global::public_.NONE,
+  public static Offset<KeywordsInTable> CreateKeywordsInTable(FlatBufferBuilder builder,
+      ABC is_ = ABC.void_,
+      public_ private_ = public_.NONE,
       int type = 0) {
     builder.StartTable(3);
     KeywordsInTable.AddType(builder, type);
@@ -35,12 +35,12 @@ public struct KeywordsInTable : IFlatbufferObject
   }
 
   public static void StartKeywordsInTable(FlatBufferBuilder builder) { builder.StartTable(3); }
-  public static void AddIs(FlatBufferBuilder builder, global::ABC is_) { builder.AddInt(0, (int)is_, 0); }
-  public static void AddPrivate(FlatBufferBuilder builder, global::public_ private_) { builder.AddInt(1, (int)private_, 0); }
+  public static void AddIs(FlatBufferBuilder builder, ABC is_) { builder.AddInt(0, (int)is_, 0); }
+  public static void AddPrivate(FlatBufferBuilder builder, public_ private_) { builder.AddInt(1, (int)private_, 0); }
   public static void AddType(FlatBufferBuilder builder, int type) { builder.AddInt(2, type, 0); }
-  public static Offset<global::KeywordsInTable> EndKeywordsInTable(FlatBufferBuilder builder) {
+  public static Offset<KeywordsInTable> EndKeywordsInTable(FlatBufferBuilder builder) {
     int o = builder.EndTable();
-    return new Offset<global::KeywordsInTable>(o);
+    return new Offset<KeywordsInTable>(o);
   }
   public KeywordsInTableT UnPack() {
     var _o = new KeywordsInTableT();
@@ -52,8 +52,8 @@ public struct KeywordsInTable : IFlatbufferObject
     _o.Private = this.Private;
     _o.Type = this.Type;
   }
-  public static Offset<global::KeywordsInTable> Pack(FlatBufferBuilder builder, KeywordsInTableT _o) {
-    if (_o == null) return default(Offset<global::KeywordsInTable>);
+  public static Offset<KeywordsInTable> Pack(FlatBufferBuilder builder, KeywordsInTableT _o) {
+    if (_o == null) return default(Offset<KeywordsInTable>);
     return CreateKeywordsInTable(
       builder,
       _o.Is,
@@ -65,15 +65,15 @@ public struct KeywordsInTable : IFlatbufferObject
 public class KeywordsInTableT
 {
   [Newtonsoft.Json.JsonProperty("is")]
-  public global::ABC Is { get; set; }
+  public ABC Is { get; set; }
   [Newtonsoft.Json.JsonProperty("private")]
-  public global::public_ Private { get; set; }
+  public public_ Private { get; set; }
   [Newtonsoft.Json.JsonProperty("type")]
   public int Type { get; set; }
 
   public KeywordsInTableT() {
-    this.Is = global::ABC.void_;
-    this.Private = global::public_.NONE;
+    this.Is = ABC.void_;
+    this.Private = public_.NONE;
     this.Type = 0;
   }
 }

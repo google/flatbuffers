@@ -24,14 +24,14 @@ public class CharacterUnion {
   }
 
   public T As<T>() where T : class { return this.Value as T; }
-  public global::AttackerT AsMuLan() { return this.As<global::AttackerT>(); }
-  public static CharacterUnion FromMuLan(global::AttackerT _mulan) { return new CharacterUnion{ Type = Character.MuLan, Value = _mulan }; }
-  public global::RapunzelT AsRapunzel() { return this.As<global::RapunzelT>(); }
-  public static CharacterUnion FromRapunzel(global::RapunzelT _rapunzel) { return new CharacterUnion{ Type = Character.Rapunzel, Value = _rapunzel }; }
-  public global::BookReaderT AsBelle() { return this.As<global::BookReaderT>(); }
-  public static CharacterUnion FromBelle(global::BookReaderT _belle) { return new CharacterUnion{ Type = Character.Belle, Value = _belle }; }
-  public global::BookReaderT AsBookFan() { return this.As<global::BookReaderT>(); }
-  public static CharacterUnion FromBookFan(global::BookReaderT _bookfan) { return new CharacterUnion{ Type = Character.BookFan, Value = _bookfan }; }
+  public AttackerT AsMuLan() { return this.As<AttackerT>(); }
+  public static CharacterUnion FromMuLan(AttackerT _mulan) { return new CharacterUnion{ Type = Character.MuLan, Value = _mulan }; }
+  public RapunzelT AsRapunzel() { return this.As<RapunzelT>(); }
+  public static CharacterUnion FromRapunzel(RapunzelT _rapunzel) { return new CharacterUnion{ Type = Character.Rapunzel, Value = _rapunzel }; }
+  public BookReaderT AsBelle() { return this.As<BookReaderT>(); }
+  public static CharacterUnion FromBelle(BookReaderT _belle) { return new CharacterUnion{ Type = Character.Belle, Value = _belle }; }
+  public BookReaderT AsBookFan() { return this.As<BookReaderT>(); }
+  public static CharacterUnion FromBookFan(BookReaderT _bookfan) { return new CharacterUnion{ Type = Character.BookFan, Value = _bookfan }; }
   public string AsOther() { return this.As<string>(); }
   public static CharacterUnion FromOther(string _other) { return new CharacterUnion{ Type = Character.Other, Value = _other }; }
   public string AsUnused() { return this.As<string>(); }
@@ -40,10 +40,10 @@ public class CharacterUnion {
   public static int Pack(FlatBuffers.FlatBufferBuilder builder, CharacterUnion _o) {
     switch (_o.Type) {
       default: return 0;
-      case Character.MuLan: return global::Attacker.Pack(builder, _o.AsMuLan()).Value;
-      case Character.Rapunzel: return global::Rapunzel.Pack(builder, _o.AsRapunzel()).Value;
-      case Character.Belle: return global::BookReader.Pack(builder, _o.AsBelle()).Value;
-      case Character.BookFan: return global::BookReader.Pack(builder, _o.AsBookFan()).Value;
+      case Character.MuLan: return Attacker.Pack(builder, _o.AsMuLan()).Value;
+      case Character.Rapunzel: return Rapunzel.Pack(builder, _o.AsRapunzel()).Value;
+      case Character.Belle: return BookReader.Pack(builder, _o.AsBelle()).Value;
+      case Character.BookFan: return BookReader.Pack(builder, _o.AsBookFan()).Value;
       case Character.Other: return builder.CreateString(_o.AsOther()).Value;
       case Character.Unused: return builder.CreateString(_o.AsUnused()).Value;
     }
@@ -85,10 +85,10 @@ public class CharacterUnion_JsonConverter : Newtonsoft.Json.JsonConverter {
     if (_o == null) return null;
     switch (_o.Type) {
       default: break;
-      case Character.MuLan: _o.Value = serializer.Deserialize<global::AttackerT>(reader); break;
-      case Character.Rapunzel: _o.Value = serializer.Deserialize<global::RapunzelT>(reader); break;
-      case Character.Belle: _o.Value = serializer.Deserialize<global::BookReaderT>(reader); break;
-      case Character.BookFan: _o.Value = serializer.Deserialize<global::BookReaderT>(reader); break;
+      case Character.MuLan: _o.Value = serializer.Deserialize<AttackerT>(reader); break;
+      case Character.Rapunzel: _o.Value = serializer.Deserialize<RapunzelT>(reader); break;
+      case Character.Belle: _o.Value = serializer.Deserialize<BookReaderT>(reader); break;
+      case Character.BookFan: _o.Value = serializer.Deserialize<BookReaderT>(reader); break;
       case Character.Other: _o.Value = serializer.Deserialize<string>(reader); break;
       case Character.Unused: _o.Value = serializer.Deserialize<string>(reader); break;
     }

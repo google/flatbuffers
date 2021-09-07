@@ -16,11 +16,11 @@ public struct StructOfStructs : IFlatbufferObject
   public void __init(int _i, ByteBuffer _bb) { __p = new Struct(_i, _bb); }
   public StructOfStructs __assign(int _i, ByteBuffer _bb) { __init(_i, _bb); return this; }
 
-  public global::MyGame.Example.Ability A { get { return (new global::MyGame.Example.Ability()).__assign(__p.bb_pos + 0, __p.bb); } }
-  public global::MyGame.Example.Test B { get { return (new global::MyGame.Example.Test()).__assign(__p.bb_pos + 8, __p.bb); } }
-  public global::MyGame.Example.Ability C { get { return (new global::MyGame.Example.Ability()).__assign(__p.bb_pos + 12, __p.bb); } }
+  public MyGame.Example.Ability A { get { return (new MyGame.Example.Ability()).__assign(__p.bb_pos + 0, __p.bb); } }
+  public MyGame.Example.Test B { get { return (new MyGame.Example.Test()).__assign(__p.bb_pos + 8, __p.bb); } }
+  public MyGame.Example.Ability C { get { return (new MyGame.Example.Ability()).__assign(__p.bb_pos + 12, __p.bb); } }
 
-  public static Offset<global::MyGame.Example.StructOfStructs> CreateStructOfStructs(FlatBufferBuilder builder, uint a_Id, uint a_Distance, short b_A, sbyte b_B, uint c_Id, uint c_Distance) {
+  public static Offset<MyGame.Example.StructOfStructs> CreateStructOfStructs(FlatBufferBuilder builder, uint a_Id, uint a_Distance, short b_A, sbyte b_B, uint c_Id, uint c_Distance) {
     builder.Prep(4, 20);
     builder.Prep(4, 8);
     builder.PutUint(c_Distance);
@@ -32,7 +32,7 @@ public struct StructOfStructs : IFlatbufferObject
     builder.Prep(4, 8);
     builder.PutUint(a_Distance);
     builder.PutUint(a_Id);
-    return new Offset<global::MyGame.Example.StructOfStructs>(builder.Offset);
+    return new Offset<MyGame.Example.StructOfStructs>(builder.Offset);
   }
   public StructOfStructsT UnPack() {
     var _o = new StructOfStructsT();
@@ -44,8 +44,8 @@ public struct StructOfStructs : IFlatbufferObject
     _o.B = this.B.UnPack();
     _o.C = this.C.UnPack();
   }
-  public static Offset<global::MyGame.Example.StructOfStructs> Pack(FlatBufferBuilder builder, StructOfStructsT _o) {
-    if (_o == null) return default(Offset<global::MyGame.Example.StructOfStructs>);
+  public static Offset<MyGame.Example.StructOfStructs> Pack(FlatBufferBuilder builder, StructOfStructsT _o) {
+    if (_o == null) return default(Offset<MyGame.Example.StructOfStructs>);
     var _a_id = _o.A.Id;
     var _a_distance = _o.A.Distance;
     var _b_a = _o.B.A;
@@ -66,16 +66,16 @@ public struct StructOfStructs : IFlatbufferObject
 public class StructOfStructsT
 {
   [Newtonsoft.Json.JsonProperty("a")]
-  public global::MyGame.Example.AbilityT A { get; set; }
+  public MyGame.Example.AbilityT A { get; set; }
   [Newtonsoft.Json.JsonProperty("b")]
-  public global::MyGame.Example.TestT B { get; set; }
+  public MyGame.Example.TestT B { get; set; }
   [Newtonsoft.Json.JsonProperty("c")]
-  public global::MyGame.Example.AbilityT C { get; set; }
+  public MyGame.Example.AbilityT C { get; set; }
 
   public StructOfStructsT() {
-    this.A = new global::MyGame.Example.AbilityT();
-    this.B = new global::MyGame.Example.TestT();
-    this.C = new global::MyGame.Example.AbilityT();
+    this.A = new MyGame.Example.AbilityT();
+    this.B = new MyGame.Example.TestT();
+    this.C = new MyGame.Example.AbilityT();
   }
 }
 

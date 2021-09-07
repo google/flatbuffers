@@ -22,13 +22,13 @@ public class UnionInNestedNSUnion {
   }
 
   public T As<T>() where T : class { return this.Value as T; }
-  public global::NamespaceA.NamespaceB.TableInNestedNST AsTableInNestedNS() { return this.As<global::NamespaceA.NamespaceB.TableInNestedNST>(); }
-  public static UnionInNestedNSUnion FromTableInNestedNS(global::NamespaceA.NamespaceB.TableInNestedNST _tableinnestedns) { return new UnionInNestedNSUnion{ Type = UnionInNestedNS.TableInNestedNS, Value = _tableinnestedns }; }
+  public NamespaceA.NamespaceB.TableInNestedNST AsTableInNestedNS() { return this.As<NamespaceA.NamespaceB.TableInNestedNST>(); }
+  public static UnionInNestedNSUnion FromTableInNestedNS(NamespaceA.NamespaceB.TableInNestedNST _tableinnestedns) { return new UnionInNestedNSUnion{ Type = UnionInNestedNS.TableInNestedNS, Value = _tableinnestedns }; }
 
   public static int Pack(FlatBuffers.FlatBufferBuilder builder, UnionInNestedNSUnion _o) {
     switch (_o.Type) {
       default: return 0;
-      case UnionInNestedNS.TableInNestedNS: return global::NamespaceA.NamespaceB.TableInNestedNS.Pack(builder, _o.AsTableInNestedNS()).Value;
+      case UnionInNestedNS.TableInNestedNS: return NamespaceA.NamespaceB.TableInNestedNS.Pack(builder, _o.AsTableInNestedNS()).Value;
     }
   }
 }
@@ -68,7 +68,7 @@ public class UnionInNestedNSUnion_JsonConverter : Newtonsoft.Json.JsonConverter 
     if (_o == null) return null;
     switch (_o.Type) {
       default: break;
-      case UnionInNestedNS.TableInNestedNS: _o.Value = serializer.Deserialize<global::NamespaceA.NamespaceB.TableInNestedNST>(reader); break;
+      case UnionInNestedNS.TableInNestedNS: _o.Value = serializer.Deserialize<NamespaceA.NamespaceB.TableInNestedNST>(reader); break;
     }
     return _o;
   }

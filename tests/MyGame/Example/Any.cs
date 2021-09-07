@@ -24,19 +24,19 @@ public class AnyUnion {
   }
 
   public T As<T>() where T : class { return this.Value as T; }
-  public global::MyGame.Example.MonsterT AsMonster() { return this.As<global::MyGame.Example.MonsterT>(); }
-  public static AnyUnion FromMonster(global::MyGame.Example.MonsterT _monster) { return new AnyUnion{ Type = Any.Monster, Value = _monster }; }
-  internal global::MyGame.Example.TestSimpleTableWithEnumT AsTestSimpleTableWithEnum() { return this.As<global::MyGame.Example.TestSimpleTableWithEnumT>(); }
-  internal static AnyUnion FromTestSimpleTableWithEnum(global::MyGame.Example.TestSimpleTableWithEnumT _testsimpletablewithenum) { return new AnyUnion{ Type = Any.TestSimpleTableWithEnum, Value = _testsimpletablewithenum }; }
-  public global::MyGame.Example2.MonsterT AsMyGame_Example2_Monster() { return this.As<global::MyGame.Example2.MonsterT>(); }
-  public static AnyUnion FromMyGame_Example2_Monster(global::MyGame.Example2.MonsterT _mygame_example2_monster) { return new AnyUnion{ Type = Any.MyGame_Example2_Monster, Value = _mygame_example2_monster }; }
+  public MyGame.Example.MonsterT AsMonster() { return this.As<MyGame.Example.MonsterT>(); }
+  public static AnyUnion FromMonster(MyGame.Example.MonsterT _monster) { return new AnyUnion{ Type = Any.Monster, Value = _monster }; }
+  internal MyGame.Example.TestSimpleTableWithEnumT AsTestSimpleTableWithEnum() { return this.As<MyGame.Example.TestSimpleTableWithEnumT>(); }
+  internal static AnyUnion FromTestSimpleTableWithEnum(MyGame.Example.TestSimpleTableWithEnumT _testsimpletablewithenum) { return new AnyUnion{ Type = Any.TestSimpleTableWithEnum, Value = _testsimpletablewithenum }; }
+  public MyGame.Example2.MonsterT AsMyGame_Example2_Monster() { return this.As<MyGame.Example2.MonsterT>(); }
+  public static AnyUnion FromMyGame_Example2_Monster(MyGame.Example2.MonsterT _mygame_example2_monster) { return new AnyUnion{ Type = Any.MyGame_Example2_Monster, Value = _mygame_example2_monster }; }
 
   public static int Pack(FlatBuffers.FlatBufferBuilder builder, AnyUnion _o) {
     switch (_o.Type) {
       default: return 0;
-      case Any.Monster: return global::MyGame.Example.Monster.Pack(builder, _o.AsMonster()).Value;
-      case Any.TestSimpleTableWithEnum: return global::MyGame.Example.TestSimpleTableWithEnum.Pack(builder, _o.AsTestSimpleTableWithEnum()).Value;
-      case Any.MyGame_Example2_Monster: return global::MyGame.Example2.Monster.Pack(builder, _o.AsMyGame_Example2_Monster()).Value;
+      case Any.Monster: return MyGame.Example.Monster.Pack(builder, _o.AsMonster()).Value;
+      case Any.TestSimpleTableWithEnum: return MyGame.Example.TestSimpleTableWithEnum.Pack(builder, _o.AsTestSimpleTableWithEnum()).Value;
+      case Any.MyGame_Example2_Monster: return MyGame.Example2.Monster.Pack(builder, _o.AsMyGame_Example2_Monster()).Value;
     }
   }
 }
@@ -76,9 +76,9 @@ public class AnyUnion_JsonConverter : Newtonsoft.Json.JsonConverter {
     if (_o == null) return null;
     switch (_o.Type) {
       default: break;
-      case Any.Monster: _o.Value = serializer.Deserialize<global::MyGame.Example.MonsterT>(reader); break;
-      case Any.TestSimpleTableWithEnum: _o.Value = serializer.Deserialize<global::MyGame.Example.TestSimpleTableWithEnumT>(reader); break;
-      case Any.MyGame_Example2_Monster: _o.Value = serializer.Deserialize<global::MyGame.Example2.MonsterT>(reader); break;
+      case Any.Monster: _o.Value = serializer.Deserialize<MyGame.Example.MonsterT>(reader); break;
+      case Any.TestSimpleTableWithEnum: _o.Value = serializer.Deserialize<MyGame.Example.TestSimpleTableWithEnumT>(reader); break;
+      case Any.MyGame_Example2_Monster: _o.Value = serializer.Deserialize<MyGame.Example2.MonsterT>(reader); break;
     }
     return _o;
   }

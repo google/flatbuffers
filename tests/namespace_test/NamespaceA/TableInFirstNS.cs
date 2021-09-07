@@ -19,22 +19,22 @@ public struct TableInFirstNS : IFlatbufferObject
   public void __init(int _i, ByteBuffer _bb) { __p = new Table(_i, _bb); }
   public TableInFirstNS __assign(int _i, ByteBuffer _bb) { __init(_i, _bb); return this; }
 
-  public global::NamespaceA.NamespaceB.TableInNestedNS? FooTable { get { int o = __p.__offset(4); return o != 0 ? (global::NamespaceA.NamespaceB.TableInNestedNS?)(new global::NamespaceA.NamespaceB.TableInNestedNS()).__assign(__p.__indirect(o + __p.bb_pos), __p.bb) : null; } }
-  public global::NamespaceA.NamespaceB.EnumInNestedNS FooEnum { get { int o = __p.__offset(6); return o != 0 ? (global::NamespaceA.NamespaceB.EnumInNestedNS)__p.bb.GetSbyte(o + __p.bb_pos) : global::NamespaceA.NamespaceB.EnumInNestedNS.A; } }
-  public bool MutateFooEnum(global::NamespaceA.NamespaceB.EnumInNestedNS foo_enum) { int o = __p.__offset(6); if (o != 0) { __p.bb.PutSbyte(o + __p.bb_pos, (sbyte)foo_enum); return true; } else { return false; } }
-  public global::NamespaceA.NamespaceB.UnionInNestedNS FooUnionType { get { int o = __p.__offset(8); return o != 0 ? (global::NamespaceA.NamespaceB.UnionInNestedNS)__p.bb.Get(o + __p.bb_pos) : global::NamespaceA.NamespaceB.UnionInNestedNS.NONE; } }
+  public NamespaceA.NamespaceB.TableInNestedNS? FooTable { get { int o = __p.__offset(4); return o != 0 ? (NamespaceA.NamespaceB.TableInNestedNS?)(new NamespaceA.NamespaceB.TableInNestedNS()).__assign(__p.__indirect(o + __p.bb_pos), __p.bb) : null; } }
+  public NamespaceA.NamespaceB.EnumInNestedNS FooEnum { get { int o = __p.__offset(6); return o != 0 ? (NamespaceA.NamespaceB.EnumInNestedNS)__p.bb.GetSbyte(o + __p.bb_pos) : NamespaceA.NamespaceB.EnumInNestedNS.A; } }
+  public bool MutateFooEnum(NamespaceA.NamespaceB.EnumInNestedNS foo_enum) { int o = __p.__offset(6); if (o != 0) { __p.bb.PutSbyte(o + __p.bb_pos, (sbyte)foo_enum); return true; } else { return false; } }
+  public NamespaceA.NamespaceB.UnionInNestedNS FooUnionType { get { int o = __p.__offset(8); return o != 0 ? (NamespaceA.NamespaceB.UnionInNestedNS)__p.bb.Get(o + __p.bb_pos) : NamespaceA.NamespaceB.UnionInNestedNS.NONE; } }
   public TTable? FooUnion<TTable>() where TTable : struct, IFlatbufferObject { int o = __p.__offset(10); return o != 0 ? (TTable?)__p.__union<TTable>(o + __p.bb_pos) : null; }
-  public global::NamespaceA.NamespaceB.TableInNestedNS FooUnionAsTableInNestedNS() { return FooUnion<global::NamespaceA.NamespaceB.TableInNestedNS>().Value; }
-  public global::NamespaceA.NamespaceB.StructInNestedNS? FooStruct { get { int o = __p.__offset(12); return o != 0 ? (global::NamespaceA.NamespaceB.StructInNestedNS?)(new global::NamespaceA.NamespaceB.StructInNestedNS()).__assign(o + __p.bb_pos, __p.bb) : null; } }
+  public NamespaceA.NamespaceB.TableInNestedNS FooUnionAsTableInNestedNS() { return FooUnion<NamespaceA.NamespaceB.TableInNestedNS>().Value; }
+  public NamespaceA.NamespaceB.StructInNestedNS? FooStruct { get { int o = __p.__offset(12); return o != 0 ? (NamespaceA.NamespaceB.StructInNestedNS?)(new NamespaceA.NamespaceB.StructInNestedNS()).__assign(o + __p.bb_pos, __p.bb) : null; } }
 
-  public static Offset<global::NamespaceA.TableInFirstNS> CreateTableInFirstNS(FlatBufferBuilder builder,
-      Offset<global::NamespaceA.NamespaceB.TableInNestedNS> foo_tableOffset = default(Offset<global::NamespaceA.NamespaceB.TableInNestedNS>),
-      global::NamespaceA.NamespaceB.EnumInNestedNS foo_enum = global::NamespaceA.NamespaceB.EnumInNestedNS.A,
-      global::NamespaceA.NamespaceB.UnionInNestedNS foo_union_type = global::NamespaceA.NamespaceB.UnionInNestedNS.NONE,
+  public static Offset<NamespaceA.TableInFirstNS> CreateTableInFirstNS(FlatBufferBuilder builder,
+      Offset<NamespaceA.NamespaceB.TableInNestedNS> foo_tableOffset = default(Offset<NamespaceA.NamespaceB.TableInNestedNS>),
+      NamespaceA.NamespaceB.EnumInNestedNS foo_enum = NamespaceA.NamespaceB.EnumInNestedNS.A,
+      NamespaceA.NamespaceB.UnionInNestedNS foo_union_type = NamespaceA.NamespaceB.UnionInNestedNS.NONE,
       int foo_unionOffset = 0,
-      global::NamespaceA.NamespaceB.StructInNestedNST foo_struct = null) {
+      NamespaceA.NamespaceB.StructInNestedNST foo_struct = null) {
     builder.StartTable(5);
-    TableInFirstNS.AddFooStruct(builder, global::NamespaceA.NamespaceB.StructInNestedNS.Pack(builder, foo_struct));
+    TableInFirstNS.AddFooStruct(builder, NamespaceA.NamespaceB.StructInNestedNS.Pack(builder, foo_struct));
     TableInFirstNS.AddFooUnion(builder, foo_unionOffset);
     TableInFirstNS.AddFooTable(builder, foo_tableOffset);
     TableInFirstNS.AddFooUnionType(builder, foo_union_type);
@@ -43,14 +43,14 @@ public struct TableInFirstNS : IFlatbufferObject
   }
 
   public static void StartTableInFirstNS(FlatBufferBuilder builder) { builder.StartTable(5); }
-  public static void AddFooTable(FlatBufferBuilder builder, Offset<global::NamespaceA.NamespaceB.TableInNestedNS> fooTableOffset) { builder.AddOffset(0, fooTableOffset.Value, 0); }
-  public static void AddFooEnum(FlatBufferBuilder builder, global::NamespaceA.NamespaceB.EnumInNestedNS fooEnum) { builder.AddSbyte(1, (sbyte)fooEnum, 0); }
-  public static void AddFooUnionType(FlatBufferBuilder builder, global::NamespaceA.NamespaceB.UnionInNestedNS fooUnionType) { builder.AddByte(2, (byte)fooUnionType, 0); }
+  public static void AddFooTable(FlatBufferBuilder builder, Offset<NamespaceA.NamespaceB.TableInNestedNS> fooTableOffset) { builder.AddOffset(0, fooTableOffset.Value, 0); }
+  public static void AddFooEnum(FlatBufferBuilder builder, NamespaceA.NamespaceB.EnumInNestedNS fooEnum) { builder.AddSbyte(1, (sbyte)fooEnum, 0); }
+  public static void AddFooUnionType(FlatBufferBuilder builder, NamespaceA.NamespaceB.UnionInNestedNS fooUnionType) { builder.AddByte(2, (byte)fooUnionType, 0); }
   public static void AddFooUnion(FlatBufferBuilder builder, int fooUnionOffset) { builder.AddOffset(3, fooUnionOffset, 0); }
-  public static void AddFooStruct(FlatBufferBuilder builder, Offset<global::NamespaceA.NamespaceB.StructInNestedNS> fooStructOffset) { builder.AddStruct(4, fooStructOffset.Value, 0); }
-  public static Offset<global::NamespaceA.TableInFirstNS> EndTableInFirstNS(FlatBufferBuilder builder) {
+  public static void AddFooStruct(FlatBufferBuilder builder, Offset<NamespaceA.NamespaceB.StructInNestedNS> fooStructOffset) { builder.AddStruct(4, fooStructOffset.Value, 0); }
+  public static Offset<NamespaceA.TableInFirstNS> EndTableInFirstNS(FlatBufferBuilder builder) {
     int o = builder.EndTable();
-    return new Offset<global::NamespaceA.TableInFirstNS>(o);
+    return new Offset<NamespaceA.TableInFirstNS>(o);
   }
   public TableInFirstNST UnPack() {
     var _o = new TableInFirstNST();
@@ -60,21 +60,21 @@ public struct TableInFirstNS : IFlatbufferObject
   public void UnPackTo(TableInFirstNST _o) {
     _o.FooTable = this.FooTable.HasValue ? this.FooTable.Value.UnPack() : null;
     _o.FooEnum = this.FooEnum;
-    _o.FooUnion = new global::NamespaceA.NamespaceB.UnionInNestedNSUnion();
+    _o.FooUnion = new NamespaceA.NamespaceB.UnionInNestedNSUnion();
     _o.FooUnion.Type = this.FooUnionType;
     switch (this.FooUnionType) {
       default: break;
-      case global::NamespaceA.NamespaceB.UnionInNestedNS.TableInNestedNS:
-        _o.FooUnion.Value = this.FooUnion<global::NamespaceA.NamespaceB.TableInNestedNS>().HasValue ? this.FooUnion<global::NamespaceA.NamespaceB.TableInNestedNS>().Value.UnPack() : null;
+      case NamespaceA.NamespaceB.UnionInNestedNS.TableInNestedNS:
+        _o.FooUnion.Value = this.FooUnion<NamespaceA.NamespaceB.TableInNestedNS>().HasValue ? this.FooUnion<NamespaceA.NamespaceB.TableInNestedNS>().Value.UnPack() : null;
         break;
     }
     _o.FooStruct = this.FooStruct.HasValue ? this.FooStruct.Value.UnPack() : null;
   }
-  public static Offset<global::NamespaceA.TableInFirstNS> Pack(FlatBufferBuilder builder, TableInFirstNST _o) {
-    if (_o == null) return default(Offset<global::NamespaceA.TableInFirstNS>);
-    var _foo_table = _o.FooTable == null ? default(Offset<global::NamespaceA.NamespaceB.TableInNestedNS>) : global::NamespaceA.NamespaceB.TableInNestedNS.Pack(builder, _o.FooTable);
-    var _foo_union_type = _o.FooUnion == null ? global::NamespaceA.NamespaceB.UnionInNestedNS.NONE : _o.FooUnion.Type;
-    var _foo_union = _o.FooUnion == null ? 0 : global::NamespaceA.NamespaceB.UnionInNestedNSUnion.Pack(builder, _o.FooUnion);
+  public static Offset<NamespaceA.TableInFirstNS> Pack(FlatBufferBuilder builder, TableInFirstNST _o) {
+    if (_o == null) return default(Offset<NamespaceA.TableInFirstNS>);
+    var _foo_table = _o.FooTable == null ? default(Offset<NamespaceA.NamespaceB.TableInNestedNS>) : NamespaceA.NamespaceB.TableInNestedNS.Pack(builder, _o.FooTable);
+    var _foo_union_type = _o.FooUnion == null ? NamespaceA.NamespaceB.UnionInNestedNS.NONE : _o.FooUnion.Type;
+    var _foo_union = _o.FooUnion == null ? 0 : NamespaceA.NamespaceB.UnionInNestedNSUnion.Pack(builder, _o.FooUnion);
     return CreateTableInFirstNS(
       builder,
       _foo_table,
@@ -88,30 +88,30 @@ public struct TableInFirstNS : IFlatbufferObject
 public class TableInFirstNST
 {
   [Newtonsoft.Json.JsonProperty("foo_table")]
-  public global::NamespaceA.NamespaceB.TableInNestedNST FooTable { get; set; }
+  public NamespaceA.NamespaceB.TableInNestedNST FooTable { get; set; }
   [Newtonsoft.Json.JsonProperty("foo_enum")]
-  public global::NamespaceA.NamespaceB.EnumInNestedNS FooEnum { get; set; }
+  public NamespaceA.NamespaceB.EnumInNestedNS FooEnum { get; set; }
   [Newtonsoft.Json.JsonProperty("foo_union_type")]
-  private global::NamespaceA.NamespaceB.UnionInNestedNS FooUnionType {
+  private NamespaceA.NamespaceB.UnionInNestedNS FooUnionType {
     get {
-      return this.FooUnion != null ? this.FooUnion.Type : global::NamespaceA.NamespaceB.UnionInNestedNS.NONE;
+      return this.FooUnion != null ? this.FooUnion.Type : NamespaceA.NamespaceB.UnionInNestedNS.NONE;
     }
     set {
-      this.FooUnion = new global::NamespaceA.NamespaceB.UnionInNestedNSUnion();
+      this.FooUnion = new NamespaceA.NamespaceB.UnionInNestedNSUnion();
       this.FooUnion.Type = value;
     }
   }
   [Newtonsoft.Json.JsonProperty("foo_union")]
-  [Newtonsoft.Json.JsonConverter(typeof(global::NamespaceA.NamespaceB.UnionInNestedNSUnion_JsonConverter))]
-  public global::NamespaceA.NamespaceB.UnionInNestedNSUnion FooUnion { get; set; }
+  [Newtonsoft.Json.JsonConverter(typeof(NamespaceA.NamespaceB.UnionInNestedNSUnion_JsonConverter))]
+  public NamespaceA.NamespaceB.UnionInNestedNSUnion FooUnion { get; set; }
   [Newtonsoft.Json.JsonProperty("foo_struct")]
-  public global::NamespaceA.NamespaceB.StructInNestedNST FooStruct { get; set; }
+  public NamespaceA.NamespaceB.StructInNestedNST FooStruct { get; set; }
 
   public TableInFirstNST() {
     this.FooTable = null;
-    this.FooEnum = global::NamespaceA.NamespaceB.EnumInNestedNS.A;
+    this.FooEnum = NamespaceA.NamespaceB.EnumInNestedNS.A;
     this.FooUnion = null;
-    this.FooStruct = new global::NamespaceA.NamespaceB.StructInNestedNST();
+    this.FooStruct = new NamespaceA.NamespaceB.StructInNestedNST();
   }
 }
 

@@ -20,16 +20,16 @@ public class KeywordsInUnionUnion {
   }
 
   public T As<T>() where T : class { return this.Value as T; }
-  public global::KeywordsInTableT Asstatic() { return this.As<global::KeywordsInTableT>(); }
-  public static KeywordsInUnionUnion Fromstatic(global::KeywordsInTableT _static) { return new KeywordsInUnionUnion{ Type = KeywordsInUnion.static_, Value = _static }; }
-  public global::KeywordsInTableT Asinternal() { return this.As<global::KeywordsInTableT>(); }
-  public static KeywordsInUnionUnion Frominternal(global::KeywordsInTableT _internal) { return new KeywordsInUnionUnion{ Type = KeywordsInUnion.internal_, Value = _internal }; }
+  public KeywordsInTableT Asstatic() { return this.As<KeywordsInTableT>(); }
+  public static KeywordsInUnionUnion Fromstatic(KeywordsInTableT _static) { return new KeywordsInUnionUnion{ Type = KeywordsInUnion.static_, Value = _static }; }
+  public KeywordsInTableT Asinternal() { return this.As<KeywordsInTableT>(); }
+  public static KeywordsInUnionUnion Frominternal(KeywordsInTableT _internal) { return new KeywordsInUnionUnion{ Type = KeywordsInUnion.internal_, Value = _internal }; }
 
   public static int Pack(FlatBuffers.FlatBufferBuilder builder, KeywordsInUnionUnion _o) {
     switch (_o.Type) {
       default: return 0;
-      case KeywordsInUnion.static_: return global::KeywordsInTable.Pack(builder, _o.Asstatic()).Value;
-      case KeywordsInUnion.internal_: return global::KeywordsInTable.Pack(builder, _o.Asinternal()).Value;
+      case KeywordsInUnion.static_: return KeywordsInTable.Pack(builder, _o.Asstatic()).Value;
+      case KeywordsInUnion.internal_: return KeywordsInTable.Pack(builder, _o.Asinternal()).Value;
     }
   }
 }
@@ -69,8 +69,8 @@ public class KeywordsInUnionUnion_JsonConverter : Newtonsoft.Json.JsonConverter 
     if (_o == null) return null;
     switch (_o.Type) {
       default: break;
-      case KeywordsInUnion.static_: _o.Value = serializer.Deserialize<global::KeywordsInTableT>(reader); break;
-      case KeywordsInUnion.internal_: _o.Value = serializer.Deserialize<global::KeywordsInTableT>(reader); break;
+      case KeywordsInUnion.static_: _o.Value = serializer.Deserialize<KeywordsInTableT>(reader); break;
+      case KeywordsInUnion.internal_: _o.Value = serializer.Deserialize<KeywordsInTableT>(reader); break;
     }
     return _o;
   }

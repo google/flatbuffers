@@ -19,7 +19,7 @@ public struct Attacker : IFlatbufferObject
   public int SwordAttackDamage { get { int o = __p.__offset(4); return o != 0 ? __p.bb.GetInt(o + __p.bb_pos) : (int)0; } }
   public bool MutateSwordAttackDamage(int sword_attack_damage) { int o = __p.__offset(4); if (o != 0) { __p.bb.PutInt(o + __p.bb_pos, sword_attack_damage); return true; } else { return false; } }
 
-  public static Offset<global::Attacker> CreateAttacker(FlatBufferBuilder builder,
+  public static Offset<Attacker> CreateAttacker(FlatBufferBuilder builder,
       int sword_attack_damage = 0) {
     builder.StartTable(1);
     Attacker.AddSwordAttackDamage(builder, sword_attack_damage);
@@ -28,9 +28,9 @@ public struct Attacker : IFlatbufferObject
 
   public static void StartAttacker(FlatBufferBuilder builder) { builder.StartTable(1); }
   public static void AddSwordAttackDamage(FlatBufferBuilder builder, int swordAttackDamage) { builder.AddInt(0, swordAttackDamage, 0); }
-  public static Offset<global::Attacker> EndAttacker(FlatBufferBuilder builder) {
+  public static Offset<Attacker> EndAttacker(FlatBufferBuilder builder) {
     int o = builder.EndTable();
-    return new Offset<global::Attacker>(o);
+    return new Offset<Attacker>(o);
   }
   public AttackerT UnPack() {
     var _o = new AttackerT();
@@ -40,8 +40,8 @@ public struct Attacker : IFlatbufferObject
   public void UnPackTo(AttackerT _o) {
     _o.SwordAttackDamage = this.SwordAttackDamage;
   }
-  public static Offset<global::Attacker> Pack(FlatBufferBuilder builder, AttackerT _o) {
-    if (_o == null) return default(Offset<global::Attacker>);
+  public static Offset<Attacker> Pack(FlatBufferBuilder builder, AttackerT _o) {
+    if (_o == null) return default(Offset<Attacker>);
     return CreateAttacker(
       builder,
       _o.SwordAttackDamage);

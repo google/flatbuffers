@@ -53,11 +53,11 @@ public struct ScalarStuff : IFlatbufferObject
   public bool JustBool { get { int o = __p.__offset(64); return o != 0 ? 0!=__p.bb.Get(o + __p.bb_pos) : (bool)false; } }
   public bool? MaybeBool { get { int o = __p.__offset(66); return o != 0 ? 0!=__p.bb.Get(o + __p.bb_pos) : (bool?)null; } }
   public bool DefaultBool { get { int o = __p.__offset(68); return o != 0 ? 0!=__p.bb.Get(o + __p.bb_pos) : (bool)true; } }
-  public global::optional_scalars.OptionalByte JustEnum { get { int o = __p.__offset(70); return o != 0 ? (global::optional_scalars.OptionalByte)__p.bb.GetSbyte(o + __p.bb_pos) : global::optional_scalars.OptionalByte.None; } }
-  public global::optional_scalars.OptionalByte? MaybeEnum { get { int o = __p.__offset(72); return o != 0 ? (global::optional_scalars.OptionalByte)__p.bb.GetSbyte(o + __p.bb_pos) : (global::optional_scalars.OptionalByte?)null; } }
-  public global::optional_scalars.OptionalByte DefaultEnum { get { int o = __p.__offset(74); return o != 0 ? (global::optional_scalars.OptionalByte)__p.bb.GetSbyte(o + __p.bb_pos) : global::optional_scalars.OptionalByte.One; } }
+  public optional_scalars.OptionalByte JustEnum { get { int o = __p.__offset(70); return o != 0 ? (optional_scalars.OptionalByte)__p.bb.GetSbyte(o + __p.bb_pos) : optional_scalars.OptionalByte.None; } }
+  public optional_scalars.OptionalByte? MaybeEnum { get { int o = __p.__offset(72); return o != 0 ? (optional_scalars.OptionalByte)__p.bb.GetSbyte(o + __p.bb_pos) : (optional_scalars.OptionalByte?)null; } }
+  public optional_scalars.OptionalByte DefaultEnum { get { int o = __p.__offset(74); return o != 0 ? (optional_scalars.OptionalByte)__p.bb.GetSbyte(o + __p.bb_pos) : optional_scalars.OptionalByte.One; } }
 
-  public static Offset<global::optional_scalars.ScalarStuff> CreateScalarStuff(FlatBufferBuilder builder,
+  public static Offset<optional_scalars.ScalarStuff> CreateScalarStuff(FlatBufferBuilder builder,
       sbyte just_i8 = 0,
       sbyte? maybe_i8 = null,
       sbyte default_i8 = 42,
@@ -91,9 +91,9 @@ public struct ScalarStuff : IFlatbufferObject
       bool just_bool = false,
       bool? maybe_bool = null,
       bool default_bool = true,
-      global::optional_scalars.OptionalByte just_enum = global::optional_scalars.OptionalByte.None,
-      global::optional_scalars.OptionalByte? maybe_enum = null,
-      global::optional_scalars.OptionalByte default_enum = global::optional_scalars.OptionalByte.One) {
+      optional_scalars.OptionalByte just_enum = optional_scalars.OptionalByte.None,
+      optional_scalars.OptionalByte? maybe_enum = null,
+      optional_scalars.OptionalByte default_enum = optional_scalars.OptionalByte.One) {
     builder.StartTable(36);
     ScalarStuff.AddDefaultF64(builder, default_f64);
     ScalarStuff.AddMaybeF64(builder, maybe_f64);
@@ -168,15 +168,15 @@ public struct ScalarStuff : IFlatbufferObject
   public static void AddJustBool(FlatBufferBuilder builder, bool justBool) { builder.AddBool(30, justBool, false); }
   public static void AddMaybeBool(FlatBufferBuilder builder, bool? maybeBool) { builder.AddBool(31, maybeBool); }
   public static void AddDefaultBool(FlatBufferBuilder builder, bool defaultBool) { builder.AddBool(32, defaultBool, true); }
-  public static void AddJustEnum(FlatBufferBuilder builder, global::optional_scalars.OptionalByte justEnum) { builder.AddSbyte(33, (sbyte)justEnum, 0); }
-  public static void AddMaybeEnum(FlatBufferBuilder builder, global::optional_scalars.OptionalByte? maybeEnum) { builder.AddSbyte(34, (sbyte)maybeEnum); }
-  public static void AddDefaultEnum(FlatBufferBuilder builder, global::optional_scalars.OptionalByte defaultEnum) { builder.AddSbyte(35, (sbyte)defaultEnum, 1); }
-  public static Offset<global::optional_scalars.ScalarStuff> EndScalarStuff(FlatBufferBuilder builder) {
+  public static void AddJustEnum(FlatBufferBuilder builder, optional_scalars.OptionalByte justEnum) { builder.AddSbyte(33, (sbyte)justEnum, 0); }
+  public static void AddMaybeEnum(FlatBufferBuilder builder, optional_scalars.OptionalByte? maybeEnum) { builder.AddSbyte(34, (sbyte)maybeEnum); }
+  public static void AddDefaultEnum(FlatBufferBuilder builder, optional_scalars.OptionalByte defaultEnum) { builder.AddSbyte(35, (sbyte)defaultEnum, 1); }
+  public static Offset<optional_scalars.ScalarStuff> EndScalarStuff(FlatBufferBuilder builder) {
     int o = builder.EndTable();
-    return new Offset<global::optional_scalars.ScalarStuff>(o);
+    return new Offset<optional_scalars.ScalarStuff>(o);
   }
-  public static void FinishScalarStuffBuffer(FlatBufferBuilder builder, Offset<global::optional_scalars.ScalarStuff> offset) { builder.Finish(offset.Value, "NULL"); }
-  public static void FinishSizePrefixedScalarStuffBuffer(FlatBufferBuilder builder, Offset<global::optional_scalars.ScalarStuff> offset) { builder.FinishSizePrefixed(offset.Value, "NULL"); }
+  public static void FinishScalarStuffBuffer(FlatBufferBuilder builder, Offset<optional_scalars.ScalarStuff> offset) { builder.Finish(offset.Value, "NULL"); }
+  public static void FinishSizePrefixedScalarStuffBuffer(FlatBufferBuilder builder, Offset<optional_scalars.ScalarStuff> offset) { builder.FinishSizePrefixed(offset.Value, "NULL"); }
   public ScalarStuffT UnPack() {
     var _o = new ScalarStuffT();
     this.UnPackTo(_o);
@@ -220,8 +220,8 @@ public struct ScalarStuff : IFlatbufferObject
     _o.MaybeEnum = this.MaybeEnum;
     _o.DefaultEnum = this.DefaultEnum;
   }
-  public static Offset<global::optional_scalars.ScalarStuff> Pack(FlatBufferBuilder builder, ScalarStuffT _o) {
-    if (_o == null) return default(Offset<global::optional_scalars.ScalarStuff>);
+  public static Offset<optional_scalars.ScalarStuff> Pack(FlatBufferBuilder builder, ScalarStuffT _o) {
+    if (_o == null) return default(Offset<optional_scalars.ScalarStuff>);
     return CreateScalarStuff(
       builder,
       _o.JustI8,
@@ -298,9 +298,9 @@ public class ScalarStuffT
   public bool JustBool { get; set; }
   public bool? MaybeBool { get; set; }
   public bool DefaultBool { get; set; }
-  public global::optional_scalars.OptionalByte JustEnum { get; set; }
-  public global::optional_scalars.OptionalByte? MaybeEnum { get; set; }
-  public global::optional_scalars.OptionalByte DefaultEnum { get; set; }
+  public optional_scalars.OptionalByte JustEnum { get; set; }
+  public optional_scalars.OptionalByte? MaybeEnum { get; set; }
+  public optional_scalars.OptionalByte DefaultEnum { get; set; }
 
   public ScalarStuffT() {
     this.JustI8 = 0;
@@ -336,9 +336,9 @@ public class ScalarStuffT
     this.JustBool = false;
     this.MaybeBool = null;
     this.DefaultBool = true;
-    this.JustEnum = global::optional_scalars.OptionalByte.None;
+    this.JustEnum = optional_scalars.OptionalByte.None;
     this.MaybeEnum = null;
-    this.DefaultEnum = global::optional_scalars.OptionalByte.One;
+    this.DefaultEnum = optional_scalars.OptionalByte.One;
   }
   public static ScalarStuffT DeserializeFromBinary(byte[] fbBuffer) {
     return ScalarStuff.GetRootAsScalarStuff(new ByteBuffer(fbBuffer)).UnPack();

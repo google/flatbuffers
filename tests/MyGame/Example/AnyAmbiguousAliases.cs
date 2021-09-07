@@ -24,19 +24,19 @@ public class AnyAmbiguousAliasesUnion {
   }
 
   public T As<T>() where T : class { return this.Value as T; }
-  public global::MyGame.Example.MonsterT AsM1() { return this.As<global::MyGame.Example.MonsterT>(); }
-  public static AnyAmbiguousAliasesUnion FromM1(global::MyGame.Example.MonsterT _m1) { return new AnyAmbiguousAliasesUnion{ Type = AnyAmbiguousAliases.M1, Value = _m1 }; }
-  public global::MyGame.Example.MonsterT AsM2() { return this.As<global::MyGame.Example.MonsterT>(); }
-  public static AnyAmbiguousAliasesUnion FromM2(global::MyGame.Example.MonsterT _m2) { return new AnyAmbiguousAliasesUnion{ Type = AnyAmbiguousAliases.M2, Value = _m2 }; }
-  public global::MyGame.Example.MonsterT AsM3() { return this.As<global::MyGame.Example.MonsterT>(); }
-  public static AnyAmbiguousAliasesUnion FromM3(global::MyGame.Example.MonsterT _m3) { return new AnyAmbiguousAliasesUnion{ Type = AnyAmbiguousAliases.M3, Value = _m3 }; }
+  public MyGame.Example.MonsterT AsM1() { return this.As<MyGame.Example.MonsterT>(); }
+  public static AnyAmbiguousAliasesUnion FromM1(MyGame.Example.MonsterT _m1) { return new AnyAmbiguousAliasesUnion{ Type = AnyAmbiguousAliases.M1, Value = _m1 }; }
+  public MyGame.Example.MonsterT AsM2() { return this.As<MyGame.Example.MonsterT>(); }
+  public static AnyAmbiguousAliasesUnion FromM2(MyGame.Example.MonsterT _m2) { return new AnyAmbiguousAliasesUnion{ Type = AnyAmbiguousAliases.M2, Value = _m2 }; }
+  public MyGame.Example.MonsterT AsM3() { return this.As<MyGame.Example.MonsterT>(); }
+  public static AnyAmbiguousAliasesUnion FromM3(MyGame.Example.MonsterT _m3) { return new AnyAmbiguousAliasesUnion{ Type = AnyAmbiguousAliases.M3, Value = _m3 }; }
 
   public static int Pack(FlatBuffers.FlatBufferBuilder builder, AnyAmbiguousAliasesUnion _o) {
     switch (_o.Type) {
       default: return 0;
-      case AnyAmbiguousAliases.M1: return global::MyGame.Example.Monster.Pack(builder, _o.AsM1()).Value;
-      case AnyAmbiguousAliases.M2: return global::MyGame.Example.Monster.Pack(builder, _o.AsM2()).Value;
-      case AnyAmbiguousAliases.M3: return global::MyGame.Example.Monster.Pack(builder, _o.AsM3()).Value;
+      case AnyAmbiguousAliases.M1: return MyGame.Example.Monster.Pack(builder, _o.AsM1()).Value;
+      case AnyAmbiguousAliases.M2: return MyGame.Example.Monster.Pack(builder, _o.AsM2()).Value;
+      case AnyAmbiguousAliases.M3: return MyGame.Example.Monster.Pack(builder, _o.AsM3()).Value;
     }
   }
 }
@@ -76,9 +76,9 @@ public class AnyAmbiguousAliasesUnion_JsonConverter : Newtonsoft.Json.JsonConver
     if (_o == null) return null;
     switch (_o.Type) {
       default: break;
-      case AnyAmbiguousAliases.M1: _o.Value = serializer.Deserialize<global::MyGame.Example.MonsterT>(reader); break;
-      case AnyAmbiguousAliases.M2: _o.Value = serializer.Deserialize<global::MyGame.Example.MonsterT>(reader); break;
-      case AnyAmbiguousAliases.M3: _o.Value = serializer.Deserialize<global::MyGame.Example.MonsterT>(reader); break;
+      case AnyAmbiguousAliases.M1: _o.Value = serializer.Deserialize<MyGame.Example.MonsterT>(reader); break;
+      case AnyAmbiguousAliases.M2: _o.Value = serializer.Deserialize<MyGame.Example.MonsterT>(reader); break;
+      case AnyAmbiguousAliases.M3: _o.Value = serializer.Deserialize<MyGame.Example.MonsterT>(reader); break;
     }
     return _o;
   }

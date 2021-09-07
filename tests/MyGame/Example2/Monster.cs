@@ -21,9 +21,9 @@ public struct Monster : IFlatbufferObject
 
 
   public static void StartMonster(FlatBufferBuilder builder) { builder.StartTable(0); }
-  public static Offset<global::MyGame.Example2.Monster> EndMonster(FlatBufferBuilder builder) {
+  public static Offset<MyGame.Example2.Monster> EndMonster(FlatBufferBuilder builder) {
     int o = builder.EndTable();
-    return new Offset<global::MyGame.Example2.Monster>(o);
+    return new Offset<MyGame.Example2.Monster>(o);
   }
   public MonsterT UnPack() {
     var _o = new MonsterT();
@@ -32,8 +32,8 @@ public struct Monster : IFlatbufferObject
   }
   public void UnPackTo(MonsterT _o) {
   }
-  public static Offset<global::MyGame.Example2.Monster> Pack(FlatBufferBuilder builder, MonsterT _o) {
-    if (_o == null) return default(Offset<global::MyGame.Example2.Monster>);
+  public static Offset<MyGame.Example2.Monster> Pack(FlatBufferBuilder builder, MonsterT _o) {
+    if (_o == null) return default(Offset<MyGame.Example2.Monster>);
     StartMonster(builder);
     return EndMonster(builder);
   }

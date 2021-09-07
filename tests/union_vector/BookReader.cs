@@ -16,10 +16,10 @@ public struct BookReader : IFlatbufferObject
   public int BooksRead { get { return __p.bb.GetInt(__p.bb_pos + 0); } }
   public void MutateBooksRead(int books_read) { __p.bb.PutInt(__p.bb_pos + 0, books_read); }
 
-  public static Offset<global::BookReader> CreateBookReader(FlatBufferBuilder builder, int BooksRead) {
+  public static Offset<BookReader> CreateBookReader(FlatBufferBuilder builder, int BooksRead) {
     builder.Prep(4, 4);
     builder.PutInt(BooksRead);
-    return new Offset<global::BookReader>(builder.Offset);
+    return new Offset<BookReader>(builder.Offset);
   }
   public BookReaderT UnPack() {
     var _o = new BookReaderT();
@@ -29,8 +29,8 @@ public struct BookReader : IFlatbufferObject
   public void UnPackTo(BookReaderT _o) {
     _o.BooksRead = this.BooksRead;
   }
-  public static Offset<global::BookReader> Pack(FlatBufferBuilder builder, BookReaderT _o) {
-    if (_o == null) return default(Offset<global::BookReader>);
+  public static Offset<BookReader> Pack(FlatBufferBuilder builder, BookReaderT _o) {
+    if (_o == null) return default(Offset<BookReader>);
     return CreateBookReader(
       builder,
       _o.BooksRead);
