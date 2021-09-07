@@ -391,6 +391,8 @@ int FlatCompiler::Compile(int argc, const char **argv) {
         opts.cpp_std = arg.substr(std::string("--cpp-std=").size());
       } else if (arg == "--cpp-static-reflection") {
         opts.cpp_static_reflection = true;
+      } else if (arg == "--cs-global-alias") {
+        opts.cs_global_alias = true;
       } else {
         for (size_t i = 0; i < params_.num_generators; ++i) {
           if (arg == params_.generators[i].generator_opt_long ||

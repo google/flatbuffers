@@ -594,6 +594,7 @@ struct IDLOptions {
   std::string filename_extension;
   bool no_warnings;
   std::string project_root;
+  bool cs_global_alias;
 
   // Possible options for the more general generator below.
   enum Language {
@@ -681,6 +682,7 @@ struct IDLOptions {
         filename_extension(),
         no_warnings(false),
         project_root(""),
+        cs_global_alias(false),
         lang(IDLOptions::kJava),
         mini_reflect(IDLOptions::kNone),
         require_explicit_ids(false),
