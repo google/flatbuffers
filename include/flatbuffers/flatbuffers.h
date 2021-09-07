@@ -376,6 +376,10 @@ template<typename T> class Vector {
     return IndirectHelper<T>::Read(element, 0);
   }
 
+  template<typename K> mutable_return_type MutableLookupByKey(K key) {
+    return const_cast<mutable_return_type>(LookupByKey(key));
+  }
+
  protected:
   // This class is only used to access pre-existing data. Don't ever
   // try to construct these manually.

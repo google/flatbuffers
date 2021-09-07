@@ -490,7 +490,7 @@ as much as possible such that you can use tables where you might be
 tempted to use a dictionary.
 
 Similarly, strings as values should only be used when they are
-truely open-ended. If you can, always use an enum instead.
+truly open-ended. If you can, always use an enum instead.
 
 FlatBuffers doesn't have inheritance, so the way to represent a set
 of related data structures is a union. Unions do have a cost however,
