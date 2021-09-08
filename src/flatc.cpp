@@ -482,16 +482,17 @@ int FlatCompiler::Compile(int argc, const char **argv) {
           contents.length() != strlen(contents.c_str())) {
         Error("input file appears to be binary: " + filename, true);
       }
-      if (is_schema) {
+      if (is_schema || is_binary_schema) {
         // If we're processing multiple schemas, make sure to start each
         // one from scratch. If it depends on previous schemas it must do
         // so explicitly using an include.
         parser.reset(new flatbuffers::Parser(opts));
       }
+      // Try to parse the file contents (binary schema/flexbuffer/textual
+      // schema)
       if (is_binary_schema) {
         LoadBinarySchema(*parser.get(), filename, contents);
-      }
-      if (opts.use_flexbuffers) {
+      } else if (opts.use_flexbuffers) {
         if (opts.lang_to_generate == IDLOptions::kJson) {
           parser->flex_root_ = flexbuffers::GetRoot(
               reinterpret_cast<const uint8_t *>(contents.c_str()),
