@@ -190,7 +190,7 @@ class CSharpGenerator : public BaseGenerator {
   std::unordered_set<std::string> keywords_;
 
   std::string EscapeKeyword(const std::string &name) const {
-    return keywords_.find(name) == keywords_.end() ? name : name + "_";
+    return keywords_.find(name) == keywords_.end() ? name : "@" + name;
   }
 
   std::string Name(const FieldDef &field) const {

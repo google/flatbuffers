@@ -74,7 +74,7 @@ $TEST_NOINCL_FLAGS $TEST_CPP_FLAGS $TEST_CS_FLAGS $TEST_TS_FLAGS -o namespace_te
 ../flatc --cpp --scoped-enums $TEST_CPP_FLAGS -o evolution_test ./evolution_test/evolution_v*.fbs
 
 # Generate the keywords tests
-../flatc --csharp $TEST_BASE_FLAGS $TEST_CS_FLAGS -o keyword_test ./keyword_test.fbs
+../flatc --csharp $TEST_BASE_FLAGS $TEST_CS_FLAGS ./keyword_test.fbs
 ../flatc --rust $TEST_RUST_FLAGS -o keyword_test ./keyword_test.fbs
 
 working_dir=`pwd`
