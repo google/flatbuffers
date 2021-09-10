@@ -1139,5 +1139,18 @@ namespace FlatBuffers.Test
             Assert.AreEqual(keywordsInTable.Is, KeywordTest.ABC.@stackalloc);
             Assert.AreEqual(keywordsInTable.Private, KeywordTest.@public.NONE);
         }
+
+
+        [FlatBuffersTestMethod]
+        public void AddOptionalEnum_WhenPassNull_ShouldWorkProperly() {
+          var fbb = new FlatBufferBuilder(1);
+          ScalarStuff.StartScalarStuff(fbb);
+          ScalarStuff.AddMaybeEnum(fbb, null);
+          var offset = ScalarStuff.EndScalarStuff(fbb);
+          ScalarStuff.FinishScalarStuffBuffer(fbb, offset);
+          
+          ScalarStuff scalarStuff = ScalarStuff.GetRootAsScalarStuff(fbb.DataBuffer);
+          Assert.AreEqual(null, scalarStuff.MaybeEnum);
+        }
     }
 }
