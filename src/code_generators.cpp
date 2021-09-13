@@ -87,7 +87,6 @@ std::string BaseGenerator::NamespaceDir(const Parser &parser,
                                         const Namespace &ns,
                                         const bool dasherize) {
   EnsureDirExists(path);
-  FLATBUFFERS_ASSERT(!parser.opts.one_file);
   std::string namespace_dir = path;  // Either empty or ends in separator.
   auto &namespaces = ns.components;
   for (auto it = namespaces.begin(); it != namespaces.end(); ++it) {
