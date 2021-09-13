@@ -149,10 +149,9 @@ class JsonSchemaGenerator : public BaseGenerator {
   const JsonSchemaOptions opts_;
 
  public:
-  JsonSchemaGenerator(const Parser &parser, const IDLOptions &opts, const std::string &path,
-                      const std::string &file_name)
-      : BaseGenerator(parser, path, file_name, "", "", "json"),
-        opts_(opts) {}
+  JsonSchemaGenerator(const Parser &parser, const IDLOptions &opts,
+                      const std::string &path, const std::string &file_name)
+      : BaseGenerator(parser, path, file_name, "", "", "json"), opts_(opts) {}
 
   // If indentation is less than 0, that indicates we don't want any newlines
   // either.

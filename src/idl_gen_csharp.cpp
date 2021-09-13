@@ -71,8 +71,8 @@ class CSharpGenerator : public BaseGenerator {
   const CSharpOpts opts_;
 
  public:
-  CSharpGenerator(const Parser &parser, const IDLOptions &opts, const std::string &path,
-                  const std::string &file_name)
+  CSharpGenerator(const Parser &parser, const IDLOptions &opts,
+                  const std::string &path, const std::string &file_name)
       : BaseGenerator(parser, path, file_name, "", ".", "cs"),
         opts_(opts),
         cur_name_space_(nullptr) {

@@ -61,8 +61,7 @@ class SwiftGenerator : public BaseGenerator {
 
  public:
   SwiftGenerator(const Parser &parser, const IDLOptions &opts,
-                 const std::string &path,
-                 const std::string &file_name)
+                 const std::string &path, const std::string &file_name)
       : BaseGenerator(parser, path, file_name, "", "_", "swift"),
         opts_(SwiftOptions(opts)) {
     namespace_depth = 0;

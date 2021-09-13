@@ -45,8 +45,8 @@ class PythonGenerator : public BaseGenerator {
   const PythonOptions opts_;
 
  public:
-  PythonGenerator(const Parser &parser, const IDLOptions &opts, const std::string &path,
-                  const std::string &file_name)
+  PythonGenerator(const Parser &parser, const IDLOptions &opts,
+                  const std::string &path, const std::string &file_name)
       : BaseGenerator(parser, path, file_name, "" /* not used */,
                       "" /* not used */, "py"),
         opts_(opts),

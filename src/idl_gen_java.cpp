@@ -68,8 +68,7 @@ class JavaGenerator : public BaseGenerator {
 
  public:
   JavaGenerator(const Parser &parser, const IDLOptions &opts,
-                const std::string &path,
-                const std::string &file_name)
+                const std::string &path, const std::string &file_name)
       : BaseGenerator(parser, path, file_name, "", ".", "java"),
         opts_(opts),
         cur_name_space_(nullptr) {}

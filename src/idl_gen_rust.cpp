@@ -277,8 +277,8 @@ class RustGenerator : public BaseGenerator {
   const RustOptions opts_;
 
  public:
-  RustGenerator(const Parser &parser, const IDLOptions &opts, const std::string &path,
-                const std::string &file_name)
+  RustGenerator(const Parser &parser, const IDLOptions &opts,
+                const std::string &path, const std::string &file_name)
       : BaseGenerator(parser, path, file_name, "", "::", "rs"),
         opts_(opts),
         cur_name_space_(nullptr) {

@@ -68,8 +68,8 @@ class KotlinGenerator : public BaseGenerator {
   const KotlinOptions opts_;
 
  public:
-  KotlinGenerator(const Parser &parser, const IDLOptions &opts, const std::string &path,
-                  const std::string &file_name)
+  KotlinGenerator(const Parser &parser, const IDLOptions &opts,
+                  const std::string &path, const std::string &file_name)
       : BaseGenerator(parser, path, file_name, "", ".", "kt"),
         opts_(opts),
         cur_name_space_(nullptr) {}
@@ -507,7 +507,8 @@ class KotlinGenerator : public BaseGenerator {
               [&]() { writer += "Constants.FLATBUFFERS_2_0_0()"; },
               opts_.gen_jvmstatic);
 
-          GenerateGetRootAsAccessors(Esc(struct_def.name), writer, opts_.gen_jvmstatic);
+          GenerateGetRootAsAccessors(Esc(struct_def.name), writer,
+                                     opts_.gen_jvmstatic);
           GenerateBufferHasIdentifier(struct_def, writer);
           GenerateTableCreator(struct_def, writer);
 
@@ -616,8 +617,7 @@ class KotlinGenerator : public BaseGenerator {
 
   void GenerateFinishSizePrefixed(StructDef &struct_def,
                                   const std::string &identifier,
-                                  CodeWriter &writer
-                                ) const {
+                                  CodeWriter &writer) const {
     auto id = identifier.length() > 0 ? ", \"" + identifier + "\"" : "";
     auto params = "builder: FlatBufferBuilder, offset: Int";
     auto method_name = "finishSizePrefixed" + Esc(struct_def.name) + "Buffer";
@@ -628,38 +628,39 @@ class KotlinGenerator : public BaseGenerator {
   }
   void GenerateFinishStructBuffer(StructDef &struct_def,
                                   const std::string &identifier,
-                                  CodeWriter &writer
-                                ) const {
+                                  CodeWriter &writer) const {
     auto id = identifier.length() > 0 ? ", \"" + identifier + "\"" : "";
     auto params = "builder: FlatBufferBuilder, offset: Int";
     auto method_name = "finish" + Esc(struct_def.name) + "Buffer";
-    GenerateFunOneLine(writer, method_name, params, "",
-                       [&]() { writer += "builder.finish(offset" + id + ")"; },
-                       opts_.gen_jvmstatic);
+    GenerateFunOneLine(
+        writer, method_name, params, "",
+        [&]() { writer += "builder.finish(offset" + id + ")"; },
+        opts_.gen_jvmstatic);
   }
 
-  void GenerateEndStructMethod(StructDef &struct_def, CodeWriter &writer) const {
+  void GenerateEndStructMethod(StructDef &struct_def,
+                               CodeWriter &writer) const {
     // Generate end{{TableName}}(builder: FlatBufferBuilder) method
     auto name = "end" + Esc(struct_def.name);
     auto params = "builder: FlatBufferBuilder";
     auto returns = "Int";
     auto field_vec = struct_def.fields.vec;
 
-    GenerateFun(writer, name, params, returns,
-                [&]() {
-                  writer += "val o = builder.endTable()";
-                  writer.IncrementIdentLevel();
-                  for (auto it = field_vec.begin(); it != field_vec.end();
-                       ++it) {
-                    auto &field = **it;
-                    if (field.deprecated || !field.IsRequired()) { continue; }
-                    writer.SetValue("offset", NumToString(field.value.offset));
-                    writer += "builder.required(o, {{offset}})";
-                  }
-                  writer.DecrementIdentLevel();
-                  writer += "return o";
-                },
-                opts_.gen_jvmstatic);
+    GenerateFun(
+        writer, name, params, returns,
+        [&]() {
+          writer += "val o = builder.endTable()";
+          writer.IncrementIdentLevel();
+          for (auto it = field_vec.begin(); it != field_vec.end(); ++it) {
+            auto &field = **it;
+            if (field.deprecated || !field.IsRequired()) { continue; }
+            writer.SetValue("offset", NumToString(field.value.offset));
+            writer += "builder.required(o, {{offset}})";
+          }
+          writer.DecrementIdentLevel();
+          writer += "return o";
+        },
+        opts_.gen_jvmstatic);
   }
 
   // Generate a method to create a vector from a Kotlin array.
@@ -673,18 +674,18 @@ class KotlinGenerator : public BaseGenerator {
     writer.SetValue("root", GenMethod(vector_type));
     writer.SetValue("cast", CastToSigned(vector_type));
 
-    GenerateFun(writer, method_name, params, "Int",
-                [&]() {
-                  writer +=
-                      "builder.startVector({{size}}, data.size, {{align}})";
-                  writer += "for (i in data.size - 1 downTo 0) {";
-                  writer.IncrementIdentLevel();
-                  writer += "builder.add{{root}}(data[i]{{cast}})";
-                  writer.DecrementIdentLevel();
-                  writer += "}";
-                  writer += "return builder.endVector()";
-                },
-                opts_.gen_jvmstatic);
+    GenerateFun(
+        writer, method_name, params, "Int",
+        [&]() {
+          writer += "builder.startVector({{size}}, data.size, {{align}})";
+          writer += "for (i in data.size - 1 downTo 0) {";
+          writer.IncrementIdentLevel();
+          writer += "builder.add{{root}}(data[i]{{cast}})";
+          writer.DecrementIdentLevel();
+          writer += "}";
+          writer += "return builder.endVector()";
+        },
+        opts_.gen_jvmstatic);
   }
 
   void GenerateStartVectorField(FieldDef &field, CodeWriter &writer) const {
@@ -709,21 +710,21 @@ class KotlinGenerator : public BaseGenerator {
     auto field_type = GenTypeBasic(field.value.type.base_type);
     auto secondArg = MakeCamel(Esc(field.name), false) + ": " + field_type;
 
-    GenerateFunOneLine(writer, "add" + MakeCamel(Esc(field.name), true),
-                       "builder: FlatBufferBuilder, " + secondArg, "",
-                       [&]() {
-                         auto method = GenMethod(field.value.type);
-                         writer.SetValue("field_name",
-                                         MakeCamel(Esc(field.name), false));
-                         writer.SetValue("method_name", method);
-                         writer.SetValue("pos", field_pos);
-                         writer.SetValue("default", GenFBBDefaultValue(field));
-                         writer.SetValue("cast", GenFBBValueCast(field));
+    GenerateFunOneLine(
+        writer, "add" + MakeCamel(Esc(field.name), true),
+        "builder: FlatBufferBuilder, " + secondArg, "",
+        [&]() {
+          auto method = GenMethod(field.value.type);
+          writer.SetValue("field_name", MakeCamel(Esc(field.name), false));
+          writer.SetValue("method_name", method);
+          writer.SetValue("pos", field_pos);
+          writer.SetValue("default", GenFBBDefaultValue(field));
+          writer.SetValue("cast", GenFBBValueCast(field));
 
-                         writer += "builder.add{{method_name}}({{pos}}, \\";
-                         writer += "{{field_name}}{{cast}}, {{default}})";
-                       },
-                       opts_.gen_jvmstatic);
+          writer += "builder.add{{method_name}}({{pos}}, \\";
+          writer += "{{field_name}}{{cast}}, {{default}})";
+        },
+        opts_.gen_jvmstatic);
   }
 
   static std::string ToSignedType(const Type &type) {
@@ -764,7 +765,8 @@ class KotlinGenerator : public BaseGenerator {
   }
 
   // fun startMonster(builder: FlatBufferBuilder) = builder.startTable(11)
-  void GenerateStartStructMethod(StructDef &struct_def, CodeWriter &code) const {
+  void GenerateStartStructMethod(StructDef &struct_def,
+                                 CodeWriter &code) const {
     GenerateFunOneLine(
         code, "start" + Esc(struct_def.name), "builder: FlatBufferBuilder", "",
         [&]() {
@@ -853,7 +855,8 @@ class KotlinGenerator : public BaseGenerator {
           opts_.gen_jvmstatic);
     }
   }
-  void GenerateBufferHasIdentifier(StructDef &struct_def, CodeWriter &writer) const {
+  void GenerateBufferHasIdentifier(StructDef &struct_def,
+                                   CodeWriter &writer) const {
     auto file_identifier = parser_.file_identifier_;
     // Check if a buffer has the identifier.
     if (parser_.root_struct_def_ != &struct_def || !file_identifier.length())
@@ -1314,15 +1317,16 @@ class KotlinGenerator : public BaseGenerator {
   }
 
   static void GenerateStaticConstructor(const StructDef &struct_def,
-                                        CodeWriter &code,
-                                        bool gen_jvmstatic) {
+                                        CodeWriter &code, bool gen_jvmstatic) {
     // create a struct constructor function
     auto params = StructConstructorParams(struct_def);
-    GenerateFun(code, "create" + Esc(struct_def.name), params, "Int",
-                [&]() {
-                  GenStructBody(struct_def, code, "");
-                  code += "return builder.offset()";
-                }, gen_jvmstatic);
+    GenerateFun(
+        code, "create" + Esc(struct_def.name), params, "Int",
+        [&]() {
+          GenStructBody(struct_def, code, "");
+          code += "return builder.offset()";
+        },
+        gen_jvmstatic);
   }
 
   static std::string StructConstructorParams(const StructDef &struct_def,
