@@ -1216,6 +1216,38 @@ class Uint8Reader extends Reader<int> {
   int read(BufferContext bc, int offset) => bc._getUint8(offset);
 }
 
+/// Reader of unmodifiable binary data (a list of signed 8-bit integers).
+class Int8ListReader extends Reader<List<int>> {
+  /// Enables lazy reading of the list
+  ///
+  /// If true, the returned unmodifiable list lazily reads bytes on access.
+  /// Therefore, the underlying buffer must not change while accessing the list.
+  ///
+  /// If false, reads the whole list immediately as an Uint8List.
+  final bool lazy;
+
+  const Int8ListReader({this.lazy = true});
+
+  @override
+  @pragma('vm:prefer-inline')
+  int get size => _sizeofUint32;
+
+  @override
+  @pragma('vm:prefer-inline')
+  List<int> read(BufferContext bc, int offset) {
+    final listOffset = bc.derefObject(offset);
+    if (lazy) return _FbUint8List(bc, listOffset);
+
+    final length = bc._getUint32(listOffset);
+    final result = Int8List(length);
+    var pos = listOffset + _sizeofUint32;
+    for (var i = 0; i < length; i++, pos++) {
+      result[i] = bc._getInt8(pos);
+    }
+    return result;
+  }
+}
+
 /// The list backed by 64-bit values - Uint64 length and Float64.
 class _FbFloat64List extends _FbList<double> {
   _FbFloat64List(BufferContext bc, int offset) : super(bc, offset);
@@ -1301,6 +1333,15 @@ class _FbUint8List extends _FbList<int> {
   @override
   @pragma('vm:prefer-inline')
   int operator [](int i) => bc._getUint8(offset + 4 + i);
+}
+
+/// List backed by 8-bit signed integers.
+class _FbInt8List extends _FbList<int> {
+  _FbInt8List(BufferContext bc, int offset) : super(bc, offset);
+
+  @override
+  @pragma('vm:prefer-inline')
+  int operator [](int i) => bc._getInt8(offset + 4 + i);
 }
 
 /// List backed by 8-bit unsigned integers.
