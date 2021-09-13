@@ -47,11 +47,15 @@ class SwiftGenerator : public BaseGenerator {
     bool mutable_buffer;
     const std::string &object_prefix;
     const std::string &object_suffix;
+    const std::string &filename_suffix;
+    const std::string &filename_extension;
     explicit SwiftOptions(const IDLOptions &opts)
         : generate_object_based_api(opts.generate_object_based_api),
           mutable_buffer(opts.mutable_buffer),
           object_prefix(opts.object_prefix),
-          object_suffix(opts.object_suffix) {}
+          object_suffix(opts.object_suffix),
+          filename_suffix(opts.filename_suffix),
+          filename_extension(opts.filename_extension) {}
   };
   SwiftOptions opts_;
 
@@ -182,7 +186,8 @@ class SwiftGenerator : public BaseGenerator {
       }
     }
 
-    const auto filename = GeneratedFileName(path_, file_name_, parser_.opts);
+    const auto filename = GeneratedFileName(
+        path_, file_name_, opts_.filename_suffix, opts_.filename_extension);
     const auto final_code = code_.ToString();
     return SaveFile(filename.c_str(), final_code, false);
   }

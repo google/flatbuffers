@@ -29,21 +29,38 @@ template<typename T> struct PrintTag { typedef PrintScalarTag type; };
 template<> struct PrintTag<const void *> { typedef PrintPointerTag type; };
 
 struct JsonPrinter {
+  struct JsonPrinterOptions {
+    int indent_step;
+    bool strict_json;
+    bool output_enum_identifiers;
+    bool protobuf_ascii_alike;
+    bool allow_non_utf8;
+    bool natural_utf8;
+    bool output_default_scalars_in_json;
+    JsonPrinterOptions(const IDLOptions &opts)
+        : indent_step(opts.indent_step),
+          strict_json(opts.strict_json),
+          output_enum_identifiers(opts.output_enum_identifiers),
+          protobuf_ascii_alike(opts.protobuf_ascii_alike),
+          allow_non_utf8(opts.allow_non_utf8),
+          natural_utf8(opts.natural_utf8),
+          output_default_scalars_in_json(opts.output_default_scalars_in_json) {}
+  };
   // If indentation is less than 0, that indicates we don't want any newlines
   // either.
   void AddNewLine() {
-    if (opts.indent_step >= 0) text += '\n';
+    if (opts_.indent_step >= 0) text += '\n';
   }
 
   void AddIndent(int ident) { text.append(ident, ' '); }
 
-  int Indent() const { return std::max(opts.indent_step, 0); }
+  int Indent() const { return std::max(opts_.indent_step, 0); }
 
   // Output an identifier with or without quotes depending on strictness.
   void OutputIdentifier(const std::string &name) {
-    if (opts.strict_json) text += '\"';
+    if (opts_.strict_json) text += '\"';
     text += name;
-    if (opts.strict_json) text += '\"';
+    if (opts_.strict_json) text += '\"';
   }
 
   // Print (and its template specialization below for pointers) generate text
@@ -56,7 +73,7 @@ struct JsonPrinter {
       return true;  // done
     }
 
-    if (opts.output_enum_identifiers && type.enum_def) {
+    if (opts_.output_enum_identifiers && type.enum_def) {
       const auto &enum_def = *type.enum_def;
       if (auto ev = enum_def.ReverseLookup(static_cast<int64_t>(val))) {
         text += '\"';
@@ -92,7 +109,7 @@ struct JsonPrinter {
   }
 
   void AddComma() {
-    if (!opts.protobuf_ascii_alike) text += ',';
+    if (!opts_.protobuf_ascii_alike) text += ',';
   }
 
   // Print a vector or an array of JSON values, comma seperated, wrapped in
@@ -190,8 +207,8 @@ struct JsonPrinter {
                          indent);
       case BASE_TYPE_STRING: {
         auto s = reinterpret_cast<const String *>(val);
-        return EscapeString(s->c_str(), s->size(), &text, opts.allow_non_utf8,
-                            opts.natural_utf8);
+        return EscapeString(s->c_str(), s->size(), &text, opts_.allow_non_utf8,
+                            opts_.natural_utf8);
       }
       case BASE_TYPE_VECTOR: {
         const auto vec_type = type.VectorType();
@@ -267,7 +284,7 @@ struct JsonPrinter {
     } else if (fd.flexbuffer) {
       auto vec = table->GetPointer<const Vector<uint8_t> *>(fd.value.offset);
       auto root = flexbuffers::GetRoot(vec->data(), vec->size());
-      root.ToString(true, opts.strict_json, text);
+      root.ToString(true, opts_.strict_json, text);
       return true;
     } else if (fd.nested_flatbuffer) {
       auto vec = table->GetPointer<const Vector<uint8_t> *>(fd.value.offset);
@@ -292,14 +309,14 @@ struct JsonPrinter {
          it != struct_def.fields.vec.end(); ++it) {
       FieldDef &fd = **it;
       auto is_present = struct_def.fixed || table->CheckField(fd.value.offset);
-      auto output_anyway = (opts.output_default_scalars_in_json || fd.key) &&
+      auto output_anyway = (opts_.output_default_scalars_in_json || fd.key) &&
                            IsScalar(fd.value.type.base_type) && !fd.deprecated;
       if (is_present || output_anyway) {
         if (fieldout++) { AddComma(); }
         AddNewLine();
         AddIndent(elem_indent);
         OutputIdentifier(fd.name);
-        if (!opts.protobuf_ascii_alike ||
+        if (!opts_.protobuf_ascii_alike ||
             (fd.value.type.base_type != BASE_TYPE_STRUCT &&
              fd.value.type.base_type != BASE_TYPE_VECTOR))
           text += ':';
@@ -341,11 +358,11 @@ struct JsonPrinter {
   }
 
   JsonPrinter(const Parser &parser, const IDLOptions &opts, std::string &dest)
-      : opts(opts), text(dest) {
+      : opts_(opts), text(dest) {
     text.reserve(1024);  // Reduce amount of inevitable reallocs.
   }
 
-  const IDLOptions &opts;
+  const JsonPrinterOptions opts_;
   std::string &text;
 };
 

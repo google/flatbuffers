@@ -255,6 +255,7 @@ class RustGenerator : public BaseGenerator {
   // Generator CLI options.
   struct RustOptions {
     const std::string &filename_suffix;
+    const std::string &filename_extension;
     const bool generate_all;
     const bool generate_name_strings;
     const bool generate_object_based_api;
@@ -264,6 +265,7 @@ class RustGenerator : public BaseGenerator {
     const bool one_file;
     explicit RustOptions(const IDLOptions &opts)
         : filename_suffix(opts.filename_suffix),
+          filename_extension(opts.filename_extension),
           generate_all(opts.generate_all),
           generate_name_strings(opts.generate_name_strings),
           generate_object_based_api(opts.generate_object_based_api),
@@ -517,7 +519,8 @@ class RustGenerator : public BaseGenerator {
     }
     if (cur_name_space_) SetNameSpace(nullptr);
 
-    const auto file_path = GeneratedFileName(path_, file_name_, parser_.opts);
+    const auto file_path = GeneratedFileName(
+        path_, file_name_, opts_.filename_suffix, opts_.filename_extension);
     const auto final_code = code_.ToString();
     return SaveFile(file_path.c_str(), final_code, false);
   }
@@ -2918,7 +2921,9 @@ std::string RustMakeRule(const Parser &parser, const IDLOptions &options,
       flatbuffers::StripPath(flatbuffers::StripExtension(file_name));
   rust::RustGenerator generator(parser, options, path, file_name);
   std::string make_rule =
-      generator.GeneratedFileName(path, filebase, options) + ": ";
+      generator.GeneratedFileName(path, filebase, options.filename_suffix,
+                                  options.filename_extension) +
+      ": ";
 
   auto included_files = parser.GetIncludedFilesRecursive(file_name);
   for (auto it = included_files.begin(); it != included_files.end(); ++it) {

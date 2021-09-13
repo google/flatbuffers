@@ -28,9 +28,13 @@ namespace lobster {
 class LobsterGenerator : public BaseGenerator {
  public:
   LobsterGenerator(const Parser &parser, const std::string &path,
-                   const std::string &file_name)
+                   const std::string &file_name,
+                   const std::string &filename_suffix,
+                   const std::string &filename_extension)
       : BaseGenerator(parser, path, file_name, "" /* not used */, "_",
-                      "lobster") {
+                      "lobster"),
+        filename_suffix_(filename_suffix),
+        filename_extension_(filename_extension) {
     static const char *const keywords[] = {
       "nil",    "true",    "false",     "return",  "struct",    "class",
       "import", "int",     "float",     "string",  "any",       "def",
@@ -371,21 +375,27 @@ class LobsterGenerator : public BaseGenerator {
       auto &struct_def = **it;
       GenStruct(struct_def, &code);
     }
-    return SaveFile(GeneratedFileName(path_, file_name_, parser_.opts).c_str(),
+    return SaveFile(GeneratedFileName(path_, file_name_, filename_suffix_,
+                                      filename_extension_)
+                        .c_str(),
                     code, false);
   }
 
  private:
   std::unordered_set<std::string> keywords_;
   std::string current_namespace_;
+  // DO NOT SUBMIT: TODO: should this be LobsterOptions?
+  const std::string &filename_suffix_;
+  const std::string &filename_extension_;
 };
 
 }  // namespace lobster
 
 bool GenerateLobster(const Parser &parser, const IDLOptions &options,
                      const std::string &path, const std::string &file_name) {
-  (void)options;  // unused.
-  lobster::LobsterGenerator generator(parser, path, file_name);
+  lobster::LobsterGenerator generator(parser, path, file_name,
+                                      options.filename_suffix,
+                                      options.filename_extension);
   return generator.generate();
 }
 

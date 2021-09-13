@@ -48,12 +48,20 @@ class DartGenerator : public BaseGenerator {
  public:
   typedef std::map<std::string, std::string> namespace_code_map;
 
-  const bool generate_object_based_api_;
+  struct DartOptions {
+    bool generate_object_based_api;
+    const std::string &filename_suffix;
+    const std::string &filename_extension;
+    DartOptions(const IDLOptions &opts)
+        : generate_object_based_api(opts.generate_object_based_api),
+          filename_suffix(opts.filename_suffix),
+          filename_extension(opts.filename_extension) {}
+  };
+  const DartOptions opts_;
 
-  DartGenerator(const Parser &parser, bool generate_object_based_api, const std::string &path,
-                const std::string &file_name)
-      : BaseGenerator(parser, path, file_name, "", ".", "dart"),
-        generate_object_based_api_(generate_object_based_api) {}
+  DartGenerator(const Parser &parser, const IDLOptions opts,
+                const std::string &path, const std::string &file_name)
+      : BaseGenerator(parser, path, file_name, "", ".", "dart"), opts_(opts) {}
   // Iterate through all definitions we haven't generate code for (enums,
   // structs, and tables) and output them to a single file.
   bool generate() {
@@ -83,7 +91,7 @@ class DartGenerator : public BaseGenerator {
               GeneratedFileName(
                   "./",
                   file_name_ + (!kv2->first.empty() ? "_" + kv2->first : ""),
-                  parser_.opts) +
+                  opts_.filename_suffix, opts_.filename_extension) +
               "' as " + ImportAliasName(kv2->first) + ";\n";
         }
       }
@@ -94,7 +102,7 @@ class DartGenerator : public BaseGenerator {
               GeneratedFileName(
                   path_,
                   file_name_ + (!kv->first.empty() ? "_" + kv->first : ""),
-                  parser_.opts)
+                  opts_.filename_suffix, opts_.filename_extension)
                   .c_str(),
               code, false)) {
         return false;
@@ -150,7 +158,7 @@ class DartGenerator : public BaseGenerator {
           "import '" +
           GeneratedFileName(
               "", basename + (the_namespace == "" ? "" : "_" + the_namespace),
-              parser_.opts) +
+              opts_.filename_suffix, opts_.filename_extension) +
           "';\n";
     }
   }
@@ -472,7 +480,7 @@ class DartGenerator : public BaseGenerator {
 
     GenImplementationGetters(struct_def, non_deprecated_fields, &code);
 
-    if (generate_object_based_api_) {
+    if (opts_.generate_object_based_api) {
       code +=
           "\n" + GenStructObjectAPIUnpack(struct_def, non_deprecated_fields);
 
@@ -485,7 +493,7 @@ class DartGenerator : public BaseGenerator {
 
     code += "}\n\n";
 
-    if (generate_object_based_api_) {
+    if (opts_.generate_object_based_api) {
       code += GenStructObjectAPI(struct_def, non_deprecated_fields);
     }
 
@@ -1119,7 +1127,7 @@ class DartGenerator : public BaseGenerator {
 
 bool GenerateDart(const Parser &parser, const IDLOptions &options,
                   const std::string &path, const std::string &file_name) {
-  dart::DartGenerator generator(parser, options.generate_object_based_api, path, file_name);
+  dart::DartGenerator generator(parser, options, path, file_name);
   return generator.generate();
 }
 
@@ -1128,7 +1136,7 @@ std::string DartMakeRule(const Parser &parser, const IDLOptions &options,
                          const std::string &file_name) {
   auto filebase =
       flatbuffers::StripPath(flatbuffers::StripExtension(file_name));
-  dart::DartGenerator generator(parser, options.generate_object_based_api, path, file_name);
+  dart::DartGenerator generator(parser, options, path, file_name);
   auto make_rule = generator.GeneratedFileName(path, file_name, options) + ": ";
 
   auto included_files = parser.GetIncludedFilesRecursive(file_name);

@@ -128,6 +128,8 @@ class BaseGenerator {
   std::string NamespaceDir(const Namespace &ns,
                            const bool dasherize = false) const;
 
+  // TODO(caspern): Move warning outside of this class.
+  // Make static namespace methods to Namespace Object.
   static const char *FlatBuffersGeneratedWarning();
 
   static std::string FullNamespace(const char *separator, const Namespace &ns);

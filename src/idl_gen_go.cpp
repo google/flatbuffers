@@ -61,6 +61,8 @@ class GoGenerator : public BaseGenerator {
     const std::string &go_namespace;
     const std::string &object_prefix;
     const std::string &object_suffix;
+    const std::string &filename_suffix;
+    const std::string &filename_extension;
     bool one_file;
     explicit GoOptions(const IDLOptions &opts)
         : generate_object_based_api(opts.generate_object_based_api),
@@ -68,18 +70,20 @@ class GoGenerator : public BaseGenerator {
           go_namespace(opts.go_namespace),
           object_prefix(opts.object_prefix),
           object_suffix(opts.object_suffix),
+          filename_suffix(opts.filename_suffix),
+          filename_extension(opts.filename_extension),
           one_file(opts.one_file) {}
   };
   const GoOptions opts_;
 
  public:
-  GoGenerator(const Parser &parser, const std::string &path,
-              const std::string &file_name, const std::string &go_namespace)
+  GoGenerator(const Parser &parser, const IDLOptions &opts,
+              const std::string &path, const std::string &file_name)
       : BaseGenerator(parser, path, file_name, "" /* not used*/,
                       "" /* not used */, "go"),
-        opts_(parser.opts),
+        opts_(opts),
         cur_name_space_(nullptr) {
-    std::istringstream iss(go_namespace);
+    std::istringstream iss(opts_.go_namespace);
     std::string component;
     while (std::getline(iss, component, '.')) {
       go_namespace_.components.push_back(component);
@@ -125,8 +129,8 @@ class GoGenerator : public BaseGenerator {
       const bool is_enum = !parser_.enums_.vec.empty();
       BeginFile(LastNamespacePart(go_namespace_), true, is_enum, &code);
       code += one_file_code;
-      const std::string filename =
-          GeneratedFileName(path_, file_name_, parser_.opts);
+      const std::string filename = GeneratedFileName(
+          path_, file_name_, opts_.filename_suffix, opts_.filename_extension);
       return SaveFile(filename.c_str(), code, false);
     }
 
@@ -1383,7 +1387,7 @@ class GoGenerator : public BaseGenerator {
 
 bool GenerateGo(const Parser &parser, const IDLOptions &options,
                 const std::string &path, const std::string &file_name) {
-  go::GoGenerator generator(parser, path, file_name, options.go_namespace);
+  go::GoGenerator generator(parser, options, path, file_name);
   return generator.generate();
 }
 
