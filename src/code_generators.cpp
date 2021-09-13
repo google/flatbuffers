@@ -320,15 +320,12 @@ std::string SimpleFloatConstantGenerator::NaN(float v) const {
   return this->NaN(static_cast<double>(v));
 }
 
-std::string JavaCSharpMakeRule(const Parser &parser, const IDLOptions &options,
+std::string JavaCSharpMakeRule(const bool java, const Parser &parser,
+                               const IDLOptions &options,
                                const std::string &path,
                                const std::string &file_name) {
-  FLATBUFFERS_ASSERT(options.lang == IDLOptions::kJava ||
-                     options.lang == IDLOptions::kCSharp);
-
-  std::string file_extension =
-      (options.lang == IDLOptions::kJava) ? ".java" : ".cs";
-
+  (void)options;  // unused.
+  const std::string file_extension = java ? ".java" : ".cs";
   std::string make_rule;
 
   for (auto it = parser.enums_.vec.begin(); it != parser.enums_.vec.end();
@@ -355,6 +352,17 @@ std::string JavaCSharpMakeRule(const Parser &parser, const IDLOptions &options,
     make_rule += " " + *it;
   }
   return make_rule;
+}
+
+std::string JavaMakeRule(const Parser &parser, const IDLOptions &options,
+                         const std::string &path,
+                         const std::string &file_name) {
+  return JavaCSharpMakeRule(true, parser, options, path, file_name);
+}
+std::string CSharpMakeRule(const Parser &parser, const IDLOptions &options,
+                           const std::string &path,
+                           const std::string &file_name) {
+  return JavaCSharpMakeRule(false, parser, options, path, file_name);
 }
 
 std::string BinaryFileName(const Parser &parser, const std::string &path,

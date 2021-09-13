@@ -527,7 +527,6 @@ int FlatCompiler::Compile(int argc, const char **argv) {
         flatbuffers::StripPath(flatbuffers::StripExtension(filename));
 
     for (size_t i = 0; i < params_.num_generators; ++i) {
-      parser->opts.lang = params_.generators[i].lang;
       if (generator_enabled[i]) {
         if (!print_make_rules) {
           flatbuffers::EnsureDirExists(output_path);

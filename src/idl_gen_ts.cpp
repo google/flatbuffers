@@ -1613,8 +1613,6 @@ bool GenerateTS(const Parser &parser, const IDLOptions &options,
 
 std::string TSMakeRule(const Parser &parser, const IDLOptions &options,
                        const std::string &path, const std::string &file_name) {
-  FLATBUFFERS_ASSERT(options.lang <= IDLOptions::kMAX);
-
   std::string filebase =
       flatbuffers::StripPath(flatbuffers::StripExtension(file_name));
   ts::TsGenerator generator(parser, options, path, file_name);
