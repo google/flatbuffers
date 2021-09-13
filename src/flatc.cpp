@@ -578,7 +578,7 @@ int FlatCompiler::Compile(int argc, const char **argv) {
     // in any files coming up next.
     parser->MarkGenerated();
   }
-  if (opts.lang_to_generate & IDLOptions::kRust && !parser->opts.one_file) {
+  if (opts.lang_to_generate & IDLOptions::kRust && !opts.one_file) {
     GenerateRustModuleRootFile(*parser, opts, output_path);
   }
   return 0;

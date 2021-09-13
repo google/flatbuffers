@@ -778,12 +778,12 @@ class Parser : public ParserState {
         empty_namespace_(nullptr),
         flex_builder_(256, flexbuffers::BUILDER_FLAG_SHARE_ALL),
         root_struct_def_(nullptr),
-        opts(options),
         uses_flexbuffers_(false),
         advanced_features_(0),
         source_(nullptr),
         anonymous_counter_(0),
-        parse_depth_counter_(0) {
+        parse_depth_counter_(0),
+        opts(options) {
     if (opts.force_defaults) { builder_.ForceDefaults(true); }
     // Start out with the empty namespace being current.
     empty_namespace_ = new Namespace();
@@ -1012,7 +1012,6 @@ class Parser : public ParserState {
 
   std::map<std::string, bool> known_attributes_;
 
-  IDLOptions opts;
   bool uses_flexbuffers_;
 
   uint64_t advanced_features_;
@@ -1030,6 +1029,16 @@ class Parser : public ParserState {
 
   int anonymous_counter_;
   int parse_depth_counter_;  // stack-overflow guard
+  IDLOptions opts;
+  // TODO(#6820): Parser.opts are used to configure to reflection de/ser.
+  // Define a better way of passing the options.
+  friend struct Definition;
+  friend struct StructDef;
+  friend struct FieldDef;
+  friend struct EnumDef;
+  friend struct EnumVal;
+  friend struct ServiceDef;
+  friend struct RPCCall;
 };
 
 // Utility functions for multiple generators:
