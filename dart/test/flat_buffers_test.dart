@@ -664,9 +664,11 @@ class BuilderTest {
     }
     // read and verify
     BufferContext buf = BufferContext.fromBytes(byteList);
-    List<int> items = const Uint8ListReader().read(buf, 0);
-    expect(items, hasLength(5));
-    expect(items, orderedEquals(<int>[1, 2, 3, 4, 0x9A]));
+    for (final lazy in [true, false]) {
+      List<int> items = Uint8ListReader(lazy: lazy).read(buf, 0);
+      expect(items, hasLength(5));
+      expect(items, orderedEquals(<int>[1, 2, 3, 4, 0x9A]));
+    }
   }
 
   void test_reset() {
