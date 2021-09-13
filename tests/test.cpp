@@ -2558,6 +2558,7 @@ void InvalidUTF8Test() {
 void UnknownFieldsTest() {
   flatbuffers::IDLOptions opts;
   opts.skip_unexpected_fields_in_json = true;
+  opts.indent_step = -1;
   flatbuffers::Parser parser(opts);
 
   TEST_EQ(parser.Parse("table T { str:string; i:int;}"
@@ -2574,7 +2575,6 @@ void UnknownFieldsTest() {
           true);
 
   std::string jsongen;
-  parser.opts.indent_step = -1;
   auto result =
       GenerateText(parser, opts, parser.builder_.GetBufferPointer(), &jsongen);
   TEST_EQ(result, true);
