@@ -334,6 +334,7 @@ class GoGRPCGenerator : public flatbuffers::BaseGenerator {
 
 bool GenerateGoGRPC(const Parser &parser, const IDLOptions &options,
                     const std::string &path, const std::string &file_name) {
+  (void) options;  // unused.
   int nservices = 0;
   for (auto it = parser.services_.vec.begin(); it != parser.services_.vec.end();
        ++it) {
@@ -345,6 +346,7 @@ bool GenerateGoGRPC(const Parser &parser, const IDLOptions &options,
 
 bool GenerateCppGRPC(const Parser &parser, const IDLOptions &options,
                      const std::string &path, const std::string &file_name) {
+  (void) options;  // unused.
   int nservices = 0;
   for (auto it = parser.services_.vec.begin(); it != parser.services_.vec.end();
        ++it) {
@@ -402,6 +404,7 @@ class JavaGRPCGenerator : public flatbuffers::BaseGenerator {
 
 bool GenerateJavaGRPC(const Parser &parser, const IDLOptions &options,
                       const std::string &path, const std::string &file_name) {
+  (void) options;  // unused.
   int nservices = 0;
   for (auto it = parser.services_.vec.begin(); it != parser.services_.vec.end();
        ++it) {
@@ -453,6 +456,7 @@ class PythonGRPCGenerator : public flatbuffers::BaseGenerator {
 bool GeneratePythonGRPC(const Parser &parser, const IDLOptions &options,
                         const std::string & /*path*/,
                         const std::string &file_name) {
+  (void) options;  // unused.
   int nservices = 0;
   for (auto it = parser.services_.vec.begin(); it != parser.services_.vec.end();
        ++it) {

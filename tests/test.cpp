@@ -67,6 +67,7 @@ static const auto infinity_f = std::numeric_limits<float>::infinity();
 static const auto infinity_d = std::numeric_limits<double>::infinity();
 
 using namespace MyGame::Example;
+using flatbuffers::IDLOptions;
 
 void FlatBufferBuilderTest();
 
@@ -638,8 +639,12 @@ void JsonDefaultTest() {
   TEST_EQ(flatbuffers::LoadFile((test_data_path + "monster_test.fbs").c_str(),
                                 false, &schemafile),
           true);
+  IDLOptions opts;
+  opts.output_default_scalars_in_json = true;
+  opts.output_enum_identifiers = true;
+
   // parse schema first, so we can use it to parse the data after
-  flatbuffers::Parser parser;
+  flatbuffers::Parser parser(opts);
   auto include_test_path =
       flatbuffers::ConCatPathFileName(test_data_path, "include_test");
   const char *include_directories[] = { test_data_path.c_str(),
@@ -647,8 +652,6 @@ void JsonDefaultTest() {
 
   TEST_EQ(parser.Parse(schemafile.c_str(), include_directories), true);
   // create incomplete monster and store to json
-  parser.opts.output_default_scalars_in_json = true;
-  parser.opts.output_enum_identifiers = true;
   flatbuffers::FlatBufferBuilder builder;
   auto name = builder.CreateString("default_enum");
   MonsterBuilder color_monster(builder);
@@ -656,7 +659,7 @@ void JsonDefaultTest() {
   FinishMonsterBuffer(builder, color_monster.Finish());
   std::string jsongen;
   auto result =
-      GenerateText(parser, parser.opts, builder.GetBufferPointer(), &jsongen);
+      GenerateText(parser, opts, builder.GetBufferPointer(), &jsongen);
   TEST_EQ(result, true);
   // default value of the "color" field is Blue
   TEST_EQ(std::string::npos != jsongen.find("color: \"Blue\""), true);
@@ -671,12 +674,13 @@ void JsonEnumsTest() {
                                 false, &schemafile),
           true);
   // parse schema first, so we can use it to parse the data after
+  IDLOptions opts;
+  opts.output_enum_identifiers = true;
   flatbuffers::Parser parser;
   auto include_test_path =
       flatbuffers::ConCatPathFileName(test_data_path, "include_test");
   const char *include_directories[] = { test_data_path.c_str(),
                                         include_test_path.c_str(), nullptr };
-  parser.opts.output_enum_identifiers = true;
   TEST_EQ(parser.Parse(schemafile.c_str(), include_directories), true);
   flatbuffers::FlatBufferBuilder builder;
   auto name = builder.CreateString("bitflag_enum");
@@ -686,7 +690,7 @@ void JsonEnumsTest() {
   FinishMonsterBuffer(builder, color_monster.Finish());
   std::string jsongen;
   auto result =
-      GenerateText(parser, parser.opts, builder.GetBufferPointer(), &jsongen);
+      GenerateText(parser, opts, builder.GetBufferPointer(), &jsongen);
   TEST_EQ(result, true);
   TEST_EQ(std::string::npos != jsongen.find("color: \"Red Blue\""), true);
   // Test forward compatibility with 'output_enum_identifiers = true'.
@@ -699,7 +703,7 @@ void JsonEnumsTest() {
   future_color.add_color(
       static_cast<Color>((1u << 2) | Color_Blue | Color_Red));
   FinishMonsterBuffer(builder, future_color.Finish());
-  result = GenerateText(parser, parser.opts, builder.GetBufferPointer(),
+  result = GenerateText(parser, opts, builder.GetBufferPointer(),
                         &future_json);
   TEST_EQ(result, true);
   TEST_EQ(std::string::npos != future_json.find("color: 13"), true);
@@ -750,15 +754,17 @@ void TestMonsterExtraFloats() {
                    &schemafile),
           true);
   // Parse schema first, so we can use it to parse the data after.
+  IDLOptions opts;
+  opts.output_default_scalars_in_json = true;
+  opts.output_enum_identifiers = true;
   Parser parser;
+  FlatBufferBuilder builder;
+  
   auto include_test_path = ConCatPathFileName(test_data_path, "include_test");
   const char *include_directories[] = { test_data_path.c_str(),
                                         include_test_path.c_str(), nullptr };
   TEST_EQ(parser.Parse(schemafile.c_str(), include_directories), true);
   // Create empty extra and store to json.
-  parser.opts.output_default_scalars_in_json = true;
-  parser.opts.output_enum_identifiers = true;
-  FlatBufferBuilder builder;
   const auto def_root = MonsterExtraBuilder(builder).Finish();
   FinishMonsterExtraBuffer(builder, def_root);
   const auto def_obj = builder.GetBufferPointer();
@@ -773,7 +779,7 @@ void TestMonsterExtraFloats() {
   TEST_EQ(def_extra->d2(), +infinity_d);
   TEST_EQ(def_extra->d3(), -infinity_d);
   std::string jsongen;
-  auto result = GenerateText(parser, parser.opts, def_obj, &jsongen);
+  auto result = GenerateText(parser, opts, def_obj, &jsongen);
   TEST_EQ(result, true);
   // Check expected default values.
   TEST_EQ(std::string::npos != jsongen.find("f0: nan"), true);
@@ -842,7 +848,8 @@ void ParseAndGenerateTextTest(bool binary) {
                                         include_test_path.c_str(), nullptr };
 
   // parse schema first, so we can use it to parse the data after
-  flatbuffers::Parser parser;
+  IDLOptions opts;
+  flatbuffers::Parser parser(opts);
   if (binary) {
     flatbuffers::Verifier verifier(
         reinterpret_cast<const uint8_t *>(schemafile.c_str()),
@@ -870,7 +877,7 @@ void ParseAndGenerateTextTest(bool binary) {
   // to ensure it is correct, we now generate text back from the binary,
   // and compare the two:
   std::string jsongen;
-  auto result = GenerateText(parser, parser.opts,
+  auto result = GenerateText(parser, opts,
                              parser.builder_.GetBufferPointer(), &jsongen);
   TEST_EQ(result, true);
   TEST_EQ_STR(jsongen.c_str(), jsonfile.c_str());
@@ -908,9 +915,9 @@ void ParseAndGenerateTextTest(bool binary) {
   // To ensure it is correct, generate utf-8 text back from the binary.
   std::string jsongen_utf8;
   // request natural printing for utf-8 strings
-  parser.opts.natural_utf8 = true;
-  parser.opts.strict_json = true;
-  TEST_EQ(GenerateText(parser, parser.opts, parser.builder_.GetBufferPointer(),
+  opts.natural_utf8 = true;
+  opts.strict_json = true;
+  TEST_EQ(GenerateText(parser, opts, parser.builder_.GetBufferPointer(),
                        &jsongen_utf8),
           true);
   TEST_EQ_STR(jsongen_utf8.c_str(), jsonfile_utf8.c_str());
@@ -1628,6 +1635,8 @@ void FuzzTest2() {
   schema += "root_type D" + flatbuffers::NumToString(num_definitions - 1);
   schema += ";\n";
 
+  IDLOptions opts;
+  opts.indent_step = 0;
   flatbuffers::Parser parser;
 
   // Will not compare against the original if we don't write defaults
@@ -1643,8 +1652,7 @@ void FuzzTest2() {
   TEST_EQ(parser.Parse(json.c_str()), true);
 
   std::string jsongen;
-  parser.opts.indent_step = 0;
-  auto result = GenerateText(parser, parser.opts,
+  auto result = GenerateText(parser, opts,
                              parser.builder_.GetBufferPointer(), &jsongen);
   TEST_EQ(result, true);
 
@@ -1783,10 +1791,12 @@ void ErrorTest() {
 template<typename T>
 T TestValue(const char *json, const char *type_name,
             const char *decls = nullptr) {
+  const bool check_default = json ? false : true;
+  IDLOptions opts;
+  opts.output_default_scalars_in_json = check_default;
+  opts.indent_step = -1;
   flatbuffers::Parser parser;
   parser.builder_.ForceDefaults(true);  // return defaults
-  auto check_default = json ? false : true;
-  if (check_default) { parser.opts.output_default_scalars_in_json = true; }
   // Simple schema.
   std::string schema = std::string(decls ? decls : "") + "\n" +
                        "table X { y:" + std::string(type_name) +
@@ -1801,8 +1811,7 @@ T TestValue(const char *json, const char *type_name,
 
   // Check with print.
   std::string print_back;
-  parser.opts.indent_step = -1;
-  TEST_EQ(GenerateText(parser, parser.opts, parser.builder_.GetBufferPointer(),
+  TEST_EQ(GenerateText(parser, opts, parser.builder_.GetBufferPointer(),
                        &print_back),
           true);
   // restore value from its default
@@ -2334,7 +2343,9 @@ void IsAsciiUtilsTest() {
 }
 
 void UnicodeTest() {
-  flatbuffers::Parser parser;
+  IDLOptions opts;
+  opts.indent_step = -1;
+  flatbuffers::Parser parser(opts);
   // Without setting allow_non_utf8 = true, we treat \x sequences as byte
   // sequences which are then validated as UTF-8.
   TEST_EQ(parser.Parse("table T { F:string; }"
@@ -2344,8 +2355,7 @@ void UnicodeTest() {
                        "3D\\uDE0E\" }"),
           true);
   std::string jsongen;
-  parser.opts.indent_step = -1;
-  auto result = GenerateText(parser, parser.opts,
+  auto result = GenerateText(parser, opts,
                              parser.builder_.GetBufferPointer(), &jsongen);
   TEST_EQ(result, true);
   TEST_EQ_STR(jsongen.c_str(),
@@ -2354,8 +2364,10 @@ void UnicodeTest() {
 }
 
 void UnicodeTestAllowNonUTF8() {
-  flatbuffers::Parser parser;
-  parser.opts.allow_non_utf8 = true;
+  IDLOptions opts;
+  opts.allow_non_utf8 = true;
+  opts.indent_step = -1;
+  flatbuffers::Parser parser(opts);
   TEST_EQ(
       parser.Parse(
           "table T { F:string; }"
@@ -2364,8 +2376,7 @@ void UnicodeTestAllowNonUTF8() {
           "\\u5225\\u30B5\\u30A4\\u30C8\\x01\\x80\\u0080\\uD83D\\uDE0E\" }"),
       true);
   std::string jsongen;
-  parser.opts.indent_step = -1;
-  auto result = GenerateText(parser, parser.opts,
+  auto result = GenerateText(parser, opts,
                              parser.builder_.GetBufferPointer(), &jsongen);
   TEST_EQ(result, true);
   TEST_EQ_STR(
@@ -2375,10 +2386,12 @@ void UnicodeTestAllowNonUTF8() {
 }
 
 void UnicodeTestGenerateTextFailsOnNonUTF8() {
-  flatbuffers::Parser parser;
+  IDLOptions opts;
   // Allow non-UTF-8 initially to model what happens when we load a binary
   // flatbuffer from disk which contains non-UTF-8 strings.
-  parser.opts.allow_non_utf8 = true;
+  opts.allow_non_utf8 = true;
+  opts.indent_step = -1;
+  flatbuffers::Parser parser(opts);
   TEST_EQ(
       parser.Parse(
           "table T { F:string; }"
@@ -2387,11 +2400,10 @@ void UnicodeTestGenerateTextFailsOnNonUTF8() {
           "\\u5225\\u30B5\\u30A4\\u30C8\\x01\\x80\\u0080\\uD83D\\uDE0E\" }"),
       true);
   std::string jsongen;
-  parser.opts.indent_step = -1;
   // Now, disallow non-UTF-8 (the default behavior) so GenerateText indicates
   // failure.
-  parser.opts.allow_non_utf8 = false;
-  auto result = GenerateText(parser, parser.opts,
+  opts.allow_non_utf8 = false;
+  auto result = GenerateText(parser, opts,
                              parser.builder_.GetBufferPointer(), &jsongen);
   TEST_EQ(result, false);
 }
@@ -2913,7 +2925,7 @@ void UnionVectorTest() {
   // Generate text using parsed schema.
   std::string jsongen;
   auto result =
-      GenerateText(parser, parser.opts, fbb.GetBufferPointer(), &jsongen);
+      GenerateText(parser, idl_opts, fbb.GetBufferPointer(), &jsongen);
   TEST_EQ(result, true);
   TEST_EQ_STR(jsongen.c_str(),
               "{\n"
@@ -2984,8 +2996,9 @@ void ParseProtoBufAsciiTest() {
   // like Protobuf ASCII, for users that have data in that format.
   // This uses no "" for field names (which we already support by default,
   // omits `,`, `:` before `{` and a couple of other features.
-  flatbuffers::Parser parser;
-  parser.opts.protobuf_ascii_alike = true;
+  IDLOptions opts;
+  opts.protobuf_ascii_alike = true;
+  flatbuffers::Parser parser(opts);
   TEST_EQ(
       parser.Parse("table S { B:int; } table T { A:[int]; C:S; } root_type T;"),
       true);
@@ -2993,7 +3006,7 @@ void ParseProtoBufAsciiTest() {
   // Similarly, in text output, it should omit these.
   std::string text;
   auto ok = flatbuffers::GenerateText(
-      parser, parser.opts, parser.builder_.GetBufferPointer(), &text);
+      parser, opts, parser.builder_.GetBufferPointer(), &text);
   TEST_EQ(ok, true);
   TEST_EQ_STR(text.c_str(),
               "{\n  A [\n    1\n    2\n  ]\n  C {\n    B: 2\n  }\n}\n");
@@ -3722,7 +3735,8 @@ void FixedLengthArrayJsonTest(bool binary) {
           true);
 
   // parse schema first, so we can use it to parse the data after
-  flatbuffers::Parser parserOrg, parserGen;
+  IDLOptions opts;
+  flatbuffers::Parser parserOrg(opts), parserGen(opts);
   if (binary) {
     flatbuffers::Verifier verifier(
         reinterpret_cast<const uint8_t *>(schemafile.c_str()),
@@ -3747,7 +3761,7 @@ void FixedLengthArrayJsonTest(bool binary) {
 
   // Export to JSON
   std::string jsonGen;
-  TEST_EQ(GenerateText(parserOrg, parserOrg.opts,
+  TEST_EQ(GenerateText(parserOrg, opts,
                        parserOrg.builder_.GetBufferPointer(), &jsonGen),
           true);
 
@@ -3854,7 +3868,8 @@ void TestEmbeddedBinarySchema() {
           true);
 
   // parse schema first, so we can use it to parse the data after
-  flatbuffers::Parser parserOrg, parserGen;
+  IDLOptions opts;
+  flatbuffers::Parser parserOrg(opts), parserGen(opts);
   flatbuffers::Verifier verifier(MyGame::Example::MonsterBinarySchema::data(),
                                  MyGame::Example::MonsterBinarySchema::size());
   TEST_EQ(reflection::VerifySchemaBuffer(verifier), true);
@@ -3873,7 +3888,7 @@ void TestEmbeddedBinarySchema() {
 
   // Export to JSON
   std::string jsonGen;
-  TEST_EQ(GenerateText(parserOrg, parserOrg.opts,
+  TEST_EQ(GenerateText(parserOrg, opts,
                        parserOrg.builder_.GetBufferPointer(), &jsonGen),
           true);
 

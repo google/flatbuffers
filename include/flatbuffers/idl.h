@@ -1039,6 +1039,7 @@ class Parser : public ParserState {
   friend struct EnumVal;
   friend struct ServiceDef;
   friend struct RPCCall;
+  friend class Registry;
 };
 
 // Utility functions for multiple generators:
