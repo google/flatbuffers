@@ -218,7 +218,7 @@ Additional options:
 
 -   `--no-warnings` : Inhibit all warning messages.
 
--   `--cs-global-alias` : Prepend `global::` to all user generated csharp classes and structs
+-   `--cs-global-alias` : Prepend `global::` to all user generated csharp classes and structs.
 
 NOTE: short-form options for generators are deprecated, use the long form
 whenever possible.
