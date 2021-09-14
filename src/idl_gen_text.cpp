@@ -357,9 +357,8 @@ struct JsonPrinter {
     return true;
   }
 
-  JsonPrinter(const Parser &parser, const IDLOptions &opts, std::string &dest)
+  JsonPrinter(const IDLOptions &opts, std::string &dest)
       : opts_(opts), text(dest) {
-    (void)parser;        // unused.
     text.reserve(1024);  // Reduce amount of inevitable reallocs.
   }
 
@@ -370,7 +369,8 @@ struct JsonPrinter {
 static bool GenerateTextImpl(const Parser &parser, const IDLOptions &opts,
                              const Table *table, const StructDef &struct_def,
                              std::string *_text) {
-  JsonPrinter printer(parser, opts, *_text);
+  (void)parser;  // unused
+  JsonPrinter printer(opts, *_text);
   if (!printer.GenStruct(struct_def, table, 0)) { return false; }
   printer.AddNewLine();
   return true;
