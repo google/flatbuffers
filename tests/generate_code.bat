@@ -72,7 +72,7 @@ set TEST_NOINCL_FLAGS=%TEST_BASE_FLAGS% --no-includes
 ..\%buildtype%\flatc.exe --cpp --scoped-enums %TEST_CPP_FLAGS% -o evolution_test ./evolution_test/evolution_v1.fbs ./evolution_test/evolution_v2.fbs || goto FAIL
 
 @rem Generate the keywords tests
-..\%buildtype%\flatc.exe --csharp --scoped-enums %TEST_BASE_FLAGS% %TEST_CS_FLAGS% -o keyword_test keyword_test.fbs || goto FAIL
+..\%buildtype%\flatc.exe --csharp --scoped-enums %TEST_BASE_FLAGS% %TEST_CS_FLAGS% keyword_test.fbs || goto FAIL
 
 @rem Generate the nested namespace tests
 ..\%buildtype%\flatc.exe --csharp --cs-global-alias --gen-onefile %TEST_BASE_FLAGS% %TEST_CS_FLAGS% -o nested_namespace_test nested_namespace_test/nested_namespace_test1.fbs nested_namespace_test/nested_namespace_test2.fbs nested_namespace_test/nested_namespace_test3.fbs || goto FAIL

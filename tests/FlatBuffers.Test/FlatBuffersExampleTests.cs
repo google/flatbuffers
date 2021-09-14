@@ -19,6 +19,7 @@ using System.Text;
 using System.Threading;
 using MyGame.Example;
 using optional_scalars;
+using KeywordTest;
 
 namespace FlatBuffers.Test
 {
@@ -1116,6 +1117,40 @@ namespace FlatBuffers.Test
             Assert.AreEqual(OptionalByte.Two, scalarStuff.JustEnum);
             Assert.AreEqual(OptionalByte.Two, scalarStuff.MaybeEnum);
             Assert.AreEqual(OptionalByte.Two, scalarStuff.DefaultEnum);
+        }
+
+
+        [FlatBuffersTestMethod]
+        public void TestKeywordEscaping() {
+            Assert.AreEqual((int)KeywordTest.@public.NONE, 0);
+
+            Assert.AreEqual((int)KeywordTest.ABC.@void, 0);
+            Assert.AreEqual((int)KeywordTest.ABC.where, 1);
+            Assert.AreEqual((int)KeywordTest.ABC.@stackalloc, 2);
+
+            var fbb = new FlatBufferBuilder(1);
+            var offset = KeywordsInTable.CreateKeywordsInTable(
+                fbb, KeywordTest.ABC.@stackalloc, KeywordTest.@public.NONE);
+            fbb.Finish(offset.Value);
+ 
+            KeywordsInTable keywordsInTable = 
+                KeywordsInTable.GetRootAsKeywordsInTable(fbb.DataBuffer);
+
+            Assert.AreEqual(keywordsInTable.Is, KeywordTest.ABC.@stackalloc);
+            Assert.AreEqual(keywordsInTable.Private, KeywordTest.@public.NONE);
+        }
+
+
+        [FlatBuffersTestMethod]
+        public void AddOptionalEnum_WhenPassNull_ShouldWorkProperly() {
+          var fbb = new FlatBufferBuilder(1);
+          ScalarStuff.StartScalarStuff(fbb);
+          ScalarStuff.AddMaybeEnum(fbb, null);
+          var offset = ScalarStuff.EndScalarStuff(fbb);
+          ScalarStuff.FinishScalarStuffBuffer(fbb, offset);
+          
+          ScalarStuff scalarStuff = ScalarStuff.GetRootAsScalarStuff(fbb.DataBuffer);
+          Assert.AreEqual(null, scalarStuff.MaybeEnum);
         }
     }
 }

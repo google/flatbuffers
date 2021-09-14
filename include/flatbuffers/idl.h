@@ -617,8 +617,6 @@ struct IDLOptions {
     kMAX
   };
 
-  Language lang;
-
   enum MiniReflect { kNone, kTypes, kTypesAndNames };
 
   MiniReflect mini_reflect;
@@ -683,7 +681,6 @@ struct IDLOptions {
         no_warnings(false),
         project_root(""),
         cs_global_alias(false),
-        lang(IDLOptions::kJava),
         mini_reflect(IDLOptions::kNone),
         require_explicit_ids(false),
         lang_to_generate(0),
@@ -1164,9 +1161,10 @@ extern std::string RustMakeRule(const Parser &parser, const std::string &path,
 
 // Generate a make rule for generated Java or C# files.
 // See code_generators.cpp.
-extern std::string JavaCSharpMakeRule(const Parser &parser,
-                                      const std::string &path,
-                                      const std::string &file_name);
+extern std::string CSharpMakeRule(const Parser &parser, const std::string &path,
+                                  const std::string &file_name);
+extern std::string JavaMakeRule(const Parser &parser, const std::string &path,
+                                const std::string &file_name);
 
 // Generate a make rule for the generated text (JSON) files.
 // See idl_gen_text.cpp.
