@@ -77,6 +77,9 @@ $TEST_NOINCL_FLAGS $TEST_CPP_FLAGS $TEST_CS_FLAGS $TEST_TS_FLAGS -o namespace_te
 ../flatc --csharp $TEST_BASE_FLAGS $TEST_CS_FLAGS -o keyword_test ./keyword_test.fbs
 ../flatc --rust $TEST_RUST_FLAGS -o keyword_test ./keyword_test.fbs
 
+# Generate the keywords tests
+../flatc --csharp --cs-global-alias --gen-onefile $TEST_BASE_FLAGS $TEST_CS_FLAGS -o nested_namespace_test nested_namespace_test/nested_namespace_test1.fbs nested_namespace_test/nested_namespace_test2.fbs nested_namespace_test/nested_namespace_test3.fbs
+
 working_dir=`pwd`
 cd FlatBuffers.Test.Swift/Tests/FlatBuffers.Test.SwiftTests
 $working_dir/../flatc --bfbs-filenames $working_dir --swift --grpc $TEST_NOINCL_FLAGS $TEST_CPP_FLAGS $TEST_CS_FLAGS -I ${working_dir}/include_test ${working_dir}/monster_test.fbs
