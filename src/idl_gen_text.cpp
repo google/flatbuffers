@@ -359,7 +359,7 @@ struct JsonPrinter {
 
   JsonPrinter(const Parser &parser, const IDLOptions &opts, std::string &dest)
       : opts_(opts), text(dest) {
-    (void) parser;  // unused.
+    (void)parser;        // unused.
     text.reserve(1024);  // Reduce amount of inevitable reallocs.
   }
 

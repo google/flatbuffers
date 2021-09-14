@@ -703,8 +703,7 @@ void JsonEnumsTest() {
   future_color.add_color(
       static_cast<Color>((1u << 2) | Color_Blue | Color_Red));
   FinishMonsterBuffer(builder, future_color.Finish());
-  result = GenerateText(parser, opts, builder.GetBufferPointer(),
-                        &future_json);
+  result = GenerateText(parser, opts, builder.GetBufferPointer(), &future_json);
   TEST_EQ(result, true);
   TEST_EQ(std::string::npos != future_json.find("color: 13"), true);
 }
@@ -759,7 +758,7 @@ void TestMonsterExtraFloats() {
   opts.output_enum_identifiers = true;
   Parser parser;
   FlatBufferBuilder builder;
-  
+
   auto include_test_path = ConCatPathFileName(test_data_path, "include_test");
   const char *include_directories[] = { test_data_path.c_str(),
                                         include_test_path.c_str(), nullptr };
@@ -877,8 +876,8 @@ void ParseAndGenerateTextTest(bool binary) {
   // to ensure it is correct, we now generate text back from the binary,
   // and compare the two:
   std::string jsongen;
-  auto result = GenerateText(parser, opts,
-                             parser.builder_.GetBufferPointer(), &jsongen);
+  auto result =
+      GenerateText(parser, opts, parser.builder_.GetBufferPointer(), &jsongen);
   TEST_EQ(result, true);
   TEST_EQ_STR(jsongen.c_str(), jsonfile.c_str());
 
@@ -1652,8 +1651,8 @@ void FuzzTest2() {
   TEST_EQ(parser.Parse(json.c_str()), true);
 
   std::string jsongen;
-  auto result = GenerateText(parser, opts,
-                             parser.builder_.GetBufferPointer(), &jsongen);
+  auto result =
+      GenerateText(parser, opts, parser.builder_.GetBufferPointer(), &jsongen);
   TEST_EQ(result, true);
 
   if (jsongen != json) {
@@ -2355,8 +2354,8 @@ void UnicodeTest() {
                        "3D\\uDE0E\" }"),
           true);
   std::string jsongen;
-  auto result = GenerateText(parser, opts,
-                             parser.builder_.GetBufferPointer(), &jsongen);
+  auto result =
+      GenerateText(parser, opts, parser.builder_.GetBufferPointer(), &jsongen);
   TEST_EQ(result, true);
   TEST_EQ_STR(jsongen.c_str(),
               "{F: \"\\u20AC\\u00A2\\u30E6\\u30FC\\u30B6\\u30FC"
@@ -2376,8 +2375,8 @@ void UnicodeTestAllowNonUTF8() {
           "\\u5225\\u30B5\\u30A4\\u30C8\\x01\\x80\\u0080\\uD83D\\uDE0E\" }"),
       true);
   std::string jsongen;
-  auto result = GenerateText(parser, opts,
-                             parser.builder_.GetBufferPointer(), &jsongen);
+  auto result =
+      GenerateText(parser, opts, parser.builder_.GetBufferPointer(), &jsongen);
   TEST_EQ(result, true);
   TEST_EQ_STR(
       jsongen.c_str(),
@@ -2403,8 +2402,8 @@ void UnicodeTestGenerateTextFailsOnNonUTF8() {
   // Now, disallow non-UTF-8 (the default behavior) so GenerateText indicates
   // failure.
   opts.allow_non_utf8 = false;
-  auto result = GenerateText(parser, opts,
-                             parser.builder_.GetBufferPointer(), &jsongen);
+  auto result =
+      GenerateText(parser, opts, parser.builder_.GetBufferPointer(), &jsongen);
   TEST_EQ(result, false);
 }
 
@@ -3761,8 +3760,8 @@ void FixedLengthArrayJsonTest(bool binary) {
 
   // Export to JSON
   std::string jsonGen;
-  TEST_EQ(GenerateText(parserOrg, opts,
-                       parserOrg.builder_.GetBufferPointer(), &jsonGen),
+  TEST_EQ(GenerateText(parserOrg, opts, parserOrg.builder_.GetBufferPointer(),
+                       &jsonGen),
           true);
 
   // Import from JSON
@@ -3888,8 +3887,8 @@ void TestEmbeddedBinarySchema() {
 
   // Export to JSON
   std::string jsonGen;
-  TEST_EQ(GenerateText(parserOrg, opts,
-                       parserOrg.builder_.GetBufferPointer(), &jsonGen),
+  TEST_EQ(GenerateText(parserOrg, opts, parserOrg.builder_.GetBufferPointer(),
+                       &jsonGen),
           true);
 
   // Import from JSON
