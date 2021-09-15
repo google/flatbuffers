@@ -1039,7 +1039,7 @@ class Monster {
   int get mana => const fb.Int16Reader().vTableGet(_bc, _bcOffset, 6, 150);
   int get hp => const fb.Int16Reader().vTableGet(_bc, _bcOffset, 8, 100);
   String? get name => const fb.StringReader().vTableGetNullable(_bc, _bcOffset, 10);
-  List<int>? get inventory => const fb.ListReader<int>(fb.Uint8Reader()).vTableGetNullable(_bc, _bcOffset, 14);
+  List<int>? get inventory => const fb.Uint8ListReader().vTableGetNullable(_bc, _bcOffset, 14);
   Color get color => Color.fromValue(const fb.Uint8Reader().vTableGet(_bc, _bcOffset, 16, 8));
   AnyTypeId? get testType => AnyTypeId._createOrNull(const fb.Uint8Reader().vTableGetNullable(_bc, _bcOffset, 18));
   dynamic get test {
@@ -1056,7 +1056,7 @@ class Monster {
   ///  multiline too
   List<Monster>? get testarrayoftables => const fb.ListReader<Monster>(Monster.reader).vTableGetNullable(_bc, _bcOffset, 26);
   Monster? get enemy => Monster.reader.vTableGetNullable(_bc, _bcOffset, 28);
-  List<int>? get testnestedflatbuffer => const fb.ListReader<int>(fb.Uint8Reader()).vTableGetNullable(_bc, _bcOffset, 30);
+  List<int>? get testnestedflatbuffer => const fb.Uint8ListReader().vTableGetNullable(_bc, _bcOffset, 30);
   Stat? get testempty => Stat.reader.vTableGetNullable(_bc, _bcOffset, 32);
   bool get testbool => const fb.BoolReader().vTableGet(_bc, _bcOffset, 34, false);
   int get testhashs32Fnv1 => const fb.Int32Reader().vTableGet(_bc, _bcOffset, 36, 0);
@@ -1073,7 +1073,7 @@ class Monster {
   double get testf3 => const fb.Float32Reader().vTableGet(_bc, _bcOffset, 58, 0.0);
   List<String>? get testarrayofstring2 => const fb.ListReader<String>(fb.StringReader()).vTableGetNullable(_bc, _bcOffset, 60);
   List<Ability>? get testarrayofsortedstruct => const fb.ListReader<Ability>(Ability.reader).vTableGetNullable(_bc, _bcOffset, 62);
-  List<int>? get flex => const fb.ListReader<int>(fb.Uint8Reader()).vTableGetNullable(_bc, _bcOffset, 64);
+  List<int>? get flex => const fb.Uint8ListReader().vTableGetNullable(_bc, _bcOffset, 64);
   List<Test>? get test5 => const fb.ListReader<Test>(Test.reader).vTableGetNullable(_bc, _bcOffset, 66);
   List<int>? get vectorOfLongs => const fb.ListReader<int>(fb.Int64Reader()).vTableGetNullable(_bc, _bcOffset, 68);
   List<double>? get vectorOfDoubles => const fb.ListReader<double>(fb.Float64Reader()).vTableGetNullable(_bc, _bcOffset, 70);
@@ -1106,7 +1106,7 @@ class Monster {
   }
   List<Color>? get vectorOfEnums => const fb.ListReader<Color>(Color.reader).vTableGetNullable(_bc, _bcOffset, 98);
   Race get signedEnum => Race.fromValue(const fb.Int8Reader().vTableGet(_bc, _bcOffset, 100, -1));
-  List<int>? get testrequirednestedflatbuffer => const fb.ListReader<int>(fb.Uint8Reader()).vTableGetNullable(_bc, _bcOffset, 102);
+  List<int>? get testrequirednestedflatbuffer => const fb.Uint8ListReader().vTableGetNullable(_bc, _bcOffset, 102);
   List<Stat>? get scalarKeySortedTables => const fb.ListReader<Stat>(Stat.reader).vTableGetNullable(_bc, _bcOffset, 104);
 
   @override
@@ -1119,7 +1119,7 @@ class Monster {
       mana: mana,
       hp: hp,
       name: name,
-      inventory: const fb.ListReader<int>(fb.Uint8Reader(), lazy: false).vTableGetNullable(_bc, _bcOffset, 14),
+      inventory: const fb.Uint8ListReader(lazy: false).vTableGetNullable(_bc, _bcOffset, 14),
       color: color,
       testType: testType,
       test: test,
@@ -1127,7 +1127,7 @@ class Monster {
       testarrayofstring: const fb.ListReader<String>(fb.StringReader(), lazy: false).vTableGetNullable(_bc, _bcOffset, 24),
       testarrayoftables: testarrayoftables?.map((e) => e.unpack()).toList(),
       enemy: enemy?.unpack(),
-      testnestedflatbuffer: const fb.ListReader<int>(fb.Uint8Reader(), lazy: false).vTableGetNullable(_bc, _bcOffset, 30),
+      testnestedflatbuffer: const fb.Uint8ListReader(lazy: false).vTableGetNullable(_bc, _bcOffset, 30),
       testempty: testempty?.unpack(),
       testbool: testbool,
       testhashs32Fnv1: testhashs32Fnv1,
@@ -1144,7 +1144,7 @@ class Monster {
       testf3: testf3,
       testarrayofstring2: const fb.ListReader<String>(fb.StringReader(), lazy: false).vTableGetNullable(_bc, _bcOffset, 60),
       testarrayofsortedstruct: testarrayofsortedstruct?.map((e) => e.unpack()).toList(),
-      flex: const fb.ListReader<int>(fb.Uint8Reader(), lazy: false).vTableGetNullable(_bc, _bcOffset, 64),
+      flex: const fb.Uint8ListReader(lazy: false).vTableGetNullable(_bc, _bcOffset, 64),
       test5: test5?.map((e) => e.unpack()).toList(),
       vectorOfLongs: const fb.ListReader<int>(fb.Int64Reader(), lazy: false).vTableGetNullable(_bc, _bcOffset, 68),
       vectorOfDoubles: const fb.ListReader<double>(fb.Float64Reader(), lazy: false).vTableGetNullable(_bc, _bcOffset, 70),
@@ -1163,7 +1163,7 @@ class Monster {
       anyAmbiguous: anyAmbiguous,
       vectorOfEnums: const fb.ListReader<Color>(Color.reader, lazy: false).vTableGetNullable(_bc, _bcOffset, 98),
       signedEnum: signedEnum,
-      testrequirednestedflatbuffer: const fb.ListReader<int>(fb.Uint8Reader(), lazy: false).vTableGetNullable(_bc, _bcOffset, 102),
+      testrequirednestedflatbuffer: const fb.Uint8ListReader(lazy: false).vTableGetNullable(_bc, _bcOffset, 102),
       scalarKeySortedTables: scalarKeySortedTables?.map((e) => e.unpack()).toList());
 
   static int pack(fb.Builder fbBuilder, MonsterT? object) {
@@ -1914,7 +1914,7 @@ class TypeAliases {
   int get u64 => const fb.Uint64Reader().vTableGet(_bc, _bcOffset, 18, 0);
   double get f32 => const fb.Float32Reader().vTableGet(_bc, _bcOffset, 20, 0.0);
   double get f64 => const fb.Float64Reader().vTableGet(_bc, _bcOffset, 22, 0.0);
-  List<int>? get v8 => const fb.ListReader<int>(fb.Int8Reader()).vTableGetNullable(_bc, _bcOffset, 24);
+  List<int>? get v8 => const fb.Int8ListReader().vTableGetNullable(_bc, _bcOffset, 24);
   List<double>? get vf64 => const fb.ListReader<double>(fb.Float64Reader()).vTableGetNullable(_bc, _bcOffset, 26);
 
   @override
@@ -1933,7 +1933,7 @@ class TypeAliases {
       u64: u64,
       f32: f32,
       f64: f64,
-      v8: const fb.ListReader<int>(fb.Int8Reader(), lazy: false).vTableGetNullable(_bc, _bcOffset, 24),
+      v8: const fb.Int8ListReader(lazy: false).vTableGetNullable(_bc, _bcOffset, 24),
       vf64: const fb.ListReader<double>(fb.Float64Reader(), lazy: false).vTableGetNullable(_bc, _bcOffset, 26));
 
   static int pack(fb.Builder fbBuilder, TypeAliasesT? object) {
