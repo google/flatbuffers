@@ -373,8 +373,7 @@ class Reference {
     return null;
   }
 
-  int _diffKeys(
-      List<int> input, int index, int indirectOffset, int byteWidth) {
+  int _diffKeys(List<int> input, int index, int indirectOffset, int byteWidth) {
     final keyOffset = indirectOffset + index * byteWidth;
     final keyIndirectOffset =
         keyOffset - _readUInt(keyOffset, BitWidthUtil.fromByteWidth(byteWidth));
