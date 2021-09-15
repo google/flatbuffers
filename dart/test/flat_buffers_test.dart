@@ -658,16 +658,24 @@ class BuilderTest {
     List<int> byteList;
     {
       Builder builder = Builder(initialSize: 0);
-      int offset = builder.writeListUint8(<int>[1, 2, 3, 4, 0x9A]);
+      int offset = builder.writeListUint8(<int>[1, 2, 3, 4, 0x9A, 0xFA]);
       builder.finish(offset);
       byteList = builder.buffer;
     }
     // read and verify
     BufferContext buf = BufferContext.fromBytes(byteList);
+    const buffOffset = 8; // 32-bit offset to the list, + 32-bit length
     for (final lazy in [true, false]) {
       List<int> items = Uint8ListReader(lazy: lazy).read(buf, 0);
-      expect(items, hasLength(5));
-      expect(items, orderedEquals(<int>[1, 2, 3, 4, 0x9A]));
+      expect(items, hasLength(6));
+      expect(items, orderedEquals(<int>[1, 2, 3, 4, 0x9A, 0xFA]));
+
+      // overwrite the buffer to verify the laziness
+      buf.buffer.setUint8(buffOffset + 1, 99);
+      expect(items, orderedEquals(<int>[1, lazy ? 99 : 2, 3, 4, 0x9A, 0xFA]));
+
+      // restore the previous value for the next loop
+      buf.buffer.setUint8(buffOffset + 1, 2);
     }
   }
 
