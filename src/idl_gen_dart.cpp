@@ -346,6 +346,14 @@ class DartGenerator : public BaseGenerator {
     if (type.base_type == BASE_TYPE_BOOL) {
       return prefix + ".BoolReader()";
     } else if (IsVector(type)) {
+      if (!type.VectorType().enum_def) {
+        if (type.VectorType().base_type == BASE_TYPE_CHAR) {
+          return prefix + ".Int8ListReader(" + (lazy ? ")" : "lazy: false)");
+        }
+        if (type.VectorType().base_type == BASE_TYPE_UCHAR) {
+          return prefix + ".Uint8ListReader(" + (lazy ? ")" : "lazy: false)");
+        }
+      }
       return prefix + ".ListReader<" +
              GenDartTypeName(type.VectorType(), current_namespace, def) + ">(" +
              GenReaderTypeName(type.VectorType(), current_namespace, def, true,

@@ -149,6 +149,15 @@
     <Compile Include="..\KeywordTest\KeywordsInUnion.cs">
       <Link>KeywordTest\KeywordsInUnion.cs</Link>
     </Compile>
+    <Compile Include="..\nested_namespace_test\nested_namespace_test1_generated.cs">
+      <Link>nested_namespace_test\nested_namespace_test1_generated.cs</Link>
+    </Compile>
+    <Compile Include="..\nested_namespace_test\nested_namespace_test2_generated.cs">
+      <Link>nested_namespace_test\nested_namespace_test2_generated.cs</Link>
+    </Compile>
+    <Compile Include="..\nested_namespace_test\nested_namespace_test3_generated.cs">
+      <Link>nested_namespace_test\nested_namespace_test3_generated.cs</Link>
+    </Compile>
   </ItemGroup>
 
   <ItemGroup>
