@@ -86,6 +86,7 @@ std::string BaseGenerator::NamespaceDir(const Parser &parser,
                                         const std::string &path,
                                         const Namespace &ns,
                                         const bool dasherize) {
+  (void)parser;  // Unused. TODO(caspern): Remove.
   EnsureDirExists(path);
   std::string namespace_dir = path;  // Either empty or ends in separator.
   auto &namespaces = ns.components;

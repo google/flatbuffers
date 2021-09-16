@@ -498,6 +498,7 @@ class SwiftGRPCGenerator : public flatbuffers::BaseGenerator {
 
 bool GenerateSwiftGRPC(const Parser &parser, const IDLOptions &options,
                        const std::string &path, const std::string &file_name) {
+  (void)options;  // unused.
   int nservices = 0;
   for (auto it = parser.services_.vec.begin(); it != parser.services_.vec.end();
        ++it) {
