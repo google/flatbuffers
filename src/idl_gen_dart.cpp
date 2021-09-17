@@ -513,7 +513,7 @@ class DartGenerator : public BaseGenerator {
     GenDocComment(struct_def.doc_comment, &code, "");
 
     std::string class_name = struct_def.name + "T";
-    code += "class " + class_name + " {\n";
+    code += "class " + class_name + " implements " + _kFb + ".Packable {\n";
 
     std::string constructor_args;
     for (auto it = non_deprecated_fields.begin();
@@ -615,6 +615,7 @@ class DartGenerator : public BaseGenerator {
       const std::vector<std::pair<int, FieldDef *>> &non_deprecated_fields) {
     std::string code;
 
+    code += "  @override\n";
     code += "  int pack(fb.Builder fbBuilder) {\n";
     code += GenObjectBuilderImplementation(struct_def, non_deprecated_fields,
                                            false, true);
