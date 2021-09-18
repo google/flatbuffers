@@ -51,7 +51,7 @@ class Registry {
     Parser parser;
     if (!LoadSchema(ident, &parser)) return false;
     // Now we're ready to generate text.
-    if (!GenerateText(parser, {}, flatbuf, dest)) {
+    if (!GenerateText(parser, IDLOptions(), flatbuf, dest)) {
       lasterror_ = "unable to generate text for FlatBuffer binary";
       return false;
     }
