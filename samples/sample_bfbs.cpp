@@ -55,17 +55,18 @@ int main(int /*argc*/, const char * /*argv*/[]) {
   ok = parser2.Parse(json_file.c_str(), include_directories);
   assert(ok);
 
+  flatbuffers::IDLOptions options;  // Default options.
   // to ensure it is correct, we now generate text back from the binary,
   // and compare the two:
   std::string jsongen1;
-  if (!GenerateText(parser1, {}, parser1.builder_.GetBufferPointer(),
+  if (!GenerateText(parser1, options, parser1.builder_.GetBufferPointer(),
                     &jsongen1)) {
     printf("Couldn't serialize parsed data to JSON!\n");
     return 1;
   }
 
   std::string jsongen2;
-  if (!GenerateText(parser2, {}, parser2.builder_.GetBufferPointer(),
+  if (!GenerateText(parser2, options, parser2.builder_.GetBufferPointer(),
                     &jsongen2)) {
     printf("Couldn't serialize parsed data to JSON!\n");
     return 1;
