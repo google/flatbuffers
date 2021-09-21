@@ -189,7 +189,6 @@
     <Compile Include="..\nested_namespace_test\nested_namespace_test3_generated.cs">
       <Link>nested_namespace_test\nested_namespace_test3_generated.cs</Link>
     </Compile>
-  </ItemGroup>
     <Compile Include="Assert.cs" />
     <Compile Include="ByteBufferTests.cs" />
     <Compile Include="FlatBufferBuilderTests.cs" />
