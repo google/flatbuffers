@@ -101,7 +101,10 @@ android/build/
 samples/android/.externalNativeBuild/
 samples/android/.gradle/
 samples/android/build/
-js/flatbuffers.mjs
+js/**/*.js
+js/**/*.d.ts
+mjs/**/*.js
+mjs/**/*.d.ts
 /bazel-bin
 /bazel-flatbuffers
 /bazel-genfiles
