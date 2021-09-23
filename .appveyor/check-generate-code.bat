@@ -14,6 +14,8 @@
 set buildtype=Release
 if "%1"=="-b" set buildtype=%2
 
+git -c core.autocrlf=true diff --exit-code --quiet || goto :DIFFFOUNDMAKE
+
 cd tests
 call generate_code.bat -b %buildtype% || goto FAIL
 
@@ -27,8 +29,19 @@ goto SUCCESS
 :DIFFFOUND
 @echo "" >&2
 @echo "ERROR: ********************************************************" >&2
+@echo "ERROR: The following differences were found after building." >&2
+@echo "ERROR: Perhaps there is a difference in the flags for the" >&2
+@echo "ERROR: CMakeLists.txt vs the tests/generate_code.bat script?" >&2
+@echo "ERROR: ********************************************************" >&2
+@echo "" >&2
+@git -c core.autocrlf=true --no-pager diff --binary
+goto FAIL
+
+:DIFFFOUNDMAKE
+@echo "" >&2
+@echo "ERROR: ********************************************************" >&2
 @echo "ERROR: The following differences were found after running the" >&2
-@echo "ERROR: tests/generate_code.sh script.  Maybe you forgot to run" >&2
+@echo "ERROR: tests/generate_code.bat script.  Maybe you forgot to run" >&2
 @echo "ERROR: it after making changes in a generator or schema?" >&2
 @echo "ERROR: ********************************************************" >&2
 @echo "" >&2
