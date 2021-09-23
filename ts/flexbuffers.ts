@@ -7,7 +7,7 @@ export function builder(): Builder {
     return new Builder();
 }
 
-export function toObject(buffer: Uint8Array): unknown {
+export function toObject(buffer: ArrayBuffer): unknown {
     return toReference(buffer).toObject();
 }
 
