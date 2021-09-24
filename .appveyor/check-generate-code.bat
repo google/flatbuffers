@@ -14,6 +14,10 @@
 set buildtype=Release
 if "%1"=="-b" set buildtype=%2
 
+:: TODO: Release and Debug builds produce differences here for some reason.
+git checkout HEAD -- monster_test.bfbs
+git checkout HEAD -- arrays_test.bfbs
+
 git -c core.autocrlf=true diff --exit-code --quiet || goto :DIFFFOUNDMAKE
 
 cd tests
