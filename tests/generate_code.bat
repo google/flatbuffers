@@ -54,8 +54,8 @@ set TEST_NOINCL_FLAGS=%TEST_BASE_FLAGS% --no-includes
 ..\%buildtype%\flatc.exe --rust %TEST_RUST_FLAGS% -I include_test -o include_test1 include_test/include_test1.fbs || goto FAIL
 ..\%buildtype%\flatc.exe --rust %TEST_RUST_FLAGS% -I include_test -o include_test2 include_test/sub/include_test2.fbs || goto FAIL
 ..\%buildtype%\flatc.exe -b --schema --bfbs-comments --bfbs-filenames . --bfbs-builtins -I include_test monster_test.fbs || goto FAIL
-..\%buildtype%\flatc.exe --cpp --bfbs-comments --bfbs-builtins --bfbs-gen-embed %TEST_NOINCL_FLAGS% %TEST_CPP_FLAGS% -I include_test monster_test.fbs || goto FAIL
-..\%buildtype%\flatc.exe -b --schema --bfbs-comments --bfbs-builtins -I include_test arrays_test.fbs || goto FAIL
+..\%buildtype%\flatc.exe --cpp --bfbs-comments --bfbs-filenames . --bfbs-builtins --bfbs-gen-embed %TEST_NOINCL_FLAGS% %TEST_CPP_FLAGS% -I include_test monster_test.fbs || goto FAIL
+..\%buildtype%\flatc.exe -b --schema --bfbs-comments --bfbs-filenames . --bfbs-builtins -I include_test arrays_test.fbs || goto FAIL
 ..\%buildtype%\flatc.exe --jsonschema --schema -I include_test monster_test.fbs || goto FAIL
 ..\%buildtype%\flatc.exe --cpp --java --csharp --jsonschema %TEST_NOINCL_FLAGS% %TEST_CPP_FLAGS% %TEST_CS_FLAGS% --scoped-enums arrays_test.fbs || goto FAIL
 ..\%buildtype%\flatc.exe --rust %TEST_RUST_FLAGS% -o arrays_test arrays_test.fbs || goto FAIL
@@ -98,7 +98,7 @@ if NOT "%MONSTER_EXTRA%"=="skip" (
 
 cd ../samples
 ..\%buildtype%\flatc.exe --cpp --lobster %TEST_BASE_FLAGS% %TEST_CPP_FLAGS% monster.fbs || goto FAIL
-..\%buildtype%\flatc.exe -b --schema --bfbs-comments --bfbs-builtins monster.fbs || goto FAIL
+..\%buildtype%\flatc.exe -b --schema --bfbs-comments --bfbs-filenames . --bfbs-builtins monster.fbs || goto FAIL
 cd ../reflection
 call generate_code.bat %1 %2 || goto FAIL
 
