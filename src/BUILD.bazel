@@ -5,20 +5,6 @@ package(
     default_visibility = ["//visibility:private"],
 )
 
-config_setting(
-    name = "platform_freebsd",
-    constraint_values = [
-        "@platforms//os:freebsd",
-    ],
-)
-
-config_setting(
-    name = "platform_openbsd",
-    constraint_values = [
-        "@platforms//os:openbsd",
-    ],
-)
-
 # Public flatc library to compile flatbuffer files at runtime.
 cc_library(
     name = "flatbuffers",
@@ -32,8 +18,12 @@ cc_library(
     ],
     hdrs = ["//:public_headers"],
     linkopts = select({
-        ":platform_freebsd": ["-lm"],
-        ":platform_openbsd": ["-lm"],
+        # TODO: Bazel uses `clang` instead of `clang++` to link
+        # C++ code on BSD. Temporarily adding these linker flags while
+        # we wait for Bazel to resolve
+        # https://github.com/bazelbuild/bazel/issues/12023.
+        "//:platform_freebsd": ["-lm"],
+        "//:platform_openbsd": ["-lm"],
         "//conditions:default": [],
     }),
     strip_include_prefix = "/include",
