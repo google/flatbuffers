@@ -72,6 +72,11 @@ jobs:
     - name: build
       # NOTE: we need this _build dir to not have xcodebuild's default ./build dir clash with the BUILD file.
       run: xcodebuild -toolchain clang -configuration Release -target flattests SYMROOT=$(PWD)/_build
+    - name: check that the binary is "universal"
+      run: |
+        info=$(file _build/Release/flatc)
+        echo $info
+        echo $info | grep "universal binary with 2 architectures"
     - name: test
       run: _build/Release/flattests
     - name: upload build artifacts
@@ -133,7 +138,7 @@ jobs:
     - name: Build
       working-directory: kotlin
       run: ./gradlew clean iosX64Test macosX64Test jsTest jsBrowserTest
-  
+
   build-kotlin-linux:
     name: Build Kotlin Linux
     runs-on: ubuntu-latest

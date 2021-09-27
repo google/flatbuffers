@@ -52,8 +52,8 @@ $TEST_NOINCL_FLAGS $TEST_CPP_FLAGS $TEST_CS_FLAGS $TEST_TS_FLAGS -o namespace_te
 ../flatc --rust $TEST_RUST_FLAGS -o include_test1 -I include_test include_test/include_test1.fbs
 ../flatc --rust $TEST_RUST_FLAGS -o include_test2 -I include_test include_test/sub/include_test2.fbs
 ../flatc -b --schema --bfbs-comments --bfbs-filenames . --bfbs-builtins -I include_test monster_test.fbs
-../flatc --cpp --bfbs-comments --bfbs-builtins --bfbs-gen-embed $TEST_NOINCL_FLAGS $TEST_CPP_FLAGS -I include_test monster_test.fbs
-../flatc -b --schema --bfbs-comments --bfbs-builtins -I include_test arrays_test.fbs
+../flatc --cpp --bfbs-comments --bfbs-filenames . --bfbs-builtins --bfbs-gen-embed $TEST_NOINCL_FLAGS $TEST_CPP_FLAGS -I include_test monster_test.fbs
+../flatc -b --schema --bfbs-comments --bfbs-filenames . --bfbs-builtins -I include_test arrays_test.fbs
 ../flatc --jsonschema --schema -I include_test monster_test.fbs
 ../flatc --cpp --java --kotlin --csharp --python $TEST_NOINCL_FLAGS $TEST_CPP_FLAGS $TEST_CS_FLAGS monster_extra.fbs monsterdata_extra.json
 ../flatc --cpp --java --csharp --jsonschema $TEST_NOINCL_FLAGS $TEST_CPP_FLAGS $TEST_CS_FLAGS --scoped-enums arrays_test.fbs
@@ -109,6 +109,6 @@ TEST_CPP17_FLAGS="--cpp --cpp-std c++17 --cpp-static-reflection --gen-object-api
 cd ../samples
 ../flatc --cpp --lobster $TEST_BASE_FLAGS $TEST_CPP_FLAGS monster.fbs
 ../flatc --rust $TEST_RUST_FLAGS -o rust_generated monster.fbs 
-../flatc -b --schema --bfbs-comments --bfbs-builtins monster.fbs
+../flatc -b --schema --bfbs-filenames . --bfbs-comments --bfbs-builtins monster.fbs
 cd ../reflection
 ./generate_code.sh --cpp-std c++0x
