@@ -26,7 +26,8 @@ final class FlatBuffersStructsTests: XCTestCase {
     let root = TestMutatingBool.endTestMutatingBool(&fbb, start: start)
     fbb.finish(offset: root)
 
-    let testMutatingBool = TestMutatingBool.getRootAsTestMutatingBool(bb: fbb.sizedBuffer)
+    let testMutatingBool = TestMutatingBool
+      .getRootAsTestMutatingBool(bb: fbb.sizedBuffer)
     let property = testMutatingBool.mutableB
     XCTAssertEqual(property?.property, false)
     property?.mutate(property: false)

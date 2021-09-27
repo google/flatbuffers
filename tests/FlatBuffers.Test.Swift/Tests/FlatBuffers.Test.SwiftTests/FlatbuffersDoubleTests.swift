@@ -99,7 +99,10 @@ class CountryDouble {
     return CountryDouble.end(builder: &builder, startOffset: _start)
   }
 
-  static func end(builder: inout FlatBufferBuilder, startOffset: UOffset) -> Offset {
+  static func end(
+    builder: inout FlatBufferBuilder,
+    startOffset: UOffset) -> Offset
+  {
     Offset(offset: builder.endTable(at: startOffset))
   }
 

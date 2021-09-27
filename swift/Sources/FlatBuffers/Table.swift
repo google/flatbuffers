@@ -34,7 +34,8 @@ public struct Table {
   /// - Note: This will `CRASH` if read on a big endian machine
   public init(bb: ByteBuffer, position: Int32 = 0) {
     guard isLitteEndian else {
-      fatalError("Reading/Writing a buffer in big endian machine is not supported on swift")
+      fatalError(
+        "Reading/Writing a buffer in big endian machine is not supported on swift")
     }
     self.bb = bb
     postion = position
@@ -46,9 +47,10 @@ public struct Table {
   /// - Returns: offset of field within buffer
   public func offset(_ o: Int32) -> Int32 {
     let vtable = postion - bb.read(def: Int32.self, position: Int(postion))
-    return o < bb.read(def: VOffset.self, position: Int(vtable)) ? Int32(bb.read(
-      def: Int16.self,
-      position: Int(vtable + o))) : 0
+    return o < bb
+      .read(def: VOffset.self, position: Int(vtable)) ? Int32(bb.read(
+        def: Int16.self,
+        position: Int(vtable + o))) : 0
   }
 
   /// Gets the indirect offset of the current stored object
@@ -163,7 +165,11 @@ public struct Table {
   ///   - vOffset: Field offset within a vtable
   ///   - fbb: ByteBuffer
   /// - Returns: an position of a field
-  static public func offset(_ o: Int32, vOffset: Int32, fbb: ByteBuffer) -> Int32 {
+  static public func offset(
+    _ o: Int32,
+    vOffset: Int32,
+    fbb: ByteBuffer) -> Int32
+  {
     let vTable = Int32(fbb.capacity) - o
     return vTable + Int32(fbb.read(
       def: Int16.self,
@@ -178,7 +184,11 @@ public struct Table {
   ///   - off2: second offset to compare
   ///   - fbb: Bytebuffer
   /// - Returns: returns the difference between
-  static public func compare(_ off1: Int32, _ off2: Int32, fbb: ByteBuffer) -> Int32 {
+  static public func compare(
+    _ off1: Int32,
+    _ off2: Int32,
+    fbb: ByteBuffer) -> Int32
+  {
     let memorySize = Int32(MemoryLayout<Int32>.size)
     let _off1 = off1 + fbb.read(def: Int32.self, position: Int(off1))
     let _off2 = off2 + fbb.read(def: Int32.self, position: Int(off2))
@@ -203,7 +213,11 @@ public struct Table {
   ///   - key: bytes array to compare to
   ///   - fbb: Bytebuffer
   /// - Returns: returns the difference between
-  static public func compare(_ off1: Int32, _ key: [Byte], fbb: ByteBuffer) -> Int32 {
+  static public func compare(
+    _ off1: Int32,
+    _ key: [Byte],
+    fbb: ByteBuffer) -> Int32
+  {
     let memorySize = Int32(MemoryLayout<Int32>.size)
     let _off1 = off1 + fbb.read(def: Int32.self, position: Int(off1))
     let len1 = fbb.read(def: Int32.self, position: Int(_off1))

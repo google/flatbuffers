@@ -37,7 +37,8 @@ func greet(name: String, client greeter: models_GreeterServiceClient) {
   builder.finish(offset: root)
 
   // Make the RPC call to the server.
-  let sayHello = greeter.SayHello(Message<models_HelloRequest>(builder: &builder))
+  let sayHello = greeter
+    .SayHello(Message<models_HelloRequest>(builder: &builder))
 
   // wait() on the response to stop the program from exiting before the response is received.
   do {
@@ -54,7 +55,8 @@ func greet(name: String, client greeter: models_GreeterServiceClient) {
   builder.finish(offset: manyRoot)
 
   let call = greeter.SayManyHellos(Message(builder: &builder)) { message in
-    print("Greeter SayManyHellos received: \(message.object.message  ?? "Unknown")")
+    print(
+      "Greeter SayManyHellos received: \(message.object.message  ?? "Unknown")")
   }
 
   let status = try! call.status.recover { _ in .processingError }.wait()

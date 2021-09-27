@@ -25,8 +25,16 @@ final class FlatBuffersVectors: XCTestCase {
     var b = FlatBufferBuilder(initialSize: 20)
     let noStr = b.create(string: norway)
     let deStr = b.create(string: denmark)
-    let n = Country.createCountry(builder: &b, offset: noStr, log: 888, lan: 700)
-    let d = Country.createCountry(builder: &b, offset: deStr, log: 200, lan: 100)
+    let n = Country.createCountry(
+      builder: &b,
+      offset: noStr,
+      log: 888,
+      lan: 700)
+    let d = Country.createCountry(
+      builder: &b,
+      offset: deStr,
+      log: 200,
+      lan: 100)
     let vector = [n, d]
     let vectorOffset = b.createVector(ofOffsets: vector)
     b.finish(offset: vectorOffset)
@@ -119,19 +127,31 @@ struct Numbers {
   var vArrayDouble: [Double]? { __t.getVector(at: 4) }
   var vArrayFloat: [Float32]? { __t.getVector(at: 4) }
 
-  static func createNumbersVector(b: inout FlatBufferBuilder, array: [Int]) -> Offset {
+  static func createNumbersVector(
+    b: inout FlatBufferBuilder,
+    array: [Int]) -> Offset
+  {
     b.createVector(array, size: array.count)
   }
 
-  static func createNumbersVector(b: inout FlatBufferBuilder, array: [Int32]) -> Offset {
+  static func createNumbersVector(
+    b: inout FlatBufferBuilder,
+    array: [Int32]) -> Offset
+  {
     b.createVector(array, size: array.count)
   }
 
-  static func createNumbersVector(b: inout FlatBufferBuilder, array: [Double]) -> Offset {
+  static func createNumbersVector(
+    b: inout FlatBufferBuilder,
+    array: [Double]) -> Offset
+  {
     b.createVector(array, size: array.count)
   }
 
-  static func createNumbersVector(b: inout FlatBufferBuilder, array: [Float32]) -> Offset {
+  static func createNumbersVector(
+    b: inout FlatBufferBuilder,
+    array: [Float32]) -> Offset
+  {
     b.createVector(array, size: array.count)
   }
 

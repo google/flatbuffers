@@ -21,7 +21,8 @@ struct Benchmark {
   var name: String
   var value: Double
 
-  var description: String { "\(String(format: "|\t%@\t\t|\t\t%fs\t|", name, value))"}
+  var description: String {
+    "\(String(format: "|\t%@\t\t|\t\t%fs\t|", name, value))"}
 }
 
 func run(name: String, runs: Int, action: () -> Void) -> Benchmark {

@@ -16,9 +16,16 @@
 
 import Foundation
 
-/// `FlatBufferBuilder` builds a `FlatBuffer` through manipulating its internal state.
-/// This is done by creating a `ByteBuffer` that hosts the incoming data and
-/// has a hardcoded growth limit of `2GiB` which is set by the Flatbuffers standards
+/// ``FlatBufferBuilder`` builds a `FlatBuffer` through manipulating its internal state.
+///
+/// This is done by creating a ``ByteBuffer`` that hosts the incoming data and
+/// has a hardcoded growth limit of `2GiB` which is set by the Flatbuffers standards.
+///
+/// ```swift
+/// var builder = FlatBufferBuilder()
+/// ```
+/// The builder should be always created as a variable, since it would be passed into the writers
+///
 @frozen
 public struct FlatBufferBuilder {
 
@@ -47,21 +54,30 @@ public struct FlatBufferBuilder {
 
   /// Gives a read access to the buffer's size
   public var size: UOffset { _bb.size }
+
   /// Data representation of the buffer
+  ///
+  /// Should only be used after ``finish(offset:addPrefix:)`` is called
   public var data: Data {
     assert(finished, "Data shouldn't be called before finish()")
     return Data(
       bytes: _bb.memory.advanced(by: _bb.writerIndex),
       count: _bb.capacity &- _bb.writerIndex)
   }
-  /// Get's the fully sized buffer stored in memory
+
+  /// Returns the underlying bytes in the ``ByteBuffer``
+  ///
+  /// Note: This should be used with caution.
   public var fullSizedByteArray: [UInt8] {
     let ptr = UnsafeBufferPointer(
       start: _bb.memory.assumingMemoryBound(to: UInt8.self),
       count: _bb.capacity)
     return Array(ptr)
   }
-  /// Returns the written size of the buffer
+
+  /// Returns the written bytes into the ``ByteBuffer``
+  ///
+  /// Should only be used after ``finish(offset:addPrefix:)`` is called
   public var sizedByteArray: [UInt8] {
     assert(finished, "Data shouldn't be called before finish()")
     let cp = _bb.capacity &- _bb.writerIndex
@@ -71,10 +87,17 @@ public struct FlatBufferBuilder {
     let ptr = UnsafeBufferPointer(start: start, count: cp)
     return Array(ptr)
   }
-  /// Returns the buffer
+
+  /// Returns the original ``ByteBuffer``
+  ///
+  /// Returns the current buffer that was just created
+  /// with the offsets, and data written to it.
   public var buffer: ByteBuffer { _bb }
 
-  /// Returns A sized Buffer from the readable bytes
+  /// Returns a newly created sized ``ByteBuffer``
+  ///
+  /// returns a new buffer that is sized to the data written
+  /// to the main buffer
   public var sizedBuffer: ByteBuffer {
     assert(finished, "Data shouldn't be called before finish()")
     return ByteBuffer(
@@ -84,20 +107,28 @@ public struct FlatBufferBuilder {
 
   // MARK: - Init
 
-  /// initialize the buffer with a size
+  /// Initialize the buffer with a size
   /// - Parameters:
   ///   - initialSize: Initial size for the buffer
   ///   - force: Allows default to be serialized into the buffer
-  public init(initialSize: Int32 = 1024, serializeDefaults force: Bool = false) {
+  ///
+  /// This initializes a new builder with an initialSize that would initialize
+  /// a new ``ByteBuffer``. ``FlatBufferBuilder`` by default doesnt serialize defaults
+  /// however the builder can be force by passing true for `serializeDefaults`
+  public init(
+    initialSize: Int32 = 1024,
+    serializeDefaults force: Bool = false)
+  {
     assert(initialSize > 0, "Size should be greater than zero!")
     guard isLitteEndian else {
-      fatalError("Reading/Writing a buffer in big endian machine is not supported on swift")
+      fatalError(
+        "Reading/Writing a buffer in big endian machine is not supported on swift")
     }
     serializeDefaults = force
     _bb = ByteBuffer(initialSize: Int(initialSize))
   }
 
-  /// Clears the buffer and the builder from it's data
+  /// Clears the builder and the buffer from the written data.
   mutating public func clear() {
     _minAlignment = 0
     isNested = false
@@ -113,6 +144,9 @@ public struct FlatBufferBuilder {
   /// - Parameters:
   ///   - table: offset for the table
   ///   - fields: Array of all the important fields to be serialized
+  ///
+  /// *NOTE: Never call this function, this is only supposed to be called
+  /// by the generated code*
   mutating public func require(table: Offset, fields: [Int32]) {
     for field in fields {
       let start = _bb.capacity &- Int(table.o)
@@ -129,6 +163,23 @@ public struct FlatBufferBuilder {
   ///   - offset: Offset of the table
   ///   - fileId: Takes the fileId
   ///   - prefix: if false it wont add the size of the buffer
+  ///
+  /// ``finish(offset:fileId:addPrefix:)`` should be called at the end of creating
+  /// a table
+  /// ```swift
+  /// var root = SomeObject
+  ///   .createObject(&builder,
+  ///   name: nameOffset)
+  /// builder.finish(
+  ///   offset: root,
+  ///   fileId: "ax1a",
+  ///   addPrefix: true)
+  /// ```
+  /// File id would append a file id name at the end of the written bytes before,
+  /// finishing the buffer.
+  ///
+  /// Whereas, if `addPrefix` is true, the written bytes would
+  /// include the size of the current buffer.
   mutating public func finish(
     offset: Offset,
     fileId: String,
@@ -147,6 +198,19 @@ public struct FlatBufferBuilder {
   /// - Parameters:
   ///   - offset: Offset of the table
   ///   - prefix: if false it wont add the size of the buffer
+  ///
+  /// ``finish(offset:addPrefix:)`` should be called at the end of creating
+  /// a table
+  /// ```swift
+  /// var root = SomeObject
+  ///   .createObject(&builder,
+  ///   name: nameOffset)
+  /// builder.finish(
+  ///   offset: root,
+  ///   addPrefix: true)
+  /// ```
+  /// If `addPrefix` is true, the written bytes would
+  /// include the size of the current buffer.
   mutating public func finish(
     offset: Offset,
     addPrefix prefix: Bool = false)
@@ -160,10 +224,15 @@ public struct FlatBufferBuilder {
     finished = true
   }
 
-  /// starttable will let the builder know, that a new object is being serialized.
+  /// ``startTable(with:)`` will let the builder know, that a new object is being serialized.
   ///
-  /// The function will fatalerror if called while there is another object being serialized
+  /// The function will fatalerror if called while there is another object being serialized.
+  /// ```swift
+  /// let start = Monster
+  ///   .startMonster(&fbb)
+  /// ```
   /// - Parameter numOfFields: Number of elements to be written to the buffer
+  /// - Returns: Offset of the newly started table
   mutating public func startTable(with numOfFields: Int) -> UOffset {
     notNested()
     isNested = true
@@ -171,11 +240,14 @@ public struct FlatBufferBuilder {
     return _bb.size
   }
 
-  /// Endtable will let the builder know that the object that's written to it is completed
+  /// ``endTable(at:)`` will let the ``FlatBufferBuilder`` know that the
+  /// object that's written to it is completed
   ///
-  /// This would be called after all the elements are serialized, it will add the vtable into the buffer.
-  /// it will fatalError in case the object is called without starttable, or the object has exceeded  the limit of
-  ///  2GB,
+  /// This would be called after all the elements are serialized,
+  /// it will add the current vtable into the ``ByteBuffer``.
+  /// The functions will `fatalError` in case the object is called
+  /// without ``startTable(with:)``, or the object has exceeded  the limit of 2GB.
+  ///
   /// - Parameter startOffset:Start point of the object written
   /// - returns: The root of the table
   mutating public func endTable(at startOffset: UOffset)  -> UOffset {
@@ -239,7 +311,7 @@ public struct FlatBufferBuilder {
 
   // MARK: - Builds Buffer
 
-  /// asserts to see if the object is not nested
+  /// Asserts to see if the object is not nested
   @usableFromInline
   mutating internal func notNested()  {
     assert(!isNested, "Object serialization must not be nested")
@@ -259,7 +331,10 @@ public struct FlatBufferBuilder {
   ///   - bufSize: Current size of the buffer + the offset of the object to be written
   ///   - elementSize: Element size
   @inline(__always)
-  mutating internal func padding(bufSize: UInt32, elementSize: UInt32) -> UInt32 {
+  mutating internal func padding(
+    bufSize: UInt32,
+    elementSize: UInt32) -> UInt32
+  {
     ((~bufSize) &+ 1) & (elementSize - 1)
   }
 
@@ -304,7 +379,18 @@ public struct FlatBufferBuilder {
 
   // MARK: - Inserting Vectors
 
-  /// Starts a vector of length and Element size
+  /// ``startVector(_:elementSize:)`` creates a new vector within buffer
+  ///
+  /// The function checks if there is a current object being written, if
+  /// the check passes it creates a buffer alignment of `length * elementSize`
+  /// ```swift
+  /// builder.startVector(
+  ///   int32Values.count, elementSize: 4)
+  /// ```
+  ///
+  /// - Parameters:
+  ///   - len: Length of vector to be created
+  ///   - elementSize: Size of object type to be written
   mutating public func startVector(_ len: Int, elementSize: Int) {
     notNested()
     isNested = true
@@ -312,46 +398,102 @@ public struct FlatBufferBuilder {
     preAlign(len: len &* elementSize, alignment: elementSize)
   }
 
-  /// Ends the vector of at length
+  /// ``endVector(len:)`` ends the currently created vector
   ///
-  /// The current function will fatalError if startVector is called before serializing the vector
+  /// Calling ``endVector(len:)`` requires the length, of the current
+  /// vector. The length would be pushed to indicate the count of numbers
+  /// within the vector. If ``endVector(len:)`` is called without
+  /// ``startVector(_:elementSize:)`` it asserts.
+  ///
+  /// ```swift
+  /// let vectorOffset = builder.
+  ///   endVector(len: int32Values.count)
+  /// ```
+  ///
   /// - Parameter len: Length of the buffer
+  /// - Returns: Returns the current ``Offset`` in the ``ByteBuffer``
   mutating public func endVector(len: Int) -> Offset {
     assert(isNested, "Calling endVector without calling startVector")
     isNested = false
     return Offset(offset: push(element: Int32(len)))
   }
 
-  /// Creates a vector of type Scalar in the buffer
+  /// Creates a vector of type ``Scalar`` into the ``ByteBuffer``
+  ///
+  /// ``createVector(_:)-4swl0`` writes a vector of type Scalars into
+  /// ``ByteBuffer``. This is a convenient method instead of calling,
+  /// ``startVector(_:elementSize:)`` and then ``endVector(len:)``
+  /// ```swift
+  /// let vectorOffset = builder.
+  ///   createVector([1, 2, 3, 4])
+  /// ```
+  ///
+  /// The underlying implementation simply calls ``createVector(_:size:)-4lhrv``
+  ///
   /// - Parameter elements: elements to be written into the buffer
-  /// - returns: Offset of the vector
+  /// - returns: ``Offset`` of the vector
   mutating public func createVector<T: Scalar>(_ elements: [T]) -> Offset {
     createVector(elements, size: elements.count)
   }
 
   ///  Creates a vector of type Scalar in the buffer
+  ///
+  /// ``createVector(_:)-4swl0`` writes a vector of type Scalars into
+  /// ``ByteBuffer``. This is a convenient method instead of calling,
+  /// ``startVector(_:elementSize:)`` and then ``endVector(len:)``
+  /// ```swift
+  /// let vectorOffset = builder.
+  ///   createVector([1, 2, 3, 4], size: 4)
+  /// ```
+  ///
   /// - Parameter elements: Elements to be written into the buffer
   /// - Parameter size: Count of elements
-  /// - returns: Offset of the vector
-  mutating public func createVector<T: Scalar>(_ elements: [T], size: Int) -> Offset {
+  /// - returns: ``Offset`` of the vector
+  mutating public func createVector<T: Scalar>(
+    _ elements: [T],
+    size: Int) -> Offset
+  {
     let size = size
     startVector(size, elementSize: MemoryLayout<T>.size)
     _bb.push(elements: elements)
     return endVector(len: size)
   }
 
-  /// Creates a vector of type Enums in the buffer
+  /// Creates a vector of type ``Enum`` into the ``ByteBuffer``
+  ///
+  /// ``createVector(_:)-9h189`` writes a vector of type ``Enum`` into
+  /// ``ByteBuffer``. This is a convenient method instead of calling,
+  /// ``startVector(_:elementSize:)`` and then ``endVector(len:)``
+  /// ```swift
+  /// let vectorOffset = builder.
+  ///   createVector([.swift, .cpp])
+  /// ```
+  ///
+  /// The underlying implementation simply calls ``createVector(_:size:)-7cx6z``
+  ///
   /// - Parameter elements: elements to be written into the buffer
-  /// - returns: Offset of the vector
+  /// - returns: ``Offset`` of the vector
   mutating public func createVector<T: Enum>(_ elements: [T]) -> Offset {
     createVector(elements, size: elements.count)
   }
 
-  ///  Creates a vector of type Enums in the buffer
+  /// Creates a vector of type ``Enum`` into the ``ByteBuffer``
+  ///
+  /// ``createVector(_:)-9h189`` writes a vector of type ``Enum`` into
+  /// ``ByteBuffer``. This is a convenient method instead of calling,
+  /// ``startVector(_:elementSize:)`` and then ``endVector(len:)``
+  /// ```swift
+  /// let vectorOffset = builder.
+  ///   createVector([.swift, .cpp])
+  /// ```
+  ///
   /// - Parameter elements: Elements to be written into the buffer
   /// - Parameter size: Count of elements
-  /// - returns: Offset of the vector
-  mutating public func createVector<T: Enum>(_ elements: [T], size: Int) -> Offset {
+  /// - returns: ``Offset`` of the vector
+  mutating public func createVector<T: Enum>(
+    _ elements: [T],
+    size: Int) -> Offset
+  {
     let size = size
     startVector(size, elementSize: T.byteSize)
     for e in elements.reversed() {
@@ -360,18 +502,42 @@ public struct FlatBufferBuilder {
     return endVector(len: size)
   }
 
-  /// Creates a vector of type Offsets  in the buffer
-  /// - Parameter offsets:Array of offsets of type T
-  /// - returns: Offset of the vector
+  /// Creates a vector of already written offsets
+  ///
+  /// ``createVector(ofOffsets:)`` creates a vector of ``Offset`` into
+  /// ``ByteBuffer``. This is a convenient method instead of calling,
+  /// ``startVector(_:elementSize:)`` and then ``endVector(len:)``.
+  ///
+  /// The underlying implementation simply calls ``createVector(ofOffsets:len:)``
+  ///
+  /// ```swift
+  /// let namesOffsets = builder.
+  ///   createVector(ofOffsets: [name1, name2])
+  /// ```
+  /// - Parameter offsets: Array of offsets of type ``Offset``
+  /// - returns: ``Offset`` of the vector
   mutating public func createVector(ofOffsets offsets: [Offset]) -> Offset {
     createVector(ofOffsets: offsets, len: offsets.count)
   }
 
-  ///  Creates a vector of type Offsets  in the buffer
-  /// - Parameter elements: Array of offsets of type T
+  /// Creates a vector of already written offsets
+  ///
+  /// ``createVector(ofOffsets:)`` creates a vector of ``Offset`` into
+  /// ``ByteBuffer``. This is a convenient method instead of calling,
+  /// ``startVector(_:elementSize:)`` and then ``endVector(len:)``
+  ///
+  /// ```swift
+  /// let namesOffsets = builder.
+  ///   createVector(ofOffsets: [name1, name2])
+  /// ```
+  ///
+  /// - Parameter offsets: Array of offsets of type ``Offset``
   /// - Parameter size: Count of elements
-  /// - returns: Offset of the vector
-  mutating public func createVector(ofOffsets offsets: [Offset], len: Int) -> Offset {
+  /// - returns: ``Offset`` of the vector
+  mutating public func createVector(
+    ofOffsets offsets: [Offset],
+    len: Int) -> Offset
+  {
     startVector(len, elementSize: MemoryLayout<Offset>.size)
     for o in offsets.reversed() {
       push(element: o)
@@ -379,9 +545,21 @@ public struct FlatBufferBuilder {
     return endVector(len: len)
   }
 
-  /// Creates a vector of Strings
-  /// - Parameter str: a vector of strings that will be written into the buffer
-  /// - returns: Offset of the vector
+  /// Creates a vector of strings
+  ///
+  /// ``createVector(ofStrings:)`` creates a vector of `String` into
+  /// ``ByteBuffer``. This is a convenient method instead of manually
+  /// creating the string offsets, you simply pass it to this function
+  /// and it would write the strings into the ``ByteBuffer``.
+  /// After that it calls ``createVector(ofOffsets:)``
+  ///
+  /// ```swift
+  /// let namesOffsets = builder.
+  ///   createVector(ofStrings: ["Name", "surname"])
+  /// ```
+  ///
+  /// - Parameter str: Array of string
+  /// - returns: ``Offset`` of the vector
   mutating public func createVector(ofStrings str: [String]) -> Offset {
     var offsets: [Offset] = []
     for s in str {
@@ -390,10 +568,22 @@ public struct FlatBufferBuilder {
     return createVector(ofOffsets: offsets)
   }
 
-  /// Creates a vector of `Native swift structs` which were padded to flatbuffers standards
-  /// - Parameter structs: A vector of structs
-  /// - Returns: offset of the vector
-  mutating public func createVector<T: NativeStruct>(ofStructs structs: [T]) -> Offset {
+  /// Creates a vector of type ``NativeStruct``.
+  ///
+  /// Any swift struct in the generated code, should confirm to
+  /// ``NativeStruct``. Since the generated swift structs are padded
+  /// to the `FlatBuffers` standards.
+  ///
+  /// ```swift
+  /// let offsets = builder.
+  ///   createVector(ofStructs: [NativeStr(num: 1), NativeStr(num: 2)])
+  /// ```
+  ///
+  /// - Parameter structs: A vector of ``NativeStruct``
+  /// - Returns: ``Offset`` of the vector
+  mutating public func createVector<T: NativeStruct>(ofStructs structs: [T])
+    -> Offset
+  {
     startVector(
       structs.count * MemoryLayout<T>.size,
       elementSize: MemoryLayout<T>.alignment)
@@ -405,11 +595,21 @@ public struct FlatBufferBuilder {
 
   // MARK: - Inserting Structs
 
-  /// Fills the buffer with a native struct that's build and padded according to flatbuffers standards
+  /// Writes a ``NativeStruct`` into the ``ByteBuffer``
+  ///
+  /// Adds a native struct that's build and padded according
+  /// to `FlatBuffers` standards. with a predefined position.
+  ///
+  /// ```swift
+  /// let offset = builder.create(
+  ///   struct: NativeStr(num: 1),
+  ///   position: 10)
+  /// ```
+  ///
   /// - Parameters:
-  ///   - s: `Native swift` struct to insert
+  ///   - s: ``NativeStruct`` to be inserted into the ``ByteBuffer``
   ///   - position: The  predefined position of the object
-  /// - Returns: offset of written struct
+  /// - Returns: ``Offset`` of written struct
   @discardableResult
   mutating public func create<T: NativeStruct>(
     struct s: T, position: VOffset) -> Offset
@@ -421,10 +621,20 @@ public struct FlatBufferBuilder {
     return offset
   }
 
-  /// Fills the buffer with a native struct that's build and padded according to flatbuffers standards
+  /// Writes a ``NativeStruct`` into the ``ByteBuffer``
+  ///
+  /// Adds a native struct that's build and padded according
+  /// to `FlatBuffers` standards, directly into the buffer without
+  /// a predefined position.
+  ///
+  /// ```swift
+  /// let offset = builder.create(
+  ///   struct: NativeStr(num: 1))
+  /// ```
+  ///
   /// - Parameters:
-  ///   - s: `Native swift` struct to insert
-  /// - Returns: offset of written struct
+  ///   - s: ``NativeStruct`` to be inserted into the ``ByteBuffer``
+  /// - Returns: ``Offset`` of written struct
   @discardableResult
   mutating public func create<T: NativeStruct>(
     struct s: T) -> Offset
@@ -437,9 +647,18 @@ public struct FlatBufferBuilder {
 
   // MARK: - Inserting Strings
 
-  /// Insets a string into the buffer using UTF8
+  /// Insets a string into the buffer of type `UTF8`
+  ///
+  /// Adds a swift string into ``ByteBuffer`` by encoding it
+  /// using `UTF8`
+  ///
+  /// ```swift
+  /// let nameOffset = builder
+  ///   .create(string: "welcome")
+  /// ```
+  ///
   /// - Parameter str: String to be serialized
-  /// - returns: The strings offset in the buffer
+  /// - returns: ``Offset`` of inserted string
   mutating public func create(string str: String?) -> Offset {
     guard let str = str else { return Offset() }
     let len = str.utf8.count
@@ -451,11 +670,25 @@ public struct FlatBufferBuilder {
     return Offset(offset: _bb.size)
   }
 
-  /// Inserts a shared string to the buffer
+  /// Insets a shared string into the buffer of type `UTF8`
   ///
-  /// The function checks the stringOffsetmap if it's seen a similar string before
+  /// Adds a swift string into ``ByteBuffer`` by encoding it
+  /// using `UTF8`. The function will check if the string,
+  /// is already written to the ``ByteBuffer``
+  ///
+  /// ```swift
+  /// let nameOffset = builder
+  ///   .createShared(string: "welcome")
+  ///
+  ///
+  /// let secondOffset = builder
+  ///   .createShared(string: "welcome")
+  ///
+  /// assert(nameOffset.o == secondOffset.o)
+  /// ```
+  ///
   /// - Parameter str: String to be serialized
-  /// - returns: The strings offset in the buffer
+  /// - returns: ``Offset`` of inserted string
   mutating public func createShared(string str: String?) -> Offset {
     guard let str = str else { return Offset() }
     if let offset = stringOffsetMap[str] {
@@ -468,18 +701,22 @@ public struct FlatBufferBuilder {
 
   // MARK: - Inseting offsets
 
-  /// Adds the offset of an object into the buffer
+  /// Writes the ``Offset`` of an already written table
+  ///
+  /// Writes the ``Offset`` of a table if not empty into the
+  /// ``ByteBuffer``
+  ///
   /// - Parameters:
-  ///   - offset: Offset of another object to be written
-  ///   - position: The  predefined position of the object
+  ///   - offset: ``Offset`` of another object to be written
+  ///   - position: The predefined position of the object
   mutating public func add(offset: Offset, at position: VOffset) {
     if offset.isEmpty { return }
     add(element: refer(to: offset.o), def: 0, at: position)
   }
 
-  /// Pushes a value of type offset into the buffer
-  /// - Parameter o: Offset
-  /// - returns: Position of the offset
+  /// Pushes a value of type ``Offset`` into the ``ByteBuffer``
+  /// - Parameter o: ``Offset``
+  /// - returns: Current position of the ``Offset``
   @discardableResult
   mutating public func push(element o: Offset) -> UOffset {
     push(element: refer(to: o.o))
@@ -487,18 +724,42 @@ public struct FlatBufferBuilder {
 
   // MARK: - Inserting Scalars to Buffer
 
-  /// Adds a value into the buffer of type Scalar
+  /// Writes a ``Scalar`` value into ``ByteBuffer``
+  ///
+  /// ``add(element:def:at:)`` takes in a default value, and current value
+  /// and the position within the `VTable`. The default value would not
+  /// be serialized if the value is the same as the current value or
+  /// `serializeDefaults` is equal to false.
+  ///
+  /// If serializing defaults is important ``init(initialSize:serializeDefaults:)``,
+  /// passing true for `serializeDefaults` would do the job.
+  ///
+  /// ```swift
+  /// // Adds 10 to the buffer
+  /// builder.add(element: Int(10), def: 1, position 12)
+  /// ```
+  ///
+  /// *NOTE: Never call this manually*
   ///
   /// - Parameters:
   ///   - element: Element to insert
   ///   - def: Default value for that element
   ///   - position: The predefined position of the element
-  mutating public func add<T: Scalar>(element: T, def: T, at position: VOffset) {
+  mutating public func add<T: Scalar>(
+    element: T,
+    def: T,
+    at position: VOffset)
+  {
     if element == def && !serializeDefaults { return }
     track(offset: push(element: element), at: position)
   }
 
-  /// Adds a value into the buffer of type optional Scalar
+  /// Writes a optional ``Scalar`` value into ``ByteBuffer``
+  ///
+  /// Takes an optional value to be written into the ``ByteBuffer``
+  ///
+  /// *NOTE: Never call this manually*
+  ///
   /// - Parameters:
   ///   - element: Optional element of type scalar
   ///   - position: The predefined position of the element
@@ -507,7 +768,10 @@ public struct FlatBufferBuilder {
     track(offset: push(element: element), at: position)
   }
 
-  /// Pushes the values into the buffer
+  /// Pushes a values of type ``Scalar`` into the ``ByteBuffer``
+  ///
+  /// *NOTE: Never call this manually*
+  ///
   /// - Parameter element: Element to insert
   /// - returns: Postion of the Element
   @discardableResult
@@ -556,7 +820,9 @@ extension FlatBufferBuilder: CustomDebugStringConvertible {
     /// Creates the memory to store the buffer in
     @usableFromInline
     init() {
-      memory = UnsafeMutableRawBufferPointer.allocate(byteCount: 0, alignment: 0)
+      memory = UnsafeMutableRawBufferPointer.allocate(
+        byteCount: 0,
+        alignment: 0)
     }
 
     deinit {

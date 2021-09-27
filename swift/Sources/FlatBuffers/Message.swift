@@ -38,10 +38,12 @@ public struct Message<T: FlatBufferObject>: FlatBufferGRPCMessage {
   public var object: T {
     T.init(
       buffer,
-      o: Int32(buffer.read(def: UOffset.self, position: buffer.reader)) + Int32(buffer.reader))
+      o: Int32(buffer.read(def: UOffset.self, position: buffer.reader)) +
+        Int32(buffer.reader))
   }
 
-  public var rawPointer: UnsafeMutableRawPointer { buffer.memory.advanced(by: buffer.reader) }
+  public var rawPointer: UnsafeMutableRawPointer {
+    buffer.memory.advanced(by: buffer.reader) }
 
   public var size: Int { Int(buffer.size) }
 

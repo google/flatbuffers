@@ -143,7 +143,8 @@ final class FlatbuffersVerifierTests: XCTestCase {
       field: 22,
       fieldName: "test4",
       required: false,
-      type: ForwardOffset<Vector<MyGame_Example_Test, MyGame_Example_Test>>.self))
+      type: ForwardOffset<Vector<MyGame_Example_Test, MyGame_Example_Test>>
+        .self))
 
     XCTAssertNoThrow(try tableVerifer.visit(
       field: 24,
@@ -201,11 +202,15 @@ final class FlatbuffersVerifierTests: XCTestCase {
   }
 
   func testFullVerifier() {
-    XCTAssertNoThrow(try getCheckedRoot(byteBuffer: &validFlatbuffersObject) as MyGame_Example_Monster)
+    XCTAssertNoThrow(
+      try getCheckedRoot(
+        byteBuffer: &validFlatbuffersObject) as MyGame_Example_Monster)
   }
 
   func testInvalidBuffer() {
-    XCTAssertThrowsError(try getCheckedRoot(byteBuffer: &invalidFlatbuffersObject) as MyGame_Example_Monster)
+    XCTAssertThrowsError(
+      try getCheckedRoot(
+        byteBuffer: &invalidFlatbuffersObject) as MyGame_Example_Monster)
   }
 
   func testValidUnionBuffer() {

@@ -164,7 +164,10 @@ public struct ByteBuffer {
   /// Constructor that creates a Flatbuffer from unsafe memory region without copying
   /// - Parameter assumingMemoryBound: The unsafe memory region
   /// - Parameter capacity: The size of the given memory region
-  public init(assumingMemoryBound memory: UnsafeMutableRawPointer, capacity: Int) {
+  public init(
+    assumingMemoryBound memory: UnsafeMutableRawPointer,
+    capacity: Int)
+  {
     _storage = Storage(memory: memory, capacity: capacity, unowned: true)
     _writerSize = capacity
   }
@@ -244,7 +247,10 @@ public struct ByteBuffer {
   @usableFromInline
   mutating func push(string str: String, len: Int) {
     ensureSpace(size: len)
-    if str.utf8.withContiguousStorageIfAvailable({ self.push(bytes: $0, len: len) }) != nil {
+    if str.utf8
+      .withContiguousStorageIfAvailable({ self.push(bytes: $0, len: len) }) !=
+      nil
+    {
     } else {
       let utf8View = str.utf8
       for c in utf8View.reversed() {
@@ -304,7 +310,9 @@ public struct ByteBuffer {
   /// - Parameter size: size of the `VTable`
   @inline(__always)
   mutating func pop(_ size: Int) {
-    assert((_writerSize &- size) > 0, "New size should NOT be a negative number")
+    assert(
+      (_writerSize &- size) > 0,
+      "New size should NOT be a negative number")
     memset(_storage.memory.advanced(by: writerIndex), 0, _writerSize &- size)
     _writerSize = size
   }
@@ -341,7 +349,8 @@ public struct ByteBuffer {
     assert(
       index + count <= _storage.capacity,
       "Reading out of bounds is illegal")
-    let start = _storage.memory.advanced(by: index).assumingMemoryBound(to: T.self)
+    let start = _storage.memory.advanced(by: index)
+      .assumingMemoryBound(to: T.self)
     let array = UnsafeBufferPointer(start: start, count: count)
     return Array(array)
   }
@@ -359,7 +368,8 @@ public struct ByteBuffer {
     assert(
       index + count <= _storage.capacity,
       "Reading out of bounds is illegal")
-    let start = _storage.memory.advanced(by: index).assumingMemoryBound(to: UInt8.self)
+    let start = _storage.memory.advanced(by: index)
+      .assumingMemoryBound(to: UInt8.self)
     let bufprt = UnsafeBufferPointer(start: start, count: count)
     return String(bytes: Array(bufprt), encoding: type)
   }

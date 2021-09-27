@@ -53,7 +53,10 @@ public enum FlatbuffersErrors: Error, Equatable {
     fieldName: String)
   case apparentSizeTooLarge
 
-  public static func == (lhs: FlatbuffersErrors, rhs: FlatbuffersErrors) -> Bool {
+  public static func == (
+    lhs: FlatbuffersErrors,
+    rhs: FlatbuffersErrors) -> Bool
+  {
     lhs.localizedDescription == rhs.localizedDescription
   }
 }

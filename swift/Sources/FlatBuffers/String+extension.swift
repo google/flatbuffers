@@ -47,7 +47,9 @@ extension String: Verifiable {
 
     if !verifier._options._ignoreMissingNullTerminators && !isNullTerminated {
       let str = verifier._buffer.readString(at: range.start, count: range.count)
-      throw FlatbuffersErrors.missingNullTerminator(position: position, str: str)
+      throw FlatbuffersErrors.missingNullTerminator(
+        position: position,
+        str: str)
     }
   }
 }
@@ -69,12 +71,18 @@ extension String: FlatbuffersInitializable {
 
 extension String: ObjectAPIPacker {
 
-  public static func pack(_ builder: inout FlatBufferBuilder, obj: inout String?) -> Offset {
+  public static func pack(
+    _ builder: inout FlatBufferBuilder,
+    obj: inout String?) -> Offset
+  {
     guard var obj = obj else { return Offset() }
     return pack(&builder, obj: &obj)
   }
 
-  public static func pack(_ builder: inout FlatBufferBuilder, obj: inout String) -> Offset {
+  public static func pack(
+    _ builder: inout FlatBufferBuilder,
+    obj: inout String) -> Offset
+  {
     builder.create(string: obj)
   }
 
@@ -86,7 +94,9 @@ extension String: ObjectAPIPacker {
 
 extension String: NativeObject {
 
-  public func serialize<T: ObjectAPIPacker>(type: T.Type) -> ByteBuffer where T.T == Self {
+  public func serialize<T: ObjectAPIPacker>(type: T.Type) -> ByteBuffer
+    where T.T == Self
+  {
     fatalError("serialize should never be called from string directly")
   }
 

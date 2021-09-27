@@ -136,7 +136,9 @@ extension FlatbuffersVerifierTests {
 public func __allTests() -> [XCTestCaseEntry] {
   [
     testCase(FlatBuffersDoubleTests.__allTests__FlatBuffersDoubleTests),
-    testCase(FlatBuffersMonsterWriterTests.__allTests__FlatBuffersMonsterWriterTests),
+    testCase(
+      FlatBuffersMonsterWriterTests
+        .__allTests__FlatBuffersMonsterWriterTests),
     testCase(FlatBuffersMoreDefaults.__allTests__FlatBuffersMoreDefaults),
     testCase(FlatBuffersStructsTests.__allTests__FlatBuffersStructsTests),
     testCase(FlatBuffersTests.__allTests__FlatBuffersTests),

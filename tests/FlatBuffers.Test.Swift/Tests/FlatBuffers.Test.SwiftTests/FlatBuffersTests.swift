@@ -108,7 +108,8 @@ final class FlatBuffersTests: XCTestCase {
       justEnum: .one,
       maybeEnum: nil)
     b.finish(offset: root)
-    let scalarTable = optional_scalars_ScalarStuff.getRootAsScalarStuff(bb: b.sizedBuffer)
+    let scalarTable = optional_scalars_ScalarStuff
+      .getRootAsScalarStuff(bb: b.sizedBuffer)
     XCTAssertEqual(scalarTable.justI8, 80)
     XCTAssertNil(scalarTable.maybeI8)
     XCTAssertEqual(scalarTable.maybeBool, true)
@@ -136,7 +137,8 @@ class Country {
     of: Int32.self,
     at: o) }
   var nameVector: [UInt8]? { __t.getVector(at: 4) }
-  var name: String? { let o = __t.offset(4); return o == 0 ? nil : __t.string(at: o) }
+  var name: String? {
+    let o = __t.offset(4); return o == 0 ? nil : __t.string(at: o) }
 
   @inlinable
   static func getRootAsCountry(_ bb: ByteBuffer) -> Country {
@@ -174,7 +176,10 @@ class Country {
   }
 
   @inlinable
-  static func end(builder: inout FlatBufferBuilder, startOffset: UOffset) -> Offset {
+  static func end(
+    builder: inout FlatBufferBuilder,
+    startOffset: UOffset) -> Offset
+  {
     Offset(offset: builder.endTable(at: startOffset))
   }
 
