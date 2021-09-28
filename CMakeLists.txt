@@ -483,7 +483,10 @@ endfunction()
 # Look if we have python 3 installed so that we can run the generate code python
 # script after flatc is built.
 find_package(PythonInterp 3)
-if(PYTHONINTERP_FOUND)
+if(PYTHONINTERP_FOUND AND
+  # Skip doing this if the MSVC version is below VS 12.
+  # https://cmake.org/cmake/help/latest/variable/MSVC_VERSION.html
+  (WIN32 AND MSVC_VERSION GREATER 1800))
   if(WIN32)
     set(GENERATION_SCRIPT "py")
     set(GENERATION_ARGS "scripts/generate_code.py ${FLATBUFFERS_FLATC_EXECUTABLE}")
