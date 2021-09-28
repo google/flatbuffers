@@ -485,16 +485,14 @@ endfunction()
 find_package(PythonInterp 3)
 if(PYTHONINTERP_FOUND)
   if(WIN32)
-    set(GENERATION_SCRIPT "py")
-    set(GENERATION_ARGS "scripts/generate_code.py ${FLATBUFFERS_FLATC_EXECUTABLE}")
+    set(GENERATION_SCRIPT py scripts/generate_code.py)
    else()
-    set(GENERATION_SCRIPT "scripts/generate_code.py")
-    set(GENERATION_ARGS "${FLATBUFFERS_FLATC_EXECUTABLE}")
+    set(GENERATION_SCRIPT scripts/generate_code.py)
   endif()
   add_custom_command(
     TARGET flatc
     POST_BUILD
-    COMMAND "${GENERATION_SCRIPT}" "${GENERATION_ARGS}"
+    COMMAND ${GENERATION_SCRIPT} "${FLATBUFFERS_FLATC_EXECUTABLE}"
     COMMENT "Generating code..."
     VERBATIM)
 endif()
