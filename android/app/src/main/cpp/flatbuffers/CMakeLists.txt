@@ -15,29 +15,29 @@ set(CMAKE_CXX_FLAGS
    "${CMAKE_CXX_FLAGS} -fsigned-char")
 
 set(FlatBuffers_Library_SRCS
-        ${FLATBUFFERS_DIR}/include/flatbuffers/allocator.h
-        ${FLATBUFFERS_DIR}/include/flatbuffers/array.h
-        ${FLATBUFFERS_DIR}/include/flatbuffers/base.h
-        ${FLATBUFFERS_DIR}/include/flatbuffers/buffer_ref.h
-        ${FLATBUFFERS_DIR}/include/flatbuffers/default_allocator.h
-        ${FLATBUFFERS_DIR}/include/flatbuffers/detached_buffer.h
-        ${FLATBUFFERS_DIR}/include/flatbuffers/flatbuffer_builder.h
-        ${FLATBUFFERS_DIR}/include/flatbuffers/flatbuffers.h
-        ${FLATBUFFERS_DIR}/include/flatbuffers/flexbuffers.h
-        ${FLATBUFFERS_DIR}/include/flatbuffers/hash.h
-        ${FLATBUFFERS_DIR}/include/flatbuffers/idl.h
-        ${FLATBUFFERS_DIR}/include/flatbuffers/minireflect.h
-        ${FLATBUFFERS_DIR}/include/flatbuffers/reflection.h
-        ${FLATBUFFERS_DIR}/include/flatbuffers/reflection_generated.h
-        ${FLATBUFFERS_DIR}/include/flatbuffers/registry.h
-        ${FLATBUFFERS_DIR}/include/flatbuffers/stl_emulation.h
-        ${FLATBUFFERS_DIR}/include/flatbuffers/string.h
-        ${FLATBUFFERS_DIR}/include/flatbuffers/struct.h
-        ${FLATBUFFERS_DIR}/include/flatbuffers/table.h
-        ${FLATBUFFERS_DIR}/include/flatbuffers/util.h
-        ${FLATBUFFERS_DIR}/include/flatbuffers/vector.h
-        ${FLATBUFFERS_DIR}/include/flatbuffers/vector_downward.h
-        ${FLATBUFFERS_DIR}/include/flatbuffers/verifier.h
+        ${FLATBUFFERS_SRC}/include/flatbuffers/allocator.h
+        ${FLATBUFFERS_SRC}/include/flatbuffers/array.h
+        ${FLATBUFFERS_SRC}/include/flatbuffers/base.h
+        ${FLATBUFFERS_SRC}/include/flatbuffers/buffer_ref.h
+        ${FLATBUFFERS_SRC}/include/flatbuffers/default_allocator.h
+        ${FLATBUFFERS_SRC}/include/flatbuffers/detached_buffer.h
+        ${FLATBUFFERS_SRC}/include/flatbuffers/flatbuffer_builder.h
+        ${FLATBUFFERS_SRC}/include/flatbuffers/flatbuffers.h
+        ${FLATBUFFERS_SRC}/include/flatbuffers/flexbuffers.h
+        ${FLATBUFFERS_SRC}/include/flatbuffers/hash.h
+        ${FLATBUFFERS_SRC}/include/flatbuffers/idl.h
+        ${FLATBUFFERS_SRC}/include/flatbuffers/minireflect.h
+        ${FLATBUFFERS_SRC}/include/flatbuffers/reflection.h
+        ${FLATBUFFERS_SRC}/include/flatbuffers/reflection_generated.h
+        ${FLATBUFFERS_SRC}/include/flatbuffers/registry.h
+        ${FLATBUFFERS_SRC}/include/flatbuffers/stl_emulation.h
+        ${FLATBUFFERS_SRC}/include/flatbuffers/string.h
+        ${FLATBUFFERS_SRC}/include/flatbuffers/struct.h
+        ${FLATBUFFERS_SRC}/include/flatbuffers/table.h
+        ${FLATBUFFERS_SRC}/include/flatbuffers/util.h
+        ${FLATBUFFERS_SRC}/include/flatbuffers/vector.h
+        ${FLATBUFFERS_SRC}/include/flatbuffers/vector_downward.h
+        ${FLATBUFFERS_SRC}/include/flatbuffers/verifier.h
         ${FLATBUFFERS_SRC}/src/idl_parser.cpp
         ${FLATBUFFERS_SRC}/src/idl_gen_text.cpp
         ${FLATBUFFERS_SRC}/src/reflection.cpp
