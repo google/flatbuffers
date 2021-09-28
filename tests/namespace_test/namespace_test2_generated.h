@@ -93,7 +93,7 @@ struct TableInFirstNS FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   NamespaceA::NamespaceB::EnumInNestedNS foo_enum() const {
     return static_cast<NamespaceA::NamespaceB::EnumInNestedNS>(GetField<int8_t>(VT_FOO_ENUM, 0));
   }
-  bool mutate_foo_enum(NamespaceA::NamespaceB::EnumInNestedNS _foo_enum) {
+  bool mutate_foo_enum(NamespaceA::NamespaceB::EnumInNestedNS _foo_enum = static_cast<NamespaceA::NamespaceB::EnumInNestedNS>(0)) {
     return SetField<int8_t>(VT_FOO_ENUM, static_cast<int8_t>(_foo_enum), 0);
   }
   NamespaceA::NamespaceB::UnionInNestedNS foo_union_type() const {
