@@ -29,10 +29,17 @@ script_path = Path(__file__).parent.resolve()
 # Get the root path as an absolute path, so all derived paths are absolute.
 root_path = script_path.parent.absolute()
 
+# Get the location of the flatc executable, reading from the first command line
+# argument or defaulting to default names.
+flatc_exe = Path(
+    ("flatc" if not platform.system() == "Windows" else "flatc.exe")
+    if len(sys.argv) <= 1
+    else sys.argv[1]
+)
+
 # Find and assert flatc compiler is present.
-flatc_exe = "flatc" if not platform.system() == "Windows" else "flatc.exe"
-if len(sys.argv) > 1:
-    flatc_exe = sys.argv[1]
+if root_path in flatc_exe.parents:
+    flatc_exe = flatc_exe.relative_to(root_path)
 flatc_path = Path(root_path, flatc_exe)
 assert flatc_path.exists(), "Cannot find the flatc compiler " + str(flatc_path)
 

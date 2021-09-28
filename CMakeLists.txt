@@ -486,10 +486,10 @@ find_package(PythonInterp 3)
 if(PYTHONINTERP_FOUND)
   if(WIN32)
     set(GENERATION_SCRIPT "py")
-    set(GENERATION_ARGS "scripts/generate_code.py ${FLATFLATBUFFERS_FLATC_EXECUTABLE}")
+    set(GENERATION_ARGS "scripts/generate_code.py ${FLATBUFFERS_FLATC_EXECUTABLE}")
    else()
     set(GENERATION_SCRIPT "scripts/generate_code.py")
-    set(GENERATION_ARGS "${FLATFLATBUFFERS_FLATC_EXECUTABLE}")
+    set(GENERATION_ARGS "${FLATBUFFERS_FLATC_EXECUTABLE}")
   endif()
   add_custom_command(
     TARGET flatc
