@@ -494,7 +494,7 @@ if(PYTHONINTERP_FOUND)
   add_custom_command(
     TARGET flatc
     POST_BUILD
-    COMMAND ${GENERATION_SCRIPT} ${GENERATION_ARGS}
+    COMMAND "${GENERATION_SCRIPT}" "${GENERATION_ARGS}"
     COMMENT "Generating code..."
     VERBATIM)
 endif()
