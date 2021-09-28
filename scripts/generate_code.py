@@ -19,6 +19,7 @@ import glob
 import platform
 import shutil
 import subprocess
+import sys
 from pathlib import Path
 
 # Get the path where this script is located so we can invoke the script from
@@ -29,7 +30,10 @@ script_path = Path(__file__).parent.resolve()
 root_path = script_path.parent.absolute()
 
 # Find and assert flatc compiler is present.
-flatc_path = Path(root_path, "flatc" if not platform.system() == "Windows" else "flatc.exe")
+flatc_exe = "flatc" if not platform.system() == "Windows" else "flatc.exe"
+if len(sys.argv) > 1:
+    flatc_exe = sys.argv[1]
+flatc_path = Path(root_path, flatc_exe)
 assert flatc_path.exists(), "Cannot find the flatc compiler " + str(flatc_path)
 
 # Specify the other paths that will be referenced
