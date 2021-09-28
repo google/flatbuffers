@@ -187,7 +187,7 @@ class Monster {
   int get mana => const fb.Int16Reader().vTableGet(_bc, _bcOffset, 6, 150);
   int get hp => const fb.Int16Reader().vTableGet(_bc, _bcOffset, 8, 100);
   String? get name => const fb.StringReader().vTableGetNullable(_bc, _bcOffset, 10);
-  List<int>? get inventory => const fb.ListReader<int>(fb.Uint8Reader()).vTableGetNullable(_bc, _bcOffset, 14);
+  List<int>? get inventory => const fb.Uint8ListReader().vTableGetNullable(_bc, _bcOffset, 14);
   Color get color => Color.fromValue(const fb.Int8Reader().vTableGet(_bc, _bcOffset, 16, 2));
   List<Weapon>? get weapons => const fb.ListReader<Weapon>(Weapon.reader).vTableGetNullable(_bc, _bcOffset, 18);
   EquipmentTypeId? get equippedType => EquipmentTypeId._createOrNull(const fb.Uint8Reader().vTableGetNullable(_bc, _bcOffset, 20));

@@ -35,7 +35,8 @@ class Monster {
   }
 }
 
-class MonsterT {
+class MonsterT implements fb.Packable {
+  @override
   int pack(fb.Builder fbBuilder) {
     fbBuilder.startTable(0);
     return fbBuilder.endTable();

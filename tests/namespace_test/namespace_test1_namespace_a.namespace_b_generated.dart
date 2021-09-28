@@ -125,12 +125,13 @@ class TableInNestedNS {
   }
 }
 
-class TableInNestedNST {
+class TableInNestedNST implements fb.Packable {
   int foo;
 
   TableInNestedNST({
       this.foo = 0});
 
+  @override
   int pack(fb.Builder fbBuilder) {
     fbBuilder.startTable(1);
     fbBuilder.addInt32(0, foo);
@@ -220,7 +221,7 @@ class StructInNestedNS {
   }
 }
 
-class StructInNestedNST {
+class StructInNestedNST implements fb.Packable {
   int a;
   int b;
 
@@ -228,6 +229,7 @@ class StructInNestedNST {
       required this.a,
       required this.b});
 
+  @override
   int pack(fb.Builder fbBuilder) {
     fbBuilder.putInt32(b);
     fbBuilder.putInt32(a);

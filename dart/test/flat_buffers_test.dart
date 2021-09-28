@@ -751,6 +751,7 @@ class BuilderTest {
 class ObjectAPITest {
   void test_tableStat() {
     final object1 = example.StatT(count: 3, id: "foo", val: 4);
+    expect(object1 is Packable, isTrue);
     final fbb = Builder();
     fbb.finish(object1.pack(fbb));
     final object2 = example.Stat(fbb.buffer).unpack();

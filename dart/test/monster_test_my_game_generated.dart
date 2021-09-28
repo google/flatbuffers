@@ -35,7 +35,8 @@ class InParentNamespace {
   }
 }
 
-class InParentNamespaceT {
+class InParentNamespaceT implements fb.Packable {
+  @override
   int pack(fb.Builder fbBuilder) {
     fbBuilder.startTable(0);
     return fbBuilder.endTable();

@@ -38,7 +38,7 @@ class TableInC {
   }
 }
 
-class TableInCT {
+class TableInCT implements fb.Packable {
   namespace_a.TableInFirstNST? referToA1;
   namespace_a.SecondTableInAT? referToA2;
 
@@ -46,6 +46,7 @@ class TableInCT {
       this.referToA1,
       this.referToA2});
 
+  @override
   int pack(fb.Builder fbBuilder) {
     final int? referToA1Offset = referToA1?.pack(fbBuilder);
     final int? referToA2Offset = referToA2?.pack(fbBuilder);

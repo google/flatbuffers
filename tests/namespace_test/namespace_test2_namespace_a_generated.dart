@@ -49,7 +49,7 @@ class TableInFirstNS {
   }
 }
 
-class TableInFirstNST {
+class TableInFirstNST implements fb.Packable {
   namespace_a_namespace_b.TableInNestedNST? fooTable;
   EnumInNestedNS fooEnum;
   UnionInNestedNSTypeId? fooUnionType;
@@ -63,6 +63,7 @@ class TableInFirstNST {
       this.fooUnion,
       this.fooStruct});
 
+  @override
   int pack(fb.Builder fbBuilder) {
     final int? fooTableOffset = fooTable?.pack(fbBuilder);
     final int? fooUnionOffset = fooUnion?.pack(fbBuilder);
@@ -198,12 +199,13 @@ class SecondTableInA {
   }
 }
 
-class SecondTableInAT {
+class SecondTableInAT implements fb.Packable {
   namespace_c.TableInCT? referToC;
 
   SecondTableInAT({
       this.referToC});
 
+  @override
   int pack(fb.Builder fbBuilder) {
     final int? referToCOffset = referToC?.pack(fbBuilder);
     fbBuilder.startTable(1);

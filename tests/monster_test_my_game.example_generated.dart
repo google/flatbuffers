@@ -277,7 +277,7 @@ class Test {
   }
 }
 
-class TestT {
+class TestT implements fb.Packable {
   int a;
   int b;
 
@@ -285,6 +285,7 @@ class TestT {
       required this.a,
       required this.b});
 
+  @override
   int pack(fb.Builder fbBuilder) {
     fbBuilder.pad(1);
     fbBuilder.putInt8(b);
@@ -379,12 +380,13 @@ class TestSimpleTableWithEnum {
   }
 }
 
-class TestSimpleTableWithEnumT {
+class TestSimpleTableWithEnumT implements fb.Packable {
   Color color;
 
   TestSimpleTableWithEnumT({
       this.color = Color.Green});
 
+  @override
   int pack(fb.Builder fbBuilder) {
     fbBuilder.startTable(1);
     fbBuilder.addUint8(0, color.value);
@@ -482,7 +484,7 @@ class Vec3 {
   }
 }
 
-class Vec3T {
+class Vec3T implements fb.Packable {
   double x;
   double y;
   double z;
@@ -498,6 +500,7 @@ class Vec3T {
       required this.test2,
       required this.test3});
 
+  @override
   int pack(fb.Builder fbBuilder) {
     fbBuilder.pad(2);
     test3.pack(fbBuilder);
@@ -620,7 +623,7 @@ class Ability {
   }
 }
 
-class AbilityT {
+class AbilityT implements fb.Packable {
   int id;
   int distance;
 
@@ -628,6 +631,7 @@ class AbilityT {
       required this.id,
       required this.distance});
 
+  @override
   int pack(fb.Builder fbBuilder) {
     fbBuilder.putUint32(distance);
     fbBuilder.putUint32(id);
@@ -719,7 +723,7 @@ class StructOfStructs {
   }
 }
 
-class StructOfStructsT {
+class StructOfStructsT implements fb.Packable {
   AbilityT a;
   TestT b;
   AbilityT c;
@@ -729,6 +733,7 @@ class StructOfStructsT {
       required this.b,
       required this.c});
 
+  @override
   int pack(fb.Builder fbBuilder) {
     c.pack(fbBuilder);
     b.pack(fbBuilder);
@@ -830,7 +835,7 @@ class Stat {
   }
 }
 
-class StatT {
+class StatT implements fb.Packable {
   String? id;
   int val;
   int count;
@@ -840,6 +845,7 @@ class StatT {
       this.val = 0,
       this.count = 0});
 
+  @override
   int pack(fb.Builder fbBuilder) {
     final int? idOffset = id == null ? null
         : fbBuilder.writeString(id!);
@@ -953,12 +959,13 @@ class Referrable {
   }
 }
 
-class ReferrableT {
+class ReferrableT implements fb.Packable {
   int id;
 
   ReferrableT({
       this.id = 0});
 
+  @override
   int pack(fb.Builder fbBuilder) {
     fbBuilder.startTable(1);
     fbBuilder.addUint64(0, id);
@@ -1173,7 +1180,7 @@ class Monster {
 }
 
 ///  an example documentation comment: "monster object"
-class MonsterT {
+class MonsterT implements fb.Packable {
   Vec3T? pos;
   int mana;
   int hp;
@@ -1279,6 +1286,7 @@ class MonsterT {
       this.testrequirednestedflatbuffer,
       this.scalarKeySortedTables});
 
+  @override
   int pack(fb.Builder fbBuilder) {
     final int? nameOffset = name == null ? null
         : fbBuilder.writeString(name!);
@@ -1942,7 +1950,7 @@ class TypeAliases {
   }
 }
 
-class TypeAliasesT {
+class TypeAliasesT implements fb.Packable {
   int i8;
   int u8;
   int i16;
@@ -1970,6 +1978,7 @@ class TypeAliasesT {
       this.v8,
       this.vf64});
 
+  @override
   int pack(fb.Builder fbBuilder) {
     final int? v8Offset = v8 == null ? null
         : fbBuilder.writeListInt8(v8!);
