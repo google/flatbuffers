@@ -16,6 +16,7 @@
 
 import filecmp
 import glob
+import platform
 import shutil
 import subprocess
 from pathlib import Path
@@ -28,7 +29,7 @@ script_path = Path(__file__).parent.resolve()
 root_path = script_path.parent.absolute()
 
 # Find and assert flatc compiler is present.
-flatc_path = Path(root_path, "flatc")
+flatc_path = Path(root_path, "flatc" if not platform.system() == "Windows" else "flatc.exe")
 assert flatc_path.exists(), "Cannot find the flatc compiler " + str(flatc_path)
 
 # Specify the other paths that will be referenced
@@ -40,7 +41,7 @@ reflection_path = Path(root_path, "reflection")
 def flatc(
     options, schema, prefix=None, include=None, data=None, cwd=tests_path
 ):
-    cmd = [flatc_path] + options
+    cmd = [str(flatc_path)] + options
     if prefix:
         cmd += ["-o"] + [prefix]
     if include:
