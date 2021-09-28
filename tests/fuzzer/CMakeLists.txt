@@ -85,17 +85,29 @@ target_link_libraries(
 set(FLATBUFFERS_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../../")
 
 set(FlatBuffers_Library_SRCS
+    ${FLATBUFFERS_DIR}/include/flatbuffers/allocator.h
+    ${FLATBUFFERS_DIR}/include/flatbuffers/array.h
     ${FLATBUFFERS_DIR}/include/flatbuffers/base.h
+    ${FLATBUFFERS_DIR}/include/flatbuffers/buffer_ref.h
+    ${FLATBUFFERS_DIR}/include/flatbuffers/default_allocator.h
+    ${FLATBUFFERS_DIR}/include/flatbuffers/detached_buffer.h
+    ${FLATBUFFERS_DIR}/include/flatbuffers/flatbuffer_builder.h
     ${FLATBUFFERS_DIR}/include/flatbuffers/flatbuffers.h
+    ${FLATBUFFERS_DIR}/include/flatbuffers/flexbuffers.h
     ${FLATBUFFERS_DIR}/include/flatbuffers/hash.h
     ${FLATBUFFERS_DIR}/include/flatbuffers/idl.h
-    ${FLATBUFFERS_DIR}/include/flatbuffers/util.h
+    ${FLATBUFFERS_DIR}/include/flatbuffers/minireflect.h
     ${FLATBUFFERS_DIR}/include/flatbuffers/reflection.h
     ${FLATBUFFERS_DIR}/include/flatbuffers/reflection_generated.h
-    ${FLATBUFFERS_DIR}/include/flatbuffers/stl_emulation.h
-    ${FLATBUFFERS_DIR}/include/flatbuffers/flexbuffers.h
     ${FLATBUFFERS_DIR}/include/flatbuffers/registry.h
-    ${FLATBUFFERS_DIR}/include/flatbuffers/minireflect.h
+    ${FLATBUFFERS_DIR}/include/flatbuffers/stl_emulation.h
+    ${FLATBUFFERS_DIR}/include/flatbuffers/string.h
+    ${FLATBUFFERS_DIR}/include/flatbuffers/struct.h
+    ${FLATBUFFERS_DIR}/include/flatbuffers/table.h
+    ${FLATBUFFERS_DIR}/include/flatbuffers/util.h
+    ${FLATBUFFERS_DIR}/include/flatbuffers/vector.h
+    ${FLATBUFFERS_DIR}/include/flatbuffers/vector_downward.h
+    ${FLATBUFFERS_DIR}/include/flatbuffers/verifier.h
     ${FLATBUFFERS_DIR}/src/idl_parser.cpp
     ${FLATBUFFERS_DIR}/src/idl_gen_text.cpp
     ${FLATBUFFERS_DIR}/src/reflection.cpp

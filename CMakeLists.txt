@@ -73,17 +73,29 @@ endif()
 add_definitions(-DFLATBUFFERS_LOCALE_INDEPENDENT=$<BOOL:${FLATBUFFERS_LOCALE_INDEPENDENT}>)
 
 set(FlatBuffers_Library_SRCS
+  include/flatbuffers/allocator.h
+  include/flatbuffers/array.h
   include/flatbuffers/base.h
+  include/flatbuffers/buffer_ref.h
+  include/flatbuffers/default_allocator.h
+  include/flatbuffers/detached_buffer.h
+  include/flatbuffers/flatbuffer_builder.h
   include/flatbuffers/flatbuffers.h
+  include/flatbuffers/flexbuffers.h
   include/flatbuffers/hash.h
   include/flatbuffers/idl.h
-  include/flatbuffers/util.h
+  include/flatbuffers/minireflect.h
   include/flatbuffers/reflection.h
   include/flatbuffers/reflection_generated.h
-  include/flatbuffers/stl_emulation.h
-  include/flatbuffers/flexbuffers.h
   include/flatbuffers/registry.h
-  include/flatbuffers/minireflect.h
+  include/flatbuffers/stl_emulation.h
+  include/flatbuffers/string.h
+  include/flatbuffers/struct.h
+  include/flatbuffers/table.h
+  include/flatbuffers/util.h
+  include/flatbuffers/vector.h
+  include/flatbuffers/vector_downward.h
+  include/flatbuffers/verifier.h
   src/idl_parser.cpp
   src/idl_gen_text.cpp
   src/reflection.cpp
