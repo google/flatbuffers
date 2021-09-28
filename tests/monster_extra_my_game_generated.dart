@@ -53,7 +53,7 @@ class MonsterExtra {
   }
 }
 
-class MonsterExtraT {
+class MonsterExtraT implements fb.Packable {
   double d0;
   double d1;
   double d2;
@@ -77,6 +77,7 @@ class MonsterExtraT {
       this.dvec,
       this.fvec});
 
+  @override
   int pack(fb.Builder fbBuilder) {
     final int? dvecOffset = dvec == null ? null
         : fbBuilder.writeListFloat64(dvec!);
