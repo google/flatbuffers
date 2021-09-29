@@ -532,6 +532,14 @@ class CppGenerator : public BaseGenerator {
         code_ += "      buf, {{STRUCT_NAME}}Identifier());";
         code_ += "}";
         code_ += "";
+
+        // Check if a size-prefixed buffer has the identifier.
+        code_ += "inline \\";
+        code_ += "bool SizePrefixed{{STRUCT_NAME}}BufferHasIdentifier(const void *buf) {";
+        code_ += "  return flatbuffers::BufferHasIdentifier(";
+        code_ += "      buf, {{STRUCT_NAME}}Identifier(), true);";
+        code_ += "}";
+        code_ += "";
       }
 
       // The root verifier.
