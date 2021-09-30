@@ -135,7 +135,7 @@ struct ScalarStuff FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   int8_t just_i8() const {
     return GetField<int8_t>(VT_JUST_I8, 0);
   }
-  bool mutate_just_i8(int8_t _just_i8) {
+  bool mutate_just_i8(int8_t _just_i8 = 0) {
     return SetField<int8_t>(VT_JUST_I8, _just_i8, 0);
   }
   flatbuffers::Optional<int8_t> maybe_i8() const {
@@ -147,13 +147,13 @@ struct ScalarStuff FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   int8_t default_i8() const {
     return GetField<int8_t>(VT_DEFAULT_I8, 42);
   }
-  bool mutate_default_i8(int8_t _default_i8) {
+  bool mutate_default_i8(int8_t _default_i8 = 42) {
     return SetField<int8_t>(VT_DEFAULT_I8, _default_i8, 42);
   }
   uint8_t just_u8() const {
     return GetField<uint8_t>(VT_JUST_U8, 0);
   }
-  bool mutate_just_u8(uint8_t _just_u8) {
+  bool mutate_just_u8(uint8_t _just_u8 = 0) {
     return SetField<uint8_t>(VT_JUST_U8, _just_u8, 0);
   }
   flatbuffers::Optional<uint8_t> maybe_u8() const {
@@ -165,13 +165,13 @@ struct ScalarStuff FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   uint8_t default_u8() const {
     return GetField<uint8_t>(VT_DEFAULT_U8, 42);
   }
-  bool mutate_default_u8(uint8_t _default_u8) {
+  bool mutate_default_u8(uint8_t _default_u8 = 42) {
     return SetField<uint8_t>(VT_DEFAULT_U8, _default_u8, 42);
   }
   int16_t just_i16() const {
     return GetField<int16_t>(VT_JUST_I16, 0);
   }
-  bool mutate_just_i16(int16_t _just_i16) {
+  bool mutate_just_i16(int16_t _just_i16 = 0) {
     return SetField<int16_t>(VT_JUST_I16, _just_i16, 0);
   }
   flatbuffers::Optional<int16_t> maybe_i16() const {
@@ -183,13 +183,13 @@ struct ScalarStuff FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   int16_t default_i16() const {
     return GetField<int16_t>(VT_DEFAULT_I16, 42);
   }
-  bool mutate_default_i16(int16_t _default_i16) {
+  bool mutate_default_i16(int16_t _default_i16 = 42) {
     return SetField<int16_t>(VT_DEFAULT_I16, _default_i16, 42);
   }
   uint16_t just_u16() const {
     return GetField<uint16_t>(VT_JUST_U16, 0);
   }
-  bool mutate_just_u16(uint16_t _just_u16) {
+  bool mutate_just_u16(uint16_t _just_u16 = 0) {
     return SetField<uint16_t>(VT_JUST_U16, _just_u16, 0);
   }
   flatbuffers::Optional<uint16_t> maybe_u16() const {
@@ -201,13 +201,13 @@ struct ScalarStuff FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   uint16_t default_u16() const {
     return GetField<uint16_t>(VT_DEFAULT_U16, 42);
   }
-  bool mutate_default_u16(uint16_t _default_u16) {
+  bool mutate_default_u16(uint16_t _default_u16 = 42) {
     return SetField<uint16_t>(VT_DEFAULT_U16, _default_u16, 42);
   }
   int32_t just_i32() const {
     return GetField<int32_t>(VT_JUST_I32, 0);
   }
-  bool mutate_just_i32(int32_t _just_i32) {
+  bool mutate_just_i32(int32_t _just_i32 = 0) {
     return SetField<int32_t>(VT_JUST_I32, _just_i32, 0);
   }
   flatbuffers::Optional<int32_t> maybe_i32() const {
@@ -219,13 +219,13 @@ struct ScalarStuff FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   int32_t default_i32() const {
     return GetField<int32_t>(VT_DEFAULT_I32, 42);
   }
-  bool mutate_default_i32(int32_t _default_i32) {
+  bool mutate_default_i32(int32_t _default_i32 = 42) {
     return SetField<int32_t>(VT_DEFAULT_I32, _default_i32, 42);
   }
   uint32_t just_u32() const {
     return GetField<uint32_t>(VT_JUST_U32, 0);
   }
-  bool mutate_just_u32(uint32_t _just_u32) {
+  bool mutate_just_u32(uint32_t _just_u32 = 0) {
     return SetField<uint32_t>(VT_JUST_U32, _just_u32, 0);
   }
   flatbuffers::Optional<uint32_t> maybe_u32() const {
@@ -237,13 +237,13 @@ struct ScalarStuff FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   uint32_t default_u32() const {
     return GetField<uint32_t>(VT_DEFAULT_U32, 42);
   }
-  bool mutate_default_u32(uint32_t _default_u32) {
+  bool mutate_default_u32(uint32_t _default_u32 = 42) {
     return SetField<uint32_t>(VT_DEFAULT_U32, _default_u32, 42);
   }
   int64_t just_i64() const {
     return GetField<int64_t>(VT_JUST_I64, 0);
   }
-  bool mutate_just_i64(int64_t _just_i64) {
+  bool mutate_just_i64(int64_t _just_i64 = 0) {
     return SetField<int64_t>(VT_JUST_I64, _just_i64, 0);
   }
   flatbuffers::Optional<int64_t> maybe_i64() const {
@@ -255,13 +255,13 @@ struct ScalarStuff FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   int64_t default_i64() const {
     return GetField<int64_t>(VT_DEFAULT_I64, 42LL);
   }
-  bool mutate_default_i64(int64_t _default_i64) {
+  bool mutate_default_i64(int64_t _default_i64 = 42LL) {
     return SetField<int64_t>(VT_DEFAULT_I64, _default_i64, 42LL);
   }
   uint64_t just_u64() const {
     return GetField<uint64_t>(VT_JUST_U64, 0);
   }
-  bool mutate_just_u64(uint64_t _just_u64) {
+  bool mutate_just_u64(uint64_t _just_u64 = 0) {
     return SetField<uint64_t>(VT_JUST_U64, _just_u64, 0);
   }
   flatbuffers::Optional<uint64_t> maybe_u64() const {
@@ -273,13 +273,13 @@ struct ScalarStuff FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   uint64_t default_u64() const {
     return GetField<uint64_t>(VT_DEFAULT_U64, 42ULL);
   }
-  bool mutate_default_u64(uint64_t _default_u64) {
+  bool mutate_default_u64(uint64_t _default_u64 = 42ULL) {
     return SetField<uint64_t>(VT_DEFAULT_U64, _default_u64, 42ULL);
   }
   float just_f32() const {
     return GetField<float>(VT_JUST_F32, 0.0f);
   }
-  bool mutate_just_f32(float _just_f32) {
+  bool mutate_just_f32(float _just_f32 = 0.0f) {
     return SetField<float>(VT_JUST_F32, _just_f32, 0.0f);
   }
   flatbuffers::Optional<float> maybe_f32() const {
@@ -291,13 +291,13 @@ struct ScalarStuff FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   float default_f32() const {
     return GetField<float>(VT_DEFAULT_F32, 42.0f);
   }
-  bool mutate_default_f32(float _default_f32) {
+  bool mutate_default_f32(float _default_f32 = 42.0f) {
     return SetField<float>(VT_DEFAULT_F32, _default_f32, 42.0f);
   }
   double just_f64() const {
     return GetField<double>(VT_JUST_F64, 0.0);
   }
-  bool mutate_just_f64(double _just_f64) {
+  bool mutate_just_f64(double _just_f64 = 0.0) {
     return SetField<double>(VT_JUST_F64, _just_f64, 0.0);
   }
   flatbuffers::Optional<double> maybe_f64() const {
@@ -309,13 +309,13 @@ struct ScalarStuff FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   double default_f64() const {
     return GetField<double>(VT_DEFAULT_F64, 42.0);
   }
-  bool mutate_default_f64(double _default_f64) {
+  bool mutate_default_f64(double _default_f64 = 42.0) {
     return SetField<double>(VT_DEFAULT_F64, _default_f64, 42.0);
   }
   bool just_bool() const {
     return GetField<uint8_t>(VT_JUST_BOOL, 0) != 0;
   }
-  bool mutate_just_bool(bool _just_bool) {
+  bool mutate_just_bool(bool _just_bool = 0) {
     return SetField<uint8_t>(VT_JUST_BOOL, static_cast<uint8_t>(_just_bool), 0);
   }
   flatbuffers::Optional<bool> maybe_bool() const {
@@ -327,13 +327,13 @@ struct ScalarStuff FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   bool default_bool() const {
     return GetField<uint8_t>(VT_DEFAULT_BOOL, 1) != 0;
   }
-  bool mutate_default_bool(bool _default_bool) {
+  bool mutate_default_bool(bool _default_bool = 1) {
     return SetField<uint8_t>(VT_DEFAULT_BOOL, static_cast<uint8_t>(_default_bool), 1);
   }
   optional_scalars::OptionalByte just_enum() const {
     return static_cast<optional_scalars::OptionalByte>(GetField<int8_t>(VT_JUST_ENUM, 0));
   }
-  bool mutate_just_enum(optional_scalars::OptionalByte _just_enum) {
+  bool mutate_just_enum(optional_scalars::OptionalByte _just_enum = static_cast<optional_scalars::OptionalByte>(0)) {
     return SetField<int8_t>(VT_JUST_ENUM, static_cast<int8_t>(_just_enum), 0);
   }
   flatbuffers::Optional<optional_scalars::OptionalByte> maybe_enum() const {
@@ -345,7 +345,7 @@ struct ScalarStuff FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   optional_scalars::OptionalByte default_enum() const {
     return static_cast<optional_scalars::OptionalByte>(GetField<int8_t>(VT_DEFAULT_ENUM, 1));
   }
-  bool mutate_default_enum(optional_scalars::OptionalByte _default_enum) {
+  bool mutate_default_enum(optional_scalars::OptionalByte _default_enum = static_cast<optional_scalars::OptionalByte>(1)) {
     return SetField<int8_t>(VT_DEFAULT_ENUM, static_cast<int8_t>(_default_enum), 1);
   }
   template<size_t Index>

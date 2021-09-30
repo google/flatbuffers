@@ -230,7 +230,7 @@ struct TableInNestedNS FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   int32_t foo() const {
     return GetField<int32_t>(VT_FOO, 0);
   }
-  bool mutate_foo(int32_t _foo) {
+  bool mutate_foo(int32_t _foo = 0) {
     return SetField<int32_t>(VT_FOO, _foo, 0);
   }
   bool Verify(flatbuffers::Verifier &verifier) const {

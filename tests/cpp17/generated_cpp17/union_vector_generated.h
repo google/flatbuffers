@@ -244,7 +244,7 @@ struct Attacker FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   int32_t sword_attack_damage() const {
     return GetField<int32_t>(VT_SWORD_ATTACK_DAMAGE, 0);
   }
-  bool mutate_sword_attack_damage(int32_t _sword_attack_damage) {
+  bool mutate_sword_attack_damage(int32_t _sword_attack_damage = 0) {
     return SetField<int32_t>(VT_SWORD_ATTACK_DAMAGE, _sword_attack_damage, 0);
   }
   template<size_t Index>
