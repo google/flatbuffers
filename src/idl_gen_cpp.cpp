@@ -2237,7 +2237,7 @@ class CppGenerator : public BaseGenerator {
       code_.SetValue("FIELD_VALUE",
                      GenUnderlyingCast(field, false, "_" + Name(field)));
 
-      code_ += "  bool mutate_{{FIELD_NAME}}({{FIELD_TYPE}} \\";
+      code_ += "  bool mutate_{{FIELD_NAME}}({{FIELD_TYPE}} _{{FIELD_NAME}}\\";
       if (false == field.IsScalarOptional()) {
         code_.SetValue("DEFAULT_VALUE", GenDefaultConstant(field));
         code_.SetValue("INTERFACE_DEFAULT_VALUE", GenUnderlyingCast(field, true, GenDefaultConstant(field)));
@@ -2245,15 +2245,15 @@ class CppGenerator : public BaseGenerator {
         // GenUnderlyingCast for a bool field generates 0 != 0
         // So the type has to be checked and the appropriate default chosen
         if (IsBool(field.value.type.base_type)) {
-          code_ += "_{{FIELD_NAME}} = {{DEFAULT_VALUE}}) {";
+          code_ += " = {{DEFAULT_VALUE}}) {";
         } else {
-          code_ += "_{{FIELD_NAME}} = {{INTERFACE_DEFAULT_VALUE}}) {";
+          code_ += " = {{INTERFACE_DEFAULT_VALUE}}) {";
         }
         code_ +=
             "    return {{SET_FN}}({{OFFSET_NAME}}, {{FIELD_VALUE}}, "
             "{{DEFAULT_VALUE}});";
       } else {
-        code_ += "_{{FIELD_NAME}}) {";
+        code_ += ") {";
         code_ += "    return {{SET_FN}}({{OFFSET_NAME}}, {{FIELD_VALUE}});";
       }
       code_ += "  }";
