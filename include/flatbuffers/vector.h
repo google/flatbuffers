@@ -18,6 +18,7 @@
 #define FLATBUFFERS_VECTOR_H_
 
 #include "flatbuffers/base.h"
+#include "flatbuffers/buffer.h"
 
 namespace flatbuffers {
 

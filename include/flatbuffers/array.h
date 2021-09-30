@@ -122,7 +122,7 @@ template<typename T, uint16_t length> class Array {
 
   void CopyFromSpanImpl(flatbuffers::true_type,
                         flatbuffers::span<const T, length> src) {
-    // Use std::memcpy() instead of std::copy() to avoid preformance degradation
+    // Use std::memcpy() instead of std::copy() to avoid performance degradation
     // due to aliasing if T is char or unsigned char.
     // The size is known at compile time, so memcpy would be inlined.
     std::memcpy(data(), src.data(), length * sizeof(T));

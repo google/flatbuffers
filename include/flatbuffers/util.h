@@ -682,26 +682,6 @@ inline std::string BufferToHexText(const void *buffer, size_t buffer_size,
   return text;
 }
 
-/// @brief Get a pointer to the the file_identifier section of the buffer.
-/// @return Returns a const char pointer to the start of the file_identifier
-/// characters in the buffer.  The returned char * has length
-/// 'flatbuffers::FlatBufferBuilder::kFileIdentifierLength'.
-/// This function is UNDEFINED for FlatBuffers whose schema does not include
-/// a file_identifier (likely points at padding or the start of a the root
-/// vtable).
-inline const char *GetBufferIdentifier(const void *buf,
-                                       bool size_prefixed = false) {
-  return reinterpret_cast<const char *>(buf) +
-         ((size_prefixed) ? 2 * sizeof(uoffset_t) : sizeof(uoffset_t));
-}
-
-// Helper to see if the identifier in a buffer has the expected value.
-inline bool BufferHasIdentifier(const void *buf, const char *identifier,
-                                bool size_prefixed = false) {
-  return strncmp(GetBufferIdentifier(buf, size_prefixed), identifier,
-                 flatbuffers::kFileIdentifierLength) == 0;
-}
-
 // Remove paired quotes in a string: "text"|'text' -> text.
 std::string RemoveStringQuotes(const std::string &s);
 

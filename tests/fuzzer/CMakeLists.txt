@@ -88,6 +88,7 @@ set(FlatBuffers_Library_SRCS
     ${FLATBUFFERS_DIR}/include/flatbuffers/allocator.h
     ${FLATBUFFERS_DIR}/include/flatbuffers/array.h
     ${FLATBUFFERS_DIR}/include/flatbuffers/base.h
+    ${FLATBUFFERS_DIR}/include/flatbuffer/buffer.h
     ${FLATBUFFERS_DIR}/include/flatbuffers/buffer_ref.h
     ${FLATBUFFERS_DIR}/include/flatbuffers/default_allocator.h
     ${FLATBUFFERS_DIR}/include/flatbuffers/detached_buffer.h

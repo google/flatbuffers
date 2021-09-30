@@ -21,6 +21,7 @@
 // source because they relied on flatbuffers.h to include everything for them.
 #include "flatbuffers/array.h"
 #include "flatbuffers/base.h"
+#include "flatbuffers/buffer.h"
 #include "flatbuffers/buffer_ref.h"
 #include "flatbuffers/detached_buffer.h"
 #include "flatbuffers/flatbuffer_builder.h"

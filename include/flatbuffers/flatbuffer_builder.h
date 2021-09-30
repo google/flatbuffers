@@ -1164,7 +1164,7 @@ class FlatBufferBuilder {
     return reinterpret_cast<T *>(buf_.make_space(vector_size * sizeof(T)));
   }
 
-  // End the vector of structues in the flatbuffers.
+  // End the vector of structures in the flatbuffers.
   // Vector should have previously be started with StartVectorOfStructs().
   template<typename T>
   Offset<Vector<const T *>> EndVectorOfStructs(size_t vector_size) {
