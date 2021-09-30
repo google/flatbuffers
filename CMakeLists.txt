@@ -480,6 +480,26 @@ function(compile_flatbuffers_schema_to_embedded_binary SRC_FBS OPT)
   register_generated_output(${GEN_BFBS_HEADER})
 endfunction()
 
+# Look if we have python 3 installed so that we can run the generate code python
+# script after flatc is built.
+find_package(PythonInterp 3)
+if(PYTHONINTERP_FOUND AND
+  # Skip doing this if the MSVC version is below VS 12.
+  # https://cmake.org/cmake/help/latest/variable/MSVC_VERSION.html
+  (WIN32 AND MSVC_VERSION GREATER 1800))
+  if(WIN32)
+    set(GENERATION_SCRIPT py scripts/generate_code.py)
+   else()
+    set(GENERATION_SCRIPT scripts/generate_code.py)
+  endif()
+  add_custom_command(
+    TARGET flatc
+    POST_BUILD
+    COMMAND ${GENERATION_SCRIPT} "${FLATBUFFERS_FLATC_EXECUTABLE}"
+    COMMENT "Generating code..."
+    VERBATIM)
+endif()
+
 if(FLATBUFFERS_BUILD_TESTS)
   file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/tests" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}")
   file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/samples" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}")
