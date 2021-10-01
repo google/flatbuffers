@@ -16,11 +16,12 @@ environment:
     - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
       CMAKE_VS_VERSION: "10 2010"
       CMAKE_OPTIONS: "-DFLATBUFFERS_BUILD_LEGACY=1"
-      CPP_TEST_OPTIONS: "--std-cpp c++0x"
+      CPP_TEST_OPTIONS: "--cpp-0x --skip-monster-extra"
       MONSTER_EXTRA: "skip"
 
     - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
       CMAKE_VS_VERSION: "12 2013"
+      CPP_TEST_OPTIONS: "--skip-monster-extra"
       MONSTER_EXTRA: "skip"
 
     - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
@@ -54,10 +55,8 @@ install:
   - ps: Install-Product node $env:nodejs_version
 
 test_script:
-  - call .appveyor\check-generate-code.bat -b %CONFIGURATION%
+  - call py scripts/check_generate_code.py "%CPP_TEST_OPTIONS%"
   - "cd tests"
-  - rem "Building all code"
-  - generate_code.bat -b %CONFIGURATION% %CPP_TEST_OPTIONS%
   - 7z a GeneratedMyGameCode.zip MyGame\
   - rem "---------------- C++ -----------------"
   - "cd .."
