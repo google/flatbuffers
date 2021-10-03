@@ -143,6 +143,24 @@ class FlatBuffersMonsterWriterTests: XCTestCase {
     }
   }
 
+  func testEncoding() {
+    let fbb = createMonster(withPrefix: false)
+    var sizedBuffer = fbb.sizedBuffer
+    do {
+      let reader: Monster = try getCheckedRoot(byteBuffer: &sizedBuffer)
+      let encoder = JSONEncoder()
+      encoder.keyEncodingStrategy = .convertToSnakeCase
+      let data = try encoder.encode(reader)
+      XCTAssertEqual(String(data: data, encoding: .utf8), jsonData)
+      let decoder = try! FlatbuffersJSONDecoder.build(with: data)
+      let decodedBuffer = try decoder.decode(type: Monster.self)
+      var monster = Monster.getRootAsMonster(bb: decodedBuffer)
+      readFlatbufferMonster(monster: &monster)
+    } catch {
+      XCTFail(error.localizedDescription)
+    }
+  }
+
   func readVerifiedMonster(fb: ByteBuffer) {
     var byteBuffer = fb
     XCTAssertNoThrow(
@@ -371,20 +389,6 @@ class FlatBuffersMonsterWriterTests: XCTestCase {
     }
     XCTAssertEqual(sum0 + sum1, 100)
     XCTAssertEqual(monster.testbool, true)
-  }
-
-  func testEncoding() {
-    let fbb = createMonster(withPrefix: false)
-    var sizedBuffer = fbb.sizedBuffer
-    do {
-      let reader: Monster = try getCheckedRoot(byteBuffer: &sizedBuffer)
-      let encoder = JSONEncoder()
-      encoder.keyEncodingStrategy = .convertToSnakeCase
-      let data = try encoder.encode(reader)
-      XCTAssertEqual(data, jsonData.data(using: .utf8))
-    } catch {
-      XCTFail(error.localizedDescription)
-    }
   }
 
   var jsonData: String {

@@ -49,10 +49,27 @@ public enum FlatbuffersErrors: Error, Equatable {
   case unionVectorSize(
     keyVectorSize: Int,
     fieldVectorSize: Int,
-    unionKeyName: String,
-    fieldName: String)
+    unionKeyName: String?,
+    fieldName: String?)
   case apparentSizeTooLarge
 
+  /// Thrown when calling copy before calling decode.
+  case didntFinishDecoding
+
+  /// Thrown when trying to decode a non valid JSON object.
+  case notValidJSONObject
+
+  /// Thrown when we couldnt decode a struct object.
+  case couldNotDecodeStruct
+
+  case couldNotDecodeValue
+
+  /// thrown when a value for a union is not found within the buffer
+  case valueNotFoundJSON(fieldName: String)
+
+  case couldNotCastArray(to: String)
+  case fieldRequired(fieldName: String)
+  
   public static func == (
     lhs: FlatbuffersErrors,
     rhs: FlatbuffersErrors) -> Bool

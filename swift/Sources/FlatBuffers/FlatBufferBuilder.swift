@@ -800,10 +800,6 @@ extension FlatBufferBuilder: CustomDebugStringConvertible {
   /// VTableStorage is a class to contain the VTable buffer that would be serialized into buffer
   @usableFromInline
   internal class VTableStorage {
-    /// Memory check since deallocating each time we want to clear would be expensive
-    /// and memory leaks would happen if we dont deallocate the first allocated memory.
-    /// memory is promised to be available before adding `FieldLoc`
-    private var memoryInUse = false
     /// Size of FieldLoc in memory
     let size = MemoryLayout<FieldLoc>.stride
     /// Memeory buffer

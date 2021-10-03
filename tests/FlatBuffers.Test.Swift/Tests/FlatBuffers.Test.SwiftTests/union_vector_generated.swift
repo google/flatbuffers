@@ -25,7 +25,7 @@ public enum Character: UInt8, UnionEnum {
   public static var min: Character { return .none_ }
 }
 
-extension Character: Encodable {
+extension Character: FlatbuffersEnumDecodable, Encodable {
   public func encode(to encoder: Encoder) throws {
     var container = encoder.singleValueContainer()
     switch self {
@@ -36,6 +36,19 @@ extension Character: Encodable {
     case .bookfan: try container.encode("BookFan")
     case .other: try container.encode("Other")
     case .unused: try container.encode("Unused")
+    }
+  }
+
+  public init?(value: String?) {
+    switch value {
+    case "NONE": self = .none_
+    case "MuLan": self = .mulan
+    case "Rapunzel": self = .rapunzel
+    case "Belle": self = .belle
+    case "BookFan": self = .bookfan
+    case "Other": self = .other
+    case "Unused": self = .unused
+    default: return nil
     }
   }
 }
@@ -94,10 +107,20 @@ public struct Rapunzel: NativeStruct, Verifiable, FlatbuffersInitializable, Nati
     _hairLength = _t.hairLength
   }
 
+  public init(decoder: DecoderContainer) throws {
+    let container = decoder.keyedContainer(codingKey: CodingKeys.self)
+    _hairLength = try container.value(for: .hairLength, type: Int32.self)
+  }
   public var hairLength: Int32 { _hairLength }
 
   public static func verify<T>(_ verifier: inout Verifier, at position: Int, of type: T.Type) throws where T: Verifiable {
     try verifier.inBuffer(position: position, of: Rapunzel.self)
+  }
+}
+
+extension Rapunzel: FlatbuffersJSONDecodable, FlatbuffersDecodable {
+  public static func decode(decoder: DecoderContainer, builder: inout FlatBufferBuilder) throws -> Offset {
+    builder.create(struct: try self.init(decoder: decoder))
   }
 }
 
@@ -162,10 +185,20 @@ public struct BookReader: NativeStruct, Verifiable, FlatbuffersInitializable, Na
     _booksRead = _t.booksRead
   }
 
+  public init(decoder: DecoderContainer) throws {
+    let container = decoder.keyedContainer(codingKey: CodingKeys.self)
+    _booksRead = try container.value(for: .booksRead, type: Int32.self)
+  }
   public var booksRead: Int32 { _booksRead }
 
   public static func verify<T>(_ verifier: inout Verifier, at position: Int, of type: T.Type) throws where T: Verifiable {
     try verifier.inBuffer(position: position, of: BookReader.self)
+  }
+}
+
+extension BookReader: FlatbuffersJSONDecodable, FlatbuffersDecodable {
+  public static func decode(decoder: DecoderContainer, builder: inout FlatBufferBuilder) throws -> Offset {
+    builder.create(struct: try self.init(decoder: decoder))
   }
 }
 
@@ -258,6 +291,15 @@ public struct Attacker: FlatBufferObject, Verifiable, ObjectAPIPacker {
     var _v = try verifier.visitTable(at: position)
     try _v.visit(field: VTOFFSET.swordAttackDamage.p, fieldName: "swordAttackDamage", required: false, type: Int32.self)
     _v.finish()
+  }
+}
+
+extension Attacker: FlatbuffersJSONDecodable {
+  public static func decode(decoder: DecoderContainer, builder: inout FlatBufferBuilder) throws -> Offset {
+    let container = decoder.keyedContainer(codingKey: CodingKeys.self)
+    let __root = Attacker.startAttacker(&builder)
+    Attacker.add(swordAttackDamage: try container.value(for: .swordAttackDamage, type: Int32.self) ?? 0, &builder)
+    return Attacker.endAttacker(&builder, start: __root)
   }
 }
 
@@ -405,6 +447,66 @@ public struct Movie: FlatBufferObject, Verifiable, ObjectAPIPacker {
       }
     })
     _v.finish()
+  }
+}
+
+extension Movie: FlatbuffersJSONDecodable {
+  public static func decode(decoder: DecoderContainer, builder: inout FlatBufferBuilder) throws -> Offset {
+    let container = decoder.keyedContainer(codingKey: CodingKeys.self)
+    var _mainCharacterOffset: Offset?
+    let _mainCharacterType: Character? = try container.value(for: .mainCharacterType, type: Character.self)
+    switch _mainCharacterType {
+    case .none_:
+      break // NOTE - SWIFT doesnt support none
+    case .mulan:
+      _mainCharacterOffset = try container.object(for: .mainCharacter, builder: &builder, type: Attacker.self)
+    case .rapunzel:
+      _mainCharacterOffset = try container.value(for: .mainCharacter, builder: &builder, type: Rapunzel.self)
+    case .belle:
+      _mainCharacterOffset = try container.value(for: .mainCharacter, builder: &builder, type: BookReader.self)
+    case .bookfan:
+      _mainCharacterOffset = try container.value(for: .mainCharacter, builder: &builder, type: BookReader.self)
+    case .other:
+      _mainCharacterOffset = try container.value(for: .mainCharacter, builder: &builder)
+    case .unused:
+      _mainCharacterOffset = try container.value(for: .mainCharacter, builder: &builder)
+    default: break
+    }
+    let _charactersTypes = try container.values(for: .charactersType)?.values(type: Character.self) ?? []
+    let _charactersContainer: UnkeyedDecoderContainer? = try container.values(for: .characters)
+    var _charactersOffsets: [Offset] = []
+    for value in _charactersTypes.enumerated() {
+      var __offset: Offset?
+      switch value.element {
+      case .none_:
+        break // NOTE - SWIFT doesnt support none
+      case .mulan:
+        __offset = try _charactersContainer?.value(at: value.offset, builder: &builder, type: Attacker.self)
+      case .rapunzel:
+        __offset = try _charactersContainer?.value(at: value.offset, builder: &builder, type: Rapunzel.self)
+      case .belle:
+        __offset = try _charactersContainer?.value(at: value.offset, builder: &builder, type: BookReader.self)
+      case .bookfan:
+        __offset = try _charactersContainer?.value(at: value.offset, builder: &builder, type: BookReader.self)
+      case .other:
+        __offset = try _charactersContainer?.value(at: value.offset, builder: &builder, type: String.self)
+      case .unused:
+        __offset = try _charactersContainer?.value(at: value.offset, builder: &builder, type: String.self)
+      }
+      if let o = __offset {
+        _charactersOffsets.append(o)
+      }
+    }
+    let _charactersType = builder.createVector(_charactersTypes)
+    let _charactersOffset = builder.createVector(ofOffsets: _charactersOffsets)
+    let __root = Movie.startMovie(&builder)
+    if let v = _mainCharacterType {
+      Movie.add(mainCharacterType: v, &builder)
+      Movie.add(mainCharacter: _mainCharacterOffset ?? Offset(), &builder)
+    }
+    Movie.addVectorOf(charactersType: _charactersType, &builder)
+    Movie.addVectorOf(characters: _charactersOffset, &builder)
+    return Movie.endMovie(&builder, start: __root)
   }
 }
 

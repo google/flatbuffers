@@ -242,6 +242,17 @@ final class FlatBuffersUnionTests: XCTestCase {
       encoder.keyEncodingStrategy = .convertToSnakeCase
       let data = try encoder.encode(reader)
       XCTAssertEqual(data, jsonData.data(using: .utf8))
+      let decoder = try! FlatbuffersJSONDecoder.build(with: data)
+      let decodedBuffer = try decoder.decode(type: Movie.self)
+      let movie = Movie.getRootAsMovie(bb: decodedBuffer)
+//      XCTAssertEqual(movie.mainCharacter(type: String.self), string)
+      XCTAssertEqual(
+        movie.characters(at: 0, type: BookReader.self)?.booksRead,
+        7)
+      XCTAssertEqual(
+        movie.characters(at: 1, type: Attacker.self)?.swordAttackDamage,
+        swordDmg)
+      XCTAssertEqual(movie.characters(at: 3, type: String.self), string)
     } catch {
       XCTFail(error.localizedDescription)
     }

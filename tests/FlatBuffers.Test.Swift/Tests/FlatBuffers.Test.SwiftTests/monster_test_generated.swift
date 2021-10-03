@@ -20,13 +20,22 @@ public enum MyGame_Example_Color: UInt8, Enum, Verifiable {
   public static var min: MyGame_Example_Color { return .red }
 }
 
-extension MyGame_Example_Color: Encodable {
+extension MyGame_Example_Color: FlatbuffersEnumDecodable, Encodable {
   public func encode(to encoder: Encoder) throws {
     var container = encoder.singleValueContainer()
     switch self {
     case .red: try container.encode("Red")
     case .green: try container.encode("Green")
     case .blue: try container.encode("Blue")
+    }
+  }
+
+  public init?(value: String?) {
+    switch value {
+    case "Red": self = .red
+    case "Green": self = .green
+    case "Blue": self = .blue
+    default: return nil
     }
   }
 }
@@ -44,7 +53,7 @@ public enum MyGame_Example_Race: Int8, Enum, Verifiable {
   public static var min: MyGame_Example_Race { return .none_ }
 }
 
-extension MyGame_Example_Race: Encodable {
+extension MyGame_Example_Race: FlatbuffersEnumDecodable, Encodable {
   public func encode(to encoder: Encoder) throws {
     var container = encoder.singleValueContainer()
     switch self {
@@ -52,6 +61,16 @@ extension MyGame_Example_Race: Encodable {
     case .human: try container.encode("Human")
     case .dwarf: try container.encode("Dwarf")
     case .elf: try container.encode("Elf")
+    }
+  }
+
+  public init?(value: String?) {
+    switch value {
+    case "None": self = .none_
+    case "Human": self = .human
+    case "Dwarf": self = .dwarf
+    case "Elf": self = .elf
+    default: return nil
     }
   }
 }
@@ -74,7 +93,7 @@ public enum MyGame_Example_Any_: UInt8, UnionEnum {
   public static var min: MyGame_Example_Any_ { return .none_ }
 }
 
-extension MyGame_Example_Any_: Encodable {
+extension MyGame_Example_Any_: FlatbuffersEnumDecodable, Encodable {
   public func encode(to encoder: Encoder) throws {
     var container = encoder.singleValueContainer()
     switch self {
@@ -82,6 +101,16 @@ extension MyGame_Example_Any_: Encodable {
     case .monster: try container.encode("Monster")
     case .testsimpletablewithenum: try container.encode("TestSimpleTableWithEnum")
     case .mygameExample2Monster: try container.encode("MyGame_Example2_Monster")
+    }
+  }
+
+  public init?(value: String?) {
+    switch value {
+    case "NONE": self = .none_
+    case "Monster": self = .monster
+    case "TestSimpleTableWithEnum": self = .testsimpletablewithenum
+    case "MyGame_Example2_Monster": self = .mygameExample2Monster
+    default: return nil
     }
   }
 }
@@ -126,7 +155,7 @@ public enum MyGame_Example_AnyUniqueAliases: UInt8, UnionEnum {
   public static var min: MyGame_Example_AnyUniqueAliases { return .none_ }
 }
 
-extension MyGame_Example_AnyUniqueAliases: Encodable {
+extension MyGame_Example_AnyUniqueAliases: FlatbuffersEnumDecodable, Encodable {
   public func encode(to encoder: Encoder) throws {
     var container = encoder.singleValueContainer()
     switch self {
@@ -134,6 +163,16 @@ extension MyGame_Example_AnyUniqueAliases: Encodable {
     case .m: try container.encode("M")
     case .ts: try container.encode("TS")
     case .m2: try container.encode("M2")
+    }
+  }
+
+  public init?(value: String?) {
+    switch value {
+    case "NONE": self = .none_
+    case "M": self = .m
+    case "TS": self = .ts
+    case "M2": self = .m2
+    default: return nil
     }
   }
 }
@@ -178,7 +217,7 @@ public enum MyGame_Example_AnyAmbiguousAliases: UInt8, UnionEnum {
   public static var min: MyGame_Example_AnyAmbiguousAliases { return .none_ }
 }
 
-extension MyGame_Example_AnyAmbiguousAliases: Encodable {
+extension MyGame_Example_AnyAmbiguousAliases: FlatbuffersEnumDecodable, Encodable {
   public func encode(to encoder: Encoder) throws {
     var container = encoder.singleValueContainer()
     switch self {
@@ -186,6 +225,16 @@ extension MyGame_Example_AnyAmbiguousAliases: Encodable {
     case .m1: try container.encode("M1")
     case .m2: try container.encode("M2")
     case .m3: try container.encode("M3")
+    }
+  }
+
+  public init?(value: String?) {
+    switch value {
+    case "NONE": self = .none_
+    case "M1": self = .m1
+    case "M2": self = .m2
+    case "M3": self = .m3
+    default: return nil
     }
   }
 }
@@ -241,11 +290,22 @@ public struct MyGame_Example_Test: NativeStruct, Verifiable, FlatbuffersInitiali
     _b = _t.b
   }
 
+  public init(decoder: DecoderContainer) throws {
+    let container = decoder.keyedContainer(codingKey: CodingKeys.self)
+    _a = try container.value(for: .a, type: Int16.self)
+    _b = try container.value(for: .b, type: Int8.self)
+  }
   public var a: Int16 { _a }
   public var b: Int8 { _b }
 
   public static func verify<T>(_ verifier: inout Verifier, at position: Int, of type: T.Type) throws where T: Verifiable {
     try verifier.inBuffer(position: position, of: MyGame_Example_Test.self)
+  }
+}
+
+extension MyGame_Example_Test: FlatbuffersJSONDecodable, FlatbuffersDecodable {
+  public static func decode(decoder: DecoderContainer, builder: inout FlatBufferBuilder) throws -> Offset {
+    builder.create(struct: try self.init(decoder: decoder))
   }
 }
 
@@ -345,6 +405,15 @@ public struct MyGame_Example_Vec3: NativeStruct, Verifiable, FlatbuffersInitiali
     _test3 = _vtest3.unpack()
   }
 
+  public init(decoder: DecoderContainer) throws {
+    let container = decoder.keyedContainer(codingKey: CodingKeys.self)
+    _x = try container.value(for: .x, type: Float32.self)
+    _y = try container.value(for: .y, type: Float32.self)
+    _z = try container.value(for: .z, type: Float32.self)
+    _test1 = try container.value(for: .test1, type: Double.self)
+    _test2 = try container.value(for: .test2, type: MyGame_Example_Color.self).value
+    _test3 = try container.value(for: .test3, type: MyGame_Example_Test.self)
+  }
   public var x: Float32 { _x }
   public var y: Float32 { _y }
   public var z: Float32 { _z }
@@ -354,6 +423,12 @@ public struct MyGame_Example_Vec3: NativeStruct, Verifiable, FlatbuffersInitiali
 
   public static func verify<T>(_ verifier: inout Verifier, at position: Int, of type: T.Type) throws where T: Verifiable {
     try verifier.inBuffer(position: position, of: MyGame_Example_Vec3.self)
+  }
+}
+
+extension MyGame_Example_Vec3: FlatbuffersJSONDecodable, FlatbuffersDecodable {
+  public static func decode(decoder: DecoderContainer, builder: inout FlatBufferBuilder) throws -> Offset {
+    builder.create(struct: try self.init(decoder: decoder))
   }
 }
 
@@ -450,11 +525,22 @@ public struct MyGame_Example_Ability: NativeStruct, Verifiable, FlatbuffersIniti
     _distance = _t.distance
   }
 
+  public init(decoder: DecoderContainer) throws {
+    let container = decoder.keyedContainer(codingKey: CodingKeys.self)
+    _id = try container.value(for: .id, type: UInt32.self)
+    _distance = try container.value(for: .distance, type: UInt32.self)
+  }
   public var id: UInt32 { _id }
   public var distance: UInt32 { _distance }
 
   public static func verify<T>(_ verifier: inout Verifier, at position: Int, of type: T.Type) throws where T: Verifiable {
     try verifier.inBuffer(position: position, of: MyGame_Example_Ability.self)
+  }
+}
+
+extension MyGame_Example_Ability: FlatbuffersJSONDecodable, FlatbuffersDecodable {
+  public static func decode(decoder: DecoderContainer, builder: inout FlatBufferBuilder) throws -> Offset {
+    builder.create(struct: try self.init(decoder: decoder))
   }
 }
 
@@ -538,12 +624,24 @@ public struct MyGame_Example_StructOfStructs: NativeStruct, Verifiable, Flatbuff
     _c = _vc.unpack()
   }
 
+  public init(decoder: DecoderContainer) throws {
+    let container = decoder.keyedContainer(codingKey: CodingKeys.self)
+    _a = try container.value(for: .a, type: MyGame_Example_Ability.self)
+    _b = try container.value(for: .b, type: MyGame_Example_Test.self)
+    _c = try container.value(for: .c, type: MyGame_Example_Ability.self)
+  }
   public var a: MyGame_Example_Ability { _a }
   public var b: MyGame_Example_Test { _b }
   public var c: MyGame_Example_Ability { _c }
 
   public static func verify<T>(_ verifier: inout Verifier, at position: Int, of type: T.Type) throws where T: Verifiable {
     try verifier.inBuffer(position: position, of: MyGame_Example_StructOfStructs.self)
+  }
+}
+
+extension MyGame_Example_StructOfStructs: FlatbuffersJSONDecodable, FlatbuffersDecodable {
+  public static func decode(decoder: DecoderContainer, builder: inout FlatBufferBuilder) throws -> Offset {
+    builder.create(struct: try self.init(decoder: decoder))
   }
 }
 
@@ -623,6 +721,12 @@ public struct MyGame_InParentNamespace: FlatBufferObject, Verifiable, ObjectAPIP
   }
 }
 
+extension MyGame_InParentNamespace: FlatbuffersJSONDecodable {
+  public static func decode(decoder: DecoderContainer, builder: inout FlatBufferBuilder) throws -> Offset {
+    Offset()
+  }
+}
+
 extension MyGame_InParentNamespace: Encodable {
 
   public func encode(to encoder: Encoder) throws {
@@ -673,6 +777,12 @@ public struct MyGame_Example2_Monster: FlatBufferObject, Verifiable, ObjectAPIPa
   public static func verify<T>(_ verifier: inout Verifier, at position: Int, of type: T.Type) throws where T: Verifiable {
     var _v = try verifier.visitTable(at: position)
     _v.finish()
+  }
+}
+
+extension MyGame_Example2_Monster: FlatbuffersJSONDecodable {
+  public static func decode(decoder: DecoderContainer, builder: inout FlatBufferBuilder) throws -> Offset {
+    Offset()
   }
 }
 
@@ -745,6 +855,15 @@ internal struct MyGame_Example_TestSimpleTableWithEnum: FlatBufferObject, Verifi
     var _v = try verifier.visitTable(at: position)
     try _v.visit(field: VTOFFSET.color.p, fieldName: "color", required: false, type: MyGame_Example_Color.self)
     _v.finish()
+  }
+}
+
+extension MyGame_Example_TestSimpleTableWithEnum: FlatbuffersJSONDecodable {
+  public static func decode(decoder: DecoderContainer, builder: inout FlatBufferBuilder) throws -> Offset {
+    let container = decoder.keyedContainer(codingKey: CodingKeys.self)
+    let __root = MyGame_Example_TestSimpleTableWithEnum.startTestSimpleTableWithEnum(&builder)
+    MyGame_Example_TestSimpleTableWithEnum.add(color: try container.value(for: .color, type: MyGame_Example_Color.self) ?? .green, &builder)
+    return MyGame_Example_TestSimpleTableWithEnum.endTestSimpleTableWithEnum(&builder, start: __root)
   }
 }
 
@@ -877,6 +996,18 @@ public struct MyGame_Example_Stat: FlatBufferObject, Verifiable, ObjectAPIPacker
   }
 }
 
+extension MyGame_Example_Stat: FlatbuffersJSONDecodable {
+  public static func decode(decoder: DecoderContainer, builder: inout FlatBufferBuilder) throws -> Offset {
+    let container = decoder.keyedContainer(codingKey: CodingKeys.self)
+    let _idOffset = try container.value(for: .id, builder: &builder)
+    let __root = MyGame_Example_Stat.startStat(&builder)
+    MyGame_Example_Stat.add(id: _idOffset ?? Offset(), &builder)
+    MyGame_Example_Stat.add(val: try container.value(for: .val, type: Int64.self) ?? 0, &builder)
+    MyGame_Example_Stat.add(count: try container.value(for: .count, type: UInt16.self) ?? 0, &builder)
+    return MyGame_Example_Stat.endStat(&builder, start: __root)
+  }
+}
+
 extension MyGame_Example_Stat: Encodable {
 
   enum CodingKeys: String, CodingKey {
@@ -991,6 +1122,15 @@ public struct MyGame_Example_Referrable: FlatBufferObject, Verifiable, ObjectAPI
     var _v = try verifier.visitTable(at: position)
     try _v.visit(field: VTOFFSET.id.p, fieldName: "id", required: false, type: UInt64.self)
     _v.finish()
+  }
+}
+
+extension MyGame_Example_Referrable: FlatbuffersJSONDecodable {
+  public static func decode(decoder: DecoderContainer, builder: inout FlatBufferBuilder) throws -> Offset {
+    let container = decoder.keyedContainer(codingKey: CodingKeys.self)
+    let __root = MyGame_Example_Referrable.startReferrable(&builder)
+    MyGame_Example_Referrable.add(id: try container.value(for: .id, type: UInt64.self) ?? 0, &builder)
+    return MyGame_Example_Referrable.endReferrable(&builder, start: __root)
   }
 }
 
@@ -1618,6 +1758,135 @@ public struct MyGame_Example_Monster: FlatBufferObject, Verifiable, ObjectAPIPac
     try _v.visit(field: VTOFFSET.testrequirednestedflatbuffer.p, fieldName: "testrequirednestedflatbuffer", required: false, type: ForwardOffset<Vector<UInt8, UInt8>>.self)
     try _v.visit(field: VTOFFSET.scalarKeySortedTables.p, fieldName: "scalarKeySortedTables", required: false, type: ForwardOffset<Vector<ForwardOffset<MyGame_Example_Stat>, MyGame_Example_Stat>>.self)
     _v.finish()
+  }
+}
+
+extension MyGame_Example_Monster: FlatbuffersJSONDecodable {
+  public static func decode(decoder: DecoderContainer, builder: inout FlatBufferBuilder) throws -> Offset {
+    let container = decoder.keyedContainer(codingKey: CodingKeys.self)
+    guard let _nameOffset = try container.value(for: .name, builder: &builder) else {
+      throw FlatbuffersErrors.fieldRequired(fieldName: CodingKeys.name.rawValue)
+    }
+    let _inventoryOffset = try container.values(for: .inventory)?.encodeAs(type: UInt8.self, to: &builder)
+    var _testOffset: Offset?
+    let _testType: MyGame_Example_Any_? = try container.value(for: .testType, type: MyGame_Example_Any_.self)
+    switch _testType {
+    case .none_:
+      break // NOTE - SWIFT doesnt support none
+    case .monster:
+      _testOffset = try container.object(for: .test, builder: &builder, type: MyGame_Example_Monster.self)
+    case .testsimpletablewithenum:
+      _testOffset = try container.object(for: .test, builder: &builder, type: MyGame_Example_TestSimpleTableWithEnum.self)
+    case .mygameExample2Monster:
+      _testOffset = try container.object(for: .test, builder: &builder, type: MyGame_Example2_Monster.self)
+    default: break
+    }
+    let _test4Offset = try container.values(for: .test4)?.encodeAsStruct(type: MyGame_Example_Test.self, to: &builder)
+    let _testarrayofstringOffset = try container.values(for: .testarrayofstring)?.encodeAsString(to: &builder)
+    let _testarrayoftablesOffset = try container.values(for: .testarrayoftables)?.encodeAs(type: MyGame_Example_Monster.self, to: &builder)
+    let _enemyOffset = try container.values(for: .testarrayoftables)?.encodeAs(type: MyGame_Example_Monster.self, to: &builder)
+    let _testnestedflatbufferOffset = try container.values(for: .testnestedflatbuffer)?.encodeAs(type: UInt8.self, to: &builder)
+    let _testemptyOffset = try container.values(for: .testnestedflatbuffer)?.encodeAs(type: UInt8.self, to: &builder)
+    let _testarrayofboolsOffset = try container.values(for: .testarrayofbools)?.encodeAs(type: Bool.self, to: &builder)
+    let _testarrayofstring2Offset = try container.values(for: .testarrayofstring2)?.encodeAsString(to: &builder)
+    let _testarrayofsortedstructOffset = try container.values(for: .testarrayofsortedstruct)?.encodeAsStruct(type: MyGame_Example_Ability.self, to: &builder)
+    let _flexOffset = try container.values(for: .flex)?.encodeAs(type: UInt8.self, to: &builder)
+    let _test5Offset = try container.values(for: .test5)?.encodeAsStruct(type: MyGame_Example_Test.self, to: &builder)
+    let _vectorOfLongsOffset = try container.values(for: .vectorOfLongs)?.encodeAs(type: Int64.self, to: &builder)
+    let _vectorOfDoublesOffset = try container.values(for: .vectorOfDoubles)?.encodeAs(type: Double.self, to: &builder)
+    let _parentNamespaceTestOffset = try container.values(for: .vectorOfDoubles)?.encodeAs(type: Double.self, to: &builder)
+    let _vectorOfReferrablesOffset = try container.values(for: .vectorOfReferrables)?.encodeAs(type: MyGame_Example_Referrable.self, to: &builder)
+    let _vectorOfWeakReferencesOffset = try container.values(for: .vectorOfWeakReferences)?.encodeAs(type: UInt64.self, to: &builder)
+    let _vectorOfStrongReferrablesOffset = try container.values(for: .vectorOfStrongReferrables)?.encodeAs(type: MyGame_Example_Referrable.self, to: &builder)
+    let _vectorOfCoOwningReferencesOffset = try container.values(for: .vectorOfCoOwningReferences)?.encodeAs(type: UInt64.self, to: &builder)
+    let _vectorOfNonOwningReferencesOffset = try container.values(for: .vectorOfNonOwningReferences)?.encodeAs(type: UInt64.self, to: &builder)
+    var _anyUniqueOffset: Offset?
+    let _anyUniqueType: MyGame_Example_AnyUniqueAliases? = try container.value(for: .anyUniqueType, type: MyGame_Example_AnyUniqueAliases.self)
+    switch _anyUniqueType {
+    case .none_:
+      break // NOTE - SWIFT doesnt support none
+    case .m:
+      _anyUniqueOffset = try container.object(for: .anyUnique, builder: &builder, type: MyGame_Example_Monster.self)
+    case .ts:
+      _anyUniqueOffset = try container.object(for: .anyUnique, builder: &builder, type: MyGame_Example_TestSimpleTableWithEnum.self)
+    case .m2:
+      _anyUniqueOffset = try container.object(for: .anyUnique, builder: &builder, type: MyGame_Example2_Monster.self)
+    default: break
+    }
+    var _anyAmbiguousOffset: Offset?
+    let _anyAmbiguousType: MyGame_Example_AnyAmbiguousAliases? = try container.value(for: .anyAmbiguousType, type: MyGame_Example_AnyAmbiguousAliases.self)
+    switch _anyAmbiguousType {
+    case .none_:
+      break // NOTE - SWIFT doesnt support none
+    case .m1:
+      _anyAmbiguousOffset = try container.object(for: .anyAmbiguous, builder: &builder, type: MyGame_Example_Monster.self)
+    case .m2:
+      _anyAmbiguousOffset = try container.object(for: .anyAmbiguous, builder: &builder, type: MyGame_Example_Monster.self)
+    case .m3:
+      _anyAmbiguousOffset = try container.object(for: .anyAmbiguous, builder: &builder, type: MyGame_Example_Monster.self)
+    default: break
+    }
+    let _vectorOfEnumsOffset = try container.values(for: .vectorOfEnums)?.encodeAs(type: MyGame_Example_Color.self, to: &builder)
+    let _testrequirednestedflatbufferOffset = try container.values(for: .testrequirednestedflatbuffer)?.encodeAs(type: UInt8.self, to: &builder)
+    let _scalarKeySortedTablesOffset = try container.values(for: .scalarKeySortedTables)?.encodeAs(type: MyGame_Example_Stat.self, to: &builder)
+    let __root = MyGame_Example_Monster.startMonster(&builder)
+    MyGame_Example_Monster.add(pos: try container.value(for: .pos, type: MyGame_Example_Vec3.self) ?? nil, &builder)
+    MyGame_Example_Monster.add(mana: try container.value(for: .mana, type: Int16.self) ?? 150, &builder)
+    MyGame_Example_Monster.add(hp: try container.value(for: .hp, type: Int16.self) ?? 100, &builder)
+    MyGame_Example_Monster.add(name: _nameOffset, &builder)
+    MyGame_Example_Monster.addVectorOf(inventory: _inventoryOffset ?? Offset(), &builder)
+    MyGame_Example_Monster.add(color: try container.value(for: .color, type: MyGame_Example_Color.self) ?? .blue, &builder)
+    if let v = _testType {
+      MyGame_Example_Monster.add(testType: v, &builder)
+      MyGame_Example_Monster.add(test: _testOffset ?? Offset(), &builder)
+    }
+    MyGame_Example_Monster.addVectorOf(test4: _test4Offset ?? Offset(), &builder)
+    MyGame_Example_Monster.addVectorOf(testarrayofstring: _testarrayofstringOffset ?? Offset(), &builder)
+    MyGame_Example_Monster.addVectorOf(testarrayoftables: _testarrayoftablesOffset ?? Offset(), &builder)
+    MyGame_Example_Monster.add(enemy: _enemyOffset ?? Offset(), &builder)
+    MyGame_Example_Monster.addVectorOf(testnestedflatbuffer: _testnestedflatbufferOffset ?? Offset(), &builder)
+    MyGame_Example_Monster.add(testempty: _testemptyOffset ?? Offset(), &builder)
+    MyGame_Example_Monster.add(testbool: try container.value(for: .testbool, type: Bool.self) ?? false, &builder)
+    MyGame_Example_Monster.add(testhashs32Fnv1: try container.value(for: .testhashs32Fnv1, type: Int32.self) ?? 0, &builder)
+    MyGame_Example_Monster.add(testhashu32Fnv1: try container.value(for: .testhashu32Fnv1, type: UInt32.self) ?? 0, &builder)
+    MyGame_Example_Monster.add(testhashs64Fnv1: try container.value(for: .testhashs64Fnv1, type: Int64.self) ?? 0, &builder)
+    MyGame_Example_Monster.add(testhashu64Fnv1: try container.value(for: .testhashu64Fnv1, type: UInt64.self) ?? 0, &builder)
+    MyGame_Example_Monster.add(testhashs32Fnv1a: try container.value(for: .testhashs32Fnv1a, type: Int32.self) ?? 0, &builder)
+    MyGame_Example_Monster.add(testhashu32Fnv1a: try container.value(for: .testhashu32Fnv1a, type: UInt32.self) ?? 0, &builder)
+    MyGame_Example_Monster.add(testhashs64Fnv1a: try container.value(for: .testhashs64Fnv1a, type: Int64.self) ?? 0, &builder)
+    MyGame_Example_Monster.add(testhashu64Fnv1a: try container.value(for: .testhashu64Fnv1a, type: UInt64.self) ?? 0, &builder)
+    MyGame_Example_Monster.addVectorOf(testarrayofbools: _testarrayofboolsOffset ?? Offset(), &builder)
+    MyGame_Example_Monster.add(testf: try container.value(for: .testf, type: Float32.self) ?? 3.14159, &builder)
+    MyGame_Example_Monster.add(testf2: try container.value(for: .testf2, type: Float32.self) ?? 3.0, &builder)
+    MyGame_Example_Monster.add(testf3: try container.value(for: .testf3, type: Float32.self) ?? 0.0, &builder)
+    MyGame_Example_Monster.addVectorOf(testarrayofstring2: _testarrayofstring2Offset ?? Offset(), &builder)
+    MyGame_Example_Monster.addVectorOf(testarrayofsortedstruct: _testarrayofsortedstructOffset ?? Offset(), &builder)
+    MyGame_Example_Monster.addVectorOf(flex: _flexOffset ?? Offset(), &builder)
+    MyGame_Example_Monster.addVectorOf(test5: _test5Offset ?? Offset(), &builder)
+    MyGame_Example_Monster.addVectorOf(vectorOfLongs: _vectorOfLongsOffset ?? Offset(), &builder)
+    MyGame_Example_Monster.addVectorOf(vectorOfDoubles: _vectorOfDoublesOffset ?? Offset(), &builder)
+    MyGame_Example_Monster.add(parentNamespaceTest: _parentNamespaceTestOffset ?? Offset(), &builder)
+    MyGame_Example_Monster.addVectorOf(vectorOfReferrables: _vectorOfReferrablesOffset ?? Offset(), &builder)
+    MyGame_Example_Monster.add(singleWeakReference: try container.value(for: .singleWeakReference, type: UInt64.self) ?? 0, &builder)
+    MyGame_Example_Monster.addVectorOf(vectorOfWeakReferences: _vectorOfWeakReferencesOffset ?? Offset(), &builder)
+    MyGame_Example_Monster.addVectorOf(vectorOfStrongReferrables: _vectorOfStrongReferrablesOffset ?? Offset(), &builder)
+    MyGame_Example_Monster.add(coOwningReference: try container.value(for: .coOwningReference, type: UInt64.self) ?? 0, &builder)
+    MyGame_Example_Monster.addVectorOf(vectorOfCoOwningReferences: _vectorOfCoOwningReferencesOffset ?? Offset(), &builder)
+    MyGame_Example_Monster.add(nonOwningReference: try container.value(for: .nonOwningReference, type: UInt64.self) ?? 0, &builder)
+    MyGame_Example_Monster.addVectorOf(vectorOfNonOwningReferences: _vectorOfNonOwningReferencesOffset ?? Offset(), &builder)
+    if let v = _anyUniqueType {
+      MyGame_Example_Monster.add(anyUniqueType: v, &builder)
+      MyGame_Example_Monster.add(anyUnique: _anyUniqueOffset ?? Offset(), &builder)
+    }
+    if let v = _anyAmbiguousType {
+      MyGame_Example_Monster.add(anyAmbiguousType: v, &builder)
+      MyGame_Example_Monster.add(anyAmbiguous: _anyAmbiguousOffset ?? Offset(), &builder)
+    }
+    MyGame_Example_Monster.addVectorOf(vectorOfEnums: _vectorOfEnumsOffset ?? Offset(), &builder)
+    MyGame_Example_Monster.add(signedEnum: try container.value(for: .signedEnum, type: MyGame_Example_Race.self) ?? .none_, &builder)
+    MyGame_Example_Monster.addVectorOf(testrequirednestedflatbuffer: _testrequirednestedflatbufferOffset ?? Offset(), &builder)
+    MyGame_Example_Monster.addVectorOf(scalarKeySortedTables: _scalarKeySortedTablesOffset ?? Offset(), &builder)
+    return MyGame_Example_Monster.endMonster(&builder, start: __root)
   }
 }
 
@@ -2282,6 +2551,28 @@ public struct MyGame_Example_TypeAliases: FlatBufferObject, Verifiable, ObjectAP
     try _v.visit(field: VTOFFSET.v8.p, fieldName: "v8", required: false, type: ForwardOffset<Vector<Int8, Int8>>.self)
     try _v.visit(field: VTOFFSET.vf64.p, fieldName: "vf64", required: false, type: ForwardOffset<Vector<Double, Double>>.self)
     _v.finish()
+  }
+}
+
+extension MyGame_Example_TypeAliases: FlatbuffersJSONDecodable {
+  public static func decode(decoder: DecoderContainer, builder: inout FlatBufferBuilder) throws -> Offset {
+    let container = decoder.keyedContainer(codingKey: CodingKeys.self)
+    let _v8Offset = try container.values(for: .v8)?.encodeAs(type: Int8.self, to: &builder)
+    let _vf64Offset = try container.values(for: .vf64)?.encodeAs(type: Double.self, to: &builder)
+    let __root = MyGame_Example_TypeAliases.startTypeAliases(&builder)
+    MyGame_Example_TypeAliases.add(i8: try container.value(for: .i8, type: Int8.self) ?? 0, &builder)
+    MyGame_Example_TypeAliases.add(u8: try container.value(for: .u8, type: UInt8.self) ?? 0, &builder)
+    MyGame_Example_TypeAliases.add(i16: try container.value(for: .i16, type: Int16.self) ?? 0, &builder)
+    MyGame_Example_TypeAliases.add(u16: try container.value(for: .u16, type: UInt16.self) ?? 0, &builder)
+    MyGame_Example_TypeAliases.add(i32: try container.value(for: .i32, type: Int32.self) ?? 0, &builder)
+    MyGame_Example_TypeAliases.add(u32: try container.value(for: .u32, type: UInt32.self) ?? 0, &builder)
+    MyGame_Example_TypeAliases.add(i64: try container.value(for: .i64, type: Int64.self) ?? 0, &builder)
+    MyGame_Example_TypeAliases.add(u64: try container.value(for: .u64, type: UInt64.self) ?? 0, &builder)
+    MyGame_Example_TypeAliases.add(f32: try container.value(for: .f32, type: Float32.self) ?? 0.0, &builder)
+    MyGame_Example_TypeAliases.add(f64: try container.value(for: .f64, type: Double.self) ?? 0.0, &builder)
+    MyGame_Example_TypeAliases.addVectorOf(v8: _v8Offset ?? Offset(), &builder)
+    MyGame_Example_TypeAliases.addVectorOf(vf64: _vf64Offset ?? Offset(), &builder)
+    return MyGame_Example_TypeAliases.endTypeAliases(&builder, start: __root)
   }
 }
 

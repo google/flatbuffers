@@ -16,13 +16,22 @@ public enum optional_scalars_OptionalByte: Int8, Enum, Verifiable {
   public static var min: optional_scalars_OptionalByte { return .none_ }
 }
 
-extension optional_scalars_OptionalByte: Encodable {
+extension optional_scalars_OptionalByte: FlatbuffersEnumDecodable, Encodable {
   public func encode(to encoder: Encoder) throws {
     var container = encoder.singleValueContainer()
     switch self {
     case .none_: try container.encode("None")
     case .one: try container.encode("One")
     case .two: try container.encode("Two")
+    }
+  }
+
+  public init?(value: String?) {
+    switch value {
+    case "None": self = .none_
+    case "One": self = .one
+    case "Two": self = .two
+    default: return nil
     }
   }
 }
@@ -274,6 +283,50 @@ public struct optional_scalars_ScalarStuff: FlatBufferObject, Verifiable {
     try _v.visit(field: VTOFFSET.maybeEnum.p, fieldName: "maybeEnum", required: false, type: optional_scalars_OptionalByte.self)
     try _v.visit(field: VTOFFSET.defaultEnum.p, fieldName: "defaultEnum", required: false, type: optional_scalars_OptionalByte.self)
     _v.finish()
+  }
+}
+
+extension optional_scalars_ScalarStuff: FlatbuffersJSONDecodable {
+  public static func decode(decoder: DecoderContainer, builder: inout FlatBufferBuilder) throws -> Offset {
+    let container = decoder.keyedContainer(codingKey: CodingKeys.self)
+    let __root = optional_scalars_ScalarStuff.startScalarStuff(&builder)
+    optional_scalars_ScalarStuff.add(justI8: try container.value(for: .justI8, type: Int8.self) ?? 0, &builder)
+    optional_scalars_ScalarStuff.add(maybeI8: try container.value(for: .maybeI8, type: Int8.self), &builder)
+    optional_scalars_ScalarStuff.add(defaultI8: try container.value(for: .defaultI8, type: Int8.self) ?? 42, &builder)
+    optional_scalars_ScalarStuff.add(justU8: try container.value(for: .justU8, type: UInt8.self) ?? 0, &builder)
+    optional_scalars_ScalarStuff.add(maybeU8: try container.value(for: .maybeU8, type: UInt8.self), &builder)
+    optional_scalars_ScalarStuff.add(defaultU8: try container.value(for: .defaultU8, type: UInt8.self) ?? 42, &builder)
+    optional_scalars_ScalarStuff.add(justI16: try container.value(for: .justI16, type: Int16.self) ?? 0, &builder)
+    optional_scalars_ScalarStuff.add(maybeI16: try container.value(for: .maybeI16, type: Int16.self), &builder)
+    optional_scalars_ScalarStuff.add(defaultI16: try container.value(for: .defaultI16, type: Int16.self) ?? 42, &builder)
+    optional_scalars_ScalarStuff.add(justU16: try container.value(for: .justU16, type: UInt16.self) ?? 0, &builder)
+    optional_scalars_ScalarStuff.add(maybeU16: try container.value(for: .maybeU16, type: UInt16.self), &builder)
+    optional_scalars_ScalarStuff.add(defaultU16: try container.value(for: .defaultU16, type: UInt16.self) ?? 42, &builder)
+    optional_scalars_ScalarStuff.add(justI32: try container.value(for: .justI32, type: Int32.self) ?? 0, &builder)
+    optional_scalars_ScalarStuff.add(maybeI32: try container.value(for: .maybeI32, type: Int32.self), &builder)
+    optional_scalars_ScalarStuff.add(defaultI32: try container.value(for: .defaultI32, type: Int32.self) ?? 42, &builder)
+    optional_scalars_ScalarStuff.add(justU32: try container.value(for: .justU32, type: UInt32.self) ?? 0, &builder)
+    optional_scalars_ScalarStuff.add(maybeU32: try container.value(for: .maybeU32, type: UInt32.self), &builder)
+    optional_scalars_ScalarStuff.add(defaultU32: try container.value(for: .defaultU32, type: UInt32.self) ?? 42, &builder)
+    optional_scalars_ScalarStuff.add(justI64: try container.value(for: .justI64, type: Int64.self) ?? 0, &builder)
+    optional_scalars_ScalarStuff.add(maybeI64: try container.value(for: .maybeI64, type: Int64.self), &builder)
+    optional_scalars_ScalarStuff.add(defaultI64: try container.value(for: .defaultI64, type: Int64.self) ?? 42, &builder)
+    optional_scalars_ScalarStuff.add(justU64: try container.value(for: .justU64, type: UInt64.self) ?? 0, &builder)
+    optional_scalars_ScalarStuff.add(maybeU64: try container.value(for: .maybeU64, type: UInt64.self), &builder)
+    optional_scalars_ScalarStuff.add(defaultU64: try container.value(for: .defaultU64, type: UInt64.self) ?? 42, &builder)
+    optional_scalars_ScalarStuff.add(justF32: try container.value(for: .justF32, type: Float32.self) ?? 0.0, &builder)
+    optional_scalars_ScalarStuff.add(maybeF32: try container.value(for: .maybeF32, type: Float32.self), &builder)
+    optional_scalars_ScalarStuff.add(defaultF32: try container.value(for: .defaultF32, type: Float32.self) ?? 42.0, &builder)
+    optional_scalars_ScalarStuff.add(justF64: try container.value(for: .justF64, type: Double.self) ?? 0.0, &builder)
+    optional_scalars_ScalarStuff.add(maybeF64: try container.value(for: .maybeF64, type: Double.self), &builder)
+    optional_scalars_ScalarStuff.add(defaultF64: try container.value(for: .defaultF64, type: Double.self) ?? 42.0, &builder)
+    optional_scalars_ScalarStuff.add(justBool: try container.value(for: .justBool, type: Bool.self) ?? false, &builder)
+    optional_scalars_ScalarStuff.add(maybeBool: try container.value(for: .maybeBool, type: Bool.self), &builder)
+    optional_scalars_ScalarStuff.add(defaultBool: try container.value(for: .defaultBool, type: Bool.self) ?? true, &builder)
+    optional_scalars_ScalarStuff.add(justEnum: try container.value(for: .justEnum, type: optional_scalars_OptionalByte.self) ?? .none_, &builder)
+    optional_scalars_ScalarStuff.add(maybeEnum: try container.value(for: .maybeEnum, type: optional_scalars_OptionalByte.self), &builder)
+    optional_scalars_ScalarStuff.add(defaultEnum: try container.value(for: .defaultEnum, type: optional_scalars_OptionalByte.self) ?? .one, &builder)
+    return optional_scalars_ScalarStuff.endScalarStuff(&builder, start: __root)
   }
 }
 

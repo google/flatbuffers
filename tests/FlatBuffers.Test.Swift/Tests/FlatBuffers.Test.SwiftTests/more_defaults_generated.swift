@@ -16,13 +16,22 @@ public enum ABC: Int32, Enum, Verifiable {
   public static var min: ABC { return .a }
 }
 
-extension ABC: Encodable {
+extension ABC: FlatbuffersEnumDecodable, Encodable {
   public func encode(to encoder: Encoder) throws {
     var container = encoder.singleValueContainer()
     switch self {
     case .a: try container.encode("A")
     case .b: try container.encode("B")
     case .c: try container.encode("C")
+    }
+  }
+
+  public init?(value: String?) {
+    switch value {
+    case "A": self = .a
+    case "B": self = .b
+    case "C": self = .c
+    default: return nil
     }
   }
 }
@@ -138,6 +147,26 @@ public struct MoreDefaults: FlatBufferObject, Verifiable, ObjectAPIPacker {
     try _v.visit(field: VTOFFSET.abcs.p, fieldName: "abcs", required: false, type: ForwardOffset<Vector<ABC, ABC>>.self)
     try _v.visit(field: VTOFFSET.bools.p, fieldName: "bools", required: false, type: ForwardOffset<Vector<Bool, Bool>>.self)
     _v.finish()
+  }
+}
+
+extension MoreDefaults: FlatbuffersJSONDecodable {
+  public static func decode(decoder: DecoderContainer, builder: inout FlatBufferBuilder) throws -> Offset {
+    let container = decoder.keyedContainer(codingKey: CodingKeys.self)
+    let _intsOffset = try container.values(for: .ints)?.encodeAs(type: Int32.self, to: &builder)
+    let _floatsOffset = try container.values(for: .floats)?.encodeAs(type: Float32.self, to: &builder)
+    let _emptyStringOffset = try container.value(for: .emptyString, builder: &builder)
+    let _someStringOffset = try container.value(for: .someString, builder: &builder)
+    let _abcsOffset = try container.values(for: .abcs)?.encodeAs(type: ABC.self, to: &builder)
+    let _boolsOffset = try container.values(for: .bools)?.encodeAs(type: Bool.self, to: &builder)
+    let __root = MoreDefaults.startMoreDefaults(&builder)
+    MoreDefaults.addVectorOf(ints: _intsOffset ?? Offset(), &builder)
+    MoreDefaults.addVectorOf(floats: _floatsOffset ?? Offset(), &builder)
+    MoreDefaults.add(emptyString: _emptyStringOffset ?? Offset(), &builder)
+    MoreDefaults.add(someString: _someStringOffset ?? Offset(), &builder)
+    MoreDefaults.addVectorOf(abcs: _abcsOffset ?? Offset(), &builder)
+    MoreDefaults.addVectorOf(bools: _boolsOffset ?? Offset(), &builder)
+    return MoreDefaults.endMoreDefaults(&builder, start: __root)
   }
 }
 

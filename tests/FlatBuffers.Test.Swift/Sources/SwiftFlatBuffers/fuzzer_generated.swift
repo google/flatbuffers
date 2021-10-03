@@ -19,13 +19,22 @@ public enum Color: UInt8, Enum, Verifiable {
   public static var min: Color { return .red }
 }
 
-extension Color: Encodable {
+extension Color: FlatbuffersEnumDecodable, Encodable {
   public func encode(to encoder: Encoder) throws {
     var container = encoder.singleValueContainer()
     switch self {
     case .red: try container.encode("Red")
     case .green: try container.encode("Green")
     case .blue: try container.encode("Blue")
+    }
+  }
+
+  public init?(value: String?) {
+    switch value {
+    case "Red": self = .red
+    case "Green": self = .green
+    case "Blue": self = .blue
+    default: return nil
     }
   }
 }
@@ -54,11 +63,22 @@ public struct Test: NativeStruct, Verifiable, FlatbuffersInitializable {
     _b = 0
   }
 
+  public init(decoder: DecoderContainer) throws {
+    let container = decoder.keyedContainer(codingKey: CodingKeys.self)
+    _a = try container.value(for: .a, type: Int16.self)
+    _b = try container.value(for: .b, type: Int8.self)
+  }
   public var a: Int16 { _a }
   public var b: Int8 { _b }
 
   public static func verify<T>(_ verifier: inout Verifier, at position: Int, of type: T.Type) throws where T: Verifiable {
     try verifier.inBuffer(position: position, of: Test.self)
+  }
+}
+
+extension Test: FlatbuffersJSONDecodable, FlatbuffersDecodable {
+  public static func decode(decoder: DecoderContainer, builder: inout FlatBufferBuilder) throws -> Offset {
+    builder.create(struct: try self.init(decoder: decoder))
   }
 }
 
@@ -133,6 +153,15 @@ public struct Vec3: NativeStruct, Verifiable, FlatbuffersInitializable {
     _test3 = Test()
   }
 
+  public init(decoder: DecoderContainer) throws {
+    let container = decoder.keyedContainer(codingKey: CodingKeys.self)
+    _x = try container.value(for: .x, type: Float32.self)
+    _y = try container.value(for: .y, type: Float32.self)
+    _z = try container.value(for: .z, type: Float32.self)
+    _test1 = try container.value(for: .test1, type: Double.self)
+    _test2 = try container.value(for: .test2, type: Color.self).value
+    _test3 = try container.value(for: .test3, type: Test.self)
+  }
   public var x: Float32 { _x }
   public var y: Float32 { _y }
   public var z: Float32 { _z }
@@ -142,6 +171,12 @@ public struct Vec3: NativeStruct, Verifiable, FlatbuffersInitializable {
 
   public static func verify<T>(_ verifier: inout Verifier, at position: Int, of type: T.Type) throws where T: Verifiable {
     try verifier.inBuffer(position: position, of: Vec3.self)
+  }
+}
+
+extension Vec3: FlatbuffersJSONDecodable, FlatbuffersDecodable {
+  public static func decode(decoder: DecoderContainer, builder: inout FlatBufferBuilder) throws -> Offset {
+    builder.create(struct: try self.init(decoder: decoder))
   }
 }
 
@@ -294,6 +329,26 @@ public struct Monster: FlatBufferObject, Verifiable {
     try _v.visit(field: VTOFFSET.inventory.p, fieldName: "inventory", required: false, type: ForwardOffset<Vector<UInt8, UInt8>>.self)
     try _v.visit(field: VTOFFSET.color.p, fieldName: "color", required: false, type: Color.self)
     _v.finish()
+  }
+}
+
+extension Monster: FlatbuffersJSONDecodable {
+  public static func decode(decoder: DecoderContainer, builder: inout FlatBufferBuilder) throws -> Offset {
+    let container = decoder.keyedContainer(codingKey: CodingKeys.self)
+    guard let _nameOffset = try container.value(for: .name, builder: &builder) else {
+      throw FlatbuffersErrors.fieldRequired(fieldName: CodingKeys.name.rawValue)
+    }
+    let _testarrayoftablesOffset = try container.values(for: .testarrayoftables)?.encodeAs(type: Monster.self, to: &builder)
+    let _inventoryOffset = try container.values(for: .inventory)?.encodeAs(type: UInt8.self, to: &builder)
+    let __root = Monster.startMonster(&builder)
+    Monster.add(pos: try container.value(for: .pos, type: Vec3.self) ?? nil, &builder)
+    Monster.add(mana: try container.value(for: .mana, type: Int16.self) ?? 150, &builder)
+    Monster.add(hp: try container.value(for: .hp, type: Int16.self) ?? 100, &builder)
+    Monster.add(name: _nameOffset, &builder)
+    Monster.addVectorOf(testarrayoftables: _testarrayoftablesOffset ?? Offset(), &builder)
+    Monster.addVectorOf(inventory: _inventoryOffset ?? Offset(), &builder)
+    Monster.add(color: try container.value(for: .color, type: Color.self) ?? .blue, &builder)
+    return Monster.endMonster(&builder, start: __root)
   }
 }
 
