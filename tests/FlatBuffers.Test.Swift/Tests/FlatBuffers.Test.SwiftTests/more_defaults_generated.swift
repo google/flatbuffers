@@ -16,6 +16,17 @@ public enum ABC: Int32, Enum, Verifiable {
   public static var min: ABC { return .a }
 }
 
+extension ABC: Encodable {
+  public func encode(to encoder: Encoder) throws {
+    var container = encoder.singleValueContainer()
+    switch self {
+    case .a: try container.encode("A")
+    case .b: try container.encode("B")
+    case .c: try container.encode("C")
+    }
+  }
+}
+
 public struct MoreDefaults: FlatBufferObject, Verifiable, ObjectAPIPacker {
 
   static func validateVersion() { FlatBuffersVersion_2_0_0() }
@@ -127,6 +138,39 @@ public struct MoreDefaults: FlatBufferObject, Verifiable, ObjectAPIPacker {
     try _v.visit(field: VTOFFSET.abcs.p, fieldName: "abcs", required: false, type: ForwardOffset<Vector<ABC, ABC>>.self)
     try _v.visit(field: VTOFFSET.bools.p, fieldName: "bools", required: false, type: ForwardOffset<Vector<Bool, Bool>>.self)
     _v.finish()
+  }
+}
+
+extension MoreDefaults: Encodable {
+
+  enum CodingKeys: String, CodingKey {
+    case ints = "ints"
+    case floats = "floats"
+    case emptyString = "empty_string"
+    case someString = "some_string"
+    case abcs = "abcs"
+    case bools = "bools"
+  }
+  public func encode(to encoder: Encoder) throws {
+    var container = encoder.container(keyedBy: CodingKeys.self)
+    if intsCount > 0 {
+      try container.encodeIfPresent(ints, forKey: .ints)
+    }
+    if floatsCount > 0 {
+      try container.encodeIfPresent(floats, forKey: .floats)
+    }
+    try container.encodeIfPresent(emptyString, forKey: .emptyString)
+    try container.encodeIfPresent(someString, forKey: .someString)
+    if abcsCount > 0 {
+      var contentEncoder = container.nestedUnkeyedContainer(forKey: .abcs)
+      for index in 0..<abcsCount {
+        guard let type = abcs(at: index) else { continue }
+        try contentEncoder.encode(type)
+      }
+    }
+    if boolsCount > 0 {
+      try container.encodeIfPresent(bools, forKey: .bools)
+    }
   }
 }
 
