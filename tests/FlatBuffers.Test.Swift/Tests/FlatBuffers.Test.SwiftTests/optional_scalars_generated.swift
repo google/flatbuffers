@@ -16,6 +16,17 @@ public enum optional_scalars_OptionalByte: Int8, Enum, Verifiable {
   public static var min: optional_scalars_OptionalByte { return .none_ }
 }
 
+extension optional_scalars_OptionalByte: Encodable {
+  public func encode(to encoder: Encoder) throws {
+    var container = encoder.singleValueContainer()
+    switch self {
+    case .none_: try container.encode("None")
+    case .one: try container.encode("One")
+    case .two: try container.encode("Two")
+    }
+  }
+}
+
 public struct optional_scalars_ScalarStuff: FlatBufferObject, Verifiable {
 
   static func validateVersion() { FlatBuffersVersion_2_0_0() }
@@ -263,6 +274,135 @@ public struct optional_scalars_ScalarStuff: FlatBufferObject, Verifiable {
     try _v.visit(field: VTOFFSET.maybeEnum.p, fieldName: "maybeEnum", required: false, type: optional_scalars_OptionalByte.self)
     try _v.visit(field: VTOFFSET.defaultEnum.p, fieldName: "defaultEnum", required: false, type: optional_scalars_OptionalByte.self)
     _v.finish()
+  }
+}
+
+extension optional_scalars_ScalarStuff: Encodable {
+
+  enum CodingKeys: String, CodingKey {
+    case justI8 = "just_i8"
+    case maybeI8 = "maybe_i8"
+    case defaultI8 = "default_i8"
+    case justU8 = "just_u8"
+    case maybeU8 = "maybe_u8"
+    case defaultU8 = "default_u8"
+    case justI16 = "just_i16"
+    case maybeI16 = "maybe_i16"
+    case defaultI16 = "default_i16"
+    case justU16 = "just_u16"
+    case maybeU16 = "maybe_u16"
+    case defaultU16 = "default_u16"
+    case justI32 = "just_i32"
+    case maybeI32 = "maybe_i32"
+    case defaultI32 = "default_i32"
+    case justU32 = "just_u32"
+    case maybeU32 = "maybe_u32"
+    case defaultU32 = "default_u32"
+    case justI64 = "just_i64"
+    case maybeI64 = "maybe_i64"
+    case defaultI64 = "default_i64"
+    case justU64 = "just_u64"
+    case maybeU64 = "maybe_u64"
+    case defaultU64 = "default_u64"
+    case justF32 = "just_f32"
+    case maybeF32 = "maybe_f32"
+    case defaultF32 = "default_f32"
+    case justF64 = "just_f64"
+    case maybeF64 = "maybe_f64"
+    case defaultF64 = "default_f64"
+    case justBool = "just_bool"
+    case maybeBool = "maybe_bool"
+    case defaultBool = "default_bool"
+    case justEnum = "just_enum"
+    case maybeEnum = "maybe_enum"
+    case defaultEnum = "default_enum"
+  }
+  public func encode(to encoder: Encoder) throws {
+    var container = encoder.container(keyedBy: CodingKeys.self)
+    if justI8 != 0 {
+      try container.encodeIfPresent(justI8, forKey: .justI8)
+    }
+    try container.encodeIfPresent(maybeI8, forKey: .maybeI8)
+    if defaultI8 != 42 {
+      try container.encodeIfPresent(defaultI8, forKey: .defaultI8)
+    }
+    if justU8 != 0 {
+      try container.encodeIfPresent(justU8, forKey: .justU8)
+    }
+    try container.encodeIfPresent(maybeU8, forKey: .maybeU8)
+    if defaultU8 != 42 {
+      try container.encodeIfPresent(defaultU8, forKey: .defaultU8)
+    }
+    if justI16 != 0 {
+      try container.encodeIfPresent(justI16, forKey: .justI16)
+    }
+    try container.encodeIfPresent(maybeI16, forKey: .maybeI16)
+    if defaultI16 != 42 {
+      try container.encodeIfPresent(defaultI16, forKey: .defaultI16)
+    }
+    if justU16 != 0 {
+      try container.encodeIfPresent(justU16, forKey: .justU16)
+    }
+    try container.encodeIfPresent(maybeU16, forKey: .maybeU16)
+    if defaultU16 != 42 {
+      try container.encodeIfPresent(defaultU16, forKey: .defaultU16)
+    }
+    if justI32 != 0 {
+      try container.encodeIfPresent(justI32, forKey: .justI32)
+    }
+    try container.encodeIfPresent(maybeI32, forKey: .maybeI32)
+    if defaultI32 != 42 {
+      try container.encodeIfPresent(defaultI32, forKey: .defaultI32)
+    }
+    if justU32 != 0 {
+      try container.encodeIfPresent(justU32, forKey: .justU32)
+    }
+    try container.encodeIfPresent(maybeU32, forKey: .maybeU32)
+    if defaultU32 != 42 {
+      try container.encodeIfPresent(defaultU32, forKey: .defaultU32)
+    }
+    if justI64 != 0 {
+      try container.encodeIfPresent(justI64, forKey: .justI64)
+    }
+    try container.encodeIfPresent(maybeI64, forKey: .maybeI64)
+    if defaultI64 != 42 {
+      try container.encodeIfPresent(defaultI64, forKey: .defaultI64)
+    }
+    if justU64 != 0 {
+      try container.encodeIfPresent(justU64, forKey: .justU64)
+    }
+    try container.encodeIfPresent(maybeU64, forKey: .maybeU64)
+    if defaultU64 != 42 {
+      try container.encodeIfPresent(defaultU64, forKey: .defaultU64)
+    }
+    if justF32 != 0.0 {
+      try container.encodeIfPresent(justF32, forKey: .justF32)
+    }
+    try container.encodeIfPresent(maybeF32, forKey: .maybeF32)
+    if defaultF32 != 42.0 {
+      try container.encodeIfPresent(defaultF32, forKey: .defaultF32)
+    }
+    if justF64 != 0.0 {
+      try container.encodeIfPresent(justF64, forKey: .justF64)
+    }
+    try container.encodeIfPresent(maybeF64, forKey: .maybeF64)
+    if defaultF64 != 42.0 {
+      try container.encodeIfPresent(defaultF64, forKey: .defaultF64)
+    }
+    if justBool != false {
+      try container.encodeIfPresent(justBool, forKey: .justBool)
+    }
+    try container.encodeIfPresent(maybeBool, forKey: .maybeBool)
+    if defaultBool != true {
+      try container.encodeIfPresent(defaultBool, forKey: .defaultBool)
+    }
+    if justEnum != .none_ {
+      try container.encodeIfPresent(justEnum, forKey: .justEnum)
+    }
+    try container.encodeIfPresent(maybeEnum, forKey: .maybeEnum)
+    if defaultEnum != .one {
+      try container.encodeIfPresent(defaultEnum, forKey: .defaultEnum)
+    }
   }
 }
 

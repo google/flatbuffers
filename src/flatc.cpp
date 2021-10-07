@@ -113,6 +113,7 @@ std::string FlatCompiler::GetUsageString(const char *program_name) const {
     "                         If the language uses a single file for output (by default\n"
     "                         the case for C++ and JS), all code will end up in this one\n"
     "                         file.\n"
+    "  --gen-json-emit        Generates encoding code which emits Flatbuffers into JSON\n"
     "  --cpp-include          Adds an #include in generated file.\n"
     "  --cpp-ptr-type T       Set object API pointer type (default std::unique_ptr).\n"
     "  --cpp-str-type T       Set object API string type (default std::string).\n"
@@ -308,6 +309,8 @@ int FlatCompiler::Compile(int argc, const char **argv) {
         opts.java_checkerframework = true;
       } else if (arg == "--gen-generated") {
         opts.gen_generated = true;
+      } else if (arg == "--gen-json-emit") {
+        opts.gen_json_coders = true;
       } else if (arg == "--object-prefix") {
         if (++argi >= argc) Error("missing prefix following: " + arg, true);
         opts.object_prefix = argv[argi];

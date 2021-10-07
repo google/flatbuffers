@@ -372,4 +372,24 @@ class FlatBuffersMonsterWriterTests: XCTestCase {
     XCTAssertEqual(sum0 + sum1, 100)
     XCTAssertEqual(monster.testbool, true)
   }
+
+  func testEncoding() {
+    let fbb = createMonster(withPrefix: false)
+    var sizedBuffer = fbb.sizedBuffer
+    do {
+      let reader: Monster = try getCheckedRoot(byteBuffer: &sizedBuffer)
+      let encoder = JSONEncoder()
+      encoder.keyEncodingStrategy = .convertToSnakeCase
+      let data = try encoder.encode(reader)
+      XCTAssertEqual(data, jsonData.data(using: .utf8))
+    } catch {
+      XCTFail(error.localizedDescription)
+    }
+  }
+
+  var jsonData: String {
+    """
+    {\"hp\":80,\"inventory\":[0,1,2,3,4],\"test\":{\"name\":\"Fred\"},\"testarrayofstring\":[\"test1\",\"test2\"],\"testarrayoftables\":[{\"name\":\"Barney\"},{\"name\":\"Frodo\"},{\"name\":\"Wilma\"}],\"test4\":[{\"a\":30,\"b\":40},{\"a\":10,\"b\":20}],\"testbool\":true,\"test_type\":\"Monster\",\"pos\":{\"y\":2,\"test3\":{\"a\":5,\"b\":6},\"z\":3,\"x\":1,\"test1\":3,\"test2\":\"Green\"},\"name\":\"MyMonster\"}
+    """
+  }
 }

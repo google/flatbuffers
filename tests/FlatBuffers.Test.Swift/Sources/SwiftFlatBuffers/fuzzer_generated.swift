@@ -19,13 +19,30 @@ public enum Color: UInt8, Enum, Verifiable {
   public static var min: Color { return .red }
 }
 
-public struct Test: NativeStruct, Verifiable {
+extension Color: Encodable {
+  public func encode(to encoder: Encoder) throws {
+    var container = encoder.singleValueContainer()
+    switch self {
+    case .red: try container.encode("Red")
+    case .green: try container.encode("Green")
+    case .blue: try container.encode("Blue")
+    }
+  }
+}
+
+public struct Test: NativeStruct, Verifiable, FlatbuffersInitializable {
 
   static func validateVersion() { FlatBuffersVersion_2_0_0() }
 
   private var _a: Int16
   private var _b: Int8
   private let padding0__: UInt8 = 0
+
+  public init(_ bb: ByteBuffer, o: Int32) {
+    let _accessor = Struct(bb: bb, position: o)
+    _a = _accessor.readBuffer(of: Int16.self, at: 0)
+    _b = _accessor.readBuffer(of: Int8.self, at: 2)
+  }
 
   public init(a: Int16, b: Int8) {
     _a = a
@@ -45,6 +62,23 @@ public struct Test: NativeStruct, Verifiable {
   }
 }
 
+extension Test: Encodable {
+
+  enum CodingKeys: String, CodingKey {
+    case a = "a"
+    case b = "b"
+  }
+  public func encode(to encoder: Encoder) throws {
+    var container = encoder.container(keyedBy: CodingKeys.self)
+    if a != 0 {
+      try container.encodeIfPresent(a, forKey: .a)
+    }
+    if b != 0 {
+      try container.encodeIfPresent(b, forKey: .b)
+    }
+  }
+}
+
 public struct Test_Mutable: FlatBufferObject {
 
   static func validateVersion() { FlatBuffersVersion_2_0_0() }
@@ -57,7 +91,7 @@ public struct Test_Mutable: FlatBufferObject {
   public var b: Int8 { return _accessor.readBuffer(of: Int8.self, at: 2) }
 }
 
-public struct Vec3: NativeStruct, Verifiable {
+public struct Vec3: NativeStruct, Verifiable, FlatbuffersInitializable {
 
   static func validateVersion() { FlatBuffersVersion_2_0_0() }
 
@@ -70,6 +104,16 @@ public struct Vec3: NativeStruct, Verifiable {
   private let padding1__: UInt8 = 0
   private var _test3: Test
   private let padding2__: UInt16 = 0
+
+  public init(_ bb: ByteBuffer, o: Int32) {
+    let _accessor = Struct(bb: bb, position: o)
+    _x = _accessor.readBuffer(of: Float32.self, at: 0)
+    _y = _accessor.readBuffer(of: Float32.self, at: 4)
+    _z = _accessor.readBuffer(of: Float32.self, at: 8)
+    _test1 = _accessor.readBuffer(of: Double.self, at: 16)
+    _test2 = _accessor.readBuffer(of: UInt8.self, at: 24)
+    _test3 = Test(_accessor.bb, o: _accessor.postion + 26)
+  }
 
   public init(x: Float32, y: Float32, z: Float32, test1: Double, test2: Color, test3: Test) {
     _x = x
@@ -98,6 +142,37 @@ public struct Vec3: NativeStruct, Verifiable {
 
   public static func verify<T>(_ verifier: inout Verifier, at position: Int, of type: T.Type) throws where T: Verifiable {
     try verifier.inBuffer(position: position, of: Vec3.self)
+  }
+}
+
+extension Vec3: Encodable {
+
+  enum CodingKeys: String, CodingKey {
+    case x = "x"
+    case y = "y"
+    case z = "z"
+    case test1 = "test1"
+    case test2 = "test2"
+    case test3 = "test3"
+  }
+  public func encode(to encoder: Encoder) throws {
+    var container = encoder.container(keyedBy: CodingKeys.self)
+    if x != 0.0 {
+      try container.encodeIfPresent(x, forKey: .x)
+    }
+    if y != 0.0 {
+      try container.encodeIfPresent(y, forKey: .y)
+    }
+    if z != 0.0 {
+      try container.encodeIfPresent(z, forKey: .z)
+    }
+    if test1 != 0.0 {
+      try container.encodeIfPresent(test1, forKey: .test1)
+    }
+    if test2 != .red {
+      try container.encodeIfPresent(test2, forKey: .test2)
+    }
+    try container.encodeIfPresent(test3, forKey: .test3)
   }
 }
 
@@ -219,6 +294,43 @@ public struct Monster: FlatBufferObject, Verifiable {
     try _v.visit(field: VTOFFSET.inventory.p, fieldName: "inventory", required: false, type: ForwardOffset<Vector<UInt8, UInt8>>.self)
     try _v.visit(field: VTOFFSET.color.p, fieldName: "color", required: false, type: Color.self)
     _v.finish()
+  }
+}
+
+extension Monster: Encodable {
+
+  enum CodingKeys: String, CodingKey {
+    case pos = "pos"
+    case mana = "mana"
+    case hp = "hp"
+    case name = "name"
+    case testarrayoftables = "testarrayoftables"
+    case inventory = "inventory"
+    case color = "color"
+  }
+  public func encode(to encoder: Encoder) throws {
+    var container = encoder.container(keyedBy: CodingKeys.self)
+    try container.encodeIfPresent(pos, forKey: .pos)
+    if mana != 150 {
+      try container.encodeIfPresent(mana, forKey: .mana)
+    }
+    if hp != 100 {
+      try container.encodeIfPresent(hp, forKey: .hp)
+    }
+    try container.encodeIfPresent(name, forKey: .name)
+    if testarrayoftablesCount > 0 {
+      var contentEncoder = container.nestedUnkeyedContainer(forKey: .testarrayoftables)
+      for index in 0..<testarrayoftablesCount {
+        guard let type = testarrayoftables(at: index) else { continue }
+        try contentEncoder.encode(type)
+      }
+    }
+    if inventoryCount > 0 {
+      try container.encodeIfPresent(inventory, forKey: .inventory)
+    }
+    if color != .blue {
+      try container.encodeIfPresent(color, forKey: .color)
+    }
   }
 }
 
