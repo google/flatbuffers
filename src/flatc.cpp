@@ -516,7 +516,7 @@ int FlatCompiler::Compile(int argc, const char **argv) {
       }
       if ((is_schema || is_binary_schema) && !conform_to_schema.empty()) {
         auto err = parser->ConformTo(conform_parser);
-        if (!err.empty()) Error("schemas don\'t conform: " + err);
+        if (!err.empty()) Error("schemas don\'t conform: " + err, false);
       }
       if (schema_binary || opts.binary_schema_gen_embed) {
         parser->Serialize();
