@@ -23,15 +23,15 @@ static void Warn(const flatbuffers::FlatCompiler *flatc,
                  const std::string &warn, bool show_exe_name) {
   (void)flatc;
   if (show_exe_name) { printf("%s: ", g_program_name); }
-  printf("warning: %s\n", warn.c_str());
+  fprintf(stderr, "warning: %s\n", warn.c_str());
 }
 
 static void Error(const flatbuffers::FlatCompiler *flatc,
                   const std::string &err, bool usage, bool show_exe_name) {
   if (show_exe_name) { printf("%s: ", g_program_name); }
-  printf("error: %s\n", err.c_str());
+  fprintf(stderr, "error: %s\n", err.c_str());
   if (usage && flatc) {
-    printf("%s", flatc->GetUsageString(g_program_name).c_str());
+    fprintf(stderr, "%s", flatc->GetUsageString(g_program_name).c_str());
   }
   exit(1);
 }
