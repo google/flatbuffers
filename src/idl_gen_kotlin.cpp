@@ -425,7 +425,7 @@ class KotlinGenerator : public BaseGenerator {
                       (nameprefix + (field.name + "_")).c_str());
       } else {
         writer.SetValue("type", GenMethod(field.value.type));
-        writer.SetValue("argname", nameprefix + MakeCamel(field.name, false));
+        writer.SetValue("argname", nameprefix + MakeCamel(Esc(field.name), false));
         writer.SetValue("cast", CastToSigned(field.value.type));
         writer += "builder.put{{type}}({{argname}}{{cast}})";
       }
