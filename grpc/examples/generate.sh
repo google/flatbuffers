@@ -58,7 +58,7 @@ cd ${current_dir}
 cd swift
 
 cd Greeter/Sources/Model
-fbc --bfbs-filenames ../../../.. --swift ${generator}
+fbc --bfbs-filenames ../../../.. --swift --gen-json-emit ${generator}
 
 cd ${current_dir}
 

@@ -20,6 +20,17 @@ public enum MyGame_Example_Color: UInt8, Enum, Verifiable {
   public static var min: MyGame_Example_Color { return .red }
 }
 
+extension MyGame_Example_Color: Encodable {
+  public func encode(to encoder: Encoder) throws {
+    var container = encoder.singleValueContainer()
+    switch self {
+    case .red: try container.encode("Red")
+    case .green: try container.encode("Green")
+    case .blue: try container.encode("Blue")
+    }
+  }
+}
+
 public enum MyGame_Example_Race: Int8, Enum, Verifiable {
   public typealias T = Int8
   public static var byteSize: Int { return MemoryLayout<Int8>.size }
@@ -31,6 +42,18 @@ public enum MyGame_Example_Race: Int8, Enum, Verifiable {
 
   public static var max: MyGame_Example_Race { return .elf }
   public static var min: MyGame_Example_Race { return .none_ }
+}
+
+extension MyGame_Example_Race: Encodable {
+  public func encode(to encoder: Encoder) throws {
+    var container = encoder.singleValueContainer()
+    switch self {
+    case .none_: try container.encode("None")
+    case .human: try container.encode("Human")
+    case .dwarf: try container.encode("Dwarf")
+    case .elf: try container.encode("Elf")
+    }
+  }
 }
 
 public enum MyGame_Example_Any_: UInt8, UnionEnum {
@@ -49,6 +72,18 @@ public enum MyGame_Example_Any_: UInt8, UnionEnum {
 
   public static var max: MyGame_Example_Any_ { return .mygameExample2Monster }
   public static var min: MyGame_Example_Any_ { return .none_ }
+}
+
+extension MyGame_Example_Any_: Encodable {
+  public func encode(to encoder: Encoder) throws {
+    var container = encoder.singleValueContainer()
+    switch self {
+    case .none_: try container.encode("NONE")
+    case .monster: try container.encode("Monster")
+    case .testsimpletablewithenum: try container.encode("TestSimpleTableWithEnum")
+    case .mygameExample2Monster: try container.encode("MyGame_Example2_Monster")
+    }
+  }
 }
 
 public struct MyGame_Example_Any_Union {
@@ -91,6 +126,18 @@ public enum MyGame_Example_AnyUniqueAliases: UInt8, UnionEnum {
   public static var min: MyGame_Example_AnyUniqueAliases { return .none_ }
 }
 
+extension MyGame_Example_AnyUniqueAliases: Encodable {
+  public func encode(to encoder: Encoder) throws {
+    var container = encoder.singleValueContainer()
+    switch self {
+    case .none_: try container.encode("NONE")
+    case .m: try container.encode("M")
+    case .ts: try container.encode("TS")
+    case .m2: try container.encode("M2")
+    }
+  }
+}
+
 public struct MyGame_Example_AnyUniqueAliasesUnion {
   public var type: MyGame_Example_AnyUniqueAliases
   public var value: NativeObject?
@@ -131,6 +178,18 @@ public enum MyGame_Example_AnyAmbiguousAliases: UInt8, UnionEnum {
   public static var min: MyGame_Example_AnyAmbiguousAliases { return .none_ }
 }
 
+extension MyGame_Example_AnyAmbiguousAliases: Encodable {
+  public func encode(to encoder: Encoder) throws {
+    var container = encoder.singleValueContainer()
+    switch self {
+    case .none_: try container.encode("NONE")
+    case .m1: try container.encode("M1")
+    case .m2: try container.encode("M2")
+    case .m3: try container.encode("M3")
+    }
+  }
+}
+
 public struct MyGame_Example_AnyAmbiguousAliasesUnion {
   public var type: MyGame_Example_AnyAmbiguousAliases
   public var value: NativeObject?
@@ -153,13 +212,19 @@ public struct MyGame_Example_AnyAmbiguousAliasesUnion {
     }
   }
 }
-public struct MyGame_Example_Test: NativeStruct, Verifiable, NativeObject {
+public struct MyGame_Example_Test: NativeStruct, Verifiable, FlatbuffersInitializable, NativeObject {
 
   static func validateVersion() { FlatBuffersVersion_2_0_0() }
 
   private var _a: Int16
   private var _b: Int8
   private let padding0__: UInt8 = 0
+
+  public init(_ bb: ByteBuffer, o: Int32) {
+    let _accessor = Struct(bb: bb, position: o)
+    _a = _accessor.readBuffer(of: Int16.self, at: 0)
+    _b = _accessor.readBuffer(of: Int8.self, at: 2)
+  }
 
   public init(a: Int16, b: Int8) {
     _a = a
@@ -181,6 +246,23 @@ public struct MyGame_Example_Test: NativeStruct, Verifiable, NativeObject {
 
   public static func verify<T>(_ verifier: inout Verifier, at position: Int, of type: T.Type) throws where T: Verifiable {
     try verifier.inBuffer(position: position, of: MyGame_Example_Test.self)
+  }
+}
+
+extension MyGame_Example_Test: Encodable {
+
+  enum CodingKeys: String, CodingKey {
+    case a = "a"
+    case b = "b"
+  }
+  public func encode(to encoder: Encoder) throws {
+    var container = encoder.container(keyedBy: CodingKeys.self)
+    if a != 0 {
+      try container.encodeIfPresent(a, forKey: .a)
+    }
+    if b != 0 {
+      try container.encodeIfPresent(b, forKey: .b)
+    }
   }
 }
 
@@ -211,7 +293,7 @@ public struct MyGame_Example_Test_Mutable: FlatBufferObject {
   }
 }
 
-public struct MyGame_Example_Vec3: NativeStruct, Verifiable, NativeObject {
+public struct MyGame_Example_Vec3: NativeStruct, Verifiable, FlatbuffersInitializable, NativeObject {
 
   static func validateVersion() { FlatBuffersVersion_2_0_0() }
 
@@ -224,6 +306,16 @@ public struct MyGame_Example_Vec3: NativeStruct, Verifiable, NativeObject {
   private let padding1__: UInt8 = 0
   private var _test3: MyGame_Example_Test
   private let padding2__: UInt16 = 0
+
+  public init(_ bb: ByteBuffer, o: Int32) {
+    let _accessor = Struct(bb: bb, position: o)
+    _x = _accessor.readBuffer(of: Float32.self, at: 0)
+    _y = _accessor.readBuffer(of: Float32.self, at: 4)
+    _z = _accessor.readBuffer(of: Float32.self, at: 8)
+    _test1 = _accessor.readBuffer(of: Double.self, at: 16)
+    _test2 = _accessor.readBuffer(of: UInt8.self, at: 24)
+    _test3 = MyGame_Example_Test(_accessor.bb, o: _accessor.postion + 26)
+  }
 
   public init(x: Float32, y: Float32, z: Float32, test1: Double, test2: MyGame_Example_Color, test3: MyGame_Example_Test) {
     _x = x
@@ -265,6 +357,37 @@ public struct MyGame_Example_Vec3: NativeStruct, Verifiable, NativeObject {
   }
 }
 
+extension MyGame_Example_Vec3: Encodable {
+
+  enum CodingKeys: String, CodingKey {
+    case x = "x"
+    case y = "y"
+    case z = "z"
+    case test1 = "test1"
+    case test2 = "test2"
+    case test3 = "test3"
+  }
+  public func encode(to encoder: Encoder) throws {
+    var container = encoder.container(keyedBy: CodingKeys.self)
+    if x != 0.0 {
+      try container.encodeIfPresent(x, forKey: .x)
+    }
+    if y != 0.0 {
+      try container.encodeIfPresent(y, forKey: .y)
+    }
+    if z != 0.0 {
+      try container.encodeIfPresent(z, forKey: .z)
+    }
+    if test1 != 0.0 {
+      try container.encodeIfPresent(test1, forKey: .test1)
+    }
+    if test2 != .red {
+      try container.encodeIfPresent(test2, forKey: .test2)
+    }
+    try container.encodeIfPresent(test3, forKey: .test3)
+  }
+}
+
 public struct MyGame_Example_Vec3_Mutable: FlatBufferObject {
 
   static func validateVersion() { FlatBuffersVersion_2_0_0() }
@@ -299,12 +422,18 @@ public struct MyGame_Example_Vec3_Mutable: FlatBufferObject {
   }
 }
 
-public struct MyGame_Example_Ability: NativeStruct, Verifiable, NativeObject {
+public struct MyGame_Example_Ability: NativeStruct, Verifiable, FlatbuffersInitializable, NativeObject {
 
   static func validateVersion() { FlatBuffersVersion_2_0_0() }
 
   private var _id: UInt32
   private var _distance: UInt32
+
+  public init(_ bb: ByteBuffer, o: Int32) {
+    let _accessor = Struct(bb: bb, position: o)
+    _id = _accessor.readBuffer(of: UInt32.self, at: 0)
+    _distance = _accessor.readBuffer(of: UInt32.self, at: 4)
+  }
 
   public init(id: UInt32, distance: UInt32) {
     _id = id
@@ -326,6 +455,23 @@ public struct MyGame_Example_Ability: NativeStruct, Verifiable, NativeObject {
 
   public static func verify<T>(_ verifier: inout Verifier, at position: Int, of type: T.Type) throws where T: Verifiable {
     try verifier.inBuffer(position: position, of: MyGame_Example_Ability.self)
+  }
+}
+
+extension MyGame_Example_Ability: Encodable {
+
+  enum CodingKeys: String, CodingKey {
+    case id = "id"
+    case distance = "distance"
+  }
+  public func encode(to encoder: Encoder) throws {
+    var container = encoder.container(keyedBy: CodingKeys.self)
+    if id != 0 {
+      try container.encodeIfPresent(id, forKey: .id)
+    }
+    if distance != 0 {
+      try container.encodeIfPresent(distance, forKey: .distance)
+    }
   }
 }
 
@@ -356,13 +502,20 @@ public struct MyGame_Example_Ability_Mutable: FlatBufferObject {
   }
 }
 
-public struct MyGame_Example_StructOfStructs: NativeStruct, Verifiable, NativeObject {
+public struct MyGame_Example_StructOfStructs: NativeStruct, Verifiable, FlatbuffersInitializable, NativeObject {
 
   static func validateVersion() { FlatBuffersVersion_2_0_0() }
 
   private var _a: MyGame_Example_Ability
   private var _b: MyGame_Example_Test
   private var _c: MyGame_Example_Ability
+
+  public init(_ bb: ByteBuffer, o: Int32) {
+    let _accessor = Struct(bb: bb, position: o)
+    _a = MyGame_Example_Ability(_accessor.bb, o: _accessor.postion + 0)
+    _b = MyGame_Example_Test(_accessor.bb, o: _accessor.postion + 8)
+    _c = MyGame_Example_Ability(_accessor.bb, o: _accessor.postion + 12)
+  }
 
   public init(a: MyGame_Example_Ability, b: MyGame_Example_Test, c: MyGame_Example_Ability) {
     _a = a
@@ -391,6 +544,21 @@ public struct MyGame_Example_StructOfStructs: NativeStruct, Verifiable, NativeOb
 
   public static func verify<T>(_ verifier: inout Verifier, at position: Int, of type: T.Type) throws where T: Verifiable {
     try verifier.inBuffer(position: position, of: MyGame_Example_StructOfStructs.self)
+  }
+}
+
+extension MyGame_Example_StructOfStructs: Encodable {
+
+  enum CodingKeys: String, CodingKey {
+    case a = "a"
+    case b = "b"
+    case c = "c"
+  }
+  public func encode(to encoder: Encoder) throws {
+    var container = encoder.container(keyedBy: CodingKeys.self)
+    try container.encodeIfPresent(a, forKey: .a)
+    try container.encodeIfPresent(b, forKey: .b)
+    try container.encodeIfPresent(c, forKey: .c)
   }
 }
 
@@ -455,6 +623,12 @@ public struct MyGame_InParentNamespace: FlatBufferObject, Verifiable, ObjectAPIP
   }
 }
 
+extension MyGame_InParentNamespace: Encodable {
+
+  public func encode(to encoder: Encoder) throws {
+  }
+}
+
 public class MyGame_InParentNamespaceT: NativeObject {
 
 
@@ -499,6 +673,12 @@ public struct MyGame_Example2_Monster: FlatBufferObject, Verifiable, ObjectAPIPa
   public static func verify<T>(_ verifier: inout Verifier, at position: Int, of type: T.Type) throws where T: Verifiable {
     var _v = try verifier.visitTable(at: position)
     _v.finish()
+  }
+}
+
+extension MyGame_Example2_Monster: Encodable {
+
+  public func encode(to encoder: Encoder) throws {
   }
 }
 
@@ -565,6 +745,19 @@ internal struct MyGame_Example_TestSimpleTableWithEnum: FlatBufferObject, Verifi
     var _v = try verifier.visitTable(at: position)
     try _v.visit(field: VTOFFSET.color.p, fieldName: "color", required: false, type: MyGame_Example_Color.self)
     _v.finish()
+  }
+}
+
+extension MyGame_Example_TestSimpleTableWithEnum: Encodable {
+
+  enum CodingKeys: String, CodingKey {
+    case color = "color"
+  }
+  public func encode(to encoder: Encoder) throws {
+    var container = encoder.container(keyedBy: CodingKeys.self)
+    if color != .green {
+      try container.encodeIfPresent(color, forKey: .color)
+    }
   }
 }
 
@@ -684,6 +877,25 @@ public struct MyGame_Example_Stat: FlatBufferObject, Verifiable, ObjectAPIPacker
   }
 }
 
+extension MyGame_Example_Stat: Encodable {
+
+  enum CodingKeys: String, CodingKey {
+    case id = "id"
+    case val = "val"
+    case count = "count"
+  }
+  public func encode(to encoder: Encoder) throws {
+    var container = encoder.container(keyedBy: CodingKeys.self)
+    try container.encodeIfPresent(id, forKey: .id)
+    if val != 0 {
+      try container.encodeIfPresent(val, forKey: .val)
+    }
+    if count != 0 {
+      try container.encodeIfPresent(count, forKey: .count)
+    }
+  }
+}
+
 public class MyGame_Example_StatT: NativeObject {
 
   public var id: String?
@@ -779,6 +991,19 @@ public struct MyGame_Example_Referrable: FlatBufferObject, Verifiable, ObjectAPI
     var _v = try verifier.visitTable(at: position)
     try _v.visit(field: VTOFFSET.id.p, fieldName: "id", required: false, type: UInt64.self)
     _v.finish()
+  }
+}
+
+extension MyGame_Example_Referrable: Encodable {
+
+  enum CodingKeys: String, CodingKey {
+    case id = "id"
+  }
+  public func encode(to encoder: Encoder) throws {
+    var container = encoder.container(keyedBy: CodingKeys.self)
+    if id != 0 {
+      try container.encodeIfPresent(id, forKey: .id)
+    }
   }
 }
 
@@ -1396,6 +1621,272 @@ public struct MyGame_Example_Monster: FlatBufferObject, Verifiable, ObjectAPIPac
   }
 }
 
+extension MyGame_Example_Monster: Encodable {
+
+  enum CodingKeys: String, CodingKey {
+    case pos = "pos"
+    case mana = "mana"
+    case hp = "hp"
+    case name = "name"
+    case inventory = "inventory"
+    case color = "color"
+    case testType = "test_type"
+    case test = "test"
+    case test4 = "test4"
+    case testarrayofstring = "testarrayofstring"
+    case testarrayoftables = "testarrayoftables"
+    case enemy = "enemy"
+    case testnestedflatbuffer = "testnestedflatbuffer"
+    case testempty = "testempty"
+    case testbool = "testbool"
+    case testhashs32Fnv1 = "testhashs32_fnv1"
+    case testhashu32Fnv1 = "testhashu32_fnv1"
+    case testhashs64Fnv1 = "testhashs64_fnv1"
+    case testhashu64Fnv1 = "testhashu64_fnv1"
+    case testhashs32Fnv1a = "testhashs32_fnv1a"
+    case testhashu32Fnv1a = "testhashu32_fnv1a"
+    case testhashs64Fnv1a = "testhashs64_fnv1a"
+    case testhashu64Fnv1a = "testhashu64_fnv1a"
+    case testarrayofbools = "testarrayofbools"
+    case testf = "testf"
+    case testf2 = "testf2"
+    case testf3 = "testf3"
+    case testarrayofstring2 = "testarrayofstring2"
+    case testarrayofsortedstruct = "testarrayofsortedstruct"
+    case flex = "flex"
+    case test5 = "test5"
+    case vectorOfLongs = "vector_of_longs"
+    case vectorOfDoubles = "vector_of_doubles"
+    case parentNamespaceTest = "parent_namespace_test"
+    case vectorOfReferrables = "vector_of_referrables"
+    case singleWeakReference = "single_weak_reference"
+    case vectorOfWeakReferences = "vector_of_weak_references"
+    case vectorOfStrongReferrables = "vector_of_strong_referrables"
+    case coOwningReference = "co_owning_reference"
+    case vectorOfCoOwningReferences = "vector_of_co_owning_references"
+    case nonOwningReference = "non_owning_reference"
+    case vectorOfNonOwningReferences = "vector_of_non_owning_references"
+    case anyUniqueType = "any_unique_type"
+    case anyUnique = "any_unique"
+    case anyAmbiguousType = "any_ambiguous_type"
+    case anyAmbiguous = "any_ambiguous"
+    case vectorOfEnums = "vector_of_enums"
+    case signedEnum = "signed_enum"
+    case testrequirednestedflatbuffer = "testrequirednestedflatbuffer"
+    case scalarKeySortedTables = "scalar_key_sorted_tables"
+  }
+  public func encode(to encoder: Encoder) throws {
+    var container = encoder.container(keyedBy: CodingKeys.self)
+    try container.encodeIfPresent(pos, forKey: .pos)
+    if mana != 150 {
+      try container.encodeIfPresent(mana, forKey: .mana)
+    }
+    if hp != 100 {
+      try container.encodeIfPresent(hp, forKey: .hp)
+    }
+    try container.encodeIfPresent(name, forKey: .name)
+    if inventoryCount > 0 {
+      try container.encodeIfPresent(inventory, forKey: .inventory)
+    }
+    if color != .blue {
+      try container.encodeIfPresent(color, forKey: .color)
+    }
+    if testType != .none_ {
+      try container.encodeIfPresent(testType, forKey: .testType)
+    }
+    switch testType {
+    case .monster:
+      let _v = test(type: MyGame_Example_Monster.self)
+      try container.encodeIfPresent(_v, forKey: .test)
+    case .testsimpletablewithenum:
+      let _v = test(type: MyGame_Example_TestSimpleTableWithEnum.self)
+      try container.encodeIfPresent(_v, forKey: .test)
+    case .mygameExample2Monster:
+      let _v = test(type: MyGame_Example2_Monster.self)
+      try container.encodeIfPresent(_v, forKey: .test)
+    default: break;
+    }
+    if test4Count > 0 {
+      var contentEncoder = container.nestedUnkeyedContainer(forKey: .test4)
+      for index in 0..<test4Count {
+        guard let type = test4(at: index) else { continue }
+        try contentEncoder.encode(type)
+      }
+    }
+    if testarrayofstringCount > 0 {
+      var contentEncoder = container.nestedUnkeyedContainer(forKey: .testarrayofstring)
+      for index in 0..<testarrayofstringCount {
+        guard let type = testarrayofstring(at: index) else { continue }
+        try contentEncoder.encode(type)
+      }
+    }
+    if testarrayoftablesCount > 0 {
+      var contentEncoder = container.nestedUnkeyedContainer(forKey: .testarrayoftables)
+      for index in 0..<testarrayoftablesCount {
+        guard let type = testarrayoftables(at: index) else { continue }
+        try contentEncoder.encode(type)
+      }
+    }
+    try container.encodeIfPresent(enemy, forKey: .enemy)
+    if testnestedflatbufferCount > 0 {
+      try container.encodeIfPresent(testnestedflatbuffer, forKey: .testnestedflatbuffer)
+    }
+    try container.encodeIfPresent(testempty, forKey: .testempty)
+    if testbool != false {
+      try container.encodeIfPresent(testbool, forKey: .testbool)
+    }
+    if testhashs32Fnv1 != 0 {
+      try container.encodeIfPresent(testhashs32Fnv1, forKey: .testhashs32Fnv1)
+    }
+    if testhashu32Fnv1 != 0 {
+      try container.encodeIfPresent(testhashu32Fnv1, forKey: .testhashu32Fnv1)
+    }
+    if testhashs64Fnv1 != 0 {
+      try container.encodeIfPresent(testhashs64Fnv1, forKey: .testhashs64Fnv1)
+    }
+    if testhashu64Fnv1 != 0 {
+      try container.encodeIfPresent(testhashu64Fnv1, forKey: .testhashu64Fnv1)
+    }
+    if testhashs32Fnv1a != 0 {
+      try container.encodeIfPresent(testhashs32Fnv1a, forKey: .testhashs32Fnv1a)
+    }
+    if testhashu32Fnv1a != 0 {
+      try container.encodeIfPresent(testhashu32Fnv1a, forKey: .testhashu32Fnv1a)
+    }
+    if testhashs64Fnv1a != 0 {
+      try container.encodeIfPresent(testhashs64Fnv1a, forKey: .testhashs64Fnv1a)
+    }
+    if testhashu64Fnv1a != 0 {
+      try container.encodeIfPresent(testhashu64Fnv1a, forKey: .testhashu64Fnv1a)
+    }
+    if testarrayofboolsCount > 0 {
+      try container.encodeIfPresent(testarrayofbools, forKey: .testarrayofbools)
+    }
+    if testf != 3.14159 {
+      try container.encodeIfPresent(testf, forKey: .testf)
+    }
+    if testf2 != 3.0 {
+      try container.encodeIfPresent(testf2, forKey: .testf2)
+    }
+    if testf3 != 0.0 {
+      try container.encodeIfPresent(testf3, forKey: .testf3)
+    }
+    if testarrayofstring2Count > 0 {
+      var contentEncoder = container.nestedUnkeyedContainer(forKey: .testarrayofstring2)
+      for index in 0..<testarrayofstring2Count {
+        guard let type = testarrayofstring2(at: index) else { continue }
+        try contentEncoder.encode(type)
+      }
+    }
+    if testarrayofsortedstructCount > 0 {
+      var contentEncoder = container.nestedUnkeyedContainer(forKey: .testarrayofsortedstruct)
+      for index in 0..<testarrayofsortedstructCount {
+        guard let type = testarrayofsortedstruct(at: index) else { continue }
+        try contentEncoder.encode(type)
+      }
+    }
+    if flexCount > 0 {
+      try container.encodeIfPresent(flex, forKey: .flex)
+    }
+    if test5Count > 0 {
+      var contentEncoder = container.nestedUnkeyedContainer(forKey: .test5)
+      for index in 0..<test5Count {
+        guard let type = test5(at: index) else { continue }
+        try contentEncoder.encode(type)
+      }
+    }
+    if vectorOfLongsCount > 0 {
+      try container.encodeIfPresent(vectorOfLongs, forKey: .vectorOfLongs)
+    }
+    if vectorOfDoublesCount > 0 {
+      try container.encodeIfPresent(vectorOfDoubles, forKey: .vectorOfDoubles)
+    }
+    try container.encodeIfPresent(parentNamespaceTest, forKey: .parentNamespaceTest)
+    if vectorOfReferrablesCount > 0 {
+      var contentEncoder = container.nestedUnkeyedContainer(forKey: .vectorOfReferrables)
+      for index in 0..<vectorOfReferrablesCount {
+        guard let type = vectorOfReferrables(at: index) else { continue }
+        try contentEncoder.encode(type)
+      }
+    }
+    if singleWeakReference != 0 {
+      try container.encodeIfPresent(singleWeakReference, forKey: .singleWeakReference)
+    }
+    if vectorOfWeakReferencesCount > 0 {
+      try container.encodeIfPresent(vectorOfWeakReferences, forKey: .vectorOfWeakReferences)
+    }
+    if vectorOfStrongReferrablesCount > 0 {
+      var contentEncoder = container.nestedUnkeyedContainer(forKey: .vectorOfStrongReferrables)
+      for index in 0..<vectorOfStrongReferrablesCount {
+        guard let type = vectorOfStrongReferrables(at: index) else { continue }
+        try contentEncoder.encode(type)
+      }
+    }
+    if coOwningReference != 0 {
+      try container.encodeIfPresent(coOwningReference, forKey: .coOwningReference)
+    }
+    if vectorOfCoOwningReferencesCount > 0 {
+      try container.encodeIfPresent(vectorOfCoOwningReferences, forKey: .vectorOfCoOwningReferences)
+    }
+    if nonOwningReference != 0 {
+      try container.encodeIfPresent(nonOwningReference, forKey: .nonOwningReference)
+    }
+    if vectorOfNonOwningReferencesCount > 0 {
+      try container.encodeIfPresent(vectorOfNonOwningReferences, forKey: .vectorOfNonOwningReferences)
+    }
+    if anyUniqueType != .none_ {
+      try container.encodeIfPresent(anyUniqueType, forKey: .anyUniqueType)
+    }
+    switch anyUniqueType {
+    case .m:
+      let _v = anyUnique(type: MyGame_Example_Monster.self)
+      try container.encodeIfPresent(_v, forKey: .anyUnique)
+    case .ts:
+      let _v = anyUnique(type: MyGame_Example_TestSimpleTableWithEnum.self)
+      try container.encodeIfPresent(_v, forKey: .anyUnique)
+    case .m2:
+      let _v = anyUnique(type: MyGame_Example2_Monster.self)
+      try container.encodeIfPresent(_v, forKey: .anyUnique)
+    default: break;
+    }
+    if anyAmbiguousType != .none_ {
+      try container.encodeIfPresent(anyAmbiguousType, forKey: .anyAmbiguousType)
+    }
+    switch anyAmbiguousType {
+    case .m1:
+      let _v = anyAmbiguous(type: MyGame_Example_Monster.self)
+      try container.encodeIfPresent(_v, forKey: .anyAmbiguous)
+    case .m2:
+      let _v = anyAmbiguous(type: MyGame_Example_Monster.self)
+      try container.encodeIfPresent(_v, forKey: .anyAmbiguous)
+    case .m3:
+      let _v = anyAmbiguous(type: MyGame_Example_Monster.self)
+      try container.encodeIfPresent(_v, forKey: .anyAmbiguous)
+    default: break;
+    }
+    if vectorOfEnumsCount > 0 {
+      var contentEncoder = container.nestedUnkeyedContainer(forKey: .vectorOfEnums)
+      for index in 0..<vectorOfEnumsCount {
+        guard let type = vectorOfEnums(at: index) else { continue }
+        try contentEncoder.encode(type)
+      }
+    }
+    if signedEnum != .none_ {
+      try container.encodeIfPresent(signedEnum, forKey: .signedEnum)
+    }
+    if testrequirednestedflatbufferCount > 0 {
+      try container.encodeIfPresent(testrequirednestedflatbuffer, forKey: .testrequirednestedflatbuffer)
+    }
+    if scalarKeySortedTablesCount > 0 {
+      var contentEncoder = container.nestedUnkeyedContainer(forKey: .scalarKeySortedTables)
+      for index in 0..<scalarKeySortedTablesCount {
+        guard let type = scalarKeySortedTables(at: index) else { continue }
+        try contentEncoder.encode(type)
+      }
+    }
+  }
+}
+
 public class MyGame_Example_MonsterT: NativeObject {
 
   public var pos: MyGame_Example_Vec3?
@@ -1791,6 +2282,63 @@ public struct MyGame_Example_TypeAliases: FlatBufferObject, Verifiable, ObjectAP
     try _v.visit(field: VTOFFSET.v8.p, fieldName: "v8", required: false, type: ForwardOffset<Vector<Int8, Int8>>.self)
     try _v.visit(field: VTOFFSET.vf64.p, fieldName: "vf64", required: false, type: ForwardOffset<Vector<Double, Double>>.self)
     _v.finish()
+  }
+}
+
+extension MyGame_Example_TypeAliases: Encodable {
+
+  enum CodingKeys: String, CodingKey {
+    case i8 = "i8"
+    case u8 = "u8"
+    case i16 = "i16"
+    case u16 = "u16"
+    case i32 = "i32"
+    case u32 = "u32"
+    case i64 = "i64"
+    case u64 = "u64"
+    case f32 = "f32"
+    case f64 = "f64"
+    case v8 = "v8"
+    case vf64 = "vf64"
+  }
+  public func encode(to encoder: Encoder) throws {
+    var container = encoder.container(keyedBy: CodingKeys.self)
+    if i8 != 0 {
+      try container.encodeIfPresent(i8, forKey: .i8)
+    }
+    if u8 != 0 {
+      try container.encodeIfPresent(u8, forKey: .u8)
+    }
+    if i16 != 0 {
+      try container.encodeIfPresent(i16, forKey: .i16)
+    }
+    if u16 != 0 {
+      try container.encodeIfPresent(u16, forKey: .u16)
+    }
+    if i32 != 0 {
+      try container.encodeIfPresent(i32, forKey: .i32)
+    }
+    if u32 != 0 {
+      try container.encodeIfPresent(u32, forKey: .u32)
+    }
+    if i64 != 0 {
+      try container.encodeIfPresent(i64, forKey: .i64)
+    }
+    if u64 != 0 {
+      try container.encodeIfPresent(u64, forKey: .u64)
+    }
+    if f32 != 0.0 {
+      try container.encodeIfPresent(f32, forKey: .f32)
+    }
+    if f64 != 0.0 {
+      try container.encodeIfPresent(f64, forKey: .f64)
+    }
+    if v8Count > 0 {
+      try container.encodeIfPresent(v8, forKey: .v8)
+    }
+    if vf64Count > 0 {
+      try container.encodeIfPresent(vf64, forKey: .vf64)
+    }
   }
 }
 

@@ -42,6 +42,17 @@ public struct models_HelloReply: FlatBufferObject, Verifiable {
   }
 }
 
+extension models_HelloReply: Encodable {
+
+  enum CodingKeys: String, CodingKey {
+    case message = "message"
+  }
+  public func encode(to encoder: Encoder) throws {
+    var container = encoder.container(keyedBy: CodingKeys.self)
+    try container.encodeIfPresent(message, forKey: .message)
+  }
+}
+
 public struct models_HelloRequest: FlatBufferObject, Verifiable {
 
   static func validateVersion() { FlatBuffersVersion_2_0_0() }
@@ -77,6 +88,17 @@ public struct models_HelloRequest: FlatBufferObject, Verifiable {
     var _v = try verifier.visitTable(at: position)
     try _v.visit(field: VTOFFSET.name.p, fieldName: "name", required: false, type: ForwardOffset<String>.self)
     _v.finish()
+  }
+}
+
+extension models_HelloRequest: Encodable {
+
+  enum CodingKeys: String, CodingKey {
+    case name = "name"
+  }
+  public func encode(to encoder: Encoder) throws {
+    var container = encoder.container(keyedBy: CodingKeys.self)
+    try container.encodeIfPresent(name, forKey: .name)
   }
 }
 

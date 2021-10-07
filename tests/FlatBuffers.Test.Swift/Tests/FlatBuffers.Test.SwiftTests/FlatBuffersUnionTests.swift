@@ -207,6 +207,49 @@ final class FlatBuffersUnionTests: XCTestCase {
       7)
     XCTAssertEqual(packedMovie.characters(at: 1, type: String.self), string)
   }
+
+  func testEncoding() {
+    let string = "Awesome \\\\t\t\nstring!"
+    var fb = FlatBufferBuilder()
+
+    let stringOffset = fb.create(string: string)
+
+    let swordDmg: Int32 = 8
+    let attackStart = Attacker.startAttacker(&fb)
+    Attacker.add(swordAttackDamage: swordDmg, &fb)
+    let attack = Attacker.endAttacker(&fb, start: attackStart)
+
+    let characterType: [Character] = [.belle, .mulan, .bookfan, .other]
+
+    let characters = [
+      fb.create(struct: BookReader(booksRead: 7)),
+      attack,
+      fb.create(struct: BookReader(booksRead: 2)),
+      stringOffset,
+    ]
+    let types = fb.createVector(characterType)
+    let characterVector = fb.createVector(ofOffsets: characters)
+    let end = Movie.createMovie(
+      &fb,
+      charactersTypeVectorOffset: types,
+      charactersVectorOffset: characterVector)
+    Movie.finish(&fb, end: end)
+
+    var sizedBuffer = fb.sizedBuffer
+    do {
+      let reader: Movie = try getCheckedRoot(byteBuffer: &sizedBuffer)
+      let encoder = JSONEncoder()
+      encoder.keyEncodingStrategy = .convertToSnakeCase
+      let data = try encoder.encode(reader)
+      XCTAssertEqual(data, jsonData.data(using: .utf8))
+    } catch {
+      XCTFail(error.localizedDescription)
+    }
+  }
+
+  var jsonData: String {
+    "{\"characters_type\":[\"Belle\",\"MuLan\",\"BookFan\",\"Other\"],\"characters\":[{\"books_read\":7},{\"sword_attack_damage\":8},{\"books_read\":2},\"Awesome \\\\\\\\t\\t\\nstring!\"]}"
+  }
 }
 
 public enum ColorsNameSpace {
