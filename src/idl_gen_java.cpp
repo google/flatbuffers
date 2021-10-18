@@ -355,7 +355,7 @@ class JavaGenerator : public BaseGenerator {
       code += ";\n";
     }
 
-    // Generate a generate string table for enum values.
+    // Generate a string table for enum values.
     // Problem is, if values are very sparse that could generate really big
     // tables. Ideally in that case we generate a map lookup instead, but for
     // the moment we simply don't output a table at all.
@@ -363,7 +363,9 @@ class JavaGenerator : public BaseGenerator {
     // Average distance between values above which we consider a table
     // "too sparse". Change at will.
     static const uint64_t kMaxSparseness = 5;
-    if (range / static_cast<uint64_t>(enum_def.size()) < kMaxSparseness) {
+    if (range / static_cast<uint64_t>(enum_def.size()) < kMaxSparseness &&
+        GenTypeBasic(DestinationType(enum_def.underlying_type, false)) !=
+            "long") {
       code += "\n  public static final String";
       code += "[] names = { ";
       auto val = enum_def.Vals().front();
