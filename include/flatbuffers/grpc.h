@@ -276,10 +276,12 @@ template<class T> class SerializationTraits<flatbuffers::grpc::Message<T>> {
     Slice slice;
     if (!buf->TrySingleSlice(&slice).ok()) {
       if (!buf->DumpToSingleSlice(&slice).ok()) {
+        buf->Clear();
         return ::grpc::Status(::grpc::StatusCode::INTERNAL, "No payload");
       }
     }
     *msg = flatbuffers::grpc::Message<T>(slice);
+    buf->Clear();
 #if FLATBUFFERS_GRPC_DISABLE_AUTO_VERIFICATION
     return ::grpc::Status::OK;
 #else
