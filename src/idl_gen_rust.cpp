@@ -382,15 +382,13 @@ class RustGenerator : public BaseGenerator {
       if (symbol.generated) continue;
       code_.Clear();
       code_ += "// " + std::string(FlatBuffersGeneratedWarning());
-      code_ += "extern crate flatbuffers;";
-      code_ += "extern crate core;";
       code_ += "extern crate alloc;";
-      code_ += "use self::alloc::vec::Vec;";
-      code_ += "use self::alloc::boxed::Box;";
+      code_ += "extern crate core;";
+      code_ += "extern crate flatbuffers;";
+      code_ += "use self::alloc::{boxed::Box, vec::Vec};";
       code_ += "use self::alloc::string::{String, ToString as _};";
-      code_ += "use self::core::mem;";
-      code_ += "use self::core::cmp::Ordering;";
-      code_ += "use self::flatbuffers::{EndianScalar, Follow};";
+      code_ += "use self::core::{cmp::Ordering, fmt, mem, ptr, slice};";
+      code_ += "use self::flatbuffers::{EndianScalar, Follow, Verifiable};";
       code_ += "use super::*;";
       cur_name_space_ = symbol.defined_namespace;
       gen_symbol(symbol);
@@ -832,10 +830,10 @@ class RustGenerator : public BaseGenerator {
       code_ += "}";
 
       // Generate Debug. Unknown variants are printed like "<UNKNOWN 42>".
-      code_ += "impl self::core::fmt::Debug for {{ENUM_NAME}} {";
+      code_ += "impl fmt::Debug for {{ENUM_NAME}} {";
       code_ +=
-          "  fn fmt(&self, f: &mut self::core::fmt::Formatter) ->"
-          " self::core::fmt::Result {";
+          "  fn fmt(&self, f: &mut fmt::Formatter) ->"
+          " fmt::Result {";
       code_ += "    if let Some(name) = self.variant_name() {";
       code_ += "      f.write_str(name)";
       code_ += "    } else {";
@@ -891,7 +889,6 @@ class RustGenerator : public BaseGenerator {
     code_ += "  fn run_verifier(";
     code_ += "    v: &mut flatbuffers::Verifier, pos: usize";
     code_ += "  ) -> Result<(), flatbuffers::InvalidFlatbuffer> {";
-    code_ += "    use self::flatbuffers::Verifiable;";
     code_ += "    {{BASE_TYPE}}::run_verifier(v, pos)";
     code_ += "  }";
     code_ += "}";
@@ -987,7 +984,7 @@ class RustGenerator : public BaseGenerator {
           "pub fn take_{{U_ELEMENT_NAME}}(&mut self) -> "
           "Option<Box<{{U_ELEMENT_TABLE_TYPE}}>> {";
       code_ += "  if let Self::{{NATIVE_VARIANT}}(_) = self {";
-      code_ += "    let v = self::core::mem::replace(self, Self::NONE);";
+      code_ += "    let v = mem::replace(self, Self::NONE);";
       code_ += "    if let Self::{{NATIVE_VARIANT}}(w) = v {";
       code_ += "      Some(w)";
       code_ += "    } else {";
@@ -1875,14 +1872,12 @@ class RustGenerator : public BaseGenerator {
         if (field.IsRequired()) {
           code_ += "{{NESTED}}<'a> {";
           code_ += "  let data = self.{{FIELD_NAME}}();";
-          code_ += "  use flatbuffers::Follow;";
           code_ +=
               "  <flatbuffers::ForwardsUOffset<{{NESTED}}<'a>>>"
               "::follow(data, 0)";
         } else {
           code_ += "Option<{{NESTED}}<'a>> {";
           code_ += "  self.{{FIELD_NAME}}().map(|data| {";
-          code_ += "    use flatbuffers::Follow;";
           code_ +=
               "    <flatbuffers::ForwardsUOffset<{{NESTED}}<'a>>>"
               "::follow(data, 0)";
@@ -1943,7 +1938,6 @@ class RustGenerator : public BaseGenerator {
     code_ += "  fn run_verifier(";
     code_ += "    v: &mut flatbuffers::Verifier, pos: usize";
     code_ += "  ) -> Result<(), flatbuffers::InvalidFlatbuffer> {";
-    code_ += "    use self::flatbuffers::Verifiable;";
     code_ += "    v.visit_table(pos)?\\";
     // Escape newline and insert it onthe next line so we can end the builder
     // with a nice semicolon.
@@ -2084,10 +2078,10 @@ class RustGenerator : public BaseGenerator {
     code_ += "}";
     code_ += "";
 
-    code_ += "impl self::core::fmt::Debug for {{STRUCT_NAME}}<'_> {";
+    code_ += "impl fmt::Debug for {{STRUCT_NAME}}<'_> {";
     code_ +=
-        "  fn fmt(&self, f: &mut self::core::fmt::Formatter<'_>"
-        ") -> self::core::fmt::Result {";
+        "  fn fmt(&self, f: &mut fmt::Formatter<'_>"
+        ") -> fmt::Result {";
     code_ += "    let mut ds = f.debug_struct(\"{{STRUCT_NAME}}\");";
     ForAllTableFields(struct_def, [&](const FieldDef &field) {
       if (GetFullType(field.value.type) == ftUnionValue) {
@@ -2308,7 +2302,7 @@ class RustGenerator : public BaseGenerator {
     code_ += "#[inline]";
     code_ +=
         "pub fn key_compare_with_value(&self, val: {{KEY_TYPE}}) -> "
-        " self::core::cmp::Ordering {";
+        " Ordering {";
     code_ += "  let key = self.{{FIELD_NAME}}();";
     code_ += "  key.cmp({{REF}}val)";
     code_ += "}";
@@ -2571,10 +2565,10 @@ class RustGenerator : public BaseGenerator {
     code_ += "}";
 
     // Debug for structs.
-    code_ += "impl self::core::fmt::Debug for {{STRUCT_NAME}} {";
+    code_ += "impl fmt::Debug for {{STRUCT_NAME}} {";
     code_ +=
-        "  fn fmt(&self, f: &mut self::core::fmt::Formatter"
-        ") -> self::core::fmt::Result {";
+        "  fn fmt(&self, f: &mut fmt::Formatter"
+        ") -> fmt::Result {";
     code_ += "    f.debug_struct(\"{{STRUCT_NAME}}\")";
     ForAllStructFields(struct_def, [&](const FieldDef &unused) {
       (void)unused;
@@ -2610,7 +2604,7 @@ class RustGenerator : public BaseGenerator {
     code_ += "    fn push(&self, dst: &mut [u8], _rest: &[u8]) {";
     code_ += "        let src = unsafe {";
     code_ +=
-        "            self::core::slice::from_raw_parts("
+        "            slice::from_raw_parts("
         "self as *const {{STRUCT_NAME}} as *const u8, Self::size())";
     code_ += "        };";
     code_ += "        dst.copy_from_slice(src);";
@@ -2623,7 +2617,7 @@ class RustGenerator : public BaseGenerator {
     code_ += "    fn push(&self, dst: &mut [u8], _rest: &[u8]) {";
     code_ += "        let src = unsafe {";
     code_ +=
-        "            self::core::slice::from_raw_parts("
+        "            slice::from_raw_parts("
         "*self as *const {{STRUCT_NAME}} as *const u8, Self::size())";
     code_ += "        };";
     code_ += "        dst.copy_from_slice(src);";
@@ -2638,7 +2632,6 @@ class RustGenerator : public BaseGenerator {
     code_ += "  fn run_verifier(";
     code_ += "    v: &mut flatbuffers::Verifier, pos: usize";
     code_ += "  ) -> Result<(), flatbuffers::InvalidFlatbuffer> {";
-    code_ += "    use self::flatbuffers::Verifiable;";
     code_ += "    v.in_buffer::<Self>(pos)";
     code_ += "  }";
     code_ += "}";
@@ -2686,15 +2679,15 @@ class RustGenerator : public BaseGenerator {
       } else {
         code_ += "pub fn {{FIELD_NAME}}(&self) -> {{FIELD_TYPE}} {";
         code_ +=
-            "  let mut mem = core::mem::MaybeUninit::"
+            "  let mut uninit = mem::MaybeUninit::"
             "<{{FIELD_TYPE}}>::uninit();";
         code_ += "  unsafe {";
-        code_ += "    core::ptr::copy_nonoverlapping(";
+        code_ += "    ptr::copy_nonoverlapping(";
         code_ += "      self.0[{{FIELD_OFFSET}}..].as_ptr(),";
-        code_ += "      mem.as_mut_ptr() as *mut u8,";
-        code_ += "      core::mem::size_of::<{{FIELD_TYPE}}>(),";
+        code_ += "      uninit.as_mut_ptr() as *mut u8,";
+        code_ += "      mem::size_of::<{{FIELD_TYPE}}>(),";
         code_ += "    );";
-        code_ += "    mem.assume_init()";
+        code_ += "    uninit.assume_init()";
         code_ += "  }.from_little_endian()";
       }
       code_ += "}\n";
@@ -2724,7 +2717,7 @@ class RustGenerator : public BaseGenerator {
                          NumToString(InlineSize(field.value.type)));
           code_ += "pub fn set_{{FIELD_NAME}}(&mut self, x: &{{FIELD_TYPE}}) {";
           code_ += "  unsafe {";
-          code_ += "    self::core::ptr::copy(";
+          code_ += "    ptr::copy(";
           code_ += "      x.as_ptr() as *const u8,";
           code_ += "      self.0.as_mut_ptr().add({{FIELD_OFFSET}}),";
           code_ += "      {{FIELD_SIZE}},";
@@ -2735,10 +2728,10 @@ class RustGenerator : public BaseGenerator {
         code_ += "pub fn set_{{FIELD_NAME}}(&mut self, x: {{FIELD_TYPE}}) {";
         code_ += "  let x_le = x.to_little_endian();";
         code_ += "  unsafe {";
-        code_ += "    core::ptr::copy_nonoverlapping(";
+        code_ += "    ptr::copy_nonoverlapping(";
         code_ += "      &x_le as *const {{FIELD_TYPE}} as *const u8,";
         code_ += "      self.0[{{FIELD_OFFSET}}..].as_mut_ptr(),";
-        code_ += "      core::mem::size_of::<{{FIELD_TYPE}}>(),";
+        code_ += "      mem::size_of::<{{FIELD_TYPE}}>(),";
         code_ += "    );";
         code_ += "  }";
       }
@@ -2837,13 +2830,8 @@ class RustGenerator : public BaseGenerator {
         }
       }
     }
-    code_ += indent + "extern crate core;";
-    code_ += "";
-    code_ += indent + "use self::core::mem;";
-    code_ += indent + "use self::core::cmp::Ordering;";
-    code_ += "";
-    code_ += indent + "extern crate flatbuffers;";
-    code_ += indent + "use self::flatbuffers::{EndianScalar, Follow};";
+    code_ += indent + "use core::{cmp::Ordering, mem};";
+    code_ += indent + "use flatbuffers::{EndianScalar, Follow};";
   }
 
   // Set up the correct namespace. This opens a namespace if the current
