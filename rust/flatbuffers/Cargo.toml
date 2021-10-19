@@ -14,8 +14,8 @@ rust = "1.51"
 [dependencies]
 smallvec = "1.6.1"
 bitflags = "1.2.1"
-thiserror = "1.0.23"
+thiserror = { version = "1.0.23", optional = true }
 
 [features]
 default = ["std"]
-std = []
+std = ["thiserror"]

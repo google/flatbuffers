@@ -16,9 +16,7 @@
 
 extern crate smallvec;
 
-#[cfg(not(feature = "std"))]
 use alloc::{vec, vec::Vec};
-
 use core::cmp::max;
 use core::iter::{DoubleEndedIterator, ExactSizeIterator};
 use core::marker::PhantomData;

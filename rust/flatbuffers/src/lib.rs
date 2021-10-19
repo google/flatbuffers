@@ -28,12 +28,12 @@
 //! At this time, to generate Rust code, you will need the latest `master` version of `flatc`, available from here: <https://github.com/google/flatbuffers>
 //! (On OSX, you can install FlatBuffers from `HEAD` with the Homebrew package manager.)
 
-#![cfg_attr(not(feature = "std"), no_std)]
+#![no_std]
 
+// Needed for thiserror
 #[cfg(feature = "std")]
-extern crate core;
+extern crate std;
 
-#[cfg(not(feature = "std"))]
 extern crate alloc;
 
 mod array;

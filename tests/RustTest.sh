@@ -32,9 +32,12 @@ function check_test_result() {
 }
 
 cd ./rust_usage_test
+
+cargo test $TARGET_FLAG --no-default-features -- --quiet
+check_test_result "Rust tests without default features"
+
 cargo test $TARGET_FLAG -- --quiet
 check_test_result "Rust tests"
-
 
 cargo run $TARGET_FLAG --bin=flatbuffers_alloc_check
 check_test_result "Rust flatbuffers heap alloc test"

@@ -6,7 +6,7 @@ authors = ["Robert Winslow <hello@rwinslow.com>",
            "FlatBuffers Maintainers"]
 
 [dependencies]
-flatbuffers = { path = "../../rust/flatbuffers" }
+flatbuffers = { path = "../../rust/flatbuffers", default_features = false }
 flexbuffers = { path = "../../rust/flexbuffers" }
 serde_derive = "1.0"
 serde = "1.0"
@@ -49,3 +49,7 @@ array-init = "2.0"
 # setup for bencher
 name = "benchmarks"
 harness = false
+
+[features]
+default = ["std"]
+std = ["flatbuffers/std"]
