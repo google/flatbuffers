@@ -12,7 +12,7 @@ static MONSTER_DATA: &[u8] = include_bytes!("../../monsterdata_test.mon");
 // Note: Copied from `bin/monster_example.rs`
 #[test]
 fn no_std_example_data() {
-    let monster = my_game::example::get_root_as_monster(MONSTER_DATA);
+    let monster = my_game::example::root_as_monster(MONSTER_DATA).unwrap();
 
     assert_eq!(monster.hp(), 80);
     assert_eq!(monster.mana(), 150);
@@ -29,7 +29,7 @@ fn build_mon<'a, 'b>(
 ) -> my_game::example::Monster<'a> {
     let mon = my_game::example::Monster::create(builder, &args);
     my_game::example::finish_monster_buffer(builder, mon);
-    my_game::example::get_root_as_monster(builder.finished_data())
+    my_game::example::root_as_monster(builder.finished_data()).unwrap()
 }
 
 #[test]
