@@ -1096,7 +1096,7 @@ class Builder FLATBUFFERS_FINAL_CLASS {
     return stack_.size();
   }
 
-  // TODO(wvo): allow this to specify an aligment greater than the natural
+  // TODO(wvo): allow this to specify an alignment greater than the natural
   // alignment.
   size_t EndVector(size_t start, bool typed, bool fixed) {
     auto vec = CreateVector(start, stack_.size() - start, 1, typed, fixed);
