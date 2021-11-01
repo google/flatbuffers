@@ -57,4 +57,24 @@ class FlatBuffersMoreDefaults: XCTestCase {
     XCTAssertEqual(fDefaults.abcsCount, 0)
     XCTAssertEqual(fDefaults.boolsCount, 0)
   }
+
+  func testEncoding() {
+    var fbb = FlatBufferBuilder()
+    let root = MoreDefaults.createMoreDefaults(&fbb)
+    fbb.finish(offset: root)
+    var sizedBuffer = fbb.sizedBuffer
+    do {
+      let reader: MoreDefaults = try getCheckedRoot(byteBuffer: &sizedBuffer)
+      let encoder = JSONEncoder()
+      encoder.keyEncodingStrategy = .convertToSnakeCase
+      let data = try encoder.encode(reader)
+      XCTAssertEqual(data, jsonData.data(using: .utf8))
+    } catch {
+      XCTFail(error.localizedDescription)
+    }
+  }
+
+  var jsonData: String {
+    "{\"empty_string\":\"\",\"some_string\":\"some\"}"
+  }
 }

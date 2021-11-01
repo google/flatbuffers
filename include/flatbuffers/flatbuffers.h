@@ -576,7 +576,7 @@ template<typename T, uint16_t length> class Array {
 
   void CopyFromSpanImpl(flatbuffers::true_type,
                         flatbuffers::span<const T, length> src) {
-    // Use std::memcpy() instead of std::copy() to avoid preformance degradation
+    // Use std::memcpy() instead of std::copy() to avoid performance degradation
     // due to aliasing if T is char or unsigned char.
     // The size is known at compile time, so memcpy would be inlined.
     std::memcpy(data(), src.data(), length * sizeof(T));
@@ -2316,7 +2316,7 @@ class FlatBufferBuilder {
     return reinterpret_cast<T *>(buf_.make_space(vector_size * sizeof(T)));
   }
 
-  // End the vector of structues in the flatbuffers.
+  // End the vector of structures in the flatbuffers.
   // Vector should have previously be started with StartVectorOfStructs().
   template<typename T>
   Offset<Vector<const T *>> EndVectorOfStructs(size_t vector_size) {
@@ -2938,7 +2938,7 @@ inline int LookupEnum(const char **names, const char *name) {
 
 // Minimal reflection via code generation.
 // Besides full-fat reflection (see reflection.h) and parsing/printing by
-// loading schemas (see idl.h), we can also have code generation for mimimal
+// loading schemas (see idl.h), we can also have code generation for minimal
 // reflection data which allows pretty-printing and other uses without needing
 // a schema or a parser.
 // Generate code with --reflect-types (types only) or --reflect-names (names

@@ -568,6 +568,7 @@ struct IDLOptions {
   bool gen_nullable;
   bool java_checkerframework;
   bool gen_generated;
+  bool gen_json_coders;
   std::string object_prefix;
   std::string object_suffix;
   bool union_value_namespacing;
@@ -662,6 +663,7 @@ struct IDLOptions {
         gen_nullable(false),
         java_checkerframework(false),
         gen_generated(false),
+        gen_json_coders(false),
         object_suffix("T"),
         union_value_namespacing(true),
         allow_non_utf8(false),
