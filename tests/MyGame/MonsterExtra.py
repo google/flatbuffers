@@ -10,16 +10,16 @@ class MonsterExtra(object):
     __slots__ = ['_tab']
 
     @classmethod
-    def GetRootAsMonsterExtra(cls, buf, offset=0):
+    def GetRootAs(cls, buf, offset=0):
         n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, offset)
         x = MonsterExtra()
         x.Init(buf, n + offset)
         return x
 
     @classmethod
-    def GetRootAs(cls, buf, offset=0):
-        return cls.GetRootAsMonsterExtra(buf, offset)
-
+    def GetRootAsMonsterExtra(cls, buf, offset=0):
+        """This method is deprecated. Please switch to GetRootAs."""
+        return cls.GetRootAs(buf, offset)
     @classmethod
     def MonsterExtraBufferHasIdentifier(cls, buf, offset, size_prefixed=False):
         return flatbuffers.util.BufferHasIdentifier(buf, offset, b"\x4D\x4F\x4E\x45", size_prefixed=size_prefixed)

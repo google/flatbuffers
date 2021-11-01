@@ -10,16 +10,16 @@ class Stat(object):
     __slots__ = ['_tab']
 
     @classmethod
-    def GetRootAsStat(cls, buf, offset=0):
+    def GetRootAs(cls, buf, offset=0):
         n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, offset)
         x = Stat()
         x.Init(buf, n + offset)
         return x
 
     @classmethod
-    def GetRootAs(cls, buf, offset=0):
-        return cls.GetRootAsStat(buf, offset)
-
+    def GetRootAsStat(cls, buf, offset=0):
+        """This method is deprecated. Please switch to GetRootAs."""
+        return cls.GetRootAs(buf, offset)
     @classmethod
     def StatBufferHasIdentifier(cls, buf, offset, size_prefixed=False):
         return flatbuffers.util.BufferHasIdentifier(buf, offset, b"\x4D\x4F\x4E\x53", size_prefixed=size_prefixed)

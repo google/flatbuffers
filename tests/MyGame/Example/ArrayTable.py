@@ -10,16 +10,16 @@ class ArrayTable(object):
     __slots__ = ['_tab']
 
     @classmethod
-    def GetRootAsArrayTable(cls, buf, offset=0):
+    def GetRootAs(cls, buf, offset=0):
         n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, offset)
         x = ArrayTable()
         x.Init(buf, n + offset)
         return x
 
     @classmethod
-    def GetRootAs(cls, buf, offset=0):
-        return cls.GetRootAsArrayTable(buf, offset)
-
+    def GetRootAsArrayTable(cls, buf, offset=0):
+        """This method is deprecated. Please switch to GetRootAs."""
+        return cls.GetRootAs(buf, offset)
     @classmethod
     def ArrayTableBufferHasIdentifier(cls, buf, offset, size_prefixed=False):
         return flatbuffers.util.BufferHasIdentifier(buf, offset, b"\x41\x52\x52\x54", size_prefixed=size_prefixed)

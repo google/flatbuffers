@@ -123,10 +123,8 @@ class PythonGenerator : public BaseGenerator {
                              std::string *code_ptr) {
     auto &code = *code_ptr;
 
-    // Generate method with struct name.
     code += Indent + "@classmethod\n";
     code += Indent + "def GetRootAs";
-    code += NormalizedName(struct_def);
     code += "(cls, buf, offset=0):";
     code += "\n";
     code += Indent + Indent;
@@ -137,13 +135,15 @@ class PythonGenerator : public BaseGenerator {
     code += Indent + Indent + "return x\n";
     code += "\n";
 
-    // Generate method without struct name.
+    // Add an alias with the old name
     code += Indent + "@classmethod\n";
     code += Indent + "def GetRootAs";
+    code += NormalizedName(struct_def);
     code += "(cls, buf, offset=0):\n";
-    code += Indent + Indent + "return cls.GetRootAs" +
-            NormalizedName(struct_def) + "(buf, offset)\n";
-    code += "\n";
+    code +=
+      Indent + Indent +
+      "\"\"\"This method is deprecated. Please switch to GetRootAs.\"\"\"\n";
+    code += Indent + Indent + "return cls.GetRootAs(buf, offset)\n";
   }
 
   // Initialize an existing object with other data, to avoid an allocation.
