@@ -2478,8 +2478,7 @@ bool Parser::SupportsDefaultVectorsAndStrings() const {
 }
 
 bool Parser::SupportsAdvancedUnionFeatures() const {
-  return opts.lang_to_generate != 0 &&
-         (opts.lang_to_generate &
+  return (opts.lang_to_generate &
           ~(IDLOptions::kCpp | IDLOptions::kTs | IDLOptions::kPhp |
             IDLOptions::kJava | IDLOptions::kCSharp | IDLOptions::kKotlin |
             IDLOptions::kBinary | IDLOptions::kSwift)) == 0;
@@ -3255,7 +3254,7 @@ CheckedError Parser::ParseRoot(const char *source, const char **include_paths,
       for (auto val_it = enum_def.Vals().begin();
            val_it != enum_def.Vals().end(); ++val_it) {
         auto &val = **val_it;
-        if (!SupportsAdvancedUnionFeatures() &&
+        if (!(opts.lang_to_generate != 0 && SupportsAdvancedUnionFeatures()) &&
             (IsStruct(val.union_type) || IsString(val.union_type)))
           return Error(
               "only tables can be union elements in the generated language: " +
