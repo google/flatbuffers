@@ -1595,6 +1595,8 @@ class PythonGenerator : public BaseGenerator {
 
   // Creates an union object based on union type.
   void GenUnionCreator(const EnumDef &enum_def, std::string *code_ptr) {
+    if (enum_def.generated) return;
+
     auto &code = *code_ptr;
     auto union_name = MakeUpperCamel(enum_def);
 
