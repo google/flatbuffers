@@ -39,18 +39,15 @@ class ArrayTable(object):
             return obj
         return None
 
-def Start(builder): builder.StartObject(1)
-def ArrayTableStart(builder):
-    """This method is deprecated. Please switch to Start."""
-    return Start(builder)
-def AddA(builder, a): builder.PrependStructSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(a), 0)
-def ArrayTableAddA(builder, a):
-    """This method is deprecated. Please switch to AddA."""
-    return AddA(builder, a)
-def End(builder): return builder.EndObject()
-def ArrayTableEnd(builder):
-    """This method is deprecated. Please switch to End."""
-    return End(builder)
+def ArrayTableStart(builder): builder.StartObject(1)
+def Start(builder):
+    return ArrayTableStart(builder)
+def ArrayTableAddA(builder, a): builder.PrependStructSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(a), 0)
+def AddA(builder, a):
+    return ArrayTableAddA(builder, a)
+def ArrayTableEnd(builder): return builder.EndObject()
+def End(builder):
+    return ArrayTableEnd(builder)
 import MyGame.Example.ArrayStruct
 try:
     from typing import Optional
@@ -84,9 +81,9 @@ class ArrayTableT(object):
 
     # ArrayTableT
     def Pack(self, builder):
-        Start(builder)
+        ArrayTableStart(builder)
         if self.a is not None:
             a = self.a.Pack(builder)
-            AddA(builder, a)
-        arrayTable = End(builder)
+            ArrayTableAddA(builder, a)
+        arrayTable = ArrayTableEnd(builder)
         return arrayTable

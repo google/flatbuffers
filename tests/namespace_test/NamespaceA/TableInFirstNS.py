@@ -68,34 +68,27 @@ class TableInFirstNS(object):
             return obj
         return None
 
-def Start(builder): builder.StartObject(5)
-def TableInFirstNSStart(builder):
-    """This method is deprecated. Please switch to Start."""
-    return Start(builder)
-def AddFooTable(builder, fooTable): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(fooTable), 0)
-def TableInFirstNSAddFooTable(builder, fooTable):
-    """This method is deprecated. Please switch to AddFooTable."""
-    return AddFooTable(builder, fooTable)
-def AddFooEnum(builder, fooEnum): builder.PrependInt8Slot(1, fooEnum, 0)
-def TableInFirstNSAddFooEnum(builder, fooEnum):
-    """This method is deprecated. Please switch to AddFooEnum."""
-    return AddFooEnum(builder, fooEnum)
-def AddFooUnionType(builder, fooUnionType): builder.PrependUint8Slot(2, fooUnionType, 0)
-def TableInFirstNSAddFooUnionType(builder, fooUnionType):
-    """This method is deprecated. Please switch to AddFooUnionType."""
-    return AddFooUnionType(builder, fooUnionType)
-def AddFooUnion(builder, fooUnion): builder.PrependUOffsetTRelativeSlot(3, flatbuffers.number_types.UOffsetTFlags.py_type(fooUnion), 0)
-def TableInFirstNSAddFooUnion(builder, fooUnion):
-    """This method is deprecated. Please switch to AddFooUnion."""
-    return AddFooUnion(builder, fooUnion)
-def AddFooStruct(builder, fooStruct): builder.PrependStructSlot(4, flatbuffers.number_types.UOffsetTFlags.py_type(fooStruct), 0)
-def TableInFirstNSAddFooStruct(builder, fooStruct):
-    """This method is deprecated. Please switch to AddFooStruct."""
-    return AddFooStruct(builder, fooStruct)
-def End(builder): return builder.EndObject()
-def TableInFirstNSEnd(builder):
-    """This method is deprecated. Please switch to End."""
-    return End(builder)
+def TableInFirstNSStart(builder): builder.StartObject(5)
+def Start(builder):
+    return TableInFirstNSStart(builder)
+def TableInFirstNSAddFooTable(builder, fooTable): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(fooTable), 0)
+def AddFooTable(builder, fooTable):
+    return TableInFirstNSAddFooTable(builder, fooTable)
+def TableInFirstNSAddFooEnum(builder, fooEnum): builder.PrependInt8Slot(1, fooEnum, 0)
+def AddFooEnum(builder, fooEnum):
+    return TableInFirstNSAddFooEnum(builder, fooEnum)
+def TableInFirstNSAddFooUnionType(builder, fooUnionType): builder.PrependUint8Slot(2, fooUnionType, 0)
+def AddFooUnionType(builder, fooUnionType):
+    return TableInFirstNSAddFooUnionType(builder, fooUnionType)
+def TableInFirstNSAddFooUnion(builder, fooUnion): builder.PrependUOffsetTRelativeSlot(3, flatbuffers.number_types.UOffsetTFlags.py_type(fooUnion), 0)
+def AddFooUnion(builder, fooUnion):
+    return TableInFirstNSAddFooUnion(builder, fooUnion)
+def TableInFirstNSAddFooStruct(builder, fooStruct): builder.PrependStructSlot(4, flatbuffers.number_types.UOffsetTFlags.py_type(fooStruct), 0)
+def AddFooStruct(builder, fooStruct):
+    return TableInFirstNSAddFooStruct(builder, fooStruct)
+def TableInFirstNSEnd(builder): return builder.EndObject()
+def End(builder):
+    return TableInFirstNSEnd(builder)
 try:
     from typing import Optional, Union
 except:
@@ -141,15 +134,15 @@ class TableInFirstNST(object):
             fooTable = self.fooTable.Pack(builder)
         if self.fooUnion is not None:
             fooUnion = self.fooUnion.Pack(builder)
-        Start(builder)
+        TableInFirstNSStart(builder)
         if self.fooTable is not None:
-            AddFooTable(builder, fooTable)
-        AddFooEnum(builder, self.fooEnum)
-        AddFooUnionType(builder, self.fooUnionType)
+            TableInFirstNSAddFooTable(builder, fooTable)
+        TableInFirstNSAddFooEnum(builder, self.fooEnum)
+        TableInFirstNSAddFooUnionType(builder, self.fooUnionType)
         if self.fooUnion is not None:
-            AddFooUnion(builder, fooUnion)
+            TableInFirstNSAddFooUnion(builder, fooUnion)
         if self.fooStruct is not None:
             fooStruct = self.fooStruct.Pack(builder)
-            AddFooStruct(builder, fooStruct)
-        tableInFirstNS = End(builder)
+            TableInFirstNSAddFooStruct(builder, fooStruct)
+        tableInFirstNS = TableInFirstNSEnd(builder)
         return tableInFirstNS

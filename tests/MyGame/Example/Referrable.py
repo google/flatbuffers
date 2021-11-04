@@ -35,18 +35,15 @@ class Referrable(object):
             return self._tab.Get(flatbuffers.number_types.Uint64Flags, o + self._tab.Pos)
         return 0
 
-def Start(builder): builder.StartObject(1)
-def ReferrableStart(builder):
-    """This method is deprecated. Please switch to Start."""
-    return Start(builder)
-def AddId(builder, id): builder.PrependUint64Slot(0, id, 0)
-def ReferrableAddId(builder, id):
-    """This method is deprecated. Please switch to AddId."""
-    return AddId(builder, id)
-def End(builder): return builder.EndObject()
-def ReferrableEnd(builder):
-    """This method is deprecated. Please switch to End."""
-    return End(builder)
+def ReferrableStart(builder): builder.StartObject(1)
+def Start(builder):
+    return ReferrableStart(builder)
+def ReferrableAddId(builder, id): builder.PrependUint64Slot(0, id, 0)
+def AddId(builder, id):
+    return ReferrableAddId(builder, id)
+def ReferrableEnd(builder): return builder.EndObject()
+def End(builder):
+    return ReferrableEnd(builder)
 
 class ReferrableT(object):
 
@@ -74,7 +71,7 @@ class ReferrableT(object):
 
     # ReferrableT
     def Pack(self, builder):
-        Start(builder)
-        AddId(builder, self.id)
-        referrable = End(builder)
+        ReferrableStart(builder)
+        ReferrableAddId(builder, self.id)
+        referrable = ReferrableEnd(builder)
         return referrable

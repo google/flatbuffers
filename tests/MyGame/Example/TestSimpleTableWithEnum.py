@@ -35,18 +35,15 @@ class TestSimpleTableWithEnum(object):
             return self._tab.Get(flatbuffers.number_types.Uint8Flags, o + self._tab.Pos)
         return 2
 
-def Start(builder): builder.StartObject(1)
-def TestSimpleTableWithEnumStart(builder):
-    """This method is deprecated. Please switch to Start."""
-    return Start(builder)
-def AddColor(builder, color): builder.PrependUint8Slot(0, color, 2)
-def TestSimpleTableWithEnumAddColor(builder, color):
-    """This method is deprecated. Please switch to AddColor."""
-    return AddColor(builder, color)
-def End(builder): return builder.EndObject()
-def TestSimpleTableWithEnumEnd(builder):
-    """This method is deprecated. Please switch to End."""
-    return End(builder)
+def TestSimpleTableWithEnumStart(builder): builder.StartObject(1)
+def Start(builder):
+    return TestSimpleTableWithEnumStart(builder)
+def TestSimpleTableWithEnumAddColor(builder, color): builder.PrependUint8Slot(0, color, 2)
+def AddColor(builder, color):
+    return TestSimpleTableWithEnumAddColor(builder, color)
+def TestSimpleTableWithEnumEnd(builder): return builder.EndObject()
+def End(builder):
+    return TestSimpleTableWithEnumEnd(builder)
 
 class TestSimpleTableWithEnumT(object):
 
@@ -74,7 +71,7 @@ class TestSimpleTableWithEnumT(object):
 
     # TestSimpleTableWithEnumT
     def Pack(self, builder):
-        Start(builder)
-        AddColor(builder, self.color)
-        testSimpleTableWithEnum = End(builder)
+        TestSimpleTableWithEnumStart(builder)
+        TestSimpleTableWithEnumAddColor(builder, self.color)
+        testSimpleTableWithEnum = TestSimpleTableWithEnumEnd(builder)
         return testSimpleTableWithEnum
