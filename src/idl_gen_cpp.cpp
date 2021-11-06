@@ -799,17 +799,18 @@ class CppGenerator : public BaseGenerator {
   }
 
   std::string GenTypeNative(const Type &type, bool invector,
-                            const FieldDef &field) {
+                            const FieldDef &field,
+                            const StructDef &external_struct_def) {
     switch (type.base_type) {
       case BASE_TYPE_STRING: {
         return NativeString(&field);
       }
       case BASE_TYPE_VECTOR: {
-        const auto type_name = GenTypeNative(type.VectorType(), true, field);
-        if (type.struct_def &&
-            type.struct_def->attributes.Lookup("native_custom_alloc")) {
+        const auto type_name =
+            GenTypeNative(type.VectorType(), true, field, external_struct_def);
+        if (external_struct_def.attributes.Lookup("native_custom_alloc")) {
           auto native_custom_alloc =
-              type.struct_def->attributes.Lookup("native_custom_alloc");
+              external_struct_def.attributes.Lookup("native_custom_alloc");
           return "std::vector<" + type_name + "," +
                  native_custom_alloc->constant + "<" + type_name + ">>";
         } else
@@ -1722,7 +1723,8 @@ class CppGenerator : public BaseGenerator {
     }
   }
 
-  void GenParam(const FieldDef &field, bool direct, const char *prefix) {
+  void GenParam(const FieldDef &field, const StructDef &external_struct_def,
+                bool direct, const char *prefix) {
     code_.SetValue("PRE", prefix);
     code_.SetValue("PARAM_NAME", Name(field));
     if (direct && IsString(field.value.type)) {
@@ -1736,10 +1738,19 @@ class CppGenerator : public BaseGenerator {
       } else {
         type = GenTypeWire(vtype, "", VectorElementUserFacing(vtype));
       }
-      if (TypeHasKey(vtype)) {
-        code_.SetValue("PARAM_TYPE", "std::vector<" + type + "> *");
+      std::string vector_type;
+      if (external_struct_def.attributes.Lookup("native_custom_alloc")) {
+        auto native_custom_alloc =
+            external_struct_def.attributes.Lookup("native_custom_alloc");
+        vector_type = "std::vector<" + type + "," +
+                      native_custom_alloc->constant + "<" + type + ">>";
       } else {
-        code_.SetValue("PARAM_TYPE", "const std::vector<" + type + "> *");
+        vector_type = "std::vector<" + type + ">";
+      }
+      if (TypeHasKey(vtype)) {
+        code_.SetValue("PARAM_TYPE", vector_type + " *");
+      } else {
+        code_.SetValue("PARAM_TYPE", "const " + vector_type + " *");
       }
       code_.SetValue("PARAM_VALUE", "nullptr");
     } else {
@@ -1754,12 +1765,13 @@ class CppGenerator : public BaseGenerator {
   }
 
   // Generate a member, including a default value for scalars and raw pointers.
-  void GenMember(const FieldDef &field) {
+  void GenMember(const FieldDef &field, const StructDef &external_struct_def) {
     if (!field.deprecated &&  // Deprecated fields won't be accessible.
         field.value.type.base_type != BASE_TYPE_UTYPE &&
         (field.value.type.base_type != BASE_TYPE_VECTOR ||
          field.value.type.element != BASE_TYPE_UTYPE)) {
-      auto type = GenTypeNative(field.value.type, false, field);
+      auto type =
+          GenTypeNative(field.value.type, false, field, external_struct_def);
       auto cpp_type = field.attributes.Lookup("cpp_type");
       auto full_type =
           (cpp_type
@@ -1927,7 +1939,7 @@ class CppGenerator : public BaseGenerator {
     GenFullyQualifiedNameGetter(struct_def, native_name);
     for (auto it = struct_def.fields.vec.begin();
          it != struct_def.fields.vec.end(); ++it) {
-      GenMember(**it);
+      GenMember(**it, struct_def);
     }
     GenOperatorNewDelete(struct_def);
     GenDefaultConstructor(struct_def);
@@ -2592,7 +2604,7 @@ class CppGenerator : public BaseGenerator {
     for (auto it = struct_def.fields.vec.begin();
          it != struct_def.fields.vec.end(); ++it) {
       const auto &field = **it;
-      if (!field.deprecated) { GenParam(field, false, ",\n    "); }
+      if (!field.deprecated) { GenParam(field, struct_def, false, ",\n    "); }
     }
     code_ += ") {";
 
@@ -2632,7 +2644,7 @@ class CppGenerator : public BaseGenerator {
       for (auto it = struct_def.fields.vec.begin();
            it != struct_def.fields.vec.end(); ++it) {
         const auto &field = **it;
-        if (!field.deprecated) { GenParam(field, true, ",\n    "); }
+        if (!field.deprecated) { GenParam(field, struct_def, true, ",\n    "); }
       }
       // Need to call "Create" with the struct namespace.
       const auto qualified_create_name =

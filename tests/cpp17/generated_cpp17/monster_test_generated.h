@@ -1195,14 +1195,14 @@ struct MonsterT : public flatbuffers::NativeTable {
   int16_t mana = 150;
   int16_t hp = 100;
   std::string name{};
-  std::vector<uint8_t> inventory{};
+  std::vector<uint8_t,std::allocator<uint8_t>> inventory{};
   MyGame::Example::Color color = MyGame::Example::Color::Blue;
   MyGame::Example::AnyUnion test{};
-  std::vector<MyGame::Example::Test> test4{};
-  std::vector<std::string> testarrayofstring{};
-  std::vector<std::unique_ptr<MyGame::Example::MonsterT>> testarrayoftables{};
+  std::vector<MyGame::Example::Test,std::allocator<MyGame::Example::Test>> test4{};
+  std::vector<std::string,std::allocator<std::string>> testarrayofstring{};
+  std::vector<std::unique_ptr<MyGame::Example::MonsterT>,std::allocator<std::unique_ptr<MyGame::Example::MonsterT>>> testarrayoftables{};
   std::unique_ptr<MyGame::Example::MonsterT> enemy{};
-  std::vector<uint8_t> testnestedflatbuffer{};
+  std::vector<uint8_t,std::allocator<uint8_t>> testnestedflatbuffer{};
   std::unique_ptr<MyGame::Example::StatT> testempty{};
   bool testbool = false;
   int32_t testhashs32_fnv1 = 0;
@@ -1213,31 +1213,37 @@ struct MonsterT : public flatbuffers::NativeTable {
   Stat *testhashu32_fnv1a = nullptr;
   int64_t testhashs64_fnv1a = 0;
   uint64_t testhashu64_fnv1a = 0;
-  std::vector<bool> testarrayofbools{};
+  std::vector<bool,std::allocator<bool>> testarrayofbools{};
   float testf = 3.14159f;
   float testf2 = 3.0f;
   float testf3 = 0.0f;
-  std::vector<std::string> testarrayofstring2{};
-  std::vector<MyGame::Example::Ability> testarrayofsortedstruct{};
-  std::vector<uint8_t> flex{};
-  std::vector<MyGame::Example::Test> test5{};
-  std::vector<int64_t> vector_of_longs{};
-  std::vector<double> vector_of_doubles{};
+  std::vector<std::string,std::allocator<std::string>> testarrayofstring2{};
+  std::vector<MyGame::Example::Ability,std::allocator<MyGame::Example::Ability>> testarrayofsortedstruct{};
+  std::vector<uint8_t,std::allocator<uint8_t>> flex{};
+  std::vector<MyGame::Example::Test,std::allocator<MyGame::Example::Test>> test5{};
+  std::vector<int64_t,std::allocator<int64_t>> vector_of_longs{};
+  std::vector<double,std::allocator<double>> vector_of_doubles{};
   std::unique_ptr<MyGame::InParentNamespaceT> parent_namespace_test{};
-  std::vector<std::unique_ptr<MyGame::Example::ReferrableT>> vector_of_referrables{};
+  std::vector<std::unique_ptr<MyGame::Example::ReferrableT>,std::allocator<std::unique_ptr<MyGame::Example::ReferrableT>>> vector_of_referrables{};
   ReferrableT *single_weak_reference = nullptr;
   std::vector<ReferrableT *> vector_of_weak_references{};
-  std::vector<std::unique_ptr<MyGame::Example::ReferrableT>> vector_of_strong_referrables{};
+  std::vector<std::unique_ptr<MyGame::Example::ReferrableT>,std::allocator<std::unique_ptr<MyGame::Example::ReferrableT>>> vector_of_strong_referrables{};
   ReferrableT *co_owning_reference = nullptr;
   std::vector<std::unique_ptr<ReferrableT>> vector_of_co_owning_references{};
   ReferrableT *non_owning_reference = nullptr;
   std::vector<ReferrableT *> vector_of_non_owning_references{};
   MyGame::Example::AnyUniqueAliasesUnion any_unique{};
   MyGame::Example::AnyAmbiguousAliasesUnion any_ambiguous{};
-  std::vector<MyGame::Example::Color> vector_of_enums{};
+  std::vector<MyGame::Example::Color,std::allocator<MyGame::Example::Color>> vector_of_enums{};
   MyGame::Example::Race signed_enum = MyGame::Example::Race::None;
-  std::vector<uint8_t> testrequirednestedflatbuffer{};
-  std::vector<std::unique_ptr<MyGame::Example::StatT>> scalar_key_sorted_tables{};
+  std::vector<uint8_t,std::allocator<uint8_t>> testrequirednestedflatbuffer{};
+  std::vector<std::unique_ptr<MyGame::Example::StatT>,std::allocator<std::unique_ptr<MyGame::Example::StatT>>> scalar_key_sorted_tables{};
+  inline void *operator new (std::size_t count) {
+    return std::allocator<MonsterT>().allocate(count / sizeof(MonsterT));
+  }
+  inline void operator delete (void *ptr) {
+    return std::allocator<MonsterT>().deallocate(static_cast<MonsterT*>(ptr),1);
+  }
 };
 
 /// an example documentation comment: "monster object"
@@ -2150,15 +2156,15 @@ inline flatbuffers::Offset<Monster> CreateMonsterDirect(
     int16_t mana = 150,
     int16_t hp = 100,
     const char *name = nullptr,
-    const std::vector<uint8_t> *inventory = nullptr,
+    const std::vector<uint8_t,std::allocator<uint8_t>> *inventory = nullptr,
     MyGame::Example::Color color = MyGame::Example::Color::Blue,
     MyGame::Example::Any test_type = MyGame::Example::Any::NONE,
     flatbuffers::Offset<void> test = 0,
-    const std::vector<MyGame::Example::Test> *test4 = nullptr,
-    const std::vector<flatbuffers::Offset<flatbuffers::String>> *testarrayofstring = nullptr,
-    std::vector<flatbuffers::Offset<MyGame::Example::Monster>> *testarrayoftables = nullptr,
+    const std::vector<MyGame::Example::Test,std::allocator<MyGame::Example::Test>> *test4 = nullptr,
+    const std::vector<flatbuffers::Offset<flatbuffers::String>,std::allocator<flatbuffers::Offset<flatbuffers::String>>> *testarrayofstring = nullptr,
+    std::vector<flatbuffers::Offset<MyGame::Example::Monster>,std::allocator<flatbuffers::Offset<MyGame::Example::Monster>>> *testarrayoftables = nullptr,
     flatbuffers::Offset<MyGame::Example::Monster> enemy = 0,
-    const std::vector<uint8_t> *testnestedflatbuffer = nullptr,
+    const std::vector<uint8_t,std::allocator<uint8_t>> *testnestedflatbuffer = nullptr,
     flatbuffers::Offset<MyGame::Example::Stat> testempty = 0,
     bool testbool = false,
     int32_t testhashs32_fnv1 = 0,
@@ -2169,33 +2175,33 @@ inline flatbuffers::Offset<Monster> CreateMonsterDirect(
     uint32_t testhashu32_fnv1a = 0,
     int64_t testhashs64_fnv1a = 0,
     uint64_t testhashu64_fnv1a = 0,
-    const std::vector<uint8_t> *testarrayofbools = nullptr,
+    const std::vector<uint8_t,std::allocator<uint8_t>> *testarrayofbools = nullptr,
     float testf = 3.14159f,
     float testf2 = 3.0f,
     float testf3 = 0.0f,
-    const std::vector<flatbuffers::Offset<flatbuffers::String>> *testarrayofstring2 = nullptr,
-    std::vector<MyGame::Example::Ability> *testarrayofsortedstruct = nullptr,
-    const std::vector<uint8_t> *flex = nullptr,
-    const std::vector<MyGame::Example::Test> *test5 = nullptr,
-    const std::vector<int64_t> *vector_of_longs = nullptr,
-    const std::vector<double> *vector_of_doubles = nullptr,
+    const std::vector<flatbuffers::Offset<flatbuffers::String>,std::allocator<flatbuffers::Offset<flatbuffers::String>>> *testarrayofstring2 = nullptr,
+    std::vector<MyGame::Example::Ability,std::allocator<MyGame::Example::Ability>> *testarrayofsortedstruct = nullptr,
+    const std::vector<uint8_t,std::allocator<uint8_t>> *flex = nullptr,
+    const std::vector<MyGame::Example::Test,std::allocator<MyGame::Example::Test>> *test5 = nullptr,
+    const std::vector<int64_t,std::allocator<int64_t>> *vector_of_longs = nullptr,
+    const std::vector<double,std::allocator<double>> *vector_of_doubles = nullptr,
     flatbuffers::Offset<MyGame::InParentNamespace> parent_namespace_test = 0,
-    std::vector<flatbuffers::Offset<MyGame::Example::Referrable>> *vector_of_referrables = nullptr,
+    std::vector<flatbuffers::Offset<MyGame::Example::Referrable>,std::allocator<flatbuffers::Offset<MyGame::Example::Referrable>>> *vector_of_referrables = nullptr,
     uint64_t single_weak_reference = 0,
-    const std::vector<uint64_t> *vector_of_weak_references = nullptr,
-    std::vector<flatbuffers::Offset<MyGame::Example::Referrable>> *vector_of_strong_referrables = nullptr,
+    const std::vector<uint64_t,std::allocator<uint64_t>> *vector_of_weak_references = nullptr,
+    std::vector<flatbuffers::Offset<MyGame::Example::Referrable>,std::allocator<flatbuffers::Offset<MyGame::Example::Referrable>>> *vector_of_strong_referrables = nullptr,
     uint64_t co_owning_reference = 0,
-    const std::vector<uint64_t> *vector_of_co_owning_references = nullptr,
+    const std::vector<uint64_t,std::allocator<uint64_t>> *vector_of_co_owning_references = nullptr,
     uint64_t non_owning_reference = 0,
-    const std::vector<uint64_t> *vector_of_non_owning_references = nullptr,
+    const std::vector<uint64_t,std::allocator<uint64_t>> *vector_of_non_owning_references = nullptr,
     MyGame::Example::AnyUniqueAliases any_unique_type = MyGame::Example::AnyUniqueAliases::NONE,
     flatbuffers::Offset<void> any_unique = 0,
     MyGame::Example::AnyAmbiguousAliases any_ambiguous_type = MyGame::Example::AnyAmbiguousAliases::NONE,
     flatbuffers::Offset<void> any_ambiguous = 0,
-    const std::vector<MyGame::Example::Color> *vector_of_enums = nullptr,
+    const std::vector<MyGame::Example::Color,std::allocator<MyGame::Example::Color>> *vector_of_enums = nullptr,
     MyGame::Example::Race signed_enum = MyGame::Example::Race::None,
-    const std::vector<uint8_t> *testrequirednestedflatbuffer = nullptr,
-    std::vector<flatbuffers::Offset<MyGame::Example::Stat>> *scalar_key_sorted_tables = nullptr) {
+    const std::vector<uint8_t,std::allocator<uint8_t>> *testrequirednestedflatbuffer = nullptr,
+    std::vector<flatbuffers::Offset<MyGame::Example::Stat>,std::allocator<flatbuffers::Offset<MyGame::Example::Stat>>> *scalar_key_sorted_tables = nullptr) {
   auto name__ = name ? _fbb.CreateString(name) : 0;
   auto inventory__ = inventory ? _fbb.CreateVector<uint8_t>(*inventory) : 0;
   auto test4__ = test4 ? _fbb.CreateVectorOfStructs<MyGame::Example::Test>(*test4) : 0;

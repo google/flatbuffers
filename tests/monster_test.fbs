@@ -73,7 +73,7 @@ table Referrable {
 }
 
 /// an example documentation comment: "monster object"
-table Monster {
+table Monster (native_custom_alloc: "std::allocator") {
   pos:Vec3 (id: 0);
   hp:short = 100 (id: 2);
   mana:short = 150 (id: 1);
