@@ -54,6 +54,28 @@ class JavaGenerator : public BaseGenerator {
   bool generate() {
     std::string one_file_code;
     cur_name_space_ = parser_.current_namespace_;
+    
+    if (parser_.opts.generate_object_based_api) {
+      Namespace *attributes_name_space_ = new Namespace();
+      attributes_name_space_->components.push_back("com");
+      attributes_name_space_->components.push_back("google");
+      attributes_name_space_->components.push_back("flatbuffers");
+      attributes_name_space_->components.push_back("attributes");
+      for (auto it = parser_.known_attributes_.begin(); it != parser_.known_attributes_.end(); ++it) {
+        if (!it->second) {
+          std::string attrcode;
+          std::string attr_name = it->first;
+          GenAttribute_ObjectAPI(&attr_name, &attrcode);
+          if (parser_.opts.one_file) {
+            one_file_code += attrcode;
+          } else {
+            if (!SaveType(MakeCamel(attr_name, true), *attributes_name_space_, attrcode,
+                          /* needs_includes= */ false))
+              return false;
+          }
+        }
+      }
+    }
 
     for (auto it = parser_.enums_.vec.begin(); it != parser_.enums_.vec.end();
          ++it) {
@@ -2051,6 +2073,19 @@ class JavaGenerator : public BaseGenerator {
       if (field.IsScalarOptional())
         type_name = ConvertPrimitiveTypeToObjectWrapper_ObjectAPI(type_name);
       auto camel_name = MakeCamel(field.name, false);
+      for (auto attr_it=field.attributes.dict.begin(); attr_it != field.attributes.dict.end(); ++attr_it) {
+        auto attr = attr_it->first;
+        auto &attr_value = *attr_it->second;
+        auto found_attr = parser_.known_attributes_.find(attr);
+        if (found_attr != parser_.known_attributes_.end() && !found_attr->second) {
+          code += "  @" + MakeCamel(attr, true);
+          if ("0" != attr_value.constant) {
+            code += "(\"" + attr_value.constant + "\")";
+          }
+          code += "\n";
+        }
+      }
+
       code += "  private " + type_name + " " + camel_name + ";\n";
     }
     // Generate Java getters and setters
@@ -2134,6 +2169,12 @@ class JavaGenerator : public BaseGenerator {
       code += "  }\n";
     }
     code += "}\n\n";
+  }
+  void GenAttribute_ObjectAPI(std::string *attr_name, std::string *code_ptr) const {
+        auto &code = *code_ptr;
+        code += "public @interface " + MakeCamel(*attr_name, true) + " {\n";
+        code += "  String value() default \"\";\n";
+        code += "}";
   }
 
   // This tracks the current namespace used to determine if a type need to be
