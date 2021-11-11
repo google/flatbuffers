@@ -22,14 +22,6 @@
 #include "flatbuffers/registry.h"
 #include "flatbuffers/util.h"
 
-// clang-format off
-#ifdef FLATBUFFERS_CPP98_STL
-  namespace std {
-    using flatbuffers::unique_ptr;
-  }
-#endif
-// clang-format on
-
 #include "monster_test_generated.h"
 #include "namespace_test/namespace_test1_generated.h"
 #include "namespace_test/namespace_test2_generated.h"
@@ -107,21 +99,11 @@ flatbuffers::DetachedBuffer CreateFlatBufferTest(std::string &buffer) {
   Test tests[] = { Test(10, 20), Test(30, 40) };
   auto testv = builder.CreateVectorOfStructs(tests, 2);
 
-  // clang-format off
-  #ifndef FLATBUFFERS_CPP98_STL
-    // Create a vector of structures from a lambda.
-    auto testv2 = builder.CreateVectorOfStructs<Test>(
-          2, [&](size_t i, Test* s) -> void {
-            *s = tests[i];
-          });
-  #else
-    // Create a vector of structures using a plain old C++ function.
-    auto testv2 = builder.CreateVectorOfStructs<Test>(
-          2, [](size_t i, Test* s, void *state) -> void {
-            *s = (reinterpret_cast<Test*>(state))[i];
-          }, tests);
-  #endif  // FLATBUFFERS_CPP98_STL
-  // clang-format on
+  // Create a vector of structures from a lambda.
+  auto testv2 = builder.CreateVectorOfStructs<Test>(
+        2, [&](size_t i, Test* s) -> void {
+          *s = tests[i];
+        });
 
   // create monster with very few fields set:
   // (same functionality as CreateMonster below, but sets fields manually)
@@ -3000,57 +2982,33 @@ void FlexBuffersTest() {
   // Write the equivalent of:
   // { vec: [ -100, "Fred", 4.0, false ], bar: [ 1, 2, 3 ], bar3: [ 1, 2, 3 ],
   // foo: 100, bool: true, mymap: { foo: "Fred" } }
-  // clang-format off
-  #ifndef FLATBUFFERS_CPP98_STL
-    // It's possible to do this without std::function support as well.
-    slb.Map([&]() {
-       slb.Vector("vec", [&]() {
-        slb += -100;  // Equivalent to slb.Add(-100) or slb.Int(-100);
-        slb += "Fred";
-        slb.IndirectFloat(4.0f);
-        auto i_f = slb.LastValue();
-        uint8_t blob[] = { 77 };
-        slb.Blob(blob, 1);
-        slb += false;
-        slb.ReuseValue(i_f);
-      });
-      int ints[] = { 1, 2, 3 };
-      slb.Vector("bar", ints, 3);
-      slb.FixedTypedVector("bar3", ints, 3);
-      bool bools[] = {true, false, true, false};
-      slb.Vector("bools", bools, 4);
-      slb.Bool("bool", true);
-      slb.Double("foo", 100);
-      slb.Map("mymap", [&]() {
-        slb.String("foo", "Fred");  // Testing key and string reuse.
-      });
-    });
-    slb.Finish();
-  #else
-    // It's possible to do this without std::function support as well.
-    slb.Map([](flexbuffers::Builder& slb2) {
-       slb2.Vector("vec", [](flexbuffers::Builder& slb3) {
-        slb3 += -100;  // Equivalent to slb.Add(-100) or slb.Int(-100);
-        slb3 += "Fred";
-        slb3.IndirectFloat(4.0f);
-        auto i_f = slb3.LastValue();
-        uint8_t blob[] = { 77 };
-        slb3.Blob(blob, 1);
-        slb3 += false;
-        slb3.ReuseValue(i_f);
-      }, slb2);
-      int ints[] = { 1, 2, 3 };
-      slb2.Vector("bar", ints, 3);
-      slb2.FixedTypedVector("bar3", ints, 3);
-      slb2.Bool("bool", true);
-      slb2.Double("foo", 100);
-      slb2.Map("mymap", [](flexbuffers::Builder& slb3) {
-        slb3.String("foo", "Fred");  // Testing key and string reuse.
-      }, slb2);
-    }, slb);
-    slb.Finish();
-  #endif  // FLATBUFFERS_CPP98_STL
 
+  // It's possible to do this without std::function support as well.
+  slb.Map([&]() {
+      slb.Vector("vec", [&]() {
+      slb += -100;  // Equivalent to slb.Add(-100) or slb.Int(-100);
+      slb += "Fred";
+      slb.IndirectFloat(4.0f);
+      auto i_f = slb.LastValue();
+      uint8_t blob[] = { 77 };
+      slb.Blob(blob, 1);
+      slb += false;
+      slb.ReuseValue(i_f);
+    });
+    int ints[] = { 1, 2, 3 };
+    slb.Vector("bar", ints, 3);
+    slb.FixedTypedVector("bar3", ints, 3);
+    bool bools[] = {true, false, true, false};
+    slb.Vector("bools", bools, 4);
+    slb.Bool("bool", true);
+    slb.Double("foo", 100);
+    slb.Map("mymap", [&]() {
+      slb.String("foo", "Fred");  // Testing key and string reuse.
+    });
+  });
+  slb.Finish();
+
+  // clang-format off
   #ifdef FLATBUFFERS_TEST_VERBOSE
     for (size_t i = 0; i < slb.GetBuffer().size(); i++)
       printf("%d ", flatbuffers::vector_data(slb.GetBuffer())[i]);
@@ -4142,11 +4100,7 @@ int FlatBufferTests() {
 
   std::string rawbuf;
   auto flatbuf1 = CreateFlatBufferTest(rawbuf);
-  #if !defined(FLATBUFFERS_CPP98_STL)
-    auto flatbuf = std::move(flatbuf1);  // Test move assignment.
-  #else
-    auto &flatbuf = flatbuf1;
-  #endif // !defined(FLATBUFFERS_CPP98_STL)
+  auto flatbuf = std::move(flatbuf1);  // Test move assignment.
 
   TriviallyCopyableTest();
 
