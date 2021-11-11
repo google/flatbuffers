@@ -294,7 +294,7 @@ template<typename T> FLATBUFFERS_CONSTEXPR inline bool IsConstTrue(T t) {
 #if ((__cplusplus >= 201703L) \
     || (defined(_MSVC_LANG) &&  (_MSVC_LANG >= 201703L)))
   // All attributes unknown to an implementation are ignored without causing an error.
-  #define FLATBUFFERS_ATTRIBUTE(attr) [[attr]]
+  #define FLATBUFFERS_ATTRIBUTE(attr) attr
 
   #define FLATBUFFERS_FALLTHROUGH() [[fallthrough]]
 #else

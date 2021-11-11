@@ -194,7 +194,7 @@ class FlatBufferBuilder {
   /// @warning Do NOT attempt to use this FlatBufferBuilder afterwards!
   /// @return A `FlatBuffer` that owns the buffer and its allocator and
   /// behaves similar to a `unique_ptr` with a deleter.
-  FLATBUFFERS_ATTRIBUTE(deprecated("use Release() instead"))
+  FLATBUFFERS_ATTRIBUTE([[deprecated("use Release() instead")]])
   DetachedBuffer ReleaseBufferPointer() {
     Finished();
     return buf_.release();
@@ -430,7 +430,7 @@ class FlatBufferBuilder {
     return vtableoffsetloc;
   }
 
-  FLATBUFFERS_ATTRIBUTE(deprecated("call the version above instead"))
+  FLATBUFFERS_ATTRIBUTE([[deprecated("call the version above instead")]])
   uoffset_t EndTable(uoffset_t start, voffset_t /*numfields*/) {
     return EndTable(start);
   }
