@@ -20,6 +20,7 @@
 #include <string>
 #include <utility>
 
+#include "flatbuffers/base.h"
 #include "flatbuffers/idl.h"
 #include "flatbuffers/util.h"
 
@@ -3404,9 +3405,9 @@ CheckedError Parser::DoParse(const char *source, const char **include_paths,
       NEXT();
       file_identifier_ = attribute_;
       EXPECT(kTokenStringConstant);
-      if (file_identifier_.length() != FlatBufferBuilder::kFileIdentifierLength)
+      if (file_identifier_.length() != flatbuffers::kFileIdentifierLength)
         return Error("file_identifier must be exactly " +
-                     NumToString(FlatBufferBuilder::kFileIdentifierLength) +
+                     NumToString(flatbuffers::kFileIdentifierLength) +
                      " characters");
       EXPECT(';');
     } else if (IsIdent("file_extension")) {
