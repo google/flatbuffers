@@ -304,7 +304,7 @@ class FlatBufferBuilder {
   // Like PushElement, but additionally tracks the field this represents.
   template<typename T> void AddElement(voffset_t field, T e, T def) {
     // We don't serialize values equal to the default.
-    if (IsTheSameAs(e, def) && !force_defaults_) return;
+    if (!force_defaults_ && IsTheSameAs(e, def)) return;
     auto off = PushElement(e);
     TrackField(field, off);
   }
