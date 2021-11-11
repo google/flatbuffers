@@ -162,7 +162,7 @@ template<typename T> class Vector {
   uoffset_t size() const { return EndianScalar(length_); }
 
   // Deprecated: use size(). Here for backwards compatibility.
-  FLATBUFFERS_ATTRIBUTE(deprecated("use size() instead"))
+  FLATBUFFERS_ATTRIBUTE([[deprecated("use size() instead")]])
   uoffset_t Length() const { return size(); }
 
   typedef typename IndirectHelper<T>::return_type return_type;
