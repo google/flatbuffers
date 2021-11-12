@@ -58,19 +58,6 @@
 // This header provides backwards compatibility for older versions of the STL.
 namespace flatbuffers {
 
-// Helper method that retrieves ::data() from a vector in a way that is
-// compatible with pre C++11 STLs.
-template <typename T> inline T *vector_data(std::vector<T> &vector) {
-  // In some debug environments, operator[] does bounds checking, so &vector[0]
-  // can't be used.
-  return vector.empty() ? nullptr : &vector[0];
-}
-
-template <typename T> inline const T *vector_data(
-    const std::vector<T> &vector) {
-  return vector.empty() ? nullptr : &vector[0];
-}
-
 #if defined(FLATBUFFERS_TEMPLATES_ALIASES)
   template <typename T>
   using numeric_limits = std::numeric_limits<T>;

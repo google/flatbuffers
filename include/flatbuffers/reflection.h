@@ -379,12 +379,12 @@ template<typename T, typename U> class pointer_inside_vector {
  public:
   pointer_inside_vector(T *ptr, std::vector<U> &vec)
       : offset_(reinterpret_cast<uint8_t *>(ptr) -
-                reinterpret_cast<uint8_t *>(flatbuffers::vector_data(vec))),
+                reinterpret_cast<uint8_t *>(vec.data())),
         vec_(vec) {}
 
   T *operator*() const {
-    return reinterpret_cast<T *>(
-        reinterpret_cast<uint8_t *>(flatbuffers::vector_data(vec_)) + offset_);
+    return reinterpret_cast<T *>(reinterpret_cast<uint8_t *>(vec_.data()) +
+                                 offset_);
   }
   T *operator->() const { return operator*(); }
 

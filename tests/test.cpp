@@ -1053,8 +1053,7 @@ void ReflectionTest(uint8_t *flatbuf, size_t length) {
   // Get the root.
   // This time we wrap the result from GetAnyRoot in a smartpointer that
   // will keep rroot valid as resizingbuf resizes.
-  auto rroot = flatbuffers::piv(
-      flatbuffers::GetAnyRoot(flatbuffers::vector_data(resizingbuf)),
+  auto rroot = flatbuffers::piv(flatbuffers::GetAnyRoot(resizingbuf.data()),
       resizingbuf);
   SetString(schema, "totally new string", GetFieldS(**rroot, name_field),
             &resizingbuf);
@@ -1099,13 +1098,12 @@ void ReflectionTest(uint8_t *flatbuf, size_t length) {
   TEST_EQ_STR(rtestarrayofstring->Get(2)->c_str(), "hank");
   // Test integrity of all resize operations above.
   flatbuffers::Verifier resize_verifier(
-      reinterpret_cast<const uint8_t *>(flatbuffers::vector_data(resizingbuf)),
+      reinterpret_cast<const uint8_t *>(resizingbuf.data()),
       resizingbuf.size());
   TEST_EQ(VerifyMonsterBuffer(resize_verifier), true);
 
   // Test buffer is valid using reflection as well
-  TEST_EQ(flatbuffers::Verify(schema, *schema.root_table(),
-                              flatbuffers::vector_data(resizingbuf),
+  TEST_EQ(flatbuffers::Verify(schema, *schema.root_table(), resizingbuf.data(),
                               resizingbuf.size()),
           true);
 
@@ -3011,7 +3009,7 @@ void FlexBuffersTest() {
   // clang-format off
   #ifdef FLATBUFFERS_TEST_VERBOSE
     for (size_t i = 0; i < slb.GetBuffer().size(); i++)
-      printf("%d ", flatbuffers::vector_data(slb.GetBuffer())[i]);
+      printf("%d ", slb.GetBuffer().data()[i]);
     printf("\n");
   #endif
   // clang-format on
