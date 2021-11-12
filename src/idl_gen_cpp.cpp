@@ -1339,7 +1339,6 @@ class CppGenerator : public BaseGenerator {
       code_ += "  void Reset();";
       code_ += "";
       if (!enum_def.uses_multiple_type_instances) {
-        code_ += "#ifndef FLATBUFFERS_CPP98_STL";
         code_ += "  template <typename T>";
         code_ += "  void Set(T&& val) {";
         code_ += "    using RT = typename std::remove_reference<T>::type;";
@@ -1350,7 +1349,6 @@ class CppGenerator : public BaseGenerator {
         code_ += "      value = new RT(std::forward<T>(val));";
         code_ += "    }";
         code_ += "  }";
-        code_ += "#endif  // FLATBUFFERS_CPP98_STL";
         code_ += "";
       }
       code_ += "  " + UnionUnPackSignature(enum_def, true) + ";";

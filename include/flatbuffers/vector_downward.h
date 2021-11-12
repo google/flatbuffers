@@ -42,12 +42,7 @@ class vector_downward {
         cur_(nullptr),
         scratch_(nullptr) {}
 
-  // clang-format off
-  #if !defined(FLATBUFFERS_CPP98_STL)
   vector_downward(vector_downward &&other)
-  #else
-  vector_downward(vector_downward &other)
-  #endif  // defined(FLATBUFFERS_CPP98_STL)
       // clang-format on
       : allocator_(other.allocator_),
         own_allocator_(other.own_allocator_),
@@ -67,18 +62,12 @@ class vector_downward {
     other.scratch_ = nullptr;
   }
 
-  // clang-format off
-  #if !defined(FLATBUFFERS_CPP98_STL)
-  // clang-format on
   vector_downward &operator=(vector_downward &&other) {
     // Move construct a temporary and swap idiom
     vector_downward temp(std::move(other));
     swap(temp);
     return *this;
   }
-  // clang-format off
-  #endif  // defined(FLATBUFFERS_CPP98_STL)
-  // clang-format on
 
   ~vector_downward() {
     clear_buffer();

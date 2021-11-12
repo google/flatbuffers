@@ -50,10 +50,6 @@
   #include <unistd.h>
 #endif
 
-#ifdef _STLPORT_VERSION
-  #define FLATBUFFERS_CPP98_STL
-#endif
-
 #ifdef __ANDROID__
   #include <android/api-level.h>
 #endif

@@ -45,9 +45,6 @@ class DetachedBuffer {
         cur_(cur),
         size_(sz) {}
 
-  // clang-format off
-  #if !defined(FLATBUFFERS_CPP98_STL)
-  // clang-format on
   DetachedBuffer(DetachedBuffer &&other)
       : allocator_(other.allocator_),
         own_allocator_(other.own_allocator_),
@@ -57,13 +54,7 @@ class DetachedBuffer {
         size_(other.size_) {
     other.reset();
   }
-  // clang-format off
-  #endif  // !defined(FLATBUFFERS_CPP98_STL)
-  // clang-format on
 
-  // clang-format off
-  #if !defined(FLATBUFFERS_CPP98_STL)
-  // clang-format on
   DetachedBuffer &operator=(DetachedBuffer &&other) {
     if (this == &other) return *this;
 
@@ -80,9 +71,6 @@ class DetachedBuffer {
 
     return *this;
   }
-  // clang-format off
-  #endif  // !defined(FLATBUFFERS_CPP98_STL)
-  // clang-format on
 
   ~DetachedBuffer() { destroy(); }
 
@@ -92,16 +80,10 @@ class DetachedBuffer {
 
   size_t size() const { return size_; }
 
-  // clang-format off
-  #if !defined(FLATBUFFERS_CPP98_STL)
-  // clang-format on
   // These may change access mode, leave these at end of public section
   FLATBUFFERS_DELETE_FUNC(DetachedBuffer(const DetachedBuffer &other));
   FLATBUFFERS_DELETE_FUNC(
       DetachedBuffer &operator=(const DetachedBuffer &other));
-  // clang-format off
-  #endif  // !defined(FLATBUFFERS_CPP98_STL)
-  // clang-format on
 
  protected:
   Allocator *allocator_;

@@ -60,7 +60,7 @@ void CodeWriter::operator+=(std::string text) {
     // Update the text to everything after the }}.
     text = text.substr(end + 2);
   }
-  if (!text.empty() && string_back(text) == '\\') {
+  if (!text.empty() && text.back() == '\\') {
     text.pop_back();
     ignore_ident_ = true;
     stream_ << text;

@@ -1627,7 +1627,7 @@ CheckedError Parser::ParseArray(Value &array) {
   auto length = array.type.fixed_length;
   uoffset_t count = 0;
   auto err = ParseVectorDelimiters(count, [&](uoffset_t &) -> CheckedError {
-    vector_emplace_back(&stack, Value());
+    stack.emplace_back(Value());
     auto &val = stack.back();
     val.type = type;
     if (IsStruct(type)) {
@@ -3319,7 +3319,7 @@ CheckedError Parser::DoParse(const char *source, const char **include_paths,
       ECHECK(ParseProtoDecl());
     } else if (IsIdent("native_include")) {
       NEXT();
-      vector_emplace_back(&native_included_files_, attribute_);
+      native_included_files_.emplace_back(attribute_);
       EXPECT(kTokenStringConstant);
       EXPECT(';');
     } else if (IsIdent("include") || (opts.proto_mode && IsIdent("import"))) {

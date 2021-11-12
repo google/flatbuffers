@@ -27,9 +27,7 @@
 #include "flatbuffers/hash.h"
 #include "flatbuffers/reflection.h"
 
-#if !defined(FLATBUFFERS_CPP98_STL)
-#  include <functional>
-#endif  // !defined(FLATBUFFERS_CPP98_STL)
+#include <functional>
 
 // This file defines the data types representing a parsed IDL (Interface
 // Definition Language) / schema file.
@@ -207,7 +205,7 @@ template<typename T> class SymbolTable {
   }
 
   bool Add(const std::string &name, T *e) {
-    vector_emplace_back(&vec, e);
+    vec.emplace_back(e);
     auto it = dict.find(name);
     if (it != dict.end()) return true;
     dict[name] = e;

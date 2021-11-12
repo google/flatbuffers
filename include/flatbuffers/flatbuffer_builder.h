@@ -31,9 +31,7 @@
 #include "flatbuffers/vector_downward.h"
 #include "flatbuffers/verifier.h"
 
-#ifndef FLATBUFFERS_CPP98_STL
-#  include <functional>
-#endif
+#include <functional>
 
 namespace flatbuffers {
 
@@ -96,13 +94,8 @@ class FlatBufferBuilder {
     EndianCheck();
   }
 
-  // clang-format off
   /// @brief Move constructor for FlatBufferBuilder.
-  #if !defined(FLATBUFFERS_CPP98_STL)
   FlatBufferBuilder(FlatBufferBuilder &&other)
-  #else
-  FlatBufferBuilder(FlatBufferBuilder &other)
-  #endif  // #if !defined(FLATBUFFERS_CPP98_STL)
     : buf_(1024, nullptr, false, AlignOf<largest_scalar_t>()),
       num_field_loc(0),
       max_voffset_(0),
@@ -117,11 +110,7 @@ class FlatBufferBuilder {
     // Lack of delegating constructors in vs2010 makes it more verbose than needed.
     Swap(other);
   }
-  // clang-format on
 
-  // clang-format off
-  #if !defined(FLATBUFFERS_CPP98_STL)
-  // clang-format on
   /// @brief Move assignment operator for FlatBufferBuilder.
   FlatBufferBuilder &operator=(FlatBufferBuilder &&other) {
     // Move construct a temporary and swap idiom
@@ -129,9 +118,6 @@ class FlatBufferBuilder {
     Swap(temp);
     return *this;
   }
-  // clang-format off
-  #endif  // defined(FLATBUFFERS_CPP98_STL)
-  // clang-format on
 
   void Swap(FlatBufferBuilder &other) {
     using std::swap;
@@ -683,8 +669,6 @@ class FlatBufferBuilder {
     return Offset<Vector<uint8_t>>(EndVector(v.size()));
   }
 
-  // clang-format off
-  #ifndef FLATBUFFERS_CPP98_STL
   /// @brief Serialize values returned by a function into a FlatBuffer `vector`.
   /// This is a convenience function that takes care of iteration for you.
   /// @tparam T The data type of the `std::vector` elements.
@@ -699,8 +683,6 @@ class FlatBufferBuilder {
     for (size_t i = 0; i < vector_size; i++) elems[i] = f(i);
     return CreateVector(elems);
   }
-  #endif // FLATBUFFERS_CPP98_STL
-  // clang-format on
 
   /// @brief Serialize values returned by a function into a FlatBuffer `vector`.
   /// This is a convenience function that takes care of iteration for you. This
@@ -811,8 +793,6 @@ class FlatBufferBuilder {
     return CreateVectorOfNativeStructs(v, len, Pack);
   }
 
-  // clang-format off
-  #ifndef FLATBUFFERS_CPP98_STL
   /// @brief Serialize an array of structs into a FlatBuffer `vector`.
   /// @tparam T The data type of the struct array elements.
   /// @param[in] filler A function that takes the current iteration 0..vector_size-1
@@ -830,8 +810,6 @@ class FlatBufferBuilder {
     }
     return EndVectorOfStructs<T>(vector_size);
   }
-  #endif
-  // clang-format on
 
   /// @brief Serialize an array of structs into a FlatBuffer `vector`.
   /// @tparam T The data type of the struct array elements.

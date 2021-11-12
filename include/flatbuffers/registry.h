@@ -104,7 +104,7 @@ class Registry {
     }
     // Parse schema.
     parser->opts = opts_;
-    if (!parser->Parse(schematext.c_str(), vector_data(include_paths_),
+    if (!parser->Parse(schematext.c_str(), include_paths_.data(),
                        schema.path_.c_str())) {
       lasterror_ = parser->error_;
       return false;

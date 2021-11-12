@@ -43,14 +43,10 @@ template<typename T, typename IT> struct VectorIterator {
     return *this;
   }
 
-  // clang-format off
-  #if !defined(FLATBUFFERS_CPP98_STL)
   VectorIterator &operator=(VectorIterator &&other) {
     data_ = other.data_;
     return *this;
   }
-  #endif  // !defined(FLATBUFFERS_CPP98_STL)
-  // clang-format on
 
   bool operator==(const VectorIterator &other) const {
     return data_ == other.data_;
@@ -351,7 +347,6 @@ class VectorOfAny {
   VectorOfAny &operator=(const VectorOfAny &);
 };
 
-#ifndef FLATBUFFERS_CPP98_STL
 template<typename T, typename U>
 Vector<Offset<T>> *VectorCast(Vector<Offset<U>> *ptr) {
   static_assert(std::is_base_of<T, U>::value, "Unrelated types");
@@ -363,7 +358,6 @@ const Vector<Offset<T>> *VectorCast(const Vector<Offset<U>> *ptr) {
   static_assert(std::is_base_of<T, U>::value, "Unrelated types");
   return reinterpret_cast<const Vector<Offset<T>> *>(ptr);
 }
-#endif
 
 // Convenient helper function to get the length of any vector, regardless
 // of whether it is null or not (the field is not set).
