@@ -158,7 +158,7 @@ std::string ConCatPathFileName(const std::string &path,
                                const std::string &filename) {
   std::string filepath = path;
   if (filepath.length()) {
-    char &filepath_last_character = string_back(filepath);
+    char &filepath_last_character = filepath.back();
     if (filepath_last_character == kPathSeparatorWindows) {
       filepath_last_character = kPathSeparator;
     } else if (filepath_last_character != kPathSeparator) {
@@ -274,7 +274,7 @@ ClassicLocale ClassicLocale::instance_;
 std::string RemoveStringQuotes(const std::string &s) {
   auto ch = *s.c_str();
   return ((s.size() >= 2) && (ch == '\"' || ch == '\'') &&
-          (ch == string_back(s)))
+          (ch == s.back()))
              ? s.substr(1, s.length() - 2)
              : s;
 }

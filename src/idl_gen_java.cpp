@@ -21,10 +21,6 @@
 #include "flatbuffers/idl.h"
 #include "flatbuffers/util.h"
 
-#if defined(FLATBUFFERS_CPP98_STL)
-#  include <cctype>
-#endif  // defined(FLATBUFFERS_CPP98_STL)
-
 namespace flatbuffers {
 namespace java {
 

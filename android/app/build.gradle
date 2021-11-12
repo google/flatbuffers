@@ -101,16 +101,6 @@ android {
 
   flavorDimensions "stl-variant"
   productFlavors {
-    stlport {
-      dimension "stl-variant"
-      applicationIdSuffix ".stlport"
-      versionNameSuffix "-stlport"
-      externalNativeBuild {
-        ndkBuild {
-          arguments "APP_STL=stlport_static"
-        }
-      }
-    }
     gnustl {
       dimension "stl-variant"
       applicationIdSuffix ".gnustl"

@@ -873,7 +873,7 @@ inline Reference GetRoot(const uint8_t *buffer, size_t size) {
 }
 
 inline Reference GetRoot(const std::vector<uint8_t> &buffer) {
-  return GetRoot(flatbuffers::vector_data(buffer), buffer.size());
+  return GetRoot(buffer.data(), buffer.size());
 }
 
 // Flags that configure how the Builder behaves.
@@ -1069,7 +1069,7 @@ class Builder FLATBUFFERS_FINAL_CLASS {
     return CreateBlob(data, len, 0, FBT_BLOB);
   }
   size_t Blob(const std::vector<uint8_t> &v) {
-    return CreateBlob(flatbuffers::vector_data(v), v.size(), 0, FBT_BLOB);
+    return CreateBlob(v.data(), v.size(), 0, FBT_BLOB);
   }
 
   void Blob(const char *key, const void *data, size_t len) {
@@ -1131,14 +1131,11 @@ class Builder FLATBUFFERS_FINAL_CLASS {
     // step automatically when appliccable, and encourage people to write in
     // sorted fashion.
     // std::sort is typically already a lot faster on sorted data though.
-    auto dict =
-        reinterpret_cast<TwoValue *>(flatbuffers::vector_data(stack_) + start);
+    auto dict = reinterpret_cast<TwoValue *>(stack_.data() + start);
     std::sort(dict, dict + len,
               [&](const TwoValue &a, const TwoValue &b) -> bool {
-                auto as = reinterpret_cast<const char *>(
-                    flatbuffers::vector_data(buf_) + a.key.u_);
-                auto bs = reinterpret_cast<const char *>(
-                    flatbuffers::vector_data(buf_) + b.key.u_);
+                auto as = reinterpret_cast<const char *>(buf_.data() + a.key.u_);
+                auto bs = reinterpret_cast<const char *>(buf_.data() + b.key.u_);
                 auto comp = strcmp(as, bs);
                 // We want to disallow duplicate keys, since this results in a
                 // map where values cannot be found.
@@ -1205,7 +1202,7 @@ class Builder FLATBUFFERS_FINAL_CLASS {
     Vector(elems, len);
   }
   template<typename T> void Vector(const std::vector<T> &vec) {
-    Vector(flatbuffers::vector_data(vec), vec.size());
+    Vector(vec.data(), vec.size());
   }
 
   template<typename F> size_t TypedVector(F f) {
@@ -1607,10 +1604,8 @@ class Builder FLATBUFFERS_FINAL_CLASS {
   struct KeyOffsetCompare {
     explicit KeyOffsetCompare(const std::vector<uint8_t> &buf) : buf_(&buf) {}
     bool operator()(size_t a, size_t b) const {
-      auto stra =
-          reinterpret_cast<const char *>(flatbuffers::vector_data(*buf_) + a);
-      auto strb =
-          reinterpret_cast<const char *>(flatbuffers::vector_data(*buf_) + b);
+      auto stra = reinterpret_cast<const char *>(buf_->data() + a);
+      auto strb = reinterpret_cast<const char *>(buf_->data() + b);
       return strcmp(stra, strb) < 0;
     }
     const std::vector<uint8_t> *buf_;
@@ -1621,10 +1616,8 @@ class Builder FLATBUFFERS_FINAL_CLASS {
     explicit StringOffsetCompare(const std::vector<uint8_t> &buf)
         : buf_(&buf) {}
     bool operator()(const StringOffset &a, const StringOffset &b) const {
-      auto stra = reinterpret_cast<const char *>(
-          flatbuffers::vector_data(*buf_) + a.first);
-      auto strb = reinterpret_cast<const char *>(
-          flatbuffers::vector_data(*buf_) + b.first);
+      auto stra = reinterpret_cast<const char *>(buf_->data() + a.first);
+      auto strb = reinterpret_cast<const char *>(buf_->data() + b.first);
       return strncmp(stra, strb, (std::min)(a.second, b.second) + 1) < 0;
     }
     const std::vector<uint8_t> *buf_;

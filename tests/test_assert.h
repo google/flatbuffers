@@ -73,7 +73,7 @@ struct underlying_of_scalar {
 template<typename T> struct underlying_of_scalar<T, true> {
 // clang-format off
   // There are old compilers without full C++11 support (see stl_emulation.h).
-  #if defined(FLATBUFFERS_TEMPLATES_ALIASES) && !defined(FLATBUFFERS_CPP98_STL)
+  #if defined(FLATBUFFERS_TEMPLATES_ALIASES)
   using type = typename std::underlying_type<T>::type;
   #else
   typedef int64_t type;
