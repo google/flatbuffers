@@ -16,6 +16,7 @@ option(FLATBUFFERS_BUILD_FLATC "Enable the build of the flatbuffers compiler"
 option(FLATBUFFERS_STATIC_FLATC "Build flatbuffers compiler with -static flag"
        OFF)
 option(FLATBUFFERS_BUILD_FLATHASH "Enable the build of flathash" ON)
+option(FLATBUFFERS_BUILD_BENCHMARKS "Enable the build of flatbenchmark" ON)
 option(FLATBUFFERS_BUILD_GRPCTEST "Enable the build of grpctest" OFF)
 option(FLATBUFFERS_BUILD_SHAREDLIB
        "Enable the build of the flatbuffers shared library"
@@ -714,4 +715,76 @@ if(UNIX)
         include(CMake/PackageRedhat.cmake)
         include(CPack)
     endif()
+endif()
+
+# Setup for running Google Benchmarks (https://github.com/google/benchmark) on
+# flatbuffers. This requires both that benchmark library and its depenency gtest
+# to build. Instead of including them here or doing a submodule, this uses
+# FetchContent (https://cmake.org/cmake/help/latest/module/FetchContent.html) to
+# grab the dependencies at config time. This requires CMake 3.14 or higher.
+if(FLATBUFFERS_BUILD_BENCHMARKS AND CMAKE_VERSION VERSION_GREATER 3.14)
+  include(FetchContent)
+
+  # No particular reason for the specific GIT_TAGs for the following repos, they
+  # were just the latest releases when this was added.
+  FetchContent_Declare(
+    googletest
+    GIT_REPOSITORY https://github.com/google/googletest.git
+    GIT_TAG        e2239ee6043f73722e7aa812a459f54a28552929 # release-1.11.0
+  )
+  FetchContent_Declare(
+    googlebenchmark
+    GIT_REPOSITORY https://github.com/google/benchmark.git
+    GIT_TAG        f91b6b42b1b9854772a90ae9501464a161707d1e # v1.6.0
+  )
+
+  # For Windows: Prevent overriding the parent project's compiler/linker 
+  # settings.
+  set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
+  FetchContent_MakeAvailable(
+    googletest
+    googlebenchmark
+  )
+
+  set(CPP_BENCH_DIR benchmarks/cpp)
+  set(CPP_FB_BENCH_DIR ${CPP_BENCH_DIR}/flatbuffers)
+  set(CPP_BENCH_FBS ${CPP_FB_BENCH_DIR}/bench.fbs)
+  set(CPP_BENCH_FB_GEN ${CPP_FB_BENCH_DIR}/bench_generated.h)
+
+  set(FlatBenchmark_SRCS
+    ${CPP_BENCH_DIR}/benchmark_main.cpp
+    ${CPP_BENCH_DIR}/bench.h
+    ${CPP_FB_BENCH_DIR}/fb_bench.cpp
+    ${CPP_FB_BENCH_DIR}/fb_bench.h
+    ${CPP_BENCH_FB_GEN}
+  )
+
+  # Generate the flatbuffers benchmark code from the flatbuffers schema using
+  # flatc itself, thus it depends on flatc. This also depends on the C++ runtime
+  # flatbuffers and the schema file itself, so it should auto-generated at the
+  # correct times.
+  add_custom_command(
+    OUTPUT ${CPP_BENCH_FB_GEN}
+    COMMAND 
+      "${FLATBUFFERS_FLATC_EXECUTABLE}"
+        --cpp
+        -o ${CPP_FB_BENCH_DIR}
+        ${CPP_BENCH_FBS}
+    DEPENDS 
+      flatc
+      flatbuffers
+      ${CPP_BENCH_FBS}
+    COMMENT "Run Flatbuffers Benchmark Codegen: ${CPP_BENCH_FB_GEN}"
+    VERBATIM)
+
+  # The main flatbuffers benchmark executable
+  add_executable(flatbenchmark ${FlatBenchmark_SRCS})
+
+  # The includes of the benchmark files are fully qualified from root.
+  target_include_directories(flatbenchmark PUBLIC ${CMAKE_SOURCE_DIR})
+
+  target_link_libraries(flatbenchmark 
+    benchmark::benchmark_main # _main to use their entry point 
+    gtest # Link to gtest so we can also assert in the benchmarks
+  )
 endif()
