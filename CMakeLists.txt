@@ -75,9 +75,6 @@ if(NOT DEFINED FLATBUFFERS_LOCALE_INDEPENDENT)
 endif()
 add_definitions(-DFLATBUFFERS_LOCALE_INDEPENDENT=$<BOOL:${FLATBUFFERS_LOCALE_INDEPENDENT}>)
 
-# Set the output directory to the root binary directory for all subdirectories.
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
-
 set(FlatBuffers_Library_SRCS
   include/flatbuffers/allocator.h
   include/flatbuffers/array.h

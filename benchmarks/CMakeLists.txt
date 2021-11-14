@@ -66,6 +66,12 @@ target_compile_features(flatbenchmark PUBLIC
     cxx_std_11
 )
 
+# Set the output directory to the root binary directory
+set_target_properties(flatbenchmark 
+    PROPERTIES RUNTIME_OUTPUT_DIRECTORY 
+    "${CMAKE_BINARY_DIR}"
+)
+
 # The includes of the benchmark files are fully qualified from flatbuffers root.
 target_include_directories(flatbenchmark PUBLIC ${CMAKE_SOURCE_DIR})
 
