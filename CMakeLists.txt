@@ -16,7 +16,9 @@ option(FLATBUFFERS_BUILD_FLATC "Enable the build of the flatbuffers compiler"
 option(FLATBUFFERS_STATIC_FLATC "Build flatbuffers compiler with -static flag"
        OFF)
 option(FLATBUFFERS_BUILD_FLATHASH "Enable the build of flathash" ON)
-option(FLATBUFFERS_BUILD_BENCHMARKS "Enable the build of flatbenchmark" ON)
+option(FLATBUFFERS_BUILD_BENCHMARKS "Enable the build of flatbenchmark. \"
+       Requires C++11."
+       OFF)
 option(FLATBUFFERS_BUILD_GRPCTEST "Enable the build of grpctest" OFF)
 option(FLATBUFFERS_BUILD_SHAREDLIB
        "Enable the build of the flatbuffers shared library"
@@ -746,6 +748,7 @@ if(FLATBUFFERS_BUILD_BENCHMARKS AND CMAKE_VERSION VERSION_GREATER 3.14)
     googlebenchmark
   )
 
+
   set(CPP_BENCH_DIR benchmarks/cpp)
   set(CPP_FB_BENCH_DIR ${CPP_BENCH_DIR}/flatbuffers)
   set(CPP_BENCH_FBS ${CPP_FB_BENCH_DIR}/bench.fbs)
@@ -779,6 +782,11 @@ if(FLATBUFFERS_BUILD_BENCHMARKS AND CMAKE_VERSION VERSION_GREATER 3.14)
 
   # The main flatbuffers benchmark executable
   add_executable(flatbenchmark ${FlatBenchmark_SRCS})
+
+  # Benchmark requires C++11 
+  target_compile_features(flatbenchmark PUBLIC
+     cxx_std_11
+  )
 
   # The includes of the benchmark files are fully qualified from root.
   target_include_directories(flatbenchmark PUBLIC ${CMAKE_SOURCE_DIR})
