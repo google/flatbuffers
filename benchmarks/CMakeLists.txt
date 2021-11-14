@@ -37,7 +37,7 @@ set(FlatBenchmark_SRCS
     ${CPP_BENCH_DIR}/benchmark_main.cpp
     ${CPP_FB_BENCH_DIR}/fb_bench.cpp
     ${CPP_RAW_BENCH_DIR}/raw_bench.cpp
-    ${CPP_BENCH_FBS}
+    ${CPP_BENCH_FB_GEN}
 )
 
 # Generate the flatbuffers benchmark code from the flatbuffers schema using
