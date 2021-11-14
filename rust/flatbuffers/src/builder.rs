@@ -53,6 +53,12 @@ pub struct FlatBufferBuilder<'fbb> {
     _phantom: PhantomData<&'fbb ()>,
 }
 
+impl<'fbb> Default for FlatBufferBuilder<'fbb> {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl<'fbb> FlatBufferBuilder<'fbb> {
     /// Create a FlatBufferBuilder that is ready for writing.
     pub fn new() -> Self {
@@ -352,10 +358,10 @@ impl<'fbb> FlatBufferBuilder<'fbb> {
     }
 
     #[inline]
-    fn track_field(&mut self, slot_off: VOffsetT, off: UOffsetT) {
+    fn track_field(&mut self, id: VOffsetT, off: UOffsetT) {
         let fl = FieldLoc {
-            id: slot_off,
-            off: off,
+            id,
+            off,
         };
         self.field_locs.push(fl);
     }
@@ -367,7 +373,7 @@ impl<'fbb> FlatBufferBuilder<'fbb> {
         // Write the vtable offset, which is the start of any Table.
         // We fill its value later.
         let object_revloc_to_vtable: WIPOffset<VTableWIPOffset> =
-            WIPOffset::new(self.push::<UOffsetT>(0xF0F0F0F0 as UOffsetT).value());
+            WIPOffset::new(self.push::<UOffsetT>(0xF0F0F0F0_u32).value());
 
         // Layout of the data this function will create when a new vtable is
         // needed.
@@ -567,7 +573,7 @@ impl<'fbb> FlatBufferBuilder<'fbb> {
     #[inline]
     fn push_bytes_unprefixed(&mut self, x: &[u8]) -> UOffsetT {
         let n = self.make_space(x.len());
-        &mut self.owned_buf[n..n + x.len()].copy_from_slice(x);
+        self.owned_buf[n..n + x.len()].copy_from_slice(x);
 
         n as UOffsetT
     }
@@ -600,19 +606,19 @@ impl<'fbb> FlatBufferBuilder<'fbb> {
     fn assert_nested(&self, fn_name: &'static str) {
         // we don't assert that self.field_locs.len() >0 because the vtable
         // could be empty (e.g. for empty tables, or for all-default values).
-        debug_assert!(self.nested, format!("incorrect FlatBufferBuilder usage: {} must be called while in a nested state", fn_name));
+        debug_assert!(self.nested, "incorrect FlatBufferBuilder usage: {} must be called while in a nested state", fn_name);
     }
     #[inline]
     fn assert_not_nested(&self, msg: &'static str) {
-        debug_assert!(!self.nested, msg);
+        debug_assert!(!self.nested, "{}", msg);
     }
     #[inline]
     fn assert_finished(&self, msg: &'static str) {
-        debug_assert!(self.finished, msg);
+        debug_assert!(self.finished, "{}", msg);
     }
     #[inline]
     fn assert_not_finished(&self, msg: &'static str) {
-        debug_assert!(!self.finished, msg);
+        debug_assert!(!self.finished, "{}", msg);
     }
 
 }

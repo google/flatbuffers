@@ -84,7 +84,7 @@ impl<T> Copy for WIPOffset<T> {}
 impl<T> Clone for WIPOffset<T> {
     #[inline]
     fn clone(&self) -> WIPOffset<T> {
-        WIPOffset::new(self.0.clone())
+        WIPOffset::new(self.0)
     }
 }
 impl<T> PartialEq for WIPOffset<T> {

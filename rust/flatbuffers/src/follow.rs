@@ -53,6 +53,11 @@ impl<'a, T: Follow<'a> + 'a> FollowStart<T> {
         T::follow(buf, loc)
     }
 }
+impl<'a, T: Follow<'a> + 'a> Default for FollowStart<T> {
+    fn default() -> Self {
+        Self::new()
+    }
+}
 impl<'a, T: Follow<'a>> Follow<'a> for FollowStart<T> {
     type Inner = T::Inner;
     #[inline]
