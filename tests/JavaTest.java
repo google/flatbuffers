@@ -1097,6 +1097,30 @@ class JavaTest {
         TestEq(m.get(key4).asString(), utf8keys[4]);
     }
 
+    public static void testFlexBuffersMapLookup() {
+        FlexBuffersBuilder builder = new FlexBuffersBuilder(ByteBuffer.allocate(512),
+                FlexBuffersBuilder.BUILDER_FLAG_SHARE_KEYS_AND_STRINGS);
+
+        String key0 = "123";
+        String key1 = "1234";
+        String key2 = "12345";
+        String[] keys = new String[]{key0, key1, key2};
+
+        int map = builder.startMap();
+
+        for (int i=0; i< keys.length; i++) {
+            builder.putString(keys[i], keys[i]);  // Testing key and string reuse.
+        }
+        builder.endMap(null, map);
+        builder.finish();
+
+        FlexBuffers.Map m = FlexBuffers.getRoot(builder.getBuffer()).asMap();
+        for (int i=0; i< keys.length; i++) {
+            TestEq(m.get(keys[i]).asString(), keys[i]);
+            TestEq(m.get(keys[i].getBytes(StandardCharsets.UTF_8)).asString(), keys[i]);
+        }
+    }
+
     public static void TestFlexBuffers() {
         testSingleElementByte();
         testSingleElementShort();
@@ -1121,6 +1145,7 @@ class JavaTest {
         testDeprecatedTypedVectorString();
         testBuilderGrowth();
         testFlexBuffersUtf8Map();
+        testFlexBuffersMapLookup();
     }
 
     static void TestVectorOfBytes() {
