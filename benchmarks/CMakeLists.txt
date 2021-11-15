@@ -29,15 +29,14 @@ FetchContent_MakeAvailable(
 
 set(CPP_BENCH_DIR cpp)
 set(CPP_FB_BENCH_DIR ${CPP_BENCH_DIR}/flatbuffers)
+set(CPP_RAW_BENCH_DIR ${CPP_BENCH_DIR}/raw)
 set(CPP_BENCH_FBS ${CPP_FB_BENCH_DIR}/bench.fbs)
 set(CPP_BENCH_FB_GEN ${CPP_FB_BENCH_DIR}/bench_generated.h)
 
 set(FlatBenchmark_SRCS
     ${CPP_BENCH_DIR}/benchmark_main.cpp
-    ${CPP_BENCH_DIR}/bench.h
     ${CPP_FB_BENCH_DIR}/fb_bench.cpp
-    ${CPP_FB_BENCH_DIR}/fb_bench.h
-    ${CPP_BENCH_FB_GEN}
+    ${CPP_RAW_BENCH_DIR}/raw_bench.cpp
 )
 
 # Generate the flatbuffers benchmark code from the flatbuffers schema using
