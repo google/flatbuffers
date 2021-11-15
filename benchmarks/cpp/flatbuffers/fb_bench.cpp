@@ -13,35 +13,34 @@ using namespace benchmarks_flatbuffers;
 namespace {
 
 struct FlatBufferBench : Bench {
-  explicit FlatBufferBench(int64_t initial_size,
-                           Allocator *allocator)
+  explicit FlatBufferBench(int64_t initial_size, Allocator *allocator)
       : fbb(initial_size, allocator, false) {}
 
-  uint8_t *Encode(void *, int64_t &len) override {
+  uint8_t *Encode(void *, int64_t &len) {
     fbb.Clear();
 
     const int kVectorLength = 3;
     Offset<FooBar> vec[kVectorLength];
 
-    for(int i = 0; i < kVectorLength; ++i) {
+    for (int i = 0; i < kVectorLength; ++i) {
       Foo foo(0xABADCAFEABADCAFE + i, 10000 + i, '@' + i, 1000000 + i);
       Bar bar(foo, 123456 + i, 3.14159f + i, 10000 + i);
       auto name = fbb.CreateString("Hello, World!");
-      auto foobar = CreateFooBar(fbb, &bar, name, 3.1415432432445543543 + i,
-                                 '!' + i);
+      auto foobar =
+          CreateFooBar(fbb, &bar, name, 3.1415432432445543543 + i, '!' + i);
       vec[i] = foobar;
     }
     auto location = fbb.CreateString("http://google.com/flatbuffers/");
     auto foobarvec = fbb.CreateVector(vec, kVectorLength);
-    auto foobarcontainer = CreateFooBarContainer(fbb, foobarvec, true,
-                                                 Enum_Bananas, location);
+    auto foobarcontainer =
+        CreateFooBarContainer(fbb, foobarvec, true, Enum_Bananas, location);
     fbb.Finish(foobarcontainer);
 
     len = fbb.GetSize();
     return fbb.GetBufferPointer();
   }
 
-  int64_t Use(void *decoded) override {
+  int64_t Use(void *decoded) {
     sum = 0;
     auto foobarcontainer = GetFooBarContainer(decoded);
     sum = 0;
@@ -66,7 +65,7 @@ struct FlatBufferBench : Bench {
     return sum;
   }
 
-  void *Decode(void *buffer, int64_t) override { return buffer; }
+  void *Decode(void *buffer, int64_t) { return buffer; }
   void Dealloc(void *) override{};
 
   FlatBufferBuilder fbb;
