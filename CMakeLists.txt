@@ -16,6 +16,9 @@ option(FLATBUFFERS_BUILD_FLATC "Enable the build of the flatbuffers compiler"
 option(FLATBUFFERS_STATIC_FLATC "Build flatbuffers compiler with -static flag"
        OFF)
 option(FLATBUFFERS_BUILD_FLATHASH "Enable the build of flathash" ON)
+option(FLATBUFFERS_BUILD_BENCHMARKS "Enable the build of flatbenchmark. \"
+       Requires C++11."
+       OFF)
 option(FLATBUFFERS_BUILD_GRPCTEST "Enable the build of grpctest" OFF)
 option(FLATBUFFERS_BUILD_SHAREDLIB
        "Enable the build of the flatbuffers shared library"
@@ -714,4 +717,9 @@ if(UNIX)
         include(CMake/PackageRedhat.cmake)
         include(CPack)
     endif()
+endif()
+
+# Include for running Google Benchmarks.
+if(FLATBUFFERS_BUILD_BENCHMARKS AND CMAKE_VERSION VERSION_GREATER 3.13)
+  add_subdirectory(benchmarks)
 endif()
