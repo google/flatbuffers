@@ -243,7 +243,7 @@ class vector_downward {
   size_t initial_size_;
   size_t buffer_minalign_;
   size_t reserved_;
-  size_t size_;
+  uoffset_t size_;
   uint8_t *buf_;
   uint8_t *cur_;  // Points at location between empty (below) and used (above).
   uint8_t *scratch_;  // Points to the end of the scratchpad in use.
