@@ -145,7 +145,7 @@ class vector_downward {
     if (len) {
       ensure_space(len);
       cur_ -= len;
-      size_ += len;
+      size_ += static_cast<uoffset_t>(len);
     }
     return cur_;
   }
@@ -209,7 +209,7 @@ class vector_downward {
 
   void pop(size_t bytes_to_remove) {
     cur_ += bytes_to_remove;
-    size_ -= bytes_to_remove;
+    size_ -= static_cast<uoffset_t>(bytes_to_remove);
   }
 
   void scratch_pop(size_t bytes_to_remove) { scratch_ -= bytes_to_remove; }
@@ -263,8 +263,6 @@ class vector_downward {
     }
     cur_ = buf_ + reserved_ - old_size;
     scratch_ = buf_ + old_scratch_size;
-    size_ =
-        static_cast<uoffset_t>(reserved_ - static_cast<size_t>(cur_ - buf_));
   }
 };
 
