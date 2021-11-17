@@ -8,20 +8,41 @@
 
 struct GoldenBase;
 struct GoldenBaseBuilder;
+struct GoldenBaseT;
+
+bool operator==(const GoldenBaseT &lhs, const GoldenBaseT &rhs);
+bool operator!=(const GoldenBaseT &lhs, const GoldenBaseT &rhs);
+
+inline const flatbuffers::TypeTable *GoldenBaseTypeTable();
+
+struct GoldenBaseT : public flatbuffers::NativeTable {
+  typedef GoldenBase TableType;
+  int32_t a = 0;
+};
 
 struct GoldenBase FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+  typedef GoldenBaseT NativeTableType;
   typedef GoldenBaseBuilder Builder;
+  static const flatbuffers::TypeTable *MiniReflectTypeTable() {
+    return GoldenBaseTypeTable();
+  }
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_A = 4
   };
   int32_t a() const {
     return GetField<int32_t>(VT_A, 0);
   }
+  bool mutate_a(int32_t _a = 0) {
+    return SetField<int32_t>(VT_A, _a, 0);
+  }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyField<int32_t>(verifier, VT_A) &&
            verifier.EndTable();
   }
+  GoldenBaseT *UnPack(const flatbuffers::resolver_function_t *_resolver = nullptr) const;
+  void UnPackTo(GoldenBaseT *_o, const flatbuffers::resolver_function_t *_resolver = nullptr) const;
+  static flatbuffers::Offset<GoldenBase> Pack(flatbuffers::FlatBufferBuilder &_fbb, const GoldenBaseT* _o, const flatbuffers::rehasher_function_t *_rehasher = nullptr);
 };
 
 struct GoldenBaseBuilder {
@@ -50,12 +71,72 @@ inline flatbuffers::Offset<GoldenBase> CreateGoldenBase(
   return builder_.Finish();
 }
 
+flatbuffers::Offset<GoldenBase> CreateGoldenBase(flatbuffers::FlatBufferBuilder &_fbb, const GoldenBaseT *_o, const flatbuffers::rehasher_function_t *_rehasher = nullptr);
+
+
+inline bool operator==(const GoldenBaseT &lhs, const GoldenBaseT &rhs) {
+  return
+      (lhs.a == rhs.a);
+}
+
+inline bool operator!=(const GoldenBaseT &lhs, const GoldenBaseT &rhs) {
+    return !(lhs == rhs);
+}
+
+
+inline GoldenBaseT *GoldenBase::UnPack(const flatbuffers::resolver_function_t *_resolver) const {
+  auto _o = std::unique_ptr<GoldenBaseT>(new GoldenBaseT());
+  UnPackTo(_o.get(), _resolver);
+  return _o.release();
+}
+
+inline void GoldenBase::UnPackTo(GoldenBaseT *_o, const flatbuffers::resolver_function_t *_resolver) const {
+  (void)_o;
+  (void)_resolver;
+  { auto _e = a(); _o->a = _e; }
+}
+
+inline flatbuffers::Offset<GoldenBase> GoldenBase::Pack(flatbuffers::FlatBufferBuilder &_fbb, const GoldenBaseT* _o, const flatbuffers::rehasher_function_t *_rehasher) {
+  return CreateGoldenBase(_fbb, _o, _rehasher);
+}
+
+inline flatbuffers::Offset<GoldenBase> CreateGoldenBase(flatbuffers::FlatBufferBuilder &_fbb, const GoldenBaseT *_o, const flatbuffers::rehasher_function_t *_rehasher) {
+  (void)_rehasher;
+  (void)_o;
+  struct _VectorArgs { flatbuffers::FlatBufferBuilder *__fbb; const GoldenBaseT* __o; const flatbuffers::rehasher_function_t *__rehasher; } _va = { &_fbb, _o, _rehasher}; (void)_va;
+  auto _a = _o->a;
+  return CreateGoldenBase(
+      _fbb,
+      _a);
+}
+
+inline const flatbuffers::TypeTable *GoldenBaseTypeTable() {
+  static const flatbuffers::TypeCode type_codes[] = {
+    { flatbuffers::ET_INT, 0, -1 }
+  };
+  static const char * const names[] = {
+    "a"
+  };
+  static const flatbuffers::TypeTable tt = {
+    flatbuffers::ST_TABLE, 1, type_codes, nullptr, nullptr, nullptr, names
+  };
+  return &tt;
+}
+
 inline const GoldenBase *GetGoldenBase(const void *buf) {
   return flatbuffers::GetRoot<GoldenBase>(buf);
 }
 
 inline const GoldenBase *GetSizePrefixedGoldenBase(const void *buf) {
   return flatbuffers::GetSizePrefixedRoot<GoldenBase>(buf);
+}
+
+inline GoldenBase *GetMutableGoldenBase(void *buf) {
+  return flatbuffers::GetMutableRoot<GoldenBase>(buf);
+}
+
+inline GoldenBase *GetMutableSizePrefixedGoldenBase(void *buf) {
+  return flatbuffers::GetMutableSizePrefixedRoot<GoldenBase>(buf);
 }
 
 inline const char *GoldenBaseIdentifier() {
@@ -91,6 +172,18 @@ inline void FinishSizePrefixedGoldenBaseBuffer(
     flatbuffers::FlatBufferBuilder &fbb,
     flatbuffers::Offset<GoldenBase> root) {
   fbb.FinishSizePrefixed(root, GoldenBaseIdentifier());
+}
+
+inline std::unique_ptr<GoldenBaseT> UnPackGoldenBase(
+    const void *buf,
+    const flatbuffers::resolver_function_t *res = nullptr) {
+  return std::unique_ptr<GoldenBaseT>(GetGoldenBase(buf)->UnPack(res));
+}
+
+inline std::unique_ptr<GoldenBaseT> UnPackSizePrefixedGoldenBase(
+    const void *buf,
+    const flatbuffers::resolver_function_t *res = nullptr) {
+  return std::unique_ptr<GoldenBaseT>(GetSizePrefixedGoldenBase(buf)->UnPack(res));
 }
 
 #endif  // FLATBUFFERS_GENERATED_GOLDEN_H_

@@ -1,22 +1,28 @@
 set(GOLDEN_DIR ${CMAKE_CURRENT_SOURCE_DIR}/goldens)
 
-include(CMakeParseArguments)
-
 function(generate_golden)
   set(options OPTION)
-  set(oneValueArgs TARGET OUT_DIR)
+  set(oneValueArgs SCHEMA OUT_DIR)
   set(multiValueArgs OPTIONS)
-  cmake_parse_arguments(PARSE_ARGV 0 GOLDEN "${options}" "${oneValueArgs}" "${multiValueArgs}")
-  message(STATUS ${GOLDEN_TARGET})
+  cmake_parse_arguments(
+    PARSE_ARGV 0 GOLDEN "${options}" "${oneValueArgs}" "${multiValueArgs}")
+
+  # Invoke flatc 
   add_custom_command(    
     TARGET flatc
     POST_BUILD
-    COMMAND "${FLATBUFFERS_FLATC_EXECUTABLE}"      
+    COMMAND ${FLATBUFFERS_FLATC_EXECUTABLE}      
             ${GOLDEN_OPTIONS}                   
             -o ${GOLDEN_DIR}/${GOLDEN_OUT_DIR}
-            "${GOLDEN_DIR}/${GOLDEN_TARGET}"
-    COMMENT "Generate Golden...")
+            ${GOLDEN_DIR}/${GOLDEN_SCHEMA}
+    COMMENT "Generating Golden [${GOLDEN_SCHEMA}] with '${GOLDEN_OPTIONS}'...")
 endfunction()
 
-generate_golden(TARGET golden.fbs OPTIONS --cpp OUT_DIR cpp/)
+set(GOLD_BASE_OPTS --reflect-names --gen-mutable --gen-object-api)
+set(GOLD_CPP_OPTS ${GOLD_BASE_OPTS} --cpp --gen-compare)
+set(GOLD_LUA_OPTS ${GOLD_BASE_OPTS} --lua)
+
+
+generate_golden(SCHEMA golden.fbs OPTIONS ${GOLD_CPP_OPTS} OUT_DIR cpp)
+generate_golden(SCHEMA golden.fbs OPTIONS ${GOLD_LUA_OPTS} OUT_DIR lua)
 
