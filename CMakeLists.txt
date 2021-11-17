@@ -448,6 +448,8 @@ function(compile_flatbuffers_schema_to_cpp_opt SRC_FBS OPT)
   register_generated_output(${GEN_HEADER})
 endfunction()
 
+
+
 function(compile_flatbuffers_schema_to_cpp SRC_FBS)
   compile_flatbuffers_schema_to_cpp_opt(${SRC_FBS} "--no-includes;--gen-compare")
 endfunction()
@@ -723,3 +725,8 @@ endif()
 if(FLATBUFFERS_BUILD_BENCHMARKS AND CMAKE_VERSION VERSION_GREATER 3.13)
   add_subdirectory(benchmarks)
 endif()
+
+# Include rules for automatically compiling the golden schema files.
+# This is explicitly an include so that add_custom_command could be used with
+# flatc and POST_BUILD.
+include(goldens/golden.cmake)

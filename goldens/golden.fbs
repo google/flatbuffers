@@ -1,0 +1,9 @@
+
+table GoldenBase {
+  a:int;
+}
+
+root_type GoldenBase;
+
+file_identifier "GOLD";
+file_extension "gol";
