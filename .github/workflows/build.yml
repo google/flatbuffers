@@ -116,6 +116,24 @@ jobs:
     - name: Generate
       run: bash scripts/check-generate-code.sh && bash scripts/check-grpc-generated-code.sh
 
+  build-benchmarks:
+    name: Build Benchmarks (on Linux)
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        cxx: [g++-10]
+    steps:
+    - uses: actions/checkout@v1
+    - name: cmake
+      run: CXX=${{ matrix.cxx }} cmake -G "Unix Makefiles" -DFLATBUFFERS_CXX_FLAGS="-Wno-unused-parameter -fno-aligned-new" -DFLATBUFFERS_BUILD_BENCHMARKS=ON -DCMAKE_BUILD_TYPE=Release . && make -j4
+    - name: Run benchmarks
+      run: ./flatbenchmark --benchmark_repetitions=5 --benchmark_display_aggregates_only=true --benchmark_out_format=console --benchmark_out=benchmarks/results_${{matrix.cxx}}
+    - name: Upload benchmarks results
+      uses: actions/upload-artifact@v1
+      with:
+        name: Linux flatbenchmark results ${{matrix.cxx}}
+        path: benchmarks/results_${{matrix.cxx}}
+
   build-java:
     name: Build Java
     runs-on: ubuntu-latest
