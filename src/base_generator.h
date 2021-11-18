@@ -25,6 +25,7 @@ namespace flatbuffers {
 class BaseGenerator : public Generator {
  public:
   virtual ~BaseGenerator() {}
+  BaseGenerator() : indent_level_(0) {}
 
   virtual GeneratorStatus generate(const reflection::Schema *schema) = 0;
 
@@ -39,11 +40,16 @@ class BaseGenerator : public Generator {
   }
 
  protected:
+  void indent() { indent_level_++; };
+  void dedent() { indent_level_--; };
+
   std::string GetFileName(const reflection::Schema *schema) {
     std::string filename =
         schema->file_ident()->str() + schema->file_ext()->str();
     return filename;
   }
+
+  int32_t indent_level_;
 };
 
 }  // namespace flatbuffers
