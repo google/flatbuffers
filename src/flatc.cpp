@@ -18,6 +18,8 @@
 
 #include <list>
 
+#include "lua_generator.h"
+
 namespace flatbuffers {
 
 const char *FLATC_VERSION() { return FLATBUFFERS_VERSION(); }
@@ -205,6 +207,8 @@ int FlatCompiler::Compile(int argc, const char **argv) {
   bool raw_binary = false;
   bool schema_binary = false;
   bool grpc_enabled = false;
+  // TODO(derekbailey): do this in a better way
+  bool new_lua_generator = false;
   std::vector<std::string> filenames;
   std::list<std::string> include_directories_storage;
   std::vector<const char *> include_directories;
@@ -398,17 +402,23 @@ int FlatCompiler::Compile(int argc, const char **argv) {
       } else if (arg == "--cs-global-alias") {
         opts.cs_global_alias = true;
       } else {
-        for (size_t i = 0; i < params_.num_generators; ++i) {
-          if (arg == params_.generators[i].generator_opt_long ||
-              (params_.generators[i].generator_opt_short &&
-               arg == params_.generators[i].generator_opt_short)) {
-            generator_enabled[i] = true;
-            any_generator = true;
-            opts.lang_to_generate |= params_.generators[i].lang;
-            goto found;
+        if (arg == "--luanew") {
+          new_lua_generator = true;
+          any_generator = true;
+        } else {
+          for (size_t i = 0; i < params_.num_generators; ++i) {
+            if (arg == params_.generators[i].generator_opt_long ||
+                (params_.generators[i].generator_opt_short &&
+                 arg == params_.generators[i].generator_opt_short)) {
+              generator_enabled[i] = true;
+              any_generator = true;
+              opts.lang_to_generate |= params_.generators[i].lang;
+              goto found;
+            }
           }
+          Error("unknown commandline argument: " + arg, true);
         }
-        Error("unknown commandline argument: " + arg, true);
+
       found:;
       }
     } else {
@@ -528,43 +538,58 @@ int FlatCompiler::Compile(int argc, const char **argv) {
         parser->file_extension_ = reflection::SchemaExtension();
       }
     }
-
     std::string filebase =
         flatbuffers::StripPath(flatbuffers::StripExtension(filename));
 
-    for (size_t i = 0; i < params_.num_generators; ++i) {
-      if (generator_enabled[i]) {
-        if (!print_make_rules) {
-          flatbuffers::EnsureDirExists(output_path);
-          if ((!params_.generators[i].schema_only ||
-               (is_schema || is_binary_schema)) &&
-              !params_.generators[i].generate(*parser.get(), output_path,
-                                              filebase)) {
-            Error(std::string("Unable to generate ") +
-                  params_.generators[i].lang_name + " for " + filebase);
-          }
-        } else {
-          if (params_.generators[i].make_rule == nullptr) {
-            Error(std::string("Cannot generate make rule for ") +
-                  params_.generators[i].lang_name);
-          } else {
-            std::string make_rule = params_.generators[i].make_rule(
-                *parser.get(), output_path, filename);
-            if (!make_rule.empty())
-              printf("%s\n",
-                     flatbuffers::WordWrap(make_rule, 80, " ", " \\").c_str());
-          }
-        }
-        if (grpc_enabled) {
-          if (params_.generators[i].generateGRPC != nullptr) {
-            if (!params_.generators[i].generateGRPC(*parser.get(), output_path,
-                                                    filebase)) {
-              Error(std::string("Unable to generate GRPC interface for") +
-                    params_.generators[i].lang_name);
+    if (new_lua_generator) {
+      std::unique_ptr<flatbuffers::Generator> lua_gen = NewLuaGenerator();
+
+      parser->Serialize();
+      const uint8_t *buffer = parser->builder_.GetBufferPointer();
+      const int64_t length = parser->builder_.GetSize();
+      GeneratorStatus status = lua_gen->generate(buffer, length);
+      if (status != GeneratorStatus::OK) {
+        Error("Error generating new Lua. Error: " +
+              std::to_string(static_cast<int>(status)));
+      }
+
+    } else {
+      for (size_t i = 0; i < params_.num_generators; ++i) {
+        if (generator_enabled[i]) {
+          if (!print_make_rules) {
+            flatbuffers::EnsureDirExists(output_path);
+            if ((!params_.generators[i].schema_only ||
+                 (is_schema || is_binary_schema)) &&
+                !params_.generators[i].generate(*parser.get(), output_path,
+                                                filebase)) {
+              Error(std::string("Unable to generate ") +
+                    params_.generators[i].lang_name + " for " + filebase);
             }
           } else {
-            Warn(std::string("GRPC interface generator not implemented for ") +
-                 params_.generators[i].lang_name);
+            if (params_.generators[i].make_rule == nullptr) {
+              Error(std::string("Cannot generate make rule for ") +
+                    params_.generators[i].lang_name);
+            } else {
+              std::string make_rule = params_.generators[i].make_rule(
+                  *parser.get(), output_path, filename);
+              if (!make_rule.empty())
+                printf(
+                    "%s\n",
+                    flatbuffers::WordWrap(make_rule, 80, " ", " \\").c_str());
+            }
+          }
+          if (grpc_enabled) {
+            if (params_.generators[i].generateGRPC != nullptr) {
+              if (!params_.generators[i].generateGRPC(*parser.get(),
+                                                      output_path, filebase)) {
+                Error(std::string("Unable to generate GRPC interface for") +
+                      params_.generators[i].lang_name);
+              }
+            } else {
+              Warn(
+                  std::string("GRPC interface generator not implemented for ") +
+                  params_.generators[i].lang_name);
+            }
           }
         }
       }
