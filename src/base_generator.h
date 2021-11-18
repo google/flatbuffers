@@ -43,6 +43,11 @@ class BaseGenerator : public Generator {
   void indent() { indent_level_++; };
   void dedent() { indent_level_--; };
 
+  bool IsScalar(const reflection::BaseType base_type) {
+    return base_type >= reflection::BaseType::UType &&
+           base_type <= reflection::BaseType::Double;
+  }
+
   std::string GetFileName(const reflection::Schema *schema) {
     std::string filename =
         schema->file_ident()->str() + schema->file_ext()->str();

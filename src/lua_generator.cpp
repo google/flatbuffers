@@ -22,10 +22,9 @@
 #include <unordered_set>
 
 #include "base_generator.h"
-#include "flatbuffers/base.h"
 #include "flatbuffers/generator.h"
+#include "flatbuffers/idl.h"
 #include "flatbuffers/reflection_generated.h"
-#include "flatbuffers/verifier.h"
 
 namespace flatbuffers {
 namespace {
@@ -46,6 +45,9 @@ class LuaGenerator : public BaseGenerator {
     std::string filename = GetFileName(schema);
 
     if (!generate_enums(schema->enums())) { return GeneratorStatus::FAILED; }
+    if (!generate_objects(schema->objects(), schema->root_table())) {
+      return GeneratorStatus::FAILED;
+    }
 
     return GeneratorStatus::OK;
   }
@@ -57,7 +59,7 @@ class LuaGenerator : public BaseGenerator {
       auto enum_def = *it;
       start_code_block();
       const std::string enum_name = generate_enum(enum_def);
-      emit_code_block(enum_name);
+      emit_code_block(enum_name, /*include_imports=*/false);
     }
     return true;
   }
@@ -68,27 +70,165 @@ class LuaGenerator : public BaseGenerator {
         normalize_name(denamespace(enum_def->name(), ns));
 
     generate_comment(enum_def->documentation());
-    append("local " + enum_name + " = {\n");
-    indent();
-    for (auto it = enum_def->values()->cbegin();
-         it != enum_def->values()->cend(); ++it) {
-      const auto enum_val = *it;
-      generate_comment(enum_val->documentation());
-      append(normalize_name(enum_val->name()) + " = " +
-             std::to_string(enum_val->value()) + ",\n");
+    append_line("local " + enum_name + " = {");
+    {
+      // TODO(derekbailey): It would be cool if this would auto dedent on
+      // leaving scope.
+      indent();
+      for (auto it = enum_def->values()->cbegin();
+           it != enum_def->values()->cend(); ++it) {
+        const auto enum_val = *it;
+        generate_comment(enum_val->documentation());
+        append_line(normalize_name(enum_val->name()) + " = " +
+                    std::to_string(enum_val->value()) + ",");
+      }
+      dedent();
     }
-    dedent();
-    append("}\n");
+    append_line("}");
     return enum_name;
   }
 
+  bool generate_objects(
+      const flatbuffers::Vector<flatbuffers::Offset<reflection::Object>>
+          *objects,
+      const reflection::Object *root_object) {
+    for (auto it = objects->cbegin(); it != objects->cend(); ++it) {
+      auto object_def = *it;
+      start_code_block();
+      const std::string object_name =
+          generate_object(object_def, object_def == root_object);
+      emit_code_block(object_name, /*include_imports=*/true);
+    }
+    return true;
+  }
+
+  std::string generate_object(const reflection::Object *object_def,
+                              bool is_root_object) {
+    std::string ns;
+    const std::string object_name =
+        normalize_name(denamespace(object_def->name(), ns));
+    const std::string metatable_name = object_name + "_mt";
+
+    generate_comment(object_def->documentation());
+    append_line("local " + object_name + " = {}");
+    append_line("local " + metatable_name + " = {}");
+    append_line();
+    append_line("function " + object_name + ".New()");
+    {
+      indent();
+      append_line("local o = {}");
+      append_line("setmetatable(o, {__index = " + metatable_name + "})");
+      append_line(("return o"));
+      dedent();
+    }
+    append_line("end");
+    if (is_root_object) { generate_root_object(object_def, object_name); }
+    append_line();
+
+    // Generates a init method that receives a pre-existing accessor object, so
+    // that objects can be reused.
+    append_line("function " + metatable_name + ":Init(buf, pos");
+    {
+      indent();
+      append_line("self.view = flatbuffers.view.New(buf, pos)");
+      dedent();
+    }
+    append_line("end");
+    append_line();
+
+    // Create all the field accessors.
+    for (auto it = object_def->fields()->cbegin();
+         it != object_def->fields()->cend(); ++it) {
+      generate_object_field(object_def, *it, object_name, metatable_name);
+    }
+
+    return object_name;
+  }
+
+  void generate_root_object(const reflection::Object *object_def,
+                            const std::string &object_name) {
+    append_line();
+    append_line("function " + object_name + ".GetRootAs" + object_name +
+                "(buf, offset)");
+    {
+      indent();
+      append_line("if type(buf) == \"string\" then");
+      {
+        indent();
+        append_line("buf = flatbuffers.binaryArray.New(buf)");
+        dedent();
+      }
+      append_line("end");
+      append_line();
+      append_line("local n = flatbuffers.N.UOffsetT:Unpack(buf, offset)");
+      append_line("local o = " + object_name + ".New()");
+      append_line("o:Init(buf, n + offset)");
+      append_line("return o");
+      dedent();
+    }
+    append_line("end");
+  }
+
+  void generate_object_field(const reflection::Object *object_def,
+                             const reflection::Field *field_def,
+                             const std::string &object_name,
+                             const std::string &metatable_name) {
+    if (field_def->deprecated()) { return; }
+
+    const std::string field_name = normalize_name(field_def->name());
+    // TODO(derekbailey): remove dependency on makeCamel
+    const std::string field_name_camel_case = MakeCamel(field_name);
+
+    generate_comment(field_def->documentation());
+    if (IsScalar(field_def->type()->base_type())) {
+      if (object_def->is_struct()) {
+        append_line("function " + metatable_name + ":" + field_name_camel_case +
+                    "()");
+        {
+          indent();
+
+          append_line("return " + generate_getter(field_def->type()) +
+                      "self.view.pos + " + std::to_string(field_def->offset()) +
+                      ")");
+          dedent();
+        }
+      }
+    }
+  }
+
+ private:
   void generate_comment(
       const flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>>
           *comments) {
     if (comments->size() == 0) { return; }
   }
 
- private:
+  std::string generate_getter(const reflection::Type *type,
+                              bool element_type = false) {
+    switch (element_type ? type->element() : type->base_type()) {
+      case reflection::BaseType::String: return "self.view:String(";
+      case reflection::BaseType::Union: return "self.view:Union(";
+      case reflection::BaseType::Vector: return generate_getter(type, true);
+      default:
+        return "self.view:Get(flatbuffers.N." +
+               MakeCamel(generate_type(type, element_type)) + ", ";
+    }
+  }
+
+  std::string generate_type(const reflection::Type *type,
+                            bool element_type = false) {
+    const reflection::BaseType base_type =
+        element_type ? type->element() : type->base_type();
+    if (IsScalar(base_type)) { return reflection::EnumNameBaseType(base_type); }
+    switch (base_type) {
+      case reflection::BaseType::String: return "string";
+      case reflection::BaseType::Vector: return generate_getter(type, true);
+      // TODO(derekbailey): this index refers to the index in the
+      // schema::objects case reflection::BaseType::Obj: return type->;
+      default: return "*flatbuffers.Table";
+    }
+  }
+
   std::string normalize_name(const std::string name) const {
     return keywords_.find(name) == keywords_.end() ? name : "_" + name;
   }
@@ -111,6 +251,10 @@ class LuaGenerator : public BaseGenerator {
 
   std::string code_block() { return current_block_; }
 
+  void append_line() { current_block_ += indentation() + "\n"; }
+
+  void append_line(std::string to_append) { append(to_append + "\n"); }
+
   void append(std::string to_append) {
     current_block_ += indentation() + to_append;
   }
@@ -119,14 +263,16 @@ class LuaGenerator : public BaseGenerator {
     return std::string(spaces_per_indent_ * indent_level_, ' ');
   }
 
-  void emit_code_block(const std::string &enum_name) {
+  void emit_code_block(const std::string &name, bool include_imports) {
     std::string code;
-    code += std::string("-- test\n");
+    if (include_imports) {
+      code += "local flatbuffers = require('flatbuffers')\n\n";
+    }
     code += code_block();
     code += "\n";
-    code += "return " + enum_name;
+    code += "return " + name;
 
-    const std::string output_name = enum_name + ".lua";
+    const std::string output_name = name + ".lua";
     // TODO(derekbailey): figure out a save file without depending on util.h
     SaveFile(output_name.c_str(), code, false);
   }
