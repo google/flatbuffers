@@ -1,9 +1,17 @@
 cmake_minimum_required(VERSION 2.8.12)
+
+if (POLICY CMP0048)
+  cmake_policy(SET CMP0048 NEW)
+  project(FlatBuffers
+        DESCRIPTION "Flatbuffers serialization library"
+        VERSION 2.0.0
+        LANGUAGES CXX)
+else()
+  project(FlatBuffers)
+endif (POLICY CMP0048)
+
 # generate compile_commands.json
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
-include(CheckCXXSymbolExists)
-
-project(FlatBuffers)
 
 # NOTE: Code coverage only works on Linux & OSX.
 option(FLATBUFFERS_CODE_COVERAGE "Enable the code coverage build option." OFF)
@@ -61,6 +69,8 @@ endif()
 
 # Auto-detect locale-narrow 'strtod_l' and  'strtoull_l' functions.
 if(NOT DEFINED FLATBUFFERS_LOCALE_INDEPENDENT)
+  include(CheckCXXSymbolExists)
+
   set(FLATBUFFERS_LOCALE_INDEPENDENT 0)
   if(MSVC)
     check_cxx_symbol_exists(_strtof_l stdlib.h FLATBUFFERS_HAS_STRTOF_L)
