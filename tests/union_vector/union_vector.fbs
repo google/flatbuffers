@@ -22,6 +22,19 @@ union Character {
   Unused: string
 }
 
+struct FallingTub {
+  weight: int;
+}
+
+table HandFan {
+  length: int;
+}
+
+union Gadget {
+  FallingTub,
+  HandFan,
+}
+
 table Movie {
   main_character: Character;
   characters: [Character];

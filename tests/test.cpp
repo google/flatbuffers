@@ -21,7 +21,6 @@
 #include "flatbuffers/minireflect.h"
 #include "flatbuffers/registry.h"
 #include "flatbuffers/util.h"
-
 #include "monster_test_generated.h"
 #include "namespace_test/namespace_test1_generated.h"
 #include "namespace_test/namespace_test2_generated.h"
@@ -2933,6 +2932,15 @@ void UnionVectorTest() {
   TEST_EQ(parser2.Parse("{a_type:Bool,a:{b:true}}"), true);
 }
 
+void StructUnionTest() {
+  GadgetUnion gadget;
+  gadget.Set(FallingTub(100));
+
+  HandFanT fan;
+  fan.length = 10;
+  gadget.Set(fan);
+}
+
 void ConformTest() {
   flatbuffers::Parser parser;
   TEST_EQ(parser.Parse("table T { A:int; } enum E:byte { A }"), true);
@@ -4187,6 +4195,7 @@ int FlatBufferTests() {
   FlexBuffersFloatingPointTest();
   FlatbuffersIteratorsTest();
   FixedLengthArraySpanTest();
+  StructUnionTest();
   return 0;
 }
 

@@ -103,6 +103,14 @@ template<> struct EquipmentTraits<MyGame::Sample::Weapon> {
   static const Equipment enum_value = Equipment_Weapon;
 };
 
+template<typename T> struct EquipmentUnionTraits {
+  static const Equipment enum_value = Equipment_NONE;
+};
+
+template<> struct EquipmentUnionTraits<MyGame::Sample::WeaponT> {
+  static const Equipment enum_value = Equipment_Weapon;
+};
+
 struct EquipmentUnion {
   Equipment type;
   void *value;
@@ -122,9 +130,9 @@ struct EquipmentUnion {
 
   template <typename T>
   void Set(T&& val) {
-    using RT = typename std::remove_reference<T>::type;
+    typedef typename std::remove_reference<T>::type RT;
     Reset();
-    type = EquipmentTraits<typename RT::TableType>::enum_value;
+    type = EquipmentUnionTraits<RT>::enum_value;
     if (type != Equipment_NONE) {
       value = new RT(std::forward<T>(val));
     }
@@ -667,6 +675,7 @@ inline bool VerifyEquipmentVector(flatbuffers::Verifier &verifier, const flatbuf
 }
 
 inline void *EquipmentUnion::UnPack(const void *obj, Equipment type, const flatbuffers::resolver_function_t *resolver) {
+  (void)resolver;
   switch (type) {
     case Equipment_Weapon: {
       auto ptr = reinterpret_cast<const MyGame::Sample::Weapon *>(obj);
@@ -677,6 +686,7 @@ inline void *EquipmentUnion::UnPack(const void *obj, Equipment type, const flatb
 }
 
 inline flatbuffers::Offset<void> EquipmentUnion::Pack(flatbuffers::FlatBufferBuilder &_fbb, const flatbuffers::rehasher_function_t *_rehasher) const {
+  (void)_rehasher;
   switch (type) {
     case Equipment_Weapon: {
       auto ptr = reinterpret_cast<const MyGame::Sample::WeaponT *>(value);

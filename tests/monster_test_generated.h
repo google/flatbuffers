@@ -242,6 +242,22 @@ template<> struct AnyTraits<MyGame::Example2::Monster> {
   static const Any enum_value = Any_MyGame_Example2_Monster;
 };
 
+template<typename T> struct AnyUnionTraits {
+  static const Any enum_value = Any_NONE;
+};
+
+template<> struct AnyUnionTraits<MyGame::Example::MonsterT> {
+  static const Any enum_value = Any_Monster;
+};
+
+template<> struct AnyUnionTraits<MyGame::Example::TestSimpleTableWithEnumT> {
+  static const Any enum_value = Any_TestSimpleTableWithEnum;
+};
+
+template<> struct AnyUnionTraits<MyGame::Example2::MonsterT> {
+  static const Any enum_value = Any_MyGame_Example2_Monster;
+};
+
 struct AnyUnion {
   Any type;
   void *value;
@@ -261,9 +277,9 @@ struct AnyUnion {
 
   template <typename T>
   void Set(T&& val) {
-    using RT = typename std::remove_reference<T>::type;
+    typedef typename std::remove_reference<T>::type RT;
     Reset();
-    type = AnyTraits<typename RT::TableType>::enum_value;
+    type = AnyUnionTraits<RT>::enum_value;
     if (type != Any_NONE) {
       value = new RT(std::forward<T>(val));
     }
@@ -382,6 +398,22 @@ template<> struct AnyUniqueAliasesTraits<MyGame::Example2::Monster> {
   static const AnyUniqueAliases enum_value = AnyUniqueAliases_M2;
 };
 
+template<typename T> struct AnyUniqueAliasesUnionTraits {
+  static const AnyUniqueAliases enum_value = AnyUniqueAliases_NONE;
+};
+
+template<> struct AnyUniqueAliasesUnionTraits<MyGame::Example::MonsterT> {
+  static const AnyUniqueAliases enum_value = AnyUniqueAliases_M;
+};
+
+template<> struct AnyUniqueAliasesUnionTraits<MyGame::Example::TestSimpleTableWithEnumT> {
+  static const AnyUniqueAliases enum_value = AnyUniqueAliases_TS;
+};
+
+template<> struct AnyUniqueAliasesUnionTraits<MyGame::Example2::MonsterT> {
+  static const AnyUniqueAliases enum_value = AnyUniqueAliases_M2;
+};
+
 struct AnyUniqueAliasesUnion {
   AnyUniqueAliases type;
   void *value;
@@ -401,9 +433,9 @@ struct AnyUniqueAliasesUnion {
 
   template <typename T>
   void Set(T&& val) {
-    using RT = typename std::remove_reference<T>::type;
+    typedef typename std::remove_reference<T>::type RT;
     Reset();
-    type = AnyUniqueAliasesTraits<typename RT::TableType>::enum_value;
+    type = AnyUniqueAliasesUnionTraits<RT>::enum_value;
     if (type != AnyUniqueAliases_NONE) {
       value = new RT(std::forward<T>(val));
     }
@@ -2907,6 +2939,7 @@ inline bool VerifyAnyVector(flatbuffers::Verifier &verifier, const flatbuffers::
 }
 
 inline void *AnyUnion::UnPack(const void *obj, Any type, const flatbuffers::resolver_function_t *resolver) {
+  (void)resolver;
   switch (type) {
     case Any_Monster: {
       auto ptr = reinterpret_cast<const MyGame::Example::Monster *>(obj);
@@ -2925,6 +2958,7 @@ inline void *AnyUnion::UnPack(const void *obj, Any type, const flatbuffers::reso
 }
 
 inline flatbuffers::Offset<void> AnyUnion::Pack(flatbuffers::FlatBufferBuilder &_fbb, const flatbuffers::rehasher_function_t *_rehasher) const {
+  (void)_rehasher;
   switch (type) {
     case Any_Monster: {
       auto ptr = reinterpret_cast<const MyGame::Example::MonsterT *>(value);
@@ -3018,6 +3052,7 @@ inline bool VerifyAnyUniqueAliasesVector(flatbuffers::Verifier &verifier, const 
 }
 
 inline void *AnyUniqueAliasesUnion::UnPack(const void *obj, AnyUniqueAliases type, const flatbuffers::resolver_function_t *resolver) {
+  (void)resolver;
   switch (type) {
     case AnyUniqueAliases_M: {
       auto ptr = reinterpret_cast<const MyGame::Example::Monster *>(obj);
@@ -3036,6 +3071,7 @@ inline void *AnyUniqueAliasesUnion::UnPack(const void *obj, AnyUniqueAliases typ
 }
 
 inline flatbuffers::Offset<void> AnyUniqueAliasesUnion::Pack(flatbuffers::FlatBufferBuilder &_fbb, const flatbuffers::rehasher_function_t *_rehasher) const {
+  (void)_rehasher;
   switch (type) {
     case AnyUniqueAliases_M: {
       auto ptr = reinterpret_cast<const MyGame::Example::MonsterT *>(value);
@@ -3129,6 +3165,7 @@ inline bool VerifyAnyAmbiguousAliasesVector(flatbuffers::Verifier &verifier, con
 }
 
 inline void *AnyAmbiguousAliasesUnion::UnPack(const void *obj, AnyAmbiguousAliases type, const flatbuffers::resolver_function_t *resolver) {
+  (void)resolver;
   switch (type) {
     case AnyAmbiguousAliases_M1: {
       auto ptr = reinterpret_cast<const MyGame::Example::Monster *>(obj);
@@ -3147,6 +3184,7 @@ inline void *AnyAmbiguousAliasesUnion::UnPack(const void *obj, AnyAmbiguousAlias
 }
 
 inline flatbuffers::Offset<void> AnyAmbiguousAliasesUnion::Pack(flatbuffers::FlatBufferBuilder &_fbb, const flatbuffers::rehasher_function_t *_rehasher) const {
+  (void)_rehasher;
   switch (type) {
     case AnyAmbiguousAliases_M1: {
       auto ptr = reinterpret_cast<const MyGame::Example::MonsterT *>(value);

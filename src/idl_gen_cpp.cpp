@@ -1311,10 +1311,29 @@ class CppGenerator : public BaseGenerator {
     }
 
     if (opts_.generate_object_based_api && enum_def.is_union) {
-      // Generate a union type
+      // Generate a union type and a trait type for it.
       code_.SetValue("NAME", Name(enum_def));
       FLATBUFFERS_ASSERT(enum_def.Lookup("NONE"));
       code_.SetValue("NONE", GetEnumValUse(enum_def, *enum_def.Lookup("NONE")));
+
+      if (!enum_def.uses_multiple_type_instances) {
+        for (auto it = enum_def.Vals().begin(); it != enum_def.Vals().end();
+             ++it) {
+          const auto &ev = **it;
+
+          if (it == enum_def.Vals().begin()) {
+            code_ += "template<typename T> struct {{NAME}}UnionTraits {";
+          } else {
+            auto name = GetUnionElement(ev, true, opts_);
+            code_ += "template<> struct {{NAME}}UnionTraits<" + name + "> {";
+          }
+
+          auto value = GetEnumValUse(enum_def, ev);
+          code_ += "  static const {{ENUM_NAME}} enum_value = " + value + ";";
+          code_ += "};";
+          code_ += "";
+        }
+      }
 
       code_ += "struct {{NAME}}Union {";
       code_ += "  {{NAME}} type;";
@@ -1341,10 +1360,9 @@ class CppGenerator : public BaseGenerator {
       if (!enum_def.uses_multiple_type_instances) {
         code_ += "  template <typename T>";
         code_ += "  void Set(T&& val) {";
-        code_ += "    using RT = typename std::remove_reference<T>::type;";
+        code_ += "    typedef typename std::remove_reference<T>::type RT;";
         code_ += "    Reset();";
-        code_ +=
-            "    type = {{NAME}}Traits<typename RT::TableType>::enum_value;";
+        code_ += "    type = {{NAME}}UnionTraits<RT>::enum_value;";
         code_ += "    if (type != {{NONE}}) {";
         code_ += "      value = new RT(std::forward<T>(val));";
         code_ += "    }";
@@ -1494,6 +1512,7 @@ class CppGenerator : public BaseGenerator {
     if (opts_.generate_object_based_api) {
       // Generate union Unpack() and Pack() functions.
       code_ += "inline " + UnionUnPackSignature(enum_def, false) + " {";
+      code_ += "  (void)resolver;";
       code_ += "  switch (type) {";
       for (auto it = enum_def.Vals().begin(); it != enum_def.Vals().end();
            ++it) {
@@ -1524,6 +1543,7 @@ class CppGenerator : public BaseGenerator {
       code_ += "";
 
       code_ += "inline " + UnionPackSignature(enum_def, false) + " {";
+      code_ += "  (void)_rehasher;";
       code_ += "  switch (type) {";
       for (auto it = enum_def.Vals().begin(); it != enum_def.Vals().end();
            ++it) {
