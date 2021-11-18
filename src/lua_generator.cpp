@@ -30,6 +30,9 @@
 namespace flatbuffers {
 namespace {
 
+// To reduce typing
+namespace r = ::reflection;
+
 class LuaGenerator : public BaseGenerator {
  public:
   explicit LuaGenerator() : BaseGenerator(2, ' '), current_block_() {
@@ -41,7 +44,7 @@ class LuaGenerator : public BaseGenerator {
     keywords_.insert(std::begin(keywords), std::end(keywords));
   }
 
-  GeneratorStatus generate(const reflection::Schema *schema) override {
+  GeneratorStatus generate(const r::Schema *schema) override {
     std::string filename = GetFileName(schema);
 
     if (!generate_enums(schema->enums())) { return GeneratorStatus::FAILED; }
@@ -54,7 +57,7 @@ class LuaGenerator : public BaseGenerator {
 
  protected:
   bool generate_enums(
-      const flatbuffers::Vector<flatbuffers::Offset<reflection::Enum>> *enums) {
+      const flatbuffers::Vector<flatbuffers::Offset<r::Enum>> *enums) {
     for (auto it = enums->cbegin(); it != enums->cend(); ++it) {
       auto enum_def = *it;
       start_code_block();
@@ -64,7 +67,7 @@ class LuaGenerator : public BaseGenerator {
     return true;
   }
 
-  std::string generate_enum(const reflection::Enum *enum_def) {
+  std::string generate_enum(const r::Enum *enum_def) {
     std::string ns;
     const std::string enum_name =
         normalize_name(denamespace(enum_def->name(), ns));
@@ -89,9 +92,8 @@ class LuaGenerator : public BaseGenerator {
   }
 
   bool generate_objects(
-      const flatbuffers::Vector<flatbuffers::Offset<reflection::Object>>
-          *objects,
-      const reflection::Object *root_object) {
+      const flatbuffers::Vector<flatbuffers::Offset<r::Object>> *objects,
+      const r::Object *root_object) {
     for (auto it = objects->cbegin(); it != objects->cend(); ++it) {
       auto object_def = *it;
       start_code_block();
@@ -102,7 +104,7 @@ class LuaGenerator : public BaseGenerator {
     return true;
   }
 
-  std::string generate_object(const reflection::Object *object_def,
+  std::string generate_object(const r::Object *object_def,
                               bool is_root_object) {
     std::string ns;
     const std::string object_name =
@@ -158,7 +160,7 @@ class LuaGenerator : public BaseGenerator {
     return object_name;
   }
 
-  void generate_root_object(const reflection::Object *object_def,
+  void generate_root_object(const r::Object *object_def,
                             const std::string &object_name) {
     append_line();
     append_line("function " + object_name + ".GetRootAs" + object_name +
@@ -182,15 +184,15 @@ class LuaGenerator : public BaseGenerator {
     append_line("end");
   }
 
-  bool generate_object_field(const reflection::Object *object_def,
-                             const reflection::Field *field_def,
+  bool generate_object_field(const r::Object *object_def,
+                             const r::Field *field_def,
                              const std::string &object_name) {
     // Skip writing deprecated fields altogether.
     if (field_def->deprecated()) { return true; }
 
     const std::string field_name = normalize_name(field_def->name());
     const std::string field_name_camel_case = make_camel_case(field_name);
-    const reflection::BaseType base_type = field_def->type()->base_type();
+    const r::BaseType base_type = field_def->type()->base_type();
 
     // Generate some fixed strings so we don't repeat outselves later.
     const std::string getter_signature =
@@ -239,7 +241,7 @@ class LuaGenerator : public BaseGenerator {
       append_line();
     } else {
       switch (base_type) {
-        case reflection::BaseType::String: {
+        case r::BaseType::String: {
           append_line(getter_signature);
           {
             indent();
@@ -258,7 +260,7 @@ class LuaGenerator : public BaseGenerator {
           append_line();
           break;
         }
-        case reflection::BaseType::Obj: {
+        case r::BaseType::Obj: {
           if (object_def->is_struct()) {
             append_line("function mt:" + field_name_camel_case + "(obj)");
             {
@@ -277,7 +279,7 @@ class LuaGenerator : public BaseGenerator {
               {
                 indent();
 
-                const reflection::Object *field_object =
+                const r::Object *field_object =
                     get_object_by_index(field_def->type()->index());
                 if (!field_object) {
                   // TODO(derekbailey): this is an error condition. we should
@@ -306,7 +308,7 @@ class LuaGenerator : public BaseGenerator {
           append_line();
           break;
         }
-        case reflection::BaseType::Union: {
+        case r::BaseType::Union: {
           append_line(getter_signature);
           {
             indent();
@@ -330,9 +332,8 @@ class LuaGenerator : public BaseGenerator {
           append_line();
           break;
         }
-        case reflection::BaseType::Vector: {
-          const reflection::BaseType vector_base_type =
-              field_def->type()->element();
+        case r::BaseType::Vector: {
+          const r::BaseType vector_base_type = field_def->type()->element();
 
           // TODO(derekbailey): the 1 needs to be the inline size of the
           // vector base type. This requires indirection to get the
@@ -369,11 +370,10 @@ class LuaGenerator : public BaseGenerator {
               // Only generate a default value for those types that are
               // supported.
               if (!IsStructOrTable(vector_base_type)) {
-                append_line(
-                    "return " +
-                    std::string(vector_base_type == reflection::BaseType::String
-                                    ? "''"
-                                    : "0"));
+                append_line("return " +
+                            std::string(vector_base_type == r::BaseType::String
+                                            ? "''"
+                                            : "0"));
               }
               dedent();
             }
@@ -438,14 +438,14 @@ class LuaGenerator : public BaseGenerator {
     }
   }
 
-  std::string generate_struct_builder_args(const reflection::Object *object,
+  std::string generate_struct_builder_args(const r::Object *object,
                                            std::string prefix = "") {
     std::string signature;
     for (auto it = object->fields()->cbegin(); it != object->fields()->cend();
          ++it) {
       auto field = *it;
       if (IsStructOrTable(field->type()->base_type())) {
-        const reflection::Object *field_object =
+        const r::Object *field_object =
             get_object_by_index(field->type()->index());
         signature += generate_struct_builder_args(
             field_object, prefix + normalize_name(field->name()) + "_");
@@ -457,7 +457,7 @@ class LuaGenerator : public BaseGenerator {
     return signature;
   }
 
-  void append_struct_builder_body(const reflection::Object *object,
+  void append_struct_builder_body(const r::Object *object,
                                   std::string prefix = "") {
     append_line("builder:Prep(" + std::to_string(object->minalign()) + ", " +
                 std::to_string(object->bytesize()) + ")");
@@ -466,7 +466,7 @@ class LuaGenerator : public BaseGenerator {
       auto field = *it;
       // TODO(derekbailey): is their padding to take care of here?
       if (IsStructOrTable(field->type()->base_type())) {
-        const reflection::Object *field_object =
+        const r::Object *field_object =
             get_object_by_index(field->type()->index());
         append_struct_builder_body(
             field_object, prefix + normalize_name(field->name()) + "_");
@@ -478,8 +478,8 @@ class LuaGenerator : public BaseGenerator {
     }
   }
 
-  std::string generate_method(const reflection::Field *field) {
-    const reflection::BaseType base_type = field->type()->base_type();
+  std::string generate_method(const r::Field *field) {
+    const r::BaseType base_type = field->type()->base_type();
     if (IsScalar(base_type)) {
       return make_camel_case(generate_type(base_type));
     }
@@ -487,28 +487,26 @@ class LuaGenerator : public BaseGenerator {
     return "UOffsetTRelative";
   }
 
-  std::string generate_getter(const reflection::Type *type,
-                              bool element_type = false) {
+  std::string generate_getter(const r::Type *type, bool element_type = false) {
     switch (element_type ? type->element() : type->base_type()) {
-      case reflection::BaseType::String: return "self.view:String(";
-      case reflection::BaseType::Union: return "self.view:Union(";
-      case reflection::BaseType::Vector: return generate_getter(type, true);
+      case r::BaseType::String: return "self.view:String(";
+      case r::BaseType::Union: return "self.view:Union(";
+      case r::BaseType::Vector: return generate_getter(type, true);
       default:
         return "self.view:Get(flatbuffers.N." +
                make_camel_case(generate_type(type, element_type)) + ", ";
     }
   }
 
-  std::string generate_type(const reflection::Type *type,
-                            bool element_type = false) {
-    const reflection::BaseType base_type =
+  std::string generate_type(const r::Type *type, bool element_type = false) {
+    const r::BaseType base_type =
         element_type ? type->element() : type->base_type();
     if (IsScalar(base_type)) { return generate_type(base_type); }
     switch (base_type) {
-      case reflection::BaseType::String: return "string";
-      case reflection::BaseType::Vector: return generate_getter(type, true);
-      case reflection::BaseType::Obj: {
-        const reflection::Object *obj = get_object_by_index(type->index());
+      case r::BaseType::String: return "string";
+      case r::BaseType::Vector: return generate_getter(type, true);
+      case r::BaseType::Obj: {
+        const r::Object *obj = get_object_by_index(type->index());
         if (obj) { return normalize_name(denamespace(obj->name())); }
         // TODO(derekbailey): should error here.
         return "error";
@@ -517,13 +515,13 @@ class LuaGenerator : public BaseGenerator {
     }
   }
 
-  std::string generate_type(const reflection::BaseType base_type) {
+  std::string generate_type(const r::BaseType base_type) {
     // Need to override the default naming to match the Lua runtime libraries.
     // TODO(derekbailey): make overloads in the runtime libraries to avoid this.
     switch (base_type) {
-      case reflection::BaseType::Float: return "Float32";
-      case reflection::BaseType::Double: return "Float64";
-      default: return reflection::EnumNameBaseType(base_type);
+      case r::BaseType::Float: return "Float32";
+      case r::BaseType::Double: return "Float64";
+      default: return r::EnumNameBaseType(base_type);
     }
   }
 
