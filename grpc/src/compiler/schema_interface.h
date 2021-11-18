@@ -93,7 +93,7 @@ struct Printer {
   virtual void Print(const std::map<grpc::string, grpc::string> &vars,
                      const char *template_string) = 0;
   virtual void Print(const char *string) = 0;
-  virtual void SetIndentationSize(const int size) = 0;
+  virtual void SetIndentationSize(const size_t size) = 0;
   virtual void Indent() = 0;
   virtual void Outdent() = 0;
 };

@@ -332,8 +332,9 @@ uint8_t *ResizeAnyVector(const reflection::Schema &schema, uoffset_t newsize,
   auto delta_bytes = delta_elem * static_cast<int>(elem_size);
   auto vec_start =
       reinterpret_cast<const uint8_t *>(vec) - flatbuf->data();
-  auto start = static_cast<uoffset_t>(vec_start + sizeof(uoffset_t) +
-                                      elem_size * num_elems);
+  auto start = static_cast<uoffset_t>(vec_start) +
+               static_cast<uoffset_t>(sizeof(uoffset_t)) +
+               elem_size * num_elems;
   if (delta_bytes) {
     if (delta_elem < 0) {
       // Clear elements we're throwing away, since some might remain in the
@@ -345,7 +346,8 @@ uint8_t *ResizeAnyVector(const reflection::Schema &schema, uoffset_t newsize,
     WriteScalar(flatbuf->data() + vec_start, newsize);  // Length field.
     // Set new elements to 0.. this can be overwritten by the caller.
     if (delta_elem > 0) {
-      memset(flatbuf->data() + start, 0, delta_elem * elem_size);
+      memset(flatbuf->data() + start, 0,
+             static_cast<size_t>(delta_elem) * elem_size);
     }
   }
   return flatbuf->data() + start;
