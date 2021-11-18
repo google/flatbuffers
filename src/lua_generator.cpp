@@ -262,8 +262,20 @@ class LuaGenerator : public BaseGenerator {
               append_line(offset_prefix_2);
               {
                 indent();
+
+                const reflection::Object *field_object =
+                    get_object_by_index(field_def->type()->index());
+                if (!field_object) {
+                  // TODO(derekbailey): this is an error condition. we should
+                  // report it better.
+                  return false;
+                }
+
                 append_line("local x = self.view.pos + o");
-                // TODO(derekbailey): need to handle field->table type.
+                if (!field_object->is_struct()) {
+                  append_line("local x = self.view:Indirect(x)");
+                }
+
                 // TODO(derekbailey): handle the namespacing of the required
                 // file.
                 append_line("local obj = require(\"" + field_name +
@@ -432,8 +444,12 @@ class LuaGenerator : public BaseGenerator {
     switch (base_type) {
       case reflection::BaseType::String: return "string";
       case reflection::BaseType::Vector: return generate_getter(type, true);
-      // TODO(derekbailey): this index refers to the index in the
-      // schema::objects case reflection::BaseType::Obj: return type->;
+      case reflection::BaseType::Obj: {
+        const reflection::Object *obj = get_object_by_index(type->index());
+        if (obj) { return normalize_name(denamespace(obj->name())); }
+        // TODO(derekbailey): should error here.
+        return "error";
+      };
       default: return "*flatbuffers.Table";
     }
   }
@@ -444,6 +460,11 @@ class LuaGenerator : public BaseGenerator {
 
   std::string normalize_name(const flatbuffers::String *name) const {
     return normalize_name(name->str());
+  }
+
+  std::string denamespace(const flatbuffers::String *name) {
+    std::string ns;
+    return denamespace(name, ns);
   }
 
   std::string denamespace(const flatbuffers::String *name, std::string &ns) {

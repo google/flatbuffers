@@ -30,7 +30,8 @@ class BaseGenerator : public Generator {
   BaseGenerator(int8_t characters_per_indent, char indent_char)
       : indent_level_(0),
         characters_per_indent_(characters_per_indent),
-        indent_char_(indent_char) {}
+        indent_char_(indent_char),
+        schema_(nullptr) {}
 
   virtual GeneratorStatus generate(const reflection::Schema *schema) = 0;
 
@@ -41,12 +42,26 @@ class BaseGenerator : public Generator {
       return GeneratorStatus::FAILED_VERIFICATION;
     }
 
-    return generate(reflection::GetSchema(buffer));
+    // Store the root schema since there are cases where leaf nodes refer to
+    // things in the root schema (e.g., indexing the objects).
+    schema_ = reflection::GetSchema(buffer);
+    GeneratorStatus status = generate(schema_);
+    schema_ = nullptr;
+    return status;
   }
 
  protected:
   void indent() { indent_level_++; };
   void dedent() { indent_level_--; };
+
+  // Used to get a object that is reference by index. (e.g.
+  // reflection::Type::index). Returns nullptr if no object is available.
+  const reflection::Object *get_object_by_index(int32_t index) {
+    if (!schema_ || index >= static_cast<int32_t>(schema_->objects()->size())) {
+      return nullptr;
+    }
+    return schema_->objects()->Get(index);
+  }
 
   std::string indentation() const {
     return std::string(characters_per_indent_ * indent_level_, indent_char_);
@@ -84,6 +99,9 @@ class BaseGenerator : public Generator {
   int8_t indent_level_;
   const int8_t characters_per_indent_;
   const char indent_char_;
+
+ private:
+  const reflection::Schema *schema_;
 };
 
 }  // namespace flatbuffers
