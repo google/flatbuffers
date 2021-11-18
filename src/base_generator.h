@@ -17,6 +17,8 @@
 #ifndef FLATBUFFERS_BASE_GENERATOR_H_
 #define FLATBUFFERS_BASE_GENERATOR_H_
 
+#include <bits/stdint-intn.h>
+
 #include "flatbuffers/generator.h"
 #include "flatbuffers/reflection_generated.h"
 
@@ -25,7 +27,10 @@ namespace flatbuffers {
 class BaseGenerator : public Generator {
  public:
   virtual ~BaseGenerator() {}
-  BaseGenerator() : indent_level_(0) {}
+  BaseGenerator(int8_t characters_per_indent, char indent_char)
+      : indent_level_(0),
+        characters_per_indent_(characters_per_indent),
+        indent_char_(indent_char) {}
 
   virtual GeneratorStatus generate(const reflection::Schema *schema) = 0;
 
@@ -43,9 +48,31 @@ class BaseGenerator : public Generator {
   void indent() { indent_level_++; };
   void dedent() { indent_level_--; };
 
+  std::string indentation() const {
+    return std::string(characters_per_indent_ * indent_level_, indent_char_);
+  }
+
+  bool IsStructOrTable(const reflection::BaseType base_type) {
+    return base_type == reflection::BaseType::Obj;
+  }
+
   bool IsScalar(const reflection::BaseType base_type) {
     return base_type >= reflection::BaseType::UType &&
            base_type <= reflection::BaseType::Double;
+  }
+
+  bool IsFloatingPoint(const reflection::BaseType base_type) {
+    return base_type == reflection::BaseType::Float ||
+           base_type == reflection::BaseType::Double;
+  }
+
+  bool IsBool(const reflection::BaseType base_type) {
+    return base_type == reflection::BaseType::Bool;
+  }
+
+  bool IsSingleByte(const reflection::BaseType base_type) {
+    return base_type >= reflection::BaseType::UType &&
+           base_type <= reflection::BaseType::UByte;
   }
 
   std::string GetFileName(const reflection::Schema *schema) {
@@ -54,7 +81,9 @@ class BaseGenerator : public Generator {
     return filename;
   }
 
-  int32_t indent_level_;
+  int8_t indent_level_;
+  const int8_t characters_per_indent_;
+  const char indent_char_;
 };
 
 }  // namespace flatbuffers
