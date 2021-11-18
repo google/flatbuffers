@@ -17,7 +17,7 @@
 #ifndef FLATBUFFERS_BASE_GENERATOR_H_
 #define FLATBUFFERS_BASE_GENERATOR_H_
 
-#include <bits/stdint-intn.h>
+#include <cstdint>
 
 #include "flatbuffers/generator.h"
 #include "flatbuffers/reflection_generated.h"
@@ -94,6 +94,20 @@ class BaseGenerator : public Generator {
     std::string filename =
         schema->file_ident()->str() + schema->file_ext()->str();
     return filename;
+  }
+
+  std::string make_camel_case(const std::string &in,
+                              bool uppercase_first = true) {
+    std::string s;
+    for (size_t i = 0; i < in.length(); i++) {
+      if (!i && uppercase_first)
+        s += std::toupper(in[0]);
+      else if (in[i] == '_' && i + 1 < in.length())
+        s += std::toupper(in[++i]);
+      else
+        s += in[i];
+    }
+    return s;
   }
 
   int8_t indent_level_;
