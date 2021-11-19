@@ -55,8 +55,8 @@ class BaseGenerator : public Generator {
   }
 
  protected:
-  void indent() { indent_level_++; };
-  void dedent() { indent_level_--; };
+  void indent() { indent_level_++; }
+  void dedent() { indent_level_--; }
 
   const reflection::Object *get_object(const reflection::Type *type) {
     if (type->index() >= 0 && IsStructOrTable(type->base_type())) {
