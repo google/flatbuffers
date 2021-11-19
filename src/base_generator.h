@@ -90,12 +90,6 @@ class BaseGenerator : public Generator {
            base_type <= reflection::BaseType::UByte;
   }
 
-  std::string GetFileName(const reflection::Schema *schema) {
-    std::string filename =
-        schema->file_ident()->str() + schema->file_ext()->str();
-    return filename;
-  }
-
   std::string make_camel_case(const std::string &in,
                               bool uppercase_first = true) {
     std::string s;
