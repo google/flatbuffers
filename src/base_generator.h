@@ -17,6 +17,8 @@
 #ifndef FLATBUFFERS_BASE_GENERATOR_H_
 #define FLATBUFFERS_BASE_GENERATOR_H_
 
+#include <time.h>
+
 #include <cstdint>
 
 #include "flatbuffers/generator.h"
@@ -104,11 +106,18 @@ class BaseGenerator : public Generator {
     return s;
   }
 
+  std::string get_current_time() {
+    time_t now;
+    time(&now);
+    char buf[sizeof("2021-11-18T17:40:05-0800")];
+    strftime(buf, sizeof(buf), "%Y-%m-%dT%H:%M:%S%z", localtime(&now));
+    return buf;
+  }
+
   int8_t indent_level_;
   const int8_t characters_per_indent_;
   const char indent_char_;
 
- private:
   const reflection::Schema *schema_;
 };
 
