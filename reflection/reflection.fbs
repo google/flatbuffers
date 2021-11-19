@@ -77,6 +77,8 @@ table Field {
     attributes:[KeyValue];
     documentation:[string];
     optional:bool = false;
+    /// Number of padding octets to always add after this field. Structs only.
+    padding:uint = 0; 
 }
 
 table Object {  // Used for both tables and structs.

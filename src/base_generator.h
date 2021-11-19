@@ -21,7 +21,6 @@
 
 #include <cstdint>
 
-#include "flatbuffers/flatbuffers.h"
 #include "flatbuffers/generator.h"
 #include "flatbuffers/reflection_generated.h"
 
@@ -64,6 +63,19 @@ class BaseGenerator : public Generator {
       return nullptr;
     }
     return schema_->objects()->Get(index);
+  }
+
+  std::vector<size_t> map_by_field_id(const reflection::Object *object) {
+    std::vector<size_t> field_index_by_id;
+    field_index_by_id.resize(object->fields()->size());
+
+    // Create the mapping of field ID to the index into the vector.
+    for (size_t i = 0; i < object->fields()->size(); ++i) {
+      auto field = object->fields()->Get(i);
+      field_index_by_id[field->id()] = i;
+    }
+
+    return field_index_by_id;
   }
 
   int32_t get_vector_inline_size(const reflection::Type *type) {

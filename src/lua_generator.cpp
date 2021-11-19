@@ -22,6 +22,7 @@
 #include <memory>
 #include <string>
 #include <unordered_set>
+#include <vector>
 
 // Ensure no includes to flatc internals. base_generator and generator are OK.
 #include "base_generator.h"
@@ -146,9 +147,14 @@ class LuaGenerator : public BaseGenerator {
     append_line();
 
     // Create all the field accessors.
-    for (auto it = object_def->fields()->cbegin();
-         it != object_def->fields()->cend(); ++it) {
-      generate_object_field(object_def, *it, object_name);
+
+    // TODO(derekbailey): The reflection IR sorts by field.name instead of
+    // field.id. For now we create a mapping to "sort" by id instead.
+    const std::vector<size_t> field_to_id_map = map_by_field_id(object_def);
+    for (size_t i = 0; i < field_to_id_map.size(); ++i) {
+      generate_object_field(object_def,
+                            object_def->fields()->Get(field_to_id_map[i]),
+                            object_name);
     }
 
     // Create all the builders
@@ -307,7 +313,7 @@ class LuaGenerator : public BaseGenerator {
             append_line("function mt:" + field_name_camel_case + "(obj)");
             {
               indent();
-              append_line("obj:Init(self.view.bytes, self.view.pos +" +
+              append_line("obj:Init(self.view.bytes, self.view.pos + " +
                           std::to_string(field_def->offset()) + ")");
               append_line("return obj");
               dedent();
@@ -475,19 +481,21 @@ class LuaGenerator : public BaseGenerator {
 
   std::string generate_struct_builder_args(const r::Object *object,
                                            std::string prefix = "") {
+    // Structs need to be order by field.id, but the IR orders them by
+    // field.name. So we first have to sort by field.id.
+    const std::vector<size_t> field_to_id_map = map_by_field_id(object);
+
     std::string signature;
-    // TODO(derekbailey): this needs to be ordered by index into struct.
-    for (auto it = object->fields()->cbegin(); it != object->fields()->cend();
-         ++it) {
-      auto field = *it;
+    for (size_t i = 0; i < field_to_id_map.size(); ++i) {
+      auto field = object->fields()->Get(field_to_id_map[i]);
       if (IsStructOrTable(field->type()->base_type())) {
         const r::Object *field_object =
             get_object_by_index(field->type()->index());
         signature += generate_struct_builder_args(
             field_object, prefix + normalize_name(field->name()) + "_");
       } else {
-        signature +=
-            ", " + make_camel_case(normalize_name(field->name()), false);
+        signature += ", " + prefix +
+                     make_camel_case(normalize_name(field->name()), false);
       }
     }
     return signature;
@@ -495,13 +503,18 @@ class LuaGenerator : public BaseGenerator {
 
   void append_struct_builder_body(const r::Object *object,
                                   std::string prefix = "") {
+    // Structs need to be order by field.id, but the IR orders them by
+    // field.name. So we first have to sort by field.id.
+    const std::vector<size_t> field_to_id_map = map_by_field_id(object);
+
     append_line("builder:Prep(" + std::to_string(object->minalign()) + ", " +
                 std::to_string(object->bytesize()) + ")");
-    for (auto it = object->fields()->crbegin(); it != object->fields()->crend();
-         ++it) {
-      auto field = *it;
-      // TODO(derekbailey): is their padding to take care of here?
-      const int32_t num_padding_bytes = 0;
+
+    // We need to reverse the order we iterate over, since we build the buffer
+    // backwards.
+    for (int i = field_to_id_map.size() - 1; i >= 0; --i) {
+      auto field = object->fields()->Get(field_to_id_map[i]);
+      const int32_t num_padding_bytes = field->padding();
       if (num_padding_bytes) {
         append_line("builder:Pad(" + std::to_string(num_padding_bytes) + ")");
       }
