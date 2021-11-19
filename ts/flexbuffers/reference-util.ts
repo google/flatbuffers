@@ -115,5 +115,5 @@ export function keyForIndex(index: number, dataView: DataView, offset: number, p
   while (dataView.getUint8(keyIndirectOffset + length) !== 0) {
     length++;
   }
-  return fromUTF8Array(new Uint8Array(dataView.buffer, keyIndirectOffset, length));
+  return fromUTF8Array(new Uint8Array(dataView.buffer, dataView.byteOffset + keyIndirectOffset, length));
 }

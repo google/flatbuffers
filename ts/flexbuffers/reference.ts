@@ -79,7 +79,7 @@ export class Reference {
   stringValue(): string | null {
     if (this.valueType === ValueType.STRING || this.valueType === ValueType.KEY) {
       const begin = indirect(this.dataView, this.offset, this.parentWidth);
-      return fromUTF8Array(new Uint8Array(this.dataView.buffer, begin, this.length()));
+      return fromUTF8Array(new Uint8Array(this.dataView.buffer, this.dataView.byteOffset + begin, this.length()));
     }
     return null;
   }
@@ -87,7 +87,7 @@ export class Reference {
   blobValue(): Uint8Array | null {
     if (this.isBlob()) {
       const begin = indirect(this.dataView, this.offset, this.parentWidth);
-      return new Uint8Array(this.dataView.buffer, begin, this.length());
+      return new Uint8Array(this.dataView.buffer, this.dataView.byteOffset + begin, this.length());
     }
     return null;
   }
