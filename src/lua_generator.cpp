@@ -16,7 +16,6 @@
 
 #include "lua_generator.h"
 
-#include <csignal>
 #include <cstdint>
 #include <map>
 #include <memory>
@@ -327,8 +326,7 @@ class LuaGenerator : public BaseGenerator {
               {
                 indent();
 
-                const r::Object *field_object =
-                    get_object_by_index(field_def->type()->index());
+                const r::Object *field_object = get_object(field_def->type());
                 if (!field_object) {
                   // TODO(derekbailey): this is an error condition. we should
                   // report it better.
@@ -339,7 +337,6 @@ class LuaGenerator : public BaseGenerator {
                 if (!field_object->is_struct()) {
                   append_line("local x = self.view:Indirect(x)");
                 }
-
                 const std::string require_name = register_requires(field_def);
                 append_line("local obj = " + require_name + ".New()");
                 append_line("obj:Init(self.view.bytes, x)");
@@ -380,8 +377,7 @@ class LuaGenerator : public BaseGenerator {
         case r::BaseType::Array:
         case r::BaseType::Vector: {
           const r::BaseType vector_base_type = field_def->type()->element();
-          const int32_t inline_size = get_vector_inline_size(field_def->type());
-
+          const int32_t element_size = field_def->type()->element_size();
           {
             append_line("function mt:" + field_name_camel_case + "(j)");
             {
@@ -393,17 +389,22 @@ class LuaGenerator : public BaseGenerator {
                 if (IsStructOrTable(vector_base_type)) {
                   append_line("local x = self.view:Vector(o)");
                   append_line("local x = x + ((j-i) * " +
-                              std::to_string(inline_size) + ")");
-                  const bool is_table = true;
-                  if (is_table) { append_line("x = self.view:Indirect(x)"); }
-                  const std::string require_name = register_requires(field_def);
+                              std::to_string(element_size) + ")");
+                  if (IsTable(field_def->type())) {
+                    append_line("x = self.view:Indirect(x)");
+                  }
+
+                  // Include the referenced type, thus we need to make sure
+                  // we set `use_element` to true.
+                  const std::string require_name =
+                      register_requires(field_def, /*use_element=*/true);
                   append_line("local obj = " + require_name + ".New()");
                   append_line("obj:Init(self.view.bytes, x)");
                   append_line("return obj");
                 } else {
                   append_line("local a = self.view:Vector(o)");
                   append_line("return " + generate_getter(field_def->type()) +
-                              "a + ((j-1) * " + std::to_string(inline_size) +
+                              "a + ((j-1) * " + std::to_string(element_size) +
                               "))");
                 }
                 dedent();
@@ -489,8 +490,7 @@ class LuaGenerator : public BaseGenerator {
     for (size_t i = 0; i < field_to_id_map.size(); ++i) {
       auto field = object->fields()->Get(field_to_id_map[i]);
       if (IsStructOrTable(field->type()->base_type())) {
-        const r::Object *field_object =
-            get_object_by_index(field->type()->index());
+        const r::Object *field_object = get_object(field->type());
         signature += generate_struct_builder_args(
             field_object, prefix + normalize_name(field->name()) + "_");
       } else {
@@ -519,8 +519,7 @@ class LuaGenerator : public BaseGenerator {
         append_line("builder:Pad(" + std::to_string(num_padding_bytes) + ")");
       }
       if (IsStructOrTable(field->type()->base_type())) {
-        const r::Object *field_object =
-            get_object_by_index(field->type()->index());
+        const r::Object *field_object = get_object(field->type());
         append_struct_builder_body(
             field_object, prefix + normalize_name(field->name()) + "_");
       } else {
@@ -559,7 +558,7 @@ class LuaGenerator : public BaseGenerator {
       case r::BaseType::String: return "string";
       case r::BaseType::Vector: return generate_getter(type, true);
       case r::BaseType::Obj: {
-        const r::Object *obj = get_object_by_index(type->index());
+        const r::Object *obj = get_object(type);
         return normalize_name(denamespace(obj->name()));
       };
       default: return "*flatbuffers.Table";
@@ -639,16 +638,28 @@ class LuaGenerator : public BaseGenerator {
     current_block_ += indentation() + to_append;
   }
 
-  std::string register_requires(const r::Field *field) {
-    const r::Object *object = get_object_by_index(field->type()->index());
+  std::string register_requires(const r::Field *field,
+                                bool use_element = false) {
+    std::string type_name;
+
+    const r::BaseType type =
+        use_element ? field->type()->element() : field->type()->base_type();
+
+    if (IsStructOrTable(type)) {
+      const r::Object *object = get_object_by_index(field->type()->index());
+      type_name = object->name()->str();
+    } else {
+      const r::Enum *enum_def = get_enum_by_index(field->type()->index());
+      type_name = enum_def->name()->str();
+    }
 
     // Prefix with double __ to avoid name clashing, since these are defined
     // at the top of the file and have lexical scoping. Replace '.' with '_' so
     // it can be a legal identifier.
-    std::string name = "__" + object->name()->str();
+    std::string name = "__" + type_name;
     std::replace(name.begin(), name.end(), '.', '_');
 
-    return register_requires(name, object->name()->str());
+    return register_requires(name, type_name);
   }
 
   std::string register_requires(const std::string &local_name,

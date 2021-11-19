@@ -22,6 +22,7 @@
 
 #include "flatbuffers/base.h"
 #include "flatbuffers/idl.h"
+#include "flatbuffers/reflection_generated.h"
 #include "flatbuffers/util.h"
 
 namespace flatbuffers {
@@ -1335,7 +1336,7 @@ CheckedError Parser::ParseTable(const StructDef &struct_def, std::string *value,
       if (!struct_def.sortbysize ||
           size == SizeOf(field_value.type.base_type)) {
         switch (field_value.type.base_type) {
-          // clang-format off
+// clang-format off
           #define FLATBUFFERS_TD(ENUM, IDLTYPE, CTYPE, ...) \
             case BASE_TYPE_ ## ENUM: \
               builder_.Pad(field->padding); \
@@ -1539,7 +1540,7 @@ CheckedError Parser::ParseVector(const Type &type, uoffset_t *ovalue,
     // start at the back, since we're building the data backwards.
     auto &val = field_stack_.back().first;
     switch (val.type.base_type) {
-      // clang-format off
+// clang-format off
       #define FLATBUFFERS_TD(ENUM, IDLTYPE, CTYPE,...) \
         case BASE_TYPE_ ## ENUM: \
           if (IsStruct(val.type)) SerializeStruct(*val.type.struct_def, val); \
@@ -3829,7 +3830,7 @@ Offset<reflection::Type> Type::Serialize(FlatBufferBuilder *builder) const {
       *builder, static_cast<reflection::BaseType>(base_type),
       static_cast<reflection::BaseType>(element),
       struct_def ? struct_def->index : (enum_def ? enum_def->index : -1),
-      fixed_length);
+      fixed_length, SizeOf(base_type), SizeOf(element));
 }
 
 bool Type::Deserialize(const Parser &parser, const reflection::Type *type) {

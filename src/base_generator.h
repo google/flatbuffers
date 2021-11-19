@@ -56,13 +56,40 @@ class BaseGenerator : public Generator {
   void indent() { indent_level_++; };
   void dedent() { indent_level_--; };
 
+  const reflection::Object *get_object(const reflection::Type *type) {
+    if (type->index() >= 0 && IsStructOrTable(type->base_type())) {
+      return get_object_by_index(type->index());
+    }
+    return nullptr;
+  }
+
+  const reflection::Enum *get_enum(const reflection::Type *type) {
+    // TODO(derekbailey): it would be better to have a explicit list of allowed
+    // base types, instead of negating Obj types.
+    if (type->index() >= 0 && !IsStructOrTable(type->base_type())) {
+      return get_enum_by_index(type->index());
+    }
+    return nullptr;
+  }
+
   // Used to get a object that is reference by index. (e.g.
   // reflection::Type::index). Returns nullptr if no object is available.
   const reflection::Object *get_object_by_index(int32_t index) {
-    if (!schema_ || index >= static_cast<int32_t>(schema_->objects()->size())) {
+    if (!schema_ || index < 0 ||
+        index >= static_cast<int32_t>(schema_->objects()->size())) {
       return nullptr;
     }
     return schema_->objects()->Get(index);
+  }
+
+  // Used to get a enum that is reference by index. (e.g.
+  // reflection::Type::index). Returns nullptr if no enum is available.
+  const reflection::Enum *get_enum_by_index(int32_t index) {
+    if (!schema_ || index < 0 ||
+        index >= static_cast<int32_t>(schema_->enums()->size())) {
+      return nullptr;
+    }
+    return schema_->enums()->Get(index);
   }
 
   std::vector<size_t> map_by_field_id(const reflection::Object *object) {
@@ -114,7 +141,8 @@ class BaseGenerator : public Generator {
   }
 
   bool IsStruct(const reflection::Type *type) {
-    return get_object_by_index(type->index())->is_struct();
+    return IsStructOrTable(type->base_type()) &&
+           get_object_by_index(type->index())->is_struct();
   }
 
   bool IsTable(const reflection::Type *type) { return !IsStruct(type); }
