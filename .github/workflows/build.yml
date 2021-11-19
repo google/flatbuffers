@@ -20,7 +20,7 @@ jobs:
     - name: cmake
       run: CXX=${{ matrix.cxx }} cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release .
     - name: build
-      run: make -j4
+      run: make -j4 flatc
     # - name: test
     #   run: ./flattests
     - name: make flatc executable
@@ -89,7 +89,7 @@ jobs:
       run: cmake -G "Xcode" -DCMAKE_BUILD_TYPE=Release -DFLATBUFFERS_FLATC_EXECUTABLE=_build/Release/flatc .
     - name: build
       # NOTE: we need this _build dir to not have xcodebuild's default ./build dir clash with the BUILD file.
-      run: xcodebuild -toolchain clang -configuration Release -target flattests SYMROOT=$(PWD)/_build
+      run: xcodebuild -toolchain clang -configuration Release -target flatc SYMROOT=$(PWD)/_build
     - name: check that the binary is "universal"
       run: |
         info=$(file _build/Release/flatc)
