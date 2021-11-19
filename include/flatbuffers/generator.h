@@ -31,6 +31,8 @@ enum GeneratorStatus {
 // and generates code from it.
 class Generator {
  public:
+  virtual ~Generator() {}
+
   // Generate code from the provided `buffer` of given `length`. The buffer is
   // a serialized reflection.fbs.
   virtual GeneratorStatus generate(const uint8_t *buffer, int64_t length) = 0;

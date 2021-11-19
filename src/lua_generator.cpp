@@ -132,7 +132,7 @@ class LuaGenerator : public BaseGenerator {
       dedent();
     }
     append_line("end");
-    if (is_root_object) { generate_root_object(object_def, object_name); }
+    if (is_root_object) { generate_root_object(object_name); }
     append_line();
 
     // Generates a init method that receives a pre-existing accessor object, so
@@ -153,8 +153,7 @@ class LuaGenerator : public BaseGenerator {
     const std::vector<size_t> field_to_id_map = map_by_field_id(object_def);
     for (size_t i = 0; i < field_to_id_map.size(); ++i) {
       generate_object_field(object_def,
-                            object_def->fields()->Get(field_to_id_map[i]),
-                            object_name);
+                            object_def->fields()->Get(field_to_id_map[i]));
     }
 
     // Create all the builders
@@ -239,8 +238,7 @@ class LuaGenerator : public BaseGenerator {
     return object_name;
   }
 
-  void generate_root_object(const r::Object *object_def,
-                            const std::string &object_name) {
+  void generate_root_object(const std::string &object_name) {
     append_line();
     append_line("function " + object_name + ".GetRootAs" + object_name +
                 "(buf, offset)");
@@ -264,8 +262,7 @@ class LuaGenerator : public BaseGenerator {
   }
 
   bool generate_object_field(const r::Object *object_def,
-                             const r::Field *field_def,
-                             const std::string &object_name) {
+                             const r::Field *field_def) {
     // Skip writing deprecated fields altogether.
     if (field_def->deprecated()) { return true; }
 
