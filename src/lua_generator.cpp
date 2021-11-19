@@ -155,6 +155,48 @@ class LuaGenerator : public BaseGenerator {
       }
       append_line("end");
       append_line();
+    } else {
+      // Table builders
+      append_line("function " + object_name + ".Start(builder)");
+      {
+        indent();
+        append_line("builder:StartObject(" +
+                    std::to_string(object_def->fields()->size()) + ")");
+        dedent();
+      }
+      append_line("end");
+      append_line();
+      for (auto it = object_def->fields()->cbegin();
+           it != object_def->fields()->cend(); ++it) {
+        auto field = *it;
+        if (field->deprecated()) { continue; }
+        auto offset = it - object_def->fields()->cbegin();
+
+        const std::string field_name = normalize_name(field->name());
+
+        append_line("function " + object_name + ".Add" +
+                    make_camel_case(field_name) + "(builder, " +
+                    make_camel_case(field_name, false) + ")");
+        {
+          indent();
+          append_line("builder:Prepend" + generate_method(field) + "Slot(" +
+                      std::to_string(offset) + ", " +
+                      make_camel_case(field_name, false) + ", " +
+                      default_value(field) + ")");
+          dedent();
+        }
+        append_line("end");
+        append_line();
+      }
+
+      append_line("function " + object_name + ".End(builder)");
+      {
+        indent();
+        append_line("return builder:EndObject()");
+        dedent();
+      }
+      append_line("end");
+      append_line();
     }
 
     return object_name;
@@ -213,7 +255,6 @@ class LuaGenerator : public BaseGenerator {
                       "self.view.pos + " + std::to_string(field_def->offset()) +
                       ")");
         } else {
-          const bool is_bool = IsBool(base_type);
           // Table accessors
           append_line(offset_prefix);
           append_line(offset_prefix_2);
@@ -221,19 +262,12 @@ class LuaGenerator : public BaseGenerator {
             indent();
             std::string getter =
                 generate_getter(field_def->type()) + "self.view.pos + o)";
-            if (is_bool) { getter = "(" + getter + " ~=0)"; }
+            if (IsBool(base_type)) { getter = "(" + getter + " ~=0)"; }
             append_line("return " + getter);
             dedent();
           }
           append_line("end");
-
-          std::string default_value = std::to_string(
-              IsFloatingPoint(base_type) ? field_def->default_real()
-                                         : field_def->default_integer());
-          if (is_bool) {
-            default_value = default_value = "0" ? "false" : "true";
-          }
-          append_line("return " + default_value);
+          append_line("return " + default_value(field_def));
         }
         dedent();
       }
@@ -519,10 +553,35 @@ class LuaGenerator : public BaseGenerator {
     // Need to override the default naming to match the Lua runtime libraries.
     // TODO(derekbailey): make overloads in the runtime libraries to avoid this.
     switch (base_type) {
+      case r::BaseType::None: return "uint8";
+      case r::BaseType::UType: return "uint8";
+      case r::BaseType::Byte: return "int8";
+      case r::BaseType::UByte: return "uint8";
+      case r::BaseType::Short: return "int16";
+      case r::BaseType::UShort: return "uint16";
+      case r::BaseType::Int: return "int32";
+      case r::BaseType::UInt: return "uint32";
+      case r::BaseType::Long: return "int64";
+      case r::BaseType::ULong: return "uint64";
       case r::BaseType::Float: return "Float32";
       case r::BaseType::Double: return "Float64";
       default: return r::EnumNameBaseType(base_type);
     }
+  }
+
+  std::string default_value(const r::Field *field) {
+    const r::BaseType base_type = field->type()->base_type();
+    if (IsFloatingPoint(base_type)) {
+      return std::to_string(field->default_real());
+    }
+    if (IsBool(base_type)) {
+      return field->default_integer() ? "true" : "false";
+    }
+    if (IsScalar(base_type)) {
+      return std::to_string((field->default_integer()));
+    }
+    // represents offsets
+    return "0";
   }
 
   std::string normalize_name(const std::string name) const {
