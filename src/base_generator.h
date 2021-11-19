@@ -174,6 +174,10 @@ class BaseGenerator : public Generator {
            base_type <= reflection::BaseType::UByte;
   }
 
+  bool IsVector(const reflection::BaseType base_type) {
+    return base_type == reflection::BaseType::Vector;
+  }
+
   bool IsArray(const reflection::BaseType base_type) {
     return base_type == reflection::BaseType::Array;
   }

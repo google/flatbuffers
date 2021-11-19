@@ -28,6 +28,7 @@
 #include "flatbuffers/generator.h"
 
 // The intermediate representation schema.
+#include "flatbuffers/idl.h"
 #include "flatbuffers/reflection_generated.h"
 
 namespace flatbuffers {
@@ -65,7 +66,7 @@ class LuaGenerator : public BaseGenerator {
       const flatbuffers::Vector<flatbuffers::Offset<r::Enum>> *enums) {
     for (auto it = enums->cbegin(); it != enums->cend(); ++it) {
       auto enum_def = *it;
-      start_code_block();
+      start_code_block(enum_def);
       std::string ns;
       const std::string enum_name = generate_enum(enum_def, ns);
       emit_code_block(enum_name, ns, enum_def->declaration_file()->str());
@@ -102,7 +103,7 @@ class LuaGenerator : public BaseGenerator {
       const r::Object *root_object) {
     for (auto it = objects->cbegin(); it != objects->cend(); ++it) {
       auto object_def = *it;
-      start_code_block();
+      start_code_block(object_def);
       std::string ns;
       // Register the main flatbuffers module.
       register_requires("flatbuffers", "flatbuffers");
@@ -179,11 +180,10 @@ class LuaGenerator : public BaseGenerator {
       }
       append_line("end");
       append_line();
-      for (auto it = object_def->fields()->cbegin();
-           it != object_def->fields()->cend(); ++it) {
-        auto field = *it;
+
+      for (size_t i = 0; i < field_to_id_map.size(); ++i) {
+        auto field = object_def->fields()->Get(field_to_id_map[i]);
         if (field->deprecated()) { continue; }
-        auto offset = it - object_def->fields()->cbegin();
 
         const std::string field_name = normalize_name(field->name());
 
@@ -193,13 +193,37 @@ class LuaGenerator : public BaseGenerator {
         {
           indent();
           append_line("builder:Prepend" + generate_method(field) + "Slot(" +
-                      std::to_string(offset) + ", " +
+                      std::to_string(i) + ", " +
                       make_camel_case(field_name, false) + ", " +
                       default_value(field) + ")");
           dedent();
         }
         append_line("end");
         append_line();
+
+        if (IsVector(field->type()->base_type())) {
+          append_line("function " + object_name + ".Start" +
+                      make_camel_case(field_name) +
+                      "Vector(builder, numElems)");
+          {
+            indent();
+            const int32_t element_size = field->type()->element_size();
+            int32_t alignment = 0;
+            if (IsStruct(field->type(), /*use_element=*/true)) {
+              alignment =
+                  get_object_by_index(field->type()->index())->minalign();
+            } else {
+              alignment = element_size;
+            }
+
+            append_line("return builder:StartVector(" +
+                        std::to_string(element_size) + ", numElems, " +
+                        std::to_string(alignment) + ")");
+            dedent();
+          }
+          append_line("end");
+          append_line();
+        }
       }
 
       append_line("function " + object_name + ".End(builder)");
@@ -361,7 +385,7 @@ class LuaGenerator : public BaseGenerator {
               indent();
               append_line(
                   "local obj = "
-                  "flatbuffers.view.New(flatbuffers.binaryarray.New("
+                  "flatbuffers.view.New(flatbuffers.binaryArray.New("
                   "0), 0)");
               append_line(generate_getter(field_def->type()) + "obj, o)");
               append_line("return obj");
@@ -629,6 +653,18 @@ class LuaGenerator : public BaseGenerator {
     return name->str().substr(pos + 1);
   }
 
+  void start_code_block(const reflection::Enum *enum_def) {
+    current_enum_ = enum_def;
+    current_obj_ = nullptr;
+    start_code_block();
+  }
+
+  void start_code_block(const reflection::Object *object_def) {
+    current_obj_ = object_def;
+    current_enum_ = nullptr;
+    start_code_block();
+  }
+
   void start_code_block() {
     current_block_.clear();
     requires_.clear();
@@ -653,9 +689,11 @@ class LuaGenerator : public BaseGenerator {
 
     if (IsStructOrTable(type)) {
       const r::Object *object = get_object_by_index(field->type()->index());
+      if (object == current_obj_) { return denamespace(object->name()); }
       type_name = object->name()->str();
     } else {
       const r::Enum *enum_def = get_enum_by_index(field->type()->index());
+      if (enum_def == current_enum_) { return denamespace(enum_def->name()); }
       type_name = enum_def->name()->str();
     }
 
@@ -678,8 +716,7 @@ class LuaGenerator : public BaseGenerator {
                        const std::string &declaring_file) {
     const std::string root_type = schema_->root_table()->name()->str();
     const std::string root_file =
-        schema_->root_table()->declaration_file()->str().substr(2);
-    const std::string declaring_file_ = declaring_file.substr(2);
+        schema_->root_table()->declaration_file()->str();
     const std::string full_qualified_name = ns.empty() ? name : ns + "." + name;
 
     std::string code = "--[[ " + full_qualified_name + "\n\n";
@@ -691,7 +728,7 @@ class LuaGenerator : public BaseGenerator {
     code += "  Generated on : " + get_current_time() + "\n";
     code += "  flatc version: " + flatc_version_ + "\n";
     code += "\n";
-    code += "  Declared by  : " + declaring_file.substr(2) + "\n";
+    code += "  Declared by  : " + declaring_file + "\n";
     code += "  Rooting type : " + root_type + " (" + root_file + ")\n";
     code += "\n--]]\n\n";
 
@@ -723,6 +760,8 @@ class LuaGenerator : public BaseGenerator {
   std::unordered_set<std::string> keywords_;
   std::map<std::string, std::string> requires_;
   std::string current_block_;
+  const r::Object *current_obj_;
+  const r::Enum *current_enum_;
   const std::string flatc_version_;
 };
 }  // namespace
