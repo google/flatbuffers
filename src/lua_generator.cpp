@@ -725,7 +725,6 @@ class LuaGenerator : public BaseGenerator {
         "modify.\n";
     code += "  Or modify. I'm a message, not a cop.\n";
     code += "\n";
-    code += "  Generated on : " + get_current_time() + "\n";
     code += "  flatc version: " + flatc_version_ + "\n";
     code += "\n";
     code += "  Declared by  : " + declaring_file + "\n";

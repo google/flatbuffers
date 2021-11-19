@@ -91,7 +91,7 @@ add_definitions(-DFLATBUFFERS_LOCALE_INDEPENDENT=$<BOOL:${FLATBUFFERS_LOCALE_IND
 set(FlatBuffers_Library_SRCS
   include/flatbuffers/allocator.h
   include/flatbuffers/array.h
-  include/flatbuffers/base.h  
+  include/flatbuffers/base.h
   include/flatbuffers/buffer.h
   include/flatbuffers/buffer_ref.h
   include/flatbuffers/default_allocator.h

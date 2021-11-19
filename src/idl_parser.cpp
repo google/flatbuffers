@@ -22,7 +22,6 @@
 
 #include "flatbuffers/base.h"
 #include "flatbuffers/idl.h"
-#include "flatbuffers/reflection_generated.h"
 #include "flatbuffers/util.h"
 
 namespace flatbuffers {

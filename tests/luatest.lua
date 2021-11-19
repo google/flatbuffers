@@ -26,7 +26,7 @@ local function checkReadBuffer(buf, offset, sizePrefix)
     end    
     
     local mon = monster.GetRootAsMonster(buf, offset)
-    assert(mon:Hp() == 80, "Monster Hp is not 80"..mon:Hp())
+    assert(mon:Hp() == 80, "Monster Hp is not 80")
     assert(mon:Mana() == 150, "Monster Mana is not 150")
     assert(mon:Name() == "MyMonster", "Monster Name is not MyMonster")
     assert(mon:Testbool() == true)

@@ -17,8 +17,6 @@
 #ifndef FLATBUFFERS_BASE_GENERATOR_H_
 #define FLATBUFFERS_BASE_GENERATOR_H_
 
-#include <time.h>
-
 #include <cstdint>
 
 #include "flatbuffers/generator.h"
@@ -26,6 +24,8 @@
 
 namespace flatbuffers {
 
+// A concrete base Flatbuffer Generator that specific language generators can
+// derive from.
 class BaseGenerator : public Generator {
  public:
   virtual ~BaseGenerator() {}
@@ -37,6 +37,8 @@ class BaseGenerator : public Generator {
 
   virtual GeneratorStatus generate(const reflection::Schema *schema) = 0;
 
+  // Override of the Generator::generate method that does the initial
+  // deserialization and verification steps.
   GeneratorStatus generate(const uint8_t *buffer,
                            const int64_t length) override {
     flatbuffers::Verifier verifier(buffer, length);
@@ -105,37 +107,6 @@ class BaseGenerator : public Generator {
     return field_index_by_id;
   }
 
-  int32_t get_vector_inline_size(const reflection::Type *type) {
-    if (IsArray(type->element())) {
-      return size_of(type->element()) * type->fixed_length();
-    }
-    return size_of(type->element());
-  }
-
-  int32_t size_of(const reflection::BaseType base_type) {
-    switch (base_type) {
-      case reflection::BaseType::None:
-      case reflection::BaseType::Bool:
-      case reflection::BaseType::UType:
-      case reflection::BaseType::Byte:
-      case reflection::BaseType::UByte: return 1;
-      case reflection::BaseType::Short:
-      case reflection::BaseType::UShort: return 2;
-      case reflection::BaseType::Float:
-      case reflection::BaseType::Int:
-      case reflection::BaseType::UInt: return 4;
-      case reflection::BaseType::Double:
-      case reflection::BaseType::Long:
-      case reflection::BaseType::ULong: return 8;
-      case reflection::BaseType::String:
-      case reflection::BaseType::Vector:
-      case reflection::BaseType::Obj:
-      case reflection::BaseType::Union:
-      case reflection::BaseType::Array: return 4;
-      default: return 0;
-    }
-  }
-
   std::string indentation() const {
     return std::string(characters_per_indent_ * indent_level_, indent_char_);
   }
@@ -194,14 +165,6 @@ class BaseGenerator : public Generator {
         s += in[i];
     }
     return s;
-  }
-
-  std::string get_current_time() {
-    time_t now;
-    time(&now);
-    char buf[sizeof("2021-11-18T17:40:05-0800")];
-    strftime(buf, sizeof(buf), "%Y-%m-%dT%H:%M:%S%z", localtime(&now));
-    return buf;
   }
 
   int8_t indent_level_;

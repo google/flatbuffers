@@ -27,8 +27,12 @@ enum GeneratorStatus {
   FAILED_VERIFICATION,
 };
 
+// A Flatbuffer Code Generator that receives a binary serialized reflection.fbs
+// and generates code from it.
 class Generator {
  public:
+  // Generate code from the provided `buffer` of given `length`. The buffer is
+  // a serialized reflection.fbs.
   virtual GeneratorStatus generate(const uint8_t *buffer, int64_t length) = 0;
 };
 
