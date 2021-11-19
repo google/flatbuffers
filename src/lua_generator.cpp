@@ -38,8 +38,12 @@ namespace r = ::reflection;
 
 class LuaGenerator : public BaseGenerator {
  public:
-  explicit LuaGenerator()
-      : BaseGenerator(2, ' '), keywords_(), requires_(), current_block_() {
+  explicit LuaGenerator(const std::string &flatc_version)
+      : BaseGenerator(2, ' '),
+        keywords_(),
+        requires_(),
+        current_block_(),
+        flatc_version_(flatc_version) {
     static const char *const keywords[] = {
       "and",      "break",  "do",   "else", "elseif", "end",  "false", "for",
       "function", "goto",   "if",   "in",   "local",  "nil",  "not",   "or",
@@ -62,14 +66,14 @@ class LuaGenerator : public BaseGenerator {
     for (auto it = enums->cbegin(); it != enums->cend(); ++it) {
       auto enum_def = *it;
       start_code_block();
-      const std::string enum_name = generate_enum(enum_def);
-      emit_code_block(enum_name, enum_def->declaration_file()->str());
+      std::string ns;
+      const std::string enum_name = generate_enum(enum_def, ns);
+      emit_code_block(enum_name, ns, enum_def->declaration_file()->str());
     }
     return true;
   }
 
-  std::string generate_enum(const r::Enum *enum_def) {
-    std::string ns;
+  std::string generate_enum(const r::Enum *enum_def, std::string &ns) {
     const std::string enum_name =
         normalize_name(denamespace(enum_def->name(), ns));
 
@@ -99,18 +103,18 @@ class LuaGenerator : public BaseGenerator {
     for (auto it = objects->cbegin(); it != objects->cend(); ++it) {
       auto object_def = *it;
       start_code_block();
+      std::string ns;
       // Register the main flatbuffers module.
       register_requires("flatbuffers", "flatbuffers");
       const std::string object_name =
-          generate_object(object_def, object_def == root_object);
-      emit_code_block(object_name, object_def->declaration_file()->str());
+          generate_object(object_def, ns, object_def == root_object);
+      emit_code_block(object_name, ns, object_def->declaration_file()->str());
     }
     return true;
   }
 
-  std::string generate_object(const r::Object *object_def,
+  std::string generate_object(const r::Object *object_def, std::string &ns,
                               bool is_root_object) {
-    std::string ns;
     const std::string object_name =
         normalize_name(denamespace(object_def->name(), ns));
 
@@ -352,7 +356,6 @@ class LuaGenerator : public BaseGenerator {
             append_line(offset_prefix_2);
             {
               indent();
-              // TODO(derekbailey): fix the complicated require statement.
               append_line(
                   "local obj = "
                   "flatbuffers.view.New(flatbuffers.binaryarray.New("
@@ -368,13 +371,10 @@ class LuaGenerator : public BaseGenerator {
           append_line();
           break;
         }
+        case r::BaseType::Array:
         case r::BaseType::Vector: {
           const r::BaseType vector_base_type = field_def->type()->element();
-
-          // TODO(derekbailey): the 1 needs to be the inline size of the
-          // vector base type. This requires indirection to get the
-          // object from the objects array.
-          const int32_t inline_size = 1;
+          const int32_t inline_size = get_vector_inline_size(field_def->type());
 
           {
             append_line("function mt:" + field_name_camel_case + "(j)");
@@ -455,7 +455,9 @@ class LuaGenerator : public BaseGenerator {
           }
           break;
         }
-        default: return false;
+        default: {
+          return false;
+        }
       }
     }
     return true;
@@ -467,16 +469,14 @@ class LuaGenerator : public BaseGenerator {
           *comments) {
     if (!comments) { return; }
     for (auto it = comments->cbegin(); it != comments->cend(); ++it) {
-      auto comment = *it;
-      // TODO(derekbailey): it would be nice to limit this to some max line
-      // width if possible.
-      append_line("-- " + comment->str());
+      append_line("--" + it->str());
     }
   }
 
   std::string generate_struct_builder_args(const r::Object *object,
                                            std::string prefix = "") {
     std::string signature;
+    // TODO(derekbailey): this needs to be ordered by index into struct.
     for (auto it = object->fields()->cbegin(); it != object->fields()->cend();
          ++it) {
       auto field = *it;
@@ -501,6 +501,10 @@ class LuaGenerator : public BaseGenerator {
          ++it) {
       auto field = *it;
       // TODO(derekbailey): is their padding to take care of here?
+      const int32_t num_padding_bytes = 0;
+      if (num_padding_bytes) {
+        append_line("builder:Pad(" + std::to_string(num_padding_bytes) + ")");
+      }
       if (IsStructOrTable(field->type()->base_type())) {
         const r::Object *field_object =
             get_object_by_index(field->type()->index());
@@ -543,9 +547,7 @@ class LuaGenerator : public BaseGenerator {
       case r::BaseType::Vector: return generate_getter(type, true);
       case r::BaseType::Obj: {
         const r::Object *obj = get_object_by_index(type->index());
-        if (obj) { return normalize_name(denamespace(obj->name())); }
-        // TODO(derekbailey): should error here.
-        return "error";
+        return normalize_name(denamespace(obj->name()));
       };
       default: return "*flatbuffers.Table";
     }
@@ -625,50 +627,78 @@ class LuaGenerator : public BaseGenerator {
   }
 
   std::string register_requires(const r::Field *field) {
-    return register_requires("__" + field->name()->str(), field->name()->str());
+    const r::Object *object = get_object_by_index(field->type()->index());
+
+    // Prefix with double __ to avoid name clashing, since these are defined
+    // at the top of the file and have lexical scoping. Replace '.' with '_' so
+    // it can be a legal identifier.
+    std::string name = "__" + object->name()->str();
+    std::replace(name.begin(), name.end(), '.', '_');
+
+    return register_requires(name, object->name()->str());
   }
 
-  std::string register_requires(std::string local_name,
-                                std::string requires_name) {
+  std::string register_requires(const std::string &local_name,
+                                const std::string &requires_name) {
     requires_[local_name] = requires_name;
     return local_name;
   }
 
-  void emit_code_block(const std::string &name,
+  void emit_code_block(const std::string &name, const std::string &ns,
                        const std::string &declaring_file) {
-    std::string code =
-        "-- Automatically generated by the FlatBuffers compiler, do not "
+    const std::string root_type = schema_->root_table()->name()->str();
+    const std::string root_file =
+        schema_->root_table()->declaration_file()->str().substr(2);
+    const std::string declaring_file_ = declaring_file.substr(2);
+    const std::string full_qualified_name = ns.empty() ? name : ns + "." + name;
+
+    std::string code = "--[[ " + full_qualified_name + "\n\n";
+    code +=
+        "  Automatically generated by the FlatBuffers compiler, do not "
         "modify.\n";
-    code += "-- Or modify. I'm a message, not a cop.\n";
+    code += "  Or modify. I'm a message, not a cop.\n";
     code += "\n";
-    code += "-- Generated on: " + get_current_time() + "\n";
-    // TODO(derekbailey): declaring_file format isn't right.
-    code += "-- Generated from: " + declaring_file + "\n";
+    code += "  Generated on : " + get_current_time() + "\n";
+    code += "  flatc version: " + flatc_version_ + "\n";
     code += "\n";
+    code += "  Declared by  : " + declaring_file.substr(2) + "\n";
+    code += "  Rooting type : " + root_type + " (" + root_file + ")\n";
+    code += "\n--]]\n\n";
 
     if (!requires_.empty()) {
       for (auto it = requires_.cbegin(); it != requires_.cend(); ++it) {
         code += "local " + it->first + " = require('" + it->second + "')\n";
       }
+      code += "\n";
     }
-    code += "\n";
 
     code += code_block();
     code += "return " + name;
 
-    const std::string output_name = name + ".lua";
+    // Namespaces are '.' deliminted, so replace it with the path separator.
+    std::string path = ns;
+
+    if (path.empty()) {
+      path = ".";
+    } else {
+      std::replace(path.begin(), path.end(), '.', '/');
+    }
+
     // TODO(derekbailey): figure out a save file without depending on util.h
-    SaveFile(output_name.c_str(), code, false);
+    EnsureDirExists(path);
+    const std::string file_name = path + "/" + name + ".lua";
+    SaveFile(file_name.c_str(), code, false);
   }
 
   std::unordered_set<std::string> keywords_;
   std::map<std::string, std::string> requires_;
   std::string current_block_;
+  const std::string flatc_version_;
 };
 }  // namespace
 
-std::unique_ptr<Generator> NewLuaGenerator() {
-  return std::unique_ptr<LuaGenerator>(new LuaGenerator());
+std::unique_ptr<Generator> NewLuaGenerator(const std::string &flatc_version) {
+  return std::unique_ptr<LuaGenerator>(new LuaGenerator(flatc_version));
 }
 
 }  // namespace flatbuffers

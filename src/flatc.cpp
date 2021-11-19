@@ -402,9 +402,10 @@ int FlatCompiler::Compile(int argc, const char **argv) {
       } else if (arg == "--cs-global-alias") {
         opts.cs_global_alias = true;
       } else {
-        if (arg == "--luanew") {
+        if (arg == "--lua-new") {
           new_lua_generator = true;
           any_generator = true;
+          opts.binary_schema_comments = true;
         } else {
           for (size_t i = 0; i < params_.num_generators; ++i) {
             if (arg == params_.generators[i].generator_opt_long ||
@@ -542,7 +543,8 @@ int FlatCompiler::Compile(int argc, const char **argv) {
         flatbuffers::StripPath(flatbuffers::StripExtension(filename));
 
     if (new_lua_generator) {
-      std::unique_ptr<flatbuffers::Generator> lua_gen = NewLuaGenerator();
+      std::unique_ptr<flatbuffers::Generator> lua_gen =
+          NewLuaGenerator(std::string(FLATC_VERSION()));
 
       parser->Serialize();
       const uint8_t *buffer = parser->builder_.GetBufferPointer();

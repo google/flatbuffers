@@ -21,6 +21,7 @@
 
 #include <cstdint>
 
+#include "flatbuffers/flatbuffers.h"
 #include "flatbuffers/generator.h"
 #include "flatbuffers/reflection_generated.h"
 
@@ -65,9 +66,46 @@ class BaseGenerator : public Generator {
     return schema_->objects()->Get(index);
   }
 
+  int32_t get_vector_inline_size(const reflection::Type *type) {
+    if (IsArray(type->element())) {
+      return size_of(type->element()) * type->fixed_length();
+    }
+    return size_of(type->element());
+  }
+
+  int32_t size_of(const reflection::BaseType base_type) {
+    switch (base_type) {
+      case reflection::BaseType::None:
+      case reflection::BaseType::Bool:
+      case reflection::BaseType::UType:
+      case reflection::BaseType::Byte:
+      case reflection::BaseType::UByte: return 1;
+      case reflection::BaseType::Short:
+      case reflection::BaseType::UShort: return 2;
+      case reflection::BaseType::Float:
+      case reflection::BaseType::Int:
+      case reflection::BaseType::UInt: return 4;
+      case reflection::BaseType::Double:
+      case reflection::BaseType::Long:
+      case reflection::BaseType::ULong: return 8;
+      case reflection::BaseType::String:
+      case reflection::BaseType::Vector:
+      case reflection::BaseType::Obj:
+      case reflection::BaseType::Union:
+      case reflection::BaseType::Array: return 4;
+      default: return 0;
+    }
+  }
+
   std::string indentation() const {
     return std::string(characters_per_indent_ * indent_level_, indent_char_);
   }
+
+  bool IsStruct(const reflection::Type *type) {
+    return get_object_by_index(type->index())->is_struct();
+  }
+
+  bool IsTable(const reflection::Type *type) { return !IsStruct(type); }
 
   bool IsStructOrTable(const reflection::BaseType base_type) {
     return base_type == reflection::BaseType::Obj;
@@ -90,6 +128,10 @@ class BaseGenerator : public Generator {
   bool IsSingleByte(const reflection::BaseType base_type) {
     return base_type >= reflection::BaseType::UType &&
            base_type <= reflection::BaseType::UByte;
+  }
+
+  bool IsArray(const reflection::BaseType base_type) {
+    return base_type == reflection::BaseType::Array;
   }
 
   std::string make_camel_case(const std::string &in,

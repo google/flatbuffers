@@ -18,12 +18,13 @@
 #define FLATBUFFERS_LUA_GENERATOR_H_
 
 #include <memory>
+#include <string>
 
 #include "flatbuffers/generator.h"
 
 namespace flatbuffers {
 
-std::unique_ptr<Generator> NewLuaGenerator();
+std::unique_ptr<Generator> NewLuaGenerator(const std::string &flatc_version);
 
 }  // namespace flatbuffers
 
