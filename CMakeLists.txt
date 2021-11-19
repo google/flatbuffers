@@ -56,7 +56,7 @@ option(FLATBUFFERS_ENABLE_PCH
         Only work if CMake supports 'target_precompile_headers'. \"
         This can speed up compilation time."
        OFF)
-option(FLATBUFFERS_SKIP_MONSTER_EXTRA 
+option(FLATBUFFERS_SKIP_MONSTER_EXTRA
       "Skip generating monster_extra.fbs that contains non-supported numerical\"
       types." OFF)
 
@@ -524,7 +524,7 @@ if(PYTHONINTERP_FOUND AND
   # https://cmake.org/cmake/help/latest/variable/MSVC_VERSION.html
   (NOT MSVC OR MSVC_VERSION GREATER 1800))
   if(WIN32)
-    set(GENERATION_SCRIPT py scripts/generate_code.py) 
+    set(GENERATION_SCRIPT py scripts/generate_code.py)
    else()
     set(GENERATION_SCRIPT scripts/generate_code.py)
   endif()
@@ -535,13 +535,13 @@ if(PYTHONINTERP_FOUND AND
   if(FLATBUFFERS_SKIP_MONSTER_EXTRA)
     set(GENERATION_SCRIPT ${GENERATION_SCRIPT} --skip-monster-extra)
   endif()
-  add_custom_command(
-    TARGET flatc
-    POST_BUILD
-    COMMAND ${GENERATION_SCRIPT} --flatc "${FLATBUFFERS_FLATC_EXECUTABLE}"
-    WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
-    COMMENT "Running ${GENERATION_SCRIPT}..."
-    VERBATIM)
+  # add_custom_command(
+  #   TARGET flatc
+  #   POST_BUILD
+  #   COMMAND ${GENERATION_SCRIPT} --flatc "${FLATBUFFERS_FLATC_EXECUTABLE}"
+  #   WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
+  #   COMMENT "Running ${GENERATION_SCRIPT}..."
+  #   VERBATIM)
 else()
   message("No Python3 interpreter found! Unable to generate files automatically.")
 endif()
