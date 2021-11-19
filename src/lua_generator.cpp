@@ -332,11 +332,11 @@ class LuaGenerator : public BaseGenerator {
                   // report it better.
                   return false;
                 }
-
-                append_line("local x = self.view.pos + o");
-                if (!field_object->is_struct()) {
-                  append_line("local x = self.view:Indirect(x)");
-                }
+                append_line(
+                    "local x = " +
+                    std::string(field_object->is_struct()
+                                    ? "self.view.pos + o"
+                                    : "self.view:Indirect(self.view.pos + o)"));
                 const std::string require_name = register_requires(field_def);
                 append_line("local obj = " + require_name + ".New()");
                 append_line("obj:Init(self.view.bytes, x)");
@@ -377,7 +377,7 @@ class LuaGenerator : public BaseGenerator {
         case r::BaseType::Array:
         case r::BaseType::Vector: {
           const r::BaseType vector_base_type = field_def->type()->element();
-          const int32_t element_size = field_def->type()->element_size();
+          int32_t element_size = field_def->type()->element_size();
           {
             append_line("function mt:" + field_name_camel_case + "(j)");
             {
@@ -388,10 +388,16 @@ class LuaGenerator : public BaseGenerator {
                 indent();
                 if (IsStructOrTable(vector_base_type)) {
                   append_line("local x = self.view:Vector(o)");
-                  append_line("local x = x + ((j-i) * " +
+                  append_line("x = x + ((j-1) * " +
                               std::to_string(element_size) + ")");
-                  if (IsTable(field_def->type())) {
+                  if (IsTable(field_def->type(), /*use_element=*/true)) {
                     append_line("x = self.view:Indirect(x)");
+                  } else {
+                    // Vector of structs are inline, so we need to query the
+                    // size of the struct.
+                    const reflection::Object *obj =
+                        get_object_by_index(field_def->type()->index());
+                    element_size = obj->bytesize();
                   }
 
                   // Include the referenced type, thus we need to make sure

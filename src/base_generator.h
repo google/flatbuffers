@@ -140,12 +140,16 @@ class BaseGenerator : public Generator {
     return std::string(characters_per_indent_ * indent_level_, indent_char_);
   }
 
-  bool IsStruct(const reflection::Type *type) {
-    return IsStructOrTable(type->base_type()) &&
+  bool IsStruct(const reflection::Type *type, bool use_element = false) {
+    const reflection::BaseType base_type =
+        use_element ? type->element() : type->base_type();
+    return IsStructOrTable(base_type) &&
            get_object_by_index(type->index())->is_struct();
   }
 
-  bool IsTable(const reflection::Type *type) { return !IsStruct(type); }
+  bool IsTable(const reflection::Type *type, bool use_element = false) {
+    return !IsStruct(type, use_element);
+  }
 
   bool IsStructOrTable(const reflection::BaseType base_type) {
     return base_type == reflection::BaseType::Obj;
