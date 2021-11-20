@@ -551,7 +551,7 @@ class LuaBfbsGenerator : public BaseBfbsGenerator {
 
     // We need to reverse the order we iterate over, since we build the buffer
     // backwards.
-    for (int i = field_to_id_map.size() - 1; i >= 0; --i) {
+    for (int i = static_cast<int>(field_to_id_map.size()) - 1; i >= 0; --i) {
       auto field = object->fields()->Get(field_to_id_map[i]);
       const int32_t num_padding_bytes = field->padding();
       if (num_padding_bytes) {

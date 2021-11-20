@@ -147,9 +147,10 @@ class BaseBfbsGenerator : public BfbsGenerator {
     std::string s;
     for (size_t i = 0; i < in.length(); i++) {
       if (!i && uppercase_first)
-        s += std::toupper(static_cast<unsigned char>(in[0]));
+        s += static_cast<char>(std::toupper(static_cast<unsigned char>(in[0])));
       else if (in[i] == '_' && i + 1 < in.length())
-        s += std::toupper(static_cast<unsigned char>(in[++i]));
+        s += static_cast<char>(
+            std::toupper(static_cast<unsigned char>(in[++i])));
       else
         s += in[i];
     }
