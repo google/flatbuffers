@@ -14,19 +14,20 @@
  * limitations under the License.
  */
 
-#ifndef FLATBUFFERS_LUA_GENERATOR_H_
-#define FLATBUFFERS_LUA_GENERATOR_H_
+#ifndef FLATBUFFERS_BFBS_GEN_LUA_H_
+#define FLATBUFFERS_BFBS_GEN_LUA_H_
 
 #include <memory>
 #include <string>
 
-#include "flatbuffers/generator.h"
+#include "flatbuffers/bfbs_generator.h"
 
 namespace flatbuffers {
 
 // Constructs a new Lua Code generator.
-std::unique_ptr<Generator> NewLuaGenerator(const std::string &flatc_version);
+std::unique_ptr<BfbsGenerator> NewLuaBfbsGenerator(
+    const std::string &flatc_version);
 
 }  // namespace flatbuffers
 
-#endif  // FLATBUFFERS_LUA_GENERATOR_H_
+#endif  // FLATBUFFERS_BFBS_GEN_LUA_H_

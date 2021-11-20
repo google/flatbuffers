@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef FLATBUFFERS_GENERATOR_H_
-#define FLATBUFFERS_GENERATOR_H_
+#ifndef FLATBUFFERS_BFBS_GENERATOR_H_
+#define FLATBUFFERS_BFBS_GENERATOR_H_
 
 #include <cstdint>
 
@@ -29,9 +29,9 @@ enum GeneratorStatus {
 
 // A Flatbuffer Code Generator that receives a binary serialized reflection.fbs
 // and generates code from it.
-class Generator {
+class BfbsGenerator {
  public:
-  virtual ~Generator() {}
+  virtual ~BfbsGenerator() {}
 
   // Generate code from the provided `buffer` of given `length`. The buffer is
   // a serialized reflection.fbs.
@@ -40,4 +40,4 @@ class Generator {
 
 }  // namespace flatbuffers
 
-#endif  // FLATBUFFERS_GENERATOR_H_
+#endif  // FLATBUFFERS_BFBS_GENERATOR_H_

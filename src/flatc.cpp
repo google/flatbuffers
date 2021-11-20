@@ -18,7 +18,7 @@
 
 #include <list>
 
-#include "lua_generator.h"
+#include "bfbs_gen_lua.h"
 
 namespace flatbuffers {
 
@@ -543,8 +543,8 @@ int FlatCompiler::Compile(int argc, const char **argv) {
         flatbuffers::StripPath(flatbuffers::StripExtension(filename));
 
     if (new_lua_generator) {
-      std::unique_ptr<flatbuffers::Generator> lua_gen =
-          NewLuaGenerator(std::string(FLATC_VERSION()));
+      std::unique_ptr<flatbuffers::BfbsGenerator> lua_gen =
+          NewLuaBfbsGenerator(std::string(FLATC_VERSION()));
 
       parser->Serialize();
       const uint8_t *buffer = parser->builder_.GetBufferPointer();

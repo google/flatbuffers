@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include "lua_generator.h"
+#include "bfbs_gen_lua.h"
 
 #include <cstdint>
 #include <map>
@@ -23,9 +23,9 @@
 #include <unordered_set>
 #include <vector>
 
-// Ensure no includes to flatc internals. base_generator and generator are OK.
-#include "base_generator.h"
-#include "flatbuffers/generator.h"
+// Ensure no includes to flatc internals. bfbs_gen.h and generator.h are OK.
+#include "bfbs_gen.h"
+#include "flatbuffers/bfbs_generator.h"
 
 // The intermediate representation schema.
 #include "flatbuffers/idl.h"
@@ -37,13 +37,18 @@ namespace {
 // To reduce typing
 namespace r = ::reflection;
 
-class LuaGenerator : public BaseGenerator {
+class LuaBfbsGenerator : public BaseBfbsGenerator {
  public:
-  explicit LuaGenerator(const std::string &flatc_version)
-      : BaseGenerator(2, ' '),
+  explicit LuaBfbsGenerator(const std::string &flatc_version)
+      : BaseBfbsGenerator(),
+        indent_level_(0),
+        characters_per_indent_(2),
+        indent_char_(' '),
         keywords_(),
         requires_(),
         current_block_(),
+        current_obj_(nullptr),
+        current_enum_(nullptr),
         flatc_version_(flatc_version) {
     static const char *const keywords[] = {
       "and",      "break",  "do",   "else", "elseif", "end",  "false", "for",
@@ -498,6 +503,13 @@ class LuaGenerator : public BaseGenerator {
   }
 
  private:
+  void indent() { indent_level_++; }
+  void dedent() { indent_level_--; }
+
+  std::string indentation() const {
+    return std::string(characters_per_indent_ * indent_level_, indent_char_);
+  }
+
   void append_comments(
       const flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>>
           *comments) {
@@ -753,6 +765,9 @@ class LuaGenerator : public BaseGenerator {
     SaveFile(file_name.c_str(), code, false);
   }
 
+  int8_t indent_level_;
+  const int8_t characters_per_indent_;
+  const char indent_char_;
   std::unordered_set<std::string> keywords_;
   std::map<std::string, std::string> requires_;
   std::string current_block_;
@@ -762,8 +777,9 @@ class LuaGenerator : public BaseGenerator {
 };
 }  // namespace
 
-std::unique_ptr<Generator> NewLuaGenerator(const std::string &flatc_version) {
-  return std::unique_ptr<LuaGenerator>(new LuaGenerator(flatc_version));
+std::unique_ptr<BfbsGenerator> NewLuaBfbsGenerator(
+    const std::string &flatc_version) {
+  return std::unique_ptr<LuaBfbsGenerator>(new LuaBfbsGenerator(flatc_version));
 }
 
 }  // namespace flatbuffers

@@ -14,26 +14,22 @@
  * limitations under the License.
  */
 
-#ifndef FLATBUFFERS_BASE_GENERATOR_H_
-#define FLATBUFFERS_BASE_GENERATOR_H_
+#ifndef FLATBUFFERS_BFBS_GEN_H_
+#define FLATBUFFERS_BFBS_GEN_H_
 
 #include <cstdint>
 
-#include "flatbuffers/generator.h"
+#include "flatbuffers/bfbs_generator.h"
 #include "flatbuffers/reflection_generated.h"
 
 namespace flatbuffers {
 
 // A concrete base Flatbuffer Generator that specific language generators can
 // derive from.
-class BaseGenerator : public Generator {
+class BaseBfbsGenerator : public BfbsGenerator {
  public:
-  virtual ~BaseGenerator() {}
-  BaseGenerator(int8_t characters_per_indent, char indent_char)
-      : indent_level_(0),
-        characters_per_indent_(characters_per_indent),
-        indent_char_(indent_char),
-        schema_(nullptr) {}
+  virtual ~BaseBfbsGenerator() {}
+  BaseBfbsGenerator() : schema_(nullptr) {}
 
   virtual GeneratorStatus generate(const reflection::Schema *schema) = 0;
 
@@ -55,9 +51,6 @@ class BaseGenerator : public Generator {
   }
 
  protected:
-  void indent() { indent_level_++; }
-  void dedent() { indent_level_--; }
-
   const reflection::Object *get_object(const reflection::Type *type) {
     if (type->index() >= 0 && IsStructOrTable(type->base_type())) {
       return get_object_by_index(type->index());
@@ -105,10 +98,6 @@ class BaseGenerator : public Generator {
     }
 
     return field_index_by_id;
-  }
-
-  std::string indentation() const {
-    return std::string(characters_per_indent_ * indent_level_, indent_char_);
   }
 
   bool IsStruct(const reflection::Type *type, bool use_element = false) {
@@ -167,13 +156,9 @@ class BaseGenerator : public Generator {
     return s;
   }
 
-  int8_t indent_level_;
-  const int8_t characters_per_indent_;
-  const char indent_char_;
-
   const reflection::Schema *schema_;
 };
 
 }  // namespace flatbuffers
 
-#endif  // FLATBUFFERS_BASE_GENERATOR_H_
+#endif  // FLATBUFFERS_BFBS_GEN_H_
