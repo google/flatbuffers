@@ -87,12 +87,12 @@ class BaseBfbsGenerator : public BfbsGenerator {
     return schema_->enums()->Get(index);
   }
 
-  std::vector<size_t> map_by_field_id(const reflection::Object *object) {
-    std::vector<size_t> field_index_by_id;
+  std::vector<uint32_t> map_by_field_id(const reflection::Object *object) {
+    std::vector<uint32_t> field_index_by_id;
     field_index_by_id.resize(object->fields()->size());
 
     // Create the mapping of field ID to the index into the vector.
-    for (size_t i = 0; i < object->fields()->size(); ++i) {
+    for (uint32_t i = 0; i < object->fields()->size(); ++i) {
       auto field = object->fields()->Get(i);
       field_index_by_id[field->id()] = i;
     }

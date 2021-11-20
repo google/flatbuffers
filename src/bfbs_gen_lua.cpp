@@ -15,6 +15,7 @@
  */
 
 #include "bfbs_gen_lua.h"
+#include <bits/stdint-uintn.h>
 
 #include <cstdint>
 #include <map>
@@ -155,7 +156,7 @@ class LuaBfbsGenerator : public BaseBfbsGenerator {
 
     // TODO(derekbailey): The reflection IR sorts by field.name instead of
     // field.id. For now we create a mapping to "sort" by id instead.
-    const std::vector<size_t> field_to_id_map = map_by_field_id(object_def);
+    const std::vector<uint32_t> field_to_id_map = map_by_field_id(object_def);
     for (size_t i = 0; i < field_to_id_map.size(); ++i) {
       generate_object_field(object_def,
                             object_def->fields()->Get(field_to_id_map[i]));
@@ -523,7 +524,7 @@ class LuaBfbsGenerator : public BaseBfbsGenerator {
                                            std::string prefix = "") {
     // Structs need to be order by field.id, but the IR orders them by
     // field.name. So we first have to sort by field.id.
-    const std::vector<size_t> field_to_id_map = map_by_field_id(object);
+    const std::vector<uint32_t> field_to_id_map = map_by_field_id(object);
 
     std::string signature;
     for (size_t i = 0; i < field_to_id_map.size(); ++i) {
@@ -544,7 +545,7 @@ class LuaBfbsGenerator : public BaseBfbsGenerator {
                                   std::string prefix = "") {
     // Structs need to be order by field.id, but the IR orders them by
     // field.name. So we first have to sort by field.id.
-    const std::vector<size_t> field_to_id_map = map_by_field_id(object);
+    const std::vector<uint32_t> field_to_id_map = map_by_field_id(object);
 
     append_line("builder:Prep(" + std::to_string(object->minalign()) + ", " +
                 std::to_string(object->bytesize()) + ")");
