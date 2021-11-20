@@ -92,9 +92,9 @@ struct NativeTable {};
 /// if you wish. The resolver does the opposite lookup, for when the object
 /// is being serialized again.
 typedef uint64_t hash_value_t;
-typedef std::function<void (void **pointer_adr, hash_value_t hash)>
-        resolver_function_t;
-typedef std::function<hash_value_t (void *pointer)> rehasher_function_t;
+typedef std::function<void(void **pointer_adr, hash_value_t hash)>
+    resolver_function_t;
+typedef std::function<hash_value_t(void *pointer)> rehasher_function_t;
 
 // Helper function to test if a field is present, using any of the field
 // enums in the generated code.

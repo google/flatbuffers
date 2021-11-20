@@ -1132,23 +1132,23 @@ class Builder FLATBUFFERS_FINAL_CLASS {
     // sorted fashion.
     // std::sort is typically already a lot faster on sorted data though.
     auto dict = reinterpret_cast<TwoValue *>(stack_.data() + start);
-    std::sort(dict, dict + len,
-              [&](const TwoValue &a, const TwoValue &b) -> bool {
-                auto as = reinterpret_cast<const char *>(buf_.data() + a.key.u_);
-                auto bs = reinterpret_cast<const char *>(buf_.data() + b.key.u_);
-                auto comp = strcmp(as, bs);
-                // We want to disallow duplicate keys, since this results in a
-                // map where values cannot be found.
-                // But we can't assert here (since we don't want to fail on
-                // random JSON input) or have an error mechanism.
-                // Instead, we set has_duplicate_keys_ in the builder to
-                // signal this.
-                // TODO: Have to check for pointer equality, as some sort
-                // implementation apparently call this function with the same
-                // element?? Why?
-                if (!comp && &a != &b) has_duplicate_keys_ = true;
-                return comp < 0;
-              });
+    std::sort(
+        dict, dict + len, [&](const TwoValue &a, const TwoValue &b) -> bool {
+          auto as = reinterpret_cast<const char *>(buf_.data() + a.key.u_);
+          auto bs = reinterpret_cast<const char *>(buf_.data() + b.key.u_);
+          auto comp = strcmp(as, bs);
+          // We want to disallow duplicate keys, since this results in a
+          // map where values cannot be found.
+          // But we can't assert here (since we don't want to fail on
+          // random JSON input) or have an error mechanism.
+          // Instead, we set has_duplicate_keys_ in the builder to
+          // signal this.
+          // TODO: Have to check for pointer equality, as some sort
+          // implementation apparently call this function with the same
+          // element?? Why?
+          if (!comp && &a != &b) has_duplicate_keys_ = true;
+          return comp < 0;
+        });
     // First create a vector out of all keys.
     // TODO(wvo): if kBuilderFlagShareKeyVectors is true, see if we can share
     // the first vector.
@@ -1404,12 +1404,10 @@ class Builder FLATBUFFERS_FINAL_CLASS {
 
   template<typename T> static Type GetScalarType() {
     static_assert(flatbuffers::is_scalar<T>::value, "Unrelated types");
-    return flatbuffers::is_floating_point<T>::value
-               ? FBT_FLOAT
-               : flatbuffers::is_same<T, bool>::value
-                     ? FBT_BOOL
-                     : (flatbuffers::is_unsigned<T>::value ? FBT_UINT
-                                                           : FBT_INT);
+    return flatbuffers::is_floating_point<T>::value ? FBT_FLOAT
+           : flatbuffers::is_same<T, bool>::value
+               ? FBT_BOOL
+               : (flatbuffers::is_unsigned<T>::value ? FBT_UINT : FBT_INT);
   }
 
  public:

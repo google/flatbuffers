@@ -702,7 +702,9 @@ class CppGenerator : public BaseGenerator {
       }
       case BASE_TYPE_UNION:
         // fall through
-      default: { return "void"; }
+      default: {
+        return "void";
+      }
     }
   }
 
@@ -1044,10 +1046,9 @@ class CppGenerator : public BaseGenerator {
                     ? bt - BASE_TYPE_UTYPE + ET_UTYPE
                     : ET_SEQUENCE;
       int ref_idx = -1;
-      std::string ref_name =
-          type.struct_def
-              ? WrapInNameSpace(*type.struct_def)
-              : type.enum_def ? WrapInNameSpace(*type.enum_def) : "";
+      std::string ref_name = type.struct_def ? WrapInNameSpace(*type.struct_def)
+                             : type.enum_def ? WrapInNameSpace(*type.enum_def)
+                                             : "";
       if (!ref_name.empty()) {
         auto rit = type_refs.begin();
         for (; rit != type_refs.end(); ++rit) {
@@ -2000,7 +2001,9 @@ class CppGenerator : public BaseGenerator {
         }
         break;
       }
-      default: { break; }
+      default: {
+        break;
+      }
     }
   }
 
@@ -2258,7 +2261,9 @@ class CppGenerator : public BaseGenerator {
       code_ += "  bool mutate_{{FIELD_NAME}}({{FIELD_TYPE}} _{{FIELD_NAME}}\\";
       if (false == field.IsScalarOptional()) {
         code_.SetValue("DEFAULT_VALUE", GenDefaultConstant(field));
-        code_.SetValue("INTERFACE_DEFAULT_VALUE", GenUnderlyingCast(field, true, GenDefaultConstant(field)));
+        code_.SetValue(
+            "INTERFACE_DEFAULT_VALUE",
+            GenUnderlyingCast(field, true, GenDefaultConstant(field)));
 
         // GenUnderlyingCast for a bool field generates 0 != 0
         // So the type has to be checked and the appropriate default chosen
