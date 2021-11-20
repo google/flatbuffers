@@ -16,9 +16,6 @@
 
 #include "flatbuffers/flatc.h"
 
-#include <bits/stdint-intn.h>
-#include <bits/stdint-uintn.h>
-
 #include <list>
 
 #include "bfbs_gen_lua.h"
