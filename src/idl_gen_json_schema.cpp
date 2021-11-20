@@ -130,7 +130,9 @@ std::string GenType(const Type &type) {
       return union_type_string;
     }
     case BASE_TYPE_UTYPE: return GenTypeRef(type.enum_def);
-    default: { return GenBaseType(type); }
+    default: {
+      return GenBaseType(type);
+    }
   }
 }
 
@@ -174,9 +176,10 @@ class JsonSchemaGenerator : public BaseGenerator {
       // remove leading and trailing spaces from comment line
       const auto start = std::find_if(comment_line.begin(), comment_line.end(),
                                       [](char c) { return !isspace(c); });
-      const auto end = std::find_if(comment_line.rbegin(), comment_line.rend(),
-                                    [](char c) { return !isspace(c); })
-                           .base();
+      const auto end =
+          std::find_if(comment_line.rbegin(), comment_line.rend(), [](char c) {
+            return !isspace(c);
+          }).base();
       if (start < end) {
         comment.append(start, end);
       } else {
@@ -198,9 +201,9 @@ class JsonSchemaGenerator : public BaseGenerator {
 
   bool generate() {
     code_ = "";
-    if (parser_.root_struct_def_ == nullptr) { 
+    if (parser_.root_struct_def_ == nullptr) {
       std::cerr << "Error: Binary schema not generated, no root struct found\n";
-      return false; 
+      return false;
     }
     code_ += "{" + NewLine();
     code_ += Indent(1) +

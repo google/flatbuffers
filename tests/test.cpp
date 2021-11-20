@@ -38,7 +38,7 @@
 #include "native_type_test_generated.h"
 #include "test_assert.h"
 
-  // clang-format off
+// clang-format off
 // Check that char* and uint8_t* are interoperable types.
 // The reinterpret_cast<> between the pointers are used to simplify data loading.
 static_assert(flatbuffers::is_same<uint8_t, char>::value ||
@@ -100,9 +100,7 @@ flatbuffers::DetachedBuffer CreateFlatBufferTest(std::string &buffer) {
 
   // Create a vector of structures from a lambda.
   auto testv2 = builder.CreateVectorOfStructs<Test>(
-        2, [&](size_t i, Test* s) -> void {
-          *s = tests[i];
-        });
+      2, [&](size_t i, Test *s) -> void { *s = tests[i]; });
 
   // create monster with very few fields set:
   // (same functionality as CreateMonster below, but sets fields manually)
@@ -1053,7 +1051,7 @@ void ReflectionTest(uint8_t *flatbuf, size_t length) {
   // This time we wrap the result from GetAnyRoot in a smartpointer that
   // will keep rroot valid as resizingbuf resizes.
   auto rroot = flatbuffers::piv(flatbuffers::GetAnyRoot(resizingbuf.data()),
-      resizingbuf);
+                                resizingbuf);
   SetString(schema, "totally new string", GetFieldS(**rroot, name_field),
             &resizingbuf);
   // Here resizingbuf has changed, but rroot is still valid.
@@ -1596,7 +1594,9 @@ void FuzzTest2() {
           }
       }
       AddToSchemaAndInstances(deprecated ? "(deprecated);\n" : ";\n",
-                              deprecated ? "" : is_last_field ? "\n" : ",\n");
+                              deprecated      ? ""
+                              : is_last_field ? "\n"
+                                              : ",\n");
     }
     AddToSchemaAndInstances("}\n\n", "}");
   }
@@ -2991,7 +2991,7 @@ void FlexBuffersTest() {
 
   // It's possible to do this without std::function support as well.
   slb.Map([&]() {
-      slb.Vector("vec", [&]() {
+    slb.Vector("vec", [&]() {
       slb += -100;  // Equivalent to slb.Add(-100) or slb.Int(-100);
       slb += "Fred";
       slb.IndirectFloat(4.0f);
@@ -3004,7 +3004,7 @@ void FlexBuffersTest() {
     int ints[] = { 1, 2, 3 };
     slb.Vector("bar", ints, 3);
     slb.FixedTypedVector("bar3", ints, 3);
-    bool bools[] = {true, false, true, false};
+    bool bools[] = { true, false, true, false };
     slb.Vector("bools", bools, 4);
     slb.Bool("bool", true);
     slb.Double("foo", 100);

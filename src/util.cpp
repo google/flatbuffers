@@ -273,8 +273,7 @@ ClassicLocale ClassicLocale::instance_;
 
 std::string RemoveStringQuotes(const std::string &s) {
   auto ch = *s.c_str();
-  return ((s.size() >= 2) && (ch == '\"' || ch == '\'') &&
-          (ch == s.back()))
+  return ((s.size() >= 2) && (ch == '\"' || ch == '\'') && (ch == s.back()))
              ? s.substr(1, s.length() - 2)
              : s;
 }

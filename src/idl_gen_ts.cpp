@@ -583,7 +583,8 @@ class TsGenerator : public BaseGenerator {
                  std::string fileName) {
     ImportDefinition import;
     import.name = import_name;
-    import.import_statement = "import " + import_name + " from '" + fileName + "';";
+    import.import_statement =
+        "import " + import_name + " from '" + fileName + "';";
     imports.insert(std::make_pair(import_name, import));
   }
 

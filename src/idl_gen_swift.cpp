@@ -264,8 +264,7 @@ class SwiftGenerator : public BaseGenerator {
     code_ += "}";
     Outdent();
     code_ += "}\n";
-    if (parser_.opts.gen_json_coders)
-      GenerateJSONEncodingAPIs(struct_def);
+    if (parser_.opts.gen_json_coders) GenerateJSONEncodingAPIs(struct_def);
   }
 
   void BuildStructConstructor(const StructDef &struct_def) {
@@ -421,8 +420,7 @@ class SwiftGenerator : public BaseGenerator {
     GenerateVerifier(struct_def);
     Outdent();
     code_ += "}\n";
-    if (parser_.opts.gen_json_coders)
-      GenerateJSONEncodingAPIs(struct_def);
+    if (parser_.opts.gen_json_coders) GenerateJSONEncodingAPIs(struct_def);
   }
 
   // Generates the reader for swift
@@ -1196,8 +1194,7 @@ class SwiftGenerator : public BaseGenerator {
     AddMinOrMaxEnumValue(Name(*enum_def.MinValue()), "min");
     Outdent();
     code_ += "}\n";
-    if (parser_.opts.gen_json_coders)
-      EnumEncoder(enum_def);
+    if (parser_.opts.gen_json_coders) EnumEncoder(enum_def);
     code_ += "";
     if (parser_.opts.generate_object_based_api && enum_def.is_union) {
       code_ += "{{ACCESS_TYPE}} struct {{ENUM_NAME}}Union {";

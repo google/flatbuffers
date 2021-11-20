@@ -330,8 +330,7 @@ uint8_t *ResizeAnyVector(const reflection::Schema &schema, uoffset_t newsize,
                          const reflection::Object *root_table) {
   auto delta_elem = static_cast<int>(newsize) - static_cast<int>(num_elems);
   auto delta_bytes = delta_elem * static_cast<int>(elem_size);
-  auto vec_start =
-      reinterpret_cast<const uint8_t *>(vec) - flatbuf->data();
+  auto vec_start = reinterpret_cast<const uint8_t *>(vec) - flatbuf->data();
   auto start = static_cast<uoffset_t>(vec_start) +
                static_cast<uoffset_t>(sizeof(uoffset_t)) +
                elem_size * num_elems;
