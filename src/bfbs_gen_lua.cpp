@@ -15,7 +15,6 @@
  */
 
 #include "bfbs_gen_lua.h"
-#include <bits/stdint-uintn.h>
 
 #include <cstdint>
 #include <map>
