@@ -319,7 +319,7 @@ function mt:Testf()
   if o ~= 0 then
     return self.view:Get(flatbuffers.N.Float32, self.view.pos + o)
   end
-  return 3.141590
+  return 3.14159
 end
 
 function mt:Testf2()
@@ -327,7 +327,7 @@ function mt:Testf2()
   if o ~= 0 then
     return self.view:Get(flatbuffers.N.Float32, self.view.pos + o)
   end
-  return 3.000000
+  return 3.0
 end
 
 function mt:Testf3()
@@ -335,7 +335,7 @@ function mt:Testf3()
   if o ~= 0 then
     return self.view:Get(flatbuffers.N.Float32, self.view.pos + o)
   end
-  return 0.000000
+  return 0.0
 end
 
 function mt:Testarrayofstring2(j)
@@ -802,15 +802,15 @@ function Monster.StartTestarrayofboolsVector(builder, numElems)
 end
 
 function Monster.AddTestf(builder, testf)
-  builder:PrependFloat32Slot(25, testf, 3.141590)
+  builder:PrependFloat32Slot(25, testf, 3.14159)
 end
 
 function Monster.AddTestf2(builder, testf2)
-  builder:PrependFloat32Slot(26, testf2, 3.000000)
+  builder:PrependFloat32Slot(26, testf2, 3.0)
 end
 
 function Monster.AddTestf3(builder, testf3)
-  builder:PrependFloat32Slot(27, testf3, 0.000000)
+  builder:PrependFloat32Slot(27, testf3, 0.0)
 end
 
 function Monster.AddTestarrayofstring2(builder, testarrayofstring2)

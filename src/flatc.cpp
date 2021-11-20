@@ -550,48 +550,45 @@ int FlatCompiler::Compile(int argc, const char **argv) {
       const uint8_t *buffer = parser->builder_.GetBufferPointer();
       const int64_t length = parser->builder_.GetSize();
       GeneratorStatus status = lua_gen->generate(buffer, length);
-      if (status != GeneratorStatus::OK) {
+      if (status != OK) {
         Error("Error generating new Lua. Error: " +
               std::to_string(static_cast<int>(status)));
       }
+    }
 
-    } else {
-      for (size_t i = 0; i < params_.num_generators; ++i) {
-        if (generator_enabled[i]) {
-          if (!print_make_rules) {
-            flatbuffers::EnsureDirExists(output_path);
-            if ((!params_.generators[i].schema_only ||
-                 (is_schema || is_binary_schema)) &&
-                !params_.generators[i].generate(*parser.get(), output_path,
-                                                filebase)) {
-              Error(std::string("Unable to generate ") +
-                    params_.generators[i].lang_name + " for " + filebase);
+    for (size_t i = 0; i < params_.num_generators; ++i) {
+      if (generator_enabled[i]) {
+        if (!print_make_rules) {
+          flatbuffers::EnsureDirExists(output_path);
+          if ((!params_.generators[i].schema_only ||
+               (is_schema || is_binary_schema)) &&
+              !params_.generators[i].generate(*parser.get(), output_path,
+                                              filebase)) {
+            Error(std::string("Unable to generate ") +
+                  params_.generators[i].lang_name + " for " + filebase);
+          }
+        } else {
+          if (params_.generators[i].make_rule == nullptr) {
+            Error(std::string("Cannot generate make rule for ") +
+                  params_.generators[i].lang_name);
+          } else {
+            std::string make_rule = params_.generators[i].make_rule(
+                *parser.get(), output_path, filename);
+            if (!make_rule.empty())
+              printf("%s\n",
+                     flatbuffers::WordWrap(make_rule, 80, " ", " \\").c_str());
+          }
+        }
+        if (grpc_enabled) {
+          if (params_.generators[i].generateGRPC != nullptr) {
+            if (!params_.generators[i].generateGRPC(*parser.get(), output_path,
+                                                    filebase)) {
+              Error(std::string("Unable to generate GRPC interface for") +
+                    params_.generators[i].lang_name);
             }
           } else {
-            if (params_.generators[i].make_rule == nullptr) {
-              Error(std::string("Cannot generate make rule for ") +
-                    params_.generators[i].lang_name);
-            } else {
-              std::string make_rule = params_.generators[i].make_rule(
-                  *parser.get(), output_path, filename);
-              if (!make_rule.empty())
-                printf(
-                    "%s\n",
-                    flatbuffers::WordWrap(make_rule, 80, " ", " \\").c_str());
-            }
-          }
-          if (grpc_enabled) {
-            if (params_.generators[i].generateGRPC != nullptr) {
-              if (!params_.generators[i].generateGRPC(*parser.get(),
-                                                      output_path, filebase)) {
-                Error(std::string("Unable to generate GRPC interface for") +
-                      params_.generators[i].lang_name);
-              }
-            } else {
-              Warn(
-                  std::string("GRPC interface generator not implemented for ") +
-                  params_.generators[i].lang_name);
-            }
+            Warn(std::string("GRPC interface generator not implemented for ") +
+                 params_.generators[i].lang_name);
           }
         }
       }

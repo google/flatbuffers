@@ -94,7 +94,7 @@ function mt:F32()
   if o ~= 0 then
     return self.view:Get(flatbuffers.N.Float32, self.view.pos + o)
   end
-  return 0.000000
+  return 0.0
 end
 
 function mt:F64()
@@ -102,7 +102,7 @@ function mt:F64()
   if o ~= 0 then
     return self.view:Get(flatbuffers.N.Float64, self.view.pos + o)
   end
-  return 0.000000
+  return 0.0
 end
 
 function mt:V8(j)
@@ -180,11 +180,11 @@ function TypeAliases.AddU64(builder, u64)
 end
 
 function TypeAliases.AddF32(builder, f32)
-  builder:PrependFloat32Slot(8, f32, 0.000000)
+  builder:PrependFloat32Slot(8, f32, 0.0)
 end
 
 function TypeAliases.AddF64(builder, f64)
-  builder:PrependFloat64Slot(9, f64, 0.000000)
+  builder:PrependFloat64Slot(9, f64, 0.0)
 end
 
 function TypeAliases.AddV8(builder, v8)

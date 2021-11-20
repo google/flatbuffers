@@ -28,7 +28,6 @@
 #include "flatbuffers/bfbs_generator.h"
 
 // The intermediate representation schema.
-#include "flatbuffers/idl.h"
 #include "flatbuffers/reflection_generated.h"
 
 namespace flatbuffers {
@@ -94,7 +93,7 @@ class LuaBfbsGenerator : public BaseBfbsGenerator {
         const auto enum_val = *it;
         append_comments(enum_val->documentation());
         append_line(normalize_name(enum_val->name()) + " = " +
-                    std::to_string(enum_val->value()) + ",");
+                    NumToString(enum_val->value()) + ",");
       }
       dedent();
     }
@@ -179,7 +178,7 @@ class LuaBfbsGenerator : public BaseBfbsGenerator {
       {
         indent();
         append_line("builder:StartObject(" +
-                    std::to_string(object_def->fields()->size()) + ")");
+                    NumToString(object_def->fields()->size()) + ")");
         dedent();
       }
       append_line("end");
@@ -197,7 +196,7 @@ class LuaBfbsGenerator : public BaseBfbsGenerator {
         {
           indent();
           append_line("builder:Prepend" + generate_method(field) + "Slot(" +
-                      std::to_string(i) + ", " +
+                      NumToString(i) + ", " +
                       make_camel_case(field_name, false) + ", " +
                       default_value(field) + ")");
           dedent();
@@ -221,8 +220,8 @@ class LuaBfbsGenerator : public BaseBfbsGenerator {
             }
 
             append_line("return builder:StartVector(" +
-                        std::to_string(element_size) + ", numElems, " +
-                        std::to_string(alignment) + ")");
+                        NumToString(element_size) + ", numElems, " +
+                        NumToString(alignment) + ")");
             dedent();
           }
           append_line("end");
@@ -278,8 +277,8 @@ class LuaBfbsGenerator : public BaseBfbsGenerator {
     // Generate some fixed strings so we don't repeat outselves later.
     const std::string getter_signature =
         "function mt:" + field_name_camel_case + "()";
-    const std::string offset_prefix = "local o = self.view:Offset(" +
-                                      std::to_string(field_def->offset()) + ")";
+    const std::string offset_prefix =
+        "local o = self.view:Offset(" + NumToString(field_def->offset()) + ")";
     const std::string offset_prefix_2 = "if o ~= 0 then";
 
     append_comments(field_def->documentation());
@@ -291,7 +290,7 @@ class LuaBfbsGenerator : public BaseBfbsGenerator {
           // TODO(derekbailey): it would be nice to modify the view:Get to just
           // pass in the offset and not have to add it its own self.view.pos.
           append_line("return " + generate_getter(field_def->type()) +
-                      "self.view.pos + " + std::to_string(field_def->offset()) +
+                      "self.view.pos + " + NumToString(field_def->offset()) +
                       ")");
         } else {
           // Table accessors
@@ -339,7 +338,7 @@ class LuaBfbsGenerator : public BaseBfbsGenerator {
             {
               indent();
               append_line("obj:Init(self.view.bytes, self.view.pos + " +
-                          std::to_string(field_def->offset()) + ")");
+                          NumToString(field_def->offset()) + ")");
               append_line("return obj");
               dedent();
             }
@@ -414,8 +413,8 @@ class LuaBfbsGenerator : public BaseBfbsGenerator {
                 indent();
                 if (IsStructOrTable(vector_base_type)) {
                   append_line("local x = self.view:Vector(o)");
-                  append_line("x = x + ((j-1) * " +
-                              std::to_string(element_size) + ")");
+                  append_line("x = x + ((j-1) * " + NumToString(element_size) +
+                              ")");
                   if (IsTable(field_def->type(), /*use_element=*/true)) {
                     append_line("x = self.view:Indirect(x)");
                   } else {
@@ -436,7 +435,7 @@ class LuaBfbsGenerator : public BaseBfbsGenerator {
                 } else {
                   append_line("local a = self.view:Vector(o)");
                   append_line("return " + generate_getter(field_def->type()) +
-                              "a + ((j-1) * " + std::to_string(element_size) +
+                              "a + ((j-1) * " + NumToString(element_size) +
                               "))");
                 }
                 dedent();
@@ -462,7 +461,7 @@ class LuaBfbsGenerator : public BaseBfbsGenerator {
               {
                 indent();
                 append_line("return self.view:VectorAsString(" +
-                            std::to_string(field_def->offset()) +
+                            NumToString(field_def->offset()) +
                             ", start, stop)");
                 dedent();
               }
@@ -545,8 +544,8 @@ class LuaBfbsGenerator : public BaseBfbsGenerator {
     // field.name. So we first have to sort by field.id.
     const std::vector<uint32_t> field_to_id_map = map_by_field_id(object);
 
-    append_line("builder:Prep(" + std::to_string(object->minalign()) + ", " +
-                std::to_string(object->bytesize()) + ")");
+    append_line("builder:Prep(" + NumToString(object->minalign()) + ", " +
+                NumToString(object->bytesize()) + ")");
 
     // We need to reverse the order we iterate over, since we build the buffer
     // backwards.
@@ -554,7 +553,7 @@ class LuaBfbsGenerator : public BaseBfbsGenerator {
       auto field = object->fields()->Get(field_to_id_map[i]);
       const int32_t num_padding_bytes = field->padding();
       if (num_padding_bytes) {
-        append_line("builder:Pad(" + std::to_string(num_padding_bytes) + ")");
+        append_line("builder:Pad(" + NumToString(num_padding_bytes) + ")");
       }
       if (IsStructOrTable(field->type()->base_type())) {
         const r::Object *field_object = get_object(field->type());
@@ -626,14 +625,12 @@ class LuaBfbsGenerator : public BaseBfbsGenerator {
   std::string default_value(const r::Field *field) {
     const r::BaseType base_type = field->type()->base_type();
     if (IsFloatingPoint(base_type)) {
-      return std::to_string(field->default_real());
+      return NumToString(field->default_real());
     }
     if (IsBool(base_type)) {
       return field->default_integer() ? "true" : "false";
     }
-    if (IsScalar(base_type)) {
-      return std::to_string((field->default_integer()));
-    }
+    if (IsScalar(base_type)) { return NumToString((field->default_integer())); }
     // represents offsets
     return "0";
   }
