@@ -57,7 +57,8 @@ class LuaBfbsGenerator : public BaseBfbsGenerator {
     keywords_.insert(std::begin(keywords), std::end(keywords));
   }
 
-  GeneratorStatus generate(const r::Schema *schema) FLATBUFFERS_OVERRIDE {
+  GeneratorStatus generate_from_schema(const r::Schema *schema)
+      FLATBUFFERS_OVERRIDE {
     if (!generate_enums(schema->enums())) { return FAILED; }
     if (!generate_objects(schema->objects(), schema->root_table())) {
       return FAILED;

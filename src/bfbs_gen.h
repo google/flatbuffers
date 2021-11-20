@@ -31,12 +31,13 @@ class BaseBfbsGenerator : public BfbsGenerator {
   virtual ~BaseBfbsGenerator() {}
   BaseBfbsGenerator() : schema_(nullptr) {}
 
-  virtual GeneratorStatus generate(const reflection::Schema *schema) = 0;
+  virtual GeneratorStatus generate_from_schema(
+      const reflection::Schema *schema) = 0;
 
   // Override of the Generator::generate method that does the initial
   // deserialization and verification steps.
   GeneratorStatus generate(const uint8_t *buffer,
-                           const int64_t length)FLATBUFFERS_OVERRIDE {
+                           const int64_t length) FLATBUFFERS_OVERRIDE {
     flatbuffers::Verifier verifier(buffer, static_cast<size_t>(length));
     if (!reflection::VerifySchemaBuffer(verifier)) {
       return FAILED_VERIFICATION;
@@ -45,7 +46,7 @@ class BaseBfbsGenerator : public BfbsGenerator {
     // Store the root schema since there are cases where leaf nodes refer to
     // things in the root schema (e.g., indexing the objects).
     schema_ = reflection::GetSchema(buffer);
-    GeneratorStatus status = generate(schema_);
+    GeneratorStatus status = generate_from_schema(schema_);
     schema_ = nullptr;
     return status;
   }
