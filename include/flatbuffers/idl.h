@@ -17,6 +17,7 @@
 #ifndef FLATBUFFERS_IDL_H_
 #define FLATBUFFERS_IDL_H_
 
+#include <functional>
 #include <map>
 #include <memory>
 #include <stack>
@@ -26,8 +27,6 @@
 #include "flatbuffers/flexbuffers.h"
 #include "flatbuffers/hash.h"
 #include "flatbuffers/reflection.h"
-
-#include <functional>
 
 // This file defines the data types representing a parsed IDL (Interface
 // Definition Language) / schema file.

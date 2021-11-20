@@ -44,7 +44,8 @@ class CSharpGenerator : public BaseGenerator {
  public:
   CSharpGenerator(const Parser &parser, const std::string &path,
                   const std::string &file_name)
-      : BaseGenerator(parser, path, file_name, parser.opts.cs_global_alias ? "global::" : "", ".", "cs"),
+      : BaseGenerator(parser, path, file_name,
+                      parser.opts.cs_global_alias ? "global::" : "", ".", "cs"),
         cur_name_space_(nullptr) {
     // clang-format off
 
@@ -305,11 +306,13 @@ class CSharpGenerator : public BaseGenerator {
   // would be cast down to int before being put onto the buffer. In C#, one cast
   // directly cast an Enum to its underlying type, which is essential before
   // putting it onto the buffer.
-  std::string SourceCast(const Type &type, const bool isOptional=false) const {
+  std::string SourceCast(const Type &type,
+                         const bool isOptional = false) const {
     if (IsSeries(type)) {
       return SourceCast(type.VectorType());
     } else {
-      if (IsEnum(type)) return "(" + GenTypeBasic(type, false) + (isOptional ? "?": "") + ")";
+      if (IsEnum(type))
+        return "(" + GenTypeBasic(type, false) + (isOptional ? "?" : "") + ")";
     }
     return "";
   }
@@ -1221,8 +1224,10 @@ class CSharpGenerator : public BaseGenerator {
             code += "Add";
             code += GenMethod(vector_type);
             code += "(";
-            // At the moment there is no support of the type Vector with optional enum, 
-            // e.g. if we have enum type SomeEnum there is no way to define `SomeEmum?[] enums` in FlatBuffer schema, so isOptional = false
+            // At the moment there is no support of the type Vector with
+            // optional enum, e.g. if we have enum type SomeEnum there is no way
+            // to define `SomeEmum?[] enums` in FlatBuffer schema, so isOptional
+            // = false
             code += SourceCastBasic(vector_type, false);
             code += "data[i]";
             if (vector_type.base_type == BASE_TYPE_STRUCT ||
@@ -1641,11 +1646,10 @@ class CSharpGenerator : public BaseGenerator {
         case BASE_TYPE_ARRAY: {
           auto type_name = GenTypeGet_ObjectAPI(field.value.type, opts);
           auto length_str = NumToString(field.value.type.fixed_length);
-          auto unpack_method = field.value.type.struct_def == nullptr
-                                   ? ""
-                                   : field.value.type.struct_def->fixed
-                                         ? ".UnPack()"
-                                         : "?.UnPack()";
+          auto unpack_method = field.value.type.struct_def == nullptr ? ""
+                               : field.value.type.struct_def->fixed
+                                   ? ".UnPack()"
+                                   : "?.UnPack()";
           code += start + "new " + type_name.substr(0, type_name.length() - 1) +
                   length_str + "];\n";
           code += "    for (var _j = 0; _j < " + length_str + "; ++_j) { _o." +

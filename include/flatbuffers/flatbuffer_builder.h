@@ -17,6 +17,8 @@
 #ifndef FLATBUFFERS_FLATBUFFER_BUILDER_H_
 #define FLATBUFFERS_FLATBUFFER_BUILDER_H_
 
+#include <functional>
+
 #include "flatbuffers/allocator.h"
 #include "flatbuffers/array.h"
 #include "flatbuffers/base.h"
@@ -30,8 +32,6 @@
 #include "flatbuffers/vector.h"
 #include "flatbuffers/vector_downward.h"
 #include "flatbuffers/verifier.h"
-
-#include <functional>
 
 namespace flatbuffers {
 
@@ -96,18 +96,19 @@ class FlatBufferBuilder {
 
   /// @brief Move constructor for FlatBufferBuilder.
   FlatBufferBuilder(FlatBufferBuilder &&other)
-    : buf_(1024, nullptr, false, AlignOf<largest_scalar_t>()),
-      num_field_loc(0),
-      max_voffset_(0),
-      nested(false),
-      finished(false),
-      minalign_(1),
-      force_defaults_(false),
-      dedup_vtables_(true),
-      string_pool(nullptr) {
+      : buf_(1024, nullptr, false, AlignOf<largest_scalar_t>()),
+        num_field_loc(0),
+        max_voffset_(0),
+        nested(false),
+        finished(false),
+        minalign_(1),
+        force_defaults_(false),
+        dedup_vtables_(true),
+        string_pool(nullptr) {
     EndianCheck();
     // Default construct and swap idiom.
-    // Lack of delegating constructors in vs2010 makes it more verbose than needed.
+    // Lack of delegating constructors in vs2010 makes it more verbose than
+    // needed.
     Swap(other);
   }
 
@@ -676,8 +677,9 @@ class FlatBufferBuilder {
   /// returns any type that you can construct a FlatBuffers vector out of.
   /// @return Returns a typed `Offset` into the serialized data indicating
   /// where the vector is stored.
-  template<typename T> Offset<Vector<T>> CreateVector(size_t vector_size,
-      const std::function<T (size_t i)> &f) {
+  template<typename T>
+  Offset<Vector<T>> CreateVector(size_t vector_size,
+                                 const std::function<T(size_t i)> &f) {
     FLATBUFFERS_ASSERT(FLATBUFFERS_GENERAL_HEAP_ALLOC_OK);
     std::vector<T> elems(vector_size);
     for (size_t i = 0; i < vector_size; i++) elems[i] = f(i);
@@ -795,15 +797,16 @@ class FlatBufferBuilder {
 
   /// @brief Serialize an array of structs into a FlatBuffer `vector`.
   /// @tparam T The data type of the struct array elements.
-  /// @param[in] filler A function that takes the current iteration 0..vector_size-1
-  /// and a pointer to the struct that must be filled.
+  /// @param[in] filler A function that takes the current iteration
+  /// 0..vector_size-1 and a pointer to the struct that must be filled.
   /// @return Returns a typed `Offset` into the serialized data indicating
   /// where the vector is stored.
   /// This is mostly useful when flatbuffers are generated with mutation
   /// accessors.
-  template<typename T> Offset<Vector<const T *>> CreateVectorOfStructs(
+  template<typename T>
+  Offset<Vector<const T *>> CreateVectorOfStructs(
       size_t vector_size, const std::function<void(size_t i, T *)> &filler) {
-    T* structs = StartVectorOfStructs<T>(vector_size);
+    T *structs = StartVectorOfStructs<T>(vector_size);
     for (size_t i = 0; i < vector_size; i++) {
       filler(i, structs);
       structs++;
