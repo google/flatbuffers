@@ -112,34 +112,31 @@ class BaseBfbsGenerator : public BfbsGenerator {
   }
 
   bool IsStructOrTable(const reflection::BaseType base_type) {
-    return base_type == reflection::BaseType::Obj;
+    return base_type == reflection::Obj;
   }
 
   bool IsScalar(const reflection::BaseType base_type) {
-    return base_type >= reflection::BaseType::UType &&
-           base_type <= reflection::BaseType::Double;
+    return base_type >= reflection::UType && base_type <= reflection::Double;
   }
 
   bool IsFloatingPoint(const reflection::BaseType base_type) {
-    return base_type == reflection::BaseType::Float ||
-           base_type == reflection::BaseType::Double;
+    return base_type == reflection::Float || base_type == reflection::Double;
   }
 
   bool IsBool(const reflection::BaseType base_type) {
-    return base_type == reflection::BaseType::Bool;
+    return base_type == reflection::Bool;
   }
 
   bool IsSingleByte(const reflection::BaseType base_type) {
-    return base_type >= reflection::BaseType::UType &&
-           base_type <= reflection::BaseType::UByte;
+    return base_type >= reflection::UType && base_type <= reflection::UByte;
   }
 
   bool IsVector(const reflection::BaseType base_type) {
-    return base_type == reflection::BaseType::Vector;
+    return base_type == reflection::Vector;
   }
 
   bool IsArray(const reflection::BaseType base_type) {
-    return base_type == reflection::BaseType::Array;
+    return base_type == reflection::Array;
   }
 
   std::string make_camel_case(const std::string &in,

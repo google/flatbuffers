@@ -314,7 +314,7 @@ class LuaBfbsGenerator : public BaseBfbsGenerator {
       append_line();
     } else {
       switch (base_type) {
-        case r::BaseType::String: {
+        case r::String: {
           append_line(getter_signature);
           {
             indent();
@@ -333,7 +333,7 @@ class LuaBfbsGenerator : public BaseBfbsGenerator {
           append_line();
           break;
         }
-        case r::BaseType::Obj: {
+        case r::Obj: {
           if (object_def->is_struct()) {
             append_line("function mt:" + field_name_camel_case + "(obj)");
             {
@@ -377,7 +377,7 @@ class LuaBfbsGenerator : public BaseBfbsGenerator {
           append_line();
           break;
         }
-        case r::BaseType::Union: {
+        case r::Union: {
           append_line(getter_signature);
           {
             indent();
@@ -400,8 +400,8 @@ class LuaBfbsGenerator : public BaseBfbsGenerator {
           append_line();
           break;
         }
-        case r::BaseType::Array:
-        case r::BaseType::Vector: {
+        case r::Array:
+        case r::Vector: {
           const r::BaseType vector_base_type = field_def->type()->element();
           int32_t element_size = field_def->type()->element_size();
           {
@@ -445,10 +445,9 @@ class LuaBfbsGenerator : public BaseBfbsGenerator {
               // Only generate a default value for those types that are
               // supported.
               if (!IsStructOrTable(vector_base_type)) {
-                append_line("return " +
-                            std::string(vector_base_type == r::BaseType::String
-                                            ? "''"
-                                            : "0"));
+                append_line(
+                    "return " +
+                    std::string(vector_base_type == r::String ? "''" : "0"));
               }
               dedent();
             }
@@ -580,9 +579,9 @@ class LuaBfbsGenerator : public BaseBfbsGenerator {
 
   std::string generate_getter(const r::Type *type, bool element_type = false) {
     switch (element_type ? type->element() : type->base_type()) {
-      case r::BaseType::String: return "self.view:String(";
-      case r::BaseType::Union: return "self.view:Union(";
-      case r::BaseType::Vector: return generate_getter(type, true);
+      case r::String: return "self.view:String(";
+      case r::Union: return "self.view:Union(";
+      case r::Vector: return generate_getter(type, true);
       default:
         return "self.view:Get(flatbuffers.N." +
                make_camel_case(generate_type(type, element_type)) + ", ";
@@ -594,9 +593,9 @@ class LuaBfbsGenerator : public BaseBfbsGenerator {
         element_type ? type->element() : type->base_type();
     if (IsScalar(base_type)) { return generate_type(base_type); }
     switch (base_type) {
-      case r::BaseType::String: return "string";
-      case r::BaseType::Vector: return generate_getter(type, true);
-      case r::BaseType::Obj: {
+      case r::String: return "string";
+      case r::Vector: return generate_getter(type, true);
+      case r::Obj: {
         const r::Object *obj = get_object(type);
         return normalize_name(denamespace(obj->name()));
       };
@@ -608,18 +607,18 @@ class LuaBfbsGenerator : public BaseBfbsGenerator {
     // Need to override the default naming to match the Lua runtime libraries.
     // TODO(derekbailey): make overloads in the runtime libraries to avoid this.
     switch (base_type) {
-      case r::BaseType::None: return "uint8";
-      case r::BaseType::UType: return "uint8";
-      case r::BaseType::Byte: return "int8";
-      case r::BaseType::UByte: return "uint8";
-      case r::BaseType::Short: return "int16";
-      case r::BaseType::UShort: return "uint16";
-      case r::BaseType::Int: return "int32";
-      case r::BaseType::UInt: return "uint32";
-      case r::BaseType::Long: return "int64";
-      case r::BaseType::ULong: return "uint64";
-      case r::BaseType::Float: return "Float32";
-      case r::BaseType::Double: return "Float64";
+      case r::None: return "uint8";
+      case r::UType: return "uint8";
+      case r::Byte: return "int8";
+      case r::UByte: return "uint8";
+      case r::Short: return "int16";
+      case r::UShort: return "uint16";
+      case r::Int: return "int32";
+      case r::UInt: return "uint32";
+      case r::Long: return "int64";
+      case r::ULong: return "uint64";
+      case r::Float: return "Float32";
+      case r::Double: return "Float64";
       default: return r::EnumNameBaseType(base_type);
     }
   }
