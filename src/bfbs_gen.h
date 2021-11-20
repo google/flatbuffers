@@ -36,10 +36,10 @@ class BaseBfbsGenerator : public BfbsGenerator {
   // Override of the Generator::generate method that does the initial
   // deserialization and verification steps.
   GeneratorStatus generate(const uint8_t *buffer,
-                           const int64_t length) override {
-    flatbuffers::Verifier verifier(buffer, length);
+                           const int64_t length)FLATBUFFERS_OVERRIDE {
+    flatbuffers::Verifier verifier(buffer, static_cast<size_t>(length));
     if (!reflection::VerifySchemaBuffer(verifier)) {
-      return GeneratorStatus::FAILED_VERIFICATION;
+      return FAILED_VERIFICATION;
     }
 
     // Store the root schema since there are cases where leaf nodes refer to

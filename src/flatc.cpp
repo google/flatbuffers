@@ -19,6 +19,7 @@
 #include <list>
 
 #include "bfbs_gen_lua.h"
+#include "flatbuffers/util.h"
 
 namespace flatbuffers {
 
@@ -552,7 +553,7 @@ int FlatCompiler::Compile(int argc, const char **argv) {
       GeneratorStatus status = lua_gen->generate(buffer, length);
       if (status != OK) {
         Error("Error generating new Lua. Error: " +
-              std::to_string(static_cast<int>(status)));
+              NumToString(static_cast<int>(status)));
       }
     }
 
