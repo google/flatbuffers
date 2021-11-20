@@ -179,12 +179,12 @@ struct Type FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
     return GetField<uint16_t>(VT_FIXED_LENGTH, 0);
   }
   /// The size (octets) of the `base_type` field.
-  uint8_t base_size() const {
-    return GetField<uint8_t>(VT_BASE_SIZE, 4);
+  uint32_t base_size() const {
+    return GetField<uint32_t>(VT_BASE_SIZE, 4);
   }
   /// The size (octets) of the `element` field, if present.
-  uint8_t element_size() const {
-    return GetField<uint8_t>(VT_ELEMENT_SIZE, 0);
+  uint32_t element_size() const {
+    return GetField<uint32_t>(VT_ELEMENT_SIZE, 0);
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
@@ -192,8 +192,8 @@ struct Type FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
            VerifyField<int8_t>(verifier, VT_ELEMENT) &&
            VerifyField<int32_t>(verifier, VT_INDEX) &&
            VerifyField<uint16_t>(verifier, VT_FIXED_LENGTH) &&
-           VerifyField<uint8_t>(verifier, VT_BASE_SIZE) &&
-           VerifyField<uint8_t>(verifier, VT_ELEMENT_SIZE) &&
+           VerifyField<uint32_t>(verifier, VT_BASE_SIZE) &&
+           VerifyField<uint32_t>(verifier, VT_ELEMENT_SIZE) &&
            verifier.EndTable();
   }
 };
@@ -214,11 +214,11 @@ struct TypeBuilder {
   void add_fixed_length(uint16_t fixed_length) {
     fbb_.AddElement<uint16_t>(Type::VT_FIXED_LENGTH, fixed_length, 0);
   }
-  void add_base_size(uint8_t base_size) {
-    fbb_.AddElement<uint8_t>(Type::VT_BASE_SIZE, base_size, 4);
+  void add_base_size(uint32_t base_size) {
+    fbb_.AddElement<uint32_t>(Type::VT_BASE_SIZE, base_size, 4);
   }
-  void add_element_size(uint8_t element_size) {
-    fbb_.AddElement<uint8_t>(Type::VT_ELEMENT_SIZE, element_size, 0);
+  void add_element_size(uint32_t element_size) {
+    fbb_.AddElement<uint32_t>(Type::VT_ELEMENT_SIZE, element_size, 0);
   }
   explicit TypeBuilder(flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
@@ -237,13 +237,13 @@ inline flatbuffers::Offset<Type> CreateType(
     reflection::BaseType element = reflection::None,
     int32_t index = -1,
     uint16_t fixed_length = 0,
-    uint8_t base_size = 4,
-    uint8_t element_size = 0) {
+    uint32_t base_size = 4,
+    uint32_t element_size = 0) {
   TypeBuilder builder_(_fbb);
-  builder_.add_index(index);
-  builder_.add_fixed_length(fixed_length);
   builder_.add_element_size(element_size);
   builder_.add_base_size(base_size);
+  builder_.add_index(index);
+  builder_.add_fixed_length(fixed_length);
   builder_.add_element(element);
   builder_.add_base_type(base_type);
   return builder_.Finish();

@@ -39,9 +39,9 @@ table Type {
                      // from an enum, index into "enums" below.
     fixed_length:uint16 = 0;  // Only if base_type == Array.
     /// The size (octets) of the `base_type` field.
-    base_size:uint8 = 4; // 4 Is a common size due to offsets being that size.
+    base_size:uint = 4; // 4 Is a common size due to offsets being that size.
     /// The size (octets) of the `element` field, if present.
-    element_size:uint8 = 0;
+    element_size:uint = 0;
 }
 
 table KeyValue {
