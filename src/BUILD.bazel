@@ -34,6 +34,9 @@ cc_library(
 cc_library(
     name = "flatc_library",
     srcs = [
+        "bfbs_gen.h",
+        "bfbs_gen_lua.cpp",
+        "bfbs_gen_lua.h",
         "flatc.cpp",
     ],
     hdrs = [
@@ -50,6 +53,9 @@ cc_library(
 cc_library(
     name = "flatc",
     srcs = [
+        "bfbs_gen.h",
+        "bfbs_gen_lua.cpp",
+        "bfbs_gen_lua.h",
         "flatc_main.cpp",
         "idl_gen_cpp.cpp",
         "idl_gen_csharp.cpp",
