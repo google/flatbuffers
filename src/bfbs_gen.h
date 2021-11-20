@@ -37,7 +37,7 @@ class BaseBfbsGenerator : public BfbsGenerator {
   // Override of the Generator::generate method that does the initial
   // deserialization and verification steps.
   GeneratorStatus generate(const uint8_t *buffer,
-                           const int64_t length) FLATBUFFERS_OVERRIDE {
+                           int64_t length) FLATBUFFERS_OVERRIDE {
     flatbuffers::Verifier verifier(buffer, static_cast<size_t>(length));
     if (!reflection::VerifySchemaBuffer(verifier)) {
       return FAILED_VERIFICATION;

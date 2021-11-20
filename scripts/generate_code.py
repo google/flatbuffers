@@ -135,7 +135,7 @@ flatc(
 )
 
 flatc(
-    ["--lua-new", "--bfbs-filenames", str(tests_path)],
+    ["--lua", "--bfbs-filenames", str(tests_path)],
     schema="monster_test.fbs",
     include="include_test"    
 )

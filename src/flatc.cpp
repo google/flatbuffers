@@ -16,6 +16,9 @@
 
 #include "flatbuffers/flatc.h"
 
+#include <bits/stdint-intn.h>
+#include <bits/stdint-uintn.h>
+
 #include <list>
 
 #include "bfbs_gen_lua.h"
@@ -208,8 +211,7 @@ int FlatCompiler::Compile(int argc, const char **argv) {
   bool raw_binary = false;
   bool schema_binary = false;
   bool grpc_enabled = false;
-  // TODO(derekbailey): do this in a better way
-  bool new_lua_generator = false;
+  bool requires_bfbs = false;
   std::vector<std::string> filenames;
   std::list<std::string> include_directories_storage;
   std::vector<const char *> include_directories;
@@ -403,23 +405,21 @@ int FlatCompiler::Compile(int argc, const char **argv) {
       } else if (arg == "--cs-global-alias") {
         opts.cs_global_alias = true;
       } else {
-        if (arg == "--lua-new") {
-          new_lua_generator = true;
-          any_generator = true;
-          opts.binary_schema_comments = true;
-        } else {
-          for (size_t i = 0; i < params_.num_generators; ++i) {
-            if (arg == params_.generators[i].generator_opt_long ||
-                (params_.generators[i].generator_opt_short &&
-                 arg == params_.generators[i].generator_opt_short)) {
-              generator_enabled[i] = true;
-              any_generator = true;
-              opts.lang_to_generate |= params_.generators[i].lang;
-              goto found;
+        for (size_t i = 0; i < params_.num_generators; ++i) {
+          if (arg == params_.generators[i].generator_opt_long ||
+              (params_.generators[i].generator_opt_short &&
+               arg == params_.generators[i].generator_opt_short)) {
+            generator_enabled[i] = true;
+            any_generator = true;
+            opts.lang_to_generate |= params_.generators[i].lang;
+            if (params_.generators[i].bfbs_generator) {
+              opts.binary_schema_comments = true;
+              requires_bfbs = true;
             }
+            goto found;
           }
-          Error("unknown commandline argument: " + arg, true);
         }
+        Error("unknown commandline argument: " + arg, true);
 
       found:;
       }
@@ -543,30 +543,39 @@ int FlatCompiler::Compile(int argc, const char **argv) {
     std::string filebase =
         flatbuffers::StripPath(flatbuffers::StripExtension(filename));
 
-    if (new_lua_generator) {
-      std::unique_ptr<flatbuffers::BfbsGenerator> lua_gen =
-          NewLuaBfbsGenerator(std::string(FLATC_VERSION()));
-
+    // If one of the generators uses bfbs, serialize the parser and get
+    // the serialized buffer and length.
+    const uint8_t *bfbs_buffer = nullptr;
+    int64_t bfbs_length = 0;
+    if (requires_bfbs) {
       parser->Serialize();
-      const uint8_t *buffer = parser->builder_.GetBufferPointer();
-      const int64_t length = parser->builder_.GetSize();
-      GeneratorStatus status = lua_gen->generate(buffer, length);
-      if (status != OK) {
-        Error("Error generating new Lua. Error: " +
-              NumToString(static_cast<int>(status)));
-      }
+      bfbs_buffer = parser->builder_.GetBufferPointer();
+      bfbs_length = parser->builder_.GetSize();
     }
 
     for (size_t i = 0; i < params_.num_generators; ++i) {
       if (generator_enabled[i]) {
         if (!print_make_rules) {
           flatbuffers::EnsureDirExists(output_path);
-          if ((!params_.generators[i].schema_only ||
-               (is_schema || is_binary_schema)) &&
-              !params_.generators[i].generate(*parser.get(), output_path,
-                                              filebase)) {
-            Error(std::string("Unable to generate ") +
-                  params_.generators[i].lang_name + " for " + filebase);
+
+          // Prefer bfbs generators if present.
+          if (params_.generators[i].bfbs_generator) {
+            const GeneratorStatus status =
+                params_.generators[i].bfbs_generator->generate(bfbs_buffer,
+                                                               bfbs_length);
+            if (status != OK) {
+              Error(std::string("Unable to generate ") +
+                    params_.generators[i].lang_name + " for " + filebase +
+                    " using bfbs generator.");
+            }
+          } else {
+            if ((!params_.generators[i].schema_only ||
+                 (is_schema || is_binary_schema)) &&
+                !params_.generators[i].generate(*parser.get(), output_path,
+                                                filebase)) {
+              Error(std::string("Unable to generate ") +
+                    params_.generators[i].lang_name + " for " + filebase);
+            }
           }
         } else {
           if (params_.generators[i].make_rule == nullptr) {
