@@ -17,8 +17,6 @@
 #ifndef FLATBUFFERS_BFBS_GEN_H_
 #define FLATBUFFERS_BFBS_GEN_H_
 
-#include <bits/stdint-uintn.h>
-
 #include <cstdint>
 
 #include "flatbuffers/bfbs_generator.h"
