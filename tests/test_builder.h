@@ -61,8 +61,10 @@ void builder_move_assign_after_releaseraw_test(Builder b1) {
   auto root_offset1 = populate1(b1);
   b1.Finish(root_offset1);
   size_t size, offset;
+
+  uint8_t *rr = b1.ReleaseRaw(size, offset);
   std::shared_ptr<uint8_t> raw(
-      b1.ReleaseRaw(size, offset), [size](uint8_t *ptr) {
+      rr, [size](uint8_t *ptr) {
         flatbuffers::DefaultAllocator::dealloc(ptr, size);
       });
   Builder src;
