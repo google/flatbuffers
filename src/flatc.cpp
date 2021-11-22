@@ -558,7 +558,7 @@ int FlatCompiler::Compile(int argc, const char **argv) {
           // Prefer bfbs generators if present.
           if (params_.generators[i].bfbs_generator) {
             const GeneratorStatus status =
-                params_.generators[i].bfbs_generator->generate(bfbs_buffer,
+                params_.generators[i].bfbs_generator->Generate(bfbs_buffer,
                                                                bfbs_length);
             if (status != OK) {
               Error(std::string("Unable to generate ") +

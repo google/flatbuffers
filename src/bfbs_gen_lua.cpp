@@ -57,13 +57,17 @@ class LuaBfbsGenerator : public BaseBfbsGenerator {
     keywords_.insert(std::begin(keywords), std::end(keywords));
   }
 
-  GeneratorStatus generate_from_schema(const r::Schema *schema)
+  GeneratorStatus GenerateFromSchema(const r::Schema *schema)
       FLATBUFFERS_OVERRIDE {
     if (!generate_enums(schema->enums())) { return FAILED; }
     if (!generate_objects(schema->objects(), schema->root_table())) {
       return FAILED;
     }
     return OK;
+  }
+
+  uint64_t SupportedAdvancedFeatures() const FLATBUFFERS_OVERRIDE {
+    return 0xf;
   }
 
  protected:
@@ -155,7 +159,7 @@ class LuaBfbsGenerator : public BaseBfbsGenerator {
 
     // TODO(derekbailey): The reflection IR sorts by field.name instead of
     // field.id. For now we create a mapping to "sort" by id instead.
-    const std::vector<uint32_t> field_to_id_map = map_by_field_id(object_def);
+    const std::vector<uint32_t> field_to_id_map = FieldIdToIndex(object_def);
     for (size_t i = 0; i < field_to_id_map.size(); ++i) {
       generate_object_field(object_def,
                             object_def->fields()->Get(field_to_id_map[i]));
@@ -192,14 +196,13 @@ class LuaBfbsGenerator : public BaseBfbsGenerator {
         const std::string field_name = normalize_name(field->name());
 
         append_line("function " + object_name + ".Add" +
-                    make_camel_case(field_name) + "(builder, " +
-                    make_camel_case(field_name, false) + ")");
+                    MakeCamelCase(field_name) + "(builder, " +
+                    MakeCamelCase(field_name, false) + ")");
         {
           indent();
           append_line("builder:Prepend" + generate_method(field) + "Slot(" +
-                      NumToString(i) + ", " +
-                      make_camel_case(field_name, false) + ", " +
-                      default_value(field) + ")");
+                      NumToString(i) + ", " + MakeCamelCase(field_name, false) +
+                      ", " + default_value(field) + ")");
           dedent();
         }
         append_line("end");
@@ -207,15 +210,13 @@ class LuaBfbsGenerator : public BaseBfbsGenerator {
 
         if (IsVector(field->type()->base_type())) {
           append_line("function " + object_name + ".Start" +
-                      make_camel_case(field_name) +
-                      "Vector(builder, numElems)");
+                      MakeCamelCase(field_name) + "Vector(builder, numElems)");
           {
             indent();
             const int32_t element_size = field->type()->element_size();
             int32_t alignment = 0;
             if (IsStruct(field->type(), /*use_element=*/true)) {
-              alignment =
-                  get_object_by_index(field->type()->index())->minalign();
+              alignment = GetObjectByIndex(field->type()->index())->minalign();
             } else {
               alignment = element_size;
             }
@@ -272,7 +273,7 @@ class LuaBfbsGenerator : public BaseBfbsGenerator {
     if (field_def->deprecated()) { return true; }
 
     const std::string field_name = normalize_name(field_def->name());
-    const std::string field_name_camel_case = make_camel_case(field_name);
+    const std::string field_name_camel_case = MakeCamelCase(field_name);
     const r::BaseType base_type = field_def->type()->base_type();
 
     // Generate some fixed strings so we don't repeat outselves later.
@@ -352,7 +353,7 @@ class LuaBfbsGenerator : public BaseBfbsGenerator {
               {
                 indent();
 
-                const r::Object *field_object = get_object(field_def->type());
+                const r::Object *field_object = GetObject(field_def->type());
                 if (!field_object) {
                   // TODO(derekbailey): this is an error condition. we should
                   // report it better.
@@ -422,7 +423,7 @@ class LuaBfbsGenerator : public BaseBfbsGenerator {
                     // Vector of structs are inline, so we need to query the
                     // size of the struct.
                     const reflection::Object *obj =
-                        get_object_by_index(field_def->type()->index());
+                        GetObjectByIndex(field_def->type()->index());
                     element_size = obj->bytesize();
                   }
 
@@ -522,18 +523,18 @@ class LuaBfbsGenerator : public BaseBfbsGenerator {
                                            std::string prefix = "") {
     // Structs need to be order by field.id, but the IR orders them by
     // field.name. So we first have to sort by field.id.
-    const std::vector<uint32_t> field_to_id_map = map_by_field_id(object);
+    const std::vector<uint32_t> field_to_id_map = FieldIdToIndex(object);
 
     std::string signature;
     for (size_t i = 0; i < field_to_id_map.size(); ++i) {
       auto field = object->fields()->Get(field_to_id_map[i]);
       if (IsStructOrTable(field->type()->base_type())) {
-        const r::Object *field_object = get_object(field->type());
+        const r::Object *field_object = GetObject(field->type());
         signature += generate_struct_builder_args(
             field_object, prefix + normalize_name(field->name()) + "_");
       } else {
-        signature += ", " + prefix +
-                     make_camel_case(normalize_name(field->name()), false);
+        signature +=
+            ", " + prefix + MakeCamelCase(normalize_name(field->name()), false);
       }
     }
     return signature;
@@ -543,7 +544,7 @@ class LuaBfbsGenerator : public BaseBfbsGenerator {
                                   std::string prefix = "") {
     // Structs need to be order by field.id, but the IR orders them by
     // field.name. So we first have to sort by field.id.
-    const std::vector<uint32_t> field_to_id_map = map_by_field_id(object);
+    const std::vector<uint32_t> field_to_id_map = FieldIdToIndex(object);
 
     append_line("builder:Prep(" + NumToString(object->minalign()) + ", " +
                 NumToString(object->bytesize()) + ")");
@@ -557,22 +558,19 @@ class LuaBfbsGenerator : public BaseBfbsGenerator {
         append_line("builder:Pad(" + NumToString(num_padding_bytes) + ")");
       }
       if (IsStructOrTable(field->type()->base_type())) {
-        const r::Object *field_object = get_object(field->type());
+        const r::Object *field_object = GetObject(field->type());
         append_struct_builder_body(
             field_object, prefix + normalize_name(field->name()) + "_");
       } else {
         append_line("builder:Prepend" + generate_method(field) + "(" + prefix +
-                    make_camel_case(normalize_name(field->name()), false) +
-                    ")");
+                    MakeCamelCase(normalize_name(field->name()), false) + ")");
       }
     }
   }
 
   std::string generate_method(const r::Field *field) {
     const r::BaseType base_type = field->type()->base_type();
-    if (IsScalar(base_type)) {
-      return make_camel_case(generate_type(base_type));
-    }
+    if (IsScalar(base_type)) { return MakeCamelCase(generate_type(base_type)); }
     if (IsStructOrTable(base_type)) { return "Struct"; }
     return "UOffsetTRelative";
   }
@@ -584,7 +582,7 @@ class LuaBfbsGenerator : public BaseBfbsGenerator {
       case r::Vector: return generate_getter(type, true);
       default:
         return "self.view:Get(flatbuffers.N." +
-               make_camel_case(generate_type(type, element_type)) + ", ";
+               MakeCamelCase(generate_type(type, element_type)) + ", ";
     }
   }
 
@@ -596,7 +594,7 @@ class LuaBfbsGenerator : public BaseBfbsGenerator {
       case r::String: return "string";
       case r::Vector: return generate_getter(type, true);
       case r::Obj: {
-        const r::Object *obj = get_object(type);
+        const r::Object *obj = GetObject(type);
         return normalize_name(denamespace(obj->name()));
       };
       default: return "*flatbuffers.Table";
@@ -694,11 +692,11 @@ class LuaBfbsGenerator : public BaseBfbsGenerator {
         use_element ? field->type()->element() : field->type()->base_type();
 
     if (IsStructOrTable(type)) {
-      const r::Object *object = get_object_by_index(field->type()->index());
+      const r::Object *object = GetObjectByIndex(field->type()->index());
       if (object == current_obj_) { return denamespace(object->name()); }
       type_name = object->name()->str();
     } else {
-      const r::Enum *enum_def = get_enum_by_index(field->type()->index());
+      const r::Enum *enum_def = GetEnumByIndex(field->type()->index());
       if (enum_def == current_enum_) { return denamespace(enum_def->name()); }
       type_name = enum_def->name()->str();
     }

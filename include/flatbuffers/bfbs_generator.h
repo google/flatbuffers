@@ -35,7 +35,7 @@ class BfbsGenerator {
 
   // Generate code from the provided `buffer` of given `length`. The buffer is
   // a serialized reflection.fbs.
-  virtual GeneratorStatus generate(const uint8_t *buffer, int64_t length) = 0;
+  virtual GeneratorStatus Generate(const uint8_t *buffer, int64_t length) = 0;
 };
 
 }  // namespace flatbuffers
