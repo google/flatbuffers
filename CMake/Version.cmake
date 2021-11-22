@@ -6,7 +6,7 @@ set(VERSION_COMMIT 0)
 find_program(GIT git)
 if(GIT)
   execute_process(
-      COMMAND ${GIT} describe
+      COMMAND ${GIT} describe --tags
       WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
       OUTPUT_VARIABLE GIT_DESCRIBE_DIRTY
       OUTPUT_STRIP_TRAILING_WHITESPACE
