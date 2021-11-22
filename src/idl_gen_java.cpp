@@ -85,6 +85,7 @@ class JavaGenerator : public BaseGenerator {
                 }
                 word += s[i];
               }
+              specific_attributes_name_space_->components.push_back(word);
               final_name_space_ = specific_attributes_name_space_; 
             } 
             if (!SaveType(MakeCamel(attr_name, true), *final_name_space_, attrcode,
