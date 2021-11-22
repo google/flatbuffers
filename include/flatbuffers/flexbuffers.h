@@ -851,6 +851,7 @@ inline Reference Map::operator[](const char *key) const {
     case 2: comp = KeyCompare<uint16_t>; break;
     case 4: comp = KeyCompare<uint32_t>; break;
     case 8: comp = KeyCompare<uint64_t>; break;
+    default: FLATBUFFERS_ASSERT(false); return Reference();
   }
   auto res = std::bsearch(key, keys.data_, keys.size(), keys.byte_width_, comp);
   if (!res) return Reference(nullptr, 1, NullPackedType());
