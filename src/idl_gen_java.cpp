@@ -20,7 +20,6 @@
 #include "flatbuffers/flatbuffers.h"
 #include "flatbuffers/idl.h"
 #include "flatbuffers/util.h"
-#include <iostream>
 
 #if defined(FLATBUFFERS_CPP98_STL)
 #  include <cctype>
@@ -72,8 +71,9 @@ class JavaGenerator : public BaseGenerator {
             one_file_code += attrcode;
           } else {
             //if attribute has java_package change attributes_name space (use delete and new)
-            if(attributes_to_their_attributes_.count(attr_name)>0){
-              Namespace* specific_attributes_name_space_ = new Namespace();
+            Namespace* specific_attributes_name_space_ = new Namespace();
+            if(attributes_to_their_attributes_.count(attr_name)>0 && 
+              (attributes_to_their_attributes_[attr_name]).first == "java_package"){ 
               std::string s = (attributes_to_their_attributes_[attr_name]).second;
               int len = s.length();
               std::string word =""; 
@@ -89,11 +89,16 @@ class JavaGenerator : public BaseGenerator {
               final_name_space_ = specific_attributes_name_space_; 
             } 
             if (!SaveType(MakeCamel(attr_name, true), *final_name_space_, attrcode,
-                          /* needs_includes= */ false))
-              return false;
+                          /* needs_includes= */ false)){
+                            delete specific_attributes_name_space_;
+                            delete attributes_name_space_;
+                            return false;
+                          }
+            delete specific_attributes_name_space_;
           }
         }
       }
+      delete attributes_name_space_;
     }
 
     for (auto it = parser_.enums_.vec.begin(); it != parser_.enums_.vec.end();
@@ -2072,6 +2077,23 @@ class JavaGenerator : public BaseGenerator {
                            const IDLOptions &opts) const {
     if (struct_def.generated) return;
     auto &code = *code_ptr;
+    
+    for (auto attr_it=struct_def.attributes.dict.begin(); attr_it != struct_def.attributes.dict.end(); ++attr_it) {
+        auto attr = attr_it->first;
+        auto &attr_value = *attr_it->second;
+        auto found_attr = parser_.known_attributes_.find(attr);
+        //some how the second value of user defined attributes has been changed to false
+        if (found_attr != parser_.known_attributes_.end() && !found_attr->second) {
+          code += "@" + MakeCamel(attr, true);
+          if ("0" != attr_value.constant) {
+            code += "(\"" + attr_value.constant + "\")";
+          }
+          code += "\n";
+        }
+        /*if field has inner attribute jvav package than chnage the annotation file to it 
+        */
+      }
+
     if (struct_def.attributes.Lookup("private")) {
       // For Java, we leave the enum unmarked to indicate package-private
     } else {
@@ -2104,7 +2126,6 @@ class JavaGenerator : public BaseGenerator {
             code += "(\"" + attr_value.constant + "\")";
           }
           code += "\n";
-          //TODO: if has second attribute than change java package value
         }
         /*if field has inner attribute jvav package than chnage the annotation file to it 
         */
