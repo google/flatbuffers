@@ -54,6 +54,9 @@ option(FLATBUFFERS_ENABLE_PCH
         Only work if CMake supports 'target_precompile_headers'. \"
         This can speed up compilation time."
        OFF)
+option(FLATBUFFERS_SKIP_MONSTER_EXTRA 
+      "Skip generating monster_extra.fbs that contains non-supported numerical\"
+      types." OFF)
 
 if(NOT FLATBUFFERS_BUILD_FLATC AND FLATBUFFERS_BUILD_TESTS)
     message(WARNING
@@ -517,7 +520,10 @@ if(PYTHONINTERP_FOUND)
   endif()
   if(FLATBUFFERS_BUILD_LEGACY)
     # Need to set --cpp-std c++-0x options
-    set(GENERATION_SCRIPT "${GENERATION_SCRIPT}" --cpp-0x)
+    set(GENERATION_SCRIPT ${GENERATION_SCRIPT} --cpp-0x)
+  endif()
+  if(FLATBUFFERS_SKIP_MONSTER_EXTRA)
+    set(GENERATION_SCRIPT ${GENERATION_SCRIPT} --skip-monster-extra)
   endif()
   add_custom_command(
     TARGET flatc
