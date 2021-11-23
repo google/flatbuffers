@@ -38,6 +38,7 @@ class vector_downward {
         initial_size_(initial_size),
         buffer_minalign_(buffer_minalign),
         reserved_(0),
+        size_(0),
         buf_(nullptr),
         cur_(nullptr),
         scratch_(nullptr) {}
@@ -49,6 +50,7 @@ class vector_downward {
         initial_size_(other.initial_size_),
         buffer_minalign_(other.buffer_minalign_),
         reserved_(other.reserved_),
+        size_(other.size_),
         buf_(other.buf_),
         cur_(other.cur_),
         scratch_(other.scratch_) {
@@ -86,6 +88,7 @@ class vector_downward {
       reserved_ = 0;
       cur_ = nullptr;
     }
+    size_ = 0;
     clear_scratch();
   }
 
@@ -139,17 +142,18 @@ class vector_downward {
   }
 
   inline uint8_t *make_space(size_t len) {
-    size_t space = ensure_space(len);
-    cur_ -= space;
+    if (len) {
+      ensure_space(len);
+      cur_ -= len;
+      size_ += static_cast<uoffset_t>(len);
+    }
     return cur_;
   }
 
   // Returns nullptr if using the DefaultAllocator.
   Allocator *get_custom_allocator() { return allocator_; }
 
-  uoffset_t size() const {
-    return static_cast<uoffset_t>(reserved_ - static_cast<size_t>(cur_ - buf_));
-  }
+  inline uoffset_t size() const { return size_; }
 
   uoffset_t scratch_size() const {
     return static_cast<uoffset_t>(scratch_ - buf_);
@@ -203,7 +207,11 @@ class vector_downward {
     memset(make_space(zero_pad_bytes), 0, zero_pad_bytes);
   }
 
-  void pop(size_t bytes_to_remove) { cur_ += bytes_to_remove; }
+  void pop(size_t bytes_to_remove) {
+    cur_ += bytes_to_remove;
+    size_ -= static_cast<uoffset_t>(bytes_to_remove);
+  }
+
   void scratch_pop(size_t bytes_to_remove) { scratch_ -= bytes_to_remove; }
 
   void swap(vector_downward &other) {
@@ -213,6 +221,7 @@ class vector_downward {
     swap(initial_size_, other.initial_size_);
     swap(buffer_minalign_, other.buffer_minalign_);
     swap(reserved_, other.reserved_);
+    swap(size_, other.size_);
     swap(buf_, other.buf_);
     swap(cur_, other.cur_);
     swap(scratch_, other.scratch_);
@@ -234,6 +243,7 @@ class vector_downward {
   size_t initial_size_;
   size_t buffer_minalign_;
   size_t reserved_;
+  uoffset_t size_;
   uint8_t *buf_;
   uint8_t *cur_;  // Points at location between empty (below) and used (above).
   uint8_t *scratch_;  // Points to the end of the scratchpad in use.
