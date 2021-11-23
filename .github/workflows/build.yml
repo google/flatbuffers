@@ -123,6 +123,7 @@ jobs:
       run: CXX=${{ matrix.cxx }} cmake -G "Unix Makefiles" -DFLATBUFFERS_BUILD_TESTS=OFF -DCMAKE_BUILD_TYPE=Release . && make -j4
     - name: Generate
       run: scripts/check_generate_code.py
+    - name: Generate gRPC
       run: bash scripts/check-grpc-generated-code.sh
 
   build-benchmarks:

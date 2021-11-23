@@ -11,12 +11,13 @@ environment:
     CONDA_INSTALL_LOCN: "C:\\Miniconda35-x64"
     CMAKE_OPTIONS: ""
     CPP_TEST_OPTIONS: ""
+    CHECK_GEN_CODE: 1
 
   matrix:
     - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
       CMAKE_VS_VERSION: "10 2010"
       CMAKE_OPTIONS: "-DFLATBUFFERS_BUILD_LEGACY=1 -DFLATBUFFERS_SKIP_MONSTER_EXTRA=ON"
-      CPP_TEST_OPTIONS: "--cpp-0x --skip-monster-extra"
+      CHECK_GEN_CODE: 0
 
     - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
       CMAKE_VS_VERSION: "12 2013"
@@ -52,7 +53,7 @@ install:
   - ps: Install-Product node $env:nodejs_version
 
 test_script:
-  - call py scripts/check_generate_code.py "%CPP_TEST_OPTIONS%"
+  - if [%CHECK_GEN_CODE%]==[1] (call py scripts/check_generate_code.py "%CPP_TEST_OPTIONS%")
   - "cd tests"
   - 7z a GeneratedMyGameCode.zip MyGame\
   - rem "---------------- C++ -----------------"
