@@ -1,6 +1,11 @@
 cmake_minimum_required(VERSION 3.14)
 include(FetchContent)
 
+IF(MSVC)
+    # Skip treating warnings as errors for depenedncies
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /WX-")
+ENDIF()
+
 # No particular reason for the specific GIT_TAGs for the following repos, they
 # were just the latest releases when this was added.
 FetchContent_Declare(
