@@ -285,20 +285,20 @@ class FlatBufferBuilder {
     FieldLoc fl = { off, field };
     buf_.scratch_push_small(fl);
     num_field_loc++;
-    max_voffset_ = (std::max)(max_voffset_, field);
+    if (field > max_voffset_) {
+      max_voffset_ = field;
+    }
   }
 
   // Like PushElement, but additionally tracks the field this represents.
   template<typename T> void AddElement(voffset_t field, T e, T def) {
     // We don't serialize values equal to the default.
     if (IsTheSameAs(e, def) && !force_defaults_) return;
-    auto off = PushElement(e);
-    TrackField(field, off);
+    TrackField(field, PushElement(e));
   }
 
   template<typename T> void AddElement(voffset_t field, T e) {
-    auto off = PushElement(e);
-    TrackField(field, off);
+    TrackField(field, PushElement(e));
   }
 
   template<typename T> void AddOffset(voffset_t field, Offset<T> off) {
@@ -324,8 +324,9 @@ class FlatBufferBuilder {
     // Align to ensure GetSize() below is correct.
     Align(sizeof(uoffset_t));
     // Offset must refer to something already in buffer.
-    FLATBUFFERS_ASSERT(off && off <= GetSize());
-    return GetSize() - off + static_cast<uoffset_t>(sizeof(uoffset_t));
+    const uoffset_t size = GetSize();
+    FLATBUFFERS_ASSERT(off && off <= size);
+    return size - off + static_cast<uoffset_t>(sizeof(uoffset_t));
   }
 
   void NotNested() {
