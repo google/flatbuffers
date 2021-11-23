@@ -160,14 +160,14 @@ class BaseBfbsGenerator : public BfbsGenerator {
   }
 
  protected:
-  const reflection::Object *GetObject(const reflection::Type *type) {
+  const reflection::Object *GetObject(const reflection::Type *type) const {
     if (type->index() >= 0 && IsStructOrTable(type->base_type())) {
       return GetObjectByIndex(type->index());
     }
     return nullptr;
   }
 
-  const reflection::Enum *GetEnum(const reflection::Type *type) {
+  const reflection::Enum *GetEnum(const reflection::Type *type) const {
     // TODO(derekbailey): it would be better to have a explicit list of allowed
     // base types, instead of negating Obj types.
     if (type->index() >= 0 && !IsStructOrTable(type->base_type())) {
@@ -178,7 +178,7 @@ class BaseBfbsGenerator : public BfbsGenerator {
 
   // Used to get a object that is reference by index. (e.g.
   // reflection::Type::index). Returns nullptr if no object is available.
-  const reflection::Object *GetObjectByIndex(int32_t index) {
+  const reflection::Object *GetObjectByIndex(int32_t index) const {
     if (!schema_ || index < 0 ||
         index >= static_cast<int32_t>(schema_->objects()->size())) {
       return nullptr;
@@ -188,7 +188,7 @@ class BaseBfbsGenerator : public BfbsGenerator {
 
   // Used to get a enum that is reference by index. (e.g.
   // reflection::Type::index). Returns nullptr if no enum is available.
-  const reflection::Enum *GetEnumByIndex(int32_t index) {
+  const reflection::Enum *GetEnumByIndex(int32_t index) const {
     if (!schema_ || index < 0 ||
         index >= static_cast<int32_t>(schema_->enums()->size())) {
       return nullptr;
@@ -198,7 +198,7 @@ class BaseBfbsGenerator : public BfbsGenerator {
 
   void ForAllFields(const reflection::Object *object,
                     std::function<void(const reflection::Field *)> func,
-                    bool backwards = false) {
+                    bool backwards = false) const {
     const std::vector<uint32_t> field_to_id_map = FieldIdToIndex(object);
     for (size_t i = 0; i < field_to_id_map.size(); ++i) {
       func(object->fields()->Get(
@@ -206,11 +206,11 @@ class BaseBfbsGenerator : public BfbsGenerator {
     }
   }
 
-  bool IsTable(const reflection::Type *type, bool use_element = false) {
+  bool IsTable(const reflection::Type *type, bool use_element = false) const {
     return !IsStruct(type, use_element);
   }
 
-  bool IsStruct(const reflection::Type *type, bool use_element = false) {
+  bool IsStruct(const reflection::Type *type, bool use_element = false) const {
     const reflection::BaseType base_type =
         use_element ? type->element() : type->base_type();
     return IsStructOrTable(base_type) &&

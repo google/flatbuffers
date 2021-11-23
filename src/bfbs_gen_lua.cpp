@@ -78,12 +78,12 @@ class LuaBfbsGenerator : public BaseBfbsGenerator {
       const std::string enum_name =
           NormalizeName(Denamespace(enum_def->name(), ns));
 
-      ForAllDocumentation(enum_def->documentation(), "", code);
+      GenerateDocumentation(enum_def->documentation(), "", code);
       code += "local " + enum_name + " = {\n";
 
       ForAllEnumValues(
           enum_def, [&code, this](const reflection::EnumVal *enum_val) {
-            ForAllDocumentation(enum_val->documentation(), "  ", code);
+            GenerateDocumentation(enum_val->documentation(), "  ", code);
             code += "  " + NormalizeName(enum_val->name()) + " = " +
                     NumToString(enum_val->value()) + ",\n";
           });
@@ -110,7 +110,7 @@ class LuaBfbsGenerator : public BaseBfbsGenerator {
       const std::string object_name =
           NormalizeName(Denamespace(object->name(), ns));
 
-      ForAllDocumentation(object->documentation(), "", code);
+      GenerateDocumentation(object->documentation(), "", code);
 
       code += "local " + object_name + " = {}\n";
       code += "local mt = {}\n";
@@ -161,7 +161,7 @@ class LuaBfbsGenerator : public BaseBfbsGenerator {
                                           NumToString(field->offset()) + ")\n";
         const std::string offset_prefix_2 = "if o ~= 0 then\n";
 
-        ForAllDocumentation(field->documentation(), "", code);
+        GenerateDocumentation(field->documentation(), "", code);
 
         if (IsScalar(base_type)) {
           code += getter_signature;
@@ -388,10 +388,10 @@ class LuaBfbsGenerator : public BaseBfbsGenerator {
   }
 
  private:
-  void ForAllDocumentation(
+  void GenerateDocumentation(
       const flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>>
           *documentation,
-      std::string indent, std::string &code) {
+      std::string indent, std::string &code) const {
     flatbuffers::ForAllDocumentation(
         documentation, [&indent, &code](const flatbuffers::String *str) {
           code += indent + "--" + str->str() + "\n";
@@ -399,7 +399,7 @@ class LuaBfbsGenerator : public BaseBfbsGenerator {
   }
 
   std::string GenerateStructBuilderArgs(const r::Object *object,
-                                        std::string prefix = "") {
+                                        std::string prefix = "") const {
     std::string signature;
     ForAllFields(object, [this, &signature, &prefix](const r::Field *field) {
       if (IsStructOrTable(field->type()->base_type())) {
@@ -415,7 +415,7 @@ class LuaBfbsGenerator : public BaseBfbsGenerator {
   }
 
   std::string AppendStructBuilderBody(const r::Object *object,
-                                      std::string prefix = "") {
+                                      std::string prefix = "") const {
     std::string code;
     code += "  builder:Prep(" + NumToString(object->minalign()) + ", " +
             NumToString(object->bytesize()) + ")\n";
@@ -443,14 +443,15 @@ class LuaBfbsGenerator : public BaseBfbsGenerator {
     return code;
   }
 
-  std::string GenerateMethod(const r::Field *field) {
+  std::string GenerateMethod(const r::Field *field) const {
     const r::BaseType base_type = field->type()->base_type();
     if (IsScalar(base_type)) { return MakeCamelCase(GenerateType(base_type)); }
     if (IsStructOrTable(base_type)) { return "Struct"; }
     return "UOffsetTRelative";
   }
 
-  std::string GenerateGetter(const r::Type *type, bool element_type = false) {
+  std::string GenerateGetter(const r::Type *type,
+                             bool element_type = false) const {
     switch (element_type ? type->element() : type->base_type()) {
       case r::String: return "self.view:String(";
       case r::Union: return "self.view:Union(";
@@ -461,7 +462,8 @@ class LuaBfbsGenerator : public BaseBfbsGenerator {
     }
   }
 
-  std::string GenerateType(const r::Type *type, bool element_type = false) {
+  std::string GenerateType(const r::Type *type,
+                           bool element_type = false) const {
     const r::BaseType base_type =
         element_type ? type->element() : type->base_type();
     if (IsScalar(base_type)) { return GenerateType(base_type); }
@@ -476,7 +478,7 @@ class LuaBfbsGenerator : public BaseBfbsGenerator {
     }
   }
 
-  std::string GenerateType(const r::BaseType base_type) {
+  std::string GenerateType(const r::BaseType base_type) const {
     // Need to override the default naming to match the Lua runtime libraries.
     // TODO(derekbailey): make overloads in the runtime libraries to avoid this.
     switch (base_type) {
@@ -496,7 +498,7 @@ class LuaBfbsGenerator : public BaseBfbsGenerator {
     }
   }
 
-  std::string DefaultValue(const r::Field *field) {
+  std::string DefaultValue(const r::Field *field) const {
     const r::BaseType base_type = field->type()->base_type();
     if (IsFloatingPoint(base_type)) {
       return NumToString(field->default_real());
@@ -562,7 +564,8 @@ class LuaBfbsGenerator : public BaseBfbsGenerator {
   }
 
   void EmitCodeBlock(const std::string &code_block, const std::string &name,
-                     const std::string &ns, const std::string &declaring_file) {
+                     const std::string &ns,
+                     const std::string &declaring_file) const {
     const std::string root_type = schema_->root_table()->name()->str();
     const std::string root_file =
         schema_->root_table()->declaration_file()->str();
