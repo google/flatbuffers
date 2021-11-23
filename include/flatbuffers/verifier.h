@@ -183,6 +183,14 @@ class Verifier FLATBUFFERS_FINAL_CLASS {
     // clang-format on
   }
 
+  template<typename T>
+  bool VerifyNestedFlatBuffer(const Vector<uint8_t> *buf,
+                              const char *identifier) {
+    if (!buf) return true;
+    Verifier nested_verifier(buf->data(), buf->size());
+    return nested_verifier.VerifyBuffer<T>(identifier);
+  }
+
   // Verify this whole buffer, starting with root type T.
   template<typename T> bool VerifyBuffer() { return VerifyBuffer<T>(nullptr); }
 
