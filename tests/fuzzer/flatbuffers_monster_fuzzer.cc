@@ -80,6 +80,10 @@ std::string do_test(const flatbuffers::IDLOptions &opts,
     flatbuffers::Verifier verifier(parser.builder_.GetBufferPointer(),
                                    parser.builder_.GetSize());
     TEST_EQ(true, MyGame::Example::VerifyMonsterBuffer(verifier));
+    // FIXME: these are currently not being properly verified, so turn them off
+    // for fuzzing until they are.
+    parser.opts.json_nested_flatbuffers = false;
+    parser.opts.json_nested_flexbuffers = false;
     TEST_ASSERT(
         GenerateText(parser, parser.builder_.GetBufferPointer(), &jsongen));
   } else if (check_parser) {
