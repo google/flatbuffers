@@ -558,11 +558,13 @@ impl<'fbb> FlatBufferBuilder<'fbb> {
             }
         }
         let new_vt_bytes = &self.owned_buf[vt_start_pos..vt_end_pos];
-        let found = self.written_vtable_revpos.binary_search_by(|old_vtable_revpos: &UOffsetT| {
-            let old_vtable_pos = self.owned_buf.len() - *old_vtable_revpos as usize;
-            let old_vtable = VTable::init(&self.owned_buf, old_vtable_pos);
-            new_vt_bytes.cmp(old_vtable.as_bytes())
-        });
+        let found = self
+            .written_vtable_revpos
+            .binary_search_by(|old_vtable_revpos: &UOffsetT| {
+                let old_vtable_pos = self.owned_buf.len() - *old_vtable_revpos as usize;
+                let old_vtable = VTable::init(&self.owned_buf, old_vtable_pos);
+                new_vt_bytes.cmp(old_vtable.as_bytes())
+            });
         let final_vtable_revpos = match found {
             Ok(i) => {
                 // The new vtable is a duplicate so clear it.
@@ -584,7 +586,7 @@ impl<'fbb> FlatBufferBuilder<'fbb> {
         unsafe {
             emplace_scalar::<SOffsetT>(
                 &mut self.owned_buf[table_pos..table_pos + SIZE_SOFFSET],
-                final_vtable_revpos as SOffsetT - object_revloc_to_vtable.value() as SOffsetT
+                final_vtable_revpos as SOffsetT - object_revloc_to_vtable.value() as SOffsetT,
             );
         }
 

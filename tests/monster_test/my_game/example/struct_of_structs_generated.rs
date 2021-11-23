@@ -28,14 +28,14 @@ impl flatbuffers::SafeSliceAccess for StructOfStructs {}
 impl<'a> flatbuffers::Follow<'a> for StructOfStructs {
   type Inner = &'a StructOfStructs;
   #[inline]
-  fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
-    <&'a StructOfStructs>::follow(buf, loc)
+  unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
+    unsafe { <&'a StructOfStructs>::follow(buf, loc) }
   }
 }
 impl<'a> flatbuffers::Follow<'a> for &'a StructOfStructs {
   type Inner = &'a StructOfStructs;
   #[inline]
-  fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
+  unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
     flatbuffers::follow_cast_ref::<StructOfStructs>(buf, loc)
   }
 }

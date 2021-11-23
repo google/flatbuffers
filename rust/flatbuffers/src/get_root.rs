@@ -89,7 +89,7 @@ pub unsafe fn root_unchecked<'buf, T>(data: &'buf [u8]) -> T::Inner
 where
     T: Follow<'buf> + 'buf,
 {
-    <ForwardsUOffset<T>>::follow(data, 0)
+    unsafe { <ForwardsUOffset<T>>::follow(data, 0) }
 }
 
 #[inline]
@@ -103,5 +103,5 @@ pub unsafe fn size_prefixed_root_unchecked<'buf, T>(data: &'buf [u8]) -> T::Inne
 where
     T: Follow<'buf> + 'buf,
 {
-    <SkipSizePrefix<ForwardsUOffset<T>>>::follow(data, 0)
+    unsafe { <SkipSizePrefix<ForwardsUOffset<T>>>::follow(data, 0) }
 }

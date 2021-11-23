@@ -61,7 +61,7 @@ impl<'a, T: Follow<'a> + 'a, const N: usize> Array<'a, T, N> {
     pub fn get(&self, idx: usize) -> T::Inner {
         debug_assert!(idx < N);
         let sz = size_of::<T>();
-        T::follow(self.0, sz * idx)
+        unsafe { T::follow(self.0, sz * idx) }
     }
 
     #[inline(always)]
@@ -83,7 +83,7 @@ impl<'a, T: Follow<'a> + Debug, const N: usize> Into<[T::Inner; N]> for Array<'a
 impl<'a, T: Follow<'a> + 'a, const N: usize> Follow<'a> for Array<'a, T, N> {
     type Inner = Array<'a, T, N>;
     #[inline(always)]
-    fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
+    unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
         Array::new(&buf[loc..loc + N * size_of::<T>()])
     }
 }

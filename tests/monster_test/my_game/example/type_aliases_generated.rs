@@ -14,7 +14,7 @@ pub struct TypeAliases<'a> {
 impl<'a> flatbuffers::Follow<'a> for TypeAliases<'a> {
   type Inner = TypeAliases<'a>;
   #[inline]
-  fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
+  unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
     Self { _tab: flatbuffers::Table { buf, loc } }
   }
 }

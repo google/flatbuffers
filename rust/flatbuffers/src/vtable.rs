@@ -87,7 +87,7 @@ pub fn field_offset_to_field_index(field_o: VOffsetT) -> VOffsetT {
 
 impl<'a> Follow<'a> for VTable<'a> {
     type Inner = VTable<'a>;
-    fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
+    unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
         VTable::init(buf, loc)
     }
 }

@@ -28,6 +28,8 @@
 //! At this time, to generate Rust code, you will need the latest `master` version of `flatc`, available from here: <https://github.com/google/flatbuffers>
 //! (On OSX, you can install FlatBuffers from `HEAD` with the Homebrew package manager.)
 
+#![deny(unsafe_op_in_unsafe_fn)]
+
 mod array;
 mod builder;
 mod endian_scalar;

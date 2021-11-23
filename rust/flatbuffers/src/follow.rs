@@ -29,7 +29,7 @@ use std::marker::PhantomData;
 /// continue traversing the FlatBuffer.
 pub trait Follow<'buf> {
     type Inner;
-    fn follow(buf: &'buf [u8], loc: usize) -> Self::Inner;
+    unsafe fn follow(buf: &'buf [u8], loc: usize) -> Self::Inner;
 }
 
 /// FollowStart wraps a Follow impl in a struct type. This can make certain
@@ -43,13 +43,13 @@ impl<'a, T: Follow<'a> + 'a> FollowStart<T> {
     }
     #[inline]
     pub fn self_follow(&'a self, buf: &'a [u8], loc: usize) -> T::Inner {
-        T::follow(buf, loc)
+        unsafe { T::follow(buf, loc) }
     }
 }
 impl<'a, T: Follow<'a>> Follow<'a> for FollowStart<T> {
     type Inner = T::Inner;
     #[inline]
-    fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
-        T::follow(buf, loc)
+    unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
+        unsafe { T::follow(buf, loc) }
     }
 }

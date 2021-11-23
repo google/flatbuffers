@@ -54,7 +54,7 @@ impl std::fmt::Debug for KeywordsInUnion {
 impl<'a> flatbuffers::Follow<'a> for KeywordsInUnion {
   type Inner = Self;
   #[inline]
-  fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
+  unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
     let b = unsafe {
       flatbuffers::read_scalar_at::<u8>(buf, loc)
     };

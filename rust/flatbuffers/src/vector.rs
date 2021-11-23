@@ -87,7 +87,7 @@ impl<'a, T: Follow<'a> + 'a> Vector<'a, T> {
         debug_assert!(idx < self.len() as usize);
         let sz = size_of::<T>();
         debug_assert!(sz > 0);
-        T::follow(self.0, self.1 as usize + SIZE_UOFFSET + sz * idx)
+        unsafe { T::follow(self.0, self.1 as usize + SIZE_UOFFSET + sz * idx) }
     }
 
     #[inline(always)]
@@ -143,7 +143,7 @@ pub fn follow_cast_ref<'a, T: Sized + 'a>(buf: &'a [u8], loc: usize) -> &'a T {
 
 impl<'a> Follow<'a> for &'a str {
     type Inner = &'a str;
-    fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
+    unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
         let len = unsafe { read_scalar_at::<UOffsetT>(buf, loc) } as usize;
         let slice = &buf[loc + SIZE_UOFFSET..loc + SIZE_UOFFSET + len];
         unsafe { from_utf8_unchecked(slice) }
@@ -165,7 +165,7 @@ fn follow_slice_helper<T>(buf: &[u8], loc: usize) -> &[T] {
 #[cfg(target_endian = "little")]
 impl<'a, T: EndianScalar> Follow<'a> for &'a [T] {
     type Inner = &'a [T];
-    fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
+    unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
         follow_slice_helper::<T>(buf, loc)
     }
 }
@@ -173,7 +173,7 @@ impl<'a, T: EndianScalar> Follow<'a> for &'a [T] {
 /// Implement Follow for all possible Vectors that have Follow-able elements.
 impl<'a, T: Follow<'a> + 'a> Follow<'a> for Vector<'a, T> {
     type Inner = Vector<'a, T>;
-    fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
+    unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
         Vector::new(buf, loc)
     }
 }
@@ -235,7 +235,7 @@ impl<'a, T: Follow<'a> + 'a> Iterator for VectorIter<'a, T> {
         if self.remaining == 0 {
             None
         } else {
-            let result = T::follow(self.buf, self.loc);
+            let result = unsafe { T::follow(self.buf, self.loc) };
             self.loc += sz;
             self.remaining -= 1;
             Some(result)
@@ -272,7 +272,7 @@ impl<'a, T: Follow<'a> + 'a> DoubleEndedIterator for VectorIter<'a, T> {
             None
         } else {
             self.remaining -= 1;
-            Some(T::follow(self.buf, self.loc + sz * self.remaining))
+            Some(unsafe { T::follow(self.buf, self.loc + sz * self.remaining) })
         }
     }
 

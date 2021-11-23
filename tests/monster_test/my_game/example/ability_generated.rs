@@ -27,14 +27,14 @@ impl flatbuffers::SafeSliceAccess for Ability {}
 impl<'a> flatbuffers::Follow<'a> for Ability {
   type Inner = &'a Ability;
   #[inline]
-  fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
-    <&'a Ability>::follow(buf, loc)
+  unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
+    unsafe { <&'a Ability>::follow(buf, loc) }
   }
 }
 impl<'a> flatbuffers::Follow<'a> for &'a Ability {
   type Inner = &'a Ability;
   #[inline]
-  fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
+  unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
     flatbuffers::follow_cast_ref::<Ability>(buf, loc)
   }
 }

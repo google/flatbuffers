@@ -14,7 +14,7 @@ pub struct ArrayTable<'a> {
 impl<'a> flatbuffers::Follow<'a> for ArrayTable<'a> {
   type Inner = ArrayTable<'a>;
   #[inline]
-  fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
+  unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
     Self { _tab: flatbuffers::Table { buf, loc } }
   }
 }
@@ -196,14 +196,14 @@ pub fn size_prefixed_root_as_array_table_with_opts<'b, 'o>(
 /// # Safety
 /// Callers must trust the given bytes do indeed contain a valid `ArrayTable`.
 pub unsafe fn root_as_array_table_unchecked(buf: &[u8]) -> ArrayTable {
-  flatbuffers::root_unchecked::<ArrayTable>(buf)
+  unsafe { flatbuffers::root_unchecked::<ArrayTable>(buf) }
 }
 #[inline]
 /// Assumes, without verification, that a buffer of bytes contains a size prefixed ArrayTable and returns it.
 /// # Safety
 /// Callers must trust the given bytes do indeed contain a valid size prefixed `ArrayTable`.
 pub unsafe fn size_prefixed_root_as_array_table_unchecked(buf: &[u8]) -> ArrayTable {
-  flatbuffers::size_prefixed_root_unchecked::<ArrayTable>(buf)
+  unsafe { flatbuffers::size_prefixed_root_unchecked::<ArrayTable>(buf) }
 }
 pub const ARRAY_TABLE_IDENTIFIER: &str = "ARRT";
 

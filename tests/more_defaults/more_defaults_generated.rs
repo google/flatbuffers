@@ -14,7 +14,7 @@ pub struct MoreDefaults<'a> {
 impl<'a> flatbuffers::Follow<'a> for MoreDefaults<'a> {
   type Inner = MoreDefaults<'a>;
   #[inline]
-  fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
+  unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
     Self { _tab: flatbuffers::Table { buf, loc } }
   }
 }

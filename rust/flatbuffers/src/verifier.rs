@@ -432,7 +432,7 @@ impl<'ver, 'opts, 'buf> TableVerifier<'ver, 'opts, 'buf> {
             }
             (Some(k), Some(v)) => {
                 trace_field(Key::run_verifier(self.verifier, k), key_field_name, k)?;
-                let discriminant = Key::follow(self.verifier.buffer, k);
+                let discriminant = unsafe { Key::follow(self.verifier.buffer, k) };
                 trace_field(
                     verify_union(discriminant, self.verifier, v),
                     val_field_name,

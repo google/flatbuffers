@@ -31,14 +31,14 @@ impl flatbuffers::SafeSliceAccess for Vec3 {}
 impl<'a> flatbuffers::Follow<'a> for Vec3 {
   type Inner = &'a Vec3;
   #[inline]
-  fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
-    <&'a Vec3>::follow(buf, loc)
+  unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
+    unsafe { <&'a Vec3>::follow(buf, loc) }
   }
 }
 impl<'a> flatbuffers::Follow<'a> for &'a Vec3 {
   type Inner = &'a Vec3;
   #[inline]
-  fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
+  unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
     flatbuffers::follow_cast_ref::<Vec3>(buf, loc)
   }
 }

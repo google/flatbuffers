@@ -14,7 +14,7 @@ pub struct TableInC<'a> {
 impl<'a> flatbuffers::Follow<'a> for TableInC<'a> {
   type Inner = TableInC<'a>;
   #[inline]
-  fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
+  unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
     Self { _tab: flatbuffers::Table { buf, loc } }
   }
 }

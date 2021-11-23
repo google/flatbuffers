@@ -1179,7 +1179,7 @@ mod roundtrip_vectors {
 
             let buf = b.finished_data();
 
-            let got = <flatbuffers::ForwardsUOffset<flatbuffers::Vector<T>>>::follow(&buf[..], 0);
+            let got = unsafe { <flatbuffers::ForwardsUOffset<flatbuffers::Vector<T>>>::follow(&buf[..], 0) };
             let mut result_vec: Vec<T> = Vec::with_capacity(got.len());
             for i in 0..got.len() {
                 result_vec.push(got.get(i));
@@ -1246,7 +1246,7 @@ mod roundtrip_vectors {
                     b.create_vector_direct(&xs[..]);
                     let buf = b.unfinished_data();
 
-                    let got = <flatbuffers::Vector<$ty>>::follow(&buf[..], 0).safe_slice();
+                    let got = unsafe { <flatbuffers::Vector<$ty>>::follow(&buf[..], 0) }.safe_slice();
                     assert_eq!(got, &xs[..]);
                 }
                 #[test]
@@ -1299,7 +1299,7 @@ mod roundtrip_vectors {
             b.finish_minimal(vecend);
 
             let buf = b.finished_data();
-            let got = <flatbuffers::ForwardsUOffset<flatbuffers::Vector<flatbuffers::ForwardsUOffset<&str>>>>::follow(buf, 0);
+            let got = unsafe { <flatbuffers::ForwardsUOffset<flatbuffers::Vector<flatbuffers::ForwardsUOffset<&str>>>>::follow(buf, 0) };
 
             assert_eq!(got.len(), xs.len());
             for i in 0..xs.len() {
@@ -1330,7 +1330,7 @@ mod roundtrip_vectors {
             b.finish_minimal(vecend);
 
             let buf = b.finished_data();
-            let got = <flatbuffers::ForwardsUOffset<flatbuffers::Vector<flatbuffers::ForwardsUOffset<&str>>>>::follow(buf, 0);
+            let got = unsafe { <flatbuffers::ForwardsUOffset<flatbuffers::Vector<flatbuffers::ForwardsUOffset<&str>>>>::follow(buf, 0) };
 
             assert_eq!(got.len(), xs.len());
             for i in 0..xs.len() {
@@ -1540,7 +1540,7 @@ mod roundtrip_table {
 
             // use
             let buf = b.finished_data();
-            let tab = <flatbuffers::ForwardsUOffset<flatbuffers::Table>>::follow(buf, 0);
+            let tab = unsafe { <flatbuffers::ForwardsUOffset<flatbuffers::Table>>::follow(buf, 0) };
 
             for i in 0..xs.len() {
                 let v = tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<u8>>>(fi2fo(i as flatbuffers::VOffsetT), None);
@@ -1577,7 +1577,7 @@ mod roundtrip_table {
 
             // use
             let buf = b.finished_data();
-            let tab = <flatbuffers::ForwardsUOffset<flatbuffers::Table>>::follow(buf, 0);
+            let tab = unsafe { <flatbuffers::ForwardsUOffset<flatbuffers::Table>>::follow(buf, 0) };
 
             for i in 0..xs.len() {
                 let v = tab.get::<flatbuffers::ForwardsUOffset<&str>>(fi2fo(i as flatbuffers::VOffsetT), None);
@@ -1630,7 +1630,7 @@ mod roundtrip_table {
 
             // use
             let buf = b.finished_data();
-            let tab = <flatbuffers::ForwardsUOffset<flatbuffers::Table>>::follow(buf, 0);
+            let tab = unsafe { <flatbuffers::ForwardsUOffset<flatbuffers::Table>>::follow(buf, 0) };
 
             for i in 0..vecs.len() {
                 let got = tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<T>>>(fi2fo(i as flatbuffers::VOffsetT), None);
@@ -2129,14 +2129,14 @@ mod follow_impls {
     impl<'a> flatbuffers::Follow<'a> for FooStruct {
         type Inner = &'a FooStruct;
         #[inline(always)]
-        fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
+        unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
             <&'a FooStruct>::follow(buf, loc)
         }
     }
     impl<'a> flatbuffers::Follow<'a> for &'a FooStruct {
         type Inner = &'a FooStruct;
         #[inline(always)]
-        fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
+        unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
             flatbuffers::follow_cast_ref::<FooStruct>(buf, loc)
         }
     }
@@ -2312,7 +2312,7 @@ mod follow_impls {
             // enter string
             3, 0, 0, 0, 109, 111, 111, 0 // string length and contents
         ];
-        let tab = <flatbuffers::ForwardsUOffset<flatbuffers::Table>>::follow(&buf[..], 0);
+        let tab = unsafe { <flatbuffers::ForwardsUOffset<flatbuffers::Table>>::follow(&buf[..], 0) };
         assert_eq!(tab.get::<flatbuffers::ForwardsUOffset<&str>>(fi2fo(0), None), Some("moo"));
         let byte_vec = tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<u8>>>(fi2fo(0), None).unwrap().safe_slice();
         assert_eq!(byte_vec, &vec![109, 111, 111][..]);
@@ -2334,7 +2334,7 @@ mod follow_impls {
             // enter table
             8, 0, 0, 0, // vtable location
         ];
-        let tab = <flatbuffers::ForwardsUOffset<flatbuffers::Table>>::follow(&buf[..], 0);
+        let tab = unsafe { <flatbuffers::ForwardsUOffset<flatbuffers::Table>>::follow(&buf[..], 0) };
         assert_eq!(tab.get::<flatbuffers::ForwardsUOffset<&str>>(fi2fo(0), Some("abc")), Some("abc"));
         #[cfg(target_endian = "little")]
         {
@@ -2362,7 +2362,7 @@ mod follow_impls {
             // enter table
             10, 0, 0, 0, // vtable location
         ];
-        let tab = <flatbuffers::ForwardsUOffset<flatbuffers::Table>>::follow(&buf[..], 0);
+        let tab = unsafe { <flatbuffers::ForwardsUOffset<flatbuffers::Table>>::follow(&buf[..], 0) };
         assert_eq!(tab.get::<flatbuffers::ForwardsUOffset<&str>>(fi2fo(0), Some("abc")), Some("abc"));
         #[cfg(target_endian = "little")]
         {

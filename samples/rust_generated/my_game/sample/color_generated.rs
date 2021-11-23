@@ -54,7 +54,7 @@ impl std::fmt::Debug for Color {
 impl<'a> flatbuffers::Follow<'a> for Color {
   type Inner = Self;
   #[inline]
-  fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
+  unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
     let b = unsafe {
       flatbuffers::read_scalar_at::<i8>(buf, loc)
     };

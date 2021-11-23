@@ -14,7 +14,7 @@ pub struct TableInNestedNS<'a> {
 impl<'a> flatbuffers::Follow<'a> for TableInNestedNS<'a> {
   type Inner = TableInNestedNS<'a>;
   #[inline]
-  fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
+  unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
     Self { _tab: flatbuffers::Table { buf, loc } }
   }
 }

@@ -269,7 +269,7 @@ mod array_fuzz {
             fn $fn_name(xs: FakeArray<$ty, ARRAY_SIZE>) {
                 let mut test_buf = [0 as u8; 1024];
                 flatbuffers::emplace_scalar_array(&mut test_buf, 0, &xs.0);
-                let arr: flatbuffers::Array<$ty, ARRAY_SIZE> = flatbuffers::Array::follow(&test_buf, 0);
+                let arr: flatbuffers::Array<$ty, ARRAY_SIZE> = unsafe { flatbuffers::Array::follow(&test_buf, 0) };
                 let got: [$ty; ARRAY_SIZE] = arr.into();
                 assert_eq!(got, xs.0);
             }
@@ -312,7 +312,7 @@ mod array_fuzz {
             let offset = i * NESTED_STRUCT_SIZE;
             native_struct_array[i].push(&mut test_buf[offset..offset + NESTED_STRUCT_SIZE], &[]);
         }
-        let arr: flatbuffers::Array<NestedStruct, ARRAY_SIZE> = flatbuffers::Array::follow(&test_buf, 0);
+        let arr: flatbuffers::Array<NestedStruct, ARRAY_SIZE> = unsafe { flatbuffers::Array::follow(&test_buf, 0) };
         let got: [&NestedStruct; ARRAY_SIZE] = arr.into();
         assert_eq!(got, native_struct_array);
     }

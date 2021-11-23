@@ -31,7 +31,7 @@ impl<'a> Table<'a> {
     }
     #[inline]
     pub fn vtable(&self) -> VTable<'a> {
-        <BackwardsSOffset<VTable<'a>>>::follow(self.buf, self.loc)
+        unsafe { <BackwardsSOffset<VTable<'a>>>::follow(self.buf, self.loc) }
     }
     #[inline]
     pub fn get<T: Follow<'a> + 'a>(
@@ -43,14 +43,14 @@ impl<'a> Table<'a> {
         if o == 0 {
             return default;
         }
-        Some(<T>::follow(self.buf, self.loc + o))
+        Some(unsafe { <T>::follow(self.buf, self.loc + o) })
     }
 }
 
 impl<'a> Follow<'a> for Table<'a> {
     type Inner = Table<'a>;
     #[inline]
-    fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
+    unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
         Table { buf, loc }
     }
 }
@@ -60,9 +60,9 @@ pub fn buffer_has_identifier(data: &[u8], ident: &str, size_prefixed: bool) -> b
     assert_eq!(ident.len(), FILE_IDENTIFIER_LENGTH);
 
     let got = if size_prefixed {
-        <SkipSizePrefix<SkipRootOffset<FileIdentifier>>>::follow(data, 0)
+        unsafe { <SkipSizePrefix<SkipRootOffset<FileIdentifier>>>::follow(data, 0) }
     } else {
-        <SkipRootOffset<FileIdentifier>>::follow(data, 0)
+        unsafe { <SkipRootOffset<FileIdentifier>>::follow(data, 0) }
     };
 
     ident.as_bytes() == got

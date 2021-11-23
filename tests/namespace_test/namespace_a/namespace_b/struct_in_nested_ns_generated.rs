@@ -27,14 +27,14 @@ impl flatbuffers::SafeSliceAccess for StructInNestedNS {}
 impl<'a> flatbuffers::Follow<'a> for StructInNestedNS {
   type Inner = &'a StructInNestedNS;
   #[inline]
-  fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
-    <&'a StructInNestedNS>::follow(buf, loc)
+  unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
+    unsafe { <&'a StructInNestedNS>::follow(buf, loc) }
   }
 }
 impl<'a> flatbuffers::Follow<'a> for &'a StructInNestedNS {
   type Inner = &'a StructInNestedNS;
   #[inline]
-  fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
+  unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
     flatbuffers::follow_cast_ref::<StructInNestedNS>(buf, loc)
   }
 }
