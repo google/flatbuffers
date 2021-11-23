@@ -147,3 +147,4 @@ flatbuffers.pc
 **/latex/**
 # https://cmake.org/cmake/help/latest/module/FetchContent.html#variable:FETCHCONTENT_BASE_DIR
 _deps/
+tests/cpp/cpp_test

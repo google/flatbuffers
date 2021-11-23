@@ -733,3 +733,9 @@ endif()
 if(FLATBUFFERS_BUILD_BENCHMARKS AND CMAKE_VERSION VERSION_GREATER 3.13)
   add_subdirectory(benchmarks)
 endif()
+
+# Include for gtests
+if(FLATBUFFERS_BUILD_TESTS AND CMAKE_VERSION VERSION_GREATER 3.13)
+  enable_testing()
+  add_subdirectory(tests/cpp)
+endif()
