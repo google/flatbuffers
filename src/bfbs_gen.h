@@ -196,13 +196,12 @@ class BaseBfbsGenerator : public BfbsGenerator {
     return schema_->enums()->Get(index);
   }
 
-  void ForAllFields(const reflection::Object *object,
-                    std::function<void(const reflection::Field *)> func,
-                    bool backwards = false) const {
+  void ForAllFields(const reflection::Object *object, bool reverse,
+                    std::function<void(const reflection::Field *)> func) const {
     const std::vector<uint32_t> field_to_id_map = FieldIdToIndex(object);
     for (size_t i = 0; i < field_to_id_map.size(); ++i) {
       func(object->fields()->Get(
-          field_to_id_map[backwards ? field_to_id_map.size() - (i + 1) : i]));
+          field_to_id_map[reverse ? field_to_id_map.size() - (i + 1) : i]));
     }
   }
 

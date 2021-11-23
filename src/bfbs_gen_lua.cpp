@@ -69,7 +69,7 @@ class LuaBfbsGenerator : public BaseBfbsGenerator {
  protected:
   bool GenerateEnums(
       const flatbuffers::Vector<flatbuffers::Offset<r::Enum>> *enums) {
-    ForAllEnums(enums, [this](const r::Enum *enum_def) {
+    ForAllEnums(enums, [&](const r::Enum *enum_def) {
       std::string code;
 
       StartCodeBlock(enum_def);
@@ -81,12 +81,11 @@ class LuaBfbsGenerator : public BaseBfbsGenerator {
       GenerateDocumentation(enum_def->documentation(), "", code);
       code += "local " + enum_name + " = {\n";
 
-      ForAllEnumValues(
-          enum_def, [&code, this](const reflection::EnumVal *enum_val) {
-            GenerateDocumentation(enum_val->documentation(), "  ", code);
-            code += "  " + NormalizeName(enum_val->name()) + " = " +
-                    NumToString(enum_val->value()) + ",\n";
-          });
+      ForAllEnumValues(enum_def, [&](const reflection::EnumVal *enum_val) {
+        GenerateDocumentation(enum_val->documentation(), "  ", code);
+        code += "  " + NormalizeName(enum_val->name()) + " = " +
+                NumToString(enum_val->value()) + ",\n";
+      });
       code += "}\n";
       code += "\n";
 
@@ -98,7 +97,7 @@ class LuaBfbsGenerator : public BaseBfbsGenerator {
   bool GenerateObjects(
       const flatbuffers::Vector<flatbuffers::Offset<r::Object>> *objects,
       const r::Object *root_object) {
-    ForAllObjects(objects, [this, &root_object](const r::Object *object) {
+    ForAllObjects(objects, [&](const r::Object *object) {
       std::string code;
 
       StartCodeBlock(object);
@@ -146,7 +145,7 @@ class LuaBfbsGenerator : public BaseBfbsGenerator {
       code += "\n";
 
       // Create all the field accessors.
-      ForAllFields(object, [this, &code, &object](const r::Field *field) {
+      ForAllFields(object, /*reverse=*/false, [&](const r::Field *field) {
         // Skip writing deprecated fields altogether.
         if (field->deprecated()) { return true; }
 
@@ -293,8 +292,9 @@ class LuaBfbsGenerator : public BaseBfbsGenerator {
               code += "end\n";
               code += "\n";
 
-              // If the vector is composed of single byte values, we generate
-              // a helper function to get it as a byte string in Lua.
+              // If the vector is composed of single byte values, we
+              // generate a helper function to get it as a byte string in
+              // Lua.
               if (IsSingleByte(vector_base_type)) {
                 code += "function mt:" + field_name_camel_case +
                         "AsString(start, stop)\n";
@@ -340,8 +340,7 @@ class LuaBfbsGenerator : public BaseBfbsGenerator {
         code += "end\n";
         code += "\n";
 
-        ForAllFields(object, [this, &code,
-                              &object_name](const r::Field *field) {
+        ForAllFields(object, /*reverse=*/false, [&](const r::Field *field) {
           if (field->deprecated()) { return; }
 
           const std::string field_name = NormalizeName(field->name());
@@ -393,7 +392,7 @@ class LuaBfbsGenerator : public BaseBfbsGenerator {
           *documentation,
       std::string indent, std::string &code) const {
     flatbuffers::ForAllDocumentation(
-        documentation, [&indent, &code](const flatbuffers::String *str) {
+        documentation, [&](const flatbuffers::String *str) {
           code += indent + "--" + str->str() + "\n";
         });
   }
@@ -401,7 +400,7 @@ class LuaBfbsGenerator : public BaseBfbsGenerator {
   std::string GenerateStructBuilderArgs(const r::Object *object,
                                         std::string prefix = "") const {
     std::string signature;
-    ForAllFields(object, [this, &signature, &prefix](const r::Field *field) {
+    ForAllFields(object, /*reverse=*/false, [&](const r::Field *field) {
       if (IsStructOrTable(field->type()->base_type())) {
         const r::Object *field_object = GetObject(field->type());
         signature += GenerateStructBuilderArgs(
@@ -422,23 +421,20 @@ class LuaBfbsGenerator : public BaseBfbsGenerator {
 
     // We need to reverse the order we iterate over, since we build the
     // buffer backwards.
-    ForAllFields(
-        object,
-        [this, &code, &prefix](const r::Field *field) {
-          const int32_t num_padding_bytes = field->padding();
-          if (num_padding_bytes) {
-            code += "  builder:Pad(" + NumToString(num_padding_bytes) + ")\n";
-          }
-          if (IsStructOrTable(field->type()->base_type())) {
-            const r::Object *field_object = GetObject(field->type());
-            code += AppendStructBuilderBody(
-                field_object, prefix + NormalizeName(field->name()) + "_");
-          } else {
-            code += "  builder:Prepend" + GenerateMethod(field) + "(" + prefix +
-                    MakeCamelCase(NormalizeName(field->name()), false) + ")\n";
-          }
-        },
-        /*backwards=*/true);
+    ForAllFields(object, /*reverse=*/true, [&](const r::Field *field) {
+      const int32_t num_padding_bytes = field->padding();
+      if (num_padding_bytes) {
+        code += "  builder:Pad(" + NumToString(num_padding_bytes) + ")\n";
+      }
+      if (IsStructOrTable(field->type()->base_type())) {
+        const r::Object *field_object = GetObject(field->type());
+        code += AppendStructBuilderBody(
+            field_object, prefix + NormalizeName(field->name()) + "_");
+      } else {
+        code += "  builder:Prepend" + GenerateMethod(field) + "(" + prefix +
+                MakeCamelCase(NormalizeName(field->name()), false) + ")\n";
+      }
+    });
 
     return code;
   }
