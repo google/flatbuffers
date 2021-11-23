@@ -24,6 +24,36 @@
 
 namespace flatbuffers {
 
+void ForAllEnums(
+    const flatbuffers::Vector<flatbuffers::Offset<reflection::Enum>> *enums,
+    std::function<void(const reflection::Enum *)> func) {
+  for (auto it = enums->cbegin(); it != enums->cend(); ++it) { func(*it); }
+}
+
+void ForAllObjects(
+    const flatbuffers::Vector<flatbuffers::Offset<reflection::Object>> *objects,
+    std::function<void(const reflection::Object *)> func) {
+  for (auto it = objects->cbegin(); it != objects->cend(); ++it) { func(*it); }
+}
+
+void ForAllEnumValues(const reflection::Enum *enum_def,
+                      std::function<void(const reflection::EnumVal *)> func) {
+  for (auto it = enum_def->values()->cbegin(); it != enum_def->values()->cend();
+       ++it) {
+    func(*it);
+  }
+}
+
+void ForAllDocumentation(
+    const flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>>
+        *documentation,
+    std::function<void(const flatbuffers::String *)> func) {
+  if (!documentation) { return; }
+  for (auto it = documentation->cbegin(); it != documentation->cend(); ++it) {
+    func(*it);
+  }
+}
+
 // Maps the field index into object->fields() to the field's ID (the ith element
 // in the return vector).
 static std::vector<uint32_t> FieldIdToIndex(const reflection::Object *object) {
@@ -75,6 +105,22 @@ static std::string MakeCamelCase(const std::string &in,
       s += in[i];
   }
   return s;
+}
+
+static std::string Denamespace(const flatbuffers::String *name,
+                               std::string &ns) {
+  const size_t pos = name->str().find_last_of('.');
+  if (pos == std::string::npos) {
+    ns = "";
+    return name->str();
+  }
+  ns = name->str().substr(0, pos);
+  return name->str().substr(pos + 1);
+}
+
+static std::string Denamespace(const flatbuffers::String *name) {
+  std::string ns;
+  return Denamespace(name, ns);
 }
 
 // A concrete base Flatbuffer Generator that specific language generators can
@@ -148,6 +194,16 @@ class BaseBfbsGenerator : public BfbsGenerator {
       return nullptr;
     }
     return schema_->enums()->Get(index);
+  }
+
+  void ForAllFields(const reflection::Object *object,
+                    std::function<void(const reflection::Field *)> func,
+                    bool backwards = false) {
+    const std::vector<uint32_t> field_to_id_map = FieldIdToIndex(object);
+    for (size_t i = 0; i < field_to_id_map.size(); ++i) {
+      func(object->fields()->Get(
+          field_to_id_map[backwards ? field_to_id_map.size() - (i + 1) : i]));
+    }
   }
 
   bool IsTable(const reflection::Type *type, bool use_element = false) {

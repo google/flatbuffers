@@ -32,7 +32,7 @@ function Monster.GetRootAsMonster(buf, offset)
   if type(buf) == "string" then
     buf = flatbuffers.binaryArray.New(buf)
   end
-  
+
   local n = flatbuffers.N.UOffsetT:Unpack(buf, offset)
   local o = Monster.New()
   o:Init(buf, n + offset)
@@ -116,7 +116,7 @@ end
 function mt:Test()
   local o = self.view:Offset(20)
   if o ~= 0 then
-    local obj = flatbuffers.view.New(flatbuffers.binaryArray.New(0), 0)
+   local obj = flatbuffers.view.New(flatbuffers.binaryArray.New(0), 0)
     self.view:Union(obj, o)
     return obj
   end
@@ -584,7 +584,7 @@ end
 function mt:AnyUnique()
   local o = self.view:Offset(92)
   if o ~= 0 then
-    local obj = flatbuffers.view.New(flatbuffers.binaryArray.New(0), 0)
+   local obj = flatbuffers.view.New(flatbuffers.binaryArray.New(0), 0)
     self.view:Union(obj, o)
     return obj
   end
@@ -601,7 +601,7 @@ end
 function mt:AnyAmbiguous()
   local o = self.view:Offset(96)
   if o ~= 0 then
-    local obj = flatbuffers.view.New(flatbuffers.binaryArray.New(0), 0)
+   local obj = flatbuffers.view.New(flatbuffers.binaryArray.New(0), 0)
     self.view:Union(obj, o)
     return obj
   end

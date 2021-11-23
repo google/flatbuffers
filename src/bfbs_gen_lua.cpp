@@ -40,12 +40,8 @@ class LuaBfbsGenerator : public BaseBfbsGenerator {
  public:
   explicit LuaBfbsGenerator(const std::string &flatc_version)
       : BaseBfbsGenerator(),
-        indent_level_(0),
-        characters_per_indent_(2),
-        indent_char_(' '),
         keywords_(),
         requires_(),
-        current_block_(),
         current_obj_(nullptr),
         current_enum_(nullptr),
         flatc_version_(flatc_version) {
@@ -73,146 +69,297 @@ class LuaBfbsGenerator : public BaseBfbsGenerator {
  protected:
   bool GenerateEnums(
       const flatbuffers::Vector<flatbuffers::Offset<r::Enum>> *enums) {
-    for (auto it = enums->cbegin(); it != enums->cend(); ++it) {
-      auto enum_def = *it;
+    ForAllEnums(enums, [this](const r::Enum *enum_def) {
+      std::string code;
+
       StartCodeBlock(enum_def);
+
       std::string ns;
-      const std::string enum_name = GenerateEnum(enum_def, ns);
-      EmitCodeBlock(enum_name, ns, enum_def->declaration_file()->str());
-    }
+      const std::string enum_name =
+          NormalizeName(Denamespace(enum_def->name(), ns));
+
+      ForAllDocumentation(enum_def->documentation(), "", code);
+      code += "local " + enum_name + " = {\n";
+
+      ForAllEnumValues(
+          enum_def, [&code, this](const reflection::EnumVal *enum_val) {
+            ForAllDocumentation(enum_val->documentation(), "  ", code);
+            code += "  " + NormalizeName(enum_val->name()) + " = " +
+                    NumToString(enum_val->value()) + ",\n";
+          });
+      code += "}\n";
+      code += "\n";
+
+      EmitCodeBlock(code, enum_name, ns, enum_def->declaration_file()->str());
+    });
     return true;
-  }
-
-  std::string GenerateEnum(const r::Enum *enum_def, std::string &ns) {
-    const std::string enum_name =
-        NormalizeName(Denamespace(enum_def->name(), ns));
-
-    AppendComments(enum_def->documentation());
-    AppendLine("local " + enum_name + " = {");
-    {
-      // TODO(derekbailey): It would be cool if this would auto Dedent on
-      // leaving scope.
-      Indent();
-      for (auto it = enum_def->values()->cbegin();
-           it != enum_def->values()->cend(); ++it) {
-        const auto enum_val = *it;
-        AppendComments(enum_val->documentation());
-        AppendLine(NormalizeName(enum_val->name()) + " = " +
-                   NumToString(enum_val->value()) + ",");
-      }
-      Dedent();
-    }
-    AppendLine("}");
-    AppendLine();
-    return enum_name;
   }
 
   bool GenerateObjects(
       const flatbuffers::Vector<flatbuffers::Offset<r::Object>> *objects,
       const r::Object *root_object) {
-    for (auto it = objects->cbegin(); it != objects->cend(); ++it) {
-      auto object_def = *it;
-      StartCodeBlock(object_def);
-      std::string ns;
+    ForAllObjects(objects, [this, &root_object](const r::Object *object) {
+      std::string code;
+
+      StartCodeBlock(object);
+
       // Register the main flatbuffers module.
       RegisterRequires("flatbuffers", "flatbuffers");
+
+      std::string ns;
       const std::string object_name =
-          GenerateObject(object_def, ns, object_def == root_object);
-      EmitCodeBlock(object_name, ns, object_def->declaration_file()->str());
-    }
-    return true;
-  }
+          NormalizeName(Denamespace(object->name(), ns));
 
-  std::string GenerateObject(const r::Object *object_def, std::string &ns,
-                             bool is_root_object) {
-    const std::string object_name =
-        NormalizeName(Denamespace(object_def->name(), ns));
+      ForAllDocumentation(object->documentation(), "", code);
 
-    AppendComments(object_def->documentation());
-    AppendLine("local " + object_name + " = {}");
-    AppendLine("local mt = {}");
-    AppendLine();
-    AppendLine("function " + object_name + ".New()");
-    {
-      Indent();
-      AppendLine("local o = {}");
-      AppendLine("setmetatable(o, {__index = mt})");
-      AppendLine(("return o"));
-      Dedent();
-    }
-    AppendLine("end");
-    if (is_root_object) { GenerateRootObject(object_name); }
-    AppendLine();
+      code += "local " + object_name + " = {}\n";
+      code += "local mt = {}\n";
+      code += "\n";
+      code += "function " + object_name + ".New()\n";
+      code += "  local o = {}\n";
+      code += "  setmetatable(o, {__index = mt})\n";
+      code += "  return o\n";
+      code += "end\n";
+      code += "\n";
 
-    // Generates a init method that receives a pre-existing accessor object, so
-    // that objects can be reused.
-    AppendLine("function mt:Init(buf, pos)");
-    {
-      Indent();
-      AppendLine("self.view = flatbuffers.view.New(buf, pos)");
-      Dedent();
-    }
-    AppendLine("end");
-    AppendLine();
-
-    // Create all the field accessors.
-
-    // TODO(derekbailey): The reflection IR sorts by field.name instead of
-    // field.id. For now we create a mapping to "sort" by id instead.
-    const std::vector<uint32_t> field_to_id_map = FieldIdToIndex(object_def);
-    for (size_t i = 0; i < field_to_id_map.size(); ++i) {
-      GenerateObjectField(object_def,
-                          object_def->fields()->Get(field_to_id_map[i]));
-    }
-
-    // Create all the builders
-    if (object_def->is_struct()) {
-      AppendLine("function " + object_name + ".Create" + object_name +
-                 "(builder" + GenerateStructBuilderArgs(object_def) + ")");
-      {
-        Indent();
-        AppendStructBuilderBody(object_def);
-        AppendLine("return builder:Offset()");
-        Dedent();
+      if (object == root_object) {
+        code += "function " + object_name + ".GetRootAs" + object_name +
+                "(buf, offset)\n";
+        code += "  if type(buf) == \"string\" then\n";
+        code += "    buf = flatbuffers.binaryArray.New(buf)\n";
+        code += "  end\n";
+        code += "\n";
+        code += "  local n = flatbuffers.N.UOffsetT:Unpack(buf, offset)\n";
+        code += "  local o = " + object_name + ".New()\n";
+        code += "  o:Init(buf, n + offset)\n";
+        code += "  return o\n";
+        code += "end\n";
+        code += "\n";
       }
-      AppendLine("end");
-      AppendLine();
-    } else {
-      // Table builders
-      AppendLine("function " + object_name + ".Start(builder)");
-      {
-        Indent();
-        AppendLine("builder:StartObject(" +
-                   NumToString(object_def->fields()->size()) + ")");
-        Dedent();
-      }
-      AppendLine("end");
-      AppendLine();
 
-      for (size_t i = 0; i < field_to_id_map.size(); ++i) {
-        auto field = object_def->fields()->Get(field_to_id_map[i]);
-        if (field->deprecated()) { continue; }
+      // Generates a init method that receives a pre-existing accessor object,
+      // so that objects can be reused.
+
+      code += "function mt:Init(buf, pos)\n";
+      code += "  self.view = flatbuffers.view.New(buf, pos)\n";
+      code += "end\n";
+      code += "\n";
+
+      // Create all the field accessors.
+      ForAllFields(object, [this, &code, &object](const r::Field *field) {
+        // Skip writing deprecated fields altogether.
+        if (field->deprecated()) { return true; }
 
         const std::string field_name = NormalizeName(field->name());
+        const std::string field_name_camel_case = MakeCamelCase(field_name);
+        const r::BaseType base_type = field->type()->base_type();
 
-        AppendLine("function " + object_name + ".Add" +
-                   MakeCamelCase(field_name) + "(builder, " +
-                   MakeCamelCase(field_name, false) + ")");
-        {
-          Indent();
-          AppendLine("builder:Prepend" + GenerateMethod(field) + "Slot(" +
-                     NumToString(i) + ", " + MakeCamelCase(field_name, false) +
-                     ", " + DefaultValue(field) + ")");
-          Dedent();
+        // Generate some fixed strings so we don't repeat outselves later.
+        const std::string getter_signature =
+            "function mt:" + field_name_camel_case + "()\n";
+        const std::string offset_prefix = "local o = self.view:Offset(" +
+                                          NumToString(field->offset()) + ")\n";
+        const std::string offset_prefix_2 = "if o ~= 0 then\n";
+
+        ForAllDocumentation(field->documentation(), "", code);
+
+        if (IsScalar(base_type)) {
+          code += getter_signature;
+
+          if (object->is_struct()) {
+            // TODO(derekbailey): it would be nice to modify the view:Get to
+            // just pass in the offset and not have to add it its own
+            // self.view.pos.
+            code += "  return " + GenerateGetter(field->type()) +
+                    "self.view.pos + " + NumToString(field->offset()) + ")\n";
+          } else {
+            // Table accessors
+            code += "  " + offset_prefix;
+            code += "  " + offset_prefix_2;
+
+            std::string getter =
+                GenerateGetter(field->type()) + "self.view.pos + o)";
+            if (IsBool(base_type)) { getter = "(" + getter + " ~=0)"; }
+            code += "    return " + getter + "\n";
+            code += "  end\n";
+            code += "  return " + DefaultValue(field) + "\n";
+          }
+          code += "end\n";
+          code += "\n";
+        } else {
+          switch (base_type) {
+            case r::String: {
+              code += getter_signature;
+              code += "  " + offset_prefix;
+              code += "  " + offset_prefix_2;
+              code += "    return " + GenerateGetter(field->type()) +
+                      "self.view.pos + o)\n";
+              code += "  end\n";
+              code += "end\n";
+              code += "\n";
+              break;
+            }
+            case r::Obj: {
+              if (object->is_struct()) {
+                code += "function mt:" + field_name_camel_case + "(obj)\n";
+                code += "  obj:Init(self.view.bytes, self.view.pos + " +
+                        NumToString(field->offset()) + ")\n";
+                code += "  return obj\n";
+                code += "end\n";
+                code += "\n";
+              } else {
+                code += getter_signature;
+                code += "  " + offset_prefix;
+                code += "  " + offset_prefix_2;
+
+                const r::Object *field_object = GetObject(field->type());
+                if (!field_object) {
+                  // TODO(derekbailey): this is an error condition. we
+                  // should report it better.
+                  return false;
+                }
+                code += "    local x = " +
+                        std::string(
+                            field_object->is_struct()
+                                ? "self.view.pos + o\n"
+                                : "self.view:Indirect(self.view.pos + o)\n");
+                const std::string require_name = RegisterRequires(field);
+                code += "    local obj = " + require_name + ".New()\n";
+                code += "    obj:Init(self.view.bytes, x)\n";
+                code += "    return obj\n";
+                code += "  end\n";
+                code += "end\n";
+                code += "\n";
+              }
+              break;
+            }
+            case r::Union: {
+              code += getter_signature;
+              code += "  " + offset_prefix;
+              code += "  " + offset_prefix_2;
+              code +=
+                  "   local obj = "
+                  "flatbuffers.view.New(flatbuffers.binaryArray.New("
+                  "0), 0)\n";
+              code += "    " + GenerateGetter(field->type()) + "obj, o)\n";
+              code += "    return obj\n";
+              code += "  end\n";
+              code += "end\n";
+              code += "\n";
+              break;
+            }
+            case r::Array:
+            case r::Vector: {
+              const r::BaseType vector_base_type = field->type()->element();
+              int32_t element_size = field->type()->element_size();
+              code += "function mt:" + field_name_camel_case + "(j)\n";
+              code += "  " + offset_prefix;
+              code += "  " + offset_prefix_2;
+
+              if (IsStructOrTable(vector_base_type)) {
+                code += "    local x = self.view:Vector(o)\n";
+                code +=
+                    "    x = x + ((j-1) * " + NumToString(element_size) + ")\n";
+                if (IsTable(field->type(), /*use_element=*/true)) {
+                  code += "    x = self.view:Indirect(x)\n";
+                } else {
+                  // Vector of structs are inline, so we need to query the
+                  // size of the struct.
+                  const reflection::Object *obj =
+                      GetObjectByIndex(field->type()->index());
+                  element_size = obj->bytesize();
+                }
+
+                // Include the referenced type, thus we need to make sure
+                // we set `use_element` to true.
+                const std::string require_name =
+                    RegisterRequires(field, /*use_element=*/true);
+                code += "    local obj = " + require_name + ".New()\n";
+                code += "    obj:Init(self.view.bytes, x)\n";
+                code += "    return obj\n";
+              } else {
+                code += "    local a = self.view:Vector(o)\n";
+                code += "    return " + GenerateGetter(field->type()) +
+                        "a + ((j-1) * " + NumToString(element_size) + "))\n";
+              }
+              code += "  end\n";
+              // Only generate a default value for those types that are
+              // supported.
+              if (!IsStructOrTable(vector_base_type)) {
+                code +=
+                    "  return " +
+                    std::string(vector_base_type == r::String ? "''\n" : "0\n");
+              }
+              code += "end\n";
+              code += "\n";
+
+              // If the vector is composed of single byte values, we generate
+              // a helper function to get it as a byte string in Lua.
+              if (IsSingleByte(vector_base_type)) {
+                code += "function mt:" + field_name_camel_case +
+                        "AsString(start, stop)\n";
+                code += "  return self.view:VectorAsString(" +
+                        NumToString(field->offset()) + ", start, stop)\n";
+                code += "end\n";
+                code += "\n";
+              }
+
+              // We also make a new accessor to query just the length of the
+              // vector.
+              code += "function mt:" + field_name_camel_case + "Length()\n";
+              code += "  " + offset_prefix;
+              code += "  " + offset_prefix_2;
+              code += "    return self.view:VectorLen(o)\n";
+              code += "  end\n";
+              code += "  return 0\n";
+              code += "end\n";
+              code += "\n";
+              break;
+            }
+            default: {
+              return false;
+            }
+          }
         }
-        AppendLine("end");
-        AppendLine();
+        return true;
+      });
 
-        if (IsVector(field->type()->base_type())) {
-          AppendLine("function " + object_name + ".Start" +
-                     MakeCamelCase(field_name) + "Vector(builder, numElems)");
-          {
-            Indent();
+      // Create all the builders
+      if (object->is_struct()) {
+        code += "function " + object_name + ".Create" + object_name +
+                "(builder" + GenerateStructBuilderArgs(object) + ")\n";
+        code += AppendStructBuilderBody(object);
+        code += "  return builder:Offset()\n";
+        code += "end\n";
+        code += "\n";
+      } else {
+        // Table builders
+        code += "function " + object_name + ".Start(builder)\n";
+        code += "  builder:StartObject(" +
+                NumToString(object->fields()->size()) + ")\n";
+        code += "end\n";
+        code += "\n";
+
+        ForAllFields(object, [this, &code,
+                              &object_name](const r::Field *field) {
+          if (field->deprecated()) { return; }
+
+          const std::string field_name = NormalizeName(field->name());
+
+          code += "function " + object_name + ".Add" +
+                  MakeCamelCase(field_name) + "(builder, " +
+                  MakeCamelCase(field_name, false) + ")\n";
+          code += "  builder:Prepend" + GenerateMethod(field) + "Slot(" +
+                  NumToString(field->id()) + ", " +
+                  MakeCamelCase(field_name, false) + ", " +
+                  DefaultValue(field) + ")\n";
+          code += "end\n";
+          code += "\n";
+
+          if (IsVector(field->type()->base_type())) {
+            code += "function " + object_name + ".Start" +
+                    MakeCamelCase(field_name) + "Vector(builder, numElems)\n";
+
             const int32_t element_size = field->type()->element_size();
             int32_t alignment = 0;
             if (IsStruct(field->type(), /*use_element=*/true)) {
@@ -221,312 +368,40 @@ class LuaBfbsGenerator : public BaseBfbsGenerator {
               alignment = element_size;
             }
 
-            AppendLine("return builder:StartVector(" +
-                       NumToString(element_size) + ", numElems, " +
-                       NumToString(alignment) + ")");
-            Dedent();
+            code += "  return builder:StartVector(" +
+                    NumToString(element_size) + ", numElems, " +
+                    NumToString(alignment) + ")\n";
+            code += "end\n";
+            code += "\n";
           }
-          AppendLine("end");
-          AppendLine();
-        }
+        });
+
+        code += "function " + object_name + ".End(builder)\n";
+        code += "  return builder:EndObject()\n";
+        code += "end\n";
+        code += "\n";
       }
 
-      AppendLine("function " + object_name + ".End(builder)");
-      {
-        Indent();
-        AppendLine("return builder:EndObject()");
-        Dedent();
-      }
-      AppendLine("end");
-      AppendLine();
-    }
-
-    return object_name;
-  }
-
-  void GenerateRootObject(const std::string &object_name) {
-    AppendLine();
-    AppendLine("function " + object_name + ".GetRootAs" + object_name +
-               "(buf, offset)");
-    {
-      Indent();
-      AppendLine("if type(buf) == \"string\" then");
-      {
-        Indent();
-        AppendLine("buf = flatbuffers.binaryArray.New(buf)");
-        Dedent();
-      }
-      AppendLine("end");
-      AppendLine();
-      AppendLine("local n = flatbuffers.N.UOffsetT:Unpack(buf, offset)");
-      AppendLine("local o = " + object_name + ".New()");
-      AppendLine("o:Init(buf, n + offset)");
-      AppendLine("return o");
-      Dedent();
-    }
-    AppendLine("end");
-  }
-
-  bool GenerateObjectField(const r::Object *object_def,
-                           const r::Field *field_def) {
-    // Skip writing deprecated fields altogether.
-    if (field_def->deprecated()) { return true; }
-
-    const std::string field_name = NormalizeName(field_def->name());
-    const std::string field_name_camel_case = MakeCamelCase(field_name);
-    const r::BaseType base_type = field_def->type()->base_type();
-
-    // Generate some fixed strings so we don't repeat outselves later.
-    const std::string getter_signature =
-        "function mt:" + field_name_camel_case + "()";
-    const std::string offset_prefix =
-        "local o = self.view:Offset(" + NumToString(field_def->offset()) + ")";
-    const std::string offset_prefix_2 = "if o ~= 0 then";
-
-    AppendComments(field_def->documentation());
-    if (IsScalar(base_type)) {
-      AppendLine(getter_signature);
-      {
-        Indent();
-        if (object_def->is_struct()) {
-          // TODO(derekbailey): it would be nice to modify the view:Get to just
-          // pass in the offset and not have to add it its own self.view.pos.
-          AppendLine("return " + GenerateGetter(field_def->type()) +
-                     "self.view.pos + " + NumToString(field_def->offset()) +
-                     ")");
-        } else {
-          // Table accessors
-          AppendLine(offset_prefix);
-          AppendLine(offset_prefix_2);
-          {
-            Indent();
-            std::string getter =
-                GenerateGetter(field_def->type()) + "self.view.pos + o)";
-            if (IsBool(base_type)) { getter = "(" + getter + " ~=0)"; }
-            AppendLine("return " + getter);
-            Dedent();
-          }
-          AppendLine("end");
-          AppendLine("return " + DefaultValue(field_def));
-        }
-        Dedent();
-      }
-      AppendLine("end");
-      AppendLine();
-    } else {
-      switch (base_type) {
-        case r::String: {
-          AppendLine(getter_signature);
-          {
-            Indent();
-            AppendLine(offset_prefix);
-            AppendLine(offset_prefix_2);
-            {
-              Indent();
-              AppendLine("return " + GenerateGetter(field_def->type()) +
-                         "self.view.pos + o)");
-              Dedent();
-            }
-            AppendLine("end");
-            Dedent();
-          }
-          AppendLine("end");
-          AppendLine();
-          break;
-        }
-        case r::Obj: {
-          if (object_def->is_struct()) {
-            AppendLine("function mt:" + field_name_camel_case + "(obj)");
-            {
-              Indent();
-              AppendLine("obj:Init(self.view.bytes, self.view.pos + " +
-                         NumToString(field_def->offset()) + ")");
-              AppendLine("return obj");
-              Dedent();
-            }
-          } else {
-            AppendLine(getter_signature);
-            {
-              Indent();
-              AppendLine(offset_prefix);
-              AppendLine(offset_prefix_2);
-              {
-                Indent();
-
-                const r::Object *field_object = GetObject(field_def->type());
-                if (!field_object) {
-                  // TODO(derekbailey): this is an error condition. we should
-                  // report it better.
-                  return false;
-                }
-                AppendLine(
-                    "local x = " +
-                    std::string(field_object->is_struct()
-                                    ? "self.view.pos + o"
-                                    : "self.view:Indirect(self.view.pos + o)"));
-                const std::string require_name = RegisterRequires(field_def);
-                AppendLine("local obj = " + require_name + ".New()");
-                AppendLine("obj:Init(self.view.bytes, x)");
-                AppendLine("return obj");
-                Dedent();
-              }
-              AppendLine("end");
-              Dedent();
-            }
-          }
-          AppendLine("end");
-          AppendLine();
-          break;
-        }
-        case r::Union: {
-          AppendLine(getter_signature);
-          {
-            Indent();
-            AppendLine(offset_prefix);
-            AppendLine(offset_prefix_2);
-            {
-              Indent();
-              AppendLine(
-                  "local obj = "
-                  "flatbuffers.view.New(flatbuffers.binaryArray.New("
-                  "0), 0)");
-              AppendLine(GenerateGetter(field_def->type()) + "obj, o)");
-              AppendLine("return obj");
-              Dedent();
-            }
-            AppendLine("end");
-            Dedent();
-          }
-          AppendLine("end");
-          AppendLine();
-          break;
-        }
-        case r::Array:
-        case r::Vector: {
-          const r::BaseType vector_base_type = field_def->type()->element();
-          int32_t element_size = field_def->type()->element_size();
-          {
-            AppendLine("function mt:" + field_name_camel_case + "(j)");
-            {
-              Indent();
-              AppendLine(offset_prefix);
-              AppendLine(offset_prefix_2);
-              {
-                Indent();
-                if (IsStructOrTable(vector_base_type)) {
-                  AppendLine("local x = self.view:Vector(o)");
-                  AppendLine("x = x + ((j-1) * " + NumToString(element_size) +
-                             ")");
-                  if (IsTable(field_def->type(), /*use_element=*/true)) {
-                    AppendLine("x = self.view:Indirect(x)");
-                  } else {
-                    // Vector of structs are inline, so we need to query the
-                    // size of the struct.
-                    const reflection::Object *obj =
-                        GetObjectByIndex(field_def->type()->index());
-                    element_size = obj->bytesize();
-                  }
-
-                  // Include the referenced type, thus we need to make sure
-                  // we set `use_element` to true.
-                  const std::string require_name =
-                      RegisterRequires(field_def, /*use_element=*/true);
-                  AppendLine("local obj = " + require_name + ".New()");
-                  AppendLine("obj:Init(self.view.bytes, x)");
-                  AppendLine("return obj");
-                } else {
-                  AppendLine("local a = self.view:Vector(o)");
-                  AppendLine("return " + GenerateGetter(field_def->type()) +
-                             "a + ((j-1) * " + NumToString(element_size) +
-                             "))");
-                }
-                Dedent();
-              }
-              AppendLine("end");
-              // Only generate a default value for those types that are
-              // supported.
-              if (!IsStructOrTable(vector_base_type)) {
-                AppendLine("return " + std::string(vector_base_type == r::String
-                                                       ? "''"
-                                                       : "0"));
-              }
-              Dedent();
-            }
-            AppendLine("end");
-            AppendLine();
-
-            // If the vector is composed of single byte values, we generate a
-            // helper function to get it as a byte string in Lua.
-            if (IsSingleByte(vector_base_type)) {
-              AppendLine("function mt:" + field_name_camel_case +
-                         "AsString(start, stop)");
-              {
-                Indent();
-                AppendLine("return self.view:VectorAsString(" +
-                           NumToString(field_def->offset()) + ", start, stop)");
-                Dedent();
-              }
-              AppendLine("end");
-              AppendLine();
-            }
-          }
-
-          {
-            // We also make a new accessor to query just the length of the
-            // vector.
-            AppendLine("function mt:" + field_name_camel_case + "Length()");
-            {
-              Indent();
-              AppendLine(offset_prefix);
-              AppendLine(offset_prefix_2);
-              {
-                Indent();
-                AppendLine("return self.view:VectorLen(o)");
-                Dedent();
-              }
-              AppendLine("end");
-              AppendLine("return 0");
-              Dedent();
-            }
-            AppendLine("end");
-            AppendLine();
-          }
-          break;
-        }
-        default: {
-          return false;
-        }
-      }
-    }
+      EmitCodeBlock(code, object_name, ns, object->declaration_file()->str());
+    });
     return true;
   }
 
  private:
-  void Indent() { indent_level_++; }
-  void Dedent() { indent_level_--; }
-
-  std::string Indentation() const {
-    return std::string(characters_per_indent_ * indent_level_, indent_char_);
-  }
-
-  void AppendComments(
+  void ForAllDocumentation(
       const flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>>
-          *comments) {
-    if (!comments) { return; }
-    for (auto it = comments->cbegin(); it != comments->cend(); ++it) {
-      AppendLine("--" + it->str());
-    }
+          *documentation,
+      std::string indent, std::string &code) {
+    flatbuffers::ForAllDocumentation(
+        documentation, [&indent, &code](const flatbuffers::String *str) {
+          code += indent + "--" + str->str() + "\n";
+        });
   }
 
   std::string GenerateStructBuilderArgs(const r::Object *object,
                                         std::string prefix = "") {
-    // Structs need to be order by field.id, but the IR orders them by
-    // field.name. So we first have to sort by field.id.
-    const std::vector<uint32_t> field_to_id_map = FieldIdToIndex(object);
-
     std::string signature;
-    for (size_t i = 0; i < field_to_id_map.size(); ++i) {
-      auto field = object->fields()->Get(field_to_id_map[i]);
+    ForAllFields(object, [this, &signature, &prefix](const r::Field *field) {
       if (IsStructOrTable(field->type()->base_type())) {
         const r::Object *field_object = GetObject(field->type());
         signature += GenerateStructBuilderArgs(
@@ -535,36 +410,37 @@ class LuaBfbsGenerator : public BaseBfbsGenerator {
         signature +=
             ", " + prefix + MakeCamelCase(NormalizeName(field->name()), false);
       }
-    }
+    });
     return signature;
   }
 
-  void AppendStructBuilderBody(const r::Object *object,
-                               std::string prefix = "") {
-    // Structs need to be order by field.id, but the IR orders them by
-    // field.name. So we first have to sort by field.id.
-    const std::vector<uint32_t> field_to_id_map = FieldIdToIndex(object);
+  std::string AppendStructBuilderBody(const r::Object *object,
+                                      std::string prefix = "") {
+    std::string code;
+    code += "  builder:Prep(" + NumToString(object->minalign()) + ", " +
+            NumToString(object->bytesize()) + ")\n";
 
-    AppendLine("builder:Prep(" + NumToString(object->minalign()) + ", " +
-               NumToString(object->bytesize()) + ")");
+    // We need to reverse the order we iterate over, since we build the
+    // buffer backwards.
+    ForAllFields(
+        object,
+        [this, &code, &prefix](const r::Field *field) {
+          const int32_t num_padding_bytes = field->padding();
+          if (num_padding_bytes) {
+            code += "  builder:Pad(" + NumToString(num_padding_bytes) + ")\n";
+          }
+          if (IsStructOrTable(field->type()->base_type())) {
+            const r::Object *field_object = GetObject(field->type());
+            code += AppendStructBuilderBody(
+                field_object, prefix + NormalizeName(field->name()) + "_");
+          } else {
+            code += "  builder:Prepend" + GenerateMethod(field) + "(" + prefix +
+                    MakeCamelCase(NormalizeName(field->name()), false) + ")\n";
+          }
+        },
+        /*backwards=*/true);
 
-    // We need to reverse the order we iterate over, since we build the buffer
-    // backwards.
-    for (int i = static_cast<int>(field_to_id_map.size()) - 1; i >= 0; --i) {
-      auto field = object->fields()->Get(field_to_id_map[i]);
-      const int32_t num_padding_bytes = field->padding();
-      if (num_padding_bytes) {
-        AppendLine("builder:Pad(" + NumToString(num_padding_bytes) + ")");
-      }
-      if (IsStructOrTable(field->type()->base_type())) {
-        const r::Object *field_object = GetObject(field->type());
-        AppendStructBuilderBody(field_object,
-                                prefix + NormalizeName(field->name()) + "_");
-      } else {
-        AppendLine("builder:Prepend" + GenerateMethod(field) + "(" + prefix +
-                   MakeCamelCase(NormalizeName(field->name()), false) + ")");
-      }
-    }
+    return code;
   }
 
   std::string GenerateMethod(const r::Field *field) {
@@ -641,46 +517,16 @@ class LuaBfbsGenerator : public BaseBfbsGenerator {
     return NormalizeName(name->str());
   }
 
-  std::string Denamespace(const flatbuffers::String *name) {
-    std::string ns;
-    return Denamespace(name, ns);
-  }
-
-  std::string Denamespace(const flatbuffers::String *name, std::string &ns) {
-    const size_t pos = name->str().find_last_of('.');
-    if (pos == std::string::npos) {
-      ns = "";
-      return name->str();
-    }
-    ns = name->str().substr(0, pos);
-    return name->str().substr(pos + 1);
-  }
-
   void StartCodeBlock(const reflection::Enum *enum_def) {
     current_enum_ = enum_def;
     current_obj_ = nullptr;
-    StartCodeBlock();
-  }
-
-  void StartCodeBlock(const reflection::Object *object_def) {
-    current_obj_ = object_def;
-    current_enum_ = nullptr;
-    StartCodeBlock();
-  }
-
-  void StartCodeBlock() {
-    current_block_.clear();
     requires_.clear();
   }
 
-  std::string CodeBlock() { return current_block_; }
-
-  void AppendLine() { current_block_ += Indentation() + "\n"; }
-
-  void AppendLine(std::string to_append) { Append(to_append + "\n"); }
-
-  void Append(std::string to_append) {
-    current_block_ += Indentation() + to_append;
+  void StartCodeBlock(const reflection::Object *object) {
+    current_obj_ = object;
+    current_enum_ = nullptr;
+    requires_.clear();
   }
 
   std::string RegisterRequires(const r::Field *field,
@@ -701,8 +547,8 @@ class LuaBfbsGenerator : public BaseBfbsGenerator {
     }
 
     // Prefix with double __ to avoid name clashing, since these are defined
-    // at the top of the file and have lexical scoping. Replace '.' with '_' so
-    // it can be a legal identifier.
+    // at the top of the file and have lexical scoping. Replace '.' with '_'
+    // so it can be a legal identifier.
     std::string name = "__" + type_name;
     std::replace(name.begin(), name.end(), '.', '_');
 
@@ -715,8 +561,8 @@ class LuaBfbsGenerator : public BaseBfbsGenerator {
     return local_name;
   }
 
-  void EmitCodeBlock(const std::string &name, const std::string &ns,
-                     const std::string &declaring_file) {
+  void EmitCodeBlock(const std::string &code_block, const std::string &name,
+                     const std::string &ns, const std::string &declaring_file) {
     const std::string root_type = schema_->root_table()->name()->str();
     const std::string root_file =
         schema_->root_table()->declaration_file()->str();
@@ -741,7 +587,7 @@ class LuaBfbsGenerator : public BaseBfbsGenerator {
       code += "\n";
     }
 
-    code += CodeBlock();
+    code += code_block;
     code += "return " + name;
 
     // Namespaces are '.' deliminted, so replace it with the path separator.
@@ -759,12 +605,8 @@ class LuaBfbsGenerator : public BaseBfbsGenerator {
     SaveFile(file_name.c_str(), code, false);
   }
 
-  int8_t indent_level_;
-  const int8_t characters_per_indent_;
-  const char indent_char_;
   std::unordered_set<std::string> keywords_;
   std::map<std::string, std::string> requires_;
-  std::string current_block_;
   const r::Object *current_obj_;
   const r::Enum *current_enum_;
   const std::string flatc_version_;
