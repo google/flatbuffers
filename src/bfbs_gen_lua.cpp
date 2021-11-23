@@ -147,7 +147,7 @@ class LuaBfbsGenerator : public BaseBfbsGenerator {
       // Create all the field accessors.
       ForAllFields(object, /*reverse=*/false, [&](const r::Field *field) {
         // Skip writing deprecated fields altogether.
-        if (field->deprecated()) { return true; }
+        if (field->deprecated()) { return; }
 
         const std::string field_name = NormalizeName(field->name());
         const std::string field_name_camel_case = MakeCamelCase(field_name);
@@ -215,7 +215,7 @@ class LuaBfbsGenerator : public BaseBfbsGenerator {
                 if (!field_object) {
                   // TODO(derekbailey): this is an error condition. we
                   // should report it better.
-                  return false;
+                  return;
                 }
                 code += "    local x = " +
                         std::string(
@@ -317,11 +317,11 @@ class LuaBfbsGenerator : public BaseBfbsGenerator {
               break;
             }
             default: {
-              return false;
+              return;
             }
           }
         }
-        return true;
+        return;
       });
 
       // Create all the builders
