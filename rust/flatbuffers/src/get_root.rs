@@ -43,7 +43,7 @@ pub fn root_with_opts<'opts, 'buf, T>(
 where
     T: 'buf + Follow<'buf> + Verifiable,
 {
-    let mut v = Verifier::new(&opts, data);
+    let mut v = Verifier::new(opts, data);
     <ForwardsUOffset<T>>::run_verifier(&mut v, 0)?;
     Ok(unsafe { root_unchecked::<T>(data) })
 }
@@ -73,7 +73,7 @@ pub fn size_prefixed_root_with_opts<'opts, 'buf, T>(
 where
     T: 'buf + Follow<'buf> + Verifiable,
 {
-    let mut v = Verifier::new(&opts, data);
+    let mut v = Verifier::new(opts, data);
     <SkipSizePrefix<ForwardsUOffset<T>>>::run_verifier(&mut v, 0)?;
     Ok(unsafe { size_prefixed_root_unchecked::<T>(data) })
 }

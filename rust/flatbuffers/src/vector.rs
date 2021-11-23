@@ -73,7 +73,7 @@ impl<'a, T: 'a> Vector<'a, T> {
 
     #[inline(always)]
     pub fn len(&self) -> usize {
-        unsafe { read_scalar_at::<UOffsetT>(&self.0, self.1) as usize }
+        unsafe { read_scalar_at::<UOffsetT>(self.0, self.1) as usize }
     }
     #[inline(always)]
     pub fn is_empty(&self) -> bool {
@@ -103,7 +103,7 @@ impl<'a, T: SafeSliceAccess + 'a> Vector<'a, T> {
         let loc = self.1;
         let sz = size_of::<T>();
         debug_assert!(sz > 0);
-        let len = unsafe { read_scalar_at::<UOffsetT>(&buf, loc) } as usize;
+        let len = unsafe { read_scalar_at::<UOffsetT>(buf, loc) } as usize;
         let data_buf = &buf[loc + SIZE_UOFFSET..loc + SIZE_UOFFSET + len * sz];
         let ptr = data_buf.as_ptr() as *const T;
         let s: &'a [T] = unsafe { from_raw_parts(ptr, len) };
@@ -144,7 +144,7 @@ pub fn follow_cast_ref<'a, T: Sized + 'a>(buf: &'a [u8], loc: usize) -> &'a T {
 impl<'a> Follow<'a> for &'a str {
     type Inner = &'a str;
     fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
-        let len = unsafe { read_scalar_at::<UOffsetT>(&buf, loc) } as usize;
+        let len = unsafe { read_scalar_at::<UOffsetT>(buf, loc) } as usize;
         let slice = &buf[loc + SIZE_UOFFSET..loc + SIZE_UOFFSET + len];
         unsafe { from_utf8_unchecked(slice) }
     }
@@ -154,7 +154,7 @@ impl<'a> Follow<'a> for &'a str {
 fn follow_slice_helper<T>(buf: &[u8], loc: usize) -> &[T] {
     let sz = size_of::<T>();
     debug_assert!(sz > 0);
-    let len = unsafe { read_scalar_at::<UOffsetT>(&buf, loc) as usize };
+    let len = unsafe { read_scalar_at::<UOffsetT>(buf, loc) as usize };
     let data_buf = &buf[loc + SIZE_UOFFSET..loc + SIZE_UOFFSET + len * sz];
     let ptr = data_buf.as_ptr() as *const T;
     let s: &[T] = unsafe { from_raw_parts(ptr, len) };
