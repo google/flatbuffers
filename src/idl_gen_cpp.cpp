@@ -1999,6 +1999,14 @@ class CppGenerator : public BaseGenerator {
           }
           default: break;
         }
+
+        auto nfn = GetNestedFlatBufferName(field);
+        if (!nfn.empty()) {
+          code_.SetValue("CPP_NAME", nfn);
+          // FIXME: file_identifier.
+          code_ += "{{PRE}}verifier.VerifyNestedFlatBuffer<{{CPP_NAME}}>"
+                   "({{NAME}}(), nullptr)\\";
+        }
         break;
       }
       default: {
@@ -2294,6 +2302,21 @@ class CppGenerator : public BaseGenerator {
     }
   }
 
+  std::string GetNestedFlatBufferName(const FieldDef &field) {
+    auto nested = field.attributes.Lookup("nested_flatbuffer");
+    if (!nested) return "";
+    std::string qualified_name = nested->constant;
+    auto nested_root = parser_.LookupStruct(nested->constant);
+    if (nested_root == nullptr) {
+      qualified_name =
+          parser_.current_namespace_->GetFullyQualifiedName(nested->constant);
+      nested_root = parser_.LookupStruct(qualified_name);
+    }
+    FLATBUFFERS_ASSERT(nested_root);  // Guaranteed to exist by parser.
+    (void)nested_root;
+    return TranslateNameSpace(qualified_name);
+  }
+
   // Generate an accessor struct, builder structs & function for a table.
   void GenTable(const StructDef &struct_def) {
     if (opts_.generate_object_based_api) { GenNativeTable(struct_def); }
@@ -2357,19 +2380,9 @@ class CppGenerator : public BaseGenerator {
       GenTableFieldGetter(field);
       if (opts_.mutable_buffer) { GenTableFieldSetter(field); }
 
-      auto nested = field.attributes.Lookup("nested_flatbuffer");
-      if (nested) {
-        std::string qualified_name = nested->constant;
-        auto nested_root = parser_.LookupStruct(nested->constant);
-        if (nested_root == nullptr) {
-          qualified_name = parser_.current_namespace_->GetFullyQualifiedName(
-              nested->constant);
-          nested_root = parser_.LookupStruct(qualified_name);
-        }
-        FLATBUFFERS_ASSERT(nested_root);  // Guaranteed to exist by parser.
-        (void)nested_root;
-        code_.SetValue("CPP_NAME", TranslateNameSpace(qualified_name));
-
+      auto nfn = GetNestedFlatBufferName(field);
+      if (!nfn.empty()) {
+        code_.SetValue("CPP_NAME", nfn);
         code_ += "  const {{CPP_NAME}} *{{FIELD_NAME}}_nested_root() const {";
         code_ +=
             "    return "
