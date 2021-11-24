@@ -512,7 +512,7 @@ find_package(PythonInterp 3)
 if(PYTHONINTERP_FOUND AND
   # Skip doing this if the MSVC version is below VS 12.
   # https://cmake.org/cmake/help/latest/variable/MSVC_VERSION.html
-  (WIN32 AND MSVC_VERSION GREATER 1800))
+  (NOT MSVC OR MSVC_VERSION GREATER 1800))
   if(WIN32)
     set(GENERATION_SCRIPT py scripts/generate_code.py)
    else()
@@ -523,7 +523,7 @@ if(PYTHONINTERP_FOUND AND
     POST_BUILD
     COMMAND ${GENERATION_SCRIPT} "${FLATBUFFERS_FLATC_EXECUTABLE}"
     WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
-    COMMENT "Generating code..."
+    COMMENT "Running ${GENERATION_SCRIPT}..."
     VERBATIM)
 endif()
 
