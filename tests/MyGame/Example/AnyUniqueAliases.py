@@ -8,7 +8,6 @@ class AnyUniqueAliases(object):
     TS = 2
     M2 = 3
 
-
 def AnyUniqueAliasesCreator(unionType, table):
     from flatbuffers.table import Table
     if not isinstance(table, Table):

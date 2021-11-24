@@ -37,6 +37,7 @@ $TEST_NOINCL_FLAGS $TEST_CPP_FLAGS $TEST_CS_FLAGS -I include_test monster_test.f
 ../flatc --rust $TEST_RUST_FLAGS -o monster_test -I include_test monster_test.fbs monsterdata_test.json
 
 ../flatc --python $TEST_BASE_FLAGS -I include_test monster_test.fbs monsterdata_test.json
+../flatc --python --gen-onefile $TEST_BASE_FLAGS -I include_test monster_test.fbs monsterdata_test.json
 
 ../flatc --cpp --java --kotlin --csharp --dart --go --binary --lobster --lua --ts --php --python \
 $TEST_NOINCL_FLAGS $TEST_CPP_FLAGS $TEST_CS_FLAGS $TEST_TS_FLAGS -o namespace_test namespace_test/namespace_test1.fbs namespace_test/namespace_test2.fbs

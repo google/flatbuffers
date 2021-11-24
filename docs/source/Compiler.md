@@ -101,7 +101,7 @@ Additional options:
 -   `--gen-mutable` : Generate additional non-const accessors for mutating
     FlatBuffers in-place.
 
--   `--gen-onefile` : Generate single output file for C# and Go.
+-   `--gen-onefile` : Generate single output file for C#, Go, and Python.
 
 -   `--gen-name-strings` : Generate type name functions for C++.
 

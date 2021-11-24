@@ -99,7 +99,7 @@ std::string FlatCompiler::GetUsageString(const char *program_name) const {
     "  --no-includes          Don\'t generate include statements for included\n"
     "                         schemas the generated file depends on (C++ / Python).\n"
     "  --gen-mutable          Generate accessors that can mutate buffers in-place.\n"
-    "  --gen-onefile          Generate single output file for C# and Go.\n"
+    "  --gen-onefile          Generate single output file for C#, Go, and Python.\n"
     "  --gen-name-strings     Generate type name functions for C++ and Rust.\n"
     "  --gen-object-api       Generate an additional object-based API.\n"
     "  --gen-compare          Generate operator== for object-based API types.\n"
@@ -327,6 +327,7 @@ int FlatCompiler::Compile(int argc, const char **argv) {
         opts.include_dependence_headers = false;
       } else if (arg == "--gen-onefile") {
         opts.one_file = true;
+        opts.include_dependence_headers = false;
       } else if (arg == "--raw-binary") {
         raw_binary = true;
       } else if (arg == "--size-prefixed") {
