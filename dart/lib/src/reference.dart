@@ -19,7 +19,7 @@ class Reference {
       this._buffer, this._offset, this._parentWidth, int packedType, this._path,
       [int? byteWidth, ValueType? valueType])
       : _byteWidth = byteWidth ?? 1 << (packedType & 3),
-        _valueType = valueType ?? ValueTypeUtils.fromInt(packedType >> 2) {}
+        _valueType = valueType ?? ValueTypeUtils.fromInt(packedType >> 2);
 
   /// Use this method to access the root value of a FlexBuffer.
   static Reference fromBuffer(ByteBuffer buffer) {
@@ -218,13 +218,13 @@ class Reference {
         _length = 0;
       } else if (_valueType == ValueType.String) {
         final indirect = _indirect;
-        var size_byte_width = _byteWidth;
-        var size = _readUInt(indirect - size_byte_width,
-            BitWidthUtil.fromByteWidth(size_byte_width));
+        var sizeByteWidth = _byteWidth;
+        var size = _readUInt(indirect - sizeByteWidth,
+            BitWidthUtil.fromByteWidth(sizeByteWidth));
         while (_buffer.getInt8(indirect + size) != 0) {
-          size_byte_width <<= 1;
-          size = _readUInt(indirect - size_byte_width,
-              BitWidthUtil.fromByteWidth(size_byte_width));
+          sizeByteWidth <<= 1;
+          size = _readUInt(indirect - sizeByteWidth,
+              BitWidthUtil.fromByteWidth(sizeByteWidth));
         }
         _length = size;
       } else if (_valueType == ValueType.Key) {
@@ -373,9 +373,8 @@ class Reference {
     return null;
   }
 
-  int _diffKeys(
-      List<int> input, int index, int indirect_offset, int byteWidth) {
-    final keyOffset = indirect_offset + index * byteWidth;
+  int _diffKeys(List<int> input, int index, int indirectOffset, int byteWidth) {
+    final keyOffset = indirectOffset + index * byteWidth;
     final keyIndirectOffset =
         keyOffset - _readUInt(keyOffset, BitWidthUtil.fromByteWidth(byteWidth));
     for (var i = 0; i < input.length; i++) {

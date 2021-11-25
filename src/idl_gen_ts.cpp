@@ -583,7 +583,8 @@ class TsGenerator : public BaseGenerator {
                  std::string fileName) {
     ImportDefinition import;
     import.name = import_name;
-    import.import_statement = "import " + import_name + " from '" + fileName + "';";
+    import.import_statement =
+        "import " + import_name + " from '" + fileName + "';";
     imports.insert(std::make_pair(import_name, import));
   }
 
@@ -1602,8 +1603,6 @@ bool GenerateTS(const Parser &parser, const std::string &path,
 
 std::string TSMakeRule(const Parser &parser, const std::string &path,
                        const std::string &file_name) {
-  FLATBUFFERS_ASSERT(parser.opts.lang <= IDLOptions::kMAX);
-
   std::string filebase =
       flatbuffers::StripPath(flatbuffers::StripExtension(file_name));
   ts::TsGenerator generator(parser, path, file_name);

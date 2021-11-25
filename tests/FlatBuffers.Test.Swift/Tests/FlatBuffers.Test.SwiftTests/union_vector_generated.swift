@@ -25,6 +25,21 @@ public enum Character: UInt8, UnionEnum {
   public static var min: Character { return .none_ }
 }
 
+extension Character: Encodable {
+  public func encode(to encoder: Encoder) throws {
+    var container = encoder.singleValueContainer()
+    switch self {
+    case .none_: try container.encode("NONE")
+    case .mulan: try container.encode("MuLan")
+    case .rapunzel: try container.encode("Rapunzel")
+    case .belle: try container.encode("Belle")
+    case .bookfan: try container.encode("BookFan")
+    case .other: try container.encode("Other")
+    case .unused: try container.encode("Unused")
+    }
+  }
+}
+
 public struct CharacterUnion {
   public var type: Character
   public var value: NativeObject?
@@ -56,11 +71,63 @@ public struct CharacterUnion {
     }
   }
 }
-public struct Rapunzel: NativeStruct, Verifiable, NativeObject {
+public enum Gadget: UInt8, UnionEnum {
+  public typealias T = UInt8
+
+  public init?(value: T) {
+    self.init(rawValue: value)
+  }
+
+  public static var byteSize: Int { return MemoryLayout<UInt8>.size }
+  public var value: UInt8 { return self.rawValue }
+  case none_ = 0
+  case fallingtub = 1
+  case handfan = 2
+
+  public static var max: Gadget { return .handfan }
+  public static var min: Gadget { return .none_ }
+}
+
+extension Gadget: Encodable {
+  public func encode(to encoder: Encoder) throws {
+    var container = encoder.singleValueContainer()
+    switch self {
+    case .none_: try container.encode("NONE")
+    case .fallingtub: try container.encode("FallingTub")
+    case .handfan: try container.encode("HandFan")
+    }
+  }
+}
+
+public struct GadgetUnion {
+  public var type: Gadget
+  public var value: NativeObject?
+  public init(_ v: NativeObject?, type: Gadget) {
+    self.type = type
+    self.value = v
+  }
+  public func pack(builder: inout FlatBufferBuilder) -> Offset {
+    switch type {
+    case .fallingtub:
+      var __obj = value as? FallingTub
+      return FallingTub_Mutable.pack(&builder, obj: &__obj)
+    case .handfan:
+      var __obj = value as? HandFanT
+      return HandFan.pack(&builder, obj: &__obj)
+    default: return Offset()
+    }
+  }
+}
+public struct Rapunzel: NativeStruct, Verifiable, FlatbuffersInitializable, NativeObject {
 
   static func validateVersion() { FlatBuffersVersion_2_0_0() }
 
   private var _hairLength: Int32
+
+  public init(_ bb: ByteBuffer, o: Int32) {
+    let _accessor = Struct(bb: bb, position: o)
+    _hairLength = _accessor.readBuffer(of: Int32.self, at: 0)
+  }
 
   public init(hairLength: Int32) {
     _hairLength = hairLength
@@ -78,6 +145,19 @@ public struct Rapunzel: NativeStruct, Verifiable, NativeObject {
 
   public static func verify<T>(_ verifier: inout Verifier, at position: Int, of type: T.Type) throws where T: Verifiable {
     try verifier.inBuffer(position: position, of: Rapunzel.self)
+  }
+}
+
+extension Rapunzel: Encodable {
+
+  enum CodingKeys: String, CodingKey {
+    case hairLength = "hair_length"
+  }
+  public func encode(to encoder: Encoder) throws {
+    var container = encoder.container(keyedBy: CodingKeys.self)
+    if hairLength != 0 {
+      try container.encodeIfPresent(hairLength, forKey: .hairLength)
+    }
   }
 }
 
@@ -106,11 +186,16 @@ public struct Rapunzel_Mutable: FlatBufferObject {
   }
 }
 
-public struct BookReader: NativeStruct, Verifiable, NativeObject {
+public struct BookReader: NativeStruct, Verifiable, FlatbuffersInitializable, NativeObject {
 
   static func validateVersion() { FlatBuffersVersion_2_0_0() }
 
   private var _booksRead: Int32
+
+  public init(_ bb: ByteBuffer, o: Int32) {
+    let _accessor = Struct(bb: bb, position: o)
+    _booksRead = _accessor.readBuffer(of: Int32.self, at: 0)
+  }
 
   public init(booksRead: Int32) {
     _booksRead = booksRead
@@ -128,6 +213,19 @@ public struct BookReader: NativeStruct, Verifiable, NativeObject {
 
   public static func verify<T>(_ verifier: inout Verifier, at position: Int, of type: T.Type) throws where T: Verifiable {
     try verifier.inBuffer(position: position, of: BookReader.self)
+  }
+}
+
+extension BookReader: Encodable {
+
+  enum CodingKeys: String, CodingKey {
+    case booksRead = "books_read"
+  }
+  public func encode(to encoder: Encoder) throws {
+    var container = encoder.container(keyedBy: CodingKeys.self)
+    if booksRead != 0 {
+      try container.encodeIfPresent(booksRead, forKey: .booksRead)
+    }
   }
 }
 
@@ -152,6 +250,74 @@ public struct BookReader_Mutable: FlatBufferObject {
   }
 
   public static func pack(_ builder: inout FlatBufferBuilder, obj: inout BookReader) -> Offset {
+    return builder.create(struct: obj)
+  }
+}
+
+public struct FallingTub: NativeStruct, Verifiable, FlatbuffersInitializable, NativeObject {
+
+  static func validateVersion() { FlatBuffersVersion_2_0_0() }
+
+  private var _weight: Int32
+
+  public init(_ bb: ByteBuffer, o: Int32) {
+    let _accessor = Struct(bb: bb, position: o)
+    _weight = _accessor.readBuffer(of: Int32.self, at: 0)
+  }
+
+  public init(weight: Int32) {
+    _weight = weight
+  }
+
+  public init() {
+    _weight = 0
+  }
+
+  public init(_ _t: inout FallingTub_Mutable) {
+    _weight = _t.weight
+  }
+
+  public var weight: Int32 { _weight }
+
+  public static func verify<T>(_ verifier: inout Verifier, at position: Int, of type: T.Type) throws where T: Verifiable {
+    try verifier.inBuffer(position: position, of: FallingTub.self)
+  }
+}
+
+extension FallingTub: Encodable {
+
+  enum CodingKeys: String, CodingKey {
+    case weight = "weight"
+  }
+  public func encode(to encoder: Encoder) throws {
+    var container = encoder.container(keyedBy: CodingKeys.self)
+    if weight != 0 {
+      try container.encodeIfPresent(weight, forKey: .weight)
+    }
+  }
+}
+
+public struct FallingTub_Mutable: FlatBufferObject {
+
+  static func validateVersion() { FlatBuffersVersion_2_0_0() }
+  public var __buffer: ByteBuffer! { return _accessor.bb }
+  private var _accessor: Struct
+
+  public init(_ bb: ByteBuffer, o: Int32) { _accessor = Struct(bb: bb, position: o) }
+
+  public var weight: Int32 { return _accessor.readBuffer(of: Int32.self, at: 0) }
+  @discardableResult public func mutate(weight: Int32) -> Bool { return _accessor.mutate(weight, index: 0) }
+  
+
+  public mutating func unpack() -> FallingTub {
+    return FallingTub(&self)
+  }
+  public static func pack(_ builder: inout FlatBufferBuilder, obj: inout FallingTub?) -> Offset {
+    guard var obj = obj else { return Offset() }
+    return pack(&builder, obj: &obj)
+  }
+
+  public static func pack(_ builder: inout FlatBufferBuilder, obj: inout FallingTub) -> Offset {
     return builder.create(struct: obj)
   }
 }
@@ -210,6 +376,19 @@ public struct Attacker: FlatBufferObject, Verifiable, ObjectAPIPacker {
   }
 }
 
+extension Attacker: Encodable {
+
+  enum CodingKeys: String, CodingKey {
+    case swordAttackDamage = "sword_attack_damage"
+  }
+  public func encode(to encoder: Encoder) throws {
+    var container = encoder.container(keyedBy: CodingKeys.self)
+    if swordAttackDamage != 0 {
+      try container.encodeIfPresent(swordAttackDamage, forKey: .swordAttackDamage)
+    }
+  }
+}
+
 public class AttackerT: NativeObject {
 
   public var swordAttackDamage: Int32
@@ -223,6 +402,88 @@ public class AttackerT: NativeObject {
   }
 
   public func serialize() -> ByteBuffer { return serialize(type: Attacker.self) }
+
+}
+public struct HandFan: FlatBufferObject, Verifiable, ObjectAPIPacker {
+
+  static func validateVersion() { FlatBuffersVersion_2_0_0() }
+  public var __buffer: ByteBuffer! { return _accessor.bb }
+  private var _accessor: Table
+
+  public static func finish(_ fbb: inout FlatBufferBuilder, end: Offset, prefix: Bool = false) { fbb.finish(offset: end, fileId: "MOVI", addPrefix: prefix) }
+  public static func getRootAsHandFan(bb: ByteBuffer) -> HandFan { return HandFan(Table(bb: bb, position: Int32(bb.read(def: UOffset.self, position: bb.reader)) + Int32(bb.reader))) }
+
+  private init(_ t: Table) { _accessor = t }
+  public init(_ bb: ByteBuffer, o: Int32) { _accessor = Table(bb: bb, position: o) }
+
+  private enum VTOFFSET: VOffset {
+    case length = 4
+    var v: Int32 { Int32(self.rawValue) }
+    var p: VOffset { self.rawValue }
+  }
+
+  public var length: Int32 { let o = _accessor.offset(VTOFFSET.length.v); return o == 0 ? 0 : _accessor.readBuffer(of: Int32.self, at: o) }
+  @discardableResult public func mutate(length: Int32) -> Bool {let o = _accessor.offset(VTOFFSET.length.v);  return _accessor.mutate(length, index: o) }
+  public static func startHandFan(_ fbb: inout FlatBufferBuilder) -> UOffset { fbb.startTable(with: 1) }
+  public static func add(length: Int32, _ fbb: inout FlatBufferBuilder) { fbb.add(element: length, def: 0, at: VTOFFSET.length.p) }
+  public static func endHandFan(_ fbb: inout FlatBufferBuilder, start: UOffset) -> Offset { let end = Offset(offset: fbb.endTable(at: start)); return end }
+  public static func createHandFan(
+    _ fbb: inout FlatBufferBuilder,
+    length: Int32 = 0
+  ) -> Offset {
+    let __start = HandFan.startHandFan(&fbb)
+    HandFan.add(length: length, &fbb)
+    return HandFan.endHandFan(&fbb, start: __start)
+  }
+  
+
+  public mutating func unpack() -> HandFanT {
+    return HandFanT(&self)
+  }
+  public static func pack(_ builder: inout FlatBufferBuilder, obj: inout HandFanT?) -> Offset {
+    guard var obj = obj else { return Offset() }
+    return pack(&builder, obj: &obj)
+  }
+
+  public static func pack(_ builder: inout FlatBufferBuilder, obj: inout HandFanT) -> Offset {
+    let __root = HandFan.startHandFan(&builder)
+    HandFan.add(length: obj.length, &builder)
+    return HandFan.endHandFan(&builder, start: __root)
+  }
+
+  public static func verify<T>(_ verifier: inout Verifier, at position: Int, of type: T.Type) throws where T: Verifiable {
+    var _v = try verifier.visitTable(at: position)
+    try _v.visit(field: VTOFFSET.length.p, fieldName: "length", required: false, type: Int32.self)
+    _v.finish()
+  }
+}
+
+extension HandFan: Encodable {
+
+  enum CodingKeys: String, CodingKey {
+    case length = "length"
+  }
+  public func encode(to encoder: Encoder) throws {
+    var container = encoder.container(keyedBy: CodingKeys.self)
+    if length != 0 {
+      try container.encodeIfPresent(length, forKey: .length)
+    }
+  }
+}
+
+public class HandFanT: NativeObject {
+
+  public var length: Int32
+
+  public init(_ _t: inout HandFan) {
+    length = _t.length
+  }
+
+  public init() {
+    length = 0
+  }
+
+  public func serialize() -> ByteBuffer { return serialize(type: HandFan.self) }
 
 }
 public struct Movie: FlatBufferObject, Verifiable, ObjectAPIPacker {
@@ -341,6 +602,72 @@ public struct Movie: FlatBufferObject, Verifiable, ObjectAPIPacker {
       }
     })
     _v.finish()
+  }
+}
+
+extension Movie: Encodable {
+
+  enum CodingKeys: String, CodingKey {
+    case mainCharacterType = "main_character_type"
+    case mainCharacter = "main_character"
+    case charactersType = "characters_type"
+    case characters = "characters"
+  }
+  public func encode(to encoder: Encoder) throws {
+    var container = encoder.container(keyedBy: CodingKeys.self)
+    if mainCharacterType != .none_ {
+      try container.encodeIfPresent(mainCharacterType, forKey: .mainCharacterType)
+    }
+    switch mainCharacterType {
+    case .mulan:
+      let _v = mainCharacter(type: Attacker.self)
+      try container.encodeIfPresent(_v, forKey: .mainCharacter)
+    case .rapunzel:
+      let _v = mainCharacter(type: Rapunzel.self)
+      try container.encodeIfPresent(_v, forKey: .mainCharacter)
+    case .belle:
+      let _v = mainCharacter(type: BookReader.self)
+      try container.encodeIfPresent(_v, forKey: .mainCharacter)
+    case .bookfan:
+      let _v = mainCharacter(type: BookReader.self)
+      try container.encodeIfPresent(_v, forKey: .mainCharacter)
+    case .other:
+      let _v = mainCharacter(type: String.self)
+      try container.encodeIfPresent(_v, forKey: .mainCharacter)
+    case .unused:
+      let _v = mainCharacter(type: String.self)
+      try container.encodeIfPresent(_v, forKey: .mainCharacter)
+    default: break;
+    }
+    if charactersCount > 0 {
+      var enumsEncoder = container.nestedUnkeyedContainer(forKey: .charactersType)
+      var contentEncoder = container.nestedUnkeyedContainer(forKey: .characters)
+      for index in 0..<charactersCount {
+        guard let type = charactersType(at: index) else { continue }
+        try enumsEncoder.encode(type)
+        switch type {
+        case .mulan:
+          let _v = characters(at: index, type: Attacker.self)
+          try contentEncoder.encode(_v)
+        case .rapunzel:
+          let _v = characters(at: index, type: Rapunzel.self)
+          try contentEncoder.encode(_v)
+        case .belle:
+          let _v = characters(at: index, type: BookReader.self)
+          try contentEncoder.encode(_v)
+        case .bookfan:
+          let _v = characters(at: index, type: BookReader.self)
+          try contentEncoder.encode(_v)
+        case .other:
+          let _v = characters(at: index, type: String.self)
+          try contentEncoder.encode(_v)
+        case .unused:
+          let _v = characters(at: index, type: String.self)
+          try contentEncoder.encode(_v)
+        default: break;
+        }
+      }
+    }
   }
 }
 

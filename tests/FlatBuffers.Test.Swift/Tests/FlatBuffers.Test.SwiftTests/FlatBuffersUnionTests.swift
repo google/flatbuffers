@@ -51,7 +51,10 @@ final class FlatBuffersUnionTests: XCTestCase {
     var builder = FlatBufferBuilder(initialSize: 20)
     let sword = builder.create(string: "Sword")
     let axe = builder.create(string: "Axe")
-    let weaponOne = Weapon.createWeapon(builder: &builder, offset: sword, dmg: 3)
+    let weaponOne = Weapon.createWeapon(
+      builder: &builder,
+      offset: sword,
+      dmg: 3)
     let weaponTwo = Weapon.createWeapon(builder: &builder, offset: axe, dmg: 5)
     let name = builder.create(string: "Orc")
     let inventory: [UInt8] = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
@@ -138,7 +141,9 @@ final class FlatBuffersUnionTests: XCTestCase {
       2)
 
     var objc: MovieT? = movie.unpack()
-    XCTAssertEqual(movie.charactersTypeCount, Int32(objc?.characters.count ?? 0))
+    XCTAssertEqual(
+      movie.charactersTypeCount,
+      Int32(objc?.characters.count ?? 0))
     XCTAssertEqual(
       movie.characters(at: 0, type: BookReader_Mutable.self)?.booksRead,
       (objc?.characters[0]?.value as? BookReader)?.booksRead)
@@ -202,6 +207,49 @@ final class FlatBuffersUnionTests: XCTestCase {
       7)
     XCTAssertEqual(packedMovie.characters(at: 1, type: String.self), string)
   }
+
+  func testEncoding() {
+    let string = "Awesome \\\\t\t\nstring!"
+    var fb = FlatBufferBuilder()
+
+    let stringOffset = fb.create(string: string)
+
+    let swordDmg: Int32 = 8
+    let attackStart = Attacker.startAttacker(&fb)
+    Attacker.add(swordAttackDamage: swordDmg, &fb)
+    let attack = Attacker.endAttacker(&fb, start: attackStart)
+
+    let characterType: [Character] = [.belle, .mulan, .bookfan, .other]
+
+    let characters = [
+      fb.create(struct: BookReader(booksRead: 7)),
+      attack,
+      fb.create(struct: BookReader(booksRead: 2)),
+      stringOffset,
+    ]
+    let types = fb.createVector(characterType)
+    let characterVector = fb.createVector(ofOffsets: characters)
+    let end = Movie.createMovie(
+      &fb,
+      charactersTypeVectorOffset: types,
+      charactersVectorOffset: characterVector)
+    Movie.finish(&fb, end: end)
+
+    var sizedBuffer = fb.sizedBuffer
+    do {
+      let reader: Movie = try getCheckedRoot(byteBuffer: &sizedBuffer)
+      let encoder = JSONEncoder()
+      encoder.keyEncodingStrategy = .convertToSnakeCase
+      let data = try encoder.encode(reader)
+      XCTAssertEqual(data, jsonData.data(using: .utf8))
+    } catch {
+      XCTFail(error.localizedDescription)
+    }
+  }
+
+  var jsonData: String {
+    "{\"characters_type\":[\"Belle\",\"MuLan\",\"BookFan\",\"Other\"],\"characters\":[{\"books_read\":7},{\"sword_attack_damage\":8},{\"books_read\":2},\"Awesome \\\\\\\\t\\t\\nstring!\"]}"
+  }
 }
 
 public enum ColorsNameSpace {
@@ -219,20 +267,32 @@ public enum ColorsNameSpace {
     private var _accessor: Table
     static func getRootAsMonster(bb: ByteBuffer) -> Monster { Monster(Table(
       bb: bb,
-      position: Int32(bb.read(def: UOffset.self, position: bb.reader)) + Int32(bb.reader))) }
+      position: Int32(bb.read(def: UOffset.self, position: bb.reader)) +
+        Int32(bb.reader))) }
 
     init(_ t: Table) { _accessor = t }
     init(_ bb: ByteBuffer, o: Int32) { _accessor = Table(bb: bb, position: o) }
 
-    public var colorsCount: Int32 { let o = _accessor.offset(4); return o == 0 ? 0 : _accessor.vector(count: o) }
-    public func colors(at index: Int32) -> ColorsNameSpace.RGB? { let o = _accessor.offset(4); return o == 0 ? ColorsNameSpace.RGB(rawValue: 0)! : ColorsNameSpace.RGB(rawValue: _accessor.directRead(
-      of: Int32.self,
-      offset: _accessor.vector(at: o) + index * 4)) }
-    static func startMonster(_ fbb: inout FlatBufferBuilder) -> UOffset { fbb.startTable(with: 1) }
+    public var colorsCount: Int32 {
+      let o = _accessor.offset(4); return o == 0 ? 0 : _accessor
+        .vector(count: o) }
+    public func colors(at index: Int32) -> ColorsNameSpace
+      .RGB?
+    { let o = _accessor.offset(4); return o == 0 ? ColorsNameSpace
+      .RGB(rawValue: 0)! : ColorsNameSpace.RGB(rawValue: _accessor.directRead(
+        of: Int32.self,
+        offset: _accessor.vector(at: o) + index * 4)) }
+    static func startMonster(_ fbb: inout FlatBufferBuilder) -> UOffset { fbb
+      .startTable(with: 1) }
     static func add(colors: Offset, _ fbb: inout FlatBufferBuilder) { fbb.add(
       offset: colors,
       at: 4)  }
-    static func endMonster(_ fbb: inout FlatBufferBuilder, start: UOffset) -> Offset { let end = Offset(offset: fbb.endTable(at: start)); return end }
+    static func endMonster(
+      _ fbb: inout FlatBufferBuilder,
+      start: UOffset)
+      -> Offset
+    { let end = Offset(offset: fbb.endTable(at: start)); return end
+    }
   }
 }
 
@@ -280,9 +340,10 @@ struct LocalMonster {
   init(_ fb: ByteBuffer, o: Int32) { __t = Table(bb: fb, position: o) }
   init(_ t: Table) { __t = t }
 
-  func weapon(at index: Int32) -> Weapon? { let o = __t.offset(4); return o == 0 ? nil : Weapon.assign(
-    __t.indirect(__t.vector(at: o) + (index * 4)),
-    __t.bb) }
+  func weapon(at index: Int32) -> Weapon? { let o = __t
+    .offset(4); return o == 0 ? nil : Weapon.assign(
+      __t.indirect(__t.vector(at: o) + (index * 4)),
+      __t.bb) }
 
   func equiped<T: FlatBufferObject>() -> T? {
     let o = __t.offset(8); return o == 0 ? nil : __t.union(o)
@@ -304,7 +365,10 @@ struct LocalMonster {
     let start = builder.startTable(with: 3)
     builder.add(element: equippedOffset, def: 0, at: 8)
     builder.add(offset: offset, at: 4)
-    builder.add(element: equipment.rawValue, def: Equipment.none.rawValue, at: 6)
+    builder.add(
+      element: equipment.rawValue,
+      def: Equipment.none.rawValue,
+      at: 6)
     return Offset(offset: builder.endTable(at: start))
   }
 }
@@ -323,7 +387,8 @@ struct Weapon: FlatBufferObject {
     of: Int16.self,
     at: o) }
   var nameVector: [UInt8]? { __t.getVector(at: 4) }
-  var name: String? { let o = __t.offset(4); return o == 0 ? nil : __t.string(at: o) }
+  var name: String? {
+    let o = __t.offset(4); return o == 0 ? nil : __t.string(at: o) }
 
   static func assign(_ i: Int32, _ bb: ByteBuffer) -> Weapon { Weapon(Table(
     bb: bb,
@@ -342,7 +407,10 @@ struct Weapon: FlatBufferObject {
   }
 
   @inlinable
-  static func end(builder: inout FlatBufferBuilder, startOffset: UOffset) -> Offset {
+  static func end(
+    builder: inout FlatBufferBuilder,
+    startOffset: UOffset) -> Offset
+  {
     Offset(offset: builder.endTable(at: startOffset))
   }
 

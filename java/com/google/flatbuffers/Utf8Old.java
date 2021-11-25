@@ -17,7 +17,6 @@
 package com.google.flatbuffers;
 
 import java.nio.ByteBuffer;
-import java.nio.Buffer;
 import java.nio.CharBuffer;
 import java.nio.charset.CharacterCodingException;
 import java.nio.charset.CharsetDecoder;
@@ -56,7 +55,7 @@ public class Utf8Old extends Utf8 {
     if (cache.lastOutput == null || cache.lastOutput.capacity() < estimated) {
       cache.lastOutput = ByteBuffer.allocate(Math.max(128, estimated));
     }
-    ((Buffer) cache.lastOutput).clear();
+    cache.lastOutput.clear();
     cache.lastInput = in;
     CharBuffer wrap = (in instanceof CharBuffer) ?
                           (CharBuffer) in : CharBuffer.wrap(in);
@@ -68,7 +67,7 @@ public class Utf8Old extends Utf8 {
         throw new IllegalArgumentException("bad character encoding", e);
       }
     }
-    ((Buffer) cache.lastOutput).flip();
+    cache.lastOutput.flip();
     return cache.lastOutput.remaining();
   }
 
@@ -88,7 +87,7 @@ public class Utf8Old extends Utf8 {
     CharsetDecoder decoder = CACHE.get().decoder;
     decoder.reset();
     buffer = buffer.duplicate();
-    ((Buffer) buffer).position(offset);
+    buffer.position(offset);
     buffer.limit(offset + length);
     try {
       CharBuffer result = decoder.decode(buffer);

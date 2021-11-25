@@ -52,49 +52,49 @@ struct MonsterExtra FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   double d0() const {
     return GetField<double>(VT_D0, std::numeric_limits<double>::quiet_NaN());
   }
-  bool mutate_d0(double _d0) {
+  bool mutate_d0(double _d0 = std::numeric_limits<double>::quiet_NaN()) {
     return SetField<double>(VT_D0, _d0, std::numeric_limits<double>::quiet_NaN());
   }
   double d1() const {
     return GetField<double>(VT_D1, std::numeric_limits<double>::quiet_NaN());
   }
-  bool mutate_d1(double _d1) {
+  bool mutate_d1(double _d1 = std::numeric_limits<double>::quiet_NaN()) {
     return SetField<double>(VT_D1, _d1, std::numeric_limits<double>::quiet_NaN());
   }
   double d2() const {
     return GetField<double>(VT_D2, std::numeric_limits<double>::infinity());
   }
-  bool mutate_d2(double _d2) {
+  bool mutate_d2(double _d2 = std::numeric_limits<double>::infinity()) {
     return SetField<double>(VT_D2, _d2, std::numeric_limits<double>::infinity());
   }
   double d3() const {
     return GetField<double>(VT_D3, -std::numeric_limits<double>::infinity());
   }
-  bool mutate_d3(double _d3) {
+  bool mutate_d3(double _d3 = -std::numeric_limits<double>::infinity()) {
     return SetField<double>(VT_D3, _d3, -std::numeric_limits<double>::infinity());
   }
   float f0() const {
     return GetField<float>(VT_F0, std::numeric_limits<float>::quiet_NaN());
   }
-  bool mutate_f0(float _f0) {
+  bool mutate_f0(float _f0 = std::numeric_limits<float>::quiet_NaN()) {
     return SetField<float>(VT_F0, _f0, std::numeric_limits<float>::quiet_NaN());
   }
   float f1() const {
     return GetField<float>(VT_F1, std::numeric_limits<float>::quiet_NaN());
   }
-  bool mutate_f1(float _f1) {
+  bool mutate_f1(float _f1 = std::numeric_limits<float>::quiet_NaN()) {
     return SetField<float>(VT_F1, _f1, std::numeric_limits<float>::quiet_NaN());
   }
   float f2() const {
     return GetField<float>(VT_F2, std::numeric_limits<float>::infinity());
   }
-  bool mutate_f2(float _f2) {
+  bool mutate_f2(float _f2 = std::numeric_limits<float>::infinity()) {
     return SetField<float>(VT_F2, _f2, std::numeric_limits<float>::infinity());
   }
   float f3() const {
     return GetField<float>(VT_F3, -std::numeric_limits<float>::infinity());
   }
-  bool mutate_f3(float _f3) {
+  bool mutate_f3(float _f3 = -std::numeric_limits<float>::infinity()) {
     return SetField<float>(VT_F3, _f3, -std::numeric_limits<float>::infinity());
   }
   const flatbuffers::Vector<double> *dvec() const {
@@ -347,6 +347,10 @@ inline const MyGame::MonsterExtra *GetSizePrefixedMonsterExtra(const void *buf) 
 
 inline MonsterExtra *GetMutableMonsterExtra(void *buf) {
   return flatbuffers::GetMutableRoot<MonsterExtra>(buf);
+}
+
+inline MyGame::MonsterExtra *GetMutableSizePrefixedMonsterExtra(void *buf) {
+  return flatbuffers::GetMutableSizePrefixedRoot<MyGame::MonsterExtra>(buf);
 }
 
 inline const char *MonsterExtraIdentifier() {

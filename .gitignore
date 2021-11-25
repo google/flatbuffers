@@ -46,6 +46,8 @@ project.properties
 proguard-project.txt
 linklint_results
 Makefile
+flatbenchmark
+flatbenchmark.exe
 flatc
 flatc.exe
 flathash
@@ -101,7 +103,10 @@ android/build/
 samples/android/.externalNativeBuild/
 samples/android/.gradle/
 samples/android/build/
-js/flatbuffers.mjs
+js/**/*.js
+js/**/*.d.ts
+mjs/**/*.js
+mjs/**/*.d.ts
 /bazel-bin
 /bazel-flatbuffers
 /bazel-genfiles
@@ -138,3 +143,7 @@ yarn-error.log
 **/go.sum
 flatbuffers.pc
 **/FlatBuffers.Test.Swift.xcodeproj
+**/html/**
+**/latex/**
+# https://cmake.org/cmake/help/latest/module/FetchContent.html#variable:FETCHCONTENT_BASE_DIR
+_deps/

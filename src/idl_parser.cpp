@@ -20,6 +20,7 @@
 #include <string>
 #include <utility>
 
+#include "flatbuffers/base.h"
 #include "flatbuffers/idl.h"
 #include "flatbuffers/util.h"
 
@@ -812,8 +813,7 @@ CheckedError Parser::ParseField(StructDef &struct_def) {
           "or in structs.");
     if (IsString(type) || IsVector(type)) {
       advanced_features_ |= reflection::DefaultVectorsAndStrings;
-      if (field->value.constant != "0" && field->value.constant != "null" &&
-          !SupportsDefaultVectorsAndStrings()) {
+      if (field->value.constant != "0" && !SupportsDefaultVectorsAndStrings()) {
         return Error(
             "Default values for strings and vectors are not supported in one "
             "of the specified programming languages");
@@ -1627,7 +1627,7 @@ CheckedError Parser::ParseArray(Value &array) {
   auto length = array.type.fixed_length;
   uoffset_t count = 0;
   auto err = ParseVectorDelimiters(count, [&](uoffset_t &) -> CheckedError {
-    vector_emplace_back(&stack, Value());
+    stack.emplace_back(Value());
     auto &val = stack.back();
     val.type = type;
     if (IsStruct(type)) {
@@ -2479,8 +2479,7 @@ bool Parser::SupportsDefaultVectorsAndStrings() const {
 }
 
 bool Parser::SupportsAdvancedUnionFeatures() const {
-  return opts.lang_to_generate != 0 &&
-         (opts.lang_to_generate &
+  return (opts.lang_to_generate &
           ~(IDLOptions::kCpp | IDLOptions::kTs | IDLOptions::kPhp |
             IDLOptions::kJava | IDLOptions::kCSharp | IDLOptions::kKotlin |
             IDLOptions::kBinary | IDLOptions::kSwift)) == 0;
@@ -3256,7 +3255,7 @@ CheckedError Parser::ParseRoot(const char *source, const char **include_paths,
       for (auto val_it = enum_def.Vals().begin();
            val_it != enum_def.Vals().end(); ++val_it) {
         auto &val = **val_it;
-        if (!SupportsAdvancedUnionFeatures() &&
+        if (!(opts.lang_to_generate != 0 && SupportsAdvancedUnionFeatures()) &&
             (IsStruct(val.union_type) || IsString(val.union_type)))
           return Error(
               "only tables can be union elements in the generated language: " +
@@ -3320,7 +3319,7 @@ CheckedError Parser::DoParse(const char *source, const char **include_paths,
       ECHECK(ParseProtoDecl());
     } else if (IsIdent("native_include")) {
       NEXT();
-      vector_emplace_back(&native_included_files_, attribute_);
+      native_included_files_.emplace_back(attribute_);
       EXPECT(kTokenStringConstant);
       EXPECT(';');
     } else if (IsIdent("include") || (opts.proto_mode && IsIdent("import"))) {
@@ -3406,9 +3405,9 @@ CheckedError Parser::DoParse(const char *source, const char **include_paths,
       NEXT();
       file_identifier_ = attribute_;
       EXPECT(kTokenStringConstant);
-      if (file_identifier_.length() != FlatBufferBuilder::kFileIdentifierLength)
+      if (file_identifier_.length() != flatbuffers::kFileIdentifierLength)
         return Error("file_identifier must be exactly " +
-                     NumToString(FlatBufferBuilder::kFileIdentifierLength) +
+                     NumToString(flatbuffers::kFileIdentifierLength) +
                      " characters");
       EXPECT(';');
     } else if (IsIdent("file_extension")) {

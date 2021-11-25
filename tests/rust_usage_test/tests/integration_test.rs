@@ -57,6 +57,10 @@ mod optional_scalars_generated;
 #[path = "../../arrays_test/mod.rs"]
 mod arrays_test_generated;
 
+#[allow(dead_code, unused_imports)]
+#[path = "../../keyword_test/mod.rs"]
+mod keyword_test_generated;
+
 #[rustfmt::skip] // TODO: Use standard rust formatting and remove dead code.
 #[allow(dead_code)]
 mod flatbuffers_tests {
@@ -354,7 +358,7 @@ fn test_object_api_reads_correctly() -> Result<(), &'static str>{
 // Disabled due to Windows CI limitations.
 // #[test]
 // fn builder_initializes_with_maximum_buffer_size() {
-//     flatbuffers::FlatBufferBuilder::new_with_capacity(flatbuffers::FLATBUFFERS_MAX_BUFFER_SIZE);
+//     flatbuffers::FlatBufferBuilder::with_capacity(flatbuffers::FLATBUFFERS_MAX_BUFFER_SIZE);
 // }
 
 #[should_panic]

@@ -1,0 +1,16 @@
+namespace KeywordTest;
+
+enum ABC: int { void, where, stackalloc }
+
+enum public: int { }
+
+table KeywordsInTable {
+  is: ABC = void;
+  private: public;
+  type: int;
+}
+
+union KeywordsInUnion {
+  static: KeywordsInTable,
+  internal: KeywordsInTable,
+}

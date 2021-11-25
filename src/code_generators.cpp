@@ -60,7 +60,7 @@ void CodeWriter::operator+=(std::string text) {
     // Update the text to everything after the }}.
     text = text.substr(end + 2);
   }
-  if (!text.empty() && string_back(text) == '\\') {
+  if (!text.empty() && text.back() == '\\') {
     text.pop_back();
     ignore_ident_ = true;
     stream_ << text;
@@ -314,14 +314,10 @@ std::string SimpleFloatConstantGenerator::NaN(float v) const {
   return this->NaN(static_cast<double>(v));
 }
 
-std::string JavaCSharpMakeRule(const Parser &parser, const std::string &path,
+std::string JavaCSharpMakeRule(const bool java, const Parser &parser,
+                               const std::string &path,
                                const std::string &file_name) {
-  FLATBUFFERS_ASSERT(parser.opts.lang == IDLOptions::kJava ||
-                     parser.opts.lang == IDLOptions::kCSharp);
-
-  std::string file_extension =
-      (parser.opts.lang == IDLOptions::kJava) ? ".java" : ".cs";
-
+  const std::string file_extension = java ? ".java" : ".cs";
   std::string make_rule;
 
   for (auto it = parser.enums_.vec.begin(); it != parser.enums_.vec.end();
@@ -348,6 +344,15 @@ std::string JavaCSharpMakeRule(const Parser &parser, const std::string &path,
     make_rule += " " + *it;
   }
   return make_rule;
+}
+
+std::string JavaMakeRule(const Parser &parser, const std::string &path,
+                         const std::string &file_name) {
+  return JavaCSharpMakeRule(true, parser, path, file_name);
+}
+std::string CSharpMakeRule(const Parser &parser, const std::string &path,
+                           const std::string &file_name) {
+  return JavaCSharpMakeRule(false, parser, path, file_name);
 }
 
 std::string BinaryFileName(const Parser &parser, const std::string &path,

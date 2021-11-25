@@ -23,7 +23,6 @@ import static com.google.flatbuffers.FlexBuffers.Unsigned.shortToUnsignedInt;
 
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
-import java.nio.Buffer;
 import java.nio.charset.StandardCharsets;
 
 /// @file
@@ -689,7 +688,7 @@ public class FlexBuffers {
          */
         public ByteBuffer data() {
             ByteBuffer dup = ByteBuffer.wrap(bb.data());
-            ((Buffer) dup).position(end);
+            dup.position(end);
             dup.limit(end + size());
             return dup.asReadOnlyBuffer().slice();
         }
@@ -789,7 +788,12 @@ public class FlexBuffers {
                 if (io == other.length) {
                     // in our buffer we have an additional \0 byte
                     // but this does not exist in regular Java strings, so we return now
-                    return c1 - c2;
+                    int cmp = c1 - c2;
+                    if (cmp != 0 || bb.get(ia) == '\0') {
+                        return cmp;
+                    } else {
+                        return 1;
+                    }
                 }
             }
             while (c1 == c2);
@@ -962,7 +966,12 @@ public class FlexBuffers {
                 if (l2 == other.length) {
                     // in our buffer we have an additional \0 byte
                     // but this does not exist in regular Java strings, so we return now
-                    return c1 - c2;
+                    int cmp = c1 - c2;
+                    if (cmp != 0 || bb.get(l1) == '\0') {
+                        return cmp;
+                    } else {
+                        return 1;
+                    }
                 }
             }
             while (c1 == c2);

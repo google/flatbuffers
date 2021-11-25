@@ -20,7 +20,7 @@ and locality.
 If it would be possible to do serialization with no temporary objects,
 no additional allocation, no copying, and good locality, this could be
 of great value. The reason serialization systems usually don't manage
-this is because it goes counter to forwards/backwards compatability, and
+this is because it goes counter to forwards/backwards compatibility, and
 platform specifics like endianness and alignment.
 
 FlatBuffers is what you get if you try anyway.

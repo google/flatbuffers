@@ -147,7 +147,7 @@ public struct MonsterExtra : IFlatbufferObject
       _dvec,
       _fvec);
   }
-};
+}
 
 public class MonsterExtraT
 {

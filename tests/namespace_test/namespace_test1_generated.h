@@ -62,6 +62,14 @@ template<> struct UnionInNestedNSTraits<NamespaceA::NamespaceB::TableInNestedNS>
   static const UnionInNestedNS enum_value = UnionInNestedNS_TableInNestedNS;
 };
 
+template<typename T> struct UnionInNestedNSUnionTraits {
+  static const UnionInNestedNS enum_value = UnionInNestedNS_NONE;
+};
+
+template<> struct UnionInNestedNSUnionTraits<NamespaceA::NamespaceB::TableInNestedNST> {
+  static const UnionInNestedNS enum_value = UnionInNestedNS_TableInNestedNS;
+};
+
 struct UnionInNestedNSUnion {
   UnionInNestedNS type;
   void *value;
@@ -79,17 +87,15 @@ struct UnionInNestedNSUnion {
 
   void Reset();
 
-#ifndef FLATBUFFERS_CPP98_STL
   template <typename T>
   void Set(T&& val) {
-    using RT = typename std::remove_reference<T>::type;
+    typedef typename std::remove_reference<T>::type RT;
     Reset();
-    type = UnionInNestedNSTraits<typename RT::TableType>::enum_value;
+    type = UnionInNestedNSUnionTraits<RT>::enum_value;
     if (type != UnionInNestedNS_NONE) {
       value = new RT(std::forward<T>(val));
     }
   }
-#endif  // FLATBUFFERS_CPP98_STL
 
   static void *UnPack(const void *obj, UnionInNestedNS type, const flatbuffers::resolver_function_t *resolver);
   flatbuffers::Offset<void> Pack(flatbuffers::FlatBufferBuilder &_fbb, const flatbuffers::rehasher_function_t *_rehasher = nullptr) const;
@@ -230,7 +236,7 @@ struct TableInNestedNS FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   int32_t foo() const {
     return GetField<int32_t>(VT_FOO, 0);
   }
-  bool mutate_foo(int32_t _foo) {
+  bool mutate_foo(int32_t _foo = 0) {
     return SetField<int32_t>(VT_FOO, _foo, 0);
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
@@ -334,6 +340,7 @@ inline bool VerifyUnionInNestedNSVector(flatbuffers::Verifier &verifier, const f
 }
 
 inline void *UnionInNestedNSUnion::UnPack(const void *obj, UnionInNestedNS type, const flatbuffers::resolver_function_t *resolver) {
+  (void)resolver;
   switch (type) {
     case UnionInNestedNS_TableInNestedNS: {
       auto ptr = reinterpret_cast<const NamespaceA::NamespaceB::TableInNestedNS *>(obj);
@@ -344,6 +351,7 @@ inline void *UnionInNestedNSUnion::UnPack(const void *obj, UnionInNestedNS type,
 }
 
 inline flatbuffers::Offset<void> UnionInNestedNSUnion::Pack(flatbuffers::FlatBufferBuilder &_fbb, const flatbuffers::rehasher_function_t *_rehasher) const {
+  (void)_rehasher;
   switch (type) {
     case UnionInNestedNS_TableInNestedNS: {
       auto ptr = reinterpret_cast<const NamespaceA::NamespaceB::TableInNestedNST *>(value);

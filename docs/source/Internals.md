@@ -85,7 +85,7 @@ referred to by offset.
 
 They start with an `soffset_t` to a vtable. This is a signed version of
 `uoffset_t`, since vtables may be stored anywhere relative to the object.
-This offset is substracted (not added) from the object start to arrive at
+This offset is subtracted (not added) from the object start to arrive at
 the vtable start. This offset is followed by all the
 fields as aligned scalars (or offsets). Unlike structs, not all fields
 need to be present. There is no set order and layout. A table may contain
@@ -435,7 +435,7 @@ The keys vector is a typed vector of keys. Both the keys and corresponding
 values *have* to be stored in sorted order (as determined by `strcmp`), such
 that lookups can be made using binary search.
 
-The reason the key vector is a seperate structure from the value vector is
+The reason the key vector is a separate structure from the value vector is
 such that it can be shared between multiple value vectors, and also to
 allow it to be treated as its own individual vector in code.
 

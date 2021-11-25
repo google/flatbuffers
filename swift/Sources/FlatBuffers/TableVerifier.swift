@@ -64,8 +64,7 @@ public struct TableVerifier {
 
     /// Reading the offset for the field needs to be read.
     let offset: VOffset = try _verifier.getValue(
-      at: Int(clamping: _vtable &+ Int(field))
-    )
+      at: Int(clamping: _vtable &+ Int(field)))
 
     if offset > 0 {
       return Int(clamping: _position &+ Int(offset))
@@ -116,7 +115,8 @@ public struct TableVerifier {
     unionKeyName: String,
     fieldName: String,
     required: Bool,
-    completion: @escaping (inout Verifier, T, Int) throws -> Void) throws where T: UnionEnum
+    completion: @escaping (inout Verifier, T, Int) throws -> Void) throws
+    where T: UnionEnum
   {
     let keyPos = try dereference(key)
     let valPos = try dereference(field)
@@ -170,7 +170,8 @@ public struct TableVerifier {
     unionKeyName: String,
     fieldName: String,
     required: Bool,
-    completion: @escaping (inout Verifier, T, Int) throws -> Void) throws where T: UnionEnum
+    completion: @escaping (inout Verifier, T, Int) throws -> Void) throws
+    where T: UnionEnum
   {
     let keyVectorPosition = try dereference(key)
     let offsetVectorPosition = try dereference(field)

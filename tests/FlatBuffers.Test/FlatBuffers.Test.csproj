@@ -168,6 +168,27 @@
     <Compile Include="..\optional_scalars\ScalarStuff.cs">
       <Link>optional_scalars\ScalarStuff.cs</Link>
     </Compile>
+    <Compile Include="..\KeywordTest\ABC.cs">
+      <Link>KeywordTest\ABC.cs</Link>
+    </Compile>
+    <Compile Include="..\KeywordTest\public.cs">
+      <Link>KeywordTest\public.cs</Link>
+    </Compile>
+    <Compile Include="..\KeywordTest\KeywordsInTable.cs">
+      <Link>KeywordTest\KeywordsInTable.cs</Link>
+    </Compile>
+    <Compile Include="..\KeywordTest\KeywordsInUnion.cs">
+      <Link>KeywordTest\KeywordsInUnion.cs</Link>
+    </Compile>
+    <Compile Include="..\nested_namespace_test\nested_namespace_test1_generated.cs">
+      <Link>nested_namespace_test\nested_namespace_test1_generated.cs</Link>
+    </Compile>
+    <Compile Include="..\nested_namespace_test\nested_namespace_test2_generated.cs">
+      <Link>nested_namespace_test\nested_namespace_test2_generated.cs</Link>
+    </Compile>
+    <Compile Include="..\nested_namespace_test\nested_namespace_test3_generated.cs">
+      <Link>nested_namespace_test\nested_namespace_test3_generated.cs</Link>
+    </Compile>
     <Compile Include="Assert.cs" />
     <Compile Include="ByteBufferTests.cs" />
     <Compile Include="FlatBufferBuilderTests.cs" />

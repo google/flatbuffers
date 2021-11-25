@@ -288,6 +288,10 @@ inline ApplicationData *GetMutableApplicationData(void *buf) {
   return flatbuffers::GetMutableRoot<ApplicationData>(buf);
 }
 
+inline Geometry::ApplicationData *GetMutableSizePrefixedApplicationData(void *buf) {
+  return flatbuffers::GetMutableSizePrefixedRoot<Geometry::ApplicationData>(buf);
+}
+
 inline bool VerifyApplicationDataBuffer(
     flatbuffers::Verifier &verifier) {
   return verifier.VerifyBuffer<Geometry::ApplicationData>(nullptr);

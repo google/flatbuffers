@@ -21,7 +21,8 @@ import Foundation
 #endif
 
 /// A boolean to see if the system is littleEndian
-let isLitteEndian = CFByteOrderGetCurrent() == Int(CFByteOrderLittleEndian.rawValue)
+let isLitteEndian = CFByteOrderGetCurrent() ==
+  Int(CFByteOrderLittleEndian.rawValue)
 /// Constant for the file id length
 let FileIdLength = 4
 /// Type aliases
@@ -30,7 +31,8 @@ public typealias UOffset = UInt32
 public typealias SOffset = Int32
 public typealias VOffset = UInt16
 /// Maximum size for a buffer
-public let FlatBufferMaxSize = UInt32.max << ((MemoryLayout<SOffset>.size * 8 - 1) - 1)
+public let FlatBufferMaxSize = UInt32
+  .max << ((MemoryLayout<SOffset>.size * 8 - 1) - 1)
 
 /// Protocol that All Scalars should conform to
 ///

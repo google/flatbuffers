@@ -31,5 +31,6 @@ let package = Package(
   targets: [
     .target(
       name: "FlatBuffers",
-      dependencies: []),
+      dependencies: [],
+      exclude: ["Documentation.docc/Resources/code/swift"]),
   ])

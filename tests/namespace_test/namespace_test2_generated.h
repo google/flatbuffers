@@ -93,7 +93,7 @@ struct TableInFirstNS FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   NamespaceA::NamespaceB::EnumInNestedNS foo_enum() const {
     return static_cast<NamespaceA::NamespaceB::EnumInNestedNS>(GetField<int8_t>(VT_FOO_ENUM, 0));
   }
-  bool mutate_foo_enum(NamespaceA::NamespaceB::EnumInNestedNS _foo_enum) {
+  bool mutate_foo_enum(NamespaceA::NamespaceB::EnumInNestedNS _foo_enum = static_cast<NamespaceA::NamespaceB::EnumInNestedNS>(0)) {
     return SetField<int8_t>(VT_FOO_ENUM, static_cast<int8_t>(_foo_enum), 0);
   }
   NamespaceA::NamespaceB::UnionInNestedNS foo_union_type() const {
@@ -171,7 +171,7 @@ inline flatbuffers::Offset<TableInFirstNS> CreateTableInFirstNS(
     NamespaceA::NamespaceB::EnumInNestedNS foo_enum = NamespaceA::NamespaceB::EnumInNestedNS_A,
     NamespaceA::NamespaceB::UnionInNestedNS foo_union_type = NamespaceA::NamespaceB::UnionInNestedNS_NONE,
     flatbuffers::Offset<void> foo_union = 0,
-    const NamespaceA::NamespaceB::StructInNestedNS *foo_struct = 0) {
+    const NamespaceA::NamespaceB::StructInNestedNS *foo_struct = nullptr) {
   TableInFirstNSBuilder builder_(_fbb);
   builder_.add_foo_struct(foo_struct);
   builder_.add_foo_union(foo_union);
@@ -359,7 +359,7 @@ inline TableInFirstNST *TableInFirstNS::UnPack(const flatbuffers::resolver_funct
 inline void TableInFirstNS::UnPackTo(TableInFirstNST *_o, const flatbuffers::resolver_function_t *_resolver) const {
   (void)_o;
   (void)_resolver;
-  { auto _e = foo_table(); if (_e) _o->foo_table = flatbuffers::unique_ptr<NamespaceA::NamespaceB::TableInNestedNST>(_e->UnPack(_resolver)); }
+  { auto _e = foo_table(); if (_e) { if(_o->foo_table) { _e->UnPackTo(_o->foo_table.get(), _resolver); } else { _o->foo_table = flatbuffers::unique_ptr<NamespaceA::NamespaceB::TableInNestedNST>(_e->UnPack(_resolver)); } } }
   { auto _e = foo_enum(); _o->foo_enum = _e; }
   { auto _e = foo_union_type(); _o->foo_union.type = _e; }
   { auto _e = foo_union(); if (_e) _o->foo_union.value = NamespaceA::NamespaceB::UnionInNestedNSUnion::UnPack(_e, foo_union_type(), _resolver); }
@@ -413,8 +413,8 @@ inline TableInCT *TableInC::UnPack(const flatbuffers::resolver_function_t *_reso
 inline void TableInC::UnPackTo(TableInCT *_o, const flatbuffers::resolver_function_t *_resolver) const {
   (void)_o;
   (void)_resolver;
-  { auto _e = refer_to_a1(); if (_e) _o->refer_to_a1 = flatbuffers::unique_ptr<NamespaceA::TableInFirstNST>(_e->UnPack(_resolver)); }
-  { auto _e = refer_to_a2(); if (_e) _o->refer_to_a2 = flatbuffers::unique_ptr<NamespaceA::SecondTableInAT>(_e->UnPack(_resolver)); }
+  { auto _e = refer_to_a1(); if (_e) { if(_o->refer_to_a1) { _e->UnPackTo(_o->refer_to_a1.get(), _resolver); } else { _o->refer_to_a1 = flatbuffers::unique_ptr<NamespaceA::TableInFirstNST>(_e->UnPack(_resolver)); } } }
+  { auto _e = refer_to_a2(); if (_e) { if(_o->refer_to_a2) { _e->UnPackTo(_o->refer_to_a2.get(), _resolver); } else { _o->refer_to_a2 = flatbuffers::unique_ptr<NamespaceA::SecondTableInAT>(_e->UnPack(_resolver)); } } }
 }
 
 inline flatbuffers::Offset<TableInC> TableInC::Pack(flatbuffers::FlatBufferBuilder &_fbb, const TableInCT* _o, const flatbuffers::rehasher_function_t *_rehasher) {
@@ -457,7 +457,7 @@ inline SecondTableInAT *SecondTableInA::UnPack(const flatbuffers::resolver_funct
 inline void SecondTableInA::UnPackTo(SecondTableInAT *_o, const flatbuffers::resolver_function_t *_resolver) const {
   (void)_o;
   (void)_resolver;
-  { auto _e = refer_to_c(); if (_e) _o->refer_to_c = flatbuffers::unique_ptr<NamespaceC::TableInCT>(_e->UnPack(_resolver)); }
+  { auto _e = refer_to_c(); if (_e) { if(_o->refer_to_c) { _e->UnPackTo(_o->refer_to_c.get(), _resolver); } else { _o->refer_to_c = flatbuffers::unique_ptr<NamespaceC::TableInCT>(_e->UnPack(_resolver)); } } }
 }
 
 inline flatbuffers::Offset<SecondTableInA> SecondTableInA::Pack(flatbuffers::FlatBufferBuilder &_fbb, const SecondTableInAT* _o, const flatbuffers::rehasher_function_t *_rehasher) {

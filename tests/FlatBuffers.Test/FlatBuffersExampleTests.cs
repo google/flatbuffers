@@ -19,6 +19,7 @@ using System.Text;
 using System.Threading;
 using MyGame.Example;
 using optional_scalars;
+using KeywordTest;
 
 namespace FlatBuffers.Test
 {
@@ -486,6 +487,26 @@ namespace FlatBuffers.Test
             Assert.AreEqual("Chip", movie.CharactersAsString(2));
 
             TestObjectAPI(movie);
+        }
+
+        [FlatBuffersTestMethod]
+        public void TestUnionUtility()
+        {
+            var movie = new MovieT
+            {
+                MainCharacter = CharacterUnion.FromRapunzel(new RapunzelT { HairLength = 40 }),
+                Characters = new System.Collections.Generic.List<CharacterUnion>
+                {
+                    CharacterUnion.FromMuLan(new AttackerT { SwordAttackDamage = 10 }),
+                    CharacterUnion.FromBelle(new BookReaderT { BooksRead = 20 }),
+                    CharacterUnion.FromOther("Chip"),
+                },
+            };
+
+            var fbb = new FlatBufferBuilder(100);
+            Movie.FinishMovieBuffer(fbb, Movie.Pack(fbb, movie));
+
+            TestObjectAPI(Movie.GetRootAsMovie(fbb.DataBuffer));
         }
 
         private void AreEqual(Monster a, MonsterT b)
@@ -1096,6 +1117,40 @@ namespace FlatBuffers.Test
             Assert.AreEqual(OptionalByte.Two, scalarStuff.JustEnum);
             Assert.AreEqual(OptionalByte.Two, scalarStuff.MaybeEnum);
             Assert.AreEqual(OptionalByte.Two, scalarStuff.DefaultEnum);
+        }
+
+
+        [FlatBuffersTestMethod]
+        public void TestKeywordEscaping() {
+            Assert.AreEqual((int)KeywordTest.@public.NONE, 0);
+
+            Assert.AreEqual((int)KeywordTest.ABC.@void, 0);
+            Assert.AreEqual((int)KeywordTest.ABC.where, 1);
+            Assert.AreEqual((int)KeywordTest.ABC.@stackalloc, 2);
+
+            var fbb = new FlatBufferBuilder(1);
+            var offset = KeywordsInTable.CreateKeywordsInTable(
+                fbb, KeywordTest.ABC.@stackalloc, KeywordTest.@public.NONE);
+            fbb.Finish(offset.Value);
+ 
+            KeywordsInTable keywordsInTable = 
+                KeywordsInTable.GetRootAsKeywordsInTable(fbb.DataBuffer);
+
+            Assert.AreEqual(keywordsInTable.Is, KeywordTest.ABC.@stackalloc);
+            Assert.AreEqual(keywordsInTable.Private, KeywordTest.@public.NONE);
+        }
+
+
+        [FlatBuffersTestMethod]
+        public void AddOptionalEnum_WhenPassNull_ShouldWorkProperly() {
+          var fbb = new FlatBufferBuilder(1);
+          ScalarStuff.StartScalarStuff(fbb);
+          ScalarStuff.AddMaybeEnum(fbb, null);
+          var offset = ScalarStuff.EndScalarStuff(fbb);
+          ScalarStuff.FinishScalarStuffBuffer(fbb, offset);
+          
+          ScalarStuff scalarStuff = ScalarStuff.GetRootAsScalarStuff(fbb.DataBuffer);
+          Assert.AreEqual(null, scalarStuff.MaybeEnum);
         }
     }
 }

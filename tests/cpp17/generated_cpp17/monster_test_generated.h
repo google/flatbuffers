@@ -212,6 +212,22 @@ template<> struct AnyTraits<MyGame::Example2::Monster> {
   static const Any enum_value = Any::MyGame_Example2_Monster;
 };
 
+template<typename T> struct AnyUnionTraits {
+  static const Any enum_value = Any::NONE;
+};
+
+template<> struct AnyUnionTraits<MyGame::Example::MonsterT> {
+  static const Any enum_value = Any::Monster;
+};
+
+template<> struct AnyUnionTraits<MyGame::Example::TestSimpleTableWithEnumT> {
+  static const Any enum_value = Any::TestSimpleTableWithEnum;
+};
+
+template<> struct AnyUnionTraits<MyGame::Example2::MonsterT> {
+  static const Any enum_value = Any::MyGame_Example2_Monster;
+};
+
 struct AnyUnion {
   Any type;
   void *value;
@@ -229,17 +245,15 @@ struct AnyUnion {
 
   void Reset();
 
-#ifndef FLATBUFFERS_CPP98_STL
   template <typename T>
   void Set(T&& val) {
-    using RT = typename std::remove_reference<T>::type;
+    typedef typename std::remove_reference<T>::type RT;
     Reset();
-    type = AnyTraits<typename RT::TableType>::enum_value;
+    type = AnyUnionTraits<RT>::enum_value;
     if (type != Any::NONE) {
       value = new RT(std::forward<T>(val));
     }
   }
-#endif  // FLATBUFFERS_CPP98_STL
 
   static void *UnPack(const void *obj, Any type, const flatbuffers::resolver_function_t *resolver);
   flatbuffers::Offset<void> Pack(flatbuffers::FlatBufferBuilder &_fbb, const flatbuffers::rehasher_function_t *_rehasher = nullptr) const;
@@ -325,6 +339,22 @@ template<> struct AnyUniqueAliasesTraits<MyGame::Example2::Monster> {
   static const AnyUniqueAliases enum_value = AnyUniqueAliases::M2;
 };
 
+template<typename T> struct AnyUniqueAliasesUnionTraits {
+  static const AnyUniqueAliases enum_value = AnyUniqueAliases::NONE;
+};
+
+template<> struct AnyUniqueAliasesUnionTraits<MyGame::Example::MonsterT> {
+  static const AnyUniqueAliases enum_value = AnyUniqueAliases::M;
+};
+
+template<> struct AnyUniqueAliasesUnionTraits<MyGame::Example::TestSimpleTableWithEnumT> {
+  static const AnyUniqueAliases enum_value = AnyUniqueAliases::TS;
+};
+
+template<> struct AnyUniqueAliasesUnionTraits<MyGame::Example2::MonsterT> {
+  static const AnyUniqueAliases enum_value = AnyUniqueAliases::M2;
+};
+
 struct AnyUniqueAliasesUnion {
   AnyUniqueAliases type;
   void *value;
@@ -342,17 +372,15 @@ struct AnyUniqueAliasesUnion {
 
   void Reset();
 
-#ifndef FLATBUFFERS_CPP98_STL
   template <typename T>
   void Set(T&& val) {
-    using RT = typename std::remove_reference<T>::type;
+    typedef typename std::remove_reference<T>::type RT;
     Reset();
-    type = AnyUniqueAliasesTraits<typename RT::TableType>::enum_value;
+    type = AnyUniqueAliasesUnionTraits<RT>::enum_value;
     if (type != AnyUniqueAliases::NONE) {
       value = new RT(std::forward<T>(val));
     }
   }
-#endif  // FLATBUFFERS_CPP98_STL
 
   static void *UnPack(const void *obj, AnyUniqueAliases type, const flatbuffers::resolver_function_t *resolver);
   flatbuffers::Offset<void> Pack(flatbuffers::FlatBufferBuilder &_fbb, const flatbuffers::rehasher_function_t *_rehasher = nullptr) const;
@@ -519,13 +547,13 @@ struct Test::Traits {
   using type = Test;
   static constexpr auto name = "Test";
   static constexpr auto fully_qualified_name = "MyGame.Example.Test";
-  static constexpr std::array<const char *, 2> field_names = {
+  static constexpr size_t fields_number = 2;
+  static constexpr std::array<const char *, fields_number> field_names = {
     "a",
     "b"
   };
   template<size_t Index>
   using FieldType = decltype(std::declval<type>().get_field<Index>());
-  static constexpr size_t fields_number = 2;
 };
 
 FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(8) Vec3 FLATBUFFERS_FINAL_CLASS {
@@ -626,7 +654,8 @@ struct Vec3::Traits {
   using type = Vec3;
   static constexpr auto name = "Vec3";
   static constexpr auto fully_qualified_name = "MyGame.Example.Vec3";
-  static constexpr std::array<const char *, 6> field_names = {
+  static constexpr size_t fields_number = 6;
+  static constexpr std::array<const char *, fields_number> field_names = {
     "x",
     "y",
     "z",
@@ -636,7 +665,6 @@ struct Vec3::Traits {
   };
   template<size_t Index>
   using FieldType = decltype(std::declval<type>().get_field<Index>());
-  static constexpr size_t fields_number = 6;
 };
 
 FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) Ability FLATBUFFERS_FINAL_CLASS {
@@ -688,13 +716,13 @@ struct Ability::Traits {
   using type = Ability;
   static constexpr auto name = "Ability";
   static constexpr auto fully_qualified_name = "MyGame.Example.Ability";
-  static constexpr std::array<const char *, 2> field_names = {
+  static constexpr size_t fields_number = 2;
+  static constexpr std::array<const char *, fields_number> field_names = {
     "id",
     "distance"
   };
   template<size_t Index>
   using FieldType = decltype(std::declval<type>().get_field<Index>());
-  static constexpr size_t fields_number = 2;
 };
 
 FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) StructOfStructs FLATBUFFERS_FINAL_CLASS {
@@ -750,14 +778,14 @@ struct StructOfStructs::Traits {
   using type = StructOfStructs;
   static constexpr auto name = "StructOfStructs";
   static constexpr auto fully_qualified_name = "MyGame.Example.StructOfStructs";
-  static constexpr std::array<const char *, 3> field_names = {
+  static constexpr size_t fields_number = 3;
+  static constexpr std::array<const char *, fields_number> field_names = {
     "a",
     "b",
     "c"
   };
   template<size_t Index>
   using FieldType = decltype(std::declval<type>().get_field<Index>());
-  static constexpr size_t fields_number = 3;
 };
 
 }  // namespace Example
@@ -808,8 +836,8 @@ struct InParentNamespace::Traits {
   static auto constexpr Create = CreateInParentNamespace;
   static constexpr auto name = "InParentNamespace";
   static constexpr auto fully_qualified_name = "MyGame.InParentNamespace";
-  static constexpr std::array<const char *, 0> field_names = {};
   static constexpr size_t fields_number = 0;
+  static constexpr std::array<const char *, fields_number> field_names = {};
 };
 
 flatbuffers::Offset<InParentNamespace> CreateInParentNamespace(flatbuffers::FlatBufferBuilder &_fbb, const InParentNamespaceT *_o, const flatbuffers::rehasher_function_t *_rehasher = nullptr);
@@ -862,8 +890,8 @@ struct Monster::Traits {
   static auto constexpr Create = CreateMonster;
   static constexpr auto name = "Monster";
   static constexpr auto fully_qualified_name = "MyGame.Example2.Monster";
-  static constexpr std::array<const char *, 0> field_names = {};
   static constexpr size_t fields_number = 0;
+  static constexpr std::array<const char *, fields_number> field_names = {};
 };
 
 flatbuffers::Offset<Monster> CreateMonster(flatbuffers::FlatBufferBuilder &_fbb, const MonsterT *_o, const flatbuffers::rehasher_function_t *_rehasher = nullptr);
@@ -890,7 +918,7 @@ struct TestSimpleTableWithEnum FLATBUFFERS_FINAL_CLASS : private flatbuffers::Ta
   MyGame::Example::Color color() const {
     return static_cast<MyGame::Example::Color>(GetField<uint8_t>(VT_COLOR, 2));
   }
-  bool mutate_color(MyGame::Example::Color _color) {
+  bool mutate_color(MyGame::Example::Color _color = static_cast<MyGame::Example::Color>(2)) {
     return SetField<uint8_t>(VT_COLOR, static_cast<uint8_t>(_color), 2);
   }
   template<size_t Index>
@@ -939,12 +967,12 @@ struct TestSimpleTableWithEnum::Traits {
   static auto constexpr Create = CreateTestSimpleTableWithEnum;
   static constexpr auto name = "TestSimpleTableWithEnum";
   static constexpr auto fully_qualified_name = "MyGame.Example.TestSimpleTableWithEnum";
-  static constexpr std::array<const char *, 1> field_names = {
+  static constexpr size_t fields_number = 1;
+  static constexpr std::array<const char *, fields_number> field_names = {
     "color"
   };
   template<size_t Index>
   using FieldType = decltype(std::declval<type>().get_field<Index>());
-  static constexpr size_t fields_number = 1;
 };
 
 flatbuffers::Offset<TestSimpleTableWithEnum> CreateTestSimpleTableWithEnum(flatbuffers::FlatBufferBuilder &_fbb, const TestSimpleTableWithEnumT *_o, const flatbuffers::rehasher_function_t *_rehasher = nullptr);
@@ -977,13 +1005,13 @@ struct Stat FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   int64_t val() const {
     return GetField<int64_t>(VT_VAL, 0);
   }
-  bool mutate_val(int64_t _val) {
+  bool mutate_val(int64_t _val = 0) {
     return SetField<int64_t>(VT_VAL, _val, 0);
   }
   uint16_t count() const {
     return GetField<uint16_t>(VT_COUNT, 0);
   }
-  bool mutate_count(uint16_t _count) {
+  bool mutate_count(uint16_t _count = 0) {
     return SetField<uint16_t>(VT_COUNT, _count, 0);
   }
   bool KeyCompareLessThan(const Stat *o) const {
@@ -1053,14 +1081,14 @@ struct Stat::Traits {
   static auto constexpr Create = CreateStat;
   static constexpr auto name = "Stat";
   static constexpr auto fully_qualified_name = "MyGame.Example.Stat";
-  static constexpr std::array<const char *, 3> field_names = {
+  static constexpr size_t fields_number = 3;
+  static constexpr std::array<const char *, fields_number> field_names = {
     "id",
     "val",
     "count"
   };
   template<size_t Index>
   using FieldType = decltype(std::declval<type>().get_field<Index>());
-  static constexpr size_t fields_number = 3;
 };
 
 inline flatbuffers::Offset<Stat> CreateStatDirect(
@@ -1096,7 +1124,7 @@ struct Referrable FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   uint64_t id() const {
     return GetField<uint64_t>(VT_ID, 0);
   }
-  bool mutate_id(uint64_t _id) {
+  bool mutate_id(uint64_t _id = 0) {
     return SetField<uint64_t>(VT_ID, _id, 0);
   }
   bool KeyCompareLessThan(const Referrable *o) const {
@@ -1151,12 +1179,12 @@ struct Referrable::Traits {
   static auto constexpr Create = CreateReferrable;
   static constexpr auto name = "Referrable";
   static constexpr auto fully_qualified_name = "MyGame.Example.Referrable";
-  static constexpr std::array<const char *, 1> field_names = {
+  static constexpr size_t fields_number = 1;
+  static constexpr std::array<const char *, fields_number> field_names = {
     "id"
   };
   template<size_t Index>
   using FieldType = decltype(std::declval<type>().get_field<Index>());
-  static constexpr size_t fields_number = 1;
 };
 
 flatbuffers::Offset<Referrable> CreateReferrable(flatbuffers::FlatBufferBuilder &_fbb, const ReferrableT *_o, const flatbuffers::rehasher_function_t *_rehasher = nullptr);
@@ -1281,13 +1309,13 @@ struct Monster FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   int16_t mana() const {
     return GetField<int16_t>(VT_MANA, 150);
   }
-  bool mutate_mana(int16_t _mana) {
+  bool mutate_mana(int16_t _mana = 150) {
     return SetField<int16_t>(VT_MANA, _mana, 150);
   }
   int16_t hp() const {
     return GetField<int16_t>(VT_HP, 100);
   }
-  bool mutate_hp(int16_t _hp) {
+  bool mutate_hp(int16_t _hp = 100) {
     return SetField<int16_t>(VT_HP, _hp, 100);
   }
   const flatbuffers::String *name() const {
@@ -1311,7 +1339,7 @@ struct Monster FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   MyGame::Example::Color color() const {
     return static_cast<MyGame::Example::Color>(GetField<uint8_t>(VT_COLOR, 8));
   }
-  bool mutate_color(MyGame::Example::Color _color) {
+  bool mutate_color(MyGame::Example::Color _color = static_cast<MyGame::Example::Color>(8)) {
     return SetField<uint8_t>(VT_COLOR, static_cast<uint8_t>(_color), 8);
   }
   MyGame::Example::Any test_type() const {
@@ -1377,55 +1405,55 @@ struct Monster FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   bool testbool() const {
     return GetField<uint8_t>(VT_TESTBOOL, 0) != 0;
   }
-  bool mutate_testbool(bool _testbool) {
+  bool mutate_testbool(bool _testbool = 0) {
     return SetField<uint8_t>(VT_TESTBOOL, static_cast<uint8_t>(_testbool), 0);
   }
   int32_t testhashs32_fnv1() const {
     return GetField<int32_t>(VT_TESTHASHS32_FNV1, 0);
   }
-  bool mutate_testhashs32_fnv1(int32_t _testhashs32_fnv1) {
+  bool mutate_testhashs32_fnv1(int32_t _testhashs32_fnv1 = 0) {
     return SetField<int32_t>(VT_TESTHASHS32_FNV1, _testhashs32_fnv1, 0);
   }
   uint32_t testhashu32_fnv1() const {
     return GetField<uint32_t>(VT_TESTHASHU32_FNV1, 0);
   }
-  bool mutate_testhashu32_fnv1(uint32_t _testhashu32_fnv1) {
+  bool mutate_testhashu32_fnv1(uint32_t _testhashu32_fnv1 = 0) {
     return SetField<uint32_t>(VT_TESTHASHU32_FNV1, _testhashu32_fnv1, 0);
   }
   int64_t testhashs64_fnv1() const {
     return GetField<int64_t>(VT_TESTHASHS64_FNV1, 0);
   }
-  bool mutate_testhashs64_fnv1(int64_t _testhashs64_fnv1) {
+  bool mutate_testhashs64_fnv1(int64_t _testhashs64_fnv1 = 0) {
     return SetField<int64_t>(VT_TESTHASHS64_FNV1, _testhashs64_fnv1, 0);
   }
   uint64_t testhashu64_fnv1() const {
     return GetField<uint64_t>(VT_TESTHASHU64_FNV1, 0);
   }
-  bool mutate_testhashu64_fnv1(uint64_t _testhashu64_fnv1) {
+  bool mutate_testhashu64_fnv1(uint64_t _testhashu64_fnv1 = 0) {
     return SetField<uint64_t>(VT_TESTHASHU64_FNV1, _testhashu64_fnv1, 0);
   }
   int32_t testhashs32_fnv1a() const {
     return GetField<int32_t>(VT_TESTHASHS32_FNV1A, 0);
   }
-  bool mutate_testhashs32_fnv1a(int32_t _testhashs32_fnv1a) {
+  bool mutate_testhashs32_fnv1a(int32_t _testhashs32_fnv1a = 0) {
     return SetField<int32_t>(VT_TESTHASHS32_FNV1A, _testhashs32_fnv1a, 0);
   }
   uint32_t testhashu32_fnv1a() const {
     return GetField<uint32_t>(VT_TESTHASHU32_FNV1A, 0);
   }
-  bool mutate_testhashu32_fnv1a(uint32_t _testhashu32_fnv1a) {
+  bool mutate_testhashu32_fnv1a(uint32_t _testhashu32_fnv1a = 0) {
     return SetField<uint32_t>(VT_TESTHASHU32_FNV1A, _testhashu32_fnv1a, 0);
   }
   int64_t testhashs64_fnv1a() const {
     return GetField<int64_t>(VT_TESTHASHS64_FNV1A, 0);
   }
-  bool mutate_testhashs64_fnv1a(int64_t _testhashs64_fnv1a) {
+  bool mutate_testhashs64_fnv1a(int64_t _testhashs64_fnv1a = 0) {
     return SetField<int64_t>(VT_TESTHASHS64_FNV1A, _testhashs64_fnv1a, 0);
   }
   uint64_t testhashu64_fnv1a() const {
     return GetField<uint64_t>(VT_TESTHASHU64_FNV1A, 0);
   }
-  bool mutate_testhashu64_fnv1a(uint64_t _testhashu64_fnv1a) {
+  bool mutate_testhashu64_fnv1a(uint64_t _testhashu64_fnv1a = 0) {
     return SetField<uint64_t>(VT_TESTHASHU64_FNV1A, _testhashu64_fnv1a, 0);
   }
   const flatbuffers::Vector<uint8_t> *testarrayofbools() const {
@@ -1437,19 +1465,19 @@ struct Monster FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   float testf() const {
     return GetField<float>(VT_TESTF, 3.14159f);
   }
-  bool mutate_testf(float _testf) {
+  bool mutate_testf(float _testf = 3.14159f) {
     return SetField<float>(VT_TESTF, _testf, 3.14159f);
   }
   float testf2() const {
     return GetField<float>(VT_TESTF2, 3.0f);
   }
-  bool mutate_testf2(float _testf2) {
+  bool mutate_testf2(float _testf2 = 3.0f) {
     return SetField<float>(VT_TESTF2, _testf2, 3.0f);
   }
   float testf3() const {
     return GetField<float>(VT_TESTF3, 0.0f);
   }
-  bool mutate_testf3(float _testf3) {
+  bool mutate_testf3(float _testf3 = 0.0f) {
     return SetField<float>(VT_TESTF3, _testf3, 0.0f);
   }
   const flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>> *testarrayofstring2() const {
@@ -1506,7 +1534,7 @@ struct Monster FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   uint64_t single_weak_reference() const {
     return GetField<uint64_t>(VT_SINGLE_WEAK_REFERENCE, 0);
   }
-  bool mutate_single_weak_reference(uint64_t _single_weak_reference) {
+  bool mutate_single_weak_reference(uint64_t _single_weak_reference = 0) {
     return SetField<uint64_t>(VT_SINGLE_WEAK_REFERENCE, _single_weak_reference, 0);
   }
   const flatbuffers::Vector<uint64_t> *vector_of_weak_references() const {
@@ -1524,7 +1552,7 @@ struct Monster FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   uint64_t co_owning_reference() const {
     return GetField<uint64_t>(VT_CO_OWNING_REFERENCE, 0);
   }
-  bool mutate_co_owning_reference(uint64_t _co_owning_reference) {
+  bool mutate_co_owning_reference(uint64_t _co_owning_reference = 0) {
     return SetField<uint64_t>(VT_CO_OWNING_REFERENCE, _co_owning_reference, 0);
   }
   const flatbuffers::Vector<uint64_t> *vector_of_co_owning_references() const {
@@ -1536,7 +1564,7 @@ struct Monster FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   uint64_t non_owning_reference() const {
     return GetField<uint64_t>(VT_NON_OWNING_REFERENCE, 0);
   }
-  bool mutate_non_owning_reference(uint64_t _non_owning_reference) {
+  bool mutate_non_owning_reference(uint64_t _non_owning_reference = 0) {
     return SetField<uint64_t>(VT_NON_OWNING_REFERENCE, _non_owning_reference, 0);
   }
   const flatbuffers::Vector<uint64_t> *vector_of_non_owning_references() const {
@@ -1591,7 +1619,7 @@ struct Monster FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   MyGame::Example::Race signed_enum() const {
     return static_cast<MyGame::Example::Race>(GetField<int8_t>(VT_SIGNED_ENUM, -1));
   }
-  bool mutate_signed_enum(MyGame::Example::Race _signed_enum) {
+  bool mutate_signed_enum(MyGame::Example::Race _signed_enum = static_cast<MyGame::Example::Race>(-1)) {
     return SetField<int8_t>(VT_SIGNED_ENUM, static_cast<int8_t>(_signed_enum), -1);
   }
   const flatbuffers::Vector<uint8_t> *testrequirednestedflatbuffer() const {
@@ -1947,7 +1975,7 @@ struct MonsterBuilder {
 
 inline flatbuffers::Offset<Monster> CreateMonster(
     flatbuffers::FlatBufferBuilder &_fbb,
-    const MyGame::Example::Vec3 *pos = 0,
+    const MyGame::Example::Vec3 *pos = nullptr,
     int16_t mana = 150,
     int16_t hp = 100,
     flatbuffers::Offset<flatbuffers::String> name = 0,
@@ -2056,7 +2084,8 @@ struct Monster::Traits {
   static auto constexpr Create = CreateMonster;
   static constexpr auto name = "Monster";
   static constexpr auto fully_qualified_name = "MyGame.Example.Monster";
-  static constexpr std::array<const char *, 50> field_names = {
+  static constexpr size_t fields_number = 50;
+  static constexpr std::array<const char *, fields_number> field_names = {
     "pos",
     "mana",
     "hp",
@@ -2110,12 +2139,11 @@ struct Monster::Traits {
   };
   template<size_t Index>
   using FieldType = decltype(std::declval<type>().get_field<Index>());
-  static constexpr size_t fields_number = 50;
 };
 
 inline flatbuffers::Offset<Monster> CreateMonsterDirect(
     flatbuffers::FlatBufferBuilder &_fbb,
-    const MyGame::Example::Vec3 *pos = 0,
+    const MyGame::Example::Vec3 *pos = nullptr,
     int16_t mana = 150,
     int16_t hp = 100,
     const char *name = nullptr,
@@ -2282,61 +2310,61 @@ struct TypeAliases FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   int8_t i8() const {
     return GetField<int8_t>(VT_I8, 0);
   }
-  bool mutate_i8(int8_t _i8) {
+  bool mutate_i8(int8_t _i8 = 0) {
     return SetField<int8_t>(VT_I8, _i8, 0);
   }
   uint8_t u8() const {
     return GetField<uint8_t>(VT_U8, 0);
   }
-  bool mutate_u8(uint8_t _u8) {
+  bool mutate_u8(uint8_t _u8 = 0) {
     return SetField<uint8_t>(VT_U8, _u8, 0);
   }
   int16_t i16() const {
     return GetField<int16_t>(VT_I16, 0);
   }
-  bool mutate_i16(int16_t _i16) {
+  bool mutate_i16(int16_t _i16 = 0) {
     return SetField<int16_t>(VT_I16, _i16, 0);
   }
   uint16_t u16() const {
     return GetField<uint16_t>(VT_U16, 0);
   }
-  bool mutate_u16(uint16_t _u16) {
+  bool mutate_u16(uint16_t _u16 = 0) {
     return SetField<uint16_t>(VT_U16, _u16, 0);
   }
   int32_t i32() const {
     return GetField<int32_t>(VT_I32, 0);
   }
-  bool mutate_i32(int32_t _i32) {
+  bool mutate_i32(int32_t _i32 = 0) {
     return SetField<int32_t>(VT_I32, _i32, 0);
   }
   uint32_t u32() const {
     return GetField<uint32_t>(VT_U32, 0);
   }
-  bool mutate_u32(uint32_t _u32) {
+  bool mutate_u32(uint32_t _u32 = 0) {
     return SetField<uint32_t>(VT_U32, _u32, 0);
   }
   int64_t i64() const {
     return GetField<int64_t>(VT_I64, 0);
   }
-  bool mutate_i64(int64_t _i64) {
+  bool mutate_i64(int64_t _i64 = 0) {
     return SetField<int64_t>(VT_I64, _i64, 0);
   }
   uint64_t u64() const {
     return GetField<uint64_t>(VT_U64, 0);
   }
-  bool mutate_u64(uint64_t _u64) {
+  bool mutate_u64(uint64_t _u64 = 0) {
     return SetField<uint64_t>(VT_U64, _u64, 0);
   }
   float f32() const {
     return GetField<float>(VT_F32, 0.0f);
   }
-  bool mutate_f32(float _f32) {
+  bool mutate_f32(float _f32 = 0.0f) {
     return SetField<float>(VT_F32, _f32, 0.0f);
   }
   double f64() const {
     return GetField<double>(VT_F64, 0.0);
   }
-  bool mutate_f64(double _f64) {
+  bool mutate_f64(double _f64 = 0.0) {
     return SetField<double>(VT_F64, _f64, 0.0);
   }
   const flatbuffers::Vector<int8_t> *v8() const {
@@ -2476,7 +2504,8 @@ struct TypeAliases::Traits {
   static auto constexpr Create = CreateTypeAliases;
   static constexpr auto name = "TypeAliases";
   static constexpr auto fully_qualified_name = "MyGame.Example.TypeAliases";
-  static constexpr std::array<const char *, 12> field_names = {
+  static constexpr size_t fields_number = 12;
+  static constexpr std::array<const char *, fields_number> field_names = {
     "i8",
     "u8",
     "i16",
@@ -2492,7 +2521,6 @@ struct TypeAliases::Traits {
   };
   template<size_t Index>
   using FieldType = decltype(std::declval<type>().get_field<Index>());
-  static constexpr size_t fields_number = 12;
 };
 
 inline flatbuffers::Offset<TypeAliases> CreateTypeAliasesDirect(
@@ -2686,10 +2714,10 @@ inline void Monster::UnPackTo(MonsterT *_o, const flatbuffers::resolver_function
   { auto _e = test(); if (_e) _o->test.value = MyGame::Example::AnyUnion::UnPack(_e, test_type(), _resolver); }
   { auto _e = test4(); if (_e) { _o->test4.resize(_e->size()); for (flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->test4[_i] = *_e->Get(_i); } } }
   { auto _e = testarrayofstring(); if (_e) { _o->testarrayofstring.resize(_e->size()); for (flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->testarrayofstring[_i] = _e->Get(_i)->str(); } } }
-  { auto _e = testarrayoftables(); if (_e) { _o->testarrayoftables.resize(_e->size()); for (flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->testarrayoftables[_i] = std::unique_ptr<MyGame::Example::MonsterT>(_e->Get(_i)->UnPack(_resolver)); } } }
-  { auto _e = enemy(); if (_e) _o->enemy = std::unique_ptr<MyGame::Example::MonsterT>(_e->UnPack(_resolver)); }
+  { auto _e = testarrayoftables(); if (_e) { _o->testarrayoftables.resize(_e->size()); for (flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { if(_o->testarrayoftables[_i]) { _e->Get(_i)->UnPackTo(_o->testarrayoftables[_i].get(), _resolver); } else { _o->testarrayoftables[_i] = std::unique_ptr<MyGame::Example::MonsterT>(_e->Get(_i)->UnPack(_resolver)); }; } } }
+  { auto _e = enemy(); if (_e) { if(_o->enemy) { _e->UnPackTo(_o->enemy.get(), _resolver); } else { _o->enemy = std::unique_ptr<MyGame::Example::MonsterT>(_e->UnPack(_resolver)); } } }
   { auto _e = testnestedflatbuffer(); if (_e) { _o->testnestedflatbuffer.resize(_e->size()); std::copy(_e->begin(), _e->end(), _o->testnestedflatbuffer.begin()); } }
-  { auto _e = testempty(); if (_e) _o->testempty = std::unique_ptr<MyGame::Example::StatT>(_e->UnPack(_resolver)); }
+  { auto _e = testempty(); if (_e) { if(_o->testempty) { _e->UnPackTo(_o->testempty.get(), _resolver); } else { _o->testempty = std::unique_ptr<MyGame::Example::StatT>(_e->UnPack(_resolver)); } } }
   { auto _e = testbool(); _o->testbool = _e; }
   { auto _e = testhashs32_fnv1(); _o->testhashs32_fnv1 = _e; }
   { auto _e = testhashu32_fnv1(); _o->testhashu32_fnv1 = _e; }
@@ -2710,13 +2738,13 @@ if (_resolver) (*_resolver)(reinterpret_cast<void **>(&_o->testhashu32_fnv1a), s
   { auto _e = test5(); if (_e) { _o->test5.resize(_e->size()); for (flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->test5[_i] = *_e->Get(_i); } } }
   { auto _e = vector_of_longs(); if (_e) { _o->vector_of_longs.resize(_e->size()); for (flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->vector_of_longs[_i] = _e->Get(_i); } } }
   { auto _e = vector_of_doubles(); if (_e) { _o->vector_of_doubles.resize(_e->size()); for (flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->vector_of_doubles[_i] = _e->Get(_i); } } }
-  { auto _e = parent_namespace_test(); if (_e) _o->parent_namespace_test = std::unique_ptr<MyGame::InParentNamespaceT>(_e->UnPack(_resolver)); }
-  { auto _e = vector_of_referrables(); if (_e) { _o->vector_of_referrables.resize(_e->size()); for (flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->vector_of_referrables[_i] = std::unique_ptr<MyGame::Example::ReferrableT>(_e->Get(_i)->UnPack(_resolver)); } } }
+  { auto _e = parent_namespace_test(); if (_e) { if(_o->parent_namespace_test) { _e->UnPackTo(_o->parent_namespace_test.get(), _resolver); } else { _o->parent_namespace_test = std::unique_ptr<MyGame::InParentNamespaceT>(_e->UnPack(_resolver)); } } }
+  { auto _e = vector_of_referrables(); if (_e) { _o->vector_of_referrables.resize(_e->size()); for (flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { if(_o->vector_of_referrables[_i]) { _e->Get(_i)->UnPackTo(_o->vector_of_referrables[_i].get(), _resolver); } else { _o->vector_of_referrables[_i] = std::unique_ptr<MyGame::Example::ReferrableT>(_e->Get(_i)->UnPack(_resolver)); }; } } }
   { auto _e = single_weak_reference(); //scalar resolver, naked 
 if (_resolver) (*_resolver)(reinterpret_cast<void **>(&_o->single_weak_reference), static_cast<flatbuffers::hash_value_t>(_e)); else _o->single_weak_reference = nullptr; }
   { auto _e = vector_of_weak_references(); if (_e) { _o->vector_of_weak_references.resize(_e->size()); for (flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { //vector resolver, naked
 if (_resolver) (*_resolver)(reinterpret_cast<void **>(&_o->vector_of_weak_references[_i]), static_cast<flatbuffers::hash_value_t>(_e->Get(_i))); else _o->vector_of_weak_references[_i] = nullptr; } } }
-  { auto _e = vector_of_strong_referrables(); if (_e) { _o->vector_of_strong_referrables.resize(_e->size()); for (flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->vector_of_strong_referrables[_i] = std::unique_ptr<MyGame::Example::ReferrableT>(_e->Get(_i)->UnPack(_resolver)); } } }
+  { auto _e = vector_of_strong_referrables(); if (_e) { _o->vector_of_strong_referrables.resize(_e->size()); for (flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { if(_o->vector_of_strong_referrables[_i]) { _e->Get(_i)->UnPackTo(_o->vector_of_strong_referrables[_i].get(), _resolver); } else { _o->vector_of_strong_referrables[_i] = std::unique_ptr<MyGame::Example::ReferrableT>(_e->Get(_i)->UnPack(_resolver)); }; } } }
   { auto _e = co_owning_reference(); //scalar resolver, naked 
 if (_resolver) (*_resolver)(reinterpret_cast<void **>(&_o->co_owning_reference), static_cast<flatbuffers::hash_value_t>(_e)); else _o->co_owning_reference = nullptr; }
   { auto _e = vector_of_co_owning_references(); if (_e) { _o->vector_of_co_owning_references.resize(_e->size()); for (flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { //vector resolver, default_ptr_type
@@ -2732,7 +2760,7 @@ if (_resolver) (*_resolver)(reinterpret_cast<void **>(&_o->vector_of_non_owning_
   { auto _e = vector_of_enums(); if (_e) { _o->vector_of_enums.resize(_e->size()); for (flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->vector_of_enums[_i] = static_cast<MyGame::Example::Color>(_e->Get(_i)); } } }
   { auto _e = signed_enum(); _o->signed_enum = _e; }
   { auto _e = testrequirednestedflatbuffer(); if (_e) { _o->testrequirednestedflatbuffer.resize(_e->size()); std::copy(_e->begin(), _e->end(), _o->testrequirednestedflatbuffer.begin()); } }
-  { auto _e = scalar_key_sorted_tables(); if (_e) { _o->scalar_key_sorted_tables.resize(_e->size()); for (flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->scalar_key_sorted_tables[_i] = std::unique_ptr<MyGame::Example::StatT>(_e->Get(_i)->UnPack(_resolver)); } } }
+  { auto _e = scalar_key_sorted_tables(); if (_e) { _o->scalar_key_sorted_tables.resize(_e->size()); for (flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { if(_o->scalar_key_sorted_tables[_i]) { _e->Get(_i)->UnPackTo(_o->scalar_key_sorted_tables[_i].get(), _resolver); } else { _o->scalar_key_sorted_tables[_i] = std::unique_ptr<MyGame::Example::StatT>(_e->Get(_i)->UnPack(_resolver)); }; } } }
 }
 
 inline flatbuffers::Offset<Monster> Monster::Pack(flatbuffers::FlatBufferBuilder &_fbb, const MonsterT* _o, const flatbuffers::rehasher_function_t *_rehasher) {
@@ -2940,6 +2968,7 @@ inline bool VerifyAnyVector(flatbuffers::Verifier &verifier, const flatbuffers::
 }
 
 inline void *AnyUnion::UnPack(const void *obj, Any type, const flatbuffers::resolver_function_t *resolver) {
+  (void)resolver;
   switch (type) {
     case Any::Monster: {
       auto ptr = reinterpret_cast<const MyGame::Example::Monster *>(obj);
@@ -2958,6 +2987,7 @@ inline void *AnyUnion::UnPack(const void *obj, Any type, const flatbuffers::reso
 }
 
 inline flatbuffers::Offset<void> AnyUnion::Pack(flatbuffers::FlatBufferBuilder &_fbb, const flatbuffers::rehasher_function_t *_rehasher) const {
+  (void)_rehasher;
   switch (type) {
     case Any::Monster: {
       auto ptr = reinterpret_cast<const MyGame::Example::MonsterT *>(value);
@@ -3051,6 +3081,7 @@ inline bool VerifyAnyUniqueAliasesVector(flatbuffers::Verifier &verifier, const 
 }
 
 inline void *AnyUniqueAliasesUnion::UnPack(const void *obj, AnyUniqueAliases type, const flatbuffers::resolver_function_t *resolver) {
+  (void)resolver;
   switch (type) {
     case AnyUniqueAliases::M: {
       auto ptr = reinterpret_cast<const MyGame::Example::Monster *>(obj);
@@ -3069,6 +3100,7 @@ inline void *AnyUniqueAliasesUnion::UnPack(const void *obj, AnyUniqueAliases typ
 }
 
 inline flatbuffers::Offset<void> AnyUniqueAliasesUnion::Pack(flatbuffers::FlatBufferBuilder &_fbb, const flatbuffers::rehasher_function_t *_rehasher) const {
+  (void)_rehasher;
   switch (type) {
     case AnyUniqueAliases::M: {
       auto ptr = reinterpret_cast<const MyGame::Example::MonsterT *>(value);
@@ -3162,6 +3194,7 @@ inline bool VerifyAnyAmbiguousAliasesVector(flatbuffers::Verifier &verifier, con
 }
 
 inline void *AnyAmbiguousAliasesUnion::UnPack(const void *obj, AnyAmbiguousAliases type, const flatbuffers::resolver_function_t *resolver) {
+  (void)resolver;
   switch (type) {
     case AnyAmbiguousAliases::M1: {
       auto ptr = reinterpret_cast<const MyGame::Example::Monster *>(obj);
@@ -3180,6 +3213,7 @@ inline void *AnyAmbiguousAliasesUnion::UnPack(const void *obj, AnyAmbiguousAlias
 }
 
 inline flatbuffers::Offset<void> AnyAmbiguousAliasesUnion::Pack(flatbuffers::FlatBufferBuilder &_fbb, const flatbuffers::rehasher_function_t *_rehasher) const {
+  (void)_rehasher;
   switch (type) {
     case AnyAmbiguousAliases::M1: {
       auto ptr = reinterpret_cast<const MyGame::Example::MonsterT *>(value);
@@ -3675,6 +3709,10 @@ inline const MyGame::Example::Monster *GetSizePrefixedMonster(const void *buf) {
 
 inline Monster *GetMutableMonster(void *buf) {
   return flatbuffers::GetMutableRoot<Monster>(buf);
+}
+
+inline MyGame::Example::Monster *GetMutableSizePrefixedMonster(void *buf) {
+  return flatbuffers::GetMutableSizePrefixedRoot<MyGame::Example::Monster>(buf);
 }
 
 inline const char *MonsterIdentifier() {

@@ -28,7 +28,7 @@ void builder_move_assign_after_releaseraw_test(
   auto root_offset1 = populate1(dst);
   dst.Finish(root_offset1);
   size_t size, offset;
-  grpc_slice slice;
+  ::grpc::Slice slice;
   dst.ReleaseRaw(size, offset, slice);
   flatbuffers::FlatBufferBuilder src;
   auto root_offset2 = populate2(src);
@@ -39,7 +39,6 @@ void builder_move_assign_after_releaseraw_test(
   TEST_EQ(dst.GetSize(), src_size);
   TEST_ASSERT(release_n_verify(dst, m2_name(), m2_color()));
   TEST_EQ(src.GetSize(), 0);
-  grpc_slice_unref(slice);
 }
 
 template<class SrcBuilder>
@@ -82,10 +81,9 @@ struct BuilderReuseTests<flatbuffers::grpc::MessageBuilder, SrcBuilder> {
       auto root_offset1 = populate1(mb);
       mb.Finish(root_offset1);
       size_t size, offset;
-      grpc_slice slice;
+      ::grpc::Slice slice;
       const uint8_t *buf = mb.ReleaseRaw(size, offset, slice);
       TEST_ASSERT_FUNC(verify(buf, offset, m1_name(), m1_color()));
-      grpc_slice_unref(slice);
     }
   }
 
@@ -146,10 +144,9 @@ struct BuilderReuseTests<flatbuffers::grpc::MessageBuilder, SrcBuilder> {
       auto root_offset1 = populate1(dst);
       dst.Finish(root_offset1);
       size_t size, offset;
-      grpc_slice slice = grpc_empty_slice();
+      ::grpc::Slice slice;
       const uint8_t *buf = dst.ReleaseRaw(size, offset, slice);
       TEST_ASSERT_FUNC(verify(buf, offset, m1_name(), m1_color()));
-      grpc_slice_unref(slice);
 
       SrcBuilder src;
       dst = std::move(src);

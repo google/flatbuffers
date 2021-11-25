@@ -32,9 +32,8 @@ $bazel test src/compiler/...
 
 ### Linux
 
-1. `ln -s ${GRPC_INSTALL_PATH}/lib/libgrpc++_unsecure.so.6 ${GRPC_INSTALL_PATH}/lib/libgrpc++_unsecure.so.1`
-2. `export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:${GRPC_INSTALL_PATH}/lib`
-3. `make test ARGS=-V` 
+1. `export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:${GRPC_INSTALL_PATH}/lib`
+2. `make test ARGS=-V`
 
 For Bazel users:
 

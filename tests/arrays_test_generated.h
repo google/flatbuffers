@@ -312,7 +312,7 @@ struct ArrayTableBuilder {
 
 inline flatbuffers::Offset<ArrayTable> CreateArrayTable(
     flatbuffers::FlatBufferBuilder &_fbb,
-    const MyGame::Example::ArrayStruct *a = 0) {
+    const MyGame::Example::ArrayStruct *a = nullptr) {
   ArrayTableBuilder builder_(_fbb);
   builder_.add_a(a);
   return builder_.Finish();
@@ -455,6 +455,10 @@ inline const MyGame::Example::ArrayTable *GetSizePrefixedArrayTable(const void *
 
 inline ArrayTable *GetMutableArrayTable(void *buf) {
   return flatbuffers::GetMutableRoot<ArrayTable>(buf);
+}
+
+inline MyGame::Example::ArrayTable *GetMutableSizePrefixedArrayTable(void *buf) {
+  return flatbuffers::GetMutableSizePrefixedRoot<MyGame::Example::ArrayTable>(buf);
 }
 
 inline const char *ArrayTableIdentifier() {

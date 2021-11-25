@@ -11,11 +11,11 @@ import './namespace_test2_namespace_a_generated.dart' as namespace_a;
 class TableInC {
   TableInC._(this._bc, this._bcOffset);
   factory TableInC(List<int> bytes) {
-    fb.BufferContext rootRef = new fb.BufferContext.fromBytes(bytes);
+    final rootRef = fb.BufferContext.fromBytes(bytes);
     return reader.read(rootRef, 0);
   }
 
-  static const fb.Reader<TableInC> reader = const _TableInCReader();
+  static const fb.Reader<TableInC> reader = _TableInCReader();
 
   final fb.BufferContext _bc;
   final int _bcOffset;
@@ -38,7 +38,7 @@ class TableInC {
   }
 }
 
-class TableInCT {
+class TableInCT implements fb.Packable {
   namespace_a.TableInFirstNST? referToA1;
   namespace_a.SecondTableInAT? referToA2;
 
@@ -46,6 +46,7 @@ class TableInCT {
       this.referToA1,
       this.referToA2});
 
+  @override
   int pack(fb.Builder fbBuilder) {
     final int? referToA1Offset = referToA1?.pack(fbBuilder);
     final int? referToA2Offset = referToA2?.pack(fbBuilder);
@@ -66,11 +67,11 @@ class _TableInCReader extends fb.TableReader<TableInC> {
 
   @override
   TableInC createObject(fb.BufferContext bc, int offset) => 
-    new TableInC._(bc, offset);
+    TableInC._(bc, offset);
 }
 
 class TableInCBuilder {
-  TableInCBuilder(this.fbBuilder) {}
+  TableInCBuilder(this.fbBuilder);
 
   final fb.Builder fbBuilder;
 
@@ -117,9 +118,8 @@ class TableInCObjectBuilder extends fb.ObjectBuilder {
   /// Convenience method to serialize to byte list.
   @override
   Uint8List toBytes([String? fileIdentifier]) {
-    fb.Builder fbBuilder = new fb.Builder(deduplicateTables: false);
-    int offset = finish(fbBuilder);
-    fbBuilder.finish(offset, fileIdentifier);
+    final fbBuilder = fb.Builder(deduplicateTables: false);
+    fbBuilder.finish(finish(fbBuilder), fileIdentifier);
     return fbBuilder.buffer;
   }
 }

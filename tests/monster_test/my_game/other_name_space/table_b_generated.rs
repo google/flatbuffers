@@ -12,40 +12,42 @@ pub struct TableB<'a> {
 }
 
 impl<'a> flatbuffers::Follow<'a> for TableB<'a> {
-    type Inner = TableB<'a>;
-    #[inline]
-    fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
-        Self { _tab: flatbuffers::Table { buf, loc } }
-    }
+  type Inner = TableB<'a>;
+  #[inline]
+  fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
+    Self { _tab: flatbuffers::Table { buf, loc } }
+  }
 }
 
 impl<'a> TableB<'a> {
-    pub const fn get_fully_qualified_name() -> &'static str {
-        "MyGame.OtherNameSpace.TableB"
-    }
+  pub const VT_A: flatbuffers::VOffsetT = 4;
 
-    #[inline]
-    pub fn init_from_table(table: flatbuffers::Table<'a>) -> Self {
-        TableB { _tab: table }
-    }
-    #[allow(unused_mut)]
-    pub fn create<'bldr: 'args, 'args: 'mut_bldr, 'mut_bldr>(
-        _fbb: &'mut_bldr mut flatbuffers::FlatBufferBuilder<'bldr>,
-        args: &'args TableBArgs<'args>) -> flatbuffers::WIPOffset<TableB<'bldr>> {
-      let mut builder = TableBBuilder::new(_fbb);
-      if let Some(x) = args.a { builder.add_a(x); }
-      builder.finish()
-    }
+  pub const fn get_fully_qualified_name() -> &'static str {
+    "MyGame.OtherNameSpace.TableB"
+  }
 
-    pub fn unpack(&self) -> TableBT {
-      let a = self.a().map(|x| {
-        Box::new(x.unpack())
-      });
-      TableBT {
-        a,
-      }
+  #[inline]
+  pub fn init_from_table(table: flatbuffers::Table<'a>) -> Self {
+    TableB { _tab: table }
+  }
+  #[allow(unused_mut)]
+  pub fn create<'bldr: 'args, 'args: 'mut_bldr, 'mut_bldr>(
+    _fbb: &'mut_bldr mut flatbuffers::FlatBufferBuilder<'bldr>,
+    args: &'args TableBArgs<'args>
+  ) -> flatbuffers::WIPOffset<TableB<'bldr>> {
+    let mut builder = TableBBuilder::new(_fbb);
+    if let Some(x) = args.a { builder.add_a(x); }
+    builder.finish()
+  }
+
+  pub fn unpack(&self) -> TableBT {
+    let a = self.a().map(|x| {
+      Box::new(x.unpack())
+    });
+    TableBT {
+      a,
     }
-    pub const VT_A: flatbuffers::VOffsetT = 4;
+  }
 
   #[inline]
   pub fn a(&self) -> Option<super::super::TableA<'a>> {
@@ -69,12 +71,12 @@ pub struct TableBArgs<'a> {
     pub a: Option<flatbuffers::WIPOffset<super::super::TableA<'a>>>,
 }
 impl<'a> Default for TableBArgs<'a> {
-    #[inline]
-    fn default() -> Self {
-        TableBArgs {
-            a: None,
-        }
+  #[inline]
+  fn default() -> Self {
+    TableBArgs {
+      a: None,
     }
+  }
 }
 pub struct TableBBuilder<'a: 'b, 'b> {
   fbb_: &'b mut flatbuffers::FlatBufferBuilder<'a>,

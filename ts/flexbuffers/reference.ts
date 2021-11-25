@@ -6,7 +6,7 @@ import { Long } from '../long';
 import { fromUTF8Array } from './flexbuffers-util';
 import { BitWidth } from './bit-width';
 
-export function toReference(buffer: Uint8Array): Reference {
+export function toReference(buffer: ArrayBuffer): Reference {
   const len = buffer.byteLength;
   
   if (len < 3) {

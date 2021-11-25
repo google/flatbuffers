@@ -113,6 +113,7 @@ std::string FlatCompiler::GetUsageString(const char *program_name) const {
     "                         If the language uses a single file for output (by default\n"
     "                         the case for C++ and JS), all code will end up in this one\n"
     "                         file.\n"
+    "  --gen-json-emit        Generates encoding code which emits Flatbuffers into JSON\n"
     "  --cpp-include          Adds an #include in generated file.\n"
     "  --cpp-ptr-type T       Set object API pointer type (default std::unique_ptr).\n"
     "  --cpp-str-type T       Set object API string type (default std::string).\n"
@@ -179,6 +180,7 @@ std::string FlatCompiler::GetUsageString(const char *program_name) const {
     "  --flexbuffers          Used with \"binary\" and \"json\" options, it generates\n"
     "                         data using schema-less FlexBuffers.\n"
     "  --no-warnings          Inhibit all warning messages.\n"
+    "  --cs-global-alias      Prepend \"global::\" to all user generated csharp classes and structs.\n"
     "FILEs may be schemas (must end in .fbs), binary schemas (must end in .bfbs),\n"
     "or JSON files (conforming to preceding schema). FILEs after the -- must be\n"
     "binary flatbuffer format files.\n"
@@ -307,6 +309,8 @@ int FlatCompiler::Compile(int argc, const char **argv) {
         opts.java_checkerframework = true;
       } else if (arg == "--gen-generated") {
         opts.gen_generated = true;
+      } else if (arg == "--gen-json-emit") {
+        opts.gen_json_coders = true;
       } else if (arg == "--object-prefix") {
         if (++argi >= argc) Error("missing prefix following: " + arg, true);
         opts.object_prefix = argv[argi];
@@ -391,6 +395,8 @@ int FlatCompiler::Compile(int argc, const char **argv) {
         opts.cpp_std = arg.substr(std::string("--cpp-std=").size());
       } else if (arg == "--cpp-static-reflection") {
         opts.cpp_static_reflection = true;
+      } else if (arg == "--cs-global-alias") {
+        opts.cs_global_alias = true;
       } else {
         for (size_t i = 0; i < params_.num_generators; ++i) {
           if (arg == params_.generators[i].generator_opt_long ||
@@ -482,16 +488,17 @@ int FlatCompiler::Compile(int argc, const char **argv) {
           contents.length() != strlen(contents.c_str())) {
         Error("input file appears to be binary: " + filename, true);
       }
-      if (is_schema) {
+      if (is_schema || is_binary_schema) {
         // If we're processing multiple schemas, make sure to start each
         // one from scratch. If it depends on previous schemas it must do
         // so explicitly using an include.
         parser.reset(new flatbuffers::Parser(opts));
       }
+      // Try to parse the file contents (binary schema/flexbuffer/textual
+      // schema)
       if (is_binary_schema) {
         LoadBinarySchema(*parser.get(), filename, contents);
-      }
-      if (opts.use_flexbuffers) {
+      } else if (opts.use_flexbuffers) {
         if (opts.lang_to_generate == IDLOptions::kJson) {
           parser->flex_root_ = flexbuffers::GetRoot(
               reinterpret_cast<const uint8_t *>(contents.c_str()),
@@ -512,7 +519,7 @@ int FlatCompiler::Compile(int argc, const char **argv) {
       }
       if ((is_schema || is_binary_schema) && !conform_to_schema.empty()) {
         auto err = parser->ConformTo(conform_parser);
-        if (!err.empty()) Error("schemas don\'t conform: " + err);
+        if (!err.empty()) Error("schemas don\'t conform: " + err, false);
       }
       if (schema_binary || opts.binary_schema_gen_embed) {
         parser->Serialize();
@@ -526,7 +533,6 @@ int FlatCompiler::Compile(int argc, const char **argv) {
         flatbuffers::StripPath(flatbuffers::StripExtension(filename));
 
     for (size_t i = 0; i < params_.num_generators; ++i) {
-      parser->opts.lang = params_.generators[i].lang;
       if (generator_enabled[i]) {
         if (!print_make_rules) {
           flatbuffers::EnsureDirExists(output_path);

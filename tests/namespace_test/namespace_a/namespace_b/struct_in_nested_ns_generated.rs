@@ -81,9 +81,9 @@ impl<'a> StructInNestedNS {
     s
   }
 
-    pub const fn get_fully_qualified_name() -> &'static str {
-        "NamespaceA.NamespaceB.StructInNestedNS"
-    }
+  pub const fn get_fully_qualified_name() -> &'static str {
+    "NamespaceA.NamespaceB.StructInNestedNS"
+  }
 
   pub fn a(&self) -> i32 {
     let mut mem = core::mem::MaybeUninit::<i32>::uninit();

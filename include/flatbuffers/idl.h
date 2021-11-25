@@ -17,6 +17,7 @@
 #ifndef FLATBUFFERS_IDL_H_
 #define FLATBUFFERS_IDL_H_
 
+#include <functional>
 #include <map>
 #include <memory>
 #include <stack>
@@ -26,10 +27,6 @@
 #include "flatbuffers/flexbuffers.h"
 #include "flatbuffers/hash.h"
 #include "flatbuffers/reflection.h"
-
-#if !defined(FLATBUFFERS_CPP98_STL)
-#  include <functional>
-#endif  // !defined(FLATBUFFERS_CPP98_STL)
 
 // This file defines the data types representing a parsed IDL (Interface
 // Definition Language) / schema file.
@@ -207,7 +204,7 @@ template<typename T> class SymbolTable {
   }
 
   bool Add(const std::string &name, T *e) {
-    vector_emplace_back(&vec, e);
+    vec.emplace_back(e);
     auto it = dict.find(name);
     if (it != dict.end()) return true;
     dict[name] = e;
@@ -568,6 +565,7 @@ struct IDLOptions {
   bool gen_nullable;
   bool java_checkerframework;
   bool gen_generated;
+  bool gen_json_coders;
   std::string object_prefix;
   std::string object_suffix;
   bool union_value_namespacing;
@@ -594,6 +592,7 @@ struct IDLOptions {
   std::string filename_extension;
   bool no_warnings;
   std::string project_root;
+  bool cs_global_alias;
 
   // Possible options for the more general generator below.
   enum Language {
@@ -615,8 +614,6 @@ struct IDLOptions {
     kSwift = 1 << 16,
     kMAX
   };
-
-  Language lang;
 
   enum MiniReflect { kNone, kTypes, kTypesAndNames };
 
@@ -663,6 +660,7 @@ struct IDLOptions {
         gen_nullable(false),
         java_checkerframework(false),
         gen_generated(false),
+        gen_json_coders(false),
         object_suffix("T"),
         union_value_namespacing(true),
         allow_non_utf8(false),
@@ -681,7 +679,7 @@ struct IDLOptions {
         filename_extension(),
         no_warnings(false),
         project_root(""),
-        lang(IDLOptions::kJava),
+        cs_global_alias(false),
         mini_reflect(IDLOptions::kNone),
         require_explicit_ids(false),
         lang_to_generate(0),
@@ -1162,9 +1160,10 @@ extern std::string RustMakeRule(const Parser &parser, const std::string &path,
 
 // Generate a make rule for generated Java or C# files.
 // See code_generators.cpp.
-extern std::string JavaCSharpMakeRule(const Parser &parser,
-                                      const std::string &path,
-                                      const std::string &file_name);
+extern std::string CSharpMakeRule(const Parser &parser, const std::string &path,
+                                  const std::string &file_name);
+extern std::string JavaMakeRule(const Parser &parser, const std::string &path,
+                                const std::string &file_name);
 
 // Generate a make rule for the generated text (JSON) files.
 // See idl_gen_text.cpp.

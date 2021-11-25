@@ -188,7 +188,8 @@ class SwiftGenerator : public BaseGenerator {
     GenComment(struct_def.doc_comment);
     code_.SetValue("STRUCTNAME", NameWrappedInNameSpace(struct_def));
     code_ +=
-        "{{ACCESS_TYPE}} struct {{STRUCTNAME}}: NativeStruct, Verifiable\\";
+        "{{ACCESS_TYPE}} struct {{STRUCTNAME}}: NativeStruct, Verifiable, "
+        "FlatbuffersInitializable\\";
     if (parser_.opts.generate_object_based_api) code_ += ", NativeObject\\";
     code_ += " {";
     code_ += "";
@@ -229,6 +230,7 @@ class SwiftGenerator : public BaseGenerator {
       constructor += name + ": " + type;
     }
     code_ += "";
+    BuildStructConstructor(struct_def);
     BuildObjectConstructor(main_constructor, constructor);
     BuildObjectConstructor(base_constructor, "");
 
@@ -260,6 +262,36 @@ class SwiftGenerator : public BaseGenerator {
         "try verifier.inBuffer(position: position, of: {{STRUCTNAME}}.self)";
     Outdent();
     code_ += "}";
+    Outdent();
+    code_ += "}\n";
+    if (parser_.opts.gen_json_coders) GenerateJSONEncodingAPIs(struct_def);
+  }
+
+  void BuildStructConstructor(const StructDef &struct_def) {
+    code_ += "{{ACCESS_TYPE}} init(_ bb: ByteBuffer, o: Int32) {";
+    Indent();
+    code_ += "let {{ACCESS}} = Struct(bb: bb, position: o)";
+    for (auto it = struct_def.fields.vec.begin();
+         it != struct_def.fields.vec.end(); ++it) {
+      auto &field = **it;
+      if (field.deprecated) continue;
+      auto name = Name(field);
+      auto type = field.value.type;
+      code_.SetValue("VALUENAME", name);
+      code_.SetValue("VALUETYPE", GenType(type));
+      code_.SetValue("OFFSET", NumToString(field.value.offset));
+      if (IsScalar(type.base_type)) {
+        if (IsEnum(type))
+          code_.SetValue("VALUETYPE", GenTypeBasic(field.value.type, false));
+        code_ +=
+            "_{{VALUENAME}} = {{ACCESS}}.readBuffer(of: {{VALUETYPE}}.self, "
+            "at: {{OFFSET}})";
+      } else {
+        code_ +=
+            "_{{VALUENAME}} = {{VALUETYPE}}({{ACCESS}}.bb, o: "
+            "{{ACCESS}}.postion + {{OFFSET}})";
+      }
+    }
     Outdent();
     code_ += "}\n";
   }
@@ -378,7 +410,6 @@ class SwiftGenerator : public BaseGenerator {
   void GenTable(const StructDef &struct_def) {
     auto is_private_access = struct_def.attributes.Lookup("private");
     code_.SetValue("ACCESS_TYPE", is_private_access ? "internal" : "public");
-
     GenObjectHeader(struct_def);
     GenTableAccessors(struct_def);
     GenTableReader(struct_def);
@@ -389,6 +420,7 @@ class SwiftGenerator : public BaseGenerator {
     GenerateVerifier(struct_def);
     Outdent();
     code_ += "}\n";
+    if (parser_.opts.gen_json_coders) GenerateJSONEncodingAPIs(struct_def);
   }
 
   // Generates the reader for swift
@@ -846,6 +878,166 @@ class SwiftGenerator : public BaseGenerator {
     }
   }
 
+  void GenerateCodingKeys(const StructDef &struct_def) {
+    code_ += "enum CodingKeys: String, CodingKey {";
+    Indent();
+    for (auto it = struct_def.fields.vec.begin();
+         it != struct_def.fields.vec.end(); ++it) {
+      auto &field = **it;
+      if (field.deprecated) continue;
+      auto name = Name(field);
+
+      code_.SetValue("RAWVALUENAME", field.name);
+      code_.SetValue("VALUENAME", name);
+      code_ += "case {{VALUENAME}} = \"{{RAWVALUENAME}}\"";
+    }
+    Outdent();
+    code_ += "}";
+  }
+
+  void GenerateEncoderUnionBody(const FieldDef &field) {
+    EnumDef &union_def = *field.value.type.enum_def;
+    auto is_vector = field.value.type.base_type == BASE_TYPE_VECTOR ||
+                     field.value.type.base_type == BASE_TYPE_ARRAY;
+    if (field.value.type.base_type == BASE_TYPE_UTYPE ||
+        (is_vector &&
+         field.value.type.VectorType().base_type == BASE_TYPE_UTYPE))
+      return;
+    if (is_vector) {
+      code_ +=
+          "var enumsEncoder = container.nestedUnkeyedContainer(forKey: "
+          ".{{VALUENAME}}Type)";
+      code_ +=
+          "var contentEncoder = container.nestedUnkeyedContainer(forKey: "
+          ".{{VALUENAME}})";
+      code_ += "for index in 0..<{{VALUENAME}}Count {";
+      Indent();
+      code_ +=
+          "guard let type = {{VALUENAME}}Type(at: index) else { continue }";
+      code_ += "try enumsEncoder.encode(type)";
+      code_ += "switch type {";
+      for (auto it = union_def.Vals().begin(); it != union_def.Vals().end();
+           ++it) {
+        const auto &ev = **it;
+
+        auto name = Name(ev);
+        auto type = GenType(ev.union_type);
+        code_.SetValue("KEY", name);
+        code_.SetValue("VALUETYPE", type);
+        if (ev.union_type.base_type == BASE_TYPE_NONE) { continue; }
+        code_ += "case .{{KEY}}:";
+        Indent();
+        code_ += "let _v = {{VALUENAME}}(at: index, type: {{VALUETYPE}}.self)";
+        code_ += "try contentEncoder.encode(_v)";
+        Outdent();
+      }
+      code_ += "default: break;";
+      code_ += "}";
+      Outdent();
+      code_ += "}";
+      return;
+    }
+
+    code_ += "switch {{VALUENAME}}Type {";
+    for (auto it = union_def.Vals().begin(); it != union_def.Vals().end();
+         ++it) {
+      const auto &ev = **it;
+
+      auto name = Name(ev);
+      auto type = GenType(ev.union_type);
+      code_.SetValue("KEY", name);
+      code_.SetValue("VALUETYPE", type);
+      if (ev.union_type.base_type == BASE_TYPE_NONE) { continue; }
+      code_ += "case .{{KEY}}:";
+      Indent();
+      code_ += "let _v = {{VALUENAME}}(type: {{VALUETYPE}}.self)";
+      code_ += "try container.encodeIfPresent(_v, forKey: .{{VALUENAME}})";
+      Outdent();
+    }
+    code_ += "default: break;";
+    code_ += "}";
+  }
+
+  void GenerateEncoderBody(const StructDef &struct_def) {
+    code_ += "var container = encoder.container(keyedBy: CodingKeys.self)";
+    for (auto it = struct_def.fields.vec.begin();
+         it != struct_def.fields.vec.end(); ++it) {
+      auto &field = **it;
+      if (field.deprecated) continue;
+      auto name = Name(field);
+      auto type = field.value.type;
+
+      auto is_non_union_vector =
+          (field.value.type.base_type == BASE_TYPE_ARRAY ||
+           field.value.type.base_type == BASE_TYPE_VECTOR) &&
+          field.value.type.VectorType().base_type != BASE_TYPE_UTYPE;
+
+      code_.SetValue("RAWVALUENAME", field.name);
+      code_.SetValue("VALUENAME", name);
+      code_.SetValue("CONSTANT", field.value.constant);
+      bool should_indent = true;
+      if (is_non_union_vector) {
+        code_ += "if {{VALUENAME}}Count > 0 {";
+      } else if (IsEnum(type) && !field.IsOptional()) {
+        code_.SetValue("CONSTANT", GenEnumDefaultValue(field));
+        code_ += "if {{VALUENAME}} != {{CONSTANT}} {";
+      } else if (IsScalar(type.base_type) && !IsEnum(type) &&
+                 !IsBool(type.base_type) && !field.IsOptional()) {
+        code_ += "if {{VALUENAME}} != {{CONSTANT}} {";
+      } else if (IsBool(type.base_type) && !field.IsOptional()) {
+        std::string default_value =
+            "0" == field.value.constant ? "false" : "true";
+        code_.SetValue("CONSTANT", default_value);
+        code_ += "if {{VALUENAME}} != {{CONSTANT}} {";
+      } else {
+        should_indent = false;
+      }
+      if (should_indent) Indent();
+
+      if (IsUnion(type) && !IsEnum(type)) {
+        GenerateEncoderUnionBody(field);
+      } else if (is_non_union_vector &&
+                 (!IsScalar(type.VectorType().base_type) ||
+                  IsEnum(type.VectorType()))) {
+        code_ +=
+            "var contentEncoder = container.nestedUnkeyedContainer(forKey: "
+            ".{{VALUENAME}})";
+        code_ += "for index in 0..<{{VALUENAME}}Count {";
+        Indent();
+        code_ += "guard let type = {{VALUENAME}}(at: index) else { continue }";
+        code_ += "try contentEncoder.encode(type)";
+        Outdent();
+        code_ += "}";
+      } else {
+        code_ +=
+            "try container.encodeIfPresent({{VALUENAME}}, forKey: "
+            ".{{VALUENAME}})";
+      }
+      if (should_indent) Outdent();
+
+      if (is_non_union_vector ||
+          (IsScalar(type.base_type) && !field.IsOptional())) {
+        code_ += "}";
+      }
+    }
+  }
+
+  void GenerateJSONEncodingAPIs(const StructDef &struct_def) {
+    code_ += "extension {{STRUCTNAME}}: Encodable {";
+    Indent();
+    code_ += "";
+    if (struct_def.fields.vec.empty() == false) GenerateCodingKeys(struct_def);
+
+    code_ += "public func encode(to encoder: Encoder) throws {";
+    Indent();
+    if (struct_def.fields.vec.empty() == false) GenerateEncoderBody(struct_def);
+    Outdent();
+    code_ += "}";
+    Outdent();
+    code_ += "}";
+    code_ += "";
+  }
+
   void GenerateVerifier(const StructDef &struct_def) {
     code_ +=
         "public static func verify<T>(_ verifier: inout Verifier, at position: "
@@ -1002,6 +1194,8 @@ class SwiftGenerator : public BaseGenerator {
     AddMinOrMaxEnumValue(Name(*enum_def.MinValue()), "min");
     Outdent();
     code_ += "}\n";
+    if (parser_.opts.gen_json_coders) EnumEncoder(enum_def);
+    code_ += "";
     if (parser_.opts.generate_object_based_api && enum_def.is_union) {
       code_ += "{{ACCESS_TYPE}} struct {{ENUM_NAME}}Union {";
       Indent();
@@ -1024,6 +1218,27 @@ class SwiftGenerator : public BaseGenerator {
       Outdent();
       code_ += "}";
     }
+  }
+
+  void EnumEncoder(const EnumDef &enum_def) {
+    code_ += "extension {{ENUM_NAME}}: Encodable {";
+    Indent();
+    code_ += "{{ACCESS_TYPE}} func encode(to encoder: Encoder) throws {";
+    Indent();
+    code_ += "var container = encoder.singleValueContainer()";
+    code_ += "switch self {";
+    for (auto it = enum_def.Vals().begin(); it != enum_def.Vals().end(); ++it) {
+      const auto &ev = **it;
+      auto name = Name(ev);
+      code_.SetValue("KEY", name);
+      code_.SetValue("RAWKEY", ev.name);
+      code_ += "case .{{KEY}}: try container.encode(\"{{RAWKEY}}\")";
+    }
+    code_ += "}";
+    Outdent();
+    code_ += "}";
+    Outdent();
+    code_ += "}";
   }
 
   // MARK: - Object API

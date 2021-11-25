@@ -169,7 +169,7 @@ public struct ScalarStuff : IFlatbufferObject
   public static void AddMaybeBool(FlatBufferBuilder builder, bool? maybeBool) { builder.AddBool(31, maybeBool); }
   public static void AddDefaultBool(FlatBufferBuilder builder, bool defaultBool) { builder.AddBool(32, defaultBool, true); }
   public static void AddJustEnum(FlatBufferBuilder builder, optional_scalars.OptionalByte justEnum) { builder.AddSbyte(33, (sbyte)justEnum, 0); }
-  public static void AddMaybeEnum(FlatBufferBuilder builder, optional_scalars.OptionalByte? maybeEnum) { builder.AddSbyte(34, (sbyte)maybeEnum); }
+  public static void AddMaybeEnum(FlatBufferBuilder builder, optional_scalars.OptionalByte? maybeEnum) { builder.AddSbyte(34, (sbyte?)maybeEnum); }
   public static void AddDefaultEnum(FlatBufferBuilder builder, optional_scalars.OptionalByte defaultEnum) { builder.AddSbyte(35, (sbyte)defaultEnum, 1); }
   public static Offset<optional_scalars.ScalarStuff> EndScalarStuff(FlatBufferBuilder builder) {
     int o = builder.EndTable();
@@ -261,7 +261,7 @@ public struct ScalarStuff : IFlatbufferObject
       _o.MaybeEnum,
       _o.DefaultEnum);
   }
-};
+}
 
 public class ScalarStuffT
 {

@@ -44,22 +44,18 @@ class TableInC(object):
             return obj
         return None
 
-def Start(builder): builder.StartObject(2)
-def TableInCStart(builder):
-    """This method is deprecated. Please switch to Start."""
-    return Start(builder)
-def AddReferToA1(builder, referToA1): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(referToA1), 0)
-def TableInCAddReferToA1(builder, referToA1):
-    """This method is deprecated. Please switch to AddReferToA1."""
-    return AddReferToA1(builder, referToA1)
-def AddReferToA2(builder, referToA2): builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(referToA2), 0)
-def TableInCAddReferToA2(builder, referToA2):
-    """This method is deprecated. Please switch to AddReferToA2."""
-    return AddReferToA2(builder, referToA2)
-def End(builder): return builder.EndObject()
-def TableInCEnd(builder):
-    """This method is deprecated. Please switch to End."""
-    return End(builder)
+def TableInCStart(builder): builder.StartObject(2)
+def Start(builder):
+    return TableInCStart(builder)
+def TableInCAddReferToA1(builder, referToA1): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(referToA1), 0)
+def AddReferToA1(builder, referToA1):
+    return TableInCAddReferToA1(builder, referToA1)
+def TableInCAddReferToA2(builder, referToA2): builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(referToA2), 0)
+def AddReferToA2(builder, referToA2):
+    return TableInCAddReferToA2(builder, referToA2)
+def TableInCEnd(builder): return builder.EndObject()
+def End(builder):
+    return TableInCEnd(builder)
 try:
     from typing import Optional
 except:
@@ -99,10 +95,10 @@ class TableInCT(object):
             referToA1 = self.referToA1.Pack(builder)
         if self.referToA2 is not None:
             referToA2 = self.referToA2.Pack(builder)
-        Start(builder)
+        TableInCStart(builder)
         if self.referToA1 is not None:
-            AddReferToA1(builder, referToA1)
+            TableInCAddReferToA1(builder, referToA1)
         if self.referToA2 is not None:
-            AddReferToA2(builder, referToA2)
-        tableInC = End(builder)
+            TableInCAddReferToA2(builder, referToA2)
+        tableInC = TableInCEnd(builder)
         return tableInC
