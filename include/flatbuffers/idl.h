@@ -40,8 +40,6 @@
 #  define FLATBUFFERS_MAX_PARSING_DEPTH 64
 #endif
 
-extern std::map<std::string, std::pair<std::string, std::string>> attributes_to_their_attributes_; 
-
 namespace flatbuffers {
 
 // The order of these matters for Is*() functions below.
@@ -822,7 +820,7 @@ class Parser : public ParserState {
     known_attributes_["private"] = true;
     known_attributes_["java_package"] = true; 
   }
-
+  
   ~Parser() {
     for (auto it = namespaces_.begin(); it != namespaces_.end(); ++it) {
       delete *it;
@@ -1018,6 +1016,7 @@ class Parser : public ParserState {
   std::vector<std::string> native_included_files_;
 
   std::map<std::string, bool> known_attributes_;
+  std::map<std::string, std::string> attribute_to_its_specific_java_package_;
 
   IDLOptions opts;
   bool uses_flexbuffers_;

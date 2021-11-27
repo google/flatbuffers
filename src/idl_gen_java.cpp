@@ -19,7 +19,7 @@
 #include "flatbuffers/code_generators.h"
 #include "flatbuffers/flatbuffers.h"
 #include "flatbuffers/idl.h"
-#include "flatbuffers/util.h"
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    #include "flatbuffers/util.h"
 
 #if defined(FLATBUFFERS_CPP98_STL)
 #  include <cctype>
@@ -38,6 +38,19 @@ static CommentConfig comment_config = {
   " */",
 };
 
+static void SplitStringByDelimeterIntoVec(std::string& s, char delimeter, std::vector<std::string>&  v){
+  int len = s.length();
+  std::string word ="";
+  for(int i =0; i<len; i++){
+    if(s[i]==delimeter){
+      v.push_back(word);
+      word = "";
+      continue; 
+    }
+    word += s[i];
+  }
+  v.push_back(word);
+}
 class JavaGenerator : public BaseGenerator {
   struct FieldArrayLength {
     std::string name;
@@ -55,50 +68,30 @@ class JavaGenerator : public BaseGenerator {
     std::string one_file_code;
     cur_name_space_ = parser_.current_namespace_;
     if (parser_.opts.generate_object_based_api) {
-      Namespace *attributes_name_space_ = new Namespace();
-      attributes_name_space_->components.push_back("com");
-      attributes_name_space_->components.push_back("google");
-      attributes_name_space_->components.push_back("flatbuffers");
-      attributes_name_space_->components.push_back("attributes");
-      Namespace *final_name_space_; 
       for (auto it = parser_.known_attributes_.begin(); it != parser_.known_attributes_.end(); ++it) {
-        final_name_space_= attributes_name_space_;
-        if (!it->second) {
+        if (!it->second && 
+            parser_.attribute_to_its_specific_java_package_.find(it->first) != 
+            parser_.attribute_to_its_specific_java_package_.end()){
+          Namespace *attributes_name_space_ = new Namespace(); 
           std::string attrcode;
           std::string attr_name = it->first;
           GenAttribute_ObjectAPI(&attr_name, &attrcode);
           if (parser_.opts.one_file) {
             one_file_code += attrcode;
-          } else {
-            //if attribute has java_package change attributes_name space (use delete and new)
-            Namespace* specific_attributes_name_space_ = new Namespace();
-            if(attributes_to_their_attributes_.count(attr_name)>0 && 
-              (attributes_to_their_attributes_[attr_name]).first == "java_package"){ 
-              std::string s = (attributes_to_their_attributes_[attr_name]).second;
-              int len = s.length();
-              std::string word =""; 
-              for(int i =0; i<len; i++){
-                if(s[i]=='.'){
-                  specific_attributes_name_space_->components.push_back(word);
-                  word = "";
-                  continue; 
-                }
-                word += s[i];
-              }
-              specific_attributes_name_space_->components.push_back(word);
-              final_name_space_ = specific_attributes_name_space_; 
-            } 
-            if (!SaveType(MakeCamel(attr_name, true), *final_name_space_, attrcode,
+          } 
+          else {
+            std::string s = parser_.attribute_to_its_specific_java_package_.at(attr_name);
+            SplitStringByDelimeterIntoVec(s, '.', attributes_name_space_->components);
+            if (!SaveType(MakeCamel(attr_name, true), *attributes_name_space_, attrcode,
                           /* needs_includes= */ false)){
-                            delete specific_attributes_name_space_;
                             delete attributes_name_space_;
                             return false;
                           }
-            delete specific_attributes_name_space_;
           }
+        delete attributes_name_space_;
         }
       }
-      delete attributes_name_space_;
+      
     }
 
     for (auto it = parser_.enums_.vec.begin(); it != parser_.enums_.vec.end();
@@ -2084,11 +2077,14 @@ class JavaGenerator : public BaseGenerator {
         auto found_attr = parser_.known_attributes_.find(attr);
         //some how the second value of user defined attributes has been changed to false
         if (found_attr != parser_.known_attributes_.end() && !found_attr->second) {
-          code += "@" + MakeCamel(attr, true);
-          if ("0" != attr_value.constant) {
-            code += "(\"" + attr_value.constant + "\")";
+          auto java_package_it = parser_.attribute_to_its_specific_java_package_.find(attr);
+          if (java_package_it != parser_.attribute_to_its_specific_java_package_.end()){
+            code += "@" + MakeCamel(attr, true);
+            if ("0" != attr_value.constant) {
+              code += "(\"" + attr_value.constant + "\")";
+            }
+            code += "\n";
           }
-          code += "\n";
         }
         /*if field has inner attribute jvav package than chnage the annotation file to it 
         */
@@ -2119,13 +2115,17 @@ class JavaGenerator : public BaseGenerator {
         auto attr = attr_it->first;
         auto &attr_value = *attr_it->second;
         auto found_attr = parser_.known_attributes_.find(attr);
-        //some how the second value of user defined attributes has been changed to false
-        if (found_attr != parser_.known_attributes_.end() && !found_attr->second) {
-          code += "  @" + MakeCamel(attr, true);
-          if ("0" != attr_value.constant) {
-            code += "(\"" + attr_value.constant + "\")";
-          }
-          code += "\n";
+        if (found_attr != parser_.known_attributes_.end() && !found_attr->second){
+          //we check if the attribute is in attribute_to_its_specific_java_package_ dictionary
+          //i.e has a java package inner attribute 
+          auto java_package_it = parser_.attribute_to_its_specific_java_package_.find(attr);
+          if (java_package_it != parser_.attribute_to_its_specific_java_package_.end()){
+                code += "  @" + MakeCamel(attr, true);
+                if ("0" != attr_value.constant) {
+                  code += "(\"" + attr_value.constant + "\")";
+                }
+                code += "\n";
+              }        
         }
         /*if field has inner attribute jvav package than chnage the annotation file to it 
         */

@@ -23,7 +23,7 @@
 #include "flatbuffers/idl.h"
 #include "flatbuffers/util.h"
 
-std::map<std::string, std::pair<std::string, std::string>> attributes_to_their_attributes_;
+
 
 namespace flatbuffers {
 
@@ -3430,7 +3430,7 @@ CheckedError Parser::DoParse(const char *source, const char **include_paths,
         EXPECT(kTokenStringConstant);
       }
 
-      
+
 
       if (Is('(')) {
       NEXT();
@@ -3440,13 +3440,13 @@ CheckedError Parser::DoParse(const char *source, const char **include_paths,
           return Error("attribute name must be either identifier or string: " +
                         name);
         if (known_attributes_.find(name) == known_attributes_.end())
-          return Error("user define attributes must be declared before use: " +
+          return Error("only predefined attributes can be used as inner attributes of attributes:" + 
                         name);
         NEXT();
         if (Is(':')) {
           NEXT();
-          attributes_to_their_attributes_[outer_attribute_name] = 
-            std::pair<std::string, std::string>(name, attribute_);
+          if(name == "java_package")
+            attribute_to_its_specific_java_package_[outer_attribute_name] = attribute_;
           NEXT();       
         }
         if (Is(')')) {
@@ -3456,6 +3456,8 @@ CheckedError Parser::DoParse(const char *source, const char **include_paths,
         EXPECT(',');
       }
       }
+
+
       EXPECT(';');
       known_attributes_[outer_attribute_name] = false;
     } else if (IsIdent("rpc_service")) {
