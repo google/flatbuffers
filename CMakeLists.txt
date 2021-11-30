@@ -512,7 +512,11 @@ endfunction()
 # Look if we have python 3 installed so that we can run the generate code python
 # script after flatc is built.
 find_package(PythonInterp 3)
-if(PYTHONINTERP_FOUND)
+
+if(PYTHONINTERP_FOUND AND
+  # Skip doing this if the MSVC version is below VS 12.
+  # https://cmake.org/cmake/help/latest/variable/MSVC_VERSION.html
+  (NOT MSVC OR MSVC_VERSION GREATER 1800))
   if(WIN32)
     set(GENERATION_SCRIPT py scripts/generate_code.py) 
    else()
@@ -530,7 +534,7 @@ if(PYTHONINTERP_FOUND)
     POST_BUILD
     COMMAND ${GENERATION_SCRIPT} --flatc "${FLATBUFFERS_FLATC_EXECUTABLE}"
     WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
-    COMMENT "Generating code..."
+    COMMENT "Running ${GENERATION_SCRIPT}..."
     VERBATIM)
 else()
   message("No Python3 interpreter found! Unable to generate files automatically.")
