@@ -33,7 +33,7 @@ TEST_NOINCL_FLAGS="$TEST_BASE_FLAGS --no-includes"
 
 
 ../flatc --binary --cpp --java --kotlin  --csharp --dart --go --lobster --lua --ts --php --grpc \
-$TEST_NOINCL_FLAGS $TEST_CPP_FLAGS $TEST_CS_FLAGS -I include_test monster_test.fbs monsterdata_test.json
+$TEST_NOINCL_FLAGS $TEST_CPP_FLAGS $TEST_CS_FLAGS -I include_test monster_test.fbs monsterdata_test.json 
 ../flatc --rust $TEST_RUST_FLAGS -o monster_test -I include_test monster_test.fbs monsterdata_test.json
 
 ../flatc --python $TEST_BASE_FLAGS -I include_test monster_test.fbs monsterdata_test.json
@@ -60,6 +60,7 @@ $TEST_NOINCL_FLAGS $TEST_CPP_FLAGS $TEST_CS_FLAGS $TEST_TS_FLAGS -o namespace_te
 ../flatc --rust $TEST_RUST_FLAGS -o arrays_test arrays_test.fbs
 ../flatc --python $TEST_BASE_FLAGS arrays_test.fbs
 ../flatc --dart --gen-object-api monster_extra.fbs
+../flatc --java -o example_test --gen-object-api -I include_test example_test.fbs
 
 # Generate optional scalar code for tests.
 ../flatc --java --kotlin --lobster --ts optional_scalars.fbs

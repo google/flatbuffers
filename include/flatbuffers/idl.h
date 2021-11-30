@@ -39,7 +39,7 @@
 #if !defined(FLATBUFFERS_MAX_PARSING_DEPTH)
 #  define FLATBUFFERS_MAX_PARSING_DEPTH 64
 #endif
-
+  
 namespace flatbuffers {
 
 // The order of these matters for Is*() functions below.
@@ -820,7 +820,7 @@ class Parser : public ParserState {
     known_attributes_["private"] = true;
     known_attributes_["java_package"] = true; 
   }
-  
+
   ~Parser() {
     for (auto it = namespaces_.begin(); it != namespaces_.end(); ++it) {
       delete *it;
