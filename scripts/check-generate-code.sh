@@ -26,7 +26,7 @@ if ! git diff --quiet; then
   git diff --binary --exit-code
 fi
 
-cd tests
+cd ../tests
 ./generate_code.sh
 cd ..
 
