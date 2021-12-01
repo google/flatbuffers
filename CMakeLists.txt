@@ -1,9 +1,17 @@
 cmake_minimum_required(VERSION 2.8.12)
+
+if (POLICY CMP0048)
+  cmake_policy(SET CMP0048 NEW)
+  project(FlatBuffers
+        DESCRIPTION "Flatbuffers serialization library"
+        VERSION 2.0.0
+        LANGUAGES CXX)
+else()
+  project(FlatBuffers)
+endif (POLICY CMP0048)
+
 # generate compile_commands.json
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
-include(CheckCXXSymbolExists)
-
-project(FlatBuffers)
 
 # NOTE: Code coverage only works on Linux & OSX.
 option(FLATBUFFERS_CODE_COVERAGE "Enable the code coverage build option." OFF)
@@ -16,6 +24,9 @@ option(FLATBUFFERS_BUILD_FLATC "Enable the build of the flatbuffers compiler"
 option(FLATBUFFERS_STATIC_FLATC "Build flatbuffers compiler with -static flag"
        OFF)
 option(FLATBUFFERS_BUILD_FLATHASH "Enable the build of flathash" ON)
+option(FLATBUFFERS_BUILD_BENCHMARKS "Enable the build of flatbenchmark. \"
+       Requires C++11."
+       OFF)
 option(FLATBUFFERS_BUILD_GRPCTEST "Enable the build of grpctest" OFF)
 option(FLATBUFFERS_BUILD_SHAREDLIB
        "Enable the build of the flatbuffers shared library"
@@ -43,6 +54,9 @@ option(FLATBUFFERS_ENABLE_PCH
         Only work if CMake supports 'target_precompile_headers'. \"
         This can speed up compilation time."
        OFF)
+option(FLATBUFFERS_SKIP_MONSTER_EXTRA 
+      "Skip generating monster_extra.fbs that contains non-supported numerical\"
+      types." OFF)
 
 if(NOT FLATBUFFERS_BUILD_FLATC AND FLATBUFFERS_BUILD_TESTS)
     message(WARNING
@@ -58,6 +72,8 @@ endif()
 
 # Auto-detect locale-narrow 'strtod_l' and  'strtoull_l' functions.
 if(NOT DEFINED FLATBUFFERS_LOCALE_INDEPENDENT)
+  include(CheckCXXSymbolExists)
+
   set(FLATBUFFERS_LOCALE_INDEPENDENT 0)
   if(MSVC)
     check_cxx_symbol_exists(_strtof_l stdlib.h FLATBUFFERS_HAS_STRTOF_L)
@@ -73,17 +89,30 @@ endif()
 add_definitions(-DFLATBUFFERS_LOCALE_INDEPENDENT=$<BOOL:${FLATBUFFERS_LOCALE_INDEPENDENT}>)
 
 set(FlatBuffers_Library_SRCS
+  include/flatbuffers/allocator.h
+  include/flatbuffers/array.h
   include/flatbuffers/base.h
+  include/flatbuffers/buffer.h
+  include/flatbuffers/buffer_ref.h
+  include/flatbuffers/default_allocator.h
+  include/flatbuffers/detached_buffer.h
+  include/flatbuffers/flatbuffer_builder.h
   include/flatbuffers/flatbuffers.h
+  include/flatbuffers/flexbuffers.h
   include/flatbuffers/hash.h
   include/flatbuffers/idl.h
-  include/flatbuffers/util.h
+  include/flatbuffers/minireflect.h
   include/flatbuffers/reflection.h
   include/flatbuffers/reflection_generated.h
-  include/flatbuffers/stl_emulation.h
-  include/flatbuffers/flexbuffers.h
   include/flatbuffers/registry.h
-  include/flatbuffers/minireflect.h
+  include/flatbuffers/stl_emulation.h
+  include/flatbuffers/string.h
+  include/flatbuffers/struct.h
+  include/flatbuffers/table.h
+  include/flatbuffers/util.h
+  include/flatbuffers/vector.h
+  include/flatbuffers/vector_downward.h
+  include/flatbuffers/verifier.h
   src/idl_parser.cpp
   src/idl_gen_text.cpp
   src/reflection.cpp
@@ -440,7 +469,7 @@ function(compile_flatbuffers_schema_to_binary SRC_FBS)
   message(STATUS "`${SRC_FBS}`: add generation of binary (.bfbs) schema")
   get_filename_component(SRC_FBS_DIR ${SRC_FBS} PATH)
   string(REGEX REPLACE "\\.fbs$" ".bfbs" GEN_BINARY_SCHEMA ${SRC_FBS})
-  # For details about flags see generate_code.bat(sh)
+  # For details about flags see generate_code.py
   add_custom_command(
     OUTPUT ${GEN_BINARY_SCHEMA}
     COMMAND "${FLATBUFFERS_FLATC_EXECUTABLE}"
@@ -463,7 +492,7 @@ function(compile_flatbuffers_schema_to_embedded_binary SRC_FBS OPT)
   message(STATUS "`${SRC_FBS}`: add generation of C++ embedded binary schema code with '${OPT}'")
   get_filename_component(SRC_FBS_DIR ${SRC_FBS} PATH)
   string(REGEX REPLACE "\\.fbs$" "_bfbs_generated.h" GEN_BFBS_HEADER ${SRC_FBS})
-  # For details about flags see generate_code.bat(sh)
+  # For details about flags see generate_code.py
   add_custom_command(
           OUTPUT ${GEN_BFBS_HEADER}
           COMMAND "${FLATBUFFERS_FLATC_EXECUTABLE}"
@@ -483,22 +512,32 @@ endfunction()
 # Look if we have python 3 installed so that we can run the generate code python
 # script after flatc is built.
 find_package(PythonInterp 3)
+
 if(PYTHONINTERP_FOUND AND
   # Skip doing this if the MSVC version is below VS 12.
   # https://cmake.org/cmake/help/latest/variable/MSVC_VERSION.html
-  (WIN32 AND MSVC_VERSION GREATER 1800))
+  (NOT MSVC OR MSVC_VERSION GREATER 1800))
   if(WIN32)
-    set(GENERATION_SCRIPT py scripts/generate_code.py)
+    set(GENERATION_SCRIPT py scripts/generate_code.py) 
    else()
     set(GENERATION_SCRIPT scripts/generate_code.py)
+  endif()
+  if(FLATBUFFERS_BUILD_LEGACY)
+    # Need to set --cpp-std c++-0x options
+    set(GENERATION_SCRIPT ${GENERATION_SCRIPT} --cpp-0x)
+  endif()
+  if(FLATBUFFERS_SKIP_MONSTER_EXTRA)
+    set(GENERATION_SCRIPT ${GENERATION_SCRIPT} --skip-monster-extra)
   endif()
   add_custom_command(
     TARGET flatc
     POST_BUILD
-    COMMAND ${GENERATION_SCRIPT} "${FLATBUFFERS_FLATC_EXECUTABLE}"
+    COMMAND ${GENERATION_SCRIPT} --flatc "${FLATBUFFERS_FLATC_EXECUTABLE}"
     WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
-    COMMENT "Generating code..."
+    COMMENT "Running ${GENERATION_SCRIPT}..."
     VERBATIM)
+else()
+  message("No Python3 interpreter found! Unable to generate files automatically.")
 endif()
 
 if(FLATBUFFERS_BUILD_TESTS)
@@ -542,7 +581,7 @@ if(FLATBUFFERS_BUILD_TESTS)
   if(FLATBUFFERS_BUILD_CPP17)
     # Don't generate header for flattests_cpp17 target.
     # This target uses "generated_cpp17/monster_test_generated.h"
-    # produced by direct call of generate_code.bat(sh) script.
+    # produced by direct call of generate_code.py script.
     add_executable(flattests_cpp17 ${FlatBuffers_Tests_CPP17_SRCS})
     add_dependencies(flattests_cpp17 generated_code)
     target_compile_features(flattests_cpp17 PRIVATE cxx_std_17)
@@ -701,4 +740,9 @@ if(UNIX)
         include(CMake/PackageRedhat.cmake)
         include(CPack)
     endif()
+endif()
+
+# Include for running Google Benchmarks.
+if(FLATBUFFERS_BUILD_BENCHMARKS AND CMAKE_VERSION VERSION_GREATER 3.13)
+  add_subdirectory(benchmarks)
 endif()

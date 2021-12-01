@@ -212,6 +212,22 @@ template<> struct AnyTraits<MyGame::Example2::Monster> {
   static const Any enum_value = Any::MyGame_Example2_Monster;
 };
 
+template<typename T> struct AnyUnionTraits {
+  static const Any enum_value = Any::NONE;
+};
+
+template<> struct AnyUnionTraits<MyGame::Example::MonsterT> {
+  static const Any enum_value = Any::Monster;
+};
+
+template<> struct AnyUnionTraits<MyGame::Example::TestSimpleTableWithEnumT> {
+  static const Any enum_value = Any::TestSimpleTableWithEnum;
+};
+
+template<> struct AnyUnionTraits<MyGame::Example2::MonsterT> {
+  static const Any enum_value = Any::MyGame_Example2_Monster;
+};
+
 struct AnyUnion {
   Any type;
   void *value;
@@ -229,17 +245,15 @@ struct AnyUnion {
 
   void Reset();
 
-#ifndef FLATBUFFERS_CPP98_STL
   template <typename T>
   void Set(T&& val) {
-    using RT = typename std::remove_reference<T>::type;
+    typedef typename std::remove_reference<T>::type RT;
     Reset();
-    type = AnyTraits<typename RT::TableType>::enum_value;
+    type = AnyUnionTraits<RT>::enum_value;
     if (type != Any::NONE) {
       value = new RT(std::forward<T>(val));
     }
   }
-#endif  // FLATBUFFERS_CPP98_STL
 
   static void *UnPack(const void *obj, Any type, const flatbuffers::resolver_function_t *resolver);
   flatbuffers::Offset<void> Pack(flatbuffers::FlatBufferBuilder &_fbb, const flatbuffers::rehasher_function_t *_rehasher = nullptr) const;
@@ -325,6 +339,22 @@ template<> struct AnyUniqueAliasesTraits<MyGame::Example2::Monster> {
   static const AnyUniqueAliases enum_value = AnyUniqueAliases::M2;
 };
 
+template<typename T> struct AnyUniqueAliasesUnionTraits {
+  static const AnyUniqueAliases enum_value = AnyUniqueAliases::NONE;
+};
+
+template<> struct AnyUniqueAliasesUnionTraits<MyGame::Example::MonsterT> {
+  static const AnyUniqueAliases enum_value = AnyUniqueAliases::M;
+};
+
+template<> struct AnyUniqueAliasesUnionTraits<MyGame::Example::TestSimpleTableWithEnumT> {
+  static const AnyUniqueAliases enum_value = AnyUniqueAliases::TS;
+};
+
+template<> struct AnyUniqueAliasesUnionTraits<MyGame::Example2::MonsterT> {
+  static const AnyUniqueAliases enum_value = AnyUniqueAliases::M2;
+};
+
 struct AnyUniqueAliasesUnion {
   AnyUniqueAliases type;
   void *value;
@@ -342,17 +372,15 @@ struct AnyUniqueAliasesUnion {
 
   void Reset();
 
-#ifndef FLATBUFFERS_CPP98_STL
   template <typename T>
   void Set(T&& val) {
-    using RT = typename std::remove_reference<T>::type;
+    typedef typename std::remove_reference<T>::type RT;
     Reset();
-    type = AnyUniqueAliasesTraits<typename RT::TableType>::enum_value;
+    type = AnyUniqueAliasesUnionTraits<RT>::enum_value;
     if (type != AnyUniqueAliases::NONE) {
       value = new RT(std::forward<T>(val));
     }
   }
-#endif  // FLATBUFFERS_CPP98_STL
 
   static void *UnPack(const void *obj, AnyUniqueAliases type, const flatbuffers::resolver_function_t *resolver);
   flatbuffers::Offset<void> Pack(flatbuffers::FlatBufferBuilder &_fbb, const flatbuffers::rehasher_function_t *_rehasher = nullptr) const;
@@ -1688,6 +1716,7 @@ struct Monster FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
            verifier.VerifyTable(enemy()) &&
            VerifyOffset(verifier, VT_TESTNESTEDFLATBUFFER) &&
            verifier.VerifyVector(testnestedflatbuffer()) &&
+           verifier.VerifyNestedFlatBuffer<MyGame::Example::Monster>(testnestedflatbuffer(), nullptr) &&
            VerifyOffset(verifier, VT_TESTEMPTY) &&
            verifier.VerifyTable(testempty()) &&
            VerifyField<uint8_t>(verifier, VT_TESTBOOL) &&
@@ -1745,6 +1774,7 @@ struct Monster FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
            VerifyField<int8_t>(verifier, VT_SIGNED_ENUM) &&
            VerifyOffset(verifier, VT_TESTREQUIREDNESTEDFLATBUFFER) &&
            verifier.VerifyVector(testrequirednestedflatbuffer()) &&
+           verifier.VerifyNestedFlatBuffer<MyGame::Example::Monster>(testrequirednestedflatbuffer(), nullptr) &&
            VerifyOffset(verifier, VT_SCALAR_KEY_SORTED_TABLES) &&
            verifier.VerifyVector(scalar_key_sorted_tables()) &&
            verifier.VerifyVectorOfTables(scalar_key_sorted_tables()) &&
@@ -2940,6 +2970,7 @@ inline bool VerifyAnyVector(flatbuffers::Verifier &verifier, const flatbuffers::
 }
 
 inline void *AnyUnion::UnPack(const void *obj, Any type, const flatbuffers::resolver_function_t *resolver) {
+  (void)resolver;
   switch (type) {
     case Any::Monster: {
       auto ptr = reinterpret_cast<const MyGame::Example::Monster *>(obj);
@@ -2958,6 +2989,7 @@ inline void *AnyUnion::UnPack(const void *obj, Any type, const flatbuffers::reso
 }
 
 inline flatbuffers::Offset<void> AnyUnion::Pack(flatbuffers::FlatBufferBuilder &_fbb, const flatbuffers::rehasher_function_t *_rehasher) const {
+  (void)_rehasher;
   switch (type) {
     case Any::Monster: {
       auto ptr = reinterpret_cast<const MyGame::Example::MonsterT *>(value);
@@ -3051,6 +3083,7 @@ inline bool VerifyAnyUniqueAliasesVector(flatbuffers::Verifier &verifier, const 
 }
 
 inline void *AnyUniqueAliasesUnion::UnPack(const void *obj, AnyUniqueAliases type, const flatbuffers::resolver_function_t *resolver) {
+  (void)resolver;
   switch (type) {
     case AnyUniqueAliases::M: {
       auto ptr = reinterpret_cast<const MyGame::Example::Monster *>(obj);
@@ -3069,6 +3102,7 @@ inline void *AnyUniqueAliasesUnion::UnPack(const void *obj, AnyUniqueAliases typ
 }
 
 inline flatbuffers::Offset<void> AnyUniqueAliasesUnion::Pack(flatbuffers::FlatBufferBuilder &_fbb, const flatbuffers::rehasher_function_t *_rehasher) const {
+  (void)_rehasher;
   switch (type) {
     case AnyUniqueAliases::M: {
       auto ptr = reinterpret_cast<const MyGame::Example::MonsterT *>(value);
@@ -3162,6 +3196,7 @@ inline bool VerifyAnyAmbiguousAliasesVector(flatbuffers::Verifier &verifier, con
 }
 
 inline void *AnyAmbiguousAliasesUnion::UnPack(const void *obj, AnyAmbiguousAliases type, const flatbuffers::resolver_function_t *resolver) {
+  (void)resolver;
   switch (type) {
     case AnyAmbiguousAliases::M1: {
       auto ptr = reinterpret_cast<const MyGame::Example::Monster *>(obj);
@@ -3180,6 +3215,7 @@ inline void *AnyAmbiguousAliasesUnion::UnPack(const void *obj, AnyAmbiguousAlias
 }
 
 inline flatbuffers::Offset<void> AnyAmbiguousAliasesUnion::Pack(flatbuffers::FlatBufferBuilder &_fbb, const flatbuffers::rehasher_function_t *_rehasher) const {
+  (void)_rehasher;
   switch (type) {
     case AnyAmbiguousAliases::M1: {
       auto ptr = reinterpret_cast<const MyGame::Example::MonsterT *>(value);

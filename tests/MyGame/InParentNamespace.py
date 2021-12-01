@@ -28,14 +28,12 @@ class InParentNamespace(object):
     def Init(self, buf, pos):
         self._tab = flatbuffers.table.Table(buf, pos)
 
-def Start(builder): builder.StartObject(0)
-def InParentNamespaceStart(builder):
-    """This method is deprecated. Please switch to Start."""
-    return Start(builder)
-def End(builder): return builder.EndObject()
-def InParentNamespaceEnd(builder):
-    """This method is deprecated. Please switch to End."""
-    return End(builder)
+def InParentNamespaceStart(builder): builder.StartObject(0)
+def Start(builder):
+    return InParentNamespaceStart(builder)
+def InParentNamespaceEnd(builder): return builder.EndObject()
+def End(builder):
+    return InParentNamespaceEnd(builder)
 
 class InParentNamespaceT(object):
 
@@ -62,6 +60,6 @@ class InParentNamespaceT(object):
 
     # InParentNamespaceT
     def Pack(self, builder):
-        Start(builder)
-        inParentNamespace = End(builder)
+        InParentNamespaceStart(builder)
+        inParentNamespace = InParentNamespaceEnd(builder)
         return inParentNamespace

@@ -180,7 +180,7 @@ class ResizeContext {
                 std::vector<uint8_t> *flatbuf,
                 const reflection::Object *root_table = nullptr)
       : schema_(schema),
-        startptr_(vector_data(*flatbuf) + start),
+        startptr_(flatbuf->data() + start),
         delta_(delta),
         buf_(*flatbuf),
         dag_check_(flatbuf->size() / sizeof(uoffset_t), false) {
@@ -188,8 +188,8 @@ class ResizeContext {
     delta_ = (delta_ + mask) & ~mask;
     if (!delta_) return;  // We can't shrink by less than largest_scalar_t.
     // Now change all the offsets by delta_.
-    auto root = GetAnyRoot(vector_data(buf_));
-    Straddle<uoffset_t, 1>(vector_data(buf_), root, vector_data(buf_));
+    auto root = GetAnyRoot(buf_.data());
+    Straddle<uoffset_t, 1>(buf_.data(), root, buf_.data());
     ResizeTable(root_table ? *root_table : *schema.root_table(), root);
     // We can now add or remove bytes at start.
     if (delta_ > 0)
@@ -217,7 +217,7 @@ class ResizeContext {
   // will straddle and which won't.
   uint8_t &DagCheck(const void *offsetloc) {
     auto dag_idx = reinterpret_cast<const uoffset_t *>(offsetloc) -
-                   reinterpret_cast<const uoffset_t *>(vector_data(buf_));
+                   reinterpret_cast<const uoffset_t *>(buf_.data());
     return dag_check_[dag_idx];
   }
 
@@ -309,19 +309,19 @@ void SetString(const reflection::Schema &schema, const std::string &val,
                const reflection::Object *root_table) {
   auto delta = static_cast<int>(val.size()) - static_cast<int>(str->size());
   auto str_start = static_cast<uoffset_t>(
-      reinterpret_cast<const uint8_t *>(str) - vector_data(*flatbuf));
+      reinterpret_cast<const uint8_t *>(str) - flatbuf->data());
   auto start = str_start + static_cast<uoffset_t>(sizeof(uoffset_t));
   if (delta) {
     // Clear the old string, since we don't want parts of it remaining.
-    memset(vector_data(*flatbuf) + start, 0, str->size());
+    memset(flatbuf->data() + start, 0, str->size());
     // Different size, we must expand (or contract).
     ResizeContext(schema, start, delta, flatbuf, root_table);
     // Set the new length.
-    WriteScalar(vector_data(*flatbuf) + str_start,
+    WriteScalar(flatbuf->data() + str_start,
                 static_cast<uoffset_t>(val.size()));
   }
   // Copy new data. Safe because we created the right amount of space.
-  memcpy(vector_data(*flatbuf) + start, val.c_str(), val.size() + 1);
+  memcpy(flatbuf->data() + start, val.c_str(), val.size() + 1);
 }
 
 uint8_t *ResizeAnyVector(const reflection::Schema &schema, uoffset_t newsize,
@@ -330,25 +330,26 @@ uint8_t *ResizeAnyVector(const reflection::Schema &schema, uoffset_t newsize,
                          const reflection::Object *root_table) {
   auto delta_elem = static_cast<int>(newsize) - static_cast<int>(num_elems);
   auto delta_bytes = delta_elem * static_cast<int>(elem_size);
-  auto vec_start =
-      reinterpret_cast<const uint8_t *>(vec) - vector_data(*flatbuf);
-  auto start = static_cast<uoffset_t>(vec_start + sizeof(uoffset_t) +
-                                      elem_size * num_elems);
+  auto vec_start = reinterpret_cast<const uint8_t *>(vec) - flatbuf->data();
+  auto start = static_cast<uoffset_t>(vec_start) +
+               static_cast<uoffset_t>(sizeof(uoffset_t)) +
+               elem_size * num_elems;
   if (delta_bytes) {
     if (delta_elem < 0) {
       // Clear elements we're throwing away, since some might remain in the
       // buffer.
       auto size_clear = -delta_elem * elem_size;
-      memset(vector_data(*flatbuf) + start - size_clear, 0, size_clear);
+      memset(flatbuf->data() + start - size_clear, 0, size_clear);
     }
     ResizeContext(schema, start, delta_bytes, flatbuf, root_table);
-    WriteScalar(vector_data(*flatbuf) + vec_start, newsize);  // Length field.
+    WriteScalar(flatbuf->data() + vec_start, newsize);  // Length field.
     // Set new elements to 0.. this can be overwritten by the caller.
     if (delta_elem > 0) {
-      memset(vector_data(*flatbuf) + start, 0, delta_elem * elem_size);
+      memset(flatbuf->data() + start, 0,
+             static_cast<size_t>(delta_elem) * elem_size);
     }
   }
-  return vector_data(*flatbuf) + start;
+  return flatbuf->data() + start;
 }
 
 const uint8_t *AddFlatBuffer(std::vector<uint8_t> &flatbuf,
@@ -363,7 +364,7 @@ const uint8_t *AddFlatBuffer(std::vector<uint8_t> &flatbuf,
   // Insert the entire FlatBuffer minus the root pointer.
   flatbuf.insert(flatbuf.end(), newbuf + sizeof(uoffset_t), newbuf + newlen);
   auto root_offset = ReadScalar<uoffset_t>(newbuf) - sizeof(uoffset_t);
-  return vector_data(flatbuf) + insertion_point + root_offset;
+  return flatbuf.data() + insertion_point + root_offset;
 }
 
 void CopyInline(FlatBufferBuilder &fbb, const reflection::Field &fielddef,

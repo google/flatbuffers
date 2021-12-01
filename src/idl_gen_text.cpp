@@ -264,12 +264,12 @@ struct JsonPrinter {
       FLATBUFFERS_ASSERT(IsStruct(fd.value.type) || IsArray(fd.value.type));
       val = reinterpret_cast<const Struct *>(table)->GetStruct<const void *>(
           fd.value.offset);
-    } else if (fd.flexbuffer) {
+    } else if (fd.flexbuffer && opts.json_nested_flexbuffers) {
       auto vec = table->GetPointer<const Vector<uint8_t> *>(fd.value.offset);
       auto root = flexbuffers::GetRoot(vec->data(), vec->size());
       root.ToString(true, opts.strict_json, text);
       return true;
-    } else if (fd.nested_flatbuffer) {
+    } else if (fd.nested_flatbuffer && opts.json_nested_flatbuffers) {
       auto vec = table->GetPointer<const Vector<uint8_t> *>(fd.value.offset);
       auto root = GetRoot<Table>(vec->data());
       return GenStruct(*fd.nested_flatbuffer, root, indent);

@@ -191,7 +191,7 @@ class FlatBufPrinter : public grpc_generator::Printer {
     }
   }
 
-  void SetIndentationSize(const int size) {
+  void SetIndentationSize(const size_t size) {
     FLATBUFFERS_ASSERT(str_->empty());
     indentation_size_ = size;
   }
@@ -199,15 +199,15 @@ class FlatBufPrinter : public grpc_generator::Printer {
   void Indent() { indent_++; }
 
   void Outdent() {
+    FLATBUFFERS_ASSERT(indent_ > 0);
     indent_--;
-    FLATBUFFERS_ASSERT(indent_ >= 0);
   }
 
  private:
   std::string *str_;
   char escape_char_;
-  int indent_;
-  int indentation_size_;
+  size_t indent_;
+  size_t indentation_size_;
   char indentation_type_;
 };
 
