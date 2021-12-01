@@ -115,7 +115,6 @@ matrix:
         -DFLATBUFFERS_CODE_SANITIZE=ON
       - cmake --build . --target all --clean-first -- -j${JOBS}
       - LD_LIBRARY_PATH=$TRAVIS_BUILD_DIR/google/grpc/install/lib ctest --extra-verbose --output-on-failure
-      - bash scripts/check-generate-code.sh
 
     - language: cpp
       os: osx
@@ -140,7 +139,6 @@ matrix:
         -DFLATBUFFERS_CODE_SANITIZE=ON
       - cmake --build . -- -j${JOBS}
       - DYLD_LIBRARY_PATH=$TRAVIS_BUILD_DIR/google/grpc/install/lib ctest --extra-verbose --output-on-failure
-      - bash scripts/check-generate-code.sh
 
     - <<: *conan-linux-master
       env: CONAN_GCC_VERSIONS=8 CONAN_DOCKER_IMAGE=conanio/gcc8

@@ -14,7 +14,7 @@ cmake . -DCMAKE_BUILD_TYPE=$config \
 cmake --build . --target all --clean-first -- -j$JOBS
 ctest --extra-verbose --output-on-failure -j$JOBS
 
-echo "Check generated code"
-scripts/check-generate-code.sh
+echo "Checking generated code"
+scripts/check_generate_code.py
 
 echo "C++ tests done"

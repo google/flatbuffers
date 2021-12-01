@@ -10,6 +10,6 @@ cmake . -DCMAKE_BUILD_TYPE=$config \
   -DFLATBUFFERS_BUILD_TESTS=0 -DFLATBUFFERS_INSTALL=0
 cmake --build . --target flatc --clean-first -- -j$JOBS
 
-echo "Check generated code"
-scripts/check-generate-code.sh
+echo "Checking generated code"
+scripts/check_generate_code.py
 echo "Done"
