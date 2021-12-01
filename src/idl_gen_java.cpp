@@ -52,6 +52,29 @@ static void SplitStringByDelimeterIntoVec(std::string& s, char delimeter, std::v
   }
   v.push_back(word);
 }
+
+static void AddAnnotationsAboveObjectOrAboveObjectsFields(const Parser &parser_, Definition& object, std::string& code,
+                                                        std::set<std::string>& attributes_packages, bool is_field_annotation=false){
+  for (auto attr_it=object.attributes.dict.begin(); attr_it != object.attributes.dict.end(); ++attr_it) {
+        auto attr = attr_it->first;
+        auto &attr_value = *attr_it->second;
+        auto found_attr = parser_.known_attributes_.find(attr);
+        if (found_attr != parser_.known_attributes_.end() && !found_attr->second) {
+          auto java_package_it = parser_.attribute_to_its_specific_java_package_.find(attr);
+          if (java_package_it != parser_.attribute_to_its_specific_java_package_.end()){
+            if(is_field_annotation){
+              code += " ";
+            }
+            code += "@" + MakeCamel(attr, true);
+            if ("0" != attr_value.constant) {
+              code += "(\"" + attr_value.constant + "\")";
+            }
+            code += "\n";
+            attributes_packages.insert((java_package_it->second)+"."+java_package_it->first);
+          }
+        }
+      }
+}
 class JavaGenerator : public BaseGenerator {
   struct FieldArrayLength {
     std::string name;
@@ -65,6 +88,9 @@ class JavaGenerator : public BaseGenerator {
         cur_name_space_(nullptr) {}
 
   JavaGenerator &operator=(const JavaGenerator &);
+
+  
+
   bool generate() {
     std::string one_file_code;
     cur_name_space_ = parser_.current_namespace_;
@@ -176,7 +202,18 @@ class JavaGenerator : public BaseGenerator {
       code += "package " + namespace_name + ";";
       code += "\n\n";
     }
-    if (needs_includes) {
+    if(p_attributes_packages){
+        std::set<std::string> attributes_packages = *p_attributes_packages; 
+        for(std::string s : attributes_packages){
+          code+="import ";
+          code+=s+";";
+          code+="\n";      
+        }
+        if(!needs_includes){
+            code+="\n";
+        }
+      }
+    if (needs_includes){
       code +=
           "import java.nio.*;\nimport java.lang.*;\nimport "
           "java.util.*;\nimport com.google.flatbuffers.*;\n";
@@ -189,14 +226,7 @@ class JavaGenerator : public BaseGenerator {
       code += "\n";
     }
 
-    if(p_attributes_packages){
-        std::set<std::string> attributes_packages = *p_attributes_packages; 
-        for(std::string s : attributes_packages){
-          code+="import ";
-          code+=s+";";
-          code+="\n";
-        }
-      }
+    
 
     code += classcode;
     if (!namespace_name.empty()) code += "";
@@ -1338,22 +1368,7 @@ class JavaGenerator : public BaseGenerator {
     if (enum_def.generated) return;
     code += "import com.google.flatbuffers.FlatBufferBuilder;\n\n";
 
-    for (auto attr_it=enum_def.attributes.dict.begin(); attr_it != enum_def.attributes.dict.end(); ++attr_it) {
-        auto attr = attr_it->first;
-        auto &attr_value = *attr_it->second;
-        auto found_attr = parser_.known_attributes_.find(attr);
-        if (found_attr != parser_.known_attributes_.end() && !found_attr->second) {
-          auto java_package_it = parser_.attribute_to_its_specific_java_package_.find(attr);
-          if (java_package_it != parser_.attribute_to_its_specific_java_package_.end()){
-            code += "@" + MakeCamel(attr, true);
-            if ("0" != attr_value.constant) {
-              code += "(\"" + attr_value.constant + "\")";
-            }
-            code += "\n";
-            attributes_packages.insert((java_package_it->second)+"."+java_package_it->first);
-          }
-        }
-      }
+    AddAnnotationsAboveObjectOrAboveObjectsFields(parser_, enum_def, code, attributes_packages);
 
     if (!enum_def.attributes.Lookup("private")) { code += "public "; }
     auto union_name = enum_def.name + "Union";
@@ -2100,22 +2115,7 @@ class JavaGenerator : public BaseGenerator {
     if (struct_def.generated) return;
     auto &code = *code_ptr;
     
-    for (auto attr_it=struct_def.attributes.dict.begin(); attr_it != struct_def.attributes.dict.end(); ++attr_it) {
-        auto attr = attr_it->first;
-        auto &attr_value = *attr_it->second;
-        auto found_attr = parser_.known_attributes_.find(attr);
-        if (found_attr != parser_.known_attributes_.end() && !found_attr->second) {
-          auto java_package_it = parser_.attribute_to_its_specific_java_package_.find(attr);
-          if (java_package_it != parser_.attribute_to_its_specific_java_package_.end()){
-            code += "@" + MakeCamel(attr, true);
-            if ("0" != attr_value.constant) {
-              code += "(\"" + attr_value.constant + "\")";
-            }
-            code += "\n";
-            attributes_packages.insert((java_package_it->second)+"."+java_package_it->first);
-          }
-        }
-      }
+    AddAnnotationsAboveObjectOrAboveObjectsFields(parser_, struct_def, code, attributes_packages);
 
     if (struct_def.attributes.Lookup("private")) {
       // For Java, we leave the enum unmarked to indicate package-private
@@ -2138,26 +2138,8 @@ class JavaGenerator : public BaseGenerator {
       if (field.IsScalarOptional())
         type_name = ConvertPrimitiveTypeToObjectWrapper_ObjectAPI(type_name);
       auto camel_name = MakeCamel(field.name, false);
-      for (auto attr_it=field.attributes.dict.begin(); attr_it != field.attributes.dict.end(); ++attr_it) {
-        auto attr = attr_it->first;
-        auto &attr_value = *attr_it->second;
-        auto found_attr = parser_.known_attributes_.find(attr);
-        if (found_attr != parser_.known_attributes_.end() && !found_attr->second){
-          //we check if the attribute is in attribute_to_its_specific_java_package_ dictionary
-          //i.e has a java package inner attribute 
-          auto java_package_it = parser_.attribute_to_its_specific_java_package_.find(attr);
-          if (java_package_it != parser_.attribute_to_its_specific_java_package_.end()){
-                code += "  @" + MakeCamel(attr, true);
-                if ("0" != attr_value.constant) {
-                  code += "(\"" + attr_value.constant + "\")";
-                }
-                code += "\n";
-                attributes_packages.insert(java_package_it->second+"."+java_package_it->first);
-              }        
-        }
-        /*if field has inner attribute jvav package than chnage the annotation file to it 
-        */
-      }
+      
+      AddAnnotationsAboveObjectOrAboveObjectsFields(parser_, field, code, attributes_packages, true);
 
       code += "  private " + type_name + " " + camel_name + ";\n";
     }

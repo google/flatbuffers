@@ -1,0 +1,46 @@
+//Key points to see in generated files:
+//No priority annotaions
+//No duplication in imports
+
+
+namespace MyGame;
+
+attribute ofir (java_package: "com.moses");
+attribute tom (java_package: "com.cohen");
+attribute priority;
+
+enum Color : byte (ofir:1){
+   Red = 1,
+   Green,
+   Blue 
+}
+
+table PointOne (ofir:1) {
+  x:uint; 
+  y:uint; 
+}
+
+table PointTwo {
+  a:uint(priority:200); 
+  b:uint; 
+}
+
+struct Vec3 (ofir: "struct"){
+  x:float (ofir: "struct");
+  y:float;
+  z:float;
+}
+
+union Points (ofir: "union") {PointOne , PointTwo}
+
+table Monster (priority:7, ofir: "monster") {
+  gal:bool =false; 
+  pos:Vec3 (ofir:15);
+  points: Points (priority:100); 
+  friendly:bool = false (ofir:1);
+  no_friendly:bool =false (priority:1);
+  ofir: bool = false (tom:10);
+  color:Color = Blue (priority:3);
+}
+
+root_type Monster;
