@@ -1074,6 +1074,10 @@ class FlatBufferBuilder {
   void SwapBufAllocator(FlatBufferBuilder &other) {
     buf_.swap_allocator(other.buf_);
   }
+  
+  /// @brief The length of a FlatBuffer file header.
+  static const size_t kFileIdentifierLength =
+      ::flatbuffers::kFileIdentifierLength;
 
  protected:
   // You shouldn't really be copying instances of this class.
