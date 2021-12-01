@@ -385,6 +385,13 @@ flatc(
     cwd=samples_path,
 )
 
+flatc(
+    options = ["--java --gen-object-api"], 
+    schema="java_annotations_test.fbs", 
+    prefix="java_annotations_test", 
+    include="include_test"
+)
+
 # Reflection
 temp_dir = ".tmp"
 flatc(
