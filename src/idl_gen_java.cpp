@@ -89,8 +89,6 @@ class JavaGenerator : public BaseGenerator {
 
   JavaGenerator &operator=(const JavaGenerator &);
 
-  
-
   bool generate() {
     std::string one_file_code;
     cur_name_space_ = parser_.current_namespace_;
@@ -198,7 +196,6 @@ class JavaGenerator : public BaseGenerator {
 
     std::string namespace_name = FullNamespace(".", ns);
     if (!namespace_name.empty()) {
-      //implimentation in bookmark
       code += "package " + namespace_name + ";";
       code += "\n\n";
     }
@@ -225,9 +222,6 @@ class JavaGenerator : public BaseGenerator {
       } 
       code += "\n";
     }
-
-    
-
     code += classcode;
     if (!namespace_name.empty()) code += "";
     auto filename = NamespaceDir(ns) + defname + ".java";
