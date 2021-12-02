@@ -199,18 +199,6 @@ template<> struct GadgetTraits<HandFan> {
   static const Gadget enum_value = Gadget::HandFan;
 };
 
-template<typename T> struct GadgetUnionTraits {
-  static const Gadget enum_value = Gadget::NONE;
-};
-
-template<> struct GadgetUnionTraits<FallingTub> {
-  static const Gadget enum_value = Gadget::FallingTub;
-};
-
-template<> struct GadgetUnionTraits<HandFanT> {
-  static const Gadget enum_value = Gadget::HandFan;
-};
-
 struct GadgetUnion {
   Gadget type;
   void *value;
@@ -228,15 +216,17 @@ struct GadgetUnion {
 
   void Reset();
 
+#ifndef FLATBUFFERS_CPP98_STL
   template <typename T>
   void Set(T&& val) {
-    typedef typename std::remove_reference<T>::type RT;
+    using RT = typename std::remove_reference<T>::type;
     Reset();
-    type = GadgetUnionTraits<RT>::enum_value;
+    type = GadgetTraits<typename RT::TableType>::enum_value;
     if (type != Gadget::NONE) {
       value = new RT(std::forward<T>(val));
     }
   }
+#endif  // FLATBUFFERS_CPP98_STL
 
   static void *UnPack(const void *obj, Gadget type, const flatbuffers::resolver_function_t *resolver);
   flatbuffers::Offset<void> Pack(flatbuffers::FlatBufferBuilder &_fbb, const flatbuffers::rehasher_function_t *_rehasher = nullptr) const;
@@ -827,7 +817,6 @@ inline bool VerifyCharacterVector(flatbuffers::Verifier &verifier, const flatbuf
 }
 
 inline void *CharacterUnion::UnPack(const void *obj, Character type, const flatbuffers::resolver_function_t *resolver) {
-  (void)resolver;
   switch (type) {
     case Character::MuLan: {
       auto ptr = reinterpret_cast<const Attacker *>(obj);
@@ -858,7 +847,6 @@ inline void *CharacterUnion::UnPack(const void *obj, Character type, const flatb
 }
 
 inline flatbuffers::Offset<void> CharacterUnion::Pack(flatbuffers::FlatBufferBuilder &_fbb, const flatbuffers::rehasher_function_t *_rehasher) const {
-  (void)_rehasher;
   switch (type) {
     case Character::MuLan: {
       auto ptr = reinterpret_cast<const AttackerT *>(value);
@@ -986,7 +974,6 @@ inline bool VerifyGadgetVector(flatbuffers::Verifier &verifier, const flatbuffer
 }
 
 inline void *GadgetUnion::UnPack(const void *obj, Gadget type, const flatbuffers::resolver_function_t *resolver) {
-  (void)resolver;
   switch (type) {
     case Gadget::FallingTub: {
       auto ptr = reinterpret_cast<const FallingTub *>(obj);
@@ -1001,7 +988,6 @@ inline void *GadgetUnion::UnPack(const void *obj, Gadget type, const flatbuffers
 }
 
 inline flatbuffers::Offset<void> GadgetUnion::Pack(flatbuffers::FlatBufferBuilder &_fbb, const flatbuffers::rehasher_function_t *_rehasher) const {
-  (void)_rehasher;
   switch (type) {
     case Gadget::FallingTub: {
       auto ptr = reinterpret_cast<const FallingTub *>(value);
