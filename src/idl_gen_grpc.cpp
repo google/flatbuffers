@@ -242,9 +242,13 @@ class FlatBufFile : public grpc_generator::File {
     return StripExtension(file_name_);
   }
 
-  std::string message_header_ext() const { return "_generated.h"; }
+  std::string message_header_ext() const {
+    return parser_.opts.filename_suffix + ".h";
+  }
 
-  std::string service_header_ext() const { return ".grpc.fb.h"; }
+  std::string service_header_ext() const {
+    return parser_.opts.filename_suffix + ".grpc.fb.h";
+  }
 
   std::string package() const {
     return parser_.current_namespace_->GetFullyQualifiedName("");
@@ -370,10 +374,14 @@ bool GenerateCppGRPC(const Parser &parser, const std::string &path,
       grpc_cpp_generator::GetSourceServices(&fbfile, generator_parameters) +
       grpc_cpp_generator::GetSourceEpilogue(&fbfile, generator_parameters);
 
-  return flatbuffers::SaveFile((path + file_name + ".grpc.fb.h").c_str(),
-                               header_code, false) &&
-         flatbuffers::SaveFile((path + file_name + ".grpc.fb.cc").c_str(),
-                               source_code, false);
+  return flatbuffers::SaveFile(
+             (path + file_name + parser.opts.filename_suffix + ".grpc.fb.h")
+                 .c_str(),
+             header_code, false) &&
+         flatbuffers::SaveFile(
+             (path + file_name + parser.opts.filename_suffix + ".grpc.fb.cc")
+                 .c_str(),
+             source_code, false);
 }
 
 class JavaGRPCGenerator : public flatbuffers::BaseGenerator {
