@@ -162,7 +162,9 @@ struct Type FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
     VT_BASE_TYPE = 4,
     VT_ELEMENT = 6,
     VT_INDEX = 8,
-    VT_FIXED_LENGTH = 10
+    VT_FIXED_LENGTH = 10,
+    VT_BASE_SIZE = 12,
+    VT_ELEMENT_SIZE = 14
   };
   reflection::BaseType base_type() const {
     return static_cast<reflection::BaseType>(GetField<int8_t>(VT_BASE_TYPE, 0));
@@ -176,12 +178,22 @@ struct Type FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   uint16_t fixed_length() const {
     return GetField<uint16_t>(VT_FIXED_LENGTH, 0);
   }
+  /// The size (octets) of the `base_type` field.
+  uint32_t base_size() const {
+    return GetField<uint32_t>(VT_BASE_SIZE, 4);
+  }
+  /// The size (octets) of the `element` field, if present.
+  uint32_t element_size() const {
+    return GetField<uint32_t>(VT_ELEMENT_SIZE, 0);
+  }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyField<int8_t>(verifier, VT_BASE_TYPE) &&
            VerifyField<int8_t>(verifier, VT_ELEMENT) &&
            VerifyField<int32_t>(verifier, VT_INDEX) &&
            VerifyField<uint16_t>(verifier, VT_FIXED_LENGTH) &&
+           VerifyField<uint32_t>(verifier, VT_BASE_SIZE) &&
+           VerifyField<uint32_t>(verifier, VT_ELEMENT_SIZE) &&
            verifier.EndTable();
   }
 };
@@ -202,6 +214,12 @@ struct TypeBuilder {
   void add_fixed_length(uint16_t fixed_length) {
     fbb_.AddElement<uint16_t>(Type::VT_FIXED_LENGTH, fixed_length, 0);
   }
+  void add_base_size(uint32_t base_size) {
+    fbb_.AddElement<uint32_t>(Type::VT_BASE_SIZE, base_size, 4);
+  }
+  void add_element_size(uint32_t element_size) {
+    fbb_.AddElement<uint32_t>(Type::VT_ELEMENT_SIZE, element_size, 0);
+  }
   explicit TypeBuilder(flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
@@ -218,8 +236,12 @@ inline flatbuffers::Offset<Type> CreateType(
     reflection::BaseType base_type = reflection::None,
     reflection::BaseType element = reflection::None,
     int32_t index = -1,
-    uint16_t fixed_length = 0) {
+    uint16_t fixed_length = 0,
+    uint32_t base_size = 4,
+    uint32_t element_size = 0) {
   TypeBuilder builder_(_fbb);
+  builder_.add_element_size(element_size);
+  builder_.add_base_size(base_size);
   builder_.add_index(index);
   builder_.add_fixed_length(fixed_length);
   builder_.add_element(element);
@@ -556,7 +578,8 @@ struct Field FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
     VT_KEY = 20,
     VT_ATTRIBUTES = 22,
     VT_DOCUMENTATION = 24,
-    VT_OPTIONAL = 26
+    VT_OPTIONAL = 26,
+    VT_PADDING = 28
   };
   const flatbuffers::String *name() const {
     return GetPointer<const flatbuffers::String *>(VT_NAME);
@@ -600,6 +623,10 @@ struct Field FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   bool optional() const {
     return GetField<uint8_t>(VT_OPTIONAL, 0) != 0;
   }
+  /// Number of padding octets to always add after this field. Structs only.
+  uint16_t padding() const {
+    return GetField<uint16_t>(VT_PADDING, 0);
+  }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffsetRequired(verifier, VT_NAME) &&
@@ -620,6 +647,7 @@ struct Field FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
            verifier.VerifyVector(documentation()) &&
            verifier.VerifyVectorOfStrings(documentation()) &&
            VerifyField<uint8_t>(verifier, VT_OPTIONAL) &&
+           VerifyField<uint16_t>(verifier, VT_PADDING) &&
            verifier.EndTable();
   }
 };
@@ -664,6 +692,9 @@ struct FieldBuilder {
   void add_optional(bool optional) {
     fbb_.AddElement<uint8_t>(Field::VT_OPTIONAL, static_cast<uint8_t>(optional), 0);
   }
+  void add_padding(uint16_t padding) {
+    fbb_.AddElement<uint16_t>(Field::VT_PADDING, padding, 0);
+  }
   explicit FieldBuilder(flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
@@ -690,7 +721,8 @@ inline flatbuffers::Offset<Field> CreateField(
     bool key = false,
     flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<reflection::KeyValue>>> attributes = 0,
     flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>>> documentation = 0,
-    bool optional = false) {
+    bool optional = false,
+    uint16_t padding = 0) {
   FieldBuilder builder_(_fbb);
   builder_.add_default_real(default_real);
   builder_.add_default_integer(default_integer);
@@ -698,6 +730,7 @@ inline flatbuffers::Offset<Field> CreateField(
   builder_.add_attributes(attributes);
   builder_.add_type(type);
   builder_.add_name(name);
+  builder_.add_padding(padding);
   builder_.add_offset(offset);
   builder_.add_id(id);
   builder_.add_optional(optional);
@@ -720,7 +753,8 @@ inline flatbuffers::Offset<Field> CreateFieldDirect(
     bool key = false,
     std::vector<flatbuffers::Offset<reflection::KeyValue>> *attributes = nullptr,
     const std::vector<flatbuffers::Offset<flatbuffers::String>> *documentation = nullptr,
-    bool optional = false) {
+    bool optional = false,
+    uint16_t padding = 0) {
   auto name__ = name ? _fbb.CreateString(name) : 0;
   auto attributes__ = attributes ? _fbb.CreateVectorOfSortedTables<reflection::KeyValue>(attributes) : 0;
   auto documentation__ = documentation ? _fbb.CreateVector<flatbuffers::Offset<flatbuffers::String>>(*documentation) : 0;
@@ -737,7 +771,8 @@ inline flatbuffers::Offset<Field> CreateFieldDirect(
       key,
       attributes__,
       documentation__,
-      optional);
+      optional,
+      padding);
 }
 
 struct Object FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {

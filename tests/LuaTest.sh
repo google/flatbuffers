@@ -17,8 +17,6 @@
 pushd "$(dirname $0)" >/dev/null
 test_dir="$(pwd)"
 
-${test_dir}/../flatc --lua -I include_test monster_test.fbs
-
 declare -a versions=(luajit lua5.1 lua5.2 lua5.3 lua5.4)
 
 for i in "${versions[@]}"
