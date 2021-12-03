@@ -40,6 +40,7 @@ filegroup(
         "include/flatbuffers/allocator.h",
         "include/flatbuffers/array.h",
         "include/flatbuffers/base.h",
+        "include/flatbuffers/bfbs_generator.h",
         "include/flatbuffers/buffer.h",
         "include/flatbuffers/buffer_ref.h",
         "include/flatbuffers/code_generators.h",

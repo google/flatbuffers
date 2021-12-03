@@ -127,12 +127,17 @@ flatc(
         "--dart",
         "--go",
         "--lobster",
-        "--lua",
         "--php",
     ],
     schema="monster_test.fbs",
     include="include_test",
     data="monsterdata_test.json",
+)
+
+flatc(
+    ["--lua", "--bfbs-filenames", str(tests_path)],
+    schema="monster_test.fbs",
+    include="include_test"    
 )
 
 flatc(

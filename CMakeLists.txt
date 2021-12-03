@@ -92,6 +92,7 @@ set(FlatBuffers_Library_SRCS
   include/flatbuffers/allocator.h
   include/flatbuffers/array.h
   include/flatbuffers/base.h
+  include/flatbuffers/bfbs_generator.h
   include/flatbuffers/buffer.h
   include/flatbuffers/buffer_ref.h
   include/flatbuffers/default_allocator.h
@@ -139,7 +140,10 @@ set(FlatBuffers_Compiler_SRCS
   src/idl_gen_swift.cpp
   src/flatc.cpp
   src/flatc_main.cpp
+  src/bfbs_gen.h
+  src/bfbs_gen_lua.h
   include/flatbuffers/code_generators.h
+  src/bfbs_gen_lua.cpp
   src/code_generators.cpp
   grpc/src/compiler/schema_interface.h
   grpc/src/compiler/cpp_generator.h

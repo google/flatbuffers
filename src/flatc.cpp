@@ -18,6 +18,9 @@
 
 #include <list>
 
+#include "bfbs_gen_lua.h"
+#include "flatbuffers/util.h"
+
 namespace flatbuffers {
 
 const char *FLATC_VERSION() { return FLATBUFFERS_VERSION(); }
@@ -205,6 +208,7 @@ int FlatCompiler::Compile(int argc, const char **argv) {
   bool raw_binary = false;
   bool schema_binary = false;
   bool grpc_enabled = false;
+  bool requires_bfbs = false;
   std::vector<std::string> filenames;
   std::list<std::string> include_directories_storage;
   std::vector<const char *> include_directories;
@@ -405,10 +409,15 @@ int FlatCompiler::Compile(int argc, const char **argv) {
             generator_enabled[i] = true;
             any_generator = true;
             opts.lang_to_generate |= params_.generators[i].lang;
+            if (params_.generators[i].bfbs_generator) {
+              opts.binary_schema_comments = true;
+              requires_bfbs = true;
+            }
             goto found;
           }
         }
         Error("unknown commandline argument: " + arg, true);
+
       found:;
       }
     } else {
@@ -528,20 +537,42 @@ int FlatCompiler::Compile(int argc, const char **argv) {
         parser->file_extension_ = reflection::SchemaExtension();
       }
     }
-
     std::string filebase =
         flatbuffers::StripPath(flatbuffers::StripExtension(filename));
+
+    // If one of the generators uses bfbs, serialize the parser and get
+    // the serialized buffer and length.
+    const uint8_t *bfbs_buffer = nullptr;
+    int64_t bfbs_length = 0;
+    if (requires_bfbs) {
+      parser->Serialize();
+      bfbs_buffer = parser->builder_.GetBufferPointer();
+      bfbs_length = parser->builder_.GetSize();
+    }
 
     for (size_t i = 0; i < params_.num_generators; ++i) {
       if (generator_enabled[i]) {
         if (!print_make_rules) {
           flatbuffers::EnsureDirExists(output_path);
-          if ((!params_.generators[i].schema_only ||
-               (is_schema || is_binary_schema)) &&
-              !params_.generators[i].generate(*parser.get(), output_path,
-                                              filebase)) {
-            Error(std::string("Unable to generate ") +
-                  params_.generators[i].lang_name + " for " + filebase);
+
+          // Prefer bfbs generators if present.
+          if (params_.generators[i].bfbs_generator) {
+            const GeneratorStatus status =
+                params_.generators[i].bfbs_generator->Generate(bfbs_buffer,
+                                                               bfbs_length);
+            if (status != OK) {
+              Error(std::string("Unable to generate ") +
+                    params_.generators[i].lang_name + " for " + filebase +
+                    " using bfbs generator.");
+            }
+          } else {
+            if ((!params_.generators[i].schema_only ||
+                 (is_schema || is_binary_schema)) &&
+                !params_.generators[i].generate(*parser.get(), output_path,
+                                                filebase)) {
+              Error(std::string("Unable to generate ") +
+                    params_.generators[i].lang_name + " for " + filebase);
+            }
           }
         } else {
           if (params_.generators[i].make_rule == nullptr) {
