@@ -162,6 +162,13 @@ flatc(
     data="monsterdata_test.json",
 )
 
+flatc(
+    options=BASE_OPTS + ["--python", "--gen-onefile"],
+    schema="monster_test.fbs",
+    include="include_test",
+    data="monsterdata_test.json",
+)
+
 # For Rust we currently generate two independent schemas, with namespace_test2
 # duplicating the types in namespace_test1
 flatc(
