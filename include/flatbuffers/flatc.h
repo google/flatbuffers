@@ -21,6 +21,7 @@
 #include <limits>
 #include <string>
 
+#include "flatbuffers/bfbs_generator.h"
 #include "flatbuffers/flatbuffers.h"
 #include "flatbuffers/idl.h"
 #include "flatbuffers/util.h"
@@ -51,6 +52,7 @@ class FlatCompiler {
     flatbuffers::IDLOptions::Language lang;
     const char *generator_help;
     MakeRuleFn make_rule;
+    BfbsGenerator *bfbs_generator;
   };
 
   typedef void (*WarnFn)(const FlatCompiler *flatc, const std::string &warn,

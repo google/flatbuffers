@@ -320,8 +320,8 @@ class FixedTypedVector : public Object {
     return data_ == FixedTypedVector::EmptyFixedTypedVector().data_;
   }
 
-  Type ElementType() { return type_; }
-  uint8_t size() { return len_; }
+  Type ElementType() const { return type_; }
+  uint8_t size() const { return len_; }
 
  private:
   Type type_;

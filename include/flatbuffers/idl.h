@@ -593,6 +593,8 @@ struct IDLOptions {
   bool no_warnings;
   std::string project_root;
   bool cs_global_alias;
+  bool json_nested_flatbuffers;
+  bool json_nested_flexbuffers;
 
   // Possible options for the more general generator below.
   enum Language {
@@ -680,6 +682,8 @@ struct IDLOptions {
         no_warnings(false),
         project_root(""),
         cs_global_alias(false),
+        json_nested_flatbuffers(true),
+        json_nested_flexbuffers(true),
         mini_reflect(IDLOptions::kNone),
         require_explicit_ids(false),
         lang_to_generate(0),

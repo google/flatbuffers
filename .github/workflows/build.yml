@@ -34,12 +34,12 @@ jobs:
         path: flatc
 
   build-windows:
-    name: Build Windows
+    name: Build Windows 2019 
     runs-on: windows-latest
     steps:
     - uses: actions/checkout@v1
     - name: Add msbuild to PATH
-      uses: microsoft/setup-msbuild@v1.0.2
+      uses: microsoft/setup-msbuild@v1.1
     - name: cmake
       run: cmake -G "Visual Studio 16 2019" -A x64 -DCMAKE_BUILD_TYPE=Release -DFLATBUFFERS_BUILD_CPP17=ON .
     - name: build
@@ -54,15 +54,29 @@ jobs:
 
   build-windows-2017:
     name: Build Windows 2017
-    runs-on: windows-2016
+    runs-on: windows-latest
     steps:
     - uses: actions/checkout@v1
     - name: Add msbuild to PATH
-      uses: microsoft/setup-msbuild@v1.0.2
+      uses: microsoft/setup-msbuild@v1.1
     - name: cmake
-      run: cmake -G "Visual Studio 15 2017" -A x64 -DCMAKE_BUILD_TYPE=Release .
-    - name: build
-      run: msbuild.exe FlatBuffers.sln /p:Configuration=Release /p:Platform=x64
+      run: cmake -G "Visual Studio 16 2019" -A x64 -DCMAKE_BUILD_TYPE=Release .
+    - name: build tool version 15 (VS 2017)
+      run: msbuild.exe FlatBuffers.sln /p:Configuration=Release /p:Platform=x64 /p:VisualStudioVersion=15.0
+    - name: test
+      run: Release\flattests.exe
+
+  build-windows-2015:
+    name: Build Windows 2015
+    runs-on: windows-latest
+    steps:
+    - uses: actions/checkout@v1
+    - name: Add msbuild to PATH
+      uses: microsoft/setup-msbuild@v1.1
+    - name: cmake
+      run: cmake -G "Visual Studio 14 2015" -A x64 -DCMAKE_BUILD_TYPE=Release .
+    - name: build tool version 14 (VS 2015)
+      run: msbuild.exe FlatBuffers.sln /p:Configuration=Release /p:Platform=x64 /p:VisualStudioVersion=14.0
     - name: test
       run: Release\flattests.exe
 
@@ -122,7 +136,9 @@ jobs:
     - name: cmake
       run: CXX=${{ matrix.cxx }} cmake -G "Unix Makefiles" -DFLATBUFFERS_BUILD_TESTS=OFF -DCMAKE_BUILD_TYPE=Release . && make -j4
     - name: Generate
-      run: bash scripts/check-generate-code.sh && bash scripts/check-grpc-generated-code.sh
+      run: scripts/check_generate_code.py
+    - name: Generate gRPC
+      run: bash scripts/check-grpc-generated-code.sh
 
   build-benchmarks:
     name: Build Benchmarks (on Linux)
@@ -201,18 +217,6 @@ jobs:
       working-directory: tests
       run: bash RustTest.sh
 
-  #build-js:
-  #  name: Build JS
-  #  runs-on: ubuntu-latest
-  #  steps:
-  #  - uses: actions/checkout@v1
-  #  - name: flatc
-  #    # FIXME: make test script not rely on flatc
-  #    run: cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release -DFLATBUFFERS_BUILD_TESTS=OFF -DFLATBUFFERS_INSTALL=OFF -DFLATBUFFERS_BUILD_FLATLIB=OFF -DFLATBUFFERS_BUILD_FLATHASH=OFF . && make -j4
-  #  - name: test
-  #    working-directory: tests
-  #    run: bash JavaScriptTest.sh
-
   build-python:
     name: Build Python
     runs-on: ubuntu-latest
@@ -233,29 +237,6 @@ jobs:
     - name: test
       working-directory: tests
       run: bash GoTest.sh
-
-  #build-csharp:
-  #  name: Build CSharp
-  #  runs-on: ubuntu-latest
-  #  steps:
-  #  - uses: actions/checkout@v1
-  #  - name: test
-  #    working-directory: tests/FlatBuffers.Test
-  #    run: bash NetTest.sh
-
-  #build-php:
-  #  name: Build PHP
-  #  runs-on: ubuntu-latest
-  #  steps:
-  #  - uses: actions/checkout@v1
-  #  - name: flatc
-  #    # FIXME: make test script not rely on flatc
-  #    run: cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release -DFLATBUFFERS_BUILD_TESTS=OFF -DFLATBUFFERS_INSTALL=OFF -DFLATBUFFERS_BUILD_FLATLIB=OFF -DFLATBUFFERS_BUILD_FLATHASH=OFF . && make -j4
-  #  - name: test
-  #    working-directory: tests
-  #    run: |
-  #      php phpTest.php
-  #      sh phpUnionVectorTest.sh
 
   build-swift:
     name: Build Swift

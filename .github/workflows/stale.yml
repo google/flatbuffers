@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/stale@v3
+    - uses: actions/stale@v4.0.0
       with:
         repo-token: ${{ secrets.GITHUB_TOKEN }}
         stale-pr-message: 'This pull request is stale because it has been open 6 months with no activity. Please comment or this will be closed in 14 days.'
@@ -18,3 +18,6 @@ jobs:
         days-before-stale: 182 # 6 months
         days-before-close: 14
         operations-per-run: 1500
+        exempt-issue-labels: not-stale
+        exempt-pr-labels: not-stale
+        exempt-all-milestones: true
