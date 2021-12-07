@@ -509,9 +509,13 @@ int FlatCompiler::Compile(int argc, const char **argv) {
         LoadBinarySchema(*parser.get(), filename, contents);
       } else if (opts.use_flexbuffers) {
         if (opts.lang_to_generate == IDLOptions::kJson) {
-          parser->flex_root_ = flexbuffers::GetRoot(
-              reinterpret_cast<const uint8_t *>(contents.c_str()),
-              contents.size());
+          auto data = reinterpret_cast<const uint8_t *>(contents.c_str());
+          auto size = contents.size();
+          std::vector<bool> reuse_tracker;
+          flexbuffers::Verifier fv(data, size, &reuse_tracker);
+          if (!fv.VerifyBuffer())
+            Error("flexbuffers file failed to verify: " + filename, false);
+          parser->flex_root_ = flexbuffers::GetRoot(data, size);
         } else {
           parser->flex_builder_.Clear();
           ParseFile(*parser.get(), filename, contents, include_directories);

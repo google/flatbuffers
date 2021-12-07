@@ -254,6 +254,8 @@ class Verifier FLATBUFFERS_FINAL_CLASS {
     // clang-format on
   }
 
+  std::vector<bool> &GetReuseVector() { return reuse_tracker_; }
+
  private:
   const uint8_t *buf_;
   size_t size_;
@@ -263,6 +265,9 @@ class Verifier FLATBUFFERS_FINAL_CLASS {
   uoffset_t max_tables_;
   mutable size_t upper_bound_;
   bool check_alignment_;
+  // This is here for nested FlexBuffers, cheap if not touched.
+  // TODO: allow user to supply memory for this.
+  std::vector<bool> reuse_tracker_;
 };
 
 }  // namespace flatbuffers
