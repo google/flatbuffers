@@ -10,4 +10,3 @@ class Color(object):
     Green = 2
     # \brief color Blue (1u << 3)
     Blue = 8
-

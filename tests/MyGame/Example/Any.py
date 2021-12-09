@@ -8,7 +8,6 @@ class Any(object):
     TestSimpleTableWithEnum = 2
     MyGame_Example2_Monster = 3
 
-
 def AnyCreator(unionType, table):
     from flatbuffers.table import Table
     if not isinstance(table, Table):
