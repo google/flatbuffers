@@ -2152,10 +2152,16 @@ void EnumDef::SortByValue() {
   auto &v = vals.vec;
   if (IsUInt64())
     std::sort(v.begin(), v.end(), [](const EnumVal *e1, const EnumVal *e2) {
+      if (e1->GetAsUInt64() == e2->GetAsUInt64()) {
+        return e1->name < e2->name;
+      }
       return e1->GetAsUInt64() < e2->GetAsUInt64();
     });
   else
     std::sort(v.begin(), v.end(), [](const EnumVal *e1, const EnumVal *e2) {
+      if (e1->GetAsInt64() == e2->GetAsInt64()) {
+        return e1->name < e2->name;
+      }
       return e1->GetAsInt64() < e2->GetAsInt64();
     });
 }
