@@ -7,4 +7,3 @@ class Race(object):
     Human = 0
     Dwarf = 1
     Elf = 2
-
