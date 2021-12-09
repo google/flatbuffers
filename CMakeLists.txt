@@ -10,6 +10,8 @@ else()
   project(FlatBuffers)
 endif (POLICY CMP0048)
 
+include(CMake/Version.cmake)
+
 # generate compile_commands.json
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
@@ -417,8 +419,8 @@ if(FLATBUFFERS_BUILD_SHAREDLIB)
   # - micro updated every release when there is no API/ABI changes
   # - minor updated when there are additions in API/ABI
   # - major (ABI number) updated when there are changes in ABI (or removals)
-  set(FlatBuffers_Library_SONAME_MAJOR "2")
-  set(FlatBuffers_Library_SONAME_FULL "${FlatBuffers_Library_SONAME_MAJOR}.0.0")
+  set(FlatBuffers_Library_SONAME_MAJOR ${VERSION_MAJOR})
+  set(FlatBuffers_Library_SONAME_FULL "${FlatBuffers_Library_SONAME_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}")
   set_target_properties(flatbuffers_shared PROPERTIES OUTPUT_NAME flatbuffers
                         SOVERSION "${FlatBuffers_Library_SONAME_MAJOR}"
                         VERSION "${FlatBuffers_Library_SONAME_FULL}")
@@ -625,7 +627,6 @@ if(FLATBUFFERS_BUILD_GRPCTEST)
   endif()
 endif()
 
-include(CMake/Version.cmake)
 
 if(FLATBUFFERS_INSTALL)
   include(GNUInstallDirs)
