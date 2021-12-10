@@ -56,8 +56,8 @@ int main(int argc, const char *argv[]) {
 
   const std::string flatbuffers_version(flatbuffers::FLATBUFFERS_VERSION());
 
-  std::unique_ptr<flatbuffers::BfbsGenerator> bfbs_gen_lua =
-      flatbuffers::NewLuaBfbsGenerator(flatbuffers_version);
+  // std::unique_ptr<flatbuffers::BfbsGenerator> bfbs_gen_lua =
+  //     flatbuffers::NewLuaBfbsGenerator(flatbuffers_version);
 
   g_program_name = argv[0];
 
