@@ -53,7 +53,7 @@ target_compile_options(
   fuzzer_config
   INTERFACE
     $<$<NOT:$<BOOL:${OSS_FUZZ}>>:
-      -fsanitize-coverage=edge,trace-cmp
+      -fsanitize-coverage=trace-cmp
     >
     $<$<BOOL:${USE_ASAN}>:
       -fsanitize=fuzzer,undefined,address
@@ -145,6 +145,9 @@ target_link_libraries(parser_fuzzer PRIVATE flatbuffers_fuzzed)
 
 add_executable(verifier_fuzzer flatbuffers_verifier_fuzzer.cc)
 target_link_libraries(verifier_fuzzer PRIVATE flatbuffers_fuzzed)
+
+add_executable(flexverifier_fuzzer flexbuffers_verifier_fuzzer.cc)
+target_link_libraries(flexverifier_fuzzer PRIVATE flatbuffers_fuzzed)
 
 add_executable(monster_fuzzer flatbuffers_monster_fuzzer.cc)
 target_link_libraries(monster_fuzzer PRIVATE flatbuffers_fuzzed)

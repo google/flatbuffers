@@ -265,6 +265,12 @@ struct JsonPrinter {
       val = reinterpret_cast<const Struct *>(table)->GetStruct<const void *>(
           fd.value.offset);
     } else if (fd.flexbuffer && opts.json_nested_flexbuffers) {
+      // We could verify this FlexBuffer before access, but since this sits
+      // inside a FlatBuffer that we don't know wether it has been verified or
+      // not, there is little point making this part safer than the parent..
+      // The caller should really be verifying the whole.
+      // If the whole buffer is corrupt, we likely crash before we even get
+      // here.
       auto vec = table->GetPointer<const Vector<uint8_t> *>(fd.value.offset);
       auto root = flexbuffers::GetRoot(vec->data(), vec->size());
       root.ToString(true, opts.strict_json, text);
