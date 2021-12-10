@@ -523,7 +523,7 @@ if(PYTHONINTERP_FOUND AND
   # Skip doing this if the MSVC version is below VS 12.
   # https://cmake.org/cmake/help/latest/variable/MSVC_VERSION.html
   (NOT MSVC OR MSVC_VERSION GREATER 1800))
-  if(WIN32)
+  if(MSVC)
     set(GENERATION_SCRIPT py scripts/generate_code.py) 
    else()
     set(GENERATION_SCRIPT scripts/generate_code.py)
