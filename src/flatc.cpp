@@ -17,6 +17,7 @@
 #include "flatbuffers/flatc.h"
 
 #include <list>
+#include <sstream>
 
 #include "bfbs_gen_lua.h"
 #include "flatbuffers/util.h"
@@ -59,21 +60,218 @@ void FlatCompiler::Error(const std::string &err, bool usage,
   params_.error_fn(this, err, usage, show_exe_name);
 }
 
+const static FlatCOption options[] = {
+  { "o", "", "PATH", "Prefix PATH to all generated files." },
+  { "I", "", "PATH", "Search for includes in the specified path." },
+  { "M", "", "", "Print make rules for generated files." },
+  { "", "version", "", "Print the version number of flatc and exit." },
+  { "", "help", "", "Prints this help text and exit." },
+  { "", "string-json", "",
+    "Strict JSON: field names must be / will be quoted, no trailing commas in "
+    "tables/vectors." },
+  { "", "allow-non-utf8", "",
+    "Pass non-UTF-8 input through parser and emit nonstandard \\x escapes in "
+    "JSON. (Default is to raise parse error on non-UTF-8 input.)" },
+  { "", "natural-utf8", "",
+    "Output strings with UTF-8 as human-readable strings. By default, UTF-8 "
+    "characters are printed as \\uXXXX escapes." },
+  { "", "defaults-json", "",
+    "Output fields whose value is the default when writing JSON" },
+  { "", "unknown-json", "",
+    "Allow fields in JSON that are not defined in the schema. These fields "
+    "will be discared when generating binaries." },
+  { "", "no-prefix", "",
+    "Don\'t prefix enum values with the enum type in C++." },
+  { "", "scoped-enums", "",
+    "Use C++11 style scoped and strongly typed enums. Also implies "
+    "--no-prefix." },
+  { "", "gen-inclues", "",
+    "(deprecated), this is the default behavior. If the original behavior is "
+    "required (no include statements) use --no-includes." },
+  { "", "no-includes", "",
+    "Don\'t generate include statements for included schemas the generated "
+    "file depends on (C++ / Python)." },
+  { "", "gen-mutable", "",
+    "Generate accessors that can mutate buffers in-place." },
+  { "", "gen-onefile", "",
+    "Generate single output file for C#, Go, and Python." },
+  { "", "gen-name-strings", "",
+    "Generate type name functions for C++ and Rust." },
+  { "", "gen-object-api", "", "Generate an additional object-based API." },
+  { "", "gen-compare", "", "Generate operator== for object-based API types." },
+  { "", "gen-nullable", "",
+    "Add Clang _Nullable for C++ pointer. or @Nullable for Java" },
+  { "", "java-checkerframe", "", "Add @Pure for Java." },
+  { "", "gen-generated", "", "Add @Generated annotation for Java." },
+  { "", "gen-jvmstatic", "",
+    "Add @JvmStatic annotation for Kotlin methods in companion object for "
+    "interop from Java to Kotlin." },
+  { "", "gen-all", "",
+    "Generate not just code for the current schema files, but for all files it "
+    "includes as well. If the language uses a single file for output (by "
+    "default the case for C++ and JS), all code will end up in this one "
+    "file." },
+  { "", "gen-json-emit", "",
+    "Generates encoding code which emits Flatbuffers into JSON" },
+  { "", "cpp-include", "", "Adds an #include in generated file." },
+  { "", "cpp-ptr-type", "T",
+    "Set object API pointer type (default std::unique_ptr)." },
+  { "", "cpp-str-type", "T",
+    "Set object API string type (default std::string). T::c_str(), T::length() "
+    "and T::empty() must be supported. The custom type also needs to be "
+    "constructible from std::string (see the --cpp-str-flex-ctor option to "
+    "change this behavior)" },
+  { "", "cpp-str-flex-ctor", "",
+    "Don't construct custom string types by passing std::string from "
+    "Flatbuffers, but (char* + length)." },
+  { "", "cpp-field-case-style", "STYLE",
+    "Generate C++ fields using selected case style. Supported STYLE values: * "
+    "'unchanged' - leave unchanged (default) * 'upper' - schema snake_case "
+    "emits UpperCamel; * 'lower' - schema snake_case emits lowerCamel." },
+  { "", "cpp-std", "CPP_STD",
+    "Generate a C++ code using features of selected C++ standard. Supported "
+    "CPP_STD values: * 'c++0x' - generate code compatible with old compilers; "
+    "'c++11' - use C++11 code generator (default); * 'c++17' - use C++17 "
+    "features in generated code (experimental)." },
+  { "", "cpp-static-reflection", "",
+    "When using C++17, generate extra code to provide compile-time (static) "
+    "reflection of Flatbuffers types. Requires --cpp-std to be \"c++17\" or "
+    "higher." },
+  { "", "object-prefix", "PREFIX",
+    "Customize class prefix for C++ object-based API." },
+  { "", "object-suffix", "SUFFIX",
+    "Customize class suffix for C++ object-based API. Default Value is "
+    "\"T\"." },
+  { "", "go-namespace", "", "Generate the overriding namespace in Golang." },
+  { "", "go-import", "IMPORT",
+    "Generate the overriding import for flatbuffers in Golang (default is "
+    "\"github.com/google/flatbuffers/go\")." },
+  { "", "raw-binary", "",
+    "Allow binaries without file_identifier to be read. This may crash flatc "
+    "given a mismatched schema." },
+  { "", "size-prefixed", "", "Input binaries are size prefixed buffers." },
+  { "", "proto", "", "Input is a .proto, translate to .fbs." },
+  { "", "proto-namespace-suffix", "SUFFIX",
+    "Add this namespace to any flatbuffers generated from protobufs." },
+  { "", "oneof-union", "", "Translate .proto oneofs to flatbuffer unions." },
+  { "", "grpc", "", "Generate GRPC interfaces for the specified languages." },
+  { "", "schema", "", "Serialize schemas instead of JSON (use with -b)." },
+  { "", "bfbs-filenames", "PATH",
+    "Sets the root path where reflection filenames in reflection.fbs are "
+    "relative to. The 'root' is denoted with  `//`. E.g. if PATH=/a/b/c "
+    "then /a/d/e.fbs will be serialized as //../d/e.fbs. (PATH defaults to the "
+    "directory of the first provided schema file." },
+  { "", "bfbs-comments", "", "Add doc comments to the binary schema files." },
+  { "", "bfbs-builtins", "",
+    "Add builtin attributes to the binary schema files." },
+  { "", "bfbs-gen-embed", "",
+    "Generate code to embed the bfbs schema to the source." },
+  { "", "conform", "FILE",
+    "Specify a schema the following schemas should be an evolution of. Gives "
+    "errors if not." },
+  { "", "conform-includes", "PATH",
+    "Include path for the schema given with --conform PATH" },
+  { "", "filename-suffix", "SUFFIX",
+    "The suffix appended to the generated file names (Default is "
+    "'_generated')." },
+  { "", "filename-ext", "EXT",
+    "The extension appended to the generated file names. Default is "
+    "language-specific (e.g., '.h' for C++)" },
+  { "", "include-prefix", "PATH",
+    "Prefix this PATH to any generated include statements." },
+  { "", "keep-prefix", "",
+    "Keep original prefix of schema include statement." },
+  { "", "reflect-types", "",
+    "Add minimal type reflection to code generation." },
+  { "", "reflect-names", "", "Add minimal type/name reflection." },
+  { "", "root-type", "T", "Select or override the default root_type." },
+  { "", "require-explicit-ids", "",
+    "When parsing schemas, require explicit ids (id: x)." },
+  { "", "force-defaults", "",
+    "Emit default values in binary output from JSON" },
+  { "", "force-empty", "",
+    "When serializing from object API representation, force strings and "
+    "vectors to empty rather than null." },
+  { "", "force-empty-vectors", "",
+    "When serializing from object API representation, force vectors to empty "
+    "rather than null." },
+  { "", "flexbuffers", "",
+    "Used with \"binary\" and \"json\" options, it generates data using "
+    "schema-less FlexBuffers." },
+
+  { "", "--no-warnings", "", "Inhibit all warnings messages." },
+  { "", "cs-global-alias", "",
+    "Prepend \"global::\" to all user generated csharp classes and "
+    "structs." },
+};
+
+static void AppendTextWrappedString(std::stringstream &ss, std::string &text,
+                                    size_t max_col, size_t start_col) {
+  size_t max_line_length = max_col - start_col;
+
+  if (text.length() > max_line_length) {
+    size_t ideal_break_location = text.rfind(' ', max_line_length);
+    size_t length = std::min(max_line_length, ideal_break_location);
+    ss << text.substr(0, length) << "\n";
+    ss << std::string(start_col, ' ');
+    std::string rest_of_description = text.substr(
+        ((ideal_break_location < max_line_length || text.at(length) == ' ')
+             ? length + 1
+             : length));
+    AppendTextWrappedString(ss, rest_of_description, max_col, start_col);
+  } else {
+    ss << text;
+  }
+}
+
+static void AppendOption(std::stringstream &ss, const FlatCOption &option,
+                         size_t max_col, size_t min_col_for_description) {
+  size_t chars = 2;
+  ss << "  ";
+  if (!option.short_opt.empty()) {
+    chars += 2 + option.short_opt.length();
+    ss << "-" << option.short_opt;
+    if (!option.long_opt.empty()) {
+      chars++;
+      ss << ",";
+    }
+    ss << " ";
+  }
+  if (!option.long_opt.empty()) {
+    chars += 3 + option.long_opt.length();
+    ss << "--" << option.long_opt << " ";
+  }
+  if (!option.parameter.empty()) {
+    chars += 1 + option.parameter.length();
+    ss << option.parameter << " ";
+  }
+  size_t start_of_description = chars;
+  if (start_of_description > min_col_for_description) {
+    ss << "\n";
+    start_of_description = min_col_for_description;
+    ss << std::string(start_of_description, ' ');
+  } else {
+    while (start_of_description < min_col_for_description) {
+      ss << " ";
+      start_of_description++;
+    }
+  }
+  if (!option.description.empty()) {
+    std::string description = option.description;
+    AppendTextWrappedString(ss, description, max_col, start_of_description);
+  }
+  ss << "\n";
+}
+
 std::string FlatCompiler::GetUsageString(const char *program_name) const {
   std::stringstream ss;
   ss << "Usage: " << program_name << " [OPTION]... FILE... [-- FILE...]\n";
   for (size_t i = 0; i < params_.num_generators; ++i) {
     const Generator &g = params_.generators[i];
-
-    std::stringstream full_name;
-    full_name << std::setw(16) << std::left << g.generator_opt_long;
-    const char *name = g.generator_opt_short ? g.generator_opt_short : "  ";
-    const char *help = g.generator_help;
-
-    ss << "  " << full_name.str() << " " << name << "    " << help << ".\n";
+    AppendOption(ss, g.option, 80, 25);
   }
-  // clang-format off
 
+<<<<<<< HEAD
   // Output width
   // 12345678901234567890123456789012345678901234567890123456789012345678901234567890
   ss <<
@@ -194,6 +392,23 @@ std::string FlatCompiler::GetUsageString(const char *program_name) const {
     "example: " << program_name << " -c -b schema1.fbs schema2.fbs data.json\n";
   // 12345678901234567890123456789012345678901234567890123456789012345678901234567890
   // clang-format on
+=======
+  ss << "\n";
+  for (const FlatCOption &option : options) {
+    AppendOption(ss, option, 80, 25);
+  }
+  ss << "\n";
+
+  std::string files_description =
+      "FILEs may be schemas (must end in .fbs), binary schemas (must end in "
+      ".bfbs) or JSON files (conforming to preceding schema). FILEs after the "
+      "-- must be binary flatbuffer format files. Output files are named using "
+      "the base file name of the input, and written to the current directory "
+      "or the path given by -o. example: " +
+      std::string(program_name) + " -c -b schema1.fbs schema2.fbs data.json";
+  AppendTextWrappedString(ss, files_description, 80, 0);
+  ss << "\n";
+>>>>>>> 86c82e11 (Refactor flatc options)
   return ss.str();
 }
 
@@ -354,6 +569,9 @@ int FlatCompiler::Compile(int argc, const char **argv) {
       } else if (arg == "--version") {
         printf("flatc version %s\n", FLATC_VERSION());
         exit(0);
+      } else if (arg == "--help") {
+        printf("%s\n", GetUsageString("").c_str());
+        exit(0);
       } else if (arg == "--grpc") {
         grpc_enabled = true;
       } else if (arg == "--bfbs-comments") {
@@ -406,9 +624,8 @@ int FlatCompiler::Compile(int argc, const char **argv) {
         opts.cs_global_alias = true;
       } else {
         for (size_t i = 0; i < params_.num_generators; ++i) {
-          if (arg == params_.generators[i].generator_opt_long ||
-              (params_.generators[i].generator_opt_short &&
-               arg == params_.generators[i].generator_opt_short)) {
+          if (arg == "--" + params_.generators[i].option.long_opt ||
+              arg == "-" + params_.generators[i].option.short_opt) {
             generator_enabled[i] = true;
             any_generator = true;
             opts.lang_to_generate |= params_.generators[i].lang;
