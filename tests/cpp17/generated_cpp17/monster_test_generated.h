@@ -1740,6 +1740,7 @@ struct Monster FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
            verifier.VerifyVector(testarrayofsortedstruct()) &&
            VerifyOffset(verifier, VT_FLEX) &&
            verifier.VerifyVector(flex()) &&
+           flexbuffers::VerifyNestedFlexBuffer(flex(), verifier) &&
            VerifyOffset(verifier, VT_TEST5) &&
            verifier.VerifyVector(test5()) &&
            VerifyOffset(verifier, VT_VECTOR_OF_LONGS) &&

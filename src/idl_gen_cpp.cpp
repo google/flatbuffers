@@ -2006,6 +2006,9 @@ class CppGenerator : public BaseGenerator {
           // FIXME: file_identifier.
           code_ += "{{PRE}}verifier.VerifyNestedFlatBuffer<{{CPP_NAME}}>"
                    "({{NAME}}(), nullptr)\\";
+        } else if (field.flexbuffer) {
+          code_ += "{{PRE}}flexbuffers::VerifyNestedFlexBuffer"
+                   "({{NAME}}(), verifier)\\";        
         }
         break;
       }

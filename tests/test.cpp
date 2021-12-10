@@ -3022,6 +3022,10 @@ void FlexBuffersTest() {
   #endif
   // clang-format on
 
+  std::vector<bool> reuse_tracker;
+  TEST_EQ(flexbuffers::VerifyBuffer(slb.GetBuffer().data(), slb.GetBuffer().size(),
+                           &reuse_tracker), true);
+
   auto map = flexbuffers::GetRoot(slb.GetBuffer()).AsMap();
   TEST_EQ(map.size(), 7);
   auto vec = map["vec"].AsVector();
@@ -3079,6 +3083,8 @@ void FlexBuffersTest() {
   slb.Clear();
   auto jsontest = "{ a: [ 123, 456.0 ], b: \"hello\", c: true, d: false }";
   TEST_EQ(parser.ParseFlexBuffer(jsontest, nullptr, &slb), true);
+  TEST_EQ(flexbuffers::VerifyBuffer(slb.GetBuffer().data(), slb.GetBuffer().size(),
+                            &reuse_tracker), true);
   auto jroot = flexbuffers::GetRoot(slb.GetBuffer());
   auto jmap = jroot.AsMap();
   auto jvec = jmap["a"].AsVector();
@@ -3116,6 +3122,8 @@ void FlexBuffersFloatingPointTest() {
       "{ a: [1.0, nan, inf, infinity, -inf, +inf, -infinity, 8.0] }";
   TEST_EQ(parser.ParseFlexBuffer(jsontest, nullptr, &slb), true);
   auto jroot = flexbuffers::GetRoot(slb.GetBuffer());
+  TEST_EQ(flexbuffers::VerifyBuffer(slb.GetBuffer().data(), slb.GetBuffer().size(),
+                           nullptr), true);
   auto jmap = jroot.AsMap();
   auto jvec = jmap["a"].AsVector();
   TEST_EQ(8, jvec.size());
@@ -3159,6 +3167,9 @@ void FlexBuffersDeprecatedTest() {
   // same way, the fix lies on the reading side.
   slb.EndVector(start, true, false);
   slb.Finish();
+  // Verify because why not.
+  TEST_EQ(flexbuffers::VerifyBuffer(slb.GetBuffer().data(), slb.GetBuffer().size(),
+                           nullptr), true);
   // So now lets read this data back.
   // For existing data, since we have no way of knowing what the actual
   // bit-width of the size field of the string is, we are going to ignore this
