@@ -55,19 +55,6 @@ test_script:
   - "npm run compile"
   - "cd tests"
   - "TypeScriptTest.bat"
-  - rem "---------------- C# -----------------"
-  # Have to compile this here rather than in "build" above because AppVeyor only
-  # supports building one project??
-  - "cd FlatBuffers.Test"
-  - "dotnet new sln"
-  - "dotnet sln add FlatBuffers.Test.csproj"
-  - "nuget restore"
-  - "mkdir .tmp"
-  - "msbuild.exe /property:Configuration=Release;OutputPath=.tmp /verbosity:minimal FlatBuffers.Test.csproj"
-  - ".tmp\\FlatBuffers.Test.exe"
-  # Run tests with UNSAFE_BYTEBUFFER
-  - "msbuild.exe /property:Configuration=Release;UnsafeByteBuffer=true;OutputPath=.tmp /verbosity:minimal FlatBuffers.Test.csproj"
-  - ".tmp\\FlatBuffers.Test.exe"
 
 artifacts:
   - path: $(CONFIGURATION)\flatc.exe
