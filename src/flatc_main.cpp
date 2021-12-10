@@ -152,5 +152,5 @@ int main(int argc, const char *argv[]) {
   params.error_fn = Error;
 
   flatbuffers::FlatCompiler flatc(params);
-  return flatc.Compile(argc - 1, argv + 1);
+  return flatc.Compile(argc, argv);
 }

@@ -434,7 +434,9 @@ int FlatCompiler::Compile(int argc, const char **argv) {
   size_t binary_files_from = std::numeric_limits<size_t>::max();
   std::string conform_to_schema;
 
-  for (int argi = 0; argi < argc; argi++) {
+  const char *program_name = argv[0];
+
+  for (int argi = 1; argi < argc; argi++) {
     std::string arg = argv[argi];
     if (arg[0] == '-') {
       if (filenames.size() && arg[1] != '-')
@@ -570,7 +572,7 @@ int FlatCompiler::Compile(int argc, const char **argv) {
         printf("flatc version %s\n", FLATC_VERSION());
         exit(0);
       } else if (arg == "--help") {
-        printf("%s\n", GetUsageString("").c_str());
+        printf("%s\n", GetUsageString(program_name).c_str());
         exit(0);
       } else if (arg == "--grpc") {
         grpc_enabled = true;
