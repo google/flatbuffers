@@ -1696,11 +1696,20 @@ class Verifier FLATBUFFERS_FINAL_CLASS {
                  off <= static_cast<uint64_t>(p - buf_);
   }
 
+  bool AlreadyVerified(const uint8_t *p) {
+    return reuse_tracker_ && (*reuse_tracker_)[p - buf_];
+  }
+
+  void MarkVerified(const uint8_t *p) {
+    if (reuse_tracker_)
+      (*reuse_tracker_)[p - buf_] = true;
+  }
+
   bool VerifyVector(const uint8_t *p, Type elem_type, uint8_t size_byte_width,
                     uint8_t elem_byte_width) {
     // Any kind of nesting goes thru this function, so guard against that
     // here.
-    if (reuse_tracker_ && (*reuse_tracker_)[p - buf_])
+    if (AlreadyVerified(p))
       return true;
     if (!VerifyBeforePointer(p, size_byte_width))
       return false;
@@ -1724,11 +1733,10 @@ class Verifier FLATBUFFERS_FINAL_CLASS {
         for (size_t i = 0; i < num_elems; i++)
           if (!VerifyRef(v[i])) return false;
       } else {
-        assert(false);
+        FLATBUFFERS_ASSERT(false);
       }
     }
-    if (reuse_tracker_)
-      (*reuse_tracker_)[p - buf_] = true;
+    MarkVerified(p);
     return true;
   }
 
@@ -1749,11 +1757,8 @@ class Verifier FLATBUFFERS_FINAL_CLASS {
   }
 
   bool VerifyKey(const uint8_t* p) {
-    if (reuse_tracker_) {
-      if ((*reuse_tracker_)[p - buf_])
-        return true;
-      (*reuse_tracker_)[p - buf_] = true;
-    }
+    if (AlreadyVerified(p)) return true;
+    MarkVerified(p);
     while (p < buf_ + size_)
       if (*p++) return true;
     return false;
@@ -1823,7 +1828,6 @@ class Verifier FLATBUFFERS_FINAL_CLASS {
         return VerifyFromPointer(p, r.byte_width_ * len);
       }
       default:
-        assert(false);
         return false;
     }
   }
@@ -1845,6 +1849,13 @@ class Verifier FLATBUFFERS_FINAL_CLASS {
   std::vector<bool> *reuse_tracker_;
 };
 
+// Utility function that contructs the Verifier for you, see above for parameters.
+inline bool VerifyBuffer(const uint8_t *buf, size_t buf_len, std::vector<bool> *reuse_tracker) {
+  Verifier verifier(buf, buf_len, reuse_tracker);
+  return verifier.VerifyBuffer();
+}
+
+
 #ifdef FLATBUFFERS_H_
 // This is a verifier utility function that works together with the
 // FlatBuffers verifier, which should only be present if flatbuffer.h
@@ -1852,9 +1863,9 @@ class Verifier FLATBUFFERS_FINAL_CLASS {
 inline bool VerifyNestedFlexBuffer(const flatbuffers::Vector<uint8_t> *nv,
                                    flatbuffers::Verifier &verifier) {
   if (!nv) return true;
-  flexbuffers::Verifier fv(nv->data(), nv->size(),
-    &verifier.GetReuseVector());
-  return verifier.Check(fv.VerifyBuffer());
+  return verifier.Check(
+    flexbuffers::VerifyBuffer(nv->data(), nv->size(),
+                              &verifier.GetReuseVector()));
 }
 #endif
 

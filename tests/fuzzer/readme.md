@@ -10,10 +10,17 @@ For details about **libFuzzer** see: https://llvm.org/docs/LibFuzzer.html
 
 To build and run these tests LLVM compiler (with clang frontend) and CMake should be installed before.
 
-The fuzzer section include three tests:
+The fuzzer section include four tests:
 - `verifier_fuzzer` checks stability of deserialization engine for `Monster` schema;
 - `parser_fuzzer` checks stability of schema and json parser under various inputs;
 - `scalar_parser` focused on validation of the parser while parse numeric scalars in schema and/or json files;
+- `flexverifier_fuzzer` checks stability of deserialization engine for FlexBuffers only;
+
+## Build
+```sh
+cd tests/fuzzer
+CC=clang CXX=clang++ cmake . -DCMAKE_BUILD_TYPE=Debug -DUSE_ASAN=ON
+```
 
 ## Run tests with a specific locale
 The grammar of the Flatbuffers library is based on printable-ASCII characters.

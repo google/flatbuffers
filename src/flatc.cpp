@@ -512,8 +512,7 @@ int FlatCompiler::Compile(int argc, const char **argv) {
           auto data = reinterpret_cast<const uint8_t *>(contents.c_str());
           auto size = contents.size();
           std::vector<bool> reuse_tracker;
-          flexbuffers::Verifier fv(data, size, &reuse_tracker);
-          if (!fv.VerifyBuffer())
+          if (!flexbuffers::VerifyBuffer(data, size, &reuse_tracker))
             Error("flexbuffers file failed to verify: " + filename, false);
           parser->flex_root_ = flexbuffers::GetRoot(data, size);
         } else {
