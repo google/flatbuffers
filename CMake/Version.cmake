@@ -4,7 +4,7 @@ set(VERSION_PATCH 5)
 set(VERSION_COMMIT 0)
 
 find_program(GIT git)
-if(GIT)
+if(GIT AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/.git")
   execute_process(
       COMMAND ${GIT} describe --tags
       WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
