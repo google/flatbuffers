@@ -914,7 +914,7 @@ class RustGenerator : public BaseGenerator {
   }
 
   std::string GetFieldOffsetName(const FieldDef &field) {
-    return "VT_" + MakeUpper(Name(field));
+    return "VT_" + MakeUpper(field.name);
   }
 
   enum DefaultContext { kBuilder, kAccessor, kObject };
@@ -1794,7 +1794,7 @@ class RustGenerator : public BaseGenerator {
             code_ += "  #[inline]";
             code_ += "  #[allow(non_snake_case)]";
             code_ +=
-                "  pub fn {{FIELD_NAME}}_as_{{U_ELEMENT_NAME}}(&self) -> "
+                "  pub fn {{FIELD_TYPE_FIELD_NAME}}_as_{{U_ELEMENT_NAME}}(&self) -> "
                 "Option<{{U_ELEMENT_TABLE_TYPE}}<'a>> {";
             // If the user defined schemas name a field that clashes with a
             // language reserved word, flatc will try to escape the field name
@@ -1859,8 +1859,8 @@ class RustGenerator : public BaseGenerator {
       code_.SetValue("UNION_TYPE", WrapInNameSpace(union_def));
       code_ +=
           "\n     .visit_union::<{{UNION_TYPE}}, _>("
-          "&\"{{FIELD_NAME}}_type\", Self::{{OFFSET_NAME}}_TYPE, "
-          "&\"{{FIELD_NAME}}\", Self::{{OFFSET_NAME}}, {{IS_REQ}}, "
+          "&\"{{FIELD_TYPE_FIELD_NAME}}_type\", Self::{{OFFSET_NAME}}_TYPE, "
+          "&\"{{FIELD_TYPE_FIELD_NAME}}\", Self::{{OFFSET_NAME}}, {{IS_REQ}}, "
           "|key, v, pos| {";
       code_ += "        match key {";
       ForAllUnionVariantsBesidesNone(union_def, [&](const EnumVal &unused) {
@@ -1988,7 +1988,7 @@ class RustGenerator : public BaseGenerator {
                        "&\"InvalidFlatbuffer: Union discriminant"
                        " does not match value.\"");
 
-        code_ += "      match self.{{FIELD_NAME}}_type() {";
+        code_ += "      match self.{{FIELD_TYPE_FIELD_NAME}}_type() {";
         ForAllUnionVariantsBesidesNone(
             *field.value.type.enum_def, [&](const EnumVal &unused) {
               (void)unused;
