@@ -74,7 +74,7 @@ def flatc(
     cmd += [schema] if isinstance(schema, str) else schema
     if data:
         cmd += [data] if isinstance(data, str) else data
-    subprocess.run(cmd, cwd=cwd)
+    result = subprocess.run(cmd, cwd=cwd, check=True)
 
 
 # Glob a pattern relative to file path
