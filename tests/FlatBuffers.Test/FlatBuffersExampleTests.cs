@@ -116,13 +116,13 @@ namespace FlatBuffers.Test
             // Dump to output directory so we can inspect later, if needed
             #if ENABLE_SPAN_T
             var data = fbb.DataBuffer.ToSizedArray();
-            string filename = @".tmp/monsterdata_cstest" + (sizePrefix ? "_sp" : "") + ".mon";
+            string filename = @"monsterdata_cstest" + (sizePrefix ? "_sp" : "") + ".mon";
             File.WriteAllBytes(filename, data);
             #else
             using (var ms = fbb.DataBuffer.ToMemoryStream(fbb.DataBuffer.Position, fbb.Offset))
             {
                 var data = ms.ToArray();
-                string filename = @".tmp/monsterdata_cstest" + (sizePrefix ? "_sp" : "") + ".mon";
+                string filename = @"monsterdata_cstest" + (sizePrefix ? "_sp" : "") + ".mon";
                 File.WriteAllBytes(filename, data);
             }
             #endif
