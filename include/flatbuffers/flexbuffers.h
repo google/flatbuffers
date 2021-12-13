@@ -1562,9 +1562,9 @@ class Builder FLATBUFFERS_FINAL_CLASS {
         }
       }
     }
-    // If you get this assert, your fixed types are not one of:
+    // If you get this assert, your typed types are not one of:
     // Int / UInt / Float / Key.
-    FLATBUFFERS_ASSERT(!fixed || IsTypedVectorElementType(vector_type));
+    FLATBUFFERS_ASSERT(!typed || IsTypedVectorElementType(vector_type));
     auto byte_width = Align(bit_width);
     // Write vector. First the keys width/offset if available, and size.
     if (keys) {
@@ -1619,9 +1619,10 @@ class Builder FLATBUFFERS_FINAL_CLASS {
     explicit StringOffsetCompare(const std::vector<uint8_t> &buf)
         : buf_(&buf) {}
     bool operator()(const StringOffset &a, const StringOffset &b) const {
-      auto stra = reinterpret_cast<const char *>(buf_->data() + a.first);
-      auto strb = reinterpret_cast<const char *>(buf_->data() + b.first);
-      return strncmp(stra, strb, (std::min)(a.second, b.second) + 1) < 0;
+      auto stra = buf_->data() + a.first;
+      auto strb = buf_->data() + b.first;
+      auto cr = memcmp(stra, strb, (std::min)(a.second, b.second) + 1);
+      return cr < 0 || (cr == 0 && a.second < b.second);
     }
     const std::vector<uint8_t> *buf_;
   };
@@ -1696,20 +1697,18 @@ class Verifier FLATBUFFERS_FINAL_CLASS {
                  off <= static_cast<uint64_t>(p - buf_);
   }
 
-  bool AlreadyVerified(const uint8_t *p) {
-    return reuse_tracker_ && (*reuse_tracker_)[p - buf_];
-  }
-
-  void MarkVerified(const uint8_t *p) {
-    if (reuse_tracker_)
-      (*reuse_tracker_)[p - buf_] = true;
+  bool CheckVerified(const uint8_t *p) {
+    if (!reuse_tracker_) return false;
+    if ((*reuse_tracker_)[p - buf_]) return true;
+    (*reuse_tracker_)[p - buf_] = true;
+    return false;
   }
 
   bool VerifyVector(const uint8_t *p, Type elem_type, uint8_t size_byte_width,
                     uint8_t elem_byte_width) {
     // Any kind of nesting goes thru this function, so guard against that
     // here.
-    if (AlreadyVerified(p))
+    if (CheckVerified(p))
       return true;
     if (!VerifyBeforePointer(p, size_byte_width))
       return false;
@@ -1721,22 +1720,19 @@ class Verifier FLATBUFFERS_FINAL_CLASS {
     auto byte_size = num_elems * elem_byte_width;
     if (!VerifyFromPointer(p, byte_size))
       return false;
-    if (!IsInline(elem_type)) {
-      if (elem_type == FBT_NULL) {
-        // Verify type bytes after the vector.
-        if (!VerifyFromPointer(p + byte_size, num_elems)) return false;
-        auto v = Vector(p, size_byte_width);
-        for (size_t i = 0; i < num_elems; i++)
-          if (!VerifyRef(v[i])) return false;
-      } else if (elem_type == FBT_KEY) {
-        auto v = TypedVector(p, elem_byte_width, FBT_KEY);
-        for (size_t i = 0; i < num_elems; i++)
-          if (!VerifyRef(v[i])) return false;
-      } else {
-        FLATBUFFERS_ASSERT(false);
-      }
+    if (elem_type == FBT_NULL) {
+      // Verify type bytes after the vector.
+      if (!VerifyFromPointer(p + byte_size, num_elems)) return false;
+      auto v = Vector(p, size_byte_width);
+      for (size_t i = 0; i < num_elems; i++)
+        if (!VerifyRef(v[i])) return false;
+    } else if (elem_type == FBT_KEY) {
+      auto v = TypedVector(p, elem_byte_width, FBT_KEY);
+      for (size_t i = 0; i < num_elems; i++)
+        if (!VerifyRef(v[i])) return false;
+    } else {
+      FLATBUFFERS_ASSERT(IsInline(elem_type));
     }
-    MarkVerified(p);
     return true;
   }
 
@@ -1757,8 +1753,8 @@ class Verifier FLATBUFFERS_FINAL_CLASS {
   }
 
   bool VerifyKey(const uint8_t* p) {
-    if (AlreadyVerified(p)) return true;
-    MarkVerified(p);
+    if (CheckVerified(p))
+      return true;
     while (p < buf_ + size_)
       if (*p++) return true;
     return false;
