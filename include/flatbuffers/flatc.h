@@ -31,6 +31,13 @@ namespace flatbuffers {
 extern void LogCompilerWarn(const std::string &warn);
 extern void LogCompilerError(const std::string &err);
 
+struct FlatCOption {
+  std::string short_opt;
+  std::string long_opt;
+  std::string parameter;
+  std::string description;
+};
+
 class FlatCompiler {
  public:
   // Output generator for the various programming languages and formats we
@@ -44,13 +51,11 @@ class FlatCompiler {
                                       const std::string &file_name);
 
     GenerateFn generate;
-    const char *generator_opt_short;
-    const char *generator_opt_long;
     const char *lang_name;
     bool schema_only;
     GenerateFn generateGRPC;
     flatbuffers::IDLOptions::Language lang;
-    const char *generator_help;
+    FlatCOption option;
     MakeRuleFn make_rule;
     BfbsGenerator *bfbs_generator;
   };
