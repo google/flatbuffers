@@ -239,6 +239,10 @@ struct MonsterT : public flatbuffers::NativeTable {
   std::vector<flatbuffers::unique_ptr<MyGame::Sample::WeaponT>> weapons{};
   MyGame::Sample::EquipmentUnion equipped{};
   std::vector<MyGame::Sample::Vec3> path{};
+  MonsterT() = default;
+  MonsterT(const MonsterT &o);
+  MonsterT(MonsterT&&) FLATBUFFERS_NOEXCEPT = default;
+  MonsterT &operator=(MonsterT o) FLATBUFFERS_NOEXCEPT;
 };
 
 struct Monster FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
@@ -554,6 +558,32 @@ inline bool operator!=(const MonsterT &lhs, const MonsterT &rhs) {
     return !(lhs == rhs);
 }
 
+
+inline MonsterT::MonsterT(const MonsterT &o)
+      : pos((o.pos) ? new MyGame::Sample::Vec3(*o.pos) : nullptr),
+        mana(o.mana),
+        hp(o.hp),
+        name(o.name),
+        inventory(o.inventory),
+        color(o.color),
+        equipped(o.equipped),
+        path(o.path) {
+  weapons.reserve(o.weapons.size());
+  for (const auto &v : o.weapons) { weapons.emplace_back((v) ? new MyGame::Sample::WeaponT(*v) : nullptr); }
+}
+
+inline MonsterT &MonsterT::operator=(MonsterT o) FLATBUFFERS_NOEXCEPT {
+  std::swap(pos, o.pos);
+  std::swap(mana, o.mana);
+  std::swap(hp, o.hp);
+  std::swap(name, o.name);
+  std::swap(inventory, o.inventory);
+  std::swap(color, o.color);
+  std::swap(weapons, o.weapons);
+  std::swap(equipped, o.equipped);
+  std::swap(path, o.path);
+  return *this;
+}
 
 inline MonsterT *Monster::UnPack(const flatbuffers::resolver_function_t *_resolver) const {
   auto _o = std::unique_ptr<MonsterT>(new MonsterT());
