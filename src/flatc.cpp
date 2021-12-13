@@ -198,11 +198,13 @@ const static FlatCOption options[] = {
   { "", "flexbuffers", "",
     "Used with \"binary\" and \"json\" options, it generates data using "
     "schema-less FlexBuffers." },
-
   { "", "no-warnings", "", "Inhibit all warnings messages." },
   { "", "cs-global-alias", "",
     "Prepend \"global::\" to all user generated csharp classes and "
     "structs." },
+  { "", "cs-gen-json-serializer", "",
+    "Allows (de)serialization of JSON text in the Object API. (requires "
+    "--gen-object-api)." },
 };
 
 static void AppendTextWrappedString(std::stringstream &ss, std::string &text,
@@ -271,128 +273,6 @@ std::string FlatCompiler::GetUsageString(const char *program_name) const {
     AppendOption(ss, g.option, 80, 25);
   }
 
-<<<<<<< HEAD
-  // Output width
-  // 12345678901234567890123456789012345678901234567890123456789012345678901234567890
-  ss <<
-    "  -o PATH                Prefix PATH to all generated files.\n"
-    "  -I PATH                Search for includes in the specified path.\n"
-    "  -M                     Print make rules for generated files.\n"
-    "  --version              Print the version number of flatc and exit.\n"
-    "  --strict-json          Strict JSON: field names must be / will be quoted,\n"
-    "                         no trailing commas in tables/vectors.\n"
-    "  --allow-non-utf8       Pass non-UTF-8 input through parser and emit nonstandard\n"
-    "                         \\x escapes in JSON. (Default is to raise parse error on\n"
-    "                         non-UTF-8 input.)\n"
-    "  --natural-utf8         Output strings with UTF-8 as human-readable strings.\n"
-    "                         By default, UTF-8 characters are printed as \\uXXXX escapes.\n"
-    "  --defaults-json        Output fields whose value is the default when\n"
-    "                         writing JSON\n"
-    "  --unknown-json         Allow fields in JSON that are not defined in the\n"
-    "                         schema. These fields will be discared when generating\n"
-    "                         binaries.\n"
-    "  --no-prefix            Don\'t prefix enum values with the enum type in C++.\n"
-    "  --scoped-enums         Use C++11 style scoped and strongly typed enums.\n"
-    "                         also implies --no-prefix.\n"
-    "  --gen-includes         (deprecated), this is the default behavior.\n"
-    "                         If the original behavior is required (no include\n"
-    "                         statements) use --no-includes.\n"
-    "  --no-includes          Don\'t generate include statements for included\n"
-    "                         schemas the generated file depends on (C++ / Python).\n"
-    "  --gen-mutable          Generate accessors that can mutate buffers in-place.\n"
-    "  --gen-onefile          Generate single output file for C#, Go, and Python.\n"
-    "  --gen-name-strings     Generate type name functions for C++ and Rust.\n"
-    "  --gen-object-api       Generate an additional object-based API.\n"
-    "  --gen-compare          Generate operator== for object-based API types.\n"
-    "  --gen-nullable         Add Clang _Nullable for C++ pointer. or @Nullable for Java\n"
-    "  --java-checkerframe    work Add @Pure for Java.\n"
-    "  --gen-generated        Add @Generated annotation for Java\n"
-    "  --gen-jvmstatic        Add @JvmStatic annotation for Kotlin methods\n"
-    "                         in companion object for interop from Java to Kotlin.\n"
-    "  --gen-all              Generate not just code for the current schema files,\n"
-    "                         but for all files it includes as well.\n"
-    "                         If the language uses a single file for output (by default\n"
-    "                         the case for C++ and JS), all code will end up in this one\n"
-    "                         file.\n"
-    "  --gen-json-emit        Generates encoding code which emits Flatbuffers into JSON\n"
-    "  --cpp-include          Adds an #include in generated file.\n"
-    "  --cpp-ptr-type T       Set object API pointer type (default std::unique_ptr).\n"
-    "  --cpp-str-type T       Set object API string type (default std::string).\n"
-    "                         T::c_str(), T::length() and T::empty() must be supported.\n"
-    "                         The custom type also needs to be constructible from std::string\n"
-    "                         (see the --cpp-str-flex-ctor option to change this behavior).\n"
-    "  --cpp-str-flex-ctor    Don't construct custom string types by passing std::string\n"
-    "                         from Flatbuffers, but (char* + length).\n"
-    "  --cpp-field-case-style STYLE Generate C++ fields using selected case style.\n"
-    "                         Supported STYLE values:\n"
-    "                          * 'unchanged' - leave unchanged (default);\n"
-    "                          * 'upper' - schema snake_case emits UpperCamel;\n"
-    "                          * 'lower' - schema snake_case emits lowerCamel.\n"
-    "  --cpp-std CPP_STD      Generate a C++ code using features of selected C++ standard.\n"
-    "                         Supported CPP_STD values:\n"
-    "                          * 'c++0x' - generate code compatible with old compilers;\n"
-    "                          * 'c++11' - use C++11 code generator (default);\n"
-    "                          * 'c++17' - use C++17 features in generated code (experimental).\n"
-    "  --cpp-static-reflection When using C++17, generate extra code to provide compile-time\n"
-    "                          (static) reflection of Flatbuffers types.  Requires --cpp-std\n"
-    "                          to be \"c++17\" or higher.\n"
-    "  --object-prefix        Customise class prefix for C++ object-based API.\n"
-    "  --object-suffix        Customise class suffix for C++ object-based API.\n"
-    "                         Default value is \"T\".\n"
-    "  --go-namespace         Generate the overriding namespace in Golang.\n"
-    "  --go-import            Generate the overriding import for flatbuffers in Golang\n"
-    "                         (default is \"github.com/google/flatbuffers/go\").\n"
-    "  --raw-binary           Allow binaries without file_identifier to be read.\n"
-    "                         This may crash flatc given a mismatched schema.\n"
-    "  --size-prefixed        Input binaries are size prefixed buffers.\n"
-    "  --proto                Input is a .proto, translate to .fbs.\n"
-    "  --proto-namespace-suffix Add this namespace to any flatbuffers generated\n"
-    "    SUFFIX                 from protobufs.\n"
-    "  --oneof-union          Translate .proto oneofs to flatbuffer unions.\n"
-    "  --grpc                 Generate GRPC interfaces for the specified languages.\n"
-    "  --schema               Serialize schemas instead of JSON (use with -b).\n"
-    "  --bfbs-filenames PATH  Sets the root path where reflection filenames in \n"
-    "                         reflection.fbs are relative to. The 'root' is denoted with \n"
-    "                         `//`. E.g. if PATH=/a/b/c \n then /a/d/e.fbs will be serialized\n"
-    "                         as //../d/e.fbs. (PATH defaults to the directory of the first\n"
-    "                         provided schema file.)\n"
-    "  --bfbs-comments        Add doc comments to the binary schema files.\n"
-    "  --bfbs-builtins        Add builtin attributes to the binary schema files.\n"
-    "  --bfbs-gen-embed       Generate code to embed the bfbs schema to the source.\n"
-    "  --conform FILE         Specify a schema the following schemas should be\n"
-    "                         an evolution of. Gives errors if not.\n"
-    "  --conform-includes     Include path for the schema given with --conform PATH\n"
-    "  --filename-suffix      The suffix appended to the generated file names.\n"
-    "                         Default is '_generated'.\n"
-    "  --filename-ext         The extension appended to the generated file names.\n"
-    "                         Default is language-specific (e.g., '.h' for C++)\n"
-    "  --include-prefix       Prefix this path to any generated include statements.\n"
-    "    PATH\n"
-    "  --keep-prefix          Keep original prefix of schema include statement.\n"
-    "  --reflect-types        Add minimal type reflection to code generation.\n"
-    "  --reflect-names        Add minimal type/name reflection.\n"
-    "  --root-type T          Select or override the default root_type\n"
-    "  --require-explicit-ids When parsing schemas, require explicit ids (id: x).\n"
-    "  --force-defaults       Emit default values in binary output from JSON\n"
-    "  --force-empty          When serializing from object API representation,\n"
-    "                         force strings and vectors to empty rather than null.\n"
-    "  --force-empty-vectors  When serializing from object API representation,\n"
-    "                         force vectors to empty rather than null.\n"
-    "  --flexbuffers          Used with \"binary\" and \"json\" options, it generates\n"
-    "                         data using schema-less FlexBuffers.\n"
-    "  --no-warnings          Inhibit all warning messages.\n"
-    "  --cs-global-alias      Prepend \"global::\" to all user generated csharp classes and structs.\n"
-    "  --cs-gen-json-serializer Allows (de)serialization of JSON text in the Object\n"
-    "                           API. (requires --gen-object-api).\n"
-    "FILEs may be schemas (must end in .fbs), binary schemas (must end in .bfbs),\n"
-    "or JSON files (conforming to preceding schema). FILEs after the -- must be\n"
-    "binary flatbuffer format files.\n"
-    "Output files are named using the base file name of the input,\n"
-    "and written to the current directory or the path given by -o.\n"
-    "example: " << program_name << " -c -b schema1.fbs schema2.fbs data.json\n";
-  // 12345678901234567890123456789012345678901234567890123456789012345678901234567890
-  // clang-format on
-=======
   ss << "\n";
   for (const FlatCOption &option : options) {
     AppendOption(ss, option, 80, 25);
@@ -408,7 +288,6 @@ std::string FlatCompiler::GetUsageString(const char *program_name) const {
       std::string(program_name) + " -c -b schema1.fbs schema2.fbs data.json";
   AppendTextWrappedString(ss, files_description, 80, 0);
   ss << "\n";
->>>>>>> 86c82e11 (Refactor flatc options)
   return ss.str();
 }
 
