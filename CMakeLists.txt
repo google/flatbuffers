@@ -59,6 +59,9 @@ option(FLATBUFFERS_ENABLE_PCH
 option(FLATBUFFERS_SKIP_MONSTER_EXTRA 
       "Skip generating monster_extra.fbs that contains non-supported numerical\"
       types." OFF)
+option(FLATBUFFERS_OSX_BUILD_UNIVERSAL
+      "Enable the build for multiple architectures on OS X (arm64, x86_64)."
+      ON)
 
 if(NOT FLATBUFFERS_BUILD_FLATC AND FLATBUFFERS_BUILD_TESTS)
     message(WARNING
@@ -282,8 +285,11 @@ elseif(CMAKE_COMPILER_IS_GNUCXX)
 
 elseif(${CMAKE_CXX_COMPILER_ID} MATCHES "Clang")
   if(APPLE)
-    set(CMAKE_OSX_ARCHITECTURES "arm64;x86_64")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+
+    if(FLATBUFFERS_OSX_BUILD_UNIVERSAL)
+      set(CMAKE_OSX_ARCHITECTURES "arm64;x86_64")
+    endif()
   else()
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x")
   endif()
