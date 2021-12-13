@@ -184,6 +184,8 @@ std::string FlatCompiler::GetUsageString(const char *program_name) const {
     "                         data using schema-less FlexBuffers.\n"
     "  --no-warnings          Inhibit all warning messages.\n"
     "  --cs-global-alias      Prepend \"global::\" to all user generated csharp classes and structs.\n"
+    "  --cs-gen-json-serializer Allows (de)serialization of JSON text in the Object\n"
+    "                           API. (requires --gen-object-api).\n"
     "FILEs may be schemas (must end in .fbs), binary schemas (must end in .bfbs),\n"
     "or JSON files (conforming to preceding schema). FILEs after the -- must be\n"
     "binary flatbuffer format files.\n"
@@ -433,6 +435,12 @@ int FlatCompiler::Compile(int argc, const char **argv) {
       Error("cannot generate code directly from .proto files", true);
   } else if (!any_generator && conform_to_schema.empty()) {
     Error("no options: specify at least one generator.", true);
+  }
+
+  if (opts.cs_gen_json_serializer && !opts.generate_object_based_api) {
+    Error(
+        "--cs-gen-json-serializer requires --gen-object-api to be set as "
+        "well.");
   }
 
   flatbuffers::Parser conform_parser;
