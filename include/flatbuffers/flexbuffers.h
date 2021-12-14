@@ -1645,6 +1645,7 @@ class Verifier FLATBUFFERS_FINAL_CLASS {
            // comes at the cost of using additional memory the same size of
            // the buffer being verified, so it is by default off.
            std::vector<uint8_t> *reuse_tracker = nullptr,
+           bool _check_alignment = true,
            size_t max_depth = 64)
       : buf_(buf),
         size_(buf_len),
@@ -1652,6 +1653,7 @@ class Verifier FLATBUFFERS_FINAL_CLASS {
         max_depth_(max_depth),
         num_vectors_(0),
         max_vectors_(buf_len),
+        check_alignment_(_check_alignment),
         reuse_tracker_(reuse_tracker) {
     FLATBUFFERS_ASSERT(size_ < FLATBUFFERS_MAX_BUFFER_SIZE);
     if (reuse_tracker_) {
@@ -1699,6 +1701,11 @@ class Verifier FLATBUFFERS_FINAL_CLASS {
   bool VerifyOffset(uint64_t off, const uint8_t *p) {
     return Check(off <= static_cast<uint64_t>(size_)) &&
                  off <= static_cast<uint64_t>(p - buf_);
+  }
+
+  bool VerifyAlignment(const uint8_t *p, size_t size) const {
+    auto o = static_cast<size_t>(p - buf_);
+    return Check((o & (size - 1)) == 0 || !check_alignment_);
   }
 
   // Macro, since we want to escape from parent function & use lazy args.
@@ -1795,6 +1802,8 @@ class Verifier FLATBUFFERS_FINAL_CLASS {
     if (!VerifyOffset(off, r.data_))
       return false;
     auto p = r.Indirect();
+    if (!VerifyAlignment(p, r.byte_width_))
+      return false;
     switch (r.type_) {
       case FBT_INDIRECT_INT:
       case FBT_INDIRECT_UINT:
@@ -1862,6 +1871,7 @@ class Verifier FLATBUFFERS_FINAL_CLASS {
   const size_t max_depth_;
   size_t num_vectors_;
   const size_t max_vectors_;
+  bool check_alignment_;
   std::vector<uint8_t> *reuse_tracker_;
 };
 
