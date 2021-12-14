@@ -261,8 +261,8 @@ struct KeyValue FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   bool KeyCompareLessThan(const KeyValue *o) const {
     return *key() < *o->key();
   }
-  int KeyCompareWithValue(const char *val) const {
-    return strcmp(key()->c_str(), val);
+  int KeyCompareWithValue(const char *_key) const {
+    return strcmp(key()->c_str(), _key);
   }
   const flatbuffers::String *value() const {
     return GetPointer<const flatbuffers::String *>(VT_VALUE);
@@ -338,8 +338,8 @@ struct EnumVal FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   bool KeyCompareLessThan(const EnumVal *o) const {
     return value() < o->value();
   }
-  int KeyCompareWithValue(int64_t val) const {
-    return static_cast<int>(value() > val) - static_cast<int>(value() < val);
+  int KeyCompareWithValue(int64_t _value) const {
+    return static_cast<int>(value() > _value) - static_cast<int>(value() < _value);
   }
   const reflection::Type *union_type() const {
     return GetPointer<const reflection::Type *>(VT_UNION_TYPE);
@@ -436,8 +436,8 @@ struct Enum FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   bool KeyCompareLessThan(const Enum *o) const {
     return *name() < *o->name();
   }
-  int KeyCompareWithValue(const char *val) const {
-    return strcmp(name()->c_str(), val);
+  int KeyCompareWithValue(const char *_name) const {
+    return strcmp(name()->c_str(), _name);
   }
   const flatbuffers::Vector<flatbuffers::Offset<reflection::EnumVal>> *values() const {
     return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<reflection::EnumVal>> *>(VT_VALUES);
@@ -587,8 +587,8 @@ struct Field FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   bool KeyCompareLessThan(const Field *o) const {
     return *name() < *o->name();
   }
-  int KeyCompareWithValue(const char *val) const {
-    return strcmp(name()->c_str(), val);
+  int KeyCompareWithValue(const char *_name) const {
+    return strcmp(name()->c_str(), _name);
   }
   const reflection::Type *type() const {
     return GetPointer<const reflection::Type *>(VT_TYPE);
@@ -793,8 +793,8 @@ struct Object FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   bool KeyCompareLessThan(const Object *o) const {
     return *name() < *o->name();
   }
-  int KeyCompareWithValue(const char *val) const {
-    return strcmp(name()->c_str(), val);
+  int KeyCompareWithValue(const char *_name) const {
+    return strcmp(name()->c_str(), _name);
   }
   const flatbuffers::Vector<flatbuffers::Offset<reflection::Field>> *fields() const {
     return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<reflection::Field>> *>(VT_FIELDS);
@@ -945,8 +945,8 @@ struct RPCCall FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   bool KeyCompareLessThan(const RPCCall *o) const {
     return *name() < *o->name();
   }
-  int KeyCompareWithValue(const char *val) const {
-    return strcmp(name()->c_str(), val);
+  int KeyCompareWithValue(const char *_name) const {
+    return strcmp(name()->c_str(), _name);
   }
   const reflection::Object *request() const {
     return GetPointer<const reflection::Object *>(VT_REQUEST);
@@ -1061,8 +1061,8 @@ struct Service FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   bool KeyCompareLessThan(const Service *o) const {
     return *name() < *o->name();
   }
-  int KeyCompareWithValue(const char *val) const {
-    return strcmp(name()->c_str(), val);
+  int KeyCompareWithValue(const char *_name) const {
+    return strcmp(name()->c_str(), _name);
   }
   const flatbuffers::Vector<flatbuffers::Offset<reflection::RPCCall>> *calls() const {
     return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<reflection::RPCCall>> *>(VT_CALLS);
@@ -1180,8 +1180,8 @@ struct SchemaFile FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   bool KeyCompareLessThan(const SchemaFile *o) const {
     return *filename() < *o->filename();
   }
-  int KeyCompareWithValue(const char *val) const {
-    return strcmp(filename()->c_str(), val);
+  int KeyCompareWithValue(const char *_filename) const {
+    return strcmp(filename()->c_str(), _filename);
   }
   /// Names of included files, relative to project root.
   const flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>> *included_filenames() const {
