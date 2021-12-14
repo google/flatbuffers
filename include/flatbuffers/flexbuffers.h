@@ -1644,8 +1644,15 @@ class Verifier FLATBUFFERS_FINAL_CLASS {
            // of larger buffers with many shared keys/strings, but
            // comes at the cost of using additional memory the same size of
            // the buffer being verified, so it is by default off.
-           std::vector<uint8_t> *reuse_tracker = nullptr)
-      : buf_(buf), size_(buf_len), reuse_tracker_(reuse_tracker) {
+           std::vector<uint8_t> *reuse_tracker = nullptr,
+           size_t max_depth = 64)
+      : buf_(buf),
+        size_(buf_len),
+        depth_(0),
+        max_depth_(max_depth),
+        num_vectors_(0),
+        max_vectors_(buf_len),
+        reuse_tracker_(reuse_tracker) {
     FLATBUFFERS_ASSERT(size_ < FLATBUFFERS_MAX_BUFFER_SIZE);
     if (reuse_tracker_) {
       reuse_tracker_->clear();
@@ -1707,7 +1714,11 @@ class Verifier FLATBUFFERS_FINAL_CLASS {
 
   bool VerifyVector(Reference r, const uint8_t *p, Type elem_type) {
     // Any kind of nesting goes thru this function, so guard against that
-    // here.
+    // here, both with simple nesting checks, and the reuse tracker if on.
+    depth_++;
+    num_vectors_++;
+    if (!Check(depth_ <= max_depth_ && num_vectors_ <= max_vectors_))
+      return false;
     auto size_byte_width = r.byte_width_;
     FLEX_CHECK_VERIFIED(p, PackedType(Builder::WidthB(size_byte_width), r.type_));
     if (!VerifyBeforePointer(p, size_byte_width))
@@ -1735,6 +1746,7 @@ class Verifier FLATBUFFERS_FINAL_CLASS {
     } else {
       FLATBUFFERS_ASSERT(IsInline(elem_type));
     }
+    depth_--;
     return true;
   }
 
@@ -1846,6 +1858,10 @@ class Verifier FLATBUFFERS_FINAL_CLASS {
  private:
   const uint8_t *buf_;
   size_t size_;
+  size_t depth_;
+  const size_t max_depth_;
+  size_t num_vectors_;
+  const size_t max_vectors_;
   std::vector<uint8_t> *reuse_tracker_;
 };
 
