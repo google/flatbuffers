@@ -233,6 +233,8 @@ void AccessFlatBufferTest(const uint8_t *flatbuf, size_t length,
                           bool pooled = true) {
   // First, verify the buffers integrity (optional)
   flatbuffers::Verifier verifier(flatbuf, length);
+  std::vector<uint8_t> flex_reuse_tracker;
+  verifier.SetFlexReuseTracker(&flex_reuse_tracker);
   TEST_EQ(VerifyMonsterBuffer(verifier), true);
 
   // clang-format off
@@ -3022,7 +3024,7 @@ void FlexBuffersTest() {
   #endif
   // clang-format on
 
-  std::vector<bool> reuse_tracker;
+  std::vector<uint8_t> reuse_tracker;
   TEST_EQ(flexbuffers::VerifyBuffer(slb.GetBuffer().data(), slb.GetBuffer().size(),
                            &reuse_tracker), true);
 

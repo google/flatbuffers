@@ -618,7 +618,7 @@ int FlatCompiler::Compile(int argc, const char **argv) {
         if (opts.lang_to_generate == IDLOptions::kJson) {
           auto data = reinterpret_cast<const uint8_t *>(contents.c_str());
           auto size = contents.size();
-          std::vector<bool> reuse_tracker;
+          std::vector<uint8_t> reuse_tracker;
           if (!flexbuffers::VerifyBuffer(data, size, &reuse_tracker))
             Error("flexbuffers file failed to verify: " + filename, false);
           parser->flex_root_ = flexbuffers::GetRoot(data, size);
