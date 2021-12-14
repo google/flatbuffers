@@ -8,7 +8,9 @@
 #include "flatbuffers/flexbuffers.h"
 
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
-  std::vector<bool> reuse_tracker;
+  std::vector<uint8_t> reuse_tracker;
+  // Check both with and without reuse tracker paths.
   flexbuffers::VerifyBuffer(data, size, &reuse_tracker);
+  flexbuffers::VerifyBuffer(data, size, nullptr);
   return 0;
 }
