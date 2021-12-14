@@ -694,8 +694,8 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) Ability FLATBUFFERS_FINAL_CLASS {
   bool KeyCompareLessThan(const Ability *o) const {
     return id() < o->id();
   }
-  int KeyCompareWithValue(uint32_t val) const {
-    return static_cast<int>(id() > val) - static_cast<int>(id() < val);
+  int KeyCompareWithValue(uint32_t _id) const {
+    return static_cast<int>(id() > _id) - static_cast<int>(id() < _id);
   }
   uint32_t distance() const {
     return flatbuffers::EndianScalar(distance_);
@@ -1017,8 +1017,8 @@ struct Stat FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   bool KeyCompareLessThan(const Stat *o) const {
     return count() < o->count();
   }
-  int KeyCompareWithValue(uint16_t val) const {
-    return static_cast<int>(count() > val) - static_cast<int>(count() < val);
+  int KeyCompareWithValue(uint16_t _count) const {
+    return static_cast<int>(count() > _count) - static_cast<int>(count() < _count);
   }
   template<size_t Index>
   auto get_field() const {
@@ -1130,8 +1130,8 @@ struct Referrable FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   bool KeyCompareLessThan(const Referrable *o) const {
     return id() < o->id();
   }
-  int KeyCompareWithValue(uint64_t val) const {
-    return static_cast<int>(id() > val) - static_cast<int>(id() < val);
+  int KeyCompareWithValue(uint64_t _id) const {
+    return static_cast<int>(id() > _id) - static_cast<int>(id() < _id);
   }
   template<size_t Index>
   auto get_field() const {
@@ -1327,8 +1327,8 @@ struct Monster FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   bool KeyCompareLessThan(const Monster *o) const {
     return *name() < *o->name();
   }
-  int KeyCompareWithValue(const char *val) const {
-    return strcmp(name()->c_str(), val);
+  int KeyCompareWithValue(const char *_name) const {
+    return strcmp(name()->c_str(), _name);
   }
   const flatbuffers::Vector<uint8_t> *inventory() const {
     return GetPointer<const flatbuffers::Vector<uint8_t> *>(VT_INVENTORY);
