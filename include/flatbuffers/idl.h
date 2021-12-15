@@ -595,6 +595,7 @@ struct IDLOptions {
   bool cs_global_alias;
   bool json_nested_flatbuffers;
   bool json_nested_flexbuffers;
+  bool json_nested_legacy_flatbuffers;
 
   // Possible options for the more general generator below.
   enum Language {
@@ -684,6 +685,7 @@ struct IDLOptions {
         cs_global_alias(false),
         json_nested_flatbuffers(true),
         json_nested_flexbuffers(true),
+        json_nested_legacy_flatbuffers(false),
         mini_reflect(IDLOptions::kNone),
         require_explicit_ids(false),
         lang_to_generate(0),

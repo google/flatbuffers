@@ -1671,7 +1671,12 @@ CheckedError Parser::ParseNestedFlatbuffer(Value &val, FieldDef *field,
                                            size_t fieldn,
                                            const StructDef *parent_struct_def) {
   if (token_ == '[') {  // backwards compat for 'legacy' ubyte buffers
-    ECHECK(ParseAnyValue(val, field, fieldn, parent_struct_def, 0));
+    if (opts.json_nested_legacy_flatbuffers) {
+      ECHECK(ParseAnyValue(val, field, fieldn, parent_struct_def, 0));
+    } else {
+      return Error("cannot parse nested_flatbuffer as bytes unless"
+                   " --json-nested-bytes is set");
+    }
   } else {
     auto cursor_at_value_begin = cursor_;
     ECHECK(SkipAnyJsonValue());
