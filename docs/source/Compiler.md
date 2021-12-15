@@ -220,5 +220,9 @@ Additional options:
 
 -   `--cs-global-alias` : Prepend `global::` to all user generated csharp classes and structs.
 
+-   `--json-nested-bytes` : Allow a nested_flatbuffer field to be parsed as a
+    vector of bytes in JSON, which is unsafe unless checked by a verifier
+    afterwards.
+
 NOTE: short-form options for generators are deprecated, use the long form
 whenever possible.
