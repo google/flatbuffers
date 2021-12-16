@@ -1,5 +1,5 @@
 #include "greeter.grpc.fb.h"
-#include "greeter_generated.h"
+#include "greeter_sample.h"
 
 #include <grpcpp/grpcpp.h>
 
