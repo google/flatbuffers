@@ -1,5 +1,4 @@
 import { FILE_IDENTIFIER_LENGTH, SIZEOF_INT } from "./constants";
-import { Long } from "./long";
 import { int32, isLittleEndian, float32, float64 } from "./utils";
 import { Offset, Table, IGeneratedObject } from "./types";
 import { Encoding } from "./encoding";
@@ -75,12 +74,12 @@ export class ByteBuffer {
       return this.readInt32(offset) >>> 0;
     }
   
-    readInt64(offset: number): Long {
-      return new Long(this.readInt32(offset), this.readInt32(offset + 4));
+    readInt64(offset: number): BigInt {
+      return BigInt(this.readInt32(offset)) + (BigInt(this.readInt32(offset + 4)) << 32n);
     }
   
-    readUint64(offset: number): Long {
-      return new Long(this.readUint32(offset), this.readUint32(offset + 4));
+    readUint64(offset: number): BigInt {
+      return BigInt(this.readUint32(offset)) + (BigInt(this.readUint32(offset + 4)) << 32n);
     }
   
     readFloat32(offset: number): number {
@@ -126,14 +125,14 @@ export class ByteBuffer {
         this.bytes_[offset + 3] = value >> 24;
     }
   
-    writeInt64(offset: number, value: Long): void {
-      this.writeInt32(offset, value.low);
-      this.writeInt32(offset + 4, value.high);
+    writeInt64(offset: number, value: BigInt): void {
+        this.writeInt32(offset, Number(BigInt.asIntN(32, value)));
+        this.writeInt32(offset + 4, Number(BigInt.asIntN(32, value >> 32n)));
     }
   
-    writeUint64(offset: number, value: Long): void {
-        this.writeUint32(offset, value.low);
-        this.writeUint32(offset + 4, value.high);
+    writeUint64(offset: number, value: BigInt): void {
+        this.writeUint32(offset, Number(BigInt.asUintN(32, value)));
+        this.writeUint32(offset + 4, Number(BigInt.asUintN(32, value >> 32n)));
     }
   
     writeFloat32(offset: number, value: number): void {
@@ -301,14 +300,7 @@ export class ByteBuffer {
       }
       return true;
     }
-  
-    /**
-     * A helper function to avoid generated code depending on this file directly.
-     */
-    createLong(low: number, high: number): Long {
-      return Long.create(low, high);
-    }
-  
+
     /**
      * A helper function for generating list for obj api
      */
