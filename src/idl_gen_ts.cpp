@@ -48,7 +48,65 @@ class TsGenerator : public BaseGenerator {
 
   TsGenerator(const Parser &parser, const std::string &path,
               const std::string &file_name)
-      : BaseGenerator(parser, path, file_name, "", ".", "ts") {}
+      : BaseGenerator(parser, path, file_name, "", ".", "ts") {
+    // clang-format off
+
+    // List of keywords retrieved from here:
+    // https://github.com/microsoft/TypeScript/issues/2536
+    // One per line to ease comparisons to that list are easier
+    static const char *const keywords[] = {
+      "break",
+      "case",
+      "catch",
+      "class",
+      "const",
+      "continue",
+      "debugger",
+      "default",
+      "delete",
+      "do",
+      "else",
+      "enum",
+      "export",
+      "extends",
+      "false",
+      "finally",
+      "for",
+      "function",
+      "if",
+      "import",
+      "in",
+      "instanceof",
+      "new",
+      "null",
+      "return",
+      "super",
+      "switch",
+      "this",
+      "throw",
+      "true",
+      "try",
+      "typeof",
+      "var",
+      "void",
+      "while",
+      "with",
+      "as",
+      "implements",
+      "interface",
+      "let",
+      "package",
+      "private",
+      "protected",
+      "public",
+      "static",
+      "yield",
+      nullptr,
+      // clang-format on
+    };
+
+    for (auto kw = keywords; *kw; kw++) keywords_.insert(*kw);
+  }
   bool generate() {
     generateEnums();
     generateStructs();
@@ -81,6 +139,12 @@ class TsGenerator : public BaseGenerator {
   }
 
  private:
+  std::unordered_set<std::string> keywords_;
+
+  std::string EscapeKeyword(const std::string &name) const {
+    return keywords_.find(name) == keywords_.end() ? name : name + "_";
+  }
+
   import_set imports_all_;
 
   // Generate code for all enums.
@@ -1577,10 +1641,13 @@ class TsGenerator : public BaseGenerator {
                        allowNull && field.IsOptional());
   }
 
-  static std::string GetArgName(const FieldDef &field) {
+  std::string GetArgName(const FieldDef &field) {
     auto argname = MakeCamel(field.name, false);
-    if (!IsScalar(field.value.type.base_type)) { argname += "Offset"; }
-
+    if (!IsScalar(field.value.type.base_type)) { 
+      argname += "Offset";
+    } else {
+      argname = EscapeKeyword(argname);
+    }
     return argname;
   }
 

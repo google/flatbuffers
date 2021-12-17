@@ -101,7 +101,7 @@ Additional options:
 -   `--gen-mutable` : Generate additional non-const accessors for mutating
     FlatBuffers in-place.
 
--   `--gen-onefile` : Generate single output file for C# and Go.
+-   `--gen-onefile` : Generate single output file for C#, Go, and Python.
 
 -   `--gen-name-strings` : Generate type name functions for C++.
 
@@ -219,6 +219,10 @@ Additional options:
 -   `--no-warnings` : Inhibit all warning messages.
 
 -   `--cs-global-alias` : Prepend `global::` to all user generated csharp classes and structs.
+
+-   `--json-nested-bytes` : Allow a nested_flatbuffer field to be parsed as a
+    vector of bytes in JSON, which is unsafe unless checked by a verifier
+    afterwards.
 
 NOTE: short-form options for generators are deprecated, use the long form
 whenever possible.

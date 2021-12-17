@@ -18,6 +18,7 @@ set(FlatBuffers_Library_SRCS
         ${FLATBUFFERS_SRC}/include/flatbuffers/allocator.h
         ${FLATBUFFERS_SRC}/include/flatbuffers/array.h
         ${FLATBUFFERS_SRC}/include/flatbuffers/base.h
+        ${FLATBUFFERS_SRC}/include/flatbuffers/bfbs_generator.h
         ${FLATBUFFERS_SRC}/include/flatbuffers/buffer.h
         ${FLATBUFFERS_SRC}/include/flatbuffers/buffer_ref.h
         ${FLATBUFFERS_SRC}/include/flatbuffers/default_allocator.h

@@ -1671,7 +1671,12 @@ CheckedError Parser::ParseNestedFlatbuffer(Value &val, FieldDef *field,
                                            size_t fieldn,
                                            const StructDef *parent_struct_def) {
   if (token_ == '[') {  // backwards compat for 'legacy' ubyte buffers
-    ECHECK(ParseAnyValue(val, field, fieldn, parent_struct_def, 0));
+    if (opts.json_nested_legacy_flatbuffers) {
+      ECHECK(ParseAnyValue(val, field, fieldn, parent_struct_def, 0));
+    } else {
+      return Error("cannot parse nested_flatbuffer as bytes unless"
+                   " --json-nested-bytes is set");
+    }
   } else {
     auto cursor_at_value_begin = cursor_;
     ECHECK(SkipAnyJsonValue());
@@ -2152,10 +2157,16 @@ void EnumDef::SortByValue() {
   auto &v = vals.vec;
   if (IsUInt64())
     std::sort(v.begin(), v.end(), [](const EnumVal *e1, const EnumVal *e2) {
+      if (e1->GetAsUInt64() == e2->GetAsUInt64()) {
+        return e1->name < e2->name;
+      }
       return e1->GetAsUInt64() < e2->GetAsUInt64();
     });
   else
     std::sort(v.begin(), v.end(), [](const EnumVal *e1, const EnumVal *e2) {
+      if (e1->GetAsInt64() == e2->GetAsInt64()) {
+        return e1->name < e2->name;
+      }
       return e1->GetAsInt64() < e2->GetAsInt64();
     });
 }
@@ -3669,7 +3680,7 @@ Offset<reflection::Field> FieldDef::Serialize(FlatBufferBuilder *builder,
       IsInteger(value.type.base_type) ? StringToInt(value.constant.c_str()) : 0,
       // result may be platform-dependent if underlying is float (not double)
       IsFloat(value.type.base_type) ? d : 0.0, deprecated, IsRequired(), key,
-      attr__, docs__, IsOptional());
+      attr__, docs__, IsOptional(), static_cast<uint16_t>(padding));
   // TODO: value.constant is almost always "0", we could save quite a bit of
   // space by sharing it. Same for common values of value.type.
 }
@@ -3685,6 +3696,7 @@ bool FieldDef::Deserialize(Parser &parser, const reflection::Field *field) {
     value.constant = FloatToString(field->default_real(), 16);
   }
   presence = FieldDef::MakeFieldPresence(field->optional(), field->required());
+  padding = field->padding();
   key = field->key();
   if (!DeserializeAttributes(parser, field->attributes())) return false;
   // TODO: this should probably be handled by a separate attribute
@@ -3828,7 +3840,8 @@ Offset<reflection::Type> Type::Serialize(FlatBufferBuilder *builder) const {
       *builder, static_cast<reflection::BaseType>(base_type),
       static_cast<reflection::BaseType>(element),
       struct_def ? struct_def->index : (enum_def ? enum_def->index : -1),
-      fixed_length);
+      fixed_length, static_cast<uint32_t>(SizeOf(base_type)),
+      static_cast<uint32_t>(SizeOf(element)));
 }
 
 bool Type::Deserialize(const Parser &parser, const reflection::Type *type) {

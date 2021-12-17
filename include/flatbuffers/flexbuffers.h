@@ -53,7 +53,7 @@ enum Type {
   FBT_INT = 1,
   FBT_UINT = 2,
   FBT_FLOAT = 3,
-  // Types above stored inline, types below store an offset.
+  // Types above stored inline, types below (except FBT_BOOL) store an offset.
   FBT_KEY = 4,
   FBT_STRING = 5,
   FBT_INDIRECT_INT = 6,
@@ -81,6 +81,8 @@ enum Type {
   FBT_BOOL = 26,
   FBT_VECTOR_BOOL =
       36,  // To Allow the same type of conversion of type to vector type
+
+  FBT_MAX_TYPE = 37
 };
 
 inline bool IsInline(Type t) { return t <= FBT_FLOAT || t == FBT_BOOL; }
@@ -320,8 +322,8 @@ class FixedTypedVector : public Object {
     return data_ == FixedTypedVector::EmptyFixedTypedVector().data_;
   }
 
-  Type ElementType() { return type_; }
-  uint8_t size() { return len_; }
+  Type ElementType() const { return type_; }
+  uint8_t size() const { return len_; }
 
  private:
   Type type_;
@@ -371,7 +373,7 @@ class Reference {
   Reference()
       : data_(nullptr),
         parent_width_(0),
-        byte_width_(BIT_WIDTH_8),
+        byte_width_(0),
         type_(FBT_NULL) {}
 
   Reference(const uint8_t *data, uint8_t parent_width, uint8_t byte_width,
@@ -756,6 +758,8 @@ class Reference {
     FLATBUFFERS_ASSERT(false);
     return false;
   }
+
+  friend class Verifier;
 
   const uint8_t *data_;
   uint8_t parent_width_;
@@ -1558,9 +1562,9 @@ class Builder FLATBUFFERS_FINAL_CLASS {
         }
       }
     }
-    // If you get this assert, your fixed types are not one of:
+    // If you get this assert, your typed types are not one of:
     // Int / UInt / Float / Key.
-    FLATBUFFERS_ASSERT(!fixed || IsTypedVectorElementType(vector_type));
+    FLATBUFFERS_ASSERT(!typed || IsTypedVectorElementType(vector_type));
     auto byte_width = Align(bit_width);
     // Write vector. First the keys width/offset if available, and size.
     if (keys) {
@@ -1615,9 +1619,10 @@ class Builder FLATBUFFERS_FINAL_CLASS {
     explicit StringOffsetCompare(const std::vector<uint8_t> &buf)
         : buf_(&buf) {}
     bool operator()(const StringOffset &a, const StringOffset &b) const {
-      auto stra = reinterpret_cast<const char *>(buf_->data() + a.first);
-      auto strb = reinterpret_cast<const char *>(buf_->data() + b.first);
-      return strncmp(stra, strb, (std::min)(a.second, b.second) + 1) < 0;
+      auto stra = buf_->data() + a.first;
+      auto strb = buf_->data() + b.first;
+      auto cr = memcmp(stra, strb, (std::min)(a.second, b.second) + 1);
+      return cr < 0 || (cr == 0 && a.second < b.second);
     }
     const std::vector<uint8_t> *buf_;
   };
@@ -1627,7 +1632,269 @@ class Builder FLATBUFFERS_FINAL_CLASS {
 
   KeyOffsetMap key_pool;
   StringOffsetMap string_pool;
+
+  friend class Verifier;
 };
+
+// Helper class to verify the integrity of a FlexBuffer
+class Verifier FLATBUFFERS_FINAL_CLASS {
+ public:
+  Verifier(const uint8_t *buf, size_t buf_len,
+           // Supplying this vector likely results in faster verification
+           // of larger buffers with many shared keys/strings, but
+           // comes at the cost of using additional memory the same size of
+           // the buffer being verified, so it is by default off.
+           std::vector<uint8_t> *reuse_tracker = nullptr,
+           bool _check_alignment = true,
+           size_t max_depth = 64)
+      : buf_(buf),
+        size_(buf_len),
+        depth_(0),
+        max_depth_(max_depth),
+        num_vectors_(0),
+        max_vectors_(buf_len),
+        check_alignment_(_check_alignment),
+        reuse_tracker_(reuse_tracker) {
+    FLATBUFFERS_ASSERT(size_ < FLATBUFFERS_MAX_BUFFER_SIZE);
+    if (reuse_tracker_) {
+      reuse_tracker_->clear();
+      reuse_tracker_->resize(size_, PackedType(BIT_WIDTH_8, FBT_NULL));
+    }
+  }
+
+ private:
+  // Central location where any verification failures register.
+  bool Check(bool ok) const {
+    // clang-format off
+    #ifdef FLATBUFFERS_DEBUG_VERIFICATION_FAILURE
+      FLATBUFFERS_ASSERT(ok);
+    #endif
+    // clang-format on
+    return ok;
+  }
+
+  // Verify any range within the buffer.
+  bool VerifyFrom(size_t elem, size_t elem_len) const {
+    return Check(elem_len < size_ && elem <= size_ - elem_len);
+  }
+  bool VerifyBefore(size_t elem, size_t elem_len) const {
+    return Check(elem_len <= elem);
+  }
+
+  bool VerifyFromPointer(const uint8_t *p, size_t len) {
+    auto o = static_cast<size_t>(p - buf_);
+    return VerifyFrom(o, len);
+  }
+  bool VerifyBeforePointer(const uint8_t *p, size_t len) {
+    auto o = static_cast<size_t>(p - buf_);
+    return VerifyBefore(o, len);
+  }
+  
+  bool VerifyByteWidth(size_t width) {
+    return Check(width == 1 || width == 2 || width == 4 || width == 8);
+  }
+
+  bool VerifyType(int type) {
+    return Check(type >= 0 && type < FBT_MAX_TYPE);
+  }
+
+  bool VerifyOffset(uint64_t off, const uint8_t *p) {
+    return Check(off <= static_cast<uint64_t>(size_)) &&
+                 off <= static_cast<uint64_t>(p - buf_);
+  }
+
+  bool VerifyAlignment(const uint8_t *p, size_t size) const {
+    auto o = static_cast<size_t>(p - buf_);
+    return Check((o & (size - 1)) == 0 || !check_alignment_);
+  }
+
+  // Macro, since we want to escape from parent function & use lazy args.
+  #define FLEX_CHECK_VERIFIED(P, PACKED_TYPE) \
+    if (reuse_tracker_) { \
+      auto packed_type = PACKED_TYPE; \
+      auto existing = (*reuse_tracker_)[P - buf_]; \
+      if (existing == packed_type) return true; \
+      /* Fail verification if already set with different type! */ \
+      if (!Check(existing == 0)) return false; \
+      (*reuse_tracker_)[P - buf_] = packed_type; \
+    }
+
+  bool VerifyVector(Reference r, const uint8_t *p, Type elem_type) {
+    // Any kind of nesting goes thru this function, so guard against that
+    // here, both with simple nesting checks, and the reuse tracker if on.
+    depth_++;
+    num_vectors_++;
+    if (!Check(depth_ <= max_depth_ && num_vectors_ <= max_vectors_))
+      return false;
+    auto size_byte_width = r.byte_width_;
+    FLEX_CHECK_VERIFIED(p, PackedType(Builder::WidthB(size_byte_width), r.type_));
+    if (!VerifyBeforePointer(p, size_byte_width))
+      return false;
+    auto sized = Sized(p, size_byte_width);
+    auto num_elems = sized.size();
+    auto elem_byte_width =
+        r.type_ == FBT_STRING || r.type_ == FBT_BLOB ? uint8_t(1) : r.byte_width_;
+    auto max_elems = SIZE_MAX / elem_byte_width;
+    if (!Check(num_elems < max_elems))
+      return false;  // Protect against byte_size overflowing.
+    auto byte_size = num_elems * elem_byte_width;
+    if (!VerifyFromPointer(p, byte_size))
+      return false;
+    if (elem_type == FBT_NULL) {
+      // Verify type bytes after the vector.
+      if (!VerifyFromPointer(p + byte_size, num_elems)) return false;
+      auto v = Vector(p, size_byte_width);
+      for (size_t i = 0; i < num_elems; i++)
+        if (!VerifyRef(v[i])) return false;
+    } else if (elem_type == FBT_KEY) {
+      auto v = TypedVector(p, elem_byte_width, FBT_KEY);
+      for (size_t i = 0; i < num_elems; i++)
+        if (!VerifyRef(v[i])) return false;
+    } else {
+      FLATBUFFERS_ASSERT(IsInline(elem_type));
+    }
+    depth_--;
+    return true;
+  }
+
+  bool VerifyKeys(const uint8_t *p, uint8_t byte_width) {
+    // The vector part of the map has already been verified.
+    const size_t num_prefixed_fields = 3;
+    if (!VerifyBeforePointer(p, byte_width * num_prefixed_fields))
+      return false;
+    p -= byte_width * num_prefixed_fields;
+    auto off = ReadUInt64(p, byte_width);
+    if (!VerifyOffset(off, p))
+      return false;
+    auto key_byte_with =
+      static_cast<uint8_t>(ReadUInt64(p + byte_width, byte_width));
+    if (!VerifyByteWidth(key_byte_with))
+      return false;
+    return VerifyVector(Reference(p, byte_width, key_byte_with, FBT_VECTOR_KEY),
+                        p - off, FBT_KEY);
+  }
+
+  bool VerifyKey(const uint8_t* p) {
+    FLEX_CHECK_VERIFIED(p, PackedType(BIT_WIDTH_8, FBT_KEY));
+    while (p < buf_ + size_)
+      if (*p++) return true;
+    return false;
+  }
+
+  #undef FLEX_CHECK_VERIFIED
+
+  bool VerifyTerminator(const String &s) {
+    return VerifyFromPointer(reinterpret_cast<const uint8_t *>(s.c_str()),
+                             s.size() + 1);
+  }
+
+  bool VerifyRef(Reference r) {
+    // r.parent_width_ and r.data_ already verified.
+    if (!VerifyByteWidth(r.byte_width_) || !VerifyType(r.type_)) {
+      return false;
+    }
+    if (IsInline(r.type_)) {
+      // Inline scalars, don't require further verification.
+      return true;
+    }
+    // All remaining types are an offset.
+    auto off = ReadUInt64(r.data_, r.parent_width_);
+    if (!VerifyOffset(off, r.data_))
+      return false;
+    auto p = r.Indirect();
+    if (!VerifyAlignment(p, r.byte_width_))
+      return false;
+    switch (r.type_) {
+      case FBT_INDIRECT_INT:
+      case FBT_INDIRECT_UINT:
+      case FBT_INDIRECT_FLOAT:
+        return VerifyFromPointer(p, r.byte_width_);
+      case FBT_KEY:
+        return VerifyKey(p);
+      case FBT_MAP:
+        return VerifyVector(r, p, FBT_NULL) &&
+               VerifyKeys(p, r.byte_width_);
+      case FBT_VECTOR:
+        return VerifyVector(r, p, FBT_NULL);
+      case FBT_VECTOR_INT:
+        return VerifyVector(r, p, FBT_INT);
+      case FBT_VECTOR_BOOL:
+      case FBT_VECTOR_UINT:
+        return VerifyVector(r, p, FBT_UINT);
+      case FBT_VECTOR_FLOAT:
+        return VerifyVector(r, p, FBT_FLOAT);
+      case FBT_VECTOR_KEY:
+        return VerifyVector(r, p, FBT_KEY);
+      case FBT_VECTOR_STRING_DEPRECATED:
+        // Use of FBT_KEY here intentional, see elsewhere.
+        return VerifyVector(r, p, FBT_KEY);
+      case FBT_BLOB:
+        return VerifyVector(r, p, FBT_UINT);
+      case FBT_STRING:
+        return VerifyVector(r, p, FBT_UINT) &&
+               VerifyTerminator(String(p, r.byte_width_));
+      case FBT_VECTOR_INT2:
+      case FBT_VECTOR_UINT2:
+      case FBT_VECTOR_FLOAT2:
+      case FBT_VECTOR_INT3:
+      case FBT_VECTOR_UINT3:
+      case FBT_VECTOR_FLOAT3:
+      case FBT_VECTOR_INT4:
+      case FBT_VECTOR_UINT4:
+      case FBT_VECTOR_FLOAT4: {
+        uint8_t len = 0;
+        auto vtype = ToFixedTypedVectorElementType(r.type_, &len);
+        if (!VerifyType(vtype))
+          return false;
+        return VerifyFromPointer(p, r.byte_width_ * len);
+      }
+      default:
+        return false;
+    }
+  }
+
+ public:
+  bool VerifyBuffer() {
+    if (!Check(size_ >= 3)) return false;
+    auto end = buf_ + size_;
+    auto byte_width = *--end;
+    auto packed_type = *--end;
+    return VerifyByteWidth(byte_width) &&
+           Check(end - buf_ >= byte_width) &&
+           VerifyRef(Reference(end - byte_width, byte_width, packed_type));
+  }
+
+ private:
+  const uint8_t *buf_;
+  size_t size_;
+  size_t depth_;
+  const size_t max_depth_;
+  size_t num_vectors_;
+  const size_t max_vectors_;
+  bool check_alignment_;
+  std::vector<uint8_t> *reuse_tracker_;
+};
+
+// Utility function that contructs the Verifier for you, see above for parameters.
+inline bool VerifyBuffer(const uint8_t *buf, size_t buf_len,
+                         std::vector<uint8_t> *reuse_tracker = nullptr) {
+  Verifier verifier(buf, buf_len, reuse_tracker);
+  return verifier.VerifyBuffer();
+}
+
+
+#ifdef FLATBUFFERS_H_
+// This is a verifier utility function that works together with the
+// FlatBuffers verifier, which should only be present if flatbuffer.h
+// has been included (which it typically is in generated code).
+inline bool VerifyNestedFlexBuffer(const flatbuffers::Vector<uint8_t> *nv,
+                                   flatbuffers::Verifier &verifier) {
+  if (!nv) return true;
+  return verifier.Check(
+    flexbuffers::VerifyBuffer(nv->data(), nv->size(),
+                              verifier.GetFlexReuseTracker()));
+}
+#endif
 
 }  // namespace flexbuffers
 

@@ -14,6 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import argparse
 import filecmp
 import glob
 import platform
@@ -21,6 +22,19 @@ import shutil
 import subprocess
 import sys
 from pathlib import Path
+
+parser = argparse.ArgumentParser()
+parser.add_argument(
+    "--flatc",
+    help="path of the Flat C compiler relative to the root directory",
+)
+parser.add_argument("--cpp-0x", action="store_true", help="use --cpp-std c++ox")
+parser.add_argument(
+    "--skip-monster-extra",
+    action="store_true",
+    help="skip generating tests involving monster_extra.fbs",
+)
+args = parser.parse_args()
 
 # Get the path where this script is located so we can invoke the script from
 # any directory and have the paths work correctly.
@@ -33,8 +47,8 @@ root_path = script_path.parent.absolute()
 # argument or defaulting to default names.
 flatc_exe = Path(
     ("flatc" if not platform.system() == "Windows" else "flatc.exe")
-    if len(sys.argv) <= 1
-    else sys.argv[1]
+    if not args.flatc
+    else args.flatc
 )
 
 # Find and assert flatc compiler is present.
@@ -60,7 +74,7 @@ def flatc(
     cmd += [schema] if isinstance(schema, str) else schema
     if data:
         cmd += [data] if isinstance(data, str) else data
-    subprocess.run(cmd, cwd=cwd)
+    result = subprocess.run(cmd, cwd=cwd, check=True)
 
 
 # Glob a pattern relative to file path
@@ -79,7 +93,8 @@ CPP_OPTS = [
     "--gen-compare",
     "--cpp-ptr-type",
     "flatbuffers::unique_ptr",
-]
+] + (["--cpp-std", "c++0x"] if args.cpp_0x else [])
+
 CPP_17_OPTS = NO_INCL_OPTS + [
     "--cpp",
     "--cpp-std",
@@ -112,12 +127,17 @@ flatc(
         "--dart",
         "--go",
         "--lobster",
-        "--lua",
         "--php",
     ],
     schema="monster_test.fbs",
     include="include_test",
     data="monsterdata_test.json",
+)
+
+flatc(
+    ["--lua", "--bfbs-filenames", str(tests_path)],
+    schema="monster_test.fbs",
+    include="include_test"    
 )
 
 flatc(
@@ -137,6 +157,13 @@ flatc(
 
 flatc(
     options=BASE_OPTS + ["--python"],
+    schema="monster_test.fbs",
+    include="include_test",
+    data="monsterdata_test.json",
+)
+
+flatc(
+    options=BASE_OPTS + ["--python", "--gen-onefile"],
     schema="monster_test.fbs",
     include="include_test",
     data="monsterdata_test.json",
@@ -230,11 +257,22 @@ flatc(
     schema="monster_test.fbs",
 )
 
-flatc(
-    CPP_OPTS + CS_OPTS + NO_INCL_OPTS + JAVA_OPTS + KOTLIN_OPTS + PYTHON_OPTS,
-    schema="monster_extra.fbs",
-    data="monsterdata_extra.json",
-)
+if not args.skip_monster_extra:
+    flatc(
+        CPP_OPTS
+        + CS_OPTS
+        + NO_INCL_OPTS
+        + JAVA_OPTS
+        + KOTLIN_OPTS
+        + PYTHON_OPTS,
+        schema="monster_extra.fbs",
+        data="monsterdata_extra.json",
+    )
+
+    flatc(
+        DART_OPTS + ["--gen-object-api"],
+        schema="monster_extra.fbs",
+    )
 
 flatc(
     CPP_OPTS
@@ -254,11 +292,6 @@ flatc(
 flatc(
     BASE_OPTS + PYTHON_OPTS,
     schema="arrays_test.fbs",
-)
-
-flatc(
-    DART_OPTS + ["--gen-object-api"],
-    schema="monster_extra.fbs",
 )
 
 

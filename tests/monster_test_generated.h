@@ -788,8 +788,8 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) Ability FLATBUFFERS_FINAL_CLASS {
   bool KeyCompareLessThan(const Ability *o) const {
     return id() < o->id();
   }
-  int KeyCompareWithValue(uint32_t val) const {
-    return static_cast<int>(id() > val) - static_cast<int>(id() < val);
+  int KeyCompareWithValue(uint32_t _id) const {
+    return static_cast<int>(id() > _id) - static_cast<int>(id() < _id);
   }
   uint32_t distance() const {
     return flatbuffers::EndianScalar(distance_);
@@ -1053,8 +1053,8 @@ struct Stat FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   bool KeyCompareLessThan(const Stat *o) const {
     return count() < o->count();
   }
-  int KeyCompareWithValue(uint16_t val) const {
-    return static_cast<int>(count() > val) - static_cast<int>(count() < val);
+  int KeyCompareWithValue(uint16_t _count) const {
+    return static_cast<int>(count() > _count) - static_cast<int>(count() < _count);
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
@@ -1143,8 +1143,8 @@ struct Referrable FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   bool KeyCompareLessThan(const Referrable *o) const {
     return id() < o->id();
   }
-  int KeyCompareWithValue(uint64_t val) const {
-    return static_cast<int>(id() > val) - static_cast<int>(id() < val);
+  int KeyCompareWithValue(uint64_t _id) const {
+    return static_cast<int>(id() > _id) - static_cast<int>(id() < _id);
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
@@ -1321,8 +1321,8 @@ struct Monster FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   bool KeyCompareLessThan(const Monster *o) const {
     return *name() < *o->name();
   }
-  int KeyCompareWithValue(const char *val) const {
-    return strcmp(name()->c_str(), val);
+  int KeyCompareWithValue(const char *_name) const {
+    return strcmp(name()->c_str(), _name);
   }
   const flatbuffers::Vector<uint8_t> *inventory() const {
     return GetPointer<const flatbuffers::Vector<uint8_t> *>(VT_INVENTORY);
@@ -1656,6 +1656,7 @@ struct Monster FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
            verifier.VerifyTable(enemy()) &&
            VerifyOffset(verifier, VT_TESTNESTEDFLATBUFFER) &&
            verifier.VerifyVector(testnestedflatbuffer()) &&
+           verifier.VerifyNestedFlatBuffer<MyGame::Example::Monster>(testnestedflatbuffer(), nullptr) &&
            VerifyOffset(verifier, VT_TESTEMPTY) &&
            verifier.VerifyTable(testempty()) &&
            VerifyField<uint8_t>(verifier, VT_TESTBOOL) &&
@@ -1679,6 +1680,7 @@ struct Monster FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
            verifier.VerifyVector(testarrayofsortedstruct()) &&
            VerifyOffset(verifier, VT_FLEX) &&
            verifier.VerifyVector(flex()) &&
+           flexbuffers::VerifyNestedFlexBuffer(flex(), verifier) &&
            VerifyOffset(verifier, VT_TEST5) &&
            verifier.VerifyVector(test5()) &&
            VerifyOffset(verifier, VT_VECTOR_OF_LONGS) &&
@@ -1713,6 +1715,7 @@ struct Monster FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
            VerifyField<int8_t>(verifier, VT_SIGNED_ENUM) &&
            VerifyOffset(verifier, VT_TESTREQUIREDNESTEDFLATBUFFER) &&
            verifier.VerifyVector(testrequirednestedflatbuffer()) &&
+           verifier.VerifyNestedFlatBuffer<MyGame::Example::Monster>(testrequirednestedflatbuffer(), nullptr) &&
            VerifyOffset(verifier, VT_SCALAR_KEY_SORTED_TABLES) &&
            verifier.VerifyVector(scalar_key_sorted_tables()) &&
            verifier.VerifyVectorOfTables(scalar_key_sorted_tables()) &&

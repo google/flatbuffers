@@ -180,7 +180,8 @@ To use:
 An additional feature of the object API is the ability to allow you to
 serialize & deserialize a JSON text.
 To use Json Serialization, add `--cs-gen-json-serializer` option to `flatc` and
-add `Newtonsoft.Json` nuget package to csproj.
+add `Newtonsoft.Json` nuget package to csproj. This requires explicitly setting
+the `--gen-object-api` option as well.
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.cs}
     // Deserialize MonsterT from json
@@ -192,7 +193,7 @@ add `Newtonsoft.Json` nuget package to csproj.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 * Limitation
-  * `hash` attribute currentry not supported.
+  * `hash` attribute currently not supported.
 * NuGet package Dependency
   * [Newtonsoft.Json](https://github.com/JamesNK/Newtonsoft.Json)
 

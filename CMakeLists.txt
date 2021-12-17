@@ -10,6 +10,8 @@ else()
   project(FlatBuffers)
 endif (POLICY CMP0048)
 
+include(CMake/Version.cmake)
+
 # generate compile_commands.json
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
@@ -54,6 +56,12 @@ option(FLATBUFFERS_ENABLE_PCH
         Only work if CMake supports 'target_precompile_headers'. \"
         This can speed up compilation time."
        OFF)
+option(FLATBUFFERS_SKIP_MONSTER_EXTRA 
+      "Skip generating monster_extra.fbs that contains non-supported numerical\"
+      types." OFF)
+option(FLATBUFFERS_OSX_BUILD_UNIVERSAL
+      "Enable the build for multiple architectures on OS X (arm64, x86_64)."
+      ON)
 
 if(NOT FLATBUFFERS_BUILD_FLATC AND FLATBUFFERS_BUILD_TESTS)
     message(WARNING
@@ -89,6 +97,7 @@ set(FlatBuffers_Library_SRCS
   include/flatbuffers/allocator.h
   include/flatbuffers/array.h
   include/flatbuffers/base.h
+  include/flatbuffers/bfbs_generator.h
   include/flatbuffers/buffer.h
   include/flatbuffers/buffer_ref.h
   include/flatbuffers/default_allocator.h
@@ -136,7 +145,10 @@ set(FlatBuffers_Compiler_SRCS
   src/idl_gen_swift.cpp
   src/flatc.cpp
   src/flatc_main.cpp
+  src/bfbs_gen.h
+  src/bfbs_gen_lua.h
   include/flatbuffers/code_generators.h
+  src/bfbs_gen_lua.cpp
   src/code_generators.cpp
   grpc/src/compiler/schema_interface.h
   grpc/src/compiler/cpp_generator.h
@@ -273,8 +285,11 @@ elseif(CMAKE_COMPILER_IS_GNUCXX)
 
 elseif(${CMAKE_CXX_COMPILER_ID} MATCHES "Clang")
   if(APPLE)
-    set(CMAKE_OSX_ARCHITECTURES "arm64;x86_64")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+
+    if(FLATBUFFERS_OSX_BUILD_UNIVERSAL)
+      set(CMAKE_OSX_ARCHITECTURES "arm64;x86_64")
+    endif()
   else()
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x")
   endif()
@@ -410,8 +425,8 @@ if(FLATBUFFERS_BUILD_SHAREDLIB)
   # - micro updated every release when there is no API/ABI changes
   # - minor updated when there are additions in API/ABI
   # - major (ABI number) updated when there are changes in ABI (or removals)
-  set(FlatBuffers_Library_SONAME_MAJOR "2")
-  set(FlatBuffers_Library_SONAME_FULL "${FlatBuffers_Library_SONAME_MAJOR}.0.0")
+  set(FlatBuffers_Library_SONAME_MAJOR ${VERSION_MAJOR})
+  set(FlatBuffers_Library_SONAME_FULL "${FlatBuffers_Library_SONAME_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}")
   set_target_properties(flatbuffers_shared PROPERTIES OUTPUT_NAME flatbuffers
                         SOVERSION "${FlatBuffers_Library_SONAME_MAJOR}"
                         VERSION "${FlatBuffers_Library_SONAME_FULL}")
@@ -466,7 +481,7 @@ function(compile_flatbuffers_schema_to_binary SRC_FBS)
   message(STATUS "`${SRC_FBS}`: add generation of binary (.bfbs) schema")
   get_filename_component(SRC_FBS_DIR ${SRC_FBS} PATH)
   string(REGEX REPLACE "\\.fbs$" ".bfbs" GEN_BINARY_SCHEMA ${SRC_FBS})
-  # For details about flags see generate_code.bat(sh)
+  # For details about flags see generate_code.py
   add_custom_command(
     OUTPUT ${GEN_BINARY_SCHEMA}
     COMMAND "${FLATBUFFERS_FLATC_EXECUTABLE}"
@@ -489,7 +504,7 @@ function(compile_flatbuffers_schema_to_embedded_binary SRC_FBS OPT)
   message(STATUS "`${SRC_FBS}`: add generation of C++ embedded binary schema code with '${OPT}'")
   get_filename_component(SRC_FBS_DIR ${SRC_FBS} PATH)
   string(REGEX REPLACE "\\.fbs$" "_bfbs_generated.h" GEN_BFBS_HEADER ${SRC_FBS})
-  # For details about flags see generate_code.bat(sh)
+  # For details about flags see generate_code.py
   add_custom_command(
           OUTPUT ${GEN_BFBS_HEADER}
           COMMAND "${FLATBUFFERS_FLATC_EXECUTABLE}"
@@ -509,22 +524,32 @@ endfunction()
 # Look if we have python 3 installed so that we can run the generate code python
 # script after flatc is built.
 find_package(PythonInterp 3)
+
 if(PYTHONINTERP_FOUND AND
   # Skip doing this if the MSVC version is below VS 12.
   # https://cmake.org/cmake/help/latest/variable/MSVC_VERSION.html
   (NOT MSVC OR MSVC_VERSION GREATER 1800))
-  if(WIN32)
-    set(GENERATION_SCRIPT py scripts/generate_code.py)
+  if(MSVC)
+    set(GENERATION_SCRIPT py scripts/generate_code.py) 
    else()
     set(GENERATION_SCRIPT scripts/generate_code.py)
+  endif()
+  if(FLATBUFFERS_BUILD_LEGACY)
+    # Need to set --cpp-std c++-0x options
+    set(GENERATION_SCRIPT ${GENERATION_SCRIPT} --cpp-0x)
+  endif()
+  if(FLATBUFFERS_SKIP_MONSTER_EXTRA)
+    set(GENERATION_SCRIPT ${GENERATION_SCRIPT} --skip-monster-extra)
   endif()
   add_custom_command(
     TARGET flatc
     POST_BUILD
-    COMMAND ${GENERATION_SCRIPT} "${FLATBUFFERS_FLATC_EXECUTABLE}"
+    COMMAND ${GENERATION_SCRIPT} --flatc "${FLATBUFFERS_FLATC_EXECUTABLE}"
     WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
     COMMENT "Running ${GENERATION_SCRIPT}..."
     VERBATIM)
+else()
+  message("No Python3 interpreter found! Unable to generate files automatically.")
 endif()
 
 if(FLATBUFFERS_BUILD_TESTS)
@@ -568,7 +593,7 @@ if(FLATBUFFERS_BUILD_TESTS)
   if(FLATBUFFERS_BUILD_CPP17)
     # Don't generate header for flattests_cpp17 target.
     # This target uses "generated_cpp17/monster_test_generated.h"
-    # produced by direct call of generate_code.bat(sh) script.
+    # produced by direct call of generate_code.py script.
     add_executable(flattests_cpp17 ${FlatBuffers_Tests_CPP17_SRCS})
     add_dependencies(flattests_cpp17 generated_code)
     target_compile_features(flattests_cpp17 PRIVATE cxx_std_17)
@@ -608,7 +633,6 @@ if(FLATBUFFERS_BUILD_GRPCTEST)
   endif()
 endif()
 
-include(CMake/Version.cmake)
 
 if(FLATBUFFERS_INSTALL)
   include(GNUInstallDirs)
