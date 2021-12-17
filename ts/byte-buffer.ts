@@ -75,11 +75,11 @@ export class ByteBuffer {
     }
   
     readInt64(offset: number): bigint {
-      return BigInt(this.readInt32(offset)) + (BigInt(this.readInt32(offset + 4)) << BigInt(32));
+      return BigInt.asIntN(64, BigInt(this.readUint32(offset)) + (BigInt(this.readUint32(offset + 4)) << BigInt(32)));
     }
   
     readUint64(offset: number): bigint {
-      return BigInt(this.readUint32(offset)) + (BigInt(this.readUint32(offset + 4)) << BigInt(32));
+      return BigInt.asUintN(64, BigInt((this.readUint32(offset)) + (BigInt(this.readUint32(offset + 4)) << BigInt(32)));
     }
   
     readFloat32(offset: number): number {
