@@ -946,6 +946,11 @@ inline bool ScalarStuffBufferHasIdentifier(const void *buf) {
       buf, ScalarStuffIdentifier());
 }
 
+inline bool SizePrefixedScalarStuffBufferHasIdentifier(const void *buf) {
+  return flatbuffers::BufferHasIdentifier(
+      buf, ScalarStuffIdentifier(), true);
+}
+
 inline bool VerifyScalarStuffBuffer(
     flatbuffers::Verifier &verifier) {
   return verifier.VerifyBuffer<optional_scalars::ScalarStuff>(ScalarStuffIdentifier());
