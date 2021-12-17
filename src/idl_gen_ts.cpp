@@ -227,8 +227,7 @@ class TsGenerator : public BaseGenerator {
 
   std::string GenBBAccess() const { return "this.bb!"; }
 
-  std::string GenDefaultValue(const FieldDef &field, const std::string &context,
-                              import_set &imports) {
+  std::string GenDefaultValue(const FieldDef &field, import_set &imports) {
     if (field.IsScalarOptional()) { return "null"; }
 
     const auto &value = field.value;
@@ -255,10 +254,7 @@ class TsGenerator : public BaseGenerator {
 
       case BASE_TYPE_LONG:
       case BASE_TYPE_ULONG: {
-        int64_t constant = StringToInt(value.constant.c_str());
-        std::string createLong = context + ".createLong";
-        return createLong + "(" + NumToString(static_cast<int32_t>(constant)) +
-               ", " + NumToString(static_cast<int32_t>(constant >> 32)) + ")";
+        return "BigInt('" + value.constant + "')";
       }
 
       default: return value.constant;
@@ -284,7 +280,7 @@ class TsGenerator : public BaseGenerator {
       case BASE_TYPE_BOOL: return allowNull ? "boolean|null" : "boolean";
       case BASE_TYPE_LONG:
       case BASE_TYPE_ULONG:
-        return allowNull ? "flatbuffers.Long|null" : "flatbuffers.Long";
+        return allowNull ? "bigint|null" : "bigint";
       default:
         if (IsScalar(type.base_type)) {
           if (type.enum_def) {
@@ -848,7 +844,7 @@ class TsGenerator : public BaseGenerator {
       // the variable name from field_offset_decl
       std::string field_offset_val;
       const auto field_default_val =
-          GenDefaultValue(field, "flatbuffers", imports);
+          GenDefaultValue(field, imports);
 
       // Emit a scalar field
       const auto is_string = IsString(field.value.type);
@@ -1168,7 +1164,7 @@ class TsGenerator : public BaseGenerator {
           if (is_string) { index += ", optionalEncoding"; }
           code += offset_prefix +
                   GenGetter(field.value.type, "(" + index + ")") + " : " +
-                  GenDefaultValue(field, GenBBAccess(), imports);
+                  GenDefaultValue(field, imports);
           code += ";\n";
         }
       }
@@ -1264,7 +1260,7 @@ class TsGenerator : public BaseGenerator {
               code += "false";
             } else if (field.value.type.element == BASE_TYPE_LONG ||
                        field.value.type.element == BASE_TYPE_ULONG) {
-              code += GenBBAccess() + ".createLong(0, 0)";
+              code += "BigInt(0)";
             } else if (IsScalar(field.value.type.element)) {
               if (field.value.type.enum_def) {
                 code += field.value.constant;
@@ -1418,13 +1414,13 @@ class TsGenerator : public BaseGenerator {
           code += "0";
         } else if (HasNullDefault(field)) {
           if (IsLong(field.value.type.base_type)) {
-            code += "builder.createLong(0, 0)";
+            code += "BigInt(0)";
           } else {
             code += "0";
           }
         } else {
           if (field.value.type.base_type == BASE_TYPE_BOOL) { code += "+"; }
-          code += GenDefaultValue(field, "builder", imports);
+          code += GenDefaultValue(field, imports);
         }
         code += ");\n}\n\n";
 
