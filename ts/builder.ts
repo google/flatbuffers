@@ -135,7 +135,7 @@ export class Builder {
       this.bb.writeInt32(this.space -= 4, value);
     }
   
-    writeInt64(value: BigInt): void {
+    writeInt64(value: bigint): void {
       this.bb.writeInt64(this.space -= 8, value);
     }
   
@@ -178,7 +178,7 @@ export class Builder {
      * Add an `int64` to the buffer, properly aligned, and grows the buffer (if necessary).
      * @param value The `int64` to add the the buffer.
      */
-    addInt64(value: BigInt): void {
+    addInt64(value: bigint): void {
       this.prep(8, 0);
       this.writeInt64(value);
     }
@@ -222,7 +222,7 @@ export class Builder {
       }
     }
   
-    addFieldInt64(voffset: number, value: BigInt, defaultValue: BigInt): void {
+    addFieldInt64(voffset: number, value: bigint, defaultValue: bigint): void {
       if (this.force_defaults || value !== defaultValue) {
         this.addInt64(value);
         this.slot(voffset);
