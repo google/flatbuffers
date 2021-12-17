@@ -7,7 +7,6 @@ export { Table, Offset } from './types'
 
 export { int32, float32, float64, isLittleEndian } from './utils'
 
-export { Long, createLong } from './long'
 export { Encoding } from './encoding'
 export { Builder } from './builder'
 export { ByteBuffer } from './byte-buffer'

@@ -918,7 +918,7 @@ CheckedError Parser::ParseField(StructDef &struct_def) {
     }
     if (!SupportsOptionalScalars()) {
       return Error(
-          "Optional scalars are not yet supported in at least one the of "
+          "Optional scalars are not yet supported in at least one of "
           "the specified programming languages.");
     }
   }
