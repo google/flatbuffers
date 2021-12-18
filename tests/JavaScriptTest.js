@@ -73,6 +73,11 @@ function createMonster(fbb) {
     fbb.createString('test2')
   ]);
 
+  var testVectorOfLongs = Monster.createVectorOfLongsVector(fbb, [
+    1n,
+    101010100n
+  ]);
+
   Monster.startMonster(fbb);
   Monster.addPos(fbb, Vec3.createVec3(fbb, 1, 2, 3, 3, Color.Green, 5, 6));
   Monster.addHp(fbb, 80);
@@ -82,6 +87,7 @@ function createMonster(fbb) {
   Monster.addTest(fbb, mon2);
   Monster.addTest4(fbb, test4);
   Monster.addTestarrayofstring(fbb, testArrayOfString);
+  Monster.addVectorOfLongs(fbb, testVectorOfLongs);
   Monster.addTestbool(fbb, true);
   var mon = Monster.endMonster(fbb);
 
@@ -206,6 +212,12 @@ function testBuffer(bb) {
     invsum2 += invArr[i];
   }
   assert.strictEqual(invsum2, 10);
+
+  let longSum = 0n;
+  for (let idx = 0; idx < monster.vectorOfLongsLength(); ++idx) {
+    longSum += monster.vectorOfLongs(idx);
+  }
+  assert.strictEqual(longSum, 101010101n);
 
   var test_0 = monster.test4(0);
   var test_1 = monster.test4(1);
