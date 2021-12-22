@@ -18,18 +18,19 @@
 #define FLATBUFFERS_UTIL_H_
 
 #include <errno.h>
+#include <ctype.h>
 
 #include "flatbuffers/base.h"
 #include "flatbuffers/stl_emulation.h"
 
 #ifndef FLATBUFFERS_PREFER_PRINTF
 #  include <sstream>
+#  include <iomanip>
 #else  // FLATBUFFERS_PREFER_PRINTF
 #  include <float.h>
 #  include <stdio.h>
 #endif  // FLATBUFFERS_PREFER_PRINTF
 
-#include <iomanip>
 #include <string>
 
 namespace flatbuffers {
