@@ -95,7 +95,7 @@ template<typename T> size_t IntToDigitCount(T t) {
   // Count a single 0 left of the dot for fractional numbers
   if (-1 < t && t < 1) digit_count++;
   // Count digits until fractional part
-  T eps = std::numeric_limits<float>::epsilon();
+  T eps = std::numeric_limits<T>::epsilon();
   while (t <= (-1 + eps) || (1 - eps) <= t) {
     t /= 10;
     digit_count++;
