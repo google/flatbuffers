@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 
-import Foundation
-
 /// Struct is a representation of a mutable `Flatbuffers` struct
 /// since native structs are value types and cant be mutated
 @frozen

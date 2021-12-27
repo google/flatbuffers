@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 
-import Foundation
-
 /// Enum is a protocol that all flatbuffers enums should conform to
 /// Since it allows us to get the actual `ByteSize` and `Value` from
 /// a swift enum.

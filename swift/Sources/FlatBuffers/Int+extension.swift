@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 
-import Foundation
-
 extension Int {
 
   /// Moves the current int into the nearest power of two

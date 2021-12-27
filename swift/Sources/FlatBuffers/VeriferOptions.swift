@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 
-import Foundation
-
 /// `VerifierOptions` is a set of options to verify a flatbuffer
 public struct VerifierOptions {
 

@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 
-import Foundation
-
 /// NativeObject is a protocol that all of the `Object-API` generated code should be
 /// conforming to since it allows developers the ease of use to pack and unpack their
 /// Flatbuffers objects

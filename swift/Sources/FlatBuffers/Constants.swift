@@ -14,15 +14,28 @@
  * limitations under the License.
  */
 
+/// A boolean to see if the system is littleEndian
+#if os(WASI)
+let isLitteEndian: Bool = {
+    let number: UInt32 = 0x12345678
+    let converted = number.bigEndian
+    if number == converted {
+        return false // We Are Big Endian
+    } else {
+        return true // We are Little-Endian
+    }
+}()
+#else
 #if os(Linux)
 import CoreFoundation
 #else
 import Foundation
 #endif
 
-/// A boolean to see if the system is littleEndian
 let isLitteEndian = CFByteOrderGetCurrent() ==
   Int(CFByteOrderLittleEndian.rawValue)
+#endif
+
 /// Constant for the file id length
 let FileIdLength = 4
 /// Type aliases

@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 
-import Foundation
-
 /// NativeStruct is a protocol that indicates if the struct is a native `swift` struct
 /// since now we will be serializing native structs into the buffer.
 public protocol NativeStruct {}

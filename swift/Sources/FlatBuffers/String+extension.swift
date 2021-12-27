@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 
-import Foundation
-
 extension String: Verifiable {
 
   /// Verifies that the current value is which the bounds of the buffer, and if

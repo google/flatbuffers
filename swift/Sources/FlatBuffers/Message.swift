@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 
-import Foundation
-
 /// FlatBufferGRPCMessage protocol that should allow us to invoke
 /// initializers directly from the GRPC generated code
 public protocol FlatBufferGRPCMessage {

@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 
-import Foundation
-
 /// `Table` is a Flatbuffers object that can read,
 /// mutate scalar fields within a valid flatbuffers buffer
 @frozen

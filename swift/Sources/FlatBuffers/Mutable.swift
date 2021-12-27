@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 
-import Foundation
-
 /// Mutable is a protocol that allows us to mutate Scalar values within a ``ByteBuffer``
 public protocol Mutable {
   /// makes Flatbuffer accessed within the Protocol

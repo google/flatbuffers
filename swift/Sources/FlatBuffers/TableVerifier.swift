@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 
-import Foundation
-
 /// `TableVerifier` verifies a table object is within a provided memory.
 /// It checks if all the objects for a specific generated table, are within
 /// the bounds of the buffer, aligned.

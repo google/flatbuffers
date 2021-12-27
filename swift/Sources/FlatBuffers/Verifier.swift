@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 
-import Foundation
-
 /// Verifier that check if the buffer passed into it is a valid,
 /// safe, aligned Flatbuffers object since swift read from `unsafeMemory`
 public struct Verifier {

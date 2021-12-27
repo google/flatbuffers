@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 
-import Foundation
-
 /// FlatBuffersUtils hosts some utility functions that might be useful
 public enum FlatBuffersUtils {
 

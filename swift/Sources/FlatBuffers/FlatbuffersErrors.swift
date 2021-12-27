@@ -14,10 +14,8 @@
  * limitations under the License.
  */
 
-import Foundation
-
 /// Collection of thrown from the Flatbuffer verifier
-public enum FlatbuffersErrors: Error, Equatable {
+public enum FlatbuffersErrors: Error {
 
   /// Thrown when buffer is bigger than the allowed 2GiB
   case exceedsMaxSizeAllowed
@@ -57,6 +55,59 @@ public enum FlatbuffersErrors: Error, Equatable {
     lhs: FlatbuffersErrors,
     rhs: FlatbuffersErrors) -> Bool
   {
-    lhs.localizedDescription == rhs.localizedDescription
+      switch lhs {
+      case .unknownUnionCase:
+          return rhs == .unknownUnionCase
+      case .exceedsMaxSizeAllowed:
+          return rhs == .exceedsMaxSizeAllowed
+      case .missAlignedPointer(position: let position, type: let type):
+          if case .missAlignedPointer(let rhsPosition, let rhsType) = rhs {
+              return position == rhsPosition && type == rhsType
+          } else {
+              return false
+          }
+      case .outOfBounds(position: let position, end: let end):
+          if case .outOfBounds(let rhsPosition, let rhsEnd) = rhs {
+              return position == rhsPosition && end == rhsEnd
+          } else {
+              return false
+          }
+      case .signedOffsetOutOfBounds(offset: let offset, position: let position):
+          if case .signedOffsetOutOfBounds(let rhsOffset, let rhsPosition) = rhs {
+              return offset == rhsOffset && rhsPosition == position
+          } else {
+              return false
+          }
+      case .requiredFieldDoesntExist(position: let position, name: let name):
+          if case .requiredFieldDoesntExist(let rhsPosition, let rhsName) = rhs {
+              return rhsPosition == position && rhsName == name
+          } else {
+              return false
+          }
+      case .missingNullTerminator(position: let position, str: let str):
+          if case .missingNullTerminator(let rhsPosition, let rhsStr) = rhs {
+              return rhsPosition == position && rhsStr == str
+          } else {
+              return false
+          }
+      case .maximumTables:
+          return rhs == .maximumTables
+      case .maximumDepth:
+          return rhs == .maximumDepth
+      case .valueNotFound(key: let key, keyName: let keyName, field: let field, fieldName: let fieldName):
+          if case .valueNotFound(let rhsKey, let rhsKeyName, let rhsField, let rhsFieldName) = rhs {
+              return rhsKey == key && rhsKeyName == keyName && rhsField == field && rhsFieldName == fieldName
+          } else {
+              return false
+          }
+      case .unionVectorSize(keyVectorSize: let keyVectorSize, fieldVectorSize: let fieldVectorSize, unionKeyName: let unionKeyName, fieldName: let fieldName):
+          if case .unionVectorSize(let rhsKeyVectorSize, let rhsFieldVectorSize, let rhsUnionKeyName, let rhsFieldName) = rhs {
+              return rhsKeyVectorSize == keyVectorSize && rhsFieldVectorSize == fieldVectorSize && rhsUnionKeyName == unionKeyName && rhsFieldName == fieldName
+          } else {
+              return false
+          }
+      case .apparentSizeTooLarge:
+          return rhs == .apparentSizeTooLarge
+      }
   }
 }

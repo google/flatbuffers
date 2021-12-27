@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 
-import Foundation
-
 /// Verifiable is a protocol all swift flatbuffers object should conform to,
 /// since swift is similar to `cpp` and `rust` where the data is read directly
 /// from `unsafeMemory` thus the need to verify if the buffer received is a valid one

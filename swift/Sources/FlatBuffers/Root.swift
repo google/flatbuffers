@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 
-import Foundation
-
 /// Takes in a prefixed sized buffer, where the prefixed size would be skipped.
 /// And would verify that the buffer passed is a valid `Flatbuffers` Object.
 /// - Parameters:
