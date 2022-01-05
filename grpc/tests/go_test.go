@@ -69,7 +69,7 @@ func RetrieveClient(c Example.MonsterStorageClient, t *testing.T) {
 	}
 	monster, err := out.Recv()
 	if err != nil {
-		return
+		t.Fatalf("Recv failed: %v", err)
 	}
 	if string(monster.Name()) != test {
 		t.Errorf("RetrieveClient failed: expected=%s, got=%s\n", test, monster.Name())
