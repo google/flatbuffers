@@ -251,8 +251,8 @@ function test64bit() {
   var mon2 = Monster.endMonster(fbb);
 
   Stat.startStat(fbb);
-  // 2541551405100253985 = 0x87654321(low part) + 0x23456789 * 0x100000000(high part);
-  Stat.addVal(fbb, BigInt.asUintN(64, BigInt(0x87654321) + (BigInt(0x23456789) << BigInt(32)))); // the low part is Uint32
+  // 2541551405100253985 = 0x2345678987654321
+  Stat.addVal(fbb, 0x2345678987654321n);
   var stat = Stat.endStat(fbb);
 
   Monster.startMonster(fbb);
@@ -370,8 +370,8 @@ function fuzzTest1() {
   var ushort_val = 0xFEEE;
   var int_val    = 0x83333333 | 0;
   var uint_val   = 0xFDDDDDDD;
-  var long_val = BigInt.asIntN(64, BigInt(0x44444444) + (BigInt(0x84444444) << BigInt(32)));
-  var ulong_val = BigInt.asUintN(64, BigInt(0xCCCCCCCC) + (BigInt(0xFCCCCCCC) << BigInt(32)));
+  var long_val   = BigInt.asIntN(64, 0x8444444444444444n);
+  var ulong_val  = BigInt.asUintN(64, 0xFCCCCCCCCCCCCCCCn);
   var float_val  = new Float32Array([3.14159])[0];
   var double_val = 3.14159265359;
 
