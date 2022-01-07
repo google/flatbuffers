@@ -23,7 +23,7 @@ export class Stat {
     }
     val() {
         const offset = this.bb.__offset(this.bb_pos, 6);
-        return offset ? this.bb.readInt64(this.bb_pos + offset) : this.bb.createLong(0, 0);
+        return offset ? this.bb.readInt64(this.bb_pos + offset) : BigInt('0');
     }
     mutate_val(value) {
         const offset = this.bb.__offset(this.bb_pos, 6);
@@ -55,7 +55,7 @@ export class Stat {
         builder.addFieldOffset(0, idOffset, 0);
     }
     static addVal(builder, val) {
-        builder.addFieldInt64(1, val, builder.createLong(0, 0));
+        builder.addFieldInt64(1, val, BigInt('0'));
     }
     static addCount(builder, count) {
         builder.addFieldInt16(2, count, 0);
@@ -87,7 +87,7 @@ export class Stat {
     }
 }
 export class StatT {
-    constructor(id = null, val = flatbuffers.createLong(0, 0), count = 0) {
+    constructor(id = null, val = BigInt('0'), count = 0) {
         this.id = id;
         this.val = val;
         this.count = count;

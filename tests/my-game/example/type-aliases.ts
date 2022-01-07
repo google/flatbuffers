@@ -118,12 +118,12 @@ mutate_u32(value:number):boolean {
   return true;
 }
 
-i64():flatbuffers.Long {
+i64():bigint {
   const offset = this.bb!.__offset(this.bb_pos, 16);
-  return offset ? this.bb!.readInt64(this.bb_pos + offset) : this.bb!.createLong(0, 0);
+  return offset ? this.bb!.readInt64(this.bb_pos + offset) : BigInt('0');
 }
 
-mutate_i64(value:flatbuffers.Long):boolean {
+mutate_i64(value:bigint):boolean {
   const offset = this.bb!.__offset(this.bb_pos, 16);
 
   if (offset === 0) {
@@ -134,12 +134,12 @@ mutate_i64(value:flatbuffers.Long):boolean {
   return true;
 }
 
-u64():flatbuffers.Long {
+u64():bigint {
   const offset = this.bb!.__offset(this.bb_pos, 18);
-  return offset ? this.bb!.readUint64(this.bb_pos + offset) : this.bb!.createLong(0, 0);
+  return offset ? this.bb!.readUint64(this.bb_pos + offset) : BigInt('0');
 }
 
-mutate_u64(value:flatbuffers.Long):boolean {
+mutate_u64(value:bigint):boolean {
   const offset = this.bb!.__offset(this.bb_pos, 18);
 
   if (offset === 0) {
@@ -244,12 +244,12 @@ static addU32(builder:flatbuffers.Builder, u32:number) {
   builder.addFieldInt32(5, u32, 0);
 }
 
-static addI64(builder:flatbuffers.Builder, i64:flatbuffers.Long) {
-  builder.addFieldInt64(6, i64, builder.createLong(0, 0));
+static addI64(builder:flatbuffers.Builder, i64:bigint) {
+  builder.addFieldInt64(6, i64, BigInt('0'));
 }
 
-static addU64(builder:flatbuffers.Builder, u64:flatbuffers.Long) {
-  builder.addFieldInt64(7, u64, builder.createLong(0, 0));
+static addU64(builder:flatbuffers.Builder, u64:bigint) {
+  builder.addFieldInt64(7, u64, BigInt('0'));
 }
 
 static addF32(builder:flatbuffers.Builder, f32:number) {
@@ -307,7 +307,7 @@ static endTypeAliases(builder:flatbuffers.Builder):flatbuffers.Offset {
   return offset;
 }
 
-static createTypeAliases(builder:flatbuffers.Builder, i8:number, u8:number, i16:number, u16:number, i32:number, u32:number, i64:flatbuffers.Long, u64:flatbuffers.Long, f32:number, f64:number, v8Offset:flatbuffers.Offset, vf64Offset:flatbuffers.Offset):flatbuffers.Offset {
+static createTypeAliases(builder:flatbuffers.Builder, i8:number, u8:number, i16:number, u16:number, i32:number, u32:number, i64:bigint, u64:bigint, f32:number, f64:number, v8Offset:flatbuffers.Offset, vf64Offset:flatbuffers.Offset):flatbuffers.Offset {
   TypeAliases.startTypeAliases(builder);
   TypeAliases.addI8(builder, i8);
   TypeAliases.addU8(builder, u8);
@@ -374,8 +374,8 @@ constructor(
   public u16: number = 0,
   public i32: number = 0,
   public u32: number = 0,
-  public i64: flatbuffers.Long = flatbuffers.createLong(0, 0),
-  public u64: flatbuffers.Long = flatbuffers.createLong(0, 0),
+  public i64: bigint = BigInt('0'),
+  public u64: bigint = BigInt('0'),
   public f32: number = 0.0,
   public f64: number = 0.0,
   public v8: (number)[] = [],

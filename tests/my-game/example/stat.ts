@@ -29,12 +29,12 @@ id(optionalEncoding?:any):string|Uint8Array|null {
   return offset ? this.bb!.__string(this.bb_pos + offset, optionalEncoding) : null;
 }
 
-val():flatbuffers.Long {
+val():bigint {
   const offset = this.bb!.__offset(this.bb_pos, 6);
-  return offset ? this.bb!.readInt64(this.bb_pos + offset) : this.bb!.createLong(0, 0);
+  return offset ? this.bb!.readInt64(this.bb_pos + offset) : BigInt('0');
 }
 
-mutate_val(value:flatbuffers.Long):boolean {
+mutate_val(value:bigint):boolean {
   const offset = this.bb!.__offset(this.bb_pos, 6);
 
   if (offset === 0) {
@@ -73,8 +73,8 @@ static addId(builder:flatbuffers.Builder, idOffset:flatbuffers.Offset) {
   builder.addFieldOffset(0, idOffset, 0);
 }
 
-static addVal(builder:flatbuffers.Builder, val:flatbuffers.Long) {
-  builder.addFieldInt64(1, val, builder.createLong(0, 0));
+static addVal(builder:flatbuffers.Builder, val:bigint) {
+  builder.addFieldInt64(1, val, BigInt('0'));
 }
 
 static addCount(builder:flatbuffers.Builder, count:number) {
@@ -86,7 +86,7 @@ static endStat(builder:flatbuffers.Builder):flatbuffers.Offset {
   return offset;
 }
 
-static createStat(builder:flatbuffers.Builder, idOffset:flatbuffers.Offset, val:flatbuffers.Long, count:number):flatbuffers.Offset {
+static createStat(builder:flatbuffers.Builder, idOffset:flatbuffers.Offset, val:bigint, count:number):flatbuffers.Offset {
   Stat.startStat(builder);
   Stat.addId(builder, idOffset);
   Stat.addVal(builder, val);
@@ -121,7 +121,7 @@ unpackTo(_o: StatT): void {
 export class StatT {
 constructor(
   public id: string|Uint8Array|null = null,
-  public val: flatbuffers.Long = flatbuffers.createLong(0, 0),
+  public val: bigint = BigInt('0'),
   public count: number = 0
 ){}
 

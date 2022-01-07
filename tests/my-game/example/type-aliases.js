@@ -91,7 +91,7 @@ export class TypeAliases {
     }
     i64() {
         const offset = this.bb.__offset(this.bb_pos, 16);
-        return offset ? this.bb.readInt64(this.bb_pos + offset) : this.bb.createLong(0, 0);
+        return offset ? this.bb.readInt64(this.bb_pos + offset) : BigInt('0');
     }
     mutate_i64(value) {
         const offset = this.bb.__offset(this.bb_pos, 16);
@@ -103,7 +103,7 @@ export class TypeAliases {
     }
     u64() {
         const offset = this.bb.__offset(this.bb_pos, 18);
-        return offset ? this.bb.readUint64(this.bb_pos + offset) : this.bb.createLong(0, 0);
+        return offset ? this.bb.readUint64(this.bb_pos + offset) : BigInt('0');
     }
     mutate_u64(value) {
         const offset = this.bb.__offset(this.bb_pos, 18);
@@ -186,10 +186,10 @@ export class TypeAliases {
         builder.addFieldInt32(5, u32, 0);
     }
     static addI64(builder, i64) {
-        builder.addFieldInt64(6, i64, builder.createLong(0, 0));
+        builder.addFieldInt64(6, i64, BigInt('0'));
     }
     static addU64(builder, u64) {
-        builder.addFieldInt64(7, u64, builder.createLong(0, 0));
+        builder.addFieldInt64(7, u64, BigInt('0'));
     }
     static addF32(builder, f32) {
         builder.addFieldFloat32(8, f32, 0.0);
@@ -268,7 +268,7 @@ export class TypeAliases {
     }
 }
 export class TypeAliasesT {
-    constructor(i8 = 0, u8 = 0, i16 = 0, u16 = 0, i32 = 0, u32 = 0, i64 = flatbuffers.createLong(0, 0), u64 = flatbuffers.createLong(0, 0), f32 = 0.0, f64 = 0.0, v8 = [], vf64 = []) {
+    constructor(i8 = 0, u8 = 0, i16 = 0, u16 = 0, i32 = 0, u32 = 0, i64 = BigInt('0'), u64 = BigInt('0'), f32 = 0.0, f64 = 0.0, v8 = [], vf64 = []) {
         this.i8 = i8;
         this.u8 = u8;
         this.i16 = i16;

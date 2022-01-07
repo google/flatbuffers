@@ -117,34 +117,34 @@ defaultU32():number {
   return offset ? this.bb!.readUint32(this.bb_pos + offset) : 42;
 }
 
-justI64():flatbuffers.Long {
+justI64():bigint {
   const offset = this.bb!.__offset(this.bb_pos, 40);
-  return offset ? this.bb!.readInt64(this.bb_pos + offset) : this.bb!.createLong(0, 0);
+  return offset ? this.bb!.readInt64(this.bb_pos + offset) : BigInt('0');
 }
 
-maybeI64():flatbuffers.Long|null {
+maybeI64():bigint|null {
   const offset = this.bb!.__offset(this.bb_pos, 42);
   return offset ? this.bb!.readInt64(this.bb_pos + offset) : null;
 }
 
-defaultI64():flatbuffers.Long {
+defaultI64():bigint {
   const offset = this.bb!.__offset(this.bb_pos, 44);
-  return offset ? this.bb!.readInt64(this.bb_pos + offset) : this.bb!.createLong(42, 0);
+  return offset ? this.bb!.readInt64(this.bb_pos + offset) : BigInt('42');
 }
 
-justU64():flatbuffers.Long {
+justU64():bigint {
   const offset = this.bb!.__offset(this.bb_pos, 46);
-  return offset ? this.bb!.readUint64(this.bb_pos + offset) : this.bb!.createLong(0, 0);
+  return offset ? this.bb!.readUint64(this.bb_pos + offset) : BigInt('0');
 }
 
-maybeU64():flatbuffers.Long|null {
+maybeU64():bigint|null {
   const offset = this.bb!.__offset(this.bb_pos, 48);
   return offset ? this.bb!.readUint64(this.bb_pos + offset) : null;
 }
 
-defaultU64():flatbuffers.Long {
+defaultU64():bigint {
   const offset = this.bb!.__offset(this.bb_pos, 50);
-  return offset ? this.bb!.readUint64(this.bb_pos + offset) : this.bb!.createLong(42, 0);
+  return offset ? this.bb!.readUint64(this.bb_pos + offset) : BigInt('42');
 }
 
 justF32():number {
@@ -283,28 +283,28 @@ static addDefaultU32(builder:flatbuffers.Builder, defaultU32:number) {
   builder.addFieldInt32(17, defaultU32, 42);
 }
 
-static addJustI64(builder:flatbuffers.Builder, justI64:flatbuffers.Long) {
-  builder.addFieldInt64(18, justI64, builder.createLong(0, 0));
+static addJustI64(builder:flatbuffers.Builder, justI64:bigint) {
+  builder.addFieldInt64(18, justI64, BigInt('0'));
 }
 
-static addMaybeI64(builder:flatbuffers.Builder, maybeI64:flatbuffers.Long) {
-  builder.addFieldInt64(19, maybeI64, builder.createLong(0, 0));
+static addMaybeI64(builder:flatbuffers.Builder, maybeI64:bigint) {
+  builder.addFieldInt64(19, maybeI64, BigInt(0));
 }
 
-static addDefaultI64(builder:flatbuffers.Builder, defaultI64:flatbuffers.Long) {
-  builder.addFieldInt64(20, defaultI64, builder.createLong(42, 0));
+static addDefaultI64(builder:flatbuffers.Builder, defaultI64:bigint) {
+  builder.addFieldInt64(20, defaultI64, BigInt('42'));
 }
 
-static addJustU64(builder:flatbuffers.Builder, justU64:flatbuffers.Long) {
-  builder.addFieldInt64(21, justU64, builder.createLong(0, 0));
+static addJustU64(builder:flatbuffers.Builder, justU64:bigint) {
+  builder.addFieldInt64(21, justU64, BigInt('0'));
 }
 
-static addMaybeU64(builder:flatbuffers.Builder, maybeU64:flatbuffers.Long) {
-  builder.addFieldInt64(22, maybeU64, builder.createLong(0, 0));
+static addMaybeU64(builder:flatbuffers.Builder, maybeU64:bigint) {
+  builder.addFieldInt64(22, maybeU64, BigInt(0));
 }
 
-static addDefaultU64(builder:flatbuffers.Builder, defaultU64:flatbuffers.Long) {
-  builder.addFieldInt64(23, defaultU64, builder.createLong(42, 0));
+static addDefaultU64(builder:flatbuffers.Builder, defaultU64:bigint) {
+  builder.addFieldInt64(23, defaultU64, BigInt('42'));
 }
 
 static addJustF32(builder:flatbuffers.Builder, justF32:number) {
@@ -368,7 +368,7 @@ static finishSizePrefixedScalarStuffBuffer(builder:flatbuffers.Builder, offset:f
   builder.finish(offset, 'NULL', true);
 }
 
-static createScalarStuff(builder:flatbuffers.Builder, justI8:number, maybeI8:number|null, defaultI8:number, justU8:number, maybeU8:number|null, defaultU8:number, justI16:number, maybeI16:number|null, defaultI16:number, justU16:number, maybeU16:number|null, defaultU16:number, justI32:number, maybeI32:number|null, defaultI32:number, justU32:number, maybeU32:number|null, defaultU32:number, justI64:flatbuffers.Long, maybeI64:flatbuffers.Long|null, defaultI64:flatbuffers.Long, justU64:flatbuffers.Long, maybeU64:flatbuffers.Long|null, defaultU64:flatbuffers.Long, justF32:number, maybeF32:number|null, defaultF32:number, justF64:number, maybeF64:number|null, defaultF64:number, justBool:boolean, maybeBool:boolean|null, defaultBool:boolean, justEnum:OptionalByte, maybeEnum:OptionalByte|null, defaultEnum:OptionalByte):flatbuffers.Offset {
+static createScalarStuff(builder:flatbuffers.Builder, justI8:number, maybeI8:number|null, defaultI8:number, justU8:number, maybeU8:number|null, defaultU8:number, justI16:number, maybeI16:number|null, defaultI16:number, justU16:number, maybeU16:number|null, defaultU16:number, justI32:number, maybeI32:number|null, defaultI32:number, justU32:number, maybeU32:number|null, defaultU32:number, justI64:bigint, maybeI64:bigint|null, defaultI64:bigint, justU64:bigint, maybeU64:bigint|null, defaultU64:bigint, justF32:number, maybeF32:number|null, defaultF32:number, justF64:number, maybeF64:number|null, defaultF64:number, justBool:boolean, maybeBool:boolean|null, defaultBool:boolean, justEnum:OptionalByte, maybeEnum:OptionalByte|null, defaultEnum:OptionalByte):flatbuffers.Offset {
   ScalarStuff.startScalarStuff(builder);
   ScalarStuff.addJustI8(builder, justI8);
   if (maybeI8 !== null)

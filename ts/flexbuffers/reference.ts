@@ -2,7 +2,6 @@ import { fromByteWidth } from './bit-width-util'
 import { ValueType } from './value-type'
 import { isNumber, isIndirectNumber, isAVector, fixedTypedVectorElementSize, isFixedTypedVector, isTypedVector, typedVectorElementType, packedType, fixedTypedVectorElementType } from './value-type-util'
 import { indirect, keyForIndex, keyIndex, readFloat, readInt, readUInt, valueForIndexWithKey } from './reference-util'
-import { Long } from '../long';
 import { fromUTF8Array } from './flexbuffers-util';
 import { BitWidth } from './bit-width';
 
@@ -48,7 +47,7 @@ export class Reference {
     return null;
   }
 
-  intValue(): number | Long | bigint | null {
+  intValue(): number | bigint | null {
     if (this.valueType === ValueType.INT) {
       return readInt(this.dataView, this.offset, this.parentWidth);
     }
@@ -74,7 +73,7 @@ export class Reference {
     return null;
   }
 
-  numericValue(): number | Long | bigint | null { return this.floatValue() || this.intValue()}
+  numericValue(): number | bigint | null { return this.floatValue() || this.intValue()}
 
   stringValue(): string | null {
     if (this.valueType === ValueType.STRING || this.valueType === ValueType.KEY) {

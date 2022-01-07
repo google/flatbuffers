@@ -3,15 +3,13 @@ import { toByteWidth, fromByteWidth } from './bit-width-util'
 import { toUTF8Array, fromUTF8Array } from './flexbuffers-util'
 import { Reference } from './reference'
 
-import { Long } from '../long'
-
 export function validateOffset(dataView: DataView, offset: number, width: number): void {
   if (dataView.byteLength <= offset + width || (offset & (toByteWidth(width) - 1)) !== 0) {
     throw "Bad offset: " + offset + ", width: " + width;
   }
 }
 
-export function readInt(dataView: DataView, offset: number, width: number): number | Long | bigint {
+export function readInt(dataView: DataView, offset: number, width: number): number | bigint {
   if (width < 2) {
     if (width < 1) {
       return dataView.getInt8(offset);
@@ -23,14 +21,14 @@ export function readInt(dataView: DataView, offset: number, width: number): numb
       return dataView.getInt32(offset, true)
     } else {
       if (dataView.setBigInt64 === undefined) {
-        return new Long(dataView.getUint32(offset, true), dataView.getUint32(offset + 4, true))
+        return BigInt(dataView.getUint32(offset, true)) + (BigInt(dataView.getUint32(offset + 4, true)) << BigInt(32));
       }
       return dataView.getBigInt64(offset, true)
     }
   }
 }
 
-export function readUInt(dataView: DataView, offset: number, width: number): number | Long | bigint {
+export function readUInt(dataView: DataView, offset: number, width: number): number | bigint {
   if (width < 2) {
     if (width < 1) {
       return dataView.getUint8(offset);
@@ -42,7 +40,7 @@ export function readUInt(dataView: DataView, offset: number, width: number): num
       return dataView.getUint32(offset, true)
     } else {
       if (dataView.getBigUint64 === undefined) {
-        return new Long(dataView.getUint32(offset, true), dataView.getUint32(offset + 4, true))
+        return BigInt(dataView.getUint32(offset, true)) + (BigInt(dataView.getUint32(offset + 4, true)) << BigInt(32));
       }
       return dataView.getBigUint64(offset, true)
     }

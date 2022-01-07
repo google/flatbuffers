@@ -1,7 +1,6 @@
 import { ByteBuffer } from "./byte-buffer"
 import { SIZEOF_SHORT, SIZE_PREFIX_LENGTH, SIZEOF_INT, FILE_IDENTIFIER_LENGTH } from "./constants"
 import { Offset, IGeneratedObject } from "./types"
-import { Long } from "./long"
 
 export class Builder {
     private bb: ByteBuffer
@@ -136,7 +135,7 @@ export class Builder {
       this.bb.writeInt32(this.space -= 4, value);
     }
   
-    writeInt64(value: Long): void {
+    writeInt64(value: bigint): void {
       this.bb.writeInt64(this.space -= 8, value);
     }
   
@@ -179,7 +178,7 @@ export class Builder {
      * Add an `int64` to the buffer, properly aligned, and grows the buffer (if necessary).
      * @param value The `int64` to add the the buffer.
      */
-    addInt64(value: Long): void {
+    addInt64(value: bigint): void {
       this.prep(8, 0);
       this.writeInt64(value);
     }
@@ -223,8 +222,8 @@ export class Builder {
       }
     }
   
-    addFieldInt64(voffset: number, value: Long, defaultValue: Long): void {
-      if (this.force_defaults || !value.equals(defaultValue)) {
+    addFieldInt64(voffset: number, value: bigint, defaultValue: bigint): void {
+      if (this.force_defaults || value !== defaultValue) {
         this.addInt64(value);
         this.slot(voffset);
       }
@@ -572,13 +571,6 @@ export class Builder {
         bytes[offset++] = utf8[i];
       }
       return this.endVector();
-    }
-  
-    /**
-     * A helper function to avoid generated code depending on this file directly.
-     */
-    createLong(low: number, high: number): Long {
-      return Long.create(low, high);
     }
   
     /**

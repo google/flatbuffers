@@ -95,7 +95,7 @@ export class ScalarStuff {
     }
     justI64() {
         const offset = this.bb.__offset(this.bb_pos, 40);
-        return offset ? this.bb.readInt64(this.bb_pos + offset) : this.bb.createLong(0, 0);
+        return offset ? this.bb.readInt64(this.bb_pos + offset) : BigInt('0');
     }
     maybeI64() {
         const offset = this.bb.__offset(this.bb_pos, 42);
@@ -103,11 +103,11 @@ export class ScalarStuff {
     }
     defaultI64() {
         const offset = this.bb.__offset(this.bb_pos, 44);
-        return offset ? this.bb.readInt64(this.bb_pos + offset) : this.bb.createLong(42, 0);
+        return offset ? this.bb.readInt64(this.bb_pos + offset) : BigInt('42');
     }
     justU64() {
         const offset = this.bb.__offset(this.bb_pos, 46);
-        return offset ? this.bb.readUint64(this.bb_pos + offset) : this.bb.createLong(0, 0);
+        return offset ? this.bb.readUint64(this.bb_pos + offset) : BigInt('0');
     }
     maybeU64() {
         const offset = this.bb.__offset(this.bb_pos, 48);
@@ -115,7 +115,7 @@ export class ScalarStuff {
     }
     defaultU64() {
         const offset = this.bb.__offset(this.bb_pos, 50);
-        return offset ? this.bb.readUint64(this.bb_pos + offset) : this.bb.createLong(42, 0);
+        return offset ? this.bb.readUint64(this.bb_pos + offset) : BigInt('42');
     }
     justF32() {
         const offset = this.bb.__offset(this.bb_pos, 52);
@@ -223,22 +223,22 @@ export class ScalarStuff {
         builder.addFieldInt32(17, defaultU32, 42);
     }
     static addJustI64(builder, justI64) {
-        builder.addFieldInt64(18, justI64, builder.createLong(0, 0));
+        builder.addFieldInt64(18, justI64, BigInt('0'));
     }
     static addMaybeI64(builder, maybeI64) {
-        builder.addFieldInt64(19, maybeI64, builder.createLong(0, 0));
+        builder.addFieldInt64(19, maybeI64, BigInt(0));
     }
     static addDefaultI64(builder, defaultI64) {
-        builder.addFieldInt64(20, defaultI64, builder.createLong(42, 0));
+        builder.addFieldInt64(20, defaultI64, BigInt('42'));
     }
     static addJustU64(builder, justU64) {
-        builder.addFieldInt64(21, justU64, builder.createLong(0, 0));
+        builder.addFieldInt64(21, justU64, BigInt('0'));
     }
     static addMaybeU64(builder, maybeU64) {
-        builder.addFieldInt64(22, maybeU64, builder.createLong(0, 0));
+        builder.addFieldInt64(22, maybeU64, BigInt(0));
     }
     static addDefaultU64(builder, defaultU64) {
-        builder.addFieldInt64(23, defaultU64, builder.createLong(42, 0));
+        builder.addFieldInt64(23, defaultU64, BigInt('42'));
     }
     static addJustF32(builder, justF32) {
         builder.addFieldFloat32(24, justF32, 0.0);

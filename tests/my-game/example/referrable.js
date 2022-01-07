@@ -19,7 +19,7 @@ export class Referrable {
     }
     id() {
         const offset = this.bb.__offset(this.bb_pos, 4);
-        return offset ? this.bb.readUint64(this.bb_pos + offset) : this.bb.createLong(0, 0);
+        return offset ? this.bb.readUint64(this.bb_pos + offset) : BigInt('0');
     }
     mutate_id(value) {
         const offset = this.bb.__offset(this.bb_pos, 4);
@@ -36,7 +36,7 @@ export class Referrable {
         builder.startObject(1);
     }
     static addId(builder, id) {
-        builder.addFieldInt64(0, id, builder.createLong(0, 0));
+        builder.addFieldInt64(0, id, BigInt('0'));
     }
     static endReferrable(builder) {
         const offset = builder.endObject();
@@ -61,7 +61,7 @@ export class Referrable {
     }
 }
 export class ReferrableT {
-    constructor(id = flatbuffers.createLong(0, 0)) {
+    constructor(id = BigInt('0')) {
         this.id = id;
     }
     pack(builder) {

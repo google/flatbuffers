@@ -236,12 +236,12 @@ mutate_testhashu32_fnv1(value:number):boolean {
   return true;
 }
 
-testhashs64Fnv1():flatbuffers.Long {
+testhashs64Fnv1():bigint {
   const offset = this.bb!.__offset(this.bb_pos, 40);
-  return offset ? this.bb!.readInt64(this.bb_pos + offset) : this.bb!.createLong(0, 0);
+  return offset ? this.bb!.readInt64(this.bb_pos + offset) : BigInt('0');
 }
 
-mutate_testhashs64_fnv1(value:flatbuffers.Long):boolean {
+mutate_testhashs64_fnv1(value:bigint):boolean {
   const offset = this.bb!.__offset(this.bb_pos, 40);
 
   if (offset === 0) {
@@ -252,12 +252,12 @@ mutate_testhashs64_fnv1(value:flatbuffers.Long):boolean {
   return true;
 }
 
-testhashu64Fnv1():flatbuffers.Long {
+testhashu64Fnv1():bigint {
   const offset = this.bb!.__offset(this.bb_pos, 42);
-  return offset ? this.bb!.readUint64(this.bb_pos + offset) : this.bb!.createLong(0, 0);
+  return offset ? this.bb!.readUint64(this.bb_pos + offset) : BigInt('0');
 }
 
-mutate_testhashu64_fnv1(value:flatbuffers.Long):boolean {
+mutate_testhashu64_fnv1(value:bigint):boolean {
   const offset = this.bb!.__offset(this.bb_pos, 42);
 
   if (offset === 0) {
@@ -300,12 +300,12 @@ mutate_testhashu32_fnv1a(value:number):boolean {
   return true;
 }
 
-testhashs64Fnv1a():flatbuffers.Long {
+testhashs64Fnv1a():bigint {
   const offset = this.bb!.__offset(this.bb_pos, 48);
-  return offset ? this.bb!.readInt64(this.bb_pos + offset) : this.bb!.createLong(0, 0);
+  return offset ? this.bb!.readInt64(this.bb_pos + offset) : BigInt('0');
 }
 
-mutate_testhashs64_fnv1a(value:flatbuffers.Long):boolean {
+mutate_testhashs64_fnv1a(value:bigint):boolean {
   const offset = this.bb!.__offset(this.bb_pos, 48);
 
   if (offset === 0) {
@@ -316,12 +316,12 @@ mutate_testhashs64_fnv1a(value:flatbuffers.Long):boolean {
   return true;
 }
 
-testhashu64Fnv1a():flatbuffers.Long {
+testhashu64Fnv1a():bigint {
   const offset = this.bb!.__offset(this.bb_pos, 50);
-  return offset ? this.bb!.readUint64(this.bb_pos + offset) : this.bb!.createLong(0, 0);
+  return offset ? this.bb!.readUint64(this.bb_pos + offset) : BigInt('0');
 }
 
-mutate_testhashu64_fnv1a(value:flatbuffers.Long):boolean {
+mutate_testhashu64_fnv1a(value:bigint):boolean {
   const offset = this.bb!.__offset(this.bb_pos, 50);
 
   if (offset === 0) {
@@ -442,9 +442,9 @@ test5Length():number {
   return offset ? this.bb!.__vector_len(this.bb_pos + offset) : 0;
 }
 
-vectorOfLongs(index: number):flatbuffers.Long|null {
+vectorOfLongs(index: number):bigint|null {
   const offset = this.bb!.__offset(this.bb_pos, 68);
-  return offset ? this.bb!.readInt64(this.bb!.__vector(this.bb_pos + offset) + index * 8) : this.bb!.createLong(0, 0);
+  return offset ? this.bb!.readInt64(this.bb!.__vector(this.bb_pos + offset) + index * 8) : BigInt(0);
 }
 
 vectorOfLongsLength():number {
@@ -482,12 +482,12 @@ vectorOfReferrablesLength():number {
   return offset ? this.bb!.__vector_len(this.bb_pos + offset) : 0;
 }
 
-singleWeakReference():flatbuffers.Long {
+singleWeakReference():bigint {
   const offset = this.bb!.__offset(this.bb_pos, 76);
-  return offset ? this.bb!.readUint64(this.bb_pos + offset) : this.bb!.createLong(0, 0);
+  return offset ? this.bb!.readUint64(this.bb_pos + offset) : BigInt('0');
 }
 
-mutate_single_weak_reference(value:flatbuffers.Long):boolean {
+mutate_single_weak_reference(value:bigint):boolean {
   const offset = this.bb!.__offset(this.bb_pos, 76);
 
   if (offset === 0) {
@@ -498,9 +498,9 @@ mutate_single_weak_reference(value:flatbuffers.Long):boolean {
   return true;
 }
 
-vectorOfWeakReferences(index: number):flatbuffers.Long|null {
+vectorOfWeakReferences(index: number):bigint|null {
   const offset = this.bb!.__offset(this.bb_pos, 78);
-  return offset ? this.bb!.readUint64(this.bb!.__vector(this.bb_pos + offset) + index * 8) : this.bb!.createLong(0, 0);
+  return offset ? this.bb!.readUint64(this.bb!.__vector(this.bb_pos + offset) + index * 8) : BigInt(0);
 }
 
 vectorOfWeakReferencesLength():number {
@@ -518,12 +518,12 @@ vectorOfStrongReferrablesLength():number {
   return offset ? this.bb!.__vector_len(this.bb_pos + offset) : 0;
 }
 
-coOwningReference():flatbuffers.Long {
+coOwningReference():bigint {
   const offset = this.bb!.__offset(this.bb_pos, 82);
-  return offset ? this.bb!.readUint64(this.bb_pos + offset) : this.bb!.createLong(0, 0);
+  return offset ? this.bb!.readUint64(this.bb_pos + offset) : BigInt('0');
 }
 
-mutate_co_owning_reference(value:flatbuffers.Long):boolean {
+mutate_co_owning_reference(value:bigint):boolean {
   const offset = this.bb!.__offset(this.bb_pos, 82);
 
   if (offset === 0) {
@@ -534,9 +534,9 @@ mutate_co_owning_reference(value:flatbuffers.Long):boolean {
   return true;
 }
 
-vectorOfCoOwningReferences(index: number):flatbuffers.Long|null {
+vectorOfCoOwningReferences(index: number):bigint|null {
   const offset = this.bb!.__offset(this.bb_pos, 84);
-  return offset ? this.bb!.readUint64(this.bb!.__vector(this.bb_pos + offset) + index * 8) : this.bb!.createLong(0, 0);
+  return offset ? this.bb!.readUint64(this.bb!.__vector(this.bb_pos + offset) + index * 8) : BigInt(0);
 }
 
 vectorOfCoOwningReferencesLength():number {
@@ -544,12 +544,12 @@ vectorOfCoOwningReferencesLength():number {
   return offset ? this.bb!.__vector_len(this.bb_pos + offset) : 0;
 }
 
-nonOwningReference():flatbuffers.Long {
+nonOwningReference():bigint {
   const offset = this.bb!.__offset(this.bb_pos, 86);
-  return offset ? this.bb!.readUint64(this.bb_pos + offset) : this.bb!.createLong(0, 0);
+  return offset ? this.bb!.readUint64(this.bb_pos + offset) : BigInt('0');
 }
 
-mutate_non_owning_reference(value:flatbuffers.Long):boolean {
+mutate_non_owning_reference(value:bigint):boolean {
   const offset = this.bb!.__offset(this.bb_pos, 86);
 
   if (offset === 0) {
@@ -560,9 +560,9 @@ mutate_non_owning_reference(value:flatbuffers.Long):boolean {
   return true;
 }
 
-vectorOfNonOwningReferences(index: number):flatbuffers.Long|null {
+vectorOfNonOwningReferences(index: number):bigint|null {
   const offset = this.bb!.__offset(this.bb_pos, 88);
-  return offset ? this.bb!.readUint64(this.bb!.__vector(this.bb_pos + offset) + index * 8) : this.bb!.createLong(0, 0);
+  return offset ? this.bb!.readUint64(this.bb!.__vector(this.bb_pos + offset) + index * 8) : BigInt(0);
 }
 
 vectorOfNonOwningReferencesLength():number {
@@ -774,12 +774,12 @@ static addTesthashu32Fnv1(builder:flatbuffers.Builder, testhashu32Fnv1:number) {
   builder.addFieldInt32(17, testhashu32Fnv1, 0);
 }
 
-static addTesthashs64Fnv1(builder:flatbuffers.Builder, testhashs64Fnv1:flatbuffers.Long) {
-  builder.addFieldInt64(18, testhashs64Fnv1, builder.createLong(0, 0));
+static addTesthashs64Fnv1(builder:flatbuffers.Builder, testhashs64Fnv1:bigint) {
+  builder.addFieldInt64(18, testhashs64Fnv1, BigInt('0'));
 }
 
-static addTesthashu64Fnv1(builder:flatbuffers.Builder, testhashu64Fnv1:flatbuffers.Long) {
-  builder.addFieldInt64(19, testhashu64Fnv1, builder.createLong(0, 0));
+static addTesthashu64Fnv1(builder:flatbuffers.Builder, testhashu64Fnv1:bigint) {
+  builder.addFieldInt64(19, testhashu64Fnv1, BigInt('0'));
 }
 
 static addTesthashs32Fnv1a(builder:flatbuffers.Builder, testhashs32Fnv1a:number) {
@@ -790,12 +790,12 @@ static addTesthashu32Fnv1a(builder:flatbuffers.Builder, testhashu32Fnv1a:number)
   builder.addFieldInt32(21, testhashu32Fnv1a, 0);
 }
 
-static addTesthashs64Fnv1a(builder:flatbuffers.Builder, testhashs64Fnv1a:flatbuffers.Long) {
-  builder.addFieldInt64(22, testhashs64Fnv1a, builder.createLong(0, 0));
+static addTesthashs64Fnv1a(builder:flatbuffers.Builder, testhashs64Fnv1a:bigint) {
+  builder.addFieldInt64(22, testhashs64Fnv1a, BigInt('0'));
 }
 
-static addTesthashu64Fnv1a(builder:flatbuffers.Builder, testhashu64Fnv1a:flatbuffers.Long) {
-  builder.addFieldInt64(23, testhashu64Fnv1a, builder.createLong(0, 0));
+static addTesthashu64Fnv1a(builder:flatbuffers.Builder, testhashu64Fnv1a:bigint) {
+  builder.addFieldInt64(23, testhashu64Fnv1a, BigInt('0'));
 }
 
 static addTestarrayofbools(builder:flatbuffers.Builder, testarrayofboolsOffset:flatbuffers.Offset) {
@@ -878,7 +878,7 @@ static addVectorOfLongs(builder:flatbuffers.Builder, vectorOfLongsOffset:flatbuf
   builder.addFieldOffset(32, vectorOfLongsOffset, 0);
 }
 
-static createVectorOfLongsVector(builder:flatbuffers.Builder, data:flatbuffers.Long[]):flatbuffers.Offset {
+static createVectorOfLongsVector(builder:flatbuffers.Builder, data:bigint[]):flatbuffers.Offset {
   builder.startVector(8, data.length, 8);
   for (let i = data.length - 1; i >= 0; i--) {
     builder.addInt64(data[i]!);
@@ -931,15 +931,15 @@ static startVectorOfReferrablesVector(builder:flatbuffers.Builder, numElems:numb
   builder.startVector(4, numElems, 4);
 }
 
-static addSingleWeakReference(builder:flatbuffers.Builder, singleWeakReference:flatbuffers.Long) {
-  builder.addFieldInt64(36, singleWeakReference, builder.createLong(0, 0));
+static addSingleWeakReference(builder:flatbuffers.Builder, singleWeakReference:bigint) {
+  builder.addFieldInt64(36, singleWeakReference, BigInt('0'));
 }
 
 static addVectorOfWeakReferences(builder:flatbuffers.Builder, vectorOfWeakReferencesOffset:flatbuffers.Offset) {
   builder.addFieldOffset(37, vectorOfWeakReferencesOffset, 0);
 }
 
-static createVectorOfWeakReferencesVector(builder:flatbuffers.Builder, data:flatbuffers.Long[]):flatbuffers.Offset {
+static createVectorOfWeakReferencesVector(builder:flatbuffers.Builder, data:bigint[]):flatbuffers.Offset {
   builder.startVector(8, data.length, 8);
   for (let i = data.length - 1; i >= 0; i--) {
     builder.addInt64(data[i]!);
@@ -967,15 +967,15 @@ static startVectorOfStrongReferrablesVector(builder:flatbuffers.Builder, numElem
   builder.startVector(4, numElems, 4);
 }
 
-static addCoOwningReference(builder:flatbuffers.Builder, coOwningReference:flatbuffers.Long) {
-  builder.addFieldInt64(39, coOwningReference, builder.createLong(0, 0));
+static addCoOwningReference(builder:flatbuffers.Builder, coOwningReference:bigint) {
+  builder.addFieldInt64(39, coOwningReference, BigInt('0'));
 }
 
 static addVectorOfCoOwningReferences(builder:flatbuffers.Builder, vectorOfCoOwningReferencesOffset:flatbuffers.Offset) {
   builder.addFieldOffset(40, vectorOfCoOwningReferencesOffset, 0);
 }
 
-static createVectorOfCoOwningReferencesVector(builder:flatbuffers.Builder, data:flatbuffers.Long[]):flatbuffers.Offset {
+static createVectorOfCoOwningReferencesVector(builder:flatbuffers.Builder, data:bigint[]):flatbuffers.Offset {
   builder.startVector(8, data.length, 8);
   for (let i = data.length - 1; i >= 0; i--) {
     builder.addInt64(data[i]!);
@@ -987,15 +987,15 @@ static startVectorOfCoOwningReferencesVector(builder:flatbuffers.Builder, numEle
   builder.startVector(8, numElems, 8);
 }
 
-static addNonOwningReference(builder:flatbuffers.Builder, nonOwningReference:flatbuffers.Long) {
-  builder.addFieldInt64(41, nonOwningReference, builder.createLong(0, 0));
+static addNonOwningReference(builder:flatbuffers.Builder, nonOwningReference:bigint) {
+  builder.addFieldInt64(41, nonOwningReference, BigInt('0'));
 }
 
 static addVectorOfNonOwningReferences(builder:flatbuffers.Builder, vectorOfNonOwningReferencesOffset:flatbuffers.Offset) {
   builder.addFieldOffset(42, vectorOfNonOwningReferencesOffset, 0);
 }
 
-static createVectorOfNonOwningReferencesVector(builder:flatbuffers.Builder, data:flatbuffers.Long[]):flatbuffers.Offset {
+static createVectorOfNonOwningReferencesVector(builder:flatbuffers.Builder, data:bigint[]):flatbuffers.Offset {
   builder.startVector(8, data.length, 8);
   for (let i = data.length - 1; i >= 0; i--) {
     builder.addInt64(data[i]!);
@@ -1251,12 +1251,12 @@ constructor(
   public testbool: boolean = false,
   public testhashs32Fnv1: number = 0,
   public testhashu32Fnv1: number = 0,
-  public testhashs64Fnv1: flatbuffers.Long = flatbuffers.createLong(0, 0),
-  public testhashu64Fnv1: flatbuffers.Long = flatbuffers.createLong(0, 0),
+  public testhashs64Fnv1: bigint = BigInt('0'),
+  public testhashu64Fnv1: bigint = BigInt('0'),
   public testhashs32Fnv1a: number = 0,
   public testhashu32Fnv1a: number = 0,
-  public testhashs64Fnv1a: flatbuffers.Long = flatbuffers.createLong(0, 0),
-  public testhashu64Fnv1a: flatbuffers.Long = flatbuffers.createLong(0, 0),
+  public testhashs64Fnv1a: bigint = BigInt('0'),
+  public testhashu64Fnv1a: bigint = BigInt('0'),
   public testarrayofbools: (boolean)[] = [],
   public testf: number = 3.14159,
   public testf2: number = 3.0,
@@ -1265,17 +1265,17 @@ constructor(
   public testarrayofsortedstruct: (AbilityT)[] = [],
   public flex: (number)[] = [],
   public test5: (TestT)[] = [],
-  public vectorOfLongs: (flatbuffers.Long)[] = [],
+  public vectorOfLongs: (bigint)[] = [],
   public vectorOfDoubles: (number)[] = [],
   public parentNamespaceTest: InParentNamespaceT|null = null,
   public vectorOfReferrables: (ReferrableT)[] = [],
-  public singleWeakReference: flatbuffers.Long = flatbuffers.createLong(0, 0),
-  public vectorOfWeakReferences: (flatbuffers.Long)[] = [],
+  public singleWeakReference: bigint = BigInt('0'),
+  public vectorOfWeakReferences: (bigint)[] = [],
   public vectorOfStrongReferrables: (ReferrableT)[] = [],
-  public coOwningReference: flatbuffers.Long = flatbuffers.createLong(0, 0),
-  public vectorOfCoOwningReferences: (flatbuffers.Long)[] = [],
-  public nonOwningReference: flatbuffers.Long = flatbuffers.createLong(0, 0),
-  public vectorOfNonOwningReferences: (flatbuffers.Long)[] = [],
+  public coOwningReference: bigint = BigInt('0'),
+  public vectorOfCoOwningReferences: (bigint)[] = [],
+  public nonOwningReference: bigint = BigInt('0'),
+  public vectorOfNonOwningReferences: (bigint)[] = [],
   public anyUniqueType: AnyUniqueAliases = AnyUniqueAliases.NONE,
   public anyUnique: MonsterT|MyGameExample2MonsterT|TestSimpleTableWithEnumT|null = null,
   public anyAmbiguousType: AnyAmbiguousAliases = AnyAmbiguousAliases.NONE,
