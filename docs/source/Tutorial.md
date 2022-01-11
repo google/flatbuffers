@@ -3435,6 +3435,18 @@ table Movie {
 Analagously to how a union adds two fields to a table a vector of unions creates two different vectors:
 one for the union data and one for the data types.
 
+<div class="language-cpp">
+C++ supports vectors of unions, but it isn't currently documented.
+</div>
+<div class="language-typescript">
+Typescript supports vectors of unions, but it isn't currently documented.
+</div>
+<div class="language-php">
+PHP supports vectors of unions, but it isn't currently documented.
+</div>
+<div class="language-java">
+Java supports vectors of unions, but it isn't currently documented.
+</div>
 <div class="language-csharp">
 ~~~{.cs}
 using FlatBuffers;
@@ -3466,6 +3478,12 @@ var movieOffset = Movie.CreateMovie(
     charactersOffset);
 Movie.FinishMovieBuffer(fbb, movieOffset);
 ~~~
+</div>
+<div class="language-kotlin">
+Kotlin supports vectors of unions, but it isn't currently documented.
+</div>
+<div class="language-swift">
+Swift supports vectors of unions, but it isn't currently documented.
 </div>
 
 #### Reading
