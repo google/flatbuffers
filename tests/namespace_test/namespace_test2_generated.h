@@ -119,11 +119,11 @@ struct TableInFirstNS FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
     return VerifyTableStart(verifier) &&
            VerifyOffset(verifier, VT_FOO_TABLE) &&
            verifier.VerifyTable(foo_table()) &&
-           VerifyField<int8_t>(verifier, VT_FOO_ENUM) &&
-           VerifyField<uint8_t>(verifier, VT_FOO_UNION_TYPE) &&
+           VerifyField<int8_t>(verifier, VT_FOO_ENUM, 1) &&
+           VerifyField<uint8_t>(verifier, VT_FOO_UNION_TYPE, 1) &&
            VerifyOffset(verifier, VT_FOO_UNION) &&
            VerifyUnionInNestedNS(verifier, foo_union(), foo_union_type()) &&
-           VerifyField<NamespaceA::NamespaceB::StructInNestedNS>(verifier, VT_FOO_STRUCT) &&
+           VerifyField<NamespaceA::NamespaceB::StructInNestedNS>(verifier, VT_FOO_STRUCT, 4) &&
            verifier.EndTable();
   }
   TableInFirstNST *UnPack(const flatbuffers::resolver_function_t *_resolver = nullptr) const;
