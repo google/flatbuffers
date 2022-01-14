@@ -95,7 +95,7 @@ function(build_flatbuffers flatbuffers_schemas
       set(generated_include ${generated_includes_dir}/${filename}_generated.h)
       add_custom_command(
         OUTPUT ${generated_include}
-        COMMAND ${FLATC} ${FLATC_ARGS}
+        COMMAND ${FLATC} ${FLATC_SCHEMA_ARGS}
         -o ${generated_includes_dir}
         ${include_params}
         -c ${schema}
