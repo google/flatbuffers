@@ -284,7 +284,7 @@ struct ArrayTable FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
-           VerifyField<MyGame::Example::ArrayStruct>(verifier, VT_A) &&
+           VerifyField<MyGame::Example::ArrayStruct>(verifier, VT_A, 8) &&
            verifier.EndTable();
   }
   ArrayTableT *UnPack(const flatbuffers::resolver_function_t *_resolver = nullptr) const;

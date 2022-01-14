@@ -111,14 +111,14 @@ struct MonsterExtra FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
-           VerifyField<double>(verifier, VT_D0) &&
-           VerifyField<double>(verifier, VT_D1) &&
-           VerifyField<double>(verifier, VT_D2) &&
-           VerifyField<double>(verifier, VT_D3) &&
-           VerifyField<float>(verifier, VT_F0) &&
-           VerifyField<float>(verifier, VT_F1) &&
-           VerifyField<float>(verifier, VT_F2) &&
-           VerifyField<float>(verifier, VT_F3) &&
+           VerifyField<double>(verifier, VT_D0, 8) &&
+           VerifyField<double>(verifier, VT_D1, 8) &&
+           VerifyField<double>(verifier, VT_D2, 8) &&
+           VerifyField<double>(verifier, VT_D3, 8) &&
+           VerifyField<float>(verifier, VT_F0, 4) &&
+           VerifyField<float>(verifier, VT_F1, 4) &&
+           VerifyField<float>(verifier, VT_F2, 4) &&
+           VerifyField<float>(verifier, VT_F3, 4) &&
            VerifyOffset(verifier, VT_DVEC) &&
            verifier.VerifyVector(dvec()) &&
            VerifyOffset(verifier, VT_FVEC) &&

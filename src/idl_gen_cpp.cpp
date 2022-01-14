@@ -1471,9 +1471,11 @@ class CppGenerator : public BaseGenerator {
             "      auto ptr = reinterpret_cast<const {{TYPE}} *>(obj);";
         if (ev.union_type.base_type == BASE_TYPE_STRUCT) {
           if (ev.union_type.struct_def->fixed) {
+            code_.SetValue("ALIGN",
+              NumToString(ev.union_type.struct_def->minalign));
             code_ +=
-                "      return verifier.Verify<{{TYPE}}>(static_cast<const "
-                "uint8_t *>(obj), 0);";
+                "      return verifier.VerifyField<{{TYPE}}>("
+                "static_cast<const uint8_t *>(obj), 0, {{ALIGN}});";
           } else {
             code_ += getptr;
             code_ += "      return verifier.VerifyTable(ptr);";
@@ -1951,8 +1953,9 @@ class CppGenerator : public BaseGenerator {
     code_.SetValue("SIZE", GenTypeSize(field.value.type));
     code_.SetValue("OFFSET", GenFieldOffsetName(field));
     if (IsScalar(field.value.type.base_type) || IsStruct(field.value.type)) {
-      code_ +=
-          "{{PRE}}VerifyField{{REQUIRED}}<{{SIZE}}>(verifier, {{OFFSET}})\\";
+      code_.SetValue("ALIGN", NumToString(InlineAlignment(field.value.type)));
+      code_ += "{{PRE}}VerifyField{{REQUIRED}}<{{SIZE}}>(verifier, "
+               "{{OFFSET}}, {{ALIGN}})\\";
     } else {
       code_ += "{{PRE}}VerifyOffset{{REQUIRED}}(verifier, {{OFFSET}})\\";
     }

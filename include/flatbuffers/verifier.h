@@ -66,13 +66,13 @@ class Verifier FLATBUFFERS_FINAL_CLASS {
     return Check(elem_len < size_ && elem <= size_ - elem_len);
   }
 
-  template<typename T> bool VerifyAlignment(size_t elem) const {
-    return Check((elem & (sizeof(T) - 1)) == 0 || !check_alignment_);
+  bool VerifyAlignment(size_t elem, size_t align) const {
+    return Check((elem & (align - 1)) == 0 || !check_alignment_);
   }
 
   // Verify a range indicated by sizeof(T).
   template<typename T> bool Verify(size_t elem) const {
-    return VerifyAlignment<T>(elem) && Verify(elem, sizeof(T));
+    return VerifyAlignment(elem, sizeof(T)) && Verify(elem, sizeof(T));
   }
 
   bool VerifyFromPointer(const uint8_t *p, size_t len) {
@@ -81,13 +81,16 @@ class Verifier FLATBUFFERS_FINAL_CLASS {
   }
 
   // Verify relative to a known-good base pointer.
-  bool Verify(const uint8_t *base, voffset_t elem_off, size_t elem_len) const {
-    return Verify(static_cast<size_t>(base - buf_) + elem_off, elem_len);
+  bool VerifyFieldStruct(const uint8_t *base, voffset_t elem_off, size_t elem_len,
+                         size_t align) const {
+    auto f = static_cast<size_t>(base - buf_) + elem_off;
+    return VerifyAlignment(f, align) && Verify(f, elem_len);
   }
 
   template<typename T>
-  bool Verify(const uint8_t *base, voffset_t elem_off) const {
-    return Verify(static_cast<size_t>(base - buf_) + elem_off, sizeof(T));
+  bool VerifyField(const uint8_t *base, voffset_t elem_off, size_t align) const {
+    auto f = static_cast<size_t>(base - buf_) + elem_off;
+    return VerifyAlignment(f, align) && Verify(f, sizeof(T));
   }
 
   // Verify a pointer (may be NULL) of a table type.
@@ -162,7 +165,8 @@ class Verifier FLATBUFFERS_FINAL_CLASS {
     auto vtableo = tableo - static_cast<size_t>(ReadScalar<soffset_t>(table));
     // Check the vtable size field, then check vtable fits in its entirety.
     return VerifyComplexity() && Verify<voffset_t>(vtableo) &&
-           VerifyAlignment<voffset_t>(ReadScalar<voffset_t>(buf_ + vtableo)) &&
+           VerifyAlignment(ReadScalar<voffset_t>(buf_ + vtableo),
+                           sizeof(voffset_t)) &&
            Verify(vtableo, ReadScalar<voffset_t>(buf_ + vtableo));
   }
 

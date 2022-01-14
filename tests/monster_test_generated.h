@@ -978,7 +978,7 @@ struct TestSimpleTableWithEnum FLATBUFFERS_FINAL_CLASS : private flatbuffers::Ta
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
-           VerifyField<uint8_t>(verifier, VT_COLOR) &&
+           VerifyField<uint8_t>(verifier, VT_COLOR, 1) &&
            verifier.EndTable();
   }
   TestSimpleTableWithEnumT *UnPack(const flatbuffers::resolver_function_t *_resolver = nullptr) const;
@@ -1060,8 +1060,8 @@ struct Stat FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
     return VerifyTableStart(verifier) &&
            VerifyOffset(verifier, VT_ID) &&
            verifier.VerifyString(id()) &&
-           VerifyField<int64_t>(verifier, VT_VAL) &&
-           VerifyField<uint16_t>(verifier, VT_COUNT) &&
+           VerifyField<int64_t>(verifier, VT_VAL, 8) &&
+           VerifyField<uint16_t>(verifier, VT_COUNT, 2) &&
            verifier.EndTable();
   }
   StatT *UnPack(const flatbuffers::resolver_function_t *_resolver = nullptr) const;
@@ -1148,7 +1148,7 @@ struct Referrable FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
-           VerifyField<uint64_t>(verifier, VT_ID) &&
+           VerifyField<uint64_t>(verifier, VT_ID, 8) &&
            verifier.EndTable();
   }
   ReferrableT *UnPack(const flatbuffers::resolver_function_t *_resolver = nullptr) const;
@@ -1633,15 +1633,15 @@ struct Monster FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
-           VerifyField<MyGame::Example::Vec3>(verifier, VT_POS) &&
-           VerifyField<int16_t>(verifier, VT_MANA) &&
-           VerifyField<int16_t>(verifier, VT_HP) &&
+           VerifyField<MyGame::Example::Vec3>(verifier, VT_POS, 8) &&
+           VerifyField<int16_t>(verifier, VT_MANA, 2) &&
+           VerifyField<int16_t>(verifier, VT_HP, 2) &&
            VerifyOffsetRequired(verifier, VT_NAME) &&
            verifier.VerifyString(name()) &&
            VerifyOffset(verifier, VT_INVENTORY) &&
            verifier.VerifyVector(inventory()) &&
-           VerifyField<uint8_t>(verifier, VT_COLOR) &&
-           VerifyField<uint8_t>(verifier, VT_TEST_TYPE) &&
+           VerifyField<uint8_t>(verifier, VT_COLOR, 1) &&
+           VerifyField<uint8_t>(verifier, VT_TEST_TYPE, 1) &&
            VerifyOffset(verifier, VT_TEST) &&
            VerifyAny(verifier, test(), test_type()) &&
            VerifyOffset(verifier, VT_TEST4) &&
@@ -1659,20 +1659,20 @@ struct Monster FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
            verifier.VerifyNestedFlatBuffer<MyGame::Example::Monster>(testnestedflatbuffer(), nullptr) &&
            VerifyOffset(verifier, VT_TESTEMPTY) &&
            verifier.VerifyTable(testempty()) &&
-           VerifyField<uint8_t>(verifier, VT_TESTBOOL) &&
-           VerifyField<int32_t>(verifier, VT_TESTHASHS32_FNV1) &&
-           VerifyField<uint32_t>(verifier, VT_TESTHASHU32_FNV1) &&
-           VerifyField<int64_t>(verifier, VT_TESTHASHS64_FNV1) &&
-           VerifyField<uint64_t>(verifier, VT_TESTHASHU64_FNV1) &&
-           VerifyField<int32_t>(verifier, VT_TESTHASHS32_FNV1A) &&
-           VerifyField<uint32_t>(verifier, VT_TESTHASHU32_FNV1A) &&
-           VerifyField<int64_t>(verifier, VT_TESTHASHS64_FNV1A) &&
-           VerifyField<uint64_t>(verifier, VT_TESTHASHU64_FNV1A) &&
+           VerifyField<uint8_t>(verifier, VT_TESTBOOL, 1) &&
+           VerifyField<int32_t>(verifier, VT_TESTHASHS32_FNV1, 4) &&
+           VerifyField<uint32_t>(verifier, VT_TESTHASHU32_FNV1, 4) &&
+           VerifyField<int64_t>(verifier, VT_TESTHASHS64_FNV1, 8) &&
+           VerifyField<uint64_t>(verifier, VT_TESTHASHU64_FNV1, 8) &&
+           VerifyField<int32_t>(verifier, VT_TESTHASHS32_FNV1A, 4) &&
+           VerifyField<uint32_t>(verifier, VT_TESTHASHU32_FNV1A, 4) &&
+           VerifyField<int64_t>(verifier, VT_TESTHASHS64_FNV1A, 8) &&
+           VerifyField<uint64_t>(verifier, VT_TESTHASHU64_FNV1A, 8) &&
            VerifyOffset(verifier, VT_TESTARRAYOFBOOLS) &&
            verifier.VerifyVector(testarrayofbools()) &&
-           VerifyField<float>(verifier, VT_TESTF) &&
-           VerifyField<float>(verifier, VT_TESTF2) &&
-           VerifyField<float>(verifier, VT_TESTF3) &&
+           VerifyField<float>(verifier, VT_TESTF, 4) &&
+           VerifyField<float>(verifier, VT_TESTF2, 4) &&
+           VerifyField<float>(verifier, VT_TESTF3, 4) &&
            VerifyOffset(verifier, VT_TESTARRAYOFSTRING2) &&
            verifier.VerifyVector(testarrayofstring2()) &&
            verifier.VerifyVectorOfStrings(testarrayofstring2()) &&
@@ -1692,27 +1692,27 @@ struct Monster FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
            VerifyOffset(verifier, VT_VECTOR_OF_REFERRABLES) &&
            verifier.VerifyVector(vector_of_referrables()) &&
            verifier.VerifyVectorOfTables(vector_of_referrables()) &&
-           VerifyField<uint64_t>(verifier, VT_SINGLE_WEAK_REFERENCE) &&
+           VerifyField<uint64_t>(verifier, VT_SINGLE_WEAK_REFERENCE, 8) &&
            VerifyOffset(verifier, VT_VECTOR_OF_WEAK_REFERENCES) &&
            verifier.VerifyVector(vector_of_weak_references()) &&
            VerifyOffset(verifier, VT_VECTOR_OF_STRONG_REFERRABLES) &&
            verifier.VerifyVector(vector_of_strong_referrables()) &&
            verifier.VerifyVectorOfTables(vector_of_strong_referrables()) &&
-           VerifyField<uint64_t>(verifier, VT_CO_OWNING_REFERENCE) &&
+           VerifyField<uint64_t>(verifier, VT_CO_OWNING_REFERENCE, 8) &&
            VerifyOffset(verifier, VT_VECTOR_OF_CO_OWNING_REFERENCES) &&
            verifier.VerifyVector(vector_of_co_owning_references()) &&
-           VerifyField<uint64_t>(verifier, VT_NON_OWNING_REFERENCE) &&
+           VerifyField<uint64_t>(verifier, VT_NON_OWNING_REFERENCE, 8) &&
            VerifyOffset(verifier, VT_VECTOR_OF_NON_OWNING_REFERENCES) &&
            verifier.VerifyVector(vector_of_non_owning_references()) &&
-           VerifyField<uint8_t>(verifier, VT_ANY_UNIQUE_TYPE) &&
+           VerifyField<uint8_t>(verifier, VT_ANY_UNIQUE_TYPE, 1) &&
            VerifyOffset(verifier, VT_ANY_UNIQUE) &&
            VerifyAnyUniqueAliases(verifier, any_unique(), any_unique_type()) &&
-           VerifyField<uint8_t>(verifier, VT_ANY_AMBIGUOUS_TYPE) &&
+           VerifyField<uint8_t>(verifier, VT_ANY_AMBIGUOUS_TYPE, 1) &&
            VerifyOffset(verifier, VT_ANY_AMBIGUOUS) &&
            VerifyAnyAmbiguousAliases(verifier, any_ambiguous(), any_ambiguous_type()) &&
            VerifyOffset(verifier, VT_VECTOR_OF_ENUMS) &&
            verifier.VerifyVector(vector_of_enums()) &&
-           VerifyField<int8_t>(verifier, VT_SIGNED_ENUM) &&
+           VerifyField<int8_t>(verifier, VT_SIGNED_ENUM, 1) &&
            VerifyOffset(verifier, VT_TESTREQUIREDNESTEDFLATBUFFER) &&
            verifier.VerifyVector(testrequirednestedflatbuffer()) &&
            verifier.VerifyNestedFlatBuffer<MyGame::Example::Monster>(testrequirednestedflatbuffer(), nullptr) &&
@@ -2261,16 +2261,16 @@ struct TypeAliases FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
-           VerifyField<int8_t>(verifier, VT_I8) &&
-           VerifyField<uint8_t>(verifier, VT_U8) &&
-           VerifyField<int16_t>(verifier, VT_I16) &&
-           VerifyField<uint16_t>(verifier, VT_U16) &&
-           VerifyField<int32_t>(verifier, VT_I32) &&
-           VerifyField<uint32_t>(verifier, VT_U32) &&
-           VerifyField<int64_t>(verifier, VT_I64) &&
-           VerifyField<uint64_t>(verifier, VT_U64) &&
-           VerifyField<float>(verifier, VT_F32) &&
-           VerifyField<double>(verifier, VT_F64) &&
+           VerifyField<int8_t>(verifier, VT_I8, 1) &&
+           VerifyField<uint8_t>(verifier, VT_U8, 1) &&
+           VerifyField<int16_t>(verifier, VT_I16, 2) &&
+           VerifyField<uint16_t>(verifier, VT_U16, 2) &&
+           VerifyField<int32_t>(verifier, VT_I32, 4) &&
+           VerifyField<uint32_t>(verifier, VT_U32, 4) &&
+           VerifyField<int64_t>(verifier, VT_I64, 8) &&
+           VerifyField<uint64_t>(verifier, VT_U64, 8) &&
+           VerifyField<float>(verifier, VT_F32, 4) &&
+           VerifyField<double>(verifier, VT_F64, 8) &&
            VerifyOffset(verifier, VT_V8) &&
            verifier.VerifyVector(v8()) &&
            VerifyOffset(verifier, VT_VF64) &&

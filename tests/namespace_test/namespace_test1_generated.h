@@ -241,7 +241,7 @@ struct TableInNestedNS FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
-           VerifyField<int32_t>(verifier, VT_FOO) &&
+           VerifyField<int32_t>(verifier, VT_FOO, 4) &&
            verifier.EndTable();
   }
   TableInNestedNST *UnPack(const flatbuffers::resolver_function_t *_resolver = nullptr) const;

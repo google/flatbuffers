@@ -390,42 +390,42 @@ struct ScalarStuff FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
-           VerifyField<int8_t>(verifier, VT_JUST_I8) &&
-           VerifyField<int8_t>(verifier, VT_MAYBE_I8) &&
-           VerifyField<int8_t>(verifier, VT_DEFAULT_I8) &&
-           VerifyField<uint8_t>(verifier, VT_JUST_U8) &&
-           VerifyField<uint8_t>(verifier, VT_MAYBE_U8) &&
-           VerifyField<uint8_t>(verifier, VT_DEFAULT_U8) &&
-           VerifyField<int16_t>(verifier, VT_JUST_I16) &&
-           VerifyField<int16_t>(verifier, VT_MAYBE_I16) &&
-           VerifyField<int16_t>(verifier, VT_DEFAULT_I16) &&
-           VerifyField<uint16_t>(verifier, VT_JUST_U16) &&
-           VerifyField<uint16_t>(verifier, VT_MAYBE_U16) &&
-           VerifyField<uint16_t>(verifier, VT_DEFAULT_U16) &&
-           VerifyField<int32_t>(verifier, VT_JUST_I32) &&
-           VerifyField<int32_t>(verifier, VT_MAYBE_I32) &&
-           VerifyField<int32_t>(verifier, VT_DEFAULT_I32) &&
-           VerifyField<uint32_t>(verifier, VT_JUST_U32) &&
-           VerifyField<uint32_t>(verifier, VT_MAYBE_U32) &&
-           VerifyField<uint32_t>(verifier, VT_DEFAULT_U32) &&
-           VerifyField<int64_t>(verifier, VT_JUST_I64) &&
-           VerifyField<int64_t>(verifier, VT_MAYBE_I64) &&
-           VerifyField<int64_t>(verifier, VT_DEFAULT_I64) &&
-           VerifyField<uint64_t>(verifier, VT_JUST_U64) &&
-           VerifyField<uint64_t>(verifier, VT_MAYBE_U64) &&
-           VerifyField<uint64_t>(verifier, VT_DEFAULT_U64) &&
-           VerifyField<float>(verifier, VT_JUST_F32) &&
-           VerifyField<float>(verifier, VT_MAYBE_F32) &&
-           VerifyField<float>(verifier, VT_DEFAULT_F32) &&
-           VerifyField<double>(verifier, VT_JUST_F64) &&
-           VerifyField<double>(verifier, VT_MAYBE_F64) &&
-           VerifyField<double>(verifier, VT_DEFAULT_F64) &&
-           VerifyField<uint8_t>(verifier, VT_JUST_BOOL) &&
-           VerifyField<uint8_t>(verifier, VT_MAYBE_BOOL) &&
-           VerifyField<uint8_t>(verifier, VT_DEFAULT_BOOL) &&
-           VerifyField<int8_t>(verifier, VT_JUST_ENUM) &&
-           VerifyField<int8_t>(verifier, VT_MAYBE_ENUM) &&
-           VerifyField<int8_t>(verifier, VT_DEFAULT_ENUM) &&
+           VerifyField<int8_t>(verifier, VT_JUST_I8, 1) &&
+           VerifyField<int8_t>(verifier, VT_MAYBE_I8, 1) &&
+           VerifyField<int8_t>(verifier, VT_DEFAULT_I8, 1) &&
+           VerifyField<uint8_t>(verifier, VT_JUST_U8, 1) &&
+           VerifyField<uint8_t>(verifier, VT_MAYBE_U8, 1) &&
+           VerifyField<uint8_t>(verifier, VT_DEFAULT_U8, 1) &&
+           VerifyField<int16_t>(verifier, VT_JUST_I16, 2) &&
+           VerifyField<int16_t>(verifier, VT_MAYBE_I16, 2) &&
+           VerifyField<int16_t>(verifier, VT_DEFAULT_I16, 2) &&
+           VerifyField<uint16_t>(verifier, VT_JUST_U16, 2) &&
+           VerifyField<uint16_t>(verifier, VT_MAYBE_U16, 2) &&
+           VerifyField<uint16_t>(verifier, VT_DEFAULT_U16, 2) &&
+           VerifyField<int32_t>(verifier, VT_JUST_I32, 4) &&
+           VerifyField<int32_t>(verifier, VT_MAYBE_I32, 4) &&
+           VerifyField<int32_t>(verifier, VT_DEFAULT_I32, 4) &&
+           VerifyField<uint32_t>(verifier, VT_JUST_U32, 4) &&
+           VerifyField<uint32_t>(verifier, VT_MAYBE_U32, 4) &&
+           VerifyField<uint32_t>(verifier, VT_DEFAULT_U32, 4) &&
+           VerifyField<int64_t>(verifier, VT_JUST_I64, 8) &&
+           VerifyField<int64_t>(verifier, VT_MAYBE_I64, 8) &&
+           VerifyField<int64_t>(verifier, VT_DEFAULT_I64, 8) &&
+           VerifyField<uint64_t>(verifier, VT_JUST_U64, 8) &&
+           VerifyField<uint64_t>(verifier, VT_MAYBE_U64, 8) &&
+           VerifyField<uint64_t>(verifier, VT_DEFAULT_U64, 8) &&
+           VerifyField<float>(verifier, VT_JUST_F32, 4) &&
+           VerifyField<float>(verifier, VT_MAYBE_F32, 4) &&
+           VerifyField<float>(verifier, VT_DEFAULT_F32, 4) &&
+           VerifyField<double>(verifier, VT_JUST_F64, 8) &&
+           VerifyField<double>(verifier, VT_MAYBE_F64, 8) &&
+           VerifyField<double>(verifier, VT_DEFAULT_F64, 8) &&
+           VerifyField<uint8_t>(verifier, VT_JUST_BOOL, 1) &&
+           VerifyField<uint8_t>(verifier, VT_MAYBE_BOOL, 1) &&
+           VerifyField<uint8_t>(verifier, VT_DEFAULT_BOOL, 1) &&
+           VerifyField<int8_t>(verifier, VT_JUST_ENUM, 1) &&
+           VerifyField<int8_t>(verifier, VT_MAYBE_ENUM, 1) &&
+           VerifyField<int8_t>(verifier, VT_DEFAULT_ENUM, 1) &&
            verifier.EndTable();
   }
   ScalarStuffT *UnPack(const flatbuffers::resolver_function_t *_resolver = nullptr) const;
