@@ -3392,6 +3392,125 @@ decimals in the JSON document.*
 
 ## Advanced Features for Each Language
 
+### Vector of Unions
+
+Some languages support storing unions directly in a vector.
+
+~~~
+// File found in tests/union_vector/union_vector.fbs
+namespace Example.VectorOfUnions;
+
+// Demonstrates the ability to have vectors of unions, and also to
+// store structs and strings in unions.
+
+table Attacker {
+  sword_attack_damage: int;
+}
+
+struct Rapunzel {
+  hair_length: int;
+}
+
+struct BookReader {
+  books_read: int;
+}
+
+union Character {
+  MuLan: Attacker,  // Can have name be different from type.
+  Rapunzel,         // Or just both the same, as before.
+  Belle: BookReader,
+  BookFan: BookReader,
+  Other: string,
+  Unused: string
+}
+
+table Movie {
+  main_character: Character;
+  characters: [Character];
+}
+~~~
+
+#### Creating
+
+Analagously to how a union adds two fields to a table a vector of unions creates two different vectors:
+one for the union data and one for the data types.
+
+<div class="language-cpp">
+C++ supports vectors of unions, but it isn't currently documented.
+</div>
+<div class="language-typescript">
+Typescript supports vectors of unions, but it isn't currently documented.
+</div>
+<div class="language-php">
+PHP supports vectors of unions, but it isn't currently documented.
+</div>
+<div class="language-java">
+Java supports vectors of unions, but it isn't currently documented.
+</div>
+<div class="language-csharp">
+~~~{.cs}
+using FlatBuffers;
+using Example.VectorOfUnions;
+
+var fbb = new FlatBufferBuilder(100);
+
+var characterTypes = new[]
+{
+    Character.MuLan,
+    Character.Belle,
+    Character.Other,
+};
+var characterTypesOffset = Movie.CreateCharactersTypeVector(fbb, characterTypes);
+
+var characters = new[]
+{
+    Attacker.CreateAttacker(fbb, 10).Value,
+    BookReader.CreateBookReader(fbb, 20).Value,
+    fbb.CreateSharedString("Chip").Value,
+};
+var charactersOffset = Movie.CreateCharactersVector(fbb, characters);
+
+var movieOffset = Movie.CreateMovie(
+    fbb,
+    Character.Rapunzel,
+    rapunzel,
+    characterTypesOffset,
+    charactersOffset);
+Movie.FinishMovieBuffer(fbb, movieOffset);
+~~~
+</div>
+<div class="language-kotlin">
+Kotlin supports vectors of unions, but it isn't currently documented.
+</div>
+<div class="language-swift">
+Swift supports vectors of unions, but it isn't currently documented.
+</div>
+
+#### Reading
+<div class="language-csharp">
+~~~{.cs}
+var movie = Movie.GetRootAsMovie(fbb.DataBuffer);
+
+for (var i = 0; i <= movie.CharactersLength; i++)
+{
+  if (movie.CharactersType(i) == Character.MuLan)
+  {
+    var mulanSwordDamage = movie.Characters<Attacker>(i).Value.SwordAttackDamage;
+  }
+  else if (movie.CharactersType(i) == Character.Belle)
+  {
+    var belleBooksRead = movie.Characters<BookReader>(i).Value.BooksRead;
+  }
+  else if (movie.CharactersType(i) == Character.Other)
+  {
+    var otherStr = movie.CharactersAsString(i);
+  }
+}
+~~~
+</div>
+
+### Further Reading
+
 Each language has a dedicated `Use in XXX` page in the Programmer's Guide
 to cover the nuances of FlatBuffers in that language.
 
