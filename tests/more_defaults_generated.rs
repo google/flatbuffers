@@ -4,6 +4,8 @@
 
 use std::mem;
 use std::cmp::Ordering;
+extern crate serde;
+use self::serde::ser::{Serialize, Serializer, SerializeStruct};
 
 extern crate flatbuffers;
 use self::flatbuffers::{EndianScalar, Follow};
@@ -55,6 +57,15 @@ impl std::fmt::Debug for ABC {
     }
   }
 }
+impl Serialize for ABC {
+  fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+  where
+    S: Serializer,
+  {
+    serializer.serialize_unit_variant("ABC", self.0 as u32, self.variant_name().unwrap())
+  }
+}
+
 impl<'a> flatbuffers::Follow<'a> for ABC {
   type Inner = Self;
   #[inline]
@@ -238,6 +249,22 @@ impl<'a> Default for MoreDefaultsArgs<'a> {
         }
     }
 }
+impl Serialize for MoreDefaults<'_> {
+  fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+  where
+    S: Serializer,
+  {
+    let mut s = serializer.serialize_struct("MoreDefaults", 6)?;
+    s.serialize_field("ints", &self.ints())?;
+    s.serialize_field("floats", &self.floats())?;
+    s.serialize_field("empty_string", &self.empty_string())?;
+    s.serialize_field("some_string", &self.some_string())?;
+    s.serialize_field("abcs", &self.abcs())?;
+    s.serialize_field("bools", &self.bools())?;
+    s.end()
+  }
+}
+
 pub struct MoreDefaultsBuilder<'a: 'b, 'b> {
   fbb_: &'b mut flatbuffers::FlatBufferBuilder<'a>,
   start_: flatbuffers::WIPOffset<flatbuffers::TableUnfinishedWIPOffset>,

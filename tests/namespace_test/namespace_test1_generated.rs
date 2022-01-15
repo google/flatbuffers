@@ -4,6 +4,8 @@
 
 use std::mem;
 use std::cmp::Ordering;
+extern crate serde;
+use self::serde::ser::{Serialize, Serializer, SerializeStruct};
 
 extern crate flatbuffers;
 use self::flatbuffers::{EndianScalar, Follow};
@@ -13,6 +15,8 @@ pub mod namespace_a {
 
   use std::mem;
   use std::cmp::Ordering;
+  extern crate serde;
+  use self::serde::ser::{Serialize, Serializer, SerializeStruct};
 
   extern crate flatbuffers;
   use self::flatbuffers::{EndianScalar, Follow};
@@ -21,6 +25,8 @@ pub mod namespace_b {
 
   use std::mem;
   use std::cmp::Ordering;
+  extern crate serde;
+  use self::serde::ser::{Serialize, Serializer, SerializeStruct};
 
   extern crate flatbuffers;
   use self::flatbuffers::{EndianScalar, Follow};
@@ -68,6 +74,15 @@ impl std::fmt::Debug for UnionInNestedNS {
     }
   }
 }
+impl Serialize for UnionInNestedNS {
+  fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+  where
+    S: Serializer,
+  {
+    serializer.serialize_unit_variant("UnionInNestedNS", self.0 as u32, self.variant_name().unwrap())
+  }
+}
+
 impl<'a> flatbuffers::Follow<'a> for UnionInNestedNS {
   type Inner = Self;
   #[inline]
@@ -207,6 +222,15 @@ impl std::fmt::Debug for EnumInNestedNS {
     }
   }
 }
+impl Serialize for EnumInNestedNS {
+  fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+  where
+    S: Serializer,
+  {
+    serializer.serialize_unit_variant("EnumInNestedNS", self.0 as u32, self.variant_name().unwrap())
+  }
+}
+
 impl<'a> flatbuffers::Follow<'a> for EnumInNestedNS {
   type Inner = Self;
   #[inline]
@@ -316,6 +340,18 @@ impl<'a> flatbuffers::Verifiable for StructInNestedNS {
     v.in_buffer::<Self>(pos)
   }
 }
+impl Serialize for StructInNestedNS {
+  fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+  where
+    S: Serializer,
+  {
+    let mut s = serializer.serialize_struct("StructInNestedNS", 2)?;
+    s.serialize_field("a", &self.a())?;
+    s.serialize_field("b", &self.b())?;
+    s.end()
+  }
+}
+
 impl<'a> StructInNestedNS {
   #[allow(clippy::too_many_arguments)]
   pub fn new(
@@ -470,6 +506,17 @@ impl<'a> Default for TableInNestedNSArgs {
         }
     }
 }
+impl Serialize for TableInNestedNS<'_> {
+  fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+  where
+    S: Serializer,
+  {
+    let mut s = serializer.serialize_struct("TableInNestedNS", 1)?;
+    s.serialize_field("foo", &self.foo())?;
+    s.end()
+  }
+}
+
 pub struct TableInNestedNSBuilder<'a: 'b, 'b> {
   fbb_: &'b mut flatbuffers::FlatBufferBuilder<'a>,
   start_: flatbuffers::WIPOffset<flatbuffers::TableUnfinishedWIPOffset>,

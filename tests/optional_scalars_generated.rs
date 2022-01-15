@@ -4,6 +4,8 @@
 
 use std::mem;
 use std::cmp::Ordering;
+extern crate serde;
+use self::serde::ser::{Serialize, Serializer, SerializeStruct};
 
 extern crate flatbuffers;
 use self::flatbuffers::{EndianScalar, Follow};
@@ -13,6 +15,8 @@ pub mod optional_scalars {
 
   use std::mem;
   use std::cmp::Ordering;
+  extern crate serde;
+  use self::serde::ser::{Serialize, Serializer, SerializeStruct};
 
   extern crate flatbuffers;
   use self::flatbuffers::{EndianScalar, Follow};
@@ -64,6 +68,15 @@ impl std::fmt::Debug for OptionalByte {
     }
   }
 }
+impl Serialize for OptionalByte {
+  fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+  where
+    S: Serializer,
+  {
+    serializer.serialize_unit_variant("OptionalByte", self.0 as u32, self.variant_name().unwrap())
+  }
+}
+
 impl<'a> flatbuffers::Follow<'a> for OptionalByte {
   type Inner = Self;
   #[inline]
@@ -559,6 +572,100 @@ impl<'a> Default for ScalarStuffArgs {
         }
     }
 }
+impl Serialize for ScalarStuff<'_> {
+  fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+  where
+    S: Serializer,
+  {
+    let mut s = serializer.serialize_struct("ScalarStuff", 36)?;
+    s.serialize_field("just_i8", &self.just_i8())?;
+    if let Some(f) = self.maybe_i8() {
+      s.serialize_field("maybe_i8", &f)?;
+    } else {
+      s.skip_field("maybe_i8")?;
+    }
+    s.serialize_field("default_i8", &self.default_i8())?;
+    s.serialize_field("just_u8", &self.just_u8())?;
+    if let Some(f) = self.maybe_u8() {
+      s.serialize_field("maybe_u8", &f)?;
+    } else {
+      s.skip_field("maybe_u8")?;
+    }
+    s.serialize_field("default_u8", &self.default_u8())?;
+    s.serialize_field("just_i16", &self.just_i16())?;
+    if let Some(f) = self.maybe_i16() {
+      s.serialize_field("maybe_i16", &f)?;
+    } else {
+      s.skip_field("maybe_i16")?;
+    }
+    s.serialize_field("default_i16", &self.default_i16())?;
+    s.serialize_field("just_u16", &self.just_u16())?;
+    if let Some(f) = self.maybe_u16() {
+      s.serialize_field("maybe_u16", &f)?;
+    } else {
+      s.skip_field("maybe_u16")?;
+    }
+    s.serialize_field("default_u16", &self.default_u16())?;
+    s.serialize_field("just_i32", &self.just_i32())?;
+    if let Some(f) = self.maybe_i32() {
+      s.serialize_field("maybe_i32", &f)?;
+    } else {
+      s.skip_field("maybe_i32")?;
+    }
+    s.serialize_field("default_i32", &self.default_i32())?;
+    s.serialize_field("just_u32", &self.just_u32())?;
+    if let Some(f) = self.maybe_u32() {
+      s.serialize_field("maybe_u32", &f)?;
+    } else {
+      s.skip_field("maybe_u32")?;
+    }
+    s.serialize_field("default_u32", &self.default_u32())?;
+    s.serialize_field("just_i64", &self.just_i64())?;
+    if let Some(f) = self.maybe_i64() {
+      s.serialize_field("maybe_i64", &f)?;
+    } else {
+      s.skip_field("maybe_i64")?;
+    }
+    s.serialize_field("default_i64", &self.default_i64())?;
+    s.serialize_field("just_u64", &self.just_u64())?;
+    if let Some(f) = self.maybe_u64() {
+      s.serialize_field("maybe_u64", &f)?;
+    } else {
+      s.skip_field("maybe_u64")?;
+    }
+    s.serialize_field("default_u64", &self.default_u64())?;
+    s.serialize_field("just_f32", &self.just_f32())?;
+    if let Some(f) = self.maybe_f32() {
+      s.serialize_field("maybe_f32", &f)?;
+    } else {
+      s.skip_field("maybe_f32")?;
+    }
+    s.serialize_field("default_f32", &self.default_f32())?;
+    s.serialize_field("just_f64", &self.just_f64())?;
+    if let Some(f) = self.maybe_f64() {
+      s.serialize_field("maybe_f64", &f)?;
+    } else {
+      s.skip_field("maybe_f64")?;
+    }
+    s.serialize_field("default_f64", &self.default_f64())?;
+    s.serialize_field("just_bool", &self.just_bool())?;
+    if let Some(f) = self.maybe_bool() {
+      s.serialize_field("maybe_bool", &f)?;
+    } else {
+      s.skip_field("maybe_bool")?;
+    }
+    s.serialize_field("default_bool", &self.default_bool())?;
+    s.serialize_field("just_enum", &self.just_enum())?;
+    if let Some(f) = self.maybe_enum() {
+      s.serialize_field("maybe_enum", &f)?;
+    } else {
+      s.skip_field("maybe_enum")?;
+    }
+    s.serialize_field("default_enum", &self.default_enum())?;
+    s.end()
+  }
+}
+
 pub struct ScalarStuffBuilder<'a: 'b, 'b> {
   fbb_: &'b mut flatbuffers::FlatBufferBuilder<'a>,
   start_: flatbuffers::WIPOffset<flatbuffers::TableUnfinishedWIPOffset>,

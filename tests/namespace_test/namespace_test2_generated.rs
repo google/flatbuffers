@@ -4,6 +4,8 @@
 
 use std::mem;
 use std::cmp::Ordering;
+extern crate serde;
+use self::serde::ser::{Serialize, Serializer, SerializeStruct};
 
 extern crate flatbuffers;
 use self::flatbuffers::{EndianScalar, Follow};
@@ -13,6 +15,8 @@ pub mod namespace_a {
 
   use std::mem;
   use std::cmp::Ordering;
+  extern crate serde;
+  use self::serde::ser::{Serialize, Serializer, SerializeStruct};
 
   extern crate flatbuffers;
   use self::flatbuffers::{EndianScalar, Follow};
@@ -21,6 +25,8 @@ pub mod namespace_b {
 
   use std::mem;
   use std::cmp::Ordering;
+  extern crate serde;
+  use self::serde::ser::{Serialize, Serializer, SerializeStruct};
 
   extern crate flatbuffers;
   use self::flatbuffers::{EndianScalar, Follow};
@@ -68,6 +74,15 @@ impl std::fmt::Debug for UnionInNestedNS {
     }
   }
 }
+impl Serialize for UnionInNestedNS {
+  fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+  where
+    S: Serializer,
+  {
+    serializer.serialize_unit_variant("UnionInNestedNS", self.0 as u32, self.variant_name().unwrap())
+  }
+}
+
 impl<'a> flatbuffers::Follow<'a> for UnionInNestedNS {
   type Inner = Self;
   #[inline]
@@ -207,6 +222,15 @@ impl std::fmt::Debug for EnumInNestedNS {
     }
   }
 }
+impl Serialize for EnumInNestedNS {
+  fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+  where
+    S: Serializer,
+  {
+    serializer.serialize_unit_variant("EnumInNestedNS", self.0 as u32, self.variant_name().unwrap())
+  }
+}
+
 impl<'a> flatbuffers::Follow<'a> for EnumInNestedNS {
   type Inner = Self;
   #[inline]
@@ -316,6 +340,18 @@ impl<'a> flatbuffers::Verifiable for StructInNestedNS {
     v.in_buffer::<Self>(pos)
   }
 }
+impl Serialize for StructInNestedNS {
+  fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+  where
+    S: Serializer,
+  {
+    let mut s = serializer.serialize_struct("StructInNestedNS", 2)?;
+    s.serialize_field("a", &self.a())?;
+    s.serialize_field("b", &self.b())?;
+    s.end()
+  }
+}
+
 impl<'a> StructInNestedNS {
   #[allow(clippy::too_many_arguments)]
   pub fn new(
@@ -470,6 +506,17 @@ impl<'a> Default for TableInNestedNSArgs {
         }
     }
 }
+impl Serialize for TableInNestedNS<'_> {
+  fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+  where
+    S: Serializer,
+  {
+    let mut s = serializer.serialize_struct("TableInNestedNS", 1)?;
+    s.serialize_field("foo", &self.foo())?;
+    s.end()
+  }
+}
+
 pub struct TableInNestedNSBuilder<'a: 'b, 'b> {
   fbb_: &'b mut flatbuffers::FlatBufferBuilder<'a>,
   start_: flatbuffers::WIPOffset<flatbuffers::TableUnfinishedWIPOffset>,
@@ -664,6 +711,36 @@ impl<'a> Default for TableInFirstNSArgs<'a> {
         }
     }
 }
+impl Serialize for TableInFirstNS<'_> {
+  fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+  where
+    S: Serializer,
+  {
+    let mut s = serializer.serialize_struct("TableInFirstNS", 5)?;
+    if let Some(f) = self.foo_table() {
+      s.serialize_field("foo_table", &f)?;
+    } else {
+      s.skip_field("foo_table")?;
+    }
+    s.serialize_field("foo_enum", &self.foo_enum())?;
+    s.serialize_field("foo_union_type", &self.foo_union_type())?;
+    match self.foo_union_type() {
+      namespace_b::UnionInNestedNS::TableInNestedNS => {
+        let f = self.foo_union_as_table_in_nested_ns()
+          .expect("Invalid union table, expected `namespace_b::UnionInNestedNS::TableInNestedNS`.");
+        s.serialize_field("foo_union", &f)?;
+      }
+      _ => unimplemented!(),
+    }
+    if let Some(f) = self.foo_struct() {
+      s.serialize_field("foo_struct", &f)?;
+    } else {
+      s.skip_field("foo_struct")?;
+    }
+    s.end()
+  }
+}
+
 pub struct TableInFirstNSBuilder<'a: 'b, 'b> {
   fbb_: &'b mut flatbuffers::FlatBufferBuilder<'a>,
   start_: flatbuffers::WIPOffset<flatbuffers::TableUnfinishedWIPOffset>,
@@ -839,6 +916,21 @@ impl<'a> Default for SecondTableInAArgs<'a> {
         }
     }
 }
+impl Serialize for SecondTableInA<'_> {
+  fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+  where
+    S: Serializer,
+  {
+    let mut s = serializer.serialize_struct("SecondTableInA", 1)?;
+    if let Some(f) = self.refer_to_c() {
+      s.serialize_field("refer_to_c", &f)?;
+    } else {
+      s.skip_field("refer_to_c")?;
+    }
+    s.end()
+  }
+}
+
 pub struct SecondTableInABuilder<'a: 'b, 'b> {
   fbb_: &'b mut flatbuffers::FlatBufferBuilder<'a>,
   start_: flatbuffers::WIPOffset<flatbuffers::TableUnfinishedWIPOffset>,
@@ -902,6 +994,8 @@ pub mod namespace_c {
 
   use std::mem;
   use std::cmp::Ordering;
+  extern crate serde;
+  use self::serde::ser::{Serialize, Serializer, SerializeStruct};
 
   extern crate flatbuffers;
   use self::flatbuffers::{EndianScalar, Follow};
@@ -991,6 +1085,26 @@ impl<'a> Default for TableInCArgs<'a> {
         }
     }
 }
+impl Serialize for TableInC<'_> {
+  fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+  where
+    S: Serializer,
+  {
+    let mut s = serializer.serialize_struct("TableInC", 2)?;
+    if let Some(f) = self.refer_to_a1() {
+      s.serialize_field("refer_to_a1", &f)?;
+    } else {
+      s.skip_field("refer_to_a1")?;
+    }
+    if let Some(f) = self.refer_to_a2() {
+      s.serialize_field("refer_to_a2", &f)?;
+    } else {
+      s.skip_field("refer_to_a2")?;
+    }
+    s.end()
+  }
+}
+
 pub struct TableInCBuilder<'a: 'b, 'b> {
   fbb_: &'b mut flatbuffers::FlatBufferBuilder<'a>,
   start_: flatbuffers::WIPOffset<flatbuffers::TableUnfinishedWIPOffset>,

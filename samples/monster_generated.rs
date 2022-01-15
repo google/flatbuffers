@@ -4,6 +4,8 @@
 
 use std::mem;
 use std::cmp::Ordering;
+extern crate serde;
+use self::serde::ser::{Serialize, Serializer, SerializeStruct};
 
 extern crate flatbuffers;
 use self::flatbuffers::{EndianScalar, Follow};
@@ -13,6 +15,8 @@ pub mod my_game {
 
   use std::mem;
   use std::cmp::Ordering;
+  extern crate serde;
+  use self::serde::ser::{Serialize, Serializer, SerializeStruct};
 
   extern crate flatbuffers;
   use self::flatbuffers::{EndianScalar, Follow};
@@ -21,6 +25,8 @@ pub mod sample {
 
   use std::mem;
   use std::cmp::Ordering;
+  extern crate serde;
+  use self::serde::ser::{Serialize, Serializer, SerializeStruct};
 
   extern crate flatbuffers;
   use self::flatbuffers::{EndianScalar, Follow};
@@ -72,6 +78,15 @@ impl std::fmt::Debug for Color {
     }
   }
 }
+impl Serialize for Color {
+  fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+  where
+    S: Serializer,
+  {
+    serializer.serialize_unit_variant("Color", self.0 as u32, self.variant_name().unwrap())
+  }
+}
+
 impl<'a> flatbuffers::Follow<'a> for Color {
   type Inner = Self;
   #[inline]
@@ -159,6 +174,15 @@ impl std::fmt::Debug for Equipment {
     }
   }
 }
+impl Serialize for Equipment {
+  fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+  where
+    S: Serializer,
+  {
+    serializer.serialize_unit_variant("Equipment", self.0 as u32, self.variant_name().unwrap())
+  }
+}
+
 impl<'a> flatbuffers::Follow<'a> for Equipment {
   type Inner = Self;
   #[inline]
@@ -317,6 +341,19 @@ impl<'a> flatbuffers::Verifiable for Vec3 {
     v.in_buffer::<Self>(pos)
   }
 }
+impl Serialize for Vec3 {
+  fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+  where
+    S: Serializer,
+  {
+    let mut s = serializer.serialize_struct("Vec3", 3)?;
+    s.serialize_field("x", &self.x())?;
+    s.serialize_field("y", &self.y())?;
+    s.serialize_field("z", &self.z())?;
+    s.end()
+  }
+}
+
 impl<'a> Vec3 {
   #[allow(clippy::too_many_arguments)]
   pub fn new(
@@ -620,6 +657,53 @@ impl<'a> Default for MonsterArgs<'a> {
         }
     }
 }
+impl Serialize for Monster<'_> {
+  fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+  where
+    S: Serializer,
+  {
+    let mut s = serializer.serialize_struct("Monster", 11)?;
+    if let Some(f) = self.pos() {
+      s.serialize_field("pos", &f)?;
+    } else {
+      s.skip_field("pos")?;
+    }
+    s.serialize_field("mana", &self.mana())?;
+    s.serialize_field("hp", &self.hp())?;
+    if let Some(f) = self.name() {
+      s.serialize_field("name", &f)?;
+    } else {
+      s.skip_field("name")?;
+    }
+    if let Some(f) = self.inventory() {
+      s.serialize_field("inventory", &f)?;
+    } else {
+      s.skip_field("inventory")?;
+    }
+    s.serialize_field("color", &self.color())?;
+    if let Some(f) = self.weapons() {
+      s.serialize_field("weapons", &f)?;
+    } else {
+      s.skip_field("weapons")?;
+    }
+    s.serialize_field("equipped_type", &self.equipped_type())?;
+    match self.equipped_type() {
+      Equipment::Weapon => {
+        let f = self.equipped_as_weapon()
+          .expect("Invalid union table, expected `Equipment::Weapon`.");
+        s.serialize_field("equipped", &f)?;
+      }
+      _ => unimplemented!(),
+    }
+    if let Some(f) = self.path() {
+      s.serialize_field("path", &f)?;
+    } else {
+      s.skip_field("path")?;
+    }
+    s.end()
+  }
+}
+
 pub struct MonsterBuilder<'a: 'b, 'b> {
   fbb_: &'b mut flatbuffers::FlatBufferBuilder<'a>,
   start_: flatbuffers::WIPOffset<flatbuffers::TableUnfinishedWIPOffset>,
@@ -853,6 +937,22 @@ impl<'a> Default for WeaponArgs<'a> {
         }
     }
 }
+impl Serialize for Weapon<'_> {
+  fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+  where
+    S: Serializer,
+  {
+    let mut s = serializer.serialize_struct("Weapon", 2)?;
+    if let Some(f) = self.name() {
+      s.serialize_field("name", &f)?;
+    } else {
+      s.skip_field("name")?;
+    }
+    s.serialize_field("damage", &self.damage())?;
+    s.end()
+  }
+}
+
 pub struct WeaponBuilder<'a: 'b, 'b> {
   fbb_: &'b mut flatbuffers::FlatBufferBuilder<'a>,
   start_: flatbuffers::WIPOffset<flatbuffers::TableUnfinishedWIPOffset>,

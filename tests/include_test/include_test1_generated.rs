@@ -5,6 +5,8 @@
 use crate::include_test2_generated::*;
 use std::mem;
 use std::cmp::Ordering;
+extern crate serde;
+use self::serde::ser::{Serialize, Serializer, SerializeStruct};
 
 extern crate flatbuffers;
 use self::flatbuffers::{EndianScalar, Follow};
@@ -69,6 +71,21 @@ impl<'a> Default for TableAArgs<'a> {
         }
     }
 }
+impl Serialize for TableA<'_> {
+  fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+  where
+    S: Serializer,
+  {
+    let mut s = serializer.serialize_struct("TableA", 1)?;
+    if let Some(f) = self.b() {
+      s.serialize_field("b", &f)?;
+    } else {
+      s.skip_field("b")?;
+    }
+    s.end()
+  }
+}
+
 pub struct TableABuilder<'a: 'b, 'b> {
   fbb_: &'b mut flatbuffers::FlatBufferBuilder<'a>,
   start_: flatbuffers::WIPOffset<flatbuffers::TableUnfinishedWIPOffset>,

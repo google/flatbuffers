@@ -4,6 +4,8 @@
 
 use std::mem;
 use std::cmp::Ordering;
+extern crate serde;
+use self::serde::ser::{Serialize, Serializer, SerializeStruct};
 
 extern crate flatbuffers;
 use self::flatbuffers::{EndianScalar, Follow};
@@ -13,6 +15,8 @@ pub mod my_game {
 
   use std::mem;
   use std::cmp::Ordering;
+  extern crate serde;
+  use self::serde::ser::{Serialize, Serializer, SerializeStruct};
 
   extern crate flatbuffers;
   use self::flatbuffers::{EndianScalar, Follow};
@@ -21,6 +25,8 @@ pub mod example {
 
   use std::mem;
   use std::cmp::Ordering;
+  extern crate serde;
+  use self::serde::ser::{Serialize, Serializer, SerializeStruct};
 
   extern crate flatbuffers;
   use self::flatbuffers::{EndianScalar, Follow};
@@ -72,6 +78,15 @@ impl std::fmt::Debug for TestEnum {
     }
   }
 }
+impl Serialize for TestEnum {
+  fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+  where
+    S: Serializer,
+  {
+    serializer.serialize_unit_variant("TestEnum", self.0 as u32, self.variant_name().unwrap())
+  }
+}
+
 impl<'a> flatbuffers::Follow<'a> for TestEnum {
   type Inner = Self;
   #[inline]
@@ -183,6 +198,20 @@ impl<'a> flatbuffers::Verifiable for NestedStruct {
     v.in_buffer::<Self>(pos)
   }
 }
+impl Serialize for NestedStruct {
+  fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+  where
+    S: Serializer,
+  {
+    let mut s = serializer.serialize_struct("NestedStruct", 4)?;
+    s.serialize_field("a", &self.a())?;
+    s.serialize_field("b", &self.b())?;
+    s.serialize_field("c", &self.c())?;
+    s.serialize_field("d", &self.d())?;
+    s.end()
+  }
+}
+
 impl<'a> NestedStruct {
   #[allow(clippy::too_many_arguments)]
   pub fn new(
@@ -349,6 +378,22 @@ impl<'a> flatbuffers::Verifiable for ArrayStruct {
     v.in_buffer::<Self>(pos)
   }
 }
+impl Serialize for ArrayStruct {
+  fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+  where
+    S: Serializer,
+  {
+    let mut s = serializer.serialize_struct("ArrayStruct", 6)?;
+    s.serialize_field("a", &self.a())?;
+    s.serialize_field("b", &self.b())?;
+    s.serialize_field("c", &self.c())?;
+    s.serialize_field("d", &self.d())?;
+    s.serialize_field("e", &self.e())?;
+    s.serialize_field("f", &self.f())?;
+    s.end()
+  }
+}
+
 impl<'a> ArrayStruct {
   #[allow(clippy::too_many_arguments)]
   pub fn new(
@@ -570,6 +615,21 @@ impl<'a> Default for ArrayTableArgs<'a> {
         }
     }
 }
+impl Serialize for ArrayTable<'_> {
+  fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+  where
+    S: Serializer,
+  {
+    let mut s = serializer.serialize_struct("ArrayTable", 1)?;
+    if let Some(f) = self.a() {
+      s.serialize_field("a", &f)?;
+    } else {
+      s.skip_field("a")?;
+    }
+    s.end()
+  }
+}
+
 pub struct ArrayTableBuilder<'a: 'b, 'b> {
   fbb_: &'b mut flatbuffers::FlatBufferBuilder<'a>,
   start_: flatbuffers::WIPOffset<flatbuffers::TableUnfinishedWIPOffset>,

@@ -6,6 +6,8 @@ use crate::include_test2_generated::*;
 use crate::include_test1_generated::*;
 use std::mem;
 use std::cmp::Ordering;
+extern crate serde;
+use self::serde::ser::{Serialize, Serializer, SerializeStruct};
 
 extern crate flatbuffers;
 use self::flatbuffers::{EndianScalar, Follow};
@@ -17,6 +19,8 @@ pub mod my_game {
   use crate::include_test1_generated::*;
   use std::mem;
   use std::cmp::Ordering;
+  extern crate serde;
+  use self::serde::ser::{Serialize, Serializer, SerializeStruct};
 
   extern crate flatbuffers;
   use self::flatbuffers::{EndianScalar, Follow};
@@ -79,6 +83,16 @@ impl<'a> Default for InParentNamespaceArgs {
         }
     }
 }
+impl Serialize for InParentNamespace<'_> {
+  fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+  where
+    S: Serializer,
+  {
+    let s = serializer.serialize_struct("InParentNamespace", 0)?;
+    s.end()
+  }
+}
+
 pub struct InParentNamespaceBuilder<'a: 'b, 'b> {
   fbb_: &'b mut flatbuffers::FlatBufferBuilder<'a>,
   start_: flatbuffers::WIPOffset<flatbuffers::TableUnfinishedWIPOffset>,
@@ -131,6 +145,8 @@ pub mod example_2 {
   use crate::include_test1_generated::*;
   use std::mem;
   use std::cmp::Ordering;
+  extern crate serde;
+  use self::serde::ser::{Serialize, Serializer, SerializeStruct};
 
   extern crate flatbuffers;
   use self::flatbuffers::{EndianScalar, Follow};
@@ -193,6 +209,16 @@ impl<'a> Default for MonsterArgs {
         }
     }
 }
+impl Serialize for Monster<'_> {
+  fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+  where
+    S: Serializer,
+  {
+    let s = serializer.serialize_struct("Monster", 0)?;
+    s.end()
+  }
+}
+
 pub struct MonsterBuilder<'a: 'b, 'b> {
   fbb_: &'b mut flatbuffers::FlatBufferBuilder<'a>,
   start_: flatbuffers::WIPOffset<flatbuffers::TableUnfinishedWIPOffset>,
@@ -247,6 +273,8 @@ pub mod example {
   use crate::include_test1_generated::*;
   use std::mem;
   use std::cmp::Ordering;
+  extern crate serde;
+  use self::serde::ser::{Serialize, Serializer, SerializeStruct};
 
   extern crate flatbuffers;
   use self::flatbuffers::{EndianScalar, Follow};
@@ -267,6 +295,15 @@ mod bitflags_color {
   }
 }
 pub use self::bitflags_color::Color;
+
+impl Serialize for Color {
+  fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+  where
+    S: Serializer,
+  {
+    serializer.serialize_u32(self.bits() as u32)
+  }
+}
 
 impl<'a> flatbuffers::Follow<'a> for Color {
   type Inner = Self;
@@ -363,6 +400,15 @@ impl std::fmt::Debug for Race {
     }
   }
 }
+impl Serialize for Race {
+  fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+  where
+    S: Serializer,
+  {
+    serializer.serialize_unit_variant("Race", self.0 as u32, self.variant_name().unwrap())
+  }
+}
+
 impl<'a> flatbuffers::Follow<'a> for Race {
   type Inner = Self;
   #[inline]
@@ -458,6 +504,15 @@ impl std::fmt::Debug for Any {
     }
   }
 }
+impl Serialize for Any {
+  fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+  where
+    S: Serializer,
+  {
+    serializer.serialize_unit_variant("Any", self.0 as u32, self.variant_name().unwrap())
+  }
+}
+
 impl<'a> flatbuffers::Follow<'a> for Any {
   type Inner = Self;
   #[inline]
@@ -649,6 +704,15 @@ impl std::fmt::Debug for AnyUniqueAliases {
     }
   }
 }
+impl Serialize for AnyUniqueAliases {
+  fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+  where
+    S: Serializer,
+  {
+    serializer.serialize_unit_variant("AnyUniqueAliases", self.0 as u32, self.variant_name().unwrap())
+  }
+}
+
 impl<'a> flatbuffers::Follow<'a> for AnyUniqueAliases {
   type Inner = Self;
   #[inline]
@@ -840,6 +904,15 @@ impl std::fmt::Debug for AnyAmbiguousAliases {
     }
   }
 }
+impl Serialize for AnyAmbiguousAliases {
+  fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+  where
+    S: Serializer,
+  {
+    serializer.serialize_unit_variant("AnyAmbiguousAliases", self.0 as u32, self.variant_name().unwrap())
+  }
+}
+
 impl<'a> flatbuffers::Follow<'a> for AnyAmbiguousAliases {
   type Inner = Self;
   #[inline]
@@ -1045,6 +1118,18 @@ impl<'a> flatbuffers::Verifiable for Test {
     v.in_buffer::<Self>(pos)
   }
 }
+impl Serialize for Test {
+  fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+  where
+    S: Serializer,
+  {
+    let mut s = serializer.serialize_struct("Test", 2)?;
+    s.serialize_field("a", &self.a())?;
+    s.serialize_field("b", &self.b())?;
+    s.end()
+  }
+}
+
 impl<'a> Test {
   #[allow(clippy::too_many_arguments)]
   pub fn new(
@@ -1198,6 +1283,22 @@ impl<'a> flatbuffers::Verifiable for Vec3 {
     v.in_buffer::<Self>(pos)
   }
 }
+impl Serialize for Vec3 {
+  fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+  where
+    S: Serializer,
+  {
+    let mut s = serializer.serialize_struct("Vec3", 6)?;
+    s.serialize_field("x", &self.x())?;
+    s.serialize_field("y", &self.y())?;
+    s.serialize_field("z", &self.z())?;
+    s.serialize_field("test1", &self.test1())?;
+    s.serialize_field("test2", &self.test2())?;
+    s.serialize_field("test3", &self.test3())?;
+    s.end()
+  }
+}
+
 impl<'a> Vec3 {
   #[allow(clippy::too_many_arguments)]
   pub fn new(
@@ -1444,6 +1545,18 @@ impl<'a> flatbuffers::Verifiable for Ability {
     v.in_buffer::<Self>(pos)
   }
 }
+impl Serialize for Ability {
+  fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+  where
+    S: Serializer,
+  {
+    let mut s = serializer.serialize_struct("Ability", 2)?;
+    s.serialize_field("id", &self.id())?;
+    s.serialize_field("distance", &self.distance())?;
+    s.end()
+  }
+}
+
 impl<'a> Ability {
   #[allow(clippy::too_many_arguments)]
   pub fn new(
@@ -1604,6 +1717,19 @@ impl<'a> flatbuffers::Verifiable for StructOfStructs {
     v.in_buffer::<Self>(pos)
   }
 }
+impl Serialize for StructOfStructs {
+  fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+  where
+    S: Serializer,
+  {
+    let mut s = serializer.serialize_struct("StructOfStructs", 3)?;
+    s.serialize_field("a", &self.a())?;
+    s.serialize_field("b", &self.b())?;
+    s.serialize_field("c", &self.c())?;
+    s.end()
+  }
+}
+
 impl<'a> StructOfStructs {
   #[allow(clippy::too_many_arguments)]
   pub fn new(
@@ -1741,6 +1867,17 @@ impl<'a> Default for TestSimpleTableWithEnumArgs {
         }
     }
 }
+impl Serialize for TestSimpleTableWithEnum<'_> {
+  fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+  where
+    S: Serializer,
+  {
+    let mut s = serializer.serialize_struct("TestSimpleTableWithEnum", 1)?;
+    s.serialize_field("color", &self.color())?;
+    s.end()
+  }
+}
+
 pub struct TestSimpleTableWithEnumBuilder<'a: 'b, 'b> {
   fbb_: &'b mut flatbuffers::FlatBufferBuilder<'a>,
   start_: flatbuffers::WIPOffset<flatbuffers::TableUnfinishedWIPOffset>,
@@ -1899,6 +2036,23 @@ impl<'a> Default for StatArgs<'a> {
         }
     }
 }
+impl Serialize for Stat<'_> {
+  fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+  where
+    S: Serializer,
+  {
+    let mut s = serializer.serialize_struct("Stat", 3)?;
+    if let Some(f) = self.id() {
+      s.serialize_field("id", &f)?;
+    } else {
+      s.skip_field("id")?;
+    }
+    s.serialize_field("val", &self.val())?;
+    s.serialize_field("count", &self.count())?;
+    s.end()
+  }
+}
+
 pub struct StatBuilder<'a: 'b, 'b> {
   fbb_: &'b mut flatbuffers::FlatBufferBuilder<'a>,
   start_: flatbuffers::WIPOffset<flatbuffers::TableUnfinishedWIPOffset>,
@@ -2053,6 +2207,17 @@ impl<'a> Default for ReferrableArgs {
         }
     }
 }
+impl Serialize for Referrable<'_> {
+  fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+  where
+    S: Serializer,
+  {
+    let mut s = serializer.serialize_struct("Referrable", 1)?;
+    s.serialize_field("id", &self.id())?;
+    s.end()
+  }
+}
+
 pub struct ReferrableBuilder<'a: 'b, 'b> {
   fbb_: &'b mut flatbuffers::FlatBufferBuilder<'a>,
   start_: flatbuffers::WIPOffset<flatbuffers::TableUnfinishedWIPOffset>,
@@ -2773,7 +2938,7 @@ impl flatbuffers::Verifiable for Monster<'_> {
      .visit_field::<flatbuffers::ForwardsUOffset<&str>>(&"name", Self::VT_NAME, true)?
      .visit_field::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'_, u8>>>(&"inventory", Self::VT_INVENTORY, false)?
      .visit_field::<Color>(&"color", Self::VT_COLOR, false)?
-     .visit_union::<Any, _>(&"test_type", Self::VT_TEST_TYPE, &"test", Self::VT_TEST, false, |key, v, pos| {
+     .visit_union::<Any, _>(&"any_ambiguous_type", Self::VT_TEST_TYPE, &"any_ambiguous", Self::VT_TEST, false, |key, v, pos| {
         match key {
           Any::Monster => v.verify_union_variant::<flatbuffers::ForwardsUOffset<Monster>>("Any::Monster", pos),
           Any::TestSimpleTableWithEnum => v.verify_union_variant::<flatbuffers::ForwardsUOffset<TestSimpleTableWithEnum>>("Any::TestSimpleTableWithEnum", pos),
@@ -2815,7 +2980,7 @@ impl flatbuffers::Verifiable for Monster<'_> {
      .visit_field::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'_, u64>>>(&"vector_of_co_owning_references", Self::VT_VECTOR_OF_CO_OWNING_REFERENCES, false)?
      .visit_field::<u64>(&"non_owning_reference", Self::VT_NON_OWNING_REFERENCE, false)?
      .visit_field::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'_, u64>>>(&"vector_of_non_owning_references", Self::VT_VECTOR_OF_NON_OWNING_REFERENCES, false)?
-     .visit_union::<AnyUniqueAliases, _>(&"any_unique_type", Self::VT_ANY_UNIQUE_TYPE, &"any_unique", Self::VT_ANY_UNIQUE, false, |key, v, pos| {
+     .visit_union::<AnyUniqueAliases, _>(&"any_ambiguous_type", Self::VT_ANY_UNIQUE_TYPE, &"any_ambiguous", Self::VT_ANY_UNIQUE, false, |key, v, pos| {
         match key {
           AnyUniqueAliases::M => v.verify_union_variant::<flatbuffers::ForwardsUOffset<Monster>>("AnyUniqueAliases::M", pos),
           AnyUniqueAliases::TS => v.verify_union_variant::<flatbuffers::ForwardsUOffset<TestSimpleTableWithEnum>>("AnyUniqueAliases::TS", pos),
@@ -2948,6 +3113,213 @@ impl<'a> Default for MonsterArgs<'a> {
         }
     }
 }
+impl Serialize for Monster<'_> {
+  fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+  where
+    S: Serializer,
+  {
+    let mut s = serializer.serialize_struct("Monster", 51)?;
+    if let Some(f) = self.pos() {
+      s.serialize_field("pos", &f)?;
+    } else {
+      s.skip_field("pos")?;
+    }
+    s.serialize_field("mana", &self.mana())?;
+    s.serialize_field("hp", &self.hp())?;
+    s.serialize_field("name", &self.name())?;
+    if let Some(f) = self.inventory() {
+      s.serialize_field("inventory", &f)?;
+    } else {
+      s.skip_field("inventory")?;
+    }
+    s.serialize_field("color", &self.color())?;
+    s.serialize_field("test_type", &self.test_type())?;
+    match self.test_type() {
+      Any::Monster => {
+        let f = self.test_as_monster()
+          .expect("Invalid union table, expected `Any::Monster`.");
+        s.serialize_field("test", &f)?;
+      }
+      Any::TestSimpleTableWithEnum => {
+        let f = self.test_as_test_simple_table_with_enum()
+          .expect("Invalid union table, expected `Any::TestSimpleTableWithEnum`.");
+        s.serialize_field("test", &f)?;
+      }
+      Any::MyGame_Example2_Monster => {
+        let f = self.test_as_my_game_example_2_monster()
+          .expect("Invalid union table, expected `Any::MyGame_Example2_Monster`.");
+        s.serialize_field("test", &f)?;
+      }
+      _ => unimplemented!(),
+    }
+    if let Some(f) = self.test4() {
+      s.serialize_field("test4", &f)?;
+    } else {
+      s.skip_field("test4")?;
+    }
+    if let Some(f) = self.testarrayofstring() {
+      s.serialize_field("testarrayofstring", &f)?;
+    } else {
+      s.skip_field("testarrayofstring")?;
+    }
+    if let Some(f) = self.testarrayoftables() {
+      s.serialize_field("testarrayoftables", &f)?;
+    } else {
+      s.skip_field("testarrayoftables")?;
+    }
+    if let Some(f) = self.enemy() {
+      s.serialize_field("enemy", &f)?;
+    } else {
+      s.skip_field("enemy")?;
+    }
+    if let Some(f) = self.testnestedflatbuffer() {
+      s.serialize_field("testnestedflatbuffer", &f)?;
+    } else {
+      s.skip_field("testnestedflatbuffer")?;
+    }
+    if let Some(f) = self.testempty() {
+      s.serialize_field("testempty", &f)?;
+    } else {
+      s.skip_field("testempty")?;
+    }
+    s.serialize_field("testbool", &self.testbool())?;
+    s.serialize_field("testhashs32_fnv1", &self.testhashs32_fnv1())?;
+    s.serialize_field("testhashu32_fnv1", &self.testhashu32_fnv1())?;
+    s.serialize_field("testhashs64_fnv1", &self.testhashs64_fnv1())?;
+    s.serialize_field("testhashu64_fnv1", &self.testhashu64_fnv1())?;
+    s.serialize_field("testhashs32_fnv1a", &self.testhashs32_fnv1a())?;
+    s.serialize_field("testhashu32_fnv1a", &self.testhashu32_fnv1a())?;
+    s.serialize_field("testhashs64_fnv1a", &self.testhashs64_fnv1a())?;
+    s.serialize_field("testhashu64_fnv1a", &self.testhashu64_fnv1a())?;
+    if let Some(f) = self.testarrayofbools() {
+      s.serialize_field("testarrayofbools", &f)?;
+    } else {
+      s.skip_field("testarrayofbools")?;
+    }
+    s.serialize_field("testf", &self.testf())?;
+    s.serialize_field("testf2", &self.testf2())?;
+    s.serialize_field("testf3", &self.testf3())?;
+    if let Some(f) = self.testarrayofstring2() {
+      s.serialize_field("testarrayofstring2", &f)?;
+    } else {
+      s.skip_field("testarrayofstring2")?;
+    }
+    if let Some(f) = self.testarrayofsortedstruct() {
+      s.serialize_field("testarrayofsortedstruct", &f)?;
+    } else {
+      s.skip_field("testarrayofsortedstruct")?;
+    }
+    if let Some(f) = self.flex() {
+      s.serialize_field("flex", &f)?;
+    } else {
+      s.skip_field("flex")?;
+    }
+    if let Some(f) = self.test5() {
+      s.serialize_field("test5", &f)?;
+    } else {
+      s.skip_field("test5")?;
+    }
+    if let Some(f) = self.vector_of_longs() {
+      s.serialize_field("vector_of_longs", &f)?;
+    } else {
+      s.skip_field("vector_of_longs")?;
+    }
+    if let Some(f) = self.vector_of_doubles() {
+      s.serialize_field("vector_of_doubles", &f)?;
+    } else {
+      s.skip_field("vector_of_doubles")?;
+    }
+    if let Some(f) = self.parent_namespace_test() {
+      s.serialize_field("parent_namespace_test", &f)?;
+    } else {
+      s.skip_field("parent_namespace_test")?;
+    }
+    if let Some(f) = self.vector_of_referrables() {
+      s.serialize_field("vector_of_referrables", &f)?;
+    } else {
+      s.skip_field("vector_of_referrables")?;
+    }
+    s.serialize_field("single_weak_reference", &self.single_weak_reference())?;
+    if let Some(f) = self.vector_of_weak_references() {
+      s.serialize_field("vector_of_weak_references", &f)?;
+    } else {
+      s.skip_field("vector_of_weak_references")?;
+    }
+    if let Some(f) = self.vector_of_strong_referrables() {
+      s.serialize_field("vector_of_strong_referrables", &f)?;
+    } else {
+      s.skip_field("vector_of_strong_referrables")?;
+    }
+    s.serialize_field("co_owning_reference", &self.co_owning_reference())?;
+    if let Some(f) = self.vector_of_co_owning_references() {
+      s.serialize_field("vector_of_co_owning_references", &f)?;
+    } else {
+      s.skip_field("vector_of_co_owning_references")?;
+    }
+    s.serialize_field("non_owning_reference", &self.non_owning_reference())?;
+    if let Some(f) = self.vector_of_non_owning_references() {
+      s.serialize_field("vector_of_non_owning_references", &f)?;
+    } else {
+      s.skip_field("vector_of_non_owning_references")?;
+    }
+    s.serialize_field("any_unique_type", &self.any_unique_type())?;
+    match self.any_unique_type() {
+      AnyUniqueAliases::M => {
+        let f = self.any_unique_as_m()
+          .expect("Invalid union table, expected `AnyUniqueAliases::M`.");
+        s.serialize_field("any_unique", &f)?;
+      }
+      AnyUniqueAliases::TS => {
+        let f = self.any_unique_as_ts()
+          .expect("Invalid union table, expected `AnyUniqueAliases::TS`.");
+        s.serialize_field("any_unique", &f)?;
+      }
+      AnyUniqueAliases::M2 => {
+        let f = self.any_unique_as_m2()
+          .expect("Invalid union table, expected `AnyUniqueAliases::M2`.");
+        s.serialize_field("any_unique", &f)?;
+      }
+      _ => unimplemented!(),
+    }
+    s.serialize_field("any_ambiguous_type", &self.any_ambiguous_type())?;
+    match self.any_ambiguous_type() {
+      AnyAmbiguousAliases::M1 => {
+        let f = self.any_ambiguous_as_m1()
+          .expect("Invalid union table, expected `AnyAmbiguousAliases::M1`.");
+        s.serialize_field("any_ambiguous", &f)?;
+      }
+      AnyAmbiguousAliases::M2 => {
+        let f = self.any_ambiguous_as_m2()
+          .expect("Invalid union table, expected `AnyAmbiguousAliases::M2`.");
+        s.serialize_field("any_ambiguous", &f)?;
+      }
+      AnyAmbiguousAliases::M3 => {
+        let f = self.any_ambiguous_as_m3()
+          .expect("Invalid union table, expected `AnyAmbiguousAliases::M3`.");
+        s.serialize_field("any_ambiguous", &f)?;
+      }
+      _ => unimplemented!(),
+    }
+    if let Some(f) = self.vector_of_enums() {
+      s.serialize_field("vector_of_enums", &f)?;
+    } else {
+      s.skip_field("vector_of_enums")?;
+    }
+    s.serialize_field("signed_enum", &self.signed_enum())?;
+    if let Some(f) = self.testrequirednestedflatbuffer() {
+      s.serialize_field("testrequirednestedflatbuffer", &f)?;
+    } else {
+      s.skip_field("testrequirednestedflatbuffer")?;
+    }
+    if let Some(f) = self.scalar_key_sorted_tables() {
+      s.serialize_field("scalar_key_sorted_tables", &f)?;
+    } else {
+      s.skip_field("scalar_key_sorted_tables")?;
+    }
+    s.end()
+  }
+}
+
 pub struct MonsterBuilder<'a: 'b, 'b> {
   fbb_: &'b mut flatbuffers::FlatBufferBuilder<'a>,
   start_: flatbuffers::WIPOffset<flatbuffers::TableUnfinishedWIPOffset>,
@@ -3642,58 +4014,58 @@ impl<'a> TypeAliases<'a> {
         vf64,
       }
     }
-    pub const VT_I8_: flatbuffers::VOffsetT = 4;
-    pub const VT_U8_: flatbuffers::VOffsetT = 6;
-    pub const VT_I16_: flatbuffers::VOffsetT = 8;
-    pub const VT_U16_: flatbuffers::VOffsetT = 10;
-    pub const VT_I32_: flatbuffers::VOffsetT = 12;
-    pub const VT_U32_: flatbuffers::VOffsetT = 14;
-    pub const VT_I64_: flatbuffers::VOffsetT = 16;
-    pub const VT_U64_: flatbuffers::VOffsetT = 18;
-    pub const VT_F32_: flatbuffers::VOffsetT = 20;
-    pub const VT_F64_: flatbuffers::VOffsetT = 22;
+    pub const VT_I8: flatbuffers::VOffsetT = 4;
+    pub const VT_U8: flatbuffers::VOffsetT = 6;
+    pub const VT_I16: flatbuffers::VOffsetT = 8;
+    pub const VT_U16: flatbuffers::VOffsetT = 10;
+    pub const VT_I32: flatbuffers::VOffsetT = 12;
+    pub const VT_U32: flatbuffers::VOffsetT = 14;
+    pub const VT_I64: flatbuffers::VOffsetT = 16;
+    pub const VT_U64: flatbuffers::VOffsetT = 18;
+    pub const VT_F32: flatbuffers::VOffsetT = 20;
+    pub const VT_F64: flatbuffers::VOffsetT = 22;
     pub const VT_V8: flatbuffers::VOffsetT = 24;
     pub const VT_VF64: flatbuffers::VOffsetT = 26;
 
   #[inline]
   pub fn i8_(&self) -> i8 {
-    self._tab.get::<i8>(TypeAliases::VT_I8_, Some(0)).unwrap()
+    self._tab.get::<i8>(TypeAliases::VT_I8, Some(0)).unwrap()
   }
   #[inline]
   pub fn u8_(&self) -> u8 {
-    self._tab.get::<u8>(TypeAliases::VT_U8_, Some(0)).unwrap()
+    self._tab.get::<u8>(TypeAliases::VT_U8, Some(0)).unwrap()
   }
   #[inline]
   pub fn i16_(&self) -> i16 {
-    self._tab.get::<i16>(TypeAliases::VT_I16_, Some(0)).unwrap()
+    self._tab.get::<i16>(TypeAliases::VT_I16, Some(0)).unwrap()
   }
   #[inline]
   pub fn u16_(&self) -> u16 {
-    self._tab.get::<u16>(TypeAliases::VT_U16_, Some(0)).unwrap()
+    self._tab.get::<u16>(TypeAliases::VT_U16, Some(0)).unwrap()
   }
   #[inline]
   pub fn i32_(&self) -> i32 {
-    self._tab.get::<i32>(TypeAliases::VT_I32_, Some(0)).unwrap()
+    self._tab.get::<i32>(TypeAliases::VT_I32, Some(0)).unwrap()
   }
   #[inline]
   pub fn u32_(&self) -> u32 {
-    self._tab.get::<u32>(TypeAliases::VT_U32_, Some(0)).unwrap()
+    self._tab.get::<u32>(TypeAliases::VT_U32, Some(0)).unwrap()
   }
   #[inline]
   pub fn i64_(&self) -> i64 {
-    self._tab.get::<i64>(TypeAliases::VT_I64_, Some(0)).unwrap()
+    self._tab.get::<i64>(TypeAliases::VT_I64, Some(0)).unwrap()
   }
   #[inline]
   pub fn u64_(&self) -> u64 {
-    self._tab.get::<u64>(TypeAliases::VT_U64_, Some(0)).unwrap()
+    self._tab.get::<u64>(TypeAliases::VT_U64, Some(0)).unwrap()
   }
   #[inline]
   pub fn f32_(&self) -> f32 {
-    self._tab.get::<f32>(TypeAliases::VT_F32_, Some(0.0)).unwrap()
+    self._tab.get::<f32>(TypeAliases::VT_F32, Some(0.0)).unwrap()
   }
   #[inline]
   pub fn f64_(&self) -> f64 {
-    self._tab.get::<f64>(TypeAliases::VT_F64_, Some(0.0)).unwrap()
+    self._tab.get::<f64>(TypeAliases::VT_F64, Some(0.0)).unwrap()
   }
   #[inline]
   pub fn v8(&self) -> Option<&'a [i8]> {
@@ -3712,16 +4084,16 @@ impl flatbuffers::Verifiable for TypeAliases<'_> {
   ) -> Result<(), flatbuffers::InvalidFlatbuffer> {
     use self::flatbuffers::Verifiable;
     v.visit_table(pos)?
-     .visit_field::<i8>(&"i8_", Self::VT_I8_, false)?
-     .visit_field::<u8>(&"u8_", Self::VT_U8_, false)?
-     .visit_field::<i16>(&"i16_", Self::VT_I16_, false)?
-     .visit_field::<u16>(&"u16_", Self::VT_U16_, false)?
-     .visit_field::<i32>(&"i32_", Self::VT_I32_, false)?
-     .visit_field::<u32>(&"u32_", Self::VT_U32_, false)?
-     .visit_field::<i64>(&"i64_", Self::VT_I64_, false)?
-     .visit_field::<u64>(&"u64_", Self::VT_U64_, false)?
-     .visit_field::<f32>(&"f32_", Self::VT_F32_, false)?
-     .visit_field::<f64>(&"f64_", Self::VT_F64_, false)?
+     .visit_field::<i8>(&"i8_", Self::VT_I8, false)?
+     .visit_field::<u8>(&"u8_", Self::VT_U8, false)?
+     .visit_field::<i16>(&"i16_", Self::VT_I16, false)?
+     .visit_field::<u16>(&"u16_", Self::VT_U16, false)?
+     .visit_field::<i32>(&"i32_", Self::VT_I32, false)?
+     .visit_field::<u32>(&"u32_", Self::VT_U32, false)?
+     .visit_field::<i64>(&"i64_", Self::VT_I64, false)?
+     .visit_field::<u64>(&"u64_", Self::VT_U64, false)?
+     .visit_field::<f32>(&"f32_", Self::VT_F32, false)?
+     .visit_field::<f64>(&"f64_", Self::VT_F64, false)?
      .visit_field::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'_, i8>>>(&"v8", Self::VT_V8, false)?
      .visit_field::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'_, f64>>>(&"vf64", Self::VT_VF64, false)?
      .finish();
@@ -3761,6 +4133,36 @@ impl<'a> Default for TypeAliasesArgs<'a> {
         }
     }
 }
+impl Serialize for TypeAliases<'_> {
+  fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+  where
+    S: Serializer,
+  {
+    let mut s = serializer.serialize_struct("TypeAliases", 12)?;
+    s.serialize_field("i8_", &self.i8_())?;
+    s.serialize_field("u8_", &self.u8_())?;
+    s.serialize_field("i16_", &self.i16_())?;
+    s.serialize_field("u16_", &self.u16_())?;
+    s.serialize_field("i32_", &self.i32_())?;
+    s.serialize_field("u32_", &self.u32_())?;
+    s.serialize_field("i64_", &self.i64_())?;
+    s.serialize_field("u64_", &self.u64_())?;
+    s.serialize_field("f32_", &self.f32_())?;
+    s.serialize_field("f64_", &self.f64_())?;
+    if let Some(f) = self.v8() {
+      s.serialize_field("v8", &f)?;
+    } else {
+      s.skip_field("v8")?;
+    }
+    if let Some(f) = self.vf64() {
+      s.serialize_field("vf64", &f)?;
+    } else {
+      s.skip_field("vf64")?;
+    }
+    s.end()
+  }
+}
+
 pub struct TypeAliasesBuilder<'a: 'b, 'b> {
   fbb_: &'b mut flatbuffers::FlatBufferBuilder<'a>,
   start_: flatbuffers::WIPOffset<flatbuffers::TableUnfinishedWIPOffset>,
@@ -3768,43 +4170,43 @@ pub struct TypeAliasesBuilder<'a: 'b, 'b> {
 impl<'a: 'b, 'b> TypeAliasesBuilder<'a, 'b> {
   #[inline]
   pub fn add_i8_(&mut self, i8_: i8) {
-    self.fbb_.push_slot::<i8>(TypeAliases::VT_I8_, i8_, 0);
+    self.fbb_.push_slot::<i8>(TypeAliases::VT_I8, i8_, 0);
   }
   #[inline]
   pub fn add_u8_(&mut self, u8_: u8) {
-    self.fbb_.push_slot::<u8>(TypeAliases::VT_U8_, u8_, 0);
+    self.fbb_.push_slot::<u8>(TypeAliases::VT_U8, u8_, 0);
   }
   #[inline]
   pub fn add_i16_(&mut self, i16_: i16) {
-    self.fbb_.push_slot::<i16>(TypeAliases::VT_I16_, i16_, 0);
+    self.fbb_.push_slot::<i16>(TypeAliases::VT_I16, i16_, 0);
   }
   #[inline]
   pub fn add_u16_(&mut self, u16_: u16) {
-    self.fbb_.push_slot::<u16>(TypeAliases::VT_U16_, u16_, 0);
+    self.fbb_.push_slot::<u16>(TypeAliases::VT_U16, u16_, 0);
   }
   #[inline]
   pub fn add_i32_(&mut self, i32_: i32) {
-    self.fbb_.push_slot::<i32>(TypeAliases::VT_I32_, i32_, 0);
+    self.fbb_.push_slot::<i32>(TypeAliases::VT_I32, i32_, 0);
   }
   #[inline]
   pub fn add_u32_(&mut self, u32_: u32) {
-    self.fbb_.push_slot::<u32>(TypeAliases::VT_U32_, u32_, 0);
+    self.fbb_.push_slot::<u32>(TypeAliases::VT_U32, u32_, 0);
   }
   #[inline]
   pub fn add_i64_(&mut self, i64_: i64) {
-    self.fbb_.push_slot::<i64>(TypeAliases::VT_I64_, i64_, 0);
+    self.fbb_.push_slot::<i64>(TypeAliases::VT_I64, i64_, 0);
   }
   #[inline]
   pub fn add_u64_(&mut self, u64_: u64) {
-    self.fbb_.push_slot::<u64>(TypeAliases::VT_U64_, u64_, 0);
+    self.fbb_.push_slot::<u64>(TypeAliases::VT_U64, u64_, 0);
   }
   #[inline]
   pub fn add_f32_(&mut self, f32_: f32) {
-    self.fbb_.push_slot::<f32>(TypeAliases::VT_F32_, f32_, 0.0);
+    self.fbb_.push_slot::<f32>(TypeAliases::VT_F32, f32_, 0.0);
   }
   #[inline]
   pub fn add_f64_(&mut self, f64_: f64) {
-    self.fbb_.push_slot::<f64>(TypeAliases::VT_F64_, f64_, 0.0);
+    self.fbb_.push_slot::<f64>(TypeAliases::VT_F64, f64_, 0.0);
   }
   #[inline]
   pub fn add_v8(&mut self, v8: flatbuffers::WIPOffset<flatbuffers::Vector<'b , i8>>) {

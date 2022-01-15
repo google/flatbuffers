@@ -741,6 +741,22 @@ class RustGenerator : public BaseGenerator {
       code_.SetValue("INTO_BASE", "self.0");
     }
 
+    // Implement serde::Serialize
+    code_ += "impl Serialize for {{ENUM_NAME}} {";
+    code_ += "  fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>";
+    code_ += "  where";
+    code_ += "    S: Serializer,";
+    code_ += "  {";
+    if (IsBitFlagsEnum(enum_def)) {
+      code_ += "    serializer.serialize_u32(self.bits() as u32)";
+    } else {
+      code_ += "    serializer.serialize_unit_variant(\"{{ENUM_NAME}}\", self.0 as u32, self.variant_name().unwrap())";
+    }
+    code_ += "  }";
+    code_ += "}";
+    code_ += "";
+
+
     // Generate Follow and Push so we can serialize and stuff.
     code_ += "impl<'a> flatbuffers::Follow<'a> for {{ENUM_NAME}} {";
     code_ += "  type Inner = Self;";
@@ -1902,6 +1918,58 @@ class RustGenerator : public BaseGenerator {
     code_ += "    }";
     code_ += "}";
 
+    // Implement serde::Serialize
+    const auto numFields = struct_def.fields.vec.size();
+    code_.SetValue("NUM_FIELDS", NumToString(numFields));
+    code_ += "impl Serialize for {{STRUCT_NAME}}<'_> {";
+    code_ += "  fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>";
+    code_ += "  where";
+    code_ += "    S: Serializer,";
+    code_ += "  {";
+    if (numFields == 0) {
+    code_ += "    let s = serializer.serialize_struct(\"{{STRUCT_NAME}}\", 0)?;";
+    } else {
+      code_ += "    let mut s = serializer.serialize_struct(\"{{STRUCT_NAME}}\", {{NUM_FIELDS}})?;";
+    }
+    ForAllTableFields(struct_def, [&](const FieldDef &field) {
+      const Type &type = field.value.type;
+      if (IsUnion(type)) {
+        if (type.base_type == BASE_TYPE_UNION) {
+          const auto &enum_def = *type.enum_def;
+          code_.SetValue("ENUM_NAME", WrapInNameSpace(enum_def));
+          code_.SetValue("FIELD_TYPE_FIELD_NAME", field.name);
+
+          code_ += "    match self.{{FIELD_TYPE_FIELD_NAME}}_type() {";
+          ForAllUnionObjectVariantsBesidesNone(enum_def, [&] {
+            code_.SetValue("FIELD_TYPE_FIELD_NAME", field.name);
+            code_ += "      {{ENUM_NAME}}::{{VARIANT_NAME}} => {";
+            code_ += "        let f = self.{{FIELD_TYPE_FIELD_NAME}}_as_{{U_ELEMENT_NAME}}()";
+            code_ += "          .expect(\"Invalid union table, expected `{{ENUM_NAME}}::{{VARIANT_NAME}}`.\");";
+            code_ += "        s.serialize_field(\"{{FIELD_NAME}}\", &f)?;";
+            code_ += "      }";
+          });
+          code_ += "      _ => unimplemented!(),";
+          code_ += "    }";
+        } else {
+          code_ += "    s.serialize_field(\"{{FIELD_NAME}}\", &self.{{FIELD_NAME}}())?;";
+        }
+      } else {
+        if (field.IsOptional()) {
+          code_ += "    if let Some(f) = self.{{FIELD_NAME}}() {";
+          code_ += "      s.serialize_field(\"{{FIELD_NAME}}\", &f)?;";
+          code_ += "    } else {";
+          code_ += "      s.skip_field(\"{{FIELD_NAME}}\")?;";
+          code_ += "    }";
+        } else {
+          code_ += "    s.serialize_field(\"{{FIELD_NAME}}\", &self.{{FIELD_NAME}}())?;";
+        }
+      }
+    });
+    code_ += "    s.end()";
+    code_ += "  }";
+    code_ += "}";
+    code_ += "";
+
     // Generate a builder struct:
     code_ += "pub struct {{STRUCT_NAME}}Builder<'a: 'b, 'b> {";
     code_ += "  fbb_: &'b mut flatbuffers::FlatBufferBuilder<'a>,";
@@ -2531,6 +2599,27 @@ class RustGenerator : public BaseGenerator {
     code_ += "  }";
     code_ += "}";
 
+    // Implement serde::Serialize
+    const auto numFields = struct_def.fields.vec.size();
+    code_.SetValue("NUM_FIELDS", NumToString(numFields));
+    code_ += "impl Serialize for {{STRUCT_NAME}} {";
+    code_ += "  fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>";
+    code_ += "  where";
+    code_ += "    S: Serializer,";
+    code_ += "  {";
+    if (numFields == 0) {
+    code_ += "    let s = serializer.serialize_struct(\"{{STRUCT_NAME}}\", 0)?;";
+    } else {
+      code_ += "    let mut s = serializer.serialize_struct(\"{{STRUCT_NAME}}\", {{NUM_FIELDS}})?;";
+    }
+    ForAllStructFields(struct_def, [&](const FieldDef &field) {
+      code_ += "    s.serialize_field(\"{{FIELD_NAME}}\", &self.{{FIELD_NAME}}())?;";
+    });
+    code_ += "    s.end()";
+    code_ += "  }";
+    code_ += "}";
+    code_ += "";
+
     // Generate a constructor that takes all fields as arguments.
     code_ += "impl<'a> {{STRUCT_NAME}} {";
     code_ += "  #[allow(clippy::too_many_arguments)]";
@@ -2727,6 +2816,9 @@ class RustGenerator : public BaseGenerator {
     }
     code_ += indent + "use std::mem;";
     code_ += indent + "use std::cmp::Ordering;";
+    code_ += "";
+    code_ += indent + "extern crate serde;";
+    code_ += indent + "use self::serde::ser::{Serialize, Serializer, SerializeStruct};";
     code_ += "";
     code_ += indent + "extern crate flatbuffers;";
     code_ += indent + "use self::flatbuffers::{EndianScalar, Follow};";
