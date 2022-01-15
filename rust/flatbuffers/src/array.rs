@@ -133,3 +133,21 @@ where
         array.assume_init()
     }
 }
+
+impl<'a, T: 'a, const N: usize> serde::ser::Serialize for Array<'a, T, N>
+where
+    T: 'a + Follow<'a>,
+    <T as Follow<'a>>::Inner: serde::ser::Serialize,
+{
+    fn serialize<S>(&self, serializer: S) -> std::result::Result<S::Ok, S::Error>
+    where
+        S: serde::ser::Serializer,
+    {
+        use serde::ser::SerializeSeq;
+        let mut seq = serializer.serialize_seq(Some(self.len()))?;
+        for element in self.iter() {
+            seq.serialize_element(&element)?;
+        }
+        seq.end()
+    }
+}
