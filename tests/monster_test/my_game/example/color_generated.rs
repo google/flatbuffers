@@ -3,7 +3,6 @@ extern crate flatbuffers;
 extern crate serde;
 use std::mem;
 use std::cmp::Ordering;
-use self::serde::ser::{Serialize, Serializer, SerializeStruct};
 use self::flatbuffers::{EndianScalar, Follow};
 use super::*;
 #[allow(non_upper_case_globals)]
@@ -22,15 +21,6 @@ mod bitflags_color {
   }
 }
 pub use self::bitflags_color::Color;
-
-impl Serialize for Color {
-  fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-  where
-    S: Serializer,
-  {
-    serializer.serialize_u32(self.bits() as u32)
-  }
-}
 
 impl<'a> flatbuffers::Follow<'a> for Color {
   type Inner = Self;

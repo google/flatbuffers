@@ -3,7 +3,6 @@ extern crate flatbuffers;
 extern crate serde;
 use std::mem;
 use std::cmp::Ordering;
-use self::serde::ser::{Serialize, Serializer, SerializeStruct};
 use self::flatbuffers::{EndianScalar, Follow};
 use super::*;
 pub enum TableInCOffset {}
@@ -91,25 +90,6 @@ impl<'a> Default for TableInCArgs<'a> {
       refer_to_a1: None,
       refer_to_a2: None,
     }
-  }
-}
-impl Serialize for TableInC<'_> {
-  fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-  where
-    S: Serializer,
-  {
-    let mut s = serializer.serialize_struct("TableInC", 2)?;
-      if let Some(f) = self.refer_to_a1() {
-        s.serialize_field("refer_to_a1", &f)?;
-      } else {
-        s.skip_field("refer_to_a1")?;
-      }
-      if let Some(f) = self.refer_to_a2() {
-        s.serialize_field("refer_to_a2", &f)?;
-      } else {
-        s.skip_field("refer_to_a2")?;
-      }
-    s.end()
   }
 }
 

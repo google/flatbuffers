@@ -3,7 +3,6 @@ extern crate flatbuffers;
 extern crate serde;
 use std::mem;
 use std::cmp::Ordering;
-use self::serde::ser::{Serialize, Serializer, SerializeStruct};
 use self::flatbuffers::{EndianScalar, Follow};
 use super::*;
 #[deprecated(since = "2.0.0", note = "Use associated constants instead. This will no longer be generated in 2021.")]
@@ -53,15 +52,6 @@ impl std::fmt::Debug for KeywordsInUnion {
     }
   }
 }
-impl Serialize for KeywordsInUnion {
-  fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-  where
-    S: Serializer,
-  {
-    serializer.serialize_unit_variant("KeywordsInUnion", self.0 as u32, self.variant_name().unwrap())
-  }
-}
-
 impl<'a> flatbuffers::Follow<'a> for KeywordsInUnion {
   type Inner = Self;
   #[inline]

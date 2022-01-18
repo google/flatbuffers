@@ -3,7 +3,6 @@ extern crate flatbuffers;
 extern crate serde;
 use std::mem;
 use std::cmp::Ordering;
-use self::serde::ser::{Serialize, Serializer, SerializeStruct};
 use self::flatbuffers::{EndianScalar, Follow};
 use super::*;
 pub enum WeaponOffset {}
@@ -89,21 +88,6 @@ impl<'a> Default for WeaponArgs<'a> {
       name: None,
       damage: 0,
     }
-  }
-}
-impl Serialize for Weapon<'_> {
-  fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-  where
-    S: Serializer,
-  {
-    let mut s = serializer.serialize_struct("Weapon", 2)?;
-      if let Some(f) = self.name() {
-        s.serialize_field("name", &f)?;
-      } else {
-        s.skip_field("name")?;
-      }
-      s.serialize_field("damage", &self.damage())?;
-    s.end()
   }
 }
 

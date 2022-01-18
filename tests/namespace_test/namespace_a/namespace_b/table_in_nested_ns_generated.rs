@@ -3,7 +3,6 @@ extern crate flatbuffers;
 extern crate serde;
 use std::mem;
 use std::cmp::Ordering;
-use self::serde::ser::{Serialize, Serializer, SerializeStruct};
 use self::flatbuffers::{EndianScalar, Follow};
 use super::*;
 pub enum TableInNestedNSOffset {}
@@ -76,16 +75,6 @@ impl<'a> Default for TableInNestedNSArgs {
     TableInNestedNSArgs {
       foo: 0,
     }
-  }
-}
-impl Serialize for TableInNestedNS<'_> {
-  fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-  where
-    S: Serializer,
-  {
-    let mut s = serializer.serialize_struct("TableInNestedNS", 1)?;
-      s.serialize_field("foo", &self.foo())?;
-    s.end()
   }
 }
 

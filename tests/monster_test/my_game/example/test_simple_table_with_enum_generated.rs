@@ -3,7 +3,6 @@ extern crate flatbuffers;
 extern crate serde;
 use std::mem;
 use std::cmp::Ordering;
-use self::serde::ser::{Serialize, Serializer, SerializeStruct};
 use self::flatbuffers::{EndianScalar, Follow};
 use super::*;
 pub enum TestSimpleTableWithEnumOffset {}
@@ -76,16 +75,6 @@ impl<'a> Default for TestSimpleTableWithEnumArgs {
     TestSimpleTableWithEnumArgs {
       color: Color::Green,
     }
-  }
-}
-impl Serialize for TestSimpleTableWithEnum<'_> {
-  fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-  where
-    S: Serializer,
-  {
-    let mut s = serializer.serialize_struct("TestSimpleTableWithEnum", 1)?;
-      s.serialize_field("color", &self.color())?;
-    s.end()
   }
 }
 

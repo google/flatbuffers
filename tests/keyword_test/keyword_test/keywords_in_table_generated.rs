@@ -3,7 +3,6 @@ extern crate flatbuffers;
 extern crate serde;
 use std::mem;
 use std::cmp::Ordering;
-use self::serde::ser::{Serialize, Serializer, SerializeStruct};
 use self::flatbuffers::{EndianScalar, Follow};
 use super::*;
 pub enum KeywordsInTableOffset {}
@@ -98,18 +97,6 @@ impl<'a> Default for KeywordsInTableArgs {
       private: public::NONE,
       type_: 0,
     }
-  }
-}
-impl Serialize for KeywordsInTable<'_> {
-  fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-  where
-    S: Serializer,
-  {
-    let mut s = serializer.serialize_struct("KeywordsInTable", 3)?;
-      s.serialize_field("is", &self.is())?;
-      s.serialize_field("private", &self.private())?;
-      s.serialize_field("type_", &self.type_())?;
-    s.end()
   }
 }
 

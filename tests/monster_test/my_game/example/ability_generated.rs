@@ -3,7 +3,6 @@ extern crate flatbuffers;
 extern crate serde;
 use std::mem;
 use std::cmp::Ordering;
-use self::serde::ser::{Serialize, Serializer, SerializeStruct};
 use self::flatbuffers::{EndianScalar, Follow};
 use super::*;
 // struct Ability, aligned to 4
@@ -69,17 +68,6 @@ impl<'a> flatbuffers::Verifiable for Ability {
   ) -> Result<(), flatbuffers::InvalidFlatbuffer> {
     use self::flatbuffers::Verifiable;
     v.in_buffer::<Self>(pos)
-  }
-}
-impl Serialize for Ability {
-  fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-  where
-    S: Serializer,
-  {
-    let mut s = serializer.serialize_struct("Ability", 2)?;
-      s.serialize_field("id", &self.id())?;
-      s.serialize_field("distance", &self.distance())?;
-    s.end()
   }
 }
 

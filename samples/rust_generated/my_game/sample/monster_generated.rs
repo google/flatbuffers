@@ -3,7 +3,6 @@ extern crate flatbuffers;
 extern crate serde;
 use std::mem;
 use std::cmp::Ordering;
-use self::serde::ser::{Serialize, Serializer, SerializeStruct};
 use self::flatbuffers::{EndianScalar, Follow};
 use super::*;
 pub enum MonsterOffset {}
@@ -205,52 +204,6 @@ impl<'a> Default for MonsterArgs<'a> {
       equipped: None,
       path: None,
     }
-  }
-}
-impl Serialize for Monster<'_> {
-  fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-  where
-    S: Serializer,
-  {
-    let mut s = serializer.serialize_struct("Monster", 11)?;
-      if let Some(f) = self.pos() {
-        s.serialize_field("pos", &f)?;
-      } else {
-        s.skip_field("pos")?;
-      }
-      s.serialize_field("mana", &self.mana())?;
-      s.serialize_field("hp", &self.hp())?;
-      if let Some(f) = self.name() {
-        s.serialize_field("name", &f)?;
-      } else {
-        s.skip_field("name")?;
-      }
-      if let Some(f) = self.inventory() {
-        s.serialize_field("inventory", &f)?;
-      } else {
-        s.skip_field("inventory")?;
-      }
-      s.serialize_field("color", &self.color())?;
-      if let Some(f) = self.weapons() {
-        s.serialize_field("weapons", &f)?;
-      } else {
-        s.skip_field("weapons")?;
-      }
-      s.serialize_field("equipped_type", &self.equipped_type())?;
-      match self.equipped_type() {
-          Equipment::Weapon => {
-            let f = self.equipped_as_weapon()
-              .expect("Invalid union table, expected `Equipment::Weapon`.");
-            s.serialize_field("equipped", &f)?;
-          }
-        _ => unimplemented!(),
-      }
-      if let Some(f) = self.path() {
-        s.serialize_field("path", &f)?;
-      } else {
-        s.skip_field("path")?;
-      }
-    s.end()
   }
 }
 

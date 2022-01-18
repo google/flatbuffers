@@ -3,7 +3,6 @@ extern crate flatbuffers;
 extern crate serde;
 use std::mem;
 use std::cmp::Ordering;
-use self::serde::ser::{Serialize, Serializer, SerializeStruct};
 use self::flatbuffers::{EndianScalar, Follow};
 use super::*;
 pub enum StatOffset {}
@@ -110,22 +109,6 @@ impl<'a> Default for StatArgs<'a> {
       val: 0,
       count: 0,
     }
-  }
-}
-impl Serialize for Stat<'_> {
-  fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-  where
-    S: Serializer,
-  {
-    let mut s = serializer.serialize_struct("Stat", 3)?;
-      if let Some(f) = self.id() {
-        s.serialize_field("id", &f)?;
-      } else {
-        s.skip_field("id")?;
-      }
-      s.serialize_field("val", &self.val())?;
-      s.serialize_field("count", &self.count())?;
-    s.end()
   }
 }
 

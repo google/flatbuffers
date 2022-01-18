@@ -3,7 +3,6 @@ extern crate flatbuffers;
 extern crate serde;
 use std::mem;
 use std::cmp::Ordering;
-use self::serde::ser::{Serialize, Serializer, SerializeStruct};
 use self::flatbuffers::{EndianScalar, Follow};
 use super::*;
 pub enum TableInFirstNSOffset {}
@@ -144,35 +143,6 @@ impl<'a> Default for TableInFirstNSArgs<'a> {
       foo_union: None,
       foo_struct: None,
     }
-  }
-}
-impl Serialize for TableInFirstNS<'_> {
-  fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-  where
-    S: Serializer,
-  {
-    let mut s = serializer.serialize_struct("TableInFirstNS", 5)?;
-      if let Some(f) = self.foo_table() {
-        s.serialize_field("foo_table", &f)?;
-      } else {
-        s.skip_field("foo_table")?;
-      }
-      s.serialize_field("foo_enum", &self.foo_enum())?;
-      s.serialize_field("foo_union_type", &self.foo_union_type())?;
-      match self.foo_union_type() {
-          namespace_b::UnionInNestedNS::TableInNestedNS => {
-            let f = self.foo_union_as_table_in_nested_ns()
-              .expect("Invalid union table, expected `namespace_b::UnionInNestedNS::TableInNestedNS`.");
-            s.serialize_field("foo_union", &f)?;
-          }
-        _ => unimplemented!(),
-      }
-      if let Some(f) = self.foo_struct() {
-        s.serialize_field("foo_struct", &f)?;
-      } else {
-        s.skip_field("foo_struct")?;
-      }
-    s.end()
   }
 }
 

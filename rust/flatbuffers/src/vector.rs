@@ -309,6 +309,7 @@ impl<'a, 'b, T: Follow<'a> + 'a> IntoIterator for &'b Vector<'a, T> {
     }
 }
 
+#[cfg(feature="serialize")]
 impl<'a, T> serde::ser::Serialize for Vector<'a, T>
 where
     T: 'a + Follow<'a>,

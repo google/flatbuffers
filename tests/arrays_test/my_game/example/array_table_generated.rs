@@ -3,7 +3,6 @@ extern crate flatbuffers;
 extern crate serde;
 use std::mem;
 use std::cmp::Ordering;
-use self::serde::ser::{Serialize, Serializer, SerializeStruct};
 use self::flatbuffers::{EndianScalar, Follow};
 use super::*;
 pub enum ArrayTableOffset {}
@@ -78,20 +77,6 @@ impl<'a> Default for ArrayTableArgs<'a> {
     ArrayTableArgs {
       a: None,
     }
-  }
-}
-impl Serialize for ArrayTable<'_> {
-  fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-  where
-    S: Serializer,
-  {
-    let mut s = serializer.serialize_struct("ArrayTable", 1)?;
-      if let Some(f) = self.a() {
-        s.serialize_field("a", &f)?;
-      } else {
-        s.skip_field("a")?;
-      }
-    s.end()
   }
 }
 

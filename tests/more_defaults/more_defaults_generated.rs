@@ -3,7 +3,6 @@ extern crate flatbuffers;
 extern crate serde;
 use std::mem;
 use std::cmp::Ordering;
-use self::serde::ser::{Serialize, Serializer, SerializeStruct};
 use self::flatbuffers::{EndianScalar, Follow};
 use super::*;
 pub enum MoreDefaultsOffset {}
@@ -149,21 +148,6 @@ impl<'a> Default for MoreDefaultsArgs<'a> {
       abcs: None,
       bools: None,
     }
-  }
-}
-impl Serialize for MoreDefaults<'_> {
-  fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-  where
-    S: Serializer,
-  {
-    let mut s = serializer.serialize_struct("MoreDefaults", 6)?;
-      s.serialize_field("ints", &self.ints())?;
-      s.serialize_field("floats", &self.floats())?;
-      s.serialize_field("empty_string", &self.empty_string())?;
-      s.serialize_field("some_string", &self.some_string())?;
-      s.serialize_field("abcs", &self.abcs())?;
-      s.serialize_field("bools", &self.bools())?;
-    s.end()
   }
 }
 

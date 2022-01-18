@@ -3,7 +3,6 @@ extern crate flatbuffers;
 extern crate serde;
 use std::mem;
 use std::cmp::Ordering;
-use self::serde::ser::{Serialize, Serializer, SerializeStruct};
 use self::flatbuffers::{EndianScalar, Follow};
 use super::*;
 // struct NestedStruct, aligned to 8
@@ -71,19 +70,6 @@ impl<'a> flatbuffers::Verifiable for NestedStruct {
   ) -> Result<(), flatbuffers::InvalidFlatbuffer> {
     use self::flatbuffers::Verifiable;
     v.in_buffer::<Self>(pos)
-  }
-}
-impl Serialize for NestedStruct {
-  fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-  where
-    S: Serializer,
-  {
-    let mut s = serializer.serialize_struct("NestedStruct", 4)?;
-      s.serialize_field("a", &self.a())?;
-      s.serialize_field("b", &self.b())?;
-      s.serialize_field("c", &self.c())?;
-      s.serialize_field("d", &self.d())?;
-    s.end()
   }
 }
 

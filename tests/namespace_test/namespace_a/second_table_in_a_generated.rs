@@ -3,7 +3,6 @@ extern crate flatbuffers;
 extern crate serde;
 use std::mem;
 use std::cmp::Ordering;
-use self::serde::ser::{Serialize, Serializer, SerializeStruct};
 use self::flatbuffers::{EndianScalar, Follow};
 use super::*;
 pub enum SecondTableInAOffset {}
@@ -78,20 +77,6 @@ impl<'a> Default for SecondTableInAArgs<'a> {
     SecondTableInAArgs {
       refer_to_c: None,
     }
-  }
-}
-impl Serialize for SecondTableInA<'_> {
-  fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-  where
-    S: Serializer,
-  {
-    let mut s = serializer.serialize_struct("SecondTableInA", 1)?;
-      if let Some(f) = self.refer_to_c() {
-        s.serialize_field("refer_to_c", &f)?;
-      } else {
-        s.skip_field("refer_to_c")?;
-      }
-    s.end()
   }
 }
 

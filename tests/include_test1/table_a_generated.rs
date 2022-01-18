@@ -3,7 +3,6 @@ extern crate flatbuffers;
 extern crate serde;
 use std::mem;
 use std::cmp::Ordering;
-use self::serde::ser::{Serialize, Serializer, SerializeStruct};
 use self::flatbuffers::{EndianScalar, Follow};
 use super::*;
 pub enum TableAOffset {}
@@ -78,20 +77,6 @@ impl<'a> Default for TableAArgs<'a> {
     TableAArgs {
       b: None,
     }
-  }
-}
-impl Serialize for TableA<'_> {
-  fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-  where
-    S: Serializer,
-  {
-    let mut s = serializer.serialize_struct("TableA", 1)?;
-      if let Some(f) = self.b() {
-        s.serialize_field("b", &f)?;
-      } else {
-        s.skip_field("b")?;
-      }
-    s.end()
   }
 }
 

@@ -3,7 +3,6 @@ extern crate flatbuffers;
 extern crate serde;
 use std::mem;
 use std::cmp::Ordering;
-use self::serde::ser::{Serialize, Serializer, SerializeStruct};
 use self::flatbuffers::{EndianScalar, Follow};
 use super::*;
 pub enum TypeAliasesOffset {}
@@ -201,35 +200,6 @@ impl<'a> Default for TypeAliasesArgs<'a> {
       v8: None,
       vf64: None,
     }
-  }
-}
-impl Serialize for TypeAliases<'_> {
-  fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-  where
-    S: Serializer,
-  {
-    let mut s = serializer.serialize_struct("TypeAliases", 12)?;
-      s.serialize_field("i8_", &self.i8_())?;
-      s.serialize_field("u8_", &self.u8_())?;
-      s.serialize_field("i16_", &self.i16_())?;
-      s.serialize_field("u16_", &self.u16_())?;
-      s.serialize_field("i32_", &self.i32_())?;
-      s.serialize_field("u32_", &self.u32_())?;
-      s.serialize_field("i64_", &self.i64_())?;
-      s.serialize_field("u64_", &self.u64_())?;
-      s.serialize_field("f32_", &self.f32_())?;
-      s.serialize_field("f64_", &self.f64_())?;
-      if let Some(f) = self.v8() {
-        s.serialize_field("v8", &f)?;
-      } else {
-        s.skip_field("v8")?;
-      }
-      if let Some(f) = self.vf64() {
-        s.serialize_field("vf64", &f)?;
-      } else {
-        s.skip_field("vf64")?;
-      }
-    s.end()
   }
 }
 

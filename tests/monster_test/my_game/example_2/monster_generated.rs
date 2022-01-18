@@ -3,7 +3,6 @@ extern crate flatbuffers;
 extern crate serde;
 use std::mem;
 use std::cmp::Ordering;
-use self::serde::ser::{Serialize, Serializer, SerializeStruct};
 use self::flatbuffers::{EndianScalar, Follow};
 use super::*;
 pub enum MonsterOffset {}
@@ -64,15 +63,6 @@ impl<'a> Default for MonsterArgs {
   fn default() -> Self {
     MonsterArgs {
     }
-  }
-}
-impl Serialize for Monster<'_> {
-  fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-  where
-    S: Serializer,
-  {
-    let s = serializer.serialize_struct("Monster", 0)?;
-    s.end()
   }
 }
 

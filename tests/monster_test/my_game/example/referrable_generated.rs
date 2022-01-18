@@ -3,7 +3,6 @@ extern crate flatbuffers;
 extern crate serde;
 use std::mem;
 use std::cmp::Ordering;
-use self::serde::ser::{Serialize, Serializer, SerializeStruct};
 use self::flatbuffers::{EndianScalar, Follow};
 use super::*;
 pub enum ReferrableOffset {}
@@ -86,16 +85,6 @@ impl<'a> Default for ReferrableArgs {
     ReferrableArgs {
       id: 0,
     }
-  }
-}
-impl Serialize for Referrable<'_> {
-  fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-  where
-    S: Serializer,
-  {
-    let mut s = serializer.serialize_struct("Referrable", 1)?;
-      s.serialize_field("id", &self.id())?;
-    s.end()
   }
 }
 
