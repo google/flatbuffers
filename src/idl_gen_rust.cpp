@@ -2749,7 +2749,8 @@ class RustGenerator : public BaseGenerator {
             "    let mut s = serializer.serialize_struct(\"{{STRUCT_NAME}}\", "
             "{{NUM_FIELDS}})?;";
       }
-      ForAllStructFields(struct_def, [&](const FieldDef &field) {
+      ForAllStructFields(struct_def, [&](const FieldDef &unused) {
+        (void)unused;
         code_ +=
             "    s.serialize_field(\"{{FIELD_NAME}}\", &self.{{FIELD_NAME}}())?;";
       });
