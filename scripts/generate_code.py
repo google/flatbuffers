@@ -77,6 +77,24 @@ def flatc(
     result = subprocess.run(cmd, cwd=cwd, check=True)
 
 
+# Generate the code for flatbuffers reflection schema
+def flatc_reflection(options, location, target):
+    full_options = ["--no-prefix"] + options
+    temp_dir = ".tmp"
+    flatc(
+        full_options,
+        prefix=temp_dir,
+        schema="reflection.fbs",
+        cwd=reflection_path,
+    )
+    new_reflection_path = Path(reflection_path, temp_dir, target)
+    original_reflection_path = Path(root_path, location, target)
+    if not filecmp.cmp(new_reflection_path, original_reflection_path):
+        shutil.rmtree(original_reflection_path)
+        shutil.move(new_reflection_path, original_reflection_path)
+    shutil.rmtree(Path(reflection_path, temp_dir))
+
+
 # Glob a pattern relative to file path
 def glob(path, pattern):
     return [str(p) for p in path.glob(pattern)]
@@ -397,18 +415,9 @@ flatc(
     cwd=samples_path,
 )
 
-# Reflection
-temp_dir = ".tmp"
-flatc(
-    ["-c", "--cpp-std", "c++0x", "--no-prefix"],
-    prefix=temp_dir,
-    schema="reflection.fbs",
-    cwd=reflection_path,
-)
-new_reflection_file = Path(reflection_path, temp_dir, "reflection_generated.h")
-original_reflection_file = Path(
-    root_path, "include/flatbuffers/reflection_generated.h"
-)
-if not filecmp.cmp(new_reflection_file, original_reflection_file):
-    shutil.move(new_reflection_file, original_reflection_file)
-shutil.rmtree(Path(reflection_path, temp_dir))
+# C++ Reflection
+flatc_reflection(["-c", "--cpp-std", "c++0x"], "include/flatbuffers",
+                 "reflection_generated.h")
+
+# Python Reflection
+flatc_reflection(["-p"], "python/flatbuffers", "reflection")
