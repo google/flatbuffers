@@ -6,11 +6,16 @@ authors = ["Robert Winslow <hello@rwinslow.com>",
            "FlatBuffers Maintainers"]
 
 [dependencies]
-flatbuffers = { path = "../../rust/flatbuffers" }
+flatbuffers = { path = "../../rust/flatbuffers", default-features = false }
 flexbuffers = { path = "../../rust/flexbuffers" }
 serde_derive = "1.0"
 serde = "1.0"
 serde_bytes = "0.11"
+libc_alloc = { version = "1.0.3", optional = true }
+
+[features]
+default = ["flatbuffers/default"]
+no_std = ["flatbuffers/no_std", "libc_alloc"]
 
 [[bin]]
 name = "monster_example"

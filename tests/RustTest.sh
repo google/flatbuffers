@@ -35,6 +35,8 @@ cd ./rust_usage_test
 cargo test $TARGET_FLAG -- --quiet
 check_test_result "Rust tests"
 
+cargo test $TARGET_FLAG --no-default-features --features no_std -- --quiet
+check_test_result "Rust tests (no_std)"
 
 cargo run $TARGET_FLAG --bin=flatbuffers_alloc_check
 check_test_result "Rust flatbuffers heap alloc test"
