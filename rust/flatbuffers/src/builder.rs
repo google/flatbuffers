@@ -16,11 +16,13 @@
 
 extern crate smallvec;
 
-use std::cmp::max;
-use std::iter::{DoubleEndedIterator, ExactSizeIterator};
-use std::marker::PhantomData;
-use std::ptr::write_bytes;
-use std::slice::from_raw_parts;
+use core::cmp::max;
+use core::iter::{DoubleEndedIterator, ExactSizeIterator};
+use core::marker::PhantomData;
+use core::ptr::write_bytes;
+use core::slice::from_raw_parts;
+#[cfg(feature = "no_std")]
+use alloc::{vec, vec::Vec};
 
 use crate::endian_scalar::{emplace_scalar, read_scalar_at};
 use crate::primitives::*;

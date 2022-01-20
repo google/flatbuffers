@@ -1,6 +1,6 @@
 [package]
 name = "flatbuffers"
-version = "2.0.0"
+version = "2.1.0"
 edition = "2018"
 authors = ["Robert Winslow <hello@rwinslow.com>", "FlatBuffers Maintainers"]
 license = "Apache-2.0"
@@ -11,7 +11,13 @@ keywords = ["flatbuffers", "serialization", "zero-copy"]
 categories = ["encoding", "data-structures", "memory-management"]
 rust = "1.51"
 
+[features]
+default = ["thiserror"]
+no_std = ["core2", "thiserror_core2"]
+
 [dependencies]
 smallvec = "1.6.1"
 bitflags = "1.2.1"
-thiserror = "1.0.23"
+thiserror = { version = "1.0.23", optional = true }
+core2 = { version = "0.3.3", optional = true }
+thiserror_core2 = { git = "https://github.com/antmicro/thiserror-core2.git", branch = "remaining-errors", optional = true }

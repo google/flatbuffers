@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-use std::fmt::{Debug, Formatter, Result};
-use std::iter::{DoubleEndedIterator, ExactSizeIterator, FusedIterator};
-use std::marker::PhantomData;
-use std::mem::size_of;
-use std::slice::from_raw_parts;
-use std::str::from_utf8_unchecked;
+use core::fmt::{Debug, Formatter, Result};
+use core::iter::{DoubleEndedIterator, ExactSizeIterator, FusedIterator};
+use core::marker::PhantomData;
+use core::mem::size_of;
+use core::slice::from_raw_parts;
+use core::str::from_utf8_unchecked;
 
 use crate::endian_scalar::read_scalar_at;
 #[cfg(target_endian = "little")]

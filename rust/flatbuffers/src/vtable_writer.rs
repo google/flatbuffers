@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-use std::ptr::write_bytes;
+use core::ptr::write_bytes;
 
 use crate::endian_scalar::emplace_scalar;
 use crate::primitives::*;

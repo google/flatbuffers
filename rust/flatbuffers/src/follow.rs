@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-use std::marker::PhantomData;
+use core::marker::PhantomData;
 
 /// Follow is a trait that allows us to access FlatBuffers in a declarative,
 /// type safe, and fast way. They compile down to almost no code (after

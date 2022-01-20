@@ -17,9 +17,9 @@
 use crate::follow::Follow;
 use crate::vector::VectorIter;
 use crate::EndianScalar;
-use std::fmt::{Debug, Formatter, Result};
-use std::marker::PhantomData;
-use std::mem::size_of;
+use core::fmt::{Debug, Formatter, Result};
+use core::marker::PhantomData;
+use core::mem::size_of;
 
 #[derive(Copy, Clone)]
 pub struct Array<'a, T: 'a, const N: usize>(&'a [u8], PhantomData<T>);
