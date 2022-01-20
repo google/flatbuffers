@@ -1,4 +1,4 @@
-## 2.0.0
+## 2.0.5
 
 - switch to null safety (#6696)
 - add Object APIs (pack/unpack) (#6682, #6723, #6846)
