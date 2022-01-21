@@ -477,7 +477,7 @@ struct Attacker FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
-           VerifyField<int32_t>(verifier, VT_SWORD_ATTACK_DAMAGE) &&
+           VerifyField<int32_t>(verifier, VT_SWORD_ATTACK_DAMAGE, 4) &&
            verifier.EndTable();
   }
   AttackerT *UnPack(const flatbuffers::resolver_function_t *_resolver = nullptr) const;
@@ -541,7 +541,7 @@ struct HandFan FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
-           VerifyField<int32_t>(verifier, VT_LENGTH) &&
+           VerifyField<int32_t>(verifier, VT_LENGTH, 4) &&
            verifier.EndTable();
   }
   HandFanT *UnPack(const flatbuffers::resolver_function_t *_resolver = nullptr) const;
@@ -642,7 +642,7 @@ struct Movie FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
-           VerifyField<uint8_t>(verifier, VT_MAIN_CHARACTER_TYPE) &&
+           VerifyField<uint8_t>(verifier, VT_MAIN_CHARACTER_TYPE, 1) &&
            VerifyOffset(verifier, VT_MAIN_CHARACTER) &&
            VerifyCharacter(verifier, main_character(), main_character_type()) &&
            VerifyOffset(verifier, VT_CHARACTERS_TYPE) &&
@@ -847,13 +847,13 @@ inline bool VerifyCharacter(flatbuffers::Verifier &verifier, const void *obj, Ch
       return verifier.VerifyTable(ptr);
     }
     case Character_Rapunzel: {
-      return verifier.Verify<Rapunzel>(static_cast<const uint8_t *>(obj), 0);
+      return verifier.VerifyField<Rapunzel>(static_cast<const uint8_t *>(obj), 0, 4);
     }
     case Character_Belle: {
-      return verifier.Verify<BookReader>(static_cast<const uint8_t *>(obj), 0);
+      return verifier.VerifyField<BookReader>(static_cast<const uint8_t *>(obj), 0, 4);
     }
     case Character_BookFan: {
-      return verifier.Verify<BookReader>(static_cast<const uint8_t *>(obj), 0);
+      return verifier.VerifyField<BookReader>(static_cast<const uint8_t *>(obj), 0, 4);
     }
     case Character_Other: {
       auto ptr = reinterpret_cast<const flatbuffers::String *>(obj);
@@ -1016,7 +1016,7 @@ inline bool VerifyGadget(flatbuffers::Verifier &verifier, const void *obj, Gadge
       return true;
     }
     case Gadget_FallingTub: {
-      return verifier.Verify<FallingTub>(static_cast<const uint8_t *>(obj), 0);
+      return verifier.VerifyField<FallingTub>(static_cast<const uint8_t *>(obj), 0, 4);
     }
     case Gadget_HandFan: {
       auto ptr = reinterpret_cast<const HandFan *>(obj);

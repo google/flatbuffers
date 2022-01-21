@@ -15,6 +15,10 @@
  * limitations under the License.
  */
 
+#[cfg(feature = "no_std")]
+#[global_allocator]
+static ALLOCATOR: libc_alloc::LibcAlloc = libc_alloc::LibcAlloc;
+
 #[macro_use]
 #[cfg(not(miri))] // slow.
 extern crate quickcheck;
