@@ -238,7 +238,8 @@ function(flatbuffers_generate_headers)
       -c ${schema}
       ${FLATBUFFERS_GENERATE_HEADERS_FLAGS}
       DEPENDS ${FLATC_TARGET} ${schema}
-      WORKING_DIRECTORY "${working_dir}")
+      WORKING_DIRECTORY "${working_dir}"
+      COMMENT "Building ${schema} flatbuffers...")
     list(APPEND all_generated_header_files ${generated_include})
 
     # Geneate the binary flatbuffers schemas if instructed to.
@@ -371,7 +372,8 @@ function(flatbuffers_generate_binary_files)
       -b ${FLATBUFFERS_GENERATE_BINARY_FILES_SCHEMA} ${json_file}
       ${FLATBUFFERS_GENERATE_BINARY_FILES_FLAGS}
       DEPENDS ${FLATC_TARGET} ${json_file}
-      WORKING_DIRECTORY "${working_dir}")
+      WORKING_DIRECTORY "${working_dir}"
+      COMMENT "Building ${json_file} binary flatbuffers...")
       list(APPEND all_generated_binary_files ${generated_binary_file})
   endforeach()
 
