@@ -691,6 +691,7 @@ struct IDLOptions {
         json_nested_legacy_flatbuffers(false),
         mini_reflect(IDLOptions::kNone),
         require_explicit_ids(false),
+        rust_serialize(false),
         lang_to_generate(0),
         set_empty_strings_to_null(true),
         set_empty_vectors_to_null(true) {}
