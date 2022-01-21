@@ -230,8 +230,20 @@ function(flatbuffers_generate_headers)
   foreach(schema ${FLATBUFFERS_GENERATE_HEADERS_SCHEMAS})
     get_filename_component(filename ${schema} NAME_WE)
     set(generated_include "${generated_include_dir}/${filename}_generated.h")
+
+    # Generate files for grpc if needed
+    set(generated_source_file)
+    if("${FLATBUFFERS_GENERATE_HEADERS_FLAGS}" MATCHES "--grpc")
+      # Check if schema file contain a rpc_service definition
+      file(STRINGS ${schema} has_grpc REGEX "rpc_service")
+      if(has_grpc)
+        list(APPEND generated_include "${generated_include_dir}/${filename}.grpc.fb.h")
+        set(generated_source_file "${generated_include_dir}/${filename}.grpc.fb.cc")
+      endif()
+    endif()
+
     add_custom_command(
-      OUTPUT ${generated_include}
+      OUTPUT ${generated_include} ${generated_source_file}
       COMMAND ${FLATC} ${FLATC_ARGS}
       -o ${generated_include_dir}
       ${include_params}
@@ -241,6 +253,7 @@ function(flatbuffers_generate_headers)
       WORKING_DIRECTORY "${working_dir}"
       COMMENT "Building ${schema} flatbuffers...")
     list(APPEND all_generated_header_files ${generated_include})
+    list(APPEND all_generated_source_files ${generated_source_file})
 
     # Geneate the binary flatbuffers schemas if instructed to.
     if (NOT ${FLATBUFFERS_GENERATE_HEADERS_BINARY_SCHEMAS_DIR} STREQUAL "")
@@ -265,6 +278,7 @@ function(flatbuffers_generate_headers)
     INTERFACE
       ${all_generated_header_files}
       ${all_generated_binary_files}
+      ${all_generated_source_files}
       ${FLATBUFFERS_GENERATE_HEADERS_SCHEMAS})
   add_dependencies(
     ${FLATBUFFERS_GENERATE_HEADERS_TARGET}
@@ -279,6 +293,10 @@ function(flatbuffers_generate_headers)
     TREE "${generated_target_dir}"
     PREFIX "Flatbuffers/Generated/Headers Files"
     FILES ${all_generated_header_files})
+  source_group(
+    TREE "${generated_target_dir}"
+    PREFIX "Flatbuffers/Generated/Source Files"
+    FILES ${all_generated_source_files})
   source_group(
     TREE ${working_dir}
     PREFIX "Flatbuffers/Schemas"
