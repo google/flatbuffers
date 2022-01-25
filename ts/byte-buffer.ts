@@ -154,8 +154,7 @@ export class ByteBuffer {
     getBufferIdentifier(): string {
       if (this.bytes_.length < this.position_ + SIZEOF_INT +
           FILE_IDENTIFIER_LENGTH) {
-        throw new Error(
-            'FlatBuffers: ByteBuffer is too short to contain an identifier.');
+        throw new Error('FlatBuffers: ByteBuffer is too short to contain an identifier.');
       }
       let result = "";
       for (let i = 0; i < FILE_IDENTIFIER_LENGTH; i++) {

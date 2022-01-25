@@ -501,7 +501,8 @@ export class Builder {
      * @return The offset in the buffer where the encoded string starts
      */
     createSharedString(s: string | Uint8Array): Offset {
-      if (!s) { return 0 }
+      if (s === undefined || s === null)
+        throw new Error('FlatBuffers: cannot encode undefined or null string.');
   
       if (!this.string_maps) {
         this.string_maps = new Map();
@@ -523,7 +524,8 @@ export class Builder {
      * @return The offset in the buffer where the encoded string starts
      */
     createString(s: string | Uint8Array): Offset {
-      if (!s) { return 0 }
+      if (s === undefined || s === null)
+        throw new Error('FlatBuffers: cannot encode undefined or null string.');
       let utf8: string | Uint8Array | number[];
       if (s instanceof Uint8Array) {
         utf8 = s;
@@ -579,9 +581,8 @@ export class Builder {
      * @returns offset of obj
      */
     createObjectOffset(obj: string | any): Offset {
-      if(obj === null) {
-        return 0
-      }
+      if (obj === undefined || obj === null)
+        throw new Error('FlatBuffers: cannot create object offset for undefined or null.');
   
       if(typeof obj === 'string') {
         return this.createString(obj);
@@ -604,8 +605,7 @@ export class Builder {
         if(val !== null) {
           ret.push(this.createObjectOffset(val));
         } else {
-          throw new Error(
-            'FlatBuffers: Argument for createObjectOffsetList cannot contain null.'); 
+          throw new Error('FlatBuffers: Argument for createObjectOffsetList cannot contain null.'); 
         }
       }
       
