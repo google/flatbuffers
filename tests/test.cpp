@@ -2946,7 +2946,7 @@ void StructUnionTest() {
 void WarningsAsErrorsTest() {
   {
     flatbuffers::IDLOptions opts;
-    opts.warnings_as_errors = false;
+    // opts.warnings_as_errors should default to false
     flatbuffers::Parser parser(opts);
     TEST_EQ(parser.Parse("table T { THIS_NAME_CAUSES_A_WARNING:string;}\n"
                          "root_type T;"),
