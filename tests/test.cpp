@@ -2943,6 +2943,25 @@ void StructUnionTest() {
   gadget.Set(fan);
 }
 
+void WarningsAsErrorsTest() {
+  {
+    flatbuffers::IDLOptions opts;
+    // opts.warnings_as_errors should default to false
+    flatbuffers::Parser parser(opts);
+    TEST_EQ(parser.Parse("table T { THIS_NAME_CAUSES_A_WARNING:string;}\n"
+                         "root_type T;"),
+            true);
+  }
+  {
+    flatbuffers::IDLOptions opts;
+    opts.warnings_as_errors = true;
+    flatbuffers::Parser parser(opts);
+    TEST_EQ(parser.Parse("table T { THIS_NAME_CAUSES_A_WARNING:string;}\n"
+                         "root_type T;"),
+            false);
+  }
+}
+
 void ConformTest() {
   flatbuffers::Parser parser;
   TEST_EQ(parser.Parse("table T { A:int; } enum E:byte { A }"), true);
@@ -4209,6 +4228,7 @@ int FlatBufferTests() {
   FlatbuffersIteratorsTest();
   FixedLengthArraySpanTest();
   StructUnionTest();
+  WarningsAsErrorsTest();
   return 0;
 }
 
