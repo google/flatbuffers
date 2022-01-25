@@ -144,7 +144,10 @@ void Parser::Message(const std::string &msg) {
 }
 
 void Parser::Warning(const std::string &msg) {
-  if (!opts.no_warnings) Message("warning: " + msg);
+  if (!opts.no_warnings) {
+    Message("warning: " + msg);
+    has_warning_ = true;  // for opts.warnings_as_errors
+  }
 }
 
 CheckedError Parser::Error(const std::string &msg) {
@@ -3443,6 +3446,9 @@ CheckedError Parser::DoParse(const char *source, const char **include_paths,
     } else {
       ECHECK(ParseDecl(source_filename));
     }
+  }
+  if (opts.warnings_as_errors && has_warning_) {
+    return Error("treating warnings as errors, failed due to above warnings");
   }
   return NoError();
 }

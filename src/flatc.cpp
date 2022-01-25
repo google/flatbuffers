@@ -199,6 +199,7 @@ const static FlatCOption options[] = {
     "Used with \"binary\" and \"json\" options, it generates data using "
     "schema-less FlexBuffers." },
   { "", "no-warnings", "", "Inhibit all warnings messages." },
+  { "", "warning-as-errors", "", "Treat all warnings as errors." },
   { "", "cs-global-alias", "",
     "Prepend \"global::\" to all user generated csharp classes and "
     "structs." },
@@ -496,6 +497,8 @@ int FlatCompiler::Compile(int argc, const char **argv) {
         opts.gen_jvmstatic = true;
       } else if (arg == "--no-warnings") {
         opts.no_warnings = true;
+      } else if (arg == "--warnings-as-errors") {
+        opts.warnings_as_errors = true;
       } else if (arg == "--cpp-std") {
         if (++argi >= argc)
           Error("missing C++ standard specification" + arg, true);
