@@ -283,6 +283,9 @@ class CppGenerator : public BaseGenerator {
         code_ += "#pragma clang system_header\n\n";
       }
 
+      code_ += "#include \"flatbuffers/flatbuffers.h\"";
+      code_ += "";
+
       SetNameSpace(struct_def.defined_namespace);
       auto name = Name(struct_def);
       code_.SetValue("STRUCT_NAME", name);
