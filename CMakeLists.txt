@@ -757,3 +757,11 @@ endif()
 if(FLATBUFFERS_BUILD_BENCHMARKS AND CMAKE_VERSION VERSION_GREATER 3.13)
   add_subdirectory(benchmarks)
 endif()
+
+# Add FlatBuffers::FlatBuffers interface, needed for FetchContent_Declare
+add_library(FlatBuffers INTERFACE)
+add_library(FlatBuffers::FlatBuffers ALIAS FlatBuffers)
+target_include_directories(
+  FlatBuffers
+  INTERFACE $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+            $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/include>)
