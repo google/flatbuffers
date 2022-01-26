@@ -29,7 +29,7 @@ http_archive(
 )
 
 ##### GRPC
-_GRPC_VERSION = "1.39.0"
+_GRPC_VERSION = "1.42.0"
 
 http_archive(
     name = "com_github_grpc_grpc",
