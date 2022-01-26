@@ -382,10 +382,10 @@ class RustGenerator : public BaseGenerator {
       code_.Clear();
       code_ += "// " + std::string(FlatBuffersGeneratedWarning());
       code_ += "extern crate flatbuffers;";
-      code_ += "extern crate serde;";
       code_ += "use std::mem;";
       code_ += "use std::cmp::Ordering;";
       if (parser_.opts.rust_serialize) {
+        code_ += "extern crate serde;";
         code_ +=
             "use self::serde::ser::{Serialize, Serializer, SerializeStruct};";
       }
@@ -1043,7 +1043,7 @@ class RustGenerator : public BaseGenerator {
   }
 
   std::string GetFieldOffsetName(const FieldDef &field) {
-    return "VT_" + MakeUpper(field.name);
+    return "VT_" + MakeUpper(Name(field));
   }
 
   enum DefaultContext { kBuilder, kAccessor, kObject };
@@ -1920,7 +1920,7 @@ class RustGenerator : public BaseGenerator {
             code_ += "#[inline]";
             code_ += "#[allow(non_snake_case)]";
             code_ +=
-                "  pub fn {{FIELD_NAME}}_as_{{U_ELEMENT_NAME}}(&self) -> "
+                "pub fn {{FIELD_NAME}}_as_{{U_ELEMENT_NAME}}(&self) -> "
                 "Option<{{U_ELEMENT_TABLE_TYPE}}<'a>> {";
             // If the user defined schemas name a field that clashes with a
             // language reserved word, flatc will try to escape the field name
@@ -1988,8 +1988,8 @@ class RustGenerator : public BaseGenerator {
                      "VT_" + MakeUpper(field.name + "_type"));
       code_ +=
           "\n     .visit_union::<{{UNION_TYPE}}, _>("
-          "&\"{{FIELD_NAME}}_type\", Self::{{OFFSET_NAME}}_TYPE, "
-          "&\"{{FIELD_NAME}}\", Self::{{OFFSET_NAME}}, {{IS_REQ}}, "
+          "\"{{FIELD_NAME}}_type\", Self::{{UNION_TYPE_OFFSET_NAME}}, "
+          "\"{{FIELD_NAME}}\", Self::{{OFFSET_NAME}}, {{IS_REQ}}, "
           "|key, v, pos| {";
       code_ += "      match key {";
       ForAllUnionVariantsBesidesNone(union_def, [&](const EnumVal &unused) {
