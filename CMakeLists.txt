@@ -535,7 +535,7 @@ if(PYTHONINTERP_FOUND AND
   # https://cmake.org/cmake/help/latest/variable/MSVC_VERSION.html
   (NOT MSVC OR MSVC_VERSION GREATER 1800))
   if(MSVC)
-    set(GENERATION_SCRIPT py scripts/generate_code.py) 
+    set(GENERATION_SCRIPT ${PYTHON_EXECUTABLE} scripts/generate_code.py) 
    else()
     set(GENERATION_SCRIPT scripts/generate_code.py)
   endif()
