@@ -64,7 +64,7 @@ reflection_path = Path(root_path, "reflection")
 
 # Execute the flatc compiler with the specified parameters
 def flatc(
-    options, schema, prefix=None, include=None, data=None, cwd=tests_path
+    options, schema, prefix=None, include=None, data=None, cwd=str(tests_path)
 ):
     cmd = [str(flatc_path)] + options
     if prefix:

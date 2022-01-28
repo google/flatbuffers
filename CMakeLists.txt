@@ -526,16 +526,16 @@ function(compile_flatbuffers_schema_to_embedded_binary SRC_FBS OPT)
   register_generated_output(${GEN_BFBS_HEADER})
 endfunction()
 
-# TODO(dbaileychess): Remove once appveyor is removed.
-# Prefer the highest level package based on version number
-if(CMAKE_VERSION VERSION_GREATER_EQUAL 3.7)
-  set(CMAKE_FIND_PACKAGE_SORT_ORDER NATURAL)
-  set(CMAKE_FIND_PACKAGE_SORT_DIRECTION DEC)
-endif()
+# # TODO(dbaileychess): Remove once appveyor is removed.
+# # Prefer the highest level package based on version number
+# if(CMAKE_VERSION VERSION_GREATER_EQUAL 3.7)
+#   set(CMAKE_FIND_PACKAGE_SORT_ORDER NATURAL)
+#   set(CMAKE_FIND_PACKAGE_SORT_DIRECTION DEC)
+# endif()
 
 # Look if we have python 3 installed so that we can run the generate code python
 # script after flatc is built.
-find_package(PythonInterp 3)
+find_package(PythonInterp 3.5)
 
 if(PYTHONINTERP_FOUND AND
   # Skip doing this if the MSVC version is below VS 12.
