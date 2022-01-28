@@ -409,6 +409,6 @@ new_reflection_file = Path(reflection_path, temp_dir, "reflection_generated.h")
 original_reflection_file = Path(
     root_path, "include/flatbuffers/reflection_generated.h"
 )
-if not filecmp.cmp(new_reflection_file, original_reflection_file):
-    shutil.move(new_reflection_file, original_reflection_file)
-shutil.rmtree(Path(reflection_path, temp_dir))
+if not filecmp.cmp(str(new_reflection_file), str(original_reflection_file)):
+    shutil.move(str(new_reflection_file), str(original_reflection_file))
+shutil.rmtree(str(Path(reflection_path, temp_dir)))
