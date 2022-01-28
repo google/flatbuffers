@@ -283,6 +283,19 @@ elseif(CMAKE_COMPILER_IS_GNUCXX)
   set(CMAKE_CXX_FLAGS
     "${CMAKE_CXX_FLAGS} -fsigned-char")
 
+# MSVC **MUST** come before the Clang check, as clang-cl is flagged by CMake as "MSVC", but it still textually 
+# matches as Clang in its Compiler Id :)
+# Note: in CMake >= 3.14 we can check CMAKE_CXX_COMPILER_FRONTEND_VARIANT STREQUAL "GNU" or "MSVC" to differentiate...
+elseif(MSVC)
+  # Visual Studio pedantic build settings
+  # warning C4512: assignment operator could not be generated
+  # warning C4316: object allocated on the heap may not be aligned
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W4 /WX /wd4512 /wd4316")
+
+  if(${CMAKE_CXX_COMPILER_ID} MATCHES "Clang")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /D_CRT_SECURE_NO_WARNINGS")
+  endif()
+
 elseif(${CMAKE_CXX_COMPILER_ID} MATCHES "Clang")
   if(APPLE)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
@@ -316,14 +329,6 @@ elseif(${CMAKE_CXX_COMPILER_ID} MATCHES "Clang")
   set(CMAKE_CXX_FLAGS
     "${CMAKE_CXX_FLAGS} -fsigned-char")
 
-elseif(MSVC)
-  # Visual Studio pedantic build settings
-  # warning C4512: assignment operator could not be generated
-  # warning C4316: object allocated on the heap may not be aligned
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W4 /WX /wd4512 /wd4316")
-
-  # multi-core build.
-  add_definitions("/MP")
 endif()
 
 # Append FLATBUFFERS_CXX_FLAGS to CMAKE_CXX_FLAGS.
@@ -757,3 +762,11 @@ endif()
 if(FLATBUFFERS_BUILD_BENCHMARKS AND CMAKE_VERSION VERSION_GREATER 3.13)
   add_subdirectory(benchmarks)
 endif()
+
+# Add FlatBuffers::FlatBuffers interface, needed for FetchContent_Declare
+add_library(FlatBuffers INTERFACE)
+add_library(FlatBuffers::FlatBuffers ALIAS FlatBuffers)
+target_include_directories(
+  FlatBuffers
+  INTERFACE $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+            $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/include>)

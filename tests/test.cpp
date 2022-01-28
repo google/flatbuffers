@@ -2943,6 +2943,25 @@ void StructUnionTest() {
   gadget.Set(fan);
 }
 
+void WarningsAsErrorsTest() {
+  {
+    flatbuffers::IDLOptions opts;
+    // opts.warnings_as_errors should default to false
+    flatbuffers::Parser parser(opts);
+    TEST_EQ(parser.Parse("table T { THIS_NAME_CAUSES_A_WARNING:string;}\n"
+                         "root_type T;"),
+            true);
+  }
+  {
+    flatbuffers::IDLOptions opts;
+    opts.warnings_as_errors = true;
+    flatbuffers::Parser parser(opts);
+    TEST_EQ(parser.Parse("table T { THIS_NAME_CAUSES_A_WARNING:string;}\n"
+                         "root_type T;"),
+            false);
+  }
+}
+
 void ConformTest() {
   flatbuffers::Parser parser;
   TEST_EQ(parser.Parse("table T { A:int; } enum E:byte { A }"), true);
@@ -3025,8 +3044,9 @@ void FlexBuffersTest() {
   // clang-format on
 
   std::vector<uint8_t> reuse_tracker;
-  TEST_EQ(flexbuffers::VerifyBuffer(slb.GetBuffer().data(), slb.GetBuffer().size(),
-                           &reuse_tracker), true);
+  TEST_EQ(flexbuffers::VerifyBuffer(slb.GetBuffer().data(),
+                                    slb.GetBuffer().size(), &reuse_tracker),
+          true);
 
   auto map = flexbuffers::GetRoot(slb.GetBuffer()).AsMap();
   TEST_EQ(map.size(), 7);
@@ -3085,8 +3105,9 @@ void FlexBuffersTest() {
   slb.Clear();
   auto jsontest = "{ a: [ 123, 456.0 ], b: \"hello\", c: true, d: false }";
   TEST_EQ(parser.ParseFlexBuffer(jsontest, nullptr, &slb), true);
-  TEST_EQ(flexbuffers::VerifyBuffer(slb.GetBuffer().data(), slb.GetBuffer().size(),
-                            &reuse_tracker), true);
+  TEST_EQ(flexbuffers::VerifyBuffer(slb.GetBuffer().data(),
+                                    slb.GetBuffer().size(), &reuse_tracker),
+          true);
   auto jroot = flexbuffers::GetRoot(slb.GetBuffer());
   auto jmap = jroot.AsMap();
   auto jvec = jmap["a"].AsVector();
@@ -3124,8 +3145,9 @@ void FlexBuffersFloatingPointTest() {
       "{ a: [1.0, nan, inf, infinity, -inf, +inf, -infinity, 8.0] }";
   TEST_EQ(parser.ParseFlexBuffer(jsontest, nullptr, &slb), true);
   auto jroot = flexbuffers::GetRoot(slb.GetBuffer());
-  TEST_EQ(flexbuffers::VerifyBuffer(slb.GetBuffer().data(), slb.GetBuffer().size(),
-                           nullptr), true);
+  TEST_EQ(flexbuffers::VerifyBuffer(slb.GetBuffer().data(),
+                                    slb.GetBuffer().size(), nullptr),
+          true);
   auto jmap = jroot.AsMap();
   auto jvec = jmap["a"].AsVector();
   TEST_EQ(8, jvec.size());
@@ -3170,8 +3192,9 @@ void FlexBuffersDeprecatedTest() {
   slb.EndVector(start, true, false);
   slb.Finish();
   // Verify because why not.
-  TEST_EQ(flexbuffers::VerifyBuffer(slb.GetBuffer().data(), slb.GetBuffer().size(),
-                           nullptr), true);
+  TEST_EQ(flexbuffers::VerifyBuffer(slb.GetBuffer().data(),
+                                    slb.GetBuffer().size(), nullptr),
+          true);
   // So now lets read this data back.
   // For existing data, since we have no way of knowing what the actual
   // bit-width of the size field of the string is, we are going to ignore this
@@ -4209,10 +4232,25 @@ int FlatBufferTests() {
   FlatbuffersIteratorsTest();
   FixedLengthArraySpanTest();
   StructUnionTest();
+  WarningsAsErrorsTest();
   return 0;
 }
 
-int main(int /*argc*/, const char * /*argv*/[]) {
+int main(int argc, const char *argv[]) {
+  for (int argi = 1; argi < argc; argi++) {
+    std::string arg = argv[argi];
+    if (arg == "--test_path") {
+      if (++argi >= argc) {
+        fprintf(stderr, "error: missing path following: %s\n", arg.c_str());
+        exit(1);
+      }
+      test_data_path = argv[argi];
+    } else {
+      fprintf(stderr, "error: Unknown argument: %s\n", arg.c_str());
+      exit(1);
+    }
+  }
+
   InitTestEngine();
 
   std::string req_locale;
