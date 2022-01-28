@@ -360,7 +360,7 @@ assert (
     new_monster_file.exists()
 ), "filename suffix option did not produce a file"
 assert filecmp.cmp(
-    orig_monster_file, new_monster_file
+    str(orig_monster_file), str(new_monster_file)
 ), "filename suffix option did not produce identical results"
 new_monster_file.unlink()
 
