@@ -526,16 +526,16 @@ function(compile_flatbuffers_schema_to_embedded_binary SRC_FBS OPT)
   register_generated_output(${GEN_BFBS_HEADER})
 endfunction()
 
-# Look if we have python 3 installed so that we can run the generate code python
-# script after flatc is built.
-find_package(PythonInterp 3)
+# Look if we have python 3.5 installed so that we can run the generate code
+# python script after flatc is built.
+find_package(PythonInterp 3.5)
 
 if(PYTHONINTERP_FOUND AND
   # Skip doing this if the MSVC version is below VS 12.
   # https://cmake.org/cmake/help/latest/variable/MSVC_VERSION.html
   (NOT MSVC OR MSVC_VERSION GREATER 1800))
   if(MSVC)
-    set(GENERATION_SCRIPT py scripts/generate_code.py) 
+    set(GENERATION_SCRIPT ${PYTHON_EXECUTABLE} scripts/generate_code.py) 
    else()
     set(GENERATION_SCRIPT scripts/generate_code.py)
   endif()

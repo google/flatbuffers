@@ -74,7 +74,7 @@ def flatc(
     cmd += [schema] if isinstance(schema, str) else schema
     if data:
         cmd += [data] if isinstance(data, str) else data
-    result = subprocess.run(cmd, cwd=cwd, check=True)
+    result = subprocess.run(cmd, cwd=str(cwd), check=True)
 
 
 # Glob a pattern relative to file path
@@ -360,7 +360,7 @@ assert (
     new_monster_file.exists()
 ), "filename suffix option did not produce a file"
 assert filecmp.cmp(
-    orig_monster_file, new_monster_file
+    str(orig_monster_file), str(new_monster_file)
 ), "filename suffix option did not produce identical results"
 new_monster_file.unlink()
 
@@ -409,6 +409,6 @@ new_reflection_file = Path(reflection_path, temp_dir, "reflection_generated.h")
 original_reflection_file = Path(
     root_path, "include/flatbuffers/reflection_generated.h"
 )
-if not filecmp.cmp(new_reflection_file, original_reflection_file):
-    shutil.move(new_reflection_file, original_reflection_file)
-shutil.rmtree(Path(reflection_path, temp_dir))
+if not filecmp.cmp(str(new_reflection_file), str(original_reflection_file)):
+    shutil.move(str(new_reflection_file), str(original_reflection_file))
+shutil.rmtree(str(Path(reflection_path, temp_dir)))
