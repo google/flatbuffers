@@ -528,7 +528,7 @@ endfunction()
 
 # Look if we have python 3 installed so that we can run the generate code python
 # script after flatc is built.
-find_package(PythonInterp 3)
+find_package(PythonInterp 3.6)
 
 if(PYTHONINTERP_FOUND AND
   # Skip doing this if the MSVC version is below VS 12.
