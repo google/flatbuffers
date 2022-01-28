@@ -7,7 +7,7 @@ environment:
 
   global:
     # Workaround for https://github.com/conda/conda-build/issues/636
-    PYTHONIOENCODING: UTF-8
+    # PYTHONIOENCODING: UTF-8
     CONDA_INSTALL_LOCN: "C:\\Miniconda35-x64"
     CMAKE_OPTIONS: ""
     CPP_TEST_OPTIONS: ""
