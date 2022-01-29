@@ -226,8 +226,10 @@ struct TypeTable {
 };
 
 // String which identifies the current version of FlatBuffers.
-inline std::string flatbuffers_version_string() {
-  return std::string("FlatBuffers ") + FLATBUFFERS_VERSION();
+inline const char * flatbuffers_version_string() {
+  return "FlatBuffers " FLATBUFFERS_STRING(FLATBUFFERS_VERSION_MAJOR) "."
+      FLATBUFFERS_STRING(FLATBUFFERS_VERSION_MINOR) "."
+      FLATBUFFERS_STRING(FLATBUFFERS_VERSION_REVISION);
 }
 
 #define FLATBUFFERS_DEFINE_BITMASK_OPERATORS(E, T)\
