@@ -523,7 +523,6 @@ export class Builder {
      * @return The offset in the buffer where the encoded string starts
      */
     createString(s: string | Uint8Array): Offset {
-      if (!s) { return 0 }
       let utf8: string | Uint8Array | number[];
       if (s instanceof Uint8Array) {
         utf8 = s;
