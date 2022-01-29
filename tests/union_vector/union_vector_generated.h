@@ -1267,6 +1267,11 @@ inline bool MovieBufferHasIdentifier(const void *buf) {
       buf, MovieIdentifier());
 }
 
+inline bool SizePrefixedMovieBufferHasIdentifier(const void *buf) {
+  return flatbuffers::BufferHasIdentifier(
+      buf, MovieIdentifier(), true);
+}
+
 inline bool VerifyMovieBuffer(
     flatbuffers::Verifier &verifier) {
   return verifier.VerifyBuffer<Movie>(MovieIdentifier());

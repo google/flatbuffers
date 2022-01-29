@@ -470,6 +470,11 @@ inline bool ArrayTableBufferHasIdentifier(const void *buf) {
       buf, ArrayTableIdentifier());
 }
 
+inline bool SizePrefixedArrayTableBufferHasIdentifier(const void *buf) {
+  return flatbuffers::BufferHasIdentifier(
+      buf, ArrayTableIdentifier(), true);
+}
+
 inline bool VerifyArrayTableBuffer(
     flatbuffers::Verifier &verifier) {
   return verifier.VerifyBuffer<MyGame::Example::ArrayTable>(ArrayTableIdentifier());

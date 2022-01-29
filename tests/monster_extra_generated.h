@@ -362,6 +362,11 @@ inline bool MonsterExtraBufferHasIdentifier(const void *buf) {
       buf, MonsterExtraIdentifier());
 }
 
+inline bool SizePrefixedMonsterExtraBufferHasIdentifier(const void *buf) {
+  return flatbuffers::BufferHasIdentifier(
+      buf, MonsterExtraIdentifier(), true);
+}
+
 inline bool VerifyMonsterExtraBuffer(
     flatbuffers::Verifier &verifier) {
   return verifier.VerifyBuffer<MyGame::MonsterExtra>(MonsterExtraIdentifier());
