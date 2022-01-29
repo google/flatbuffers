@@ -495,47 +495,8 @@ void MutateFlatBuffersTest(uint8_t *flatbuf, std::size_t length) {
   AccessFlatBufferTest(flatbuf, length);
 }
 
-// Unpack a FlatBuffer into objects.
-void ObjectFlatBuffersTest(uint8_t *flatbuf) {
-  // Optional: we can specify resolver and rehasher functions to turn hashed
-  // strings into object pointers and back, to implement remote references
-  // and such.
-  auto resolver = flatbuffers::resolver_function_t(
-      [](void **pointer_adr, flatbuffers::hash_value_t hash) {
-        (void)pointer_adr;
-        (void)hash;
-        // Don't actually do anything, leave variable null.
-      });
-  auto rehasher = flatbuffers::rehasher_function_t(
-      [](void *pointer) -> flatbuffers::hash_value_t {
-        (void)pointer;
-        return 0;
-      });
-
-  // Turn a buffer into C++ objects.
-  auto monster1 = UnPackMonster(flatbuf, &resolver);
-
-  // Re-serialize the data.
-  flatbuffers::FlatBufferBuilder fbb1;
-  fbb1.Finish(CreateMonster(fbb1, monster1.get(), &rehasher),
-              MonsterIdentifier());
-
-  // Unpack again, and re-serialize again.
-  auto monster2 = UnPackMonster(fbb1.GetBufferPointer(), &resolver);
-  flatbuffers::FlatBufferBuilder fbb2;
-  fbb2.Finish(CreateMonster(fbb2, monster2.get(), &rehasher),
-              MonsterIdentifier());
-
-  // Now we've gone full round-trip, the two buffers should match.
-  auto len1 = fbb1.GetSize();
-  auto len2 = fbb2.GetSize();
-  TEST_EQ(len1, len2);
-  TEST_EQ(memcmp(fbb1.GetBufferPointer(), fbb2.GetBufferPointer(), len1), 0);
-
-  // Test it with the original buffer test to make sure all data survived.
-  AccessFlatBufferTest(fbb2.GetBufferPointer(), len2, false);
-
-  // Test accessing fields, similar to AccessFlatBufferTest above.
+// Utility function to check a Monster object.
+void CheckMonsterObject(MonsterT* monster2) {
   TEST_EQ(monster2->hp, 80);
   TEST_EQ(monster2->mana, 150);  // default
   TEST_EQ_STR(monster2->name.c_str(), "MyMonster");
@@ -580,6 +541,63 @@ void ObjectFlatBuffersTest(uint8_t *flatbuf) {
   TEST_EQ(tests[0].b(), 20);
   TEST_EQ(tests[1].a(), 30);
   TEST_EQ(tests[1].b(), 40);
+}
+
+// Unpack a FlatBuffer into objects.
+void ObjectFlatBuffersTest(uint8_t *flatbuf) {
+  // Optional: we can specify resolver and rehasher functions to turn hashed
+  // strings into object pointers and back, to implement remote references
+  // and such.
+  auto resolver = flatbuffers::resolver_function_t(
+      [](void **pointer_adr, flatbuffers::hash_value_t hash) {
+        (void)pointer_adr;
+        (void)hash;
+        // Don't actually do anything, leave variable null.
+      });
+  auto rehasher = flatbuffers::rehasher_function_t(
+      [](void *pointer) -> flatbuffers::hash_value_t {
+        (void)pointer;
+        return 0;
+      });
+
+  // Turn a buffer into C++ objects.
+  auto monster1 = UnPackMonster(flatbuf, &resolver);
+
+  // Re-serialize the data.
+  flatbuffers::FlatBufferBuilder fbb1;
+  fbb1.Finish(CreateMonster(fbb1, monster1.get(), &rehasher),
+              MonsterIdentifier());
+
+  // Unpack again, and re-serialize again.
+  auto monster2 = UnPackMonster(fbb1.GetBufferPointer(), &resolver);
+  flatbuffers::FlatBufferBuilder fbb2;
+  fbb2.Finish(CreateMonster(fbb2, monster2.get(), &rehasher),
+              MonsterIdentifier());
+
+  // Now we've gone full round-trip, the two buffers should match.
+  const auto len1 = fbb1.GetSize();
+  const auto len2 = fbb2.GetSize();
+  TEST_EQ(len1, len2);
+  TEST_EQ(memcmp(fbb1.GetBufferPointer(), fbb2.GetBufferPointer(), len1), 0);
+
+  // Test it with the original buffer test to make sure all data survived.
+  AccessFlatBufferTest(fbb2.GetBufferPointer(), len2, false);
+
+  // Test accessing fields, similar to AccessFlatBufferTest above.
+  CheckMonsterObject(monster2.get());
+
+  // Test object copy.
+  auto monster3 = *monster2;
+  flatbuffers::FlatBufferBuilder fbb3;
+  fbb3.Finish(CreateMonster(fbb3, &monster3, &rehasher),
+              MonsterIdentifier());
+  const auto len3 = fbb3.GetSize();
+  TEST_EQ(len2, len3);
+  TEST_EQ(memcmp(fbb2.GetBufferPointer(), fbb3.GetBufferPointer(), len2), 0);
+  // Delete monster1 and monster2, then test accessing fields in monster3.
+  monster1.reset();
+  monster2.reset();
+  CheckMonsterObject(&monster3);
 }
 
 // Prefix a FlatBuffer with a size field.
