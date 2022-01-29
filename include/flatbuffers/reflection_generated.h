@@ -1413,6 +1413,11 @@ inline bool SchemaBufferHasIdentifier(const void *buf) {
       buf, SchemaIdentifier());
 }
 
+inline bool SizePrefixedSchemaBufferHasIdentifier(const void *buf) {
+  return flatbuffers::BufferHasIdentifier(
+      buf, SchemaIdentifier(), true);
+}
+
 inline bool VerifySchemaBuffer(
     flatbuffers::Verifier &verifier) {
   return verifier.VerifyBuffer<reflection::Schema>(SchemaIdentifier());
