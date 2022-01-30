@@ -1,19 +1,10 @@
-# This is the legacy minimum version flatbuffers supported for a while.
-cmake_minimum_required(VERSION 2.8.12)
-
-# CMake version 3.16 is the 'de-facto' minimum version for flatbuffers. If the
-# current cmake is older than this, warn the user and include the legacy file to
-# provide some level of support.
-if(CMAKE_VERSION VERSION_LESS 3.16)
-  message(WARNING "Using cmake version ${CMAKE_VERSION} which is older than "
-  "our target version of 3.16. This will use the legacy CMakeLists.txt that "
-  "supports version 2.8.12 and higher, but not actively maintained. Consider "
-  "upgrading cmake to a newer version, as this may become a fatal error in the "
-  "future.")
-  # Use the legacy version of CMakeLists.txt
-  include(CMake/CMakeLists_legacy.cmake.in)
-  return()
-endif()
+# This was the legacy <root>/CMakeLists.txt that supported cmake version 2.8.12.
+# It was originally copied on Jan 30 2022, and is conditionally included in the
+# current <root>/CMakeLists.txt if the cmake version used is older than the new
+# minimum version.
+#
+# Only add to this file to fix immediate issues or if a change cannot be made
+# <root>/CMakeList.txt in a compatible way.
 
 if (POLICY CMP0048)
   cmake_policy(SET CMP0048 NEW)
@@ -664,11 +655,18 @@ if(FLATBUFFERS_INSTALL)
   )
 
   if(FLATBUFFERS_BUILD_FLATLIB)
-    install(
-      TARGETS flatbuffers EXPORT FlatbuffersTargets
-      ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
-      INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
-    )
+    if(CMAKE_VERSION VERSION_LESS 3.0)
+      install(
+        TARGETS flatbuffers EXPORT FlatbuffersTargets
+        ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+      )
+    else()
+      install(
+        TARGETS flatbuffers EXPORT FlatbuffersTargets
+        ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+      )
+    endif()
 
     install(EXPORT FlatbuffersTargets
       FILE FlatbuffersTargets.cmake
@@ -692,15 +690,24 @@ if(FLATBUFFERS_INSTALL)
   endif()
 
   if(FLATBUFFERS_BUILD_SHAREDLIB)
-    install(
-      TARGETS flatbuffers_shared EXPORT FlatbuffersSharedTargets
-      ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
-      RUNTIME DESTINATION ${CMAKE_INSTALL_LIBDIR}
-      LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-      INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
-    )
+    if(CMAKE_VERSION VERSION_LESS 3.0)
+      install(
+        TARGETS flatbuffers_shared EXPORT FlatbuffersSharedTargets
+        ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        RUNTIME DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+      )
+    else()
+      install(
+        TARGETS flatbuffers_shared EXPORT FlatbuffersSharedTargets
+        ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        RUNTIME DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+      )
+    endif()
 
-    install(
+  install(
       EXPORT FlatbuffersSharedTargets
       FILE FlatbuffersSharedTargets.cmake
       NAMESPACE flatbuffers::
@@ -754,7 +761,7 @@ if(UNIX)
 endif()
 
 # Include for running Google Benchmarks.
-if(FLATBUFFERS_BUILD_BENCHMARKS)
+if(FLATBUFFERS_BUILD_BENCHMARKS AND CMAKE_VERSION VERSION_GREATER 3.13)
   add_subdirectory(benchmarks)
 endif()
 
