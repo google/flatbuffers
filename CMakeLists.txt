@@ -534,11 +534,7 @@ if(PYTHONINTERP_FOUND AND
   # Skip doing this if the MSVC version is below VS 12.
   # https://cmake.org/cmake/help/latest/variable/MSVC_VERSION.html
   (NOT MSVC OR MSVC_VERSION GREATER 1800))
-  if(MSVC)
-    set(GENERATION_SCRIPT ${PYTHON_EXECUTABLE} scripts/generate_code.py) 
-   else()
-    set(GENERATION_SCRIPT scripts/generate_code.py)
-  endif()
+  set(GENERATION_SCRIPT ${PYTHON_EXECUTABLE} scripts/generate_code.py) 
   if(FLATBUFFERS_BUILD_LEGACY)
     # Need to set --cpp-std c++-0x options
     set(GENERATION_SCRIPT ${GENERATION_SCRIPT} --cpp-0x)
