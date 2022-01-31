@@ -89,6 +89,7 @@ impl<'a> Default for WeaponArgs<'a> {
     }
   }
 }
+
 pub struct WeaponBuilder<'a: 'b, 'b> {
   fbb_: &'b mut flatbuffers::FlatBufferBuilder<'a>,
   start_: flatbuffers::WIPOffset<flatbuffers::TableUnfinishedWIPOffset>,

@@ -8,3 +8,4 @@ edition = "2018"
 
 [dependencies]
 flatbuffers = { path = "../../../rust/flatbuffers" }
+serde = "1.0"

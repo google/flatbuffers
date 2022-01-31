@@ -98,6 +98,7 @@ impl<'a> Default for KeywordsInTableArgs {
     }
   }
 }
+
 pub struct KeywordsInTableBuilder<'a: 'b, 'b> {
   fbb_: &'b mut flatbuffers::FlatBufferBuilder<'a>,
   start_: flatbuffers::WIPOffset<flatbuffers::TableUnfinishedWIPOffset>,

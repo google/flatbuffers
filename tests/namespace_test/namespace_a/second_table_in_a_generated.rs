@@ -78,6 +78,7 @@ impl<'a> Default for SecondTableInAArgs<'a> {
     }
   }
 }
+
 pub struct SecondTableInABuilder<'a: 'b, 'b> {
   fbb_: &'b mut flatbuffers::FlatBufferBuilder<'a>,
   start_: flatbuffers::WIPOffset<flatbuffers::TableUnfinishedWIPOffset>,

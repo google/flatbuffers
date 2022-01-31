@@ -78,6 +78,7 @@ impl<'a> Default for ArrayTableArgs<'a> {
     }
   }
 }
+
 pub struct ArrayTableBuilder<'a: 'b, 'b> {
   fbb_: &'b mut flatbuffers::FlatBufferBuilder<'a>,
   start_: flatbuffers::WIPOffset<flatbuffers::TableUnfinishedWIPOffset>,

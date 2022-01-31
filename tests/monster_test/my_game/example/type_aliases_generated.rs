@@ -201,6 +201,7 @@ impl<'a> Default for TypeAliasesArgs<'a> {
     }
   }
 }
+
 pub struct TypeAliasesBuilder<'a: 'b, 'b> {
   fbb_: &'b mut flatbuffers::FlatBufferBuilder<'a>,
   start_: flatbuffers::WIPOffset<flatbuffers::TableUnfinishedWIPOffset>,

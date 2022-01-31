@@ -86,6 +86,7 @@ impl<'a> Default for ReferrableArgs {
     }
   }
 }
+
 pub struct ReferrableBuilder<'a: 'b, 'b> {
   fbb_: &'b mut flatbuffers::FlatBufferBuilder<'a>,
   start_: flatbuffers::WIPOffset<flatbuffers::TableUnfinishedWIPOffset>,

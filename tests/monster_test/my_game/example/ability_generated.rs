@@ -69,6 +69,7 @@ impl<'a> flatbuffers::Verifiable for Ability {
     v.in_buffer::<Self>(pos)
   }
 }
+
 impl<'a> Ability {
   #[allow(clippy::too_many_arguments)]
   pub fn new(

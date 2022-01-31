@@ -73,6 +73,7 @@ impl<'a> flatbuffers::Verifiable for ArrayStruct {
     v.in_buffer::<Self>(pos)
   }
 }
+
 impl<'a> ArrayStruct {
   #[allow(clippy::too_many_arguments)]
   pub fn new(

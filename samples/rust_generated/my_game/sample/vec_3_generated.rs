@@ -70,6 +70,7 @@ impl<'a> flatbuffers::Verifiable for Vec3 {
     v.in_buffer::<Self>(pos)
   }
 }
+
 impl<'a> Vec3 {
   #[allow(clippy::too_many_arguments)]
   pub fn new(

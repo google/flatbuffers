@@ -76,6 +76,7 @@ impl<'a> Default for TestSimpleTableWithEnumArgs {
     }
   }
 }
+
 pub struct TestSimpleTableWithEnumBuilder<'a: 'b, 'b> {
   fbb_: &'b mut flatbuffers::FlatBufferBuilder<'a>,
   start_: flatbuffers::WIPOffset<flatbuffers::TableUnfinishedWIPOffset>,

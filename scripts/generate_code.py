@@ -103,6 +103,7 @@ CPP_17_OPTS = NO_INCL_OPTS + [
     "--gen-object-api",
 ]
 RUST_OPTS = BASE_OPTS + ["--rust", "--gen-all", "--gen-name-strings"]
+RUST_SERIALIZE_OPTS = BASE_OPTS + ["--rust", "--gen-all", "--gen-name-strings", "--rust-serialize"]
 TS_OPTS = ["--ts", "--gen-name-strings"]
 LOBSTER_OPTS = ["--lobster"]
 SWIFT_OPTS = ["--swift", "--gen-json-emit", "--bfbs-filenames", str(tests_path)]
@@ -152,6 +153,14 @@ flatc(
     schema="monster_test.fbs",
     include="include_test",
     prefix="monster_test",
+    data="monsterdata_test.json",
+)
+
+flatc(
+    RUST_SERIALIZE_OPTS,
+    schema="monster_test.fbs",
+    include="include_test",
+    prefix="monster_test_serialize",
     data="monsterdata_test.json",
 )
 
