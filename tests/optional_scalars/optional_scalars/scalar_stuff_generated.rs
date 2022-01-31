@@ -461,6 +461,7 @@ impl<'a> Default for ScalarStuffArgs {
     }
   }
 }
+
 pub struct ScalarStuffBuilder<'a: 'b, 'b> {
   fbb_: &'b mut flatbuffers::FlatBufferBuilder<'a>,
   start_: flatbuffers::WIPOffset<flatbuffers::TableUnfinishedWIPOffset>,

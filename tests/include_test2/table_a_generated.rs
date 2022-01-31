@@ -78,6 +78,7 @@ impl<'a> Default for TableAArgs<'a> {
     }
   }
 }
+
 pub struct TableABuilder<'a: 'b, 'b> {
   fbb_: &'b mut flatbuffers::FlatBufferBuilder<'a>,
   start_: flatbuffers::WIPOffset<flatbuffers::TableUnfinishedWIPOffset>,

@@ -31,7 +31,11 @@ function check_test_result() {
     fi
 }
 
-cd ./rust_usage_test
+cd ./rust_serialize_test
+cargo run $TARGET_FLAG -- --quiet
+check_test_result "Rust serde tests"
+
+cd ../rust_usage_test
 cargo test $TARGET_FLAG -- --quiet
 check_test_result "Rust tests"
 

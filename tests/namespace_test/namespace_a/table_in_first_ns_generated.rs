@@ -144,6 +144,7 @@ impl<'a> Default for TableInFirstNSArgs<'a> {
     }
   }
 }
+
 pub struct TableInFirstNSBuilder<'a: 'b, 'b> {
   fbb_: &'b mut flatbuffers::FlatBufferBuilder<'a>,
   start_: flatbuffers::WIPOffset<flatbuffers::TableUnfinishedWIPOffset>,

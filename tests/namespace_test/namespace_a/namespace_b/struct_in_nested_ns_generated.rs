@@ -69,6 +69,7 @@ impl<'a> flatbuffers::Verifiable for StructInNestedNS {
     v.in_buffer::<Self>(pos)
   }
 }
+
 impl<'a> StructInNestedNS {
   #[allow(clippy::too_many_arguments)]
   pub fn new(

@@ -626,6 +626,9 @@ struct IDLOptions {
   // If set, require all fields in a table to be explicitly numbered.
   bool require_explicit_ids;
 
+  // If set, implement serde::Serialize for generated Rust types
+  bool rust_serialize;
+
   // The corresponding language bit will be set if a language is included
   // for code generation.
   unsigned long lang_to_generate;
@@ -690,6 +693,7 @@ struct IDLOptions {
         json_nested_legacy_flatbuffers(false),
         mini_reflect(IDLOptions::kNone),
         require_explicit_ids(false),
+        rust_serialize(false),
         lang_to_generate(0),
         set_empty_strings_to_null(true),
         set_empty_vectors_to_null(true) {}
