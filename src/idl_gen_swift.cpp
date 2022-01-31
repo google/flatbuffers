@@ -711,8 +711,8 @@ class SwiftGenerator : public BaseGenerator {
     }
 
     if (IsBool(field.value.type.base_type)) {
-      std::string default_value =
-          "0" == field.value.constant ? "false" : "true";
+      std::string default_value = field.IsOptional() ? "nil" :
+       ("0" == field.value.constant ? "false" : "true");
       code_.SetValue("CONSTANT", default_value);
       code_.SetValue("VALUETYPE", "Bool");
       code_ += GenReaderMainBody(optional) + "\\";
