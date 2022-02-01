@@ -65,7 +65,7 @@ const static FlatCOption options[] = {
   { "I", "", "PATH", "Search for includes in the specified path." },
   { "M", "", "", "Print make rules for generated files." },
   { "", "version", "", "Print the version number of flatc and exit." },
-  { "", "help", "", "Prints this help text and exit." },
+  { "h", "help", "", "Prints this help text and exit." },
   { "", "string-json", "",
     "Strict JSON: field names must be / will be quoted, no trailing commas in "
     "tables/vectors." },
@@ -184,7 +184,8 @@ const static FlatCOption options[] = {
   { "", "reflect-types", "",
     "Add minimal type reflection to code generation." },
   { "", "reflect-names", "", "Add minimal type/name reflection." },
-  { "", "rust-serialize", "", "Implement serde::Serialize on generated Rust types." },
+  { "", "rust-serialize", "",
+    "Implement serde::Serialize on generated Rust types." },
   { "", "root-type", "T", "Select or override the default root_type." },
   { "", "require-explicit-ids", "",
     "When parsing schemas, require explicit ids (id: x)." },
@@ -270,6 +271,35 @@ static void AppendOption(std::stringstream &ss, const FlatCOption &option,
   ss << "\n";
 }
 
+static void AppendShortOption(std::stringstream &ss,
+                              const FlatCOption &option) {
+  if (!option.short_opt.empty()) {
+    ss << "-" << option.short_opt;
+    if (!option.long_opt.empty()) { ss << "|"; }
+  }
+  if (!option.long_opt.empty()) { ss << "--" << option.long_opt; }
+}
+
+std::string FlatCompiler::GetShortUsageString(const char *program_name) const {
+  std::stringstream ss;
+  ss << "Usage: " << program_name << " [";
+  for (size_t i = 0; i < params_.num_generators; ++i) {
+    const Generator &g = params_.generators[i];
+    AppendShortOption(ss, g.option);
+    ss << ", ";
+  }
+  for (const FlatCOption &option : options) {
+    AppendShortOption(ss, option);
+    ss << ", ";
+  }
+  ss.seekp(-2, ss.cur);
+  ss << "]... FILE... [-- FILE...]";
+  std::string help = ss.str();
+  std::stringstream ss_textwrap;
+  AppendTextWrappedString(ss_textwrap, help, 80, 0);
+  return ss_textwrap.str();
+}
+
 std::string FlatCompiler::GetUsageString(const char *program_name) const {
   std::stringstream ss;
   ss << "Usage: " << program_name << " [OPTION]... FILE... [-- FILE...]\n";
@@ -300,6 +330,8 @@ int FlatCompiler::Compile(int argc, const char **argv) {
   if (params_.generators == nullptr || params_.num_generators == 0) {
     return 0;
   }
+
+  if (argc <= 1) { Error("Need to provide at least one argument."); }
 
   flatbuffers::IDLOptions opts;
   std::string output_path;
@@ -455,7 +487,7 @@ int FlatCompiler::Compile(int argc, const char **argv) {
       } else if (arg == "--version") {
         printf("flatc version %s\n", FLATC_VERSION());
         exit(0);
-      } else if (arg == "--help") {
+      } else if (arg == "--help" || arg == "-h") {
         printf("%s\n", GetUsageString(program_name).c_str());
         exit(0);
       } else if (arg == "--grpc") {

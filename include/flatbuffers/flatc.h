@@ -84,6 +84,7 @@ class FlatCompiler {
 
   int Compile(int argc, const char **argv);
 
+  std::string GetShortUsageString(const char *program_name) const;
   std::string GetUsageString(const char *program_name) const;
 
  private:
