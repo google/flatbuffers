@@ -538,26 +538,23 @@ endfunction()
 
 # Look if we have python 3.5 installed so that we can run the generate code
 # python script after flatc is built.
-find_package(PythonInterp 3.5)
+find_package(Python3 3.5 COMPONENTS Interpreter)
 
-if(PYTHONINTERP_FOUND AND
-  # Skip doing this if the MSVC version is below VS 12.
-  # https://cmake.org/cmake/help/latest/variable/MSVC_VERSION.html
-  (NOT MSVC OR MSVC_VERSION GREATER 1800))
-  set(GENERATION_SCRIPT ${PYTHON_EXECUTABLE} scripts/generate_code.py) 
+if(Python3_Interpreter_FOUND)
+  set(GENERATION_OPTS --flatc "${FLATBUFFERS_FLATC_EXECUTABLE}")
   if(FLATBUFFERS_BUILD_LEGACY)
     # Need to set --cpp-std c++-0x options
-    set(GENERATION_SCRIPT ${GENERATION_SCRIPT} --cpp-0x)
+    set(GENERATION_OPTS ${GENERATION_OPTS}--cpp-0x)
   endif()
   if(FLATBUFFERS_SKIP_MONSTER_EXTRA)
-    set(GENERATION_SCRIPT ${GENERATION_SCRIPT} --skip-monster-extra)
+    set(GENERATION_OPTS ${GENERATION_OPTS} --skip-monster-extra)
   endif()
   add_custom_command(
     TARGET flatc
     POST_BUILD
-    COMMAND ${GENERATION_SCRIPT} --flatc "${FLATBUFFERS_FLATC_EXECUTABLE}"
+    COMMAND ${Python3_EXECUTABLE} scripts/generate_code.py ${GENERATION_OPTS}
     WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
-    COMMENT "Running ${GENERATION_SCRIPT}..."
+    COMMENT "Running scripts/generate_code.py..."
     VERBATIM)
 else()
   message("No Python3 interpreter found! Unable to generate files automatically.")
