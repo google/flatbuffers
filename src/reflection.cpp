@@ -645,8 +645,7 @@ bool VerifyObject(flatbuffers::Verifier &v, const reflection::Schema &schema,
       case reflection::Bool:
       case reflection::Byte:
       case reflection::UByte:
-        if (!table->VerifyField<int8_t>(v, field_def->offset(),
-                                        sizeof(int8_t)))
+        if (!table->VerifyField<int8_t>(v, field_def->offset(), sizeof(int8_t)))
           return false;
         break;
       case reflection::Short:
@@ -668,13 +667,11 @@ bool VerifyObject(flatbuffers::Verifier &v, const reflection::Schema &schema,
           return false;
         break;
       case reflection::Float:
-        if (!table->VerifyField<float>(v, field_def->offset(),
-                                       sizeof(float)))
+        if (!table->VerifyField<float>(v, field_def->offset(), sizeof(float)))
           return false;
         break;
       case reflection::Double:
-        if (!table->VerifyField<double>(v, field_def->offset(),
-                                        sizeof(double)))
+        if (!table->VerifyField<double>(v, field_def->offset(), sizeof(double)))
           return false;
         break;
       case reflection::String:

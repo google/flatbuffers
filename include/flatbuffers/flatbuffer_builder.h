@@ -285,9 +285,7 @@ class FlatBufferBuilder {
     FieldLoc fl = { off, field };
     buf_.scratch_push_small(fl);
     num_field_loc++;
-    if (field > max_voffset_) {
-      max_voffset_ = field;
-    }
+    if (field > max_voffset_) { max_voffset_ = field; }
   }
 
   // Like PushElement, but additionally tracks the field this represents.
@@ -1074,7 +1072,7 @@ class FlatBufferBuilder {
   void SwapBufAllocator(FlatBufferBuilder &other) {
     buf_.swap_allocator(other.buf_);
   }
-  
+
   /// @brief The length of a FlatBuffer file header.
   static const size_t kFileIdentifierLength =
       ::flatbuffers::kFileIdentifierLength;
