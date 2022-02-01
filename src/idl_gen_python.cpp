@@ -738,11 +738,8 @@ class PythonGenerator : public BaseGenerator {
           }
           break;
         }
-        case BASE_TYPE_UNION:
-          GetUnionField(struct_def, field, code_ptr);
-          break;
-        default:
-          FLATBUFFERS_ASSERT(0);
+        case BASE_TYPE_UNION: GetUnionField(struct_def, field, code_ptr); break;
+        default: FLATBUFFERS_ASSERT(0);
       }
     }
     if (IsVector(field.value.type) || IsArray(field.value.type)) {
@@ -913,14 +910,9 @@ class PythonGenerator : public BaseGenerator {
             import_list->insert("import " + package_reference);
           }
           break;
-        case BASE_TYPE_STRING:
-          field_type += "str";
-          break;
-        case BASE_TYPE_NONE:
-          field_type += "None";
-          break;
-        default:
-          break;
+        case BASE_TYPE_STRING: field_type += "str"; break;
+        case BASE_TYPE_NONE: field_type += "None"; break;
+        default: break;
       }
       field_types += field_type + separator_string;
     }
@@ -1253,8 +1245,7 @@ class PythonGenerator : public BaseGenerator {
           GenUnPackForScalarVector(struct_def, field, &code);
           break;
         }
-        default:
-          GenUnPackForScalar(struct_def, field, &code);
+        default: GenUnPackForScalar(struct_def, field, &code);
       }
     }
 

@@ -1677,8 +1677,9 @@ CheckedError Parser::ParseNestedFlatbuffer(Value &val, FieldDef *field,
     if (opts.json_nested_legacy_flatbuffers) {
       ECHECK(ParseAnyValue(val, field, fieldn, parent_struct_def, 0));
     } else {
-      return Error("cannot parse nested_flatbuffer as bytes unless"
-                   " --json-nested-bytes is set");
+      return Error(
+          "cannot parse nested_flatbuffer as bytes unless"
+          " --json-nested-bytes is set");
     }
   } else {
     auto cursor_at_value_begin = cursor_;
@@ -2167,9 +2168,7 @@ void EnumDef::SortByValue() {
     });
   else
     std::sort(v.begin(), v.end(), [](const EnumVal *e1, const EnumVal *e2) {
-      if (e1->GetAsInt64() == e2->GetAsInt64()) {
-        return e1->name < e2->name;
-      }
+      if (e1->GetAsInt64() == e2->GetAsInt64()) { return e1->name < e2->name; }
       return e1->GetAsInt64() < e2->GetAsInt64();
     });
 }

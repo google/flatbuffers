@@ -496,7 +496,7 @@ void MutateFlatBuffersTest(uint8_t *flatbuf, std::size_t length) {
 }
 
 // Utility function to check a Monster object.
-void CheckMonsterObject(MonsterT* monster2) {
+void CheckMonsterObject(MonsterT *monster2) {
   TEST_EQ(monster2->hp, 80);
   TEST_EQ(monster2->mana, 150);  // default
   TEST_EQ_STR(monster2->name.c_str(), "MyMonster");
@@ -589,8 +589,7 @@ void ObjectFlatBuffersTest(uint8_t *flatbuf) {
   // Test object copy.
   auto monster3 = *monster2;
   flatbuffers::FlatBufferBuilder fbb3;
-  fbb3.Finish(CreateMonster(fbb3, &monster3, &rehasher),
-              MonsterIdentifier());
+  fbb3.Finish(CreateMonster(fbb3, &monster3, &rehasher), MonsterIdentifier());
   const auto len3 = fbb3.GetSize();
   TEST_EQ(len2, len3);
   TEST_EQ(memcmp(fbb2.GetBufferPointer(), fbb3.GetBufferPointer(), len2), 0);
