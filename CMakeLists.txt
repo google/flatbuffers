@@ -394,11 +394,6 @@ function(add_pch_to_target _target _pch_header)
   endif()
 endfunction()
 
-if(BIICODE)
-  include(biicode/cmake/biicode.cmake)
-  return()
-endif()
-
 include_directories(include)
 include_directories(grpc)
 
