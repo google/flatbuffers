@@ -538,7 +538,9 @@ class CppGenerator : public BaseGenerator {
 
         // Check if a size-prefixed buffer has the identifier.
         code_ += "inline \\";
-        code_ += "bool SizePrefixed{{STRUCT_NAME}}BufferHasIdentifier(const void *buf) {";
+        code_ +=
+            "bool SizePrefixed{{STRUCT_NAME}}BufferHasIdentifier(const void "
+            "*buf) {";
         code_ += "  return flatbuffers::BufferHasIdentifier(";
         code_ += "      buf, {{STRUCT_NAME}}Identifier(), true);";
         code_ += "}";
@@ -1482,7 +1484,7 @@ class CppGenerator : public BaseGenerator {
         if (ev.union_type.base_type == BASE_TYPE_STRUCT) {
           if (ev.union_type.struct_def->fixed) {
             code_.SetValue("ALIGN",
-              NumToString(ev.union_type.struct_def->minalign));
+                           NumToString(ev.union_type.struct_def->minalign));
             code_ +=
                 "      return verifier.VerifyField<{{TYPE}}>("
                 "static_cast<const uint8_t *>(obj), 0, {{ALIGN}});";
@@ -2122,8 +2124,9 @@ class CppGenerator : public BaseGenerator {
     code_.SetValue("OFFSET", GenFieldOffsetName(field));
     if (IsScalar(field.value.type.base_type) || IsStruct(field.value.type)) {
       code_.SetValue("ALIGN", NumToString(InlineAlignment(field.value.type)));
-      code_ += "{{PRE}}VerifyField{{REQUIRED}}<{{SIZE}}>(verifier, "
-               "{{OFFSET}}, {{ALIGN}})\\";
+      code_ +=
+          "{{PRE}}VerifyField{{REQUIRED}}<{{SIZE}}>(verifier, "
+          "{{OFFSET}}, {{ALIGN}})\\";
     } else {
       code_ += "{{PRE}}VerifyOffset{{REQUIRED}}(verifier, {{OFFSET}})\\";
     }
@@ -2175,11 +2178,13 @@ class CppGenerator : public BaseGenerator {
         if (!nfn.empty()) {
           code_.SetValue("CPP_NAME", nfn);
           // FIXME: file_identifier.
-          code_ += "{{PRE}}verifier.VerifyNestedFlatBuffer<{{CPP_NAME}}>"
-                   "({{NAME}}(), nullptr)\\";
+          code_ +=
+              "{{PRE}}verifier.VerifyNestedFlatBuffer<{{CPP_NAME}}>"
+              "({{NAME}}(), nullptr)\\";
         } else if (field.flexbuffer) {
-          code_ += "{{PRE}}flexbuffers::VerifyNestedFlexBuffer"
-                   "({{NAME}}(), verifier)\\";        
+          code_ +=
+              "{{PRE}}flexbuffers::VerifyNestedFlexBuffer"
+              "({{NAME}}(), verifier)\\";
         }
         break;
       }
@@ -2216,7 +2221,8 @@ class CppGenerator : public BaseGenerator {
       }
       // Returns {field<val: -1, field==val: 0, field>val: +1}.
       code_.SetValue("KEY_TYPE", type);
-      code_ += "  int KeyCompareWithValue({{KEY_TYPE}} _{{FIELD_NAME}}) const {";
+      code_ +=
+          "  int KeyCompareWithValue({{KEY_TYPE}} _{{FIELD_NAME}}) const {";
       code_ +=
           "    return static_cast<int>({{FIELD_NAME}}() > _{{FIELD_NAME}}) - "
           "static_cast<int>({{FIELD_NAME}}() < _{{FIELD_NAME}});";

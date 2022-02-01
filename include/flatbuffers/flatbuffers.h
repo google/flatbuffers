@@ -226,12 +226,13 @@ struct TypeTable {
 };
 
 // String which identifies the current version of FlatBuffers.
-inline const char * flatbuffers_version_string() {
+inline const char *flatbuffers_version_string() {
   return "FlatBuffers " FLATBUFFERS_STRING(FLATBUFFERS_VERSION_MAJOR) "."
       FLATBUFFERS_STRING(FLATBUFFERS_VERSION_MINOR) "."
       FLATBUFFERS_STRING(FLATBUFFERS_VERSION_REVISION);
 }
 
+// clang-format off
 #define FLATBUFFERS_DEFINE_BITMASK_OPERATORS(E, T)\
     inline E operator | (E lhs, E rhs){\
         return E(T(lhs) | T(rhs));\

@@ -859,7 +859,8 @@ class RustGenerator : public BaseGenerator {
         code_ += "    serializer.serialize_u32(self.bits() as u32)";
       } else {
         code_ +=
-            "    serializer.serialize_unit_variant(\"{{ENUM_NAME}}\", self.0 as "
+            "    serializer.serialize_unit_variant(\"{{ENUM_NAME}}\", self.0 "
+            "as "
             "u32, self.variant_name().unwrap())";
       }
       code_ += "  }";
@@ -2752,7 +2753,8 @@ class RustGenerator : public BaseGenerator {
       ForAllStructFields(struct_def, [&](const FieldDef &unused) {
         (void)unused;
         code_ +=
-            "    s.serialize_field(\"{{FIELD_NAME}}\", &self.{{FIELD_NAME}}())?;";
+            "    s.serialize_field(\"{{FIELD_NAME}}\", "
+            "&self.{{FIELD_NAME}}())?;";
       });
       code_ += "    s.end()";
       code_ += "  }";
@@ -2959,8 +2961,9 @@ class RustGenerator : public BaseGenerator {
     code_ += "";
     if (parser_.opts.rust_serialize) {
       code_ += indent + "extern crate serde;";
-      code_ += indent +
-               "use self::serde::ser::{Serialize, Serializer, SerializeStruct};";
+      code_ +=
+          indent +
+          "use self::serde::ser::{Serialize, Serializer, SerializeStruct};";
       code_ += "";
     }
     code_ += indent + "extern crate flatbuffers;";
