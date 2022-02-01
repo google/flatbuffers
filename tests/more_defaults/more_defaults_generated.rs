@@ -149,6 +149,7 @@ impl<'a> Default for MoreDefaultsArgs<'a> {
     }
   }
 }
+
 pub struct MoreDefaultsBuilder<'a: 'b, 'b> {
   fbb_: &'b mut flatbuffers::FlatBufferBuilder<'a>,
   start_: flatbuffers::WIPOffset<flatbuffers::TableUnfinishedWIPOffset>,

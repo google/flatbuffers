@@ -1,4 +1,19 @@
+# This is the legacy minimum version flatbuffers supported for a while.
 cmake_minimum_required(VERSION 2.8.12)
+
+# CMake version 3.16 is the 'de-facto' minimum version for flatbuffers. If the
+# current cmake is older than this, warn the user and include the legacy file to
+# provide some level of support.
+if(CMAKE_VERSION VERSION_LESS 3.16)
+  message(WARNING "Using cmake version ${CMAKE_VERSION} which is older than "
+  "our target version of 3.16. This will use the legacy CMakeLists.txt that "
+  "supports version 2.8.12 and higher, but not actively maintained. Consider "
+  "upgrading cmake to a newer version, as this may become a fatal error in the "
+  "future.")
+  # Use the legacy version of CMakeLists.txt
+  include(CMake/CMakeLists_legacy.cmake.in)
+  return()
+endif()
 
 if (POLICY CMP0048)
   cmake_policy(SET CMP0048 NEW)
@@ -283,6 +298,19 @@ elseif(CMAKE_COMPILER_IS_GNUCXX)
   set(CMAKE_CXX_FLAGS
     "${CMAKE_CXX_FLAGS} -fsigned-char")
 
+# MSVC **MUST** come before the Clang check, as clang-cl is flagged by CMake as "MSVC", but it still textually 
+# matches as Clang in its Compiler Id :)
+# Note: in CMake >= 3.14 we can check CMAKE_CXX_COMPILER_FRONTEND_VARIANT STREQUAL "GNU" or "MSVC" to differentiate...
+elseif(MSVC)
+  # Visual Studio pedantic build settings
+  # warning C4512: assignment operator could not be generated
+  # warning C4316: object allocated on the heap may not be aligned
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W4 /WX /wd4512 /wd4316")
+
+  if(${CMAKE_CXX_COMPILER_ID} MATCHES "Clang")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /D_CRT_SECURE_NO_WARNINGS")
+  endif()
+
 elseif(${CMAKE_CXX_COMPILER_ID} MATCHES "Clang")
   if(APPLE)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
@@ -316,14 +344,6 @@ elseif(${CMAKE_CXX_COMPILER_ID} MATCHES "Clang")
   set(CMAKE_CXX_FLAGS
     "${CMAKE_CXX_FLAGS} -fsigned-char")
 
-elseif(MSVC)
-  # Visual Studio pedantic build settings
-  # warning C4512: assignment operator could not be generated
-  # warning C4316: object allocated on the heap may not be aligned
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W4 /WX /wd4512 /wd4316")
-
-  # multi-core build.
-  add_definitions("/MP")
 endif()
 
 # Append FLATBUFFERS_CXX_FLAGS to CMAKE_CXX_FLAGS.
@@ -373,11 +393,6 @@ function(add_pch_to_target _target _pch_header)
     endif()
   endif()
 endfunction()
-
-if(BIICODE)
-  include(biicode/cmake/biicode.cmake)
-  return()
-endif()
 
 include_directories(include)
 include_directories(grpc)
@@ -521,32 +536,25 @@ function(compile_flatbuffers_schema_to_embedded_binary SRC_FBS OPT)
   register_generated_output(${GEN_BFBS_HEADER})
 endfunction()
 
-# Look if we have python 3 installed so that we can run the generate code python
-# script after flatc is built.
-find_package(PythonInterp 3)
+# Look if we have python 3.5 installed so that we can run the generate code
+# python script after flatc is built.
+find_package(Python3 3.5 COMPONENTS Interpreter)
 
-if(PYTHONINTERP_FOUND AND
-  # Skip doing this if the MSVC version is below VS 12.
-  # https://cmake.org/cmake/help/latest/variable/MSVC_VERSION.html
-  (NOT MSVC OR MSVC_VERSION GREATER 1800))
-  if(MSVC)
-    set(GENERATION_SCRIPT py scripts/generate_code.py) 
-   else()
-    set(GENERATION_SCRIPT scripts/generate_code.py)
-  endif()
+if(Python3_Interpreter_FOUND)
+  set(GENERATION_OPTS --flatc "${FLATBUFFERS_FLATC_EXECUTABLE}")
   if(FLATBUFFERS_BUILD_LEGACY)
     # Need to set --cpp-std c++-0x options
-    set(GENERATION_SCRIPT ${GENERATION_SCRIPT} --cpp-0x)
+    set(GENERATION_OPTS ${GENERATION_OPTS}--cpp-0x)
   endif()
   if(FLATBUFFERS_SKIP_MONSTER_EXTRA)
-    set(GENERATION_SCRIPT ${GENERATION_SCRIPT} --skip-monster-extra)
+    set(GENERATION_OPTS ${GENERATION_OPTS} --skip-monster-extra)
   endif()
   add_custom_command(
     TARGET flatc
     POST_BUILD
-    COMMAND ${GENERATION_SCRIPT} --flatc "${FLATBUFFERS_FLATC_EXECUTABLE}"
+    COMMAND ${Python3_EXECUTABLE} scripts/generate_code.py ${GENERATION_OPTS}
     WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
-    COMMENT "Running ${GENERATION_SCRIPT}..."
+    COMMENT "Running scripts/generate_code.py..."
     VERBATIM)
 else()
   message("No Python3 interpreter found! Unable to generate files automatically.")
@@ -648,18 +656,11 @@ if(FLATBUFFERS_INSTALL)
   )
 
   if(FLATBUFFERS_BUILD_FLATLIB)
-    if(CMAKE_VERSION VERSION_LESS 3.0)
-      install(
-        TARGETS flatbuffers EXPORT FlatbuffersTargets
-        ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
-      )
-    else()
-      install(
-        TARGETS flatbuffers EXPORT FlatbuffersTargets
-        ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
-        INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
-      )
-    endif()
+    install(
+      TARGETS flatbuffers EXPORT FlatbuffersTargets
+      ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+      INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+    )
 
     install(EXPORT FlatbuffersTargets
       FILE FlatbuffersTargets.cmake
@@ -683,24 +684,15 @@ if(FLATBUFFERS_INSTALL)
   endif()
 
   if(FLATBUFFERS_BUILD_SHAREDLIB)
-    if(CMAKE_VERSION VERSION_LESS 3.0)
-      install(
-        TARGETS flatbuffers_shared EXPORT FlatbuffersSharedTargets
-        ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
-        RUNTIME DESTINATION ${CMAKE_INSTALL_LIBDIR}
-        LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-      )
-    else()
-      install(
-        TARGETS flatbuffers_shared EXPORT FlatbuffersSharedTargets
-        ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
-        RUNTIME DESTINATION ${CMAKE_INSTALL_LIBDIR}
-        LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-        INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
-      )
-    endif()
+    install(
+      TARGETS flatbuffers_shared EXPORT FlatbuffersSharedTargets
+      ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+      RUNTIME DESTINATION ${CMAKE_INSTALL_LIBDIR}
+      LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+      INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+    )
 
-  install(
+    install(
       EXPORT FlatbuffersSharedTargets
       FILE FlatbuffersSharedTargets.cmake
       NAMESPACE flatbuffers::
@@ -754,6 +746,14 @@ if(UNIX)
 endif()
 
 # Include for running Google Benchmarks.
-if(FLATBUFFERS_BUILD_BENCHMARKS AND CMAKE_VERSION VERSION_GREATER 3.13)
+if(FLATBUFFERS_BUILD_BENCHMARKS)
   add_subdirectory(benchmarks)
 endif()
+
+# Add FlatBuffers::FlatBuffers interface, needed for FetchContent_Declare
+add_library(FlatBuffers INTERFACE)
+add_library(FlatBuffers::FlatBuffers ALIAS FlatBuffers)
+target_include_directories(
+  FlatBuffers
+  INTERFACE $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+            $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/include>)

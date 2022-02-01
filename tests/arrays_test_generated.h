@@ -265,6 +265,10 @@ inline bool operator!=(const ArrayStruct &lhs, const ArrayStruct &rhs) {
 struct ArrayTableT : public flatbuffers::NativeTable {
   typedef ArrayTable TableType;
   flatbuffers::unique_ptr<MyGame::Example::ArrayStruct> a{};
+  ArrayTableT() = default;
+  ArrayTableT(const ArrayTableT &o);
+  ArrayTableT(ArrayTableT&&) FLATBUFFERS_NOEXCEPT = default;
+  ArrayTableT &operator=(ArrayTableT o) FLATBUFFERS_NOEXCEPT;
 };
 
 struct ArrayTable FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
@@ -330,6 +334,15 @@ inline bool operator!=(const ArrayTableT &lhs, const ArrayTableT &rhs) {
     return !(lhs == rhs);
 }
 
+
+inline ArrayTableT::ArrayTableT(const ArrayTableT &o)
+      : a((o.a) ? new MyGame::Example::ArrayStruct(*o.a) : nullptr) {
+}
+
+inline ArrayTableT &ArrayTableT::operator=(ArrayTableT o) FLATBUFFERS_NOEXCEPT {
+  std::swap(a, o.a);
+  return *this;
+}
 
 inline ArrayTableT *ArrayTable::UnPack(const flatbuffers::resolver_function_t *_resolver) const {
   auto _o = std::unique_ptr<ArrayTableT>(new ArrayTableT());
@@ -468,6 +481,11 @@ inline const char *ArrayTableIdentifier() {
 inline bool ArrayTableBufferHasIdentifier(const void *buf) {
   return flatbuffers::BufferHasIdentifier(
       buf, ArrayTableIdentifier());
+}
+
+inline bool SizePrefixedArrayTableBufferHasIdentifier(const void *buf) {
+  return flatbuffers::BufferHasIdentifier(
+      buf, ArrayTableIdentifier(), true);
 }
 
 inline bool VerifyArrayTableBuffer(

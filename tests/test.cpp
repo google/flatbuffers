@@ -495,47 +495,8 @@ void MutateFlatBuffersTest(uint8_t *flatbuf, std::size_t length) {
   AccessFlatBufferTest(flatbuf, length);
 }
 
-// Unpack a FlatBuffer into objects.
-void ObjectFlatBuffersTest(uint8_t *flatbuf) {
-  // Optional: we can specify resolver and rehasher functions to turn hashed
-  // strings into object pointers and back, to implement remote references
-  // and such.
-  auto resolver = flatbuffers::resolver_function_t(
-      [](void **pointer_adr, flatbuffers::hash_value_t hash) {
-        (void)pointer_adr;
-        (void)hash;
-        // Don't actually do anything, leave variable null.
-      });
-  auto rehasher = flatbuffers::rehasher_function_t(
-      [](void *pointer) -> flatbuffers::hash_value_t {
-        (void)pointer;
-        return 0;
-      });
-
-  // Turn a buffer into C++ objects.
-  auto monster1 = UnPackMonster(flatbuf, &resolver);
-
-  // Re-serialize the data.
-  flatbuffers::FlatBufferBuilder fbb1;
-  fbb1.Finish(CreateMonster(fbb1, monster1.get(), &rehasher),
-              MonsterIdentifier());
-
-  // Unpack again, and re-serialize again.
-  auto monster2 = UnPackMonster(fbb1.GetBufferPointer(), &resolver);
-  flatbuffers::FlatBufferBuilder fbb2;
-  fbb2.Finish(CreateMonster(fbb2, monster2.get(), &rehasher),
-              MonsterIdentifier());
-
-  // Now we've gone full round-trip, the two buffers should match.
-  auto len1 = fbb1.GetSize();
-  auto len2 = fbb2.GetSize();
-  TEST_EQ(len1, len2);
-  TEST_EQ(memcmp(fbb1.GetBufferPointer(), fbb2.GetBufferPointer(), len1), 0);
-
-  // Test it with the original buffer test to make sure all data survived.
-  AccessFlatBufferTest(fbb2.GetBufferPointer(), len2, false);
-
-  // Test accessing fields, similar to AccessFlatBufferTest above.
+// Utility function to check a Monster object.
+void CheckMonsterObject(MonsterT* monster2) {
   TEST_EQ(monster2->hp, 80);
   TEST_EQ(monster2->mana, 150);  // default
   TEST_EQ_STR(monster2->name.c_str(), "MyMonster");
@@ -580,6 +541,63 @@ void ObjectFlatBuffersTest(uint8_t *flatbuf) {
   TEST_EQ(tests[0].b(), 20);
   TEST_EQ(tests[1].a(), 30);
   TEST_EQ(tests[1].b(), 40);
+}
+
+// Unpack a FlatBuffer into objects.
+void ObjectFlatBuffersTest(uint8_t *flatbuf) {
+  // Optional: we can specify resolver and rehasher functions to turn hashed
+  // strings into object pointers and back, to implement remote references
+  // and such.
+  auto resolver = flatbuffers::resolver_function_t(
+      [](void **pointer_adr, flatbuffers::hash_value_t hash) {
+        (void)pointer_adr;
+        (void)hash;
+        // Don't actually do anything, leave variable null.
+      });
+  auto rehasher = flatbuffers::rehasher_function_t(
+      [](void *pointer) -> flatbuffers::hash_value_t {
+        (void)pointer;
+        return 0;
+      });
+
+  // Turn a buffer into C++ objects.
+  auto monster1 = UnPackMonster(flatbuf, &resolver);
+
+  // Re-serialize the data.
+  flatbuffers::FlatBufferBuilder fbb1;
+  fbb1.Finish(CreateMonster(fbb1, monster1.get(), &rehasher),
+              MonsterIdentifier());
+
+  // Unpack again, and re-serialize again.
+  auto monster2 = UnPackMonster(fbb1.GetBufferPointer(), &resolver);
+  flatbuffers::FlatBufferBuilder fbb2;
+  fbb2.Finish(CreateMonster(fbb2, monster2.get(), &rehasher),
+              MonsterIdentifier());
+
+  // Now we've gone full round-trip, the two buffers should match.
+  const auto len1 = fbb1.GetSize();
+  const auto len2 = fbb2.GetSize();
+  TEST_EQ(len1, len2);
+  TEST_EQ(memcmp(fbb1.GetBufferPointer(), fbb2.GetBufferPointer(), len1), 0);
+
+  // Test it with the original buffer test to make sure all data survived.
+  AccessFlatBufferTest(fbb2.GetBufferPointer(), len2, false);
+
+  // Test accessing fields, similar to AccessFlatBufferTest above.
+  CheckMonsterObject(monster2.get());
+
+  // Test object copy.
+  auto monster3 = *monster2;
+  flatbuffers::FlatBufferBuilder fbb3;
+  fbb3.Finish(CreateMonster(fbb3, &monster3, &rehasher),
+              MonsterIdentifier());
+  const auto len3 = fbb3.GetSize();
+  TEST_EQ(len2, len3);
+  TEST_EQ(memcmp(fbb2.GetBufferPointer(), fbb3.GetBufferPointer(), len2), 0);
+  // Delete monster1 and monster2, then test accessing fields in monster3.
+  monster1.reset();
+  monster2.reset();
+  CheckMonsterObject(&monster3);
 }
 
 // Prefix a FlatBuffer with a size field.
@@ -2943,6 +2961,25 @@ void StructUnionTest() {
   gadget.Set(fan);
 }
 
+void WarningsAsErrorsTest() {
+  {
+    flatbuffers::IDLOptions opts;
+    // opts.warnings_as_errors should default to false
+    flatbuffers::Parser parser(opts);
+    TEST_EQ(parser.Parse("table T { THIS_NAME_CAUSES_A_WARNING:string;}\n"
+                         "root_type T;"),
+            true);
+  }
+  {
+    flatbuffers::IDLOptions opts;
+    opts.warnings_as_errors = true;
+    flatbuffers::Parser parser(opts);
+    TEST_EQ(parser.Parse("table T { THIS_NAME_CAUSES_A_WARNING:string;}\n"
+                         "root_type T;"),
+            false);
+  }
+}
+
 void ConformTest() {
   flatbuffers::Parser parser;
   TEST_EQ(parser.Parse("table T { A:int; } enum E:byte { A }"), true);
@@ -3025,8 +3062,9 @@ void FlexBuffersTest() {
   // clang-format on
 
   std::vector<uint8_t> reuse_tracker;
-  TEST_EQ(flexbuffers::VerifyBuffer(slb.GetBuffer().data(), slb.GetBuffer().size(),
-                           &reuse_tracker), true);
+  TEST_EQ(flexbuffers::VerifyBuffer(slb.GetBuffer().data(),
+                                    slb.GetBuffer().size(), &reuse_tracker),
+          true);
 
   auto map = flexbuffers::GetRoot(slb.GetBuffer()).AsMap();
   TEST_EQ(map.size(), 7);
@@ -3085,8 +3123,9 @@ void FlexBuffersTest() {
   slb.Clear();
   auto jsontest = "{ a: [ 123, 456.0 ], b: \"hello\", c: true, d: false }";
   TEST_EQ(parser.ParseFlexBuffer(jsontest, nullptr, &slb), true);
-  TEST_EQ(flexbuffers::VerifyBuffer(slb.GetBuffer().data(), slb.GetBuffer().size(),
-                            &reuse_tracker), true);
+  TEST_EQ(flexbuffers::VerifyBuffer(slb.GetBuffer().data(),
+                                    slb.GetBuffer().size(), &reuse_tracker),
+          true);
   auto jroot = flexbuffers::GetRoot(slb.GetBuffer());
   auto jmap = jroot.AsMap();
   auto jvec = jmap["a"].AsVector();
@@ -3124,8 +3163,9 @@ void FlexBuffersFloatingPointTest() {
       "{ a: [1.0, nan, inf, infinity, -inf, +inf, -infinity, 8.0] }";
   TEST_EQ(parser.ParseFlexBuffer(jsontest, nullptr, &slb), true);
   auto jroot = flexbuffers::GetRoot(slb.GetBuffer());
-  TEST_EQ(flexbuffers::VerifyBuffer(slb.GetBuffer().data(), slb.GetBuffer().size(),
-                           nullptr), true);
+  TEST_EQ(flexbuffers::VerifyBuffer(slb.GetBuffer().data(),
+                                    slb.GetBuffer().size(), nullptr),
+          true);
   auto jmap = jroot.AsMap();
   auto jvec = jmap["a"].AsVector();
   TEST_EQ(8, jvec.size());
@@ -3170,8 +3210,9 @@ void FlexBuffersDeprecatedTest() {
   slb.EndVector(start, true, false);
   slb.Finish();
   // Verify because why not.
-  TEST_EQ(flexbuffers::VerifyBuffer(slb.GetBuffer().data(), slb.GetBuffer().size(),
-                           nullptr), true);
+  TEST_EQ(flexbuffers::VerifyBuffer(slb.GetBuffer().data(),
+                                    slb.GetBuffer().size(), nullptr),
+          true);
   // So now lets read this data back.
   // For existing data, since we have no way of knowing what the actual
   // bit-width of the size field of the string is, we are going to ignore this
@@ -4209,10 +4250,25 @@ int FlatBufferTests() {
   FlatbuffersIteratorsTest();
   FixedLengthArraySpanTest();
   StructUnionTest();
+  WarningsAsErrorsTest();
   return 0;
 }
 
-int main(int /*argc*/, const char * /*argv*/[]) {
+int main(int argc, const char *argv[]) {
+  for (int argi = 1; argi < argc; argi++) {
+    std::string arg = argv[argi];
+    if (arg == "--test_path") {
+      if (++argi >= argc) {
+        fprintf(stderr, "error: missing path following: %s\n", arg.c_str());
+        exit(1);
+      }
+      test_data_path = argv[argi];
+    } else {
+      fprintf(stderr, "error: Unknown argument: %s\n", arg.c_str());
+      exit(1);
+    }
+  }
+
   InitTestEngine();
 
   std::string req_locale;

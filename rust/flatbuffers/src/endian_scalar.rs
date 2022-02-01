@@ -15,7 +15,7 @@
  */
 #![allow(clippy::wrong_self_convention)]
 
-use std::mem::size_of;
+use core::mem::size_of;
 
 /// Trait for values that must be stored in little-endian byte order, but
 /// might be represented in memory as big-endian. Every type that implements

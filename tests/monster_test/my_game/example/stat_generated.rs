@@ -110,6 +110,7 @@ impl<'a> Default for StatArgs<'a> {
     }
   }
 }
+
 pub struct StatBuilder<'a: 'b, 'b> {
   fbb_: &'b mut flatbuffers::FlatBufferBuilder<'a>,
   start_: flatbuffers::WIPOffset<flatbuffers::TableUnfinishedWIPOffset>,

@@ -74,7 +74,7 @@ def flatc(
     cmd += [schema] if isinstance(schema, str) else schema
     if data:
         cmd += [data] if isinstance(data, str) else data
-    result = subprocess.run(cmd, cwd=cwd, check=True)
+    result = subprocess.run(cmd, cwd=str(cwd), check=True)
 
 
 # Generate the code for flatbuffers reflection schema
@@ -89,10 +89,10 @@ def flatc_reflection(options, location, target):
     )
     new_reflection_path = Path(reflection_path, temp_dir, target)
     original_reflection_path = Path(root_path, location, target)
-    if not filecmp.cmp(new_reflection_path, original_reflection_path):
-        shutil.rmtree(original_reflection_path)
-        shutil.move(new_reflection_path, original_reflection_path)
-    shutil.rmtree(Path(reflection_path, temp_dir))
+    if not filecmp.cmp(str(new_reflection_path), str(original_reflection_path)):
+        shutil.rmtree(str(original_reflection_path))
+        shutil.move(str(new_reflection_path), str(original_reflection_path))
+    shutil.rmtree(str(Path(reflection_path, temp_dir)))
 
 
 # Glob a pattern relative to file path
@@ -121,6 +121,7 @@ CPP_17_OPTS = NO_INCL_OPTS + [
     "--gen-object-api",
 ]
 RUST_OPTS = BASE_OPTS + ["--rust", "--gen-all", "--gen-name-strings"]
+RUST_SERIALIZE_OPTS = BASE_OPTS + ["--rust", "--gen-all", "--gen-name-strings", "--rust-serialize"]
 TS_OPTS = ["--ts", "--gen-name-strings"]
 LOBSTER_OPTS = ["--lobster"]
 SWIFT_OPTS = ["--swift", "--gen-json-emit", "--bfbs-filenames", str(tests_path)]
@@ -170,6 +171,14 @@ flatc(
     schema="monster_test.fbs",
     include="include_test",
     prefix="monster_test",
+    data="monsterdata_test.json",
+)
+
+flatc(
+    RUST_SERIALIZE_OPTS,
+    schema="monster_test.fbs",
+    include="include_test",
+    prefix="monster_test_serialize",
     data="monsterdata_test.json",
 )
 
@@ -378,7 +387,7 @@ assert (
     new_monster_file.exists()
 ), "filename suffix option did not produce a file"
 assert filecmp.cmp(
-    orig_monster_file, new_monster_file
+    str(orig_monster_file), str(new_monster_file)
 ), "filename suffix option did not produce identical results"
 new_monster_file.unlink()
 

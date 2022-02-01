@@ -23,8 +23,6 @@
 #include <utility>
 #include <vector>
 
-// just to get flatbuffer_version_string()
-#include <flatbuffers/flatbuffers.h>
 #include <flatbuffers/util.h>
 #define to_string flatbuffers::NumToString
 

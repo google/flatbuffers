@@ -1238,6 +1238,10 @@ struct MonsterT : public flatbuffers::NativeTable {
   MyGame::Example::Race signed_enum = MyGame::Example::Race::None;
   std::vector<uint8_t> testrequirednestedflatbuffer{};
   std::vector<std::unique_ptr<MyGame::Example::StatT>> scalar_key_sorted_tables{};
+  MonsterT() = default;
+  MonsterT(const MonsterT &o);
+  MonsterT(MonsterT&&) FLATBUFFERS_NOEXCEPT = default;
+  MonsterT &operator=(MonsterT o) FLATBUFFERS_NOEXCEPT;
 };
 
 /// an example documentation comment: "monster object"
@@ -2698,6 +2702,112 @@ inline flatbuffers::Offset<Referrable> CreateReferrable(flatbuffers::FlatBufferB
       _id);
 }
 
+inline MonsterT::MonsterT(const MonsterT &o)
+      : pos((o.pos) ? new MyGame::Example::Vec3(*o.pos) : nullptr),
+        mana(o.mana),
+        hp(o.hp),
+        name(o.name),
+        inventory(o.inventory),
+        color(o.color),
+        test(o.test),
+        test4(o.test4),
+        testarrayofstring(o.testarrayofstring),
+        enemy((o.enemy) ? new MyGame::Example::MonsterT(*o.enemy) : nullptr),
+        testnestedflatbuffer(o.testnestedflatbuffer),
+        testempty((o.testempty) ? new MyGame::Example::StatT(*o.testempty) : nullptr),
+        testbool(o.testbool),
+        testhashs32_fnv1(o.testhashs32_fnv1),
+        testhashu32_fnv1(o.testhashu32_fnv1),
+        testhashs64_fnv1(o.testhashs64_fnv1),
+        testhashu64_fnv1(o.testhashu64_fnv1),
+        testhashs32_fnv1a(o.testhashs32_fnv1a),
+        testhashu32_fnv1a(o.testhashu32_fnv1a),
+        testhashs64_fnv1a(o.testhashs64_fnv1a),
+        testhashu64_fnv1a(o.testhashu64_fnv1a),
+        testarrayofbools(o.testarrayofbools),
+        testf(o.testf),
+        testf2(o.testf2),
+        testf3(o.testf3),
+        testarrayofstring2(o.testarrayofstring2),
+        testarrayofsortedstruct(o.testarrayofsortedstruct),
+        flex(o.flex),
+        test5(o.test5),
+        vector_of_longs(o.vector_of_longs),
+        vector_of_doubles(o.vector_of_doubles),
+        parent_namespace_test((o.parent_namespace_test) ? new MyGame::InParentNamespaceT(*o.parent_namespace_test) : nullptr),
+        single_weak_reference(o.single_weak_reference),
+        vector_of_weak_references(o.vector_of_weak_references),
+        co_owning_reference(o.co_owning_reference),
+        non_owning_reference(o.non_owning_reference),
+        vector_of_non_owning_references(o.vector_of_non_owning_references),
+        any_unique(o.any_unique),
+        any_ambiguous(o.any_ambiguous),
+        vector_of_enums(o.vector_of_enums),
+        signed_enum(o.signed_enum),
+        testrequirednestedflatbuffer(o.testrequirednestedflatbuffer) {
+  testarrayoftables.reserve(o.testarrayoftables.size());
+  for (const auto &v : o.testarrayoftables) { testarrayoftables.emplace_back((v) ? new MyGame::Example::MonsterT(*v) : nullptr); }
+  vector_of_referrables.reserve(o.vector_of_referrables.size());
+  for (const auto &v : o.vector_of_referrables) { vector_of_referrables.emplace_back((v) ? new MyGame::Example::ReferrableT(*v) : nullptr); }
+  vector_of_strong_referrables.reserve(o.vector_of_strong_referrables.size());
+  for (const auto &v : o.vector_of_strong_referrables) { vector_of_strong_referrables.emplace_back((v) ? new MyGame::Example::ReferrableT(*v) : nullptr); }
+  vector_of_co_owning_references.reserve(o.vector_of_co_owning_references.size());
+  for (const auto &v : o.vector_of_co_owning_references) { vector_of_co_owning_references.emplace_back((v) ? new ReferrableT(*v) : nullptr); }
+  scalar_key_sorted_tables.reserve(o.scalar_key_sorted_tables.size());
+  for (const auto &v : o.scalar_key_sorted_tables) { scalar_key_sorted_tables.emplace_back((v) ? new MyGame::Example::StatT(*v) : nullptr); }
+}
+
+inline MonsterT &MonsterT::operator=(MonsterT o) FLATBUFFERS_NOEXCEPT {
+  std::swap(pos, o.pos);
+  std::swap(mana, o.mana);
+  std::swap(hp, o.hp);
+  std::swap(name, o.name);
+  std::swap(inventory, o.inventory);
+  std::swap(color, o.color);
+  std::swap(test, o.test);
+  std::swap(test4, o.test4);
+  std::swap(testarrayofstring, o.testarrayofstring);
+  std::swap(testarrayoftables, o.testarrayoftables);
+  std::swap(enemy, o.enemy);
+  std::swap(testnestedflatbuffer, o.testnestedflatbuffer);
+  std::swap(testempty, o.testempty);
+  std::swap(testbool, o.testbool);
+  std::swap(testhashs32_fnv1, o.testhashs32_fnv1);
+  std::swap(testhashu32_fnv1, o.testhashu32_fnv1);
+  std::swap(testhashs64_fnv1, o.testhashs64_fnv1);
+  std::swap(testhashu64_fnv1, o.testhashu64_fnv1);
+  std::swap(testhashs32_fnv1a, o.testhashs32_fnv1a);
+  std::swap(testhashu32_fnv1a, o.testhashu32_fnv1a);
+  std::swap(testhashs64_fnv1a, o.testhashs64_fnv1a);
+  std::swap(testhashu64_fnv1a, o.testhashu64_fnv1a);
+  std::swap(testarrayofbools, o.testarrayofbools);
+  std::swap(testf, o.testf);
+  std::swap(testf2, o.testf2);
+  std::swap(testf3, o.testf3);
+  std::swap(testarrayofstring2, o.testarrayofstring2);
+  std::swap(testarrayofsortedstruct, o.testarrayofsortedstruct);
+  std::swap(flex, o.flex);
+  std::swap(test5, o.test5);
+  std::swap(vector_of_longs, o.vector_of_longs);
+  std::swap(vector_of_doubles, o.vector_of_doubles);
+  std::swap(parent_namespace_test, o.parent_namespace_test);
+  std::swap(vector_of_referrables, o.vector_of_referrables);
+  std::swap(single_weak_reference, o.single_weak_reference);
+  std::swap(vector_of_weak_references, o.vector_of_weak_references);
+  std::swap(vector_of_strong_referrables, o.vector_of_strong_referrables);
+  std::swap(co_owning_reference, o.co_owning_reference);
+  std::swap(vector_of_co_owning_references, o.vector_of_co_owning_references);
+  std::swap(non_owning_reference, o.non_owning_reference);
+  std::swap(vector_of_non_owning_references, o.vector_of_non_owning_references);
+  std::swap(any_unique, o.any_unique);
+  std::swap(any_ambiguous, o.any_ambiguous);
+  std::swap(vector_of_enums, o.vector_of_enums);
+  std::swap(signed_enum, o.signed_enum);
+  std::swap(testrequirednestedflatbuffer, o.testrequirednestedflatbuffer);
+  std::swap(scalar_key_sorted_tables, o.scalar_key_sorted_tables);
+  return *this;
+}
+
 inline MonsterT *Monster::UnPack(const flatbuffers::resolver_function_t *_resolver) const {
   auto _o = std::make_unique<MonsterT>();
   UnPackTo(_o.get(), _resolver);
@@ -3011,7 +3121,7 @@ inline flatbuffers::Offset<void> AnyUnion::Pack(flatbuffers::FlatBufferBuilder &
 inline AnyUnion::AnyUnion(const AnyUnion &u) : type(u.type), value(nullptr) {
   switch (type) {
     case Any::Monster: {
-      FLATBUFFERS_ASSERT(false);  // MyGame::Example::MonsterT not copyable.
+      value = new MyGame::Example::MonsterT(*reinterpret_cast<MyGame::Example::MonsterT *>(u.value));
       break;
     }
     case Any::TestSimpleTableWithEnum: {
@@ -3124,7 +3234,7 @@ inline flatbuffers::Offset<void> AnyUniqueAliasesUnion::Pack(flatbuffers::FlatBu
 inline AnyUniqueAliasesUnion::AnyUniqueAliasesUnion(const AnyUniqueAliasesUnion &u) : type(u.type), value(nullptr) {
   switch (type) {
     case AnyUniqueAliases::M: {
-      FLATBUFFERS_ASSERT(false);  // MyGame::Example::MonsterT not copyable.
+      value = new MyGame::Example::MonsterT(*reinterpret_cast<MyGame::Example::MonsterT *>(u.value));
       break;
     }
     case AnyUniqueAliases::TS: {
@@ -3237,15 +3347,15 @@ inline flatbuffers::Offset<void> AnyAmbiguousAliasesUnion::Pack(flatbuffers::Fla
 inline AnyAmbiguousAliasesUnion::AnyAmbiguousAliasesUnion(const AnyAmbiguousAliasesUnion &u) : type(u.type), value(nullptr) {
   switch (type) {
     case AnyAmbiguousAliases::M1: {
-      FLATBUFFERS_ASSERT(false);  // MyGame::Example::MonsterT not copyable.
+      value = new MyGame::Example::MonsterT(*reinterpret_cast<MyGame::Example::MonsterT *>(u.value));
       break;
     }
     case AnyAmbiguousAliases::M2: {
-      FLATBUFFERS_ASSERT(false);  // MyGame::Example::MonsterT not copyable.
+      value = new MyGame::Example::MonsterT(*reinterpret_cast<MyGame::Example::MonsterT *>(u.value));
       break;
     }
     case AnyAmbiguousAliases::M3: {
-      FLATBUFFERS_ASSERT(false);  // MyGame::Example::MonsterT not copyable.
+      value = new MyGame::Example::MonsterT(*reinterpret_cast<MyGame::Example::MonsterT *>(u.value));
       break;
     }
     default:
@@ -3725,6 +3835,11 @@ inline const char *MonsterIdentifier() {
 inline bool MonsterBufferHasIdentifier(const void *buf) {
   return flatbuffers::BufferHasIdentifier(
       buf, MonsterIdentifier());
+}
+
+inline bool SizePrefixedMonsterBufferHasIdentifier(const void *buf) {
+  return flatbuffers::BufferHasIdentifier(
+      buf, MonsterIdentifier(), true);
 }
 
 inline bool VerifyMonsterBuffer(

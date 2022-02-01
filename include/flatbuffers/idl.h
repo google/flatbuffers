@@ -72,8 +72,8 @@ namespace flatbuffers {
 // - Go type.
 // - C# / .Net type.
 // - Python type.
-// - Rust type.
 // - Kotlin type.
+// - Rust type.
 
 // using these macros, we can now write code dealing with types just once, e.g.
 
@@ -591,6 +591,7 @@ struct IDLOptions {
   std::string filename_suffix;
   std::string filename_extension;
   bool no_warnings;
+  bool warnings_as_errors;
   std::string project_root;
   bool cs_global_alias;
   bool json_nested_flatbuffers;
@@ -624,6 +625,9 @@ struct IDLOptions {
 
   // If set, require all fields in a table to be explicitly numbered.
   bool require_explicit_ids;
+
+  // If set, implement serde::Serialize for generated Rust types
+  bool rust_serialize;
 
   // The corresponding language bit will be set if a language is included
   // for code generation.
@@ -681,6 +685,7 @@ struct IDLOptions {
         filename_suffix("_generated"),
         filename_extension(),
         no_warnings(false),
+        warnings_as_errors(false),
         project_root(""),
         cs_global_alias(false),
         json_nested_flatbuffers(true),
@@ -688,6 +693,7 @@ struct IDLOptions {
         json_nested_legacy_flatbuffers(false),
         mini_reflect(IDLOptions::kNone),
         require_explicit_ids(false),
+        rust_serialize(false),
         lang_to_generate(0),
         set_empty_strings_to_null(true),
         set_empty_vectors_to_null(true) {}
@@ -787,6 +793,7 @@ class Parser : public ParserState {
         root_struct_def_(nullptr),
         opts(options),
         uses_flexbuffers_(false),
+        has_warning_(false),
         advanced_features_(0),
         source_(nullptr),
         anonymous_counter_(0),
@@ -1021,6 +1028,7 @@ class Parser : public ParserState {
 
   IDLOptions opts;
   bool uses_flexbuffers_;
+  bool has_warning_;
 
   uint64_t advanced_features_;
 
