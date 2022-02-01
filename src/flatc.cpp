@@ -184,7 +184,8 @@ const static FlatCOption options[] = {
   { "", "reflect-types", "",
     "Add minimal type reflection to code generation." },
   { "", "reflect-names", "", "Add minimal type/name reflection." },
-  { "", "rust-serialize", "", "Implement serde::Serialize on generated Rust types." },
+  { "", "rust-serialize", "",
+    "Implement serde::Serialize on generated Rust types." },
   { "", "root-type", "T", "Select or override the default root_type." },
   { "", "require-explicit-ids", "",
     "When parsing schemas, require explicit ids (id: x)." },
@@ -281,7 +282,7 @@ static void AppendShortOption(std::stringstream &ss,
 
 std::string FlatCompiler::GetShortUsageString(const char *program_name) const {
   std::stringstream ss;
-  ss << "\nUsage: " << program_name << " [";
+  ss << "Usage: " << program_name << " [";
   for (size_t i = 0; i < params_.num_generators; ++i) {
     const Generator &g = params_.generators[i];
     AppendShortOption(ss, g.option);
@@ -294,7 +295,7 @@ std::string FlatCompiler::GetShortUsageString(const char *program_name) const {
   ss.seekp(-2, ss.cur);
   ss << "]... FILE... [-- FILE...]";
   std::string help = ss.str();
-  std::stringstream ss_textwrap; 
+  std::stringstream ss_textwrap;
   AppendTextWrappedString(ss_textwrap, help, 80, 0);
   return ss_textwrap.str();
 }
@@ -329,6 +330,8 @@ int FlatCompiler::Compile(int argc, const char **argv) {
   if (params_.generators == nullptr || params_.num_generators == 0) {
     return 0;
   }
+
+  if (argc <= 1) { Error("Need to provide at least one argument."); }
 
   flatbuffers::IDLOptions opts;
   std::string output_path;
