@@ -8,6 +8,7 @@ cd ${swift_dir}/Tests/FlatBuffers.Test.SwiftTests
 fbc --swift --gen-mutable --grpc --gen-json-emit --gen-object-api -I ${test_dir}/include_test ${test_dir}/monster_test.fbs ${test_dir}/union_vector/union_vector.fbs
 fbc --swift --gen-json-emit ${test_dir}/optional_scalars.fbs
 fbc --swift --gen-json-emit --gen-object-api ${test_dir}/more_defaults.fbs
+fbc --swift --gen-json-emit --gen-mutable --gen-object-api ${test_dir}/MutatingBool.fbs
 cd ${swift_dir}
 
 cd ${swift_dir}/Sources/SwiftFlatBuffers

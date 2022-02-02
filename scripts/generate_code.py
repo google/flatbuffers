@@ -354,6 +354,11 @@ flatc(
     schema="more_defaults.fbs",
     prefix=swift_prefix,
 )
+flatc(
+    SWIFT_OPTS + BASE_OPTS,
+    schema="MutatingBool.fbs",
+    prefix=swift_prefix,
+)
 
 # --filename-suffix and --filename-ext tests
 flatc(
