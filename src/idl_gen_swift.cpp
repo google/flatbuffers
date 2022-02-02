@@ -220,8 +220,10 @@ class SwiftGenerator : public BaseGenerator {
           IsEnum(field.value.type) ? "{{BASEVALUE}}" : "{{VALUETYPE}}";
       code_ += "private var _{{VALUENAME}}: " + valueType;
       auto accessing_value = IsEnum(field.value.type) ? ".value" : "";
-      auto base_value =
-          IsStruct(field.value.type) ? (type + "()") : field.value.constant;
+      auto is_bool = IsBool(field.value.type.base_type);
+      auto base_value = IsStruct(field.value.type) ? (type + "()")
+        : is_bool ? ("0" == field.value.constant ? "false" : "true")
+        : field.value.constant;
 
       main_constructor.push_back("_" + name + " = " + name + accessing_value);
       base_constructor.push_back("_" + name + " = " + base_value);
