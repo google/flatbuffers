@@ -17,7 +17,6 @@
 #include <memory>
 #include <vector>
 
-#include "src/compiler/config.h"
 #include "src/compiler/schema_interface.h"
 
 #ifndef GRPC_CUSTOM_STRING

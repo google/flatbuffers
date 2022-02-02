@@ -19,10 +19,9 @@
 #ifndef GRPC_INTERNAL_COMPILER_SCHEMA_INTERFACE_H
 #define GRPC_INTERNAL_COMPILER_SCHEMA_INTERFACE_H
 
+#include <map>
 #include <memory>
 #include <vector>
-
-#include "src/compiler/config.h"
 
 #ifndef GRPC_CUSTOM_STRING
 #  include <string>
