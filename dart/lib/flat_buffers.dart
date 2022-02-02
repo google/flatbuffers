@@ -321,9 +321,9 @@ class Builder {
       if (deduplicateTables) {
         // Search backward - more likely to have recently used one
         for (var i = _vTables.length - 1; i >= 0; i--) {
-          final var vt2Offset = _vTables[i];
-          final var vt2Start = _buf.lengthInBytes - vt2Offset;
-          final var vt2Size = _buf.getUint16(vt2Start, Endian.little);
+          final vt2Offset = _vTables[i];
+          final vt2Start = _buf.lengthInBytes - vt2Offset;
+          final vt2Size = _buf.getUint16(vt2Start, Endian.little);
 
           if (currentVTable._vTableSize == vt2Size &&
               currentVTable._offsetsMatch(vt2Start, _buf)) {
@@ -505,7 +505,7 @@ class Builder {
   int writeList(List<int> values) {
     assert(!_inVTable);
     _prepare(_sizeofUint32, 1 + values.length);
-    final var result = _tail;
+    final result = _tail;
     var tail = _tail;
     _setUint32AtTail(tail, values.length);
     tail -= _sizeofUint32;
@@ -520,7 +520,7 @@ class Builder {
   int writeListFloat64(List<double> values) {
     assert(!_inVTable);
     _prepare(_sizeofFloat64, values.length, additionalBytes: _sizeofUint32);
-    final var result = _tail;
+    final result = _tail;
     var tail = _tail;
     _setUint32AtTail(tail, values.length);
     tail -= _sizeofUint32;
@@ -535,7 +535,7 @@ class Builder {
   int writeListFloat32(List<double> values) {
     assert(!_inVTable);
     _prepare(_sizeofFloat32, 1 + values.length);
-    final var result = _tail;
+    final result = _tail;
     var tail = _tail;
     _setUint32AtTail(tail, values.length);
     tail -= _sizeofUint32;
@@ -550,7 +550,7 @@ class Builder {
   int writeListInt64(List<int> values) {
     assert(!_inVTable);
     _prepare(_sizeofInt64, values.length, additionalBytes: _sizeofUint32);
-    final var result = _tail;
+    final result = _tail;
     var tail = _tail;
     _setUint32AtTail(tail, values.length);
     tail -= _sizeofUint32;
@@ -565,7 +565,7 @@ class Builder {
   int writeListUint64(List<int> values) {
     assert(!_inVTable);
     _prepare(_sizeofUint64, values.length, additionalBytes: _sizeofUint32);
-    final var result = _tail;
+    final result = _tail;
     var tail = _tail;
     _setUint32AtTail(tail, values.length);
     tail -= _sizeofUint32;
@@ -580,7 +580,7 @@ class Builder {
   int writeListInt32(List<int> values) {
     assert(!_inVTable);
     _prepare(_sizeofUint32, 1 + values.length);
-    final var result = _tail;
+    final result = _tail;
     var tail = _tail;
     _setUint32AtTail(tail, values.length);
     tail -= _sizeofUint32;
@@ -595,7 +595,7 @@ class Builder {
   int writeListUint32(List<int> values) {
     assert(!_inVTable);
     _prepare(_sizeofUint32, 1 + values.length);
-    final var result = _tail;
+    final result = _tail;
     var tail = _tail;
     _setUint32AtTail(tail, values.length);
     tail -= _sizeofUint32;
@@ -610,7 +610,7 @@ class Builder {
   int writeListInt16(List<int> values) {
     assert(!_inVTable);
     _prepare(_sizeofUint32, 1, additionalBytes: 2 * values.length);
-    final var result = _tail;
+    final result = _tail;
     var tail = _tail;
     _setUint32AtTail(tail, values.length);
     tail -= _sizeofUint32;
@@ -625,7 +625,7 @@ class Builder {
   int writeListUint16(List<int> values) {
     assert(!_inVTable);
     _prepare(_sizeofUint32, 1, additionalBytes: 2 * values.length);
-    final var result = _tail;
+    final result = _tail;
     var tail = _tail;
     _setUint32AtTail(tail, values.length);
     tail -= _sizeofUint32;
@@ -645,7 +645,7 @@ class Builder {
   int writeListInt8(List<int> values) {
     assert(!_inVTable);
     _prepare(_sizeofUint32, 1, additionalBytes: values.length);
-    final var result = _tail;
+    final result = _tail;
     var tail = _tail;
     _setUint32AtTail(tail, values.length);
     tail -= _sizeofUint32;
@@ -660,7 +660,7 @@ class Builder {
   int writeListUint8(List<int> values) {
     assert(!_inVTable);
     _prepare(_sizeofUint32, 1, additionalBytes: values.length);
-    final var result = _tail;
+    final result = _tail;
     var tail = _tail;
     _setUint32AtTail(tail, values.length);
     tail -= _sizeofUint32;
@@ -1032,8 +1032,8 @@ abstract class Reader<T> {
   @pragma('vm:prefer-inline')
   int _vTableFieldOffset(BufferContext object, int offset, int field) {
     var vTableSOffset = object._getInt32(offset);
-    var vTableOffset = offset - vTableSOffset;
-    var vTableSize = object._getUint16(vTableOffset);
+    int vTableOffset = offset - vTableSOffset;
+    int vTableSize = object._getUint16(vTableOffset);
     if (field >= vTableSize) return 0;
     return object._getUint16(vTableOffset + field);
   }
@@ -1052,9 +1052,9 @@ class StringReader extends Reader<String> {
   @override
   @pragma('vm:prefer-inline')
   String read(BufferContext bc, int offset) {
-    var strOffset = bc.derefObject(offset);
-    var length = bc._getUint32(strOffset);
-    var bytes = bc._asUint8List(strOffset + _sizeofUint32, length);
+    int strOffset = bc.derefObject(offset);
+    int length = bc._getUint32(strOffset);
+    Uint8List bytes = bc._asUint8List(strOffset + _sizeofUint32, length);
     if (asciiOptimization && _isLatin(bytes)) {
       return String.fromCharCodes(bytes);
     }
@@ -1063,8 +1063,8 @@ class StringReader extends Reader<String> {
 
   @pragma('vm:prefer-inline')
   static bool _isLatin(Uint8List bytes) {
-    var length = bytes.length;
-    for (var i = 0; i < length; i++) {
+    int length = bytes.length;
+    for (int i = 0; i < length; i++) {
       if (bytes[i] > 127) {
         return false;
       }
@@ -1099,7 +1099,7 @@ abstract class TableReader<T> extends Reader<T> {
 
   @override
   T read(BufferContext bc, int offset) {
-    var objectOffset = bc.derefObject(offset);
+    int objectOffset = bc.derefObject(offset);
     return createObject(bc, objectOffset);
   }
 }
@@ -1285,7 +1285,7 @@ class _FbGenericList<E> extends _FbList<E> {
   @pragma('vm:prefer-inline')
   E operator [](int i) {
     _items ??= List<E?>.filled(length, null);
-    var? item = _items![i];
+    var item = _items![i];
     if (item == null) {
       item = elementReader.read(bc, offset + 4 + elementReader.size * i);
       _items![i] = item;
