@@ -1054,7 +1054,7 @@ class StringReader extends Reader<String> {
   String read(BufferContext bc, int offset) {
     var strOffset = bc.derefObject(offset);
     var length = bc._getUint32(strOffset);
-    Uint8List bytes = bc._asUint8List(strOffset + _sizeofUint32, length);
+    var bytes = bc._asUint8List(strOffset + _sizeofUint32, length);
     if (asciiOptimization && _isLatin(bytes)) {
       return String.fromCharCodes(bytes);
     }
