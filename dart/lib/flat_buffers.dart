@@ -1032,8 +1032,8 @@ abstract class Reader<T> {
   @pragma('vm:prefer-inline')
   int _vTableFieldOffset(BufferContext object, int offset, int field) {
     var vTableSOffset = object._getInt32(offset);
-    int vTableOffset = offset - vTableSOffset;
-    int vTableSize = object._getUint16(vTableOffset);
+    var vTableOffset = offset - vTableSOffset;
+    var vTableSize = object._getUint16(vTableOffset);
     if (field >= vTableSize) return 0;
     return object._getUint16(vTableOffset + field);
   }
@@ -1052,8 +1052,8 @@ class StringReader extends Reader<String> {
   @override
   @pragma('vm:prefer-inline')
   String read(BufferContext bc, int offset) {
-    int strOffset = bc.derefObject(offset);
-    int length = bc._getUint32(strOffset);
+    var strOffset = bc.derefObject(offset);
+    var length = bc._getUint32(strOffset);
     Uint8List bytes = bc._asUint8List(strOffset + _sizeofUint32, length);
     if (asciiOptimization && _isLatin(bytes)) {
       return String.fromCharCodes(bytes);
@@ -1063,8 +1063,8 @@ class StringReader extends Reader<String> {
 
   @pragma('vm:prefer-inline')
   static bool _isLatin(Uint8List bytes) {
-    int length = bytes.length;
-    for (int i = 0; i < length; i++) {
+    var length = bytes.length;
+    for (var i = 0; i < length; i++) {
       if (bytes[i] > 127) {
         return false;
       }
@@ -1099,7 +1099,7 @@ abstract class TableReader<T> extends Reader<T> {
 
   @override
   T read(BufferContext bc, int offset) {
-    int objectOffset = bc.derefObject(offset);
+    var objectOffset = bc.derefObject(offset);
     return createObject(bc, objectOffset);
   }
 }
