@@ -34,6 +34,11 @@ parser.add_argument(
     action="store_true",
     help="skip generating tests involving monster_extra.fbs",
 )
+parser.add_argument(
+    "--skip-gen-reflection",
+    action="store_true",
+    help="skip generating the reflection.fbs files",
+)
 args = parser.parse_args()
 
 # Get the path where this script is located so we can invoke the script from
@@ -103,7 +108,12 @@ CPP_17_OPTS = NO_INCL_OPTS + [
     "--gen-object-api",
 ]
 RUST_OPTS = BASE_OPTS + ["--rust", "--gen-all", "--gen-name-strings"]
-RUST_SERIALIZE_OPTS = BASE_OPTS + ["--rust", "--gen-all", "--gen-name-strings", "--rust-serialize"]
+RUST_SERIALIZE_OPTS = BASE_OPTS + [
+    "--rust",
+    "--gen-all",
+    "--gen-name-strings",
+    "--rust-serialize",
+]
 TS_OPTS = ["--ts", "--gen-name-strings"]
 LOBSTER_OPTS = ["--lobster"]
 SWIFT_OPTS = ["--swift", "--gen-json-emit", "--bfbs-filenames", str(tests_path)]
@@ -138,7 +148,7 @@ flatc(
 flatc(
     ["--lua", "--bfbs-filenames", str(tests_path)],
     schema="monster_test.fbs",
-    include="include_test"    
+    include="include_test",
 )
 
 flatc(
@@ -412,17 +422,22 @@ flatc(
 )
 
 # Reflection
-temp_dir = ".tmp"
-flatc(
-    ["-c", "--cpp-std", "c++0x", "--no-prefix"],
-    prefix=temp_dir,
-    schema="reflection.fbs",
-    cwd=reflection_path,
-)
-new_reflection_file = Path(reflection_path, temp_dir, "reflection_generated.h")
-original_reflection_file = Path(
-    root_path, "include/flatbuffers/reflection_generated.h"
-)
-if not filecmp.cmp(str(new_reflection_file), str(original_reflection_file)):
-    shutil.move(str(new_reflection_file), str(original_reflection_file))
-shutil.rmtree(str(Path(reflection_path, temp_dir)))
+# Skip generating the reflection if told too, as we run this script after
+# building flatc which uses the reflection_generated.h itself.
+if not args.skip_gen_reflection:
+    temp_dir = ".tmp"
+    flatc(
+        ["-c", "--cpp-std", "c++0x", "--no-prefix"],
+        prefix=temp_dir,
+        schema="reflection.fbs",
+        cwd=reflection_path,
+    )
+    new_reflection_file = Path(
+        reflection_path, temp_dir, "reflection_generated.h"
+    )
+    original_reflection_file = Path(
+        root_path, "include/flatbuffers/reflection_generated.h"
+    )
+    if not filecmp.cmp(str(new_reflection_file), str(original_reflection_file)):
+        shutil.move(str(new_reflection_file), str(original_reflection_file))
+    shutil.rmtree(str(Path(reflection_path, temp_dir)))
