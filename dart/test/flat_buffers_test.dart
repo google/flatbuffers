@@ -128,7 +128,8 @@ class CheckOtherLangaugesData {
       'anyAmbiguousType: null, '
       'anyAmbiguous: null, vectorOfEnums: null, signedEnum: Race{value: -1}, '
       'testrequirednestedflatbuffer: null, scalarKeySortedTables: [Stat{id: '
-      'miss, val: 0, count: 0}, Stat{id: hit, val: 10, count: 1}]}',
+      'miss, val: 0, count: 0}, Stat{id: hit, val: 10, count: 1}],'
+      'nativeInline: Test{a:1, b:2}}',
     );
   }
 }

@@ -189,6 +189,7 @@ fn object_api_defaults() {
             signed_enum: Race::None,
             testrequirednestedflatbuffer: None,  // despite the name, it is not required.
             scalar_key_sorted_tables: None,
+            native_inline: None,
         }
     );
 }
