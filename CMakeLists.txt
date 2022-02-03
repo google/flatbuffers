@@ -552,7 +552,7 @@ if(Python3_Interpreter_FOUND)
   add_custom_command(
     TARGET flatc
     POST_BUILD
-    COMMAND ${Python3_EXECUTABLE} scripts/generate_code.py ${GENERATION_OPTS}
+    COMMAND ${Python3_EXECUTABLE} scripts/generate_code.py ${GENERATION_OPTS} --skip-gen-reflection
     WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
     COMMENT "Running scripts/generate_code.py..."
     VERBATIM)
