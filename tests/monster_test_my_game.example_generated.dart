@@ -1115,10 +1115,11 @@ class Monster {
   Race get signedEnum => Race.fromValue(const fb.Int8Reader().vTableGet(_bc, _bcOffset, 100, -1));
   List<int>? get testrequirednestedflatbuffer => const fb.Uint8ListReader().vTableGetNullable(_bc, _bcOffset, 102);
   List<Stat>? get scalarKeySortedTables => const fb.ListReader<Stat>(Stat.reader).vTableGetNullable(_bc, _bcOffset, 104);
+  Test? get nativeInline => Test.reader.vTableGetNullable(_bc, _bcOffset, 106);
 
   @override
   String toString() {
-    return 'Monster{pos: $pos, mana: $mana, hp: $hp, name: $name, inventory: $inventory, color: $color, testType: $testType, test: $test, test4: $test4, testarrayofstring: $testarrayofstring, testarrayoftables: $testarrayoftables, enemy: $enemy, testnestedflatbuffer: $testnestedflatbuffer, testempty: $testempty, testbool: $testbool, testhashs32Fnv1: $testhashs32Fnv1, testhashu32Fnv1: $testhashu32Fnv1, testhashs64Fnv1: $testhashs64Fnv1, testhashu64Fnv1: $testhashu64Fnv1, testhashs32Fnv1a: $testhashs32Fnv1a, testhashu32Fnv1a: $testhashu32Fnv1a, testhashs64Fnv1a: $testhashs64Fnv1a, testhashu64Fnv1a: $testhashu64Fnv1a, testarrayofbools: $testarrayofbools, testf: $testf, testf2: $testf2, testf3: $testf3, testarrayofstring2: $testarrayofstring2, testarrayofsortedstruct: $testarrayofsortedstruct, flex: $flex, test5: $test5, vectorOfLongs: $vectorOfLongs, vectorOfDoubles: $vectorOfDoubles, parentNamespaceTest: $parentNamespaceTest, vectorOfReferrables: $vectorOfReferrables, singleWeakReference: $singleWeakReference, vectorOfWeakReferences: $vectorOfWeakReferences, vectorOfStrongReferrables: $vectorOfStrongReferrables, coOwningReference: $coOwningReference, vectorOfCoOwningReferences: $vectorOfCoOwningReferences, nonOwningReference: $nonOwningReference, vectorOfNonOwningReferences: $vectorOfNonOwningReferences, anyUniqueType: $anyUniqueType, anyUnique: $anyUnique, anyAmbiguousType: $anyAmbiguousType, anyAmbiguous: $anyAmbiguous, vectorOfEnums: $vectorOfEnums, signedEnum: $signedEnum, testrequirednestedflatbuffer: $testrequirednestedflatbuffer, scalarKeySortedTables: $scalarKeySortedTables}';
+    return 'Monster{pos: $pos, mana: $mana, hp: $hp, name: $name, inventory: $inventory, color: $color, testType: $testType, test: $test, test4: $test4, testarrayofstring: $testarrayofstring, testarrayoftables: $testarrayoftables, enemy: $enemy, testnestedflatbuffer: $testnestedflatbuffer, testempty: $testempty, testbool: $testbool, testhashs32Fnv1: $testhashs32Fnv1, testhashu32Fnv1: $testhashu32Fnv1, testhashs64Fnv1: $testhashs64Fnv1, testhashu64Fnv1: $testhashu64Fnv1, testhashs32Fnv1a: $testhashs32Fnv1a, testhashu32Fnv1a: $testhashu32Fnv1a, testhashs64Fnv1a: $testhashs64Fnv1a, testhashu64Fnv1a: $testhashu64Fnv1a, testarrayofbools: $testarrayofbools, testf: $testf, testf2: $testf2, testf3: $testf3, testarrayofstring2: $testarrayofstring2, testarrayofsortedstruct: $testarrayofsortedstruct, flex: $flex, test5: $test5, vectorOfLongs: $vectorOfLongs, vectorOfDoubles: $vectorOfDoubles, parentNamespaceTest: $parentNamespaceTest, vectorOfReferrables: $vectorOfReferrables, singleWeakReference: $singleWeakReference, vectorOfWeakReferences: $vectorOfWeakReferences, vectorOfStrongReferrables: $vectorOfStrongReferrables, coOwningReference: $coOwningReference, vectorOfCoOwningReferences: $vectorOfCoOwningReferences, nonOwningReference: $nonOwningReference, vectorOfNonOwningReferences: $vectorOfNonOwningReferences, anyUniqueType: $anyUniqueType, anyUnique: $anyUnique, anyAmbiguousType: $anyAmbiguousType, anyAmbiguous: $anyAmbiguous, vectorOfEnums: $vectorOfEnums, signedEnum: $signedEnum, testrequirednestedflatbuffer: $testrequirednestedflatbuffer, scalarKeySortedTables: $scalarKeySortedTables, nativeInline: $nativeInline}';
   }
 
   MonsterT unpack() => MonsterT(
@@ -1171,7 +1172,8 @@ class Monster {
       vectorOfEnums: const fb.ListReader<Color>(Color.reader, lazy: false).vTableGetNullable(_bc, _bcOffset, 98),
       signedEnum: signedEnum,
       testrequirednestedflatbuffer: const fb.Uint8ListReader(lazy: false).vTableGetNullable(_bc, _bcOffset, 102),
-      scalarKeySortedTables: scalarKeySortedTables?.map((e) => e.unpack()).toList());
+      scalarKeySortedTables: scalarKeySortedTables?.map((e) => e.unpack()).toList(),
+      nativeInline: nativeInline?.unpack());
 
   static int pack(fb.Builder fbBuilder, MonsterT? object) {
     if (object == null) return 0;
@@ -1233,6 +1235,7 @@ class MonsterT implements fb.Packable {
   Race signedEnum;
   List<int>? testrequirednestedflatbuffer;
   List<StatT>? scalarKeySortedTables;
+  TestT? nativeInline;
 
   MonsterT({
       this.pos,
@@ -1284,7 +1287,8 @@ class MonsterT implements fb.Packable {
       this.vectorOfEnums,
       this.signedEnum = Race.None,
       this.testrequirednestedflatbuffer,
-      this.scalarKeySortedTables});
+      this.scalarKeySortedTables,
+      this.nativeInline});
 
   @override
   int pack(fb.Builder fbBuilder) {
@@ -1345,7 +1349,7 @@ class MonsterT implements fb.Packable {
         : fbBuilder.writeListUint8(testrequirednestedflatbuffer!);
     final int? scalarKeySortedTablesOffset = scalarKeySortedTables == null ? null
         : fbBuilder.writeList(scalarKeySortedTables!.map((b) => b.pack(fbBuilder)).toList());
-    fbBuilder.startTable(50);
+    fbBuilder.startTable(51);
     if (pos != null) {
       fbBuilder.addStruct(0, pos!.pack(fbBuilder));
     }
@@ -1398,12 +1402,15 @@ class MonsterT implements fb.Packable {
     fbBuilder.addInt8(48, signedEnum.value);
     fbBuilder.addOffset(49, testrequirednestedflatbufferOffset);
     fbBuilder.addOffset(50, scalarKeySortedTablesOffset);
+    if (nativeInline != null) {
+      fbBuilder.addStruct(51, nativeInline!.pack(fbBuilder));
+    }
     return fbBuilder.endTable();
   }
 
   @override
   String toString() {
-    return 'MonsterT{pos: $pos, mana: $mana, hp: $hp, name: $name, inventory: $inventory, color: $color, testType: $testType, test: $test, test4: $test4, testarrayofstring: $testarrayofstring, testarrayoftables: $testarrayoftables, enemy: $enemy, testnestedflatbuffer: $testnestedflatbuffer, testempty: $testempty, testbool: $testbool, testhashs32Fnv1: $testhashs32Fnv1, testhashu32Fnv1: $testhashu32Fnv1, testhashs64Fnv1: $testhashs64Fnv1, testhashu64Fnv1: $testhashu64Fnv1, testhashs32Fnv1a: $testhashs32Fnv1a, testhashu32Fnv1a: $testhashu32Fnv1a, testhashs64Fnv1a: $testhashs64Fnv1a, testhashu64Fnv1a: $testhashu64Fnv1a, testarrayofbools: $testarrayofbools, testf: $testf, testf2: $testf2, testf3: $testf3, testarrayofstring2: $testarrayofstring2, testarrayofsortedstruct: $testarrayofsortedstruct, flex: $flex, test5: $test5, vectorOfLongs: $vectorOfLongs, vectorOfDoubles: $vectorOfDoubles, parentNamespaceTest: $parentNamespaceTest, vectorOfReferrables: $vectorOfReferrables, singleWeakReference: $singleWeakReference, vectorOfWeakReferences: $vectorOfWeakReferences, vectorOfStrongReferrables: $vectorOfStrongReferrables, coOwningReference: $coOwningReference, vectorOfCoOwningReferences: $vectorOfCoOwningReferences, nonOwningReference: $nonOwningReference, vectorOfNonOwningReferences: $vectorOfNonOwningReferences, anyUniqueType: $anyUniqueType, anyUnique: $anyUnique, anyAmbiguousType: $anyAmbiguousType, anyAmbiguous: $anyAmbiguous, vectorOfEnums: $vectorOfEnums, signedEnum: $signedEnum, testrequirednestedflatbuffer: $testrequirednestedflatbuffer, scalarKeySortedTables: $scalarKeySortedTables}';
+    return 'MonsterT{pos: $pos, mana: $mana, hp: $hp, name: $name, inventory: $inventory, color: $color, testType: $testType, test: $test, test4: $test4, testarrayofstring: $testarrayofstring, testarrayoftables: $testarrayoftables, enemy: $enemy, testnestedflatbuffer: $testnestedflatbuffer, testempty: $testempty, testbool: $testbool, testhashs32Fnv1: $testhashs32Fnv1, testhashu32Fnv1: $testhashu32Fnv1, testhashs64Fnv1: $testhashs64Fnv1, testhashu64Fnv1: $testhashu64Fnv1, testhashs32Fnv1a: $testhashs32Fnv1a, testhashu32Fnv1a: $testhashu32Fnv1a, testhashs64Fnv1a: $testhashs64Fnv1a, testhashu64Fnv1a: $testhashu64Fnv1a, testarrayofbools: $testarrayofbools, testf: $testf, testf2: $testf2, testf3: $testf3, testarrayofstring2: $testarrayofstring2, testarrayofsortedstruct: $testarrayofsortedstruct, flex: $flex, test5: $test5, vectorOfLongs: $vectorOfLongs, vectorOfDoubles: $vectorOfDoubles, parentNamespaceTest: $parentNamespaceTest, vectorOfReferrables: $vectorOfReferrables, singleWeakReference: $singleWeakReference, vectorOfWeakReferences: $vectorOfWeakReferences, vectorOfStrongReferrables: $vectorOfStrongReferrables, coOwningReference: $coOwningReference, vectorOfCoOwningReferences: $vectorOfCoOwningReferences, nonOwningReference: $nonOwningReference, vectorOfNonOwningReferences: $vectorOfNonOwningReferences, anyUniqueType: $anyUniqueType, anyUnique: $anyUnique, anyAmbiguousType: $anyAmbiguousType, anyAmbiguous: $anyAmbiguous, vectorOfEnums: $vectorOfEnums, signedEnum: $signedEnum, testrequirednestedflatbuffer: $testrequirednestedflatbuffer, scalarKeySortedTables: $scalarKeySortedTables, nativeInline: $nativeInline}';
   }
 }
 
@@ -1421,7 +1428,7 @@ class MonsterBuilder {
   final fb.Builder fbBuilder;
 
   void begin() {
-    fbBuilder.startTable(50);
+    fbBuilder.startTable(51);
   }
 
   int addPos(int offset) {
@@ -1624,6 +1631,10 @@ class MonsterBuilder {
     fbBuilder.addOffset(50, offset);
     return fbBuilder.offset;
   }
+  int addNativeInline(int offset) {
+    fbBuilder.addStruct(51, offset);
+    return fbBuilder.offset;
+  }
 
   int finish() {
     return fbBuilder.endTable();
@@ -1681,6 +1692,7 @@ class MonsterObjectBuilder extends fb.ObjectBuilder {
   final Race? _signedEnum;
   final List<int>? _testrequirednestedflatbuffer;
   final List<StatObjectBuilder>? _scalarKeySortedTables;
+  final TestObjectBuilder? _nativeInline;
 
   MonsterObjectBuilder({
     Vec3ObjectBuilder? pos,
@@ -1733,6 +1745,7 @@ class MonsterObjectBuilder extends fb.ObjectBuilder {
     Race? signedEnum,
     List<int>? testrequirednestedflatbuffer,
     List<StatObjectBuilder>? scalarKeySortedTables,
+    TestObjectBuilder? nativeInline,
   })
       : _pos = pos,
         _mana = mana,
@@ -1783,7 +1796,8 @@ class MonsterObjectBuilder extends fb.ObjectBuilder {
         _vectorOfEnums = vectorOfEnums,
         _signedEnum = signedEnum,
         _testrequirednestedflatbuffer = testrequirednestedflatbuffer,
-        _scalarKeySortedTables = scalarKeySortedTables;
+        _scalarKeySortedTables = scalarKeySortedTables,
+        _nativeInline = nativeInline;
 
   /// Finish building, and store into the [fbBuilder].
   @override
@@ -1836,7 +1850,7 @@ class MonsterObjectBuilder extends fb.ObjectBuilder {
         : fbBuilder.writeListUint8(_testrequirednestedflatbuffer!);
     final int? scalarKeySortedTablesOffset = _scalarKeySortedTables == null ? null
         : fbBuilder.writeList(_scalarKeySortedTables!.map((b) => b.getOrCreateOffset(fbBuilder)).toList());
-    fbBuilder.startTable(50);
+    fbBuilder.startTable(51);
     if (_pos != null) {
       fbBuilder.addStruct(0, _pos!.finish(fbBuilder));
     }
@@ -1889,6 +1903,9 @@ class MonsterObjectBuilder extends fb.ObjectBuilder {
     fbBuilder.addInt8(48, _signedEnum?.value);
     fbBuilder.addOffset(49, testrequirednestedflatbufferOffset);
     fbBuilder.addOffset(50, scalarKeySortedTablesOffset);
+    if (_nativeInline != null) {
+      fbBuilder.addStruct(51, _nativeInline!.finish(fbBuilder));
+    }
     return fbBuilder.endTable();
   }
 

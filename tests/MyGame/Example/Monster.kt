@@ -834,6 +834,15 @@ class Monster : Table() {
             null
         }
     }
+    val nativeInline : MyGame.Example.Test? get() = nativeInline(MyGame.Example.Test())
+    fun nativeInline(obj: MyGame.Example.Test) : MyGame.Example.Test? {
+        val o = __offset(106)
+        return if (o != 0) {
+            obj.__assign(o + bb_pos, bb)
+        } else {
+            null
+        }
+    }
     override fun keysCompare(o1: Int, o2: Int, _bb: ByteBuffer) : Int {
          return compareStrings(__offset(10, o1, _bb), __offset(10, o2, _bb), _bb)
     }
@@ -845,7 +854,7 @@ class Monster : Table() {
             return (obj.__assign(_bb.getInt(_bb.position()) + _bb.position(), _bb))
         }
         fun MonsterBufferHasIdentifier(_bb: ByteBuffer) : Boolean = __has_identifier(_bb, "MONS")
-        fun startMonster(builder: FlatBufferBuilder) = builder.startTable(51)
+        fun startMonster(builder: FlatBufferBuilder) = builder.startTable(52)
         fun addPos(builder: FlatBufferBuilder, pos: Int) = builder.addStruct(0, pos, 0)
         fun addMana(builder: FlatBufferBuilder, mana: Short) = builder.addShort(1, mana, 150)
         fun addHp(builder: FlatBufferBuilder, hp: Short) = builder.addShort(2, hp, 100)
@@ -1035,6 +1044,7 @@ class Monster : Table() {
             return builder.endVector()
         }
         fun startScalarKeySortedTablesVector(builder: FlatBufferBuilder, numElems: Int) = builder.startVector(4, numElems, 4)
+        fun addNativeInline(builder: FlatBufferBuilder, nativeInline: Int) = builder.addStruct(51, nativeInline, 0)
         fun endMonster(builder: FlatBufferBuilder) : Int {
             val o = builder.endTable()
                 builder.required(o, 10)
