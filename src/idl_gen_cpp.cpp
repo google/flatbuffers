@@ -671,8 +671,9 @@ class CppGenerator : public BaseGenerator {
   }
 
   bool VectorElementUserFacing(const Type &type) const {
-    return opts_.g_cpp_std >= cpp::CPP_STD_17 && opts_.g_only_fixed_enums &&
-           IsEnum(type);
+    return (opts_.scoped_enums && IsEnum(type)) ||
+           (opts_.g_cpp_std >= cpp::CPP_STD_17 && opts_.g_only_fixed_enums &&
+            IsEnum(type));
   }
 
   void GenComment(const std::vector<std::string> &dc, const char *prefix = "") {
