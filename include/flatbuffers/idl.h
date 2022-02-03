@@ -468,6 +468,10 @@ inline bool IsUnion(const Type &type) {
   return type.enum_def != nullptr && type.enum_def->is_union;
 }
 
+inline bool IsUnionType(const Type &type) {
+  return IsUnion(type) && IsInteger(type.base_type);
+}
+
 inline bool IsVector(const Type &type) {
   return type.base_type == BASE_TYPE_VECTOR;
 }
