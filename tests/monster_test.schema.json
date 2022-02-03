@@ -318,6 +318,9 @@
               },
         "scalar_key_sorted_tables" : {
                 "type" : "array", "items" : {"$ref" : "#/definitions/MyGame_Example_Stat"}
+              },
+        "native_inline" : {
+                "$ref" : "#/definitions/MyGame_Example_Test"
               }
       },
       "required" : ["name"],

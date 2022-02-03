@@ -55,6 +55,7 @@ public class MonsterT {
   private byte signedEnum;
   private int[] testrequirednestedflatbuffer;
   private MyGame.Example.StatT[] scalarKeySortedTables;
+  private MyGame.Example.TestT nativeInline;
 
   public MyGame.Example.Vec3T getPos() { return pos; }
 
@@ -244,6 +245,10 @@ public class MonsterT {
 
   public void setScalarKeySortedTables(MyGame.Example.StatT[] scalarKeySortedTables) { this.scalarKeySortedTables = scalarKeySortedTables; }
 
+  public MyGame.Example.TestT getNativeInline() { return nativeInline; }
+
+  public void setNativeInline(MyGame.Example.TestT nativeInline) { this.nativeInline = nativeInline; }
+
 
   public MonsterT() {
     this.pos = new MyGame.Example.Vec3T();
@@ -293,6 +298,7 @@ public class MonsterT {
     this.signedEnum = -1;
     this.testrequirednestedflatbuffer = null;
     this.scalarKeySortedTables = null;
+    this.nativeInline = new MyGame.Example.TestT();
   }
   public static MonsterT deserializeFromBinary(byte[] fbBuffer) {
     return Monster.getRootAsMonster(ByteBuffer.wrap(fbBuffer)).unpack();

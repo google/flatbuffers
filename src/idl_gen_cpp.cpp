@@ -2024,7 +2024,7 @@ class CppGenerator : public BaseGenerator {
            field.value.type.element != BASE_TYPE_UTYPE)) {
         if (!compare_op.empty()) { compare_op += " &&\n      "; }
         auto accessor = Name(field) + accessSuffix;
-        if (struct_def.fixed ||
+        if (struct_def.fixed || field.native_inline ||
             field.value.type.base_type != BASE_TYPE_STRUCT) {
           compare_op += "(lhs." + accessor + " == rhs." + accessor + ")";
         } else {
