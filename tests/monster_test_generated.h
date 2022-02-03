@@ -1233,6 +1233,7 @@ struct MonsterT : public flatbuffers::NativeTable {
   MyGame::Example::Race signed_enum = MyGame::Example::Race_None;
   std::vector<uint8_t> testrequirednestedflatbuffer{};
   std::vector<flatbuffers::unique_ptr<MyGame::Example::StatT>> scalar_key_sorted_tables{};
+  MyGame::Example::Test native_inline{};
   MonsterT() = default;
   MonsterT(const MonsterT &o);
   MonsterT(MonsterT&&) FLATBUFFERS_NOEXCEPT = default;
@@ -1296,7 +1297,8 @@ struct Monster FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
     VT_VECTOR_OF_ENUMS = 98,
     VT_SIGNED_ENUM = 100,
     VT_TESTREQUIREDNESTEDFLATBUFFER = 102,
-    VT_SCALAR_KEY_SORTED_TABLES = 104
+    VT_SCALAR_KEY_SORTED_TABLES = 104,
+    VT_NATIVE_INLINE = 106
   };
   const MyGame::Example::Vec3 *pos() const {
     return GetStruct<const MyGame::Example::Vec3 *>(VT_POS);
@@ -1635,6 +1637,12 @@ struct Monster FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   flatbuffers::Vector<flatbuffers::Offset<MyGame::Example::Stat>> *mutable_scalar_key_sorted_tables() {
     return GetPointer<flatbuffers::Vector<flatbuffers::Offset<MyGame::Example::Stat>> *>(VT_SCALAR_KEY_SORTED_TABLES);
   }
+  const MyGame::Example::Test *native_inline() const {
+    return GetStruct<const MyGame::Example::Test *>(VT_NATIVE_INLINE);
+  }
+  MyGame::Example::Test *mutable_native_inline() {
+    return GetStruct<MyGame::Example::Test *>(VT_NATIVE_INLINE);
+  }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyField<MyGame::Example::Vec3>(verifier, VT_POS, 8) &&
@@ -1723,6 +1731,7 @@ struct Monster FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
            VerifyOffset(verifier, VT_SCALAR_KEY_SORTED_TABLES) &&
            verifier.VerifyVector(scalar_key_sorted_tables()) &&
            verifier.VerifyVectorOfTables(scalar_key_sorted_tables()) &&
+           VerifyField<MyGame::Example::Test>(verifier, VT_NATIVE_INLINE, 2) &&
            verifier.EndTable();
   }
   MonsterT *UnPack(const flatbuffers::resolver_function_t *_resolver = nullptr) const;
@@ -1908,6 +1917,9 @@ struct MonsterBuilder {
   void add_scalar_key_sorted_tables(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<MyGame::Example::Stat>>> scalar_key_sorted_tables) {
     fbb_.AddOffset(Monster::VT_SCALAR_KEY_SORTED_TABLES, scalar_key_sorted_tables);
   }
+  void add_native_inline(const MyGame::Example::Test *native_inline) {
+    fbb_.AddStruct(Monster::VT_NATIVE_INLINE, native_inline);
+  }
   explicit MonsterBuilder(flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
@@ -1971,7 +1983,8 @@ inline flatbuffers::Offset<Monster> CreateMonster(
     flatbuffers::Offset<flatbuffers::Vector<uint8_t>> vector_of_enums = 0,
     MyGame::Example::Race signed_enum = MyGame::Example::Race_None,
     flatbuffers::Offset<flatbuffers::Vector<uint8_t>> testrequirednestedflatbuffer = 0,
-    flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<MyGame::Example::Stat>>> scalar_key_sorted_tables = 0) {
+    flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<MyGame::Example::Stat>>> scalar_key_sorted_tables = 0,
+    const MyGame::Example::Test *native_inline = nullptr) {
   MonsterBuilder builder_(_fbb);
   builder_.add_non_owning_reference(non_owning_reference);
   builder_.add_co_owning_reference(co_owning_reference);
@@ -1980,6 +1993,7 @@ inline flatbuffers::Offset<Monster> CreateMonster(
   builder_.add_testhashs64_fnv1a(testhashs64_fnv1a);
   builder_.add_testhashu64_fnv1(testhashu64_fnv1);
   builder_.add_testhashs64_fnv1(testhashs64_fnv1);
+  builder_.add_native_inline(native_inline);
   builder_.add_scalar_key_sorted_tables(scalar_key_sorted_tables);
   builder_.add_testrequirednestedflatbuffer(testrequirednestedflatbuffer);
   builder_.add_vector_of_enums(vector_of_enums);
@@ -2077,7 +2091,8 @@ inline flatbuffers::Offset<Monster> CreateMonsterDirect(
     const std::vector<uint8_t> *vector_of_enums = nullptr,
     MyGame::Example::Race signed_enum = MyGame::Example::Race_None,
     const std::vector<uint8_t> *testrequirednestedflatbuffer = nullptr,
-    std::vector<flatbuffers::Offset<MyGame::Example::Stat>> *scalar_key_sorted_tables = nullptr) {
+    std::vector<flatbuffers::Offset<MyGame::Example::Stat>> *scalar_key_sorted_tables = nullptr,
+    const MyGame::Example::Test *native_inline = nullptr) {
   auto name__ = name ? _fbb.CreateString(name) : 0;
   auto inventory__ = inventory ? _fbb.CreateVector<uint8_t>(*inventory) : 0;
   auto test4__ = test4 ? _fbb.CreateVectorOfStructs<MyGame::Example::Test>(*test4) : 0;
@@ -2150,7 +2165,8 @@ inline flatbuffers::Offset<Monster> CreateMonsterDirect(
       vector_of_enums__,
       signed_enum,
       testrequirednestedflatbuffer__,
-      scalar_key_sorted_tables__);
+      scalar_key_sorted_tables__,
+      native_inline);
 }
 
 flatbuffers::Offset<Monster> CreateMonster(flatbuffers::FlatBufferBuilder &_fbb, const MonsterT *_o, const flatbuffers::rehasher_function_t *_rehasher = nullptr);
@@ -2643,7 +2659,8 @@ inline bool operator==(const MonsterT &lhs, const MonsterT &rhs) {
       (lhs.vector_of_enums == rhs.vector_of_enums) &&
       (lhs.signed_enum == rhs.signed_enum) &&
       (lhs.testrequirednestedflatbuffer == rhs.testrequirednestedflatbuffer) &&
-      (lhs.scalar_key_sorted_tables == rhs.scalar_key_sorted_tables);
+      (lhs.scalar_key_sorted_tables == rhs.scalar_key_sorted_tables) &&
+      (lhs.native_inline == rhs.native_inline);
 }
 
 inline bool operator!=(const MonsterT &lhs, const MonsterT &rhs) {
@@ -2693,7 +2710,8 @@ inline MonsterT::MonsterT(const MonsterT &o)
         any_ambiguous(o.any_ambiguous),
         vector_of_enums(o.vector_of_enums),
         signed_enum(o.signed_enum),
-        testrequirednestedflatbuffer(o.testrequirednestedflatbuffer) {
+        testrequirednestedflatbuffer(o.testrequirednestedflatbuffer),
+        native_inline(o.native_inline) {
   testarrayoftables.reserve(o.testarrayoftables.size());
   for (const auto &v : o.testarrayoftables) { testarrayoftables.emplace_back((v) ? new MyGame::Example::MonsterT(*v) : nullptr); }
   vector_of_referrables.reserve(o.vector_of_referrables.size());
@@ -2754,6 +2772,7 @@ inline MonsterT &MonsterT::operator=(MonsterT o) FLATBUFFERS_NOEXCEPT {
   std::swap(signed_enum, o.signed_enum);
   std::swap(testrequirednestedflatbuffer, o.testrequirednestedflatbuffer);
   std::swap(scalar_key_sorted_tables, o.scalar_key_sorted_tables);
+  std::swap(native_inline, o.native_inline);
   return *this;
 }
 
@@ -2823,6 +2842,7 @@ if (_resolver) (*_resolver)(reinterpret_cast<void **>(&_o->vector_of_non_owning_
   { auto _e = signed_enum(); _o->signed_enum = _e; }
   { auto _e = testrequirednestedflatbuffer(); if (_e) { _o->testrequirednestedflatbuffer.resize(_e->size()); std::copy(_e->begin(), _e->end(), _o->testrequirednestedflatbuffer.begin()); } }
   { auto _e = scalar_key_sorted_tables(); if (_e) { _o->scalar_key_sorted_tables.resize(_e->size()); for (flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { if(_o->scalar_key_sorted_tables[_i]) { _e->Get(_i)->UnPackTo(_o->scalar_key_sorted_tables[_i].get(), _resolver); } else { _o->scalar_key_sorted_tables[_i] = flatbuffers::unique_ptr<MyGame::Example::StatT>(_e->Get(_i)->UnPack(_resolver)); }; } } }
+  { auto _e = native_inline(); if (_e) _o->native_inline = *_e; }
 }
 
 inline flatbuffers::Offset<Monster> Monster::Pack(flatbuffers::FlatBufferBuilder &_fbb, const MonsterT* _o, const flatbuffers::rehasher_function_t *_rehasher) {
@@ -2883,6 +2903,7 @@ inline flatbuffers::Offset<Monster> CreateMonster(flatbuffers::FlatBufferBuilder
   auto _signed_enum = _o->signed_enum;
   auto _testrequirednestedflatbuffer = _o->testrequirednestedflatbuffer.size() ? _fbb.CreateVector(_o->testrequirednestedflatbuffer) : 0;
   auto _scalar_key_sorted_tables = _o->scalar_key_sorted_tables.size() ? _fbb.CreateVector<flatbuffers::Offset<MyGame::Example::Stat>> (_o->scalar_key_sorted_tables.size(), [](size_t i, _VectorArgs *__va) { return CreateStat(*__va->__fbb, __va->__o->scalar_key_sorted_tables[i].get(), __va->__rehasher); }, &_va ) : 0;
+  auto _native_inline = &_o->native_inline;
   return MyGame::Example::CreateMonster(
       _fbb,
       _pos,
@@ -2934,7 +2955,8 @@ inline flatbuffers::Offset<Monster> CreateMonster(flatbuffers::FlatBufferBuilder
       _vector_of_enums,
       _signed_enum,
       _testrequirednestedflatbuffer,
-      _scalar_key_sorted_tables);
+      _scalar_key_sorted_tables,
+      _native_inline);
 }
 
 
@@ -3673,7 +3695,8 @@ inline const flatbuffers::TypeTable *MonsterTypeTable() {
     { flatbuffers::ET_UCHAR, 1, 1 },
     { flatbuffers::ET_CHAR, 0, 11 },
     { flatbuffers::ET_UCHAR, 1, -1 },
-    { flatbuffers::ET_SEQUENCE, 1, 5 }
+    { flatbuffers::ET_SEQUENCE, 1, 5 },
+    { flatbuffers::ET_SEQUENCE, 0, 3 }
   };
   static const flatbuffers::TypeFunction type_refs[] = {
     MyGame::Example::Vec3TypeTable,
@@ -3740,10 +3763,11 @@ inline const flatbuffers::TypeTable *MonsterTypeTable() {
     "vector_of_enums",
     "signed_enum",
     "testrequirednestedflatbuffer",
-    "scalar_key_sorted_tables"
+    "scalar_key_sorted_tables",
+    "native_inline"
   };
   static const flatbuffers::TypeTable tt = {
-    flatbuffers::ST_TABLE, 51, type_codes, type_refs, nullptr, nullptr, names
+    flatbuffers::ST_TABLE, 52, type_codes, type_refs, nullptr, nullptr, names
   };
   return &tt;
 }

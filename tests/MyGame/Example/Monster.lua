@@ -677,8 +677,18 @@ function mt:ScalarKeySortedTablesLength()
   return 0
 end
 
+function mt:NativeInline()
+  local o = self.view:Offset(106)
+  if o ~= 0 then
+    local x = self.view.pos + o
+    local obj = __MyGame_Example_Test.New()
+    obj:Init(self.view.bytes, x)
+    return obj
+  end
+end
+
 function Monster.Start(builder)
-  builder:StartObject(51)
+  builder:StartObject(52)
 end
 
 function Monster.AddPos(builder, pos)
@@ -959,6 +969,10 @@ end
 
 function Monster.StartScalarKeySortedTablesVector(builder, numElems)
   return builder:StartVector(4, numElems, 4)
+end
+
+function Monster.AddNativeInline(builder, nativeInline)
+  builder:PrependStructSlot(51, nativeInline, 0)
 end
 
 function Monster.End(builder)

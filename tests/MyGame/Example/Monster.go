@@ -57,6 +57,7 @@ type MonsterT struct {
 	SignedEnum Race
 	Testrequirednestedflatbuffer []byte
 	ScalarKeySortedTables []*StatT
+	NativeInline *TestT
 }
 
 func (t *MonsterT) Pack(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
@@ -313,6 +314,8 @@ func (t *MonsterT) Pack(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
 	MonsterAddSignedEnum(builder, t.SignedEnum)
 	MonsterAddTestrequirednestedflatbuffer(builder, testrequirednestedflatbufferOffset)
 	MonsterAddScalarKeySortedTables(builder, scalarKeySortedTablesOffset)
+	nativeInlineOffset := t.NativeInline.Pack(builder)
+	MonsterAddNativeInline(builder, nativeInlineOffset)
 	return MonsterEnd(builder)
 }
 
@@ -451,6 +454,7 @@ func (rcv *Monster) UnPackTo(t *MonsterT) {
 		rcv.ScalarKeySortedTables(&x, j)
 		t.ScalarKeySortedTables[j] = x.UnPack()
 	}
+	t.NativeInline = rcv.NativeInline(nil).UnPack()
 }
 
 func (rcv *Monster) UnPack() *MonsterT {
@@ -1339,8 +1343,21 @@ func (rcv *Monster) ScalarKeySortedTablesLength() int {
 	return 0
 }
 
+func (rcv *Monster) NativeInline(obj *Test) *Test {
+	o := flatbuffers.UOffsetT(rcv._tab.Offset(106))
+	if o != 0 {
+		x := o + rcv._tab.Pos
+		if obj == nil {
+			obj = new(Test)
+		}
+		obj.Init(rcv._tab.Bytes, x)
+		return obj
+	}
+	return nil
+}
+
 func MonsterStart(builder *flatbuffers.Builder) {
-	builder.StartObject(51)
+	builder.StartObject(52)
 }
 func MonsterAddPos(builder *flatbuffers.Builder, pos flatbuffers.UOffsetT) {
 	builder.PrependStructSlot(0, flatbuffers.UOffsetT(pos), 0)
@@ -1551,6 +1568,9 @@ func MonsterAddScalarKeySortedTables(builder *flatbuffers.Builder, scalarKeySort
 }
 func MonsterStartScalarKeySortedTablesVector(builder *flatbuffers.Builder, numElems int) flatbuffers.UOffsetT {
 	return builder.StartVector(4, numElems, 4)
+}
+func MonsterAddNativeInline(builder *flatbuffers.Builder, nativeInline flatbuffers.UOffsetT) {
+	builder.PrependStructSlot(51, flatbuffers.UOffsetT(nativeInline), 0)
 }
 func MonsterEnd(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
 	return builder.EndObject()

@@ -791,7 +791,18 @@ class Monster(object):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(104))
         return o == 0
 
-def MonsterStart(builder): builder.StartObject(51)
+    # Monster
+    def NativeInline(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(106))
+        if o != 0:
+            x = o + self._tab.Pos
+            from MyGame.Example.Test import Test
+            obj = Test()
+            obj.Init(self._tab.Bytes, x)
+            return obj
+        return None
+
+def MonsterStart(builder): builder.StartObject(52)
 def Start(builder):
     return MonsterStart(builder)
 def MonsterAddPos(builder, pos): builder.PrependStructSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(pos), 0)
@@ -1018,6 +1029,9 @@ def AddScalarKeySortedTables(builder, scalarKeySortedTables):
 def MonsterStartScalarKeySortedTablesVector(builder, numElems): return builder.StartVector(4, numElems, 4)
 def StartScalarKeySortedTablesVector(builder, numElems):
     return MonsterStartScalarKeySortedTablesVector(builder, numElems)
+def MonsterAddNativeInline(builder, nativeInline): builder.PrependStructSlot(51, flatbuffers.number_types.UOffsetTFlags.py_type(nativeInline), 0)
+def AddNativeInline(builder, nativeInline):
+    return MonsterAddNativeInline(builder, nativeInline)
 def MonsterEnd(builder): return builder.EndObject()
 def End(builder):
     return MonsterEnd(builder)
@@ -1091,6 +1105,7 @@ class MonsterT(object):
         self.signedEnum = -1  # type: int
         self.testrequirednestedflatbuffer = None  # type: List[int]
         self.scalarKeySortedTables = None  # type: List[MyGame.Example.Stat.StatT]
+        self.nativeInline = None  # type: Optional[MyGame.Example.Test.TestT]
 
     @classmethod
     def InitFromBuf(cls, buf, pos):
@@ -1283,6 +1298,8 @@ class MonsterT(object):
                 else:
                     stat_ = MyGame.Example.Stat.StatT.InitFromObj(monster.ScalarKeySortedTables(i))
                     self.scalarKeySortedTables.append(stat_)
+        if monster.NativeInline() is not None:
+            self.nativeInline = MyGame.Example.Test.TestT.InitFromObj(monster.NativeInline())
 
     # MonsterT
     def Pack(self, builder):
@@ -1531,5 +1548,8 @@ class MonsterT(object):
             MonsterAddTestrequirednestedflatbuffer(builder, testrequirednestedflatbuffer)
         if self.scalarKeySortedTables is not None:
             MonsterAddScalarKeySortedTables(builder, scalarKeySortedTables)
+        if self.nativeInline is not None:
+            nativeInline = self.nativeInline.Pack(builder)
+            MonsterAddNativeInline(builder, nativeInline)
         monster = MonsterEnd(builder)
         return monster

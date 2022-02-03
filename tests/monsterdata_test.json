@@ -20,16 +20,16 @@
     4
   ],
   vector_of_longs: [
-      1,
-      100,
-      10000,
-      1000000,
-      100000000
+    1,
+    100,
+    10000,
+    1000000,
+    100000000
   ],
   vector_of_doubles: [
-      -1.7976931348623157e+308,
-      0,
-      1.7976931348623157e+308
+    -1.7976931348623157e+308,
+    0,
+    1.7976931348623157e+308
   ],
   test_type: "Monster",
   test: {
@@ -63,8 +63,10 @@
   enemy: {
     name: "Fred"
   },
-  testarrayofbools:[
-    true, false, true
+  testarrayofbools: [
+    true,
+    false,
+    true
   ],
   testbool: true,
   testhashs32_fnv1: "This string is being hashed!",
@@ -75,10 +77,22 @@
   testhashu32_fnv1a: "This string is being hashed!",
   testhashs64_fnv1a: "This string is being hashed!",
   testhashu64_fnv1a: "This string is being hashed!",
-  testarrayofsortedstruct:[
-    {id:5,distance:12}, {id:1,distance:21}, {id:0,distance:45}
+  testarrayofsortedstruct: [
+    {id: 5,distance: 12
+    },
+    {id: 1,distance: 21
+    },
+    {id: 0,distance: 45
+    }
   ],
-  scalar_key_sorted_tables:[
-    {id:"hit",val:10,count:1}, {id:"miss",val:0,count:0}
+  scalar_key_sorted_tables: [
+    {id: "hit",val: 10,count: 1
+    },
+    {id: "miss",val: 0,count: 0
+    }
   ],
+  native_inline: {
+    a: 1,
+    b: 2
+  }
 }

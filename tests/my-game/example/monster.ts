@@ -646,12 +646,17 @@ scalarKeySortedTablesLength():number {
   return offset ? this.bb!.__vector_len(this.bb_pos + offset) : 0;
 }
 
+nativeInline(obj?:Test):Test|null {
+  const offset = this.bb!.__offset(this.bb_pos, 106);
+  return offset ? (obj || new Test()).__init(this.bb_pos + offset, this.bb!) : null;
+}
+
 static getFullyQualifiedName():string {
   return 'MyGame.Example.Monster';
 }
 
 static startMonster(builder:flatbuffers.Builder) {
-  builder.startObject(51);
+  builder.startObject(52);
 }
 
 static addPos(builder:flatbuffers.Builder, posOffset:flatbuffers.Offset) {
@@ -1075,6 +1080,10 @@ static startScalarKeySortedTablesVector(builder:flatbuffers.Builder, numElems:nu
   builder.startVector(4, numElems, 4);
 }
 
+static addNativeInline(builder:flatbuffers.Builder, nativeInlineOffset:flatbuffers.Offset) {
+  builder.addFieldStruct(51, nativeInlineOffset, 0);
+}
+
 static endMonster(builder:flatbuffers.Builder):flatbuffers.Offset {
   const offset = builder.endObject();
   builder.requiredField(offset, 10) // name
@@ -1161,7 +1170,8 @@ unpack(): MonsterT {
     this.bb!.createScalarList(this.vectorOfEnums.bind(this), this.vectorOfEnumsLength()),
     this.signedEnum(),
     this.bb!.createScalarList(this.testrequirednestedflatbuffer.bind(this), this.testrequirednestedflatbufferLength()),
-    this.bb!.createObjList(this.scalarKeySortedTables.bind(this), this.scalarKeySortedTablesLength())
+    this.bb!.createObjList(this.scalarKeySortedTables.bind(this), this.scalarKeySortedTablesLength()),
+    (this.nativeInline() !== null ? this.nativeInline()!.unpack() : null)
   );
 }
 
@@ -1229,6 +1239,7 @@ unpackTo(_o: MonsterT): void {
   _o.signedEnum = this.signedEnum();
   _o.testrequirednestedflatbuffer = this.bb!.createScalarList(this.testrequirednestedflatbuffer.bind(this), this.testrequirednestedflatbufferLength());
   _o.scalarKeySortedTables = this.bb!.createObjList(this.scalarKeySortedTables.bind(this), this.scalarKeySortedTablesLength());
+  _o.nativeInline = (this.nativeInline() !== null ? this.nativeInline()!.unpack() : null);
 }
 }
 
@@ -1283,7 +1294,8 @@ constructor(
   public vectorOfEnums: (Color)[] = [],
   public signedEnum: Race = Race.None,
   public testrequirednestedflatbuffer: (number)[] = [],
-  public scalarKeySortedTables: (StatT)[] = []
+  public scalarKeySortedTables: (StatT)[] = [],
+  public nativeInline: TestT|null = null
 ){}
 
 
@@ -1367,6 +1379,7 @@ pack(builder:flatbuffers.Builder): flatbuffers.Offset {
   Monster.addSignedEnum(builder, this.signedEnum);
   Monster.addTestrequirednestedflatbuffer(builder, testrequirednestedflatbuffer);
   Monster.addScalarKeySortedTables(builder, scalarKeySortedTables);
+  Monster.addNativeInline(builder, (this.nativeInline !== null ? this.nativeInline!.pack(builder) : 0));
 
   return Monster.endMonster(builder);
 }

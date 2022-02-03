@@ -124,6 +124,7 @@ table Monster {
   signed_enum:Race = None (id:48);
   testrequirednestedflatbuffer:[ubyte] (id:49, nested_flatbuffer: "Monster");
   scalar_key_sorted_tables:[Stat] (id: 50);
+  native_inline:Test (id: 51, native_inline);
 }
 
 table TypeAliases {

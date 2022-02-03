@@ -1086,6 +1086,7 @@ public struct MyGame_Example_Monster: FlatBufferObject, Verifiable, ObjectAPIPac
     case signedEnum = 100
     case testrequirednestedflatbuffer = 102
     case scalarKeySortedTables = 104
+    case nativeInline = 106
     var v: Int32 { Int32(self.rawValue) }
     var p: VOffset { self.rawValue }
   }
@@ -1210,7 +1211,9 @@ public struct MyGame_Example_Monster: FlatBufferObject, Verifiable, ObjectAPIPac
   public var scalarKeySortedTablesCount: Int32 { let o = _accessor.offset(VTOFFSET.scalarKeySortedTables.v); return o == 0 ? 0 : _accessor.vector(count: o) }
   public func scalarKeySortedTables(at index: Int32) -> MyGame_Example_Stat? { let o = _accessor.offset(VTOFFSET.scalarKeySortedTables.v); return o == 0 ? nil : MyGame_Example_Stat(_accessor.bb, o: _accessor.indirect(_accessor.vector(at: o) + index * 4)) }
   public func scalarKeySortedTablesBy(key: UInt16) -> MyGame_Example_Stat? { let o = _accessor.offset(VTOFFSET.scalarKeySortedTables.v); return o == 0 ? nil : MyGame_Example_Stat.lookupByKey(vector: _accessor.vector(at: o), key: key, fbb: _accessor.bb) }
-  public static func startMonster(_ fbb: inout FlatBufferBuilder) -> UOffset { fbb.startTable(with: 51) }
+  public var nativeInline: MyGame_Example_Test? { let o = _accessor.offset(VTOFFSET.nativeInline.v); return o == 0 ? nil : _accessor.readBuffer(of: MyGame_Example_Test.self, at: o) }
+  public var mutableNativeInline: MyGame_Example_Test_Mutable? { let o = _accessor.offset(VTOFFSET.nativeInline.v); return o == 0 ? nil : MyGame_Example_Test_Mutable(_accessor.bb, o: o + _accessor.postion) }
+  public static func startMonster(_ fbb: inout FlatBufferBuilder) -> UOffset { fbb.startTable(with: 52) }
   public static func add(pos: MyGame_Example_Vec3?, _ fbb: inout FlatBufferBuilder) { guard let pos = pos else { return }; fbb.create(struct: pos, position: VTOFFSET.pos.p) }
   public static func add(mana: Int16, _ fbb: inout FlatBufferBuilder) { fbb.add(element: mana, def: 150, at: VTOFFSET.mana.p) }
   public static func add(hp: Int16, _ fbb: inout FlatBufferBuilder) { fbb.add(element: hp, def: 100, at: VTOFFSET.hp.p) }
@@ -1271,6 +1274,7 @@ public struct MyGame_Example_Monster: FlatBufferObject, Verifiable, ObjectAPIPac
   public static func add(signedEnum: MyGame_Example_Race, _ fbb: inout FlatBufferBuilder) { fbb.add(element: signedEnum.rawValue, def: -1, at: VTOFFSET.signedEnum.p) }
   public static func addVectorOf(testrequirednestedflatbuffer: Offset, _ fbb: inout FlatBufferBuilder) { fbb.add(offset: testrequirednestedflatbuffer, at: VTOFFSET.testrequirednestedflatbuffer.p) }
   public static func addVectorOf(scalarKeySortedTables: Offset, _ fbb: inout FlatBufferBuilder) { fbb.add(offset: scalarKeySortedTables, at: VTOFFSET.scalarKeySortedTables.p) }
+  public static func add(nativeInline: MyGame_Example_Test?, _ fbb: inout FlatBufferBuilder) { guard let nativeInline = nativeInline else { return }; fbb.create(struct: nativeInline, position: VTOFFSET.nativeInline.p) }
   public static func endMonster(_ fbb: inout FlatBufferBuilder, start: UOffset) -> Offset { let end = Offset(offset: fbb.endTable(at: start)); fbb.require(table: end, fields: [10]); return end }
   public static func createMonster(
     _ fbb: inout FlatBufferBuilder,
@@ -1323,7 +1327,8 @@ public struct MyGame_Example_Monster: FlatBufferObject, Verifiable, ObjectAPIPac
     vectorOfEnumsVectorOffset vectorOfEnums: Offset = Offset(),
     signedEnum: MyGame_Example_Race = .none_,
     testrequirednestedflatbufferVectorOffset testrequirednestedflatbuffer: Offset = Offset(),
-    scalarKeySortedTablesVectorOffset scalarKeySortedTables: Offset = Offset()
+    scalarKeySortedTablesVectorOffset scalarKeySortedTables: Offset = Offset(),
+    nativeInline: MyGame_Example_Test? = nil
   ) -> Offset {
     let __start = MyGame_Example_Monster.startMonster(&fbb)
     MyGame_Example_Monster.add(pos: pos, &fbb)
@@ -1376,6 +1381,7 @@ public struct MyGame_Example_Monster: FlatBufferObject, Verifiable, ObjectAPIPac
     MyGame_Example_Monster.add(signedEnum: signedEnum, &fbb)
     MyGame_Example_Monster.addVectorOf(testrequirednestedflatbuffer: testrequirednestedflatbuffer, &fbb)
     MyGame_Example_Monster.addVectorOf(scalarKeySortedTables: scalarKeySortedTables, &fbb)
+    MyGame_Example_Monster.add(nativeInline: nativeInline, &fbb)
     return MyGame_Example_Monster.endMonster(&fbb, start: __start)
   }
   public static func sortVectorOfMonster(offsets:[Offset], _ fbb: inout FlatBufferBuilder) -> Offset {
@@ -1532,6 +1538,7 @@ public struct MyGame_Example_Monster: FlatBufferObject, Verifiable, ObjectAPIPac
     MyGame_Example_Monster.add(signedEnum: obj.signedEnum, &builder)
     MyGame_Example_Monster.addVectorOf(testrequirednestedflatbuffer: __testrequirednestedflatbuffer, &builder)
     MyGame_Example_Monster.addVectorOf(scalarKeySortedTables: __scalarKeySortedTables, &builder)
+    MyGame_Example_Monster.add(nativeInline: obj.nativeInline, &builder)
     return MyGame_Example_Monster.endMonster(&builder, start: __root)
   }
 
@@ -1617,6 +1624,7 @@ public struct MyGame_Example_Monster: FlatBufferObject, Verifiable, ObjectAPIPac
     try _v.visit(field: VTOFFSET.signedEnum.p, fieldName: "signedEnum", required: false, type: MyGame_Example_Race.self)
     try _v.visit(field: VTOFFSET.testrequirednestedflatbuffer.p, fieldName: "testrequirednestedflatbuffer", required: false, type: ForwardOffset<Vector<UInt8, UInt8>>.self)
     try _v.visit(field: VTOFFSET.scalarKeySortedTables.p, fieldName: "scalarKeySortedTables", required: false, type: ForwardOffset<Vector<ForwardOffset<MyGame_Example_Stat>, MyGame_Example_Stat>>.self)
+    try _v.visit(field: VTOFFSET.nativeInline.p, fieldName: "nativeInline", required: false, type: MyGame_Example_Test.self)
     _v.finish()
   }
 }
@@ -1674,6 +1682,7 @@ extension MyGame_Example_Monster: Encodable {
     case signedEnum = "signed_enum"
     case testrequirednestedflatbuffer = "testrequirednestedflatbuffer"
     case scalarKeySortedTables = "scalar_key_sorted_tables"
+    case nativeInline = "native_inline"
   }
   public func encode(to encoder: Encoder) throws {
     var container = encoder.container(keyedBy: CodingKeys.self)
@@ -1884,6 +1893,7 @@ extension MyGame_Example_Monster: Encodable {
         try contentEncoder.encode(type)
       }
     }
+    try container.encodeIfPresent(nativeInline, forKey: .nativeInline)
   }
 }
 
@@ -1936,6 +1946,7 @@ public class MyGame_Example_MonsterT: NativeObject {
   public var signedEnum: MyGame_Example_Race
   public var testrequirednestedflatbuffer: [UInt8]
   public var scalarKeySortedTables: [MyGame_Example_StatT?]
+  public var nativeInline: MyGame_Example_Test?
 
   public init(_ _t: inout MyGame_Example_Monster) {
     pos = _t.pos
@@ -2085,6 +2096,7 @@ public class MyGame_Example_MonsterT: NativeObject {
         var __v_ = _t.scalarKeySortedTables(at: index)
         scalarKeySortedTables.append(__v_?.unpack())
     }
+    nativeInline = _t.nativeInline
   }
 
   public init() {
@@ -2132,6 +2144,7 @@ public class MyGame_Example_MonsterT: NativeObject {
     signedEnum = .none_
     testrequirednestedflatbuffer = []
     scalarKeySortedTables = []
+    nativeInline = MyGame_Example_Test()
   }
 
   public func serialize() -> ByteBuffer { return serialize(type: MyGame_Example_Monster.self) }
