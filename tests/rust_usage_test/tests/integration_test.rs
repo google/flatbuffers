@@ -1830,7 +1830,8 @@ mod write_and_read_examples {
             vector_of_non_owning_references: None, any_unique_type: NONE, \
             any_unique: None, any_ambiguous_type: NONE, any_ambiguous: None, \
             vector_of_enums: None, signed_enum: None, \
-            testrequirednestedflatbuffer: None, scalar_key_sorted_tables: None }, \
+            testrequirednestedflatbuffer: None, scalar_key_sorted_tables: None, \
+            native_inline: None }, \
             test4: Some([Test { a: 10, b: 20 }, Test { a: 30, b: 40 }]), \
             testarrayofstring: Some([\"test1\", \"test2\"]), \
             testarrayoftables: None, enemy: None, testnestedflatbuffer: None, \
@@ -1848,7 +1849,8 @@ mod write_and_read_examples {
             vector_of_non_owning_references: None, any_unique_type: NONE, \
             any_unique: None, any_ambiguous_type: NONE, any_ambiguous: None, \
             vector_of_enums: None, signed_enum: None, \
-            testrequirednestedflatbuffer: None, scalar_key_sorted_tables: None }"
+            testrequirednestedflatbuffer: None, scalar_key_sorted_tables: None, \
+            native_inline: None }"
         );
     }
 
