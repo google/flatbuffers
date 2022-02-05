@@ -392,13 +392,16 @@ class Monster : flatbuffers_handle
         return MyGame_Example_Stat { buf_, buf_.flatbuffers_indirect(buf_.flatbuffers_field_vector(pos_, 104) + i * 4) }
     def scalar_key_sorted_tables_length():
         return buf_.flatbuffers_field_vector_len(pos_, 104)
+    def native_inline():
+        let o = buf_.flatbuffers_field_struct(pos_, 106)
+        return if o: MyGame_Example_Test { buf_, o } else: nil
 
 def GetRootAsMonster(buf:string): return Monster { buf, buf.flatbuffers_indirect(0) }
 
 struct MonsterBuilder:
     b_:flatbuffers_builder
     def start():
-        b_.StartObject(51)
+        b_.StartObject(52)
         return this
     def add_pos(pos:flatbuffers_offset):
         b_.PrependStructSlot(0, pos)
@@ -549,6 +552,9 @@ struct MonsterBuilder:
         return this
     def add_scalar_key_sorted_tables(scalar_key_sorted_tables:flatbuffers_offset):
         b_.PrependUOffsetTRelativeSlot(50, scalar_key_sorted_tables)
+        return this
+    def add_native_inline(native_inline:flatbuffers_offset):
+        b_.PrependStructSlot(51, native_inline)
         return this
     def end():
         return b_.EndObject()

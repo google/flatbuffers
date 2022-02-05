@@ -81,14 +81,15 @@ class Verifier FLATBUFFERS_FINAL_CLASS {
   }
 
   // Verify relative to a known-good base pointer.
-  bool VerifyFieldStruct(const uint8_t *base, voffset_t elem_off, size_t elem_len,
-                         size_t align) const {
+  bool VerifyFieldStruct(const uint8_t *base, voffset_t elem_off,
+                         size_t elem_len, size_t align) const {
     auto f = static_cast<size_t>(base - buf_) + elem_off;
     return VerifyAlignment(f, align) && Verify(f, elem_len);
   }
 
   template<typename T>
-  bool VerifyField(const uint8_t *base, voffset_t elem_off, size_t align) const {
+  bool VerifyField(const uint8_t *base, voffset_t elem_off,
+                   size_t align) const {
     auto f = static_cast<size_t>(base - buf_) + elem_off;
     return VerifyAlignment(f, align) && Verify(f, sizeof(T));
   }
@@ -259,9 +260,7 @@ class Verifier FLATBUFFERS_FINAL_CLASS {
     // clang-format on
   }
 
-  std::vector<uint8_t> *GetFlexReuseTracker() {
-    return flex_reuse_tracker_;
-  }
+  std::vector<uint8_t> *GetFlexReuseTracker() { return flex_reuse_tracker_; }
 
   void SetFlexReuseTracker(std::vector<uint8_t> *rt) {
     flex_reuse_tracker_ = rt;

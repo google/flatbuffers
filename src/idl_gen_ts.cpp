@@ -343,8 +343,7 @@ class TsGenerator : public BaseGenerator {
     switch (type.base_type) {
       case BASE_TYPE_BOOL: return allowNull ? "boolean|null" : "boolean";
       case BASE_TYPE_LONG:
-      case BASE_TYPE_ULONG:
-        return allowNull ? "bigint|null" : "bigint";
+      case BASE_TYPE_ULONG: return allowNull ? "bigint|null" : "bigint";
       default:
         if (IsScalar(type.base_type)) {
           if (type.enum_def) {
@@ -907,8 +906,7 @@ class TsGenerator : public BaseGenerator {
       // a string that contains values for things that can be created inline or
       // the variable name from field_offset_decl
       std::string field_offset_val;
-      const auto field_default_val =
-          GenDefaultValue(field, imports);
+      const auto field_default_val = GenDefaultValue(field, imports);
 
       // Emit a scalar field
       const auto is_string = IsString(field.value.type);
@@ -1643,7 +1641,7 @@ class TsGenerator : public BaseGenerator {
 
   std::string GetArgName(const FieldDef &field) {
     auto argname = MakeCamel(field.name, false);
-    if (!IsScalar(field.value.type.base_type)) { 
+    if (!IsScalar(field.value.type.base_type)) {
       argname += "Offset";
     } else {
       argname = EscapeKeyword(argname);
