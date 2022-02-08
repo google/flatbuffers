@@ -1,6 +1,6 @@
-import { ByteBuffer } from "./byte-buffer"
-import { SIZEOF_SHORT, SIZE_PREFIX_LENGTH, SIZEOF_INT, FILE_IDENTIFIER_LENGTH } from "./constants"
-import { Offset, IGeneratedObject } from "./types"
+import { ByteBuffer } from "./byte-buffer.js"
+import { SIZEOF_SHORT, SIZE_PREFIX_LENGTH, SIZEOF_INT, FILE_IDENTIFIER_LENGTH } from "./constants.js"
+import { Offset, IGeneratedObject } from "./types.js"
 
 export class Builder {
     private bb: ByteBuffer
