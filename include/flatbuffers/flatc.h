@@ -49,6 +49,8 @@ class FlatCompiler {
     typedef std::string (*MakeRuleFn)(const flatbuffers::Parser &parser,
                                       const std::string &path,
                                       const std::string &file_name);
+    typedef bool (*ParsingCompletedFn)(const flatbuffers::Parser &parser,
+                                       const std::string &output_path);
 
     GenerateFn generate;
     const char *lang_name;
@@ -58,6 +60,7 @@ class FlatCompiler {
     FlatCOption option;
     MakeRuleFn make_rule;
     BfbsGenerator *bfbs_generator;
+    ParsingCompletedFn parsing_completed;
   };
 
   typedef void (*WarnFn)(const FlatCompiler *flatc, const std::string &warn,

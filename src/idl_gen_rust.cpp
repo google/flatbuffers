@@ -194,6 +194,11 @@ bool IsOptionalToBuilder(const FieldDef &field) {
 
 bool GenerateRustModuleRootFile(const Parser &parser,
                                 const std::string &output_dir) {
+  if (parser.opts.one_file) {
+    // Don't generate a root file when generating one file. This isn't an error
+    // so return true.
+    return true;
+  }
   // We gather the symbols into a tree of namespaces (which are rust mods) and
   // generate a file that gathers them all.
   struct Module {
