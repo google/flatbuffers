@@ -19,7 +19,6 @@
 #include <list>
 #include <sstream>
 
-#include "bfbs_gen_lua.h"
 #include "flatbuffers/util.h"
 
 namespace flatbuffers {
@@ -767,9 +766,19 @@ int FlatCompiler::Compile(int argc, const char **argv) {
     // in any files coming up next.
     parser->MarkGenerated();
   }
-  if (opts.lang_to_generate & IDLOptions::kRust && !parser->opts.one_file) {
-    GenerateRustModuleRootFile(*parser, output_path);
+
+  // Once all the files have been parsed, run any generators Parsing Completed
+  // function for final generation.
+  for (size_t i = 0; i < params_.num_generators; ++i) {
+    if (generator_enabled[i] &&
+        params_.generators[i].parsing_completed != nullptr) {
+      if (!params_.generators[i].parsing_completed(*parser, output_path)) {
+        Error("failed running parsing completed for " +
+              std::string(params_.generators[i].lang_name));
+      }
+    }
   }
+
   return 0;
 }
 
