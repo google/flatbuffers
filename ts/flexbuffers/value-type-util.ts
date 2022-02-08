@@ -1,4 +1,4 @@
-import { ValueType } from './value-type'
+import { ValueType } from './value-type.js'
 
 export function isInline(value: ValueType): boolean {
   return value === ValueType.BOOL

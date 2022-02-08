@@ -1,7 +1,7 @@
-import { FILE_IDENTIFIER_LENGTH, SIZEOF_INT } from "./constants";
-import { int32, isLittleEndian, float32, float64 } from "./utils";
-import { Offset, Table, IGeneratedObject } from "./types";
-import { Encoding } from "./encoding";
+import { FILE_IDENTIFIER_LENGTH, SIZEOF_INT } from "./constants.js";
+import { int32, isLittleEndian, float32, float64 } from "./utils.js";
+import { Offset, Table, IGeneratedObject } from "./types.js";
+import { Encoding } from "./encoding.js";
 
 export class ByteBuffer {
     private position_ = 0;
