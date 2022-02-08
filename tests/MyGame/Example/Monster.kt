@@ -10,7 +10,6 @@ import com.google.flatbuffers.*
  * an example documentation comment: "monster object"
  */
 @Suppress("unused")
-@ExperimentalUnsignedTypes
 class Monster : Table() {
 
     fun __init(_i: Int, _bb: ByteBuffer)  {
