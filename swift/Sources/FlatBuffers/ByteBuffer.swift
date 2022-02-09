@@ -388,7 +388,7 @@ public struct ByteBuffer {
   }
 
   /// Returns the written bytes into the ``ByteBuffer``
-  public func toArray() -> [UInt8] {
+    public var underlyingBytes: [UInt8] {
       let cp = capacity &- writerIndex
       let start = memory.advanced(by: writerIndex)
                                 .bindMemory(to: UInt8.self, capacity: cp)

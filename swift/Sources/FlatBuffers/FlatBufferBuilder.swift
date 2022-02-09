@@ -80,7 +80,7 @@ public struct FlatBufferBuilder {
   /// Should only be used after ``finish(offset:addPrefix:)`` is called
   public var sizedByteArray: [UInt8] {
     assert(finished, "Data shouldn't be called before finish()")
-    return _bb.toArray()
+    return _bb.underlyingBytes
   }
 
   /// Returns the original ``ByteBuffer``
