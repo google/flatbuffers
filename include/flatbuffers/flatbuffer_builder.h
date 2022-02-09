@@ -42,14 +42,15 @@ inline voffset_t FieldIndexToOffset(voffset_t field_id) {
   return static_cast<voffset_t>((field_id + fixed_fields) * sizeof(voffset_t));
 }
 
-template<typename T, typename Alloc>
+template<typename T, typename Alloc = std::allocator<T>>
 const T *data(const std::vector<T, Alloc> &v) {
   // Eventually the returned pointer gets passed down to memcpy, so
   // we need it to be non-null to avoid undefined behavior.
   static uint8_t t;
   return v.empty() ? reinterpret_cast<const T *>(&t) : &v.front();
 }
-template<typename T, typename Alloc> T *data(std::vector<T, Alloc> &v) {
+template<typename T, typename Alloc = std::allocator<T>>
+T *data(std::vector<T, Alloc> &v) {
   // Eventually the returned pointer gets passed down to memcpy, so
   // we need it to be non-null to avoid undefined behavior.
   static uint8_t t;
@@ -484,7 +485,7 @@ class FlatBufferBuilder {
     return CreateString(str.c_str(), str.length());
   }
 
-  // clang-format off
+// clang-format off
   #ifdef FLATBUFFERS_HAS_STRING_VIEW
   /// @brief Store a string in the buffer, which can contain any binary data.
   /// @param[in] str A const string_view to copy in to the buffer.
@@ -624,7 +625,7 @@ class FlatBufferBuilder {
     AssertScalarT<T>();
     StartVector(len, sizeof(T));
     if (len == 0) { return Offset<Vector<T>>(EndVector(len)); }
-    // clang-format off
+// clang-format off
     #if FLATBUFFERS_LITTLEENDIAN
       PushBytes(reinterpret_cast<const uint8_t *>(v), len * sizeof(T));
     #else
@@ -653,7 +654,7 @@ class FlatBufferBuilder {
   /// buffer as a `vector`.
   /// @return Returns a typed `Offset` into the serialized data indicating
   /// where the vector is stored.
-  template<typename T, typename Alloc>
+  template<typename T, typename Alloc = std::allocator<T>>
   Offset<Vector<T>> CreateVector(const std::vector<T, Alloc> &v) {
     return CreateVector(data(v), v.size());
   }
@@ -710,7 +711,7 @@ class FlatBufferBuilder {
   /// buffer as a `vector`.
   /// @return Returns a typed `Offset` into the serialized data indicating
   /// where the vector is stored.
-  template<typename Alloc>
+  template<typename Alloc = std::allocator<std::string>>
   Offset<Vector<Offset<String>>> CreateVectorOfStrings(
       const std::vector<std::string, Alloc> &v) {
     return CreateVectorOfStrings(v.cbegin(), v.cend());
@@ -839,7 +840,7 @@ class FlatBufferBuilder {
   /// serialize into the buffer as a `vector`.
   /// @return Returns a typed `Offset` into the serialized data indicating
   /// where the vector is stored.
-  template<typename T, typename Alloc>
+  template<typename T, typename Alloc = std::allocator<T>>
   Offset<Vector<const T *>> CreateVectorOfStructs(
       const std::vector<T, Alloc> &v) {
     return CreateVectorOfStructs(data(v), v.size());
@@ -855,7 +856,7 @@ class FlatBufferBuilder {
   /// to the FlatBuffer struct.
   /// @return Returns a typed `Offset` into the serialized data indicating
   /// where the vector is stored.
-  template<typename T, typename S, typename Alloc>
+  template<typename T, typename S, typename Alloc = std::allocator<T>>
   Offset<Vector<const T *>> CreateVectorOfNativeStructs(
       const std::vector<S, Alloc> &v, T (*const pack_func)(const S &)) {
     return CreateVectorOfNativeStructs<T, S>(data(v), v.size(), pack_func);
@@ -869,7 +870,7 @@ class FlatBufferBuilder {
   /// serialize into the buffer as a `vector`.
   /// @return Returns a typed `Offset` into the serialized data indicating
   /// where the vector is stored.
-  template<typename T, typename S, typename Alloc>
+  template<typename T, typename S, typename Alloc = std::allocator<S>>
   Offset<Vector<const T *>> CreateVectorOfNativeStructs(
       const std::vector<S, Alloc> &v) {
     return CreateVectorOfNativeStructs<T, S>(data(v), v.size());
@@ -890,7 +891,7 @@ class FlatBufferBuilder {
   /// serialize into the buffer as a `vector`.
   /// @return Returns a typed `Offset` into the serialized data indicating
   /// where the vector is stored.
-  template<typename T, typename Alloc>
+  template<typename T, typename Alloc = std::allocator<T>>
   Offset<Vector<const T *>> CreateVectorOfSortedStructs(
       std::vector<T, Alloc> *v) {
     return CreateVectorOfSortedStructs(data(*v), v->size());
@@ -904,7 +905,7 @@ class FlatBufferBuilder {
   /// serialize into the buffer as a `vector`.
   /// @return Returns a typed `Offset` into the serialized data indicating
   /// where the vector is stored.
-  template<typename T, typename S, typename Alloc>
+  template<typename T, typename S, typename Alloc = std::allocator<T>>
   Offset<Vector<const T *>> CreateVectorOfSortedNativeStructs(
       std::vector<S, Alloc> *v) {
     return CreateVectorOfSortedNativeStructs<T, S>(data(*v), v->size());
@@ -982,7 +983,7 @@ class FlatBufferBuilder {
   /// offsets to store in the buffer in sorted order.
   /// @return Returns a typed `Offset` into the serialized data indicating
   /// where the vector is stored.
-  template<typename T, typename Alloc>
+  template<typename T, typename Alloc = std::allocator<T>>
   Offset<Vector<Offset<T>>> CreateVectorOfSortedTables(
       std::vector<Offset<T>, Alloc> *v) {
     return CreateVectorOfSortedTables(data(*v), v->size());
