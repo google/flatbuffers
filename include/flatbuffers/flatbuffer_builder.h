@@ -485,7 +485,7 @@ class FlatBufferBuilder {
     return CreateString(str.c_str(), str.length());
   }
 
-// clang-format off
+  // clang-format off
   #ifdef FLATBUFFERS_HAS_STRING_VIEW
   /// @brief Store a string in the buffer, which can contain any binary data.
   /// @param[in] str A const string_view to copy in to the buffer.
@@ -625,7 +625,7 @@ class FlatBufferBuilder {
     AssertScalarT<T>();
     StartVector(len, sizeof(T));
     if (len == 0) { return Offset<Vector<T>>(EndVector(len)); }
-// clang-format off
+    // clang-format off
     #if FLATBUFFERS_LITTLEENDIAN
       PushBytes(reinterpret_cast<const uint8_t *>(v), len * sizeof(T));
     #else
@@ -639,6 +639,17 @@ class FlatBufferBuilder {
     #endif
     // clang-format on
     return Offset<Vector<T>>(EndVector(len));
+  }
+
+  /// @brief Serialize an array like object into a FlatBuffer `vector`.
+  /// @tparam T The data type of the array elements.
+  /// @tparam C The type of the array.
+  /// @param[in] array A reference to an array like object of type `T` to
+  /// serialize into the buffer as a `vector`.
+  /// @return Returns a typed `Offset` into the serialized data indicating
+  /// where the vector is stored.
+  template<typename T, class C> Offset<Vector<T>> CreateVector(const C &array) {
+    return CreateVector(array.data(), array.size());
   }
 
   template<typename T>
