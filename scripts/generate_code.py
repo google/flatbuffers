@@ -82,6 +82,24 @@ def flatc(
     result = subprocess.run(cmd, cwd=str(cwd), check=True)
 
 
+# Generate the code for flatbuffers reflection schema
+def flatc_reflection(options, location, target):
+    full_options = ["--no-prefix"] + options
+    temp_dir = ".tmp"
+    flatc(
+        full_options,
+        prefix=temp_dir,
+        schema="reflection.fbs",
+        cwd=reflection_path,
+    )
+    new_reflection_path = Path(reflection_path, temp_dir, target)
+    original_reflection_path = Path(root_path, location, target)
+    if not filecmp.cmp(str(new_reflection_path), str(original_reflection_path)):
+        shutil.rmtree(str(original_reflection_path))
+        shutil.move(str(new_reflection_path), str(original_reflection_path))
+    shutil.rmtree(str(Path(reflection_path, temp_dir)))
+
+
 # Glob a pattern relative to file path
 def glob(path, pattern):
     return [str(p) for p in path.glob(pattern)]
@@ -422,22 +440,13 @@ flatc(
 )
 
 # Reflection
+
 # Skip generating the reflection if told too, as we run this script after
 # building flatc which uses the reflection_generated.h itself.
 if not args.skip_gen_reflection:
-    temp_dir = ".tmp"
-    flatc(
-        ["-c", "--cpp-std", "c++0x", "--no-prefix"],
-        prefix=temp_dir,
-        schema="reflection.fbs",
-        cwd=reflection_path,
-    )
-    new_reflection_file = Path(
-        reflection_path, temp_dir, "reflection_generated.h"
-    )
-    original_reflection_file = Path(
-        root_path, "include/flatbuffers/reflection_generated.h"
-    )
-    if not filecmp.cmp(str(new_reflection_file), str(original_reflection_file)):
-        shutil.move(str(new_reflection_file), str(original_reflection_file))
-    shutil.rmtree(str(Path(reflection_path, temp_dir)))
+  # C++ Reflection
+  flatc_reflection(["-c", "--cpp-std", "c++0x"], "include/flatbuffers",
+                   "reflection_generated.h")
+
+# Python Reflection
+flatc_reflection(["-p"], "python/flatbuffers", "reflection")
