@@ -3405,11 +3405,11 @@ void CreateSharedStringTest() {
   TEST_EQ(null_b1.o, null_b2.o);
 
   // Put the strings into an array for round trip verification.
-  const flatbuffers::Offset<flatbuffers::String> array[7] = {
+  std::array<flatbuffers::Offset<flatbuffers::String>, 7> array = {
     one1, two, one2, onetwo, null_b1, null_c, null_b2
   };
   const auto vector_offset =
-      builder.CreateVector(array, flatbuffers::uoffset_t(7));
+      builder.CreateVector<flatbuffers::Offset<flatbuffers::String>>(array);
   MonsterBuilder monster_builder(builder);
   monster_builder.add_name(two);
   monster_builder.add_testarrayofstring(vector_offset);
