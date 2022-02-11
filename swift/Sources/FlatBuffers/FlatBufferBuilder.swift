@@ -80,12 +80,7 @@ public struct FlatBufferBuilder {
   /// Should only be used after ``finish(offset:addPrefix:)`` is called
   public var sizedByteArray: [UInt8] {
     assert(finished, "Data shouldn't be called before finish()")
-    let cp = _bb.capacity &- _bb.writerIndex
-    let start = _bb.memory.advanced(by: _bb.writerIndex)
-      .bindMemory(to: UInt8.self, capacity: cp)
-
-    let ptr = UnsafeBufferPointer(start: start, count: cp)
-    return Array(ptr)
+    return _bb.underlyingBytes
   }
 
   /// Returns the original ``ByteBuffer``
