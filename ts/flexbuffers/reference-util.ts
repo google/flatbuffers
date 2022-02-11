@@ -1,7 +1,6 @@
 import { BitWidth } from './bit-width.js'
 import { toByteWidth, fromByteWidth } from './bit-width-util.js'
 import { toUTF8Array, fromUTF8Array } from './flexbuffers-util.js'
-import { Reference } from './reference.js'
 
 export function validateOffset(dataView: DataView, offset: number, width: number): void {
   if (dataView.byteLength <= offset + width || (offset & (toByteWidth(width) - 1)) !== 0) {
@@ -93,13 +92,6 @@ export function diffKeys(input: Uint8Array, index: number, dataView: DataView, o
     }
   }
   return dataView.getUint8(keyIndirectOffset + input.length) === 0 ? 0 : -1;
-}
-
-export function valueForIndexWithKey(index: number, key: string, dataView: DataView, offset: number, parentWidth: number, byteWidth: number, length: number, path: string): Reference {
-  const _indirect = indirect(dataView, offset, parentWidth);
-  const elementOffset = _indirect + index * byteWidth;
-  const packedType = dataView.getUint8(_indirect + length * byteWidth + index);
-  return new Reference(dataView, elementOffset, fromByteWidth(byteWidth), packedType, `${path}/${key}`)
 }
 
 export function keyForIndex(index: number, dataView: DataView, offset: number, parentWidth: number, byteWidth: number): string {
