@@ -1,13 +1,13 @@
 import { fromByteWidth } from './bit-width-util.js'
 import { ValueType } from './value-type.js'
 import { isNumber, isIndirectNumber, isAVector, fixedTypedVectorElementSize, isFixedTypedVector, isTypedVector, typedVectorElementType, packedType, fixedTypedVectorElementType } from './value-type-util.js'
-import { indirect, keyForIndex, keyIndex, readFloat, readInt, readUInt, valueForIndexWithKey } from './reference-util.js'
+import { indirect, keyForIndex, keyIndex, readFloat, readInt, readUInt } from './reference-util.js'
 import { fromUTF8Array } from './flexbuffers-util.js';
 import { BitWidth } from './bit-width.js';
 
 export function toReference(buffer: ArrayBuffer): Reference {
   const len = buffer.byteLength;
-  
+
   if (len < 3) {
     throw "Buffer needs to be bigger than 3";
   }
@@ -19,6 +19,13 @@ export function toReference(buffer: ArrayBuffer): Reference {
   const offset = len - byteWidth - 2;
 
   return new Reference(dataView, offset, parentWidth, packedType, "/")
+}
+
+function valueForIndexWithKey(index: number, key: string, dataView: DataView, offset: number, parentWidth: number, byteWidth: number, length: number, path: string): Reference {
+  const _indirect = indirect(dataView, offset, parentWidth);
+  const elementOffset = _indirect + index * byteWidth;
+  const packedType = dataView.getUint8(_indirect + length * byteWidth + index);
+  return new Reference(dataView, elementOffset, fromByteWidth(byteWidth), packedType, `${path}/${key}`)
 }
 
 export class Reference {
