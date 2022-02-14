@@ -1128,6 +1128,9 @@ CheckedError Parser::ParseAnyValue(Value &val, FieldDef *field,
       }
       uint8_t enum_idx;
       if (vector_of_union_types) {
+        if (vector_of_union_types->size() <= count)
+          return Error("union types vector smaller than union values vector"
+                       " for: " + field->name);
         enum_idx = vector_of_union_types->Get(count);
       } else {
         ECHECK(atot(constant.c_str(), *this, &enum_idx));
