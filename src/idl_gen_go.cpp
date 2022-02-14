@@ -573,13 +573,19 @@ class GoGenerator : public BaseGenerator {
     } else {
       code += TypeName(field);
     }
-    code += ") {\n";
-    code += "\tbuilder.Prepend";
+    code += ") {\n\t";
+    if (field.IsScalarOptional()) {
+      code += "if " + GoIdentity(field.name) + " != nil {\n\t\t";
+    }
+    code += "builder.Prepend";
     code += GenMethod(field);
-    if (field.IsOptional()) {
+    if (!field.IsScalarOptional() && field.IsOptional()) {
       code += "Slot(" + NumToString(offset) + ", ";
     } else {
       code += "(";
+    }
+    if (field.IsScalarOptional()) {
+      code += "*";
     }
     if (!IsScalar(field.value.type.base_type) && (!struct_def.fixed)) {
       code += "flatbuffers.UOffsetT";
@@ -588,12 +594,20 @@ class GoGenerator : public BaseGenerator {
     } else {
       code += CastToBaseType(field.value.type, GoIdentity(field.name));
     }
-    if (field.IsOptional()) {
+    if (!field.IsScalarOptional() && field.IsOptional()) {
       code += ", " + GenConstant(field);
     } else {
-      code += ")\n\tbuilder.Slot(" + NumToString(offset);
+      code += ")\n\t";
+      if (field.IsScalarOptional()) {
+        code += "\t";
+      }
+      code += "builder.Slot(" + NumToString(offset);
     }
-    code += ")\n}\n";
+    code += ")\n";
+    if (field.IsScalarOptional()) {
+      code += "\t}\n";
+    }
+    code += "}\n";
   }
 
   // Set the value of one of the members of a table's vector.
@@ -677,7 +691,7 @@ class GoGenerator : public BaseGenerator {
     std::string setter = "rcv._tab.Mutate" + type;
     GenReceiver(struct_def, code_ptr);
     code += " Mutate" + MakeCamel(field.name);
-    code += "(n " + TypeName(field) + ") bool {\n\treturn " + setter;
+    code += "(n " + GenTypeGet(field.value.type) + ") bool {\n\treturn " + setter;
     code += "(rcv._tab.Pos+flatbuffers.UOffsetT(";
     code += NumToString(field.value.offset) + "), ";
     code += CastToBaseType(field.value.type, "n") + ")\n}\n\n";
@@ -691,7 +705,7 @@ class GoGenerator : public BaseGenerator {
     std::string setter = "rcv._tab.Mutate" + type + "Slot";
     GenReceiver(struct_def, code_ptr);
     code += " Mutate" + MakeCamel(field.name);
-    code += "(n " + TypeName(field) + ") bool {\n\treturn ";
+    code += "(n " + GenTypeGet(field.value.type) + ") bool {\n\treturn ";
     code += setter + "(" + NumToString(field.value.offset) + ", ";
     code += CastToBaseType(field.value.type, "n") + ")\n";
     code += "}\n\n";
@@ -809,8 +823,11 @@ class GoGenerator : public BaseGenerator {
           field.value.type.enum_def != nullptr &&
           field.value.type.enum_def->is_union)
         continue;
-      code += "\t" + MakeCamel(field.name) + " " +
-              NativeType(field.value.type) + "\n";
+      code += "\t" + MakeCamel(field.name) + " ";
+      if (field.IsScalarOptional()) {
+        code += "*";
+      }
+      code += NativeType(field.value.type) + "\n";
     }
     code += "}\n\n";
 
@@ -1200,7 +1217,11 @@ class GoGenerator : public BaseGenerator {
   }
 
   std::string TypeName(const FieldDef &field) {
-    return GenTypeGet(field.value.type);
+    std::string prefix;
+    if (field.IsScalarOptional()) {
+      prefix = "*";
+    }
+    return prefix + GenTypeGet(field.value.type);
   }
 
   // If type is an enum, returns value with a cast to the enum type, otherwise
@@ -1224,6 +1245,9 @@ class GoGenerator : public BaseGenerator {
   }
 
   std::string GenConstant(const FieldDef &field) {
+    if (field.IsScalarOptional()) {
+      return "nil";
+    }
     switch (field.value.type.base_type) {
       case BASE_TYPE_BOOL:
         return field.value.constant == "0" ? "false" : "true";
