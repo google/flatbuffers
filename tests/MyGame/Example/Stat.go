@@ -101,10 +101,12 @@ func StatAddId(builder *flatbuffers.Builder, id flatbuffers.UOffsetT) {
 	builder.PrependUOffsetTSlot(0, flatbuffers.UOffsetT(id), 0)
 }
 func StatAddVal(builder *flatbuffers.Builder, val int64) {
-	builder.PrependInt64Slot(1, val, 0)
+	builder.PrependInt64(val)
+	builder.Slot(1)
 }
 func StatAddCount(builder *flatbuffers.Builder, count uint16) {
-	builder.PrependUint16Slot(2, count, 0)
+	builder.PrependUint16(count)
+	builder.Slot(2)
 }
 func StatEnd(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
 	return builder.EndObject()

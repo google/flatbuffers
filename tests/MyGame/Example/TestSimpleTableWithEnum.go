@@ -71,7 +71,8 @@ func TestSimpleTableWithEnumStart(builder *flatbuffers.Builder) {
 	builder.StartObject(1)
 }
 func TestSimpleTableWithEnumAddColor(builder *flatbuffers.Builder, color Color) {
-	builder.PrependByteSlot(0, byte(color), 2)
+	builder.PrependByte(byte(color))
+	builder.Slot(0)
 }
 func TestSimpleTableWithEnumEnd(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
 	return builder.EndObject()
