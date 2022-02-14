@@ -572,7 +572,23 @@ class Reference {
       auto keys = m.Keys();
       auto vals = m.Values();
       for (size_t i = 0; i < keys.size(); i++) {
-        keys[i].ToString(true, keys_quoted, s);
+        bool kq = keys_quoted;
+        if (!kq) {
+          // FlexBuffers keys may contain arbitrary characters, only allow
+          // unquoted if it looks like an "identifier":
+          const char *p = keys[i].AsKey();
+          if (!flatbuffers::is_alpha(*p) && *p != '_') {
+              kq = true;
+          } else {
+            while (*++p) {
+              if (!flatbuffers::is_alnum(*p) && *p != '_') {
+                kq = true;
+                break;
+              }
+            }
+          }
+        }
+        keys[i].ToString(true, kq, s);
         s += ": ";
         vals[i].ToString(true, keys_quoted, s);
         if (i < keys.size() - 1) s += ", ";
