@@ -194,7 +194,7 @@ bool IsOptionalToBuilder(const FieldDef &field) {
 
 bool GenerateRustModuleRootFile(const Parser &parser,
                                 const std::string &output_dir) {
-  if (parser.opts.one_file) {
+  if (!parser.opts.rust_module_root_file) {
     // Don't generate a root file when generating one file. This isn't an error
     // so return true.
     return true;
@@ -371,7 +371,7 @@ class RustGenerator : public BaseGenerator {
   }
 
   bool generate() {
-    if (parser_.opts.one_file) {
+    if (!parser_.opts.rust_module_root_file) {
       return GenerateOneFile();
     } else {
       return GenerateIndividualFiles();

@@ -125,12 +125,13 @@ CPP_17_OPTS = NO_INCL_OPTS + [
     "--cpp-static-reflection",
     "--gen-object-api",
 ]
-RUST_OPTS = BASE_OPTS + ["--rust", "--gen-all", "--gen-name-strings"]
+RUST_OPTS = BASE_OPTS + ["--rust", "--gen-all", "--gen-name-strings", "--rust-module-root-file"]
 RUST_SERIALIZE_OPTS = BASE_OPTS + [
     "--rust",
     "--gen-all",
     "--gen-name-strings",
     "--rust-serialize",
+    "--rust-module-root-file",
 ]
 TS_OPTS = ["--ts", "--gen-name-strings"]
 LOBSTER_OPTS = ["--lobster"]

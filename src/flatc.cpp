@@ -185,6 +185,8 @@ const static FlatCOption options[] = {
   { "", "reflect-names", "", "Add minimal type/name reflection." },
   { "", "rust-serialize", "",
     "Implement serde::Serialize on generated Rust types." },
+  {"", "rust-module-root-file", "",
+   "Generate rust code in individual files with a module root file."},
   { "", "root-type", "T", "Select or override the default root_type." },
   { "", "require-explicit-ids", "",
     "When parsing schemas, require explicit ids (id: x)." },
@@ -503,6 +505,8 @@ int FlatCompiler::Compile(int argc, const char **argv) {
         opts.mini_reflect = IDLOptions::kTypesAndNames;
       } else if (arg == "--rust-serialize") {
         opts.rust_serialize = true;
+      } else if (arg == "--rust-module-root-file") {
+        opts.rust_module_root_file = true;
       } else if (arg == "--require-explicit-ids") {
         opts.require_explicit_ids = true;
       } else if (arg == "--root-type") {
