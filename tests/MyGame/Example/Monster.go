@@ -1363,16 +1363,13 @@ func MonsterAddPos(builder *flatbuffers.Builder, pos flatbuffers.UOffsetT) {
 	builder.PrependStructSlot(0, flatbuffers.UOffsetT(pos), 0)
 }
 func MonsterAddMana(builder *flatbuffers.Builder, mana int16) {
-	builder.PrependInt16(mana)
-	builder.Slot(1)
+	builder.PrependInt16Slot(1, mana, 150)
 }
 func MonsterAddHp(builder *flatbuffers.Builder, hp int16) {
-	builder.PrependInt16(hp)
-	builder.Slot(2)
+	builder.PrependInt16Slot(2, hp, 100)
 }
 func MonsterAddName(builder *flatbuffers.Builder, name flatbuffers.UOffsetT) {
-	builder.PrependUOffsetT(flatbuffers.UOffsetT(name))
-	builder.Slot(3)
+	builder.PrependUOffsetTSlot(3, flatbuffers.UOffsetT(name), 0)
 }
 func MonsterAddInventory(builder *flatbuffers.Builder, inventory flatbuffers.UOffsetT) {
 	builder.PrependUOffsetTSlot(5, flatbuffers.UOffsetT(inventory), 0)
@@ -1381,12 +1378,10 @@ func MonsterStartInventoryVector(builder *flatbuffers.Builder, numElems int) fla
 	return builder.StartVector(1, numElems, 1)
 }
 func MonsterAddColor(builder *flatbuffers.Builder, color Color) {
-	builder.PrependByte(byte(color))
-	builder.Slot(6)
+	builder.PrependByteSlot(6, byte(color), 8)
 }
 func MonsterAddTestType(builder *flatbuffers.Builder, testType Any) {
-	builder.PrependByte(byte(testType))
-	builder.Slot(7)
+	builder.PrependByteSlot(7, byte(testType), 0)
 }
 func MonsterAddTest(builder *flatbuffers.Builder, test flatbuffers.UOffsetT) {
 	builder.PrependUOffsetTSlot(8, flatbuffers.UOffsetT(test), 0)
@@ -1422,40 +1417,31 @@ func MonsterAddTestempty(builder *flatbuffers.Builder, testempty flatbuffers.UOf
 	builder.PrependUOffsetTSlot(14, flatbuffers.UOffsetT(testempty), 0)
 }
 func MonsterAddTestbool(builder *flatbuffers.Builder, testbool bool) {
-	builder.PrependBool(testbool)
-	builder.Slot(15)
+	builder.PrependBoolSlot(15, testbool, false)
 }
 func MonsterAddTesthashs32Fnv1(builder *flatbuffers.Builder, testhashs32Fnv1 int32) {
-	builder.PrependInt32(testhashs32Fnv1)
-	builder.Slot(16)
+	builder.PrependInt32Slot(16, testhashs32Fnv1, 0)
 }
 func MonsterAddTesthashu32Fnv1(builder *flatbuffers.Builder, testhashu32Fnv1 uint32) {
-	builder.PrependUint32(testhashu32Fnv1)
-	builder.Slot(17)
+	builder.PrependUint32Slot(17, testhashu32Fnv1, 0)
 }
 func MonsterAddTesthashs64Fnv1(builder *flatbuffers.Builder, testhashs64Fnv1 int64) {
-	builder.PrependInt64(testhashs64Fnv1)
-	builder.Slot(18)
+	builder.PrependInt64Slot(18, testhashs64Fnv1, 0)
 }
 func MonsterAddTesthashu64Fnv1(builder *flatbuffers.Builder, testhashu64Fnv1 uint64) {
-	builder.PrependUint64(testhashu64Fnv1)
-	builder.Slot(19)
+	builder.PrependUint64Slot(19, testhashu64Fnv1, 0)
 }
 func MonsterAddTesthashs32Fnv1a(builder *flatbuffers.Builder, testhashs32Fnv1a int32) {
-	builder.PrependInt32(testhashs32Fnv1a)
-	builder.Slot(20)
+	builder.PrependInt32Slot(20, testhashs32Fnv1a, 0)
 }
 func MonsterAddTesthashu32Fnv1a(builder *flatbuffers.Builder, testhashu32Fnv1a uint32) {
-	builder.PrependUint32(testhashu32Fnv1a)
-	builder.Slot(21)
+	builder.PrependUint32Slot(21, testhashu32Fnv1a, 0)
 }
 func MonsterAddTesthashs64Fnv1a(builder *flatbuffers.Builder, testhashs64Fnv1a int64) {
-	builder.PrependInt64(testhashs64Fnv1a)
-	builder.Slot(22)
+	builder.PrependInt64Slot(22, testhashs64Fnv1a, 0)
 }
 func MonsterAddTesthashu64Fnv1a(builder *flatbuffers.Builder, testhashu64Fnv1a uint64) {
-	builder.PrependUint64(testhashu64Fnv1a)
-	builder.Slot(23)
+	builder.PrependUint64Slot(23, testhashu64Fnv1a, 0)
 }
 func MonsterAddTestarrayofbools(builder *flatbuffers.Builder, testarrayofbools flatbuffers.UOffsetT) {
 	builder.PrependUOffsetTSlot(24, flatbuffers.UOffsetT(testarrayofbools), 0)
@@ -1464,16 +1450,13 @@ func MonsterStartTestarrayofboolsVector(builder *flatbuffers.Builder, numElems i
 	return builder.StartVector(1, numElems, 1)
 }
 func MonsterAddTestf(builder *flatbuffers.Builder, testf float32) {
-	builder.PrependFloat32(testf)
-	builder.Slot(25)
+	builder.PrependFloat32Slot(25, testf, 3.14159)
 }
 func MonsterAddTestf2(builder *flatbuffers.Builder, testf2 float32) {
-	builder.PrependFloat32(testf2)
-	builder.Slot(26)
+	builder.PrependFloat32Slot(26, testf2, 3.0)
 }
 func MonsterAddTestf3(builder *flatbuffers.Builder, testf3 float32) {
-	builder.PrependFloat32(testf3)
-	builder.Slot(27)
+	builder.PrependFloat32Slot(27, testf3, 0.0)
 }
 func MonsterAddTestarrayofstring2(builder *flatbuffers.Builder, testarrayofstring2 flatbuffers.UOffsetT) {
 	builder.PrependUOffsetTSlot(28, flatbuffers.UOffsetT(testarrayofstring2), 0)
@@ -1521,8 +1504,7 @@ func MonsterStartVectorOfReferrablesVector(builder *flatbuffers.Builder, numElem
 	return builder.StartVector(4, numElems, 4)
 }
 func MonsterAddSingleWeakReference(builder *flatbuffers.Builder, singleWeakReference uint64) {
-	builder.PrependUint64(singleWeakReference)
-	builder.Slot(36)
+	builder.PrependUint64Slot(36, singleWeakReference, 0)
 }
 func MonsterAddVectorOfWeakReferences(builder *flatbuffers.Builder, vectorOfWeakReferences flatbuffers.UOffsetT) {
 	builder.PrependUOffsetTSlot(37, flatbuffers.UOffsetT(vectorOfWeakReferences), 0)
@@ -1537,8 +1519,7 @@ func MonsterStartVectorOfStrongReferrablesVector(builder *flatbuffers.Builder, n
 	return builder.StartVector(4, numElems, 4)
 }
 func MonsterAddCoOwningReference(builder *flatbuffers.Builder, coOwningReference uint64) {
-	builder.PrependUint64(coOwningReference)
-	builder.Slot(39)
+	builder.PrependUint64Slot(39, coOwningReference, 0)
 }
 func MonsterAddVectorOfCoOwningReferences(builder *flatbuffers.Builder, vectorOfCoOwningReferences flatbuffers.UOffsetT) {
 	builder.PrependUOffsetTSlot(40, flatbuffers.UOffsetT(vectorOfCoOwningReferences), 0)
@@ -1547,8 +1528,7 @@ func MonsterStartVectorOfCoOwningReferencesVector(builder *flatbuffers.Builder, 
 	return builder.StartVector(8, numElems, 8)
 }
 func MonsterAddNonOwningReference(builder *flatbuffers.Builder, nonOwningReference uint64) {
-	builder.PrependUint64(nonOwningReference)
-	builder.Slot(41)
+	builder.PrependUint64Slot(41, nonOwningReference, 0)
 }
 func MonsterAddVectorOfNonOwningReferences(builder *flatbuffers.Builder, vectorOfNonOwningReferences flatbuffers.UOffsetT) {
 	builder.PrependUOffsetTSlot(42, flatbuffers.UOffsetT(vectorOfNonOwningReferences), 0)
@@ -1557,15 +1537,13 @@ func MonsterStartVectorOfNonOwningReferencesVector(builder *flatbuffers.Builder,
 	return builder.StartVector(8, numElems, 8)
 }
 func MonsterAddAnyUniqueType(builder *flatbuffers.Builder, anyUniqueType AnyUniqueAliases) {
-	builder.PrependByte(byte(anyUniqueType))
-	builder.Slot(43)
+	builder.PrependByteSlot(43, byte(anyUniqueType), 0)
 }
 func MonsterAddAnyUnique(builder *flatbuffers.Builder, anyUnique flatbuffers.UOffsetT) {
 	builder.PrependUOffsetTSlot(44, flatbuffers.UOffsetT(anyUnique), 0)
 }
 func MonsterAddAnyAmbiguousType(builder *flatbuffers.Builder, anyAmbiguousType AnyAmbiguousAliases) {
-	builder.PrependByte(byte(anyAmbiguousType))
-	builder.Slot(45)
+	builder.PrependByteSlot(45, byte(anyAmbiguousType), 0)
 }
 func MonsterAddAnyAmbiguous(builder *flatbuffers.Builder, anyAmbiguous flatbuffers.UOffsetT) {
 	builder.PrependUOffsetTSlot(46, flatbuffers.UOffsetT(anyAmbiguous), 0)
@@ -1577,8 +1555,7 @@ func MonsterStartVectorOfEnumsVector(builder *flatbuffers.Builder, numElems int)
 	return builder.StartVector(1, numElems, 1)
 }
 func MonsterAddSignedEnum(builder *flatbuffers.Builder, signedEnum Race) {
-	builder.PrependInt8(int8(signedEnum))
-	builder.Slot(48)
+	builder.PrependInt8Slot(48, int8(signedEnum), -1)
 }
 func MonsterAddTestrequirednestedflatbuffer(builder *flatbuffers.Builder, testrequirednestedflatbuffer flatbuffers.UOffsetT) {
 	builder.PrependUOffsetTSlot(49, flatbuffers.UOffsetT(testrequirednestedflatbuffer), 0)

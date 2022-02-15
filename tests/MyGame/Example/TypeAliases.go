@@ -290,44 +290,34 @@ func TypeAliasesStart(builder *flatbuffers.Builder) {
 	builder.StartObject(12)
 }
 func TypeAliasesAddI8(builder *flatbuffers.Builder, i8 int8) {
-	builder.PrependInt8(i8)
-	builder.Slot(0)
+	builder.PrependInt8Slot(0, i8, 0)
 }
 func TypeAliasesAddU8(builder *flatbuffers.Builder, u8 byte) {
-	builder.PrependByte(u8)
-	builder.Slot(1)
+	builder.PrependByteSlot(1, u8, 0)
 }
 func TypeAliasesAddI16(builder *flatbuffers.Builder, i16 int16) {
-	builder.PrependInt16(i16)
-	builder.Slot(2)
+	builder.PrependInt16Slot(2, i16, 0)
 }
 func TypeAliasesAddU16(builder *flatbuffers.Builder, u16 uint16) {
-	builder.PrependUint16(u16)
-	builder.Slot(3)
+	builder.PrependUint16Slot(3, u16, 0)
 }
 func TypeAliasesAddI32(builder *flatbuffers.Builder, i32 int32) {
-	builder.PrependInt32(i32)
-	builder.Slot(4)
+	builder.PrependInt32Slot(4, i32, 0)
 }
 func TypeAliasesAddU32(builder *flatbuffers.Builder, u32 uint32) {
-	builder.PrependUint32(u32)
-	builder.Slot(5)
+	builder.PrependUint32Slot(5, u32, 0)
 }
 func TypeAliasesAddI64(builder *flatbuffers.Builder, i64 int64) {
-	builder.PrependInt64(i64)
-	builder.Slot(6)
+	builder.PrependInt64Slot(6, i64, 0)
 }
 func TypeAliasesAddU64(builder *flatbuffers.Builder, u64 uint64) {
-	builder.PrependUint64(u64)
-	builder.Slot(7)
+	builder.PrependUint64Slot(7, u64, 0)
 }
 func TypeAliasesAddF32(builder *flatbuffers.Builder, f32 float32) {
-	builder.PrependFloat32(f32)
-	builder.Slot(8)
+	builder.PrependFloat32Slot(8, f32, 0.0)
 }
 func TypeAliasesAddF64(builder *flatbuffers.Builder, f64 float64) {
-	builder.PrependFloat64(f64)
-	builder.Slot(9)
+	builder.PrependFloat64Slot(9, f64, 0.0)
 }
 func TypeAliasesAddV8(builder *flatbuffers.Builder, v8 flatbuffers.UOffsetT) {
 	builder.PrependUOffsetTSlot(10, flatbuffers.UOffsetT(v8), 0)

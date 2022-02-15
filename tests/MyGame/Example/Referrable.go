@@ -71,8 +71,7 @@ func ReferrableStart(builder *flatbuffers.Builder) {
 	builder.StartObject(1)
 }
 func ReferrableAddId(builder *flatbuffers.Builder, id uint64) {
-	builder.PrependUint64(id)
-	builder.Slot(0)
+	builder.PrependUint64Slot(0, id, 0)
 }
 func ReferrableEnd(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
 	return builder.EndObject()

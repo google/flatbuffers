@@ -579,13 +579,10 @@ class GoGenerator : public BaseGenerator {
     }
     code += "builder.Prepend";
     code += GenMethod(field);
-    if (!field.IsScalarOptional() && field.IsOptional()) {
-      code += "Slot(" + NumToString(offset) + ", ";
-    } else {
-      code += "(";
-    }
     if (field.IsScalarOptional()) {
-      code += "*";
+      code += "(*";
+    } else {
+      code += "Slot(" + NumToString(offset) + ", ";
     }
     if (!IsScalar(field.value.type.base_type) && (!struct_def.fixed)) {
       code += "flatbuffers.UOffsetT";
@@ -594,14 +591,11 @@ class GoGenerator : public BaseGenerator {
     } else {
       code += CastToBaseType(field.value.type, GoIdentity(field.name));
     }
-    if (!field.IsScalarOptional() && field.IsOptional()) {
-      code += ", " + GenConstant(field);
+    if (field.IsScalarOptional()) {
+      code += ")\n";
+      code += "\t\tbuilder.Slot(" + NumToString(offset);
     } else {
-      code += ")\n\t";
-      if (field.IsScalarOptional()) {
-        code += "\t";
-      }
-      code += "builder.Slot(" + NumToString(offset);
+      code += ", " + GenConstant(field);
     }
     code += ")\n";
     if (field.IsScalarOptional()) {

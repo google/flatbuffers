@@ -596,8 +596,7 @@ func ScalarStuffStart(builder *flatbuffers.Builder) {
 	builder.StartObject(36)
 }
 func ScalarStuffAddJustI8(builder *flatbuffers.Builder, justI8 int8) {
-	builder.PrependInt8(justI8)
-	builder.Slot(0)
+	builder.PrependInt8Slot(0, justI8, 0)
 }
 func ScalarStuffAddMaybeI8(builder *flatbuffers.Builder, maybeI8 *int8) {
 	if maybeI8 != nil {
@@ -606,12 +605,10 @@ func ScalarStuffAddMaybeI8(builder *flatbuffers.Builder, maybeI8 *int8) {
 	}
 }
 func ScalarStuffAddDefaultI8(builder *flatbuffers.Builder, defaultI8 int8) {
-	builder.PrependInt8(defaultI8)
-	builder.Slot(2)
+	builder.PrependInt8Slot(2, defaultI8, 42)
 }
 func ScalarStuffAddJustU8(builder *flatbuffers.Builder, justU8 byte) {
-	builder.PrependByte(justU8)
-	builder.Slot(3)
+	builder.PrependByteSlot(3, justU8, 0)
 }
 func ScalarStuffAddMaybeU8(builder *flatbuffers.Builder, maybeU8 *byte) {
 	if maybeU8 != nil {
@@ -620,12 +617,10 @@ func ScalarStuffAddMaybeU8(builder *flatbuffers.Builder, maybeU8 *byte) {
 	}
 }
 func ScalarStuffAddDefaultU8(builder *flatbuffers.Builder, defaultU8 byte) {
-	builder.PrependByte(defaultU8)
-	builder.Slot(5)
+	builder.PrependByteSlot(5, defaultU8, 42)
 }
 func ScalarStuffAddJustI16(builder *flatbuffers.Builder, justI16 int16) {
-	builder.PrependInt16(justI16)
-	builder.Slot(6)
+	builder.PrependInt16Slot(6, justI16, 0)
 }
 func ScalarStuffAddMaybeI16(builder *flatbuffers.Builder, maybeI16 *int16) {
 	if maybeI16 != nil {
@@ -634,12 +629,10 @@ func ScalarStuffAddMaybeI16(builder *flatbuffers.Builder, maybeI16 *int16) {
 	}
 }
 func ScalarStuffAddDefaultI16(builder *flatbuffers.Builder, defaultI16 int16) {
-	builder.PrependInt16(defaultI16)
-	builder.Slot(8)
+	builder.PrependInt16Slot(8, defaultI16, 42)
 }
 func ScalarStuffAddJustU16(builder *flatbuffers.Builder, justU16 uint16) {
-	builder.PrependUint16(justU16)
-	builder.Slot(9)
+	builder.PrependUint16Slot(9, justU16, 0)
 }
 func ScalarStuffAddMaybeU16(builder *flatbuffers.Builder, maybeU16 *uint16) {
 	if maybeU16 != nil {
@@ -648,12 +641,10 @@ func ScalarStuffAddMaybeU16(builder *flatbuffers.Builder, maybeU16 *uint16) {
 	}
 }
 func ScalarStuffAddDefaultU16(builder *flatbuffers.Builder, defaultU16 uint16) {
-	builder.PrependUint16(defaultU16)
-	builder.Slot(11)
+	builder.PrependUint16Slot(11, defaultU16, 42)
 }
 func ScalarStuffAddJustI32(builder *flatbuffers.Builder, justI32 int32) {
-	builder.PrependInt32(justI32)
-	builder.Slot(12)
+	builder.PrependInt32Slot(12, justI32, 0)
 }
 func ScalarStuffAddMaybeI32(builder *flatbuffers.Builder, maybeI32 *int32) {
 	if maybeI32 != nil {
@@ -662,12 +653,10 @@ func ScalarStuffAddMaybeI32(builder *flatbuffers.Builder, maybeI32 *int32) {
 	}
 }
 func ScalarStuffAddDefaultI32(builder *flatbuffers.Builder, defaultI32 int32) {
-	builder.PrependInt32(defaultI32)
-	builder.Slot(14)
+	builder.PrependInt32Slot(14, defaultI32, 42)
 }
 func ScalarStuffAddJustU32(builder *flatbuffers.Builder, justU32 uint32) {
-	builder.PrependUint32(justU32)
-	builder.Slot(15)
+	builder.PrependUint32Slot(15, justU32, 0)
 }
 func ScalarStuffAddMaybeU32(builder *flatbuffers.Builder, maybeU32 *uint32) {
 	if maybeU32 != nil {
@@ -676,12 +665,10 @@ func ScalarStuffAddMaybeU32(builder *flatbuffers.Builder, maybeU32 *uint32) {
 	}
 }
 func ScalarStuffAddDefaultU32(builder *flatbuffers.Builder, defaultU32 uint32) {
-	builder.PrependUint32(defaultU32)
-	builder.Slot(17)
+	builder.PrependUint32Slot(17, defaultU32, 42)
 }
 func ScalarStuffAddJustI64(builder *flatbuffers.Builder, justI64 int64) {
-	builder.PrependInt64(justI64)
-	builder.Slot(18)
+	builder.PrependInt64Slot(18, justI64, 0)
 }
 func ScalarStuffAddMaybeI64(builder *flatbuffers.Builder, maybeI64 *int64) {
 	if maybeI64 != nil {
@@ -690,12 +677,10 @@ func ScalarStuffAddMaybeI64(builder *flatbuffers.Builder, maybeI64 *int64) {
 	}
 }
 func ScalarStuffAddDefaultI64(builder *flatbuffers.Builder, defaultI64 int64) {
-	builder.PrependInt64(defaultI64)
-	builder.Slot(20)
+	builder.PrependInt64Slot(20, defaultI64, 42)
 }
 func ScalarStuffAddJustU64(builder *flatbuffers.Builder, justU64 uint64) {
-	builder.PrependUint64(justU64)
-	builder.Slot(21)
+	builder.PrependUint64Slot(21, justU64, 0)
 }
 func ScalarStuffAddMaybeU64(builder *flatbuffers.Builder, maybeU64 *uint64) {
 	if maybeU64 != nil {
@@ -704,12 +689,10 @@ func ScalarStuffAddMaybeU64(builder *flatbuffers.Builder, maybeU64 *uint64) {
 	}
 }
 func ScalarStuffAddDefaultU64(builder *flatbuffers.Builder, defaultU64 uint64) {
-	builder.PrependUint64(defaultU64)
-	builder.Slot(23)
+	builder.PrependUint64Slot(23, defaultU64, 42)
 }
 func ScalarStuffAddJustF32(builder *flatbuffers.Builder, justF32 float32) {
-	builder.PrependFloat32(justF32)
-	builder.Slot(24)
+	builder.PrependFloat32Slot(24, justF32, 0.0)
 }
 func ScalarStuffAddMaybeF32(builder *flatbuffers.Builder, maybeF32 *float32) {
 	if maybeF32 != nil {
@@ -718,12 +701,10 @@ func ScalarStuffAddMaybeF32(builder *flatbuffers.Builder, maybeF32 *float32) {
 	}
 }
 func ScalarStuffAddDefaultF32(builder *flatbuffers.Builder, defaultF32 float32) {
-	builder.PrependFloat32(defaultF32)
-	builder.Slot(26)
+	builder.PrependFloat32Slot(26, defaultF32, 42.0)
 }
 func ScalarStuffAddJustF64(builder *flatbuffers.Builder, justF64 float64) {
-	builder.PrependFloat64(justF64)
-	builder.Slot(27)
+	builder.PrependFloat64Slot(27, justF64, 0.0)
 }
 func ScalarStuffAddMaybeF64(builder *flatbuffers.Builder, maybeF64 *float64) {
 	if maybeF64 != nil {
@@ -732,12 +713,10 @@ func ScalarStuffAddMaybeF64(builder *flatbuffers.Builder, maybeF64 *float64) {
 	}
 }
 func ScalarStuffAddDefaultF64(builder *flatbuffers.Builder, defaultF64 float64) {
-	builder.PrependFloat64(defaultF64)
-	builder.Slot(29)
+	builder.PrependFloat64Slot(29, defaultF64, 42.0)
 }
 func ScalarStuffAddJustBool(builder *flatbuffers.Builder, justBool bool) {
-	builder.PrependBool(justBool)
-	builder.Slot(30)
+	builder.PrependBoolSlot(30, justBool, false)
 }
 func ScalarStuffAddMaybeBool(builder *flatbuffers.Builder, maybeBool *bool) {
 	if maybeBool != nil {
@@ -746,12 +725,10 @@ func ScalarStuffAddMaybeBool(builder *flatbuffers.Builder, maybeBool *bool) {
 	}
 }
 func ScalarStuffAddDefaultBool(builder *flatbuffers.Builder, defaultBool bool) {
-	builder.PrependBool(defaultBool)
-	builder.Slot(32)
+	builder.PrependBoolSlot(32, defaultBool, true)
 }
 func ScalarStuffAddJustEnum(builder *flatbuffers.Builder, justEnum OptionalByte) {
-	builder.PrependInt8(int8(justEnum))
-	builder.Slot(33)
+	builder.PrependInt8Slot(33, int8(justEnum), 0)
 }
 func ScalarStuffAddMaybeEnum(builder *flatbuffers.Builder, maybeEnum *OptionalByte) {
 	if maybeEnum != nil {
@@ -760,8 +737,7 @@ func ScalarStuffAddMaybeEnum(builder *flatbuffers.Builder, maybeEnum *OptionalBy
 	}
 }
 func ScalarStuffAddDefaultEnum(builder *flatbuffers.Builder, defaultEnum OptionalByte) {
-	builder.PrependInt8(int8(defaultEnum))
-	builder.Slot(35)
+	builder.PrependInt8Slot(35, int8(defaultEnum), 1)
 }
 func ScalarStuffEnd(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
 	return builder.EndObject()
