@@ -356,8 +356,16 @@ class GoGenerator : public BaseGenerator {
     GenReceiver(struct_def, code_ptr);
     code += " " + MakeCamel(field.name);
     code += "() " + TypeName(field) + " ";
-    code += OffsetPrefix(field) + "\t\treturn ";
+    code += OffsetPrefix(field);
+    if (field.IsScalarOptional()) {
+      code += "\t\tv := ";
+    } else {
+      code += "\t\treturn ";
+    }
     code += CastToEnum(field.value.type, getter + "(o + rcv._tab.Pos)");
+    if (field.IsScalarOptional()) {
+      code += "\n\t\treturn &v";
+    }
     code += "\n\t}\n";
     code += "\treturn " + GenConstant(field) + "\n";
     code += "}\n\n";
@@ -571,16 +579,13 @@ class GoGenerator : public BaseGenerator {
     if (!IsScalar(field.value.type.base_type) && (!struct_def.fixed)) {
       code += "flatbuffers.UOffsetT";
     } else {
-      code += TypeName(field);
+      code += GenTypeGet(field.value.type);
     }
     code += ") {\n\t";
-    if (field.IsScalarOptional()) {
-      code += "if " + GoIdentity(field.name) + " != nil {\n\t\t";
-    }
     code += "builder.Prepend";
     code += GenMethod(field);
     if (field.IsScalarOptional()) {
-      code += "(*";
+      code += "(";
     } else {
       code += "Slot(" + NumToString(offset) + ", ";
     }
@@ -593,14 +598,11 @@ class GoGenerator : public BaseGenerator {
     }
     if (field.IsScalarOptional()) {
       code += ")\n";
-      code += "\t\tbuilder.Slot(" + NumToString(offset);
+      code += "\tbuilder.Slot(" + NumToString(offset);
     } else {
       code += ", " + GenConstant(field);
     }
     code += ")\n";
-    if (field.IsScalarOptional()) {
-      code += "\t}\n";
-    }
     code += "}\n";
   }
 
@@ -972,10 +974,18 @@ class GoGenerator : public BaseGenerator {
 
       std::string offset = MakeCamel(field.name, false) + "Offset";
       if (IsScalar(field.value.type.base_type)) {
+        std::string prefix;
+        if (field.IsScalarOptional()) {
+          code += "\tif t." + MakeCamel(field.name) + " != nil {\n\t";
+          prefix = "*";
+        }
         if (field.value.type.enum_def == nullptr ||
             !field.value.type.enum_def->is_union) {
           code += "\t" + struct_def.name + "Add" + MakeCamel(field.name) +
-                  "(builder, t." + MakeCamel(field.name) + ")\n";
+                  "(builder, " + prefix + "t." + MakeCamel(field.name) + ")\n";
+        }
+        if (field.IsScalarOptional()) {
+          code += "\t}\n";
         }
       } else {
         if (field.value.type.base_type == BASE_TYPE_STRUCT &&
