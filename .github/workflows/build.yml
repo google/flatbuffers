@@ -35,7 +35,7 @@ jobs:
 
   build-windows:
     name: Build Windows 2019 
-    runs-on: windows-latest
+    runs-on: windows-2019
     steps:
     - uses: actions/checkout@v2
     - name: Add msbuild to PATH
@@ -54,7 +54,7 @@ jobs:
 
   build-windows-2017:
     name: Build Windows 2017
-    runs-on: windows-latest
+    runs-on: windows-2019
     steps:
     - uses: actions/checkout@v2
     - name: Add msbuild to PATH
@@ -68,7 +68,7 @@ jobs:
 
   build-windows-2015:
     name: Build Windows 2015
-    runs-on: windows-latest
+    runs-on: windows-2019
     steps:
     - uses: actions/checkout@v2
     - name: Add msbuild to PATH
@@ -82,7 +82,7 @@ jobs:
 
   build-dotnet-windows:
     name: Build .NET Windows
-    runs-on: windows-latest
+    runs-on: windows-2019
     strategy:
       matrix:
         configuration: [
