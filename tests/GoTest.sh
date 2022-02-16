@@ -19,8 +19,8 @@ test_dir="$(pwd)"
 go_path=${test_dir}/go_gen
 go_src=${go_path}/src
 
-# Emit Go code for the example schema in the test dir:
-../flatc -g --gen-object-api -I include_test monster_test.fbs
+# Emit Go code for the example schemas in the test dir:
+../flatc -g --gen-object-api -I include_test monster_test.fbs optional_scalars.fbs
 
 # Go requires a particular layout of files in order to link multiple packages.
 # Copy flatbuffer Go files to their own package directories to compile the
@@ -29,6 +29,7 @@ mkdir -p ${go_src}/MyGame/Example
 mkdir -p ${go_src}/MyGame/Example2
 mkdir -p ${go_src}/github.com/google/flatbuffers/go
 mkdir -p ${go_src}/flatbuffers_test
+mkdir -p ${go_src}/optional_scalars
 
 cp -a MyGame/*.go ./go_gen/src/MyGame/
 cp -a MyGame/Example/*.go ./go_gen/src/MyGame/Example/
@@ -38,6 +39,7 @@ cp -a MyGame/Example2/*.go ./go_gen/src/MyGame/Example2/
 rm ./go_gen/src/MyGame/Example/*_grpc.go
 cp -a ../go/* ./go_gen/src/github.com/google/flatbuffers/go
 cp -a ./go_test.go ./go_gen/src/flatbuffers_test/
+cp -a optional_scalars/*.go ./go_gen/src/optional_scalars
 
 # Run tests with necessary flags.
 # Developers may wish to see more detail by appending the verbosity flag

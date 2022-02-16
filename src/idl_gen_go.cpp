@@ -356,8 +356,16 @@ class GoGenerator : public BaseGenerator {
     GenReceiver(struct_def, code_ptr);
     code += " " + MakeCamel(field.name);
     code += "() " + TypeName(field) + " ";
-    code += OffsetPrefix(field) + "\t\treturn ";
+    code += OffsetPrefix(field);
+    if (field.IsScalarOptional()) {
+      code += "\t\tv := ";
+    } else {
+      code += "\t\treturn ";
+    }
     code += CastToEnum(field.value.type, getter + "(o + rcv._tab.Pos)");
+    if (field.IsScalarOptional()) {
+      code += "\n\t\treturn &v";
+    }
     code += "\n\t}\n";
     code += "\treturn " + GenConstant(field) + "\n";
     code += "}\n\n";
@@ -571,12 +579,16 @@ class GoGenerator : public BaseGenerator {
     if (!IsScalar(field.value.type.base_type) && (!struct_def.fixed)) {
       code += "flatbuffers.UOffsetT";
     } else {
-      code += TypeName(field);
+      code += GenTypeGet(field.value.type);
     }
-    code += ") {\n";
-    code += "\tbuilder.Prepend";
-    code += GenMethod(field) + "Slot(";
-    code += NumToString(offset) + ", ";
+    code += ") {\n\t";
+    code += "builder.Prepend";
+    code += GenMethod(field);
+    if (field.IsScalarOptional()) {
+      code += "(";
+    } else {
+      code += "Slot(" + NumToString(offset) + ", ";
+    }
     if (!IsScalar(field.value.type.base_type) && (!struct_def.fixed)) {
       code += "flatbuffers.UOffsetT";
       code += "(";
@@ -584,8 +596,14 @@ class GoGenerator : public BaseGenerator {
     } else {
       code += CastToBaseType(field.value.type, GoIdentity(field.name));
     }
-    code += ", " + GenConstant(field);
-    code += ")\n}\n";
+    if (field.IsScalarOptional()) {
+      code += ")\n";
+      code += "\tbuilder.Slot(" + NumToString(offset);
+    } else {
+      code += ", " + GenConstant(field);
+    }
+    code += ")\n";
+    code += "}\n";
   }
 
   // Set the value of one of the members of a table's vector.
@@ -669,7 +687,7 @@ class GoGenerator : public BaseGenerator {
     std::string setter = "rcv._tab.Mutate" + type;
     GenReceiver(struct_def, code_ptr);
     code += " Mutate" + MakeCamel(field.name);
-    code += "(n " + TypeName(field) + ") bool {\n\treturn " + setter;
+    code += "(n " + GenTypeGet(field.value.type) + ") bool {\n\treturn " + setter;
     code += "(rcv._tab.Pos+flatbuffers.UOffsetT(";
     code += NumToString(field.value.offset) + "), ";
     code += CastToBaseType(field.value.type, "n") + ")\n}\n\n";
@@ -683,7 +701,7 @@ class GoGenerator : public BaseGenerator {
     std::string setter = "rcv._tab.Mutate" + type + "Slot";
     GenReceiver(struct_def, code_ptr);
     code += " Mutate" + MakeCamel(field.name);
-    code += "(n " + TypeName(field) + ") bool {\n\treturn ";
+    code += "(n " + GenTypeGet(field.value.type) + ") bool {\n\treturn ";
     code += setter + "(" + NumToString(field.value.offset) + ", ";
     code += CastToBaseType(field.value.type, "n") + ")\n";
     code += "}\n\n";
@@ -801,8 +819,11 @@ class GoGenerator : public BaseGenerator {
           field.value.type.enum_def != nullptr &&
           field.value.type.enum_def->is_union)
         continue;
-      code += "\t" + MakeCamel(field.name) + " " +
-              NativeType(field.value.type) + "\n";
+      code += "\t" + MakeCamel(field.name) + " ";
+      if (field.IsScalarOptional()) {
+        code += "*";
+      }
+      code += NativeType(field.value.type) + "\n";
     }
     code += "}\n\n";
 
@@ -953,10 +974,18 @@ class GoGenerator : public BaseGenerator {
 
       std::string offset = MakeCamel(field.name, false) + "Offset";
       if (IsScalar(field.value.type.base_type)) {
+        std::string prefix;
+        if (field.IsScalarOptional()) {
+          code += "\tif t." + MakeCamel(field.name) + " != nil {\n\t";
+          prefix = "*";
+        }
         if (field.value.type.enum_def == nullptr ||
             !field.value.type.enum_def->is_union) {
           code += "\t" + struct_def.name + "Add" + MakeCamel(field.name) +
-                  "(builder, t." + MakeCamel(field.name) + ")\n";
+                  "(builder, " + prefix + "t." + MakeCamel(field.name) + ")\n";
+        }
+        if (field.IsScalarOptional()) {
+          code += "\t}\n";
         }
       } else {
         if (field.value.type.base_type == BASE_TYPE_STRUCT &&
@@ -1192,7 +1221,11 @@ class GoGenerator : public BaseGenerator {
   }
 
   std::string TypeName(const FieldDef &field) {
-    return GenTypeGet(field.value.type);
+    std::string prefix;
+    if (field.IsScalarOptional()) {
+      prefix = "*";
+    }
+    return prefix + GenTypeGet(field.value.type);
   }
 
   // If type is an enum, returns value with a cast to the enum type, otherwise
@@ -1216,6 +1249,9 @@ class GoGenerator : public BaseGenerator {
   }
 
   std::string GenConstant(const FieldDef &field) {
+    if (field.IsScalarOptional()) {
+      return "nil";
+    }
     switch (field.value.type.base_type) {
       case BASE_TYPE_BOOL:
         return field.value.constant == "0" ? "false" : "true";
