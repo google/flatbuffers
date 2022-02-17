@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-use std::marker::PhantomData;
-use std::mem::size_of;
-use std::ops::Deref;
+use core::marker::PhantomData;
+use core::mem::size_of;
+use core::ops::Deref;
 
 use crate::endian_scalar::{emplace_scalar, read_scalar, read_scalar_at};
 use crate::follow::Follow;

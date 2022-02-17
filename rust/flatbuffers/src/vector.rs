@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-use std::fmt::{Debug, Formatter, Result};
-use std::iter::{DoubleEndedIterator, ExactSizeIterator, FusedIterator};
-use std::marker::PhantomData;
-use std::mem::size_of;
-use std::slice::from_raw_parts;
-use std::str::from_utf8_unchecked;
+use core::fmt::{Debug, Formatter, Result};
+use core::iter::{DoubleEndedIterator, ExactSizeIterator, FusedIterator};
+use core::marker::PhantomData;
+use core::mem::size_of;
+use core::slice::from_raw_parts;
+use core::str::from_utf8_unchecked;
 
 use crate::endian_scalar::read_scalar_at;
 #[cfg(target_endian = "little")]
@@ -306,5 +306,24 @@ impl<'a, 'b, T: Follow<'a> + 'a> IntoIterator for &'b Vector<'a, T> {
     type IntoIter = VectorIter<'a, T>;
     fn into_iter(self) -> Self::IntoIter {
         self.iter()
+    }
+}
+
+#[cfg(feature="serialize")]
+impl<'a, T> serde::ser::Serialize for Vector<'a, T>
+where
+    T: 'a + Follow<'a>,
+    <T as Follow<'a>>::Inner: serde::ser::Serialize,
+{
+    fn serialize<S>(&self, serializer: S) -> std::result::Result<S::Ok, S::Error>
+    where
+        S: serde::ser::Serializer,
+    {
+        use serde::ser::SerializeSeq;
+        let mut seq = serializer.serialize_seq(Some(self.len()))?;
+        for element in self {
+            seq.serialize_element(&element)?;
+        }
+        seq.end()
     }
 }

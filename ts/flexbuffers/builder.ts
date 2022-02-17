@@ -1,9 +1,9 @@
-import { BitWidth } from './bit-width'
-import { paddingSize, iwidth, uwidth, fwidth, toByteWidth, fromByteWidth } from './bit-width-util'
-import { toUTF8Array } from './flexbuffers-util'
-import { ValueType } from './value-type'
-import { isNumber, isTypedVectorElement, toTypedVector } from './value-type-util'
-import { StackValue } from './stack-value'
+import { BitWidth } from './bit-width.js'
+import { paddingSize, iwidth, uwidth, fwidth, toByteWidth, fromByteWidth } from './bit-width-util.js'
+import { toUTF8Array } from './flexbuffers-util.js'
+import { ValueType } from './value-type.js'
+import { isNumber, isTypedVectorElement, toTypedVector } from './value-type-util.js'
+import { StackValue } from './stack-value.js'
 
 interface StackPointer {
   stackPosition: number,

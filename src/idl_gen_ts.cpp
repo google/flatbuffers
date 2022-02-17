@@ -291,8 +291,7 @@ class TsGenerator : public BaseGenerator {
 
   std::string GenBBAccess() const { return "this.bb!"; }
 
-  std::string GenDefaultValue(const FieldDef &field, const std::string &context,
-                              import_set &imports) {
+  std::string GenDefaultValue(const FieldDef &field, import_set &imports) {
     if (field.IsScalarOptional()) { return "null"; }
 
     const auto &value = field.value;
@@ -319,10 +318,7 @@ class TsGenerator : public BaseGenerator {
 
       case BASE_TYPE_LONG:
       case BASE_TYPE_ULONG: {
-        int64_t constant = StringToInt(value.constant.c_str());
-        std::string createLong = context + ".createLong";
-        return createLong + "(" + NumToString(static_cast<int32_t>(constant)) +
-               ", " + NumToString(static_cast<int32_t>(constant >> 32)) + ")";
+        return "BigInt('" + value.constant + "')";
       }
 
       default: return value.constant;
@@ -347,8 +343,7 @@ class TsGenerator : public BaseGenerator {
     switch (type.base_type) {
       case BASE_TYPE_BOOL: return allowNull ? "boolean|null" : "boolean";
       case BASE_TYPE_LONG:
-      case BASE_TYPE_ULONG:
-        return allowNull ? "flatbuffers.Long|null" : "flatbuffers.Long";
+      case BASE_TYPE_ULONG: return allowNull ? "bigint|null" : "bigint";
       default:
         if (IsScalar(type.base_type)) {
           if (type.enum_def) {
@@ -1645,13 +1640,10 @@ class TsGenerator : public BaseGenerator {
                        allowNull && field.IsOptional());
   }
 
-  std::string GetArgName(const FieldDef &field) {
+  static std::string GetArgName(const FieldDef &field) {
     auto argname = MakeCamel(field.name, false);
-    if (!IsScalar(field.value.type.base_type)) { 
-      argname += "Offset";
-    } else {
-      argname = EscapeKeyword(argname);
-    }
+    if (!IsScalar(field.value.type.base_type)) { argname += "Offset"; }
+
     return argname;
   }
 

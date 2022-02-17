@@ -121,14 +121,3 @@ add this directive:
 set(FLATBUFFERS_MAX_PARSING_DEPTH 16)
 ```
 to `CMakeLists.txt` file before `add_subdirectory(${FLATBUFFERS_SRC_DIR})` line.
-
-#### For Google Play apps
-
-For applications on Google Play that integrate this library, usage is tracked.
-This tracking is done automatically using the embedded version string
-(flatbuffer_version_string), and helps us continue to optimize it.
-Aside from consuming a few extra bytes in your application binary, it shouldn't
-affect your application at all. We use this information to let us know if
-FlatBuffers is useful and if we should continue to invest in it. Since this is
-open source, you are free to remove the version string but we would appreciate
-if you would leave it in.

@@ -70,6 +70,7 @@ impl<'a> flatbuffers::Verifiable for StructOfStructs {
     v.in_buffer::<Self>(pos)
   }
 }
+
 impl<'a> StructOfStructs {
   #[allow(clippy::too_many_arguments)]
   pub fn new(

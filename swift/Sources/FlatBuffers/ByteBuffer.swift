@@ -387,6 +387,16 @@ public struct ByteBuffer {
       removing: _writerSize &- removeBytes)
   }
 
+  /// Returns the written bytes into the ``ByteBuffer``
+    public var underlyingBytes: [UInt8] {
+      let cp = capacity &- writerIndex
+      let start = memory.advanced(by: writerIndex)
+                                .bindMemory(to: UInt8.self, capacity: cp)
+
+      let ptr = UnsafeBufferPointer<UInt8>(start: start, count: cp)
+      return Array(ptr)
+  }
+
   /// SkipPrefix Skips the first 4 bytes in case one of the following
   /// functions are called `getPrefixedSizeCheckedRoot` & `getPrefixedSizeRoot`
   /// which allows us to skip the first 4 bytes instead of recreating the buffer

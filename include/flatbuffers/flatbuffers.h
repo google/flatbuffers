@@ -226,27 +226,13 @@ struct TypeTable {
 };
 
 // String which identifies the current version of FlatBuffers.
-// flatbuffer_version_string is used by Google developers to identify which
-// applications uploaded to Google Play are using this library.  This allows
-// the development team at Google to determine the popularity of the library.
-// How it works: Applications that are uploaded to the Google Play Store are
-// scanned for this version string.  We track which applications are using it
-// to measure popularity.  You are free to remove it (of course) but we would
-// appreciate if you left it in.
+inline const char *flatbuffers_version_string() {
+  return "FlatBuffers " FLATBUFFERS_STRING(FLATBUFFERS_VERSION_MAJOR) "."
+      FLATBUFFERS_STRING(FLATBUFFERS_VERSION_MINOR) "."
+      FLATBUFFERS_STRING(FLATBUFFERS_VERSION_REVISION);
+}
 
-// Weak linkage is culled by VS & doesn't work on cygwin.
 // clang-format off
-#if !defined(_WIN32) && !defined(__CYGWIN__)
-
-extern volatile __attribute__((weak)) const char *flatbuffer_version_string;
-volatile __attribute__((weak)) const char *flatbuffer_version_string =
-  "FlatBuffers "
-  FLATBUFFERS_STRING(FLATBUFFERS_VERSION_MAJOR) "."
-  FLATBUFFERS_STRING(FLATBUFFERS_VERSION_MINOR) "."
-  FLATBUFFERS_STRING(FLATBUFFERS_VERSION_REVISION);
-
-#endif  // !defined(_WIN32) && !defined(__CYGWIN__)
-
 #define FLATBUFFERS_DEFINE_BITMASK_OPERATORS(E, T)\
     inline E operator | (E lhs, E rhs){\
         return E(T(lhs) | T(rhs));\

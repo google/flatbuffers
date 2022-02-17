@@ -6,7 +6,6 @@ package MyGame.Example
  * Composite components of Monster color.
  */
 @Suppress("unused")
-@ExperimentalUnsignedTypes
 class Color private constructor() {
     companion object {
         const val Red: UByte = 1u

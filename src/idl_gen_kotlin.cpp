@@ -259,7 +259,6 @@ class KotlinGenerator : public BaseGenerator {
     GenerateComment(enum_def.doc_comment, writer, &comment_config);
 
     writer += "@Suppress(\"unused\")";
-    writer += "@ExperimentalUnsignedTypes";
     writer += "class " + Esc(enum_def.name) + " private constructor() {";
     writer.IncrementIdentLevel();
 
@@ -461,7 +460,6 @@ class KotlinGenerator : public BaseGenerator {
     writer.SetValue("superclass", fixed ? "Struct" : "Table");
 
     writer += "@Suppress(\"unused\")";
-    writer += "@ExperimentalUnsignedTypes";
     writer += "class {{struct_name}} : {{superclass}}() {\n";
 
     writer.IncrementIdentLevel();

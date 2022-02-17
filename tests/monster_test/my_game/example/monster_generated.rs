@@ -71,6 +71,7 @@ impl<'a> Monster<'a> {
   pub const VT_SIGNED_ENUM: flatbuffers::VOffsetT = 100;
   pub const VT_TESTREQUIREDNESTEDFLATBUFFER: flatbuffers::VOffsetT = 102;
   pub const VT_SCALAR_KEY_SORTED_TABLES: flatbuffers::VOffsetT = 104;
+  pub const VT_NATIVE_INLINE: flatbuffers::VOffsetT = 106;
 
   pub const fn get_fully_qualified_name() -> &'static str {
     "MyGame.Example.Monster"
@@ -93,6 +94,7 @@ impl<'a> Monster<'a> {
     builder.add_testhashs64_fnv1a(args.testhashs64_fnv1a);
     builder.add_testhashu64_fnv1(args.testhashu64_fnv1);
     builder.add_testhashs64_fnv1(args.testhashs64_fnv1);
+    if let Some(x) = args.native_inline { builder.add_native_inline(x); }
     if let Some(x) = args.scalar_key_sorted_tables { builder.add_scalar_key_sorted_tables(x); }
     if let Some(x) = args.testrequirednestedflatbuffer { builder.add_testrequirednestedflatbuffer(x); }
     if let Some(x) = args.vector_of_enums { builder.add_vector_of_enums(x); }
@@ -292,6 +294,9 @@ impl<'a> Monster<'a> {
     let scalar_key_sorted_tables = self.scalar_key_sorted_tables().map(|x| {
       x.iter().map(|t| t.unpack()).collect()
     });
+    let native_inline = self.native_inline().map(|x| {
+      x.unpack()
+    });
     MonsterT {
       pos,
       mana,
@@ -340,6 +345,7 @@ impl<'a> Monster<'a> {
       signed_enum,
       testrequirednestedflatbuffer,
       scalar_key_sorted_tables,
+      native_inline,
     }
   }
 
@@ -568,6 +574,10 @@ impl<'a> Monster<'a> {
     self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'a, flatbuffers::ForwardsUOffset<Stat>>>>(Monster::VT_SCALAR_KEY_SORTED_TABLES, None)
   }
   #[inline]
+  pub fn native_inline(&self) -> Option<&'a Test> {
+    self._tab.get::<Test>(Monster::VT_NATIVE_INLINE, None)
+  }
+  #[inline]
   #[allow(non_snake_case)]
   pub fn test_as_monster(&self) -> Option<Monster<'a>> {
     if self.test_type() == Any::Monster {
@@ -734,6 +744,7 @@ impl flatbuffers::Verifiable for Monster<'_> {
      .visit_field::<Race>("signed_enum", Self::VT_SIGNED_ENUM, false)?
      .visit_field::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'_, u8>>>("testrequirednestedflatbuffer", Self::VT_TESTREQUIREDNESTEDFLATBUFFER, false)?
      .visit_field::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'_, flatbuffers::ForwardsUOffset<Stat>>>>("scalar_key_sorted_tables", Self::VT_SCALAR_KEY_SORTED_TABLES, false)?
+     .visit_field::<Test>("native_inline", Self::VT_NATIVE_INLINE, false)?
      .finish();
     Ok(())
   }
@@ -789,6 +800,7 @@ pub struct MonsterArgs<'a> {
     pub signed_enum: Race,
     pub testrequirednestedflatbuffer: Option<flatbuffers::WIPOffset<flatbuffers::Vector<'a, u8>>>,
     pub scalar_key_sorted_tables: Option<flatbuffers::WIPOffset<flatbuffers::Vector<'a, flatbuffers::ForwardsUOffset<Stat<'a>>>>>,
+    pub native_inline: Option<&'a Test>,
 }
 impl<'a> Default for MonsterArgs<'a> {
   #[inline]
@@ -844,9 +856,11 @@ impl<'a> Default for MonsterArgs<'a> {
       signed_enum: Race::None,
       testrequirednestedflatbuffer: None,
       scalar_key_sorted_tables: None,
+      native_inline: None,
     }
   }
 }
+
 pub struct MonsterBuilder<'a: 'b, 'b> {
   fbb_: &'b mut flatbuffers::FlatBufferBuilder<'a>,
   start_: flatbuffers::WIPOffset<flatbuffers::TableUnfinishedWIPOffset>,
@@ -1053,6 +1067,10 @@ impl<'a: 'b, 'b> MonsterBuilder<'a, 'b> {
     self.fbb_.push_slot_always::<flatbuffers::WIPOffset<_>>(Monster::VT_SCALAR_KEY_SORTED_TABLES, scalar_key_sorted_tables);
   }
   #[inline]
+  pub fn add_native_inline(&mut self, native_inline: &Test) {
+    self.fbb_.push_slot_always::<&Test>(Monster::VT_NATIVE_INLINE, native_inline);
+  }
+  #[inline]
   pub fn new(_fbb: &'b mut flatbuffers::FlatBufferBuilder<'a>) -> MonsterBuilder<'a, 'b> {
     let start = _fbb.start_table();
     MonsterBuilder {
@@ -1199,6 +1217,7 @@ impl std::fmt::Debug for Monster<'_> {
       ds.field("signed_enum", &self.signed_enum());
       ds.field("testrequirednestedflatbuffer", &self.testrequirednestedflatbuffer());
       ds.field("scalar_key_sorted_tables", &self.scalar_key_sorted_tables());
+      ds.field("native_inline", &self.native_inline());
       ds.finish()
   }
 }
@@ -1252,6 +1271,7 @@ pub struct MonsterT {
   pub signed_enum: Race,
   pub testrequirednestedflatbuffer: Option<Vec<u8>>,
   pub scalar_key_sorted_tables: Option<Vec<StatT>>,
+  pub native_inline: Option<TestT>,
 }
 impl Default for MonsterT {
   fn default() -> Self {
@@ -1303,6 +1323,7 @@ impl Default for MonsterT {
       signed_enum: Race::None,
       testrequirednestedflatbuffer: None,
       scalar_key_sorted_tables: None,
+      native_inline: None,
     }
   }
 }
@@ -1411,6 +1432,8 @@ impl MonsterT {
     let scalar_key_sorted_tables = self.scalar_key_sorted_tables.as_ref().map(|x|{
       let w: Vec<_> = x.iter().map(|t| t.pack(_fbb)).collect();_fbb.create_vector(&w)
     });
+    let native_inline_tmp = self.native_inline.as_ref().map(|x| x.pack());
+    let native_inline = native_inline_tmp.as_ref();
     Monster::create(_fbb, &MonsterArgs{
       pos,
       mana,
@@ -1462,6 +1485,7 @@ impl MonsterT {
       signed_enum,
       testrequirednestedflatbuffer,
       scalar_key_sorted_tables,
+      native_inline,
     })
   }
 }

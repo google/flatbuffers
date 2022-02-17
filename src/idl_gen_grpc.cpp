@@ -242,7 +242,9 @@ class FlatBufFile : public grpc_generator::File {
     return StripExtension(file_name_);
   }
 
-  std::string message_header_ext() const { return "_generated.h"; }
+  std::string message_header_ext() const {
+    return parser_.opts.filename_suffix + ".h";
+  }
 
   std::string service_header_ext() const { return ".grpc.fb.h"; }
 

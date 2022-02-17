@@ -1,9 +1,6 @@
-import { BitWidth } from './bit-width'
-import { toByteWidth, fromByteWidth } from './bit-width-util'
-import { toUTF8Array, fromUTF8Array } from './flexbuffers-util'
-import { Reference } from './reference'
-
-import { Long } from '../long'
+import { BitWidth } from './bit-width.js'
+import { toByteWidth, fromByteWidth } from './bit-width-util.js'
+import { toUTF8Array, fromUTF8Array } from './flexbuffers-util.js'
 
 export function validateOffset(dataView: DataView, offset: number, width: number): void {
   if (dataView.byteLength <= offset + width || (offset & (toByteWidth(width) - 1)) !== 0) {
@@ -11,7 +8,7 @@ export function validateOffset(dataView: DataView, offset: number, width: number
   }
 }
 
-export function readInt(dataView: DataView, offset: number, width: number): number | Long | bigint {
+export function readInt(dataView: DataView, offset: number, width: number): number | bigint {
   if (width < 2) {
     if (width < 1) {
       return dataView.getInt8(offset);
@@ -23,14 +20,14 @@ export function readInt(dataView: DataView, offset: number, width: number): numb
       return dataView.getInt32(offset, true)
     } else {
       if (dataView.setBigInt64 === undefined) {
-        return new Long(dataView.getUint32(offset, true), dataView.getUint32(offset + 4, true))
+        return BigInt(dataView.getUint32(offset, true)) + (BigInt(dataView.getUint32(offset + 4, true)) << BigInt(32));
       }
       return dataView.getBigInt64(offset, true)
     }
   }
 }
 
-export function readUInt(dataView: DataView, offset: number, width: number): number | Long | bigint {
+export function readUInt(dataView: DataView, offset: number, width: number): number | bigint {
   if (width < 2) {
     if (width < 1) {
       return dataView.getUint8(offset);
@@ -42,7 +39,7 @@ export function readUInt(dataView: DataView, offset: number, width: number): num
       return dataView.getUint32(offset, true)
     } else {
       if (dataView.getBigUint64 === undefined) {
-        return new Long(dataView.getUint32(offset, true), dataView.getUint32(offset + 4, true))
+        return BigInt(dataView.getUint32(offset, true)) + (BigInt(dataView.getUint32(offset + 4, true)) << BigInt(32));
       }
       return dataView.getBigUint64(offset, true)
     }
@@ -95,13 +92,6 @@ export function diffKeys(input: Uint8Array, index: number, dataView: DataView, o
     }
   }
   return dataView.getUint8(keyIndirectOffset + input.length) === 0 ? 0 : -1;
-}
-
-export function valueForIndexWithKey(index: number, key: string, dataView: DataView, offset: number, parentWidth: number, byteWidth: number, length: number, path: string): Reference {
-  const _indirect = indirect(dataView, offset, parentWidth);
-  const elementOffset = _indirect + index * byteWidth;
-  const packedType = dataView.getUint8(_indirect + length * byteWidth + index);
-  return new Reference(dataView, elementOffset, fromByteWidth(byteWidth), packedType, `${path}/${key}`)
 }
 
 export function keyForIndex(index: number, dataView: DataView, offset: number, parentWidth: number, byteWidth: number): string {

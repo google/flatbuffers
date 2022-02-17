@@ -763,7 +763,7 @@ public class FlexBuffersBuilder {
                     // Compute relative offset.
                     long offset = offsetLoc - iValue;
                     // Does it fit?
-                    int bitWidth = widthUInBits((int) offset);
+                    int bitWidth = widthUInBits(offset);
                     if (((1L) << bitWidth) == byteWidth)
                         return bitWidth;
                 }

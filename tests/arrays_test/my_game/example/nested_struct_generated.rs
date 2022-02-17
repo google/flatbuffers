@@ -71,6 +71,7 @@ impl<'a> flatbuffers::Verifiable for NestedStruct {
     v.in_buffer::<Self>(pos)
   }
 }
+
 impl<'a> NestedStruct {
   #[allow(clippy::too_many_arguments)]
   pub fn new(

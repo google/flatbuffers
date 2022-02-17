@@ -205,6 +205,7 @@ impl<'a> Default for MonsterArgs<'a> {
     }
   }
 }
+
 pub struct MonsterBuilder<'a: 'b, 'b> {
   fbb_: &'b mut flatbuffers::FlatBufferBuilder<'a>,
   start_: flatbuffers::WIPOffset<flatbuffers::TableUnfinishedWIPOffset>,

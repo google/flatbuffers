@@ -23,7 +23,7 @@
 namespace flatbuffers {
 
 int64_t GetAnyValueI(reflection::BaseType type, const uint8_t *data) {
-// clang-format off
+  // clang-format off
   #define FLATBUFFERS_GET(T) static_cast<int64_t>(ReadScalar<T>(data))
   switch (type) {
     case reflection::UType:
@@ -121,7 +121,7 @@ std::string GetAnyValueS(reflection::BaseType type, const uint8_t *data,
 }
 
 void SetAnyValueI(reflection::BaseType type, uint8_t *data, int64_t val) {
-// clang-format off
+  // clang-format off
   #define FLATBUFFERS_SET(T) WriteScalar(data, static_cast<T>(val))
   switch (type) {
     case reflection::UType:
@@ -505,8 +505,9 @@ bool VerifyStruct(flatbuffers::Verifier &v,
   auto offset = parent_table.GetOptionalFieldOffset(field_offset);
   if (required && !offset) { return false; }
 
-  return !offset || v.Verify(reinterpret_cast<const uint8_t *>(&parent_table),
-                             offset, obj.bytesize());
+  return !offset ||
+         v.VerifyFieldStruct(reinterpret_cast<const uint8_t *>(&parent_table),
+                             offset, obj.bytesize(), obj.minalign());
 }
 
 bool VerifyVectorOfStructs(flatbuffers::Verifier &v,
@@ -553,7 +554,8 @@ bool VerifyVector(flatbuffers::Verifier &v, const reflection::Schema &schema,
                   const flatbuffers::Table &table,
                   const reflection::Field &vec_field) {
   FLATBUFFERS_ASSERT(vec_field.type()->base_type() == reflection::Vector);
-  if (!table.VerifyField<uoffset_t>(v, vec_field.offset())) return false;
+  if (!table.VerifyField<uoffset_t>(v, vec_field.offset(), sizeof(uoffset_t)))
+    return false;
 
   switch (vec_field.type()->element()) {
     case reflection::UType:
@@ -636,33 +638,45 @@ bool VerifyObject(flatbuffers::Verifier &v, const reflection::Schema &schema,
     switch (field_def->type()->base_type()) {
       case reflection::None: FLATBUFFERS_ASSERT(false); break;
       case reflection::UType:
-        if (!table->VerifyField<uint8_t>(v, field_def->offset())) return false;
+        if (!table->VerifyField<uint8_t>(v, field_def->offset(),
+                                         sizeof(uint8_t)))
+          return false;
         break;
       case reflection::Bool:
       case reflection::Byte:
       case reflection::UByte:
-        if (!table->VerifyField<int8_t>(v, field_def->offset())) return false;
+        if (!table->VerifyField<int8_t>(v, field_def->offset(), sizeof(int8_t)))
+          return false;
         break;
       case reflection::Short:
       case reflection::UShort:
-        if (!table->VerifyField<int16_t>(v, field_def->offset())) return false;
+        if (!table->VerifyField<int16_t>(v, field_def->offset(),
+                                         sizeof(int16_t)))
+          return false;
         break;
       case reflection::Int:
       case reflection::UInt:
-        if (!table->VerifyField<int32_t>(v, field_def->offset())) return false;
+        if (!table->VerifyField<int32_t>(v, field_def->offset(),
+                                         sizeof(int32_t)))
+          return false;
         break;
       case reflection::Long:
       case reflection::ULong:
-        if (!table->VerifyField<int64_t>(v, field_def->offset())) return false;
+        if (!table->VerifyField<int64_t>(v, field_def->offset(),
+                                         sizeof(int64_t)))
+          return false;
         break;
       case reflection::Float:
-        if (!table->VerifyField<float>(v, field_def->offset())) return false;
+        if (!table->VerifyField<float>(v, field_def->offset(), sizeof(float)))
+          return false;
         break;
       case reflection::Double:
-        if (!table->VerifyField<double>(v, field_def->offset())) return false;
+        if (!table->VerifyField<double>(v, field_def->offset(), sizeof(double)))
+          return false;
         break;
       case reflection::String:
-        if (!table->VerifyField<uoffset_t>(v, field_def->offset()) ||
+        if (!table->VerifyField<uoffset_t>(v, field_def->offset(),
+                                           sizeof(uoffset_t)) ||
             !v.VerifyString(flatbuffers::GetFieldS(*table, *field_def))) {
           return false;
         }

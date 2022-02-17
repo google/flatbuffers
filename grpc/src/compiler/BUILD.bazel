@@ -7,7 +7,6 @@ package(
 filegroup(
     name = "common_headers",
     srcs = [
-        "config.h",
         "schema_interface.h",
     ],
 )

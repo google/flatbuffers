@@ -47,13 +47,13 @@ grpc::string ToDasherizedCase(const grpc::string pascal_case) {
 }
 
 
-grpc::string GenerateNamespace(const std::vector<std::string> namepsace,
+grpc::string GenerateNamespace(const std::vector<std::string> ns,
                                const std::string filename,
                                const bool include_separator) {
   grpc::string path = "";
   if (include_separator) path += ".";
 
-  for (auto it = namepsace.begin(); it < namepsace.end(); it++) {
+  for (auto it = ns.begin(); it < ns.end(); it++) {
     if (include_separator) path += "/";
     path += include_separator ? ToDasherizedCase(*it) : *it + "_";
   }

@@ -73,6 +73,11 @@ function createMonster(fbb) {
     fbb.createString('test2')
   ]);
 
+  var testVectorOfLongs = Monster.createVectorOfLongsVector(fbb, [
+    1n,
+    101010100n
+  ]);
+
   Monster.startMonster(fbb);
   Monster.addPos(fbb, Vec3.createVec3(fbb, 1, 2, 3, 3, Color.Green, 5, 6));
   Monster.addHp(fbb, 80);
@@ -82,6 +87,7 @@ function createMonster(fbb) {
   Monster.addTest(fbb, mon2);
   Monster.addTest4(fbb, test4);
   Monster.addTestarrayofstring(fbb, testArrayOfString);
+  Monster.addVectorOfLongs(fbb, testVectorOfLongs);
   Monster.addTestbool(fbb, true);
   var mon = Monster.endMonster(fbb);
 
@@ -94,7 +100,7 @@ function serializeAndTest(fbb) {
   // parser may serialize in a slightly different order than the above
   // JavaScript code. They are functionally equivalent though.
 
-  fs.writeFileSync('monsterdata_javascript_wire.mon', new Buffer(fbb.asUint8Array()));
+  fs.writeFileSync('monsterdata_javascript_wire.mon', Buffer.from(fbb.asUint8Array()));
 
   // Tests mutation first.  This will verify that we did not trample any other
   // part of the byte buffer.
@@ -207,6 +213,12 @@ function testBuffer(bb) {
   }
   assert.strictEqual(invsum2, 10);
 
+  let longSum = 0n;
+  for (let idx = 0; idx < monster.vectorOfLongsLength(); ++idx) {
+    longSum += monster.vectorOfLongs(idx);
+  }
+  assert.strictEqual(longSum, 101010101n);
+
   var test_0 = monster.test4(0);
   var test_1 = monster.test4(1);
   assert.strictEqual(monster.test4Length(), 2);
@@ -239,8 +251,8 @@ function test64bit() {
   var mon2 = Monster.endMonster(fbb);
 
   Stat.startStat(fbb);
-  // 2541551405100253985 = 0x87654321(low part) + 0x23456789 * 0x100000000(high part);
-  Stat.addVal(fbb, new flatbuffers.Long(0x87654321, 0x23456789));    // the low part is Uint32
+  // 2541551405100253985 = 0x2345678987654321
+  Stat.addVal(fbb, 0x2345678987654321n);
   var stat = Stat.endStat(fbb);
 
   Monster.startMonster(fbb);
@@ -261,15 +273,14 @@ function test64bit() {
   var stat = mon.testempty();
   assert.strictEqual(stat != null, true);
   assert.strictEqual(stat.val() != null, true);
-  assert.strictEqual(stat.val().toFloat64(), 2541551405100253985);
+  assert.strictEqual(stat.val(), 2541551405100253985n);
 
   var mon2 = mon.enemy();
   assert.strictEqual(mon2 != null, true);
   stat = mon2.testempty();
   assert.strictEqual(stat != null, true);
   assert.strictEqual(stat.val() != null, true);
-  assert.strictEqual(stat.val().low, 0); // default value
-  assert.strictEqual(stat.val().high, 0);
+  assert.strictEqual(stat.val(), 0n); // default value
 }
 
 function testUnicode() {
@@ -280,17 +291,17 @@ function testUnicode() {
   function testReadingUnicode(bb) {
     var monster = Monster.getRootAsMonster(bb);
     assert.strictEqual(monster.name(), json.name);
-    assert.deepEqual(new Buffer(monster.name(flatbuffers.Encoding.UTF8_BYTES)), new Buffer(json.name));
+    assert.deepEqual(Buffer.from(monster.name(flatbuffers.Encoding.UTF8_BYTES)), Buffer.from(json.name));
     assert.strictEqual(monster.testarrayoftablesLength(), json.testarrayoftables.length);
     json.testarrayoftables.forEach(function(table, i) {
       var value = monster.testarrayoftables(i);
       assert.strictEqual(value.name(), table.name);
-      assert.deepEqual(new Buffer(value.name(flatbuffers.Encoding.UTF8_BYTES)), new Buffer(table.name));
+      assert.deepEqual(Buffer.from(value.name(flatbuffers.Encoding.UTF8_BYTES)), Buffer.from(table.name));
     });
     assert.strictEqual(monster.testarrayofstringLength(), json.testarrayofstring.length);
     json.testarrayofstring.forEach(function(string, i) {
       assert.strictEqual(monster.testarrayofstring(i), string);
-      assert.deepEqual(new Buffer(monster.testarrayofstring(i, flatbuffers.Encoding.UTF8_BYTES)), new Buffer(string));
+      assert.deepEqual(Buffer.from(monster.testarrayofstring(i, flatbuffers.Encoding.UTF8_BYTES)), Buffer.from(string));
     });
   }
   testReadingUnicode(new flatbuffers.ByteBuffer(new Uint8Array(correct)));
@@ -299,7 +310,7 @@ function testUnicode() {
   var fbb = new flatbuffers.Builder();
   var name = fbb.createString(json.name);
   var testarrayoftablesOffsets = json.testarrayoftables.map(function(table) {
-    var name = fbb.createString(new Uint8Array(new Buffer(table.name)));
+    var name = fbb.createString(new Uint8Array(Buffer.from(table.name)));
     Monster.startMonster(fbb);
     Monster.addName(fbb, name);
     return Monster.endMonster(fbb);
@@ -359,8 +370,8 @@ function fuzzTest1() {
   var ushort_val = 0xFEEE;
   var int_val    = 0x83333333 | 0;
   var uint_val   = 0xFDDDDDDD;
-  var long_val   = new flatbuffers.Long(0x44444444, 0x84444444);
-  var ulong_val  = new flatbuffers.Long(0xCCCCCCCC, 0xFCCCCCCC);
+  var long_val   = BigInt.asIntN(64, 0x8444444444444444n);
+  var ulong_val  = BigInt.asUintN(64, 0xFCCCCCCCCCCCCCCCn);
   var float_val  = new Float32Array([3.14159])[0];
   var double_val = 3.14159265359;
 
@@ -381,16 +392,16 @@ function fuzzTest1() {
     for (var f = 0; f < fields_per_object; f++) {
       var choice = lcg_rand() % test_values_max;
       switch (choice) {
-        case 0:  builder.addFieldInt8(f, bool_val,   0); break;
-        case 1:  builder.addFieldInt8(f, char_val,   0); break;
-        case 2:  builder.addFieldInt8(f, uchar_val,  0); break;
-        case 3:  builder.addFieldInt16(f, short_val,  0); break;
+        case 0:  builder.addFieldInt8(f, bool_val, 0); break;
+        case 1:  builder.addFieldInt8(f, char_val, 0); break;
+        case 2:  builder.addFieldInt8(f, uchar_val, 0); break;
+        case 3:  builder.addFieldInt16(f, short_val, 0); break;
         case 4:  builder.addFieldInt16(f, ushort_val, 0); break;
-        case 5:  builder.addFieldInt32(f, int_val,    0); break;
-        case 6:  builder.addFieldInt32(f, uint_val,   0); break;
-        case 7:  builder.addFieldInt64(f, long_val,   flatbuffers.Long.ZERO); break;
-        case 8:  builder.addFieldInt64(f, ulong_val,  flatbuffers.Long.ZERO); break;
-        case 9:  builder.addFieldFloat32(f, float_val,  0); break;
+        case 5:  builder.addFieldInt32(f, int_val, 0); break;
+        case 6:  builder.addFieldInt32(f, uint_val, 0); break;
+        case 7:  builder.addFieldInt64(f, long_val, 0n); break;
+        case 8:  builder.addFieldInt64(f, ulong_val, 0n); break;
+        case 9:  builder.addFieldFloat32(f, float_val, 0); break;
         case 10: builder.addFieldFloat64(f, double_val, 0); break;
       }
     }
@@ -423,8 +434,8 @@ function fuzzTest1() {
         case 4:  assert.strictEqual(view.getUint16(field_offset, true), ushort_val); break;
         case 5:  assert.strictEqual(view.getInt32(field_offset, true), int_val); break;
         case 6:  assert.strictEqual(view.getUint32(field_offset, true), uint_val); break;
-        case 7:  assert.strictEqual(view.getInt32(field_offset, true), long_val.low); assert.strictEqual(view.getInt32(field_offset + 4, true), long_val.high); break;
-        case 8:  assert.strictEqual(view.getInt32(field_offset, true), ulong_val.low); assert.strictEqual(view.getInt32(field_offset + 4, true), ulong_val.high); break;
+        case 7:  assert.strictEqual(view.getBigInt64(field_offset, true), long_val); break;
+        case 8:  assert.strictEqual(view.getBigUint64(field_offset, true), ulong_val); break;
         case 9:  assert.strictEqual(view.getFloat32(field_offset, true), float_val); break;
         case 10: assert.strictEqual(view.getFloat64(field_offset, true), double_val); break;
       }

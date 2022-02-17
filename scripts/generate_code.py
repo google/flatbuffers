@@ -14,6 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import argparse
 import filecmp
 import glob
 import platform
@@ -21,6 +22,24 @@ import shutil
 import subprocess
 import sys
 from pathlib import Path
+
+parser = argparse.ArgumentParser()
+parser.add_argument(
+    "--flatc",
+    help="path of the Flat C compiler relative to the root directory",
+)
+parser.add_argument("--cpp-0x", action="store_true", help="use --cpp-std c++ox")
+parser.add_argument(
+    "--skip-monster-extra",
+    action="store_true",
+    help="skip generating tests involving monster_extra.fbs",
+)
+parser.add_argument(
+    "--skip-gen-reflection",
+    action="store_true",
+    help="skip generating the reflection.fbs files",
+)
+args = parser.parse_args()
 
 # Get the path where this script is located so we can invoke the script from
 # any directory and have the paths work correctly.
@@ -33,8 +52,8 @@ root_path = script_path.parent.absolute()
 # argument or defaulting to default names.
 flatc_exe = Path(
     ("flatc" if not platform.system() == "Windows" else "flatc.exe")
-    if len(sys.argv) <= 1
-    else sys.argv[1]
+    if not args.flatc
+    else args.flatc
 )
 
 # Find and assert flatc compiler is present.
@@ -60,7 +79,25 @@ def flatc(
     cmd += [schema] if isinstance(schema, str) else schema
     if data:
         cmd += [data] if isinstance(data, str) else data
-    subprocess.run(cmd, cwd=cwd)
+    result = subprocess.run(cmd, cwd=str(cwd), check=True)
+
+
+# Generate the code for flatbuffers reflection schema
+def flatc_reflection(options, location, target):
+    full_options = ["--no-prefix"] + options
+    temp_dir = ".tmp"
+    flatc(
+        full_options,
+        prefix=temp_dir,
+        schema="reflection.fbs",
+        cwd=reflection_path,
+    )
+    new_reflection_path = Path(reflection_path, temp_dir, target)
+    original_reflection_path = Path(root_path, location, target)
+    if not filecmp.cmp(str(new_reflection_path), str(original_reflection_path)):
+        shutil.rmtree(str(original_reflection_path))
+        shutil.move(str(new_reflection_path), str(original_reflection_path))
+    shutil.rmtree(str(Path(reflection_path, temp_dir)))
 
 
 # Glob a pattern relative to file path
@@ -79,7 +116,8 @@ CPP_OPTS = [
     "--gen-compare",
     "--cpp-ptr-type",
     "flatbuffers::unique_ptr",
-]
+] + (["--cpp-std", "c++0x"] if args.cpp_0x else [])
+
 CPP_17_OPTS = NO_INCL_OPTS + [
     "--cpp",
     "--cpp-std",
@@ -88,6 +126,12 @@ CPP_17_OPTS = NO_INCL_OPTS + [
     "--gen-object-api",
 ]
 RUST_OPTS = BASE_OPTS + ["--rust", "--gen-all", "--gen-name-strings"]
+RUST_SERIALIZE_OPTS = BASE_OPTS + [
+    "--rust",
+    "--gen-all",
+    "--gen-name-strings",
+    "--rust-serialize",
+]
 TS_OPTS = ["--ts", "--gen-name-strings"]
 LOBSTER_OPTS = ["--lobster"]
 SWIFT_OPTS = ["--swift", "--gen-json-emit", "--bfbs-filenames", str(tests_path)]
@@ -112,12 +156,17 @@ flatc(
         "--dart",
         "--go",
         "--lobster",
-        "--lua",
         "--php",
     ],
     schema="monster_test.fbs",
     include="include_test",
     data="monsterdata_test.json",
+)
+
+flatc(
+    ["--lua", "--bfbs-filenames", str(tests_path)],
+    schema="monster_test.fbs",
+    include="include_test",
 )
 
 flatc(
@@ -136,7 +185,22 @@ flatc(
 )
 
 flatc(
+    RUST_SERIALIZE_OPTS,
+    schema="monster_test.fbs",
+    include="include_test",
+    prefix="monster_test_serialize",
+    data="monsterdata_test.json",
+)
+
+flatc(
     options=BASE_OPTS + ["--python"],
+    schema="monster_test.fbs",
+    include="include_test",
+    data="monsterdata_test.json",
+)
+
+flatc(
+    options=BASE_OPTS + ["--python", "--gen-onefile"],
     schema="monster_test.fbs",
     include="include_test",
     data="monsterdata_test.json",
@@ -230,11 +294,22 @@ flatc(
     schema="monster_test.fbs",
 )
 
-flatc(
-    CPP_OPTS + CS_OPTS + NO_INCL_OPTS + JAVA_OPTS + KOTLIN_OPTS + PYTHON_OPTS,
-    schema="monster_extra.fbs",
-    data="monsterdata_extra.json",
-)
+if not args.skip_monster_extra:
+    flatc(
+        CPP_OPTS
+        + CS_OPTS
+        + NO_INCL_OPTS
+        + JAVA_OPTS
+        + KOTLIN_OPTS
+        + PYTHON_OPTS,
+        schema="monster_extra.fbs",
+        data="monsterdata_extra.json",
+    )
+
+    flatc(
+        DART_OPTS + ["--gen-object-api"],
+        schema="monster_extra.fbs",
+    )
 
 flatc(
     CPP_OPTS
@@ -254,11 +329,6 @@ flatc(
 flatc(
     BASE_OPTS + PYTHON_OPTS,
     schema="arrays_test.fbs",
-)
-
-flatc(
-    DART_OPTS + ["--gen-object-api"],
-    schema="monster_extra.fbs",
 )
 
 
@@ -312,6 +382,11 @@ flatc(
     schema="more_defaults.fbs",
     prefix=swift_prefix,
 )
+flatc(
+    SWIFT_OPTS + BASE_OPTS,
+    schema="MutatingBool.fbs",
+    prefix=swift_prefix,
+)
 
 # --filename-suffix and --filename-ext tests
 flatc(
@@ -327,7 +402,7 @@ assert (
     new_monster_file.exists()
 ), "filename suffix option did not produce a file"
 assert filecmp.cmp(
-    orig_monster_file, new_monster_file
+    str(orig_monster_file), str(new_monster_file)
 ), "filename suffix option did not produce identical results"
 new_monster_file.unlink()
 
@@ -365,17 +440,13 @@ flatc(
 )
 
 # Reflection
-temp_dir = ".tmp"
-flatc(
-    ["-c", "--cpp-std", "c++0x", "--no-prefix"],
-    prefix=temp_dir,
-    schema="reflection.fbs",
-    cwd=reflection_path,
-)
-new_reflection_file = Path(reflection_path, temp_dir, "reflection_generated.h")
-original_reflection_file = Path(
-    root_path, "include/flatbuffers/reflection_generated.h"
-)
-if not filecmp.cmp(new_reflection_file, original_reflection_file):
-    shutil.move(new_reflection_file, original_reflection_file)
-shutil.rmtree(Path(reflection_path, temp_dir))
+
+# Skip generating the reflection if told too, as we run this script after
+# building flatc which uses the reflection_generated.h itself.
+if not args.skip_gen_reflection:
+  # C++ Reflection
+  flatc_reflection(["-c", "--cpp-std", "c++0x"], "include/flatbuffers",
+                   "reflection_generated.h")
+
+# Python Reflection
+flatc_reflection(["-p"], "python/flatbuffers", "reflection")
