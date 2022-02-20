@@ -1072,6 +1072,9 @@ class TsGenerator : public BaseGenerator {
         if (has_create) {
           pack_func_create_call += field_offset_val;
         } else {
+          if (field.IsScalarOptional()) {
+            pack_func_create_call += "  if (" + field_offset_val + " !== null)\n  ";
+          }
           pack_func_create_call += "  " + struct_name + ".add" +
                                    MakeCamel(field.name) + "(builder, " +
                                    field_offset_val + ");\n";
