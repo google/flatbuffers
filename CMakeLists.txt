@@ -536,30 +536,6 @@ function(compile_flatbuffers_schema_to_embedded_binary SRC_FBS OPT)
   register_generated_output(${GEN_BFBS_HEADER})
 endfunction()
 
-# Look if we have python 3.5 installed so that we can run the generate code
-# python script after flatc is built.
-find_package(Python3 3.5 COMPONENTS Interpreter)
-
-if(Python3_Interpreter_FOUND)
-  set(GENERATION_OPTS --flatc "${FLATBUFFERS_FLATC_EXECUTABLE}")
-  if(FLATBUFFERS_BUILD_LEGACY)
-    # Need to set --cpp-std c++-0x options
-    set(GENERATION_OPTS ${GENERATION_OPTS}--cpp-0x)
-  endif()
-  if(FLATBUFFERS_SKIP_MONSTER_EXTRA)
-    set(GENERATION_OPTS ${GENERATION_OPTS} --skip-monster-extra)
-  endif()
-  add_custom_command(
-    TARGET flatc
-    POST_BUILD
-    COMMAND ${Python3_EXECUTABLE} scripts/generate_code.py ${GENERATION_OPTS} --skip-gen-reflection
-    WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
-    COMMENT "Running scripts/generate_code.py..."
-    VERBATIM)
-else()
-  message("No Python3 interpreter found! Unable to generate files automatically.")
-endif()
-
 if(FLATBUFFERS_BUILD_TESTS)
   file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/tests" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}")
   file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/samples" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}")
