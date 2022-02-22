@@ -55,6 +55,7 @@ class TsGenerator : public BaseGenerator {
     // https://github.com/microsoft/TypeScript/issues/2536
     // One per line to ease comparisons to that list are easier
     static const char *const keywords[] = {
+      "argument",
       "break",
       "case",
       "catch",
@@ -894,6 +895,7 @@ class TsGenerator : public BaseGenerator {
       if (field.deprecated) continue;
 
       const auto field_name = MakeCamel(field.name, false);
+      const auto field_name_escaped = EscapeKeyword(field_name);
       const std::string field_binded_method =
           "this." + field_name + ".bind(this)";
 
@@ -918,11 +920,11 @@ class TsGenerator : public BaseGenerator {
         field_val = "this." + field_name + "()";
 
         if (field.value.type.base_type != BASE_TYPE_STRING) {
-          field_offset_val = "this." + field_name;
+          field_offset_val = "this." + field_name_escaped;
         } else {
           field_offset_decl = GenNullCheckConditional(
-              "this." + field_name,
-              "builder.createString(this." + field_name + "!)", "0");
+              "this." + field_name_escaped,
+              "builder.createString(this." + field_name_escaped + "!)", "0");
         }
       }
 
@@ -934,11 +936,13 @@ class TsGenerator : public BaseGenerator {
             const auto &sd = *field.value.type.struct_def;
             field_type += GetObjApiClassName(sd, parser.opts);
 
-            const std::string field_accessor = "this." + field_name + "()";
+            const std::string field_accessor =
+                "this." + field_name_escaped + "()";
             field_val = GenNullCheckConditional(field_accessor,
                                                 field_accessor + "!.unpack()");
             auto packing = GenNullCheckConditional(
-                "this." + field_name, "this." + field_name + "!.pack(builder)",
+                "this." + field_name_escaped,
+                "this." + field_name_escaped + "!.pack(builder)",
                 "0");
 
             if (sd.fixed) {
@@ -970,7 +974,8 @@ class TsGenerator : public BaseGenerator {
 
                 if (sd.fixed) {
                   field_offset_decl =
-                      "builder.createStructOffsetList(this." + field_name +
+                      "builder.createStructOffsetList(this." +
+                      field_name_escaped +
                       ", " + AddImport(imports, struct_def, struct_def) +
                       ".start" + MakeCamel(field_name) + "Vector)";
                 } else {
@@ -978,7 +983,7 @@ class TsGenerator : public BaseGenerator {
                       AddImport(imports, struct_def, struct_def) + ".create" +
                       MakeCamel(field_name) +
                       "Vector(builder, builder.createObjectOffsetList(" +
-                      "this." + field_name + "))";
+                      "this." + field_name_escaped + "))";
                 }
 
                 break;
@@ -993,7 +998,7 @@ class TsGenerator : public BaseGenerator {
                     AddImport(imports, struct_def, struct_def) + ".create" +
                     MakeCamel(field_name) +
                     "Vector(builder, builder.createObjectOffsetList(" +
-                    "this." + field_name + "))";
+                    "this." + field_name_escaped + "))";
                 break;
               }
 
@@ -1008,7 +1013,7 @@ class TsGenerator : public BaseGenerator {
                     AddImport(imports, struct_def, struct_def) + ".create" +
                     MakeCamel(field_name) +
                     "Vector(builder, builder.createObjectOffsetList(" +
-                    "this." + field_name + "))";
+                    "this." + field_name_escaped + "))";
 
                 break;
               }
@@ -1026,7 +1031,8 @@ class TsGenerator : public BaseGenerator {
 
                 field_offset_decl = AddImport(imports, struct_def, struct_def) +
                                     ".create" + MakeCamel(field_name) +
-                                    "Vector(builder, this." + field_name + ")";
+                                    "Vector(builder, this." +
+                                    field_name_escaped + ")";
 
                 break;
               }
@@ -1041,7 +1047,7 @@ class TsGenerator : public BaseGenerator {
 
             field_val = GenUnionValTS(imports, field_name, field.value.type);
             field_offset_decl =
-                "builder.createObjectOffset(this." + field_name + ")";
+                "builder.createObjectOffset(this." + field_name_escaped + ")";
             break;
           }
 
@@ -1054,14 +1060,15 @@ class TsGenerator : public BaseGenerator {
 
       if (!field_offset_decl.empty()) {
         field_offset_decl =
-            "  const " + field_name + " = " + field_offset_decl + ";";
+            "  const " + field_name_escaped + " = " + field_offset_decl + ";";
       }
-      if (field_offset_val.empty()) { field_offset_val = field_name; }
+      if (field_offset_val.empty()) { field_offset_val = field_name_escaped; }
 
       unpack_func += "    " + field_val;
-      unpack_to_func += "  _o." + field_name + " = " + field_val + ";";
+      unpack_to_func += "  _o." + field_name_escaped + " = " + field_val + ";";
 
-      constructor_func += "  public " + field_name + ": " + field_type + " = " +
+      constructor_func += "  public " + field_name_escaped + ": " + field_type +
+                          " = " +
                           field_default_val;
 
       if (!struct_def.fixed) {
