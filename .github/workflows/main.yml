@@ -1,5 +1,13 @@
 name: CIFuzz
-on: [pull_request]
+on: 
+  pull_request:
+    branches:
+      - master
+    paths:
+      - include/**
+      - src/**
+      - tests/**.cpp
+      - tests/**.h
 jobs:
  Fuzzing:
    runs-on: ubuntu-latest
