@@ -80,7 +80,7 @@ const static FlatCOption options[] = {
     "Allow fields in JSON that are not defined in the schema. These fields "
     "will be discared when generating binaries." },
   { "", "no-prefix", "",
-    "Don\'t prefix enum values with the enum type in C++." },
+    "Don't prefix enum values with the enum type in C++." },
   { "", "scoped-enums", "",
     "Use C++11 style scoped and strongly typed enums. Also implies "
     "--no-prefix." },
@@ -88,12 +88,13 @@ const static FlatCOption options[] = {
     "(deprecated), this is the default behavior. If the original behavior is "
     "required (no include statements) use --no-includes." },
   { "", "no-includes", "",
-    "Don\'t generate include statements for included schemas the generated "
-    "file depends on (C++ / Python)." },
+    "Don't generate include statements for included schemas the generated "
+    "file depends on (C++, Python, Proto-to-Fbs)." },
   { "", "gen-mutable", "",
     "Generate accessors that can mutate buffers in-place." },
   { "", "gen-onefile", "",
-    "Generate single output file for C#, Go, and Python." },
+    "Generate a single output file for C#, Go, Java, Kotlin and Python. "
+    "Implies --no-include." },
   { "", "gen-name-strings", "",
     "Generate type name functions for C++ and Rust." },
   { "", "gen-object-api", "", "Generate an additional object-based API." },
@@ -185,8 +186,8 @@ const static FlatCOption options[] = {
   { "", "reflect-names", "", "Add minimal type/name reflection." },
   { "", "rust-serialize", "",
     "Implement serde::Serialize on generated Rust types." },
-  {"", "rust-module-root-file", "",
-   "Generate rust code in individual files with a module root file."},
+  { "", "rust-module-root-file", "",
+    "Generate rust code in individual files with a module root file." },
   { "", "root-type", "T", "Select or override the default root_type." },
   { "", "require-explicit-ids", "",
     "When parsing schemas, require explicit ids (id: x)." },
