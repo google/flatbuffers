@@ -65,7 +65,7 @@ const static FlatCOption options[] = {
   { "M", "", "", "Print make rules for generated files." },
   { "", "version", "", "Print the version number of flatc and exit." },
   { "h", "help", "", "Prints this help text and exit." },
-  { "", "string-json", "",
+  { "", "strict-json", "",
     "Strict JSON: field names must be / will be quoted, no trailing commas in "
     "tables/vectors." },
   { "", "allow-non-utf8", "",
