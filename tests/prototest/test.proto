@@ -27,6 +27,16 @@ message ProtoMessage {
     optional double a = 26;
     /// doc comment for b.
     optional float b = 32 [default = 3.14149];
+
+    // Nested enum that aliases the outer one.
+    enum ProtoEnum {
+      NUL = 0;
+      FOO = 1;
+      BAR = 2;
+      BAZ = 3;
+    }
+
+    optional ProtoEnum foo_bar_baz = 33;
   }
   optional int32 c = 12 [default = 16];
   optional int64 d = 1 [default = 0];
@@ -56,4 +66,5 @@ message ProtoMessage {
     /// lines.
     OtherMessage t = 18;
   }
+  optional ProtoEnum outer_enum = 33;
 }
