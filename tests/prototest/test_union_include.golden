@@ -12,6 +12,15 @@ enum ProtoEnum : int {
   BAR = 5,
 }
 
+namespace proto.test.ProtoMessage_.OtherMessage_;
+
+enum ProtoEnum : int {
+  NUL = 0,
+  FOO = 1,
+  BAR = 2,
+  BAZ = 3,
+}
+
 namespace proto.test.ProtoMessage_;
 
 union RUnion {
@@ -49,6 +58,7 @@ table ProtoMessage {
   z:proto.test.ImportedMessage;
   /// doc comment for r.
   r:proto.test.ProtoMessage_.RUnion;
+  outer_enum:proto.test.ProtoEnum;
 }
 
 namespace proto.test.ProtoMessage_;
@@ -57,5 +67,6 @@ table OtherMessage {
   a:double;
   /// doc comment for b.
   b:float = 3.14149;
+  foo_bar_baz:proto.test.ProtoMessage_.OtherMessage_.ProtoEnum;
 }
 
