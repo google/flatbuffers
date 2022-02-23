@@ -96,28 +96,12 @@ static bool IsLowerSnakeCase(const std::string &str) {
 // Convert an underscore_based_identifier in to camelCase.
 // Also uppercases the first character if first is true.
 std::string MakeCamel(const std::string &in, bool first) {
-  std::string s;
-  for (size_t i = 0; i < in.length(); i++) {
-    if (!i && first)
-      s += CharToUpper(in[0]);
-    else if (in[i] == '_' && i + 1 < in.length())
-      s += CharToUpper(in[++i]);
-    else
-      s += in[i];
-  }
-  return s;
+  return ConvertCase(in, first ? Case::kUpperCamel : Case::kLowerCamel);
 }
 
 // Convert an underscore_based_identifier in to screaming snake case.
 std::string MakeScreamingCamel(const std::string &in) {
-  std::string s;
-  for (size_t i = 0; i < in.length(); i++) {
-    if (in[i] != '_')
-      s += CharToUpper(in[i]);
-    else
-      s += in[i];
-  }
-  return s;
+  return ConvertCase(in, Case::kScreamingSnake);
 }
 
 void DeserializeDoc(std::vector<std::string> &doc,

@@ -321,21 +321,16 @@ void SetupDefaultCRTReportMode() {
 namespace {
 
 static std::string ToCamelCase(const std::string &input, bool first) {
-  std::string s;
-  size_t j = 0;
-  // Consume all leading _ characters.
-  while (j < input.length() && input[j] == '_') { j++; }
-  for (size_t i = j; i < input.length(); i++) {
-    if (input[i] == '_') {
-      // Consume all adjacent _ characters.
-      while (i < input.length() && input[i] == '_') { i++; }
-      if (i >= input.length()) { return s; }
+ std::string s;
+  for (size_t i = 0; i < input.length(); i++) {
+    if (!i && first)
       s += CharToUpper(input[i]);
-    } else {
-      s += (i == j && first) ? CharToUpper(input[i]) : CharToLower(input[i]);
-    }
+    else if (input[i] == '_' && i + 1 < input.length())
+      s += CharToUpper(input[++i]);
+    else
+      s += input[i];
   }
-  return s;
+   return s;
 }
 
 static std::string ToSnakeCase(const std::string &input, bool screaming) {
