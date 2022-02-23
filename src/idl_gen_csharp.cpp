@@ -1061,9 +1061,10 @@ class CSharpGenerator : public BaseGenerator {
       }
       if (parser_.opts.java_primitive_has_method &&
           IsScalar(field.value.type.base_type) && !struct_def.fixed) {
-        auto vt_offset_constant = "  public static final int VT_" +
-                                  MakeScreamingCamel(field.name) + " = " +
-                                  NumToString(field.value.offset) + ";";
+        auto vt_offset_constant =
+            "  public static final int VT_" +
+            ConvertCase(field.name, Case::kScreamingSnake) + " = " +
+            NumToString(field.value.offset) + ";";
 
         code += vt_offset_constant;
         code += "\n";

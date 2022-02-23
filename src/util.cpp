@@ -321,7 +321,7 @@ void SetupDefaultCRTReportMode() {
 namespace {
 
 static std::string ToCamelCase(const std::string &input, bool first) {
- std::string s;
+  std::string s;
   for (size_t i = 0; i < input.length(); i++) {
     if (!i && first)
       s += CharToUpper(input[i]);
@@ -330,7 +330,7 @@ static std::string ToCamelCase(const std::string &input, bool first) {
     else
       s += input[i];
   }
-   return s;
+  return s;
 }
 
 static std::string ToSnakeCase(const std::string &input, bool screaming) {

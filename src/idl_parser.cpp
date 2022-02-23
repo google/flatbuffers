@@ -99,11 +99,6 @@ std::string MakeCamel(const std::string &in, bool first) {
   return ConvertCase(in, first ? Case::kUpperCamel : Case::kLowerCamel);
 }
 
-// Convert an underscore_based_identifier in to screaming snake case.
-std::string MakeScreamingCamel(const std::string &in) {
-  return ConvertCase(in, Case::kScreamingSnake);
-}
-
 void DeserializeDoc(std::vector<std::string> &doc,
                     const Vector<Offset<String>> *documentation) {
   if (documentation == nullptr) return;
