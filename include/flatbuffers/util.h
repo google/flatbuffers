@@ -19,7 +19,6 @@
 
 #include <ctype.h>
 #include <errno.h>
-#include <functional>
 
 #include "flatbuffers/base.h"
 #include "flatbuffers/stl_emulation.h"
@@ -688,17 +687,17 @@ void SetupDefaultCRTReportMode();
 
 enum class Case {
   kUnknown = 0,
-  // TheQuickBrownDog
+  // TheQuickBrownFox
   kUpperCamel = 1,
-  // theQuickBrownDog
+  // theQuickBrownFox
   kLowerCamel = 2,
-  // the_quick_brown_dog
+  // the_quick_brown_fox
   kSnake = 3,
-  // THE_QUICK_BROWN_DOG
+  // THE_QUICK_BROWN_FOX
   kScreamingSnake = 4,
-  // THEQUICKBROWNDOG
+  // THEQUICKBROWNFOX
   kAllUpper = 5,
-  // thequickbrowndog
+  // thequickbrownfox
   kAllLower = 6,
 };
 
