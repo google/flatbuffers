@@ -218,6 +218,7 @@ set(FlatBuffers_Tests_SRCS
 
 set(FlatBuffers_Tests_CPP17_SRCS
   ${FlatBuffers_Library_SRCS}
+  src/util.cpp
   tests/test_assert.h
   tests/test_assert.cpp
   tests/cpp17/test_cpp17.cpp

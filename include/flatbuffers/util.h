@@ -19,6 +19,7 @@
 
 #include <ctype.h>
 #include <errno.h>
+#include <functional>
 
 #include "flatbuffers/base.h"
 #include "flatbuffers/stl_emulation.h"
@@ -684,6 +685,26 @@ bool ReadEnvironmentVariable(const char *var_name,
 
 // MSVC specific: Send all assert reports to STDOUT to prevent CI hangs.
 void SetupDefaultCRTReportMode();
+
+enum class Case {
+  kUnknown = 0,
+  // TheQuickBrownDog
+  kUpperCamel = 1,
+  // theQuickBrownDog
+  kLowerCamel = 2,
+  // the_quick_brown_dog
+  kSnake = 3,
+  // THE_QUICK_BROWN_DOG
+  kScreamingSnake = 4,
+  // THEQUICKBROWNDOG
+  kAllUpper = 5,
+  // thequickbrowndog
+  kAllLower = 6,
+};
+
+// Convert the `input` string of case `input_case` to the specified `output_case`.
+std::string ConvertCase(const std::string &input, Case output_case,
+                    Case input_case = Case::kSnake);
 
 }  // namespace flatbuffers
 
