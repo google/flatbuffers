@@ -1,5 +1,5 @@
 # This is the legacy minimum version flatbuffers supported for a while.
-cmake_minimum_required(VERSION 2.8.12)
+cmake_minimum_required(VERSION 2.8.12...3.22.1)
 
 # CMake version 3.16 is the 'de-facto' minimum version for flatbuffers. If the
 # current cmake is older than this, warn the user and include the legacy file to
@@ -15,17 +15,18 @@ if(CMAKE_VERSION VERSION_LESS 3.16)
   return()
 endif()
 
+# Attempt to read the current version of flatbuffers by looking at the latest tag.
+include(CMake/Version.cmake)
+
 if (POLICY CMP0048)
   cmake_policy(SET CMP0048 NEW)
   project(FlatBuffers
         DESCRIPTION "Flatbuffers serialization library"
-        VERSION 2.0.0
+        VERSION ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}
         LANGUAGES CXX)
 else()
   project(FlatBuffers)
 endif (POLICY CMP0048)
-
-include(CMake/Version.cmake)
 
 # generate compile_commands.json
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
