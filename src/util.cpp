@@ -342,14 +342,14 @@ static std::string ToSnakeCase(const std::string &input, bool screaming) {
   std::string s;
   for (size_t i = 0; i < input.length(); i++) {
     if (i == 0) {
-      s += screaming ? CharToUpper(input[0]) : CharToLower(input[0]);
+      s += screaming ? CharToUpper(input[i]) : CharToLower(input[i]);
     } else if (input[i] == '_') {
       s += '_';
     } else if (!islower(input[i])) {
       // Prevent duplicate underscores for Upper_Snake_Case strings
       // and UPPERCASE strings.
       if (islower(input[i - 1])) { s += '_'; }
-      s += screaming ? CharToUpper(input[0]) : CharToLower(input[i]);
+      s += screaming ? CharToUpper(input[i]) : CharToLower(input[i]);
     } else {
       s += screaming ? CharToUpper(input[i]) : input[i];
     }
@@ -367,10 +367,18 @@ static std::string ToAll(const std::string &input,
 static std::string CamelToSnake(const std::string &input) {
   std::string s;
   for (size_t i = 0; i < input.length(); i++) {
-    if (i > 0 && i + 1 != input.length() && is_alpha_upper(input[i])) {
-      s += "_";
+    if (i == 0) {
+      s += CharToLower(input[i]);
+    } else if (input[i] == '_') {
+      s += '_';
+    } else if (!islower(input[i])) {
+      // Prevent duplicate underscores for Upper_Snake_Case strings
+      // and UPPERCASE strings.
+      if (islower(input[i - 1])) { s += '_'; }
+      s += CharToLower(input[i]);
+    } else {
+      s += input[i];
     }
-    s += CharToLower(input[i]);
   }
   return s;
 }
@@ -396,7 +404,7 @@ std::string ConvertCase(const std::string &input, Case output_case,
   switch (output_case) {
     case Case::kUpperCamel: return ToCamelCase(input, true);
     case Case::kLowerCamel: return ToCamelCase(input, false);
-    case Case::kSnake: return ToSnakeCase(input, false);
+    case Case::kSnake: return input;
     case Case::kScreamingSnake: return ToSnakeCase(input, true);
     case Case::kAllUpper: return ToAll(input, CharToUpper);
     case Case::kAllLower: return ToAll(input, CharToLower);

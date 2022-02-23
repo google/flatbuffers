@@ -1462,8 +1462,8 @@ void UtilConvertCase() {
             flatbuffers::Case::kSnake, "single"},
           { flatbuffers::Case::kAllLower, "single",
             flatbuffers::Case::kSnake, "single"},
-          { flatbuffers::Case::kUpperCamel, "TrailingCapitaL",
-            flatbuffers::Case::kSnake, "trailing_capital" },
+          { flatbuffers::Case::kUpperCamel, "ABCtest",
+            flatbuffers::Case::kSnake, "abctest" },
         };
 
     for (auto &test_case : cases) {
