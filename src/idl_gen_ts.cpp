@@ -282,8 +282,8 @@ class TsGenerator : public BaseGenerator {
         return GenBBAccess() + ".__union_with_string" + arguments;
       case BASE_TYPE_VECTOR: return GenGetter(type.VectorType(), arguments);
       default: {
-        auto getter =
-            GenBBAccess() + ".read" + MakeCamel(GenType(type)) + arguments;
+        auto getter = GenBBAccess() + ".read" +
+                      ConvertCase(GenType(type), Case::kUpperCamel) + arguments;
         if (type.base_type == BASE_TYPE_BOOL) { getter = "!!" + getter; }
         return getter;
       }
@@ -369,8 +369,9 @@ class TsGenerator : public BaseGenerator {
       default: break;
     }
 
-    return IsScalar(type.base_type) ? MakeCamel(GenType(type))
-                                    : (IsStruct(type) ? "Struct" : "Offset");
+    return IsScalar(type.base_type)
+               ? ConvertCase(GenType(type), Case::kUpperCamel)
+               : (IsStruct(type) ? "Struct" : "Offset");
   }
 
   template<typename T> static std::string MaybeAdd(T value) {
@@ -829,7 +830,7 @@ class TsGenerator : public BaseGenerator {
       auto &field = **it;
 
       const auto curr_member_accessor =
-          prefix + "." + MakeCamel(field.name, false);
+          prefix + "." + ConvertCase(field.name, Case::kLowerCamel);
       if (IsStruct(field.value.type)) {
         ret += GenStructMemberValueTS(*field.value.type.struct_def,
                                       curr_member_accessor, delimiter);
@@ -894,7 +895,7 @@ class TsGenerator : public BaseGenerator {
       auto &field = **it;
       if (field.deprecated) continue;
 
-      const auto field_name = MakeCamel(field.name, false);
+      const auto field_name = ConvertCase(field.name, Case::kLowerCamel);
       const auto field_name_escaped = EscapeKeyword(field_name);
       const std::string field_binded_method =
           "this." + field_name + ".bind(this)";
@@ -975,13 +976,13 @@ class TsGenerator : public BaseGenerator {
                 if (sd.fixed) {
                   field_offset_decl =
                       "builder.createStructOffsetList(this." +
-                      field_name_escaped +
-                      ", " + AddImport(imports, struct_def, struct_def) +
-                      ".start" + MakeCamel(field_name) + "Vector)";
+                      field_name_escaped + ", " +
+                      AddImport(imports, struct_def, struct_def) + ".start" +
+                      ConvertCase(field_name, Case::kUpperCamel) + "Vector)";
                 } else {
                   field_offset_decl =
                       AddImport(imports, struct_def, struct_def) + ".create" +
-                      MakeCamel(field_name) +
+                      ConvertCase(field_name, Case::kUpperCamel) +
                       "Vector(builder, builder.createObjectOffsetList(" +
                       "this." + field_name_escaped + "))";
                 }
@@ -996,7 +997,7 @@ class TsGenerator : public BaseGenerator {
                             "Length())";
                 field_offset_decl =
                     AddImport(imports, struct_def, struct_def) + ".create" +
-                    MakeCamel(field_name) +
+                    ConvertCase(field_name, Case::kUpperCamel) +
                     "Vector(builder, builder.createObjectOffsetList(" +
                     "this." + field_name_escaped + "))";
                 break;
@@ -1011,7 +1012,7 @@ class TsGenerator : public BaseGenerator {
 
                 field_offset_decl =
                     AddImport(imports, struct_def, struct_def) + ".create" +
-                    MakeCamel(field_name) +
+                    ConvertCase(field_name, Case::kUpperCamel) +
                     "Vector(builder, builder.createObjectOffsetList(" +
                     "this." + field_name_escaped + "))";
 
@@ -1029,10 +1030,10 @@ class TsGenerator : public BaseGenerator {
                             field_binded_method + ", this." + field_name +
                             "Length())";
 
-                field_offset_decl = AddImport(imports, struct_def, struct_def) +
-                                    ".create" + MakeCamel(field_name) +
-                                    "Vector(builder, this." +
-                                    field_name_escaped + ")";
+                field_offset_decl =
+                    AddImport(imports, struct_def, struct_def) + ".create" +
+                    ConvertCase(field_name, Case::kUpperCamel) +
+                    "Vector(builder, this." + field_name_escaped + ")";
 
                 break;
               }
@@ -1083,8 +1084,8 @@ class TsGenerator : public BaseGenerator {
             pack_func_create_call += "  if (" + field_offset_val + " !== null)\n  ";
           }
           pack_func_create_call += "  " + struct_name + ".add" +
-                                   MakeCamel(field.name) + "(builder, " +
-                                   field_offset_val + ");\n";
+                                   ConvertCase(field.name, Case::kUpperCamel) +
+                                   "(builder, " + field_offset_val + ");\n";
         }
       }
 
@@ -1202,7 +1203,7 @@ class TsGenerator : public BaseGenerator {
         const auto has_null_default = is_string || HasNullDefault(field);
 
         GenDocComment(field.doc_comment, code_ptr);
-        std::string prefix = MakeCamel(field.name, false) + "(";
+        std::string prefix = ConvertCase(field.name, Case::kLowerCamel) + "(";
         if (is_string) {
           code += prefix + "):string|null\n";
           code +=
@@ -1248,7 +1249,7 @@ class TsGenerator : public BaseGenerator {
             const auto type =
                 AddImport(imports, struct_def, *field.value.type.struct_def);
             GenDocComment(field.doc_comment, code_ptr);
-            code += MakeCamel(field.name, false);
+            code += ConvertCase(field.name, Case::kLowerCamel);
             code += "(obj?:" + type + "):" + type + "|null {\n";
 
             if (struct_def.fixed) {
@@ -1288,7 +1289,7 @@ class TsGenerator : public BaseGenerator {
               default: ret_type = vectortypename;
             }
             GenDocComment(field.doc_comment, code_ptr);
-            std::string prefix = MakeCamel(field.name, false);
+            std::string prefix = ConvertCase(field.name, Case::kLowerCamel);
             // TODO: make it work without any
             // if (is_union) { prefix += "<T extends flatbuffers.Table>"; }
             if (is_union) { prefix += ""; }
@@ -1348,7 +1349,7 @@ class TsGenerator : public BaseGenerator {
 
           case BASE_TYPE_UNION: {
             GenDocComment(field.doc_comment, code_ptr);
-            code += MakeCamel(field.name, false);
+            code += ConvertCase(field.name, Case::kLowerCamel);
 
             const auto &union_enum = *(field.value.type.enum_def);
             const auto union_type = GenUnionGenericTypeTS(union_enum);
@@ -1377,8 +1378,8 @@ class TsGenerator : public BaseGenerator {
 
         if (struct_def.fixed) {
           code += "  " + GenBBAccess() + ".write" +
-                  MakeCamel(GenType(field.value.type)) + "(this.bb_pos + " +
-                  NumToString(field.value.offset) + ", ";
+                  ConvertCase(GenType(field.value.type), Case::kUpperCamel) +
+                  "(this.bb_pos + " + NumToString(field.value.offset) + ", ";
         } else {
           code += "  const offset = " + GenBBAccess() +
                   ".__offset(this.bb_pos, " + NumToString(field.value.offset) +
@@ -1389,7 +1390,7 @@ class TsGenerator : public BaseGenerator {
 
           // special case for bools, which are treated as uint8
           code += "  " + GenBBAccess() + ".write" +
-                  MakeCamel(GenType(field.value.type)) +
+                  ConvertCase(GenType(field.value.type), Case::kUpperCamel) +
                   "(this.bb_pos + offset, ";
           if (field.value.type.base_type == BASE_TYPE_BOOL) { code += "+"; }
         }
@@ -1403,7 +1404,7 @@ class TsGenerator : public BaseGenerator {
       if (IsVector(field.value.type)) {
         // Emit a length helper
         GenDocComment(code_ptr);
-        code += MakeCamel(field.name, false);
+        code += ConvertCase(field.name, Case::kLowerCamel);
         code += "Length():number {\n" + offset_prefix;
 
         code +=
@@ -1414,7 +1415,7 @@ class TsGenerator : public BaseGenerator {
         if (IsScalar(vectorType.base_type) && !IsLong(vectorType.base_type)) {
           GenDocComment(code_ptr);
 
-          code += MakeCamel(field.name, false);
+          code += ConvertCase(field.name, Case::kLowerCamel);
           code += "Array():" + GenType(vectorType) + "Array|null {\n" +
                   offset_prefix;
 
@@ -1475,7 +1476,7 @@ class TsGenerator : public BaseGenerator {
 
         // Generate the field insertion method
         GenDocComment(code_ptr);
-        code += "static add" + MakeCamel(field.name);
+        code += "static add" + ConvertCase(field.name, Case::kUpperCamel);
         code += "(builder:flatbuffers.Builder, " + argname + ":" +
                 GetArgType(imports, struct_def, field, false) + ") {\n";
         code += "  builder.addField" + GenWriteMethod(field.value.type) + "(";
@@ -1506,7 +1507,7 @@ class TsGenerator : public BaseGenerator {
             GenDocComment(code_ptr);
 
             const std::string sig_begin =
-                "static create" + MakeCamel(field.name) +
+                "static create" + ConvertCase(field.name, Case::kUpperCamel) +
                 "Vector(builder:flatbuffers.Builder, data:";
             const std::string sig_end = "):flatbuffers.Offset";
             std::string type =
@@ -1544,7 +1545,7 @@ class TsGenerator : public BaseGenerator {
           // after
           GenDocComment(code_ptr);
 
-          code += "static start" + MakeCamel(field.name);
+          code += "static start" + ConvertCase(field.name, Case::kUpperCamel);
           code += "Vector(builder:flatbuffers.Builder, numElems:number) {\n";
           code += "  builder.startVector(" + NumToString(elem_size);
           code += ", numElems, " + NumToString(alignment) + ");\n";
@@ -1603,7 +1604,8 @@ class TsGenerator : public BaseGenerator {
             code += "  if (" + arg_name + " !== null)\n  ";
           }
 
-          code += "  " + methodPrefix + ".add" + MakeCamel(field.name) + "(";
+          code += "  " + methodPrefix + ".add" +
+                  ConvertCase(field.name, Case::kUpperCamel) + "(";
           code += "builder, " + arg_name + ");\n";
         }
 
@@ -1650,7 +1652,7 @@ class TsGenerator : public BaseGenerator {
   }
 
   std::string GetArgName(const FieldDef &field) {
-    auto argname = MakeCamel(field.name, false);
+    auto argname = ConvertCase(field.name, Case::kLowerCamel);
     if (!IsScalar(field.value.type.base_type)) {
       argname += "Offset";
     } else {

@@ -924,7 +924,8 @@ class RustGenerator : public BaseGenerator {
       auto &enum_val = **it;
       if (enum_val.union_type.base_type == BASE_TYPE_NONE) continue;
       code_.SetValue("VARIANT_NAME", Name(enum_val));
-      code_.SetValue("NATIVE_VARIANT", MakeCamel(Name(enum_val)));
+      code_.SetValue("NATIVE_VARIANT",
+                     ConvertCase(Name(enum_val), Case::kUpperCamel));
       code_.SetValue("U_ELEMENT_NAME", MakeSnakeCase(Name(enum_val)));
       code_.SetValue("U_ELEMENT_TABLE_TYPE",
                      NamespacedNativeName(*enum_val.union_type.struct_def));

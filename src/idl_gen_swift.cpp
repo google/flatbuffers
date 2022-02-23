@@ -651,7 +651,7 @@ class SwiftGenerator : public BaseGenerator {
     }
 
     auto camel_case_name =
-        MakeCamel(name, false) +
+        ConvertCase(name, Case::kLowerCamel) +
         (IsVector(field.value.type) || IsArray(field.value.type)
              ? "VectorOffset"
              : "Offset");
@@ -669,7 +669,8 @@ class SwiftGenerator : public BaseGenerator {
          field.value.type.struct_def->fixed) &&
         (IsVector(field.value.type) || IsArray(field.value.type))) {
       auto field_name = NameWrappedInNameSpace(*vectortype.struct_def);
-      code_ += "public static func startVectorOf" + MakeCamel(name, true) +
+      code_ += "public static func startVectorOf" +
+               ConvertCase(name, Case::kUpperCamel) +
                "(_ size: Int, in builder: inout "
                "FlatBufferBuilder) {";
       Indent();
@@ -746,7 +747,8 @@ class SwiftGenerator : public BaseGenerator {
       code_.SetValue("CONSTANT", "nil");
       code_ += GenReaderMainBody(is_required) + GenOffset() + required_reader +
                "{{ACCESS}}.readBuffer(of: {{VALUETYPE}}.self, at: o) }";
-      code_.SetValue("VALUENAME", "mutable" + MakeCamel(name));
+      code_.SetValue("VALUENAME",
+                     "mutable" + ConvertCase(name, Case::kUpperCamel));
       code_.SetValue("VALUETYPE", GenType(field.value.type) + Mutable());
       code_.SetValue("CONSTANT", "nil");
       code_ += GenReaderMainBody(is_required) + GenOffset() + required_reader +
@@ -834,7 +836,8 @@ class SwiftGenerator : public BaseGenerator {
       code_ +=
           "{{ACCESS}}.directRead(of: {{VALUETYPE}}.self, offset: "
           "{{ACCESS}}.vector(at: o) + index * {{SIZE}}) }";
-      code_.SetValue("VALUENAME", "mutable" + MakeCamel(Name(field)));
+      code_.SetValue("VALUENAME",
+                     "mutable" + ConvertCase(Name(field), Case::kUpperCamel));
       code_.SetValue("VALUETYPE", GenType(field.value.type) + Mutable());
       code_ += GenArrayMainBody(nullable) + GenOffset() + const_string +
                GenConstructor("{{ACCESS}}.vector(at: o) + index * {{SIZE}}");
@@ -1435,8 +1438,9 @@ class SwiftGenerator : public BaseGenerator {
           code_ += "let __" + name + " = builder.createVector(ofOffsets: __" +
                    name + "__)";
         } else {
-          code_ += "{{STRUCTNAME}}.startVectorOf" + MakeCamel(name, true) +
-                   "(obj." + name + ".count, in: &builder)";
+          code_ += "{{STRUCTNAME}}.startVectorOf" +
+                   ConvertCase(name, Case::kUpperCamel) + "(obj." + name +
+                   ".count, in: &builder)";
           std::string code;
           GenerateStructArgs(*field.value.type.struct_def, &code, "", "", "_o",
                              true);
@@ -1909,11 +1913,11 @@ class SwiftGenerator : public BaseGenerator {
     if (isupper(name.front())) {
       std::transform(name.begin(), name.end(), name.begin(), CharToLower);
     }
-    return EscapeKeyword(MakeCamel(name, false));
+    return EscapeKeyword(ConvertCase(name, Case::kLowerCamel));
   }
 
   std::string Name(const Definition &def) const {
-    return EscapeKeyword(MakeCamel(def.name, false));
+    return EscapeKeyword(ConvertCase(def.name, Case::kLowerCamel));
   }
 };
 }  // namespace swift

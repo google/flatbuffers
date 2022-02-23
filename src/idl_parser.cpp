@@ -93,12 +93,6 @@ static bool IsLowerSnakeCase(const std::string &str) {
   return true;
 }
 
-// Convert an underscore_based_identifier in to camelCase.
-// Also uppercases the first character if first is true.
-std::string MakeCamel(const std::string &in, bool first) {
-  return ConvertCase(in, first ? Case::kUpperCamel : Case::kLowerCamel);
-}
-
 void DeserializeDoc(std::vector<std::string> &doc,
                     const Vector<Offset<String>> *documentation) {
   if (documentation == nullptr) return;
@@ -2835,7 +2829,7 @@ CheckedError Parser::ParseProtoFields(StructDef *struct_def, bool isextend,
       if (IsIdent("group") || oneof) {
         if (!oneof) NEXT();
         if (oneof && opts.proto_oneof_union) {
-          auto name = MakeCamel(attribute_, true) + "Union";
+          auto name = ConvertCase(attribute_, Case::kUpperCamel) + "Union";
           ECHECK(StartEnum(name, true, &oneof_union));
           type = Type(BASE_TYPE_UNION, nullptr, oneof_union);
         } else {

@@ -48,10 +48,12 @@ static const char *const g_golang_keywords[] = {
 static std::string GoIdentity(const std::string &name) {
   for (size_t i = 0;
        i < sizeof(g_golang_keywords) / sizeof(g_golang_keywords[0]); i++) {
-    if (name == g_golang_keywords[i]) { return MakeCamel(name + "_", false); }
+    if (name == g_golang_keywords[i]) {
+      return ConvertCase(name + "_", Case::kLowerCamel);
+    }
   }
 
-  return MakeCamel(name, false);
+  return ConvertCase(name, Case::kLowerCamel);
 }
 
 class GoGenerator : public BaseGenerator {
@@ -315,7 +317,7 @@ class GoGenerator : public BaseGenerator {
     std::string &code = *code_ptr;
 
     GenReceiver(struct_def, code_ptr);
-    code += " " + MakeCamel(field.name) + "Length(";
+    code += " " + ConvertCase(field.name, Case::kUpperCamel) + "Length(";
     code += ") int " + OffsetPrefix(field);
     code += "\t\treturn rcv._tab.VectorLen(o)\n\t}\n";
     code += "\treturn 0\n}\n\n";
@@ -327,7 +329,7 @@ class GoGenerator : public BaseGenerator {
     std::string &code = *code_ptr;
 
     GenReceiver(struct_def, code_ptr);
-    code += " " + MakeCamel(field.name) + "Bytes(";
+    code += " " + ConvertCase(field.name, Case::kUpperCamel) + "Bytes(";
     code += ") []byte " + OffsetPrefix(field);
     code += "\t\treturn rcv._tab.ByteVector(o + rcv._tab.Pos)\n\t}\n";
     code += "\treturn nil\n}\n\n";
@@ -339,7 +341,7 @@ class GoGenerator : public BaseGenerator {
     std::string &code = *code_ptr;
     std::string getter = GenGetter(field.value.type);
     GenReceiver(struct_def, code_ptr);
-    code += " " + MakeCamel(field.name);
+    code += " " + ConvertCase(field.name, Case::kUpperCamel);
     code += "() " + TypeName(field) + " {\n";
     code += "\treturn " +
             CastToEnum(field.value.type,
@@ -354,7 +356,7 @@ class GoGenerator : public BaseGenerator {
     std::string &code = *code_ptr;
     std::string getter = GenGetter(field.value.type);
     GenReceiver(struct_def, code_ptr);
-    code += " " + MakeCamel(field.name);
+    code += " " + ConvertCase(field.name, Case::kUpperCamel);
     code += "() " + TypeName(field) + " ";
     code += OffsetPrefix(field);
     if (field.IsScalarOptional()) {
@@ -377,7 +379,7 @@ class GoGenerator : public BaseGenerator {
                               const FieldDef &field, std::string *code_ptr) {
     std::string &code = *code_ptr;
     GenReceiver(struct_def, code_ptr);
-    code += " " + MakeCamel(field.name);
+    code += " " + ConvertCase(field.name, Case::kUpperCamel);
     code += "(obj *" + TypeName(field);
     code += ") *" + TypeName(field);
     code += " {\n";
@@ -396,7 +398,7 @@ class GoGenerator : public BaseGenerator {
                              std::string *code_ptr) {
     std::string &code = *code_ptr;
     GenReceiver(struct_def, code_ptr);
-    code += " " + MakeCamel(field.name);
+    code += " " + ConvertCase(field.name, Case::kUpperCamel);
     code += "(obj *";
     code += TypeName(field);
     code += ") *" + TypeName(field) + " " + OffsetPrefix(field);
@@ -418,7 +420,7 @@ class GoGenerator : public BaseGenerator {
                       std::string *code_ptr) {
     std::string &code = *code_ptr;
     GenReceiver(struct_def, code_ptr);
-    code += " " + MakeCamel(field.name);
+    code += " " + ConvertCase(field.name, Case::kUpperCamel);
     code += "() " + TypeName(field) + " ";
     code += OffsetPrefix(field) + "\t\treturn " + GenGetter(field.value.type);
     code += "(o + rcv._tab.Pos)\n\t}\n\treturn nil\n";
@@ -430,7 +432,7 @@ class GoGenerator : public BaseGenerator {
                      std::string *code_ptr) {
     std::string &code = *code_ptr;
     GenReceiver(struct_def, code_ptr);
-    code += " " + MakeCamel(field.name) + "(";
+    code += " " + ConvertCase(field.name, Case::kUpperCamel) + "(";
     code += "obj " + GenTypePointer(field.value.type) + ") bool ";
     code += OffsetPrefix(field);
     code += "\t\t" + GenGetter(field.value.type);
@@ -446,7 +448,7 @@ class GoGenerator : public BaseGenerator {
     auto vectortype = field.value.type.VectorType();
 
     GenReceiver(struct_def, code_ptr);
-    code += " " + MakeCamel(field.name);
+    code += " " + ConvertCase(field.name, Case::kUpperCamel);
     code += "(obj *" + TypeName(field);
     code += ", j int) bool " + OffsetPrefix(field);
     code += "\t\tx := rcv._tab.Vector(o)\n";
@@ -469,7 +471,7 @@ class GoGenerator : public BaseGenerator {
     auto vectortype = field.value.type.VectorType();
 
     GenReceiver(struct_def, code_ptr);
-    code += " " + MakeCamel(field.name);
+    code += " " + ConvertCase(field.name, Case::kUpperCamel);
     code += "(j int) " + TypeName(field) + " ";
     code += OffsetPrefix(field);
     code += "\t\ta := rcv._tab.Vector(o)\n";
@@ -573,7 +575,8 @@ class GoGenerator : public BaseGenerator {
   void BuildFieldOfTable(const StructDef &struct_def, const FieldDef &field,
                          const size_t offset, std::string *code_ptr) {
     std::string &code = *code_ptr;
-    code += "func " + struct_def.name + "Add" + MakeCamel(field.name);
+    code += "func " + struct_def.name + "Add" +
+            ConvertCase(field.name, Case::kUpperCamel);
     code += "(builder *flatbuffers.Builder, ";
     code += GoIdentity(field.name) + " ";
     if (!IsScalar(field.value.type.base_type) && (!struct_def.fixed)) {
@@ -611,7 +614,7 @@ class GoGenerator : public BaseGenerator {
                           std::string *code_ptr) {
     std::string &code = *code_ptr;
     code += "func " + struct_def.name + "Start";
-    code += MakeCamel(field.name);
+    code += ConvertCase(field.name, Case::kUpperCamel);
     code += "Vector(builder *flatbuffers.Builder, numElems int) ";
     code += "flatbuffers.UOffsetT {\n\treturn builder.StartVector(";
     auto vector_type = field.value.type.VectorType();
@@ -683,10 +686,11 @@ class GoGenerator : public BaseGenerator {
   void MutateScalarFieldOfStruct(const StructDef &struct_def,
                                  const FieldDef &field, std::string *code_ptr) {
     std::string &code = *code_ptr;
-    std::string type = MakeCamel(GenTypeBasic(field.value.type));
+    std::string type =
+        ConvertCase(GenTypeBasic(field.value.type), Case::kUpperCamel);
     std::string setter = "rcv._tab.Mutate" + type;
     GenReceiver(struct_def, code_ptr);
-    code += " Mutate" + MakeCamel(field.name);
+    code += " Mutate" + ConvertCase(field.name, Case::kUpperCamel);
     code += "(n " + GenTypeGet(field.value.type) + ") bool {\n\treturn " + setter;
     code += "(rcv._tab.Pos+flatbuffers.UOffsetT(";
     code += NumToString(field.value.offset) + "), ";
@@ -697,10 +701,11 @@ class GoGenerator : public BaseGenerator {
   void MutateScalarFieldOfTable(const StructDef &struct_def,
                                 const FieldDef &field, std::string *code_ptr) {
     std::string &code = *code_ptr;
-    std::string type = MakeCamel(GenTypeBasic(field.value.type));
+    std::string type =
+        ConvertCase(GenTypeBasic(field.value.type), Case::kUpperCamel);
     std::string setter = "rcv._tab.Mutate" + type + "Slot";
     GenReceiver(struct_def, code_ptr);
-    code += " Mutate" + MakeCamel(field.name);
+    code += " Mutate" + ConvertCase(field.name, Case::kUpperCamel);
     code += "(n " + GenTypeGet(field.value.type) + ") bool {\n\treturn ";
     code += setter + "(" + NumToString(field.value.offset) + ", ";
     code += CastToBaseType(field.value.type, "n") + ")\n";
@@ -713,10 +718,10 @@ class GoGenerator : public BaseGenerator {
                                         std::string *code_ptr) {
     std::string &code = *code_ptr;
     auto vectortype = field.value.type.VectorType();
-    std::string type = MakeCamel(GenTypeBasic(vectortype));
+    std::string type = ConvertCase(GenTypeBasic(vectortype), Case::kUpperCamel);
     std::string setter = "rcv._tab.Mutate" + type;
     GenReceiver(struct_def, code_ptr);
-    code += " Mutate" + MakeCamel(field.name);
+    code += " Mutate" + ConvertCase(field.name, Case::kUpperCamel);
     code += "(j int, n " + TypeName(field) + ") bool ";
     code += OffsetPrefix(field);
     code += "\t\ta := rcv._tab.Vector(o)\n";
@@ -819,7 +824,7 @@ class GoGenerator : public BaseGenerator {
           field.value.type.enum_def != nullptr &&
           field.value.type.enum_def->is_union)
         continue;
-      code += "\t" + MakeCamel(field.name) + " ";
+      code += "\t" + ConvertCase(field.name, Case::kUpperCamel) + " ";
       if (field.IsScalarOptional()) {
         code += "*";
       }
@@ -901,53 +906,66 @@ class GoGenerator : public BaseGenerator {
       if (field.deprecated) continue;
       if (IsScalar(field.value.type.base_type)) continue;
 
-      std::string offset = MakeCamel(field.name, false) + "Offset";
+      std::string offset =
+          ConvertCase(field.name, Case::kLowerCamel) + "Offset";
 
       if (IsString(field.value.type)) {
         code += "\t" + offset + " := builder.CreateString(t." +
-                MakeCamel(field.name) + ")\n";
+                ConvertCase(field.name, Case::kUpperCamel) + ")\n";
       } else if (IsVector(field.value.type) &&
                  field.value.type.element == BASE_TYPE_UCHAR &&
                  field.value.type.enum_def == nullptr) {
         code += "\t" + offset + " := flatbuffers.UOffsetT(0)\n";
-        code += "\tif t." + MakeCamel(field.name) + " != nil {\n";
+        code += "\tif t." + ConvertCase(field.name, Case::kUpperCamel) +
+                " != nil {\n";
         code += "\t\t" + offset + " = builder.CreateByteString(t." +
-                MakeCamel(field.name) + ")\n";
+                ConvertCase(field.name, Case::kUpperCamel) + ")\n";
         code += "\t}\n";
       } else if (IsVector(field.value.type)) {
         code += "\t" + offset + " := flatbuffers.UOffsetT(0)\n";
-        code += "\tif t." + MakeCamel(field.name) + " != nil {\n";
-        std::string length = MakeCamel(field.name, false) + "Length";
-        std::string offsets = MakeCamel(field.name, false) + "Offsets";
-        code += "\t\t" + length + " := len(t." + MakeCamel(field.name) + ")\n";
+        code += "\tif t." + ConvertCase(field.name, Case::kUpperCamel) +
+                " != nil {\n";
+        std::string length =
+            ConvertCase(field.name, Case::kLowerCamel) + "Length";
+        std::string offsets =
+            ConvertCase(field.name, Case::kLowerCamel) + "Offsets";
+        code += "\t\t" + length + " := len(t." +
+                ConvertCase(field.name, Case::kUpperCamel) + ")\n";
         if (field.value.type.element == BASE_TYPE_STRING) {
           code += "\t\t" + offsets + " := make([]flatbuffers.UOffsetT, " +
                   length + ")\n";
           code += "\t\tfor j := 0; j < " + length + "; j++ {\n";
           code += "\t\t\t" + offsets + "[j] = builder.CreateString(t." +
-                  MakeCamel(field.name) + "[j])\n";
+                  ConvertCase(field.name, Case::kUpperCamel) + "[j])\n";
           code += "\t\t}\n";
         } else if (field.value.type.element == BASE_TYPE_STRUCT &&
                    !field.value.type.struct_def->fixed) {
           code += "\t\t" + offsets + " := make([]flatbuffers.UOffsetT, " +
                   length + ")\n";
           code += "\t\tfor j := 0; j < " + length + "; j++ {\n";
-          code += "\t\t\t" + offsets + "[j] = t." + MakeCamel(field.name) +
+          code += "\t\t\t" + offsets + "[j] = t." +
+                  ConvertCase(field.name, Case::kUpperCamel) +
                   "[j].Pack(builder)\n";
           code += "\t\t}\n";
         }
-        code += "\t\t" + struct_def.name + "Start" + MakeCamel(field.name) +
+        code += "\t\t" + struct_def.name + "Start" +
+                ConvertCase(field.name, Case::kUpperCamel) +
                 "Vector(builder, " + length + ")\n";
         code += "\t\tfor j := " + length + " - 1; j >= 0; j-- {\n";
         if (IsScalar(field.value.type.element)) {
-          code += "\t\t\tbuilder.Prepend" +
-                  MakeCamel(GenTypeBasic(field.value.type.VectorType())) + "(" +
-                  CastToBaseType(field.value.type.VectorType(),
-                                 "t." + MakeCamel(field.name) + "[j]") +
-                  ")\n";
+          code +=
+              "\t\t\tbuilder.Prepend" +
+              ConvertCase(GenTypeBasic(field.value.type.VectorType()),
+                          Case::kUpperCamel) +
+              "(" +
+              CastToBaseType(
+                  field.value.type.VectorType(),
+                  "t." + ConvertCase(field.name, Case::kUpperCamel) + "[j]") +
+              ")\n";
         } else if (field.value.type.element == BASE_TYPE_STRUCT &&
                    field.value.type.struct_def->fixed) {
-          code += "\t\t\tt." + MakeCamel(field.name) + "[j].Pack(builder)\n";
+          code += "\t\t\tt." + ConvertCase(field.name, Case::kUpperCamel) +
+                  "[j].Pack(builder)\n";
         } else {
           code += "\t\t\tbuilder.PrependUOffsetT(" + offsets + "[j])\n";
         }
@@ -956,11 +974,11 @@ class GoGenerator : public BaseGenerator {
         code += "\t}\n";
       } else if (field.value.type.base_type == BASE_TYPE_STRUCT) {
         if (field.value.type.struct_def->fixed) continue;
-        code += "\t" + offset + " := t." + MakeCamel(field.name) +
-                ".Pack(builder)\n";
+        code += "\t" + offset + " := t." +
+                ConvertCase(field.name, Case::kUpperCamel) + ".Pack(builder)\n";
       } else if (field.value.type.base_type == BASE_TYPE_UNION) {
-        code += "\t" + offset + " := t." + MakeCamel(field.name) +
-                ".Pack(builder)\n";
+        code += "\t" + offset + " := t." +
+                ConvertCase(field.name, Case::kUpperCamel) + ".Pack(builder)\n";
         code += "\t\n";
       } else {
         FLATBUFFERS_ASSERT(0);
@@ -972,17 +990,21 @@ class GoGenerator : public BaseGenerator {
       const FieldDef &field = **it;
       if (field.deprecated) continue;
 
-      std::string offset = MakeCamel(field.name, false) + "Offset";
+      std::string offset =
+          ConvertCase(field.name, Case::kLowerCamel) + "Offset";
       if (IsScalar(field.value.type.base_type)) {
         std::string prefix;
         if (field.IsScalarOptional()) {
-          code += "\tif t." + MakeCamel(field.name) + " != nil {\n\t";
+          code += "\tif t." + ConvertCase(field.name, Case::kUpperCamel) +
+                  " != nil {\n\t";
           prefix = "*";
         }
         if (field.value.type.enum_def == nullptr ||
             !field.value.type.enum_def->is_union) {
-          code += "\t" + struct_def.name + "Add" + MakeCamel(field.name) +
-                  "(builder, " + prefix + "t." + MakeCamel(field.name) + ")\n";
+          code += "\t" + struct_def.name + "Add" +
+                  ConvertCase(field.name, Case::kUpperCamel) + "(builder, " +
+                  prefix + "t." + ConvertCase(field.name, Case::kUpperCamel) +
+                  ")\n";
         }
         if (field.IsScalarOptional()) {
           code += "\t}\n";
@@ -990,18 +1012,23 @@ class GoGenerator : public BaseGenerator {
       } else {
         if (field.value.type.base_type == BASE_TYPE_STRUCT &&
             field.value.type.struct_def->fixed) {
-          code += "\t" + offset + " := t." + MakeCamel(field.name) +
+          code += "\t" + offset + " := t." +
+                  ConvertCase(field.name, Case::kUpperCamel) +
                   ".Pack(builder)\n";
         } else if (field.value.type.enum_def != nullptr &&
                    field.value.type.enum_def->is_union) {
-          code += "\tif t." + MakeCamel(field.name) + " != nil {\n";
+          code += "\tif t." + ConvertCase(field.name, Case::kUpperCamel) +
+                  " != nil {\n";
           code += "\t\t" + struct_def.name + "Add" +
-                  MakeCamel(field.name + UnionTypeFieldSuffix()) +
-                  "(builder, t." + MakeCamel(field.name) + ".Type)\n";
+                  ConvertCase(field.name + UnionTypeFieldSuffix(),
+                              Case::kUpperCamel) +
+                  "(builder, t." + ConvertCase(field.name, Case::kUpperCamel) +
+                  ".Type)\n";
           code += "\t}\n";
         }
-        code += "\t" + struct_def.name + "Add" + MakeCamel(field.name) +
-                "(builder, " + offset + ")\n";
+        code += "\t" + struct_def.name + "Add" +
+                ConvertCase(field.name, Case::kUpperCamel) + "(builder, " +
+                offset + ")\n";
       }
     }
     code += "\treturn " + struct_def.name + "End(builder)\n";
@@ -1018,8 +1045,9 @@ class GoGenerator : public BaseGenerator {
          it != struct_def.fields.vec.end(); ++it) {
       const FieldDef &field = **it;
       if (field.deprecated) continue;
-      std::string field_name_camel = MakeCamel(field.name);
-      std::string length = MakeCamel(field.name, false) + "Length";
+      std::string field_name_camel = ConvertCase(field.name, Case::kUpperCamel);
+      std::string length =
+          ConvertCase(field.name, Case::kLowerCamel) + "Length";
       if (IsScalar(field.value.type.base_type)) {
         if (field.value.type.enum_def != nullptr &&
             field.value.type.enum_def->is_union)
@@ -1062,13 +1090,15 @@ class GoGenerator : public BaseGenerator {
         code += "\tt." + field_name_camel + " = rcv." + field_name_camel +
                 "(nil).UnPack()\n";
       } else if (field.value.type.base_type == BASE_TYPE_UNION) {
-        std::string field_table = MakeCamel(field.name, false) + "Table";
+        std::string field_table =
+            ConvertCase(field.name, Case::kLowerCamel) + "Table";
         code += "\t" + field_table + " := flatbuffers.Table{}\n";
-        code +=
-            "\tif rcv." + MakeCamel(field.name) + "(&" + field_table + ") {\n";
+        code += "\tif rcv." + ConvertCase(field.name, Case::kUpperCamel) +
+                "(&" + field_table + ") {\n";
         code += "\t\tt." + field_name_camel + " = rcv." +
-                MakeCamel(field.name + UnionTypeFieldSuffix()) + "().UnPack(" +
-                field_table + ")\n";
+                ConvertCase(field.name + UnionTypeFieldSuffix(),
+                            Case::kUpperCamel) +
+                "().UnPack(" + field_table + ")\n";
         code += "\t}\n";
       } else {
         FLATBUFFERS_ASSERT(0);
@@ -1104,11 +1134,14 @@ class GoGenerator : public BaseGenerator {
          it != struct_def.fields.vec.end(); ++it) {
       const FieldDef &field = **it;
       if (field.value.type.base_type == BASE_TYPE_STRUCT) {
-        StructPackArgs(*field.value.type.struct_def,
-                       (nameprefix + MakeCamel(field.name) + ".").c_str(),
-                       code_ptr);
+        StructPackArgs(
+            *field.value.type.struct_def,
+            (nameprefix + ConvertCase(field.name, Case::kUpperCamel) + ".")
+                .c_str(),
+            code_ptr);
       } else {
-        code += std::string(", t.") + nameprefix + MakeCamel(field.name);
+        code += std::string(", t.") + nameprefix +
+                ConvertCase(field.name, Case::kUpperCamel);
       }
     }
   }
@@ -1123,11 +1156,12 @@ class GoGenerator : public BaseGenerator {
          it != struct_def.fields.vec.end(); ++it) {
       const FieldDef &field = **it;
       if (field.value.type.base_type == BASE_TYPE_STRUCT) {
-        code += "\tt." + MakeCamel(field.name) + " = rcv." +
-                MakeCamel(field.name) + "(nil).UnPack()\n";
+        code += "\tt." + ConvertCase(field.name, Case::kUpperCamel) +
+                " = rcv." + ConvertCase(field.name, Case::kUpperCamel) +
+                "(nil).UnPack()\n";
       } else {
-        code += "\tt." + MakeCamel(field.name) + " = rcv." +
-                MakeCamel(field.name) + "()\n";
+        code += "\tt." + ConvertCase(field.name, Case::kUpperCamel) +
+                " = rcv." + ConvertCase(field.name, Case::kUpperCamel) + "()\n";
       }
     }
     code += "}\n\n";
@@ -1181,14 +1215,16 @@ class GoGenerator : public BaseGenerator {
       case BASE_TYPE_STRING: return "rcv._tab.ByteVector";
       case BASE_TYPE_UNION: return "rcv._tab.Union";
       case BASE_TYPE_VECTOR: return GenGetter(type.VectorType());
-      default: return "rcv._tab.Get" + MakeCamel(GenTypeBasic(type));
+      default:
+        return "rcv._tab.Get" +
+               ConvertCase(GenTypeBasic(type), Case::kUpperCamel);
     }
   }
 
   // Returns the method name for use with add/put calls.
   std::string GenMethod(const FieldDef &field) {
     return IsScalar(field.value.type.base_type)
-               ? MakeCamel(GenTypeBasic(field.value.type))
+               ? ConvertCase(GenTypeBasic(field.value.type), Case::kUpperCamel)
                : (IsStruct(field.value.type) ? "Struct" : "UOffsetT");
   }
 

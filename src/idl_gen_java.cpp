@@ -375,7 +375,7 @@ class JavaGenerator : public BaseGenerator {
       code += "};\n\n";
       code += "  public static ";
       code += "String";
-      code += " " + MakeCamel("name", false);
+      code += " name";
       code += "(int e) { return names[e";
       if (enum_def.MinValue()->IsNonZero())
         code += " - " + enum_def.MinValue()->name;
@@ -399,7 +399,7 @@ class JavaGenerator : public BaseGenerator {
         if (type.base_type == BASE_TYPE_BOOL) {
           getter = "0!=" + getter;
         } else if (GenTypeBasic(type) != "byte") {
-          getter += MakeCamel(GenTypeBasic(type));
+          getter += ConvertCase(GenTypeBasic(type), Case::kUpperCamel);
         }
         return getter;
       }
@@ -415,7 +415,7 @@ class JavaGenerator : public BaseGenerator {
     auto dest_cast = DestinationCast(type);
     auto getter = data_buffer + ".get";
     if (GenTypeBasic(type) != "byte") {
-      getter += MakeCamel(GenTypeBasic(type));
+      getter += ConvertCase(GenTypeBasic(type), Case::kUpperCamel);
     }
     getter = dest_cast + getter + "(" + GenOffsetGetter(key_field, num) + ")" +
              dest_mask;
@@ -428,7 +428,7 @@ class JavaGenerator : public BaseGenerator {
     if (IsScalar(type.base_type)) {
       std::string setter = "bb.put";
       if (GenTypeBasic(type) != "byte" && type.base_type != BASE_TYPE_BOOL) {
-        setter += MakeCamel(GenTypeBasic(type));
+        setter += ConvertCase(GenTypeBasic(type), Case::kUpperCamel);
       }
       return setter;
     } else {
@@ -438,8 +438,9 @@ class JavaGenerator : public BaseGenerator {
 
   // Returns the method name for use with add/put calls.
   std::string GenMethod(const Type &type) const {
-    return IsScalar(type.base_type) ? MakeCamel(GenTypeBasic(type))
-                                    : (IsStruct(type) ? "Struct" : "Offset");
+    return IsScalar(type.base_type)
+               ? ConvertCase(GenTypeBasic(type), Case::kUpperCamel)
+               : (IsStruct(type) ? "Struct" : "Offset");
   }
 
   // Recursively generate arguments for a constructor, to deal with nested
@@ -467,7 +468,7 @@ class JavaGenerator : public BaseGenerator {
         for (size_t i = 0; i < array_cnt; i++) code += "[]";
         code += " ";
         code += nameprefix;
-        code += MakeCamel(field.name, false);
+        code += ConvertCase(field.name, Case::kLowerCamel);
       }
     }
   }
@@ -514,7 +515,8 @@ class JavaGenerator : public BaseGenerator {
           code += indent + "  builder.put";
           code += GenMethod(type) + "(";
           code += SourceCast(type);
-          auto argname = nameprefix + MakeCamel(field.name, false);
+          auto argname =
+              nameprefix + ConvertCase(field.name, Case::kLowerCamel);
           code += argname;
           size_t array_cnt = index + (IsArray(field_type) ? 1 : 0);
           for (size_t i = 0; in_array && i < array_cnt; i++) {
@@ -682,7 +684,7 @@ class JavaGenerator : public BaseGenerator {
           "  public " +
           (field.IsRequired() ? "" : GenNullableAnnotation(field.value.type)) +
           GenPureAnnotation(field.value.type) + type_name_dest + optional +
-          " " + MakeCamel(field.name, false);
+          " " + ConvertCase(field.name, Case::kLowerCamel);
       std::string obj = "obj";
 
       // Most field accessors need to retrieve and test the field offset first,
@@ -696,7 +698,7 @@ class JavaGenerator : public BaseGenerator {
       if (field.value.type.base_type == BASE_TYPE_STRUCT) {
         // Calls the accessor that takes an accessor object with a new object.
         code += method_start + "() { return ";
-        code += MakeCamel(field.name, false);
+        code += ConvertCase(field.name, Case::kLowerCamel);
         code += "(new ";
         code += type_name + "()); }\n";
       } else if (IsSeries(field.value.type) &&
@@ -704,7 +706,7 @@ class JavaGenerator : public BaseGenerator {
         // Accessors for vectors of structs also take accessor objects, this
         // generates a variant without that argument.
         code += method_start + "(int j) { return ";
-        code += MakeCamel(field.name, false);
+        code += ConvertCase(field.name, Case::kLowerCamel);
         code += "(new " + type_name + "(), j); }\n";
       }
 
@@ -804,7 +806,7 @@ class JavaGenerator : public BaseGenerator {
       code += member_suffix;
       code += "}\n";
       if (IsVector(field.value.type)) {
-        code += "  public int " + MakeCamel(field.name, false);
+        code += "  public int " + ConvertCase(field.name, Case::kLowerCamel);
         code += "Length";
         code += "()";
         code += offset_prefix;
@@ -821,7 +823,7 @@ class JavaGenerator : public BaseGenerator {
             if (key_field.key) {
               auto qualified_name = WrapInNameSpace(sd);
               code += "  public " + qualified_name + " ";
-              code += MakeCamel(field.name, false) + "ByKey(";
+              code += ConvertCase(field.name, Case::kLowerCamel) + "ByKey(";
               code += GenTypeNameDest(key_field.value.type) + " key)";
               code += offset_prefix;
               code += qualified_name + ".__lookup_by_key(";
@@ -830,7 +832,7 @@ class JavaGenerator : public BaseGenerator {
               code += "bb) : null; ";
               code += "}\n";
               code += "  public " + qualified_name + " ";
-              code += MakeCamel(field.name, false) + "ByKey(";
+              code += ConvertCase(field.name, Case::kLowerCamel) + "ByKey(";
               code += qualified_name + " obj, ";
               code += GenTypeNameDest(key_field.value.type) + " key)";
               code += offset_prefix;
@@ -848,7 +850,8 @@ class JavaGenerator : public BaseGenerator {
         std::string vector_type_name;
         const auto &element_base_type = field.value.type.VectorType().base_type;
         if (IsScalar(element_base_type)) {
-          vector_type_name = MakeCamel(type_name, true) + "Vector";
+          vector_type_name =
+              ConvertCase(type_name, Case::kUpperCamel) + "Vector";
         } else if (element_base_type == BASE_TYPE_STRING) {
           vector_type_name = "StringVector";
         } else if (element_base_type == BASE_TYPE_UNION) {
@@ -856,12 +859,12 @@ class JavaGenerator : public BaseGenerator {
         } else {
           vector_type_name = type_name + ".Vector";
         }
-        auto vector_method_start = GenNullableAnnotation(field.value.type) +
-                                   "  public " + vector_type_name + optional +
-                                   " " + MakeCamel(field.name, false) +
-                                   "Vector";
+        auto vector_method_start =
+            GenNullableAnnotation(field.value.type) + "  public " +
+            vector_type_name + optional + " " +
+            ConvertCase(field.name, Case::kLowerCamel) + "Vector";
         code += vector_method_start + "() { return ";
-        code += MakeCamel(field.name, false) + "Vector";
+        code += ConvertCase(field.name, Case::kLowerCamel) + "Vector";
         code += "(new " + vector_type_name + "()); }\n";
         code += vector_method_start + "(" + vector_type_name + " obj)";
         code += offset_prefix + conditional_cast + obj + ".__assign(";
@@ -877,7 +880,7 @@ class JavaGenerator : public BaseGenerator {
            IsScalar(field.value.type.VectorType().base_type)) ||
           IsString(field.value.type)) {
         code += "  public ByteBuffer ";
-        code += MakeCamel(field.name, false);
+        code += ConvertCase(field.name, Case::kLowerCamel);
         code += "AsByteBuffer() { return ";
         code += "__vector_as_bytebuffer(";
         code += NumToString(field.value.offset) + ", ";
@@ -886,7 +889,7 @@ class JavaGenerator : public BaseGenerator {
                                 : InlineSize(field.value.type.VectorType()));
         code += "); }\n";
         code += "  public ByteBuffer ";
-        code += MakeCamel(field.name, false);
+        code += ConvertCase(field.name, Case::kLowerCamel);
         code += "InByteBuffer(ByteBuffer _bb) { return ";
         code += "__vector_in_bytebuffer(_bb, ";
         code += NumToString(field.value.offset) + ", ";
@@ -898,8 +901,8 @@ class JavaGenerator : public BaseGenerator {
       // generate object accessors if is nested_flatbuffer
       if (field.nested_flatbuffer) {
         auto nested_type_name = WrapInNameSpace(*field.nested_flatbuffer);
-        auto nested_method_name =
-            MakeCamel(field.name, false) + "As" + field.nested_flatbuffer->name;
+        auto nested_method_name = ConvertCase(field.name, Case::kLowerCamel) +
+                                  "As" + field.nested_flatbuffer->name;
         auto get_nested_method_name = nested_method_name;
         code += "  public " + nested_type_name + " ";
         code += nested_method_name + "() { return ";
@@ -925,7 +928,7 @@ class JavaGenerator : public BaseGenerator {
         auto setter_parameter = underlying_type.base_type == BASE_TYPE_BOOL
                                     ? "(byte)(" + field.name + " ? 1 : 0)"
                                     : field.name;
-        auto mutator_prefix = MakeCamel("mutate", false);
+        auto mutator_prefix = "mutate";
         // A vector mutator also needs the index of the vector element it should
         // mutate.
         auto mutator_params = (is_series ? "(int j, " : "(") +
@@ -943,7 +946,7 @@ class JavaGenerator : public BaseGenerator {
         if (IsScalar(underlying_type.base_type) && !IsUnion(field.value.type)) {
           code += "  public ";
           code += struct_def.fixed ? "void " : "boolean ";
-          code += mutator_prefix + MakeCamel(field.name, true);
+          code += mutator_prefix + ConvertCase(field.name, Case::kUpperCamel);
           code += mutator_params;
           if (struct_def.fixed) {
             code += GenSetter(underlying_type) + "(" + setter_index + ", ";
@@ -1012,7 +1015,7 @@ class JavaGenerator : public BaseGenerator {
         for (auto it = struct_def.fields.vec.begin();
              it != struct_def.fields.vec.end(); ++it) {
           auto &field = **it;
-          auto field_name = MakeCamel(field.name, false);
+          auto field_name = ConvertCase(field.name, Case::kLowerCamel);
           if (field.deprecated) continue;
           code += ",\n      ";
           code += GenTypeBasic(DestinationType(field.value.type, false));
@@ -1028,8 +1031,8 @@ class JavaGenerator : public BaseGenerator {
           for (auto it = struct_def.fields.vec.rbegin();
                it != struct_def.fields.vec.rend(); ++it) {
             auto &field = **it;
-            auto field_name = MakeCamel(field.name, false);
-            auto method_name = MakeCamel(field.name, true);
+            auto field_name = ConvertCase(field.name, Case::kLowerCamel);
+            auto method_name = ConvertCase(field.name, Case::kUpperCamel);
             if (!field.deprecated &&
                 (!struct_def.sortbysize ||
                  size == SizeOf(field.value.type.base_type))) {
@@ -1061,10 +1064,10 @@ class JavaGenerator : public BaseGenerator {
         if (field.deprecated) continue;
         if (field.key) key_field = &field;
         code += "  public static void add";
-        code += MakeCamel(field.name);
+        code += ConvertCase(field.name, Case::kUpperCamel);
         code += "(FlatBufferBuilder builder, ";
         code += GenTypeBasic(DestinationType(field.value.type, false));
-        auto argname = MakeCamel(field.name, false);
+        auto argname = ConvertCase(field.name, Case::kLowerCamel);
         if (!IsScalar(field.value.type.base_type)) argname += "Offset";
         code += " " + argname + ") { builder.add";
         code += GenMethod(field.value.type) + "(";
@@ -1087,19 +1090,19 @@ class JavaGenerator : public BaseGenerator {
               // Handle byte[] and ByteBuffers separately for Java
               code += "  public static " + GenVectorOffsetType() + " ";
               code += "create";
-              code += MakeCamel(field.name);
+              code += ConvertCase(field.name, Case::kUpperCamel);
               code += "Vector(FlatBufferBuilder builder, byte[] data) ";
               code += "{ return builder.createByteVector(data); }\n";
 
               code += "  public static " + GenVectorOffsetType() + " ";
               code += "create";
-              code += MakeCamel(field.name);
+              code += ConvertCase(field.name, Case::kUpperCamel);
               code += "Vector(FlatBufferBuilder builder, ByteBuffer data) ";
               code += "{ return builder.createByteVector(data); }\n";
             } else {
               code += "  public static " + GenVectorOffsetType() + " ";
               code += "create";
-              code += MakeCamel(field.name);
+              code += ConvertCase(field.name, Case::kUpperCamel);
               code += "Vector(FlatBufferBuilder builder, ";
               code += GenTypeBasic(DestinationType(vector_type, false)) +
                       "[] data) ";
@@ -1121,7 +1124,7 @@ class JavaGenerator : public BaseGenerator {
           // Generate a method to start a vector, data to be added manually
           // after.
           code += "  public static void start";
-          code += MakeCamel(field.name);
+          code += ConvertCase(field.name, Case::kUpperCamel);
           code += "Vector(FlatBufferBuilder builder, int numElems) ";
           code += "{ builder.startVector(";
           code += NumToString(elem_size);
@@ -1207,7 +1210,7 @@ class JavaGenerator : public BaseGenerator {
 
   std::string GenOptionalScalarCheck(FieldDef &field) const {
     if (!field.IsScalarOptional()) return "";
-    return "  public boolean has" + MakeCamel(field.name, true) +
+    return "  public boolean has" + ConvertCase(field.name, Case::kUpperCamel) +
            "() { return 0 != __offset(" + NumToString(field.value.offset) +
            "); }\n";
   }
@@ -1274,7 +1277,7 @@ class JavaGenerator : public BaseGenerator {
   }
 
   std::string GenGetterFuncName_ObjectAPI(const std::string &field_name) const {
-    return "get" + MakeCamel(field_name, true);
+    return "get" + ConvertCase(field_name, Case::kUpperCamel);
   }
 
   void GenEnum_ObjectAPI(EnumDef &enum_def, std::string *code_ptr,
@@ -1345,7 +1348,7 @@ class JavaGenerator : public BaseGenerator {
   }
 
   std::string GenSetterFuncName_ObjectAPI(const std::string &field_name) const {
-    return "set" + MakeCamel(field_name, true);
+    return "set" + ConvertCase(field_name, Case::kUpperCamel);
   }
 
   std::string GenTypeName_ObjectAPI(const std::string &name,
@@ -1360,7 +1363,8 @@ class JavaGenerator : public BaseGenerator {
     auto &code = *code_ptr;
 
     std::string variable_type = type_name;
-    std::string variable_name = "_o" + MakeCamel(camel_name, true);
+    std::string variable_name =
+        "_o" + ConvertCase(camel_name, Case::kUpperCamel);
     std::string type_params = "";
     std::string value_params = "";
     std::string func_suffix = "()";
@@ -1409,7 +1413,7 @@ class JavaGenerator : public BaseGenerator {
     code += indent + "  default: break;\n";
     code += indent + "}\n";
     if (is_vector) {
-      code += indent + "_o" + MakeCamel(camel_name, true) +
+      code += indent + "_o" + ConvertCase(camel_name, Case::kUpperCamel) +
               "[_j] = " + variable_name + ";\n";
     }
   }
@@ -1434,8 +1438,8 @@ class JavaGenerator : public BaseGenerator {
       if (field.deprecated) continue;
       if (field.value.type.base_type == BASE_TYPE_UTYPE) continue;
       if (field.value.type.element == BASE_TYPE_UTYPE) continue;
-      auto camel_name = MakeCamel(field.name, false);
-      auto camel_name_with_first = MakeCamel(field.name, true);
+      auto camel_name = ConvertCase(field.name, Case::kLowerCamel);
+      auto camel_name_with_first = ConvertCase(field.name, Case::kUpperCamel);
       auto type_name =
           GenTypeGet_ObjectAPI(field.value.type, opts, false, true);
       if (field.IsScalarOptional())
@@ -1534,8 +1538,8 @@ class JavaGenerator : public BaseGenerator {
          it != struct_def.fields.vec.end(); ++it) {
       auto &field = **it;
       if (field.deprecated) continue;
-      auto camel_name = MakeCamel(field.name, false);
-      auto camel_name_with_first = MakeCamel(field.name, true);
+      auto camel_name = ConvertCase(field.name, Case::kLowerCamel);
+      auto camel_name_with_first = ConvertCase(field.name, Case::kUpperCamel);
       // pre
       switch (field.value.type.base_type) {
         case BASE_TYPE_STRUCT: {
@@ -1710,7 +1714,7 @@ class JavaGenerator : public BaseGenerator {
            it != struct_def.fields.vec.end(); ++it) {
         auto &field = **it;
         if (field.deprecated) continue;
-        auto camel_name = MakeCamel(field.name, false);
+        auto camel_name = ConvertCase(field.name, Case::kLowerCamel);
         switch (field.value.type.base_type) {
           case BASE_TYPE_STRUCT: {
             if (struct_def.fixed) {
@@ -1766,8 +1770,8 @@ class JavaGenerator : public BaseGenerator {
            it != struct_def.fields.vec.end(); ++it) {
         auto &field = **it;
         if (field.deprecated) continue;
-        auto camel_name = MakeCamel(field.name, false);
-        auto camel_name_with_first = MakeCamel(field.name, true);
+        auto camel_name = ConvertCase(field.name, Case::kLowerCamel);
+        auto camel_name_with_first = ConvertCase(field.name, Case::kUpperCamel);
         switch (field.value.type.base_type) {
           case BASE_TYPE_STRUCT: {
             if (field.value.type.struct_def->fixed) {
@@ -1842,7 +1846,7 @@ class JavaGenerator : public BaseGenerator {
         }
         std::string name;
         for (size_t i = 0; i < array_lengths.size(); ++i) {
-          name += "_" + MakeCamel(array_lengths[i].name, false);
+          name += "_" + ConvertCase(array_lengths[i].name, Case::kLowerCamel);
         }
         code += "    " + GenTypeBasic(field_type);
         if (array_only_lengths.size() > 0) {
@@ -1887,8 +1891,8 @@ class JavaGenerator : public BaseGenerator {
           code += " " + name + " = ";
           code += "_o";
           for (size_t i = 0; i < array_lengths.size(); ++i) {
-            code += "." + GenGetterFuncName_ObjectAPI(array_lengths[i].name) +
-                    "()";  // + MakeCamel(array_lengths[i].name);
+            code +=
+                "." + GenGetterFuncName_ObjectAPI(array_lengths[i].name) + "()";
           }
           code += ";";
         }
@@ -1909,10 +1913,10 @@ class JavaGenerator : public BaseGenerator {
       if (field_type.struct_def != nullptr) {
         GenStructPackCall_ObjectAPI(
             *field_type.struct_def, code_ptr,
-            prefix + MakeCamel(field.name, false) + "_");
+            prefix + ConvertCase(field.name, Case::kLowerCamel) + "_");
       } else {
         code += ",\n";
-        code += prefix + MakeCamel(field.name, false);
+        code += prefix + ConvertCase(field.name, Case::kLowerCamel);
       }
     }
   }
@@ -2047,7 +2051,7 @@ class JavaGenerator : public BaseGenerator {
           GenTypeGet_ObjectAPI(field.value.type, opts, false, true);
       if (field.IsScalarOptional())
         type_name = ConvertPrimitiveTypeToObjectWrapper_ObjectAPI(type_name);
-      auto camel_name = MakeCamel(field.name, false);
+      auto camel_name = ConvertCase(field.name, Case::kLowerCamel);
       code += "  private " + type_name + " " + camel_name + ";\n";
     }
     // Generate Java getters and setters
@@ -2062,7 +2066,7 @@ class JavaGenerator : public BaseGenerator {
           GenTypeGet_ObjectAPI(field.value.type, opts, false, true);
       if (field.IsScalarOptional())
         type_name = ConvertPrimitiveTypeToObjectWrapper_ObjectAPI(type_name);
-      auto camel_name = MakeCamel(field.name, false);
+      auto camel_name = ConvertCase(field.name, Case::kLowerCamel);
       code += "  public " + type_name + " " +
               GenGetterFuncName_ObjectAPI(field.name) + "() { return " +
               camel_name + "; }\n\n";
@@ -2085,7 +2089,7 @@ class JavaGenerator : public BaseGenerator {
       if (field.deprecated) continue;
       if (field.value.type.base_type == BASE_TYPE_UTYPE) continue;
       if (field.value.type.element == BASE_TYPE_UTYPE) continue;
-      code += "    this." + MakeCamel(field.name, false) + " = ";
+      code += "    this." + ConvertCase(field.name, Case::kLowerCamel) + " = ";
       auto type_name =
           GenTypeGet_ObjectAPI(field.value.type, opts, false, true);
       if (IsScalar(field.value.type.base_type)) {
