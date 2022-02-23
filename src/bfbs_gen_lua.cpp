@@ -150,7 +150,8 @@ class LuaBfbsGenerator : public BaseBfbsGenerator {
         if (field->deprecated()) { return; }
 
         const std::string field_name = NormalizeName(field->name());
-        const std::string field_name_camel_case = MakeCamelCase(field_name);
+        const std::string field_name_camel_case =
+            ConvertCase(field_name, Case::kUpperCamel);
         const r::BaseType base_type = field->type()->base_type();
 
         // Generate some fixed strings so we don't repeat outselves later.
@@ -346,18 +347,19 @@ class LuaBfbsGenerator : public BaseBfbsGenerator {
           const std::string field_name = NormalizeName(field->name());
 
           code += "function " + object_name + ".Add" +
-                  MakeCamelCase(field_name) + "(builder, " +
-                  MakeCamelCase(field_name, false) + ")\n";
+                  ConvertCase(field_name, Case::kUpperCamel) + "(builder, " +
+                  ConvertCase(field_name, Case::kLowerCamel) + ")\n";
           code += "  builder:Prepend" + GenerateMethod(field) + "Slot(" +
                   NumToString(field->id()) + ", " +
-                  MakeCamelCase(field_name, false) + ", " +
+                  ConvertCase(field_name, Case::kLowerCamel) + ", " +
                   DefaultValue(field) + ")\n";
           code += "end\n";
           code += "\n";
 
           if (IsVector(field->type()->base_type())) {
             code += "function " + object_name + ".Start" +
-                    MakeCamelCase(field_name) + "Vector(builder, numElems)\n";
+                    ConvertCase(field_name, Case::kUpperCamel) +
+                    "Vector(builder, numElems)\n";
 
             const int32_t element_size = field->type()->element_size();
             int32_t alignment = 0;
@@ -407,7 +409,8 @@ class LuaBfbsGenerator : public BaseBfbsGenerator {
             field_object, prefix + NormalizeName(field->name()) + "_");
       } else {
         signature +=
-            ", " + prefix + MakeCamelCase(NormalizeName(field->name()), false);
+            ", " + prefix +
+            ConvertCase(NormalizeName(field->name()), Case::kLowerCamel);
       }
     });
     return signature;
@@ -432,7 +435,8 @@ class LuaBfbsGenerator : public BaseBfbsGenerator {
             field_object, prefix + NormalizeName(field->name()) + "_");
       } else {
         code += "  builder:Prepend" + GenerateMethod(field) + "(" + prefix +
-                MakeCamelCase(NormalizeName(field->name()), false) + ")\n";
+                ConvertCase(NormalizeName(field->name()), Case::kLowerCamel) +
+                ")\n";
       }
     });
 
@@ -441,7 +445,9 @@ class LuaBfbsGenerator : public BaseBfbsGenerator {
 
   std::string GenerateMethod(const r::Field *field) const {
     const r::BaseType base_type = field->type()->base_type();
-    if (IsScalar(base_type)) { return MakeCamelCase(GenerateType(base_type)); }
+    if (IsScalar(base_type)) {
+      return ConvertCase(GenerateType(base_type), Case::kUpperCamel);
+    }
     if (IsStructOrTable(base_type)) { return "Struct"; }
     return "UOffsetTRelative";
   }
@@ -454,7 +460,9 @@ class LuaBfbsGenerator : public BaseBfbsGenerator {
       case r::Vector: return GenerateGetter(type, true);
       default:
         return "self.view:Get(flatbuffers.N." +
-               MakeCamelCase(GenerateType(type, element_type)) + ", ";
+               ConvertCase(GenerateType(type, element_type),
+                           Case::kUpperCamel) +
+               ", ";
     }
   }
 
