@@ -699,6 +699,8 @@ enum class Case {
   kAllUpper = 5,
   // thequickbrownfox
   kAllLower = 6,
+  // the-quick-brown-fox
+  kDasher = 7,
 };
 
 // Convert the `input` string of case `input_case` to the specified `output_case`.

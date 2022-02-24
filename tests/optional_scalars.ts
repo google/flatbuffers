@@ -1,1 +1,1 @@
-export { OptionalByte } from './optional_scalars/optional-byte';
+export { OptionalByte } from './optional-scalars/optional-byte';
