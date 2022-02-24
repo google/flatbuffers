@@ -134,8 +134,9 @@ class TsGenerator : public BaseGenerator {
     if (!imports.empty()) code += "\n\n";
 
     code += classcode;
-    auto filename = NamespaceDir(*definition.defined_namespace, true) +
-                    ToDasherizedCase(definition.name) + ".ts";
+    auto filename =
+        NamespaceDir(*definition.defined_namespace, true) +
+        ConvertCase(definition.name, Case::kDasher, Case::kUpperCamel) + ".ts";
     return SaveFile(filename.c_str(), code, false);
   }
 
@@ -566,8 +567,11 @@ class TsGenerator : public BaseGenerator {
       rel_file_path += i == 0 ? ".." : (kPathSeparator + std::string(".."));
     if (dep_comps.size() == 0) rel_file_path += ".";
     for (auto it = depc_comps.begin(); it != depc_comps.end(); it++)
-      bare_file_path += kPathSeparator + ToDasherizedCase(*it);
-    bare_file_path += kPathSeparator + ToDasherizedCase(dependency.name);
+      bare_file_path +=
+          kPathSeparator + ConvertCase(*it, Case::kDasher, Case::kUpperCamel);
+    bare_file_path +=
+        kPathSeparator +
+        ConvertCase(dependency.name, Case::kDasher, Case::kUpperCamel);
     rel_file_path += bare_file_path;
     import_statement += rel_file_path + "';";
     export_statement += "." + bare_file_path + "';";
@@ -623,8 +627,11 @@ class TsGenerator : public BaseGenerator {
       rel_file_path += i == 0 ? ".." : (kPathSeparator + std::string(".."));
     if (dep_comps.size() == 0) rel_file_path += ".";
     for (auto it = depc_comps.begin(); it != depc_comps.end(); it++)
-      bare_file_path += kPathSeparator + ToDasherizedCase(*it);
-    bare_file_path += kPathSeparator + ToDasherizedCase(dependency.name);
+      bare_file_path +=
+          kPathSeparator + ConvertCase(*it, Case::kDasher, Case::kUpperCamel);
+    bare_file_path +=
+        kPathSeparator +
+        ConvertCase(dependency.name, Case::kDasher, Case::kUpperCamel);
     rel_file_path += bare_file_path;
     import_statement += rel_file_path + "';";
     export_statement += "." + bare_file_path + "';";
