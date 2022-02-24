@@ -97,8 +97,6 @@ class BaseGenerator {
                                   const Namespace &ns,
                                   const bool dasherize = false);
 
-  static std::string ToDasherizedCase(const std::string pascal_case);
-
   std::string GeneratedFileName(const std::string &path,
                                 const std::string &file_name,
                                 const IDLOptions &options) const;

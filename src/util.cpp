@@ -379,6 +379,39 @@ static std::string CamelToSnake(const std::string &input) {
   return s;
 }
 
+static std::string DasherToSnake(const std::string &input) {
+  std::string s;
+  for (size_t i = 0; i < input.length(); i++) {
+    if (input[i] == '-') {
+      s += "_";
+    } else {
+      s += input[i];
+    }
+  }
+  return s;
+}
+
+static std::string ToDasher(const std::string &input) {
+  std::string s;
+  char p = 0;
+  for (size_t i = 0; i < input.length(); i++) {
+    char const &c = input[i];
+    if (c == '_') {
+      if (i > 0 && p != kPathSeparator &&
+          // The following is a special case to ignore digits after a _. This is
+          // because ThisExample3 would be converted to this_example_3 in the
+          // CamelToSnake conversion, and then dasher would do this-example-3,
+          // but it expects this-example3.
+          !(i + 1 < input.length() && isdigit(input[i + 1])))
+        s += "-";
+    } else {
+      s += c;
+    }
+    p = c;
+  }
+  return s;
+}
+
 }  // namespace
 
 std::string ConvertCase(const std::string &input, Case output_case,
@@ -389,7 +422,7 @@ std::string ConvertCase(const std::string &input, Case output_case,
     case Case::kLowerCamel:
     case Case::kUpperCamel:
       return ConvertCase(CamelToSnake(input), output_case);
-
+    case Case::kDasher: return ConvertCase(DasherToSnake(input), output_case);
     default:
     case Case::kSnake:
     case Case::kScreamingSnake:
@@ -404,6 +437,7 @@ std::string ConvertCase(const std::string &input, Case output_case,
     case Case::kScreamingSnake: return ToSnakeCase(input, true);
     case Case::kAllUpper: return ToAll(input, CharToUpper);
     case Case::kAllLower: return ToAll(input, CharToLower);
+    case Case::kDasher: return ToDasher(input);
     default:
     case Case::kUnknown: return input;
   }
