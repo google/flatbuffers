@@ -61,7 +61,8 @@ mod optional_scalars_generated;
 #[path = "../../arrays_test/mod.rs"]
 mod arrays_test_generated;
 
-#[allow(dead_code, unused_imports)]
+// We use incorrect casing to test keywords.
+#[allow(dead_code, unused_imports, non_camel_case_types, non_snake_case)]
 #[path = "../../keyword_test/mod.rs"]
 mod keyword_test_generated;
 
