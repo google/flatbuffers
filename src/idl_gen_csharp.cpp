@@ -191,7 +191,7 @@ class CSharpGenerator : public BaseGenerator {
   }
 
   std::string Name(const FieldDef &field) const {
-    std::string name = MakeCamel(field.name, true);
+    std::string name = ConvertCase(field.name, Case::kUpperCamel);
     return EscapeKeyword(name);
   }
 
@@ -452,7 +452,7 @@ class CSharpGenerator : public BaseGenerator {
         if (type.base_type == BASE_TYPE_BOOL) {
           getter = "0!=" + getter;
         } else if (GenTypeBasic(type, false) != "byte") {
-          getter += MakeCamel(GenTypeBasic(type, false));
+          getter += ConvertCase(GenTypeBasic(type, false), Case::kUpperCamel);
         }
         return getter;
       }
@@ -468,7 +468,7 @@ class CSharpGenerator : public BaseGenerator {
     auto dest_cast = DestinationCast(type);
     auto getter = data_buffer + ".Get";
     if (GenTypeBasic(type, false) != "byte") {
-      getter += MakeCamel(GenTypeBasic(type, false));
+      getter += ConvertCase(GenTypeBasic(type, false), Case::kUpperCamel);
     }
     getter = dest_cast + getter + "(" + GenOffsetGetter(key_field, num) + ")" +
              dest_mask;
@@ -482,7 +482,7 @@ class CSharpGenerator : public BaseGenerator {
       std::string setter = "__p.bb.Put";
       if (GenTypeBasic(type, false) != "byte" &&
           type.base_type != BASE_TYPE_BOOL) {
-        setter += MakeCamel(GenTypeBasic(type, false));
+        setter += ConvertCase(GenTypeBasic(type, false), Case::kUpperCamel);
       }
       return setter;
     } else {
@@ -492,8 +492,9 @@ class CSharpGenerator : public BaseGenerator {
 
   // Returns the method name for use with add/put calls.
   std::string GenMethod(const Type &type) const {
-    return IsScalar(type.base_type) ? MakeCamel(GenTypeBasic(type, false))
-                                    : (IsStruct(type) ? "Struct" : "Offset");
+    return IsScalar(type.base_type)
+               ? ConvertCase(GenTypeBasic(type, false), Case::kUpperCamel)
+               : (IsStruct(type) ? "Struct" : "Offset");
   }
 
   // Recursively generate arguments for a constructor, to deal with nested
@@ -1026,7 +1027,7 @@ class CSharpGenerator : public BaseGenerator {
             underlying_type.base_type == BASE_TYPE_BOOL
                 ? "(byte)(" + EscapeKeyword(field.name) + " ? 1 : 0)"
                 : EscapeKeyword(field.name);
-        auto mutator_prefix = MakeCamel("mutate", true);
+        auto mutator_prefix = "Mutate";
         // A vector mutator also needs the index of the vector element it should
         // mutate.
         auto mutator_params = (is_series ? "(int j, " : "(") +
@@ -1061,9 +1062,10 @@ class CSharpGenerator : public BaseGenerator {
       }
       if (parser_.opts.java_primitive_has_method &&
           IsScalar(field.value.type.base_type) && !struct_def.fixed) {
-        auto vt_offset_constant = "  public static final int VT_" +
-                                  MakeScreamingCamel(field.name) + " = " +
-                                  NumToString(field.value.offset) + ";";
+        auto vt_offset_constant =
+            "  public static final int VT_" +
+            ConvertCase(field.name, Case::kScreamingSnake) + " = " +
+            NumToString(field.value.offset) + ";";
 
         code += vt_offset_constant;
         code += "\n";
@@ -1184,7 +1186,7 @@ class CSharpGenerator : public BaseGenerator {
         code += Name(field);
         code += "(FlatBufferBuilder builder, ";
         code += GenTypeBasic(field.value.type);
-        auto argname = MakeCamel(field.name, false);
+        auto argname = ConvertCase(field.name, Case::kLowerCamel);
         if (!IsScalar(field.value.type.base_type)) argname += "Offset";
         if (field.IsScalarOptional()) { code += "?"; }
         code += " " + EscapeKeyword(argname) + ") { builder.Add";
@@ -1987,7 +1989,7 @@ class CSharpGenerator : public BaseGenerator {
           }
           code += "] = _o";
           for (size_t i = 0, j = 0; i < array_lengths.size(); ++i) {
-            code += "." + MakeCamel(array_lengths[i].name, true);
+            code += "." + ConvertCase(array_lengths[i].name, Case::kUpperCamel);
             if (array_lengths[i].length <= 0) continue;
             code += "[idx" + NumToString(j++) + "]";
           }
@@ -1998,7 +2000,7 @@ class CSharpGenerator : public BaseGenerator {
         } else {
           code += "_o";
           for (size_t i = 0; i < array_lengths.size(); ++i) {
-            code += "." + MakeCamel(array_lengths[i].name, true);
+            code += "." + ConvertCase(array_lengths[i].name, Case::kUpperCamel);
           }
           code += ";";
         }

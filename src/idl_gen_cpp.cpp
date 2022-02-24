@@ -248,10 +248,10 @@ class CppGenerator : public BaseGenerator {
       name.erase(name.length() - union_suffix_len, union_suffix_len);
     }
     if (opts_.cpp_object_api_field_case_style == IDLOptions::CaseStyle_Upper)
-      name = MakeCamel(name, true); /* upper */
+      name = ConvertCase(name, Case::kUpperCamel);
     else if (opts_.cpp_object_api_field_case_style ==
              IDLOptions::CaseStyle_Lower)
-      name = MakeCamel(name, false); /* lower */
+      name = ConvertCase(name, Case::kLowerCamel);
     // restore the union field type suffix
     if (is_union_type) name.append(UnionTypeFieldSuffix(), union_suffix_len);
     return EscapeKeyword(name);

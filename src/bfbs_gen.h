@@ -93,20 +93,6 @@ static bool IsVector(const reflection::BaseType base_type) {
   return base_type == reflection::Vector;
 }
 
-static std::string MakeCamelCase(const std::string &in,
-                                 bool uppercase_first = true) {
-  std::string s;
-  for (size_t i = 0; i < in.length(); i++) {
-    if (!i && uppercase_first)
-      s += static_cast<char>(::toupper(static_cast<unsigned char>(in[0])));
-    else if (in[i] == '_' && i + 1 < in.length())
-      s += static_cast<char>(::toupper(static_cast<unsigned char>(in[++i])));
-    else
-      s += in[i];
-  }
-  return s;
-}
-
 static std::string Denamespace(const flatbuffers::String *name,
                                std::string &ns) {
   const size_t pos = name->str().find_last_of('.');

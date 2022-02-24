@@ -181,7 +181,7 @@ class PhpGenerator : public BaseGenerator {
     code += Indent + " * @return int\n";
     code += Indent + " */\n";
     code += Indent + "public function get";
-    code += MakeCamel(field.name) + "Length()\n";
+    code += ConvertCase(field.name, Case::kUpperCamel) + "Length()\n";
     code += Indent + "{\n";
     code += Indent + Indent + "$o = $this->__offset(";
     code += NumToString(field.value.offset) + ");\n";
@@ -198,7 +198,7 @@ class PhpGenerator : public BaseGenerator {
     code += Indent + " * @return string\n";
     code += Indent + " */\n";
     code += Indent + "public function get";
-    code += MakeCamel(field.name) + "Bytes()\n";
+    code += ConvertCase(field.name, Case::kUpperCamel) + "Bytes()\n";
     code += Indent + "{\n";
     code += Indent + Indent + "return $this->__vector_as_bytes(";
     code += NumToString(field.value.offset) + ");\n";
@@ -216,12 +216,12 @@ class PhpGenerator : public BaseGenerator {
     code += GenTypeGet(field.value.type) + "\n";
     code += Indent + " */\n";
     code += Indent + "public function " + getter;
-    code += MakeCamel(field.name) + "()\n";
+    code += ConvertCase(field.name, Case::kUpperCamel) + "()\n";
     code += Indent + "{\n";
     code += Indent + Indent + "return ";
 
     code += "$this->bb->get";
-    code += MakeCamel(GenTypeGet(field.value.type));
+    code += ConvertCase(GenTypeGet(field.value.type), Case::kUpperCamel);
     code += "($this->bb_pos + ";
     code += NumToString(field.value.offset) + ")";
     code += ";\n";
@@ -237,14 +237,15 @@ class PhpGenerator : public BaseGenerator {
     code += Indent + " * @return " + GenTypeGet(field.value.type) + "\n";
     code += Indent + " */\n";
     code += Indent + "public function get";
-    code += MakeCamel(field.name);
+    code += ConvertCase(field.name, Case::kUpperCamel);
     code += "()\n";
     code += Indent + "{\n";
     code += Indent + Indent + "$o = $this->__offset(" +
             NumToString(field.value.offset) + ");\n" + Indent + Indent +
             "return $o != 0 ? ";
     code += "$this->bb->get";
-    code += MakeCamel(GenTypeGet(field.value.type)) + "($o + $this->bb_pos)";
+    code += ConvertCase(GenTypeGet(field.value.type), Case::kUpperCamel) +
+            "($o + $this->bb_pos)";
     code += " : " + GenDefaultValue(field.value) + ";\n";
     code += Indent + "}\n\n";
   }
@@ -258,7 +259,7 @@ class PhpGenerator : public BaseGenerator {
     code += Indent + " * @return " + GenTypeGet(field.value.type) + "\n";
     code += Indent + " */\n";
     code += Indent + "public function get";
-    code += MakeCamel(field.name) + "()\n";
+    code += ConvertCase(field.name, Case::kUpperCamel) + "()\n";
     code += Indent + "{\n";
     code += Indent + Indent + "$obj = new ";
     code += GenTypeGet(field.value.type) + "();\n";
@@ -274,11 +275,12 @@ class PhpGenerator : public BaseGenerator {
     std::string &code = *code_ptr;
 
     code += Indent + "public function get";
-    code += MakeCamel(field.name);
+    code += ConvertCase(field.name, Case::kUpperCamel);
     code += "()\n";
     code += Indent + "{\n";
     code += Indent + Indent + "$obj = new ";
-    code += MakeCamel(GenTypeGet(field.value.type)) + "();\n";
+    code +=
+        ConvertCase(GenTypeGet(field.value.type), Case::kUpperCamel) + "();\n";
     code += Indent + Indent + "$o = $this->__offset(" +
             NumToString(field.value.offset) + ");\n";
     code += Indent + Indent;
@@ -296,7 +298,7 @@ class PhpGenerator : public BaseGenerator {
   void GetStringField(const FieldDef &field, std::string *code_ptr) {
     std::string &code = *code_ptr;
     code += Indent + "public function get";
-    code += MakeCamel(field.name);
+    code += ConvertCase(field.name, Case::kUpperCamel);
     code += "()\n";
     code += Indent + "{\n";
     code += Indent + Indent + "$o = $this->__offset(" +
@@ -315,7 +317,7 @@ class PhpGenerator : public BaseGenerator {
     code += Indent + " * @return" + GenTypeBasic(field.value.type) + "\n";
     code += Indent + " */\n";
     code += Indent + "public function get";
-    code += MakeCamel(field.name) + "($obj)\n";
+    code += ConvertCase(field.name, Case::kUpperCamel) + "($obj)\n";
     code += Indent + "{\n";
     code += Indent + Indent + "$o = $this->__offset(" +
             NumToString(field.value.offset) + ");\n";
@@ -334,13 +336,14 @@ class PhpGenerator : public BaseGenerator {
     code += Indent + " * @return" + GenTypeBasic(field.value.type) + "\n";
     code += Indent + " */\n";
     code += Indent + "public function get";
-    code += MakeCamel(field.name);
+    code += ConvertCase(field.name, Case::kUpperCamel);
     code += "($j)\n";
     code += Indent + "{\n";
     code += Indent + Indent + "$o = $this->__offset(" +
             NumToString(field.value.offset) + ");\n";
     code += Indent + Indent + "$obj = new ";
-    code += MakeCamel(GenTypeGet(field.value.type)) + "();\n";
+    code +=
+        ConvertCase(GenTypeGet(field.value.type), Case::kUpperCamel) + "();\n";
 
     switch (field.value.type.base_type) {
       case BASE_TYPE_STRUCT:
@@ -395,7 +398,7 @@ class PhpGenerator : public BaseGenerator {
     code += Indent + " * @return " + GenTypeGet(field.value.type) + "\n";
     code += Indent + " */\n";
     code += Indent + "public function get";
-    code += MakeCamel(field.name);
+    code += ConvertCase(field.name, Case::kUpperCamel);
     code += "($j)\n";
     code += Indent + "{\n";
     code += Indent + Indent + "$o = $this->__offset(" +
@@ -408,7 +411,7 @@ class PhpGenerator : public BaseGenerator {
       code += GenDefaultValue(field.value) + ";\n";
     } else {
       code += Indent + Indent + "return $o != 0 ? $this->bb->get";
-      code += MakeCamel(GenTypeGet(field.value.type));
+      code += ConvertCase(GenTypeGet(field.value.type), Case::kUpperCamel);
       code += "($this->__vector($o) + $j * ";
       code += NumToString(InlineSize(vectortype)) + ") : ";
       code += GenDefaultValue(field.value) + ";\n";
@@ -427,7 +430,7 @@ class PhpGenerator : public BaseGenerator {
     code += Indent + " * @return " + GenTypeGet(field.value.type) + "\n";
     code += Indent + " */\n";
     code += Indent + "public function get";
-    code += MakeCamel(field.name);
+    code += ConvertCase(field.name, Case::kUpperCamel);
     code += "($j, $obj)\n";
     code += Indent + "{\n";
     code += Indent + Indent + "$o = $this->__offset(" +
@@ -455,7 +458,7 @@ class PhpGenerator : public BaseGenerator {
       } else {
         std::string &code = *code_ptr;
         code += std::string(", $") + nameprefix;
-        code += MakeCamel(field.name, false);
+        code += ConvertCase(field.name, Case::kLowerCamel);
       }
     }
   }
@@ -480,7 +483,8 @@ class PhpGenerator : public BaseGenerator {
                           (nameprefix + (field.name + "_")).c_str(), code_ptr);
       } else {
         code += Indent + Indent + "$builder->put" + GenMethod(field) + "($";
-        code += nameprefix + MakeCamel(field.name, false) + ");\n";
+        code +=
+            nameprefix + ConvertCase(field.name, Case::kLowerCamel) + ");\n";
       }
     }
   }
@@ -528,7 +532,8 @@ class PhpGenerator : public BaseGenerator {
       if (field.deprecated) continue;
 
       code += Indent + Indent + "self::add";
-      code += MakeCamel(field.name) + "($builder, $" + field.name + ");\n";
+      code += ConvertCase(field.name, Case::kUpperCamel) + "($builder, $" +
+              field.name + ");\n";
     }
 
     code += Indent + Indent + "$o = $builder->endObject();\n";
@@ -557,16 +562,16 @@ class PhpGenerator : public BaseGenerator {
     code += Indent + " * @return void\n";
     code += Indent + " */\n";
     code += Indent + "public static function ";
-    code += "add" + MakeCamel(field.name);
+    code += "add" + ConvertCase(field.name, Case::kUpperCamel);
     code += "(FlatBufferBuilder $builder, ";
-    code += "$" + MakeCamel(field.name, false);
+    code += "$" + ConvertCase(field.name, Case::kLowerCamel);
     code += ")\n";
     code += Indent + "{\n";
     code += Indent + Indent + "$builder->add";
     code += GenMethod(field) + "X(";
     code += NumToString(offset) + ", ";
 
-    code += "$" + MakeCamel(field.name, false);
+    code += "$" + ConvertCase(field.name, Case::kLowerCamel);
     code += ", ";
 
     if (field.value.type.base_type == BASE_TYPE_BOOL) {
@@ -591,7 +596,7 @@ class PhpGenerator : public BaseGenerator {
     code += Indent + " * @return int vector offset\n";
     code += Indent + " */\n";
     code += Indent + "public static function create";
-    code += MakeCamel(field.name);
+    code += ConvertCase(field.name, Case::kUpperCamel);
     code += "Vector(FlatBufferBuilder $builder, array $data)\n";
     code += Indent + "{\n";
     code += Indent + Indent + "$builder->startVector(";
@@ -603,7 +608,8 @@ class PhpGenerator : public BaseGenerator {
     if (IsScalar(field.value.type.VectorType().base_type)) {
       code += Indent + Indent + Indent;
       code += "$builder->put";
-      code += MakeCamel(GenTypeBasic(field.value.type.VectorType()));
+      code += ConvertCase(GenTypeBasic(field.value.type.VectorType()),
+                          Case::kUpperCamel);
       code += "($data[$i]);\n";
     } else {
       code += Indent + Indent + Indent;
@@ -619,7 +625,7 @@ class PhpGenerator : public BaseGenerator {
     code += Indent + " * @return void\n";
     code += Indent + " */\n";
     code += Indent + "public static function start";
-    code += MakeCamel(field.name);
+    code += ConvertCase(field.name, Case::kUpperCamel);
     code += "Vector(FlatBufferBuilder $builder, $numElems)\n";
     code += Indent + "{\n";
     code += Indent + Indent + "$builder->startVector(";
@@ -726,7 +732,7 @@ class PhpGenerator : public BaseGenerator {
       if (field.value.type.base_type == BASE_TYPE_UNION) {
         std::string &code = *code_ptr;
         code += Indent + "public static function add";
-        code += MakeCamel(field.name);
+        code += ConvertCase(field.name, Case::kUpperCamel);
         code += "(FlatBufferBuilder $builder, $offset)\n";
         code += Indent + "{\n";
         code += Indent + Indent + "$builder->addOffsetX(";
@@ -853,7 +859,7 @@ class PhpGenerator : public BaseGenerator {
   // Returns the method name for use with add/put calls.
   static std::string GenMethod(const FieldDef &field) {
     return IsScalar(field.value.type.base_type)
-               ? MakeCamel(GenTypeBasic(field.value.type))
+               ? ConvertCase(GenTypeBasic(field.value.type), Case::kUpperCamel)
                : (IsStruct(field.value.type) ? "Struct" : "Offset");
   }
 

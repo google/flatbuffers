@@ -78,7 +78,7 @@ class LobsterGenerator : public BaseGenerator {
   // Returns the method name for use with add/put calls.
   std::string GenMethod(const Type &type) {
     return IsScalar(type.base_type)
-               ? MakeCamel(GenTypeBasic(type))
+               ? ConvertCase(GenTypeBasic(type), Case::kUpperCamel)
                : (IsStruct(type) ? "Struct" : "UOffsetTRelative");
   }
 
@@ -212,7 +212,7 @@ class LobsterGenerator : public BaseGenerator {
       if (field.deprecated) continue;
       if (IsVector(field.value.type)) {
         code += "def " + NormalizedName(struct_def) + "Start" +
-                MakeCamel(NormalizedName(field)) +
+                ConvertCase(NormalizedName(field), Case::kUpperCamel) +
                 "Vector(b_:flatbuffers_builder, n_:int):\n    b_.StartVector(";
         auto vector_type = field.value.type.VectorType();
         auto alignment = InlineAlignment(vector_type);
@@ -222,7 +222,7 @@ class LobsterGenerator : public BaseGenerator {
         if (vector_type.base_type != BASE_TYPE_STRUCT ||
             !vector_type.struct_def->fixed) {
           code += "def " + NormalizedName(struct_def) + "Create" +
-                  MakeCamel(NormalizedName(field)) +
+                  ConvertCase(NormalizedName(field), Case::kUpperCamel) +
                   "Vector(b_:flatbuffers_builder, v_:[" +
                   LobsterType(vector_type) + "]):\n    b_.StartVector(" +
                   NumToString(elem_size) + ", v_.length, " +

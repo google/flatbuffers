@@ -211,7 +211,7 @@ flatbuffers::DetachedBuffer CreateFlatBufferTest(std::string &buffer) {
 
   FinishMonsterBuffer(builder, mloc);
 
-  // clang-format off
+// clang-format off
   #ifdef FLATBUFFERS_TEST_VERBOSE
   // print byte data for debugging:
   auto p = builder.GetBufferPointer();
@@ -237,7 +237,7 @@ void AccessFlatBufferTest(const uint8_t *flatbuf, size_t length,
   verifier.SetFlexReuseTracker(&flex_reuse_tracker);
   TEST_EQ(VerifyMonsterBuffer(verifier), true);
 
-  // clang-format off
+// clang-format off
   #ifdef FLATBUFFERS_TRACK_VERIFIER_BUFFER_SIZE
     std::vector<uint8_t> test_buff;
     test_buff.resize(length * 2);
@@ -618,7 +618,7 @@ void SizePrefixedTest() {
 }
 
 void TriviallyCopyableTest() {
-  // clang-format off
+// clang-format off
   #if __GNUG__ && __GNUC__ < 5
     TEST_EQ(__has_trivial_copy(Vec3), true);
   #else
@@ -1395,6 +1395,86 @@ void CompareTableFieldValue(flatbuffers::Table *table,
   TEST_EQ(read, val);
 }
 
+void UtilConvertCase() {
+  {
+    std::vector<std::tuple<std::string, flatbuffers::Case, std::string>>
+        cases = {
+          // Tests for the common cases
+          { "the_quick_brown_fox", flatbuffers::Case::kUpperCamel,
+            "TheQuickBrownFox" },
+          { "the_quick_brown_fox", flatbuffers::Case::kLowerCamel,
+            "theQuickBrownFox" },
+          { "the_quick_brown_fox", flatbuffers::Case::kSnake,
+            "the_quick_brown_fox" },
+          { "the_quick_brown_fox", flatbuffers::Case::kScreamingSnake,
+            "THE_QUICK_BROWN_FOX" },
+          { "the_quick_brown_fox", flatbuffers::Case::kAllLower,
+            "the_quick_brown_fox" },
+          { "the_quick_brown_fox", flatbuffers::Case::kAllUpper,
+            "THE_QUICK_BROWN_FOX" },
+          { "the_quick_brown_fox", flatbuffers::Case::kUnknown,
+            "the_quick_brown_fox" },
+
+          // Tests for some snake_cases where the _ is oddly placed or missing.
+          { "single", flatbuffers::Case::kUpperCamel, "Single" },
+          { "Single", flatbuffers::Case::kUpperCamel, "Single" },
+          { "_leading", flatbuffers::Case::kUpperCamel, "_leading" },
+          { "trailing_", flatbuffers::Case::kUpperCamel, "Trailing_" },
+          { "double__underscore", flatbuffers::Case::kUpperCamel,
+            "Double_underscore" },
+          { "single", flatbuffers::Case::kLowerCamel, "single" },
+          { "Single", flatbuffers::Case::kLowerCamel, "Single" },
+          { "_leading", flatbuffers::Case::kLowerCamel, "Leading" },
+          { "trailing_", flatbuffers::Case::kLowerCamel, "trailing_" },
+          { "double__underscore", flatbuffers::Case::kLowerCamel,
+            "double_underscore" },
+
+          // Tests for some output snake_cases
+          { "single", flatbuffers::Case::kSnake, "single" },
+          { "single", flatbuffers::Case::kScreamingSnake, "SINGLE" },
+          { "_leading", flatbuffers::Case::kScreamingSnake, "_LEADING" },
+          { "trailing_", flatbuffers::Case::kScreamingSnake, "TRAILING_" },
+          { "double__underscore", flatbuffers::Case::kScreamingSnake,
+            "DOUBLE__UNDERSCORE" },
+        };
+
+    for (auto &test_case : cases) {
+      TEST_EQ(std::get<2>(test_case),
+              flatbuffers::ConvertCase(std::get<0>(test_case),
+                                       std::get<1>(test_case)));
+    }
+  }
+  
+  // Tests for the non snake_case inputs.
+  {
+    std::vector<std::tuple<flatbuffers::Case, std::string, flatbuffers::Case,
+                           std::string>>
+        cases = {
+          { flatbuffers::Case::kUpperCamel, "TheQuickBrownFox",
+            flatbuffers::Case::kSnake, "the_quick_brown_fox" },
+          { flatbuffers::Case::kLowerCamel, "theQuickBrownFox",
+            flatbuffers::Case::kSnake, "the_quick_brown_fox" },
+          { flatbuffers::Case::kSnake, "the_quick_brown_fox",
+            flatbuffers::Case::kSnake, "the_quick_brown_fox" },
+          { flatbuffers::Case::kScreamingSnake, "THE_QUICK_BROWN_FOX",
+            flatbuffers::Case::kSnake, "THE_QUICK_BROWN_FOX" },
+          { flatbuffers::Case::kAllUpper, "SINGLE", flatbuffers::Case::kSnake,
+            "SINGLE" },
+          { flatbuffers::Case::kAllLower, "single", flatbuffers::Case::kSnake,
+            "single" },
+          { flatbuffers::Case::kUpperCamel, "ABCtest",
+            flatbuffers::Case::kSnake, "abctest" },
+        };
+
+    for (auto &test_case : cases) {
+      TEST_EQ(std::get<3>(test_case),
+              flatbuffers::ConvertCase(std::get<1>(test_case),
+                                       std::get<2>(test_case),
+                                       std::get<0>(test_case)));
+    }
+  }
+}
+
 // Low level stress/fuzz test: serialize/deserialize a variety of
 // different kinds of data in different combinations
 void FuzzTest1() {
@@ -1506,7 +1586,7 @@ void FuzzTest2() {
     }
   };
 
-  // clang-format off
+// clang-format off
   #define AddToSchemaAndInstances(schema_add, instance_add) \
     RndDef::Add(definitions, schema, instances_per_definition, \
                 schema_add, instance_add, definition)
@@ -1660,7 +1740,7 @@ void FuzzTest2() {
     TEST_NOTNULL(nullptr);  //-V501 (this comment supresses CWE-570 warning)
   }
 
-  // clang-format off
+// clang-format off
   #ifdef FLATBUFFERS_TEST_VERBOSE
     TEST_OUTPUT_LINE("%dk schema tested with %dk of json\n",
                      static_cast<int>(schema.length() / 1024),
@@ -3052,7 +3132,7 @@ void FlexBuffersTest() {
   });
   slb.Finish();
 
-  // clang-format off
+// clang-format off
   #ifdef FLATBUFFERS_TEST_VERBOSE
     for (size_t i = 0; i < slb.GetBuffer().size(); i++)
       printf("%d ", slb.GetBuffer().data()[i]);
@@ -4197,6 +4277,8 @@ int FlatBufferTests() {
     TestEmbeddedBinarySchema();
   #endif
   // clang-format on
+
+  UtilConvertCase();
 
   FuzzTest1();
   FuzzTest2();
