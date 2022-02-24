@@ -25,34 +25,17 @@ namespace flatbuffers {
 
 // Convert a camelCaseIdentifier or CamelCaseIdentifier to a
 // snake_case_identifier.
-std::string MakeSnakeCase(const std::string &in) {
-  std::string s;
-  for (size_t i = 0; i < in.length(); i++) {
-    if (i == 0) {
-      s += CharToLower(in[0]);
-    } else if (in[i] == '_') {
-      s += '_';
-    } else if (!islower(in[i])) {
-      // Prevent duplicate underscores for Upper_Snake_Case strings
-      // and UPPERCASE strings.
-      if (islower(in[i - 1])) { s += '_'; }
-      s += CharToLower(in[i]);
-    } else {
-      s += in[i];
-    }
-  }
-  return s;
+inline std::string MakeSnakeCase(const std::string &in) {
+  return ConvertCase(in, Case::kSnake, Case::kLowerCamel);
 }
 
 // Convert a string to all uppercase.
-std::string MakeUpper(const std::string &in) {
-  std::string s;
-  for (size_t i = 0; i < in.length(); i++) { s += CharToUpper(in[i]); }
-  return s;
+inline std::string MakeUpper(const std::string &in) {
+  return ConvertCase(in, Case::kAllUpper);
 }
 
 std::string UnionTypeFieldName(const FieldDef &field) {
-  return MakeSnakeCase(field.name + "_type");
+  return ConvertCase(field.name + "_type", Case::kSnake);
 }
 
 // Encapsulate all logical field types in this enum. This allows us to write
@@ -941,7 +924,8 @@ class RustGenerator : public BaseGenerator {
       auto &enum_val = **it;
       if (enum_val.union_type.base_type == BASE_TYPE_NONE) continue;
       code_.SetValue("VARIANT_NAME", Name(enum_val));
-      code_.SetValue("NATIVE_VARIANT", MakeCamel(Name(enum_val)));
+      code_.SetValue("NATIVE_VARIANT",
+                     ConvertCase(Name(enum_val), Case::kUpperCamel));
       code_.SetValue("U_ELEMENT_NAME", MakeSnakeCase(Name(enum_val)));
       code_.SetValue("U_ELEMENT_TABLE_TYPE",
                      NamespacedNativeName(*enum_val.union_type.struct_def));

@@ -685,6 +685,26 @@ bool ReadEnvironmentVariable(const char *var_name,
 // MSVC specific: Send all assert reports to STDOUT to prevent CI hangs.
 void SetupDefaultCRTReportMode();
 
+enum class Case {
+  kUnknown = 0,
+  // TheQuickBrownFox
+  kUpperCamel = 1,
+  // theQuickBrownFox
+  kLowerCamel = 2,
+  // the_quick_brown_fox
+  kSnake = 3,
+  // THE_QUICK_BROWN_FOX
+  kScreamingSnake = 4,
+  // THEQUICKBROWNFOX
+  kAllUpper = 5,
+  // thequickbrownfox
+  kAllLower = 6,
+};
+
+// Convert the `input` string of case `input_case` to the specified `output_case`.
+std::string ConvertCase(const std::string &input, Case output_case,
+                    Case input_case = Case::kSnake);
+
 }  // namespace flatbuffers
 
 #endif  // FLATBUFFERS_UTIL_H_

@@ -46,6 +46,7 @@
 
 #include <clocale>
 #include <cstdlib>
+#include <functional>
 #include <fstream>
 
 #include "flatbuffers/base.h"
@@ -316,6 +317,96 @@ void SetupDefaultCRTReportMode() {
   #endif
 
   // clang-format on
+}
+
+namespace {
+
+static std::string ToCamelCase(const std::string &input, bool first) {
+  std::string s;
+  for (size_t i = 0; i < input.length(); i++) {
+    if (!i && first)
+      s += CharToUpper(input[i]);
+    else if (input[i] == '_' && i + 1 < input.length())
+      s += CharToUpper(input[++i]);
+    else
+      s += input[i];
+  }
+  return s;
+}
+
+static std::string ToSnakeCase(const std::string &input, bool screaming) {
+  std::string s;
+  for (size_t i = 0; i < input.length(); i++) {
+    if (i == 0) {
+      s += screaming ? CharToUpper(input[i]) : CharToLower(input[i]);
+    } else if (input[i] == '_') {
+      s += '_';
+    } else if (!islower(input[i])) {
+      // Prevent duplicate underscores for Upper_Snake_Case strings
+      // and UPPERCASE strings.
+      if (islower(input[i - 1])) { s += '_'; }
+      s += screaming ? CharToUpper(input[i]) : CharToLower(input[i]);
+    } else {
+      s += screaming ? CharToUpper(input[i]) : input[i];
+    }
+  }
+  return s;
+}
+
+static std::string ToAll(const std::string &input,
+                         std::function<char(const char)> transform) {
+  std::string s;
+  for (size_t i = 0; i < input.length(); i++) { s += transform(input[i]); }
+  return s;
+}
+
+static std::string CamelToSnake(const std::string &input) {
+  std::string s;
+  for (size_t i = 0; i < input.length(); i++) {
+    if (i == 0) {
+      s += CharToLower(input[i]);
+    } else if (input[i] == '_') {
+      s += '_';
+    } else if (!islower(input[i])) {
+      // Prevent duplicate underscores for Upper_Snake_Case strings
+      // and UPPERCASE strings.
+      if (islower(input[i - 1])) { s += '_'; }
+      s += CharToLower(input[i]);
+    } else {
+      s += input[i];
+    }
+  }
+  return s;
+}
+
+}  // namespace
+
+std::string ConvertCase(const std::string &input, Case output_case,
+                        Case input_case) {
+  // The output cases expect snake_case inputs, so if we don't have that input
+  // format, try to convert to snake_case.
+  switch (input_case) {
+    case Case::kLowerCamel:
+    case Case::kUpperCamel:
+      return ConvertCase(CamelToSnake(input), output_case);
+
+    default:
+    case Case::kSnake:
+    case Case::kScreamingSnake:
+    case Case::kAllLower:
+    case Case::kAllUpper: break;
+  }
+
+  switch (output_case) {
+    case Case::kUpperCamel: return ToCamelCase(input, true);
+    case Case::kLowerCamel: return ToCamelCase(input, false);
+    case Case::kSnake: return input;
+    case Case::kScreamingSnake: return ToSnakeCase(input, true);
+    case Case::kAllUpper: return ToAll(input, CharToUpper);
+    case Case::kAllLower: return ToAll(input, CharToLower);
+    default:
+    case Case::kUnknown: return input;
+  }
 }
 
 }  // namespace flatbuffers
