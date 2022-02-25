@@ -120,6 +120,23 @@ std::string GetAnyValueS(reflection::BaseType type, const uint8_t *data,
   }
 }
 
+void ForAllFields(const reflection::Object *object, bool reverse,
+                  std::function<void(const reflection::Field *)> func) {
+  std::vector<uint32_t> field_to_id_map;
+  field_to_id_map.resize(object->fields()->size());
+
+  // Create the mapping of field ID to the index into the vector.
+  for (uint32_t i = 0; i < object->fields()->size(); ++i) {
+    auto field = object->fields()->Get(i);
+    field_to_id_map[field->id()] = i;
+  }
+
+  for (size_t i = 0; i < field_to_id_map.size(); ++i) {
+    func(object->fields()->Get(
+        field_to_id_map[reverse ? field_to_id_map.size() - (i + 1) : i]));
+  }
+}
+
 void SetAnyValueI(reflection::BaseType type, uint8_t *data, int64_t val) {
   // clang-format off
   #define FLATBUFFERS_SET(T) WriteScalar(data, static_cast<T>(val))

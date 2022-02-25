@@ -103,6 +103,11 @@ class FlatCompiler {
   void Error(const std::string &err, bool usage = true,
              bool show_exe_name = true) const;
 
+  void AnnotateBinaries(const uint8_t *binary_schema,
+                        uint64_t binary_schema_size,
+                        const std::string & schema_filename,
+                        const std::vector<std::string> &binary_files);
+
   InitParams params_;
 };
 
