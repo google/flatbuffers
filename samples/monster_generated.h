@@ -569,7 +569,7 @@ inline MonsterT::MonsterT(const MonsterT &o)
         equipped(o.equipped),
         path(o.path) {
   weapons.reserve(o.weapons.size());
-  for (const auto &v : o.weapons) { weapons.emplace_back((v) ? new MyGame::Sample::WeaponT(*v) : nullptr); }
+  for (const auto &weapons_ : o.weapons) { weapons.emplace_back((weapons_) ? new MyGame::Sample::WeaponT(*weapons_) : nullptr); }
 }
 
 inline MonsterT &MonsterT::operator=(MonsterT o) FLATBUFFERS_NOEXCEPT {
