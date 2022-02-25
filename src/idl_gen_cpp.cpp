@@ -1965,8 +1965,9 @@ class CppGenerator : public BaseGenerator {
           cw.IncrementIdentLevel();
           cw += "{{FIELD}}.reserve(o.{{FIELD}}.size());";
           cw +=
-              "for (const auto &v : o.{{FIELD}}) { "
-              "{{FIELD}}.emplace_back((v) ? new {{TYPE}}(*v) : nullptr); }";
+              "for (const auto &{{FIELD}}_ : o.{{FIELD}}) { "
+              "{{FIELD}}.emplace_back(({{FIELD}}_) ? new {{TYPE}}(*{{FIELD}}_) "
+              ": nullptr); }";
           vector_copies += cw.ToString();
         } else {
           // For non-pointer elements, use std::vector's copy constructor in the

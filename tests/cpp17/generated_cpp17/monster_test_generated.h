@@ -2765,15 +2765,15 @@ inline MonsterT::MonsterT(const MonsterT &o)
         testrequirednestedflatbuffer(o.testrequirednestedflatbuffer),
         native_inline(o.native_inline) {
   testarrayoftables.reserve(o.testarrayoftables.size());
-  for (const auto &v : o.testarrayoftables) { testarrayoftables.emplace_back((v) ? new MyGame::Example::MonsterT(*v) : nullptr); }
+  for (const auto &testarrayoftables_ : o.testarrayoftables) { testarrayoftables.emplace_back((testarrayoftables_) ? new MyGame::Example::MonsterT(*testarrayoftables_) : nullptr); }
   vector_of_referrables.reserve(o.vector_of_referrables.size());
-  for (const auto &v : o.vector_of_referrables) { vector_of_referrables.emplace_back((v) ? new MyGame::Example::ReferrableT(*v) : nullptr); }
+  for (const auto &vector_of_referrables_ : o.vector_of_referrables) { vector_of_referrables.emplace_back((vector_of_referrables_) ? new MyGame::Example::ReferrableT(*vector_of_referrables_) : nullptr); }
   vector_of_strong_referrables.reserve(o.vector_of_strong_referrables.size());
-  for (const auto &v : o.vector_of_strong_referrables) { vector_of_strong_referrables.emplace_back((v) ? new MyGame::Example::ReferrableT(*v) : nullptr); }
+  for (const auto &vector_of_strong_referrables_ : o.vector_of_strong_referrables) { vector_of_strong_referrables.emplace_back((vector_of_strong_referrables_) ? new MyGame::Example::ReferrableT(*vector_of_strong_referrables_) : nullptr); }
   vector_of_co_owning_references.reserve(o.vector_of_co_owning_references.size());
-  for (const auto &v : o.vector_of_co_owning_references) { vector_of_co_owning_references.emplace_back((v) ? new ReferrableT(*v) : nullptr); }
+  for (const auto &vector_of_co_owning_references_ : o.vector_of_co_owning_references) { vector_of_co_owning_references.emplace_back((vector_of_co_owning_references_) ? new ReferrableT(*vector_of_co_owning_references_) : nullptr); }
   scalar_key_sorted_tables.reserve(o.scalar_key_sorted_tables.size());
-  for (const auto &v : o.scalar_key_sorted_tables) { scalar_key_sorted_tables.emplace_back((v) ? new MyGame::Example::StatT(*v) : nullptr); }
+  for (const auto &scalar_key_sorted_tables_ : o.scalar_key_sorted_tables) { scalar_key_sorted_tables.emplace_back((scalar_key_sorted_tables_) ? new MyGame::Example::StatT(*scalar_key_sorted_tables_) : nullptr); }
 }
 
 inline MonsterT &MonsterT::operator=(MonsterT o) FLATBUFFERS_NOEXCEPT {
