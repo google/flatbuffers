@@ -17,7 +17,11 @@ class Color {
   factory Color.fromValue(int value) {
     final result = values[value];
     if (result == null) {
-      throw StateError('Invalid value $value for bit flag enum Color');
+      if (value == 0) {
+        return Color._(0);
+      } else {
+        throw StateError('Invalid value $value for bit flag enum Color');
+      }
     }
     return result;
   }
@@ -66,7 +70,7 @@ class Race {
   factory Race.fromValue(int value) {
     final result = values[value];
     if (result == null) {
-      throw StateError('Invalid value $value for bit flag enum Race');
+        throw StateError('Invalid value $value for bit flag enum Race');
     }
     return result;
   }
@@ -114,7 +118,11 @@ class LongEnum {
   factory LongEnum.fromValue(int value) {
     final result = values[value];
     if (result == null) {
-      throw StateError('Invalid value $value for bit flag enum LongEnum');
+      if (value == 0) {
+        return LongEnum._(0);
+      } else {
+        throw StateError('Invalid value $value for bit flag enum LongEnum');
+      }
     }
     return result;
   }
@@ -158,7 +166,7 @@ class AnyTypeId {
   factory AnyTypeId.fromValue(int value) {
     final result = values[value];
     if (result == null) {
-      throw StateError('Invalid value $value for bit flag enum AnyTypeId');
+        throw StateError('Invalid value $value for bit flag enum AnyTypeId');
     }
     return result;
   }
@@ -206,7 +214,7 @@ class AnyUniqueAliasesTypeId {
   factory AnyUniqueAliasesTypeId.fromValue(int value) {
     final result = values[value];
     if (result == null) {
-      throw StateError('Invalid value $value for bit flag enum AnyUniqueAliasesTypeId');
+        throw StateError('Invalid value $value for bit flag enum AnyUniqueAliasesTypeId');
     }
     return result;
   }
@@ -254,7 +262,7 @@ class AnyAmbiguousAliasesTypeId {
   factory AnyAmbiguousAliasesTypeId.fromValue(int value) {
     final result = values[value];
     if (result == null) {
-      throw StateError('Invalid value $value for bit flag enum AnyAmbiguousAliasesTypeId');
+        throw StateError('Invalid value $value for bit flag enum AnyAmbiguousAliasesTypeId');
     }
     return result;
   }
@@ -1339,7 +1347,7 @@ class MonsterT implements fb.Packable {
       this.testrequirednestedflatbuffer,
       this.scalarKeySortedTables,
       this.nativeInline,
-      this.longEnumNonEnumDefault,
+      this.longEnumNonEnumDefault = const LongEnum._(0),
       this.longEnumNormalDefault = LongEnum.LongOne});
 
   @override
@@ -1401,7 +1409,7 @@ class MonsterT implements fb.Packable {
         : fbBuilder.writeListUint8(testrequirednestedflatbuffer!);
     final int? scalarKeySortedTablesOffset = scalarKeySortedTables == null ? null
         : fbBuilder.writeList(scalarKeySortedTables!.map((b) => b.pack(fbBuilder)).toList());
-    fbBuilder.startTable(53);
+    fbBuilder.startTable(54);
     if (pos != null) {
       fbBuilder.addStruct(0, pos!.pack(fbBuilder));
     }
@@ -1482,7 +1490,7 @@ class MonsterBuilder {
   final fb.Builder fbBuilder;
 
   void begin() {
-    fbBuilder.startTable(53);
+    fbBuilder.startTable(54);
   }
 
   int addPos(int offset) {
@@ -1918,7 +1926,7 @@ class MonsterObjectBuilder extends fb.ObjectBuilder {
         : fbBuilder.writeListUint8(_testrequirednestedflatbuffer!);
     final int? scalarKeySortedTablesOffset = _scalarKeySortedTables == null ? null
         : fbBuilder.writeList(_scalarKeySortedTables!.map((b) => b.getOrCreateOffset(fbBuilder)).toList());
-    fbBuilder.startTable(53);
+    fbBuilder.startTable(54);
     if (_pos != null) {
       fbBuilder.addStruct(0, _pos!.finish(fbBuilder));
     }
