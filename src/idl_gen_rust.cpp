@@ -281,7 +281,7 @@ bool GenerateRustModuleRootFile(const Parser &parser,
   // generate a file that gathers them all.
   struct Module {
     std::map<std::string, Module> sub_modules;
-    std::vector<std::string> symbols;
+    std::vector<std::string> generated_files;
     // Add a symbol into the tree.
     void Insert(const Namer &namer, const Definition *s) {
       const Definition &symbol = *s;
@@ -291,7 +291,7 @@ bool GenerateRustModuleRootFile(const Parser &parser,
         std::string ns_component = namer.Namespace(*it);
         current_module = &current_module->sub_modules[ns_component];
       }
-      current_module->symbols.push_back(
+      current_module->generated_files.push_back(
           namer.File(symbol.name, /*skip_suffix=*/false, /*skip_ext=*/true));
     }
     // Recursively create the importer file.
@@ -304,7 +304,7 @@ bool GenerateRustModuleRootFile(const Parser &parser,
         code.DecrementIdentLevel();
         code += "} // " + it->first;
       }
-      for (auto it = symbols.begin(); it != symbols.end();
+      for (auto it = generated_files.begin(); it != generated_files.end();
            it++) {
         code += "mod " + *it + ";";
         code += "pub use self::" + *it + "::*;";
@@ -314,7 +314,7 @@ bool GenerateRustModuleRootFile(const Parser &parser,
   Module root_module;
   for (auto it = parser.enums_.vec.begin(); it != parser.enums_.vec.end();
        it++) {
-    root_module.Insert(namer, *it;
+    root_module.Insert(namer, *it);
   }
   for (auto it = parser.structs_.vec.begin(); it != parser.structs_.vec.end();
        it++) {
