@@ -73,8 +73,8 @@ cc_library(
         "idl_gen_swift.cpp",
         "idl_gen_text.cpp",
         "idl_gen_ts.cpp",
+        "namer.h",
         "util.cpp",
-        "namer.h"
     ],
     hdrs = [
         "//:flatc_headers",
