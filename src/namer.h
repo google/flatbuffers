@@ -2,6 +2,7 @@
 #define FLATBUFFERS_NAMER
 
 #include "flatbuffers/util.h"
+#include "flatbuffers/idl.h"
 
 namespace flatbuffers {
 
@@ -46,6 +47,9 @@ class Namer {
   Namer(Config config, std::set<std::string> keywords)
     : config_(config), keywords_(std::move(keywords)) {}
 
+  // Returns a mutable reference to the config so it can be modified **before**
+  // code generation. The intent is for this class to be const while generating
+  // code.
   Config& GetConfig() {
     return config_;
   }
@@ -88,32 +92,43 @@ class Namer {
     // make more sense than this, make it a config option.
     return ConvertCase(EscapeKeyword(s), casing, Case::kLowerCamel);
   }
-  std::string File(const std::string& filename, bool skip_suffix=false) const {
+  // Returns `filename` with the right casing and suffix and extension.
+  std::string File(const std::string &filename, bool skip_suffix = false,
+                   bool skip_ext = false) const {
     return ConvertCase(filename, config_.filenames, Case::kUpperCamel) +
-      (skip_suffix ? "" : config_.filename_suffix) + config_.filename_extension;
+           (skip_suffix ? "" : config_.filename_suffix) +
+           (skip_ext ? "" : config_.filename_extension);
   }
-  // Creates a file path from `directories` to `filename`. The file name is
-  // appended with `extension` unless `skip_filename_suffix`. If `mkdir`,
-  // ensure intermediate directories exist.
+  // Formats `directories` and returns a filepath with the right seperator.
+  // If `mkdir`, ensure intermediate directories exist.
   // TODO(caspern): Maybe mkdir should be handled by caller?
-  std::string FilePath(
-    const std::vector<std::string>& directories, const std::string& filename,
-    bool skip_filename_suffix=false,
-    bool mkdir=true
-  ) const {
+  std::string Directories(const std::vector<std::string> &directories,
+                          bool mkdir = true) const {
     std::string result = config_.output_path;
     for(auto d = directories.begin(); d != directories.end(); d++) {
       result.append(ConvertCase(*d, config_.directories, Case::kUpperCamel));
       result.push_back(kPathSeparator);
       if (mkdir) EnsureDirExists(result);
     }
-    result.append(File(filename, skip_filename_suffix));
     return result;
   }
 
   Config config_;
   std::set<std::string> keywords_;
 };
+
+
+// This is a temporary helper function for code generators to call until all
+// code generators are using `Namer`. After that point, we can centralize this
+// into flatc.cpp
+void AddFlagOptions(
+  Namer& namer, const IDLOptions& opts, const std::string& output_path
+) {
+  namer.GetConfig().object_prefix = opts.object_prefix;
+  namer.GetConfig().object_suffix = opts.object_suffix;
+  namer.GetConfig().output_path = output_path;
+  namer.GetConfig().filename_suffix = opts.filename_suffix;
+}
 
 }  // namespace flatbuffers
 

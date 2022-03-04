@@ -68,21 +68,6 @@ Namer RustDefaultNamer() {
   return Namer(std::move(config), std::move(keywords));
 }
 
-// Convert a camelCaseIdentifier or CamelCaseIdentifier to a
-// snake_case_identifier.
-inline std::string MakeSnakeCase(const std::string &in) {
-  return ConvertCase(in, Case::kSnake, Case::kLowerCamel);
-}
-
-// Convert a string to all uppercase.
-inline std::string MakeUpper(const std::string &in) {
-  return ConvertCase(in, Case::kAllUpper);
-}
-
-std::string UnionTypeFieldName(const FieldDef &field) {
-  return ConvertCase(field.name + "_type", Case::kSnake);
-}
-
 // Encapsulate all logical field types in this enum. This allows us to write
 // field logic based on type switches, instead of branches on the properties
 // set on the Type.
@@ -227,22 +212,25 @@ bool GenerateRustModuleRootFile(const Parser &parser,
     // so return true.
     return true;
   }
+  Namer namer = RustDefaultNamer();
+  AddFlagOptions(namer, parser.opts, output_dir);
   // We gather the symbols into a tree of namespaces (which are rust mods) and
   // generate a file that gathers them all.
   struct Module {
     std::map<std::string, Module> sub_modules;
     std::vector<std::string> generated_files;
     // Add a symbol into the tree.
-    void Insert(const Definition *s, const std::string suffix) {
+    void Insert(const Namer &namer, const Definition *s,
+                const std::string suffix) {
       const Definition &symbol = *s;
       Module *current_module = this;
       for (auto it = symbol.defined_namespace->components.begin();
            it != symbol.defined_namespace->components.end(); it++) {
-        std::string ns_component = MakeSnakeCase(*it);
+        std::string ns_component = namer.Namespace(*it);
         current_module = &current_module->sub_modules[ns_component];
       }
-      current_module->generated_files.push_back(MakeSnakeCase(symbol.name) +
-                                                suffix);
+      current_module->generated_files.push_back(
+          namer.File(symbol.name, /*skip_suffix=*/false, /*skip_ext=*/true));
     }
     // Recursively create the importer file.
     void GenerateImports(CodeWriter &code) {
@@ -264,11 +252,11 @@ bool GenerateRustModuleRootFile(const Parser &parser,
   Module root_module;
   for (auto it = parser.enums_.vec.begin(); it != parser.enums_.vec.end();
        it++) {
-    root_module.Insert(*it, parser.opts.filename_suffix);
+    root_module.Insert(namer, *it, parser.opts.filename_suffix);
   }
   for (auto it = parser.structs_.vec.begin(); it != parser.structs_.vec.end();
        it++) {
-    root_module.Insert(*it, parser.opts.filename_suffix);
+    root_module.Insert(namer, *it, parser.opts.filename_suffix);
   }
   CodeWriter code("  ");
   // TODO(caspern): Move generated warning out of BaseGenerator.
@@ -292,10 +280,7 @@ class RustGenerator : public BaseGenerator {
         cur_name_space_(nullptr),
         namer_(RustDefaultNamer()) {
     // TODO: Namer flag overrides should be in flatc or flatc_main.
-    namer_.GetConfig().object_prefix = parser.opts.object_prefix;
-    namer_.GetConfig().object_suffix = parser.opts.object_suffix;
-    namer_.GetConfig().output_path = path;
-    namer_.GetConfig().filename_suffix = parser.opts.filename_suffix;
+    AddFlagOptions(namer_, parser.opts, path);
     code_.SetPadding("  ");
   }
 
@@ -327,8 +312,9 @@ class RustGenerator : public BaseGenerator {
       code_ += "use super::*;";
       cur_name_space_ = symbol.defined_namespace;
       gen_symbol(symbol);
-      const std::string file_path = namer_.FilePath(
-        symbol.defined_namespace->components, symbol.name);
+      const std::string file_path =
+          namer_.Directories(symbol.defined_namespace->components) +
+          namer_.File(symbol.name);
       const bool save_success =
           SaveFile(file_path.c_str(), code_.ToString(), /*binary=*/false);
       if (!save_success) return false;
@@ -846,28 +832,28 @@ class RustGenerator : public BaseGenerator {
   void GenUnionObject(const EnumDef &enum_def) {
     code_.SetValue("ENUM_TY", namer_.Type(enum_def.name));
     code_.SetValue("ENUM_FN", namer_.Function(enum_def.name));
-    code_.SetValue("NATIVE_TY", namer_.ObjectType(enum_def.name));
+    code_.SetValue("ENUM_OTY", namer_.ObjectType(enum_def.name));
 
     // Generate native union.
     code_ += "#[allow(clippy::upper_case_acronyms)]";  // NONE's spelling is
                                                        // intended.
     code_ += "#[non_exhaustive]";
     code_ += "#[derive(Debug, Clone, PartialEq)]";
-    code_ += "pub enum {{NATIVE_TY}} {";
+    code_ += "pub enum {{ENUM_OTY}} {";
     code_ += "  NONE,";
     ForAllUnionObjectVariantsBesidesNone(enum_def, [&] {
       code_ += "{{NATIVE_VARIANT}}(Box<{{U_ELEMENT_TABLE_TYPE}}>),";
     });
     code_ += "}";
     // Generate Default (NONE).
-    code_ += "impl Default for {{NATIVE_TY}} {";
+    code_ += "impl Default for {{ENUM_OTY}} {";
     code_ += "  fn default() -> Self {";
     code_ += "    Self::NONE";
     code_ += "  }";
     code_ += "}";
 
     // Generate native union methods.
-    code_ += "impl {{NATIVE_TY}} {";
+    code_ += "impl {{ENUM_OTY}} {";
 
     // Get flatbuffers union key.
     // TODO(cneo): add docstrings?
@@ -942,8 +928,8 @@ class RustGenerator : public BaseGenerator {
   }
 
   std::string GetFieldOffsetName(const FieldDef &field) {
-    // The original implementation should have used kScreamingSnake.
-    // It does not match namer_.Constant
+    // FIXME: VT_FIELD_NAME is not screaming snake case by legacy mistake.
+    // but changing this is probably a breaking change.
     return "VT_" + ConvertCase(namer_.EscapeKeyword(field.name),
                                Case::kAllUpper);
   }
@@ -1548,7 +1534,7 @@ class RustGenerator : public BaseGenerator {
       code_.SetValue("OFFSET_VALUE", NumToString(field.value.offset));
       code_.SetValue("FIELD", namer_.Field(field.name));
       code_.SetValue("BLDR_DEF_VAL", GetDefaultValue(field, kBuilder));
-      code_.SetValue("DISCRIMINANT", UnionTypeFieldName(field));
+      code_.SetValue("DISCRIMINANT", namer_.Method(field.name) + "_type");
       code_.IncrementIdentLevel();
       cb(field);
       code_.DecrementIdentLevel();
@@ -1882,11 +1868,13 @@ class RustGenerator : public BaseGenerator {
       // Unions.
       const EnumDef &union_def = *field.value.type.enum_def;
       code_.SetValue("UNION_TYPE", WrapInNameSpace(union_def));
-      // TODO: Use the same function that generates the _type field for
-      // consistency. We do not call Name() because it inconsistently
-      // escapes keywords.
-      code_.SetValue("UNION_TYPE_OFFSET_NAME",
-                     "VT_" + MakeUpper(field.name + "_type"));
+      // FIXME: VT_FIELD_NAME is not screaming snake case by legacy mistake.
+      // but changing this is probably a breaking change.
+      code_.SetValue(
+          "UNION_TYPE_OFFSET_NAME",
+          "VT_" +
+              ConvertCase(namer_.EscapeKeyword(field.name), Case::kAllUpper) +
+              "_TYPE");
       code_ +=
           "\n     .visit_union::<{{UNION_TYPE}}, _>("
           "\"{{FIELD}}_type\", Self::{{UNION_TYPE_OFFSET_NAME}}, "
