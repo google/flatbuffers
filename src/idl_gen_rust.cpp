@@ -29,41 +29,104 @@ Namer RustDefaultNamer() {
   // implementation, presumably because Flatbuffers schema style and Rust style
   // roughly align. We are not going to enforce proper casing since its an
   // unnecessary breaking change.
-  Namer::Config config {
-    /*types=*/Case::kKeep,
-    /*constants=*/Case::kScreamingSnake,
-    /*methods=*/Case::kSnake,
-    /*functions=*/Case::kSnake,
-    /*fields=*/Case::kKeep,
-    /*variants=*/Case::kKeep,
-    /*namespaces=*/Case::kSnake,
-    /*namespace_seperator=*/"::",
-    /*object_prefix=*/"",
-    /*object_suffix=*/"T",
-    /*keyword_prefix=*/"",
-    /*keyword_suffix=*/"_",
-    /*filenames=*/Case::kSnake,
-    /*directories=*/Case::kSnake,
-    /*output_path=*/"",
-    /*filename_suffix=*/"_generated",
-    /*filename_extension=*/".rs"
-  };
-  std::set<std::string> keywords {
+  Namer::Config config{ /*types=*/Case::kKeep,
+                        /*constants=*/Case::kScreamingSnake,
+                        /*methods=*/Case::kSnake,
+                        /*functions=*/Case::kSnake,
+                        /*fields=*/Case::kKeep,
+                        /*variants=*/Case::kKeep,
+                        /*namespaces=*/Case::kSnake,
+                        /*namespace_seperator=*/"::",
+                        /*object_prefix=*/"",
+                        /*object_suffix=*/"T",
+                        /*keyword_prefix=*/"",
+                        /*keyword_suffix=*/"_",
+                        /*filenames=*/Case::kSnake,
+                        /*directories=*/Case::kSnake,
+                        /*output_path=*/"",
+                        /*filename_suffix=*/"_generated",
+                        /*filename_extension=*/".rs" };
+  std::set<std::string> keywords{
     // https://doc.rust-lang.org/book/second-edition/appendix-01-keywords.html
-    "as", "break", "const", "continue", "crate", "else", "enum", "extern",
-    "false", "fn", "for", "if", "impl", "in", "let", "loop", "match", "mod",
-    "move", "mut", "pub", "ref", "return", "Self", "self", "static", "struct",
-    "super", "trait", "true", "type", "unsafe", "use", "where", "while",
+    "as",
+    "break",
+    "const",
+    "continue",
+    "crate",
+    "else",
+    "enum",
+    "extern",
+    "false",
+    "fn",
+    "for",
+    "if",
+    "impl",
+    "in",
+    "let",
+    "loop",
+    "match",
+    "mod",
+    "move",
+    "mut",
+    "pub",
+    "ref",
+    "return",
+    "Self",
+    "self",
+    "static",
+    "struct",
+    "super",
+    "trait",
+    "true",
+    "type",
+    "unsafe",
+    "use",
+    "where",
+    "while",
     // future possible keywords
-    "abstract", "alignof", "become", "box", "do", "final", "macro", "offsetof",
-    "override", "priv", "proc", "pure", "sizeof", "typeof", "unsized",
-    "virtual", "yield",
+    "abstract",
+    "alignof",
+    "become",
+    "box",
+    "do",
+    "final",
+    "macro",
+    "offsetof",
+    "override",
+    "priv",
+    "proc",
+    "pure",
+    "sizeof",
+    "typeof",
+    "unsized",
+    "virtual",
+    "yield",
     // other rust terms we should not use
-    "std", "usize", "isize", "u8", "i8", "u16", "i16", "u32", "i32", "u64",
-    "i64", "u128", "i128", "f32", "f64",
+    "std",
+    "usize",
+    "isize",
+    "u8",
+    "i8",
+    "u16",
+    "i16",
+    "u32",
+    "i32",
+    "u64",
+    "i64",
+    "u128",
+    "i128",
+    "f32",
+    "f64",
     // Terms that we use ourselves
-    "follow", "push", "size", "alignment", "to_little_endian",
-    "from_little_endian", "ENUM_MAX", "ENUM_MIN", "ENUM_VALUES",
+    "follow",
+    "push",
+    "size",
+    "alignment",
+    "to_little_endian",
+    "from_little_endian",
+    "ENUM_MAX",
+    "ENUM_MIN",
+    "ENUM_VALUES",
   };
   return Namer(std::move(config), std::move(keywords));
 }
@@ -463,7 +526,8 @@ class RustGenerator : public BaseGenerator {
   }
 
   std::string WrapInNameSpace(const Definition &def) const {
-    return WrapInNameSpace(def.defined_namespace, namer_.EscapeKeyword(def.name));
+    return WrapInNameSpace(def.defined_namespace,
+                           namer_.EscapeKeyword(def.name));
   }
   std::string WrapInNameSpace(const Namespace *ns,
                               const std::string &name) const {
@@ -803,7 +867,7 @@ class RustGenerator : public BaseGenerator {
 
     if (enum_def.is_union) {
       // Generate typesafe offset(s) for unions
-      code_.SetValue("UNION_TYPE",  namer_.Type(enum_def.name));
+      code_.SetValue("UNION_TYPE", namer_.Type(enum_def.name));
       code_ += "pub struct {{UNION_TYPE}}UnionTableOffset {}";
       code_ += "";
       if (parser_.opts.generate_object_based_api) { GenUnionObject(enum_def); }
@@ -819,8 +883,9 @@ class RustGenerator : public BaseGenerator {
       code_.SetValue("VARIANT_NAME", namer_.Variant(enum_val.name));
       // For legacy reasons, enum variants are Keep case while enum native
       // variants are UpperCamel case.
-      code_.SetValue("NATIVE_VARIANT", ConvertCase(
-        namer_.EscapeKeyword(enum_val.name), Case::kUpperCamel));
+      code_.SetValue(
+          "NATIVE_VARIANT",
+          ConvertCase(namer_.EscapeKeyword(enum_val.name), Case::kUpperCamel));
       code_.SetValue("U_ELEMENT_NAME", namer_.Method(enum_val.name));
       code_.SetValue("U_ELEMENT_TABLE_TYPE",
                      NamespacedNativeName(*enum_val.union_type.struct_def));
@@ -930,8 +995,8 @@ class RustGenerator : public BaseGenerator {
   std::string GetFieldOffsetName(const FieldDef &field) {
     // FIXME: VT_FIELD_NAME is not screaming snake case by legacy mistake.
     // but changing this is probably a breaking change.
-    return "VT_" + ConvertCase(namer_.EscapeKeyword(field.name),
-                               Case::kAllUpper);
+    return "VT_" +
+           ConvertCase(namer_.EscapeKeyword(field.name), Case::kAllUpper);
   }
 
   enum DefaultContext { kBuilder, kAccessor, kObject };
@@ -1648,8 +1713,7 @@ class RustGenerator : public BaseGenerator {
             const auto &enum_def = *type.enum_def;
             code_.SetValue("ENUM_TY", WrapInNameSpace(enum_def));
             code_.SetValue("NATIVE_ENUM_NAME", NamespacedNativeName(enum_def));
-            code_ +=
-                "  let {{FIELD}} = match self.{{FIELD}}_type() {";
+            code_ += "  let {{FIELD}} = match self.{{FIELD}}_type() {";
             code_ += "    {{ENUM_TY}}::NONE => {{NATIVE_ENUM_NAME}}::NONE,";
             ForAllUnionObjectVariantsBesidesNone(enum_def, [&] {
               code_ +=
@@ -2012,7 +2076,8 @@ class RustGenerator : public BaseGenerator {
       //   fn add_x(x_: type) {
       //     fbb_.push_slot_always::<type>(offset, x_);
       //   }
-      code_.SetValue("FIELD_OFFSET", namer_.Type(struct_def.name) + "::" + offset);
+      code_.SetValue("FIELD_OFFSET",
+                     namer_.Type(struct_def.name) + "::" + offset);
       code_.SetValue("FIELD_TYPE", TableBuilderArgsAddFuncType(field, "'b "));
       code_.SetValue("FUNC_BODY", TableBuilderArgsAddFuncBody(field));
       code_ += "#[inline]";
@@ -2171,8 +2236,7 @@ class RustGenerator : public BaseGenerator {
         case ftStruct: {
           // Hold the struct in a variable so we can reference it.
           if (field.IsRequired()) {
-            code_ +=
-                "  let {{FIELD}}_tmp = Some(self.{{FIELD}}.pack());";
+            code_ += "  let {{FIELD}}_tmp = Some(self.{{FIELD}}.pack());";
           } else {
             code_ +=
                 "  let {{FIELD}}_tmp = self.{{FIELD}}"
@@ -2897,8 +2961,9 @@ class RustGenerator : public BaseGenerator {
 
     cur_name_space_ = ns;
   }
+
  private:
-   Namer namer_;
+  Namer namer_;
 };
 
 }  // namespace rust
