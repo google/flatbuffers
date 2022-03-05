@@ -80,6 +80,7 @@ class TsGenerator : public BaseGenerator {
       "instanceof",
       "new",
       "null",
+      "Object",
       "return",
       "super",
       "switch",
@@ -219,9 +220,7 @@ class TsGenerator : public BaseGenerator {
     if (reverse) return;  // FIXME.
     std::string &code = *code_ptr;
     GenDocComment(enum_def.doc_comment, code_ptr);
-    std::string ns = GetNameSpace(enum_def);
-    std::string enum_def_name = enum_def.name + (reverse ? "Name" : "");
-    code += "export enum " + enum_def.name + "{\n";
+    code += "export enum " + EscapeKeyword(enum_def.name) + "{\n";
     for (auto it = enum_def.Vals().begin(); it != enum_def.Vals().end(); ++it) {
       auto &ev = **it;
       if (!ev.doc_comment.empty()) {
@@ -229,15 +228,26 @@ class TsGenerator : public BaseGenerator {
         GenDocComment(ev.doc_comment, code_ptr, "  ");
       }
 
+      const std::string escaped_name = EscapeKeyword(ev.name);
+
       // Generate mapping between EnumName: EnumValue(int)
       if (reverse) {
         code += "  '" + enum_def.ToString(ev) + "'";
         code += " = ";
-        code += "'" + ev.name + "'";
+        code += "'" + escaped_name + "'";
       } else {
-        code += "  " + ev.name;
+        code += "  " + escaped_name;
         code += " = ";
-        code += enum_def.ToString(ev);
+        // Unfortunately, because typescript does not support bigint enums,
+        // for 64-bit enums, we instead map the enum names to strings.
+        switch (enum_def.underlying_type.base_type) {
+          case BASE_TYPE_LONG:
+          case BASE_TYPE_ULONG: {
+            code += "'" + enum_def.ToString(ev) + "'";
+            break;
+          }
+          default: code += enum_def.ToString(ev);
+        }
       }
 
       code += (it + 1) != enum_def.Vals().end() ? ",\n" : "\n";
@@ -299,11 +309,23 @@ class TsGenerator : public BaseGenerator {
     const auto &value = field.value;
     if (value.type.enum_def && value.type.base_type != BASE_TYPE_UNION &&
         value.type.base_type != BASE_TYPE_VECTOR) {
-      if (auto val = value.type.enum_def->FindByValue(value.constant)) {
-        return AddImport(imports, *value.type.enum_def, *value.type.enum_def) +
-               "." + val->name;
-      } else {
-        return value.constant;
+      // If the value is an enum with a 64-bit base type, we have to just
+      // return the bigint value directly since typescript does not support
+      // enums with bigint backing types.
+      switch (value.type.base_type) {
+        case BASE_TYPE_LONG:
+        case BASE_TYPE_ULONG: {
+          return "BigInt('" + value.constant + "')";
+        }
+        default: {
+          if (auto val = value.type.enum_def->FindByValue(value.constant)) {
+            return EscapeKeyword(AddImport(imports, *value.type.enum_def,
+                                           *value.type.enum_def)) +
+                   "." + EscapeKeyword(val->name);
+          } else {
+            return value.constant;
+          }
+        }
       }
     }
 
@@ -336,7 +358,7 @@ class TsGenerator : public BaseGenerator {
         if (IsString(type)) {
           name = "string|Uint8Array";
         } else {
-          name = AddImport(imports, owner, *type.struct_def);
+          name = EscapeKeyword(AddImport(imports, owner, *type.struct_def));
         }
         return allowNull ? (name + "|null") : name;
       }
@@ -429,7 +451,7 @@ class TsGenerator : public BaseGenerator {
   }
 
   std::string GenerateNewExpression(const std::string &object_name) {
-    return "new " + object_name + "()";
+    return "new " + EscapeKeyword(object_name) + "()";
   }
 
   void GenerateRootAccessor(StructDef &struct_def, std::string *code_ptr,
@@ -549,11 +571,12 @@ class TsGenerator : public BaseGenerator {
     export_statement += "export { ";
     std::string symbols_expression;
     if (long_import_name.empty()) {
-      symbols_expression += import_name;
+      symbols_expression += EscapeKeyword(import_name);
       if (parser_.opts.generate_object_based_api)
         symbols_expression += ", " + import_name + "T";
     } else {
-      symbols_expression += dependency.name + " as " + long_import_name;
+      symbols_expression += EscapeKeyword(dependency.name) + " as " +
+                            EscapeKeyword(long_import_name);
       if (parser_.opts.generate_object_based_api)
         symbols_expression +=
             ", " + dependency.name + "T as " + long_import_name + "T";
@@ -595,7 +618,7 @@ class TsGenerator : public BaseGenerator {
     const auto &depc_comps = dependency.defined_namespace->components;
     for (auto it = depc_comps.begin(); it != depc_comps.end(); it++) ns += *it;
     std::string unique_name = ns + dependency.name;
-    std::string import_name = dependency.name;
+    std::string import_name = EscapeKeyword(dependency.name);
     std::string long_import_name;
     if (imports.find(unique_name) != imports.end())
       return imports.find(unique_name)->second.name;
@@ -879,7 +902,8 @@ class TsGenerator : public BaseGenerator {
     std::string pack_func_offset_decl;
     std::string pack_func_create_call;
 
-    const auto struct_name = AddImport(imports, struct_def, struct_def);
+    const auto struct_name =
+        EscapeKeyword(AddImport(imports, struct_def, struct_def));
 
     if (has_create) {
       pack_func_create_call = "  return " + struct_name + ".create" +
@@ -1075,6 +1099,8 @@ class TsGenerator : public BaseGenerator {
       unpack_func += "    " + field_val;
       unpack_to_func += "  _o." + field_name_escaped + " = " + field_val + ";";
 
+      // FIXME: if field_type and field_name_escaped are identical, then
+      // this generates invalid typescript.
       constructor_func += "  public " + field_name_escaped + ": " + field_type +
                           " = " +
                           field_default_val;
@@ -1163,9 +1189,9 @@ class TsGenerator : public BaseGenerator {
     std::string object_namespace = GetNameSpace(struct_def);
 
     // Emit constructor
-    object_name = struct_def.name;
+    object_name = EscapeKeyword(struct_def.name);
     GenDocComment(struct_def.doc_comment, code_ptr);
-    code += "export class " + struct_def.name;
+    code += "export class " + object_name;
     code += " {\n";
     code += "  bb: flatbuffers.ByteBuffer|null = null;\n";
     code += "  bb_pos = 0;\n";
@@ -1253,8 +1279,8 @@ class TsGenerator : public BaseGenerator {
       else {
         switch (field.value.type.base_type) {
           case BASE_TYPE_STRUCT: {
-            const auto type =
-                AddImport(imports, struct_def, *field.value.type.struct_def);
+            const auto type = EscapeKeyword(
+                AddImport(imports, struct_def, *field.value.type.struct_def));
             GenDocComment(field.doc_comment, code_ptr);
             code += ConvertCase(field.name, Case::kLowerCamel);
             code += "(obj?:" + type + "):" + type + "|null {\n";
@@ -1596,10 +1622,10 @@ class TsGenerator : public BaseGenerator {
         }
 
         code += "):flatbuffers.Offset {\n";
-        code += "  " + struct_def.name + ".start" +
+        code += "  " + object_name + ".start" +
                 GetPrefixedName(struct_def) + "(builder);\n";
 
-        std::string methodPrefix = struct_def.name;
+        std::string methodPrefix = object_name;
         for (auto it = struct_def.fields.vec.begin();
              it != struct_def.fields.vec.end(); ++it) {
           const auto &field = **it;
@@ -1630,8 +1656,10 @@ class TsGenerator : public BaseGenerator {
       code += "}\n";
 
       code += "\n";
-      code += "static deserialize(buffer: Uint8Array):" + name + " {\n";
-      code += "  return " + AddImport(imports, struct_def, struct_def) +
+      code += "static deserialize(buffer: Uint8Array):" + EscapeKeyword(name) +
+              " {\n";
+      code += "  return " +
+              EscapeKeyword(AddImport(imports, struct_def, struct_def)) +
               ".getRootAs" + name + "(new flatbuffers.ByteBuffer(buffer))\n";
       code += "}\n";
     }

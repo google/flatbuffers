@@ -23,6 +23,12 @@ class Race(object):
     Elf = 2
 
 
+class LongEnum(object):
+    LongOne = 2
+    LongTwo = 4
+    LongBig = 1099511627776
+
+
 class Any(object):
     NONE = 0
     Monster = 1
@@ -1478,7 +1484,21 @@ class Monster(object):
             return obj
         return None
 
-def MonsterStart(builder): builder.StartObject(52)
+    # Monster
+    def LongEnumNonEnumDefault(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(108))
+        if o != 0:
+            return self._tab.Get(flatbuffers.number_types.Uint64Flags, o + self._tab.Pos)
+        return 0
+
+    # Monster
+    def LongEnumNormalDefault(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(110))
+        if o != 0:
+            return self._tab.Get(flatbuffers.number_types.Uint64Flags, o + self._tab.Pos)
+        return 2
+
+def MonsterStart(builder): builder.StartObject(54)
 def MonsterAddPos(builder, pos): builder.PrependStructSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(pos), 0)
 def MonsterAddMana(builder, mana): builder.PrependInt16Slot(1, mana, 150)
 def MonsterAddHp(builder, hp): builder.PrependInt16Slot(2, hp, 100)
@@ -1560,6 +1580,8 @@ def MonsterMakeTestrequirednestedflatbufferVectorFromBytes(builder, bytes):
 def MonsterAddScalarKeySortedTables(builder, scalarKeySortedTables): builder.PrependUOffsetTRelativeSlot(50, flatbuffers.number_types.UOffsetTFlags.py_type(scalarKeySortedTables), 0)
 def MonsterStartScalarKeySortedTablesVector(builder, numElems): return builder.StartVector(4, numElems, 4)
 def MonsterAddNativeInline(builder, nativeInline): builder.PrependStructSlot(51, flatbuffers.number_types.UOffsetTFlags.py_type(nativeInline), 0)
+def MonsterAddLongEnumNonEnumDefault(builder, longEnumNonEnumDefault): builder.PrependUint64Slot(52, longEnumNonEnumDefault, 0)
+def MonsterAddLongEnumNormalDefault(builder, longEnumNormalDefault): builder.PrependUint64Slot(53, longEnumNormalDefault, 2)
 def MonsterEnd(builder): return builder.EndObject()
 
 try:
@@ -1622,6 +1644,8 @@ class MonsterT(object):
         self.testrequirednestedflatbuffer = None  # type: List[int]
         self.scalarKeySortedTables = None  # type: List[StatT]
         self.nativeInline = None  # type: Optional[TestT]
+        self.longEnumNonEnumDefault = 0  # type: int
+        self.longEnumNormalDefault = 2  # type: int
 
     @classmethod
     def InitFromBuf(cls, buf, pos):
@@ -1816,6 +1840,8 @@ class MonsterT(object):
                     self.scalarKeySortedTables.append(stat_)
         if monster.NativeInline() is not None:
             self.nativeInline = TestT.InitFromObj(monster.NativeInline())
+        self.longEnumNonEnumDefault = monster.LongEnumNonEnumDefault()
+        self.longEnumNormalDefault = monster.LongEnumNormalDefault()
 
     # MonsterT
     def Pack(self, builder):
@@ -2067,6 +2093,8 @@ class MonsterT(object):
         if self.nativeInline is not None:
             nativeInline = self.nativeInline.Pack(builder)
             MonsterAddNativeInline(builder, nativeInline)
+        MonsterAddLongEnumNonEnumDefault(builder, self.longEnumNonEnumDefault)
+        MonsterAddLongEnumNormalDefault(builder, self.longEnumNormalDefault)
         monster = MonsterEnd(builder)
         return monster
 

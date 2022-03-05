@@ -212,8 +212,12 @@ public final class Monster extends Table {
   public MyGame.Example.Stat.Vector scalarKeySortedTablesVector(MyGame.Example.Stat.Vector obj) { int o = __offset(104); return o != 0 ? obj.__assign(__vector(o), 4, bb) : null; }
   public MyGame.Example.Test nativeInline() { return nativeInline(new MyGame.Example.Test()); }
   public MyGame.Example.Test nativeInline(MyGame.Example.Test obj) { int o = __offset(106); return o != 0 ? obj.__assign(o + bb_pos, bb) : null; }
+  public long longEnumNonEnumDefault() { int o = __offset(108); return o != 0 ? bb.getLong(o + bb_pos) : 0L; }
+  public boolean mutateLongEnumNonEnumDefault(long long_enum_non_enum_default) { int o = __offset(108); if (o != 0) { bb.putLong(o + bb_pos, long_enum_non_enum_default); return true; } else { return false; } }
+  public long longEnumNormalDefault() { int o = __offset(110); return o != 0 ? bb.getLong(o + bb_pos) : 2L; }
+  public boolean mutateLongEnumNormalDefault(long long_enum_normal_default) { int o = __offset(110); if (o != 0) { bb.putLong(o + bb_pos, long_enum_normal_default); return true; } else { return false; } }
 
-  public static void startMonster(FlatBufferBuilder builder) { builder.startTable(52); }
+  public static void startMonster(FlatBufferBuilder builder) { builder.startTable(54); }
   public static void addPos(FlatBufferBuilder builder, int posOffset) { builder.addStruct(0, posOffset, 0); }
   public static void addMana(FlatBufferBuilder builder, short mana) { builder.addShort(1, mana, 150); }
   public static void addHp(FlatBufferBuilder builder, short hp) { builder.addShort(2, hp, 100); }
@@ -307,6 +311,8 @@ public final class Monster extends Table {
   public static int createScalarKeySortedTablesVector(FlatBufferBuilder builder, int[] data) { builder.startVector(4, data.length, 4); for (int i = data.length - 1; i >= 0; i--) builder.addOffset(data[i]); return builder.endVector(); }
   public static void startScalarKeySortedTablesVector(FlatBufferBuilder builder, int numElems) { builder.startVector(4, numElems, 4); }
   public static void addNativeInline(FlatBufferBuilder builder, int nativeInlineOffset) { builder.addStruct(51, nativeInlineOffset, 0); }
+  public static void addLongEnumNonEnumDefault(FlatBufferBuilder builder, long longEnumNonEnumDefault) { builder.addLong(52, longEnumNonEnumDefault, 0L); }
+  public static void addLongEnumNormalDefault(FlatBufferBuilder builder, long longEnumNormalDefault) { builder.addLong(53, longEnumNormalDefault, 2L); }
   public static int endMonster(FlatBufferBuilder builder) {
     int o = builder.endTable();
     builder.required(o, 10);  // name
@@ -523,6 +529,10 @@ public final class Monster extends Table {
     _o.setScalarKeySortedTables(_oScalarKeySortedTables);
     if (nativeInline() != null) nativeInline().unpackTo(_o.getNativeInline());
     else _o.setNativeInline(null);
+    long _oLongEnumNonEnumDefault = longEnumNonEnumDefault();
+    _o.setLongEnumNonEnumDefault(_oLongEnumNonEnumDefault);
+    long _oLongEnumNormalDefault = longEnumNormalDefault();
+    _o.setLongEnumNormalDefault(_oLongEnumNormalDefault);
   }
   public static int pack(FlatBufferBuilder builder, MonsterT _o) {
     if (_o == null) return 0;
@@ -710,6 +720,8 @@ public final class Monster extends Table {
     addTestrequirednestedflatbuffer(builder, _testrequirednestedflatbuffer);
     addScalarKeySortedTables(builder, _scalarKeySortedTables);
     addNativeInline(builder, MyGame.Example.Test.pack(builder, _o.getNativeInline()));
+    addLongEnumNonEnumDefault(builder, _o.getLongEnumNonEnumDefault());
+    addLongEnumNormalDefault(builder, _o.getLongEnumNormalDefault());
     return endMonster(builder);
   }
 }
