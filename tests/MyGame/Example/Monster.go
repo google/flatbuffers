@@ -58,6 +58,8 @@ type MonsterT struct {
 	Testrequirednestedflatbuffer []byte
 	ScalarKeySortedTables []*StatT
 	NativeInline *TestT
+	LongEnumNonEnumDefault LongEnum
+	LongEnumNormalDefault LongEnum
 }
 
 func (t *MonsterT) Pack(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
@@ -316,6 +318,8 @@ func (t *MonsterT) Pack(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
 	MonsterAddScalarKeySortedTables(builder, scalarKeySortedTablesOffset)
 	nativeInlineOffset := t.NativeInline.Pack(builder)
 	MonsterAddNativeInline(builder, nativeInlineOffset)
+	MonsterAddLongEnumNonEnumDefault(builder, t.LongEnumNonEnumDefault)
+	MonsterAddLongEnumNormalDefault(builder, t.LongEnumNormalDefault)
 	return MonsterEnd(builder)
 }
 
@@ -455,6 +459,8 @@ func (rcv *Monster) UnPackTo(t *MonsterT) {
 		t.ScalarKeySortedTables[j] = x.UnPack()
 	}
 	t.NativeInline = rcv.NativeInline(nil).UnPack()
+	t.LongEnumNonEnumDefault = rcv.LongEnumNonEnumDefault()
+	t.LongEnumNormalDefault = rcv.LongEnumNormalDefault()
 }
 
 func (rcv *Monster) UnPack() *MonsterT {
@@ -1356,8 +1362,32 @@ func (rcv *Monster) NativeInline(obj *Test) *Test {
 	return nil
 }
 
+func (rcv *Monster) LongEnumNonEnumDefault() LongEnum {
+	o := flatbuffers.UOffsetT(rcv._tab.Offset(108))
+	if o != 0 {
+		return LongEnum(rcv._tab.GetUint64(o + rcv._tab.Pos))
+	}
+	return 0
+}
+
+func (rcv *Monster) MutateLongEnumNonEnumDefault(n LongEnum) bool {
+	return rcv._tab.MutateUint64Slot(108, uint64(n))
+}
+
+func (rcv *Monster) LongEnumNormalDefault() LongEnum {
+	o := flatbuffers.UOffsetT(rcv._tab.Offset(110))
+	if o != 0 {
+		return LongEnum(rcv._tab.GetUint64(o + rcv._tab.Pos))
+	}
+	return 2
+}
+
+func (rcv *Monster) MutateLongEnumNormalDefault(n LongEnum) bool {
+	return rcv._tab.MutateUint64Slot(110, uint64(n))
+}
+
 func MonsterStart(builder *flatbuffers.Builder) {
-	builder.StartObject(52)
+	builder.StartObject(54)
 }
 func MonsterAddPos(builder *flatbuffers.Builder, pos flatbuffers.UOffsetT) {
 	builder.PrependStructSlot(0, flatbuffers.UOffsetT(pos), 0)
@@ -1571,6 +1601,12 @@ func MonsterStartScalarKeySortedTablesVector(builder *flatbuffers.Builder, numEl
 }
 func MonsterAddNativeInline(builder *flatbuffers.Builder, nativeInline flatbuffers.UOffsetT) {
 	builder.PrependStructSlot(51, flatbuffers.UOffsetT(nativeInline), 0)
+}
+func MonsterAddLongEnumNonEnumDefault(builder *flatbuffers.Builder, longEnumNonEnumDefault LongEnum) {
+	builder.PrependUint64Slot(52, uint64(longEnumNonEnumDefault), 0)
+}
+func MonsterAddLongEnumNormalDefault(builder *flatbuffers.Builder, longEnumNormalDefault LongEnum) {
+	builder.PrependUint64Slot(53, uint64(longEnumNormalDefault), 2)
 }
 func MonsterEnd(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
 	return builder.EndObject()

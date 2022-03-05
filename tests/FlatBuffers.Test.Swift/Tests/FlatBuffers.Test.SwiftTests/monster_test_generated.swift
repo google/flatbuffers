@@ -56,6 +56,29 @@ extension MyGame_Example_Race: Encodable {
   }
 }
 
+public enum MyGame_Example_LongEnum: UInt64, Enum, Verifiable {
+  public typealias T = UInt64
+  public static var byteSize: Int { return MemoryLayout<UInt64>.size }
+  public var value: UInt64 { return self.rawValue }
+  case longone = 2
+  case longtwo = 4
+  case longbig = 1099511627776
+
+  public static var max: MyGame_Example_LongEnum { return .longbig }
+  public static var min: MyGame_Example_LongEnum { return .longone }
+}
+
+extension MyGame_Example_LongEnum: Encodable {
+  public func encode(to encoder: Encoder) throws {
+    var container = encoder.singleValueContainer()
+    switch self {
+    case .longone: try container.encode("LongOne")
+    case .longtwo: try container.encode("LongTwo")
+    case .longbig: try container.encode("LongBig")
+    }
+  }
+}
+
 public enum MyGame_Example_Any_: UInt8, UnionEnum {
   public typealias T = UInt8
 
@@ -1087,6 +1110,8 @@ public struct MyGame_Example_Monster: FlatBufferObject, Verifiable, ObjectAPIPac
     case testrequirednestedflatbuffer = 102
     case scalarKeySortedTables = 104
     case nativeInline = 106
+    case longEnumNonEnumDefault = 108
+    case longEnumNormalDefault = 110
     var v: Int32 { Int32(self.rawValue) }
     var p: VOffset { self.rawValue }
   }
@@ -1213,7 +1238,11 @@ public struct MyGame_Example_Monster: FlatBufferObject, Verifiable, ObjectAPIPac
   public func scalarKeySortedTablesBy(key: UInt16) -> MyGame_Example_Stat? { let o = _accessor.offset(VTOFFSET.scalarKeySortedTables.v); return o == 0 ? nil : MyGame_Example_Stat.lookupByKey(vector: _accessor.vector(at: o), key: key, fbb: _accessor.bb) }
   public var nativeInline: MyGame_Example_Test? { let o = _accessor.offset(VTOFFSET.nativeInline.v); return o == 0 ? nil : _accessor.readBuffer(of: MyGame_Example_Test.self, at: o) }
   public var mutableNativeInline: MyGame_Example_Test_Mutable? { let o = _accessor.offset(VTOFFSET.nativeInline.v); return o == 0 ? nil : MyGame_Example_Test_Mutable(_accessor.bb, o: o + _accessor.postion) }
-  public static func startMonster(_ fbb: inout FlatBufferBuilder) -> UOffset { fbb.startTable(with: 52) }
+  public var longEnumNonEnumDefault: MyGame_Example_LongEnum { let o = _accessor.offset(VTOFFSET.longEnumNonEnumDefault.v); return o == 0 ? .longone : MyGame_Example_LongEnum(rawValue: _accessor.readBuffer(of: UInt64.self, at: o)) ?? .longone }
+  @discardableResult public func mutate(longEnumNonEnumDefault: MyGame_Example_LongEnum) -> Bool {let o = _accessor.offset(VTOFFSET.longEnumNonEnumDefault.v);  return _accessor.mutate(longEnumNonEnumDefault.rawValue, index: o) }
+  public var longEnumNormalDefault: MyGame_Example_LongEnum { let o = _accessor.offset(VTOFFSET.longEnumNormalDefault.v); return o == 0 ? .longone : MyGame_Example_LongEnum(rawValue: _accessor.readBuffer(of: UInt64.self, at: o)) ?? .longone }
+  @discardableResult public func mutate(longEnumNormalDefault: MyGame_Example_LongEnum) -> Bool {let o = _accessor.offset(VTOFFSET.longEnumNormalDefault.v);  return _accessor.mutate(longEnumNormalDefault.rawValue, index: o) }
+  public static func startMonster(_ fbb: inout FlatBufferBuilder) -> UOffset { fbb.startTable(with: 54) }
   public static func add(pos: MyGame_Example_Vec3?, _ fbb: inout FlatBufferBuilder) { guard let pos = pos else { return }; fbb.create(struct: pos, position: VTOFFSET.pos.p) }
   public static func add(mana: Int16, _ fbb: inout FlatBufferBuilder) { fbb.add(element: mana, def: 150, at: VTOFFSET.mana.p) }
   public static func add(hp: Int16, _ fbb: inout FlatBufferBuilder) { fbb.add(element: hp, def: 100, at: VTOFFSET.hp.p) }
@@ -1275,6 +1304,8 @@ public struct MyGame_Example_Monster: FlatBufferObject, Verifiable, ObjectAPIPac
   public static func addVectorOf(testrequirednestedflatbuffer: Offset, _ fbb: inout FlatBufferBuilder) { fbb.add(offset: testrequirednestedflatbuffer, at: VTOFFSET.testrequirednestedflatbuffer.p) }
   public static func addVectorOf(scalarKeySortedTables: Offset, _ fbb: inout FlatBufferBuilder) { fbb.add(offset: scalarKeySortedTables, at: VTOFFSET.scalarKeySortedTables.p) }
   public static func add(nativeInline: MyGame_Example_Test?, _ fbb: inout FlatBufferBuilder) { guard let nativeInline = nativeInline else { return }; fbb.create(struct: nativeInline, position: VTOFFSET.nativeInline.p) }
+  public static func add(longEnumNonEnumDefault: MyGame_Example_LongEnum, _ fbb: inout FlatBufferBuilder) { fbb.add(element: longEnumNonEnumDefault.rawValue, def: 0, at: VTOFFSET.longEnumNonEnumDefault.p) }
+  public static func add(longEnumNormalDefault: MyGame_Example_LongEnum, _ fbb: inout FlatBufferBuilder) { fbb.add(element: longEnumNormalDefault.rawValue, def: 2, at: VTOFFSET.longEnumNormalDefault.p) }
   public static func endMonster(_ fbb: inout FlatBufferBuilder, start: UOffset) -> Offset { let end = Offset(offset: fbb.endTable(at: start)); fbb.require(table: end, fields: [10]); return end }
   public static func createMonster(
     _ fbb: inout FlatBufferBuilder,
@@ -1328,7 +1359,9 @@ public struct MyGame_Example_Monster: FlatBufferObject, Verifiable, ObjectAPIPac
     signedEnum: MyGame_Example_Race = .none_,
     testrequirednestedflatbufferVectorOffset testrequirednestedflatbuffer: Offset = Offset(),
     scalarKeySortedTablesVectorOffset scalarKeySortedTables: Offset = Offset(),
-    nativeInline: MyGame_Example_Test? = nil
+    nativeInline: MyGame_Example_Test? = nil,
+    longEnumNonEnumDefault: MyGame_Example_LongEnum = .longone,
+    longEnumNormalDefault: MyGame_Example_LongEnum = .longone
   ) -> Offset {
     let __start = MyGame_Example_Monster.startMonster(&fbb)
     MyGame_Example_Monster.add(pos: pos, &fbb)
@@ -1382,6 +1415,8 @@ public struct MyGame_Example_Monster: FlatBufferObject, Verifiable, ObjectAPIPac
     MyGame_Example_Monster.addVectorOf(testrequirednestedflatbuffer: testrequirednestedflatbuffer, &fbb)
     MyGame_Example_Monster.addVectorOf(scalarKeySortedTables: scalarKeySortedTables, &fbb)
     MyGame_Example_Monster.add(nativeInline: nativeInline, &fbb)
+    MyGame_Example_Monster.add(longEnumNonEnumDefault: longEnumNonEnumDefault, &fbb)
+    MyGame_Example_Monster.add(longEnumNormalDefault: longEnumNormalDefault, &fbb)
     return MyGame_Example_Monster.endMonster(&fbb, start: __start)
   }
   public static func sortVectorOfMonster(offsets:[Offset], _ fbb: inout FlatBufferBuilder) -> Offset {
@@ -1539,6 +1574,8 @@ public struct MyGame_Example_Monster: FlatBufferObject, Verifiable, ObjectAPIPac
     MyGame_Example_Monster.addVectorOf(testrequirednestedflatbuffer: __testrequirednestedflatbuffer, &builder)
     MyGame_Example_Monster.addVectorOf(scalarKeySortedTables: __scalarKeySortedTables, &builder)
     MyGame_Example_Monster.add(nativeInline: obj.nativeInline, &builder)
+    MyGame_Example_Monster.add(longEnumNonEnumDefault: obj.longEnumNonEnumDefault, &builder)
+    MyGame_Example_Monster.add(longEnumNormalDefault: obj.longEnumNormalDefault, &builder)
     return MyGame_Example_Monster.endMonster(&builder, start: __root)
   }
 
@@ -1625,6 +1662,8 @@ public struct MyGame_Example_Monster: FlatBufferObject, Verifiable, ObjectAPIPac
     try _v.visit(field: VTOFFSET.testrequirednestedflatbuffer.p, fieldName: "testrequirednestedflatbuffer", required: false, type: ForwardOffset<Vector<UInt8, UInt8>>.self)
     try _v.visit(field: VTOFFSET.scalarKeySortedTables.p, fieldName: "scalarKeySortedTables", required: false, type: ForwardOffset<Vector<ForwardOffset<MyGame_Example_Stat>, MyGame_Example_Stat>>.self)
     try _v.visit(field: VTOFFSET.nativeInline.p, fieldName: "nativeInline", required: false, type: MyGame_Example_Test.self)
+    try _v.visit(field: VTOFFSET.longEnumNonEnumDefault.p, fieldName: "longEnumNonEnumDefault", required: false, type: MyGame_Example_LongEnum.self)
+    try _v.visit(field: VTOFFSET.longEnumNormalDefault.p, fieldName: "longEnumNormalDefault", required: false, type: MyGame_Example_LongEnum.self)
     _v.finish()
   }
 }
@@ -1683,6 +1722,8 @@ extension MyGame_Example_Monster: Encodable {
     case testrequirednestedflatbuffer = "testrequirednestedflatbuffer"
     case scalarKeySortedTables = "scalar_key_sorted_tables"
     case nativeInline = "native_inline"
+    case longEnumNonEnumDefault = "long_enum_non_enum_default"
+    case longEnumNormalDefault = "long_enum_normal_default"
   }
   public func encode(to encoder: Encoder) throws {
     var container = encoder.container(keyedBy: CodingKeys.self)
@@ -1894,6 +1935,12 @@ extension MyGame_Example_Monster: Encodable {
       }
     }
     try container.encodeIfPresent(nativeInline, forKey: .nativeInline)
+    if longEnumNonEnumDefault != .longone {
+      try container.encodeIfPresent(longEnumNonEnumDefault, forKey: .longEnumNonEnumDefault)
+    }
+    if longEnumNormalDefault != .longone {
+      try container.encodeIfPresent(longEnumNormalDefault, forKey: .longEnumNormalDefault)
+    }
   }
 }
 
@@ -1947,6 +1994,8 @@ public class MyGame_Example_MonsterT: NativeObject {
   public var testrequirednestedflatbuffer: [UInt8]
   public var scalarKeySortedTables: [MyGame_Example_StatT?]
   public var nativeInline: MyGame_Example_Test?
+  public var longEnumNonEnumDefault: MyGame_Example_LongEnum
+  public var longEnumNormalDefault: MyGame_Example_LongEnum
 
   public init(_ _t: inout MyGame_Example_Monster) {
     pos = _t.pos
@@ -2097,6 +2146,8 @@ public class MyGame_Example_MonsterT: NativeObject {
         scalarKeySortedTables.append(__v_?.unpack())
     }
     nativeInline = _t.nativeInline
+    longEnumNonEnumDefault = _t.longEnumNonEnumDefault
+    longEnumNormalDefault = _t.longEnumNormalDefault
   }
 
   public init() {
@@ -2145,6 +2196,8 @@ public class MyGame_Example_MonsterT: NativeObject {
     testrequirednestedflatbuffer = []
     scalarKeySortedTables = []
     nativeInline = MyGame_Example_Test()
+    longEnumNonEnumDefault = .longone
+    longEnumNormalDefault = .longone
   }
 
   public func serialize() -> ByteBuffer { return serialize(type: MyGame_Example_Monster.self) }

@@ -687,8 +687,24 @@ function mt:NativeInline()
   end
 end
 
+function mt:LongEnumNonEnumDefault()
+  local o = self.view:Offset(108)
+  if o ~= 0 then
+    return self.view:Get(flatbuffers.N.Uint64, self.view.pos + o)
+  end
+  return 0
+end
+
+function mt:LongEnumNormalDefault()
+  local o = self.view:Offset(110)
+  if o ~= 0 then
+    return self.view:Get(flatbuffers.N.Uint64, self.view.pos + o)
+  end
+  return 2
+end
+
 function Monster.Start(builder)
-  builder:StartObject(52)
+  builder:StartObject(54)
 end
 
 function Monster.AddPos(builder, pos)
@@ -973,6 +989,14 @@ end
 
 function Monster.AddNativeInline(builder, nativeInline)
   builder:PrependStructSlot(51, nativeInline, 0)
+end
+
+function Monster.AddLongEnumNonEnumDefault(builder, longEnumNonEnumDefault)
+  builder:PrependUint64Slot(52, longEnumNonEnumDefault, 0)
+end
+
+function Monster.AddLongEnumNormalDefault(builder, longEnumNormalDefault)
+  builder:PrependUint64Slot(53, longEnumNormalDefault, 2)
 end
 
 function Monster.End(builder)

@@ -237,7 +237,16 @@ class TsGenerator : public BaseGenerator {
       } else {
         code += "  " + ev.name;
         code += " = ";
-        code += enum_def.ToString(ev);
+        // Unfortunately, because typescript does not support bigint enums,
+        // for 64-bit enums, we instead map the enum names to strings.
+        switch (enum_def.underlying_type.base_type) {
+          case BASE_TYPE_LONG:
+          case BASE_TYPE_ULONG: {
+            code += "'" + enum_def.ToString(ev) + "'";
+            break;
+          }
+          default: code += enum_def.ToString(ev);
+        }
       }
 
       code += (it + 1) != enum_def.Vals().end() ? ",\n" : "\n";
@@ -299,11 +308,23 @@ class TsGenerator : public BaseGenerator {
     const auto &value = field.value;
     if (value.type.enum_def && value.type.base_type != BASE_TYPE_UNION &&
         value.type.base_type != BASE_TYPE_VECTOR) {
-      if (auto val = value.type.enum_def->FindByValue(value.constant)) {
-        return AddImport(imports, *value.type.enum_def, *value.type.enum_def) +
-               "." + val->name;
-      } else {
-        return value.constant;
+      // If the value is an enum with a 64-bit base type, we have to just
+      // return the bigint value directly since typescript does not support
+      // enums with bigint backing types.
+      switch (value.type.base_type) {
+        case BASE_TYPE_LONG:
+        case BASE_TYPE_ULONG: {
+          return "BigInt('" + value.constant + "')";
+        }
+        default: {
+          if (auto val = value.type.enum_def->FindByValue(value.constant)) {
+            return AddImport(imports, *value.type.enum_def,
+                             *value.type.enum_def) +
+                   "." + val->name;
+          } else {
+            return value.constant;
+          }
+        }
       }
     }
 

@@ -18,6 +18,11 @@ enum Race:
     Race_Dwarf = 1
     Race_Elf = 2
 
+enum LongEnum:
+    LongEnum_LongOne = 2
+    LongEnum_LongTwo = 4
+    LongEnum_LongBig = 1099511627776
+
 enum Any:
     Any_NONE = 0
     Any_Monster = 1
@@ -395,13 +400,17 @@ class Monster : flatbuffers_handle
     def native_inline():
         let o = buf_.flatbuffers_field_struct(pos_, 106)
         return if o: MyGame_Example_Test { buf_, o } else: nil
+    def long_enum_non_enum_default():
+        return LongEnum(buf_.flatbuffers_field_int64(pos_, 108, 0))
+    def long_enum_normal_default():
+        return LongEnum(buf_.flatbuffers_field_int64(pos_, 110, 2))
 
 def GetRootAsMonster(buf:string): return Monster { buf, buf.flatbuffers_indirect(0) }
 
 struct MonsterBuilder:
     b_:flatbuffers_builder
     def start():
-        b_.StartObject(52)
+        b_.StartObject(54)
         return this
     def add_pos(pos:flatbuffers_offset):
         b_.PrependStructSlot(0, pos)
@@ -555,6 +564,12 @@ struct MonsterBuilder:
         return this
     def add_native_inline(native_inline:flatbuffers_offset):
         b_.PrependStructSlot(51, native_inline)
+        return this
+    def add_long_enum_non_enum_default(long_enum_non_enum_default:LongEnum):
+        b_.PrependUint64Slot(52, long_enum_non_enum_default, 0)
+        return this
+    def add_long_enum_normal_default(long_enum_normal_default:LongEnum):
+        b_.PrependUint64Slot(53, long_enum_normal_default, 2)
         return this
     def end():
         return b_.EndObject()

@@ -211,6 +211,10 @@ public struct Monster : IFlatbufferObject
   public int ScalarKeySortedTablesLength { get { int o = __p.__offset(104); return o != 0 ? __p.__vector_len(o) : 0; } }
   public MyGame.Example.Stat? ScalarKeySortedTablesByKey(ushort key) { int o = __p.__offset(104); return o != 0 ? MyGame.Example.Stat.__lookup_by_key(__p.__vector(o), key, __p.bb) : null; }
   public MyGame.Example.Test? NativeInline { get { int o = __p.__offset(106); return o != 0 ? (MyGame.Example.Test?)(new MyGame.Example.Test()).__assign(o + __p.bb_pos, __p.bb) : null; } }
+  public MyGame.Example.LongEnum LongEnumNonEnumDefault { get { int o = __p.__offset(108); return o != 0 ? (MyGame.Example.LongEnum)__p.bb.GetUlong(o + __p.bb_pos) : 0; } }
+  public bool MutateLongEnumNonEnumDefault(MyGame.Example.LongEnum long_enum_non_enum_default) { int o = __p.__offset(108); if (o != 0) { __p.bb.PutUlong(o + __p.bb_pos, (ulong)long_enum_non_enum_default); return true; } else { return false; } }
+  public MyGame.Example.LongEnum LongEnumNormalDefault { get { int o = __p.__offset(110); return o != 0 ? (MyGame.Example.LongEnum)__p.bb.GetUlong(o + __p.bb_pos) : MyGame.Example.LongEnum.LongOne; } }
+  public bool MutateLongEnumNormalDefault(MyGame.Example.LongEnum long_enum_normal_default) { int o = __p.__offset(110); if (o != 0) { __p.bb.PutUlong(o + __p.bb_pos, (ulong)long_enum_normal_default); return true; } else { return false; } }
 
   public static Offset<MyGame.Example.Monster> CreateMonster(FlatBufferBuilder builder,
       MyGame.Example.Vec3T pos = null,
@@ -263,8 +267,12 @@ public struct Monster : IFlatbufferObject
       MyGame.Example.Race signed_enum = MyGame.Example.Race.None,
       VectorOffset testrequirednestedflatbufferOffset = default(VectorOffset),
       VectorOffset scalar_key_sorted_tablesOffset = default(VectorOffset),
-      MyGame.Example.TestT native_inline = null) {
-    builder.StartTable(52);
+      MyGame.Example.TestT native_inline = null,
+      MyGame.Example.LongEnum long_enum_non_enum_default = 0,
+      MyGame.Example.LongEnum long_enum_normal_default = MyGame.Example.LongEnum.LongOne) {
+    builder.StartTable(54);
+    Monster.AddLongEnumNormalDefault(builder, long_enum_normal_default);
+    Monster.AddLongEnumNonEnumDefault(builder, long_enum_non_enum_default);
     Monster.AddNonOwningReference(builder, non_owning_reference);
     Monster.AddCoOwningReference(builder, co_owning_reference);
     Monster.AddSingleWeakReference(builder, single_weak_reference);
@@ -319,7 +327,7 @@ public struct Monster : IFlatbufferObject
     return Monster.EndMonster(builder);
   }
 
-  public static void StartMonster(FlatBufferBuilder builder) { builder.StartTable(52); }
+  public static void StartMonster(FlatBufferBuilder builder) { builder.StartTable(54); }
   public static void AddPos(FlatBufferBuilder builder, Offset<MyGame.Example.Vec3> posOffset) { builder.AddStruct(0, posOffset.Value, 0); }
   public static void AddMana(FlatBufferBuilder builder, short mana) { builder.AddShort(1, mana, 150); }
   public static void AddHp(FlatBufferBuilder builder, short hp) { builder.AddShort(2, hp, 100); }
@@ -425,6 +433,8 @@ public struct Monster : IFlatbufferObject
   public static VectorOffset CreateScalarKeySortedTablesVectorBlock(FlatBufferBuilder builder, Offset<MyGame.Example.Stat>[] data) { builder.StartVector(4, data.Length, 4); builder.Add(data); return builder.EndVector(); }
   public static void StartScalarKeySortedTablesVector(FlatBufferBuilder builder, int numElems) { builder.StartVector(4, numElems, 4); }
   public static void AddNativeInline(FlatBufferBuilder builder, Offset<MyGame.Example.Test> nativeInlineOffset) { builder.AddStruct(51, nativeInlineOffset.Value, 0); }
+  public static void AddLongEnumNonEnumDefault(FlatBufferBuilder builder, MyGame.Example.LongEnum longEnumNonEnumDefault) { builder.AddUlong(52, (ulong)longEnumNonEnumDefault, 0); }
+  public static void AddLongEnumNormalDefault(FlatBufferBuilder builder, MyGame.Example.LongEnum longEnumNormalDefault) { builder.AddUlong(53, (ulong)longEnumNormalDefault, 2); }
   public static Offset<MyGame.Example.Monster> EndMonster(FlatBufferBuilder builder) {
     int o = builder.EndTable();
     builder.Required(o, 10);  // name
@@ -571,6 +581,8 @@ public struct Monster : IFlatbufferObject
     _o.ScalarKeySortedTables = new List<MyGame.Example.StatT>();
     for (var _j = 0; _j < this.ScalarKeySortedTablesLength; ++_j) {_o.ScalarKeySortedTables.Add(this.ScalarKeySortedTables(_j).HasValue ? this.ScalarKeySortedTables(_j).Value.UnPack() : null);}
     _o.NativeInline = this.NativeInline.HasValue ? this.NativeInline.Value.UnPack() : null;
+    _o.LongEnumNonEnumDefault = this.LongEnumNonEnumDefault;
+    _o.LongEnumNormalDefault = this.LongEnumNormalDefault;
   }
   public static Offset<MyGame.Example.Monster> Pack(FlatBufferBuilder builder, MonsterT _o) {
     if (_o == null) return default(Offset<MyGame.Example.Monster>);
@@ -745,7 +757,9 @@ public struct Monster : IFlatbufferObject
       _o.SignedEnum,
       _testrequirednestedflatbuffer,
       _scalar_key_sorted_tables,
-      _o.NativeInline);
+      _o.NativeInline,
+      _o.LongEnumNonEnumDefault,
+      _o.LongEnumNormalDefault);
   }
 }
 
@@ -894,6 +908,10 @@ public class MonsterT
   public List<MyGame.Example.StatT> ScalarKeySortedTables { get; set; }
   [Newtonsoft.Json.JsonProperty("native_inline")]
   public MyGame.Example.TestT NativeInline { get; set; }
+  [Newtonsoft.Json.JsonProperty("long_enum_non_enum_default")]
+  public MyGame.Example.LongEnum LongEnumNonEnumDefault { get; set; }
+  [Newtonsoft.Json.JsonProperty("long_enum_normal_default")]
+  public MyGame.Example.LongEnum LongEnumNormalDefault { get; set; }
 
   public MonsterT() {
     this.Pos = new MyGame.Example.Vec3T();
@@ -944,6 +962,8 @@ public class MonsterT
     this.Testrequirednestedflatbuffer = null;
     this.ScalarKeySortedTables = null;
     this.NativeInline = new MyGame.Example.TestT();
+    this.LongEnumNonEnumDefault = 0;
+    this.LongEnumNormalDefault = MyGame.Example.LongEnum.LongOne;
   }
 
   public static MonsterT DeserializeFromJson(string jsonText) {

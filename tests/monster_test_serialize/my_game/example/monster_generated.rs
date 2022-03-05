@@ -74,6 +74,8 @@ impl<'a> Monster<'a> {
   pub const VT_TESTREQUIREDNESTEDFLATBUFFER: flatbuffers::VOffsetT = 102;
   pub const VT_SCALAR_KEY_SORTED_TABLES: flatbuffers::VOffsetT = 104;
   pub const VT_NATIVE_INLINE: flatbuffers::VOffsetT = 106;
+  pub const VT_LONG_ENUM_NON_ENUM_DEFAULT: flatbuffers::VOffsetT = 108;
+  pub const VT_LONG_ENUM_NORMAL_DEFAULT: flatbuffers::VOffsetT = 110;
 
   pub const fn get_fully_qualified_name() -> &'static str {
     "MyGame.Example.Monster"
@@ -89,6 +91,8 @@ impl<'a> Monster<'a> {
     args: &'args MonsterArgs<'args>
   ) -> flatbuffers::WIPOffset<Monster<'bldr>> {
     let mut builder = MonsterBuilder::new(_fbb);
+    builder.add_long_enum_normal_default(args.long_enum_normal_default);
+    builder.add_long_enum_non_enum_default(args.long_enum_non_enum_default);
     builder.add_non_owning_reference(args.non_owning_reference);
     builder.add_co_owning_reference(args.co_owning_reference);
     builder.add_single_weak_reference(args.single_weak_reference);
@@ -299,6 +303,8 @@ impl<'a> Monster<'a> {
     let native_inline = self.native_inline().map(|x| {
       x.unpack()
     });
+    let long_enum_non_enum_default = self.long_enum_non_enum_default();
+    let long_enum_normal_default = self.long_enum_normal_default();
     MonsterT {
       pos,
       mana,
@@ -348,6 +354,8 @@ impl<'a> Monster<'a> {
       testrequirednestedflatbuffer,
       scalar_key_sorted_tables,
       native_inline,
+      long_enum_non_enum_default,
+      long_enum_normal_default,
     }
   }
 
@@ -580,6 +588,14 @@ impl<'a> Monster<'a> {
     self._tab.get::<Test>(Monster::VT_NATIVE_INLINE, None)
   }
   #[inline]
+  pub fn long_enum_non_enum_default(&self) -> LongEnum {
+    self._tab.get::<LongEnum>(Monster::VT_LONG_ENUM_NON_ENUM_DEFAULT, Some(Default::default())).unwrap()
+  }
+  #[inline]
+  pub fn long_enum_normal_default(&self) -> LongEnum {
+    self._tab.get::<LongEnum>(Monster::VT_LONG_ENUM_NORMAL_DEFAULT, Some(LongEnum::LongOne)).unwrap()
+  }
+  #[inline]
   #[allow(non_snake_case)]
   pub fn test_as_monster(&self) -> Option<Monster<'a>> {
     if self.test_type() == Any::Monster {
@@ -747,6 +763,8 @@ impl flatbuffers::Verifiable for Monster<'_> {
      .visit_field::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'_, u8>>>("testrequirednestedflatbuffer", Self::VT_TESTREQUIREDNESTEDFLATBUFFER, false)?
      .visit_field::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'_, flatbuffers::ForwardsUOffset<Stat>>>>("scalar_key_sorted_tables", Self::VT_SCALAR_KEY_SORTED_TABLES, false)?
      .visit_field::<Test>("native_inline", Self::VT_NATIVE_INLINE, false)?
+     .visit_field::<LongEnum>("long_enum_non_enum_default", Self::VT_LONG_ENUM_NON_ENUM_DEFAULT, false)?
+     .visit_field::<LongEnum>("long_enum_normal_default", Self::VT_LONG_ENUM_NORMAL_DEFAULT, false)?
      .finish();
     Ok(())
   }
@@ -803,6 +821,8 @@ pub struct MonsterArgs<'a> {
     pub testrequirednestedflatbuffer: Option<flatbuffers::WIPOffset<flatbuffers::Vector<'a, u8>>>,
     pub scalar_key_sorted_tables: Option<flatbuffers::WIPOffset<flatbuffers::Vector<'a, flatbuffers::ForwardsUOffset<Stat<'a>>>>>,
     pub native_inline: Option<&'a Test>,
+    pub long_enum_non_enum_default: LongEnum,
+    pub long_enum_normal_default: LongEnum,
 }
 impl<'a> Default for MonsterArgs<'a> {
   #[inline]
@@ -859,6 +879,8 @@ impl<'a> Default for MonsterArgs<'a> {
       testrequirednestedflatbuffer: None,
       scalar_key_sorted_tables: None,
       native_inline: None,
+      long_enum_non_enum_default: Default::default(),
+      long_enum_normal_default: LongEnum::LongOne,
     }
   }
 }
@@ -868,7 +890,7 @@ impl Serialize for Monster<'_> {
   where
     S: Serializer,
   {
-    let mut s = serializer.serialize_struct("Monster", 52)?;
+    let mut s = serializer.serialize_struct("Monster", 54)?;
       if let Some(f) = self.pos() {
         s.serialize_field("pos", &f)?;
       } else {
@@ -1074,6 +1096,8 @@ impl Serialize for Monster<'_> {
       } else {
         s.skip_field("native_inline")?;
       }
+      s.serialize_field("long_enum_non_enum_default", &self.long_enum_non_enum_default())?;
+      s.serialize_field("long_enum_normal_default", &self.long_enum_normal_default())?;
     s.end()
   }
 }
@@ -1288,6 +1312,14 @@ impl<'a: 'b, 'b> MonsterBuilder<'a, 'b> {
     self.fbb_.push_slot_always::<&Test>(Monster::VT_NATIVE_INLINE, native_inline);
   }
   #[inline]
+  pub fn add_long_enum_non_enum_default(&mut self, long_enum_non_enum_default: LongEnum) {
+    self.fbb_.push_slot::<LongEnum>(Monster::VT_LONG_ENUM_NON_ENUM_DEFAULT, long_enum_non_enum_default, Default::default());
+  }
+  #[inline]
+  pub fn add_long_enum_normal_default(&mut self, long_enum_normal_default: LongEnum) {
+    self.fbb_.push_slot::<LongEnum>(Monster::VT_LONG_ENUM_NORMAL_DEFAULT, long_enum_normal_default, LongEnum::LongOne);
+  }
+  #[inline]
   pub fn new(_fbb: &'b mut flatbuffers::FlatBufferBuilder<'a>) -> MonsterBuilder<'a, 'b> {
     let start = _fbb.start_table();
     MonsterBuilder {
@@ -1435,6 +1467,8 @@ impl std::fmt::Debug for Monster<'_> {
       ds.field("testrequirednestedflatbuffer", &self.testrequirednestedflatbuffer());
       ds.field("scalar_key_sorted_tables", &self.scalar_key_sorted_tables());
       ds.field("native_inline", &self.native_inline());
+      ds.field("long_enum_non_enum_default", &self.long_enum_non_enum_default());
+      ds.field("long_enum_normal_default", &self.long_enum_normal_default());
       ds.finish()
   }
 }
@@ -1489,6 +1523,8 @@ pub struct MonsterT {
   pub testrequirednestedflatbuffer: Option<Vec<u8>>,
   pub scalar_key_sorted_tables: Option<Vec<StatT>>,
   pub native_inline: Option<TestT>,
+  pub long_enum_non_enum_default: LongEnum,
+  pub long_enum_normal_default: LongEnum,
 }
 impl Default for MonsterT {
   fn default() -> Self {
@@ -1541,6 +1577,8 @@ impl Default for MonsterT {
       testrequirednestedflatbuffer: None,
       scalar_key_sorted_tables: None,
       native_inline: None,
+      long_enum_non_enum_default: Default::default(),
+      long_enum_normal_default: LongEnum::LongOne,
     }
   }
 }
@@ -1651,6 +1689,8 @@ impl MonsterT {
     });
     let native_inline_tmp = self.native_inline.as_ref().map(|x| x.pack());
     let native_inline = native_inline_tmp.as_ref();
+    let long_enum_non_enum_default = self.long_enum_non_enum_default;
+    let long_enum_normal_default = self.long_enum_normal_default;
     Monster::create(_fbb, &MonsterArgs{
       pos,
       mana,
@@ -1703,6 +1743,8 @@ impl MonsterT {
       testrequirednestedflatbuffer,
       scalar_key_sorted_tables,
       native_inline,
+      long_enum_non_enum_default,
+      long_enum_normal_default,
     })
   }
 }
