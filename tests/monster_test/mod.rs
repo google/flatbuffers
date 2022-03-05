@@ -7,6 +7,8 @@ pub mod my_game {
     pub use self::color_generated::*;
     mod race_generated;
     pub use self::race_generated::*;
+    mod long_enum_generated;
+    pub use self::long_enum_generated::*;
     mod any_generated;
     pub use self::any_generated::*;
     mod any_unique_aliases_generated;
