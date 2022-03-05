@@ -24,7 +24,7 @@
 
 namespace flatbuffers {
 
-Namer RustDefaultNamer() {
+Namer::Config RustDefaultConfig() {
   // Historical note: We've been using "keep" casing since the original
   // implementation, presumably because Flatbuffers schema style and Rust style
   // roughly align. We are not going to enforce proper casing since its an
@@ -46,6 +46,10 @@ Namer RustDefaultNamer() {
                         /*output_path=*/"",
                         /*filename_suffix=*/"_generated",
                         /*filename_extension=*/".rs" };
+  return config;
+}
+
+std::set<std::string> RustKeywords() {
   std::set<std::string> keywords{
     // https://doc.rust-lang.org/book/second-edition/appendix-01-keywords.html
     "as",
@@ -128,7 +132,7 @@ Namer RustDefaultNamer() {
     "ENUM_MIN",
     "ENUM_VALUES",
   };
-  return Namer(std::move(config), std::move(keywords));
+  return keywords;
 }
 
 // Encapsulate all logical field types in this enum. This allows us to write
@@ -275,8 +279,8 @@ bool GenerateRustModuleRootFile(const Parser &parser,
     // so return true.
     return true;
   }
-  Namer namer = RustDefaultNamer();
-  AddFlagOptions(namer, parser.opts, output_dir);
+  Namer namer(RustDefaultConfig().WithFlagOptions(parser.opts, output_dir),
+              RustKeywords());
   // We gather the symbols into a tree of namespaces (which are rust mods) and
   // generate a file that gathers them all.
   struct Module {
@@ -292,7 +296,7 @@ bool GenerateRustModuleRootFile(const Parser &parser,
         current_module = &current_module->sub_modules[ns_component];
       }
       current_module->generated_files.push_back(
-          namer.File(symbol.name, /*skip_suffix=*/false, /*skip_ext=*/true));
+          namer.File(symbol.name, SkipFile::Extension));
     }
     // Recursively create the importer file.
     void GenerateImports(CodeWriter &code) {
@@ -340,9 +344,9 @@ class RustGenerator : public BaseGenerator {
                 const std::string &file_name)
       : BaseGenerator(parser, path, file_name, "", "::", "rs"),
         cur_name_space_(nullptr),
-        namer_(RustDefaultNamer()) {
+        namer_({ RustDefaultConfig().WithFlagOptions(parser.opts, path),
+                 RustKeywords() }) {
     // TODO: Namer flag overrides should be in flatc or flatc_main.
-    AddFlagOptions(namer_, parser.opts, path);
     code_.SetPadding("  ");
   }
 
@@ -374,9 +378,11 @@ class RustGenerator : public BaseGenerator {
       code_ += "use super::*;";
       cur_name_space_ = symbol.defined_namespace;
       gen_symbol(symbol);
-      const std::string file_path =
-          namer_.Directories(symbol.defined_namespace->components) +
-          namer_.File(symbol.name);
+
+      const std::string directories =
+          namer_.Directories(symbol.defined_namespace->components);
+      EnsureDirExists(directories);
+      const std::string file_path = directories + namer_.File(symbol.name);
       const bool save_success =
           SaveFile(file_path.c_str(), code_.ToString(), /*binary=*/false);
       if (!save_success) return false;
@@ -1931,13 +1937,8 @@ class RustGenerator : public BaseGenerator {
       // Unions.
       const EnumDef &union_def = *field.value.type.enum_def;
       code_.SetValue("UNION_TYPE", WrapInNameSpace(union_def));
-      // FIXME: VT_FIELD_NAME is not screaming snake case by legacy mistake.
-      // but changing this is probably a breaking change.
-      code_.SetValue(
-          "UNION_TYPE_OFFSET_NAME",
-          "VT_" +
-              ConvertCase(namer_.EscapeKeyword(field.name), Case::kAllUpper) +
-              "_TYPE");
+      code_.SetValue("UNION_TYPE_OFFSET_NAME",
+                     GetFieldOffsetName(field) + "_TYPE");
       code_ +=
           "\n     .visit_union::<{{UNION_TYPE}}, _>("
           "\"{{FIELD}}_type\", Self::{{UNION_TYPE_OFFSET_NAME}}, "
