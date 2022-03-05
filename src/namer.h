@@ -132,7 +132,15 @@ class Namer {
   std::string Namespace(const std::string &s) const {
     return Format(s, config_.namespaces);
   }
-  // DO NOT SUBMIT: Add GetRelativeNamespaceTraversal?
+
+  std::string Namespace(const std::vector<std::string> &ns) const {
+    std::string result;
+    for (auto it = ns.begin(); it != ns.end(); it++) {
+      if (it != ns.begin()) result += config_.namespace_seperator;
+      result += Namespace(*it);
+    }
+    return result;
+  }
 
   // Returns `filename` with the right casing, suffix, and extension.
   std::string File(const std::string &filename,
