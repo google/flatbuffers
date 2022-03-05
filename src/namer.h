@@ -85,11 +85,11 @@ class Namer {
     // code generators are using `Namer`. After that point, we can centralize
     // flag-overriding logic into flatc.cpp
     Config WithFlagOptions(const IDLOptions &opts,
-                           const std::string &output_path) const {
+                           const std::string &path) const {
       Config result = *this;
       result.object_prefix = opts.object_prefix;
       result.object_suffix = opts.object_suffix;
-      result.output_path = output_path;
+      result.output_path = path;
       result.filename_suffix = opts.filename_suffix;
       return result;
     }
