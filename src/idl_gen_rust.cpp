@@ -29,29 +29,28 @@ Namer::Config RustDefaultConfig() {
   // implementation, presumably because Flatbuffers schema style and Rust style
   // roughly align. We are not going to enforce proper casing since its an
   // unnecessary breaking change.
-  Namer::Config config{ /*types=*/Case::kKeep,
-                        /*constants=*/Case::kScreamingSnake,
-                        /*methods=*/Case::kSnake,
-                        /*functions=*/Case::kSnake,
-                        /*fields=*/Case::kKeep,
-                        /*variants=*/Case::kKeep,
-                        /*enum_variant_seperator=*/"::",
-                        /*namespaces=*/Case::kSnake,
-                        /*namespace_seperator=*/"::",
-                        /*object_prefix=*/"",
-                        /*object_suffix=*/"T",
-                        /*keyword_prefix=*/"",
-                        /*keyword_suffix=*/"_",
-                        /*filenames=*/Case::kSnake,
-                        /*directories=*/Case::kSnake,
-                        /*output_path=*/"",
-                        /*filename_suffix=*/"_generated",
-                        /*filename_extension=*/".rs" };
-  return config;
+  return { /*types=*/Case::kKeep,
+           /*constants=*/Case::kScreamingSnake,
+           /*methods=*/Case::kSnake,
+           /*functions=*/Case::kSnake,
+           /*fields=*/Case::kKeep,
+           /*variants=*/Case::kKeep,
+           /*enum_variant_seperator=*/"::",
+           /*namespaces=*/Case::kSnake,
+           /*namespace_seperator=*/"::",
+           /*object_prefix=*/"",
+           /*object_suffix=*/"T",
+           /*keyword_prefix=*/"",
+           /*keyword_suffix=*/"_",
+           /*filenames=*/Case::kSnake,
+           /*directories=*/Case::kSnake,
+           /*output_path=*/"",
+           /*filename_suffix=*/"_generated",
+           /*filename_extension=*/".rs" };
 }
 
 std::set<std::string> RustKeywords() {
-  std::set<std::string> keywords{
+  return {
     // https://doc.rust-lang.org/book/second-edition/appendix-01-keywords.html
     "as",
     "break",
@@ -133,7 +132,6 @@ std::set<std::string> RustKeywords() {
     "ENUM_MIN",
     "ENUM_VALUES",
   };
-  return keywords;
 }
 
 // Encapsulate all logical field types in this enum. This allows us to write
