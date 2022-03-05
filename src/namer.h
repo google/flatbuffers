@@ -43,6 +43,9 @@ class Namer {
     // Case style for flatbuffers-defined variants.
     // e.g. `enum class Enum { MyVariant, }`
     Case variants;
+    // Seperator for qualified enum names.
+    // e.g. `Enum::MyVariant` uses `::`.
+    std::string enum_variant_seperator;
 
     // Namespaces
 
@@ -116,6 +119,10 @@ class Namer {
 
   std::string Variant(const std::string &s) const {
     return Format(s, config_.variants);
+  }
+
+  std::string EnumVariant(const std::string &e, const std::string v) const {
+    return Type(e) + config_.enum_variant_seperator + Variant(v);
   }
 
   std::string ObjectType(const std::string &s) const {

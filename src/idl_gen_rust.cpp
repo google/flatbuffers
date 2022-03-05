@@ -35,6 +35,7 @@ Namer::Config RustDefaultConfig() {
                         /*functions=*/Case::kSnake,
                         /*fields=*/Case::kKeep,
                         /*variants=*/Case::kKeep,
+                        /*enum_variant_seperator=*/"::",
                         /*namespaces=*/Case::kSnake,
                         /*namespace_seperator=*/"::",
                         /*object_prefix=*/"",
@@ -663,7 +664,7 @@ class RustGenerator : public BaseGenerator {
 
   std::string GetEnumValue(const EnumDef &enum_def,
                            const EnumVal &enum_val) const {
-    return namer_.Type(enum_def.name) + "::" + namer_.Variant(enum_val.name);
+    return namer_.EnumVariant(enum_def.name, enum_val.name);
   }
 
   // 1 suffix since old C++ can't figure out the overload.
@@ -743,7 +744,7 @@ class RustGenerator : public BaseGenerator {
       code_ += "pub const ENUM_VALUES_{{ENUM_CONSTANT}}: [{{ENUM_TY}}; " +
                num_fields + "] = [";
       ForAllEnumValues1(enum_def, [&](const EnumVal &ev) {
-        code_ += GetEnumValue(enum_def, ev) + ",";
+        code_ += namer_.EnumVariant(enum_def.name, ev.name) + ",";
       });
       code_ += "];";
       code_ += "";
@@ -1031,8 +1032,9 @@ class RustGenerator : public BaseGenerator {
       case ftEnumKey: {
         auto ev = field.value.type.enum_def->FindByValue(field.value.constant);
         if (!ev) return "Default::default()";  // Bitflags enum.
-        return WrapInNameSpace(field.value.type.enum_def->defined_namespace,
-                               GetEnumValue(*field.value.type.enum_def, *ev));
+        return WrapInNameSpace(
+            field.value.type.enum_def->defined_namespace,
+            namer_.EnumVariant(field.value.type.enum_def->name, ev->name));
       }
       case ftUnionValue: {
         return ObjectFieldType(field, true) + "::NONE";
@@ -1581,9 +1583,9 @@ class RustGenerator : public BaseGenerator {
       const EnumVal &ev = **it;
       // TODO(cneo): Can variants be deprecated, should we skip them?
       if (ev.union_type.base_type == BASE_TYPE_NONE) { continue; }
-      code_.SetValue(
-          "U_ELEMENT_ENUM_TYPE",
-          WrapInNameSpace(def.defined_namespace, GetEnumValue(def, ev)));
+      code_.SetValue("U_ELEMENT_ENUM_TYPE",
+                     WrapInNameSpace(def.defined_namespace,
+                                     namer_.EnumVariant(def.name, ev.name)));
       code_.SetValue(
           "U_ELEMENT_TABLE_TYPE",
           WrapInNameSpace(ev.union_type.struct_def->defined_namespace,
@@ -2009,12 +2011,12 @@ class RustGenerator : public BaseGenerator {
           if (type.base_type == BASE_TYPE_UNION) {
             const auto &enum_def = *type.enum_def;
             code_.SetValue("ENUM_TY", WrapInNameSpace(enum_def));
-            code_.SetValue("FIELD", field.name);
+            code_.SetValue("FIELD", namer_.Field(field.name));
 
             code_ += "    match self.{{FIELD}}_type() {";
             code_ += "      {{ENUM_TY}}::NONE => (),";
             ForAllUnionObjectVariantsBesidesNone(enum_def, [&] {
-              code_.SetValue("FIELD", field.name);
+              code_.SetValue("FIELD", namer_.Field(field.name));
               code_ += "      {{ENUM_TY}}::{{VARIANT_NAME}} => {";
               code_ +=
                   "        let f = "
