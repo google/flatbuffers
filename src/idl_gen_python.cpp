@@ -49,7 +49,7 @@ Namer::Config PythonDefaultConfig() {
            /*variable=*/Case::kLowerCamel,
            /*variants=*/Case::kUnknown,  // Unused.
            /*enum_variant_seperator=*/".",
-           /*namespaces=*/Case::kUpperCamel,  // Packages in python.
+           /*namespaces=*/Case::kKeep,  // Packages in python.
            /*namespace_seperator=*/".",
            /*object_prefix=*/"",
            /*object_suffix=*/"T",
@@ -316,17 +316,22 @@ class PythonGenerator : public BaseGenerator {
 
   // Generate the package reference when importing a struct or enum from its
   // module.
-  std::string GenPackageReference(const Type &type) {
-    Namespace *namespaces;
+  std::string GenPackageReference(const Type &type) const {
     if (type.struct_def) {
-      namespaces = type.struct_def->defined_namespace;
+      return GenPackageReference(*type.struct_def);
     } else if (type.enum_def) {
-      namespaces = type.enum_def->defined_namespace;
+      return GenPackageReference(*type.enum_def);
     } else {
       return "." + GenTypeGet(type);
     }
-
-    return namespaces->GetFullyQualifiedName(GenTypeGet(type));
+  }
+  std::string GenPackageReference(const EnumDef &enum_def) const {
+    return namer_.NamespacedType(enum_def.defined_namespace->components,
+                                 enum_def.name);
+  }
+  std::string GenPackageReference(const StructDef &struct_def) const {
+    return namer_.NamespacedType(struct_def.defined_namespace->components,
+                                 struct_def.name);
   }
 
   // Get the value of a vector's struct member.
@@ -411,6 +416,19 @@ class PythonGenerator : public BaseGenerator {
     code += "\n";
   }
 
+  std::string NestedFlatbufferType(std::string unqualified_name) const {
+    StructDef* nested_root = parser_.LookupStruct(unqualified_name);
+    std::string qualified_name;
+    if (nested_root == nullptr) {
+      qualified_name = namer_.NamespacedType(
+          parser_.current_namespace_->components, unqualified_name);
+      // Double check qualified name just to be sure it exists.
+      nested_root = parser_.LookupStruct(qualified_name);
+    }
+    FLATBUFFERS_ASSERT(nested_root);  // Guaranteed to exist by parser.
+    return qualified_name;
+  }
+
   // Returns a nested flatbuffer as itself.
   void GetVectorAsNestedFlatbuffer(const StructDef &struct_def,
                                    const FieldDef &field,
@@ -418,16 +436,8 @@ class PythonGenerator : public BaseGenerator {
     auto nested = field.attributes.Lookup("nested_flatbuffer");
     if (!nested) { return; }  // There is no nested flatbuffer.
 
-    std::string unqualified_name = nested->constant;
-    std::string qualified_name = nested->constant;
-    auto nested_root = parser_.LookupStruct(nested->constant);
-    if (nested_root == nullptr) {
-      qualified_name =
-          parser_.current_namespace_->GetFullyQualifiedName(nested->constant);
-      nested_root = parser_.LookupStruct(qualified_name);
-    }
-    FLATBUFFERS_ASSERT(nested_root);  // Guaranteed to exist by parser.
-    (void)nested_root;
+    const std::string unqualified_name = nested->constant;
+    const std::string qualified_name = NestedFlatbufferType(unqualified_name);
 
     auto &code = *code_ptr;
     GenReceiver(struct_def, code_ptr);
@@ -635,17 +645,6 @@ class PythonGenerator : public BaseGenerator {
                                    std::string *code_ptr) {
     auto nested = field.attributes.Lookup("nested_flatbuffer");
     if (!nested) { return; }  // There is no nested flatbuffer.
-
-    std::string unqualified_name = nested->constant;
-    std::string qualified_name = nested->constant;
-    auto nested_root = parser_.LookupStruct(nested->constant);
-    if (nested_root == nullptr) {
-      qualified_name =
-          parser_.current_namespace_->GetFullyQualifiedName(nested->constant);
-      nested_root = parser_.LookupStruct(qualified_name);
-    }
-    FLATBUFFERS_ASSERT(nested_root);  // Guaranteed to exist by parser.
-    (void)nested_root;
 
     auto &code = *code_ptr;
     const std::string field_method = namer_.Method(field.name);
@@ -918,12 +917,8 @@ class PythonGenerator : public BaseGenerator {
 
     // Gets the import lists for the union.
     if (parser_.opts.include_dependence_headers) {
-      // The package reference is generated based on enum_def, instead
-      // of struct_def in field.type. That's why GenPackageReference() is
-      // not used.
-      Namespace *namespaces = field.value.type.enum_def->defined_namespace;
-      auto package_reference = namespaces->GetFullyQualifiedName(
-          namer_.Namespace(field.value.type.enum_def->name));
+      const auto package_reference =
+          GenPackageReference(*field.value.type.enum_def);
       import_list->insert("import " + package_reference);
     }
   }
@@ -1040,10 +1035,7 @@ class PythonGenerator : public BaseGenerator {
     }
 
     // Removes the import of the struct itself, if applied.
-    auto package_reference =
-        struct_def.defined_namespace->GetFullyQualifiedName(
-            namer_.Namespace(struct_def.name));
-    auto struct_import = "import " + package_reference;
+    auto struct_import = "import " + GenPackageReference(struct_def);
     import_list->erase(struct_import);
   }
 
@@ -1108,12 +1100,11 @@ class PythonGenerator : public BaseGenerator {
     const auto field_field = namer_.Field(field.name);
     const auto field_method = namer_.Method(field.name);
     const auto struct_var = namer_.Variable(struct_def.name);
-    auto union_name = namer_.Namespace(field.value.type.enum_def->name);
+    const EnumDef &enum_def = *field.value.type.enum_def;
+    auto union_name = namer_.Namespace(enum_def.name);
 
     if (parser_.opts.include_dependence_headers) {
-      Namespace *namespaces = field.value.type.enum_def->defined_namespace;
-      auto package_reference = namespaces->GetFullyQualifiedName(union_name);
-      union_name = package_reference + "." + union_name;
+      union_name = GenPackageReference(enum_def) + "." + union_name;
     }
     code += GenIndents(2) + "self." + field_field + " = " + union_name +
             "Creator(" + "self." + field_field + "Type, " + struct_var + "." +
@@ -1637,7 +1628,7 @@ class PythonGenerator : public BaseGenerator {
                : (IsStruct(field.value.type) ? "Struct" : "UOffsetTRelative");
   }
 
-  std::string GenTypeBasic(const Type &type) {
+  std::string GenTypeBasic(const Type &type) const {
     // clang-format off
     static const char *ctypename[] = {
       #define FLATBUFFERS_TD(ENUM, IDLTYPE, \
@@ -1651,7 +1642,7 @@ class PythonGenerator : public BaseGenerator {
                                    : type.base_type];
   }
 
-  std::string GenTypePointer(const Type &type) {
+  std::string GenTypePointer(const Type &type) const {
     switch (type.base_type) {
       case BASE_TYPE_STRING: return "string";
       case BASE_TYPE_VECTOR: return GenTypeGet(type.VectorType());
@@ -1662,11 +1653,11 @@ class PythonGenerator : public BaseGenerator {
     }
   }
 
-  std::string GenTypeGet(const Type &type) {
+  std::string GenTypeGet(const Type &type) const {
     return IsScalar(type.base_type) ? GenTypeBasic(type) : GenTypePointer(type);
   }
 
-  std::string TypeName(const FieldDef &field) {
+  std::string TypeName(const FieldDef &field) const {
     return GenTypeGet(field.value.type);
   }
 
