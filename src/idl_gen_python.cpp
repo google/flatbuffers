@@ -572,8 +572,7 @@ class PythonGenerator : public BaseGenerator {
     const std::string field_method = namer_.Method(field.name);
 
     // Generate method with struct name.
-    code += "def " + namer_.Type(struct_def.name) + "Add" +
-            field_method;
+    code += "def " + namer_.Type(struct_def.name) + "Add" + field_method;
     code += "(builder, ";
     code += field_var;
     code += "): ";
@@ -671,10 +670,9 @@ class PythonGenerator : public BaseGenerator {
 
     if (!parser_.opts.one_file) {
       // Generate method without struct and field name.
-      code += "def Make" + field_method +
-              "VectorFromBytes(builder, bytes):\n";
-      code += Indent + "return " + struct_type + "Make" +
-              field_method + "VectorFromBytes(builder, bytes)\n";
+      code += "def Make" + field_method + "VectorFromBytes(builder, bytes):\n";
+      code += Indent + "return " + struct_type + "Make" + field_method +
+              "VectorFromBytes(builder, bytes)\n";
     }
   }
 
@@ -937,7 +935,7 @@ class PythonGenerator : public BaseGenerator {
                      std::set<std::string> *import_typing_list) {
     import_typing_list->insert("Optional");
     auto &output = *out_ptr;
-    const Type& type = field.value.type;
+    const Type &type = field.value.type;
     const std::string object_type = namer_.ObjectType(type.struct_def->name);
     if (parser_.opts.include_dependence_headers) {
       auto package_reference = GenPackageReference(type);
@@ -954,10 +952,11 @@ class PythonGenerator : public BaseGenerator {
                      std::set<std::string> *import_typing_list) {
     import_typing_list->insert("List");
     auto &field_type = *field_type_ptr;
-    const Type& vector_type = field.value.type.VectorType();
+    const Type &vector_type = field.value.type.VectorType();
     const BaseType base_type = vector_type.base_type;
     if (base_type == BASE_TYPE_STRUCT) {
-      const std::string object_type = namer_.ObjectType(GenTypeGet(vector_type));
+      const std::string object_type =
+          namer_.ObjectType(GenTypeGet(vector_type));
       field_type = object_type + "]";
       if (parser_.opts.include_dependence_headers) {
         auto package_reference = GenPackageReference(vector_type);
