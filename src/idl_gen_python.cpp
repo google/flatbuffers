@@ -42,12 +42,12 @@ std::set<std::string> PythonKeywords() {
 
 Namer::Config PythonDefaultConfig() {
   return { /*types=*/Case::kKeep,
-           /*constants=*/Case::kKeep,
-           /*methods=*/Case::kUpperCamel,
+           /*constants=*/Case::kScreamingSnake,
+            /*methods=*/Case::kUpperCamel,
            /*functions=*/Case::kUpperCamel,
            /*fields=*/Case::kLowerCamel,
            /*variable=*/Case::kLowerCamel,
-           /*variants=*/Case::kUnknown,  // Unused.
+           /*variants=*/Case::kKeep,
            /*enum_variant_seperator=*/".",
            /*namespaces=*/Case::kKeep,  // Packages in python.
            /*namespace_seperator=*/".",
@@ -78,7 +78,7 @@ class PythonGenerator : public BaseGenerator {
 
   // Most field accessors need to retrieve and test the field offset first,
   // this is the prefix code for that.
-  std::string OffsetPrefix(const FieldDef &field) {
+  std::string OffsetPrefix(const FieldDef &field) const {
     return "\n" + Indent + Indent +
            "o = flatbuffers.number_types.UOffsetTFlags.py_type" +
            "(self._tab.Offset(" + NumToString(field.value.offset) + "))\n" +
@@ -86,7 +86,7 @@ class PythonGenerator : public BaseGenerator {
   }
 
   // Begin a class declaration.
-  void BeginClass(const StructDef &struct_def, std::string *code_ptr) {
+  void BeginClass(const StructDef &struct_def, std::string *code_ptr) const {
     auto &code = *code_ptr;
     code += "class " + namer_.Type(struct_def.name) + "(object):\n";
     code += Indent + "__slots__ = ['_tab']";
@@ -94,31 +94,31 @@ class PythonGenerator : public BaseGenerator {
   }
 
   // Begin enum code with a class declaration.
-  void BeginEnum(const EnumDef &enum_def, std::string *code_ptr) {
+  void BeginEnum(const EnumDef &enum_def, std::string *code_ptr) const {
     auto &code = *code_ptr;
     code += "class " + namer_.Type(enum_def.name) + "(object):\n";
   }
 
   // Starts a new line and then indents.
-  std::string GenIndents(int num) {
+  std::string GenIndents(int num) const {
     return "\n" + std::string(num * Indent.length(), ' ');
   }
 
   // A single enum member.
   void EnumMember(const EnumDef &enum_def, const EnumVal &ev,
-                  std::string *code_ptr) {
+                  std::string *code_ptr) const {
     auto &code = *code_ptr;
     code += Indent;
-    code += namer_.Constant(ev.name);
+    code += namer_.Variant(ev.name);
     code += " = ";
     code += enum_def.ToString(ev) + "\n";
   }
 
   // Initialize a new struct or table from existing data.
   void NewRootTypeFromBuffer(const StructDef &struct_def,
-                             std::string *code_ptr) {
+                             std::string *code_ptr) const {
     auto &code = *code_ptr;
-    const std::string constructor = namer_.Type(struct_def.name);
+    const std::string struct_type = namer_.Type(struct_def.name);
 
     code += Indent + "@classmethod\n";
     code += Indent + "def GetRootAs";
@@ -127,14 +127,14 @@ class PythonGenerator : public BaseGenerator {
     code += Indent + Indent;
     code += "n = flatbuffers.encode.Get";
     code += "(flatbuffers.packer.uoffset, buf, offset)\n";
-    code += Indent + Indent + "x = " + constructor + "()\n";
+    code += Indent + Indent + "x = " + struct_type + "()\n";
     code += Indent + Indent + "x.Init(buf, n + offset)\n";
     code += Indent + Indent + "return x\n";
     code += "\n";
 
     // Add an alias with the old name
     code += Indent + "@classmethod\n";
-    code += Indent + "def GetRootAs" + constructor + "(cls, buf, offset=0):\n";
+    code += Indent + "def GetRootAs" + struct_type + "(cls, buf, offset=0):\n";
     code +=
         Indent + Indent +
         "\"\"\"This method is deprecated. Please switch to GetRootAs.\"\"\"\n";
@@ -142,7 +142,8 @@ class PythonGenerator : public BaseGenerator {
   }
 
   // Initialize an existing object with other data, to avoid an allocation.
-  void InitializeExisting(const StructDef &struct_def, std::string *code_ptr) {
+  void InitializeExisting(const StructDef &struct_def,
+                          std::string *code_ptr) const {
     auto &code = *code_ptr;
 
     GenReceiver(struct_def, code_ptr);
@@ -153,7 +154,7 @@ class PythonGenerator : public BaseGenerator {
 
   // Get the length of a vector.
   void GetVectorLen(const StructDef &struct_def, const FieldDef &field,
-                    std::string *code_ptr) {
+                    std::string *code_ptr) const {
     auto &code = *code_ptr;
 
     GenReceiver(struct_def, code_ptr);
@@ -165,7 +166,7 @@ class PythonGenerator : public BaseGenerator {
 
   // Determines whether a vector is none or not.
   void GetVectorIsNone(const StructDef &struct_def, const FieldDef &field,
-                       std::string *code_ptr) {
+                       std::string *code_ptr) const {
     auto &code = *code_ptr;
 
     GenReceiver(struct_def, code_ptr);
@@ -180,7 +181,8 @@ class PythonGenerator : public BaseGenerator {
 
   // Get the value of a struct's scalar.
   void GetScalarFieldOfStruct(const StructDef &struct_def,
-                              const FieldDef &field, std::string *code_ptr) {
+                              const FieldDef &field,
+                              std::string *code_ptr) const {
     auto &code = *code_ptr;
     std::string getter = GenGetter(field.value.type);
     GenReceiver(struct_def, code_ptr);
@@ -192,7 +194,7 @@ class PythonGenerator : public BaseGenerator {
 
   // Get the value of a table's scalar.
   void GetScalarFieldOfTable(const StructDef &struct_def, const FieldDef &field,
-                             std::string *code_ptr) {
+                             std::string *code_ptr) const {
     auto &code = *code_ptr;
     std::string getter = GenGetter(field.value.type);
     GenReceiver(struct_def, code_ptr);
@@ -217,7 +219,8 @@ class PythonGenerator : public BaseGenerator {
   // Get a struct by initializing an existing struct.
   // Specific to Struct.
   void GetStructFieldOfStruct(const StructDef &struct_def,
-                              const FieldDef &field, std::string *code_ptr) {
+                              const FieldDef &field,
+                              std::string *code_ptr) const {
     auto &code = *code_ptr;
     GenReceiver(struct_def, code_ptr);
     code += namer_.Method(field.name);
@@ -229,7 +232,7 @@ class PythonGenerator : public BaseGenerator {
 
   // Get the value of a fixed size array.
   void GetArrayOfStruct(const StructDef &struct_def, const FieldDef &field,
-                        std::string *code_ptr) {
+                        std::string *code_ptr) const {
     auto &code = *code_ptr;
     const auto vec_type = field.value.type.VectorType();
     GenReceiver(struct_def, code_ptr);
@@ -254,7 +257,7 @@ class PythonGenerator : public BaseGenerator {
   // Get a struct by initializing an existing struct.
   // Specific to Table.
   void GetStructFieldOfTable(const StructDef &struct_def, const FieldDef &field,
-                             std::string *code_ptr) {
+                             std::string *code_ptr) const {
     auto &code = *code_ptr;
     GenReceiver(struct_def, code_ptr);
     code += namer_.Method(field.name);
@@ -279,7 +282,7 @@ class PythonGenerator : public BaseGenerator {
 
   // Get the value of a string.
   void GetStringField(const StructDef &struct_def, const FieldDef &field,
-                      std::string *code_ptr) {
+                      std::string *code_ptr) const {
     auto &code = *code_ptr;
     GenReceiver(struct_def, code_ptr);
     code += namer_.Method(field.name);
@@ -292,7 +295,7 @@ class PythonGenerator : public BaseGenerator {
 
   // Get the value of a union from an object.
   void GetUnionField(const StructDef &struct_def, const FieldDef &field,
-                     std::string *code_ptr) {
+                     std::string *code_ptr) const {
     auto &code = *code_ptr;
     GenReceiver(struct_def, code_ptr);
     code += namer_.Method(field.name) + "(self):";
@@ -336,7 +339,8 @@ class PythonGenerator : public BaseGenerator {
 
   // Get the value of a vector's struct member.
   void GetMemberOfVectorOfStruct(const StructDef &struct_def,
-                                 const FieldDef &field, std::string *code_ptr) {
+                                 const FieldDef &field,
+                                 std::string *code_ptr) const {
     auto &code = *code_ptr;
     auto vectortype = field.value.type.VectorType();
 
@@ -365,7 +369,7 @@ class PythonGenerator : public BaseGenerator {
   // argument to conveniently set the zero value for the result.
   void GetMemberOfVectorOfNonStruct(const StructDef &struct_def,
                                     const FieldDef &field,
-                                    std::string *code_ptr) {
+                                    std::string *code_ptr) const {
     auto &code = *code_ptr;
     auto vectortype = field.value.type.VectorType();
 
@@ -390,7 +394,7 @@ class PythonGenerator : public BaseGenerator {
   // than iterating over the vector element by element.
   void GetVectorOfNonStructAsNumpy(const StructDef &struct_def,
                                    const FieldDef &field,
-                                   std::string *code_ptr) {
+                                   std::string *code_ptr) const {
     auto &code = *code_ptr;
     auto vectortype = field.value.type.VectorType();
 
@@ -432,7 +436,7 @@ class PythonGenerator : public BaseGenerator {
   // Returns a nested flatbuffer as itself.
   void GetVectorAsNestedFlatbuffer(const StructDef &struct_def,
                                    const FieldDef &field,
-                                   std::string *code_ptr) {
+                                   std::string *code_ptr) const {
     auto nested = field.attributes.Lookup("nested_flatbuffer");
     if (!nested) { return; }  // There is no nested flatbuffer.
 
@@ -455,7 +459,8 @@ class PythonGenerator : public BaseGenerator {
   }
 
   // Begin the creator function signature.
-  void BeginBuilderArgs(const StructDef &struct_def, std::string *code_ptr) {
+  void BeginBuilderArgs(const StructDef &struct_def,
+                        std::string *code_ptr) const {
     auto &code = *code_ptr;
 
     code += "\n";
@@ -469,7 +474,7 @@ class PythonGenerator : public BaseGenerator {
                          const std::string nameprefix,
                          const std::string namesuffix, bool has_field_name,
                          const std::string fieldname_suffix,
-                         std::string *code_ptr) {
+                         std::string *code_ptr) const {
     for (auto it = struct_def.fields.vec.begin();
          it != struct_def.fields.vec.end(); ++it) {
       auto &field = **it;
@@ -496,7 +501,7 @@ class PythonGenerator : public BaseGenerator {
   }
 
   // End the creator function signature.
-  void EndBuilderArgs(std::string *code_ptr) {
+  void EndBuilderArgs(std::string *code_ptr) const {
     auto &code = *code_ptr;
     code += "):\n";
   }
@@ -505,7 +510,7 @@ class PythonGenerator : public BaseGenerator {
   // padding.
   void StructBuilderBody(const StructDef &struct_def, const char *nameprefix,
                          std::string *code_ptr, size_t index = 0,
-                         bool in_array = false) {
+                         bool in_array = false) const {
     auto &code = *code_ptr;
     std::string indent(index * 4, ' ');
     code +=
@@ -552,13 +557,14 @@ class PythonGenerator : public BaseGenerator {
     }
   }
 
-  void EndBuilderBody(std::string *code_ptr) {
+  void EndBuilderBody(std::string *code_ptr) const {
     auto &code = *code_ptr;
     code += "    return builder.Offset()\n";
   }
 
   // Get the value of a table's starting offset.
-  void GetStartOfTable(const StructDef &struct_def, std::string *code_ptr) {
+  void GetStartOfTable(const StructDef &struct_def,
+                       std::string *code_ptr) const {
     auto &code = *code_ptr;
     const auto struct_type = namer_.Type(struct_def.name);
     // Generate method with struct name.
@@ -576,7 +582,7 @@ class PythonGenerator : public BaseGenerator {
 
   // Set the value of a table's field.
   void BuildFieldOfTable(const StructDef &struct_def, const FieldDef &field,
-                         const size_t offset, std::string *code_ptr) {
+                         const size_t offset, std::string *code_ptr) const {
     auto &code = *code_ptr;
     const std::string field_var = namer_.Variable(field.name);
     const std::string field_method = namer_.Method(field.name);
@@ -614,7 +620,7 @@ class PythonGenerator : public BaseGenerator {
 
   // Set the value of one of the members of a table's vector.
   void BuildVectorOfTable(const StructDef &struct_def, const FieldDef &field,
-                          std::string *code_ptr) {
+                          std::string *code_ptr) const {
     auto &code = *code_ptr;
     const std::string struct_type = namer_.Type(struct_def.name);
     const std::string field_method = namer_.Method(field.name);
@@ -642,7 +648,7 @@ class PythonGenerator : public BaseGenerator {
   // flatbuffers.
   void BuildVectorOfTableFromBytes(const StructDef &struct_def,
                                    const FieldDef &field,
-                                   std::string *code_ptr) {
+                                   std::string *code_ptr) const {
     auto nested = field.attributes.Lookup("nested_flatbuffer");
     if (!nested) { return; }  // There is no nested flatbuffer.
 
@@ -674,7 +680,8 @@ class PythonGenerator : public BaseGenerator {
   }
 
   // Get the offset of the end of a table.
-  void GetEndOffsetOnTable(const StructDef &struct_def, std::string *code_ptr) {
+  void GetEndOffsetOnTable(const StructDef &struct_def,
+                           std::string *code_ptr) const {
     auto &code = *code_ptr;
 
     // Generate method with struct name.
@@ -691,7 +698,7 @@ class PythonGenerator : public BaseGenerator {
   }
 
   // Generate the receiver for function signatures.
-  void GenReceiver(const StructDef &struct_def, std::string *code_ptr) {
+  void GenReceiver(const StructDef &struct_def, std::string *code_ptr) const {
     auto &code = *code_ptr;
     code += Indent + "# " + namer_.Type(struct_def.name) + "\n";
     code += Indent + "def ";
@@ -699,7 +706,7 @@ class PythonGenerator : public BaseGenerator {
 
   // Generate a struct field, conditioned on its child type(s).
   void GenStructAccessor(const StructDef &struct_def, const FieldDef &field,
-                         std::string *code_ptr) {
+                         std::string *code_ptr) const {
     GenComment(field.doc_comment, code_ptr, &def_comment, Indent.c_str());
     if (IsScalar(field.value.type.base_type)) {
       if (struct_def.fixed) {
@@ -743,7 +750,8 @@ class PythonGenerator : public BaseGenerator {
   }
 
   // Generate struct sizeof.
-  void GenStructSizeOf(const StructDef &struct_def, std::string *code_ptr) {
+  void GenStructSizeOf(const StructDef &struct_def,
+                       std::string *code_ptr) const {
     auto &code = *code_ptr;
     code += Indent + "@classmethod\n";
     code += Indent + "def SizeOf(cls):\n";
@@ -753,7 +761,8 @@ class PythonGenerator : public BaseGenerator {
   }
 
   // Generate table constructors, conditioned on its members' types.
-  void GenTableBuilders(const StructDef &struct_def, std::string *code_ptr) {
+  void GenTableBuilders(const StructDef &struct_def,
+                        std::string *code_ptr) const {
     GetStartOfTable(struct_def, code_ptr);
 
     for (auto it = struct_def.fields.vec.begin();
@@ -774,7 +783,7 @@ class PythonGenerator : public BaseGenerator {
 
   // Generate function to check for proper file identifier
   void GenHasFileIdentifier(const StructDef &struct_def,
-                            std::string *code_ptr) {
+                            std::string *code_ptr) const {
     auto &code = *code_ptr;
     std::string escapedID;
     // In the event any of file_identifier characters are special(NULL, \, etc),
@@ -797,7 +806,7 @@ class PythonGenerator : public BaseGenerator {
   }
 
   // Generates struct or table methods.
-  void GenStruct(const StructDef &struct_def, std::string *code_ptr) {
+  void GenStruct(const StructDef &struct_def, std::string *code_ptr) const {
     if (struct_def.generated) return;
 
     GenComment(struct_def.doc_comment, code_ptr, &def_comment);
@@ -835,14 +844,14 @@ class PythonGenerator : public BaseGenerator {
   }
 
   void GenReceiverForObjectAPI(const StructDef &struct_def,
-                               std::string *code_ptr) {
+                               std::string *code_ptr) const {
     auto &code = *code_ptr;
     code += GenIndents(1) + "# " + namer_.ObjectType(struct_def.name);
     code += GenIndents(1) + "def ";
   }
 
   void BeginClassForObjectAPI(const StructDef &struct_def,
-                              std::string *code_ptr) {
+                              std::string *code_ptr) const {
     auto &code = *code_ptr;
     code += "\n";
     code += "class " + namer_.ObjectType(struct_def.name) + "(object):";
@@ -851,7 +860,8 @@ class PythonGenerator : public BaseGenerator {
 
   // Gets the accoresponding python builtin type of a BaseType for scalars and
   // string.
-  std::string GetBasePythonTypeForScalarAndString(const BaseType &base_type) {
+  std::string GetBasePythonTypeForScalarAndString(
+      const BaseType &base_type) const {
     if (IsBool(base_type)) {
       return "bool";
     } else if (IsFloat(base_type)) {
@@ -866,7 +876,7 @@ class PythonGenerator : public BaseGenerator {
     }
   }
 
-  std::string GetDefaultValue(const FieldDef &field) {
+  std::string GetDefaultValue(const FieldDef &field) const {
     BaseType base_type = field.value.type.base_type;
     if (IsBool(base_type)) {
       return field.value.constant == "0" ? "False" : "True";
@@ -882,7 +892,7 @@ class PythonGenerator : public BaseGenerator {
 
   void GenUnionInit(const FieldDef &field, std::string *field_types_ptr,
                     std::set<std::string> *import_list,
-                    std::set<std::string> *import_typing_list) {
+                    std::set<std::string> *import_typing_list) const {
     // Gets all possible types in the union.
     import_typing_list->insert("Union");
     auto &field_types = *field_types_ptr;
@@ -925,7 +935,7 @@ class PythonGenerator : public BaseGenerator {
 
   void GenStructInit(const FieldDef &field, std::string *out_ptr,
                      std::set<std::string> *import_list,
-                     std::set<std::string> *import_typing_list) {
+                     std::set<std::string> *import_typing_list) const {
     import_typing_list->insert("Optional");
     auto &output = *out_ptr;
     const Type &type = field.value.type;
@@ -942,7 +952,7 @@ class PythonGenerator : public BaseGenerator {
 
   void GenVectorInit(const FieldDef &field, std::string *field_type_ptr,
                      std::set<std::string> *import_list,
-                     std::set<std::string> *import_typing_list) {
+                     std::set<std::string> *import_typing_list) const {
     import_typing_list->insert("List");
     auto &field_type = *field_type_ptr;
     const Type &vector_type = field.value.type.VectorType();
@@ -964,7 +974,7 @@ class PythonGenerator : public BaseGenerator {
   }
 
   void GenInitialize(const StructDef &struct_def, std::string *code_ptr,
-                     std::set<std::string> *import_list) {
+                     std::set<std::string> *import_list) const {
     std::string code;
     std::set<std::string> import_typing_list;
     for (auto it = struct_def.fields.vec.begin();
@@ -1039,7 +1049,8 @@ class PythonGenerator : public BaseGenerator {
     import_list->erase(struct_import);
   }
 
-  void InitializeFromBuf(const StructDef &struct_def, std::string *code_ptr) {
+  void InitializeFromBuf(const StructDef &struct_def,
+                         std::string *code_ptr) const {
     auto &code = *code_ptr;
     const auto struct_var = namer_.Variable(struct_def.name);
     const auto struct_type = namer_.Type(struct_def.name);
@@ -1053,7 +1064,7 @@ class PythonGenerator : public BaseGenerator {
   }
 
   void InitializeFromObjForObject(const StructDef &struct_def,
-                                  std::string *code_ptr) {
+                                  std::string *code_ptr) const {
     auto &code = *code_ptr;
     const auto struct_var = namer_.Variable(struct_def.name);
     const auto struct_object = namer_.ObjectType(struct_def.name);
@@ -1067,7 +1078,7 @@ class PythonGenerator : public BaseGenerator {
   }
 
   void GenUnPackForStruct(const StructDef &struct_def, const FieldDef &field,
-                          std::string *code_ptr) {
+                          std::string *code_ptr) const {
     auto &code = *code_ptr;
     const auto struct_var = namer_.Variable(struct_def.name);
     const auto field_field = namer_.Field(field.name);
@@ -1095,24 +1106,25 @@ class PythonGenerator : public BaseGenerator {
   }
 
   void GenUnPackForUnion(const StructDef &struct_def, const FieldDef &field,
-                         std::string *code_ptr) {
+                         std::string *code_ptr) const {
     auto &code = *code_ptr;
     const auto field_field = namer_.Field(field.name);
     const auto field_method = namer_.Method(field.name);
     const auto struct_var = namer_.Variable(struct_def.name);
     const EnumDef &enum_def = *field.value.type.enum_def;
-    auto union_name = namer_.Namespace(enum_def.name);
+    auto union_type = namer_.Namespace(enum_def.name);
 
     if (parser_.opts.include_dependence_headers) {
-      union_name = GenPackageReference(enum_def) + "." + union_name;
+      union_type = GenPackageReference(enum_def) + "." + union_type;
     }
-    code += GenIndents(2) + "self." + field_field + " = " + union_name +
+    code += GenIndents(2) + "self." + field_field + " = " + union_type +
             "Creator(" + "self." + field_field + "Type, " + struct_var + "." +
             field_method + "())";
   }
 
   void GenUnPackForStructVector(const StructDef &struct_def,
-                                const FieldDef &field, std::string *code_ptr) {
+                                const FieldDef &field,
+                                std::string *code_ptr) const {
     auto &code = *code_ptr;
     const auto field_field = namer_.Field(field.name);
     const auto field_method = namer_.Method(field.name);
@@ -1145,7 +1157,8 @@ class PythonGenerator : public BaseGenerator {
 
   void GenUnpackforScalarVectorHelper(const StructDef &struct_def,
                                       const FieldDef &field,
-                                      std::string *code_ptr, int indents) {
+                                      std::string *code_ptr,
+                                      int indents) const {
     auto &code = *code_ptr;
     const auto field_field = namer_.Field(field.name);
     const auto field_method = namer_.Method(field.name);
@@ -1159,7 +1172,8 @@ class PythonGenerator : public BaseGenerator {
   }
 
   void GenUnPackForScalarVector(const StructDef &struct_def,
-                                const FieldDef &field, std::string *code_ptr) {
+                                const FieldDef &field,
+                                std::string *code_ptr) const {
     auto &code = *code_ptr;
     const auto field_field = namer_.Field(field.name);
     const auto field_method = namer_.Method(field.name);
@@ -1184,7 +1198,7 @@ class PythonGenerator : public BaseGenerator {
   }
 
   void GenUnPackForScalar(const StructDef &struct_def, const FieldDef &field,
-                          std::string *code_ptr) {
+                          std::string *code_ptr) const {
     auto &code = *code_ptr;
     const auto field_field = namer_.Field(field.name);
     const auto field_method = namer_.Method(field.name);
@@ -1195,7 +1209,7 @@ class PythonGenerator : public BaseGenerator {
   }
 
   // Generates the UnPack method for the object class.
-  void GenUnPack(const StructDef &struct_def, std::string *code_ptr) {
+  void GenUnPack(const StructDef &struct_def, std::string *code_ptr) const {
     std::string code;
     // Items that needs to be imported. No duplicate modules will be imported.
     std::set<std::string> import_list;
@@ -1252,7 +1266,8 @@ class PythonGenerator : public BaseGenerator {
     code_base += "\n";
   }
 
-  void GenPackForStruct(const StructDef &struct_def, std::string *code_ptr) {
+  void GenPackForStruct(const StructDef &struct_def,
+                        std::string *code_ptr) const {
     auto &code = *code_ptr;
     const auto struct_fn = namer_.Function(struct_def.name);
 
@@ -1271,7 +1286,7 @@ class PythonGenerator : public BaseGenerator {
   void GenPackForStructVectorField(const StructDef &struct_def,
                                    const FieldDef &field,
                                    std::string *code_prefix_ptr,
-                                   std::string *code_ptr) {
+                                   std::string *code_ptr) const {
     auto &code_prefix = *code_prefix_ptr;
     auto &code = *code_ptr;
     const auto field_field = namer_.Field(field.name);
@@ -1314,7 +1329,8 @@ class PythonGenerator : public BaseGenerator {
 
   void GenPackForScalarVectorFieldHelper(const StructDef &struct_def,
                                          const FieldDef &field,
-                                         std::string *code_ptr, int indents) {
+                                         std::string *code_ptr,
+                                         int indents) const {
     auto &code = *code_ptr;
     const auto field_field = namer_.Field(field.name);
     const auto field_method = namer_.Method(field.name);
@@ -1349,7 +1365,7 @@ class PythonGenerator : public BaseGenerator {
   void GenPackForScalarVectorField(const StructDef &struct_def,
                                    const FieldDef &field,
                                    std::string *code_prefix_ptr,
-                                   std::string *code_ptr) {
+                                   std::string *code_ptr) const {
     auto &code = *code_ptr;
     auto &code_prefix = *code_prefix_ptr;
     const auto field_field = namer_.Field(field.name);
@@ -1392,7 +1408,7 @@ class PythonGenerator : public BaseGenerator {
 
   void GenPackForStructField(const StructDef &struct_def, const FieldDef &field,
                              std::string *code_prefix_ptr,
-                             std::string *code_ptr) {
+                             std::string *code_ptr) const {
     auto &code_prefix = *code_prefix_ptr;
     auto &code = *code_ptr;
     const auto field_field = namer_.Field(field.name);
@@ -1419,7 +1435,7 @@ class PythonGenerator : public BaseGenerator {
 
   void GenPackForUnionField(const StructDef &struct_def, const FieldDef &field,
                             std::string *code_prefix_ptr,
-                            std::string *code_ptr) {
+                            std::string *code_ptr) const {
     auto &code_prefix = *code_prefix_ptr;
     auto &code = *code_ptr;
     const auto field_field = namer_.Field(field.name);
@@ -1435,7 +1451,8 @@ class PythonGenerator : public BaseGenerator {
             field_field + ")";
   }
 
-  void GenPackForTable(const StructDef &struct_def, std::string *code_ptr) {
+  void GenPackForTable(const StructDef &struct_def,
+                       std::string *code_ptr) const {
     auto &code_base = *code_ptr;
     std::string code, code_prefix;
     const auto struct_var = namer_.Variable(struct_def.name);
@@ -1502,7 +1519,7 @@ class PythonGenerator : public BaseGenerator {
   }
 
   void GenStructForObjectAPI(const StructDef &struct_def,
-                             std::string *code_ptr) {
+                             std::string *code_ptr) const {
     if (struct_def.generated) return;
 
     std::set<std::string> import_list;
@@ -1536,14 +1553,14 @@ class PythonGenerator : public BaseGenerator {
   }
 
   void GenUnionCreatorForStruct(const EnumDef &enum_def, const EnumVal &ev,
-                                std::string *code_ptr) {
+                                std::string *code_ptr) const {
     auto &code = *code_ptr;
-    const auto union_name = namer_.Type(enum_def.name);
-    const auto field_name = namer_.Constant(ev.name);
+    const auto union_type = namer_.Type(enum_def.name);
+    const auto variant = namer_.Variant(ev.name);
     auto field_type = namer_.ObjectType(GenTypeGet(ev.union_type));
 
-    code += GenIndents(1) + "if unionType == " + union_name + "()." +
-            field_name + ":";
+    code += GenIndents(1) + "if unionType == " + union_type + "()." +
+            variant + ":";
     if (parser_.opts.include_dependence_headers) {
       auto package_reference = GenPackageReference(ev.union_type);
       code += GenIndents(2) + "import " + package_reference;
@@ -1554,20 +1571,20 @@ class PythonGenerator : public BaseGenerator {
   }
 
   void GenUnionCreatorForString(const EnumDef &enum_def, const EnumVal &ev,
-                                std::string *code_ptr) {
+                                std::string *code_ptr) const {
     auto &code = *code_ptr;
-    const auto union_name = namer_.Type(enum_def.name);
-    const auto field_name = namer_.Constant(ev.name);
+    const auto union_type = namer_.Type(enum_def.name);
+    const auto variant = namer_.Variant(ev.name);
 
-    code += GenIndents(1) + "if unionType == " + union_name + "()." +
-            field_name + ":";
+    code += GenIndents(1) + "if unionType == " + union_type + "()." +
+            variant + ":";
     code += GenIndents(2) + "tab = Table(table.Bytes, table.Pos)";
     code += GenIndents(2) + "union = tab.String(table.Pos)";
     code += GenIndents(2) + "return union";
   }
 
   // Creates an union object based on union type.
-  void GenUnionCreator(const EnumDef &enum_def, std::string *code_ptr) {
+  void GenUnionCreator(const EnumDef &enum_def, std::string *code_ptr) const {
     if (enum_def.generated) return;
 
     auto &code = *code_ptr;
@@ -1597,7 +1614,7 @@ class PythonGenerator : public BaseGenerator {
   }
 
   // Generate enum declarations.
-  void GenEnum(const EnumDef &enum_def, std::string *code_ptr) {
+  void GenEnum(const EnumDef &enum_def, std::string *code_ptr) const {
     if (enum_def.generated) return;
 
     GenComment(enum_def.doc_comment, code_ptr, &def_comment);
@@ -1610,7 +1627,7 @@ class PythonGenerator : public BaseGenerator {
   }
 
   // Returns the function name that is able to read a value of the given type.
-  std::string GenGetter(const Type &type) {
+  std::string GenGetter(const Type &type) const {
     switch (type.base_type) {
       case BASE_TYPE_STRING: return "self._tab.String(";
       case BASE_TYPE_UNION: return "self._tab.Union(";
@@ -1622,7 +1639,7 @@ class PythonGenerator : public BaseGenerator {
   }
 
   // Returns the method name for use with add/put calls.
-  std::string GenMethod(const FieldDef &field) {
+  std::string GenMethod(const FieldDef &field) const {
     return (IsScalar(field.value.type.base_type) || IsArray(field.value.type))
                ? namer_.Method(GenTypeBasic(field.value.type))
                : (IsStruct(field.value.type) ? "Struct" : "UOffsetTRelative");
@@ -1662,7 +1679,8 @@ class PythonGenerator : public BaseGenerator {
   }
 
   // Create a struct with a builder and the struct's arguments.
-  void GenStructBuilder(const StructDef &struct_def, std::string *code_ptr) {
+  void GenStructBuilder(const StructDef &struct_def,
+                        std::string *code_ptr) const {
     BeginBuilderArgs(struct_def, code_ptr);
     StructBuilderArgs(struct_def,
                       /* nameprefix = */ "",
@@ -1690,7 +1708,7 @@ class PythonGenerator : public BaseGenerator {
   }
 
  private:
-  bool generateEnums(std::string *one_file_code) {
+  bool generateEnums(std::string *one_file_code) const {
     for (auto it = parser_.enums_.vec.begin(); it != parser_.enums_.vec.end();
          ++it) {
       auto &enum_def = **it;
@@ -1711,7 +1729,7 @@ class PythonGenerator : public BaseGenerator {
     return true;
   }
 
-  bool generateStructs(std::string *one_file_code) {
+  bool generateStructs(std::string *one_file_code) const {
     for (auto it = parser_.structs_.vec.begin();
          it != parser_.structs_.vec.end(); ++it) {
       auto &struct_def = **it;
@@ -1734,7 +1752,7 @@ class PythonGenerator : public BaseGenerator {
 
   // Begin by declaring namespace and imports.
   void BeginFile(const std::string &name_space_name, const bool needs_imports,
-                 std::string *code_ptr) {
+                 std::string *code_ptr) const {
     auto &code = *code_ptr;
     code = code + "# " + FlatBuffersGeneratedWarning() + "\n\n";
     code += "# namespace: " + name_space_name + "\n\n";
@@ -1747,7 +1765,7 @@ class PythonGenerator : public BaseGenerator {
 
   // Save out the generated code for a Python Table type.
   bool SaveType(const std::string &defname, const Namespace &ns,
-                const std::string &classcode, bool needs_imports) {
+                const std::string &classcode, bool needs_imports) const {
     if (!classcode.length()) return true;
 
     std::string namespace_dir = path_;
