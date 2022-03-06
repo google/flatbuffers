@@ -842,7 +842,7 @@ class PythonGenerator : public BaseGenerator {
   void GenReceiverForObjectAPI(const StructDef &struct_def,
                                std::string *code_ptr) {
     auto &code = *code_ptr;
-    code += GenIndents(1) + "# " + namer_.Type(struct_def.name) + "T";
+    code += GenIndents(1) + "# " + namer_.ObjectType(struct_def.name);
     code += GenIndents(1) + "def ";
   }
 
@@ -902,7 +902,7 @@ class PythonGenerator : public BaseGenerator {
       std::string field_type;
       switch (ev.union_type.base_type) {
         case BASE_TYPE_STRUCT:
-          field_type = GenTypeGet(ev.union_type) + "T";
+          field_type = namer_.ObjectType(ev.union_type.struct_def->name);
           if (parser_.opts.include_dependence_headers) {
             auto package_reference = GenPackageReference(ev.union_type);
             field_type = package_reference + "." + field_type;
@@ -932,19 +932,21 @@ class PythonGenerator : public BaseGenerator {
     }
   }
 
-  void GenStructInit(const FieldDef &field, std::string *field_type_ptr,
+  void GenStructInit(const FieldDef &field, std::string *out_ptr,
                      std::set<std::string> *import_list,
                      std::set<std::string> *import_typing_list) {
     import_typing_list->insert("Optional");
-    auto &field_type = *field_type_ptr;
+    auto &output = *out_ptr;
+    const Type& type = field.value.type;
+    const std::string object_type = namer_.ObjectType(type.struct_def->name);
     if (parser_.opts.include_dependence_headers) {
-      auto package_reference = GenPackageReference(field.value.type);
-      field_type = package_reference + "." + TypeName(field) + "T]";
+      auto package_reference = GenPackageReference(type);
+      output = package_reference + "." + object_type + "]";
       import_list->insert("import " + package_reference);
     } else {
-      field_type = TypeName(field) + "T]";
+      output = object_type + "]";
     }
-    field_type = "Optional[" + field_type;
+    output = "Optional[" + output;
   }
 
   void GenVectorInit(const FieldDef &field, std::string *field_type_ptr,
@@ -952,14 +954,14 @@ class PythonGenerator : public BaseGenerator {
                      std::set<std::string> *import_typing_list) {
     import_typing_list->insert("List");
     auto &field_type = *field_type_ptr;
-    auto base_type = field.value.type.VectorType().base_type;
+    const Type& vector_type = field.value.type.VectorType();
+    const BaseType base_type = vector_type.base_type;
     if (base_type == BASE_TYPE_STRUCT) {
-      field_type = GenTypeGet(field.value.type.VectorType()) + "T]";
+      const std::string object_type = namer_.ObjectType(GenTypeGet(vector_type));
+      field_type = object_type + "]";
       if (parser_.opts.include_dependence_headers) {
-        auto package_reference =
-            GenPackageReference(field.value.type.VectorType());
-        field_type = package_reference + "." +
-                     GenTypeGet(field.value.type.VectorType()) + "T]";
+        auto package_reference = GenPackageReference(vector_type);
+        field_type = package_reference + "." + object_type + "]";
         import_list->insert("import " + package_reference);
       }
       field_type = "List[" + field_type;
@@ -1065,11 +1067,11 @@ class PythonGenerator : public BaseGenerator {
                                   std::string *code_ptr) {
     auto &code = *code_ptr;
     const auto struct_var = namer_.Variable(struct_def.name);
-    const auto struct_type = namer_.Type(struct_def.name);
+    const auto struct_object = namer_.ObjectType(struct_def.name);
 
     code += GenIndents(1) + "@classmethod";
     code += GenIndents(1) + "def InitFromObj(cls, " + struct_var + "):";
-    code += GenIndents(2) + "x = " + struct_type + "T()";
+    code += GenIndents(2) + "x = " + struct_object + "()";
     code += GenIndents(2) + "x._UnPack(" + struct_var + ")";
     code += GenIndents(2) + "return x";
     code += "\n";
