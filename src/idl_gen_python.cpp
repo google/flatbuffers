@@ -1378,14 +1378,14 @@ class PythonGenerator : public BaseGenerator {
     // placed ahead of code_prefix.
     auto vectortype = field.value.type.VectorType();
     if (IsString(vectortype)) {
-      code_prefix += GenIndents(3) + namer_.Field(field.name) + "list = []";
+      code_prefix += GenIndents(3) + field_field + "list = []";
       code_prefix +=
           GenIndents(3) + "for i in range(len(self." + field_field + ")):";
-      code_prefix += GenIndents(4) + namer_.Field(field.name) +
+      code_prefix += GenIndents(4) + field_field +
                      "list.append(builder.CreateString(self." + field_field +
                      "[i]))";
       GenPackForScalarVectorFieldHelper(struct_def, field, code_prefix_ptr, 3);
-      code_prefix += "(" + namer_.Field(field.name) + "list[i])";
+      code_prefix += "(" + field_field + "list[i])";
       code_prefix += GenIndents(3) + field_field + " = builder.EndVector()";
       return;
     }
