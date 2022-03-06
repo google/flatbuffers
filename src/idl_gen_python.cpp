@@ -610,8 +610,7 @@ class PythonGenerator : public BaseGenerator {
     const std::string field_method = namer_.Method(field.name);
 
     // Generate method with struct name.
-    code += "def " + struct_type + "Start";
-    code += field_method;
+    code += "def " + struct_type + "Start" + field_method;
     code += "Vector(builder, numElems): return builder.StartVector(";
     auto vector_type = field.value.type.VectorType();
     auto alignment = InlineAlignment(vector_type);
@@ -653,8 +652,7 @@ class PythonGenerator : public BaseGenerator {
     const std::string struct_type = namer_.Type(struct_def.name);
 
     // Generate method with struct and field name.
-    code += "def " + struct_type + "Make";
-    code += field_method;
+    code += "def " + struct_type + "Make" + field_method;
     code += "VectorFromBytes(builder, bytes):\n";
     code += Indent + "builder.StartVector(";
     auto vector_type = field.value.type.VectorType();
