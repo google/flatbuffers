@@ -701,6 +701,8 @@ enum class Case {
   kAllLower = 6,
   // the-quick-brown-fox
   kDasher = 7,
+  // THEQuiCKBr_ownFox (or whatever you want, we won't change it)
+  kKeep = 8,
 };
 
 // Convert the `input` string of case `input_case` to the specified `output_case`.
