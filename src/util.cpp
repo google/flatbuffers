@@ -416,6 +416,7 @@ static std::string ToDasher(const std::string &input) {
 
 std::string ConvertCase(const std::string &input, Case output_case,
                         Case input_case) {
+  if (output_case == Case::kKeep) return input;
   // The output cases expect snake_case inputs, so if we don't have that input
   // format, try to convert to snake_case.
   switch (input_case) {
@@ -423,6 +424,7 @@ std::string ConvertCase(const std::string &input, Case output_case,
     case Case::kUpperCamel:
       return ConvertCase(CamelToSnake(input), output_case);
     case Case::kDasher: return ConvertCase(DasherToSnake(input), output_case);
+    case Case::kKeep: printf("WARNING: Converting from kKeep case.\n");
     default:
     case Case::kSnake:
     case Case::kScreamingSnake:

@@ -1414,6 +1414,8 @@ void UtilConvertCase() {
             "THE_QUICK_BROWN_FOX" },
           { "the_quick_brown_fox", flatbuffers::Case::kUnknown,
             "the_quick_brown_fox" },
+          { "the_quick_brown_fox", flatbuffers::Case::kKeep,
+            "the_quick_brown_fox" },
 
           // Tests for some snake_cases where the _ is oddly placed or missing.
           { "single", flatbuffers::Case::kUpperCamel, "Single" },
@@ -1444,7 +1446,7 @@ void UtilConvertCase() {
                                        std::get<1>(test_case)));
     }
   }
-  
+
   // Tests for the non snake_case inputs.
   {
     std::vector<std::tuple<flatbuffers::Case, std::string, flatbuffers::Case,
@@ -1464,6 +1466,8 @@ void UtilConvertCase() {
             "single" },
           { flatbuffers::Case::kUpperCamel, "ABCtest",
             flatbuffers::Case::kSnake, "abctest" },
+          { flatbuffers::Case::kUpperCamel, "tHe_qUiCk_BrOwN_fOx",
+            flatbuffers::Case::kKeep, "tHe_qUiCk_BrOwN_fOx" },
         };
 
     for (auto &test_case : cases) {
