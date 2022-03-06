@@ -424,6 +424,7 @@ std::string ConvertCase(const std::string &input, Case output_case,
     case Case::kUpperCamel:
       return ConvertCase(CamelToSnake(input), output_case);
     case Case::kDasher: return ConvertCase(DasherToSnake(input), output_case);
+    case Case::kKeep: printf("WARNING: Converting from kKeep case.\n");
     default:
     case Case::kSnake:
     case Case::kScreamingSnake:
