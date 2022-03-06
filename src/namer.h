@@ -13,7 +13,7 @@ enum class SkipFile {
   Extension = 2,
   SuffixAndExtension = 3,
 };
-SkipFile operator&(SkipFile a, SkipFile b) {
+inline SkipFile operator&(SkipFile a, SkipFile b) {
   return static_cast<SkipFile>(static_cast<int>(a) & static_cast<int>(b));
 }
 
@@ -40,6 +40,9 @@ class Namer {
     // Case style for flatbuffers-defined fields.
     // e.g. `struct Struct { int my_field; }`
     Case fields;
+    // Case style for flatbuffers-defined variables.
+    // e.g. `int my_variable = 2`
+    Case variables;
     // Case style for flatbuffers-defined variants.
     // e.g. `enum class Enum { MyVariant, }`
     Case variants;
@@ -115,6 +118,10 @@ class Namer {
 
   std::string Field(const std::string &s) const {
     return Format(s, config_.fields);
+  }
+
+  std::string Variable(const std::string &s) const {
+    return Format(s, config_.variables);
   }
 
   std::string Variant(const std::string &s) const {

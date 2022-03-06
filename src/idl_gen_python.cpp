@@ -26,9 +26,41 @@
 #include "flatbuffers/flatbuffers.h"
 #include "flatbuffers/idl.h"
 #include "flatbuffers/util.h"
+#include "namer.h"
 
 namespace flatbuffers {
 namespace python {
+
+std::set<std::string> PythonKeywords() {
+  return { "False", "None",   "True",     "and",   "as",     "assert",
+           "break", "class",  "continue", "def",   "del",    "elif",
+           "else",  "except", "finally",  "for",   "from",   "global",
+           "if",    "import", "in",       "is",    "lambda", "nonlocal",
+           "not",   "or",     "pass",     "raise", "return", "try",
+           "while", "with",   "yield" };
+}
+
+Namer::Config PythonDefaultConfig() {
+  return { /*types=*/Case::kKeep,
+           /*constants=*/Case::kKeep,
+           /*methods=*/Case::kUpperCamel,
+           /*functions=*/Case::kUpperCamel,
+           /*fields=*/Case::kLowerCamel,
+           /*variable=*/Case::kLowerCamel,
+           /*variants=*/Case::kUnknown,  // Unused.
+           /*enum_variant_seperator=*/".",
+           /*namespaces=*/Case::kUpperCamel,  // Packages in python.
+           /*namespace_seperator=*/".",
+           /*object_prefix=*/"",
+           /*object_suffix=*/"T",
+           /*keyword_prefix=*/"",
+           /*keyword_suffix=*/"_",
+           /*filenames=*/Case::kUpperCamel,
+           /*directories=*/Case::kKeep,
+           /*output_path=*/"",
+           /*filename_suffix=*/"",
+           /*filename_extension=*/".py" };
+}
 
 // Hardcode spaces per indentation.
 const CommentConfig def_comment = { nullptr, "#", nullptr };
@@ -40,16 +72,9 @@ class PythonGenerator : public BaseGenerator {
                   const std::string &file_name)
       : BaseGenerator(parser, path, file_name, "" /* not used */,
                       "" /* not used */, "py"),
-        float_const_gen_("float('nan')", "float('inf')", "float('-inf')") {
-    static const char *const keywords[] = {
-      "False",   "None",     "True",     "and",    "as",   "assert", "break",
-      "class",   "continue", "def",      "del",    "elif", "else",   "except",
-      "finally", "for",      "from",     "global", "if",   "import", "in",
-      "is",      "lambda",   "nonlocal", "not",    "or",   "pass",   "raise",
-      "return",  "try",      "while",    "with",   "yield"
-    };
-    keywords_.insert(std::begin(keywords), std::end(keywords));
-  }
+        float_const_gen_("float('nan')", "float('inf')", "float('-inf')"),
+        namer_({ PythonDefaultConfig().WithFlagOptions(parser.opts, path),
+                 PythonKeywords() }) {}
 
   // Most field accessors need to retrieve and test the field offset first,
   // this is the prefix code for that.
@@ -63,39 +88,15 @@ class PythonGenerator : public BaseGenerator {
   // Begin a class declaration.
   void BeginClass(const StructDef &struct_def, std::string *code_ptr) {
     auto &code = *code_ptr;
-    code += "class " + NormalizedName(struct_def) + "(object):\n";
+    code += "class " + namer_.Type(struct_def.name) + "(object):\n";
     code += Indent + "__slots__ = ['_tab']";
     code += "\n\n";
   }
 
   // Begin enum code with a class declaration.
-  void BeginEnum(const std::string &class_name, std::string *code_ptr) {
+  void BeginEnum(const EnumDef &enum_def, std::string *code_ptr) {
     auto &code = *code_ptr;
-    code += "class " + class_name + "(object):\n";
-  }
-
-  std::string EscapeKeyword(const std::string &name) const {
-    return keywords_.find(name) == keywords_.end() ? name : name + "_";
-  }
-
-  std::string NormalizedName(const Definition &definition) const {
-    return EscapeKeyword(definition.name);
-  }
-
-  std::string NormalizedName(const EnumVal &ev) const {
-    return EscapeKeyword(ev.name);
-  }
-
-  // Converts the name of a definition into upper Camel format.
-  std::string MakeUpperCamel(const Definition &definition) const {
-    return ConvertCase(NormalizedName(definition), Case::kUpperCamel);
-  }
-
-  // Converts the name of a definition into lower Camel format.
-  std::string MakeLowerCamel(const Definition &definition) const {
-    auto name = ConvertCase(NormalizedName(definition), Case::kLowerCamel);
-    name[0] = CharToLower(name[0]);
-    return name;
+    code += "class " + namer_.Type(enum_def.name) + "(object):\n";
   }
 
   // Starts a new line and then indents.
@@ -108,7 +109,7 @@ class PythonGenerator : public BaseGenerator {
                   std::string *code_ptr) {
     auto &code = *code_ptr;
     code += Indent;
-    code += NormalizedName(ev);
+    code += namer_.Constant(ev.name);
     code += " = ";
     code += enum_def.ToString(ev) + "\n";
   }
@@ -117,6 +118,7 @@ class PythonGenerator : public BaseGenerator {
   void NewRootTypeFromBuffer(const StructDef &struct_def,
                              std::string *code_ptr) {
     auto &code = *code_ptr;
+    const std::string constructor = namer_.Type(struct_def.name);
 
     code += Indent + "@classmethod\n";
     code += Indent + "def GetRootAs";
@@ -125,16 +127,14 @@ class PythonGenerator : public BaseGenerator {
     code += Indent + Indent;
     code += "n = flatbuffers.encode.Get";
     code += "(flatbuffers.packer.uoffset, buf, offset)\n";
-    code += Indent + Indent + "x = " + NormalizedName(struct_def) + "()\n";
+    code += Indent + Indent + "x = " + constructor + "()\n";
     code += Indent + Indent + "x.Init(buf, n + offset)\n";
     code += Indent + Indent + "return x\n";
     code += "\n";
 
     // Add an alias with the old name
     code += Indent + "@classmethod\n";
-    code += Indent + "def GetRootAs";
-    code += NormalizedName(struct_def);
-    code += "(cls, buf, offset=0):\n";
+    code += Indent + "def GetRootAs" + constructor + "(cls, buf, offset=0):\n";
     code +=
         Indent + Indent +
         "\"\"\"This method is deprecated. Please switch to GetRootAs.\"\"\"\n";
@@ -157,8 +157,7 @@ class PythonGenerator : public BaseGenerator {
     auto &code = *code_ptr;
 
     GenReceiver(struct_def, code_ptr);
-    code +=
-        ConvertCase(NormalizedName(field), Case::kUpperCamel) + "Length(self";
+    code += namer_.Method(field.name) + "Length(self";
     code += "):" + OffsetPrefix(field);
     code += Indent + Indent + Indent + "return self._tab.VectorLen(o)\n";
     code += Indent + Indent + "return 0\n\n";
@@ -170,8 +169,7 @@ class PythonGenerator : public BaseGenerator {
     auto &code = *code_ptr;
 
     GenReceiver(struct_def, code_ptr);
-    code +=
-        ConvertCase(NormalizedName(field), Case::kUpperCamel) + "IsNone(self";
+    code += namer_.Method(field.name) + "IsNone(self";
     code += "):";
     code += GenIndents(2) +
             "o = flatbuffers.number_types.UOffsetTFlags.py_type" +
@@ -186,7 +184,7 @@ class PythonGenerator : public BaseGenerator {
     auto &code = *code_ptr;
     std::string getter = GenGetter(field.value.type);
     GenReceiver(struct_def, code_ptr);
-    code += ConvertCase(NormalizedName(field), Case::kUpperCamel);
+    code += namer_.Method(field.name);
     code += "(self): return " + getter;
     code += "self._tab.Pos + flatbuffers.number_types.UOffsetTFlags.py_type(";
     code += NumToString(field.value.offset) + "))\n";
@@ -198,7 +196,7 @@ class PythonGenerator : public BaseGenerator {
     auto &code = *code_ptr;
     std::string getter = GenGetter(field.value.type);
     GenReceiver(struct_def, code_ptr);
-    code += ConvertCase(NormalizedName(field), Case::kUpperCamel);
+    code += namer_.Method(field.name);
     code += "(self):";
     code += OffsetPrefix(field);
     getter += "o + self._tab.Pos)";
@@ -222,7 +220,7 @@ class PythonGenerator : public BaseGenerator {
                               const FieldDef &field, std::string *code_ptr) {
     auto &code = *code_ptr;
     GenReceiver(struct_def, code_ptr);
-    code += ConvertCase(NormalizedName(field), Case::kUpperCamel);
+    code += namer_.Method(field.name);
     code += "(self, obj):\n";
     code += Indent + Indent + "obj.Init(self._tab.Bytes, self._tab.Pos + ";
     code += NumToString(field.value.offset) + ")";
@@ -235,7 +233,7 @@ class PythonGenerator : public BaseGenerator {
     auto &code = *code_ptr;
     const auto vec_type = field.value.type.VectorType();
     GenReceiver(struct_def, code_ptr);
-    code += ConvertCase(NormalizedName(field), Case::kUpperCamel);
+    code += namer_.Method(field.name);
     if (IsStruct(vec_type)) {
       code += "(self, obj, i):\n";
       code += Indent + Indent + "obj.Init(self._tab.Bytes, self._tab.Pos + ";
@@ -259,7 +257,7 @@ class PythonGenerator : public BaseGenerator {
                              std::string *code_ptr) {
     auto &code = *code_ptr;
     GenReceiver(struct_def, code_ptr);
-    code += ConvertCase(NormalizedName(field), Case::kUpperCamel);
+    code += namer_.Method(field.name);
     code += "(self):";
     code += OffsetPrefix(field);
     if (field.value.type.struct_def->fixed) {
@@ -284,7 +282,7 @@ class PythonGenerator : public BaseGenerator {
                       std::string *code_ptr) {
     auto &code = *code_ptr;
     GenReceiver(struct_def, code_ptr);
-    code += ConvertCase(NormalizedName(field), Case::kUpperCamel);
+    code += namer_.Method(field.name);
     code += "(self):";
     code += OffsetPrefix(field);
     code += Indent + Indent + Indent + "return " + GenGetter(field.value.type);
@@ -297,7 +295,7 @@ class PythonGenerator : public BaseGenerator {
                      std::string *code_ptr) {
     auto &code = *code_ptr;
     GenReceiver(struct_def, code_ptr);
-    code += ConvertCase(NormalizedName(field), Case::kUpperCamel) + "(self):";
+    code += namer_.Method(field.name) + "(self):";
     code += OffsetPrefix(field);
 
     // TODO(rw): this works and is not the good way to it:
@@ -338,7 +336,7 @@ class PythonGenerator : public BaseGenerator {
     auto vectortype = field.value.type.VectorType();
 
     GenReceiver(struct_def, code_ptr);
-    code += ConvertCase(NormalizedName(field), Case::kUpperCamel);
+    code += namer_.Method(field.name);
     code += "(self, j):" + OffsetPrefix(field);
     code += Indent + Indent + Indent + "x = self._tab.Vector(o)\n";
     code += Indent + Indent + Indent;
@@ -367,7 +365,7 @@ class PythonGenerator : public BaseGenerator {
     auto vectortype = field.value.type.VectorType();
 
     GenReceiver(struct_def, code_ptr);
-    code += ConvertCase(NormalizedName(field), Case::kUpperCamel);
+    code += namer_.Method(field.name);
     code += "(self, j):";
     code += OffsetPrefix(field);
     code += Indent + Indent + Indent + "a = self._tab.Vector(o)\n";
@@ -396,14 +394,13 @@ class PythonGenerator : public BaseGenerator {
     if (!(IsScalar(vectortype.base_type))) { return; }
 
     GenReceiver(struct_def, code_ptr);
-    code += ConvertCase(NormalizedName(field), Case::kUpperCamel) +
-            "AsNumpy(self):";
+    code += namer_.Method(field.name) + "AsNumpy(self):";
     code += OffsetPrefix(field);
 
     code += Indent + Indent + Indent;
     code += "return ";
     code += "self._tab.GetVectorAsNumpy(flatbuffers.number_types.";
-    code += ConvertCase(GenTypeGet(field.value.type), Case::kUpperCamel);
+    code += namer_.Method(GenTypeGet(field.value.type));
     code += "Flags, o)\n";
 
     if (IsString(vectortype)) {
@@ -434,8 +431,7 @@ class PythonGenerator : public BaseGenerator {
 
     auto &code = *code_ptr;
     GenReceiver(struct_def, code_ptr);
-    code += ConvertCase(NormalizedName(field), Case::kUpperCamel) +
-            "NestedRoot(self):";
+    code += namer_.Method(field.name) + "NestedRoot(self):";
 
     code += OffsetPrefix(field);
 
@@ -453,7 +449,7 @@ class PythonGenerator : public BaseGenerator {
     auto &code = *code_ptr;
 
     code += "\n";
-    code += "def Create" + NormalizedName(struct_def);
+    code += "def Create" + namer_.Type(struct_def.name);
     code += "(builder";
   }
 
@@ -476,16 +472,14 @@ class PythonGenerator : public BaseGenerator {
         // a nested struct, prefix the name with the field name.
         auto subprefix = nameprefix;
         if (has_field_name) {
-          subprefix += MakeLowerCamel(field) + fieldname_suffix;
+          subprefix += namer_.Field(field.name) + fieldname_suffix;
         }
         StructBuilderArgs(*field.value.type.struct_def, subprefix, namesuffix,
                           has_field_name, fieldname_suffix, code_ptr);
       } else {
         auto &code = *code_ptr;
         code += std::string(", ") + nameprefix;
-        if (has_field_name) {
-          code += ConvertCase(NormalizedName(field), Case::kLowerCamel);
-        }
+        if (has_field_name) { code += namer_.Field(field.name); }
         code += namesuffix;
       }
     }
@@ -517,9 +511,10 @@ class PythonGenerator : public BaseGenerator {
         code +=
             indent + "    builder.Pad(" + NumToString(field.padding) + ")\n";
       if (IsStruct(field_type)) {
-        StructBuilderBody(*field_type.struct_def,
-                          (nameprefix + (MakeLowerCamel(field) + "_")).c_str(),
-                          code_ptr, index, in_array);
+        StructBuilderBody(
+            *field_type.struct_def,
+            (nameprefix + (namer_.Field(field.name) + "_")).c_str(), code_ptr,
+            index, in_array);
       } else {
         const auto index_var = "_idx" + NumToString(index);
         if (IsArray(field_type)) {
@@ -531,13 +526,12 @@ class PythonGenerator : public BaseGenerator {
         if (IsStruct(type)) {
           StructBuilderBody(
               *field_type.struct_def,
-              (nameprefix + (MakeLowerCamel(field) + "_")).c_str(), code_ptr,
+              (nameprefix + (namer_.Field(field.name) + "_")).c_str(), code_ptr,
               index + 1, in_array);
         } else {
           code += IsArray(field_type) ? "    " : "";
           code += indent + "    builder.Prepend" + GenMethod(field) + "(";
-          code += nameprefix +
-                  ConvertCase(NormalizedName(field), Case::kLowerCamel);
+          code += nameprefix + namer_.Variable(field.name);
           size_t array_cnt = index + (IsArray(field_type) ? 1 : 0);
           for (size_t i = 0; in_array && i < array_cnt; i++) {
             code += "[_idx" + NumToString(i) + "-1]";
@@ -558,7 +552,7 @@ class PythonGenerator : public BaseGenerator {
     auto &code = *code_ptr;
 
     // Generate method with struct name.
-    code += "def " + NormalizedName(struct_def) + "Start(builder): ";
+    code += "def " + namer_.Type(struct_def.name) + "Start(builder): ";
     code += "builder.StartObject(";
     code += NumToString(struct_def.fields.vec.size());
     code += ")\n";
@@ -566,8 +560,8 @@ class PythonGenerator : public BaseGenerator {
     if (!parser_.opts.one_file) {
       // Generate method without struct name.
       code += "def Start(builder):\n";
-      code +=
-          Indent + "return " + NormalizedName(struct_def) + "Start(builder)\n";
+      code += Indent + "return " + namer_.Type(struct_def.name) +
+              "Start(builder)\n";
     }
   }
 
@@ -577,10 +571,10 @@ class PythonGenerator : public BaseGenerator {
     auto &code = *code_ptr;
 
     // Generate method with struct name.
-    code += "def " + NormalizedName(struct_def) + "Add" +
-            ConvertCase(NormalizedName(field), Case::kUpperCamel);
+    code += "def " + namer_.Type(struct_def.name) + "Add" +
+            namer_.Method(field.name);
     code += "(builder, ";
-    code += ConvertCase(NormalizedName(field), Case::kLowerCamel);
+    code += namer_.Variable(field.name);
     code += "): ";
     code += "builder.Prepend";
     code += GenMethod(field) + "Slot(";
@@ -588,9 +582,9 @@ class PythonGenerator : public BaseGenerator {
     if (!IsScalar(field.value.type.base_type) && (!struct_def.fixed)) {
       code += "flatbuffers.number_types.UOffsetTFlags.py_type";
       code += "(";
-      code += ConvertCase(NormalizedName(field), Case::kLowerCamel) + ")";
+      code += namer_.Variable(field.name) + ")";
     } else {
-      code += ConvertCase(NormalizedName(field), Case::kLowerCamel);
+      code += namer_.Variable(field.name);
     }
     code += ", ";
     code += IsFloat(field.value.type.base_type)
@@ -600,14 +594,14 @@ class PythonGenerator : public BaseGenerator {
 
     if (!parser_.opts.one_file) {
       // Generate method without struct name.
-      code += "def Add" + ConvertCase(NormalizedName(field), Case::kUpperCamel);
+      code += "def Add" + namer_.Method(field.name);
       code += "(builder, ";
-      code += ConvertCase(NormalizedName(field), Case::kLowerCamel);
+      code += namer_.Variable(field.name);
       code += "):\n";
-      code += Indent + "return " + NormalizedName(struct_def) + "Add" +
-              ConvertCase(NormalizedName(field), Case::kUpperCamel);
+      code += Indent + "return " + namer_.Type(struct_def.name) + "Add" +
+              namer_.Method(field.name);
       code += "(builder, ";
-      code += ConvertCase(NormalizedName(field), Case::kLowerCamel);
+      code += namer_.Variable(field.name);
       code += ")\n";
     }
   }
@@ -618,8 +612,8 @@ class PythonGenerator : public BaseGenerator {
     auto &code = *code_ptr;
 
     // Generate method with struct name.
-    code += "def " + NormalizedName(struct_def) + "Start";
-    code += ConvertCase(NormalizedName(field), Case::kUpperCamel);
+    code += "def " + namer_.Type(struct_def.name) + "Start";
+    code += namer_.Method(field.name);
     code += "Vector(builder, numElems): return builder.StartVector(";
     auto vector_type = field.value.type.VectorType();
     auto alignment = InlineAlignment(vector_type);
@@ -631,10 +625,10 @@ class PythonGenerator : public BaseGenerator {
     if (!parser_.opts.one_file) {
       // Generate method without struct name.
       code += "def Start";
-      code += ConvertCase(NormalizedName(field), Case::kUpperCamel);
+      code += namer_.Method(field.name);
       code += "Vector(builder, numElems):\n";
-      code += Indent + "return " + NormalizedName(struct_def) + "Start";
-      code += ConvertCase(NormalizedName(field), Case::kUpperCamel);
+      code += Indent + "return " + namer_.Type(struct_def.name) + "Start";
+      code += namer_.Method(field.name);
       code += "Vector(builder, numElems)\n";
     }
   }
@@ -662,8 +656,8 @@ class PythonGenerator : public BaseGenerator {
     auto &code = *code_ptr;
 
     // Generate method with struct and field name.
-    code += "def " + NormalizedName(struct_def) + "Make";
-    code += ConvertCase(NormalizedName(field), Case::kUpperCamel);
+    code += "def " + namer_.Type(struct_def.name) + "Make";
+    code += namer_.Method(field.name);
     code += "VectorFromBytes(builder, bytes):\n";
     code += Indent + "builder.StartVector(";
     auto vector_type = field.value.type.VectorType();
@@ -679,12 +673,10 @@ class PythonGenerator : public BaseGenerator {
 
     if (!parser_.opts.one_file) {
       // Generate method without struct and field name.
-      code += "def Make" +
-              ConvertCase(NormalizedName(field), Case::kUpperCamel) +
+      code += "def Make" + namer_.Method(field.name) +
               "VectorFromBytes(builder, bytes):\n";
-      code += Indent + "return " + NormalizedName(struct_def) + "Make" +
-              ConvertCase(NormalizedName(field), Case::kUpperCamel) +
-              "VectorFromBytes(builder, bytes)\n";
+      code += Indent + "return " + namer_.Type(struct_def.name) + "Make" +
+              namer_.Method(field.name) + "VectorFromBytes(builder, bytes)\n";
     }
   }
 
@@ -693,21 +685,22 @@ class PythonGenerator : public BaseGenerator {
     auto &code = *code_ptr;
 
     // Generate method with struct name.
-    code += "def " + NormalizedName(struct_def) + "End";
+    code += "def " + namer_.Type(struct_def.name) + "End";
     code += "(builder): ";
     code += "return builder.EndObject()\n";
 
     if (!parser_.opts.one_file) {
       // Generate method without struct name.
       code += "def End(builder):\n";
-      code += Indent + "return " + NormalizedName(struct_def) + "End(builder)";
+      code +=
+          Indent + "return " + namer_.Type(struct_def.name) + "End(builder)";
     }
   }
 
   // Generate the receiver for function signatures.
   void GenReceiver(const StructDef &struct_def, std::string *code_ptr) {
     auto &code = *code_ptr;
-    code += Indent + "# " + NormalizedName(struct_def) + "\n";
+    code += Indent + "# " + namer_.Type(struct_def.name) + "\n";
     code += Indent + "def ";
   }
 
@@ -800,7 +793,7 @@ class PythonGenerator : public BaseGenerator {
     }
 
     code += Indent + "@classmethod\n";
-    code += Indent + "def " + NormalizedName(struct_def);
+    code += Indent + "def " + namer_.Type(struct_def.name);
     code += "BufferHasIdentifier(cls, buf, offset, size_prefixed=False):";
     code += "\n";
     code += Indent + Indent;
@@ -851,7 +844,7 @@ class PythonGenerator : public BaseGenerator {
   void GenReceiverForObjectAPI(const StructDef &struct_def,
                                std::string *code_ptr) {
     auto &code = *code_ptr;
-    code += GenIndents(1) + "# " + NormalizedName(struct_def) + "T";
+    code += GenIndents(1) + "# " + namer_.Type(struct_def.name) + "T";
     code += GenIndents(1) + "def ";
   }
 
@@ -859,7 +852,7 @@ class PythonGenerator : public BaseGenerator {
                               std::string *code_ptr) {
     auto &code = *code_ptr;
     code += "\n";
-    code += "class " + NormalizedName(struct_def) + "T(object):";
+    code += "class " + namer_.ObjectType(struct_def.name) + "(object):";
     code += "\n";
   }
 
@@ -936,8 +929,8 @@ class PythonGenerator : public BaseGenerator {
       // not used.
       Namespace *namespaces = field.value.type.enum_def->defined_namespace;
       auto package_reference = namespaces->GetFullyQualifiedName(
-          MakeUpperCamel(*(field.value.type.enum_def)));
-      auto union_name = MakeUpperCamel(*(field.value.type.enum_def));
+          namer_.Namespace(field.value.type.enum_def->name));
+      auto union_name = namer_.Namespace(field.value.type.enum_def->name);
       import_list->insert("import " + package_reference);
     }
   }
@@ -1013,9 +1006,9 @@ class PythonGenerator : public BaseGenerator {
 
       auto default_value = GetDefaultValue(field);
       // Wrties the init statement.
-      auto field_instance_name = MakeLowerCamel(field);
-      code += GenIndents(2) + "self." + field_instance_name + " = " +
-              default_value + "  # type: " + field_type;
+      auto field_field = namer_.Field(field.name);
+      code += GenIndents(2) + "self." + field_field + " = " + default_value +
+              "  # type: " + field_type;
     }
 
     // Writes __init__ method.
@@ -1053,15 +1046,15 @@ class PythonGenerator : public BaseGenerator {
     // Removes the import of the struct itself, if applied.
     auto package_reference =
         struct_def.defined_namespace->GetFullyQualifiedName(
-            MakeUpperCamel(struct_def));
+            namer_.Namespace(struct_def.name));
     auto struct_import = "import " + package_reference;
     import_list->erase(struct_import);
   }
 
   void InitializeFromBuf(const StructDef &struct_def, std::string *code_ptr) {
     auto &code = *code_ptr;
-    auto instance_name = MakeLowerCamel(struct_def);
-    auto struct_name = NormalizedName(struct_def);
+    auto instance_name = namer_.Variable(struct_def.name);
+    auto struct_name = namer_.Type(struct_def.name);
 
     code += GenIndents(1) + "@classmethod";
     code += GenIndents(1) + "def InitFromBuf(cls, buf, pos):";
@@ -1074,8 +1067,8 @@ class PythonGenerator : public BaseGenerator {
   void InitializeFromObjForObject(const StructDef &struct_def,
                                   std::string *code_ptr) {
     auto &code = *code_ptr;
-    auto instance_name = MakeLowerCamel(struct_def);
-    auto struct_name = NormalizedName(struct_def);
+    auto instance_name = namer_.Variable(struct_def.name);
+    auto struct_name = namer_.Type(struct_def.name);
 
     code += GenIndents(1) + "@classmethod";
     code += GenIndents(1) + "def InitFromObj(cls, " + instance_name + "):";
@@ -1088,9 +1081,9 @@ class PythonGenerator : public BaseGenerator {
   void GenUnPackForStruct(const StructDef &struct_def, const FieldDef &field,
                           std::string *code_ptr) {
     auto &code = *code_ptr;
-    auto struct_instance_name = MakeLowerCamel(struct_def);
-    auto field_instance_name = MakeLowerCamel(field);
-    auto field_accessor_name = MakeUpperCamel(field);
+    auto struct_var = namer_.Variable(struct_def.name);
+    auto field_field = namer_.Field(field.name);
+    auto field_method = namer_.Method(field.name);
     auto field_type = TypeName(field);
 
     if (parser_.opts.include_dependence_headers) {
@@ -1098,16 +1091,14 @@ class PythonGenerator : public BaseGenerator {
       field_type = package_reference + "." + TypeName(field);
     }
 
-    code += GenIndents(2) + "if " + struct_instance_name + "." +
-            field_accessor_name + "(";
+    code += GenIndents(2) + "if " + struct_var + "." + field_method + "(";
     // if field is a struct, we need to create an instance for it first.
     if (struct_def.fixed && field.value.type.base_type == BASE_TYPE_STRUCT) {
       code += field_type + "()";
     }
     code += ") is not None:";
-    code += GenIndents(3) + "self." + field_instance_name + " = " + field_type +
-            "T.InitFromObj(" + struct_instance_name + "." +
-            field_accessor_name + "(";
+    code += GenIndents(3) + "self." + field_field + " = " + field_type +
+            "T.InitFromObj(" + struct_var + "." + field_method + "(";
     // A struct's accessor requires a struct buf instance.
     if (struct_def.fixed && field.value.type.base_type == BASE_TYPE_STRUCT) {
       code += field_type + "()";
@@ -1118,80 +1109,77 @@ class PythonGenerator : public BaseGenerator {
   void GenUnPackForUnion(const StructDef &struct_def, const FieldDef &field,
                          std::string *code_ptr) {
     auto &code = *code_ptr;
-    auto field_instance_name = MakeLowerCamel(field);
-    auto field_accessor_name = MakeUpperCamel(field);
-    auto struct_instance_name = MakeLowerCamel(struct_def);
-    auto union_name = MakeUpperCamel(*(field.value.type.enum_def));
+    auto field_field = namer_.Field(field.name);
+    auto field_method = namer_.Method(field.name);
+    auto struct_var = namer_.Variable(struct_def.name);
+    auto union_name = namer_.Namespace(field.value.type.enum_def->name);
 
     if (parser_.opts.include_dependence_headers) {
       Namespace *namespaces = field.value.type.enum_def->defined_namespace;
-      auto package_reference = namespaces->GetFullyQualifiedName(
-          MakeUpperCamel(*(field.value.type.enum_def)));
+      auto package_reference = namespaces->GetFullyQualifiedName(union_name);
       union_name = package_reference + "." + union_name;
     }
-    code += GenIndents(2) + "self." + field_instance_name + " = " + union_name +
-            "Creator(" + "self." + field_instance_name + "Type, " +
-            struct_instance_name + "." + field_accessor_name + "())";
+    code += GenIndents(2) + "self." + field_field + " = " + union_name +
+            "Creator(" + "self." + field_field + "Type, " + struct_var + "." +
+            field_method + "())";
   }
 
   void GenUnPackForStructVector(const StructDef &struct_def,
                                 const FieldDef &field, std::string *code_ptr) {
     auto &code = *code_ptr;
-    auto field_instance_name = MakeLowerCamel(field);
-    auto field_accessor_name = MakeUpperCamel(field);
-    auto struct_instance_name = MakeLowerCamel(struct_def);
+    auto field_field = namer_.Field(field.name);
+    auto field_method = namer_.Method(field.name);
+    auto struct_var = namer_.Variable(struct_def.name);
 
-    code += GenIndents(2) + "if not " + struct_instance_name + "." +
-            field_accessor_name + "IsNone():";
-    code += GenIndents(3) + "self." + field_instance_name + " = []";
-    code += GenIndents(3) + "for i in range(" + struct_instance_name + "." +
-            field_accessor_name + "Length()):";
+    code += GenIndents(2) + "if not " + struct_var + "." + field_method +
+            "IsNone():";
+    code += GenIndents(3) + "self." + field_field + " = []";
+    code += GenIndents(3) + "for i in range(" + struct_var + "." +
+            field_method + "Length()):";
 
-    auto field_type_name = TypeName(field);
-    auto one_instance = field_type_name + "_";
+    auto field_type = TypeName(field);
+    auto one_instance = field_type + "_";
     one_instance[0] = CharToLower(one_instance[0]);
 
     if (parser_.opts.include_dependence_headers) {
       auto package_reference = GenPackageReference(field.value.type);
-      field_type_name = package_reference + "." + TypeName(field);
+      field_type = package_reference + "." + TypeName(field);
     }
 
-    code += GenIndents(4) + "if " + struct_instance_name + "." +
-            field_accessor_name + "(i) is None:";
-    code += GenIndents(5) + "self." + field_instance_name + ".append(None)";
+    code += GenIndents(4) + "if " + struct_var + "." + field_method +
+            "(i) is None:";
+    code += GenIndents(5) + "self." + field_field + ".append(None)";
     code += GenIndents(4) + "else:";
-    code += GenIndents(5) + one_instance + " = " + field_type_name +
-            "T.InitFromObj(" + struct_instance_name + "." +
-            field_accessor_name + "(i))";
-    code += GenIndents(5) + "self." + field_instance_name + ".append(" +
-            one_instance + ")";
+    code += GenIndents(5) + one_instance + " = " + field_type +
+            "T.InitFromObj(" + struct_var + "." + field_method + "(i))";
+    code +=
+        GenIndents(5) + "self." + field_field + ".append(" + one_instance + ")";
   }
 
   void GenUnpackforScalarVectorHelper(const StructDef &struct_def,
                                       const FieldDef &field,
                                       std::string *code_ptr, int indents) {
     auto &code = *code_ptr;
-    auto field_instance_name = MakeLowerCamel(field);
-    auto field_accessor_name = MakeUpperCamel(field);
-    auto struct_instance_name = MakeLowerCamel(struct_def);
+    auto field_field = namer_.Field(field.name);
+    auto field_method = namer_.Method(field.name);
+    auto struct_var = namer_.Variable(struct_def.name);
 
-    code += GenIndents(indents) + "self." + field_instance_name + " = []";
-    code += GenIndents(indents) + "for i in range(" + struct_instance_name +
-            "." + field_accessor_name + "Length()):";
-    code += GenIndents(indents + 1) + "self." + field_instance_name +
-            ".append(" + struct_instance_name + "." + field_accessor_name +
-            "(i))";
+    code += GenIndents(indents) + "self." + field_field + " = []";
+    code += GenIndents(indents) + "for i in range(" + struct_var + "." +
+            field_method + "Length()):";
+    code += GenIndents(indents + 1) + "self." + field_field + ".append(" +
+            struct_var + "." + field_method + "(i))";
   }
 
   void GenUnPackForScalarVector(const StructDef &struct_def,
                                 const FieldDef &field, std::string *code_ptr) {
     auto &code = *code_ptr;
-    auto field_instance_name = MakeLowerCamel(field);
-    auto field_accessor_name = MakeUpperCamel(field);
-    auto struct_instance_name = MakeLowerCamel(struct_def);
+    auto field_field = namer_.Field(field.name);
+    auto field_method = namer_.Method(field.name);
+    auto struct_var = namer_.Variable(struct_def.name);
 
-    code += GenIndents(2) + "if not " + struct_instance_name + "." +
-            field_accessor_name + "IsNone():";
+    code += GenIndents(2) + "if not " + struct_var + "." + field_method +
+            "IsNone():";
 
     // String does not have the AsNumpy method.
     if (!(IsScalar(field.value.type.VectorType().base_type))) {
@@ -1204,19 +1192,19 @@ class PythonGenerator : public BaseGenerator {
 
     // If numpy exists, use the AsNumpy method to optimize the unpack speed.
     code += GenIndents(3) + "else:";
-    code += GenIndents(4) + "self." + field_instance_name + " = " +
-            struct_instance_name + "." + field_accessor_name + "AsNumpy()";
+    code += GenIndents(4) + "self." + field_field + " = " + struct_var + "." +
+            field_method + "AsNumpy()";
   }
 
   void GenUnPackForScalar(const StructDef &struct_def, const FieldDef &field,
                           std::string *code_ptr) {
     auto &code = *code_ptr;
-    auto field_instance_name = MakeLowerCamel(field);
-    auto field_accessor_name = MakeUpperCamel(field);
-    auto struct_instance_name = MakeLowerCamel(struct_def);
+    auto field_field = namer_.Field(field.name);
+    auto field_method = namer_.Method(field.name);
+    auto struct_var = namer_.Variable(struct_def.name);
 
-    code += GenIndents(2) + "self." + field_instance_name + " = " +
-            struct_instance_name + "." + field_accessor_name + "()";
+    code += GenIndents(2) + "self." + field_field + " = " + struct_var + "." +
+            field_method + "()";
   }
 
   // Generates the UnPack method for the object class.
@@ -1259,12 +1247,11 @@ class PythonGenerator : public BaseGenerator {
 
     // Writes import statements and code into the generated file.
     auto &code_base = *code_ptr;
-    auto struct_instance_name = MakeLowerCamel(struct_def);
-    auto struct_name = MakeUpperCamel(struct_def);
+    auto struct_var = namer_.Variable(struct_def.name);
 
     GenReceiverForObjectAPI(struct_def, code_ptr);
-    code_base += "_UnPack(self, " + struct_instance_name + "):";
-    code_base += GenIndents(2) + "if " + struct_instance_name + " is None:";
+    code_base += "_UnPack(self, " + struct_var + "):";
+    code_base += GenIndents(2) + "if " + struct_var + " is None:";
     code_base += GenIndents(3) + "return";
 
     // Write the import statements.
@@ -1280,7 +1267,7 @@ class PythonGenerator : public BaseGenerator {
 
   void GenPackForStruct(const StructDef &struct_def, std::string *code_ptr) {
     auto &code = *code_ptr;
-    auto struct_name = MakeUpperCamel(struct_def);
+    auto struct_name = namer_.Function(struct_def.name);
 
     GenReceiverForObjectAPI(struct_def, code_ptr);
     code += "Pack(self, builder):";
@@ -1300,62 +1287,57 @@ class PythonGenerator : public BaseGenerator {
                                    std::string *code_ptr) {
     auto &code_prefix = *code_prefix_ptr;
     auto &code = *code_ptr;
-    auto field_instance_name = MakeLowerCamel(field);
-    auto struct_name = NormalizedName(struct_def);
-    auto field_accessor_name = MakeUpperCamel(field);
+    const std::string field_field = namer_.Field(field.name);
+    const std::string struct_name = namer_.Type(struct_def.name);
+    const std::string field_method = namer_.Method(field.name);
 
     // Creates the field.
-    code_prefix +=
-        GenIndents(2) + "if self." + field_instance_name + " is not None:";
+    code_prefix += GenIndents(2) + "if self." + field_field + " is not None:";
     if (field.value.type.struct_def->fixed) {
-      code_prefix += GenIndents(3) + struct_name + "Start" +
-                     field_accessor_name + "Vector(builder, len(self." +
-                     field_instance_name + "))";
+      code_prefix += GenIndents(3) + struct_name + "Start" + field_method +
+                     "Vector(builder, len(self." + field_field + "))";
       code_prefix += GenIndents(3) + "for i in reversed(range(len(self." +
-                     field_instance_name + "))):";
+                     field_field + "))):";
       code_prefix +=
-          GenIndents(4) + "self." + field_instance_name + "[i].Pack(builder)";
-      code_prefix +=
-          GenIndents(3) + field_instance_name + " = builder.EndVector()";
+          GenIndents(4) + "self." + field_field + "[i].Pack(builder)";
+      code_prefix += GenIndents(3) + field_field + " = builder.EndVector()";
     } else {
       // If the vector is a struct vector, we need to first build accessor for
       // each struct element.
-      code_prefix += GenIndents(3) + field_instance_name + "list = []";
+      code_prefix += GenIndents(3) + field_field + "list = []";
       code_prefix += GenIndents(3);
-      code_prefix += "for i in range(len(self." + field_instance_name + ")):";
-      code_prefix += GenIndents(4) + field_instance_name + "list.append(self." +
-                     field_instance_name + "[i].Pack(builder))";
+      code_prefix += "for i in range(len(self." + field_field + ")):";
+      code_prefix += GenIndents(4) + field_field + "list.append(self." +
+                     field_field + "[i].Pack(builder))";
 
-      code_prefix += GenIndents(3) + struct_name + "Start" +
-                     field_accessor_name + "Vector(builder, len(self." +
-                     field_instance_name + "))";
+      code_prefix += GenIndents(3) + struct_name + "Start" + field_method +
+                     "Vector(builder, len(self." + field_field + "))";
       code_prefix += GenIndents(3) + "for i in reversed(range(len(self." +
-                     field_instance_name + "))):";
+                     field_field + "))):";
       code_prefix += GenIndents(4) + "builder.PrependUOffsetTRelative" + "(" +
-                     field_instance_name + "list[i])";
-      code_prefix +=
-          GenIndents(3) + field_instance_name + " = builder.EndVector()";
+                     field_field + "list[i])";
+      code_prefix += GenIndents(3) + field_field + " = builder.EndVector()";
     }
 
     // Adds the field into the struct.
-    code += GenIndents(2) + "if self." + field_instance_name + " is not None:";
-    code += GenIndents(3) + struct_name + "Add" + field_accessor_name +
-            "(builder, " + field_instance_name + ")";
+    code += GenIndents(2) + "if self." + field_field + " is not None:";
+    code += GenIndents(3) + struct_name + "Add" + field_method + "(builder, " +
+            field_field + ")";
   }
 
   void GenPackForScalarVectorFieldHelper(const StructDef &struct_def,
                                          const FieldDef &field,
                                          std::string *code_ptr, int indents) {
     auto &code = *code_ptr;
-    auto field_instance_name = MakeLowerCamel(field);
-    auto field_accessor_name = MakeUpperCamel(field);
-    auto struct_name = NormalizedName(struct_def);
+    auto field_field = namer_.Field(field.name);
+    auto field_method = namer_.Method(field.name);
+    auto struct_name = namer_.Type(struct_def.name);
     auto vectortype = field.value.type.VectorType();
 
-    code += GenIndents(indents) + struct_name + "Start" + field_accessor_name +
-            "Vector(builder, len(self." + field_instance_name + "))";
+    code += GenIndents(indents) + struct_name + "Start" + field_method +
+            "Vector(builder, len(self." + field_field + "))";
     code += GenIndents(indents) + "for i in reversed(range(len(self." +
-            field_instance_name + "))):";
+            field_field + "))):";
     code += GenIndents(indents + 1) + "builder.Prepend";
 
     std::string type_name;
@@ -1383,46 +1365,42 @@ class PythonGenerator : public BaseGenerator {
                                    std::string *code_ptr) {
     auto &code = *code_ptr;
     auto &code_prefix = *code_prefix_ptr;
-    auto field_instance_name = MakeLowerCamel(field);
-    auto field_accessor_name = MakeUpperCamel(field);
-    auto struct_name = NormalizedName(struct_def);
+    auto field_field = namer_.Field(field.name);
+    auto field_method = namer_.Method(field.name);
+    auto struct_name = namer_.Type(struct_def.name);
 
     // Adds the field into the struct.
-    code += GenIndents(2) + "if self." + field_instance_name + " is not None:";
-    code += GenIndents(3) + struct_name + "Add" + field_accessor_name +
-            "(builder, " + field_instance_name + ")";
+    code += GenIndents(2) + "if self." + field_field + " is not None:";
+    code += GenIndents(3) + struct_name + "Add" + field_method + "(builder, " +
+            field_field + ")";
 
     // Creates the field.
-    code_prefix +=
-        GenIndents(2) + "if self." + field_instance_name + " is not None:";
+    code_prefix += GenIndents(2) + "if self." + field_field + " is not None:";
     // If the vector is a string vector, we need to first build accessor for
     // each string element. And this generated code, needs to be
     // placed ahead of code_prefix.
     auto vectortype = field.value.type.VectorType();
     if (IsString(vectortype)) {
-      code_prefix += GenIndents(3) + MakeLowerCamel(field) + "list = []";
-      code_prefix += GenIndents(3) + "for i in range(len(self." +
-                     field_instance_name + ")):";
-      code_prefix += GenIndents(4) + MakeLowerCamel(field) +
-                     "list.append(builder.CreateString(self." +
-                     field_instance_name + "[i]))";
-      GenPackForScalarVectorFieldHelper(struct_def, field, code_prefix_ptr, 3);
-      code_prefix += "(" + MakeLowerCamel(field) + "list[i])";
+      code_prefix += GenIndents(3) + namer_.Field(field.name) + "list = []";
       code_prefix +=
-          GenIndents(3) + field_instance_name + " = builder.EndVector()";
+          GenIndents(3) + "for i in range(len(self." + field_field + ")):";
+      code_prefix += GenIndents(4) + namer_.Field(field.name) +
+                     "list.append(builder.CreateString(self." + field_field +
+                     "[i]))";
+      GenPackForScalarVectorFieldHelper(struct_def, field, code_prefix_ptr, 3);
+      code_prefix += "(" + namer_.Field(field.name) + "list[i])";
+      code_prefix += GenIndents(3) + field_field + " = builder.EndVector()";
       return;
     }
 
     code_prefix += GenIndents(3) + "if np is not None and type(self." +
-                   field_instance_name + ") is np.ndarray:";
-    code_prefix += GenIndents(4) + field_instance_name +
-                   " = builder.CreateNumpyVector(self." + field_instance_name +
-                   ")";
+                   field_field + ") is np.ndarray:";
+    code_prefix += GenIndents(4) + field_field +
+                   " = builder.CreateNumpyVector(self." + field_field + ")";
     code_prefix += GenIndents(3) + "else:";
     GenPackForScalarVectorFieldHelper(struct_def, field, code_prefix_ptr, 4);
-    code_prefix += "(self." + field_instance_name + "[i])";
-    code_prefix +=
-        GenIndents(4) + field_instance_name + " = builder.EndVector()";
+    code_prefix += "(self." + field_field + "[i])";
+    code_prefix += GenIndents(4) + field_field + " = builder.EndVector()";
   }
 
   void GenPackForStructField(const StructDef &struct_def, const FieldDef &field,
@@ -1430,30 +1408,26 @@ class PythonGenerator : public BaseGenerator {
                              std::string *code_ptr) {
     auto &code_prefix = *code_prefix_ptr;
     auto &code = *code_ptr;
-    auto field_instance_name = MakeLowerCamel(field);
-
-    auto field_accessor_name = MakeUpperCamel(field);
-    auto struct_name = NormalizedName(struct_def);
+    auto field_field = namer_.Field(field.name);
+    auto field_method = namer_.Method(field.name);
+    auto struct_name = namer_.Type(struct_def.name);
 
     if (field.value.type.struct_def->fixed) {
       // Pure struct fields need to be created along with their parent
       // structs.
-      code +=
-          GenIndents(2) + "if self." + field_instance_name + " is not None:";
-      code += GenIndents(3) + field_instance_name + " = self." +
-              field_instance_name + ".Pack(builder)";
+      code += GenIndents(2) + "if self." + field_field + " is not None:";
+      code += GenIndents(3) + field_field + " = self." + field_field +
+              ".Pack(builder)";
     } else {
       // Tables need to be created before their parent structs are created.
-      code_prefix +=
-          GenIndents(2) + "if self." + field_instance_name + " is not None:";
-      code_prefix += GenIndents(3) + field_instance_name + " = self." +
-                     field_instance_name + ".Pack(builder)";
-      code +=
-          GenIndents(2) + "if self." + field_instance_name + " is not None:";
+      code_prefix += GenIndents(2) + "if self." + field_field + " is not None:";
+      code_prefix += GenIndents(3) + field_field + " = self." + field_field +
+                     ".Pack(builder)";
+      code += GenIndents(2) + "if self." + field_field + " is not None:";
     }
 
-    code += GenIndents(3) + struct_name + "Add" + field_accessor_name +
-            "(builder, " + field_instance_name + ")";
+    code += GenIndents(3) + struct_name + "Add" + field_method + "(builder, " +
+            field_field + ")";
   }
 
   void GenPackForUnionField(const StructDef &struct_def, const FieldDef &field,
@@ -1461,26 +1435,25 @@ class PythonGenerator : public BaseGenerator {
                             std::string *code_ptr) {
     auto &code_prefix = *code_prefix_ptr;
     auto &code = *code_ptr;
-    auto field_instance_name = MakeLowerCamel(field);
+    auto field_field = namer_.Field(field.name);
 
-    auto field_accessor_name = MakeUpperCamel(field);
-    auto struct_name = NormalizedName(struct_def);
+    auto field_method = namer_.Method(field.name);
+    auto struct_name = namer_.Type(struct_def.name);
 
     // TODO(luwa): TypeT should be moved under the None check as well.
-    code_prefix +=
-        GenIndents(2) + "if self." + field_instance_name + " is not None:";
-    code_prefix += GenIndents(3) + field_instance_name + " = self." +
-                   field_instance_name + ".Pack(builder)";
-    code += GenIndents(2) + "if self." + field_instance_name + " is not None:";
-    code += GenIndents(3) + struct_name + "Add" + field_accessor_name +
-            "(builder, " + field_instance_name + ")";
+    code_prefix += GenIndents(2) + "if self." + field_field + " is not None:";
+    code_prefix += GenIndents(3) + field_field + " = self." + field_field +
+                   ".Pack(builder)";
+    code += GenIndents(2) + "if self." + field_field + " is not None:";
+    code += GenIndents(3) + struct_name + "Add" + field_method + "(builder, " +
+            field_field + ")";
   }
 
   void GenPackForTable(const StructDef &struct_def, std::string *code_ptr) {
     auto &code_base = *code_ptr;
     std::string code, code_prefix;
-    auto struct_instance_name = MakeLowerCamel(struct_def);
-    auto struct_name = NormalizedName(struct_def);
+    auto struct_var = namer_.Variable(struct_def.name);
+    auto struct_name = namer_.Type(struct_def.name);
 
     GenReceiverForObjectAPI(struct_def, code_ptr);
     code_base += "Pack(self, builder):";
@@ -1490,8 +1463,8 @@ class PythonGenerator : public BaseGenerator {
       auto &field = **it;
       if (field.deprecated) continue;
 
-      auto field_accessor_name = MakeUpperCamel(field);
-      auto field_instance_name = MakeLowerCamel(field);
+      auto field_method = namer_.Method(field.name);
+      auto field_field = namer_.Field(field.name);
 
       switch (field.value.type.base_type) {
         case BASE_TYPE_STRUCT: {
@@ -1516,30 +1489,27 @@ class PythonGenerator : public BaseGenerator {
           break;
         }
         case BASE_TYPE_STRING: {
-          code_prefix += GenIndents(2) + "if self." + field_instance_name +
-                         " is not None:";
-          code_prefix += GenIndents(3) + field_instance_name +
-                         " = builder.CreateString(self." + field_instance_name +
-                         ")";
-          code += GenIndents(2) + "if self." + field_instance_name +
-                  " is not None:";
-          code += GenIndents(3) + struct_name + "Add" + field_accessor_name +
-                  "(builder, " + field_instance_name + ")";
+          code_prefix +=
+              GenIndents(2) + "if self." + field_field + " is not None:";
+          code_prefix += GenIndents(3) + field_field +
+                         " = builder.CreateString(self." + field_field + ")";
+          code += GenIndents(2) + "if self." + field_field + " is not None:";
+          code += GenIndents(3) + struct_name + "Add" + field_method +
+                  "(builder, " + field_field + ")";
           break;
         }
         default:
           // Generates code for scalar values. If the value equals to the
           // default value, builder will automatically ignore it. So we don't
           // need to check the value ahead.
-          code += GenIndents(2) + struct_name + "Add" + field_accessor_name +
-                  "(builder, self." + field_instance_name + ")";
+          code += GenIndents(2) + struct_name + "Add" + field_method +
+                  "(builder, self." + field_field + ")";
           break;
       }
     }
 
-    code += GenIndents(2) + struct_instance_name + " = " + struct_name +
-            "End(builder)";
-    code += GenIndents(2) + "return " + struct_instance_name;
+    code += GenIndents(2) + struct_var + " = " + struct_name + "End(builder)";
+    code += GenIndents(2) + "return " + struct_var;
 
     code_base += code_prefix + code;
     code_base += "\n";
@@ -1582,9 +1552,9 @@ class PythonGenerator : public BaseGenerator {
   void GenUnionCreatorForStruct(const EnumDef &enum_def, const EnumVal &ev,
                                 std::string *code_ptr) {
     auto &code = *code_ptr;
-    auto union_name = NormalizedName(enum_def);
-    auto field_name = NormalizedName(ev);
-    auto field_type = GenTypeGet(ev.union_type) + "T";
+    auto union_name = namer_.Type(enum_def.name);
+    auto field_name = namer_.Constant(ev.name);
+    auto field_type = namer_.ObjectType(GenTypeGet(ev.union_type));
 
     code += GenIndents(1) + "if unionType == " + union_name + "()." +
             field_name + ":";
@@ -1600,8 +1570,8 @@ class PythonGenerator : public BaseGenerator {
   void GenUnionCreatorForString(const EnumDef &enum_def, const EnumVal &ev,
                                 std::string *code_ptr) {
     auto &code = *code_ptr;
-    auto union_name = NormalizedName(enum_def);
-    auto field_name = NormalizedName(ev);
+    auto union_name = namer_.Type(enum_def.name);
+    auto field_name = namer_.Constant(ev.name);
 
     code += GenIndents(1) + "if unionType == " + union_name + "()." +
             field_name + ":";
@@ -1615,7 +1585,7 @@ class PythonGenerator : public BaseGenerator {
     if (enum_def.generated) return;
 
     auto &code = *code_ptr;
-    auto union_name = MakeUpperCamel(enum_def);
+    auto union_name = namer_.Function(enum_def.name);
 
     code += "\n";
     code += "def " + union_name + "Creator(unionType, table):";
@@ -1645,7 +1615,7 @@ class PythonGenerator : public BaseGenerator {
     if (enum_def.generated) return;
 
     GenComment(enum_def.doc_comment, code_ptr, &def_comment);
-    BeginEnum(NormalizedName(enum_def), code_ptr);
+    BeginEnum(enum_def, code_ptr);
     for (auto it = enum_def.Vals().begin(); it != enum_def.Vals().end(); ++it) {
       auto &ev = **it;
       GenComment(ev.doc_comment, code_ptr, &def_comment, Indent.c_str());
@@ -1661,14 +1631,14 @@ class PythonGenerator : public BaseGenerator {
       case BASE_TYPE_VECTOR: return GenGetter(type.VectorType());
       default:
         return "self._tab.Get(flatbuffers.number_types." +
-               ConvertCase(GenTypeGet(type), Case::kUpperCamel) + "Flags, ";
+               namer_.Method(GenTypeGet(type)) + "Flags, ";
     }
   }
 
   // Returns the method name for use with add/put calls.
   std::string GenMethod(const FieldDef &field) {
     return (IsScalar(field.value.type.base_type) || IsArray(field.value.type))
-               ? ConvertCase(GenTypeBasic(field.value.type), Case::kUpperCamel)
+               ? namer_.Method(GenTypeBasic(field.value.type))
                : (IsStruct(field.value.type) ? "Struct" : "UOffsetTRelative");
   }
 
@@ -1725,7 +1695,8 @@ class PythonGenerator : public BaseGenerator {
     if (!generateStructs(&one_file_code)) return false;
 
     if (parser_.opts.one_file) {
-      return SaveType(file_name_ + "_generated", *parser_.current_namespace_,
+      // Legacy file format uses keep casing.
+      return SaveType(file_name_ + "_generated.py", *parser_.current_namespace_,
                       one_file_code, true);
     }
 
@@ -1746,8 +1717,8 @@ class PythonGenerator : public BaseGenerator {
       if (parser_.opts.one_file && !enumcode.empty()) {
         *one_file_code += enumcode + "\n\n";
       } else {
-        if (!SaveType(enum_def.name, *enum_def.defined_namespace, enumcode,
-                      false))
+        if (!SaveType(namer_.File(enum_def.name, SkipFile::Suffix),
+                      *enum_def.defined_namespace, enumcode, false))
           return false;
       }
     }
@@ -1767,8 +1738,8 @@ class PythonGenerator : public BaseGenerator {
       if (parser_.opts.one_file && !declcode.empty()) {
         *one_file_code += declcode + "\n\n";
       } else {
-        if (!SaveType(struct_def.name, *struct_def.defined_namespace, declcode,
-                      true))
+        if (!SaveType(namer_.File(struct_def.name, SkipFile::Suffix),
+                      *struct_def.defined_namespace, declcode, true))
           return false;
       }
     }
@@ -1805,13 +1776,18 @@ class PythonGenerator : public BaseGenerator {
     std::string code = "";
     BeginFile(LastNamespacePart(ns), needs_imports, &code);
     code += classcode;
-    std::string filename = NamespaceDir(ns) + defname + ".py";
+    // DO NOT SUBMIT: CASPER: Can you do the above path logic with directories?
+    const std::string directories =
+        parser_.opts.one_file ? path_ : namer_.Directories(ns.components);
+
+    EnsureDirExists(directories);
+    const std::string filename = directories + defname;
     return SaveFile(filename.c_str(), code, false);
   }
 
  private:
-  std::unordered_set<std::string> keywords_;
   const SimpleFloatConstantGenerator float_const_gen_;
+  const Namer namer_;
 };
 
 }  // namespace python
