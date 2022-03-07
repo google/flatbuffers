@@ -1768,21 +1768,19 @@ class PythonGenerator : public BaseGenerator {
                 const std::string &classcode, bool needs_imports) const {
     if (!classcode.length()) return true;
 
-    std::string namespace_dir = path_;
-    auto &namespaces = ns.components;
-    for (auto it = namespaces.begin(); it != namespaces.end(); ++it) {
-      if (it != namespaces.begin()) namespace_dir += kPathSeparator;
-      namespace_dir += *it;
-      std::string init_py_filename = namespace_dir + "/__init__.py";
-      SaveFile(init_py_filename.c_str(), "", false);
-    }
-
     std::string code = "";
     BeginFile(LastNamespacePart(ns), needs_imports, &code);
     code += classcode;
-    // DO NOT SUBMIT: CASPER: Can you do the above path logic with directories?
+
     const std::string directories =
         parser_.opts.one_file ? path_ : namer_.Directories(ns.components);
+
+    for (size_t i = path_.size() + 1; i != std::string::npos;
+         i = directories.find(kPathSeparator, i + 1)) {
+      const std::string init_py =
+          directories.substr(0, i) + kPathSeparator + "__init__.py";
+      SaveFile(init_py.c_str(), "", false);
+    }
 
     EnsureDirExists(directories);
     const std::string filename = directories + defname;
