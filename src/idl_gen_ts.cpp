@@ -451,7 +451,7 @@ class TsGenerator : public BaseGenerator {
   }
 
   std::string GenerateNewExpression(const std::string &object_name) {
-    return "new " + object_name + "()";
+    return "new " + EscapeKeyword(object_name) + "()";
   }
 
   void GenerateRootAccessor(StructDef &struct_def, std::string *code_ptr,
@@ -860,9 +860,10 @@ class TsGenerator : public BaseGenerator {
       auto &field = **it;
 
       auto curr_member_accessor =
-        prefix + "." + MakeCamel(field.name, false);
+          prefix + "." + ConvertCase(field.name, Case::kLowerCamel);
       if (prefix != "this") {
-        curr_member_accessor = prefix + "?." + MakeCamel(field.name, false);
+        curr_member_accessor =
+            prefix + "?." + ConvertCase(field.name, Case::kLowerCamel);
       }
       if (IsStruct(field.value.type)) {
         ret += GenStructMemberValueTS(*field.value.type.struct_def,
@@ -976,7 +977,7 @@ class TsGenerator : public BaseGenerator {
             field_type += GetObjApiClassName(sd, parser.opts);
 
             const std::string field_accessor =
-                "this." + field_name_escaped + "()";
+                "this." + field_name + "()";
             field_val = GenNullCheckConditional(field_accessor,
                                                 field_accessor + "!.unpack()");
             auto packing = GenNullCheckConditional(
@@ -1122,6 +1123,7 @@ class TsGenerator : public BaseGenerator {
         } else {
           if (field.IsScalarOptional()) {
             pack_func_create_call += "  if (" + field_offset_val + " !== null)\n  ";
+          }
           pack_func_create_call += "  " + struct_name + ".add" +
                                    ConvertCase(field.name, Case::kUpperCamel) +
                                    "(builder, " + field_offset_val + ");\n";
