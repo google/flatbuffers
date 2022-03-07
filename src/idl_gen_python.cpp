@@ -55,7 +55,7 @@ Namer::Config PythonDefaultConfig() {
            /*object_suffix=*/"T",
            /*keyword_prefix=*/"",
            /*keyword_suffix=*/"_",
-           /*filenames=*/Case::kUpperCamel,
+           /*filenames=*/Case::kKeep,
            /*directories=*/Case::kKeep,
            /*output_path=*/"",
            /*filename_suffix=*/"",
