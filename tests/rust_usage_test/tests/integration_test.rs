@@ -61,7 +61,8 @@ mod optional_scalars_generated;
 #[path = "../../arrays_test/mod.rs"]
 mod arrays_test_generated;
 
-#[allow(dead_code, unused_imports)]
+// We use incorrect casing to test keywords.
+#[allow(dead_code, unused_imports, non_camel_case_types, non_snake_case)]
 #[path = "../../keyword_test/mod.rs"]
 mod keyword_test_generated;
 
@@ -190,6 +191,8 @@ fn object_api_defaults() {
             testrequirednestedflatbuffer: None,  // despite the name, it is not required.
             scalar_key_sorted_tables: None,
             native_inline: None,
+            long_enum_non_enum_default: Default::default(),
+            long_enum_normal_default: LongEnum::LongOne,
         }
     );
 }
@@ -1831,7 +1834,8 @@ mod write_and_read_examples {
             any_unique: None, any_ambiguous_type: NONE, any_ambiguous: None, \
             vector_of_enums: None, signed_enum: None, \
             testrequirednestedflatbuffer: None, scalar_key_sorted_tables: None, \
-            native_inline: None }, \
+            native_inline: None, long_enum_non_enum_default: (empty), \
+            long_enum_normal_default: LongOne }, \
             test4: Some([Test { a: 10, b: 20 }, Test { a: 30, b: 40 }]), \
             testarrayofstring: Some([\"test1\", \"test2\"]), \
             testarrayoftables: None, enemy: None, testnestedflatbuffer: None, \
@@ -1850,7 +1854,8 @@ mod write_and_read_examples {
             any_unique: None, any_ambiguous_type: NONE, any_ambiguous: None, \
             vector_of_enums: None, signed_enum: None, \
             testrequirednestedflatbuffer: None, scalar_key_sorted_tables: None, \
-            native_inline: None }"
+            native_inline: None, long_enum_non_enum_default: (empty), \
+            long_enum_normal_default: LongOne }"
         );
     }
 

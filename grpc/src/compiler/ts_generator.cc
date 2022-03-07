@@ -21,31 +21,15 @@
  * be maintained according to the Swift-grpc repository
  */
 
+#include "src/compiler/ts_generator.h"
+
 #include <map>
 #include <sstream>
 
 #include "flatbuffers/util.h"
 #include "src/compiler/schema_interface.h"
-#include "src/compiler/ts_generator.h"
 
 namespace grpc_ts_generator {
-
-grpc::string ToDasherizedCase(const grpc::string pascal_case) {
-  std::string dasherized_case;
-  char p = 0;
-  for (size_t i = 0; i < pascal_case.length(); i++) {
-    char const &c = pascal_case[i];
-    if (flatbuffers::is_alpha_upper(c)) {
-      if (i > 0 && p != flatbuffers::kPathSeparator) dasherized_case += "-";
-      dasherized_case += flatbuffers::CharToLower(c);
-    } else {
-      dasherized_case += c;
-    }
-    p = c;
-  }
-  return dasherized_case;
-}
-
 
 grpc::string GenerateNamespace(const std::vector<std::string> ns,
                                const std::string filename,
@@ -55,11 +39,17 @@ grpc::string GenerateNamespace(const std::vector<std::string> ns,
 
   for (auto it = ns.begin(); it < ns.end(); it++) {
     if (include_separator) path += "/";
-    path += include_separator ? ToDasherizedCase(*it) : *it + "_";
+    path += include_separator
+                ? flatbuffers::ConvertCase(*it, flatbuffers::Case::kDasher,
+                                           flatbuffers::Case::kUpperCamel)
+                : *it + "_";
   }
 
   if (include_separator) path += "/";
-  path += include_separator ? ToDasherizedCase(filename) : filename;
+  path += include_separator
+              ? flatbuffers::ConvertCase(filename, flatbuffers::Case::kDasher,
+                                         flatbuffers::Case::kUpperCamel)
+              : filename;
   return path;
 }
 

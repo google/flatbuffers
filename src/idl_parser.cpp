@@ -93,33 +93,6 @@ static bool IsLowerSnakeCase(const std::string &str) {
   return true;
 }
 
-// Convert an underscore_based_identifier in to camelCase.
-// Also uppercases the first character if first is true.
-std::string MakeCamel(const std::string &in, bool first) {
-  std::string s;
-  for (size_t i = 0; i < in.length(); i++) {
-    if (!i && first)
-      s += CharToUpper(in[0]);
-    else if (in[i] == '_' && i + 1 < in.length())
-      s += CharToUpper(in[++i]);
-    else
-      s += in[i];
-  }
-  return s;
-}
-
-// Convert an underscore_based_identifier in to screaming snake case.
-std::string MakeScreamingCamel(const std::string &in) {
-  std::string s;
-  for (size_t i = 0; i < in.length(); i++) {
-    if (in[i] != '_')
-      s += CharToUpper(in[i]);
-    else
-      s += in[i];
-  }
-  return s;
-}
-
 void DeserializeDoc(std::vector<std::string> &doc,
                     const Vector<Offset<String>> *documentation) {
   if (documentation == nullptr) return;
@@ -2479,7 +2452,8 @@ bool Parser::SupportsOptionalScalars(const flatbuffers::IDLOptions &opts) {
   static FLATBUFFERS_CONSTEXPR unsigned long supported_langs =
       IDLOptions::kRust | IDLOptions::kSwift | IDLOptions::kLobster |
       IDLOptions::kKotlin | IDLOptions::kCpp | IDLOptions::kJava |
-      IDLOptions::kCSharp | IDLOptions::kTs | IDLOptions::kBinary;
+      IDLOptions::kCSharp | IDLOptions::kTs | IDLOptions::kBinary |
+      IDLOptions::kGo;
   unsigned long langs = opts.lang_to_generate;
   return (langs > 0 && langs < IDLOptions::kMAX) && !(langs & ~supported_langs);
 }
@@ -2855,7 +2829,7 @@ CheckedError Parser::ParseProtoFields(StructDef *struct_def, bool isextend,
       if (IsIdent("group") || oneof) {
         if (!oneof) NEXT();
         if (oneof && opts.proto_oneof_union) {
-          auto name = MakeCamel(attribute_, true) + "Union";
+          auto name = ConvertCase(attribute_, Case::kUpperCamel) + "Union";
           ECHECK(StartEnum(name, true, &oneof_union));
           type = Type(BASE_TYPE_UNION, nullptr, oneof_union);
         } else {

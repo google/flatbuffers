@@ -1,5 +1,5 @@
 # This is the legacy minimum version flatbuffers supported for a while.
-cmake_minimum_required(VERSION 2.8.12)
+cmake_minimum_required(VERSION 2.8.12...3.22.1)
 
 # CMake version 3.16 is the 'de-facto' minimum version for flatbuffers. If the
 # current cmake is older than this, warn the user and include the legacy file to
@@ -15,17 +15,18 @@ if(CMAKE_VERSION VERSION_LESS 3.16)
   return()
 endif()
 
+# Attempt to read the current version of flatbuffers by looking at the latest tag.
+include(CMake/Version.cmake)
+
 if (POLICY CMP0048)
   cmake_policy(SET CMP0048 NEW)
   project(FlatBuffers
         DESCRIPTION "Flatbuffers serialization library"
-        VERSION 2.0.0
+        VERSION ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}
         LANGUAGES CXX)
 else()
   project(FlatBuffers)
 endif (POLICY CMP0048)
-
-include(CMake/Version.cmake)
 
 # generate compile_commands.json
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
@@ -41,8 +42,7 @@ option(FLATBUFFERS_BUILD_FLATC "Enable the build of the flatbuffers compiler"
 option(FLATBUFFERS_STATIC_FLATC "Build flatbuffers compiler with -static flag"
        OFF)
 option(FLATBUFFERS_BUILD_FLATHASH "Enable the build of flathash" ON)
-option(FLATBUFFERS_BUILD_BENCHMARKS "Enable the build of flatbenchmark. \"
-       Requires C++11."
+option(FLATBUFFERS_BUILD_BENCHMARKS "Enable the build of flatbenchmark."
        OFF)
 option(FLATBUFFERS_BUILD_GRPCTEST "Enable the build of grpctest" OFF)
 option(FLATBUFFERS_BUILD_SHAREDLIB
@@ -274,13 +274,6 @@ if(EXISTS "${CMAKE_TOOLCHAIN_FILE}")
   # is being configured externally
   message(STATUS "Using toolchain file: ${CMAKE_TOOLCHAIN_FILE}.")
 elseif(CMAKE_COMPILER_IS_GNUCXX)
-  if(CYGWIN)
-    set(CMAKE_CXX_FLAGS
-      "${CMAKE_CXX_FLAGS} -std=gnu++11")
-  else(CYGWIN)
-    set(CMAKE_CXX_FLAGS
-      "${CMAKE_CXX_FLAGS} -std=c++0x")
-  endif(CYGWIN)
   set(CMAKE_CXX_FLAGS
     "${CMAKE_CXX_FLAGS} -Wall -pedantic -Werror -Wextra -Werror=shadow")
   set(FLATBUFFERS_PRIVATE_CXX_FLAGS "-Wold-style-cast")
@@ -313,13 +306,9 @@ elseif(MSVC)
 
 elseif(${CMAKE_CXX_COMPILER_ID} MATCHES "Clang")
   if(APPLE)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
-
     if(FLATBUFFERS_OSX_BUILD_UNIVERSAL)
       set(CMAKE_OSX_ARCHITECTURES "arm64;x86_64")
     endif()
-  else()
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x")
   endif()
 
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -pedantic -Werror -Wextra -Wno-unused-parameter")
@@ -403,6 +392,7 @@ if(FLATBUFFERS_BUILD_FLATLIB)
   target_include_directories(flatbuffers INTERFACE
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>)
   target_compile_options(flatbuffers PRIVATE "${FLATBUFFERS_PRIVATE_CXX_FLAGS}")
+  target_compile_features(flatbuffers PUBLIC cxx_std_11)
   if(FLATBUFFERS_ENABLE_PCH)
     add_pch_to_target(flatbuffers include/flatbuffers/pch/pch.h)
   endif()
@@ -414,6 +404,7 @@ if(FLATBUFFERS_BUILD_FLATC)
     add_pch_to_target(flatc include/flatbuffers/pch/flatc_pch.h)
   endif()
   target_compile_options(flatc PRIVATE "${FLATBUFFERS_PRIVATE_CXX_FLAGS}")
+  target_compile_features(flatc PUBLIC cxx_std_11)
   if(FLATBUFFERS_CODE_SANITIZE AND NOT WIN32)
     add_fsanitize_to_target(flatc ${FLATBUFFERS_CODE_SANITIZE})
   endif()
@@ -431,11 +422,12 @@ endif()
 
 if(FLATBUFFERS_BUILD_FLATHASH)
   add_executable(flathash ${FlatHash_SRCS})
+  target_compile_features(flathash PUBLIC cxx_std_11)
 endif()
 
 if(FLATBUFFERS_BUILD_SHAREDLIB)
   add_library(flatbuffers_shared SHARED ${FlatBuffers_Library_SRCS})
-
+  target_compile_features(flatbuffers_shared PUBLIC cxx_std_11)
   # Shared object version: "major.minor.micro"
   # - micro updated every release when there is no API/ABI changes
   # - minor updated when there are additions in API/ABI
@@ -536,30 +528,6 @@ function(compile_flatbuffers_schema_to_embedded_binary SRC_FBS OPT)
   register_generated_output(${GEN_BFBS_HEADER})
 endfunction()
 
-# Look if we have python 3.5 installed so that we can run the generate code
-# python script after flatc is built.
-find_package(Python3 3.5 COMPONENTS Interpreter)
-
-if(Python3_Interpreter_FOUND)
-  set(GENERATION_OPTS --flatc "${FLATBUFFERS_FLATC_EXECUTABLE}")
-  if(FLATBUFFERS_BUILD_LEGACY)
-    # Need to set --cpp-std c++-0x options
-    set(GENERATION_OPTS ${GENERATION_OPTS}--cpp-0x)
-  endif()
-  if(FLATBUFFERS_SKIP_MONSTER_EXTRA)
-    set(GENERATION_OPTS ${GENERATION_OPTS} --skip-monster-extra)
-  endif()
-  add_custom_command(
-    TARGET flatc
-    POST_BUILD
-    COMMAND ${Python3_EXECUTABLE} scripts/generate_code.py ${GENERATION_OPTS} --skip-gen-reflection
-    WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
-    COMMENT "Running scripts/generate_code.py..."
-    VERBATIM)
-else()
-  message("No Python3 interpreter found! Unable to generate files automatically.")
-endif()
-
 if(FLATBUFFERS_BUILD_TESTS)
   file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/tests" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}")
   file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/samples" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}")
@@ -580,6 +548,7 @@ if(FLATBUFFERS_BUILD_TESTS)
   endif()
   include_directories(${CMAKE_CURRENT_BINARY_DIR}/tests)
   add_executable(flattests ${FlatBuffers_Tests_SRCS})
+  target_compile_features(flattests PUBLIC cxx_std_11)
   add_dependencies(flattests generated_code)
   set_property(TARGET flattests
     PROPERTY COMPILE_DEFINITIONS FLATBUFFERS_TRACK_VERIFIER_BUFFER_SIZE
@@ -592,10 +561,13 @@ if(FLATBUFFERS_BUILD_TESTS)
   compile_flatbuffers_schema_to_binary(samples/monster.fbs)
   include_directories(${CMAKE_CURRENT_BINARY_DIR}/samples)
   add_executable(flatsamplebinary ${FlatBuffers_Sample_Binary_SRCS})
+  target_compile_features(flatsamplebinary PUBLIC cxx_std_11)
   add_dependencies(flatsamplebinary generated_code)
   add_executable(flatsampletext ${FlatBuffers_Sample_Text_SRCS})
+  target_compile_features(flatsampletext PUBLIC cxx_std_11)
   add_dependencies(flatsampletext generated_code)
   add_executable(flatsamplebfbs ${FlatBuffers_Sample_BFBS_SRCS})
+  target_compile_features(flatsamplebfbs PUBLIC cxx_std_11)
   add_dependencies(flatsamplebfbs generated_code)
 
   if(FLATBUFFERS_BUILD_CPP17)
@@ -634,6 +606,7 @@ if(FLATBUFFERS_BUILD_GRPCTEST)
   find_package(gRPC CONFIG REQUIRED)
   add_executable(grpctest ${FlatBuffers_GRPCTest_SRCS})
   add_dependencies(grpctest generated_code)
+  target_compile_features(grpctest PRIVATE cxx_std_11)
   target_link_libraries(grpctest PRIVATE gRPC::grpc++_unsecure gRPC::grpc_unsecure gRPC::gpr pthread dl)
   if(FLATBUFFERS_CODE_SANITIZE AND NOT WIN32)
     # GRPC test has problems with alignment and will fail under ASAN/UBSAN.

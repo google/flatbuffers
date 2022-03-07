@@ -248,10 +248,10 @@ class CppGenerator : public BaseGenerator {
       name.erase(name.length() - union_suffix_len, union_suffix_len);
     }
     if (opts_.cpp_object_api_field_case_style == IDLOptions::CaseStyle_Upper)
-      name = MakeCamel(name, true); /* upper */
+      name = ConvertCase(name, Case::kUpperCamel);
     else if (opts_.cpp_object_api_field_case_style ==
              IDLOptions::CaseStyle_Lower)
-      name = MakeCamel(name, false); /* lower */
+      name = ConvertCase(name, Case::kLowerCamel);
     // restore the union field type suffix
     if (is_union_type) name.append(UnionTypeFieldSuffix(), union_suffix_len);
     return EscapeKeyword(name);
@@ -1965,8 +1965,9 @@ class CppGenerator : public BaseGenerator {
           cw.IncrementIdentLevel();
           cw += "{{FIELD}}.reserve(o.{{FIELD}}.size());";
           cw +=
-              "for (const auto &v : o.{{FIELD}}) { "
-              "{{FIELD}}.emplace_back((v) ? new {{TYPE}}(*v) : nullptr); }";
+              "for (const auto &{{FIELD}}_ : o.{{FIELD}}) { "
+              "{{FIELD}}.emplace_back(({{FIELD}}_) ? new {{TYPE}}(*{{FIELD}}_) "
+              ": nullptr); }";
           vector_copies += cw.ToString();
         } else {
           // For non-pointer elements, use std::vector's copy constructor in the

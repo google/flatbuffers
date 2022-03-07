@@ -633,6 +633,9 @@ struct IDLOptions {
   // If set, implement serde::Serialize for generated Rust types
   bool rust_serialize;
 
+  // If set, generate rust types in individual files with a root module file.
+  bool rust_module_root_file;
+
   // The corresponding language bit will be set if a language is included
   // for code generation.
   unsigned long lang_to_generate;
@@ -698,6 +701,7 @@ struct IDLOptions {
         mini_reflect(IDLOptions::kNone),
         require_explicit_ids(false),
         rust_serialize(false),
+        rust_module_root_file(false),
         lang_to_generate(0),
         set_empty_strings_to_null(true),
         set_empty_vectors_to_null(true) {}
@@ -1052,10 +1056,6 @@ class Parser : public ParserState {
 };
 
 // Utility functions for multiple generators:
-
-extern std::string MakeCamel(const std::string &in, bool first = true);
-
-extern std::string MakeScreamingCamel(const std::string &in);
 
 // Generate text (JSON) from a given FlatBuffer, and a given Parser
 // object that has been populated with the corresponding schema.

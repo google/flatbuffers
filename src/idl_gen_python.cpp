@@ -88,12 +88,12 @@ class PythonGenerator : public BaseGenerator {
 
   // Converts the name of a definition into upper Camel format.
   std::string MakeUpperCamel(const Definition &definition) const {
-    return MakeCamel(NormalizedName(definition), true);
+    return ConvertCase(NormalizedName(definition), Case::kUpperCamel);
   }
 
   // Converts the name of a definition into lower Camel format.
   std::string MakeLowerCamel(const Definition &definition) const {
-    auto name = MakeCamel(NormalizedName(definition), false);
+    auto name = ConvertCase(NormalizedName(definition), Case::kLowerCamel);
     name[0] = CharToLower(name[0]);
     return name;
   }
@@ -157,7 +157,8 @@ class PythonGenerator : public BaseGenerator {
     auto &code = *code_ptr;
 
     GenReceiver(struct_def, code_ptr);
-    code += MakeCamel(NormalizedName(field)) + "Length(self";
+    code +=
+        ConvertCase(NormalizedName(field), Case::kUpperCamel) + "Length(self";
     code += "):" + OffsetPrefix(field);
     code += Indent + Indent + Indent + "return self._tab.VectorLen(o)\n";
     code += Indent + Indent + "return 0\n\n";
@@ -169,7 +170,8 @@ class PythonGenerator : public BaseGenerator {
     auto &code = *code_ptr;
 
     GenReceiver(struct_def, code_ptr);
-    code += MakeCamel(NormalizedName(field)) + "IsNone(self";
+    code +=
+        ConvertCase(NormalizedName(field), Case::kUpperCamel) + "IsNone(self";
     code += "):";
     code += GenIndents(2) +
             "o = flatbuffers.number_types.UOffsetTFlags.py_type" +
@@ -184,7 +186,7 @@ class PythonGenerator : public BaseGenerator {
     auto &code = *code_ptr;
     std::string getter = GenGetter(field.value.type);
     GenReceiver(struct_def, code_ptr);
-    code += MakeCamel(NormalizedName(field));
+    code += ConvertCase(NormalizedName(field), Case::kUpperCamel);
     code += "(self): return " + getter;
     code += "self._tab.Pos + flatbuffers.number_types.UOffsetTFlags.py_type(";
     code += NumToString(field.value.offset) + "))\n";
@@ -196,7 +198,7 @@ class PythonGenerator : public BaseGenerator {
     auto &code = *code_ptr;
     std::string getter = GenGetter(field.value.type);
     GenReceiver(struct_def, code_ptr);
-    code += MakeCamel(NormalizedName(field));
+    code += ConvertCase(NormalizedName(field), Case::kUpperCamel);
     code += "(self):";
     code += OffsetPrefix(field);
     getter += "o + self._tab.Pos)";
@@ -220,7 +222,7 @@ class PythonGenerator : public BaseGenerator {
                               const FieldDef &field, std::string *code_ptr) {
     auto &code = *code_ptr;
     GenReceiver(struct_def, code_ptr);
-    code += MakeCamel(NormalizedName(field));
+    code += ConvertCase(NormalizedName(field), Case::kUpperCamel);
     code += "(self, obj):\n";
     code += Indent + Indent + "obj.Init(self._tab.Bytes, self._tab.Pos + ";
     code += NumToString(field.value.offset) + ")";
@@ -233,7 +235,7 @@ class PythonGenerator : public BaseGenerator {
     auto &code = *code_ptr;
     const auto vec_type = field.value.type.VectorType();
     GenReceiver(struct_def, code_ptr);
-    code += MakeCamel(NormalizedName(field));
+    code += ConvertCase(NormalizedName(field), Case::kUpperCamel);
     if (IsStruct(vec_type)) {
       code += "(self, obj, i):\n";
       code += Indent + Indent + "obj.Init(self._tab.Bytes, self._tab.Pos + ";
@@ -257,7 +259,7 @@ class PythonGenerator : public BaseGenerator {
                              std::string *code_ptr) {
     auto &code = *code_ptr;
     GenReceiver(struct_def, code_ptr);
-    code += MakeCamel(NormalizedName(field));
+    code += ConvertCase(NormalizedName(field), Case::kUpperCamel);
     code += "(self):";
     code += OffsetPrefix(field);
     if (field.value.type.struct_def->fixed) {
@@ -282,7 +284,7 @@ class PythonGenerator : public BaseGenerator {
                       std::string *code_ptr) {
     auto &code = *code_ptr;
     GenReceiver(struct_def, code_ptr);
-    code += MakeCamel(NormalizedName(field));
+    code += ConvertCase(NormalizedName(field), Case::kUpperCamel);
     code += "(self):";
     code += OffsetPrefix(field);
     code += Indent + Indent + Indent + "return " + GenGetter(field.value.type);
@@ -295,7 +297,7 @@ class PythonGenerator : public BaseGenerator {
                      std::string *code_ptr) {
     auto &code = *code_ptr;
     GenReceiver(struct_def, code_ptr);
-    code += MakeCamel(NormalizedName(field)) + "(self):";
+    code += ConvertCase(NormalizedName(field), Case::kUpperCamel) + "(self):";
     code += OffsetPrefix(field);
 
     // TODO(rw): this works and is not the good way to it:
@@ -336,7 +338,7 @@ class PythonGenerator : public BaseGenerator {
     auto vectortype = field.value.type.VectorType();
 
     GenReceiver(struct_def, code_ptr);
-    code += MakeCamel(NormalizedName(field));
+    code += ConvertCase(NormalizedName(field), Case::kUpperCamel);
     code += "(self, j):" + OffsetPrefix(field);
     code += Indent + Indent + Indent + "x = self._tab.Vector(o)\n";
     code += Indent + Indent + Indent;
@@ -365,7 +367,7 @@ class PythonGenerator : public BaseGenerator {
     auto vectortype = field.value.type.VectorType();
 
     GenReceiver(struct_def, code_ptr);
-    code += MakeCamel(NormalizedName(field));
+    code += ConvertCase(NormalizedName(field), Case::kUpperCamel);
     code += "(self, j):";
     code += OffsetPrefix(field);
     code += Indent + Indent + Indent + "a = self._tab.Vector(o)\n";
@@ -394,13 +396,14 @@ class PythonGenerator : public BaseGenerator {
     if (!(IsScalar(vectortype.base_type))) { return; }
 
     GenReceiver(struct_def, code_ptr);
-    code += MakeCamel(NormalizedName(field)) + "AsNumpy(self):";
+    code += ConvertCase(NormalizedName(field), Case::kUpperCamel) +
+            "AsNumpy(self):";
     code += OffsetPrefix(field);
 
     code += Indent + Indent + Indent;
     code += "return ";
     code += "self._tab.GetVectorAsNumpy(flatbuffers.number_types.";
-    code += MakeCamel(GenTypeGet(field.value.type));
+    code += ConvertCase(GenTypeGet(field.value.type), Case::kUpperCamel);
     code += "Flags, o)\n";
 
     if (IsString(vectortype)) {
@@ -431,7 +434,8 @@ class PythonGenerator : public BaseGenerator {
 
     auto &code = *code_ptr;
     GenReceiver(struct_def, code_ptr);
-    code += MakeCamel(NormalizedName(field)) + "NestedRoot(self):";
+    code += ConvertCase(NormalizedName(field), Case::kUpperCamel) +
+            "NestedRoot(self):";
 
     code += OffsetPrefix(field);
 
@@ -479,7 +483,9 @@ class PythonGenerator : public BaseGenerator {
       } else {
         auto &code = *code_ptr;
         code += std::string(", ") + nameprefix;
-        if (has_field_name) { code += MakeCamel(NormalizedName(field), false); }
+        if (has_field_name) {
+          code += ConvertCase(NormalizedName(field), Case::kLowerCamel);
+        }
         code += namesuffix;
       }
     }
@@ -530,7 +536,8 @@ class PythonGenerator : public BaseGenerator {
         } else {
           code += IsArray(field_type) ? "    " : "";
           code += indent + "    builder.Prepend" + GenMethod(field) + "(";
-          code += nameprefix + MakeCamel(NormalizedName(field), false);
+          code += nameprefix +
+                  ConvertCase(NormalizedName(field), Case::kLowerCamel);
           size_t array_cnt = index + (IsArray(field_type) ? 1 : 0);
           for (size_t i = 0; in_array && i < array_cnt; i++) {
             code += "[_idx" + NumToString(i) + "-1]";
@@ -571,9 +578,9 @@ class PythonGenerator : public BaseGenerator {
 
     // Generate method with struct name.
     code += "def " + NormalizedName(struct_def) + "Add" +
-            MakeCamel(NormalizedName(field));
+            ConvertCase(NormalizedName(field), Case::kUpperCamel);
     code += "(builder, ";
-    code += MakeCamel(NormalizedName(field), false);
+    code += ConvertCase(NormalizedName(field), Case::kLowerCamel);
     code += "): ";
     code += "builder.Prepend";
     code += GenMethod(field) + "Slot(";
@@ -581,9 +588,9 @@ class PythonGenerator : public BaseGenerator {
     if (!IsScalar(field.value.type.base_type) && (!struct_def.fixed)) {
       code += "flatbuffers.number_types.UOffsetTFlags.py_type";
       code += "(";
-      code += MakeCamel(NormalizedName(field), false) + ")";
+      code += ConvertCase(NormalizedName(field), Case::kLowerCamel) + ")";
     } else {
-      code += MakeCamel(NormalizedName(field), false);
+      code += ConvertCase(NormalizedName(field), Case::kLowerCamel);
     }
     code += ", ";
     code += IsFloat(field.value.type.base_type)
@@ -593,14 +600,14 @@ class PythonGenerator : public BaseGenerator {
 
     if (!parser_.opts.one_file) {
       // Generate method without struct name.
-      code += "def Add" + MakeCamel(NormalizedName(field));
+      code += "def Add" + ConvertCase(NormalizedName(field), Case::kUpperCamel);
       code += "(builder, ";
-      code += MakeCamel(NormalizedName(field), false);
+      code += ConvertCase(NormalizedName(field), Case::kLowerCamel);
       code += "):\n";
       code += Indent + "return " + NormalizedName(struct_def) + "Add" +
-              MakeCamel(NormalizedName(field));
+              ConvertCase(NormalizedName(field), Case::kUpperCamel);
       code += "(builder, ";
-      code += MakeCamel(NormalizedName(field), false);
+      code += ConvertCase(NormalizedName(field), Case::kLowerCamel);
       code += ")\n";
     }
   }
@@ -612,7 +619,7 @@ class PythonGenerator : public BaseGenerator {
 
     // Generate method with struct name.
     code += "def " + NormalizedName(struct_def) + "Start";
-    code += MakeCamel(NormalizedName(field));
+    code += ConvertCase(NormalizedName(field), Case::kUpperCamel);
     code += "Vector(builder, numElems): return builder.StartVector(";
     auto vector_type = field.value.type.VectorType();
     auto alignment = InlineAlignment(vector_type);
@@ -624,10 +631,10 @@ class PythonGenerator : public BaseGenerator {
     if (!parser_.opts.one_file) {
       // Generate method without struct name.
       code += "def Start";
-      code += MakeCamel(NormalizedName(field));
+      code += ConvertCase(NormalizedName(field), Case::kUpperCamel);
       code += "Vector(builder, numElems):\n";
       code += Indent + "return " + NormalizedName(struct_def) + "Start";
-      code += MakeCamel(NormalizedName(field));
+      code += ConvertCase(NormalizedName(field), Case::kUpperCamel);
       code += "Vector(builder, numElems)\n";
     }
   }
@@ -656,7 +663,7 @@ class PythonGenerator : public BaseGenerator {
 
     // Generate method with struct and field name.
     code += "def " + NormalizedName(struct_def) + "Make";
-    code += MakeCamel(NormalizedName(field));
+    code += ConvertCase(NormalizedName(field), Case::kUpperCamel);
     code += "VectorFromBytes(builder, bytes):\n";
     code += Indent + "builder.StartVector(";
     auto vector_type = field.value.type.VectorType();
@@ -672,10 +679,11 @@ class PythonGenerator : public BaseGenerator {
 
     if (!parser_.opts.one_file) {
       // Generate method without struct and field name.
-      code += "def Make" + MakeCamel(NormalizedName(field)) +
+      code += "def Make" +
+              ConvertCase(NormalizedName(field), Case::kUpperCamel) +
               "VectorFromBytes(builder, bytes):\n";
       code += Indent + "return " + NormalizedName(struct_def) + "Make" +
-              MakeCamel(NormalizedName(field)) +
+              ConvertCase(NormalizedName(field), Case::kUpperCamel) +
               "VectorFromBytes(builder, bytes)\n";
     }
   }
@@ -1653,14 +1661,14 @@ class PythonGenerator : public BaseGenerator {
       case BASE_TYPE_VECTOR: return GenGetter(type.VectorType());
       default:
         return "self._tab.Get(flatbuffers.number_types." +
-               MakeCamel(GenTypeGet(type)) + "Flags, ";
+               ConvertCase(GenTypeGet(type), Case::kUpperCamel) + "Flags, ";
     }
   }
 
   // Returns the method name for use with add/put calls.
   std::string GenMethod(const FieldDef &field) {
     return (IsScalar(field.value.type.base_type) || IsArray(field.value.type))
-               ? MakeCamel(GenTypeBasic(field.value.type))
+               ? ConvertCase(GenTypeBasic(field.value.type), Case::kUpperCamel)
                : (IsStruct(field.value.type) ? "Struct" : "UOffsetTRelative");
   }
 

@@ -65,7 +65,7 @@ const static FlatCOption options[] = {
   { "M", "", "", "Print make rules for generated files." },
   { "", "version", "", "Print the version number of flatc and exit." },
   { "h", "help", "", "Prints this help text and exit." },
-  { "", "string-json", "",
+  { "", "strict-json", "",
     "Strict JSON: field names must be / will be quoted, no trailing commas in "
     "tables/vectors." },
   { "", "allow-non-utf8", "",
@@ -80,7 +80,7 @@ const static FlatCOption options[] = {
     "Allow fields in JSON that are not defined in the schema. These fields "
     "will be discared when generating binaries." },
   { "", "no-prefix", "",
-    "Don\'t prefix enum values with the enum type in C++." },
+    "Don't prefix enum values with the enum type in C++." },
   { "", "scoped-enums", "",
     "Use C++11 style scoped and strongly typed enums. Also implies "
     "--no-prefix." },
@@ -88,12 +88,13 @@ const static FlatCOption options[] = {
     "(deprecated), this is the default behavior. If the original behavior is "
     "required (no include statements) use --no-includes." },
   { "", "no-includes", "",
-    "Don\'t generate include statements for included schemas the generated "
-    "file depends on (C++ / Python)." },
+    "Don't generate include statements for included schemas the generated "
+    "file depends on (C++, Python, Proto-to-Fbs)." },
   { "", "gen-mutable", "",
     "Generate accessors that can mutate buffers in-place." },
   { "", "gen-onefile", "",
-    "Generate single output file for C#, Go, and Python." },
+    "Generate a single output file for C#, Go, Java, Kotlin and Python. "
+    "Implies --no-include." },
   { "", "gen-name-strings", "",
     "Generate type name functions for C++ and Rust." },
   { "", "gen-object-api", "", "Generate an additional object-based API." },
@@ -185,6 +186,8 @@ const static FlatCOption options[] = {
   { "", "reflect-names", "", "Add minimal type/name reflection." },
   { "", "rust-serialize", "",
     "Implement serde::Serialize on generated Rust types." },
+  { "", "rust-module-root-file", "",
+    "Generate rust code in individual files with a module root file." },
   { "", "root-type", "T", "Select or override the default root_type." },
   { "", "require-explicit-ids", "",
     "When parsing schemas, require explicit ids (id: x)." },
@@ -503,6 +506,8 @@ int FlatCompiler::Compile(int argc, const char **argv) {
         opts.mini_reflect = IDLOptions::kTypesAndNames;
       } else if (arg == "--rust-serialize") {
         opts.rust_serialize = true;
+      } else if (arg == "--rust-module-root-file") {
+        opts.rust_module_root_file = true;
       } else if (arg == "--require-explicit-ids") {
         opts.require_explicit_ids = true;
       } else if (arg == "--root-type") {

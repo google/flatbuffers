@@ -160,6 +160,33 @@ inline const char *EnumNameRace(Race e) {
   return EnumNamesRace()[index];
 }
 
+enum class LongEnum : uint64_t {
+  LongOne = 2ULL,
+  LongTwo = 4ULL,
+  LongBig = 1099511627776ULL,
+  NONE = 0,
+  ANY = 1099511627782ULL
+};
+FLATBUFFERS_DEFINE_BITMASK_OPERATORS(LongEnum, uint64_t)
+
+inline const LongEnum (&EnumValuesLongEnum())[3] {
+  static const LongEnum values[] = {
+    LongEnum::LongOne,
+    LongEnum::LongTwo,
+    LongEnum::LongBig
+  };
+  return values;
+}
+
+inline const char *EnumNameLongEnum(LongEnum e) {
+  switch (e) {
+    case LongEnum::LongOne: return "LongOne";
+    case LongEnum::LongTwo: return "LongTwo";
+    case LongEnum::LongBig: return "LongBig";
+    default: return "";
+  }
+}
+
 enum class Any : uint8_t {
   NONE = 0,
   Monster = 1,
@@ -1239,6 +1266,8 @@ struct MonsterT : public flatbuffers::NativeTable {
   std::vector<uint8_t> testrequirednestedflatbuffer{};
   std::vector<std::unique_ptr<MyGame::Example::StatT>> scalar_key_sorted_tables{};
   MyGame::Example::Test native_inline{};
+  MyGame::Example::LongEnum long_enum_non_enum_default = static_cast<MyGame::Example::LongEnum>(0);
+  MyGame::Example::LongEnum long_enum_normal_default = MyGame::Example::LongEnum::LongOne;
   MonsterT() = default;
   MonsterT(const MonsterT &o);
   MonsterT(MonsterT&&) FLATBUFFERS_NOEXCEPT = default;
@@ -1304,7 +1333,9 @@ struct Monster FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
     VT_SIGNED_ENUM = 100,
     VT_TESTREQUIREDNESTEDFLATBUFFER = 102,
     VT_SCALAR_KEY_SORTED_TABLES = 104,
-    VT_NATIVE_INLINE = 106
+    VT_NATIVE_INLINE = 106,
+    VT_LONG_ENUM_NON_ENUM_DEFAULT = 108,
+    VT_LONG_ENUM_NORMAL_DEFAULT = 110
   };
   const MyGame::Example::Vec3 *pos() const {
     return GetStruct<const MyGame::Example::Vec3 *>(VT_POS);
@@ -1649,6 +1680,18 @@ struct Monster FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   MyGame::Example::Test *mutable_native_inline() {
     return GetStruct<MyGame::Example::Test *>(VT_NATIVE_INLINE);
   }
+  MyGame::Example::LongEnum long_enum_non_enum_default() const {
+    return static_cast<MyGame::Example::LongEnum>(GetField<uint64_t>(VT_LONG_ENUM_NON_ENUM_DEFAULT, 0));
+  }
+  bool mutate_long_enum_non_enum_default(MyGame::Example::LongEnum _long_enum_non_enum_default = static_cast<MyGame::Example::LongEnum>(0)) {
+    return SetField<uint64_t>(VT_LONG_ENUM_NON_ENUM_DEFAULT, static_cast<uint64_t>(_long_enum_non_enum_default), 0);
+  }
+  MyGame::Example::LongEnum long_enum_normal_default() const {
+    return static_cast<MyGame::Example::LongEnum>(GetField<uint64_t>(VT_LONG_ENUM_NORMAL_DEFAULT, 2ULL));
+  }
+  bool mutate_long_enum_normal_default(MyGame::Example::LongEnum _long_enum_normal_default = static_cast<MyGame::Example::LongEnum>(2ULL)) {
+    return SetField<uint64_t>(VT_LONG_ENUM_NORMAL_DEFAULT, static_cast<uint64_t>(_long_enum_normal_default), 2ULL);
+  }
   template<size_t Index>
   auto get_field() const {
          if constexpr (Index == 0) return pos();
@@ -1702,6 +1745,8 @@ struct Monster FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
     else if constexpr (Index == 48) return testrequirednestedflatbuffer();
     else if constexpr (Index == 49) return scalar_key_sorted_tables();
     else if constexpr (Index == 50) return native_inline();
+    else if constexpr (Index == 51) return long_enum_non_enum_default();
+    else if constexpr (Index == 52) return long_enum_normal_default();
     else static_assert(Index != Index, "Invalid Field Index");
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
@@ -1793,6 +1838,8 @@ struct Monster FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
            verifier.VerifyVector(scalar_key_sorted_tables()) &&
            verifier.VerifyVectorOfTables(scalar_key_sorted_tables()) &&
            VerifyField<MyGame::Example::Test>(verifier, VT_NATIVE_INLINE, 2) &&
+           VerifyField<uint64_t>(verifier, VT_LONG_ENUM_NON_ENUM_DEFAULT, 8) &&
+           VerifyField<uint64_t>(verifier, VT_LONG_ENUM_NORMAL_DEFAULT, 8) &&
            verifier.EndTable();
   }
   MonsterT *UnPack(const flatbuffers::resolver_function_t *_resolver = nullptr) const;
@@ -1981,6 +2028,12 @@ struct MonsterBuilder {
   void add_native_inline(const MyGame::Example::Test *native_inline) {
     fbb_.AddStruct(Monster::VT_NATIVE_INLINE, native_inline);
   }
+  void add_long_enum_non_enum_default(MyGame::Example::LongEnum long_enum_non_enum_default) {
+    fbb_.AddElement<uint64_t>(Monster::VT_LONG_ENUM_NON_ENUM_DEFAULT, static_cast<uint64_t>(long_enum_non_enum_default), 0);
+  }
+  void add_long_enum_normal_default(MyGame::Example::LongEnum long_enum_normal_default) {
+    fbb_.AddElement<uint64_t>(Monster::VT_LONG_ENUM_NORMAL_DEFAULT, static_cast<uint64_t>(long_enum_normal_default), 2ULL);
+  }
   explicit MonsterBuilder(flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
@@ -2045,8 +2098,12 @@ inline flatbuffers::Offset<Monster> CreateMonster(
     MyGame::Example::Race signed_enum = MyGame::Example::Race::None,
     flatbuffers::Offset<flatbuffers::Vector<uint8_t>> testrequirednestedflatbuffer = 0,
     flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<MyGame::Example::Stat>>> scalar_key_sorted_tables = 0,
-    const MyGame::Example::Test *native_inline = nullptr) {
+    const MyGame::Example::Test *native_inline = nullptr,
+    MyGame::Example::LongEnum long_enum_non_enum_default = static_cast<MyGame::Example::LongEnum>(0),
+    MyGame::Example::LongEnum long_enum_normal_default = MyGame::Example::LongEnum::LongOne) {
   MonsterBuilder builder_(_fbb);
+  builder_.add_long_enum_normal_default(long_enum_normal_default);
+  builder_.add_long_enum_non_enum_default(long_enum_non_enum_default);
   builder_.add_non_owning_reference(non_owning_reference);
   builder_.add_co_owning_reference(co_owning_reference);
   builder_.add_single_weak_reference(single_weak_reference);
@@ -2106,7 +2163,7 @@ struct Monster::Traits {
   static auto constexpr Create = CreateMonster;
   static constexpr auto name = "Monster";
   static constexpr auto fully_qualified_name = "MyGame.Example.Monster";
-  static constexpr size_t fields_number = 51;
+  static constexpr size_t fields_number = 53;
   static constexpr std::array<const char *, fields_number> field_names = {
     "pos",
     "mana",
@@ -2158,7 +2215,9 @@ struct Monster::Traits {
     "signed_enum",
     "testrequirednestedflatbuffer",
     "scalar_key_sorted_tables",
-    "native_inline"
+    "native_inline",
+    "long_enum_non_enum_default",
+    "long_enum_normal_default"
   };
   template<size_t Index>
   using FieldType = decltype(std::declval<type>().get_field<Index>());
@@ -2216,7 +2275,9 @@ inline flatbuffers::Offset<Monster> CreateMonsterDirect(
     MyGame::Example::Race signed_enum = MyGame::Example::Race::None,
     const std::vector<uint8_t> *testrequirednestedflatbuffer = nullptr,
     std::vector<flatbuffers::Offset<MyGame::Example::Stat>> *scalar_key_sorted_tables = nullptr,
-    const MyGame::Example::Test *native_inline = nullptr) {
+    const MyGame::Example::Test *native_inline = nullptr,
+    MyGame::Example::LongEnum long_enum_non_enum_default = static_cast<MyGame::Example::LongEnum>(0),
+    MyGame::Example::LongEnum long_enum_normal_default = MyGame::Example::LongEnum::LongOne) {
   auto name__ = name ? _fbb.CreateString(name) : 0;
   auto inventory__ = inventory ? _fbb.CreateVector<uint8_t>(*inventory) : 0;
   auto test4__ = test4 ? _fbb.CreateVectorOfStructs<MyGame::Example::Test>(*test4) : 0;
@@ -2290,7 +2351,9 @@ inline flatbuffers::Offset<Monster> CreateMonsterDirect(
       signed_enum,
       testrequirednestedflatbuffer__,
       scalar_key_sorted_tables__,
-      native_inline);
+      native_inline,
+      long_enum_non_enum_default,
+      long_enum_normal_default);
 }
 
 flatbuffers::Offset<Monster> CreateMonster(flatbuffers::FlatBufferBuilder &_fbb, const MonsterT *_o, const flatbuffers::rehasher_function_t *_rehasher = nullptr);
@@ -2763,17 +2826,19 @@ inline MonsterT::MonsterT(const MonsterT &o)
         vector_of_enums(o.vector_of_enums),
         signed_enum(o.signed_enum),
         testrequirednestedflatbuffer(o.testrequirednestedflatbuffer),
-        native_inline(o.native_inline) {
+        native_inline(o.native_inline),
+        long_enum_non_enum_default(o.long_enum_non_enum_default),
+        long_enum_normal_default(o.long_enum_normal_default) {
   testarrayoftables.reserve(o.testarrayoftables.size());
-  for (const auto &v : o.testarrayoftables) { testarrayoftables.emplace_back((v) ? new MyGame::Example::MonsterT(*v) : nullptr); }
+  for (const auto &testarrayoftables_ : o.testarrayoftables) { testarrayoftables.emplace_back((testarrayoftables_) ? new MyGame::Example::MonsterT(*testarrayoftables_) : nullptr); }
   vector_of_referrables.reserve(o.vector_of_referrables.size());
-  for (const auto &v : o.vector_of_referrables) { vector_of_referrables.emplace_back((v) ? new MyGame::Example::ReferrableT(*v) : nullptr); }
+  for (const auto &vector_of_referrables_ : o.vector_of_referrables) { vector_of_referrables.emplace_back((vector_of_referrables_) ? new MyGame::Example::ReferrableT(*vector_of_referrables_) : nullptr); }
   vector_of_strong_referrables.reserve(o.vector_of_strong_referrables.size());
-  for (const auto &v : o.vector_of_strong_referrables) { vector_of_strong_referrables.emplace_back((v) ? new MyGame::Example::ReferrableT(*v) : nullptr); }
+  for (const auto &vector_of_strong_referrables_ : o.vector_of_strong_referrables) { vector_of_strong_referrables.emplace_back((vector_of_strong_referrables_) ? new MyGame::Example::ReferrableT(*vector_of_strong_referrables_) : nullptr); }
   vector_of_co_owning_references.reserve(o.vector_of_co_owning_references.size());
-  for (const auto &v : o.vector_of_co_owning_references) { vector_of_co_owning_references.emplace_back((v) ? new ReferrableT(*v) : nullptr); }
+  for (const auto &vector_of_co_owning_references_ : o.vector_of_co_owning_references) { vector_of_co_owning_references.emplace_back((vector_of_co_owning_references_) ? new ReferrableT(*vector_of_co_owning_references_) : nullptr); }
   scalar_key_sorted_tables.reserve(o.scalar_key_sorted_tables.size());
-  for (const auto &v : o.scalar_key_sorted_tables) { scalar_key_sorted_tables.emplace_back((v) ? new MyGame::Example::StatT(*v) : nullptr); }
+  for (const auto &scalar_key_sorted_tables_ : o.scalar_key_sorted_tables) { scalar_key_sorted_tables.emplace_back((scalar_key_sorted_tables_) ? new MyGame::Example::StatT(*scalar_key_sorted_tables_) : nullptr); }
 }
 
 inline MonsterT &MonsterT::operator=(MonsterT o) FLATBUFFERS_NOEXCEPT {
@@ -2825,6 +2890,8 @@ inline MonsterT &MonsterT::operator=(MonsterT o) FLATBUFFERS_NOEXCEPT {
   std::swap(testrequirednestedflatbuffer, o.testrequirednestedflatbuffer);
   std::swap(scalar_key_sorted_tables, o.scalar_key_sorted_tables);
   std::swap(native_inline, o.native_inline);
+  std::swap(long_enum_non_enum_default, o.long_enum_non_enum_default);
+  std::swap(long_enum_normal_default, o.long_enum_normal_default);
   return *this;
 }
 
@@ -2895,6 +2962,8 @@ if (_resolver) (*_resolver)(reinterpret_cast<void **>(&_o->vector_of_non_owning_
   { auto _e = testrequirednestedflatbuffer(); if (_e) { _o->testrequirednestedflatbuffer.resize(_e->size()); std::copy(_e->begin(), _e->end(), _o->testrequirednestedflatbuffer.begin()); } }
   { auto _e = scalar_key_sorted_tables(); if (_e) { _o->scalar_key_sorted_tables.resize(_e->size()); for (flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { if(_o->scalar_key_sorted_tables[_i]) { _e->Get(_i)->UnPackTo(_o->scalar_key_sorted_tables[_i].get(), _resolver); } else { _o->scalar_key_sorted_tables[_i] = std::unique_ptr<MyGame::Example::StatT>(_e->Get(_i)->UnPack(_resolver)); }; } } }
   { auto _e = native_inline(); if (_e) _o->native_inline = *_e; }
+  { auto _e = long_enum_non_enum_default(); _o->long_enum_non_enum_default = _e; }
+  { auto _e = long_enum_normal_default(); _o->long_enum_normal_default = _e; }
 }
 
 inline flatbuffers::Offset<Monster> Monster::Pack(flatbuffers::FlatBufferBuilder &_fbb, const MonsterT* _o, const flatbuffers::rehasher_function_t *_rehasher) {
@@ -2956,6 +3025,8 @@ inline flatbuffers::Offset<Monster> CreateMonster(flatbuffers::FlatBufferBuilder
   auto _testrequirednestedflatbuffer = _o->testrequirednestedflatbuffer.size() ? _fbb.CreateVector(_o->testrequirednestedflatbuffer) : 0;
   auto _scalar_key_sorted_tables = _o->scalar_key_sorted_tables.size() ? _fbb.CreateVector<flatbuffers::Offset<MyGame::Example::Stat>> (_o->scalar_key_sorted_tables.size(), [](size_t i, _VectorArgs *__va) { return CreateStat(*__va->__fbb, __va->__o->scalar_key_sorted_tables[i].get(), __va->__rehasher); }, &_va ) : 0;
   auto _native_inline = &_o->native_inline;
+  auto _long_enum_non_enum_default = _o->long_enum_non_enum_default;
+  auto _long_enum_normal_default = _o->long_enum_normal_default;
   return MyGame::Example::CreateMonster(
       _fbb,
       _pos,
@@ -3008,7 +3079,9 @@ inline flatbuffers::Offset<Monster> CreateMonster(flatbuffers::FlatBufferBuilder
       _signed_enum,
       _testrequirednestedflatbuffer,
       _scalar_key_sorted_tables,
-      _native_inline);
+      _native_inline,
+      _long_enum_non_enum_default,
+      _long_enum_normal_default);
 }
 
 inline TypeAliasesT *TypeAliases::UnPack(const flatbuffers::resolver_function_t *_resolver) const {
@@ -3453,6 +3526,27 @@ inline const flatbuffers::TypeTable *RaceTypeTable() {
   return &tt;
 }
 
+inline const flatbuffers::TypeTable *LongEnumTypeTable() {
+  static const flatbuffers::TypeCode type_codes[] = {
+    { flatbuffers::ET_ULONG, 0, 0 },
+    { flatbuffers::ET_ULONG, 0, 0 },
+    { flatbuffers::ET_ULONG, 0, 0 }
+  };
+  static const flatbuffers::TypeFunction type_refs[] = {
+    MyGame::Example::LongEnumTypeTable
+  };
+  static const int64_t values[] = { 2ULL, 4ULL, 1099511627776ULL };
+  static const char * const names[] = {
+    "LongOne",
+    "LongTwo",
+    "LongBig"
+  };
+  static const flatbuffers::TypeTable tt = {
+    flatbuffers::ST_ENUM, 3, type_codes, type_refs, nullptr, values, names
+  };
+  return &tt;
+}
+
 inline const flatbuffers::TypeTable *AnyTypeTable() {
   static const flatbuffers::TypeCode type_codes[] = {
     { flatbuffers::ET_SEQUENCE, 0, -1 },
@@ -3726,7 +3820,9 @@ inline const flatbuffers::TypeTable *MonsterTypeTable() {
     { flatbuffers::ET_CHAR, 0, 11 },
     { flatbuffers::ET_UCHAR, 1, -1 },
     { flatbuffers::ET_SEQUENCE, 1, 5 },
-    { flatbuffers::ET_SEQUENCE, 0, 3 }
+    { flatbuffers::ET_SEQUENCE, 0, 3 },
+    { flatbuffers::ET_ULONG, 0, 12 },
+    { flatbuffers::ET_ULONG, 0, 12 }
   };
   static const flatbuffers::TypeFunction type_refs[] = {
     MyGame::Example::Vec3TypeTable,
@@ -3740,7 +3836,8 @@ inline const flatbuffers::TypeTable *MonsterTypeTable() {
     MyGame::Example::ReferrableTypeTable,
     MyGame::Example::AnyUniqueAliasesTypeTable,
     MyGame::Example::AnyAmbiguousAliasesTypeTable,
-    MyGame::Example::RaceTypeTable
+    MyGame::Example::RaceTypeTable,
+    MyGame::Example::LongEnumTypeTable
   };
   static const char * const names[] = {
     "pos",
@@ -3794,10 +3891,12 @@ inline const flatbuffers::TypeTable *MonsterTypeTable() {
     "signed_enum",
     "testrequirednestedflatbuffer",
     "scalar_key_sorted_tables",
-    "native_inline"
+    "native_inline",
+    "long_enum_non_enum_default",
+    "long_enum_normal_default"
   };
   static const flatbuffers::TypeTable tt = {
-    flatbuffers::ST_TABLE, 52, type_codes, type_refs, nullptr, nullptr, names
+    flatbuffers::ST_TABLE, 54, type_codes, type_refs, nullptr, nullptr, names
   };
   return &tt;
 }

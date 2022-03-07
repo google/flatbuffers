@@ -64,7 +64,7 @@ through a *vtable*. Each table comes with a vtable (which may be shared
 between multiple tables with the same layout), and contains information
 where fields for this particular kind of instance of vtable are stored.
 The vtable may also indicate that the field is not present (because this
-FlatBuffer was written with an older version of the software, of simply
+FlatBuffer was written with an older version of the software, or simply
 because the information was not necessary for this instance, or deemed
 deprecated), in which case a default value is returned.
 

@@ -84,7 +84,7 @@ impl<'a, T: 'a> Vector<'a, T> {
 impl<'a, T: Follow<'a> + 'a> Vector<'a, T> {
     #[inline(always)]
     pub fn get(&self, idx: usize) -> T::Inner {
-        debug_assert!(idx < self.len() as usize);
+        assert!(idx < self.len() as usize);
         let sz = size_of::<T>();
         debug_assert!(sz > 0);
         T::follow(self.0, self.1 as usize + SIZE_UOFFSET + sz * idx)
