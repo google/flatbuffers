@@ -1774,6 +1774,7 @@ class PythonGenerator : public BaseGenerator {
 
     const std::string directories =
         parser_.opts.one_file ? path_ : namer_.Directories(ns.components);
+    EnsureDirExists(directories);
 
     for (size_t i = path_.size() + 1; i != std::string::npos;
          i = directories.find(kPathSeparator, i + 1)) {
@@ -1782,7 +1783,6 @@ class PythonGenerator : public BaseGenerator {
       SaveFile(init_py.c_str(), "", false);
     }
 
-    EnsureDirExists(directories);
     const std::string filename = directories + defname;
     return SaveFile(filename.c_str(), code, false);
   }
