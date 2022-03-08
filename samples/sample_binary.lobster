@@ -54,7 +54,7 @@ let orc = MyGame_Sample_MonsterBuilder { b }
     .end()
 
 // Finish the buffer!
-b.Finish(orc)
+b.Finish(orc, "MONS")
 
 // We now have a FlatBuffer that we could store on disk or send over a network.
 

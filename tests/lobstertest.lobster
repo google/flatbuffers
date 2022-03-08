@@ -17,7 +17,9 @@ import monster_test_generated
 import optional_scalars_generated
 
 def check_read_buffer(buf):
-    // CheckReadBuffer checks that the given buffer is evaluated correctly as the example Monster.
+    // Check that the given buffer is evaluated correctly as the example Monster.
+    assert flatbuffers_has_identifier(buf, "MONS")
+
     let monster = MyGame_Example_GetRootAsMonster(buf)
 
     assert monster.hp == 80
@@ -105,7 +107,7 @@ def make_monster_from_generated_code():
         .add_vector_of_doubles(vector_of_doubles)
         .end()
 
-    b.Finish(mon)
+    b.Finish(mon, "MONS")
 
     return b.SizedCopy()
 
@@ -126,8 +128,10 @@ def test_optional_scalars():
             ss.add_just_enum(optional_scalars_OptionalByte_Two)
             ss.add_maybe_enum(optional_scalars_OptionalByte_Two)
             ss.add_default_enum(optional_scalars_OptionalByte_Two)
-        b.Finish(ss.end())
-        return optional_scalars_GetRootAsScalarStuff(b.SizedCopy())
+        b.Finish(ss.end(), "NULL")
+        let buf = b.SizedCopy()
+        assert flatbuffers_has_identifier(buf, "NULL")
+        return optional_scalars_GetRootAsScalarStuff(buf)
 
     var root = build(true)
 
