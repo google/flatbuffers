@@ -43,7 +43,7 @@ std::set<std::string> PythonKeywords() {
 Namer::Config PythonDefaultConfig() {
   return { /*types=*/Case::kKeep,
            /*constants=*/Case::kScreamingSnake,
-            /*methods=*/Case::kUpperCamel,
+           /*methods=*/Case::kUpperCamel,
            /*functions=*/Case::kUpperCamel,
            /*fields=*/Case::kLowerCamel,
            /*variable=*/Case::kLowerCamel,
