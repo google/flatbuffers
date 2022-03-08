@@ -595,7 +595,8 @@ class GoGenerator : public BaseGenerator {
                          const size_t offset, std::string *code_ptr) {
     std::string &code = *code_ptr;
     const std::string field_var = namer_.Variable(field.name);
-    code += "func " + namer_.Type(struct_def.name) + "Add" + namer_.Function(field.name);
+    code += "func " + namer_.Type(struct_def.name) + "Add" +
+            namer_.Function(field.name);
     code += "(builder *flatbuffers.Builder, ";
     code += field_var + " ";
     if (!IsScalar(field.value.type.base_type) && (!struct_def.fixed)) {
@@ -903,7 +904,8 @@ class GoGenerator : public BaseGenerator {
       code += "\t\treturn &" +
               WrapInNameSpaceAndTrack(enum_def.defined_namespace,
                                       NativeName(enum_def)) +
-              "{ Type: " + namer_.EnumVariant(enum_def.name, ev.name) + ", Value: x.UnPack() }\n";
+              "{ Type: " + namer_.EnumVariant(enum_def.name, ev.name) +
+              ", Value: x.UnPack() }\n";
     }
     code += "\t}\n";
     code += "\treturn nil\n";
@@ -928,8 +930,8 @@ class GoGenerator : public BaseGenerator {
       const std::string offset = field_var + "Offset";
 
       if (IsString(field.value.type)) {
-        code += "\t" + offset + " := builder.CreateString(t." +
-                field_field + ")\n";
+        code +=
+            "\t" + offset + " := builder.CreateString(t." + field_field + ")\n";
       } else if (IsVector(field.value.type) &&
                  field.value.type.element == BASE_TYPE_UCHAR &&
                  field.value.type.enum_def == nullptr) {
@@ -943,8 +945,7 @@ class GoGenerator : public BaseGenerator {
         code += "\tif t." + field_field + " != nil {\n";
         std::string length = field_var + "Length";
         std::string offsets = field_var + "Offsets";
-        code +=
-            "\t\t" + length + " := len(t." + field_field + ")\n";
+        code += "\t\t" + length + " := len(t." + field_field + ")\n";
         if (field.value.type.element == BASE_TYPE_STRING) {
           code += "\t\t" + offsets + " := make([]flatbuffers.UOffsetT, " +
                   length + ")\n";
@@ -961,9 +962,8 @@ class GoGenerator : public BaseGenerator {
                   "[j].Pack(builder)\n";
           code += "\t\t}\n";
         }
-        code += "\t\t" + struct_type + "Start" +
-                namer_.Function(field.name) + "Vector(builder, " + length +
-                ")\n";
+        code += "\t\t" + struct_type + "Start" + namer_.Function(field.name) +
+                "Vector(builder, " + length + ")\n";
         code += "\t\tfor j := " + length + " - 1; j >= 0; j-- {\n";
         if (IsScalar(field.value.type.element)) {
           code += "\t\t\tbuilder.Prepend" +
@@ -983,11 +983,9 @@ class GoGenerator : public BaseGenerator {
         code += "\t}\n";
       } else if (field.value.type.base_type == BASE_TYPE_STRUCT) {
         if (field.value.type.struct_def->fixed) continue;
-        code += "\t" + offset + " := t." + field_field +
-                ".Pack(builder)\n";
+        code += "\t" + offset + " := t." + field_field + ".Pack(builder)\n";
       } else if (field.value.type.base_type == BASE_TYPE_UNION) {
-        code += "\t" + offset + " := t." + field_field +
-                ".Pack(builder)\n";
+        code += "\t" + offset + " := t." + field_field + ".Pack(builder)\n";
         code += "\t\n";
       } else {
         FLATBUFFERS_ASSERT(0);
@@ -1010,9 +1008,8 @@ class GoGenerator : public BaseGenerator {
         }
         if (field.value.type.enum_def == nullptr ||
             !field.value.type.enum_def->is_union) {
-          code += "\t" + struct_type + "Add" + field_fn +
-                  "(builder, " + prefix + "t." + field_field +
-                  ")\n";
+          code += "\t" + struct_type + "Add" + field_fn + "(builder, " +
+                  prefix + "t." + field_field + ")\n";
         }
         if (field.IsScalarOptional()) {
           code += "\t}\n";
@@ -1020,8 +1017,7 @@ class GoGenerator : public BaseGenerator {
       } else {
         if (field.value.type.base_type == BASE_TYPE_STRUCT &&
             field.value.type.struct_def->fixed) {
-          code += "\t" + offset + " := t." + field_field +
-                  ".Pack(builder)\n";
+          code += "\t" + offset + " := t." + field_field + ".Pack(builder)\n";
         } else if (field.value.type.enum_def != nullptr &&
                    field.value.type.enum_def->is_union) {
           code += "\tif t." + field_field + " != nil {\n";
@@ -1030,8 +1026,8 @@ class GoGenerator : public BaseGenerator {
                   "(builder, t." + field_field + ".Type)\n";
           code += "\t}\n";
         }
-        code += "\t" + struct_type + "Add" + field_fn +
-                "(builder, " + offset + ")\n";
+        code += "\t" + struct_type + "Add" + field_fn + "(builder, " + offset +
+                ")\n";
       }
     }
     code += "\treturn " + struct_type + "End(builder)\n";
@@ -1056,16 +1052,13 @@ class GoGenerator : public BaseGenerator {
         if (field.value.type.enum_def != nullptr &&
             field.value.type.enum_def->is_union)
           continue;
-        code +=
-            "\tt." + field_field + " = rcv." + field_field + "()\n";
+        code += "\tt." + field_field + " = rcv." + field_field + "()\n";
       } else if (IsString(field.value.type)) {
-        code += "\tt." + field_field + " = string(rcv." +
-                field_field + "())\n";
+        code += "\tt." + field_field + " = string(rcv." + field_field + "())\n";
       } else if (IsVector(field.value.type) &&
                  field.value.type.element == BASE_TYPE_UCHAR &&
                  field.value.type.enum_def == nullptr) {
-        code += "\tt." + field_field + " = rcv." + field_field +
-                "Bytes()\n";
+        code += "\tt." + field_field + " = rcv." + field_field + "Bytes()\n";
       } else if (IsVector(field.value.type)) {
         code += "\t" + length + " := rcv." + field_field + "Length()\n";
         code += "\tt." + field_field + " = make(" +
@@ -1091,8 +1084,8 @@ class GoGenerator : public BaseGenerator {
         code += "\n";
         code += "\t}\n";
       } else if (field.value.type.base_type == BASE_TYPE_STRUCT) {
-        code += "\tt." + field_field + " = rcv." + field_field +
-                "(nil).UnPack()\n";
+        code +=
+            "\tt." + field_field + " = rcv." + field_field + "(nil).UnPack()\n";
       } else if (field.value.type.base_type == BASE_TYPE_UNION) {
         const std::string field_table = field_var + "Table";
         code += "\t" + field_table + " := flatbuffers.Table{}\n";
