@@ -18,11 +18,11 @@ class ScalarStuff : flatbuffers_handle
     def default_i8():
         return buf_.flatbuffers_field_int8(pos_, 8, 42)
     def just_u8():
-        return buf_.flatbuffers_field_int8(pos_, 10, 0)
+        return buf_.flatbuffers_field_uint8(pos_, 10, 0)
     def maybe_u8():
-        return buf_.flatbuffers_field_int8(pos_, 12, 0), buf_.flatbuffers_field_present(pos_, 12)
+        return buf_.flatbuffers_field_uint8(pos_, 12, 0), buf_.flatbuffers_field_present(pos_, 12)
     def default_u8():
-        return buf_.flatbuffers_field_int8(pos_, 14, 42)
+        return buf_.flatbuffers_field_uint8(pos_, 14, 42)
     def just_i16():
         return buf_.flatbuffers_field_int16(pos_, 16, 0)
     def maybe_i16():
@@ -30,11 +30,11 @@ class ScalarStuff : flatbuffers_handle
     def default_i16():
         return buf_.flatbuffers_field_int16(pos_, 20, 42)
     def just_u16():
-        return buf_.flatbuffers_field_int16(pos_, 22, 0)
+        return buf_.flatbuffers_field_uint16(pos_, 22, 0)
     def maybe_u16():
-        return buf_.flatbuffers_field_int16(pos_, 24, 0), buf_.flatbuffers_field_present(pos_, 24)
+        return buf_.flatbuffers_field_uint16(pos_, 24, 0), buf_.flatbuffers_field_present(pos_, 24)
     def default_u16():
-        return buf_.flatbuffers_field_int16(pos_, 26, 42)
+        return buf_.flatbuffers_field_uint16(pos_, 26, 42)
     def just_i32():
         return buf_.flatbuffers_field_int32(pos_, 28, 0)
     def maybe_i32():
@@ -42,11 +42,11 @@ class ScalarStuff : flatbuffers_handle
     def default_i32():
         return buf_.flatbuffers_field_int32(pos_, 32, 42)
     def just_u32():
-        return buf_.flatbuffers_field_int32(pos_, 34, 0)
+        return buf_.flatbuffers_field_uint32(pos_, 34, 0)
     def maybe_u32():
-        return buf_.flatbuffers_field_int32(pos_, 36, 0), buf_.flatbuffers_field_present(pos_, 36)
+        return buf_.flatbuffers_field_uint32(pos_, 36, 0), buf_.flatbuffers_field_present(pos_, 36)
     def default_u32():
-        return buf_.flatbuffers_field_int32(pos_, 38, 42)
+        return buf_.flatbuffers_field_uint32(pos_, 38, 42)
     def just_i64():
         return buf_.flatbuffers_field_int64(pos_, 40, 0)
     def maybe_i64():
@@ -54,11 +54,11 @@ class ScalarStuff : flatbuffers_handle
     def default_i64():
         return buf_.flatbuffers_field_int64(pos_, 44, 42)
     def just_u64():
-        return buf_.flatbuffers_field_int64(pos_, 46, 0)
+        return buf_.flatbuffers_field_uint64(pos_, 46, 0)
     def maybe_u64():
-        return buf_.flatbuffers_field_int64(pos_, 48, 0), buf_.flatbuffers_field_present(pos_, 48)
+        return buf_.flatbuffers_field_uint64(pos_, 48, 0), buf_.flatbuffers_field_present(pos_, 48)
     def default_u64():
-        return buf_.flatbuffers_field_int64(pos_, 50, 42)
+        return buf_.flatbuffers_field_uint64(pos_, 50, 42)
     def just_f32():
         return buf_.flatbuffers_field_float32(pos_, 52, 0.0)
     def maybe_f32():

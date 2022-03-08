@@ -114,7 +114,7 @@ def CreateTest(b_:flatbuffers_builder, a:int, b:int):
 
 class TestSimpleTableWithEnum : flatbuffers_handle
     def color():
-        return Color(buf_.flatbuffers_field_int8(pos_, 4, 2))
+        return Color(buf_.flatbuffers_field_uint8(pos_, 4, 2))
 
 def GetRootAsTestSimpleTableWithEnum(buf:string): return TestSimpleTableWithEnum { buf, buf.flatbuffers_indirect(0) }
 
@@ -139,7 +139,7 @@ class Vec3 : flatbuffers_handle
     def test1():
         return buf_.read_float64_le(pos_ + 16)
     def test2():
-        return Color(buf_.read_int8_le(pos_ + 24))
+        return Color(buf_.read_uint8_le(pos_ + 24))
     def test3():
         return MyGame_Example_Test{ buf_, pos_ + 26 }
 
@@ -161,9 +161,9 @@ def CreateVec3(b_:flatbuffers_builder, x:float, y:float, z:float, test1:float, t
 
 class Ability : flatbuffers_handle
     def id():
-        return buf_.read_int32_le(pos_ + 0)
+        return buf_.read_uint32_le(pos_ + 0)
     def distance():
-        return buf_.read_int32_le(pos_ + 4)
+        return buf_.read_uint32_le(pos_ + 4)
 
 def CreateAbility(b_:flatbuffers_builder, id:int, distance:int):
     b_.Prep(4, 8)
@@ -199,7 +199,7 @@ class Stat : flatbuffers_handle
     def val():
         return buf_.flatbuffers_field_int64(pos_, 6, 0)
     def count():
-        return buf_.flatbuffers_field_int16(pos_, 8, 0)
+        return buf_.flatbuffers_field_uint16(pos_, 8, 0)
 
 def GetRootAsStat(buf:string): return Stat { buf, buf.flatbuffers_indirect(0) }
 
@@ -222,7 +222,7 @@ struct StatBuilder:
 
 class Referrable : flatbuffers_handle
     def id():
-        return buf_.flatbuffers_field_int64(pos_, 4, 0)
+        return buf_.flatbuffers_field_uint64(pos_, 4, 0)
 
 def GetRootAsReferrable(buf:string): return Referrable { buf, buf.flatbuffers_indirect(0) }
 
@@ -249,13 +249,13 @@ class Monster : flatbuffers_handle
     def name():
         return buf_.flatbuffers_field_string(pos_, 10)
     def inventory(i:int):
-        return buf_.read_int8_le(buf_.flatbuffers_field_vector(pos_, 14) + i * 1)
+        return buf_.read_uint8_le(buf_.flatbuffers_field_vector(pos_, 14) + i * 1)
     def inventory_length():
         return buf_.flatbuffers_field_vector_len(pos_, 14)
     def color():
-        return Color(buf_.flatbuffers_field_int8(pos_, 16, 8))
+        return Color(buf_.flatbuffers_field_uint8(pos_, 16, 8))
     def test_type():
-        return Any(buf_.flatbuffers_field_int8(pos_, 18, 0))
+        return Any(buf_.flatbuffers_field_uint8(pos_, 18, 0))
     def test_as_Monster():
         return MyGame_Example_Monster { buf_, buf_.flatbuffers_field_table(pos_, 20) }
     def test_as_TestSimpleTableWithEnum():
@@ -280,7 +280,7 @@ class Monster : flatbuffers_handle
         let o = buf_.flatbuffers_field_table(pos_, 28)
         return if o: MyGame_Example_Monster { buf_, o } else: nil
     def testnestedflatbuffer(i:int):
-        return buf_.read_int8_le(buf_.flatbuffers_field_vector(pos_, 30) + i * 1)
+        return buf_.read_uint8_le(buf_.flatbuffers_field_vector(pos_, 30) + i * 1)
     def testnestedflatbuffer_length():
         return buf_.flatbuffers_field_vector_len(pos_, 30)
     def testempty():
@@ -291,19 +291,19 @@ class Monster : flatbuffers_handle
     def testhashs32_fnv1():
         return buf_.flatbuffers_field_int32(pos_, 36, 0)
     def testhashu32_fnv1():
-        return buf_.flatbuffers_field_int32(pos_, 38, 0)
+        return buf_.flatbuffers_field_uint32(pos_, 38, 0)
     def testhashs64_fnv1():
         return buf_.flatbuffers_field_int64(pos_, 40, 0)
     def testhashu64_fnv1():
-        return buf_.flatbuffers_field_int64(pos_, 42, 0)
+        return buf_.flatbuffers_field_uint64(pos_, 42, 0)
     def testhashs32_fnv1a():
         return buf_.flatbuffers_field_int32(pos_, 44, 0)
     def testhashu32_fnv1a():
-        return buf_.flatbuffers_field_int32(pos_, 46, 0)
+        return buf_.flatbuffers_field_uint32(pos_, 46, 0)
     def testhashs64_fnv1a():
         return buf_.flatbuffers_field_int64(pos_, 48, 0)
     def testhashu64_fnv1a():
-        return buf_.flatbuffers_field_int64(pos_, 50, 0)
+        return buf_.flatbuffers_field_uint64(pos_, 50, 0)
     def testarrayofbools(i:int):
         return buf_.read_int8_le(buf_.flatbuffers_field_vector(pos_, 52) + i * 1)
     def testarrayofbools_length():
@@ -323,7 +323,7 @@ class Monster : flatbuffers_handle
     def testarrayofsortedstruct_length():
         return buf_.flatbuffers_field_vector_len(pos_, 62)
     def flex(i:int):
-        return buf_.read_int8_le(buf_.flatbuffers_field_vector(pos_, 64) + i * 1)
+        return buf_.read_uint8_le(buf_.flatbuffers_field_vector(pos_, 64) + i * 1)
     def flex_length():
         return buf_.flatbuffers_field_vector_len(pos_, 64)
     def test5(i:int):
@@ -346,9 +346,9 @@ class Monster : flatbuffers_handle
     def vector_of_referrables_length():
         return buf_.flatbuffers_field_vector_len(pos_, 74)
     def single_weak_reference():
-        return buf_.flatbuffers_field_int64(pos_, 76, 0)
+        return buf_.flatbuffers_field_uint64(pos_, 76, 0)
     def vector_of_weak_references(i:int):
-        return buf_.read_int64_le(buf_.flatbuffers_field_vector(pos_, 78) + i * 8)
+        return buf_.read_uint64_le(buf_.flatbuffers_field_vector(pos_, 78) + i * 8)
     def vector_of_weak_references_length():
         return buf_.flatbuffers_field_vector_len(pos_, 78)
     def vector_of_strong_referrables(i:int):
@@ -356,19 +356,19 @@ class Monster : flatbuffers_handle
     def vector_of_strong_referrables_length():
         return buf_.flatbuffers_field_vector_len(pos_, 80)
     def co_owning_reference():
-        return buf_.flatbuffers_field_int64(pos_, 82, 0)
+        return buf_.flatbuffers_field_uint64(pos_, 82, 0)
     def vector_of_co_owning_references(i:int):
-        return buf_.read_int64_le(buf_.flatbuffers_field_vector(pos_, 84) + i * 8)
+        return buf_.read_uint64_le(buf_.flatbuffers_field_vector(pos_, 84) + i * 8)
     def vector_of_co_owning_references_length():
         return buf_.flatbuffers_field_vector_len(pos_, 84)
     def non_owning_reference():
-        return buf_.flatbuffers_field_int64(pos_, 86, 0)
+        return buf_.flatbuffers_field_uint64(pos_, 86, 0)
     def vector_of_non_owning_references(i:int):
-        return buf_.read_int64_le(buf_.flatbuffers_field_vector(pos_, 88) + i * 8)
+        return buf_.read_uint64_le(buf_.flatbuffers_field_vector(pos_, 88) + i * 8)
     def vector_of_non_owning_references_length():
         return buf_.flatbuffers_field_vector_len(pos_, 88)
     def any_unique_type():
-        return AnyUniqueAliases(buf_.flatbuffers_field_int8(pos_, 90, 0))
+        return AnyUniqueAliases(buf_.flatbuffers_field_uint8(pos_, 90, 0))
     def any_unique_as_M():
         return MyGame_Example_Monster { buf_, buf_.flatbuffers_field_table(pos_, 92) }
     def any_unique_as_TS():
@@ -376,7 +376,7 @@ class Monster : flatbuffers_handle
     def any_unique_as_M2():
         return MyGame_Example2_Monster { buf_, buf_.flatbuffers_field_table(pos_, 92) }
     def any_ambiguous_type():
-        return AnyAmbiguousAliases(buf_.flatbuffers_field_int8(pos_, 94, 0))
+        return AnyAmbiguousAliases(buf_.flatbuffers_field_uint8(pos_, 94, 0))
     def any_ambiguous_as_M1():
         return MyGame_Example_Monster { buf_, buf_.flatbuffers_field_table(pos_, 96) }
     def any_ambiguous_as_M2():
@@ -384,13 +384,13 @@ class Monster : flatbuffers_handle
     def any_ambiguous_as_M3():
         return MyGame_Example_Monster { buf_, buf_.flatbuffers_field_table(pos_, 96) }
     def vector_of_enums(i:int):
-        return buf_.read_int8_le(buf_.flatbuffers_field_vector(pos_, 98) + i * 1)
+        return buf_.read_uint8_le(buf_.flatbuffers_field_vector(pos_, 98) + i * 1)
     def vector_of_enums_length():
         return buf_.flatbuffers_field_vector_len(pos_, 98)
     def signed_enum():
         return Race(buf_.flatbuffers_field_int8(pos_, 100, -1))
     def testrequirednestedflatbuffer(i:int):
-        return buf_.read_int8_le(buf_.flatbuffers_field_vector(pos_, 102) + i * 1)
+        return buf_.read_uint8_le(buf_.flatbuffers_field_vector(pos_, 102) + i * 1)
     def testrequirednestedflatbuffer_length():
         return buf_.flatbuffers_field_vector_len(pos_, 102)
     def scalar_key_sorted_tables(i:int):
@@ -401,9 +401,9 @@ class Monster : flatbuffers_handle
         let o = buf_.flatbuffers_field_struct(pos_, 106)
         return if o: MyGame_Example_Test { buf_, o } else: nil
     def long_enum_non_enum_default():
-        return LongEnum(buf_.flatbuffers_field_int64(pos_, 108, 0))
+        return LongEnum(buf_.flatbuffers_field_uint64(pos_, 108, 0))
     def long_enum_normal_default():
-        return LongEnum(buf_.flatbuffers_field_int64(pos_, 110, 2))
+        return LongEnum(buf_.flatbuffers_field_uint64(pos_, 110, 2))
 
 def GetRootAsMonster(buf:string): return Monster { buf, buf.flatbuffers_indirect(0) }
 
@@ -706,19 +706,19 @@ class TypeAliases : flatbuffers_handle
     def i8():
         return buf_.flatbuffers_field_int8(pos_, 4, 0)
     def u8():
-        return buf_.flatbuffers_field_int8(pos_, 6, 0)
+        return buf_.flatbuffers_field_uint8(pos_, 6, 0)
     def i16():
         return buf_.flatbuffers_field_int16(pos_, 8, 0)
     def u16():
-        return buf_.flatbuffers_field_int16(pos_, 10, 0)
+        return buf_.flatbuffers_field_uint16(pos_, 10, 0)
     def i32():
         return buf_.flatbuffers_field_int32(pos_, 12, 0)
     def u32():
-        return buf_.flatbuffers_field_int32(pos_, 14, 0)
+        return buf_.flatbuffers_field_uint32(pos_, 14, 0)
     def i64():
         return buf_.flatbuffers_field_int64(pos_, 16, 0)
     def u64():
-        return buf_.flatbuffers_field_int64(pos_, 18, 0)
+        return buf_.flatbuffers_field_uint64(pos_, 18, 0)
     def f32():
         return buf_.flatbuffers_field_float32(pos_, 20, 0.0)
     def f64():

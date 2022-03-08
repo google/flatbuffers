@@ -44,7 +44,7 @@ class Monster : flatbuffers_handle
     def name():
         return buf_.flatbuffers_field_string(pos_, 10)
     def inventory(i:int):
-        return buf_.read_int8_le(buf_.flatbuffers_field_vector(pos_, 14) + i * 1)
+        return buf_.read_uint8_le(buf_.flatbuffers_field_vector(pos_, 14) + i * 1)
     def inventory_length():
         return buf_.flatbuffers_field_vector_len(pos_, 14)
     def color():
@@ -54,7 +54,7 @@ class Monster : flatbuffers_handle
     def weapons_length():
         return buf_.flatbuffers_field_vector_len(pos_, 18)
     def equipped_type():
-        return Equipment(buf_.flatbuffers_field_int8(pos_, 20, 0))
+        return Equipment(buf_.flatbuffers_field_uint8(pos_, 20, 0))
     def equipped_as_Weapon():
         return MyGame_Sample_Weapon { buf_, buf_.flatbuffers_field_table(pos_, 22) }
     def path(i:int):
