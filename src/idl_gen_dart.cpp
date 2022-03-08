@@ -898,12 +898,12 @@ class DartGenerator : public BaseGenerator {
         if (field.value.type.enum_def) { code += "?.value"; }
         code += ");\n";
       } else if (IsStruct(field.value.type)) {
-        code += "  int add" + EscapeKeyword(field.name) +
+        code += "  int add" + ConvertCase(field.name, Case::kUpperCamel) +
                 "(int offset) {\n";
         code +=
             "    fbBuilder.addStruct(" + NumToString(offset) + ", offset);\n";
       } else {
-        code += "  int add" + EscapeKeyword(field.name) +
+        code += "  int add" + ConvertCase(field.name, Case::kUpperCamel) +
                 "Offset(int? offset) {\n";
         code +=
             "    fbBuilder.addOffset(" + NumToString(offset) + ", offset);\n";
