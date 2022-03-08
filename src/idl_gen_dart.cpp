@@ -532,7 +532,7 @@ class DartGenerator : public BaseGenerator {
          it != non_deprecated_fields.end(); ++it) {
       const FieldDef &field = *it->second;
 
-      std::string field_name = ConvertCase(field.name, Case::kLowerCamel);
+      std::string field_name = EscapeKeyword(field.name);
       std::string defaultValue = getDefaultValue(field.value);
       std::string type_name =
           GenDartTypeName(field.value.type, struct_def.defined_namespace, field,
@@ -581,7 +581,7 @@ class DartGenerator : public BaseGenerator {
          it != non_deprecated_fields.end(); ++it) {
       const FieldDef &field = *it->second;
 
-      std::string field_name = ConvertCase(field.name, Case::kLowerCamel);
+      std::string field_name = EscapeKeyword(field.name);
       if (!constructor_args.empty()) constructor_args += ",\n";
       constructor_args += "      " + field_name + ": ";
 
@@ -674,7 +674,7 @@ class DartGenerator : public BaseGenerator {
       auto pair = *it;
       auto &field = *pair.second;
 
-      std::string field_name = ConvertCase(field.name, Case::kLowerCamel);
+      std::string field_name = EscapeKeyword(field.name);
       std::string defaultValue = getDefaultValue(field.value);
       bool isNullable = defaultValue.empty() && !struct_def.fixed;
       std::string type_name =
@@ -747,8 +747,8 @@ class DartGenerator : public BaseGenerator {
          it != non_deprecated_fields.end(); ++it) {
       auto pair = *it;
       auto &field = *pair.second;
-      code += ConvertCase(field.name, Case::kLowerCamel) + ": $" +
-              ConvertCase(field.name, Case::kLowerCamel);
+      code += EscapeKeyword(field.name) + ": $" +
+              EscapeKeyword(field.name);
       if (it != non_deprecated_fields.end() - 1) { code += ", "; }
     }
     code += "}';\n";
@@ -891,19 +891,19 @@ class DartGenerator : public BaseGenerator {
         code += "  int add" + ConvertCase(field.name, Case::kUpperCamel) + "(";
         code += GenDartTypeName(field.value.type, struct_def.defined_namespace,
                                 field);
-        code += "? " + ConvertCase(field.name, Case::kLowerCamel) + ") {\n";
+        code += "? " + EscapeKeyword(field.name) + ") {\n";
         code += "    fbBuilder.add" + GenType(field.value.type) + "(" +
                 NumToString(offset) + ", ";
-        code += ConvertCase(field.name, Case::kLowerCamel);
+        code += EscapeKeyword(field.name);
         if (field.value.type.enum_def) { code += "?.value"; }
         code += ");\n";
       } else if (IsStruct(field.value.type)) {
-        code += "  int add" + ConvertCase(field.name, Case::kUpperCamel) +
+        code += "  int add" + EscapeKeyword(field.name) +
                 "(int offset) {\n";
         code +=
             "    fbBuilder.addStruct(" + NumToString(offset) + ", offset);\n";
       } else {
-        code += "  int add" + ConvertCase(field.name, Case::kUpperCamel) +
+        code += "  int add" + EscapeKeyword(field.name) +
                 "Offset(int? offset) {\n";
         code +=
             "    fbBuilder.addOffset(" + NumToString(offset) + ", offset);\n";
@@ -934,7 +934,7 @@ class DartGenerator : public BaseGenerator {
       code += "  final " +
               GenDartTypeName(field.value.type, struct_def.defined_namespace,
                               field, !struct_def.fixed, "ObjectBuilder") +
-              " _" + ConvertCase(field.name, Case::kLowerCamel) + ";\n";
+              " _" + EscapeKeyword(field.name) + ";\n";
     }
     code += "\n";
     code += "  " + builder_name + "(";
@@ -950,7 +950,7 @@ class DartGenerator : public BaseGenerator {
         code += (struct_def.fixed ? "required " : "") +
                 GenDartTypeName(field.value.type, struct_def.defined_namespace,
                                 field, !struct_def.fixed, "ObjectBuilder") +
-                " " + ConvertCase(field.name, Case::kLowerCamel) + ",\n";
+                " " + EscapeKeyword(field.name) + ",\n";
       }
       code += "  })\n";
       code += "      : ";
@@ -959,8 +959,8 @@ class DartGenerator : public BaseGenerator {
         auto pair = *it;
         auto &field = *pair.second;
 
-        code += "_" + ConvertCase(field.name, Case::kLowerCamel) + " = " +
-                ConvertCase(field.name, Case::kLowerCamel);
+        code += "_" + EscapeKeyword(field.name) + " = " +
+                EscapeKeyword(field.name);
         if (it == non_deprecated_fields.end() - 1) {
           code += ";\n\n";
         } else {
@@ -1001,9 +1001,9 @@ class DartGenerator : public BaseGenerator {
         continue;
 
       std::string offset_name =
-          ConvertCase(field.name, Case::kLowerCamel) + "Offset";
+          EscapeKeyword(field.name) + "Offset";
       std::string field_name = (prependUnderscore ? "_" : "") +
-                               ConvertCase(field.name, Case::kLowerCamel);
+                               EscapeKeyword(field.name);
 
       // custom handling for fixed-sized struct in pack()
       if (pack && IsVector(field.value.type) &&
@@ -1013,7 +1013,7 @@ class DartGenerator : public BaseGenerator {
         code += "    if (" + field_name + " != null) {\n";
         code +=
             "      for (var e in " + field_name + "!) { e.pack(fbBuilder); }\n";
-        code += "      " + ConvertCase(field.name, Case::kLowerCamel) +
+        code += "      " + EscapeKeyword(field.name) +
                 "Offset = fbBuilder.endStructVector(" + field_name +
                 "!.length);\n";
         code += "    }\n";
@@ -1086,7 +1086,7 @@ class DartGenerator : public BaseGenerator {
       } else {
         code += "    fbBuilder.put" + GenType(field.value.type) + "(";
         if (prependUnderscore) { code += "_"; }
-        code += field.name;
+        code += EscapeKeyword(field.name);
         if (field.value.type.enum_def) { code += ".value"; }
         code += ");\n";
       }
@@ -1111,7 +1111,7 @@ class DartGenerator : public BaseGenerator {
       auto offset = pair.first;
 
       std::string field_name = (prependUnderscore ? "_" : "") +
-                               ConvertCase(field.name, Case::kLowerCamel);
+                               EscapeKeyword(field.name);
 
       if (IsScalar(field.value.type.base_type)) {
         code += "    fbBuilder.add" + GenType(field.value.type) + "(" +
@@ -1128,7 +1128,7 @@ class DartGenerator : public BaseGenerator {
         code += "    }\n";
       } else {
         code += "    fbBuilder.addOffset(" + NumToString(offset) + ", " +
-                ConvertCase(field.name, Case::kLowerCamel) + "Offset);\n";
+                EscapeKeyword(field.name) + "Offset);\n";
       }
     }
     code += "    return fbBuilder.endTable();\n";
