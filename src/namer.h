@@ -62,6 +62,16 @@ class Namer {
     // e.g. `Enum::MyVariant` uses `::`.
     std::string enum_variant_seperator;
 
+    // Configures, when formatting code, whether symbols are checked against
+    // keywords and escaped before or after case conversion. It does not make
+    // sense to do so before, but its legacy behavior. :shrug:
+    // TODO(caspern): Deprecate.
+    enum class Escape {
+      BeforeConvertingCase,
+      AfterConvertingCase,
+    };
+    Escape escape_keywords;
+
     // Namespaces
 
     // e.g. `namespace my_namespace {}`
@@ -240,6 +250,15 @@ class Namer {
     return "VT_" + ConvertCase(EscapeKeyword(field.name), Case::kAllUpper);
   }
 
+  // TODO(caspern): What's up with this case style?
+  std::string LegacySwiftVariant(const EnumVal &ev) const {
+    auto name = ev.name;
+    if (isupper(name.front())) {
+      std::transform(name.begin(), name.end(), name.begin(), CharToLower);
+    }
+    return EscapeKeyword(ConvertCase(name, Case::kLowerCamel));
+  }
+
  private:
   std::string Type(const std::string &s) const {
     return Format(s, config_.types);
@@ -262,9 +281,11 @@ class Namer {
   }
 
   std::string Format(const std::string &s, Case casing) const {
-    // NOTE: If you need to escape keywords after converting case, which would
-    // make more sense than this, make it a config option.
-    return ConvertCase(EscapeKeyword(s), casing, Case::kLowerCamel);
+    if (config_.escape_keywords == Config::Escape::BeforeConvertingCase) {
+      return ConvertCase(EscapeKeyword(s), casing, Case::kLowerCamel);
+    } else {
+      return EscapeKeyword(ConvertCase(s, casing, Case::kLowerCamel));
+    }
   }
   const Config config_;
   const std::set<std::string> keywords_;
