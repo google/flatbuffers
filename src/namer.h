@@ -16,6 +16,18 @@ enum class SkipFile {
 inline SkipFile operator&(SkipFile a, SkipFile b) {
   return static_cast<SkipFile>(static_cast<int>(a) & static_cast<int>(b));
 }
+// Options for Namer::Directories
+enum class SkipDir {
+  None = 0,
+  // Skip prefixing the -o $output_path.
+  OutputPath = 1,
+  // Skip trailing path seperator.
+  TrailingPathSeperator = 2,
+  OutputPathAndTrailingPathSeparator = 3,
+};
+inline SkipDir operator&(SkipDir a, SkipDir b) {
+  return static_cast<SkipDir>(static_cast<int>(a) & static_cast<int>(b));
+}
 
 // `Namer` applies style configuration to symbols in generated code. It manages
 // casing, escapes keywords, and object API naming.
@@ -163,14 +175,22 @@ class Namer {
            (skip_suffix ? "" : config_.filename_suffix) +
            (skip_ext ? "" : config_.filename_extension);
   }
-  // Formats `directories` and returns a filepath with the right seperator.
+  // Formats `directories` prefixed with the output_path and joined with the
+  // right seperator. Output path prefixing and the trailing separator may be
+  // skiped using `skips`.
   // Callers may want to use `EnsureDirExists` with the result.
-  std::string Directories(const std::vector<std::string> &directories) const {
-    std::string result = config_.output_path;
+  std::string Directories(const std::vector<std::string> &directories,
+                          SkipDir skips = SkipDir::None) const {
+    const bool skip_output_path =
+        (skips & SkipDir::OutputPath) != SkipDir::None;
+    const bool skip_trailing_seperator =
+        (skips & SkipDir::TrailingPathSeperator) != SkipDir::None;
+    std::string result = skip_output_path ? "" : config_.output_path;
     for (auto d = directories.begin(); d != directories.end(); d++) {
       result += ConvertCase(*d, config_.directories, Case::kUpperCamel);
       result.push_back(kPathSeparator);
     }
+    if (skip_trailing_seperator) result.pop_back();
     return result;
   }
 
