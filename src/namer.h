@@ -13,8 +13,20 @@ enum class SkipFile {
   Extension = 2,
   SuffixAndExtension = 3,
 };
-SkipFile operator&(SkipFile a, SkipFile b) {
+inline SkipFile operator&(SkipFile a, SkipFile b) {
   return static_cast<SkipFile>(static_cast<int>(a) & static_cast<int>(b));
+}
+// Options for Namer::Directories
+enum class SkipDir {
+  None = 0,
+  // Skip prefixing the -o $output_path.
+  OutputPath = 1,
+  // Skip trailing path seperator.
+  TrailingPathSeperator = 2,
+  OutputPathAndTrailingPathSeparator = 3,
+};
+inline SkipDir operator&(SkipDir a, SkipDir b) {
+  return static_cast<SkipDir>(static_cast<int>(a) & static_cast<int>(b));
 }
 
 // `Namer` applies style configuration to symbols in generated code. It manages
@@ -40,6 +52,9 @@ class Namer {
     // Case style for flatbuffers-defined fields.
     // e.g. `struct Struct { int my_field; }`
     Case fields;
+    // Case style for flatbuffers-defined variables.
+    // e.g. `int my_variable = 2`
+    Case variables;
     // Case style for flatbuffers-defined variants.
     // e.g. `enum class Enum { MyVariant, }`
     Case variants;
@@ -117,6 +132,10 @@ class Namer {
     return Format(s, config_.fields);
   }
 
+  std::string Variable(const std::string &s) const {
+    return Format(s, config_.variables);
+  }
+
   std::string Variant(const std::string &s) const {
     return Format(s, config_.variants);
   }
@@ -142,6 +161,11 @@ class Namer {
     return result;
   }
 
+  std::string NamespacedType(const std::vector<std::string> &ns,
+                             const std::string &s) const {
+    return Namespace(ns) + config_.namespace_seperator + Type(s);
+  }
+
   // Returns `filename` with the right casing, suffix, and extension.
   std::string File(const std::string &filename,
                    SkipFile skips = SkipFile::None) const {
@@ -151,14 +175,22 @@ class Namer {
            (skip_suffix ? "" : config_.filename_suffix) +
            (skip_ext ? "" : config_.filename_extension);
   }
-  // Formats `directories` and returns a filepath with the right seperator.
+  // Formats `directories` prefixed with the output_path and joined with the
+  // right seperator. Output path prefixing and the trailing separator may be
+  // skiped using `skips`.
   // Callers may want to use `EnsureDirExists` with the result.
-  std::string Directories(const std::vector<std::string> &directories) const {
-    std::string result = config_.output_path;
+  std::string Directories(const std::vector<std::string> &directories,
+                          SkipDir skips = SkipDir::None) const {
+    const bool skip_output_path =
+        (skips & SkipDir::OutputPath) != SkipDir::None;
+    const bool skip_trailing_seperator =
+        (skips & SkipDir::TrailingPathSeperator) != SkipDir::None;
+    std::string result = skip_output_path ? "" : config_.output_path;
     for (auto d = directories.begin(); d != directories.end(); d++) {
       result += ConvertCase(*d, config_.directories, Case::kUpperCamel);
       result.push_back(kPathSeparator);
     }
+    if (skip_trailing_seperator) result.pop_back();
     return result;
   }
 

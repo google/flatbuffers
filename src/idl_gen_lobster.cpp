@@ -60,7 +60,10 @@ class LobsterGenerator : public BaseGenerator {
 
   std::string GenTypeName(const Type &type) {
     auto bits = NumToString(SizeOf(type.base_type) * 8);
-    if (IsInteger(type.base_type)) return "int" + bits;
+    if (IsInteger(type.base_type)) {
+      if (IsUnsigned(type.base_type)) return "uint" + bits;
+      else return "int" + bits;
+    }
     if (IsFloat(type.base_type)) return "float" + bits;
     if (IsString(type)) return "string";
     if (type.base_type == BASE_TYPE_STRUCT) return "table";
