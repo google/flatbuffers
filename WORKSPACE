@@ -44,3 +44,27 @@ grpc_deps()
 load("@com_github_grpc_grpc//bazel:grpc_extra_deps.bzl", "grpc_extra_deps")
 
 grpc_extra_deps()
+
+http_archive(
+    name = "build_bazel_rules_nodejs",
+    sha256 = "965ee2492a2b087cf9e0f2ca472aeaf1be2eb650e0cfbddf514b9a7d3ea4b02a",
+    urls = ["https://github.com/bazelbuild/rules_nodejs/releases/download/5.2.0/rules_nodejs-5.2.0.tar.gz"],
+)
+
+load("@build_bazel_rules_nodejs//:repositories.bzl", "build_bazel_rules_nodejs_dependencies")
+
+build_bazel_rules_nodejs_dependencies()
+
+load("@build_bazel_rules_nodejs//:index.bzl", "node_repositories", "yarn_install")
+
+node_repositories()
+
+yarn_install(
+    name = "npm",
+    exports_directories_only = False,
+    # Unfreeze to add/remove packages.
+    frozen_lockfile = True,
+    package_json = "//:package.json",
+    symlink_node_modules = False,
+    yarn_lock = "//:yarn.lock",
+)

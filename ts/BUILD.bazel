@@ -1,0 +1,39 @@
+load("@npm//@bazel/typescript:index.bzl", "ts_project")
+load("@build_bazel_rules_nodejs//:index.bzl", "js_library")
+
+ts_project(
+    name = "flatbuffers_ts",
+    srcs = [
+        "builder.ts",
+        "byte-buffer.ts",
+        "constants.ts",
+        "encoding.ts",
+        "index.ts",
+        "types.ts",
+        "utils.ts",
+    ],
+    declaration = True,
+    tsconfig = {
+        "compilerOptions": {
+            "module": "commonjs",
+            "declaration": True,
+            "moduleResolution": "node",
+            "lib": [
+                "ES2015",
+                "ES2020.BigInt",
+                "DOM",
+            ],
+            "types": ["node"],
+            "strict": True,
+        },
+    },
+    visibility = ["//visibility:public"],
+    deps = ["@npm//@types/node"],
+)
+
+js_library(
+    name = "flatbuffers",
+    package_name = "flatbuffers",
+    visibility = ["//visibility:public"],
+    deps = [":flatbuffers_ts"],
+)

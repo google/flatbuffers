@@ -8,6 +8,7 @@ package(
 
 exports_files([
     "LICENSE",
+    "tsconfig.json",
 ])
 
 config_setting(
@@ -79,6 +80,7 @@ cc_library(
 # Public flatc compiler.
 cc_binary(
     name = "flatc",
+    data = ["//reflection:reflection_fbs_schema"],
     deps = [
         "//src:flatc",
     ],

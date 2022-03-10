@@ -213,6 +213,8 @@ const static FlatCOption options[] = {
   { "", "json-nested-bytes", "",
     "Allow a nested_flatbuffer field to be parsed as a vector of bytes"
     "in JSON, which is unsafe unless checked by a verifier afterwards." },
+  { "", "ts-flat-files", "",
+    "Only generated one typescript file per .fbs file." },
 };
 
 static void AppendTextWrappedString(std::stringstream &ss, std::string &text,
@@ -550,6 +552,8 @@ int FlatCompiler::Compile(int argc, const char **argv) {
         opts.cs_global_alias = true;
       } else if (arg == "--json-nested-bytes") {
         opts.json_nested_legacy_flatbuffers = true;
+      } else if (arg == "--ts-flat-files") {
+        opts.ts_flat_file = true;
       } else {
         for (size_t i = 0; i < params_.num_generators; ++i) {
           if (arg == "--" + params_.generators[i].option.long_opt ||
@@ -586,6 +590,10 @@ int FlatCompiler::Compile(int argc, const char **argv) {
     Error(
         "--cs-gen-json-serializer requires --gen-object-api to be set as "
         "well.");
+  }
+
+  if (opts.ts_flat_file && opts.generate_all) {
+    Error("Combining --ts-flat-file and --gen-all is not supported.");
   }
 
   flatbuffers::Parser conform_parser;
