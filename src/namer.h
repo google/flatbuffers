@@ -250,8 +250,7 @@ class Namer {
     return ConvertCase(EscapeKeyword(v.name), Case::kUpperCamel);
   }
 
-  std::string LegacyRustFieldOffsetName(const FieldDef& field) const {
-
+  std::string LegacyRustFieldOffsetName(const FieldDef &field) const {
     return "VT_" + ConvertCase(EscapeKeyword(field.name), Case::kAllUpper);
   }
 
