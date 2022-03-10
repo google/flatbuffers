@@ -25,7 +25,8 @@ if [ -x ../flatc ]; then
     ../flatc --gen-object-api -b -I include_test monster_test.fbs unicode_test.json
     ../flatc --ts --gen-name-strings --gen-mutable --gen-object-api -o union_vector union_vector/union_vector.fbs
     ../flatc --ts --gen-name-strings optional_scalars.fbs
-    ../flatc --ts --gen-name-strings --gen-object-api --gen-mutable typescript_keywords.fbs
+    ../flatc --ts --gen-name-strings --gen-object-api --gen-mutable -I ../ ./typescript_keywords.fbs test_dir/typescript_include.fbs test_dir/typescript_transitive_include.fbs ../reflection/reflection.fbs
+    ../flatc --ts --gen-name-strings --gen-object-api --gen-mutable --ts-flat-files -I ../ ./typescript_keywords.fbs test_dir/typescript_include.fbs test_dir/typescript_transitive_include.fbs ../reflection/reflection.fbs
 fi
 tsc
 node -r esm JavaScriptTest
