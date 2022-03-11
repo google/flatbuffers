@@ -168,9 +168,9 @@ class SwiftGenerator : public BaseGenerator {
 
       if (!constructor.empty()) constructor += ", ";
 
-      const auto name = namer_.Variable(field);
+      const auto field_var = namer_.Variable(field);
       const auto type = GenType(field.value.type);
-      code_.SetValue("FIELDVAR", name);
+      code_.SetValue("FIELDVAR", field_var);
       if (IsEnum(field.value.type)) {
         code_.SetValue("BASEVALUE", GenTypeBasic(field.value.type, false));
       }
@@ -186,11 +186,11 @@ class SwiftGenerator : public BaseGenerator {
           : is_bool ? ("0" == field.value.constant ? "false" : "true")
                     : field.value.constant;
 
-      main_constructor.push_back("_" + name + " = " + name + accessing_value);
-      base_constructor.push_back("_" + name + " = " + base_value);
+      main_constructor.push_back("_" + field_var + " = " + field_var + accessing_value);
+      base_constructor.push_back("_" + field_var + " = " + base_value);
 
       if (field.padding) { GenPadding(field, &padding_id); }
-      constructor += name + ": " + type;
+      constructor += field_var + ": " + type;
     }
     code_ += "";
     BuildStructConstructor(struct_def);
@@ -1413,16 +1413,16 @@ class SwiftGenerator : public BaseGenerator {
     }
   }
 
-  void BuildingOptionalObjects(const std::string &name,
+  void BuildingOptionalObjects(const std::string &var,
                                const std::string &body_front) {
-    code_ += "let __" + name + ": Offset";
-    code_ += "if let s = obj." + name + " {";
+    code_ += "let __" + var + ": Offset";
+    code_ += "if let s = obj." + var + " {";
     Indent();
-    code_ += "__" + name + " = " + body_front;
+    code_ += "__" + var + " = " + body_front;
     Outdent();
     code_ += "} else {";
     Indent();
-    code_ += "__" + name + " = Offset()";
+    code_ += "__" + var + " = Offset()";
     Outdent();
     code_ += "}";
     code_ += "";
@@ -1615,7 +1615,7 @@ class SwiftGenerator : public BaseGenerator {
     code_ += "}";
   }
 
-  void BuildUnionEnumSwitchCase(const EnumDef &ed, const std::string &name,
+  void BuildUnionEnumSwitchCase(const EnumDef &ed, const std::string &field,
                                 std::vector<std::string> &buffer_constructor,
                                 const std::string &indentation = "",
                                 const bool is_vector = false) {
@@ -1625,7 +1625,7 @@ class SwiftGenerator : public BaseGenerator {
     code_ += is_vector ? "[{{VALUETYPE}}Union?]" : "{{VALUETYPE}}Union?";
 
     const auto vector_reader = is_vector ? "(at: index" : "";
-    buffer_constructor.push_back(indentation + "switch _t." + name + "Type" +
+    buffer_constructor.push_back(indentation + "switch _t." + field + "Type" +
                                  vector_reader + (is_vector ? ")" : "") + " {");
 
     for (auto it = ed.Vals().begin(); it < ed.Vals().end(); ++it) {
@@ -1637,12 +1637,12 @@ class SwiftGenerator : public BaseGenerator {
                             : GenType(ev.union_type);
       buffer_constructor.push_back(indentation + "case ." + variant + ":");
       buffer_constructor.push_back(
-          indentation + "  var _v = _t." + name + (is_vector ? "" : "(") +
+          indentation + "  var _v = _t." + field + (is_vector ? "" : "(") +
           vector_reader + (is_vector ? ", " : "") + "type: " + type + ".self)");
       const auto constructor =
           ns_type + "Union(_v?.unpack(), type: ." + variant + ")";
       buffer_constructor.push_back(
-          indentation + "  " + name +
+          indentation + "  " + field +
           (is_vector ? ".append(" + constructor + ")" : " = " + constructor));
     }
     buffer_constructor.push_back(indentation + "default: break");
@@ -1768,7 +1768,6 @@ class SwiftGenerator : public BaseGenerator {
     // Vector of enum defaults are always "[]" which never works.
     const std::string constant = IsVector(value.type) ? "0" : value.constant;
     const auto enum_val = enum_def.FindByValue(constant);
-    std::string name;
     if (enum_val) {
       return "." + namer_.LegacySwiftVariant(*enum_val);
     } else {
@@ -1832,10 +1831,6 @@ class SwiftGenerator : public BaseGenerator {
       if (type.base_type == BASE_TYPE_BOOL) return "Bool";
     }
     return swift_type[static_cast<int>(type.base_type)];
-  }
-
-  std::string EscapeKeyword(const std::string &name) const {
-    return namer_.EscapeKeyword(name);
   }
 
   std::string Mutable() const { return "_Mutable"; }
