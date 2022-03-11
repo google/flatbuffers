@@ -130,16 +130,17 @@ class Namer {
     return Format(s, config_.constants);
   }
 
-  std::string Function(const Definition &s) const { return Function(s.name); }
-
   std::string Function(const std::string &s) const {
     return Format(s, config_.functions);
   }
 
-  std::string Field(const FieldDef &s) const { return Field(s.name); }
+  std::string Function(const Definition &s) const { return Function(s.name); }
+
   std::string Field(const std::string &s) const {
     return Format(s, config_.fields);
   }
+
+  std::string Field(const FieldDef &s) const { return Field(s.name); }
 
   std::string Variable(const FieldDef &s) const { return Variable(s.name); }
 
@@ -173,10 +174,6 @@ class Namer {
     return Namespace(ns.components);
   }
 
-  std::string NamespacedType(const std::vector<std::string> &ns,
-                             const std::string &s) const {
-    return Namespace(ns) + config_.namespace_seperator + Type(s);
-  }
   std::string NamespacedType(const Definition &def) const {
     if (def.defined_namespace != nullptr) {
       return NamespacedType(def.defined_namespace->components, def.name);
@@ -249,6 +246,11 @@ class Namer {
 
   std::string Variant(const std::string &s) const {
     return Format(s, config_.variants);
+  }
+
+  std::string NamespacedType(const std::vector<std::string> &ns,
+                             const std::string &s) const {
+    return Namespace(ns) + config_.namespace_seperator + Type(s);
   }
 
   std::string Format(const std::string &s, Case casing) const {

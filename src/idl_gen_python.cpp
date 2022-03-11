@@ -321,20 +321,12 @@ class PythonGenerator : public BaseGenerator {
   // module.
   std::string GenPackageReference(const Type &type) const {
     if (type.struct_def) {
-      return GenPackageReference(*type.struct_def);
+      return namer_.NamespacedType(*type.struct_def);
     } else if (type.enum_def) {
-      return GenPackageReference(*type.enum_def);
+      return namer_.NamespacedType(*type.enum_def);
     } else {
       return "." + GenTypeGet(type);
     }
-  }
-  std::string GenPackageReference(const EnumDef &enum_def) const {
-    return namer_.NamespacedType(enum_def.defined_namespace->components,
-                                 enum_def.name);
-  }
-  std::string GenPackageReference(const StructDef &struct_def) const {
-    return namer_.NamespacedType(struct_def.defined_namespace->components,
-                                 struct_def.name);
   }
 
   // Get the value of a vector's struct member.
@@ -924,8 +916,7 @@ class PythonGenerator : public BaseGenerator {
 
     // Gets the import lists for the union.
     if (parser_.opts.include_dependence_headers) {
-      const auto package_reference =
-          GenPackageReference(*field.value.type.enum_def);
+      const auto package_reference = GenPackageReference(field.value.type);
       import_list->insert("import " + package_reference);
     }
   }
@@ -1042,7 +1033,7 @@ class PythonGenerator : public BaseGenerator {
     }
 
     // Removes the import of the struct itself, if applied.
-    auto struct_import = "import " + GenPackageReference(struct_def);
+    auto struct_import = "import " + namer_.NamespacedType(struct_def);
     import_list->erase(struct_import);
   }
 
@@ -1112,7 +1103,7 @@ class PythonGenerator : public BaseGenerator {
     auto union_type = namer_.Type(enum_def);
 
     if (parser_.opts.include_dependence_headers) {
-      union_type = GenPackageReference(enum_def) + "." + union_type;
+      union_type = namer_.NamespacedType(enum_def) + "." + union_type;
     }
     code += GenIndents(2) + "self." + field_field + " = " + union_type +
             "Creator(" + "self." + field_field + "Type, " + struct_var + "." +
