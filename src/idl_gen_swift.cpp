@@ -38,7 +38,7 @@ Namer::Config SwiftDefaultConfig() {
            /*enum_variant_seperator=*/".",
            /*escape_keywords=*/Namer::Config::Escape::AfterConvertingCase,
            /*namespaces=*/Case::kKeep,
-           /*namespace_seperator=*/"__",
+           /*namespace_seperator=*/"_",
            /*object_prefix=*/"",
            /*object_suffix=*/"T",
            /*keyword_prefix=*/"",
@@ -72,7 +72,7 @@ inline std::string GenIndirect(const std::string &reading) {
 }
 
 inline std::string GenArrayMainBody(const std::string &optional) {
-  return "{{ACCESS_TYPE}} func {{VALUENAME}}(at index: Int32) -> "
+  return "{{ACCESS_TYPE}} func {{FIELDMETHOD}}(at index: Int32) -> "
          "{{VALUETYPE}}" +
          optional + " { ";
 }
@@ -143,10 +143,10 @@ class SwiftGenerator : public BaseGenerator {
 
   // Generates the reader for swift
   void GenStructReader(const StructDef &struct_def) {
-    auto is_private_access = struct_def.attributes.Lookup("private");
+    const bool is_private_access = struct_def.attributes.Lookup("private");
     code_.SetValue("ACCESS_TYPE", is_private_access ? "internal" : "public");
     GenComment(struct_def.doc_comment);
-    code_.SetValue("STRUCTNAME", NameWrappedInNameSpace(struct_def));
+    code_.SetValue("STRUCTNAME", namer_.NamespacedType(struct_def));
     code_ +=
         "{{ACCESS_TYPE}} struct {{STRUCTNAME}}: NativeStruct, Verifiable, "
         "FlatbuffersInitializable\\";
@@ -163,14 +163,14 @@ class SwiftGenerator : public BaseGenerator {
 
     for (auto it = struct_def.fields.vec.begin();
          it != struct_def.fields.vec.end(); ++it) {
-      auto &field = **it;
+      const auto &field = **it;
       if (field.deprecated) continue;
 
       if (!constructor.empty()) constructor += ", ";
 
-      auto name = namer_.Variable(field.name);
-      auto type = GenType(field.value.type);
-      code_.SetValue("VALUENAME", name);
+      const auto name = namer_.Variable(field);
+      const auto type = GenType(field.value.type);
+      code_.SetValue("FIELDVAR", name);
       if (IsEnum(field.value.type)) {
         code_.SetValue("BASEVALUE", GenTypeBasic(field.value.type, false));
       }
@@ -178,12 +178,13 @@ class SwiftGenerator : public BaseGenerator {
       GenComment(field.doc_comment);
       std::string valueType =
           IsEnum(field.value.type) ? "{{BASEVALUE}}" : "{{VALUETYPE}}";
-      code_ += "private var _{{VALUENAME}}: " + valueType;
-      auto accessing_value = IsEnum(field.value.type) ? ".value" : "";
-      auto is_bool = IsBool(field.value.type.base_type);
-      auto base_value = IsStruct(field.value.type) ? (type + "()")
-        : is_bool ? ("0" == field.value.constant ? "false" : "true")
-        : field.value.constant;
+      code_ += "private var _{{FIELDVAR}}: " + valueType;
+      const auto accessing_value = IsEnum(field.value.type) ? ".value" : "";
+      const auto is_bool = IsBool(field.value.type.base_type);
+      const auto base_value =
+          IsStruct(field.value.type) ? (type + "()")
+          : is_bool ? ("0" == field.value.constant ? "false" : "true")
+                    : field.value.constant;
 
       main_constructor.push_back("_" + name + " = " + name + accessing_value);
       base_constructor.push_back("_" + name + " = " + base_value);
@@ -201,18 +202,16 @@ class SwiftGenerator : public BaseGenerator {
 
     for (auto it = struct_def.fields.vec.begin();
          it != struct_def.fields.vec.end(); ++it) {
-      auto &field = **it;
+      const auto &field = **it;
       if (field.deprecated) continue;
-      auto name = namer_.Variable(field.name);
-      auto type = GenType(field.value.type);
-      code_.SetValue("VALUENAME", name);
-      code_.SetValue("VALUETYPE", type);
+      code_.SetValue("FIELDVAR", namer_.Variable(field));
+      code_.SetValue("VALUETYPE", GenType(field.value.type));
       GenComment(field.doc_comment);
       if (!IsEnum(field.value.type)) {
-        code_ += GenReaderMainBody() + "_{{VALUENAME}} }";
+        code_ += GenReaderMainBody() + "_{{FIELDVAR}} }";
       } else if (IsEnum(field.value.type)) {
         code_ +=
-            GenReaderMainBody() + "{{VALUETYPE}}(rawValue: _{{VALUENAME}})! }";
+            GenReaderMainBody() + "{{VALUETYPE}}(rawValue: _{{FIELDVAR}})! }";
       }
     }
     code_ += "";
@@ -235,22 +234,21 @@ class SwiftGenerator : public BaseGenerator {
     code_ += "let {{ACCESS}} = Struct(bb: bb, position: o)";
     for (auto it = struct_def.fields.vec.begin();
          it != struct_def.fields.vec.end(); ++it) {
-      auto &field = **it;
+      const auto &field = **it;
       if (field.deprecated) continue;
-      auto name = namer_.Variable(field.name);
-      auto type = field.value.type;
-      code_.SetValue("VALUENAME", name);
+      const auto type = field.value.type;
+      code_.SetValue("FIELDVAR", namer_.Variable(field));
       code_.SetValue("VALUETYPE", GenType(type));
       code_.SetValue("OFFSET", NumToString(field.value.offset));
       if (IsScalar(type.base_type)) {
         if (IsEnum(type))
           code_.SetValue("VALUETYPE", GenTypeBasic(field.value.type, false));
         code_ +=
-            "_{{VALUENAME}} = {{ACCESS}}.readBuffer(of: {{VALUETYPE}}.self, "
+            "_{{FIELDVAR}} = {{ACCESS}}.readBuffer(of: {{VALUETYPE}}.self, "
             "at: {{OFFSET}})";
       } else {
         code_ +=
-            "_{{VALUENAME}} = {{VALUETYPE}}({{ACCESS}}.bb, o: "
+            "_{{FIELDVAR}} = {{VALUETYPE}}({{ACCESS}}.bb, o: "
             "{{ACCESS}}.postion + {{OFFSET}})";
       }
     }
@@ -263,11 +261,11 @@ class SwiftGenerator : public BaseGenerator {
 
     for (auto it = struct_def.fields.vec.begin();
          it != struct_def.fields.vec.end(); ++it) {
-      auto &field = **it;
+      const auto &field = **it;
       if (field.deprecated) continue;
-      auto offset = NumToString(field.value.offset);
-      auto type = GenType(field.value.type);
-      code_.SetValue("VALUENAME", namer_.Variable(field.name));
+      const auto offset = NumToString(field.value.offset);
+      const auto type = GenType(field.value.type);
+      code_.SetValue("FIELDVAR", namer_.Variable(field));
       if (IsEnum(field.value.type)) {
         code_.SetValue("BASEVALUE", GenTypeBasic(field.value.type, false));
       }
@@ -291,7 +289,7 @@ class SwiftGenerator : public BaseGenerator {
     }
 
     if (parser_.opts.generate_object_based_api) {
-      GenerateObjectAPIExtensionHeader(NameWrappedInNameSpace(struct_def));
+      GenerateObjectAPIExtensionHeader(namer_.NamespacedType(struct_def));
       code_ += "return builder.create(struct: obj)";
       Outdent();
       code_ += "}";
@@ -302,10 +300,10 @@ class SwiftGenerator : public BaseGenerator {
 
   // Generates the create function for swift
   void GenStructWriter(const StructDef &struct_def) {
-    auto is_private_access = struct_def.attributes.Lookup("private");
+    const bool is_private_access = struct_def.attributes.Lookup("private");
     code_.SetValue("ACCESS_TYPE", is_private_access ? "internal" : "public");
-    code_.SetValue("STRUCTNAME", NameWrappedInNameSpace(struct_def));
-    code_.SetValue("SHORT_STRUCTNAME", namer_.Method(struct_def.name));
+    code_.SetValue("STRUCTNAME", namer_.NamespacedType(struct_def));
+    code_.SetValue("SHORT_STRUCTNAME", namer_.Method(struct_def));
     code_ += "extension {{STRUCTNAME}} {";
     Indent();
     code_ += "@discardableResult";
@@ -335,7 +333,7 @@ class SwiftGenerator : public BaseGenerator {
     auto &code = *code_ptr;
     for (auto it = struct_def.fields.vec.begin();
          it != struct_def.fields.vec.end(); ++it) {
-      auto &field = **it;
+      const auto &field = **it;
       if (field.deprecated) continue;
       const auto &field_type = field.value.type;
       if (IsStruct(field.value.type)) {
@@ -343,15 +341,15 @@ class SwiftGenerator : public BaseGenerator {
             *field_type.struct_def, code_ptr, (nameprefix + field.name),
             (object_name + "." + field.name), obj_api_named, is_obj_api);
       } else {
-        auto field_var = namer_.Variable(field.name);
-        auto field_field = namer_.Field(field.name);
-        auto type = GenType(field.value.type);
+        const auto field_var = namer_.Variable(field);
+        const auto field_field = namer_.Field(field);
+        const auto type = GenType(field.value.type);
         if (!is_obj_api) {
           code += nameprefix + field_var + ": " + type;
           if (!IsEnum(field.value.type)) {
             code += " = ";
-            auto is_bool = IsBool(field.value.type.base_type);
-            auto constant =
+            const auto is_bool = IsBool(field.value.type.base_type);
+            const auto constant =
                 is_bool ? ("0" == field.value.constant ? "false" : "true")
                         : field.value.constant;
             code += constant;
@@ -370,7 +368,7 @@ class SwiftGenerator : public BaseGenerator {
 
   // Generates the reader for swift
   void GenTable(const StructDef &struct_def) {
-    auto is_private_access = struct_def.attributes.Lookup("private");
+    const bool is_private_access = struct_def.attributes.Lookup("private");
     code_.SetValue("ACCESS_TYPE", is_private_access ? "internal" : "public");
     GenObjectHeader(struct_def);
     GenTableAccessors(struct_def);
@@ -395,7 +393,7 @@ class SwiftGenerator : public BaseGenerator {
            it != struct_def.fields.vec.end(); ++it) {
         const auto &field = **it;
         if (field.deprecated) { continue; }
-        code_.SetValue("OFFSET_NAME", namer_.Variable(field.name));
+        code_.SetValue("OFFSET_NAME", namer_.Variable(field));
         code_.SetValue("OFFSET_VALUE", NumToString(field.value.offset));
         code_ += "case {{OFFSET_NAME}} = {{OFFSET_VALUE}}";
       }
@@ -410,8 +408,8 @@ class SwiftGenerator : public BaseGenerator {
   void GenObjectHeader(const StructDef &struct_def) {
     GenComment(struct_def.doc_comment);
 
-    code_.SetValue("SHORT_STRUCTNAME", namer_.Type(struct_def.name));
-    code_.SetValue("STRUCTNAME", NameWrappedInNameSpace(struct_def));
+    code_.SetValue("SHORT_STRUCTNAME", namer_.Type(struct_def));
+    code_.SetValue("STRUCTNAME", namer_.NamespacedType(struct_def));
     code_.SetValue("OBJECTTYPE", struct_def.fixed ? "Struct" : "Table");
     code_.SetValue("MUTABLE", struct_def.fixed ? Mutable() : "");
     code_ +=
@@ -455,7 +453,7 @@ class SwiftGenerator : public BaseGenerator {
     std::vector<std::string> require_fields;
     std::vector<std::string> create_func_body;
     std::vector<std::string> create_func_header;
-    auto should_generate_create = struct_def.fields.vec.size() != 0;
+    const auto should_generate_create = struct_def.fields.vec.size() != 0;
 
     code_.SetValue("NUMBEROFFIELDS", NumToString(struct_def.fields.vec.size()));
     code_ +=
@@ -515,14 +513,12 @@ class SwiftGenerator : public BaseGenerator {
     std::string spacing = "";
 
     if (key_field != nullptr && !struct_def.fixed && struct_def.has_key) {
-      code_.SetValue("VALUENAME", NameWrappedInNameSpace(struct_def));
-      code_.SetValue("SHORT_VALUENAME", namer_.Type(struct_def.name));
       code_.SetValue("VOFFSET", NumToString(key_field->value.offset));
 
-      code_ +=
-          "{{ACCESS_TYPE}} static func "
-          "sortVectorOf{{SHORT_VALUENAME}}(offsets:[Offset], "
-          "_ fbb: inout FlatBufferBuilder) -> Offset {";
+      code_ += "{{ACCESS_TYPE}} static func " +
+               namer_.Method("sort_vector_of_" + struct_def.name) +
+               "(offsets:[Offset], "
+               "_ fbb: inout FlatBufferBuilder) -> Offset {";
       Indent();
       code_ += spacing + "var off = offsets";
       code_ +=
@@ -533,7 +529,7 @@ class SwiftGenerator : public BaseGenerator {
       code_ += spacing + "return fbb.createVector(ofOffsets: off)";
       Outdent();
       code_ += "}";
-      GenLookup(*key_field);
+      GenLookup(*key_field, namer_.NamespacedType(struct_def));
     }
   }
 
@@ -543,43 +539,44 @@ class SwiftGenerator : public BaseGenerator {
     std::string builder_string = ", _ fbb: inout FlatBufferBuilder) { ";
     auto &create_func_body = *create_body;
     auto &create_func_header = *create_header;
-    // DO NOT SUBMIT: Overloaded kind of name.
-    auto name = namer_.Field(field.name);
-    auto type = GenType(field.value.type);
-    auto opt_scalar =
+    const auto field_field = namer_.Field(field);
+    const auto field_var = namer_.Variable(field);
+    const auto type = GenType(field.value.type);
+    const auto opt_scalar =
         field.IsOptional() && IsScalar(field.value.type.base_type);
-    auto nullable_type = opt_scalar ? type + "?" : type;
-    code_.SetValue("VALUENAME", namer_.Variable(field.name));
+    const auto nullable_type = opt_scalar ? type + "?" : type;
+    code_.SetValue("FIELDVAR", namer_.Variable(field));
     code_.SetValue("VALUETYPE", nullable_type);
-    code_.SetValue("OFFSET", namer_.Field(field.name));
+    code_.SetValue("OFFSET", namer_.Field(field));
     code_.SetValue("CONSTANT", field.value.constant);
     std::string check_if_vector =
         (IsVector(field.value.type) || IsArray(field.value.type)) ? "VectorOf("
                                                                   : "(";
-    auto body = "add" + check_if_vector + name + ": ";
+    const auto body = "add" + check_if_vector + field_field + ": ";
     code_ += "{{ACCESS_TYPE}} static func " + body + "\\";
 
-    create_func_body.push_back("{{STRUCTNAME}}." + body + name + ", &fbb)");
+    create_func_body.push_back("{{STRUCTNAME}}." + body + field_field +
+                               ", &fbb)");
 
     if (IsScalar(field.value.type.base_type) &&
         !IsBool(field.value.type.base_type)) {
-      std::string is_enum = IsEnum(field.value.type) ? ".rawValue" : "";
-      std::string optional_enum =
+      const std::string is_enum = IsEnum(field.value.type) ? ".rawValue" : "";
+      const std::string optional_enum =
           IsEnum(field.value.type) ? ("?" + is_enum) : "";
       code_ +=
-          "{{VALUETYPE}}" + builder_string + "fbb.add(element: {{VALUENAME}}\\";
+          "{{VALUETYPE}}" + builder_string + "fbb.add(element: {{FIELDVAR}}\\";
 
       code_ += field.IsOptional() ? (optional_enum + "\\")
                                   : (is_enum + ", def: {{CONSTANT}}\\");
 
       code_ += ", at: {{TABLEOFFSET}}.{{OFFSET}}.p) }";
 
-      auto default_value =
+      const auto default_value =
           IsEnum(field.value.type)
               ? (field.IsOptional() ? "nil" : GenEnumDefaultValue(field))
               : field.value.constant;
       create_func_header.push_back(
-          "" + name + ": " + nullable_type + " = " +
+          "" + field_field + ": " + nullable_type + " = " +
           (field.IsOptional() ? "nil" : default_value));
       return;
     }
@@ -590,48 +587,48 @@ class SwiftGenerator : public BaseGenerator {
 
       code_.SetValue("CONSTANT", default_value);
       code_.SetValue("VALUETYPE", field.IsOptional() ? "Bool?" : "Bool");
-      code_ += "{{VALUETYPE}}" + builder_string +
-               "fbb.add(element: {{VALUENAME}},\\";
+      code_ +=
+          "{{VALUETYPE}}" + builder_string + "fbb.add(element: {{FIELDVAR}},\\";
       code_ += field.IsOptional() ? "\\" : " def: {{CONSTANT}},";
       code_ += " at: {{TABLEOFFSET}}.{{OFFSET}}.p) }";
       create_func_header.push_back(
-          name + ": " + nullable_type + " = " +
+          field_var + ": " + nullable_type + " = " +
           (field.IsOptional() ? "nil" : default_value));
       return;
     }
 
     if (IsStruct(field.value.type)) {
-      auto create_struct =
-          "guard let {{VALUENAME}} = {{VALUENAME}} else { return };"
-          " fbb.create(struct: {{VALUENAME}}, position: "
+      const auto create_struct =
+          "guard let {{FIELDVAR}} = {{FIELDVAR}} else { return };"
+          " fbb.create(struct: {{FIELDVAR}}, position: "
           "{{TABLEOFFSET}}.{{OFFSET}}.p) }";
       code_ += type + "?" + builder_string + create_struct;
       /// Optional hard coded since structs are always optional
-      create_func_header.push_back(name + ": " + type + "? = nil");
+      create_func_header.push_back(field_var + ": " + type + "? = nil");
       return;
     }
 
-    auto camel_case_name =
-        ConvertCase(name, Case::kLowerCamel) +
+    const auto arg_label =
+        namer_.Variable(field) +
         (IsVector(field.value.type) || IsArray(field.value.type)
              ? "VectorOffset"
              : "Offset");
-    create_func_header.push_back(camel_case_name + " " + name + ": " +
+    create_func_header.push_back(arg_label + " " + field_var + ": " +
                                  "Offset = Offset()");
-    auto reader_type =
+    const auto reader_type =
         IsStruct(field.value.type) && field.value.type.struct_def->fixed
             ? "structOffset: {{TABLEOFFSET}}.{{OFFSET}}.p) }"
-            : "offset: {{VALUENAME}}, at: {{TABLEOFFSET}}.{{OFFSET}}.p) }";
+            : "offset: {{FIELDVAR}}, at: {{TABLEOFFSET}}.{{OFFSET}}.p) }";
     code_ += "Offset" + builder_string + "fbb.add(" + reader_type;
 
-    auto vectortype = field.value.type.VectorType();
+    const auto vectortype = field.value.type.VectorType();
 
     if ((vectortype.base_type == BASE_TYPE_STRUCT &&
          field.value.type.struct_def->fixed) &&
         (IsVector(field.value.type) || IsArray(field.value.type))) {
-      auto field_name = NameWrappedInNameSpace(*vectortype.struct_def);
-      code_ += "public static func startVectorOf" +
-               ConvertCase(name, Case::kUpperCamel) +
+      const auto field_name = namer_.NamespacedType(*vectortype.struct_def);
+      code_ += "public static func " +
+               namer_.Method("start_vector_of_" + field_var) +
                "(_ size: Int, in builder: inout "
                "FlatBufferBuilder) {";
       Indent();
@@ -646,17 +643,18 @@ class SwiftGenerator : public BaseGenerator {
   void GenTableReader(const StructDef &struct_def) {
     for (auto it = struct_def.fields.vec.begin();
          it != struct_def.fields.vec.end(); ++it) {
-      auto &field = **it;
+      const auto &field = **it;
       if (field.deprecated) continue;
       GenTableReaderFields(field);
     }
   }
 
   void GenTableReaderFields(const FieldDef &field) {
-    auto offset = NumToString(field.value.offset);
-    auto name = namer_.Field(field.name);
-    auto type = GenType(field.value.type);
-    code_.SetValue("VALUENAME", namer_.Variable(field.name));
+    const auto offset = NumToString(field.value.offset);
+    const auto field_field = namer_.Field(field);
+    const auto type = GenType(field.value.type);
+    code_.SetValue("FIELDVAR", namer_.Variable(field));
+    code_.SetValue("FIELDMETHOD", namer_.Method(field));
     code_.SetValue("VALUETYPE", type);
     code_.SetValue("OFFSET", namer_.Constant(field.name));
     code_.SetValue("CONSTANT", field.value.constant);
@@ -664,7 +662,7 @@ class SwiftGenerator : public BaseGenerator {
         field.IsOptional() && IsScalar(field.value.type.base_type);
     std::string def_Val = opt_scalar ? "nil" : "{{CONSTANT}}";
     std::string optional = opt_scalar ? "?" : "";
-    auto const_string = "return o == 0 ? " + def_Val + " : ";
+    const auto const_string = "return o == 0 ? " + def_Val + " : ";
     GenComment(field.doc_comment);
     if (IsScalar(field.value.type.base_type) && !IsEnum(field.value.type) &&
         !IsBool(field.value.type.base_type)) {
@@ -689,7 +687,7 @@ class SwiftGenerator : public BaseGenerator {
     }
 
     if (IsEnum(field.value.type)) {
-      auto default_value =
+      const auto default_value =
           field.IsOptional() ? "nil" : GenEnumDefaultValue(field);
       code_.SetValue("BASEVALUE", GenTypeBasic(field.value.type, false));
       code_ += GenReaderMainBody(optional) + "\\";
@@ -700,16 +698,15 @@ class SwiftGenerator : public BaseGenerator {
       return;
     }
 
-    std::string is_required = field.IsRequired() ? "!" : "?";
-    auto required_reader = field.IsRequired() ? "return " : const_string;
+    const std::string is_required = field.IsRequired() ? "!" : "?";
+    const auto required_reader = field.IsRequired() ? "return " : const_string;
 
     if (IsStruct(field.value.type) && field.value.type.struct_def->fixed) {
       code_.SetValue("VALUETYPE", GenType(field.value.type));
       code_.SetValue("CONSTANT", "nil");
       code_ += GenReaderMainBody(is_required) + GenOffset() + required_reader +
                "{{ACCESS}}.readBuffer(of: {{VALUETYPE}}.self, at: o) }";
-      code_.SetValue("VALUENAME",
-                     "mutable" + ConvertCase(name, Case::kUpperCamel));
+      code_.SetValue("FIELDVAR", namer_.Variable("mutable_" + field_field));
       code_.SetValue("VALUETYPE", GenType(field.value.type) + Mutable());
       code_.SetValue("CONSTANT", "nil");
       code_ += GenReaderMainBody(is_required) + GenOffset() + required_reader +
@@ -726,12 +723,12 @@ class SwiftGenerator : public BaseGenerator {
         break;
 
       case BASE_TYPE_STRING: {
-        auto default_string = "\"" + field.value.constant + "\"";
+        const auto default_string = "\"" + field.value.constant + "\"";
         code_.SetValue("VALUETYPE", GenType(field.value.type));
         code_.SetValue("CONSTANT", field.IsDefault() ? default_string : "nil");
         code_ += GenReaderMainBody(is_required) + GenOffset() +
                  required_reader + "{{ACCESS}}.string(at: o) }";
-        code_ += "{{ACCESS_TYPE}} var {{VALUENAME}}SegmentArray: [UInt8]" +
+        code_ += "{{ACCESS_TYPE}} var {{FIELDVAR}}SegmentArray: [UInt8]" +
                  is_required +
                  " { return "
                  "{{ACCESS}}.getVector(at: {{TABLEOFFSET}}.{{OFFSET}}.v) }";
@@ -742,7 +739,7 @@ class SwiftGenerator : public BaseGenerator {
       case BASE_TYPE_UNION:
         code_.SetValue("CONSTANT", "nil");
         code_ +=
-            "{{ACCESS_TYPE}} func {{VALUENAME}}<T: "
+            "{{ACCESS_TYPE}} func {{FIELDVAR}}<T: "
             "FlatbuffersInitializable>(type: "
             "T.Type) -> T" +
             is_required + " { " + GenOffset() + required_reader +
@@ -754,20 +751,19 @@ class SwiftGenerator : public BaseGenerator {
 
   void GenTableReaderVectorFields(const FieldDef &field) {
     std::string const_string = "return o == 0 ? {{CONSTANT}} : ";
-    auto vectortype = field.value.type.VectorType();
+    const auto vectortype = field.value.type.VectorType();
     code_.SetValue("SIZE", NumToString(InlineSize(vectortype)));
-    code_ += "{{ACCESS_TYPE}} var {{VALUENAME}}Count: Int32 { " + GenOffset() +
+    code_ += "{{ACCESS_TYPE}} var {{FIELDVAR}}Count: Int32 { " + GenOffset() +
              "return o == 0 ? 0 : {{ACCESS}}.vector(count: o) }";
-    code_.SetValue("CONSTANT",
-                   IsScalar(vectortype.base_type) == true ? "0" : "nil");
-    auto nullable = IsScalar(vectortype.base_type) == true ? "" : "?";
-    nullable = IsEnum(vectortype) == true ? "?" : nullable;
+    code_.SetValue("CONSTANT", IsScalar(vectortype.base_type) ? "0" : "nil");
+    const auto nullable =
+        IsScalar(vectortype.base_type) && !IsEnum(vectortype) ? "" : "?";
 
     if (vectortype.base_type != BASE_TYPE_UNION) {
       code_ += GenArrayMainBody(nullable) + GenOffset() + "\\";
     } else {
       code_ +=
-          "{{ACCESS_TYPE}} func {{VALUENAME}}<T: FlatbuffersInitializable>(at "
+          "{{ACCESS_TYPE}} func {{FIELDVAR}}<T: FlatbuffersInitializable>(at "
           "index: "
           "Int32, type: T.Type) -> T? { " +
           GenOffset() + "\\";
@@ -786,7 +782,7 @@ class SwiftGenerator : public BaseGenerator {
           "{{ACCESS}}.directRead(of: {{VALUETYPE}}.self, offset: "
           "{{ACCESS}}.vector(at: o) + index * {{SIZE}}) }";
       code_ +=
-          "{{ACCESS_TYPE}} var {{VALUENAME}}: [{{VALUETYPE}}] { return "
+          "{{ACCESS_TYPE}} var {{FIELDVAR}}: [{{VALUETYPE}}] { return "
           "{{ACCESS}}.getVector(at: {{TABLEOFFSET}}.{{OFFSET}}.v) ?? [] }";
       if (parser_.opts.mutable_buffer) code_ += GenMutateArray();
       return;
@@ -797,8 +793,7 @@ class SwiftGenerator : public BaseGenerator {
       code_ +=
           "{{ACCESS}}.directRead(of: {{VALUETYPE}}.self, offset: "
           "{{ACCESS}}.vector(at: o) + index * {{SIZE}}) }";
-      code_.SetValue("VALUENAME",
-                     "mutable" + ConvertCase(namer_.Field(field.name), Case::kUpperCamel));
+      code_.SetValue("FIELDMETHOD", namer_.Method("mutable_" + field.name));
       code_.SetValue("VALUETYPE", GenType(field.value.type) + Mutable());
       code_ += GenArrayMainBody(nullable) + GenOffset() + const_string +
                GenConstructor("{{ACCESS}}.vector(at: o) + index * {{SIZE}}");
@@ -833,10 +828,10 @@ class SwiftGenerator : public BaseGenerator {
       code_ += GenConstructor(
           "{{ACCESS}}.indirect({{ACCESS}}.vector(at: o) + index * "
           "{{SIZE}})");
-      auto &sd = *field.value.type.struct_def;
-      auto &fields = sd.fields.vec;
+      const auto &sd = *field.value.type.struct_def;
+      const auto &fields = sd.fields.vec;
       for (auto kit = fields.begin(); kit != fields.end(); ++kit) {
-        auto &key_field = **kit;
+        const auto &key_field = **kit;
         if (key_field.key) {
           GenByKeyFunctions(key_field);
           break;
@@ -850,12 +845,12 @@ class SwiftGenerator : public BaseGenerator {
     Indent();
     for (auto it = struct_def.fields.vec.begin();
          it != struct_def.fields.vec.end(); ++it) {
-      auto &field = **it;
+      const auto &field = **it;
       if (field.deprecated) continue;
 
       code_.SetValue("RAWVALUENAME", field.name);
-      code_.SetValue("VALUENAME", namer_.Variable(field.name));
-      code_ += "case {{VALUENAME}} = \"{{RAWVALUENAME}}\"";
+      code_.SetValue("FIELDVAR", namer_.Variable(field));
+      code_ += "case {{FIELDVAR}} = \"{{RAWVALUENAME}}\"";
     }
     Outdent();
     code_ += "}";
@@ -863,8 +858,8 @@ class SwiftGenerator : public BaseGenerator {
 
   void GenerateEncoderUnionBody(const FieldDef &field) {
     EnumDef &union_def = *field.value.type.enum_def;
-    auto is_vector = field.value.type.base_type == BASE_TYPE_VECTOR ||
-                     field.value.type.base_type == BASE_TYPE_ARRAY;
+    const auto is_vector = field.value.type.base_type == BASE_TYPE_VECTOR ||
+                           field.value.type.base_type == BASE_TYPE_ARRAY;
     if (field.value.type.base_type == BASE_TYPE_UTYPE ||
         (is_vector &&
          field.value.type.VectorType().base_type == BASE_TYPE_UTYPE))
@@ -872,28 +867,25 @@ class SwiftGenerator : public BaseGenerator {
     if (is_vector) {
       code_ +=
           "var enumsEncoder = container.nestedUnkeyedContainer(forKey: "
-          ".{{VALUENAME}}Type)";
+          ".{{FIELDVAR}}Type)";
       code_ +=
           "var contentEncoder = container.nestedUnkeyedContainer(forKey: "
-          ".{{VALUENAME}})";
-      code_ += "for index in 0..<{{VALUENAME}}Count {";
+          ".{{FIELDVAR}})";
+      code_ += "for index in 0..<{{FIELDVAR}}Count {";
       Indent();
-      code_ +=
-          "guard let type = {{VALUENAME}}Type(at: index) else { continue }";
+      code_ += "guard let type = {{FIELDVAR}}Type(at: index) else { continue }";
       code_ += "try enumsEncoder.encode(type)";
       code_ += "switch type {";
       for (auto it = union_def.Vals().begin(); it != union_def.Vals().end();
            ++it) {
         const auto &ev = **it;
-
-        auto name = namer_.LegacySwiftVariant(ev);
-        auto type = GenType(ev.union_type);
-        code_.SetValue("KEY", name);
+        const auto type = GenType(ev.union_type);
+        code_.SetValue("KEY", namer_.LegacySwiftVariant(ev));
         code_.SetValue("VALUETYPE", type);
         if (ev.union_type.base_type == BASE_TYPE_NONE) { continue; }
         code_ += "case .{{KEY}}:";
         Indent();
-        code_ += "let _v = {{VALUENAME}}(at: index, type: {{VALUETYPE}}.self)";
+        code_ += "let _v = {{FIELDVAR}}(at: index, type: {{VALUETYPE}}.self)";
         code_ += "try contentEncoder.encode(_v)";
         Outdent();
       }
@@ -904,20 +896,18 @@ class SwiftGenerator : public BaseGenerator {
       return;
     }
 
-    code_ += "switch {{VALUENAME}}Type {";
+    code_ += "switch {{FIELDVAR}}Type {";
     for (auto it = union_def.Vals().begin(); it != union_def.Vals().end();
          ++it) {
       const auto &ev = **it;
-
-      auto name = namer_.LegacySwiftVariant(ev);
-      auto type = GenType(ev.union_type);
-      code_.SetValue("KEY", name);
+      const auto type = GenType(ev.union_type);
+      code_.SetValue("KEY", namer_.LegacySwiftVariant(ev));
       code_.SetValue("VALUETYPE", type);
       if (ev.union_type.base_type == BASE_TYPE_NONE) { continue; }
       code_ += "case .{{KEY}}:";
       Indent();
-      code_ += "let _v = {{VALUENAME}}(type: {{VALUETYPE}}.self)";
-      code_ += "try container.encodeIfPresent(_v, forKey: .{{VALUENAME}})";
+      code_ += "let _v = {{FIELDVAR}}(type: {{VALUETYPE}}.self)";
+      code_ += "try container.encodeIfPresent(_v, forKey: .{{FIELDVAR}})";
       Outdent();
     }
     code_ += "default: break;";
@@ -928,33 +918,31 @@ class SwiftGenerator : public BaseGenerator {
     code_ += "var container = encoder.container(keyedBy: CodingKeys.self)";
     for (auto it = struct_def.fields.vec.begin();
          it != struct_def.fields.vec.end(); ++it) {
-      auto &field = **it;
+      const auto &field = **it;
       if (field.deprecated) continue;
-      auto name = namer_.Variable(field.name);
-      auto type = field.value.type;
+      const auto type = field.value.type;
 
-      auto is_non_union_vector =
+      const auto is_non_union_vector =
           (field.value.type.base_type == BASE_TYPE_ARRAY ||
            field.value.type.base_type == BASE_TYPE_VECTOR) &&
           field.value.type.VectorType().base_type != BASE_TYPE_UTYPE;
 
-      code_.SetValue("RAWVALUENAME", field.name);
-      code_.SetValue("VALUENAME", name);
+      code_.SetValue("FIELDVAR", namer_.Variable(field));
       code_.SetValue("CONSTANT", field.value.constant);
       bool should_indent = true;
       if (is_non_union_vector) {
-        code_ += "if {{VALUENAME}}Count > 0 {";
+        code_ += "if {{FIELDVAR}}Count > 0 {";
       } else if (IsEnum(type) && !field.IsOptional()) {
         code_.SetValue("CONSTANT", GenEnumDefaultValue(field));
-        code_ += "if {{VALUENAME}} != {{CONSTANT}} {";
+        code_ += "if {{FIELDVAR}} != {{CONSTANT}} {";
       } else if (IsScalar(type.base_type) && !IsEnum(type) &&
                  !IsBool(type.base_type) && !field.IsOptional()) {
-        code_ += "if {{VALUENAME}} != {{CONSTANT}} {";
+        code_ += "if {{FIELDVAR}} != {{CONSTANT}} {";
       } else if (IsBool(type.base_type) && !field.IsOptional()) {
         std::string default_value =
             "0" == field.value.constant ? "false" : "true";
         code_.SetValue("CONSTANT", default_value);
-        code_ += "if {{VALUENAME}} != {{CONSTANT}} {";
+        code_ += "if {{FIELDVAR}} != {{CONSTANT}} {";
       } else {
         should_indent = false;
       }
@@ -967,17 +955,17 @@ class SwiftGenerator : public BaseGenerator {
                   IsEnum(type.VectorType()))) {
         code_ +=
             "var contentEncoder = container.nestedUnkeyedContainer(forKey: "
-            ".{{VALUENAME}})";
-        code_ += "for index in 0..<{{VALUENAME}}Count {";
+            ".{{FIELDVAR}})";
+        code_ += "for index in 0..<{{FIELDVAR}}Count {";
         Indent();
-        code_ += "guard let type = {{VALUENAME}}(at: index) else { continue }";
+        code_ += "guard let type = {{FIELDVAR}}(at: index) else { continue }";
         code_ += "try contentEncoder.encode(type)";
         Outdent();
         code_ += "}";
       } else {
         code_ +=
-            "try container.encodeIfPresent({{VALUENAME}}, forKey: "
-            ".{{VALUENAME}})";
+            "try container.encodeIfPresent({{FIELDVAR}}, forKey: "
+            ".{{FIELDVAR}})";
       }
       if (should_indent) Outdent();
 
@@ -1012,13 +1000,13 @@ class SwiftGenerator : public BaseGenerator {
     code_ += "var _v = try verifier.visitTable(at: position)";
     for (auto it = struct_def.fields.vec.begin();
          it != struct_def.fields.vec.end(); ++it) {
-      auto &field = **it;
+      const auto &field = **it;
       if (field.deprecated) continue;
-      auto offset = NumToString(field.value.offset);
+      const auto offset = NumToString(field.value.offset);
 
-      code_.SetValue("VALUENAME", namer_.Variable(field.name));
+      code_.SetValue("FIELDVAR", namer_.Variable(field));
       code_.SetValue("VALUETYPE", GenerateVerifierType(field));
-      code_.SetValue("OFFSET", namer_.Field(field.name));
+      code_.SetValue("OFFSET", namer_.Field(field));
       code_.SetValue("ISREQUIRED", field.IsRequired() ? "true" : "false");
 
       if (IsUnion(field.value.type)) {
@@ -1028,7 +1016,7 @@ class SwiftGenerator : public BaseGenerator {
 
       code_ +=
           "try _v.visit(field: {{TABLEOFFSET}}.{{OFFSET}}.p, fieldName: "
-          "\"{{VALUENAME}}\", required: {{ISREQUIRED}}, type: "
+          "\"{{FIELDVAR}}\", required: {{ISREQUIRED}}, type: "
           "{{VALUETYPE}}.self)";
     }
     code_ += "_v.finish()";
@@ -1037,28 +1025,27 @@ class SwiftGenerator : public BaseGenerator {
   }
 
   void GenerateUnionTypeVerifier(const FieldDef &field) {
-    auto is_vector = IsVector(field.value.type) || IsArray(field.value.type);
+    const auto is_vector =
+        IsVector(field.value.type) || IsArray(field.value.type);
     if (field.value.type.base_type == BASE_TYPE_UTYPE ||
         (is_vector &&
          field.value.type.VectorType().base_type == BASE_TYPE_UTYPE))
       return;
     EnumDef &union_def = *field.value.type.enum_def;
-    code_.SetValue("VALUETYPE", NameWrappedInNameSpace(union_def));
+    code_.SetValue("VALUETYPE", namer_.NamespacedType(union_def));
     code_.SetValue("FUNCTION_NAME", is_vector ? "visitUnionVector" : "visit");
     code_ +=
         "try _v.{{FUNCTION_NAME}}(unionKey: {{TABLEOFFSET}}.{{OFFSET}}Type.p, "
         "unionField: {{TABLEOFFSET}}.{{OFFSET}}.p, unionKeyName: "
-        "\"{{VALUENAME}}Type\", fieldName: \"{{VALUENAME}}\", required: "
+        "\"{{FIELDVAR}}Type\", fieldName: \"{{FIELDVAR}}\", required: "
         "{{ISREQUIRED}}, completion: { (verifier, key: {{VALUETYPE}}, pos) in";
     Indent();
     code_ += "switch key {";
     for (auto it = union_def.Vals().begin(); it != union_def.Vals().end();
          ++it) {
       const auto &ev = **it;
-
-      auto name = namer_.LegacySwiftVariant(ev);
-      auto type = GenType(ev.union_type);
-      code_.SetValue("KEY", name);
+      const auto type = GenType(ev.union_type);
+      code_.SetValue("KEY", namer_.LegacySwiftVariant(ev));
       code_.SetValue("VALUETYPE", type);
       code_ += "case .{{KEY}}:";
       Indent();
@@ -1084,11 +1071,11 @@ class SwiftGenerator : public BaseGenerator {
   }
 
   std::string GenerateVerifierType(const FieldDef &field) {
-    auto type = field.value.type;
-    auto is_vector = IsVector(type) || IsArray(type);
+    const auto type = field.value.type;
+    const auto is_vector = IsVector(type) || IsArray(type);
 
     if (is_vector) {
-      auto vector_type = field.value.type.VectorType();
+      const auto vector_type = field.value.type.VectorType();
       return "ForwardOffset<Vector<" +
              GenerateNestedVerifierTypes(vector_type) + ", " +
              GenType(vector_type) + ">>";
@@ -1098,7 +1085,7 @@ class SwiftGenerator : public BaseGenerator {
   }
 
   std::string GenerateNestedVerifierTypes(const Type &type) {
-    auto string_type = GenType(type);
+    const auto string_type = GenType(type);
 
     if (IsScalar(type.base_type)) { return string_type; }
 
@@ -1112,7 +1099,7 @@ class SwiftGenerator : public BaseGenerator {
   void GenByKeyFunctions(const FieldDef &key_field) {
     code_.SetValue("TYPE", GenType(key_field.value.type));
     code_ +=
-        "{{ACCESS_TYPE}} func {{VALUENAME}}By(key: {{TYPE}}) -> {{VALUETYPE}}? "
+        "{{ACCESS_TYPE}} func {{FIELDVAR}}By(key: {{TYPE}}) -> {{VALUETYPE}}? "
         "{ \\";
     code_ += GenOffset() +
              "return o == 0 ? nil : {{VALUETYPE}}.lookupByKey(vector: "
@@ -1121,11 +1108,11 @@ class SwiftGenerator : public BaseGenerator {
 
   void GenEnum(const EnumDef &enum_def) {
     if (enum_def.generated) return;
-    auto is_private_access = enum_def.attributes.Lookup("private");
+    const auto is_private_access = enum_def.attributes.Lookup("private");
     code_.SetValue("ENUM_TYPE",
                    enum_def.is_union ? "UnionEnum" : "Enum, Verifiable");
     code_.SetValue("ACCESS_TYPE", is_private_access ? "internal" : "public");
-    code_.SetValue("ENUM_NAME", NameWrappedInNameSpace(enum_def));
+    code_.SetValue("ENUM_NAME", namer_.NamespacedType(enum_def));
     code_.SetValue("BASE_TYPE", GenTypeBasic(enum_def.underlying_type, false));
     GenComment(enum_def.doc_comment);
     code_ +=
@@ -1148,8 +1135,7 @@ class SwiftGenerator : public BaseGenerator {
         "{{ACCESS_TYPE}} var value: {{BASE_TYPE}} { return self.rawValue }";
     for (auto it = enum_def.Vals().begin(); it != enum_def.Vals().end(); ++it) {
       const auto &ev = **it;
-      auto name = namer_.LegacySwiftVariant(ev);
-      code_.SetValue("KEY", name);
+      code_.SetValue("KEY", namer_.LegacySwiftVariant(ev));
       code_.SetValue("VALUE", enum_def.ToString(ev));
       GenComment(ev.doc_comment);
       code_ += "case {{KEY}} = {{VALUE}}";
@@ -1194,8 +1180,7 @@ class SwiftGenerator : public BaseGenerator {
     code_ += "switch self {";
     for (auto it = enum_def.Vals().begin(); it != enum_def.Vals().end(); ++it) {
       const auto &ev = **it;
-      auto name = namer_.LegacySwiftVariant(ev);
-      code_.SetValue("KEY", name);
+      code_.SetValue("KEY", namer_.LegacySwiftVariant(ev));
       code_.SetValue("RAWKEY", ev.name);
       code_ += "case .{{KEY}}: try container.encode(\"{{RAWKEY}}\")";
     }
@@ -1208,18 +1193,18 @@ class SwiftGenerator : public BaseGenerator {
 
   // MARK: - Object API
 
-  void GenerateObjectAPIExtensionHeader(std::string name) {
+  void GenerateObjectAPIExtensionHeader(std::string type_name) {
     code_ += "\n";
-    code_ += "{{ACCESS_TYPE}} mutating func unpack() -> " + name + " {";
+    code_ += "{{ACCESS_TYPE}} mutating func unpack() -> " + type_name + " {";
     Indent();
-    code_ += "return " + name + "(&self)";
+    code_ += "return " + type_name + "(&self)";
     Outdent();
     code_ += "}";
     code_ +=
         "{{ACCESS_TYPE}} static func pack(_ builder: inout FlatBufferBuilder, "
         "obj: "
         "inout " +
-        name + "?) -> Offset {";
+        type_name + "?) -> Offset {";
     Indent();
     code_ += "guard var obj = obj else { return Offset() }";
     code_ += "return pack(&builder, obj: &obj)";
@@ -1230,7 +1215,7 @@ class SwiftGenerator : public BaseGenerator {
         "{{ACCESS_TYPE}} static func pack(_ builder: inout FlatBufferBuilder, "
         "obj: "
         "inout " +
-        name + ") -> Offset {";
+        type_name + ") -> Offset {";
     Indent();
   }
 
@@ -1240,40 +1225,39 @@ class SwiftGenerator : public BaseGenerator {
     Indent();
     for (auto it = struct_def.fields.vec.begin();
          it != struct_def.fields.vec.end(); ++it) {
-      auto &field = **it;
+      const auto &field = **it;
       if (field.deprecated) continue;
 
-      auto name = namer_.Variable(field.name);
-      auto type = GenType(field.value.type);
-      code_.SetValue("VALUENAME", name);
+      const auto type = GenType(field.value.type);
+      code_.SetValue("FIELDVAR", namer_.Variable(field));
       if (IsStruct(field.value.type)) {
-        code_ += "var _v{{VALUENAME}} = _t.{{VALUENAME}}";
-        code_ += "_{{VALUENAME}} = _v{{VALUENAME}}.unpack()";
+        code_ += "var _v{{FIELDVAR}} = _t.{{FIELDVAR}}";
+        code_ += "_{{FIELDVAR}} = _v{{FIELDVAR}}.unpack()";
         continue;
       }
       std::string is_enum = IsEnum(field.value.type) ? ".value" : "";
-      code_ += "_{{VALUENAME}} = _t.{{VALUENAME}}" + is_enum;
+      code_ += "_{{FIELDVAR}} = _t.{{FIELDVAR}}" + is_enum;
     }
     Outdent();
     code_ += "}\n";
   }
 
   void GenObjectAPI(const StructDef &struct_def) {
-    code_ += "{{ACCESS_TYPE}} class " + ObjectAPIName("{{STRUCTNAME}}") +
-             ": NativeObject {\n";
+    code_ += "{{ACCESS_TYPE}} class " +
+             namer_.NamespacedObjectType(struct_def) + ": NativeObject {\n";
     std::vector<std::string> buffer_constructor;
     std::vector<std::string> base_constructor;
     Indent();
     for (auto it = struct_def.fields.vec.begin();
          it != struct_def.fields.vec.end(); ++it) {
-      auto &field = **it;
+      const auto &field = **it;
       if (field.deprecated) continue;
       BuildObjectAPIConstructorBody(field, struct_def.fixed, buffer_constructor,
                                     base_constructor);
     }
     code_ += "";
     BuildObjectConstructor(buffer_constructor,
-                           "_ _t: inout " + NameWrappedInNameSpace(struct_def));
+                           "_ _t: inout " + namer_.NamespacedType(struct_def));
     BuildObjectConstructor(base_constructor);
     if (!struct_def.fixed)
       code_ +=
@@ -1285,35 +1269,37 @@ class SwiftGenerator : public BaseGenerator {
   }
 
   void GenerateObjectAPITableExtension(const StructDef &struct_def) {
-    GenerateObjectAPIExtensionHeader(ObjectAPIName("{{STRUCTNAME}}"));
+    GenerateObjectAPIExtensionHeader(namer_.NamespacedObjectType(struct_def));
     std::vector<std::string> unpack_body;
     std::string builder = ", &builder)";
     for (auto it = struct_def.fields.vec.begin();
          it != struct_def.fields.vec.end(); ++it) {
-      auto &field = **it;
+      const auto &field = **it;
       if (field.deprecated) continue;
-      auto name = namer_.Variable(field.name);
-      auto type = GenType(field.value.type);
+      const auto field_var = namer_.Variable(field);
+      const auto field_field = namer_.Field(field);
+      const auto field_method = namer_.Method(field);
+      const auto type = GenType(field.value.type);
       std::string check_if_vector =
           (IsVector(field.value.type) || IsArray(field.value.type))
               ? "VectorOf("
               : "(";
-      std::string body = "add" + check_if_vector + name + ": ";
+      std::string body = "add" + check_if_vector + field_method + ": ";
       switch (field.value.type.base_type) {
         case BASE_TYPE_ARRAY: FLATBUFFERS_FALLTHROUGH();
         case BASE_TYPE_VECTOR: {
-          GenerateVectorObjectAPITableExtension(field, name, type);
-          unpack_body.push_back("{{STRUCTNAME}}." + body + "__" + name +
+          GenerateVectorObjectAPITableExtension(field);
+          unpack_body.push_back("{{STRUCTNAME}}." + body + "__" + field_var +
                                 builder);
           break;
         }
         case BASE_TYPE_UNION: {
-          code_ += "let __" + name + " = obj." + name +
+          code_ += "let __" + field_var + " = obj." + field_var +
                    "?.pack(builder: &builder) ?? Offset()";
-          unpack_body.push_back("if let o = obj." + name + "?.type {");
-          unpack_body.push_back("  {{STRUCTNAME}}.add(" + name + "Type: o" +
-                                builder);
-          unpack_body.push_back("  {{STRUCTNAME}}." + body + "__" + name +
+          unpack_body.push_back("if let o = obj." + field_var + "?.type {");
+          unpack_body.push_back("  {{STRUCTNAME}}.add(" + field_var +
+                                "Type: o" + builder);
+          unpack_body.push_back("  {{STRUCTNAME}}." + body + "__" + field_var +
                                 builder);
           unpack_body.push_back("}\n");
           break;
@@ -1327,31 +1313,31 @@ class SwiftGenerator : public BaseGenerator {
             GenerateStructArgs(*field.value.type.struct_def, &code, "", "",
                                "$0", true);
             code = code.substr(0, code.size() - 2);
-            unpack_body.push_back("{{STRUCTNAME}}." + body + "obj." + name +
-                                  builder);
+            unpack_body.push_back("{{STRUCTNAME}}." + body + "obj." +
+                                  field_field + builder);
           } else {
-            code_ += "let __" + name + " = " + type +
-                     ".pack(&builder, obj: &obj." + name + ")";
-            unpack_body.push_back("{{STRUCTNAME}}." + body + "__" + name +
+            code_ += "let __" + field_var + " = " + type +
+                     ".pack(&builder, obj: &obj." + field_field + ")";
+            unpack_body.push_back("{{STRUCTNAME}}." + body + "__" + field_var +
                                   builder);
           }
           break;
         }
         case BASE_TYPE_STRING: {
-          unpack_body.push_back("{{STRUCTNAME}}." + body + "__" + name +
+          unpack_body.push_back("{{STRUCTNAME}}." + body + "__" + field_var +
                                 builder);
           if (field.IsRequired()) {
-            code_ +=
-                "let __" + name + " = builder.create(string: obj." + name + ")";
+            code_ += "let __" + field_var + " = builder.create(string: obj." +
+                     field_field + ")";
           } else {
-            BuildingOptionalObjects(name, "builder.create(string: s)");
+            BuildingOptionalObjects(field_field, "builder.create(string: s)");
           }
           break;
         }
         case BASE_TYPE_UTYPE: break;
         default:
-          unpack_body.push_back("{{STRUCTNAME}}." + body + "obj." + name +
-                                builder);
+          unpack_body.push_back("{{STRUCTNAME}}." + body + "obj." +
+                                field_field + builder);
       }
     }
     code_ += "let __root = {{STRUCTNAME}}.start{{SHORT_STRUCTNAME}}(&builder)";
@@ -1364,64 +1350,64 @@ class SwiftGenerator : public BaseGenerator {
     code_ += "}";
   }
 
-  void GenerateVectorObjectAPITableExtension(const FieldDef &field,
-                                             const std::string &name,
-                                             const std::string &type) {
-    auto vectortype = field.value.type.VectorType();
+  void GenerateVectorObjectAPITableExtension(const FieldDef &field_def) {
+    const Type &field_type = field_def.value.type;
+    const auto type = GenType(field_type);
+    const auto var = namer_.Variable(field_def);
+    const auto field = namer_.Field(field_def);
+
+    const auto vectortype = field_type.VectorType();
     switch (vectortype.base_type) {
       case BASE_TYPE_UNION: {
-        code_ += "var __" + name + "__: [Offset] = []";
-        code_ += "for i in obj." + name + " {";
+        code_ += "var __" + var + "__: [Offset] = []";
+        code_ += "for i in obj." + var + " {";
         Indent();
         code_ += "guard let off = i?.pack(builder: &builder) else { continue }";
-        code_ += "__" + name + "__.append(off)";
+        code_ += "__" + var + "__.append(off)";
         Outdent();
         code_ += "}";
-        code_ += "let __" + name + " = builder.createVector(ofOffsets: __" +
-                 name + "__)";
-        code_ += "let __" + name + "Type = builder.createVector(obj." + name +
+        code_ += "let __" + var + " = builder.createVector(ofOffsets: __" +
+                 var + "__)";
+        code_ += "let __" + var + "Type = builder.createVector(obj." + field +
                  ".compactMap { $0?.type })";
         break;
       }
       case BASE_TYPE_UTYPE: break;
       case BASE_TYPE_STRUCT: {
-        if (field.value.type.struct_def &&
-            !field.value.type.struct_def->fixed) {
-          code_ += "var __" + name + "__: [Offset] = []";
-          code_ += "for var i in obj." + name + " {";
+        if (field_type.struct_def && !field_type.struct_def->fixed) {
+          code_ += "var __" + var + "__: [Offset] = []";
+          code_ += "for var i in obj." + var + " {";
           Indent();
           code_ +=
-              "__" + name + "__.append(" + type + ".pack(&builder, obj: &i))";
+              "__" + var + "__.append(" + type + ".pack(&builder, obj: &i))";
           Outdent();
           code_ += "}";
-          code_ += "let __" + name + " = builder.createVector(ofOffsets: __" +
-                   name + "__)";
+          code_ += "let __" + var + " = builder.createVector(ofOffsets: __" +
+                   var + "__)";
         } else {
-          code_ += "{{STRUCTNAME}}.startVectorOf" +
-                   ConvertCase(name, Case::kUpperCamel) + "(obj." + name +
-                   ".count, in: &builder)";
+          code_ += "{{STRUCTNAME}}." + namer_.Method("start_vector_of_" + var) +
+                   "(obj." + field + ".count, in: &builder)";
           std::string code;
-          GenerateStructArgs(*field.value.type.struct_def, &code, "", "", "_o",
-                             true);
+          GenerateStructArgs(*field_type.struct_def, &code, "", "", "_o", true);
           code = code.substr(0, code.size() - 2);
-          code_ += "for i in obj." + name + " {";
+          code_ += "for i in obj." + field + " {";
           Indent();
           code_ += "guard let _o = i else { continue }";
           code_ += "builder.create(struct: _o)";
           Outdent();
           code_ += "}";
-          code_ += "let __" + name + " = builder.endVector(len: obj." + name +
+          code_ += "let __" + var + " = builder.endVector(len: obj." + field +
                    ".count)";
         }
         break;
       }
       case BASE_TYPE_STRING: {
-        code_ += "let __" + name + " = builder.createVector(ofStrings: obj." +
-                 name + ".compactMap({ $0 }) )";
+        code_ += "let __" + var + " = builder.createVector(ofStrings: obj." +
+                 var + ".compactMap({ $0 }) )";
         break;
       }
       default: {
-        code_ += "let __" + name + " = builder.createVector(obj." + name + ")";
+        code_ += "let __" + var + " = builder.createVector(obj." + field + ")";
         break;
       }
     }
@@ -1456,120 +1442,125 @@ class SwiftGenerator : public BaseGenerator {
       const FieldDef &field, bool is_fixed,
       std::vector<std::string> &buffer_constructor,
       std::vector<std::string> &base_constructor) {
-    auto name = namer_.Field(field.name);
-    auto type = GenType(field.value.type);
-    code_.SetValue("VALUENAME", name);
+    const auto field_field = namer_.Field(field);
+    const auto field_var = namer_.Variable(field);
+    const auto type = GenType(field.value.type);
+    code_.SetValue("FIELDVAR", field_field);
     code_.SetValue("VALUETYPE", type);
     std::string is_required = field.IsRequired() ? "" : "?";
 
     switch (field.value.type.base_type) {
       case BASE_TYPE_STRUCT: {
-        type = GenType(field.value.type, true);
+        const auto type = GenType(field.value.type, true);
         code_.SetValue("VALUETYPE", type);
-        auto optional =
+        const auto optional =
             (field.value.type.struct_def && field.value.type.struct_def->fixed);
         std::string question_mark =
             (field.IsRequired() || (optional && is_fixed) ? "" : "?");
 
         code_ +=
-            "{{ACCESS_TYPE}} var {{VALUENAME}}: {{VALUETYPE}}" + question_mark;
-        base_constructor.push_back("" + name + " = " + type + "()");
+            "{{ACCESS_TYPE}} var {{FIELDVAR}}: {{VALUETYPE}}" + question_mark;
+        base_constructor.push_back("" + field_var + " = " + type + "()");
 
         if (field.value.type.struct_def->fixed) {
-          buffer_constructor.push_back("" + name + " = _t." + name);
+          buffer_constructor.push_back("" + field_var + " = _t." + field_field);
         } else {
-          buffer_constructor.push_back("var __" + name + " = _t." + name);
+          buffer_constructor.push_back("var __" + field_var + " = _t." +
+                                       field_field);
           buffer_constructor.push_back(
-              "" + name + " = __" + name +
+              "" + field_var + " = __" + field_var +
               (field.IsRequired() ? "!" : question_mark) + ".unpack()");
         }
         break;
       }
       case BASE_TYPE_ARRAY: FLATBUFFERS_FALLTHROUGH();
       case BASE_TYPE_VECTOR: {
-        BuildObjectAPIConstructorBodyVectors(field, name, buffer_constructor,
+        BuildObjectAPIConstructorBodyVectors(field, buffer_constructor,
                                              base_constructor, "    ");
         break;
       }
       case BASE_TYPE_STRING: {
-        code_ += "{{ACCESS_TYPE}} var {{VALUENAME}}: String" + is_required;
-        buffer_constructor.push_back(name + " = _t." + name);
+        code_ += "{{ACCESS_TYPE}} var {{FIELDVAR}}: String" + is_required;
+        buffer_constructor.push_back(field_var + " = _t." + field_field);
 
         if (field.IsRequired()) {
           std::string default_value =
               field.IsDefault() ? field.value.constant : "";
-          base_constructor.push_back(name + " = \"" + default_value + "\"");
+          base_constructor.push_back(field_var + " = \"" + default_value +
+                                     "\"");
           break;
         }
         if (field.IsDefault() && !field.IsRequired()) {
           std::string value = field.IsDefault() ? field.value.constant : "nil";
-          base_constructor.push_back(name + " = \"" + value + "\"");
+          base_constructor.push_back(field_var + " = \"" + value + "\"");
         }
         break;
       }
       case BASE_TYPE_UTYPE: break;
       case BASE_TYPE_UNION: {
-        BuildUnionEnumSwitchCase(*field.value.type.enum_def, name,
+        BuildUnionEnumSwitchCase(*field.value.type.enum_def, field_var,
                                  buffer_constructor);
         break;
       }
       default: {
-        buffer_constructor.push_back(name + " = _t." + name);
+        buffer_constructor.push_back(field_var + " = _t." + field_field);
         std::string nullable = field.IsOptional() ? "?" : "";
         if (IsScalar(field.value.type.base_type) &&
             !IsBool(field.value.type.base_type) && !IsEnum(field.value.type)) {
-          code_ +=
-              "{{ACCESS_TYPE}} var {{VALUENAME}}: {{VALUETYPE}}" + nullable;
+          code_ += "{{ACCESS_TYPE}} var {{FIELDVAR}}: {{VALUETYPE}}" + nullable;
           if (!field.IsOptional())
-            base_constructor.push_back(name + " = " + field.value.constant);
+            base_constructor.push_back(field_var + " = " +
+                                       field.value.constant);
           break;
         }
 
         if (IsEnum(field.value.type)) {
-          auto default_value = IsEnum(field.value.type)
-                                   ? GenEnumDefaultValue(field)
-                                   : field.value.constant;
-          code_ += "{{ACCESS_TYPE}} var {{VALUENAME}}: {{VALUETYPE}}";
-          base_constructor.push_back(name + " = " + default_value);
+          const auto default_value = IsEnum(field.value.type)
+                                         ? GenEnumDefaultValue(field)
+                                         : field.value.constant;
+          code_ += "{{ACCESS_TYPE}} var {{FIELDVAR}}: {{VALUETYPE}}";
+          base_constructor.push_back(field_var + " = " + default_value);
           break;
         }
 
         if (IsBool(field.value.type.base_type)) {
-          code_ += "{{ACCESS_TYPE}} var {{VALUENAME}}: Bool" + nullable;
+          code_ += "{{ACCESS_TYPE}} var {{FIELDVAR}}: Bool" + nullable;
           std::string default_value =
               "0" == field.value.constant ? "false" : "true";
           if (!field.IsOptional())
-            base_constructor.push_back(name + " = " + default_value);
+            base_constructor.push_back(field_var + " = " + default_value);
         }
       }
     }
   }
 
   void BuildObjectAPIConstructorBodyVectors(
-      const FieldDef &field, const std::string &name,
-      std::vector<std::string> &buffer_constructor,
+      const FieldDef &field, std::vector<std::string> &buffer_constructor,
       std::vector<std::string> &base_constructor,
       const std::string &indentation) {
-    auto vectortype = field.value.type.VectorType();
+    const auto vectortype = field.value.type.VectorType();
+    const auto field_var = namer_.Field(field);
+    const auto field_field = namer_.Field(field);
 
     if (vectortype.base_type != BASE_TYPE_UTYPE) {
-      buffer_constructor.push_back(name + " = []");
-      buffer_constructor.push_back("for index in 0..<_t." + name + "Count {");
-      base_constructor.push_back(name + " = []");
+      buffer_constructor.push_back(field_var + " = []");
+      buffer_constructor.push_back("for index in 0..<_t." + field_field +
+                                   "Count {");
+      base_constructor.push_back(field_var + " = []");
     }
 
     switch (vectortype.base_type) {
       case BASE_TYPE_STRUCT: {
         code_.SetValue("VALUETYPE", GenType(vectortype, true));
-        code_ += "{{ACCESS_TYPE}} var {{VALUENAME}}: [{{VALUETYPE}}?]";
+        code_ += "{{ACCESS_TYPE}} var {{FIELDVAR}}: [{{VALUETYPE}}?]";
         if (!vectortype.struct_def->fixed) {
-          buffer_constructor.push_back(indentation + "var __v_ = _t." + name +
-                                       "(at: index)");
-          buffer_constructor.push_back(indentation + name +
+          buffer_constructor.push_back(indentation + "var __v_ = _t." +
+                                       field_field + "(at: index)");
+          buffer_constructor.push_back(indentation + field_var +
                                        ".append(__v_?.unpack())");
         } else {
-          buffer_constructor.push_back(indentation + name + ".append(_t." +
-                                       name + "(at: index))");
+          buffer_constructor.push_back(indentation + field_var + ".append(_t." +
+                                       field_var + "(at: index))");
         }
         break;
       }
@@ -1578,7 +1569,7 @@ class SwiftGenerator : public BaseGenerator {
         break;
       }
       case BASE_TYPE_UNION: {
-        BuildUnionEnumSwitchCase(*field.value.type.enum_def, name,
+        BuildUnionEnumSwitchCase(*field.value.type.enum_def, field_var,
                                  buffer_constructor, indentation, true);
         break;
       }
@@ -1587,18 +1578,18 @@ class SwiftGenerator : public BaseGenerator {
         code_.SetValue(
             "VALUETYPE",
             (IsString(vectortype) ? "String?" : GenType(vectortype)));
-        code_ += "{{ACCESS_TYPE}} var {{VALUENAME}}: [{{VALUETYPE}}]";
+        code_ += "{{ACCESS_TYPE}} var {{FIELDVAR}}: [{{VALUETYPE}}]";
 
         if (IsEnum(vectortype) && vectortype.base_type != BASE_TYPE_UNION) {
-          auto default_value = IsEnum(field.value.type)
-                                   ? GenEnumDefaultValue(field)
-                                   : field.value.constant;
-          buffer_constructor.push_back(indentation + name + ".append(_t." +
-                                       name + "(at: index)!)");
+          const auto default_value = IsEnum(field.value.type)
+                                         ? GenEnumDefaultValue(field)
+                                         : field.value.constant;
+          buffer_constructor.push_back(indentation + field_var + ".append(_t." +
+                                       field_field + "(at: index)!)");
           break;
         }
-        buffer_constructor.push_back(indentation + name + ".append(_t." + name +
-                                     "(at: index))");
+        buffer_constructor.push_back(indentation + field_var + ".append(_t." +
+                                     field_field + "(at: index))");
         break;
       }
     }
@@ -1609,10 +1600,10 @@ class SwiftGenerator : public BaseGenerator {
   void BuildUnionEnumSwitchCaseWritter(const EnumDef &ed) {
     code_ += "switch type {";
     for (auto it = ed.Vals().begin(); it < ed.Vals().end(); ++it) {
-      auto ev = **it;
-      auto variant = namer_.LegacySwiftVariant(ev);
-      auto type = GenType(ev.union_type);
-      auto is_struct = IsStruct(ev.union_type) ? type + Mutable() : type;
+      const auto ev = **it;
+      const auto variant = namer_.LegacySwiftVariant(ev);
+      const auto type = GenType(ev.union_type);
+      const auto is_struct = IsStruct(ev.union_type) ? type + Mutable() : type;
       if (ev.union_type.base_type == BASE_TYPE_NONE) { continue; }
       code_ += "case ." + variant + ":";
       Indent();
@@ -1628,28 +1619,28 @@ class SwiftGenerator : public BaseGenerator {
                                 std::vector<std::string> &buffer_constructor,
                                 const std::string &indentation = "",
                                 const bool is_vector = false) {
-    auto field_name = NameWrappedInNameSpace(ed);
-    code_.SetValue("VALUETYPE", field_name);
-    code_ += "{{ACCESS_TYPE}} var {{VALUENAME}}: \\";
+    const auto ns_type = namer_.NamespacedType(ed);
+    code_.SetValue("VALUETYPE", ns_type);
+    code_ += "{{ACCESS_TYPE}} var {{FIELDVAR}}: \\";
     code_ += is_vector ? "[{{VALUETYPE}}Union?]" : "{{VALUETYPE}}Union?";
 
-    auto vector_reader = is_vector ? "(at: index" : "";
+    const auto vector_reader = is_vector ? "(at: index" : "";
     buffer_constructor.push_back(indentation + "switch _t." + name + "Type" +
                                  vector_reader + (is_vector ? ")" : "") + " {");
 
     for (auto it = ed.Vals().begin(); it < ed.Vals().end(); ++it) {
-      auto ev = **it;
-      auto variant = namer_.LegacySwiftVariant(ev);
+      const auto ev = **it;
+      const auto variant = namer_.LegacySwiftVariant(ev);
       if (ev.union_type.base_type == BASE_TYPE_NONE) { continue; }
-      auto type = IsStruct(ev.union_type)
-                      ? GenType(ev.union_type) + Mutable()
-                      : GenType(ev.union_type);
+      const auto type = IsStruct(ev.union_type)
+                            ? GenType(ev.union_type) + Mutable()
+                            : GenType(ev.union_type);
       buffer_constructor.push_back(indentation + "case ." + variant + ":");
       buffer_constructor.push_back(
           indentation + "  var _v = _t." + name + (is_vector ? "" : "(") +
           vector_reader + (is_vector ? ", " : "") + "type: " + type + ".self)");
-      auto constructor =
-          field_name + "Union(_v?.unpack(), type: ." + variant + ")";
+      const auto constructor =
+          ns_type + "Union(_v?.unpack(), type: ." + variant + ")";
       buffer_constructor.push_back(
           indentation + "  " + name +
           (is_vector ? ".append(" + constructor + ")" : " = " + constructor));
@@ -1659,13 +1650,14 @@ class SwiftGenerator : public BaseGenerator {
   }
 
   void AddMinOrMaxEnumValue(const std::string &str, const std::string &type) {
-    auto current_value = str;
+    const auto current_value = str;
     code_.SetValue(type, current_value);
     code_ += "{{ACCESS_TYPE}} static var " + type +
              ": {{ENUM_NAME}} { return .{{" + type + "}} }";
   }
 
-  void GenLookup(const FieldDef &key_field) {
+  void GenLookup(const FieldDef &key_field, const std::string &struct_type) {
+    code_.SetValue("STRUCTTYPE", struct_type);
     code_.SetValue("OFFSET", NumToString(key_field.value.offset));
     std::string offset_reader =
         "Table.offset(Int32(fbb.capacity) - tableOffset, vOffset: {{OFFSET}}, "
@@ -1675,7 +1667,7 @@ class SwiftGenerator : public BaseGenerator {
     code_ +=
         "fileprivate static func lookupByKey(vector: Int32, key: {{TYPE}}, "
         "fbb: "
-        "ByteBuffer) -> {{VALUENAME}}? {";
+        "ByteBuffer) -> {{STRUCTTYPE}}? {";
     Indent();
     if (IsString(key_field.value.type))
       code_ += "let key = key.utf8.map { $0 }";
@@ -1705,7 +1697,7 @@ class SwiftGenerator : public BaseGenerator {
     Outdent();
     code_ += "} else {";
     Indent();
-    code_ += "return {{VALUENAME}}(fbb, o: tableOffset)";
+    code_ += "return {{STRUCTTYPE}}(fbb, o: tableOffset)";
     Outdent();
     code_ += "}";
     Outdent();
@@ -1719,7 +1711,7 @@ class SwiftGenerator : public BaseGenerator {
     if (field.padding) {
       for (int i = 0; i < 4; i++) {
         if (static_cast<int>(field.padding) & (1 << i)) {
-          auto bits = (1 << i) * 8;
+          const auto bits = (1 << i) * 8;
           code_ += "private let padding" + NumToString((*id)++) + "__: UInt" +
                    NumToString(bits) + " = 0";
         }
@@ -1741,8 +1733,7 @@ class SwiftGenerator : public BaseGenerator {
   }
 
   std::string GenReaderMainBody(const std::string &optional = "") {
-    return "{{ACCESS_TYPE}} var {{VALUENAME}}: {{VALUETYPE}}" + optional +
-           " { ";
+    return "{{ACCESS_TYPE}} var {{FIELDVAR}}: {{VALUETYPE}}" + optional + " { ";
   }
 
   std::string GenReader(const std::string &type,
@@ -1756,36 +1747,34 @@ class SwiftGenerator : public BaseGenerator {
 
   std::string GenMutate(const std::string &offset,
                         const std::string &get_offset, bool isRaw = false) {
-    return "@discardableResult {{ACCESS_TYPE}} func mutate({{VALUENAME}}: "
+    return "@discardableResult {{ACCESS_TYPE}} func mutate({{FIELDVAR}}: "
            "{{VALUETYPE}}) -> Bool {" +
-           get_offset + " return {{ACCESS}}.mutate({{VALUENAME}}" +
+           get_offset + " return {{ACCESS}}.mutate({{FIELDVAR}}" +
            (isRaw ? ".rawValue" : "") + ", index: " + offset + ") }";
   }
 
   std::string GenMutateArray() {
-    return "{{ACCESS_TYPE}} func mutate({{VALUENAME}}: {{VALUETYPE}}, at "
-           "index: "
-           "Int32) -> Bool { " +
+    return "{{ACCESS_TYPE}} func mutate({{FIELDVAR}}: {{VALUETYPE}}, at "
+           "index: Int32) -> Bool { " +
            GenOffset() +
-           "return {{ACCESS}}.directMutate({{VALUENAME}}, index: "
+           "return {{ACCESS}}.directMutate({{FIELDVAR}}, index: "
            "{{ACCESS}}.vector(at: o) + index * {{SIZE}}) }";
   }
 
   std::string GenEnumDefaultValue(const FieldDef &field) {
-    auto &value = field.value;
+    const auto &value = field.value;
     FLATBUFFERS_ASSERT(value.type.enum_def);
-    auto &enum_def = *value.type.enum_def;
+    const auto &enum_def = *value.type.enum_def;
     // Vector of enum defaults are always "[]" which never works.
     const std::string constant = IsVector(value.type) ? "0" : value.constant;
-    auto enum_val = enum_def.FindByValue(constant);
+    const auto enum_val = enum_def.FindByValue(constant);
     std::string name;
     if (enum_val) {
-      name = namer_.LegacySwiftVariant(*enum_val);
+      return "." + namer_.LegacySwiftVariant(*enum_val);
     } else {
       const auto &ev = **enum_def.Vals().begin();
-      name = namer_.LegacySwiftVariant(ev);
+      return "." + namer_.LegacySwiftVariant(ev);
     }
-    return "." + name;
   }
 
   std::string GenEnumConstructor(const std::string &at) {
@@ -1798,10 +1787,9 @@ class SwiftGenerator : public BaseGenerator {
 
   std::string GenType(const Type &type,
                       const bool should_consider_suffix = false) const {
-    return IsScalar(type.base_type)
-               ? GenTypeBasic(type)
-               : (IsArray(type) ? GenType(type.VectorType())
-                                : GenTypePointer(type, should_consider_suffix));
+    return IsScalar(type.base_type) ? GenTypeBasic(type)
+           : IsArray(type)          ? GenType(type.VectorType())
+                           : GenTypePointer(type, should_consider_suffix);
   }
 
   std::string GenTypePointer(const Type &type,
@@ -1810,12 +1798,11 @@ class SwiftGenerator : public BaseGenerator {
       case BASE_TYPE_STRING: return "String";
       case BASE_TYPE_VECTOR: return GenType(type.VectorType());
       case BASE_TYPE_STRUCT: {
-        auto &struct_ = *type.struct_def;
-        if (should_consider_suffix && !struct_.fixed) {
-          return WrapInNameSpace(struct_.defined_namespace,
-                                 namer_.ObjectType(struct_.name));
+        const auto &sd = *type.struct_def;
+        if (should_consider_suffix && !sd.fixed) {
+          return namer_.NamespacedObjectType(sd);
         }
-        return WrapInNameSpace(struct_.defined_namespace, namer_.Type(struct_.name));
+        return namer_.NamespacedType(sd);
       }
       case BASE_TYPE_UNION:
       default: return "FlatbuffersInitializable";
@@ -1826,21 +1813,9 @@ class SwiftGenerator : public BaseGenerator {
     return GenTypeBasic(type, true);
   }
 
-  std::string ObjectAPIName(const std::string &name) const {
-    return parser_.opts.object_prefix + name + parser_.opts.object_suffix;
-  }
-
   void Indent() { code_.IncrementIdentLevel(); }
 
   void Outdent() { code_.DecrementIdentLevel(); }
-
-  std::string NameWrappedInNameSpace(const EnumDef &enum_def) const {
-    return WrapInNameSpace(enum_def.defined_namespace, namer_.Type(enum_def.name));
-  }
-
-  std::string NameWrappedInNameSpace(const StructDef &struct_def) const {
-    return WrapInNameSpace(struct_def.defined_namespace, namer_.Type(struct_def.name));
-  }
 
   std::string GenTypeBasic(const Type &type, bool can_override) const {
     // clang-format off
@@ -1853,7 +1828,7 @@ class SwiftGenerator : public BaseGenerator {
     };
     // clang-format on
     if (can_override) {
-      if (type.enum_def) return NameWrappedInNameSpace(*type.enum_def);
+      if (type.enum_def) return namer_.NamespacedType(*type.enum_def);
       if (type.base_type == BASE_TYPE_BOOL) return "Bool";
     }
     return swift_type[static_cast<int>(type.base_type)];

@@ -125,7 +125,6 @@ class Namer {
   // Types are always structs or enums so we can only expose these two
   // overloads.
   std::string Type(const StructDef &d) const { return Type(d.name); }
-
   std::string Type(const EnumDef &d) const { return Type(d.name); }
 
   template<typename T> std::string Method(const T &s) const {
@@ -147,6 +146,10 @@ class Namer {
   std::string Function(const Definition &s) const { return Function(s.name); }
 
   std::string Field(const FieldDef &s) const { return Field(s.name); }
+
+  std::string Variable(const std::string &s) const {
+    return Format(s, config_.variables);
+  }
 
   std::string Variable(const FieldDef &s) const { return Variable(s.name); }
 
@@ -181,15 +184,17 @@ class Namer {
   }
 
   std::string NamespacedType(const Definition &def) const {
-    if (def.defined_namespace != nullptr) {
-      return NamespacedType(def.defined_namespace->components, def.name);
-    }
-    return Type(def.name);
+    return NamespacedString(def.defined_namespace, Type(def.name));
   }
 
   std::string NamespacedType(const std::vector<std::string> &ns,
                              const std::string &s) const {
-    return Namespace(ns) + config_.namespace_seperator + Type(s);
+    return (ns.empty() ? "" : (Namespace(ns) + config_.namespace_seperator)) +
+           Type(s);
+  }
+
+  std::string NamespacedObjectType(const Definition &def) const {
+    return NamespacedString(def.defined_namespace, ObjectType(def.name));
   }
 
   // Returns `filename` with the right casing, suffix, and extension.
@@ -272,12 +277,16 @@ class Namer {
     return Format(s, config_.fields);
   }
 
-  std::string Variable(const std::string &s) const {
-    return Format(s, config_.variables);
-  }
-
   std::string Variant(const std::string &s) const {
     return Format(s, config_.variants);
+  }
+
+  std::string NamespacedString(const struct Namespace *ns,
+                               const std::string &str) const {
+    std::string ret;
+    if (ns != nullptr) { ret += Namespace(ns->components); }
+    if (!ret.empty()) ret += config_.namespace_seperator;
+    return ret + str;
   }
 
   std::string Format(const std::string &s, Case casing) const {
