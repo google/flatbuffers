@@ -181,6 +181,11 @@ class Namer {
     return Type(def.name);
   }
 
+  std::string NamespacedType(const std::vector<std::string> &ns,
+                             const std::string &s) const {
+    return Namespace(ns) + config_.namespace_seperator + Type(s);
+  }
+
   // Returns `filename` with the right casing, suffix, and extension.
   std::string File(const std::string &filename,
                    SkipFile skips = SkipFile::None) const {
@@ -246,11 +251,6 @@ class Namer {
 
   std::string Variant(const std::string &s) const {
     return Format(s, config_.variants);
-  }
-
-  std::string NamespacedType(const std::vector<std::string> &ns,
-                             const std::string &s) const {
-    return Namespace(ns) + config_.namespace_seperator + Type(s);
   }
 
   std::string Format(const std::string &s, Case casing) const {
