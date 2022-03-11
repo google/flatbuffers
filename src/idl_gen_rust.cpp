@@ -999,13 +999,6 @@ class RustGenerator : public BaseGenerator {
     code_ += "}";  // End union methods impl.
   }
 
-  std::string GetFieldOffsetName(const FieldDef &field) {
-    // FIXME: VT_FIELD_NAME is not screaming snake case by legacy mistake.
-    // but changing this is probably a breaking change.
-    return "VT_" +
-           ConvertCase(namer_.EscapeKeyword(field.name), Case::kAllUpper);
-  }
-
   enum DefaultContext { kBuilder, kAccessor, kObject };
   std::string GetDefaultValue(const FieldDef &field,
                               const DefaultContext context) {
@@ -1541,7 +1534,7 @@ class RustGenerator : public BaseGenerator {
 
   std::string GenTableAccessorFuncBody(const FieldDef &field,
                                        const std::string &lifetime) {
-    const std::string vt_offset = GetFieldOffsetName(field);
+    const std::string vt_offset = namer_.LegacyRustFieldOffsetName(field);
     const std::string typname = FollowType(field.value.type, lifetime);
     // Default-y fields (scalars so far) are neither optional nor required.
     const std::string default_value =
@@ -1603,7 +1596,7 @@ class RustGenerator : public BaseGenerator {
     // diff when refactoring to the `ForAllX` helper functions.
     auto go = [&](const FieldDef &field) {
       if (field.deprecated) return;
-      code_.SetValue("OFFSET_NAME", GetFieldOffsetName(field));
+      code_.SetValue("OFFSET_NAME", namer_.LegacyRustFieldOffsetName(field));
       code_.SetValue("OFFSET_VALUE", NumToString(field.value.offset));
       code_.SetValue("FIELD", namer_.Field(field));
       code_.SetValue("BLDR_DEF_VAL", GetDefaultValue(field, kBuilder));
@@ -1941,7 +1934,7 @@ class RustGenerator : public BaseGenerator {
       const EnumDef &union_def = *field.value.type.enum_def;
       code_.SetValue("UNION_TYPE", WrapInNameSpace(union_def));
       code_.SetValue("UNION_TYPE_OFFSET_NAME",
-                     GetFieldOffsetName(field) + "_TYPE");
+                     namer_.LegacyRustFieldOffsetName(field) + "_TYPE");
       code_ +=
           "\n     .visit_union::<{{UNION_TYPE}}, _>("
           "\"{{FIELD}}_type\", Self::{{UNION_TYPE_OFFSET_NAME}}, "
@@ -2067,7 +2060,7 @@ class RustGenerator : public BaseGenerator {
     code_ += "impl<'a: 'b, 'b> {{STRUCT_TY}}Builder<'a, 'b> {";
     ForAllTableFields(struct_def, [&](const FieldDef &field) {
       const bool is_scalar = IsScalar(field.value.type.base_type);
-      std::string offset = GetFieldOffsetName(field);
+      std::string offset = namer_.LegacyRustFieldOffsetName(field);
       // Generate functions to add data, which take one of two forms.
       //
       // If a value has a default:

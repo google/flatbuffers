@@ -136,10 +136,6 @@ class Namer {
 
   std::string Function(const Definition &s) const { return Function(s.name); }
 
-  std::string Field(const std::string &s) const {
-    return Format(s, config_.fields);
-  }
-
   std::string Field(const FieldDef &s) const { return Field(s.name); }
 
   std::string Variable(const FieldDef &s) const { return Variable(s.name); }
@@ -232,8 +228,16 @@ class Namer {
     }
   }
 
+  // Legacy fields do not really follow the usual config and should be
+  // considered for deprecation.
+
   std::string LegacyRustNativeVariant(const EnumVal &v) const {
     return ConvertCase(EscapeKeyword(v.name), Case::kUpperCamel);
+  }
+
+  std::string LegacyRustFieldOffsetName(const FieldDef& field) const {
+
+    return "VT_" + ConvertCase(EscapeKeyword(field.name), Case::kAllUpper);
   }
 
  private:
@@ -243,6 +247,10 @@ class Namer {
 
   std::string ObjectType(const std::string &s) const {
     return config_.object_prefix + Type(s) + config_.object_suffix;
+  }
+
+  std::string Field(const std::string &s) const {
+    return Format(s, config_.fields);
   }
 
   std::string Variable(const std::string &s) const {
