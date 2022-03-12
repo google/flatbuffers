@@ -143,7 +143,8 @@ class SwiftGenerator : public BaseGenerator {
 
   // Generates the reader for swift
   void GenStructReader(const StructDef &struct_def) {
-    const bool is_private_access = struct_def.attributes.Lookup("private");
+    const bool is_private_access =
+        struct_def.attributes.Lookup("private") != nullptr;
     code_.SetValue("ACCESS_TYPE", is_private_access ? "internal" : "public");
     GenComment(struct_def.doc_comment);
     code_.SetValue("STRUCTNAME", namer_.NamespacedType(struct_def));
@@ -300,7 +301,8 @@ class SwiftGenerator : public BaseGenerator {
 
   // Generates the create function for swift
   void GenStructWriter(const StructDef &struct_def) {
-    const bool is_private_access = struct_def.attributes.Lookup("private");
+    const bool is_private_access =
+        struct_def.attributes.Lookup("private") != nullptr;
     code_.SetValue("ACCESS_TYPE", is_private_access ? "internal" : "public");
     code_.SetValue("STRUCTNAME", namer_.NamespacedType(struct_def));
     code_.SetValue("SHORT_STRUCTNAME", namer_.Method(struct_def));
@@ -368,7 +370,8 @@ class SwiftGenerator : public BaseGenerator {
 
   // Generates the reader for swift
   void GenTable(const StructDef &struct_def) {
-    const bool is_private_access = struct_def.attributes.Lookup("private");
+    const bool is_private_access =
+        struct_def.attributes.Lookup("private") != nullptr;
     code_.SetValue("ACCESS_TYPE", is_private_access ? "internal" : "public");
     GenObjectHeader(struct_def);
     GenTableAccessors(struct_def);
