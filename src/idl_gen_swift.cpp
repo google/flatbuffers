@@ -1451,8 +1451,8 @@ class SwiftGenerator : public BaseGenerator {
 
     switch (field.value.type.base_type) {
       case BASE_TYPE_STRUCT: {
-        const auto type = GenType(field.value.type, true);
-        code_.SetValue("VALUETYPE", type);
+        const auto objtype = GenType(field.value.type, true);
+        code_.SetValue("VALUETYPE", objtype);
         const auto optional =
             (field.value.type.struct_def && field.value.type.struct_def->fixed);
         std::string question_mark =
@@ -1460,7 +1460,7 @@ class SwiftGenerator : public BaseGenerator {
 
         code_ +=
             "{{ACCESS_TYPE}} var {{FIELDVAR}}: {{VALUETYPE}}" + question_mark;
-        base_constructor.push_back("" + field_var + " = " + type + "()");
+        base_constructor.push_back("" + field_var + " = " + objtype + "()");
 
         if (field.value.type.struct_def->fixed) {
           buffer_constructor.push_back("" + field_var + " = _t." + field_field);
