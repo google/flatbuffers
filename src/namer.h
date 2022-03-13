@@ -112,8 +112,14 @@ class Namer {
   Namer(Config config, std::set<std::string> keywords)
       : config_(config), keywords_(std::move(keywords)) {}
 
-  std::string Type(const std::string &s) const {
-    return Format(s, config_.types);
+  // Types are always structs or enums so we can only expose these two
+  // overloads.
+  std::string Type(const StructDef &d) const { return Type(d.name); }
+
+  std::string Type(const EnumDef &d) const { return Type(d.name); }
+
+  template<typename T> std::string Method(const T &s) const {
+    return Method(s.name);
   }
 
   std::string Method(const std::string &s) const {
@@ -128,25 +134,24 @@ class Namer {
     return Format(s, config_.functions);
   }
 
-  std::string Field(const std::string &s) const {
-    return Format(s, config_.fields);
-  }
+  std::string Function(const Definition &s) const { return Function(s.name); }
 
-  std::string Variable(const std::string &s) const {
-    return Format(s, config_.variables);
-  }
+  std::string Field(const FieldDef &s) const { return Field(s.name); }
 
-  std::string Variant(const std::string &s) const {
-    return Format(s, config_.variants);
-  }
+  std::string Variable(const FieldDef &s) const { return Variable(s.name); }
 
-  std::string EnumVariant(const std::string &e, const std::string v) const {
+  std::string Variable(const StructDef &s) const { return Variable(s.name); }
+
+  std::string Variant(const EnumVal &s) const { return Variant(s.name); }
+
+  std::string EnumVariant(const EnumDef &e, const EnumVal &v) const {
     return Type(e) + config_.enum_variant_seperator + Variant(v);
   }
 
-  std::string ObjectType(const std::string &s) const {
-    return config_.object_prefix + Type(s) + config_.object_suffix;
+  std::string ObjectType(const StructDef &d) const {
+    return ObjectType(d.name);
   }
+  std::string ObjectType(const EnumDef &d) const { return ObjectType(d.name); }
 
   std::string Namespace(const std::string &s) const {
     return Format(s, config_.namespaces);
@@ -159,6 +164,17 @@ class Namer {
       result += Namespace(*it);
     }
     return result;
+  }
+
+  std::string Namespace(const struct Namespace &ns) const {
+    return Namespace(ns.components);
+  }
+
+  std::string NamespacedType(const Definition &def) const {
+    if (def.defined_namespace != nullptr) {
+      return NamespacedType(def.defined_namespace->components, def.name);
+    }
+    return Type(def.name);
   }
 
   std::string NamespacedType(const std::vector<std::string> &ns,
@@ -175,6 +191,11 @@ class Namer {
            (skip_suffix ? "" : config_.filename_suffix) +
            (skip_ext ? "" : config_.filename_extension);
   }
+  template<typename T>
+  std::string File(const T &f, SkipFile skips = SkipFile::None) const {
+    return File(f.name, skips);
+  }
+
   // Formats `directories` prefixed with the output_path and joined with the
   // right seperator. Output path prefixing and the trailing separator may be
   // skiped using `skips`.
@@ -194,6 +215,11 @@ class Namer {
     return result;
   }
 
+  std::string Directories(const struct Namespace &ns,
+                          SkipDir skips = SkipDir::None) const {
+    return Directories(ns.components, skips);
+  }
+
   std::string EscapeKeyword(const std::string &name) const {
     if (keywords_.find(name) == keywords_.end()) {
       return name;
@@ -202,7 +228,39 @@ class Namer {
     }
   }
 
+  // Legacy fields do not really follow the usual config and should be
+  // considered for deprecation.
+
+  std::string LegacyRustNativeVariant(const EnumVal &v) const {
+    return ConvertCase(EscapeKeyword(v.name), Case::kUpperCamel);
+  }
+
+  std::string LegacyRustFieldOffsetName(const FieldDef& field) const {
+
+    return "VT_" + ConvertCase(EscapeKeyword(field.name), Case::kAllUpper);
+  }
+
  private:
+  std::string Type(const std::string &s) const {
+    return Format(s, config_.types);
+  }
+
+  std::string ObjectType(const std::string &s) const {
+    return config_.object_prefix + Type(s) + config_.object_suffix;
+  }
+
+  std::string Field(const std::string &s) const {
+    return Format(s, config_.fields);
+  }
+
+  std::string Variable(const std::string &s) const {
+    return Format(s, config_.variables);
+  }
+
+  std::string Variant(const std::string &s) const {
+    return Format(s, config_.variants);
+  }
+
   std::string Format(const std::string &s, Case casing) const {
     // NOTE: If you need to escape keywords after converting case, which would
     // make more sense than this, make it a config option.
