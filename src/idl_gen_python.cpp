@@ -49,6 +49,7 @@ Namer::Config PythonDefaultConfig() {
            /*variable=*/Case::kLowerCamel,
            /*variants=*/Case::kKeep,
            /*enum_variant_seperator=*/".",
+           /*escape_keywords=*/Namer::Config::Escape::BeforeConvertingCase,
            /*namespaces=*/Case::kKeep,  // Packages in python.
            /*namespace_seperator=*/".",
            /*object_prefix=*/"",

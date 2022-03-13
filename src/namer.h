@@ -62,6 +62,16 @@ class Namer {
     // e.g. `Enum::MyVariant` uses `::`.
     std::string enum_variant_seperator;
 
+    // Configures, when formatting code, whether symbols are checked against
+    // keywords and escaped before or after case conversion. It does not make
+    // sense to do so before, but its legacy behavior. :shrug:
+    // TODO(caspern): Deprecate.
+    enum class Escape {
+      BeforeConvertingCase,
+      AfterConvertingCase,
+    };
+    Escape escape_keywords;
+
     // Namespaces
 
     // e.g. `namespace my_namespace {}`
@@ -115,7 +125,6 @@ class Namer {
   // Types are always structs or enums so we can only expose these two
   // overloads.
   std::string Type(const StructDef &d) const { return Type(d.name); }
-
   std::string Type(const EnumDef &d) const { return Type(d.name); }
 
   template<typename T> std::string Method(const T &s) const {
@@ -141,6 +150,10 @@ class Namer {
   std::string Variable(const FieldDef &s) const { return Variable(s.name); }
 
   std::string Variable(const StructDef &s) const { return Variable(s.name); }
+
+  std::string Variable(const std::string &s) const {
+    return Format(s, config_.variables);
+  }
 
   std::string Variant(const EnumVal &s) const { return Variant(s.name); }
 
@@ -171,15 +184,17 @@ class Namer {
   }
 
   std::string NamespacedType(const Definition &def) const {
-    if (def.defined_namespace != nullptr) {
-      return NamespacedType(def.defined_namespace->components, def.name);
-    }
-    return Type(def.name);
+    return NamespacedString(def.defined_namespace, Type(def.name));
   }
 
   std::string NamespacedType(const std::vector<std::string> &ns,
                              const std::string &s) const {
-    return Namespace(ns) + config_.namespace_seperator + Type(s);
+    return (ns.empty() ? "" : (Namespace(ns) + config_.namespace_seperator)) +
+           Type(s);
+  }
+
+  std::string NamespacedObjectType(const Definition &def) const {
+    return NamespacedString(def.defined_namespace, ObjectType(def.name));
   }
 
   // Returns `filename` with the right casing, suffix, and extension.
@@ -240,6 +255,15 @@ class Namer {
     return "VT_" + ConvertCase(EscapeKeyword(field.name), Case::kAllUpper);
   }
 
+  // TODO(caspern): What's up with this case style?
+  std::string LegacySwiftVariant(const EnumVal &ev) const {
+    auto name = ev.name;
+    if (isupper(name.front())) {
+      std::transform(name.begin(), name.end(), name.begin(), CharToLower);
+    }
+    return EscapeKeyword(ConvertCase(name, Case::kLowerCamel));
+  }
+
  private:
   std::string Type(const std::string &s) const {
     return Format(s, config_.types);
@@ -253,18 +277,24 @@ class Namer {
     return Format(s, config_.fields);
   }
 
-  std::string Variable(const std::string &s) const {
-    return Format(s, config_.variables);
-  }
-
   std::string Variant(const std::string &s) const {
     return Format(s, config_.variants);
   }
 
+  std::string NamespacedString(const struct Namespace *ns,
+                               const std::string &str) const {
+    std::string ret;
+    if (ns != nullptr) { ret += Namespace(ns->components); }
+    if (!ret.empty()) ret += config_.namespace_seperator;
+    return ret + str;
+  }
+
   std::string Format(const std::string &s, Case casing) const {
-    // NOTE: If you need to escape keywords after converting case, which would
-    // make more sense than this, make it a config option.
-    return ConvertCase(EscapeKeyword(s), casing, Case::kLowerCamel);
+    if (config_.escape_keywords == Config::Escape::BeforeConvertingCase) {
+      return ConvertCase(EscapeKeyword(s), casing, Case::kLowerCamel);
+    } else {
+      return EscapeKeyword(ConvertCase(s, casing, Case::kLowerCamel));
+    }
   }
   const Config config_;
   const std::set<std::string> keywords_;
