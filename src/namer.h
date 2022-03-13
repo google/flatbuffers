@@ -147,13 +147,13 @@ class Namer {
 
   std::string Field(const FieldDef &s) const { return Field(s.name); }
 
-  std::string Variable(const std::string &s) const {
-    return Format(s, config_.variables);
-  }
-
   std::string Variable(const FieldDef &s) const { return Variable(s.name); }
 
   std::string Variable(const StructDef &s) const { return Variable(s.name); }
+
+  std::string Variable(const std::string &s) const {
+    return Format(s, config_.variables);
+  }
 
   std::string Variant(const EnumVal &s) const { return Variant(s.name); }
 
