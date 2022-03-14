@@ -20,7 +20,6 @@
 #include <cstdint>
 #include <cstring>
 
-
 namespace flatbuffers {
 
 template<typename T> struct FnvTraits {

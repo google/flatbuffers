@@ -33,7 +33,7 @@
 #if defined(ARDUINO) && !defined(ARDUINOSTL_M_H)
   #include <utility.h>
 #else
-  #include <utility.h>
+  #include <utility>
 #endif
 
 #include <memory>
