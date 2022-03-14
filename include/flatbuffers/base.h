@@ -29,6 +29,7 @@
 #endif
 
 #include <cstddef>
+#include <cstring>
 
 #if defined(ARDUINO) && !defined(ARDUINOSTL_M_H)
   #include <utility.h>
