@@ -38,6 +38,7 @@
 
 #include <string>
 #include <algorithm>
+#include <iterator>
 #include <memory>
 
 #if defined(__unix__) && !defined(FLATBUFFERS_LOCALE_INDEPENDENT)
