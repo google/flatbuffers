@@ -18,6 +18,7 @@
 #define FLATBUFFERS_FLATBUFFER_BUILDER_H_
 
 #include <functional>
+#include <algorithm>
 
 #include "flatbuffers/allocator.h"
 #include "flatbuffers/array.h"
