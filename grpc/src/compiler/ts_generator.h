@@ -1,5 +1,3 @@
-#include <memory>
-#include <set>
 #include <vector>
 
 #include "src/compiler/schema_interface.h"

@@ -6,6 +6,7 @@
 
 #include "flatbuffers/flatbuffers.h"
 #include "flatbuffers/flexbuffers.h"
+#include "flatbuffers/flatbuffer_builder.h"
 
 namespace MyGame {
 

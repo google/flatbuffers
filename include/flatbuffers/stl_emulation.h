@@ -25,6 +25,7 @@
 #include <vector>
 #include <memory>
 #include <limits>
+#include <set>
 
 // Detect C++17 compatible compiler.
 // __cplusplus >= 201703L - a compiler has support of 'static inline' variables.

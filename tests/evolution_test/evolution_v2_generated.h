@@ -5,6 +5,7 @@
 #define FLATBUFFERS_GENERATED_EVOLUTIONV2_EVOLUTION_V2_H_
 
 #include "flatbuffers/flatbuffers.h"
+#include "flatbuffers/flatbuffer_builder.h"
 
 namespace Evolution {
 namespace V2 {

@@ -29,21 +29,13 @@
 #endif
 
 #include <cstddef>
-#include <cstdlib>
-#include <cstring>
 
 #if defined(ARDUINO) && !defined(ARDUINOSTL_M_H)
   #include <utility.h>
 #else
-  #include <utility>
+  #include <utility.h>
 #endif
 
-#include <string>
-#include <type_traits>
-#include <vector>
-#include <set>
-#include <algorithm>
-#include <iterator>
 #include <memory>
 
 #if defined(__unix__) && !defined(FLATBUFFERS_LOCALE_INDEPENDENT)

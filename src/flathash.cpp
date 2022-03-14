@@ -19,6 +19,8 @@
 #include <iostream>
 #include <sstream>
 #include <string>
+#include <string>
+#include <iostream>
 
 #include "flatbuffers/hash.h"
 

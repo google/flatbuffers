@@ -5,6 +5,7 @@
 #define FLATBUFFERS_GENERATED_MONSTER_MYGAME_SAMPLE_H_
 
 #include "flatbuffers/flatbuffers.h"
+#include "flatbuffers/flatbuffer_builder.h"
 
 namespace MyGame {
 namespace Sample {

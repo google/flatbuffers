@@ -24,7 +24,6 @@
 #include "src/compiler/ts_generator.h"
 
 #include <map>
-#include <sstream>
 
 #include "flatbuffers/util.h"
 #include "src/compiler/schema_interface.h"

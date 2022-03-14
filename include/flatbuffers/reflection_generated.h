@@ -5,6 +5,7 @@
 #define FLATBUFFERS_GENERATED_REFLECTION_REFLECTION_H_
 
 #include "flatbuffers/flatbuffers.h"
+#include "flatbuffer_builder.h"
 
 namespace reflection {
 

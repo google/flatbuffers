@@ -17,7 +17,6 @@
 // independent from idl_parser, since this code is not needed for most clients
 
 #include "flatbuffers/code_generators.h"
-#include "flatbuffers/flatbuffers.h"
 #include "flatbuffers/idl.h"
 #include "flatbuffers/util.h"
 #include "src/compiler/cpp_generator.h"

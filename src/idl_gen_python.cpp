@@ -16,14 +16,11 @@
 
 // independent from idl_parser, since this code is not needed for most clients
 
-#include <cctype>
 #include <set>
 #include <string>
-#include <unordered_set>
 #include <vector>
 
 #include "flatbuffers/code_generators.h"
-#include "flatbuffers/flatbuffers.h"
 #include "flatbuffers/idl.h"
 #include "flatbuffers/util.h"
 #include "namer.h"

@@ -22,6 +22,7 @@
 #include "flatbuffers/base.h"
 // We use the basic binary writing functions from the regular FlatBuffers.
 #include "flatbuffers/util.h"
+#include "flatbuffers.h"
 
 #ifdef _MSC_VER
 #  include <intrin.h>

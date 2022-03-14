@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-#include <memory>
 #include <vector>
 
 #include "src/compiler/schema_interface.h"

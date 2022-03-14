@@ -23,6 +23,7 @@
 #include "flatbuffers/flatc.h"
 #include "flatbuffers/idl.h"
 #include "flatbuffers/util.h"
+#include "flatbuffers/reflection.h"
 
 namespace flatbuffers {
 

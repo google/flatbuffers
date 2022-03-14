@@ -23,6 +23,7 @@
 // previous version of flatc whenever this code needs to change.
 // See scripts/generate_code.py for generation.
 #include "flatbuffers/reflection_generated.h"
+#include "struct.h"
 
 // Helper functionality for reflection.
 

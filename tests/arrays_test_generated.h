@@ -5,6 +5,7 @@
 #define FLATBUFFERS_GENERATED_ARRAYSTEST_MYGAME_EXAMPLE_H_
 
 #include "flatbuffers/flatbuffers.h"
+#include "flatbuffers/flatbuffer_builder.h"
 
 namespace MyGame {
 namespace Example {

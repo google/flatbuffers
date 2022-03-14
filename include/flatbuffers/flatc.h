@@ -17,14 +17,10 @@
 #ifndef FLATBUFFERS_FLATC_H_
 #define FLATBUFFERS_FLATC_H_
 
-#include <functional>
-#include <limits>
 #include <string>
 
 #include "flatbuffers/bfbs_generator.h"
-#include "flatbuffers/flatbuffers.h"
 #include "flatbuffers/idl.h"
-#include "flatbuffers/util.h"
 
 namespace flatbuffers {
 

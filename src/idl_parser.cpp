@@ -19,10 +19,13 @@
 #include <list>
 #include <string>
 #include <utility>
+#include <stack>
 
 #include "flatbuffers/base.h"
 #include "flatbuffers/idl.h"
 #include "flatbuffers/util.h"
+#include "flatbuffers/reflection.h"
+#include "flatbuffers/hash.h"
 
 namespace flatbuffers {
 

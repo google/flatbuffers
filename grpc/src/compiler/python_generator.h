@@ -19,7 +19,6 @@
 #ifndef GRPC_INTERNAL_COMPILER_PYTHON_GENERATOR_H
 #define GRPC_INTERNAL_COMPILER_PYTHON_GENERATOR_H
 
-#include <utility>
 
 #include "src/compiler/schema_interface.h"
 

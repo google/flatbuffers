@@ -20,6 +20,7 @@
 #include "flatbuffers/flexbuffers.h"
 #include "flatbuffers/idl.h"
 #include "flatbuffers/util.h"
+#include "flatbuffers/struct.h"
 
 namespace flatbuffers {
 

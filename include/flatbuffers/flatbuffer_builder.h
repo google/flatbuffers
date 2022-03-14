@@ -22,16 +22,12 @@
 #include "flatbuffers/allocator.h"
 #include "flatbuffers/array.h"
 #include "flatbuffers/base.h"
-#include "flatbuffers/buffer_ref.h"
-#include "flatbuffers/default_allocator.h"
 #include "flatbuffers/detached_buffer.h"
 #include "flatbuffers/stl_emulation.h"
 #include "flatbuffers/string.h"
-#include "flatbuffers/struct.h"
 #include "flatbuffers/table.h"
 #include "flatbuffers/vector.h"
 #include "flatbuffers/vector_downward.h"
-#include "flatbuffers/verifier.h"
 
 namespace flatbuffers {
 

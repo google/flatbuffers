@@ -17,9 +17,8 @@
 #ifndef NET_GRPC_COMPILER_JAVA_GENERATOR_H_
 #define NET_GRPC_COMPILER_JAVA_GENERATOR_H_
 
-#include <stdlib.h>  // for abort()
 #include <iostream>
-#include <map>
+#include <stdlib.h>  // for abort()
 #include <string>
 
 #include "src/compiler/schema_interface.h"

@@ -21,9 +21,7 @@
  * be maintained according to the Swift-grpc repository
  */
 #include <map>
-#include <sstream>
 
-#include "flatbuffers/util.h"
 #include "src/compiler/schema_interface.h"
 #include "src/compiler/swift_generator.h"
 

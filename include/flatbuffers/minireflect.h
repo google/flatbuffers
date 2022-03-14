@@ -19,6 +19,7 @@
 
 #include "flatbuffers/flatbuffers.h"
 #include "flatbuffers/util.h"
+#include "flatbuffer_builder.h"
 
 namespace flatbuffers {
 

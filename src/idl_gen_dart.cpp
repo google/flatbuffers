@@ -18,7 +18,6 @@
 #include <cassert>
 
 #include "flatbuffers/code_generators.h"
-#include "flatbuffers/flatbuffers.h"
 #include "flatbuffers/idl.h"
 #include "flatbuffers/util.h"
 
