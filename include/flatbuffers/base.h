@@ -36,6 +36,7 @@
   #include <utility>
 #endif
 
+#include <string>
 #include <memory>
 
 #if defined(__unix__) && !defined(FLATBUFFERS_LOCALE_INDEPENDENT)
