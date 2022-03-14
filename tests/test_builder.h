@@ -4,6 +4,7 @@
 #include <set>
 #include <type_traits>
 
+#include "flatbuffers/flatbuffers.h"
 #include "monster_test_generated.h"
 #include "test_assert.h"
 

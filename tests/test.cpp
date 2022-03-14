@@ -34,7 +34,6 @@
 #endif
 
 #include "flatbuffers/flexbuffers.h"
-#include "flatbuffers/reflection.h"
 #include "monster_test_bfbs_generated.h"  // Generated using --bfbs-comments --bfbs-builtins --cpp --bfbs-gen-embed
 #include "native_type_test_generated.h"
 #include "test_assert.h"

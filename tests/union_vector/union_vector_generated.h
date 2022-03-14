@@ -5,7 +5,6 @@
 #define FLATBUFFERS_GENERATED_UNIONVECTOR_H_
 
 #include "flatbuffers/flatbuffers.h"
-#include "flatbuffers/flatbuffer_builder.h"
 
 struct Attacker;
 struct AttackerBuilder;

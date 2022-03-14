@@ -5,7 +5,6 @@
 #define FLATBUFFERS_GENERATED_OPTIONALSCALARS_OPTIONAL_SCALARS_H_
 
 #include "flatbuffers/flatbuffers.h"
-#include "flatbuffers/flatbuffer_builder.h"
 
 namespace optional_scalars {
 

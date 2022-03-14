@@ -5,7 +5,6 @@
 #define FLATBUFFERS_GENERATED_NATIVETYPETEST_GEOMETRY_H_
 
 #include "flatbuffers/flatbuffers.h"
-#include "flatbuffers/flatbuffer_builder.h"
 
 #include "native_type_test_impl.h"
 

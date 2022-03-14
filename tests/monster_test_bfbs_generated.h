@@ -4,8 +4,7 @@
 #ifndef FLATBUFFERS_GENERATED_MONSTERTEST_MYGAME_EXAMPLE_BFBS_H_
 #define FLATBUFFERS_GENERATED_MONSTERTEST_MYGAME_EXAMPLE_BFBS_H_
 
-#include <cstddef>
-#include <cstdint>
+#include "flatbuffers/flatbuffers.h"
 
 namespace MyGame {
 namespace Example {
