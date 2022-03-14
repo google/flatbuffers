@@ -48,6 +48,7 @@
 #include <cstdlib>
 #include <functional>
 #include <fstream>
+#include <algorithm>
 
 #include "flatbuffers/base.h"
 
