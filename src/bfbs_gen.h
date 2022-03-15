@@ -73,10 +73,6 @@ static bool IsStructOrTable(const reflection::BaseType base_type) {
   return base_type == reflection::Obj;
 }
 
-// static bool IsScalar(const reflection::BaseType base_type) {
-//   return base_type >= reflection::UType && base_type <= reflection::Double;
-// }
-
 static bool IsFloatingPoint(const reflection::BaseType base_type) {
   return base_type == reflection::Float || base_type == reflection::Double;
 }
