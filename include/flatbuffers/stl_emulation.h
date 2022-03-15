@@ -30,11 +30,11 @@
   // Detect C++17 compatible compiler.
   // __cplusplus >= 201703L - a compiler has support of 'static inline' variables.
   #define FLATBUFFERS_USE_STD_OPTIONAL ( \
-    defined(__cplusplus) && __cplusplus >= 201703L) \
+    (defined(__cplusplus) && __cplusplus >= 201703L) \
     || (defined(_MSVC_LANG) && _MSVC_LANG >= 201703L))
 #endif
 
-#if (FLATBUFFERS_USE_STD_OPTIONAL)
+#if FLATBUFFERS_USE_STD_OPTIONAL
   #include <optional>
 #endif
 
@@ -129,7 +129,7 @@ namespace flatbuffers {
   };
 #endif  // defined(FLATBUFFERS_TEMPLATES_ALIASES)
 
-#if (FLATBUFFERS_USE_STD_OPTIONAL)
+#if FLATBUFFERS_USE_STD_OPTIONAL
 template<class T>
 using Optional = std::optional<T>;
 using nullopt_t = std::nullopt_t;
@@ -267,7 +267,7 @@ FLATBUFFERS_CONSTEXPR_CPP11 bool operator==(const Optional<T>& lhs, const Option
               ? false
               : !static_cast<bool>(lhs) ? false : (*lhs == *rhs);
 }
-#endif // (FLATBUFFERS_USE_STD_OPTIONAL)
+#endif // FLATBUFFERS_USE_STD_OPTIONAL
 
 
 // Very limited and naive partial implementation of C++20 std::span<T,Extent>.
