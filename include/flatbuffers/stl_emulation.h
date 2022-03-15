@@ -28,17 +28,14 @@
 
 // Detect C++17 compatible compiler.
 // __cplusplus >= 201703L - a compiler has support of 'static inline' variables.
-#if !defined(FLATBUFFERS_DONT_USE_STD_OPTIONAL) \
-    && ( \
-      defined(FLATBUFFERS_USE_STD_OPTIONAL) \
-      || (defined(__cplusplus) && __cplusplus >= 201703L) \
-      || (defined(_MSVC_LANG) &&  _MSVC_LANG >= 201703L) \
-    )
+#if defined(FLATBUFFERS_USE_STD_OPTIONAL) && ( \
+    (defined(__cplusplus) && __cplusplus >= 201703L) \
+    || (defined(_MSVC_LANG) &&  _MSVC_LANG >= 201703L))
   #include <optional>
   #ifndef FLATBUFFERS_USE_STD_OPTIONAL
     #define FLATBUFFERS_USE_STD_OPTIONAL
   #endif
-#endif // !defined(FLATBUFFERS_DONT_USE_STD_OPTIONAL) ...
+#endif // defined(FLATBUFFERS_USE_STD_OPTIONAL) && ...
 
 // The __cpp_lib_span is the predefined feature macro.
 #if defined(FLATBUFFERS_USE_STD_SPAN)
