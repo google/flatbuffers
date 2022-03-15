@@ -54,6 +54,9 @@ class Namer {
     // Case style for flatbuffers-defined variables.
     // e.g. `int my_variable = 2`
     Case variables;
+    // Case style for flatbuffers-defined enums.
+    // e.g. `enum class Enum`
+    Case enums;
     // Case style for flatbuffers-defined variants.
     // e.g. `enum class Enum { MyVariant, }`
     Case variants;
@@ -192,6 +195,10 @@ class Namer {
     return Format(s, config_.types);
   }
 
+   virtual std::string Enum(const std::string &s) const {
+    return Format(s, config_.enums);
+  }
+
   virtual std::string ObjectType(const std::string &s) const {
     return config_.object_prefix + Type(s) + config_.object_suffix;
   }
@@ -210,6 +217,28 @@ class Namer {
     } else {
       return EscapeKeyword(ConvertCase(s, casing, Case::kLowerCamel));
     }
+  }
+
+  // Denamespaces a string (e.g. The.Quick.Brown.Fox) by returning the last part
+  // after the `delimiter` (Fox) and placing the rest in `namespace_prefix`
+  // (The.Quick.Brown).
+  virtual std::string Denamespace(const std::string &s,
+                                  std::string &namespace_prefix,
+                                  const char delimiter = '.') const {
+    const size_t pos = s.find_last_of(delimiter);
+    if (pos == std::string::npos) {
+      namespace_prefix = "";
+      return s;
+    }
+    namespace_prefix = s.substr(0, pos);
+    return s.substr(pos + 1);
+  }
+
+  // Same as above, but disregards the prefix.
+  virtual std::string Denamespace(const std::string &s,
+                                  const char delimiter = '.') const {
+    std::string prefix;
+    return Denamespace(s, prefix, delimiter);
   }
 
   const Config config_;

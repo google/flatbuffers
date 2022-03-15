@@ -56,6 +56,7 @@ cc_library(
         "bfbs_gen.h",
         "bfbs_gen_lua.cpp",
         "bfbs_gen_lua.h",
+        "bfbs_namer.h",
         "flatc_main.cpp",
         "idl_gen_cpp.cpp",
         "idl_gen_csharp.cpp",

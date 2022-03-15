@@ -47,6 +47,7 @@ Namer::Config PythonDefaultConfig() {
            /*functions=*/Case::kUpperCamel,
            /*fields=*/Case::kLowerCamel,
            /*variable=*/Case::kLowerCamel,
+           /*enums=*/Case::kKeep,
            /*variants=*/Case::kKeep,
            /*enum_variant_seperator=*/".",
            /*escape_keywords=*/Namer::Config::Escape::BeforeConvertingCase,

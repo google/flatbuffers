@@ -25,8 +25,8 @@
 
 // Ensure no includes to flatc internals. bfbs_gen.h and generator.h are OK.
 #include "bfbs_gen.h"
+#include "bfbs_namer.h"
 #include "flatbuffers/bfbs_generator.h"
-#include "namer.h"
 
 // The intermediate representation schema.
 #include "flatbuffers/reflection.h"
@@ -52,6 +52,7 @@ Namer::Config LuaDefaultConfig() {
            /*functions=*/Case::kUpperCamel,
            /*fields=*/Case::kUpperCamel,
            /*variables=*/Case::kLowerCamel,
+           /*enums=*/Case::kKeep,
            /*variants=*/Case::kKeep,
            /*enum_variant_seperator=*/"",
            /*escape_keywords=*/Namer::Config::Escape::AfterConvertingCase,
@@ -102,7 +103,7 @@ class LuaBfbsGenerator : public BaseBfbsGenerator {
 
       std::string ns;
       const std::string enum_name =
-          namer_.Variant(Denamespace(enum_def->name(), ns));
+          namer_.Enum(namer_.Denamespace(enum_def, ns));
 
       GenerateDocumentation(enum_def->documentation(), "", code);
       code += "local " + enum_name + " = {\n";
@@ -133,7 +134,7 @@ class LuaBfbsGenerator : public BaseBfbsGenerator {
 
       std::string ns;
       const std::string object_name =
-          namer_.ObjectType(Denamespace(object->name(), ns));
+          namer_.Type(namer_.Denamespace(object, ns));
 
       GenerateDocumentation(object->documentation(), "", code);
 
@@ -489,10 +490,9 @@ class LuaBfbsGenerator : public BaseBfbsGenerator {
     switch (base_type) {
       case r::String: return "string";
       case r::Vector: return GenerateGetter(type, true);
-      case r::Obj: {
-        const r::Object *obj = GetObject(type);
-        return namer_.ObjectType(Denamespace(obj->name()));
-      };
+      case r::Obj:
+        return namer_.Type(namer_.Denamespace(GetObject(type)));
+
       default: return "*flatbuffers.Table";
     }
   }
@@ -551,11 +551,11 @@ class LuaBfbsGenerator : public BaseBfbsGenerator {
 
     if (IsStructOrTable(type)) {
       const r::Object *object = GetObjectByIndex(field->type()->index());
-      if (object == current_obj_) { return Denamespace(object->name()); }
+      if (object == current_obj_) { return namer_.Denamespace(object); }
       type_name = object->name()->str();
     } else {
       const r::Enum *enum_def = GetEnumByIndex(field->type()->index());
-      if (enum_def == current_enum_) { return Denamespace(enum_def->name()); }
+      if (enum_def == current_enum_) { return namer_.Denamespace(enum_def); }
       type_name = enum_def->name()->str();
     }
 
@@ -624,7 +624,7 @@ class LuaBfbsGenerator : public BaseBfbsGenerator {
   const r::Object *current_obj_;
   const r::Enum *current_enum_;
   const std::string flatc_version_;
-  const Namer namer_;
+  const BfbsNamer namer_;
 };
 }  // namespace
 

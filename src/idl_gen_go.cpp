@@ -59,6 +59,7 @@ Namer::Config GoDefaultConfig() {
            /*functions=*/Case::kUpperCamel,
            /*fields=*/Case::kUpperCamel,
            /*variables=*/Case::kLowerCamel,
+           /*enums=*/Case::kKeep,
            /*variants=*/Case::kKeep,
            /*enum_variant_seperator=*/"",  // I.e. Concatenate.
            /*escape_keywords=*/Namer::Config::Escape::BeforeConvertingCase,
