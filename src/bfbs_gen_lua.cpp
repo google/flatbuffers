@@ -29,6 +29,7 @@
 #include "namer.h"
 
 // The intermediate representation schema.
+#include "flatbuffers/reflection.h"
 #include "flatbuffers/reflection_generated.h"
 
 namespace flatbuffers {
@@ -53,6 +54,7 @@ Namer::Config LuaDefaultConfig() {
            /*variables=*/Case::kLowerCamel,
            /*variants=*/Case::kKeep,
            /*enum_variant_seperator=*/"",
+           /*escape_keywords=*/Namer::Config::Escape::AfterConvertingCase,
            /*namespaces=*/Case::kKeep,
            /*namespace_seperator=*/"__",
            /*object_prefix=*/"",

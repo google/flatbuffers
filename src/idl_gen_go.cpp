@@ -23,7 +23,7 @@
 #include "flatbuffers/flatbuffers.h"
 #include "flatbuffers/idl.h"
 #include "flatbuffers/util.h"
-#include "namer.h"
+#include "idl_namer.h"
 
 #ifdef _WIN32
 #  include <direct.h>
@@ -82,8 +82,8 @@ class GoGenerator : public BaseGenerator {
       : BaseGenerator(parser, path, file_name, "" /* not used*/,
                       "" /* not used */, "go"),
         cur_name_space_(nullptr),
-        namer_({ GoDefaultConfig().WithFlagOptions(parser.opts, path),
-                 GoKeywords() }) {
+        namer_(WithFlagOptions(GoDefaultConfig(), parser.opts, path),
+               GoKeywords()) {
     std::istringstream iss(go_namespace);
     std::string component;
     while (std::getline(iss, component, '.')) {
@@ -141,7 +141,7 @@ class GoGenerator : public BaseGenerator {
  private:
   Namespace go_namespace_;
   Namespace *cur_name_space_;
-  const Namer namer_;
+  const IdlNamer namer_;
 
   struct NamespacePtrLess {
     bool operator()(const Namespace *a, const Namespace *b) const {
@@ -385,9 +385,7 @@ class GoGenerator : public BaseGenerator {
       code += "\t\treturn ";
     }
     code += CastToEnum(field.value.type, getter + "(o + rcv._tab.Pos)");
-    if (field.IsScalarOptional()) {
-      code += "\n\t\treturn &v";
-    }
+    if (field.IsScalarOptional()) { code += "\n\t\treturn &v"; }
     code += "\n\t}\n";
     code += "\treturn " + GenConstant(field) + "\n";
     code += "}\n\n";
@@ -709,7 +707,8 @@ class GoGenerator : public BaseGenerator {
         "rcv._tab.Mutate" + namer_.Method(GenTypeBasic(field.value.type));
     GenReceiver(struct_def, code_ptr);
     code += " Mutate" + namer_.Function(field);
-    code += "(n " + GenTypeGet(field.value.type) + ") bool {\n\treturn " + setter;
+    code +=
+        "(n " + GenTypeGet(field.value.type) + ") bool {\n\treturn " + setter;
     code += "(rcv._tab.Pos+flatbuffers.UOffsetT(";
     code += NumToString(field.value.offset) + "), ";
     code += CastToBaseType(field.value.type, "n") + ")\n}\n\n";
@@ -842,9 +841,7 @@ class GoGenerator : public BaseGenerator {
           field.value.type.enum_def->is_union)
         continue;
       code += "\t" + namer_.Field(field) + " ";
-      if (field.IsScalarOptional()) {
-        code += "*";
-      }
+      if (field.IsScalarOptional()) { code += "*"; }
       code += NativeType(field.value.type) + "\n";
     }
     code += "}\n\n";
@@ -1011,9 +1008,7 @@ class GoGenerator : public BaseGenerator {
           code += "\t" + struct_type + "Add" + field_fn + "(builder, " +
                   prefix + "t." + field_field + ")\n";
         }
-        if (field.IsScalarOptional()) {
-          code += "\t}\n";
-        }
+        if (field.IsScalarOptional()) { code += "\t}\n"; }
       } else {
         if (field.value.type.base_type == BASE_TYPE_STRUCT &&
             field.value.type.struct_def->fixed) {
@@ -1247,9 +1242,7 @@ class GoGenerator : public BaseGenerator {
 
   std::string TypeName(const FieldDef &field) {
     std::string prefix;
-    if (field.IsScalarOptional()) {
-      prefix = "*";
-    }
+    if (field.IsScalarOptional()) { prefix = "*"; }
     return prefix + GenTypeGet(field.value.type);
   }
 
@@ -1274,9 +1267,7 @@ class GoGenerator : public BaseGenerator {
   }
 
   std::string GenConstant(const FieldDef &field) {
-    if (field.IsScalarOptional()) {
-      return "nil";
-    }
+    if (field.IsScalarOptional()) { return "nil"; }
     switch (field.value.type.base_type) {
       case BASE_TYPE_BOOL:
         return field.value.constant == "0" ? "false" : "true";

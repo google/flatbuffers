@@ -21,7 +21,7 @@
 #include "flatbuffers/flatbuffers.h"
 #include "flatbuffers/idl.h"
 #include "flatbuffers/util.h"
-#include "namer.h"
+#include "idl_namer.h"
 
 namespace flatbuffers {
 
@@ -52,20 +52,87 @@ Namer::Config SwiftDefaultConfig() {
 
 std::set<std::string> SwiftKeywords() {
   return {
-    "associatedtype", "class", "deinit", "enum", "extension", "fileprivate",
-    "func", "import", "init", "inout", "internal", "let", "open", "operator",
-    "private", "protocol", "public", "rethrows", "static", "struct",
-    "subscript", "typealias", "var", "break", "case", "continue", "default",
-    "defer", "do", "else", "fallthrough", "for", "guard", "if", "in", "repeat",
-    "return", "switch", "where", "while", "Any", "catch", "false", "is", "nil",
-    "super", "self", "Self", "throw", "throws", "true", "try", "associativity",
-    "convenience", "dynamic", "didSet", "final", "get", "infix", "indirect",
-    "lazy", "left", "mutating", "none", "nonmutating", "optional", "override",
-    "postfix", "precedence", "prefix", "Protocol", "required", "right", "set",
-    "Type", "unowned", "weak", "willSet", "Void",
+    "associatedtype",
+    "class",
+    "deinit",
+    "enum",
+    "extension",
+    "fileprivate",
+    "func",
+    "import",
+    "init",
+    "inout",
+    "internal",
+    "let",
+    "open",
+    "operator",
+    "private",
+    "protocol",
+    "public",
+    "rethrows",
+    "static",
+    "struct",
+    "subscript",
+    "typealias",
+    "var",
+    "break",
+    "case",
+    "continue",
+    "default",
+    "defer",
+    "do",
+    "else",
+    "fallthrough",
+    "for",
+    "guard",
+    "if",
+    "in",
+    "repeat",
+    "return",
+    "switch",
+    "where",
+    "while",
+    "Any",
+    "catch",
+    "false",
+    "is",
+    "nil",
+    "super",
+    "self",
+    "Self",
+    "throw",
+    "throws",
+    "true",
+    "try",
+    "associativity",
+    "convenience",
+    "dynamic",
+    "didSet",
+    "final",
+    "get",
+    "infix",
+    "indirect",
+    "lazy",
+    "left",
+    "mutating",
+    "none",
+    "nonmutating",
+    "optional",
+    "override",
+    "postfix",
+    "precedence",
+    "prefix",
+    "Protocol",
+    "required",
+    "right",
+    "set",
+    "Type",
+    "unowned",
+    "weak",
+    "willSet",
+    "Void",
   };
 }
-
 
 inline std::string GenIndirect(const std::string &reading) {
   return "{{ACCESS}}.indirect(" + reading + ")";
@@ -87,7 +154,7 @@ class SwiftGenerator : public BaseGenerator {
   SwiftGenerator(const Parser &parser, const std::string &path,
                  const std::string &file_name)
       : BaseGenerator(parser, path, file_name, "", "_", "swift"),
-        namer_(SwiftDefaultConfig().WithFlagOptions(parser.opts, path),
+        namer_(WithFlagOptions(SwiftDefaultConfig(), parser.opts, path),
                SwiftKeywords()) {
     namespace_depth = 0;
     code_.SetPadding("  ");
@@ -187,7 +254,8 @@ class SwiftGenerator : public BaseGenerator {
           : is_bool ? ("0" == field.value.constant ? "false" : "true")
                     : field.value.constant;
 
-      main_constructor.push_back("_" + field_var + " = " + field_var + accessing_value);
+      main_constructor.push_back("_" + field_var + " = " + field_var +
+                                 accessing_value);
       base_constructor.push_back("_" + field_var + " = " + base_value);
 
       if (field.padding) { GenPadding(field, &padding_id); }
@@ -359,8 +427,8 @@ class SwiftGenerator : public BaseGenerator {
           code += ", ";
           continue;
         }
-        code +=
-            nameprefix + field_var + ": " + obj_api_named + object_name + "." + field_field;
+        code += nameprefix + field_var + ": " + obj_api_named + object_name +
+                "." + field_field;
         code += ", ";
       }
     }
@@ -1144,8 +1212,10 @@ class SwiftGenerator : public BaseGenerator {
       code_ += "case {{KEY}} = {{VALUE}}";
     }
     code_ += "";
-    AddMinOrMaxEnumValue(namer_.LegacySwiftVariant(*enum_def.MaxValue()), "max");
-    AddMinOrMaxEnumValue(namer_.LegacySwiftVariant(*enum_def.MinValue()), "min");
+    AddMinOrMaxEnumValue(namer_.LegacySwiftVariant(*enum_def.MaxValue()),
+                         "max");
+    AddMinOrMaxEnumValue(namer_.LegacySwiftVariant(*enum_def.MinValue()),
+                         "min");
     Outdent();
     code_ += "}\n";
     if (parser_.opts.gen_json_coders) EnumEncoder(enum_def);
@@ -1838,7 +1908,7 @@ class SwiftGenerator : public BaseGenerator {
 
   std::string Mutable() const { return "_Mutable"; }
 
-  Namer namer_;
+  IdlNamer namer_;
 };
 }  // namespace swift
 bool GenerateSwift(const Parser &parser, const std::string &path,
