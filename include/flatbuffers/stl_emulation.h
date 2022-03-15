@@ -34,7 +34,7 @@
     || (defined(_MSVC_LANG) && _MSVC_LANG >= 201703L))
 #endif
 
-#if FLATBUFFERS_USE_STD_OPTIONAL
+#if (FLATBUFFERS_USE_STD_OPTIONAL)
   #include <optional>
 #endif
 
