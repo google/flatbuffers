@@ -30,7 +30,7 @@
   // Detect C++17 compatible compiler.
   // __cplusplus >= 201703L - a compiler has support of 'static inline' variables.
   #if (defined(__cplusplus) && __cplusplus >= 201703L) \
-      || (defined(_MSVC_LANG) && _MSVC_LANG >= 201703L))
+      || (defined(_MSVC_LANG) && _MSVC_LANG >= 201703L)
     #define FLATBUFFERS_USE_STD_OPTIONAL 1
   #else
     #define FLATBUFFERS_USE_STD_OPTIONAL 0
