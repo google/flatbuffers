@@ -129,7 +129,7 @@ namespace flatbuffers {
   };
 #endif  // defined(FLATBUFFERS_TEMPLATES_ALIASES)
 
-#ifdef FLATBUFFERS_USE_STD_OPTIONAL
+#if (FLATBUFFERS_USE_STD_OPTIONAL)
 template<class T>
 using Optional = std::optional<T>;
 using nullopt_t = std::nullopt_t;
@@ -267,7 +267,7 @@ FLATBUFFERS_CONSTEXPR_CPP11 bool operator==(const Optional<T>& lhs, const Option
               ? false
               : !static_cast<bool>(lhs) ? false : (*lhs == *rhs);
 }
-#endif // FLATBUFFERS_USE_STD_OPTIONAL
+#endif // (FLATBUFFERS_USE_STD_OPTIONAL)
 
 
 // Very limited and naive partial implementation of C++20 std::span<T,Extent>.
