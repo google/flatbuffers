@@ -20,7 +20,7 @@
 #include "flatbuffers/flatbuffers.h"
 #include "flatbuffers/idl.h"
 #include "flatbuffers/util.h"
-#include "namer.h"
+#include "idl_namer.h"
 
 namespace flatbuffers {
 
@@ -280,7 +280,7 @@ bool GenerateRustModuleRootFile(const Parser &parser,
     // so return true.
     return true;
   }
-  Namer namer(RustDefaultConfig().WithFlagOptions(parser.opts, output_dir),
+  Namer namer(WithFlagOptions(RustDefaultConfig(), parser.opts, output_dir),
               RustKeywords());
   // We gather the symbols into a tree of namespaces (which are rust mods) and
   // generate a file that gathers them all.
@@ -345,8 +345,8 @@ class RustGenerator : public BaseGenerator {
                 const std::string &file_name)
       : BaseGenerator(parser, path, file_name, "", "::", "rs"),
         cur_name_space_(nullptr),
-        namer_({ RustDefaultConfig().WithFlagOptions(parser.opts, path),
-                 RustKeywords() }) {
+        namer_(WithFlagOptions(RustDefaultConfig(), parser.opts, path),
+               RustKeywords()) {
     // TODO: Namer flag overrides should be in flatc or flatc_main.
     code_.SetPadding("  ");
   }
@@ -2959,7 +2959,7 @@ class RustGenerator : public BaseGenerator {
   }
 
  private:
-  Namer namer_;
+  IdlNamer namer_;
 };
 
 }  // namespace rust

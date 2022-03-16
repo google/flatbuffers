@@ -158,10 +158,13 @@ set(FlatBuffers_Compiler_SRCS
   src/idl_gen_grpc.cpp
   src/idl_gen_json_schema.cpp
   src/idl_gen_swift.cpp
+  src/idl_namer.h
+  src/namer.h
   src/flatc.cpp
   src/flatc_main.cpp
   src/bfbs_gen.h
   src/bfbs_gen_lua.h
+  src/bfbs_namer.h
   include/flatbuffers/code_generators.h
   src/bfbs_gen_lua.cpp
   src/code_generators.cpp

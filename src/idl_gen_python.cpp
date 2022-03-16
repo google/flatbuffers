@@ -26,7 +26,7 @@
 #include "flatbuffers/flatbuffers.h"
 #include "flatbuffers/idl.h"
 #include "flatbuffers/util.h"
-#include "namer.h"
+#include "idl_namer.h"
 
 namespace flatbuffers {
 namespace python {
@@ -74,8 +74,8 @@ class PythonGenerator : public BaseGenerator {
       : BaseGenerator(parser, path, file_name, "" /* not used */,
                       "" /* not used */, "py"),
         float_const_gen_("float('nan')", "float('inf')", "float('-inf')"),
-        namer_({ PythonDefaultConfig().WithFlagOptions(parser.opts, path),
-                 PythonKeywords() }) {}
+        namer_(WithFlagOptions(PythonDefaultConfig(), parser.opts, path),
+               PythonKeywords()) {}
 
   // Most field accessors need to retrieve and test the field offset first,
   // this is the prefix code for that.
@@ -414,7 +414,7 @@ class PythonGenerator : public BaseGenerator {
   }
 
   std::string NestedFlatbufferType(std::string unqualified_name) const {
-    StructDef* nested_root = parser_.LookupStruct(unqualified_name);
+    StructDef *nested_root = parser_.LookupStruct(unqualified_name);
     std::string qualified_name;
     if (nested_root == nullptr) {
       qualified_name = namer_.NamespacedType(
@@ -1548,8 +1548,8 @@ class PythonGenerator : public BaseGenerator {
     const auto variant = namer_.Variant(ev);
     auto field_type = namer_.ObjectType(*ev.union_type.struct_def);
 
-    code += GenIndents(1) + "if unionType == " + union_type + "()." +
-            variant + ":";
+    code +=
+        GenIndents(1) + "if unionType == " + union_type + "()." + variant + ":";
     if (parser_.opts.include_dependence_headers) {
       auto package_reference = GenPackageReference(ev.union_type);
       code += GenIndents(2) + "import " + package_reference;
@@ -1565,8 +1565,8 @@ class PythonGenerator : public BaseGenerator {
     const auto union_type = namer_.Type(enum_def);
     const auto variant = namer_.Variant(ev);
 
-    code += GenIndents(1) + "if unionType == " + union_type + "()." +
-            variant + ":";
+    code +=
+        GenIndents(1) + "if unionType == " + union_type + "()." + variant + ":";
     code += GenIndents(2) + "tab = Table(table.Bytes, table.Pos)";
     code += GenIndents(2) + "union = tab.String(table.Pos)";
     code += GenIndents(2) + "return union";
@@ -1778,7 +1778,7 @@ class PythonGenerator : public BaseGenerator {
 
  private:
   const SimpleFloatConstantGenerator float_const_gen_;
-  const Namer namer_;
+  const IdlNamer namer_;
 };
 
 }  // namespace python
