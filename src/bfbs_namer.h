@@ -15,7 +15,6 @@ class BfbsNamer : public Namer {
   using Namer::Constant;
   using Namer::Denamespace;
   using Namer::Directories;
-  using Namer::Enum;
   using Namer::Field;
   using Namer::File;
   using Namer::Function;

@@ -35,7 +35,6 @@ Namer::Config RustDefaultConfig() {
            /*functions=*/Case::kSnake,
            /*fields=*/Case::kKeep,
            /*variables=*/Case::kUnknown,  // Unused.
-           /*enums=*/Case::kKeep,
            /*variants=*/Case::kKeep,
            /*enum_variant_seperator=*/"::",
            /*escape_keywords=*/Namer::Config::Escape::BeforeConvertingCase,

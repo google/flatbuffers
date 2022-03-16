@@ -54,9 +54,6 @@ class Namer {
     // Case style for flatbuffers-defined variables.
     // e.g. `int my_variable = 2`
     Case variables;
-    // Case style for flatbuffers-defined enums.
-    // e.g. `enum class Enum`
-    Case enums;
     // Case style for flatbuffers-defined variants.
     // e.g. `enum class Enum { MyVariant, }`
     Case variants;
@@ -193,10 +190,6 @@ class Namer {
 
   virtual std::string Type(const std::string &s) const {
     return Format(s, config_.types);
-  }
-
-   virtual std::string Enum(const std::string &s) const {
-    return Format(s, config_.enums);
   }
 
   virtual std::string ObjectType(const std::string &s) const {

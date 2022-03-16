@@ -52,7 +52,6 @@ Namer::Config LuaDefaultConfig() {
            /*functions=*/Case::kUpperCamel,
            /*fields=*/Case::kUpperCamel,
            /*variables=*/Case::kLowerCamel,
-           /*enums=*/Case::kKeep,
            /*variants=*/Case::kKeep,
            /*enum_variant_seperator=*/"",
            /*escape_keywords=*/Namer::Config::Escape::AfterConvertingCase,
@@ -103,7 +102,7 @@ class LuaBfbsGenerator : public BaseBfbsGenerator {
 
       std::string ns;
       const std::string enum_name =
-          namer_.Enum(namer_.Denamespace(enum_def, ns));
+          namer_.Type(namer_.Denamespace(enum_def, ns));
 
       GenerateDocumentation(enum_def->documentation(), "", code);
       code += "local " + enum_name + " = {\n";
@@ -490,8 +489,7 @@ class LuaBfbsGenerator : public BaseBfbsGenerator {
     switch (base_type) {
       case r::String: return "string";
       case r::Vector: return GenerateGetter(type, true);
-      case r::Obj:
-        return namer_.Type(namer_.Denamespace(GetObject(type)));
+      case r::Obj: return namer_.Type(namer_.Denamespace(GetObject(type)));
 
       default: return "*flatbuffers.Table";
     }

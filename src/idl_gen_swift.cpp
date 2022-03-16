@@ -34,7 +34,6 @@ Namer::Config SwiftDefaultConfig() {
            /*functions=*/Case::kLowerCamel,
            /*fields=*/Case::kLowerCamel,
            /*variables=*/Case::kLowerCamel,
-           /*enums=*/Case::kLowerCamel,
            /*variants=*/Case::kLowerCamel,
            /*enum_variant_seperator=*/".",
            /*escape_keywords=*/Namer::Config::Escape::AfterConvertingCase,
