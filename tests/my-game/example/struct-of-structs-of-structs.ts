@@ -63,12 +63,12 @@ constructor(
 
 pack(builder:flatbuffers.Builder): flatbuffers.Offset {
   return StructOfStructsOfStructs.createStructOfStructsOfStructs(builder,
-    (this.a?.a === null ? 0 : this.a?.a?.id!),
-    (this.a?.a === null ? 0 : this.a?.a?.distance!),
-    (this.a?.b === null ? 0 : this.a?.b?.a!),
-    (this.a?.b === null ? 0 : this.a?.b?.b!),
-    (this.a?.c === null ? 0 : this.a?.c?.id!),
-    (this.a?.c === null ? 0 : this.a?.c?.distance!)
+    (this.a?.a?.id ?? 0),
+    (this.a?.a?.distance ?? 0),
+    (this.a?.b?.a ?? 0),
+    (this.a?.b?.b ?? 0),
+    (this.a?.c?.id ?? 0),
+    (this.a?.c?.distance ?? 0)
   );
 }
 }

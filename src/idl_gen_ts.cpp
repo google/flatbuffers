@@ -874,8 +874,7 @@ class TsGenerator : public BaseGenerator {
           if (field.value.type.base_type == BASE_TYPE_BOOL) { 
             nullValue = "false";
           }
-          ret += "(" + prefix + " === null ? " + nullValue + " : " +
-                 curr_member_accessor + "!)";
+          ret += "(" + curr_member_accessor + " ?? " + nullValue + ")";
         } else {
           ret += curr_member_accessor;
         }
