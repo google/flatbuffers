@@ -1,7 +1,6 @@
 #ifndef FLATBUFFERS_NAMER
 #define FLATBUFFERS_NAMER
 
-#include "flatbuffers/idl.h"
 #include "flatbuffers/util.h"
 
 namespace flatbuffers {
@@ -105,72 +104,35 @@ class Namer {
     std::string filename_suffix;
     // Extension for generated files, e.g. ".cpp" or ".rs".
     std::string filename_extension;
-
-    // This is a temporary helper function for code generators to call until all
-    // code generators are using `Namer`. After that point, we can centralize
-    // flag-overriding logic into flatc.cpp
-    Config WithFlagOptions(const IDLOptions &opts,
-                           const std::string &path) const {
-      Config result = *this;
-      result.object_prefix = opts.object_prefix;
-      result.object_suffix = opts.object_suffix;
-      result.output_path = path;
-      result.filename_suffix = opts.filename_suffix;
-      return result;
-    }
   };
   Namer(Config config, std::set<std::string> keywords)
       : config_(config), keywords_(std::move(keywords)) {}
-
-  // Types are always structs or enums so we can only expose these two
-  // overloads.
-  std::string Type(const StructDef &d) const { return Type(d.name); }
-  std::string Type(const EnumDef &d) const { return Type(d.name); }
 
   template<typename T> std::string Method(const T &s) const {
     return Method(s.name);
   }
 
-  std::string Method(const std::string &s) const {
+  virtual std::string Method(const std::string &s) const {
     return Format(s, config_.methods);
   }
 
-  std::string Constant(const std::string &s) const {
+  virtual std::string Constant(const std::string &s) const {
     return Format(s, config_.constants);
   }
 
-  std::string Function(const std::string &s) const {
+  virtual std::string Function(const std::string &s) const {
     return Format(s, config_.functions);
   }
 
-  std::string Function(const Definition &s) const { return Function(s.name); }
-
-  std::string Field(const FieldDef &s) const { return Field(s.name); }
-
-  std::string Variable(const FieldDef &s) const { return Variable(s.name); }
-
-  std::string Variable(const StructDef &s) const { return Variable(s.name); }
-
-  std::string Variable(const std::string &s) const {
+  virtual std::string Variable(const std::string &s) const {
     return Format(s, config_.variables);
   }
 
-  std::string Variant(const EnumVal &s) const { return Variant(s.name); }
-
-  std::string EnumVariant(const EnumDef &e, const EnumVal &v) const {
-    return Type(e) + config_.enum_variant_seperator + Variant(v);
-  }
-
-  std::string ObjectType(const StructDef &d) const {
-    return ObjectType(d.name);
-  }
-  std::string ObjectType(const EnumDef &d) const { return ObjectType(d.name); }
-
-  std::string Namespace(const std::string &s) const {
+  virtual std::string Namespace(const std::string &s) const {
     return Format(s, config_.namespaces);
   }
 
-  std::string Namespace(const std::vector<std::string> &ns) const {
+  virtual std::string Namespace(const std::vector<std::string> &ns) const {
     std::string result;
     for (auto it = ns.begin(); it != ns.end(); it++) {
       if (it != ns.begin()) result += config_.namespace_seperator;
@@ -179,27 +141,15 @@ class Namer {
     return result;
   }
 
-  std::string Namespace(const struct Namespace &ns) const {
-    return Namespace(ns.components);
-  }
-
-  std::string NamespacedType(const Definition &def) const {
-    return NamespacedString(def.defined_namespace, Type(def.name));
-  }
-
-  std::string NamespacedType(const std::vector<std::string> &ns,
-                             const std::string &s) const {
+  virtual std::string NamespacedType(const std::vector<std::string> &ns,
+                                     const std::string &s) const {
     return (ns.empty() ? "" : (Namespace(ns) + config_.namespace_seperator)) +
            Type(s);
   }
 
-  std::string NamespacedObjectType(const Definition &def) const {
-    return NamespacedString(def.defined_namespace, ObjectType(def.name));
-  }
-
   // Returns `filename` with the right casing, suffix, and extension.
-  std::string File(const std::string &filename,
-                   SkipFile skips = SkipFile::None) const {
+  virtual std::string File(const std::string &filename,
+                           SkipFile skips = SkipFile::None) const {
     const bool skip_suffix = (skips & SkipFile::Suffix) != SkipFile::None;
     const bool skip_ext = (skips & SkipFile::Extension) != SkipFile::None;
     return ConvertCase(filename, config_.filenames, Case::kUpperCamel) +
@@ -215,8 +165,8 @@ class Namer {
   // right seperator. Output path prefixing and the trailing separator may be
   // skiped using `skips`.
   // Callers may want to use `EnsureDirExists` with the result.
-  std::string Directories(const std::vector<std::string> &directories,
-                          SkipDir skips = SkipDir::None) const {
+  virtual std::string Directories(const std::vector<std::string> &directories,
+                                  SkipDir skips = SkipDir::None) const {
     const bool skip_output_path =
         (skips & SkipDir::OutputPath) != SkipDir::None;
     const bool skip_trailing_seperator =
@@ -230,12 +180,7 @@ class Namer {
     return result;
   }
 
-  std::string Directories(const struct Namespace &ns,
-                          SkipDir skips = SkipDir::None) const {
-    return Directories(ns.components, skips);
-  }
-
-  std::string EscapeKeyword(const std::string &name) const {
+  virtual std::string EscapeKeyword(const std::string &name) const {
     if (keywords_.find(name) == keywords_.end()) {
       return name;
     } else {
@@ -243,59 +188,52 @@ class Namer {
     }
   }
 
-  // Legacy fields do not really follow the usual config and should be
-  // considered for deprecation.
-
-  std::string LegacyRustNativeVariant(const EnumVal &v) const {
-    return ConvertCase(EscapeKeyword(v.name), Case::kUpperCamel);
-  }
-
-  std::string LegacyRustFieldOffsetName(const FieldDef& field) const {
-
-    return "VT_" + ConvertCase(EscapeKeyword(field.name), Case::kAllUpper);
-  }
-
-  // TODO(caspern): What's up with this case style?
-  std::string LegacySwiftVariant(const EnumVal &ev) const {
-    auto name = ev.name;
-    if (isupper(name.front())) {
-      std::transform(name.begin(), name.end(), name.begin(), CharToLower);
-    }
-    return EscapeKeyword(ConvertCase(name, Case::kLowerCamel));
-  }
-
- private:
-  std::string Type(const std::string &s) const {
+  virtual std::string Type(const std::string &s) const {
     return Format(s, config_.types);
   }
 
-  std::string ObjectType(const std::string &s) const {
+  virtual std::string ObjectType(const std::string &s) const {
     return config_.object_prefix + Type(s) + config_.object_suffix;
   }
 
-  std::string Field(const std::string &s) const {
+  virtual std::string Field(const std::string &s) const {
     return Format(s, config_.fields);
   }
 
-  std::string Variant(const std::string &s) const {
+  virtual std::string Variant(const std::string &s) const {
     return Format(s, config_.variants);
   }
 
-  std::string NamespacedString(const struct Namespace *ns,
-                               const std::string &str) const {
-    std::string ret;
-    if (ns != nullptr) { ret += Namespace(ns->components); }
-    if (!ret.empty()) ret += config_.namespace_seperator;
-    return ret + str;
-  }
-
-  std::string Format(const std::string &s, Case casing) const {
+  virtual std::string Format(const std::string &s, Case casing) const {
     if (config_.escape_keywords == Config::Escape::BeforeConvertingCase) {
       return ConvertCase(EscapeKeyword(s), casing, Case::kLowerCamel);
     } else {
       return EscapeKeyword(ConvertCase(s, casing, Case::kLowerCamel));
     }
   }
+
+  // Denamespaces a string (e.g. The.Quick.Brown.Fox) by returning the last part
+  // after the `delimiter` (Fox) and placing the rest in `namespace_prefix`
+  // (The.Quick.Brown).
+  virtual std::string Denamespace(const std::string &s,
+                                  std::string &namespace_prefix,
+                                  const char delimiter = '.') const {
+    const size_t pos = s.find_last_of(delimiter);
+    if (pos == std::string::npos) {
+      namespace_prefix = "";
+      return s;
+    }
+    namespace_prefix = s.substr(0, pos);
+    return s.substr(pos + 1);
+  }
+
+  // Same as above, but disregards the prefix.
+  virtual std::string Denamespace(const std::string &s,
+                                  const char delimiter = '.') const {
+    std::string prefix;
+    return Denamespace(s, prefix, delimiter);
+  }
+
   const Config config_;
   const std::set<std::string> keywords_;
 };
