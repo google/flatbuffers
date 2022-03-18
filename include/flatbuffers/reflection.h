@@ -279,6 +279,12 @@ T *GetAnyFieldAddressOf(const Struct &st, const reflection::Field &field) {
   return reinterpret_cast<T *>(st.GetAddressOf(field.offset()));
 }
 
+// Loop over all the fields of the provided `object` and call `func` on each one
+// in increasing order by their field->id(). If `reverse` is true, `func` is
+// called in descending order
+void ForAllFields(const reflection::Object *object, bool reverse,
+                  std::function<void(const reflection::Field *)> func);
+
 // ------------------------- SETTERS -------------------------
 
 // Set any scalar field, if you know its exact type.
