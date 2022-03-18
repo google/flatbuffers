@@ -69,7 +69,7 @@ static std::string ToValueString(const BinaryRegion &region,
         region.type == BinaryRegionType::Unknown) {
       // Interpet each value as a ASCII to aid debugging
       for (uint64_t i = 0; i < region.array_length; ++i) {
-        int c = *reinterpret_cast<const int *>(binary + region.offset + i);
+        const uint8_t c = *(binary + region.offset + i);
         s += isprint(c) ? toascii(c) : '.';
       }
       return s;
@@ -110,7 +110,7 @@ static std::string ToValueString(const BinaryRegion &region,
 
     default: break;
   }
-  // If this is an offset type, include the caclculated offset location in the
+  // If this is an offset type, include the calculated offset location in the
   // value.
   // TODO(dbaileychess): It might be nicer to put this in the comment field.
   if (IsOffset(region.type)) {
@@ -120,7 +120,7 @@ static std::string ToValueString(const BinaryRegion &region,
   return s;
 }
 
-struct DocContinutation {
+struct DocContinuation {
   // The start column where the value text first starts
   size_t value_start_column = 0;
 
@@ -138,11 +138,11 @@ static std::string GenerateTypeString(const BinaryRegion &region) {
 static std::string GenerateDocumentation(const BinaryRegion &region,
                                          const BinarySection &,
                                          const uint8_t *binary,
-                                         DocContinutation &continuation,
+                                         DocContinuation &continuation,
                                          const OutputConfig &output_config) {
   std::string s;
 
-  // Check if there is a doc continuation that should be priortized.
+  // Check if there is a doc continuation that should be prioritized.
   if (continuation.value_start_column) {
     s += std::string(continuation.value_start_column - 2, ' ');
     s += output_config.delimiter;
@@ -200,7 +200,7 @@ static std::string GenerateRegion(const BinaryRegion &region,
                                   const OutputConfig &output_config) {
   std::string s;
   bool doc_generated = false;
-  DocContinutation doc_continuation;
+  DocContinuation doc_continuation;
   for (uint64_t i = 0; i < region.length; ++i) {
     if ((i % output_config.max_bytes_per_line) == 0) {
       // Start a new line of output
@@ -220,7 +220,7 @@ static std::string GenerateRegion(const BinaryRegion &region,
     if (((i + 1) % output_config.max_bytes_per_line == 0) ||
         i + 1 == region.length) {
       if (i + 1 == region.length) {
-        // We are out of bytes but havn't the kMaxBytesPerLine, so we need to
+        // We are out of bytes but haven't the kMaxBytesPerLine, so we need to
         // zero those out to align everything globally.
         for (uint64_t j = i + 1; (j % output_config.max_bytes_per_line) != 0;
              ++j) {
@@ -236,7 +236,7 @@ static std::string GenerateRegion(const BinaryRegion &region,
         s += GenerateDocumentation(region, section, binary, doc_continuation,
                                    output_config);
 
-        // If we have a value in the doc continutation, that means the doc is
+        // If we have a value in the doc continuation, that means the doc is
         // being printed on multiple lines.
         doc_generated = doc_continuation.value.empty();
       }

@@ -34,10 +34,14 @@ cc_library(
 cc_library(
     name = "flatc_library",
     srcs = [
+        "annotated_binary_text_gen.cpp",
+        "annotated_binary_text_gen.h",
         "bfbs_gen.h",
         "bfbs_gen_lua.cpp",
         "bfbs_gen_lua.h",
         "bfbs_namer.h",
+        "binary_annotator.cpp",
+        "binary_annotator.h",
         "flatc.cpp",
         "namer.h",
     ],

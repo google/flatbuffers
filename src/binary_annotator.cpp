@@ -30,7 +30,7 @@ static BinarySection MakeBinarySection(
   BinarySection section;
   section.name = name;
   section.type = type;
-  section.regions = std::move(regions);
+  section.regions = regions;
   return section;
 }
 
@@ -89,7 +89,7 @@ static uint64_t BuildArrayField(uint64_t offset,
 static bool IsNonZeroRegion(uint64_t offset, uint64_t length,
                             const uint8_t *binary) {
   for (uint64_t i = offset; i < offset + length; ++i) {
-    if (binary[i]) { return true; }
+    if (binary[i] != 0) { return true; }
   }
   return false;
 }
@@ -184,7 +184,8 @@ void BinaryAnnotator::BuildVTable(uint64_t offset,
 
     if (field_offset >= vtable_offset + vtable_size) {
       // This field_offset is too large for this vtable, so it must come from a
-      // newer schema than the binary was create with. Ignore.
+      // newer schema than the binary was create with or the binary writer did
+      // not write it. For either case, it is safe to ignore.
 
       // TODO(dbaileychess): We could show which fields are not set an their
       // default values if we want. We just need a way to make it obvious that
@@ -235,7 +236,7 @@ void BinaryAnnotator::BuildVTable(uint64_t offset,
     fields_processed++;
   });
 
-  // Check if we covered all the expcentant fields. If not, we need to add them
+  // Check if we covered all the expectant fields. If not, we need to add them
   // as unknown fields.
   const uint16_t expectant_vtable_fields =
       (vtable_size - sizeof(uint16_t) - sizeof(uint16_t)) / sizeof(uint16_t);
@@ -308,7 +309,7 @@ void BinaryAnnotator::BuildTable(uint64_t offset, const BinarySectionType type,
     const reflection::Field *field = fields[i].field;
     const uint16_t offset_from_table = fields[i].offset_from_table;
 
-    if (!offset_from_table) {
+    if (offset_from_table == 0) {
       // Skip non-present fields.
       continue;
     }

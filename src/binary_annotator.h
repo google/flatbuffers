@@ -77,9 +77,11 @@ struct BinaryRegion {
 
   // If the is an offset to some other region, this is what it points to. The
   // offset is relative to overall binary, not to this region.
-  uint64_t points_to_offset;
+  uint64_t points_to_offset = 0;
 
-  // The comment on the region
+  // The comment on the region.
+  // TODO(dbaileychess): Consider moving this to a more structure comment field
+  // so that other generators can parse it easier.
   std::string comment;
 };
 
