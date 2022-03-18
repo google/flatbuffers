@@ -2,7 +2,6 @@
 
 #include <bits/stdint-uintn.h>
 
-#include <iostream>
 #include <vector>
 
 #include "flatbuffers/reflection.h"
@@ -34,6 +33,14 @@ static BinarySection MakeBinarySection(
   section.type = type;
   section.regions = regions;
   return section;
+}
+
+static BinarySection MakeSingleRegionBinarySection(const std::string &name,
+                                                   const BinarySectionType type,
+                                                   const BinaryRegion &region) {
+  std::vector<BinaryRegion> regions;
+  regions.emplace_back(region);
+  return MakeBinarySection(name, type, regions);
 }
 
 static uint64_t BuildField(const uint64_t offset,
@@ -135,6 +142,11 @@ std::map<uint64_t, BinarySection> BinaryAnnotator::Annotate() {
   flatbuffers::Verifier verifier(bfbs_, static_cast<size_t>(bfbs_length_));
   if (!reflection::VerifySchemaBuffer(verifier)) { return {}; }
 
+  // The binary is too short to read as a flatbuffers.
+  // TODO(dbaileychess): We could spit out the annotated buffer sections, but
+  // I'm not sure if it is worth it.
+  if (binary_length_ < 4) { return {}; }
+
   // Make sure we start with a clean slate.
   vtables_.clear();
   strings_.clear();
@@ -157,10 +169,19 @@ std::map<uint64_t, BinarySection> BinaryAnnotator::Annotate() {
   return sections_;
 }
 
-uint64_t BinaryAnnotator::BuildHeader(const uint64_t offset) {
-  std::vector<BinaryRegion> regions;
+uint64_t BinaryAnnotator::BuildHeader(uint64_t offset) {
+  if (!IsValidRead<uint32_t>(offset)) {
+    // This shouldn't occur, since we validate the min size of the buffer
+    // before. But for completion sake, we shouldn't read passed the binary end.
+    // Return -1 which would represent a very large uint64_t that would be
+    // outside the binary.
+    return -1;
+  }
 
+  std::vector<BinaryRegion> regions;
+  const uint64_t header_offset = offset;
   // TODO(dbaileychess): sized prefixed value
+
   const uint32_t root_table_offset = GetScalar<uint32_t>(offset);
   if (IsValidOffset(root_table_offset)) {
     regions.emplace_back(
@@ -175,17 +196,21 @@ uint64_t BinaryAnnotator::BuildHeader(const uint64_t offset) {
                          std::string("ERROR: invalid offset to root table `") +
                              schema_->root_table()->name()->str() + "`"));
   }
+  offset += sizeof(uint32_t);
 
-  if (IsNonZeroRegion(offset, 4, binary_)) {
+  if (IsValidRead<uint32_t>(offset) &&
+      IsNonZeroRegion(offset, sizeof(uint32_t), binary_)) {
     // Check if the file identifier region has non-zero data, and assume its the
     // file identifier. Otherwise, it will get filled in with padding later.
-    regions.emplace_back(MakeBinaryRegion(
-        offset + sizeof(uint32_t), 4 * sizeof(uint8_t), BinaryRegionType::Char,
-        4, 0, std::string("File Identifier")));
+    regions.emplace_back(MakeBinaryRegion(offset, 4 * sizeof(uint8_t),
+                                          BinaryRegionType::Char, 4, 0,
+                                          std::string("File Identifier")));
   }
 
   sections_.insert(std::make_pair(
-      offset, MakeBinarySection("", BinarySectionType::Header, regions)));
+      header_offset,
+      MakeBinarySection("", BinarySectionType::Header, regions)));
+
   return root_table_offset;
 }
 
@@ -315,11 +340,41 @@ void BinaryAnnotator::BuildVTable(uint64_t offset,
 
 void BinaryAnnotator::BuildTable(uint64_t offset, const BinarySectionType type,
                                  const reflection::Object *table) {
+  if (!IsValidRead<int32_t>(offset)) {
+    const uint64_t remaining = binary_length_ - offset;
+
+    AddSection(
+        offset,
+        MakeSingleRegionBinarySection(
+            table->name()->str(), type,
+            MakeBinaryRegion(
+                offset, remaining, BinaryRegionType::Unknown, remaining, 0,
+                "ERROR: incomplete binary, expected to read 4 bytes here")));
+
+    // If there aren't enough bytes left to read the vtable offset, there is
+    // nothing we can do.
+    return;
+  }
+
   std::vector<BinaryRegion> regions;
   const uint64_t table_offset = offset;
 
   // Tables start with the vtable
   const uint64_t vtable_offset = table_offset - GetScalar<int32_t>(offset);
+
+  if (!IsValidOffset(vtable_offset)) {
+    AddSection(offset,
+               MakeSingleRegionBinarySection(
+                   table->name()->str(), type,
+                   MakeBinaryRegion(offset, sizeof(int32_t),
+                                    BinaryRegionType::SOffset, 0, vtable_offset,
+                                    "ERROR: invalid offset to vtable")));
+
+    // There isn't much to do with an invalid vtable offset, as we won't be able
+    // to intepret the rest of the table fields.
+    return;
+  }
+
   regions.emplace_back(
       MakeBinaryRegion(offset, sizeof(int32_t), BinaryRegionType::SOffset, 0,
                        vtable_offset, std::string("offset to vtable")));

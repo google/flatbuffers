@@ -17,6 +17,8 @@
 #ifndef FLATBUFFERS_BINARY_ANNOTATOR_H_
 #define FLATBUFFERS_BINARY_ANNOTATOR_H_
 
+#include <bits/stdint-uintn.h>
+
 #include <iostream>
 #include <map>
 #include <string>
@@ -210,8 +212,20 @@ class BinaryAnnotator {
     return ReadScalar<T>(binary_ + offset);
   }
 
-  inline bool IsValidOffset(uint64_t offset) const {
+  inline bool IsValidOffset(const uint64_t offset) const {
     return offset < binary_length_;
+  }
+
+  // Determines if performing a GetScalar request for `T` at `offset` would read
+  // passed the end of the binary.
+  template<typename T>
+  inline bool IsValidRead(const uint64_t offset,
+                          const uint64_t length = sizeof(T)) {
+    return IsValidOffset(offset + length);
+  }
+
+  void AddSection(const uint64_t offset, const BinarySection &section) {
+    sections_.insert(std::make_pair(offset, section));
   }
 
   // The schema for the binary file
