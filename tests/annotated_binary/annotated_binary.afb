@@ -1,12 +1,14 @@
 // Annotated Flatbuffer Binary
 //
-// Schema file: annotated_binary.bfbs
+// Schema file: annotated_binary.fbs
 // Binary file: annotated_binary.bin
 
 header:
   +0x0000 | 44 00 00 00             | UOffset32  | 0x00000044 (68) Loc: +0x0044       | offset to root table `AnnotatedBinary.Foo`
   +0x0004 | 41 4E 4E 4F             | char[4]    | ANNO                               | File Identifier
-  +0x0008 | 00 00                   | uint8_t[2] | 0x0000 (0)                         | padding
+
+padding:
+  +0x0008 | 00 00                   | uint8_t[2] | ..                                 | padding
 
 vtable (AnnotatedBinary.Foo):
   +0x000A | 3A 00                   | uint16_t   | 0x003A (58)                        | size of this vtable
@@ -41,7 +43,7 @@ vtable (AnnotatedBinary.Foo):
 
 root_table (AnnotatedBinary.Foo):
   +0x0044 | 3A 00 00 00             | SOffset32  | 0x0000003A (58) Loc: +0x000A       | offset to vtable
-  +0x0048 | 00 00 00                | uint8_t[3] | 0x000000 (0)                       | padding
+  +0x0048 | 00 00 00                | uint8_t[3] | ...                                | padding
   +0x004B | 01                      | uint8_t    | 0x01 (1)                           | table field `healthy` (Bool)
   +0x004C | 02                      | uint8_t    | 0x02 (2)                           | table field `meal` (Byte)
   +0x004D | 02                      | uint8_t    | 0x02 (2)                           | table field `bar_baz_type` (UType)
@@ -58,7 +60,7 @@ root_table (AnnotatedBinary.Foo):
   +0x0070 | 01                      | uint8_t    | 0x01 (1)                           | struct field `AnnotatedBinary.Tolerance.width` (UByte)
   +0x0071 | 02                      | uint8_t    | 0x02 (2)                           | struct field `AnnotatedBinary.Tolerance.width` (UByte)
   +0x0072 | 03                      | uint8_t    | 0x03 (3)                           | struct field `AnnotatedBinary.Tolerance.width` (UByte)
-  +0x0073 | 00                      | uint8_t[1] | 0x00 (0)                           | padding
+  +0x0073 | 00                      | uint8_t[1] | .                                  | padding
   +0x0074 | C8 01 00 00             | UOffset32  | 0x000001C8 (456) Loc: +0x023C      | offset to field `name`
   +0x0078 | 5C 01 00 00             | UOffset32  | 0x0000015C (348) Loc: +0x01D4      | offset to field `bars`
   +0x007C | 50 01 00 00             | UOffset32  | 0x00000150 (336) Loc: +0x01CC      | offset to field `bar_baz` (union of type `Baz`)
@@ -73,13 +75,14 @@ root_table (AnnotatedBinary.Foo):
   +0x00A0 | 33 00 00 00             | UOffset32  | 0x00000033 (51) Loc: +0x00D3       | offset to field `measurement` (union of type `Tolerance`)
   +0x00A4 | 1C 00 00 00             | UOffset32  | 0x0000001C (28) Loc: +0x00C0       | offset to field `anything` (union of type `Bar`)
   +0x00A8 | 04 00 00 00             | UOffset32  | 0x00000004 (4) Loc: +0x00AC        | offset to field `charlie`
-  +0x00D3 | 05                      | uint8_t    | 0x05 (5)                           | struct field `AnnotatedBinary.Tolerance.width` (UByte)
 
 string (AnnotatedBinary.Foo.charlie):
   +0x00AC | 05 00 00 00             | uint32_t   | 0x00000005 (5)                     | length of string
   +0x00B0 | 61 6C 69 63 65          | char[5]    | alice                              
   +0x00B5 | 00                      | char       | 0x00 (0)                           | string terminator
-  +0x00B6 | 00 00                   | uint8_t[2] | 0x0000 (0)                         | padding
+
+padding:
+  +0x00B6 | 00 00                   | uint8_t[2] | ..                                 | padding
 
 vtable (AnnotatedBinary.Bar):
   +0x00B8 | 08 00                   | uint16_t   | 0x0008 (8)                         | size of this vtable
@@ -91,7 +94,10 @@ table (AnnotatedBinary.Bar):
   +0x00C0 | 08 00 00 00             | SOffset32  | 0x00000008 (8) Loc: +0x00B8        | offset to vtable
   +0x00C4 | 00 80 23 44             | float      | 0x44238000 (654.000000)            | table field `b` (Float)
   +0x00C8 | 00 00 00 00 00 10 74 40 | double     | 0x4074100000000000 (321.000000)    | table field `a` (Double)
-  +0x00D0 | 00 00 00                | uint8_t[3] | 0x000000 (0)                       | padding
+  +0x00D0 | 00 00 00                | uint8_t[3] | ...                                | padding
+
+union (AnnotatedBinary.Tolerance.measurement):
+  +0x00D3 | 05                      | uint8_t    | 0x05 (5)                           | struct field `AnnotatedBinary.Tolerance.width` (UByte)
 
 vector (AnnotatedBinary.Foo.foobars):
   +0x00D4 | 03 00 00 00             | uint32_t   | 0x00000003 (3)                     | length of vector (# items)
@@ -104,11 +110,11 @@ table (AnnotatedBinary.Bar):
   +0x00E8 | 00 80 23 44             | float      | 0x44238000 (654.000000)            | table field `b` (Float)
   +0x00EC | 10 00 00 00             | UOffset32  | 0x00000010 (16) Loc: +0x00FC       | offset to field `c`
   +0x00F0 | 00 00 00 00 00 D8 8E 40 | double     | 0x408ED80000000000 (987.000000)    | table field `a` (Double)
-  +0x00F8 | 00 00 00 00             | uint8_t[4] | 0x00000000 (0)                     | padding
+  +0x00F8 | 00 00 00 00             | uint8_t[4] | ....                               | padding
 
 table (AnnotatedBinary.Baz):
   +0x00FC | 6A FE FF FF             | SOffset32  | 0xFFFFFE6A (-406) Loc: +0x0292     | offset to vtable
-  +0x0100 | 00 00 00                | uint8_t[3] | 0x000000 (0)                       | padding
+  +0x0100 | 00 00 00                | uint8_t[3] | ...                                | padding
   +0x0103 | 03                      | uint8_t    | 0x03 (3)                           | table field `meal` (Byte)
 
 vtable (AnnotatedBinary.Baz):
@@ -123,11 +129,11 @@ table (AnnotatedBinary.Bar):
   +0x0110 | 00 00 E4 43             | float      | 0x43E40000 (456.000000)            | table field `b` (Float)
   +0x0114 | 10 00 00 00             | UOffset32  | 0x00000010 (16) Loc: +0x0124       | offset to field `c`
   +0x0118 | 00 00 00 00 00 C0 5E 40 | double     | 0x405EC00000000000 (123.000000)    | table field `a` (Double)
-  +0x0120 | 00 00 00 00             | uint8_t[4] | 0x00000000 (0)                     | padding
+  +0x0120 | 00 00 00 00             | uint8_t[4] | ....                               | padding
 
 table (AnnotatedBinary.Baz):
   +0x0124 | 92 FE FF FF             | SOffset32  | 0xFFFFFE92 (-366) Loc: +0x0292     | offset to vtable
-  +0x0128 | 00 00 00                | uint8_t[3] | 0x000000 (0)                       | padding
+  +0x0128 | 00 00 00                | uint8_t[3] | ...                                | padding
   +0x012B | 01                      | uint8_t    | 0x01 (1)                           | table field `meal` (Byte)
 
 vector (AnnotatedBinary.Foo.foobars_type):
@@ -144,7 +150,9 @@ vector (AnnotatedBinary.Foo.points_of_interest):
   +0x0150 | 9F 77 63 41 61 85 5E C0 | double     | 0xC05E85614163779F (-122.084061)   | struct field `AnnotatedBinary.Location.longitude` (Double)
   +0x0158 | 8F 35 23 83 DC 35 4B C0 | double     | 0xC04B35DC8323358F (-54.420792)    | struct field `AnnotatedBinary.Location.latitude` (Double)
   +0x0160 | F6 97 DD 93 87 C5 0A 40 | double     | 0x400AC58793DD97F6 (3.346450)      | struct field `AnnotatedBinary.Location.longitude` (Double)
-  +0x0168 | 00 00 00 00             | uint8_t[4] | 0x00000000 (0)                     | padding
+
+padding:
+  +0x0168 | 00 00 00 00             | uint8_t[4] | ....                               | padding
 
 vector (AnnotatedBinary.Foo.names):
   +0x016C | 03 00 00 00             | uint32_t   | 0x00000003 (3)                     | length of vector (# items)
@@ -166,7 +174,9 @@ string (AnnotatedBinary.Foo.names):
   +0x0190 | 05 00 00 00             | uint32_t   | 0x00000005 (5)                     | length of string
   +0x0194 | 61 6C 69 63 65          | char[5]    | alice                              
   +0x0199 | 00                      | char       | 0x00 (0)                           | string terminator
-  +0x019A | 00 00                   | uint8_t[2] | 0x0000 (0)                         | padding
+
+padding:
+  +0x019A | 00 00                   | uint8_t[2] | ..                                 | padding
 
 string (AnnotatedBinary.Foo.alice):
   +0x019C | 07 00 00 00             | uint32_t   | 0x00000007 (7)                     | length of string
@@ -189,18 +199,22 @@ vector (AnnotatedBinary.Foo.accounts):
   +0x01C4 | 06 00                   | uint16_t   | 0x0006 (6)                         | value[6]
   +0x01C6 | 05 00                   | uint16_t   | 0x0005 (5)                         | value[7]
   +0x01C8 | 04 00                   | uint16_t   | 0x0004 (4)                         | value[8]
-  +0x01CA | 00 00                   | uint8_t[2] | 0x0000 (0)                         | padding
+
+padding:
+  +0x01CA | 00 00                   | uint8_t[2] | ..                                 | padding
 
 table (AnnotatedBinary.Baz):
   +0x01CC | 3A FF FF FF             | SOffset32  | 0xFFFFFF3A (-198) Loc: +0x0292     | offset to vtable
-  +0x01D0 | 00 00 00                | uint8_t[3] | 0x000000 (0)                       | padding
+  +0x01D0 | 00 00 00                | uint8_t[3] | ...                                | padding
   +0x01D3 | 03                      | uint8_t    | 0x03 (3)                           | table field `meal` (Byte)
 
 vector (AnnotatedBinary.Foo.bars):
   +0x01D4 | 02 00 00 00             | uint32_t   | 0x00000002 (2)                     | length of vector (# items)
   +0x01D8 | 44 00 00 00             | UOffset32  | 0x00000044 (68) Loc: +0x021C       | offset to table[0]
   +0x01DC | 10 00 00 00             | UOffset32  | 0x00000010 (16) Loc: +0x01EC       | offset to table[1]
-  +0x01E0 | 00 00                   | uint8_t[2] | 0x0000 (0)                         | padding
+
+padding:
+  +0x01E0 | 00 00                   | uint8_t[2] | ..                                 | padding
 
 vtable (AnnotatedBinary.Bar):
   +0x01E2 | 0A 00                   | uint16_t   | 0x000A (10)                        | size of this vtable
@@ -214,7 +228,7 @@ table (AnnotatedBinary.Bar):
   +0x01F0 | 00 80 23 44             | float      | 0x44238000 (654.000000)            | table field `b` (Float)
   +0x01F4 | 18 00 00 00             | UOffset32  | 0x00000018 (24) Loc: +0x020C       | offset to field `c`
   +0x01F8 | 00 00 00 00 00 D8 8E 40 | double     | 0x408ED80000000000 (987.000000)    | table field `a` (Double)
-  +0x0200 | 00 00 00 00 00 00       | uint8_t[6] | 0x000000000000 (0)                 | padding
+  +0x0200 | 00 00 00 00 00 00       | uint8_t[6] | ......                             | padding
 
 vtable (AnnotatedBinary.Baz):
   +0x0206 | 06 00                   | uint16_t   | 0x0006 (6)                         | size of this vtable
@@ -223,7 +237,7 @@ vtable (AnnotatedBinary.Baz):
 
 table (AnnotatedBinary.Baz):
   +0x020C | 06 00 00 00             | SOffset32  | 0x00000006 (6) Loc: +0x0206        | offset to vtable
-  +0x0210 | 00                      | uint8_t[1] | 0x00 (0)                           | padding
+  +0x0210 | 00                      | uint8_t[1] | .                                  | padding
   +0x0211 | 03                      | uint8_t    | 0x03 (3)                           | table field `meal` (Byte)
 
 vtable (AnnotatedBinary.Bar):
@@ -238,11 +252,11 @@ table (AnnotatedBinary.Bar):
   +0x0220 | 00 00 E4 43             | float      | 0x43E40000 (456.000000)            | table field `b` (Float)
   +0x0224 | 10 00 00 00             | UOffset32  | 0x00000010 (16) Loc: +0x0234       | offset to field `c`
   +0x0228 | 00 00 00 00 00 C0 5E 40 | double     | 0x405EC00000000000 (123.000000)    | table field `a` (Double)
-  +0x0230 | 00 00 00 00             | uint8_t[4] | 0x00000000 (0)                     | padding
+  +0x0230 | 00 00 00 00             | uint8_t[4] | ....                               | padding
 
 table (AnnotatedBinary.Baz):
   +0x0234 | A2 FF FF FF             | SOffset32  | 0xFFFFFFA2 (-94) Loc: +0x0292      | offset to vtable
-  +0x0238 | 00 00 00                | uint8_t[3] | 0x000000 (0)                       | padding
+  +0x0238 | 00 00 00                | uint8_t[3] | ...                                | padding
   +0x023B | 01                      | uint8_t    | 0x01 (1)                           | table field `meal` (Byte)
 
 string (AnnotatedBinary.Foo.name):
@@ -254,7 +268,9 @@ string (AnnotatedBinary.Foo.name):
   +0x0260 | 77 20 69 74 20 62 72 65 |            | w it bre
   +0x0268 | 61 6B 73 20 75 70 2E    |            | aks up.
   +0x026F | 00                      | char       | 0x00 (0)                           | string terminator
-  +0x0270 | 00 00                   | uint8_t[2] | 0x0000 (0)                         | padding
+
+padding:
+  +0x0270 | 00 00                   | uint8_t[2] | ..                                 | padding
 
 vtable (AnnotatedBinary.Bar):
   +0x0272 | 0A 00                   | uint16_t   | 0x000A (10)                        | size of this vtable
@@ -268,7 +284,7 @@ table (AnnotatedBinary.Bar):
   +0x0280 | 65 20 71 49             | float      | 0x49712065 (987654.312500)         | table field `b` (Float)
   +0x0284 | 14 00 00 00             | UOffset32  | 0x00000014 (20) Loc: +0x0298       | offset to field `c`
   +0x0288 | C9 76 BE 9F 0C 24 FE 40 | double     | 0x40FE240C9FBE76C9 (123456.789000) | table field `a` (Double)
-  +0x0290 | 00 00                   | uint8_t[2] | 0x0000 (0)                         | padding
+  +0x0290 | 00 00                   | uint8_t[2] | ..                                 | padding
 
 vtable (AnnotatedBinary.Baz):
   +0x0292 | 06 00                   | uint16_t   | 0x0006 (6)                         | size of this vtable
@@ -277,5 +293,5 @@ vtable (AnnotatedBinary.Baz):
 
 table (AnnotatedBinary.Baz):
   +0x0298 | 06 00 00 00             | SOffset32  | 0x00000006 (6) Loc: +0x0292        | offset to vtable
-  +0x029C | 00 00 00                | uint8_t[3] | 0x000000 (0)                       | padding
+  +0x029C | 00 00 00                | uint8_t[3] | ...                                | padding
   +0x029F | 01                      | uint8_t    | 0x01 (1)                           | table field `meal` (Byte)

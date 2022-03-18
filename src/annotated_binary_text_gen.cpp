@@ -26,6 +26,9 @@ static std::string ToString(const BinarySectionType type) {
     case BinarySectionType::Struct: return "struct";
     case BinarySectionType::String: return "string";
     case BinarySectionType::Vector: return "vector";
+    case BinarySectionType::Unknown: return "unknown";
+    case BinarySectionType::Union: return "union";
+    case BinarySectionType::Padding: return "padding";
     default: return "todo";
   }
 }
@@ -60,6 +63,22 @@ static std::string ToValueString(const BinaryRegion &region,
                                  const uint8_t *binary,
                                  const OutputConfig &output_config) {
   std::string s;
+
+  if (region.array_length) {
+    if (region.type == BinaryRegionType::Uint8 ||
+        region.type == BinaryRegionType::Unknown) {
+      // Interpet each value as a ASCII to aid debugging
+      for (uint64_t i = 0; i < region.array_length; ++i) {
+        int c = *reinterpret_cast<const int *>(binary + region.offset + i);
+        s += isprint(c) ? toascii(c) : '.';
+      }
+      return s;
+    } else if (region.type == BinaryRegionType::Char) {
+      // string value
+      return ToValueString<std::string>(region, binary);
+    }
+  }
+
   switch (region.type) {
     case BinaryRegionType::Uint32:
       return ToValueString<uint32_t>(region, binary);
@@ -144,11 +163,13 @@ static std::string GenerateDocumentation(const BinaryRegion &region,
   s += " ";
   s += output_config.delimiter;
   s += " ";
-  if (region.array_length && region.type == BinaryRegionType::Char) {
+  if (region.array_length) {
     // Record where the value is first being outputted.
     continuation.value_start_column = s.size();
-    // String value
-    std::string value = ToValueString<std::string>(region, binary);
+
+    // Get the full-length value, which we will chunk below.
+    const std::string value = ToValueString(region, binary, output_config);
+
     std::stringstream ss;
     ss << std::setw(output_config.largest_value_string) << std::left;
     ss << value.substr(0, output_config.max_bytes_per_line);
@@ -201,7 +222,8 @@ static std::string GenerateRegion(const BinaryRegion &region,
       if (i + 1 == region.length) {
         // We are out of bytes but havn't the kMaxBytesPerLine, so we need to
         // zero those out to align everything globally.
-        for (int j = i + 1; (j % output_config.max_bytes_per_line) != 0; ++j) {
+        for (uint64_t j = i + 1; (j % output_config.max_bytes_per_line) != 0;
+             ++j) {
           s += "   ";
         }
       }
@@ -262,7 +284,8 @@ bool AnnotatedBinaryTextGenerator::Generate(
         output_config.largest_type_string = s.size();
       }
 
-      if (section.second.type != BinarySectionType::String) {
+      // Don't consider array regions, as they will be split to multiple lines.
+      if (!region.array_length) {
         s = ToValueString(region, binary_, output_config);
         if (s.size() > output_config.largest_value_string) {
           output_config.largest_value_string = s.size();

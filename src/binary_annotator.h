@@ -92,6 +92,8 @@ enum class BinarySectionType {
   Struct = 5,
   String = 6,
   Vector = 7,
+  Union = 8,
+  Padding = 9,
 };
 
 // A section of the binary that is grouped together in some logical manner, and
@@ -144,6 +146,7 @@ inline static std::string ToString(const BinaryRegionType type) {
     case BinaryRegionType::Int64: return "int64_t";
     case BinaryRegionType::Double: return "double";
     case BinaryRegionType::Float: return "float";
+    case BinaryRegionType::Unknown: return "?uint8_t";
     default: return "todo";
   }
 }
@@ -163,11 +166,14 @@ class BinaryAnnotator {
   struct VTable {
     struct Entry {
       const reflection::Field *field = nullptr;
-      const uint16_t offset_from_table = 0;
+      uint16_t offset_from_table = 0;
     };
 
     // Field ID -> {field def, offset from table}
     std::map<uint16_t, Entry> fields;
+
+    uint16_t vtable_size = 0;
+    uint16_t table_size = 0;
   };
 
   uint64_t BuildHeader(uint64_t offset);
@@ -188,10 +194,9 @@ class BinaryAnnotator {
                    const VTable &vtable);
 
   std::string BuildUnion(uint64_t offset, uint8_t realized_type,
-                         std::vector<BinaryRegion> &regions,
                          const reflection::Field *field);
 
-  void InsertFinalPadding();
+  void FixMissingSections();
 
   template<typename T> inline T GetScalar(uint64_t offset) {
     return *reinterpret_cast<const T *>(binary_ + offset);
