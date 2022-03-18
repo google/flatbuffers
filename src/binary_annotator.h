@@ -17,9 +17,12 @@
 #ifndef FLATBUFFERS_BINARY_ANNOTATOR_H_
 #define FLATBUFFERS_BINARY_ANNOTATOR_H_
 
+#include <iostream>
 #include <map>
+#include <string>
 #include <vector>
 
+#include "flatbuffers/base.h"
 #include "flatbuffers/reflection.h"
 
 namespace flatbuffers {
@@ -155,12 +158,15 @@ inline static std::string ToString(const BinaryRegionType type) {
 
 class BinaryAnnotator {
  public:
-  explicit BinaryAnnotator(const uint8_t *const bfbs, const int64_t bfbs_length,
-                           const uint8_t *const binary)
+  explicit BinaryAnnotator(const uint8_t *const bfbs,
+                           const uint64_t bfbs_length,
+                           const uint8_t *const binary,
+                           const uint64_t binary_length)
       : bfbs_(bfbs),
         bfbs_length_(bfbs_length),
         schema_(reflection::GetSchema(bfbs)),
-        binary_(binary) {}
+        binary_(binary),
+        binary_length_(binary_length) {}
 
   std::map<uint64_t, BinarySection> Annotate();
 
@@ -200,17 +206,22 @@ class BinaryAnnotator {
 
   void FixMissingSections();
 
-  template<typename T> inline T GetScalar(uint64_t offset) {
-    return *reinterpret_cast<const T *>(binary_ + offset);
+  template<typename T> inline T GetScalar(const uint64_t offset) const {
+    return ReadScalar<T>(binary_ + offset);
+  }
+
+  inline bool IsValidOffset(uint64_t offset) const {
+    return offset < binary_length_;
   }
 
   // The schema for the binary file
   const uint8_t *bfbs_;
-  const int64_t bfbs_length_;
+  const uint64_t bfbs_length_;
   const reflection::Schema *schema_;
 
   // The binary data itself.
   const uint8_t *binary_;
+  const uint64_t binary_length_;
 
   // Map of binary offset to vtables, to dedupe vtables.
   std::map<uint64_t, VTable> vtables_;

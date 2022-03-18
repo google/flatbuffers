@@ -1,5 +1,7 @@
 #include "binary_annotator.h"
 
+#include <bits/stdint-uintn.h>
+
 #include <iostream>
 #include <vector>
 
@@ -94,6 +96,39 @@ static bool IsNonZeroRegion(uint64_t offset, uint64_t length,
   return false;
 }
 
+static BinarySection GenerateMissingSection(const uint64_t offset,
+                                            const uint64_t length,
+                                            const uint8_t *const binary) {
+  std::vector<BinaryRegion> regions;
+
+  // Check if the region is all zeros or not, as that can tell us if it is
+  // padding or not.
+  if (IsNonZeroRegion(offset, length, binary)) {
+    // Some of the padding bytes are non-zero, so this might be an unknown
+    // section of the binary.
+    regions.emplace_back(MakeBinaryRegion(
+        offset, length * sizeof(uint8_t), BinaryRegionType::Unknown, length, 0,
+        length < 8 ? "could be a corrupted padding region (non zero) "
+                     "due to the length < 8 bytes."
+                   : "WARN: nothing refers to this. Check if any "
+                     "`Unkown Field`s point to this."));
+
+    return MakeBinarySection("no known references", BinarySectionType::Unknown,
+                             std::move(regions));
+  }
+
+  // This region is most likely padding.
+  regions.emplace_back(MakeBinaryRegion(
+      offset, length * sizeof(uint8_t), BinaryRegionType::Uint8, length, 0,
+      // Output a different annotation if the pad bytes exceed what we
+      // expect to be the maximum padding.
+      length > 7 ? "likely padding but might be an unknown section "
+                   "due to being larger than 7 bytes"
+                 : "padding"));
+
+  return MakeBinarySection("", BinarySectionType::Padding, std::move(regions));
+}
+
 }  // namespace
 
 std::map<uint64_t, BinarySection> BinaryAnnotator::Annotate() {
@@ -109,9 +144,11 @@ std::map<uint64_t, BinarySection> BinaryAnnotator::Annotate() {
   // The returned offset will point to the root_table location.
   const uint64_t root_table_offset = BuildHeader(0);
 
-  // Build the root table, and all else will be referenced from it.
-  BuildTable(root_table_offset, BinarySectionType::RootTable,
-             schema_->root_table());
+  if (IsValidOffset(root_table_offset)) {
+    // Build the root table, and all else will be referenced from it.
+    BuildTable(root_table_offset, BinarySectionType::RootTable,
+               schema_->root_table());
+  }
 
   // Now that all the sections are built, scan the regions between them and
   // insert padding bytes that are implied.
@@ -125,10 +162,19 @@ uint64_t BinaryAnnotator::BuildHeader(const uint64_t offset) {
 
   // TODO(dbaileychess): sized prefixed value
   const uint32_t root_table_offset = GetScalar<uint32_t>(offset);
-  regions.emplace_back(MakeBinaryRegion(
-      offset, sizeof(uint32_t), BinaryRegionType::UOffset, 0, root_table_offset,
-      std::string("offset to root table `") +
-          schema_->root_table()->name()->str() + "`"));
+  if (IsValidOffset(root_table_offset)) {
+    regions.emplace_back(
+        MakeBinaryRegion(offset, sizeof(uint32_t), BinaryRegionType::UOffset, 0,
+                         root_table_offset,
+                         std::string("offset to root table `") +
+                             schema_->root_table()->name()->str() + "`"));
+  } else {
+    regions.emplace_back(
+        MakeBinaryRegion(offset, sizeof(uint32_t), BinaryRegionType::UOffset, 0,
+                         root_table_offset,
+                         std::string("ERROR: invalid offset to root table `") +
+                             schema_->root_table()->name()->str() + "`"));
+  }
 
   if (IsNonZeroRegion(offset, 4, binary_)) {
     // Check if the file identifier region has non-zero data, and assume its the
@@ -429,7 +475,9 @@ void BinaryAnnotator::BuildTable(uint64_t offset, const BinarySectionType type,
   }
 
   // Fill in any regions that weren't covered above, as those are padding
-  // regions.
+  // regions. Start at the second region, since the first region is the offset
+  // to the vtable and no padding should be inserted before it. If there is
+  // padding before it, it should be part of a separate Padding BinarySection.
   size_t region_index = 1;
   std::vector<BinaryRegion> padding_regions;
   uint64_t i = field_offset_start;
@@ -722,42 +770,18 @@ void BinaryAnnotator::FixMissingSections() {
       // We are at an offset that is less then the current section.
       const uint64_t pad_bytes = section_start_offset - offset + 1;
 
-      const uint64_t start_offset = offset - 1;
-
-      std::vector<BinaryRegion> regions;
-
-      // Check if the region is all zeros or not, as that can tell us if it is
-      // padding or not.
-      if (IsNonZeroRegion(offset - 1, pad_bytes, binary_)) {
-        // Some of the padding bytes are non-zero, so this might be an unknown
-        // section of the binary.
-        regions.emplace_back(MakeBinaryRegion(
-            start_offset, pad_bytes * sizeof(uint8_t),
-            BinaryRegionType::Unknown, pad_bytes, 0,
-            pad_bytes < 8 ? "could be a corrupted padding region (non zero) "
-                            "due to the length < 8 bytes."
-                          : "WARN: nothing refers to this. Check if any "
-                            "`Unkown Field`s point to this."));
-
-        sections_to_insert.emplace_back(
-            MakeBinarySection("no known references", BinarySectionType::Unknown,
-                              std::move(regions)));
-      } else {
-        // This region is most likely padding.
-        regions.emplace_back(MakeBinaryRegion(
-            start_offset, pad_bytes * sizeof(uint8_t), BinaryRegionType::Uint8,
-            pad_bytes, 0,
-            // Output a different annotation if the pad bytes exceed what we
-            // expect to be the maximum padding.
-            pad_bytes > 7 ? "likely padding but might be an unknown section "
-                            "due to being larger than 7 bytes"
-                          : "padding"));
-
-        sections_to_insert.emplace_back(MakeBinarySection(
-            "", BinarySectionType::Padding, std::move(regions)));
-      }
+      sections_to_insert.emplace_back(
+          GenerateMissingSection(offset - 1, pad_bytes, binary_));
     }
     offset = section_end_offset + 1;
+  }
+
+  // Handle the case where there are still bytes left in the binary that are
+  // unaccounted for.
+  if (offset < binary_length_) {
+    const uint64_t pad_bytes = binary_length_ - offset + 1;
+    sections_to_insert.emplace_back(
+        GenerateMissingSection(offset - 1, pad_bytes, binary_));
   }
 
   for (const BinarySection &section_to_insert : sections_to_insert) {
