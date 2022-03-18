@@ -80,6 +80,11 @@ table Foo {
   measurement:Measurement;
   // Union of struct/table
   anything:Any;
+  // Default floating point
+  temperature:float=98.6;
+  // Not present object
+  teetotaler:Bar;
+  charlie:string;
 }
 
 file_identifier "ANNO";

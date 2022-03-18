@@ -9,23 +9,32 @@ contains all the binary data with line-by-line annotations.
 Given a `schema` in either plain-text (.fbs) or already compiled to a binary
 schema (.bfbs) and `binary` file(s) that was created by the `schema`.
 
-```
-flatc --annotate `schema` -- `binary`
+```sh
+flatc --annotate {schema_file} -- {binary_file}...
 ```
 
 ### Example
 
-```
+The following command should produce `annotated_binary.afb` in this directory:
+
+```sh
 cd tests\annotated_binary
 ..\..\flatc --annotate annotated_binary.fbs -- annotated_binary.bin
 ```
 
-This should produce `annotated_binary.afb` in this directory.
+The `annotated_binary.bin` is the flatbufer binary of the data contained within
+ `annotated_binary.json`, which was made by the following command:
+
+```sh
+..\..\flatc -b annotated_binary.fbs annotated_binary.json
+```
 
 ## Text Format
 
 Currently there is a built-in text-based format for outputting the annotations.
-The `annotated_binary.afb` is an example of the
+The `annotated_binary.afb` is an example of the text format of a binary
+`annotated_binary.bin` and the `annotated_binary.fbs` (or 
+`annotated_binary.bfbs`) schema.
 
 The file is ordered in increasing the offsets from the beginning of the binary.
 The offset is the 1st column, expressed in hexadecimal format (e.g. `+0x003c`).
@@ -46,7 +55,7 @@ vtable (AnnotatedBinary.Bar):
   +0x00A2 | 13 00                   | uint16_t   | 0x0013 (19)                        | size of referring table
   +0x00A4 | 08 00                   | VOffset16  | 0x0008 (8)                         | offset to field `a` (id: 0)
   +0x00A6 | 04 00                   | VOffset16  | 0x0004 (4)                         | offset to field `b` (id: 1)
-  ```
+```
 
 ### Binary Regions
 

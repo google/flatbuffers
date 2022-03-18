@@ -654,9 +654,16 @@ int FlatCompiler::Compile(int argc, const char **argv) {
   }
 
   if (!annotate_schema.empty()) {
+    const std::string ext = flatbuffers::GetExtension(annotate_schema);
+    if (!(ext == reflection::SchemaExtension() || ext == "fbs")) {
+      Error("Expected a `.bfbs` or `.fbs` schema, got: " + annotate_schema);
+    }
+
+    const bool is_binary_schema = ext == reflection::SchemaExtension();
+
     std::string schema_contents;
-    if (!flatbuffers::LoadFile(annotate_schema.c_str(), true,
-                               &schema_contents)) {
+    if (!flatbuffers::LoadFile(annotate_schema.c_str(),
+                               /*binary=*/is_binary_schema, &schema_contents)) {
       Error("unable to load schema: " + annotate_schema);
     }
 
@@ -667,8 +674,7 @@ int FlatCompiler::Compile(int argc, const char **argv) {
     binary_opts.lang_to_generate |= flatbuffers::IDLOptions::kBinary;
     flatbuffers::Parser parser(binary_opts);
 
-    if (flatbuffers::GetExtension(annotate_schema) ==
-        reflection::SchemaExtension()) {
+    if (is_binary_schema) {
       binary_schema =
           reinterpret_cast<const uint8_t *>(schema_contents.c_str());
       binary_schema_size = schema_contents.size();

@@ -165,7 +165,7 @@ void BinaryAnnotator::BuildVTable(uint64_t offset,
 
   // A mapping between field (and its id) to the relative offset (uin16_t) from
   // the start of the table.
-  std::vector<std::tuple<const reflection::Field *, uint16_t>> fields;
+  std::map<uint16_t, VTable::Entry> fields;
 
   // Loop over all the fields.
   ForAllFields(table, /*reverse=*/false, [&](const reflection::Field *field) {
@@ -181,23 +181,49 @@ void BinaryAnnotator::BuildVTable(uint64_t offset,
       return;
     }
 
-    const uint16_t value = GetScalar<uint16_t>(field_offset);
+    const uint16_t offset_from_table = GetScalar<uint16_t>(field_offset);
 
-    fields.push_back(std::make_pair(field, GetScalar<uint16_t>(field_offset)));
+    VTable::Entry entry{ field, offset_from_table };
+    fields.insert(std::make_pair(field->id(), entry));
+
+    std::string default_label;
+    if (offset_from_table == 0) {
+      // Not present, so could be default or be optional.
+      if (field->required()) {
+        // If this is a required field, make it known this is an error.
+        regions.push_back(MakeBinaryRegion(
+            field_offset, sizeof(uint16_t), BinaryRegionType::VOffset, 0, 0,
+            std::string("ERROR: required field `") + field->name()->c_str() +
+                "` (id: " + std::to_string(field->id()) + ") is not present!"));
+        return;
+      } else {
+        // Its an optional field, so get the default value and interpret and
+        // provided an annotation for it.
+        if (IsScalar(field->type()->base_type())) {
+          default_label += " <defaults to ";
+          default_label += IsFloat(field->type()->base_type())
+                               ? std::to_string(field->default_real())
+                               : std::to_string(field->default_integer());
+          default_label += "> (";
+        } else {
+          default_label += " <null> (";
+        }
+        default_label +=
+            reflection::EnumNameBaseType(field->type()->base_type());
+        default_label += ")";
+      }
+    }
+
     regions.push_back(MakeBinaryRegion(
         field_offset, sizeof(uint16_t), BinaryRegionType::VOffset, 0, 0,
         std::string("offset to field `") + field->name()->c_str() +
-            "` (id: " + std::to_string(field->id()) + ")" +
-            ((value == 0) ? " <defaults to " +
-                                std::to_string(field->default_integer()) + ">"
-                          : "")));
+            "` (id: " + std::to_string(field->id()) + ")" + default_label));
   });
 
-  sections_.insert(std::make_pair(
-      vtable_offset,
-      MakeBinarySection(table->name()->str(), BinarySectionType::VTable,
-                        std::move(regions))));
-  vtables_.insert(std::make_pair(vtable_offset, VTable{ std::move(fields) }));
+  sections_[vtable_offset] = MakeBinarySection(
+      table->name()->str(), BinarySectionType::VTable, std::move(regions));
+
+  vtables_[vtable_offset] = VTable{ std::move(fields) };
 }
 
 void BinaryAnnotator::BuildTable(uint64_t offset, const BinarySectionType type,
@@ -224,8 +250,9 @@ void BinaryAnnotator::BuildTable(uint64_t offset, const BinarySectionType type,
 
   // Then all the field values, as indictated in the vtable_section.
   for (auto vtable_field : vtable.fields) {
-    const reflection::Field *field = std::get<0>(vtable_field);
-    const uint16_t offset_from_table = std::get<1>(vtable_field);
+    // const uint16_t field_id = vtable_field.first;
+    const reflection::Field *field = vtable_field.second.field;
+    const uint16_t offset_from_table = vtable_field.second.offset_from_table;
 
     if (!offset_from_table) {
       // Skip non-present fields.
@@ -233,7 +260,7 @@ void BinaryAnnotator::BuildTable(uint64_t offset, const BinarySectionType type,
     }
 
     // The field offsets are relative to the start of the table.
-    const uint16_t field_offset = table_offset + offset_from_table;
+    const uint64_t field_offset = table_offset + offset_from_table;
 
     if (IsScalar(field->type()->base_type())) {
       // These are the raw values store in the table.
@@ -293,16 +320,14 @@ void BinaryAnnotator::BuildTable(uint64_t offset, const BinarySectionType type,
         // The union type field is always one less than the union itself.
         const uint16_t union_type_id = field->id() - 1;
 
-        uint16_t union_offset_from_table = 0;
-        const reflection::Field *union_type =
-            GetFieldById(union_type_id, vtable, union_offset_from_table);
-
-        if (union_type == nullptr) {
+        auto vtable_entry = vtable.fields.find(union_type_id);
+        if (vtable_entry == vtable.fields.end()) {
           // TODO(dbaileychess): need to capture this error condition.
           break;
         }
 
-        const uint16_t type_offset = table_offset + union_offset_from_table;
+        const uint64_t type_offset =
+            table_offset + vtable_entry->second.offset_from_table;
 
         const uint8_t realized_type = GetScalar<uint8_t>(type_offset);
 
@@ -482,7 +507,7 @@ void BinaryAnnotator::BuildVector(uint64_t offset,
         // Vector of objects
         for (size_t i = 0; i < vector_length; ++i) {
           // The table offset is relative from the offset location itself.
-          const uint32_t table_offset = offset + GetScalar<uint32_t>(offset);
+          const uint64_t table_offset = offset + GetScalar<uint32_t>(offset);
 
           regions.emplace_back(MakeBinaryRegion(
               offset, sizeof(uint32_t), BinaryRegionType::UOffset, 0,
@@ -499,7 +524,7 @@ void BinaryAnnotator::BuildVector(uint64_t offset,
       // Vector of strings
       for (size_t i = 0; i < vector_length; ++i) {
         // The string offset is relative from the offset location itself.
-        const uint32_t string_offset = offset + GetScalar<uint32_t>(offset);
+        const uint64_t string_offset = offset + GetScalar<uint32_t>(offset);
 
         regions.emplace_back(MakeBinaryRegion(
             offset, sizeof(uint32_t), BinaryRegionType::UOffset, 0,
@@ -518,17 +543,14 @@ void BinaryAnnotator::BuildVector(uint64_t offset,
       // location.
       const uint16_t union_type_vector_id = field->id() - 1;
 
-      uint16_t offset_from_table = 0;
-      const reflection::Field *union_type_vector =
-          GetFieldById(union_type_vector_id, vtable, offset_from_table);
-
-      if (union_type_vector == nullptr) {
+      auto vtable_entry = vtable.fields.find(union_type_vector_id);
+      if (vtable_entry == vtable.fields.end()) {
         // TODO(dbaileychess): need to capture this error condition.
         break;
       }
 
       const uint64_t union_type_vector_field_offset =
-          parent_table_offset + offset_from_table;
+          parent_table_offset + vtable_entry->second.offset_from_table;
 
       // Get the offset to the first type (the + sizeof(uint32_t) is to skip
       // over the vector length which we already know)
@@ -539,7 +561,7 @@ void BinaryAnnotator::BuildVector(uint64_t offset,
 
       for (size_t i = 0; i < vector_length; ++i) {
         // The union offset is relative from the offset location itself.
-        const uint32_t union_offset = offset + GetScalar<uint32_t>(offset);
+        const uint64_t union_offset = offset + GetScalar<uint32_t>(offset);
 
         const uint8_t realized_type = GetScalar<uint8_t>(
             union_type_vector_data_offset + i * sizeof(uint8_t));
@@ -630,18 +652,6 @@ void BinaryAnnotator::InsertFinalPadding() {
     offset = section_end_offset + 1;
     previous_section = &section;
   }
-}
-
-const reflection::Field *BinaryAnnotator::GetFieldById(
-    const uint16_t index, const VTable &vtable, uint16_t &offset_from_table) {
-  for (auto vtable_field : vtable.fields) {
-    const reflection::Field *field = std::get<0>(vtable_field);
-    if (field->id() == index) {
-      offset_from_table = std::get<1>(vtable_field);
-      return field;
-    }
-  }
-  return nullptr;
 }
 
 }  // namespace flatbuffers

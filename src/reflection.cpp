@@ -133,7 +133,7 @@ void ForAllFields(const reflection::Object *object, bool reverse,
 
   for (size_t i = 0; i < field_to_id_map.size(); ++i) {
     func(object->fields()->Get(
-        field_to_id_map[reverse ? field_to_id_map.size() - (i + 1) : i]));
+        field_to_id_map[reverse ? field_to_id_map.size() - i + 1 : i]));
   }
 }
 

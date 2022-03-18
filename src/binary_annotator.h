@@ -161,7 +161,13 @@ class BinaryAnnotator {
 
  private:
   struct VTable {
-    std::vector<std::tuple<const reflection::Field *, uint16_t>> fields;
+    struct Entry {
+      const reflection::Field *field = nullptr;
+      const uint16_t offset_from_table = 0;
+    };
+
+    // Field ID -> {field def, offset from table}
+    std::map<uint16_t, Entry> fields;
   };
 
   uint64_t BuildHeader(uint64_t offset);
@@ -186,9 +192,6 @@ class BinaryAnnotator {
                          const reflection::Field *field);
 
   void InsertFinalPadding();
-
-  const reflection::Field *GetFieldById(uint16_t index, const VTable &vtable,
-                                        uint16_t &offset_from_table);
 
   template<typename T> inline T GetScalar(uint64_t offset) {
     return *reinterpret_cast<const T *>(binary_ + offset);
