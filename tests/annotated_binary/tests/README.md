@@ -32,3 +32,23 @@ the root table.
 ```sh
 truncate annotated_binary.bin --size=70 >> invalid_root_table_too_short.bin
 ```
+
+### `invalid_vtable_size.bin`
+
+Changed two bytes at 0x000A from `3A00` to `FFFF` which size is larger than the
+binary.
+
+### `invalid_vtable_size_short.bin`
+
+Changed two bytes at 0x000A from `3A00` to `0100` which size is smaller than the
+minimum size of 4 bytes.
+
+### `invalid_vtable_ref_table_size.bin`
+
+Changed two bytes at 0x000C from `6800` to `FFFF` which size is larger than the
+binary.
+
+### `invalid_vtable_ref_table_size_short.bin`
+
+Changed two bytes at 0x000C from `6800` to `01000` which size is smaller than 
+the minimum size of 4 bytes.

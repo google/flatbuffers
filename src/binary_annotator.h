@@ -17,9 +17,6 @@
 #ifndef FLATBUFFERS_BINARY_ANNOTATOR_H_
 #define FLATBUFFERS_BINARY_ANNOTATOR_H_
 
-#include <bits/stdint-uintn.h>
-
-#include <iostream>
 #include <map>
 #include <string>
 #include <vector>
@@ -188,7 +185,8 @@ class BinaryAnnotator {
 
   uint64_t BuildHeader(uint64_t offset);
 
-  void BuildVTable(uint64_t offset, const reflection::Object *table);
+  void BuildVTable(uint64_t offset, const reflection::Object *table,
+                   uint64_t offset_of_referring_table);
 
   void BuildTable(uint64_t offset, const BinarySectionType type,
                   const reflection::Object *table);
