@@ -9,6 +9,10 @@
 namespace flatbuffers {
 namespace {
 
+static bool BinaryRegionSort(const BinaryRegion &a, const BinaryRegion &b) {
+  return a.offset < b.offset;
+}
+
 static BinaryRegion MakeBinaryRegion(
     const uint64_t offset = 0, const uint64_t length = 0,
     const BinaryRegionType type = BinaryRegionType::Unknown,
@@ -40,18 +44,6 @@ static BinarySection MakeSingleRegionBinarySection(const std::string &name,
   std::vector<BinaryRegion> regions;
   regions.push_back(region);
   return MakeBinarySection(name, type, regions);
-}
-
-static uint64_t BuildField(const uint64_t offset,
-                           const reflection::Field *field,
-                           std::vector<BinaryRegion> &regions) {
-  const uint64_t type_size = GetTypeSize(field->type()->base_type());
-  const BinaryRegionType type = GetRegionType(field->type()->base_type());
-  regions.push_back(MakeBinaryRegion(
-      offset, type_size, type, 0, 0,
-      std::string("table field `") + field->name()->c_str() + "` (" +
-          reflection::EnumNameBaseType(field->type()->base_type()) + ")"));
-  return offset + type_size;
 }
 
 static uint64_t BuildStructureField(const uint64_t offset,
@@ -160,8 +152,12 @@ std::map<uint64_t, BinarySection> BinaryAnnotator::Annotate() {
                schema_->root_table());
   }
 
-  // Now that all the sections are built, scan the regions between them and
-  // insert padding bytes that are implied.
+  // Now that all the sections are built, make sure the binary sections are
+  // contiguous.
+  FixMissingRegions();
+
+  // Then scan the area between BinarySections insert padding sections that are
+  // implied.
   FixMissingSections();
 
   return sections_;
@@ -220,7 +216,7 @@ void BinaryAnnotator::BuildVTable(uint64_t offset,
   if (it != vtables_.end()) { return; }
 
   if (!IsValidRead<uint16_t>(offset)) {
-    const uint64_t remaining = binary_length_ - offset;
+    const uint64_t remaining = RemainingBytes(offset);
 
     AddSection(
         offset,
@@ -267,7 +263,7 @@ void BinaryAnnotator::BuildVTable(uint64_t offset,
   // Ensure we can read the next uint16_t field, which is the size of the
   // referring table.
   if (!IsValidRead<uint16_t>(offset)) {
-    const uint64_t remaining = binary_length_ - offset;
+    const uint64_t remaining = RemainingBytes(offset);
 
     AddSection(
         offset,
@@ -330,7 +326,7 @@ void BinaryAnnotator::BuildVTable(uint64_t offset,
         "` (id: " + std::to_string(field->id()) + ")";
 
     if (!IsValidRead<uint16_t>(field_offset)) {
-      const uint64_t remaining = binary_length_ - offset;
+      const uint64_t remaining = RemainingBytes(field_offset);
 
       regions.push_back(MakeBinaryRegion(
           field_offset, remaining, BinaryRegionType::Unknown, remaining, 0,
@@ -396,6 +392,16 @@ void BinaryAnnotator::BuildVTable(uint64_t offset,
 
   for (uint16_t id = fields_processed; id < expectant_vtable_fields; ++id) {
     const uint64_t field_offset = offset_start + id * sizeof(uint16_t);
+
+    if (!IsValidRead<uint16_t>(field_offset)) {
+      const uint64_t remaining = RemainingBytes(field_offset);
+
+      regions.push_back(MakeBinaryRegion(
+          field_offset, remaining, BinaryRegionType::Unknown, remaining, 0,
+          "ERROR: incomplete binary, expected to read 2 bytes here"));
+      continue;
+    }
+
     const uint16_t offset_from_table = GetScalar<uint16_t>(field_offset);
 
     VTable::Entry entry;
@@ -423,7 +429,7 @@ void BinaryAnnotator::BuildVTable(uint64_t offset,
 void BinaryAnnotator::BuildTable(uint64_t offset, const BinarySectionType type,
                                  const reflection::Object *table) {
   if (!IsValidRead<int32_t>(offset)) {
-    const uint64_t remaining = binary_length_ - offset;
+    const uint64_t remaining = RemainingBytes(offset);
 
     AddSection(
         offset,
@@ -479,15 +485,11 @@ void BinaryAnnotator::BuildTable(uint64_t offset, const BinarySectionType type,
   const uint16_t table_size = vtable.table_size;
   uint64_t table_end_offset = table_offset + table_size;
 
-  bool is_table_end_offset_modified = false;
   if (!IsValidOffset(table_end_offset - 1)) {
     // We already validated the table size in BuildVTable, but we have to make
     // sure we don't use a bad value here.
     table_end_offset = binary_length_;
-    is_table_end_offset_modified = true;
   }
-
-  const uint64_t field_offset_start = offset;
 
   // We need to iterate over the vtable fields by their offset in the binary,
   // not by their IDs. So copy them over to another vector that we can sort on
@@ -514,6 +516,11 @@ void BinaryAnnotator::BuildTable(uint64_t offset, const BinarySectionType type,
 
     // The field offsets are relative to the start of the table.
     const uint64_t field_offset = table_offset + offset_from_table;
+
+    if (!IsValidOffset(field_offset)) {
+      // The field offset is larger than the binary, nothing we can do.
+      continue;
+    }
 
     // We have a vtable entry for a non-existant field, that means its a binary
     // generated by a newer schema than we are currently processing.
@@ -547,7 +554,26 @@ void BinaryAnnotator::BuildTable(uint64_t offset, const BinarySectionType type,
 
     if (IsScalar(field->type()->base_type())) {
       // These are the raw values store in the table.
-      offset = BuildField(field_offset, field, regions);
+      const uint64_t type_size = GetTypeSize(field->type()->base_type());
+      const BinaryRegionType region_type =
+          GetRegionType(field->type()->base_type());
+
+      if (!IsValidRead(field_offset, type_size)) {
+        const uint64_t remaining = RemainingBytes(field_offset);
+
+        regions.push_back(MakeBinaryRegion(
+            field_offset, remaining, BinaryRegionType::Unknown, remaining, 0,
+            std::string("ERROR: table field `") + field->name()->c_str() +
+                "` (" +
+                reflection::EnumNameBaseType(field->type()->base_type()) +
+                "). Expected " + std::to_string(type_size) + " bytes."));
+        continue;
+      }
+
+      regions.push_back(MakeBinaryRegion(
+          field_offset, type_size, region_type, 0, 0,
+          std::string("table field `") + field->name()->c_str() + "` (" +
+              reflection::EnumNameBaseType(field->type()->base_type()) + ")"));
       continue;
     }
 
@@ -629,59 +655,20 @@ void BinaryAnnotator::BuildTable(uint64_t offset, const BinarySectionType type,
     }
   }
 
-  // Fill in any regions that weren't covered above, as those are padding
-  // regions. Start at the second region, since the first region is the offset
-  // to the vtable and no padding should be inserted before it. If there is
-  // padding before it, it should be part of a separate Padding BinarySection.
-  //
-  // Don't perform this step if the table_size is invalid, as it will duplicate
-  // data in the output annotations.
-  if (!is_table_end_offset_modified) {
-    size_t region_index = 1;
-    std::vector<BinaryRegion> padding_regions;
-    uint64_t i = field_offset_start;
-    while (region_index < regions.size() && i < table_end_offset) {
-      const uint64_t region_start = regions[region_index].offset;
-      const uint64_t region_end = region_start + regions[region_index].length;
+  // Handle the case where there is padding after the last known binary
+  // region. Calculate where we left off towards the expected end of the
+  // table.
+  const uint64_t i = regions.back().offset + regions.back().length + 1;
 
-      if (i < region_start) {
-        const uint64_t pad_bytes = region_start - i;
-        // We are at an index that is lower than any region, so pad up to its
-        // offset.
-        padding_regions.push_back(
-            MakeBinaryRegion(i, pad_bytes * sizeof(uint8_t),
-                             BinaryRegionType::Uint8, pad_bytes, 0, "padding"));
-        i = region_end;
-        region_index++;
-      } else if (i < region_end) {
-        i = region_end + 1;
-      } else {
-        region_index++;
-      }
-    }
-
-    // Handle the case where there is padding after the last known binary
-    // region. Calculate where we left off towards the expected end of the
-    // table.
-    if (i < table_end_offset) {
-      const uint64_t pad_bytes = table_end_offset - i + 1;
-      padding_regions.push_back(
-          MakeBinaryRegion(i - 1, pad_bytes * sizeof(uint8_t),
-                           BinaryRegionType::Uint8, pad_bytes, 0, "padding"));
-    }
-
-    regions.insert(regions.end(), padding_regions.begin(),
-                   padding_regions.end());
-
-    std::stable_sort(regions.begin(), regions.end(),
-                     [&](const BinaryRegion &a, const BinaryRegion &b) {
-                       return a.offset < b.offset;
-                     });
+  if (i < table_end_offset) {
+    const uint64_t pad_bytes = table_end_offset - i + 1;
+    regions.push_back(MakeBinaryRegion(i - 1, pad_bytes * sizeof(uint8_t),
+                                       BinaryRegionType::Uint8, pad_bytes, 0,
+                                       "padding"));
   }
 
-  sections_.insert(std::make_pair(
-      table_offset,
-      MakeBinarySection(table->name()->str(), type, std::move(regions))));
+  AddSection(table_offset,
+             MakeBinarySection(table->name()->str(), type, std::move(regions)));
 }
 
 uint64_t BinaryAnnotator::BuildStruct(uint64_t offset,
@@ -914,6 +901,47 @@ std::string BinaryAnnotator::BuildUnion(uint64_t offset,
   // TODO(dbaileychess): handle the other union types.
 
   return enum_val->name()->c_str();
+}
+
+void BinaryAnnotator::FixMissingRegions() {
+  std::vector<BinaryRegion> regions_to_insert;
+  for (auto &current_section : sections_) {
+    BinarySection &section = current_section.second;
+    if (section.regions.empty()) {
+      // TODO(dbaileychess): is this possible?
+      continue;
+    }
+
+    uint64_t offset = section.regions[0].offset + section.regions[0].length;
+    for (size_t i = 1; i < section.regions.size(); ++i) {
+      BinaryRegion &region = section.regions[i];
+
+      const uint64_t next_offset = region.offset;
+
+      if (offset < next_offset) {
+        const uint64_t padding_bytes = next_offset - offset;
+
+        if (IsNonZeroRegion(offset, padding_bytes, binary_)) {
+          regions_to_insert.push_back(MakeBinaryRegion(
+              offset, padding_bytes, BinaryRegionType::Unknown, padding_bytes,
+              0, "WARN: nothing refers to this region."));
+        } else {
+          regions_to_insert.push_back(
+              MakeBinaryRegion(offset, padding_bytes, BinaryRegionType::Uint8,
+                               padding_bytes, 0, "padding"));
+        }
+      }
+      offset = next_offset + region.length;
+    }
+
+    if (!regions_to_insert.empty()) {
+      section.regions.insert(section.regions.end(), regions_to_insert.begin(),
+                             regions_to_insert.end());
+      std::stable_sort(section.regions.begin(), section.regions.end(),
+                       BinaryRegionSort);
+      regions_to_insert.clear();
+    }
+  }
 }
 
 void BinaryAnnotator::FixMissingSections() {

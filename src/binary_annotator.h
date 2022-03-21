@@ -204,6 +204,7 @@ class BinaryAnnotator {
   std::string BuildUnion(uint64_t offset, uint8_t realized_type,
                          const reflection::Field *field);
 
+  void FixMissingRegions();
   void FixMissingSections();
 
   template<typename T> inline T GetScalar(const uint64_t offset) const {
@@ -216,10 +217,18 @@ class BinaryAnnotator {
 
   // Determines if performing a GetScalar request for `T` at `offset` would read
   // passed the end of the binary.
-  template<typename T>
-  inline bool IsValidRead(const uint64_t offset,
-                          const uint64_t length = sizeof(T)) {
-    return IsValidOffset(offset + length);
+  template<typename T> inline bool IsValidRead(const uint64_t offset) {
+    return IsValidRead(offset, sizeof(T));
+  }
+
+  inline bool IsValidRead(const uint64_t offset, const uint64_t length) {
+    return IsValidOffset(offset + length - 1);
+  }
+
+  // Calculate the number of bytes remaining from the given offset. If offset is
+  // > binary_length, 0 is returned.
+  uint64_t RemainingBytes(const uint64_t offset) {
+    return IsValidOffset(offset) ? binary_length_ - offset : 0;
   }
 
   // Adds the provided `section` keyed by the `offset` it occurs at. If a

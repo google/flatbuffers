@@ -51,7 +51,7 @@ root_table (AnnotatedBinary.Foo):
   +0x004E | 01                      | uint8_t      | 0x01 (1)                         | table field `measurement_type` (UType)
   +0x004F | 01                      | uint8_t      | 0x01 (1)                         | table field `anything_type` (UType)
   +0x0050 | D2 04 00 00             | uint32_t     | 0x000004D2 (1234)                | table field `counter` (Int)
-  +0x0055 | 02 00 00                | uint8_t[3]   | ...                              | padding
+  +0x0054 | 28 02 00 00             | ?uint8_t[4]  | (...                             | WARN: nothing refers to this region.
   +0x0058 | 01 00 00 00             | uint32_t     | 0x00000001 (1)                   | struct field `AnnotatedBinary.Building.floors` (Int)
   +0x005C | 02 00 00 00             | uint32_t     | 0x00000002 (2)                   | struct field `AnnotatedBinary.Building.doors` (Int)
   +0x0060 | 0C 00 00 00             | uint32_t     | 0x0000000C (12)                  | struct field `AnnotatedBinary.Building.windows` (Int)

@@ -43,6 +43,7 @@ vtable (AnnotatedBinary.Foo):
 
 root_table (AnnotatedBinary.Foo):
   +0x0044 | 3A 00 00 00             | SOffset32  | 0x0000003A (58) Loc: +0x000A       | offset to vtable
+  +0x0048 | 00 00 00                | uint8_t[3] | ...                                | padding
   +0x004B | 01                      | uint8_t    | 0x01 (1)                           | table field `healthy` (Bool)
   +0x004C | 02                      | uint8_t    | 0x02 (2)                           | table field `meal` (Byte)
   +0x004D | 02                      | uint8_t    | 0x02 (2)                           | table field `bar_baz_type` (UType)
@@ -59,6 +60,7 @@ root_table (AnnotatedBinary.Foo):
   +0x0070 | 01                      | uint8_t    | 0x01 (1)                           | struct field `AnnotatedBinary.Tolerance.width` (UByte)
   +0x0071 | 02                      | uint8_t    | 0x02 (2)                           | struct field `AnnotatedBinary.Tolerance.width` (UByte)
   +0x0072 | 03                      | uint8_t    | 0x03 (3)                           | struct field `AnnotatedBinary.Tolerance.width` (UByte)
+  +0x0073 | 00                      | uint8_t[1] | .                                  | padding
   +0x0074 | C8 01 00 00             | UOffset32  | 0x000001C8 (456) Loc: +0x023C      | offset to field `name`
   +0x0078 | 5C 01 00 00             | UOffset32  | 0x0000015C (348) Loc: +0x01D4      | offset to field `bars`
   +0x007C | 50 01 00 00             | UOffset32  | 0x00000150 (336) Loc: +0x01CC      | offset to field `bar_baz` (union of type `Baz`)
