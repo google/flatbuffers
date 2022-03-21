@@ -222,6 +222,7 @@ class BinaryAnnotator {
     return IsValidOffset(offset + length);
   }
 
+  // Adds the provided `section` keyed by the `offset` it occurs at. If a section is already added at that offset, it doesn't replace the exisiting one.
   void AddSection(const uint64_t offset, const BinarySection &section) {
     sections_.insert(std::make_pair(offset, section));
   }

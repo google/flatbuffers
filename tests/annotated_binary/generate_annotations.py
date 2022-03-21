@@ -42,7 +42,7 @@ tests_path = Path(script_path, "tests")
 
 
 def flatc_annotate(schema, file, cwd=script_path):
-    cmd = [str(flatc_path)] + ["--annotate"] + [schema] + [file]
+    cmd = [str(flatc_path), "--annotate", schema, file]
     result = subprocess.run(cmd, cwd=str(cwd), check=True)
 
 
