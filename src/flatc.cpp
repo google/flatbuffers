@@ -205,7 +205,7 @@ const static FlatCOption options[] = {
     "Used with \"binary\" and \"json\" options, it generates data using "
     "schema-less FlexBuffers." },
   { "", "no-warnings", "", "Inhibit all warnings messages." },
-  { "", "warning-as-errors", "", "Treat all warnings as errors." },
+  { "", "warnings-as-errors", "", "Treat all warnings as errors." },
   { "", "cs-global-alias", "",
     "Prepend \"global::\" to all user generated csharp classes and "
     "structs." },
