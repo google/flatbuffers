@@ -8,7 +8,7 @@ header:
   +0x0004 | 41 4E 4E 4F             | char[4]       | ANNO                            | File Identifier
 
 unknown (no known references):
-  +0x0008 | 00 00 3A 00 68 00 0C 00 | ?uint8_t[664] | ..:.h...                        | WARN: nothing refers to this. Check if any `Unknown Field`s point to this.
+  +0x0008 | 00 00 3A 00 68 00 0C 00 | ?uint8_t[664] | ..:.h...                        | WARN: nothing refers to this section.
   +0x0010 | 07 00 00 00 08 00 10 00 |               | ........
   +0x0018 | 14 00 30 00 34 00 09 00 |               | ..0.4...
   +0x0020 | 38 00 3C 00 40 00 44 00 |               | 8.<.@.D.

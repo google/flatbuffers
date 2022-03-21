@@ -55,6 +55,7 @@ test_files = [
     "tests/invalid_vtable_ref_table_size.bin",
     "tests/invalid_vtable_size_short.bin",
     "tests/invalid_vtable_size.bin",
+    "tests/invalid_vtable_field_offset.bin",
 ]
 
 for test_file in test_files:

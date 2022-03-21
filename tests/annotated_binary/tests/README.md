@@ -50,5 +50,10 @@ binary.
 
 ### `invalid_vtable_ref_table_size_short.bin`
 
-Changed two bytes at 0x000C from `6800` to `01000` which size is smaller than 
+Changed two bytes at 0x000C from `6800` to `0100` which size is smaller than 
 the minimum size of 4 bytes.
+
+### `invalid_vtable_field_offset.bin`
+
+Changed two bytes at 0x0016 from `1000` to `FFFF` which points to a field larger
+than the binary.

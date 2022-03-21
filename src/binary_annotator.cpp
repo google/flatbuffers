@@ -116,8 +116,7 @@ static BinarySection GenerateMissingSection(const uint64_t offset,
         offset, length * sizeof(uint8_t), BinaryRegionType::Unknown, length, 0,
         length < 8 ? "could be a corrupted padding region (non zero) "
                      "due to the length < 8 bytes."
-                   : "WARN: nothing refers to this. Check if any "
-                     "`Unknown Field`s point to this."));
+                   : "WARN: nothing refers to this section."));
 
     return MakeBinarySection("no known references", BinarySectionType::Unknown,
                              std::move(regions));
@@ -200,8 +199,8 @@ uint64_t BinaryAnnotator::BuildHeader(uint64_t offset) {
     // Check if the file identifier region has non-zero data, and assume its the
     // file identifier. Otherwise, it will get filled in with padding later.
     regions.push_back(MakeBinaryRegion(offset, 4 * sizeof(uint8_t),
-                                          BinaryRegionType::Char, 4, 0,
-                                          std::string("File Identifier")));
+                                       BinaryRegionType::Char, 4, 0,
+                                       std::string("File Identifier")));
   }
 
   sections_.insert(std::make_pair(
@@ -261,8 +260,8 @@ void BinaryAnnotator::BuildVTable(uint64_t offset,
   std::vector<BinaryRegion> regions;
 
   regions.push_back(MakeBinaryRegion(offset, sizeof(uint16_t),
-                                        BinaryRegionType::Uint16, 0, 0,
-                                        std::string("size of this vtable")));
+                                     BinaryRegionType::Uint16, 0, 0,
+                                     std::string("size of this vtable")));
   offset += sizeof(uint16_t);
 
   // Ensure we can read the next uint16_t field, which is the size of the
@@ -294,9 +293,9 @@ void BinaryAnnotator::BuildVTable(uint64_t offset,
         std::string("ERROR: size of referring table. Size of table is "
                     "smaller than the minimum 4 bytes")));
   } else {
-    regions.push_back(
-        MakeBinaryRegion(offset, sizeof(uint16_t), BinaryRegionType::Uint16, 0,
-                         0, std::string("size of referring table")));
+    regions.push_back(MakeBinaryRegion(offset, sizeof(uint16_t),
+                                       BinaryRegionType::Uint16, 0, 0,
+                                       std::string("size of referring table")));
   }
   offset += sizeof(uint16_t);
 
@@ -326,7 +325,29 @@ void BinaryAnnotator::BuildVTable(uint64_t offset,
       return;
     }
 
+    const std::string field_comment =
+        std::string("offset to field `") + field->name()->c_str() +
+        "` (id: " + std::to_string(field->id()) + ")";
+
+    if (!IsValidRead<uint16_t>(field_offset)) {
+      const uint64_t remaining = binary_length_ - offset;
+
+      regions.push_back(MakeBinaryRegion(
+          field_offset, remaining, BinaryRegionType::Unknown, remaining, 0,
+          "ERROR: incomplete binary, expected to read 2 bytes here"));
+
+      return;
+    }
+
     const uint16_t offset_from_table = GetScalar<uint16_t>(field_offset);
+
+    if (!IsValidOffset(offset_of_referring_table + offset_from_table - 1)) {
+      regions.push_back(MakeBinaryRegion(
+          field_offset, sizeof(uint16_t), BinaryRegionType::VOffset, 0, 0,
+          std::string("ERROR: ") + field_comment +
+              ". Offset points to outside the binary."));
+      return;
+    }
 
     VTable::Entry entry;
     entry.field = field;
@@ -361,10 +382,9 @@ void BinaryAnnotator::BuildVTable(uint64_t offset,
       }
     }
 
-    regions.push_back(MakeBinaryRegion(
-        field_offset, sizeof(uint16_t), BinaryRegionType::VOffset, 0, 0,
-        std::string("offset to field `") + field->name()->c_str() +
-            "` (id: " + std::to_string(field->id()) + ")" + default_label));
+    regions.push_back(MakeBinaryRegion(field_offset, sizeof(uint16_t),
+                                       BinaryRegionType::VOffset, 0, 0,
+                                       field_comment + default_label));
 
     fields_processed++;
   });
@@ -711,18 +731,18 @@ void BinaryAnnotator::BuildString(uint64_t offset,
   const uint64_t string_soffset = offset;
 
   regions.push_back(MakeBinaryRegion(offset, sizeof(uint32_t),
-                                        BinaryRegionType::Uint32, 0, 0,
-                                        std::string("length of string")));
+                                     BinaryRegionType::Uint32, 0, 0,
+                                     std::string("length of string")));
   offset += sizeof(uint32_t);
 
   regions.push_back(MakeBinaryRegion(offset, string_length * sizeof(char),
-                                        BinaryRegionType::Char, string_length,
-                                        0, ""));
+                                     BinaryRegionType::Char, string_length, 0,
+                                     ""));
   offset += string_length * sizeof(char);
 
   regions.push_back(MakeBinaryRegion(offset, sizeof(char),
-                                        BinaryRegionType::Char, 0, 0,
-                                        std::string("string terminator")));
+                                     BinaryRegionType::Char, 0, 0,
+                                     std::string("string terminator")));
   offset += sizeof(char);
 
   sections_.insert(std::make_pair(
