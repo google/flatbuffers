@@ -95,6 +95,13 @@ inline const Table *GetAnyRoot(const uint8_t *flatbuf) {
   return GetRoot<Table>(flatbuf);
 }
 
+inline Table *GetAnySizePrefixedRoot(uint8_t *flatbuf) {
+  return GetMutableSizePrefixedRoot<Table>(flatbuf);
+}
+inline const Table *GetAnySizePrefixedRoot(const uint8_t *flatbuf) {
+  return GetSizePrefixedRoot<Table>(flatbuf);
+}
+
 // Get a field's default, if you know it's an integer, and its exact type.
 template<typename T> T GetFieldDefaultI(const reflection::Field &field) {
   FLATBUFFERS_ASSERT(sizeof(T) == GetTypeSize(field.type()->base_type()));
@@ -500,6 +507,10 @@ Offset<const Table *> CopyTable(FlatBufferBuilder &fbb,
 // buf should point to the start of flatbuffer data.
 // length specifies the size of the flatbuffer data.
 bool Verify(const reflection::Schema &schema, const reflection::Object &root,
+            const uint8_t *buf, size_t length, uoffset_t max_depth = 64,
+            uoffset_t max_tables = 1000000);
+
+bool VerifySizePrefixed(const reflection::Schema &schema, const reflection::Object &root,
             const uint8_t *buf, size_t length, uoffset_t max_depth = 64,
             uoffset_t max_tables = 1000000);
 
