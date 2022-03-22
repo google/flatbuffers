@@ -23,6 +23,7 @@
 
 #include "flatbuffers/base.h"
 #include "flatbuffers/reflection.h"
+#include "flatbuffers/stl_emulation.h"
 
 namespace flatbuffers {
 
@@ -208,7 +209,7 @@ class BinaryAnnotator {
   void FixMissingSections();
 
   template<typename T> inline T GetScalar(const uint64_t offset) const {
-    return ReadScalar<T>(binary_ + offset);
+    return flatbuffers::ReadScalar<T>(binary_ + offset);
   }
 
   inline bool IsValidOffset(const uint64_t offset) const {
@@ -217,18 +218,25 @@ class BinaryAnnotator {
 
   // Determines if performing a GetScalar request for `T` at `offset` would read
   // passed the end of the binary.
-  template<typename T> inline bool IsValidRead(const uint64_t offset) {
+  template<typename T> inline bool IsValidRead(const uint64_t offset) const {
     return IsValidRead(offset, sizeof(T));
   }
 
-  inline bool IsValidRead(const uint64_t offset, const uint64_t length) {
+  inline bool IsValidRead(const uint64_t offset, const uint64_t length) const {
     return IsValidOffset(offset + length - 1);
   }
 
   // Calculate the number of bytes remaining from the given offset. If offset is
   // > binary_length, 0 is returned.
-  uint64_t RemainingBytes(const uint64_t offset) {
+  uint64_t RemainingBytes(const uint64_t offset) const {
     return IsValidOffset(offset) ? binary_length_ - offset : 0;
+  }
+
+  template<typename T>
+  flatbuffers::Optional<T> ReadScalar(const uint64_t offset) const {
+    if (!IsValidRead<T>(offset)) { return flatbuffers::nullopt; }
+
+    return GetScalar<T>(offset);
   }
 
   // Adds the provided `section` keyed by the `offset` it occurs at. If a
@@ -236,6 +244,13 @@ class BinaryAnnotator {
   // one.
   void AddSection(const uint64_t offset, const BinarySection &section) {
     sections_.insert(std::make_pair(offset, section));
+  }
+
+  bool IsInlineField(const reflection::Field *const field) {
+    if (field->type()->base_type() == reflection::BaseType::Obj) {
+      return schema_->objects()->Get(field->type()->index())->is_struct();
+    }
+    return IsScalar(field->type()->base_type());
   }
 
   // The schema for the binary file

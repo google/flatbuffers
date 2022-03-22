@@ -61,3 +61,9 @@ than the binary.
 ### `invalid_table_field_size.bin`
 
 Truncated the file to 0x52 bytes, as that cuts a Uint32t value in half.
+
+### `invalid_table_field_offset.bin`
+
+Truncated the file to 0x96 bytes, as that cuts a UOffset32 value in half. Also,
+changed two bytes at 0x90 from `DC00` to `FFFF` which points to a section larger
+than the binary.

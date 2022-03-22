@@ -62,20 +62,20 @@ root_table (AnnotatedBinary.Foo):
   +0x0071 | 02                      | uint8_t      | 0x02 (2)                         | struct field `AnnotatedBinary.Tolerance.width` (UByte)
   +0x0072 | 03                      | uint8_t      | 0x03 (3)                         | struct field `AnnotatedBinary.Tolerance.width` (UByte)
   +0x0073 | 00                      | uint8_t[1]   | .                                | padding
-  +0x0074 | C8 01 00 00             | UOffset32    | 0x000001C8 (456) Loc: +0x023C    | offset to field `name`
-  +0x0078 | 5C 01 00 00             | UOffset32    | 0x0000015C (348) Loc: +0x01D4    | offset to field `bars`
+  +0x0074 | C8 01 00 00             | UOffset32    | 0x000001C8 (456) Loc: +0x023C    | offset to field `name` (string)
+  +0x0078 | 5C 01 00 00             | UOffset32    | 0x0000015C (348) Loc: +0x01D4    | offset to field `bars` (vector)
   +0x007C | 50 01 00 00             | UOffset32    | 0x00000150 (336) Loc: +0x01CC    | offset to field `bar_baz` (union of type `Baz`)
-  +0x0080 | 34 01 00 00             | UOffset32    | 0x00000134 (308) Loc: +0x01B4    | offset to field `accounts`
-  +0x0084 | 24 01 00 00             | UOffset32    | 0x00000124 (292) Loc: +0x01A8    | offset to field `bob`
-  +0x0088 | 14 01 00 00             | UOffset32    | 0x00000114 (276) Loc: +0x019C    | offset to field `alice`
+  +0x0080 | 34 01 00 00             | UOffset32    | 0x00000134 (308) Loc: +0x01B4    | offset to field `accounts` (vector)
+  +0x0084 | 24 01 00 00             | UOffset32    | 0x00000124 (292) Loc: +0x01A8    | offset to field `bob` (string)
+  +0x0088 | 14 01 00 00             | UOffset32    | 0x00000114 (276) Loc: +0x019C    | offset to field `alice` (string)
   +0x008C | 0D 00 00 00             | uint32_t     | 0x0000000D (13)                  | table field `just_i32` (Int)
-  +0x0090 | DC 00 00 00             | UOffset32    | 0x000000DC (220) Loc: +0x016C    | offset to field `names`
-  +0x0094 | A0 00 00 00             | UOffset32    | 0x000000A0 (160) Loc: +0x0134    | offset to field `points_of_interest`
-  +0x0098 | 94 00 00 00             | UOffset32    | 0x00000094 (148) Loc: +0x012C    | offset to field `foobars_type`
-  +0x009C | 38 00 00 00             | UOffset32    | 0x00000038 (56) Loc: +0x00D4     | offset to field `foobars`
+  +0x0090 | DC 00 00 00             | UOffset32    | 0x000000DC (220) Loc: +0x016C    | offset to field `names` (vector)
+  +0x0094 | A0 00 00 00             | UOffset32    | 0x000000A0 (160) Loc: +0x0134    | offset to field `points_of_interest` (vector)
+  +0x0098 | 94 00 00 00             | UOffset32    | 0x00000094 (148) Loc: +0x012C    | offset to field `foobars_type` (vector)
+  +0x009C | 38 00 00 00             | UOffset32    | 0x00000038 (56) Loc: +0x00D4     | offset to field `foobars` (vector)
   +0x00A0 | 33 00 00 00             | UOffset32    | 0x00000033 (51) Loc: +0x00D3     | offset to field `measurement` (union of type `Tolerance`)
   +0x00A4 | 1C 00 00 00             | UOffset32    | 0x0000001C (28) Loc: +0x00C0     | offset to field `anything` (union of type `Bar`)
-  +0x00A8 | 04 00 00 00             | UOffset32    | 0x00000004 (4) Loc: +0x00AC      | offset to field `charlie`
+  +0x00A8 | 04 00 00 00             | UOffset32    | 0x00000004 (4) Loc: +0x00AC      | offset to field `charlie` (string)
 
 string (AnnotatedBinary.Foo.charlie):
   +0x00AC | 05 00 00 00             | uint32_t     | 0x00000005 (5)                   | length of string
@@ -109,7 +109,7 @@ vector (AnnotatedBinary.Foo.foobars):
 table (AnnotatedBinary.Bar):
   +0x00E4 | D2 FE FF FF             | SOffset32    | 0xFFFFFED2 (-302) Loc: +0x0212   | offset to vtable
   +0x00E8 | 00 80 23 44             | float        | 0x44238000 (654.000000)          | table field `b` (Float)
-  +0x00EC | 10 00 00 00             | UOffset32    | 0x00000010 (16) Loc: +0x00FC     | offset to field `c`
+  +0x00EC | 10 00 00 00             | UOffset32    | 0x00000010 (16) Loc: +0x00FC     | offset to field `c` (table)
   +0x00F0 | 00 00 00 00 00 D8 8E 40 | double       | 0x408ED80000000000 (987.000000)  | table field `a` (Double)
   +0x00F8 | 00 00 00 00             | uint8_t[4]   | ....                             | padding
 
@@ -128,7 +128,7 @@ table (AnnotatedBinary.Baz):
 table (AnnotatedBinary.Bar):
   +0x010C | FA FE FF FF             | SOffset32    | 0xFFFFFEFA (-262) Loc: +0x0212   | offset to vtable
   +0x0110 | 00 00 E4 43             | float        | 0x43E40000 (456.000000)          | table field `b` (Float)
-  +0x0114 | 10 00 00 00             | UOffset32    | 0x00000010 (16) Loc: +0x0124     | offset to field `c`
+  +0x0114 | 10 00 00 00             | UOffset32    | 0x00000010 (16) Loc: +0x0124     | offset to field `c` (table)
   +0x0118 | 00 00 00 00 00 C0 5E 40 | double       | 0x405EC00000000000 (123.000000)  | table field `a` (Double)
   +0x0120 | 00 00 00 00             | uint8_t[4]   | ....                             | padding
 
@@ -227,7 +227,7 @@ vtable (AnnotatedBinary.Bar):
 table (AnnotatedBinary.Bar):
   +0x01EC | 0A 00 00 00             | SOffset32    | 0x0000000A (10) Loc: +0x01E2     | offset to vtable
   +0x01F0 | 00 80 23 44             | float        | 0x44238000 (654.000000)          | table field `b` (Float)
-  +0x01F4 | 18 00 00 00             | UOffset32    | 0x00000018 (24) Loc: +0x020C     | offset to field `c`
+  +0x01F4 | 18 00 00 00             | UOffset32    | 0x00000018 (24) Loc: +0x020C     | offset to field `c` (table)
   +0x01F8 | 00 00 00 00 00 D8 8E 40 | double       | 0x408ED80000000000 (987.000000)  | table field `a` (Double)
   +0x0200 | 00 00 00 00 00 00       | uint8_t[6]   | ......                           | padding
 
@@ -251,7 +251,7 @@ vtable (AnnotatedBinary.Bar):
 table (AnnotatedBinary.Bar):
   +0x021C | 0A 00 00 00             | SOffset32    | 0x0000000A (10) Loc: +0x0212     | offset to vtable
   +0x0220 | 00 00 E4 43             | float        | 0x43E40000 (456.000000)          | table field `b` (Float)
-  +0x0224 | 10 00 00 00             | UOffset32    | 0x00000010 (16) Loc: +0x0234     | offset to field `c`
+  +0x0224 | 10 00 00 00             | UOffset32    | 0x00000010 (16) Loc: +0x0234     | offset to field `c` (table)
   +0x0228 | 00 00 00 00 00 C0 5E 40 | double       | 0x405EC00000000000 (123.000000)  | table field `a` (Double)
   +0x0230 | 00 00 00 00             | uint8_t[4]   | ....                             | padding
 
