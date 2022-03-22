@@ -51,6 +51,8 @@ test_files = [
     "tests/invalid_root_offset.bin",
     "tests/invalid_root_table_too_short.bin",
     "tests/invalid_root_table_vtable_offset.bin",
+    "tests/invalid_string_length.bin",
+    "tests/invalid_string_length_cut_short.bin",
     "tests/invalid_table_field_size.bin",
     "tests/invalid_table_field_offset.bin",
     "tests/invalid_vtable_ref_table_size_short.bin",

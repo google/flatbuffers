@@ -657,7 +657,7 @@ void BinaryAnnotator::BuildTable(const uint64_t table_offset,
           regions.push_back(MakeBinaryRegion(
               type_offset, remaining, BinaryRegionType::Unknown, remaining, 0,
               std::string("ERROR: ") + offset_prefix +
-                  " (union). Incomplete binary, expected to read 1 byts here"));
+                  " (union). Incomplete binary, expected to read 1 byte here"));
           continue;
         }
 
@@ -725,41 +725,56 @@ uint64_t BinaryAnnotator::BuildStruct(uint64_t offset,
   return offset;
 }
 
-void BinaryAnnotator::BuildString(uint64_t offset,
+void BinaryAnnotator::BuildString(const uint64_t string_offset,
                                   const reflection::Object *table,
                                   const reflection::Field *field) {
   // Check if we have already generated this string section, and this is a
   // shared string instance.
-  if (strings_.find(offset) != strings_.end()) { return; }
+  if (strings_.find(string_offset) != strings_.end()) { return; }
 
   std::vector<BinaryRegion> regions;
-  const uint32_t string_length = GetScalar<uint32_t>(offset);
+  const auto string_length = ReadScalar<uint32_t>(string_offset);
 
-  const uint64_t string_soffset = offset;
+  if (!string_length.has_value()) {
+    const uint64_t remaining = RemainingBytes(string_offset);
 
-  regions.push_back(MakeBinaryRegion(offset, sizeof(uint32_t),
-                                     BinaryRegionType::Uint32, 0, 0,
-                                     std::string("length of string")));
-  offset += sizeof(uint32_t);
+    regions.push_back(MakeBinaryRegion(
+        string_offset, remaining, BinaryRegionType::Unknown, remaining, 0,
+        std::string("ERROR: length of string. Incomplete binary, expected to "
+                    "read 4 bytes here")));
 
-  regions.push_back(MakeBinaryRegion(offset, string_length * sizeof(char),
-                                     BinaryRegionType::Char, string_length, 0,
-                                     ""));
-  offset += string_length * sizeof(char);
+  } else {
+    const uint32_t string_size = string_length.value();
+    const uint64_t string_end =
+        string_offset + sizeof(uint32_t) + string_size + sizeof(char);
 
-  regions.push_back(MakeBinaryRegion(offset, sizeof(char),
-                                     BinaryRegionType::Char, 0, 0,
-                                     std::string("string terminator")));
-  offset += sizeof(char);
+    if (!IsValidOffset(string_end - 1)) {
+      regions.push_back(MakeBinaryRegion(
+          string_offset, sizeof(uint32_t), BinaryRegionType::Uint32, 0, 0,
+          std::string(
+              "ERROR: length of string. Length is longer than the binary.")));
+    } else {
+      regions.push_back(MakeBinaryRegion(string_offset, sizeof(uint32_t),
+                                         BinaryRegionType::Uint32, 0, 0,
+                                         "length of string"));
 
-  sections_.insert(std::make_pair(
-      string_soffset,
-      MakeBinarySection(
-          std::string(table->name()->c_str()) + "." + field->name()->c_str(),
-          BinarySectionType::String, std::move(regions))));
+      regions.push_back(MakeBinaryRegion(string_offset + sizeof(uint32_t),
+                                         string_size, BinaryRegionType::Char,
+                                         string_size, 0, ""));
+
+      regions.push_back(MakeBinaryRegion(
+          string_offset + sizeof(uint32_t) + string_size, sizeof(char),
+          BinaryRegionType::Char, 0, 0, std::string("string terminator")));
+    }
+  }
+
+  AddSection(string_offset,
+             MakeBinarySection(std::string(table->name()->c_str()) + "." +
+                                   field->name()->c_str(),
+                               BinarySectionType::String, std::move(regions)));
 
   // Insert into the strings set to find possible instances of shared strings.
-  strings_.insert(string_soffset);
+  strings_.insert(string_offset);
 }
 
 void BinaryAnnotator::BuildVector(uint64_t offset,

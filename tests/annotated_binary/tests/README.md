@@ -67,3 +67,13 @@ Truncated the file to 0x52 bytes, as that cuts a Uint32t value in half.
 Truncated the file to 0x96 bytes, as that cuts a UOffset32 value in half. Also,
 changed two bytes at 0x90 from `DC00` to `FFFF` which points to a section larger
 than the binary.
+
+### `invalid_string_length_cut_short.bin`
+
+Truncated the file to 0xAD bytes, as that cuts string length Uint32t value in 
+half.
+
+### `invalid_string_length.bin`
+
+Changed two bytes at 0x00AC from `0500` to `FFFF` which is a string length
+larger than the binary.
