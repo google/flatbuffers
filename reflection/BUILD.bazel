@@ -1,4 +1,4 @@
-load("//:build_defs.bzl", "flatbuffer_ts_library")
+load("//:typescript.bzl", "flatbuffer_ts_library")
 
 filegroup(
     name = "reflection_fbs_schema",
