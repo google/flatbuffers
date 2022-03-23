@@ -94,3 +94,7 @@ Truncated the file to 0x6A bytes, as that cuts struct array field value in half.
 ### `invalid_vector_structs_cut_short.bin`
 
 Truncated the file to 0x0154 bytes, as that cuts into a vector of structs.
+
+### `invalid_vector_tables_cut_short.bin`
+
+Truncated the file to 0x01DE bytes, as that cuts into a vector of table offsets.

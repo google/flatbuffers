@@ -847,13 +847,37 @@ void BinaryAnnotator::BuildVector(const uint64_t vector_offset,
       } else {
         // Vector of objects
         for (size_t i = 0; i < vector_length.value(); ++i) {
-          // The table offset is relative from the offset location itself.
-          const uint64_t table_offset = offset + GetScalar<uint32_t>(offset);
+          const std::string name = "offset to table[" + std::to_string(i) + "]";
 
-          regions.push_back(MakeBinaryRegion(
-              offset, sizeof(uint32_t), BinaryRegionType::UOffset, 0,
-              table_offset,
-              std::string("offset to table[") + std::to_string(i) + "]"));
+          const auto table_relative_offset = ReadScalar<uint32_t>(offset);
+          if (!table_relative_offset.has_value()) {
+            const uint64_t remaining = RemainingBytes(offset);
+
+            regions.push_back(MakeBinaryRegion(
+                offset, remaining, BinaryRegionType::Unknown, remaining, 0,
+                "ERROR: " + name +
+                    ". Incomplete binary, expected to "
+                    "read 4 bytes here"));
+            break;
+          }
+
+          // The table offset is relative from the offset location itself.
+          const uint64_t table_offset = offset + table_relative_offset.value();
+
+          if (!IsValidOffset(table_offset)) {
+            regions.push_back(MakeBinaryRegion(
+                offset, sizeof(uint32_t), BinaryRegionType::UOffset, 0,
+                table_offset,
+                "ERROR: " + name +
+                    ". Invalid offset, points to outside the binary."));
+
+            offset += sizeof(uint32_t);
+            continue;
+          }
+
+          regions.push_back(MakeBinaryRegion(offset, sizeof(uint32_t),
+                                             BinaryRegionType::UOffset, 0,
+                                             table_offset, name));
 
           BuildTable(table_offset, BinarySectionType::Table, object);
 
