@@ -1,5 +1,6 @@
 load("@rules_cc//cc:defs.bzl", "cc_test")
-load("//:build_defs.bzl", "flatbuffer_cc_library", "flatbuffer_ts_library")
+load("//:build_defs.bzl", "flatbuffer_cc_library")
+load("//:typescript.bzl", "flatbuffer_ts_library")
 
 package(default_visibility = ["//visibility:private"])
 
