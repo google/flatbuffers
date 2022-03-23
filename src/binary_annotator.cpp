@@ -508,17 +508,30 @@ void BinaryAnnotator::BuildTable(const uint64_t table_offset,
           field_offset;
 
       std::string hint;
+
       if (unknown_field_length == 4) {
-        // The field is 4 in length, so it could be an offset? Provide a hint.
-        hint += " <possibly an offset? Check Loc: +0x";
-        hint += ToHex(field_offset + GetScalar<uint32_t>(field_offset));
-        hint += ">";
+        const auto relative_offset = ReadScalar<uint32_t>(field_offset);
+        if (relative_offset.has_value()) {
+          // The field is 4 in length, so it could be an offset? Provide a hint.
+          hint += " <possibly an offset? Check Loc: +0x";
+          hint += ToHex(field_offset + relative_offset.value());
+          hint += ">";
+        }
       }
 
-      regions.push_back(
-          MakeBinaryRegion(field_offset, unknown_field_length * sizeof(uint8_t),
-                           BinaryRegionType::Unknown, unknown_field_length, 0,
-                           std::string("Unknown field") + hint));
+      if (!IsValidRead(field_offset, unknown_field_length)) {
+        const uint64_t remaining = RemainingBytes(field_offset);
+
+        regions.push_back(MakeBinaryRegion(
+            field_offset, remaining, BinaryRegionType::Unknown, remaining, 0,
+            "ERRROR: Unknown field. Expect to read " +
+                std::to_string(unknown_field_length) + " bytes."));
+        continue;
+      }
+
+      regions.push_back(MakeBinaryRegion(
+          field_offset, unknown_field_length, BinaryRegionType::Unknown,
+          unknown_field_length, 0, std::string("Unknown field") + hint));
       continue;
     }
 
@@ -628,7 +641,7 @@ void BinaryAnnotator::BuildTable(const uint64_t table_offset,
           const uint64_t remaining = RemainingBytes(type_offset);
           regions.push_back(MakeBinaryRegion(
               type_offset, remaining, BinaryRegionType::Unknown, remaining, 0,
-              std::string("ERROR: ") + offset_prefix +
+              "ERROR: " + offset_prefix +
                   " (union). Incomplete binary, expected to read 1 byte here"));
           continue;
         }
@@ -941,28 +954,72 @@ void BinaryAnnotator::BuildVector(const uint64_t vector_offset,
       const uint64_t union_type_vector_field_offset =
           parent_table_offset + vtable_entry->second.offset_from_table;
 
+      const auto union_type_vector_field_relative_offset =
+          ReadScalar<uint16_t>(union_type_vector_field_offset);
+
+      if (!union_type_vector_field_relative_offset.has_value()) {
+        const uint64_t remaining = RemainingBytes(offset);
+
+        regions.push_back(MakeBinaryRegion(
+            offset, remaining, BinaryRegionType::Unknown, remaining, 0,
+            "ERROR: Union vector offset. Incomplete binary, expected to "
+            "read 2 bytes here."));
+
+        break;
+      }
+
       // Get the offset to the first type (the + sizeof(uint32_t) is to skip
-      // over the vector length which we already know)
+      // over the vector length which we already know). Validation happens
+      // within the loop below.
       const uint64_t union_type_vector_data_offset =
           union_type_vector_field_offset +
-          GetScalar<uint16_t>(union_type_vector_field_offset) +
-          sizeof(uint32_t);
+          union_type_vector_field_relative_offset.value() + sizeof(uint32_t);
 
       for (size_t i = 0; i < vector_length.value(); ++i) {
-        // The union offset is relative from the offset location itself.
-        const uint64_t union_offset = offset + GetScalar<uint32_t>(offset);
+        const std::string name = "offset to union[" + std::to_string(i) + "]";
 
-        const uint8_t realized_type = GetScalar<uint8_t>(
-            union_type_vector_data_offset + i * sizeof(uint8_t));
+        const auto union_relative_offset = ReadScalar<uint32_t>(offset);
+        if (!union_relative_offset.has_value()) {
+          const uint64_t remaining = RemainingBytes(offset);
+
+          regions.push_back(MakeBinaryRegion(
+              offset, remaining, BinaryRegionType::Unknown, remaining, 0,
+              "ERROR: " + name +
+                  ". Incomplete binary, expected to "
+                  "read 4 bytes here"));
+
+          break;
+        }
+
+        // The union offset is relative from the offset location itself.
+        const uint64_t union_offset = offset + union_relative_offset.value();
+
+        if (!IsValidOffset(union_offset)) {
+          regions.push_back(MakeBinaryRegion(
+              offset, sizeof(uint32_t), BinaryRegionType::UOffset, 0,
+              union_offset,
+              "ERROR: " + name +
+                  ". Invalid offset, points to outside the binary."));
+          continue;
+        }
+
+        const auto realized_type =
+            ReadScalar<uint8_t>(union_type_vector_data_offset + i);
+        if (!realized_type.has_value()) {
+          regions.push_back(
+              MakeBinaryRegion(offset, 0, BinaryRegionType::Unknown, 0, 0,
+                               "ERROR: " + name +
+                                   ". Incomplete binary, expected to "
+                                   "read 1 bytes here."));
+          continue;
+        }
 
         const std::string enum_type =
-            BuildUnion(union_offset, realized_type, field);
+            BuildUnion(union_offset, realized_type.value(), field);
 
         regions.push_back(MakeBinaryRegion(
             offset, sizeof(uint32_t), BinaryRegionType::UOffset, 0,
-            union_offset,
-            std::string("offset to union[") + std::to_string(i) + "] (`" +
-                enum_type + "`)"));
+            union_offset, name + " (`" + enum_type + "`)"));
 
         offset += sizeof(uint32_t);
       }

@@ -108,3 +108,8 @@ offsets.
 
 Truncated the file to 0x01C1 bytes, as that cuts into a vector of scalars 
 values.
+
+### `invalid_vector_unions_cut_short.bin`
+
+Truncated the file to 0x01DE bytes, as that cuts into a vector of union offset 
+values.

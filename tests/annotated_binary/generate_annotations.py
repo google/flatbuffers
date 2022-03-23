@@ -62,6 +62,7 @@ test_files = [
     "tests/invalid_vector_strings_cut_short.bin",
     "tests/invalid_vector_structs_cut_short.bin",
     "tests/invalid_vector_tables_cut_short.bin",
+    "tests/invalid_vector_unions_cut_short.bin",
     "tests/invalid_vtable_ref_table_size_short.bin",
     "tests/invalid_vtable_ref_table_size.bin",
     "tests/invalid_vtable_size_short.bin",
