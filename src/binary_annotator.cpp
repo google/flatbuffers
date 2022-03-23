@@ -105,6 +105,9 @@ static BinarySection GenerateMissingSection(const uint64_t offset,
   if (IsNonZeroRegion(offset, length, binary)) {
     // Some of the padding bytes are non-zero, so this might be an unknown
     // section of the binary.
+    // TODO(dbaileychess): We could be a bit smarter with different sized
+    // alignments. For now, the 8 byte check encompasses all the smaller
+    // alignments.
     regions.push_back(MakeBinaryRegion(
         offset, length * sizeof(uint8_t), BinaryRegionType::Unknown, length, 0,
         length < 8 ? "could be a corrupted padding region (non zero) "
