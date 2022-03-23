@@ -47,46 +47,6 @@ static BinarySection MakeSingleRegionBinarySection(const std::string &name,
   return MakeBinarySection(name, type, regions);
 }
 
-static uint64_t BuildStructureField(const uint64_t offset,
-                                    const reflection::Object *object,
-                                    const reflection::Field *field,
-                                    std::vector<BinaryRegion> &regions) {
-  const uint64_t type_size = GetTypeSize(field->type()->base_type());
-  regions.push_back(MakeBinaryRegion(
-      offset, type_size, GetRegionType(field->type()->base_type()), 0, 0,
-      std::string("struct field `") + object->name()->c_str() + "." +
-          field->name()->c_str() + "` (" +
-          reflection::EnumNameBaseType(field->type()->base_type()) + ")"));
-  return offset + type_size;
-}
-
-static uint64_t BuildArrayField(uint64_t offset,
-                                const reflection::Object *object,
-                                const reflection::Field *field,
-                                const uint16_t array_length,
-                                std::vector<BinaryRegion> &regions) {
-  const uint64_t type_size = GetTypeSize(field->type()->element());
-  for (uint16_t i = 0; i < array_length; ++i) {
-    regions.push_back(MakeBinaryRegion(
-        offset, type_size, GetRegionType(field->type()->element()), 0, 0,
-        std::string("array field `") + object->name()->c_str() + "." +
-            field->name()->c_str() + "[" + std::to_string(i) + "]` (" +
-            reflection::EnumNameBaseType(field->type()->element()) + ")"));
-    offset += type_size;
-  }
-
-  // The following groups the complete array together which shows up nicely as
-  // an array, but then we don't show the individual values. So the above method
-  // treats each field of the array as a separate region.
-  // regions.push_back(
-  //     BinaryRegion{ offset, array_length * type_size,
-  //                   GetRegionType(field->type()->element()), array_length, 0,
-  //                   std::string("array field '") + object->name()->c_str() +
-  //                       "." + field->name()->c_str() + "' value" });
-
-  return offset;
-}
-
 static bool IsNonZeroRegion(uint64_t offset, uint64_t length,
                             const uint8_t *binary) {
   for (uint64_t i = offset; i < offset + length; ++i) {
@@ -697,27 +657,82 @@ void BinaryAnnotator::BuildTable(const uint64_t table_offset,
              MakeBinarySection(table->name()->str(), type, std::move(regions)));
 }
 
-uint64_t BinaryAnnotator::BuildStruct(uint64_t offset,
+uint64_t BinaryAnnotator::BuildStruct(const uint64_t struct_offset,
                                       std::vector<BinaryRegion> &regions,
                                       const reflection::Object *object) {
-  if (!object->is_struct()) { return offset; }
+  if (!object->is_struct()) { return struct_offset; }
+
+  uint64_t offset = struct_offset;
 
   // Loop over all the fields in increasing order
   ForAllFields(object, /*reverse=*/false, [&](const reflection::Field *field) {
     if (IsScalar(field->type()->base_type())) {
-      offset = BuildStructureField(offset, object, field, regions);
+      // Structure Field value
+      const uint64_t type_size = GetTypeSize(field->type()->base_type());
+      const BinaryRegionType region_type =
+          GetRegionType(field->type()->base_type());
 
+      const std::string name =
+          std::string("struct field `") + object->name()->c_str() + "." +
+          field->name()->c_str() + "` (" +
+          reflection::EnumNameBaseType(field->type()->base_type()) + ")";
+
+      if (!IsValidRead(offset, type_size)) {
+        const uint64_t remaining = RemainingBytes(offset);
+        regions.push_back(MakeBinaryRegion(
+            offset, remaining, BinaryRegionType::Unknown, remaining, 0,
+            "ERROR: " + name + ". Expected to read " +
+                std::to_string(type_size) + " bytes here"));
+
+        // TODO(dbaileychess): Should I bail out here? This sets offset to the
+        // end of the binary. So all other reads in the loop should fail.
+        offset += remaining;
+        return;
+      }
+
+      regions.push_back(
+          MakeBinaryRegion(offset, type_size, region_type, 0, 0, name));
+
+      offset += type_size;
     } else if (field->type()->base_type() == reflection::BaseType::Obj) {
       // Structs are stored inline, even when nested.
       offset = BuildStruct(offset, regions,
                            schema_->objects()->Get(field->type()->index()));
     } else if (field->type()->base_type() == reflection::BaseType::Array) {
+      const bool is_scalar = IsScalar(field->type()->element());
+      const uint64_t type_size = GetTypeSize(field->type()->element());
+      const BinaryRegionType region_type =
+          GetRegionType(field->type()->element());
+
       // Arrays are just repeated structures.
-      if (IsScalar(field->type()->element())) {
-        offset = BuildArrayField(offset, object, field,
-                                 field->type()->fixed_length(), regions);
-      } else {
-        for (uint16_t i = 0; i < field->type()->fixed_length(); ++i) {
+      for (uint16_t i = 0; i < field->type()->fixed_length(); ++i) {
+        if (is_scalar) {
+          const std::string name =
+              std::string("array field `") + object->name()->c_str() + "." +
+              field->name()->c_str() + "[" + std::to_string(i) + "]` (" +
+              reflection::EnumNameBaseType(field->type()->element()) + ")";
+
+          if (!IsValidRead(offset, type_size)) {
+            const uint64_t remaining = RemainingBytes(offset);
+            regions.push_back(MakeBinaryRegion(
+                offset, remaining, BinaryRegionType::Unknown, remaining, 0,
+                "ERROR: " + name + ". Expected to read " +
+                    std::to_string(type_size) + " bytes here"));
+
+            // TODO(dbaileychess): Should I bail out here? This sets offset to
+            // the end of the binary. So all other reads in the loop should
+            // fail.
+            offset += remaining;
+            break;
+          }
+
+          regions.push_back(
+              MakeBinaryRegion(offset, type_size, region_type, 0, 0, name));
+
+          offset += type_size;
+        } else {
+          // Array of Structs.
+          //
           // TODO(dbaileychess): This works, but the comments on the fields lose
           // some context. Need to figure a way how to plumb the nested arrays
           // comments together that isn't too confusing.

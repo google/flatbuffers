@@ -82,3 +82,11 @@ larger than the binary.
 
 Truncated the file to 0x0136 bytes, as that cuts vector length Uint32t value in 
 half.
+
+### `invalid_struct_field_cut_short.bin`
+
+Truncated the file to 0x5d bytes, as that cuts struct field value in half.
+
+### `invalid_struct_array_field_cut_short.bin`
+
+Truncated the file to 0x6A bytes, as that cuts struct array field value in half.
