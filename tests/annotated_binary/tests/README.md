@@ -77,3 +77,8 @@ half.
 
 Changed two bytes at 0x00AC from `0500` to `FFFF` which is a string length
 larger than the binary.
+
+### `invalid_vector_length_cut_short.bin`
+
+Truncated the file to 0x0136 bytes, as that cuts vector length Uint32t value in 
+half.
