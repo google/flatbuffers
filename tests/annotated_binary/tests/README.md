@@ -98,3 +98,8 @@ Truncated the file to 0x0154 bytes, as that cuts into a vector of structs.
 ### `invalid_vector_tables_cut_short.bin`
 
 Truncated the file to 0x01DE bytes, as that cuts into a vector of table offsets.
+
+### `invalid_vector_strings_cut_short.bin`
+
+Truncated the file to 0x0176 bytes, as that cuts into a vector of string
+offsets.

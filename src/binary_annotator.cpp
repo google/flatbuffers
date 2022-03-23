@@ -888,13 +888,37 @@ void BinaryAnnotator::BuildVector(const uint64_t vector_offset,
     case reflection::BaseType::String: {
       // Vector of strings
       for (size_t i = 0; i < vector_length.value(); ++i) {
-        // The string offset is relative from the offset location itself.
-        const uint64_t string_offset = offset + GetScalar<uint32_t>(offset);
+        const std::string name = "offset to string[" + std::to_string(i) + "]";
 
-        regions.push_back(MakeBinaryRegion(
-            offset, sizeof(uint32_t), BinaryRegionType::UOffset, 0,
-            string_offset,
-            std::string("offset to string[") + std::to_string(i) + "]"));
+        const auto string_relative_offset = ReadScalar<uint32_t>(offset);
+        if (!string_relative_offset.has_value()) {
+          const uint64_t remaining = RemainingBytes(offset);
+
+          regions.push_back(MakeBinaryRegion(
+              offset, remaining, BinaryRegionType::Unknown, remaining, 0,
+              "ERROR: " + name +
+                  ". Incomplete binary, expected to "
+                  "read 4 bytes here"));
+          break;
+        }
+
+        // The string offset is relative from the offset location itself.
+        const uint64_t string_offset = offset + string_relative_offset.value();
+
+        if (!IsValidOffset(string_offset)) {
+          regions.push_back(MakeBinaryRegion(
+              offset, sizeof(uint32_t), BinaryRegionType::UOffset, 0,
+              string_offset,
+              "ERROR: " + name +
+                  ". Invalid offset, points to outside the binary."));
+
+          offset += sizeof(uint32_t);
+          continue;
+        }
+
+        regions.push_back(MakeBinaryRegion(offset, sizeof(uint32_t),
+                                           BinaryRegionType::UOffset, 0,
+                                           string_offset, name));
 
         BuildString(string_offset, table, field);
 
