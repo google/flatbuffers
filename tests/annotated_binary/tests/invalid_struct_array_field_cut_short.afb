@@ -69,4 +69,4 @@ root_table (AnnotatedBinary.Foo):
   +0x5C | 02 00 00 00             | uint32_t    | 0x00000002 (2)               | struct field `AnnotatedBinary.Building.doors` (Int)
   +0x60 | 0C 00 00 00             | uint32_t    | 0x0000000C (12)              | struct field `AnnotatedBinary.Building.windows` (Int)
   +0x64 | 0A 00 00 00             | uint32_t    | 0x0000000A (10)              | array field `AnnotatedBinary.Dimension.values[0]` (Int)
-  +0x68 | 0C 00                   | ?uint8_t[2] | ..                           | ERROR: array field `AnnotatedBinary.Dimension.values[1]` (Int). Expected to read 4 bytes here
+  +0x68 | 0C 00                   | ?uint8_t[2] | ..                           | ERROR: array field `AnnotatedBinary.Dimension.values[1]` (Int). Expected to read 4 bytes.

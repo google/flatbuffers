@@ -66,4 +66,4 @@ root_table (AnnotatedBinary.Foo):
   +0x50 | D2 04 00 00             | uint32_t    | 0x000004D2 (1234)            | table field `counter` (Int)
   +0x54 | 28 02 00 00             | UOffset32   | 0x00000228 (552) Loc: +0x27C | ERROR: offset to field `bar`. Location is outside the binary.
   +0x58 | 01 00 00 00             | uint32_t    | 0x00000001 (1)               | struct field `AnnotatedBinary.Building.floors` (Int)
-  +0x5C | 02 00                   | ?uint8_t[2] | ..                           | ERROR: struct field `AnnotatedBinary.Building.doors` (Int). Expected to read 4 bytes here
+  +0x5C | 02 00                   | ?uint8_t[2] | ..                           | ERROR: struct field `AnnotatedBinary.Building.doors` (Int). Expected to read 4 bytes.

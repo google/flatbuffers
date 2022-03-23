@@ -688,7 +688,7 @@ uint64_t BinaryAnnotator::BuildStruct(const uint64_t struct_offset,
         regions.push_back(MakeBinaryRegion(
             offset, remaining, BinaryRegionType::Unknown, remaining, 0,
             "ERROR: " + name + ". Expected to read " +
-                std::to_string(type_size) + " bytes here"));
+                std::to_string(type_size) + " bytes."));
 
         // TODO(dbaileychess): Should I bail out here? This sets offset to the
         // end of the binary. So all other reads in the loop should fail.
@@ -723,7 +723,7 @@ uint64_t BinaryAnnotator::BuildStruct(const uint64_t struct_offset,
             regions.push_back(MakeBinaryRegion(
                 offset, remaining, BinaryRegionType::Unknown, remaining, 0,
                 "ERROR: " + name + ". Expected to read " +
-                    std::to_string(type_size) + " bytes here"));
+                    std::to_string(type_size) + " bytes."));
 
             // TODO(dbaileychess): Should I bail out here? This sets offset to
             // the end of the binary. So all other reads in the loop should
