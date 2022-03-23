@@ -167,9 +167,10 @@ class SwiftGenerator : public BaseGenerator {
     code_ += "// " + std::string(FlatBuffersGeneratedWarning());
     code_ += "// swiftlint:disable all";
     code_ += "// swiftformat:disable all\n";
-    code_ += "import FlatBuffers\n";
-    // Generate code for all the enum declarations.
+    if (parser_.opts.include_dependence_headers || parser_.opts.generate_all)
+      code_ += "import FlatBuffers\n";
 
+    // Generate code for all the enum declarations.
     for (auto it = parser_.enums_.vec.begin(); it != parser_.enums_.vec.end();
          ++it) {
       const auto &enum_def = **it;

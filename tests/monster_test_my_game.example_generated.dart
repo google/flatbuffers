@@ -152,7 +152,7 @@ class _LongEnumReader extends fb.Reader<LongEnum> {
   const _LongEnumReader();
 
   @override
-  int get size => 1;
+  int get size => 8;
 
   @override
   LongEnum read(fb.BufferContext bc, int offset) =>
