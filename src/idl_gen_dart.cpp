@@ -308,7 +308,7 @@ class DartGenerator : public BaseGenerator {
             "> {\n";
     code += "  const _" + name + "Reader();\n\n";
     code += "  @override\n";
-    code += "  int get size => 1;\n\n";
+    code += "  int get size => " + EnumSize(enum_def.underlying_type) + ";\n\n";
     code += "  @override\n";
     code +=
         "  " + name + " read(" + _kFb + ".BufferContext bc, int offset) =>\n";
@@ -336,6 +336,24 @@ class DartGenerator : public BaseGenerator {
       case BASE_TYPE_STRUCT: return type.struct_def->name;
       case BASE_TYPE_UNION: return type.enum_def->name + "TypeId";
       default: return "Table";
+    }
+  }
+
+  static std::string EnumSize(const Type &type) {
+    switch (type.base_type) {
+      case BASE_TYPE_BOOL:
+      case BASE_TYPE_CHAR:
+      case BASE_TYPE_UTYPE:
+      case BASE_TYPE_UCHAR: return "1";
+      case BASE_TYPE_SHORT:
+      case BASE_TYPE_USHORT: return "2";
+      case BASE_TYPE_INT:
+      case BASE_TYPE_UINT:
+      case BASE_TYPE_FLOAT: return "4";
+      case BASE_TYPE_LONG:
+      case BASE_TYPE_ULONG:
+      case BASE_TYPE_DOUBLE: return "8";
+      default: return "1";
     }
   }
 
