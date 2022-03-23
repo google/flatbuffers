@@ -736,16 +736,17 @@ bool VerifyObject(flatbuffers::Verifier &v, const reflection::Schema &schema,
 }
 
 bool Verify(const reflection::Schema &schema, const reflection::Object &root,
-            const uint8_t *buf, const size_t length, const uoffset_t max_depth,
-            const uoffset_t max_tables) {
+            const uint8_t *const buf, const size_t length,
+            const uoffset_t max_depth, const uoffset_t max_tables) {
   Verifier v(buf, length, max_depth, max_tables);
-  return VerifyObject(v, schema, root, flatbuffers::GetAnyRoot(buf), /*required=*/ true);
+  return VerifyObject(v, schema, root, flatbuffers::GetAnyRoot(buf),
+                      /*required=*/true);
 }
 
 bool VerifySizePrefixed(const reflection::Schema &schema,
-                        const reflection::Object &root, const uint8_t *buf,
-                        const size_t length, const uoffset_t max_depth,
-                        const uoffset_t max_tables) {
+                        const reflection::Object &root,
+                        const uint8_t *const buf, const size_t length,
+                        const uoffset_t max_depth, const uoffset_t max_tables) {
   Verifier v(buf, length, max_depth, max_tables);
   return VerifyObject(v, schema, root, flatbuffers::GetAnySizePrefixedRoot(buf),
                       /*required=*/true);
