@@ -977,9 +977,22 @@ void BinaryAnnotator::BuildVector(const uint64_t vector_offset,
         // TODO(dbaileychess): It might be nicer to user the
         // BinaryRegion.array_length field to indicate this.
         for (size_t i = 0; i < vector_length.value(); ++i) {
-          regions.push_back(MakeBinaryRegion(
-              offset, type_size, binary_region_type, 0, 0,
-              std::string("value[") + std::to_string(i) + "]"));
+          const std::string name =
+              std::string("value[") + std::to_string(i) + "]";
+          if (!IsValidRead(offset, type_size)) {
+            const uint64_t remaining = RemainingBytes(offset);
+
+            regions.push_back(MakeBinaryRegion(
+                offset, remaining, BinaryRegionType::Unknown, remaining, 0,
+                "ERROR: " + name +
+                    ". Incomplete "
+                    "binary, expected to read " +
+                    std::to_string(type_size) + " bytes here"));
+            break;
+          }
+
+          regions.push_back(MakeBinaryRegion(offset, type_size,
+                                             binary_region_type, 0, 0, name));
           offset += type_size;
         }
       }

@@ -103,3 +103,8 @@ Truncated the file to 0x01DE bytes, as that cuts into a vector of table offsets.
 
 Truncated the file to 0x0176 bytes, as that cuts into a vector of string
 offsets.
+
+### `invalid_vector_scalars_cut_short.bin`
+
+Truncated the file to 0x01C1 bytes, as that cuts into a vector of scalars 
+values.
