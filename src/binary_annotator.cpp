@@ -128,7 +128,9 @@ std::map<uint64_t, BinarySection> BinaryAnnotator::Annotate() {
 }
 
 uint64_t BinaryAnnotator::BuildHeader(const uint64_t header_offset) {
-  if (!IsValidRead<uint32_t>(header_offset)) {
+  const auto root_table_offset = ReadScalar<uint32_t>(header_offset);
+
+  if (!root_table_offset.has_value()) {
     // This shouldn't occur, since we validate the min size of the buffer
     // before. But for completion sake, we shouldn't read passed the binary end.
     return std::numeric_limits<uint64_t>::max();
@@ -138,36 +140,37 @@ uint64_t BinaryAnnotator::BuildHeader(const uint64_t header_offset) {
   uint64_t offset = header_offset;
   // TODO(dbaileychess): sized prefixed value
 
-  const uint32_t root_table_offset = GetScalar<uint32_t>(offset);
-  if (IsValidOffset(root_table_offset)) {
-    regions.push_back(
-        MakeBinaryRegion(offset, sizeof(uint32_t), BinaryRegionType::UOffset, 0,
-                         root_table_offset,
-                         std::string("offset to root table `") +
-                             schema_->root_table()->name()->str() + "`"));
+  const std::string name = std::string("offset to root table `") +
+                           schema_->root_table()->name()->str() + "`";
+
+  if (IsValidOffset(root_table_offset.value())) {
+    regions.push_back(MakeBinaryRegion(offset, sizeof(uint32_t),
+                                       BinaryRegionType::UOffset, 0,
+                                       root_table_offset.value(), name));
   } else {
-    regions.push_back(
-        MakeBinaryRegion(offset, sizeof(uint32_t), BinaryRegionType::UOffset, 0,
-                         root_table_offset,
-                         std::string("ERROR: invalid offset to root table `") +
-                             schema_->root_table()->name()->str() + "`"));
+    regions.push_back(MakeBinaryRegion(
+        offset, sizeof(uint32_t), BinaryRegionType::UOffset, 0,
+        root_table_offset.value(),
+        "ERROR: " + name + ". Invalid offset, points to outside the binary."));
   }
   offset += sizeof(uint32_t);
 
-  if (IsValidRead<uint32_t>(offset) &&
-      IsNonZeroRegion(offset, sizeof(uint32_t), binary_)) {
-    // Check if the file identifier region has non-zero data, and assume its the
-    // file identifier. Otherwise, it will get filled in with padding later.
-    regions.push_back(MakeBinaryRegion(offset, 4 * sizeof(uint8_t),
-                                       BinaryRegionType::Char, 4, 0,
-                                       std::string("File Identifier")));
+  if (IsValidRead(offset, flatbuffers::kFileIdentifierLength) &&
+      IsNonZeroRegion(offset, flatbuffers::kFileIdentifierLength, binary_)) {
+    // Check if the file identifier region has non-zero data, and assume its
+    // the file identifier. Otherwise, it will get filled in with padding
+    // later.
+    regions.push_back(MakeBinaryRegion(
+        offset, flatbuffers::kFileIdentifierLength * sizeof(uint8_t),
+        BinaryRegionType::Char, flatbuffers::kFileIdentifierLength, 0,
+        std::string("File Identifier")));
   }
 
   sections_.insert(std::make_pair(
       header_offset,
       MakeBinarySection("", BinarySectionType::Header, regions)));
 
-  return root_table_offset;
+  return root_table_offset.value();
 }
 
 void BinaryAnnotator::BuildVTable(const uint64_t vtable_offset,
@@ -291,7 +294,9 @@ void BinaryAnnotator::BuildVTable(const uint64_t vtable_offset,
         std::string("offset to field `") + field->name()->c_str() +
         "` (id: " + std::to_string(field->id()) + ")";
 
-    if (!IsValidRead<uint16_t>(field_offset)) {
+    const auto offset_from_table = ReadScalar<uint16_t>(field_offset);
+
+    if (!offset_from_table.has_value()) {
       const uint64_t remaining = RemainingBytes(field_offset);
 
       regions.push_back(MakeBinaryRegion(
@@ -302,23 +307,22 @@ void BinaryAnnotator::BuildVTable(const uint64_t vtable_offset,
       return;
     }
 
-    const uint16_t offset_from_table = GetScalar<uint16_t>(field_offset);
-
-    if (!IsValidOffset(offset_of_referring_table + offset_from_table - 1)) {
+    if (!IsValidOffset(offset_of_referring_table + offset_from_table.value() -
+                       1)) {
       regions.push_back(MakeBinaryRegion(
           field_offset, sizeof(uint16_t), BinaryRegionType::VOffset, 0, 0,
           "ERROR: " + field_comment +
-              ". Offset points to outside the binary."));
+              ". Invalid offset, points to outside the binary."));
       return;
     }
 
     VTable::Entry entry;
     entry.field = field;
-    entry.offset_from_table = offset_from_table;
+    entry.offset_from_table = offset_from_table.value();
     fields.insert(std::make_pair(field->id(), entry));
 
     std::string default_label;
-    if (offset_from_table == 0) {
+    if (offset_from_table.value() == 0) {
       // Not present, so could be default or be optional.
       if (field->required()) {
         // If this is a required field, make it known this is an error.
@@ -360,7 +364,9 @@ void BinaryAnnotator::BuildVTable(const uint64_t vtable_offset,
   for (uint16_t id = fields_processed; id < expectant_vtable_fields; ++id) {
     const uint64_t field_offset = offset_start + id * sizeof(uint16_t);
 
-    if (!IsValidRead<uint16_t>(field_offset)) {
+    const auto offset_from_table = ReadScalar<uint16_t>(field_offset);
+
+    if (!offset_from_table.has_value()) {
       const uint64_t remaining = RemainingBytes(field_offset);
 
       regions.push_back(MakeBinaryRegion(
@@ -370,11 +376,9 @@ void BinaryAnnotator::BuildVTable(const uint64_t vtable_offset,
       continue;
     }
 
-    const uint16_t offset_from_table = GetScalar<uint16_t>(field_offset);
-
     VTable::Entry entry;
     entry.field = nullptr;  // No field to reference.
-    entry.offset_from_table = offset_from_table;
+    entry.offset_from_table = offset_from_table.value();
     fields.insert(std::make_pair(id, entry));
 
     regions.push_back(MakeBinaryRegion(
@@ -424,8 +428,8 @@ void BinaryAnnotator::BuildTable(const uint64_t table_offset,
                    table->name()->str(), type,
                    MakeBinaryRegion(table_offset, sizeof(int32_t),
                                     BinaryRegionType::SOffset, 0, vtable_offset,
-                                    "ERROR: offset to vtable. Offset points to "
-                                    "outside the binary.")));
+                                    "ERROR: offset to vtable. Invalid offset, "
+                                    "points to outside the binary.")));
 
     // There isn't much to do with an invalid vtable offset, as we won't be able
     // to intepret the rest of the table fields.
@@ -947,6 +951,8 @@ std::string BinaryAnnotator::BuildUnion(const uint64_t union_offset,
   const reflection::Enum *next_enum =
       schema_->enums()->Get(field->type()->index());
 
+  // TODO(dbaileychess): need to validate that realized_type is within the range
+  // of values.
   const reflection::EnumVal *enum_val = next_enum->values()->Get(realized_type);
 
   const reflection::Type *union_type = enum_val->union_type();

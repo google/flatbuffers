@@ -17,7 +17,7 @@ vtable (AnnotatedBinary.Foo):
   +0x0010 | 07 00                   | VOffset16    | 0x0007 (7)                       | offset to field `healthy` (id: 1)
   +0x0012 | 00 00                   | VOffset16    | 0x0000 (0)                       | offset to field `level` (id: 2) <defaults to 99> (Long)
   +0x0014 | 08 00                   | VOffset16    | 0x0008 (8)                       | offset to field `meal` (id: 3)
-  +0x0016 | FF FF                   | VOffset16    | 0xFFFF (65535)                   | ERROR: offset to field `bar` (id: 4). Offset points to outside the binary.
+  +0x0016 | FF FF                   | VOffset16    | 0xFFFF (65535)                   | ERROR: offset to field `bar` (id: 4). Invalid offset, points to outside the binary.
   +0x0018 | 14 00                   | VOffset16    | 0x0014 (20)                      | offset to field `home` (id: 5)
   +0x001A | 30 00                   | VOffset16    | 0x0030 (48)                      | offset to field `name` (id: 6)
   +0x001C | 34 00                   | VOffset16    | 0x0034 (52)                      | offset to field `bars` (id: 7)

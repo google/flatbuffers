@@ -106,7 +106,7 @@ vector (AnnotatedBinary.Foo.foobars):
   +0x00E0 | 04 00 00 00             | UOffset32    | 0x00000004 (4) Loc: +0x00E4     | offset to union[2] (`Bar`)
 
 table (AnnotatedBinary.Bar):
-  +0x00E4 | D2 FE FF FF             | SOffset32    | 0xFFFFFED2 (-302) Loc: +0x0212  | ERROR: offset to vtable. Offset points to outside the binary.
+  +0x00E4 | D2 FE FF FF             | SOffset32    | 0xFFFFFED2 (-302) Loc: +0x0212  | ERROR: offset to vtable. Invalid offset, points to outside the binary.
 
 unknown (no known references):
   +0x00E8 | 00 80 23 44 10 00 00 00 | ?uint8_t[28] | ..#D....                        | WARN: nothing refers to this section.
@@ -122,7 +122,7 @@ table (AnnotatedBinary.Baz):
   +0x0108 | 04 00 00 00             | SOffset32    | 0x00000004 (4) Loc: +0x0104     | offset to vtable
 
 table (AnnotatedBinary.Bar):
-  +0x010C | FA FE FF FF             | SOffset32    | 0xFFFFFEFA (-262) Loc: +0x0212  | ERROR: offset to vtable. Offset points to outside the binary.
+  +0x010C | FA FE FF FF             | SOffset32    | 0xFFFFFEFA (-262) Loc: +0x0212  | ERROR: offset to vtable. Invalid offset, points to outside the binary.
 
 unknown (no known references):
   +0x0110 | 00 00 E4 43 10 00 00 00 | ?uint8_t[28] | ...C....                        | WARN: nothing refers to this section.

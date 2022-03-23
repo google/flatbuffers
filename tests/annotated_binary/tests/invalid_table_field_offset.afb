@@ -31,15 +31,15 @@ vtable (AnnotatedBinary.Foo):
   +0x2C | 48 00                   | VOffset16   | 0x0048 (72)                  | offset to field `just_i32` (id: 15)
   +0x2E | 4C 00                   | VOffset16   | 0x004C (76)                  | offset to field `names` (id: 16)
   +0x30 | 50 00                   | VOffset16   | 0x0050 (80)                  | offset to field `points_of_interest` (id: 17)
-  +0x32 | 54 00                   | VOffset16   | 0x0054 (84)                  | ERROR: offset to field `foobars_type` (id: 18). Offset points to outside the binary.
-  +0x34 | 58 00                   | VOffset16   | 0x0058 (88)                  | ERROR: offset to field `foobars` (id: 19). Offset points to outside the binary.
+  +0x32 | 54 00                   | VOffset16   | 0x0054 (84)                  | ERROR: offset to field `foobars_type` (id: 18). Invalid offset, points to outside the binary.
+  +0x34 | 58 00                   | VOffset16   | 0x0058 (88)                  | ERROR: offset to field `foobars` (id: 19). Invalid offset, points to outside the binary.
   +0x36 | 0A 00                   | VOffset16   | 0x000A (10)                  | offset to field `measurement_type` (id: 20)
-  +0x38 | 5C 00                   | VOffset16   | 0x005C (92)                  | ERROR: offset to field `measurement` (id: 21). Offset points to outside the binary.
+  +0x38 | 5C 00                   | VOffset16   | 0x005C (92)                  | ERROR: offset to field `measurement` (id: 21). Invalid offset, points to outside the binary.
   +0x3A | 0B 00                   | VOffset16   | 0x000B (11)                  | offset to field `anything_type` (id: 22)
-  +0x3C | 60 00                   | VOffset16   | 0x0060 (96)                  | ERROR: offset to field `anything` (id: 23). Offset points to outside the binary.
+  +0x3C | 60 00                   | VOffset16   | 0x0060 (96)                  | ERROR: offset to field `anything` (id: 23). Invalid offset, points to outside the binary.
   +0x3E | 00 00                   | VOffset16   | 0x0000 (0)                   | offset to field `temperature` (id: 24) <defaults to 98.600000> (Float)
   +0x40 | 00 00                   | VOffset16   | 0x0000 (0)                   | offset to field `teetotaler` (id: 25) <null> (Obj)
-  +0x42 | 64 00                   | VOffset16   | 0x0064 (100)                 | ERROR: offset to field `charlie` (id: 26). Offset points to outside the binary.
+  +0x42 | 64 00                   | VOffset16   | 0x0064 (100)                 | ERROR: offset to field `charlie` (id: 26). Invalid offset, points to outside the binary.
   +0x3A | 0B 00                   | VOffset16   | 0x000B (11)                  | offset to unknown field (id: 22)
   +0x3C | 60 00                   | VOffset16   | 0x0060 (96)                  | offset to unknown field (id: 23)
   +0x3E | 00 00                   | VOffset16   | 0x0000 (0)                   | offset to unknown field (id: 24)
