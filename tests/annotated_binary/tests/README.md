@@ -113,3 +113,8 @@ values.
 
 Truncated the file to 0x01DE bytes, as that cuts into a vector of union offset 
 values.
+
+### `invalid_union_type_value.bin`
+
+Changed one byte at 0x004D from `02` to `FF` which is a union type value that is
+larger than the enum.

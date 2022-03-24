@@ -17,6 +17,7 @@
 #ifndef FLATBUFFERS_BINARY_ANNOTATOR_H_
 #define FLATBUFFERS_BINARY_ANNOTATOR_H_
 
+#include <iostream>
 #include <map>
 #include <string>
 #include <vector>
@@ -44,7 +45,8 @@ enum class BinaryRegionType {
   Uint64 = 13,
   Int64 = 14,
   Float = 15,
-  Double = 16
+  Double = 16,
+  UType = 17,
 };
 
 template<typename T> static inline T GetScalar(const uint8_t *binary) {
@@ -117,7 +119,7 @@ struct BinarySection {
 
 inline static BinaryRegionType GetRegionType(reflection::BaseType base_type) {
   switch (base_type) {
-    case reflection::UType: return BinaryRegionType::Uint8;
+    case reflection::UType: return BinaryRegionType::UType;
     case reflection::Bool: return BinaryRegionType::Uint8;
     case reflection::Byte: return BinaryRegionType::Uint8;
     case reflection::UByte: return BinaryRegionType::Uint8;
@@ -151,6 +153,7 @@ inline static std::string ToString(const BinaryRegionType type) {
     case BinaryRegionType::Int64: return "int64_t";
     case BinaryRegionType::Double: return "double";
     case BinaryRegionType::Float: return "float";
+    case BinaryRegionType::UType: return "UType8";
     case BinaryRegionType::Unknown: return "?uint8_t";
     default: return "todo";
   }
@@ -208,10 +211,6 @@ class BinaryAnnotator {
   void FixMissingRegions();
   void FixMissingSections();
 
-  template<typename T> inline T GetScalar(const uint64_t offset) const {
-    return flatbuffers::ReadScalar<T>(binary_ + offset);
-  }
-
   inline bool IsValidOffset(const uint64_t offset) const {
     return offset < binary_length_;
   }
@@ -236,7 +235,7 @@ class BinaryAnnotator {
   flatbuffers::Optional<T> ReadScalar(const uint64_t offset) const {
     if (!IsValidRead<T>(offset)) { return flatbuffers::nullopt; }
 
-    return GetScalar<T>(offset);
+    return flatbuffers::ReadScalar<T>(binary_ + offset);
   }
 
   // Adds the provided `section` keyed by the `offset` it occurs at. If a
@@ -251,6 +250,30 @@ class BinaryAnnotator {
       return schema_->objects()->Get(field->type()->index())->is_struct();
     }
     return IsScalar(field->type()->base_type());
+  }
+
+  bool IsUnionType(const reflection::Field *const field) {
+    if (field->type()->base_type() == reflection::BaseType::UType ||
+        field->type()->base_type() == reflection::BaseType::Union) {
+      return field->type()->index() >= 0;
+    }
+    return false;
+  }
+
+  bool IsValidUnionValue(const reflection::Field *const field,
+                         const uint8_t value) {
+    return IsUnionType(field) &&
+           IsValidUnionValue(field->type()->index(), value);
+  }
+
+  bool IsValidUnionValue(const uint32_t enum_id, const uint8_t value) {
+    if (enum_id >= schema_->enums()->size()) { return false; }
+
+    const reflection::Enum *enum_def = schema_->enums()->Get(enum_id);
+
+    if (enum_def == nullptr) { return false; }
+
+    return value < enum_def->values()->size();
   }
 
   // The schema for the binary file

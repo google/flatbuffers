@@ -47,9 +47,9 @@ root_table (AnnotatedBinary.Foo):
   +0x0048 | 00 00 00                | uint8_t[3]   | ...                              | padding
   +0x004B | 01                      | uint8_t      | 0x01 (1)                         | table field `healthy` (Bool)
   +0x004C | 02                      | uint8_t      | 0x02 (2)                         | table field `meal` (Byte)
-  +0x004D | 02                      | uint8_t      | 0x02 (2)                         | table field `bar_baz_type` (UType)
-  +0x004E | 01                      | uint8_t      | 0x01 (1)                         | table field `measurement_type` (UType)
-  +0x004F | 01                      | uint8_t      | 0x01 (1)                         | table field `anything_type` (UType)
+  +0x004D | 02                      | UType8       | 0x02 (2)                         | table field `bar_baz_type` (UType)
+  +0x004E | 01                      | UType8       | 0x01 (1)                         | table field `measurement_type` (UType)
+  +0x004F | 01                      | UType8       | 0x01 (1)                         | table field `anything_type` (UType)
   +0x0050 | D2 04 00 00             | uint32_t     | 0x000004D2 (1234)                | table field `counter` (Int)
   +0x0054 | 28 02 00 00             | ?uint8_t[4]  | (...                             | WARN: nothing refers to this region.
   +0x0058 | 01 00 00 00             | uint32_t     | 0x00000001 (1)                   | struct field `AnnotatedBinary.Building.floors` (Int)
@@ -139,9 +139,9 @@ table (AnnotatedBinary.Baz):
 
 vector (AnnotatedBinary.Foo.foobars_type):
   +0x012C | 03 00 00 00             | uint32_t     | 0x00000003 (3)                   | length of vector (# items)
-  +0x0130 | 01                      | uint8_t      | 0x01 (1)                         | value[0]
-  +0x0131 | 02                      | uint8_t      | 0x02 (2)                         | value[1]
-  +0x0132 | 01                      | uint8_t      | 0x01 (1)                         | value[2]
+  +0x0130 | 01                      | UType8       | 0x01 (1)                         | value[0]
+  +0x0131 | 02                      | UType8       | 0x02 (2)                         | value[1]
+  +0x0132 | 01                      | UType8       | 0x01 (1)                         | value[2]
 
 vector (AnnotatedBinary.Foo.points_of_interest):
   +0x0134 | 03 00 00 00             | uint32_t     | 0x00000003 (3)                   | length of vector (# items)

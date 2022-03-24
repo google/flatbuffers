@@ -46,9 +46,9 @@ root_table (AnnotatedBinary.Foo):
   +0x48 | 00 00 00                | uint8_t[3]  | ...                          | padding
   +0x4B | 01                      | uint8_t     | 0x01 (1)                     | table field `healthy` (Bool)
   +0x4C | 02                      | uint8_t     | 0x02 (2)                     | table field `meal` (Byte)
-  +0x4D | 02                      | uint8_t     | 0x02 (2)                     | table field `bar_baz_type` (UType)
-  +0x4E | 01                      | uint8_t     | 0x01 (1)                     | table field `measurement_type` (UType)
-  +0x4F | 01                      | uint8_t     | 0x01 (1)                     | table field `anything_type` (UType)
+  +0x4D | 02                      | UType8      | 0x02 (2)                     | table field `bar_baz_type` (UType)
+  +0x4E | 01                      | UType8      | 0x01 (1)                     | table field `measurement_type` (UType)
+  +0x4F | 01                      | UType8      | 0x01 (1)                     | table field `anything_type` (UType)
   +0x50 | D2 04 00 00             | uint32_t    | 0x000004D2 (1234)            | table field `counter` (Int)
   +0x54 | 28 02 00 00             | UOffset32   | 0x00000228 (552) Loc: +0x27C | ERROR: offset to field `bar`. Location is outside the binary.
   +0x58 | 01 00 00 00             | uint32_t    | 0x00000001 (1)               | struct field `AnnotatedBinary.Building.floors` (Int)

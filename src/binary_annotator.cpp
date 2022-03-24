@@ -541,22 +541,35 @@ void BinaryAnnotator::BuildTable(const uint64_t table_offset,
       const BinaryRegionType region_type =
           GetRegionType(field->type()->base_type());
 
+      const std::string name =
+          "table field `" + std::string(field->name()->c_str()) + "` (" +
+          reflection::EnumNameBaseType(field->type()->base_type()) + ")";
+
       if (!IsValidRead(field_offset, type_size)) {
         const uint64_t remaining = RemainingBytes(field_offset);
 
         regions.push_back(MakeBinaryRegion(
             field_offset, remaining, BinaryRegionType::Unknown, remaining, 0,
-            std::string("ERROR: table field `") + field->name()->c_str() +
-                "` (" +
-                reflection::EnumNameBaseType(field->type()->base_type()) +
-                "). Expected " + std::to_string(type_size) + " bytes."));
+            "ERROR: " + name + ". Expected " + std::to_string(type_size) +
+                " bytes."));
         continue;
       }
 
-      regions.push_back(MakeBinaryRegion(
-          field_offset, type_size, region_type, 0, 0,
-          std::string("table field `") + field->name()->c_str() + "` (" +
-              reflection::EnumNameBaseType(field->type()->base_type()) + ")"));
+      if (IsUnionType(field)) {
+        // This is a type for a union. Validate the value
+        const auto enum_value = ReadScalar<uint8_t>(field_offset);
+
+        // This should alawys have a value, due to the IsValidRead check above.
+        if (!IsValidUnionValue(field, enum_value.value())) {
+          regions.push_back(MakeBinaryRegion(
+              field_offset, type_size, region_type, 0, 0,
+              "ERROR: " + name + " . Invalid union type value."));
+          continue;
+        }
+      }
+
+      regions.push_back(
+          MakeBinaryRegion(field_offset, type_size, region_type, 0, 0, name));
       continue;
     }
 
@@ -643,6 +656,15 @@ void BinaryAnnotator::BuildTable(const uint64_t table_offset,
               type_offset, remaining, BinaryRegionType::Unknown, remaining, 0,
               "ERROR: " + offset_prefix +
                   " (union). Incomplete binary, expected to read 1 byte here"));
+          continue;
+        }
+
+        if (!IsValidUnionValue(field, realized_type.value())) {
+          std::cout << "Skipping Union to invalid type "
+                    << std::string(field->name()->c_str()) << std::endl;
+          // We already export an error in the union type field, so just skip
+          // building the union itself and it will default to an unreference
+          // Binary section.
           continue;
         }
 
@@ -1010,7 +1032,19 @@ void BinaryAnnotator::BuildVector(const uint64_t vector_offset,
               MakeBinaryRegion(offset, 0, BinaryRegionType::Unknown, 0, 0,
                                "ERROR: " + name +
                                    ". Incomplete binary, expected to "
-                                   "read 1 bytes here."));
+                                   "read 1 byte here."));
+          continue;
+        }
+
+        if (!IsValidUnionValue(vtable_entry->second.field->type()->index(),
+                               realized_type.value())) {
+          std::cout << "V Skipping Union to invalid type "
+                    << std::string(field->name()->c_str()) << " value "
+                    << std::to_string(realized_type.value()) << std::endl;
+          // We already export an error in the union type field, so just skip
+          // building the union itself and it will default to an unreference
+          // Binary section.
+          offset += sizeof(uint32_t);
           continue;
         }
 
@@ -1048,6 +1082,20 @@ void BinaryAnnotator::BuildVector(const uint64_t vector_offset,
             break;
           }
 
+          if (IsUnionType(field)) {
+            // This is a type for a union. Validate the value
+            const auto enum_value = ReadScalar<uint8_t>(offset);
+
+            // This should alawys have a value, due to the IsValidRead check
+            // above.
+            if (!IsValidUnionValue(field, enum_value.value())) {
+              regions.push_back(MakeBinaryRegion(
+                  offset, type_size, binary_region_type, 0, 0,
+                  "ERROR: " + name + " . Invalid union type value."));
+              continue;
+            }
+          }
+
           regions.push_back(MakeBinaryRegion(offset, type_size,
                                              binary_region_type, 0, 0, name));
           offset += type_size;
@@ -1069,8 +1117,6 @@ std::string BinaryAnnotator::BuildUnion(const uint64_t union_offset,
   const reflection::Enum *next_enum =
       schema_->enums()->Get(field->type()->index());
 
-  // TODO(dbaileychess): need to validate that realized_type is within the range
-  // of values.
   const reflection::EnumVal *enum_val = next_enum->values()->Get(realized_type);
 
   const reflection::Type *union_type = enum_val->union_type();
