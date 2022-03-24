@@ -1,6 +1,6 @@
 #include "binary_annotator.h"
 
-#include <iostream>
+#include <limits>
 #include <vector>
 
 #include "flatbuffers/reflection.h"
@@ -8,6 +8,10 @@
 
 namespace flatbuffers {
 namespace {
+
+static bool BinaryRegionSort(const BinaryRegion &a, const BinaryRegion &b) {
+  return a.offset < b.offset;
+}
 
 static BinaryRegion MakeBinaryRegion(
     const uint64_t offset = 0, const uint64_t length = 0,
@@ -34,64 +38,55 @@ static BinarySection MakeBinarySection(
   return section;
 }
 
-static uint64_t BuildField(const uint64_t offset,
-                           const reflection::Field *field,
-                           std::vector<BinaryRegion> &regions) {
-  const uint64_t type_size = GetTypeSize(field->type()->base_type());
-  const BinaryRegionType type = GetRegionType(field->type()->base_type());
-  regions.emplace_back(MakeBinaryRegion(
-      offset, type_size, type, 0, 0,
-      std::string("table field `") + field->name()->c_str() + "` (" +
-          reflection::EnumNameBaseType(field->type()->base_type()) + ")"));
-  return offset + type_size;
+static BinarySection MakeSingleRegionBinarySection(const std::string &name,
+                                                   const BinarySectionType type,
+                                                   const BinaryRegion &region) {
+  std::vector<BinaryRegion> regions;
+  regions.push_back(region);
+  return MakeBinarySection(name, type, regions);
 }
 
-static uint64_t BuildStructureField(const uint64_t offset,
-                                    const reflection::Object *object,
-                                    const reflection::Field *field,
-                                    std::vector<BinaryRegion> &regions) {
-  const uint64_t type_size = GetTypeSize(field->type()->base_type());
-  regions.emplace_back(MakeBinaryRegion(
-      offset, type_size, GetRegionType(field->type()->base_type()), 0, 0,
-      std::string("struct field `") + object->name()->c_str() + "." +
-          field->name()->c_str() + "` (" +
-          reflection::EnumNameBaseType(field->type()->base_type()) + ")"));
-  return offset + type_size;
-}
-
-static uint64_t BuildArrayField(uint64_t offset,
-                                const reflection::Object *object,
-                                const reflection::Field *field,
-                                const uint16_t array_length,
-                                std::vector<BinaryRegion> &regions) {
-  const uint64_t type_size = GetTypeSize(field->type()->element());
-  for (uint16_t i = 0; i < array_length; ++i) {
-    regions.emplace_back(MakeBinaryRegion(
-        offset, type_size, GetRegionType(field->type()->element()), 0, 0,
-        std::string("array field `") + object->name()->c_str() + "." +
-            field->name()->c_str() + "[" + std::to_string(i) + "]` (" +
-            reflection::EnumNameBaseType(field->type()->element()) + ")"));
-    offset += type_size;
-  }
-
-  // The following groups the complete array together which shows up nicely as
-  // an array, but then we don't show the individual values. So the above method
-  // treats each field of the array as a separate region.
-  // regions.emplace_back(
-  //     BinaryRegion{ offset, array_length * type_size,
-  //                   GetRegionType(field->type()->element()), array_length, 0,
-  //                   std::string("array field '") + object->name()->c_str() +
-  //                       "." + field->name()->c_str() + "' value" });
-
-  return offset;
-}
-
-static bool IsNonZeroRegion(uint64_t offset, uint64_t length,
-                            const uint8_t *binary) {
+static bool IsNonZeroRegion(const uint64_t offset, const uint64_t length,
+                            const uint8_t *const binary) {
   for (uint64_t i = offset; i < offset + length; ++i) {
     if (binary[i] != 0) { return true; }
   }
   return false;
+}
+
+static BinarySection GenerateMissingSection(const uint64_t offset,
+                                            const uint64_t length,
+                                            const uint8_t *const binary) {
+  std::vector<BinaryRegion> regions;
+
+  // Check if the region is all zeros or not, as that can tell us if it is
+  // padding or not.
+  if (IsNonZeroRegion(offset, length, binary)) {
+    // Some of the padding bytes are non-zero, so this might be an unknown
+    // section of the binary.
+    // TODO(dbaileychess): We could be a bit smarter with different sized
+    // alignments. For now, the 8 byte check encompasses all the smaller
+    // alignments.
+    regions.push_back(MakeBinaryRegion(
+        offset, length * sizeof(uint8_t), BinaryRegionType::Unknown, length, 0,
+        length < 8 ? "could be a corrupted padding region (non zero) "
+                     "due to the length < 8 bytes."
+                   : "WARN: nothing refers to this section."));
+
+    return MakeBinarySection("no known references", BinarySectionType::Unknown,
+                             std::move(regions));
+  }
+
+  // This region is most likely padding.
+  regions.push_back(MakeBinaryRegion(
+      offset, length * sizeof(uint8_t), BinaryRegionType::Uint8, length, 0,
+      // Output a different annotation if the pad bytes exceed what we
+      // expect to be the maximum padding.
+      length > 7 ? "likely padding but might be an unknown section "
+                   "due to being larger than 7 bytes"
+                 : "padding"));
+
+  return MakeBinarySection("", BinarySectionType::Padding, std::move(regions));
 }
 
 }  // namespace
@@ -99,6 +94,11 @@ static bool IsNonZeroRegion(uint64_t offset, uint64_t length,
 std::map<uint64_t, BinarySection> BinaryAnnotator::Annotate() {
   flatbuffers::Verifier verifier(bfbs_, static_cast<size_t>(bfbs_length_));
   if (!reflection::VerifySchemaBuffer(verifier)) { return {}; }
+
+  // The binary is too short to read as a flatbuffers.
+  // TODO(dbaileychess): We could spit out the annotated buffer sections, but
+  // I'm not sure if it is worth it.
+  if (binary_length_ < 4) { return {}; }
 
   // Make sure we start with a clean slate.
   vtables_.clear();
@@ -109,62 +109,158 @@ std::map<uint64_t, BinarySection> BinaryAnnotator::Annotate() {
   // The returned offset will point to the root_table location.
   const uint64_t root_table_offset = BuildHeader(0);
 
-  // Build the root table, and all else will be referenced from it.
-  BuildTable(root_table_offset, BinarySectionType::RootTable,
-             schema_->root_table());
+  if (IsValidOffset(root_table_offset)) {
+    // Build the root table, and all else will be referenced from it.
+    BuildTable(root_table_offset, BinarySectionType::RootTable,
+               schema_->root_table());
+  }
 
-  // Now that all the sections are built, scan the regions between them and
-  // insert padding bytes that are implied.
+  // Now that all the sections are built, make sure the binary sections are
+  // contiguous.
+  FixMissingRegions();
+
+  // Then scan the area between BinarySections insert padding sections that are
+  // implied.
   FixMissingSections();
 
   return sections_;
 }
 
-uint64_t BinaryAnnotator::BuildHeader(const uint64_t offset) {
+uint64_t BinaryAnnotator::BuildHeader(const uint64_t header_offset) {
+  const auto root_table_offset = ReadScalar<uint32_t>(header_offset);
+
+  if (!root_table_offset.has_value()) {
+    // This shouldn't occur, since we validate the min size of the buffer
+    // before. But for completion sake, we shouldn't read passed the binary end.
+    return std::numeric_limits<uint64_t>::max();
+  }
+
   std::vector<BinaryRegion> regions;
-
+  uint64_t offset = header_offset;
   // TODO(dbaileychess): sized prefixed value
-  const uint32_t root_table_offset = GetScalar<uint32_t>(offset);
-  regions.emplace_back(MakeBinaryRegion(
-      offset, sizeof(uint32_t), BinaryRegionType::UOffset, 0, root_table_offset,
-      std::string("offset to root table `") +
-          schema_->root_table()->name()->str() + "`"));
 
-  if (IsNonZeroRegion(offset, 4, binary_)) {
-    // Check if the file identifier region has non-zero data, and assume its the
-    // file identifier. Otherwise, it will get filled in with padding later.
-    regions.emplace_back(MakeBinaryRegion(
-        offset + sizeof(uint32_t), 4 * sizeof(uint8_t), BinaryRegionType::Char,
-        4, 0, std::string("File Identifier")));
+  const std::string name = std::string("offset to root table `") +
+                           schema_->root_table()->name()->str() + "`";
+
+  if (IsValidOffset(root_table_offset.value())) {
+    regions.push_back(MakeBinaryRegion(offset, sizeof(uint32_t),
+                                       BinaryRegionType::UOffset, 0,
+                                       root_table_offset.value(), name));
+  } else {
+    regions.push_back(MakeBinaryRegion(
+        offset, sizeof(uint32_t), BinaryRegionType::UOffset, 0,
+        root_table_offset.value(),
+        "ERROR: " + name + ". Invalid offset, points to outside the binary."));
+  }
+  offset += sizeof(uint32_t);
+
+  if (IsValidRead(offset, flatbuffers::kFileIdentifierLength) &&
+      IsNonZeroRegion(offset, flatbuffers::kFileIdentifierLength, binary_)) {
+    // Check if the file identifier region has non-zero data, and assume its
+    // the file identifier. Otherwise, it will get filled in with padding
+    // later.
+    regions.push_back(MakeBinaryRegion(
+        offset, flatbuffers::kFileIdentifierLength * sizeof(uint8_t),
+        BinaryRegionType::Char, flatbuffers::kFileIdentifierLength, 0,
+        std::string("File Identifier")));
   }
 
   sections_.insert(std::make_pair(
-      offset, MakeBinarySection("", BinarySectionType::Header, regions)));
-  return root_table_offset;
+      header_offset,
+      MakeBinarySection("", BinarySectionType::Header, regions)));
+
+  return root_table_offset.value();
 }
 
-void BinaryAnnotator::BuildVTable(uint64_t offset,
-                                  const reflection::Object *table) {
-  const uint64_t vtable_offset = offset;
-
+void BinaryAnnotator::BuildVTable(const uint64_t vtable_offset,
+                                  const reflection::Object *const table,
+                                  const uint64_t offset_of_referring_table) {
   // First see if we have used this vtable before, if so skip building it again.
   auto it = vtables_.find(vtable_offset);
   if (it != vtables_.end()) { return; }
 
-  std::vector<BinaryRegion> regions;
+  const auto vtable_length = ReadScalar<uint16_t>(vtable_offset);
+  if (!vtable_length.has_value()) {
+    const uint64_t remaining = RemainingBytes(vtable_offset);
+
+    AddSection(vtable_offset,
+               MakeSingleRegionBinarySection(
+                   table->name()->str(), BinarySectionType::VTable,
+                   MakeBinaryRegion(vtable_offset, remaining,
+                                    BinaryRegionType::Unknown, remaining, 0,
+                                    "ERROR: size of this vtable. Incomplete "
+                                    "binary, expected to read 2 bytes here")));
+    return;
+  }
 
   // Vtables start with the size of the vtable
-  const uint16_t vtable_size = GetScalar<uint16_t>(offset);
-  regions.emplace_back(MakeBinaryRegion(offset, sizeof(uint16_t),
-                                        BinaryRegionType::Uint16, 0, 0,
-                                        std::string("size of this vtable")));
-  offset += sizeof(uint16_t);
+  const uint16_t vtable_size = vtable_length.value();
+
+  if (!IsValidOffset(vtable_offset + vtable_size - 1)) {
+    // The vtable_size points to off the end of the binary.
+    AddSection(
+        vtable_offset,
+        MakeSingleRegionBinarySection(
+            table->name()->str(), BinarySectionType::VTable,
+            MakeBinaryRegion(
+                vtable_offset, sizeof(uint16_t), BinaryRegionType::Uint16, 0, 0,
+                "ERROR: size of this vtable. Longer than the binary")));
+
+    return;
+  } else if (vtable_size < 2 * sizeof(uint16_t)) {
+    // The size includes itself and the table size which are both uint16_t.
+    AddSection(vtable_offset,
+               MakeSingleRegionBinarySection(
+                   table->name()->str(), BinarySectionType::VTable,
+                   MakeBinaryRegion(vtable_offset, sizeof(uint16_t),
+                                    BinaryRegionType::Uint16, 0, 0,
+                                    "ERROR: size of this vtable. Shorter than "
+                                    "the minimum 4 bytes")));
+    return;
+  }
+
+  std::vector<BinaryRegion> regions;
+
+  regions.push_back(MakeBinaryRegion(vtable_offset, sizeof(uint16_t),
+                                     BinaryRegionType::Uint16, 0, 0,
+                                     std::string("size of this vtable")));
+  uint64_t offset = vtable_offset + sizeof(uint16_t);
+
+  // Ensure we can read the next uint16_t field, which is the size of the
+  // referring table.
+  const auto table_length = ReadScalar<uint16_t>(offset);
+
+  if (!table_length.has_value()) {
+    const uint64_t remaining = RemainingBytes(offset);
+
+    AddSection(offset,
+               MakeSingleRegionBinarySection(
+                   table->name()->str(), BinarySectionType::VTable,
+                   MakeBinaryRegion(offset, remaining,
+                                    BinaryRegionType::Unknown, remaining, 0,
+                                    "ERROR: sizeof referring table. Incomplete "
+                                    "binary, expected to read 2 bytes here")));
+    return;
+  }
 
   // Then they have the size of the table they reference.
-  const uint16_t table_size = GetScalar<uint16_t>(offset);
-  regions.emplace_back(
-      MakeBinaryRegion(offset, sizeof(uint16_t), BinaryRegionType::Uint16, 0, 0,
-                       std::string("size of referring table")));
+  const uint16_t table_size = table_length.value();
+
+  if (!IsValidOffset(offset_of_referring_table + table_size - 1)) {
+    regions.push_back(MakeBinaryRegion(
+        offset, sizeof(uint16_t), BinaryRegionType::Uint16, 0, 0,
+        std::string("ERROR: size of referring table. Size of table is larger "
+                    "than the binary.")));
+  } else if (table_size < 4) {
+    regions.push_back(MakeBinaryRegion(
+        offset, sizeof(uint16_t), BinaryRegionType::Uint16, 0, 0,
+        std::string("ERROR: size of referring table. Size of table is "
+                    "smaller than the minimum 4 bytes")));
+  } else {
+    regions.push_back(MakeBinaryRegion(offset, sizeof(uint16_t),
+                                       BinaryRegionType::Uint16, 0, 0,
+                                       std::string("size of referring table")));
+  }
   offset += sizeof(uint16_t);
 
   const uint64_t offset_start = offset;
@@ -193,15 +289,39 @@ void BinaryAnnotator::BuildVTable(uint64_t offset,
       return;
     }
 
-    const uint16_t offset_from_table = GetScalar<uint16_t>(field_offset);
+    const std::string field_comment =
+        std::string("offset to field `") + field->name()->c_str() +
+        "` (id: " + std::to_string(field->id()) + ")";
+
+    const auto offset_from_table = ReadScalar<uint16_t>(field_offset);
+
+    if (!offset_from_table.has_value()) {
+      const uint64_t remaining = RemainingBytes(field_offset);
+
+      regions.push_back(MakeBinaryRegion(
+          field_offset, remaining, BinaryRegionType::Unknown, remaining, 0,
+          "ERROR: " + field_comment +
+              ". Incomplete binary, expected to read 2 bytes here"));
+
+      return;
+    }
+
+    if (!IsValidOffset(offset_of_referring_table + offset_from_table.value() -
+                       1)) {
+      regions.push_back(MakeBinaryRegion(
+          field_offset, sizeof(uint16_t), BinaryRegionType::VOffset, 0, 0,
+          "ERROR: " + field_comment +
+              ". Invalid offset, points to outside the binary."));
+      return;
+    }
 
     VTable::Entry entry;
     entry.field = field;
-    entry.offset_from_table = offset_from_table;
+    entry.offset_from_table = offset_from_table.value();
     fields.insert(std::make_pair(field->id(), entry));
 
     std::string default_label;
-    if (offset_from_table == 0) {
+    if (offset_from_table.value() == 0) {
       // Not present, so could be default or be optional.
       if (field->required()) {
         // If this is a required field, make it known this is an error.
@@ -228,10 +348,9 @@ void BinaryAnnotator::BuildVTable(uint64_t offset,
       }
     }
 
-    regions.push_back(MakeBinaryRegion(
-        field_offset, sizeof(uint16_t), BinaryRegionType::VOffset, 0, 0,
-        std::string("offset to field `") + field->name()->c_str() +
-            "` (id: " + std::to_string(field->id()) + ")" + default_label));
+    regions.push_back(MakeBinaryRegion(field_offset, sizeof(uint16_t),
+                                       BinaryRegionType::VOffset, 0, 0,
+                                       field_comment + default_label));
 
     fields_processed++;
   });
@@ -243,11 +362,22 @@ void BinaryAnnotator::BuildVTable(uint64_t offset,
 
   for (uint16_t id = fields_processed; id < expectant_vtable_fields; ++id) {
     const uint64_t field_offset = offset_start + id * sizeof(uint16_t);
-    const uint16_t offset_from_table = GetScalar<uint16_t>(field_offset);
+
+    const auto offset_from_table = ReadScalar<uint16_t>(field_offset);
+
+    if (!offset_from_table.has_value()) {
+      const uint64_t remaining = RemainingBytes(field_offset);
+
+      regions.push_back(MakeBinaryRegion(
+          field_offset, remaining, BinaryRegionType::Unknown, remaining, 0,
+          "ERROR: offset to unknown field (id: " + std::to_string(id) +
+              "). Incomplete binary, expected to read 2 bytes here"));
+      continue;
+    }
 
     VTable::Entry entry;
     entry.field = nullptr;  // No field to reference.
-    entry.offset_from_table = offset_from_table;
+    entry.offset_from_table = offset_from_table.value();
     fields.insert(std::make_pair(id, entry));
 
     regions.push_back(MakeBinaryRegion(
@@ -267,29 +397,71 @@ void BinaryAnnotator::BuildVTable(uint64_t offset,
   vtables_[vtable_offset] = vtable;
 }
 
-void BinaryAnnotator::BuildTable(uint64_t offset, const BinarySectionType type,
-                                 const reflection::Object *table) {
-  std::vector<BinaryRegion> regions;
-  const uint64_t table_offset = offset;
+void BinaryAnnotator::BuildTable(const uint64_t table_offset,
+                                 const BinarySectionType type,
+                                 const reflection::Object *const table) {
+  const auto vtable_soffset = ReadScalar<int32_t>(table_offset);
+
+  if (!vtable_soffset.has_value()) {
+    const uint64_t remaining = RemainingBytes(table_offset);
+
+    AddSection(table_offset,
+               MakeSingleRegionBinarySection(
+                   table->name()->str(), type,
+                   MakeBinaryRegion(table_offset, remaining,
+                                    BinaryRegionType::Unknown, remaining, 0,
+                                    "ERROR: offset to vtable. Incomplete "
+                                    "binary, expected to read 4 bytes here")));
+
+    // If there aren't enough bytes left to read the vtable offset, there is
+    // nothing we can do.
+    return;
+  }
 
   // Tables start with the vtable
-  const uint64_t vtable_offset = table_offset - GetScalar<int32_t>(offset);
-  regions.emplace_back(
-      MakeBinaryRegion(offset, sizeof(int32_t), BinaryRegionType::SOffset, 0,
-                       vtable_offset, std::string("offset to vtable")));
-  offset += sizeof(int32_t);
+  const uint64_t vtable_offset = table_offset - vtable_soffset.value();
+
+  if (!IsValidOffset(vtable_offset)) {
+    AddSection(table_offset,
+               MakeSingleRegionBinarySection(
+                   table->name()->str(), type,
+                   MakeBinaryRegion(table_offset, sizeof(int32_t),
+                                    BinaryRegionType::SOffset, 0, vtable_offset,
+                                    "ERROR: offset to vtable. Invalid offset, "
+                                    "points to outside the binary.")));
+
+    // There isn't much to do with an invalid vtable offset, as we won't be able
+    // to intepret the rest of the table fields.
+    return;
+  }
+
+  std::vector<BinaryRegion> regions;
+  regions.push_back(
+      MakeBinaryRegion(table_offset, sizeof(int32_t), BinaryRegionType::SOffset,
+                       0, vtable_offset, std::string("offset to vtable")));
 
   // Parse the vtable first so we know what the rest of the fields in the table
   // are.
-  BuildVTable(vtable_offset, table);
+  BuildVTable(vtable_offset, table, table_offset);
 
-  const VTable &vtable = vtables_.at(vtable_offset);
+  auto vtable_entry = vtables_.find(vtable_offset);
+  if (vtable_entry == vtables_.end()) {
+    // There is no valid vtable for this table, so we cannot process the rest of
+    // the table entries.
+    return;
+  }
+
+  const VTable &vtable = vtable_entry->second;
 
   // This is the size and length of this table.
   const uint16_t table_size = vtable.table_size;
-  const uint64_t table_end_offset = table_offset + table_size;
+  uint64_t table_end_offset = table_offset + table_size;
 
-  const uint64_t field_offset_start = offset;
+  if (!IsValidOffset(table_end_offset - 1)) {
+    // We already validated the table size in BuildVTable, but we have to make
+    // sure we don't use a bad value here.
+    table_end_offset = binary_length_;
+  }
 
   // We need to iterate over the vtable fields by their offset in the binary,
   // not by their IDs. So copy them over to another vector that we can sort on
@@ -317,6 +489,11 @@ void BinaryAnnotator::BuildTable(uint64_t offset, const BinarySectionType type,
     // The field offsets are relative to the start of the table.
     const uint64_t field_offset = table_offset + offset_from_table;
 
+    if (!IsValidOffset(field_offset)) {
+      // The field offset is larger than the binary, nothing we can do.
+      continue;
+    }
+
     // We have a vtable entry for a non-existant field, that means its a binary
     // generated by a newer schema than we are currently processing.
     if (field == nullptr) {
@@ -330,24 +507,98 @@ void BinaryAnnotator::BuildTable(uint64_t offset, const BinarySectionType type,
           field_offset;
 
       std::string hint;
+
       if (unknown_field_length == 4) {
-        // The field is 4 in length, so it could be an offset? Provide a hint.
-        hint += " <possibly an offset? Check Loc: +0x";
-        hint += ToHex(field_offset + GetScalar<uint32_t>(field_offset));
-        hint += ">";
+        const auto relative_offset = ReadScalar<uint32_t>(field_offset);
+        if (relative_offset.has_value()) {
+          // The field is 4 in length, so it could be an offset? Provide a hint.
+          hint += " <possibly an offset? Check Loc: +0x";
+          hint += ToHex(field_offset + relative_offset.value());
+          hint += ">";
+        }
       }
 
-      regions.emplace_back(
-          MakeBinaryRegion(field_offset, unknown_field_length * sizeof(uint8_t),
-                           BinaryRegionType::Unknown, unknown_field_length, 0,
-                           std::string("Unknown field") + hint));
+      if (!IsValidRead(field_offset, unknown_field_length)) {
+        const uint64_t remaining = RemainingBytes(field_offset);
+
+        regions.push_back(MakeBinaryRegion(
+            field_offset, remaining, BinaryRegionType::Unknown, remaining, 0,
+            "ERRROR: Unknown field. Expect to read " +
+                std::to_string(unknown_field_length) + " bytes."));
+        continue;
+      }
+
+      regions.push_back(MakeBinaryRegion(
+          field_offset, unknown_field_length, BinaryRegionType::Unknown,
+          unknown_field_length, 0, std::string("Unknown field") + hint));
       continue;
     }
 
     if (IsScalar(field->type()->base_type())) {
       // These are the raw values store in the table.
-      offset = BuildField(field_offset, field, regions);
+      const uint64_t type_size = GetTypeSize(field->type()->base_type());
+      const BinaryRegionType region_type =
+          GetRegionType(field->type()->base_type());
+
+      const std::string name =
+          "table field `" + std::string(field->name()->c_str()) + "` (" +
+          reflection::EnumNameBaseType(field->type()->base_type()) + ")";
+
+      if (!IsValidRead(field_offset, type_size)) {
+        const uint64_t remaining = RemainingBytes(field_offset);
+
+        regions.push_back(MakeBinaryRegion(
+            field_offset, remaining, BinaryRegionType::Unknown, remaining, 0,
+            "ERROR: " + name + ". Expected " + std::to_string(type_size) +
+                " bytes."));
+        continue;
+      }
+
+      if (IsUnionType(field)) {
+        // This is a type for a union. Validate the value
+        const auto enum_value = ReadScalar<uint8_t>(field_offset);
+
+        // This should alawys have a value, due to the IsValidRead check above.
+        if (!IsValidUnionValue(field, enum_value.value())) {
+          regions.push_back(MakeBinaryRegion(
+              field_offset, type_size, region_type, 0, 0,
+              "ERROR: " + name + " . Invalid union type value."));
+          continue;
+        }
+      }
+
+      regions.push_back(
+          MakeBinaryRegion(field_offset, type_size, region_type, 0, 0, name));
       continue;
+    }
+
+    // Read the offset
+    const auto offset_from_field = ReadScalar<uint32_t>(field_offset);
+    uint64_t offset_of_next_item = 0;
+    const std::string offset_prefix =
+        "offset to field `" + std::string(field->name()->c_str()) + "`";
+
+    // Validate any field that isn't inline (i.e., non-structs).
+    if (!IsInlineField(field)) {
+      if (!offset_from_field.has_value()) {
+        const uint64_t remaining = RemainingBytes(field_offset);
+        regions.push_back(MakeBinaryRegion(
+            field_offset, remaining, BinaryRegionType::Unknown, remaining, 0,
+            std::string("ERROR: ") + offset_prefix +
+                ". Incomplete binary, expected to read 4 bytes here"));
+        continue;
+      }
+
+      offset_of_next_item = field_offset + offset_from_field.value();
+
+      if (!IsValidOffset(offset_of_next_item)) {
+        regions.push_back(
+            MakeBinaryRegion(field_offset, sizeof(uint32_t),
+                             BinaryRegionType::UOffset, 0, offset_of_next_item,
+                             std::string("ERROR: ") + offset_prefix +
+                                 ". Location is outside the binary."));
+        continue;
+      }
     }
 
     switch (field->type()->base_type()) {
@@ -357,70 +608,70 @@ void BinaryAnnotator::BuildTable(uint64_t offset, const BinarySectionType type,
 
         if (next_object->is_struct()) {
           // Structs are stored inline.
-          offset = BuildStruct(field_offset, regions, next_object);
+          BuildStruct(field_offset, regions, next_object);
         } else {
-          const uint64_t next_object_offset =
-              field_offset + GetScalar<uint32_t>(field_offset);
-          regions.emplace_back(MakeBinaryRegion(
+          regions.push_back(MakeBinaryRegion(
               field_offset, sizeof(uint32_t), BinaryRegionType::UOffset, 0,
-              next_object_offset,
-              std::string("offset to field `") + field->name()->c_str() + "`"));
-          offset += sizeof(uint32_t);
+              offset_of_next_item, offset_prefix + " (table)"));
 
-          BuildTable(next_object_offset, BinarySectionType::Table, next_object);
+          BuildTable(offset_of_next_item, BinarySectionType::Table,
+                     next_object);
         }
       } break;
 
       case reflection::BaseType::String: {
-        const uint64_t string_offset =
-            field_offset + GetScalar<uint32_t>(field_offset);
-
-        regions.emplace_back(MakeBinaryRegion(
+        regions.push_back(MakeBinaryRegion(
             field_offset, sizeof(uint32_t), BinaryRegionType::UOffset, 0,
-            string_offset,
-            std::string("offset to field `") + field->name()->c_str() + "`"));
-
-        BuildString(string_offset, table, field);
+            offset_of_next_item, offset_prefix + " (string)"));
+        BuildString(offset_of_next_item, table, field);
       } break;
 
       case reflection::BaseType::Vector: {
-        const uint64_t vector_offset =
-            field_offset + GetScalar<uint32_t>(field_offset);
-
-        regions.emplace_back(MakeBinaryRegion(
+        regions.push_back(MakeBinaryRegion(
             field_offset, sizeof(uint32_t), BinaryRegionType::UOffset, 0,
-            vector_offset,
-            std::string("offset to field `") + field->name()->c_str() + "`"));
-
-        BuildVector(vector_offset, table, field, table_offset, vtable);
+            offset_of_next_item, offset_prefix + " (vector)"));
+        BuildVector(offset_of_next_item, table, field, table_offset, vtable);
       } break;
 
       case reflection::BaseType::Union: {
-        const uint64_t union_offset =
-            field_offset + GetScalar<uint32_t>(field_offset);
+        const uint64_t union_offset = offset_of_next_item;
 
         // The union type field is always one less than the union itself.
         const uint16_t union_type_id = field->id() - 1;
 
-        auto vtable_entry = vtable.fields.find(union_type_id);
-        if (vtable_entry == vtable.fields.end()) {
+        auto vtable_field = vtable.fields.find(union_type_id);
+        if (vtable_field == vtable.fields.end()) {
           // TODO(dbaileychess): need to capture this error condition.
           break;
         }
 
         const uint64_t type_offset =
-            table_offset + vtable_entry->second.offset_from_table;
+            table_offset + vtable_field->second.offset_from_table;
 
-        const uint8_t realized_type = GetScalar<uint8_t>(type_offset);
+        const auto realized_type = ReadScalar<uint8_t>(type_offset);
+        if (!realized_type.has_value()) {
+          const uint64_t remaining = RemainingBytes(type_offset);
+          regions.push_back(MakeBinaryRegion(
+              type_offset, remaining, BinaryRegionType::Unknown, remaining, 0,
+              "ERROR: " + offset_prefix +
+                  " (union). Incomplete binary, expected to read 1 byte here"));
+          continue;
+        }
+
+        if (!IsValidUnionValue(field, realized_type.value())) {
+          // We already export an error in the union type field, so just skip
+          // building the union itself and it will default to an unreference
+          // Binary section.
+          continue;
+        }
 
         const std::string enum_type =
-            BuildUnion(union_offset, realized_type, field);
+            BuildUnion(union_offset, realized_type.value(), field);
 
-        regions.emplace_back(MakeBinaryRegion(
+        regions.push_back(MakeBinaryRegion(
             field_offset, sizeof(uint32_t), BinaryRegionType::UOffset, 0,
             union_offset,
-            std::string("offset to field `") + field->name()->c_str() +
-                "` (union of type `" + enum_type + "`)"));
+            offset_prefix + " (union of type `" + enum_type + "`)"));
 
       } break;
 
@@ -428,74 +679,98 @@ void BinaryAnnotator::BuildTable(uint64_t offset, const BinarySectionType type,
     }
   }
 
-  // Fill in any regions that weren't covered above, as those are padding
-  // regions.
-  size_t region_index = 1;
-  std::vector<BinaryRegion> padding_regions;
-  uint64_t i = field_offset_start;
-  while (region_index < regions.size() && i < table_end_offset) {
-    const uint64_t region_start = regions[region_index].offset;
-    const uint64_t region_end = region_start + regions[region_index].length;
-
-    if (i < region_start) {
-      const uint64_t pad_bytes = region_start - i;
-      // We are at an index that is lower than any region, so pad upto its
-      // offset.
-      padding_regions.emplace_back(
-          MakeBinaryRegion(i, pad_bytes * sizeof(uint8_t),
-                           BinaryRegionType::Uint8, pad_bytes, 0, "padding"));
-      i = region_end;
-      region_index++;
-    } else if (i < region_end) {
-      i = region_end + 1;
-    } else {
-      region_index++;
-    }
-  }
-
   // Handle the case where there is padding after the last known binary
   // region. Calculate where we left off towards the expected end of the
   // table.
+  const uint64_t i = regions.back().offset + regions.back().length + 1;
+
   if (i < table_end_offset) {
     const uint64_t pad_bytes = table_end_offset - i + 1;
-    padding_regions.emplace_back(
-        MakeBinaryRegion(i - 1, pad_bytes * sizeof(uint8_t),
-                         BinaryRegionType::Uint8, pad_bytes, 0, "padding"));
+    regions.push_back(MakeBinaryRegion(i - 1, pad_bytes * sizeof(uint8_t),
+                                       BinaryRegionType::Uint8, pad_bytes, 0,
+                                       "padding"));
   }
 
-  regions.insert(regions.end(), padding_regions.begin(), padding_regions.end());
-
-  std::stable_sort(regions.begin(), regions.end(),
-                   [&](const BinaryRegion &a, const BinaryRegion &b) {
-                     return a.offset < b.offset;
-                   });
-
-  sections_.insert(std::make_pair(
-      table_offset,
-      MakeBinarySection(table->name()->str(), type, std::move(regions))));
+  AddSection(table_offset,
+             MakeBinarySection(table->name()->str(), type, std::move(regions)));
 }
 
-uint64_t BinaryAnnotator::BuildStruct(uint64_t offset,
+uint64_t BinaryAnnotator::BuildStruct(const uint64_t struct_offset,
                                       std::vector<BinaryRegion> &regions,
-                                      const reflection::Object *object) {
-  if (!object->is_struct()) { return offset; }
+                                      const reflection::Object *const object) {
+  if (!object->is_struct()) { return struct_offset; }
+
+  uint64_t offset = struct_offset;
 
   // Loop over all the fields in increasing order
   ForAllFields(object, /*reverse=*/false, [&](const reflection::Field *field) {
     if (IsScalar(field->type()->base_type())) {
-      offset = BuildStructureField(offset, object, field, regions);
+      // Structure Field value
+      const uint64_t type_size = GetTypeSize(field->type()->base_type());
+      const BinaryRegionType region_type =
+          GetRegionType(field->type()->base_type());
 
+      const std::string name =
+          std::string("struct field `") + object->name()->c_str() + "." +
+          field->name()->c_str() + "` (" +
+          reflection::EnumNameBaseType(field->type()->base_type()) + ")";
+
+      if (!IsValidRead(offset, type_size)) {
+        const uint64_t remaining = RemainingBytes(offset);
+        regions.push_back(MakeBinaryRegion(
+            offset, remaining, BinaryRegionType::Unknown, remaining, 0,
+            "ERROR: " + name + ". Expected to read " +
+                std::to_string(type_size) + " bytes."));
+
+        // TODO(dbaileychess): Should I bail out here? This sets offset to the
+        // end of the binary. So all other reads in the loop should fail.
+        offset += remaining;
+        return;
+      }
+
+      regions.push_back(
+          MakeBinaryRegion(offset, type_size, region_type, 0, 0, name));
+
+      offset += type_size;
     } else if (field->type()->base_type() == reflection::BaseType::Obj) {
       // Structs are stored inline, even when nested.
       offset = BuildStruct(offset, regions,
                            schema_->objects()->Get(field->type()->index()));
     } else if (field->type()->base_type() == reflection::BaseType::Array) {
+      const bool is_scalar = IsScalar(field->type()->element());
+      const uint64_t type_size = GetTypeSize(field->type()->element());
+      const BinaryRegionType region_type =
+          GetRegionType(field->type()->element());
+
       // Arrays are just repeated structures.
-      if (IsScalar(field->type()->element())) {
-        offset = BuildArrayField(offset, object, field,
-                                 field->type()->fixed_length(), regions);
-      } else {
-        for (uint16_t i = 0; i < field->type()->fixed_length(); ++i) {
+      for (uint16_t i = 0; i < field->type()->fixed_length(); ++i) {
+        if (is_scalar) {
+          const std::string name =
+              std::string("array field `") + object->name()->c_str() + "." +
+              field->name()->c_str() + "[" + std::to_string(i) + "]` (" +
+              reflection::EnumNameBaseType(field->type()->element()) + ")";
+
+          if (!IsValidRead(offset, type_size)) {
+            const uint64_t remaining = RemainingBytes(offset);
+            regions.push_back(MakeBinaryRegion(
+                offset, remaining, BinaryRegionType::Unknown, remaining, 0,
+                "ERROR: " + name + ". Expected to read " +
+                    std::to_string(type_size) + " bytes."));
+
+            // TODO(dbaileychess): Should I bail out here? This sets offset to
+            // the end of the binary. So all other reads in the loop should
+            // fail.
+            offset += remaining;
+            break;
+          }
+
+          regions.push_back(
+              MakeBinaryRegion(offset, type_size, region_type, 0, 0, name));
+
+          offset += type_size;
+        } else {
+          // Array of Structs.
+          //
           // TODO(dbaileychess): This works, but the comments on the fields lose
           // some context. Need to figure a way how to plumb the nested arrays
           // comments together that isn't too confusing.
@@ -509,57 +784,86 @@ uint64_t BinaryAnnotator::BuildStruct(uint64_t offset,
   return offset;
 }
 
-void BinaryAnnotator::BuildString(uint64_t offset,
-                                  const reflection::Object *table,
-                                  const reflection::Field *field) {
+void BinaryAnnotator::BuildString(const uint64_t string_offset,
+                                  const reflection::Object *const table,
+                                  const reflection::Field *const field) {
   // Check if we have already generated this string section, and this is a
   // shared string instance.
-  if (strings_.find(offset) != strings_.end()) { return; }
+  if (strings_.find(string_offset) != strings_.end()) { return; }
 
   std::vector<BinaryRegion> regions;
-  const uint32_t string_length = GetScalar<uint32_t>(offset);
+  const auto string_length = ReadScalar<uint32_t>(string_offset);
 
-  const uint64_t string_soffset = offset;
+  if (!string_length.has_value()) {
+    const uint64_t remaining = RemainingBytes(string_offset);
 
-  regions.emplace_back(MakeBinaryRegion(offset, sizeof(uint32_t),
-                                        BinaryRegionType::Uint32, 0, 0,
-                                        std::string("length of string")));
-  offset += sizeof(uint32_t);
+    regions.push_back(MakeBinaryRegion(
+        string_offset, remaining, BinaryRegionType::Unknown, remaining, 0,
+        std::string("ERROR: length of string. Incomplete binary, expected to "
+                    "read 4 bytes here")));
 
-  regions.emplace_back(MakeBinaryRegion(offset, string_length * sizeof(char),
-                                        BinaryRegionType::Char, string_length,
-                                        0, ""));
-  offset += string_length * sizeof(char);
+  } else {
+    const uint32_t string_size = string_length.value();
+    const uint64_t string_end =
+        string_offset + sizeof(uint32_t) + string_size + sizeof(char);
 
-  regions.emplace_back(MakeBinaryRegion(offset, sizeof(char),
-                                        BinaryRegionType::Char, 0, 0,
-                                        std::string("string terminator")));
-  offset += sizeof(char);
+    if (!IsValidOffset(string_end - 1)) {
+      regions.push_back(MakeBinaryRegion(
+          string_offset, sizeof(uint32_t), BinaryRegionType::Uint32, 0, 0,
+          std::string(
+              "ERROR: length of string. Length is longer than the binary.")));
+    } else {
+      regions.push_back(MakeBinaryRegion(string_offset, sizeof(uint32_t),
+                                         BinaryRegionType::Uint32, 0, 0,
+                                         "length of string"));
 
-  sections_.insert(std::make_pair(
-      string_soffset,
-      MakeBinarySection(
-          std::string(table->name()->c_str()) + "." + field->name()->c_str(),
-          BinarySectionType::String, std::move(regions))));
+      regions.push_back(MakeBinaryRegion(string_offset + sizeof(uint32_t),
+                                         string_size, BinaryRegionType::Char,
+                                         string_size, 0, ""));
+
+      regions.push_back(MakeBinaryRegion(
+          string_offset + sizeof(uint32_t) + string_size, sizeof(char),
+          BinaryRegionType::Char, 0, 0, std::string("string terminator")));
+    }
+  }
+
+  AddSection(string_offset,
+             MakeBinarySection(std::string(table->name()->c_str()) + "." +
+                                   field->name()->c_str(),
+                               BinarySectionType::String, std::move(regions)));
 
   // Insert into the strings set to find possible instances of shared strings.
-  strings_.insert(string_soffset);
+  strings_.insert(string_offset);
 }
 
-void BinaryAnnotator::BuildVector(uint64_t offset,
-                                  const reflection::Object *table,
-                                  const reflection::Field *field,
+void BinaryAnnotator::BuildVector(const uint64_t vector_offset,
+                                  const reflection::Object *const table,
+                                  const reflection::Field *const field,
                                   const uint64_t parent_table_offset,
                                   const VTable &vtable) {
   std::vector<BinaryRegion> regions;
-  const uint32_t vector_length = GetScalar<uint32_t>(offset);
 
-  const uint64_t vector_offset = offset;
+  const auto vector_length = ReadScalar<uint32_t>(vector_offset);
+  if (!vector_length.has_value()) {
+    const uint64_t remaining = RemainingBytes(vector_offset);
 
-  regions.emplace_back(
-      MakeBinaryRegion(offset, sizeof(uint32_t), BinaryRegionType::Uint32, 0, 0,
-                       std::string("length of vector (# items)")));
-  offset += sizeof(uint32_t);
+    AddSection(
+        vector_offset,
+        MakeSingleRegionBinarySection(
+            std::string(table->name()->c_str()) + "." + field->name()->c_str(),
+            BinarySectionType::Vector,
+            MakeBinaryRegion(vector_offset, remaining,
+                             BinaryRegionType::Unknown, remaining, 0,
+                             "ERROR: length of vector (# items). Incomplete "
+                             "binary, expected to read 4 bytes here")));
+    return;
+  }
+
+  regions.push_back(MakeBinaryRegion(
+      vector_offset, sizeof(uint32_t), BinaryRegionType::Uint32, 0, 0,
+      std::string("length of vector (# items)")));
+
+  uint64_t offset = vector_offset + sizeof(uint32_t);
 
   switch (field->type()->element()) {
     case reflection::BaseType::Obj: {
@@ -568,20 +872,44 @@ void BinaryAnnotator::BuildVector(uint64_t offset,
 
       if (object->is_struct()) {
         // Vector of structs
-        for (size_t i = 0; i < vector_length; ++i) {
+        for (size_t i = 0; i < vector_length.value(); ++i) {
           // Structs are inline to the vector.
           offset = BuildStruct(offset, regions, object);
         }
       } else {
         // Vector of objects
-        for (size_t i = 0; i < vector_length; ++i) {
-          // The table offset is relative from the offset location itself.
-          const uint64_t table_offset = offset + GetScalar<uint32_t>(offset);
+        for (size_t i = 0; i < vector_length.value(); ++i) {
+          const std::string name = "offset to table[" + std::to_string(i) + "]";
 
-          regions.emplace_back(MakeBinaryRegion(
-              offset, sizeof(uint32_t), BinaryRegionType::UOffset, 0,
-              table_offset,
-              std::string("offset to table[") + std::to_string(i) + "]"));
+          const auto table_relative_offset = ReadScalar<uint32_t>(offset);
+          if (!table_relative_offset.has_value()) {
+            const uint64_t remaining = RemainingBytes(offset);
+
+            regions.push_back(MakeBinaryRegion(
+                offset, remaining, BinaryRegionType::Unknown, remaining, 0,
+                "ERROR: " + name +
+                    ". Incomplete binary, expected to "
+                    "read 4 bytes here"));
+            break;
+          }
+
+          // The table offset is relative from the offset location itself.
+          const uint64_t table_offset = offset + table_relative_offset.value();
+
+          if (!IsValidOffset(table_offset)) {
+            regions.push_back(MakeBinaryRegion(
+                offset, sizeof(uint32_t), BinaryRegionType::UOffset, 0,
+                table_offset,
+                "ERROR: " + name +
+                    ". Invalid offset, points to outside the binary."));
+
+            offset += sizeof(uint32_t);
+            continue;
+          }
+
+          regions.push_back(MakeBinaryRegion(offset, sizeof(uint32_t),
+                                             BinaryRegionType::UOffset, 0,
+                                             table_offset, name));
 
           BuildTable(table_offset, BinarySectionType::Table, object);
 
@@ -591,14 +919,38 @@ void BinaryAnnotator::BuildVector(uint64_t offset,
     } break;
     case reflection::BaseType::String: {
       // Vector of strings
-      for (size_t i = 0; i < vector_length; ++i) {
-        // The string offset is relative from the offset location itself.
-        const uint64_t string_offset = offset + GetScalar<uint32_t>(offset);
+      for (size_t i = 0; i < vector_length.value(); ++i) {
+        const std::string name = "offset to string[" + std::to_string(i) + "]";
 
-        regions.emplace_back(MakeBinaryRegion(
-            offset, sizeof(uint32_t), BinaryRegionType::UOffset, 0,
-            string_offset,
-            std::string("offset to string[") + std::to_string(i) + "]"));
+        const auto string_relative_offset = ReadScalar<uint32_t>(offset);
+        if (!string_relative_offset.has_value()) {
+          const uint64_t remaining = RemainingBytes(offset);
+
+          regions.push_back(MakeBinaryRegion(
+              offset, remaining, BinaryRegionType::Unknown, remaining, 0,
+              "ERROR: " + name +
+                  ". Incomplete binary, expected to "
+                  "read 4 bytes here"));
+          break;
+        }
+
+        // The string offset is relative from the offset location itself.
+        const uint64_t string_offset = offset + string_relative_offset.value();
+
+        if (!IsValidOffset(string_offset)) {
+          regions.push_back(MakeBinaryRegion(
+              offset, sizeof(uint32_t), BinaryRegionType::UOffset, 0,
+              string_offset,
+              "ERROR: " + name +
+                  ". Invalid offset, points to outside the binary."));
+
+          offset += sizeof(uint32_t);
+          continue;
+        }
+
+        regions.push_back(MakeBinaryRegion(offset, sizeof(uint32_t),
+                                           BinaryRegionType::UOffset, 0,
+                                           string_offset, name));
 
         BuildString(string_offset, table, field);
 
@@ -621,28 +973,81 @@ void BinaryAnnotator::BuildVector(uint64_t offset,
       const uint64_t union_type_vector_field_offset =
           parent_table_offset + vtable_entry->second.offset_from_table;
 
+      const auto union_type_vector_field_relative_offset =
+          ReadScalar<uint16_t>(union_type_vector_field_offset);
+
+      if (!union_type_vector_field_relative_offset.has_value()) {
+        const uint64_t remaining = RemainingBytes(offset);
+
+        regions.push_back(MakeBinaryRegion(
+            offset, remaining, BinaryRegionType::Unknown, remaining, 0,
+            "ERROR: Union vector offset. Incomplete binary, expected to "
+            "read 2 bytes here."));
+
+        break;
+      }
+
       // Get the offset to the first type (the + sizeof(uint32_t) is to skip
-      // over the vector length which we already know)
+      // over the vector length which we already know). Validation happens
+      // within the loop below.
       const uint64_t union_type_vector_data_offset =
           union_type_vector_field_offset +
-          GetScalar<uint16_t>(union_type_vector_field_offset) +
-          sizeof(uint32_t);
+          union_type_vector_field_relative_offset.value() + sizeof(uint32_t);
 
-      for (size_t i = 0; i < vector_length; ++i) {
+      for (size_t i = 0; i < vector_length.value(); ++i) {
+        const std::string name = "offset to union[" + std::to_string(i) + "]";
+
+        const auto union_relative_offset = ReadScalar<uint32_t>(offset);
+        if (!union_relative_offset.has_value()) {
+          const uint64_t remaining = RemainingBytes(offset);
+
+          regions.push_back(MakeBinaryRegion(
+              offset, remaining, BinaryRegionType::Unknown, remaining, 0,
+              "ERROR: " + name +
+                  ". Incomplete binary, expected to "
+                  "read 4 bytes here"));
+
+          break;
+        }
+
         // The union offset is relative from the offset location itself.
-        const uint64_t union_offset = offset + GetScalar<uint32_t>(offset);
+        const uint64_t union_offset = offset + union_relative_offset.value();
 
-        const uint8_t realized_type = GetScalar<uint8_t>(
-            union_type_vector_data_offset + i * sizeof(uint8_t));
+        if (!IsValidOffset(union_offset)) {
+          regions.push_back(MakeBinaryRegion(
+              offset, sizeof(uint32_t), BinaryRegionType::UOffset, 0,
+              union_offset,
+              "ERROR: " + name +
+                  ". Invalid offset, points to outside the binary."));
+          continue;
+        }
+
+        const auto realized_type =
+            ReadScalar<uint8_t>(union_type_vector_data_offset + i);
+        if (!realized_type.has_value()) {
+          regions.push_back(
+              MakeBinaryRegion(offset, 0, BinaryRegionType::Unknown, 0, 0,
+                               "ERROR: " + name +
+                                   ". Incomplete binary, expected to "
+                                   "read 1 byte here."));
+          continue;
+        }
+
+        if (!IsValidUnionValue(vtable_entry->second.field->type()->index(),
+                               realized_type.value())) {
+          // We already export an error in the union type field, so just skip
+          // building the union itself and it will default to an unreference
+          // Binary section.
+          offset += sizeof(uint32_t);
+          continue;
+        }
 
         const std::string enum_type =
-            BuildUnion(union_offset, realized_type, field);
+            BuildUnion(union_offset, realized_type.value(), field);
 
-        regions.emplace_back(MakeBinaryRegion(
+        regions.push_back(MakeBinaryRegion(
             offset, sizeof(uint32_t), BinaryRegionType::UOffset, 0,
-            union_offset,
-            std::string("offset to union[") + std::to_string(i) + "] (`" +
-                enum_type + "`)"));
+            union_offset, name + " (`" + enum_type + "`)"));
 
         offset += sizeof(uint32_t);
       }
@@ -656,10 +1061,39 @@ void BinaryAnnotator::BuildVector(uint64_t offset,
 
         // TODO(dbaileychess): It might be nicer to user the
         // BinaryRegion.array_length field to indicate this.
-        for (size_t i = 0; i < vector_length; ++i) {
-          regions.emplace_back(MakeBinaryRegion(
-              offset, type_size, binary_region_type, 0, 0,
-              std::string("value[") + std::to_string(i) + "]"));
+        for (size_t i = 0; i < vector_length.value(); ++i) {
+          const std::string name =
+              std::string("value[") + std::to_string(i) + "]";
+          if (!IsValidRead(offset, type_size)) {
+            const uint64_t remaining = RemainingBytes(offset);
+
+            regions.push_back(MakeBinaryRegion(
+                offset, remaining, BinaryRegionType::Unknown, remaining, 0,
+                "ERROR: " + name +
+                    ". Incomplete "
+                    "binary, expected to read " +
+                    std::to_string(type_size) + " bytes here"));
+            break;
+          }
+
+          if (IsUnionType(field->type()->element())) {
+            // This is a type for a union. Validate the value
+            const auto enum_value = ReadScalar<uint8_t>(offset);
+
+            // This should alawys have a value, due to the IsValidRead check
+            // above.
+            if (!IsValidUnionValue(field->type()->index(),
+                                   enum_value.value())) {
+              regions.push_back(MakeBinaryRegion(
+                  offset, type_size, binary_region_type, 0, 0,
+                  "ERROR: " + name + ". Invalid union type value."));
+              offset += type_size;
+              continue;
+            }
+          }
+
+          regions.push_back(MakeBinaryRegion(offset, type_size,
+                                             binary_region_type, 0, 0, name));
           offset += type_size;
         }
       }
@@ -673,9 +1107,9 @@ void BinaryAnnotator::BuildVector(uint64_t offset,
           BinarySectionType::Vector, std::move(regions))));
 }
 
-std::string BinaryAnnotator::BuildUnion(uint64_t offset,
+std::string BinaryAnnotator::BuildUnion(const uint64_t union_offset,
                                         const uint8_t realized_type,
-                                        const reflection::Field *field) {
+                                        const reflection::Field *const field) {
   const reflection::Enum *next_enum =
       schema_->enums()->Get(field->type()->index());
 
@@ -691,20 +1125,61 @@ std::string BinaryAnnotator::BuildUnion(uint64_t offset,
       // Union of vectors point to a new Binary section
       std::vector<BinaryRegion> regions;
 
-      offset = BuildStruct(offset, regions, object);
+      BuildStruct(union_offset, regions, object);
 
-      sections_.insert(std::make_pair(
-          regions[0].offset,
+      AddSection(
+          union_offset,
           MakeBinarySection(std::string(object->name()->c_str()) + "." +
                                 field->name()->c_str(),
-                            BinarySectionType::Union, std::move(regions))));
+                            BinarySectionType::Union, std::move(regions)));
     } else {
-      BuildTable(offset, BinarySectionType::Table, object);
+      BuildTable(union_offset, BinarySectionType::Table, object);
     }
   }
   // TODO(dbaileychess): handle the other union types.
 
   return enum_val->name()->c_str();
+}
+
+void BinaryAnnotator::FixMissingRegions() {
+  std::vector<BinaryRegion> regions_to_insert;
+  for (auto &current_section : sections_) {
+    BinarySection &section = current_section.second;
+    if (section.regions.empty()) {
+      // TODO(dbaileychess): is this possible?
+      continue;
+    }
+
+    uint64_t offset = section.regions[0].offset + section.regions[0].length;
+    for (size_t i = 1; i < section.regions.size(); ++i) {
+      BinaryRegion &region = section.regions[i];
+
+      const uint64_t next_offset = region.offset;
+
+      if (offset < next_offset) {
+        const uint64_t padding_bytes = next_offset - offset;
+
+        if (IsNonZeroRegion(offset, padding_bytes, binary_)) {
+          regions_to_insert.push_back(MakeBinaryRegion(
+              offset, padding_bytes, BinaryRegionType::Unknown, padding_bytes,
+              0, "WARN: nothing refers to this region."));
+        } else {
+          regions_to_insert.push_back(
+              MakeBinaryRegion(offset, padding_bytes, BinaryRegionType::Uint8,
+                               padding_bytes, 0, "padding"));
+        }
+      }
+      offset = next_offset + region.length;
+    }
+
+    if (!regions_to_insert.empty()) {
+      section.regions.insert(section.regions.end(), regions_to_insert.begin(),
+                             regions_to_insert.end());
+      std::stable_sort(section.regions.begin(), section.regions.end(),
+                       BinaryRegionSort);
+      regions_to_insert.clear();
+    }
+  }
 }
 
 void BinaryAnnotator::FixMissingSections() {
@@ -722,42 +1197,18 @@ void BinaryAnnotator::FixMissingSections() {
       // We are at an offset that is less then the current section.
       const uint64_t pad_bytes = section_start_offset - offset + 1;
 
-      const uint64_t start_offset = offset - 1;
-
-      std::vector<BinaryRegion> regions;
-
-      // Check if the region is all zeros or not, as that can tell us if it is
-      // padding or not.
-      if (IsNonZeroRegion(offset - 1, pad_bytes, binary_)) {
-        // Some of the padding bytes are non-zero, so this might be an unknown
-        // section of the binary.
-        regions.emplace_back(MakeBinaryRegion(
-            start_offset, pad_bytes * sizeof(uint8_t),
-            BinaryRegionType::Unknown, pad_bytes, 0,
-            pad_bytes < 8 ? "could be a corrupted padding region (non zero) "
-                            "due to the length < 8 bytes."
-                          : "WARN: nothing refers to this. Check if any "
-                            "`Unkown Field`s point to this."));
-
-        sections_to_insert.emplace_back(
-            MakeBinarySection("no known references", BinarySectionType::Unknown,
-                              std::move(regions)));
-      } else {
-        // This region is most likely padding.
-        regions.emplace_back(MakeBinaryRegion(
-            start_offset, pad_bytes * sizeof(uint8_t), BinaryRegionType::Uint8,
-            pad_bytes, 0,
-            // Output a different annotation if the pad bytes exceed what we
-            // expect to be the maximum padding.
-            pad_bytes > 7 ? "likely padding but might be an unknown section "
-                            "due to being larger than 7 bytes"
-                          : "padding"));
-
-        sections_to_insert.emplace_back(MakeBinarySection(
-            "", BinarySectionType::Padding, std::move(regions)));
-      }
+      sections_to_insert.push_back(
+          GenerateMissingSection(offset - 1, pad_bytes, binary_));
     }
     offset = section_end_offset + 1;
+  }
+
+  // Handle the case where there are still bytes left in the binary that are
+  // unaccounted for.
+  if (offset < binary_length_) {
+    const uint64_t pad_bytes = binary_length_ - offset + 1;
+    sections_to_insert.push_back(
+        GenerateMissingSection(offset - 1, pad_bytes, binary_));
   }
 
   for (const BinarySection &section_to_insert : sections_to_insert) {

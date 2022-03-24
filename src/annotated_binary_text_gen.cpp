@@ -96,6 +96,7 @@ static std::string ToValueString(const BinaryRegion &region,
       return ToValueString<uint64_t>(region, binary);
     case BinaryRegionType::Double: return ToValueString<double>(region, binary);
     case BinaryRegionType::Float: return ToValueString<float>(region, binary);
+    case BinaryRegionType::UType: return ToValueString<uint8_t>(region, binary);
 
     // Handle Offsets separately, incase they add additional details.
     case BinaryRegionType::UOffset:
