@@ -18,9 +18,12 @@
 #define FLATBUFFERS_BINARY_ANNOTATOR_H_
 
 #include <map>
+#include <string>
 #include <vector>
 
+#include "flatbuffers/base.h"
 #include "flatbuffers/reflection.h"
+#include "flatbuffers/stl_emulation.h"
 
 namespace flatbuffers {
 
@@ -41,7 +44,8 @@ enum class BinaryRegionType {
   Uint64 = 13,
   Int64 = 14,
   Float = 15,
-  Double = 16
+  Double = 16,
+  UType = 17,
 };
 
 template<typename T> static inline T GetScalar(const uint8_t *binary) {
@@ -114,7 +118,7 @@ struct BinarySection {
 
 inline static BinaryRegionType GetRegionType(reflection::BaseType base_type) {
   switch (base_type) {
-    case reflection::UType: return BinaryRegionType::Uint8;
+    case reflection::UType: return BinaryRegionType::UType;
     case reflection::Bool: return BinaryRegionType::Uint8;
     case reflection::Byte: return BinaryRegionType::Uint8;
     case reflection::UByte: return BinaryRegionType::Uint8;
@@ -148,6 +152,7 @@ inline static std::string ToString(const BinaryRegionType type) {
     case BinaryRegionType::Int64: return "int64_t";
     case BinaryRegionType::Double: return "double";
     case BinaryRegionType::Float: return "float";
+    case BinaryRegionType::UType: return "UType8";
     case BinaryRegionType::Unknown: return "?uint8_t";
     default: return "todo";
   }
@@ -155,12 +160,15 @@ inline static std::string ToString(const BinaryRegionType type) {
 
 class BinaryAnnotator {
  public:
-  explicit BinaryAnnotator(const uint8_t *const bfbs, const int64_t bfbs_length,
-                           const uint8_t *const binary)
+  explicit BinaryAnnotator(const uint8_t *const bfbs,
+                           const uint64_t bfbs_length,
+                           const uint8_t *const binary,
+                           const uint64_t binary_length)
       : bfbs_(bfbs),
         bfbs_length_(bfbs_length),
         schema_(reflection::GetSchema(bfbs)),
-        binary_(binary) {}
+        binary_(binary),
+        binary_length_(binary_length) {}
 
   std::map<uint64_t, BinarySection> Annotate();
 
@@ -180,7 +188,8 @@ class BinaryAnnotator {
 
   uint64_t BuildHeader(uint64_t offset);
 
-  void BuildVTable(uint64_t offset, const reflection::Object *table);
+  void BuildVTable(uint64_t offset, const reflection::Object *table,
+                   uint64_t offset_of_referring_table);
 
   void BuildTable(uint64_t offset, const BinarySectionType type,
                   const reflection::Object *table);
@@ -198,19 +207,84 @@ class BinaryAnnotator {
   std::string BuildUnion(uint64_t offset, uint8_t realized_type,
                          const reflection::Field *field);
 
+  void FixMissingRegions();
   void FixMissingSections();
 
-  template<typename T> inline T GetScalar(uint64_t offset) {
-    return *reinterpret_cast<const T *>(binary_ + offset);
+  inline bool IsValidOffset(const uint64_t offset) const {
+    return offset < binary_length_;
+  }
+
+  // Determines if performing a GetScalar request for `T` at `offset` would read
+  // passed the end of the binary.
+  template<typename T> inline bool IsValidRead(const uint64_t offset) const {
+    return IsValidRead(offset, sizeof(T));
+  }
+
+  inline bool IsValidRead(const uint64_t offset, const uint64_t length) const {
+    return IsValidOffset(offset + length - 1);
+  }
+
+  // Calculate the number of bytes remaining from the given offset. If offset is
+  // > binary_length, 0 is returned.
+  uint64_t RemainingBytes(const uint64_t offset) const {
+    return IsValidOffset(offset) ? binary_length_ - offset : 0;
+  }
+
+  template<typename T>
+  flatbuffers::Optional<T> ReadScalar(const uint64_t offset) const {
+    if (!IsValidRead<T>(offset)) { return flatbuffers::nullopt; }
+
+    return flatbuffers::ReadScalar<T>(binary_ + offset);
+  }
+
+  // Adds the provided `section` keyed by the `offset` it occurs at. If a
+  // section is already added at that offset, it doesn't replace the exisiting
+  // one.
+  void AddSection(const uint64_t offset, const BinarySection &section) {
+    sections_.insert(std::make_pair(offset, section));
+  }
+
+  bool IsInlineField(const reflection::Field *const field) {
+    if (field->type()->base_type() == reflection::BaseType::Obj) {
+      return schema_->objects()->Get(field->type()->index())->is_struct();
+    }
+    return IsScalar(field->type()->base_type());
+  }
+
+  bool IsUnionType(const reflection::BaseType type) {
+    return (type == reflection::BaseType::UType ||
+            type == reflection::BaseType::Union);
+  }
+
+  bool IsUnionType(const reflection::Field *const field) {
+    return IsUnionType(field->type()->base_type()) &&
+           field->type()->index() >= 0;
+  }
+
+  bool IsValidUnionValue(const reflection::Field *const field,
+                         const uint8_t value) {
+    return IsUnionType(field) &&
+           IsValidUnionValue(field->type()->index(), value);
+  }
+
+  bool IsValidUnionValue(const uint32_t enum_id, const uint8_t value) {
+    if (enum_id >= schema_->enums()->size()) { return false; }
+
+    const reflection::Enum *enum_def = schema_->enums()->Get(enum_id);
+
+    if (enum_def == nullptr) { return false; }
+
+    return value < enum_def->values()->size();
   }
 
   // The schema for the binary file
   const uint8_t *bfbs_;
-  const int64_t bfbs_length_;
+  const uint64_t bfbs_length_;
   const reflection::Schema *schema_;
 
   // The binary data itself.
   const uint8_t *binary_;
+  const uint64_t binary_length_;
 
   // Map of binary offset to vtables, to dedupe vtables.
   std::map<uint64_t, VTable> vtables_;
