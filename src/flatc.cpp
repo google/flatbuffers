@@ -350,8 +350,8 @@ void FlatCompiler::AnnotateBinaries(
         reinterpret_cast<const uint8_t *>(binary_contents.c_str());
     const size_t binary_size = binary_contents.size();
 
-    flatbuffers::BinaryAnnotator binary_annotator(binary_schema,
-                                                  binary_schema_size, binary);
+    flatbuffers::BinaryAnnotator binary_annotator(
+        binary_schema, binary_schema_size, binary, binary_size);
 
     auto annotations = binary_annotator.Annotate();
 

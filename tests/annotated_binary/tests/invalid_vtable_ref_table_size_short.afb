@@ -1,7 +1,7 @@
 // Annotated Flatbuffer Binary
 //
 // Schema file: annotated_binary.fbs
-// Binary file: annotated_binary.bin
+// Binary file: tests/invalid_vtable_ref_table_size_short.bin
 
 header:
   +0x0000 | 44 00 00 00             | UOffset32  | 0x00000044 (68) Loc: +0x0044       | offset to root table `AnnotatedBinary.Foo`
@@ -12,7 +12,7 @@ padding:
 
 vtable (AnnotatedBinary.Foo):
   +0x000A | 3A 00                   | uint16_t   | 0x003A (58)                        | size of this vtable
-  +0x000C | 68 00                   | uint16_t   | 0x0068 (104)                       | size of referring table
+  +0x000C | 01 00                   | uint16_t   | 0x0001 (1)                         | ERROR: size of referring table. Size of table is smaller than the minimum 4 bytes
   +0x000E | 0C 00                   | VOffset16  | 0x000C (12)                        | offset to field `counter` (id: 0)
   +0x0010 | 07 00                   | VOffset16  | 0x0007 (7)                         | offset to field `healthy` (id: 1)
   +0x0012 | 00 00                   | VOffset16  | 0x0000 (0)                         | offset to field `level` (id: 2) <defaults to 99> (Long)
