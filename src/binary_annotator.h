@@ -17,7 +17,6 @@
 #ifndef FLATBUFFERS_BINARY_ANNOTATOR_H_
 #define FLATBUFFERS_BINARY_ANNOTATOR_H_
 
-#include <iostream>
 #include <map>
 #include <string>
 #include <vector>
@@ -252,12 +251,14 @@ class BinaryAnnotator {
     return IsScalar(field->type()->base_type());
   }
 
+  bool IsUnionType(const reflection::BaseType type) {
+    return (type == reflection::BaseType::UType ||
+            type == reflection::BaseType::Union);
+  }
+
   bool IsUnionType(const reflection::Field *const field) {
-    if (field->type()->base_type() == reflection::BaseType::UType ||
-        field->type()->base_type() == reflection::BaseType::Union) {
-      return field->type()->index() >= 0;
-    }
-    return false;
+    return IsUnionType(field->type()->base_type()) &&
+           field->type()->index() >= 0;
   }
 
   bool IsValidUnionValue(const reflection::Field *const field,

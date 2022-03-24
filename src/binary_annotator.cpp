@@ -1,6 +1,5 @@
 #include "binary_annotator.h"
 
-#include <iostream>
 #include <limits>
 #include <vector>
 
@@ -660,8 +659,6 @@ void BinaryAnnotator::BuildTable(const uint64_t table_offset,
         }
 
         if (!IsValidUnionValue(field, realized_type.value())) {
-          std::cout << "Skipping Union to invalid type "
-                    << std::string(field->name()->c_str()) << std::endl;
           // We already export an error in the union type field, so just skip
           // building the union itself and it will default to an unreference
           // Binary section.
@@ -1038,9 +1035,6 @@ void BinaryAnnotator::BuildVector(const uint64_t vector_offset,
 
         if (!IsValidUnionValue(vtable_entry->second.field->type()->index(),
                                realized_type.value())) {
-          std::cout << "V Skipping Union to invalid type "
-                    << std::string(field->name()->c_str()) << " value "
-                    << std::to_string(realized_type.value()) << std::endl;
           // We already export an error in the union type field, so just skip
           // building the union itself and it will default to an unreference
           // Binary section.
@@ -1082,16 +1076,18 @@ void BinaryAnnotator::BuildVector(const uint64_t vector_offset,
             break;
           }
 
-          if (IsUnionType(field)) {
+          if (IsUnionType(field->type()->element())) {
             // This is a type for a union. Validate the value
             const auto enum_value = ReadScalar<uint8_t>(offset);
 
             // This should alawys have a value, due to the IsValidRead check
             // above.
-            if (!IsValidUnionValue(field, enum_value.value())) {
+            if (!IsValidUnionValue(field->type()->index(),
+                                   enum_value.value())) {
               regions.push_back(MakeBinaryRegion(
                   offset, type_size, binary_region_type, 0, 0,
-                  "ERROR: " + name + " . Invalid union type value."));
+                  "ERROR: " + name + ". Invalid union type value."));
+              offset += type_size;
               continue;
             }
           }

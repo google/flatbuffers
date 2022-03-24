@@ -118,3 +118,8 @@ values.
 
 Changed one byte at 0x004D from `02` to `FF` which is a union type value that is
 larger than the enum.
+
+### `invalid_vector_union_type_value.bin`
+
+Changed one byte at 0x0131 from `02` to `FF` which is a vector union type value 
+that is larger than the enum.
