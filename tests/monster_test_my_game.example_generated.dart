@@ -855,6 +855,94 @@ class StructOfStructsObjectBuilder extends fb.ObjectBuilder {
     return fbBuilder.buffer;
   }
 }
+class StructOfStructsOfStructs {
+  StructOfStructsOfStructs._(this._bc, this._bcOffset);
+
+  static const fb.Reader<StructOfStructsOfStructs> reader = _StructOfStructsOfStructsReader();
+
+  final fb.BufferContext _bc;
+  final int _bcOffset;
+
+  StructOfStructs get a => StructOfStructs.reader.read(_bc, _bcOffset + 0);
+
+  @override
+  String toString() {
+    return 'StructOfStructsOfStructs{a: $a}';
+  }
+
+  StructOfStructsOfStructsT unpack() => StructOfStructsOfStructsT(
+      a: a.unpack());
+
+  static int pack(fb.Builder fbBuilder, StructOfStructsOfStructsT? object) {
+    if (object == null) return 0;
+    return object.pack(fbBuilder);
+  }
+}
+
+class StructOfStructsOfStructsT implements fb.Packable {
+  StructOfStructsT a;
+
+  StructOfStructsOfStructsT({
+      required this.a});
+
+  @override
+  int pack(fb.Builder fbBuilder) {
+    a.pack(fbBuilder);
+    return fbBuilder.offset;
+  }
+
+  @override
+  String toString() {
+    return 'StructOfStructsOfStructsT{a: $a}';
+  }
+}
+
+class _StructOfStructsOfStructsReader extends fb.StructReader<StructOfStructsOfStructs> {
+  const _StructOfStructsOfStructsReader();
+
+  @override
+  int get size => 20;
+
+  @override
+  StructOfStructsOfStructs createObject(fb.BufferContext bc, int offset) => 
+    StructOfStructsOfStructs._(bc, offset);
+}
+
+class StructOfStructsOfStructsBuilder {
+  StructOfStructsOfStructsBuilder(this.fbBuilder);
+
+  final fb.Builder fbBuilder;
+
+  int finish(fb.StructBuilder a) {
+    a();
+    return fbBuilder.offset;
+  }
+
+}
+
+class StructOfStructsOfStructsObjectBuilder extends fb.ObjectBuilder {
+  final StructOfStructsObjectBuilder _a;
+
+  StructOfStructsOfStructsObjectBuilder({
+    required StructOfStructsObjectBuilder a,
+  })
+      : _a = a;
+
+  /// Finish building, and store into the [fbBuilder].
+  @override
+  int finish(fb.Builder fbBuilder) {
+    _a.finish(fbBuilder);
+    return fbBuilder.offset;
+  }
+
+  /// Convenience method to serialize to byte list.
+  @override
+  Uint8List toBytes([String? fileIdentifier]) {
+    final fbBuilder = fb.Builder(deduplicateTables: false);
+    fbBuilder.finish(finish(fbBuilder), fileIdentifier);
+    return fbBuilder.buffer;
+  }
+}
 class Stat {
   Stat._(this._bc, this._bcOffset);
   factory Stat(List<int> bytes) {
