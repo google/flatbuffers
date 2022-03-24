@@ -55,7 +55,7 @@ class TsGenerator : public BaseGenerator {
     // https://github.com/microsoft/TypeScript/issues/2536
     // One per line to ease comparisons to that list are easier
     static const char *const keywords[] = {
-      "argument",
+      "arguments",
       "break",
       "case",
       "catch",
@@ -956,15 +956,22 @@ class TsGenerator : public BaseGenerator {
          it != struct_def.fields.vec.end(); ++it) {
       auto &field = **it;
 
-      const auto curr_member_accessor =
+      auto curr_member_accessor =
           prefix + "." + ConvertCase(field.name, Case::kLowerCamel);
+      if (prefix != "this") {
+        curr_member_accessor =
+            prefix + "?." + ConvertCase(field.name, Case::kLowerCamel);
+      }
       if (IsStruct(field.value.type)) {
         ret += GenStructMemberValueTS(*field.value.type.struct_def,
                                       curr_member_accessor, delimiter);
       } else {
         if (nullCheck) {
-          ret +=
-              "(" + prefix + " === null ? 0 : " + curr_member_accessor + "!)";
+          std::string nullValue = "0";
+          if (field.value.type.base_type == BASE_TYPE_BOOL) { 
+            nullValue = "false";
+          }
+          ret += "(" + curr_member_accessor + " ?? " + nullValue + ")";
         } else {
           ret += curr_member_accessor;
         }
@@ -1067,7 +1074,7 @@ class TsGenerator : public BaseGenerator {
                                              parser.opts);
 
             const std::string field_accessor =
-                "this." + field_name_escaped + "()";
+                "this." + field_name + "()";
             field_val = GenNullCheckConditional(field_accessor,
                                                 field_accessor + "!.unpack()");
             auto packing = GenNullCheckConditional(

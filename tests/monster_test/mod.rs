@@ -25,6 +25,8 @@ pub mod my_game {
     pub use self::ability_generated::*;
     mod struct_of_structs_generated;
     pub use self::struct_of_structs_generated::*;
+    mod struct_of_structs_of_structs_generated;
+    pub use self::struct_of_structs_of_structs_generated::*;
     mod stat_generated;
     pub use self::stat_generated::*;
     mod referrable_generated;

@@ -61,6 +61,8 @@ class Ability
 
 class StructOfStructs
 
+class StructOfStructsOfStructs
+
 class Stat
 
 class Referrable
@@ -191,6 +193,25 @@ def CreateStructOfStructs(b_:flatbuffers_builder, a_id:int, a_distance:int, b_a:
     b_.Prep(4, 8)
     b_.PrependUint32(a_distance)
     b_.PrependUint32(a_id)
+    return b_.Offset()
+
+class StructOfStructsOfStructs : flatbuffers_handle
+    def a():
+        return MyGame_Example_StructOfStructs{ buf_, pos_ + 0 }
+
+def CreateStructOfStructsOfStructs(b_:flatbuffers_builder, a_a_id:int, a_a_distance:int, a_b_a:int, a_b_b:int, a_c_id:int, a_c_distance:int):
+    b_.Prep(4, 20)
+    b_.Prep(4, 20)
+    b_.Prep(4, 8)
+    b_.PrependUint32(a_c_distance)
+    b_.PrependUint32(a_c_id)
+    b_.Prep(2, 4)
+    b_.Pad(1)
+    b_.PrependInt8(a_b_b)
+    b_.PrependInt16(a_b_a)
+    b_.Prep(4, 8)
+    b_.PrependUint32(a_a_distance)
+    b_.PrependUint32(a_a_id)
     return b_.Offset()
 
 class Stat : flatbuffers_handle

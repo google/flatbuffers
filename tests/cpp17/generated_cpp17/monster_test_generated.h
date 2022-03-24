@@ -35,6 +35,8 @@ struct Ability;
 
 struct StructOfStructs;
 
+struct StructOfStructsOfStructs;
+
 struct Stat;
 struct StatBuilder;
 struct StatT;
@@ -72,6 +74,8 @@ inline const flatbuffers::TypeTable *Vec3TypeTable();
 inline const flatbuffers::TypeTable *AbilityTypeTable();
 
 inline const flatbuffers::TypeTable *StructOfStructsTypeTable();
+
+inline const flatbuffers::TypeTable *StructOfStructsOfStructsTypeTable();
 
 inline const flatbuffers::TypeTable *StatTypeTable();
 
@@ -810,6 +814,47 @@ struct StructOfStructs::Traits {
     "a",
     "b",
     "c"
+  };
+  template<size_t Index>
+  using FieldType = decltype(std::declval<type>().get_field<Index>());
+};
+
+FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) StructOfStructsOfStructs FLATBUFFERS_FINAL_CLASS {
+ private:
+  MyGame::Example::StructOfStructs a_;
+
+ public:
+  struct Traits;
+  static const flatbuffers::TypeTable *MiniReflectTypeTable() {
+    return StructOfStructsOfStructsTypeTable();
+  }
+  StructOfStructsOfStructs()
+      : a_() {
+  }
+  StructOfStructsOfStructs(const MyGame::Example::StructOfStructs &_a)
+      : a_(_a) {
+  }
+  const MyGame::Example::StructOfStructs &a() const {
+    return a_;
+  }
+  MyGame::Example::StructOfStructs &mutable_a() {
+    return a_;
+  }
+  template<size_t Index>
+  auto get_field() const {
+         if constexpr (Index == 0) return a();
+    else static_assert(Index != Index, "Invalid Field Index");
+  }
+};
+FLATBUFFERS_STRUCT_END(StructOfStructsOfStructs, 20);
+
+struct StructOfStructsOfStructs::Traits {
+  using type = StructOfStructsOfStructs;
+  static constexpr auto name = "StructOfStructsOfStructs";
+  static constexpr auto fully_qualified_name = "MyGame.Example.StructOfStructsOfStructs";
+  static constexpr size_t fields_number = 1;
+  static constexpr std::array<const char *, fields_number> field_names = {
+    "a"
   };
   template<size_t Index>
   using FieldType = decltype(std::declval<type>().get_field<Index>());
@@ -3733,6 +3778,23 @@ inline const flatbuffers::TypeTable *StructOfStructsTypeTable() {
   };
   static const flatbuffers::TypeTable tt = {
     flatbuffers::ST_STRUCT, 3, type_codes, type_refs, nullptr, values, names
+  };
+  return &tt;
+}
+
+inline const flatbuffers::TypeTable *StructOfStructsOfStructsTypeTable() {
+  static const flatbuffers::TypeCode type_codes[] = {
+    { flatbuffers::ET_SEQUENCE, 0, 0 }
+  };
+  static const flatbuffers::TypeFunction type_refs[] = {
+    MyGame::Example::StructOfStructsTypeTable
+  };
+  static const int64_t values[] = { 0, 20 };
+  static const char * const names[] = {
+    "a"
+  };
+  static const flatbuffers::TypeTable tt = {
+    flatbuffers::ST_STRUCT, 1, type_codes, type_refs, nullptr, values, names
   };
   return &tt;
 }

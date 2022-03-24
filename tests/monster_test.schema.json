@@ -140,6 +140,15 @@
       },
       "additionalProperties" : false
     },
+    "MyGame_Example_StructOfStructsOfStructs" : {
+      "type" : "object",
+      "properties" : {
+        "a" : {
+                "$ref" : "#/definitions/MyGame_Example_StructOfStructs"
+              }
+      },
+      "additionalProperties" : false
+    },
     "MyGame_Example_Stat" : {
       "type" : "object",
       "properties" : {
