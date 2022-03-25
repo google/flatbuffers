@@ -13,6 +13,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import './monster_test_my_game.example_generated.dart' as example;
 import './monster_test_my_game.example2_generated.dart' as example2;
+import './keywords_test_keyword_test_generated.dart' as keyword_test;
 
 main() {
   defineReflectiveSuite(() {

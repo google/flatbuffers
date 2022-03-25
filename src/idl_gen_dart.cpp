@@ -37,14 +37,14 @@ Namer::Config DartDefaultConfig() {
            /*variants=*/Case::kKeep,
            /*enum_variant_seperator=*/".",
            /*escape_keywords=*/Namer::Config::Escape::AfterConvertingCase,
-           /*namespaces=*/Case::kAllLower,
-           /*namespace_seperator=*/"_",
+           /*namespaces=*/Case::kSnake2,
+           /*namespace_seperator=*/".",
            /*object_prefix=*/"",
            /*object_suffix=*/"T",
            /*keyword_prefix=*/"",
            /*keyword_suffix=*/"_",
-           /*filenames=*/Case::kSnake,
-           /*directories=*/Case::kSnake,
+           /*filenames=*/Case::kKeep,
+           /*directories=*/Case::kKeep,
            /*output_path=*/"",
            /*filename_suffix=*/"_generated",
            /*filename_extension=*/".dart" };
@@ -52,7 +52,7 @@ Namer::Config DartDefaultConfig() {
 
 std::set<std::string> DartKeywords() {
   // see https://www.dartlang.org/guides/language/language-tour#keywords
-  // yeild*, async*, and sync* shouldn't be problems anyway but keeping them in
+  // yield*, async*, and sync* shouldn't be problems anyway but keeping them in
   return { "abstract", "deferred",   "if",      "super",     "as",
            "do",       "implements", "switch",  "assert",    "dynamic",
            "import",   "sync*",      "async",   "else",      "in",
@@ -104,29 +104,20 @@ class DartGenerator : public BaseGenerator {
       for (auto kv2 = namespace_code.begin(); kv2 != namespace_code.end();
            ++kv2) {
         if (kv2->first != kv->first) {
-          code +=
-              "import '" +
-              GeneratedFileName(
-                  "./",
-                  file_name_ + (!kv2->first.empty() ? "_" + kv2->first : ""),
-                  parser_.opts) +
-              "' as " + ImportAliasName(kv2->first) + ";\n";
+          code += "import './" + Filename(kv2->first) + "' as " +
+                  ImportAliasName(kv2->first) + ";\n";
         }
       }
       code += "\n";
       code += kv->second;
 
-      if (!SaveFile(
-              GeneratedFileName(
-                  path_,
-                  file_name_ + (!kv->first.empty() ? "_" + kv->first : ""),
-                  parser_.opts)
-                  .c_str(),
-              code, false)) {
-        return false;
-      }
+      if (!SaveFile(Filename(kv->first).c_str(), code, false)) { return false; }
     }
     return true;
+  }
+
+  std::string Filename(const std::string &s) const {
+    return path_ + namer_.File(file_name_ + (s.empty() ? "" : "_" + s));
   }
 
  private:
@@ -140,45 +131,6 @@ class DartGenerator : public BaseGenerator {
     }
 
     return ret;
-  }
-
-  std::string BuildNamespaceName(const Namespace &ns) {
-    if (ns.components.empty()) { return ""; }
-    std::stringstream sstream;
-    std::copy(ns.components.begin(), ns.components.end() - 1,
-              std::ostream_iterator<std::string>(sstream, "."));
-
-    auto ret = sstream.str() + ns.components.back();
-    for (size_t i = 0; i < ret.size(); i++) {
-      auto lower = CharToLower(ret[i]);
-      if (lower != ret[i]) {
-        ret[i] = lower;
-        if (i != 0 && ret[i - 1] != '.') {
-          ret.insert(i, "_");
-          i++;
-        }
-      }
-    }
-    // std::transform(ret.begin(), ret.end(), ret.begin(), CharToLower);
-    return ret;
-  }
-
-  void GenIncludeDependencies(std::string *code,
-                              const std::string &the_namespace) {
-    for (auto it = parser_.included_files_.begin();
-         it != parser_.included_files_.end(); ++it) {
-      if (it->second.empty()) continue;
-
-      auto noext = flatbuffers::StripExtension(it->second);
-      auto basename = flatbuffers::StripPath(noext);
-
-      *code +=
-          "import '" +
-          GeneratedFileName(
-              "", basename + (the_namespace == "" ? "" : "_" + the_namespace),
-              parser_.opts) +
-          "';\n";
-    }
   }
 
   void GenerateEnums(namespace_code_map *namespace_code) {
@@ -209,7 +161,7 @@ class DartGenerator : public BaseGenerator {
   // Generate an enum declaration and an enum string lookup table.
   void GenEnum(EnumDef &enum_def, namespace_code_map *namespace_code) {
     if (enum_def.generated) return;
-    auto ns = BuildNamespaceName(*enum_def.defined_namespace);
+    auto ns = namer_.Namespace(*enum_def.defined_namespace);
     std::string code;
     GenDocComment(enum_def.doc_comment, "", code);
 
@@ -409,21 +361,19 @@ class DartGenerator : public BaseGenerator {
     return typeName;
   }
 
-  const std::string MaybeWrapNamespace(const std::string &type_name,
+  std::string MaybeWrapNamespace(const std::string &type_name,
                                        Namespace *current_ns,
-                                       const FieldDef &field) {
-    auto curr_ns_str = BuildNamespaceName(*current_ns);
-    std::string field_ns_str = "";
-    if (field.value.type.struct_def) {
-      field_ns_str +=
-          BuildNamespaceName(*field.value.type.struct_def->defined_namespace);
-    } else if (field.value.type.enum_def) {
-      field_ns_str +=
-          BuildNamespaceName(*field.value.type.enum_def->defined_namespace);
-    }
+                                       const FieldDef &field) const {
+    const std::string current_namespace = namer_.Namespace(*current_ns);
+    const std::string field_namespace =
+        field.value.type.struct_def
+            ? namer_.Namespace(*field.value.type.struct_def->defined_namespace)
+        : field.value.type.enum_def
+            ? namer_.Namespace(*field.value.type.enum_def->defined_namespace)
+            : "";
 
-    if (field_ns_str != "" && field_ns_str != curr_ns_str) {
-      return ImportAliasName(field_ns_str) + "." + type_name;
+    if (field_namespace != "" && field_namespace != current_namespace) {
+      return ImportAliasName(field_namespace) + "." + type_name;
     } else {
       return type_name;
     }
@@ -434,7 +384,7 @@ class DartGenerator : public BaseGenerator {
                  namespace_code_map *namespace_code) {
     if (struct_def.generated) return;
 
-    auto object_namespace = BuildNamespaceName(*struct_def.defined_namespace);
+    auto object_namespace = namer_.Namespace(*struct_def.defined_namespace);
     std::string code;
 
     const auto &struct_type = namer_.Type(struct_def);
@@ -1115,8 +1065,7 @@ std::string DartMakeRule(const Parser &parser, const std::string &path,
   auto filebase =
       flatbuffers::StripPath(flatbuffers::StripExtension(file_name));
   dart::DartGenerator generator(parser, path, file_name);
-  auto make_rule =
-      generator.GeneratedFileName(path, file_name, parser.opts) + ": ";
+  auto make_rule = generator.Filename("") + ": ";
 
   auto included_files = parser.GetIncludedFilesRecursive(file_name);
   for (auto it = included_files.begin(); it != included_files.end(); ++it) {

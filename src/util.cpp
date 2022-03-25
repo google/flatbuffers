@@ -360,17 +360,21 @@ static std::string ToAll(const std::string &input,
   return s;
 }
 
-static std::string CamelToSnake(const std::string &input) {
+static std::string CamelToSnake(const std::string &input,
+                                bool numbers_end_words = false) {
+  const auto in_word = [numbers_end_words](char c) -> bool {
+    return islower(c) || (numbers_end_words && isdigit(c));
+  };
   std::string s;
   for (size_t i = 0; i < input.length(); i++) {
     if (i == 0) {
       s += CharToLower(input[i]);
     } else if (input[i] == '_') {
       s += '_';
-    } else if (!islower(input[i])) {
+    } else if (!in_word(input[i])) {
       // Prevent duplicate underscores for Upper_Snake_Case strings
       // and UPPERCASE strings.
-      if (islower(input[i - 1])) { s += '_'; }
+      if (in_word(input[i - 1])) { s += '_'; }
       s += CharToLower(input[i]);
     } else {
       s += input[i];
@@ -414,6 +418,27 @@ static std::string ToDasher(const std::string &input) {
 
 }  // namespace
 
+// Converts foo_bar_123baz_456 to foo_bar123_baz456
+static std::string SnakeToSnake2(const std::string &s) {
+  if (s.length() <= 1) return s;
+  std::string result;
+  result.reserve(s.size());
+  for (size_t i = 0; i < s.length() - 1; i++) {
+    if (s[i] == '_' && isdigit(s[i + 1])) {
+      continue;  // Move the `_` until after the digits.
+    }
+
+    result.push_back(s[i]);
+
+    if (isdigit(s[i]) && isalpha(s[i + 1]) && islower(s[i + 1])) {
+      result.push_back('_');
+    }
+  }
+  result.push_back(s.back());
+
+  return result;
+}
+
 std::string ConvertCase(const std::string &input, Case output_case,
                         Case input_case) {
   if (output_case == Case::kKeep) return input;
@@ -440,6 +465,7 @@ std::string ConvertCase(const std::string &input, Case output_case,
     case Case::kAllUpper: return ToAll(input, CharToUpper);
     case Case::kAllLower: return ToAll(input, CharToLower);
     case Case::kDasher: return ToDasher(input);
+    case Case::kSnake2: return SnakeToSnake2(input);
     default:
     case Case::kUnknown: return input;
   }
