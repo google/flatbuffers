@@ -360,21 +360,17 @@ static std::string ToAll(const std::string &input,
   return s;
 }
 
-static std::string CamelToSnake(const std::string &input,
-                                bool numbers_end_words = false) {
-  const auto in_word = [numbers_end_words](char c) -> bool {
-    return islower(c) || (numbers_end_words && isdigit(c));
-  };
+static std::string CamelToSnake(const std::string &input) {
   std::string s;
   for (size_t i = 0; i < input.length(); i++) {
     if (i == 0) {
       s += CharToLower(input[i]);
     } else if (input[i] == '_') {
       s += '_';
-    } else if (!in_word(input[i])) {
+    } else if (!islower(input[i])) {
       // Prevent duplicate underscores for Upper_Snake_Case strings
       // and UPPERCASE strings.
-      if (in_word(input[i - 1])) { s += '_'; }
+      if (islower(input[i - 1])) { s += '_'; }
       s += CharToLower(input[i]);
     } else {
       s += input[i];

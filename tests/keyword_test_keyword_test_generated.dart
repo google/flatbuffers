@@ -156,16 +156,18 @@ class KeywordsInTable {
   ABC get is_ => ABC.fromValue(const fb.Int32Reader().vTableGet(_bc, _bcOffset, 4, 0));
   public get private => public.fromValue(const fb.Int32Reader().vTableGet(_bc, _bcOffset, 6, 0));
   int get type => const fb.Int32Reader().vTableGet(_bc, _bcOffset, 8, 0);
+  bool get default_ => const fb.BoolReader().vTableGet(_bc, _bcOffset, 10, false);
 
   @override
   String toString() {
-    return 'KeywordsInTable{is_: $is_, private: $private, type: $type}';
+    return 'KeywordsInTable{is_: $is_, private: $private, type: $type, default_: $default_}';
   }
 
   KeywordsInTableT unpack() => KeywordsInTableT(
       is_: is_,
       private: private,
-      type: type);
+      type: type,
+      default_: default_);
 
   static int pack(fb.Builder fbBuilder, KeywordsInTableT? object) {
     if (object == null) return 0;
@@ -177,24 +179,27 @@ class KeywordsInTableT implements fb.Packable {
   ABC is_;
   public private;
   int type;
+  bool default_;
 
   KeywordsInTableT({
       this.is_ = ABC.void_,
       this.private = public.NONE,
-      this.type = 0});
+      this.type = 0,
+      this.default_ = false});
 
   @override
   int pack(fb.Builder fbBuilder) {
-    fbBuilder.startTable(3);
+    fbBuilder.startTable(4);
     fbBuilder.addInt32(0, is_.value);
     fbBuilder.addInt32(1, private.value);
     fbBuilder.addInt32(2, type);
+    fbBuilder.addBool(3, default_);
     return fbBuilder.endTable();
   }
 
   @override
   String toString() {
-    return 'KeywordsInTableT{is_: $is_, private: $private, type: $type}';
+    return 'KeywordsInTableT{is_: $is_, private: $private, type: $type, default_: $default_}';
   }
 }
 
@@ -212,7 +217,7 @@ class KeywordsInTableBuilder {
   final fb.Builder fbBuilder;
 
   void begin() {
-    fbBuilder.startTable(3);
+    fbBuilder.startTable(4);
   }
 
   int addIs(ABC? is_) {
@@ -227,6 +232,10 @@ class KeywordsInTableBuilder {
     fbBuilder.addInt32(2, type);
     return fbBuilder.offset;
   }
+  int addDefault(bool? default_) {
+    fbBuilder.addBool(3, default_);
+    return fbBuilder.offset;
+  }
 
   int finish() {
     return fbBuilder.endTable();
@@ -237,23 +246,27 @@ class KeywordsInTableObjectBuilder extends fb.ObjectBuilder {
   final ABC? _is_;
   final public? _private;
   final int? _type;
+  final bool? _default_;
 
   KeywordsInTableObjectBuilder({
     ABC? is_,
     public? private,
     int? type,
+    bool? default_,
   })
       : _is_ = is_,
         _private = private,
-        _type = type;
+        _type = type,
+        _default_ = default_;
 
   /// Finish building, and store into the [fbBuilder].
   @override
   int finish(fb.Builder fbBuilder) {
-    fbBuilder.startTable(3);
+    fbBuilder.startTable(4);
     fbBuilder.addInt32(0, _is_?.value);
     fbBuilder.addInt32(1, _private?.value);
     fbBuilder.addInt32(2, _type);
+    fbBuilder.addBool(3, _default_);
     return fbBuilder.endTable();
   }
 
