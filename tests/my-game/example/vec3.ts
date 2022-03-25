@@ -130,8 +130,8 @@ pack(builder:flatbuffers.Builder): flatbuffers.Offset {
     this.z,
     this.test1,
     this.test2,
-    (this.test3 === null ? 0 : this.test3.a!),
-    (this.test3 === null ? 0 : this.test3.b!)
+    (this.test3?.a ?? 0),
+    (this.test3?.b ?? 0)
   );
 }
 }

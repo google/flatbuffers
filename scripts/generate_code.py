@@ -368,7 +368,7 @@ flatc(BASE_OPTS + DART_OPTS, schema="keyword_test.fbs")
 # Swift Tests
 swift_prefix = "FlatBuffers.Test.Swift/Tests/FlatBuffers.Test.SwiftTests"
 flatc(
-    SWIFT_OPTS + NO_INCL_OPTS + ["--grpc"],
+    SWIFT_OPTS + BASE_OPTS + ["--grpc"],
     schema="monster_test.fbs",
     include="include_test",
     prefix=swift_prefix,
