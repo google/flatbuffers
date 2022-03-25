@@ -21,7 +21,7 @@
 #include "flatbuffers/flatbuffers.h"
 #include "flatbuffers/idl.h"
 #include "flatbuffers/util.h"
-#include "namer.h"
+#include "idl_namer.h"
 
 namespace flatbuffers {
 
@@ -78,7 +78,7 @@ class DartGenerator : public BaseGenerator {
   DartGenerator(const Parser &parser, const std::string &path,
                 const std::string &file_name)
       : BaseGenerator(parser, path, file_name, "", ".", "dart"),
-        namer_(DartDefaultConfig().WithFlagOptions(parser.opts, path),
+        namer_(WithFlagOptions(DartDefaultConfig(), parser.opts, path),
                DartKeywords()) {}
   // Iterate through all definitions we haven't generate code for (enums,
   // structs, and tables) and output them to a single file.
@@ -1068,7 +1068,7 @@ class DartGenerator : public BaseGenerator {
     return code;
   }
 
-  const Namer namer_;
+  const IdlNamer namer_;
 };
 }  // namespace dart
 

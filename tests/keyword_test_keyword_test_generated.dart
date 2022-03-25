@@ -46,7 +46,7 @@ class _ABCReader extends fb.Reader<ABC> {
   const _ABCReader();
 
   @override
-  int get size => 1;
+  int get size => 4;
 
   @override
   ABC read(fb.BufferContext bc, int offset) =>
@@ -88,7 +88,7 @@ class _publicReader extends fb.Reader<public> {
   const _publicReader();
 
   @override
-  int get size => 1;
+  int get size => 4;
 
   @override
   public read(fb.BufferContext bc, int offset) =>
