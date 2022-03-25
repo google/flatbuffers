@@ -363,7 +363,7 @@ flatc(
     prefix="nested_namespace_test",
     schema=glob(tests_path, "nested_namespace_test/nested_namespace_test*.fbs"),
 )
-flatc(BASE_OPTS + DART_OPTS, schema="keyword_test.fbs")
+flatc(BASE_OPTS + DART_OPTS, prefix="../dart/test/", schema="keyword_test.fbs")
 
 # Swift Tests
 swift_prefix = "FlatBuffers.Test.Swift/Tests/FlatBuffers.Test.SwiftTests"
