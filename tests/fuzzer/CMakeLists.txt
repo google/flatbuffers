@@ -112,12 +112,15 @@ set(FlatBuffers_Library_SRCS
     ${FLATBUFFERS_DIR}/src/idl_parser.cpp
     ${FLATBUFFERS_DIR}/src/idl_gen_text.cpp
     ${FLATBUFFERS_DIR}/src/reflection.cpp
+    ${FLATBUFFERS_DIR}/src/binary_annotator.h
+    ${FLATBUFFERS_DIR}/src/binary_annotator.cpp
     ${FLATBUFFERS_DIR}/src/util.cpp
     ${FLATBUFFERS_DIR}/tests/test_assert.cpp
 )
 
 include_directories(${FLATBUFFERS_DIR}/include)
 include_directories(${FLATBUFFERS_DIR}/tests)
+include_directories(${FLATBUFFERS_DIR}/src)
 
 add_library(flatbuffers_fuzzed STATIC ${FlatBuffers_Library_SRCS})
 # Use PUBLIC to force 'fuzzer_config' for all dependent targets
@@ -156,7 +159,20 @@ add_custom_command(
   COMMAND ${CMAKE_COMMAND} -E copy
   ${CMAKE_SOURCE_DIR}/../monster_test.bfbs
   ${CMAKE_CURRENT_BINARY_DIR}/monster_test.bfbs)
-  
+
+add_executable(annotator_fuzzer flatbuffers_annotator_fuzzer.cc)
+target_link_libraries(annotator_fuzzer PRIVATE flatbuffers_fuzzed)
+add_custom_command(
+  TARGET annotator_fuzzer PRE_BUILD
+
+  COMMAND ${CMAKE_COMMAND} -E copy
+  ${CMAKE_SOURCE_DIR}/../annotated_binary/annotated_binary.bfbs
+  ${CMAKE_CURRENT_BINARY_DIR}/annotated_binary.bfbs
+
+  COMMAND ${CMAKE_COMMAND} -E copy
+  ${CMAKE_SOURCE_DIR}/../annotated_binary/annotated_binary.bin
+  ${CMAKE_CURRENT_BINARY_DIR}/seed_annotator/annotated_binary.bin
+)
 
 # Build debugger for weird cases found with fuzzer.
 if(BUILD_DEBUGGER)
