@@ -1,5 +1,8 @@
 #include "annotated_binary_text_gen.h"
 
+#include <sstream>
+#include <string>
+
 #include "flatbuffers/util.h"
 
 namespace flatbuffers {
@@ -37,6 +40,16 @@ static bool IsOffset(const BinaryRegionType type) {
   return type == BinaryRegionType::UOffset || type == BinaryRegionType::SOffset;
 }
 
+template<typename T> std::string ToString(T value) {
+  if (std::is_floating_point<T>::value) {
+    std::stringstream ss;
+    ss << value;
+    return ss.str();
+  } else {
+    return std::to_string(value);
+  }
+}
+
 template<typename T>
 std::string ToValueString(const BinaryRegion &region, const uint8_t *binary) {
   std::string s;
@@ -47,7 +60,7 @@ std::string ToValueString(const BinaryRegion &region, const uint8_t *binary) {
     s += ToHex(binary[start_index - i]);
   }
   s += " (";
-  s += std::to_string(val);
+  s += ToString(val);
   s += ")";
   return s;
 }
