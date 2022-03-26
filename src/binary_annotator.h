@@ -277,6 +277,24 @@ class BinaryAnnotator {
     return value < enum_def->values()->size();
   }
 
+  uint64_t GetElementSize(const reflection::Field *const field) {
+    if (IsScalar(field->type()->element())) {
+      return GetTypeSize(field->type()->element());
+    }
+
+    switch (field->type()->element()) {
+      case reflection::BaseType::Obj: {
+        auto obj = schema_->objects()->Get(field->type()->index());
+        return obj->is_struct() ? obj->bytesize() : sizeof(uint32_t);
+      }
+      default: return sizeof(uint32_t);
+    }
+  }
+
+  bool ContainsSection(const uint64_t offset) {
+    return sections_.find(offset) != sections_.end();
+  }
+
   // The schema for the binary file
   const uint8_t *bfbs_;
   const uint64_t bfbs_length_;
@@ -288,9 +306,6 @@ class BinaryAnnotator {
 
   // Map of binary offset to vtables, to dedupe vtables.
   std::map<uint64_t, VTable> vtables_;
-
-  // A set of binary offset to string sections, to dedupe shared strings.
-  std::set<uint64_t> strings_;
 
   // The annotated binary sections, index by their absolute offset.
   std::map<uint64_t, BinarySection> sections_;
