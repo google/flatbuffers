@@ -160,7 +160,7 @@ class KeywordsInTable {
 
   @override
   String toString() {
-    return 'KeywordsInTable{$is: $$is, private: $private, type: $type, $default: $$default}';
+    return 'KeywordsInTable{\$is: $\$is, private: $private, type: $type, \$default: $\$default}';
   }
 
   KeywordsInTableT unpack() => KeywordsInTableT(
@@ -199,7 +199,7 @@ class KeywordsInTableT implements fb.Packable {
 
   @override
   String toString() {
-    return 'KeywordsInTableT{$is: $$is, private: $private, type: $type, $default: $$default}';
+    return 'KeywordsInTableT{\$is: $\$is, private: $private, type: $type, \$default: $\$default}';
   }
 }
 

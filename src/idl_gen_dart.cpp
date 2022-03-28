@@ -162,8 +162,8 @@ class DartGenerator : public BaseGenerator {
   // Generate an enum declaration and an enum string lookup table.
   void GenEnum(EnumDef &enum_def, namespace_code_map &namespace_code) {
     if (enum_def.generated) return;
-    auto ns = namer_.Namespace(*enum_def.defined_namespace);
-    std::string &code = namespace_code[ns];
+    std::string &code =
+        namespace_code[namer_.Namespace(*enum_def.defined_namespace)];
     GenDocComment(enum_def.doc_comment, "", code);
 
     const std::string enum_type =
@@ -402,8 +402,8 @@ class DartGenerator : public BaseGenerator {
                  namespace_code_map &namespace_code) {
     if (struct_def.generated) return;
 
-    auto object_namespace = namer_.Namespace(*struct_def.defined_namespace);
-    std::string &code = namespace_code[object_namespace];
+    std::string &code =
+        namespace_code[namer_.Namespace(*struct_def.defined_namespace)];
 
     const auto &struct_type = namer_.Type(struct_def);
 
@@ -697,7 +697,14 @@ class DartGenerator : public BaseGenerator {
     for (auto it = non_deprecated_fields.begin();
          it != non_deprecated_fields.end(); ++it) {
       const std::string field = namer_.Field(*it->second);
-      code += field + ": $" + field;
+      // We need to escape the fact that some fields have $ in the name which is
+      // also used in symbol/string substitution.
+      std::string escaped_field;
+      for (size_t i = 0; i < field.size(); i++) {
+        if (field[i] == '$') escaped_field.push_back('\\');
+        escaped_field.push_back(field[i]);
+      }
+      code += escaped_field + ": $" + escaped_field + "";
       if (it != non_deprecated_fields.end() - 1) { code += ", "; }
     }
     code += "}';\n";
