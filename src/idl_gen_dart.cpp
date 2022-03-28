@@ -41,8 +41,8 @@ Namer::Config DartDefaultConfig() {
            /*namespace_seperator=*/".",
            /*object_prefix=*/"",
            /*object_suffix=*/"T",
-           /*keyword_prefix=*/"",
-           /*keyword_suffix=*/"_",
+           /*keyword_prefix=*/"$",
+           /*keyword_suffix=*/"",
            /*filenames=*/Case::kKeep,
            /*directories=*/Case::kKeep,
            /*output_path=*/"",
@@ -52,19 +52,20 @@ Namer::Config DartDefaultConfig() {
 
 std::set<std::string> DartKeywords() {
   // see https://www.dartlang.org/guides/language/language-tour#keywords
-  // yield*, async*, and sync* shouldn't be problems anyway but keeping them in
-  return { "abstract", "deferred",   "if",      "super",     "as",
-           "do",       "implements", "switch",  "assert",    "dynamic",
-           "import",   "sync*",      "async",   "else",      "in",
-           "this",     "async*",     "enum",    "is",        "throw",
-           "await",    "export",     "library", "true",      "break",
-           "external", "new",        "try",     "case",      "extends",
-           "null",     "typedef",    "catch",   "factory",   "operator",
-           "var",      "class",      "false",   "part",      "void",
-           "const",    "final",      "rethrow", "while",     "continue",
-           "finally",  "return",     "with",    "covariant", "for",
-           "set",      "yield",      "default", "get",       "static",
-           "yield*" };
+  // yield*, async*, and sync* shouldn't be proble
+  return {
+    "abstract", "else",       "import",    "show",     "as",        "enum",
+    "in",       "static",     "assert",    "export",   "interface", "super",
+    "async",    "extends",    "is",        "switch",   "await",     "extension",
+    "late",     "sync",       "break",     "external", "library",   "this",
+    "case",     "factory",    "mixin",     "throw",    "catch",     "false",
+    "new",      "true",       "class",     "final",    "null",      "try",
+    "const",    "finally",    "on",        "typedef",  "continue",  "for",
+    "operator", "var",        "covariant", "Function", "part",      "void",
+    "default",  "get",        "required",  "while",    "deferred",  "hide",
+    "rethrow",  "with",       "do",        "if",       "return",    "yield",
+    "dynamic",  "implements", "set",
+  };
 }
 
 const std::string _kFb = "fb";
@@ -85,8 +86,8 @@ class DartGenerator : public BaseGenerator {
   bool generate() {
     std::string code;
     namespace_code_map namespace_code;
-    GenerateEnums(&namespace_code);
-    GenerateStructs(&namespace_code);
+    GenerateEnums(namespace_code);
+    GenerateStructs(namespace_code);
 
     for (auto kv = namespace_code.begin(); kv != namespace_code.end(); ++kv) {
       code.clear();
@@ -133,7 +134,7 @@ class DartGenerator : public BaseGenerator {
     return ret;
   }
 
-  void GenerateEnums(namespace_code_map *namespace_code) {
+  void GenerateEnums(namespace_code_map &namespace_code) {
     for (auto it = parser_.enums_.vec.begin(); it != parser_.enums_.vec.end();
          ++it) {
       auto &enum_def = **it;
@@ -141,7 +142,7 @@ class DartGenerator : public BaseGenerator {
     }
   }
 
-  void GenerateStructs(namespace_code_map *namespace_code) {
+  void GenerateStructs(namespace_code_map &namespace_code) {
     for (auto it = parser_.structs_.vec.begin();
          it != parser_.structs_.vec.end(); ++it) {
       auto &struct_def = **it;
@@ -159,10 +160,10 @@ class DartGenerator : public BaseGenerator {
   }
 
   // Generate an enum declaration and an enum string lookup table.
-  void GenEnum(EnumDef &enum_def, namespace_code_map *namespace_code) {
+  void GenEnum(EnumDef &enum_def, namespace_code_map &namespace_code) {
     if (enum_def.generated) return;
     auto ns = namer_.Namespace(*enum_def.defined_namespace);
-    std::string code;
+    std::string &code = namespace_code[ns];
     GenDocComment(enum_def.doc_comment, "", code);
 
     const std::string enum_type =
@@ -240,7 +241,6 @@ class DartGenerator : public BaseGenerator {
     code += "}\n\n";
 
     GenEnumReader(enum_def, enum_type, code);
-    (*namespace_code)[ns] += code;
   }
 
   void GenEnumReader(EnumDef &enum_def, const std::string &enum_type,
@@ -380,8 +380,8 @@ class DartGenerator : public BaseGenerator {
   }
 
   std::string MaybeWrapNamespace(const std::string &type_name,
-                                       Namespace *current_ns,
-                                       const FieldDef &field) const {
+                                 Namespace *current_ns,
+                                 const FieldDef &field) const {
     const std::string current_namespace = namer_.Namespace(*current_ns);
     const std::string field_namespace =
         field.value.type.struct_def
@@ -399,11 +399,11 @@ class DartGenerator : public BaseGenerator {
 
   // Generate an accessor struct with constructor for a flatbuffers struct.
   void GenStruct(const StructDef &struct_def,
-                 namespace_code_map *namespace_code) {
+                 namespace_code_map &namespace_code) {
     if (struct_def.generated) return;
 
     auto object_namespace = namer_.Namespace(*struct_def.defined_namespace);
-    std::string code;
+    std::string &code = namespace_code[object_namespace];
 
     const auto &struct_type = namer_.Type(struct_def);
 
@@ -470,8 +470,6 @@ class DartGenerator : public BaseGenerator {
 
     code += reader_code;
     code += builder_code;
-
-    (*namespace_code)[object_namespace] += code;
   }
 
   // Generate an accessor struct with constructor for a flatbuffers struct.
