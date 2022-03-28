@@ -34,7 +34,7 @@ Namer::Config DartDefaultConfig() {
            /*functions=*/Case::kUnknown,  // unused.
            /*fields=*/Case::kLowerCamel,
            /*variables=*/Case::kLowerCamel,
-           /*variants=*/Case::kUpperCamel,
+           /*variants=*/Case::kKeep,
            /*enum_variant_seperator=*/".",
            /*escape_keywords=*/Namer::Config::Escape::AfterConvertingCase,
            /*namespaces=*/Case::kSnake2,
@@ -105,8 +105,8 @@ class DartGenerator : public BaseGenerator {
       for (auto kv2 = namespace_code.begin(); kv2 != namespace_code.end();
            ++kv2) {
         if (kv2->first != kv->first) {
-          code += "import './" + Filename(kv2->first) + "' as " +
-                  ImportAliasName(kv2->first) + ";\n";
+          code += "import './" + Filename(kv2->first, /*path=*/false) +
+                  "' as " + ImportAliasName(kv2->first) + ";\n";
         }
       }
       code += "\n";
@@ -117,8 +117,9 @@ class DartGenerator : public BaseGenerator {
     return true;
   }
 
-  std::string Filename(const std::string &s) const {
-    return path_ + namer_.File(file_name_ + (s.empty() ? "" : "_" + s));
+  std::string Filename(const std::string &suffix, bool path = true) const {
+    return (path ? path_ : "") +
+           namer_.File(file_name_ + (suffix.empty() ? "" : "_" + suffix));
   }
 
  private:
@@ -359,8 +360,9 @@ class DartGenerator : public BaseGenerator {
       case BASE_TYPE_DOUBLE: return "double";
       case BASE_TYPE_STRING: return "String";
       case BASE_TYPE_STRUCT:
-        return MaybeWrapNamespace(namer_.Type(*type.struct_def) + struct_type_suffix,
-                                  current_namespace, def);
+        return MaybeWrapNamespace(
+            namer_.Type(*type.struct_def) + struct_type_suffix,
+            current_namespace, def);
       case BASE_TYPE_VECTOR:
         return "List<" +
                GenDartTypeName(type.VectorType(), current_namespace, def,
