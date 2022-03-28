@@ -7,92 +7,92 @@ import 'dart:typed_data' show Uint8List;
 import 'package:flat_buffers/flat_buffers.dart' as fb;
 
 
-class ABC {
+class Abc {
   final int value;
-  const ABC._(this.value);
+  const Abc._(this.value);
 
-  factory ABC.fromValue(int value) {
+  factory Abc.fromValue(int value) {
     final result = values[value];
     if (result == null) {
-        throw StateError('Invalid value $value for bit flag enum ABC');
+        throw StateError('Invalid value $value for bit flag enum Abc');
     }
     return result;
   }
 
-  static ABC? _createOrNull(int? value) => 
-      value == null ? null : ABC.fromValue(value);
+  static Abc? _createOrNull(int? value) => 
+      value == null ? null : Abc.fromValue(value);
 
   static const int minValue = 0;
   static const int maxValue = 2;
   static bool containsValue(int value) => values.containsKey(value);
 
-  static const ABC $void = ABC._(0);
-  static const ABC where = ABC._(1);
-  static const ABC stackalloc = ABC._(2);
-  static const Map<int, ABC> values = {
-    0: $void,
-    1: where,
-    2: stackalloc};
+  static const Abc Void = Abc._(0);
+  static const Abc Where = Abc._(1);
+  static const Abc Stackalloc = Abc._(2);
+  static const Map<int, Abc> values = {
+    0: Void,
+    1: Where,
+    2: Stackalloc};
 
-  static const fb.Reader<ABC> reader = _ABCReader();
+  static const fb.Reader<Abc> reader = _AbcReader();
 
   @override
   String toString() {
-    return 'ABC{value: $value}';
+    return 'Abc{value: $value}';
   }
 }
 
-class _ABCReader extends fb.Reader<ABC> {
-  const _ABCReader();
+class _AbcReader extends fb.Reader<Abc> {
+  const _AbcReader();
 
   @override
   int get size => 4;
 
   @override
-  ABC read(fb.BufferContext bc, int offset) =>
-      ABC.fromValue(const fb.Int32Reader().read(bc, offset));
+  Abc read(fb.BufferContext bc, int offset) =>
+      Abc.fromValue(const fb.Int32Reader().read(bc, offset));
 }
 
-class public {
+class Public {
   final int value;
-  const public._(this.value);
+  const Public._(this.value);
 
-  factory public.fromValue(int value) {
+  factory Public.fromValue(int value) {
     final result = values[value];
     if (result == null) {
-        throw StateError('Invalid value $value for bit flag enum public');
+        throw StateError('Invalid value $value for bit flag enum Public');
     }
     return result;
   }
 
-  static public? _createOrNull(int? value) => 
-      value == null ? null : public.fromValue(value);
+  static Public? _createOrNull(int? value) => 
+      value == null ? null : Public.fromValue(value);
 
   static const int minValue = 0;
   static const int maxValue = 0;
   static bool containsValue(int value) => values.containsKey(value);
 
-  static const public NONE = public._(0);
-  static const Map<int, public> values = {
-    0: NONE};
+  static const Public None = Public._(0);
+  static const Map<int, Public> values = {
+    0: None};
 
-  static const fb.Reader<public> reader = _publicReader();
+  static const fb.Reader<Public> reader = _PublicReader();
 
   @override
   String toString() {
-    return 'public{value: $value}';
+    return 'Public{value: $value}';
   }
 }
 
-class _publicReader extends fb.Reader<public> {
-  const _publicReader();
+class _PublicReader extends fb.Reader<Public> {
+  const _PublicReader();
 
   @override
   int get size => 4;
 
   @override
-  public read(fb.BufferContext bc, int offset) =>
-      public.fromValue(const fb.Int32Reader().read(bc, offset));
+  Public read(fb.BufferContext bc, int offset) =>
+      Public.fromValue(const fb.Int32Reader().read(bc, offset));
 }
 
 class KeywordsInUnionTypeId {
@@ -114,13 +114,13 @@ class KeywordsInUnionTypeId {
   static const int maxValue = 2;
   static bool containsValue(int value) => values.containsKey(value);
 
-  static const KeywordsInUnionTypeId NONE = KeywordsInUnionTypeId._(0);
-  static const KeywordsInUnionTypeId $static = KeywordsInUnionTypeId._(1);
-  static const KeywordsInUnionTypeId internal = KeywordsInUnionTypeId._(2);
+  static const KeywordsInUnionTypeId None = KeywordsInUnionTypeId._(0);
+  static const KeywordsInUnionTypeId Static = KeywordsInUnionTypeId._(1);
+  static const KeywordsInUnionTypeId Internal = KeywordsInUnionTypeId._(2);
   static const Map<int, KeywordsInUnionTypeId> values = {
-    0: NONE,
-    1: $static,
-    2: internal};
+    0: None,
+    1: Static,
+    2: Internal};
 
   static const fb.Reader<KeywordsInUnionTypeId> reader = _KeywordsInUnionTypeIdReader();
 
@@ -160,7 +160,7 @@ class KeywordsInTable {
 
   @override
   String toString() {
-    return 'KeywordsInTable{\$is: $\$is, private: $private, type: $type, \$default: $\$default}';
+    return 'KeywordsInTable{\$is: $$is, private: $private, type: $type, \$default: $$default}';
   }
 
   KeywordsInTableT unpack() => KeywordsInTableT(
@@ -182,8 +182,8 @@ class KeywordsInTableT implements fb.Packable {
   bool $default;
 
   KeywordsInTableT({
-      this.$is = ABC.$void,
-      this.private = public.NONE,
+      this.$is = Abc.Void,
+      this.private = Public.None,
       this.type = 0,
       this.$default = false});
 
@@ -199,7 +199,7 @@ class KeywordsInTableT implements fb.Packable {
 
   @override
   String toString() {
-    return 'KeywordsInTableT{\$is: $\$is, private: $private, type: $type, \$default: $\$default}';
+    return 'KeywordsInTableT{\$is: $$is, private: $private, type: $type, \$default: $$default}';
   }
 }
 
