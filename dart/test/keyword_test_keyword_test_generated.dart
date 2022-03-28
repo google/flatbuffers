@@ -26,13 +26,13 @@ class Abc {
   static const int maxValue = 2;
   static bool containsValue(int value) => values.containsKey(value);
 
-  static const Abc Void = Abc._(0);
-  static const Abc Where = Abc._(1);
-  static const Abc Stackalloc = Abc._(2);
+  static const Abc $void = Abc._(0);
+  static const Abc where = Abc._(1);
+  static const Abc stackalloc = Abc._(2);
   static const Map<int, Abc> values = {
-    0: Void,
-    1: Where,
-    2: Stackalloc};
+    0: $void,
+    1: where,
+    2: stackalloc};
 
   static const fb.Reader<Abc> reader = _AbcReader();
 
@@ -72,9 +72,9 @@ class Public {
   static const int maxValue = 0;
   static bool containsValue(int value) => values.containsKey(value);
 
-  static const Public None = Public._(0);
+  static const Public NONE = Public._(0);
   static const Map<int, Public> values = {
-    0: None};
+    0: NONE};
 
   static const fb.Reader<Public> reader = _PublicReader();
 
@@ -114,13 +114,13 @@ class KeywordsInUnionTypeId {
   static const int maxValue = 2;
   static bool containsValue(int value) => values.containsKey(value);
 
-  static const KeywordsInUnionTypeId None = KeywordsInUnionTypeId._(0);
-  static const KeywordsInUnionTypeId Static = KeywordsInUnionTypeId._(1);
-  static const KeywordsInUnionTypeId Internal = KeywordsInUnionTypeId._(2);
+  static const KeywordsInUnionTypeId NONE = KeywordsInUnionTypeId._(0);
+  static const KeywordsInUnionTypeId $static = KeywordsInUnionTypeId._(1);
+  static const KeywordsInUnionTypeId internal = KeywordsInUnionTypeId._(2);
   static const Map<int, KeywordsInUnionTypeId> values = {
-    0: None,
-    1: Static,
-    2: Internal};
+    0: NONE,
+    1: $static,
+    2: internal};
 
   static const fb.Reader<KeywordsInUnionTypeId> reader = _KeywordsInUnionTypeIdReader();
 
@@ -182,8 +182,8 @@ class KeywordsInTableT implements fb.Packable {
   bool $default;
 
   KeywordsInTableT({
-      this.$is = Abc.Void,
-      this.private = Public.None,
+      this.$is = Abc.$void,
+      this.private = Public.NONE,
       this.type = 0,
       this.$default = false});
 

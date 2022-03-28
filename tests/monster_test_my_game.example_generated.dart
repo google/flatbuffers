@@ -178,15 +178,15 @@ class AnyTypeId {
   static const int maxValue = 3;
   static bool containsValue(int value) => values.containsKey(value);
 
-  static const AnyTypeId None = AnyTypeId._(0);
+  static const AnyTypeId NONE = AnyTypeId._(0);
   static const AnyTypeId Monster = AnyTypeId._(1);
   static const AnyTypeId TestSimpleTableWithEnum = AnyTypeId._(2);
-  static const AnyTypeId MyGameExample2Monster = AnyTypeId._(3);
+  static const AnyTypeId MyGame_Example2_Monster = AnyTypeId._(3);
   static const Map<int, AnyTypeId> values = {
-    0: None,
+    0: NONE,
     1: Monster,
     2: TestSimpleTableWithEnum,
-    3: MyGameExample2Monster};
+    3: MyGame_Example2_Monster};
 
   static const fb.Reader<AnyTypeId> reader = _AnyTypeIdReader();
 
@@ -226,14 +226,14 @@ class AnyUniqueAliasesTypeId {
   static const int maxValue = 3;
   static bool containsValue(int value) => values.containsKey(value);
 
-  static const AnyUniqueAliasesTypeId None = AnyUniqueAliasesTypeId._(0);
+  static const AnyUniqueAliasesTypeId NONE = AnyUniqueAliasesTypeId._(0);
   static const AnyUniqueAliasesTypeId M = AnyUniqueAliasesTypeId._(1);
-  static const AnyUniqueAliasesTypeId Ts = AnyUniqueAliasesTypeId._(2);
+  static const AnyUniqueAliasesTypeId TS = AnyUniqueAliasesTypeId._(2);
   static const AnyUniqueAliasesTypeId M2 = AnyUniqueAliasesTypeId._(3);
   static const Map<int, AnyUniqueAliasesTypeId> values = {
-    0: None,
+    0: NONE,
     1: M,
-    2: Ts,
+    2: TS,
     3: M2};
 
   static const fb.Reader<AnyUniqueAliasesTypeId> reader = _AnyUniqueAliasesTypeIdReader();
@@ -274,12 +274,12 @@ class AnyAmbiguousAliasesTypeId {
   static const int maxValue = 3;
   static bool containsValue(int value) => values.containsKey(value);
 
-  static const AnyAmbiguousAliasesTypeId None = AnyAmbiguousAliasesTypeId._(0);
+  static const AnyAmbiguousAliasesTypeId NONE = AnyAmbiguousAliasesTypeId._(0);
   static const AnyAmbiguousAliasesTypeId M1 = AnyAmbiguousAliasesTypeId._(1);
   static const AnyAmbiguousAliasesTypeId M2 = AnyAmbiguousAliasesTypeId._(2);
   static const AnyAmbiguousAliasesTypeId M3 = AnyAmbiguousAliasesTypeId._(3);
   static const Map<int, AnyAmbiguousAliasesTypeId> values = {
-    0: None,
+    0: NONE,
     1: M1,
     2: M2,
     3: M3};
