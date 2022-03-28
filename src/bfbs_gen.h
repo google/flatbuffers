@@ -73,10 +73,6 @@ static bool IsStructOrTable(const reflection::BaseType base_type) {
   return base_type == reflection::Obj;
 }
 
-static bool IsScalar(const reflection::BaseType base_type) {
-  return base_type >= reflection::UType && base_type <= reflection::Double;
-}
-
 static bool IsFloatingPoint(const reflection::BaseType base_type) {
   return base_type == reflection::Float || base_type == reflection::Double;
 }
@@ -91,22 +87,6 @@ static bool IsSingleByte(const reflection::BaseType base_type) {
 
 static bool IsVector(const reflection::BaseType base_type) {
   return base_type == reflection::Vector;
-}
-
-static std::string Denamespace(const flatbuffers::String *name,
-                               std::string &ns) {
-  const size_t pos = name->str().find_last_of('.');
-  if (pos == std::string::npos) {
-    ns = "";
-    return name->str();
-  }
-  ns = name->str().substr(0, pos);
-  return name->str().substr(pos + 1);
-}
-
-static std::string Denamespace(const flatbuffers::String *name) {
-  std::string ns;
-  return Denamespace(name, ns);
 }
 
 // A concrete base Flatbuffer Generator that specific language generators can

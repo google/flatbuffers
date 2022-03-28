@@ -19,6 +19,8 @@
 #include <list>
 #include <sstream>
 
+#include "annotated_binary_text_gen.h"
+#include "binary_annotator.h"
 #include "flatbuffers/util.h"
 
 namespace flatbuffers {
@@ -203,7 +205,7 @@ const static FlatCOption options[] = {
     "Used with \"binary\" and \"json\" options, it generates data using "
     "schema-less FlexBuffers." },
   { "", "no-warnings", "", "Inhibit all warnings messages." },
-  { "", "warning-as-errors", "", "Treat all warnings as errors." },
+  { "", "warnings-as-errors", "", "Treat all warnings as errors." },
   { "", "cs-global-alias", "",
     "Prepend \"global::\" to all user generated csharp classes and "
     "structs." },
@@ -213,6 +215,10 @@ const static FlatCOption options[] = {
   { "", "json-nested-bytes", "",
     "Allow a nested_flatbuffer field to be parsed as a vector of bytes"
     "in JSON, which is unsafe unless checked by a verifier afterwards." },
+  { "", "ts-flat-files", "",
+    "Only generated one typescript file per .fbs file." },
+  { "", "annotate", "SCHEMA",
+    "Annotate the provided BINARY_FILE with the specified SCHEMA file." },
 };
 
 static void AppendTextWrappedString(std::stringstream &ss, std::string &text,
@@ -295,7 +301,7 @@ std::string FlatCompiler::GetShortUsageString(const char *program_name) const {
     ss << ", ";
   }
   ss.seekp(-2, ss.cur);
-  ss << "]... FILE... [-- FILE...]";
+  ss << "]... FILE... [-- BINARY_FILE...]";
   std::string help = ss.str();
   std::stringstream ss_textwrap;
   AppendTextWrappedString(ss_textwrap, help, 80, 0);
@@ -304,7 +310,8 @@ std::string FlatCompiler::GetShortUsageString(const char *program_name) const {
 
 std::string FlatCompiler::GetUsageString(const char *program_name) const {
   std::stringstream ss;
-  ss << "Usage: " << program_name << " [OPTION]... FILE... [-- FILE...]\n";
+  ss << "Usage: " << program_name
+     << " [OPTION]... FILE... [-- BINARY_FILE...]\n";
   for (size_t i = 0; i < params_.num_generators; ++i) {
     const Generator &g = params_.generators[i];
     AppendOption(ss, g.option, 80, 25);
@@ -318,14 +325,46 @@ std::string FlatCompiler::GetUsageString(const char *program_name) const {
 
   std::string files_description =
       "FILEs may be schemas (must end in .fbs), binary schemas (must end in "
-      ".bfbs) or JSON files (conforming to preceding schema). FILEs after the "
-      "-- must be binary flatbuffer format files. Output files are named using "
-      "the base file name of the input, and written to the current directory "
-      "or the path given by -o. example: " +
+      ".bfbs) or JSON files (conforming to preceding schema). BINARY_FILEs "
+      "after the -- must be binary flatbuffer format files. Output files are "
+      "named using the base file name of the input, and written to the current "
+      "directory or the path given by -o. example: " +
       std::string(program_name) + " -c -b schema1.fbs schema2.fbs data.json";
   AppendTextWrappedString(ss, files_description, 80, 0);
   ss << "\n";
   return ss.str();
+}
+
+void FlatCompiler::AnnotateBinaries(
+    const uint8_t *binary_schema, const uint64_t binary_schema_size,
+    const std::string &schema_filename,
+    const std::vector<std::string> &binary_files) {
+  for (const std::string &filename : binary_files) {
+    std::string binary_contents;
+    if (!flatbuffers::LoadFile(filename.c_str(), true, &binary_contents)) {
+      Warn("unable to load binary file: " + filename);
+      continue;
+    }
+
+    const uint8_t *binary =
+        reinterpret_cast<const uint8_t *>(binary_contents.c_str());
+    const size_t binary_size = binary_contents.size();
+
+    flatbuffers::BinaryAnnotator binary_annotator(
+        binary_schema, binary_schema_size, binary, binary_size);
+
+    auto annotations = binary_annotator.Annotate();
+
+    // TODO(dbaileychess): Right now we just support a single text-based
+    // output of the annotated binary schema, which we generate here. We
+    // could output the raw annotations instead and have third-party tools
+    // use them to generate their own output.
+    flatbuffers::AnnotatedBinaryTextGenerator text_generator(
+        flatbuffers::AnnotatedBinaryTextGenerator::Options{}, annotations,
+        binary, binary_size);
+
+    text_generator.Generate(filename, schema_filename);
+  }
 }
 
 int FlatCompiler::Compile(int argc, const char **argv) {
@@ -351,6 +390,7 @@ int FlatCompiler::Compile(int argc, const char **argv) {
   std::vector<bool> generator_enabled(params_.num_generators, false);
   size_t binary_files_from = std::numeric_limits<size_t>::max();
   std::string conform_to_schema;
+  std::string annotate_schema;
 
   const char *program_name = argv[0];
 
@@ -550,6 +590,11 @@ int FlatCompiler::Compile(int argc, const char **argv) {
         opts.cs_global_alias = true;
       } else if (arg == "--json-nested-bytes") {
         opts.json_nested_legacy_flatbuffers = true;
+      } else if (arg == "--ts-flat-files") {
+        opts.ts_flat_file = true;
+      } else if (arg == "--annotate") {
+        if (++argi >= argc) Error("missing path following: " + arg, true);
+        annotate_schema = flatbuffers::PosixPath(argv[argi]);
       } else {
         for (size_t i = 0; i < params_.num_generators; ++i) {
           if (arg == "--" + params_.generators[i].option.long_opt ||
@@ -578,7 +623,8 @@ int FlatCompiler::Compile(int argc, const char **argv) {
   if (opts.proto_mode) {
     if (any_generator)
       Error("cannot generate code directly from .proto files", true);
-  } else if (!any_generator && conform_to_schema.empty()) {
+  } else if (!any_generator && conform_to_schema.empty() &&
+             annotate_schema.empty()) {
     Error("no options: specify at least one generator.", true);
   }
 
@@ -586,6 +632,10 @@ int FlatCompiler::Compile(int argc, const char **argv) {
     Error(
         "--cs-gen-json-serializer requires --gen-object-api to be set as "
         "well.");
+  }
+
+  if (opts.ts_flat_file && opts.generate_all) {
+    Error("Combining --ts-flat-file and --gen-all is not supported.");
   }
 
   flatbuffers::Parser conform_parser;
@@ -601,6 +651,53 @@ int FlatCompiler::Compile(int argc, const char **argv) {
       ParseFile(conform_parser, conform_to_schema, contents,
                 conform_include_directories);
     }
+  }
+
+  if (!annotate_schema.empty()) {
+    const std::string ext = flatbuffers::GetExtension(annotate_schema);
+    if (!(ext == reflection::SchemaExtension() || ext == "fbs")) {
+      Error("Expected a `.bfbs` or `.fbs` schema, got: " + annotate_schema);
+    }
+
+    const bool is_binary_schema = ext == reflection::SchemaExtension();
+
+    std::string schema_contents;
+    if (!flatbuffers::LoadFile(annotate_schema.c_str(),
+                               /*binary=*/is_binary_schema, &schema_contents)) {
+      Error("unable to load schema: " + annotate_schema);
+    }
+
+    const uint8_t *binary_schema = nullptr;
+    uint64_t binary_schema_size = 0;
+
+    IDLOptions binary_opts;
+    binary_opts.lang_to_generate |= flatbuffers::IDLOptions::kBinary;
+    flatbuffers::Parser parser(binary_opts);
+
+    if (is_binary_schema) {
+      binary_schema =
+          reinterpret_cast<const uint8_t *>(schema_contents.c_str());
+      binary_schema_size = schema_contents.size();
+    } else {
+      // If we need to generate the .bfbs file from the provided schema file
+      // (.fbs)
+      ParseFile(parser, annotate_schema, schema_contents, include_directories);
+      parser.Serialize();
+
+      binary_schema = parser.builder_.GetBufferPointer();
+      binary_schema_size = parser.builder_.GetSize();
+    }
+
+    if (binary_schema == nullptr || !binary_schema_size) {
+      Error("could not parse a value binary schema from: " + annotate_schema);
+    }
+
+    // Annotate the provided files with the binary_schema.
+    AnnotateBinaries(binary_schema, binary_schema_size, annotate_schema,
+                     filenames);
+
+    // We don't support doing anything else after annotating a binary.
+    return 0;
   }
 
   std::unique_ptr<flatbuffers::Parser> parser(new flatbuffers::Parser(opts));

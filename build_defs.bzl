@@ -13,6 +13,7 @@ DEFAULT_INCLUDE_PATHS = [
     "./",
     "$(GENDIR)",
     "$(BINDIR)",
+    "$(execpath @com_github_google_flatbuffers//:flatc).runfiles/com_github_google_flatbuffers",
 ]
 
 DEFAULT_FLATC_ARGS = [

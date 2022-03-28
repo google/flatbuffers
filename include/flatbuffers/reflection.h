@@ -88,11 +88,20 @@ inline size_t GetTypeSizeInline(reflection::BaseType base_type, int type_index,
 }
 
 // Get the root, regardless of what type it is.
-inline Table *GetAnyRoot(uint8_t *flatbuf) {
+inline Table *GetAnyRoot(uint8_t *const flatbuf) {
   return GetMutableRoot<Table>(flatbuf);
 }
-inline const Table *GetAnyRoot(const uint8_t *flatbuf) {
+
+inline const Table *GetAnyRoot(const uint8_t *const flatbuf) {
   return GetRoot<Table>(flatbuf);
+}
+
+inline Table *GetAnySizePrefixedRoot(uint8_t *const flatbuf) {
+  return GetMutableSizePrefixedRoot<Table>(flatbuf);
+}
+
+inline const Table *GetAnySizePrefixedRoot(const uint8_t *const flatbuf) {
+  return GetSizePrefixedRoot<Table>(flatbuf);
 }
 
 // Get a field's default, if you know it's an integer, and its exact type.
@@ -278,6 +287,12 @@ template<typename T>
 T *GetAnyFieldAddressOf(const Struct &st, const reflection::Field &field) {
   return reinterpret_cast<T *>(st.GetAddressOf(field.offset()));
 }
+
+// Loop over all the fields of the provided `object` and call `func` on each one
+// in increasing order by their field->id(). If `reverse` is true, `func` is
+// called in descending order
+void ForAllFields(const reflection::Object *object, bool reverse,
+                  std::function<void(const reflection::Field *)> func);
 
 // ------------------------- SETTERS -------------------------
 
@@ -496,6 +511,11 @@ Offset<const Table *> CopyTable(FlatBufferBuilder &fbb,
 bool Verify(const reflection::Schema &schema, const reflection::Object &root,
             const uint8_t *buf, size_t length, uoffset_t max_depth = 64,
             uoffset_t max_tables = 1000000);
+
+bool VerifySizePrefixed(const reflection::Schema &schema,
+                        const reflection::Object &root, const uint8_t *buf,
+                        size_t length, uoffset_t max_depth = 64,
+                        uoffset_t max_tables = 1000000);
 
 }  // namespace flatbuffers
 
