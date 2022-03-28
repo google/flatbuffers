@@ -32,7 +32,7 @@ class MonsterExtra {
 
   @override
   String toString() {
-    return 'MonsterExtra{d0: $d0, d1: $d1, d2: $d2, d3: $d3, f0: $f0, f1: $f1, f2: $f2, f3: $f3, dvec: $dvec, fvec: $fvec}';
+    return 'MonsterExtra{d0: ${d0}, d1: ${d1}, d2: ${d2}, d3: ${d3}, f0: ${f0}, f1: ${f1}, f2: ${f2}, f3: ${f3}, dvec: ${dvec}, fvec: ${fvec}}';
   }
 
   MonsterExtraT unpack() => MonsterExtraT(
@@ -99,7 +99,7 @@ class MonsterExtraT implements fb.Packable {
 
   @override
   String toString() {
-    return 'MonsterExtraT{d0: $d0, d1: $d1, d2: $d2, d3: $d3, f0: $f0, f1: $f1, f2: $f2, f3: $f3, dvec: $dvec, fvec: $fvec}';
+    return 'MonsterExtraT{d0: ${d0}, d1: ${d1}, d2: ${d2}, d3: ${d3}, f0: ${f0}, f1: ${f1}, f2: ${f2}, f3: ${f3}, dvec: ${dvec}, fvec: ${fvec}}';
   }
 }
 

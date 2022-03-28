@@ -703,6 +703,8 @@ enum class Case {
   kDasher = 7,
   // THEQuiCKBr_ownFox (or whatever you want, we won't change it)
   kKeep = 8,
+  // the_quick_brown_fox123 (as opposed to the_quick_brown_fox_123)
+  kSnake2 = 9,
 };
 
 // Convert the `input` string of case `input_case` to the specified `output_case`.

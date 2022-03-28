@@ -8,6 +8,7 @@ table KeywordsInTable {
   is: ABC = void;
   private: public;
   type: int;
+  default: bool = false;
 }
 
 union KeywordsInUnion {

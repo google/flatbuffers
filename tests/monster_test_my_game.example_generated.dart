@@ -316,7 +316,7 @@ class Test {
 
   @override
   String toString() {
-    return 'Test{a: $a, b: $b}';
+    return 'Test{a: ${a}, b: ${b}}';
   }
 
   TestT unpack() => TestT(
@@ -347,7 +347,7 @@ class TestT implements fb.Packable {
 
   @override
   String toString() {
-    return 'TestT{a: $a, b: $b}';
+    return 'TestT{a: ${a}, b: ${b}}';
   }
 }
 
@@ -420,7 +420,7 @@ class TestSimpleTableWithEnum {
 
   @override
   String toString() {
-    return 'TestSimpleTableWithEnum{color: $color}';
+    return 'TestSimpleTableWithEnum{color: ${color}}';
   }
 
   TestSimpleTableWithEnumT unpack() => TestSimpleTableWithEnumT(
@@ -447,7 +447,7 @@ class TestSimpleTableWithEnumT implements fb.Packable {
 
   @override
   String toString() {
-    return 'TestSimpleTableWithEnumT{color: $color}';
+    return 'TestSimpleTableWithEnumT{color: ${color}}';
   }
 }
 
@@ -519,7 +519,7 @@ class Vec3 {
 
   @override
   String toString() {
-    return 'Vec3{x: $x, y: $y, z: $z, test1: $test1, test2: $test2, test3: $test3}';
+    return 'Vec3{x: ${x}, y: ${y}, z: ${z}, test1: ${test1}, test2: ${test2}, test3: ${test3}}';
   }
 
   Vec3T unpack() => Vec3T(
@@ -568,7 +568,7 @@ class Vec3T implements fb.Packable {
 
   @override
   String toString() {
-    return 'Vec3T{x: $x, y: $y, z: $z, test1: $test1, test2: $test2, test3: $test3}';
+    return 'Vec3T{x: ${x}, y: ${y}, z: ${z}, test1: ${test1}, test2: ${test2}, test3: ${test3}}';
   }
 }
 
@@ -662,7 +662,7 @@ class Ability {
 
   @override
   String toString() {
-    return 'Ability{id: $id, distance: $distance}';
+    return 'Ability{id: ${id}, distance: ${distance}}';
   }
 
   AbilityT unpack() => AbilityT(
@@ -692,7 +692,7 @@ class AbilityT implements fb.Packable {
 
   @override
   String toString() {
-    return 'AbilityT{id: $id, distance: $distance}';
+    return 'AbilityT{id: ${id}, distance: ${distance}}';
   }
 }
 
@@ -761,7 +761,7 @@ class StructOfStructs {
 
   @override
   String toString() {
-    return 'StructOfStructs{a: $a, b: $b, c: $c}';
+    return 'StructOfStructs{a: ${a}, b: ${b}, c: ${c}}';
   }
 
   StructOfStructsT unpack() => StructOfStructsT(
@@ -795,7 +795,7 @@ class StructOfStructsT implements fb.Packable {
 
   @override
   String toString() {
-    return 'StructOfStructsT{a: $a, b: $b, c: $c}';
+    return 'StructOfStructsT{a: ${a}, b: ${b}, c: ${c}}';
   }
 }
 
@@ -867,7 +867,7 @@ class StructOfStructsOfStructs {
 
   @override
   String toString() {
-    return 'StructOfStructsOfStructs{a: $a}';
+    return 'StructOfStructsOfStructs{a: ${a}}';
   }
 
   StructOfStructsOfStructsT unpack() => StructOfStructsOfStructsT(
@@ -893,7 +893,7 @@ class StructOfStructsOfStructsT implements fb.Packable {
 
   @override
   String toString() {
-    return 'StructOfStructsOfStructsT{a: $a}';
+    return 'StructOfStructsOfStructsT{a: ${a}}';
   }
 }
 
@@ -961,7 +961,7 @@ class Stat {
 
   @override
   String toString() {
-    return 'Stat{id: $id, val: $val, count: $count}';
+    return 'Stat{id: ${id}, val: ${val}, count: ${count}}';
   }
 
   StatT unpack() => StatT(
@@ -998,7 +998,7 @@ class StatT implements fb.Packable {
 
   @override
   String toString() {
-    return 'StatT{id: $id, val: $val, count: $count}';
+    return 'StatT{id: ${id}, val: ${val}, count: ${count}}';
   }
 }
 
@@ -1087,7 +1087,7 @@ class Referrable {
 
   @override
   String toString() {
-    return 'Referrable{id: $id}';
+    return 'Referrable{id: ${id}}';
   }
 
   ReferrableT unpack() => ReferrableT(
@@ -1114,7 +1114,7 @@ class ReferrableT implements fb.Packable {
 
   @override
   String toString() {
-    return 'ReferrableT{id: $id}';
+    return 'ReferrableT{id: ${id}}';
   }
 }
 
@@ -1261,7 +1261,7 @@ class Monster {
 
   @override
   String toString() {
-    return 'Monster{pos: $pos, mana: $mana, hp: $hp, name: $name, inventory: $inventory, color: $color, testType: $testType, test: $test, test4: $test4, testarrayofstring: $testarrayofstring, testarrayoftables: $testarrayoftables, enemy: $enemy, testnestedflatbuffer: $testnestedflatbuffer, testempty: $testempty, testbool: $testbool, testhashs32Fnv1: $testhashs32Fnv1, testhashu32Fnv1: $testhashu32Fnv1, testhashs64Fnv1: $testhashs64Fnv1, testhashu64Fnv1: $testhashu64Fnv1, testhashs32Fnv1a: $testhashs32Fnv1a, testhashu32Fnv1a: $testhashu32Fnv1a, testhashs64Fnv1a: $testhashs64Fnv1a, testhashu64Fnv1a: $testhashu64Fnv1a, testarrayofbools: $testarrayofbools, testf: $testf, testf2: $testf2, testf3: $testf3, testarrayofstring2: $testarrayofstring2, testarrayofsortedstruct: $testarrayofsortedstruct, flex: $flex, test5: $test5, vectorOfLongs: $vectorOfLongs, vectorOfDoubles: $vectorOfDoubles, parentNamespaceTest: $parentNamespaceTest, vectorOfReferrables: $vectorOfReferrables, singleWeakReference: $singleWeakReference, vectorOfWeakReferences: $vectorOfWeakReferences, vectorOfStrongReferrables: $vectorOfStrongReferrables, coOwningReference: $coOwningReference, vectorOfCoOwningReferences: $vectorOfCoOwningReferences, nonOwningReference: $nonOwningReference, vectorOfNonOwningReferences: $vectorOfNonOwningReferences, anyUniqueType: $anyUniqueType, anyUnique: $anyUnique, anyAmbiguousType: $anyAmbiguousType, anyAmbiguous: $anyAmbiguous, vectorOfEnums: $vectorOfEnums, signedEnum: $signedEnum, testrequirednestedflatbuffer: $testrequirednestedflatbuffer, scalarKeySortedTables: $scalarKeySortedTables, nativeInline: $nativeInline, longEnumNonEnumDefault: $longEnumNonEnumDefault, longEnumNormalDefault: $longEnumNormalDefault}';
+    return 'Monster{pos: ${pos}, mana: ${mana}, hp: ${hp}, name: ${name}, inventory: ${inventory}, color: ${color}, testType: ${testType}, test: ${test}, test4: ${test4}, testarrayofstring: ${testarrayofstring}, testarrayoftables: ${testarrayoftables}, enemy: ${enemy}, testnestedflatbuffer: ${testnestedflatbuffer}, testempty: ${testempty}, testbool: ${testbool}, testhashs32Fnv1: ${testhashs32Fnv1}, testhashu32Fnv1: ${testhashu32Fnv1}, testhashs64Fnv1: ${testhashs64Fnv1}, testhashu64Fnv1: ${testhashu64Fnv1}, testhashs32Fnv1a: ${testhashs32Fnv1a}, testhashu32Fnv1a: ${testhashu32Fnv1a}, testhashs64Fnv1a: ${testhashs64Fnv1a}, testhashu64Fnv1a: ${testhashu64Fnv1a}, testarrayofbools: ${testarrayofbools}, testf: ${testf}, testf2: ${testf2}, testf3: ${testf3}, testarrayofstring2: ${testarrayofstring2}, testarrayofsortedstruct: ${testarrayofsortedstruct}, flex: ${flex}, test5: ${test5}, vectorOfLongs: ${vectorOfLongs}, vectorOfDoubles: ${vectorOfDoubles}, parentNamespaceTest: ${parentNamespaceTest}, vectorOfReferrables: ${vectorOfReferrables}, singleWeakReference: ${singleWeakReference}, vectorOfWeakReferences: ${vectorOfWeakReferences}, vectorOfStrongReferrables: ${vectorOfStrongReferrables}, coOwningReference: ${coOwningReference}, vectorOfCoOwningReferences: ${vectorOfCoOwningReferences}, nonOwningReference: ${nonOwningReference}, vectorOfNonOwningReferences: ${vectorOfNonOwningReferences}, anyUniqueType: ${anyUniqueType}, anyUnique: ${anyUnique}, anyAmbiguousType: ${anyAmbiguousType}, anyAmbiguous: ${anyAmbiguous}, vectorOfEnums: ${vectorOfEnums}, signedEnum: ${signedEnum}, testrequirednestedflatbuffer: ${testrequirednestedflatbuffer}, scalarKeySortedTables: ${scalarKeySortedTables}, nativeInline: ${nativeInline}, longEnumNonEnumDefault: ${longEnumNonEnumDefault}, longEnumNormalDefault: ${longEnumNormalDefault}}';
   }
 
   MonsterT unpack() => MonsterT(
@@ -1560,7 +1560,7 @@ class MonsterT implements fb.Packable {
 
   @override
   String toString() {
-    return 'MonsterT{pos: $pos, mana: $mana, hp: $hp, name: $name, inventory: $inventory, color: $color, testType: $testType, test: $test, test4: $test4, testarrayofstring: $testarrayofstring, testarrayoftables: $testarrayoftables, enemy: $enemy, testnestedflatbuffer: $testnestedflatbuffer, testempty: $testempty, testbool: $testbool, testhashs32Fnv1: $testhashs32Fnv1, testhashu32Fnv1: $testhashu32Fnv1, testhashs64Fnv1: $testhashs64Fnv1, testhashu64Fnv1: $testhashu64Fnv1, testhashs32Fnv1a: $testhashs32Fnv1a, testhashu32Fnv1a: $testhashu32Fnv1a, testhashs64Fnv1a: $testhashs64Fnv1a, testhashu64Fnv1a: $testhashu64Fnv1a, testarrayofbools: $testarrayofbools, testf: $testf, testf2: $testf2, testf3: $testf3, testarrayofstring2: $testarrayofstring2, testarrayofsortedstruct: $testarrayofsortedstruct, flex: $flex, test5: $test5, vectorOfLongs: $vectorOfLongs, vectorOfDoubles: $vectorOfDoubles, parentNamespaceTest: $parentNamespaceTest, vectorOfReferrables: $vectorOfReferrables, singleWeakReference: $singleWeakReference, vectorOfWeakReferences: $vectorOfWeakReferences, vectorOfStrongReferrables: $vectorOfStrongReferrables, coOwningReference: $coOwningReference, vectorOfCoOwningReferences: $vectorOfCoOwningReferences, nonOwningReference: $nonOwningReference, vectorOfNonOwningReferences: $vectorOfNonOwningReferences, anyUniqueType: $anyUniqueType, anyUnique: $anyUnique, anyAmbiguousType: $anyAmbiguousType, anyAmbiguous: $anyAmbiguous, vectorOfEnums: $vectorOfEnums, signedEnum: $signedEnum, testrequirednestedflatbuffer: $testrequirednestedflatbuffer, scalarKeySortedTables: $scalarKeySortedTables, nativeInline: $nativeInline, longEnumNonEnumDefault: $longEnumNonEnumDefault, longEnumNormalDefault: $longEnumNormalDefault}';
+    return 'MonsterT{pos: ${pos}, mana: ${mana}, hp: ${hp}, name: ${name}, inventory: ${inventory}, color: ${color}, testType: ${testType}, test: ${test}, test4: ${test4}, testarrayofstring: ${testarrayofstring}, testarrayoftables: ${testarrayoftables}, enemy: ${enemy}, testnestedflatbuffer: ${testnestedflatbuffer}, testempty: ${testempty}, testbool: ${testbool}, testhashs32Fnv1: ${testhashs32Fnv1}, testhashu32Fnv1: ${testhashu32Fnv1}, testhashs64Fnv1: ${testhashs64Fnv1}, testhashu64Fnv1: ${testhashu64Fnv1}, testhashs32Fnv1a: ${testhashs32Fnv1a}, testhashu32Fnv1a: ${testhashu32Fnv1a}, testhashs64Fnv1a: ${testhashs64Fnv1a}, testhashu64Fnv1a: ${testhashu64Fnv1a}, testarrayofbools: ${testarrayofbools}, testf: ${testf}, testf2: ${testf2}, testf3: ${testf3}, testarrayofstring2: ${testarrayofstring2}, testarrayofsortedstruct: ${testarrayofsortedstruct}, flex: ${flex}, test5: ${test5}, vectorOfLongs: ${vectorOfLongs}, vectorOfDoubles: ${vectorOfDoubles}, parentNamespaceTest: ${parentNamespaceTest}, vectorOfReferrables: ${vectorOfReferrables}, singleWeakReference: ${singleWeakReference}, vectorOfWeakReferences: ${vectorOfWeakReferences}, vectorOfStrongReferrables: ${vectorOfStrongReferrables}, coOwningReference: ${coOwningReference}, vectorOfCoOwningReferences: ${vectorOfCoOwningReferences}, nonOwningReference: ${nonOwningReference}, vectorOfNonOwningReferences: ${vectorOfNonOwningReferences}, anyUniqueType: ${anyUniqueType}, anyUnique: ${anyUnique}, anyAmbiguousType: ${anyAmbiguousType}, anyAmbiguous: ${anyAmbiguous}, vectorOfEnums: ${vectorOfEnums}, signedEnum: ${signedEnum}, testrequirednestedflatbuffer: ${testrequirednestedflatbuffer}, scalarKeySortedTables: ${scalarKeySortedTables}, nativeInline: ${nativeInline}, longEnumNonEnumDefault: ${longEnumNonEnumDefault}, longEnumNormalDefault: ${longEnumNormalDefault}}';
   }
 }
 
@@ -2110,7 +2110,7 @@ class TypeAliases {
 
   @override
   String toString() {
-    return 'TypeAliases{i8: $i8, u8: $u8, i16: $i16, u16: $u16, i32: $i32, u32: $u32, i64: $i64, u64: $u64, f32: $f32, f64: $f64, v8: $v8, vf64: $vf64}';
+    return 'TypeAliases{i8: ${i8}, u8: ${u8}, i16: ${i16}, u16: ${u16}, i32: ${i32}, u32: ${u32}, i64: ${i64}, u64: ${u64}, f32: ${f32}, f64: ${f64}, v8: ${v8}, vf64: ${vf64}}';
   }
 
   TypeAliasesT unpack() => TypeAliasesT(
@@ -2185,7 +2185,7 @@ class TypeAliasesT implements fb.Packable {
 
   @override
   String toString() {
-    return 'TypeAliasesT{i8: $i8, u8: $u8, i16: $i16, u16: $u16, i32: $i32, u32: $u32, i64: $i64, u64: $u64, f32: $f32, f64: $f64, v8: $v8, vf64: $vf64}';
+    return 'TypeAliasesT{i8: ${i8}, u8: ${u8}, i16: ${i16}, u16: ${u16}, i32: ${i32}, u32: ${u32}, i64: ${i64}, u64: ${u64}, f32: ${f32}, f64: ${f64}, v8: ${v8}, vf64: ${vf64}}';
   }
 }
 
