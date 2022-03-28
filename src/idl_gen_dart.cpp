@@ -258,7 +258,7 @@ class DartGenerator : public BaseGenerator {
     code += "}\n\n";
   }
 
-  static std::string GenType(const Type &type) {
+  std::string GenType(const Type &type) {
     switch (type.base_type) {
       case BASE_TYPE_BOOL: return "Bool";
       case BASE_TYPE_CHAR: return "Int8";
@@ -274,8 +274,8 @@ class DartGenerator : public BaseGenerator {
       case BASE_TYPE_DOUBLE: return "Float64";
       case BASE_TYPE_STRING: return "String";
       case BASE_TYPE_VECTOR: return GenType(type.VectorType());
-      case BASE_TYPE_STRUCT: return type.struct_def->name;
-      case BASE_TYPE_UNION: return type.enum_def->name + "TypeId";
+      case BASE_TYPE_STRUCT: return namer_.Type(*type.struct_def);
+      case BASE_TYPE_UNION: return namer_.Type(*type.enum_def) + "TypeId";
       default: return "Table";
     }
   }
@@ -337,11 +337,11 @@ class DartGenerator : public BaseGenerator {
                               std::string struct_type_suffix = "") {
     if (type.enum_def) {
       if (type.enum_def->is_union && type.base_type != BASE_TYPE_UNION) {
-        return type.enum_def->name + "TypeId";
+        return namer_.Type(*type.enum_def) + "TypeId";
       } else if (type.enum_def->is_union) {
         return "dynamic";
       } else if (type.base_type != BASE_TYPE_VECTOR) {
-        return type.enum_def->name;
+        return namer_.Type(*type.enum_def);
       }
     }
 
@@ -359,7 +359,7 @@ class DartGenerator : public BaseGenerator {
       case BASE_TYPE_DOUBLE: return "double";
       case BASE_TYPE_STRING: return "String";
       case BASE_TYPE_STRUCT:
-        return MaybeWrapNamespace(type.struct_def->name + struct_type_suffix,
+        return MaybeWrapNamespace(namer_.Type(*type.struct_def) + struct_type_suffix,
                                   current_namespace, def);
       case BASE_TYPE_VECTOR:
         return "List<" +
@@ -595,7 +595,7 @@ class DartGenerator : public BaseGenerator {
     if (std::equal(root_namespace->components.begin(),
                    root_namespace->components.end(),
                    qualified_name_parts.begin())) {
-      return type.struct_def->name;
+      return namer_.Type(*type.struct_def);
     }
 
     std::string ns;
@@ -615,7 +615,7 @@ class DartGenerator : public BaseGenerator {
       if (it != qualified_name_parts.end() - 1) { ns += "_"; }
     }
 
-    return ns + "." + type.struct_def->name;
+    return ns + "." + namer_.Type(*type.struct_def);
   }
 
   void GenImplementationGetters(

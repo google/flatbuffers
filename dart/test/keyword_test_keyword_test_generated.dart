@@ -153,8 +153,8 @@ class KeywordsInTable {
   final fb.BufferContext _bc;
   final int _bcOffset;
 
-  ABC get $is => ABC.fromValue(const fb.Int32Reader().vTableGet(_bc, _bcOffset, 4, 0));
-  public get private => public.fromValue(const fb.Int32Reader().vTableGet(_bc, _bcOffset, 6, 0));
+  Abc get $is => Abc.fromValue(const fb.Int32Reader().vTableGet(_bc, _bcOffset, 4, 0));
+  Public get private => Public.fromValue(const fb.Int32Reader().vTableGet(_bc, _bcOffset, 6, 0));
   int get type => const fb.Int32Reader().vTableGet(_bc, _bcOffset, 8, 0);
   bool get $default => const fb.BoolReader().vTableGet(_bc, _bcOffset, 10, false);
 
@@ -176,8 +176,8 @@ class KeywordsInTable {
 }
 
 class KeywordsInTableT implements fb.Packable {
-  ABC $is;
-  public private;
+  Abc $is;
+  Public private;
   int type;
   bool $default;
 
@@ -220,11 +220,11 @@ class KeywordsInTableBuilder {
     fbBuilder.startTable(4);
   }
 
-  int addIs(ABC? $is) {
+  int addIs(Abc? $is) {
     fbBuilder.addInt32(0, $is?.value);
     return fbBuilder.offset;
   }
-  int addPrivate(public? private) {
+  int addPrivate(Public? private) {
     fbBuilder.addInt32(1, private?.value);
     return fbBuilder.offset;
   }
@@ -243,14 +243,14 @@ class KeywordsInTableBuilder {
 }
 
 class KeywordsInTableObjectBuilder extends fb.ObjectBuilder {
-  final ABC? _$is;
-  final public? _private;
+  final Abc? _$is;
+  final Public? _private;
   final int? _type;
   final bool? _$default;
 
   KeywordsInTableObjectBuilder({
-    ABC? $is,
-    public? private,
+    Abc? $is,
+    Public? private,
     int? type,
     bool? $default,
   })
