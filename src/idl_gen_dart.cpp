@@ -704,7 +704,7 @@ class DartGenerator : public BaseGenerator {
         if (field[i] == '$') escaped_field.push_back('\\');
         escaped_field.push_back(field[i]);
       }
-      code += escaped_field + ": $" + field + "";
+      code += escaped_field + ": ${" + field + "}";
       if (it != non_deprecated_fields.end() - 1) { code += ", "; }
     }
     code += "}';\n";
