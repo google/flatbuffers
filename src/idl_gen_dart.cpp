@@ -28,13 +28,13 @@ namespace flatbuffers {
 namespace dart {
 
 Namer::Config DartDefaultConfig() {
-  return { /*types=*/Case::kKeep,
+  return { /*types=*/Case::kUpperCamel,
            /*constants=*/Case::kScreamingSnake,
            /*methods=*/Case::kLowerCamel,
            /*functions=*/Case::kUnknown,  // unused.
            /*fields=*/Case::kLowerCamel,
            /*variables=*/Case::kLowerCamel,
-           /*variants=*/Case::kKeep,
+           /*variants=*/Case::kUpperCamel,
            /*enum_variant_seperator=*/".",
            /*escape_keywords=*/Namer::Config::Escape::AfterConvertingCase,
            /*namespaces=*/Case::kSnake2,
@@ -704,7 +704,7 @@ class DartGenerator : public BaseGenerator {
         if (field[i] == '$') escaped_field.push_back('\\');
         escaped_field.push_back(field[i]);
       }
-      code += escaped_field + ": $" + escaped_field + "";
+      code += escaped_field + ": $" + field + "";
       if (it != non_deprecated_fields.end() - 1) { code += ", "; }
     }
     code += "}';\n";
