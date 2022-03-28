@@ -33,8 +33,8 @@ struct ImportDefinition {
   std::string export_statement;
   std::string bare_file_path;
   std::string rel_file_path;
-  const Definition *dependent;
-  const Definition *dependency;
+  const Definition *dependent = nullptr;
+  const Definition *dependency = nullptr;
 };
 
 enum AnnotationType { kParam = 0, kType = 1, kReturns = 2 };
@@ -55,7 +55,7 @@ class TsGenerator : public BaseGenerator {
     // https://github.com/microsoft/TypeScript/issues/2536
     // One per line to ease comparisons to that list are easier
     static const char *const keywords[] = {
-      "argument",
+      "arguments",
       "break",
       "case",
       "catch",
@@ -110,6 +110,10 @@ class TsGenerator : public BaseGenerator {
     for (auto kw = keywords; *kw; kw++) keywords_.insert(*kw);
   }
   bool generate() {
+    if (parser_.opts.ts_flat_file && parser_.opts.generate_all) {
+      // Not implemented; warning message should have beem emitted by flatc.
+      return false;
+    }
     generateEnums();
     generateStructs();
     generateEntry();
@@ -119,26 +123,38 @@ class TsGenerator : public BaseGenerator {
   // Save out the generated code for a single class while adding
   // declaration boilerplate.
   bool SaveType(const Definition &definition, const std::string &classcode,
-                import_set &imports, import_set &bare_imports) const {
+                import_set &imports, import_set &bare_imports) {
     if (!classcode.length()) return true;
 
-    std::string code =
-        "// " + std::string(FlatBuffersGeneratedWarning()) + "\n\n";
+    std::string code;
 
-    for (auto it = bare_imports.begin(); it != bare_imports.end(); it++)
-      code += it->second.import_statement + "\n";
-    if (!bare_imports.empty()) code += "\n";
+    if (!parser_.opts.ts_flat_file) {
+      code += "// " + std::string(FlatBuffersGeneratedWarning()) + "\n\n";
 
-    for (auto it = imports.begin(); it != imports.end(); it++)
-      if (it->second.dependency != &definition)  // do not import itself
+      for (auto it = bare_imports.begin(); it != bare_imports.end(); it++) {
         code += it->second.import_statement + "\n";
-    if (!imports.empty()) code += "\n\n";
+      }
+      if (!bare_imports.empty()) code += "\n";
+
+      for (auto it = imports.begin(); it != imports.end(); it++) {
+        if (it->second.dependency != &definition) {
+          code += it->second.import_statement + "\n";
+        }
+      }
+      if (!imports.empty()) code += "\n\n";
+    }
 
     code += classcode;
     auto filename =
         NamespaceDir(*definition.defined_namespace, true) +
         ConvertCase(definition.name, Case::kDasher, Case::kUpperCamel) + ".ts";
-    return SaveFile(filename.c_str(), code, false);
+    if (parser_.opts.ts_flat_file) {
+      flat_file_ += code;
+      flat_file_definitions_.insert(&definition);
+      return true;
+    } else {
+      return SaveFile(filename.c_str(), code, false);
+    }
   }
 
  private:
@@ -149,6 +165,18 @@ class TsGenerator : public BaseGenerator {
   }
 
   import_set imports_all_;
+
+  // The following three members are used when generating typescript code into a
+  // single file rather than creating separate files for each type.
+
+  // flat_file_ contains the aggregated contents of the file prior to being
+  // written to disk.
+  std::string flat_file_;
+  // flat_file_definitions_ tracks which types have been written to flat_file_.
+  std::unordered_set<const Definition *> flat_file_definitions_;
+  // This maps from import names to types to import.
+  std::map<std::string, std::map<std::string, std::string>>
+      flat_file_import_declarations_;
 
   // Generate code for all enums.
   void generateEnums() {
@@ -183,10 +211,48 @@ class TsGenerator : public BaseGenerator {
   // Generate code for a single entry point module.
   void generateEntry() {
     std::string code;
-    for (auto it = imports_all_.begin(); it != imports_all_.end(); it++)
-      code += it->second.export_statement + "\n";
-    std::string path = "./" + path_ + file_name_ + ".ts";
-    SaveFile(path.c_str(), code, false);
+    if (parser_.opts.ts_flat_file) {
+      code += "import * as flatbuffers from 'flatbuffers';\n";
+      for (const auto &it : flat_file_import_declarations_) {
+        // Note that we do end up generating an import for ourselves, which
+        // should generally be harmless.
+        // TODO: Make it so we don't generate a self-import; this will also
+        // require modifying AddImport to ensure that we don't use
+        // namespace-prefixed names anywhere...
+        std::string file = it.first;
+        if (file.empty()) {
+          continue;
+        }
+        std::string noext = flatbuffers::StripExtension(file);
+        std::string basename = flatbuffers::StripPath(noext);
+        std::string include_file = GeneratedFileName(
+            parser_.opts.include_prefix,
+            parser_.opts.keep_include_path ? noext : basename, parser_.opts);
+        // TODO: what is the right behavior when different include flags are
+        // specified here? Should we always be adding the "./" for a relative
+        // path or turn it off if --include-prefix is specified, or something
+        // else?
+        std::string include_name = "./" + flatbuffers::StripExtension(include_file);
+        code += "import {";
+        for (const auto &pair : it.second) {
+          code += EscapeKeyword(pair.first) + " as " +
+                  EscapeKeyword(pair.second) + ", ";
+        }
+        code.resize(code.size() - 2);
+        code += "} from  '" + include_name + "';\n";
+      }
+      code += "\n\n";
+      code += flat_file_;
+      const std::string filename =
+          GeneratedFileName(path_, file_name_, parser_.opts);
+      SaveFile(filename.c_str(), code, false);
+    } else {
+      for (auto it = imports_all_.begin(); it != imports_all_.end(); it++) {
+        code += it->second.export_statement + "\n";
+      }
+      std::string path = "./" + path_ + file_name_ + ".ts";
+      SaveFile(path.c_str(), code, false);
+    }
   }
 
   // Generate a documentation comment, if available.
@@ -553,7 +619,9 @@ class TsGenerator : public BaseGenerator {
                         const StructDef &dependency) {
     std::string ns;
     const auto &depc_comps = dependency.defined_namespace->components;
-    for (auto it = depc_comps.begin(); it != depc_comps.end(); it++) ns += *it;
+    for (auto it = depc_comps.begin(); it != depc_comps.end(); it++) {
+      ns += *it;
+    }
     std::string unique_name = ns + dependency.name;
     std::string import_name = dependency.name;
     std::string long_import_name;
@@ -565,6 +633,20 @@ class TsGenerator : public BaseGenerator {
         break;
       }
     }
+
+    if (parser_.opts.ts_flat_file) {
+      std::string file = dependency.declaration_file == nullptr
+                                   ? dependency.file
+                                   : dependency.declaration_file->substr(2);
+      file = RelativeToRootPath(StripFileName(AbsolutePath(dependent.file)),
+                                dependency.file).substr(2);
+      long_import_name = ns + import_name;
+      flat_file_import_declarations_[file][import_name] = long_import_name;
+      if (parser_.opts.generate_object_based_api) {
+        flat_file_import_declarations_[file][import_name + "T"] = long_import_name + "T";
+      }
+    }
+
     std::string import_statement;
     std::string export_statement;
     import_statement += "import { ";
@@ -616,18 +698,32 @@ class TsGenerator : public BaseGenerator {
                         const EnumDef &dependency) {
     std::string ns;
     const auto &depc_comps = dependency.defined_namespace->components;
-    for (auto it = depc_comps.begin(); it != depc_comps.end(); it++) ns += *it;
+    for (auto it = depc_comps.begin(); it != depc_comps.end(); it++) {
+      ns += *it;
+    }
     std::string unique_name = ns + dependency.name;
     std::string import_name = EscapeKeyword(dependency.name);
     std::string long_import_name;
-    if (imports.find(unique_name) != imports.end())
+    if (imports.find(unique_name) != imports.end()) {
       return imports.find(unique_name)->second.name;
+    }
     for (auto it = imports.begin(); it != imports.end(); it++) {
       if (it->second.name == import_name) {
         long_import_name = ns + import_name;
         break;
       }
     }
+
+    if (parser_.opts.ts_flat_file) {
+      std::string file = dependency.declaration_file == nullptr
+                                   ? dependency.file
+                                   : dependency.declaration_file->substr(2);
+      file = RelativeToRootPath(StripFileName(AbsolutePath(dependent.file)),
+                                dependency.file).substr(2);
+      long_import_name = ns + import_name;
+      flat_file_import_declarations_[file][import_name] = long_import_name;
+    }
+
     std::string import_statement;
     std::string export_statement;
     import_statement += "import { ";
@@ -636,7 +732,8 @@ class TsGenerator : public BaseGenerator {
     if (long_import_name.empty())
       symbols_expression += import_name;
     else
-      symbols_expression += dependency.name + " as " + long_import_name;
+      symbols_expression += EscapeKeyword(dependency.name) + " as " +
+                            EscapeKeyword(long_import_name);
     if (dependency.is_union) {
       symbols_expression += ", unionTo" + import_name;
       symbols_expression += ", unionListTo" + import_name;
@@ -859,15 +956,22 @@ class TsGenerator : public BaseGenerator {
          it != struct_def.fields.vec.end(); ++it) {
       auto &field = **it;
 
-      const auto curr_member_accessor =
+      auto curr_member_accessor =
           prefix + "." + ConvertCase(field.name, Case::kLowerCamel);
+      if (prefix != "this") {
+        curr_member_accessor =
+            prefix + "?." + ConvertCase(field.name, Case::kLowerCamel);
+      }
       if (IsStruct(field.value.type)) {
         ret += GenStructMemberValueTS(*field.value.type.struct_def,
                                       curr_member_accessor, delimiter);
       } else {
         if (nullCheck) {
-          ret +=
-              "(" + prefix + " === null ? 0 : " + curr_member_accessor + "!)";
+          std::string nullValue = "0";
+          if (field.value.type.base_type == BASE_TYPE_BOOL) { 
+            nullValue = "false";
+          }
+          ret += "(" + curr_member_accessor + " ?? " + nullValue + ")";
         } else {
           ret += curr_member_accessor;
         }
@@ -966,10 +1070,11 @@ class TsGenerator : public BaseGenerator {
         switch (field.value.type.base_type) {
           case BASE_TYPE_STRUCT: {
             const auto &sd = *field.value.type.struct_def;
-            field_type += GetObjApiClassName(sd, parser.opts);
+            field_type += GetObjApiClassName(AddImport(imports, struct_def, sd),
+                                             parser.opts);
 
             const std::string field_accessor =
-                "this." + field_name_escaped + "()";
+                "this." + field_name + "()";
             field_val = GenNullCheckConditional(field_accessor,
                                                 field_accessor + "!.unpack()");
             auto packing = GenNullCheckConditional(
@@ -1008,12 +1113,15 @@ class TsGenerator : public BaseGenerator {
                   field_offset_decl =
                       "builder.createStructOffsetList(this." +
                       field_name_escaped + ", " +
-                      AddImport(imports, struct_def, struct_def) + ".start" +
-                      ConvertCase(field_name, Case::kUpperCamel) + "Vector)";
+                      EscapeKeyword(
+                          AddImport(imports, struct_def, struct_def)) +
+                      ".start" + ConvertCase(field_name, Case::kUpperCamel) +
+                      "Vector)";
                 } else {
                   field_offset_decl =
-                      AddImport(imports, struct_def, struct_def) + ".create" +
-                      ConvertCase(field_name, Case::kUpperCamel) +
+                      EscapeKeyword(
+                          AddImport(imports, struct_def, struct_def)) +
+                      ".create" + ConvertCase(field_name, Case::kUpperCamel) +
                       "Vector(builder, builder.createObjectOffsetList(" +
                       "this." + field_name_escaped + "))";
                 }
@@ -1027,8 +1135,8 @@ class TsGenerator : public BaseGenerator {
                             field_binded_method + ", this." + field_name +
                             "Length())";
                 field_offset_decl =
-                    AddImport(imports, struct_def, struct_def) + ".create" +
-                    ConvertCase(field_name, Case::kUpperCamel) +
+                    EscapeKeyword(AddImport(imports, struct_def, struct_def)) +
+                    ".create" + ConvertCase(field_name, Case::kUpperCamel) +
                     "Vector(builder, builder.createObjectOffsetList(" +
                     "this." + field_name_escaped + "))";
                 break;
@@ -1042,8 +1150,8 @@ class TsGenerator : public BaseGenerator {
                     GenUnionValTS(imports, field_name, vectortype, true);
 
                 field_offset_decl =
-                    AddImport(imports, struct_def, struct_def) + ".create" +
-                    ConvertCase(field_name, Case::kUpperCamel) +
+                    EscapeKeyword(AddImport(imports, struct_def, struct_def)) +
+                    ".create" + ConvertCase(field_name, Case::kUpperCamel) +
                     "Vector(builder, builder.createObjectOffsetList(" +
                     "this." + field_name_escaped + "))";
 
@@ -1062,8 +1170,8 @@ class TsGenerator : public BaseGenerator {
                             "Length())";
 
                 field_offset_decl =
-                    AddImport(imports, struct_def, struct_def) + ".create" +
-                    ConvertCase(field_name, Case::kUpperCamel) +
+                    EscapeKeyword(AddImport(imports, struct_def, struct_def)) +
+                    ".create" + ConvertCase(field_name, Case::kUpperCamel) +
                     "Vector(builder, this." + field_name_escaped + ")";
 
                 break;

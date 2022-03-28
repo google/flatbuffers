@@ -9,6 +9,7 @@ export { Race } from './my-game/example/race';
 export { Referrable, ReferrableT } from './my-game/example/referrable';
 export { Stat, StatT } from './my-game/example/stat';
 export { StructOfStructs, StructOfStructsT } from './my-game/example/struct-of-structs';
+export { StructOfStructsOfStructs, StructOfStructsOfStructsT } from './my-game/example/struct-of-structs-of-structs';
 export { Test, TestT } from './my-game/example/test';
 export { TestSimpleTableWithEnum, TestSimpleTableWithEnumT } from './my-game/example/test-simple-table-with-enum';
 export { TypeAliases, TypeAliasesT } from './my-game/example/type-aliases';

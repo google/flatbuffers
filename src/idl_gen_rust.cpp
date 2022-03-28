@@ -20,7 +20,7 @@
 #include "flatbuffers/flatbuffers.h"
 #include "flatbuffers/idl.h"
 #include "flatbuffers/util.h"
-#include "namer.h"
+#include "idl_namer.h"
 
 namespace flatbuffers {
 
@@ -37,6 +37,7 @@ Namer::Config RustDefaultConfig() {
            /*variables=*/Case::kUnknown,  // Unused.
            /*variants=*/Case::kKeep,
            /*enum_variant_seperator=*/"::",
+           /*escape_keywords=*/Namer::Config::Escape::BeforeConvertingCase,
            /*namespaces=*/Case::kSnake,
            /*namespace_seperator=*/"::",
            /*object_prefix=*/"",
@@ -279,7 +280,7 @@ bool GenerateRustModuleRootFile(const Parser &parser,
     // so return true.
     return true;
   }
-  Namer namer(RustDefaultConfig().WithFlagOptions(parser.opts, output_dir),
+  Namer namer(WithFlagOptions(RustDefaultConfig(), parser.opts, output_dir),
               RustKeywords());
   // We gather the symbols into a tree of namespaces (which are rust mods) and
   // generate a file that gathers them all.
@@ -344,8 +345,8 @@ class RustGenerator : public BaseGenerator {
                 const std::string &file_name)
       : BaseGenerator(parser, path, file_name, "", "::", "rs"),
         cur_name_space_(nullptr),
-        namer_({ RustDefaultConfig().WithFlagOptions(parser.opts, path),
-                 RustKeywords() }) {
+        namer_(WithFlagOptions(RustDefaultConfig(), parser.opts, path),
+               RustKeywords()) {
     // TODO: Namer flag overrides should be in flatc or flatc_main.
     code_.SetPadding("  ");
   }
@@ -380,9 +381,9 @@ class RustGenerator : public BaseGenerator {
       gen_symbol(symbol);
 
       const std::string directories =
-          namer_.Directories(symbol.defined_namespace->components);
+          namer_.Directories(*symbol.defined_namespace);
       EnsureDirExists(directories);
-      const std::string file_path = directories + namer_.File(symbol.name);
+      const std::string file_path = directories + namer_.File(symbol);
       const bool save_success =
           SaveFile(file_path.c_str(), code_.ToString(), /*binary=*/false);
       if (!save_success) return false;
@@ -526,8 +527,11 @@ class RustGenerator : public BaseGenerator {
     return false;
   }
 
-  std::string NamespacedNativeName(const Definition &def) {
-    return WrapInNameSpace(def.defined_namespace, namer_.ObjectType(def.name));
+  std::string NamespacedNativeName(const EnumDef &def) {
+    return WrapInNameSpace(def.defined_namespace, namer_.ObjectType(def));
+  }
+  std::string NamespacedNativeName(const StructDef &def) {
+    return WrapInNameSpace(def.defined_namespace, namer_.ObjectType(def));
   }
 
   std::string WrapInNameSpace(const Definition &def) const {
@@ -663,7 +667,7 @@ class RustGenerator : public BaseGenerator {
 
   std::string GetEnumValue(const EnumDef &enum_def,
                            const EnumVal &enum_val) const {
-    return namer_.EnumVariant(enum_def.name, enum_val.name);
+    return namer_.EnumVariant(enum_def, enum_val);
   }
 
   // 1 suffix since old C++ can't figure out the overload.
@@ -671,7 +675,7 @@ class RustGenerator : public BaseGenerator {
                          std::function<void(const EnumVal &)> cb) {
     for (auto it = enum_def.Vals().begin(); it != enum_def.Vals().end(); ++it) {
       const auto &ev = **it;
-      code_.SetValue("VARIANT", namer_.Variant(ev.name));
+      code_.SetValue("VARIANT", namer_.Variant(ev));
       code_.SetValue("VALUE", enum_def.ToString(ev));
       code_.IncrementIdentLevel();
       cb(ev);
@@ -690,7 +694,7 @@ class RustGenerator : public BaseGenerator {
   // an enum match function,
   // and an enum array of values
   void GenEnum(const EnumDef &enum_def) {
-    code_.SetValue("ENUM_TY", namer_.Type(enum_def.name));
+    code_.SetValue("ENUM_TY", namer_.Type(enum_def));
     code_.SetValue("BASE_TYPE", GetEnumTypeForDecl(enum_def.underlying_type));
     code_.SetValue("ENUM_NAMESPACE", namer_.Namespace(enum_def.name));
     code_.SetValue("ENUM_CONSTANT", namer_.Constant(enum_def.name));
@@ -743,7 +747,7 @@ class RustGenerator : public BaseGenerator {
       code_ += "pub const ENUM_VALUES_{{ENUM_CONSTANT}}: [{{ENUM_TY}}; " +
                num_fields + "] = [";
       ForAllEnumValues1(enum_def, [&](const EnumVal &ev) {
-        code_ += namer_.EnumVariant(enum_def.name, ev.name) + ",";
+        code_ += namer_.EnumVariant(enum_def, ev) + ",";
       });
       code_ += "];";
       code_ += "";
@@ -872,7 +876,7 @@ class RustGenerator : public BaseGenerator {
 
     if (enum_def.is_union) {
       // Generate typesafe offset(s) for unions
-      code_.SetValue("UNION_TYPE", namer_.Type(enum_def.name));
+      code_.SetValue("UNION_TYPE", namer_.Type(enum_def));
       code_ += "pub struct {{UNION_TYPE}}UnionTableOffset {}";
       code_ += "";
       if (parser_.opts.generate_object_based_api) { GenUnionObject(enum_def); }
@@ -885,13 +889,12 @@ class RustGenerator : public BaseGenerator {
     for (auto it = enum_def.Vals().begin(); it != enum_def.Vals().end(); ++it) {
       auto &enum_val = **it;
       if (enum_val.union_type.base_type == BASE_TYPE_NONE) continue;
-      code_.SetValue("VARIANT_NAME", namer_.Variant(enum_val.name));
+      code_.SetValue("VARIANT_NAME", namer_.Variant(enum_val));
       // For legacy reasons, enum variants are Keep case while enum native
       // variants are UpperCamel case.
-      code_.SetValue(
-          "NATIVE_VARIANT",
-          ConvertCase(namer_.EscapeKeyword(enum_val.name), Case::kUpperCamel));
-      code_.SetValue("U_ELEMENT_NAME", namer_.Method(enum_val.name));
+      code_.SetValue("NATIVE_VARIANT",
+                     namer_.LegacyRustNativeVariant(enum_val));
+      code_.SetValue("U_ELEMENT_NAME", namer_.Method(enum_val));
       code_.SetValue("U_ELEMENT_TABLE_TYPE",
                      NamespacedNativeName(*enum_val.union_type.struct_def));
       code_.IncrementIdentLevel();
@@ -900,9 +903,9 @@ class RustGenerator : public BaseGenerator {
     }
   }
   void GenUnionObject(const EnumDef &enum_def) {
-    code_.SetValue("ENUM_TY", namer_.Type(enum_def.name));
-    code_.SetValue("ENUM_FN", namer_.Function(enum_def.name));
-    code_.SetValue("ENUM_OTY", namer_.ObjectType(enum_def.name));
+    code_.SetValue("ENUM_TY", namer_.Type(enum_def));
+    code_.SetValue("ENUM_FN", namer_.Function(enum_def));
+    code_.SetValue("ENUM_OTY", namer_.ObjectType(enum_def));
 
     // Generate native union.
     code_ += "#[allow(clippy::upper_case_acronyms)]";  // NONE's spelling is
@@ -997,13 +1000,6 @@ class RustGenerator : public BaseGenerator {
     code_ += "}";  // End union methods impl.
   }
 
-  std::string GetFieldOffsetName(const FieldDef &field) {
-    // FIXME: VT_FIELD_NAME is not screaming snake case by legacy mistake.
-    // but changing this is probably a breaking change.
-    return "VT_" +
-           ConvertCase(namer_.EscapeKeyword(field.name), Case::kAllUpper);
-  }
-
   enum DefaultContext { kBuilder, kAccessor, kObject };
   std::string GetDefaultValue(const FieldDef &field,
                               const DefaultContext context) {
@@ -1033,7 +1029,7 @@ class RustGenerator : public BaseGenerator {
         if (!ev) return "Default::default()";  // Bitflags enum.
         return WrapInNameSpace(
             field.value.type.enum_def->defined_namespace,
-            namer_.EnumVariant(field.value.type.enum_def->name, ev->name));
+            namer_.EnumVariant(*field.value.type.enum_def, *ev));
       }
       case ftUnionValue: {
         return ObjectFieldType(field, true) + "::NONE";
@@ -1539,7 +1535,7 @@ class RustGenerator : public BaseGenerator {
 
   std::string GenTableAccessorFuncBody(const FieldDef &field,
                                        const std::string &lifetime) {
-    const std::string vt_offset = GetFieldOffsetName(field);
+    const std::string vt_offset = namer_.LegacyRustFieldOffsetName(field);
     const std::string typname = FollowType(field.value.type, lifetime);
     // Default-y fields (scalars so far) are neither optional nor required.
     const std::string default_value =
@@ -1582,9 +1578,9 @@ class RustGenerator : public BaseGenerator {
       const EnumVal &ev = **it;
       // TODO(cneo): Can variants be deprecated, should we skip them?
       if (ev.union_type.base_type == BASE_TYPE_NONE) { continue; }
-      code_.SetValue("U_ELEMENT_ENUM_TYPE",
-                     WrapInNameSpace(def.defined_namespace,
-                                     namer_.EnumVariant(def.name, ev.name)));
+      code_.SetValue(
+          "U_ELEMENT_ENUM_TYPE",
+          WrapInNameSpace(def.defined_namespace, namer_.EnumVariant(def, ev)));
       code_.SetValue(
           "U_ELEMENT_TABLE_TYPE",
           WrapInNameSpace(ev.union_type.struct_def->defined_namespace,
@@ -1601,11 +1597,11 @@ class RustGenerator : public BaseGenerator {
     // diff when refactoring to the `ForAllX` helper functions.
     auto go = [&](const FieldDef &field) {
       if (field.deprecated) return;
-      code_.SetValue("OFFSET_NAME", GetFieldOffsetName(field));
+      code_.SetValue("OFFSET_NAME", namer_.LegacyRustFieldOffsetName(field));
       code_.SetValue("OFFSET_VALUE", NumToString(field.value.offset));
-      code_.SetValue("FIELD", namer_.Field(field.name));
+      code_.SetValue("FIELD", namer_.Field(field));
       code_.SetValue("BLDR_DEF_VAL", GetDefaultValue(field, kBuilder));
-      code_.SetValue("DISCRIMINANT", namer_.Method(field.name) + "_type");
+      code_.SetValue("DISCRIMINANT", namer_.Method(field) + "_type");
       code_.IncrementIdentLevel();
       cb(field);
       code_.DecrementIdentLevel();
@@ -1620,8 +1616,8 @@ class RustGenerator : public BaseGenerator {
   // Generate an accessor struct, builder struct, and create function for a
   // table.
   void GenTable(const StructDef &struct_def) {
-    code_.SetValue("STRUCT_TY", namer_.Type(struct_def.name));
-    code_.SetValue("STRUCT_FN", namer_.Function(struct_def.name));
+    code_.SetValue("STRUCT_TY", namer_.Type(struct_def));
+    code_.SetValue("STRUCT_FN", namer_.Function(struct_def));
 
     // Generate an offset type, the base type, the Follow impl, and the
     // init_from_table impl.
@@ -1702,7 +1698,7 @@ class RustGenerator : public BaseGenerator {
     if (parser_.opts.generate_object_based_api) {
       // TODO(cneo): Replace more for loops with ForAllX stuff.
       // TODO(cneo): Manage indentation with IncrementIdentLevel?
-      code_.SetValue("STRUCT_OTY", namer_.ObjectType(struct_def.name));
+      code_.SetValue("STRUCT_OTY", namer_.ObjectType(struct_def));
       code_ += "  pub fn unpack(&self) -> {{STRUCT_OTY}} {";
       ForAllObjectTableFields(struct_def, [&](const FieldDef &field) {
         const Type &type = field.value.type;
@@ -1939,7 +1935,7 @@ class RustGenerator : public BaseGenerator {
       const EnumDef &union_def = *field.value.type.enum_def;
       code_.SetValue("UNION_TYPE", WrapInNameSpace(union_def));
       code_.SetValue("UNION_TYPE_OFFSET_NAME",
-                     GetFieldOffsetName(field) + "_TYPE");
+                     namer_.LegacyRustFieldOffsetName(field) + "_TYPE");
       code_ +=
           "\n     .visit_union::<{{UNION_TYPE}}, _>("
           "\"{{FIELD}}_type\", Self::{{UNION_TYPE_OFFSET_NAME}}, "
@@ -2010,12 +2006,12 @@ class RustGenerator : public BaseGenerator {
           if (type.base_type == BASE_TYPE_UNION) {
             const auto &enum_def = *type.enum_def;
             code_.SetValue("ENUM_TY", WrapInNameSpace(enum_def));
-            code_.SetValue("FIELD", namer_.Field(field.name));
+            code_.SetValue("FIELD", namer_.Field(field));
 
             code_ += "    match self.{{FIELD}}_type() {";
             code_ += "      {{ENUM_TY}}::NONE => (),";
             ForAllUnionObjectVariantsBesidesNone(enum_def, [&] {
-              code_.SetValue("FIELD", namer_.Field(field.name));
+              code_.SetValue("FIELD", namer_.Field(field));
               code_ += "      {{ENUM_TY}}::{{VARIANT_NAME}} => {";
               code_ +=
                   "        let f = "
@@ -2065,7 +2061,7 @@ class RustGenerator : public BaseGenerator {
     code_ += "impl<'a: 'b, 'b> {{STRUCT_TY}}Builder<'a, 'b> {";
     ForAllTableFields(struct_def, [&](const FieldDef &field) {
       const bool is_scalar = IsScalar(field.value.type.base_type);
-      std::string offset = GetFieldOffsetName(field);
+      std::string offset = namer_.LegacyRustFieldOffsetName(field);
       // Generate functions to add data, which take one of two forms.
       //
       // If a value has a default:
@@ -2077,8 +2073,7 @@ class RustGenerator : public BaseGenerator {
       //   fn add_x(x_: type) {
       //     fbb_.push_slot_always::<type>(offset, x_);
       //   }
-      code_.SetValue("FIELD_OFFSET",
-                     namer_.Type(struct_def.name) + "::" + offset);
+      code_.SetValue("FIELD_OFFSET", namer_.Type(struct_def) + "::" + offset);
       code_.SetValue("FIELD_TYPE", TableBuilderArgsAddFuncType(field, "'b "));
       code_.SetValue("FUNC_BODY", TableBuilderArgsAddFuncBody(field));
       code_ += "#[inline]";
@@ -2170,8 +2165,8 @@ class RustGenerator : public BaseGenerator {
   }
 
   void GenTableObject(const StructDef &table) {
-    code_.SetValue("STRUCT_OTY", namer_.ObjectType(table.name));
-    code_.SetValue("STRUCT_TY", namer_.Type(table.name));
+    code_.SetValue("STRUCT_OTY", namer_.ObjectType(table));
+    code_.SetValue("STRUCT_TY", namer_.Type(table));
 
     // Generate the native object.
     code_ += "#[non_exhaustive]";
@@ -2221,7 +2216,7 @@ class RustGenerator : public BaseGenerator {
         case ftUnionKey: return;  // Generate union type with union value.
         case ftUnionValue: {
           code_.SetValue("ENUM_METHOD",
-                         namer_.Method(field.value.type.enum_def->name));
+                         namer_.Method(*field.value.type.enum_def));
           code_ +=
               "  let {{FIELD}}_type = "
               "self.{{FIELD}}.{{ENUM_METHOD}}_type();";
@@ -2309,7 +2304,7 @@ class RustGenerator : public BaseGenerator {
     for (auto it = v.begin(); it != v.end(); it++) {
       const FieldDef &field = **it;
       if (field.deprecated) continue;
-      code_.SetValue("FIELD", namer_.Field(field.name));
+      code_.SetValue("FIELD", namer_.Field(field));
       code_.SetValue("FIELD_OTY", ObjectFieldType(field, true));
       code_.IncrementIdentLevel();
       cb(field);
@@ -2359,8 +2354,8 @@ class RustGenerator : public BaseGenerator {
   // must only be called if the root table is defined.
   void GenRootTableFuncs(const StructDef &struct_def) {
     FLATBUFFERS_ASSERT(parser_.root_struct_def_ && "root table not defined");
-    code_.SetValue("STRUCT_TY", namer_.Type(struct_def.name));
-    code_.SetValue("STRUCT_FN", namer_.Function(struct_def.name));
+    code_.SetValue("STRUCT_TY", namer_.Type(struct_def));
+    code_.SetValue("STRUCT_FN", namer_.Function(struct_def));
     code_.SetValue("STRUCT_CONST", namer_.Constant(struct_def.name));
 
     // The root datatype accessors:
@@ -2570,7 +2565,7 @@ class RustGenerator : public BaseGenerator {
       const auto &field = **it;
       code_.SetValue("FIELD_TYPE", GetTypeGet(field.value.type));
       code_.SetValue("FIELD_OTY", ObjectFieldType(field, false));
-      code_.SetValue("FIELD", namer_.Field(field.name));
+      code_.SetValue("FIELD", namer_.Field(field));
       code_.SetValue("FIELD_OFFSET", NumToString(offset_to_field));
       code_.SetValue(
           "REF",
@@ -2589,7 +2584,7 @@ class RustGenerator : public BaseGenerator {
     // platforms.
     GenComment(struct_def.doc_comment);
     code_.SetValue("ALIGN", NumToString(struct_def.minalign));
-    code_.SetValue("STRUCT_TY", namer_.Type(struct_def.name));
+    code_.SetValue("STRUCT_TY", namer_.Type(struct_def));
     code_.SetValue("STRUCT_SIZE", NumToString(struct_def.bytesize));
 
     // We represent Flatbuffers-structs in Rust-u8-arrays since the data may be
@@ -2819,7 +2814,7 @@ class RustGenerator : public BaseGenerator {
 
     // Generate Object API unpack method.
     if (parser_.opts.generate_object_based_api) {
-      code_.SetValue("STRUCT_OTY", namer_.ObjectType(struct_def.name));
+      code_.SetValue("STRUCT_OTY", namer_.ObjectType(struct_def));
       code_ += "  pub fn unpack(&self) -> {{STRUCT_OTY}} {";
       code_ += "    {{STRUCT_OTY}} {";
       ForAllStructFields(struct_def, [&](const FieldDef &field) {
@@ -2964,7 +2959,7 @@ class RustGenerator : public BaseGenerator {
   }
 
  private:
-  Namer namer_;
+  IdlNamer namer_;
 };
 
 }  // namespace rust
