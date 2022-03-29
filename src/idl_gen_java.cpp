@@ -167,7 +167,7 @@ class JavaGenerator : public BaseGenerator {
     std::string code;
     code = "// " + std::string(FlatBuffersGeneratedWarning()) + "\n\n";
 
-    std::string namespace_name = FullNamespace(".", ns);
+    const std::string namespace_name = FullNamespace(".", ns);
     if (!namespace_name.empty()) {
       code += "package " + namespace_name + ";";
       code += "\n\n";
@@ -572,12 +572,6 @@ class JavaGenerator : public BaseGenerator {
     }
   }
 
-  std::string GenByteBufferLength(const char *bb_name) const {
-    std::string bb_len = bb_name;
-    bb_len += ".capacity()";
-    return bb_len;
-  }
-
   std::string GenOffsetGetter(flatbuffers::FieldDef *key_field,
                               const char *num = nullptr) const {
     std::string key_offset = "";
@@ -586,7 +580,7 @@ class JavaGenerator : public BaseGenerator {
       key_offset += num;
       key_offset += ", _bb)";
     } else {
-      key_offset += GenByteBufferLength("bb");
+      key_offset += "bb.capacity()";
       key_offset += " - tableOffset, bb)";
     }
     return key_offset;
@@ -672,9 +666,9 @@ class JavaGenerator : public BaseGenerator {
 
       // Generate a special accessor for the table that when used as the root
       // of a FlatBuffer
-      std::string method_name =
+      const std::string method_name =
           namer_.LegacyJavaMethod2("getRootAs", struct_def, "");
-      std::string method_signature =
+      const std::string method_signature =
           "  public static " + struct_class + " " + method_name;
 
       // create convenience method that doesn't require an existing object
@@ -718,19 +712,17 @@ class JavaGenerator : public BaseGenerator {
       auto &field = **it;
       if (field.deprecated) continue;
       GenComment(field.doc_comment, &code, &comment_config, "  ");
-      std::string type_name = GenTypeGet(field.value.type);
-      std::string type_name_dest = GenTypeNameDest(field.value.type);
-      std::string conditional_cast = "";
-      std::string optional = "";
-      std::string dest_mask = DestinationMask(field.value.type, true);
-      std::string dest_cast = DestinationCast(field.value.type);
-      std::string src_cast = SourceCast(field.value.type);
-      std::string method_start =
+      const std::string type_name = GenTypeGet(field.value.type);
+      const std::string type_name_dest = GenTypeNameDest(field.value.type);
+      const std::string dest_mask = DestinationMask(field.value.type, true);
+      const std::string dest_cast = DestinationCast(field.value.type);
+      const std::string src_cast = SourceCast(field.value.type);
+      const std::string method_start =
           "  public " +
           (field.IsRequired() ? "" : GenNullableAnnotation(field.value.type)) +
-          GenPureAnnotation(field.value.type) + type_name_dest + optional +
-          " " + namer_.Field(field);
-      std::string obj = "obj";
+          GenPureAnnotation(field.value.type) + type_name_dest + " " +
+          namer_.Field(field);
+      const std::string obj = "obj";
 
       // Most field accessors need to retrieve and test the field offset first,
       // this is the prefix code for that:
@@ -758,7 +750,6 @@ class JavaGenerator : public BaseGenerator {
       if (field.IsScalarOptional()) { code += GenOptionalScalarCheck(field); }
       std::string getter = dest_cast + GenGetter(field.value.type);
       code += method_start;
-      std::string default_cast = "";
       std::string member_suffix = "; ";
       if (IsScalar(field.value.type.base_type)) {
         code += "()";
@@ -771,7 +762,7 @@ class JavaGenerator : public BaseGenerator {
         } else {
           code += offset_prefix + getter;
           code += "(o + bb_pos)" + dest_mask;
-          code += " : " + default_cast;
+          code += " : ";
           code += GenDefaultValue(field);
         }
       } else {
@@ -783,7 +774,7 @@ class JavaGenerator : public BaseGenerator {
               code += "bb_pos + " + NumToString(field.value.offset) + ", ";
               code += "bb)";
             } else {
-              code += offset_prefix + conditional_cast;
+              code += offset_prefix;
               code += obj + ".__assign(";
               code += field.value.type.struct_def->fixed
                           ? "o + bb_pos"
@@ -808,7 +799,7 @@ class JavaGenerator : public BaseGenerator {
               code += type_name + " obj, ";
             }
             code += "int j)";
-            const auto body = offset_prefix + conditional_cast + getter + "(";
+            const auto body = offset_prefix + getter + "(";
             if (vectortype.base_type == BASE_TYPE_UNION) {
               code += body + "obj, ";
             } else {
@@ -832,11 +823,9 @@ class JavaGenerator : public BaseGenerator {
             code += ")" + dest_mask;
             if (!IsArray(field.value.type)) {
               code += " : ";
-              code +=
-                  field.value.type.element == BASE_TYPE_BOOL
-                      ? "false"
-                      : (IsScalar(field.value.type.element) ? default_cast + "0"
-                                                            : "null");
+              code += field.value.type.element == BASE_TYPE_BOOL
+                          ? "false"
+                          : (IsScalar(field.value.type.element) ? "0" : "null");
             }
 
             break;
@@ -905,13 +894,13 @@ class JavaGenerator : public BaseGenerator {
           vector_type_name = type_name + ".Vector";
         }
         auto vector_method_start = GenNullableAnnotation(field.value.type) +
-                                   "  public " + vector_type_name + optional +
-                                   " " + namer_.Field(field, "vector");
+                                   "  public " + vector_type_name + " " +
+                                   namer_.Field(field, "vector");
         code += vector_method_start + "() { return ";
         code += namer_.Field(field, "vector");
         code += "(new " + vector_type_name + "()); }\n";
         code += vector_method_start + "(" + vector_type_name + " obj)";
-        code += offset_prefix + conditional_cast + obj + ".__assign(";
+        code += offset_prefix + obj + ".__assign(";
         code += "__vector(o), ";
         if (!IsScalar(element_base_type)) {
           auto vectortype = field.value.type.VectorType();
@@ -957,7 +946,7 @@ class JavaGenerator : public BaseGenerator {
         code += nested_type_name + " obj";
         code += ") { int o = __offset(";
         code += NumToString(field.value.offset) + "); ";
-        code += "return o != 0 ? " + conditional_cast + obj + ".__assign(";
+        code += "return o != 0 ? " + obj + ".__assign(";
         code += "";
         code += "__indirect(__vector(o)), ";
         code += "bb) : null; }\n";
@@ -1571,11 +1560,10 @@ class JavaGenerator : public BaseGenerator {
           break;
         }
         case BASE_TYPE_STRING: {
-          std::string create_string = "createString";
           code += "    int _" + field_name + " = _o." + get_field +
                   "() == null ? 0 : "
-                  "builder." +
-                  create_string + "(_o." + get_field + "());\n";
+                  "builder.createString(_o." +
+                  get_field + "());\n";
           break;
         }
         case BASE_TYPE_VECTOR: {
@@ -1588,10 +1576,9 @@ class JavaGenerator : public BaseGenerator {
             std::string to_array = "";
             switch (field.value.type.element) {
               case BASE_TYPE_STRING: {
-                std::string create_string = "createString";
                 array_type = "int";
                 element_type = "String";
-                to_array += "builder." + create_string + "(_e)";
+                to_array = "builder.createString(_e)";
                 break;
               }
               case BASE_TYPE_STRUCT:
