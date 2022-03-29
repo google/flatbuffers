@@ -36,8 +36,8 @@ Namer::Config JavaDefaultConfig() {
     /*variants=*/Case::kKeep,
     /*enum_variant_seperator=*/".",
     /*escape_keywords=*/Namer::Config::Escape::AfterConvertingCase,
-    /*namespaces=*/Case::kSnake,
-    /*namespace_seperator=*/"::",
+    /*namespaces=*/Case::kUpperCamel,
+    /*namespace_seperator=*/".",
     /*object_prefix=*/"",
     /*object_suffix=*/"T",
     /*keyword_prefix=*/"",
@@ -224,7 +224,7 @@ class JavaGenerator : public BaseGenerator {
     switch (type.base_type) {
       case BASE_TYPE_STRING: return "String";
       case BASE_TYPE_VECTOR: return GenTypeGet(type.VectorType());
-      case BASE_TYPE_STRUCT: return WrapInNameSpace(*type.struct_def);
+      case BASE_TYPE_STRUCT: return namer_.NamespacedType(*type.struct_def);
       case BASE_TYPE_UNION: FLATBUFFERS_FALLTHROUGH();  // else fall thru
       default: return "Table";
     }
@@ -328,7 +328,7 @@ class JavaGenerator : public BaseGenerator {
     FLATBUFFERS_ASSERT(value.type.enum_def);
     auto &enum_def = *value.type.enum_def;
     auto enum_val = enum_def.FindByValue(value.constant);
-    return enum_val ? (WrapInNameSpace(enum_def) + "." + enum_val->name)
+    return enum_val ? namer_.NamespacedEnumVariant(enum_def, *enum_val)
                     : value.constant;
   }
 
@@ -866,7 +866,7 @@ class JavaGenerator : public BaseGenerator {
           for (auto kit = fields.begin(); kit != fields.end(); ++kit) {
             auto &key_field = **kit;
             if (key_field.key) {
-              auto qualified_name = WrapInNameSpace(sd);
+              auto qualified_name = namer_.NamespacedType(sd);
               code += "  public " + qualified_name + " ";
               code += namer_.Method(field) + "ByKey(";
               code += GenTypeNameDest(key_field.value.type) + " key)";
@@ -944,7 +944,7 @@ class JavaGenerator : public BaseGenerator {
       }
       // generate object accessors if is nested_flatbuffer
       if (field.nested_flatbuffer) {
-        auto nested_type_name = WrapInNameSpace(*field.nested_flatbuffer);
+        auto nested_type_name = namer_.NamespacedType(*field.nested_flatbuffer);
         auto nested_method_name =
             namer_.Field(field) + "As" + field.nested_flatbuffer->name;
         auto get_nested_method_name = nested_method_name;
@@ -1423,8 +1423,8 @@ class JavaGenerator : public BaseGenerator {
                      // deleted when issue #6561 is fixed.
         }
         // DO NOT SUBMIT: CASPER: NamespacedEnumVariant.
-        code += indent + "  case " + WrapInNameSpace(enum_def) + "." + ev.name +
-                ":\n";
+        code += indent + "  case " +
+                namer_.NamespacedEnumVariant(enum_def, ev) + ":\n";
         auto actual_type = GenTypeGet(ev.union_type);
         code += indent + "    " + variable_name + "Value = " + camel_name +
                 "(new " + actual_type + "()" + value_params + ");\n";
@@ -1626,9 +1626,8 @@ class JavaGenerator : public BaseGenerator {
               case BASE_TYPE_UNION:
                 array_type = "int";
                 element_type =
-                    WrapInNameSpace(*field.value.type.enum_def) + "Union";
-                to_array = WrapInNameSpace(*field.value.type.enum_def) +
-                           "Union.pack(builder,  _o." +
+                    namer_.NamespacedType(*field.value.type.enum_def) + "Union";
+                to_array = element_type + ".pack(builder,  _o." +
                            namer_.Method("get", property_name) + "()[_j])";
                 break;
               case BASE_TYPE_UCHAR:  // TODO this branch of the switch is due to
@@ -1708,11 +1707,11 @@ class JavaGenerator : public BaseGenerator {
                       field.value.type.enum_def->underlying_type, false)) +
                   " _" + camel_name + "Type = _o." + get_field +
                   "() == null ? " +
-                  WrapInNameSpace(*field.value.type.enum_def) +
+                  namer_.NamespacedType(*field.value.type.enum_def) +
                   ".NONE : " + "_o." + get_field + "().getType();\n";
           code += "    " + GenOffsetType() + " _" + camel_name + " = _o." +
                   get_field + "() == null ? 0 : " +
-                  WrapInNameSpace(*field.value.type.enum_def) +
+                  namer_.NamespacedType(*field.value.type.enum_def) +
                   "Union.pack(builder, _o." + get_field + "());\n";
           break;
         }
@@ -1967,7 +1966,7 @@ class JavaGenerator : public BaseGenerator {
                             type_name_length, new_type_name);
         } else if (type.element == BASE_TYPE_UNION) {
           if (wrap_in_namespace) {
-            type_name = WrapInNameSpace(*type.enum_def) + "Union";
+            type_name = namer_.NamespacedType(*type.enum_def) + "Union";
           } else {
             type_name = type.enum_def->name + "Union";
           }
@@ -1977,7 +1976,7 @@ class JavaGenerator : public BaseGenerator {
 
       case BASE_TYPE_UNION: {
         if (wrap_in_namespace) {
-          type_name = WrapInNameSpace(*type.enum_def) + "Union";
+          type_name = namer_.NamespacedType(*type.enum_def) + "Union";
         } else {
           type_name = type.enum_def->name + "Union";
         }
@@ -2011,13 +2010,13 @@ class JavaGenerator : public BaseGenerator {
           type_name.replace(type_name.length() - type_name_length,
                             type_name_length, new_type_name);
         } else if (type.element == BASE_TYPE_UNION) {
-          type_name = WrapInNameSpace(*type.enum_def) + "Union";
+          type_name = namer_.NamespacedType(*type.enum_def) + "Union";
         }
         break;
       }
 
       case BASE_TYPE_UNION: {
-        type_name = WrapInNameSpace(*type.enum_def) + "Union";
+        type_name = namer_.NamespacedType(*type.enum_def) + "Union";
         break;
       }
       default: break;

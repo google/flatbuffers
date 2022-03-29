@@ -65,6 +65,10 @@ class IdlNamer : public Namer {
     return Namespace(ns.components);
   }
 
+  std::string NamespacedEnumVariant(const EnumDef &e, const EnumVal &v) const {
+    return NamespacedString(e.defined_namespace, EnumVariant(e, v));
+  }
+
   std::string NamespacedType(const Definition &def) const {
     return NamespacedString(def.defined_namespace, Type(def.name));
   }
