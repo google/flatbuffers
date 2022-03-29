@@ -672,7 +672,8 @@ class JavaGenerator : public BaseGenerator {
 
       // Generate a special accessor for the table that when used as the root
       // of a FlatBuffer
-      std::string method_name = namer_.LegacyJavaMethod2("getRootAs", struct_def, "");
+      std::string method_name =
+          namer_.LegacyJavaMethod2("getRootAs", struct_def, "");
       std::string method_signature =
           "  public static " + struct_class + " " + method_name;
 
@@ -694,8 +695,10 @@ class JavaGenerator : public BaseGenerator {
         if (parser_.file_identifier_.length()) {
           // Check if a buffer has the identifier.
           code += "  public static ";
-          code += "boolean " + namer_.LegacyJavaMethod2("", struct_def,
-          "BufferHasIdentifier(ByteBuffer _bb)") + " { return ";
+          code += "boolean " +
+                  namer_.LegacyJavaMethod2(
+                      "", struct_def, "BufferHasIdentifier(ByteBuffer _bb)") +
+                  " { return ";
           code += "__has_identifier(_bb, \"";
           code += parser_.file_identifier_;
           code += "\"); }\n";
@@ -1165,7 +1168,7 @@ class JavaGenerator : public BaseGenerator {
         }
       }
       code += "  public static " + GenOffsetType() + " ";
-      code += namer_.LegacyJavaNamer2("end", struct_def, "");
+      code += namer_.LegacyJavaMethod2("end", struct_def, "");
       code += "(FlatBufferBuilder builder) {\n    int o = builder.";
       code += "endTable();\n";
       for (auto it = struct_def.fields.vec.begin();
@@ -1182,7 +1185,8 @@ class JavaGenerator : public BaseGenerator {
         std::string size_prefix[] = { "", "SizePrefixed" };
         for (int i = 0; i < 2; ++i) {
           code += "  public static void ";
-          code += LegacyJavaMethod2("finish" + size_prefix[i], struct_Def, "Buffer");
+          code += namer_.LegacyJavaMethod2("finish" + size_prefix[i],
+                                           struct_def, "Buffer");
           code += "(FlatBufferBuilder builder, " + GenOffsetType();
           code += " offset) {";
           code += " builder.finish" + size_prefix[i] + "(offset";
@@ -1461,6 +1465,7 @@ class JavaGenerator : public BaseGenerator {
       const auto accessor = namer_.Method(field);
       const auto variable = "_" + namer_.Variable("o", field);
       const auto get_field = namer_.Method("get", field);
+      const auto set_field = namer_.Method("set", field);
 
       auto type_name =
           GenTypeGet_ObjectAPI(field.value.type, opts, false, true);
@@ -1479,10 +1484,9 @@ class JavaGenerator : public BaseGenerator {
             if (field.value.type.struct_def->fixed) {
               code += accessor + "().unpackTo(_o." + get_field + "());\n";
             } else {
-              code += "_o." + namer_.Method("set", field) + "(" + accessor +
-                      "().unpack());\n";
+              code += "_o." + set_field + "(" + accessor + "().unpack());\n";
             }
-            code += "    else _o." + namer_.Method("set", field) + "(null);\n";
+            code += "    else _o." + set_field + "(null);\n";
           }
           call_setter = false;
           break;
@@ -1545,8 +1549,7 @@ class JavaGenerator : public BaseGenerator {
         }
       }
       if (call_setter) {
-        code +=
-            "    _o." + namer_.Method("set", field) + "(" + variable + ");\n";
+        code += "    _o." + set_field + "(" + variable + ");\n";
       }
     }
     code += "  }\n";
