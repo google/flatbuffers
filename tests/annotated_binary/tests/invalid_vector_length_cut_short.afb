@@ -50,25 +50,25 @@ root_table (AnnotatedBinary.Foo):
   +0x004E | 01                      | UType8       | 0x01 (1)                       | table field `measurement_type` (UType)
   +0x004F | 01                      | UType8       | 0x01 (1)                       | table field `anything_type` (UType)
   +0x0050 | D2 04 00 00             | uint32_t     | 0x000004D2 (1234)              | table field `counter` (Int)
-  +0x0054 | 28 02 00 00             | UOffset32    | 0x00000228 (552) Loc: +0x027C  | ERROR: offset to field `bar`. Location is outside the binary.
+  +0x0054 | 28 02 00 00             | UOffset32    | 0x00000228 (552) Loc: +0x027C  | ERROR: offset to field `bar`. Invalid offset, points outside the binary.
   +0x0058 | 01 00 00 00             | uint32_t     | 0x00000001 (1)                 | struct field `AnnotatedBinary.Building.floors` (Int)
   +0x005C | 02 00 00 00             | uint32_t     | 0x00000002 (2)                 | struct field `AnnotatedBinary.Building.doors` (Int)
   +0x0060 | 0C 00 00 00             | uint32_t     | 0x0000000C (12)                | struct field `AnnotatedBinary.Building.windows` (Int)
-  +0x0064 | 0A 00 00 00             | uint32_t     | 0x0000000A (10)                | array field `AnnotatedBinary.Dimension.values[0]` (Int)
-  +0x0068 | 0C 00 00 00             | uint32_t     | 0x0000000C (12)                | array field `AnnotatedBinary.Dimension.values[1]` (Int)
-  +0x006C | 14 00 00 00             | uint32_t     | 0x00000014 (20)                | array field `AnnotatedBinary.Dimension.values[2]` (Int)
+  +0x0064 | 0A 00 00 00             | uint32_t     | 0x0000000A (10)                | array field `AnnotatedBinary.Dimension.values`[0] (Int)
+  +0x0068 | 0C 00 00 00             | uint32_t     | 0x0000000C (12)                | array field `AnnotatedBinary.Dimension.values`[1] (Int)
+  +0x006C | 14 00 00 00             | uint32_t     | 0x00000014 (20)                | array field `AnnotatedBinary.Dimension.values`[2] (Int)
   +0x0070 | 01                      | uint8_t      | 0x01 (1)                       | struct field `AnnotatedBinary.Tolerance.width` (UByte)
   +0x0071 | 02                      | uint8_t      | 0x02 (2)                       | struct field `AnnotatedBinary.Tolerance.width` (UByte)
   +0x0072 | 03                      | uint8_t      | 0x03 (3)                       | struct field `AnnotatedBinary.Tolerance.width` (UByte)
   +0x0073 | 00                      | uint8_t[1]   | .                              | padding
-  +0x0074 | C8 01 00 00             | UOffset32    | 0x000001C8 (456) Loc: +0x023C  | ERROR: offset to field `name`. Location is outside the binary.
-  +0x0078 | 5C 01 00 00             | UOffset32    | 0x0000015C (348) Loc: +0x01D4  | ERROR: offset to field `bars`. Location is outside the binary.
-  +0x007C | 50 01 00 00             | UOffset32    | 0x00000150 (336) Loc: +0x01CC  | ERROR: offset to field `bar_baz`. Location is outside the binary.
-  +0x0080 | 34 01 00 00             | UOffset32    | 0x00000134 (308) Loc: +0x01B4  | ERROR: offset to field `accounts`. Location is outside the binary.
-  +0x0084 | 24 01 00 00             | UOffset32    | 0x00000124 (292) Loc: +0x01A8  | ERROR: offset to field `bob`. Location is outside the binary.
-  +0x0088 | 14 01 00 00             | UOffset32    | 0x00000114 (276) Loc: +0x019C  | ERROR: offset to field `alice`. Location is outside the binary.
+  +0x0074 | C8 01 00 00             | UOffset32    | 0x000001C8 (456) Loc: +0x023C  | ERROR: offset to field `name`. Invalid offset, points outside the binary.
+  +0x0078 | 5C 01 00 00             | UOffset32    | 0x0000015C (348) Loc: +0x01D4  | ERROR: offset to field `bars`. Invalid offset, points outside the binary.
+  +0x007C | 50 01 00 00             | UOffset32    | 0x00000150 (336) Loc: +0x01CC  | ERROR: offset to field `bar_baz`. Invalid offset, points outside the binary.
+  +0x0080 | 34 01 00 00             | UOffset32    | 0x00000134 (308) Loc: +0x01B4  | ERROR: offset to field `accounts`. Invalid offset, points outside the binary.
+  +0x0084 | 24 01 00 00             | UOffset32    | 0x00000124 (292) Loc: +0x01A8  | ERROR: offset to field `bob`. Invalid offset, points outside the binary.
+  +0x0088 | 14 01 00 00             | UOffset32    | 0x00000114 (276) Loc: +0x019C  | ERROR: offset to field `alice`. Invalid offset, points outside the binary.
   +0x008C | 0D 00 00 00             | uint32_t     | 0x0000000D (13)                | table field `just_i32` (Int)
-  +0x0090 | DC 00 00 00             | UOffset32    | 0x000000DC (220) Loc: +0x016C  | ERROR: offset to field `names`. Location is outside the binary.
+  +0x0090 | DC 00 00 00             | UOffset32    | 0x000000DC (220) Loc: +0x016C  | ERROR: offset to field `names`. Invalid offset, points outside the binary.
   +0x0094 | A0 00 00 00             | UOffset32    | 0x000000A0 (160) Loc: +0x0134  | offset to field `points_of_interest` (vector)
   +0x0098 | 94 00 00 00             | UOffset32    | 0x00000094 (148) Loc: +0x012C  | offset to field `foobars_type` (vector)
   +0x009C | 38 00 00 00             | UOffset32    | 0x00000038 (56) Loc: +0x00D4   | offset to field `foobars` (vector)
@@ -78,7 +78,7 @@ root_table (AnnotatedBinary.Foo):
 
 string (AnnotatedBinary.Foo.charlie):
   +0x00AC | 05 00 00 00             | uint32_t     | 0x00000005 (5)                 | length of string
-  +0x00B0 | 61 6C 69 63 65          | char[5]      | alice                          
+  +0x00B0 | 61 6C 69 63 65          | char[5]      | alice                          | string literal
   +0x00B5 | 00                      | char         | 0x00 (0)                       | string terminator
 
 padding:
@@ -106,7 +106,7 @@ vector (AnnotatedBinary.Foo.foobars):
   +0x00E0 | 04 00 00 00             | UOffset32    | 0x00000004 (4) Loc: +0x00E4    | offset to union[2] (`Bar`)
 
 table (AnnotatedBinary.Bar):
-  +0x00E4 | D2 FE FF FF             | SOffset32    | 0xFFFFFED2 (-302) Loc: +0x0212 | ERROR: offset to vtable. Invalid offset, points to outside the binary.
+  +0x00E4 | D2 FE FF FF             | SOffset32    | 0xFFFFFED2 (-302) Loc: +0x0212 | ERROR: offset to vtable. Invalid offset, points outside the binary.
 
 unknown (no known references):
   +0x00E8 | 00 80 23 44 10 00 00 00 | ?uint8_t[28] | ..#D....                       | WARN: nothing refers to this section.
@@ -122,7 +122,7 @@ table (AnnotatedBinary.Baz):
   +0x0108 | 04 00 00 00             | SOffset32    | 0x00000004 (4) Loc: +0x0104    | offset to vtable
 
 table (AnnotatedBinary.Bar):
-  +0x010C | FA FE FF FF             | SOffset32    | 0xFFFFFEFA (-262) Loc: +0x0212 | ERROR: offset to vtable. Invalid offset, points to outside the binary.
+  +0x010C | FA FE FF FF             | SOffset32    | 0xFFFFFEFA (-262) Loc: +0x0212 | ERROR: offset to vtable. Invalid offset, points outside the binary.
 
 unknown (no known references):
   +0x0110 | 00 00 E4 43 10 00 00 00 | ?uint8_t[28] | ...C....                       | WARN: nothing refers to this section.
@@ -137,4 +137,4 @@ vector (AnnotatedBinary.Foo.foobars_type):
   +0x0132 | 01                      | UType8       | 0x01 (1)                       | value[2]
 
 vector (AnnotatedBinary.Foo.points_of_interest):
-  +0x0134 | 03 00                   | ?uint8_t[2]  | ..                             | ERROR: length of vector (# items). Incomplete binary, expected to read 4 bytes here
+  +0x0134 | 03 00                   | ?uint8_t[2]  | ..                             | ERROR: length of vector (# items). Incomplete binary, expected to read 4 bytes.
