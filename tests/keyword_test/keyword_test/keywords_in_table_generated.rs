@@ -23,6 +23,7 @@ impl<'a> KeywordsInTable<'a> {
   pub const VT_IS: flatbuffers::VOffsetT = 4;
   pub const VT_PRIVATE: flatbuffers::VOffsetT = 6;
   pub const VT_TYPE_: flatbuffers::VOffsetT = 8;
+  pub const VT_DEFAULT: flatbuffers::VOffsetT = 10;
 
   pub const fn get_fully_qualified_name() -> &'static str {
     "KeywordTest.KeywordsInTable"
@@ -41,6 +42,7 @@ impl<'a> KeywordsInTable<'a> {
     builder.add_type_(args.type_);
     builder.add_private(args.private);
     builder.add_is(args.is);
+    builder.add_default(args.default);
     builder.finish()
   }
 
@@ -48,10 +50,12 @@ impl<'a> KeywordsInTable<'a> {
     let is = self.is();
     let private = self.private();
     let type_ = self.type_();
+    let default = self.default();
     KeywordsInTableT {
       is,
       private,
       type_,
+      default,
     }
   }
 
@@ -67,6 +71,10 @@ impl<'a> KeywordsInTable<'a> {
   pub fn type_(&self) -> i32 {
     self._tab.get::<i32>(KeywordsInTable::VT_TYPE_, Some(0)).unwrap()
   }
+  #[inline]
+  pub fn default(&self) -> bool {
+    self._tab.get::<bool>(KeywordsInTable::VT_DEFAULT, Some(false)).unwrap()
+  }
 }
 
 impl flatbuffers::Verifiable for KeywordsInTable<'_> {
@@ -79,6 +87,7 @@ impl flatbuffers::Verifiable for KeywordsInTable<'_> {
      .visit_field::<ABC>("is", Self::VT_IS, false)?
      .visit_field::<public>("private", Self::VT_PRIVATE, false)?
      .visit_field::<i32>("type_", Self::VT_TYPE_, false)?
+     .visit_field::<bool>("default", Self::VT_DEFAULT, false)?
      .finish();
     Ok(())
   }
@@ -87,6 +96,7 @@ pub struct KeywordsInTableArgs {
     pub is: ABC,
     pub private: public,
     pub type_: i32,
+    pub default: bool,
 }
 impl<'a> Default for KeywordsInTableArgs {
   #[inline]
@@ -95,6 +105,7 @@ impl<'a> Default for KeywordsInTableArgs {
       is: ABC::void,
       private: public::NONE,
       type_: 0,
+      default: false,
     }
   }
 }
@@ -117,6 +128,10 @@ impl<'a: 'b, 'b> KeywordsInTableBuilder<'a, 'b> {
     self.fbb_.push_slot::<i32>(KeywordsInTable::VT_TYPE_, type_, 0);
   }
   #[inline]
+  pub fn add_default(&mut self, default: bool) {
+    self.fbb_.push_slot::<bool>(KeywordsInTable::VT_DEFAULT, default, false);
+  }
+  #[inline]
   pub fn new(_fbb: &'b mut flatbuffers::FlatBufferBuilder<'a>) -> KeywordsInTableBuilder<'a, 'b> {
     let start = _fbb.start_table();
     KeywordsInTableBuilder {
@@ -137,6 +152,7 @@ impl std::fmt::Debug for KeywordsInTable<'_> {
       ds.field("is", &self.is());
       ds.field("private", &self.private());
       ds.field("type_", &self.type_());
+      ds.field("default", &self.default());
       ds.finish()
   }
 }
@@ -146,6 +162,7 @@ pub struct KeywordsInTableT {
   pub is: ABC,
   pub private: public,
   pub type_: i32,
+  pub default: bool,
 }
 impl Default for KeywordsInTableT {
   fn default() -> Self {
@@ -153,6 +170,7 @@ impl Default for KeywordsInTableT {
       is: ABC::void,
       private: public::NONE,
       type_: 0,
+      default: false,
     }
   }
 }
@@ -164,10 +182,12 @@ impl KeywordsInTableT {
     let is = self.is;
     let private = self.private;
     let type_ = self.type_;
+    let default = self.default;
     KeywordsInTable::create(_fbb, &KeywordsInTableArgs{
       is,
       private,
       type_,
+      default,
     })
   }
 }
