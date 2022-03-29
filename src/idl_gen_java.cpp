@@ -1466,7 +1466,7 @@ class JavaGenerator : public BaseGenerator {
       const auto set_field = namer_.Method("set", field);
 
       auto type_name =
-          GenTypeGet_ObjectAPI(field.value.type, opts, false, true);
+          GenTypeGet_ObjectAPI(field.value.type, false, true);
       if (field.IsScalarOptional())
         type_name = ConvertPrimitiveTypeToObjectWrapper_ObjectAPI(type_name);
       auto start = "    " + type_name + " " + variable + " = ";
@@ -1609,7 +1609,7 @@ class JavaGenerator : public BaseGenerator {
               case BASE_TYPE_STRUCT:
                 array_type = "int";
                 element_type =
-                    GenTypeGet_ObjectAPI(field.value.type, opts, true, true);
+                    GenTypeGet_ObjectAPI(field.value.type, true, true);
                 ;
                 to_array = GenTypeGet(field.value.type) + ".pack(builder, _e)";
                 break;
@@ -1662,7 +1662,7 @@ class JavaGenerator : public BaseGenerator {
           } else {
             auto type_name = GenTypeGet(field.value.type);
             auto element_type_name =
-                GenTypeGet_ObjectAPI(field.value.type, opts, true, true);
+                GenTypeGet_ObjectAPI(field.value.type, true, true);
             auto pack_method =
                 field.value.type.struct_def == nullptr
                     ? "builder.add" + GenMethod(field.value.type.VectorType()) +
@@ -1694,7 +1694,7 @@ class JavaGenerator : public BaseGenerator {
                                         array_lengths);
           } else {
             code += "    " +
-                    GenTypeGet_ObjectAPI(field.value.type, opts, false, true) +
+                    GenTypeGet_ObjectAPI(field.value.type, false, true) +
                     " _" + field_name + " = _o." + get_field + "();\n";
           }
           break;
@@ -1966,7 +1966,7 @@ class JavaGenerator : public BaseGenerator {
           if (wrap_in_namespace) {
             type_name = namer_.NamespacedType(*type.enum_def) + "Union";
           } else {
-            type_name = type.enum_def->name + "Union";
+            type_name = namer_.Type(*type.enum_def) + "Union";
           }
         }
         break;
@@ -1976,7 +1976,7 @@ class JavaGenerator : public BaseGenerator {
         if (wrap_in_namespace) {
           type_name = namer_.NamespacedType(*type.enum_def) + "Union";
         } else {
-          type_name = type.enum_def->name + "Union";
+          type_name = namer_.Type(*type.enum_def) + "Union";
         }
         break;
       }
