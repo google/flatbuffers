@@ -2,11 +2,15 @@
 buildifier: latest
 platforms:
   ubuntu1804:
+    environment:
+      CC: clang
     build_targets:
     - "//..."
     test_targets:
     - "//..."
   ubuntu2004:
+    environment:
+      CC: clang
     build_targets:
     - "//..."
     test_targets:
