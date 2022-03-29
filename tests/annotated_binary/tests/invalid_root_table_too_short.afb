@@ -18,4 +18,4 @@ unknown (no known references):
   +0x40 | 00 00 64 00             |              | ..d.
 
 root_table (AnnotatedBinary.Foo):
-  +0x44 | 3A 00                   | ?uint8_t[2]  | :.                         | ERROR: offset to vtable. Incomplete binary, expected to read 4 bytes here
+  +0x44 | 3A 00                   | ?uint8_t[2]  | :.                         | ERROR: offset to vtable. Incomplete binary, expected to read 4 bytes.

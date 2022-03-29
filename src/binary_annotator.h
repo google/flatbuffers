@@ -48,10 +48,6 @@ enum class BinaryRegionType {
   UType = 17,
 };
 
-template<typename T> static inline T GetScalar(const uint8_t *binary) {
-  return *reinterpret_cast<const T *>(binary);
-}
-
 template<typename T>
 static inline std::string ToHex(T i, size_t width = sizeof(T)) {
   std::stringstream stream;
@@ -64,6 +60,89 @@ static inline std::string ToHex(T i, size_t width = sizeof(T)) {
 static inline std::string ToHex(uint8_t i) {
   return ToHex(static_cast<int>(i), 2);
 }
+
+enum class BinaryRegionStatus {
+  OK = 0,
+  WARN = 100,
+  WARN_NO_REFERENCES,
+  WARN_CORRUPTED_PADDING,
+  WARN_PADDING_LENGTH,
+  ERROR = 200,
+  // An offset is pointing outside the binary bounds.
+  ERROR_OFFSET_OUT_OF_BINARY,
+  // Expecting to read N bytes but not enough remain in the binary.
+  ERROR_INCOMPLETE_BINARY,
+  // When a length of a vtable/vector is longer than possible.
+  ERROR_LENGTH_TOO_LONG,
+  // When a length of a vtable/vector is shorter than possible.
+  ERROR_LENGTH_TOO_SHORT,
+  // A field mark required is not present in the vtable.
+  ERROR_REQUIRED_FIELD_NOT_PRESENT,
+  // A realized union type is not within the enum bounds.
+  ERROR_INVALID_UNION_TYPE,
+  // Occurs when there is a cycle in offsets.
+  ERROR_CYCLE_DETECTED,
+};
+
+enum class BinaryRegionCommentType {
+  Unknown = 0,
+  SizePrefix,
+  // The offset to the root table.
+  RootTableOffset,
+  // The optional 4-char file identifier.
+  FileIdentifier,
+  // Generic 0-filled padding
+  Padding,
+  // The size of the vtable.
+  VTableSize,
+  // The size of the referring table.
+  VTableRefferingTableLength,
+  // Offsets to vtable fields.
+  VTableFieldOffset,
+  // Offsets to unknown vtable fields.
+  VTableUnknownFieldOffset,
+  // The vtable offset of a table.
+  TableVTableOffset,
+  // A "inline" table field value.
+  TableField,
+  // A table field that is unknown.
+  TableUnknownField,
+  // A table field value that points to another section.
+  TableOffsetField,
+  // A struct field value.
+  StructField,
+  // A array field value.
+  ArrayField,
+  // The length of the string.
+  StringLength,
+  // The string contents.
+  StringValue,
+  // The explicit string terminator.
+  StringTerminator,
+  // The length of the vector (# of items).
+  VectorLength,
+  // A "inline" value of a vector.
+  VectorValue,
+  // A vector value that points to another section.
+  VectorTableValue,
+  VectorStringValue,
+  VectorUnionValue,
+};
+
+struct BinaryRegionComment {
+  BinaryRegionStatus status = BinaryRegionStatus::OK;
+
+  // If status is non OK, this may be filled in with additional details.
+  std::string status_message;
+
+  BinaryRegionCommentType type = BinaryRegionCommentType::Unknown;
+
+  std::string name;
+
+  std::string default_value;
+
+  size_t index = 0;
+};
 
 struct BinaryRegion {
   // Offset into the binary where this region begins.
@@ -84,9 +163,7 @@ struct BinaryRegion {
   uint64_t points_to_offset = 0;
 
   // The comment on the region.
-  // TODO(dbaileychess): Consider moving this to a more structure comment field
-  // so that other generators can parse it easier.
-  std::string comment;
+  BinaryRegionComment comment;
 };
 
 enum class BinarySectionType {
@@ -221,7 +298,7 @@ class BinaryAnnotator {
   }
 
   inline bool IsValidRead(const uint64_t offset, const uint64_t length) const {
-    return IsValidOffset(offset + length - 1);
+    return length < binary_length_ && IsValidOffset(offset + length - 1);
   }
 
   // Calculate the number of bytes remaining from the given offset. If offset is
@@ -291,9 +368,7 @@ class BinaryAnnotator {
     }
   }
 
-  bool ContainsSection(const uint64_t offset) {
-    return sections_.find(offset) != sections_.end();
-  }
+  bool ContainsSection(const uint64_t offset);
 
   // The schema for the binary file
   const uint8_t *bfbs_;

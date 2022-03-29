@@ -11,7 +11,7 @@ padding:
   +0x0008 | 00 00                   | uint8_t[2]    | ..                           | padding
 
 vtable (AnnotatedBinary.Foo):
-  +0x000A | 01 00                   | uint16_t      | 0x0001 (1)                   | ERROR: size of this vtable. Shorter than the minimum 4 bytes
+  +0x000A | 01 00                   | uint16_t      | 0x0001 (1)                   | ERROR: size of this vtable. Shorter than the minimum length: 
 
 unknown (no known references):
   +0x000C | 68 00 0C 00 07 00 00 00 | ?uint8_t[660] | h.......                     | WARN: nothing refers to this section.
