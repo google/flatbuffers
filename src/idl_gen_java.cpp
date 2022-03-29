@@ -99,7 +99,7 @@ class JavaGenerator : public BaseGenerator {
       std::string enumcode;
       auto &enum_def = **it;
       if (!parser_.opts.one_file) cur_name_space_ = enum_def.defined_namespace;
-      GenEnum(enum_def, &enumcode);
+      GenEnum(enum_def, enumcode);
       if (parser_.opts.one_file) {
         one_file_code += enumcode;
       } else {
@@ -110,7 +110,7 @@ class JavaGenerator : public BaseGenerator {
 
       if (parser_.opts.generate_object_based_api && enum_def.is_union) {
         enumcode = "";
-        GenEnum_ObjectAPI(enum_def, &enumcode);
+        GenEnum_ObjectAPI(enum_def, enumcode);
         auto class_name = namer_.Type(enum_def) + "Union";
         if (parser_.opts.one_file) {
           one_file_code += enumcode;
@@ -128,7 +128,7 @@ class JavaGenerator : public BaseGenerator {
       auto &struct_def = **it;
       if (!parser_.opts.one_file)
         cur_name_space_ = struct_def.defined_namespace;
-      GenStruct(struct_def, &declcode, parser_.opts);
+      GenStruct(struct_def, declcode, parser_.opts);
       if (parser_.opts.one_file) {
         one_file_code += declcode;
       } else {
@@ -139,7 +139,7 @@ class JavaGenerator : public BaseGenerator {
 
       if (parser_.opts.generate_object_based_api) {
         declcode = "";
-        GenStruct_ObjectAPI(struct_def, &declcode);
+        GenStruct_ObjectAPI(struct_def, declcode);
         auto class_name = namer_.ObjectType(struct_def);
         if (parser_.opts.one_file) {
           one_file_code += declcode;
@@ -366,8 +366,7 @@ class JavaGenerator : public BaseGenerator {
     return GenDefaultValue(field);
   }
 
-  void GenEnum(EnumDef &enum_def, std::string *code_ptr) const {
-    std::string &code = *code_ptr;
+  void GenEnum(EnumDef &enum_def, std::string &code) const {
     if (enum_def.generated) return;
 
     // Generate enum definitions of the form:
@@ -375,7 +374,7 @@ class JavaGenerator : public BaseGenerator {
     // In Java, we use ints rather than the Enum feature, because we want them
     // to map directly to how they're used in C/C++ and file formats.
     // That, and Java Enums are expensive, and not universally liked.
-    GenComment(enum_def.doc_comment, code_ptr, &comment_config);
+    GenComment(enum_def.doc_comment, &code, &comment_config);
 
     code += "@SuppressWarnings(\"unused\")\n";
     if (enum_def.attributes.Lookup("private")) {
@@ -388,7 +387,7 @@ class JavaGenerator : public BaseGenerator {
     code += "  private " + namer_.Type(enum_def) + "() { }\n";
     for (auto it = enum_def.Vals().begin(); it != enum_def.Vals().end(); ++it) {
       auto &ev = **it;
-      GenComment(ev.doc_comment, code_ptr, &comment_config, "  ");
+      GenComment(ev.doc_comment, &code, &comment_config, "  ");
       code += "  public static final ";
       code += GenTypeBasic(DestinationType(enum_def.underlying_type, false));
       code += " ";
@@ -492,9 +491,8 @@ class JavaGenerator : public BaseGenerator {
 
   // Recursively generate arguments for a constructor, to deal with nested
   // structs.
-  void GenStructArgs(const StructDef &struct_def, std::string *code_ptr,
+  void GenStructArgs(const StructDef &struct_def, std::string &code,
                      const char *nameprefix, size_t array_count = 0) const {
-    std::string &code = *code_ptr;
     for (auto it = struct_def.fields.vec.begin();
          it != struct_def.fields.vec.end(); ++it) {
       auto &field = **it;
@@ -507,7 +505,7 @@ class JavaGenerator : public BaseGenerator {
         // Generate arguments for a struct inside a struct. To ensure names
         // don't clash, and to make it obvious these arguments are constructing
         // a nested struct, prefix the name with the field name.
-        GenStructArgs(*field_type.struct_def, code_ptr,
+        GenStructArgs(*field_type.struct_def, code,
                       (nameprefix + (field.name + "_")).c_str(), array_cnt);
       } else {
         code += ", ";
@@ -523,10 +521,9 @@ class JavaGenerator : public BaseGenerator {
   // Recusively generate struct construction statements of the form:
   // builder.putType(name);
   // and insert manual padding.
-  void GenStructBody(const StructDef &struct_def, std::string *code_ptr,
+  void GenStructBody(const StructDef &struct_def, std::string &code,
                      const char *nameprefix, size_t index = 0,
                      bool in_array = false) const {
-    std::string &code = *code_ptr;
     std::string indent((index + 1) * 2, ' ');
     code += indent + "  builder.prep(";
     code += NumToString(struct_def.minalign) + ", ";
@@ -540,7 +537,7 @@ class JavaGenerator : public BaseGenerator {
         code += NumToString(field.padding) + ");\n";
       }
       if (IsStruct(field_type)) {
-        GenStructBody(*field_type.struct_def, code_ptr,
+        GenStructBody(*field_type.struct_def, code,
                       (nameprefix + (field.name + "_")).c_str(), index,
                       in_array);
       } else {
@@ -554,7 +551,7 @@ class JavaGenerator : public BaseGenerator {
           in_array = true;
         }
         if (IsStruct(type)) {
-          GenStructBody(*field_type.struct_def, code_ptr,
+          GenStructBody(*field_type.struct_def, code,
                         (nameprefix + (field.name + "_")).c_str(), index + 1,
                         in_array);
         } else {
@@ -638,10 +635,9 @@ class JavaGenerator : public BaseGenerator {
     return key_getter;
   }
 
-  void GenStruct(StructDef &struct_def, std::string *code_ptr,
+  void GenStruct(StructDef &struct_def, std::string &code,
                  const IDLOptions &opts) const {
     if (struct_def.generated) return;
-    std::string &code = *code_ptr;
 
     // Generate a struct accessor class, with methods of the form:
     // public type name() { return bb.getType(i + offset); }
@@ -649,7 +645,7 @@ class JavaGenerator : public BaseGenerator {
     // public type name() {
     //   int o = __offset(offset); return o != 0 ? bb.getType(o + i) : default;
     // }
-    GenComment(struct_def.doc_comment, code_ptr, &comment_config);
+    GenComment(struct_def.doc_comment, &code, &comment_config);
 
     if (parser_.opts.gen_generated) {
       code += "@javax.annotation.Generated(value=\"flatc\")\n";
@@ -721,7 +717,7 @@ class JavaGenerator : public BaseGenerator {
          it != struct_def.fields.vec.end(); ++it) {
       auto &field = **it;
       if (field.deprecated) continue;
-      GenComment(field.doc_comment, code_ptr, &comment_config, "  ");
+      GenComment(field.doc_comment, &code, &comment_config, "  ");
       std::string type_name = GenTypeGet(field.value.type);
       std::string type_name_dest = GenTypeNameDest(field.value.type);
       std::string conditional_cast = "";
@@ -1027,9 +1023,9 @@ class JavaGenerator : public BaseGenerator {
       code += "  public static " + GenOffsetType() + " ";
       code += "create";
       code += struct_class + "(FlatBufferBuilder builder";
-      GenStructArgs(struct_def, code_ptr, "");
+      GenStructArgs(struct_def, code, "");
       code += ") {\n";
-      GenStructBody(struct_def, code_ptr, "");
+      GenStructBody(struct_def, code, "");
       code += "    return ";
       code += GenOffsetConstruct("builder." + std::string("offset()"));
       code += ";\n  }\n";
@@ -1240,9 +1236,9 @@ class JavaGenerator : public BaseGenerator {
       code += "    return null;\n";
       code += "  }\n";
     }
-    GenVectorAccessObject(struct_def, code_ptr);
+    GenVectorAccessObject(struct_def, code);
     if (opts.generate_object_based_api) {
-      GenPackUnPack_ObjectAPI(struct_def, code_ptr, opts, struct_has_create,
+      GenPackUnPack_ObjectAPI(struct_def, code, opts, struct_has_create,
                               field_has_create_set);
     }
     code += "}\n\n";
@@ -1255,9 +1251,7 @@ class JavaGenerator : public BaseGenerator {
            "); }\n";
   }
 
-  void GenVectorAccessObject(StructDef &struct_def,
-                             std::string *code_ptr) const {
-    auto &code = *code_ptr;
+  void GenVectorAccessObject(StructDef &struct_def, std::string &code) const {
     // Generate a vector of structs accessor class.
     code += "\n";
     code += "  ";
@@ -1316,8 +1310,7 @@ class JavaGenerator : public BaseGenerator {
     code += "  }\n";
   }
 
-  void GenEnum_ObjectAPI(EnumDef &enum_def, std::string *code_ptr) const {
-    auto &code = *code_ptr;
+  void GenEnum_ObjectAPI(EnumDef &enum_def, std::string &code) const {
     if (enum_def.generated) return;
     code += "import com.google.flatbuffers.FlatBufferBuilder;\n\n";
 
@@ -1383,12 +1376,10 @@ class JavaGenerator : public BaseGenerator {
     code += "}\n\n";
   }
 
-  void GenUnionUnPack_ObjectAPI(const EnumDef &enum_def, std::string *code_ptr,
+  void GenUnionUnPack_ObjectAPI(const EnumDef &enum_def, std::string &code,
                                 const std::string &type_name,
                                 const std::string &field_name,
                                 bool is_vector) const {
-    auto &code = *code_ptr;
-
     const std::string variable_type =
         is_vector ? type_name.substr(0, type_name.length() - 2) : type_name;
     const std::string variable_name =
@@ -1440,10 +1431,9 @@ class JavaGenerator : public BaseGenerator {
   }
 
   void GenPackUnPack_ObjectAPI(
-      StructDef &struct_def, std::string *code_ptr, const IDLOptions &opts,
+      StructDef &struct_def, std::string &code, const IDLOptions &opts,
       bool struct_has_create,
       const std::set<FieldDef *> &field_has_create) const {
-    auto &code = *code_ptr;
     auto struct_name = namer_.ObjectType(struct_def);
     // unpack()
     code += "  public " + struct_name + " unpack() {\n";
@@ -1506,7 +1496,7 @@ class JavaGenerator : public BaseGenerator {
                     accessor + "Length()];\n";
             code +=
                 "    for (int _j = 0; _j < " + accessor + "Length(); ++_j) {\n";
-            GenUnionUnPack_ObjectAPI(*field.value.type.enum_def, code_ptr,
+            GenUnionUnPack_ObjectAPI(*field.value.type.enum_def, code,
                                      type_name, accessor, true);
             code += "    }\n";
           } else if (field.value.type.element != BASE_TYPE_UTYPE) {
@@ -1530,8 +1520,8 @@ class JavaGenerator : public BaseGenerator {
           break;
         case BASE_TYPE_UTYPE: break;
         case BASE_TYPE_UNION: {
-          GenUnionUnPack_ObjectAPI(*field.value.type.enum_def, code_ptr,
-                                   type_name, accessor, false);
+          GenUnionUnPack_ObjectAPI(*field.value.type.enum_def, code, type_name,
+                                   accessor, false);
           break;
         }
         default: {
@@ -1575,8 +1565,8 @@ class JavaGenerator : public BaseGenerator {
               field.value.type.fixed_length,
             };
             array_lengths.push_back(tmp_array_length);
-            GenStructPackDecl_ObjectAPI(*field.value.type.struct_def, code_ptr,
-                                        array_lengths);
+            GenStructPackDecl_ObjectAPI(*field.value.type.struct_def,
+                                        array_lengths, code);
           }
           break;
         }
@@ -1688,8 +1678,8 @@ class JavaGenerator : public BaseGenerator {
               field.value.type.fixed_length,
             };
             array_lengths.push_back(tmp_array_length);
-            GenStructPackDecl_ObjectAPI(*field.value.type.struct_def, code_ptr,
-                                        array_lengths);
+            GenStructPackDecl_ObjectAPI(*field.value.type.struct_def,
+                                        array_lengths, code);
           } else {
             code += "    " +
                     GenTypeGet_ObjectAPI(field.value.type, false, true) + " _" +
@@ -1728,8 +1718,7 @@ class JavaGenerator : public BaseGenerator {
         switch (field.value.type.base_type) {
           case BASE_TYPE_STRUCT: {
             if (struct_def.fixed) {
-              GenStructPackCall_ObjectAPI(*field.value.type.struct_def,
-                                          code_ptr,
+              GenStructPackCall_ObjectAPI(*field.value.type.struct_def, code,
                                           "      _" + field_name + "_");
             } else {
               code += ",\n";
@@ -1748,8 +1737,7 @@ class JavaGenerator : public BaseGenerator {
           }
           case BASE_TYPE_ARRAY: {
             if (field.value.type.struct_def != nullptr) {
-              GenStructPackCall_ObjectAPI(*field.value.type.struct_def,
-                                          code_ptr,
+              GenStructPackCall_ObjectAPI(*field.value.type.struct_def, code,
                                           "      _" + field_name + "_");
             } else {
               code += ",\n";
@@ -1826,10 +1814,9 @@ class JavaGenerator : public BaseGenerator {
     code += "  }\n";
   }
 
-  void GenStructPackDecl_ObjectAPI(
-      const StructDef &struct_def, std::string *code_ptr,
-      std::vector<FieldArrayLength> &array_lengths) const {
-    auto &code = *code_ptr;
+  void GenStructPackDecl_ObjectAPI(const StructDef &struct_def,
+                                   std::vector<FieldArrayLength> &array_lengths,
+                                   std::string &code) const {
     for (auto it = struct_def.fields.vec.begin();
          it != struct_def.fields.vec.end(); ++it) {
       const FieldDef &field = **it;
@@ -1842,8 +1829,8 @@ class JavaGenerator : public BaseGenerator {
       };
       array_lengths.push_back(tmp_array_length);
       if (field_type.struct_def != nullptr) {
-        GenStructPackDecl_ObjectAPI(*field_type.struct_def, code_ptr,
-                                    array_lengths);
+        GenStructPackDecl_ObjectAPI(*field_type.struct_def, array_lengths,
+                                    code);
       } else {
         std::vector<FieldArrayLength> array_only_lengths;
         for (size_t i = 0; i < array_lengths.size(); ++i) {
@@ -1908,15 +1895,14 @@ class JavaGenerator : public BaseGenerator {
   }
 
   void GenStructPackCall_ObjectAPI(const StructDef &struct_def,
-                                   std::string *code_ptr,
+                                   std::string &code,
                                    std::string prefix) const {
-    auto &code = *code_ptr;
     for (auto it = struct_def.fields.vec.begin();
          it != struct_def.fields.vec.end(); ++it) {
       auto &field = **it;
       const auto &field_type = field.value.type;
       if (field_type.struct_def != nullptr) {
-        GenStructPackCall_ObjectAPI(*field_type.struct_def, code_ptr,
+        GenStructPackCall_ObjectAPI(*field_type.struct_def, code,
                                     prefix + namer_.Field(field) + "_");
       } else {
         code += ",\n";
@@ -2030,9 +2016,8 @@ class JavaGenerator : public BaseGenerator {
   }
 
   void GenStruct_ObjectAPI(const StructDef &struct_def,
-                           std::string *code_ptr) const {
+                           std::string &code) const {
     if (struct_def.generated) return;
-    auto &code = *code_ptr;
     if (struct_def.attributes.Lookup("private")) {
       // For Java, we leave the enum unmarked to indicate package-private
     } else {
