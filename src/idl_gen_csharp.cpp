@@ -1238,6 +1238,7 @@ class CSharpGenerator : public BaseGenerator {
             code += "); return ";
             code += "builder.EndVector(); }\n";
 
+            // add Create...VectorBlock() overloads for T[], ArraySegment<T> and IntPtr
             code += "  public static VectorOffset ";
             code += "Create";
             code += Name(field);
@@ -1248,6 +1249,25 @@ class CSharpGenerator : public BaseGenerator {
             code += ", data.Length, ";
             code += NumToString(alignment);
             code += "); builder.Add(data); return builder.EndVector(); }\n";
+
+            code += "  public static VectorOffset ";
+            code += "Create";
+            code += Name(field);
+            code += "VectorBlock(FlatBufferBuilder builder, ";
+            code += "ArraySegment<" + GenTypeBasic(vector_type) + "> data) ";
+            code += "{ builder.StartVector(";
+            code += NumToString(elem_size);
+            code += ", data.Count, ";
+            code += NumToString(alignment);
+            code += "); builder.Add(data); return builder.EndVector(); }\n";
+
+            code += "  public static VectorOffset ";
+            code += "Create";
+            code += Name(field);
+            code += "VectorBlock(FlatBufferBuilder builder, ";
+            code += "IntPtr dataPtr, int sizeInBytes) ";
+            code += "{ builder.StartVector(1, sizeInBytes, 1); ";
+            code += "builder.Add<" + GenTypeBasic(vector_type) + ">(dataPtr, sizeInBytes); return builder.EndVector(); }\n";
           }
           // Generate a method to start a vector, data to be added manually
           // after.
