@@ -1416,6 +1416,8 @@ void UtilConvertCase() {
             "the_quick_brown_fox" },
           { "the_quick_brown_fox", flatbuffers::Case::kKeep,
             "the_quick_brown_fox" },
+          { "the_quick_brown_fox", flatbuffers::Case::kSnake2,
+            "the_quick_brown_fox" },
 
           // Tests for some snake_cases where the _ is oddly placed or missing.
           { "single", flatbuffers::Case::kUpperCamel, "Single" },
@@ -1468,6 +1470,12 @@ void UtilConvertCase() {
             flatbuffers::Case::kSnake, "abctest" },
           { flatbuffers::Case::kUpperCamel, "tHe_qUiCk_BrOwN_fOx",
             flatbuffers::Case::kKeep, "tHe_qUiCk_BrOwN_fOx" },
+          { flatbuffers::Case::kLowerCamel, "theQuick12345Fox",
+            flatbuffers::Case::kSnake, "the_quick_12345fox" },
+          { flatbuffers::Case::kLowerCamel, "a12b34c45",
+            flatbuffers::Case::kSnake, "a_12b_34c_45" },
+          { flatbuffers::Case::kLowerCamel, "a12b34c45",
+            flatbuffers::Case::kSnake2, "a12_b34_c45" },
         };
 
     for (auto &test_case : cases) {
