@@ -57,6 +57,9 @@ class IdlNamer : public Namer {
   std::string Method(const FieldDef &d, const std::string &suffix) const {
     return Method(d.name, suffix);
   }
+  std::string Method(const std::string &prefix, const StructDef &d) const {
+    return Method(prefix, d.name);
+  }
   std::string Method(const std::string &prefix, const FieldDef &d) const {
     return Method(prefix, d.name);
   }
