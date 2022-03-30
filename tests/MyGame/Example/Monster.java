@@ -616,7 +616,7 @@ public final class Monster extends Table {
     if (_o.getVectorOfDoubles() != null) {
       _vectorOfDoubles = createVectorOfDoublesVector(builder, _o.getVectorOfDoubles());
     }
-    int _parent_namespace_test = _o.getParentNamespaceTest() == null ? 0 : MyGame.InParentNamespace.pack(builder, _o.getParentNamespaceTest());
+    int _parentNamespaceTest = _o.getParentNamespaceTest() == null ? 0 : MyGame.InParentNamespace.pack(builder, _o.getParentNamespaceTest());
     int _vectorOfReferrables = 0;
     if (_o.getVectorOfReferrables() != null) {
       int[] __vectorOfReferrables = new int[_o.getVectorOfReferrables().length];
@@ -702,7 +702,7 @@ public final class Monster extends Table {
     addTest5(builder, _test5);
     addVectorOfLongs(builder, _vectorOfLongs);
     addVectorOfDoubles(builder, _vectorOfDoubles);
-    addParentNamespaceTest(builder, _parent_namespace_test);
+    addParentNamespaceTest(builder, _parentNamespaceTest);
     addVectorOfReferrables(builder, _vectorOfReferrables);
     addSingleWeakReference(builder, _o.getSingleWeakReference());
     addVectorOfWeakReferences(builder, _vectorOfWeakReferences);
