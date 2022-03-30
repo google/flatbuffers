@@ -865,6 +865,18 @@ uint64_t BinaryAnnotator::BuildStruct(const uint64_t struct_offset,
         }
       }
     }
+
+    // Insert any padding after this field.
+    const uint16_t padding = field->padding();
+    if (padding > 0 && IsValidOffset(offset + padding)) {
+      BinaryRegionComment padding_comment;
+      padding_comment.type = BinaryRegionCommentType::Padding;
+
+      regions.push_back(MakeBinaryRegion(offset, padding,
+                                         BinaryRegionType::Uint8, padding, 0,
+                                         padding_comment));
+      offset += padding;
+    }
   });
 
   return offset;
@@ -1104,7 +1116,7 @@ void BinaryAnnotator::BuildVector(const uint64_t vector_offset,
     case reflection::BaseType::Union: {
       // Vector of unions
       // Unions have both their realized type (uint8_t for now) that are
-      // stored sperately. These are stored in the field->index() - 1
+      // stored separately. These are stored in the field->index() - 1
       // location.
       const uint16_t union_type_vector_id = field->id() - 1;
 
