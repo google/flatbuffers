@@ -25,6 +25,8 @@ class IdlNamer : public Namer {
   using Namer::Variable;
   using Namer::Variant;
 
+  std::string Constant(const FieldDef &d) const { return Constant(d.name); }
+
   // Types are always structs or enums so we can only expose these two
   // overloads.
   std::string Type(const StructDef &d) const { return Type(d.name); }
@@ -33,6 +35,9 @@ class IdlNamer : public Namer {
   std::string Function(const Definition &s) const { return Function(s.name); }
 
   std::string Field(const FieldDef &s) const { return Field(s.name); }
+  std::string Field(const FieldDef &d, const std::string &s) const {
+    return Field(d.name + "_" + s);
+  }
 
   std::string Variable(const FieldDef &s) const { return Variable(s.name); }
 
@@ -49,8 +54,19 @@ class IdlNamer : public Namer {
   }
   std::string ObjectType(const EnumDef &d) const { return ObjectType(d.name); }
 
+  std::string Method(const FieldDef &d, const std::string &suffix) const {
+    return Method(d.name, suffix);
+  }
+  std::string Method(const std::string &prefix, const FieldDef &d) const {
+    return Method(prefix, d.name);
+  }
+
   std::string Namespace(const struct Namespace &ns) const {
     return Namespace(ns.components);
+  }
+
+  std::string NamespacedEnumVariant(const EnumDef &e, const EnumVal &v) const {
+    return NamespacedString(e.defined_namespace, EnumVariant(e, v));
   }
 
   std::string NamespacedType(const Definition &def) const {
@@ -84,6 +100,11 @@ class IdlNamer : public Namer {
       std::transform(name.begin(), name.end(), name.begin(), CharToLower);
     }
     return EscapeKeyword(ConvertCase(name, Case::kLowerCamel));
+  }
+
+  std::string LegacyJavaMethod2(const std::string &prefix, const StructDef &sd,
+                                const std::string &suffix) const {
+    return prefix + sd.name + suffix;
   }
 
  private:
