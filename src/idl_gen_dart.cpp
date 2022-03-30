@@ -836,7 +836,7 @@ class DartGenerator : public BaseGenerator {
          it != non_deprecated_fields.end(); ++it) {
       const auto &field = *it->second;
       const auto offset = it->first;
-      const std::string add_field = namer_.Method("add_" + field.name);
+      const std::string add_field = namer_.Method("add", field);
       const std::string field_var = namer_.Variable(field);
 
       if (IsScalar(field.value.type.base_type)) {

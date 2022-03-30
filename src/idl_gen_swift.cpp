@@ -588,7 +588,7 @@ class SwiftGenerator : public BaseGenerator {
       code_.SetValue("VOFFSET", NumToString(key_field->value.offset));
 
       code_ += "{{ACCESS_TYPE}} static func " +
-               namer_.Method("sort_vector_of_" + struct_def.name) +
+               namer_.Method("sort_vector_of", struct_def) +
                "(offsets:[Offset], "
                "_ fbb: inout FlatBufferBuilder) -> Offset {";
       Indent();
@@ -700,7 +700,7 @@ class SwiftGenerator : public BaseGenerator {
         (IsVector(field.value.type) || IsArray(field.value.type))) {
       const auto field_name = namer_.NamespacedType(*vectortype.struct_def);
       code_ += "public static func " +
-               namer_.Method("start_vector_of_" + field_var) +
+               namer_.Method("start_vector_of", field_var) +
                "(_ size: Int, in builder: inout "
                "FlatBufferBuilder) {";
       Indent();
@@ -778,7 +778,7 @@ class SwiftGenerator : public BaseGenerator {
       code_.SetValue("CONSTANT", "nil");
       code_ += GenReaderMainBody(is_required) + GenOffset() + required_reader +
                "{{ACCESS}}.readBuffer(of: {{VALUETYPE}}.self, at: o) }";
-      code_.SetValue("FIELDVAR", namer_.Variable("mutable_" + field_field));
+      code_.SetValue("FIELDVAR", namer_.Variable("mutable", field_field));
       code_.SetValue("VALUETYPE", GenType(field.value.type) + Mutable());
       code_.SetValue("CONSTANT", "nil");
       code_ += GenReaderMainBody(is_required) + GenOffset() + required_reader +
@@ -865,7 +865,7 @@ class SwiftGenerator : public BaseGenerator {
       code_ +=
           "{{ACCESS}}.directRead(of: {{VALUETYPE}}.self, offset: "
           "{{ACCESS}}.vector(at: o) + index * {{SIZE}}) }";
-      code_.SetValue("FIELDMETHOD", namer_.Method("mutable_" + field.name));
+      code_.SetValue("FIELDMETHOD", namer_.Method("mutable", field));
       code_.SetValue("VALUETYPE", GenType(field.value.type) + Mutable());
       code_ += GenArrayMainBody(nullable) + GenOffset() + const_string +
                GenConstructor("{{ACCESS}}.vector(at: o) + index * {{SIZE}}");
@@ -1459,7 +1459,7 @@ class SwiftGenerator : public BaseGenerator {
           code_ += "let __" + var + " = builder.createVector(ofOffsets: __" +
                    var + "__)";
         } else {
-          code_ += "{{STRUCTNAME}}." + namer_.Method("start_vector_of_" + var) +
+          code_ += "{{STRUCTNAME}}." + namer_.Method("start_vector_of", var) +
                    "(obj." + field + ".count, in: &builder)";
           std::string code;
           GenerateStructArgs(*field_type.struct_def, &code, "", "", "_o", true);
