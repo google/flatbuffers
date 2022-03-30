@@ -1399,7 +1399,6 @@ class JavaGenerator : public BaseGenerator {
                      // Java which doesn't handle non Table types. Should be
                      // deleted when issue #6561 is fixed.
         }
-        // DO NOT SUBMIT: CASPER: NamespacedEnumVariant.
         code += indent + "  case " +
                 namer_.NamespacedEnumVariant(enum_def, ev) + ":\n";
         auto actual_type = GenTypeGet(ev.union_type);
