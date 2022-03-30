@@ -914,7 +914,9 @@ class CSharpGenerator : public BaseGenerator {
       code += member_suffix;
       code += "}\n";
       if (IsVector(field.value.type)) {
-        code += "  public int " + Name(field);
+        auto camel_name = Name(field);
+        if (camel_name == struct_def.name) { camel_name += "_"; }
+        code += "  public int " + camel_name;
         code += "Length";
         code += " { get";
         code += offset_prefix;
@@ -1566,6 +1568,7 @@ class CSharpGenerator : public BaseGenerator {
 
   void GenUnionUnPack_ObjectAPI(const EnumDef &enum_def, std::string *code_ptr,
                                 const std::string &camel_name,
+                                const std::string &camel_name_short,
                                 bool is_vector) const {
     auto &code = *code_ptr;
     std::string varialbe_name = "_o." + camel_name;
@@ -1584,10 +1587,11 @@ class CSharpGenerator : public BaseGenerator {
       code += indent + varialbe_name + " = new ";
     }
     code += NamespacedName(enum_def) + "Union();\n";
-    code += indent + varialbe_name + ".Type = this." + camel_name + "Type" +
+    code += indent + varialbe_name + ".Type = this." + camel_name_short +
+            "Type" +
             type_suffix + ";\n";
-    code +=
-        indent + "switch (this." + camel_name + "Type" + type_suffix + ") {\n";
+    code += indent + "switch (this." + camel_name_short + "Type" + type_suffix +
+            ") {\n";
     for (auto eit = enum_def.Vals().begin(); eit != enum_def.Vals().end();
          ++eit) {
       auto &ev = **eit;
@@ -1633,6 +1637,8 @@ class CSharpGenerator : public BaseGenerator {
       auto &field = **it;
       if (field.deprecated) continue;
       auto camel_name = Name(field);
+      if (camel_name == struct_def.name) { camel_name += "_"; }
+      auto camel_name_short = Name(field);
       auto start = "    _o." + camel_name + " = ";
       switch (field.value.type.base_type) {
         case BASE_TYPE_STRUCT: {
@@ -1666,7 +1672,7 @@ class CSharpGenerator : public BaseGenerator {
             code += "    for (var _j = 0; _j < this." + camel_name +
                     "Length; ++_j) {\n";
             GenUnionUnPack_ObjectAPI(*field.value.type.enum_def, code_ptr,
-                                     camel_name, true);
+                                     camel_name, camel_name_short, true);
             code += "    }\n";
           } else if (field.value.type.element != BASE_TYPE_UTYPE) {
             auto fixed = field.value.type.struct_def == nullptr;
@@ -1687,7 +1693,7 @@ class CSharpGenerator : public BaseGenerator {
         case BASE_TYPE_UTYPE: break;
         case BASE_TYPE_UNION: {
           GenUnionUnPack_ObjectAPI(*field.value.type.enum_def, code_ptr,
-                                   camel_name, false);
+                                   camel_name, camel_name_short, false);
           break;
         }
         default: {
@@ -1707,6 +1713,8 @@ class CSharpGenerator : public BaseGenerator {
       auto &field = **it;
       if (field.deprecated) continue;
       auto camel_name = Name(field);
+      if (camel_name == struct_def.name) { camel_name += "_"; }
+      auto camel_name_short = Name(field);
       // pre
       switch (field.value.type.base_type) {
         case BASE_TYPE_STRUCT: {
@@ -1782,7 +1790,7 @@ class CSharpGenerator : public BaseGenerator {
               code += "      var " + array_name + " = _o." + property_name +
                       ".ToArray();\n";
             }
-            code += "      _" + field.name + " = Create" + camel_name +
+            code += "      _" + field.name + " = Create" + camel_name_short +
                     "Vector(builder, " + array_name + ");\n";
             code += "    }\n";
           } else {
@@ -1794,7 +1802,7 @@ class CSharpGenerator : public BaseGenerator {
                           camel_name + "[_j]);";
             code += "    var _" + field.name + " = default(VectorOffset);\n";
             code += "    if (_o." + camel_name + " != null) {\n";
-            code += "      Start" + camel_name + "Vector(builder, _o." +
+            code += "      Start" + camel_name_short + "Vector(builder, _o." +
                     camel_name + ".Count);\n";
             code += "      for (var _j = _o." + camel_name +
                     ".Count - 1; _j >= 0; --_j) { " + pack_method + " }\n";
@@ -1840,6 +1848,7 @@ class CSharpGenerator : public BaseGenerator {
         auto &field = **it;
         if (field.deprecated) continue;
         auto camel_name = Name(field);
+        if (camel_name == struct_def.name) { camel_name += "_"; }
         switch (field.value.type.base_type) {
           case BASE_TYPE_STRUCT: {
             if (struct_def.fixed) {
@@ -2094,6 +2103,7 @@ class CSharpGenerator : public BaseGenerator {
       auto type_name = GenTypeGet_ObjectAPI(field.value.type, opts);
       if (field.IsScalarOptional()) type_name += "?";
       auto camel_name = Name(field);
+      if (camel_name == struct_def.name) { camel_name += "_"; }
       if (opts.cs_gen_json_serializer) {
         if (IsUnion(field.value.type)) {
           auto utype_name = NamespacedName(*field.value.type.enum_def);
@@ -2159,7 +2169,9 @@ class CSharpGenerator : public BaseGenerator {
       if (field.deprecated) continue;
       if (field.value.type.base_type == BASE_TYPE_UTYPE) continue;
       if (field.value.type.element == BASE_TYPE_UTYPE) continue;
-      code += "    this." + Name(field) + " = ";
+      auto camel_name = Name(field);
+      if (camel_name == struct_def.name) { camel_name += "_"; }
+      code += "    this." + camel_name + " = ";
       auto type_name = GenTypeGet_ObjectAPI(field.value.type, opts);
       if (IsScalar(field.value.type.base_type)) {
         code += GenDefaultValue(field) + ";\n";

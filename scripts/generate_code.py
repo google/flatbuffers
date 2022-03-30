@@ -345,6 +345,11 @@ flatc(RUST_OPTS, prefix="optional_scalars", schema=optional_scalars_schema)
 
 flatc(NO_INCL_OPTS + CPP_OPTS, schema=optional_scalars_schema)
 
+# Type / field collsion
+type_field_collsion_schema = "type_field_collsion.fbs"
+
+flatc(["--csharp", "--gen-object-api"], schema=type_field_collsion_schema)
+
 # Generate string/vector default code for tests
 flatc(RUST_OPTS, prefix="more_defaults", schema="more_defaults.fbs")
 
