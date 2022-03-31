@@ -885,14 +885,17 @@ namespace FlatBuffers
         }
 
         /// <summary>
-        /// Copies an array segment of type T into this buffer, ending at the given
-        /// offset into this buffer. The starting offset is calculated based on the count
-        /// of the array segment and is the value returned.
+        /// Copies an array segment of type T into this buffer, ending at the 
+        /// given offset into this buffer. The starting offset is calculated 
+        /// based on the count of the array segment and is the value returned.
         /// </summary>
-        /// <typeparam name="T">The type of the input data (must be a struct)</typeparam>
-        /// <param name="offset">The offset into this buffer where the copy will end</param>
+        /// <typeparam name="T">The type of the input data (must be a struct)
+        /// </typeparam>
+        /// <param name="offset">The offset into this buffer where the copy 
+        /// will end</param>
         /// <param name="x">The array segment to copy data from</param>
-        /// <returns>The 'start' location of this buffer now, after the copy completed</returns>
+        /// <returns>The 'start' location of this buffer now, after the copy 
+        /// completed</returns>
         public int Put<T>(int offset, ArraySegment<T> x)
             where T : struct
         {
@@ -939,15 +942,18 @@ namespace FlatBuffers
         }
 
         /// <summary>
-        /// Copies an array segment of type T into this buffer, ending at the given
-        /// offset into this buffer. The starting offset is calculated based on the count
-        /// of the array segment and is the value returned.
+        /// Copies an array segment of type T into this buffer, ending at the 
+        /// given offset into this buffer. The starting offset is calculated 
+        /// based on the count of the array segment and is the value returned.
         /// </summary>
-        /// <typeparam name="T">The type of the input data (must be a struct)</typeparam>
-        /// <param name="offset">The offset into this buffer where the copy will end</param>
+        /// <typeparam name="T">The type of the input data (must be a struct)
+        /// </typeparam>
+        /// <param name="offset">The offset into this buffer where the copy 
+        /// will end</param>
         /// <param name="ptr">The pointer to copy data from</param>
         /// <param name="sizeInBytes">The number of bytes to copy</param>
-        /// <returns>The 'start' location of this buffer now, after the copy completed</returns>
+        /// <returns>The 'start' location of this buffer now, after the copy 
+        /// completed</returns>
         public int Put<T>(int offset, IntPtr ptr, int sizeInBytes)
             where T : struct
         {

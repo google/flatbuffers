@@ -636,7 +636,41 @@ namespace FlatBuffers.Test
 
             Assert.Throws<ArgumentNullException>(() => fbb.Add<float>(data, length));
         }
-    
+            
+        [FlatBuffersTestMethod]
+        public unsafe void FlatBufferBuilder_Add_IntPtr_SizeNegative_Throws()
+        {
+            var fbb = CreateBuffer(false);
+
+            // Construct the data array
+            var array = new float[10];
+            fixed(float* ptr = array)
+            {
+                var data = (IntPtr)ptr;
+                var length = -1;
+                Assert.Throws<ArgumentOutOfRangeException>(() => fbb.Add<float>(data, length));
+            }
+        }
+
+        [FlatBuffersTestMethod]
+        public void FlatBufferBuilder_Add_IntPtr_Zero_Empty_Noop()
+        {
+            var fbb = CreateBuffer(false);
+
+            var storedOffset = fbb.Offset;
+
+            // Construct the data array
+            var data = IntPtr.Zero;
+            var length = 0;
+
+            fbb.Add<float>(data, length);
+
+            // make sure that a length of 0 doesn't throw also if ptr is Zero as well
+            // and that nothing was really added
+            var endOffset = fbb.Offset;
+            Assert.AreEqual(endOffset, storedOffset);
+        }
+
         [FlatBuffersTestMethod]
         public unsafe void FlatBufferBuilder_Add_IntPtr_Empty_Noop()
         {

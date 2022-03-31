@@ -366,15 +366,20 @@ namespace FlatBuffers
         public void Add<T>(IntPtr ptr, int sizeInBytes)
             where T : struct
         {
+            if(sizeInBytes == 0)
+            {
+                // don't do anything if the array is empty
+                return;
+            }
+
             if (ptr == IntPtr.Zero)
             {
                 throw new ArgumentNullException("Cannot add a null pointer");
             }
 
-            if(sizeInBytes == 0)
+            if(sizeInBytes < 0)
             {
-                // don't do anything if the array is empty
-                return;
+                throw new ArgumentOutOfRangeException("sizeInBytes", "sizeInBytes cannot be negative");
             }
 
             if(!ByteBuffer.IsSupportedType<T>())
