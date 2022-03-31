@@ -162,13 +162,16 @@ class SwiftGenerator : public BaseGenerator {
 
   bool generate() {
     code_.Clear();
+    code_.SetValue("IMPLEMENTATION", parser_.opts.swift_implementation_only
+                                         ? "@_implementationOnly "
+                                         : "");
     code_.SetValue("ACCESS", "_accessor");
     code_.SetValue("TABLEOFFSET", "VTOFFSET");
     code_ += "// " + std::string(FlatBuffersGeneratedWarning());
     code_ += "// swiftlint:disable all";
     code_ += "// swiftformat:disable all\n";
     if (parser_.opts.include_dependence_headers || parser_.opts.generate_all)
-      code_ += "import FlatBuffers\n";
+      code_ += "{{IMPLEMENTATION}}import FlatBuffers\n";
 
     // Generate code for all the enum declarations.
     for (auto it = parser_.enums_.vec.begin(); it != parser_.enums_.vec.end();
@@ -212,6 +215,7 @@ class SwiftGenerator : public BaseGenerator {
   // Generates the reader for swift
   void GenStructReader(const StructDef &struct_def) {
     const bool is_private_access =
+        parser_.opts.swift_implementation_only ||
         struct_def.attributes.Lookup("private") != nullptr;
     code_.SetValue("ACCESS_TYPE", is_private_access ? "internal" : "public");
     GenComment(struct_def.doc_comment);
@@ -286,7 +290,8 @@ class SwiftGenerator : public BaseGenerator {
     }
     code_ += "";
     code_ +=
-        "public static func verify<T>(_ verifier: inout Verifier, at position: "
+        "{{ACCESS_TYPE}} static func verify<T>(_ verifier: inout Verifier, at "
+        "position: "
         "Int, of type: T.Type) throws where T: Verifiable {";
     Indent();
     code_ +=
@@ -371,6 +376,7 @@ class SwiftGenerator : public BaseGenerator {
   // Generates the create function for swift
   void GenStructWriter(const StructDef &struct_def) {
     const bool is_private_access =
+        parser_.opts.swift_implementation_only ||
         struct_def.attributes.Lookup("private") != nullptr;
     code_.SetValue("ACCESS_TYPE", is_private_access ? "internal" : "public");
     code_.SetValue("STRUCTNAME", namer_.NamespacedType(struct_def));
@@ -440,6 +446,7 @@ class SwiftGenerator : public BaseGenerator {
   // Generates the reader for swift
   void GenTable(const StructDef &struct_def) {
     const bool is_private_access =
+        parser_.opts.swift_implementation_only ||
         struct_def.attributes.Lookup("private") != nullptr;
     code_.SetValue("ACCESS_TYPE", is_private_access ? "internal" : "public");
     GenObjectHeader(struct_def);
@@ -699,7 +706,7 @@ class SwiftGenerator : public BaseGenerator {
          field.value.type.struct_def->fixed) &&
         (IsVector(field.value.type) || IsArray(field.value.type))) {
       const auto field_name = namer_.NamespacedType(*vectortype.struct_def);
-      code_ += "public static func " +
+      code_ += "{{ACCESS_TYPE}} static func " +
                namer_.Method("start_vector_of", field_var) +
                "(_ size: Int, in builder: inout "
                "FlatBufferBuilder) {";
@@ -1054,7 +1061,7 @@ class SwiftGenerator : public BaseGenerator {
     code_ += "";
     if (struct_def.fields.vec.empty() == false) GenerateCodingKeys(struct_def);
 
-    code_ += "public func encode(to encoder: Encoder) throws {";
+    code_ += "{{ACCESS_TYPE}} func encode(to encoder: Encoder) throws {";
     Indent();
     if (struct_def.fields.vec.empty() == false) GenerateEncoderBody(struct_def);
     Outdent();
@@ -1066,7 +1073,8 @@ class SwiftGenerator : public BaseGenerator {
 
   void GenerateVerifier(const StructDef &struct_def) {
     code_ +=
-        "public static func verify<T>(_ verifier: inout Verifier, at position: "
+        "{{ACCESS_TYPE}} static func verify<T>(_ verifier: inout Verifier, at "
+        "position: "
         "Int, of type: T.Type) throws where T: Verifiable {";
     Indent();
     code_ += "var _v = try verifier.visitTable(at: position)";

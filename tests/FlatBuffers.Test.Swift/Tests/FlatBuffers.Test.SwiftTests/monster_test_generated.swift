@@ -830,7 +830,7 @@ internal struct MyGame_Example_TestSimpleTableWithEnum: FlatBufferObject, Verifi
     return MyGame_Example_TestSimpleTableWithEnum.endTestSimpleTableWithEnum(&builder, start: __root)
   }
 
-  public static func verify<T>(_ verifier: inout Verifier, at position: Int, of type: T.Type) throws where T: Verifiable {
+  internal static func verify<T>(_ verifier: inout Verifier, at position: Int, of type: T.Type) throws where T: Verifiable {
     var _v = try verifier.visitTable(at: position)
     try _v.visit(field: VTOFFSET.color.p, fieldName: "color", required: false, type: MyGame_Example_Color.self)
     _v.finish()
@@ -842,7 +842,7 @@ extension MyGame_Example_TestSimpleTableWithEnum: Encodable {
   enum CodingKeys: String, CodingKey {
     case color = "color"
   }
-  public func encode(to encoder: Encoder) throws {
+  internal func encode(to encoder: Encoder) throws {
     var container = encoder.container(keyedBy: CodingKeys.self)
     if color != .green {
       try container.encodeIfPresent(color, forKey: .color)
