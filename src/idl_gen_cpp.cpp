@@ -16,8 +16,10 @@
 
 // independent from idl_parser, since this code is not needed for most clients
 
+#include <string>
 #include <unordered_set>
 
+#include "flatbuffers/base.h"
 #include "flatbuffers/code_generators.h"
 #include "flatbuffers/flatbuffers.h"
 #include "flatbuffers/flatc.h"
@@ -199,6 +201,20 @@ class CppGenerator : public BaseGenerator {
     for (auto kw = keywords; *kw; kw++) keywords_.insert(*kw);
   }
 
+  void GenFlatbuffersVersionCheck() {
+    code_ +=
+        "// Ensure the included flatbuffers.h is the same version as when this "
+        "file was";
+    code_ += "// generated, otherwise it may not be compatible.";
+    code_ += "static_assert(FLATBUFFERS_VERSION_MAJOR == " +
+             std::to_string(FLATBUFFERS_VERSION_MAJOR) + " &&";
+    code_ += "              FLATBUFFERS_VERSION_MINOR == " +
+             std::to_string(FLATBUFFERS_VERSION_MINOR) + " &&";
+    code_ += "              FLATBUFFERS_VERSION_REVISION == " +
+             std::to_string(FLATBUFFERS_VERSION_REVISION) + ",";
+    code_ += "             \"Non-compatible flatbuffers version included\");";
+  }
+
   void GenIncludeDependencies() {
     int num_includes = 0;
     if (opts_.generate_object_based_api) {
@@ -285,6 +301,8 @@ class CppGenerator : public BaseGenerator {
 
       code_ += "#include \"flatbuffers/flatbuffers.h\"";
       code_ += "";
+      GenFlatbuffersVersionCheck();
+      code_ += "";
 
       SetNameSpace(struct_def.defined_namespace);
       auto name = Name(struct_def);
@@ -348,6 +366,8 @@ class CppGenerator : public BaseGenerator {
     if (parser_.uses_flexbuffers_) {
       code_ += "#include \"flatbuffers/flexbuffers.h\"";
     }
+    code_ += "";
+    GenFlatbuffersVersionCheck();
     code_ += "";
 
     if (opts_.include_dependence_headers) { GenIncludeDependencies(); }
@@ -1059,9 +1079,10 @@ class CppGenerator : public BaseGenerator {
                     ? bt - BASE_TYPE_UTYPE + ET_UTYPE
                     : ET_SEQUENCE;
       int ref_idx = -1;
-      std::string ref_name = type.struct_def ? WrapInNameSpace(*type.struct_def)
-                             : type.enum_def ? WrapInNameSpace(*type.enum_def)
-                                             : "";
+      std::string ref_name =
+          type.struct_def
+              ? WrapInNameSpace(*type.struct_def)
+              : type.enum_def ? WrapInNameSpace(*type.enum_def) : "";
       if (!ref_name.empty()) {
         auto rit = type_refs.begin();
         for (; rit != type_refs.end(); ++rit) {
