@@ -12,7 +12,7 @@ padding:
 
 vtable (AnnotatedBinary.Foo):
   +0x000A | 3A 00                   | uint16_t   | 0x003A (58)                    | size of this vtable
-  +0x000C | 01 00                   | uint16_t   | 0x0001 (1)                     | ERROR: size of referring table. Size of table is smaller than the minimum 4 bytes
+  +0x000C | 01 00                   | uint16_t   | 0x0001 (1)                     | ERROR: size of referring table. Shorter than the minimum length: 
   +0x000E | 0C 00                   | VOffset16  | 0x000C (12)                    | offset to field `counter` (id: 0)
   +0x0010 | 07 00                   | VOffset16  | 0x0007 (7)                     | offset to field `healthy` (id: 1)
   +0x0012 | 00 00                   | VOffset16  | 0x0000 (0)                     | offset to field `level` (id: 2) <defaults to 99> (Long)
@@ -54,9 +54,9 @@ root_table (AnnotatedBinary.Foo):
   +0x0058 | 01 00 00 00             | uint32_t   | 0x00000001 (1)                 | struct field `AnnotatedBinary.Building.floors` (Int)
   +0x005C | 02 00 00 00             | uint32_t   | 0x00000002 (2)                 | struct field `AnnotatedBinary.Building.doors` (Int)
   +0x0060 | 0C 00 00 00             | uint32_t   | 0x0000000C (12)                | struct field `AnnotatedBinary.Building.windows` (Int)
-  +0x0064 | 0A 00 00 00             | uint32_t   | 0x0000000A (10)                | array field `AnnotatedBinary.Dimension.values[0]` (Int)
-  +0x0068 | 0C 00 00 00             | uint32_t   | 0x0000000C (12)                | array field `AnnotatedBinary.Dimension.values[1]` (Int)
-  +0x006C | 14 00 00 00             | uint32_t   | 0x00000014 (20)                | array field `AnnotatedBinary.Dimension.values[2]` (Int)
+  +0x0064 | 0A 00 00 00             | uint32_t   | 0x0000000A (10)                | array field `AnnotatedBinary.Dimension.values`[0] (Int)
+  +0x0068 | 0C 00 00 00             | uint32_t   | 0x0000000C (12)                | array field `AnnotatedBinary.Dimension.values`[1] (Int)
+  +0x006C | 14 00 00 00             | uint32_t   | 0x00000014 (20)                | array field `AnnotatedBinary.Dimension.values`[2] (Int)
   +0x0070 | 01                      | uint8_t    | 0x01 (1)                       | struct field `AnnotatedBinary.Tolerance.width` (UByte)
   +0x0071 | 02                      | uint8_t    | 0x02 (2)                       | struct field `AnnotatedBinary.Tolerance.width` (UByte)
   +0x0072 | 03                      | uint8_t    | 0x03 (3)                       | struct field `AnnotatedBinary.Tolerance.width` (UByte)
@@ -78,7 +78,7 @@ root_table (AnnotatedBinary.Foo):
 
 string (AnnotatedBinary.Foo.charlie):
   +0x00AC | 05 00 00 00             | uint32_t   | 0x00000005 (5)                 | length of string
-  +0x00B0 | 61 6C 69 63 65          | char[5]    | alice                          
+  +0x00B0 | 61 6C 69 63 65          | char[5]    | alice                          | string literal
   +0x00B5 | 00                      | char       | 0x00 (0)                       | string terminator
 
 padding:
@@ -162,17 +162,17 @@ vector (AnnotatedBinary.Foo.names):
 
 string (AnnotatedBinary.Foo.names):
   +0x017C | 07 00 00 00             | uint32_t   | 0x00000007 (7)                 | length of string
-  +0x0180 | 63 68 61 72 6C 69 65    | char[7]    | charlie                        
+  +0x0180 | 63 68 61 72 6C 69 65    | char[7]    | charlie                        | string literal
   +0x0187 | 00                      | char       | 0x00 (0)                       | string terminator
 
 string (AnnotatedBinary.Foo.names):
   +0x0188 | 03 00 00 00             | uint32_t   | 0x00000003 (3)                 | length of string
-  +0x018C | 62 6F 62                | char[3]    | bob                            
+  +0x018C | 62 6F 62                | char[3]    | bob                            | string literal
   +0x018F | 00                      | char       | 0x00 (0)                       | string terminator
 
 string (AnnotatedBinary.Foo.names):
   +0x0190 | 05 00 00 00             | uint32_t   | 0x00000005 (5)                 | length of string
-  +0x0194 | 61 6C 69 63 65          | char[5]    | alice                          
+  +0x0194 | 61 6C 69 63 65          | char[5]    | alice                          | string literal
   +0x0199 | 00                      | char       | 0x00 (0)                       | string terminator
 
 padding:
@@ -180,12 +180,12 @@ padding:
 
 string (AnnotatedBinary.Foo.alice):
   +0x019C | 07 00 00 00             | uint32_t   | 0x00000007 (7)                 | length of string
-  +0x01A0 | 63 68 61 72 6C 69 65    | char[7]    | charlie                        
+  +0x01A0 | 63 68 61 72 6C 69 65    | char[7]    | charlie                        | string literal
   +0x01A7 | 00                      | char       | 0x00 (0)                       | string terminator
 
 string (AnnotatedBinary.Foo.bob):
   +0x01A8 | 07 00 00 00             | uint32_t   | 0x00000007 (7)                 | length of string
-  +0x01AC | 63 68 61 72 6C 69 65    | char[7]    | charlie                        
+  +0x01AC | 63 68 61 72 6C 69 65    | char[7]    | charlie                        | string literal
   +0x01B3 | 00                      | char       | 0x00 (0)                       | string terminator
 
 vector (AnnotatedBinary.Foo.accounts):
@@ -261,7 +261,7 @@ table (AnnotatedBinary.Baz):
 
 string (AnnotatedBinary.Foo.name):
   +0x023C | 2F 00 00 00             | uint32_t   | 0x0000002F (47)                | length of string
-  +0x0240 | 54 68 69 73 20 69 73 20 | char[47]   | This is                        
+  +0x0240 | 54 68 69 73 20 69 73 20 | char[47]   | This is                        | string literal
   +0x0248 | 61 20 6C 6F 6E 67 20 73 |            | a long s
   +0x0250 | 74 72 69 6E 67 20 74 6F |            | tring to
   +0x0258 | 20 73 68 6F 77 20 68 6F |            |  show ho

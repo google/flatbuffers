@@ -20,7 +20,6 @@ import glob
 import platform
 import shutil
 import subprocess
-import sys
 from pathlib import Path
 
 parser = argparse.ArgumentParser()
@@ -68,9 +67,7 @@ samples_path = Path(root_path, "samples")
 reflection_path = Path(root_path, "reflection")
 
 # Execute the flatc compiler with the specified parameters
-def flatc(
-    options, schema, prefix=None, include=None, data=None, cwd=tests_path
-):
+def flatc(options, schema, prefix=None, include=None, data=None, cwd=tests_path):
     cmd = [str(flatc_path)] + options
     if prefix:
         cmd += ["-o"] + [prefix]
@@ -125,7 +122,12 @@ CPP_17_OPTS = NO_INCL_OPTS + [
     "--cpp-static-reflection",
     "--gen-object-api",
 ]
-RUST_OPTS = BASE_OPTS + ["--rust", "--gen-all", "--gen-name-strings", "--rust-module-root-file"]
+RUST_OPTS = BASE_OPTS + [
+    "--rust",
+    "--gen-all",
+    "--gen-name-strings",
+    "--rust-module-root-file",
+]
 RUST_SERIALIZE_OPTS = BASE_OPTS + [
     "--rust",
     "--gen-all",
@@ -219,13 +221,7 @@ flatc(
 )
 
 flatc(
-    BASE_OPTS
-    + CPP_OPTS
-    + CS_OPTS
-    + TS_OPTS
-    + JAVA_OPTS
-    + KOTLIN_OPTS
-    + PHP_OPTS,
+    BASE_OPTS + CPP_OPTS + CS_OPTS + TS_OPTS + JAVA_OPTS + KOTLIN_OPTS + PHP_OPTS,
     prefix="union_vector",
     schema="union_vector/union_vector.fbs",
 )
@@ -297,12 +293,7 @@ flatc(
 
 if not args.skip_monster_extra:
     flatc(
-        CPP_OPTS
-        + CS_OPTS
-        + NO_INCL_OPTS
-        + JAVA_OPTS
-        + KOTLIN_OPTS
-        + PYTHON_OPTS,
+        CPP_OPTS + CS_OPTS + NO_INCL_OPTS + JAVA_OPTS + KOTLIN_OPTS + PYTHON_OPTS,
         schema="monster_extra.fbs",
         data="monsterdata_extra.json",
     )
@@ -313,11 +304,7 @@ if not args.skip_monster_extra:
     )
 
 flatc(
-    CPP_OPTS
-    + CS_OPTS
-    + NO_INCL_OPTS
-    + JAVA_OPTS
-    + ["--jsonschema", "--scoped-enums"],
+    CPP_OPTS + CS_OPTS + NO_INCL_OPTS + JAVA_OPTS + ["--jsonschema", "--scoped-enums"],
     schema="arrays_test.fbs",
 )
 
@@ -335,15 +322,18 @@ flatc(
 
 # Optional Scalars
 optional_scalars_schema = "optional_scalars.fbs"
-flatc(
-    ["--java", "--kotlin", "--lobster", "--ts"], schema=optional_scalars_schema
-)
+flatc(["--java", "--kotlin", "--lobster", "--ts"], schema=optional_scalars_schema)
 
 flatc(["--csharp", "--gen-object-api"], schema=optional_scalars_schema)
 
 flatc(RUST_OPTS, prefix="optional_scalars", schema=optional_scalars_schema)
 
 flatc(NO_INCL_OPTS + CPP_OPTS, schema=optional_scalars_schema)
+
+# Type / field collsion
+type_field_collsion_schema = "type_field_collsion.fbs"
+
+flatc(["--csharp", "--gen-object-api"], schema=type_field_collsion_schema)
 
 # Generate string/vector default code for tests
 flatc(RUST_OPTS, prefix="more_defaults", schema="more_defaults.fbs")
@@ -392,17 +382,13 @@ flatc(
 
 # --filename-suffix and --filename-ext tests
 flatc(
-    CPP_OPTS
-    + NO_INCL_OPTS
-    + ["--filename-suffix", "_suffix", "--filename-ext", "hpp"],
+    CPP_OPTS + NO_INCL_OPTS + ["--filename-suffix", "_suffix", "--filename-ext", "hpp"],
     include="include_test",
     schema="monster_test.fbs",
 )
 orig_monster_file = Path(tests_path, "monster_test_generated.h")
 new_monster_file = Path(tests_path, "monster_test_suffix.hpp")
-assert (
-    new_monster_file.exists()
-), "filename suffix option did not produce a file"
+assert new_monster_file.exists(), "filename suffix option did not produce a file"
 assert filecmp.cmp(
     str(orig_monster_file), str(new_monster_file)
 ), "filename suffix option did not produce identical results"
@@ -429,12 +415,8 @@ flatc(
 
 # Sample files
 samples_schema = "monster.fbs"
-flatc(
-    BASE_OPTS + CPP_OPTS + LOBSTER_OPTS, schema=samples_schema, cwd=samples_path
-)
-flatc(
-    RUST_OPTS, prefix="rust_generated", schema=samples_schema, cwd=samples_path
-)
+flatc(BASE_OPTS + CPP_OPTS + LOBSTER_OPTS, schema=samples_schema, cwd=samples_path)
+flatc(RUST_OPTS, prefix="rust_generated", schema=samples_schema, cwd=samples_path)
 flatc(
     BINARY_OPTS + ["--bfbs-filenames", str(samples_path)],
     schema=samples_schema,
@@ -446,9 +428,27 @@ flatc(
 # Skip generating the reflection if told too, as we run this script after
 # building flatc which uses the reflection_generated.h itself.
 if not args.skip_gen_reflection:
-  # C++ Reflection
-  flatc_reflection(["-c", "--cpp-std", "c++0x"], "include/flatbuffers",
-                   "reflection_generated.h")
+    # C++ Reflection
+    flatc_reflection(
+        ["-c", "--cpp-std", "c++0x"], "include/flatbuffers", "reflection_generated.h"
+    )
 
 # Python Reflection
 flatc_reflection(["-p"], "python/flatbuffers", "reflection")
+
+# Annotation
+
+
+def flatc_annotate(schema, include=None, data=None, cwd=tests_path):
+    cmd = [str(flatc_path)]
+    if include:
+        cmd += ["-I"] + [include]
+    cmd += ["--annotate", schema]
+    if data:
+        cmd += [data] if isinstance(data, str) else data
+    subprocess.run(cmd, cwd=str(cwd), check=True)
+
+
+flatc_annotate(
+    schema="monster_test.fbs", include="include_test", data="monsterdata_test.mon"
+)
