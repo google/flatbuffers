@@ -151,12 +151,12 @@ inline int64_t ReadInt64(const uint8_t *data, uint8_t byte_width) {
 }
 
 inline uint64_t ReadUInt64(const uint8_t *data, uint8_t byte_width) {
-  // This is the "hottest" function (all offset lookups use this), so worth
-  // optimizing if possible.
-  // TODO: GCC apparently replaces memcpy by a rep movsb, but only if count is a
-  // constant, which here it isn't. Test if memcpy is still faster than
-  // the conditionals in ReadSizedScalar. Can also use inline asm.
-  // clang-format off
+// This is the "hottest" function (all offset lookups use this), so worth
+// optimizing if possible.
+// TODO: GCC apparently replaces memcpy by a rep movsb, but only if count is a
+// constant, which here it isn't. Test if memcpy is still faster than
+// the conditionals in ReadSizedScalar. Can also use inline asm.
+// clang-format off
   #if defined(_MSC_VER) && defined(_M_X64) && !defined(_M_ARM64EC)
   // This is 64-bit Windows only, __movsb does not work on 32-bit Windows.
     uint64_t u = 0;
@@ -1677,7 +1677,7 @@ class Verifier FLATBUFFERS_FINAL_CLASS {
  private:
   // Central location where any verification failures register.
   bool Check(bool ok) const {
-    // clang-format off
+// clang-format off
     #ifdef FLATBUFFERS_DEBUG_VERIFICATION_FAILURE
       FLATBUFFERS_ASSERT(ok);
     #endif
@@ -1875,18 +1875,6 @@ inline bool VerifyBuffer(const uint8_t *buf, size_t buf_len,
   Verifier verifier(buf, buf_len, reuse_tracker);
   return verifier.VerifyBuffer();
 }
-
-#ifdef FLATBUFFERS_H_
-// This is a verifier utility function that works together with the
-// FlatBuffers verifier, which should only be present if flatbuffer.h
-// has been included (which it typically is in generated code).
-inline bool VerifyNestedFlexBuffer(const flatbuffers::Vector<uint8_t> *nv,
-                                   flatbuffers::Verifier &verifier) {
-  if (!nv) return true;
-  return verifier.Check(flexbuffers::VerifyBuffer(
-      nv->data(), nv->size(), verifier.GetFlexReuseTracker()));
-}
-#endif
 
 }  // namespace flexbuffers
 
