@@ -2273,7 +2273,7 @@ class CppGenerator : public BaseGenerator {
 
       // @TODO: Mby make this decisions more universal? How?
       code_.SetValue("U_GET_TYPE",
-                     EscapeKeyword(field.name + UnionTypeFieldSuffix()));
+                     EscapeKeyword(Name(field) + UnionTypeFieldSuffix()));
       code_.SetValue("U_ELEMENT_TYPE", WrapInNameSpace(u->defined_namespace,
                                                        GetEnumValUse(*u, ev)));
       code_.SetValue("U_FIELD_TYPE", "const " + full_struct_name + " *");
