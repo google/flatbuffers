@@ -3466,7 +3466,7 @@ class CppGenerator : public BaseGenerator {
     for (auto it = struct_def.fields.vec.begin();
          it != struct_def.fields.vec.end(); ++it) {
       const auto field = *it;
-      const auto field_name = field->name + "_";
+      const auto field_name = Name(*field) + "_";
 
       if (first_in_init_list) {
         first_in_init_list = false;
