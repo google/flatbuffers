@@ -1,4 +1,4 @@
-name: CIFuzz
+name: OSS-Fuzz
 on: 
   pull_request:
     branches:
