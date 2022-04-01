@@ -201,6 +201,11 @@ class CppGenerator : public BaseGenerator {
     for (auto kw = keywords; *kw; kw++) keywords_.insert(*kw);
   }
 
+  // Adds code to check that the included flatbuffers.h is of the same version
+  // as the generated code. This check currently looks for exact version match,
+  // as we would guarantee that they are compatible, but in theory a newer
+  // version of flatbuffers.h should work with a old code gen if we do proper
+  // backwards support.
   void GenFlatbuffersVersionCheck() {
     code_ +=
         "// Ensure the included flatbuffers.h is the same version as when this "
@@ -1079,10 +1084,9 @@ class CppGenerator : public BaseGenerator {
                     ? bt - BASE_TYPE_UTYPE + ET_UTYPE
                     : ET_SEQUENCE;
       int ref_idx = -1;
-      std::string ref_name =
-          type.struct_def
-              ? WrapInNameSpace(*type.struct_def)
-              : type.enum_def ? WrapInNameSpace(*type.enum_def) : "";
+      std::string ref_name = type.struct_def ? WrapInNameSpace(*type.struct_def)
+                             : type.enum_def ? WrapInNameSpace(*type.enum_def)
+                                             : "";
       if (!ref_name.empty()) {
         auto rit = type_refs.begin();
         for (; rit != type_refs.end(); ++rit) {
