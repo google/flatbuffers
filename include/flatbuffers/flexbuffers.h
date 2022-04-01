@@ -578,7 +578,7 @@ class Reference {
           // unquoted if it looks like an "identifier":
           const char *p = keys[i].AsKey();
           if (!flatbuffers::is_alpha(*p) && *p != '_') {
-              kq = true;
+            kq = true;
           } else {
             while (*++p) {
               if (!flatbuffers::is_alnum(*p) && *p != '_') {

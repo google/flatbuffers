@@ -592,6 +592,8 @@ class CppGenerator : public BaseGenerator {
       code_ += "}";
       code_ += "";
 
+      if (parser_.uses_flexbuffers_) { GenFlexbufferVerifier(); }
+
       if (parser_.file_extension_.length()) {
         // Return the extension
         code_ += "inline const char *{{STRUCT_NAME}}Extension() {";
@@ -3425,6 +3427,19 @@ class CppGenerator : public BaseGenerator {
       code_ += "}";
       code_ += "";
     }
+  }
+
+  void GenFlexbufferVerifier() {
+    code_ +=
+        "inline bool VerifyNestedFlexBuffer(const flatbuffers::Vector<uint8_t> "
+        "*nv,";
+    code_ +=
+        "                                   flatbuffers::Verifier &verifier) {";
+    code_ += "   if (!nv) return true;";
+    code_ += "   return verifier.Check(flexbuffers::VerifyBuffer(";
+    code_ += "      nv->data(), nv->size(), verifier.GetFlexReuseTracker()));";
+    code_ += "}";
+    code_ += "";
   }
 
   static void GenPadding(

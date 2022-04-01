@@ -4006,6 +4006,13 @@ inline bool VerifySizePrefixedMonsterBuffer(
   return verifier.VerifySizePrefixedBuffer<MyGame::Example::Monster>(MonsterIdentifier());
 }
 
+inline bool VerifyNestedFlexBuffer(const flatbuffers::Vector<uint8_t> *nv,
+                                   flatbuffers::Verifier &verifier) {
+   if (!nv) return true;
+   return verifier.Check(flexbuffers::VerifyBuffer(
+      nv->data(), nv->size(), verifier.GetFlexReuseTracker()));
+}
+
 inline const char *MonsterExtension() {
   return "mon";
 }
