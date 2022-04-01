@@ -6,6 +6,13 @@
 
 #include "flatbuffers/flatbuffers.h"
 
+// Ensure the included flatbuffers.h is the same version as when this file was
+// generated, otherwise it may not be compatible.
+static_assert(FLATBUFFERS_VERSION_MAJOR == 2 &&
+              FLATBUFFERS_VERSION_MINOR == 0 &&
+              FLATBUFFERS_VERSION_REVISION == 6,
+             "Non-compatible flatbuffers version included");
+
 #include "native_type_test_impl.h"
 
 namespace Geometry {

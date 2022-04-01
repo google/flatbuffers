@@ -18,7 +18,7 @@ unknown (no known references):
   +0x0040 | 00 00 64 00             |               | ..d.
 
 root_table (AnnotatedBinary.Foo):
-  +0x0044 | FF FF 00 00             | SOffset32     | 0x0000FFFF (65535) Loc: +0xFFFFFFFFFFFF0045 | ERROR: offset to vtable. Invalid offset, points to outside the binary.
+  +0x0044 | FF FF 00 00             | SOffset32     | 0x0000FFFF (65535) Loc: +0xFFFFFFFFFFFF0045 | ERROR: offset to vtable. Invalid offset, points outside the binary.
 
 unknown (no known references):
   +0x0048 | 00 00 00 01 02 02 01 01 | ?uint8_t[600] | ........                                    | WARN: nothing refers to this section.

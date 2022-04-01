@@ -1,4 +1,4 @@
-name: CIFuzz
+name: OSS-Fuzz
 on: 
   pull_request:
     branches:
@@ -23,7 +23,7 @@ jobs:
      with:
        oss-fuzz-project-name: 'flatbuffers'
        language: c++
-       fuzz-seconds: 600
+       fuzz-seconds: 60
    - name: Upload Crash
      uses: actions/upload-artifact@v1
      if: failure() && steps.build.outcome == 'success'

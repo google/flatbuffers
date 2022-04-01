@@ -1,5 +1,10 @@
 #include "annotated_binary_text_gen.h"
 
+#include <sstream>
+#include <string>
+
+#include "binary_annotator.h"
+#include "flatbuffers/base.h"
 #include "flatbuffers/util.h"
 
 namespace flatbuffers {
@@ -37,17 +42,27 @@ static bool IsOffset(const BinaryRegionType type) {
   return type == BinaryRegionType::UOffset || type == BinaryRegionType::SOffset;
 }
 
+template<typename T> std::string ToString(T value) {
+  if (std::is_floating_point<T>::value) {
+    std::stringstream ss;
+    ss << value;
+    return ss.str();
+  } else {
+    return std::to_string(value);
+  }
+}
+
 template<typename T>
 std::string ToValueString(const BinaryRegion &region, const uint8_t *binary) {
   std::string s;
   s += "0x";
-  const T val = GetScalar<T>(binary + region.offset);
+  const T val = ReadScalar<T>(binary + region.offset);
   const uint64_t start_index = region.offset + region.length - 1;
   for (uint64_t i = 0; i < region.length; ++i) {
     s += ToHex(binary[start_index - i]);
   }
   s += " (";
-  s += std::to_string(val);
+  s += ToString(val);
   s += ")";
   return s;
 }
@@ -136,8 +151,113 @@ static std::string GenerateTypeString(const BinaryRegion &region) {
               : "");
 }
 
+static std::string GenerateComment(const BinaryRegionComment &comment,
+                                   const BinarySection &) {
+  std::string s;
+  switch (comment.type) {
+    case BinaryRegionCommentType::Unknown: s = "unknown"; break;
+    case BinaryRegionCommentType::SizePrefix: s = "size prefix"; break;
+    case BinaryRegionCommentType::RootTableOffset:
+      s = "offset to root table `" + comment.name + "`";
+      break;
+    // TODO(dbaileychess): make this lowercase to follow the convention.
+    case BinaryRegionCommentType::FileIdentifier: s = "File Identifier"; break;
+    case BinaryRegionCommentType::Padding: s = "padding"; break;
+    case BinaryRegionCommentType::VTableSize: s = "size of this vtable"; break;
+    case BinaryRegionCommentType::VTableRefferingTableLength:
+      s = "size of referring table";
+      break;
+    case BinaryRegionCommentType::VTableFieldOffset:
+      s = "offset to field `" + comment.name;
+      break;
+    case BinaryRegionCommentType::VTableUnknownFieldOffset:
+      s = "offset to unknown field (id: " + std::to_string(comment.index) + ")";
+      break;
+
+    case BinaryRegionCommentType::TableVTableOffset:
+      s = "offset to vtable";
+      break;
+    case BinaryRegionCommentType::TableField:
+      s = "table field `" + comment.name;
+      break;
+    case BinaryRegionCommentType::TableUnknownField: s = "unknown field"; break;
+    case BinaryRegionCommentType::TableOffsetField:
+      s = "offset to field `" + comment.name + "`";
+      break;
+    case BinaryRegionCommentType::StructField:
+      s = "struct field `" + comment.name + "`";
+      break;
+    case BinaryRegionCommentType::ArrayField:
+      s = "array field `" + comment.name + "`[" +
+          std::to_string(comment.index) + "]";
+      break;
+    case BinaryRegionCommentType::StringLength: s = "length of string"; break;
+    case BinaryRegionCommentType::StringValue: s = "string literal"; break;
+    case BinaryRegionCommentType::StringTerminator:
+      s = "string terminator";
+      break;
+    case BinaryRegionCommentType::VectorLength:
+      s = "length of vector (# items)";
+      break;
+    case BinaryRegionCommentType::VectorValue:
+      s = "value[" + std::to_string(comment.index) + "]";
+      break;
+    case BinaryRegionCommentType::VectorTableValue:
+      s = "offset to table[" + std::to_string(comment.index) + "]";
+      break;
+    case BinaryRegionCommentType::VectorStringValue:
+      s = "offset to string[" + std::to_string(comment.index) + "]";
+      break;
+    case BinaryRegionCommentType::VectorUnionValue:
+      s = "offset to union[" + std::to_string(comment.index) + "]";
+      break;
+
+    default: break;
+  }
+  if (!comment.default_value.empty()) { s += " " + comment.default_value; }
+
+  switch (comment.status) {
+    case BinaryRegionStatus::OK: break;  // no-op
+    case BinaryRegionStatus::WARN: s = "WARN: " + s; break;
+    case BinaryRegionStatus::WARN_NO_REFERENCES:
+      s = "WARN: nothing refers to this section.";
+      break;
+    case BinaryRegionStatus::WARN_CORRUPTED_PADDING:
+      s = "WARN: could be corrupted padding region.";
+      break;
+    case BinaryRegionStatus::WARN_PADDING_LENGTH:
+      s = "WARN: padding is longer than expected.";
+      break;
+    case BinaryRegionStatus::ERROR: s = "ERROR: " + s; break;
+    case BinaryRegionStatus::ERROR_OFFSET_OUT_OF_BINARY:
+      s = "ERROR: " + s + ". Invalid offset, points outside the binary.";
+      break;
+    case BinaryRegionStatus::ERROR_INCOMPLETE_BINARY:
+      s = "ERROR: " + s + ". Incomplete binary, expected to read " +
+          comment.status_message + " bytes.";
+      break;
+    case BinaryRegionStatus::ERROR_LENGTH_TOO_LONG:
+      s = "ERROR: " + s + ". Longer than the binary.";
+      break;
+    case BinaryRegionStatus::ERROR_LENGTH_TOO_SHORT:
+      s = "ERROR: " + s + ". Shorter than the minimum length: ";
+      break;
+    case BinaryRegionStatus::ERROR_REQUIRED_FIELD_NOT_PRESENT:
+      s = "ERROR: " + s + ". Required field is not present.";
+      break;
+    case BinaryRegionStatus::ERROR_INVALID_UNION_TYPE:
+      s = "ERROR: " + s + ". Invalid union type value.";
+      break;
+    case BinaryRegionStatus::ERROR_CYCLE_DETECTED:
+      s = "ERROR: " + s + ". Invalid offset, cycle detected.";
+      break;
+  }
+
+  return s;
+}
+
 static std::string GenerateDocumentation(const BinaryRegion &region,
-                                         const BinarySection &,
+                                         const BinarySection &section,
                                          const uint8_t *binary,
                                          DocContinuation &continuation,
                                          const OutputConfig &output_config) {
@@ -186,11 +306,9 @@ static std::string GenerateDocumentation(const BinaryRegion &region,
   }
 
   s += " ";
-  if (!region.comment.empty()) {
-    s += output_config.delimiter;
-    s += " ";
-    s += region.comment;
-  }
+  s += output_config.delimiter;
+  s += " ";
+  s += GenerateComment(region.comment, section);
 
   return s;
 }
