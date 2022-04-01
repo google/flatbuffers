@@ -210,6 +210,31 @@ namespace FlatBuffers
             _space = _bb.Put(_space, x);
         }
 
+        /// <summary>
+        /// Puts an array of type T into this builder at the
+        /// current offset
+        /// </summary>
+        /// <typeparam name="T">The type of the input data </typeparam>
+        /// <param name="x">The array segment to copy data from</param>
+        public void Put<T>(ArraySegment<T> x)
+            where T : struct
+        {
+            _space = _bb.Put(_space, x);
+        }
+
+        /// <summary>
+        /// Puts data of type T into this builder at the
+        /// current offset
+        /// </summary>
+        /// <typeparam name="T">The type of the input data </typeparam>
+        /// <param name="ptr">The pointer to copy data from</param>
+        /// <param name="sizeInBytes">The length of the data in bytes</param>
+        public void Put<T>(IntPtr ptr, int sizeInBytes)
+            where T : struct
+        {
+            _space = _bb.Put<T>(_space, ptr, sizeInBytes);
+        }
+
 #if ENABLE_SPAN_T && (UNSAFE_BYTEBUFFER || NETSTANDARD2_1)
         /// <summary>
         /// Puts a span of type T into this builder at the
@@ -298,12 +323,23 @@ namespace FlatBuffers
         public void Add<T>(T[] x)
             where T : struct
         {
+            Add(new ArraySegment<T>(x));
+        }
+
+        /// <summary>
+        /// Add an array of type T to the buffer (aligns the data and grows if necessary).
+        /// </summary>
+        /// <typeparam name="T">The type of the input data</typeparam>
+        /// <param name="x">The array segment to copy data from</param>
+        public void Add<T>(ArraySegment<T> x)
+            where T : struct
+        {
             if (x == null)
             {
                 throw new ArgumentNullException("Cannot add a null array");
             }
 
-            if( x.Length == 0)
+            if( x.Count == 0)
             {
                 // don't do anything if the array is empty
                 return;
@@ -317,8 +353,50 @@ namespace FlatBuffers
             int size = ByteBuffer.SizeOf<T>();
             // Need to prep on size (for data alignment) and then we pass the
             // rest of the length (minus 1) as additional bytes
-            Prep(size, size * (x.Length - 1));
+            Prep(size, size * (x.Count - 1));
             Put(x);
+        }
+
+        /// <summary>
+        /// Adds the data of type T pointed to by the given pointer to the buffer (aligns the data and grows if necessary).
+        /// </summary>
+        /// <typeparam name="T">The type of the input data</typeparam>
+        /// <param name="ptr">The pointer to copy data from</param>
+        /// <param name="sizeInBytes">The data size in bytes</param>
+        public void Add<T>(IntPtr ptr, int sizeInBytes)
+            where T : struct
+        {
+            if(sizeInBytes == 0)
+            {
+                // don't do anything if the array is empty
+                return;
+            }
+
+            if (ptr == IntPtr.Zero)
+            {
+                throw new ArgumentNullException("Cannot add a null pointer");
+            }
+
+            if(sizeInBytes < 0)
+            {
+                throw new ArgumentOutOfRangeException("sizeInBytes", "sizeInBytes cannot be negative");
+            }
+
+            if(!ByteBuffer.IsSupportedType<T>())
+            {
+                throw new ArgumentException("Cannot add this Type array to the builder");
+            }
+
+            int size = ByteBuffer.SizeOf<T>();
+            if((sizeInBytes % size) != 0)
+            {
+                throw new ArgumentException("The given size in bytes " + sizeInBytes + " doesn't match the element size of T ( " + size + ")", "sizeInBytes");
+            }
+
+            // Need to prep on size (for data alignment) and then we pass the
+            // rest of the length (minus 1) as additional bytes
+            Prep(size, sizeInBytes - size);
+            Put<T>(ptr, sizeInBytes);
         }
 
 #if ENABLE_SPAN_T && (UNSAFE_BYTEBUFFER || NETSTANDARD2_1)
