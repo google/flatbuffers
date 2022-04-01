@@ -380,6 +380,8 @@ class CppGenerator : public BaseGenerator {
 
     FLATBUFFERS_ASSERT(!cur_name_space_);
 
+    if (parser_.uses_flexbuffers_) { GenFlexbufferVerifier(); }
+
     // Generate forward declarations for all structs/tables, since they may
     // have circular references.
     for (auto it = parser_.structs_.vec.begin();
@@ -591,8 +593,6 @@ class CppGenerator : public BaseGenerator {
           "  return verifier.VerifySizePrefixedBuffer<{{CPP_NAME}}>({{ID}});";
       code_ += "}";
       code_ += "";
-
-      if (parser_.uses_flexbuffers_) { GenFlexbufferVerifier(); }
 
       if (parser_.file_extension_.length()) {
         // Return the extension
@@ -2212,7 +2212,7 @@ class CppGenerator : public BaseGenerator {
               "({{NAME}}(), nullptr)\\";
         } else if (field.flexbuffer) {
           code_ +=
-              "{{PRE}}flexbuffers::VerifyNestedFlexBuffer"
+              "{{PRE}}VerifyNestedFlexBuffer"
               "({{NAME}}(), verifier)\\";
         }
         break;
@@ -3431,7 +3431,8 @@ class CppGenerator : public BaseGenerator {
 
   void GenFlexbufferVerifier() {
     code_ +=
-        "inline bool VerifyNestedFlexBuffer(const flatbuffers::Vector<uint8_t> "
+        "static inline bool VerifyNestedFlexBuffer(const "
+        "flatbuffers::Vector<uint8_t> "
         "*nv,";
     code_ +=
         "                                   flatbuffers::Verifier &verifier) {";

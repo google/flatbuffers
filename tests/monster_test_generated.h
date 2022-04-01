@@ -14,6 +14,13 @@ static_assert(FLATBUFFERS_VERSION_MAJOR == 2 &&
               FLATBUFFERS_VERSION_REVISION == 6,
              "Non-compatible flatbuffers version included");
 
+static inline bool VerifyNestedFlexBuffer(const flatbuffers::Vector<uint8_t> *nv,
+                                   flatbuffers::Verifier &verifier) {
+   if (!nv) return true;
+   return verifier.Check(flexbuffers::VerifyBuffer(
+      nv->data(), nv->size(), verifier.GetFlexReuseTracker()));
+}
+
 namespace MyGame {
 
 struct InParentNamespace;
@@ -1780,7 +1787,7 @@ struct Monster FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
            verifier.VerifyVector(testarrayofsortedstruct()) &&
            VerifyOffset(verifier, VT_FLEX) &&
            verifier.VerifyVector(flex()) &&
-           flexbuffers::VerifyNestedFlexBuffer(flex(), verifier) &&
+           VerifyNestedFlexBuffer(flex(), verifier) &&
            VerifyOffset(verifier, VT_TEST5) &&
            verifier.VerifyVector(test5()) &&
            VerifyOffset(verifier, VT_VECTOR_OF_LONGS) &&
@@ -4004,13 +4011,6 @@ inline bool VerifyMonsterBuffer(
 inline bool VerifySizePrefixedMonsterBuffer(
     flatbuffers::Verifier &verifier) {
   return verifier.VerifySizePrefixedBuffer<MyGame::Example::Monster>(MonsterIdentifier());
-}
-
-inline bool VerifyNestedFlexBuffer(const flatbuffers::Vector<uint8_t> *nv,
-                                   flatbuffers::Verifier &verifier) {
-   if (!nv) return true;
-   return verifier.Check(flexbuffers::VerifyBuffer(
-      nv->data(), nv->size(), verifier.GetFlexReuseTracker()));
 }
 
 inline const char *MonsterExtension() {
