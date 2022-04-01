@@ -1,4 +1,5 @@
 name: cpp-linter
+permissions: read-all
 
 on:
   pull_request:
@@ -17,6 +18,15 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           style: file
+          tidy-checks: >
+            bugprone-*,
+            performance-*,
+            readability-*,
+            portability-*,
+            modernize-*,
+            clang-analyzer-*,
+            cppcoreguidelines-*,
+            -modernize-use-trailing-return-type
 
       - name: Fail fast?!
         if: steps.linter.outputs.checks-failed > 0
