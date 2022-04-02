@@ -381,9 +381,16 @@ flatc(
 )
 
 swift_code_gen_prefix = "FlatBuffers.Test.Swift/CodeGenerationTests"
+
 flatc(
     SWIFT_OPTS + BASE_OPTS + ["--grpc", "--swift-implementation-only"],
-    schema="more_defaults.fbs",
+    schema="test_import.fbs",
+    prefix=swift_code_gen_prefix,
+)
+
+flatc(
+    SWIFT_OPTS + NO_INCL_OPTS + ["--grpc"],
+    schema="test_no_include.fbs",
     prefix=swift_code_gen_prefix,
 )
 
