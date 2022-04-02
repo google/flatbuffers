@@ -380,6 +380,13 @@ flatc(
     prefix=swift_prefix,
 )
 
+swift_code_gen_prefix = "FlatBuffers.Test.Swift/CodeGenerationTests"
+flatc(
+    SWIFT_OPTS + BASE_OPTS + ["--grpc", "--swift-implementation-only"],
+    schema="more_defaults.fbs",
+    prefix=swift_code_gen_prefix,
+)
+
 # --filename-suffix and --filename-ext tests
 flatc(
     CPP_OPTS + NO_INCL_OPTS + ["--filename-suffix", "_suffix", "--filename-ext", "hpp"],

@@ -162,16 +162,17 @@ class SwiftGenerator : public BaseGenerator {
 
   bool generate() {
     code_.Clear();
-    code_.SetValue("IMPLEMENTATION", parser_.opts.swift_implementation_only
-                                         ? "@_implementationOnly "
-                                         : "");
     code_.SetValue("ACCESS", "_accessor");
     code_.SetValue("TABLEOFFSET", "VTOFFSET");
     code_ += "// " + std::string(FlatBuffersGeneratedWarning());
     code_ += "// swiftlint:disable all";
     code_ += "// swiftformat:disable all\n";
-    if (parser_.opts.include_dependence_headers || parser_.opts.generate_all)
-      code_ += "{{IMPLEMENTATION}}import FlatBuffers\n";
+    if (parser_.opts.include_dependence_headers || parser_.opts.generate_all) {
+      if (parser_.opts.swift_implementation_only)
+        code_ += "@_implementationOnly \\";
+
+      code_ += "import FlatBuffers\n";
+    }
 
     // Generate code for all the enum declarations.
     for (auto it = parser_.enums_.vec.begin(); it != parser_.enums_.vec.end();

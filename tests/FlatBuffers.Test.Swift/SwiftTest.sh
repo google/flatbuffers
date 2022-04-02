@@ -11,6 +11,11 @@ fbc --swift --gen-json-emit --gen-object-api ${test_dir}/more_defaults.fbs
 fbc --swift --gen-json-emit --gen-mutable --gen-object-api ${test_dir}/MutatingBool.fbs
 cd ${swift_dir}
 
+# Goes into the code generation tests
+cd CodeGenerationTests
+fbc --swift --gen-mutable --grpc --gen-json-emit --gen-object-api --swift-implementation-only test_import.fbs
+cd ..
+
 cd ${swift_dir}/Sources/SwiftFlatBuffers
 # create better fuzzing test file
 fbc --swift --gen-json-emit fuzzer.fbs
