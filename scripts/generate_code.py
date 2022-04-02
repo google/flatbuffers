@@ -63,6 +63,7 @@ assert flatc_path.exists(), "Cannot find the flatc compiler " + str(flatc_path)
 
 # Specify the other paths that will be referenced
 tests_path = Path(root_path, "tests")
+swift_code_gen = Path(root_path, "tests/FlatBuffers.Test.Swift/CodeGenerationTests")
 samples_path = Path(root_path, "samples")
 reflection_path = Path(root_path, "reflection")
 
@@ -138,6 +139,12 @@ RUST_SERIALIZE_OPTS = BASE_OPTS + [
 TS_OPTS = ["--ts", "--gen-name-strings"]
 LOBSTER_OPTS = ["--lobster"]
 SWIFT_OPTS = ["--swift", "--gen-json-emit", "--bfbs-filenames", str(tests_path)]
+SWIFT_OPTS_CODE_GEN = [
+    "--swift", 
+    "--gen-json-emit",
+    "--bfbs-filenames",
+    swift_code_gen
+]
 JAVA_OPTS = ["--java"]
 KOTLIN_OPTS = ["--kotlin"]
 PHP_OPTS = ["--php"]
@@ -380,18 +387,16 @@ flatc(
     prefix=swift_prefix,
 )
 
-swift_code_gen_prefix = "FlatBuffers.Test.Swift/CodeGenerationTests"
-
 flatc(
-    SWIFT_OPTS + BASE_OPTS + ["--grpc", "--swift-implementation-only"],
+    SWIFT_OPTS_CODE_GEN + BASE_OPTS + ["--grpc", "--swift-implementation-only"],
     schema="test_import.fbs",
-    prefix=swift_code_gen_prefix,
+    cwd=swift_code_gen
 )
 
 flatc(
-    SWIFT_OPTS + NO_INCL_OPTS + ["--grpc"],
+    SWIFT_OPTS_CODE_GEN + NO_INCL_OPTS + ["--grpc"],
     schema="test_no_include.fbs",
-    prefix=swift_code_gen_prefix,
+    cwd=swift_code_gen
 )
 
 # --filename-suffix and --filename-ext tests
