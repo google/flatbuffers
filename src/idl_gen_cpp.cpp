@@ -229,10 +229,17 @@ class CppGenerator : public BaseGenerator {
         num_includes++;
       }
     }
+
+    std::vector<std::string> include_files;
     for (auto it = parser_.included_files_.begin();
          it != parser_.included_files_.end(); ++it) {
       if (it->second.empty()) continue;
-      auto noext = flatbuffers::StripExtension(it->second);
+      include_files.push_back(it->second);
+    }
+    std::stable_sort(include_files.begin(), include_files.end());
+
+    for (auto it = include_files.begin(); it != include_files.end(); ++it) {
+      auto noext = flatbuffers::StripExtension(*it);
       auto basename = flatbuffers::StripPath(noext);
       auto includeName =
           GeneratedFileName(opts_.include_prefix,
