@@ -236,7 +236,7 @@ class CppGenerator : public BaseGenerator {
       if (it->second.empty()) continue;
       include_files.push_back(it->second);
     }
-    std::sort(include_files.begin(), include_files.end());
+    std::stable_sort(include_files.begin(), include_files.end());
 
     for (auto it = include_files.begin(); it != include_files.end(); ++it) {
       auto noext = flatbuffers::StripExtension(*it);
