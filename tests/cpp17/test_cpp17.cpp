@@ -20,6 +20,7 @@
 // This is an experimental feature and could change at any time.
 
 #include "flatbuffers/flatbuffers.h"
+#include "flatbuffers/flex_flat_util.h"
 #include "flatbuffers/flexbuffers.h"
 #include "flatbuffers/idl.h"
 #include "flatbuffers/minireflect.h"
@@ -167,13 +168,13 @@ void StringifyAnyFlatbuffersTypeTest() {
 ** Test Traits::FieldType
 *******************************************************************************/
 using pos_type = Monster::Traits::FieldType<0>;
-static_assert(std::is_same_v<pos_type, const Vec3*>);
+static_assert(std::is_same_v<pos_type, const Vec3 *>);
 
 using mana_type = Monster::Traits::FieldType<1>;
 static_assert(std::is_same_v<mana_type, int16_t>);
 
 using name_type = Monster::Traits::FieldType<3>;
-static_assert(std::is_same_v<name_type, const flatbuffers::String*>);
+static_assert(std::is_same_v<name_type, const flatbuffers::String *>);
 
 /*******************************************************************************
 ** Generic Create Function Test.

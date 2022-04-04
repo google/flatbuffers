@@ -6,6 +6,7 @@
 
 #include "flatbuffers/flatbuffers.h"
 #include "flatbuffers/flexbuffers.h"
+#include "flatbuffers/flex_flat_util.h"
 
 // Ensure the included flatbuffers.h is the same version as when this file was
 // generated, otherwise it may not be compatible.
@@ -13,13 +14,6 @@ static_assert(FLATBUFFERS_VERSION_MAJOR == 2 &&
               FLATBUFFERS_VERSION_MINOR == 0 &&
               FLATBUFFERS_VERSION_REVISION == 6,
              "Non-compatible flatbuffers version included");
-
-static inline bool VerifyNestedFlexBuffer(const flatbuffers::Vector<uint8_t> *nv,
-                                   flatbuffers::Verifier &verifier) {
-   if (!nv) return true;
-   return verifier.Check(flexbuffers::VerifyBuffer(
-      nv->data(), nv->size(), verifier.GetFlexReuseTracker()));
-}
 
 namespace MyGame {
 
@@ -1857,7 +1851,7 @@ struct Monster FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
            verifier.VerifyVector(testarrayofsortedstruct()) &&
            VerifyOffset(verifier, VT_FLEX) &&
            verifier.VerifyVector(flex()) &&
-           VerifyNestedFlexBuffer(flex(), verifier) &&
+           flexbuffers::VerifyNestedFlexBuffer(flex(), verifier) &&
            VerifyOffset(verifier, VT_TEST5) &&
            verifier.VerifyVector(test5()) &&
            VerifyOffset(verifier, VT_VECTOR_OF_LONGS) &&

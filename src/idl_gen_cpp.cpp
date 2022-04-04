@@ -370,6 +370,7 @@ class CppGenerator : public BaseGenerator {
     code_ += "#include \"flatbuffers/flatbuffers.h\"";
     if (parser_.uses_flexbuffers_) {
       code_ += "#include \"flatbuffers/flexbuffers.h\"";
+      code_ += "#include \"flatbuffers/flex_flat_util.h\"";
     }
     code_ += "";
     GenFlatbuffersVersionCheck();
@@ -379,8 +380,6 @@ class CppGenerator : public BaseGenerator {
     GenExtraIncludes();
 
     FLATBUFFERS_ASSERT(!cur_name_space_);
-
-    if (parser_.uses_flexbuffers_) { GenFlexbufferVerifier(); }
 
     // Generate forward declarations for all structs/tables, since they may
     // have circular references.
@@ -2212,7 +2211,7 @@ class CppGenerator : public BaseGenerator {
               "({{NAME}}(), nullptr)\\";
         } else if (field.flexbuffer) {
           code_ +=
-              "{{PRE}}VerifyNestedFlexBuffer"
+              "{{PRE}}flexbuffers::VerifyNestedFlexBuffer"
               "({{NAME}}(), verifier)\\";
         }
         break;
@@ -3427,20 +3426,6 @@ class CppGenerator : public BaseGenerator {
       code_ += "}";
       code_ += "";
     }
-  }
-
-  void GenFlexbufferVerifier() {
-    code_ +=
-        "static inline bool VerifyNestedFlexBuffer(const "
-        "flatbuffers::Vector<uint8_t> "
-        "*nv,";
-    code_ +=
-        "                                   flatbuffers::Verifier &verifier) {";
-    code_ += "   if (!nv) return true;";
-    code_ += "   return verifier.Check(flexbuffers::VerifyBuffer(";
-    code_ += "      nv->data(), nv->size(), verifier.GetFlexReuseTracker()));";
-    code_ += "}";
-    code_ += "";
   }
 
   static void GenPadding(
