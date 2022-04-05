@@ -95,6 +95,7 @@ set(FlatBuffers_Library_SRCS
     ${FLATBUFFERS_DIR}/include/flatbuffers/flatbuffer_builder.h
     ${FLATBUFFERS_DIR}/include/flatbuffers/flatbuffers.h
     ${FLATBUFFERS_DIR}/include/flatbuffers/flexbuffers.h
+    ${FLATBUFFERS_DIR}/include/flatbuffers/flex_flat_util.h
     ${FLATBUFFERS_DIR}/include/flatbuffers/hash.h
     ${FLATBUFFERS_DIR}/include/flatbuffers/idl.h
     ${FLATBUFFERS_DIR}/include/flatbuffers/minireflect.h

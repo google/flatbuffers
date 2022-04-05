@@ -26,6 +26,7 @@ set(FlatBuffers_Library_SRCS
         ${FLATBUFFERS_SRC}/include/flatbuffers/flatbuffer_builder.h
         ${FLATBUFFERS_SRC}/include/flatbuffers/flatbuffers.h
         ${FLATBUFFERS_SRC}/include/flatbuffers/flexbuffers.h
+        ${FLATBUFFERS_SRC}/include/flatbuffers/flex_flat_util.h
         ${FLATBUFFERS_SRC}/include/flatbuffers/hash.h
         ${FLATBUFFERS_SRC}/include/flatbuffers/idl.h
         ${FLATBUFFERS_SRC}/include/flatbuffers/minireflect.h

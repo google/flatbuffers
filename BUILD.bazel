@@ -49,6 +49,7 @@ filegroup(
         "include/flatbuffers/detached_buffer.h",
         "include/flatbuffers/flatbuffer_builder.h",
         "include/flatbuffers/flatbuffers.h",
+        "include/flatbuffers/flex_flat_util.h",
         "include/flatbuffers/flexbuffers.h",
         "include/flatbuffers/grpc.h",
         "include/flatbuffers/hash.h",

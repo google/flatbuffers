@@ -120,6 +120,7 @@ set(FlatBuffers_Library_SRCS
   include/flatbuffers/flatbuffer_builder.h
   include/flatbuffers/flatbuffers.h
   include/flatbuffers/flexbuffers.h
+  include/flatbuffers/flex_flat_util.h
   include/flatbuffers/hash.h
   include/flatbuffers/idl.h
   include/flatbuffers/minireflect.h
