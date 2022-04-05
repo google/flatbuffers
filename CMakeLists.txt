@@ -274,74 +274,6 @@ set(FlatBuffers_GRPCTest_SRCS
   ${CMAKE_CURRENT_BINARY_DIR}/tests/monster_test_generated.h
 )
 
-# source_group(Compiler FILES ${FlatBuffers_Compiler_SRCS})
-# source_group(Tests FILES ${FlatBuffers_Tests_SRCS})
-
-if(EXISTS "${CMAKE_TOOLCHAIN_FILE}")
-  # do not apply any global settings if the toolchain
-  # is being configured externally
-  message(STATUS "Using toolchain file: ${CMAKE_TOOLCHAIN_FILE}.")
-elseif(CMAKE_COMPILER_IS_GNUCXX)
-  set(CMAKE_CXX_FLAGS
-    "${CMAKE_CXX_FLAGS} -Wall -pedantic -Werror -Wextra -Werror=shadow")
-  set(FLATBUFFERS_PRIVATE_CXX_FLAGS "-Wold-style-cast")
-  if (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 4.4)
-    if (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 7.0)
-      set(CMAKE_CXX_FLAGS
-        "${CMAKE_CXX_FLAGS} -faligned-new -Werror=implicit-fallthrough=2")
-    endif()
-    set(CMAKE_CXX_FLAGS
-      "${CMAKE_CXX_FLAGS} -Wunused-result -Werror=unused-result -Wunused-parameter -Werror=unused-parameter")
-  endif()
-
-  # Certain platforms such as ARM do not use signed chars by default
-  # which causes issues with certain bounds checks.
-  set(CMAKE_CXX_FLAGS
-    "${CMAKE_CXX_FLAGS} -fsigned-char")
-
-# MSVC **MUST** come before the Clang check, as clang-cl is flagged by CMake as "MSVC", but it still textually 
-# matches as Clang in its Compiler Id :)
-# Note: in CMake >= 3.14 we can check CMAKE_CXX_COMPILER_FRONTEND_VARIANT STREQUAL "GNU" or "MSVC" to differentiate...
-elseif(MSVC)
-  # Visual Studio pedantic build settings
-  # warning C4512: assignment operator could not be generated
-  # warning C4316: object allocated on the heap may not be aligned
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W4 /WX /wd4512 /wd4316")
-
-  if(${CMAKE_CXX_COMPILER_ID} MATCHES "Clang")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /D_CRT_SECURE_NO_WARNINGS")
-  endif()
-
-elseif(${CMAKE_CXX_COMPILER_ID} MATCHES "Clang")
-  if(APPLE)
-    if(FLATBUFFERS_OSX_BUILD_UNIVERSAL)
-      set(CMAKE_OSX_ARCHITECTURES "arm64;x86_64")
-    endif()
-  endif()
-
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -pedantic -Werror -Wextra -Wno-unused-parameter")
-  set(FLATBUFFERS_PRIVATE_CXX_FLAGS "-Wold-style-cast")
-  if(NOT CMAKE_CXX_COMPILER_VERSION VERSION_LESS 3.8)
-    list(APPEND FLATBUFFERS_PRIVATE_CXX_FLAGS "-Wimplicit-fallthrough" "-Wextra-semi" "-Werror=unused-private-field") # enable warning
-  endif()
-  if(FLATBUFFERS_LIBCXX_WITH_CLANG)
-    if(NOT "${CMAKE_SYSTEM_NAME}" MATCHES "Linux")
-      set(CMAKE_CXX_FLAGS
-          "${CMAKE_CXX_FLAGS} -stdlib=libc++")
-    endif()
-    if(NOT ("${CMAKE_SYSTEM_NAME}" MATCHES "FreeBSD" OR
-            "${CMAKE_SYSTEM_NAME}" MATCHES "Linux"))
-      set(CMAKE_EXE_LINKER_FLAGS
-          "${CMAKE_EXE_LINKER_FLAGS} -lc++abi")
-    endif()
-  endif()
-
-  # Certain platforms such as ARM do not use signed chars by default
-  # which causes issues with certain bounds checks.
-  set(CMAKE_CXX_FLAGS
-    "${CMAKE_CXX_FLAGS} -fsigned-char")
-
-endif()
 
 # Append FLATBUFFERS_CXX_FLAGS to CMAKE_CXX_FLAGS.
 if(DEFINED FLATBUFFERS_CXX_FLAGS AND NOT EXISTS "${CMAKE_TOOLCHAIN_FILE}")
@@ -396,11 +328,61 @@ include_directories(grpc)
 
 if(FLATBUFFERS_BUILD_FLATLIB)
   add_library(flatbuffers STATIC ${FlatBuffers_Library_SRCS})
+
   # Attach header directory for when build via add_subdirectory().
-  target_include_directories(flatbuffers INTERFACE
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>)
-  target_compile_options(flatbuffers PRIVATE "${FLATBUFFERS_PRIVATE_CXX_FLAGS}")
+  target_include_directories(flatbuffers 
+    INTERFACE
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+  )
+
+  target_compile_options(flatbuffers 
+    PRIVATE
+    $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:
+      -Wall
+      -Werror
+      -pedantic 
+      -Werror 
+      -Wextra 
+      -Wno-unused-parameter
+      -Wold-style-cast
+      -Wimplicit-fallthrough
+      -Wextra-semi
+      -Werror=shadow
+      -fsigned-char
+
+      $<$<CXX_COMPILER_ID:CLANG>:
+        $<$<VERSION_GREATER:$<CXX_COMPILER_VERSION>,3.8>:
+          -Wimplicit-fallthrough
+          -Wextra-semi
+          -Werror=unused-private-field
+        >
+      >
+
+      $<$<CXX_COMPILER_ID:GNU>:
+        $<$<VERSION_GREATER:$<CXX_COMPILER_VERSION>,4.4>:
+          -Wunused-result 
+          -Werror=unused-result 
+          -Wunused-parameter 
+          -Werror=unused-parameter
+        >
+        $<$<VERSION_GREATER:$<CXX_COMPILER_VERSION>,7.0>:
+          -faligned-new 
+          -Werror=implicit-fallthrough=2
+        >
+      >
+    >
+
+    $<$<CXX_COMPILER_ID:MSVC>:
+      # Visual Studio pedantic build settings 
+      /W4
+      /WX
+      /wd4512   # warning C4512: assignment operator could not be generated
+      /wd4316   # warning C4316: object allocated on the heap may not be aligned      
+    >
+  )
+
   target_compile_features(flatbuffers PUBLIC cxx_std_11)
+
   if(FLATBUFFERS_ENABLE_PCH)
     add_pch_to_target(flatbuffers include/flatbuffers/pch/pch.h)
   endif()
