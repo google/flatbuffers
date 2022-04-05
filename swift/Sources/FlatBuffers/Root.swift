@@ -35,6 +35,27 @@ public func getPrefixedSizeCheckedRoot<T: FlatBufferObject & Verifiable>(
 }
 
 /// Takes in a prefixed sized buffer, where the prefixed size would be skipped.
+/// And would verify that the buffer passed is a valid `Flatbuffers` Object.
+/// - Parameters:
+///   - byteBuffer: Buffer that needs to be checked and read
+///   - options: Verifier options
+/// - Throws: FlatbuffersErrors
+/// - Returns: Returns a valid, checked Flatbuffers object
+///
+/// ``getPrefixedSizeCheckedRoot(byteBuffer:options:)`` would skip the first Bytes in
+/// the ``ByteBuffer`` and verifies the buffer by calling ``getCheckedRoot(byteBuffer:options:)``
+public func getCheckedPrefixedSizeRoot<T: FlatBufferObject & Verifiable>(
+  byteBuffer: inout ByteBuffer,
+  options: VerifierOptions = .init()) throws -> T
+{
+  let prefix = byteBuffer.skipPrefix()
+  if prefix != byteBuffer.size {
+    throw FlatbuffersErrors.prefixedSizeNotEqualToBufferSize
+  }
+  return try getCheckedRoot(byteBuffer: &byteBuffer, options: options)
+}
+
+/// Takes in a prefixed sized buffer, where the prefixed size would be skipped.
 /// Returns a `NON-Checked` flatbuffers object
 /// - Parameter byteBuffer: Buffer that contains data
 /// - Returns: Returns a Flatbuffers object

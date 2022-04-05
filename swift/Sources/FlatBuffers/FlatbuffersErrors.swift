@@ -19,6 +19,7 @@ import Foundation
 /// Collection of thrown from the Flatbuffer verifier
 public enum FlatbuffersErrors: Error, Equatable {
 
+  case prefixedSizeNotEqualToBufferSize
   /// Thrown when buffer is bigger than the allowed 2GiB
   case exceedsMaxSizeAllowed
   /// Thrown when there is an missaligned pointer at position
