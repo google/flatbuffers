@@ -222,6 +222,13 @@ final class FlatbuffersVerifierTests: XCTestCase {
         byteBuffer: &validFlatbuffersObject) as MyGame_Example_Monster)
   }
 
+  func testFullVerifierWithFileId() {
+    XCTAssertNoThrow(
+      try getCheckedRoot(
+        byteBuffer: &validFlatbuffersObject,
+        fileId: MyGame_Example_Monster.id) as MyGame_Example_Monster)
+  }
+
   func testInvalidBuffer() {
     XCTAssertThrowsError(
       try getCheckedRoot(

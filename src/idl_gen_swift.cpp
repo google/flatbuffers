@@ -497,12 +497,13 @@ class SwiftGenerator : public BaseGenerator {
     if (!struct_def.fixed) {
       if (parser_.file_identifier_.length()) {
         code_.SetValue("FILENAME", parser_.file_identifier_);
+        code_ += "{{ACCESS_TYPE}} static var id: String { \"{{FILENAME}}\" } ";
         code_ +=
             "{{ACCESS_TYPE}} static func finish(_ fbb: inout "
             "FlatBufferBuilder, end: "
             "Offset, prefix: Bool = false) { fbb.finish(offset: end, "
             "fileId: "
-            "\"{{FILENAME}}\", addPrefix: prefix) }";
+            "{{STRUCTNAME}}.id, addPrefix: prefix) }";
       }
       code_ +=
           "{{ACCESS_TYPE}} static func getRootAs{{SHORT_STRUCTNAME}}(bb: "
