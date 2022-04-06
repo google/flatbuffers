@@ -271,19 +271,14 @@ set(FlatBuffers_GRPCTest_SRCS
   ${CMAKE_CURRENT_BINARY_DIR}/tests/monster_test_generated.h
 )
 
-
+# TODO(dbaileychess): Figure out how this would now work. I posted a question on
+# https://stackoverflow.com/questions/71772330/override-target-compile-options-via-cmake-command-line.
 # Append FLATBUFFERS_CXX_FLAGS to CMAKE_CXX_FLAGS.
 if(DEFINED FLATBUFFERS_CXX_FLAGS AND NOT EXISTS "${CMAKE_TOOLCHAIN_FILE}")
   message(STATUS "extend CXX_FLAGS with ${FLATBUFFERS_CXX_FLAGS}")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${FLATBUFFERS_CXX_FLAGS}")
 endif()
 message(STATUS "CMAKE_CXX_FLAGS: ${CMAKE_CXX_FLAGS}")
-
-if(FLATBUFFERS_CODE_COVERAGE)
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -fprofile-arcs -ftest-coverage")
-  set(CMAKE_EXE_LINKER_FLAGS
-      "${CMAKE_EXE_LINKER_FLAGS} -fprofile-arcs -ftest-coverage")
-endif()
 
 function(add_fsanitize_to_target _target _sanitizer)
   if(WIN32)
@@ -323,20 +318,43 @@ endfunction()
 include_directories(include)
 include_directories(grpc)
 
+# Creates an interface library that stores the configuration settings that each
+# target links too. This is a compromise between setting configuration globally
+# with add_compile_options() and the more targetted target_compile_options(). 
+# This way each target in this file can share settings and override them if 
+# needed.
+add_library(ProjectConfig INTERFACE)
+target_compile_features(ProjectConfig
+  INTERFACE
+    cxx_std_11
+)
+
+# I'm not sure why I need to explicitly set the standard if the ProjectConfig is
+# setting the compiled features. However, if I don't include this line, the 
+# cxx_std_11 line above doesn't work. 
+set(CMAKE_CXX_STANDARD 11)
+
+# Force the standard to be met.
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+# We shouldn't rely on any compiler-extensions to make things work.
+set(CMAKE_CXX_EXTENSIONS OFF)
+
 if(MSVC) 
-  set(compile_options 
-    # Visual Studio pedantic build settings 
+  target_compile_options(ProjectConfig
+    INTERFACE 
       /W4
       /WX
       /wd4512   # C4512: assignment operator could not be generated
       /wd4316   # C4316: object allocated on the heap may not be aligned
 
-    $<$<CXX_COMPILER_ID:CLANG>:
-      /D_CRT_SECURE_NO_WARNINGS
-    >
+      $<$<CXX_COMPILER_ID:CLANG>:
+        /D_CRT_SECURE_NO_WARNINGS
+      >
   )
 else()
-  set(compile_options
+  target_compile_options(ProjectConfig
+    INTERFACE
       -Wall
       -Werror
       -pedantic 
@@ -369,7 +387,21 @@ else()
           -Werror=implicit-fallthrough=2
         >
       >
+
+      $<$<BOOL:${FLATBUFFERS_CODE_COVERAGE}>:
+        -g
+        -fprofile-arcs
+        -ftest-coverage
+      >
     )
+
+  if(FLATBUFFERS_CODE_COVERAGE)
+    target_link_options(ProjectConfig
+      INTERFACE
+        -fprofile-arcs
+        -ftest-coverage
+    )
+  endif()
 endif()
 
 if(FLATBUFFERS_BUILD_FLATLIB)
@@ -380,8 +412,7 @@ if(FLATBUFFERS_BUILD_FLATLIB)
     INTERFACE
       $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
   )
-  target_compile_options(flatbuffers PRIVATE ${compile_options})
-  target_compile_features(flatbuffers PUBLIC cxx_std_11)
+  target_link_libraries(flatbuffers PRIVATE $<BUILD_INTERFACE:ProjectConfig>)
 
   if(FLATBUFFERS_ENABLE_PCH)
     add_pch_to_target(flatbuffers include/flatbuffers/pch/pch.h)
@@ -394,16 +425,14 @@ if(FLATBUFFERS_BUILD_FLATC)
     add_pch_to_target(flatc include/flatbuffers/pch/flatc_pch.h)
   endif()
 
+  target_link_libraries(flatc PRIVATE $<BUILD_INTERFACE:ProjectConfig>)
   target_compile_options(flatc 
-    PRIVATE
-      ${compile_options}
     PUBLIC
       $<$<AND:$<CXX_COMPILER_ID:MSVC>,$<CONFIG:Release>>:
         /MT
       >
   )
 
-  target_compile_features(flatc PUBLIC cxx_std_11)
   if(FLATBUFFERS_CODE_SANITIZE AND NOT WIN32)
     add_fsanitize_to_target(flatc ${FLATBUFFERS_CODE_SANITIZE})
   endif()
@@ -417,14 +446,12 @@ endif()
 
 if(FLATBUFFERS_BUILD_FLATHASH)
   add_executable(flathash ${FlatHash_SRCS})
-  target_compile_options(flathash PRIVATE ${compile_options})
-  target_compile_features(flathash PUBLIC cxx_std_11)
+  target_link_libraries(flathash PRIVATE $<BUILD_INTERFACE:ProjectConfig>)
 endif()
 
 if(FLATBUFFERS_BUILD_SHAREDLIB)
   add_library(flatbuffers_shared SHARED ${FlatBuffers_Library_SRCS})
-  target_compile_options(flatbuffers_shared PRIVATE ${compile_options})
-  target_compile_features(flatbuffers_shared PUBLIC cxx_std_11)
+  target_link_libraries(flatbuffers_shared PRIVATE $<BUILD_INTERFACE:ProjectConfig>)
   # Shared object version: "major.minor.micro"
   # - micro updated every release when there is no API/ABI changes
   # - minor updated when there are additions in API/ABI
@@ -545,8 +572,8 @@ if(FLATBUFFERS_BUILD_TESTS)
   endif()
   include_directories(${CMAKE_CURRENT_BINARY_DIR}/tests)
   add_executable(flattests ${FlatBuffers_Tests_SRCS})
-  target_compile_options(flattests PRIVATE ${compile_options})
-  target_compile_features(flattests PUBLIC cxx_std_11)
+  target_link_libraries(flattests PRIVATE $<BUILD_INTERFACE:ProjectConfig>)
+
   add_dependencies(flattests generated_code)
   set_property(TARGET flattests
     PROPERTY COMPILE_DEFINITIONS FLATBUFFERS_TRACK_VERIFIER_BUFFER_SIZE
@@ -560,18 +587,15 @@ if(FLATBUFFERS_BUILD_TESTS)
   include_directories(${CMAKE_CURRENT_BINARY_DIR}/samples)
 
   add_executable(flatsamplebinary ${FlatBuffers_Sample_Binary_SRCS})
-  target_compile_options(flatsamplebinary PRIVATE ${compile_options})
-  target_compile_features(flatsamplebinary PUBLIC cxx_std_11)
+  target_link_libraries(flatsamplebinary PRIVATE $<BUILD_INTERFACE:ProjectConfig>)
   add_dependencies(flatsamplebinary generated_code)
 
   add_executable(flatsampletext ${FlatBuffers_Sample_Text_SRCS})
-  target_compile_options(flatsampletext PRIVATE ${compile_options})
-  target_compile_features(flatsampletext PUBLIC cxx_std_11)
+  target_link_libraries(flatsampletext PRIVATE $<BUILD_INTERFACE:ProjectConfig>)
   add_dependencies(flatsampletext generated_code)
 
   add_executable(flatsamplebfbs ${FlatBuffers_Sample_BFBS_SRCS})
-  target_compile_options(flatsamplebfbs PRIVATE ${compile_options})
-  target_compile_features(flatsamplebfbs PUBLIC cxx_std_11)
+  target_link_libraries(flatsamplebfbs PRIVATE $<BUILD_INTERFACE:ProjectConfig>)
   add_dependencies(flatsamplebfbs generated_code)
 
   if(FLATBUFFERS_BUILD_CPP17)
@@ -580,7 +604,7 @@ if(FLATBUFFERS_BUILD_TESTS)
     # produced by direct call of generate_code.py script.
     add_executable(flattests_cpp17 ${FlatBuffers_Tests_CPP17_SRCS})
     add_dependencies(flattests_cpp17 generated_code)
-    target_compile_options(flattests_cpp17 PRIVATE ${compile_options})
+    target_link_libraries(flattests_cpp17 PRIVATE $<BUILD_INTERFACE:ProjectConfig>)
     target_compile_features(flattests_cpp17 PRIVATE cxx_std_17)
     target_compile_definitions(flattests_cpp17 PRIVATE
       FLATBUFFERS_TRACK_VERIFIER_BUFFER_SIZE
@@ -593,9 +617,6 @@ if(FLATBUFFERS_BUILD_TESTS)
 endif()
 
 if(FLATBUFFERS_BUILD_GRPCTEST)
-  if(CMAKE_COMPILER_IS_GNUCXX)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-unused-parameter -Wno-shadow")
-  endif()
   if(NOT GRPC_INSTALL_PATH)
     message(SEND_ERROR "GRPC_INSTALL_PATH variable is not defined. See grpc/README.md")
   endif()
@@ -611,15 +632,15 @@ if(FLATBUFFERS_BUILD_GRPCTEST)
   find_package(gRPC CONFIG REQUIRED)
   add_executable(grpctest ${FlatBuffers_GRPCTest_SRCS})
   add_dependencies(grpctest generated_code)
-  target_compile_options(grpctext PRIVATE ${compile_options})
-  target_compile_features(grpctest PRIVATE cxx_std_11)
-  target_link_libraries(grpctest PRIVATE gRPC::grpc++_unsecure gRPC::grpc_unsecure gRPC::gpr pthread dl)
-  if(FLATBUFFERS_CODE_SANITIZE AND NOT WIN32)
-    # GRPC test has problems with alignment and will fail under ASAN/UBSAN.
-    # add_fsanitize_to_target(grpctest ${FLATBUFFERS_CODE_SANITIZE})
-  endif()
+  target_link_libraries(grpctext 
+    PRIVATE 
+      $<BUILD_INTERFACE:ProjectConfig>
+      gRPC::grpc++_unsecure 
+      gRPC::gpr 
+      pthread
+      dl 
+  )
 endif()
-
 
 if(FLATBUFFERS_INSTALL)
   include(GNUInstallDirs)
