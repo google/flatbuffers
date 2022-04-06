@@ -1,7 +1,7 @@
 swift_dir=`pwd`
 cd ..
 test_dir=`pwd`
-alias fbc='${test_dir}/../flatc'
+alias fbc='${test_dir}/../Debug/flatc'
 shopt -s expand_aliases
 
 cd ${swift_dir}/Tests/FlatBuffers.Test.SwiftTests
@@ -10,6 +10,12 @@ fbc --swift --gen-json-emit ${test_dir}/optional_scalars.fbs
 fbc --swift --gen-json-emit --gen-object-api ${test_dir}/more_defaults.fbs
 fbc --swift --gen-json-emit --gen-mutable --gen-object-api ${test_dir}/MutatingBool.fbs
 cd ${swift_dir}
+
+# Goes into the code generation tests
+cd CodeGenerationTests
+fbc --swift --gen-mutable --grpc --gen-json-emit --gen-object-api --swift-implementation-only test_import.fbs
+fbc --swift --gen-mutable --grpc --gen-json-emit --gen-object-api --no-includes test_no_include.fbs
+cd ..
 
 cd ${swift_dir}/Sources/SwiftFlatBuffers
 # create better fuzzing test file
