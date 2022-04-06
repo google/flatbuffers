@@ -551,6 +551,7 @@ struct IDLOptions {
   bool output_enum_identifiers;
   bool prefixed_enums;
   bool scoped_enums;
+  bool swift_implementation_only;
   bool include_dependence_headers;
   bool mutable_buffer;
   bool one_file;
@@ -658,6 +659,7 @@ struct IDLOptions {
         output_enum_identifiers(true),
         prefixed_enums(true),
         scoped_enums(false),
+        swift_implementation_only(false),
         include_dependence_headers(true),
         mutable_buffer(false),
         one_file(false),

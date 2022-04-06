@@ -86,6 +86,8 @@ const static FlatCOption options[] = {
   { "", "scoped-enums", "",
     "Use C++11 style scoped and strongly typed enums. Also implies "
     "--no-prefix." },
+  { "", "swift-implementation-only", "",
+    "Adds a @_implementationOnly to swift imports" },
   { "", "gen-inclues", "",
     "(deprecated), this is the default behavior. If the original behavior is "
     "required (no include statements) use --no-includes." },
@@ -490,6 +492,8 @@ int FlatCompiler::Compile(int argc, const char **argv) {
         opts.java_checkerframework = true;
       } else if (arg == "--gen-generated") {
         opts.gen_generated = true;
+      } else if (arg == "--swift-implementation-only") {
+        opts.swift_implementation_only = true;
       } else if (arg == "--gen-json-emit") {
         opts.gen_json_coders = true;
       } else if (arg == "--object-prefix") {
