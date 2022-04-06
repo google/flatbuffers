@@ -201,10 +201,32 @@ final class FlatbuffersVerifierTests: XCTestCase {
     XCTAssertNoThrow(try getCheckedRoot(byteBuffer: &byteBuffer) as Movie)
   }
 
+  func testErrorWrongFileId() {
+    // swiftformat:disable all
+    var byteBuffer = ByteBuffer(bytes: [20, 0, 0, 0, 77, 79, 86, 73, 12, 0, 12, 0, 0, 0, 0, 0, 8, 0, 4, 0, 12, 0, 0, 0, 8, 0, 0, 0, 20, 0, 0, 0, 3, 0, 0, 0, 24, 0, 0, 0, 32, 0, 0, 0, 12, 0, 0, 0, 3, 0, 0, 0, 3, 1, 4, 0, 2, 0, 0, 0, 7, 0, 0, 0, 0, 0, 6, 0, 8, 0, 4, 0, 6, 0, 0, 0, 8, 0, 0, 0])
+    // swiftformat:enable all
+    XCTAssertThrowsError(try getCheckedRoot(byteBuffer: &byteBuffer, fileId: "FLEX") as Movie)
+  }
+
+  func testVerifyPrefixedBuffer() {
+    // swiftformat:disable all
+    var byteBuffer = ByteBuffer(bytes: [0, 0, 0, 1, 20, 0, 0, 0, 77, 79, 86, 73, 12, 0, 12, 0, 0, 0, 0, 0, 8, 0, 4, 0, 12, 0, 0, 0, 8, 0, 0, 0, 20, 0, 0, 0, 3, 0, 0, 0, 24, 0, 0, 0, 32, 0, 0, 0, 12, 0, 0, 0, 3, 0, 0, 0, 3, 1, 4, 0, 2, 0, 0, 0, 7, 0, 0, 0, 0, 0, 6, 0, 8, 0, 4, 0, 6, 0, 0, 0, 8, 0, 0, 0])
+    // swiftformat:enable all
+    XCTAssertThrowsError(
+      try getCheckedPrefixedSizeRoot(byteBuffer: &byteBuffer) as Movie)
+  }
+
   func testFullVerifier() {
     XCTAssertNoThrow(
       try getCheckedRoot(
         byteBuffer: &validFlatbuffersObject) as MyGame_Example_Monster)
+  }
+
+  func testFullVerifierWithFileId() {
+    XCTAssertNoThrow(
+      try getCheckedRoot(
+        byteBuffer: &validFlatbuffersObject,
+        fileId: MyGame_Example_Monster.id) as MyGame_Example_Monster)
   }
 
   func testInvalidBuffer() {
