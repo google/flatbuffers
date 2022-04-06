@@ -400,10 +400,13 @@ public struct ByteBuffer {
   /// SkipPrefix Skips the first 4 bytes in case one of the following
   /// functions are called `getPrefixedSizeCheckedRoot` & `getPrefixedSizeRoot`
   /// which allows us to skip the first 4 bytes instead of recreating the buffer
+  @discardableResult
   @usableFromInline
-  mutating func skipPrefix() {
+  mutating func skipPrefix() -> Int32 {
     _writerSize = _writerSize &- MemoryLayout<Int32>.size
+    return read(def: Int32.self, position: 0)
   }
+
 }
 
 extension ByteBuffer: CustomDebugStringConvertible {
