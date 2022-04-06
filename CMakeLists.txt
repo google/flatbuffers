@@ -74,9 +74,6 @@ option(FLATBUFFERS_ENABLE_PCH
 option(FLATBUFFERS_SKIP_MONSTER_EXTRA 
       "Skip generating monster_extra.fbs that contains non-supported numerical\"
       types." OFF)
-option(FLATBUFFERS_OSX_BUILD_UNIVERSAL
-      "Enable the build for multiple architectures on OS X (arm64, x86_64)."
-      ON)
 
 if(NOT FLATBUFFERS_BUILD_FLATC AND FLATBUFFERS_BUILD_TESTS)
     message(WARNING
@@ -326,18 +323,20 @@ endfunction()
 include_directories(include)
 include_directories(grpc)
 
-if(FLATBUFFERS_BUILD_FLATLIB)
-  add_library(flatbuffers STATIC ${FlatBuffers_Library_SRCS})
+if(MSVC) 
+  set(compile_options 
+    # Visual Studio pedantic build settings 
+      /W4
+      /WX
+      /wd4512   # C4512: assignment operator could not be generated
+      /wd4316   # C4316: object allocated on the heap may not be aligned
 
-  # Attach header directory for when build via add_subdirectory().
-  target_include_directories(flatbuffers 
-    INTERFACE
-      $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+    $<$<CXX_COMPILER_ID:CLANG>:
+      /D_CRT_SECURE_NO_WARNINGS
+    >
   )
-
-  target_compile_options(flatbuffers 
-    PRIVATE
-    $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:
+else()
+  set(compile_options
       -Wall
       -Werror
       -pedantic 
@@ -370,17 +369,18 @@ if(FLATBUFFERS_BUILD_FLATLIB)
           -Werror=implicit-fallthrough=2
         >
       >
-    >
+    )
+endif()
 
-    $<$<CXX_COMPILER_ID:MSVC>:
-      # Visual Studio pedantic build settings 
-      /W4
-      /WX
-      /wd4512   # warning C4512: assignment operator could not be generated
-      /wd4316   # warning C4316: object allocated on the heap may not be aligned      
-    >
+if(FLATBUFFERS_BUILD_FLATLIB)
+  add_library(flatbuffers STATIC ${FlatBuffers_Library_SRCS})
+
+  # Attach header directory for when build via add_subdirectory().
+  target_include_directories(flatbuffers 
+    INTERFACE
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
   )
-
+  target_compile_options(flatbuffers PRIVATE ${compile_options})
   target_compile_features(flatbuffers PUBLIC cxx_std_11)
 
   if(FLATBUFFERS_ENABLE_PCH)
@@ -393,17 +393,22 @@ if(FLATBUFFERS_BUILD_FLATC)
   if(FLATBUFFERS_ENABLE_PCH)
     add_pch_to_target(flatc include/flatbuffers/pch/flatc_pch.h)
   endif()
-  target_compile_options(flatc PRIVATE "${FLATBUFFERS_PRIVATE_CXX_FLAGS}")
+
+  target_compile_options(flatc 
+    PRIVATE
+      ${compile_options}
+    PUBLIC
+      $<$<AND:$<CXX_COMPILER_ID:MSVC>,$<CONFIG:Release>>:
+        /MT
+      >
+  )
+
   target_compile_features(flatc PUBLIC cxx_std_11)
   if(FLATBUFFERS_CODE_SANITIZE AND NOT WIN32)
     add_fsanitize_to_target(flatc ${FLATBUFFERS_CODE_SANITIZE})
   endif()
   if(NOT FLATBUFFERS_FLATC_EXECUTABLE)
     set(FLATBUFFERS_FLATC_EXECUTABLE $<TARGET_FILE:flatc>)
-  endif()
-  if(MSVC)
-    # Make flatc.exe not depend on runtime dlls for easy distribution.
-    target_compile_options(flatc PUBLIC $<$<CONFIG:Release>:/MT>)
   endif()
   if(FLATBUFFERS_STATIC_FLATC AND NOT MSVC)
     target_link_libraries(flatc PRIVATE -static)
@@ -412,11 +417,13 @@ endif()
 
 if(FLATBUFFERS_BUILD_FLATHASH)
   add_executable(flathash ${FlatHash_SRCS})
+  target_compile_options(flathash PRIVATE ${compile_options})
   target_compile_features(flathash PUBLIC cxx_std_11)
 endif()
 
 if(FLATBUFFERS_BUILD_SHAREDLIB)
   add_library(flatbuffers_shared SHARED ${FlatBuffers_Library_SRCS})
+  target_compile_options(flatbuffers_shared PRIVATE ${compile_options})
   target_compile_features(flatbuffers_shared PUBLIC cxx_std_11)
   # Shared object version: "major.minor.micro"
   # - micro updated every release when there is no API/ABI changes
@@ -538,6 +545,11 @@ if(FLATBUFFERS_BUILD_TESTS)
   endif()
   include_directories(${CMAKE_CURRENT_BINARY_DIR}/tests)
   add_executable(flattests ${FlatBuffers_Tests_SRCS})
+  target_compile_options(flattests 
+    PRIVATE 
+      ${compile_options}
+      -Wno-old-style-cast
+  )
   target_compile_features(flattests PUBLIC cxx_std_11)
   add_dependencies(flattests generated_code)
   set_property(TARGET flattests
@@ -550,13 +562,23 @@ if(FLATBUFFERS_BUILD_TESTS)
   compile_flatbuffers_schema_to_cpp(samples/monster.fbs)
   compile_flatbuffers_schema_to_binary(samples/monster.fbs)
   include_directories(${CMAKE_CURRENT_BINARY_DIR}/samples)
+
   add_executable(flatsamplebinary ${FlatBuffers_Sample_Binary_SRCS})
+  target_compile_options(flatsamplebinary PRIVATE ${compile_options})
   target_compile_features(flatsamplebinary PUBLIC cxx_std_11)
   add_dependencies(flatsamplebinary generated_code)
+
   add_executable(flatsampletext ${FlatBuffers_Sample_Text_SRCS})
+  target_compile_options(flatsampletext PRIVATE ${compile_options})
   target_compile_features(flatsampletext PUBLIC cxx_std_11)
   add_dependencies(flatsampletext generated_code)
+
   add_executable(flatsamplebfbs ${FlatBuffers_Sample_BFBS_SRCS})
+  target_compile_options(flatsamplebfbs 
+    PRIVATE 
+      ${compile_options}
+      -Wno-old-style-cast
+  )
   target_compile_features(flatsamplebfbs PUBLIC cxx_std_11)
   add_dependencies(flatsamplebfbs generated_code)
 
@@ -566,6 +588,7 @@ if(FLATBUFFERS_BUILD_TESTS)
     # produced by direct call of generate_code.py script.
     add_executable(flattests_cpp17 ${FlatBuffers_Tests_CPP17_SRCS})
     add_dependencies(flattests_cpp17 generated_code)
+    target_compile_options(flattests_cpp17 PRIVATE ${compile_options})
     target_compile_features(flattests_cpp17 PRIVATE cxx_std_17)
     target_compile_definitions(flattests_cpp17 PRIVATE
       FLATBUFFERS_TRACK_VERIFIER_BUFFER_SIZE
@@ -596,6 +619,7 @@ if(FLATBUFFERS_BUILD_GRPCTEST)
   find_package(gRPC CONFIG REQUIRED)
   add_executable(grpctest ${FlatBuffers_GRPCTest_SRCS})
   add_dependencies(grpctest generated_code)
+  target_compile_options(grpctext PRIVATE ${compile_options})
   target_compile_features(grpctest PRIVATE cxx_std_11)
   target_link_libraries(grpctest PRIVATE gRPC::grpc++_unsecure gRPC::grpc_unsecure gRPC::gpr pthread dl)
   if(FLATBUFFERS_CODE_SANITIZE AND NOT WIN32)

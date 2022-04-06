@@ -66,7 +66,7 @@ target_compile_features(flatbenchmark PUBLIC
     cxx_std_11
 )
 
-target_compile_options(flatbenchmark BEFORE
+target_compile_options(flatbenchmark
     PRIVATE
         -fno-aligned-new
         -Wno-deprecated-declarations
