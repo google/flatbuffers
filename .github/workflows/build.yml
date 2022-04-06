@@ -135,33 +135,6 @@ jobs:
         name: Mac flatc binary
         path: _build/Release/flatc
 
-  build-mac-cross-arm:
-    name: Build Mac (cross-build to M1)
-    runs-on: macos-latest
-    steps:
-    - uses: actions/checkout@v2
-    - name: cmake
-      run: cmake -G "Xcode" -DCMAKE_OSX_ARCHITECTURES=arm64 -DCMAKE_BUILD_TYPE=Release -DFLATBUFFERS_FLATC_EXECUTABLE=_build/Release/flatc .
-    - name: build
-      # NOTE: we need this _build dir to not have xcodebuild's default ./build dir clash with the BUILD file.
-      run: xcodebuild -toolchain clang -configuration Release -target flattests SYMROOT=$(PWD)/_build
-    - name: check that the binary is arm64
-      run: |
-        info=$(file _build/Release/flatc)
-        echo $info
-        echo $info | grep "Mach-O 64-bit executable arm64"
-    - name: test
-      run: _build/Release/flattests
-    - name: make flatc executable
-      run: |
-        chmod +x _build/Release/flatc
-        ./_build/Release/flatc --version
-    - name: upload build artifacts
-      uses: actions/upload-artifact@v1
-      with:
-        name: Mac flatc binary
-        path: _build/Release/flatc
-
   build-mac-universal:
     name: Build Mac (universal build)
     runs-on: macos-latest

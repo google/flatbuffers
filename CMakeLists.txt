@@ -545,11 +545,7 @@ if(FLATBUFFERS_BUILD_TESTS)
   endif()
   include_directories(${CMAKE_CURRENT_BINARY_DIR}/tests)
   add_executable(flattests ${FlatBuffers_Tests_SRCS})
-  target_compile_options(flattests 
-    PRIVATE 
-      ${compile_options}
-      -Wno-old-style-cast
-  )
+  target_compile_options(flattests PRIVATE ${compile_options})
   target_compile_features(flattests PUBLIC cxx_std_11)
   add_dependencies(flattests generated_code)
   set_property(TARGET flattests
@@ -574,11 +570,7 @@ if(FLATBUFFERS_BUILD_TESTS)
   add_dependencies(flatsampletext generated_code)
 
   add_executable(flatsamplebfbs ${FlatBuffers_Sample_BFBS_SRCS})
-  target_compile_options(flatsamplebfbs 
-    PRIVATE 
-      ${compile_options}
-      -Wno-old-style-cast
-  )
+  target_compile_options(flatsamplebfbs PRIVATE ${compile_options})
   target_compile_features(flatsamplebfbs PUBLIC cxx_std_11)
   add_dependencies(flatsamplebfbs generated_code)
 

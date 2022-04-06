@@ -844,8 +844,9 @@ void ParseAndGenerateTextTest(bool binary) {
         schemafile.size());
     TEST_EQ(reflection::VerifySchemaBuffer(verifier), true);
     // auto schema = reflection::GetSchema(schemafile.c_str());
-    TEST_EQ(parser.Deserialize((const uint8_t *)schemafile.c_str(),
-                               schemafile.size()),
+    TEST_EQ(parser.Deserialize(
+                reinterpret_cast<const uint8_t *>(schemafile.c_str()),
+                schemafile.size()),
             true);
   } else {
     TEST_EQ(parser.Parse(schemafile.c_str(), include_directories), true);
@@ -3831,11 +3832,13 @@ void FixedLengthArrayJsonTest(bool binary) {
         reinterpret_cast<const uint8_t *>(schemafile.c_str()),
         schemafile.size());
     TEST_EQ(reflection::VerifySchemaBuffer(verifier), true);
-    TEST_EQ(parserOrg.Deserialize((const uint8_t *)schemafile.c_str(),
-                                  schemafile.size()),
+    TEST_EQ(parserOrg.Deserialize(
+                reinterpret_cast<const uint8_t *>(schemafile.c_str()),
+                schemafile.size()),
             true);
-    TEST_EQ(parserGen.Deserialize((const uint8_t *)schemafile.c_str(),
-                                  schemafile.size()),
+    TEST_EQ(parserGen.Deserialize(
+                reinterpret_cast<const uint8_t *>(schemafile.c_str()),
+                schemafile.size()),
             true);
   } else {
     TEST_EQ(parserOrg.Parse(schemafile.c_str()), true);
@@ -4169,9 +4172,10 @@ void ParseIncorrectMonsterJsonTest() {
   flatbuffers::Verifier verifier(
       reinterpret_cast<const uint8_t *>(schemafile.c_str()), schemafile.size());
   TEST_EQ(reflection::VerifySchemaBuffer(verifier), true);
-  TEST_EQ(parser.Deserialize((const uint8_t *)schemafile.c_str(),
-                             schemafile.size()),
-          true);
+  TEST_EQ(
+      parser.Deserialize(reinterpret_cast<const uint8_t *>(schemafile.c_str()),
+                         schemafile.size()),
+      true);
   TEST_EQ(parser.ParseJson("{name:\"monster\"}"), true);
   TEST_EQ(parser.ParseJson(""), false);
   TEST_EQ(parser.ParseJson("{name: 1}"), false);
