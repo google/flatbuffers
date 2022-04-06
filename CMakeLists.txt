@@ -329,11 +329,6 @@ target_compile_features(ProjectConfig
     cxx_std_11
 )
 
-# I'm not sure why I need to explicitly set the standard if the ProjectConfig is
-# setting the compiled features. However, if I don't include this line, the 
-# cxx_std_11 line above doesn't work. 
-set(CMAKE_CXX_STANDARD 11)
-
 # Force the standard to be met.
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
