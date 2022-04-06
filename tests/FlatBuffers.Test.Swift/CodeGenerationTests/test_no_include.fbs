@@ -1,3 +1,13 @@
-table Message {
-  internal_message: string;
+struct BytesCount { 
+  x: int64;
+}
+
+table InternalMessage { 
+  str: string;
+}
+
+table Message { 
+  id: int64;
+  position: BytesCount (required);
+  pointer: InternalMessage (required);
 }
