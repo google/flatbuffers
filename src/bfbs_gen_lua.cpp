@@ -153,8 +153,8 @@ class LuaBfbsGenerator : public BaseBfbsGenerator {
         code += "  if type(buf) == \"string\" then\n";
         code += "    buf = flatbuffers.binaryArray.New(buf)\n";
         code += "  end\n";
-          code += "\n";
-      code += "  local n = flatbuffers.N.UOffsetT:Unpack(buf, offset)\n";
+        code += "\n";
+        code += "  local n = flatbuffers.N.UOffsetT:Unpack(buf, offset)\n";
         code += "  local o = " + object_name + ".New()\n";
         code += "  o:Init(buf, n + offset)\n";
         code += "  return o\n";

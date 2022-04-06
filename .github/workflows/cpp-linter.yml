@@ -12,8 +12,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-#       - name: cmake
-#         run: CXX=clang++-12 cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release .
       - uses: shenxianpeng/cpp-linter-action@master
         id: linter
         env:
@@ -21,6 +19,7 @@ jobs:
         with:
           version: 12
           style: file
+          lines-changed-only: true
           tidy-checks: >-
             bugprone-*,
             performance-*,
@@ -31,6 +30,6 @@ jobs:
             cppcoreguidelines-*,
             -modernize-use-trailing-return-type
 
-      - name: Fail fast?!
+      - name: Check Result
         if: steps.linter.outputs.checks-failed > 0
         run: exit 1
