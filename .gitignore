@@ -54,6 +54,8 @@ flathash
 flathash.exe
 flattests
 flattests.exe
+flattests_cpp17
+flattests_cpp17.exe
 flatsamplebinary
 flatsamplebinary.exe
 flatsampletext

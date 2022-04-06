@@ -6,6 +6,13 @@
 
 #include "flatbuffers/flatbuffers.h"
 
+// Ensure the included flatbuffers.h is the same version as when this file was
+// generated, otherwise it may not be compatible.
+static_assert(FLATBUFFERS_VERSION_MAJOR == 2 &&
+              FLATBUFFERS_VERSION_MINOR == 0 &&
+              FLATBUFFERS_VERSION_REVISION == 6,
+             "Non-compatible flatbuffers version included");
+
 namespace benchmarks_flatbuffers {
 
 struct Foo;
@@ -157,11 +164,11 @@ struct FooBar FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
-           VerifyField<benchmarks_flatbuffers::Bar>(verifier, VT_SIBLING) &&
+           VerifyField<benchmarks_flatbuffers::Bar>(verifier, VT_SIBLING, 8) &&
            VerifyOffset(verifier, VT_NAME) &&
            verifier.VerifyString(name()) &&
-           VerifyField<double>(verifier, VT_RATING) &&
-           VerifyField<uint8_t>(verifier, VT_POSTFIX) &&
+           VerifyField<double>(verifier, VT_RATING, 8) &&
+           VerifyField<uint8_t>(verifier, VT_POSTFIX, 1) &&
            verifier.EndTable();
   }
 };
@@ -247,8 +254,8 @@ struct FooBarContainer FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
            VerifyOffset(verifier, VT_LIST) &&
            verifier.VerifyVector(list()) &&
            verifier.VerifyVectorOfTables(list()) &&
-           VerifyField<uint8_t>(verifier, VT_INITIALIZED) &&
-           VerifyField<int16_t>(verifier, VT_FRUIT) &&
+           VerifyField<uint8_t>(verifier, VT_INITIALIZED, 1) &&
+           VerifyField<int16_t>(verifier, VT_FRUIT, 2) &&
            VerifyOffset(verifier, VT_LOCATION) &&
            verifier.VerifyString(location()) &&
            verifier.EndTable();
