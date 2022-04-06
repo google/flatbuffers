@@ -45,7 +45,7 @@ struct FooBarContainer {
 };
 
 struct RawBench : Bench {
-  uint8_t *Encode(void *buf, int64_t &len) {
+  uint8_t *Encode(void *buf, int64_t &len) override {
     FooBarContainer *fbc = new (buf) FooBarContainer;
     strcpy(fbc->location, "http://google.com/flatbuffers/");  // Unsafe eek!
     fbc->location_len = (int)strlen(fbc->location);
@@ -74,7 +74,7 @@ struct RawBench : Bench {
     return reinterpret_cast<uint8_t *>(fbc);
   };
 
-  int64_t Use(void *decoded) {
+  int64_t Use(void *decoded) override {
     auto foobarcontainer = reinterpret_cast<FooBarContainer *>(decoded);
     sum = 0;
     Add(foobarcontainer->initialized);
@@ -98,7 +98,7 @@ struct RawBench : Bench {
     return sum;
   }
 
-  void *Decode(void *buf, int64_t) { return buf; }
+  void *Decode(void *buf, int64_t) override { return buf; }
   void Dealloc(void *) override{};
 };
 

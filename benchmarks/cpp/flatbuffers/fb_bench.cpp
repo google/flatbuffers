@@ -16,7 +16,7 @@ struct FlatBufferBench : Bench {
   explicit FlatBufferBench(int64_t initial_size, Allocator *allocator)
       : fbb(initial_size, allocator, false) {}
 
-  uint8_t *Encode(void *, int64_t &len) {
+  uint8_t *Encode(void *, int64_t &len) override {
     fbb.Clear();
 
     const int kVectorLength = 3;
@@ -40,7 +40,7 @@ struct FlatBufferBench : Bench {
     return fbb.GetBufferPointer();
   }
 
-  int64_t Use(void *decoded) {
+  int64_t Use(void *decoded) override {
     sum = 0;
     auto foobarcontainer = GetFooBarContainer(decoded);
     sum = 0;
@@ -65,8 +65,8 @@ struct FlatBufferBench : Bench {
     return sum;
   }
 
-  void *Decode(void *buffer, int64_t) { return buffer; }
-  void Dealloc(void *) override{};
+  void *Decode(void *buffer, int64_t) override { return buffer; }
+  void Dealloc(void *) override {};
 
   FlatBufferBuilder fbb;
 };

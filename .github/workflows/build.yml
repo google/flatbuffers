@@ -108,8 +108,8 @@ jobs:
         cd tests\FlatBuffers.Test
         out\FlatBuffers.Core.Test.exe
 
-  build-mac:
-    name: Build Mac
+  build-mac-intel:
+    name: Build Mac (for Intel)
     runs-on: macos-latest
     steps:
     - uses: actions/checkout@v2
@@ -118,11 +118,38 @@ jobs:
     - name: build
       # NOTE: we need this _build dir to not have xcodebuild's default ./build dir clash with the BUILD file.
       run: xcodebuild -toolchain clang -configuration Release -target flattests SYMROOT=$(PWD)/_build
+    - name: check that the binary is x86_64
+      run: |
+        info=$(file _build/Release/flatc)
+        echo $info
+        echo $info | grep "Mach-O 64-bit executable x86_64"
+    - name: test
+      run: _build/Release/flattests
+    - name: make flatc executable
+      run: |
+        chmod +x _build/Release/flatc
+        ./_build/Release/flatc --version
+    - name: upload build artifacts
+      uses: actions/upload-artifact@v1
+      with:
+        name: Mac flatc binary
+        path: _build/Release/flatc
+
+  build-mac-universal:
+    name: Build Mac (universal build)
+    runs-on: macos-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: cmake
+      run: cmake -G "Xcode" -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64" -DCMAKE_BUILD_TYPE=Release -DFLATBUFFERS_FLATC_EXECUTABLE=_build/Release/flatc .
+    - name: build
+      # NOTE: we need this _build dir to not have xcodebuild's default ./build dir clash with the BUILD file.
+      run: xcodebuild -toolchain clang -configuration Release -target flattests SYMROOT=$(PWD)/_build
     - name: check that the binary is "universal"
       run: |
         info=$(file _build/Release/flatc)
         echo $info
-        echo $info | grep "universal binary with 2 architectures"
+        echo $info | grep "Mach-O universal binary with 2 architectures"
     - name: test
       run: _build/Release/flattests
     - name: make flatc executable
