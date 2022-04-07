@@ -628,8 +628,8 @@ bool VerifyVector(flatbuffers::Verifier &v, const reflection::Schema &schema,
           table, vec_field);
       if (!v.VerifyVector(vec)) return false;
       if (!vec) return true;
-      auto type_vec = table.GetPointer<Vector<uint8_t> *>(vec_field.offset() -
-                                                          sizeof(voffset_t));
+      auto type_vec = table.GetPointer<Vector<uint8_t> *>(
+          vec_field.offset() - static_cast<voffset_t>(sizeof(voffset_t)));
       if (!v.VerifyVector(type_vec)) return false;
       for (uoffset_t j = 0; j < vec->size(); j++) {
         //  get union type from the prev field
@@ -719,7 +719,8 @@ bool VerifyObject(flatbuffers::Verifier &v, const reflection::Schema &schema,
       }
       case reflection::Union: {
         //  get union type from the prev field
-        voffset_t utype_offset = field_def->offset() - sizeof(voffset_t);
+        voffset_t utype_offset =
+            field_def->offset() - static_cast<voffset_t>(sizeof(voffset_t));
         auto utype = table->GetField<uint8_t>(utype_offset, 0);
         auto uval = reinterpret_cast<const uint8_t *>(
             flatbuffers::GetFieldT(*table, *field_def));

@@ -381,8 +381,8 @@ void BinaryAnnotator::BuildVTable(const uint64_t vtable_offset,
 
   // Check if we covered all the expectant fields. If not, we need to add them
   // as unknown fields.
-  uint16_t expectant_vtable_fields =
-      (vtable_size - sizeof(uint16_t) - sizeof(uint16_t)) / sizeof(uint16_t);
+  uint16_t expectant_vtable_fields = static_cast<uint16_t>(
+      (vtable_size - sizeof(uint16_t) - sizeof(uint16_t)) / sizeof(uint16_t));
 
   // Prevent a bad binary from declaring a really large vtable_size, that we can
   // not indpendently verify.

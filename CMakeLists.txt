@@ -360,6 +360,8 @@ else()
       -Wimplicit-fallthrough
       -Wextra-semi
       -Werror=shadow
+      -Wconversion
+      -Wno-sign-conversion
       -fsigned-char
 
       $<$<CXX_COMPILER_ID:CLANG>:

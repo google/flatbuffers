@@ -59,12 +59,12 @@ template<typename T> T HashFnv1a(const char *input) {
 
 template<> inline uint16_t HashFnv1<uint16_t>(const char *input) {
   uint32_t hash = HashFnv1<uint32_t>(input);
-  return (hash >> 16) ^ (hash & 0xffff);
+  return static_cast<uint16_t>((hash >> 16) ^ (hash & 0xffff));
 }
 
 template<> inline uint16_t HashFnv1a<uint16_t>(const char *input) {
   uint32_t hash = HashFnv1a<uint32_t>(input);
-  return (hash >> 16) ^ (hash & 0xffff);
+  return static_cast<uint16_t>((hash >> 16) ^ (hash & 0xffff));
 }
 
 template<typename T> struct NamedHashFunction {

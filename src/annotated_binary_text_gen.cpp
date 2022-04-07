@@ -85,7 +85,7 @@ static std::string ToValueString(const BinaryRegion &region,
       // Interpet each value as a ASCII to aid debugging
       for (uint64_t i = 0; i < region.array_length; ++i) {
         const uint8_t c = *(binary + region.offset + i);
-        s += isprint(c) ? toascii(c) : '.';
+        s += isprint(c) ? static_cast<char>(toascii(c)) : '.';
       }
       return s;
     } else if (region.type == BinaryRegionType::Char) {
@@ -277,7 +277,8 @@ static std::string GenerateDocumentation(const BinaryRegion &region,
 
   {
     std::stringstream ss;
-    ss << std::setw(output_config.largest_type_string) << std::left;
+    ss << std::setw(static_cast<int>(output_config.largest_type_string))
+       << std::left;
     ss << GenerateTypeString(region);
     s += ss.str();
   }
@@ -292,7 +293,8 @@ static std::string GenerateDocumentation(const BinaryRegion &region,
     const std::string value = ToValueString(region, binary, output_config);
 
     std::stringstream ss;
-    ss << std::setw(output_config.largest_value_string) << std::left;
+    ss << std::setw(static_cast<int>(output_config.largest_value_string))
+       << std::left;
     ss << value.substr(0, output_config.max_bytes_per_line);
     s += ss.str();
 
@@ -300,7 +302,8 @@ static std::string GenerateDocumentation(const BinaryRegion &region,
         value.substr(std::min(output_config.max_bytes_per_line, value.size()));
   } else {
     std::stringstream ss;
-    ss << std::setw(output_config.largest_value_string) << std::left;
+    ss << std::setw(static_cast<int>(output_config.largest_value_string))
+       << std::left;
     ss << ToValueString(region, binary, output_config);
     s += ss.str();
   }

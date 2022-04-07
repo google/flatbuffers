@@ -66,8 +66,8 @@ void FlatBufferBuilderTest();
 // http://en.wikipedia.org/wiki/Park%E2%80%93Miller_random_number_generator
 uint32_t lcg_seed = 48271;
 uint32_t lcg_rand() {
-  return lcg_seed =
-             (static_cast<uint64_t>(lcg_seed) * 279470273UL) % 4294967291UL;
+  return lcg_seed = static_cast<uint32_t>(
+             (static_cast<uint64_t>(lcg_seed) * 279470273UL) % 4294967291UL);
 }
 void lcg_reset() { lcg_seed = 48271; }
 
@@ -211,7 +211,7 @@ flatbuffers::DetachedBuffer CreateFlatBufferTest(std::string &buffer) {
 
   FinishMonsterBuffer(builder, mloc);
 
-// clang-format off
+  // clang-format off
   #ifdef FLATBUFFERS_TEST_VERBOSE
   // print byte data for debugging:
   auto p = builder.GetBufferPointer();
@@ -237,7 +237,7 @@ void AccessFlatBufferTest(const uint8_t *flatbuf, size_t length,
   verifier.SetFlexReuseTracker(&flex_reuse_tracker);
   TEST_EQ(VerifyMonsterBuffer(verifier), true);
 
-// clang-format off
+  // clang-format off
   #ifdef FLATBUFFERS_TRACK_VERIFIER_BUFFER_SIZE
     std::vector<uint8_t> test_buff;
     test_buff.resize(length * 2);
@@ -618,7 +618,7 @@ void SizePrefixedTest() {
 }
 
 void TriviallyCopyableTest() {
-// clang-format off
+  // clang-format off
   #if __GNUG__ && __GNUC__ < 5
     TEST_EQ(__has_trivial_copy(Vec3), true);
   #else
@@ -1599,7 +1599,7 @@ void FuzzTest2() {
     }
   };
 
-// clang-format off
+  // clang-format off
   #define AddToSchemaAndInstances(schema_add, instance_add) \
     RndDef::Add(definitions, schema, instances_per_definition, \
                 schema_add, instance_add, definition)
@@ -1753,7 +1753,7 @@ void FuzzTest2() {
     TEST_NOTNULL(nullptr);  //-V501 (this comment supresses CWE-570 warning)
   }
 
-// clang-format off
+  // clang-format off
   #ifdef FLATBUFFERS_TEST_VERBOSE
     TEST_OUTPUT_LINE("%dk schema tested with %dk of json\n",
                      static_cast<int>(schema.length() / 1024),
@@ -3145,7 +3145,7 @@ void FlexBuffersTest() {
   });
   slb.Finish();
 
-// clang-format off
+  // clang-format off
   #ifdef FLATBUFFERS_TEST_VERBOSE
     for (size_t i = 0; i < slb.GetBuffer().size(); i++)
       printf("%d ", slb.GetBuffer().data()[i]);
@@ -3786,10 +3786,11 @@ void NativeTypeTest() {
   src_data.vectors_alt.reserve(N);
 
   for (int i = 0; i < N; ++i) {
+    const auto i_f = static_cast<float>(i);
     src_data.vectors.push_back(
-        Native::Vector3D(10 * i + 0.1f, 10 * i + 0.2f, 10 * i + 0.3f));
+        Native::Vector3D(10 * i_f + 0.1f, 10 * i_f + 0.2f, 10 * i_f + 0.3f));
     src_data.vectors_alt.push_back(
-        Native::Vector3D(20 * i + 0.1f, 20 * i + 0.2f, 20 * i + 0.3f));
+        Native::Vector3D(20 * i_f + 0.1f, 20 * i_f + 0.2f, 20 * i_f + 0.3f));
   }
 
   flatbuffers::FlatBufferBuilder fbb;
@@ -3799,14 +3800,14 @@ void NativeTypeTest() {
 
   for (int i = 0; i < N; ++i) {
     const Native::Vector3D &v = dstDataT->vectors[i];
-    TEST_EQ(v.x, 10 * i + 0.1f);
-    TEST_EQ(v.y, 10 * i + 0.2f);
-    TEST_EQ(v.z, 10 * i + 0.3f);
+    TEST_EQ(v.x, static_cast<float>(10 * i) + 0.1f);
+    TEST_EQ(v.y, static_cast<float>(10 * i) + 0.2f);
+    TEST_EQ(v.z, static_cast<float>(10 * i) + 0.3f);
 
     const Native::Vector3D &v2 = dstDataT->vectors_alt[i];
-    TEST_EQ(v2.x, 20 * i + 0.1f);
-    TEST_EQ(v2.y, 20 * i + 0.2f);
-    TEST_EQ(v2.z, 20 * i + 0.3f);
+    TEST_EQ(v2.x, static_cast<float>(20 * i) + 0.1f);
+    TEST_EQ(v2.y, static_cast<float>(20 * i) + 0.2f);
+    TEST_EQ(v2.z, static_cast<float>(20 * i) + 0.3f);
   }
 }
 

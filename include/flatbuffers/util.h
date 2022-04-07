@@ -49,7 +49,7 @@ inline bool check_ascii_range(char x, char a, char b) {
 // Case-insensitive isalpha
 inline bool is_alpha(char c) {
   // ASCII only: alpha to upper case => reset bit 0x20 (~0x20 = 0xDF).
-  return check_ascii_range(c & 0xDF, 'a' & 0xDF, 'z' & 0xDF);
+  return check_ascii_range(static_cast<char>(c & 0xDF), 'a' & 0xDF, 'z' & 0xDF);
 }
 
 // Check for uppercase alpha
@@ -71,7 +71,8 @@ inline bool is_digit(char c) { return check_ascii_range(c, '0', '9'); }
 
 inline bool is_xdigit(char c) {
   // Replace by look-up table.
-  return is_digit(c) || check_ascii_range(c & 0xDF, 'a' & 0xDF, 'f' & 0xDF);
+  return is_digit(c) ||
+         check_ascii_range(static_cast<char>(c & 0xDF), 'a' & 0xDF, 'f' & 0xDF);
 }
 
 // Case-insensitive isalnum
@@ -707,9 +708,10 @@ enum class Case {
   kSnake2 = 9,
 };
 
-// Convert the `input` string of case `input_case` to the specified `output_case`.
+// Convert the `input` string of case `input_case` to the specified
+// `output_case`.
 std::string ConvertCase(const std::string &input, Case output_case,
-                    Case input_case = Case::kSnake);
+                        Case input_case = Case::kSnake);
 
 }  // namespace flatbuffers
 
