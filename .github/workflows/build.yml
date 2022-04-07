@@ -151,7 +151,7 @@ jobs:
        echo "${PWD}" >> $GITHUB_PATH
    - name: build
      working-directory: android
-     run: bash ./gradlew clean build
+     run: gradle clean build
 
   build-generator:
     name: Check Generated Code
@@ -201,6 +201,7 @@ jobs:
     steps:
     - name: Checkout
       uses: actions/checkout@v2
+    - uses: gradle/wrapper-validation-action@v1
     - uses: actions/setup-java@v2
       with:
         distribution: 'adopt-hotspot'
@@ -219,6 +220,7 @@ jobs:
       with:
         distribution: 'adopt-hotspot'
         java-version: '11'
+    - uses: gradle/wrapper-validation-action@v1
     - name: Build
       working-directory: kotlin
       # we are using docker's version of gradle
