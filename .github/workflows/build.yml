@@ -207,7 +207,7 @@ jobs:
         java-version: '11'
     - name: Build
       working-directory: kotlin
-      run: ./gradlew clean iosX64Test macosX64Test jsTest jsBrowserTest
+      run: ./gradlew clean iosX64Test macosX64Test
 
   build-kotlin-linux:
     name: Build Kotlin Linux
@@ -221,7 +221,10 @@ jobs:
         java-version: '11'
     - name: Build
       working-directory: kotlin
-      run: gradle jvmMainClasses jvmTest
+      # we are using docker's version of gradle
+      # so no need for wrapper validadation or user
+      # gradlew
+      run: gradle jvmMainClasses jvmTest jsTest jsBrowserTest
 
   build-rust:
     name: Build Rust
