@@ -222,19 +222,6 @@ jobs:
     - name: Build
       working-directory: kotlin
       run: gradle jvmMainClasses jvmTest
-    - name: Run Benchmark
-      working-directory: kotlin
-      run: gradle jvmBenchmark
-    - name: Generate Benchmark Report
-      working-directory: kotlin
-      run: |
-        gradle jmhReport;
-        mv benchmark/build/reports/benchmarks/main/* benchmark_latest
-    - name: Archive benchmark report
-      uses: actions/upload-artifact@v1
-      with:
-        name: Kotlin Benchmark Report
-        path: kotlin/benchmark_latest
 
   build-rust:
     name: Build Rust
