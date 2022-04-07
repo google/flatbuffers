@@ -218,17 +218,17 @@ jobs:
     - uses: actions/setup-java@v2
       with:
         distribution: 'adopt-hotspot'
-        java-version: '8'
+        java-version: '11'
     - name: Build
       working-directory: kotlin
-      run: ./gradlew jvmMainClasses jvmTest
+      run: gradle jvmMainClasses jvmTest
     - name: Run Benchmark
       working-directory: kotlin
-      run: ./gradlew jvmBenchmark
+      run: gradle jvmBenchmark
     - name: Generate Benchmark Report
       working-directory: kotlin
       run: |
-        ./gradlew jmhReport;
+        gradle jmhReport;
         mv benchmark/build/reports/benchmarks/main/* benchmark_latest
     - name: Archive benchmark report
       uses: actions/upload-artifact@v1
