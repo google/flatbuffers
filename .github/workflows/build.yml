@@ -178,7 +178,7 @@ jobs:
        echo "${PWD}" >> $GITHUB_PATH
    - name: build
      working-directory: android
-     run: bash ./gradlew clean build
+     run: gradle clean build
 
   build-generator:
     name: Check Generated Code
@@ -228,13 +228,14 @@ jobs:
     steps:
     - name: Checkout
       uses: actions/checkout@v2
+    - uses: gradle/wrapper-validation-action@v1
     - uses: actions/setup-java@v2
       with:
         distribution: 'adopt-hotspot'
         java-version: '11'
     - name: Build
       working-directory: kotlin
-      run: ./gradlew clean iosX64Test macosX64Test jsTest jsBrowserTest
+      run: ./gradlew clean iosX64Test macosX64Test
 
   build-kotlin-linux:
     name: Build Kotlin Linux
@@ -245,23 +246,14 @@ jobs:
     - uses: actions/setup-java@v2
       with:
         distribution: 'adopt-hotspot'
-        java-version: '8'
+        java-version: '11'
+    - uses: gradle/wrapper-validation-action@v1
     - name: Build
       working-directory: kotlin
-      run: ./gradlew jvmMainClasses jvmTest
-    - name: Run Benchmark
-      working-directory: kotlin
-      run: ./gradlew jvmBenchmark
-    - name: Generate Benchmark Report
-      working-directory: kotlin
-      run: |
-        ./gradlew jmhReport;
-        mv benchmark/build/reports/benchmarks/main/* benchmark_latest
-    - name: Archive benchmark report
-      uses: actions/upload-artifact@v1
-      with:
-        name: Kotlin Benchmark Report
-        path: kotlin/benchmark_latest
+      # we are using docker's version of gradle
+      # so no need for wrapper validadation or user
+      # gradlew
+      run: gradle jvmMainClasses jvmTest jsTest jsBrowserTest
 
   build-rust:
     name: Build Rust
