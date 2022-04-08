@@ -685,7 +685,8 @@ class SwiftGenerator : public BaseGenerator {
           "{{TABLEOFFSET}}.{{OFFSET}}.p) }";
       code_ += type + "?" + builder_string + create_struct;
       /// Optional hard coded since structs are always optional
-      create_func_header.push_back(field_var + ": " + type + "? = nil");
+      create_func_header.push_back(field_var + ": " + type +
+                                   (field.IsOptional() ? "? = nil" : ""));
       return;
     }
 
@@ -694,8 +695,8 @@ class SwiftGenerator : public BaseGenerator {
         (IsVector(field.value.type) || IsArray(field.value.type)
              ? "VectorOffset"
              : "Offset");
-    create_func_header.push_back(arg_label + " " + field_var + ": " +
-                                 "Offset = Offset()");
+    create_func_header.push_back(arg_label + " " + field_var + ": " + "Offset" +
+                                 (field.IsRequired() ? "" : " = Offset()"));
     const auto reader_type =
         IsStruct(field.value.type) && field.value.type.struct_def->fixed
             ? "structOffset: {{TABLEOFFSET}}.{{OFFSET}}.p) }"
