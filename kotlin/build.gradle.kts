@@ -1,22 +1,24 @@
 plugins {
-  id("com.diffplug.spotless") version "5.8.2"
+  id("com.diffplug.spotless") version "6.3.0"
 }
 
 group = "com.google.flatbuffers"
 version = "2.0.0-SNAPSHOT"
 
-subprojects {
-
+buildscript {
   repositories {
-    maven { setUrl("https://plugins.gradle.org/m2/") }
+    gradlePluginPortal()
+    google()
     mavenCentral()
+  }
+  dependencies {
+    classpath(libs.bundles.plugins)
   }
 }
 
-buildscript {
+allprojects {
   repositories {
-    maven { setUrl("https://plugins.gradle.org/m2/") }
-    gradlePluginPortal()
+    google()
     mavenCentral()
   }
 }

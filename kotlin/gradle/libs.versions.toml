@@ -1,0 +1,20 @@
+[versions]
+plugin-kotlin = "1.6.10"
+plugin-gver = "0.42.0"
+kotlinx-benchmark-runtime = "0.4.2"
+junit = "4.12"
+gson = "2.8.5"
+moshi-kotlin = "1.11.0"
+
+[libraries]
+moshi-kotlin = { module = "com.squareup.moshi:moshi-kotlin", version.ref = "moshi-kotlin" }
+gson = { module = "com.google.code.gson:gson", version.ref = "gson" }
+kotlinx-benchmark-runtime = { module = "org.jetbrains.kotlinx:kotlinx-benchmark-runtime", version.ref = "kotlinx-benchmark-runtime" }
+plugin-kotlin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "plugin-kotlin" }
+plugin-kotlin-serialization = { module = "org.jetbrains.kotlin:kotlin-serialization", version.ref = "plugin-kotlin" }
+plugin-gver = { module = "com.github.ben-manes:gradle-versions-plugin", version.ref = "plugin-gver" }
+
+junit = { module="junit:junit", version.ref="junit"}
+
+[bundles]
+plugins = ["plugin-kotlin",  "plugin-kotlin-serialization", "plugin-gver"]
