@@ -202,6 +202,7 @@ jobs:
     steps:
     - name: Checkout
       uses: actions/checkout@v2
+    - uses: gradle/wrapper-validation-action@v1
     - uses: actions/setup-java@v2
       with:
         distribution: 'adopt-hotspot'
@@ -216,6 +217,7 @@ jobs:
     steps:
     - name: Checkout
       uses: actions/checkout@v2
+    - uses: gradle/wrapper-validation-action@v1
     - uses: actions/setup-java@v2
       with:
         distribution: 'adopt-hotspot'
