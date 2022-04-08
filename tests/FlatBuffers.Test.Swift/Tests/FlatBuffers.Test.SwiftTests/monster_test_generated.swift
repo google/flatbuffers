@@ -1384,7 +1384,7 @@ public struct MyGame_Example_Monster: FlatBufferObject, Verifiable, ObjectAPIPac
     pos: MyGame_Example_Vec3? = nil,
     mana: Int16 = 150,
     hp: Int16 = 100,
-    nameOffset name: Offset = Offset(),
+    nameOffset name: Offset,
     inventoryVectorOffset inventory: Offset = Offset(),
     color: MyGame_Example_Color = .blue,
     testType: MyGame_Example_Any_ = .none_,
