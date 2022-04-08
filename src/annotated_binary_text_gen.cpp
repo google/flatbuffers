@@ -85,7 +85,7 @@ static std::string ToValueString(const BinaryRegion &region,
       // Interpet each value as a ASCII to aid debugging
       for (uint64_t i = 0; i < region.array_length; ++i) {
         const uint8_t c = *(binary + region.offset + i);
-        s += isprint(c) ? toascii(c) : '.';
+        s += isprint(c) ? static_cast<char>(c & 0x7F) : '.';
       }
       return s;
     } else if (region.type == BinaryRegionType::Char) {
