@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import DictionaryLookup.*;
 import MyGame.Example.*
 import optional_scalars.*
 import com.google.flatbuffers.ByteBufferUtil
@@ -79,7 +80,27 @@ class KotlinTest {
 
         TestSharedStringPool()
         TestScalarOptional()
+        TestDictionaryLookup()
         println("FlatBuffers test: completed successfully")
+    }
+
+    fun TestDictionaryLookup() {
+        val fbb = FlatBufferBuilder(16)
+        val lfIndex = LongFloatEntry.createLongFloatEntry(fbb, 0, 99.0f)
+        val vectorEntriesIdx = LongFloatMap.createEntriesVector(fbb, intArrayOf(lfIndex))
+        val rootIdx = LongFloatMap.createLongFloatMap(fbb, vectorEntriesIdx)
+
+        LongFloatMap.finishLongFloatMapBuffer(fbb, rootIdx)
+        val map = LongFloatMap.getRootAsLongFloatMap(fbb.dataBuffer())
+        assert(map.entriesLength == 1)
+
+        val e = map.entries(0)!!
+        assert(e.key == 0L)
+        assert(e.value == 99.0f)
+
+        val e2 = map.entriesByKey(0)!!
+        assert(e2.key == 0L)
+        assert(e2.value == 99.0f)
     }
 
     fun TestEnums() {
