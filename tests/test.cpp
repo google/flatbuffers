@@ -136,6 +136,19 @@ flatbuffers::DetachedBuffer CreateFlatBufferTest(std::string &buffer) {
   names2.push_back("mary");
   auto vecofstrings2 = builder.CreateVectorOfStrings(names2);
 
+  // Creating vectors from types that are different from std::string
+  std::vector<const char *> names3;
+  names3.push_back("foo");
+  names3.push_back("bar");
+  builder.CreateVectorOfStrings(names3);  // Also an accepted type
+
+#ifdef FLATBUFFERS_HAS_STRING_VIEW
+  std::vector<flatbuffers::string_view> names4;
+  names3.push_back("baz");
+  names3.push_back("quux");
+  builder.CreateVectorOfStrings(names4);  // Also an accepted type
+#endif
+
   // Create many vectors of strings
   std::vector<std::string> manyNames;
   for (auto i = 0; i < 100; i++) { manyNames.push_back("john_doe"); }
