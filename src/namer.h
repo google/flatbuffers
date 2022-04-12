@@ -108,6 +108,8 @@ class Namer {
   Namer(Config config, std::set<std::string> keywords)
       : config_(config), keywords_(std::move(keywords)) {}
 
+  virtual ~Namer() {}
+
   template<typename T> std::string Method(const T &s) const {
     return Method(s.name);
   }
