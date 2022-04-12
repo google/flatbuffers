@@ -709,10 +709,7 @@ class KotlinGenerator : public BaseGenerator {
     auto secondArg =
         ConvertCase(Esc(field.name), Case::kLowerCamel) + ": " + field_type;
 
-    GenerateFunOneLine(
-        writer, "add" + ConvertCase(Esc(field.name), Case::kUpperCamel),
-        "builder: FlatBufferBuilder, " + secondArg, "",
-        [&]() {
+    auto content = [&]() {
           auto method = GenMethod(field.value.type);
           writer.SetValue("field_name",
                           ConvertCase(Esc(field.name), Case::kLowerCamel));
@@ -720,11 +717,25 @@ class KotlinGenerator : public BaseGenerator {
           writer.SetValue("pos", field_pos);
           writer.SetValue("default", GenFBBDefaultValue(field));
           writer.SetValue("cast", GenFBBValueCast(field));
-
-          writer += "builder.add{{method_name}}({{pos}}, \\";
-          writer += "{{field_name}}{{cast}}, {{default}})";
-        },
-        options.gen_jvmstatic);
+          if (field.key) {
+              // field has key attribute, so always need to exist
+              // even if its value is equal to default.
+              // Generated code will bypass default checking
+              // resulting in { builder.addShort(name); slot(id); }
+              writer += "builder.add{{method_name}}({{field_name}}{{cast}})";
+              writer += "builder.slot({{pos}})";
+          } else {
+              writer += "builder.add{{method_name}}({{pos}}, \\";
+              writer += "{{field_name}}{{cast}}, {{default}})";
+          }
+        };
+    auto signature = "add" + ConvertCase(Esc(field.name), Case::kUpperCamel);
+    auto params = "builder: FlatBufferBuilder, " + secondArg;
+    if (field.key) {
+        GenerateFun(writer,signature, params, "", content, options.gen_jvmstatic);
+    } else {
+        GenerateFunOneLine(writer, signature, params, "", content, options.gen_jvmstatic);
+    }
   }
 
   static std::string ToSignedType(const Type &type) {

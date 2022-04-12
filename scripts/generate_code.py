@@ -364,7 +364,7 @@ flatc(BASE_OPTS + DART_OPTS, prefix="../dart/test/", schema="keyword_test.fbs")
 
 # Field key lookup with default value test
 dictionary_lookup_schema = "dictionary_lookup.fbs"
-flatc(["--java"], schema=dictionary_lookup_schema)
+flatc(["--java", "--kotlin"], schema=dictionary_lookup_schema)
 
 # Swift Tests
 swift_prefix = "FlatBuffers.Test.Swift/Tests/FlatBuffers.Test.SwiftTests"
