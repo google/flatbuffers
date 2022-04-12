@@ -26,7 +26,7 @@ public final class Referrable extends Table {
   }
 
   public static void startReferrable(FlatBufferBuilder builder) { builder.startTable(1); }
-  public static void addId(FlatBufferBuilder builder, long id) { builder.addLong(0, id, 0L); }
+  public static void addId(FlatBufferBuilder builder, long id) { builder.addLong(id); builder.slot(0); }
   public static int endReferrable(FlatBufferBuilder builder) {
     int o = builder.endTable();
     return o;
