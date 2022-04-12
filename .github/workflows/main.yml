@@ -1,4 +1,6 @@
 name: OSS-Fuzz
+permissions: read-all
+
 on: 
   pull_request:
     branches:

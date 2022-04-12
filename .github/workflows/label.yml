@@ -6,6 +6,8 @@
 # https://github.com/actions/labeler
 
 name: Labeler
+permissions: read-all
+
 on: [pull_request_target]
 
 jobs:
