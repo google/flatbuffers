@@ -1,6 +1,7 @@
 
 import static com.google.flatbuffers.Constants.*;
 
+import DictionaryLookup.*;
 import MyGame.Example.*;
 import optional_scalars.ScalarStuff;
 import optional_scalars.OptionalByte;
@@ -110,6 +111,8 @@ class JavaTest {
         TestScalarOptional();
 
         TestPackUnpack(bb);
+
+        TestDictionaryLookup();
 
         System.out.println("FlatBuffers test: completed successfully");
     }
@@ -1146,6 +1149,25 @@ class JavaTest {
         testBuilderGrowth();
         testFlexBuffersUtf8Map();
         testFlexBuffersMapLookup();
+    }
+
+    static void TestDictionaryLookup() {
+        FlatBufferBuilder fbb = new FlatBufferBuilder(16);
+        int lfIndex = LongFloatEntry.createLongFloatEntry(fbb, 0, 99);
+        int vectorEntriesIdx = LongFloatMap.createEntriesVector(fbb, new int[] { lfIndex });
+        int rootIdx = LongFloatMap.createLongFloatMap(fbb, vectorEntriesIdx);
+
+        LongFloatMap.finishLongFloatMapBuffer(fbb, rootIdx);
+        LongFloatMap map = LongFloatMap.getRootAsLongFloatMap(fbb.dataBuffer());
+        TestEq(map.entriesLength(), 1);
+
+        LongFloatEntry e = map.entries(0);
+        TestEq(e.key(), 0L);
+        TestEq(e.value(), 99.0f);
+
+        LongFloatEntry e2 = map.entriesByKey(0);
+        TestEq(e2.key(), 0L);
+        TestEq(e2.value(), 99.0f);
     }
 
     static void TestVectorOfBytes() {

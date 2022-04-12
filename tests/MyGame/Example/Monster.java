@@ -221,7 +221,7 @@ public final class Monster extends Table {
   public static void addPos(FlatBufferBuilder builder, int posOffset) { builder.addStruct(0, posOffset, 0); }
   public static void addMana(FlatBufferBuilder builder, short mana) { builder.addShort(1, mana, 150); }
   public static void addHp(FlatBufferBuilder builder, short hp) { builder.addShort(2, hp, 100); }
-  public static void addName(FlatBufferBuilder builder, int nameOffset) { builder.addOffset(3, nameOffset, 0); }
+  public static void addName(FlatBufferBuilder builder, int nameOffset) { builder.addOffset(nameOffset); builder.slot(3); }
   public static void addInventory(FlatBufferBuilder builder, int inventoryOffset) { builder.addOffset(5, inventoryOffset, 0); }
   public static int createInventoryVector(FlatBufferBuilder builder, byte[] data) { return builder.createByteVector(data); }
   public static int createInventoryVector(FlatBufferBuilder builder, ByteBuffer data) { return builder.createByteVector(data); }

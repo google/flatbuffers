@@ -1091,7 +1091,7 @@ class JavaGenerator : public BaseGenerator {
            it != struct_def.fields.vec.end(); ++it) {
         auto &field = **it;
         if (field.deprecated) continue;
-        if (field.key) key_field = &field;
+
         code += "  public static void " + namer_.Method("add", field);
         code += "(FlatBufferBuilder builder, ";
         code += GenTypeBasic(DestinationType(field.value.type, false));
@@ -1099,13 +1099,25 @@ class JavaGenerator : public BaseGenerator {
         if (!IsScalar(field.value.type.base_type)) argname += "Offset";
         code += " " + argname + ") { builder.add";
         code += GenMethod(field.value.type) + "(";
-        code += NumToString(it - struct_def.fields.vec.begin()) + ", ";
-        code += SourceCastBasic(field.value.type);
-        code += argname;
-        code += ", ";
-        code += SourceCastBasic(field.value.type);
-        code += GenDefaultValue(field);
-        code += "); }\n";
+
+        if (field.key) {
+          // field has key attribute, so always need to exist
+          // even if its value is equal to default.
+          // Generated code will bypass default checking
+          // resulting in { builder.addShort(name); slot(id); }
+          key_field = &field;
+          code += SourceCastBasic(field.value.type);
+          code += argname;
+          code += "); builder.slot(" + NumToString(it - struct_def.fields.vec.begin()) + "); }\n";
+        } else {
+          code += NumToString(it - struct_def.fields.vec.begin()) + ", ";
+          code += SourceCastBasic(field.value.type);
+          code += argname;
+          code += ", ";
+          code += SourceCastBasic(field.value.type);
+          code += GenDefaultValue(field);
+          code += "); }\n";
+        }
         if (IsVector(field.value.type)) {
           auto vector_type = field.value.type.VectorType();
           auto alignment = InlineAlignment(vector_type);
