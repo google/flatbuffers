@@ -716,15 +716,18 @@ class FlatBufferBuilder {
     return CreateVector(elems);
   }
 
-  /// @brief Serialize a `std::vector<std::string>` into a FlatBuffer `vector`.
+  /// @brief Serialize a `std::vector<StringType>` into a FlatBuffer `vector`.
+  /// whereas StringType is any type that is accepted by the CreateString()
+  /// overloads.
   /// This is a convenience function for a common case.
   /// @param v A const reference to the `std::vector` to serialize into the
   /// buffer as a `vector`.
   /// @return Returns a typed `Offset` into the serialized data indicating
   /// where the vector is stored.
-  template<typename Alloc = std::allocator<std::string>>
+  template<typename StringType = std::string,
+           typename Alloc = std::allocator<std::string>>
   Offset<Vector<Offset<String>>> CreateVectorOfStrings(
-      const std::vector<std::string, Alloc> &v) {
+      const std::vector<StringType, Alloc> &v) {
     return CreateVectorOfStrings(v.cbegin(), v.cend());
   }
 
