@@ -1,4 +1,5 @@
 name: CI
+permissions: read-all
 
 on:
   push:
