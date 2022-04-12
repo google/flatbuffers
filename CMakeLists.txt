@@ -361,6 +361,7 @@ else()
       -Wextra-semi
       -Werror=shadow
       -fsigned-char
+      -Wnon-virtual-dtor
 
       $<$<CXX_COMPILER_ID:CLANG>:
         $<$<VERSION_GREATER:$<CXX_COMPILER_VERSION>,3.8>:
