@@ -36,7 +36,7 @@ Namer::Config JavaDefaultConfig() {
     /*variants=*/Case::kKeep,
     /*enum_variant_seperator=*/".",
     /*escape_keywords=*/Namer::Config::Escape::AfterConvertingCase,
-    /*namespaces=*/Case::kUpperCamel,
+    /*namespaces=*/Case::kKeep,
     /*namespace_seperator=*/".",
     /*object_prefix=*/"",
     /*object_suffix=*/"T",
