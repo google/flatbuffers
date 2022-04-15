@@ -72,7 +72,6 @@ class KotlinGenerator : public BaseGenerator {
   KotlinGenerator(const Parser &parser, const std::string &path,
                   const std::string &file_name)
       : BaseGenerator(parser, path, file_name, "", ".", "kt"),
-        cur_name_space_(nullptr),
         namer_(WithFlagOptions(KotlinDefaultConfig(), parser.opts, path),
                KotlinKeywords()) {}
 
@@ -80,12 +79,10 @@ class KotlinGenerator : public BaseGenerator {
   bool generate() FLATBUFFERS_OVERRIDE {
     std::string one_file_code;
 
-    cur_name_space_ = parser_.current_namespace_;
     for (auto it = parser_.enums_.vec.begin(); it != parser_.enums_.vec.end();
          ++it) {
       CodeWriter enumWriter(ident_pad);
       auto &enum_def = **it;
-      if (!parser_.opts.one_file) cur_name_space_ = enum_def.defined_namespace;
       GenEnum(enum_def, enumWriter);
       if (parser_.opts.one_file) {
         one_file_code += enumWriter.ToString();
@@ -100,8 +97,6 @@ class KotlinGenerator : public BaseGenerator {
          it != parser_.structs_.vec.end(); ++it) {
       CodeWriter structWriter(ident_pad);
       auto &struct_def = **it;
-      if (!parser_.opts.one_file)
-        cur_name_space_ = struct_def.defined_namespace;
       GenStruct(struct_def, structWriter, parser_.opts);
       if (parser_.opts.one_file) {
         one_file_code += structWriter.ToString();
@@ -139,12 +134,10 @@ class KotlinGenerator : public BaseGenerator {
       code += "import com.google.flatbuffers.*\n\n";
     }
     code += classcode;
-    auto filename = NamespaceDir(ns) + defname + ".kt";
-    return SaveFile(filename.c_str(), code, false);
-  }
+    auto filename = namer_.Directories(ns)
+                  + namer_.File(defname, SkipFile::Suffix);
 
-  const Namespace *CurrentNameSpace() const FLATBUFFERS_OVERRIDE {
-    return cur_name_space_;
+    return SaveFile(filename.c_str(), code, false);
   }
 
   static bool IsEnum(const Type &type) {
@@ -1540,9 +1533,6 @@ class KotlinGenerator : public BaseGenerator {
     if (gen_jvmstatic) { code += "@JvmStatic"; }
   }
 
-  // This tracks the current namespace used to determine if a type need to be
-  // prefixed by its namespace
-  const Namespace *cur_name_space_;
   const IdlNamer namer_;
 };
 }  // namespace kotlin
