@@ -329,7 +329,9 @@ typedef uintmax_t largest_scalar_t;
 #define FLATBUFFERS_MAX_BUFFER_SIZE ((1ULL << (sizeof(::flatbuffers::soffset_t) * 8 - 1)) - 1)
 
 // We support aligning the contents of buffers up to this size.
-#define FLATBUFFERS_MAX_ALIGNMENT 16
+#ifndef FLATBUFFERS_MAX_ALIGNMENT
+  #define FLATBUFFERS_MAX_ALIGNMENT 16
+#endif
 
 /// @brief The length of a FlatBuffer file header.
 static const size_t kFileIdentifierLength = 4;
