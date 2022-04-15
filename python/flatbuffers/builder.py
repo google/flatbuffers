@@ -23,6 +23,8 @@ from .compat import range_func
 from .compat import memoryview_type
 from .compat import import_numpy, NumpyRequiredForThisFeature
 
+import warnings
+
 np = import_numpy()
 ## @file
 ## @addtogroup flatbuffers_python_api
@@ -72,6 +74,13 @@ class BuilderSizeError(RuntimeError):
 class BuilderNotFinishedError(RuntimeError):
     """
     Error caused by not calling `Finish` before calling `Output`.
+    """
+    pass
+
+class EndVectorLengthMismatched(RuntimeError):
+    """
+    The number of elements passed to EndVector does not match the number 
+    specified in StartVector.
     """
     pass
 
@@ -377,13 +386,20 @@ class Builder(object):
         return self.Offset()
     ## @endcond
 
-    def EndVector(self):
+    def EndVector(self, numElems = None):
         """EndVector writes data necessary to finish vector construction."""
 
         self.assertNested()
         ## @cond FLATBUFFERS_INTERNAL
         self.nested = False
         ## @endcond
+               
+        if numElems:
+            warnings.warn("numElems is deprecated.", 
+                          DeprecationWarning, stacklevel=2)
+            if numElems != self.vectorNumElems:
+                raise EndVectorLengthMismatched();
+
         # we already made space for this, so write without PrependUint32
         self.PlaceUOffsetT(self.vectorNumElems)
         self.vectorNumElems = None
