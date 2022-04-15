@@ -106,28 +106,28 @@ public final class MonsterExtra extends Table {
     return _o;
   }
   public void unpackTo(MonsterExtraT _o) {
-    double _oD0 = d0();
-    _o.setD0(_oD0);
-    double _oD1 = d1();
-    _o.setD1(_oD1);
-    double _oD2 = d2();
-    _o.setD2(_oD2);
-    double _oD3 = d3();
-    _o.setD3(_oD3);
-    float _oF0 = f0();
-    _o.setF0(_oF0);
-    float _oF1 = f1();
-    _o.setF1(_oF1);
-    float _oF2 = f2();
-    _o.setF2(_oF2);
-    float _oF3 = f3();
-    _o.setF3(_oF3);
-    double[] _oDvec = new double[dvecLength()];
-    for (int _j = 0; _j < dvecLength(); ++_j) {_oDvec[_j] = dvec(_j);}
-    _o.setDvec(_oDvec);
-    float[] _oFvec = new float[fvecLength()];
-    for (int _j = 0; _j < fvecLength(); ++_j) {_oFvec[_j] = fvec(_j);}
-    _o.setFvec(_oFvec);
+    double _o_d0 = d0();
+    _o.setD0(_o_d0);
+    double _o_d1 = d1();
+    _o.setD1(_o_d1);
+    double _o_d2 = d2();
+    _o.setD2(_o_d2);
+    double _o_d3 = d3();
+    _o.setD3(_o_d3);
+    float _o_f0 = f0();
+    _o.setF0(_o_f0);
+    float _o_f1 = f1();
+    _o.setF1(_o_f1);
+    float _o_f2 = f2();
+    _o.setF2(_o_f2);
+    float _o_f3 = f3();
+    _o.setF3(_o_f3);
+    double[] _o_dvec = new double[dvecLength()];
+    for (int _j = 0; _j < dvecLength(); ++_j) {_o_dvec[_j] = dvec(_j);}
+    _o.setDvec(_o_dvec);
+    float[] _o_fvec = new float[fvecLength()];
+    for (int _j = 0; _j < fvecLength(); ++_j) {_o_fvec[_j] = fvec(_j);}
+    _o.setFvec(_o_fvec);
   }
   public static int pack(FlatBufferBuilder builder, MonsterExtraT _o) {
     if (_o == null) return 0;

@@ -42,8 +42,8 @@ public final class HandFan extends Table {
     return _o;
   }
   public void unpackTo(HandFanT _o) {
-    int _oLength = length();
-    _o.setLength(_oLength);
+    int _o_length = length();
+    _o.setLength(_o_length);
   }
   public static int pack(FlatBufferBuilder builder, HandFanT _o) {
     if (_o == null) return 0;

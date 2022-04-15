@@ -67,18 +67,18 @@ public final class ArrayStruct extends Struct {
     return _o;
   }
   public void unpackTo(ArrayStructT _o) {
-    float _oA = a();
-    _o.setA(_oA);
-    int[] _oB = _o.getB();
-    for (int _j = 0; _j < 15; ++_j) { _oB[_j] = b(_j); }
-    byte _oC = c();
-    _o.setC(_oC);
-    MyGame.Example.NestedStructT[] _oD = _o.getD();
-    for (int _j = 0; _j < 2; ++_j) { _oD[_j] = d(_j).unpack(); }
-    int _oE = e();
-    _o.setE(_oE);
-    long[] _oF = _o.getF();
-    for (int _j = 0; _j < 2; ++_j) { _oF[_j] = f(_j); }
+    float _o_a = a();
+    _o.setA(_o_a);
+    int[] _o_b = _o.getB();
+    for (int _j = 0; _j < 15; ++_j) { _o_b[_j] = b(_j); }
+    byte _o_c = c();
+    _o.setC(_o_c);
+    MyGame.Example.NestedStructT[] _o_d = _o.getD();
+    for (int _j = 0; _j < 2; ++_j) { _o_d[_j] = d(_j).unpack(); }
+    int _o_e = e();
+    _o.setE(_o_e);
+    long[] _o_f = _o.getF();
+    for (int _j = 0; _j < 2; ++_j) { _o_f[_j] = f(_j); }
   }
   public static int pack(FlatBufferBuilder builder, ArrayStructT _o) {
     if (_o == null) return 0;

@@ -31,8 +31,8 @@ public final class FallingTub extends Struct {
     return _o;
   }
   public void unpackTo(FallingTubT _o) {
-    int _oWeight = weight();
-    _o.setWeight(_oWeight);
+    int _o_weight = weight();
+    _o.setWeight(_o_weight);
   }
   public static int pack(FlatBufferBuilder builder, FallingTubT _o) {
     if (_o == null) return 0;

@@ -54,16 +54,16 @@ public final class Vec3 extends Struct {
     return _o;
   }
   public void unpackTo(Vec3T _o) {
-    float _oX = x();
-    _o.setX(_oX);
-    float _oY = y();
-    _o.setY(_oY);
-    float _oZ = z();
-    _o.setZ(_oZ);
-    double _oTest1 = test1();
-    _o.setTest1(_oTest1);
-    int _oTest2 = test2();
-    _o.setTest2(_oTest2);
+    float _o_x = x();
+    _o.setX(_o_x);
+    float _o_y = y();
+    _o.setY(_o_y);
+    float _o_z = z();
+    _o.setZ(_o_z);
+    double _o_test1 = test1();
+    _o.setTest1(_o_test1);
+    int _o_test2 = test2();
+    _o.setTest2(_o_test2);
     test3().unpackTo(_o.getTest3());
   }
   public static int pack(FlatBufferBuilder builder, Vec3T _o) {

@@ -114,32 +114,32 @@ public final class TypeAliases extends Table {
     return _o;
   }
   public void unpackTo(TypeAliasesT _o) {
-    byte _oI8 = i8();
-    _o.setI8(_oI8);
-    int _oU8 = u8();
-    _o.setU8(_oU8);
-    short _oI16 = i16();
-    _o.setI16(_oI16);
-    int _oU16 = u16();
-    _o.setU16(_oU16);
-    int _oI32 = i32();
-    _o.setI32(_oI32);
-    long _oU32 = u32();
-    _o.setU32(_oU32);
-    long _oI64 = i64();
-    _o.setI64(_oI64);
-    long _oU64 = u64();
-    _o.setU64(_oU64);
-    float _oF32 = f32();
-    _o.setF32(_oF32);
-    double _oF64 = f64();
-    _o.setF64(_oF64);
-    byte[] _oV8 = new byte[v8Length()];
-    for (int _j = 0; _j < v8Length(); ++_j) {_oV8[_j] = v8(_j);}
-    _o.setV8(_oV8);
-    double[] _oVf64 = new double[vf64Length()];
-    for (int _j = 0; _j < vf64Length(); ++_j) {_oVf64[_j] = vf64(_j);}
-    _o.setVf64(_oVf64);
+    byte _o_i8 = i8();
+    _o.setI8(_o_i8);
+    int _o_u8 = u8();
+    _o.setU8(_o_u8);
+    short _o_i16 = i16();
+    _o.setI16(_o_i16);
+    int _o_u16 = u16();
+    _o.setU16(_o_u16);
+    int _o_i32 = i32();
+    _o.setI32(_o_i32);
+    long _o_u32 = u32();
+    _o.setU32(_o_u32);
+    long _o_i64 = i64();
+    _o.setI64(_o_i64);
+    long _o_u64 = u64();
+    _o.setU64(_o_u64);
+    float _o_f32 = f32();
+    _o.setF32(_o_f32);
+    double _o_f64 = f64();
+    _o.setF64(_o_f64);
+    byte[] _o_v8 = new byte[v8Length()];
+    for (int _j = 0; _j < v8Length(); ++_j) {_o_v8[_j] = v8(_j);}
+    _o.setV8(_o_v8);
+    double[] _o_vf64 = new double[vf64Length()];
+    for (int _j = 0; _j < vf64Length(); ++_j) {_o_vf64[_j] = vf64(_j);}
+    _o.setVf64(_o_vf64);
   }
   public static int pack(FlatBufferBuilder builder, TypeAliasesT _o) {
     if (_o == null) return 0;

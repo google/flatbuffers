@@ -74,8 +74,8 @@ public final class Referrable extends Table {
     return _o;
   }
   public void unpackTo(ReferrableT _o) {
-    long _oId = id();
-    _o.setId(_oId);
+    long _o_id = id();
+    _o.setId(_o_id);
   }
   public static int pack(FlatBufferBuilder builder, ReferrableT _o) {
     if (_o == null) return 0;

@@ -37,10 +37,10 @@ public final class Test extends Struct {
     return _o;
   }
   public void unpackTo(TestT _o) {
-    short _oA = a();
-    _o.setA(_oA);
-    byte _oB = b();
-    _o.setB(_oB);
+    short _o_a = a();
+    _o.setA(_o_a);
+    byte _o_b = b();
+    _o.setB(_o_b);
   }
   public static int pack(FlatBufferBuilder builder, TestT _o) {
     if (_o == null) return 0;

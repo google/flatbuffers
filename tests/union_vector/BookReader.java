@@ -15,7 +15,7 @@ public final class BookReader extends Struct {
 
   public static int createBookReader(FlatBufferBuilder builder, int booksRead) {
     builder.prep(4, 4);
-    builder.putInt(booksRead);
+    builder.putInt(books_read);
     return builder.offset();
   }
 
@@ -31,8 +31,8 @@ public final class BookReader extends Struct {
     return _o;
   }
   public void unpackTo(BookReaderT _o) {
-    int _oBooksRead = booksRead();
-    _o.setBooksRead(_oBooksRead);
+    int _o_books_read = booksRead();
+    _o.setBooksRead(_o_books_read);
   }
   public static int pack(FlatBufferBuilder builder, BookReaderT _o) {
     if (_o == null) return 0;

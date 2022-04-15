@@ -36,10 +36,10 @@ public final class Ability extends Struct {
     return _o;
   }
   public void unpackTo(AbilityT _o) {
-    long _oId = id();
-    _o.setId(_oId);
-    long _oDistance = distance();
-    _o.setDistance(_oDistance);
+    long _o_id = id();
+    _o.setId(_o_id);
+    long _o_distance = distance();
+    _o.setDistance(_o_distance);
   }
   public static int pack(FlatBufferBuilder builder, AbilityT _o) {
     if (_o == null) return 0;

@@ -44,8 +44,8 @@ final class TestSimpleTableWithEnum extends Table {
     return _o;
   }
   public void unpackTo(TestSimpleTableWithEnumT _o) {
-    int _oColor = color();
-    _o.setColor(_oColor);
+    int _o_color = color();
+    _o.setColor(_o_color);
   }
   public static int pack(FlatBufferBuilder builder, TestSimpleTableWithEnumT _o) {
     if (_o == null) return 0;

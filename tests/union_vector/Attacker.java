@@ -42,8 +42,8 @@ public final class Attacker extends Table {
     return _o;
   }
   public void unpackTo(AttackerT _o) {
-    int _oSwordAttackDamage = swordAttackDamage();
-    _o.setSwordAttackDamage(_oSwordAttackDamage);
+    int _o_sword_attack_damage = swordAttackDamage();
+    _o.setSwordAttackDamage(_o_sword_attack_damage);
   }
   public static int pack(FlatBufferBuilder builder, AttackerT _o) {
     if (_o == null) return 0;

@@ -15,7 +15,7 @@ public final class Rapunzel extends Struct {
 
   public static int createRapunzel(FlatBufferBuilder builder, int hairLength) {
     builder.prep(4, 4);
-    builder.putInt(hairLength);
+    builder.putInt(hair_length);
     return builder.offset();
   }
 
@@ -31,8 +31,8 @@ public final class Rapunzel extends Struct {
     return _o;
   }
   public void unpackTo(RapunzelT _o) {
-    int _oHairLength = hairLength();
-    _o.setHairLength(_oHairLength);
+    int _o_hair_length = hairLength();
+    _o.setHairLength(_o_hair_length);
   }
   public static int pack(FlatBufferBuilder builder, RapunzelT _o) {
     if (_o == null) return 0;

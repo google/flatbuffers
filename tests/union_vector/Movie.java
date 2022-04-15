@@ -68,34 +68,34 @@ public final class Movie extends Table {
     return _o;
   }
   public void unpackTo(MovieT _o) {
-    CharacterUnion _oMainCharacter = new CharacterUnion();
-    byte _oMainCharacterType = mainCharacterType();
-    _oMainCharacter.setType(_oMainCharacterType);
-    Table _oMainCharacterValue;
-    switch (_oMainCharacterType) {
+    CharacterUnion _o_mainCharacter = new CharacterUnion();
+    byte _o_mainCharacterType = mainCharacterType();
+    _o_mainCharacter.setType(_o_mainCharacterType);
+    Table _o_mainCharacterValue;
+    switch (_o_mainCharacterType) {
       case Character.MuLan:
-        _oMainCharacterValue = mainCharacter(new Attacker());
-        _oMainCharacter.setValue(_oMainCharacterValue != null ? ((Attacker) _oMainCharacterValue).unpack() : null);
+        _o_mainCharacterValue = mainCharacter(new Attacker());
+        _o_mainCharacter.setValue(_o_mainCharacterValue != null ? ((Attacker) _o_mainCharacterValue).unpack() : null);
         break;
       default: break;
     }
-    _o.setMainCharacter(_oMainCharacter);
-    CharacterUnion[] _oCharacters = new CharacterUnion[charactersLength()];
+    _o.setMainCharacter(_o_main_character);
+    CharacterUnion[] _o_characters = new CharacterUnion[charactersLength()];
     for (int _j = 0; _j < charactersLength(); ++_j) {
-      CharacterUnion _oCharactersElement = new CharacterUnion();
-      byte _oCharactersElementType = charactersType(_j);
-      _oCharactersElement.setType(_oCharactersElementType);
-      Table _oCharactersElementValue;
-      switch (_oCharactersElementType) {
+      CharacterUnion _o_charactersElement = new CharacterUnion();
+      byte _o_charactersElementType = charactersType(_j);
+      _o_charactersElement.setType(_o_charactersElementType);
+      Table _o_charactersElementValue;
+      switch (_o_charactersElementType) {
         case Character.MuLan:
-          _oCharactersElementValue = characters(new Attacker(), _j);
-          _oCharactersElement.setValue(_oCharactersElementValue != null ? ((Attacker) _oCharactersElementValue).unpack() : null);
+          _o_charactersElementValue = characters(new Attacker(), _j);
+          _o_charactersElement.setValue(_o_charactersElementValue != null ? ((Attacker) _o_charactersElementValue).unpack() : null);
           break;
         default: break;
       }
-      _oCharacters[_j] = _oCharactersElement;
+      _o_characters[_j] = _o_charactersElement;
     }
-    _o.setCharacters(_oCharacters);
+    _o.setCharacters(_o_characters);
   }
   public static int pack(FlatBufferBuilder builder, MovieT _o) {
     if (_o == null) return 0;

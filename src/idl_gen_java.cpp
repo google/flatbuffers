@@ -32,7 +32,7 @@ Namer::Config JavaDefaultConfig() {
     /*methods=*/Case::kLowerCamel,
     /*functions=*/Case::kLowerCamel,
     /*fields=*/Case::kLowerCamel,
-    /*variables=*/Case::kLowerCamel,
+    /*variables=*/Case::kKeep,
     /*variants=*/Case::kKeep,
     /*enum_variant_seperator=*/".",
     /*escape_keywords=*/Namer::Config::Escape::AfterConvertingCase,
@@ -1108,7 +1108,8 @@ class JavaGenerator : public BaseGenerator {
           key_field = &field;
           code += SourceCastBasic(field.value.type);
           code += argname;
-          code += "); builder.slot(" + NumToString(it - struct_def.fields.vec.begin()) + "); }\n";
+          code += "); builder.slot(" +
+                  NumToString(it - struct_def.fields.vec.begin()) + "); }\n";
         } else {
           code += NumToString(it - struct_def.fields.vec.begin()) + ", ";
           code += SourceCastBasic(field.value.type);

@@ -361,178 +361,178 @@ public final class Monster extends Table {
   public void unpackTo(MonsterT _o) {
     if (pos() != null) pos().unpackTo(_o.getPos());
     else _o.setPos(null);
-    short _oMana = mana();
-    _o.setMana(_oMana);
-    short _oHp = hp();
-    _o.setHp(_oHp);
-    String _oName = name();
-    _o.setName(_oName);
-    int[] _oInventory = new int[inventoryLength()];
-    for (int _j = 0; _j < inventoryLength(); ++_j) {_oInventory[_j] = inventory(_j);}
-    _o.setInventory(_oInventory);
-    int _oColor = color();
-    _o.setColor(_oColor);
-    MyGame.Example.AnyUnion _oTest = new MyGame.Example.AnyUnion();
-    byte _oTestType = testType();
-    _oTest.setType(_oTestType);
-    Table _oTestValue;
-    switch (_oTestType) {
+    short _o_mana = mana();
+    _o.setMana(_o_mana);
+    short _o_hp = hp();
+    _o.setHp(_o_hp);
+    String _o_name = name();
+    _o.setName(_o_name);
+    int[] _o_inventory = new int[inventoryLength()];
+    for (int _j = 0; _j < inventoryLength(); ++_j) {_o_inventory[_j] = inventory(_j);}
+    _o.setInventory(_o_inventory);
+    int _o_color = color();
+    _o.setColor(_o_color);
+    MyGame.Example.AnyUnion _o_test = new MyGame.Example.AnyUnion();
+    byte _o_testType = testType();
+    _o_test.setType(_o_testType);
+    Table _o_testValue;
+    switch (_o_testType) {
       case MyGame.Example.Any.Monster:
-        _oTestValue = test(new MyGame.Example.Monster());
-        _oTest.setValue(_oTestValue != null ? ((MyGame.Example.Monster) _oTestValue).unpack() : null);
+        _o_testValue = test(new MyGame.Example.Monster());
+        _o_test.setValue(_o_testValue != null ? ((MyGame.Example.Monster) _o_testValue).unpack() : null);
         break;
       case MyGame.Example.Any.TestSimpleTableWithEnum:
-        _oTestValue = test(new MyGame.Example.TestSimpleTableWithEnum());
-        _oTest.setValue(_oTestValue != null ? ((MyGame.Example.TestSimpleTableWithEnum) _oTestValue).unpack() : null);
+        _o_testValue = test(new MyGame.Example.TestSimpleTableWithEnum());
+        _o_test.setValue(_o_testValue != null ? ((MyGame.Example.TestSimpleTableWithEnum) _o_testValue).unpack() : null);
         break;
       case MyGame.Example.Any.MyGame_Example2_Monster:
-        _oTestValue = test(new MyGame.Example2.Monster());
-        _oTest.setValue(_oTestValue != null ? ((MyGame.Example2.Monster) _oTestValue).unpack() : null);
+        _o_testValue = test(new MyGame.Example2.Monster());
+        _o_test.setValue(_o_testValue != null ? ((MyGame.Example2.Monster) _o_testValue).unpack() : null);
         break;
       default: break;
     }
-    _o.setTest(_oTest);
-    MyGame.Example.TestT[] _oTest4 = new MyGame.Example.TestT[test4Length()];
-    for (int _j = 0; _j < test4Length(); ++_j) {_oTest4[_j] = (test4(_j) != null ? test4(_j).unpack() : null);}
-    _o.setTest4(_oTest4);
-    String[] _oTestarrayofstring = new String[testarrayofstringLength()];
-    for (int _j = 0; _j < testarrayofstringLength(); ++_j) {_oTestarrayofstring[_j] = testarrayofstring(_j);}
-    _o.setTestarrayofstring(_oTestarrayofstring);
-    MyGame.Example.MonsterT[] _oTestarrayoftables = new MyGame.Example.MonsterT[testarrayoftablesLength()];
-    for (int _j = 0; _j < testarrayoftablesLength(); ++_j) {_oTestarrayoftables[_j] = (testarrayoftables(_j) != null ? testarrayoftables(_j).unpack() : null);}
-    _o.setTestarrayoftables(_oTestarrayoftables);
+    _o.setTest(_o_test);
+    MyGame.Example.TestT[] _o_test4 = new MyGame.Example.TestT[test4Length()];
+    for (int _j = 0; _j < test4Length(); ++_j) {_o_test4[_j] = (test4(_j) != null ? test4(_j).unpack() : null);}
+    _o.setTest4(_o_test4);
+    String[] _o_testarrayofstring = new String[testarrayofstringLength()];
+    for (int _j = 0; _j < testarrayofstringLength(); ++_j) {_o_testarrayofstring[_j] = testarrayofstring(_j);}
+    _o.setTestarrayofstring(_o_testarrayofstring);
+    MyGame.Example.MonsterT[] _o_testarrayoftables = new MyGame.Example.MonsterT[testarrayoftablesLength()];
+    for (int _j = 0; _j < testarrayoftablesLength(); ++_j) {_o_testarrayoftables[_j] = (testarrayoftables(_j) != null ? testarrayoftables(_j).unpack() : null);}
+    _o.setTestarrayoftables(_o_testarrayoftables);
     if (enemy() != null) _o.setEnemy(enemy().unpack());
     else _o.setEnemy(null);
-    int[] _oTestnestedflatbuffer = new int[testnestedflatbufferLength()];
-    for (int _j = 0; _j < testnestedflatbufferLength(); ++_j) {_oTestnestedflatbuffer[_j] = testnestedflatbuffer(_j);}
-    _o.setTestnestedflatbuffer(_oTestnestedflatbuffer);
+    int[] _o_testnestedflatbuffer = new int[testnestedflatbufferLength()];
+    for (int _j = 0; _j < testnestedflatbufferLength(); ++_j) {_o_testnestedflatbuffer[_j] = testnestedflatbuffer(_j);}
+    _o.setTestnestedflatbuffer(_o_testnestedflatbuffer);
     if (testempty() != null) _o.setTestempty(testempty().unpack());
     else _o.setTestempty(null);
-    boolean _oTestbool = testbool();
-    _o.setTestbool(_oTestbool);
-    int _oTesthashs32Fnv1 = testhashs32Fnv1();
-    _o.setTesthashs32Fnv1(_oTesthashs32Fnv1);
-    long _oTesthashu32Fnv1 = testhashu32Fnv1();
-    _o.setTesthashu32Fnv1(_oTesthashu32Fnv1);
-    long _oTesthashs64Fnv1 = testhashs64Fnv1();
-    _o.setTesthashs64Fnv1(_oTesthashs64Fnv1);
-    long _oTesthashu64Fnv1 = testhashu64Fnv1();
-    _o.setTesthashu64Fnv1(_oTesthashu64Fnv1);
-    int _oTesthashs32Fnv1a = testhashs32Fnv1a();
-    _o.setTesthashs32Fnv1a(_oTesthashs32Fnv1a);
-    long _oTesthashu32Fnv1a = testhashu32Fnv1a();
-    _o.setTesthashu32Fnv1a(_oTesthashu32Fnv1a);
-    long _oTesthashs64Fnv1a = testhashs64Fnv1a();
-    _o.setTesthashs64Fnv1a(_oTesthashs64Fnv1a);
-    long _oTesthashu64Fnv1a = testhashu64Fnv1a();
-    _o.setTesthashu64Fnv1a(_oTesthashu64Fnv1a);
-    boolean[] _oTestarrayofbools = new boolean[testarrayofboolsLength()];
-    for (int _j = 0; _j < testarrayofboolsLength(); ++_j) {_oTestarrayofbools[_j] = testarrayofbools(_j);}
-    _o.setTestarrayofbools(_oTestarrayofbools);
-    float _oTestf = testf();
-    _o.setTestf(_oTestf);
-    float _oTestf2 = testf2();
-    _o.setTestf2(_oTestf2);
-    float _oTestf3 = testf3();
-    _o.setTestf3(_oTestf3);
-    String[] _oTestarrayofstring2 = new String[testarrayofstring2Length()];
-    for (int _j = 0; _j < testarrayofstring2Length(); ++_j) {_oTestarrayofstring2[_j] = testarrayofstring2(_j);}
-    _o.setTestarrayofstring2(_oTestarrayofstring2);
-    MyGame.Example.AbilityT[] _oTestarrayofsortedstruct = new MyGame.Example.AbilityT[testarrayofsortedstructLength()];
-    for (int _j = 0; _j < testarrayofsortedstructLength(); ++_j) {_oTestarrayofsortedstruct[_j] = (testarrayofsortedstruct(_j) != null ? testarrayofsortedstruct(_j).unpack() : null);}
-    _o.setTestarrayofsortedstruct(_oTestarrayofsortedstruct);
-    int[] _oFlex = new int[flexLength()];
-    for (int _j = 0; _j < flexLength(); ++_j) {_oFlex[_j] = flex(_j);}
-    _o.setFlex(_oFlex);
-    MyGame.Example.TestT[] _oTest5 = new MyGame.Example.TestT[test5Length()];
-    for (int _j = 0; _j < test5Length(); ++_j) {_oTest5[_j] = (test5(_j) != null ? test5(_j).unpack() : null);}
-    _o.setTest5(_oTest5);
-    long[] _oVectorOfLongs = new long[vectorOfLongsLength()];
-    for (int _j = 0; _j < vectorOfLongsLength(); ++_j) {_oVectorOfLongs[_j] = vectorOfLongs(_j);}
-    _o.setVectorOfLongs(_oVectorOfLongs);
-    double[] _oVectorOfDoubles = new double[vectorOfDoublesLength()];
-    for (int _j = 0; _j < vectorOfDoublesLength(); ++_j) {_oVectorOfDoubles[_j] = vectorOfDoubles(_j);}
-    _o.setVectorOfDoubles(_oVectorOfDoubles);
+    boolean _o_testbool = testbool();
+    _o.setTestbool(_o_testbool);
+    int _o_testhashs32_fnv1 = testhashs32Fnv1();
+    _o.setTesthashs32Fnv1(_o_testhashs32_fnv1);
+    long _o_testhashu32_fnv1 = testhashu32Fnv1();
+    _o.setTesthashu32Fnv1(_o_testhashu32_fnv1);
+    long _o_testhashs64_fnv1 = testhashs64Fnv1();
+    _o.setTesthashs64Fnv1(_o_testhashs64_fnv1);
+    long _o_testhashu64_fnv1 = testhashu64Fnv1();
+    _o.setTesthashu64Fnv1(_o_testhashu64_fnv1);
+    int _o_testhashs32_fnv1a = testhashs32Fnv1a();
+    _o.setTesthashs32Fnv1a(_o_testhashs32_fnv1a);
+    long _o_testhashu32_fnv1a = testhashu32Fnv1a();
+    _o.setTesthashu32Fnv1a(_o_testhashu32_fnv1a);
+    long _o_testhashs64_fnv1a = testhashs64Fnv1a();
+    _o.setTesthashs64Fnv1a(_o_testhashs64_fnv1a);
+    long _o_testhashu64_fnv1a = testhashu64Fnv1a();
+    _o.setTesthashu64Fnv1a(_o_testhashu64_fnv1a);
+    boolean[] _o_testarrayofbools = new boolean[testarrayofboolsLength()];
+    for (int _j = 0; _j < testarrayofboolsLength(); ++_j) {_o_testarrayofbools[_j] = testarrayofbools(_j);}
+    _o.setTestarrayofbools(_o_testarrayofbools);
+    float _o_testf = testf();
+    _o.setTestf(_o_testf);
+    float _o_testf2 = testf2();
+    _o.setTestf2(_o_testf2);
+    float _o_testf3 = testf3();
+    _o.setTestf3(_o_testf3);
+    String[] _o_testarrayofstring2 = new String[testarrayofstring2Length()];
+    for (int _j = 0; _j < testarrayofstring2Length(); ++_j) {_o_testarrayofstring2[_j] = testarrayofstring2(_j);}
+    _o.setTestarrayofstring2(_o_testarrayofstring2);
+    MyGame.Example.AbilityT[] _o_testarrayofsortedstruct = new MyGame.Example.AbilityT[testarrayofsortedstructLength()];
+    for (int _j = 0; _j < testarrayofsortedstructLength(); ++_j) {_o_testarrayofsortedstruct[_j] = (testarrayofsortedstruct(_j) != null ? testarrayofsortedstruct(_j).unpack() : null);}
+    _o.setTestarrayofsortedstruct(_o_testarrayofsortedstruct);
+    int[] _o_flex = new int[flexLength()];
+    for (int _j = 0; _j < flexLength(); ++_j) {_o_flex[_j] = flex(_j);}
+    _o.setFlex(_o_flex);
+    MyGame.Example.TestT[] _o_test5 = new MyGame.Example.TestT[test5Length()];
+    for (int _j = 0; _j < test5Length(); ++_j) {_o_test5[_j] = (test5(_j) != null ? test5(_j).unpack() : null);}
+    _o.setTest5(_o_test5);
+    long[] _o_vector_of_longs = new long[vectorOfLongsLength()];
+    for (int _j = 0; _j < vectorOfLongsLength(); ++_j) {_o_vector_of_longs[_j] = vectorOfLongs(_j);}
+    _o.setVectorOfLongs(_o_vector_of_longs);
+    double[] _o_vector_of_doubles = new double[vectorOfDoublesLength()];
+    for (int _j = 0; _j < vectorOfDoublesLength(); ++_j) {_o_vector_of_doubles[_j] = vectorOfDoubles(_j);}
+    _o.setVectorOfDoubles(_o_vector_of_doubles);
     if (parentNamespaceTest() != null) _o.setParentNamespaceTest(parentNamespaceTest().unpack());
     else _o.setParentNamespaceTest(null);
-    MyGame.Example.ReferrableT[] _oVectorOfReferrables = new MyGame.Example.ReferrableT[vectorOfReferrablesLength()];
-    for (int _j = 0; _j < vectorOfReferrablesLength(); ++_j) {_oVectorOfReferrables[_j] = (vectorOfReferrables(_j) != null ? vectorOfReferrables(_j).unpack() : null);}
-    _o.setVectorOfReferrables(_oVectorOfReferrables);
-    long _oSingleWeakReference = singleWeakReference();
-    _o.setSingleWeakReference(_oSingleWeakReference);
-    long[] _oVectorOfWeakReferences = new long[vectorOfWeakReferencesLength()];
-    for (int _j = 0; _j < vectorOfWeakReferencesLength(); ++_j) {_oVectorOfWeakReferences[_j] = vectorOfWeakReferences(_j);}
-    _o.setVectorOfWeakReferences(_oVectorOfWeakReferences);
-    MyGame.Example.ReferrableT[] _oVectorOfStrongReferrables = new MyGame.Example.ReferrableT[vectorOfStrongReferrablesLength()];
-    for (int _j = 0; _j < vectorOfStrongReferrablesLength(); ++_j) {_oVectorOfStrongReferrables[_j] = (vectorOfStrongReferrables(_j) != null ? vectorOfStrongReferrables(_j).unpack() : null);}
-    _o.setVectorOfStrongReferrables(_oVectorOfStrongReferrables);
-    long _oCoOwningReference = coOwningReference();
-    _o.setCoOwningReference(_oCoOwningReference);
-    long[] _oVectorOfCoOwningReferences = new long[vectorOfCoOwningReferencesLength()];
-    for (int _j = 0; _j < vectorOfCoOwningReferencesLength(); ++_j) {_oVectorOfCoOwningReferences[_j] = vectorOfCoOwningReferences(_j);}
-    _o.setVectorOfCoOwningReferences(_oVectorOfCoOwningReferences);
-    long _oNonOwningReference = nonOwningReference();
-    _o.setNonOwningReference(_oNonOwningReference);
-    long[] _oVectorOfNonOwningReferences = new long[vectorOfNonOwningReferencesLength()];
-    for (int _j = 0; _j < vectorOfNonOwningReferencesLength(); ++_j) {_oVectorOfNonOwningReferences[_j] = vectorOfNonOwningReferences(_j);}
-    _o.setVectorOfNonOwningReferences(_oVectorOfNonOwningReferences);
-    MyGame.Example.AnyUniqueAliasesUnion _oAnyUnique = new MyGame.Example.AnyUniqueAliasesUnion();
-    byte _oAnyUniqueType = anyUniqueType();
-    _oAnyUnique.setType(_oAnyUniqueType);
-    Table _oAnyUniqueValue;
-    switch (_oAnyUniqueType) {
+    MyGame.Example.ReferrableT[] _o_vector_of_referrables = new MyGame.Example.ReferrableT[vectorOfReferrablesLength()];
+    for (int _j = 0; _j < vectorOfReferrablesLength(); ++_j) {_o_vector_of_referrables[_j] = (vectorOfReferrables(_j) != null ? vectorOfReferrables(_j).unpack() : null);}
+    _o.setVectorOfReferrables(_o_vector_of_referrables);
+    long _o_single_weak_reference = singleWeakReference();
+    _o.setSingleWeakReference(_o_single_weak_reference);
+    long[] _o_vector_of_weak_references = new long[vectorOfWeakReferencesLength()];
+    for (int _j = 0; _j < vectorOfWeakReferencesLength(); ++_j) {_o_vector_of_weak_references[_j] = vectorOfWeakReferences(_j);}
+    _o.setVectorOfWeakReferences(_o_vector_of_weak_references);
+    MyGame.Example.ReferrableT[] _o_vector_of_strong_referrables = new MyGame.Example.ReferrableT[vectorOfStrongReferrablesLength()];
+    for (int _j = 0; _j < vectorOfStrongReferrablesLength(); ++_j) {_o_vector_of_strong_referrables[_j] = (vectorOfStrongReferrables(_j) != null ? vectorOfStrongReferrables(_j).unpack() : null);}
+    _o.setVectorOfStrongReferrables(_o_vector_of_strong_referrables);
+    long _o_co_owning_reference = coOwningReference();
+    _o.setCoOwningReference(_o_co_owning_reference);
+    long[] _o_vector_of_co_owning_references = new long[vectorOfCoOwningReferencesLength()];
+    for (int _j = 0; _j < vectorOfCoOwningReferencesLength(); ++_j) {_o_vector_of_co_owning_references[_j] = vectorOfCoOwningReferences(_j);}
+    _o.setVectorOfCoOwningReferences(_o_vector_of_co_owning_references);
+    long _o_non_owning_reference = nonOwningReference();
+    _o.setNonOwningReference(_o_non_owning_reference);
+    long[] _o_vector_of_non_owning_references = new long[vectorOfNonOwningReferencesLength()];
+    for (int _j = 0; _j < vectorOfNonOwningReferencesLength(); ++_j) {_o_vector_of_non_owning_references[_j] = vectorOfNonOwningReferences(_j);}
+    _o.setVectorOfNonOwningReferences(_o_vector_of_non_owning_references);
+    MyGame.Example.AnyUniqueAliasesUnion _o_anyUnique = new MyGame.Example.AnyUniqueAliasesUnion();
+    byte _o_anyUniqueType = anyUniqueType();
+    _o_anyUnique.setType(_o_anyUniqueType);
+    Table _o_anyUniqueValue;
+    switch (_o_anyUniqueType) {
       case MyGame.Example.AnyUniqueAliases.M:
-        _oAnyUniqueValue = anyUnique(new MyGame.Example.Monster());
-        _oAnyUnique.setValue(_oAnyUniqueValue != null ? ((MyGame.Example.Monster) _oAnyUniqueValue).unpack() : null);
+        _o_anyUniqueValue = anyUnique(new MyGame.Example.Monster());
+        _o_anyUnique.setValue(_o_anyUniqueValue != null ? ((MyGame.Example.Monster) _o_anyUniqueValue).unpack() : null);
         break;
       case MyGame.Example.AnyUniqueAliases.TS:
-        _oAnyUniqueValue = anyUnique(new MyGame.Example.TestSimpleTableWithEnum());
-        _oAnyUnique.setValue(_oAnyUniqueValue != null ? ((MyGame.Example.TestSimpleTableWithEnum) _oAnyUniqueValue).unpack() : null);
+        _o_anyUniqueValue = anyUnique(new MyGame.Example.TestSimpleTableWithEnum());
+        _o_anyUnique.setValue(_o_anyUniqueValue != null ? ((MyGame.Example.TestSimpleTableWithEnum) _o_anyUniqueValue).unpack() : null);
         break;
       case MyGame.Example.AnyUniqueAliases.M2:
-        _oAnyUniqueValue = anyUnique(new MyGame.Example2.Monster());
-        _oAnyUnique.setValue(_oAnyUniqueValue != null ? ((MyGame.Example2.Monster) _oAnyUniqueValue).unpack() : null);
+        _o_anyUniqueValue = anyUnique(new MyGame.Example2.Monster());
+        _o_anyUnique.setValue(_o_anyUniqueValue != null ? ((MyGame.Example2.Monster) _o_anyUniqueValue).unpack() : null);
         break;
       default: break;
     }
-    _o.setAnyUnique(_oAnyUnique);
-    MyGame.Example.AnyAmbiguousAliasesUnion _oAnyAmbiguous = new MyGame.Example.AnyAmbiguousAliasesUnion();
-    byte _oAnyAmbiguousType = anyAmbiguousType();
-    _oAnyAmbiguous.setType(_oAnyAmbiguousType);
-    Table _oAnyAmbiguousValue;
-    switch (_oAnyAmbiguousType) {
+    _o.setAnyUnique(_o_any_unique);
+    MyGame.Example.AnyAmbiguousAliasesUnion _o_anyAmbiguous = new MyGame.Example.AnyAmbiguousAliasesUnion();
+    byte _o_anyAmbiguousType = anyAmbiguousType();
+    _o_anyAmbiguous.setType(_o_anyAmbiguousType);
+    Table _o_anyAmbiguousValue;
+    switch (_o_anyAmbiguousType) {
       case MyGame.Example.AnyAmbiguousAliases.M1:
-        _oAnyAmbiguousValue = anyAmbiguous(new MyGame.Example.Monster());
-        _oAnyAmbiguous.setValue(_oAnyAmbiguousValue != null ? ((MyGame.Example.Monster) _oAnyAmbiguousValue).unpack() : null);
+        _o_anyAmbiguousValue = anyAmbiguous(new MyGame.Example.Monster());
+        _o_anyAmbiguous.setValue(_o_anyAmbiguousValue != null ? ((MyGame.Example.Monster) _o_anyAmbiguousValue).unpack() : null);
         break;
       case MyGame.Example.AnyAmbiguousAliases.M2:
-        _oAnyAmbiguousValue = anyAmbiguous(new MyGame.Example.Monster());
-        _oAnyAmbiguous.setValue(_oAnyAmbiguousValue != null ? ((MyGame.Example.Monster) _oAnyAmbiguousValue).unpack() : null);
+        _o_anyAmbiguousValue = anyAmbiguous(new MyGame.Example.Monster());
+        _o_anyAmbiguous.setValue(_o_anyAmbiguousValue != null ? ((MyGame.Example.Monster) _o_anyAmbiguousValue).unpack() : null);
         break;
       case MyGame.Example.AnyAmbiguousAliases.M3:
-        _oAnyAmbiguousValue = anyAmbiguous(new MyGame.Example.Monster());
-        _oAnyAmbiguous.setValue(_oAnyAmbiguousValue != null ? ((MyGame.Example.Monster) _oAnyAmbiguousValue).unpack() : null);
+        _o_anyAmbiguousValue = anyAmbiguous(new MyGame.Example.Monster());
+        _o_anyAmbiguous.setValue(_o_anyAmbiguousValue != null ? ((MyGame.Example.Monster) _o_anyAmbiguousValue).unpack() : null);
         break;
       default: break;
     }
-    _o.setAnyAmbiguous(_oAnyAmbiguous);
-    int[] _oVectorOfEnums = new int[vectorOfEnumsLength()];
-    for (int _j = 0; _j < vectorOfEnumsLength(); ++_j) {_oVectorOfEnums[_j] = vectorOfEnums(_j);}
-    _o.setVectorOfEnums(_oVectorOfEnums);
-    byte _oSignedEnum = signedEnum();
-    _o.setSignedEnum(_oSignedEnum);
-    int[] _oTestrequirednestedflatbuffer = new int[testrequirednestedflatbufferLength()];
-    for (int _j = 0; _j < testrequirednestedflatbufferLength(); ++_j) {_oTestrequirednestedflatbuffer[_j] = testrequirednestedflatbuffer(_j);}
-    _o.setTestrequirednestedflatbuffer(_oTestrequirednestedflatbuffer);
-    MyGame.Example.StatT[] _oScalarKeySortedTables = new MyGame.Example.StatT[scalarKeySortedTablesLength()];
-    for (int _j = 0; _j < scalarKeySortedTablesLength(); ++_j) {_oScalarKeySortedTables[_j] = (scalarKeySortedTables(_j) != null ? scalarKeySortedTables(_j).unpack() : null);}
-    _o.setScalarKeySortedTables(_oScalarKeySortedTables);
+    _o.setAnyAmbiguous(_o_any_ambiguous);
+    int[] _o_vector_of_enums = new int[vectorOfEnumsLength()];
+    for (int _j = 0; _j < vectorOfEnumsLength(); ++_j) {_o_vector_of_enums[_j] = vectorOfEnums(_j);}
+    _o.setVectorOfEnums(_o_vector_of_enums);
+    byte _o_signed_enum = signedEnum();
+    _o.setSignedEnum(_o_signed_enum);
+    int[] _o_testrequirednestedflatbuffer = new int[testrequirednestedflatbufferLength()];
+    for (int _j = 0; _j < testrequirednestedflatbufferLength(); ++_j) {_o_testrequirednestedflatbuffer[_j] = testrequirednestedflatbuffer(_j);}
+    _o.setTestrequirednestedflatbuffer(_o_testrequirednestedflatbuffer);
+    MyGame.Example.StatT[] _o_scalar_key_sorted_tables = new MyGame.Example.StatT[scalarKeySortedTablesLength()];
+    for (int _j = 0; _j < scalarKeySortedTablesLength(); ++_j) {_o_scalar_key_sorted_tables[_j] = (scalarKeySortedTables(_j) != null ? scalarKeySortedTables(_j).unpack() : null);}
+    _o.setScalarKeySortedTables(_o_scalar_key_sorted_tables);
     if (nativeInline() != null) nativeInline().unpackTo(_o.getNativeInline());
     else _o.setNativeInline(null);
-    long _oLongEnumNonEnumDefault = longEnumNonEnumDefault();
-    _o.setLongEnumNonEnumDefault(_oLongEnumNonEnumDefault);
-    long _oLongEnumNormalDefault = longEnumNormalDefault();
-    _o.setLongEnumNormalDefault(_oLongEnumNormalDefault);
+    long _o_long_enum_non_enum_default = longEnumNonEnumDefault();
+    _o.setLongEnumNonEnumDefault(_o_long_enum_non_enum_default);
+    long _o_long_enum_normal_default = longEnumNormalDefault();
+    _o.setLongEnumNormalDefault(_o_long_enum_normal_default);
   }
   public static int pack(FlatBufferBuilder builder, MonsterT _o) {
     if (_o == null) return 0;
@@ -547,10 +547,10 @@ public final class Monster extends Table {
     byte _testType = _o.getTest() == null ? MyGame.Example.Any.NONE : _o.getTest().getType();
     int _test = _o.getTest() == null ? 0 : MyGame.Example.AnyUnion.pack(builder, _o.getTest());
     int _test4 = 0;
-    MyGame.Example.TestT[] _oTest4 = _o.getTest4();
-    if (_oTest4 != null) {
-      startTest4Vector(builder, _oTest4.length);
-      for (int _j = _oTest4.length - 1; _j >=0; _j--) { MyGame.Example.Test.pack(builder, _oTest4[_j]);}
+    MyGame.Example.TestT[] _o_test4 = _o.getTest4();
+    if (_o_test4 != null) {
+      startTest4Vector(builder, _o_test4.length);
+      for (int _j = _o_test4.length - 1; _j >=0; _j--) { MyGame.Example.Test.pack(builder, _o_test4[_j]);}
       _test4 = builder.endVector();
     }
     int _testarrayofstring = 0;
@@ -588,10 +588,10 @@ public final class Monster extends Table {
       _testarrayofstring2 = createTestarrayofstring2Vector(builder, __testarrayofstring2);
     }
     int _testarrayofsortedstruct = 0;
-    MyGame.Example.AbilityT[] _oTestarrayofsortedstruct = _o.getTestarrayofsortedstruct();
-    if (_oTestarrayofsortedstruct != null) {
-      startTestarrayofsortedstructVector(builder, _oTestarrayofsortedstruct.length);
-      for (int _j = _oTestarrayofsortedstruct.length - 1; _j >=0; _j--) { MyGame.Example.Ability.pack(builder, _oTestarrayofsortedstruct[_j]);}
+    MyGame.Example.AbilityT[] _o_testarrayofsortedstruct = _o.getTestarrayofsortedstruct();
+    if (_o_testarrayofsortedstruct != null) {
+      startTestarrayofsortedstructVector(builder, _o_testarrayofsortedstruct.length);
+      for (int _j = _o_testarrayofsortedstruct.length - 1; _j >=0; _j--) { MyGame.Example.Ability.pack(builder, _o_testarrayofsortedstruct[_j]);}
       _testarrayofsortedstruct = builder.endVector();
     }
     int _flex = 0;
@@ -602,10 +602,10 @@ public final class Monster extends Table {
       _flex = createFlexVector(builder, __flex);
     }
     int _test5 = 0;
-    MyGame.Example.TestT[] _oTest5 = _o.getTest5();
-    if (_oTest5 != null) {
-      startTest5Vector(builder, _oTest5.length);
-      for (int _j = _oTest5.length - 1; _j >=0; _j--) { MyGame.Example.Test.pack(builder, _oTest5[_j]);}
+    MyGame.Example.TestT[] _o_test5 = _o.getTest5();
+    if (_o_test5 != null) {
+      startTest5Vector(builder, _o_test5.length);
+      for (int _j = _o_test5.length - 1; _j >=0; _j--) { MyGame.Example.Test.pack(builder, _o_test5[_j]);}
       _test5 = builder.endVector();
     }
     int _vectorOfLongs = 0;
@@ -616,7 +616,7 @@ public final class Monster extends Table {
     if (_o.getVectorOfDoubles() != null) {
       _vectorOfDoubles = createVectorOfDoublesVector(builder, _o.getVectorOfDoubles());
     }
-    int _parentNamespaceTest = _o.getParentNamespaceTest() == null ? 0 : MyGame.InParentNamespace.pack(builder, _o.getParentNamespaceTest());
+    int _parent_namespace_test = _o.getParentNamespaceTest() == null ? 0 : MyGame.InParentNamespace.pack(builder, _o.getParentNamespaceTest());
     int _vectorOfReferrables = 0;
     if (_o.getVectorOfReferrables() != null) {
       int[] __vectorOfReferrables = new int[_o.getVectorOfReferrables().length];
@@ -700,25 +700,25 @@ public final class Monster extends Table {
     addTestarrayofsortedstruct(builder, _testarrayofsortedstruct);
     addFlex(builder, _flex);
     addTest5(builder, _test5);
-    addVectorOfLongs(builder, _vectorOfLongs);
-    addVectorOfDoubles(builder, _vectorOfDoubles);
-    addParentNamespaceTest(builder, _parentNamespaceTest);
-    addVectorOfReferrables(builder, _vectorOfReferrables);
+    addVectorOfLongs(builder, _vector_of_longs);
+    addVectorOfDoubles(builder, _vector_of_doubles);
+    addParentNamespaceTest(builder, _parent_namespace_test);
+    addVectorOfReferrables(builder, _vector_of_referrables);
     addSingleWeakReference(builder, _o.getSingleWeakReference());
-    addVectorOfWeakReferences(builder, _vectorOfWeakReferences);
-    addVectorOfStrongReferrables(builder, _vectorOfStrongReferrables);
+    addVectorOfWeakReferences(builder, _vector_of_weak_references);
+    addVectorOfStrongReferrables(builder, _vector_of_strong_referrables);
     addCoOwningReference(builder, _o.getCoOwningReference());
-    addVectorOfCoOwningReferences(builder, _vectorOfCoOwningReferences);
+    addVectorOfCoOwningReferences(builder, _vector_of_co_owning_references);
     addNonOwningReference(builder, _o.getNonOwningReference());
-    addVectorOfNonOwningReferences(builder, _vectorOfNonOwningReferences);
-    addAnyUniqueType(builder, _anyUniqueType);
-    addAnyUnique(builder, _anyUnique);
-    addAnyAmbiguousType(builder, _anyAmbiguousType);
-    addAnyAmbiguous(builder, _anyAmbiguous);
-    addVectorOfEnums(builder, _vectorOfEnums);
+    addVectorOfNonOwningReferences(builder, _vector_of_non_owning_references);
+    addAnyUniqueType(builder, _any_uniqueType);
+    addAnyUnique(builder, _any_unique);
+    addAnyAmbiguousType(builder, _any_ambiguousType);
+    addAnyAmbiguous(builder, _any_ambiguous);
+    addVectorOfEnums(builder, _vector_of_enums);
     addSignedEnum(builder, _o.getSignedEnum());
     addTestrequirednestedflatbuffer(builder, _testrequirednestedflatbuffer);
-    addScalarKeySortedTables(builder, _scalarKeySortedTables);
+    addScalarKeySortedTables(builder, _scalar_key_sorted_tables);
     addNativeInline(builder, MyGame.Example.Test.pack(builder, _o.getNativeInline()));
     addLongEnumNonEnumDefault(builder, _o.getLongEnumNonEnumDefault());
     addLongEnumNormalDefault(builder, _o.getLongEnumNormalDefault());
