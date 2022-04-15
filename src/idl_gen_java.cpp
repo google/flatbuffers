@@ -1108,7 +1108,8 @@ class JavaGenerator : public BaseGenerator {
           key_field = &field;
           code += SourceCastBasic(field.value.type);
           code += argname;
-          code += "); builder.slot(" + NumToString(it - struct_def.fields.vec.begin()) + "); }\n";
+          code += "); builder.slot(" +
+                  NumToString(it - struct_def.fields.vec.begin()) + "); }\n";
         } else {
           code += NumToString(it - struct_def.fields.vec.begin()) + ", ";
           code += SourceCastBasic(field.value.type);
@@ -1728,7 +1729,7 @@ class JavaGenerator : public BaseGenerator {
                   code += "      " + GenTypeGet(field.value.type) +
                           ".Pack(builder, _o." + field_name + ")";
               } else {
-                code += "      _" + field.name;
+                code += "      _" + field_name;
               }
             }
             break;
