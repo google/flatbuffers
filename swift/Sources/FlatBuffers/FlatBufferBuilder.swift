@@ -127,8 +127,8 @@ public struct FlatBufferBuilder {
   mutating public func clear() {
     _minAlignment = 0
     isNested = false
-    stringOffsetMap = [:]
-    _vtables = []
+    stringOffsetMap.removeAll(keepingCapacity: true)
+    _vtables.removeAll(keepingCapacity: true)
     _vtableStorage.clear()
     _bb.clear()
   }
