@@ -150,7 +150,7 @@ flatbuffers::DetachedBuffer CreateFlatBufferTest(std::string &buffer) {
 #endif
 
   // Make sure the template deduces an initializer as std::vector<std::string>
-  builder.CreateVectorOfStrings({"hello", "world"});
+  builder.CreateVectorOfStrings({ "hello", "world" });
 
   // Create many vectors of strings
   std::vector<std::string> manyNames;
@@ -227,7 +227,7 @@ flatbuffers::DetachedBuffer CreateFlatBufferTest(std::string &buffer) {
 
   FinishMonsterBuffer(builder, mloc);
 
-// clang-format off
+  // clang-format off
   #ifdef FLATBUFFERS_TEST_VERBOSE
   // print byte data for debugging:
   auto p = builder.GetBufferPointer();
@@ -253,7 +253,7 @@ void AccessFlatBufferTest(const uint8_t *flatbuf, size_t length,
   verifier.SetFlexReuseTracker(&flex_reuse_tracker);
   TEST_EQ(VerifyMonsterBuffer(verifier), true);
 
-// clang-format off
+  // clang-format off
   #ifdef FLATBUFFERS_TRACK_VERIFIER_BUFFER_SIZE
     std::vector<uint8_t> test_buff;
     test_buff.resize(length * 2);
@@ -634,7 +634,7 @@ void SizePrefixedTest() {
 }
 
 void TriviallyCopyableTest() {
-// clang-format off
+  // clang-format off
   #if __GNUG__ && __GNUC__ < 5
     TEST_EQ(__has_trivial_copy(Vec3), true);
   #else
@@ -1615,7 +1615,7 @@ void FuzzTest2() {
     }
   };
 
-// clang-format off
+  // clang-format off
   #define AddToSchemaAndInstances(schema_add, instance_add) \
     RndDef::Add(definitions, schema, instances_per_definition, \
                 schema_add, instance_add, definition)
@@ -1769,7 +1769,7 @@ void FuzzTest2() {
     TEST_NOTNULL(nullptr);  //-V501 (this comment supresses CWE-570 warning)
   }
 
-// clang-format off
+  // clang-format off
   #ifdef FLATBUFFERS_TEST_VERBOSE
     TEST_OUTPUT_LINE("%dk schema tested with %dk of json\n",
                      static_cast<int>(schema.length() / 1024),
@@ -3161,7 +3161,7 @@ void FlexBuffersTest() {
   });
   slb.Finish();
 
-// clang-format off
+  // clang-format off
   #ifdef FLATBUFFERS_TEST_VERBOSE
     for (size_t i = 0; i < slb.GetBuffer().size(); i++)
       printf("%d ", slb.GetBuffer().data()[i]);
@@ -4179,6 +4179,47 @@ void FieldIdentifierTest() {
 #endif
 }
 
+void NestedVerifierTest() {
+  // Create a nested monster.
+  flatbuffers::FlatBufferBuilder nested_builder;
+  MonsterT nested_monster;
+  FinishMonsterBuffer(nested_builder,
+                      CreateMonster(nested_builder, &nested_monster));
+
+  // Copy the complete nested monster to a vector
+  const std::vector<uint8_t> nested_monster_bytes(
+      nested_builder.GetBufferPointer(),
+      nested_builder.GetBufferPointer() + nested_builder.GetSize());
+
+  // Create the root monster.
+  flatbuffers::FlatBufferBuilder builder;
+  MonsterT monster;
+
+  // Set the nested monster bytes.
+  monster.testnestedflatbuffer = std::move(nested_monster_bytes);
+
+  // Finish the root monster.
+  FinishMonsterBuffer(builder, CreateMonster(builder, &monster));
+
+  // Verify the root monster, which includes verifing the nested monster
+  flatbuffers::Verifier verifier(builder.GetBufferPointer(), builder.GetSize());
+  TEST_EQ(true, VerifyMonsterBuffer(verifier));
+
+  {
+    // Purposely invalidate the nested flatbuffer setting its length to 1, an
+    // invalid length.
+    monster.testnestedflatbuffer.resize(1);
+
+    // Refinsih the root monster.
+    FinishMonsterBuffer(builder, CreateMonster(builder, &monster));
+
+    // Verify the root monster fails, since the included nested monster fails.
+    flatbuffers::Verifier verifier(builder.GetBufferPointer(),
+                                   builder.GetSize());
+    TEST_EQ(false, VerifyMonsterBuffer(verifier));
+  }
+}
+
 void ParseIncorrectMonsterJsonTest() {
   std::string schemafile;
   TEST_EQ(flatbuffers::LoadFile((test_data_path + "monster_test.bfbs").c_str(),
@@ -4364,6 +4405,7 @@ int FlatBufferTests() {
   FixedLengthArraySpanTest();
   StructUnionTest();
   WarningsAsErrorsTest();
+  NestedVerifierTest();
   return 0;
 }
 

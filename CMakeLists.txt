@@ -359,7 +359,6 @@ else()
       -Wold-style-cast
       -Wimplicit-fallthrough
       -Wextra-semi
-      -Werror=shadow
       -fsigned-char
       -Wnon-virtual-dtor
 
