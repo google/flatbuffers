@@ -342,7 +342,7 @@ if(MSVC)
       /WX
       /wd4512   # C4512: assignment operator could not be generated
       /wd4316   # C4316: object allocated on the heap may not be aligned
-
+      /wd4456   # C4456: hides previous local declaration
       $<$<CXX_COMPILER_ID:CLANG>:
         /D_CRT_SECURE_NO_WARNINGS
       >
@@ -359,7 +359,6 @@ else()
       -Wold-style-cast
       -Wimplicit-fallthrough
       -Wextra-semi
-      -Werror=shadow
       -fsigned-char
       -Wnon-virtual-dtor
 
