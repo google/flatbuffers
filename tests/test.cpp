@@ -4182,36 +4182,52 @@ void FieldIdentifierTest() {
 void NestedVerifierTest() {
   // Create a nested monster.
   flatbuffers::FlatBufferBuilder nested_builder;
-  MonsterT nested_monster;
-  FinishMonsterBuffer(nested_builder,
-                      CreateMonster(nested_builder, &nested_monster));
+  FinishMonsterBuffer(
+      nested_builder,
+      CreateMonster(nested_builder, nullptr, 0, 0,
+                    nested_builder.CreateString("NestedMonster")));
 
-  // Copy the complete nested monster to a vector
-  const std::vector<uint8_t> nested_monster_bytes(
-      nested_builder.GetBufferPointer(),
-      nested_builder.GetBufferPointer() + nested_builder.GetSize());
-
-  // Create the root monster.
-  flatbuffers::FlatBufferBuilder builder;
-  MonsterT monster;
-
-  // Set the nested monster bytes.
-  monster.testnestedflatbuffer = std::move(nested_monster_bytes);
-
-  // Finish the root monster.
-  FinishMonsterBuffer(builder, CreateMonster(builder, &monster));
-
-  // Verify the root monster, which includes verifing the nested monster
-  flatbuffers::Verifier verifier(builder.GetBufferPointer(), builder.GetSize());
+  // Verify the nested monster
+  flatbuffers::Verifier verifier(nested_builder.GetBufferPointer(),
+                                 nested_builder.GetSize());
   TEST_EQ(true, VerifyMonsterBuffer(verifier));
 
   {
+    // Create the outer monster.
+    flatbuffers::FlatBufferBuilder builder;
+
+    // Add the nested monster as a vector of bytes.
+    auto nested_monster_bytes = builder.CreateVector(
+        nested_builder.GetBufferPointer(), nested_builder.GetSize());
+
+    auto name = builder.CreateString("OuterMonster");
+
+    MonsterBuilder mon_builder(builder);
+    mon_builder.add_name(name);
+    mon_builder.add_testnestedflatbuffer(nested_monster_bytes);
+    FinishMonsterBuffer(builder, mon_builder.Finish());
+
+    // Verify the root monster, which includes verifing the nested monster
+    flatbuffers::Verifier verifier(builder.GetBufferPointer(),
+                                   builder.GetSize());
+    TEST_EQ(true, VerifyMonsterBuffer(verifier));
+  }
+
+  {
+    // Create the outer monster.
+    flatbuffers::FlatBufferBuilder builder;
+
     // Purposely invalidate the nested flatbuffer setting its length to 1, an
     // invalid length.
-    monster.testnestedflatbuffer.resize(1);
+    uint8_t invalid_nested_buffer[1];
+    auto nested_monster_bytes = builder.CreateVector(invalid_nested_buffer, 1);
 
-    // Refinsih the root monster.
-    FinishMonsterBuffer(builder, CreateMonster(builder, &monster));
+    auto name = builder.CreateString("OuterMonster");
+
+    MonsterBuilder mon_builder(builder);
+    mon_builder.add_name(name);
+    mon_builder.add_testnestedflatbuffer(nested_monster_bytes);
+    FinishMonsterBuffer(builder, mon_builder.Finish());
 
     // Verify the root monster fails, since the included nested monster fails.
     flatbuffers::Verifier verifier(builder.GetBufferPointer(),
