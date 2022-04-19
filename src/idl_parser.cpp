@@ -489,10 +489,21 @@ CheckedError Parser::Next() {
         }
 
         const auto has_sign = (c == '+') || (c == '-');
-        if (has_sign && IsIdentifierStart(*cursor_)) {
-          // '-'/'+' and following identifier - it could be a predefined
-          // constant. Return the sign in token_, see ParseSingleValue.
-          return NoError();
+        if (has_sign) {
+          // Check for +/-inf which is considered a float constant.
+          if (strncmp(cursor_, "inf", 3) == 0 &&
+              !IsIdentifierStart(cursor_[4])) {
+            attribute_.append(cursor_ - 1, cursor_ + 3);
+            token_ = kTokenFloatConstant;
+            cursor_ += 3;
+            return NoError();
+          }
+
+          if (IsIdentifierStart(*cursor_)) {
+            // '-'/'+' and following identifier - it could be a predefined
+            // constant. Return the sign in token_, see ParseSingleValue.
+            return NoError();
+          }
         }
 
         auto dot_lvl =
@@ -2885,8 +2896,11 @@ CheckedError Parser::ParseProtoFields(StructDef *struct_def, bool isextend,
           if (key == "default") {
             // Temp: skip non-numeric and non-boolean defaults (enums).
             auto numeric = strpbrk(val.c_str(), "0123456789-+.");
-            if (IsScalar(type.base_type) &&
-                (numeric == val.c_str() || val == "inf" || val == "-inf")) {
+            if (IsFloat(type.base_type) &&
+                (val == "inf" || val == "+inf" || val == "-inf")) {
+              // Prefer to be explicit with +inf.
+              field->value.constant = val == "inf" ? "+inf" : val;
+            } else if (IsScalar(type.base_type) && numeric == val.c_str()) {
               field->value.constant = val;
             } else if (val == "true") {
               field->value.constant = val;
