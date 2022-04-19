@@ -492,8 +492,8 @@ CheckedError Parser::Next() {
         if (has_sign) {
           // Check for +/-inf which is considered a float constant.
           if (strncmp(cursor_, "inf", 3) == 0 &&
-              !IsIdentifierStart(cursor_[4])) {
-            attribute_.append(cursor_ - 1, cursor_ + 3);
+              !(IsIdentifierStart(cursor_[4]) || is_digit(cursor_[4]))) {
+            attribute_.assign(cursor_ - 1, cursor_ + 3);
             token_ = kTokenFloatConstant;
             cursor_ += 3;
             return NoError();
@@ -2189,8 +2189,12 @@ template<typename T> void EnumDef::ChangeEnumValue(EnumVal *ev, T new_value) {
 }
 
 namespace EnumHelper {
-template<BaseType E> struct EnumValType { typedef int64_t type; };
-template<> struct EnumValType<BASE_TYPE_ULONG> { typedef uint64_t type; };
+template<BaseType E> struct EnumValType {
+  typedef int64_t type;
+};
+template<> struct EnumValType<BASE_TYPE_ULONG> {
+  typedef uint64_t type;
+};
 }  // namespace EnumHelper
 
 struct EnumValBuilder {
