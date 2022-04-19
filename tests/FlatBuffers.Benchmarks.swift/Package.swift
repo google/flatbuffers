@@ -24,9 +24,11 @@ let package = Package(
   ],
   dependencies: [
     .package(path: "../../swift"),
+    .package(url: "https://github.com/google/swift-benchmark", from: "0.1.0"),
   ],
   targets: [
     .target(
       name: "FlatBuffers.Benchmarks.swift",
-      dependencies: ["FlatBuffers"]),
+      dependencies: ["FlatBuffers",
+                     .product(name: "Benchmark", package: "swift-benchmark")]),
   ])

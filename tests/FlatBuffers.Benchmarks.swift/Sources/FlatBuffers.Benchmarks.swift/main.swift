@@ -14,62 +14,27 @@
  * limitations under the License.
  */
 
+import Benchmark
 import CoreFoundation
 import FlatBuffers
 
-struct Benchmark {
-  var name: String
-  var value: Double
-
-  var description: String {
-    "\(String(format: "|\t%@\t\t|\t\t%fs\t|", name, value))"}
-}
-
-func run(name: String, runs: Int, action: () -> Void) -> Benchmark {
-  action()
-  let start = CFAbsoluteTimeGetCurrent()
-  for _ in 0..<runs {
-    action()
-  }
-  let ends = CFAbsoluteTimeGetCurrent()
-  let value = Double(ends - start) / Double(runs)
-  print("done \(name): in \(value)")
-  return Benchmark(name: name, value: value)
-}
-
-
-func createDocument(Benchmarks: [Benchmark]) -> String {
-  let separator = "-------------------------------------"
-  var document = "\(separator)\n"
-  document += "\(String(format: "|\t%@\t\t  |\t\t%@\t\t|", "Name", "Scores"))\n"
-  document += "\(separator)\n"
-  for i in Benchmarks {
-    document += "\(i.description) \n"
-    document += "\(separator)\n"
-  }
-  return document
-}
-
-@inlinable
-func create10Strings() {
+benchmark("10Strings") {
   var fb = FlatBufferBuilder(initialSize: 1<<20)
-  for _ in 0..<10_000 {
+  for _ in 0..<1_000_000 {
     _ = fb.create(string: "foobarbaz")
   }
 }
 
-@inlinable
-func create100Strings(str: String) {
+benchmark("100Strings") {
   var fb = FlatBufferBuilder(initialSize: 1<<20)
-  for _ in 0..<10_000 {
+  for _ in 0..<1_000_000 {
     _ = fb.create(string: str)
   }
 }
 
-@inlinable
-func benchmarkFiveHundredAdds() {
+benchmark("FlatBufferBuilder.add") {
   var fb = FlatBufferBuilder(initialSize: 1024 * 1024 * 32)
-  for _ in 0..<500_000 {
+  for _ in 0..<1_000_000 {
     let off = fb.create(string: "T")
     let s = fb.startTable(with: 4)
     fb.add(element: 3.2, def: 0, at: 2)
@@ -80,9 +45,8 @@ func benchmarkFiveHundredAdds() {
   }
 }
 
-@inlinable
-func benchmarkThreeMillionStructs() {
-  let structCount = 3_000_000
+benchmark("structs") {
+  let structCount = 1_000_000
 
   let rawSize = ((16 * 5) * structCount) / 1024
 
@@ -108,6 +72,8 @@ func benchmarkThreeMillionStructs() {
   fb.finish(offset: root)
 }
 
+let str = (0...99).map { _ -> String in "x" }.joined()
+
 @usableFromInline
 struct AA: NativeStruct {
   public init(a: Double, b: Double) {
@@ -116,26 +82,6 @@ struct AA: NativeStruct {
   }
   var a: Double
   var b: Double
-
 }
 
-func benchmark(numberOfRuns runs: Int) {
-  var benchmarks: [Benchmark] = []
-  let str = (0...99).map { _ -> String in "x" }.joined()
-  benchmarks.append(run(
-    name: "500_000",
-    runs: runs,
-    action: benchmarkFiveHundredAdds))
-  benchmarks.append(run(name: "10 str", runs: runs, action: create10Strings))
-  let hundredStr = run(name: "100 str", runs: runs) {
-    create100Strings(str: str)
-  }
-  benchmarks.append(run(
-    name: "3M strc",
-    runs: 1,
-    action: benchmarkThreeMillionStructs))
-  benchmarks.append(hundredStr)
-  print(createDocument(Benchmarks: benchmarks))
-}
-
-benchmark(numberOfRuns: 20)
+Benchmark.main()
