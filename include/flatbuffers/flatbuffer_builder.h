@@ -739,7 +739,7 @@ class FlatBufferBuilder {
   /// @return Returns a typed `Offset` into the serialized data indicating
   /// where the vector is stored.
   template<typename StringType = std::string,
-           typename Alloc = std::allocator<std::string>>
+           typename Alloc = std::allocator<StringType>>
   Offset<Vector<Offset<String>>> CreateVectorOfStrings(
       const std::vector<StringType, Alloc> &v) {
     return CreateVectorOfStrings(v.cbegin(), v.cend());

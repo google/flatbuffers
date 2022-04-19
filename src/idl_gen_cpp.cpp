@@ -3267,7 +3267,8 @@ class CppGenerator : public BaseGenerator {
         // If set_empty_vectors_to_null option is enabled, for optional fields,
         // check to see if there actually is any data in _o->field before
         // attempting to access it.
-        if (opts_.set_empty_vectors_to_null && !field.IsRequired()) {
+        if (field.attributes.Lookup("nested_flatbuffer") ||
+            (opts_.set_empty_vectors_to_null && !field.IsRequired())) {
           code = value + ".size() ? " + code + " : 0";
         }
         break;
