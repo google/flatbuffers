@@ -330,7 +330,7 @@ typedef uintmax_t largest_scalar_t;
 
 // We support aligning the contents of buffers up to this size.
 #ifndef FLATBUFFERS_MAX_ALIGNMENT
-  #define FLATBUFFERS_MAX_ALIGNMENT 16
+  #define FLATBUFFERS_MAX_ALIGNMENT 32
 #endif
 
 /// @brief The length of a FlatBuffer file header.
