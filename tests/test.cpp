@@ -13,6 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#include <stdint.h>
+
 #include <cmath>
 #include <string>
 
@@ -86,8 +88,9 @@ flatbuffers::DetachedBuffer CreateFlatBufferTest(std::string &buffer) {
 
   auto name = builder.CreateString("MyMonster");
 
-  unsigned char inv_data[] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
-  auto inventory = builder.CreateVector(inv_data, 10);
+  // Use the initializer_list specialization of CreateVector.
+  auto inventory =
+      builder.CreateVector<uint8_t>({ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 });
 
   // Alternatively, create the vector first, and fill in data later:
   // unsigned char *inv_buf = nullptr;
