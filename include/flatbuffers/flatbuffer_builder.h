@@ -18,6 +18,7 @@
 #define FLATBUFFERS_FLATBUFFER_BUILDER_H_
 
 #include <functional>
+#include <initializer_list>
 
 #include "flatbuffers/allocator.h"
 #include "flatbuffers/array.h"
@@ -653,6 +654,16 @@ class FlatBufferBuilder {
   /// where the vector is stored.
   template<typename T, class C> Offset<Vector<T>> CreateVector(const C &array) {
     return CreateVector(array.data(), array.size());
+  }
+
+  /// @brief Serialize an initializer list into a FlatBuffer `vector`.
+  /// @tparam T The data type of the initializer list elements.
+  /// @param[in] v The value of the initializer list.
+  /// @return Returns a typed `Offset` into the serialized data indicating
+  /// where the vector is stored.
+  template<typename T>
+  Offset<Vector<T>> CreateVector(std::initializer_list<T> v) {
+    return CreateVector(v.begin(), v.size());
   }
 
   template<typename T>
