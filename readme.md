@@ -34,6 +34,7 @@ maximum memory efficiency. It allows you to directly access serialized data with
 * PHP
 * Python
 * Rust
+* Swift
 * TypeScript
 
 *and more in progress...*
