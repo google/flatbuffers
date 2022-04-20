@@ -199,6 +199,7 @@ public struct ByteBuffer {
 
   /// Fills the buffer with padding by adding to the writersize
   /// - Parameter padding: Amount of padding between two to be serialized objects
+  @inline(__always)
   @usableFromInline
   mutating func fill(padding: Int) {
     assert(padding >= 0, "Fill should be larger than or equal to zero")
@@ -208,6 +209,7 @@ public struct ByteBuffer {
 
   /// Adds an array of type Scalar to the buffer memory
   /// - Parameter elements: An array of Scalars
+  @inline(__always)
   @usableFromInline
   mutating func push<T: Scalar>(elements: [T]) {
     let size = elements.count &* MemoryLayout<T>.size
@@ -221,6 +223,7 @@ public struct ByteBuffer {
   /// - Parameters:
   ///   - value: Object  that will be written to the buffer
   ///   - size: size to subtract from the WriterIndex
+  @usableFromInline
   @inline(__always)
   mutating func push<T: NativeStruct>(struct value: T, size: Int) {
     ensureSpace(size: size)
@@ -233,6 +236,7 @@ public struct ByteBuffer {
   /// - Parameters:
   ///   - value: Object  that will be written to the buffer
   ///   - len: Offset to subtract from the WriterIndex
+  @inline(__always)
   @usableFromInline
   mutating func push<T: Scalar>(value: T, len: Int) {
     ensureSpace(size: len)
@@ -244,6 +248,7 @@ public struct ByteBuffer {
   /// Adds a string to the buffer using swift.utf8 object
   /// - Parameter str: String that will be added to the buffer
   /// - Parameter len: length of the string
+  @inline(__always)
   @usableFromInline
   mutating func push(string str: String, len: Int) {
     ensureSpace(size: len)
@@ -263,6 +268,7 @@ public struct ByteBuffer {
   /// - Parameters:
   ///   - bytes: Pointer to the view
   ///   - len: Size of string
+  @usableFromInline
   @inline(__always)
   mutating func push(
     bytes: UnsafeBufferPointer<String.UTF8View.Element>,
@@ -284,6 +290,7 @@ public struct ByteBuffer {
   ///   - value: Value that needs to be written to the buffer
   ///   - index: index to write to
   ///   - direct: Should take into consideration the capacity of the buffer
+  @inline(__always)
   func write<T>(value: T, index: Int, direct: Bool = false) {
     var index = index
     if !direct {
@@ -297,6 +304,7 @@ public struct ByteBuffer {
   /// Makes sure that buffer has enouch space for each of the objects that will be written into it
   /// - Parameter size: size of object
   @discardableResult
+  @usableFromInline
   @inline(__always)
   mutating func ensureSpace(size: Int) -> Int {
     if size &+ _writerSize > _storage.capacity {
@@ -308,6 +316,7 @@ public struct ByteBuffer {
 
   /// pops the written VTable if it's already written into the buffer
   /// - Parameter size: size of the `VTable`
+  @usableFromInline
   @inline(__always)
   mutating func pop(_ size: Int) {
     assert(
@@ -318,11 +327,13 @@ public struct ByteBuffer {
   }
 
   /// Clears the current size of the buffer
+  @inline(__always)
   mutating public func clearSize() {
     _writerSize = 0
   }
 
   /// Clears the current instance of the buffer, replacing it with new memory
+  @inline(__always)
   mutating public func clear() {
     _writerSize = 0
     alignment = 1
@@ -333,6 +344,7 @@ public struct ByteBuffer {
   /// - Parameters:
   ///   - def: Type of the object
   ///   - position: the index of the object in the buffer
+  @inline(__always)
   public func read<T>(def: T.Type, position: Int) -> T {
     _storage.memory.advanced(by: position).load(as: T.self)
   }
@@ -360,6 +372,7 @@ public struct ByteBuffer {
   ///   - index: index of the string in the buffer
   ///   - count: length of the string
   ///   - type: Encoding of the string
+  @inline(__always)
   public func readString(
     at index: Int,
     count: Int,
@@ -376,6 +389,7 @@ public struct ByteBuffer {
 
   /// Creates a new Flatbuffer object that's duplicated from the current one
   /// - Parameter removeBytes: the amount of bytes to remove from the current Size
+  @inline(__always)
   public func duplicate(removing removeBytes: Int = 0) -> ByteBuffer {
     assert(removeBytes > 0, "Can NOT remove negative bytes")
     assert(
@@ -402,6 +416,7 @@ public struct ByteBuffer {
   /// which allows us to skip the first 4 bytes instead of recreating the buffer
   @discardableResult
   @usableFromInline
+  @inline(__always)
   mutating func skipPrefix() -> Int32 {
     _writerSize = _writerSize &- MemoryLayout<Int32>.size
     return read(def: Int32.self, position: 0)
