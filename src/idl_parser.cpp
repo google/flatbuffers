@@ -3052,7 +3052,8 @@ CheckedError Parser::SkipAnyJsonValue() {
     case kTokenIntegerConstant:
     case kTokenFloatConstant: NEXT(); break;
     default:
-      if (IsIdent("true") || IsIdent("false") || IsIdent("null")) {
+      if (IsIdent("true") || IsIdent("false") || IsIdent("null") ||
+          IsIdent("inf")) {
         NEXT();
       } else
         return TokenError();
