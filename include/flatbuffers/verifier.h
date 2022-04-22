@@ -18,7 +18,6 @@
 #define FLATBUFFERS_VERIFIER_H_
 
 #include "flatbuffers/base.h"
-#include "flatbuffers/util.h"
 #include "flatbuffers/vector.h"
 
 namespace flatbuffers {
