@@ -492,7 +492,7 @@ CheckedError Parser::Next() {
         if (has_sign) {
           // Check for +/-inf which is considered a float constant.
           if (strncmp(cursor_, "inf", 3) == 0 &&
-              !(IsIdentifierStart(cursor_[4]) || is_digit(cursor_[4]))) {
+              !(IsIdentifierStart(cursor_[3]) || is_digit(cursor_[3]))) {
             attribute_.assign(cursor_ - 1, cursor_ + 3);
             token_ = kTokenFloatConstant;
             cursor_ += 3;
