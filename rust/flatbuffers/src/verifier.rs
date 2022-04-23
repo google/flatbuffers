@@ -6,7 +6,8 @@ use crate::follow::Follow;
 use crate::{ForwardsUOffset, SOffsetT, SkipSizePrefix, UOffsetT, VOffsetT, Vector, SIZE_UOFFSET};
 
 #[cfg(feature="no_std")]
-extern crate thiserror_core2 as thiserror;
+use thiserror_core2::Error;
+#[cfg(not(feature="no_std"))]
 use thiserror::Error;
 
 /// Traces the location of data errors. Not populated for Dos detecting errors.
