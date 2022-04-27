@@ -63,6 +63,10 @@ class IdlNamer : public Namer {
   std::string Method(const std::string &prefix, const FieldDef &d) const {
     return Method(prefix, d.name);
   }
+  std::string Method(const std::string &prefix, const FieldDef &d,
+                     const std::string &suffix) const {
+    return Method(prefix, d.name, suffix);
+  }
 
   std::string Namespace(const struct Namespace &ns) const {
     return Namespace(ns.components);
@@ -96,7 +100,6 @@ class IdlNamer : public Namer {
     return "VT_" + ConvertCase(EscapeKeyword(field.name), Case::kAllUpper);
   }
 
-  // TODO(caspern): What's up with this case style?
   std::string LegacySwiftVariant(const EnumVal &ev) const {
     auto name = ev.name;
     if (isupper(name.front())) {
@@ -105,9 +108,27 @@ class IdlNamer : public Namer {
     return EscapeKeyword(ConvertCase(name, Case::kLowerCamel));
   }
 
+  // Also used by Kotlin, lol.
   std::string LegacyJavaMethod2(const std::string &prefix, const StructDef &sd,
                                 const std::string &suffix) const {
     return prefix + sd.name + suffix;
+  }
+
+  std::string LegacyKotlinVariant(EnumVal &ev) const {
+    // Namer assumes the input case is snake case which is wrong...
+    return ConvertCase(EscapeKeyword(ev.name), Case::kLowerCamel);
+  }
+  // Kotlin methods escapes keywords after case conversion but before
+  // prefixing and suffixing.
+  std::string LegacyKotlinMethod(const std::string &prefix, const FieldDef &d,
+                                 const std::string &suffix) const {
+    return prefix + ConvertCase(EscapeKeyword(d.name), Case::kUpperCamel) +
+           suffix;
+  }
+  std::string LegacyKotlinMethod(const std::string &prefix, const StructDef &d,
+                                 const std::string &suffix) const {
+    return prefix + ConvertCase(EscapeKeyword(d.name), Case::kUpperCamel) +
+           suffix;
   }
 
  private:
