@@ -61,6 +61,14 @@ static bool IsNonZeroRegion(const uint64_t offset, const uint64_t length,
   return false;
 }
 
+static bool IsPrintableRegion(const uint64_t offset, const uint64_t length,
+                              const uint8_t *const binary) {
+  for (uint64_t i = offset; i < offset + length; ++i) {
+    if (!isprint(binary[i])) { return false; }
+  }
+  return true;
+}
+
 static BinarySection GenerateMissingSection(const uint64_t offset,
                                             const uint64_t length,
                                             const uint8_t *const binary) {
@@ -168,7 +176,7 @@ uint64_t BinaryAnnotator::BuildHeader(const uint64_t header_offset) {
   offset += sizeof(uint32_t);
 
   if (IsValidRead(offset, flatbuffers::kFileIdentifierLength) &&
-      IsNonZeroRegion(offset, flatbuffers::kFileIdentifierLength, binary_)) {
+      IsPrintableRegion(offset, flatbuffers::kFileIdentifierLength, binary_)) {
     BinaryRegionComment comment;
     comment.type = BinaryRegionCommentType::FileIdentifier;
     // Check if the file identifier region has non-zero data, and assume its
@@ -1404,8 +1412,8 @@ bool BinaryAnnotator::ContainsSection(const uint64_t offset) {
   --it;
 
   // And check that if the offset is covered by the section.
-  return offset >= it->first && offset <= it->second.regions.back().offset +
-                                              it->second.regions.back().length;
+  return offset >= it->first && offset < it->second.regions.back().offset +
+                                             it->second.regions.back().length;
 }
 
 }  // namespace flatbuffers

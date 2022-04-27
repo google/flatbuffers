@@ -489,10 +489,21 @@ CheckedError Parser::Next() {
         }
 
         const auto has_sign = (c == '+') || (c == '-');
-        if (has_sign && IsIdentifierStart(*cursor_)) {
-          // '-'/'+' and following identifier - it could be a predefined
-          // constant. Return the sign in token_, see ParseSingleValue.
-          return NoError();
+        if (has_sign) {
+          // Check for +/-inf which is considered a float constant.
+          if (strncmp(cursor_, "inf", 3) == 0 &&
+              !(IsIdentifierStart(cursor_[3]) || is_digit(cursor_[3]))) {
+            attribute_.assign(cursor_ - 1, cursor_ + 3);
+            token_ = kTokenFloatConstant;
+            cursor_ += 3;
+            return NoError();
+          }
+
+          if (IsIdentifierStart(*cursor_)) {
+            // '-'/'+' and following identifier - it could be a predefined
+            // constant. Return the sign in token_, see ParseSingleValue.
+            return NoError();
+          }
         }
 
         auto dot_lvl =
@@ -1102,8 +1113,9 @@ CheckedError Parser::ParseAnyValue(Value &val, FieldDef *field,
       uint8_t enum_idx;
       if (vector_of_union_types) {
         if (vector_of_union_types->size() <= count)
-          return Error("union types vector smaller than union values vector"
-                       " for: " + field->name);
+          return Error(
+              "union types vector smaller than union values vector for: " +
+              field->name);
         enum_idx = vector_of_union_types->Get(count);
       } else {
         ECHECK(atot(constant.c_str(), *this, &enum_idx));
@@ -2177,8 +2189,12 @@ template<typename T> void EnumDef::ChangeEnumValue(EnumVal *ev, T new_value) {
 }
 
 namespace EnumHelper {
-template<BaseType E> struct EnumValType { typedef int64_t type; };
-template<> struct EnumValType<BASE_TYPE_ULONG> { typedef uint64_t type; };
+template<BaseType E> struct EnumValType {
+  typedef int64_t type;
+};
+template<> struct EnumValType<BASE_TYPE_ULONG> {
+  typedef uint64_t type;
+};
 }  // namespace EnumHelper
 
 struct EnumValBuilder {
@@ -2884,7 +2900,11 @@ CheckedError Parser::ParseProtoFields(StructDef *struct_def, bool isextend,
           if (key == "default") {
             // Temp: skip non-numeric and non-boolean defaults (enums).
             auto numeric = strpbrk(val.c_str(), "0123456789-+.");
-            if (IsScalar(type.base_type) && numeric == val.c_str()) {
+            if (IsFloat(type.base_type) &&
+                (val == "inf" || val == "+inf" || val == "-inf")) {
+              // Prefer to be explicit with +inf.
+              field->value.constant = val == "inf" ? "+inf" : val;
+            } else if (IsScalar(type.base_type) && numeric == val.c_str()) {
               field->value.constant = val;
             } else if (val == "true") {
               field->value.constant = val;
@@ -3032,7 +3052,8 @@ CheckedError Parser::SkipAnyJsonValue() {
     case kTokenIntegerConstant:
     case kTokenFloatConstant: NEXT(); break;
     default:
-      if (IsIdent("true") || IsIdent("false") || IsIdent("null")) {
+      if (IsIdent("true") || IsIdent("false") || IsIdent("null") ||
+          IsIdent("inf")) {
         NEXT();
       } else
         return TokenError();
@@ -3255,7 +3276,6 @@ CheckedError Parser::ParseRoot(const char *source, const char **include_paths,
   }
   // Parse JSON object only if the scheme has been parsed.
   if (token_ == '{') { ECHECK(DoParseJson()); }
-  EXPECT(kTokenEof);
   return NoError();
 }
 
@@ -3423,6 +3443,7 @@ CheckedError Parser::DoParse(const char *source, const char **include_paths,
       ECHECK(ParseDecl(source_filename));
     }
   }
+  EXPECT(kTokenEof);
   if (opts.warnings_as_errors && has_warning_) {
     return Error("treating warnings as errors, failed due to above warnings");
   }

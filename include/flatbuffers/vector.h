@@ -19,6 +19,7 @@
 
 #include "flatbuffers/base.h"
 #include "flatbuffers/buffer.h"
+#include "flatbuffers/stl_emulation.h"
 
 namespace flatbuffers {
 

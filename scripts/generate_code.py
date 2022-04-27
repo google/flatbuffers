@@ -97,6 +97,12 @@ def flatc_reflection(options, location, target):
         shutil.move(str(new_reflection_path), str(original_reflection_path))
     shutil.rmtree(str(Path(reflection_path, temp_dir)))
 
+def flatc_annotate(schema, file, include=None, cwd=tests_path):
+    cmd = [str(flatc_path)]
+    if include:
+        cmd += ["-I"] + [include]
+    cmd += ["--annotate", schema, file]
+    result = subprocess.run(cmd, cwd=str(cwd), check=True)
 
 # Glob a pattern relative to file path
 def glob(path, pattern):
@@ -270,6 +276,19 @@ flatc(
     BINARY_OPTS + ["--bfbs-filenames", str(tests_path)],
     include="include_test",
     schema="monster_test.fbs",
+)
+
+# Generate the annotated binary of the monster_test binary schema.
+flatc_annotate(
+    schema="../reflection/reflection.fbs", 
+    file="monster_test.bfbs", 
+    include="include_test"
+)
+
+flatc_annotate(
+    schema="monster_test.fbs", 
+    file="monsterdata_test.mon", 
+    include="include_test"
 )
 
 flatc(

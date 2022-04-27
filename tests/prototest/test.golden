@@ -51,6 +51,9 @@ table ProtoMessage {
   /// doc comment for r.
   r:proto.test.ProtoMessage_.Anonymous0;
   outer_enum:proto.test.ProtoEnum;
+  u:float = +inf;
+  v:float = +inf;
+  w:float = -inf;
 }
 
 namespace proto.test.ProtoMessage_;

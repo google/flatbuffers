@@ -18,6 +18,7 @@
 #define FLATBUFFERS_FLATBUFFER_BUILDER_H_
 
 #include <functional>
+#include <initializer_list>
 
 #include "flatbuffers/allocator.h"
 #include "flatbuffers/array.h"
@@ -442,6 +443,7 @@ class FlatBufferBuilder {
   // Aligns such that when "len" bytes are written, an object can be written
   // after it with "alignment" without padding.
   void PreAlign(size_t len, size_t alignment) {
+    if (len == 0) return;
     TrackMinAlign(alignment);
     buf_.fill(PaddingBytes(GetSize() + len, alignment));
   }
@@ -600,12 +602,14 @@ class FlatBufferBuilder {
   // This is useful when storing a nested_flatbuffer in a vector of bytes,
   // or when storing SIMD floats, etc.
   void ForceVectorAlignment(size_t len, size_t elemsize, size_t alignment) {
+    if (len == 0) return;
     FLATBUFFERS_ASSERT(VerifyAlignmentRequirements(alignment));
     PreAlign(len * elemsize, alignment);
   }
 
   // Similar to ForceVectorAlignment but for String fields.
   void ForceStringAlignment(size_t len, size_t alignment) {
+    if (len == 0) return;
     FLATBUFFERS_ASSERT(VerifyAlignmentRequirements(alignment));
     PreAlign((len + 1) * sizeof(char), alignment);
   }
@@ -650,6 +654,16 @@ class FlatBufferBuilder {
   /// where the vector is stored.
   template<typename T, class C> Offset<Vector<T>> CreateVector(const C &array) {
     return CreateVector(array.data(), array.size());
+  }
+
+  /// @brief Serialize an initializer list into a FlatBuffer `vector`.
+  /// @tparam T The data type of the initializer list elements.
+  /// @param[in] v The value of the initializer list.
+  /// @return Returns a typed `Offset` into the serialized data indicating
+  /// where the vector is stored.
+  template<typename T>
+  Offset<Vector<T>> CreateVector(std::initializer_list<T> v) {
+    return CreateVector(v.begin(), v.size());
   }
 
   template<typename T>
@@ -725,7 +739,7 @@ class FlatBufferBuilder {
   /// @return Returns a typed `Offset` into the serialized data indicating
   /// where the vector is stored.
   template<typename StringType = std::string,
-           typename Alloc = std::allocator<std::string>>
+           typename Alloc = std::allocator<StringType>>
   Offset<Vector<Offset<String>>> CreateVectorOfStrings(
       const std::vector<StringType, Alloc> &v) {
     return CreateVectorOfStrings(v.cbegin(), v.cend());
