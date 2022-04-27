@@ -15,6 +15,18 @@
  * limitations under the License.
  */
 
+#![no_std]
+
+#[cfg(not(feature = "no_std"))]
+extern crate std;
+#[cfg(not(feature = "no_std"))]
+use alloc::vec::Vec;
+
+#[macro_use]
+extern crate alloc;
+
+use alloc::string::String;
+
 #[cfg(feature = "no_std")]
 #[global_allocator]
 static ALLOCATOR: libc_alloc::LibcAlloc = libc_alloc::LibcAlloc;
@@ -392,9 +404,9 @@ fn verifier_one_byte_errors_do_not_crash() {
     // If the verifier says a buffer is okay then using it won't cause a crash.
     // We use write_fmt since Debug visits all the fields - but there's no need to store anything.
     struct ForgetfulWriter;
-    use std::fmt::Write;
+    use core::fmt::Write;
     impl Write for ForgetfulWriter {
-        fn write_str(&mut self, _: &str) -> Result<(), std::fmt::Error> {
+        fn write_str(&mut self, _: &str) -> Result<(), core::fmt::Error> {
             Ok(())
         }
     }
@@ -442,7 +454,7 @@ fn verifier_apparent_size_too_large() {
     let b = &mut flatbuffers::FlatBufferBuilder::new();
     let name = Some(b.create_string("foo"));
     // String amplification attack.
-    let s = b.create_string(&(std::iter::repeat("X").take(1000).collect::<String>()));
+    let s = b.create_string(&(core::iter::repeat("X").take(1000).collect::<String>()));
     let testarrayofstring = Some(b.create_vector(&vec![s; 1000]));
     let m = Monster::create(b, &MonsterArgs {
         testarrayofstring,
@@ -541,11 +553,12 @@ mod generated_constants {
     }
 }
 
+#[cfg(not(feature = "no_std"))]
 #[cfg(test)]
 mod lifetime_correctness {
     extern crate flatbuffers;
 
-    use std::mem;
+    use core::mem;
 
     use super::my_game;
     use super::load_file;
@@ -592,6 +605,8 @@ mod lifetime_correctness {
 #[cfg(test)]
 mod roundtrip_generated_code {
     extern crate flatbuffers;
+
+    use alloc::vec::Vec;
 
     use super::my_game;
 
@@ -988,25 +1003,25 @@ mod generated_code_alignment_and_padding {
 
     #[test]
     fn enum_color_is_1_byte() {
-        assert_eq!(1, ::std::mem::size_of::<my_game::example::Color>());
+        assert_eq!(1, ::core::mem::size_of::<my_game::example::Color>());
     }
 
     #[test]
     fn union_any_is_1_byte() {
-        assert_eq!(1, ::std::mem::size_of::<my_game::example::Any>());
+        assert_eq!(1, ::core::mem::size_of::<my_game::example::Any>());
     }
 
     #[test]
     fn union_any_is_aligned_to_1() {
-        assert_eq!(1, ::std::mem::align_of::<my_game::example::Any>());
+        assert_eq!(1, ::core::mem::align_of::<my_game::example::Any>());
     }
     #[test]
     fn struct_test_is_4_bytes() {
-        assert_eq!(4, ::std::mem::size_of::<my_game::example::Test>());
+        assert_eq!(4, ::core::mem::size_of::<my_game::example::Test>());
     }
     #[test]
     fn struct_vec3_is_32_bytes() {
-        assert_eq!(32, ::std::mem::size_of::<my_game::example::Vec3>());
+        assert_eq!(32, ::core::mem::size_of::<my_game::example::Vec3>());
     }
 
     #[test]
@@ -1036,7 +1051,7 @@ mod generated_code_alignment_and_padding {
 
     #[test]
     fn struct_ability_is_8_bytes() {
-        assert_eq!(8, ::std::mem::size_of::<my_game::example::Ability>());
+        assert_eq!(8, ::core::mem::size_of::<my_game::example::Ability>());
     }
 
     #[test]
@@ -1061,7 +1076,7 @@ mod generated_code_alignment_and_padding {
         for a in abilities.iter() {
             let a_ptr = a as *const my_game::example::Ability as usize;
             assert!(a_ptr > start_ptr);
-            let aln = ::std::mem::align_of::<my_game::example::Ability>();
+            let aln = ::core::mem::align_of::<my_game::example::Ability>();
             assert_eq!((a_ptr - start_ptr) % aln, 0);
         }
         for a in abilities.iter().rev() {
@@ -1166,6 +1181,8 @@ mod roundtrip_vectors {
         extern crate quickcheck;
         extern crate flatbuffers;
 
+        use alloc::vec::Vec;
+
         const N: u64 = 20;
 
         fn prop<T>(xs: Vec<T>)
@@ -1173,7 +1190,7 @@ mod roundtrip_vectors {
             T: for<'a> flatbuffers::Follow<'a, Inner = T>
                 + flatbuffers::EndianScalar
                 + flatbuffers::Push
-                + ::std::fmt::Debug,
+                + ::core::fmt::Debug,
         {
             use flatbuffers::Follow;
 
@@ -1247,7 +1264,7 @@ mod roundtrip_vectors {
         // complicated.
         macro_rules! impl_prop {
             ($test_name:ident, $fn_name:ident, $ty:ident) => (
-                fn $fn_name(xs: Vec<$ty>) {
+                fn $fn_name(xs: alloc::vec::Vec<$ty>) {
                     use flatbuffers::Follow;
 
                     let mut b = flatbuffers::FlatBufferBuilder::new();
@@ -1258,7 +1275,7 @@ mod roundtrip_vectors {
                     assert_eq!(got, &xs[..]);
                 }
                 #[test]
-                fn $test_name() { quickcheck::QuickCheck::new().max_tests(N).quickcheck($fn_name as fn(Vec<_>)); }
+                fn $test_name() { quickcheck::QuickCheck::new().max_tests(N).quickcheck($fn_name as fn(alloc::vec::Vec<_>)); }
             )
         }
 
@@ -1288,6 +1305,9 @@ mod roundtrip_vectors {
         #[cfg(not(miri))]  // slow.
         extern crate quickcheck;
         extern crate flatbuffers;
+
+        use alloc::string::String;
+        use alloc::vec::Vec;
 
         fn prop(xs: Vec<String>) {
             use flatbuffers::Follow;
@@ -1327,6 +1347,9 @@ mod roundtrip_vectors {
         extern crate quickcheck;
         extern crate flatbuffers;
 
+        use alloc::string::String;
+        use alloc::vec::Vec;
+
         fn prop(input: Vec<String>) {
             let xs: Vec<&str> = input.iter().map(|s: &String| &s[..]).collect();
 
@@ -1357,6 +1380,8 @@ mod roundtrip_vectors {
         #[cfg(not(miri))]  // slow.
         extern crate quickcheck;
         extern crate flatbuffers;
+
+        use alloc::vec::Vec;
 
         #[cfg(not(miri))]  // slow.
         #[test]
@@ -1409,8 +1434,11 @@ mod framing_format {
     }
 }
 
+#[cfg(not(feature = "no_std"))]
 #[cfg(test)]
 mod roundtrip_table {
+    use alloc::string::String;
+    use alloc::vec::Vec;
     use std::collections::HashMap;
 
     extern crate flatbuffers;
@@ -1429,9 +1457,9 @@ mod roundtrip_table {
         let uchar_val: u8 = 0xFF;
         let short_val: i16 = -32222;  // 0x8222;
         let ushort_val: u16 = 0xFEEE;
-        let int_val: i32 = unsafe { ::std::mem::transmute(0x83333333u32) };
+        let int_val: i32 = unsafe { ::core::mem::transmute(0x83333333u32) };
         let uint_val: u32 = 0xFDDDDDDD;
-        let long_val: i64 = unsafe { ::std::mem::transmute(0x8444444444444444u64) }; // TODO: byte literal?
+        let long_val: i64 = unsafe { ::core::mem::transmute(0x8444444444444444u64) }; // TODO: byte literal?
         let ulong_val: u64 = 0xFCCCCCCCCCCCCCCCu64;
         let float_val: f32 = 3.14159;
         let double_val: f64 = 3.14159265359;
@@ -1598,6 +1626,9 @@ mod roundtrip_table {
 
     #[cfg(not(miri))]  // slow.
     mod table_of_vectors_of_scalars {
+
+        use alloc::vec::Vec;
+
         extern crate flatbuffers;
         #[cfg(not(miri))]  // slow.
         extern crate quickcheck;
@@ -1609,7 +1640,7 @@ mod roundtrip_table {
             T: for<'a> flatbuffers::Follow<'a, Inner = T>
                 + flatbuffers::EndianScalar
                 + flatbuffers::Push
-                + ::std::fmt::Debug,
+                + ::core::fmt::Debug,
         {
             use flatbuffers::field_index_to_field_offset as fi2fo;
             use flatbuffers::Follow;
@@ -1689,8 +1720,8 @@ mod roundtrip_scalars {
 
     const N: u64 = 1000;
 
-    fn prop<T: PartialEq + ::std::fmt::Debug + Copy + flatbuffers::EndianScalar>(x: T) {
-        let mut buf = vec![0u8; ::std::mem::size_of::<T>()];
+    fn prop<T: PartialEq + ::core::fmt::Debug + Copy + flatbuffers::EndianScalar>(x: T) {
+        let mut buf = vec![0u8; ::core::mem::size_of::<T>()];
         let y = unsafe {
             flatbuffers::emplace_scalar(&mut buf[..], x);
             flatbuffers::read_scalar(&buf[..])
@@ -1742,7 +1773,7 @@ mod roundtrip_push_follow_scalars {
     macro_rules! impl_prop {
         ($fn_name:ident, $ty:ident) => (
             fn $fn_name(x: $ty) {
-                let mut buf = vec![0u8; ::std::mem::size_of::<$ty>()];
+                let mut buf = vec![0u8; ::core::mem::size_of::<$ty>()];
                 x.push(&mut buf[..], &[][..]);
                 let fs: flatbuffers::FollowStart<$ty> = flatbuffers::FollowStart::new();
                 assert_eq!(fs.self_follow(&buf[..], 0), x);
@@ -1896,9 +1927,12 @@ mod write_and_read_examples {
     }
 }
 
+#[cfg(not(feature = "no_std"))]
 #[cfg(test)]
 mod read_examples_from_other_language_ports {
     extern crate flatbuffers;
+
+    use std::println;
 
     use super::load_file;
     use super::serialized_example_is_accessible_and_correct;
@@ -1974,9 +2008,9 @@ mod generated_key_comparisons {
     fn struct_key_compare_with_value() {
         let a = my_game::example::Ability::new(1, 2);
 
-        assert_eq!(a.key_compare_with_value(0), ::std::cmp::Ordering::Greater);
-        assert_eq!(a.key_compare_with_value(1), ::std::cmp::Ordering::Equal);
-        assert_eq!(a.key_compare_with_value(2), ::std::cmp::Ordering::Less);
+        assert_eq!(a.key_compare_with_value(0), ::core::cmp::Ordering::Greater);
+        assert_eq!(a.key_compare_with_value(1), ::core::cmp::Ordering::Equal);
+        assert_eq!(a.key_compare_with_value(2), ::core::cmp::Ordering::Less);
     }
 
     #[test]
@@ -2010,9 +2044,9 @@ mod generated_key_comparisons {
         // preconditions
         assert_eq!(a.name(), "MyMonster");
 
-        assert_eq!(a.key_compare_with_value("AAA"), ::std::cmp::Ordering::Greater);
-        assert_eq!(a.key_compare_with_value("MyMonster"), ::std::cmp::Ordering::Equal);
-        assert_eq!(a.key_compare_with_value("ZZZ"), ::std::cmp::Ordering::Less);
+        assert_eq!(a.key_compare_with_value("AAA"), ::core::cmp::Ordering::Greater);
+        assert_eq!(a.key_compare_with_value("MyMonster"), ::core::cmp::Ordering::Equal);
+        assert_eq!(a.key_compare_with_value("ZZZ"), ::core::cmp::Ordering::Less);
     }
 
     #[test]
@@ -2115,6 +2149,8 @@ mod follow_impls {
     extern crate flatbuffers;
     use flatbuffers::Follow;
     use flatbuffers::field_index_to_field_offset as fi2fo;
+
+    use alloc::vec::Vec;
 
     // Define a test struct to use in a few tests. This replicates the work that the code generator
     // would normally do when defining a FlatBuffer struct. For reference, compare the following
@@ -2884,12 +2920,12 @@ mod byte_layouts {
             c: i8,
             _pad2: [u8; 4],
         }
-        assert_eq!(::std::mem::size_of::<foo>(), 16);
+        assert_eq!(::core::mem::size_of::<foo>(), 16);
         impl<'b> flatbuffers::Push for &'b foo {
             type Output = foo;
             fn push<'a>(&'a self, dst: &'a mut [u8], _rest: &'a [u8]) {
                 let src = unsafe {
-                    ::std::slice::from_raw_parts(*self as *const foo as *const u8, ::std::mem::size_of::<foo>())
+                    ::core::slice::from_raw_parts(*self as *const foo as *const u8, ::core::mem::size_of::<foo>())
                 };
                 dst.copy_from_slice(src);
             }
@@ -3170,6 +3206,9 @@ mod byte_layouts {
 
 #[cfg(test)]
 mod copy_clone_traits {
+
+    use alloc::vec::Vec;
+
     #[test]
     fn follow_types_implement_copy_and_clone() {
         static_assertions::assert_impl_all!(flatbuffers::WIPOffset<u32>: Copy, Clone);
@@ -3187,17 +3226,18 @@ mod copy_clone_traits {
 mod fully_qualified_name {
     #[test]
     fn fully_qualified_name_generated() {
-        assert!(check_eq!(::my_game::example::Monster::get_fully_qualified_name(), "MyGame.Example.Monster").is_ok());
-        assert!(check_eq!(::my_game::example_2::Monster::get_fully_qualified_name(), "MyGame.Example2.Monster").is_ok());
+        assert!(check_eq!(super::my_game::example::Monster::get_fully_qualified_name(), "MyGame.Example.Monster").is_ok());
+        assert!(check_eq!(super::my_game::example_2::Monster::get_fully_qualified_name(), "MyGame.Example2.Monster").is_ok());
 
-        assert!(check_eq!(::my_game::example::Vec3::get_fully_qualified_name(), "MyGame.Example.Vec3").is_ok());
-        assert!(check_eq!(::my_game::example::Ability::get_fully_qualified_name(), "MyGame.Example.Ability").is_ok());
+        assert!(check_eq!(super::my_game::example::Vec3::get_fully_qualified_name(), "MyGame.Example.Vec3").is_ok());
+        assert!(check_eq!(super::my_game::example::Ability::get_fully_qualified_name(), "MyGame.Example.Ability").is_ok());
     }
 }
 
 // this is not technically a test, but we want to always keep this generated
 // file up-to-date, and the simplest way to do that is to make sure that when
 // tests are run, the file is generated.
+#[cfg(not(feature = "no_std"))]
 #[test]
 fn write_example_wire_data_to_file() {
     let b = &mut flatbuffers::FlatBufferBuilder::new();
@@ -3208,6 +3248,7 @@ fn write_example_wire_data_to_file() {
     f.write_all(b.finished_data()).unwrap();
 }
 
+#[cfg(not(feature = "no_std"))]
 fn load_file(filename: &str) -> Result<Vec<u8>, std::io::Error> {
     use std::io::Read;
     let mut f = std::fs::File::open(filename)?;

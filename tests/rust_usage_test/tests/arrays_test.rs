@@ -1,15 +1,22 @@
+#![no_std]
+
+#[cfg(not(feature = "no_std"))]
+extern crate std;
+
+extern crate alloc;
+
 extern crate array_init;
 #[allow(dead_code, unused_imports)]
 #[path = "../../arrays_test/mod.rs"]
 mod arrays_test_generated;
-use std::fmt::Debug;
+use alloc::format;
+use core::fmt::Debug;
 
 use crate::arrays_test_generated::my_game::example::*;
 extern crate quickcheck;
 use array_init::array_init;
-use std::mem::size_of;
+use core::mem::size_of;
 use quickcheck::{Arbitrary, Gen};
-
 
 fn create_serialized_example_with_generated_code(builder: &mut flatbuffers::FlatBufferBuilder) {
     let nested_struct1 = NestedStruct::new(
@@ -111,12 +118,12 @@ fn generated_code_creates_correct_example() {
 
 #[test]
 fn struct_netsted_struct_is_32_bytes() {
-    assert_eq!(32, ::std::mem::size_of::<NestedStruct>());
+    assert_eq!(32, ::core::mem::size_of::<NestedStruct>());
 }
 
 #[test]
 fn struct_array_struct_is_160_bytes() {
-    assert_eq!(160, ::std::mem::size_of::<ArrayStruct>());
+    assert_eq!(160, ::core::mem::size_of::<ArrayStruct>());
 }
 
 #[test]
@@ -228,7 +235,7 @@ fn verify_struct_array_alignment() {
     let b_start_ptr = array_struct.b().as_ptr() as usize;
     let d_start_ptr = array_struct.d().as_ptr() as usize;
     // The T type of b
-    let b_aln = ::std::mem::align_of::<i32>();
+    let b_aln = ::core::mem::align_of::<i32>();
     assert_eq!((b_start_ptr - struct_start_ptr) % b_aln, 0);
     assert_eq!((d_start_ptr - b_start_ptr) % b_aln, 0);
     assert_eq!((d_start_ptr - struct_start_ptr) % 8, 0);

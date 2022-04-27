@@ -115,7 +115,6 @@ quickcheck! {
         let mut expected = x.to_le_bytes().to_vec();
         expected.push(3 << 2 | 2);  // Float W32.
         expected.push(4); // Root width W32.
-        println!("{:?}: {:?} vs {:?} cmp {:?}", x, &fxb, &expected, fxb==expected);
         fxb == expected
     }
 }
@@ -321,7 +320,7 @@ fn indirect_numbers() {
     v.push(IndirectUInt(u64::max_value()));
     v.push(IndirectInt(i64::min_value()));
     // TODO(cneo): Something about Float EPSILON and casting leads to a different binary format.
-    v.push(IndirectFloat(std::f64::consts::PI));
+    v.push(IndirectFloat(core::f64::consts::PI));
     v.push(0u32); // This is stored in 8 bits instead of 64 because of indirection.
     v.end_vector();
     assert_eq!(
@@ -385,7 +384,6 @@ fn indirect_2p5x_smaller() {
     v.push(IndirectInt(i64::max_value()));
     v.end_vector();
     let len_with_indirect = builder.view().len() as f32;
-    dbg!(len_with_indirect, len_without_indirect);
     assert!(len_with_indirect * 2.5 < len_without_indirect);
 }
 #[test]

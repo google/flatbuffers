@@ -12,6 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+use alloc::string::{String, ToString};
+use alloc::vec::Vec;
+
 // Read what you wrote.
 use flexbuffers::*;
 #[cfg(not(miri))]  // slow.
@@ -23,7 +26,7 @@ use serde::{Deserialize, Serialize};
 pub struct NonNullString(String);
 impl quickcheck::Arbitrary for NonNullString {
     fn arbitrary<G: quickcheck::Gen>(g: &mut G) -> Self {
-        let size = std::cmp::min(1, usize::arbitrary(g));
+        let size = core::cmp::min(1, usize::arbitrary(g));
         NonNullString(
             (0..)
                 .map(|_| <char>::arbitrary(g))
@@ -74,7 +77,7 @@ quickcheck! {
         }
         v.end_vector();
         let r = Reader::get_root(builder.view()).unwrap().as_vector();
-        xs.iter().enumerate().all(|(i, &x)| (r.idx(i).as_f64() - x).abs() < std::f64::EPSILON)
+        xs.iter().enumerate().all(|(i, &x)| (r.idx(i).as_f64() - x).abs() < core::f64::EPSILON)
     }
     fn qc_vec_string(xs: Vec<String>) -> bool {
         let mut builder = Builder::default();
@@ -86,6 +89,7 @@ quickcheck! {
         let r = Reader::get_root(builder.view()).unwrap().as_vector();
         xs.iter().enumerate().all(|(i, x)| (r.idx(i).as_str() == x))
     }
+    #[cfg(not(feature = "no_std"))]
     fn qc_map_int(xs: std::collections::BTreeMap<NonNullString, i64>) -> bool {
         let mut builder = Builder::default();
         let mut m = builder.start_map();
@@ -98,6 +102,7 @@ quickcheck! {
             r.idx(i).as_i64() == v && r.idx(k.0.as_str()).as_i64() == v
         })
     }
+    #[cfg(not(feature = "no_std"))]
     fn qc_map_string(xs: std::collections::BTreeMap<NonNullString, String>) -> bool {
         let mut builder = Builder::default();
         let mut m = builder.start_map();
@@ -195,7 +200,6 @@ fn empty_vectors() {
     let foo1 = Foo::default();
     let mut s = FlexbufferSerializer::new();
     foo1.serialize(&mut s).unwrap();
-    dbg!(s.view());
     let r = Reader::get_root(s.view()).unwrap();
     let foo2 = Foo::deserialize(r).unwrap();
     assert_eq!(foo1, foo2);

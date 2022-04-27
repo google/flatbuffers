@@ -367,9 +367,13 @@ class RustGenerator : public BaseGenerator {
       if (symbol.generated) continue;
       code_.Clear();
       code_ += "// " + std::string(FlatBuffersGeneratedWarning());
+      code_ += "extern crate alloc;";
       code_ += "extern crate flatbuffers;";
-      code_ += "use std::mem;";
-      code_ += "use std::cmp::Ordering;";
+      code_ += "use alloc::boxed::Box;";
+      code_ += "use alloc::string::{String, ToString};";
+      code_ += "use alloc::vec::Vec;";
+      code_ += "use core::mem;";
+      code_ += "use core::cmp::Ordering;";
       if (parser_.opts.rust_serialize) {
         code_ += "extern crate serde;";
         code_ +=
@@ -786,10 +790,10 @@ class RustGenerator : public BaseGenerator {
       code_ += "}";
 
       // Generate Debug. Unknown variants are printed like "<UNKNOWN 42>".
-      code_ += "impl std::fmt::Debug for {{ENUM_TY}} {";
+      code_ += "impl core::fmt::Debug for {{ENUM_TY}} {";
       code_ +=
-          "  fn fmt(&self, f: &mut std::fmt::Formatter) ->"
-          " std::fmt::Result {";
+          "  fn fmt(&self, f: &mut core::fmt::Formatter) ->"
+          " core::fmt::Result {";
       code_ += "    if let Some(name) = self.variant_name() {";
       code_ += "      f.write_str(name)";
       code_ += "    } else {";
@@ -964,7 +968,7 @@ class RustGenerator : public BaseGenerator {
           "pub fn take_{{U_ELEMENT_NAME}}(&mut self) -> "
           "Option<Box<{{U_ELEMENT_TABLE_TYPE}}>> {";
       code_ += "  if let Self::{{NATIVE_VARIANT}}(_) = self {";
-      code_ += "    let v = std::mem::replace(self, Self::NONE);";
+      code_ += "    let v = core::mem::replace(self, Self::NONE);";
       code_ += "    if let Self::{{NATIVE_VARIANT}}(w) = v {";
       code_ += "      Some(w)";
       code_ += "    } else {";
@@ -2121,10 +2125,10 @@ class RustGenerator : public BaseGenerator {
     code_ += "}";
     code_ += "";
 
-    code_ += "impl std::fmt::Debug for {{STRUCT_TY}}<'_> {";
+    code_ += "impl core::fmt::Debug for {{STRUCT_TY}}<'_> {";
     code_ +=
-        "  fn fmt(&self, f: &mut std::fmt::Formatter<'_>"
-        ") -> std::fmt::Result {";
+        "  fn fmt(&self, f: &mut core::fmt::Formatter<'_>"
+        ") -> core::fmt::Result {";
     code_ += "    let mut ds = f.debug_struct(\"{{STRUCT_TY}}\");";
     ForAllTableFields(struct_def, [&](const FieldDef &field) {
       if (GetFullType(field.value.type) == ftUnionValue) {
@@ -2344,7 +2348,7 @@ class RustGenerator : public BaseGenerator {
     code_ += "#[inline]";
     code_ +=
         "pub fn key_compare_with_value(&self, val: {{KEY_TYPE}}) -> "
-        "::std::cmp::Ordering {";
+        "::core::cmp::Ordering {";
     code_ += "  let key = self.{{FIELD}}();";
     code_ += "  key.cmp({{REF}}val)";
     code_ += "}";
@@ -2604,10 +2608,10 @@ class RustGenerator : public BaseGenerator {
     code_ += "}";
 
     // Debug for structs.
-    code_ += "impl std::fmt::Debug for {{STRUCT_TY}} {";
+    code_ += "impl core::fmt::Debug for {{STRUCT_TY}} {";
     code_ +=
-        "  fn fmt(&self, f: &mut std::fmt::Formatter"
-        ") -> std::fmt::Result {";
+        "  fn fmt(&self, f: &mut core::fmt::Formatter"
+        ") -> core::fmt::Result {";
     code_ += "    f.debug_struct(\"{{STRUCT_TY}}\")";
     ForAllStructFields(struct_def, [&](const FieldDef &unused) {
       (void)unused;
@@ -2643,7 +2647,7 @@ class RustGenerator : public BaseGenerator {
     code_ += "    fn push(&self, dst: &mut [u8], _rest: &[u8]) {";
     code_ += "        let src = unsafe {";
     code_ +=
-        "            ::std::slice::from_raw_parts("
+        "            ::core::slice::from_raw_parts("
         "self as *const {{STRUCT_TY}} as *const u8, Self::size())";
     code_ += "        };";
     code_ += "        dst.copy_from_slice(src);";
@@ -2656,7 +2660,7 @@ class RustGenerator : public BaseGenerator {
     code_ += "    fn push(&self, dst: &mut [u8], _rest: &[u8]) {";
     code_ += "        let src = unsafe {";
     code_ +=
-        "            ::std::slice::from_raw_parts("
+        "            ::core::slice::from_raw_parts("
         "*self as *const {{STRUCT_TY}} as *const u8, Self::size())";
     code_ += "        };";
     code_ += "        dst.copy_from_slice(src);";
@@ -2788,7 +2792,7 @@ class RustGenerator : public BaseGenerator {
                          NumToString(InlineSize(field.value.type)));
           code_ += "pub fn set_{{FIELD}}(&mut self, x: &{{FIELD_TYPE}}) {";
           code_ += "  unsafe {";
-          code_ += "    std::ptr::copy(";
+          code_ += "    core::ptr::copy(";
           code_ += "      x.as_ptr() as *const u8,";
           code_ += "      self.0.as_mut_ptr().add({{FIELD_OFFSET}}),";
           code_ += "      {{FIELD_SIZE}},";
@@ -2901,8 +2905,8 @@ class RustGenerator : public BaseGenerator {
         }
       }
     }
-    code_ += indent + "use std::mem;";
-    code_ += indent + "use std::cmp::Ordering;";
+    code_ += indent + "use core::mem;";
+    code_ += indent + "use core::cmp::Ordering;";
     code_ += "";
     if (parser_.opts.rust_serialize) {
       code_ += indent + "extern crate serde;";

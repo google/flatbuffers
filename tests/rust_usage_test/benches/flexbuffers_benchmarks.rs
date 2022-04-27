@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use bencher::Bencher;
+use bencher::{benchmark_group, benchmark_main, Bencher};
 use flexbuffers::*;
 
 fn push_vec_u64_to_map(b: &mut Bencher) {

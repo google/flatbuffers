@@ -1,7 +1,10 @@
+use alloc::collections::BTreeMap;
+use alloc::string::String;
+use alloc::vec::Vec;
+
 use super::rwyw::NonNullString;
 use flexbuffers::*;
 use quickcheck::{Arbitrary, Gen};
-use std::collections::BTreeMap;
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 enum Enum {

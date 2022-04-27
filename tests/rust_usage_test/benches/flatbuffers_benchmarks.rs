@@ -14,9 +14,8 @@
  * limitations under the License.
  */
 
+use bencher::{benchmark_group, Bencher};
 use flatbuffers;
-use bencher::Bencher;
-
 
 #[allow(dead_code, unused_imports)]
 #[path = "../../monster_test/mod.rs"]
