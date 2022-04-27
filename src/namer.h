@@ -113,6 +113,13 @@ class Namer {
   template<typename T> std::string Method(const T &s) const {
     return Method(s.name);
   }
+  template<typename T> std::string Method(
+    const std::string &pre,
+    const T &t,
+    const std::string &suf
+  ) const {
+    return Format(pre + "_" + t.name + "_" + suf, config_.methods);
+  }
 
   virtual std::string Method(const std::string &pre,
                              const std::string &suf) const {
