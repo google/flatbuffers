@@ -953,9 +953,8 @@ class TsGenerator : public BaseGenerator {
     return ret;
   }
 
-  void GenObjApi(StructDef &struct_def,
-                 std::string &obj_api_unpack_func, std::string &obj_api_class,
-                 import_set &imports) {
+  void GenObjApi(StructDef &struct_def, std::string &obj_api_unpack_func,
+                 std::string &obj_api_class, import_set &imports) {
     const auto class_name = namer_.ObjectType(struct_def);
 
     std::string unpack_func = "\nunpack(): " + class_name +
