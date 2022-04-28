@@ -219,7 +219,9 @@ class Namer {
   }
 
   virtual std::string ObjectType(const std::string &s) const {
-    return config_.object_prefix + Type(s) + config_.object_suffix;
+    return EscapeKeyword(config_.object_prefix +
+      ConvertCase(s, config_.types)
+      + config_.object_suffix);
   }
 
   virtual std::string Field(const std::string &s) const {
