@@ -953,7 +953,7 @@ class TsGenerator : public BaseGenerator {
     return ret;
   }
 
-  void GenObjApi(const Parser &parser, StructDef &struct_def,
+  void GenObjApi(StructDef &struct_def,
                  std::string &obj_api_unpack_func, std::string &obj_api_class,
                  import_set &imports) {
     const auto class_name = namer_.ObjectType(struct_def);
@@ -1740,8 +1740,7 @@ class TsGenerator : public BaseGenerator {
     if (parser_.opts.generate_object_based_api) {
       std::string obj_api_class;
       std::string obj_api_unpack_func;
-      GenObjApi(parser_, struct_def, obj_api_unpack_func, obj_api_class,
-                imports);
+      GenObjApi(struct_def, obj_api_unpack_func, obj_api_class, imports);
 
       code += obj_api_unpack_func + "}\n" + obj_api_class;
     } else {
