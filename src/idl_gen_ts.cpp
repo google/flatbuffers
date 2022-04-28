@@ -723,8 +723,7 @@ class TsGenerator : public BaseGenerator {
       bare_file_path +=
           kPathSeparator + namer_.File(*it, SkipFile::SuffixAndExtension);
     bare_file_path +=
-        kPathSeparator +
-        namer_.File(dependency, SkipFile::SuffixAndExtension);
+        kPathSeparator + namer_.File(dependency, SkipFile::SuffixAndExtension);
     rel_file_path += bare_file_path;
     import_statement += rel_file_path + "';";
     export_statement += "." + bare_file_path + "';";
@@ -750,7 +749,7 @@ class TsGenerator : public BaseGenerator {
   }
 
   // Generate a TS union type based on a union's enum
-  std::string GenObjApiUnionTypeTS(import_set &imports, const IDLOptions &opts,
+  std::string GenObjApiUnionTypeTS(import_set &imports,
                                    const EnumDef &union_enum) {
     std::string ret = "";
     std::set<std::string> type_list;
@@ -1111,8 +1110,8 @@ class TsGenerator : public BaseGenerator {
               }
 
               case BASE_TYPE_UNION: {
-                field_type += GenObjApiUnionTypeTS(imports, parser.opts,
-                                                   *(vectortype.enum_def));
+                field_type +=
+                    GenObjApiUnionTypeTS(imports, *(vectortype.enum_def));
                 field_type += ")[]";
                 field_val =
                     GenUnionValTS(imports, field_name, vectortype, true);
@@ -1150,8 +1149,8 @@ class TsGenerator : public BaseGenerator {
           }
 
           case BASE_TYPE_UNION: {
-            field_type += GenObjApiUnionTypeTS(imports, parser.opts,
-                                               *(field.value.type.enum_def));
+            field_type +=
+                GenObjApiUnionTypeTS(imports, *(field.value.type.enum_def));
 
             field_val = GenUnionValTS(imports, field_name, field.value.type);
             field_offset_decl =
