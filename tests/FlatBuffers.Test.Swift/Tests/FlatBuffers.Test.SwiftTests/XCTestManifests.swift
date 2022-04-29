@@ -109,6 +109,7 @@ extension FlatBuffersVectors {
     ("testCreateSharedStringVector", testCreateSharedStringVector),
     ("testCreateVectorOfStrings", testCreateVectorOfStrings),
     ("testCreatingTwoCountries", testCreatingTwoCountries),
+    ("testHasForArray", testHasForArray),
     ("testReadDoubleArray", testReadDoubleArray),
     ("testReadInt32Array", testReadInt32Array),
   ]
