@@ -43,6 +43,14 @@ func GetSizePrefixedRootAsInParentNamespace(buf []byte, offset flatbuffers.UOffs
 	return x
 }
 
+func GetRootAsInParentNamespaceValue(buf []byte, offset flatbuffers.UOffsetT) InParentNamespace {
+	n := flatbuffers.GetUOffsetT(buf[offset:])
+	x := InParentNamespace{}
+	x._tab.Bytes = buf
+	x._tab.Pos = n+offset
+	return x
+}
+
 func (rcv *InParentNamespace) Init(buf []byte, i flatbuffers.UOffsetT) {
 	rcv._tab.Bytes = buf
 	rcv._tab.Pos = i

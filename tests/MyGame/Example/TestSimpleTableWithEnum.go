@@ -46,6 +46,14 @@ func GetSizePrefixedRootAsTestSimpleTableWithEnum(buf []byte, offset flatbuffers
 	return x
 }
 
+func GetRootAsTestSimpleTableWithEnumValue(buf []byte, offset flatbuffers.UOffsetT) TestSimpleTableWithEnum {
+	n := flatbuffers.GetUOffsetT(buf[offset:])
+	x := TestSimpleTableWithEnum{}
+	x._tab.Bytes = buf
+	x._tab.Pos = n+offset
+	return x
+}
+
 func (rcv *TestSimpleTableWithEnum) Init(buf []byte, i flatbuffers.UOffsetT) {
 	rcv._tab.Bytes = buf
 	rcv._tab.Pos = i

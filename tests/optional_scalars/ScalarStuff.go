@@ -175,6 +175,14 @@ func GetSizePrefixedRootAsScalarStuff(buf []byte, offset flatbuffers.UOffsetT) *
 	return x
 }
 
+func GetRootAsScalarStuffValue(buf []byte, offset flatbuffers.UOffsetT) ScalarStuff {
+	n := flatbuffers.GetUOffsetT(buf[offset:])
+	x := ScalarStuff{}
+	x._tab.Bytes = buf
+	x._tab.Pos = n+offset
+	return x
+}
+
 func (rcv *ScalarStuff) Init(buf []byte, i flatbuffers.UOffsetT) {
 	rcv._tab.Bytes = buf
 	rcv._tab.Pos = i

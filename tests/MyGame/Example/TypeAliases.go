@@ -105,6 +105,14 @@ func GetSizePrefixedRootAsTypeAliases(buf []byte, offset flatbuffers.UOffsetT) *
 	return x
 }
 
+func GetRootAsTypeAliasesValue(buf []byte, offset flatbuffers.UOffsetT) TypeAliases {
+	n := flatbuffers.GetUOffsetT(buf[offset:])
+	x := TypeAliases{}
+	x._tab.Bytes = buf
+	x._tab.Pos = n+offset
+	return x
+}
+
 func (rcv *TypeAliases) Init(buf []byte, i flatbuffers.UOffsetT) {
 	rcv._tab.Bytes = buf
 	rcv._tab.Pos = i

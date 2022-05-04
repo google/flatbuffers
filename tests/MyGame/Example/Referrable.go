@@ -46,6 +46,14 @@ func GetSizePrefixedRootAsReferrable(buf []byte, offset flatbuffers.UOffsetT) *R
 	return x
 }
 
+func GetRootAsReferrableValue(buf []byte, offset flatbuffers.UOffsetT) Referrable {
+	n := flatbuffers.GetUOffsetT(buf[offset:])
+	x := Referrable{}
+	x._tab.Bytes = buf
+	x._tab.Pos = n+offset
+	return x
+}
+
 func (rcv *Referrable) Init(buf []byte, i flatbuffers.UOffsetT) {
 	rcv._tab.Bytes = buf
 	rcv._tab.Pos = i

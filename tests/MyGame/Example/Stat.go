@@ -53,6 +53,14 @@ func GetSizePrefixedRootAsStat(buf []byte, offset flatbuffers.UOffsetT) *Stat {
 	return x
 }
 
+func GetRootAsStatValue(buf []byte, offset flatbuffers.UOffsetT) Stat {
+	n := flatbuffers.GetUOffsetT(buf[offset:])
+	x := Stat{}
+	x._tab.Bytes = buf
+	x._tab.Pos = n+offset
+	return x
+}
+
 func (rcv *Stat) Init(buf []byte, i flatbuffers.UOffsetT) {
 	rcv._tab.Bytes = buf
 	rcv._tab.Pos = i
