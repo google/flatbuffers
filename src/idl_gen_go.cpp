@@ -303,6 +303,23 @@ class GoGenerator : public BaseGenerator {
     }
   }
 
+  // Initialize a new struct or table from existing data.
+  void NewRootTypeValueFromBuffer(const StructDef &struct_def,
+                                  std::string *code_ptr) {
+    std::string &code = *code_ptr;
+    const std::string struct_type = namer_.Type(struct_def);
+    code += "func GetRootAs" + struct_type + "Value";
+    code += "(buf []byte, offset flatbuffers.UOffsetT) ";
+    code += "" + struct_type;  // value return type
+    code += " {\n";
+    code += "\tn := flatbuffers.GetUOffsetT(buf[offset:])\n";
+    code += "\tx := " + struct_type + "{}\n";
+    code += "\tx._tab.Bytes = buf\n";
+    code += "\tx._tab.Pos = n+offset\n";
+    code += "\treturn x\n";
+    code += "}\n\n";
+  }
+
   // Initialize an existing object with other data, to avoid an allocation.
   void InitializeExisting(const StructDef &struct_def, std::string *code_ptr) {
     std::string &code = *code_ptr;
@@ -801,6 +818,8 @@ class GoGenerator : public BaseGenerator {
       // Generate a special accessor for the table that has been declared as
       // the root type.
       NewRootTypeFromBuffer(struct_def, code_ptr);
+      // Generate a value-typed accessor for the table to avoid allocation.
+      NewRootTypeValueFromBuffer(struct_def, code_ptr);
     }
     // Generate the Init method that sets the field in a pre-existing
     // accessor object. This is to allow object reuse.
