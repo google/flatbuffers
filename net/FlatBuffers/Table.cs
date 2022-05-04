@@ -190,19 +190,18 @@ namespace FlatBuffers
         }
 
         // Compare string from the ByteBuffer with the string object
-        public static int CompareStrings(int offset_1, byte[] key, ByteBuffer bb)
+        public static int CompareStrings(int offset_1, byte[] key, int key_length, ByteBuffer bb)
         {
             offset_1 += bb.GetInt(offset_1);
             var len_1 = bb.GetInt(offset_1);
-            var len_2 = key.Length;
             var startPos_1 = offset_1 + sizeof(int);
-            var len = Math.Min(len_1, len_2);
+            var len = Math.Min(len_1, key_length);
             for (int i = 0; i < len; i++) {
                 byte b = bb.Get(i + startPos_1);
                 if (b != key[i])
                     return b - key[i];
             }
-            return len_1 - len_2;
+            return len_1 - key_length;
         }
     }
 }

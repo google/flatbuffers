@@ -614,7 +614,7 @@ class CSharpGenerator : public BaseGenerator {
       key_getter += "int comp = Table.";
       key_getter += "CompareStrings(";
       key_getter += GenOffsetGetter(key_field);
-      key_getter += ", byteKey, bb);\n";
+      key_getter += ", byteKey, keyLen, bb);\n";
     } else {
       auto get_val = GenGetterForLookupByKey(key_field, "bb");
       key_getter += "int comp = " + get_val + ".CompareTo(key);\n";
@@ -934,10 +934,17 @@ class CSharpGenerator : public BaseGenerator {
               auto qualified_name = NamespacedName(sd);
               code += "  public " + qualified_name + "? ";
               code += Name(field) + "ByKey(";
-              code += GenTypeGet(key_field.value.type) + " key)";
+              code += GenTypeGet(key_field.value.type) + " key";
+              if (IsString(key_field.value.type)) {
+                code += ", byte[] keyBuffer = null";
+              }
+              code += ")";
               code += offset_prefix;
               code += qualified_name + ".__lookup_by_key(";
               code += "__p.__vector(o), key, ";
+              if (IsString(key_field.value.type)) { 
+                code += "keyBuffer, "; 
+              }
               code += "__p.bb) : null; ";
               code += "}\n";
               break;
@@ -1332,10 +1339,21 @@ class CSharpGenerator : public BaseGenerator {
       code += " __lookup_by_key(";
       code += "int vectorLocation, ";
       code += GenTypeGet(key_field->value.type);
-      code += " key, ByteBuffer bb) {\n";
+      code += " key, ";
       if (IsString(key_field->value.type)) {
-        code += "    byte[] byteKey = ";
+        code += "byte[] byteKey, "; 
+      }
+      code += "ByteBuffer bb) {\n";
+      if (IsString(key_field->value.type)) {
+        code += "    int keyLen;\n";
+        code += "    if (byteKey == null) {\n";
+        code += "        byteKey = ";
         code += "System.Text.Encoding.UTF8.GetBytes(key);\n";
+        code += "        keyLen = byteKey.Length;\n";
+        code += "    } else {\n";
+        code += "        keyLen = System.Text.Encoding.UTF8.GetBytes(";
+        code += "key, 0, key.Length, byteKey, 0);\n";
+        code += "    }\n";
       }
       code += "    int span = ";
       code += "bb.GetInt(vectorLocation - 4);\n";

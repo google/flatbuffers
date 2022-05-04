@@ -57,7 +57,7 @@ public struct Monster : IFlatbufferObject
   /// multiline too
   public MyGame.Example.Monster? Testarrayoftables(int j) { int o = __p.__offset(26); return o != 0 ? (MyGame.Example.Monster?)(new MyGame.Example.Monster()).__assign(__p.__indirect(__p.__vector(o) + j * 4), __p.bb) : null; }
   public int TestarrayoftablesLength { get { int o = __p.__offset(26); return o != 0 ? __p.__vector_len(o) : 0; } }
-  public MyGame.Example.Monster? TestarrayoftablesByKey(string key) { int o = __p.__offset(26); return o != 0 ? MyGame.Example.Monster.__lookup_by_key(__p.__vector(o), key, __p.bb) : null; }
+  public MyGame.Example.Monster? TestarrayoftablesByKey(string key, byte[] tmpBuffer = null) { int o = __p.__offset(26); return o != 0 ? MyGame.Example.Monster.__lookup_by_key(__p.__vector(o), key, tmpBuffer, __p.bb) : null; }
   public MyGame.Example.Monster? Enemy { get { int o = __p.__offset(28); return o != 0 ? (MyGame.Example.Monster?)(new MyGame.Example.Monster()).__assign(__p.__indirect(o + __p.bb_pos), __p.bb) : null; } }
   public byte Testnestedflatbuffer(int j) { int o = __p.__offset(30); return o != 0 ? __p.bb.Get(__p.__vector(o) + j * 1) : (byte)0; }
   public int TestnestedflatbufferLength { get { int o = __p.__offset(30); return o != 0 ? __p.__vector_len(o) : 0; } }
@@ -482,14 +482,20 @@ public struct Monster : IFlatbufferObject
     return builder.CreateVectorOfTables(offsets);
   }
 
-  public static Monster? __lookup_by_key(int vectorLocation, string key, ByteBuffer bb) {
-    byte[] byteKey = System.Text.Encoding.UTF8.GetBytes(key);
+  public static Monster? __lookup_by_key(int vectorLocation, string key, byte[] byteKey, ByteBuffer bb) {
+    int keyLen;
+    if (byteKey == null) {
+        byteKey = System.Text.Encoding.UTF8.GetBytes(key);
+        keyLen = byteKey.Length;
+    } else {
+        keyLen = System.Text.Encoding.UTF8.GetBytes(key, 0, key.Length, byteKey, 0);
+    }
     int span = bb.GetInt(vectorLocation - 4);
     int start = 0;
     while (span != 0) {
       int middle = span / 2;
       int tableOffset = Table.__indirect(vectorLocation + 4 * (start + middle), bb);
-      int comp = Table.CompareStrings(Table.__offset(10, bb.Length - tableOffset, bb), byteKey, bb);
+      int comp = Table.CompareStrings(Table.__offset(10, bb.Length - tableOffset, bb), byteKey, keyLen, bb);
       if (comp > 0) {
         span = middle;
       } else if (comp < 0) {
