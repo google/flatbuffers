@@ -3554,7 +3554,7 @@ void CreateSharedStringTest() {
   TEST_EQ((*a[6]) < (*a[5]), true);
 }
 
-#if !defined(FLATBUFFERS_SPAN_MINIMAL)
+#if !defined(FLATBUFFERS_USE_STD_SPAN) && !defined(FLATBUFFERS_SPAN_MINIMAL)
 void FlatbuffersSpanTest() {
   // Compile-time checking of non-const [] to const [] conversions.
   using flatbuffers::internal::is_span_convertable;
@@ -3941,11 +3941,11 @@ void FixedLengthArraySpanTest() {
     TEST_EQ(2, mutable_d_c.size());
     TEST_EQ(MyGame::Example::TestEnum::C, const_d_c[0]);
     TEST_EQ(MyGame::Example::TestEnum::B, const_d_c[1]);
-    TEST_ASSERT(mutable_d_c.end() == std::copy(const_d_c.cbegin(),
-                                               const_d_c.cend(),
+    TEST_ASSERT(mutable_d_c.end() == std::copy(const_d_c.begin(),
+                                               const_d_c.end(),
                                                mutable_d_c.begin()));
     TEST_ASSERT(
-        std::equal(const_d_c.cbegin(), const_d_c.cend(), mutable_d_c.cbegin()));
+        std::equal(const_d_c.begin(), const_d_c.end(), mutable_d_c.begin()));
   }
   // test little endian array of int32
 #  if FLATBUFFERS_LITTLEENDIAN
@@ -3957,11 +3957,11 @@ void FixedLengthArraySpanTest() {
     TEST_EQ(2, mutable_d_a.size());
     TEST_EQ(-1, const_d_a[0]);
     TEST_EQ(2, const_d_a[1]);
-    TEST_ASSERT(mutable_d_a.end() == std::copy(const_d_a.cbegin(),
-                                               const_d_a.cend(),
+    TEST_ASSERT(mutable_d_a.end() == std::copy(const_d_a.begin(),
+                                               const_d_a.end(),
                                                mutable_d_a.begin()));
     TEST_ASSERT(
-        std::equal(const_d_a.cbegin(), const_d_a.cend(), mutable_d_a.cbegin()));
+        std::equal(const_d_a.begin(), const_d_a.end(), mutable_d_a.begin()));
   }
 #  endif
 }
