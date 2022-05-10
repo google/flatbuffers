@@ -366,13 +366,9 @@ class span FLATBUFFERS_FINAL_CLASS {
 
   #if !defined(FLATBUFFERS_SPAN_MINIMAL)
     using Iterator = internal::SpanIterator<T>;
-    using ConstIterator = internal::SpanIterator<const T>;
 
     Iterator begin() const { return Iterator(data()); }
     Iterator end() const   { return Iterator(data() + size()); }
-
-    ConstIterator cbegin() const { return ConstIterator(data()); }
-    ConstIterator cend() const  { return ConstIterator(data() + size()); }
   #endif
 
   // Returns a reference to the idx-th element of the sequence.
