@@ -1,4 +1,6 @@
 load("//:typescript.bzl", "flatbuffer_ts_library")
+load("@npm//@bazel/typescript:index.bzl", "ts_project")
+load("@build_bazel_rules_nodejs//:index.bzl", "js_library")
 
 genrule(
     name = "copy_schema_to_folder",
@@ -11,6 +13,34 @@ flatbuffer_ts_library(
     name = "reflection_ts_fbs",
     package_name = "flatbuffers_reflection",
     srcs = [":reflection.fbs"],
+    gen_reflections = True,
     include_reflection = False,
     visibility = ["//visibility:public"],
+)
+
+ts_project(
+    name = "reflection_ts",
+    srcs = ["reflection.ts"],
+    tsconfig = {
+        "compilerOptions": {
+            "module": "commonjs",
+            "declaration": True,
+            "moduleResolution": "node",
+            "lib": [
+                "ES2015",
+                "ES2020.BigInt",
+                "DOM",
+            ],
+            "types": ["node"],
+            "strict": True,
+        },
+    },
+    deps = [":reflection_ts_fbs"],
+)
+
+js_library(
+    name = "reflection",
+    package_name = "flatbuffers_reflection",
+    visibility = ["//visibility:public"],
+    deps = [":reflection_ts"],
 )

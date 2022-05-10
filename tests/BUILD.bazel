@@ -1,6 +1,8 @@
 load("@rules_cc//cc:defs.bzl", "cc_test")
 load("//:build_defs.bzl", "flatbuffer_cc_library")
 load("//:typescript.bzl", "flatbuffer_ts_library")
+load("@npm//@bazel/typescript:index.bzl", "ts_project")
+load("@build_bazel_rules_nodejs//:index.bzl", "nodejs_test")
 
 package(default_visibility = ["//visibility:private"])
 
@@ -131,7 +133,9 @@ flatbuffer_cc_library(
     name = "monster_test_cc_fbs",
     srcs = ["monster_test.fbs"],
     include_paths = ["tests/include_test"],
-    visibility = ["//grpc/tests:__subpackages__"],
+    visibility = [
+        "//grpc/tests:__subpackages__",
+    ],
     deps = [":include_test_fbs"],
 )
 
@@ -197,8 +201,48 @@ flatbuffer_cc_library(
 flatbuffer_ts_library(
     name = "typescript_ts_fbs",
     srcs = ["typescript_keywords.fbs"],
+    gen_reflections = True,
     deps = [
         "//tests/test_dir:include_ts_fbs",
         "//tests/test_dir:typescript_transitive_ts_fbs",
     ],
+)
+
+ts_project(
+    name = "reflection_test",
+    srcs = ["reflection_test.ts"],
+    data = [
+        ":typescript_ts_fbs_reflection_out",
+        "//reflection/ts:reflection_ts_fbs_reflection_out",
+    ],
+    tsconfig = {
+        "compilerOptions": {
+            "module": "commonjs",
+            "declaration": True,
+            "moduleResolution": "node",
+            "lib": [
+                "ES2015",
+                "ES2020.BigInt",
+                "DOM",
+            ],
+            # NOTE(jkuszmaul): This nonsense is used becase ts_project is
+            # finnicky about importing generated files.
+            "rootDirs": [
+                ".",
+                "../../../../tests",
+            ],
+            "types": ["node"],
+            "strict": True,
+        },
+    },
+    deps = [
+        ":typescript_ts_fbs",
+        "//reflection/ts:reflection",
+    ],
+)
+
+nodejs_test(
+    name = "reflection_test_main",
+    data = [":reflection_test"],
+    entry_point = ":reflection_test.ts",
 )

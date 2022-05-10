@@ -10,6 +10,12 @@ enum class: int {
   instanceof,
 }
 
+struct typeof {
+  x:float;
+  y:int;
+  z:long;
+}
+
 table Object {
   return:int;
   if:int;
@@ -18,4 +24,7 @@ table Object {
   enum2:foobar.class;
   enum3:foobar.Abc;
   reflect:reflection.Schema;
+  structure:typeof;
+  structures:[typeof];
+  const:[long];
 }
