@@ -835,6 +835,9 @@ class SwiftGenerator : public BaseGenerator {
     std::string const_string = "return o == 0 ? {{CONSTANT}} : ";
     const auto vectortype = field.value.type.VectorType();
     code_.SetValue("SIZE", NumToString(InlineSize(vectortype)));
+    code_.SetValue("HAS_FIELDVAR", namer_.Variable("has", field));
+    code_ += "{{ACCESS_TYPE}} var {{HAS_FIELDVAR}}: Bool { " + GenOffset() +
+             "return o == 0 ? false : true }";
     code_ += "{{ACCESS_TYPE}} var {{FIELDVAR}}Count: Int32 { " + GenOffset() +
              "return o == 0 ? 0 : {{ACCESS}}.vector(count: o) }";
     code_.SetValue("CONSTANT", IsScalar(vectortype.base_type) ? "0" : "nil");

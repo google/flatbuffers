@@ -105,6 +105,27 @@ final class FlatBuffersVectors: XCTestCase {
     let number = Numbers.getRootAsNumbers(ByteBuffer(bytes: b.sizedByteArray))
     XCTAssertEqual(number.vArrayDouble, [1, 2, 3, 4, 5])
   }
+
+  func testHasForArray() {
+    var builder = FlatBufferBuilder(initialSize: 20)
+    let emptyVector = [UInt8]()
+    let emptyOffset = builder.createVector(emptyVector)
+    let nonEmptyVector = [1, 2, 3]
+    let nonEmptyVectorOffest = builder.createVector(nonEmptyVector)
+    let start = Swift_Tests_Vectors.startVectors(&builder)
+    Swift_Tests_Vectors.addVectorOf(empty: emptyOffset, &builder)
+    Swift_Tests_Vectors.addVectorOf(array: nonEmptyVectorOffest, &builder)
+    let finish = Swift_Tests_Vectors.endVectors(&builder, start: start)
+    builder.finish(offset: finish)
+
+    let msg = Swift_Tests_Vectors.getRootAsVectors(bb: ByteBuffer(bytes: builder.sizedByteArray))
+    XCTAssertEqual(msg.hasNone, false)
+    XCTAssertEqual(msg.hasEmpty, true)
+    XCTAssertEqual(msg.emptyCount, 0)
+    XCTAssertEqual(msg.hasArray, true)
+    XCTAssertEqual(msg.arrayCount, 3)
+    XCTAssertEqual(msg.array, [1, 2, 3])
+  }
 }
 
 struct Numbers {
