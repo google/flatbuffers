@@ -9,6 +9,7 @@ fbc --swift --gen-mutable --grpc --gen-json-emit --gen-object-api -I ${test_dir}
 fbc --swift --gen-json-emit ${test_dir}/optional_scalars.fbs
 fbc --swift --gen-json-emit --gen-object-api ${test_dir}/more_defaults.fbs
 fbc --swift --gen-json-emit --gen-mutable --gen-object-api ${test_dir}/MutatingBool.fbs
+fbc --swift ${test_dir}/vector_has_test.fbs
 cd ${swift_dir}
 
 # Goes into the code generation tests

@@ -49,9 +49,11 @@ public struct MoreDefaults: FlatBufferObject, Verifiable, ObjectAPIPacker {
     var p: VOffset { self.rawValue }
   }
 
+  public var hasInts: Bool { let o = _accessor.offset(VTOFFSET.ints.v); return o == 0 ? false : true }
   public var intsCount: Int32 { let o = _accessor.offset(VTOFFSET.ints.v); return o == 0 ? 0 : _accessor.vector(count: o) }
   public func ints(at index: Int32) -> Int32 { let o = _accessor.offset(VTOFFSET.ints.v); return o == 0 ? 0 : _accessor.directRead(of: Int32.self, offset: _accessor.vector(at: o) + index * 4) }
   public var ints: [Int32] { return _accessor.getVector(at: VTOFFSET.ints.v) ?? [] }
+  public var hasFloats: Bool { let o = _accessor.offset(VTOFFSET.floats.v); return o == 0 ? false : true }
   public var floatsCount: Int32 { let o = _accessor.offset(VTOFFSET.floats.v); return o == 0 ? 0 : _accessor.vector(count: o) }
   public func floats(at index: Int32) -> Float32 { let o = _accessor.offset(VTOFFSET.floats.v); return o == 0 ? 0 : _accessor.directRead(of: Float32.self, offset: _accessor.vector(at: o) + index * 4) }
   public var floats: [Float32] { return _accessor.getVector(at: VTOFFSET.floats.v) ?? [] }
@@ -59,8 +61,10 @@ public struct MoreDefaults: FlatBufferObject, Verifiable, ObjectAPIPacker {
   public var emptyStringSegmentArray: [UInt8]? { return _accessor.getVector(at: VTOFFSET.emptyString.v) }
   public var someString: String? { let o = _accessor.offset(VTOFFSET.someString.v); return o == 0 ? "some" : _accessor.string(at: o) }
   public var someStringSegmentArray: [UInt8]? { return _accessor.getVector(at: VTOFFSET.someString.v) }
+  public var hasAbcs: Bool { let o = _accessor.offset(VTOFFSET.abcs.v); return o == 0 ? false : true }
   public var abcsCount: Int32 { let o = _accessor.offset(VTOFFSET.abcs.v); return o == 0 ? 0 : _accessor.vector(count: o) }
   public func abcs(at index: Int32) -> ABC? { let o = _accessor.offset(VTOFFSET.abcs.v); return o == 0 ? ABC.a : ABC(rawValue: _accessor.directRead(of: Int32.self, offset: _accessor.vector(at: o) + index * 4)) }
+  public var hasBools: Bool { let o = _accessor.offset(VTOFFSET.bools.v); return o == 0 ? false : true }
   public var boolsCount: Int32 { let o = _accessor.offset(VTOFFSET.bools.v); return o == 0 ? 0 : _accessor.vector(count: o) }
   public func bools(at index: Int32) -> Bool { let o = _accessor.offset(VTOFFSET.bools.v); return o == 0 ? true : _accessor.directRead(of: Bool.self, offset: _accessor.vector(at: o) + index * 1) }
   public var bools: [Bool] { return _accessor.getVector(at: VTOFFSET.bools.v) ?? [] }

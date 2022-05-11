@@ -222,9 +222,11 @@ public struct Monster: FlatBufferObject, Verifiable {
   public var hp: Int16 { let o = _accessor.offset(VTOFFSET.hp.v); return o == 0 ? 100 : _accessor.readBuffer(of: Int16.self, at: o) }
   public var name: String! { let o = _accessor.offset(VTOFFSET.name.v); return _accessor.string(at: o) }
   public var nameSegmentArray: [UInt8]! { return _accessor.getVector(at: VTOFFSET.name.v) }
+  public var hasTestarrayoftables: Bool { let o = _accessor.offset(VTOFFSET.testarrayoftables.v); return o == 0 ? false : true }
   public var testarrayoftablesCount: Int32 { let o = _accessor.offset(VTOFFSET.testarrayoftables.v); return o == 0 ? 0 : _accessor.vector(count: o) }
   public func testarrayoftables(at index: Int32) -> Monster? { let o = _accessor.offset(VTOFFSET.testarrayoftables.v); return o == 0 ? nil : Monster(_accessor.bb, o: _accessor.indirect(_accessor.vector(at: o) + index * 4)) }
   public func testarrayoftablesBy(key: String) -> Monster? { let o = _accessor.offset(VTOFFSET.testarrayoftables.v); return o == 0 ? nil : Monster.lookupByKey(vector: _accessor.vector(at: o), key: key, fbb: _accessor.bb) }
+  public var hasInventory: Bool { let o = _accessor.offset(VTOFFSET.inventory.v); return o == 0 ? false : true }
   public var inventoryCount: Int32 { let o = _accessor.offset(VTOFFSET.inventory.v); return o == 0 ? 0 : _accessor.vector(count: o) }
   public func inventory(at index: Int32) -> UInt8 { let o = _accessor.offset(VTOFFSET.inventory.v); return o == 0 ? 0 : _accessor.directRead(of: UInt8.self, offset: _accessor.vector(at: o) + index * 1) }
   public var inventory: [UInt8] { return _accessor.getVector(at: VTOFFSET.inventory.v) ?? [] }
@@ -243,7 +245,7 @@ public struct Monster: FlatBufferObject, Verifiable {
     pos: Vec3? = nil,
     mana: Int16 = 150,
     hp: Int16 = 100,
-    nameOffset name: Offset = Offset(),
+    nameOffset name: Offset,
     testarrayoftablesVectorOffset testarrayoftables: Offset = Offset(),
     inventoryVectorOffset inventory: Offset = Offset(),
     color: Color = .blue
