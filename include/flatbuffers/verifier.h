@@ -164,10 +164,11 @@ class Verifier FLATBUFFERS_FINAL_CLASS {
     // gives the result we want.
     auto vtableo = tableo - static_cast<size_t>(ReadScalar<soffset_t>(table));
     // Check the vtable size field, then check vtable fits in its entirety.
-    return VerifyComplexity() && Verify<voffset_t>(vtableo) &&
+    if (!( VerifyComplexity() && Verify<voffset_t>(vtableo) &&
            VerifyAlignment(ReadScalar<voffset_t>(buf_ + vtableo),
-                           sizeof(voffset_t)) &&
-           Verify(vtableo, ReadScalar<voffset_t>(buf_ + vtableo));
+                           sizeof(voffset_t)))) return false;
+    auto vsize = ReadScalar<voffset_t>(buf_ + vtableo);
+    return Check((vsize & 1) == 0) && Verify(vtableo, vsize);
   }
 
   template<typename T>
