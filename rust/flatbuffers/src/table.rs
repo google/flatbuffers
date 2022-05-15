@@ -55,15 +55,24 @@ impl<'a> Follow<'a> for Table<'a> {
     }
 }
 
+/// Attempts to retrieve the file identifier from the flatbuffer encoded in `data`. Provide
+/// `size_prefixed = true` if your data has a size prefix. If `None` is returned, then the
+/// flatbuffer did not have a valid UTF-8 file identifier.
 #[inline]
-pub fn buffer_has_identifier(data: &[u8], ident: &str, size_prefixed: bool) -> bool {
-    assert_eq!(ident.len(), FILE_IDENTIFIER_LENGTH);
-
+pub fn buffer_identifier(data: &[u8], size_prefixed: bool) -> Option<&str> {
     let got = if size_prefixed {
         <SkipSizePrefix<SkipRootOffset<FileIdentifier>>>::follow(data, 0)
     } else {
         <SkipRootOffset<FileIdentifier>>::follow(data, 0)
     };
 
-    ident.as_bytes() == got
+    std::str::from_utf8(got).ok()
+}
+
+/// Checks if the flatbuffer encoded in `data` contains a file identifier matching `ident`. `ident`
+/// must be exactly `FILE_IDENTIFIER_LENGTH` (4) bytes in length or else this function panics.
+#[inline]
+pub fn buffer_has_identifier(data: &[u8], ident: &str, size_prefixed: bool) -> bool {
+    assert_eq!(ident.len(), FILE_IDENTIFIER_LENGTH);
+    Some(ident) == buffer_identifier(data, size_prefixed)
 }
