@@ -11,7 +11,7 @@ jobs:
   cpp-linter:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: cmake
         run: CXX=clang++-12 cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release .
       - uses: shenxianpeng/cpp-linter-action@master
