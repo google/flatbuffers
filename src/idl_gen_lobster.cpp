@@ -78,6 +78,16 @@ class LobsterGenerator : public BaseGenerator {
     return "int";
   }
 
+  std::string LobsterReturnType(const Type &type) {
+    if (IsFloat(type.base_type)) return "float";
+    if (IsBool(type.base_type)) return "bool";
+    if (IsString(type)) return "string";
+    if (IsScalar(type.base_type) && type.enum_def)
+      return NormalizedName(*type.enum_def);
+    if (!IsScalar(type.base_type)) return "flatbuffers_offset";
+    return "int";
+  }
+
   // Returns the method name for use with add/put calls.
   std::string GenMethod(const Type &type) {
     return IsScalar(type.base_type)
@@ -121,16 +131,17 @@ class LobsterGenerator : public BaseGenerator {
         acc = NormalizedName(*field.value.type.enum_def) + "(" + acc + ")";
       if (field.IsOptional())
         acc += ", buf_.flatbuffers_field_present(pos_, " + offsets + ")";
-      code += def + "():\n        return " + acc + "\n";
+      code += def + "()->" + LobsterReturnType(field.value.type) + ":\n        return " + acc + "\n";
       return;
     }
     switch (field.value.type.base_type) {
       case BASE_TYPE_STRUCT: {
         auto name = NamespacedName(*field.value.type.struct_def);
-        code += def + "():\n        ";
         if (struct_def.fixed) {
+          code += def + "()->" + name+":\n        ";
           code += "return " + name + "{ buf_, pos_ + " + offsets + " }\n";
         } else {
+          code += def + "()->" + name+"?:\n        ";
           code += std::string("let o = buf_.flatbuffers_field_") +
                   (field.value.type.struct_def->fixed ? "struct" : "table") +
                   "(pos_, " + offsets + ")\n        return if o: " + name +
@@ -140,25 +151,28 @@ class LobsterGenerator : public BaseGenerator {
       }
       case BASE_TYPE_STRING:
         code += def +
-                "():\n        return buf_.flatbuffers_field_string(pos_, " +
+                "()->string:\n        return buf_.flatbuffers_field_string(pos_, " +
                 offsets + ")\n";
         break;
       case BASE_TYPE_VECTOR: {
         auto vectortype = field.value.type.VectorType();
-        code += def + "(i:int):\n        return ";
         if (vectortype.base_type == BASE_TYPE_STRUCT) {
           auto start = "buf_.flatbuffers_field_vector(pos_, " + offsets +
                        ") + i * " + NumToString(InlineSize(vectortype));
           if (!(vectortype.struct_def->fixed)) {
             start = "buf_.flatbuffers_indirect(" + start + ")";
           }
+          code += def + "(i:int)->" + NamespacedName(*field.value.type.struct_def) + ":\n        return ";
           code += NamespacedName(*field.value.type.struct_def) + " { buf_, " +
                   start + " }\n";
         } else {
-          if (IsString(vectortype))
+          if (IsString(vectortype)) {
+            code += def + "(i:int)->string:\n        return ";
             code += "buf_.flatbuffers_string";
-          else
+          } else {
+            code += def + "(i:int)->" + LobsterReturnType(vectortype) + ":\n        return ";
             code += "buf_.read_" + GenTypeName(vectortype) + "_le";
+          }
           code += "(buf_.flatbuffers_field_vector(pos_, " + offsets +
                   ") + i * " + NumToString(InlineSize(vectortype)) + ")\n";
         }
@@ -181,7 +195,7 @@ class LobsterGenerator : public BaseGenerator {
     }
     if (IsVector(field.value.type)) {
       code += def +
-              "_length():\n        return "
+              "_length()->int:\n        return "
               "buf_.flatbuffers_field_vector_len(pos_, " +
               offsets + ")\n";
     }
