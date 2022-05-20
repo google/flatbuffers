@@ -578,9 +578,11 @@ class Builder(object):
         self.Place(off, flags)
 
     def PrependSlot(self, flags, o, x, d):
-        N.enforce_number(x, flags)
-        N.enforce_number(d, flags)
-        if x != d or self.forceDefaults:
+        if x is not None:
+            N.enforce_number(x, flags)
+        if d is not None:
+            N.enforce_number(d, flags)
+        if x != d or (self.forceDefaults and d is not None):
             self.Prepend(flags, x)
             self.Slot(o)
 
