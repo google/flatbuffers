@@ -278,7 +278,6 @@ class TestObjectBasedAPI(unittest.TestCase):
 
   def test_optional_scalars_with_pack_and_unpack(self):
     """ Serializes and deserializes between a buffer with optional values (no
-
         specific values are filled when the buffer is created) and its python
         object.
     """
@@ -303,7 +302,7 @@ class TestObjectBasedAPI(unittest.TestCase):
     self.assertTrue(opts2.DefaultBool() is True)
     self.assertTrue(optsT2.justU16 == 0)
     self.assertTrue(optsT2.maybeEnum is None)
-    self.assertTrue(optsT2.defaultU64 is 42)
+    self.assertTrue(optsT2.defaultU64 == 42)
 
 
 
