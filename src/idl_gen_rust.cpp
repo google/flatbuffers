@@ -1605,7 +1605,7 @@ class RustGenerator : public BaseGenerator {
       code_.SetValue("OFFSET_VALUE", NumToString(field.value.offset));
       code_.SetValue("FIELD", namer_.Field(field));
       code_.SetValue("BLDR_DEF_VAL", GetDefaultValue(field, kBuilder));
-      code_.SetValue("DISCRIMINANT", namer_.Method(field) + "_type");
+      code_.SetValue("DISCRIMINANT", namer_.Field(field) + "_type");
       code_.IncrementIdentLevel();
       cb(field);
       code_.DecrementIdentLevel();
