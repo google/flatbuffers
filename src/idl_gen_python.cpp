@@ -999,6 +999,9 @@ class PythonGenerator : public BaseGenerator {
         default:
           // Scalar or sting fields.
           field_type = GetBasePythonTypeForScalarAndString(base_type);
+          if (field.IsScalarOptional()) {
+            field_type = "Optional[" + field_type + "]";
+          }
           break;
       }
 

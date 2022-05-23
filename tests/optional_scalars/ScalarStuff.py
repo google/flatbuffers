@@ -400,40 +400,40 @@ class ScalarStuffT(object):
     # ScalarStuffT
     def __init__(self):
         self.justI8 = 0  # type: int
-        self.maybeI8 = None  # type: int
+        self.maybeI8 = None  # type: Optional[int]
         self.defaultI8 = 42  # type: int
         self.justU8 = 0  # type: int
-        self.maybeU8 = None  # type: int
+        self.maybeU8 = None  # type: Optional[int]
         self.defaultU8 = 42  # type: int
         self.justI16 = 0  # type: int
-        self.maybeI16 = None  # type: int
+        self.maybeI16 = None  # type: Optional[int]
         self.defaultI16 = 42  # type: int
         self.justU16 = 0  # type: int
-        self.maybeU16 = None  # type: int
+        self.maybeU16 = None  # type: Optional[int]
         self.defaultU16 = 42  # type: int
         self.justI32 = 0  # type: int
-        self.maybeI32 = None  # type: int
+        self.maybeI32 = None  # type: Optional[int]
         self.defaultI32 = 42  # type: int
         self.justU32 = 0  # type: int
-        self.maybeU32 = None  # type: int
+        self.maybeU32 = None  # type: Optional[int]
         self.defaultU32 = 42  # type: int
         self.justI64 = 0  # type: int
-        self.maybeI64 = None  # type: int
+        self.maybeI64 = None  # type: Optional[int]
         self.defaultI64 = 42  # type: int
         self.justU64 = 0  # type: int
-        self.maybeU64 = None  # type: int
+        self.maybeU64 = None  # type: Optional[int]
         self.defaultU64 = 42  # type: int
         self.justF32 = 0.0  # type: float
-        self.maybeF32 = None  # type: float
+        self.maybeF32 = None  # type: Optional[float]
         self.defaultF32 = 42.0  # type: float
         self.justF64 = 0.0  # type: float
-        self.maybeF64 = None  # type: float
+        self.maybeF64 = None  # type: Optional[float]
         self.defaultF64 = 42.0  # type: float
         self.justBool = False  # type: bool
-        self.maybeBool = None  # type: bool
+        self.maybeBool = None  # type: Optional[bool]
         self.defaultBool = True  # type: bool
         self.justEnum = 0  # type: int
-        self.maybeEnum = None  # type: int
+        self.maybeEnum = None  # type: Optional[int]
         self.defaultEnum = 1  # type: int
 
     @classmethod
