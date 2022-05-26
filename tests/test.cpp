@@ -719,7 +719,7 @@ void JsonEnumsTest() {
   TEST_EQ(std::string::npos != future_json.find("color: 13"), true);
 }
 
-void JsonOptionalTest() {
+void JsonOptionalTest(bool default_scalars) {
   // load FlatBuffer schema (.fbs) and JSON from disk
   std::string schemafile;
   std::string jsonfile;
@@ -727,10 +727,11 @@ void JsonOptionalTest() {
       flatbuffers::LoadFile((test_data_path + "optional_scalars.fbs").c_str(),
                             false, &schemafile),
       true);
-  TEST_EQ(
-      flatbuffers::LoadFile((test_data_path + "optional_scalars.json").c_str(),
-                            false, &jsonfile),
-      true);
+  TEST_EQ(flatbuffers::LoadFile((test_data_path + "optional_scalars" +
+                                 (default_scalars ? "_defaults" : "") + ".json")
+                                    .c_str(),
+                                false, &jsonfile),
+          true);
 
   auto include_test_path =
       flatbuffers::ConCatPathFileName(test_data_path, "include_test");
@@ -739,7 +740,7 @@ void JsonOptionalTest() {
 
   // parse schema first, so we can use it to parse the data after
   flatbuffers::Parser parser;
-  parser.opts.output_default_scalars_in_json = true;
+  parser.opts.output_default_scalars_in_json = default_scalars;
   TEST_EQ(parser.Parse(schemafile.c_str(), include_directories), true);
   TEST_EQ(parser.ParseJson(jsonfile.c_str()), true);
 
@@ -4530,7 +4531,8 @@ int FlatBufferTests() {
     LoadVerifyBinaryTest();
     GenerateTableTextTest();
     TestEmbeddedBinarySchema();
-    JsonOptionalTest();
+    JsonOptionalTest(false);
+    JsonOptionalTest(true);
   #endif
   // clang-format on
 
