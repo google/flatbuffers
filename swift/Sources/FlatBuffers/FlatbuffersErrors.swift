@@ -14,7 +14,11 @@
  * limitations under the License.
  */
 
+#if !os(WASI)
 import Foundation
+#else
+import SwiftOverlayShims
+#endif
 
 /// Collection of thrown from the Flatbuffer verifier
 public enum FlatbuffersErrors: Error, Equatable {
@@ -57,10 +61,17 @@ public enum FlatbuffersErrors: Error, Equatable {
     fieldName: String)
   case apparentSizeTooLarge
 
-  public static func == (
-    lhs: FlatbuffersErrors,
-    rhs: FlatbuffersErrors) -> Bool
-  {
-    lhs.localizedDescription == rhs.localizedDescription
-  }
 }
+
+#if !os(WASI)
+
+extension FlatbuffersErrors {
+    public static func == (
+      lhs: FlatbuffersErrors,
+      rhs: FlatbuffersErrors) -> Bool
+    {
+      lhs.localizedDescription == rhs.localizedDescription
+    }
+}
+
+#endif
