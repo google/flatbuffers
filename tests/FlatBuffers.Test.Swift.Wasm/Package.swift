@@ -1,5 +1,6 @@
+// swift-tools-version:5.1
 /*
- * Copyright 2021 Google Inc. All rights reserved.
+ * Copyright 2020 Google Inc. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,19 +15,20 @@
  * limitations under the License.
  */
 
-#if !os(WASI)
-import Foundation
-#else
-import SwiftOverlayShims
-#endif
+import PackageDescription
 
-/// Offset object for all the Objects that are written into the buffer
-public struct Offset {
-  /// Offset of the object in the buffer
-  public var o: UOffset
-  /// Returns false if the offset is equal to zero
-  public var isEmpty: Bool { o == 0 }
-
-  public init(offset: UOffset) { o = offset }
-  public init() { o = 0 }
-}
+let package = Package(
+  name: "FlatBuffers.Test.Swift.Wasm",
+  platforms: [
+    .macOS(.v10_14),
+  ],
+  dependencies: [
+    .package(path: "../../swift/"),
+  ],
+  targets: [
+    .target(
+      name: "Wasm"),
+    .testTarget(
+      name: "FlatBuffers.Test.Swift.WasmTests",
+      dependencies: ["FlatBuffers"])
+  ])

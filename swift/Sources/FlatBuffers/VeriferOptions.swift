@@ -14,7 +14,11 @@
  * limitations under the License.
  */
 
+#if !os(WASI)
 import Foundation
+#else
+import SwiftOverlayShims
+#endif
 
 /// `VerifierOptions` is a set of options to verify a flatbuffer
 public struct VerifierOptions {

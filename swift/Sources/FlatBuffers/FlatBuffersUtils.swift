@@ -14,7 +14,11 @@
  * limitations under the License.
  */
 
+#if !os(WASI)
 import Foundation
+#else
+import SwiftOverlayShims
+#endif
 
 /// FlatBuffersUtils hosts some utility functions that might be useful
 public enum FlatBuffersUtils {

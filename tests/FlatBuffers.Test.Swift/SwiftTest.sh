@@ -23,6 +23,10 @@ cd ${swift_dir}/Sources/SwiftFlatBuffers
 fbc --swift --gen-json-emit fuzzer.fbs
 cd ${swift_dir}
 
+cd ${test_dir}/Flatbuffers.Test.Swift.WASM/Tests/FlatBuffers.Test.Swift.WASMTests
+fbc --swift --gen-mutable --gen-json-emit --gen-object-api -I ${test_dir}/include_test ${test_dir}/monster_test.fbs
+cd ${swift_dir}
+
 swift build --build-tests
 swift test
 
