@@ -14,7 +14,11 @@
  * limitations under the License.
  */
 
+#if !os(WASI)
 import Foundation
+#else
+import SwiftOverlayShims
+#endif
 
 /// Mutable is a protocol that allows us to mutate Scalar values within a ``ByteBuffer``
 public protocol Mutable {

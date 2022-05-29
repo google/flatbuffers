@@ -14,7 +14,11 @@
  * limitations under the License.
  */
 
+#if !os(WASI)
 import Foundation
+#else
+import SwiftOverlayShims
+#endif
 
 /// FlatBufferGRPCMessage protocol that should allow us to invoke
 /// initializers directly from the GRPC generated code

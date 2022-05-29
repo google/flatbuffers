@@ -295,6 +295,19 @@ jobs:
       working-directory: tests/FlatBuffers.Test.Swift
       run: sh SwiftTest.sh
 
+  build-swift-wasm:
+    name: Build Swift Wasm
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/swiftwasm/carton:0.15.3
+    steps:
+      - uses: actions/checkout@v2
+      - name: Setup Wasmer
+        uses: wasmerio/setup-wasmer@v1
+      - name: Test
+        working-directory: tests/FlatBuffers.Test.Swift.Wasm
+        run: carton test
+
   build-ts:
     name: Build TS
     runs-on: ubuntu-latest

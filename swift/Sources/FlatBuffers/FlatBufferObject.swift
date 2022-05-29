@@ -14,7 +14,11 @@
  * limitations under the License.
  */
 
+#if !os(WASI)
 import Foundation
+#else
+import SwiftOverlayShims
+#endif
 
 /// NativeStruct is a protocol that indicates if the struct is a native `swift` struct
 /// since now we will be serializing native structs into the buffer.

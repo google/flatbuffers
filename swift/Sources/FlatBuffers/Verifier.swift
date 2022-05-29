@@ -14,7 +14,11 @@
  * limitations under the License.
  */
 
+#if !os(WASI)
 import Foundation
+#else
+import SwiftOverlayShims
+#endif
 
 /// Verifier that check if the buffer passed into it is a valid,
 /// safe, aligned Flatbuffers object since swift read from `unsafeMemory`

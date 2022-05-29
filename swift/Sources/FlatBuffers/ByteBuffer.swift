@@ -14,7 +14,11 @@
  * limitations under the License.
  */
 
+#if !os(WASI)
 import Foundation
+#else
+import SwiftOverlayShims
+#endif
 
 /// `ByteBuffer` is the interface that stores the data for a `Flatbuffers` object
 /// it allows users to write and read data directly from memory thus the use of its
@@ -125,6 +129,7 @@ public struct ByteBuffer {
     }
   }
 
+  #if !os(WASI)
   /// Constructor that creates a Flatbuffer from the Swift Data type object
   /// - Parameter data: Swift data Object
   public init(data: Data) {
@@ -135,6 +140,7 @@ public struct ByteBuffer {
       self._storage.copy(from: bufferPointer.baseAddress!, count: data.count)
     }
   }
+  #endif
 
   /// Constructor that creates a Flatbuffer instance with a size
   /// - Parameter size: Length of the buffer
@@ -144,7 +150,7 @@ public struct ByteBuffer {
     _storage.initialize(for: size)
   }
 
-  #if swift(>=5.0)
+  #if swift(>=5.0) && !os(WASI)
   /// Constructor that creates a Flatbuffer object from a ContiguousBytes
   /// - Parameters:
   ///   - contiguousBytes: Binary stripe to use as the buffer
@@ -367,6 +373,7 @@ public struct ByteBuffer {
     return Array(array)
   }
 
+  #if !os(WASI)
   /// Reads a string from the buffer and encodes it to a swift string
   /// - Parameters:
   ///   - index: index of the string in the buffer
@@ -386,6 +393,26 @@ public struct ByteBuffer {
     let bufprt = UnsafeBufferPointer(start: start, count: count)
     return String(bytes: Array(bufprt), encoding: type)
   }
+  #else
+  /// Reads a string from the buffer and encodes it to a swift string
+  /// - Parameters:
+  ///   - index: index of the string in the buffer
+  ///   - count: length of the string
+  ///   - type: Encoding of the string
+  @inline(__always)
+  public func readString(
+    at index: Int,
+    count: Int) -> String?
+  {
+    assert(
+      index + count <= _storage.capacity,
+      "Reading out of bounds is illegal")
+    let start = _storage.memory.advanced(by: index)
+      .assumingMemoryBound(to: UInt8.self)
+    let bufprt = UnsafeBufferPointer(start: start, count: count)
+    return String(cString: bufprt.baseAddress!)
+  }
+  #endif
 
   /// Creates a new Flatbuffer object that's duplicated from the current one
   /// - Parameter removeBytes: the amount of bytes to remove from the current Size

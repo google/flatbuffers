@@ -14,7 +14,11 @@
  * limitations under the License.
  */
 
+#if !os(WASI)
 import Foundation
+#else
+import SwiftOverlayShims
+#endif
 
 /// `Table` is a Flatbuffers object that can read,
 /// mutate scalar fields within a valid flatbuffers buffer
