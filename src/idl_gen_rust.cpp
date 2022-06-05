@@ -698,6 +698,9 @@ class RustGenerator : public BaseGenerator {
   // an enum match function,
   // and an enum array of values
   void GenEnum(const EnumDef &enum_def) {
+    const bool is_private = parser_.opts.no_leak_private_annotations &&
+        (enum_def.attributes.Lookup("private") != nullptr);
+    code_.SetValue("ACCESS_TYPE", is_private ? "pub(crate)" : "pub");
     code_.SetValue("ENUM_TY", namer_.Type(enum_def));
     code_.SetValue("BASE_TYPE", GetEnumTypeForDecl(enum_def.underlying_type));
     code_.SetValue("ENUM_NAMESPACE", namer_.Namespace(enum_def.name));
@@ -718,7 +721,7 @@ class RustGenerator : public BaseGenerator {
       code_ += "  flatbuffers::bitflags::bitflags! {";
       GenComment(enum_def.doc_comment, "    ");
       code_ += "    #[derive(Default)]";
-      code_ += "    pub struct {{ENUM_TY}}: {{BASE_TYPE}} {";
+      code_ += "    {{ACCESS_TYPE}} struct {{ENUM_TY}}: {{BASE_TYPE}} {";
       ForAllEnumValues1(enum_def, [&](const EnumVal &ev) {
         this->GenComment(ev.doc_comment, "    ");
         code_ += "    const {{VARIANT}} = {{VALUE}};";
@@ -764,7 +767,7 @@ class RustGenerator : public BaseGenerator {
           "#[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, "
           "Default)]";
       code_ += "#[repr(transparent)]";
-      code_ += "pub struct {{ENUM_TY}}(pub {{BASE_TYPE}});";
+      code_ += "{{ACCESS_TYPE}} struct {{ENUM_TY}}(pub {{BASE_TYPE}});";
       code_ += "#[allow(non_upper_case_globals)]";
       code_ += "impl {{ENUM_TY}} {";
       ForAllEnumValues1(enum_def, [&](const EnumVal &ev) {
@@ -881,7 +884,7 @@ class RustGenerator : public BaseGenerator {
     if (enum_def.is_union) {
       // Generate typesafe offset(s) for unions
       code_.SetValue("UNION_TYPE", namer_.Type(enum_def));
-      code_ += "pub struct {{UNION_TYPE}}UnionTableOffset {}";
+      code_ += "{{ACCESS_TYPE}} struct {{UNION_TYPE}}UnionTableOffset {}";
       code_ += "";
       if (parser_.opts.generate_object_based_api) { GenUnionObject(enum_def); }
     }
@@ -916,7 +919,7 @@ class RustGenerator : public BaseGenerator {
                                                        // intended.
     code_ += "#[non_exhaustive]";
     code_ += "#[derive(Debug, Clone, PartialEq)]";
-    code_ += "pub enum {{ENUM_OTY}} {";
+    code_ += "{{ACCESS_TYPE}} enum {{ENUM_OTY}} {";
     code_ += "  NONE,";
     ForAllUnionObjectVariantsBesidesNone(enum_def, [&] {
       code_ += "{{NATIVE_VARIANT}}(Box<{{U_ELEMENT_TABLE_TYPE}}>),";
@@ -1620,18 +1623,22 @@ class RustGenerator : public BaseGenerator {
   // Generate an accessor struct, builder struct, and create function for a
   // table.
   void GenTable(const StructDef &struct_def) {
+
+    const bool is_private = parser_.opts.no_leak_private_annotations &&
+        (struct_def.attributes.Lookup("private") != nullptr);
+    code_.SetValue("ACCESS_TYPE", is_private ? "pub(crate)" : "pub");
     code_.SetValue("STRUCT_TY", namer_.Type(struct_def));
     code_.SetValue("STRUCT_FN", namer_.Function(struct_def));
 
     // Generate an offset type, the base type, the Follow impl, and the
     // init_from_table impl.
-    code_ += "pub enum {{STRUCT_TY}}Offset {}";
+    code_ += "{{ACCESS_TYPE}} enum {{STRUCT_TY}}Offset {}";
     code_ += "#[derive(Copy, Clone, PartialEq)]";
     code_ += "";
 
     GenComment(struct_def.doc_comment);
 
-    code_ += "pub struct {{STRUCT_TY}}<'a> {";
+    code_ += "{{ACCESS_TYPE}} struct {{STRUCT_TY}}<'a> {";
     code_ += "  pub _tab: flatbuffers::Table<'a>,";
     code_ += "}";
     code_ += "";
@@ -1965,7 +1972,7 @@ class RustGenerator : public BaseGenerator {
     // Generate an args struct:
     code_.SetValue("MAYBE_LT",
                    TableBuilderArgsNeedsLifetime(struct_def) ? "<'a>" : "");
-    code_ += "pub struct {{STRUCT_TY}}Args{{MAYBE_LT}} {";
+    code_ += "{{ACCESS_TYPE}} struct {{STRUCT_TY}}Args{{MAYBE_LT}} {";
     ForAllTableFields(struct_def, [&](const FieldDef &field) {
       code_.SetValue("PARAM_TYPE", TableBuilderArgsDefnType(field, "'a"));
       code_ += "  pub {{FIELD}}: {{PARAM_TYPE}},";
@@ -2054,7 +2061,7 @@ class RustGenerator : public BaseGenerator {
     }
 
     // Generate a builder struct:
-    code_ += "pub struct {{STRUCT_TY}}Builder<'a: 'b, 'b> {";
+    code_ += "{{ACCESS_TYPE}} struct {{STRUCT_TY}}Builder<'a: 'b, 'b> {";
     code_ += "  fbb_: &'b mut flatbuffers::FlatBufferBuilder<'a>,";
     code_ +=
         "  start_: flatbuffers::WIPOffset<"
@@ -2175,7 +2182,7 @@ class RustGenerator : public BaseGenerator {
     // Generate the native object.
     code_ += "#[non_exhaustive]";
     code_ += "#[derive(Debug, Clone, PartialEq)]";
-    code_ += "pub struct {{STRUCT_OTY}} {";
+    code_ += "{{ACCESS_TYPE}} struct {{STRUCT_OTY}} {";
     ForAllObjectTableFields(table, [&](const FieldDef &field) {
       // Union objects combine both the union discriminant and value, so we
       // skip making a field for the discriminant.
@@ -2583,6 +2590,9 @@ class RustGenerator : public BaseGenerator {
   }
   // Generate an accessor struct with constructor for a flatbuffers struct.
   void GenStruct(const StructDef &struct_def) {
+    const bool is_private = parser_.opts.no_leak_private_annotations &&
+        (struct_def.attributes.Lookup("private") != nullptr);
+    code_.SetValue("ACCESS_TYPE", is_private ? "pub(crate)" : "pub");
     // Generates manual padding and alignment.
     // Variables are private because they contain little endian data on all
     // platforms.
@@ -2600,7 +2610,7 @@ class RustGenerator : public BaseGenerator {
     code_ += "// struct {{STRUCT_TY}}, aligned to {{ALIGN}}";
     code_ += "#[repr(transparent)]";
     code_ += "#[derive(Clone, Copy, PartialEq)]";
-    code_ += "pub struct {{STRUCT_TY}}(pub [u8; {{STRUCT_SIZE}}]);";
+    code_ += "{{ACCESS_TYPE}} struct {{STRUCT_TY}}(pub [u8; {{STRUCT_SIZE}}]);";
     code_ += "impl Default for {{STRUCT_TY}} { ";
     code_ += "  fn default() -> Self { ";
     code_ += "    Self([0; {{STRUCT_SIZE}}])";
@@ -2847,7 +2857,7 @@ class RustGenerator : public BaseGenerator {
     if (parser_.opts.generate_object_based_api) {
       // Struct declaration
       code_ += "#[derive(Debug, Clone, PartialEq, Default)]";
-      code_ += "pub struct {{STRUCT_OTY}} {";
+      code_ += "{{ACCESS_TYPE}} struct {{STRUCT_OTY}} {";
       ForAllStructFields(struct_def, [&](const FieldDef &field) {
         (void)field;  // unused.
         code_ += "pub {{FIELD}}: {{FIELD_OTY}},";

@@ -603,6 +603,7 @@ struct IDLOptions {
   bool json_nested_flexbuffers;
   bool json_nested_legacy_flatbuffers;
   bool ts_flat_file;
+  bool no_leak_private_annotations;
 
   // Possible options for the more general generator below.
   enum Language {
@@ -702,6 +703,7 @@ struct IDLOptions {
         json_nested_flexbuffers(true),
         json_nested_legacy_flatbuffers(false),
         ts_flat_file(false),
+        no_leak_private_annotations(false),
         mini_reflect(IDLOptions::kNone),
         require_explicit_ids(false),
         rust_serialize(false),
@@ -993,6 +995,9 @@ class Parser : public ParserState {
   FLATBUFFERS_CHECKED_ERROR ParseRoot(const char *_source,
                                       const char **include_paths,
                                       const char *source_filename);
+  FLATBUFFERS_CHECKED_ERROR CheckPrivateLeak();
+  FLATBUFFERS_CHECKED_ERROR CheckPrivatelyLeakedFields(
+      const Definition &def, const Definition &value_type);
   FLATBUFFERS_CHECKED_ERROR DoParse(const char *_source,
                                     const char **include_paths,
                                     const char *source_filename,

@@ -4324,6 +4324,129 @@ void FlatbuffersIteratorsTest() {
 void FlatbuffersIteratorsTest() {}
 #endif
 
+void PrivateAnnotationsLeaks() {
+  // Simple schemas and a "has optional scalar" sentinal.
+  std::vector<std::string> schemas;
+  std::vector<std::string> failure_schemas;
+
+  // (private) (table/struct)
+  schemas.push_back(
+      "table Monster (private) { mana: int; }"
+      "struct ABC (private) { mana: int; }");
+
+  // (public) (table/struct)
+  schemas.push_back(
+      "table Monster { mana: int; }"
+      "struct ABC { mana: int; }");
+
+  // (private) (union) containing (private) (table/struct)
+  schemas.push_back(
+      "table Monster (private) { mana: int; } "
+      "struct ABC (private) { mana: int; } "
+      "union Any (private) { Monster, ABC } ");
+
+  // (public) (union) containing (public) (table/struct)
+  schemas.push_back(
+      "table Monster { mana: int; }"
+      "struct ABC { mana: int; }"
+      "union Any { Monster, ABC }");
+
+  // (private) (table/struct/enum)
+  schemas.push_back(
+      "table Monster (private) { mana: int; }"
+      "struct ABC (private) { mana: int; }"
+      "enum Race:byte (private) { None = -1, Human = 0, }");
+
+  // (public) (table/struct/enum)
+  schemas.push_back(
+      "table Monster { mana: int; }"
+      "struct ABC { mana: int; }"
+      "enum Race:byte { None = -1, Human = 0, }");
+
+  // (private) (union) containing (private) (table/struct)
+  schemas.push_back(
+      "table Monster (private) { mana: int; }"
+      "struct ABC (private) { mana: int; }"
+      "enum Race:byte (private) { None = -1, Human = 0, }"
+      "union Any (private) { Monster, ABC }");
+
+  // (public) (union) containing (public) (table/struct)
+  schemas.push_back(
+      "table Monster { mana: int; }"
+      "struct ABC { mana: int; }"
+      "enum Race:byte { None = -1, Human = 0, }"
+      "union Any { Monster, ABC }");
+
+  // (private) (table), (public struct)
+  schemas.push_back(
+      "table Monster (private) { mana: int; }"
+      "struct ABC { mana: int; }");
+
+  // (private) (table), (public) (struct/enum)
+  schemas.push_back(
+    "table Monster (private) { mana: int; }"
+    "struct ABC { mana: int; }"
+    "enum Race:byte { None = -1, Human = 0, }");
+
+  // (public) (struct) containing (public) (enum)
+  schemas.push_back(
+      "enum Race:byte { None = -1, Human = 0, }"
+      "table Monster { mana: int; }"
+      "struct ABC { mana: int; type: Race; }");
+
+  // (public) (union) containing (private) (table) & (public) (struct)
+  failure_schemas.push_back(
+      "table Monster (private) { mana: int; }"
+      "struct ABC { mana: int; }"
+      "union Any { Monster, ABC }");
+
+  // (public) (union) containing (private) (table/struct)
+  failure_schemas.push_back(
+      "table Monster (private) { mana: int; }"
+      "struct ABC (private) { mana: int; }"
+      "enum Race:byte { None = -1, Human = 0, }"
+      "union Any { Monster, ABC }");
+
+  // (public) (table) containing (private) (struct)
+  failure_schemas.push_back(
+      "table Monster { mana: int; ab: ABC; }"
+      "struct ABC (private) { mana: int; }");
+
+  // (public) (struct) containing (private) (enum)
+  failure_schemas.push_back(
+      "enum Race:byte (private) { None = -1, Human = 0, }"
+      "table Monster { mana: int; }"
+      "struct ABC { mana: int; type: Race; }");
+
+  flatbuffers::IDLOptions opts;
+  opts.lang_to_generate = flatbuffers::IDLOptions::Language::kSwift;
+  opts.no_leak_private_annotations = true;
+
+  for (auto schema = schemas.begin(); schema < schemas.end(); schema++) {
+    flatbuffers::Parser parser(opts);
+    TEST_ASSERT(parser.Parse(schema->c_str()));
+  }
+
+  for (auto schema = failure_schemas.begin(); schema < failure_schemas.end();
+       schema++) {
+    flatbuffers::Parser parser(opts);
+    TEST_EQ(false, parser.Parse(schema->c_str()));
+  }
+
+  opts.no_leak_private_annotations = false;
+
+  for (auto schema = schemas.begin(); schema < schemas.end(); schema++) {
+    flatbuffers::Parser parser(opts);
+    TEST_ASSERT(parser.Parse(schema->c_str()));
+  }
+
+  for (auto schema = failure_schemas.begin(); schema < failure_schemas.end();
+       schema++) {
+    flatbuffers::Parser parser(opts);
+    TEST_ASSERT(parser.Parse(schema->c_str()));
+  }
+}
+
 int FlatBufferTests() {
   // clang-format off
 
@@ -4425,6 +4548,7 @@ int FlatBufferTests() {
   StructUnionTest();
   WarningsAsErrorsTest();
   NestedVerifierTest();
+  PrivateAnnotationsLeaks();
   return 0;
 }
 

@@ -456,6 +456,11 @@ flatc(
     prefix=cpp_17_prefix,
 )
 
+# Private annotations
+annotations_test_schema = "private_annotation_test.fbs"
+
+flatc(RUST_OPTS + ["--no-leak-private-annotation", "--gen-object-api"], prefix="private_annotation_test", schema=annotations_test_schema)
+
 # Sample files
 samples_schema = "monster.fbs"
 flatc(BASE_OPTS + CPP_OPTS + LOBSTER_OPTS, schema=samples_schema, cwd=samples_path)
