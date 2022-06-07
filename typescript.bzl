@@ -81,6 +81,7 @@ def flatbuffer_ts_library(
                 ],
                 "module": "commonjs",
                 "moduleResolution": "node",
+                "noUnusedLocals": True,
                 "strict": True,
                 "types": ["node"],
             },

@@ -177,6 +177,10 @@ class TsGenerator : public BaseGenerator {
   // This maps from import names to types to import.
   std::map<std::string, std::map<std::string, std::string>>
       flat_file_import_declarations_;
+  // For flat file codegen, tracks whether we need to import the flatbuffers
+  // library itself (not necessary for files that solely consist of enum
+  // definitions).
+  bool import_flatbuffers_lib_ = false;
 
   // Generate code for all enums.
   void generateEnums() {
@@ -200,6 +204,7 @@ class TsGenerator : public BaseGenerator {
       import_set bare_imports;
       import_set imports;
       AddImport(bare_imports, "* as flatbuffers", "flatbuffers");
+      import_flatbuffers_lib_ = true;
       auto &struct_def = **it;
       std::string declcode;
       GenStruct(parser_, struct_def, &declcode, imports);
@@ -212,7 +217,9 @@ class TsGenerator : public BaseGenerator {
   void generateEntry() {
     std::string code;
     if (parser_.opts.ts_flat_file) {
-      code += "import * as flatbuffers from 'flatbuffers';\n";
+      if (import_flatbuffers_lib_) {
+        code += "import * as flatbuffers from 'flatbuffers';\n";
+      }
       for (const auto &it : flat_file_import_declarations_) {
         // Note that we do end up generating an import for ourselves, which
         // should generally be harmless.
@@ -635,15 +642,29 @@ class TsGenerator : public BaseGenerator {
     }
 
     if (parser_.opts.ts_flat_file) {
-      std::string file = dependency.declaration_file == nullptr
-                                   ? dependency.file
-                                   : dependency.declaration_file->substr(2);
-      file = RelativeToRootPath(StripFileName(AbsolutePath(dependent.file)),
-                                dependency.file).substr(2);
-      long_import_name = ns + import_name;
-      flat_file_import_declarations_[file][import_name] = long_import_name;
-      if (parser_.opts.generate_object_based_api) {
-        flat_file_import_declarations_[file][import_name + "T"] = long_import_name + "T";
+      // In flat-file generation, do not attempt to import things from ourselves
+      // *and* do not wrap namespaces (note that this does override the logic
+      // above, but since we force all non-self-imports to use namespace-based
+      // names in flat file generation, it's fine).
+      if (dependent.file == dependency.file) {
+        // Should already be caught elsewhere, but if we ever try to get flat
+        // file generation and --gen-all working concurrently, then we'll need
+        // to update this import logic.
+        FLATBUFFERS_ASSERT(!parser_.opts.generate_all);
+        long_import_name = import_name;
+      } else {
+        long_import_name = ns + import_name;
+        std::string file = dependency.declaration_file == nullptr
+                               ? dependency.file
+                               : dependency.declaration_file->substr(2);
+        file = RelativeToRootPath(StripFileName(AbsolutePath(dependent.file)),
+                                  dependency.file)
+                   .substr(2);
+        flat_file_import_declarations_[file][import_name] = long_import_name;
+        if (parser_.opts.generate_object_based_api) {
+          flat_file_import_declarations_[file][import_name + "T"] =
+              long_import_name + "T";
+        }
       }
     }
 
@@ -715,13 +736,26 @@ class TsGenerator : public BaseGenerator {
     }
 
     if (parser_.opts.ts_flat_file) {
-      std::string file = dependency.declaration_file == nullptr
-                                   ? dependency.file
-                                   : dependency.declaration_file->substr(2);
-      file = RelativeToRootPath(StripFileName(AbsolutePath(dependent.file)),
-                                dependency.file).substr(2);
-      long_import_name = ns + import_name;
-      flat_file_import_declarations_[file][import_name] = long_import_name;
+      // In flat-file generation, do not attempt to import things from ourselves
+      // *and* do not wrap namespaces (note that this does override the logic
+      // above, but since we force all non-self-imports to use namespace-based
+      // names in flat file generation, it's fine).
+      if (dependent.file == dependency.file) {
+        // Should already be caught elsewhere, but if we ever try to get flat
+        // file generation and --gen-all working concurrently, then we'll need
+        // to update this import logic.
+        FLATBUFFERS_ASSERT(!parser_.opts.generate_all);
+        long_import_name = import_name;
+      } else {
+        long_import_name = ns + import_name;
+        std::string file = dependency.declaration_file == nullptr
+                               ? dependency.file
+                               : dependency.declaration_file->substr(2);
+        file = RelativeToRootPath(StripFileName(AbsolutePath(dependent.file)),
+                                  dependency.file)
+                   .substr(2);
+        flat_file_import_declarations_[file][import_name] = long_import_name;
+      }
     }
 
     std::string import_statement;
@@ -968,7 +1002,7 @@ class TsGenerator : public BaseGenerator {
       } else {
         if (nullCheck) {
           std::string nullValue = "0";
-          if (field.value.type.base_type == BASE_TYPE_BOOL) { 
+          if (field.value.type.base_type == BASE_TYPE_BOOL) {
             nullValue = "false";
           }
           ret += "(" + curr_member_accessor + " ?? " + nullValue + ")";
