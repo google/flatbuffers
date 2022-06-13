@@ -1,14 +1,5 @@
-load("//:typescript.bzl", "flatbuffer_ts_library")
-
 filegroup(
     name = "reflection_fbs_schema",
     srcs = ["reflection.fbs"],
-    visibility = ["//visibility:public"],
-)
-
-flatbuffer_ts_library(
-    name = "reflection_ts_fbs",
-    srcs = ["reflection.fbs"],
-    include_reflection = False,
     visibility = ["//visibility:public"],
 )
