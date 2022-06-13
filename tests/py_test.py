@@ -48,6 +48,8 @@ import MyGame.Example.ArrayStruct  # refers to generated code
 import MyGame.Example.NestedStruct  # refers to generated code
 import MyGame.Example.TestEnum  # refers to generated code
 import monster_test_generated  # the one-file version
+import optional_scalars
+import optional_scalars.ScalarStuff
 
 
 def create_namespace_shortcut(is_onefile):
@@ -273,6 +275,35 @@ class TestObjectBasedAPI(unittest.TestCase):
     self.assertEqual(monster2.VectorOfEnumsAsNumpy(), 0)
     self.assertEqual(monster2.VectorOfEnumsLength(), 0)
     self.assertTrue(monster2.VectorOfEnumsIsNone())
+
+  def test_optional_scalars_with_pack_and_unpack(self):
+    """ Serializes and deserializes between a buffer with optional values (no
+        specific values are filled when the buffer is created) and its python
+        object.
+    """
+    # Creates a flatbuffer with optional values.
+    b1 = flatbuffers.Builder(0)
+    optional_scalars.ScalarStuff.ScalarStuffStart(b1)
+    gen_opt = optional_scalars.ScalarStuff.ScalarStuffEnd(b1)
+    b1.Finish(gen_opt)
+
+    # Converts the flatbuffer into the object class.
+    opts1 = optional_scalars.ScalarStuff.ScalarStuff.GetRootAs(b1.Bytes, b1.Head())
+    optsT1 = optional_scalars.ScalarStuff.ScalarStuffT.InitFromObj(opts1)
+
+    # Packs the object class into another flatbuffer.
+    b2 = flatbuffers.Builder(0)
+    b2.Finish(optsT1.Pack(b2))
+    opts2 = optional_scalars.ScalarStuff.ScalarStuff.GetRootAs(b2.Bytes, b2.Head())
+    optsT2 = optional_scalars.ScalarStuff.ScalarStuffT.InitFromObj(opts2)
+    # Checks the default values.
+    self.assertTrue(opts2.JustI8() == 0)
+    self.assertTrue(opts2.MaybeF32() is None)
+    self.assertTrue(opts2.DefaultBool() is True)
+    self.assertTrue(optsT2.justU16 == 0)
+    self.assertTrue(optsT2.maybeEnum is None)
+    self.assertTrue(optsT2.defaultU64 == 42)
+
 
 
 class TestAllMutableCodePathsOfExampleSchema(unittest.TestCase):
