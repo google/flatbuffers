@@ -350,7 +350,7 @@ flatc(
 optional_scalars_schema = "optional_scalars.fbs"
 flatc(["--java", "--kotlin", "--lobster", "--ts"], schema=optional_scalars_schema)
 
-flatc(["--csharp", "--gen-object-api"], schema=optional_scalars_schema)
+flatc(["--csharp", "--python", "--gen-object-api"], schema=optional_scalars_schema)
 
 flatc(RUST_OPTS, prefix="optional_scalars", schema=optional_scalars_schema)
 
