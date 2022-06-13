@@ -1335,7 +1335,7 @@ CheckedError Parser::ParseTable(const StructDef &struct_def, std::string *value,
                 ECHECK(atot(field_value.constant.c_str(), *this, &val)); \
                 builder_.PushElement(val); \
               } else { \
-                if (field->value.constant == "null") { \
+                if (field->IsScalarOptional()) { \
                   if (field_value.constant != "null") { \
                     CTYPE val; \
                     ECHECK(atot(field_value.constant.c_str(), *this, &val)); \
