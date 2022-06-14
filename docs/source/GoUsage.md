@@ -52,10 +52,10 @@ a `[]byte`, which you pass to the `GetRootAsMonster` function:
        example "MyGame/Example"
        flatbuffers "github.com/google/flatbuffers/go"
 
-       io/ioutil
+       "os"
     )
 
-    buf, err := ioutil.ReadFile("monster.dat")
+    buf, err := os.ReadFile("monster.dat")
     // handle err
     monster := example.GetRootAsMonster(buf, 0)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
