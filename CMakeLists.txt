@@ -358,7 +358,6 @@ else()
       -Wno-unused-parameter
       -Wold-style-cast
       -Wimplicit-fallthrough
-      -Wextra-semi
       -fsigned-char
       -Wnon-virtual-dtor
 
@@ -380,6 +379,9 @@ else()
         $<$<VERSION_GREATER:$<CXX_COMPILER_VERSION>,7.0>:
           -faligned-new 
           -Werror=implicit-fallthrough=2
+        >
+        $<$<VERSION_GREATER:$<CXX_COMPILER_VERSION>,8.0>:
+          -Wextra-semi
         >
       >
 
