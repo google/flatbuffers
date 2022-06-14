@@ -777,7 +777,9 @@ class TsGenerator : public BaseGenerator {
   }
 
   // Generate a TS union type based on a union's enum
-  std::string GenObjApiUnionTypeTS(import_set &imports, const IDLOptions &opts,
+  std::string GenObjApiUnionTypeTS(import_set &imports,
+                                   const StructDef &dependent,
+                                   const IDLOptions &opts,
                                    const EnumDef &union_enum) {
     std::string ret = "";
     std::set<std::string> type_list;
@@ -792,7 +794,7 @@ class TsGenerator : public BaseGenerator {
         type = "string";  // no need to wrap string type in namespace
       } else if (ev.union_type.base_type == BASE_TYPE_STRUCT) {
         type = GetObjApiClassName(
-            AddImport(imports, union_enum, *ev.union_type.struct_def), opts);
+            AddImport(imports, dependent, *ev.union_type.struct_def), opts);
       } else {
         FLATBUFFERS_ASSERT(false);
       }
@@ -879,12 +881,13 @@ class TsGenerator : public BaseGenerator {
   // Used for generating a short function that returns the correct class
   // based on union enum type. Assume the context is inside the non object api
   // type
-  std::string GenUnionValTS(import_set &imports, const std::string &field_name,
+  std::string GenUnionValTS(import_set &imports, const StructDef &dependent,
+                            const std::string &field_name,
                             const Type &union_type,
                             const bool is_array = false) {
     if (union_type.enum_def) {
       const auto &enum_def = *union_type.enum_def;
-      const auto enum_type = AddImport(imports, enum_def, enum_def);
+      const auto enum_type = AddImport(imports, dependent, enum_def);
       const std::string union_accessor = "this." + field_name;
 
       const auto union_has_string = UnionHasStringType(enum_def);
@@ -1143,11 +1146,11 @@ class TsGenerator : public BaseGenerator {
               }
 
               case BASE_TYPE_UNION: {
-                field_type += GenObjApiUnionTypeTS(imports, parser.opts,
-                                                   *(vectortype.enum_def));
+                field_type += GenObjApiUnionTypeTS(
+                    imports, struct_def, parser.opts, *(vectortype.enum_def));
                 field_type += ")[]";
-                field_val =
-                    GenUnionValTS(imports, field_name, vectortype, true);
+                field_val = GenUnionValTS(imports, struct_def, field_name,
+                                          vectortype, true);
 
                 field_offset_decl =
                     EscapeKeyword(AddImport(imports, struct_def, struct_def)) +
@@ -1182,10 +1185,11 @@ class TsGenerator : public BaseGenerator {
           }
 
           case BASE_TYPE_UNION: {
-            field_type += GenObjApiUnionTypeTS(imports, parser.opts,
+            field_type += GenObjApiUnionTypeTS(imports, struct_def, parser.opts,
                                                *(field.value.type.enum_def));
 
-            field_val = GenUnionValTS(imports, field_name, field.value.type);
+            field_val = GenUnionValTS(imports, struct_def, field_name,
+                                      field.value.type);
             field_offset_decl =
                 "builder.createObjectOffset(this." + field_name_escaped + ")";
             break;
