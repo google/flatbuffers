@@ -1335,18 +1335,10 @@ CheckedError Parser::ParseTable(const StructDef &struct_def, std::string *value,
                 ECHECK(atot(field_value.constant.c_str(), *this, &val)); \
                 builder_.PushElement(val); \
               } else { \
-                if (field->IsScalarOptional()) { \
-                  if (field_value.constant != "null") { \
-                    CTYPE val; \
-                    ECHECK(atot(field_value.constant.c_str(), *this, &val)); \
-                    builder_.AddElement(field_value.offset, val); \
-                  } \
-                } else { \
-                  CTYPE val, valdef; \
-                  ECHECK(atot(field_value.constant.c_str(), *this, &val)); \
-                  ECHECK(atot(field->value.constant.c_str(), *this, &valdef)); \
-                  builder_.AddElement(field_value.offset, val, valdef); \
-                } \
+                CTYPE val, valdef; \
+                ECHECK(atot(field_value.constant.c_str(), *this, &val)); \
+                ECHECK(atot(field->value.constant.c_str(), *this, &valdef)); \
+                builder_.AddElement(field_value.offset, val, valdef); \
               } \
               break;
             FLATBUFFERS_GEN_TYPES_SCALAR(FLATBUFFERS_TD)
@@ -2477,7 +2469,7 @@ bool Parser::SupportsOptionalScalars(const flatbuffers::IDLOptions &opts) {
       IDLOptions::kRust | IDLOptions::kSwift | IDLOptions::kLobster |
       IDLOptions::kKotlin | IDLOptions::kCpp | IDLOptions::kJava |
       IDLOptions::kCSharp | IDLOptions::kTs | IDLOptions::kBinary |
-      IDLOptions::kGo | IDLOptions::kPython | IDLOptions::kJson;
+      IDLOptions::kGo | IDLOptions::kPython;
   unsigned long langs = opts.lang_to_generate;
   return (langs > 0 && langs < IDLOptions::kMAX) && !(langs & ~supported_langs);
 }
