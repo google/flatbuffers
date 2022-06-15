@@ -911,6 +911,11 @@ class Parser : public ParserState {
   // @param opts Options used to parce a schema and generate code.
   static bool SupportsOptionalScalars(const flatbuffers::IDLOptions &opts);
 
+  // Get the set of included files that are directly referenced by the file
+  // being parsed. This does not include files that are transitively included by
+  // others includes.
+  std::vector<std::string> GetIncludedFiles() const;
+
  private:
   class ParseDepthGuard;
 

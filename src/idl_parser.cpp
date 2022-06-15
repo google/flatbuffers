@@ -2189,12 +2189,8 @@ template<typename T> void EnumDef::ChangeEnumValue(EnumVal *ev, T new_value) {
 }
 
 namespace EnumHelper {
-template<BaseType E> struct EnumValType {
-  typedef int64_t type;
-};
-template<> struct EnumValType<BASE_TYPE_ULONG> {
-  typedef uint64_t type;
-};
+template<BaseType E> struct EnumValType { typedef int64_t type; };
+template<> struct EnumValType<BASE_TYPE_ULONG> { typedef uint64_t type; };
 }  // namespace EnumHelper
 
 struct EnumValBuilder {
@@ -2462,6 +2458,13 @@ CheckedError Parser::CheckClash(std::vector<FieldDef *> &fields,
     }
   }
   return NoError();
+}
+
+std::vector<std::string> Parser::GetIncludedFiles() const {
+  const auto it = files_included_per_file_.find(file_being_parsed_);
+  if (it == files_included_per_file_.end()) { return {}; }
+
+  return { it->second.cbegin(), it->second.cend() };
 }
 
 bool Parser::SupportsOptionalScalars(const flatbuffers::IDLOptions &opts) {
@@ -3332,8 +3335,8 @@ CheckedError Parser::CheckPrivatelyLeakedFields(const Definition &def,
   const auto is_field_private = value_type.attributes.Lookup("private");
   if (!is_private && is_field_private) {
     return Error(
-      "Leaking private implementation, verify all objects have similar "
-      "annotations");
+        "Leaking private implementation, verify all objects have similar "
+        "annotations");
   }
   return NoError();
 }
