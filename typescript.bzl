@@ -86,7 +86,7 @@ def flatbuffer_ts_library(
                 "types": ["node"],
             },
         },
-        deps = deps + ["//ts:flatbuffers"] + (["//reflection/ts:reflection_ts_fbs"] if include_reflection else []),
+        deps = deps + ["//ts:flatbuffers"] + (["//reflection:reflection_ts_fbs"] if include_reflection else []),
     )
     js_library(
         name = name,
