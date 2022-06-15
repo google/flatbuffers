@@ -572,9 +572,7 @@ if(FLATBUFFERS_BUILD_TESTS)
   target_link_libraries(flattests PRIVATE $<BUILD_INTERFACE:ProjectConfig>)
 
   add_dependencies(flattests generated_code)
-  set_property(TARGET flattests
-    PROPERTY COMPILE_DEFINITIONS FLATBUFFERS_TRACK_VERIFIER_BUFFER_SIZE
-    FLATBUFFERS_DEBUG_VERIFICATION_FAILURE=1)
+
   if(FLATBUFFERS_CODE_SANITIZE)
     add_fsanitize_to_target(flattests ${FLATBUFFERS_CODE_SANITIZE})
   endif()
@@ -598,15 +596,11 @@ if(FLATBUFFERS_BUILD_TESTS)
   if(FLATBUFFERS_BUILD_CPP17)
     # Don't generate header for flattests_cpp17 target.
     # This target uses "generated_cpp17/monster_test_generated.h"
-    # produced by direct call of generate_code.py script.
     add_executable(flattests_cpp17 ${FlatBuffers_Tests_CPP17_SRCS})
     add_dependencies(flattests_cpp17 generated_code)
     target_link_libraries(flattests_cpp17 PRIVATE $<BUILD_INTERFACE:ProjectConfig>)
     target_compile_features(flattests_cpp17 PRIVATE cxx_std_17)
-    target_compile_definitions(flattests_cpp17 PRIVATE
-      FLATBUFFERS_TRACK_VERIFIER_BUFFER_SIZE
-      FLATBUFFERS_DEBUG_VERIFICATION_FAILURE=1
-    )
+
     if(FLATBUFFERS_CODE_SANITIZE)
       add_fsanitize_to_target(flattests_cpp17 ${FLATBUFFERS_CODE_SANITIZE})
     endif()
