@@ -853,7 +853,7 @@ int FlatCompiler::Compile(int argc, const char **argv) {
           if (params_.generators[i].generateGRPC != nullptr) {
             if (!params_.generators[i].generateGRPC(*parser.get(), output_path,
                                                     filebase)) {
-              Error(std::string("Unable to generate GRPC interface for") +
+              Error(std::string("Unable to generate GRPC interface for ") +
                     params_.generators[i].lang_name);
             }
           } else {
