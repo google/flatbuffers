@@ -221,33 +221,34 @@ class CppGenerator : public BaseGenerator {
   }
 
   void GenIncludeDependencies() {
-    int num_includes = 0;
     if (opts_.generate_object_based_api) {
       for (auto it = parser_.native_included_files_.begin();
            it != parser_.native_included_files_.end(); ++it) {
         code_ += "#include \"" + *it + "\"";
-        num_includes++;
       }
     }
 
-    std::vector<std::string> include_files;
-    for (auto it = parser_.included_files_.begin();
-         it != parser_.included_files_.end(); ++it) {
-      if (it->second.empty()) continue;
-      include_files.push_back(it->second);
-    }
-    std::stable_sort(include_files.begin(), include_files.end());
+    // Get the directly included file of the file being parsed.
+    std::vector<std::string> included_files(parser_.GetIncludedFiles());
 
-    for (auto it = include_files.begin(); it != include_files.end(); ++it) {
-      auto noext = flatbuffers::StripExtension(*it);
-      auto basename = flatbuffers::StripPath(noext);
-      auto includeName =
-          GeneratedFileName(opts_.include_prefix,
-                            opts_.keep_include_path ? noext : basename, opts_);
-      code_ += "#include \"" + includeName + "\"";
-      num_includes++;
+    // We are safe to sort them alphabetically, since there shouldn't be any
+    // interdependence between them.
+    std::stable_sort(included_files.begin(), included_files.end());
+
+    for (const std::string &included_file : included_files) {
+      auto noext = flatbuffers::StripExtension(included_file);
+      code_ +=
+          "#include \"" +
+          GeneratedFileName(
+              opts_.include_prefix,
+              opts_.keep_include_path ? noext : flatbuffers::StripPath(noext),
+              opts_) +
+          "\"";
     }
-    if (num_includes) code_ += "";
+
+    if (!parser_.native_included_files_.empty() || !included_files.empty()) {
+      code_ += "";
+    }
   }
 
   void GenExtraIncludes() {
