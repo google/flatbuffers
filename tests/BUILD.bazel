@@ -50,6 +50,8 @@ cc_test(
         ":name_clash_test/valid_test2.fbs",
         ":native_type_test.fbs",
         ":optional_scalars.fbs",
+        ":optional_scalars.json",
+        ":optional_scalars_defaults.json",
         ":prototest/imported.proto",
         ":prototest/test.golden",
         ":prototest/test.proto",
