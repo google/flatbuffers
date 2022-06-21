@@ -145,6 +145,11 @@ int main(int argc, const char *argv[]) {
       flatbuffers::FlatCOption{ "", "swift", "",
                                 "Generate Swift files for tables/structs" },
       nullptr, nullptr, nullptr },
+    { flatbuffers::GenerateNim, "Nim", true, nullptr,
+      flatbuffers::IDLOptions::kNim,
+      flatbuffers::FlatCOption{ "", "nim", "",
+                                "Generate Nim files for tables/structs" },
+      nullptr, nullptr, nullptr },
   };
 
   flatbuffers::FlatCompiler::InitParams params;

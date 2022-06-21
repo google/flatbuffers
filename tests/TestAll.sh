@@ -57,3 +57,9 @@ echo "************************ Swift:"
 cd FlatBuffers.Test.Swift
 sh SwiftTest.sh
 cd ..
+
+echo "************************ Nim:"
+
+cd FlatBuffers.Test.Nim
+sh NimTest.sh
+cd ..

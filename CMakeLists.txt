@@ -71,7 +71,7 @@ option(FLATBUFFERS_ENABLE_PCH
         Only work if CMake supports 'target_precompile_headers'. \"
         This can speed up compilation time."
        OFF)
-option(FLATBUFFERS_SKIP_MONSTER_EXTRA 
+option(FLATBUFFERS_SKIP_MONSTER_EXTRA
       "Skip generating monster_extra.fbs that contains non-supported numerical\"
       types." OFF)
 
@@ -156,6 +156,7 @@ set(FlatBuffers_Compiler_SRCS
   src/idl_gen_grpc.cpp
   src/idl_gen_json_schema.cpp
   src/idl_gen_swift.cpp
+  src/idl_gen_nim.cpp
   src/idl_namer.h
   src/namer.h
   src/flatc.cpp
@@ -320,8 +321,8 @@ include_directories(grpc)
 
 # Creates an interface library that stores the configuration settings that each
 # target links too. This is a compromise between setting configuration globally
-# with add_compile_options() and the more targetted target_compile_options(). 
-# This way each target in this file can share settings and override them if 
+# with add_compile_options() and the more targetted target_compile_options().
+# This way each target in this file can share settings and override them if
 # needed.
 add_library(ProjectConfig INTERFACE)
 target_compile_features(ProjectConfig
@@ -335,9 +336,9 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 # We shouldn't rely on any compiler-extensions to make things work.
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-if(MSVC) 
+if(MSVC)
   target_compile_options(ProjectConfig
-    INTERFACE 
+    INTERFACE
       /W4
       /WX
       /wd4512   # C4512: assignment operator could not be generated
@@ -352,9 +353,9 @@ else()
     INTERFACE
       -Wall
       -Werror
-      -pedantic 
-      -Werror 
-      -Wextra 
+      -pedantic
+      -Werror
+      -Wextra
       -Wno-unused-parameter
       -Wold-style-cast
       -Wimplicit-fallthrough
@@ -371,13 +372,13 @@ else()
 
       $<$<CXX_COMPILER_ID:GNU>:
         $<$<VERSION_GREATER:$<CXX_COMPILER_VERSION>,4.4>:
-          -Wunused-result 
-          -Werror=unused-result 
-          -Wunused-parameter 
+          -Wunused-result
+          -Werror=unused-result
+          -Wunused-parameter
           -Werror=unused-parameter
         >
         $<$<VERSION_GREATER:$<CXX_COMPILER_VERSION>,7.0>:
-          -faligned-new 
+          -faligned-new
           -Werror=implicit-fallthrough=2
         >
         $<$<VERSION_GREATER:$<CXX_COMPILER_VERSION>,8.0>:
@@ -405,7 +406,7 @@ if(FLATBUFFERS_BUILD_FLATLIB)
   add_library(flatbuffers STATIC ${FlatBuffers_Library_SRCS})
 
   # Attach header directory for when build via add_subdirectory().
-  target_include_directories(flatbuffers 
+  target_include_directories(flatbuffers
     INTERFACE
       $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
   )
@@ -423,7 +424,7 @@ if(FLATBUFFERS_BUILD_FLATC)
   endif()
 
   target_link_libraries(flatc PRIVATE $<BUILD_INTERFACE:ProjectConfig>)
-  target_compile_options(flatc 
+  target_compile_options(flatc
     PUBLIC
       $<$<AND:$<CXX_COMPILER_ID:MSVC>,$<CONFIG:Release>>:
         /MT
@@ -623,13 +624,13 @@ if(FLATBUFFERS_BUILD_GRPCTEST)
   find_package(gRPC CONFIG REQUIRED)
   add_executable(grpctest ${FlatBuffers_GRPCTest_SRCS})
   add_dependencies(grpctest generated_code)
-  target_link_libraries(grpctext 
-    PRIVATE 
+  target_link_libraries(grpctext
+    PRIVATE
       $<BUILD_INTERFACE:ProjectConfig>
-      gRPC::grpc++_unsecure 
-      gRPC::gpr 
+      gRPC::grpc++_unsecure
+      gRPC::gpr
       pthread
-      dl 
+      dl
   )
 endif()
 
