@@ -139,7 +139,6 @@ class NimGenerator : public BaseGenerator {
   void GetVectorLen(const StructDef &struct_def, const FieldDef &field,
                     std::string *code_ptr) {
     std::string &code = *code_ptr;
-
     code += "proc " + NormalizedName(field) + "Length" + Export +
             "(self: " + NormalizedName(struct_def) + "): int =\n";
     code += OffsetPrefix(field);
@@ -147,6 +146,20 @@ class NimGenerator : public BaseGenerator {
             ".Vectorlen(o)\n";
     code += std::string(Indent) + "else:\n";
     code += std::string(Indent) + std::string(Indent) + "result = 0\n";
+    code += EndFunc;
+  }
+
+  void GetVector(const StructDef &struct_def, const FieldDef &field,
+                 std::string *code_ptr) {
+    std::string &code = *code_ptr;
+    code += "proc " + NormalizedName(field) + Export +
+            "(self: " + NormalizedName(struct_def) + "): seq[" +
+            TypeName(field) + "] =\n";
+    code += std::string(Indent) + "let len = self." + NormalizedName(field) +
+            "Length\n";
+    code += std::string(Indent) + "for i in countup(0, len - 1):\n";
+    code += std::string(Indent) + std::string(Indent) + "result.add(self." +
+            NormalizedName(field) + "(i))\n";
     code += EndFunc;
   }
 
@@ -178,8 +191,7 @@ class NimGenerator : public BaseGenerator {
     code += "proc " + NormalizedName(field) + Export +
             "(self: " + NormalizedName(struct_def) +
             "): " + GenTypeGet(field.value.type) + " =\n";
-    code += std::string(Indent) + "result.Init(" +
-            SelfDataBytes + ", " +
+    code += std::string(Indent) + "result.Init(" + SelfDataBytes + ", " +
             SelfDataPos + " + " + NumToString(field.value.offset) + ")\n";
 
     if (parser_.opts.mutable_buffer) {
@@ -201,10 +213,12 @@ class NimGenerator : public BaseGenerator {
             "): " + GenTypeGet(field.value.type) + " =\n";
 
     code += OffsetPrefix(field);
-    code += std::string(Indent) + std::string(Indent) + "result = " + GenGetter(field.value.type) + "o + " +
-            SelfDataPos + ")\n";
+    code += std::string(Indent) + std::string(Indent) +
+            "result = " + GenGetter(field.value.type) + "o + " + SelfDataPos +
+            ")\n";
     code += std::string(Indent) + "else:\n";
-    code += std::string(Indent) + std::string(Indent) + "result = " + GetDefaultValue(field) + "\n";
+    code += std::string(Indent) + std::string(Indent) +
+            "result = " + GetDefaultValue(field) + "\n";
 
     if (parser_.opts.mutable_buffer) {
       code += "proc `" + NormalizedName(field) + "=`" + Export + "(self: var " +
@@ -242,9 +256,16 @@ class NimGenerator : public BaseGenerator {
             "(self: " + NormalizedName(struct_def) +
             "): " + GenTypeGet(field.value.type) + " =\n";
     code += OffsetPrefix(field);
-    code += std::string(Indent) + std::string(Indent) + "result = " + GenGetter(field.value.type) + "o + " + SelfDataPos + ")\n";
+    code += std::string(Indent) + std::string(Indent) +
+            "result = " + GenGetter(field.value.type) + "o + " + SelfDataPos +
+            ")\n";
     code += std::string(Indent) + "else:\n";
-    code += std::string(Indent) + std::string(Indent) + "discard\n";
+    if (field.IsDefault()) {
+      code += std::string(Indent) + std::string(Indent) + "result = \"" +
+              field.value.constant + "\"\n";
+    } else {
+      code += std::string(Indent) + std::string(Indent) + "discard\n";
+    }
     code += EndFunc;
   }
 
@@ -255,7 +276,8 @@ class NimGenerator : public BaseGenerator {
     code += "proc " + NormalizedName(field) + Export +
             "(self: " + NormalizedName(struct_def) + "): FlatObj =\n";
     code += OffsetPrefix(field);
-    code += std::string(Indent) + std::string(Indent) + GenGetter(field.value.type) + "result.tab, o)\n";
+    code += std::string(Indent) + std::string(Indent) +
+            GenGetter(field.value.type) + "result.tab, o)\n";
     code += std::string(Indent) + "else:\n";
     code += std::string(Indent) + std::string(Indent) + "discard\n";
     code += EndFunc;
@@ -300,7 +322,8 @@ class NimGenerator : public BaseGenerator {
             NumToString(InlineSize(field.value.type.VectorType())) +
             ".uoffset\n";
 
-    code += std::string(Indent) + std::string(Indent) + "result = " + GenGetter(field.value.type) + "x)\n";
+    code += std::string(Indent) + std::string(Indent) +
+            "result = " + GenGetter(field.value.type) + "x)\n";
     code += std::string(Indent) + "else:\n";
     code += std::string(Indent) + std::string(Indent) + "discard\n";
     code += EndFunc;
@@ -361,7 +384,7 @@ class NimGenerator : public BaseGenerator {
                           (nameprefix + (NormalizedName(field) + "_")).c_str(),
                           code_ptr);
       } else {
-        code += std::string(Indent) + "self.Prepend"+ GenMethod(field) +"(";
+        code += std::string(Indent) + "self.Prepend" + GenMethod(field) + "(";
         code += nameprefix +
                 ConvertCase(NormalizedName(field), Case::kLowerCamel) + ")\n";
       }
@@ -392,9 +415,10 @@ class NimGenerator : public BaseGenerator {
             "(builder: var Builder, " +
             ConvertCase(NormalizedName(field), Case::kLowerCamel) + ": " +
             GenTypeBasic(field.value.type) + ") =\n";
-    code += std::string(Indent) + "builder.Prepend" + GenMethod(field) + "Slot(" + NumToString(offset) +
-            ", " + ConvertCase(NormalizedName(field), Case::kLowerCamel) +
-            ", " + GetDefaultValue(field) + ")\n";
+    code += std::string(Indent) + "builder.Prepend" + GenMethod(field) +
+            "Slot(" + NumToString(offset) + ", " +
+            ConvertCase(NormalizedName(field), Case::kLowerCamel) + ", " +
+            GetDefaultValue(field) + ")\n";
   }
 
   // Set the value of one of the members of a table's vector.
@@ -449,6 +473,7 @@ class NimGenerator : public BaseGenerator {
           } else {
             GetMemberOfVectorOfNonStruct(struct_def, field, code_ptr);
           }
+          GetVector(struct_def, field, code_ptr);
           break;
         }
         case BASE_TYPE_UNION: GetUnionField(struct_def, field, code_ptr); break;
@@ -556,7 +581,6 @@ class NimGenerator : public BaseGenerator {
   // Returns the function name that is able to read a value of the given type.
   std::string GenGetter(const Type &type) {
     switch (type.base_type) {
-
       case BASE_TYPE_STRING: return std::string(SelfData) + ".String(";
       case BASE_TYPE_UNION: return std::string(SelfData) + ".Union(";
       case BASE_TYPE_VECTOR: return GenGetter(type.VectorType());
@@ -702,9 +726,7 @@ class NimGenerator : public BaseGenerator {
     code += std::string(Comment) + FlatBuffersGeneratedWarning() + "\n\n";
     code += std::string(Comment) + "namespace: " + name_space_name + "\n\n";
     if (needs_imports) { code += "import flatbuffers \n\n"; }
-    for (std::string import : imports_) {
-      code += import;
-    }
+    for (std::string import : imports_) { code += import; }
     imports_.clear();
     code += "\n";
   }

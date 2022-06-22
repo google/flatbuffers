@@ -3,7 +3,6 @@ import flatbuffers
 import MyGame/Example/test_generated
 import MyGame/Example/monster_generated
 import MyGame/Example/vec3_generated
-import MyGame/Example/stat_generated
 import MyGame/Example/color_generated
 import MyGame/Example/any_generated
 
