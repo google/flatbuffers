@@ -1,6 +1,6 @@
 import std/unittest
 import flatbuffers
-import moredefaults_generated
+import MoreDefaults_generated
 
 suite "TestMoreDefaults":
 

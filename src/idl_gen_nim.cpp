@@ -24,10 +24,49 @@
 #include "flatbuffers/flatbuffers.h"
 #include "flatbuffers/idl.h"
 #include "flatbuffers/util.h"
+#include "idl_namer.h"
 
 namespace flatbuffers {
 namespace nim {
 
+std::set<std::string> NimKeywords() {
+  return {
+    "addr",      "and",     "as",        "asm",      "bind",   "block",
+    "break",     "case",    "cast",      "concept",  "const",  "continue",
+    "converter", "defer",   "discard",   "distinct", "div",    "do",
+    "elif",      "else",    "end",       "enum",     "except", "export",
+    "finally",   "for",     "from",      "func",     "if",     "import",
+    "in",        "include", "interface", "is",       "isnot",  "iterator",
+    "let",       "macro",   "method",    "mixin",    "mod",    "nil",
+    "not",       "notin",   "object",    "of",       "or",     "out",
+    "proc",      "ptr",     "raise",     "ref",      "return", "shl",
+    "shr",       "static",  "template",  "try",      "tuple",  "type",
+    "using",     "var",     "when",      "while",    "xor",    "yield",
+  };
+}
+
+Namer::Config NimDefaultConfig() {
+  return { /*types=*/Case::kKeep,
+           /*constants=*/Case::kScreamingSnake,
+           /*methods=*/Case::kUpperCamel,
+           /*functions=*/Case::kUpperCamel,
+           /*fields=*/Case::kLowerCamel,
+           /*variable=*/Case::kLowerCamel,
+           /*variants=*/Case::kKeep,
+           /*enum_variant_seperator=*/".",
+           /*escape_keywords=*/Namer::Config::Escape::BeforeConvertingCase,
+           /*namespaces=*/Case::kKeep,  // Packages in python.
+           /*namespace_seperator=*/".",
+           /*object_prefix=*/"",
+           /*object_suffix=*/"T",
+           /*keyword_prefix=*/"",
+           /*keyword_suffix=*/"_",
+           /*filenames=*/Case::kKeep,
+           /*directories=*/Case::kKeep,
+           /*output_path=*/"",
+           /*filename_suffix=*/"_generated",
+           /*filename_extension=*/".nim" };
+}
 // Hardcode spaces per indentation.
 const CommentConfig def_comment = { nullptr, "#", nullptr };
 const char *Indent = "  ";
@@ -44,22 +83,9 @@ class NimGenerator : public BaseGenerator {
   NimGenerator(const Parser &parser, const std::string &path,
                const std::string &file_name)
       : BaseGenerator(parser, path, file_name, "" /* not used */,
-                      "" /* not used */, "nim") {
-    static const char *const keywords[] = {
-      "addr",      "and",     "as",        "asm",      "bind",   "block",
-      "break",     "case",    "cast",      "concept",  "const",  "continue",
-      "converter", "defer",   "discard",   "distinct", "div",    "do",
-      "elif",      "else",    "end",       "enum",     "except", "export",
-      "finally",   "for",     "from",      "func",     "if",     "import",
-      "in",        "include", "interface", "is",       "isnot",  "iterator",
-      "let",       "macro",   "method",    "mixin",    "mod",    "nil",
-      "not",       "notin",   "object",    "of",       "or",     "out",
-      "proc",      "ptr",     "raise",     "ref",      "return", "shl",
-      "shr",       "static",  "template",  "try",      "tuple",  "type",
-      "using",     "var",     "when",      "while",    "xor",    "yield",
-    };
-    keywords_.insert(std::begin(keywords), std::end(keywords));
-  }
+                      "" /* not used */, "nim"),
+        namer_(WithFlagOptions(NimDefaultConfig(), parser.opts, path),
+               NimKeywords()) {}
 
   // Most field accessors need to retrieve and test the field offset first,
   // this is the prefix code for that.
@@ -72,7 +98,7 @@ class NimGenerator : public BaseGenerator {
   void BeginClass(const StructDef &struct_def, std::string *code_ptr) {
     std::string &code = *code_ptr;
     code += "type\n";
-    code += std::string(Indent) + NormalizedName(struct_def) + Export +
+    code += std::string(Indent) + namer_.Type(struct_def) + Export +
             " = object of FlatObj\n";
     code += "\n";
   }
@@ -84,27 +110,11 @@ class NimGenerator : public BaseGenerator {
     code += std::string(Indent) + class_name + Export + " {.pure.} = enum\n";
   }
 
-  std::string EscapeKeyword(const std::string &name) const {
-    return keywords_.find(name) == keywords_.end() ? name : "_" + name;
-  }
-
-  std::string NormalizedName(const Definition &definition) const {
-    return EscapeKeyword(definition.name);
-  }
-
-  std::string NormalizedName(const EnumVal &ev) const {
-    return EscapeKeyword(ev.name);
-  }
-
-  std::string NormalizedMetaName(const Definition &definition) const {
-    return EscapeKeyword(definition.name) + "_mt";
-  }
-
   // A single enum member.
   void EnumMember(const EnumDef &enum_def, const EnumVal &ev,
                   std::string *code_ptr) {
     std::string &code = *code_ptr;
-    code += std::string(Indent) + std::string(Indent) + NormalizedName(ev) +
+    code += std::string(Indent) + std::string(Indent) + namer_.Variant(ev) +
             " = " + enum_def.ToString(ev) + "." +
             GenTypeBasic(enum_def.underlying_type) + ",\n";
   }
@@ -119,17 +129,17 @@ class NimGenerator : public BaseGenerator {
   void NewRootTypeFromBuffer(const StructDef &struct_def,
                              std::string *code_ptr) {
     std::string &code = *code_ptr;
+    const std::string struct_type = namer_.Type(struct_def);
 
-    code += "function " + NormalizedName(struct_def) + ".GetRootAs" +
-            NormalizedName(struct_def) + "(buf, offset)\n";
+    code += "function " + struct_type + ".GetRootAs" + struct_type +
+            "(buf, offset)\n";
     code += std::string(Indent) + "if type(buf) == \"string\" then\n";
     code += std::string(Indent) + Indent +
             "buf = flatbuffers.binaryArray.New(buf)\n";
     code += std::string(Indent) + "end\n";
     code += std::string(Indent) +
             "local n = flatbuffers.N.UOffsetT:Unpack(buf, offset)\n";
-    code += std::string(Indent) + "local o = " + NormalizedName(struct_def) +
-            ".New()\n";
+    code += std::string(Indent) + "local o = " + struct_type + ".New()\n";
     code += std::string(Indent) + "o:Init(buf, n + offset)\n";
     code += std::string(Indent) + "return o\n";
     code += EndFunc;
@@ -139,8 +149,8 @@ class NimGenerator : public BaseGenerator {
   void GetVectorLen(const StructDef &struct_def, const FieldDef &field,
                     std::string *code_ptr) {
     std::string &code = *code_ptr;
-    code += "proc " + NormalizedName(field) + "Length" + Export +
-            "(self: " + NormalizedName(struct_def) + "): int =\n";
+    code += "proc " + namer_.Field(field) + "Length" + Export +
+            "(self: " + namer_.Type(struct_def) + "): int =\n";
     code += OffsetPrefix(field);
     code += std::string(Indent) + std::string(Indent) + "result = " + SelfData +
             ".Vectorlen(o)\n";
@@ -152,14 +162,14 @@ class NimGenerator : public BaseGenerator {
   void GetVector(const StructDef &struct_def, const FieldDef &field,
                  std::string *code_ptr) {
     std::string &code = *code_ptr;
-    code += "proc " + NormalizedName(field) + Export +
-            "(self: " + NormalizedName(struct_def) + "): seq[" +
-            TypeName(field) + "] =\n";
-    code += std::string(Indent) + "let len = self." + NormalizedName(field) +
+    code += "proc " + namer_.Field(field) + Export +
+            "(self: " + namer_.Type(struct_def) + "): seq[" + TypeName(field) +
+            "] =\n";
+    code += std::string(Indent) + "let len = self." + namer_.Field(field) +
             "Length\n";
     code += std::string(Indent) + "for i in countup(0, len - 1):\n";
     code += std::string(Indent) + std::string(Indent) + "result.add(self." +
-            NormalizedName(field) + "(i))\n";
+            namer_.Field(field) + "(i))\n";
     code += EndFunc;
   }
 
@@ -167,16 +177,16 @@ class NimGenerator : public BaseGenerator {
   void GetScalarFieldOfStruct(const StructDef &struct_def,
                               const FieldDef &field, std::string *code_ptr) {
     std::string &code = *code_ptr;
-    code += "proc " + NormalizedName(field) + Export +
-            "(self: " + NormalizedName(struct_def) +
+    code += "proc " + namer_.Field(field) + Export +
+            "(self: " + namer_.Type(struct_def) +
             "): " + GenTypeGet(field.value.type) + " =\n";
     code += std::string(Indent) + "result = " + GenGetter(field.value.type) +
             SelfDataPos + " + " + NumToString(field.value.offset) + ")\n";
 
     if (parser_.opts.mutable_buffer) {
-      code += "proc `" + NormalizedName(field) + "=`" + Export + "(self: var " +
-              NormalizedName(struct_def) +
-              ", n: " + GenTypeGet(field.value.type) + ") =\n";
+      code += "proc `" + namer_.Field(field) + "=`" + Export + "(self: var " +
+              namer_.Type(struct_def) + ", n: " + GenTypeGet(field.value.type) +
+              ") =\n";
       code += std::string(Indent) + "discard " + SelfData + ".Mutate(" +
               SelfDataPos + " + " + NumToString(field.value.offset) + ", n)\n";
     }
@@ -188,16 +198,16 @@ class NimGenerator : public BaseGenerator {
                               const FieldDef &field, std::string *code_ptr) {
     std::string &code = *code_ptr;
     imports_.insert(GetImport(struct_def, field));
-    code += "proc " + NormalizedName(field) + Export +
-            "(self: " + NormalizedName(struct_def) +
+    code += "proc " + namer_.Field(field) + Export +
+            "(self: " + namer_.Type(struct_def) +
             "): " + GenTypeGet(field.value.type) + " =\n";
     code += std::string(Indent) + "result.Init(" + SelfDataBytes + ", " +
             SelfDataPos + " + " + NumToString(field.value.offset) + ")\n";
 
     if (parser_.opts.mutable_buffer) {
-      code += "proc `" + NormalizedName(field) + "=`" + Export + "(self: var " +
-              NormalizedName(struct_def) +
-              ", n: " + GenTypeGet(field.value.type) + ") =\n";
+      code += "proc `" + namer_.Field(field) + "=`" + Export + "(self: var " +
+              namer_.Type(struct_def) + ", n: " + GenTypeGet(field.value.type) +
+              ") =\n";
       code += std::string(Indent) + "discard " + SelfData + ".Mutate(" +
               SelfDataPos + " + " + NumToString(field.value.offset) + ", n)\n";
     }
@@ -208,8 +218,8 @@ class NimGenerator : public BaseGenerator {
   void GetScalarFieldOfTable(const StructDef &struct_def, const FieldDef &field,
                              std::string *code_ptr) {
     std::string &code = *code_ptr;
-    code += "proc " + NormalizedName(field) + Export +
-            "(self: " + NormalizedName(struct_def) +
+    code += "proc " + namer_.Field(field) + Export +
+            "(self: " + namer_.Type(struct_def) +
             "): " + GenTypeGet(field.value.type) + " =\n";
 
     code += OffsetPrefix(field);
@@ -221,9 +231,9 @@ class NimGenerator : public BaseGenerator {
             "result = " + GetDefaultValue(field) + "\n";
 
     if (parser_.opts.mutable_buffer) {
-      code += "proc `" + NormalizedName(field) + "=`" + Export + "(self: var " +
-              NormalizedName(struct_def) +
-              ", n: " + GenTypeGet(field.value.type) + "): bool =\n";
+      code += "proc `" + namer_.Field(field) + "=`" + Export + "(self: var " +
+              namer_.Type(struct_def) + ", n: " + GenTypeGet(field.value.type) +
+              "): bool =\n";
       code += std::string(Indent) + "result = " + SelfData + ".MutateSlot(" +
               NumToString(field.value.offset) + ", n)\n";
     }
@@ -236,8 +246,8 @@ class NimGenerator : public BaseGenerator {
                              std::string *code_ptr) {
     std::string &code = *code_ptr;
     imports_.insert(GetImport(struct_def, field));
-    code += "proc " + NormalizedName(field) + Export +
-            "(self: " + NormalizedName(struct_def) + "): " + TypeName(field) +
+    code += "proc " + namer_.Field(field) + Export +
+            "(self: " + namer_.Type(struct_def) + "): " + TypeName(field) +
             " =\n";
     code += OffsetPrefix(field);
     code += std::string(Indent) + std::string(Indent) + "result.Init(" +
@@ -252,8 +262,8 @@ class NimGenerator : public BaseGenerator {
   void GetStringField(const StructDef &struct_def, const FieldDef &field,
                       std::string *code_ptr) {
     std::string &code = *code_ptr;
-    code += "proc " + NormalizedName(field) + Export +
-            "(self: " + NormalizedName(struct_def) +
+    code += "proc " + namer_.Field(field) + Export +
+            "(self: " + namer_.Type(struct_def) +
             "): " + GenTypeGet(field.value.type) + " =\n";
     code += OffsetPrefix(field);
     code += std::string(Indent) + std::string(Indent) +
@@ -273,8 +283,8 @@ class NimGenerator : public BaseGenerator {
   void GetUnionField(const StructDef &struct_def, const FieldDef &field,
                      std::string *code_ptr) {
     std::string &code = *code_ptr;
-    code += "proc " + NormalizedName(field) + Export +
-            "(self: " + NormalizedName(struct_def) + "): FlatObj =\n";
+    code += "proc " + namer_.Field(field) + Export +
+            "(self: " + namer_.Type(struct_def) + "): FlatObj =\n";
     code += OffsetPrefix(field);
     code += std::string(Indent) + std::string(Indent) +
             GenGetter(field.value.type) + "result.tab, o)\n";
@@ -288,8 +298,8 @@ class NimGenerator : public BaseGenerator {
                                  const FieldDef &field, std::string *code_ptr) {
     std::string &code = *code_ptr;
     imports_.insert(GetImport(struct_def, field));
-    code += "proc " + NormalizedName(field) + Export +
-            "(self: " + NormalizedName(struct_def) +
+    code += "proc " + namer_.Field(field) + Export +
+            "(self: " + namer_.Type(struct_def) +
             ", j: int): " + TypeName(field) + " =\n";
     code += OffsetPrefix(field);
     code += std::string(Indent) + std::string(Indent) + "var x = " + SelfData +
@@ -312,8 +322,8 @@ class NimGenerator : public BaseGenerator {
                                     const FieldDef &field,
                                     std::string *code_ptr) {
     std::string &code = *code_ptr;
-    code += "proc " + NormalizedName(field) + Export +
-            "(self: " + NormalizedName(struct_def) +
+    code += "proc " + namer_.Field(field) + Export +
+            "(self: " + namer_.Type(struct_def) +
             ", j: int): " + TypeName(field) + " =\n";
     code += OffsetPrefix(field);
     code += std::string(Indent) + std::string(Indent) + "var x = " + SelfData +
@@ -332,8 +342,8 @@ class NimGenerator : public BaseGenerator {
   // Begin the creator function signature.
   void BeginBuilderArgs(const StructDef &struct_def, std::string *code_ptr) {
     std::string &code = *code_ptr;
-    code += "proc Create" + NormalizedName(struct_def) + Export +
-            "(self: var Builder";
+    code +=
+        "proc Create" + namer_.Type(struct_def) + Export + "(self: var Builder";
   }
 
   // Recursively generate arguments for a constructor, to deal with nested
@@ -348,13 +358,12 @@ class NimGenerator : public BaseGenerator {
         // don't clash, and to make it obvious these arguments are constructing
         // a nested struct, prefix the name with the field name.
         StructBuilderArgs(*field.value.type.struct_def,
-                          (nameprefix + (NormalizedName(field) + "_")).c_str(),
+                          (nameprefix + (namer_.Field(field) + "_")).c_str(),
                           code_ptr);
       } else {
         std::string &code = *code_ptr;
         code += std::string(", ") + nameprefix;
-        code += ConvertCase(NormalizedName(field), Case::kLowerCamel) + ": " +
-                GenTypeBasic(field.value.type);
+        code += namer_.Field(field) + ": " + GenTypeBasic(field.value.type);
       }
     }
   }
@@ -381,12 +390,11 @@ class NimGenerator : public BaseGenerator {
                 ")\n";
       if (IsStruct(field.value.type)) {
         StructBuilderBody(*field.value.type.struct_def,
-                          (nameprefix + (NormalizedName(field) + "_")).c_str(),
+                          (nameprefix + (namer_.Field(field) + "_")).c_str(),
                           code_ptr);
       } else {
         code += std::string(Indent) + "self.Prepend" + GenMethod(field) + "(";
-        code += nameprefix +
-                ConvertCase(NormalizedName(field), Case::kLowerCamel) + ")\n";
+        code += nameprefix + namer_.Field(field) + ")\n";
       }
     }
   }
@@ -400,7 +408,7 @@ class NimGenerator : public BaseGenerator {
   // Get the value of a table's starting offset.
   void GetStartOfTable(const StructDef &struct_def, std::string *code_ptr) {
     std::string &code = *code_ptr;
-    code += "proc " + NormalizedName(struct_def) + "Start" + Export +
+    code += "proc " + namer_.Type(struct_def) + "Start" + Export +
             "(builder: var Builder) =\n";
     code += std::string(Indent) + "builder.StartObject(" +
             NumToString(struct_def.fields.vec.size()) + ")\n";
@@ -410,24 +418,21 @@ class NimGenerator : public BaseGenerator {
   void BuildFieldOfTable(const StructDef &struct_def, const FieldDef &field,
                          const size_t offset, std::string *code_ptr) {
     std::string &code = *code_ptr;
-    code += "proc " + NormalizedName(struct_def) + "Add" +
-            ConvertCase(NormalizedName(field), Case::kUpperCamel) + Export +
-            "(builder: var Builder, " +
-            ConvertCase(NormalizedName(field), Case::kLowerCamel) + ": " +
+    code += "proc " + namer_.Type(struct_def) + "Add" + namer_.Method(field) +
+            Export + "(builder: var Builder, " + namer_.Variable(field) + ": " +
             GenTypeBasic(field.value.type) + ") =\n";
     code += std::string(Indent) + "builder.Prepend" + GenMethod(field) +
-            "Slot(" + NumToString(offset) + ", " +
-            ConvertCase(NormalizedName(field), Case::kLowerCamel) + ", " +
-            GetDefaultValue(field) + ")\n";
+            "Slot(" + NumToString(offset) + ", " + namer_.Variable(field) +
+            ", " + GetDefaultValue(field) + ")\n";
   }
 
   // Set the value of one of the members of a table's vector.
   void BuildVectorOfTable(const StructDef &struct_def, const FieldDef &field,
                           std::string *code_ptr) {
     std::string &code = *code_ptr;
-    code += "proc " + NormalizedName(struct_def) + "Start" +
-            ConvertCase(NormalizedName(field), Case::kUpperCamel) + "Vector" +
-            Export + "(builder: var Builder, numElems: int): uoffset =\n";
+    code += "proc " + namer_.Type(struct_def) + "Start" + namer_.Method(field) +
+            "Vector" + Export +
+            "(builder: var Builder, numElems: int): uoffset =\n";
     code += std::string(Indent) + "builder.StartVector(" +
             NumToString(InlineSize(field.value.type.VectorType())) +
             ", numElems, " +
@@ -437,7 +442,7 @@ class NimGenerator : public BaseGenerator {
   // Get the offset of the end of a table.
   void GetEndOffsetOnTable(const StructDef &struct_def, std::string *code_ptr) {
     std::string &code = *code_ptr;
-    code += "proc " + NormalizedName(struct_def) + "End" + Export +
+    code += "proc " + namer_.Type(struct_def) + "End" + Export +
             "(builder: var Builder): uoffset =\n";
     code += std::string(Indent) + "result = builder.EndObject()\n";
     code += "\n";
@@ -532,7 +537,7 @@ class NimGenerator : public BaseGenerator {
     if (enum_def.generated) return;
 
     GenComment(enum_def.doc_comment, code_ptr, &def_comment);
-    BeginEnum(NormalizedName(enum_def), code_ptr);
+    BeginEnum(namer_.Type(enum_def), code_ptr);
     for (auto it = enum_def.Vals().begin(); it != enum_def.Vals().end(); ++it) {
       auto &ev = **it;
       GenComment(ev.doc_comment, code_ptr, &def_comment, Indent);
@@ -659,8 +664,7 @@ class NimGenerator : public BaseGenerator {
     for (size_t i = 0; i < relative_to_vec.size(); ++i) {
       str2_vec.insert(str2_vec.begin(), std::string(".."));
     }
-    str2_vec[str2_vec.size() - 1] =
-        ConvertCase(str2_vec[str2_vec.size() - 1], Case::kAllLower);
+
     std::string new_path;
     for (size_t i = 0; i < str2_vec.size(); ++i) {
       new_path += str2_vec[i];
@@ -691,30 +695,58 @@ class NimGenerator : public BaseGenerator {
   }
 
   bool generate() {
-    if (!generateEnums()) return false;
-    if (!generateStructs()) return false;
+    std::string one_file_code;
+    if (!generateEnums(&one_file_code)) return false;
+    if (!generateStructs(&one_file_code)) return false;
+    if (parser_.opts.one_file) {
+      // Legacy file format uses keep casing.
+      return SaveType(file_name_ + "_generated.py", *parser_.current_namespace_,
+                      one_file_code, true);
+    }
     return true;
   }
 
  private:
-  bool generateEnums() {
+  bool generateEnums(std::string *one_file_code) {
     for (auto it = parser_.enums_.vec.begin(); it != parser_.enums_.vec.end();
          ++it) {
       auto &enum_def = **it;
       std::string enumcode;
       GenEnum(enum_def, &enumcode);
-      if (!SaveType(enum_def, enumcode, false)) return false;
+      if (parser_.opts.generate_object_based_api & enum_def.is_union) {
+        // TODO:
+        // GenUnionCreator(enum_def, &enumcode);
+      }
+
+      if (parser_.opts.one_file && !enumcode.empty()) {
+        *one_file_code += enumcode + "\n\n";
+      } else {
+        if (!SaveType(namer_.File(enum_def), *enum_def.defined_namespace,
+                      enumcode, false))
+          return false;
+      }
     }
     return true;
   }
 
-  bool generateStructs() {
+  bool generateStructs(std::string *one_file_code) {
     for (auto it = parser_.structs_.vec.begin();
          it != parser_.structs_.vec.end(); ++it) {
       auto &struct_def = **it;
       std::string declcode;
       GenStruct(struct_def, &declcode);
-      if (!SaveType(struct_def, declcode, true)) return false;
+      if (parser_.opts.generate_object_based_api) {
+        // TODO:
+        // GenStructForObjectAPI(struct_def, &declcode);
+      }
+
+      if (parser_.opts.one_file && !declcode.empty()) {
+        *one_file_code += declcode + "\n\n";
+      } else {
+        if (!SaveType(namer_.File(struct_def), *struct_def.defined_namespace,
+                      declcode, true))
+          return false;
+      }
     }
     return true;
   }
@@ -731,30 +763,32 @@ class NimGenerator : public BaseGenerator {
     code += "\n";
   }
 
-  // Save out the generated code for a Nim Table type.
-  bool SaveType(const Definition &def, const std::string &classcode,
-                bool needs_imports) {
+  // Save out the generated code for a Python Table type.
+  bool SaveType(const std::string &defname, const Namespace &ns,
+                const std::string &classcode, bool needs_imports) {
     if (!classcode.length()) return true;
 
-    std::string namespace_dir = path_;
-    auto &namespaces = def.defined_namespace->components;
-    for (auto it = namespaces.begin(); it != namespaces.end(); ++it) {
-      if (it != namespaces.begin()) namespace_dir += kPathSeparator;
-      namespace_dir += *it;
-    }
-
     std::string code = "";
-    BeginFile(LastNamespacePart(*def.defined_namespace), needs_imports, &code);
+    BeginFile(LastNamespacePart(ns), needs_imports, &code);
     code += classcode;
 
-    std::string filename = NamespaceDir(*def.defined_namespace) +
-                           ConvertCase(NormalizedName(def), Case::kAllLower) +
-                           "_generated.nim";
+    const std::string directories =
+        parser_.opts.one_file ? path_ : namer_.Directories(ns.components);
+    EnsureDirExists(directories);
+
+    for (size_t i = path_.size() + 1; i != std::string::npos;
+         i = directories.find(kPathSeparator, i + 1)) {
+      const std::string init_py =
+          directories.substr(0, i) + kPathSeparator + "__init__.py";
+      SaveFile(init_py.c_str(), "", false);
+    }
+
+    const std::string filename = directories + defname;
     return SaveFile(filename.c_str(), code, false);
   }
 
  private:
-  std::unordered_set<std::string> keywords_;
+  const IdlNamer namer_;
   std::unordered_set<std::string> imports_;
 };
 

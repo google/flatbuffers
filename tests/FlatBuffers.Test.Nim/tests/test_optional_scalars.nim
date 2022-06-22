@@ -1,6 +1,6 @@
 import std/unittest
 import flatbuffers
-import optional_scalars/scalarstuff_generated
+import optional_scalars/ScalarStuff_generated
 
 # Optionals could be supported with import 'std/options' but that would make the usage more awkward
 

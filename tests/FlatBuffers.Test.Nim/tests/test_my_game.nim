@@ -1,10 +1,10 @@
 import std/unittest
 import flatbuffers
-import MyGame/Example/test_generated
-import MyGame/Example/monster_generated
-import MyGame/Example/vec3_generated
-import MyGame/Example/color_generated
-import MyGame/Example/any_generated
+import MyGame/Example/Test_generated
+import MyGame/Example/Monster_generated
+import MyGame/Example/Vec3_generated
+import MyGame/Example/Color_generated
+import MyGame/Example/Any_generated
 
 proc verifyMonster(monster: var Monster) =
   check(monster.hp == 80)

@@ -13,7 +13,6 @@ flatc --nim --gen-mutable ${test_dir}/MutatingBool.fbs
 cd ${nim_dir}
 
 
-
 nim r tests/test_mutating_bool.nim
 nim r tests/test_my_game.nim
 nim r tests/test_more_defaults.nim
