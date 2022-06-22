@@ -13,8 +13,9 @@ flatc --nim ${test_dir}/more_defaults.fbs
 flatc --nim --gen-mutable ${test_dir}/MutatingBool.fbs
 cd ${nim_dir}
 
-testament all
-rm -rf ${nim_dir}/generated
+testament --megatest:off all
+rm -r ${nim_dir}/generated
+rm -r ${nim_dir}/tests/*/test
 
 # nim r tests/test_mutating_bool.nim
 # nim r tests/test_my_game.nim

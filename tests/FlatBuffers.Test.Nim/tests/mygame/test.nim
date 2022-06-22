@@ -1,7 +1,4 @@
 discard """
-  cmd:      "nim c -r --panics:on $options $file"
-  matrix:   "--gc:refc"
-  targets:  "c"
   action:   "run"
   exitcode: 0
   timeout:  60.0
