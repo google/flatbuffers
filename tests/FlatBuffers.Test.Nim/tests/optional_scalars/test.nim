@@ -1,6 +1,14 @@
+discard """
+  cmd:      "nim c -r --panics:on $options $file"
+  matrix:   "--gc:refc"
+  targets:  "c"
+  action:   "run"
+  exitcode: 0
+  timeout:  60.0
+"""
 import std/unittest
 import flatbuffers
-import optional_scalars/ScalarStuff_generated
+import ../../generated/optional_scalars/ScalarStuff_generated
 
 # Optionals could be supported with import 'std/options' but that would make the usage more awkward
 

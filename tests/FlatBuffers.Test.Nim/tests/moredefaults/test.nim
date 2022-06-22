@@ -1,6 +1,14 @@
+discard """
+  cmd:      "nim c -r --panics:on $options $file"
+  matrix:   "--gc:refc"
+  targets:  "c"
+  action:   "run"
+  exitcode: 0
+  timeout:  60.0
+"""
 import std/unittest
 import flatbuffers
-import MoreDefaults_generated
+import ../../generated/MoreDefaults_generated
 
 suite "TestMoreDefaults":
 

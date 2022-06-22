@@ -1,7 +1,15 @@
+discard """
+  cmd:      "nim c -r --panics:on $options $file"
+  matrix:   "--gc:refc"
+  targets:  "c"
+  action:   "run"
+  exitcode: 0
+  timeout:  60.0
+"""
 import std/unittest
 import flatbuffers
-import TestMutatingBool_generated
-import Property_generated
+import ../../generated/TestMutatingBool_generated
+import ../../generated/Property_generated
 
 suite "TestMutatingBool":
 
