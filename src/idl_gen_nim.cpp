@@ -64,7 +64,7 @@ Namer::Config NimDefaultConfig() {
            /*filenames=*/Case::kKeep,
            /*directories=*/Case::kKeep,
            /*output_path=*/"",
-           /*filename_suffix=*/"_generated",
+           /*filename_suffix=*/"",
            /*filename_extension=*/".nim" };
 }
 // Hardcode spaces per indentation.
@@ -200,14 +200,14 @@ class NimGenerator : public BaseGenerator {
     imports_.insert(GetImport(struct_def, field));
     code += "proc " + namer_.Field(field) + Export +
             "(self: " + namer_.Type(struct_def) +
-            "): " + GenTypeGet(field.value.type) + " =\n";
+            "): " + ImportedName(struct_def, field) + " =\n";
     code += std::string(Indent) + "result.Init(" + SelfDataBytes + ", " +
             SelfDataPos + " + " + NumToString(field.value.offset) + ")\n";
 
     if (parser_.opts.mutable_buffer) {
       code += "proc `" + namer_.Field(field) + "=`" + Export + "(self: var " +
-              namer_.Type(struct_def) + ", n: " + GenTypeGet(field.value.type) +
-              ") =\n";
+              namer_.Type(struct_def) +
+              ", n: " + ImportedName(struct_def, field) + ") =\n";
       code += std::string(Indent) + "discard " + SelfData + ".Mutate(" +
               SelfDataPos + " + " + NumToString(field.value.offset) + ", n)\n";
     }
@@ -247,8 +247,8 @@ class NimGenerator : public BaseGenerator {
     std::string &code = *code_ptr;
     imports_.insert(GetImport(struct_def, field));
     code += "proc " + namer_.Field(field) + Export +
-            "(self: " + namer_.Type(struct_def) + "): " + TypeName(field) +
-            " =\n";
+            "(self: " + namer_.Type(struct_def) +
+            "): " + ImportedName(struct_def, field) + " =\n";
     code += OffsetPrefix(field);
     code += std::string(Indent) + std::string(Indent) + "result.Init(" +
             SelfDataBytes + ", o + " + SelfDataPos + ")\n";
@@ -300,7 +300,7 @@ class NimGenerator : public BaseGenerator {
     imports_.insert(GetImport(struct_def, field));
     code += "proc " + namer_.Field(field) + Export +
             "(self: " + namer_.Type(struct_def) +
-            ", j: int): " + TypeName(field) + " =\n";
+            ", j: int): " + ImportedName(struct_def, field) + " =\n";
     code += OffsetPrefix(field);
     code += std::string(Indent) + std::string(Indent) + "var x = " + SelfData +
             ".Vector(o)\n";
@@ -673,12 +673,28 @@ class NimGenerator : public BaseGenerator {
     return new_path;
   }
 
+  std::string ImportedName(const StructDef &struct_def, const FieldDef &field) {
+    if (namer_.Type(struct_def) == TypeName(field)) {
+      return TypeName(field);
+    } else {
+      std::string ev = GetNamespace(field);
+      std::replace(ev.begin(), ev.end(), '.', '_');
+      return ev + "." + TypeName(field);
+    }
+  }
+
+  std::string ImportName(const FieldDef &field) {
+    std::string ev = GetNamespace(field);
+    std::replace(ev.begin(), ev.end(), '.', '_');
+    return ev;
+  }
+
   std::string GetImport(const StructDef &struct_def, const FieldDef &field) {
     if (GetNamespace(field) != GetNamespace(struct_def)) {
-      return "from " +
+      return "import " +
              GetRelativePathFromNamespace(GetNamespace(struct_def),
                                           GetNamespace(field)) +
-             "_generated import " + TypeName(field) + "\n";
+             " as " + ImportName(field) + "\n";
     } else {
       return std::string();
     }
@@ -721,8 +737,8 @@ class NimGenerator : public BaseGenerator {
       if (parser_.opts.one_file && !enumcode.empty()) {
         *one_file_code += enumcode + "\n\n";
       } else {
-        if (!SaveType(namer_.File(enum_def), *enum_def.defined_namespace,
-                      enumcode, false))
+        if (!SaveType(namer_.File(enum_def, SkipFile::Suffix),
+                      *enum_def.defined_namespace, enumcode, false))
           return false;
       }
     }
@@ -743,8 +759,8 @@ class NimGenerator : public BaseGenerator {
       if (parser_.opts.one_file && !declcode.empty()) {
         *one_file_code += declcode + "\n\n";
       } else {
-        if (!SaveType(namer_.File(struct_def), *struct_def.defined_namespace,
-                      declcode, true))
+        if (!SaveType(namer_.File(struct_def, SkipFile::Suffix),
+                      *struct_def.defined_namespace, declcode, true))
           return false;
       }
     }

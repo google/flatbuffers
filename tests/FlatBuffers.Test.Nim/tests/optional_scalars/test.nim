@@ -5,7 +5,7 @@ discard """
 """
 import std/unittest
 import flatbuffers
-import ../../generated/optional_scalars/ScalarStuff_generated
+import ../../generated/optional_scalars/ScalarStuff
 
 # Optionals could be supported with import 'std/options' but that would make the usage more awkward
 

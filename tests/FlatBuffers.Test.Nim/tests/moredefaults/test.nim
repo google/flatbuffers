@@ -5,7 +5,7 @@ discard """
 """
 import std/unittest
 import flatbuffers
-import ../../generated/MoreDefaults_generated
+import ../../generated/MoreDefaults
 
 suite "TestMoreDefaults":
 

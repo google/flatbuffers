@@ -5,11 +5,11 @@ discard """
 """
 import std/unittest
 import flatbuffers
-import ../../generated/MyGame/Example/Test_generated
-import ../../generated/MyGame/Example/Monster_generated
-import ../../generated/MyGame/Example/Vec3_generated
-import ../../generated/MyGame/Example/Color_generated
-import ../../generated/MyGame/Example/Any_generated
+import ../../generated/MyGame/Example/Test
+import ../../generated/MyGame/Example/Monster
+import ../../generated/MyGame/Example/Vec3
+import ../../generated/MyGame/Example/Color
+import ../../generated/MyGame/Example/Any
 
 proc verifyMonster(monster: var Monster) =
   check(monster.hp == 80)
@@ -19,10 +19,10 @@ proc verifyMonster(monster: var Monster) =
   check(monster.pos.y == 2)
   check(monster.pos.z == 3)
   check(monster.pos.test1 == 3)
-  check(monster.pos.test2 == Color.Green.uint8)
+  check(monster.pos.test2 == Color.Color.Green.uint8)
   check(monster.pos.test3.a == 5)
   check(monster.pos.test3.b == 6)
-  check(monster.testType == Any.Monster.uint8)
+  check(monster.testType == Any.Any.Monster.uint8)
   let monster2 = Monster(tab: monster.test.tab)
   check(monster2.name == "Fred")
   check((monster.mana = 10) == false)
@@ -95,7 +95,7 @@ suite "TestMyGame":
         y= 2,
         z= 3,
         test1= 3,
-        test2= Color.Green.uint8,
+        test2= Color.Color.Green.uint8,
         test3_a= 5, test3_b= 6))
 
     let monster_end = fbb.MonsterEnd()
@@ -151,12 +151,12 @@ suite "TestMyGame":
         y= 2,
         z= 3,
         test1= 3,
-        test2= Color.Green.uint8,
+        test2= Color.Color.Green.uint8,
         test3_a= 5, test3_b= 6))
     fbb.MonsterAddHp(80)
     fbb.MonsterAddName(str)
     fbb.MonsterAddInventory(inv)
-    fbb.MonsterAddTestType(ord(Any.Monster))
+    fbb.MonsterAddTestType(Any.Any.Monster.uint8)
     fbb.MonsterAddTest(mon2)
     fbb.MonsterAddTest4(test4)
     fbb.MonsterAddTestarrayofstring(stringTestVector)
