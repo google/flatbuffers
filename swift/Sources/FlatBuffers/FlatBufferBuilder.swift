@@ -50,7 +50,7 @@ public struct FlatBufferBuilder {
   private var serializeDefaults: Bool
 
   /// Current alignment for the buffer
-  var _minAlignment: Int = 0 {
+  @usableFromInline var _minAlignment: Int = 0 {
     didSet {
       _bb.alignment = _minAlignment
     }
