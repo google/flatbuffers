@@ -8,8 +8,8 @@ import flatbuffers
 import ../../generated/MyGame/Example/Test
 import ../../generated/MyGame/Example/Monster
 import ../../generated/MyGame/Example/Vec3
-import ../../generated/MyGame/Example/Color
-import ../../generated/MyGame/Example/Any
+import ../../generated/MyGame/Example/Color as ColorMod
+import ../../generated/MyGame/Example/Any as AnyMod
 
 proc verifyMonster(monster: var Monster) =
   check(monster.hp == 80)
@@ -19,11 +19,12 @@ proc verifyMonster(monster: var Monster) =
   check(monster.pos.y == 2)
   check(monster.pos.z == 3)
   check(monster.pos.test1 == 3)
-  check(monster.pos.test2 == Color.Color.Green.uint8)
+  check(monster.pos.test2 == Color.Green.uint8)
   check(monster.pos.test3.a == 5)
   check(monster.pos.test3.b == 6)
-  check(monster.testType == Any.Any.Monster.uint8)
-  let monster2 = Monster(tab: monster.test.tab)
+  check(monster.testType == Any.Monster.uint8)
+  # let monster2 = Monster(tab: monster.test.tab)
+  let monster2 = cast[Monster](monster.test)
   check(monster2.name == "Fred")
   check((monster.mana = 10) == false)
   check(monster.mana == 150)
@@ -49,7 +50,21 @@ proc verifyMonster(monster: var Monster) =
 suite "TestMyGame":
 
   test "testData":
-    let data: seq[byte] = @[byte(48), 0, 0, 0, 77, 79, 78, 83, 0, 0, 0, 0, 36, 0, 72, 0, 40, 0, 0, 0, 38, 0, 32, 0, 0, 0, 28, 0, 0, 0, 27, 0, 20, 0, 16, 0, 12, 0, 4, 0, 0, 0, 0, 0, 0, 0, 11, 0, 36, 0, 0, 0, 164, 0, 0, 0, 0, 0, 0, 1, 60, 0, 0, 0, 68, 0, 0, 0, 76, 0, 0, 0, 0, 0, 0, 1, 88, 0, 0, 0, 120, 0, 0, 0, 0, 0, 80, 0, 0, 0, 128, 63, 0, 0, 0, 64, 0, 0, 64, 64, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8, 64, 2, 0, 5, 0, 6, 0, 0, 0, 2, 0, 0, 0, 64, 0, 0, 0, 48, 0, 0, 0, 2, 0, 0, 0, 30, 0, 40, 0, 10, 0, 20, 0, 152, 255, 255, 255, 4, 0, 0, 0, 4, 0, 0, 0, 70, 114, 101, 100, 0, 0, 0, 0, 5, 0, 0, 0, 0, 1, 2, 3, 4, 0, 0, 0, 5, 0, 0, 0, 116, 101, 115, 116, 50, 0, 0, 0, 5, 0, 0, 0, 116, 101, 115, 116, 49, 0, 0, 0, 9, 0, 0, 0, 77, 121, 77, 111, 110, 115, 116, 101, 114, 0, 0, 0, 3, 0, 0, 0, 20, 0, 0, 0, 36, 0, 0, 0, 4, 0, 0, 0, 240, 255, 255, 255, 32, 0, 0, 0, 248, 255, 255, 255, 36, 0, 0, 0, 12, 0, 8, 0, 0, 0, 0, 0, 0, 0, 4, 0, 12, 0, 0, 0, 28, 0, 0, 0, 5, 0, 0, 0, 87, 105, 108, 109, 97, 0, 0, 0, 6, 0, 0, 0, 66, 97, 114, 110, 101, 121, 0, 0, 5, 0, 0, 0, 70, 114, 111, 100, 111, 0, 0, 0]
+    let data: seq[byte] = @[byte(48), 0, 0, 0, 77, 79, 78, 83, 0, 0, 0, 0, 36,
+        0, 72, 0, 40, 0, 0, 0, 38, 0, 32, 0, 0, 0, 28, 0, 0, 0, 27, 0, 20, 0,
+        16, 0, 12, 0, 4, 0, 0, 0, 0, 0, 0, 0, 11, 0, 36, 0, 0, 0, 164, 0, 0, 0,
+        0, 0, 0, 1, 60, 0, 0, 0, 68, 0, 0, 0, 76, 0, 0, 0, 0, 0, 0, 1, 88, 0, 0,
+        0, 120, 0, 0, 0, 0, 0, 80, 0, 0, 0, 128, 63, 0, 0, 0, 64, 0, 0, 64, 64,
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8, 64, 2, 0, 5, 0, 6, 0, 0, 0, 2, 0, 0, 0,
+        64, 0, 0, 0, 48, 0, 0, 0, 2, 0, 0, 0, 30, 0, 40, 0, 10, 0, 20, 0, 152,
+        255, 255, 255, 4, 0, 0, 0, 4, 0, 0, 0, 70, 114, 101, 100, 0, 0, 0, 0, 5,
+        0, 0, 0, 0, 1, 2, 3, 4, 0, 0, 0, 5, 0, 0, 0, 116, 101, 115, 116, 50, 0,
+        0, 0, 5, 0, 0, 0, 116, 101, 115, 116, 49, 0, 0, 0, 9, 0, 0, 0, 77, 121,
+        77, 111, 110, 115, 116, 101, 114, 0, 0, 0, 3, 0, 0, 0, 20, 0, 0, 0, 36,
+        0, 0, 0, 4, 0, 0, 0, 240, 255, 255, 255, 32, 0, 0, 0, 248, 255, 255,
+        255, 36, 0, 0, 0, 12, 0, 8, 0, 0, 0, 0, 0, 0, 0, 4, 0, 12, 0, 0, 0, 28,
+        0, 0, 0, 5, 0, 0, 0, 87, 105, 108, 109, 97, 0, 0, 0, 6, 0, 0, 0, 66, 97,
+        114, 110, 101, 121, 0, 0, 5, 0, 0, 0, 70, 114, 111, 100, 111, 0, 0, 0]
     var monster: Monster
     GetRootAs(monster, data, 0)
     verifyMonster(monster)
@@ -58,13 +73,15 @@ suite "TestMyGame":
     var fbb = newBuilder(0)
     let name = fbb.Create("Frodo")
     fbb.Finish(name)
-    check(fbb.FinishedBytes() == @[byte(4), 0, 0, 0, 5, 0, 0, 0, 70, 114, 111, 100, 111, 0, 0, 0])
+    check(fbb.FinishedBytes() == @[byte(4), 0, 0, 0, 5, 0, 0, 0, 70, 114, 111,
+        100, 111, 0, 0, 0])
 
   test "testCreateVector":
     var fbb = newBuilder(0)
     let vec = fbb.Create(@[byte(0), 1, 2, 3, 4])
     fbb.Finish(vec)
-    check(fbb.FinishedBytes() == @[byte(4), 0, 0, 0, 5, 0, 0, 0, 0, 1, 2, 3, 4, 0, 0, 0])
+    check(fbb.FinishedBytes() == @[byte(4), 0, 0, 0, 5, 0, 0, 0, 0, 1, 2, 3, 4,
+        0, 0, 0])
 
   test "createSimpleMonster":
     var fbb = newBuilder(0)
@@ -77,30 +94,36 @@ suite "TestMyGame":
     fbb.MonsterAddName(names[0])
     let monster = fbb.MonsterEnd()
     fbb.Finish(monster)
-    check(fbb.FinishedBytes() == @[byte(16), 0, 0, 0, 12, 0, 8, 0, 0, 0, 0, 0, 0, 0, 4, 0, 12, 0, 0, 0, 28, 0, 0, 0, 5, 0, 0, 0, 87, 105, 108, 109, 97, 0, 0, 0, 6, 0, 0, 0, 66, 97, 114, 110, 101, 121, 0, 0, 5, 0, 0, 0, 70, 114, 111, 100, 111, 0, 0, 0])
+    check(fbb.FinishedBytes() == @[byte(16), 0, 0, 0, 12, 0, 8, 0, 0, 0, 0, 0,
+        0, 0, 4, 0, 12, 0, 0, 0, 28, 0, 0, 0, 5, 0, 0, 0, 87, 105, 108, 109, 97,
+        0, 0, 0, 6, 0, 0, 0, 66, 97, 114, 110, 101, 121, 0, 0, 5, 0, 0, 0, 70,
+        114, 111, 100, 111, 0, 0, 0])
 
   test "testCreateTestVector":
     var fbb = newBuilder(0)
     discard fbb.MonsterStartTest4Vector(2)
-    discard fbb.CreateTest(a=30, b=40)
-    discard fbb.CreateTest(a=10, b=20)
+    discard fbb.CreateTest(a = 30, b = 40)
+    discard fbb.CreateTest(a = 10, b = 20)
     let test4 = fbb.EndVector(2)
     fbb.Finish(test4)
-    check(fbb.FinishedBytes() == @[byte(4), 0, 0, 0, 2, 0, 0, 0, 10, 0, 20, 0, 30, 0, 40, 0])
+    check(fbb.FinishedBytes() == @[byte(4), 0, 0, 0, 2, 0, 0, 0, 10, 0, 20, 0,
+        30, 0, 40, 0])
 
   test "testTableWithStruct":
     var fbb = newBuilder(0)
     fbb.MonsterStart()
-    fbb.MonsterAddPos(fbb.CreateVec3(x= 1,
-        y= 2,
-        z= 3,
-        test1= 3,
-        test2= Color.Color.Green.uint8,
-        test3_a= 5, test3_b= 6))
+    fbb.MonsterAddPos(fbb.CreateVec3(x = 1,
+        y = 2,
+        z = 3,
+        test1 = 3,
+        test2 = Color.Green.uint8,
+        test3_a = 5, test3_b = 6))
 
     let monster_end = fbb.MonsterEnd()
     fbb.Finish(monster_end)
-    check(fbb.FinishedBytes() == @[byte(12), 0, 0, 0, 0, 0, 6, 0, 36, 0, 4, 0, 6, 0, 0, 0, 0, 0, 128, 63, 0, 0, 0, 64, 0, 0, 64, 64, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8, 64, 2, 0, 5, 0, 6, 0, 0, 0])
+    check(fbb.FinishedBytes() == @[byte(12), 0, 0, 0, 0, 0, 6, 0, 36, 0, 4, 0,
+        6, 0, 0, 0, 0, 0, 128, 63, 0, 0, 0, 64, 0, 0, 64, 64, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 8, 64, 2, 0, 5, 0, 6, 0, 0, 0])
 
   test "testCreateMonster":
     var fbb = newBuilder(0)
@@ -131,8 +154,8 @@ suite "TestMyGame":
     let mon2 = fbb.MonsterEnd()
 
     discard fbb.MonsterStartTest4Vector(2)
-    discard fbb.CreateTest(a=30, b=40)
-    discard fbb.CreateTest(a=10, b=20)
+    discard fbb.CreateTest(a = 30, b = 40)
+    discard fbb.CreateTest(a = 10, b = 20)
     let test4 = fbb.EndVector(2)
 
     discard fbb.MonsterStartTestarrayofstringVector(2)
@@ -147,16 +170,16 @@ suite "TestMyGame":
     let tableTestVector = fbb.EndVector(3)
 
     fbb.MonsterStart()
-    fbb.MonsterAddPos(fbb.CreateVec3(x= 1,
-        y= 2,
-        z= 3,
-        test1= 3,
-        test2= Color.Color.Green.uint8,
-        test3_a= 5, test3_b= 6))
+    fbb.MonsterAddPos(fbb.CreateVec3(x = 1,
+        y = 2,
+        z = 3,
+        test1 = 3,
+        test2 = Color.Green.uint8,
+        test3_a = 5, test3_b = 6))
     fbb.MonsterAddHp(80)
     fbb.MonsterAddName(str)
     fbb.MonsterAddInventory(inv)
-    fbb.MonsterAddTestType(Any.Any.Monster.uint8)
+    fbb.MonsterAddTestType(Any.Monster.uint8)
     fbb.MonsterAddTest(mon2)
     fbb.MonsterAddTest4(test4)
     fbb.MonsterAddTestarrayofstring(stringTestVector)
@@ -164,7 +187,21 @@ suite "TestMyGame":
     fbb.MonsterAddTestarrayoftables(tableTestVector)
     let monster_end = fbb.MonsterEnd()
     fbb.Finish(monster_end)
-    check(fbb.FinishedBytes() == @[byte(40), 0, 0, 0, 36, 0, 72, 0, 40, 0, 0, 0, 38, 0, 32, 0, 0, 0, 28, 0, 0, 0, 27, 0, 20, 0, 16, 0, 12, 0, 4, 0, 0, 0, 0, 0, 0, 0, 11, 0, 36, 0, 0, 0, 68, 0, 0, 0, 0, 0, 0, 1, 76, 0, 0, 0, 84, 0, 0, 0, 92, 0, 0, 0, 0, 0, 0, 1, 104, 0, 0, 0, 136, 0, 0, 0, 0, 0, 80, 0, 0, 0, 128, 63, 0, 0, 0, 64, 0, 0, 64, 64, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8, 64, 2, 0, 5, 0, 6, 0, 0, 0, 3, 0, 0, 0, 108, 0, 0, 0, 112, 0, 0, 0, 128, 0, 0, 0, 2, 0, 0, 0, 52, 0, 0, 0, 60, 0, 0, 0, 2, 0, 0, 0, 10, 0, 20, 0, 30, 0, 40, 0, 168, 255, 255, 255, 4, 0, 0, 0, 4, 0, 0, 0, 70, 114, 101, 100, 0, 0, 0, 0, 5, 0, 0, 0, 0, 1, 2, 3, 4, 0, 0, 0, 5, 0, 0, 0, 116, 101, 115, 116, 50, 0, 0, 0, 5, 0, 0, 0, 116, 101, 115, 116, 49, 0, 0, 0, 9, 0, 0, 0, 77, 121, 77, 111, 110, 115, 116, 101, 114, 0, 0, 0, 240, 255, 255, 255, 32, 0, 0, 0, 248, 255, 255, 255, 36, 0, 0, 0, 12, 0, 8, 0, 0, 0, 0, 0, 0, 0, 4, 0, 12, 0, 0, 0, 28, 0, 0, 0, 5, 0, 0, 0, 87, 105, 108, 109, 97, 0, 0, 0, 6, 0, 0, 0, 66, 97, 114, 110, 101, 121, 0, 0, 5, 0, 0, 0, 70, 114, 111, 100, 111, 0, 0, 0])
+    check(fbb.FinishedBytes() == @[byte(40), 0, 0, 0, 36, 0, 72, 0, 40, 0, 0, 0,
+        38, 0, 32, 0, 0, 0, 28, 0, 0, 0, 27, 0, 20, 0, 16, 0, 12, 0, 4, 0, 0, 0,
+        0, 0, 0, 0, 11, 0, 36, 0, 0, 0, 68, 0, 0, 0, 0, 0, 0, 1, 76, 0, 0, 0,
+        84, 0, 0, 0, 92, 0, 0, 0, 0, 0, 0, 1, 104, 0, 0, 0, 136, 0, 0, 0, 0, 0,
+        80, 0, 0, 0, 128, 63, 0, 0, 0, 64, 0, 0, 64, 64, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 8, 64, 2, 0, 5, 0, 6, 0, 0, 0, 3, 0, 0, 0, 108, 0, 0, 0, 112, 0,
+        0, 0, 128, 0, 0, 0, 2, 0, 0, 0, 52, 0, 0, 0, 60, 0, 0, 0, 2, 0, 0, 0,
+        10, 0, 20, 0, 30, 0, 40, 0, 168, 255, 255, 255, 4, 0, 0, 0, 4, 0, 0, 0,
+        70, 114, 101, 100, 0, 0, 0, 0, 5, 0, 0, 0, 0, 1, 2, 3, 4, 0, 0, 0, 5, 0,
+        0, 0, 116, 101, 115, 116, 50, 0, 0, 0, 5, 0, 0, 0, 116, 101, 115, 116,
+        49, 0, 0, 0, 9, 0, 0, 0, 77, 121, 77, 111, 110, 115, 116, 101, 114, 0,
+        0, 0, 240, 255, 255, 255, 32, 0, 0, 0, 248, 255, 255, 255, 36, 0, 0, 0,
+        12, 0, 8, 0, 0, 0, 0, 0, 0, 0, 4, 0, 12, 0, 0, 0, 28, 0, 0, 0, 5, 0, 0,
+        0, 87, 105, 108, 109, 97, 0, 0, 0, 6, 0, 0, 0, 66, 97, 114, 110, 101,
+        121, 0, 0, 5, 0, 0, 0, 70, 114, 111, 100, 111, 0, 0, 0])
 
 
     # var test_mutating_bool: TestMutatingBool
