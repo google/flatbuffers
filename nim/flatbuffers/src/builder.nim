@@ -14,7 +14,7 @@ type Builder* = ref object of RootObj
    head*: uoffset
    nested*: bool
    finished*: bool
-   vectorNumElems*: int
+   vectorNumElems*: uoffset
 
 using this: var Builder
 
@@ -209,13 +209,14 @@ proc EndObject*(this): uoffset =
 proc End*(this: var Builder): uoffset =
    result = this.EndObject()
 
-proc StartVector*(this; elemSize: int; numElems: int; alignment: int): uoffset =
+proc StartVector*(this; elemSize: int; numElems: uoffset;
+      alignment: int): uoffset =
    if this.nested:
       quit("builder is nested")
    this.nested = true
    this.vectorNumElems = numElems
-   this.Prep(sizeof(uint32), elemSize * numElems)
-   this.Prep(alignment, elemSize * numElems)
+   this.Prep(sizeof(uint32), elemSize * numElems.int)
+   this.Prep(alignment, elemSize * numElems.int)
    result = this.Offset
 
 proc EndVector*(this): uoffset =
@@ -253,7 +254,7 @@ proc Create*[T](this; s: T): uoffset = #Both CreateString and CreateByteVector f
       let x = s
       let l = x.len.uoffset
       this.vectorNumElems = l
-      this.Prep(uoffset.sizeof, l.int * byte.sizeof)
+      this.Prep(uoffset.sizeof, l * byte.sizeof)
       this.head -= l
       this.bytes[this.head..<this.head+l] = x
       result = this.EndVector()

@@ -16,9 +16,3 @@ cd ${nim_dir}
 testament --megatest:off all
 # rm -r ${nim_dir}/generated
 rm -r ${nim_dir}/tests/*/test
-
-# nim r tests/test_mutating_bool.nim
-# nim r tests/test_my_game.nim
-# nim r tests/test_more_defaults.nim
-# nim r tests/test_optional_scalars.nim
-# rm -rf ${nim_dir}/tests/MyGame ${nim_dir}/tests/optional_scalars ${nim_dir}/tests/*_generated.nim

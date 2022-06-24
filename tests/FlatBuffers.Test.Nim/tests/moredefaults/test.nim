@@ -4,6 +4,7 @@ discard """
   timeout:  60.0
 """
 import std/unittest
+import std/options
 import flatbuffers
 import ../../generated/MoreDefaults
 
@@ -17,8 +18,10 @@ suite "TestMoreDefaults":
 
     var defaults: MoreDefaults
     defaults.GetRootAs(fbb.FinishedBytes(), 0)
-    check(defaults.emptyString == "")
-    check(defaults.someString == "some")
+    check(defaults.emptyString.isSome)
+    check(defaults.emptyString.get() == "")
+    check(defaults.someString.isSome)
+    check(defaults.someString.get() == "some")
     check(defaults.ints == [])
     check(defaults.floats == [])
     check(defaults.bools == [])
@@ -27,23 +30,29 @@ suite "TestMoreDefaults":
     check(defaults.abcsLength == 0)
     check(defaults.boolsLength == 0)
 
-#   test "testFlatbuffersObjectAPI":
-#     var fbb = newBuilder(0)
-#     let defaults = MoreDefaultsT()
-#     check(defaults.emptyString == "")
-#     check(defaults.someString == "some")
-#     check(defaults.ints == [])
-#     check(defaults.floats == [])
-#     check(defaults.abcs == [])
-#     check(defaults.bools == [])
+  test "testFlatbuffersObjectAPI":
+    let defaults = newMoreDefaultsT()
+    check(defaults.emptyString.isSome)
+    check(defaults.emptyString.get() == "")
+    check(defaults.someString.isSome)
+    check(defaults.someString.get() == "some")
+    check(defaults.ints == [])
+    check(defaults.floats == [])
+    check(defaults.abcs == [])
+    check(defaults.bools == [])
 
-#     let buffer = defaults.serialize(builder: &fbb == type: MoreDefaults.self)
-#     let fDefaults = MoreDefaults.getRootAsMoreDefaults(bb: buffer)
-#     check(fDefaults.emptyString == "")
-#     check(fDefaults.someString == "some")
-#     check(fDefaults.ints == [])
-#     check(fDefaults.floats == [])
-#     check(fDefaults.intsLength == 0)
-#     check(fDefaults.floatsLength == 0)
-#     check(fDefaults.abcsLength == 0)
-#     check(fDefaults.boolsLength == 0)
+    var fbb = newBuilder(0)
+    fbb.Finish(defaults.Pack(fbb))
+    var fDefaults: MoreDefaults
+    fDefaults.GetRootAs(fbb.FinishedBytes(), 0)
+    check(fDefaults.emptyString.isSome)
+    check(fDefaults.emptyString.get() == "")
+    check(fDefaults.someString.isSome)
+    check(fDefaults.someString.get() == "some")
+    check(fDefaults.ints == [])
+    check(fDefaults.floats == [])
+    check(fDefaults.bools == [])
+    check(fDefaults.intsLength == 0)
+    check(fDefaults.floatsLength == 0)
+    check(fDefaults.abcsLength == 0)
+    check(fDefaults.boolsLength == 0)

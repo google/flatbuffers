@@ -9,6 +9,9 @@ import flatbuffers
 import ../../generated/TestMutatingBool
 import ../../generated/Property
 
+proc get(): TestMutatingBoolT =
+  discard
+
 suite "TestMutatingBool":
 
   test "MutatingBool":
@@ -23,9 +26,9 @@ suite "TestMutatingBool":
     check(test_mutating_bool.b.isSome)
     var prop2 = test_mutating_bool.b.get()
     check(prop2.property == false)
-    prop2.property = false
+    discard (prop2.property = false)
     check(prop2.property == false)
-    prop2.property = true
+    discard (prop2.property = true)
     check(prop2.property == true)
 
   test "EmptyBool":
@@ -39,6 +42,5 @@ suite "TestMutatingBool":
     check(test_mutating_bool.b.isNone)
 
   test "defaultValue":
-    var mutatingbool: TestMutatingBoolT
-    mutatingbool.Init()
+    let mutatingbool = newTestMutatingBoolT()
     check(mutatingbool.b.isNone)

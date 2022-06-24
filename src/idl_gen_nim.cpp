@@ -96,16 +96,14 @@ class NimGenerator : public BaseGenerator {
 
   // Begin a class declaration.
   void BeginClass(const StructDef &struct_def, std::string &code) {
-    code += "type\n";
     code +=
-        Indent + namer_.Type(struct_def) + Export + " = object of FlatObj\n";
+        "type " + namer_.Type(struct_def) + Export + " = object of FlatObj\n";
     code += "\n";
   }
 
   // Begin enum code with a class declaration.
   void BeginEnum(const std::string &class_name, std::string &code) {
-    code += "type\n";
-    code += Indent + class_name + Export + " {.pure.} = enum\n";
+    code += "type " + class_name + Export + " {.pure.} = enum\n";
   }
 
   // Starts a new line and then indents.
@@ -116,8 +114,7 @@ class NimGenerator : public BaseGenerator {
   // A single enum member.
   void EnumMember(const EnumDef &enum_def, const EnumVal &ev,
                   std::string &code) {
-    code += Indent + Indent + namer_.Variant(ev) + " = " +
-            enum_def.ToString(ev) + "." +
+    code += Indent + namer_.Variant(ev) + " = " + enum_def.ToString(ev) + "." +
             GenTypeBasic(enum_def.underlying_type) + ",\n";
   }
 
@@ -414,7 +411,16 @@ class NimGenerator : public BaseGenerator {
         code += nameprefix;
         if (has_field_name) { code += namer_.Field(field); }
         code += namesuffix;
-        if (with_type) { code += ": " + GenTypeBasic(field.value.type); };
+        if (with_type) {
+          code += ": ";
+
+          if (IsEnum(field.value.type)) {
+            imports_.insert(GetImport(struct_def, field));
+            code += ImportedName(struct_def, field);
+          } else {
+            code += GenTypeBasic(field.value.type);
+          }
+        };
       }
     }
   }
@@ -439,7 +445,11 @@ class NimGenerator : public BaseGenerator {
                           code);
       } else {
         code += Indent + "self.Prepend" + GenMethod(field) + "(";
-        code += nameprefix + namer_.Field(field) + ")\n";
+        code += nameprefix + namer_.Field(field);
+        if (IsEnum(field.value.type)) {
+          code += "." + GenTypeGet(field.value.type);
+        }
+        code += ")\n";
       }
     }
   }
@@ -480,7 +490,7 @@ class NimGenerator : public BaseGenerator {
                           std::string &code) {
     code += "proc " + namer_.Type(struct_def) + "Start" + namer_.Method(field) +
             "Vector" + Export +
-            "(builder: var Builder, numElems: int): uoffset =\n";
+            "(builder: var Builder, numElems: uoffset): uoffset =\n";
     code += Indent + "builder.StartVector(" +
             NumToString(InlineSize(field.value.type.VectorType())) +
             ", numElems, " +
@@ -911,8 +921,9 @@ class NimGenerator : public BaseGenerator {
           break;
       }
 
-      if ((field.IsOptional() || !IsScalar(field.value.type.base_type)) &&
-          !struct_def.fixed) {
+      if ((field.IsOptional() || base_type == BASE_TYPE_STRUCT ||
+           base_type == BASE_TYPE_UNION || base_type == BASE_TYPE_STRING) &&
+          !struct_def.fixed && !(base_type == BASE_TYPE_VECTOR)) {
         ImportOptions();
         field_type = "Option[" + field_type + "]";
       }
@@ -920,35 +931,37 @@ class NimGenerator : public BaseGenerator {
       const auto field_field = namer_.Field(field);
       std::string default_value;
       if (field.IsScalarOptional()) {
-        default_value = "default(type(self." + field_field + "))";
+        default_value = "default(type(result." + field_field + "))";
       } else if (IsBool(base_type)) {
         default_value = (field.value.constant == "0" ? "false" : "true");
       } else if (IsFloat(base_type) || IsInteger(base_type)) {
         default_value = field.value.constant;
+      } else if (base_type == BASE_TYPE_STRING && field.IsDefault()) {
+        default_value = "some(\"" + field.value.constant + "\")";
       } else {
         // For string, struct, and table.
-        default_value = "default(type(self." + field_field + "))";
+        default_value = "default(type(result." + field_field + "))";
       }
       if (IsEnum(field.value.type)) {
         default_value = field_type + "(" + default_value + ")";
       }
-      // const auto default_value = GetDefaultValue(field);
       // Wrties the init statement.
       object_fields_code +=
-          GenIndents(2) + field_field + Export + ": " + field_type;
+          GenIndents(1) + field_field + Export + ": " + field_type;
       init_fields_code +=
-          GenIndents(1) + "self." + field_field + " = " + default_value;
+          GenIndents(1) + "result." + field_field + " = " + default_value;
     }
 
     // Writes Init method.
-    code += "type\n";
-    code += Indent + namer_.ObjectType(struct_def) + Export + " = ref object";
+    code += "type " + namer_.ObjectType(struct_def) + Export + " = ref object";
     code += object_fields_code;
     code += "\n";
     code += "\n";
 
-    code += "proc Init" + Export + "(self: var " +
-            namer_.ObjectType(struct_def) + ") = ";
+    code += "proc new" + namer_.ObjectType(struct_def) + Export +
+            "(): " + namer_.ObjectType(struct_def) + " = ";
+    code += GenIndents(1) + "new(result)";
+
     if (init_fields_code.empty()) {
       code += GenIndents(1) + "discard\n";
     } else {
@@ -1082,12 +1095,7 @@ class NimGenerator : public BaseGenerator {
             field_field + ":";
     code += GenIndents(2) + "var " + field_var + "t: " + field_type + "T";
     code += GenIndents(2) + field_var + "t.InitFromObj(" + field_var + ")";
-    code += GenIndents(2) + "if self." + field_field + ".isNone:";
-    code += GenIndents(3) + "self." + field_field + " = some(@[" + field_var +
-            "t])";
-    code += GenIndents(2) + "else:";
-    code +=
-        GenIndents(3) + "self." + field_field + ".get.add(" + field_var + "t)";
+    code += GenIndents(2) + "self." + field_field + ".add(" + field_var + "t)";
   }
 
   void GenUnPackForScalarVector(const StructDef &struct_def,
@@ -1095,8 +1103,8 @@ class NimGenerator : public BaseGenerator {
     const auto field_field = namer_.Field(field);
     const auto struct_var = namer_.Variable(struct_def);
 
-    code += GenIndents(1) + "self." + field_field + " = some(" + struct_var +
-            "." + field_field + ")";
+    code += GenIndents(1) + "self." + field_field + " = " + struct_var + "." +
+            field_field;
   }
 
   void GenUnPackForScalar(const StructDef &struct_def, const FieldDef &field,
@@ -1152,6 +1160,7 @@ class NimGenerator : public BaseGenerator {
     code_base += "proc UnPack" + Export + "(self: var " +
                  namer_.ObjectType(struct_def) + ", " + struct_var + ": " +
                  namer_.Type(struct_def) + ") =";
+    if (code.empty()) { code += GenIndents(1) + "discard"; }
     // Write the code.
     code_base += code;
     code_base += "\n";
@@ -1184,28 +1193,28 @@ class NimGenerator : public BaseGenerator {
 
     // Creates the field.
     code_prefix += GenIndents(1) + "var " + field_field + ": uoffset";
-    code_prefix += GenIndents(1) + "if self." + field_field + ".isSome:";
+    code_prefix += GenIndents(1) + "if self." + field_field + ".len > 0:";
     if (field.value.type.struct_def->fixed) {
       code_prefix += GenIndents(2) + "discard builder." + struct_type +
                      "Start" + field_method + "Vector(self." + field_field +
-                     ".get().len)";
+                     ".len.uoffset)";
       code_prefix += GenIndents(2) + "for i in countdown(self." + field_field +
-                     ".get().len - 1, 0):";
-      code_prefix += GenIndents(3) + "discard self." + field_field +
-                     ".get()[i].Pack(builder)";
+                     ".len - 1, 0):";
+      code_prefix +=
+          GenIndents(3) + "discard self." + field_field + "[i].Pack(builder)";
     } else {
       // If the vector is a struct vector, we need to first build accessor for
       // each struct element.
       code_prefix +=
           GenIndents(2) + "var " + field_field + "list: seq[uoffset] = @[]";
       code_prefix += GenIndents(2) + "for i in countup(0, self." + field_field +
-                     ".get().len - 1):";
+                     ".len - 1):";
       code_prefix += GenIndents(3) + field_field + "list.add(self." +
-                     field_field + ".get()[i].Pack(builder))";
+                     field_field + "[i].Pack(builder))";
 
       code_prefix += GenIndents(2) + "discard builder." + struct_type +
                      "Start" + field_method + "Vector(self." + field_field +
-                     ".get().len)";
+                     ".len.uoffset)";
       code_prefix += GenIndents(2) + "for i in countdown(" + field_field +
                      "list.len - 1, 0):";
       code_prefix += GenIndents(3) + "builder.PrependOffsetRelative" + "(" +
@@ -1214,7 +1223,7 @@ class NimGenerator : public BaseGenerator {
     code_prefix += GenIndents(2) + field_field + " = builder.EndVector()";
 
     // Adds the field into the struct.
-    code += GenIndents(1) + "if self." + field_field + ".isSome:";
+    code += GenIndents(1) + "if self." + field_field + ".len > 0:";
     code += GenIndents(2) + "builder." + struct_type + "Add" + field_method +
             "(" + field_field + ")";
   }
@@ -1228,9 +1237,9 @@ class NimGenerator : public BaseGenerator {
     const auto vectortype = field.value.type.VectorType();
 
     code += GenIndents(indents) + "discard builder." + struct_type + "Start" +
-            field_method + "Vector(self." + field_field + ".get().len)";
+            field_method + "Vector(self." + field_field + ".len.uoffset)";
     code += GenIndents(indents) + "for i in countdown(self." + field_field +
-            ".get().len - 1, 0):";
+            ".len - 1, 0):";
     code += GenIndents(indents + 1) + "builder.Prepend";
 
     std::string type_name;
@@ -1261,13 +1270,13 @@ class NimGenerator : public BaseGenerator {
     const auto struct_type = namer_.Type(struct_def);
 
     // Adds the field into the struct.
-    code += GenIndents(1) + "if self." + field_field + ".isSome:";
+    code += GenIndents(1) + "if self." + field_field + ".len > 0:";
     code += GenIndents(2) + "builder." + struct_type + "Add" + field_method +
             "(" + field_field + ")";
 
     // Creates the field.
     code_prefix += GenIndents(1) + "var " + field_field + ": uoffset ";
-    code_prefix += GenIndents(1) + "if self." + field_field + ".isSome:";
+    code_prefix += GenIndents(1) + "if self." + field_field + ".len > 0:";
     // If the vector is a string vector, we need to first build accessor for
     // each string element. And this generated code, needs to be
     // placed ahead of code_prefix.
@@ -1275,17 +1284,16 @@ class NimGenerator : public BaseGenerator {
     if (IsString(vectortype)) {
       code_prefix +=
           GenIndents(2) + "var " + field_field + "list: seq[uoffset] = @[]";
-      code_prefix += GenIndents(2) + "for i in countup(0, self." + field_field +
-                     ".get().len):";
+      code_prefix +=
+          GenIndents(2) + "for i in countup(0, self." + field_field + ".len):";
       code_prefix += GenIndents(3) + field_field +
-                     "list.add(builder.Create(self." + field_field +
-                     ".get()[i]))";
+                     "list.add(builder.Create(self." + field_field + "[i]))";
       GenPackForScalarVectorFieldHelper(struct_def, field, code_prefix, 2);
       code_prefix += "(" + field_field + "list[i])";
       code_prefix += GenIndents(2) + field_field + " = builder.EndVector()";
     } else {
       GenPackForScalarVectorFieldHelper(struct_def, field, code_prefix, 2);
-      code_prefix += "(self." + field_field + ".get()[i])";
+      code_prefix += "(self." + field_field + "[i])";
       code_prefix += GenIndents(2) + field_field + " = builder.EndVector()";
     }
   }
@@ -1490,7 +1498,8 @@ class NimGenerator : public BaseGenerator {
     const auto enum_objectType = namer_.ObjectType(enum_def);
 
     object_code += "\n";
-    object_code += "type " + enum_objectType + Export + " {.union.} = object";
+    object_code +=
+        "type " + enum_objectType + Export + " {.union.} = ref object";
 
     creator_code += "proc " + enum_type + "Creator" + Export +
                     "(unionType: " + enum_type +
@@ -1541,18 +1550,20 @@ class NimGenerator : public BaseGenerator {
   bool generateEnums(std::string &one_file_code) {
     for (auto it = parser_.enums_.vec.begin(); it != parser_.enums_.vec.end();
          ++it) {
+      bool needs_imports = false;
       auto &enum_def = **it;
       std::string enumcode;
       GenEnum(enum_def, enumcode);
       if (parser_.opts.generate_object_based_api & enum_def.is_union) {
         GenUnionCreator(enum_def, enumcode);
+        needs_imports = true;
       }
 
       if (parser_.opts.one_file && !enumcode.empty()) {
         one_file_code += enumcode + "\n\n";
       } else {
         if (!SaveType(namer_.File(enum_def, SkipFile::Suffix),
-                      *enum_def.defined_namespace, enumcode, true))
+                      *enum_def.defined_namespace, enumcode, needs_imports))
           return false;
       }
     }
@@ -1562,20 +1573,18 @@ class NimGenerator : public BaseGenerator {
   bool generateStructs(std::string &one_file_code) {
     for (auto it = parser_.structs_.vec.begin();
          it != parser_.structs_.vec.end(); ++it) {
-      bool needs_imports = false;
       auto &struct_def = **it;
       std::string declcode;
       GenStruct(struct_def, declcode);
       if (parser_.opts.generate_object_based_api && !struct_def.generated) {
         GenStructForObjectAPI(struct_def, declcode);
-        needs_imports = true;
       }
 
       if (parser_.opts.one_file && !declcode.empty()) {
         one_file_code += declcode + "\n\n";
       } else {
         if (!SaveType(namer_.File(struct_def, SkipFile::Suffix),
-                      *struct_def.defined_namespace, declcode, needs_imports))
+                      *struct_def.defined_namespace, declcode, true))
           return false;
       }
     }
