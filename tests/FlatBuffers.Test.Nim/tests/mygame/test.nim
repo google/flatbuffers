@@ -4,6 +4,7 @@ discard """
   timeout:  60.0
 """
 import std/unittest
+import std/options
 import flatbuffers
 import ../../generated/MyGame/Example/Test
 import ../../generated/MyGame/Example/Monster
@@ -15,13 +16,15 @@ proc verifyMonster(monster: var Monster) =
   check(monster.hp == 80)
   check(monster.mana == 150)
   check(monster.name == "MyMonster")
-  check(monster.pos.x == 1)
-  check(monster.pos.y == 2)
-  check(monster.pos.z == 3)
-  check(monster.pos.test1 == 3)
-  check(monster.pos.test2 == Color.Green.uint8)
-  check(monster.pos.test3.a == 5)
-  check(monster.pos.test3.b == 6)
+  check(monster.pos.isSome)
+  let pos = monster.pos.get()
+  check(pos.x == 1)
+  check(pos.y == 2)
+  check(pos.z == 3)
+  check(pos.test1 == 3)
+  check(pos.test2 == Color.Green.uint8)
+  check(pos.test3.a == 5)
+  check(pos.test3.b == 6)
   check(monster.testType == Any.Monster.uint8)
   # let monster2 = Monster(tab: monster.test.tab)
   let monster2 = cast[Monster](monster.test)

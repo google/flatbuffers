@@ -4,10 +4,10 @@ discard """
   timeout:  60.0
 """
 import std/unittest
+import std/options
 import flatbuffers
 import ../../generated/optional_scalars/ScalarStuff
 
-# Optionals could be supported with import 'std/options' but that would make the usage more awkward
 
 suite "TestOptionalScalars":
 
@@ -22,8 +22,8 @@ suite "TestOptionalScalars":
 
     # Creates a flatbuffer with optional values.
     check(optionals.justI8 == 0)
-    # check(optionals.maybeF32() is None)
+    check(optionals.maybeF32.isNone)
     check(optionals.defaultBool == true)
     check(optionals.justU16 == 0)
-    # check(optionals.maybe_enum is None)
+    check(optionals.maybe_enum.isNone)
     check(optionals.defaultU64 == 42)

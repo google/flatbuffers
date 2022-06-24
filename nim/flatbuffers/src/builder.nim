@@ -14,6 +14,7 @@ type Builder* = ref object of RootObj
    head*: uoffset
    nested*: bool
    finished*: bool
+   vectorNumElems*: int
 
 using this: var Builder
 
@@ -22,9 +23,9 @@ func newBuilder*(size: int): Builder =
    result.bytes.setLen(size)
    result.minalign = 1
    result.head = size.uoffset
-   #result.vtables.setLen(16)# = newSeq[uoffset](16)
    result.nested = false
    result.finished = false
+   result.vectorNumElems = 0
 
 proc FinishedBytes*(this): seq[byte] =
    if not this.finished:
@@ -53,7 +54,7 @@ proc StartObject*(this; numfields: int) =
 proc GrowByteBuffer*(this) =
    if this.bytes.len == MAX_BUFFER_SIZE:
       quit("flatbuffers: cannot grow buffer beyond 2 gigabytes")
-   let oldLen =  this.bytes.len
+   let oldLen = this.bytes.len
    var newLen = min(this.bytes.len * 2, MAX_BUFFER_SIZE)
    if newLen == 0:
       newLen = 1
@@ -74,7 +75,7 @@ func Pad*(this; n: int) =
    for i in 0..<n:
       this.Place(0.byte)
 
-proc Prep*(this; size: int, additionalBytes: int) =
+proc Prep*(this; size: int; additionalBytes: int) =
    if size > this.minalign:
       this.minalign = size
    var alignsize = (not (this.bytes.len - this.head.int + additionalBytes)) + 1
@@ -90,7 +91,7 @@ proc PrependOffsetRelative*[T: Offsets](this; off: T) =
    when T is voffset:
       this.Prep(T.sizeof, 0)
       if not off.uoffset <= this.Offset:
-            quit("flatbuffers: Offset arithmetic error.")
+         quit("flatbuffers: Offset arithmetic error.")
       this.Place(off)
    else:
       this.Prep(T.sizeof, 0)
@@ -107,7 +108,7 @@ proc Prepend*[T](this; x: T) =
 proc Slot*(this; slotnum: int) =
    this.current_vtable[slotnum] = this.Offset
 
-proc PrependSlot*[T](this; o: int, x, d: T) =
+proc PrependSlot*[T](this; o: int; x, d: T) =
    if x != d:
       when T is uoffset or T is soffset or T is voffset:
          this.PrependOffsetRelative(x)
@@ -119,7 +120,7 @@ proc AssertStuctInline(this; obj: uoffset) =
    if obj != this.Offset:
       quit("flatbuffers: Tried to write a Struct at an Offset that is different from the current Offset of the Builder.")
 
-proc PrependStructSlot*(this; o: int, x: uoffset, d: uoffset) =
+proc PrependStructSlot*(this; o: int; x: uoffset; d: uoffset) =
    if x != d:
       this.AssertStuctInline(x)
       this.Slot(o)
@@ -128,7 +129,7 @@ proc Add*[T](this; n: T) =
    this.Prep(T.sizeof, 0)
    WriteVal(this.bytes, this.head, n)
 
-proc VtableEqual*(a: seq[uoffset], objectStart: uoffset, b: seq[byte]): bool =
+proc VtableEqual*(a: seq[uoffset]; objectStart: uoffset; b: seq[byte]): bool =
    if a.len * voffset.sizeof != b.len:
       return false
 
@@ -208,19 +209,21 @@ proc EndObject*(this): uoffset =
 proc End*(this: var Builder): uoffset =
    result = this.EndObject()
 
-proc StartVector*(this; elemSize: int, numElems: int, alignment: int): uoffset =
+proc StartVector*(this; elemSize: int; numElems: int; alignment: int): uoffset =
    if this.nested:
       quit("builder is nested")
    this.nested = true
+   this.vectorNumElems = numElems
    this.Prep(sizeof(uint32), elemSize * numElems)
    this.Prep(alignment, elemSize * numElems)
    result = this.Offset
 
-proc EndVector*(this; vectorNumElems: uoffset): uoffset =
+proc EndVector*(this): uoffset =
    if not this.nested:
       quit("builder is not nested")
    this.nested = false
-   this.Place(vectorNumElems)
+   this.Place(this.vectorNumElems)
+   this.vectorNumElems = 0
    result = this.Offset
 
 proc getChars*(str: seq[byte]): string =
@@ -230,6 +233,7 @@ proc getChars*(str: seq[byte]): string =
 proc getBytes*(str: string | cstring): seq[byte] =
    for chr in str:
       result.add byte chr
+   # TODO: uncomment this next line and then Create can be practically identical in both cases
    # result.add byte 0
 
 proc Create*[T](this; s: T): uoffset = #Both CreateString and CreateByteVector functionality
@@ -239,20 +243,20 @@ proc Create*[T](this; s: T): uoffset = #Both CreateString and CreateByteVector f
    when T is cstring or T is string:
       let x = s.getBytes()
       let l = x.len.uoffset
+      this.vectorNumElems = l
       this.Prep(uoffset.sizeof, (l.int + 1) * byte.sizeof)
       this.Place(0.uint8)
       this.head -= l
       this.bytes[this.head..<this.head+l] = x
-      result = this.EndVector(x.len.uoffset)
+      result = this.EndVector()
    else:
       let x = s
       let l = x.len.uoffset
+      this.vectorNumElems = l
       this.Prep(uoffset.sizeof, l.int * byte.sizeof)
       this.head -= l
       this.bytes[this.head..<this.head+l] = x
-      result = this.EndVector(x.len.uoffset)
-
-
+      result = this.EndVector()
 
 proc Finish*(this; rootTable: uoffset) =
    if this.nested:
