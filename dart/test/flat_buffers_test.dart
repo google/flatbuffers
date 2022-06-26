@@ -14,6 +14,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 import './monster_test_my_game.example_generated.dart' as example;
 import './monster_test_my_game.example2_generated.dart' as example2;
 import './list_of_enums_generated.dart' as example3;
+import './bool_structs_generated.dart' as example4;
 import './keyword_test_keyword_test_generated.dart' as keyword_test;
 
 main() {
@@ -910,12 +911,27 @@ class GeneratorTest {
 @reflectiveTest
 class ListOfEnumsTest {
   void test_listOfEnums() async {
-    var mytable = example3.MyTableObjectBuilder(
-      options: [example3.OptionsEnum.A, example3.OptionsEnum.B, example3.OptionsEnum.C]);
+    var mytable = example3.MyTableObjectBuilder(options: [
+      example3.OptionsEnum.A,
+      example3.OptionsEnum.B,
+      example3.OptionsEnum.C
+    ]);
     var bytes = mytable.toBytes();
     var mytable_read = example3.MyTable(bytes);
     expect(mytable_read.options![0].value, example3.OptionsEnum.A.value);
     expect(mytable_read.options![1].value, example3.OptionsEnum.B.value);
     expect(mytable_read.options![2].value, example3.OptionsEnum.C.value);
+  }
+}
+
+@reflectiveTest
+class BoolInStructTest {
+  void test_boolInStruct() async {
+    var mystruct = example4.FooObjectBuilder(
+        myFoo: example4.FooPropertiesObjectBuilder(a: true, b: false));
+    var bytes = mystruct.toBytes();
+    var mystruct_read = example4.Foo(bytes);
+    expect(mystruct_read.myFoo!.a, true);
+    expect(mystruct_read.myFoo!.b, false);
   }
 }
