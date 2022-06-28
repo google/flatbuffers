@@ -401,6 +401,15 @@ class Builder {
     _setFloat32AtTail(_tail, value);
   }
 
+  /// Writes a bool to the tail of the buffer after preparing space for it.
+  /// Bools are represented as a Uint8, with the value set to '1' for true, and '0' for false
+  ///
+  /// Updates the [offset] pointer.  This method is intended for use when writing structs to the buffer.
+  void putBool(bool value) {
+    _prepare(_sizeofUint8, 1);
+    _buf.setInt8(_buf.lengthInBytes - _tail, value ? 1 : 0);
+  }
+
   /// Writes a Int64 to the tail of the buffer after preparing space for it.
   ///
   /// Updates the [offset] pointer.  This method is intended for use when writing structs to the buffer.
