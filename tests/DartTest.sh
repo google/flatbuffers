@@ -26,6 +26,7 @@ cp monster_test.fbs ../dart/test
 cd ../dart
 
 ../flatc --dart --gen-object-api -o ./test ./test/list_of_enums.fbs
+../flatc --dart --gen-object-api -o ./test ./test/bool_structs.fbs
 
 # update packages
 dart pub get
