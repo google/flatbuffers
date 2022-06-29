@@ -85,8 +85,8 @@ func WriteVal*[T: SomeFloat](b: var seq[byte]; off: uoffset; n: T) {.inline.} =
       WriteVal(b, off, cast[uint32](n))
 
 func Offset*(this; off: voffset): voffset =
-   let vtable: voffset = (this.Pos - this.Get[:uoffset](this.Pos)).voffset
-   let vtableEnd: voffset = this.Get[:voffset](vtable)
+   let vtable = (this.Pos - this.Get[:uoffset](this.Pos)).voffset
+   let vtableEnd = this.Get[:voffset](vtable)
    if off < vtableEnd:
       return this.Get[:voffset](vtable + off)
    return 0
@@ -133,8 +133,8 @@ func ByteVector*(this; off: uoffset): seq[byte] =
    result = this.Bytes[start..<start+length]
 
 func String*(this; off: uoffset): string =
-   var seq = this.ByteVector(off)
-   result = GetVal[string](addr seq)
+   var byte_seq = this.ByteVector(off)
+   result = GetVal[string](addr byte_seq)
 
 using this: var Vtable
 

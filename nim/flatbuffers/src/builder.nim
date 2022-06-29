@@ -234,30 +234,24 @@ proc getChars*(str: seq[byte]): string =
 proc getBytes*(str: string | cstring): seq[byte] =
    for chr in str:
       result.add byte chr
-   # TODO: uncomment this next line and then Create can be practically identical in both cases
-   # result.add byte 0
+   result.add byte 0
 
-proc Create*[T](this; s: T): uoffset = #Both CreateString and CreateByteVector functionality
+proc Create*[T](this; s: T): uoffset = # Both CreateString and CreateByteVector functionality
    if this.nested:
       quit("builder is nested")
    this.nested = true
    when T is cstring or T is string:
       let x = s.getBytes()
       let l = x.len.uoffset
-      this.vectorNumElems = l
-      this.Prep(uoffset.sizeof, (l.int + 1) * byte.sizeof)
-      this.Place(0.uint8)
-      this.head -= l
-      this.bytes[this.head..<this.head+l] = x
-      result = this.EndVector()
+      this.vectorNumElems = l-1
    else:
       let x = s
       let l = x.len.uoffset
       this.vectorNumElems = l
-      this.Prep(uoffset.sizeof, l * byte.sizeof)
-      this.head -= l
-      this.bytes[this.head..<this.head+l] = x
-      result = this.EndVector()
+   this.Prep(uoffset.sizeof, l.int * byte.sizeof)
+   this.head -= l
+   this.bytes[this.head..<this.head+l] = x
+   result = this.EndVector()
 
 proc Finish*(this; rootTable: uoffset) =
    if this.nested:

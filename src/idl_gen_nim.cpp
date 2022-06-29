@@ -54,7 +54,7 @@ Namer::Config NimDefaultConfig() {
            /*variable=*/Case::kLowerCamel,
            /*variants=*/Case::kKeep,
            /*enum_variant_seperator=*/".",
-           /*escape_keywords=*/Namer::Config::Escape::BeforeConvertingCase,
+           /*escape_keywords=*/Namer::Config::Escape::AfterConvertingCase,
            /*namespaces=*/Case::kKeep,
            /*namespace_seperator=*/"/",
            /*object_prefix=*/"",

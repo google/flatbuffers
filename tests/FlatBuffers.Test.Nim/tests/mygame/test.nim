@@ -15,26 +15,28 @@ import ../../generated/MyGame/Example/Any as AnyMod
 proc verifyMonster(monster: var Monster) =
   check(monster.hp == 80)
   check(monster.mana == 150)
-  check(monster.name == "MyMonster")
+  check(monster.name.isSome)
+  check(monster.name.get() == "MyMonster")
   check(monster.pos.isSome)
   let pos = monster.pos.get()
   check(pos.x == 1)
   check(pos.y == 2)
   check(pos.z == 3)
   check(pos.test1 == 3)
-  check(pos.test2 == Color.Green.uint8)
+  check(pos.test2 == Color.Green)
   check(pos.test3.a == 5)
   check(pos.test3.b == 6)
-  check(monster.testType == Any.Monster.uint8)
-  # let monster2 = Monster(tab: monster.test.tab)
-  let monster2 = cast[Monster](monster.test)
-  check(monster2.name == "Fred")
+  check(monster.testType == Any.Monster)
+  check(monster.test.isSome)
+  let monster2 = Monster(tab: monster.test.get())
+  check(monster2.name.isSome)
+  check(monster2.name.get() == "Fred")
   check((monster.mana = 10) == false)
   check(monster.mana == 150)
   check(monster.inventoryLength == 5)
   var sum: uint8 = 0
-  for i in countup(0, monster.inventoryLength, 1):
-    sum += monster.inventory(i)
+  for item in monster.inventory:
+    sum += item
   check(sum == 10)
   check(monster.test4Length == 2)
 
@@ -107,7 +109,7 @@ suite "TestMyGame":
     discard fbb.MonsterStartTest4Vector(2)
     discard fbb.CreateTest(a = 30, b = 40)
     discard fbb.CreateTest(a = 10, b = 20)
-    let test4 = fbb.EndVector(2)
+    let test4 = fbb.EndVector()
     fbb.Finish(test4)
     check(fbb.FinishedBytes() == @[byte(4), 0, 0, 0, 2, 0, 0, 0, 10, 0, 20, 0,
         30, 0, 40, 0])
@@ -119,7 +121,7 @@ suite "TestMyGame":
         y = 2,
         z = 3,
         test1 = 3,
-        test2 = Color.Green.uint8,
+        test2 = Color.Green,
         test3_a = 5, test3_b = 6))
 
     let monster_end = fbb.MonsterEnd()
@@ -159,30 +161,30 @@ suite "TestMyGame":
     discard fbb.MonsterStartTest4Vector(2)
     discard fbb.CreateTest(a = 30, b = 40)
     discard fbb.CreateTest(a = 10, b = 20)
-    let test4 = fbb.EndVector(2)
+    let test4 = fbb.EndVector()
 
     discard fbb.MonsterStartTestarrayofstringVector(2)
     fbb.PrependOffsetRelative(test1)
     fbb.PrependOffsetRelative(test2)
-    let stringTestVector = fbb.EndVector(2)
+    let stringTestVector = fbb.EndVector()
 
     discard fbb.MonsterStartTestarrayoftablesVector(3)
     fbb.PrependOffsetRelative(offsets[0])
     fbb.PrependOffsetRelative(offsets[1])
     fbb.PrependOffsetRelative(offsets[2])
-    let tableTestVector = fbb.EndVector(3)
+    let tableTestVector = fbb.EndVector()
 
     fbb.MonsterStart()
     fbb.MonsterAddPos(fbb.CreateVec3(x = 1,
         y = 2,
         z = 3,
         test1 = 3,
-        test2 = Color.Green.uint8,
+        test2 = Color.Green,
         test3_a = 5, test3_b = 6))
     fbb.MonsterAddHp(80)
     fbb.MonsterAddName(str)
     fbb.MonsterAddInventory(inv)
-    fbb.MonsterAddTestType(Any.Monster.uint8)
+    fbb.MonsterAddTestType(Any.Monster)
     fbb.MonsterAddTest(mon2)
     fbb.MonsterAddTest4(test4)
     fbb.MonsterAddTestarrayofstring(stringTestVector)
