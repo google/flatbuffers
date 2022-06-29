@@ -653,30 +653,6 @@ class NimGenerator : public BaseGenerator {
     }
   }
 
-  // std::string GetNamespace(const Type &type) const {
-  //   return type.struct_def->defined_namespace->GetFullyQualifiedName(
-  //       type.struct_def->name);
-  // }
-
-  // std::string GetNamespace(const FieldDef &field) const {
-  //   return GetNamespace(field.value.type);
-  // }
-
-  // std::string GetNamespace(const EnumVal &val) const {
-  //   return
-  //   val.union_type.struct_def->defined_namespace->GetFullyQualifiedName(
-  //       val.name);
-  // }
-
-  // std::string GetNamespace(const StructDef &struct_def) const {
-  //   return
-  //   struct_def.defined_namespace->GetFullyQualifiedName(struct_def.name);
-  // }
-
-  // std::string GetNamespace(const EnumDef &enum_def) const {
-  //   return enum_def.defined_namespace->GetFullyQualifiedName(enum_def.name);
-  // }
-
   std::string TypeName(const FieldDef &field) const {
     if (field.value.type.struct_def) {
       return namer_.Type(*field.value.type.struct_def);
@@ -969,33 +945,6 @@ class NimGenerator : public BaseGenerator {
       code += "\n";
     }
     code += "\n";
-
-    // Merges the typing imports into import_list.
-    // if (!import_typing_list.empty()) {
-    //   // Adds the try statement.
-    //   std::string typing_imports = "try:";
-    //   typing_imports += GenIndents(1) + "from typing import ";
-    //   std::string separator_string = ", ";
-    //   for (auto it = import_typing_list.begin(); it !=
-    //   import_typing_list.end();
-    //        ++it) {
-    //     const std::string &im = *it;
-    //     typing_imports += im + separator_string;
-    //   }
-    //   // Removes the last separator_string.
-    //   typing_imports.erase(typing_imports.length() -
-    //   separator_string.size());
-
-    //   // Adds the except statement.
-    //   typing_imports += "\n";
-    //   typing_imports += "except:";
-    //   typing_imports += GenIndents(1) + "pass";
-    //   import_list->insert(typing_imports);
-    // }
-
-    // Removes the import of the struct itself, if applied.
-    // auto struct_import = "import " + namer_.NamespacedType(struct_def);
-    // import_list->erase(struct_import);
   }
 
   void InitializeFromBuf(const StructDef &struct_def, std::string &code) const {
@@ -1061,22 +1010,14 @@ class NimGenerator : public BaseGenerator {
     const auto field_field = namer_.Field(field);
     const auto field_method = namer_.Method(field);
     const auto struct_var = namer_.Variable(struct_def);
-    // const EnumDef &enum_def = *field.value.type.enum_def;
-    // auto union_type = namer_.Type(enum_def);
 
-    // if (parser_.opts.include_dependence_headers) {
-    // union_type = namer_.NamespacedType(enum_def) + "." + union_type;
     imports_.insert(GetImport(struct_def, field));
     const auto field_type = ImportedName(struct_def, field);
-    // }
+
     code += GenIndents(1) + "if " + struct_var + "." + field_field + ".isSome:";
     code += GenIndents(2) + "self." + field_field + " = some(" + field_type +
             "Creator(" + struct_var + "." + field_field + "Type, " +
             struct_var + "." + field_field + ".get()))";
-    // TODO: ^^^^^^
-    // code += GenIndents(1) + "self." + field_field + " = " + union_type +
-    //         "Creator" + "(" + "self." + field_field + "Type, " + struct_var +
-    //         "." + field_method + "())";
   }
 
   void GenUnPackForStructVector(const StructDef &struct_def,
@@ -1304,22 +1245,12 @@ class NimGenerator : public BaseGenerator {
     const auto field_method = namer_.Method(field);
     const auto struct_type = namer_.Type(struct_def);
 
-    // if (field.value.type.struct_def->fixed) {
-    //   // Pure struct fields need to be created along with their parent
-    //   // structs.
-    //   code += GenIndents(1) + "var " + field_field + ": uoffset";
-    //   code += GenIndents(1) + "if self." + field_field + ".isSome:";
-    //   code += GenIndents(2) + field_field + " = self." + field_field +
-    //           ".get().Pack(builder)";
-    // } else {
-    // Tables need to be created before their parent structs are created.
     code_prefix += GenIndents(1) + "var " + field_field + ": uoffset";
     code_prefix += GenIndents(1) + "if self." + field_field + ".isSome:";
     code_prefix += GenIndents(2) + field_field + " = self." + field_field +
                    ".get().Pack(builder)";
-    code += GenIndents(1) + "if self." + field_field + ".isSome:";
-    // }
 
+    code += GenIndents(1) + "if self." + field_field + ".isSome:";
     code += GenIndents(2) + "builder." + struct_type + "Add" + field_method +
             "(" + field_field + ")";
   }
@@ -1330,7 +1261,6 @@ class NimGenerator : public BaseGenerator {
     const auto field_method = namer_.Method(field);
     const auto struct_type = namer_.Type(struct_def);
 
-    // TODO(luwa): TypeT should be moved under the None check as well.
     code_prefix += GenIndents(1) + "var " + field_field + ": uoffset";
     code_prefix += GenIndents(1) + "if self." + field_field + ".isSome:";
     code_prefix += GenIndents(2) + field_field + " = self." + field_field +
