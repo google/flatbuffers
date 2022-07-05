@@ -9,9 +9,6 @@ import flatbuffers
 import ../../generated/TestMutatingBool
 import ../../generated/Property
 
-proc get(): TestMutatingBoolT =
-  discard
-
 suite "TestMutatingBool":
 
   test "MutatingBool":
@@ -41,6 +38,6 @@ suite "TestMutatingBool":
     GetRootAs(test_mutating_bool, builder.FinishedBytes(), 0)
     check(test_mutating_bool.b.isNone)
 
-  test "defaultValue":
-    let mutatingbool = newTestMutatingBoolT()
-    check(mutatingbool.b.isNone)
+  # test "defaultValue":
+  #   let mutatingbool = newTestMutatingBoolT()
+  #   check(mutatingbool.b.isNone)

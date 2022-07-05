@@ -3746,6 +3746,9 @@ Offset<reflection::Field> FieldDef::Serialize(FlatBufferBuilder *builder,
   auto docs__ = parser.opts.binary_schema_comments
                     ? builder->CreateVectorOfStrings(doc_comment)
                     : 0;
+  auto default_string__ =
+      builder->CreateString(IsString(value.type) ? value.constant : "");
+
   double d;
   StringToNumber(value.constant.c_str(), &d);
   return reflection::CreateField(
@@ -3753,8 +3756,9 @@ Offset<reflection::Field> FieldDef::Serialize(FlatBufferBuilder *builder,
       // Is uint64>max(int64) tested?
       IsInteger(value.type.base_type) ? StringToInt(value.constant.c_str()) : 0,
       // result may be platform-dependent if underlying is float (not double)
-      IsFloat(value.type.base_type) ? d : 0.0, deprecated, IsRequired(), key,
-      attr__, docs__, IsOptional(), static_cast<uint16_t>(padding));
+      IsFloat(value.type.base_type) ? d : 0.0, default_string__, deprecated,
+      IsRequired(), key, attr__, docs__, IsOptional(),
+      static_cast<uint16_t>(padding));
   // TODO: value.constant is almost always "0", we could save quite a bit of
   // space by sharing it. Same for common values of value.type.
 }
@@ -3910,12 +3914,16 @@ bool EnumVal::Deserialize(const Parser &parser,
 }
 
 Offset<reflection::Type> Type::Serialize(FlatBufferBuilder *builder) const {
+  size_t element_size = SizeOf(element);
+  if (base_type == BASE_TYPE_VECTOR && element == BASE_TYPE_STRUCT) {
+    element_size = struct_def->bytesize;
+  }
   return reflection::CreateType(
       *builder, static_cast<reflection::BaseType>(base_type),
       static_cast<reflection::BaseType>(element),
       struct_def ? struct_def->index : (enum_def ? enum_def->index : -1),
       fixed_length, static_cast<uint32_t>(SizeOf(base_type)),
-      static_cast<uint32_t>(SizeOf(element)));
+      static_cast<uint32_t>(element_size));
 }
 
 bool Type::Deserialize(const Parser &parser, const reflection::Type *type) {

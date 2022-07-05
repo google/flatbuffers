@@ -210,14 +210,13 @@ proc End*(this: var Builder): uoffset =
    result = this.EndObject()
 
 proc StartVector*(this; elemSize: int; numElems: uoffset;
-      alignment: int): uoffset =
+      alignment: int) =
    if this.nested:
       quit("builder is nested")
    this.nested = true
    this.vectorNumElems = numElems
    this.Prep(sizeof(uint32), elemSize * numElems.int)
    this.Prep(alignment, elemSize * numElems.int)
-   result = this.Offset
 
 proc EndVector*(this): uoffset =
    if not this.nested:

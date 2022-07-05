@@ -15,8 +15,7 @@ import ../../generated/MyGame/Example/Any as AnyMod
 proc verifyMonster(monster: var Monster) =
   check(monster.hp == 80)
   check(monster.mana == 150)
-  check(monster.name.isSome)
-  check(monster.name.get() == "MyMonster")
+  check(monster.name == "MyMonster")
   check(monster.pos.isSome)
   let pos = monster.pos.get()
   check(pos.x == 1)
@@ -29,8 +28,7 @@ proc verifyMonster(monster: var Monster) =
   check(monster.testType == Any.Monster)
   check(monster.test.isSome)
   let monster2 = Monster(tab: monster.test.get())
-  check(monster2.name.isSome)
-  check(monster2.name.get() == "Fred")
+  check(monster2.name == "Fred")
   check((monster.mana = 10) == false)
   check(monster.mana == 150)
   check(monster.inventoryLength == 5)
@@ -106,7 +104,7 @@ suite "TestMyGame":
 
   test "testCreateTestVector":
     var fbb = newBuilder(0)
-    discard fbb.MonsterStartTest4Vector(2)
+    fbb.MonsterStartTest4Vector(2)
     discard fbb.CreateTest(a = 30, b = 40)
     discard fbb.CreateTest(a = 10, b = 20)
     let test4 = fbb.EndVector()
@@ -158,17 +156,17 @@ suite "TestMyGame":
     fbb.MonsterAddName(fred)
     let mon2 = fbb.MonsterEnd()
 
-    discard fbb.MonsterStartTest4Vector(2)
+    fbb.MonsterStartTest4Vector(2)
     discard fbb.CreateTest(a = 30, b = 40)
     discard fbb.CreateTest(a = 10, b = 20)
     let test4 = fbb.EndVector()
 
-    discard fbb.MonsterStartTestarrayofstringVector(2)
+    fbb.MonsterStartTestarrayofstringVector(2)
     fbb.PrependOffsetRelative(test1)
     fbb.PrependOffsetRelative(test2)
     let stringTestVector = fbb.EndVector()
 
-    discard fbb.MonsterStartTestarrayoftablesVector(3)
+    fbb.MonsterStartTestarrayoftablesVector(3)
     fbb.PrependOffsetRelative(offsets[0])
     fbb.PrependOffsetRelative(offsets[1])
     fbb.PrependOffsetRelative(offsets[2])
@@ -184,7 +182,7 @@ suite "TestMyGame":
     fbb.MonsterAddHp(80)
     fbb.MonsterAddName(str)
     fbb.MonsterAddInventory(inv)
-    fbb.MonsterAddTestType(Any.Monster)
+    fbb.MonsterAddTestType(Any.Monster.uint8)
     fbb.MonsterAddTest(mon2)
     fbb.MonsterAddTest4(test4)
     fbb.MonsterAddTestarrayofstring(stringTestVector)

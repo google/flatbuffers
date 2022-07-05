@@ -24,6 +24,7 @@ nim:
   - '**/*.nim'
   - nim/**/*
   - src/idl_gen_nim.cpp
+  - src/bfbs_gen_nim.cpp
 
 javascript:
   - '**/*.js'

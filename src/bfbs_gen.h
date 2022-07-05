@@ -24,27 +24,28 @@
 
 namespace flatbuffers {
 
-void ForAllEnums(
+static void ForAllEnums(
     const flatbuffers::Vector<flatbuffers::Offset<reflection::Enum>> *enums,
     std::function<void(const reflection::Enum *)> func) {
   for (auto it = enums->cbegin(); it != enums->cend(); ++it) { func(*it); }
 }
 
-void ForAllObjects(
+static void ForAllObjects(
     const flatbuffers::Vector<flatbuffers::Offset<reflection::Object>> *objects,
     std::function<void(const reflection::Object *)> func) {
   for (auto it = objects->cbegin(); it != objects->cend(); ++it) { func(*it); }
 }
 
-void ForAllEnumValues(const reflection::Enum *enum_def,
-                      std::function<void(const reflection::EnumVal *)> func) {
+static void ForAllEnumValues(
+    const reflection::Enum *enum_def,
+    std::function<void(const reflection::EnumVal *)> func) {
   for (auto it = enum_def->values()->cbegin(); it != enum_def->values()->cend();
        ++it) {
     func(*it);
   }
 }
 
-void ForAllDocumentation(
+static void ForAllDocumentation(
     const flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>>
         *documentation,
     std::function<void(const flatbuffers::String *)> func) {
@@ -126,17 +127,23 @@ class BaseBfbsGenerator : public BfbsGenerator {
   }
 
  protected:
-  const reflection::Object *GetObject(const reflection::Type *type) const {
-    if (type->index() >= 0 && IsStructOrTable(type->base_type())) {
+  const reflection::Object *GetObject(const reflection::Type *type,
+                                      bool element_type = false) const {
+    const reflection::BaseType base_type =
+        element_type ? type->element() : type->base_type();
+    if (type->index() >= 0 && IsStructOrTable(base_type)) {
       return GetObjectByIndex(type->index());
     }
     return nullptr;
   }
 
-  const reflection::Enum *GetEnum(const reflection::Type *type) const {
+  const reflection::Enum *GetEnum(const reflection::Type *type,
+                                  bool element_type = false) const {
+    const reflection::BaseType base_type =
+        element_type ? type->element() : type->base_type();
     // TODO(derekbailey): it would be better to have a explicit list of allowed
     // base types, instead of negating Obj types.
-    if (type->index() >= 0 && !IsStructOrTable(type->base_type())) {
+    if (type->index() >= 0 && !IsStructOrTable(base_type)) {
       return GetEnumByIndex(type->index());
     }
     return nullptr;
