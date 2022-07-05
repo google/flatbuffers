@@ -79,6 +79,103 @@ Namer::Config NimDefaultConfig() {
 
 const std::string Indent = "  ";
 const std::string Export = "*";
+struct NimTypeField {
+  std::string name_;
+  std::string type_;
+  std::string doc_;
+  NimTypeField(const std::string &name, const std::string &type,
+               const std::string &doc = std::string())
+      : name_(name), type_(type), doc_(doc) {}
+};
+struct NimType {
+  std::string name_;
+  std::string pragma_;
+  bool isEnum_;
+  bool isRef_;
+  std::string superClass_;
+  std::vector<NimTypeField> fields_;
+  std::string doc_;
+  NimType(const std::string &name, const std::string &pragma = std::string(),
+          bool isEnum = false, bool isRef = false,
+          const std::string &superClass = std::string(),
+          const std::vector<NimTypeField> &fields = std::vector<NimTypeField>(),
+          const std::string &doc = std::string())
+      : name_(name),
+        pragma_(pragma),
+        isEnum_(isEnum),
+        isRef_(isRef),
+        superClass_(superClass),
+        fields_(fields),
+        doc_(doc) {}
+
+  std::string Implementation(bool with_type) const {
+    std::string ref = isRef_ ? "ref " : "";
+    std::string superclass = superClass_ == "" ? "" : " of " + superClass_;
+    std::string pragma = pragma_ == "" ? "" : " " + pragma_;
+    std::string supertype = isEnum_ ? "enum" : "object";
+    std::string field_indent = with_type ? "  " : "    ";
+    std::string field_sep = isEnum_ ? " = " : Export + ": ";
+
+    std::string code;
+    code += doc_;
+    code += with_type ? "type " : "  ";
+    code +=
+        name_ + Export + pragma + " = " + ref + supertype + superclass + "\n";
+    for (auto const &x : fields_) {
+      code += x.doc_;
+      code += field_indent + x.name_ + field_sep + x.type_ + ",\n";
+    }
+    code += "\n";
+    return code;
+  }
+};
+
+struct NimFunction {
+  std::string name_;
+  bool hasSideEffects_;
+  std::vector<std::pair<std::string, std::string>> args_;
+  std::string returnType_;
+  std::string code_;
+  std::string doc_;
+  NimFunction(const std::string &name, bool hasSideEffects = false,
+              const std::vector<std::pair<std::string, std::string>> &args =
+                  std::vector<std::pair<std::string, std::string>>(),
+              const std::string &returnType = std::string(),
+              const std::string &code = std::string(),
+              const std::string &doc = std::string())
+      : name_(name),
+        hasSideEffects_(hasSideEffects),
+        args_(args),
+        returnType_(returnType),
+        code_(code),
+        doc_(doc) {}
+
+  std::string Signature(bool with_newline = true) const {
+    std::string code;
+    std::string def = hasSideEffects_ ? "proc" : "func";
+    std::string ret = returnType_ == "" ? "" : ": " + returnType_;
+    code += def + " " + name_ + Export + "(";
+    bool first = true;
+    for (auto const &x : args_) {
+      if (first) {
+        first = false;
+      } else {
+        code += ", ";
+      }
+      code += x.first + ": " + x.second;
+    }
+    code += ")" + ret;
+    if (with_newline) { code += "\n"; }
+    return code;
+  }
+  std::string Implementation() const {
+    std::string code;
+    code += Signature(false) + " =\n";
+    code += code_;
+    code += "\n";
+    return code;
+  }
+};
 
 class NimBfbsGenerator : public BaseBfbsGenerator {
  public:
@@ -108,8 +205,6 @@ class NimBfbsGenerator : public BaseBfbsGenerator {
   bool GenerateEnums(
       const flatbuffers::Vector<flatbuffers::Offset<r::Enum>> *enums) {
     ForAllEnums(enums, [&](const r::Enum *enum_def) {
-      std::string code;
-
       StartCodeBlock(enum_def);
 
       std::string ns;
@@ -118,16 +213,18 @@ class NimBfbsGenerator : public BaseBfbsGenerator {
       const std::string enum_type =
           GenerateTypeBasic(enum_def->underlying_type());
 
-      GenerateDocumentation(enum_def->documentation(), "", code);
-      code += "type " + enum_name + Export + " {.pure.} = enum\n";
-      ForAllEnumValues(enum_def, [&](const reflection::EnumVal *enum_val) {
-        GenerateDocumentation(enum_val->documentation(), "  ", code);
-        code += Indent + namer_.Variant(enum_val->name()->str()) + " = " +
-                NumToString(enum_val->value()) + "." + enum_type + ",\n";
-      });
-      code += "\n";
+      NimType enumobj(enum_name, "{.pure.}", true);
+      GenerateDocumentation(enum_def->documentation(), "", enumobj.doc_);
 
-      EmitCodeBlock(code, enum_name, ns, enum_def->declaration_file()->str());
+      ForAllEnumValues(enum_def, [&](const reflection::EnumVal *enum_val) {
+        NimTypeField field(namer_.Variant(enum_val->name()->str()),
+                           NumToString(enum_val->value()) + "." + enum_type);
+        GenerateDocumentation(enum_val->documentation(), "  ", field.doc_);
+        enumobj.fields_.push_back(field);
+      });
+      types_.push_back(enumobj);
+
+      EmitCodeBlock(enum_name, ns, enum_def->declaration_file()->str());
     });
     return true;
   }
@@ -136,8 +233,6 @@ class NimBfbsGenerator : public BaseBfbsGenerator {
       const flatbuffers::Vector<flatbuffers::Offset<r::Object>> *objects,
       const r::Object *root_object) {
     ForAllObjects(objects, [&](const r::Object *object) {
-      std::string code;
-
       StartCodeBlock(object);
 
       // Register the main flatbuffers module.
@@ -147,9 +242,10 @@ class NimBfbsGenerator : public BaseBfbsGenerator {
       const std::string object_name =
           namer_.Type(namer_.Denamespace(object, ns));
 
-      GenerateDocumentation(object->documentation(), "", code);
-
-      code += "type " + object_name + Export + " = object of FlatObj\n\n";
+      NimType obj(object_name);
+      obj.superClass_ = "FlatObj";
+      GenerateDocumentation(object->documentation(), "", obj.doc_);
+      types_.push_back(obj);
 
       // Create all the field accessors.
       ForAllFields(object, /*reverse=*/false, [&](const r::Field *field) {
@@ -159,68 +255,70 @@ class NimBfbsGenerator : public BaseBfbsGenerator {
         const std::string field_name = namer_.Field(field->name()->str());
         const r::BaseType base_type = field->type()->base_type();
 
-        // Generate some fixed strings so we don't repeat outselves later.
-        const std::string getter_signature = "proc " + field_name + Export +
-                                             "(self: " + object_name +
-                                             "): {ret} = \n";
-        const std::string setter_signature =
-            "proc `" + field_name + "=`" + Export + "(self: var " +
-            object_name + ", n: {ret}): bool = \n";
+        std::string field_type = GenerateType(field->type());
+        if (field->optional() && !object->is_struct()) {
+          RegisterImports("std/options", "");
+          field_type = "Option[" + field_type + "]";
+        }
+
         const std::string offset_prefix =
             "let o = self.tab.Offset(" + NumToString(field->offset()) + ")\n";
         const std::string offset_prefix_2 = "if o != 0:\n";
 
-        GenerateDocumentation(field->documentation(), "", code);
-
         if (IsScalar(base_type) || base_type == r::String ||
             base_type == r::Obj || base_type == r::Union) {
+          NimFunction getter(field_name, false, { { "self", object_name } },
+                             field_type);
+          NimFunction setter(
+              "`" + field_name + "=`", false,
+              { { "self", "var " + object_name }, { "n", field_type } },
+              "bool");
+
+          GenerateDocumentation(field->documentation(), "", getter.doc_);
           if (base_type == r::Obj || base_type == r::Union ||
               field->type()->index() >= 0) {
             RegisterImports(object, field);
           }
-          std::string field_type = GenerateType(object, field->type());
-          if (field->optional() && !object->is_struct()) {
-            RegisterImports("std/options", "");
-            field_type = "Option[" + field_type + "]";
-          }
-          code += ReplaceString(getter_signature, "{ret}", field_type);
 
           if (object->is_struct()) {
-            std::string getter =
-                ReplaceString(GenerateGetter(object, field->type()), "{offset}",
+            std::string field_getter =
+                ReplaceString(GenerateGetter(field->type()), "{offset}",
                               NumToString(field->offset()));
-            code += "  return " + getter + "\n";
+            getter.code_ += "  return " + field_getter + "\n";
 
             // TODO: parser opts:
             // if (parser_.opts.mutable_buffer) {
             if (IsScalar(base_type)) {
-              code += ReplaceString(setter_signature, "{ret}", field_type);
-              code += "  return self.tab.Mutate(self.tab.Pos + " +
-                      NumToString(field->offset()) + ", n)\n";
+              setter.code_ += "  return self.tab.Mutate(self.tab.Pos + " +
+                              NumToString(field->offset()) + ", n)\n";
             }
             //}
           } else {
             // Table accessors
-            code += "  " + offset_prefix;
-            code += "  " + offset_prefix_2;
-            std::string getter = ReplaceString(
-                GenerateGetter(object, field->type()), "{offset}", "o");
-            if (field->optional()) { getter = "some(" + getter + ")"; }
-            code += "    return " + getter + "\n";
+            getter.code_ += "  " + offset_prefix;
+            getter.code_ += "  " + offset_prefix_2;
+            std::string field_getter =
+                ReplaceString(GenerateGetter(field->type()), "{offset}", "o");
+            if (field->optional()) {
+              field_getter = "some(" + field_getter + ")";
+            }
+            getter.code_ += "    return " + field_getter + "\n";
             if (!field->optional()) {
-              code += "  return " + DefaultValue(object, field) + "\n";
+              getter.code_ += "  return " + DefaultValue(object, field) + "\n";
             }
 
             // TODO: parser opts:
             // if (parser_.opts.mutable_buffer) {
             if (IsScalar(base_type)) {
-              code += ReplaceString(setter_signature, "{ret}", field_type);
-              code += "  return self.tab.MutateSlot(" +
-                      NumToString(field->offset()) + ", n)\n";
+              setter.code_ += "  return self.tab.MutateSlot(" +
+                              NumToString(field->offset()) + ", n)\n";
             }
             //}
           }
-          code += "\n";
+          functions_.push_back(getter);
+          // if (parser_.opts.mutable_buffer) {
+          if (IsScalar(base_type)) { functions_.push_back(setter); }
+          //}
         } else if (base_type == r::Array || base_type == r::Vector) {
           const r::BaseType vector_base_type = field->type()->element();
           int32_t element_size = field->type()->element_size();
@@ -231,52 +329,59 @@ class NimBfbsGenerator : public BaseBfbsGenerator {
           }
 
           // Get vector length:
-          code += "proc " + field_name + "Length" + Export +
-                  "(self: " + object_name + "): int =\n";
-          code += "  " + offset_prefix;
-          code += "  " + offset_prefix_2;
-          code += "    return self.tab.VectorLen(o)\n";
+          NimFunction vectorLength(field_name + "Length", false,
+                                   { { "self", object_name } }, "int");
+          vectorLength.code_ += "  " + offset_prefix;
+          vectorLength.code_ += "  " + offset_prefix_2;
+          vectorLength.code_ += "    return self.tab.VectorLen(o)\n";
 
           // Get single vector field:
-          code += "proc " + field_name + Export + "(self: " + object_name +
-                  ", j: int): " + GenerateType(object, field->type(), true) +
-                  " =\n";
-          code += "  " + offset_prefix;
-          code += "  " + offset_prefix_2;
-          code += "    var x = self.tab.Vector(o)\n";
-          code += "    x += j.uoffset * " + NumToString(element_size) +
-                  ".uoffset\n";
-          std::string getter = ReplaceString(
-              GenerateGetter(object, field->type()), "{offset}", "x");
-          code += "    return " + getter + "\n";
+          NimFunction vectorElement(field_name, false,
+                                    { { "self", object_name }, { "j", "int" } },
+                                    GenerateType(field->type(), true));
+          vectorElement.code_ += "  " + offset_prefix;
+          vectorElement.code_ += "  " + offset_prefix_2;
+          vectorElement.code_ += "    var x = self.tab.Vector(o)\n";
+          vectorElement.code_ += "    x += j.uoffset * " +
+                                 NumToString(element_size) + ".uoffset\n";
+          vectorElement.code_ +=
+              "    return " +
+              ReplaceString(GenerateGetter(field->type()), "{offset}", "x") +
+              "\n";
 
           // Get entire vector:
-          code += "proc " + field_name + Export + "(self: " + object_name +
-                  "): " + GenerateType(object, field->type()) + " =\n";
+          NimFunction vectorList(field_name, false, { { "self", object_name } },
+                                 GenerateType(field->type()));
 
-          code += "  let len = self." + field_name + "Length\n";
-          code += "  for i in countup(0, len - 1):\n";
-          code += "    result.add(self." + field_name + "(i))\n";
-          code += "\n";
+          vectorList.code_ += "  let len = self." + field_name + "Length\n";
+          vectorList.code_ += "  for i in countup(0, len - 1):\n";
+          vectorList.code_ += "    result.add(self." + field_name + "(i))\n";
 
+          functions_.push_back(vectorLength);
+          functions_.push_back(vectorElement);
+          functions_.push_back(vectorList);
           (void)IsSingleByte(vector_base_type);  // Unused exception
         }
       });
 
       // Create all the builders
       if (object->is_struct()) {
-        code += "proc Create" + object_name + Export + "(self: var Builder" +
-                GenerateStructBuilderArgs(object) + "): uoffset = \n";
-        code += AppendStructBuilderBody(object);
-        code += "  return self.Offset()\n";
-
-        code += "\n";
+        NimFunction structCreate("Create" + object_name, true,
+                                 { { "self", "var Builder" } }, "uoffset");
+        std::vector<std::pair<std::string, std::string>> fields_vec =
+            GenerateStructBuilderArgs(object);
+        structCreate.args_.insert(structCreate.args_.end(), fields_vec.begin(),
+                                  fields_vec.end());
+        structCreate.code_ += AppendStructBuilderBody(object);
+        structCreate.code_ += "  return self.Offset()\n";
+        functions_.push_back(structCreate);
       } else {
         // Table builders
-        code += "proc " + object_name + "Start" + Export +
-                "(builder: var Builder) = \n";
-        code += "  builder.StartObject(" +
-                NumToString(object->fields()->size()) + ")\n";
+        NimFunction tableStart(object_name + "Start", true,
+                               { { "builder", "var Builder" } });
+        tableStart.code_ += "  builder.StartObject(" +
+                            NumToString(object->fields()->size()) + ")\n";
+        functions_.push_back(tableStart);
 
         ForAllFields(object, /*reverse=*/false, [&](const r::Field *field) {
           if (field->deprecated()) { return; }
@@ -286,38 +391,40 @@ class NimBfbsGenerator : public BaseBfbsGenerator {
               namer_.Variable(field->name()->str());
           const std::string variable_type = GenerateTypeBasic(field->type());
 
-          code += "proc " + object_name + "Add" + field_name + Export +
-                  "(builder: var Builder, " + variable_name + ": " +
-                  variable_type + ") =\n";
-          code += "  builder.Prepend" + GenerateMethod(field) + "Slot(" +
-                  NumToString(field->id()) + ", " + variable_name +
-                  ", default(" + variable_type + "))\n";
+          NimFunction fieldAdd(object_name + "Add" + field_name, true,
+                               { { "builder", "var Builder" },
+                                 { variable_name, variable_type } });
+          fieldAdd.code_ += "  builder.Prepend" + GenerateMethod(field) +
+                            "Slot(" + NumToString(field->id()) + ", " +
+                            variable_name + ", default(" + variable_type +
+                            "))\n";
+          functions_.push_back(fieldAdd);
 
           if (IsVector(field->type()->base_type())) {
-            code += "proc " + object_name + "Start" + field_name + "Vector" +
-                    Export + "(builder: var Builder, numElems: uoffset) =\n";
+            NimFunction fieldVectorStart(
+                object_name + "Start" + field_name + "Vector", true,
+                { { "builder", "var Builder" }, { "numElems", "uoffset" } });
 
             const int32_t element_size = field->type()->element_size();
-            int32_t alignment = 0;
+            int32_t alignment = element_size;
             if (IsStruct(field->type(), /*use_element=*/true)) {
               alignment = GetObjectByIndex(field->type()->index())->minalign();
-            } else {
-              alignment = element_size;
             }
 
-            code += "  builder.StartVector(" + NumToString(element_size) +
-                    ", numElems, " + NumToString(alignment) + ")\n";
+            fieldVectorStart.code_ +=
+                "  builder.StartVector(" + NumToString(element_size) +
+                ", numElems, " + NumToString(alignment) + ")\n";
+            functions_.push_back(fieldVectorStart);
           }
         });
 
-        code += "proc " + object_name + "End" + Export +
-                "(builder: var Builder): uoffset =\n";
-        code += "  return builder.EndObject()\n";
-
-        code += "\n";
+        NimFunction tableEnd(object_name + "End", true,
+                             { { "builder", "var Builder" } }, "uoffset");
+        tableEnd.code_ += "  return builder.EndObject()\n";
+        functions_.push_back(tableEnd);
       }
 
-      EmitCodeBlock(code, object_name, ns, object->declaration_file()->str());
+      EmitCodeBlock(object_name, ns, object->declaration_file()->str());
     });
     return true;
   }
@@ -333,20 +440,24 @@ class NimBfbsGenerator : public BaseBfbsGenerator {
         });
   }
 
-  std::string GenerateStructBuilderArgs(const r::Object *object,
-                                        std::string prefix = "") const {
-    std::string signature;
+  std::vector<std::pair<std::string, std::string>> GenerateStructBuilderArgs(
+      const r::Object *object, std::string prefix = "") const {
+    std::vector<std::pair<std::string, std::string>> fields_vec;
     ForAllFields(object, /*reverse=*/false, [&](const r::Field *field) {
       if (IsStructOrTable(field->type()->base_type())) {
         const r::Object *field_object = GetObject(field->type());
-        signature += GenerateStructBuilderArgs(
-            field_object, prefix + namer_.Variable(field->name()->str()) + "_");
+        std::vector<std::pair<std::string, std::string>> inner_vec =
+            GenerateStructBuilderArgs(
+                field_object,
+                prefix + namer_.Variable(field->name()->str()) + "_");
+        fields_vec.insert(fields_vec.end(), inner_vec.begin(), inner_vec.end());
       } else {
-        signature += ", " + prefix + namer_.Variable(field->name()->str()) +
-                     ": " + GenerateType(object, field->type());
+        fields_vec.push_back(
+            std::make_pair(prefix + namer_.Variable(field->name()->str()),
+                           GenerateType(field->type())));
       }
     });
-    return signature;
+    return fields_vec;
   }
 
   std::string AppendStructBuilderBody(const r::Object *object,
@@ -381,16 +492,15 @@ class NimBfbsGenerator : public BaseBfbsGenerator {
     return "";
   }
 
-  std::string GenerateGetter(const r::Object *object, const r::Type *type,
-                             bool element_type = false,
+  std::string GenerateGetter(const r::Type *type, bool element_type = false,
                              bool enum_inner = false) const {
     const r::BaseType base_type =
         element_type ? type->element() : type->base_type();
     if (IsScalar(base_type) && !enum_inner) {
       const r::Enum *type_enum = GetEnum(type, element_type);
       if (type_enum != nullptr) {
-        return GenerateType(object, type, element_type, false) + "(" +
-               GenerateGetter(object, type, element_type, true) + ")";
+        return GenerateType(type, element_type, false) + "(" +
+               GenerateGetter(type, element_type, true) + ")";
       }
     }
     std::string offset = "{offset}";
@@ -399,18 +509,17 @@ class NimBfbsGenerator : public BaseBfbsGenerator {
       case r::String: return "self.tab.String(" + offset + ")";
       case r::Union: return "self.tab.Union({offset})";
       case r::Obj: {
-        return GenerateType(object, type, element_type) +
+        return GenerateType(type, element_type) +
                "(tab: Vtable(Bytes: self.tab.Bytes, Pos: " + offset + "))";
       }
-      case r::Vector: return GenerateGetter(object, type, true);
+      case r::Vector: return GenerateGetter(type, true);
       default:
-        return "Get[" + GenerateType(object, type, element_type, enum_inner) +
+        return "Get[" + GenerateType(type, element_type, enum_inner) +
                "](self.tab, " + offset + ")";
     }
   }
 
-  std::string GenerateType(const r::Object *object, const r::Type *type,
-                           bool element_type = false,
+  std::string GenerateType(const r::Type *type, bool element_type = false,
                            bool enum_inner = false) const {
     const r::BaseType base_type =
         element_type ? type->element() : type->base_type();
@@ -426,12 +535,12 @@ class NimBfbsGenerator : public BaseBfbsGenerator {
     }
     switch (base_type) {
       case r::String: return "string";
-      case r::Vector: return "seq[" + GenerateType(object, type, true) + "]";
+      case r::Vector: return "seq[" + GenerateType(type, true) + "]";
       case r::Union: return "Vtable";
       case r::Obj: {
         const r::Object *type_obj = GetObject(type, element_type);
         std::string type_name = type_obj->name()->str();
-        if (type_name == object->name()->str()) {
+        if (type_obj == current_obj_) {
           return namer_.Denamespace(type_obj);
         } else {
           std::replace(type_name.begin(), type_name.end(), '.', '_');
@@ -496,7 +605,7 @@ class NimBfbsGenerator : public BaseBfbsGenerator {
     if (IsScalar(base_type)) {
       const r::Enum *type_enum = GetEnum(field->type());
       if (type_enum != nullptr) {
-        return GenerateType(object, field->type()) + "(" +
+        return GenerateType(field->type()) + "(" +
                NumToString((field->default_integer())) + ")";
       }
       return NumToString((field->default_integer()));
@@ -593,9 +702,8 @@ class NimBfbsGenerator : public BaseBfbsGenerator {
     return local_name;
   }
 
-  void EmitCodeBlock(const std::string &code_block, const std::string &name,
-                     const std::string &ns,
-                     const std::string &declaring_file) const {
+  void EmitCodeBlock(const std::string &name, const std::string &ns,
+                     const std::string &declaring_file) {
     const std::string full_qualified_name = ns.empty() ? name : ns + "." + name;
 
     std::string code = "#[ " + full_qualified_name + "\n";
@@ -627,8 +735,16 @@ class NimBfbsGenerator : public BaseBfbsGenerator {
       code += "\n";
     }
 
-    code += code_block;
-
+    // code += code_block;
+    if (types_.size() > 0) { code += "type\n"; }
+    for (const auto &type : types_) { code += type.Implementation(false); }
+    for (const auto &func : functions_) {
+      // Forward declaration
+      code += func.Signature();
+    }
+    for (const auto &func : functions_) { code += func.Implementation(); }
+    types_.clear();
+    functions_.clear();
     // Namespaces are '.' deliminted, so replace it with the path separator.
     std::string path = ns;
 
@@ -646,6 +762,8 @@ class NimBfbsGenerator : public BaseBfbsGenerator {
 
   std::unordered_set<std::string> keywords_;
   std::map<std::string, std::string> imports_;
+  std::vector<NimType> types_;
+  std::vector<NimFunction> functions_;
   const r::Object *current_obj_;
   const r::Enum *current_enum_;
   const std::string flatc_version_;
