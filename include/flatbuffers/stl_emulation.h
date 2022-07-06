@@ -26,6 +26,10 @@
 #include <memory>
 #include <limits>
 
+#if defined(__cpp_lib_array_constexpr)
+  #include <array>
+#endif
+
 #ifndef FLATBUFFERS_USE_STD_OPTIONAL
   // Detect C++17 compatible compiler.
   // __cplusplus >= 201703L - a compiler has support of 'static inline' variables.
@@ -316,7 +320,7 @@ namespace internal {
     SpanIterator(pointer ptr) : ptr_(ptr) {}
     reference operator*() const { return *ptr_; }
     pointer operator->() { return ptr_; }
-    SpanIterator& operator++() { ptr_++; return *this; }  
+    SpanIterator& operator++() { ptr_++; return *this; }
     SpanIterator  operator++(int) { auto tmp = *this; ++(*this); return tmp; }
 
     friend bool operator== (const SpanIterator& lhs, const SpanIterator& rhs) { return lhs.ptr_ == rhs.ptr_; }
