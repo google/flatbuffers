@@ -405,7 +405,9 @@ template<typename T>
 // UBSAN: C++ aliasing type rules, see std::bit_cast<> for details.
 __supress_ubsan__("alignment")
 T ReadScalar(const void *p) {
-  return EndianScalar(*reinterpret_cast<const T *>(p));
+  T ret;
+  memcpy(&ret, p, sizeof(T));
+  return EndianScalar(ret);
 }
 
 // See https://github.com/google/flatbuffers/issues/5950
@@ -416,15 +418,15 @@ T ReadScalar(const void *p) {
 #endif
 
 template<typename T>
-// UBSAN: C++ aliasing type rules, see std::bit_cast<> for details.
-__supress_ubsan__("alignment")
 void WriteScalar(void *p, T t) {
-  *reinterpret_cast<T *>(p) = EndianScalar(t);
+  t = EndianScalar(t);
+  memcpy(p, &t, sizeof(T));
 }
 
 template<typename T> struct Offset;
 template<typename T> __supress_ubsan__("alignment") void WriteScalar(void *p, Offset<T> t) {
-  *reinterpret_cast<uoffset_t *>(p) = EndianScalar(t.o);
+  uoffset_t o = static_cast<uoffset_t>(EndianScalar(t.o));
+  memcpy(p, &o, sizeof(uoffset_t));
 }
 
 #if (FLATBUFFERS_GCC >= 100000) && (FLATBUFFERS_GCC < 110000)
