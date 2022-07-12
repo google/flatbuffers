@@ -654,9 +654,9 @@ if(FLATBUFFERS_INSTALL)
 
   set(FB_CMAKE_DIR "${CMAKE_INSTALL_LIBDIR}/cmake/flatbuffers")
 
-  configure_file(CMake/FlatbuffersConfigVersion.cmake.in FlatbuffersConfigVersion.cmake @ONLY)
+  configure_file(CMake/FlatBuffersConfigVersion.cmake.in FlatBuffersConfigVersion.cmake @ONLY)
   install(
-      FILES "CMake/FlatbuffersConfig.cmake" "${CMAKE_CURRENT_BINARY_DIR}/FlatbuffersConfigVersion.cmake"
+      FILES "CMake/FlatBuffersConfig.cmake" "${CMAKE_CURRENT_BINARY_DIR}/FlatBuffersConfigVersion.cmake"
       DESTINATION ${FB_CMAKE_DIR}
   )
 
