@@ -449,6 +449,15 @@ class TsGenerator : public BaseGenerator {
           }
           return allowNull ? "number|null" : "number";
         }
+        if (IsArray(type)) {
+          auto vectorType = type.VectorType();
+          if(IsScalar(vectorType.base_type)) {
+            return GenType(vectorType) + "Array";
+          }
+          else {
+            return "Array<" + GenType(vectorType) + ">";
+          }
+        }
         return "flatbuffers.Offset";
     }
   }
@@ -465,9 +474,10 @@ class TsGenerator : public BaseGenerator {
       default: break;
     }
 
-    return IsScalar(type.base_type)
-               ? ConvertCase(GenType(type), Case::kUpperCamel)
-               : (IsStruct(type) ? "Struct" : "Offset");
+    if(IsScalar(type.base_type)) {
+      return ConvertCase(GenType(type), Case::kUpperCamel);
+    }
+    else return (IsStruct(type) ? "Struct" : "Offset");
   }
 
   template<typename T> static std::string MaybeAdd(T value) {
@@ -498,7 +508,9 @@ class TsGenerator : public BaseGenerator {
   }
 
   static void GenStructBody(const StructDef &struct_def, std::string *body,
-                            const std::string &nameprefix) {
+                            const std::string &nameprefix,
+                            const std::string &namesuffix = "",
+                            int arraydepth = 0) {
     *body += "  builder.prep(";
     *body += NumToString(struct_def.minalign) + ", ";
     *body += NumToString(struct_def.bytesize) + ");\n";
@@ -510,17 +522,46 @@ class TsGenerator : public BaseGenerator {
         *body += "  builder.pad(" + NumToString(field.padding) + ");\n";
       }
       if (IsStruct(field.value.type)) {
+        if(!arraydepth) {
         // Generate arguments for a struct inside a struct. To ensure names
         // don't clash, and to make it obvious these arguments are constructing
         // a nested struct, prefix the name with the field name.
         GenStructBody(*field.value.type.struct_def, body,
-                      nameprefix + field.name + "_");
-      } else {
-        *body += "  builder.write" + GenWriteMethod(field.value.type) + "(";
-        if (field.value.type.base_type == BASE_TYPE_BOOL) { *body += "+"; }
-        *body += nameprefix + field.name + ");\n";
+                        nameprefix + field.name + namesuffix + "_", "", arraydepth+1);
+        }
+        else {
+          GenStructBody(*field.value.type.struct_def, body,
+                        nameprefix + field.name + namesuffix + ".", "()", arraydepth+1);
+        }
+      } 
+      else if (IsArray(field.value.type)) {
+        *body += "  for(let i = " + NumToString(field.value.type.fixed_length) + 
+                 " - 1; i >= 0; --i) {\n";
+        auto vectorType = field.value.type.VectorType();
+        if (IsScalar(vectorType.base_type)) {
+          GenStructInstruction(field.name, vectorType, body, nameprefix, "[i]");
+        }
+        else {
+          GenStructBody(*field.value.type.struct_def, body,
+                      nameprefix + field.name + namesuffix + "[i].", "()", arraydepth+1);
+        }
+        *body += "  }\n";
+      } 
+      else {
+        GenStructInstruction(field.name, field.value.type, body, nameprefix, namesuffix);
+      }
       }
     }
+
+  static void GenStructInstruction(const std::string &fieldname, 
+                            const Type& type,
+                            std::string *body,
+                            const std::string &nameprefix, 
+                            const std::string &namesuffix = "") {
+    *body += "  builder.write" + GenWriteMethod(type) + "(";
+    if (type.base_type == BASE_TYPE_BOOL) { *body += "+"; }
+    *body += nameprefix + fieldname + namesuffix;
+    *body += ");\n";
   }
 
   std::string GenerateNewExpression(const std::string &object_name) {
@@ -1376,8 +1417,8 @@ class TsGenerator : public BaseGenerator {
           "  const offset = " + GenBBAccess() + ".__offset(this.bb_pos, " +
           NumToString(field.value.offset) + ");\n  return offset ? ";
 
-      // Emit a scalar field
       const auto is_string = IsString(field.value.type);
+      // Emit a scalar field
       if (IsScalar(field.value.type.base_type) || is_string) {
         const auto has_null_default = is_string || HasNullDefault(field);
 
@@ -1421,6 +1462,31 @@ class TsGenerator : public BaseGenerator {
         }
       }
 
+      // Emit an array field
+      else if (IsArray(field.value.type)) {
+        // Emit a length helper
+        GenDocComment(code_ptr);
+        code += ConvertCase(field.name, Case::kLowerCamel);
+        code += "Length():number {\n";
+        code += "return " + NumToString(field.value.type.fixed_length) + ";\n";
+
+        // For scalar types, emit a typed array helper
+        auto vectorType = field.value.type.VectorType();
+        if (IsScalar(vectorType.base_type) && !IsLong(vectorType.base_type)) {
+          GenDocComment(code_ptr);
+          
+          code += "}\n\n"; // end previous method
+          code += ConvertCase(field.name, Case::kLowerCamel);
+          code += "Array():" + GenType(vectorType) + "Array|null {\n";
+          code += "  return new " + GenType(vectorType) + "Array(" + 
+                  GenBBAccess() + ".bytes().buffer, " + 
+                  NumToString(field.value.offset) + ", " +
+                  NumToString(field.value.type.fixed_length) +
+                  ");\n";
+        }
+
+      }
+      
       // Emit an object field
       else {
         switch (field.value.type.base_type) {
