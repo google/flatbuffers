@@ -29,10 +29,10 @@ def CharacterCreator(unionType, table):
         return BookReader.BookReaderT.InitFromBuf(table.Bytes, table.Pos)
     if unionType == Character().Other:
         tab = Table(table.Bytes, table.Pos)
-        union = tab.String(table.Pos)
+        union = tab.UnionString(table.Pos)
         return union
     if unionType == Character().Unused:
         tab = Table(table.Bytes, table.Pos)
-        union = tab.String(table.Pos)
+        union = tab.UnionString(table.Pos)
         return union
     return None

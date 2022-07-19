@@ -376,17 +376,8 @@ class PythonGenerator : public BaseGenerator {
       code += NumToString(InlineSize(vectortype)) + "\n";
       code += Indent + Indent + Indent;
       code += "x -= self._tab.Pos\n";
-
-      // TODO(rw): this works and is not the good way to it:
-      bool is_native_table = TypeName(field) == "*flatbuffers.Table";
-      if (is_native_table) {
-        code +=
-            Indent + Indent + Indent + "from flatbuffers.table import Table\n";
-      } else if (parser_.opts.include_dependence_headers) {
-        code += Indent + Indent + Indent;
-        code += "from " + GenPackageReference(field.value.type) + " import " +
-                TypeName(field) + "\n";
-      }
+      code +=
+          Indent + Indent + Indent + "from flatbuffers.table import Table\n";
       code += Indent + Indent + Indent + "obj = Table(bytearray(), 0)\n";
       code += Indent + Indent + Indent + GenGetter(field.value.type);
       code += "obj, x)\n" + Indent + Indent + Indent + "return obj\n";
@@ -1617,7 +1608,7 @@ class PythonGenerator : public BaseGenerator {
     code +=
         GenIndents(1) + "if unionType == " + union_type + "()." + variant + ":";
     code += GenIndents(2) + "tab = Table(table.Bytes, table.Pos)";
-    code += GenIndents(2) + "union = tab.String(table.Pos)";
+    code += GenIndents(2) + "union = tab.UnionString(table.Pos)";
     code += GenIndents(2) + "return union";
   }
 
