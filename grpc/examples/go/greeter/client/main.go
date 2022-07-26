@@ -9,8 +9,10 @@ import (
 	"time"
 
 	flatbuffers "github.com/google/flatbuffers/go"
-	models "github.com/google/flatbuffers/grpc/examples/go/greeter/models"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
+
+	models "github.com/google/flatbuffers/grpc/examples/go/greeter/models"
 )
 
 var (
@@ -63,7 +65,9 @@ func printSayManyHello(client models.GreeterClient, name string) {
 
 func main() {
 	flag.Parse()
-	conn, err := grpc.Dial(fmt.Sprintf("localhost:%d", 3000), grpc.WithInsecure(), grpc.WithCodec(flatbuffers.FlatbuffersCodec{}))
+	conn, err := grpc.Dial(fmt.Sprintf("localhost:%d", 3000),
+		grpc.WithTransportCredentials(insecure.NewCredentials()),
+		grpc.WithDefaultCallOptions(grpc.ForceCodec(flatbuffers.FlatbuffersCodec{})))
 	if err != nil {
 		log.Fatalf("fail to dial: %v", err)
 	}
