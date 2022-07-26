@@ -17,6 +17,7 @@
 // clang-format off
 // Dont't remove `format off`, it prevent reordering of win-includes.
 
+#include <cstring>
 #if defined(__MINGW32__) || defined(__MINGW64__) || defined(__CYGWIN__) || \
     defined(__QNXNTO__)
 #  define _POSIX_C_SOURCE 200809L
@@ -46,8 +47,8 @@
 
 #include <clocale>
 #include <cstdlib>
-#include <functional>
 #include <fstream>
+#include <functional>
 
 #include "flatbuffers/base.h"
 
@@ -153,6 +154,15 @@ std::string StripPath(const std::string &filepath) {
 std::string StripFileName(const std::string &filepath) {
   size_t i = filepath.find_last_of(PathSeparatorSet);
   return i != std::string::npos ? filepath.substr(0, i) : "";
+}
+
+std::string StripPrefix(const std::string &filepath,
+                        const std::string &prefix_to_remove) {
+  if (!strncmp(filepath.c_str(), prefix_to_remove.c_str(),
+               prefix_to_remove.size())) {
+    return filepath.substr(prefix_to_remove.size());
+  }
+  return filepath;
 }
 
 std::string ConCatPathFileName(const std::string &path,

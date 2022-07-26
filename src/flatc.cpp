@@ -433,7 +433,7 @@ int FlatCompiler::Compile(int argc, const char **argv) {
         opts.include_prefix = flatbuffers::ConCatPathFileName(
             flatbuffers::PosixPath(argv[argi]), "");
       } else if (arg == "--keep-prefix") {
-        opts.keep_include_path = true;
+        opts.keep_prefix = true;
       } else if (arg == "--strict-json") {
         opts.strict_json = true;
       } else if (arg == "--allow-non-utf8") {
