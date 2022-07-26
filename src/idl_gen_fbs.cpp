@@ -82,7 +82,7 @@ std::string GenerateFBS(const Parser &parser, const std::string &file_name) {
       if (it->second.empty())
         continue;
       std::string basename;
-      if(parser.opts.keep_include_path) {
+      if(parser.opts.keep_prefix) {
         basename = flatbuffers::StripExtension(it->second);
       } else {
         basename = flatbuffers::StripPath(
