@@ -648,7 +648,7 @@ void PrintHeaderServerMethodAsync(grpc_generator::Printer *printer,
         "::grpc::Status $Method$("
         "::grpc::ServerContext* /*context*/, "
         "::grpc::ServerReader< $Request$>* /*reader*/, "
-        "$Response$* response) final override {\n"
+        "$Response$* /*response*/) final override {\n"
         "  abort();\n"
         "  return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, \"\");\n"
         "}\n");
