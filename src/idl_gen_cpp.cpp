@@ -235,13 +235,20 @@ class CppGenerator : public BaseGenerator {
     // interdependence between them.
     std::stable_sort(included_files.begin(), included_files.end());
 
+    // Get any prefix of the file being parsed, so that included filed can be
+    // properly stripped.
+    auto prefix = flatbuffers::StripFileName(parser_.file_being_parsed_) +
+                  flatbuffers::kPathSeparator;
+
     for (const std::string &included_file : included_files) {
-      auto noext = flatbuffers::StripExtension(included_file);
+      auto file_without_extension = flatbuffers::StripExtension(included_file);
       code_ +=
           "#include \"" +
           GeneratedFileName(
               opts_.include_prefix,
-              opts_.keep_include_path ? noext : flatbuffers::StripPath(noext),
+              opts_.keep_prefix
+                  ? flatbuffers::StripPrefix(file_without_extension, prefix)
+                  : flatbuffers::StripPath(file_without_extension),
               opts_) +
           "\"";
     }
