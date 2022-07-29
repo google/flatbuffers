@@ -1,7 +1,7 @@
 {
+    "type": "module",
     "dependencies": {
-        "esm": "^3.2.25",
         "flatbuffers": "../",
-        "grpc": "^1.24.6"
+        "@grpc/grpc-js": "^1.6.8"
     }
 }

@@ -699,7 +699,7 @@ class TsGenerator : public BaseGenerator {
         kPathSeparator +
         ConvertCase(dependency.name, Case::kDasher, Case::kUpperCamel);
     rel_file_path += bare_file_path;
-    import_statement += rel_file_path + "';";
+    import_statement += rel_file_path + ".js';";
     export_statement += "." + bare_file_path + "';";
     ImportDefinition import;
     import.name = long_import_name.empty() ? import_name : long_import_name;
@@ -787,7 +787,7 @@ class TsGenerator : public BaseGenerator {
         kPathSeparator +
         ConvertCase(dependency.name, Case::kDasher, Case::kUpperCamel);
     rel_file_path += bare_file_path;
-    import_statement += rel_file_path + "';";
+    import_statement += rel_file_path + ".js';";
     export_statement += "." + bare_file_path + "';";
     ImportDefinition import;
     import.name = long_import_name.empty() ? import_name : long_import_name;

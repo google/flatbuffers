@@ -29,6 +29,6 @@ if [ -x ../flatc ]; then
     ../flatc --ts --reflect-names --gen-name-strings --gen-mutable --gen-object-api --ts-flat-files -I ../ ./typescript_keywords.fbs test_dir/typescript_include.fbs test_dir/typescript_transitive_include.fbs ../reflection/reflection.fbs
 fi
 tsc
-node -r esm JavaScriptTest
-node -r esm JavaScriptUnionVectorTest
-node -r esm JavaScriptFlexBuffersTest
+node JavaScriptTest
+node JavaScriptUnionVectorTest
+node JavaScriptFlexBuffersTest

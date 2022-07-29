@@ -1,7 +1,7 @@
 // Run this using JavaScriptTest.sh
 import assert from 'assert'
 import fs from 'fs'
-import * as flexbuffers from 'flatbuffers/js/flexbuffers'
+import * as flexbuffers from 'flatbuffers/js/flexbuffers.js'
 
 function main() {
   testSingleValueBuffers();
