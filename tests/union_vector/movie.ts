@@ -2,10 +2,10 @@
 
 import * as flatbuffers from 'flatbuffers';
 
-import { Attacker, AttackerT } from './attacker';
-import { BookReader, BookReaderT } from './book-reader';
-import { Character, unionToCharacter, unionListToCharacter } from './character';
-import { Rapunzel, RapunzelT } from './rapunzel';
+import { Attacker, AttackerT } from './attacker.js';
+import { BookReader, BookReaderT } from './book-reader.js';
+import { Character, unionToCharacter, unionListToCharacter } from './character.js';
+import { Rapunzel, RapunzelT } from './rapunzel.js';
 
 
 export class Movie {

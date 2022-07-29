@@ -2,8 +2,8 @@
 
 import * as flatbuffers from 'flatbuffers';
 
-import { KeyValue, KeyValueT } from '../reflection/key-value';
-import { Object_, ObjectT } from '../reflection/object';
+import { KeyValue, KeyValueT } from '../reflection/key-value.js';
+import { Object_, ObjectT } from '../reflection/object.js';
 
 
 export class RPCCall {

@@ -2,7 +2,7 @@
 
 import * as flatbuffers from 'flatbuffers';
 
-import { BaseType } from '../reflection/base-type';
+import { BaseType } from '../reflection/base-type.js';
 
 
 export class Type {

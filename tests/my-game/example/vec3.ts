@@ -2,8 +2,8 @@
 
 import * as flatbuffers from 'flatbuffers';
 
-import { Color } from '../../my-game/example/color';
-import { Test, TestT } from '../../my-game/example/test';
+import { Color } from '../../my-game/example/color.js';
+import { Test, TestT } from '../../my-game/example/test.js';
 
 
 export class Vec3 {

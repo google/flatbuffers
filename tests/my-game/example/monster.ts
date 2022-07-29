@@ -2,19 +2,19 @@
 
 import * as flatbuffers from 'flatbuffers';
 
-import { Monster as MyGameExample2Monster, MonsterT as MyGameExample2MonsterT } from '../../my-game/example2/monster';
-import { Ability, AbilityT } from '../../my-game/example/ability';
-import { Any, unionToAny, unionListToAny } from '../../my-game/example/any';
-import { AnyAmbiguousAliases, unionToAnyAmbiguousAliases, unionListToAnyAmbiguousAliases } from '../../my-game/example/any-ambiguous-aliases';
-import { AnyUniqueAliases, unionToAnyUniqueAliases, unionListToAnyUniqueAliases } from '../../my-game/example/any-unique-aliases';
-import { Color } from '../../my-game/example/color';
-import { Race } from '../../my-game/example/race';
-import { Referrable, ReferrableT } from '../../my-game/example/referrable';
-import { Stat, StatT } from '../../my-game/example/stat';
-import { Test, TestT } from '../../my-game/example/test';
-import { TestSimpleTableWithEnum, TestSimpleTableWithEnumT } from '../../my-game/example/test-simple-table-with-enum';
-import { Vec3, Vec3T } from '../../my-game/example/vec3';
-import { InParentNamespace, InParentNamespaceT } from '../../my-game/in-parent-namespace';
+import { Monster as MyGameExample2Monster, MonsterT as MyGameExample2MonsterT } from '../../my-game/example2/monster.js';
+import { Ability, AbilityT } from '../../my-game/example/ability.js';
+import { Any, unionToAny, unionListToAny } from '../../my-game/example/any.js';
+import { AnyAmbiguousAliases, unionToAnyAmbiguousAliases, unionListToAnyAmbiguousAliases } from '../../my-game/example/any-ambiguous-aliases.js';
+import { AnyUniqueAliases, unionToAnyUniqueAliases, unionListToAnyUniqueAliases } from '../../my-game/example/any-unique-aliases.js';
+import { Color } from '../../my-game/example/color.js';
+import { Race } from '../../my-game/example/race.js';
+import { Referrable, ReferrableT } from '../../my-game/example/referrable.js';
+import { Stat, StatT } from '../../my-game/example/stat.js';
+import { Test, TestT } from '../../my-game/example/test.js';
+import { TestSimpleTableWithEnum, TestSimpleTableWithEnumT } from '../../my-game/example/test-simple-table-with-enum.js';
+import { Vec3, Vec3T } from '../../my-game/example/vec3.js';
+import { InParentNamespace, InParentNamespaceT } from '../../my-game/in-parent-namespace.js';
 
 
 /**

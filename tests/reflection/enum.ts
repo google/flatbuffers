@@ -2,9 +2,9 @@
 
 import * as flatbuffers from 'flatbuffers';
 
-import { EnumVal, EnumValT } from '../reflection/enum-val';
-import { KeyValue, KeyValueT } from '../reflection/key-value';
-import { Type, TypeT } from '../reflection/type';
+import { EnumVal, EnumValT } from '../reflection/enum-val.js';
+import { KeyValue, KeyValueT } from '../reflection/key-value.js';
+import { Type, TypeT } from '../reflection/type.js';
 
 
 export class Enum {

@@ -2,10 +2,10 @@
 
 import * as flatbuffers from 'flatbuffers';
 
-import { Abc } from '../foobar/abc';
-import { class_ as foobarclass_ } from '../foobar/class';
-import { Schema, SchemaT } from '../reflection/schema';
-import { class_ } from '../typescript/class';
+import { Abc } from '../foobar/abc.js';
+import { class_ as foobarclass_ } from '../foobar/class.js';
+import { Schema, SchemaT } from '../reflection/schema.js';
+import { class_ } from '../typescript/class.js';
 
 
 export class Object_ {

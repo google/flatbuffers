@@ -2,7 +2,7 @@
 
 import * as flatbuffers from 'flatbuffers';
 
-import { StructOfStructs, StructOfStructsT } from '../../my-game/example/struct-of-structs';
+import { StructOfStructs, StructOfStructsT } from '../../my-game/example/struct-of-structs.js';
 
 
 export class StructOfStructsOfStructs {

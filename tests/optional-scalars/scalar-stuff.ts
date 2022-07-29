@@ -2,7 +2,7 @@
 
 import * as flatbuffers from 'flatbuffers';
 
-import { OptionalByte } from '../optional-scalars/optional-byte';
+import { OptionalByte } from '../optional-scalars/optional-byte.js';
 
 
 export class ScalarStuff {

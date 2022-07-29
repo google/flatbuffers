@@ -2,8 +2,8 @@
 
 import * as flatbuffers from 'flatbuffers';
 
-import { Ability, AbilityT } from '../../my-game/example/ability';
-import { Test, TestT } from '../../my-game/example/test';
+import { Ability, AbilityT } from '../../my-game/example/ability.js';
+import { Test, TestT } from '../../my-game/example/test.js';
 
 
 export class StructOfStructs {

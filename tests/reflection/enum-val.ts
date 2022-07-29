@@ -2,7 +2,7 @@
 
 import * as flatbuffers from 'flatbuffers';
 
-import { Type, TypeT } from '../reflection/type';
+import { Type, TypeT } from '../reflection/type.js';
 
 
 export class EnumVal {

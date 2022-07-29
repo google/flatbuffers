@@ -2,8 +2,8 @@
 
 import * as flatbuffers from 'flatbuffers';
 
-import { KeyValue, KeyValueT } from '../reflection/key-value';
-import { Type, TypeT } from '../reflection/type';
+import { KeyValue, KeyValueT } from '../reflection/key-value.js';
+import { Type, TypeT } from '../reflection/type.js';
 
 
 export class Field {

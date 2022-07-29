@@ -2,7 +2,7 @@
 
 import * as flatbuffers from 'flatbuffers';
 
-import { Color } from '../../my-game/example/color';
+import { Color } from '../../my-game/example/color.js';
 
 
 export class TestSimpleTableWithEnum {

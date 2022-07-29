@@ -2,10 +2,10 @@
 
 import * as flatbuffers from 'flatbuffers';
 
-import { Enum, EnumT } from '../reflection/enum';
-import { Object_, ObjectT } from '../reflection/object';
-import { SchemaFile, SchemaFileT } from '../reflection/schema-file';
-import { Service, ServiceT } from '../reflection/service';
+import { Enum, EnumT } from '../reflection/enum.js';
+import { Object_, ObjectT } from '../reflection/object.js';
+import { SchemaFile, SchemaFileT } from '../reflection/schema-file.js';
+import { Service, ServiceT } from '../reflection/service.js';
 
 
 export class Schema {
