@@ -18,6 +18,7 @@
   "scripts": {
     "test": "npm run compile && cd tests && ./TypeScriptTest.sh",
     "compile": "tsc && tsc -p tsconfig.mjs.json",
+    "lint": "eslint ts",
     "prepublishOnly": "npm install --only=dev && npm run compile"
   },
   "repository": {

@@ -934,7 +934,7 @@ class TsGenerator : public BaseGenerator {
         const auto target_enum = "this." + field_name + "Type()";
 
         ret = "(() => {\n";
-        ret += "      let temp = " + conversion_function + "(" + target_enum +
+        ret += "      const temp = " + conversion_function + "(" + target_enum +
                ", " + field_binded_method + ");\n";
         ret += "      if(temp === null) { return null; }\n";
         ret += union_has_string
@@ -948,17 +948,17 @@ class TsGenerator : public BaseGenerator {
         const auto target_enum_length = target_enum_accesor + "Length()";
 
         ret = "(() => {\n";
-        ret += "    let ret = [];\n";
+        ret += "    const ret = [];\n";
         ret += "    for(let targetEnumIndex = 0; targetEnumIndex < " +
                target_enum_length +
                "; "
                "++targetEnumIndex) {\n";
-        ret += "      let targetEnum = " + target_enum_accesor +
+        ret += "      const targetEnum = " + target_enum_accesor +
                "(targetEnumIndex);\n";
         ret += "      if(targetEnum === null || " + enum_type +
                "[targetEnum!] === 'NONE') { "
                "continue; }\n\n";
-        ret += "      let temp = " + conversion_function + "(targetEnum, " +
+        ret += "      const temp = " + conversion_function + "(targetEnum, " +
                field_binded_method + ", targetEnumIndex);\n";
         ret += "      if(temp === null) { continue; }\n";
         ret += union_has_string ? "      if(typeof temp === 'string') { "
@@ -1139,10 +1139,11 @@ class TsGenerator : public BaseGenerator {
             switch (vectortype.base_type) {
               case BASE_TYPE_STRUCT: {
                 const auto &sd = *field.value.type.struct_def;
-                field_type += GetObjApiClassName(sd, parser.opts);
+                const auto field_type_name = GetObjApiClassName(sd, parser.opts);
+                field_type += field_type_name;
                 field_type += ")[]";
 
-                field_val = GenBBAccess() + ".createObjList(" +
+                field_val = GenBBAccess() + ".createObjList<" + vectortypename + ", " + field_type_name + ">(" +
                             field_binded_method + ", this." + field_name +
                             "Length())";
 
@@ -1168,7 +1169,7 @@ class TsGenerator : public BaseGenerator {
 
               case BASE_TYPE_STRING: {
                 field_type += "string)[]";
-                field_val = GenBBAccess() + ".createScalarList(" +
+                field_val = GenBBAccess() + ".createScalarList<string>(" +
                             field_binded_method + ", this." + field_name +
                             "Length())";
                 field_offset_decl =
@@ -1202,7 +1203,7 @@ class TsGenerator : public BaseGenerator {
                   field_type += vectortypename;
                 }
                 field_type += ")[]";
-                field_val = GenBBAccess() + ".createScalarList(" +
+                field_val = GenBBAccess() + ".createScalarList<" + vectortypename + ">(" +
                             field_binded_method + ", this." + field_name +
                             "Length())";
 
@@ -1299,7 +1300,7 @@ class TsGenerator : public BaseGenerator {
     }
 
     obj_api_class = "\nexport class " +
-                    GetObjApiClassName(struct_def, parser.opts) + " {\n";
+                    GetObjApiClassName(struct_def, parser.opts) + " implements flatbuffers.IGeneratedObject {\n";
 
     obj_api_class += constructor_func;
     obj_api_class += pack_func_prototype + pack_func_offset_decl +
@@ -1338,7 +1339,10 @@ class TsGenerator : public BaseGenerator {
     object_name = EscapeKeyword(struct_def.name);
     GenDocComment(struct_def.doc_comment, code_ptr);
     code += "export class " + object_name;
-    code += " {\n";
+    if (parser.opts.generate_object_based_api)
+      code += " implements flatbuffers.IUnpackableObject<" + GetObjApiClassName(struct_def, parser.opts) + "> {\n";
+    else
+      code += " {\n";
     code += "  bb: flatbuffers.ByteBuffer|null = null;\n";
     code += "  bb_pos = 0;\n";
 
