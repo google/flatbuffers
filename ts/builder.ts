@@ -24,6 +24,7 @@ export class Builder {
     private force_defaults = false;
     
     private string_maps: Map<string | Uint8Array, number> | null = null;
+    private text_encoder = new TextEncoder();
   
     /**
      * Create a FlatBufferBuilder.
@@ -531,7 +532,7 @@ export class Builder {
       if (s instanceof Uint8Array) {
         utf8 = s;
       } else {
-        utf8 = new TextEncoder().encode(s);
+        utf8 = this.text_encoder.encode(s);
       }
   
       this.addInt8(0);
