@@ -5,6 +5,7 @@ import { Encoding } from "./encoding.js";
 
 export class ByteBuffer {
     private position_ = 0;
+    private text_decoder_ = new TextDecoder();
   
     /**
      * Create a new ByteBuffer with a given array of bytes (`Uint8Array`)
