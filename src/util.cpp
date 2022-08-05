@@ -209,10 +209,10 @@ void EnsureDirExists(const std::string &filepath) {
 std::string AbsolutePath(const std::string &filepath) {
   // clang-format off
 
-  #ifdef FLATBUFFERS_NO_ABSOLUTE_PATH_RESOLUTION
+  #if defined(FLATBUFFERS_NO_ABSOLUTE_PATH_RESOLUTION) || defined(__CYGWIN__) || defined(__MINGW32__) || defined(__MINGW64__)
     return filepath;
   #else
-    #ifdef _WIN32
+    #if defined(_WIN32) || defined(_WIN64)
       char abs_path[MAX_PATH];
       return GetFullPathNameA(filepath.c_str(), MAX_PATH, abs_path, nullptr)
     #else
