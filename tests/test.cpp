@@ -3304,6 +3304,24 @@ void FlexBuffersTest() {
   TEST_EQ(slb.GetSize(), 664);
 }
 
+void FlexBuffersReuseBugTest() {
+  flexbuffers::Builder slb;
+  slb.Map([&]() {
+    slb.Vector("vec", [&]() {});
+    slb.Bool("bool", true);
+  });
+  slb.Finish();
+  std::vector<uint8_t> reuse_tracker;
+  // This would fail before, since the reuse_tracker would use the address of
+  // the vector reference to check for reuse, but in this case we have an empty
+  // vector, and since the size field is before the pointer, its address is the
+  // same as thing after it, the key "bool".
+  // We fix this by using the address of the size field for tracking reuse.
+  TEST_EQ(flexbuffers::VerifyBuffer(slb.GetBuffer().data(),
+                                    slb.GetBuffer().size(), &reuse_tracker),
+          true);
+}
+
 void FlexBuffersFloatingPointTest() {
 #if defined(FLATBUFFERS_HAS_NEW_STRTOD) && (FLATBUFFERS_HAS_NEW_STRTOD > 0)
   flexbuffers::Builder slb(512,
@@ -4568,6 +4586,7 @@ int FlatBufferTests() {
   JsonDefaultTest();
   JsonEnumsTest();
   FlexBuffersTest();
+  FlexBuffersReuseBugTest();
   FlexBuffersDeprecatedTest();
   UninitializedVectorTest();
   EqualOperatorTest();
