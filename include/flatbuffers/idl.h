@@ -164,7 +164,7 @@ struct Type {
         enum_def(_ed),
         fixed_length(_fixed_length) {}
 
-  bool operator==(const Type &o) {
+  bool operator==(const Type &o) const {
     return base_type == o.base_type && element == o.element &&
            struct_def == o.struct_def && enum_def == o.enum_def;
   }
