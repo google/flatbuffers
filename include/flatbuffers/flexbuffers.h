@@ -1740,9 +1740,9 @@ class Verifier FLATBUFFERS_FINAL_CLASS {
     if (!Check(depth_ <= max_depth_ && num_vectors_ <= max_vectors_))
       return false;
     auto size_byte_width = r.byte_width_;
-    FLEX_CHECK_VERIFIED(p,
-                        PackedType(Builder::WidthB(size_byte_width), r.type_));
     if (!VerifyBeforePointer(p, size_byte_width)) return false;
+    FLEX_CHECK_VERIFIED(p - size_byte_width,
+                        PackedType(Builder::WidthB(size_byte_width), r.type_));
     auto sized = Sized(p, size_byte_width);
     auto num_elems = sized.size();
     auto elem_byte_width = r.type_ == FBT_STRING || r.type_ == FBT_BLOB
