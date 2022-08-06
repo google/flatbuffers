@@ -585,7 +585,7 @@ export class Builder {
   
     createStructOffsetList(list: string[] | any[], startFunc: (builder: Builder, length: number) => void): Offset {
       startFunc(this, list.length);
-      this.createObjectOffsetList(list);
+      this.createObjectOffsetList(list.slice().reverse());
       return this.endVector();
     }
   }

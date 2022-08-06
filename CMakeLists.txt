@@ -75,6 +75,11 @@ option(FLATBUFFERS_SKIP_MONSTER_EXTRA
       "Skip generating monster_extra.fbs that contains non-supported numerical\"
       types." OFF)
 
+set(MSVC_LIKE OFF)
+if(MSVC OR CMAKE_CXX_COMPILER_FRONTEND_VARIANT STREQUAL "MSVC")
+    set(MSVC_LIKE ON)
+endif()
+
 if(NOT FLATBUFFERS_BUILD_FLATC AND FLATBUFFERS_BUILD_TESTS)
     message(WARNING
     "Cannot build tests without building the compiler. Tests will be disabled.")
@@ -92,7 +97,7 @@ if(NOT DEFINED FLATBUFFERS_LOCALE_INDEPENDENT)
   include(CheckCXXSymbolExists)
 
   set(FLATBUFFERS_LOCALE_INDEPENDENT 0)
-  if(MSVC)
+  if(MSVC_LIKE)
     check_cxx_symbol_exists(_strtof_l stdlib.h FLATBUFFERS_HAS_STRTOF_L)
     check_cxx_symbol_exists(_strtoui64_l stdlib.h FLATBUFFERS_HAS_STRTOULL_L)
   else()
@@ -335,7 +340,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 # We shouldn't rely on any compiler-extensions to make things work.
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-if(MSVC) 
+if(MSVC_LIKE)
   target_compile_options(ProjectConfig
     INTERFACE 
       /W4
@@ -343,7 +348,7 @@ if(MSVC)
       /wd4512   # C4512: assignment operator could not be generated
       /wd4316   # C4316: object allocated on the heap may not be aligned
       /wd4456   # C4456: hides previous local declaration
-      $<$<CXX_COMPILER_ID:CLANG>:
+      $<$<CXX_COMPILER_ID:Clang>:
         /D_CRT_SECURE_NO_WARNINGS
       >
   )
@@ -425,7 +430,7 @@ if(FLATBUFFERS_BUILD_FLATC)
   target_link_libraries(flatc PRIVATE $<BUILD_INTERFACE:ProjectConfig>)
   target_compile_options(flatc 
     PUBLIC
-      $<$<AND:$<CXX_COMPILER_ID:MSVC>,$<CONFIG:Release>>:
+      $<$<AND:$<BOOL:${MSVC_LIKE}>,$<CONFIG:Release>>:
         /MT
       >
   )
@@ -640,21 +645,21 @@ if(FLATBUFFERS_INSTALL)
 
   set(FB_CMAKE_DIR "${CMAKE_INSTALL_LIBDIR}/cmake/flatbuffers")
 
-  configure_file(CMake/FlatbuffersConfigVersion.cmake.in FlatbuffersConfigVersion.cmake @ONLY)
+  configure_file(CMake/FlatBuffersConfigVersion.cmake.in FlatBuffersConfigVersion.cmake @ONLY)
   install(
-      FILES "CMake/FlatbuffersConfig.cmake" "${CMAKE_CURRENT_BINARY_DIR}/FlatbuffersConfigVersion.cmake"
+      FILES "CMake/FlatBuffersConfig.cmake" "${CMAKE_CURRENT_BINARY_DIR}/FlatBuffersConfigVersion.cmake"
       DESTINATION ${FB_CMAKE_DIR}
   )
 
   if(FLATBUFFERS_BUILD_FLATLIB)
     install(
-      TARGETS flatbuffers EXPORT FlatbuffersTargets
+      TARGETS flatbuffers EXPORT FlatBuffersTargets
       ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
       INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
     )
 
-    install(EXPORT FlatbuffersTargets
-      FILE FlatbuffersTargets.cmake
+    install(EXPORT FlatBuffersTargets
+      FILE FlatBuffersTargets.cmake
       NAMESPACE flatbuffers::
       DESTINATION ${FB_CMAKE_DIR}
     )
@@ -676,7 +681,7 @@ if(FLATBUFFERS_INSTALL)
 
   if(FLATBUFFERS_BUILD_SHAREDLIB)
     install(
-      TARGETS flatbuffers_shared EXPORT FlatbuffersSharedTargets
+      TARGETS flatbuffers_shared EXPORT FlatBuffersSharedTargets
       ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
       RUNTIME DESTINATION ${CMAKE_INSTALL_LIBDIR}
       LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
@@ -684,8 +689,8 @@ if(FLATBUFFERS_INSTALL)
     )
 
     install(
-      EXPORT FlatbuffersSharedTargets
-      FILE FlatbuffersSharedTargets.cmake
+      EXPORT FlatBuffersSharedTargets
+      FILE FlatBuffersSharedTargets.cmake
       NAMESPACE flatbuffers::
       DESTINATION ${FB_CMAKE_DIR}
     )
