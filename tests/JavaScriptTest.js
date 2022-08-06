@@ -4,7 +4,7 @@ import fs from 'fs'
 import * as flatbuffers from 'flatbuffers'
 
 import { Monster, MonsterT } from './my-game/example/monster'
-import { Test } from './my-game/example/test'
+import { Test, TestT } from './my-game/example/test'
 import { Stat } from './my-game/example/stat'
 import { Vec3 } from './my-game/example/vec3'
 import { Color } from './my-game/example/color';
@@ -47,6 +47,7 @@ function main() {
   fuzzTest1();
   testNullStrings();
   testSharedStrings();
+  testVectorOfStructs();
 
   console.log('FlatBuffers test: completed successfully');
 }
@@ -456,6 +457,24 @@ function testNullStrings() {
   assert.strictEqual(builder.createSharedString(null), 0);
   assert.strictEqual(builder.createString(undefined), 0);
   assert.strictEqual(builder.createSharedString(undefined), 0);
+}
+
+function testVectorOfStructs() {
+  let monster = new MonsterT();
+  monster.name = 'testVectorOfStructs';
+  monster.test4 = [
+    new TestT(1, 2),
+    new TestT(3, 4)
+  ];
+
+  let builder = new flatbuffers.Builder();
+  builder.finish(monster.pack(builder));
+
+  let decodedMonster = Monster.getRootAsMonster(builder.dataBuffer()).unpack();
+  assert.strictEqual(decodedMonster.test4[0].a, 1);
+  assert.strictEqual(decodedMonster.test4[0].b, 2);
+  assert.strictEqual(decodedMonster.test4[1].a, 3);
+  assert.strictEqual(decodedMonster.test4[1].b, 4);
 }
 
 main();
