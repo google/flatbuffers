@@ -425,17 +425,23 @@ flatc(
 
 # --filename-suffix and --filename-ext tests
 flatc(
-    CPP_OPTS + NO_INCL_OPTS + ["--filename-suffix", "_suffix", "--filename-ext", "hpp"],
+    CPP_OPTS + NO_INCL_OPTS + ["--grpc", "--filename-ext", "hpp"],
     include="include_test",
+    prefix="monster_test_suffix/ext_only",
     schema="monster_test.fbs",
 )
-orig_monster_file = Path(tests_path, "monster_test_generated.h")
-new_monster_file = Path(tests_path, "monster_test_suffix.hpp")
-assert new_monster_file.exists(), "filename suffix option did not produce a file"
-assert filecmp.cmp(
-    str(orig_monster_file), str(new_monster_file)
-), "filename suffix option did not produce identical results"
-new_monster_file.unlink()
+flatc(
+    CPP_OPTS + NO_INCL_OPTS + ["--grpc", "--filename-suffix", "_suffix"],
+    include="include_test",
+    prefix="monster_test_suffix/filesuffix_only",
+    schema="monster_test.fbs",
+)
+flatc(
+    CPP_OPTS + NO_INCL_OPTS + ["--grpc", "--filename-suffix", "_suffix", "--filename-ext", "hpp"],
+    include="include_test",
+    prefix="monster_test_suffix",
+    schema="monster_test.fbs",
+)
 
 # Flag c++17 requires Clang6, GCC7, MSVC2017 (_MSC_VER >= 1914) or higher.
 cpp_17_prefix = "cpp17/generated_cpp17"
