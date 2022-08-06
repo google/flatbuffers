@@ -1,0 +1,3 @@
+table Baz {
+  a:int;
+}
