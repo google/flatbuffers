@@ -16,7 +16,7 @@
     "test": "tests"
   },
   "scripts": {
-    "test": "npm run compile && cd tests && ./TypeScriptTest.sh",
+    "test": "npm run compile && cd tests && python3 ./TypeScriptTest.py",
     "compile": "tsc && tsc -p tsconfig.mjs.json",
     "prepublishOnly": "npm install --only=dev && npm run compile"
   },

@@ -319,7 +319,7 @@ jobs:
       run: npm run compile
     - name: test
       working-directory: tests
-      run: sh TypeScriptTest.sh
+      run: python3 TypeScriptTest.py
 
   build-dart:
     name: Build Dart
