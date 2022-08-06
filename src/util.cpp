@@ -24,7 +24,7 @@
 #  define _XOPEN_SOURCE 700L
 #endif
 
-#ifdef _WIN32
+#if defined(_WIN32) || defined(__MINGW32__) || defined(__MINGW64__) || defined(__CYGWIN__)
 #  ifndef WIN32_LEAN_AND_MEAN
 #    define WIN32_LEAN_AND_MEAN
 #  endif
@@ -35,7 +35,9 @@
 #    include <crtdbg.h>
 #  endif
 #  include <windows.h>  // Must be included before <direct.h>
-#  include <direct.h>
+#  ifndef __CYGWIN__
+#    include <direct.h>
+#  endif
 #  include <winbase.h>
 #  undef interface  // This is also important because of reasons
 #endif
