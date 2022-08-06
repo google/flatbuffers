@@ -242,12 +242,6 @@ class FlatBufFile : public grpc_generator::File {
     return StripExtension(file_name_);
   }
 
-  std::string message_header_ext() const {
-    return parser_.opts.filename_suffix + ".h";
-  }
-
-  std::string service_header_ext() const { return ".grpc.fb.h"; }
-
   std::string package() const {
     return parser_.current_namespace_->GetFullyQualifiedName("");
   }
@@ -347,6 +341,7 @@ bool GenerateGoGRPC(const Parser &parser, const std::string &path,
 
 bool GenerateCppGRPC(const Parser &parser, const std::string &path,
                      const std::string &file_name) {
+  const auto &opts = parser.opts;
   int nservices = 0;
   for (auto it = parser.services_.vec.begin(); it != parser.services_.vec.end();
        ++it) {
@@ -354,9 +349,15 @@ bool GenerateCppGRPC(const Parser &parser, const std::string &path,
   }
   if (!nservices) return true;
 
+  std::string suffix = "";
+  suffix += opts.filename_suffix.empty() ? "_generated" : opts.filename_suffix;
+  suffix += ".";
+  suffix += opts.filename_extension.empty() ? "h" : opts.filename_extension;
+
   grpc_cpp_generator::Parameters generator_parameters;
   // TODO(wvo): make the other parameters in this struct configurable.
   generator_parameters.use_system_headers = true;
+  generator_parameters.message_header_extension = suffix;
 
   FlatBufFile fbfile(parser, file_name, FlatBufFile::kLanguageCpp);
 
