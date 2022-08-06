@@ -645,21 +645,21 @@ if(FLATBUFFERS_INSTALL)
 
   set(FB_CMAKE_DIR "${CMAKE_INSTALL_LIBDIR}/cmake/flatbuffers")
 
-  configure_file(CMake/FlatbuffersConfigVersion.cmake.in FlatbuffersConfigVersion.cmake @ONLY)
+  configure_file(CMake/FlatBuffersConfigVersion.cmake.in FlatBuffersConfigVersion.cmake @ONLY)
   install(
-      FILES "CMake/FlatbuffersConfig.cmake" "${CMAKE_CURRENT_BINARY_DIR}/FlatbuffersConfigVersion.cmake"
+      FILES "CMake/FlatBuffersConfig.cmake" "${CMAKE_CURRENT_BINARY_DIR}/FlatBuffersConfigVersion.cmake"
       DESTINATION ${FB_CMAKE_DIR}
   )
 
   if(FLATBUFFERS_BUILD_FLATLIB)
     install(
-      TARGETS flatbuffers EXPORT FlatbuffersTargets
+      TARGETS flatbuffers EXPORT FlatBuffersTargets
       ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
       INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
     )
 
-    install(EXPORT FlatbuffersTargets
-      FILE FlatbuffersTargets.cmake
+    install(EXPORT FlatBuffersTargets
+      FILE FlatBuffersTargets.cmake
       NAMESPACE flatbuffers::
       DESTINATION ${FB_CMAKE_DIR}
     )
@@ -681,7 +681,7 @@ if(FLATBUFFERS_INSTALL)
 
   if(FLATBUFFERS_BUILD_SHAREDLIB)
     install(
-      TARGETS flatbuffers_shared EXPORT FlatbuffersSharedTargets
+      TARGETS flatbuffers_shared EXPORT FlatBuffersSharedTargets
       ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
       RUNTIME DESTINATION ${CMAKE_INSTALL_LIBDIR}
       LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
@@ -689,8 +689,8 @@ if(FLATBUFFERS_INSTALL)
     )
 
     install(
-      EXPORT FlatbuffersSharedTargets
-      FILE FlatbuffersSharedTargets.cmake
+      EXPORT FlatBuffersSharedTargets
+      FILE FlatBuffersSharedTargets.cmake
       NAMESPACE flatbuffers::
       DESTINATION ${FB_CMAKE_DIR}
     )
