@@ -33,6 +33,8 @@ struct Parameters {
   grpc::string grpc_search_path;
   // Generate GMOCK code to facilitate unit testing.
   bool generate_mock_code;
+  // By default, use "_generated.h"
+  std::string message_header_extension;
 };
 
 // Return the prologue of the generated header file.
