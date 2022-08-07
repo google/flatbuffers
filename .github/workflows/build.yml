@@ -19,7 +19,7 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - name: cmake
-      run: CXX=${{ matrix.cxx }} cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release .
+      run: CXX=${{ matrix.cxx }} cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release -DFLATBUFFERS_STRICT_MODE=ON .
     - name: build
       run: make -j
     - name: test
@@ -42,7 +42,7 @@ jobs:
     - name: Add msbuild to PATH
       uses: microsoft/setup-msbuild@v1.1
     - name: cmake
-      run: cmake -G "Visual Studio 16 2019" -A x64 -DCMAKE_BUILD_TYPE=Release -DFLATBUFFERS_BUILD_CPP17=ON .
+      run: cmake -G "Visual Studio 16 2019" -A x64 -DCMAKE_BUILD_TYPE=Release -DFLATBUFFERS_BUILD_CPP17=ON -DFLATBUFFERS_STRICT_MODE=ON .
     - name: build
       run: msbuild.exe FlatBuffers.sln /p:Configuration=Release /p:Platform=x64
     - name: test
@@ -61,7 +61,7 @@ jobs:
     - name: Add msbuild to PATH
       uses: microsoft/setup-msbuild@v1.1
     - name: cmake
-      run: cmake -G "Visual Studio 16 2019" -A x64 -DCMAKE_BUILD_TYPE=Release .
+      run: cmake -G "Visual Studio 16 2019" -A x64 -DCMAKE_BUILD_TYPE=Release -DFLATBUFFERS_STRICT_MODE=ON .
     - name: build tool version 15 (VS 2017)
       run: msbuild.exe FlatBuffers.sln /p:Configuration=Release /p:Platform=x64 /p:VisualStudioVersion=15.0
     - name: test
@@ -75,7 +75,7 @@ jobs:
     - name: Add msbuild to PATH
       uses: microsoft/setup-msbuild@v1.1
     - name: cmake
-      run: cmake -G "Visual Studio 14 2015" -A x64 -DCMAKE_BUILD_TYPE=Release .
+      run: cmake -G "Visual Studio 14 2015" -A x64 -DCMAKE_BUILD_TYPE=Release -DFLATBUFFERS_STRICT_MODE=ON .
     - name: build tool version 14 (VS 2015)
       run: msbuild.exe FlatBuffers.sln /p:Configuration=Release /p:Platform=x64 /p:VisualStudioVersion=14.0
     - name: test
@@ -115,7 +115,7 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - name: cmake
-      run: cmake -G "Xcode" -DCMAKE_BUILD_TYPE=Release -DFLATBUFFERS_FLATC_EXECUTABLE=_build/Release/flatc .
+      run: cmake -G "Xcode" -DCMAKE_BUILD_TYPE=Release -DFLATBUFFERS_FLATC_EXECUTABLE=_build/Release/flatc -DFLATBUFFERS_STRICT_MODE=ON .
     - name: build
       # NOTE: we need this _build dir to not have xcodebuild's default ./build dir clash with the BUILD file.
       run: xcodebuild -toolchain clang -configuration Release -target flattests SYMROOT=$(PWD)/_build
@@ -142,7 +142,7 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - name: cmake
-      run: cmake -G "Xcode" -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64" -DCMAKE_BUILD_TYPE=Release -DFLATBUFFERS_FLATC_EXECUTABLE=_build/Release/flatc .
+      run: cmake -G "Xcode" -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64" -DCMAKE_BUILD_TYPE=Release -DFLATBUFFERS_FLATC_EXECUTABLE=_build/Release/flatc -DFLATBUFFERS_STRICT_MODE=ON .
     - name: build
       # NOTE: we need this _build dir to not have xcodebuild's default ./build dir clash with the BUILD file.
       run: xcodebuild -toolchain clang -configuration Release -target flattests SYMROOT=$(PWD)/_build
@@ -176,7 +176,7 @@ jobs:
        java-version: 1.8
    - name: set up flatc
      run: |
-       cmake -DFLATBUFFERS_BUILD_TESTS=OFF -DFLATBUFFERS_BUILD_FLATLIB=OFF -DFLATBUFFERS_BUILD_FLATHASH=OFF .
+       cmake -DFLATBUFFERS_BUILD_TESTS=OFF -DFLATBUFFERS_BUILD_FLATLIB=OFF -DFLATBUFFERS_BUILD_FLATHASH=OFF -DFLATBUFFERS_STRICT_MODE=ON .
        make -j
        echo "${PWD}" >> $GITHUB_PATH
    - name: build
@@ -192,7 +192,7 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - name: cmake
-      run: CXX=${{ matrix.cxx }} cmake -G "Unix Makefiles" -DFLATBUFFERS_BUILD_TESTS=OFF -DCMAKE_BUILD_TYPE=Release . && make -j
+      run: CXX=${{ matrix.cxx }} cmake -G "Unix Makefiles" -DFLATBUFFERS_BUILD_TESTS=OFF -DCMAKE_BUILD_TYPE=Release -DFLATBUFFERS_STRICT_MODE=ON . && make -j
     - name: Generate
       run: scripts/check_generate_code.py
     - name: Generate gRPC
@@ -207,7 +207,7 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - name: cmake
-      run: CXX=${{ matrix.cxx }} cmake -G "Unix Makefiles" -DFLATBUFFERS_CXX_FLAGS="-Wno-unused-parameter -fno-aligned-new" -DFLATBUFFERS_BUILD_BENCHMARKS=ON -DCMAKE_BUILD_TYPE=Release . && make -j
+      run: CXX=${{ matrix.cxx }} cmake -G "Unix Makefiles" -DFLATBUFFERS_CXX_FLAGS="-Wno-unused-parameter -fno-aligned-new" -DFLATBUFFERS_BUILD_BENCHMARKS=ON -DCMAKE_BUILD_TYPE=Release -DFLATBUFFERS_STRICT_MODE=ON . && make -j
     - name: Run benchmarks
       run: ./flatbenchmark --benchmark_repetitions=5 --benchmark_display_aggregates_only=true --benchmark_out_format=console --benchmark_out=benchmarks/results_${{matrix.cxx}}
     - name: Upload benchmarks results
@@ -283,7 +283,7 @@ jobs:
     - uses: actions/checkout@v2
     - name: flatc
       # FIXME: make test script not rely on flatc
-      run: cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release -DFLATBUFFERS_BUILD_TESTS=OFF -DFLATBUFFERS_INSTALL=OFF -DFLATBUFFERS_BUILD_FLATLIB=OFF -DFLATBUFFERS_BUILD_FLATHASH=OFF . && make -j
+      run: cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release -DFLATBUFFERS_BUILD_TESTS=OFF -DFLATBUFFERS_INSTALL=OFF -DFLATBUFFERS_BUILD_FLATLIB=OFF -DFLATBUFFERS_BUILD_FLATHASH=OFF -DFLATBUFFERS_STRICT_MODE=ON . && make -j
     - name: test
       working-directory: tests
       run: bash GoTest.sh
@@ -331,7 +331,7 @@ jobs:
           sdk: stable
       - name: flatc
         # FIXME: make test script not rely on flatc
-        run: cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release -DFLATBUFFERS_BUILD_TESTS=OFF -DFLATBUFFERS_INSTALL=OFF -DFLATBUFFERS_BUILD_FLATLIB=OFF -DFLATBUFFERS_BUILD_FLATHASH=OFF . && make -j
+        run: cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release -DFLATBUFFERS_BUILD_TESTS=OFF -DFLATBUFFERS_INSTALL=OFF -DFLATBUFFERS_BUILD_FLATLIB=OFF -DFLATBUFFERS_BUILD_FLATHASH=OFF -DFLATBUFFERS_STRICT_MODE=ON . && make -j
       - name: test
         working-directory: tests
         run: bash DartTest.sh
