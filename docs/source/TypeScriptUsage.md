@@ -21,8 +21,8 @@ https://www.npmjs.com/package/flatbuffers.
 
 ## Testing the FlatBuffers TypeScript library
 
-To run the tests, use the [TypeScriptTest.sh](https://github.com/google/
-flatbuffers/blob/master/tests/TypeScriptTest.sh) shell script.
+To run the tests, use the [TypeScriptTest.py](https://github.com/google/
+flatbuffers/blob/master/tests/TypeScriptTest.py) Python3 script.
 
 *Note: The TypeScript test file requires [Node.js](https://nodejs.org/en/).*
 
