@@ -29,7 +29,7 @@ jobs:
         chmod +x flatc
         ./flatc --version
     - name: upload build artifacts
-      uses: actions/upload-artifact@v1
+      uses: actions/upload-artifact@3cea5372237819ed00197afe530f5a7ea3e805c8 # v3.1
       with:
         name: Linux flatc binary ${{ matrix.cxx }}
         path: flatc
@@ -329,9 +329,10 @@ jobs:
       - uses: dart-lang/setup-dart@v1
         with:
           sdk: stable
-      - name: flatc
-        # FIXME: make test script not rely on flatc
-        run: cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release -DFLATBUFFERS_BUILD_TESTS=OFF -DFLATBUFFERS_INSTALL=OFF -DFLATBUFFERS_BUILD_FLATLIB=OFF -DFLATBUFFERS_BUILD_FLATHASH=OFF -DFLATBUFFERS_STRICT_MODE=ON . && make -j
+      - uses: actions/download-artifact@fb598a63ae348fa914e94cd0ff38f362e927b741 #v3.0
+        with:
+          name: Linux flatc binary clang++-12
+          path: flatc
       - name: test
         working-directory: tests
         run: bash DartTest.sh
