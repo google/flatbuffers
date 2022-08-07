@@ -24,6 +24,7 @@ export class Builder {
     private force_defaults = false;
     
     private string_maps: Map<string | Uint8Array, number> | null = null;
+    private text_encoder = new TextEncoder();
   
     /**
      * Create a FlatBufferBuilder.
@@ -531,40 +532,7 @@ export class Builder {
       if (s instanceof Uint8Array) {
         utf8 = s;
       } else {
-        utf8 = [];
-        let i = 0;
-  
-        while (i < s.length) {
-          let codePoint;
-  
-          // Decode UTF-16
-          const a = s.charCodeAt(i++);
-          if (a < 0xD800 || a >= 0xDC00) {
-            codePoint = a;
-          } else {
-            const b = s.charCodeAt(i++);
-            codePoint = (a << 10) + b + (0x10000 - (0xD800 << 10) - 0xDC00);
-          }
-  
-          // Encode UTF-8
-          if (codePoint < 0x80) {
-            utf8.push(codePoint);
-          } else {
-            if (codePoint < 0x800) {
-              utf8.push(((codePoint >> 6) & 0x1F) | 0xC0);
-            } else {
-              if (codePoint < 0x10000) {
-                utf8.push(((codePoint >> 12) & 0x0F) | 0xE0);
-              } else {
-                utf8.push(
-                  ((codePoint >> 18) & 0x07) | 0xF0,
-                  ((codePoint >> 12) & 0x3F) | 0x80);
-              }
-              utf8.push(((codePoint >> 6) & 0x3F) | 0x80);
-            }
-            utf8.push((codePoint & 0x3F) | 0x80);
-          }
-        }
+        utf8 = this.text_encoder.encode(s);
       }
   
       this.addInt8(0);
