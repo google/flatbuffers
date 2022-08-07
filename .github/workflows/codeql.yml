@@ -64,7 +64,7 @@ jobs:
     #    uses a compiled language
 
     - run: |
-       cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release .
+       cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release -DFLATBUFFERS_STRICT_MODE=ON .
        make -j       
 
     - name: Perform CodeQL Analysis

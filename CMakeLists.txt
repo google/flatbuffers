@@ -74,6 +74,9 @@ option(FLATBUFFERS_ENABLE_PCH
 option(FLATBUFFERS_SKIP_MONSTER_EXTRA 
       "Skip generating monster_extra.fbs that contains non-supported numerical\"
       types." OFF)
+option(FLATBUFFERS_STRICT_MODE 
+      "Build flatbuffers with all warnings as errors (-Werror or /WX)."
+      OFF)
 
 set(MSVC_LIKE OFF)
 if(MSVC OR CMAKE_CXX_COMPILER_FRONTEND_VARIANT STREQUAL "MSVC")
@@ -344,7 +347,9 @@ if(MSVC_LIKE)
   target_compile_options(ProjectConfig
     INTERFACE 
       /W4
-      /WX
+      $<$<BOOL:${FLATBUFFERS_STRICT_MODE}>:
+        /WX       # Treat all compiler warnings as errors
+      >
       /wd4512   # C4512: assignment operator could not be generated
       /wd4316   # C4316: object allocated on the heap may not be aligned
       /wd4456   # C4456: hides previous local declaration
@@ -356,9 +361,10 @@ else()
   target_compile_options(ProjectConfig
     INTERFACE
       -Wall
-      -Werror
+      $<$<BOOL:${FLATBUFFERS_STRICT_MODE}>:
+        -Werror   # Treat all compiler warnings as errors
+      >
       -pedantic 
-      -Werror 
       -Wextra 
       -Wno-unused-parameter
       -Wold-style-cast
@@ -370,20 +376,26 @@ else()
         $<$<VERSION_GREATER:$<CXX_COMPILER_VERSION>,3.8>:
           -Wimplicit-fallthrough
           -Wextra-semi
-          -Werror=unused-private-field
+          $<$<BOOL:${FLATBUFFERS_STRICT_MODE}>:            
+            -Werror=unused-private-field
+          >
         >
       >
 
       $<$<CXX_COMPILER_ID:GNU>:
         $<$<VERSION_GREATER:$<CXX_COMPILER_VERSION>,4.4>:
-          -Wunused-result 
-          -Werror=unused-result 
+          -Wunused-result
           -Wunused-parameter 
-          -Werror=unused-parameter
+          $<$<BOOL:${FLATBUFFERS_STRICT_MODE}>:
+            -Werror=unused-result           
+            -Werror=unused-parameter
+          >
         >
         $<$<VERSION_GREATER:$<CXX_COMPILER_VERSION>,7.0>:
           -faligned-new 
-          -Werror=implicit-fallthrough=2
+          $<$<BOOL:${FLATBUFFERS_STRICT_MODE}>:
+            -Werror=implicit-fallthrough=2
+          >
         >
         $<$<VERSION_GREATER:$<CXX_COMPILER_VERSION>,8.0>:
           -Wextra-semi
