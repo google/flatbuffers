@@ -2084,8 +2084,8 @@ class CppGenerator : public BaseGenerator {
                 lhs_accessor + ".size() == " + rhs_accessor + ".size()";
             const std::string elements_equal =
                 "std::equal(" + lhs_accessor + ".cbegin(), " + lhs_accessor +
-                ".cend(), " + rhs_accessor + ".cbegin(), " + rhs_accessor +
-                ".cend(), [](" + type + " const &a, " + type +
+                ".cend(), " + rhs_accessor + ".cbegin(), [](" + type +
+                " const &a, " + type +
                 " const &b) { return (a == b) || (a && b && *a == *b); })";
 
             compare_op += "(" + equal_length + " && " + elements_equal + ")";
