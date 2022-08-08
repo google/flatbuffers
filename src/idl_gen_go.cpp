@@ -842,7 +842,8 @@ class GoGenerator : public BaseGenerator {
         continue;
       code += "\t" + namer_.Field(field) + " ";
       if (field.IsScalarOptional()) { code += "*"; }
-      code += NativeType(field.value.type) + "\n";
+      code += NativeType(field.value.type) + " `json:\"" + field.name + "\"`" +
+              "\n";
     }
     code += "}\n\n";
 
