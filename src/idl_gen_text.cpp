@@ -248,11 +248,23 @@ struct JsonPrinter {
   template<typename T>
   bool GenField(const FieldDef &fd, const Table *table, bool fixed,
                 int indent) {
-    return PrintScalar(
-        fixed ? reinterpret_cast<const Struct *>(table)->GetField<T>(
-                    fd.value.offset)
-              : table->GetField<T>(fd.value.offset, GetFieldDefault<T>(fd)),
-        fd.value.type, indent);
+    if (fixed) {
+      return PrintScalar(
+          reinterpret_cast<const Struct *>(table)->GetField<T>(fd.value.offset),
+          fd.value.type, indent);
+    } else if (fd.IsOptional()) {
+      auto opt = table->GetOptional<T, T>(fd.value.offset);
+      if (opt) {
+        return PrintScalar(*opt, fd.value.type, indent);
+      } else {
+        text += "null";
+        return true;
+      }
+    } else {
+      return PrintScalar(
+          table->GetField<T>(fd.value.offset, GetFieldDefault<T>(fd)),
+          fd.value.type, indent);
+    }
   }
 
   // Generate text for non-scalar field.

@@ -17,13 +17,14 @@
 // clang-format off
 // Dont't remove `format off`, it prevent reordering of win-includes.
 
+#include <cstring>
 #if defined(__MINGW32__) || defined(__MINGW64__) || defined(__CYGWIN__) || \
     defined(__QNXNTO__)
 #  define _POSIX_C_SOURCE 200809L
 #  define _XOPEN_SOURCE 700L
 #endif
 
-#ifdef _WIN32
+#if defined(_WIN32) || defined(__MINGW32__) || defined(__MINGW64__) || defined(__CYGWIN__)
 #  ifndef WIN32_LEAN_AND_MEAN
 #    define WIN32_LEAN_AND_MEAN
 #  endif
@@ -34,7 +35,9 @@
 #    include <crtdbg.h>
 #  endif
 #  include <windows.h>  // Must be included before <direct.h>
-#  include <direct.h>
+#  ifndef __CYGWIN__
+#    include <direct.h>
+#  endif
 #  include <winbase.h>
 #  undef interface  // This is also important because of reasons
 #endif
@@ -46,8 +49,8 @@
 
 #include <clocale>
 #include <cstdlib>
-#include <functional>
 #include <fstream>
+#include <functional>
 
 #include "flatbuffers/base.h"
 
@@ -155,6 +158,15 @@ std::string StripFileName(const std::string &filepath) {
   return i != std::string::npos ? filepath.substr(0, i) : "";
 }
 
+std::string StripPrefix(const std::string &filepath,
+                        const std::string &prefix_to_remove) {
+  if (!strncmp(filepath.c_str(), prefix_to_remove.c_str(),
+               prefix_to_remove.size())) {
+    return filepath.substr(prefix_to_remove.size());
+  }
+  return filepath;
+}
+
 std::string ConCatPathFileName(const std::string &path,
                                const std::string &filename) {
   std::string filepath = path;
@@ -202,7 +214,7 @@ std::string AbsolutePath(const std::string &filepath) {
   #ifdef FLATBUFFERS_NO_ABSOLUTE_PATH_RESOLUTION
     return filepath;
   #else
-    #ifdef _WIN32
+    #if defined(_WIN32) || defined(__MINGW32__) || defined(__MINGW64__) || defined(__CYGWIN__)
       char abs_path[MAX_PATH];
       return GetFullPathNameA(filepath.c_str(), MAX_PATH, abs_path, nullptr)
     #else

@@ -719,6 +719,47 @@ void JsonEnumsTest() {
   TEST_EQ(std::string::npos != future_json.find("color: 13"), true);
 }
 
+void JsonOptionalTest(bool default_scalars) {
+  // load FlatBuffer schema (.fbs) and JSON from disk
+  std::string schemafile;
+  std::string jsonfile;
+  TEST_EQ(
+      flatbuffers::LoadFile((test_data_path + "optional_scalars.fbs").c_str(),
+                            false, &schemafile),
+      true);
+  TEST_EQ(flatbuffers::LoadFile((test_data_path + "optional_scalars" +
+                                 (default_scalars ? "_defaults" : "") + ".json")
+                                    .c_str(),
+                                false, &jsonfile),
+          true);
+
+  auto include_test_path =
+      flatbuffers::ConCatPathFileName(test_data_path, "include_test");
+  const char *include_directories[] = { test_data_path.c_str(),
+                                        include_test_path.c_str(), nullptr };
+
+  // parse schema first, so we can use it to parse the data after
+  flatbuffers::Parser parser;
+  parser.opts.output_default_scalars_in_json = default_scalars;
+  TEST_EQ(parser.Parse(schemafile.c_str(), include_directories), true);
+  TEST_EQ(parser.ParseJson(jsonfile.c_str()), true);
+
+  // here, parser.builder_ contains a binary buffer that is the parsed data.
+
+  // First, verify it, just in case:
+  flatbuffers::Verifier verifier(parser.builder_.GetBufferPointer(),
+                                 parser.builder_.GetSize());
+  TEST_EQ(optional_scalars::VerifyScalarStuffBuffer(verifier), true);
+
+  // to ensure it is correct, we now generate text back from the binary,
+  // and compare the two:
+  std::string jsongen;
+  auto result =
+      GenerateText(parser, parser.builder_.GetBufferPointer(), &jsongen);
+  TEST_EQ(result, true);
+  TEST_EQ_STR(jsongen.c_str(), jsonfile.c_str());
+}
+
 #if defined(FLATBUFFERS_HAS_NEW_STRTOD) && (FLATBUFFERS_HAS_NEW_STRTOD > 0)
 // The IEEE-754 quiet_NaN is not simple binary constant.
 // All binary NaN bit strings have all the bits of the biased exponent field E
@@ -3263,6 +3304,24 @@ void FlexBuffersTest() {
   TEST_EQ(slb.GetSize(), 664);
 }
 
+void FlexBuffersReuseBugTest() {
+  flexbuffers::Builder slb;
+  slb.Map([&]() {
+    slb.Vector("vec", [&]() {});
+    slb.Bool("bool", true);
+  });
+  slb.Finish();
+  std::vector<uint8_t> reuse_tracker;
+  // This would fail before, since the reuse_tracker would use the address of
+  // the vector reference to check for reuse, but in this case we have an empty
+  // vector, and since the size field is before the pointer, its address is the
+  // same as thing after it, the key "bool".
+  // We fix this by using the address of the size field for tracking reuse.
+  TEST_EQ(flexbuffers::VerifyBuffer(slb.GetBuffer().data(),
+                                    slb.GetBuffer().size(), &reuse_tracker),
+          true);
+}
+
 void FlexBuffersFloatingPointTest() {
 #if defined(FLATBUFFERS_HAS_NEW_STRTOD) && (FLATBUFFERS_HAS_NEW_STRTOD > 0)
   flexbuffers::Builder slb(512,
@@ -4490,6 +4549,8 @@ int FlatBufferTests() {
     LoadVerifyBinaryTest();
     GenerateTableTextTest();
     TestEmbeddedBinarySchema();
+    JsonOptionalTest(false);
+    JsonOptionalTest(true);
   #endif
   // clang-format on
 
@@ -4525,6 +4586,7 @@ int FlatBufferTests() {
   JsonDefaultTest();
   JsonEnumsTest();
   FlexBuffersTest();
+  FlexBuffersReuseBugTest();
   FlexBuffersDeprecatedTest();
   UninitializedVectorTest();
   EqualOperatorTest();

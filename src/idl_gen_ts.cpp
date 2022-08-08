@@ -234,7 +234,7 @@ class TsGenerator : public BaseGenerator {
         std::string basename = flatbuffers::StripPath(noext);
         std::string include_file = GeneratedFileName(
             parser_.opts.include_prefix,
-            parser_.opts.keep_include_path ? noext : basename, parser_.opts);
+            parser_.opts.keep_prefix ? noext : basename, parser_.opts);
         // TODO: what is the right behavior when different include flags are
         // specified here? Should we always be adding the "./" for a relative
         // path or turn it off if --include-prefix is specified, or something
