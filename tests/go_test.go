@@ -17,8 +17,9 @@
 package main
 
 import (
-	mygame "MyGame"                     // refers to generated code
-	example "MyGame/Example"            // refers to generated code
+	mygame "MyGame"          // refers to generated code
+	example "MyGame/Example" // refers to generated code
+	"encoding/json"
 	optional_scalars "optional_scalars" // refers to generated code
 
 	"bytes"
@@ -66,6 +67,35 @@ func TestMain(m *testing.M) {
 		os.Exit(1)
 	}
 	os.Exit(m.Run())
+}
+
+// TestTextParsing test if text parsing works with object API.
+func TestTextParsing(t *testing.T) {
+	expectedMonster := example.MonsterT{
+		Mana:                  42,
+		Name:                  "foo",
+		LongEnumNormalDefault: example.LongEnumLongTwo,
+	}
+
+	buf := new(bytes.Buffer)
+	if err := json.NewEncoder(buf).Encode(expectedMonster); err != nil {
+		t.Fatal(err)
+	}
+
+	var monster example.MonsterT
+	if err := json.NewDecoder(buf).Decode(&monster); err != nil {
+		t.Fatal(err)
+	}
+
+	if monster.Mana != expectedMonster.Mana {
+		t.Fatal("wrong mana:", monster.Mana)
+	}
+	if monster.Name != expectedMonster.Name {
+		t.Fatal("wrong name:", monster.Name)
+	}
+	if monster.LongEnumNormalDefault != expectedMonster.LongEnumNormalDefault {
+		t.Fatal("wrong enum:", monster.LongEnumNormalDefault)
+	}
 }
 
 // TestAll runs all checks, failing if any errors occur.
