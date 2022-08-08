@@ -7,18 +7,18 @@ import (
 )
 
 type TypeAliasesT struct {
-	I8 int8
-	U8 byte
-	I16 int16
-	U16 uint16
-	I32 int32
-	U32 uint32
-	I64 int64
-	U64 uint64
-	F32 float32
-	F64 float64
-	V8 []int8
-	Vf64 []float64
+	I8 int8 `json:"i8"`
+	U8 byte `json:"u8"`
+	I16 int16 `json:"i16"`
+	U16 uint16 `json:"u16"`
+	I32 int32 `json:"i32"`
+	U32 uint32 `json:"u32"`
+	I64 int64 `json:"i64"`
+	U64 uint64 `json:"u64"`
+	F32 float32 `json:"f32"`
+	F64 float64 `json:"f64"`
+	V8 []int8 `json:"v8"`
+	Vf64 []float64 `json:"vf64"`
 }
 
 func (t *TypeAliasesT) Pack(builder *flatbuffers.Builder) flatbuffers.UOffsetT {

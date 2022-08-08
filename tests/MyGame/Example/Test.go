@@ -7,8 +7,8 @@ import (
 )
 
 type TestT struct {
-	A int16
-	B int8
+	A int16 `json:"a"`
+	B int8 `json:"b"`
 }
 
 func (t *TestT) Pack(builder *flatbuffers.Builder) flatbuffers.UOffsetT {

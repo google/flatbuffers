@@ -7,7 +7,7 @@ import (
 )
 
 type ReferrableT struct {
-	Id uint64
+	Id uint64 `json:"id"`
 }
 
 func (t *ReferrableT) Pack(builder *flatbuffers.Builder) flatbuffers.UOffsetT {

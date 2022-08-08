@@ -7,8 +7,8 @@ import (
 )
 
 type AbilityT struct {
-	Id uint32
-	Distance uint32
+	Id uint32 `json:"id"`
+	Distance uint32 `json:"distance"`
 }
 
 func (t *AbilityT) Pack(builder *flatbuffers.Builder) flatbuffers.UOffsetT {

@@ -7,9 +7,9 @@ import (
 )
 
 type StatT struct {
-	Id string
-	Val int64
-	Count uint16
+	Id string `json:"id"`
+	Val int64 `json:"val"`
+	Count uint16 `json:"count"`
 }
 
 func (t *StatT) Pack(builder *flatbuffers.Builder) flatbuffers.UOffsetT {

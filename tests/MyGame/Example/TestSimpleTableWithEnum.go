@@ -7,7 +7,7 @@ import (
 )
 
 type TestSimpleTableWithEnumT struct {
-	Color Color
+	Color Color `json:"color"`
 }
 
 func (t *TestSimpleTableWithEnumT) Pack(builder *flatbuffers.Builder) flatbuffers.UOffsetT {

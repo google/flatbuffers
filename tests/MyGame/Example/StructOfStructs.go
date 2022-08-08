@@ -7,9 +7,9 @@ import (
 )
 
 type StructOfStructsT struct {
-	A *AbilityT
-	B *TestT
-	C *AbilityT
+	A *AbilityT `json:"a"`
+	B *TestT `json:"b"`
+	C *AbilityT `json:"c"`
 }
 
 func (t *StructOfStructsT) Pack(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
