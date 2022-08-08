@@ -3572,6 +3572,16 @@ void EqualOperatorTest() {
     a.testarrayoftables.push_back(std::move(c));
     b.testarrayoftables.push_back(std::move(d));
     TEST_EQ(a == b, false);
+
+    // Remove the mismatching monsters to get back to equality
+    a.testarrayoftables.pop_back();
+    b.testarrayoftables.pop_back();
+    TEST_EQ(a == b, true);
+
+    // Check that nullptr are OK.
+    a.testarrayoftables.push_back(nullptr);
+    b.testarrayoftables.push_back(std::make_unique<MonsterT>());
+    TEST_EQ(a == b, false);
   }
 }
 

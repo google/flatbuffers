@@ -16,7 +16,6 @@
 
 // independent from idl_parser, since this code is not needed for most clients
 
-#include <iostream>
 #include <string>
 #include <unordered_set>
 
@@ -2079,13 +2078,15 @@ class CppGenerator : public BaseGenerator {
           if (field.value.type.base_type == BASE_TYPE_VECTOR &&
               field.value.type.element == BASE_TYPE_STRUCT &&
               !field.value.type.struct_def->fixed) {
+            const std::string type =
+                GenTypeNative(field.value.type.VectorType(), true, field);
             const std::string equal_length =
                 lhs_accessor + ".size() == " + rhs_accessor + ".size()";
             const std::string elements_equal =
                 "std::equal(" + lhs_accessor + ".cbegin(), " + lhs_accessor +
                 ".cend(), " + rhs_accessor + ".cbegin(), " + rhs_accessor +
-                ".cend(), [](auto const &a, auto const &b) { return *a == "
-                "*b;})";
+                ".cend(), [](" + type + " const &a, " + type +
+                " const &b) { return (a == b) || (a && b && *a == *b); })";
 
             compare_op += "(" + equal_length + " && " + elements_equal + ")";
           } else {
