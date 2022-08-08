@@ -3553,17 +3553,18 @@ void EqualOperatorTest() {
 
     // Adding only a table to one of the monster vectors should make it not
     // equal (due to size mistmatch).
-    a.testarrayoftables.push_back(std::make_unique<MonsterT>());
+    a.testarrayoftables.push_back(flatbuffers::unique_ptr<MonsterT>(new MonsterT));
     TEST_EQ(a == b, false);
 
     // Adding an equalivant table to the other monster vector should make it
     // equal again.
-    b.testarrayoftables.push_back(std::make_unique<MonsterT>());
+    b.testarrayoftables.push_back(
+        flatbuffers::unique_ptr<MonsterT>(new MonsterT));
     TEST_EQ(a == b, true);
 
     // Create two new monsters that are different.
-    auto c = std::make_unique<MonsterT>();
-    auto d = std::make_unique<MonsterT>();
+    auto c = flatbuffers::unique_ptr<MonsterT>(new MonsterT);
+    auto d = flatbuffers::unique_ptr<MonsterT>(new MonsterT);
     c->hp = 1;
     d->hp = 2;
     TEST_EQ(c == d, false);
@@ -3580,7 +3581,8 @@ void EqualOperatorTest() {
 
     // Check that nullptr are OK.
     a.testarrayoftables.push_back(nullptr);
-    b.testarrayoftables.push_back(std::make_unique<MonsterT>());
+    b.testarrayoftables.push_back(
+        flatbuffers::unique_ptr<MonsterT>(new MonsterT));
     TEST_EQ(a == b, false);
   }
 }
