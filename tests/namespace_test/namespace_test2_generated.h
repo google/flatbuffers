@@ -412,7 +412,7 @@ inline flatbuffers::Offset<TableInFirstNS> CreateTableInFirstNS(flatbuffers::Fla
   auto _foo_enum = _o->foo_enum;
   auto _foo_union_type = _o->foo_union.type;
   auto _foo_union = _o->foo_union.Pack(_fbb);
-  auto _foo_struct = _o->foo_struct ? _o->foo_struct.get() : 0;
+  auto _foo_struct = _o->foo_struct ? _o->foo_struct.get() : nullptr;
   return NamespaceA::CreateTableInFirstNS(
       _fbb,
       _foo_table,
