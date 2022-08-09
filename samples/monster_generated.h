@@ -556,7 +556,7 @@ inline bool operator==(const MonsterT &lhs, const MonsterT &rhs) {
       (lhs.name == rhs.name) &&
       (lhs.inventory == rhs.inventory) &&
       (lhs.color == rhs.color) &&
-      (lhs.weapons == rhs.weapons) &&
+      (lhs.weapons.size() == rhs.weapons.size() && std::equal(lhs.weapons.cbegin(), lhs.weapons.cend(), rhs.weapons.cbegin(), [](flatbuffers::unique_ptr<MyGame::Sample::WeaponT> const &a, flatbuffers::unique_ptr<MyGame::Sample::WeaponT> const &b) { return (a == b) || (a && b && *a == *b); })) &&
       (lhs.equipped == rhs.equipped) &&
       (lhs.path == rhs.path);
 }

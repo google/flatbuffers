@@ -2727,7 +2727,7 @@ inline bool operator==(const MonsterT &lhs, const MonsterT &rhs) {
       (lhs.test == rhs.test) &&
       (lhs.test4 == rhs.test4) &&
       (lhs.testarrayofstring == rhs.testarrayofstring) &&
-      (lhs.testarrayoftables == rhs.testarrayoftables) &&
+      (lhs.testarrayoftables.size() == rhs.testarrayoftables.size() && std::equal(lhs.testarrayoftables.cbegin(), lhs.testarrayoftables.cend(), rhs.testarrayoftables.cbegin(), [](flatbuffers::unique_ptr<MyGame::Example::MonsterT> const &a, flatbuffers::unique_ptr<MyGame::Example::MonsterT> const &b) { return (a == b) || (a && b && *a == *b); })) &&
       ((lhs.enemy == rhs.enemy) || (lhs.enemy && rhs.enemy && *lhs.enemy == *rhs.enemy)) &&
       (lhs.testnestedflatbuffer == rhs.testnestedflatbuffer) &&
       ((lhs.testempty == rhs.testempty) || (lhs.testempty && rhs.testempty && *lhs.testempty == *rhs.testempty)) &&
@@ -2751,10 +2751,10 @@ inline bool operator==(const MonsterT &lhs, const MonsterT &rhs) {
       (lhs.vector_of_longs == rhs.vector_of_longs) &&
       (lhs.vector_of_doubles == rhs.vector_of_doubles) &&
       ((lhs.parent_namespace_test == rhs.parent_namespace_test) || (lhs.parent_namespace_test && rhs.parent_namespace_test && *lhs.parent_namespace_test == *rhs.parent_namespace_test)) &&
-      (lhs.vector_of_referrables == rhs.vector_of_referrables) &&
+      (lhs.vector_of_referrables.size() == rhs.vector_of_referrables.size() && std::equal(lhs.vector_of_referrables.cbegin(), lhs.vector_of_referrables.cend(), rhs.vector_of_referrables.cbegin(), [](flatbuffers::unique_ptr<MyGame::Example::ReferrableT> const &a, flatbuffers::unique_ptr<MyGame::Example::ReferrableT> const &b) { return (a == b) || (a && b && *a == *b); })) &&
       (lhs.single_weak_reference == rhs.single_weak_reference) &&
       (lhs.vector_of_weak_references == rhs.vector_of_weak_references) &&
-      (lhs.vector_of_strong_referrables == rhs.vector_of_strong_referrables) &&
+      (lhs.vector_of_strong_referrables.size() == rhs.vector_of_strong_referrables.size() && std::equal(lhs.vector_of_strong_referrables.cbegin(), lhs.vector_of_strong_referrables.cend(), rhs.vector_of_strong_referrables.cbegin(), [](flatbuffers::unique_ptr<MyGame::Example::ReferrableT> const &a, flatbuffers::unique_ptr<MyGame::Example::ReferrableT> const &b) { return (a == b) || (a && b && *a == *b); })) &&
       (lhs.co_owning_reference == rhs.co_owning_reference) &&
       (lhs.vector_of_co_owning_references == rhs.vector_of_co_owning_references) &&
       (lhs.non_owning_reference == rhs.non_owning_reference) &&
@@ -2764,7 +2764,7 @@ inline bool operator==(const MonsterT &lhs, const MonsterT &rhs) {
       (lhs.vector_of_enums == rhs.vector_of_enums) &&
       (lhs.signed_enum == rhs.signed_enum) &&
       (lhs.testrequirednestedflatbuffer == rhs.testrequirednestedflatbuffer) &&
-      (lhs.scalar_key_sorted_tables == rhs.scalar_key_sorted_tables) &&
+      (lhs.scalar_key_sorted_tables.size() == rhs.scalar_key_sorted_tables.size() && std::equal(lhs.scalar_key_sorted_tables.cbegin(), lhs.scalar_key_sorted_tables.cend(), rhs.scalar_key_sorted_tables.cbegin(), [](flatbuffers::unique_ptr<MyGame::Example::StatT> const &a, flatbuffers::unique_ptr<MyGame::Example::StatT> const &b) { return (a == b) || (a && b && *a == *b); })) &&
       (lhs.native_inline == rhs.native_inline) &&
       (lhs.long_enum_non_enum_default == rhs.long_enum_non_enum_default) &&
       (lhs.long_enum_normal_default == rhs.long_enum_normal_default);
