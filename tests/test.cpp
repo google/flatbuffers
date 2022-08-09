@@ -232,7 +232,7 @@ flatbuffers::DetachedBuffer CreateFlatBufferTest(std::string &buffer) {
 
   FinishMonsterBuffer(builder, mloc);
 
-// clang-format off
+  // clang-format off
   #ifdef FLATBUFFERS_TEST_VERBOSE
   // print byte data for debugging:
   auto p = builder.GetBufferPointer();
@@ -258,7 +258,7 @@ void AccessFlatBufferTest(const uint8_t *flatbuf, size_t length,
   verifier.SetFlexReuseTracker(&flex_reuse_tracker);
   TEST_EQ(VerifyMonsterBuffer(verifier), true);
 
-// clang-format off
+  // clang-format off
   #ifdef FLATBUFFERS_TRACK_VERIFIER_BUFFER_SIZE
     std::vector<uint8_t> test_buff;
     test_buff.resize(length * 2);
@@ -639,7 +639,7 @@ void SizePrefixedTest() {
 }
 
 void TriviallyCopyableTest() {
-// clang-format off
+  // clang-format off
   #if __GNUG__ && __GNUC__ < 5
     TEST_EQ(__has_trivial_copy(Vec3), true);
   #else
@@ -1661,7 +1661,7 @@ void FuzzTest2() {
     }
   };
 
-// clang-format off
+  // clang-format off
   #define AddToSchemaAndInstances(schema_add, instance_add) \
     RndDef::Add(definitions, schema, instances_per_definition, \
                 schema_add, instance_add, definition)
@@ -1815,7 +1815,7 @@ void FuzzTest2() {
     TEST_NOTNULL(nullptr);  //-V501 (this comment supresses CWE-570 warning)
   }
 
-// clang-format off
+  // clang-format off
   #ifdef FLATBUFFERS_TEST_VERBOSE
     TEST_OUTPUT_LINE("%dk schema tested with %dk of json\n",
                      static_cast<int>(schema.length() / 1024),
@@ -3207,7 +3207,7 @@ void FlexBuffersTest() {
   });
   slb.Finish();
 
-// clang-format off
+  // clang-format off
   #ifdef FLATBUFFERS_TEST_VERBOSE
     for (size_t i = 0; i < slb.GetBuffer().size(); i++)
       printf("%d ", slb.GetBuffer().data()[i]);
@@ -3553,7 +3553,8 @@ void EqualOperatorTest() {
 
     // Adding only a table to one of the monster vectors should make it not
     // equal (due to size mistmatch).
-    a.testarrayoftables.push_back(flatbuffers::unique_ptr<MonsterT>(new MonsterT));
+    a.testarrayoftables.push_back(
+        flatbuffers::unique_ptr<MonsterT>(new MonsterT));
     TEST_EQ(a == b, false);
 
     // Adding an equalivant table to the other monster vector should make it

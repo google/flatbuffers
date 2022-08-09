@@ -2061,9 +2061,9 @@ class CppGenerator : public BaseGenerator {
     for (auto it = struct_def.fields.vec.begin();
          it != struct_def.fields.vec.end(); ++it) {
       const auto &field = **it;
-      const std::string accessor = Name(field) + accessSuffix;
-      const std::string lhs_accessor = "lhs." + accessor;
-      const std::string rhs_accessor = "rhs." + accessor;
+      const auto accessor = Name(field) + accessSuffix;
+      const auto lhs_accessor = "lhs." + accessor;
+      const auto rhs_accessor = "rhs." + accessor;
 
       if (!field.deprecated &&  // Deprecated fields won't be accessible.
           field.value.type.base_type != BASE_TYPE_UTYPE &&
@@ -2078,11 +2078,11 @@ class CppGenerator : public BaseGenerator {
           if (field.value.type.base_type == BASE_TYPE_VECTOR &&
               field.value.type.element == BASE_TYPE_STRUCT &&
               !field.value.type.struct_def->fixed) {
-            const std::string type =
+            const auto type =
                 GenTypeNative(field.value.type.VectorType(), true, field);
-            const std::string equal_length =
+            const auto equal_length =
                 lhs_accessor + ".size() == " + rhs_accessor + ".size()";
-            const std::string elements_equal =
+            const auto elements_equal =
                 "std::equal(" + lhs_accessor + ".cbegin(), " + lhs_accessor +
                 ".cend(), " + rhs_accessor + ".cbegin(), [](" + type +
                 " const &a, " + type +
