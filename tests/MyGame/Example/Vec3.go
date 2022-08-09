@@ -7,12 +7,12 @@ import (
 )
 
 type Vec3T struct {
-	X float32
-	Y float32
-	Z float32
-	Test1 float64
-	Test2 Color
-	Test3 *TestT
+	X float32 `json:"x"`
+	Y float32 `json:"y"`
+	Z float32 `json:"z"`
+	Test1 float64 `json:"test1"`
+	Test2 Color `json:"test2"`
+	Test3 *TestT `json:"test3"`
 }
 
 func (t *Vec3T) Pack(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
