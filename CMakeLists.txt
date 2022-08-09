@@ -361,8 +361,13 @@ else()
   target_compile_options(ProjectConfig
     INTERFACE
       -Wall
+      -Wno-unknown-warning-option
       $<$<BOOL:${FLATBUFFERS_STRICT_MODE}>:
         -Werror   # Treat all compiler warnings as errors
+
+        # False positive string overflow
+        # https://github.com/google/flatbuffers/issues/7366
+        -Wno-error=stringop-overflow
       >
       -pedantic 
       -Wextra 
