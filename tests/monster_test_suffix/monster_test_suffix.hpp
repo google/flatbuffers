@@ -2966,7 +2966,7 @@ inline flatbuffers::Offset<Monster> CreateMonster(flatbuffers::FlatBufferBuilder
   (void)_rehasher;
   (void)_o;
   struct _VectorArgs { flatbuffers::FlatBufferBuilder *__fbb; const MonsterT* __o; const flatbuffers::rehasher_function_t *__rehasher; } _va = { &_fbb, _o, _rehasher}; (void)_va;
-  auto _pos = _o->pos ? _o->pos.get() : 0;
+  auto _pos = _o->pos ? _o->pos.get() : nullptr;
   auto _mana = _o->mana;
   auto _hp = _o->hp;
   auto _name = _fbb.CreateString(_o->name);
