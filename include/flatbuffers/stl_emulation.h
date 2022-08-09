@@ -288,13 +288,13 @@ FLATBUFFERS_CONSTEXPR std::size_t dynamic_extent = static_cast<std::size_t>(-1);
 namespace internal {
   // This is SFINAE helper class for checking of a common condition:
   // > This overload only participates in overload resolution
-  // > Check whether a pointer to an array of U can be converted
+  // > Check whether a pointer to an array of W can be converted
   // > to a pointer to an array of E.
-  // This helper is used for checking of 'U -> const U'.
-  template<class E, std::size_t Extent, class U, std::size_t N>
+  // This helper is used for checking of 'W -> const W'.
+  template<class E, std::size_t Extent, class W, std::size_t N>
   struct is_span_convertable {
     using type =
-      typename std::conditional<std::is_convertible<U (*)[], E (*)[]>::value
+      typename std::conditional<std::is_convertible<W (*)[], E (*)[]>::value
                                 && (Extent == dynamic_extent || N == Extent),
                                 int, void>::type;
   };
@@ -467,40 +467,40 @@ class span FLATBUFFERS_FINAL_CLASS {
 #endif  // defined(FLATBUFFERS_USE_STD_SPAN)
 
 #if !defined(FLATBUFFERS_SPAN_MINIMAL)
-template<class U, std::size_t N>
+template<class W, std::size_t N>
 FLATBUFFERS_CONSTEXPR_CPP11
-flatbuffers::span<U, N> make_span(U(&arr)[N]) FLATBUFFERS_NOEXCEPT {
-  return span<U, N>(arr);
+flatbuffers::span<W, N> make_span(W(&arr)[N]) FLATBUFFERS_NOEXCEPT {
+  return span<W, N>(arr);
 }
 
-template<class U, std::size_t N>
+template<class W, std::size_t N>
 FLATBUFFERS_CONSTEXPR_CPP11
-flatbuffers::span<const U, N> make_span(const U(&arr)[N]) FLATBUFFERS_NOEXCEPT {
-  return span<const U, N>(arr);
+flatbuffers::span<const W, N> make_span(const W(&arr)[N]) FLATBUFFERS_NOEXCEPT {
+  return span<const W, N>(arr);
 }
 
-template<class U, std::size_t N>
+template<class W, std::size_t N>
 FLATBUFFERS_CONSTEXPR_CPP11
-flatbuffers::span<U, N> make_span(std::array<U, N> &arr) FLATBUFFERS_NOEXCEPT {
-  return span<U, N>(arr);
+flatbuffers::span<W, N> make_span(std::array<W, N> &arr) FLATBUFFERS_NOEXCEPT {
+  return span<W, N>(arr);
 }
 
-template<class U, std::size_t N>
+template<class W, std::size_t N>
 FLATBUFFERS_CONSTEXPR_CPP11
-flatbuffers::span<const U, N> make_span(const std::array<U, N> &arr) FLATBUFFERS_NOEXCEPT {
-  return span<const U, N>(arr);
+flatbuffers::span<const W, N> make_span(const std::array<W, N> &arr) FLATBUFFERS_NOEXCEPT {
+  return span<const W, N>(arr);
 }
 
-template<class U, std::size_t N>
+template<class W, std::size_t N>
 FLATBUFFERS_CONSTEXPR_CPP11
-flatbuffers::span<U, dynamic_extent> make_span(U *first, std::size_t count) FLATBUFFERS_NOEXCEPT {
-  return span<U, dynamic_extent>(first, count);
+flatbuffers::span<W, dynamic_extent> make_span(W *first, std::size_t count) FLATBUFFERS_NOEXCEPT {
+  return span<W, dynamic_extent>(first, count);
 }
 
-template<class U, std::size_t N>
+template<class W, std::size_t N>
 FLATBUFFERS_CONSTEXPR_CPP11
-flatbuffers::span<const U, dynamic_extent> make_span(const U *first, std::size_t count) FLATBUFFERS_NOEXCEPT {
-  return span<const U, dynamic_extent>(first, count);
+flatbuffers::span<const W, dynamic_extent> make_span(const W *first, std::size_t count) FLATBUFFERS_NOEXCEPT {
+  return span<const W, dynamic_extent>(first, count);
 }
 #endif // !defined(FLATBUFFERS_SPAN_MINIMAL)
 
