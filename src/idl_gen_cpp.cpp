@@ -2061,19 +2061,41 @@ class CppGenerator : public BaseGenerator {
     for (auto it = struct_def.fields.vec.begin();
          it != struct_def.fields.vec.end(); ++it) {
       const auto &field = **it;
+      const auto accessor = Name(field) + accessSuffix;
+      const auto lhs_accessor = "lhs." + accessor;
+      const auto rhs_accessor = "rhs." + accessor;
+
       if (!field.deprecated &&  // Deprecated fields won't be accessible.
           field.value.type.base_type != BASE_TYPE_UTYPE &&
           (field.value.type.base_type != BASE_TYPE_VECTOR ||
            field.value.type.element != BASE_TYPE_UTYPE)) {
         if (!compare_op.empty()) { compare_op += " &&\n      "; }
-        auto accessor = Name(field) + accessSuffix;
         if (struct_def.fixed || field.native_inline ||
             field.value.type.base_type != BASE_TYPE_STRUCT) {
-          compare_op += "(lhs." + accessor + " == rhs." + accessor + ")";
+          // If the field is a vector of tables, the table need to be compared
+          // by value, instead of by the default unique_ptr == operator which
+          // compares by address.
+          if (field.value.type.base_type == BASE_TYPE_VECTOR &&
+              field.value.type.element == BASE_TYPE_STRUCT &&
+              !field.value.type.struct_def->fixed) {
+            const auto type =
+                GenTypeNative(field.value.type.VectorType(), true, field);
+            const auto equal_length =
+                lhs_accessor + ".size() == " + rhs_accessor + ".size()";
+            const auto elements_equal =
+                "std::equal(" + lhs_accessor + ".cbegin(), " + lhs_accessor +
+                ".cend(), " + rhs_accessor + ".cbegin(), [](" + type +
+                " const &a, " + type +
+                " const &b) { return (a == b) || (a && b && *a == *b); })";
+
+            compare_op += "(" + equal_length + " && " + elements_equal + ")";
+          } else {
+            compare_op += "(" + lhs_accessor + " == " + rhs_accessor + ")";
+          }
         } else {
           // Deep compare of std::unique_ptr. Null is not equal to empty.
           std::string both_null =
-              "(lhs." + accessor + " == rhs." + accessor + ")";
+              "(" + lhs_accessor + " == " + rhs_accessor + ")";
           std::string not_null_and_equal = "(lhs." + accessor + " && rhs." +
                                            accessor + " && *lhs." + accessor +
                                            " == *rhs." + accessor + ")";

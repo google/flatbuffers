@@ -16,12 +16,14 @@
 #include <stdint.h>
 
 #include <cmath>
+#include <memory>
 #include <string>
 
 #include "flatbuffers/flatbuffers.h"
 #include "flatbuffers/idl.h"
 #include "flatbuffers/minireflect.h"
 #include "flatbuffers/registry.h"
+#include "flatbuffers/stl_emulation.h"
 #include "flatbuffers/util.h"
 #include "monster_test_generated.h"
 #include "namespace_test/namespace_test1_generated.h"
@@ -3542,6 +3544,48 @@ void EqualOperatorTest() {
   b.test.type = Any_Monster;
   TEST_EQ(b == a, false);
   TEST_EQ(b != a, true);
+
+  // Test that vector of tables are compared by value and not by reference.
+  {
+    // Two tables are equal by default.
+    MonsterT a, b;
+    TEST_EQ(a == b, true);
+
+    // Adding only a table to one of the monster vectors should make it not
+    // equal (due to size mistmatch).
+    a.testarrayoftables.push_back(
+        flatbuffers::unique_ptr<MonsterT>(new MonsterT));
+    TEST_EQ(a == b, false);
+
+    // Adding an equalivant table to the other monster vector should make it
+    // equal again.
+    b.testarrayoftables.push_back(
+        flatbuffers::unique_ptr<MonsterT>(new MonsterT));
+    TEST_EQ(a == b, true);
+
+    // Create two new monsters that are different.
+    auto c = flatbuffers::unique_ptr<MonsterT>(new MonsterT);
+    auto d = flatbuffers::unique_ptr<MonsterT>(new MonsterT);
+    c->hp = 1;
+    d->hp = 2;
+    TEST_EQ(c == d, false);
+
+    // Adding them to the original monsters should also make them different.
+    a.testarrayoftables.push_back(std::move(c));
+    b.testarrayoftables.push_back(std::move(d));
+    TEST_EQ(a == b, false);
+
+    // Remove the mismatching monsters to get back to equality
+    a.testarrayoftables.pop_back();
+    b.testarrayoftables.pop_back();
+    TEST_EQ(a == b, true);
+
+    // Check that nullptr are OK.
+    a.testarrayoftables.push_back(nullptr);
+    b.testarrayoftables.push_back(
+        flatbuffers::unique_ptr<MonsterT>(new MonsterT));
+    TEST_EQ(a == b, false);
+  }
 }
 
 // For testing any binaries, e.g. from fuzzing.
@@ -4443,9 +4487,9 @@ void PrivateAnnotationsLeaks() {
 
   // (private) (table), (public) (struct/enum)
   schemas.push_back(
-    "table Monster (private) { mana: int; }"
-    "struct ABC { mana: int; }"
-    "enum Race:byte { None = -1, Human = 0, }");
+      "table Monster (private) { mana: int; }"
+      "struct ABC { mana: int; }"
+      "enum Race:byte { None = -1, Human = 0, }");
 
   // (public) (struct) containing (public) (enum)
   schemas.push_back(
