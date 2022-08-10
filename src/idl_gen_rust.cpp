@@ -425,6 +425,7 @@ class RustGenerator : public BaseGenerator {
   bool GenerateOneFile() {
     code_.Clear();
     code_ += "// " + std::string(FlatBuffersGeneratedWarning()) + "\n\n";
+    code_ += "// @generated";
 
     assert(!cur_name_space_);
 
