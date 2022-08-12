@@ -3720,6 +3720,14 @@ bool StructDef::Deserialize(Parser &parser, const reflection::Object *object) {
       delete field_def;
       return false;
     }
+    if (field_def->key) {
+      if (has_key) {
+        // only one field may be set as key
+        delete field_def;
+        return false;
+      }
+      has_key = true;
+    }
     if (fixed) {
       // Recompute padding since that's currently not serialized.
       auto size = InlineSize(field_def->value.type);
