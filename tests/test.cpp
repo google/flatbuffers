@@ -4550,6 +4550,28 @@ void PrivateAnnotationsLeaks() {
   }
 }
 
+void JsonUnsortedArrayTest()
+{
+  flatbuffers::Parser parser;
+  TEST_EQ(parser.Deserialize(MyGame::Example::MonsterBinarySchema::data(), MyGame::Example::MonsterBinarySchema::size()), true);
+  auto jsonStr = R"(
+  {
+    "name": "lookupTest",
+    "testarrayoftables": [
+      { "name": "aaa" },
+      { "name": "ccc" },
+      { "name": "bbb" }
+    ]
+  }
+  )";
+  TEST_EQ(parser.ParseJson(jsonStr), true);
+  auto monster = flatbuffers::GetRoot<MyGame::Example::Monster>(parser.builder_.GetBufferPointer());
+
+  TEST_NOTNULL(monster->testarrayoftables()->LookupByKey("aaa"));
+  TEST_NOTNULL(monster->testarrayoftables()->LookupByKey("bbb"));
+  TEST_NOTNULL(monster->testarrayoftables()->LookupByKey("ccc"));
+}
+
 int FlatBufferTests() {
   // clang-format off
 
@@ -4655,6 +4677,7 @@ int FlatBufferTests() {
   WarningsAsErrorsTest();
   NestedVerifierTest();
   PrivateAnnotationsLeaks();
+  JsonUnsortedArrayTest();
   return 0;
 }
 
