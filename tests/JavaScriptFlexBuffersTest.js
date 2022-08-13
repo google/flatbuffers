@@ -264,6 +264,7 @@ function testRoundTrip() {
 
   _assert(example);
   _assert(0x100000001n);
+  _assert({ test_number: 72.6 })
 }
 
 function testRoundTripWithBuilder() {
