@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-#
 # Copyright 2022 Google Inc. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -59,23 +57,30 @@ def flatc(options, cwd=script_path):
 def make_absolute(filename, path=script_path):
     return Path(path, filename).absolute()
 
-
 def assert_file_exists(filename, path=script_path):
     file = Path(path, filename)
     assert file.exists(), "could not find file: " + filename
     return file
 
+def assert_file_doesnt_exists(filename, path=script_path):
+    file = Path(path, filename)
+    assert not file.exists(), "file exists but shouldn't: " + filename
+    return file
 
-def assert_file_contains(file, needle):
-    assert needle in open(file).read(), (
-        "coudn't find '" + needle + "' in file: " + str(file)
-    )
+def assert_file_contains(file, needles):
+    with open(file) as file:
+        contents = file.read();
+        for needle in [needles] if isinstance(needles, str) else needles:
+            assert needle in contents, (
+                "coudn't find '" + needle + "' in file: " + str(file)
+            )
     return file
 
 
-def assert_file_and_contents(file, needle, path=script_path):
-    assert_file_contains(assert_file_exists(file, path), needle).unlink()
-
+def assert_file_and_contents(file, needle, path=script_path, unlink=True):
+    assert_file_contains(assert_file_exists(file, path), needle)
+    if unlink:
+        Path(path, file).unlink()
 
 def run_all(module):
     methods = [
@@ -90,6 +95,7 @@ def run_all(module):
             print(method)
             getattr(module, method)(module)
             print(" [PASSED]")
+
             passing = passing + 1
         except Exception as e:
             print(" [FAILED]: " + str(e))
