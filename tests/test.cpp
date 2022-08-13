@@ -4572,6 +4572,61 @@ void JsonUnsortedArrayTest()
   TEST_NOTNULL(monster->testarrayoftables()->LookupByKey("ccc"));
 }
 
+void VectorSpanTest() {
+  flatbuffers::FlatBufferBuilder builder;
+
+  auto mloc =
+      CreateMonster(builder, nullptr, 0, 0, builder.CreateString("Monster"),
+      builder.CreateVector<uint8_t>({ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 }));
+
+  FinishMonsterBuffer(builder, mloc);
+
+  auto monster = GetMonster(builder.GetBufferPointer());
+  auto mutable_monster = GetMutableMonster(builder.GetBufferPointer());
+
+  TEST_NOTNULL(monster->inventory());
+
+  {  // using references
+
+    auto const_inventory = flatbuffers::make_span(*monster->inventory());
+    TEST_EQ(const_inventory.size(), 10);
+    TEST_EQ(const_inventory[0], 0);
+    TEST_EQ(const_inventory[9], 9);
+
+    auto mutable_inventory = flatbuffers::make_span(*mutable_monster->inventory());
+    TEST_EQ(mutable_inventory.size(), 10);
+    TEST_EQ(mutable_inventory[0], 0);
+    TEST_EQ(mutable_inventory[9], 9);
+  }
+
+  { // using pointers
+    TEST_EQ(flatbuffers::VectorLength(monster->inventory()), 10);
+
+    auto const_inventory = flatbuffers::make_span(monster->inventory());
+    TEST_EQ(const_inventory.size(), 10);
+    TEST_EQ(const_inventory[0], 0);
+    TEST_EQ(const_inventory[9], 9);
+
+    auto mutable_inventory = flatbuffers::make_span(mutable_monster->inventory());
+    TEST_EQ(mutable_inventory.size(), 10);
+    TEST_EQ(mutable_inventory[0], 0);
+    TEST_EQ(mutable_inventory[9], 9);
+  }
+
+  TEST_ASSERT(nullptr == monster->testnestedflatbuffer());
+
+  {
+    TEST_EQ(flatbuffers::VectorLength(monster->testnestedflatbuffer()), 0);
+
+    auto const_nested = flatbuffers::make_span(monster->testnestedflatbuffer());
+    TEST_ASSERT(const_nested.empty());
+
+    auto mutable_nested =
+        flatbuffers::make_span(monster->testnestedflatbuffer());
+    TEST_ASSERT(mutable_nested.empty());
+  }
+}
+
 int FlatBufferTests() {
   // clang-format off
 
@@ -4678,6 +4733,7 @@ int FlatBufferTests() {
   NestedVerifierTest();
   PrivateAnnotationsLeaks();
   JsonUnsortedArrayTest();
+  VectorSpanTest();
   return 0;
 }
 
