@@ -478,18 +478,21 @@ public struct Monster : IFlatbufferObject
   public static void FinishSizePrefixedMonsterBuffer(FlatBufferBuilder builder, Offset<MyGame.Example.Monster> offset) { builder.FinishSizePrefixed(offset.Value, "MONS"); }
 
   public static VectorOffset CreateSortedVectorOfMonster(FlatBufferBuilder builder, Offset<Monster>[] offsets) {
-    Array.Sort(offsets, (Offset<Monster> o1, Offset<Monster> o2) => Table.CompareStrings(Table.__offset(10, o1.Value, builder.DataBuffer), Table.__offset(10, o2.Value, builder.DataBuffer), builder.DataBuffer));
+    Array.Sort(offsets,
+      (Offset<Monster> o1, Offset<Monster> o2) =>
+        new Monster().__assign(builder.DataBuffer.Length - o1.Value, builder.DataBuffer).Name.CompareTo(new Monster().__assign(builder.DataBuffer.Length - o2.Value, builder.DataBuffer).Name));
     return builder.CreateVectorOfTables(offsets);
   }
 
   public static Monster? __lookup_by_key(int vectorLocation, string key, ByteBuffer bb) {
-    byte[] byteKey = System.Text.Encoding.UTF8.GetBytes(key);
+    Monster obj_ = new Monster();
     int span = bb.GetInt(vectorLocation - 4);
     int start = 0;
     while (span != 0) {
       int middle = span / 2;
       int tableOffset = Table.__indirect(vectorLocation + 4 * (start + middle), bb);
-      int comp = Table.CompareStrings(Table.__offset(10, bb.Length - tableOffset, bb), byteKey, bb);
+      obj_.__assign(tableOffset, bb);
+      int comp = obj_.Name.CompareTo(key);
       if (comp > 0) {
         span = middle;
       } else if (comp < 0) {
@@ -497,7 +500,7 @@ public struct Monster : IFlatbufferObject
         start += middle;
         span -= middle;
       } else {
-        return new Monster().__assign(tableOffset, bb);
+        return obj_;
       }
     }
     return null;
