@@ -26,7 +26,7 @@
 #include "flatbuffers/util.h"
 
 namespace flatbuffers {
-
+namespace {
 struct ImportDefinition {
   std::string name;
   std::string import_statement;
@@ -38,6 +38,7 @@ struct ImportDefinition {
 };
 
 enum AnnotationType { kParam = 0, kType = 1, kReturns = 2 };
+}
 
 namespace ts {
 // Iterate through all definitions we haven't generate code for (enums, structs,
@@ -111,7 +112,7 @@ class TsGenerator : public BaseGenerator {
   }
   bool generate() {
     if (parser_.opts.ts_flat_file && parser_.opts.generate_all) {
-      // Not implemented; warning message should have beem emitted by flatc.
+      // Not implemented; warning message should have been emitted by flatc.
       return false;
     }
     generateEnums();
@@ -122,9 +123,9 @@ class TsGenerator : public BaseGenerator {
 
   // Save out the generated code for a single class while adding
   // declaration boilerplate.
-  bool SaveType(const Definition &definition, const std::string &classcode,
+  bool SaveType(const Definition &definition, const std::string &class_code,
                 import_set &imports, import_set &bare_imports) {
-    if (!classcode.length()) return true;
+    if (!class_code.length()) return true;
 
     std::string code;
 
@@ -144,16 +145,27 @@ class TsGenerator : public BaseGenerator {
       if (!imports.empty()) code += "\n\n";
     }
 
-    code += classcode;
-    auto filename =
-        NamespaceDir(*definition.defined_namespace, true) +
-        ConvertCase(definition.name, Case::kDasher, Case::kUpperCamel) + ".ts";
+    code += class_code;
+
     if (parser_.opts.ts_flat_file) {
       flat_file_ += code;
       flat_file_definitions_.insert(&definition);
       return true;
     } else {
-      return SaveFile(filename.c_str(), code, false);
+      auto basename =
+          NamespaceDir(*definition.defined_namespace, true) +
+          ConvertCase(definition.name, Case::kDasher, Case::kUpperCamel);
+
+      // Special case for the root table, generate an export statement
+      if (&definition == parser_.root_struct_def_) {
+        ImportDefinition import;
+        import.name = definition.name;
+        import.export_statement =
+            "export { " + import.name + " } from './" + basename + "';";
+        imports.insert(std::make_pair(import.name, import));
+      }
+
+      return SaveFile((basename + ".ts").c_str(), code, false);
     }
   }
 
@@ -227,9 +239,7 @@ class TsGenerator : public BaseGenerator {
         // require modifying AddImport to ensure that we don't use
         // namespace-prefixed names anywhere...
         std::string file = it.first;
-        if (file.empty()) {
-          continue;
-        }
+        if (file.empty()) { continue; }
         std::string noext = flatbuffers::StripExtension(file);
         std::string basename = flatbuffers::StripPath(noext);
         std::string include_file = GeneratedFileName(
@@ -239,14 +249,15 @@ class TsGenerator : public BaseGenerator {
         // specified here? Should we always be adding the "./" for a relative
         // path or turn it off if --include-prefix is specified, or something
         // else?
-        std::string include_name = "./" + flatbuffers::StripExtension(include_file);
+        std::string include_name =
+            "./" + flatbuffers::StripExtension(include_file);
         code += "import {";
         for (const auto &pair : it.second) {
           code += EscapeKeyword(pair.first) + " as " +
                   EscapeKeyword(pair.second) + ", ";
         }
         code.resize(code.size() - 2);
-        code += "} from  '" + include_name + "';\n";
+        code += "} from '" + include_name + "';\n";
       }
       code += "\n\n";
       code += flat_file_;
@@ -257,7 +268,8 @@ class TsGenerator : public BaseGenerator {
       for (auto it = imports_all_.begin(); it != imports_all_.end(); it++) {
         code += it->second.export_statement + "\n";
       }
-      std::string path = "./" + path_ + file_name_ + ".ts";
+      const std::string path =
+          GeneratedFileName(path_, file_name_, parser_.opts);
       SaveFile(path.c_str(), code, false);
     }
   }
@@ -1110,14 +1122,12 @@ class TsGenerator : public BaseGenerator {
             field_type += GetObjApiClassName(AddImport(imports, struct_def, sd),
                                              parser.opts);
 
-            const std::string field_accessor =
-                "this." + field_name + "()";
+            const std::string field_accessor = "this." + field_name + "()";
             field_val = GenNullCheckConditional(field_accessor,
                                                 field_accessor + "!.unpack()");
             auto packing = GenNullCheckConditional(
                 "this." + field_name_escaped,
-                "this." + field_name_escaped + "!.pack(builder)",
-                "0");
+                "this." + field_name_escaped + "!.pack(builder)", "0");
 
             if (sd.fixed) {
               field_offset_val = std::move(packing);
@@ -1248,8 +1258,7 @@ class TsGenerator : public BaseGenerator {
       // FIXME: if field_type and field_name_escaped are identical, then
       // this generates invalid typescript.
       constructor_func += "  public " + field_name_escaped + ": " + field_type +
-                          " = " +
-                          field_default_val;
+                          " = " + field_default_val;
 
       if (!struct_def.fixed) {
         if (!field_offset_decl.empty()) {
@@ -1260,7 +1269,8 @@ class TsGenerator : public BaseGenerator {
           pack_func_create_call += field_offset_val;
         } else {
           if (field.IsScalarOptional()) {
-            pack_func_create_call += "  if (" + field_offset_val + " !== null)\n  ";
+            pack_func_create_call +=
+                "  if (" + field_offset_val + " !== null)\n  ";
           }
           pack_func_create_call += "  " + struct_name + ".add" +
                                    ConvertCase(field.name, Case::kUpperCamel) +
@@ -1768,8 +1778,8 @@ class TsGenerator : public BaseGenerator {
         }
 
         code += "):flatbuffers.Offset {\n";
-        code += "  " + object_name + ".start" +
-                GetPrefixedName(struct_def) + "(builder);\n";
+        code += "  " + object_name + ".start" + GetPrefixedName(struct_def) +
+                "(builder);\n";
 
         std::string methodPrefix = object_name;
         for (auto it = struct_def.fields.vec.begin();
