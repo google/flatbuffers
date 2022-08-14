@@ -178,6 +178,12 @@ class Verifier FLATBUFFERS_FINAL_CLASS {
 
   template<typename T>
   bool VerifyBufferFromStart(const char *const identifier, const size_t start) {
+    // Buffers have to be of some size to be valid. The reason it is a runtime
+    // check instead of static_assert, is that nested flatbuffers go through
+    // this call and their size is determined at runtime.
+    if (!Check(size_ >= FLATBUFFERS_MIN_BUFFER_SIZE)) return false;
+
+    // If an identifier is provided, check that we have a buffer
     if (identifier && !Check((size_ >= 2 * sizeof(flatbuffers::uoffset_t) &&
                               BufferHasIdentifier(buf_ + start, identifier)))) {
       return false;
@@ -198,7 +204,12 @@ class Verifier FLATBUFFERS_FINAL_CLASS {
   template<typename T>
   bool VerifyNestedFlatBuffer(const Vector<uint8_t> *const buf,
                               const char *const identifier) {
+    // An empty buffer is OK as it indicates not present.
     if (!buf) return true;
+
+    // If there is a nested buffer, it must be greater than the min size.
+    if(!Check(buf->size() >= FLATBUFFERS_MIN_BUFFER_SIZE)) return false;
+
     Verifier nested_verifier(buf->data(), buf->size());
     return nested_verifier.VerifyBuffer<T>(identifier);
   }

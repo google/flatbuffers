@@ -4340,6 +4340,28 @@ void NestedVerifierTest() {
                                    builder.GetSize());
     TEST_EQ(false, VerifyMonsterBuffer(verifier));
   }
+
+  {
+    // Create the outer monster.
+    flatbuffers::FlatBufferBuilder builder;
+
+    // Purposely invalidate the nested flatbuffer setting its length to 0, an
+    // invalid length.
+    uint8_t *invalid_nested_buffer = nullptr;
+    auto nested_monster_bytes = builder.CreateVector(invalid_nested_buffer, 0);
+
+    auto name = builder.CreateString("OuterMonster");
+
+    MonsterBuilder mon_builder(builder);
+    mon_builder.add_name(name);
+    mon_builder.add_testnestedflatbuffer(nested_monster_bytes);
+    FinishMonsterBuffer(builder, mon_builder.Finish());
+
+    // Verify the root monster fails, since the included nested monster fails.
+    flatbuffers::Verifier verifier(builder.GetBufferPointer(),
+                                   builder.GetSize());
+    TEST_EQ(false, VerifyMonsterBuffer(verifier));
+  }
 }
 
 void ParseIncorrectMonsterJsonTest() {
