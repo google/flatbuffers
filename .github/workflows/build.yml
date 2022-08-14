@@ -29,6 +29,8 @@ jobs:
       run: |
         chmod +x flatc
         ./flatc --version
+    - name: flatc tests
+      run: python3 tests/flatc/main.py
     - name: upload build artifacts
       uses: actions/upload-artifact@v1
       with:
