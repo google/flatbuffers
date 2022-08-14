@@ -4584,45 +4584,61 @@ void VectorSpanTest() {
   auto monster = GetMonster(builder.GetBufferPointer());
   auto mutable_monster = GetMutableMonster(builder.GetBufferPointer());
 
-  TEST_NOTNULL(monster->inventory());
+  { // using references
+    TEST_NOTNULL(monster->inventory());
 
-  {  // using references
-
-    auto const_inventory = flatbuffers::make_span(*monster->inventory());
+    flatbuffers::span<const uint8_t> const_inventory =
+        flatbuffers::make_span(*monster->inventory());
     TEST_EQ(const_inventory.size(), 10);
     TEST_EQ(const_inventory[0], 0);
     TEST_EQ(const_inventory[9], 9);
 
-    auto mutable_inventory = flatbuffers::make_span(*mutable_monster->inventory());
+    flatbuffers::span<uint8_t> mutable_inventory =
+        flatbuffers::make_span(*mutable_monster->mutable_inventory());
     TEST_EQ(mutable_inventory.size(), 10);
     TEST_EQ(mutable_inventory[0], 0);
     TEST_EQ(mutable_inventory[9], 9);
+
+    mutable_inventory[0] = 42;
+    TEST_EQ(mutable_inventory[0], 42);
+
+    mutable_inventory[0] = 0;
+    TEST_EQ(mutable_inventory[0], 0);
   }
 
   { // using pointers
     TEST_EQ(flatbuffers::VectorLength(monster->inventory()), 10);
 
-    auto const_inventory = flatbuffers::make_span(monster->inventory());
+    flatbuffers::span<const uint8_t> const_inventory =
+        flatbuffers::make_span(monster->inventory());
     TEST_EQ(const_inventory.size(), 10);
     TEST_EQ(const_inventory[0], 0);
     TEST_EQ(const_inventory[9], 9);
 
-    auto mutable_inventory = flatbuffers::make_span(mutable_monster->inventory());
+    flatbuffers::span<uint8_t> mutable_inventory =
+        flatbuffers::make_span(mutable_monster->mutable_inventory());
     TEST_EQ(mutable_inventory.size(), 10);
     TEST_EQ(mutable_inventory[0], 0);
     TEST_EQ(mutable_inventory[9], 9);
+
+    mutable_inventory[0] = 42;
+    TEST_EQ(mutable_inventory[0], 42);
+
+    mutable_inventory[0] = 0;
+    TEST_EQ(mutable_inventory[0], 0);
   }
 
-  TEST_ASSERT(nullptr == monster->testnestedflatbuffer());
-
   {
+    TEST_ASSERT(nullptr == monster->testnestedflatbuffer());
+
     TEST_EQ(flatbuffers::VectorLength(monster->testnestedflatbuffer()), 0);
 
-    auto const_nested = flatbuffers::make_span(monster->testnestedflatbuffer());
+    flatbuffers::span<const uint8_t> const_nested =
+        flatbuffers::make_span(monster->testnestedflatbuffer());
     TEST_ASSERT(const_nested.empty());
 
-    auto mutable_nested =
-        flatbuffers::make_span(monster->testnestedflatbuffer());
+    flatbuffers::span<uint8_t> mutable_nested =
+        flatbuffers::make_span(mutable_monster->mutable_testnestedflatbuffer());
     TEST_ASSERT(mutable_nested.empty());
   }
 }
