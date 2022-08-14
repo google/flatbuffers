@@ -157,7 +157,7 @@ export class Reference {
     } else {
       this._length = 1;
     }
-    return this._length;
+    return Number(this._length);
   }
 
   toObject(): unknown {
