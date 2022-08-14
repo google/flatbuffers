@@ -14,14 +14,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import sys;
+import sys
 
 from flatc_test import run_all
 from flatc_cpp_tests import CppTests
 from flatc_ts_tests import TsTests
 
-passing, failing = run_all(CppTests)
-passing, failing = run_all(TsTests)
+passing, failing = run_all(CppTests, TsTests)
+
+print("")
+print("{0} of {1} tests passed".format(passing, passing + failing))
 
 if failing > 0:
-  sys.exit(1)
+    sys.exit(1)

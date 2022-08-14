@@ -14,8 +14,8 @@
 
 from flatc_test import *
 
+class TsTests():
 
-class TsTests:
     def Base(self):
         # Generate just foo with no extra arguments
         flatc(["--ts", "foo.fbs"])

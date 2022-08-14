@@ -1,0 +1,9 @@
+include "bar/bar.fbs";
+
+namespace something;
+
+table Foo {
+  bar:Bar;
+}
+
+root_type Foo;

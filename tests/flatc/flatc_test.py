@@ -13,10 +13,7 @@
 # limitations under the License.
 
 import argparse
-import filecmp
-import glob
 import platform
-import shutil
 import subprocess
 from pathlib import Path
 
@@ -51,25 +48,28 @@ assert flatc_path.exists(), "Cannot find the flatc compiler " + str(flatc_path)
 # Execute the flatc compiler with the specified parameters
 def flatc(options, cwd=script_path):
     cmd = [str(flatc_path)] + options
-    result = subprocess.run(cmd, cwd=str(cwd), check=True)
+    subprocess.check_call(cmd, cwd=str(cwd))
 
 
 def make_absolute(filename, path=script_path):
     return Path(path, filename).absolute()
+
 
 def assert_file_exists(filename, path=script_path):
     file = Path(path, filename)
     assert file.exists(), "could not find file: " + filename
     return file
 
+
 def assert_file_doesnt_exists(filename, path=script_path):
     file = Path(path, filename)
     assert not file.exists(), "file exists but shouldn't: " + filename
     return file
 
+
 def assert_file_contains(file, needles):
     with open(file) as file:
-        contents = file.read();
+        contents = file.read()
         for needle in [needles] if isinstance(needles, str) else needles:
             assert needle in contents, (
                 "coudn't find '" + needle + "' in file: " + str(file)
@@ -82,23 +82,32 @@ def assert_file_and_contents(file, needle, path=script_path, unlink=True):
     if unlink:
         Path(path, file).unlink()
 
-def run_all(module):
-    methods = [
-        func
-        for func in dir(module)
-        if callable(getattr(module, func)) and not func.startswith("__")
-    ]
+
+def run_all(*modules):
     failing = 0
     passing = 0
-    for method in methods:
-        try:
-            print(method)
-            getattr(module, method)(module)
-            print(" [PASSED]")
-
-            passing = passing + 1
-        except Exception as e:
-            print(" [FAILED]: " + str(e))
-            failing = failing + 1
-    print("{0}: {1} of {2} passsed".format(module.__name__, passing, passing + failing))
+    for module in modules:
+        methods = [
+            func
+            for func in dir(module)
+            if callable(getattr(module, func)) and not func.startswith("__")
+        ]
+        module_failing = 0
+        module_passing = 0
+        for method in methods:
+            try:
+                print("{0}.{1}".format(module.__name__, method))
+                getattr(module, method)(module)
+                print(" [PASSED]")
+                module_passing = module_passing + 1
+            except Exception as e:
+                print(" [FAILED]: " + str(e))
+                failingmodule_failing = failingmodule_failing + 1
+        print(
+            "{0}: {1} of {2} passsed".format(
+                module.__name__, module_passing, module_passing + module_failing
+            )
+        )
+        passing = passing + module_passing
+        failing = failing + module_failing
     return passing, failing
