@@ -65,8 +65,8 @@ export function keyIndex(key: string, dataView: DataView, offset: number, parent
   const input = toUTF8Array(key);
   const keysVectorOffset = indirect(dataView, offset, parentWidth) - byteWidth * 3;
   const bitWidth = fromByteWidth(byteWidth);
-  const indirectOffset = keysVectorOffset - (readUInt(dataView, keysVectorOffset, bitWidth) as number);
-  const _byteWidth = readUInt(dataView, keysVectorOffset + byteWidth, bitWidth) as number;
+  const indirectOffset = keysVectorOffset - Number(readUInt(dataView, keysVectorOffset, bitWidth));
+  const _byteWidth = Number(readUInt(dataView, keysVectorOffset + byteWidth, bitWidth));
   let low = 0;
   let high = length - 1;
   while (low <= high) {
@@ -84,7 +84,7 @@ export function keyIndex(key: string, dataView: DataView, offset: number, parent
 
 export function diffKeys(input: Uint8Array, index: number, dataView: DataView, offset: number, width: number): number {
   const keyOffset = offset + index * width;
-  const keyIndirectOffset = keyOffset - (readUInt(dataView, keyOffset, fromByteWidth(width)) as number);
+  const keyIndirectOffset = keyOffset - Number(readUInt(dataView, keyOffset, fromByteWidth(width)));
   for (let i = 0; i < input.length; i++) {
     const dif = input[i] - dataView.getUint8(keyIndirectOffset + i);
     if (dif !== 0) {
@@ -97,10 +97,10 @@ export function diffKeys(input: Uint8Array, index: number, dataView: DataView, o
 export function keyForIndex(index: number, dataView: DataView, offset: number, parentWidth: number, byteWidth: number): string {
   const keysVectorOffset = indirect(dataView, offset, parentWidth) - byteWidth * 3;
   const bitWidth = fromByteWidth(byteWidth);
-  const indirectOffset = keysVectorOffset - (readUInt(dataView, keysVectorOffset, bitWidth) as number);
-  const _byteWidth = readUInt(dataView, keysVectorOffset + byteWidth, bitWidth) as number;
+  const indirectOffset = keysVectorOffset - Number(readUInt(dataView, keysVectorOffset, bitWidth));
+  const _byteWidth = Number(readUInt(dataView, keysVectorOffset + byteWidth, bitWidth));
   const keyOffset = indirectOffset + index * _byteWidth;
-  const keyIndirectOffset = keyOffset - (readUInt(dataView, keyOffset, fromByteWidth(_byteWidth)) as number);
+  const keyIndirectOffset = keyOffset - Number(readUInt(dataView, keyOffset, fromByteWidth(_byteWidth)));
   let length = 0;
   while (dataView.getUint8(keyIndirectOffset + length) !== 0) {
     length++;
