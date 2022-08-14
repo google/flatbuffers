@@ -14,12 +14,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import argparse
-import filecmp
-import glob
 import platform
 import shutil
 import subprocess
+import sys
 from pathlib import Path
 
 # Get the path where this script is located so we can invoke the script from
@@ -29,14 +27,20 @@ tests_path = Path(__file__).parent.resolve()
 # Get the root path as an absolute path, so all derived paths are absolute.
 root_path = tests_path.parent.absolute()
 
+# Windows works with subprocess.run a bit differently.
+is_windows = platform.system() == "Windows"
+
 # Get the location of the flatc executable
-flatc_exe = Path("flatc" if not platform.system() == "Windows" else "flatc.exe")
+flatc_exe = Path("flatc.exe" if is_windows else "flatc")
 
 # Find and assert flatc compiler is present.
 if root_path in flatc_exe.parents:
     flatc_exe = flatc_exe.relative_to(root_path)
 flatc_path = Path(root_path, flatc_exe)
 assert flatc_path.exists(), "Cannot find the flatc compiler " + str(flatc_path)
+
+def check_call(args, cwd=tests_path):
+    subprocess.check_call(args, cwd=str(cwd), shell=is_windows)
 
 # Execute the flatc compiler with the specified parameters
 def flatc(options, schema, prefix=None, include=None, data=None, cwd=tests_path):
@@ -48,13 +52,12 @@ def flatc(options, schema, prefix=None, include=None, data=None, cwd=tests_path)
     cmd += [schema] if isinstance(schema, str) else schema
     if data:
         cmd += [data] if isinstance(data, str) else data
-    result = subprocess.run(cmd, cwd=str(cwd), check=True)
-
+    check_call(cmd)
 
 print("Removing node_modules/ directory...")
 shutil.rmtree(Path(tests_path, "node_modules"), ignore_errors=True)
 
-assert subprocess.run(["npm", "install", "--silent"], cwd=str(tests_path), shell=True)
+check_call(["npm", "install", "--silent"])
 
 print("Invoking flatc...")
 flatc(
@@ -110,15 +113,11 @@ flatc(
 )
 
 print("Running TypeScript Compiler...")
-assert subprocess.run(["tsc"], cwd=str(tests_path), shell=True)
+check_call(["tsc"])
 
 NODE_CMD = ["node", "-r", "esm"]
 
 print("Running TypeScript Tests...")
-assert subprocess.run(NODE_CMD + ["JavaScriptTest"], cwd=str(tests_path), shell=True)
-assert subprocess.run(
-    NODE_CMD + ["JavaScriptUnionVectorTest"], cwd=str(tests_path), shell=True
-)
-assert subprocess.run(
-    NODE_CMD + ["JavaScriptFlexBuffersTest"], cwd=str(tests_path), shell=True
-)
+check_call(NODE_CMD + ["JavaScriptTest"])
+check_call(NODE_CMD + ["JavaScriptUnionVectorTest"])
+check_call(NODE_CMD + ["JavaScriptFlexBuffersTest"])
