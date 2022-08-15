@@ -459,20 +459,24 @@ class CSharpGenerator : public BaseGenerator {
     }
   }
 
+  std::string GetObjectConstructor(flatbuffers::StructDef &struct_def,
+                                   const std::string &data_buffer,
+                                   const std::string &offset) const {
+    // Use the generated type directly, to properly handle default values that
+    // might not be written to the buffer.
+    return "new " + Name(struct_def) + "().__assign(" + offset + ", " +
+           data_buffer + ")";
+  }
+
   // Returns the function name that is able to read a value of the given type.
-  std::string GenGetterForLookupByKey(flatbuffers::FieldDef *key_field,
+  std::string GenGetterForLookupByKey(flatbuffers::StructDef &struct_def,
+                                      flatbuffers::FieldDef *key_field,
                                       const std::string &data_buffer,
-                                      const char *num = nullptr) const {
-    auto type = key_field->value.type;
-    auto dest_mask = "";
-    auto dest_cast = DestinationCast(type);
-    auto getter = data_buffer + ".Get";
-    if (GenTypeBasic(type, false) != "byte") {
-      getter += ConvertCase(GenTypeBasic(type, false), Case::kUpperCamel);
-    }
-    getter = dest_cast + getter + "(" + GenOffsetGetter(key_field, num) + ")" +
-             dest_mask;
-    return getter;
+                                      const std::string &offset) const {
+    // Use the generated type directly, to properly handle default values that
+    // might not be written to the buffer.
+    return GetObjectConstructor(struct_def, data_buffer, offset) + "." +
+           Name(*key_field);
   }
 
   // Direct mutation is only allowed for scalar fields.
@@ -605,37 +609,15 @@ class CSharpGenerator : public BaseGenerator {
     return key_offset;
   }
 
-  std::string GenLookupKeyGetter(flatbuffers::FieldDef *key_field) const {
-    std::string key_getter = "      ";
-    key_getter += "int tableOffset = Table.";
-    key_getter += "__indirect(vectorLocation + 4 * (start + middle)";
-    key_getter += ", bb);\n      ";
-    if (IsString(key_field->value.type)) {
-      key_getter += "int comp = Table.";
-      key_getter += "CompareStrings(";
-      key_getter += GenOffsetGetter(key_field);
-      key_getter += ", byteKey, bb);\n";
-    } else {
-      auto get_val = GenGetterForLookupByKey(key_field, "bb");
-      key_getter += "int comp = " + get_val + ".CompareTo(key);\n";
-    }
-    return key_getter;
-  }
-
-  std::string GenKeyGetter(flatbuffers::FieldDef *key_field) const {
-    std::string key_getter = "";
-    auto data_buffer = "builder.DataBuffer";
-    if (IsString(key_field->value.type)) {
-      key_getter += "Table.CompareStrings(";
-      key_getter += GenOffsetGetter(key_field, "o1") + ", ";
-      key_getter += GenOffsetGetter(key_field, "o2") + ", " + data_buffer + ")";
-    } else {
-      auto field_getter = GenGetterForLookupByKey(key_field, data_buffer, "o1");
-      key_getter += field_getter;
-      field_getter = GenGetterForLookupByKey(key_field, data_buffer, "o2");
-      key_getter += ".CompareTo(" + field_getter + ")";
-    }
-    return key_getter;
+  std::string GenKeyGetter(flatbuffers::StructDef &struct_def,
+                           flatbuffers::FieldDef *key_field) const {
+    // Get the getter for the key of the struct.
+    return GenGetterForLookupByKey(struct_def, key_field, "builder.DataBuffer",
+                                   "builder.DataBuffer.Length - o1.Value") +
+           ".CompareTo(" +
+           GenGetterForLookupByKey(struct_def, key_field, "builder.DataBuffer",
+                                   "builder.DataBuffer.Length - o2.Value") +
+           ")";
   }
 
   void GenStruct(StructDef &struct_def, std::string *code_ptr,
@@ -1240,7 +1222,8 @@ class CSharpGenerator : public BaseGenerator {
             code += "); return ";
             code += "builder.EndVector(); }\n";
 
-            // add Create...VectorBlock() overloads for T[], ArraySegment<T> and IntPtr
+            // add Create...VectorBlock() overloads for T[], ArraySegment<T> and
+            // IntPtr
             code += "  public static VectorOffset ";
             code += "Create";
             code += Name(field);
@@ -1269,7 +1252,8 @@ class CSharpGenerator : public BaseGenerator {
             code += "VectorBlock(FlatBufferBuilder builder, ";
             code += "IntPtr dataPtr, int sizeInBytes) ";
             code += "{ builder.StartVector(1, sizeInBytes, 1); ";
-            code += "builder.Add<" + GenTypeBasic(vector_type) + ">(dataPtr, sizeInBytes); return builder.EndVector(); }\n";
+            code += "builder.Add<" + GenTypeBasic(vector_type) +
+                    ">(dataPtr, sizeInBytes); return builder.EndVector(); }\n";
           }
           // Generate a method to start a vector, data to be added manually
           // after.
@@ -1322,9 +1306,10 @@ class CSharpGenerator : public BaseGenerator {
       code += "(FlatBufferBuilder builder, ";
       code += "Offset<" + struct_def.name + ">";
       code += "[] offsets) {\n";
-      code += "    Array.Sort(offsets, (Offset<" + struct_def.name +
-              "> o1, Offset<" + struct_def.name + "> o2) => " +
-              GenKeyGetter(key_field);
+      code += "    Array.Sort(offsets,\n";
+      code += "      (Offset<" + struct_def.name +
+              "> o1, Offset<" + struct_def.name + "> o2) =>\n";
+      code += "        "+ GenKeyGetter(struct_def, key_field);
       code += ");\n";
       code += "    return builder.CreateVectorOfTables(offsets);\n  }\n";
 
@@ -1333,16 +1318,20 @@ class CSharpGenerator : public BaseGenerator {
       code += "int vectorLocation, ";
       code += GenTypeGet(key_field->value.type);
       code += " key, ByteBuffer bb) {\n";
-      if (IsString(key_field->value.type)) {
-        code += "    byte[] byteKey = ";
-        code += "System.Text.Encoding.UTF8.GetBytes(key);\n";
-      }
+      code +=
+          "    " + struct_def.name + " obj_ = new " + struct_def.name + "();\n";
       code += "    int span = ";
       code += "bb.GetInt(vectorLocation - 4);\n";
       code += "    int start = 0;\n";
       code += "    while (span != 0) {\n";
       code += "      int middle = span / 2;\n";
-      code += GenLookupKeyGetter(key_field);
+      code +=
+          "      int tableOffset = Table.__indirect(vectorLocation + 4 * "
+          "(start + middle), bb);\n";
+
+      code += "      obj_.__assign(tableOffset, bb);\n";
+      code +=
+          "      int comp = obj_." + Name(*key_field) + ".CompareTo(key);\n";
       code += "      if (comp > 0) {\n";
       code += "        span = middle;\n";
       code += "      } else if (comp < 0) {\n";
@@ -1350,9 +1339,7 @@ class CSharpGenerator : public BaseGenerator {
       code += "        start += middle;\n";
       code += "        span -= middle;\n";
       code += "      } else {\n";
-      code += "        return ";
-      code += "new " + struct_def.name + "()";
-      code += ".__assign(tableOffset, bb);\n";
+      code += "        return obj_;\n";
       code += "      }\n    }\n";
       code += "    return null;\n";
       code += "  }\n";
@@ -1608,8 +1595,7 @@ class CSharpGenerator : public BaseGenerator {
     }
     code += NamespacedName(enum_def) + "Union();\n";
     code += indent + varialbe_name + ".Type = this." + camel_name_short +
-            "Type" +
-            type_suffix + ";\n";
+            "Type" + type_suffix + ";\n";
     code += indent + "switch (this." + camel_name_short + "Type" + type_suffix +
             ") {\n";
     for (auto eit = enum_def.Vals().begin(); eit != enum_def.Vals().end();
