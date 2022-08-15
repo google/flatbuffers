@@ -7,7 +7,7 @@ import * as flatbuffers from 'flatbuffers';
 export class InParentNamespace {
   bb: flatbuffers.ByteBuffer|null = null;
   bb_pos = 0;
-__init(i:number, bb:flatbuffers.ByteBuffer):InParentNamespace {
+  __init(i:number, bb:flatbuffers.ByteBuffer):InParentNamespace {
   this.bb_pos = i;
   this.bb = bb;
   return this;

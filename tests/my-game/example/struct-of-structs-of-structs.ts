@@ -8,7 +8,7 @@ import { StructOfStructs, StructOfStructsT } from '../../my-game/example/struct-
 export class StructOfStructsOfStructs {
   bb: flatbuffers.ByteBuffer|null = null;
   bb_pos = 0;
-__init(i:number, bb:flatbuffers.ByteBuffer):StructOfStructsOfStructs {
+  __init(i:number, bb:flatbuffers.ByteBuffer):StructOfStructsOfStructs {
   this.bb_pos = i;
   this.bb = bb;
   return this;

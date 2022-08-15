@@ -8,7 +8,7 @@ import { Color } from '../../my-game/example/color';
 export class TestSimpleTableWithEnum {
   bb: flatbuffers.ByteBuffer|null = null;
   bb_pos = 0;
-__init(i:number, bb:flatbuffers.ByteBuffer):TestSimpleTableWithEnum {
+  __init(i:number, bb:flatbuffers.ByteBuffer):TestSimpleTableWithEnum {
   this.bb_pos = i;
   this.bb = bb;
   return this;

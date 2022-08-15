@@ -1,3 +1,6 @@
-table Baz {
-  a:int;
+enum Baz : short {
+  None = 0,
+  Red,
+  Green,
+  Blue,
 }

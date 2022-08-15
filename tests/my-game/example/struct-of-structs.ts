@@ -9,7 +9,7 @@ import { Test, TestT } from '../../my-game/example/test';
 export class StructOfStructs {
   bb: flatbuffers.ByteBuffer|null = null;
   bb_pos = 0;
-__init(i:number, bb:flatbuffers.ByteBuffer):StructOfStructs {
+  __init(i:number, bb:flatbuffers.ByteBuffer):StructOfStructs {
   this.bb_pos = i;
   this.bb = bb;
   return this;
