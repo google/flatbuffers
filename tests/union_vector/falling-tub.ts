@@ -7,7 +7,7 @@ import * as flatbuffers from 'flatbuffers';
 export class FallingTub {
   bb: flatbuffers.ByteBuffer|null = null;
   bb_pos = 0;
-__init(i:number, bb:flatbuffers.ByteBuffer):FallingTub {
+  __init(i:number, bb:flatbuffers.ByteBuffer):FallingTub {
   this.bb_pos = i;
   this.bb = bb;
   return this;

@@ -7,7 +7,7 @@ import * as flatbuffers from 'flatbuffers';
 export class HandFan {
   bb: flatbuffers.ByteBuffer|null = null;
   bb_pos = 0;
-__init(i:number, bb:flatbuffers.ByteBuffer):HandFan {
+  __init(i:number, bb:flatbuffers.ByteBuffer):HandFan {
   this.bb_pos = i;
   this.bb = bb;
   return this;

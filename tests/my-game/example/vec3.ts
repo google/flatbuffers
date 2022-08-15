@@ -9,7 +9,7 @@ import { Test, TestT } from '../../my-game/example/test';
 export class Vec3 {
   bb: flatbuffers.ByteBuffer|null = null;
   bb_pos = 0;
-__init(i:number, bb:flatbuffers.ByteBuffer):Vec3 {
+  __init(i:number, bb:flatbuffers.ByteBuffer):Vec3 {
   this.bb_pos = i;
   this.bb = bb;
   return this;

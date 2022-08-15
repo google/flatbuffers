@@ -3,7 +3,7 @@
 import { Monster, MonsterT } from '../../my-game/example/monster';
 
 
-export enum AnyAmbiguousAliases{
+export enum AnyAmbiguousAliases {
   NONE = 0,
   M1 = 1,
   M2 = 2,

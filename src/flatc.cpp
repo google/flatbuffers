@@ -643,10 +643,6 @@ int FlatCompiler::Compile(int argc, const char **argv) {
         "well.");
   }
 
-  if (opts.ts_flat_file && opts.generate_all) {
-    Error("Combining --ts-flat-file and --gen-all is not supported.");
-  }
-
   flatbuffers::Parser conform_parser;
   if (!conform_to_schema.empty()) {
     std::string contents;
