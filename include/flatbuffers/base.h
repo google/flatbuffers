@@ -260,9 +260,12 @@ namespace flatbuffers {
 #endif // !FLATBUFFERS_HAS_NEW_STRTOD
 
 #ifndef FLATBUFFERS_LOCALE_INDEPENDENT
-  // Enable locale independent functions {strtof_l, strtod_l,strtoll_l, strtoull_l}.
-  #if ((defined(_MSC_VER) && _MSC_VER >= 1800)            || \
-       (defined(_XOPEN_VERSION) && (_XOPEN_VERSION>=700)) && (!defined(__ANDROID_API__) || (defined(__ANDROID_API__) && (__ANDROID_API__>=21))))
+  // Enable locale independent functions {strtof_l, strtod_l,strtoll_l,
+  // strtoull_l}.
+  #if (defined(_MSC_VER) && _MSC_VER >= 1800) || \
+      (defined(__ANDROID_API__) && __ANDROID_API__>= 21) || \
+      (defined(_XOPEN_VERSION) && (_XOPEN_VERSION >= 700)) && \
+        (!defined(__Fuchsia__) && !defined(__ANDROID_API__))
     #define FLATBUFFERS_LOCALE_INDEPENDENT 1
   #else
     #define FLATBUFFERS_LOCALE_INDEPENDENT 0
@@ -327,6 +330,13 @@ typedef uintmax_t largest_scalar_t;
 
 // In 32bits, this evaluates to 2GB - 1
 #define FLATBUFFERS_MAX_BUFFER_SIZE ((1ULL << (sizeof(::flatbuffers::soffset_t) * 8 - 1)) - 1)
+
+// The minimum size buffer that can be a valid flatbuffer.
+// Includes the offset to the root table (uoffset_t), the offset to the vtable
+// of the root table (soffset_t), the size of the vtable (uint16_t), and the
+// size of the referring table (uint16_t).
+#define FLATBUFFERS_MIN_BUFFER_SIZE sizeof(uoffset_t) + sizeof(soffset_t) + \
+   sizeof(uint16_t) + sizeof(uint16_t)
 
 // We support aligning the contents of buffers up to this size.
 #ifndef FLATBUFFERS_MAX_ALIGNMENT

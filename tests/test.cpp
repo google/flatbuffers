@@ -640,7 +640,8 @@ void SizePrefixedTest() {
 
 void TriviallyCopyableTest() {
   // clang-format off
-  #if __GNUG__ && __GNUC__ < 5
+  #if __GNUG__ && __GNUC__ < 5 && \
+      !(defined(__clang__) && __clang_major__ >= 16)
     TEST_EQ(__has_trivial_copy(Vec3), true);
   #else
     #if __cplusplus >= 201103L
@@ -4340,6 +4341,28 @@ void NestedVerifierTest() {
                                    builder.GetSize());
     TEST_EQ(false, VerifyMonsterBuffer(verifier));
   }
+
+  {
+    // Create the outer monster.
+    flatbuffers::FlatBufferBuilder builder;
+
+    // Purposely invalidate the nested flatbuffer setting its length to 0, an
+    // invalid length.
+    uint8_t *invalid_nested_buffer = nullptr;
+    auto nested_monster_bytes = builder.CreateVector(invalid_nested_buffer, 0);
+
+    auto name = builder.CreateString("OuterMonster");
+
+    MonsterBuilder mon_builder(builder);
+    mon_builder.add_name(name);
+    mon_builder.add_testnestedflatbuffer(nested_monster_bytes);
+    FinishMonsterBuffer(builder, mon_builder.Finish());
+
+    // Verify the root monster fails, since the included nested monster fails.
+    flatbuffers::Verifier verifier(builder.GetBufferPointer(),
+                                   builder.GetSize());
+    TEST_EQ(false, VerifyMonsterBuffer(verifier));
+  }
 }
 
 void ParseIncorrectMonsterJsonTest() {
@@ -4550,6 +4573,99 @@ void PrivateAnnotationsLeaks() {
   }
 }
 
+void JsonUnsortedArrayTest()
+{
+  flatbuffers::Parser parser;
+  TEST_EQ(parser.Deserialize(MyGame::Example::MonsterBinarySchema::data(), MyGame::Example::MonsterBinarySchema::size()), true);
+  auto jsonStr = R"(
+  {
+    "name": "lookupTest",
+    "testarrayoftables": [
+      { "name": "aaa" },
+      { "name": "ccc" },
+      { "name": "bbb" }
+    ]
+  }
+  )";
+  TEST_EQ(parser.ParseJson(jsonStr), true);
+  auto monster = flatbuffers::GetRoot<MyGame::Example::Monster>(parser.builder_.GetBufferPointer());
+
+  TEST_NOTNULL(monster->testarrayoftables()->LookupByKey("aaa"));
+  TEST_NOTNULL(monster->testarrayoftables()->LookupByKey("bbb"));
+  TEST_NOTNULL(monster->testarrayoftables()->LookupByKey("ccc"));
+}
+
+void VectorSpanTest() {
+  flatbuffers::FlatBufferBuilder builder;
+
+  auto mloc =
+      CreateMonster(builder, nullptr, 0, 0, builder.CreateString("Monster"),
+      builder.CreateVector<uint8_t>({ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 }));
+
+  FinishMonsterBuffer(builder, mloc);
+
+  auto monster = GetMonster(builder.GetBufferPointer());
+  auto mutable_monster = GetMutableMonster(builder.GetBufferPointer());
+
+  { // using references
+    TEST_NOTNULL(monster->inventory());
+
+    flatbuffers::span<const uint8_t> const_inventory =
+        flatbuffers::make_span(*monster->inventory());
+    TEST_EQ(const_inventory.size(), 10);
+    TEST_EQ(const_inventory[0], 0);
+    TEST_EQ(const_inventory[9], 9);
+
+    flatbuffers::span<uint8_t> mutable_inventory =
+        flatbuffers::make_span(*mutable_monster->mutable_inventory());
+    TEST_EQ(mutable_inventory.size(), 10);
+    TEST_EQ(mutable_inventory[0], 0);
+    TEST_EQ(mutable_inventory[9], 9);
+
+    mutable_inventory[0] = 42;
+    TEST_EQ(mutable_inventory[0], 42);
+
+    mutable_inventory[0] = 0;
+    TEST_EQ(mutable_inventory[0], 0);
+  }
+
+  { // using pointers
+    TEST_EQ(flatbuffers::VectorLength(monster->inventory()), 10);
+
+    flatbuffers::span<const uint8_t> const_inventory =
+        flatbuffers::make_span(monster->inventory());
+    TEST_EQ(const_inventory.size(), 10);
+    TEST_EQ(const_inventory[0], 0);
+    TEST_EQ(const_inventory[9], 9);
+
+    flatbuffers::span<uint8_t> mutable_inventory =
+        flatbuffers::make_span(mutable_monster->mutable_inventory());
+    TEST_EQ(mutable_inventory.size(), 10);
+    TEST_EQ(mutable_inventory[0], 0);
+    TEST_EQ(mutable_inventory[9], 9);
+
+    mutable_inventory[0] = 42;
+    TEST_EQ(mutable_inventory[0], 42);
+
+    mutable_inventory[0] = 0;
+    TEST_EQ(mutable_inventory[0], 0);
+  }
+
+  {
+    TEST_ASSERT(nullptr == monster->testnestedflatbuffer());
+
+    TEST_EQ(flatbuffers::VectorLength(monster->testnestedflatbuffer()), 0);
+
+    flatbuffers::span<const uint8_t> const_nested =
+        flatbuffers::make_span(monster->testnestedflatbuffer());
+    TEST_ASSERT(const_nested.empty());
+
+    flatbuffers::span<uint8_t> mutable_nested =
+        flatbuffers::make_span(mutable_monster->mutable_testnestedflatbuffer());
+    TEST_ASSERT(mutable_nested.empty());
+  }
+}
+
 int FlatBufferTests() {
   // clang-format off
 
@@ -4655,6 +4771,8 @@ int FlatBufferTests() {
   WarningsAsErrorsTest();
   NestedVerifierTest();
   PrivateAnnotationsLeaks();
+  JsonUnsortedArrayTest();
+  VectorSpanTest();
   return 0;
 }
 

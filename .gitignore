@@ -78,7 +78,7 @@ tests/php/
 CMakeLists.txt.user
 CMakeScripts/**
 CTestTestfile.cmake
-FlatbuffersConfigVersion.cmake
+FlatBuffersConfigVersion.cmake
 FlatBuffers.cbp
 build/Xcode/FlatBuffers.xcodeproj/project.xcworkspace/**
 build/Xcode/FlatBuffers.xcodeproj/xcuserdata/**
