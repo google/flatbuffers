@@ -33,7 +33,6 @@ android {
     }
   }
 
-  ndkVersion "21.3.6528147"
   externalNativeBuild {
     cmake {
       path "src/main/cpp/CMakeLists.txt"
@@ -52,16 +51,17 @@ android {
     fbsFiles.forEach{
       commandLineArgs.add(it.path)
     }
+
     commandLine commandLineArgs
 
     doFirst {
       delete "$outputCppDir/"
       mkdir "$outputCppDir/"
     }
+
     doLast {
-      if (execResult.getExitValue() != 0) {
-        println(standardOutput.toString())
-        throw new GradleException("flatc command line failed")
+      if (executionResult.get().exitValue != 0) {
+        throw new GradleException("flatc failed with: ${executionResult.get().toString()}")
       }
     }
   }
@@ -74,6 +74,10 @@ android {
 
     standardOutput = new ByteArrayOutputStream()
     errorOutput = new ByteArrayOutputStream()
+
+    setErrorOutput(errorOutput)
+    setStandardOutput(standardOutput)
+
     def commandLineArgs = ['flatc', '-o', outputKotlinDir, '--kotlin']
     fbsFiles.forEach{
       commandLineArgs.add(it.path)
@@ -85,17 +89,16 @@ android {
       mkdir "$outputKotlinDir/"
     }
     doLast {
-      if (execResult.getExitValue() != 0) {
-        println(standardOutput.toString())
-        throw new GradleException("flatc command line failed")
+      if (executionResult.get().exitValue != 0) {
+        throw new GradleException("flatc failed with: ${executionResult.get().toString()}")
       }
     }
   }
 
   afterEvaluate {
-    android.applicationVariants.all { variant ->
-      variant.javaCompiler.dependsOn(generateFbsKotlin)
-      variant.javaCompiler.dependsOn(generateFbsCpp)
+    tasks.named("preBuild") {
+      dependsOn(generateFbsKotlin)
+      dependsOn(generateFbsCpp)
     }
   }
 

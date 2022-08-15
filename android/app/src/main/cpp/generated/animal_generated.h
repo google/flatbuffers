@@ -35,7 +35,7 @@ struct Animal FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
            verifier.VerifyString(name()) &&
            VerifyOffset(verifier, VT_SOUND) &&
            verifier.VerifyString(sound()) &&
-           VerifyField<uint16_t>(verifier, VT_WEIGHT) &&
+           VerifyField<uint16_t>(verifier, VT_WEIGHT, 2) &&
            verifier.EndTable();
   }
 };
@@ -57,7 +57,6 @@ struct AnimalBuilder {
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  AnimalBuilder &operator=(const AnimalBuilder &);
   flatbuffers::Offset<Animal> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<Animal>(end);
