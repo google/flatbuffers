@@ -52,17 +52,21 @@ public struct Stat : IFlatbufferObject
   }
 
   public static VectorOffset CreateSortedVectorOfStat(FlatBufferBuilder builder, Offset<Stat>[] offsets) {
-    Array.Sort(offsets, (Offset<Stat> o1, Offset<Stat> o2) => builder.DataBuffer.GetUshort(Table.__offset(8, o1.Value, builder.DataBuffer)).CompareTo(builder.DataBuffer.GetUshort(Table.__offset(8, o2.Value, builder.DataBuffer))));
+    Array.Sort(offsets,
+      (Offset<Stat> o1, Offset<Stat> o2) =>
+        new Stat().__assign(builder.DataBuffer.Length - o1.Value, builder.DataBuffer).Count.CompareTo(new Stat().__assign(builder.DataBuffer.Length - o2.Value, builder.DataBuffer).Count));
     return builder.CreateVectorOfTables(offsets);
   }
 
   public static Stat? __lookup_by_key(int vectorLocation, ushort key, ByteBuffer bb) {
+    Stat obj_ = new Stat();
     int span = bb.GetInt(vectorLocation - 4);
     int start = 0;
     while (span != 0) {
       int middle = span / 2;
       int tableOffset = Table.__indirect(vectorLocation + 4 * (start + middle), bb);
-      int comp = bb.GetUshort(Table.__offset(8, bb.Length - tableOffset, bb)).CompareTo(key);
+      obj_.__assign(tableOffset, bb);
+      int comp = obj_.Count.CompareTo(key);
       if (comp > 0) {
         span = middle;
       } else if (comp < 0) {
@@ -70,7 +74,7 @@ public struct Stat : IFlatbufferObject
         start += middle;
         span -= middle;
       } else {
-        return new Stat().__assign(tableOffset, bb);
+        return obj_;
       }
     }
     return null;
