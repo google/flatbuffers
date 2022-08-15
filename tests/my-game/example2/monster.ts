@@ -7,7 +7,7 @@ import * as flatbuffers from 'flatbuffers';
 export class Monster {
   bb: flatbuffers.ByteBuffer|null = null;
   bb_pos = 0;
-__init(i:number, bb:flatbuffers.ByteBuffer):Monster {
+  __init(i:number, bb:flatbuffers.ByteBuffer):Monster {
   this.bb_pos = i;
   this.bb = bb;
   return this;

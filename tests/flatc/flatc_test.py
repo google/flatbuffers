@@ -77,8 +77,22 @@ def assert_file_contains(file, needles):
     return file
 
 
-def assert_file_and_contents(file, needle, path=script_path, unlink=True):
+def assert_file_doesnt_contains(file, needles):
+    with open(file) as file:
+        contents = file.read()
+        for needle in [needles] if isinstance(needles, str) else needles:
+            assert needle not in contents, (
+                "Found unexpected '" + needle + "' in file: " + str(file)
+            )
+    return file
+
+
+def assert_file_and_contents(
+    file, needle, doesnt_contain=None, path=script_path, unlink=True
+):
     assert_file_contains(assert_file_exists(file, path), needle)
+    if doesnt_contain:
+        assert_file_doesnt_contains(assert_file_exists(file, path), doesnt_contain)
     if unlink:
         Path(path, file).unlink()
 
@@ -102,7 +116,7 @@ def run_all(*modules):
                 module_passing = module_passing + 1
             except Exception as e:
                 print(" [FAILED]: " + str(e))
-                failingmodule_failing = failingmodule_failing + 1
+                module_failing = module_failing + 1
         print(
             "{0}: {1} of {2} passsed".format(
                 module.__name__, module_passing, module_passing + module_failing

@@ -7,7 +7,7 @@ import * as flatbuffers from 'flatbuffers';
 export class BookReader {
   bb: flatbuffers.ByteBuffer|null = null;
   bb_pos = 0;
-__init(i:number, bb:flatbuffers.ByteBuffer):BookReader {
+  __init(i:number, bb:flatbuffers.ByteBuffer):BookReader {
   this.bb_pos = i;
   this.bb = bb;
   return this;

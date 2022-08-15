@@ -7,7 +7,7 @@ import * as flatbuffers from 'flatbuffers';
 export class Rapunzel {
   bb: flatbuffers.ByteBuffer|null = null;
   bb_pos = 0;
-__init(i:number, bb:flatbuffers.ByteBuffer):Rapunzel {
+  __init(i:number, bb:flatbuffers.ByteBuffer):Rapunzel {
   this.bb_pos = i;
   this.bb = bb;
   return this;

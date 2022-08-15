@@ -38,7 +38,7 @@ struct ImportDefinition {
 };
 
 enum AnnotationType { kParam = 0, kType = 1, kReturns = 2 };
-}
+}  // namespace
 
 namespace ts {
 // Iterate through all definitions we haven't generate code for (enums, structs,
@@ -111,10 +111,6 @@ class TsGenerator : public BaseGenerator {
     for (auto kw = keywords; *kw; kw++) keywords_.insert(*kw);
   }
   bool generate() {
-    if (parser_.opts.ts_flat_file && parser_.opts.generate_all) {
-      // Not implemented; warning message should have been emitted by flatc.
-      return false;
-    }
     generateEnums();
     generateStructs();
     generateEntry();
@@ -227,39 +223,45 @@ class TsGenerator : public BaseGenerator {
 
   // Generate code for a single entry point module.
   void generateEntry() {
-    std::string code;
+    std::string code =
+        "// " + std::string(FlatBuffersGeneratedWarning()) + "\n\n";
     if (parser_.opts.ts_flat_file) {
       if (import_flatbuffers_lib_) {
         code += "import * as flatbuffers from 'flatbuffers';\n";
+        code += "\n";
       }
-      for (const auto &it : flat_file_import_declarations_) {
-        // Note that we do end up generating an import for ourselves, which
-        // should generally be harmless.
-        // TODO: Make it so we don't generate a self-import; this will also
-        // require modifying AddImport to ensure that we don't use
-        // namespace-prefixed names anywhere...
-        std::string file = it.first;
-        if (file.empty()) { continue; }
-        std::string noext = flatbuffers::StripExtension(file);
-        std::string basename = flatbuffers::StripPath(noext);
-        std::string include_file = GeneratedFileName(
-            parser_.opts.include_prefix,
-            parser_.opts.keep_prefix ? noext : basename, parser_.opts);
-        // TODO: what is the right behavior when different include flags are
-        // specified here? Should we always be adding the "./" for a relative
-        // path or turn it off if --include-prefix is specified, or something
-        // else?
-        std::string include_name =
-            "./" + flatbuffers::StripExtension(include_file);
-        code += "import {";
-        for (const auto &pair : it.second) {
-          code += EscapeKeyword(pair.first) + " as " +
-                  EscapeKeyword(pair.second) + ", ";
+      // Only include import statements when not generating all.
+      if (!parser_.opts.generate_all) {
+        for (const auto &it : flat_file_import_declarations_) {
+          // Note that we do end up generating an import for ourselves, which
+          // should generally be harmless.
+          // TODO: Make it so we don't generate a self-import; this will also
+          // require modifying AddImport to ensure that we don't use
+          // namespace-prefixed names anywhere...
+          std::string file = it.first;
+          if (file.empty()) { continue; }
+          std::string noext = flatbuffers::StripExtension(file);
+          std::string basename = flatbuffers::StripPath(noext);
+          std::string include_file = GeneratedFileName(
+              parser_.opts.include_prefix,
+              parser_.opts.keep_prefix ? noext : basename, parser_.opts);
+          // TODO: what is the right behavior when different include flags are
+          // specified here? Should we always be adding the "./" for a relative
+          // path or turn it off if --include-prefix is specified, or something
+          // else?
+          std::string include_name =
+              "./" + flatbuffers::StripExtension(include_file);
+          code += "import {";
+          for (const auto &pair : it.second) {
+            code += EscapeKeyword(pair.first) + " as " +
+                    EscapeKeyword(pair.second) + ", ";
+          }
+          code.resize(code.size() - 2);
+          code += "} from '" + include_name + "';\n";
         }
-        code.resize(code.size() - 2);
-        code += "} from '" + include_name + "';\n";
+        code += "\n";
       }
-      code += "\n\n";
+
       code += flat_file_;
       const std::string filename =
           GeneratedFileName(path_, file_name_, parser_.opts);
@@ -305,7 +307,9 @@ class TsGenerator : public BaseGenerator {
     if (reverse) return;  // FIXME.
     std::string &code = *code_ptr;
     GenDocComment(enum_def.doc_comment, code_ptr);
-    code += "export enum " + EscapeKeyword(enum_def.name) + "{\n";
+    code += "export enum ";
+    // TODO(7445): figure out if the export needs a namespace for ts-flat-files
+    code += EscapeKeyword(enum_def.name) + " {\n";
     for (auto it = enum_def.Vals().begin(); it != enum_def.Vals().end(); ++it) {
       auto &ev = **it;
       if (!ev.doc_comment.empty()) {
@@ -659,19 +663,14 @@ class TsGenerator : public BaseGenerator {
       // above, but since we force all non-self-imports to use namespace-based
       // names in flat file generation, it's fine).
       if (dependent.file == dependency.file) {
-        // Should already be caught elsewhere, but if we ever try to get flat
-        // file generation and --gen-all working concurrently, then we'll need
-        // to update this import logic.
-        FLATBUFFERS_ASSERT(!parser_.opts.generate_all);
         long_import_name = import_name;
       } else {
         long_import_name = ns + import_name;
-        std::string file = dependency.declaration_file == nullptr
-                               ? dependency.file
-                               : dependency.declaration_file->substr(2);
-        file = RelativeToRootPath(StripFileName(AbsolutePath(dependent.file)),
-                                  dependency.file)
-                   .substr(2);
+        std::string file =
+            RelativeToRootPath(StripFileName(AbsolutePath(dependent.file)),
+                               dependency.file)
+                // Strip the leading //
+                .substr(2);
         flat_file_import_declarations_[file][import_name] = long_import_name;
         if (parser_.opts.generate_object_based_api) {
           flat_file_import_declarations_[file][import_name + "T"] =
@@ -753,19 +752,14 @@ class TsGenerator : public BaseGenerator {
       // above, but since we force all non-self-imports to use namespace-based
       // names in flat file generation, it's fine).
       if (dependent.file == dependency.file) {
-        // Should already be caught elsewhere, but if we ever try to get flat
-        // file generation and --gen-all working concurrently, then we'll need
-        // to update this import logic.
-        FLATBUFFERS_ASSERT(!parser_.opts.generate_all);
         long_import_name = import_name;
       } else {
         long_import_name = ns + import_name;
-        std::string file = dependency.declaration_file == nullptr
-                               ? dependency.file
-                               : dependency.declaration_file->substr(2);
-        file = RelativeToRootPath(StripFileName(AbsolutePath(dependent.file)),
-                                  dependency.file)
-                   .substr(2);
+        std::string file =
+            RelativeToRootPath(StripFileName(AbsolutePath(dependent.file)),
+                               dependency.file)
+                // Strip the leading //
+                .substr(2);
         flat_file_import_declarations_[file][import_name] = long_import_name;
       }
     }
@@ -1347,7 +1341,9 @@ class TsGenerator : public BaseGenerator {
     // Emit constructor
     object_name = EscapeKeyword(struct_def.name);
     GenDocComment(struct_def.doc_comment, code_ptr);
-    code += "export class " + object_name;
+    code += "export class ";
+    // TODO(7445): figure out if the export needs a namespace for ts-flat-files
+    code += object_name;
     code += " {\n";
     code += "  bb: flatbuffers.ByteBuffer|null = null;\n";
     code += "  bb_pos = 0;\n";
@@ -1355,7 +1351,7 @@ class TsGenerator : public BaseGenerator {
     // Generate the __init method that sets the field in a pre-existing
     // accessor object. This is to allow object reuse.
     code +=
-        "__init(i:number, bb:flatbuffers.ByteBuffer):" + object_name + " {\n";
+        "  __init(i:number, bb:flatbuffers.ByteBuffer):" + object_name + " {\n";
     code += "  this.bb_pos = i;\n";
     code += "  this.bb = bb;\n";
     code += "  return this;\n";

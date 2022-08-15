@@ -5,7 +5,7 @@ import { BookReader, BookReaderT } from './book-reader';
 import { Rapunzel, RapunzelT } from './rapunzel';
 
 
-export enum Character{
+export enum Character {
   NONE = 0,
   MuLan = 1,
   Rapunzel = 2,

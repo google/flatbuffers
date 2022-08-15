@@ -5,7 +5,7 @@ import { Monster, MonsterT } from '../../my-game/example/monster';
 import { TestSimpleTableWithEnum, TestSimpleTableWithEnumT } from '../../my-game/example/test-simple-table-with-enum';
 
 
-export enum AnyUniqueAliases{
+export enum AnyUniqueAliases {
   NONE = 0,
   M = 1,
   TS = 2,

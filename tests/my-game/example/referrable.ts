@@ -7,7 +7,7 @@ import * as flatbuffers from 'flatbuffers';
 export class Referrable {
   bb: flatbuffers.ByteBuffer|null = null;
   bb_pos = 0;
-__init(i:number, bb:flatbuffers.ByteBuffer):Referrable {
+  __init(i:number, bb:flatbuffers.ByteBuffer):Referrable {
   this.bb_pos = i;
   this.bb = bb;
   return this;

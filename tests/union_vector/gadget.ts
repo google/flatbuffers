@@ -4,7 +4,7 @@ import { FallingTub, FallingTubT } from './falling-tub';
 import { HandFan, HandFanT } from './hand-fan';
 
 
-export enum Gadget{
+export enum Gadget {
   NONE = 0,
   FallingTub = 1,
   HandFan = 2

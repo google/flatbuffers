@@ -14,6 +14,7 @@
 
 from flatc_test import *
 
+
 class TsTests():
 
     def Base(self):
@@ -24,7 +25,10 @@ class TsTests():
         # include, bar.
         assert_file_and_contents(
             "foo_generated.ts",
-            ["export { Bar } from './bar';", "export { Foo } from './foo';"],
+            [
+                "export { Bar } from './bar';",
+                "export { Foo } from './foo';",
+            ],
         )
 
         # Foo should be generated in place and exports the Foo table.
@@ -32,6 +36,26 @@ class TsTests():
 
         # Included files, like bar, should not be generated.
         assert_file_doesnt_exists("bar.ts")
+
+    def BaseMultipleFiles(self):
+        # Generate both foo and bar with no extra arguments
+        flatc(["--ts", "foo.fbs", "bar/bar.fbs"])
+
+        # Should generate the module that exports both foo and its direct
+        # include, bar.
+        assert_file_and_contents(
+            "foo_generated.ts",
+            [
+                "export { Bar } from './bar';",
+                "export { Foo } from './foo';",
+            ],
+        )
+
+        # Foo should be generated in place and exports the Foo table.
+        assert_file_and_contents("foo.ts", "export class Foo {")
+
+        # Bar should also be generatd in place and exports the Bar table.
+        assert_file_and_contents("bar.ts", "export class Bar {")
 
     def BaseWithNamespace(self):
         # Generate foo with namespacing, with no extra arguments
@@ -41,29 +65,132 @@ class TsTests():
         # directory and its direct include, bar.
         assert_file_and_contents(
             "foo_with_ns_generated.ts",
-            ["export { Bar } from './bar';", "export { Foo } from './something/foo';"],
+            [
+                "export { Bar } from './bar';",
+                "export { Foo } from './something/foo';",
+            ],
         )
 
         # Foo should be placed in the namespaced directory. It should export
         # Foo, and the import of Bar should be relative to its location.
         assert_file_and_contents(
             "something/foo.ts",
-            ["export class Foo {", "import { Bar } from '../bar';"],
+            [
+                "export class Foo {",
+                "import { Bar } from '../bar';",
+            ],
         )
 
         # Included files, like bar, should not be generated.
         assert_file_doesnt_exists("bar.ts")
 
+    def GenAll(self):
+        # Generate foo with generate all options
+        flatc(["--ts", "--gen-all", "foo.fbs"])
+
+        # Should generate a single file that exports all the generated types.
+        assert_file_and_contents(
+            "foo_generated.ts",
+            [
+                "export { Bar } from './bar'",
+                "export { Baz } from './baz'",
+                "export { Foo } from './foo'",
+            ],
+        )
+
+        # Foo should be generated with an import to Bar and an export of itself.
+        assert_file_and_contents(
+            "foo.ts",
+            [
+                "import { Bar } from './bar';",
+                "export class Foo {",
+            ],
+        )
+
+        # Bar should be generated with an import to Baz and an export of itself.
+        assert_file_and_contents(
+            "bar.ts",
+            [
+                "import { Baz } from './baz';",
+                "export class Bar {",
+            ],
+        )
+
+        # Baz should be generated with an export of itself.
+        assert_file_and_contents(
+            "baz.ts",
+            [
+                "export enum Baz {",
+            ],
+        )
+
+
     def FlatFiles(self):
-        # Generate just foo the flat files option
+        # Generate just foo with the flat files option
         flatc(["--ts", "--ts-flat-files", "foo.fbs"])
 
-        # Should generate a single file that imports bar as a single file, and]
+        # Should generate a single file that imports bar as a single file, and
         # exports the Foo table.
         assert_file_and_contents(
             "foo_generated.ts",
-            ["import {Bar as Bar} from './bar_generated';", "export class Foo {"],
+            [
+                "import {Bar as Bar} from './bar_generated';",
+                "export class Foo {",
+            ],
         )
 
         # The root type Foo should not be generated in its own file.
         assert_file_doesnt_exists("foo.ts")
+
+    def FlatFilesMultipleFiles(self):
+        # Generate both foo and bar with the flat files option
+        flatc(["--ts", "--ts-flat-files", "foo.fbs", "bar/bar.fbs"])
+
+        # Should generate a single foo file that imports bar as a single file,
+        # and exports the Foo table.
+        assert_file_and_contents(
+            "foo_generated.ts",
+            [
+                "import {Bar as Bar} from './bar_generated';",
+                "export class Foo {",
+            ],
+        )
+
+        # Should generate a single bar file that imports bar as a single file,
+        # and exports the Bar table.
+        assert_file_and_contents(
+            "bar_generated.ts",
+            [
+                "import {Baz as Baz} from './baz_generated';",
+                "export class Bar {",
+            ],
+        )
+
+        # The types Foo and Bar should not be generated in their own files
+        assert_file_doesnt_exists("foo.ts")
+        assert_file_doesnt_exists("bar.ts")
+
+    def FlatFilesGenAll(self):
+        # Generate foo with all of its dependents with the flat files option
+        flatc(["--ts", "--ts-flat-files", "--gen-all", "foo.fbs"])
+
+        # Should generate a single foo file
+        assert_file_and_contents(
+            "foo_generated.ts",
+            # Should export each of the types within the single file
+            [
+                "export class Foo {",
+                "export class Bar {",
+                "export enum Baz {",
+            ],
+            # No includes for the dependent types should be present.
+            doesnt_contain=[
+                "import {Bar as Bar}",
+                "import {Baz as Baz}",
+            ],
+        )
+
+        # The types Foo, Bar and Baz should not be generated in their own files.
+        assert_file_doesnt_exists("foo.ts")
+        assert_file_doesnt_exists("bar.ts")
+        assert_file_doesnt_exists("baz.ts")
