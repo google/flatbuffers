@@ -168,8 +168,6 @@ jobs:
 
   build-android:
    name: Build Android (on Linux)
-   # Renable once it is working again.
-   if: false
    runs-on: ubuntu-latest
    steps:
    - uses: actions/checkout@v2
