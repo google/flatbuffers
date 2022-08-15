@@ -156,8 +156,11 @@ namespace FlatBuffers.Test
 
             // Example of searching for a table by the key
             Assert.IsTrue(monster.TestarrayoftablesByKey("Frodo") != null);
+            Assert.AreEqual(monster.TestarrayoftablesByKey("Frodo").Value.Name, "Frodo");
             Assert.IsTrue(monster.TestarrayoftablesByKey("Barney") != null);
+            Assert.AreEqual(monster.TestarrayoftablesByKey("Barney").Value.Name, "Barney");
             Assert.IsTrue(monster.TestarrayoftablesByKey("Wilma") != null);
+            Assert.AreEqual(monster.TestarrayoftablesByKey("Wilma").Value.Name, "Wilma");
 
             // testType is an existing field
             Assert.AreEqual(monster.TestType, Any.Monster);
@@ -1151,6 +1154,42 @@ namespace FlatBuffers.Test
           
           ScalarStuff scalarStuff = ScalarStuff.GetRootAsScalarStuff(fbb.DataBuffer);
           Assert.AreEqual(null, scalarStuff.MaybeEnum);
+        }
+
+
+        [FlatBuffersTestMethod]
+        public void SortKey_WithDefaultedValue_IsFindable() {
+            // This checks if using the `key` attribute that includes the
+            // default value (e.g., 0) is still searchable. This is a regression
+            // test for https://github.com/google/flatbuffers/issues/7380.
+            var fbb = new FlatBufferBuilder(1);
+
+            // Create a vector of Stat objects, with Count being the key. 
+            var stat_offsets = new Offset<Stat>[4];
+            for(ushort i = 0; i < stat_offsets.Length; i++) {
+                Stat.StartStat(fbb);
+                Stat.AddCount(fbb, i);
+                stat_offsets[stat_offsets.Length - 1 - i] = Stat.EndStat(fbb);
+            }
+
+            // Ensure the sort works.
+            var sort = Stat.CreateSortedVectorOfStat(fbb, stat_offsets);
+
+            // Create the monster with the sorted vector of Stat objects.
+            var str = fbb.CreateString("MyMonster");
+            Monster.StartMonster(fbb);
+            Monster.AddName(fbb, str);
+            Monster.AddScalarKeySortedTables(fbb, sort);
+            fbb.Finish(Monster.EndMonster(fbb).Value);
+
+            // Get the monster.
+            var monster = Monster.GetRootAsMonster(fbb.DataBuffer);
+
+            // Ensure each key is findable.
+            for(ushort i =0 ; i < stat_offsets.Length; i++) {
+                Assert.IsTrue(monster.ScalarKeySortedTablesByKey(i) != null);
+                Assert.AreEqual(monster.ScalarKeySortedTablesByKey(i).Value.Count, i);
+            }
         }
     }
 }

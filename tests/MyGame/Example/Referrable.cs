@@ -37,17 +37,21 @@ public struct Referrable : IFlatbufferObject
   }
 
   public static VectorOffset CreateSortedVectorOfReferrable(FlatBufferBuilder builder, Offset<Referrable>[] offsets) {
-    Array.Sort(offsets, (Offset<Referrable> o1, Offset<Referrable> o2) => builder.DataBuffer.GetUlong(Table.__offset(4, o1.Value, builder.DataBuffer)).CompareTo(builder.DataBuffer.GetUlong(Table.__offset(4, o2.Value, builder.DataBuffer))));
+    Array.Sort(offsets,
+      (Offset<Referrable> o1, Offset<Referrable> o2) =>
+        new Referrable().__assign(builder.DataBuffer.Length - o1.Value, builder.DataBuffer).Id.CompareTo(new Referrable().__assign(builder.DataBuffer.Length - o2.Value, builder.DataBuffer).Id));
     return builder.CreateVectorOfTables(offsets);
   }
 
   public static Referrable? __lookup_by_key(int vectorLocation, ulong key, ByteBuffer bb) {
+    Referrable obj_ = new Referrable();
     int span = bb.GetInt(vectorLocation - 4);
     int start = 0;
     while (span != 0) {
       int middle = span / 2;
       int tableOffset = Table.__indirect(vectorLocation + 4 * (start + middle), bb);
-      int comp = bb.GetUlong(Table.__offset(4, bb.Length - tableOffset, bb)).CompareTo(key);
+      obj_.__assign(tableOffset, bb);
+      int comp = obj_.Id.CompareTo(key);
       if (comp > 0) {
         span = middle;
       } else if (comp < 0) {
@@ -55,7 +59,7 @@ public struct Referrable : IFlatbufferObject
         start += middle;
         span -= middle;
       } else {
-        return new Referrable().__assign(tableOffset, bb);
+        return obj_;
       }
     }
     return null;
