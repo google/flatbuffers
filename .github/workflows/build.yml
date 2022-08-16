@@ -15,6 +15,8 @@ on:
 
 jobs:
   build-linux:
+    permissions:
+      contents: write
     outputs:
       digests-gcc: ${{ steps.hash-gcc.outputs.hashes }}
       digests-clang: ${{ steps.hash-clang.outputs.hashes }}
@@ -62,6 +64,8 @@ jobs:
       run: echo "::set-output name=hashes::$(sha256sum Linux.flatc.binary.${{ matrix.cxx }}.zip | base64 -w0)"
 
   build-windows:
+    permissions:
+      contents: write
     outputs:
       digests: ${{ steps.hash.outputs.hashes }}
     name: Build Windows 2019 
@@ -153,6 +157,8 @@ jobs:
         out\FlatBuffers.Core.Test.exe
 
   build-mac-intel:
+    permissions:
+      contents: write
     outputs:
       digests: ${{ steps.hash.outputs.hashes }}
     name: Build Mac (for Intel)
@@ -195,6 +201,8 @@ jobs:
       run: echo "::set-output name=hashes::$(shasum -a 256 MacIntel.flatc.binary.zip | base64)"
 
   build-mac-universal:
+    permissions:
+      contents: write
     outputs:
       digests: ${{ steps.hash.outputs.hashes }}
     name: Build Mac (universal build)
