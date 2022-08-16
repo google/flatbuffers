@@ -18,6 +18,10 @@ android {
       targetCompatibility JavaVersion.VERSION_1_8
     }
 
+    ndk {
+      abiFilters 'arm64-v8a', 'armeabi-v7a'
+    }
+    
     testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     externalNativeBuild {
       cmake {
@@ -102,29 +106,29 @@ android {
     }
   }
 
-  flavorDimensions "stl-variant"
-  productFlavors {
-    gnustl {
-      dimension "stl-variant"
-      applicationIdSuffix ".gnustl"
-      versionNameSuffix "-gnustl"
-      externalNativeBuild {
-        ndkBuild {
-          arguments "APP_STL=gnustl_static"
-        }
-      }
-    }
-    libcpp {
-      dimension "stl-variant"
-      applicationIdSuffix ".libcpp"
-      versionNameSuffix "-libcpp"
-      externalNativeBuild {
-        ndkBuild {
-          arguments "APP_STL=c++_static"
-        }
-      }
-    }
-  }
+//  flavorDimensions "stl-variant"
+//  productFlavors {
+//    gnustl {
+//      dimension "stl-variant"
+//      applicationIdSuffix ".gnustl"
+//      versionNameSuffix "-gnustl"
+//      externalNativeBuild {
+//        ndkBuild {
+//          arguments "APP_STL=gnustl_static"
+//        }
+//      }
+//    }
+//    libcpp {
+//      dimension "stl-variant"
+//      applicationIdSuffix ".libcpp"
+//      versionNameSuffix "-libcpp"
+//      externalNativeBuild {
+//        ndkBuild {
+//          arguments "APP_STL=c++_static"
+//        }
+//      }
+//    }
+//  }
 }
 
 dependencies {
