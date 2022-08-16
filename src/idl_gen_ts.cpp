@@ -32,6 +32,7 @@ struct ImportDefinition {
   std::string export_statement;
   std::string bare_file_path;
   std::string rel_file_path;
+  std::string object_name;
   const Definition *dependent = nullptr;
   const Definition *dependency = nullptr;
 };
@@ -124,9 +125,37 @@ class TsGenerator : public BaseGenerator {
 
   // Make the provided def wrapped in namespaced if configured to do so,
   // otherwise just return the name.
-  std::string MakeNamespaced(const Definition &def) {
-    if (IncludeNamespace()) { return WrapInNameSpace(def); }
-    return def.name;
+  std::string MakeNamespaced(const Definition &def,
+                             const std::string &suffix = "") {
+    if (IncludeNamespace()) { return WrapInNameSpace(def, suffix); }
+    return def.name + suffix;
+  }
+
+  std::string GetTypeName(const EnumDef &def, const bool = false,
+                          const bool force_ns_wrap = false) {
+    std::string base_name = def.name;
+
+    if (IncludeNamespace() || force_ns_wrap) {
+      base_name = WrapInNameSpace(def.defined_namespace, base_name);
+    }
+
+    return EscapeKeyword(base_name);
+  }
+
+  std::string GetTypeName(const StructDef &def, const bool object_api = false,
+                          const bool force_ns_wrap = false) {
+    std::string base_name = def.name;
+
+    if (object_api && parser_.opts.generate_object_based_api) {
+      base_name =
+          parser_.opts.object_prefix + base_name + parser_.opts.object_suffix;
+    }
+
+    if (IncludeNamespace() || force_ns_wrap) {
+      base_name = WrapInNameSpace(def.defined_namespace, base_name);
+    }
+
+    return EscapeKeyword(base_name);
   }
 
   // Save out the generated code for a single class while adding
@@ -312,7 +341,7 @@ class TsGenerator : public BaseGenerator {
     std::string &code = *code_ptr;
     GenDocComment(enum_def.doc_comment, code_ptr);
     code += "export enum ";
-    code += EscapeKeyword(MakeNamespaced(enum_def));
+    code += GetTypeName(enum_def);
     code += " {\n";
     for (auto it = enum_def.Vals().begin(); it != enum_def.Vals().end(); ++it) {
       auto &ev = **it;
@@ -412,8 +441,9 @@ class TsGenerator : public BaseGenerator {
         }
         default: {
           if (auto val = value.type.enum_def->FindByValue(value.constant)) {
-            return EscapeKeyword(AddImport(imports, *value.type.enum_def,
-                                           *value.type.enum_def)) +
+            return AddImport(imports, *value.type.enum_def,
+                             *value.type.enum_def)
+                       .name +
                    "." + EscapeKeyword(val->name);
           } else {
             return value.constant;
@@ -451,7 +481,7 @@ class TsGenerator : public BaseGenerator {
         if (IsString(type)) {
           name = "string|Uint8Array";
         } else {
-          name = EscapeKeyword(AddImport(imports, owner, *type.struct_def));
+          name = AddImport(imports, owner, *type.struct_def).name;
         }
         return allowNull ? (name + "|null") : name;
       }
@@ -464,7 +494,8 @@ class TsGenerator : public BaseGenerator {
       default:
         if (IsScalar(type.base_type)) {
           if (type.enum_def) {
-            const auto enum_name = AddImport(imports, owner, *type.enum_def);
+            const auto enum_name =
+                AddImport(imports, owner, *type.enum_def).name;
             return allowNull ? (enum_name + "|null") : enum_name;
           }
           return allowNull ? "number|null" : "number";
@@ -590,16 +621,6 @@ class TsGenerator : public BaseGenerator {
     }
   }
 
-  static std::string GetObjApiClassName(const StructDef &sd,
-                                        const IDLOptions &opts) {
-    return GetObjApiClassName(sd.name, opts);
-  }
-
-  static std::string GetObjApiClassName(const std::string &name,
-                                        const IDLOptions &opts) {
-    return opts.object_prefix + name + opts.object_suffix;
-  }
-
   bool UnionHasStringType(const EnumDef &union_enum) {
     return std::any_of(union_enum.Vals().begin(), union_enum.Vals().end(),
                        [](const EnumVal *ev) {
@@ -628,7 +649,7 @@ class TsGenerator : public BaseGenerator {
       if (IsString(ev.union_type)) {
         type = "string";  // no need to wrap string type in namespace
       } else if (ev.union_type.base_type == BASE_TYPE_STRUCT) {
-        type = AddImport(imports, union_enum, *ev.union_type.struct_def);
+        type = AddImport(imports, union_enum, *ev.union_type.struct_def).name;
       } else {
         FLATBUFFERS_ASSERT(false);
       }
@@ -654,55 +675,72 @@ class TsGenerator : public BaseGenerator {
   std::string GenSymbolExpression(const StructDef &struct_def,
                                   const bool has_name_clash,
                                   const std::string &import_name,
-                                  const std::string &name) {
+                                  const std::string &name,
+                                  const std::string &object_name) {
     std::string symbols_expression;
-    if (!has_name_clash) {
-      symbols_expression += EscapeKeyword(import_name);
-      if (parser_.opts.generate_object_based_api)
-        symbols_expression += ", " + import_name + "T";
+
+    if (has_name_clash) {
+      // We have a name clash
+      symbols_expression += import_name + " as " + name;
+
+      if (parser_.opts.generate_object_based_api) {
+        symbols_expression += ", " +
+                              GetTypeName(struct_def, /*object_api =*/true) +
+                              " as " + object_name;
+      }
     } else {
-      symbols_expression +=
-          EscapeKeyword(import_name) + " as " + EscapeKeyword(name);
-      if (parser_.opts.generate_object_based_api)
-        symbols_expression += ", " + struct_def.name + "T as " + name + "T";
+      // No name clash, use the provided name
+      symbols_expression += name;
+
+      if (parser_.opts.generate_object_based_api) {
+        symbols_expression += ", " + object_name;
+      }
     }
+
     return symbols_expression;
   }
 
   std::string GenSymbolExpression(const EnumDef &enum_def,
                                   const bool has_name_clash,
                                   const std::string &import_name,
-                                  const std::string &name) {
+                                  const std::string &name,
+                                  const std::string &) {
     std::string symbols_expression;
-    if (!has_name_clash) {
-      symbols_expression += import_name;
+    if (has_name_clash) {
+      symbols_expression += import_name + " as " + name;
     } else {
-      symbols_expression +=
-          EscapeKeyword(enum_def.name) + " as " + EscapeKeyword(name);
+      symbols_expression += name;
     }
+
     if (enum_def.is_union) {
-      symbols_expression += ", unionTo" + import_name;
-      symbols_expression += ", unionListTo" + import_name;
+      symbols_expression += ", unionTo" + name;
+      symbols_expression += ", unionListTo" + name;
     }
+
     return symbols_expression;
   }
 
   template<typename DefintionT>
-  std::string AddImport(import_set &imports, const Definition &dependent,
-                        const DefintionT &dependency) {
+  ImportDefinition AddImport(import_set &imports, const Definition &dependent,
+                             const DefintionT &dependency) {
     // The unique name of the dependency, fully qualified in its namespace.
-    const std::string unique_name = WrapInNameSpace(dependency);
+    const std::string unique_name = GetTypeName(
+        dependency, /*object_api = */ false, /*force_ns_wrap=*/true);
 
     // Look if we have already added this import and return its name if found.
     const auto import_pair = imports.find(unique_name);
-    if (import_pair != imports.end()) { return import_pair->second.name; }
+    if (import_pair != imports.end()) { return import_pair->second; }
 
-    // Check if this name would have a name clash with another type.
-    const std::string import_name = MakeNamespaced(dependency);
+    // Check if this name would have a name clash with another type. Just use
+    // the "base" name (properlly escaped) without any namespacing applied.
+    const std::string import_name = EscapeKeyword(dependency.name);
     const bool has_name_clash = CheckIfNameClashes(imports, import_name);
 
     // If we have a name clash, use the unique name, otherwise use simple name.
     std::string name = has_name_clash ? unique_name : import_name;
+
+    const std::string object_name =
+        GetTypeName(dependency, /*object_api=*/true, has_name_clash);
 
     if (parser_.opts.ts_flat_file) {
       // In flat-file generation, do not attempt to import things from ourselves
@@ -720,13 +758,13 @@ class TsGenerator : public BaseGenerator {
         flat_file_import_declarations_[file][import_name] = name;
         if (parser_.opts.generate_object_based_api &&
             typeid(dependency) == typeid(StructDef)) {
-          flat_file_import_declarations_[file][import_name + "T"] = name + "T";
+          flat_file_import_declarations_[file][import_name + "T"] = object_name;
         }
       }
     }
 
-    const std::string symbols_expression =
-        GenSymbolExpression(dependency, has_name_clash, import_name, name);
+    const std::string symbols_expression = GenSymbolExpression(
+        dependency, has_name_clash, import_name, name, object_name);
 
     std::string bare_file_path;
     std::string rel_file_path;
@@ -748,6 +786,7 @@ class TsGenerator : public BaseGenerator {
 
     ImportDefinition import;
     import.name = name;
+    import.object_name = object_name;
     import.bare_file_path = bare_file_path;
     import.rel_file_path = rel_file_path;
     import.import_statement =
@@ -759,7 +798,7 @@ class TsGenerator : public BaseGenerator {
 
     imports.insert(std::make_pair(unique_name, import));
 
-    return import.name;
+    return import;
   }
 
   void AddImport(import_set &imports, std::string import_name,
@@ -774,7 +813,7 @@ class TsGenerator : public BaseGenerator {
   // Generate a TS union type based on a union's enum
   std::string GenObjApiUnionTypeTS(import_set &imports,
                                    const StructDef &dependent,
-                                   const IDLOptions &opts,
+                                   const IDLOptions &,
                                    const EnumDef &union_enum) {
     std::string ret = "";
     std::set<std::string> type_list;
@@ -788,8 +827,8 @@ class TsGenerator : public BaseGenerator {
       if (IsString(ev.union_type)) {
         type = "string";  // no need to wrap string type in namespace
       } else if (ev.union_type.base_type == BASE_TYPE_STRUCT) {
-        type = GetObjApiClassName(
-            AddImport(imports, dependent, *ev.union_type.struct_def), opts);
+        type = AddImport(imports, dependent, *ev.union_type.struct_def)
+                   .object_name;
       } else {
         FLATBUFFERS_ASSERT(false);
       }
@@ -821,12 +860,12 @@ class TsGenerator : public BaseGenerator {
       const auto valid_union_type_with_null = valid_union_type + "|null";
 
       auto ret = "\n\nexport function " + GenUnionConvFuncName(enum_def) +
-                 "(\n  type: " + MakeNamespaced(enum_def) +
+                 "(\n  type: " + GetTypeName(enum_def) +
                  ",\n  accessor: (obj:" + valid_union_type + ") => " +
                  valid_union_type_with_null +
                  "\n): " + valid_union_type_with_null + " {\n";
 
-      const auto enum_type = AddImport(imports, enum_def, enum_def);
+      const auto enum_type = AddImport(imports, enum_def, enum_def).name;
 
       const auto union_enum_loop = [&](const std::string &accessor_str) {
         ret += "  switch(" + enum_type + "[type]) {\n";
@@ -843,7 +882,7 @@ class TsGenerator : public BaseGenerator {
             ret += "return " + accessor_str + "'') as string;";
           } else if (ev.union_type.base_type == BASE_TYPE_STRUCT) {
             const auto type =
-                AddImport(imports, enum_def, *ev.union_type.struct_def);
+                AddImport(imports, enum_def, *ev.union_type.struct_def).name;
             ret += "return " + accessor_str + "new " + type + "())! as " +
                    type + ";";
           } else {
@@ -860,7 +899,7 @@ class TsGenerator : public BaseGenerator {
       ret += "}";
 
       ret += "\n\nexport function " + GenUnionListConvFuncName(enum_def) +
-             "(\n  type: " + MakeNamespaced(enum_def) +
+             "(\n  type: " + GetTypeName(enum_def) +
              ", \n  accessor: (index: number, obj:" + valid_union_type +
              ") => " + valid_union_type_with_null +
              ", \n  index: number\n): " + valid_union_type_with_null + " {\n";
@@ -882,7 +921,7 @@ class TsGenerator : public BaseGenerator {
                             const bool is_array = false) {
     if (union_type.enum_def) {
       const auto &enum_def = *union_type.enum_def;
-      const auto enum_type = AddImport(imports, dependent, enum_def);
+      const auto enum_type = AddImport(imports, dependent, enum_def).name;
       const std::string union_accessor = "this." + field_name;
 
       const auto union_has_string = UnionHasStringType(enum_def);
@@ -984,7 +1023,7 @@ class TsGenerator : public BaseGenerator {
   void GenObjApi(const Parser &parser, StructDef &struct_def,
                  std::string &obj_api_unpack_func, std::string &obj_api_class,
                  import_set &imports) {
-    const auto class_name = GetObjApiClassName(struct_def, parser.opts);
+    const auto class_name = GetTypeName(struct_def, /*object_api=*/true);
 
     std::string unpack_func = "\nunpack(): " + class_name +
                               " {\n  return new " + class_name + "(" +
@@ -1004,8 +1043,7 @@ class TsGenerator : public BaseGenerator {
     std::string pack_func_offset_decl;
     std::string pack_func_create_call;
 
-    const auto struct_name =
-        EscapeKeyword(AddImport(imports, struct_def, struct_def));
+    const auto struct_name = AddImport(imports, struct_def, struct_def).name;
 
     if (has_create) {
       pack_func_create_call = "  return " + struct_name + ".create" +
@@ -1068,8 +1106,7 @@ class TsGenerator : public BaseGenerator {
         switch (field.value.type.base_type) {
           case BASE_TYPE_STRUCT: {
             const auto &sd = *field.value.type.struct_def;
-            field_type += GetObjApiClassName(AddImport(imports, struct_def, sd),
-                                             parser.opts);
+            field_type += AddImport(imports, struct_def, sd).object_name;
 
             const std::string field_accessor = "this." + field_name + "()";
             field_val = GenNullCheckConditional(field_accessor,
@@ -1098,7 +1135,8 @@ class TsGenerator : public BaseGenerator {
             switch (vectortype.base_type) {
               case BASE_TYPE_STRUCT: {
                 const auto &sd = *field.value.type.struct_def;
-                field_type += GetObjApiClassName(sd, parser.opts);
+                field_type += GetTypeName(sd, /*object_api=*/true);
+                ;
                 field_type += ")[]";
 
                 field_val = GenBBAccess() + ".createObjList(" +
@@ -1109,14 +1147,12 @@ class TsGenerator : public BaseGenerator {
                   field_offset_decl =
                       "builder.createStructOffsetList(this." +
                       field_name_escaped + ", " +
-                      EscapeKeyword(
-                          AddImport(imports, struct_def, struct_def)) +
+                      AddImport(imports, struct_def, struct_def).name +
                       ".start" + ConvertCase(field_name, Case::kUpperCamel) +
                       "Vector)";
                 } else {
                   field_offset_decl =
-                      EscapeKeyword(
-                          AddImport(imports, struct_def, struct_def)) +
+                      AddImport(imports, struct_def, struct_def).name +
                       ".create" + ConvertCase(field_name, Case::kUpperCamel) +
                       "Vector(builder, builder.createObjectOffsetList(" +
                       "this." + field_name_escaped + "))";
@@ -1131,7 +1167,7 @@ class TsGenerator : public BaseGenerator {
                             field_binded_method + ", this." + field_name +
                             "Length())";
                 field_offset_decl =
-                    EscapeKeyword(AddImport(imports, struct_def, struct_def)) +
+                    AddImport(imports, struct_def, struct_def).name +
                     ".create" + ConvertCase(field_name, Case::kUpperCamel) +
                     "Vector(builder, builder.createObjectOffsetList(" +
                     "this." + field_name_escaped + "))";
@@ -1146,7 +1182,7 @@ class TsGenerator : public BaseGenerator {
                                           vectortype, true);
 
                 field_offset_decl =
-                    EscapeKeyword(AddImport(imports, struct_def, struct_def)) +
+                    AddImport(imports, struct_def, struct_def).name +
                     ".create" + ConvertCase(field_name, Case::kUpperCamel) +
                     "Vector(builder, builder.createObjectOffsetList(" +
                     "this." + field_name_escaped + "))";
@@ -1166,7 +1202,7 @@ class TsGenerator : public BaseGenerator {
                             "Length())";
 
                 field_offset_decl =
-                    EscapeKeyword(AddImport(imports, struct_def, struct_def)) +
+                    AddImport(imports, struct_def, struct_def).name +
                     ".create" + ConvertCase(field_name, Case::kUpperCamel) +
                     "Vector(builder, this." + field_name_escaped + ")";
 
@@ -1256,10 +1292,10 @@ class TsGenerator : public BaseGenerator {
       pack_func_create_call += "return " + struct_name + ".end" +
                                GetPrefixedName(struct_def) + "(builder);";
     }
-
-    obj_api_class = "\nexport class " +
-                    GetObjApiClassName(struct_def, parser.opts) + " {\n";
-
+    obj_api_class = "\n";
+    obj_api_class += "export class ";
+    obj_api_class += GetTypeName(struct_def, /*object_api=*/true);
+    obj_api_class += " {\n";
     obj_api_class += constructor_func;
     obj_api_class += pack_func_prototype + pack_func_offset_decl +
                      pack_func_create_call + "\n}";
@@ -1296,13 +1332,11 @@ class TsGenerator : public BaseGenerator {
       AddImport(imports, struct_def, struct_def);
     }
 
-    std::string object_name;
+    const std::string object_name = GetTypeName(struct_def);
 
     // Emit constructor
-    object_name = EscapeKeyword(MakeNamespaced(struct_def));
     GenDocComment(struct_def.doc_comment, code_ptr);
     code += "export class ";
-    // TODO(7445): figure out if the export needs a namespace for ts-flat-files
     code += object_name;
     code += " {\n";
     code += "  bb: flatbuffers.ByteBuffer|null = null;\n";
@@ -1391,8 +1425,9 @@ class TsGenerator : public BaseGenerator {
       else {
         switch (field.value.type.base_type) {
           case BASE_TYPE_STRUCT: {
-            const auto type = EscapeKeyword(
-                AddImport(imports, struct_def, *field.value.type.struct_def));
+            const auto type =
+                AddImport(imports, struct_def, *field.value.type.struct_def)
+                    .name;
             GenDocComment(field.doc_comment, code_ptr);
             code += ConvertCase(field.name, Case::kLowerCamel);
             code += "(obj?:" + type + "):" + type + "|null {\n";
@@ -1770,8 +1805,7 @@ class TsGenerator : public BaseGenerator {
       code += "\n";
       code += "static deserialize(buffer: Uint8Array):" + EscapeKeyword(name) +
               " {\n";
-      code += "  return " +
-              EscapeKeyword(AddImport(imports, struct_def, struct_def)) +
+      code += "  return " + AddImport(imports, struct_def, struct_def).name +
               ".getRootAs" + name + "(new flatbuffers.ByteBuffer(buffer))\n";
       code += "}\n";
     }
