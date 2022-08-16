@@ -5,4 +5,3 @@ export enum OptionalByte {
   One = 1,
   Two = 2
 }
-

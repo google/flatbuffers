@@ -18,7 +18,7 @@ export class Monster {
         return (obj || new Monster()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
     }
     static getFullyQualifiedName() {
-        return 'MyGame.Example2.Monster';
+        return 'MyGame_Example2_Monster';
     }
     static startMonster(builder) {
         builder.startObject(0);

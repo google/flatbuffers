@@ -1,9 +1,9 @@
-include "bar/bar.fbs";
+include "bar/bar_with_ns.fbs";
 
 namespace something;
 
 table Foo {
-  bar:Bar;
+  bar:bar.Bar;
 }
 
 root_type Foo;

@@ -5,4 +5,3 @@ export enum LongEnum {
   LongTwo = '4',
   LongBig = '1099511627776'
 }
-

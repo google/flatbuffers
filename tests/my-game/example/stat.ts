@@ -62,7 +62,7 @@ mutate_count(value:number):boolean {
 }
 
 static getFullyQualifiedName():string {
-  return 'MyGame.Example.Stat';
+  return 'MyGame_Example_Stat';
 }
 
 static startStat(builder:flatbuffers.Builder) {

@@ -49,7 +49,7 @@ export class Vec3 {
         return (obj || new Test()).__init(this.bb_pos + 26, this.bb);
     }
     static getFullyQualifiedName() {
-        return 'MyGame.Example.Vec3';
+        return 'MyGame_Example_Vec3';
     }
     static sizeOf() {
         return 32;
