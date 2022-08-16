@@ -27,7 +27,9 @@ namespace flatbuffers {
 
 namespace dart {
 
-Namer::Config DartDefaultConfig() {
+namespace {
+
+static Namer::Config DartDefaultConfig() {
   return { /*types=*/Case::kUpperCamel,
            /*constants=*/Case::kScreamingSnake,
            /*methods=*/Case::kLowerCamel,
@@ -50,7 +52,7 @@ Namer::Config DartDefaultConfig() {
            /*filename_extension=*/".dart" };
 }
 
-std::set<std::string> DartKeywords() {
+static std::set<std::string> DartKeywords() {
   // see https://www.dartlang.org/guides/language/language-tour#keywords
   // yield*, async*, and sync* shouldn't be proble
   return {
@@ -67,6 +69,7 @@ std::set<std::string> DartKeywords() {
     "dynamic",  "implements", "set",
   };
 }
+} // namespace
 
 const std::string _kFb = "fb";
 

@@ -8,23 +8,24 @@
 namespace grpc_cpp_generator {
 namespace {
 
-grpc::string service_header_ext() { return ".grpc.fb.h"; }
+static grpc::string service_header_ext() { return ".grpc.fb.h"; }
 
-template<class T> grpc::string as_string(T x) {
+template<class T>
+static grpc::string as_string(T x) {
   std::ostringstream out;
   out << x;
   return out.str();
 }
 
-inline bool ClientOnlyStreaming(const grpc_generator::Method *method) {
+static inline bool ClientOnlyStreaming(const grpc_generator::Method *method) {
   return method->ClientStreaming() && !method->ServerStreaming();
 }
 
-inline bool ServerOnlyStreaming(const grpc_generator::Method *method) {
+static inline bool ServerOnlyStreaming(const grpc_generator::Method *method) {
   return !method->ClientStreaming() && method->ServerStreaming();
 }
 
-grpc::string FilenameIdentifier(const grpc::string &filename) {
+static grpc::string FilenameIdentifier(const grpc::string &filename) {
   grpc::string result;
   for (unsigned i = 0; i < filename.size(); i++) {
     char c = filename[i];
@@ -39,11 +40,11 @@ grpc::string FilenameIdentifier(const grpc::string &filename) {
   }
   return result;
 }
-}  // namespace
 
-template<class T, size_t N> T *array_end(T (&array)[N]) { return array + N; }
+template<class T, size_t N>
+static T *array_end(T (&array)[N]) { return array + N; }
 
-void PrintIncludes(grpc_generator::Printer *printer,
+static void PrintIncludes(grpc_generator::Printer *printer,
                    const std::vector<grpc::string> &headers,
                    const Parameters &params) {
   std::map<grpc::string, grpc::string> vars;
@@ -62,6 +63,8 @@ void PrintIncludes(grpc_generator::Printer *printer,
     printer->Print(vars, "#include $l$$h$$r$\n");
   }
 }
+
+}  // namespace
 
 grpc::string GetHeaderPrologue(grpc_generator::File *file,
                                const Parameters &params) {
@@ -137,7 +140,10 @@ grpc::string GetHeaderIncludes(grpc_generator::File *file,
   return output;
 }
 
-void PrintHeaderClientMethodInterfaces(
+
+namespace {
+
+static void PrintHeaderClientMethodInterfaces(
     grpc_generator::Printer *printer, const grpc_generator::Method *method,
     std::map<grpc::string, grpc::string> *vars, bool is_public) {
   (*vars)["Method"] = method->name();
@@ -351,7 +357,9 @@ void PrintHeaderClientMethodInterfaces(
   }
 }
 
-void PrintHeaderClientMethod(grpc_generator::Printer *printer,
+
+
+static void PrintHeaderClientMethod(grpc_generator::Printer *printer,
                              const grpc_generator::Method *method,
                              std::map<grpc::string, grpc::string> *vars,
                              bool is_public) {
@@ -554,7 +562,7 @@ void PrintHeaderClientMethod(grpc_generator::Printer *printer,
   }
 }
 
-void PrintHeaderClientMethodData(grpc_generator::Printer *printer,
+static void PrintHeaderClientMethodData(grpc_generator::Printer *printer,
                                  const grpc_generator::Method *method,
                                  std::map<grpc::string, grpc::string> *vars) {
   (*vars)["Method"] = method->name();
@@ -562,7 +570,7 @@ void PrintHeaderClientMethodData(grpc_generator::Printer *printer,
                  "const ::grpc::internal::RpcMethod rpcmethod_$Method$_;\n");
 }
 
-void PrintHeaderServerMethodSync(grpc_generator::Printer *printer,
+static void PrintHeaderServerMethodSync(grpc_generator::Printer *printer,
                                  const grpc_generator::Method *method,
                                  std::map<grpc::string, grpc::string> *vars) {
   (*vars)["Method"] = method->name();
@@ -596,7 +604,7 @@ void PrintHeaderServerMethodSync(grpc_generator::Printer *printer,
   printer->Print(method->GetTrailingComments("//").c_str());
 }
 
-void PrintHeaderServerMethodAsync(grpc_generator::Printer *printer,
+static void PrintHeaderServerMethodAsync(grpc_generator::Printer *printer,
                                   const grpc_generator::Method *method,
                                   std::map<grpc::string, grpc::string> *vars) {
   (*vars)["Method"] = method->name();
@@ -712,7 +720,7 @@ void PrintHeaderServerMethodAsync(grpc_generator::Printer *printer,
   printer->Print(*vars, "};\n");
 }
 
-void PrintHeaderServerMethodStreamedUnary(
+static void PrintHeaderServerMethodStreamedUnary(
     grpc_generator::Printer *printer, const grpc_generator::Method *method,
     std::map<grpc::string, grpc::string> *vars) {
   (*vars)["Method"] = method->name();
@@ -763,7 +771,7 @@ void PrintHeaderServerMethodStreamedUnary(
   }
 }
 
-void PrintHeaderServerMethodSplitStreaming(
+static void PrintHeaderServerMethodSplitStreaming(
     grpc_generator::Printer *printer, const grpc_generator::Method *method,
     std::map<grpc::string, grpc::string> *vars) {
   (*vars)["Method"] = method->name();
@@ -816,7 +824,7 @@ void PrintHeaderServerMethodSplitStreaming(
   }
 }
 
-void PrintHeaderServerMethodGeneric(
+static void PrintHeaderServerMethodGeneric(
     grpc_generator::Printer *printer, const grpc_generator::Method *method,
     std::map<grpc::string, grpc::string> *vars) {
   (*vars)["Method"] = method->name();
@@ -887,7 +895,7 @@ void PrintHeaderServerMethodGeneric(
   printer->Print(*vars, "};\n");
 }
 
-void PrintHeaderService(grpc_generator::Printer *printer,
+static void PrintHeaderService(grpc_generator::Printer *printer,
                         const grpc_generator::Service *service,
                         std::map<grpc::string, grpc::string> *vars) {
   (*vars)["Service"] = service->name();
@@ -1058,6 +1066,8 @@ void PrintHeaderService(grpc_generator::Printer *printer,
   printer->Print(service->GetTrailingComments("//").c_str());
 }
 
+} // namespace
+
 grpc::string GetHeaderServices(grpc_generator::File *file,
                                const Parameters &params) {
   grpc::string output;
@@ -1176,7 +1186,10 @@ grpc::string GetSourceIncludes(grpc_generator::File *file,
   return output;
 }
 
-void PrintSourceClientMethod(grpc_generator::Printer *printer,
+
+namespace {
+
+static void PrintSourceClientMethod(grpc_generator::Printer *printer,
                              const grpc_generator::Method *method,
                              std::map<grpc::string, grpc::string> *vars) {
   (*vars)["Method"] = method->name();
@@ -1320,7 +1333,7 @@ void PrintSourceClientMethod(grpc_generator::Printer *printer,
   }
 }
 
-void PrintSourceServerMethod(grpc_generator::Printer *printer,
+static void PrintSourceServerMethod(grpc_generator::Printer *printer,
                              const grpc_generator::Method *method,
                              std::map<grpc::string, grpc::string> *vars) {
   (*vars)["Method"] = method->name();
@@ -1369,7 +1382,7 @@ void PrintSourceServerMethod(grpc_generator::Printer *printer,
   }
 }
 
-void PrintSourceService(grpc_generator::Printer *printer,
+static void PrintSourceService(grpc_generator::Printer *printer,
                         const grpc_generator::Service *service,
                         std::map<grpc::string, grpc::string> *vars) {
   (*vars)["Service"] = service->name();
@@ -1486,6 +1499,8 @@ void PrintSourceService(grpc_generator::Printer *printer,
   }
 }
 
+} // namespace
+
 grpc::string GetSourceServices(grpc_generator::File *file,
                                const Parameters &params) {
   grpc::string output;
@@ -1588,7 +1603,10 @@ grpc::string GetMockIncludes(grpc_generator::File *file,
   return output;
 }
 
-void PrintMockClientMethods(grpc_generator::Printer *printer,
+
+namespace {
+
+static void PrintMockClientMethods(grpc_generator::Printer *printer,
                             const grpc_generator::Method *method,
                             std::map<grpc::string, grpc::string> *vars) {
   (*vars)["Method"] = method->name();
@@ -1680,7 +1698,7 @@ void PrintMockClientMethods(grpc_generator::Printer *printer,
   }
 }
 
-void PrintMockService(grpc_generator::Printer *printer,
+static void PrintMockService(grpc_generator::Printer *printer,
                       const grpc_generator::Service *service,
                       std::map<grpc::string, grpc::string> *vars) {
   (*vars)["Service"] = service->name();
@@ -1695,6 +1713,8 @@ void PrintMockService(grpc_generator::Printer *printer,
   printer->Outdent();
   printer->Print("};\n");
 }
+
+} // namespace
 
 grpc::string GetMockServices(grpc_generator::File *file,
                              const Parameters &params) {

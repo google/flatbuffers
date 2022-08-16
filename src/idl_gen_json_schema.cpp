@@ -24,7 +24,10 @@ namespace flatbuffers {
 
 namespace jsons {
 
-template<class T> std::string GenFullName(const T *enum_def) {
+namespace {
+
+template<class T>
+static std::string GenFullName(const T *enum_def) {
   std::string full_name;
   const auto &name_spaces = enum_def->defined_namespace->components;
   for (auto ns = name_spaces.cbegin(); ns != name_spaces.cend(); ++ns) {
@@ -34,15 +37,16 @@ template<class T> std::string GenFullName(const T *enum_def) {
   return full_name;
 }
 
-template<class T> std::string GenTypeRef(const T *enum_def) {
+template<class T>
+static std::string GenTypeRef(const T *enum_def) {
   return "\"$ref\" : \"#/definitions/" + GenFullName(enum_def) + "\"";
 }
 
-std::string GenType(const std::string &name) {
+static std::string GenType(const std::string &name) {
   return "\"type\" : \"" + name + "\"";
 }
 
-std::string GenType(BaseType type) {
+static std::string GenType(BaseType type) {
   switch (type) {
     case BASE_TYPE_BOOL: return "\"type\" : \"boolean\"";
     case BASE_TYPE_CHAR:
@@ -84,13 +88,13 @@ std::string GenType(BaseType type) {
   }
 }
 
-std::string GenBaseType(const Type &type) {
+static std::string GenBaseType(const Type &type) {
   if (type.struct_def != nullptr) { return GenTypeRef(type.struct_def); }
   if (type.enum_def != nullptr) { return GenTypeRef(type.enum_def); }
   return GenType(type.base_type);
 }
 
-std::string GenArrayType(const Type &type) {
+static std::string GenArrayType(const Type &type) {
   std::string element_type;
   if (type.struct_def != nullptr) {
     element_type = GenTypeRef(type.struct_def);
@@ -103,7 +107,7 @@ std::string GenArrayType(const Type &type) {
   return "\"type\" : \"array\", \"items\" : {" + element_type + "}";
 }
 
-std::string GenType(const Type &type) {
+static std::string GenType(const Type &type) {
   switch (type.base_type) {
     case BASE_TYPE_ARRAY: FLATBUFFERS_FALLTHROUGH();  // fall thru
     case BASE_TYPE_VECTOR: {
@@ -135,6 +139,8 @@ std::string GenType(const Type &type) {
     }
   }
 }
+
+} // namespace
 
 class JsonSchemaGenerator : public BaseGenerator {
  private:
