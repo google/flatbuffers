@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-// independent from idl_parser, since this code is not needed for most clients
 #include <algorithm>
 #include <cassert>
 #include <unordered_map>
@@ -49,7 +48,7 @@ class TsGenerator : public BaseGenerator {
 
   TsGenerator(const Parser &parser, const std::string &path,
               const std::string &file_name)
-      : BaseGenerator(parser, path, file_name, "", ".", "ts") {
+      : BaseGenerator(parser, path, file_name, "", "_", "ts") {
     // clang-format off
 
     // List of keywords retrieved from here:
@@ -117,6 +116,19 @@ class TsGenerator : public BaseGenerator {
     return true;
   }
 
+  bool IncludeNamespace() const {
+    // When generating a single flat file and all its includes, namespaces are
+    // important to avoid type name clashes.
+    return parser_.opts.ts_flat_file && parser_.opts.generate_all;
+  }
+
+  // Make the provided def wrapped in namespaced if configured to do so,
+  // otherwise just return the name.
+  std::string MakeNamespaced(const Definition &def) {
+    if (IncludeNamespace()) { return WrapInNameSpace(def); }
+    return def.name;
+  }
+
   // Save out the generated code for a single class while adding
   // declaration boilerplate.
   bool SaveType(const Definition &definition, const std::string &class_code,
@@ -145,21 +157,13 @@ class TsGenerator : public BaseGenerator {
 
     if (parser_.opts.ts_flat_file) {
       flat_file_ += code;
+      flat_file_ += "\n";
       flat_file_definitions_.insert(&definition);
       return true;
     } else {
       auto basename =
           NamespaceDir(*definition.defined_namespace, true) +
           ConvertCase(definition.name, Case::kDasher, Case::kUpperCamel);
-
-      // Special case for the root table, generate an export statement
-      if (&definition == parser_.root_struct_def_) {
-        ImportDefinition import;
-        import.name = definition.name;
-        import.export_statement =
-            "export { " + import.name + " } from './" + basename + "';";
-        imports.insert(std::make_pair(import.name, import));
-      }
 
       return SaveFile((basename + ".ts").c_str(), code, false);
     }
@@ -308,8 +312,8 @@ class TsGenerator : public BaseGenerator {
     std::string &code = *code_ptr;
     GenDocComment(enum_def.doc_comment, code_ptr);
     code += "export enum ";
-    // TODO(7445): figure out if the export needs a namespace for ts-flat-files
-    code += EscapeKeyword(enum_def.name) + " {\n";
+    code += EscapeKeyword(MakeNamespaced(enum_def));
+    code += " {\n";
     for (auto it = enum_def.Vals().begin(); it != enum_def.Vals().end(); ++it) {
       auto &ev = **it;
       if (!ev.doc_comment.empty()) {
@@ -347,7 +351,7 @@ class TsGenerator : public BaseGenerator {
       code += GenUnionConvFunc(enum_def.underlying_type, imports);
     }
 
-    code += "\n\n";
+    code += "\n";
   }
 
   static std::string GenType(const Type &type) {
@@ -638,113 +642,67 @@ class TsGenerator : public BaseGenerator {
     return ret;
   }
 
-  std::string AddImport(import_set &imports, const Definition &dependent,
-                        const StructDef &dependency) {
-    std::string ns;
-    const auto &depc_comps = dependency.defined_namespace->components;
-    for (auto it = depc_comps.begin(); it != depc_comps.end(); it++) {
-      ns += *it;
-    }
-    std::string unique_name = ns + dependency.name;
-    std::string import_name = dependency.name;
-    std::string long_import_name;
-    if (imports.find(unique_name) != imports.end())
-      return imports.find(unique_name)->second.name;
+  static bool CheckIfNameClashes(const import_set &imports,
+                                 const std::string &name) {
+    // TODO: this would be better as a hashset.
     for (auto it = imports.begin(); it != imports.end(); it++) {
-      if (it->second.name == import_name) {
-        long_import_name = ns + import_name;
-        break;
-      }
+      if (it->second.name == name) { return true; }
     }
+    return false;
+  }
 
-    if (parser_.opts.ts_flat_file) {
-      // In flat-file generation, do not attempt to import things from ourselves
-      // *and* do not wrap namespaces (note that this does override the logic
-      // above, but since we force all non-self-imports to use namespace-based
-      // names in flat file generation, it's fine).
-      if (dependent.file == dependency.file) {
-        long_import_name = import_name;
-      } else {
-        long_import_name = ns + import_name;
-        std::string file =
-            RelativeToRootPath(StripFileName(AbsolutePath(dependent.file)),
-                               dependency.file)
-                // Strip the leading //
-                .substr(2);
-        flat_file_import_declarations_[file][import_name] = long_import_name;
-        if (parser_.opts.generate_object_based_api) {
-          flat_file_import_declarations_[file][import_name + "T"] =
-              long_import_name + "T";
-        }
-      }
-    }
-
-    std::string import_statement;
-    std::string export_statement;
-    import_statement += "import { ";
-    export_statement += "export { ";
+  std::string GenSymbolExpression(const StructDef &struct_def,
+                                  const bool has_name_clash,
+                                  const std::string &import_name,
+                                  const std::string &name) {
     std::string symbols_expression;
-    if (long_import_name.empty()) {
+    if (!has_name_clash) {
       symbols_expression += EscapeKeyword(import_name);
       if (parser_.opts.generate_object_based_api)
         symbols_expression += ", " + import_name + "T";
     } else {
-      symbols_expression += EscapeKeyword(dependency.name) + " as " +
-                            EscapeKeyword(long_import_name);
+      symbols_expression +=
+          EscapeKeyword(import_name) + " as " + EscapeKeyword(name);
       if (parser_.opts.generate_object_based_api)
-        symbols_expression +=
-            ", " + dependency.name + "T as " + long_import_name + "T";
+        symbols_expression += ", " + struct_def.name + "T as " + name + "T";
     }
-    import_statement += symbols_expression + " } from '";
-    export_statement += symbols_expression + " } from '";
-    std::string bare_file_path;
-    std::string rel_file_path;
-    const auto &dep_comps = dependent.defined_namespace->components;
-    for (size_t i = 0; i < dep_comps.size(); i++)
-      rel_file_path += i == 0 ? ".." : (kPathSeparator + std::string(".."));
-    if (dep_comps.size() == 0) rel_file_path += ".";
-    for (auto it = depc_comps.begin(); it != depc_comps.end(); it++)
-      bare_file_path +=
-          kPathSeparator + ConvertCase(*it, Case::kDasher, Case::kUpperCamel);
-    bare_file_path +=
-        kPathSeparator +
-        ConvertCase(dependency.name, Case::kDasher, Case::kUpperCamel);
-    rel_file_path += bare_file_path;
-    import_statement += rel_file_path + "';";
-    export_statement += "." + bare_file_path + "';";
-    ImportDefinition import;
-    import.name = long_import_name.empty() ? import_name : long_import_name;
-    import.bare_file_path = bare_file_path;
-    import.rel_file_path = rel_file_path;
-    import.import_statement = import_statement;
-    import.export_statement = export_statement;
-    import.dependency = &dependency;
-    import.dependent = &dependent;
-    imports.insert(std::make_pair(unique_name, import));
-    return import.name;
+    return symbols_expression;
   }
 
-  // TODO: largely (but not identical) duplicated code from above couln't find a
-  // good way to refactor
+  std::string GenSymbolExpression(const EnumDef &enum_def,
+                                  const bool has_name_clash,
+                                  const std::string &import_name,
+                                  const std::string &name) {
+    std::string symbols_expression;
+    if (!has_name_clash) {
+      symbols_expression += import_name;
+    } else {
+      symbols_expression +=
+          EscapeKeyword(enum_def.name) + " as " + EscapeKeyword(name);
+    }
+    if (enum_def.is_union) {
+      symbols_expression += ", unionTo" + import_name;
+      symbols_expression += ", unionListTo" + import_name;
+    }
+    return symbols_expression;
+  }
+
+  template<typename DefintionT>
   std::string AddImport(import_set &imports, const Definition &dependent,
-                        const EnumDef &dependency) {
-    std::string ns;
-    const auto &depc_comps = dependency.defined_namespace->components;
-    for (auto it = depc_comps.begin(); it != depc_comps.end(); it++) {
-      ns += *it;
-    }
-    std::string unique_name = ns + dependency.name;
-    std::string import_name = EscapeKeyword(dependency.name);
-    std::string long_import_name;
-    if (imports.find(unique_name) != imports.end()) {
-      return imports.find(unique_name)->second.name;
-    }
-    for (auto it = imports.begin(); it != imports.end(); it++) {
-      if (it->second.name == import_name) {
-        long_import_name = ns + import_name;
-        break;
-      }
-    }
+                        const DefintionT &dependency) {
+    // The unique name of the dependency, fully qualified in its namespace.
+    const std::string unique_name = WrapInNameSpace(dependency);
+
+    // Look if we have already added this import and return its name if found.
+    const auto import_pair = imports.find(unique_name);
+    if (import_pair != imports.end()) { return import_pair->second.name; }
+
+    // Check if this name would have a name clash with another type.
+    const std::string import_name = MakeNamespaced(dependency);
+    const bool has_name_clash = CheckIfNameClashes(imports, import_name);
+
+    // If we have a name clash, use the unique name, otherwise use simple name.
+    std::string name = has_name_clash ? unique_name : import_name;
 
     if (parser_.opts.ts_flat_file) {
       // In flat-file generation, do not attempt to import things from ourselves
@@ -752,58 +710,55 @@ class TsGenerator : public BaseGenerator {
       // above, but since we force all non-self-imports to use namespace-based
       // names in flat file generation, it's fine).
       if (dependent.file == dependency.file) {
-        long_import_name = import_name;
+        name = import_name;
       } else {
-        long_import_name = ns + import_name;
-        std::string file =
+        const std::string file =
             RelativeToRootPath(StripFileName(AbsolutePath(dependent.file)),
                                dependency.file)
                 // Strip the leading //
                 .substr(2);
-        flat_file_import_declarations_[file][import_name] = long_import_name;
+        flat_file_import_declarations_[file][import_name] = name;
+        if (parser_.opts.generate_object_based_api &&
+            typeid(dependency) == typeid(StructDef)) {
+          flat_file_import_declarations_[file][import_name + "T"] = name + "T";
+        }
       }
     }
 
-    std::string import_statement;
-    std::string export_statement;
-    import_statement += "import { ";
-    export_statement += "export { ";
-    std::string symbols_expression;
-    if (long_import_name.empty())
-      symbols_expression += import_name;
-    else
-      symbols_expression += EscapeKeyword(dependency.name) + " as " +
-                            EscapeKeyword(long_import_name);
-    if (dependency.is_union) {
-      symbols_expression += ", unionTo" + import_name;
-      symbols_expression += ", unionListTo" + import_name;
-    }
-    import_statement += symbols_expression + " } from '";
-    export_statement += symbols_expression + " } from '";
+    const std::string symbols_expression =
+        GenSymbolExpression(dependency, has_name_clash, import_name, name);
+
     std::string bare_file_path;
     std::string rel_file_path;
     const auto &dep_comps = dependent.defined_namespace->components;
-    for (size_t i = 0; i < dep_comps.size(); i++)
+    for (size_t i = 0; i < dep_comps.size(); i++) {
       rel_file_path += i == 0 ? ".." : (kPathSeparator + std::string(".."));
-    if (dep_comps.size() == 0) rel_file_path += ".";
-    for (auto it = depc_comps.begin(); it != depc_comps.end(); it++)
+    }
+    if (dep_comps.size() == 0) { rel_file_path += "."; }
+
+    const auto &depc_comps = dependency.defined_namespace->components;
+    for (auto it = depc_comps.begin(); it != depc_comps.end(); it++) {
       bare_file_path +=
           kPathSeparator + ConvertCase(*it, Case::kDasher, Case::kUpperCamel);
+    }
     bare_file_path +=
         kPathSeparator +
         ConvertCase(dependency.name, Case::kDasher, Case::kUpperCamel);
     rel_file_path += bare_file_path;
-    import_statement += rel_file_path + "';";
-    export_statement += "." + bare_file_path + "';";
+
     ImportDefinition import;
-    import.name = long_import_name.empty() ? import_name : long_import_name;
+    import.name = name;
     import.bare_file_path = bare_file_path;
     import.rel_file_path = rel_file_path;
-    import.import_statement = import_statement;
-    import.export_statement = export_statement;
+    import.import_statement =
+        "import { " + symbols_expression + " } from '" + rel_file_path + "';";
+    import.export_statement =
+        "export { " + symbols_expression + " } from '." + bare_file_path + "';";
     import.dependency = &dependency;
     import.dependent = &dependent;
+
     imports.insert(std::make_pair(unique_name, import));
+
     return import.name;
   }
 
@@ -866,7 +821,7 @@ class TsGenerator : public BaseGenerator {
       const auto valid_union_type_with_null = valid_union_type + "|null";
 
       auto ret = "\n\nexport function " + GenUnionConvFuncName(enum_def) +
-                 "(\n  type: " + enum_def.name +
+                 "(\n  type: " + MakeNamespaced(enum_def) +
                  ",\n  accessor: (obj:" + valid_union_type + ") => " +
                  valid_union_type_with_null +
                  "\n): " + valid_union_type_with_null + " {\n";
@@ -905,7 +860,7 @@ class TsGenerator : public BaseGenerator {
       ret += "}";
 
       ret += "\n\nexport function " + GenUnionListConvFuncName(enum_def) +
-             "(\n  type: " + enum_def.name +
+             "(\n  type: " + MakeNamespaced(enum_def) +
              ", \n  accessor: (index: number, obj:" + valid_union_type +
              ") => " + valid_union_type_with_null +
              ", \n  index: number\n): " + valid_union_type_with_null + " {\n";
@@ -1335,11 +1290,16 @@ class TsGenerator : public BaseGenerator {
     if (struct_def.generated) return;
     std::string &code = *code_ptr;
 
+    // Special case for the root struct, since no one will necessarily reference
+    // it, we have to explicitly add it to the import list.
+    if (&struct_def == parser_.root_struct_def_) {
+      AddImport(imports, struct_def, struct_def);
+    }
+
     std::string object_name;
-    std::string object_namespace = GetNameSpace(struct_def);
 
     // Emit constructor
-    object_name = EscapeKeyword(struct_def.name);
+    object_name = EscapeKeyword(MakeNamespaced(struct_def));
     GenDocComment(struct_def.doc_comment, code_ptr);
     code += "export class ";
     // TODO(7445): figure out if the export needs a namespace for ts-flat-files

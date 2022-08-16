@@ -34,4 +34,3 @@ export function unionListToGadget(
     default: return null;
   }
 }
-
