@@ -38,8 +38,10 @@ namespace flatbuffers {
 
 namespace go {
 
+namespace {
+
 // see https://golang.org/ref/spec#Keywords
-std::set<std::string> GoKeywords() {
+static std::set<std::string> GoKeywords() {
   return {
     "break",    "default",     "func",   "interface", "select",
     "case",     "defer",       "go",     "map",       "struct",
@@ -49,7 +51,7 @@ std::set<std::string> GoKeywords() {
   };
 }
 
-Namer::Config GoDefaultConfig() {
+static Namer::Config GoDefaultConfig() {
   // Note that the functions with user defined types in the name use
   // upper camel case for all but the user defined type itself, which is keep
   // cased. Despite being a function, we interpret it as a Type.
@@ -74,6 +76,8 @@ Namer::Config GoDefaultConfig() {
            /*filename_suffix=*/"",
            /*filename_extension=*/".go" };
 }
+
+} // namespace
 
 class GoGenerator : public BaseGenerator {
  public:

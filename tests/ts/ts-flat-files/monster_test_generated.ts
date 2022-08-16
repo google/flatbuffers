@@ -2,40 +2,740 @@
 
 import * as flatbuffers from 'flatbuffers';
 
-import { Monster as MyGame_Example2_Monster, MonsterT as MyGame_Example2_MonsterT } from '../../my-game/example2/monster';
-import { Ability, AbilityT } from '../../my-game/example/ability';
-import { Any, unionToAny, unionListToAny } from '../../my-game/example/any';
-import { AnyAmbiguousAliases, unionToAnyAmbiguousAliases, unionListToAnyAmbiguousAliases } from '../../my-game/example/any-ambiguous-aliases';
-import { AnyUniqueAliases, unionToAnyUniqueAliases, unionListToAnyUniqueAliases } from '../../my-game/example/any-unique-aliases';
-import { Color } from '../../my-game/example/color';
-import { Race } from '../../my-game/example/race';
-import { Referrable, ReferrableT } from '../../my-game/example/referrable';
-import { Stat, StatT } from '../../my-game/example/stat';
-import { Test, TestT } from '../../my-game/example/test';
-import { TestSimpleTableWithEnum, TestSimpleTableWithEnumT } from '../../my-game/example/test-simple-table-with-enum';
-import { Vec3, Vec3T } from '../../my-game/example/vec3';
-import { InParentNamespace, InParentNamespaceT } from '../../my-game/in-parent-namespace';
-
+export enum MyGame_OtherNameSpace_FromInclude {
+  IncludeVal = '0'
+}
 
 /**
- * an example documentation comment: "monster object"
+ * Composite components of Monster color.
  */
-export class Monster {
+export enum MyGame_Example_Color {
+  Red = 1,
+
+  /**
+   * \brief color Green
+   * Green is bit_flag with value (1u << 1)
+   */
+  Green = 2,
+
+  /**
+   * \brief color Blue (1u << 3)
+   */
+  Blue = 8
+}
+
+export enum MyGame_Example_Race {
+  None = -1,
+  Human = 0,
+  Dwarf = 1,
+  Elf = 2
+}
+
+export enum MyGame_Example_LongEnum {
+  LongOne = '2',
+  LongTwo = '4',
+  LongBig = '1099511627776'
+}
+
+export enum MyGame_Example_Any {
+  NONE = 0,
+  Monster = 1,
+  TestSimpleTableWithEnum = 2,
+  MyGame_Example2_Monster = 3
+}
+
+export function unionToAny(
+  type: MyGame_Example_Any,
+  accessor: (obj:Monster|TestSimpleTableWithEnum) => Monster|TestSimpleTableWithEnum|null
+): Monster|TestSimpleTableWithEnum|null {
+  switch(Any[type]) {
+    case 'NONE': return null; 
+    case 'Monster': return accessor(new Monster())! as Monster;
+    case 'TestSimpleTableWithEnum': return accessor(new TestSimpleTableWithEnum())! as TestSimpleTableWithEnum;
+    case 'MyGame_Example2_Monster': return accessor(new Monster())! as Monster;
+    default: return null;
+  }
+}
+
+export function unionListToAny(
+  type: MyGame_Example_Any, 
+  accessor: (index: number, obj:Monster|TestSimpleTableWithEnum) => Monster|TestSimpleTableWithEnum|null, 
+  index: number
+): Monster|TestSimpleTableWithEnum|null {
+  switch(Any[type]) {
+    case 'NONE': return null; 
+    case 'Monster': return accessor(index, new Monster())! as Monster;
+    case 'TestSimpleTableWithEnum': return accessor(index, new TestSimpleTableWithEnum())! as TestSimpleTableWithEnum;
+    case 'MyGame_Example2_Monster': return accessor(index, new Monster())! as Monster;
+    default: return null;
+  }
+}
+
+export enum MyGame_Example_AnyUniqueAliases {
+  NONE = 0,
+  M = 1,
+  TS = 2,
+  M2 = 3
+}
+
+export function unionToAnyUniqueAliases(
+  type: MyGame_Example_AnyUniqueAliases,
+  accessor: (obj:Monster|TestSimpleTableWithEnum) => Monster|TestSimpleTableWithEnum|null
+): Monster|TestSimpleTableWithEnum|null {
+  switch(AnyUniqueAliases[type]) {
+    case 'NONE': return null; 
+    case 'M': return accessor(new Monster())! as Monster;
+    case 'TS': return accessor(new TestSimpleTableWithEnum())! as TestSimpleTableWithEnum;
+    case 'M2': return accessor(new Monster())! as Monster;
+    default: return null;
+  }
+}
+
+export function unionListToAnyUniqueAliases(
+  type: MyGame_Example_AnyUniqueAliases, 
+  accessor: (index: number, obj:Monster|TestSimpleTableWithEnum) => Monster|TestSimpleTableWithEnum|null, 
+  index: number
+): Monster|TestSimpleTableWithEnum|null {
+  switch(AnyUniqueAliases[type]) {
+    case 'NONE': return null; 
+    case 'M': return accessor(index, new Monster())! as Monster;
+    case 'TS': return accessor(index, new TestSimpleTableWithEnum())! as TestSimpleTableWithEnum;
+    case 'M2': return accessor(index, new Monster())! as Monster;
+    default: return null;
+  }
+}
+
+export enum MyGame_Example_AnyAmbiguousAliases {
+  NONE = 0,
+  M1 = 1,
+  M2 = 2,
+  M3 = 3
+}
+
+export function unionToAnyAmbiguousAliases(
+  type: MyGame_Example_AnyAmbiguousAliases,
+  accessor: (obj:Monster) => Monster|null
+): Monster|null {
+  switch(AnyAmbiguousAliases[type]) {
+    case 'NONE': return null; 
+    case 'M1': return accessor(new Monster())! as Monster;
+    case 'M2': return accessor(new Monster())! as Monster;
+    case 'M3': return accessor(new Monster())! as Monster;
+    default: return null;
+  }
+}
+
+export function unionListToAnyAmbiguousAliases(
+  type: MyGame_Example_AnyAmbiguousAliases, 
+  accessor: (index: number, obj:Monster) => Monster|null, 
+  index: number
+): Monster|null {
+  switch(AnyAmbiguousAliases[type]) {
+    case 'NONE': return null; 
+    case 'M1': return accessor(index, new Monster())! as Monster;
+    case 'M2': return accessor(index, new Monster())! as Monster;
+    case 'M3': return accessor(index, new Monster())! as Monster;
+    default: return null;
+  }
+}
+
+export class MyGame_OtherNameSpace_Unused {
   bb: flatbuffers.ByteBuffer|null = null;
   bb_pos = 0;
-  __init(i:number, bb:flatbuffers.ByteBuffer):Monster {
+  __init(i:number, bb:flatbuffers.ByteBuffer):MyGame_OtherNameSpace_Unused {
   this.bb_pos = i;
   this.bb = bb;
   return this;
 }
 
-static getRootAsMonster(bb:flatbuffers.ByteBuffer, obj?:Monster):Monster {
-  return (obj || new Monster()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+a():number {
+  return this.bb!.readInt32(this.bb_pos);
 }
 
-static getSizePrefixedRootAsMonster(bb:flatbuffers.ByteBuffer, obj?:Monster):Monster {
+static sizeOf():number {
+  return 4;
+}
+
+static createUnused(builder:flatbuffers.Builder, a: number):flatbuffers.Offset {
+  builder.prep(4, 4);
+  builder.writeInt32(a);
+  return builder.offset();
+}
+
+}
+
+export class MyGame_OtherNameSpace_TableB {
+  bb: flatbuffers.ByteBuffer|null = null;
+  bb_pos = 0;
+  __init(i:number, bb:flatbuffers.ByteBuffer):MyGame_OtherNameSpace_TableB {
+  this.bb_pos = i;
+  this.bb = bb;
+  return this;
+}
+
+static getRootAsTableB(bb:flatbuffers.ByteBuffer, obj?:MyGame_OtherNameSpace_TableB):MyGame_OtherNameSpace_TableB {
+  return (obj || new MyGame_OtherNameSpace_TableB()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+}
+
+static getSizePrefixedRootAsTableB(bb:flatbuffers.ByteBuffer, obj?:MyGame_OtherNameSpace_TableB):MyGame_OtherNameSpace_TableB {
   bb.setPosition(bb.position() + flatbuffers.SIZE_PREFIX_LENGTH);
-  return (obj || new Monster()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+  return (obj || new MyGame_OtherNameSpace_TableB()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+}
+
+a(obj?:TableA):TableA|null {
+  const offset = this.bb!.__offset(this.bb_pos, 4);
+  return offset ? (obj || new TableA()).__init(this.bb!.__indirect(this.bb_pos + offset), this.bb!) : null;
+}
+
+static startTableB(builder:flatbuffers.Builder) {
+  builder.startObject(1);
+}
+
+static addA(builder:flatbuffers.Builder, aOffset:flatbuffers.Offset) {
+  builder.addFieldOffset(0, aOffset, 0);
+}
+
+static endTableB(builder:flatbuffers.Builder):flatbuffers.Offset {
+  const offset = builder.endObject();
+  return offset;
+}
+
+static createTableB(builder:flatbuffers.Builder, aOffset:flatbuffers.Offset):flatbuffers.Offset {
+  MyGame_OtherNameSpace_TableB.startTableB(builder);
+  MyGame_OtherNameSpace_TableB.addA(builder, aOffset);
+  return MyGame_OtherNameSpace_TableB.endTableB(builder);
+}
+
+serialize():Uint8Array {
+  return this.bb!.bytes();
+}
+
+static deserialize(buffer: Uint8Array):TableB {
+  return TableB.getRootAsTableB(new flatbuffers.ByteBuffer(buffer))
+}
+}
+
+export class TableA {
+  bb: flatbuffers.ByteBuffer|null = null;
+  bb_pos = 0;
+  __init(i:number, bb:flatbuffers.ByteBuffer):TableA {
+  this.bb_pos = i;
+  this.bb = bb;
+  return this;
+}
+
+static getRootAsTableA(bb:flatbuffers.ByteBuffer, obj?:TableA):TableA {
+  return (obj || new TableA()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+}
+
+static getSizePrefixedRootAsTableA(bb:flatbuffers.ByteBuffer, obj?:TableA):TableA {
+  bb.setPosition(bb.position() + flatbuffers.SIZE_PREFIX_LENGTH);
+  return (obj || new TableA()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+}
+
+b(obj?:TableB):TableB|null {
+  const offset = this.bb!.__offset(this.bb_pos, 4);
+  return offset ? (obj || new TableB()).__init(this.bb!.__indirect(this.bb_pos + offset), this.bb!) : null;
+}
+
+static startTableA(builder:flatbuffers.Builder) {
+  builder.startObject(1);
+}
+
+static addB(builder:flatbuffers.Builder, bOffset:flatbuffers.Offset) {
+  builder.addFieldOffset(0, bOffset, 0);
+}
+
+static endTableA(builder:flatbuffers.Builder):flatbuffers.Offset {
+  const offset = builder.endObject();
+  return offset;
+}
+
+static createTableA(builder:flatbuffers.Builder, bOffset:flatbuffers.Offset):flatbuffers.Offset {
+  TableA.startTableA(builder);
+  TableA.addB(builder, bOffset);
+  return TableA.endTableA(builder);
+}
+
+serialize():Uint8Array {
+  return this.bb!.bytes();
+}
+
+static deserialize(buffer: Uint8Array):TableA {
+  return TableA.getRootAsTableA(new flatbuffers.ByteBuffer(buffer))
+}
+}
+
+export class MyGame_InParentNamespace {
+  bb: flatbuffers.ByteBuffer|null = null;
+  bb_pos = 0;
+  __init(i:number, bb:flatbuffers.ByteBuffer):MyGame_InParentNamespace {
+  this.bb_pos = i;
+  this.bb = bb;
+  return this;
+}
+
+static getRootAsInParentNamespace(bb:flatbuffers.ByteBuffer, obj?:MyGame_InParentNamespace):MyGame_InParentNamespace {
+  return (obj || new MyGame_InParentNamespace()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+}
+
+static getSizePrefixedRootAsInParentNamespace(bb:flatbuffers.ByteBuffer, obj?:MyGame_InParentNamespace):MyGame_InParentNamespace {
+  bb.setPosition(bb.position() + flatbuffers.SIZE_PREFIX_LENGTH);
+  return (obj || new MyGame_InParentNamespace()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+}
+
+static startInParentNamespace(builder:flatbuffers.Builder) {
+  builder.startObject(0);
+}
+
+static endInParentNamespace(builder:flatbuffers.Builder):flatbuffers.Offset {
+  const offset = builder.endObject();
+  return offset;
+}
+
+static createInParentNamespace(builder:flatbuffers.Builder):flatbuffers.Offset {
+  MyGame_InParentNamespace.startInParentNamespace(builder);
+  return MyGame_InParentNamespace.endInParentNamespace(builder);
+}
+
+serialize():Uint8Array {
+  return this.bb!.bytes();
+}
+
+static deserialize(buffer: Uint8Array):InParentNamespace {
+  return InParentNamespace.getRootAsInParentNamespace(new flatbuffers.ByteBuffer(buffer))
+}
+}
+
+export class MyGame_Example2_Monster {
+  bb: flatbuffers.ByteBuffer|null = null;
+  bb_pos = 0;
+  __init(i:number, bb:flatbuffers.ByteBuffer):MyGame_Example2_Monster {
+  this.bb_pos = i;
+  this.bb = bb;
+  return this;
+}
+
+static getRootAsMonster(bb:flatbuffers.ByteBuffer, obj?:MyGame_Example2_Monster):MyGame_Example2_Monster {
+  return (obj || new MyGame_Example2_Monster()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+}
+
+static getSizePrefixedRootAsMonster(bb:flatbuffers.ByteBuffer, obj?:MyGame_Example2_Monster):MyGame_Example2_Monster {
+  bb.setPosition(bb.position() + flatbuffers.SIZE_PREFIX_LENGTH);
+  return (obj || new MyGame_Example2_Monster()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+}
+
+static startMonster(builder:flatbuffers.Builder) {
+  builder.startObject(0);
+}
+
+static endMonster(builder:flatbuffers.Builder):flatbuffers.Offset {
+  const offset = builder.endObject();
+  return offset;
+}
+
+static createMonster(builder:flatbuffers.Builder):flatbuffers.Offset {
+  MyGame_Example2_Monster.startMonster(builder);
+  return MyGame_Example2_Monster.endMonster(builder);
+}
+
+serialize():Uint8Array {
+  return this.bb!.bytes();
+}
+
+static deserialize(buffer: Uint8Array):Monster {
+  return Monster.getRootAsMonster(new flatbuffers.ByteBuffer(buffer))
+}
+}
+
+export class MyGame_Example_Test {
+  bb: flatbuffers.ByteBuffer|null = null;
+  bb_pos = 0;
+  __init(i:number, bb:flatbuffers.ByteBuffer):MyGame_Example_Test {
+  this.bb_pos = i;
+  this.bb = bb;
+  return this;
+}
+
+a():number {
+  return this.bb!.readInt16(this.bb_pos);
+}
+
+b():number {
+  return this.bb!.readInt8(this.bb_pos + 2);
+}
+
+static sizeOf():number {
+  return 4;
+}
+
+static createTest(builder:flatbuffers.Builder, a: number, b: number):flatbuffers.Offset {
+  builder.prep(2, 4);
+  builder.pad(1);
+  builder.writeInt8(b);
+  builder.writeInt16(a);
+  return builder.offset();
+}
+
+}
+
+export class MyGame_Example_TestSimpleTableWithEnum {
+  bb: flatbuffers.ByteBuffer|null = null;
+  bb_pos = 0;
+  __init(i:number, bb:flatbuffers.ByteBuffer):MyGame_Example_TestSimpleTableWithEnum {
+  this.bb_pos = i;
+  this.bb = bb;
+  return this;
+}
+
+static getRootAsTestSimpleTableWithEnum(bb:flatbuffers.ByteBuffer, obj?:MyGame_Example_TestSimpleTableWithEnum):MyGame_Example_TestSimpleTableWithEnum {
+  return (obj || new MyGame_Example_TestSimpleTableWithEnum()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+}
+
+static getSizePrefixedRootAsTestSimpleTableWithEnum(bb:flatbuffers.ByteBuffer, obj?:MyGame_Example_TestSimpleTableWithEnum):MyGame_Example_TestSimpleTableWithEnum {
+  bb.setPosition(bb.position() + flatbuffers.SIZE_PREFIX_LENGTH);
+  return (obj || new MyGame_Example_TestSimpleTableWithEnum()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+}
+
+color():Color {
+  const offset = this.bb!.__offset(this.bb_pos, 4);
+  return offset ? this.bb!.readUint8(this.bb_pos + offset) : Color.Green;
+}
+
+static startTestSimpleTableWithEnum(builder:flatbuffers.Builder) {
+  builder.startObject(1);
+}
+
+static addColor(builder:flatbuffers.Builder, color:Color) {
+  builder.addFieldInt8(0, color, Color.Green);
+}
+
+static endTestSimpleTableWithEnum(builder:flatbuffers.Builder):flatbuffers.Offset {
+  const offset = builder.endObject();
+  return offset;
+}
+
+static createTestSimpleTableWithEnum(builder:flatbuffers.Builder, color:Color):flatbuffers.Offset {
+  MyGame_Example_TestSimpleTableWithEnum.startTestSimpleTableWithEnum(builder);
+  MyGame_Example_TestSimpleTableWithEnum.addColor(builder, color);
+  return MyGame_Example_TestSimpleTableWithEnum.endTestSimpleTableWithEnum(builder);
+}
+
+serialize():Uint8Array {
+  return this.bb!.bytes();
+}
+
+static deserialize(buffer: Uint8Array):TestSimpleTableWithEnum {
+  return TestSimpleTableWithEnum.getRootAsTestSimpleTableWithEnum(new flatbuffers.ByteBuffer(buffer))
+}
+}
+
+export class MyGame_Example_Vec3 {
+  bb: flatbuffers.ByteBuffer|null = null;
+  bb_pos = 0;
+  __init(i:number, bb:flatbuffers.ByteBuffer):MyGame_Example_Vec3 {
+  this.bb_pos = i;
+  this.bb = bb;
+  return this;
+}
+
+x():number {
+  return this.bb!.readFloat32(this.bb_pos);
+}
+
+y():number {
+  return this.bb!.readFloat32(this.bb_pos + 4);
+}
+
+z():number {
+  return this.bb!.readFloat32(this.bb_pos + 8);
+}
+
+test1():number {
+  return this.bb!.readFloat64(this.bb_pos + 16);
+}
+
+test2():Color {
+  return this.bb!.readUint8(this.bb_pos + 24);
+}
+
+test3(obj?:Test):Test|null {
+  return (obj || new Test()).__init(this.bb_pos + 26, this.bb!);
+}
+
+static sizeOf():number {
+  return 32;
+}
+
+static createVec3(builder:flatbuffers.Builder, x: number, y: number, z: number, test1: number, test2: Color, test3_a: number, test3_b: number):flatbuffers.Offset {
+  builder.prep(8, 32);
+  builder.pad(2);
+  builder.prep(2, 4);
+  builder.pad(1);
+  builder.writeInt8(test3_b);
+  builder.writeInt16(test3_a);
+  builder.pad(1);
+  builder.writeInt8(test2);
+  builder.writeFloat64(test1);
+  builder.pad(4);
+  builder.writeFloat32(z);
+  builder.writeFloat32(y);
+  builder.writeFloat32(x);
+  return builder.offset();
+}
+
+}
+
+export class MyGame_Example_Ability {
+  bb: flatbuffers.ByteBuffer|null = null;
+  bb_pos = 0;
+  __init(i:number, bb:flatbuffers.ByteBuffer):MyGame_Example_Ability {
+  this.bb_pos = i;
+  this.bb = bb;
+  return this;
+}
+
+id():number {
+  return this.bb!.readUint32(this.bb_pos);
+}
+
+distance():number {
+  return this.bb!.readUint32(this.bb_pos + 4);
+}
+
+static sizeOf():number {
+  return 8;
+}
+
+static createAbility(builder:flatbuffers.Builder, id: number, distance: number):flatbuffers.Offset {
+  builder.prep(4, 8);
+  builder.writeInt32(distance);
+  builder.writeInt32(id);
+  return builder.offset();
+}
+
+}
+
+export class MyGame_Example_StructOfStructs {
+  bb: flatbuffers.ByteBuffer|null = null;
+  bb_pos = 0;
+  __init(i:number, bb:flatbuffers.ByteBuffer):MyGame_Example_StructOfStructs {
+  this.bb_pos = i;
+  this.bb = bb;
+  return this;
+}
+
+a(obj?:Ability):Ability|null {
+  return (obj || new Ability()).__init(this.bb_pos, this.bb!);
+}
+
+b(obj?:Test):Test|null {
+  return (obj || new Test()).__init(this.bb_pos + 8, this.bb!);
+}
+
+c(obj?:Ability):Ability|null {
+  return (obj || new Ability()).__init(this.bb_pos + 12, this.bb!);
+}
+
+static sizeOf():number {
+  return 20;
+}
+
+static createStructOfStructs(builder:flatbuffers.Builder, a_id: number, a_distance: number, b_a: number, b_b: number, c_id: number, c_distance: number):flatbuffers.Offset {
+  builder.prep(4, 20);
+  builder.prep(4, 8);
+  builder.writeInt32(c_distance);
+  builder.writeInt32(c_id);
+  builder.prep(2, 4);
+  builder.pad(1);
+  builder.writeInt8(b_b);
+  builder.writeInt16(b_a);
+  builder.prep(4, 8);
+  builder.writeInt32(a_distance);
+  builder.writeInt32(a_id);
+  return builder.offset();
+}
+
+}
+
+export class MyGame_Example_StructOfStructsOfStructs {
+  bb: flatbuffers.ByteBuffer|null = null;
+  bb_pos = 0;
+  __init(i:number, bb:flatbuffers.ByteBuffer):MyGame_Example_StructOfStructsOfStructs {
+  this.bb_pos = i;
+  this.bb = bb;
+  return this;
+}
+
+a(obj?:StructOfStructs):StructOfStructs|null {
+  return (obj || new StructOfStructs()).__init(this.bb_pos, this.bb!);
+}
+
+static sizeOf():number {
+  return 20;
+}
+
+static createStructOfStructsOfStructs(builder:flatbuffers.Builder, a_a_id: number, a_a_distance: number, a_b_a: number, a_b_b: number, a_c_id: number, a_c_distance: number):flatbuffers.Offset {
+  builder.prep(4, 20);
+  builder.prep(4, 20);
+  builder.prep(4, 8);
+  builder.writeInt32(a_c_distance);
+  builder.writeInt32(a_c_id);
+  builder.prep(2, 4);
+  builder.pad(1);
+  builder.writeInt8(a_b_b);
+  builder.writeInt16(a_b_a);
+  builder.prep(4, 8);
+  builder.writeInt32(a_a_distance);
+  builder.writeInt32(a_a_id);
+  return builder.offset();
+}
+
+}
+
+export class MyGame_Example_Stat {
+  bb: flatbuffers.ByteBuffer|null = null;
+  bb_pos = 0;
+  __init(i:number, bb:flatbuffers.ByteBuffer):MyGame_Example_Stat {
+  this.bb_pos = i;
+  this.bb = bb;
+  return this;
+}
+
+static getRootAsStat(bb:flatbuffers.ByteBuffer, obj?:MyGame_Example_Stat):MyGame_Example_Stat {
+  return (obj || new MyGame_Example_Stat()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+}
+
+static getSizePrefixedRootAsStat(bb:flatbuffers.ByteBuffer, obj?:MyGame_Example_Stat):MyGame_Example_Stat {
+  bb.setPosition(bb.position() + flatbuffers.SIZE_PREFIX_LENGTH);
+  return (obj || new MyGame_Example_Stat()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+}
+
+id():string|null
+id(optionalEncoding:flatbuffers.Encoding):string|Uint8Array|null
+id(optionalEncoding?:any):string|Uint8Array|null {
+  const offset = this.bb!.__offset(this.bb_pos, 4);
+  return offset ? this.bb!.__string(this.bb_pos + offset, optionalEncoding) : null;
+}
+
+val():bigint {
+  const offset = this.bb!.__offset(this.bb_pos, 6);
+  return offset ? this.bb!.readInt64(this.bb_pos + offset) : BigInt('0');
+}
+
+count():number {
+  const offset = this.bb!.__offset(this.bb_pos, 8);
+  return offset ? this.bb!.readUint16(this.bb_pos + offset) : 0;
+}
+
+static startStat(builder:flatbuffers.Builder) {
+  builder.startObject(3);
+}
+
+static addId(builder:flatbuffers.Builder, idOffset:flatbuffers.Offset) {
+  builder.addFieldOffset(0, idOffset, 0);
+}
+
+static addVal(builder:flatbuffers.Builder, val:bigint) {
+  builder.addFieldInt64(1, val, BigInt('0'));
+}
+
+static addCount(builder:flatbuffers.Builder, count:number) {
+  builder.addFieldInt16(2, count, 0);
+}
+
+static endStat(builder:flatbuffers.Builder):flatbuffers.Offset {
+  const offset = builder.endObject();
+  return offset;
+}
+
+static createStat(builder:flatbuffers.Builder, idOffset:flatbuffers.Offset, val:bigint, count:number):flatbuffers.Offset {
+  MyGame_Example_Stat.startStat(builder);
+  MyGame_Example_Stat.addId(builder, idOffset);
+  MyGame_Example_Stat.addVal(builder, val);
+  MyGame_Example_Stat.addCount(builder, count);
+  return MyGame_Example_Stat.endStat(builder);
+}
+
+serialize():Uint8Array {
+  return this.bb!.bytes();
+}
+
+static deserialize(buffer: Uint8Array):Stat {
+  return Stat.getRootAsStat(new flatbuffers.ByteBuffer(buffer))
+}
+}
+
+export class MyGame_Example_Referrable {
+  bb: flatbuffers.ByteBuffer|null = null;
+  bb_pos = 0;
+  __init(i:number, bb:flatbuffers.ByteBuffer):MyGame_Example_Referrable {
+  this.bb_pos = i;
+  this.bb = bb;
+  return this;
+}
+
+static getRootAsReferrable(bb:flatbuffers.ByteBuffer, obj?:MyGame_Example_Referrable):MyGame_Example_Referrable {
+  return (obj || new MyGame_Example_Referrable()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+}
+
+static getSizePrefixedRootAsReferrable(bb:flatbuffers.ByteBuffer, obj?:MyGame_Example_Referrable):MyGame_Example_Referrable {
+  bb.setPosition(bb.position() + flatbuffers.SIZE_PREFIX_LENGTH);
+  return (obj || new MyGame_Example_Referrable()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+}
+
+id():bigint {
+  const offset = this.bb!.__offset(this.bb_pos, 4);
+  return offset ? this.bb!.readUint64(this.bb_pos + offset) : BigInt('0');
+}
+
+static startReferrable(builder:flatbuffers.Builder) {
+  builder.startObject(1);
+}
+
+static addId(builder:flatbuffers.Builder, id:bigint) {
+  builder.addFieldInt64(0, id, BigInt('0'));
+}
+
+static endReferrable(builder:flatbuffers.Builder):flatbuffers.Offset {
+  const offset = builder.endObject();
+  return offset;
+}
+
+static createReferrable(builder:flatbuffers.Builder, id:bigint):flatbuffers.Offset {
+  MyGame_Example_Referrable.startReferrable(builder);
+  MyGame_Example_Referrable.addId(builder, id);
+  return MyGame_Example_Referrable.endReferrable(builder);
+}
+
+serialize():Uint8Array {
+  return this.bb!.bytes();
+}
+
+static deserialize(buffer: Uint8Array):Referrable {
+  return Referrable.getRootAsReferrable(new flatbuffers.ByteBuffer(buffer))
+}
+}
+
+/**
+ * an example documentation comment: "monster object"
+ */
+export class MyGame_Example_Monster {
+  bb: flatbuffers.ByteBuffer|null = null;
+  bb_pos = 0;
+  __init(i:number, bb:flatbuffers.ByteBuffer):MyGame_Example_Monster {
+  this.bb_pos = i;
+  this.bb = bb;
+  return this;
+}
+
+static getRootAsMonster(bb:flatbuffers.ByteBuffer, obj?:MyGame_Example_Monster):MyGame_Example_Monster {
+  return (obj || new MyGame_Example_Monster()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+}
+
+static getSizePrefixedRootAsMonster(bb:flatbuffers.ByteBuffer, obj?:MyGame_Example_Monster):MyGame_Example_Monster {
+  bb.setPosition(bb.position() + flatbuffers.SIZE_PREFIX_LENGTH);
+  return (obj || new MyGame_Example_Monster()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
 }
 
 static bufferHasIdentifier(bb:flatbuffers.ByteBuffer):boolean {
@@ -52,31 +752,9 @@ mana():number {
   return offset ? this.bb!.readInt16(this.bb_pos + offset) : 150;
 }
 
-mutate_mana(value:number):boolean {
-  const offset = this.bb!.__offset(this.bb_pos, 6);
-
-  if (offset === 0) {
-    return false;
-  }
-
-  this.bb!.writeInt16(this.bb_pos + offset, value);
-  return true;
-}
-
 hp():number {
   const offset = this.bb!.__offset(this.bb_pos, 8);
   return offset ? this.bb!.readInt16(this.bb_pos + offset) : 100;
-}
-
-mutate_hp(value:number):boolean {
-  const offset = this.bb!.__offset(this.bb_pos, 8);
-
-  if (offset === 0) {
-    return false;
-  }
-
-  this.bb!.writeInt16(this.bb_pos + offset, value);
-  return true;
 }
 
 name():string|null
@@ -104,17 +782,6 @@ inventoryArray():Uint8Array|null {
 color():Color {
   const offset = this.bb!.__offset(this.bb_pos, 16);
   return offset ? this.bb!.readUint8(this.bb_pos + offset) : Color.Blue;
-}
-
-mutate_color(value:Color):boolean {
-  const offset = this.bb!.__offset(this.bb_pos, 16);
-
-  if (offset === 0) {
-    return false;
-  }
-
-  this.bb!.writeUint8(this.bb_pos + offset, value);
-  return true;
 }
 
 testType():Any {
@@ -193,31 +860,9 @@ testbool():boolean {
   return offset ? !!this.bb!.readInt8(this.bb_pos + offset) : false;
 }
 
-mutate_testbool(value:boolean):boolean {
-  const offset = this.bb!.__offset(this.bb_pos, 34);
-
-  if (offset === 0) {
-    return false;
-  }
-
-  this.bb!.writeInt8(this.bb_pos + offset, +value);
-  return true;
-}
-
 testhashs32Fnv1():number {
   const offset = this.bb!.__offset(this.bb_pos, 36);
   return offset ? this.bb!.readInt32(this.bb_pos + offset) : 0;
-}
-
-mutate_testhashs32_fnv1(value:number):boolean {
-  const offset = this.bb!.__offset(this.bb_pos, 36);
-
-  if (offset === 0) {
-    return false;
-  }
-
-  this.bb!.writeInt32(this.bb_pos + offset, value);
-  return true;
 }
 
 testhashu32Fnv1():number {
@@ -225,31 +870,9 @@ testhashu32Fnv1():number {
   return offset ? this.bb!.readUint32(this.bb_pos + offset) : 0;
 }
 
-mutate_testhashu32_fnv1(value:number):boolean {
-  const offset = this.bb!.__offset(this.bb_pos, 38);
-
-  if (offset === 0) {
-    return false;
-  }
-
-  this.bb!.writeUint32(this.bb_pos + offset, value);
-  return true;
-}
-
 testhashs64Fnv1():bigint {
   const offset = this.bb!.__offset(this.bb_pos, 40);
   return offset ? this.bb!.readInt64(this.bb_pos + offset) : BigInt('0');
-}
-
-mutate_testhashs64_fnv1(value:bigint):boolean {
-  const offset = this.bb!.__offset(this.bb_pos, 40);
-
-  if (offset === 0) {
-    return false;
-  }
-
-  this.bb!.writeInt64(this.bb_pos + offset, value);
-  return true;
 }
 
 testhashu64Fnv1():bigint {
@@ -257,31 +880,9 @@ testhashu64Fnv1():bigint {
   return offset ? this.bb!.readUint64(this.bb_pos + offset) : BigInt('0');
 }
 
-mutate_testhashu64_fnv1(value:bigint):boolean {
-  const offset = this.bb!.__offset(this.bb_pos, 42);
-
-  if (offset === 0) {
-    return false;
-  }
-
-  this.bb!.writeUint64(this.bb_pos + offset, value);
-  return true;
-}
-
 testhashs32Fnv1a():number {
   const offset = this.bb!.__offset(this.bb_pos, 44);
   return offset ? this.bb!.readInt32(this.bb_pos + offset) : 0;
-}
-
-mutate_testhashs32_fnv1a(value:number):boolean {
-  const offset = this.bb!.__offset(this.bb_pos, 44);
-
-  if (offset === 0) {
-    return false;
-  }
-
-  this.bb!.writeInt32(this.bb_pos + offset, value);
-  return true;
 }
 
 testhashu32Fnv1a():number {
@@ -289,47 +890,14 @@ testhashu32Fnv1a():number {
   return offset ? this.bb!.readUint32(this.bb_pos + offset) : 0;
 }
 
-mutate_testhashu32_fnv1a(value:number):boolean {
-  const offset = this.bb!.__offset(this.bb_pos, 46);
-
-  if (offset === 0) {
-    return false;
-  }
-
-  this.bb!.writeUint32(this.bb_pos + offset, value);
-  return true;
-}
-
 testhashs64Fnv1a():bigint {
   const offset = this.bb!.__offset(this.bb_pos, 48);
   return offset ? this.bb!.readInt64(this.bb_pos + offset) : BigInt('0');
 }
 
-mutate_testhashs64_fnv1a(value:bigint):boolean {
-  const offset = this.bb!.__offset(this.bb_pos, 48);
-
-  if (offset === 0) {
-    return false;
-  }
-
-  this.bb!.writeInt64(this.bb_pos + offset, value);
-  return true;
-}
-
 testhashu64Fnv1a():bigint {
   const offset = this.bb!.__offset(this.bb_pos, 50);
   return offset ? this.bb!.readUint64(this.bb_pos + offset) : BigInt('0');
-}
-
-mutate_testhashu64_fnv1a(value:bigint):boolean {
-  const offset = this.bb!.__offset(this.bb_pos, 50);
-
-  if (offset === 0) {
-    return false;
-  }
-
-  this.bb!.writeUint64(this.bb_pos + offset, value);
-  return true;
 }
 
 testarrayofbools(index: number):boolean|null {
@@ -352,47 +920,14 @@ testf():number {
   return offset ? this.bb!.readFloat32(this.bb_pos + offset) : 3.14159;
 }
 
-mutate_testf(value:number):boolean {
-  const offset = this.bb!.__offset(this.bb_pos, 54);
-
-  if (offset === 0) {
-    return false;
-  }
-
-  this.bb!.writeFloat32(this.bb_pos + offset, value);
-  return true;
-}
-
 testf2():number {
   const offset = this.bb!.__offset(this.bb_pos, 56);
   return offset ? this.bb!.readFloat32(this.bb_pos + offset) : 3.0;
 }
 
-mutate_testf2(value:number):boolean {
-  const offset = this.bb!.__offset(this.bb_pos, 56);
-
-  if (offset === 0) {
-    return false;
-  }
-
-  this.bb!.writeFloat32(this.bb_pos + offset, value);
-  return true;
-}
-
 testf3():number {
   const offset = this.bb!.__offset(this.bb_pos, 58);
   return offset ? this.bb!.readFloat32(this.bb_pos + offset) : 0.0;
-}
-
-mutate_testf3(value:number):boolean {
-  const offset = this.bb!.__offset(this.bb_pos, 58);
-
-  if (offset === 0) {
-    return false;
-  }
-
-  this.bb!.writeFloat32(this.bb_pos + offset, value);
-  return true;
 }
 
 testarrayofstring2(index: number):string
@@ -487,17 +1022,6 @@ singleWeakReference():bigint {
   return offset ? this.bb!.readUint64(this.bb_pos + offset) : BigInt('0');
 }
 
-mutate_single_weak_reference(value:bigint):boolean {
-  const offset = this.bb!.__offset(this.bb_pos, 76);
-
-  if (offset === 0) {
-    return false;
-  }
-
-  this.bb!.writeUint64(this.bb_pos + offset, value);
-  return true;
-}
-
 vectorOfWeakReferences(index: number):bigint|null {
   const offset = this.bb!.__offset(this.bb_pos, 78);
   return offset ? this.bb!.readUint64(this.bb!.__vector(this.bb_pos + offset) + index * 8) : BigInt(0);
@@ -523,17 +1047,6 @@ coOwningReference():bigint {
   return offset ? this.bb!.readUint64(this.bb_pos + offset) : BigInt('0');
 }
 
-mutate_co_owning_reference(value:bigint):boolean {
-  const offset = this.bb!.__offset(this.bb_pos, 82);
-
-  if (offset === 0) {
-    return false;
-  }
-
-  this.bb!.writeUint64(this.bb_pos + offset, value);
-  return true;
-}
-
 vectorOfCoOwningReferences(index: number):bigint|null {
   const offset = this.bb!.__offset(this.bb_pos, 84);
   return offset ? this.bb!.readUint64(this.bb!.__vector(this.bb_pos + offset) + index * 8) : BigInt(0);
@@ -547,17 +1060,6 @@ vectorOfCoOwningReferencesLength():number {
 nonOwningReference():bigint {
   const offset = this.bb!.__offset(this.bb_pos, 86);
   return offset ? this.bb!.readUint64(this.bb_pos + offset) : BigInt('0');
-}
-
-mutate_non_owning_reference(value:bigint):boolean {
-  const offset = this.bb!.__offset(this.bb_pos, 86);
-
-  if (offset === 0) {
-    return false;
-  }
-
-  this.bb!.writeUint64(this.bb_pos + offset, value);
-  return true;
 }
 
 vectorOfNonOwningReferences(index: number):bigint|null {
@@ -610,17 +1112,6 @@ signedEnum():Race {
   return offset ? this.bb!.readInt8(this.bb_pos + offset) : Race.None;
 }
 
-mutate_signed_enum(value:Race):boolean {
-  const offset = this.bb!.__offset(this.bb_pos, 100);
-
-  if (offset === 0) {
-    return false;
-  }
-
-  this.bb!.writeInt8(this.bb_pos + offset, value);
-  return true;
-}
-
 testrequirednestedflatbuffer(index: number):number|null {
   const offset = this.bb!.__offset(this.bb_pos, 102);
   return offset ? this.bb!.readUint8(this.bb!.__vector(this.bb_pos + offset) + index) : 0;
@@ -656,35 +1147,9 @@ longEnumNonEnumDefault():bigint {
   return offset ? this.bb!.readUint64(this.bb_pos + offset) : BigInt('0');
 }
 
-mutate_long_enum_non_enum_default(value:bigint):boolean {
-  const offset = this.bb!.__offset(this.bb_pos, 108);
-
-  if (offset === 0) {
-    return false;
-  }
-
-  this.bb!.writeUint64(this.bb_pos + offset, value);
-  return true;
-}
-
 longEnumNormalDefault():bigint {
   const offset = this.bb!.__offset(this.bb_pos, 110);
   return offset ? this.bb!.readUint64(this.bb_pos + offset) : BigInt('2');
-}
-
-mutate_long_enum_normal_default(value:bigint):boolean {
-  const offset = this.bb!.__offset(this.bb_pos, 110);
-
-  if (offset === 0) {
-    return false;
-  }
-
-  this.bb!.writeUint64(this.bb_pos + offset, value);
-  return true;
-}
-
-static getFullyQualifiedName():string {
-  return 'MyGame_Example_Monster';
 }
 
 static startMonster(builder:flatbuffers.Builder) {
@@ -1146,289 +1611,220 @@ serialize():Uint8Array {
 static deserialize(buffer: Uint8Array):Monster {
   return Monster.getRootAsMonster(new flatbuffers.ByteBuffer(buffer))
 }
-
-unpack(): MonsterT {
-  return new MonsterT(
-    (this.pos() !== null ? this.pos()!.unpack() : null),
-    this.mana(),
-    this.hp(),
-    this.name(),
-    this.bb!.createScalarList(this.inventory.bind(this), this.inventoryLength()),
-    this.color(),
-    this.testType(),
-    (() => {
-      let temp = unionToAny(this.testType(), this.test.bind(this));
-      if(temp === null) { return null; }
-      return temp.unpack()
-  })(),
-    this.bb!.createObjList(this.test4.bind(this), this.test4Length()),
-    this.bb!.createScalarList(this.testarrayofstring.bind(this), this.testarrayofstringLength()),
-    this.bb!.createObjList(this.testarrayoftables.bind(this), this.testarrayoftablesLength()),
-    (this.enemy() !== null ? this.enemy()!.unpack() : null),
-    this.bb!.createScalarList(this.testnestedflatbuffer.bind(this), this.testnestedflatbufferLength()),
-    (this.testempty() !== null ? this.testempty()!.unpack() : null),
-    this.testbool(),
-    this.testhashs32Fnv1(),
-    this.testhashu32Fnv1(),
-    this.testhashs64Fnv1(),
-    this.testhashu64Fnv1(),
-    this.testhashs32Fnv1a(),
-    this.testhashu32Fnv1a(),
-    this.testhashs64Fnv1a(),
-    this.testhashu64Fnv1a(),
-    this.bb!.createScalarList(this.testarrayofbools.bind(this), this.testarrayofboolsLength()),
-    this.testf(),
-    this.testf2(),
-    this.testf3(),
-    this.bb!.createScalarList(this.testarrayofstring2.bind(this), this.testarrayofstring2Length()),
-    this.bb!.createObjList(this.testarrayofsortedstruct.bind(this), this.testarrayofsortedstructLength()),
-    this.bb!.createScalarList(this.flex.bind(this), this.flexLength()),
-    this.bb!.createObjList(this.test5.bind(this), this.test5Length()),
-    this.bb!.createScalarList(this.vectorOfLongs.bind(this), this.vectorOfLongsLength()),
-    this.bb!.createScalarList(this.vectorOfDoubles.bind(this), this.vectorOfDoublesLength()),
-    (this.parentNamespaceTest() !== null ? this.parentNamespaceTest()!.unpack() : null),
-    this.bb!.createObjList(this.vectorOfReferrables.bind(this), this.vectorOfReferrablesLength()),
-    this.singleWeakReference(),
-    this.bb!.createScalarList(this.vectorOfWeakReferences.bind(this), this.vectorOfWeakReferencesLength()),
-    this.bb!.createObjList(this.vectorOfStrongReferrables.bind(this), this.vectorOfStrongReferrablesLength()),
-    this.coOwningReference(),
-    this.bb!.createScalarList(this.vectorOfCoOwningReferences.bind(this), this.vectorOfCoOwningReferencesLength()),
-    this.nonOwningReference(),
-    this.bb!.createScalarList(this.vectorOfNonOwningReferences.bind(this), this.vectorOfNonOwningReferencesLength()),
-    this.anyUniqueType(),
-    (() => {
-      let temp = unionToAnyUniqueAliases(this.anyUniqueType(), this.anyUnique.bind(this));
-      if(temp === null) { return null; }
-      return temp.unpack()
-  })(),
-    this.anyAmbiguousType(),
-    (() => {
-      let temp = unionToAnyAmbiguousAliases(this.anyAmbiguousType(), this.anyAmbiguous.bind(this));
-      if(temp === null) { return null; }
-      return temp.unpack()
-  })(),
-    this.bb!.createScalarList(this.vectorOfEnums.bind(this), this.vectorOfEnumsLength()),
-    this.signedEnum(),
-    this.bb!.createScalarList(this.testrequirednestedflatbuffer.bind(this), this.testrequirednestedflatbufferLength()),
-    this.bb!.createObjList(this.scalarKeySortedTables.bind(this), this.scalarKeySortedTablesLength()),
-    (this.nativeInline() !== null ? this.nativeInline()!.unpack() : null),
-    this.longEnumNonEnumDefault(),
-    this.longEnumNormalDefault()
-  );
 }
 
+export class MyGame_Example_TypeAliases {
+  bb: flatbuffers.ByteBuffer|null = null;
+  bb_pos = 0;
+  __init(i:number, bb:flatbuffers.ByteBuffer):MyGame_Example_TypeAliases {
+  this.bb_pos = i;
+  this.bb = bb;
+  return this;
+}
 
-unpackTo(_o: MonsterT): void {
-  _o.pos = (this.pos() !== null ? this.pos()!.unpack() : null);
-  _o.mana = this.mana();
-  _o.hp = this.hp();
-  _o.name = this.name();
-  _o.inventory = this.bb!.createScalarList(this.inventory.bind(this), this.inventoryLength());
-  _o.color = this.color();
-  _o.testType = this.testType();
-  _o.test = (() => {
-      let temp = unionToAny(this.testType(), this.test.bind(this));
-      if(temp === null) { return null; }
-      return temp.unpack()
-  })();
-  _o.test4 = this.bb!.createObjList(this.test4.bind(this), this.test4Length());
-  _o.testarrayofstring = this.bb!.createScalarList(this.testarrayofstring.bind(this), this.testarrayofstringLength());
-  _o.testarrayoftables = this.bb!.createObjList(this.testarrayoftables.bind(this), this.testarrayoftablesLength());
-  _o.enemy = (this.enemy() !== null ? this.enemy()!.unpack() : null);
-  _o.testnestedflatbuffer = this.bb!.createScalarList(this.testnestedflatbuffer.bind(this), this.testnestedflatbufferLength());
-  _o.testempty = (this.testempty() !== null ? this.testempty()!.unpack() : null);
-  _o.testbool = this.testbool();
-  _o.testhashs32Fnv1 = this.testhashs32Fnv1();
-  _o.testhashu32Fnv1 = this.testhashu32Fnv1();
-  _o.testhashs64Fnv1 = this.testhashs64Fnv1();
-  _o.testhashu64Fnv1 = this.testhashu64Fnv1();
-  _o.testhashs32Fnv1a = this.testhashs32Fnv1a();
-  _o.testhashu32Fnv1a = this.testhashu32Fnv1a();
-  _o.testhashs64Fnv1a = this.testhashs64Fnv1a();
-  _o.testhashu64Fnv1a = this.testhashu64Fnv1a();
-  _o.testarrayofbools = this.bb!.createScalarList(this.testarrayofbools.bind(this), this.testarrayofboolsLength());
-  _o.testf = this.testf();
-  _o.testf2 = this.testf2();
-  _o.testf3 = this.testf3();
-  _o.testarrayofstring2 = this.bb!.createScalarList(this.testarrayofstring2.bind(this), this.testarrayofstring2Length());
-  _o.testarrayofsortedstruct = this.bb!.createObjList(this.testarrayofsortedstruct.bind(this), this.testarrayofsortedstructLength());
-  _o.flex = this.bb!.createScalarList(this.flex.bind(this), this.flexLength());
-  _o.test5 = this.bb!.createObjList(this.test5.bind(this), this.test5Length());
-  _o.vectorOfLongs = this.bb!.createScalarList(this.vectorOfLongs.bind(this), this.vectorOfLongsLength());
-  _o.vectorOfDoubles = this.bb!.createScalarList(this.vectorOfDoubles.bind(this), this.vectorOfDoublesLength());
-  _o.parentNamespaceTest = (this.parentNamespaceTest() !== null ? this.parentNamespaceTest()!.unpack() : null);
-  _o.vectorOfReferrables = this.bb!.createObjList(this.vectorOfReferrables.bind(this), this.vectorOfReferrablesLength());
-  _o.singleWeakReference = this.singleWeakReference();
-  _o.vectorOfWeakReferences = this.bb!.createScalarList(this.vectorOfWeakReferences.bind(this), this.vectorOfWeakReferencesLength());
-  _o.vectorOfStrongReferrables = this.bb!.createObjList(this.vectorOfStrongReferrables.bind(this), this.vectorOfStrongReferrablesLength());
-  _o.coOwningReference = this.coOwningReference();
-  _o.vectorOfCoOwningReferences = this.bb!.createScalarList(this.vectorOfCoOwningReferences.bind(this), this.vectorOfCoOwningReferencesLength());
-  _o.nonOwningReference = this.nonOwningReference();
-  _o.vectorOfNonOwningReferences = this.bb!.createScalarList(this.vectorOfNonOwningReferences.bind(this), this.vectorOfNonOwningReferencesLength());
-  _o.anyUniqueType = this.anyUniqueType();
-  _o.anyUnique = (() => {
-      let temp = unionToAnyUniqueAliases(this.anyUniqueType(), this.anyUnique.bind(this));
-      if(temp === null) { return null; }
-      return temp.unpack()
-  })();
-  _o.anyAmbiguousType = this.anyAmbiguousType();
-  _o.anyAmbiguous = (() => {
-      let temp = unionToAnyAmbiguousAliases(this.anyAmbiguousType(), this.anyAmbiguous.bind(this));
-      if(temp === null) { return null; }
-      return temp.unpack()
-  })();
-  _o.vectorOfEnums = this.bb!.createScalarList(this.vectorOfEnums.bind(this), this.vectorOfEnumsLength());
-  _o.signedEnum = this.signedEnum();
-  _o.testrequirednestedflatbuffer = this.bb!.createScalarList(this.testrequirednestedflatbuffer.bind(this), this.testrequirednestedflatbufferLength());
-  _o.scalarKeySortedTables = this.bb!.createObjList(this.scalarKeySortedTables.bind(this), this.scalarKeySortedTablesLength());
-  _o.nativeInline = (this.nativeInline() !== null ? this.nativeInline()!.unpack() : null);
-  _o.longEnumNonEnumDefault = this.longEnumNonEnumDefault();
-  _o.longEnumNormalDefault = this.longEnumNormalDefault();
+static getRootAsTypeAliases(bb:flatbuffers.ByteBuffer, obj?:MyGame_Example_TypeAliases):MyGame_Example_TypeAliases {
+  return (obj || new MyGame_Example_TypeAliases()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+}
+
+static getSizePrefixedRootAsTypeAliases(bb:flatbuffers.ByteBuffer, obj?:MyGame_Example_TypeAliases):MyGame_Example_TypeAliases {
+  bb.setPosition(bb.position() + flatbuffers.SIZE_PREFIX_LENGTH);
+  return (obj || new MyGame_Example_TypeAliases()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+}
+
+i8():number {
+  const offset = this.bb!.__offset(this.bb_pos, 4);
+  return offset ? this.bb!.readInt8(this.bb_pos + offset) : 0;
+}
+
+u8():number {
+  const offset = this.bb!.__offset(this.bb_pos, 6);
+  return offset ? this.bb!.readUint8(this.bb_pos + offset) : 0;
+}
+
+i16():number {
+  const offset = this.bb!.__offset(this.bb_pos, 8);
+  return offset ? this.bb!.readInt16(this.bb_pos + offset) : 0;
+}
+
+u16():number {
+  const offset = this.bb!.__offset(this.bb_pos, 10);
+  return offset ? this.bb!.readUint16(this.bb_pos + offset) : 0;
+}
+
+i32():number {
+  const offset = this.bb!.__offset(this.bb_pos, 12);
+  return offset ? this.bb!.readInt32(this.bb_pos + offset) : 0;
+}
+
+u32():number {
+  const offset = this.bb!.__offset(this.bb_pos, 14);
+  return offset ? this.bb!.readUint32(this.bb_pos + offset) : 0;
+}
+
+i64():bigint {
+  const offset = this.bb!.__offset(this.bb_pos, 16);
+  return offset ? this.bb!.readInt64(this.bb_pos + offset) : BigInt('0');
+}
+
+u64():bigint {
+  const offset = this.bb!.__offset(this.bb_pos, 18);
+  return offset ? this.bb!.readUint64(this.bb_pos + offset) : BigInt('0');
+}
+
+f32():number {
+  const offset = this.bb!.__offset(this.bb_pos, 20);
+  return offset ? this.bb!.readFloat32(this.bb_pos + offset) : 0.0;
+}
+
+f64():number {
+  const offset = this.bb!.__offset(this.bb_pos, 22);
+  return offset ? this.bb!.readFloat64(this.bb_pos + offset) : 0.0;
+}
+
+v8(index: number):number|null {
+  const offset = this.bb!.__offset(this.bb_pos, 24);
+  return offset ? this.bb!.readInt8(this.bb!.__vector(this.bb_pos + offset) + index) : 0;
+}
+
+v8Length():number {
+  const offset = this.bb!.__offset(this.bb_pos, 24);
+  return offset ? this.bb!.__vector_len(this.bb_pos + offset) : 0;
+}
+
+v8Array():Int8Array|null {
+  const offset = this.bb!.__offset(this.bb_pos, 24);
+  return offset ? new Int8Array(this.bb!.bytes().buffer, this.bb!.bytes().byteOffset + this.bb!.__vector(this.bb_pos + offset), this.bb!.__vector_len(this.bb_pos + offset)) : null;
+}
+
+vf64(index: number):number|null {
+  const offset = this.bb!.__offset(this.bb_pos, 26);
+  return offset ? this.bb!.readFloat64(this.bb!.__vector(this.bb_pos + offset) + index * 8) : 0;
+}
+
+vf64Length():number {
+  const offset = this.bb!.__offset(this.bb_pos, 26);
+  return offset ? this.bb!.__vector_len(this.bb_pos + offset) : 0;
+}
+
+vf64Array():Float64Array|null {
+  const offset = this.bb!.__offset(this.bb_pos, 26);
+  return offset ? new Float64Array(this.bb!.bytes().buffer, this.bb!.bytes().byteOffset + this.bb!.__vector(this.bb_pos + offset), this.bb!.__vector_len(this.bb_pos + offset)) : null;
+}
+
+static startTypeAliases(builder:flatbuffers.Builder) {
+  builder.startObject(12);
+}
+
+static addI8(builder:flatbuffers.Builder, i8:number) {
+  builder.addFieldInt8(0, i8, 0);
+}
+
+static addU8(builder:flatbuffers.Builder, u8:number) {
+  builder.addFieldInt8(1, u8, 0);
+}
+
+static addI16(builder:flatbuffers.Builder, i16:number) {
+  builder.addFieldInt16(2, i16, 0);
+}
+
+static addU16(builder:flatbuffers.Builder, u16:number) {
+  builder.addFieldInt16(3, u16, 0);
+}
+
+static addI32(builder:flatbuffers.Builder, i32:number) {
+  builder.addFieldInt32(4, i32, 0);
+}
+
+static addU32(builder:flatbuffers.Builder, u32:number) {
+  builder.addFieldInt32(5, u32, 0);
+}
+
+static addI64(builder:flatbuffers.Builder, i64:bigint) {
+  builder.addFieldInt64(6, i64, BigInt('0'));
+}
+
+static addU64(builder:flatbuffers.Builder, u64:bigint) {
+  builder.addFieldInt64(7, u64, BigInt('0'));
+}
+
+static addF32(builder:flatbuffers.Builder, f32:number) {
+  builder.addFieldFloat32(8, f32, 0.0);
+}
+
+static addF64(builder:flatbuffers.Builder, f64:number) {
+  builder.addFieldFloat64(9, f64, 0.0);
+}
+
+static addV8(builder:flatbuffers.Builder, v8Offset:flatbuffers.Offset) {
+  builder.addFieldOffset(10, v8Offset, 0);
+}
+
+static createV8Vector(builder:flatbuffers.Builder, data:number[]|Int8Array):flatbuffers.Offset;
+/**
+ * @deprecated This Uint8Array overload will be removed in the future.
+ */
+static createV8Vector(builder:flatbuffers.Builder, data:number[]|Uint8Array):flatbuffers.Offset;
+static createV8Vector(builder:flatbuffers.Builder, data:number[]|Int8Array|Uint8Array):flatbuffers.Offset {
+  builder.startVector(1, data.length, 1);
+  for (let i = data.length - 1; i >= 0; i--) {
+    builder.addInt8(data[i]!);
+  }
+  return builder.endVector();
+}
+
+static startV8Vector(builder:flatbuffers.Builder, numElems:number) {
+  builder.startVector(1, numElems, 1);
+}
+
+static addVf64(builder:flatbuffers.Builder, vf64Offset:flatbuffers.Offset) {
+  builder.addFieldOffset(11, vf64Offset, 0);
+}
+
+static createVf64Vector(builder:flatbuffers.Builder, data:number[]|Float64Array):flatbuffers.Offset;
+/**
+ * @deprecated This Uint8Array overload will be removed in the future.
+ */
+static createVf64Vector(builder:flatbuffers.Builder, data:number[]|Uint8Array):flatbuffers.Offset;
+static createVf64Vector(builder:flatbuffers.Builder, data:number[]|Float64Array|Uint8Array):flatbuffers.Offset {
+  builder.startVector(8, data.length, 8);
+  for (let i = data.length - 1; i >= 0; i--) {
+    builder.addFloat64(data[i]!);
+  }
+  return builder.endVector();
+}
+
+static startVf64Vector(builder:flatbuffers.Builder, numElems:number) {
+  builder.startVector(8, numElems, 8);
+}
+
+static endTypeAliases(builder:flatbuffers.Builder):flatbuffers.Offset {
+  const offset = builder.endObject();
+  return offset;
+}
+
+static createTypeAliases(builder:flatbuffers.Builder, i8:number, u8:number, i16:number, u16:number, i32:number, u32:number, i64:bigint, u64:bigint, f32:number, f64:number, v8Offset:flatbuffers.Offset, vf64Offset:flatbuffers.Offset):flatbuffers.Offset {
+  MyGame_Example_TypeAliases.startTypeAliases(builder);
+  MyGame_Example_TypeAliases.addI8(builder, i8);
+  MyGame_Example_TypeAliases.addU8(builder, u8);
+  MyGame_Example_TypeAliases.addI16(builder, i16);
+  MyGame_Example_TypeAliases.addU16(builder, u16);
+  MyGame_Example_TypeAliases.addI32(builder, i32);
+  MyGame_Example_TypeAliases.addU32(builder, u32);
+  MyGame_Example_TypeAliases.addI64(builder, i64);
+  MyGame_Example_TypeAliases.addU64(builder, u64);
+  MyGame_Example_TypeAliases.addF32(builder, f32);
+  MyGame_Example_TypeAliases.addF64(builder, f64);
+  MyGame_Example_TypeAliases.addV8(builder, v8Offset);
+  MyGame_Example_TypeAliases.addVf64(builder, vf64Offset);
+  return MyGame_Example_TypeAliases.endTypeAliases(builder);
+}
+
+serialize():Uint8Array {
+  return this.bb!.bytes();
+}
+
+static deserialize(buffer: Uint8Array):TypeAliases {
+  return TypeAliases.getRootAsTypeAliases(new flatbuffers.ByteBuffer(buffer))
 }
 }
 
-export class MonsterT {
-constructor(
-  public pos: Vec3T|null = null,
-  public mana: number = 150,
-  public hp: number = 100,
-  public name: string|Uint8Array|null = null,
-  public inventory: (number)[] = [],
-  public color: Color = Color.Blue,
-  public testType: Any = Any.NONE,
-  public test: MonsterT|MyGame_Example2_MonsterT|TestSimpleTableWithEnumT|null = null,
-  public test4: (TestT)[] = [],
-  public testarrayofstring: (string)[] = [],
-  public testarrayoftables: (MonsterT)[] = [],
-  public enemy: MonsterT|null = null,
-  public testnestedflatbuffer: (number)[] = [],
-  public testempty: StatT|null = null,
-  public testbool: boolean = false,
-  public testhashs32Fnv1: number = 0,
-  public testhashu32Fnv1: number = 0,
-  public testhashs64Fnv1: bigint = BigInt('0'),
-  public testhashu64Fnv1: bigint = BigInt('0'),
-  public testhashs32Fnv1a: number = 0,
-  public testhashu32Fnv1a: number = 0,
-  public testhashs64Fnv1a: bigint = BigInt('0'),
-  public testhashu64Fnv1a: bigint = BigInt('0'),
-  public testarrayofbools: (boolean)[] = [],
-  public testf: number = 3.14159,
-  public testf2: number = 3.0,
-  public testf3: number = 0.0,
-  public testarrayofstring2: (string)[] = [],
-  public testarrayofsortedstruct: (AbilityT)[] = [],
-  public flex: (number)[] = [],
-  public test5: (TestT)[] = [],
-  public vectorOfLongs: (bigint)[] = [],
-  public vectorOfDoubles: (number)[] = [],
-  public parentNamespaceTest: InParentNamespaceT|null = null,
-  public vectorOfReferrables: (ReferrableT)[] = [],
-  public singleWeakReference: bigint = BigInt('0'),
-  public vectorOfWeakReferences: (bigint)[] = [],
-  public vectorOfStrongReferrables: (ReferrableT)[] = [],
-  public coOwningReference: bigint = BigInt('0'),
-  public vectorOfCoOwningReferences: (bigint)[] = [],
-  public nonOwningReference: bigint = BigInt('0'),
-  public vectorOfNonOwningReferences: (bigint)[] = [],
-  public anyUniqueType: AnyUniqueAliases = AnyUniqueAliases.NONE,
-  public anyUnique: MonsterT|MyGame_Example2_MonsterT|TestSimpleTableWithEnumT|null = null,
-  public anyAmbiguousType: AnyAmbiguousAliases = AnyAmbiguousAliases.NONE,
-  public anyAmbiguous: MonsterT|null = null,
-  public vectorOfEnums: (Color)[] = [],
-  public signedEnum: Race = Race.None,
-  public testrequirednestedflatbuffer: (number)[] = [],
-  public scalarKeySortedTables: (StatT)[] = [],
-  public nativeInline: TestT|null = null,
-  public longEnumNonEnumDefault: bigint = BigInt('0'),
-  public longEnumNormalDefault: bigint = BigInt('2')
-){}
-
-
-pack(builder:flatbuffers.Builder): flatbuffers.Offset {
-  const name = (this.name !== null ? builder.createString(this.name!) : 0);
-  const inventory = Monster.createInventoryVector(builder, this.inventory);
-  const test = builder.createObjectOffset(this.test);
-  const test4 = builder.createStructOffsetList(this.test4, Monster.startTest4Vector);
-  const testarrayofstring = Monster.createTestarrayofstringVector(builder, builder.createObjectOffsetList(this.testarrayofstring));
-  const testarrayoftables = Monster.createTestarrayoftablesVector(builder, builder.createObjectOffsetList(this.testarrayoftables));
-  const enemy = (this.enemy !== null ? this.enemy!.pack(builder) : 0);
-  const testnestedflatbuffer = Monster.createTestnestedflatbufferVector(builder, this.testnestedflatbuffer);
-  const testempty = (this.testempty !== null ? this.testempty!.pack(builder) : 0);
-  const testarrayofbools = Monster.createTestarrayofboolsVector(builder, this.testarrayofbools);
-  const testarrayofstring2 = Monster.createTestarrayofstring2Vector(builder, builder.createObjectOffsetList(this.testarrayofstring2));
-  const testarrayofsortedstruct = builder.createStructOffsetList(this.testarrayofsortedstruct, Monster.startTestarrayofsortedstructVector);
-  const flex = Monster.createFlexVector(builder, this.flex);
-  const test5 = builder.createStructOffsetList(this.test5, Monster.startTest5Vector);
-  const vectorOfLongs = Monster.createVectorOfLongsVector(builder, this.vectorOfLongs);
-  const vectorOfDoubles = Monster.createVectorOfDoublesVector(builder, this.vectorOfDoubles);
-  const parentNamespaceTest = (this.parentNamespaceTest !== null ? this.parentNamespaceTest!.pack(builder) : 0);
-  const vectorOfReferrables = Monster.createVectorOfReferrablesVector(builder, builder.createObjectOffsetList(this.vectorOfReferrables));
-  const vectorOfWeakReferences = Monster.createVectorOfWeakReferencesVector(builder, this.vectorOfWeakReferences);
-  const vectorOfStrongReferrables = Monster.createVectorOfStrongReferrablesVector(builder, builder.createObjectOffsetList(this.vectorOfStrongReferrables));
-  const vectorOfCoOwningReferences = Monster.createVectorOfCoOwningReferencesVector(builder, this.vectorOfCoOwningReferences);
-  const vectorOfNonOwningReferences = Monster.createVectorOfNonOwningReferencesVector(builder, this.vectorOfNonOwningReferences);
-  const anyUnique = builder.createObjectOffset(this.anyUnique);
-  const anyAmbiguous = builder.createObjectOffset(this.anyAmbiguous);
-  const vectorOfEnums = Monster.createVectorOfEnumsVector(builder, this.vectorOfEnums);
-  const testrequirednestedflatbuffer = Monster.createTestrequirednestedflatbufferVector(builder, this.testrequirednestedflatbuffer);
-  const scalarKeySortedTables = Monster.createScalarKeySortedTablesVector(builder, builder.createObjectOffsetList(this.scalarKeySortedTables));
-
-  Monster.startMonster(builder);
-  Monster.addPos(builder, (this.pos !== null ? this.pos!.pack(builder) : 0));
-  Monster.addMana(builder, this.mana);
-  Monster.addHp(builder, this.hp);
-  Monster.addName(builder, name);
-  Monster.addInventory(builder, inventory);
-  Monster.addColor(builder, this.color);
-  Monster.addTestType(builder, this.testType);
-  Monster.addTest(builder, test);
-  Monster.addTest4(builder, test4);
-  Monster.addTestarrayofstring(builder, testarrayofstring);
-  Monster.addTestarrayoftables(builder, testarrayoftables);
-  Monster.addEnemy(builder, enemy);
-  Monster.addTestnestedflatbuffer(builder, testnestedflatbuffer);
-  Monster.addTestempty(builder, testempty);
-  Monster.addTestbool(builder, this.testbool);
-  Monster.addTesthashs32Fnv1(builder, this.testhashs32Fnv1);
-  Monster.addTesthashu32Fnv1(builder, this.testhashu32Fnv1);
-  Monster.addTesthashs64Fnv1(builder, this.testhashs64Fnv1);
-  Monster.addTesthashu64Fnv1(builder, this.testhashu64Fnv1);
-  Monster.addTesthashs32Fnv1a(builder, this.testhashs32Fnv1a);
-  Monster.addTesthashu32Fnv1a(builder, this.testhashu32Fnv1a);
-  Monster.addTesthashs64Fnv1a(builder, this.testhashs64Fnv1a);
-  Monster.addTesthashu64Fnv1a(builder, this.testhashu64Fnv1a);
-  Monster.addTestarrayofbools(builder, testarrayofbools);
-  Monster.addTestf(builder, this.testf);
-  Monster.addTestf2(builder, this.testf2);
-  Monster.addTestf3(builder, this.testf3);
-  Monster.addTestarrayofstring2(builder, testarrayofstring2);
-  Monster.addTestarrayofsortedstruct(builder, testarrayofsortedstruct);
-  Monster.addFlex(builder, flex);
-  Monster.addTest5(builder, test5);
-  Monster.addVectorOfLongs(builder, vectorOfLongs);
-  Monster.addVectorOfDoubles(builder, vectorOfDoubles);
-  Monster.addParentNamespaceTest(builder, parentNamespaceTest);
-  Monster.addVectorOfReferrables(builder, vectorOfReferrables);
-  Monster.addSingleWeakReference(builder, this.singleWeakReference);
-  Monster.addVectorOfWeakReferences(builder, vectorOfWeakReferences);
-  Monster.addVectorOfStrongReferrables(builder, vectorOfStrongReferrables);
-  Monster.addCoOwningReference(builder, this.coOwningReference);
-  Monster.addVectorOfCoOwningReferences(builder, vectorOfCoOwningReferences);
-  Monster.addNonOwningReference(builder, this.nonOwningReference);
-  Monster.addVectorOfNonOwningReferences(builder, vectorOfNonOwningReferences);
-  Monster.addAnyUniqueType(builder, this.anyUniqueType);
-  Monster.addAnyUnique(builder, anyUnique);
-  Monster.addAnyAmbiguousType(builder, this.anyAmbiguousType);
-  Monster.addAnyAmbiguous(builder, anyAmbiguous);
-  Monster.addVectorOfEnums(builder, vectorOfEnums);
-  Monster.addSignedEnum(builder, this.signedEnum);
-  Monster.addTestrequirednestedflatbuffer(builder, testrequirednestedflatbuffer);
-  Monster.addScalarKeySortedTables(builder, scalarKeySortedTables);
-  Monster.addNativeInline(builder, (this.nativeInline !== null ? this.nativeInline!.pack(builder) : 0));
-  Monster.addLongEnumNonEnumDefault(builder, this.longEnumNonEnumDefault);
-  Monster.addLongEnumNormalDefault(builder, this.longEnumNormalDefault);
-
-  return Monster.endMonster(builder);
-}
-}

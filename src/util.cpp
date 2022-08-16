@@ -56,12 +56,14 @@
 
 namespace flatbuffers {
 
-bool FileExistsRaw(const char *name) {
+namespace {
+
+static bool FileExistsRaw(const char *name) {
   std::ifstream ifs(name);
   return ifs.good();
 }
 
-bool LoadFileRaw(const char *name, bool binary, std::string *buf) {
+static bool LoadFileRaw(const char *name, bool binary, std::string *buf) {
   if (DirExists(name)) return false;
   std::ifstream ifs(name, binary ? std::ifstream::binary : std::ifstream::in);
   if (!ifs.is_open()) return false;
@@ -81,8 +83,10 @@ bool LoadFileRaw(const char *name, bool binary, std::string *buf) {
   return !ifs.bad();
 }
 
-static LoadFileFunction g_load_file_function = LoadFileRaw;
-static FileExistsFunction g_file_exists_function = FileExistsRaw;
+LoadFileFunction g_load_file_function = LoadFileRaw;
+FileExistsFunction g_file_exists_function = FileExistsRaw;
+
+} // namespace
 
 bool LoadFile(const char *name, bool binary, std::string *buf) {
   FLATBUFFERS_ASSERT(g_load_file_function);
@@ -365,14 +369,14 @@ static std::string ToSnakeCase(const std::string &input, bool screaming) {
   return s;
 }
 
-static std::string ToAll(const std::string &input,
+std::string ToAll(const std::string &input,
                          std::function<char(const char)> transform) {
   std::string s;
   for (size_t i = 0; i < input.length(); i++) { s += transform(input[i]); }
   return s;
 }
 
-static std::string CamelToSnake(const std::string &input) {
+std::string CamelToSnake(const std::string &input) {
   std::string s;
   for (size_t i = 0; i < input.length(); i++) {
     if (i == 0) {
@@ -391,7 +395,7 @@ static std::string CamelToSnake(const std::string &input) {
   return s;
 }
 
-static std::string DasherToSnake(const std::string &input) {
+std::string DasherToSnake(const std::string &input) {
   std::string s;
   for (size_t i = 0; i < input.length(); i++) {
     if (input[i] == '-') {
@@ -403,7 +407,7 @@ static std::string DasherToSnake(const std::string &input) {
   return s;
 }
 
-static std::string ToDasher(const std::string &input) {
+std::string ToDasher(const std::string &input) {
   std::string s;
   char p = 0;
   for (size_t i = 0; i < input.length(); i++) {
@@ -424,10 +428,9 @@ static std::string ToDasher(const std::string &input) {
   return s;
 }
 
-}  // namespace
 
 // Converts foo_bar_123baz_456 to foo_bar123_baz456
-static std::string SnakeToSnake2(const std::string &s) {
+std::string SnakeToSnake2(const std::string &s) {
   if (s.length() <= 1) return s;
   std::string result;
   result.reserve(s.size());
@@ -446,6 +449,8 @@ static std::string SnakeToSnake2(const std::string &s) {
 
   return result;
 }
+
+} // namespace
 
 std::string ConvertCase(const std::string &input, Case output_case,
                         Case input_case) {

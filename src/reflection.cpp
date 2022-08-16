@@ -384,12 +384,18 @@ const uint8_t *AddFlatBuffer(std::vector<uint8_t> &flatbuf,
   return flatbuf.data() + insertion_point + root_offset;
 }
 
-void CopyInline(FlatBufferBuilder &fbb, const reflection::Field &fielddef,
+namespace {
+
+static void CopyInline(FlatBufferBuilder &fbb, const reflection::Field &fielddef,
                 const Table &table, size_t align, size_t size) {
   fbb.Align(align);
   fbb.PushBytes(table.GetStruct<const uint8_t *>(fielddef.offset()), size);
   fbb.TrackField(fielddef.offset(), fbb.GetSize());
 }
+
+} // namespace
+
+
 
 Offset<const Table *> CopyTable(FlatBufferBuilder &fbb,
                                 const reflection::Schema &schema,
@@ -515,7 +521,9 @@ Offset<const Table *> CopyTable(FlatBufferBuilder &fbb,
   }
 }
 
-bool VerifyStruct(flatbuffers::Verifier &v,
+namespace {
+
+static bool VerifyStruct(flatbuffers::Verifier &v,
                   const flatbuffers::Table &parent_table,
                   voffset_t field_offset, const reflection::Object &obj,
                   bool required) {
@@ -527,7 +535,7 @@ bool VerifyStruct(flatbuffers::Verifier &v,
                              offset, obj.bytesize(), obj.minalign());
 }
 
-bool VerifyVectorOfStructs(flatbuffers::Verifier &v,
+static bool VerifyVectorOfStructs(flatbuffers::Verifier &v,
                            const flatbuffers::Table &parent_table,
                            voffset_t field_offset,
                            const reflection::Object &obj, bool required) {
@@ -538,11 +546,11 @@ bool VerifyVectorOfStructs(flatbuffers::Verifier &v,
 }
 
 // forward declare to resolve cyclic deps between VerifyObject and VerifyVector
-bool VerifyObject(flatbuffers::Verifier &v, const reflection::Schema &schema,
+static bool VerifyObject(flatbuffers::Verifier &v, const reflection::Schema &schema,
                   const reflection::Object &obj,
                   const flatbuffers::Table *table, bool required);
 
-bool VerifyUnion(flatbuffers::Verifier &v, const reflection::Schema &schema,
+static bool VerifyUnion(flatbuffers::Verifier &v, const reflection::Schema &schema,
                  uint8_t utype, const uint8_t *elem,
                  const reflection::Field &union_field) {
   if (!utype) return true;  // Not present.
@@ -567,7 +575,7 @@ bool VerifyUnion(flatbuffers::Verifier &v, const reflection::Schema &schema,
   }
 }
 
-bool VerifyVector(flatbuffers::Verifier &v, const reflection::Schema &schema,
+static bool VerifyVector(flatbuffers::Verifier &v, const reflection::Schema &schema,
                   const flatbuffers::Table &table,
                   const reflection::Field &vec_field) {
   FLATBUFFERS_ASSERT(vec_field.type()->base_type() == reflection::Vector);
@@ -645,7 +653,7 @@ bool VerifyVector(flatbuffers::Verifier &v, const reflection::Schema &schema,
   }
 }
 
-bool VerifyObject(flatbuffers::Verifier &v, const reflection::Schema &schema,
+static bool VerifyObject(flatbuffers::Verifier &v, const reflection::Schema &schema,
                   const reflection::Object &obj,
                   const flatbuffers::Table *table, bool required) {
   if (!table) return !required;
@@ -734,6 +742,9 @@ bool VerifyObject(flatbuffers::Verifier &v, const reflection::Schema &schema,
 
   return true;
 }
+
+
+} // namespace
 
 bool Verify(const reflection::Schema &schema, const reflection::Object &root,
             const uint8_t *const buf, const size_t length,

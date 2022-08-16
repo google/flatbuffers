@@ -30,7 +30,7 @@ export class Referrable {
         return true;
     }
     static getFullyQualifiedName() {
-        return 'MyGame.Example.Referrable';
+        return 'MyGame_Example_Referrable';
     }
     static startReferrable(builder) {
         builder.startObject(1);
