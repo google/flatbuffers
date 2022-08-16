@@ -17,4 +17,3 @@ export enum Color {
    */
   Blue = 8
 }
-

@@ -47,4 +47,3 @@ export function unionListToCharacter(
     default: return null;
   }
 }
-
