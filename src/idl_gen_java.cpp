@@ -25,7 +25,9 @@
 namespace flatbuffers {
 namespace java {
 
-Namer::Config JavaDefaultConfig() {
+namespace {
+
+static Namer::Config JavaDefaultConfig() {
   return {
     /*types=*/Case::kKeep,
     /*constants=*/Case::kScreamingSnake,
@@ -50,7 +52,7 @@ Namer::Config JavaDefaultConfig() {
   };
 }
 
-std::set<std::string> JavaKeywords() {
+static std::set<std::string> JavaKeywords() {
   return {
     "abstract", "continue", "for",        "new",       "switch",
     "assert",   "default",  "goto",       "package",   "synchronized",
@@ -65,15 +67,17 @@ std::set<std::string> JavaKeywords() {
   };
 }
 
-static TypedFloatConstantGenerator JavaFloatGen("Double.", "Float.", "NaN",
+static const TypedFloatConstantGenerator JavaFloatGen("Double.", "Float.", "NaN",
                                                 "POSITIVE_INFINITY",
                                                 "NEGATIVE_INFINITY");
 
-static CommentConfig comment_config = {
+static const CommentConfig comment_config = {
   "/**",
   " *",
   " */",
 };
+
+} // namespace
 
 class JavaGenerator : public BaseGenerator {
   struct FieldArrayLength {

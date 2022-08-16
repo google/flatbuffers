@@ -23,8 +23,9 @@
 #include "src/compiler/python_generator.h"
 
 namespace grpc_python_generator {
+namespace {
 
-grpc::string GenerateMethodType(const grpc_generator::Method *method) {
+static grpc::string GenerateMethodType(const grpc_generator::Method *method) {
 
   if (method->NoStreaming())
     return "unary_unary";
@@ -131,6 +132,7 @@ void GenerateRegister(const grpc_generator::Service *service,
   printer->Outdent();
   printer->Print("\n");
 }
+} // namespace
 
 grpc::string Generate(grpc_generator::File *file,
                       const grpc_generator::Service *service) {

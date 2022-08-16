@@ -47,6 +47,7 @@ using ::cpp17::MyGame::Example::Vec3;
 /*******************************************************************************
 ** Build some FB objects.
 *******************************************************************************/
+namespace {
 const Monster *BuildMonster(flatbuffers::FlatBufferBuilder &fbb) {
   using ::cpp17::MyGame::Example::Color;
   using ::cpp17::MyGame::Example::MonsterBuilder;
@@ -250,6 +251,7 @@ int FlatBufferCpp17Tests() {
   StringifyAnyFlatbuffersTypeTest();
   return 0;
 }
+} // namespace
 
 int main(int /*argc*/, const char * /*argv*/[]) {
   InitTestEngine();

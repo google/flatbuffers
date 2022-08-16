@@ -27,7 +27,9 @@ namespace flatbuffers {
 
 namespace swift {
 
-Namer::Config SwiftDefaultConfig() {
+namespace {
+
+static Namer::Config SwiftDefaultConfig() {
   return { /*types=*/Case::kKeep,
            /*constants=*/Case::kLowerCamel,
            /*methods=*/Case::kLowerCamel,
@@ -50,7 +52,7 @@ Namer::Config SwiftDefaultConfig() {
            /*filename_extension=*/".swift" };
 }
 
-std::set<std::string> SwiftKeywords() {
+static std::set<std::string> SwiftKeywords() {
   return {
     "associatedtype",
     "class",
@@ -134,15 +136,17 @@ std::set<std::string> SwiftKeywords() {
   };
 }
 
-inline std::string GenIndirect(const std::string &reading) {
+static std::string GenIndirect(const std::string &reading) {
   return "{{ACCESS}}.indirect(" + reading + ")";
 }
 
-inline std::string GenArrayMainBody(const std::string &optional) {
+static std::string GenArrayMainBody(const std::string &optional) {
   return "{{ACCESS_TYPE}} func {{FIELDMETHOD}}(at index: Int32) -> "
          "{{VALUETYPE}}" +
          optional + " { ";
 }
+
+} // namespace
 
 class SwiftGenerator : public BaseGenerator {
  private:

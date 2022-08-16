@@ -25,7 +25,7 @@
 
 namespace flatbuffers {
 
-const char *FLATC_VERSION() { return FLATBUFFERS_VERSION(); }
+static const char *FLATC_VERSION() { return FLATBUFFERS_VERSION(); }
 
 void FlatCompiler::ParseFile(
     flatbuffers::Parser &parser, const std::string &filename,

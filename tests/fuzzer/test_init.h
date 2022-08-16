@@ -11,7 +11,7 @@ struct OneTimeTestInit {
   // This hook terminate program both in Debug and Release.
   static bool TestFailListener(const char *expval, const char *val,
                                const char *exp, const char *file, int line,
-                               const char *func = 0) {
+                               const char *func = nullptr) {
     (void)expval;
     (void)val;
     (void)exp;

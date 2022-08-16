@@ -23,8 +23,9 @@
 #include "idl_namer.h"
 
 namespace flatbuffers {
+namespace {
 
-Namer::Config RustDefaultConfig() {
+static Namer::Config RustDefaultConfig() {
   // Historical note: We've been using "keep" casing since the original
   // implementation, presumably because Flatbuffers schema style and Rust style
   // roughly align. We are not going to enforce proper casing since its an
@@ -51,7 +52,7 @@ Namer::Config RustDefaultConfig() {
            /*filename_extension=*/".rs" };
 }
 
-std::set<std::string> RustKeywords() {
+static std::set<std::string> RustKeywords() {
   return {
     // https://doc.rust-lang.org/book/second-edition/appendix-01-keywords.html
     "as",
@@ -173,7 +174,7 @@ enum FullType {
 };
 
 // Convert a Type to a FullType (exhaustive).
-FullType GetFullType(const Type &type) {
+static FullType GetFullType(const Type &type) {
   // N.B. The order of these conditionals matters for some types.
 
   if (IsString(type)) {
@@ -263,15 +264,16 @@ FullType GetFullType(const Type &type) {
   return ftBool;
 }
 
-bool IsBitFlagsEnum(const EnumDef &enum_def) {
+static bool IsBitFlagsEnum(const EnumDef &enum_def) {
   return enum_def.attributes.Lookup("bit_flags") != nullptr;
 }
 
 // TableArgs make required non-scalars "Option<_>".
 // TODO(cneo): Rework how we do defaults and stuff.
-bool IsOptionalToBuilder(const FieldDef &field) {
+static bool IsOptionalToBuilder(const FieldDef &field) {
   return field.IsOptional() || !IsScalar(field.value.type.base_type);
 }
+} // namespace
 
 bool GenerateRustModuleRootFile(const Parser &parser,
                                 const std::string &output_dir) {
