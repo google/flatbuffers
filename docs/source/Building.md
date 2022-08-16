@@ -63,7 +63,7 @@ If the version is out of date, please [create an issue or pull request](https://
 
 ## Downloading binaries
 You can download the binaries from the
-[GitHub release page](https://github.com/google/flatbuffers/releases.
+[GitHub release page](https://github.com/google/flatbuffers/releases).
 
 We generate [SLSA3 signatures](slsa.dev) using the OpenSSF's [slsa-framework/slsa-github-generator](https://github.com/slsa-framework/slsa-github-generator). To verify the binaries:
 1. Install the verification tool from [slsa-framework/slsa-verifier#installation](https://github.com/slsa-framework/slsa-verifier#installation)
