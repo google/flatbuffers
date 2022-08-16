@@ -31,7 +31,9 @@
 namespace flatbuffers {
 namespace python {
 
-std::set<std::string> PythonKeywords() {
+namespace {
+
+static std::set<std::string> PythonKeywords() {
   return { "False", "None",   "True",     "and",   "as",     "assert",
            "break", "class",  "continue", "def",   "del",    "elif",
            "else",  "except", "finally",  "for",   "from",   "global",
@@ -40,7 +42,7 @@ std::set<std::string> PythonKeywords() {
            "while", "with",   "yield" };
 }
 
-Namer::Config PythonDefaultConfig() {
+static Namer::Config PythonDefaultConfig() {
   return { /*types=*/Case::kKeep,
            /*constants=*/Case::kScreamingSnake,
            /*methods=*/Case::kUpperCamel,
@@ -64,8 +66,10 @@ Namer::Config PythonDefaultConfig() {
 }
 
 // Hardcode spaces per indentation.
-const CommentConfig def_comment = { nullptr, "#", nullptr };
-const std::string Indent = "    ";
+static const CommentConfig def_comment = { nullptr, "#", nullptr };
+static const std::string Indent = "    ";
+
+} // namespace
 
 class PythonGenerator : public BaseGenerator {
  public:

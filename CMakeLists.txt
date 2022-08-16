@@ -378,6 +378,8 @@ else()
       -Wnon-virtual-dtor
 
       $<$<CXX_COMPILER_ID:CLANG>:
+        -Wmissing-declarations
+        -Wzero-as-null-pointer-constant
         $<$<VERSION_GREATER:$<CXX_COMPILER_VERSION>,3.8>:
           -Wimplicit-fallthrough
           -Wextra-semi
@@ -391,10 +393,11 @@ else()
         $<$<VERSION_GREATER:$<CXX_COMPILER_VERSION>,4.4>:
           -Wunused-result
           -Wunused-parameter 
-          $<$<BOOL:${FLATBUFFERS_STRICT_MODE}>:
-            -Werror=unused-result           
-            -Werror=unused-parameter
-          >
+          -Werror=unused-parameter
+          -Wmissing-declarations
+        >
+        $<$<VERSION_GREATER:$<CXX_COMPILER_VERSION>,4.7>:
+          -Wzero-as-null-pointer-constant
         >
         $<$<VERSION_GREATER:$<CXX_COMPILER_VERSION>,7.0>:
           -faligned-new 

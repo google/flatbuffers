@@ -29,6 +29,8 @@ namespace flatbuffers {
 
 namespace kotlin {
 
+namespace {
+
 typedef std::map<std::string, std::pair<std::string, std::string> > FbbParamMap;
 static TypedFloatConstantGenerator KotlinFloatGen("Double.", "Float.", "NaN",
                                                   "POSITIVE_INFINITY",
@@ -36,7 +38,7 @@ static TypedFloatConstantGenerator KotlinFloatGen("Double.", "Float.", "NaN",
 
 static const CommentConfig comment_config = { "/**", " *", " */" };
 static const std::string ident_pad = "    ";
-std::set<std::string> KotlinKeywords() {
+static std::set<std::string> KotlinKeywords() {
   return { "package",  "as",     "typealias", "class",  "this",   "super",
            "val",      "var",    "fun",       "for",    "null",   "true",
            "false",    "is",     "in",        "throw",  "return", "break",
@@ -44,7 +46,7 @@ std::set<std::string> KotlinKeywords() {
            "do",       "when",   "interface", "typeof", "Any",    "Character" };
 }
 
-Namer::Config KotlinDefaultConfig() {
+static Namer::Config KotlinDefaultConfig() {
   return { /*types=*/Case::kKeep,
            /*constants=*/Case::kKeep,
            /*methods=*/Case::kLowerCamel,
@@ -66,6 +68,7 @@ Namer::Config KotlinDefaultConfig() {
            /*filename_suffix=*/"",
            /*filename_extension=*/".kt" };
 }
+} // namespace
 
 class KotlinGenerator : public BaseGenerator {
  public:
