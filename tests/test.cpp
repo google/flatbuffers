@@ -42,6 +42,10 @@
 #include "native_type_test_generated.h"
 #include "test_assert.h"
 
+void FlatBufferBuilderTest();
+
+namespace {
+
 // clang-format off
 // Check that char* and uint8_t* are interoperable types.
 // The reinterpret_cast<> between the pointers are used to simplify data loading.
@@ -62,8 +66,6 @@ static const auto infinity_f = std::numeric_limits<float>::infinity();
 static const auto infinity_d = std::numeric_limits<double>::infinity();
 
 using namespace MyGame::Example;
-
-void FlatBufferBuilderTest();
 
 // Include simple random number generator to ensure results will be the
 // same cross platform.
@@ -776,19 +778,19 @@ template<typename T, typename U, U qnan_base> bool is_quiet_nan_impl(T v) {
   return ((b & qnan_base) == qnan_base);
 }
 #  if defined(__mips__) || defined(__hppa__)
-static bool is_quiet_nan(float v) {
+bool is_quiet_nan(float v) {
   return is_quiet_nan_impl<float, uint32_t, 0x7FC00000u>(v) ||
          is_quiet_nan_impl<float, uint32_t, 0x7FBFFFFFu>(v);
 }
-static bool is_quiet_nan(double v) {
+bool is_quiet_nan(double v) {
   return is_quiet_nan_impl<double, uint64_t, 0x7FF8000000000000ul>(v) ||
          is_quiet_nan_impl<double, uint64_t, 0x7FF7FFFFFFFFFFFFu>(v);
 }
 #  else
-static bool is_quiet_nan(float v) {
+bool is_quiet_nan(float v) {
   return is_quiet_nan_impl<float, uint32_t, 0x7FC00000u>(v);
 }
-static bool is_quiet_nan(double v) {
+bool is_quiet_nan(double v) {
   return is_quiet_nan_impl<double, uint64_t, 0x7FF8000000000000ul>(v);
 }
 #  endif
@@ -4722,6 +4724,7 @@ int FlatBufferTests() {
   ErrorTest();
   ValueTest();
   EnumValueTest();
+  NestedListTest();
   EnumStringsTest();
   EnumNamesTest();
   EnumOutOfRangeTest();
@@ -4775,6 +4778,7 @@ int FlatBufferTests() {
   VectorSpanTest();
   return 0;
 }
+} // namespace
 
 int main(int argc, const char *argv[]) {
   for (int argi = 1; argi < argc; argi++) {

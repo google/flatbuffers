@@ -28,8 +28,9 @@
 #include "src/compiler/swift_generator.h"
 
 namespace grpc_swift_generator {
+namespace {
 
-std::string WrapInNameSpace(const std::vector<std::string> &components,
+static std::string WrapInNameSpace(const std::vector<std::string> &components,
                             const grpc::string &name) {
   std::string qualified_name;
   for (auto it = components.begin(); it != components.end(); ++it)
@@ -37,14 +38,14 @@ std::string WrapInNameSpace(const std::vector<std::string> &components,
   return qualified_name + name;
 }
 
-grpc::string GenerateMessage(const std::vector<std::string> &components,
+static grpc::string GenerateMessage(const std::vector<std::string> &components,
                              const grpc::string &name) {
   return "Message<" + WrapInNameSpace(components, name) + ">";
 }
 
 // MARK: - Client
 
-void GenerateClientFuncName(const grpc_generator::Method *method,
+static void GenerateClientFuncName(const grpc_generator::Method *method,
                             grpc_generator::Printer *printer,
                             std::map<grpc::string, grpc::string> *dictonary) {
   auto vars = *dictonary;
@@ -82,7 +83,7 @@ void GenerateClientFuncName(const grpc_generator::Method *method,
                  "  ) -> BidirectionalStreamingCall<$Input$, $Output$>");
 }
 
-void GenerateClientFuncBody(const grpc_generator::Method *method,
+static void GenerateClientFuncBody(const grpc_generator::Method *method,
                             grpc_generator::Printer *printer,
                             std::map<grpc::string, grpc::string> *dictonary) {
   auto vars = *dictonary;
@@ -372,6 +373,7 @@ void GenerateServerProtocol(const grpc_generator::Service *service,
   }
   printer->Print("}");
 }
+} // namespace
 
 grpc::string Generate(grpc_generator::File *file,
                       const grpc_generator::Service *service) {
