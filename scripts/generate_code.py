@@ -245,6 +245,14 @@ flatc(
     schema="monster_test.fbs",
 )
 
+# Generate the complete flat file TS of monster.
+flatc(
+    ["--ts", "--gen-all", "--ts-flat-files"],
+    include="include_test",
+    schema="monster_test.fbs",
+    prefix="ts/ts-flat-files"
+)
+
 flatc(
     BASE_OPTS + TS_OPTS + ["-b"],
     include="include_test",
