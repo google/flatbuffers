@@ -66,7 +66,7 @@ class TsTests():
         assert_file_and_contents(
             "foo_with_ns_generated.ts",
             [
-                "export { Bar } from './bar';",
+                "export { Bar } from './bar/bar';",
                 "export { Foo } from './something/foo';",
             ],
         )
@@ -77,7 +77,7 @@ class TsTests():
             "something/foo.ts",
             [
                 "export class Foo {",
-                "import { Bar } from '../bar';",
+                "import { Bar } from '../bar/bar';",
             ],
         )
 
@@ -142,6 +142,23 @@ class TsTests():
         # The root type Foo should not be generated in its own file.
         assert_file_doesnt_exists("foo.ts")
 
+    def FlatFilesWithNamespace(self):
+        # Generate just foo with the flat files option
+        flatc(["--ts", "--ts-flat-files", "foo_with_ns.fbs"])
+
+        # Should generate a single file that imports bar as a single file, and
+        # exports the Foo table.
+        assert_file_and_contents(
+            "foo_with_ns_generated.ts",
+            [
+                "import {Bar as Bar} from './bar_with_ns_generated';",
+                "export class Foo {",
+            ],
+        )
+
+        # The root type Foo should not be generated in its own file.
+        assert_file_doesnt_exists("foo.ts")
+
     def FlatFilesMultipleFiles(self):
         # Generate both foo and bar with the flat files option
         flatc(["--ts", "--ts-flat-files", "foo.fbs", "bar/bar.fbs"])
@@ -194,3 +211,32 @@ class TsTests():
         assert_file_doesnt_exists("foo.ts")
         assert_file_doesnt_exists("bar.ts")
         assert_file_doesnt_exists("baz.ts")
+
+
+    def ZFlatFilesGenAllWithNamespacing(self):
+        # Generate foo with all of its dependents with the flat files option
+        flatc(["--ts", "--ts-flat-files", "--gen-all", "foo_with_ns.fbs"])
+
+        # Should generate a single foo file
+        assert_file_and_contents(
+            "foo_with_ns_generated.ts",
+            # Should export each of the types within the single file
+            [
+                "export class bar_Bar {",
+                "export class bar_Foo {",
+                "export enum Baz {",
+                "export enum baz_Baz {",
+                "export class something_Foo {"
+            ],
+            # No includes for the dependent types should be present.
+            doesnt_contain=[
+                "import {Bar as Bar}",
+                "import {Baz as Baz}",
+            ],
+        )
+
+        # The types Foo, Bar and Baz should not be generated in their own files.
+        assert_file_doesnt_exists("foo.ts")
+        assert_file_doesnt_exists("bar.ts")
+        assert_file_doesnt_exists("baz.ts")
+

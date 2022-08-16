@@ -31,7 +31,7 @@ export class TestSimpleTableWithEnum {
         return true;
     }
     static getFullyQualifiedName() {
-        return 'MyGame.Example.TestSimpleTableWithEnum';
+        return 'MyGame_Example_TestSimpleTableWithEnum';
     }
     static startTestSimpleTableWithEnum(builder) {
         builder.startObject(1);

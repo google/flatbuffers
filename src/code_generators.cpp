@@ -131,8 +131,9 @@ std::string BaseGenerator::WrapInNameSpace(const Namespace *ns,
   return qualified_name + name;
 }
 
-std::string BaseGenerator::WrapInNameSpace(const Definition &def) const {
-  return WrapInNameSpace(def.defined_namespace, def.name);
+std::string BaseGenerator::WrapInNameSpace(const Definition &def,
+                                           const std::string &suffix) const {
+  return WrapInNameSpace(def.defined_namespace, def.name + suffix);
 }
 
 std::string BaseGenerator::GetNameSpace(const Definition &def) const {

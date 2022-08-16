@@ -1,0 +1,14 @@
+include "baz/baz_with_ns.fbs";
+include "baz/baz.fbs";
+
+namespace bar;
+
+table Bar {
+  baz:baz.Baz;
+  baz2:Baz;
+  foo:Foo;
+}
+
+table Foo {
+  a:int;
+}

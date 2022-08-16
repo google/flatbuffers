@@ -6,4 +6,3 @@ export enum Race {
   Dwarf = 1,
   Elf = 2
 }
-

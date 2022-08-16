@@ -27,3 +27,5 @@ print("{0} of {1} tests passed".format(passing, passing + failing))
 
 if failing > 0:
     sys.exit(1)
+
+# TsTests().Base()

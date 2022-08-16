@@ -36,4 +36,3 @@ export function unionListToAnyAmbiguousAliases(
     default: return null;
   }
 }
-

@@ -40,7 +40,7 @@ mutate_color(value:Color):boolean {
 }
 
 static getFullyQualifiedName():string {
-  return 'MyGame.Example.TestSimpleTableWithEnum';
+  return 'MyGame_Example_TestSimpleTableWithEnum';
 }
 
 static startTestSimpleTableWithEnum(builder:flatbuffers.Builder) {

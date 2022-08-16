@@ -1,0 +1,8 @@
+namespace baz;
+
+enum Baz : short {
+  None = 0,
+  Red,
+  Green,
+  Blue,
+}
