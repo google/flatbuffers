@@ -1,5 +1,4 @@
 name: CI
-permissions: read-all
 
 on:
   # For manual tests.
@@ -15,8 +14,6 @@ on:
 
 jobs:
   build-linux:
-    permissions:
-      contents: write
     outputs:
       digests-gcc: ${{ steps.hash-gcc.outputs.hashes }}
       digests-clang: ${{ steps.hash-clang.outputs.hashes }}
@@ -47,7 +44,7 @@ jobs:
         path: flatc
     # Below if only for release.
     - name: Zip file
-      if: startsWith(github.ref, 'refs/tags/')
+      #if: startsWith(github.ref, 'refs/tags/')
       run: zip Linux.flatc.binary.${{ matrix.cxx }}.zip flatc
     - name: Release zip file
       uses: softprops/action-gh-release@v1
@@ -55,17 +52,17 @@ jobs:
       with:
         files: Linux.flatc.binary.${{ matrix.cxx }}.zip
     - name: Generate SLSA subjects - clang
-      if: matrix.cxx == 'clang++-12' && startsWith(github.ref, 'refs/tags/')
+      #if: matrix.cxx == 'clang++-12' && startsWith(github.ref, 'refs/tags/')
+      if: matrix.cxx == 'clang++-12'
       id: hash-clang
       run: echo "::set-output name=hashes::$(sha256sum Linux.flatc.binary.${{ matrix.cxx }}.zip | base64 -w0)"
     - name: Generate SLSA subjects - gcc
-      if: matrix.cxx == 'g++-10' && startsWith(github.ref, 'refs/tags/')
+      #if: matrix.cxx == 'g++-10' && startsWith(github.ref, 'refs/tags/')
+      if: matrix.cxx == 'g++-10'
       id: hash-gcc
       run: echo "::set-output name=hashes::$(sha256sum Linux.flatc.binary.${{ matrix.cxx }}.zip | base64 -w0)"
 
   build-windows:
-    permissions:
-      contents: write
     outputs:
       digests: ${{ steps.hash.outputs.hashes }}
     name: Build Windows 2019 
@@ -87,7 +84,7 @@ jobs:
         path: Release\flatc.exe
     # Below if only for release.
     - name: Zip file
-      if: startsWith(github.ref, 'refs/tags/')
+      #if: startsWith(github.ref, 'refs/tags/')
       run: move Release/flatc.exe . && Compress-Archive flatc.exe Windows.flatc.binary.zip
     - name: Release binary
       uses: softprops/action-gh-release@v1
@@ -95,7 +92,7 @@ jobs:
       with:
         files: Windows.flatc.binary.zip
     - name: Generate SLSA subjects
-      if: startsWith(github.ref, 'refs/tags/')
+      #if: startsWith(github.ref, 'refs/tags/')
       id: hash
       shell: bash
       run: echo "::set-output name=hashes::$(sha256sum Windows.flatc.binary.zip | base64 -w0)"
@@ -157,8 +154,6 @@ jobs:
         out\FlatBuffers.Core.Test.exe
 
   build-mac-intel:
-    permissions:
-      contents: write
     outputs:
       digests: ${{ steps.hash.outputs.hashes }}
     name: Build Mac (for Intel)
@@ -188,7 +183,7 @@ jobs:
         path: _build/Release/flatc
     # Below if only for release.
     - name: Zip file
-      if: startsWith(github.ref, 'refs/tags/')
+      #if: startsWith(github.ref, 'refs/tags/')
       run: mv _build/Release/flatc . && zip MacIntel.flatc.binary.zip flatc
     - name: Release binary
       uses: softprops/action-gh-release@v1
@@ -196,13 +191,11 @@ jobs:
       with:
         files: MacIntel.flatc.binary.zip
     - name: Generate SLSA subjects
-      if: startsWith(github.ref, 'refs/tags/')
+      #if: startsWith(github.ref, 'refs/tags/')
       id: hash
       run: echo "::set-output name=hashes::$(shasum -a 256 MacIntel.flatc.binary.zip | base64)"
 
   build-mac-universal:
-    permissions:
-      contents: write
     outputs:
       digests: ${{ steps.hash.outputs.hashes }}
     name: Build Mac (universal build)
@@ -232,7 +225,7 @@ jobs:
         path: _build/Release/flatc
     # Below if only for release.
     - name: Zip file
-      if: startsWith(github.ref, 'refs/tags/')
+      #if: startsWith(github.ref, 'refs/tags/')
       run: mv _build/Release/flatc . && zip Mac.flatc.binary.zip flatc
     - name: Release binary
       uses: softprops/action-gh-release@v1
@@ -240,7 +233,7 @@ jobs:
       with:
         files: Mac.flatc.binary.zip
     - name: Generate SLSA subjects
-      if: startsWith(github.ref, 'refs/tags/')
+      #if: startsWith(github.ref, 'refs/tags/')
       id: hash
       run: echo "::set-output name=hashes::$(shasum -a 256 Mac.flatc.binary.zip | base64)"
 
@@ -418,8 +411,8 @@ jobs:
         working-directory: tests
         run: bash DartTest.sh
 
-  release-digests:
-    if: startsWith(github.ref, 'refs/tags/')
+  release-disgests:
+    #if: startsWith(github.ref, 'refs/tags/')
     needs: [build-linux, build-windows, build-mac-intel, build-mac-universal]
     outputs:
       digests: ${{ steps.hash.outputs.digests }}
@@ -443,13 +436,16 @@ jobs:
           echo "::set-output name=digests::$(cat checksums.txt | base64 -w0)"
 
   provenance:
-    if: startsWith(github.ref, 'refs/tags/')
-    needs: [release-digests]
+    #if: startsWith(github.ref, 'refs/tags/')
+    needs: [release-disgests]
     permissions:
       actions: read   # To read the workflow path.
       id-token: write # To sign the provenance.
       contents: write # To add assets to a release.
-    uses: slsa-framework/slsa-github-generator/.github/workflows/generator_generic_slsa3.yml@v1.2.0
-    with:
-      base64-subjects: "${{ needs.release-digests.outputs.digests }}"
-      upload-assets: true # Optional: Upload to a new release
+    runs-on: ubuntu-latest
+    steps:
+      - run: "${{ needs.release-disgests.outputs.digests }}"
+    # uses: slsa-framework/slsa-github-generator/.github/workflows/generator_generic_slsa3.yml@v1.2.0
+    # with:
+    #   base64-subjects: "${{ needs.release-disgests.outputs.digests }}"
+    #   upload-assets: true # Optional: Upload to a new release
