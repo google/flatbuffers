@@ -40,28 +40,6 @@ namespace {
 
 static const double kPi = 3.14159265358979323846;
 
-} // namespace
-
-// clang-format off
-const char *const kTypeNames[] = {
-  #define FLATBUFFERS_TD(ENUM, IDLTYPE, ...) \
-    IDLTYPE,
-    FLATBUFFERS_GEN_TYPES(FLATBUFFERS_TD)
-  #undef FLATBUFFERS_TD
-  nullptr
-};
-
-const char kTypeSizes[] = {
-  #define FLATBUFFERS_TD(ENUM, IDLTYPE, CTYPE, ...) \
-    sizeof(CTYPE),
-    FLATBUFFERS_GEN_TYPES(FLATBUFFERS_TD)
-  #undef FLATBUFFERS_TD
-};
-// clang-format on
-
-
-namespace {
-
 // The enums in the reflection schema should match the ones we use internally.
 // Compare the last element to check if these go out of sync.
 static_assert(BASE_TYPE_UNION == static_cast<BaseType>(reflection::Union),
@@ -107,90 +85,13 @@ static void DeserializeDoc(std::vector<std::string> &doc,
     doc.push_back(documentation->Get(index)->str());
 }
 
-} // namespace
-
-void Parser::Message(const std::string &msg) {
-  if (!error_.empty()) error_ += "\n";  // log all warnings and errors
-  error_ += file_being_parsed_.length() ? AbsolutePath(file_being_parsed_) : "";
-  // clang-format off
-
-  #ifdef _WIN32  // MSVC alike
-    error_ +=
-        "(" + NumToString(line_) + ", " + NumToString(CursorPosition()) + ")";
-  #else  // gcc alike
-    if (file_being_parsed_.length()) error_ += ":";
-    error_ += NumToString(line_) + ": " + NumToString(CursorPosition());
-  #endif
-  // clang-format on
-  error_ += ": " + msg;
-}
-
-void Parser::Warning(const std::string &msg) {
-  if (!opts.no_warnings) {
-    Message("warning: " + msg);
-    has_warning_ = true;  // for opts.warnings_as_errors
-  }
-}
-
-CheckedError Parser::Error(const std::string &msg) {
-  Message("error: " + msg);
-  return CheckedError(true);
-}
-
-namespace {
-
 static CheckedError NoError() { return CheckedError(false); }
-
-} // namespace
-
-CheckedError Parser::RecurseError() {
-  return Error("maximum parsing depth " + NumToString(parse_depth_counter_) +
-               " reached");
-}
-
-const std::string &Parser::GetPooledString(const std::string &s) const {
-  return *(string_cache_.insert(s).first);
-}
-
-class Parser::ParseDepthGuard {
- public:
-  explicit ParseDepthGuard(Parser *parser_not_null)
-      : parser_(*parser_not_null), caller_depth_(parser_.parse_depth_counter_) {
-    FLATBUFFERS_ASSERT(caller_depth_ <= (FLATBUFFERS_MAX_PARSING_DEPTH) &&
-                       "Check() must be called to prevent stack overflow");
-    parser_.parse_depth_counter_ += 1;
-  }
-
-  ~ParseDepthGuard() { parser_.parse_depth_counter_ -= 1; }
-
-  CheckedError Check() {
-    return caller_depth_ >= (FLATBUFFERS_MAX_PARSING_DEPTH)
-               ? parser_.RecurseError()
-               : CheckedError(false);
-  }
-
-  FLATBUFFERS_DELETE_FUNC(ParseDepthGuard(const ParseDepthGuard &));
-  FLATBUFFERS_DELETE_FUNC(ParseDepthGuard &operator=(const ParseDepthGuard &));
-
- private:
-  Parser &parser_;
-  const int caller_depth_;
-};
-
-
-namespace {
 
 template<typename T>
 static std::string TypeToIntervalString() {
   return "[" + NumToString((flatbuffers::numeric_limits<T>::lowest)()) + "; " +
          NumToString((flatbuffers::numeric_limits<T>::max)()) + "]";
 }
-
-} // namespace
-
-
-
-namespace {
 
 
 // atot: template version of atoi/atof: convert a string to an instance of T.
@@ -224,29 +125,6 @@ CheckedError atot<Offset<void>>(const char *s, Parser &parser,
   *val = Offset<void>(atoi(s));
   return NoError();
 }
-
-} // namespace
-
-std::string Namespace::GetFullyQualifiedName(const std::string &name,
-                                             size_t max_components) const {
-  // Early exit if we don't have a defined namespace.
-  if (components.empty() || !max_components) { return name; }
-  std::string stream_str;
-  for (size_t i = 0; i < std::min(components.size(), max_components); i++) {
-    stream_str += components[i];
-    stream_str += '.';
-  }
-  if (!stream_str.empty()) stream_str.pop_back();
-  if (name.length()) {
-    stream_str += '.';
-    stream_str += name;
-  }
-  return stream_str;
-}
-
-
-namespace {
-
 
 template<typename T>
 static T *LookupTableByName(const SymbolTable<T> &table, const std::string &name,
@@ -309,7 +187,283 @@ static std::string TokenToString(int t) {
 }
 // clang-format on
 
+static bool IsIdentifierStart(char c) {
+  return is_alpha(c) || (c == '_');
+}
+
+static bool CompareSerializedScalars(const uint8_t *a, const uint8_t *b,
+                                     const FieldDef &key) {
+  switch (key.value.type.base_type) {
+#define FLATBUFFERS_TD(ENUM, IDLTYPE, CTYPE, ...)                       \
+  case BASE_TYPE_##ENUM: {                                              \
+    CTYPE def = static_cast<CTYPE>(0);                                  \
+    if (!a || !b) { StringToNumber(key.value.constant.c_str(), &def); } \
+    const auto av = a ? ReadScalar<CTYPE>(a) : def;                     \
+    const auto bv = b ? ReadScalar<CTYPE>(b) : def;                     \
+    return av < bv;                                                     \
+  }
+    FLATBUFFERS_GEN_TYPES_SCALAR(FLATBUFFERS_TD)
+#undef FLATBUFFERS_TD
+    default: {
+      FLATBUFFERS_ASSERT(false && "scalar type expected");
+      return false;
+    }
+  }
+}
+
+static bool CompareTablesByScalarKey(const Offset<Table> *_a,
+                                     const Offset<Table> *_b,
+                                     const FieldDef &key) {
+  const voffset_t offset = key.value.offset;
+  // Indirect offset pointer to table pointer.
+  auto a = reinterpret_cast<const uint8_t *>(_a) + ReadScalar<uoffset_t>(_a);
+  auto b = reinterpret_cast<const uint8_t *>(_b) + ReadScalar<uoffset_t>(_b);
+  // Fetch field address from table.
+  a = reinterpret_cast<const Table *>(a)->GetAddressOf(offset);
+  b = reinterpret_cast<const Table *>(b)->GetAddressOf(offset);
+  return CompareSerializedScalars(a, b, key);
+}
+
+static bool CompareTablesByStringKey(const Offset<Table> *_a,
+                                     const Offset<Table> *_b,
+                                     const FieldDef &key) {
+  const voffset_t offset = key.value.offset;
+  // Indirect offset pointer to table pointer.
+  auto a = reinterpret_cast<const uint8_t *>(_a) + ReadScalar<uoffset_t>(_a);
+  auto b = reinterpret_cast<const uint8_t *>(_b) + ReadScalar<uoffset_t>(_b);
+  // Fetch field address from table.
+  a = reinterpret_cast<const Table *>(a)->GetAddressOf(offset);
+  b = reinterpret_cast<const Table *>(b)->GetAddressOf(offset);
+  if (a && b) {
+    // Indirect offset pointer to string pointer.
+    a += ReadScalar<uoffset_t>(a);
+    b += ReadScalar<uoffset_t>(b);
+    return *reinterpret_cast<const String *>(a) <
+           *reinterpret_cast<const String *>(b);
+  } else {
+    return a ? true : false;
+  }
+}
+
+static void SwapSerializedTables(Offset<Table> *a, Offset<Table> *b) {
+  // These are serialized offsets, so are relative where they are
+  // stored in memory, so compute the distance between these pointers:
+  ptrdiff_t diff = (b - a) * sizeof(Offset<Table>);
+  FLATBUFFERS_ASSERT(diff >= 0);  // Guaranteed by SimpleQsort.
+  auto udiff = static_cast<uoffset_t>(diff);
+  a->o = EndianScalar(ReadScalar<uoffset_t>(a) - udiff);
+  b->o = EndianScalar(ReadScalar<uoffset_t>(b) + udiff);
+  std::swap(*a, *b);
+}
+
+// See below for why we need our own sort :(
+template<typename T, typename F, typename S>
+static void SimpleQsort(T *begin, T *end, size_t width, F comparator, S swapper) {
+  if (end - begin <= static_cast<ptrdiff_t>(width)) return;
+  auto l = begin + width;
+  auto r = end;
+  while (l < r) {
+    if (comparator(begin, l)) {
+      r -= width;
+      swapper(l, r);
+    } else {
+      l += width;
+    }
+  }
+  l -= width;
+  swapper(begin, l);
+  SimpleQsort(begin, l, width, comparator, swapper);
+  SimpleQsort(r, end, width, comparator, swapper);
+}
+
+
+template<typename T>
+static inline void SingleValueRepack(Value &e, T val) {
+  // Remove leading zeros.
+  if (IsInteger(e.type.base_type)) { e.constant = NumToString(val); }
+}
+
+#if defined(FLATBUFFERS_HAS_NEW_STRTOD) && (FLATBUFFERS_HAS_NEW_STRTOD > 0)
+// Normalize defaults NaN to unsigned quiet-NaN(0) if value was parsed from
+// hex-float literal.
+static void SingleValueRepack(Value &e, float val) {
+  if (val != val) e.constant = "nan";
+}
+static void SingleValueRepack(Value &e, double val) {
+  if (val != val) e.constant = "nan";
+}
+#endif
+
+
+template<typename T> static uint64_t EnumDistanceImpl(T e1, T e2) {
+  if (e1 < e2) { std::swap(e1, e2); }  // use std for scalars
+  // Signed overflow may occur, use unsigned calculation.
+  // The unsigned overflow is well-defined by C++ standard (modulo 2^n).
+  return static_cast<uint64_t>(e1) - static_cast<uint64_t>(e2);
+}
+
+static bool compareFieldDefs(const FieldDef *a, const FieldDef *b) {
+  auto a_id = atoi(a->attributes.Lookup("id")->constant.c_str());
+  auto b_id = atoi(b->attributes.Lookup("id")->constant.c_str());
+  return a_id < b_id;
+}
+
+static Namespace *GetNamespace(
+    const std::string &qualified_name, std::vector<Namespace *> &namespaces,
+    std::map<std::string, Namespace *> &namespaces_index) {
+  size_t dot = qualified_name.find_last_of('.');
+  std::string namespace_name = (dot != std::string::npos)
+                                   ? std::string(qualified_name.c_str(), dot)
+                                   : "";
+  Namespace *&ns = namespaces_index[namespace_name];
+
+  if (!ns) {
+    ns = new Namespace();
+    namespaces.push_back(ns);
+
+    size_t pos = 0;
+
+    for (;;) {
+      dot = qualified_name.find('.', pos);
+      if (dot == std::string::npos) { break; }
+      ns->components.push_back(qualified_name.substr(pos, dot - pos));
+      pos = dot + 1;
+    }
+  }
+
+  return ns;
+}
+
+// Generate a unique hash for a file based on its name and contents (if any).
+static uint64_t HashFile(const char *source_filename, const char *source) {
+  uint64_t hash = 0;
+
+  if (source_filename)
+    hash = HashFnv1a<uint64_t>(StripPath(source_filename).c_str());
+
+  if (source && *source) hash ^= HashFnv1a<uint64_t>(source);
+
+  return hash;
+}
+
+template<typename T>
+static bool compareName(const T *a, const T *b) {
+  return a->defined_namespace->GetFullyQualifiedName(a->name) <
+         b->defined_namespace->GetFullyQualifiedName(b->name);
+}
+
+template<typename T>
+static void AssignIndices(const std::vector<T *> &defvec) {
+  // Pre-sort these vectors, such that we can set the correct indices for them.
+  auto vec = defvec;
+  std::sort(vec.begin(), vec.end(), compareName<T>);
+  for (int i = 0; i < static_cast<int>(vec.size()); i++) vec[i]->index = i;
+}
+
 } // namespace
+
+
+
+
+
+
+// clang-format off
+const char *const kTypeNames[] = {
+  #define FLATBUFFERS_TD(ENUM, IDLTYPE, ...) \
+    IDLTYPE,
+    FLATBUFFERS_GEN_TYPES(FLATBUFFERS_TD)
+  #undef FLATBUFFERS_TD
+  nullptr
+};
+
+const char kTypeSizes[] = {
+  #define FLATBUFFERS_TD(ENUM, IDLTYPE, CTYPE, ...) \
+    sizeof(CTYPE),
+    FLATBUFFERS_GEN_TYPES(FLATBUFFERS_TD)
+  #undef FLATBUFFERS_TD
+};
+// clang-format on
+
+
+void Parser::Message(const std::string &msg) {
+  if (!error_.empty()) error_ += "\n";  // log all warnings and errors
+  error_ += file_being_parsed_.length() ? AbsolutePath(file_being_parsed_) : "";
+  // clang-format off
+
+  #ifdef _WIN32  // MSVC alike
+    error_ +=
+        "(" + NumToString(line_) + ", " + NumToString(CursorPosition()) + ")";
+  #else  // gcc alike
+    if (file_being_parsed_.length()) error_ += ":";
+    error_ += NumToString(line_) + ": " + NumToString(CursorPosition());
+  #endif
+  // clang-format on
+  error_ += ": " + msg;
+}
+
+void Parser::Warning(const std::string &msg) {
+  if (!opts.no_warnings) {
+    Message("warning: " + msg);
+    has_warning_ = true;  // for opts.warnings_as_errors
+  }
+}
+
+CheckedError Parser::Error(const std::string &msg) {
+  Message("error: " + msg);
+  return CheckedError(true);
+}
+
+CheckedError Parser::RecurseError() {
+  return Error("maximum parsing depth " + NumToString(parse_depth_counter_) +
+               " reached");
+}
+
+const std::string &Parser::GetPooledString(const std::string &s) const {
+  return *(string_cache_.insert(s).first);
+}
+
+class Parser::ParseDepthGuard {
+ public:
+  explicit ParseDepthGuard(Parser *parser_not_null)
+      : parser_(*parser_not_null), caller_depth_(parser_.parse_depth_counter_) {
+    FLATBUFFERS_ASSERT(caller_depth_ <= (FLATBUFFERS_MAX_PARSING_DEPTH) &&
+                       "Check() must be called to prevent stack overflow");
+    parser_.parse_depth_counter_ += 1;
+  }
+
+  ~ParseDepthGuard() { parser_.parse_depth_counter_ -= 1; }
+
+  CheckedError Check() {
+    return caller_depth_ >= (FLATBUFFERS_MAX_PARSING_DEPTH)
+               ? parser_.RecurseError()
+               : CheckedError(false);
+  }
+
+  FLATBUFFERS_DELETE_FUNC(ParseDepthGuard(const ParseDepthGuard &));
+  FLATBUFFERS_DELETE_FUNC(ParseDepthGuard &operator=(const ParseDepthGuard &));
+
+ private:
+  Parser &parser_;
+  const int caller_depth_;
+};
+
+
+std::string Namespace::GetFullyQualifiedName(const std::string &name,
+                                             size_t max_components) const {
+  // Early exit if we don't have a defined namespace.
+  if (components.empty() || !max_components) { return name; }
+  std::string stream_str;
+  for (size_t i = 0; i < std::min(components.size(), max_components); i++) {
+    stream_str += components[i];
+    stream_str += '.';
+  }
+  if (!stream_str.empty()) stream_str.pop_back();
+  if (name.length()) {
+    stream_str += '.';
+    stream_str += name;
+  }
+  return stream_str;
+}
 
 
 std::string Parser::TokenToStringId(int t) const {
@@ -340,14 +494,6 @@ CheckedError Parser::SkipByteOrderMark() {
   cursor_++;
   return NoError();
 }
-
-namespace {
-
-static bool IsIdentifierStart(char c) {
-  return is_alpha(c) || (c == '_');
-}
-
-} // namespace
 
 CheckedError Parser::Next() {
   doc_comment_.clear();
@@ -1449,98 +1595,6 @@ CheckedError Parser::ParseVectorDelimiters(uoffset_t &count, F body) {
 }
 
 
-namespace {
-
-static bool CompareSerializedScalars(const uint8_t *a, const uint8_t *b,
-                                     const FieldDef &key) {
-  switch (key.value.type.base_type) {
-#define FLATBUFFERS_TD(ENUM, IDLTYPE, CTYPE, ...)                       \
-  case BASE_TYPE_##ENUM: {                                              \
-    CTYPE def = static_cast<CTYPE>(0);                                  \
-    if (!a || !b) { StringToNumber(key.value.constant.c_str(), &def); } \
-    const auto av = a ? ReadScalar<CTYPE>(a) : def;                     \
-    const auto bv = b ? ReadScalar<CTYPE>(b) : def;                     \
-    return av < bv;                                                     \
-  }
-    FLATBUFFERS_GEN_TYPES_SCALAR(FLATBUFFERS_TD)
-#undef FLATBUFFERS_TD
-    default: {
-      FLATBUFFERS_ASSERT(false && "scalar type expected");
-      return false;
-    }
-  }
-}
-
-static bool CompareTablesByScalarKey(const Offset<Table> *_a,
-                                     const Offset<Table> *_b,
-                                     const FieldDef &key) {
-  const voffset_t offset = key.value.offset;
-  // Indirect offset pointer to table pointer.
-  auto a = reinterpret_cast<const uint8_t *>(_a) + ReadScalar<uoffset_t>(_a);
-  auto b = reinterpret_cast<const uint8_t *>(_b) + ReadScalar<uoffset_t>(_b);
-  // Fetch field address from table.
-  a = reinterpret_cast<const Table *>(a)->GetAddressOf(offset);
-  b = reinterpret_cast<const Table *>(b)->GetAddressOf(offset);
-  return CompareSerializedScalars(a, b, key);
-}
-
-static bool CompareTablesByStringKey(const Offset<Table> *_a,
-                                     const Offset<Table> *_b,
-                                     const FieldDef &key) {
-  const voffset_t offset = key.value.offset;
-  // Indirect offset pointer to table pointer.
-  auto a = reinterpret_cast<const uint8_t *>(_a) + ReadScalar<uoffset_t>(_a);
-  auto b = reinterpret_cast<const uint8_t *>(_b) + ReadScalar<uoffset_t>(_b);
-  // Fetch field address from table.
-  a = reinterpret_cast<const Table *>(a)->GetAddressOf(offset);
-  b = reinterpret_cast<const Table *>(b)->GetAddressOf(offset);
-  if (a && b) {
-    // Indirect offset pointer to string pointer.
-    a += ReadScalar<uoffset_t>(a);
-    b += ReadScalar<uoffset_t>(b);
-    return *reinterpret_cast<const String *>(a) <
-           *reinterpret_cast<const String *>(b);
-  } else {
-    return a ? true : false;
-  }
-}
-
-static void SwapSerializedTables(Offset<Table> *a, Offset<Table> *b) {
-  // These are serialized offsets, so are relative where they are
-  // stored in memory, so compute the distance between these pointers:
-  ptrdiff_t diff = (b - a) * sizeof(Offset<Table>);
-  FLATBUFFERS_ASSERT(diff >= 0);  // Guaranteed by SimpleQsort.
-  auto udiff = static_cast<uoffset_t>(diff);
-  a->o = EndianScalar(ReadScalar<uoffset_t>(a) - udiff);
-  b->o = EndianScalar(ReadScalar<uoffset_t>(b) + udiff);
-  std::swap(*a, *b);
-}
-
-// See below for why we need our own sort :(
-template<typename T, typename F, typename S>
-static void SimpleQsort(T *begin, T *end, size_t width, F comparator, S swapper) {
-  if (end - begin <= static_cast<ptrdiff_t>(width)) return;
-  auto l = begin + width;
-  auto r = end;
-  while (l < r) {
-    if (comparator(begin, l)) {
-      r -= width;
-      swapper(l, r);
-    } else {
-      l += width;
-    }
-  }
-  l -= width;
-  swapper(begin, l);
-  SimpleQsort(begin, l, width, comparator, swapper);
-  SimpleQsort(r, end, width, comparator, swapper);
-}
-
-
-
-} // namespace
-
-
 CheckedError Parser::ParseAlignAttribute(const std::string &align_constant,
                                          size_t min_align, size_t *align) {
   // Use uint8_t to avoid problems with size_t==`unsigned long` on LP64.
@@ -1867,28 +1921,6 @@ CheckedError Parser::TokenError() {
   return Error("cannot parse value starting with: " + TokenToStringId(token_));
 }
 
-namespace {
-
-// Re-pack helper (ParseSingleValue) to normalize defaults of scalars.
-template<typename T>
-static inline void SingleValueRepack(Value &e, T val) {
-  // Remove leading zeros.
-  if (IsInteger(e.type.base_type)) { e.constant = NumToString(val); }
-}
-
-#if defined(FLATBUFFERS_HAS_NEW_STRTOD) && (FLATBUFFERS_HAS_NEW_STRTOD > 0)
-// Normalize defaults NaN to unsigned quiet-NaN(0) if value was parsed from
-// hex-float literal.
-static void SingleValueRepack(Value &e, float val) {
-  if (val != val) e.constant = "nan";
-}
-static void SingleValueRepack(Value &e, double val) {
-  if (val != val) e.constant = "nan";
-}
-#endif
-
-} // namespace
-
 CheckedError Parser::ParseFunction(const std::string *name, Value &e) {
   ParseDepthGuard depth_guard(this);
   ECHECK(depth_guard.Check());
@@ -2159,17 +2191,6 @@ const EnumVal *EnumDef::MinValue() const {
 const EnumVal *EnumDef::MaxValue() const {
   return vals.vec.empty() ? nullptr : vals.vec.back();
 }
-
-namespace {
-
-template<typename T> static uint64_t EnumDistanceImpl(T e1, T e2) {
-  if (e1 < e2) { std::swap(e1, e2); }  // use std for scalars
-  // Signed overflow may occur, use unsigned calculation.
-  // The unsigned overflow is well-defined by C++ standard (modulo 2^n).
-  return static_cast<uint64_t>(e1) - static_cast<uint64_t>(e2);
-}
-
-} // namespace
 
 uint64_t EnumDef::Distance(const EnumVal *v1, const EnumVal *v2) const {
   return IsUInt64() ? EnumDistanceImpl(v1->GetAsUInt64(), v2->GetAsUInt64())
@@ -2594,16 +2615,6 @@ std::string Parser::UnqualifiedName(const std::string &full_qualified_name) {
   current_namespace_ = UniqueNamespace(ns);
   return full_qualified_name.substr(previous, current - previous);
 }
-
-namespace {
-
-static bool compareFieldDefs(const FieldDef *a, const FieldDef *b) {
-  auto a_id = atoi(a->attributes.Lookup("id")->constant.c_str());
-  auto b_id = atoi(b->attributes.Lookup("id")->constant.c_str());
-  return a_id < b_id;
-}
-
-} // namespace
 
 CheckedError Parser::ParseDecl(const char *filename) {
   std::vector<std::string> dc = doc_comment_;
@@ -3414,23 +3425,6 @@ CheckedError Parser::CheckPrivatelyLeakedFields(const Definition &def,
 }
 
 
-namespace {
-
-// Generate a unique hash for a file based on its name and contents (if any).
-static uint64_t HashFile(const char *source_filename, const char *source) {
-  uint64_t hash = 0;
-
-  if (source_filename)
-    hash = HashFnv1a<uint64_t>(StripPath(source_filename).c_str());
-
-  if (source && *source) hash ^= HashFnv1a<uint64_t>(source);
-
-  return hash;
-}
-
-} // namespace
-
-
 CheckedError Parser::DoParse(const char *source, const char **include_paths,
                              const char *source_filename,
                              const char *include_filename) {
@@ -3644,24 +3638,6 @@ std::set<std::string> Parser::GetIncludedFilesRecursive(
 
 // Schema serialization functionality:
 
-namespace {
-
-template<typename T>
-static bool compareName(const T *a, const T *b) {
-  return a->defined_namespace->GetFullyQualifiedName(a->name) <
-         b->defined_namespace->GetFullyQualifiedName(b->name);
-}
-
-template<typename T>
-static void AssignIndices(const std::vector<T *> &defvec) {
-  // Pre-sort these vectors, such that we can set the correct indices for them.
-  auto vec = defvec;
-  std::sort(vec.begin(), vec.end(), compareName<T>);
-  for (int i = 0; i < static_cast<int>(vec.size()); i++) vec[i]->index = i;
-}
-
-} // namespace
-
 void Parser::Serialize() {
   builder_.Clear();
   AssignIndices(structs_.vec);
@@ -3730,37 +3706,6 @@ void Parser::Serialize() {
     builder_.Finish(schema_offset, reflection::SchemaIdentifier());
   }
 }
-
-namespace {
-
-static Namespace *GetNamespace(
-    const std::string &qualified_name, std::vector<Namespace *> &namespaces,
-    std::map<std::string, Namespace *> &namespaces_index) {
-  size_t dot = qualified_name.find_last_of('.');
-  std::string namespace_name = (dot != std::string::npos)
-                                   ? std::string(qualified_name.c_str(), dot)
-                                   : "";
-  Namespace *&ns = namespaces_index[namespace_name];
-
-  if (!ns) {
-    ns = new Namespace();
-    namespaces.push_back(ns);
-
-    size_t pos = 0;
-
-    for (;;) {
-      dot = qualified_name.find('.', pos);
-      if (dot == std::string::npos) { break; }
-      ns->components.push_back(qualified_name.substr(pos, dot - pos));
-      pos = dot + 1;
-    }
-  }
-
-  return ns;
-}
-
-} // namespace
-
 
 Offset<reflection::Object> StructDef::Serialize(FlatBufferBuilder *builder,
                                                 const Parser &parser) const {
