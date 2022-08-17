@@ -27,7 +27,6 @@ COMMON_ARGS = [
     str(grpc_examples_path),
 ]
 
-
 def GenerateGRPCExamples():
 
     flatc(
@@ -66,7 +65,6 @@ def GenerateGRPCExamples():
         schema=greeter_schema,
         cwd=Path(grpc_examples_path, "ts/greeter/src"),
     )
-
 
 if __name__ == "__main__":
     GenerateGRPCExamples()
