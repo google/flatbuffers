@@ -275,7 +275,7 @@ jobs:
     - name: Generate
       run: scripts/check_generate_code.py
     - name: Generate gRPC
-      run: bash scripts/check-grpc-generated-code.sh
+      run: scripts/check-grpc-generated-code.py
 
   build-benchmarks:
     name: Build Benchmarks (on Linux)
