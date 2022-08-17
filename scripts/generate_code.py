@@ -20,6 +20,7 @@ import glob
 import platform
 import shutil
 import subprocess
+import generate_grpc_examples
 from pathlib import Path
 
 parser = argparse.ArgumentParser()
@@ -514,3 +515,6 @@ def flatc_annotate(schema, include=None, data=None, cwd=tests_path):
 flatc_annotate(
     schema="monster_test.fbs", include="include_test", data="monsterdata_test.mon"
 )
+
+# Run the generate_grpc_examples script
+generate_grpc_examples.GenerateGRPCExamples()
