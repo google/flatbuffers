@@ -123,14 +123,6 @@ class TsGenerator : public BaseGenerator {
     return parser_.opts.ts_flat_file && parser_.opts.generate_all;
   }
 
-  // Make the provided def wrapped in namespaced if configured to do so,
-  // otherwise just return the name.
-  std::string MakeNamespaced(const Definition &def,
-                             const std::string &suffix = "") {
-    if (IncludeNamespace()) { return WrapInNameSpace(def, suffix); }
-    return def.name + suffix;
-  }
-
   std::string GetTypeName(const EnumDef &def, const bool = false,
                           const bool force_ns_wrap = false) {
     std::string base_name = def.name;
@@ -732,8 +724,8 @@ class TsGenerator : public BaseGenerator {
     if (import_pair != imports.end()) { return import_pair->second; }
 
     // Check if this name would have a name clash with another type. Just use
-    // the "base" name (properlly escaped) without any namespacing applied.
-    const std::string import_name = EscapeKeyword(dependency.name);
+    // the "base" name (properly escaped) without any namespacing applied.
+    const std::string import_name = GetTypeName(dependency);
     const bool has_name_clash = CheckIfNameClashes(imports, import_name);
 
     // If we have a name clash, use the unique name, otherwise use simple name.
