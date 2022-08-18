@@ -16,7 +16,6 @@
 
 // independent from idl_parser, since this code is not needed for most clients
 
-#include <iostream>
 #include <string>
 #include <unordered_set>
 
