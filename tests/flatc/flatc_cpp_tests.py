@@ -83,7 +83,8 @@ class CppTests:
         flatc(["--cpp", "--keep-prefix", "-o", ".tmp", "foo.fbs"])
 
         assert_file_and_contents(
-            ".tmp/foo_generated.h", '#include "bar/bar_generated.h"',
+            ".tmp/foo_generated.h",
+            '#include "bar/bar_generated.h"',
         )
 
     def KeepPrefixOutPathSubDirectory(self):
@@ -210,17 +211,20 @@ class CppTests:
                 "--include-prefix",
                 "generated",
                 "-I",
-                script_path.absolute(),
+                str(script_path.absolute()),
                 "-o",
-                Path(script_path, ".tmp").absolute(),
-                Path(script_path, "bar/bar_with_foo.fbs").absolute(),
+                str(Path(script_path, ".tmp").absolute()),
+                str(Path(script_path, "bar/bar_with_foo.fbs").absolute()),
             ]
         )
 
         # The include prefix should come first, with the kept prefix next.
         assert_file_and_contents(
             ".tmp/bar_with_foo_generated.h",
-            '#include "generated/foo_generated.h"',
+            [
+                '#include "generated/baz/baz_generated.h"',
+                '#include "generated/foo_generated.h"',
+            ],
         )
 
     def KeepPrefixIncludePrefixoutPath_SuperDirectoryReference(self):
@@ -242,5 +246,9 @@ class CppTests:
         # The include prefix should come first, with the kept prefix next.
         assert_file_and_contents(
             ".tmp/bar_with_foo_generated.h",
-            '#include "generated/foo_generated.h"',
+            [
+                '#include "generated/baz/baz_generated.h"',
+                '#include "generated/foo_generated.h"',
+            ],
+            unlink=False,
         )

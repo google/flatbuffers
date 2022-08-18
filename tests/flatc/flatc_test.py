@@ -52,7 +52,7 @@ def flatc(options, cwd=script_path):
 
 
 def make_absolute(filename, path=script_path):
-    return Path(path, filename).absolute()
+    return str(Path(path, filename).absolute())
 
 
 def assert_file_exists(filename, path=script_path):
