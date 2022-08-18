@@ -58,12 +58,12 @@ http_archive(
 )
 
 ##### GRPC
-_GRPC_VERSION = "1.42.0"
+_GRPC_VERSION = "1.48.0"
 
 http_archive(
     name = "com_github_grpc_grpc",
     strip_prefix = "grpc-" + _GRPC_VERSION,
-    urls = ["https://github.com/grpc/grpc/archive/v" + _GRPC_VERSION + ".tar.gz"],
+    urls = ["https://github.com/grpc/grpc/archive/refs/tags/v" + _GRPC_VERSION + ".tar.gz"],
 )
 
 load("@com_github_grpc_grpc//bazel:grpc_deps.bzl", "grpc_deps")
