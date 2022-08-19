@@ -26,6 +26,10 @@
 #include "flatbuffers/idl.h"
 #include "flatbuffers/util.h"
 
+#ifndef FLATBUFFERS_CPP_OBJECT_UNPACKTO
+#define FLATBUFFERS_CPP_OBJECT_UNPACKTO 0
+#endif
+
 namespace flatbuffers {
 
 // Make numerical literal with type-suffix.
@@ -3061,6 +3065,8 @@ class CppGenerator : public BaseGenerator {
               code += "/* else do nothing */";
             }
           } else {
+            // clang-format off
+            #if FLATBUFFERS_CPP_OBJECT_UNPACKTO
             const bool is_pointer =
                 field.value.type.VectorType().base_type == BASE_TYPE_STRUCT &&
                 !IsStruct(field.value.type.VectorType());
@@ -3070,10 +3076,14 @@ class CppGenerator : public BaseGenerator {
                       "[_i].get(), _resolver);";
               code += " } else { ";
             }
+            #endif
             code += "_o->" + name + "[_i]" + access + " = ";
             code += GenUnpackVal(field.value.type.VectorType(), indexing, true,
                                  field);
+            #if FLATBUFFERS_CPP_OBJECT_UNPACKTO
             if (is_pointer) { code += "; }"; }
+            #endif
+            // clang-format on
           }
           code += "; } }";
         }
@@ -3120,6 +3130,8 @@ class CppGenerator : public BaseGenerator {
         } else {
           // Generate code for assigning the value, of the form:
           //  _o->field = value;
+          // clang-format off
+          #if FLATBUFFERS_CPP_OBJECT_UNPACKTO
           const bool is_pointer =
               field.value.type.base_type == BASE_TYPE_STRUCT &&
               !IsStruct(field.value.type);
@@ -3128,9 +3140,13 @@ class CppGenerator : public BaseGenerator {
             code += "_e->UnPackTo(_o->" + Name(field) + ".get(), _resolver);";
             code += " } else { ";
           }
+          #endif
           code += "_o->" + Name(field) + " = ";
           code += GenUnpackVal(field.value.type, "_e", false, field) + ";";
+          #if FLATBUFFERS_CPP_OBJECT_UNPACKTO
           if (is_pointer) { code += " } }"; }
+          #endif
+          // clang-format on
         }
         break;
       }
