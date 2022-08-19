@@ -44,7 +44,7 @@ load("@io_bazel_rules_go//go:deps.bzl", "go_register_toolchains", "go_rules_depe
 
 go_rules_dependencies()
 
-go_register_toolchains(version = "1.18.4")
+# no need for go_register_toolchains here since grpc_extra_deps() down there calls it too
 
 ##### Protobuf
 _PROTOBUF_VERSION = "3.15.2"
