@@ -33,18 +33,16 @@ swift_rules_extra_dependencies()
 
 http_archive(
     name = "io_bazel_rules_go",
-    sha256 = "d1ffd055969c8f8d431e2d439813e42326961d0942bdf734d2c95dc30c369566",
+    sha256 = "16e9fca53ed6bd4ff4ad76facc9b7b651a89db1689a2877d6fd7b82aa824e366",
     urls = [
-        "https://mirror.bazel.build/github.com/bazelbuild/rules_go/releases/download/v0.24.5/rules_go-v0.24.5.tar.gz",
-        "https://github.com/bazelbuild/rules_go/releases/download/v0.24.5/rules_go-v0.24.5.tar.gz",
+        "https://mirror.bazel.build/github.com/bazelbuild/rules_go/releases/download/v0.34.0/rules_go-v0.34.0.zip",
+        "https://github.com/bazelbuild/rules_go/releases/download/v0.34.0/rules_go-v0.34.0.zip",
     ],
 )
 
-load("@io_bazel_rules_go//go:deps.bzl", "go_register_toolchains", "go_rules_dependencies")
+load("@io_bazel_rules_go//go:deps.bzl", "go_rules_dependencies")
 
 go_rules_dependencies()
-
-go_register_toolchains()
 
 ##### Protobuf
 _PROTOBUF_VERSION = "3.15.2"
@@ -58,12 +56,12 @@ http_archive(
 )
 
 ##### GRPC
-_GRPC_VERSION = "1.42.0"
+_GRPC_VERSION = "1.48.0"  # https://github.com/grpc/grpc/releases/tag/v1.48.0
 
 http_archive(
     name = "com_github_grpc_grpc",
     strip_prefix = "grpc-" + _GRPC_VERSION,
-    urls = ["https://github.com/grpc/grpc/archive/v" + _GRPC_VERSION + ".tar.gz"],
+    urls = ["https://github.com/grpc/grpc/archive/refs/tags/v" + _GRPC_VERSION + ".tar.gz"],
 )
 
 load("@com_github_grpc_grpc//bazel:grpc_deps.bzl", "grpc_deps")
@@ -74,6 +72,7 @@ load("@com_github_grpc_grpc//bazel:grpc_extra_deps.bzl", "grpc_extra_deps")
 
 grpc_extra_deps()
 
+# rules_go from https://github.com/bazelbuild/rules_go/releases/tag/v0.34.0
 http_archive(
     name = "build_bazel_rules_nodejs",
     sha256 = "965ee2492a2b087cf9e0f2ca472aeaf1be2eb650e0cfbddf514b9a7d3ea4b02a",
