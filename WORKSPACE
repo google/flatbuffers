@@ -44,8 +44,6 @@ load("@io_bazel_rules_go//go:deps.bzl", "go_rules_dependencies")
 
 go_rules_dependencies()
 
-# no need for go_register_toolchains here since grpc_extra_deps() down there calls it too
-
 ##### Protobuf
 _PROTOBUF_VERSION = "3.15.2"
 
@@ -58,7 +56,7 @@ http_archive(
 )
 
 ##### GRPC
-_GRPC_VERSION = "1.48.0"
+_GRPC_VERSION = "1.48.0"  # https://github.com/grpc/grpc/releases/tag/v1.48.0
 
 http_archive(
     name = "com_github_grpc_grpc",
@@ -74,6 +72,7 @@ load("@com_github_grpc_grpc//bazel:grpc_extra_deps.bzl", "grpc_extra_deps")
 
 grpc_extra_deps()
 
+# rules_go from https://github.com/bazelbuild/rules_go/releases/tag/v0.34.0
 http_archive(
     name = "build_bazel_rules_nodejs",
     sha256 = "965ee2492a2b087cf9e0f2ca472aeaf1be2eb650e0cfbddf514b9a7d3ea4b02a",
