@@ -94,7 +94,7 @@ def flatc_reflection(options, location, target):
     new_reflection_path = Path(reflection_path, temp_dir, target)
     original_reflection_path = Path(root_path, location, target)
     if not filecmp.cmp(str(new_reflection_path), str(original_reflection_path)):
-        shutil.rmtree(str(original_reflection_path))
+        shutil.rmtree(str(original_reflection_path), ignore_errors=True)
         shutil.move(str(new_reflection_path), str(original_reflection_path))
     shutil.rmtree(str(Path(reflection_path, temp_dir)))
 
