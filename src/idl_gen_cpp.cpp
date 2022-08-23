@@ -239,22 +239,34 @@ class CppGenerator : public BaseGenerator {
     // interdependence between them.
     std::stable_sort(included_files.begin(), included_files.end());
 
-    // Get any prefix of the file being parsed, so that included filed can be
-    // properly stripped.
-    auto prefix = flatbuffers::StripFileName(parser_.file_being_parsed_) +
-                  flatbuffers::kPathSeparator;
+    // The absolute path of the file being parsed.
+    const std::string parsed_path =
+        flatbuffers::StripFileName(AbsolutePath(parser_.file_being_parsed_));
 
     for (const std::string &included_file : included_files) {
-      auto file_without_extension = flatbuffers::StripExtension(included_file);
-      code_ +=
-          "#include \"" +
-          GeneratedFileName(
-              opts_.include_prefix,
-              opts_.keep_prefix
-                  ? flatbuffers::StripPrefix(file_without_extension, prefix)
-                  : flatbuffers::StripPath(file_without_extension),
-              opts_) +
-          "\"";
+      // The base name of the file, without path or extensions.
+      std::string basename =
+          flatbuffers::StripPath(flatbuffers::StripExtension(included_file));
+
+      // If we are keeping the prefix
+      if (opts_.keep_prefix) {
+        // The absolute path of the included file.
+        const std::string included_path =
+            flatbuffers::StripFileName(AbsolutePath(included_file));
+
+        // The relative path of the parsed file to the included file.
+        const std::string relative_path =
+            RelativeToRootPath(parsed_path, included_path).substr(2);
+
+        // Only consider cases where the included path is a subdirectory of the
+        // parsed path.
+        if (strncmp("..", relative_path.c_str(), 2) != 0) {
+          basename = relative_path + kPathSeparator + basename;
+        }
+      }
+
+      code_ += "#include \"" +
+               GeneratedFileName(opts_.include_prefix, basename, opts_) + "\"";
     }
 
     if (!parser_.native_included_files_.empty() || !included_files.empty()) {

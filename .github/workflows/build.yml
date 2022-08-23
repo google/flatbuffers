@@ -80,6 +80,8 @@ jobs:
       run: msbuild.exe FlatBuffers.sln /p:Configuration=Release /p:Platform=x64
     - name: test
       run: Release\flattests.exe
+    - name: flatc tests
+      run: python3 tests/flatc/main.py --flatc Release\flatc.exe
     - name: upload build artifacts
       uses: actions/upload-artifact@v1
       with:
@@ -181,6 +183,8 @@ jobs:
       run: |
         chmod +x _build/Release/flatc
         ./_build/Release/flatc --version
+    - name: flatc tests
+      run: python3 tests/flatc/main.py --flatc ./_build/Release/flatc
     - name: upload build artifacts
       uses: actions/upload-artifact@v1
       with:
