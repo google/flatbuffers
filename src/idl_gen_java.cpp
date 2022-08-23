@@ -1658,7 +1658,10 @@ class JavaGenerator : public BaseGenerator {
                 field.value.type.struct_def == nullptr
                     ? "builder.add" + GenMethod(field.value.type.VectorType()) +
                           "(" + variable + "[_j]);"
-                    : type_name + ".pack(builder, " + variable + "[_j]);";
+                // This unused value is likely a bug!!!
+                // See https://github.com/google/flatbuffers/issues/7466
+                    : "int unusedOffset = " + type_name + ".pack(builder, " +
+                          variable + "[_j]);";
             code += "    int _" + field_name + " = 0;\n";
             code += "    " + element_type_name + "[] " + variable + " = _o." +
                     get_field + "();\n";
