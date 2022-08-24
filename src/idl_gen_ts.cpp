@@ -39,10 +39,11 @@ struct ImportDefinition {
 
 enum AnnotationType { kParam = 0, kType = 1, kReturns = 2 };
 
-template<typename T> bool SupportsObjectAPI() { return false; }
+template<typename T>
+struct SupportsObjectAPI : std::false_type {};
 
-// Structs can have Object API support.
-template<> bool SupportsObjectAPI<StructDef>() { return true; }
+template<>
+struct SupportsObjectAPI<StructDef> : std::true_type {};
 
 }  // namespace
 
@@ -756,7 +757,7 @@ class TsGenerator : public BaseGenerator {
         flat_file_import_declarations_[file][import_name] = name;
 
         if (parser_.opts.generate_object_based_api &&
-            SupportsObjectAPI<DefinitionT>()) {
+            SupportsObjectAPI<DefinitionT>::value) {
           flat_file_import_declarations_[file][import_name + "T"] = object_name;
         }
       }
