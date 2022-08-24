@@ -537,6 +537,24 @@ struct ServiceDef : public Definition {
   SymbolTable<RPCCall> calls;
 };
 
+struct IncludedFile {
+  // The name of the schema file being included, as defined in the .fbs file.
+  // This includes the prefix (e.g., include "foo/bar/baz.fbs" would mean this
+  // value is "foo/bar/baz.fbs").
+  std::string schema_name;
+
+  // The filename of where the included file was found, after searching the
+  // relative paths plus any other paths included with `flatc -I ...`. Note,
+  // while this is sometimes the same as schema_name, it is not always, since it
+  // can be defined relative to where flatc was invoked.
+  std::string filename;
+};
+
+// Since IncludedFile is contained within a std::set, need to provide ordering.
+inline bool operator<(const IncludedFile &a, const IncludedFile &b) {
+  return a.filename < b.filename;
+}
+
 // Container of options that may apply to any of the source/text generators.
 struct IDLOptions {
   // field case style options for C++
@@ -914,7 +932,7 @@ class Parser : public ParserState {
   // Get the set of included files that are directly referenced by the file
   // being parsed. This does not include files that are transitively included by
   // others includes.
-  std::vector<std::string> GetIncludedFiles() const;
+  std::vector<IncludedFile> GetIncludedFiles() const;
 
  private:
   class ParseDepthGuard;
@@ -1043,7 +1061,7 @@ class Parser : public ParserState {
   std::string file_extension_;
 
   std::map<uint64_t, std::string> included_files_;
-  std::map<std::string, std::set<std::string>> files_included_per_file_;
+  std::map<std::string, std::set<IncludedFile>> files_included_per_file_;
   std::vector<std::string> native_included_files_;
 
   std::map<std::string, bool> known_attributes_;
