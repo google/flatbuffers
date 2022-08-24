@@ -1658,11 +1658,15 @@ class JavaGenerator : public BaseGenerator {
                 field.value.type.struct_def == nullptr
                     ? "builder.add" + GenMethod(field.value.type.VectorType()) +
                           "(" + variable + "[_j]);"
-                    : type_name + ".pack(builder, " + variable + "[_j]);";
+                    : "_unused_offset = " + type_name + ".pack(builder, " +
+                          variable + "[_j]);";
             code += "    int _" + field_name + " = 0;\n";
             code += "    " + element_type_name + "[] " + variable + " = _o." +
                     get_field + "();\n";
             code += "    if (" + variable + " != null) {\n";
+            if (field.value.type.struct_def != nullptr) {
+              code += "      int _unused_offset = 0;\n";
+            }
             code += "      " + namer_.Method("start", field) +
                     "Vector(builder, " + variable + ".length);\n";
             code += "      for (int _j = " + variable +

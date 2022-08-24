@@ -549,8 +549,9 @@ public final class Monster extends Table {
     int _test4 = 0;
     MyGame.Example.TestT[] _oTest4 = _o.getTest4();
     if (_oTest4 != null) {
+      int _unused_offset = 0;
       startTest4Vector(builder, _oTest4.length);
-      for (int _j = _oTest4.length - 1; _j >=0; _j--) { MyGame.Example.Test.pack(builder, _oTest4[_j]);}
+      for (int _j = _oTest4.length - 1; _j >=0; _j--) { _unused_offset = MyGame.Example.Test.pack(builder, _oTest4[_j]);}
       _test4 = builder.endVector();
     }
     int _testarrayofstring = 0;
@@ -590,8 +591,9 @@ public final class Monster extends Table {
     int _testarrayofsortedstruct = 0;
     MyGame.Example.AbilityT[] _oTestarrayofsortedstruct = _o.getTestarrayofsortedstruct();
     if (_oTestarrayofsortedstruct != null) {
+      int _unused_offset = 0;
       startTestarrayofsortedstructVector(builder, _oTestarrayofsortedstruct.length);
-      for (int _j = _oTestarrayofsortedstruct.length - 1; _j >=0; _j--) { MyGame.Example.Ability.pack(builder, _oTestarrayofsortedstruct[_j]);}
+      for (int _j = _oTestarrayofsortedstruct.length - 1; _j >=0; _j--) { _unused_offset = MyGame.Example.Ability.pack(builder, _oTestarrayofsortedstruct[_j]);}
       _testarrayofsortedstruct = builder.endVector();
     }
     int _flex = 0;
@@ -604,8 +606,9 @@ public final class Monster extends Table {
     int _test5 = 0;
     MyGame.Example.TestT[] _oTest5 = _o.getTest5();
     if (_oTest5 != null) {
+      int _unused_offset = 0;
       startTest5Vector(builder, _oTest5.length);
-      for (int _j = _oTest5.length - 1; _j >=0; _j--) { MyGame.Example.Test.pack(builder, _oTest5[_j]);}
+      for (int _j = _oTest5.length - 1; _j >=0; _j--) { _unused_offset = MyGame.Example.Test.pack(builder, _oTest5[_j]);}
       _test5 = builder.endVector();
     }
     int _vectorOfLongs = 0;
