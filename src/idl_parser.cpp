@@ -2545,7 +2545,7 @@ CheckedError Parser::CheckClash(std::vector<FieldDef *> &fields,
   return NoError();
 }
 
-std::vector<std::string> Parser::GetIncludedFiles() const {
+std::vector<IncludedFile> Parser::GetIncludedFiles() const {
   const auto it = files_included_per_file_.find(file_being_parsed_);
   if (it == files_included_per_file_.end()) { return {}; }
 
@@ -3439,7 +3439,7 @@ CheckedError Parser::DoParse(const char *source, const char **include_paths,
 
     if (included_files_.find(source_hash) == included_files_.end()) {
       included_files_[source_hash] = include_filename ? include_filename : "";
-      files_included_per_file_[source_filename] = std::set<std::string>();
+      files_included_per_file_[source_filename] = std::set<IncludedFile>();
     } else {
       return NoError();
     }
@@ -3487,8 +3487,12 @@ CheckedError Parser::DoParse(const char *source, const char **include_paths,
       }
       if (filepath.empty())
         return Error("unable to locate include file: " + name);
-      if (source_filename)
-        files_included_per_file_[source_filename].insert(filepath);
+      if (source_filename) {
+        IncludedFile included_file;
+        included_file.filename = filepath;
+        included_file.schema_name = name;
+        files_included_per_file_[source_filename].insert(included_file);
+      }
 
       std::string contents;
       bool file_loaded = LoadFile(filepath.c_str(), true, &contents);
@@ -3625,11 +3629,11 @@ std::set<std::string> Parser::GetIncludedFilesRecursive(
 
     // Workaround the lack of const accessor in C++98 maps.
     auto &new_files =
-        (*const_cast<std::map<std::string, std::set<std::string>> *>(
+        (*const_cast<std::map<std::string, std::set<IncludedFile>> *>(
             &files_included_per_file_))[current];
     for (auto it = new_files.begin(); it != new_files.end(); ++it) {
-      if (included_files.find(*it) == included_files.end())
-        to_process.push_back(*it);
+      if (included_files.find(it->filename) == included_files.end())
+        to_process.push_back(it->filename);
     }
   }
 
@@ -3679,7 +3683,7 @@ void Parser::Serialize() {
           RelativeToRootPath(opts.project_root, f->first));
       for (auto i = f->second.begin(); i != f->second.end(); i++) {
         included_files.push_back(builder_.CreateSharedString(
-            RelativeToRootPath(opts.project_root, *i)));
+            RelativeToRootPath(opts.project_root, i->filename)));
       }
       const auto included_files__ = builder_.CreateVector(included_files);
       included_files.clear();
@@ -4111,7 +4115,9 @@ bool Parser::Deserialize(const reflection::Schema *schema) {
          ++s) {
       for (auto f = s->included_filenames()->begin();
            f != s->included_filenames()->end(); ++f) {
-        files_included_per_file_[s->filename()->str()].insert(f->str());
+        IncludedFile included_file;
+        included_file.filename = f->str();
+        files_included_per_file_[s->filename()->str()].insert(included_file);
       }
     }
 
