@@ -369,6 +369,8 @@ else()
       $<$<BOOL:${FLATBUFFERS_STRICT_MODE}>:
         -Werror   # Treat all compiler warnings as errors
 
+        -fno-rtti # Disable runtime type information
+
         $<$<CXX_COMPILER_ID:GNU>:
           # False positive string overflow
           # https://github.com/google/flatbuffers/issues/7366
