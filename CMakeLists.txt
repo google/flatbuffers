@@ -358,26 +358,33 @@ if(MSVC_LIKE)
       >
   )
 else()
+  if("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
+    set(IS_CLANG ON)
+  else()
+    set(IS_CLANG OFF)
+  endif()
   target_compile_options(ProjectConfig
     INTERFACE
       -Wall
-      -Wno-unknown-warning-option
       $<$<BOOL:${FLATBUFFERS_STRICT_MODE}>:
         -Werror   # Treat all compiler warnings as errors
 
-        # False positive string overflow
-        # https://github.com/google/flatbuffers/issues/7366
-        -Wno-error=stringop-overflow
+        $<$<CXX_COMPILER_ID:GNU>:
+          # False positive string overflow
+          # https://github.com/google/flatbuffers/issues/7366
+          -Wno-error=stringop-overflow
+        >
       >
       -pedantic 
       -Wextra 
       -Wno-unused-parameter
       -Wold-style-cast
-      -Wimplicit-fallthrough
       -fsigned-char
       -Wnon-virtual-dtor
 
-      $<$<CXX_COMPILER_ID:CLANG>:
+      # This isn't working for some reason: $<$<CXX_COMPILER_ID:CLANG>:
+      $<$<BOOL:${IS_CLANG}>:
+        -Wno-unknown-warning-option
         -Wmissing-declarations
         -Wzero-as-null-pointer-constant
         $<$<VERSION_GREATER:$<CXX_COMPILER_VERSION>,3.8>:
