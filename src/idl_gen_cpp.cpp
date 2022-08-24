@@ -233,37 +233,24 @@ class CppGenerator : public BaseGenerator {
     }
 
     // Get the directly included file of the file being parsed.
-    std::vector<std::string> included_files(parser_.GetIncludedFiles());
+    std::vector<IncludedFile> included_files(parser_.GetIncludedFiles());
 
     // We are safe to sort them alphabetically, since there shouldn't be any
     // interdependence between them.
     std::stable_sort(included_files.begin(), included_files.end());
 
-    // The absolute path of the file being parsed.
-    const std::string parsed_path =
-        flatbuffers::StripFileName(AbsolutePath(parser_.file_being_parsed_));
+    for (const IncludedFile &included_file : included_files) {
+      // Get the name of the included file as defined by the schema, and strip
+      // the .fbs extension.
+      const std::string name_without_ext =
+          flatbuffers::StripExtension(included_file.schema_name);
 
-    for (const std::string &included_file : included_files) {
-      // The base name of the file, without path or extensions.
-      std::string basename =
-          flatbuffers::StripPath(flatbuffers::StripExtension(included_file));
-
-      // If we are keeping the prefix
-      if (opts_.keep_prefix) {
-        // The absolute path of the included file.
-        const std::string included_path =
-            flatbuffers::StripFileName(AbsolutePath(included_file));
-
-        // The relative path of the parsed file to the included file.
-        const std::string relative_path =
-            RelativeToRootPath(parsed_path, included_path).substr(2);
-
-        // Only consider cases where the included path is a subdirectory of the
-        // parsed path.
-        if (strncmp("..", relative_path.c_str(), 2) != 0) {
-          basename = relative_path + kPathSeparator + basename;
-        }
-      }
+      // If we are told to keep the prefix of the included schema, leave it
+      // unchanged, otherwise strip the leading path off so just the "basename"
+      // of the include is retained.
+      const std::string basename =
+          opts_.keep_prefix ? name_without_ext
+                            : flatbuffers::StripPath(name_without_ext);
 
       code_ += "#include \"" +
                GeneratedFileName(opts_.include_prefix, basename, opts_) + "\"";
