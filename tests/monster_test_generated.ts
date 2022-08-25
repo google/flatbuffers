@@ -7,12 +7,14 @@ export { AnyAmbiguousAliases, unionToAnyAmbiguousAliases, unionListToAnyAmbiguou
 export { AnyUniqueAliases, unionToAnyUniqueAliases, unionListToAnyUniqueAliases } from './my-game/example/any-unique-aliases';
 export { Color } from './my-game/example/color';
 export { Monster, MonsterT } from './my-game/example/monster';
+export { NativeInlineTable, NativeInlineTableT } from './my-game/example/native-inline-table';
 export { Race } from './my-game/example/race';
 export { Referrable, ReferrableT } from './my-game/example/referrable';
 export { Stat, StatT } from './my-game/example/stat';
 export { StructOfStructs, StructOfStructsT } from './my-game/example/struct-of-structs';
 export { StructOfStructsOfStructs, StructOfStructsOfStructsT } from './my-game/example/struct-of-structs-of-structs';
 export { Test, TestT } from './my-game/example/test';
+export { TestNativeInlineTable, TestNativeInlineTableT } from './my-game/example/test-native-inline-table';
 export { TestSimpleTableWithEnum, TestSimpleTableWithEnumT } from './my-game/example/test-simple-table-with-enum';
 export { TypeAliases, TypeAliasesT } from './my-game/example/type-aliases';
 export { Vec3, Vec3T } from './my-game/example/vec3';

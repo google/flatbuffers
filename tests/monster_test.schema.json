@@ -173,6 +173,24 @@
       },
       "additionalProperties" : false
     },
+    "MyGame_Example_NativeInlineTable" : {
+      "type" : "object",
+      "properties" : {
+        "a" : {
+                "type" : "integer", "minimum" : -2147483648, "maximum" : 2147483647
+              }
+      },
+      "additionalProperties" : false
+    },
+    "MyGame_Example_TestNativeInlineTable" : {
+      "type" : "object",
+      "properties" : {
+        "t" : {
+                "type" : "array", "items" : {"$ref" : "#/definitions/MyGame_Example_NativeInlineTable"}
+              }
+      },
+      "additionalProperties" : false
+    },
     "MyGame_Example_Monster" : {
       "type" : "object",
       "description" : "an example documentation comment: \"monster object\"",

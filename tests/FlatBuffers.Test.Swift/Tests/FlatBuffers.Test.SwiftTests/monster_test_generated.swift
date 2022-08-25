@@ -1116,6 +1116,186 @@ public class MyGame_Example_ReferrableT: NativeObject {
   public func serialize() -> ByteBuffer { return serialize(type: MyGame_Example_Referrable.self) }
 
 }
+public struct MyGame_Example_NativeInlineTable: FlatBufferObject, Verifiable, ObjectAPIPacker {
+
+  static func validateVersion() { FlatBuffersVersion_2_0_0() }
+  public var __buffer: ByteBuffer! { return _accessor.bb }
+  private var _accessor: Table
+
+  public static var id: String { "MONS" } 
+  public static func finish(_ fbb: inout FlatBufferBuilder, end: Offset, prefix: Bool = false) { fbb.finish(offset: end, fileId: MyGame_Example_NativeInlineTable.id, addPrefix: prefix) }
+  public static func getRootAsNativeInlineTable(bb: ByteBuffer) -> MyGame_Example_NativeInlineTable { return MyGame_Example_NativeInlineTable(Table(bb: bb, position: Int32(bb.read(def: UOffset.self, position: bb.reader)) + Int32(bb.reader))) }
+
+  private init(_ t: Table) { _accessor = t }
+  public init(_ bb: ByteBuffer, o: Int32) { _accessor = Table(bb: bb, position: o) }
+
+  private enum VTOFFSET: VOffset {
+    case a = 4
+    var v: Int32 { Int32(self.rawValue) }
+    var p: VOffset { self.rawValue }
+  }
+
+  public var a: Int32 { let o = _accessor.offset(VTOFFSET.a.v); return o == 0 ? 0 : _accessor.readBuffer(of: Int32.self, at: o) }
+  @discardableResult public func mutate(a: Int32) -> Bool {let o = _accessor.offset(VTOFFSET.a.v);  return _accessor.mutate(a, index: o) }
+  public static func startNativeInlineTable(_ fbb: inout FlatBufferBuilder) -> UOffset { fbb.startTable(with: 1) }
+  public static func add(a: Int32, _ fbb: inout FlatBufferBuilder) { fbb.add(element: a, def: 0, at: VTOFFSET.a.p) }
+  public static func endNativeInlineTable(_ fbb: inout FlatBufferBuilder, start: UOffset) -> Offset { let end = Offset(offset: fbb.endTable(at: start)); return end }
+  public static func createNativeInlineTable(
+    _ fbb: inout FlatBufferBuilder,
+    a: Int32 = 0
+  ) -> Offset {
+    let __start = MyGame_Example_NativeInlineTable.startNativeInlineTable(&fbb)
+    MyGame_Example_NativeInlineTable.add(a: a, &fbb)
+    return MyGame_Example_NativeInlineTable.endNativeInlineTable(&fbb, start: __start)
+  }
+  
+
+  public mutating func unpack() -> MyGame_Example_NativeInlineTableT {
+    return MyGame_Example_NativeInlineTableT(&self)
+  }
+  public static func pack(_ builder: inout FlatBufferBuilder, obj: inout MyGame_Example_NativeInlineTableT?) -> Offset {
+    guard var obj = obj else { return Offset() }
+    return pack(&builder, obj: &obj)
+  }
+
+  public static func pack(_ builder: inout FlatBufferBuilder, obj: inout MyGame_Example_NativeInlineTableT) -> Offset {
+    let __root = MyGame_Example_NativeInlineTable.startNativeInlineTable(&builder)
+    MyGame_Example_NativeInlineTable.add(a: obj.a, &builder)
+    return MyGame_Example_NativeInlineTable.endNativeInlineTable(&builder, start: __root)
+  }
+
+  public static func verify<T>(_ verifier: inout Verifier, at position: Int, of type: T.Type) throws where T: Verifiable {
+    var _v = try verifier.visitTable(at: position)
+    try _v.visit(field: VTOFFSET.a.p, fieldName: "a", required: false, type: Int32.self)
+    _v.finish()
+  }
+}
+
+extension MyGame_Example_NativeInlineTable: Encodable {
+
+  enum CodingKeys: String, CodingKey {
+    case a = "a"
+  }
+  public func encode(to encoder: Encoder) throws {
+    var container = encoder.container(keyedBy: CodingKeys.self)
+    if a != 0 {
+      try container.encodeIfPresent(a, forKey: .a)
+    }
+  }
+}
+
+public class MyGame_Example_NativeInlineTableT: NativeObject {
+
+  public var a: Int32
+
+  public init(_ _t: inout MyGame_Example_NativeInlineTable) {
+    a = _t.a
+  }
+
+  public init() {
+    a = 0
+  }
+
+  public func serialize() -> ByteBuffer { return serialize(type: MyGame_Example_NativeInlineTable.self) }
+
+}
+public struct MyGame_Example_TestNativeInlineTable: FlatBufferObject, Verifiable, ObjectAPIPacker {
+
+  static func validateVersion() { FlatBuffersVersion_2_0_0() }
+  public var __buffer: ByteBuffer! { return _accessor.bb }
+  private var _accessor: Table
+
+  public static var id: String { "MONS" } 
+  public static func finish(_ fbb: inout FlatBufferBuilder, end: Offset, prefix: Bool = false) { fbb.finish(offset: end, fileId: MyGame_Example_TestNativeInlineTable.id, addPrefix: prefix) }
+  public static func getRootAsTestNativeInlineTable(bb: ByteBuffer) -> MyGame_Example_TestNativeInlineTable { return MyGame_Example_TestNativeInlineTable(Table(bb: bb, position: Int32(bb.read(def: UOffset.self, position: bb.reader)) + Int32(bb.reader))) }
+
+  private init(_ t: Table) { _accessor = t }
+  public init(_ bb: ByteBuffer, o: Int32) { _accessor = Table(bb: bb, position: o) }
+
+  private enum VTOFFSET: VOffset {
+    case t = 4
+    var v: Int32 { Int32(self.rawValue) }
+    var p: VOffset { self.rawValue }
+  }
+
+  public var hasT: Bool { let o = _accessor.offset(VTOFFSET.t.v); return o == 0 ? false : true }
+  public var tCount: Int32 { let o = _accessor.offset(VTOFFSET.t.v); return o == 0 ? 0 : _accessor.vector(count: o) }
+  public func t(at index: Int32) -> MyGame_Example_NativeInlineTable? { let o = _accessor.offset(VTOFFSET.t.v); return o == 0 ? nil : MyGame_Example_NativeInlineTable(_accessor.bb, o: _accessor.indirect(_accessor.vector(at: o) + index * 4)) }
+  public static func startTestNativeInlineTable(_ fbb: inout FlatBufferBuilder) -> UOffset { fbb.startTable(with: 1) }
+  public static func addVectorOf(t: Offset, _ fbb: inout FlatBufferBuilder) { fbb.add(offset: t, at: VTOFFSET.t.p) }
+  public static func endTestNativeInlineTable(_ fbb: inout FlatBufferBuilder, start: UOffset) -> Offset { let end = Offset(offset: fbb.endTable(at: start)); return end }
+  public static func createTestNativeInlineTable(
+    _ fbb: inout FlatBufferBuilder,
+    tVectorOffset t: Offset = Offset()
+  ) -> Offset {
+    let __start = MyGame_Example_TestNativeInlineTable.startTestNativeInlineTable(&fbb)
+    MyGame_Example_TestNativeInlineTable.addVectorOf(t: t, &fbb)
+    return MyGame_Example_TestNativeInlineTable.endTestNativeInlineTable(&fbb, start: __start)
+  }
+  
+
+  public mutating func unpack() -> MyGame_Example_TestNativeInlineTableT {
+    return MyGame_Example_TestNativeInlineTableT(&self)
+  }
+  public static func pack(_ builder: inout FlatBufferBuilder, obj: inout MyGame_Example_TestNativeInlineTableT?) -> Offset {
+    guard var obj = obj else { return Offset() }
+    return pack(&builder, obj: &obj)
+  }
+
+  public static func pack(_ builder: inout FlatBufferBuilder, obj: inout MyGame_Example_TestNativeInlineTableT) -> Offset {
+    var __t__: [Offset] = []
+    for var i in obj.t {
+      __t__.append(MyGame_Example_NativeInlineTable.pack(&builder, obj: &i))
+    }
+    let __t = builder.createVector(ofOffsets: __t__)
+    let __root = MyGame_Example_TestNativeInlineTable.startTestNativeInlineTable(&builder)
+    MyGame_Example_TestNativeInlineTable.addVectorOf(t: __t, &builder)
+    return MyGame_Example_TestNativeInlineTable.endTestNativeInlineTable(&builder, start: __root)
+  }
+
+  public static func verify<T>(_ verifier: inout Verifier, at position: Int, of type: T.Type) throws where T: Verifiable {
+    var _v = try verifier.visitTable(at: position)
+    try _v.visit(field: VTOFFSET.t.p, fieldName: "t", required: false, type: ForwardOffset<Vector<ForwardOffset<MyGame_Example_NativeInlineTable>, MyGame_Example_NativeInlineTable>>.self)
+    _v.finish()
+  }
+}
+
+extension MyGame_Example_TestNativeInlineTable: Encodable {
+
+  enum CodingKeys: String, CodingKey {
+    case t = "t"
+  }
+  public func encode(to encoder: Encoder) throws {
+    var container = encoder.container(keyedBy: CodingKeys.self)
+    if tCount > 0 {
+      var contentEncoder = container.nestedUnkeyedContainer(forKey: .t)
+      for index in 0..<tCount {
+        guard let type = t(at: index) else { continue }
+        try contentEncoder.encode(type)
+      }
+    }
+  }
+}
+
+public class MyGame_Example_TestNativeInlineTableT: NativeObject {
+
+  public var t: [MyGame_Example_NativeInlineTableT?]
+
+  public init(_ _t: inout MyGame_Example_TestNativeInlineTable) {
+    t = []
+    for index in 0..<_t.tCount {
+        var __v_ = _t.t(at: index)
+        t.append(__v_?.unpack())
+    }
+  }
+
+  public init() {
+    t = []
+  }
+
+  public func serialize() -> ByteBuffer { return serialize(type: MyGame_Example_TestNativeInlineTable.self) }
+
+}
 ///  an example documentation comment: "monster object"
 public struct MyGame_Example_Monster: FlatBufferObject, Verifiable, ObjectAPIPacker {
 

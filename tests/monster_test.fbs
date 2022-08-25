@@ -84,6 +84,14 @@ table Referrable {
   id:ulong(key, hash:"fnv1a_64");
 }
 
+table NativeInlineTable {
+  a: int;
+}
+
+table TestNativeInlineTable {
+  t: [NativeInlineTable] (native_inline);
+}
+
 /// an example documentation comment: "monster object"
 table Monster {
   pos:Vec3 (id: 0);

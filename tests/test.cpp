@@ -234,7 +234,7 @@ flatbuffers::DetachedBuffer CreateFlatBufferTest(std::string &buffer) {
 
   FinishMonsterBuffer(builder, mloc);
 
-  // clang-format off
+// clang-format off
   #ifdef FLATBUFFERS_TEST_VERBOSE
   // print byte data for debugging:
   auto p = builder.GetBufferPointer();
@@ -260,7 +260,7 @@ void AccessFlatBufferTest(const uint8_t *flatbuf, size_t length,
   verifier.SetFlexReuseTracker(&flex_reuse_tracker);
   TEST_EQ(VerifyMonsterBuffer(verifier), true);
 
-  // clang-format off
+// clang-format off
   #ifdef FLATBUFFERS_TRACK_VERIFIER_BUFFER_SIZE
     std::vector<uint8_t> test_buff;
     test_buff.resize(length * 2);
@@ -641,7 +641,7 @@ void SizePrefixedTest() {
 }
 
 void TriviallyCopyableTest() {
-  // clang-format off
+// clang-format off
   #if __GNUG__ && __GNUC__ < 5 && \
       !(defined(__clang__) && __clang_major__ >= 16)
     TEST_EQ(__has_trivial_copy(Vec3), true);
@@ -1664,7 +1664,7 @@ void FuzzTest2() {
     }
   };
 
-  // clang-format off
+// clang-format off
   #define AddToSchemaAndInstances(schema_add, instance_add) \
     RndDef::Add(definitions, schema, instances_per_definition, \
                 schema_add, instance_add, definition)
@@ -1818,7 +1818,7 @@ void FuzzTest2() {
     TEST_NOTNULL(nullptr);  //-V501 (this comment supresses CWE-570 warning)
   }
 
-  // clang-format off
+// clang-format off
   #ifdef FLATBUFFERS_TEST_VERBOSE
     TEST_OUTPUT_LINE("%dk schema tested with %dk of json\n",
                      static_cast<int>(schema.length() / 1024),
@@ -3210,7 +3210,7 @@ void FlexBuffersTest() {
   });
   slb.Finish();
 
-  // clang-format off
+// clang-format off
   #ifdef FLATBUFFERS_TEST_VERBOSE
     for (size_t i = 0; i < slb.GetBuffer().size(); i++)
       printf("%d ", slb.GetBuffer().data()[i]);
@@ -4575,10 +4575,11 @@ void PrivateAnnotationsLeaks() {
   }
 }
 
-void JsonUnsortedArrayTest()
-{
+void JsonUnsortedArrayTest() {
   flatbuffers::Parser parser;
-  TEST_EQ(parser.Deserialize(MyGame::Example::MonsterBinarySchema::data(), MyGame::Example::MonsterBinarySchema::size()), true);
+  TEST_EQ(parser.Deserialize(MyGame::Example::MonsterBinarySchema::data(),
+                             MyGame::Example::MonsterBinarySchema::size()),
+          true);
   auto jsonStr = R"(
   {
     "name": "lookupTest",
@@ -4590,7 +4591,8 @@ void JsonUnsortedArrayTest()
   }
   )";
   TEST_EQ(parser.ParseJson(jsonStr), true);
-  auto monster = flatbuffers::GetRoot<MyGame::Example::Monster>(parser.builder_.GetBufferPointer());
+  auto monster = flatbuffers::GetRoot<MyGame::Example::Monster>(
+      parser.builder_.GetBufferPointer());
 
   TEST_NOTNULL(monster->testarrayoftables()->LookupByKey("aaa"));
   TEST_NOTNULL(monster->testarrayoftables()->LookupByKey("bbb"));
@@ -4600,8 +4602,8 @@ void JsonUnsortedArrayTest()
 void VectorSpanTest() {
   flatbuffers::FlatBufferBuilder builder;
 
-  auto mloc =
-      CreateMonster(builder, nullptr, 0, 0, builder.CreateString("Monster"),
+  auto mloc = CreateMonster(
+      builder, nullptr, 0, 0, builder.CreateString("Monster"),
       builder.CreateVector<uint8_t>({ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 }));
 
   FinishMonsterBuffer(builder, mloc);
@@ -4609,7 +4611,7 @@ void VectorSpanTest() {
   auto monster = GetMonster(builder.GetBufferPointer());
   auto mutable_monster = GetMutableMonster(builder.GetBufferPointer());
 
-  { // using references
+  {  // using references
     TEST_NOTNULL(monster->inventory());
 
     flatbuffers::span<const uint8_t> const_inventory =
@@ -4631,7 +4633,7 @@ void VectorSpanTest() {
     TEST_EQ(mutable_inventory[0], 0);
   }
 
-  { // using pointers
+  {  // using pointers
     TEST_EQ(flatbuffers::VectorLength(monster->inventory()), 10);
 
     flatbuffers::span<const uint8_t> const_inventory =
@@ -4665,6 +4667,28 @@ void VectorSpanTest() {
     flatbuffers::span<uint8_t> mutable_nested =
         flatbuffers::make_span(mutable_monster->mutable_testnestedflatbuffer());
     TEST_ASSERT(mutable_nested.empty());
+  }
+}
+
+void NativeInlineTableVectorsTest() {
+  TestNativeInlineTableT test;
+  for (std::size_t i = 0; i < 10; ++i) {
+    NativeInlineTableT t;
+    t.a = i;
+    test.t.push_back(t);
+  }
+
+  flatbuffers::FlatBufferBuilder fbb;
+  auto offset = TestNativeInlineTable::Pack(fbb, &test);
+  fbb.Finish(offset);
+
+  auto *root =
+      flatbuffers::GetRoot<TestNativeInlineTable>(fbb.GetBufferPointer());
+  TestNativeInlineTableT unpacked;
+  root->UnPackTo(&unpacked);
+
+  for (std::size_t i = 0; i < 10; ++i) {
+    TEST_ASSERT(unpacked.t[i] == test.t[i]);
   }
 }
 
@@ -4776,9 +4800,10 @@ int FlatBufferTests() {
   PrivateAnnotationsLeaks();
   JsonUnsortedArrayTest();
   VectorSpanTest();
+  NativeInlineTableVectorsTest();
   return 0;
 }
-} // namespace
+}  // namespace
 
 int main(int argc, const char *argv[]) {
   for (int argi = 1; argi < argc; argi++) {

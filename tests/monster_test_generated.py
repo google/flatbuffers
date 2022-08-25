@@ -767,6 +767,176 @@ class ReferrableT(object):
         return referrable
 
 
+class NativeInlineTable(object):
+    __slots__ = ['_tab']
+
+    @classmethod
+    def GetRootAs(cls, buf, offset=0):
+        n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, offset)
+        x = NativeInlineTable()
+        x.Init(buf, n + offset)
+        return x
+
+    @classmethod
+    def GetRootAsNativeInlineTable(cls, buf, offset=0):
+        """This method is deprecated. Please switch to GetRootAs."""
+        return cls.GetRootAs(buf, offset)
+    @classmethod
+    def NativeInlineTableBufferHasIdentifier(cls, buf, offset, size_prefixed=False):
+        return flatbuffers.util.BufferHasIdentifier(buf, offset, b"\x4D\x4F\x4E\x53", size_prefixed=size_prefixed)
+
+    # NativeInlineTable
+    def Init(self, buf, pos):
+        self._tab = flatbuffers.table.Table(buf, pos)
+
+    # NativeInlineTable
+    def A(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(4))
+        if o != 0:
+            return self._tab.Get(flatbuffers.number_types.Int32Flags, o + self._tab.Pos)
+        return 0
+
+def NativeInlineTableStart(builder): builder.StartObject(1)
+def NativeInlineTableAddA(builder, a): builder.PrependInt32Slot(0, a, 0)
+def NativeInlineTableEnd(builder): return builder.EndObject()
+
+
+class NativeInlineTableT(object):
+
+    # NativeInlineTableT
+    def __init__(self):
+        self.a = 0  # type: int
+
+    @classmethod
+    def InitFromBuf(cls, buf, pos):
+        nativeInlineTable = NativeInlineTable()
+        nativeInlineTable.Init(buf, pos)
+        return cls.InitFromObj(nativeInlineTable)
+
+    @classmethod
+    def InitFromObj(cls, nativeInlineTable):
+        x = NativeInlineTableT()
+        x._UnPack(nativeInlineTable)
+        return x
+
+    # NativeInlineTableT
+    def _UnPack(self, nativeInlineTable):
+        if nativeInlineTable is None:
+            return
+        self.a = nativeInlineTable.A()
+
+    # NativeInlineTableT
+    def Pack(self, builder):
+        NativeInlineTableStart(builder)
+        NativeInlineTableAddA(builder, self.a)
+        nativeInlineTable = NativeInlineTableEnd(builder)
+        return nativeInlineTable
+
+
+class TestNativeInlineTable(object):
+    __slots__ = ['_tab']
+
+    @classmethod
+    def GetRootAs(cls, buf, offset=0):
+        n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, offset)
+        x = TestNativeInlineTable()
+        x.Init(buf, n + offset)
+        return x
+
+    @classmethod
+    def GetRootAsTestNativeInlineTable(cls, buf, offset=0):
+        """This method is deprecated. Please switch to GetRootAs."""
+        return cls.GetRootAs(buf, offset)
+    @classmethod
+    def TestNativeInlineTableBufferHasIdentifier(cls, buf, offset, size_prefixed=False):
+        return flatbuffers.util.BufferHasIdentifier(buf, offset, b"\x4D\x4F\x4E\x53", size_prefixed=size_prefixed)
+
+    # TestNativeInlineTable
+    def Init(self, buf, pos):
+        self._tab = flatbuffers.table.Table(buf, pos)
+
+    # TestNativeInlineTable
+    def T(self, j):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(4))
+        if o != 0:
+            x = self._tab.Vector(o)
+            x += flatbuffers.number_types.UOffsetTFlags.py_type(j) * 4
+            x = self._tab.Indirect(x)
+            obj = NativeInlineTable()
+            obj.Init(self._tab.Bytes, x)
+            return obj
+        return None
+
+    # TestNativeInlineTable
+    def TLength(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(4))
+        if o != 0:
+            return self._tab.VectorLen(o)
+        return 0
+
+    # TestNativeInlineTable
+    def TIsNone(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(4))
+        return o == 0
+
+def TestNativeInlineTableStart(builder): builder.StartObject(1)
+def TestNativeInlineTableAddT(builder, t): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(t), 0)
+def TestNativeInlineTableStartTVector(builder, numElems): return builder.StartVector(4, numElems, 4)
+def TestNativeInlineTableEnd(builder): return builder.EndObject()
+
+try:
+    from typing import List
+except:
+    pass
+
+class TestNativeInlineTableT(object):
+
+    # TestNativeInlineTableT
+    def __init__(self):
+        self.t = None  # type: List[NativeInlineTableT]
+
+    @classmethod
+    def InitFromBuf(cls, buf, pos):
+        testNativeInlineTable = TestNativeInlineTable()
+        testNativeInlineTable.Init(buf, pos)
+        return cls.InitFromObj(testNativeInlineTable)
+
+    @classmethod
+    def InitFromObj(cls, testNativeInlineTable):
+        x = TestNativeInlineTableT()
+        x._UnPack(testNativeInlineTable)
+        return x
+
+    # TestNativeInlineTableT
+    def _UnPack(self, testNativeInlineTable):
+        if testNativeInlineTable is None:
+            return
+        if not testNativeInlineTable.TIsNone():
+            self.t = []
+            for i in range(testNativeInlineTable.TLength()):
+                if testNativeInlineTable.T(i) is None:
+                    self.t.append(None)
+                else:
+                    nativeInlineTable_ = NativeInlineTableT.InitFromObj(testNativeInlineTable.T(i))
+                    self.t.append(nativeInlineTable_)
+
+    # TestNativeInlineTableT
+    def Pack(self, builder):
+        if self.t is not None:
+            tlist = []
+            for i in range(len(self.t)):
+                tlist.append(self.t[i].Pack(builder))
+            TestNativeInlineTableStartTVector(builder, len(self.t))
+            for i in reversed(range(len(self.t))):
+                builder.PrependUOffsetTRelative(tlist[i])
+            t = builder.EndVector()
+        TestNativeInlineTableStart(builder)
+        if self.t is not None:
+            TestNativeInlineTableAddT(builder, t)
+        testNativeInlineTable = TestNativeInlineTableEnd(builder)
+        return testNativeInlineTable
+
+
 # an example documentation comment: "monster object"
 class Monster(object):
     __slots__ = ['_tab']

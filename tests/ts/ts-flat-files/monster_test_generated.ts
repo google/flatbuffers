@@ -717,6 +717,125 @@ static deserialize(buffer: Uint8Array):Referrable {
 }
 }
 
+export class MyGame_Example_NativeInlineTable {
+  bb: flatbuffers.ByteBuffer|null = null;
+  bb_pos = 0;
+  __init(i:number, bb:flatbuffers.ByteBuffer):MyGame_Example_NativeInlineTable {
+  this.bb_pos = i;
+  this.bb = bb;
+  return this;
+}
+
+static getRootAsNativeInlineTable(bb:flatbuffers.ByteBuffer, obj?:MyGame_Example_NativeInlineTable):MyGame_Example_NativeInlineTable {
+  return (obj || new MyGame_Example_NativeInlineTable()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+}
+
+static getSizePrefixedRootAsNativeInlineTable(bb:flatbuffers.ByteBuffer, obj?:MyGame_Example_NativeInlineTable):MyGame_Example_NativeInlineTable {
+  bb.setPosition(bb.position() + flatbuffers.SIZE_PREFIX_LENGTH);
+  return (obj || new MyGame_Example_NativeInlineTable()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+}
+
+a():number {
+  const offset = this.bb!.__offset(this.bb_pos, 4);
+  return offset ? this.bb!.readInt32(this.bb_pos + offset) : 0;
+}
+
+static startNativeInlineTable(builder:flatbuffers.Builder) {
+  builder.startObject(1);
+}
+
+static addA(builder:flatbuffers.Builder, a:number) {
+  builder.addFieldInt32(0, a, 0);
+}
+
+static endNativeInlineTable(builder:flatbuffers.Builder):flatbuffers.Offset {
+  const offset = builder.endObject();
+  return offset;
+}
+
+static createNativeInlineTable(builder:flatbuffers.Builder, a:number):flatbuffers.Offset {
+  MyGame_Example_NativeInlineTable.startNativeInlineTable(builder);
+  MyGame_Example_NativeInlineTable.addA(builder, a);
+  return MyGame_Example_NativeInlineTable.endNativeInlineTable(builder);
+}
+
+serialize():Uint8Array {
+  return this.bb!.bytes();
+}
+
+static deserialize(buffer: Uint8Array):NativeInlineTable {
+  return MyGame_Example_NativeInlineTable.getRootAsNativeInlineTable(new flatbuffers.ByteBuffer(buffer))
+}
+}
+
+export class MyGame_Example_TestNativeInlineTable {
+  bb: flatbuffers.ByteBuffer|null = null;
+  bb_pos = 0;
+  __init(i:number, bb:flatbuffers.ByteBuffer):MyGame_Example_TestNativeInlineTable {
+  this.bb_pos = i;
+  this.bb = bb;
+  return this;
+}
+
+static getRootAsTestNativeInlineTable(bb:flatbuffers.ByteBuffer, obj?:MyGame_Example_TestNativeInlineTable):MyGame_Example_TestNativeInlineTable {
+  return (obj || new MyGame_Example_TestNativeInlineTable()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+}
+
+static getSizePrefixedRootAsTestNativeInlineTable(bb:flatbuffers.ByteBuffer, obj?:MyGame_Example_TestNativeInlineTable):MyGame_Example_TestNativeInlineTable {
+  bb.setPosition(bb.position() + flatbuffers.SIZE_PREFIX_LENGTH);
+  return (obj || new MyGame_Example_TestNativeInlineTable()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+}
+
+t(index: number, obj?:MyGame_Example_NativeInlineTable):MyGame_Example_NativeInlineTable|null {
+  const offset = this.bb!.__offset(this.bb_pos, 4);
+  return offset ? (obj || new MyGame_Example_NativeInlineTable()).__init(this.bb!.__indirect(this.bb!.__vector(this.bb_pos + offset) + index * 4), this.bb!) : null;
+}
+
+tLength():number {
+  const offset = this.bb!.__offset(this.bb_pos, 4);
+  return offset ? this.bb!.__vector_len(this.bb_pos + offset) : 0;
+}
+
+static startTestNativeInlineTable(builder:flatbuffers.Builder) {
+  builder.startObject(1);
+}
+
+static addT(builder:flatbuffers.Builder, tOffset:flatbuffers.Offset) {
+  builder.addFieldOffset(0, tOffset, 0);
+}
+
+static createTVector(builder:flatbuffers.Builder, data:flatbuffers.Offset[]):flatbuffers.Offset {
+  builder.startVector(4, data.length, 4);
+  for (let i = data.length - 1; i >= 0; i--) {
+    builder.addOffset(data[i]!);
+  }
+  return builder.endVector();
+}
+
+static startTVector(builder:flatbuffers.Builder, numElems:number) {
+  builder.startVector(4, numElems, 4);
+}
+
+static endTestNativeInlineTable(builder:flatbuffers.Builder):flatbuffers.Offset {
+  const offset = builder.endObject();
+  return offset;
+}
+
+static createTestNativeInlineTable(builder:flatbuffers.Builder, tOffset:flatbuffers.Offset):flatbuffers.Offset {
+  MyGame_Example_TestNativeInlineTable.startTestNativeInlineTable(builder);
+  MyGame_Example_TestNativeInlineTable.addT(builder, tOffset);
+  return MyGame_Example_TestNativeInlineTable.endTestNativeInlineTable(builder);
+}
+
+serialize():Uint8Array {
+  return this.bb!.bytes();
+}
+
+static deserialize(buffer: Uint8Array):TestNativeInlineTable {
+  return MyGame_Example_TestNativeInlineTable.getRootAsTestNativeInlineTable(new flatbuffers.ByteBuffer(buffer))
+}
+}
+
 /**
  * an example documentation comment: "monster object"
  */

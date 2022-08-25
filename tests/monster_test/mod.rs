@@ -32,6 +32,10 @@ pub mod my_game {
     pub use self::stat_generated::*;
     mod referrable_generated;
     pub use self::referrable_generated::*;
+    mod native_inline_table_generated;
+    pub use self::native_inline_table_generated::*;
+    mod test_native_inline_table_generated;
+    pub use self::test_native_inline_table_generated::*;
     mod monster_generated;
     pub use self::monster_generated::*;
     mod type_aliases_generated;

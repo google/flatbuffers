@@ -67,6 +67,10 @@ class Stat
 
 class Referrable
 
+class NativeInlineTable
+
+class TestNativeInlineTable
+
 class Monster
 
 class TypeAliases
@@ -257,6 +261,49 @@ struct ReferrableBuilder:
         return this
     def end():
         return b_.EndObject()
+
+class NativeInlineTable : flatbuffers_handle
+    def a() -> int:
+        return buf_.flatbuffers_field_int32(pos_, 4, 0)
+
+def GetRootAsNativeInlineTable(buf:string): return NativeInlineTable { buf, buf.flatbuffers_indirect(0) }
+
+struct NativeInlineTableBuilder:
+    b_:flatbuffers_builder
+    def start():
+        b_.StartObject(1)
+        return this
+    def add_a(a:int):
+        b_.PrependInt32Slot(0, a, 0)
+        return this
+    def end():
+        return b_.EndObject()
+
+class TestNativeInlineTable : flatbuffers_handle
+    def t(i:int) -> MyGame_Example_NativeInlineTable:
+        return MyGame_Example_NativeInlineTable { buf_, buf_.flatbuffers_indirect(buf_.flatbuffers_field_vector(pos_, 4) + i * 4) }
+    def t_length() -> int:
+        return buf_.flatbuffers_field_vector_len(pos_, 4)
+
+def GetRootAsTestNativeInlineTable(buf:string): return TestNativeInlineTable { buf, buf.flatbuffers_indirect(0) }
+
+struct TestNativeInlineTableBuilder:
+    b_:flatbuffers_builder
+    def start():
+        b_.StartObject(1)
+        return this
+    def add_t(t:flatbuffers_offset):
+        b_.PrependUOffsetTRelativeSlot(0, t)
+        return this
+    def end():
+        return b_.EndObject()
+
+def TestNativeInlineTableStartTVector(b_:flatbuffers_builder, n_:int):
+    b_.StartVector(4, n_, 4)
+def TestNativeInlineTableCreateTVector(b_:flatbuffers_builder, v_:[flatbuffers_offset]):
+    b_.StartVector(4, v_.length, 4)
+    reverse(v_) e_: b_.PrependUOffsetTRelative(e_)
+    return b_.EndVector(v_.length)
 
 /// an example documentation comment: "monster object"
 class Monster : flatbuffers_handle

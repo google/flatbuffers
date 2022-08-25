@@ -1169,6 +1169,206 @@ class ReferrableObjectBuilder extends fb.ObjectBuilder {
     return fbBuilder.buffer;
   }
 }
+class NativeInlineTable {
+  NativeInlineTable._(this._bc, this._bcOffset);
+  factory NativeInlineTable(List<int> bytes) {
+    final rootRef = fb.BufferContext.fromBytes(bytes);
+    return reader.read(rootRef, 0);
+  }
+
+  static const fb.Reader<NativeInlineTable> reader = _NativeInlineTableReader();
+
+  final fb.BufferContext _bc;
+  final int _bcOffset;
+
+  int get a => const fb.Int32Reader().vTableGet(_bc, _bcOffset, 4, 0);
+
+  @override
+  String toString() {
+    return 'NativeInlineTable{a: ${a}}';
+  }
+
+  NativeInlineTableT unpack() => NativeInlineTableT(
+      a: a);
+
+  static int pack(fb.Builder fbBuilder, NativeInlineTableT? object) {
+    if (object == null) return 0;
+    return object.pack(fbBuilder);
+  }
+}
+
+class NativeInlineTableT implements fb.Packable {
+  int a;
+
+  NativeInlineTableT({
+      this.a = 0});
+
+  @override
+  int pack(fb.Builder fbBuilder) {
+    fbBuilder.startTable(1);
+    fbBuilder.addInt32(0, a);
+    return fbBuilder.endTable();
+  }
+
+  @override
+  String toString() {
+    return 'NativeInlineTableT{a: ${a}}';
+  }
+}
+
+class _NativeInlineTableReader extends fb.TableReader<NativeInlineTable> {
+  const _NativeInlineTableReader();
+
+  @override
+  NativeInlineTable createObject(fb.BufferContext bc, int offset) => 
+    NativeInlineTable._(bc, offset);
+}
+
+class NativeInlineTableBuilder {
+  NativeInlineTableBuilder(this.fbBuilder);
+
+  final fb.Builder fbBuilder;
+
+  void begin() {
+    fbBuilder.startTable(1);
+  }
+
+  int addA(int? a) {
+    fbBuilder.addInt32(0, a);
+    return fbBuilder.offset;
+  }
+
+  int finish() {
+    return fbBuilder.endTable();
+  }
+}
+
+class NativeInlineTableObjectBuilder extends fb.ObjectBuilder {
+  final int? _a;
+
+  NativeInlineTableObjectBuilder({
+    int? a,
+  })
+      : _a = a;
+
+  /// Finish building, and store into the [fbBuilder].
+  @override
+  int finish(fb.Builder fbBuilder) {
+    fbBuilder.startTable(1);
+    fbBuilder.addInt32(0, _a);
+    return fbBuilder.endTable();
+  }
+
+  /// Convenience method to serialize to byte list.
+  @override
+  Uint8List toBytes([String? fileIdentifier]) {
+    final fbBuilder = fb.Builder(deduplicateTables: false);
+    fbBuilder.finish(finish(fbBuilder), fileIdentifier);
+    return fbBuilder.buffer;
+  }
+}
+class TestNativeInlineTable {
+  TestNativeInlineTable._(this._bc, this._bcOffset);
+  factory TestNativeInlineTable(List<int> bytes) {
+    final rootRef = fb.BufferContext.fromBytes(bytes);
+    return reader.read(rootRef, 0);
+  }
+
+  static const fb.Reader<TestNativeInlineTable> reader = _TestNativeInlineTableReader();
+
+  final fb.BufferContext _bc;
+  final int _bcOffset;
+
+  List<NativeInlineTable>? get t => const fb.ListReader<NativeInlineTable>(NativeInlineTable.reader).vTableGetNullable(_bc, _bcOffset, 4);
+
+  @override
+  String toString() {
+    return 'TestNativeInlineTable{t: ${t}}';
+  }
+
+  TestNativeInlineTableT unpack() => TestNativeInlineTableT(
+      t: t?.map((e) => e.unpack()).toList());
+
+  static int pack(fb.Builder fbBuilder, TestNativeInlineTableT? object) {
+    if (object == null) return 0;
+    return object.pack(fbBuilder);
+  }
+}
+
+class TestNativeInlineTableT implements fb.Packable {
+  List<NativeInlineTableT>? t;
+
+  TestNativeInlineTableT({
+      this.t});
+
+  @override
+  int pack(fb.Builder fbBuilder) {
+    final int? tOffset = t == null ? null
+        : fbBuilder.writeList(t!.map((b) => b.pack(fbBuilder)).toList());
+    fbBuilder.startTable(1);
+    fbBuilder.addOffset(0, tOffset);
+    return fbBuilder.endTable();
+  }
+
+  @override
+  String toString() {
+    return 'TestNativeInlineTableT{t: ${t}}';
+  }
+}
+
+class _TestNativeInlineTableReader extends fb.TableReader<TestNativeInlineTable> {
+  const _TestNativeInlineTableReader();
+
+  @override
+  TestNativeInlineTable createObject(fb.BufferContext bc, int offset) => 
+    TestNativeInlineTable._(bc, offset);
+}
+
+class TestNativeInlineTableBuilder {
+  TestNativeInlineTableBuilder(this.fbBuilder);
+
+  final fb.Builder fbBuilder;
+
+  void begin() {
+    fbBuilder.startTable(1);
+  }
+
+  int addTOffset(int? offset) {
+    fbBuilder.addOffset(0, offset);
+    return fbBuilder.offset;
+  }
+
+  int finish() {
+    return fbBuilder.endTable();
+  }
+}
+
+class TestNativeInlineTableObjectBuilder extends fb.ObjectBuilder {
+  final List<NativeInlineTableObjectBuilder>? _t;
+
+  TestNativeInlineTableObjectBuilder({
+    List<NativeInlineTableObjectBuilder>? t,
+  })
+      : _t = t;
+
+  /// Finish building, and store into the [fbBuilder].
+  @override
+  int finish(fb.Builder fbBuilder) {
+    final int? tOffset = _t == null ? null
+        : fbBuilder.writeList(_t!.map((b) => b.getOrCreateOffset(fbBuilder)).toList());
+    fbBuilder.startTable(1);
+    fbBuilder.addOffset(0, tOffset);
+    return fbBuilder.endTable();
+  }
+
+  /// Convenience method to serialize to byte list.
+  @override
+  Uint8List toBytes([String? fileIdentifier]) {
+    final fbBuilder = fb.Builder(deduplicateTables: false);
+    fbBuilder.finish(finish(fbBuilder), fileIdentifier);
+    return fbBuilder.buffer;
+  }
+}
 ///  an example documentation comment: "monster object"
 class Monster {
   Monster._(this._bc, this._bcOffset);
