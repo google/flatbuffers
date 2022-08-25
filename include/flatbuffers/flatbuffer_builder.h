@@ -579,7 +579,7 @@ class FlatBufferBuilder {
   /// @param[in] str A const pointer to a `String` struct to add to the buffer.
   /// @return Returns the offset in the buffer where the string starts
   Offset<String> CreateSharedString(const String *str) {
-    return CreateSharedString(str->c_str(), str->size());
+    return str ? CreateSharedString(str->c_str(), str->size()) : 0;
   }
 
   /// @cond FLATBUFFERS_INTERNAL
