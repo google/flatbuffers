@@ -3,6 +3,25 @@
   <PropertyGroup>
     <TargetFrameworks>netstandard2.1;netstandard2.0;net46</TargetFrameworks>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <PackageId>Google.FlatBuffers</PackageId>
+    <AssemblyName>FlatBuffers</AssemblyName>
+    <AssemblyTitle>FlatBuffers</AssemblyTitle>
+    <Description>A cross-platform memory efficient serialization library</Description>
+    <PackageVersion>2.0.8-beta</PackageVersion>
+    <Authors>Wouter van Oortmerssen, Derek Bailey</Authors>
+    <Company>Google</Company>
+    <RepositoryUrl>https://github.com/google/flatbuffers</RepositoryUrl>
+    <RepositoryBranch>master</RepositoryBranch>
+    <RepositoryCommit>e2eb5ee67096f5c039947c3d03477370d3be44f8</RepositoryCommit>
+    <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
+    <PackageIcon>flatbuffers.png</PackageIcon>
+    <PackageTags>Google;FlatBuffers;Serialization;Buffer;Binary;zero copy</PackageTags>
+    <PackageReleaseNotes>First official nuget package release of flatbuffers</PackageReleaseNotes>
+    <Copyright>Copyright 2022 Google Inc. All rights reserved.</Copyright>
+    <PackRelease>true</PackRelease>
+    <PublishRelease>true</PublishRelease>
+    <Optimize>true</Optimize>
+    <Configuration>Release</Configuration>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(UNSAFE_BYTEBUFFER)' == 'true'">
@@ -18,6 +37,10 @@
 
   <ItemGroup Condition="('$(ENABLE_SPAN_T)' == 'true') And (('$(TargetFramework)' == 'netstandard2.0') Or ('$(TargetFramework)' == 'net46'))">
     <PackageReference Include="System.Memory" Version="4.5.4" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="flatbuffers.png" Pack="true" PackagePath="\" />
   </ItemGroup>
 
 </Project>
