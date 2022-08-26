@@ -451,7 +451,7 @@ public class FlexBuffersBuilder {
     /**
      * Finishes a vector, but writing the information in the buffer
      * @param key   key used to store element in map
-     * @param start reference for begining of the vector. Returned by {@link startVector()}
+     * @param start reference for beginning of the vector. Returned by {@link startVector()}
      * @param typed boolean indicating whether vector is typed
      * @param fixed boolean indicating whether vector is fixed
      * @return      Reference to the vector
@@ -602,7 +602,7 @@ public class FlexBuffersBuilder {
     /**
      * Finishes a map, but writing the information in the buffer
      * @param key   key used to store element in map
-     * @param start reference for begining of the map. Returned by {@link startMap()}
+     * @param start reference for beginning of the map. Returned by {@link startMap()}
      * @return      Reference to the map
      */
     public int endMap(String key, int start) {

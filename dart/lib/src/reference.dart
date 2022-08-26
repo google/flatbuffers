@@ -199,7 +199,7 @@ class Reference {
     return _MapValueIterator(this);
   }
 
-  /// Returns the length of the the underlying FlexBuffer value.
+  /// Returns the length of the underlying FlexBuffer value.
   /// If the underlying value is [null] the length is 0.
   /// If the underlying value is a number, or a bool, the length is 1.
   /// If the underlying value is a vector, or map, the length reflects number of elements / element pairs.

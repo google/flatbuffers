@@ -1815,7 +1815,7 @@ void FuzzTest2() {
         break;
       }
     }
-    TEST_NOTNULL(nullptr);  //-V501 (this comment supresses CWE-570 warning)
+    TEST_NOTNULL(nullptr);  //-V501 (this comment suppresses CWE-570 warning)
   }
 
   // clang-format off
@@ -3663,14 +3663,14 @@ void CreateSharedStringTest() {
 #if !defined(FLATBUFFERS_USE_STD_SPAN) && !defined(FLATBUFFERS_SPAN_MINIMAL)
 void FlatbuffersSpanTest() {
   // Compile-time checking of non-const [] to const [] conversions.
-  using flatbuffers::internal::is_span_convertable;
-  (void)is_span_convertable<int, 1, int, 1>::type(123);
-  (void)is_span_convertable<const int, 1, int, 1>::type(123);
-  (void)is_span_convertable<const int64_t, 1, int64_t, 1>::type(123);
-  (void)is_span_convertable<const uint64_t, 1, uint64_t, 1>::type(123);
-  (void)is_span_convertable<const int, 1, const int, 1>::type(123);
-  (void)is_span_convertable<const int64_t, 1, const int64_t, 1>::type(123);
-  (void)is_span_convertable<const uint64_t, 1, const uint64_t, 1>::type(123);
+  using flatbuffers::internal::is_span_convertible;
+  (void)is_span_convertible<int, 1, int, 1>::type(123);
+  (void)is_span_convertible<const int, 1, int, 1>::type(123);
+  (void)is_span_convertible<const int64_t, 1, int64_t, 1>::type(123);
+  (void)is_span_convertible<const uint64_t, 1, uint64_t, 1>::type(123);
+  (void)is_span_convertible<const int, 1, const int, 1>::type(123);
+  (void)is_span_convertible<const int64_t, 1, const int64_t, 1>::type(123);
+  (void)is_span_convertible<const uint64_t, 1, const uint64_t, 1>::type(123);
 
   using flatbuffers::span;
   span<char, 0> c1;

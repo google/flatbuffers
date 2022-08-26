@@ -17,7 +17,7 @@ class Builder {
   final Map<double, _StackValue> _indirectDoubleCache = {};
 
   /// Instantiate the builder if you intent to gradually build up the buffer by calling
-  /// add... methods and calling [finish] to receive the the resulting byte array.
+  /// add... methods and calling [finish] to receive the resulting byte array.
   ///
   /// The default size of internal buffer is set to 2048. Provide a different value in order to avoid buffer copies.
   Builder({int size = 2048}) : _buffer = ByteData(size);

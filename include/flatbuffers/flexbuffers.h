@@ -1871,7 +1871,7 @@ class Verifier FLATBUFFERS_FINAL_CLASS {
   std::vector<uint8_t> *reuse_tracker_;
 };
 
-// Utility function that contructs the Verifier for you, see above for
+// Utility function that constructs the Verifier for you, see above for
 // parameters.
 inline bool VerifyBuffer(const uint8_t *buf, size_t buf_len,
                          std::vector<uint8_t> *reuse_tracker = nullptr) {
