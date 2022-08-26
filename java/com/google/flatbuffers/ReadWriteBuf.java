@@ -1,5 +1,7 @@
 package com.google.flatbuffers;
 
+import com.google.errorprone.annotations.CanIgnoreReturnValue;
+
 /**
  * Interface to represent a read-write buffer. This interface will be used to access and write
  * FlexBuffers message.
@@ -138,5 +140,6 @@ public interface ReadWriteBuf extends ReadBuf {
      * @return true if buffer is able to offer
      * the requested capacity
      */
+    @CanIgnoreReturnValue
     boolean requestCapacity(int capacity);
 }

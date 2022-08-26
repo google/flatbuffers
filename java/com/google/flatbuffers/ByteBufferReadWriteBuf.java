@@ -1,5 +1,6 @@
 package com.google.flatbuffers;
 
+import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
@@ -163,6 +164,7 @@ public class ByteBufferReadWriteBuf implements ReadWriteBuf {
   }
 
   @Override
+  @CanIgnoreReturnValue
   public boolean requestCapacity(int capacity) {
     return capacity <= buffer.limit();
   }

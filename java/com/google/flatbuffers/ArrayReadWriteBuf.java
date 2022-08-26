@@ -1,5 +1,6 @@
 package com.google.flatbuffers;
 
+import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import java.util.Arrays;
 
 /**
@@ -233,6 +234,7 @@ public class ArrayReadWriteBuf implements ReadWriteBuf {
   }
 
   @Override
+  @CanIgnoreReturnValue
   public boolean requestCapacity(int capacity) {
     if (capacity < 0) {
       throw new IllegalArgumentException("Capacity may not be negative (likely a previous int overflow)");
