@@ -46,6 +46,7 @@
     #include <span>
 #elif defined(__cpp_lib_span) && defined(__has_include)
   #if __has_include(<span>)
+    #include <array>
     #include <span>
     #define FLATBUFFERS_USE_STD_SPAN
   #endif
