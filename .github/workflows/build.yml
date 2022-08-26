@@ -63,6 +63,51 @@ jobs:
       id: hash-gcc
       run: echo "::set-output name=hashes::$(sha256sum Linux.flatc.binary.${{ matrix.cxx }}.zip | base64 -w0)"
 
+  build-linux-cpp-std:
+    name: Build Linux C++
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        std: [11, 14, 17, 20, 23]
+        cxx: [g++-10, clang++-12]
+        exclude:
+          # GCC 10.3.0 doesn't support std 23
+          - cxx: g++-10
+            std: 23
+    steps:
+    - uses: actions/checkout@v2
+    - name: cmake
+      run: >
+        CXX=${{ matrix.cxx }} cmake -G "Unix Makefiles" 
+        -DCMAKE_BUILD_TYPE=Release -DFLATBUFFERS_STRICT_MODE=ON 
+        -DFLATBUFFERS_CPP_STD=${{ matrix.std }}
+    - name: build
+      run: make -j
+    - name: test
+      run: ./flattests
+
+  build-windows-cpp-std:
+    name: Build Windows C++
+    runs-on: windows-2019
+    strategy:
+      matrix:
+        std: [11, 14, 17, 20, 23]
+      fail-fast: false
+    steps:
+    - uses: actions/checkout@v2
+    - name: Add msbuild to PATH
+      uses: microsoft/setup-msbuild@v1.1
+    - name: cmake
+      run: >
+        cmake -G "Visual Studio 16 2019" -A x64 -DCMAKE_BUILD_TYPE=Release 
+        -DFLATBUFFERS_STRICT_MODE=ON 
+        -DFLATBUFFERS_CPP_STD=${{ matrix.std }}
+    - name: build
+      run: msbuild.exe FlatBuffers.sln /p:Configuration=Release /p:Platform=x64
+    - name: test
+      run: Release\flattests.exe
+
   build-windows:
     permissions:
       contents: write

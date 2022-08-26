@@ -78,6 +78,10 @@ option(FLATBUFFERS_STRICT_MODE
       "Build flatbuffers with all warnings as errors (-Werror or /WX)."
       OFF)
 
+if(NOT DEFINED FLATBUFFERS_CPP_STD)
+  set(FLATBUFFERS_CPP_STD 11)
+endif()
+
 set(MSVC_LIKE OFF)
 if(MSVC OR CMAKE_CXX_COMPILER_FRONTEND_VARIANT STREQUAL "MSVC")
     set(MSVC_LIKE ON)
@@ -334,7 +338,7 @@ include_directories(grpc)
 add_library(ProjectConfig INTERFACE)
 target_compile_features(ProjectConfig
   INTERFACE
-    cxx_std_11
+    cxx_std_${FLATBUFFERS_CPP_STD}
 )
 
 # Force the standard to be met.
