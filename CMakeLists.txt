@@ -87,6 +87,14 @@ if(MSVC OR CMAKE_CXX_COMPILER_FRONTEND_VARIANT STREQUAL "MSVC")
     set(MSVC_LIKE ON)
 endif()
 
+if(DEFINED FLATBUFFERS_COMPILATION_TIMINGS)
+  message("Recording Compilation Timings to ${FLATBUFFERS_COMPILATION_TIMINGS}")
+  file(REMOVE ${FLATBUFFERS_COMPILATION_TIMINGS})
+  set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE "time -f 'Wall: %E User: %U Sys: %S | %C' -q -a -o ${FLATBUFFERS_COMPILATION_TIMINGS}")
+  set_property(GLOBAL PROPERTY RULE_LAUNCH_CUSTOM "time -f 'Wall: %E User: %U Sys: %S | %C' -q -a -o ${FLATBUFFERS_COMPILATION_TIMINGS}")
+  set_property(GLOBAL PROPERTY RULE_LAUNCH_LINK "time -f 'Wall: %E User: %U Sys: %S | %C' -q -a -o ${FLATBUFFERS_COMPILATION_TIMINGS}")
+endif()
+
 if(NOT FLATBUFFERS_BUILD_FLATC AND FLATBUFFERS_BUILD_TESTS)
     message(WARNING
     "Cannot build tests without building the compiler. Tests will be disabled.")
