@@ -95,7 +95,7 @@ template<typename T> struct IndirectHelper<const T *> {
   }
 };
 
-/// @brief Get a pointer to the the file_identifier section of the buffer.
+/// @brief Get a pointer to the file_identifier section of the buffer.
 /// @return Returns a const char pointer to the start of the file_identifier
 /// characters in the buffer.  The returned char * has length
 /// 'flatbuffers::FlatBufferBuilder::kFileIdentifierLength'.
