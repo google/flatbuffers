@@ -63,6 +63,24 @@ jobs:
       id: hash-gcc
       run: echo "::set-output name=hashes::$(sha256sum Linux.flatc.binary.${{ matrix.cxx }}.zip | base64 -w0)"
 
+  build-windows-cpp-std:
+    name: Build Windows 2019 C++std
+    runs-on: windows-2019
+    strategy:
+      matrix:
+        cppstd: [c11, c14, c17, c20]
+      fail-fast: false
+    steps:
+    - uses: actions/checkout@v2
+    - name: Add msbuild to PATH
+      uses: microsoft/setup-msbuild@v1.1
+    - name: cmake
+      run: cmake -G "Visual Studio 16 2019" -A x64 -DCMAKE_BUILD_TYPE=Release -DFLATBUFFERS_STRICT_MODE=ON .
+    - name: build
+      run: msbuild.exe FlatBuffers.sln /p:Configuration=Release /p:Platform=x64 /std:${{ matrix.cppstd }}
+    - name: test
+      run: Release\flattests.exe
+
   build-windows:
     permissions:
       contents: write
