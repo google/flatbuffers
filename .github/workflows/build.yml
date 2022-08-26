@@ -68,14 +68,14 @@ jobs:
     runs-on: windows-2019
     strategy:
       matrix:
-        cppstd: [11, 14, 17, 20]
+        std: [11, 14, 17, 20, 23]
       fail-fast: false
     steps:
     - uses: actions/checkout@v2
     - name: Add msbuild to PATH
       uses: microsoft/setup-msbuild@v1.1
     - name: cmake
-      run: cmake -G "Visual Studio 16 2019" -A x64 -DCMAKE_BUILD_TYPE=Release -DFLATBUFFERS_STRICT_MODE=ON -DFLATBUFFERS_CPP_STD=${{ matrix.cppstd }}.
+      run: cmake -G "Visual Studio 16 2019" -A x64 -DCMAKE_BUILD_TYPE=Release -DFLATBUFFERS_STRICT_MODE=ON -DFLATBUFFERS_CPP_STD=${{ matrix.std }}.
     - name: build
       run: msbuild.exe FlatBuffers.sln /p:Configuration=Release /p:Platform=x64
     - name: test
