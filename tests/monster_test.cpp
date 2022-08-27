@@ -3,12 +3,19 @@
 #include <vector>
 
 #include "flatbuffers/flatbuffer_builder.h"
+#include "flatbuffers/idl.h"
 #include "flatbuffers/verifier.h"
+#include "monster_extra_generated.h"
 #include "monster_test_generated.h"
+#include "is_quiet_nan.h"
 #include "test_assert.h"
 
 namespace flatbuffers {
 namespace tests {
+
+// Shortcuts for the infinity.
+static const auto infinity_f = std::numeric_limits<float>::infinity();
+static const auto infinity_d = std::numeric_limits<double>::infinity();
 
 using namespace MyGame::Example;
 
@@ -162,7 +169,7 @@ flatbuffers::DetachedBuffer CreateFlatBufferTest(std::string &buffer) {
 
   FinishMonsterBuffer(builder, mloc);
 
-  // clang-format off
+// clang-format off
   #ifdef FLATBUFFERS_TEST_VERBOSE
   // print byte data for debugging:
   auto p = builder.GetBufferPointer();
@@ -180,15 +187,14 @@ flatbuffers::DetachedBuffer CreateFlatBufferTest(std::string &buffer) {
 }
 
 //  example of accessing a buffer loaded in memory:
-void AccessFlatBufferTest(const uint8_t *flatbuf, size_t length,
-                          bool pooled) {
+void AccessFlatBufferTest(const uint8_t *flatbuf, size_t length, bool pooled) {
   // First, verify the buffers integrity (optional)
   flatbuffers::Verifier verifier(flatbuf, length);
   std::vector<uint8_t> flex_reuse_tracker;
   verifier.SetFlexReuseTracker(&flex_reuse_tracker);
   TEST_EQ(VerifyMonsterBuffer(verifier), true);
 
-  // clang-format off
+// clang-format off
   #ifdef FLATBUFFERS_TRACK_VERIFIER_BUFFER_SIZE
     std::vector<uint8_t> test_buff;
     test_buff.resize(length * 2);
@@ -566,6 +572,90 @@ void SizePrefixedTest() {
   TEST_EQ(m->mana(), 200);
   TEST_EQ(m->hp(), 300);
   TEST_EQ_STR(m->name()->c_str(), "bob");
+}
+
+void TestMonsterExtraFloats(const std::string &tests_data_path) {
+#if defined(FLATBUFFERS_HAS_NEW_STRTOD) && (FLATBUFFERS_HAS_NEW_STRTOD > 0)
+  TEST_EQ(is_quiet_nan(1.0), false);
+  TEST_EQ(is_quiet_nan(infinity_d), false);
+  TEST_EQ(is_quiet_nan(-infinity_f), false);
+  TEST_EQ(is_quiet_nan(std::numeric_limits<float>::quiet_NaN()), true);
+  TEST_EQ(is_quiet_nan(std::numeric_limits<double>::quiet_NaN()), true);
+
+  using namespace flatbuffers;
+  using namespace MyGame;
+  // Load FlatBuffer schema (.fbs) from disk.
+  std::string schemafile;
+  TEST_EQ(LoadFile((tests_data_path + "monster_extra.fbs").c_str(), false,
+                   &schemafile),
+          true);
+  // Parse schema first, so we can use it to parse the data after.
+  Parser parser;
+  auto include_test_path = ConCatPathFileName(tests_data_path, "include_test");
+  const char *include_directories[] = { tests_data_path.c_str(),
+                                        include_test_path.c_str(), nullptr };
+  TEST_EQ(parser.Parse(schemafile.c_str(), include_directories), true);
+  // Create empty extra and store to json.
+  parser.opts.output_default_scalars_in_json = true;
+  parser.opts.output_enum_identifiers = true;
+  FlatBufferBuilder builder;
+  const auto def_root = MonsterExtraBuilder(builder).Finish();
+  FinishMonsterExtraBuffer(builder, def_root);
+  const auto def_obj = builder.GetBufferPointer();
+  const auto def_extra = GetMonsterExtra(def_obj);
+  TEST_NOTNULL(def_extra);
+  TEST_EQ(is_quiet_nan(def_extra->f0()), true);
+  TEST_EQ(is_quiet_nan(def_extra->f1()), true);
+  TEST_EQ(def_extra->f2(), +infinity_f);
+  TEST_EQ(def_extra->f3(), -infinity_f);
+  TEST_EQ(is_quiet_nan(def_extra->d0()), true);
+  TEST_EQ(is_quiet_nan(def_extra->d1()), true);
+  TEST_EQ(def_extra->d2(), +infinity_d);
+  TEST_EQ(def_extra->d3(), -infinity_d);
+  std::string jsongen;
+  auto result = GenerateText(parser, def_obj, &jsongen);
+  TEST_EQ(result, true);
+  // Check expected default values.
+  TEST_EQ(std::string::npos != jsongen.find("f0: nan"), true);
+  TEST_EQ(std::string::npos != jsongen.find("f1: nan"), true);
+  TEST_EQ(std::string::npos != jsongen.find("f2: inf"), true);
+  TEST_EQ(std::string::npos != jsongen.find("f3: -inf"), true);
+  TEST_EQ(std::string::npos != jsongen.find("d0: nan"), true);
+  TEST_EQ(std::string::npos != jsongen.find("d1: nan"), true);
+  TEST_EQ(std::string::npos != jsongen.find("d2: inf"), true);
+  TEST_EQ(std::string::npos != jsongen.find("d3: -inf"), true);
+  // Parse 'mosterdata_extra.json'.
+  const auto extra_base = tests_data_path + "monsterdata_extra";
+  jsongen = "";
+  TEST_EQ(LoadFile((extra_base + ".json").c_str(), false, &jsongen), true);
+  TEST_EQ(parser.Parse(jsongen.c_str()), true);
+  const auto test_file = parser.builder_.GetBufferPointer();
+  const auto test_size = parser.builder_.GetSize();
+  Verifier verifier(test_file, test_size);
+  TEST_ASSERT(VerifyMonsterExtraBuffer(verifier));
+  const auto extra = GetMonsterExtra(test_file);
+  TEST_NOTNULL(extra);
+  TEST_EQ(is_quiet_nan(extra->f0()), true);
+  TEST_EQ(is_quiet_nan(extra->f1()), true);
+  TEST_EQ(extra->f2(), +infinity_f);
+  TEST_EQ(extra->f3(), -infinity_f);
+  TEST_EQ(is_quiet_nan(extra->d0()), true);
+  TEST_EQ(extra->d1(), +infinity_d);
+  TEST_EQ(extra->d2(), -infinity_d);
+  TEST_EQ(is_quiet_nan(extra->d3()), true);
+  TEST_NOTNULL(extra->fvec());
+  TEST_EQ(extra->fvec()->size(), 4);
+  TEST_EQ(extra->fvec()->Get(0), 1.0f);
+  TEST_EQ(extra->fvec()->Get(1), -infinity_f);
+  TEST_EQ(extra->fvec()->Get(2), +infinity_f);
+  TEST_EQ(is_quiet_nan(extra->fvec()->Get(3)), true);
+  TEST_NOTNULL(extra->dvec());
+  TEST_EQ(extra->dvec()->size(), 4);
+  TEST_EQ(extra->dvec()->Get(0), 2.0);
+  TEST_EQ(extra->dvec()->Get(1), +infinity_d);
+  TEST_EQ(extra->dvec()->Get(2), -infinity_d);
+  TEST_EQ(is_quiet_nan(extra->dvec()->Get(3)), true);
+#endif
 }
 
 }  // namespace tests

@@ -69,10 +69,6 @@ static_assert(flatbuffers::is_same<uint8_t, char>::value ||
 #endif
 // clang-format on
 
-// Shortcuts for the infinity.
-static const auto infinity_f = std::numeric_limits<float>::infinity();
-static const auto infinity_d = std::numeric_limits<double>::infinity();
-
 using namespace MyGame::Example;
 
 // Include simple random number generator to ensure results will be the
@@ -105,89 +101,7 @@ void TriviallyCopyableTest() {
   // clang-format on
 }
 
-void TestMonsterExtraFloats() {
-#if defined(FLATBUFFERS_HAS_NEW_STRTOD) && (FLATBUFFERS_HAS_NEW_STRTOD > 0)
-  TEST_EQ(is_quiet_nan(1.0), false);
-  TEST_EQ(is_quiet_nan(infinity_d), false);
-  TEST_EQ(is_quiet_nan(-infinity_f), false);
-  TEST_EQ(is_quiet_nan(std::numeric_limits<float>::quiet_NaN()), true);
-  TEST_EQ(is_quiet_nan(std::numeric_limits<double>::quiet_NaN()), true);
 
-  using namespace flatbuffers;
-  using namespace MyGame;
-  // Load FlatBuffer schema (.fbs) from disk.
-  std::string schemafile;
-  TEST_EQ(LoadFile((test_data_path + "monster_extra.fbs").c_str(), false,
-                   &schemafile),
-          true);
-  // Parse schema first, so we can use it to parse the data after.
-  Parser parser;
-  auto include_test_path = ConCatPathFileName(test_data_path, "include_test");
-  const char *include_directories[] = { test_data_path.c_str(),
-                                        include_test_path.c_str(), nullptr };
-  TEST_EQ(parser.Parse(schemafile.c_str(), include_directories), true);
-  // Create empty extra and store to json.
-  parser.opts.output_default_scalars_in_json = true;
-  parser.opts.output_enum_identifiers = true;
-  FlatBufferBuilder builder;
-  const auto def_root = MonsterExtraBuilder(builder).Finish();
-  FinishMonsterExtraBuffer(builder, def_root);
-  const auto def_obj = builder.GetBufferPointer();
-  const auto def_extra = GetMonsterExtra(def_obj);
-  TEST_NOTNULL(def_extra);
-  TEST_EQ(is_quiet_nan(def_extra->f0()), true);
-  TEST_EQ(is_quiet_nan(def_extra->f1()), true);
-  TEST_EQ(def_extra->f2(), +infinity_f);
-  TEST_EQ(def_extra->f3(), -infinity_f);
-  TEST_EQ(is_quiet_nan(def_extra->d0()), true);
-  TEST_EQ(is_quiet_nan(def_extra->d1()), true);
-  TEST_EQ(def_extra->d2(), +infinity_d);
-  TEST_EQ(def_extra->d3(), -infinity_d);
-  std::string jsongen;
-  auto result = GenerateText(parser, def_obj, &jsongen);
-  TEST_EQ(result, true);
-  // Check expected default values.
-  TEST_EQ(std::string::npos != jsongen.find("f0: nan"), true);
-  TEST_EQ(std::string::npos != jsongen.find("f1: nan"), true);
-  TEST_EQ(std::string::npos != jsongen.find("f2: inf"), true);
-  TEST_EQ(std::string::npos != jsongen.find("f3: -inf"), true);
-  TEST_EQ(std::string::npos != jsongen.find("d0: nan"), true);
-  TEST_EQ(std::string::npos != jsongen.find("d1: nan"), true);
-  TEST_EQ(std::string::npos != jsongen.find("d2: inf"), true);
-  TEST_EQ(std::string::npos != jsongen.find("d3: -inf"), true);
-  // Parse 'mosterdata_extra.json'.
-  const auto extra_base = test_data_path + "monsterdata_extra";
-  jsongen = "";
-  TEST_EQ(LoadFile((extra_base + ".json").c_str(), false, &jsongen), true);
-  TEST_EQ(parser.Parse(jsongen.c_str()), true);
-  const auto test_file = parser.builder_.GetBufferPointer();
-  const auto test_size = parser.builder_.GetSize();
-  Verifier verifier(test_file, test_size);
-  TEST_ASSERT(VerifyMonsterExtraBuffer(verifier));
-  const auto extra = GetMonsterExtra(test_file);
-  TEST_NOTNULL(extra);
-  TEST_EQ(is_quiet_nan(extra->f0()), true);
-  TEST_EQ(is_quiet_nan(extra->f1()), true);
-  TEST_EQ(extra->f2(), +infinity_f);
-  TEST_EQ(extra->f3(), -infinity_f);
-  TEST_EQ(is_quiet_nan(extra->d0()), true);
-  TEST_EQ(extra->d1(), +infinity_d);
-  TEST_EQ(extra->d2(), -infinity_d);
-  TEST_EQ(is_quiet_nan(extra->d3()), true);
-  TEST_NOTNULL(extra->fvec());
-  TEST_EQ(extra->fvec()->size(), 4);
-  TEST_EQ(extra->fvec()->Get(0), 1.0f);
-  TEST_EQ(extra->fvec()->Get(1), -infinity_f);
-  TEST_EQ(extra->fvec()->Get(2), +infinity_f);
-  TEST_EQ(is_quiet_nan(extra->fvec()->Get(3)), true);
-  TEST_NOTNULL(extra->dvec());
-  TEST_EQ(extra->dvec()->size(), 4);
-  TEST_EQ(extra->dvec()->Get(0), 2.0);
-  TEST_EQ(extra->dvec()->Get(1), +infinity_d);
-  TEST_EQ(extra->dvec()->Get(2), -infinity_d);
-  TEST_EQ(is_quiet_nan(extra->dvec()->Get(3)), true);
-#endif
-}
 
 // example of parsing text straight into a buffer, and generating
 // text back from it:
@@ -2767,7 +2681,7 @@ int FlatBufferTests() {
   IsAsciiUtilsTest();
   ValidFloatTest();
   InvalidFloatTest();
-  TestMonsterExtraFloats();
+  TestMonsterExtraFloats(test_data_path);
   FixedLengthArrayTest();
   NativeTypeTest();
   OptionalScalarsTest();

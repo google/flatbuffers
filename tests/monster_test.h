@@ -22,6 +22,8 @@ void CheckMonsterObject(MyGame::Example::MonsterT *monster2);
 
 void SizePrefixedTest();
 
+void TestMonsterExtraFloats(const std::string& tests_data_path);
+
 }  // namespace tests
 }  // namespace flatbuffers
 
