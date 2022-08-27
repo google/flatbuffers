@@ -16,8 +16,16 @@ void EnumStringsTest();
 void EnumValueTest();
 void IntegerBoundaryTest();
 void ValidFloatTest();
+void UnicodeTest();
+void UnicodeTestAllowNonUTF8();
+void UnicodeTestGenerateTextFailsOnNonUTF8();
+void UnicodeSurrogatesTest();
+void UnknownFieldsTest();
+void ParseUnionTest();
+void ValidSameNameDifferentNamespaceTest();
+void WarningsAsErrorsTest();
 
 }  // namespace tests
 }  // namespace flatbuffers
 
-#endif // TESTS_PARSER_TEST_H
+#endif  // TESTS_PARSER_TEST_H
