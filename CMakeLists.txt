@@ -225,6 +225,7 @@ set(FlatBuffers_Tests_SRCS
   tests/test_assert.cpp
   tests/test_builder.h
   tests/test_builder.cpp
+  tests/util_test.cpp
   tests/native_type_test_impl.h
   tests/native_type_test_impl.cpp
   include/flatbuffers/code_generators.h

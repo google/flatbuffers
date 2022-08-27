@@ -46,6 +46,7 @@
 #include "monster_test_bfbs_generated.h"  // Generated using --bfbs-comments --bfbs-builtins --cpp --bfbs-gen-embed
 #include "native_type_test_generated.h"
 #include "test_assert.h"
+#include "util_test.h"
 
 void FlatBufferBuilderTest();
 
@@ -204,97 +205,6 @@ void CompareTableFieldValue(flatbuffers::Table *table,
   TEST_EQ(read, val);
 }
 
-void UtilConvertCase() {
-  {
-    std::vector<std::tuple<std::string, flatbuffers::Case, std::string>>
-        cases = {
-          // Tests for the common cases
-          { "the_quick_brown_fox", flatbuffers::Case::kUpperCamel,
-            "TheQuickBrownFox" },
-          { "the_quick_brown_fox", flatbuffers::Case::kLowerCamel,
-            "theQuickBrownFox" },
-          { "the_quick_brown_fox", flatbuffers::Case::kSnake,
-            "the_quick_brown_fox" },
-          { "the_quick_brown_fox", flatbuffers::Case::kScreamingSnake,
-            "THE_QUICK_BROWN_FOX" },
-          { "the_quick_brown_fox", flatbuffers::Case::kAllLower,
-            "the_quick_brown_fox" },
-          { "the_quick_brown_fox", flatbuffers::Case::kAllUpper,
-            "THE_QUICK_BROWN_FOX" },
-          { "the_quick_brown_fox", flatbuffers::Case::kUnknown,
-            "the_quick_brown_fox" },
-          { "the_quick_brown_fox", flatbuffers::Case::kKeep,
-            "the_quick_brown_fox" },
-          { "the_quick_brown_fox", flatbuffers::Case::kSnake2,
-            "the_quick_brown_fox" },
-
-          // Tests for some snake_cases where the _ is oddly placed or missing.
-          { "single", flatbuffers::Case::kUpperCamel, "Single" },
-          { "Single", flatbuffers::Case::kUpperCamel, "Single" },
-          { "_leading", flatbuffers::Case::kUpperCamel, "_leading" },
-          { "trailing_", flatbuffers::Case::kUpperCamel, "Trailing_" },
-          { "double__underscore", flatbuffers::Case::kUpperCamel,
-            "Double_underscore" },
-          { "single", flatbuffers::Case::kLowerCamel, "single" },
-          { "Single", flatbuffers::Case::kLowerCamel, "Single" },
-          { "_leading", flatbuffers::Case::kLowerCamel, "Leading" },
-          { "trailing_", flatbuffers::Case::kLowerCamel, "trailing_" },
-          { "double__underscore", flatbuffers::Case::kLowerCamel,
-            "double_underscore" },
-
-          // Tests for some output snake_cases
-          { "single", flatbuffers::Case::kSnake, "single" },
-          { "single", flatbuffers::Case::kScreamingSnake, "SINGLE" },
-          { "_leading", flatbuffers::Case::kScreamingSnake, "_LEADING" },
-          { "trailing_", flatbuffers::Case::kScreamingSnake, "TRAILING_" },
-          { "double__underscore", flatbuffers::Case::kScreamingSnake,
-            "DOUBLE__UNDERSCORE" },
-        };
-
-    for (auto &test_case : cases) {
-      TEST_EQ(std::get<2>(test_case),
-              flatbuffers::ConvertCase(std::get<0>(test_case),
-                                       std::get<1>(test_case)));
-    }
-  }
-
-  // Tests for the non snake_case inputs.
-  {
-    std::vector<std::tuple<flatbuffers::Case, std::string, flatbuffers::Case,
-                           std::string>>
-        cases = {
-          { flatbuffers::Case::kUpperCamel, "TheQuickBrownFox",
-            flatbuffers::Case::kSnake, "the_quick_brown_fox" },
-          { flatbuffers::Case::kLowerCamel, "theQuickBrownFox",
-            flatbuffers::Case::kSnake, "the_quick_brown_fox" },
-          { flatbuffers::Case::kSnake, "the_quick_brown_fox",
-            flatbuffers::Case::kSnake, "the_quick_brown_fox" },
-          { flatbuffers::Case::kScreamingSnake, "THE_QUICK_BROWN_FOX",
-            flatbuffers::Case::kSnake, "THE_QUICK_BROWN_FOX" },
-          { flatbuffers::Case::kAllUpper, "SINGLE", flatbuffers::Case::kSnake,
-            "SINGLE" },
-          { flatbuffers::Case::kAllLower, "single", flatbuffers::Case::kSnake,
-            "single" },
-          { flatbuffers::Case::kUpperCamel, "ABCtest",
-            flatbuffers::Case::kSnake, "abctest" },
-          { flatbuffers::Case::kUpperCamel, "tHe_qUiCk_BrOwN_fOx",
-            flatbuffers::Case::kKeep, "tHe_qUiCk_BrOwN_fOx" },
-          { flatbuffers::Case::kLowerCamel, "theQuick12345Fox",
-            flatbuffers::Case::kSnake, "the_quick_12345fox" },
-          { flatbuffers::Case::kLowerCamel, "a12b34c45",
-            flatbuffers::Case::kSnake, "a_12b_34c_45" },
-          { flatbuffers::Case::kLowerCamel, "a12b34c45",
-            flatbuffers::Case::kSnake2, "a12_b34_c45" },
-        };
-
-    for (auto &test_case : cases) {
-      TEST_EQ(std::get<3>(test_case),
-              flatbuffers::ConvertCase(std::get<1>(test_case),
-                                       std::get<2>(test_case),
-                                       std::get<0>(test_case)));
-    }
-  }
-}
 
 // Low level stress/fuzz test: serialize/deserialize a variety of
 // different kinds of data in different combinations
@@ -570,23 +480,6 @@ void FuzzTest2() {
   // clang-format on
 }
 
-
-
-void EnumNamesTest() {
-  TEST_EQ_STR("Red", EnumNameColor(Color_Red));
-  TEST_EQ_STR("Green", EnumNameColor(Color_Green));
-  TEST_EQ_STR("Blue", EnumNameColor(Color_Blue));
-  // Check that Color to string don't crash while decode a mixture of Colors.
-  // 1) Example::Color enum is enum with unfixed underlying type.
-  // 2) Valid enum range: [0; 2^(ceil(log2(Color_ANY))) - 1].
-  // Consequence: A value is out of this range will lead to UB (since C++17).
-  // For details see C++17 standard or explanation on the SO:
-  // stackoverflow.com/questions/18195312/what-happens-if-you-static-cast-invalid-value-to-enum-class
-  TEST_EQ_STR("", EnumNameColor(static_cast<Color>(0)));
-  TEST_EQ_STR("", EnumNameColor(static_cast<Color>(Color_ANY - 1)));
-  TEST_EQ_STR("", EnumNameColor(static_cast<Color>(Color_ANY + 1)));
-}
-
 void GenerateTableTextTest() {
   std::string schemafile;
   std::string jsonfile;
@@ -643,55 +536,7 @@ void GenerateTableTextTest() {
   TEST_EQ_STR(jsongen.c_str(), "{a: 10,b: 20}");
 }
 
-template<typename T>
-void NumericUtilsTestInteger(const char *lower, const char *upper) {
-  T x;
-  TEST_EQ(flatbuffers::StringToNumber("1q", &x), false);
-  TEST_EQ(x, 0);
-  TEST_EQ(flatbuffers::StringToNumber(upper, &x), false);
-  TEST_EQ(x, flatbuffers::numeric_limits<T>::max());
-  TEST_EQ(flatbuffers::StringToNumber(lower, &x), false);
-  auto expval = flatbuffers::is_unsigned<T>::value
-                    ? flatbuffers::numeric_limits<T>::max()
-                    : flatbuffers::numeric_limits<T>::lowest();
-  TEST_EQ(x, expval);
-}
 
-template<typename T>
-void NumericUtilsTestFloat(const char *lower, const char *upper) {
-  T f;
-  TEST_EQ(flatbuffers::StringToNumber("", &f), false);
-  TEST_EQ(flatbuffers::StringToNumber("1q", &f), false);
-  TEST_EQ(f, 0);
-  TEST_EQ(flatbuffers::StringToNumber(upper, &f), true);
-  TEST_EQ(f, +flatbuffers::numeric_limits<T>::infinity());
-  TEST_EQ(flatbuffers::StringToNumber(lower, &f), true);
-  TEST_EQ(f, -flatbuffers::numeric_limits<T>::infinity());
-}
-
-void NumericUtilsTest() {
-  NumericUtilsTestInteger<uint64_t>("-1", "18446744073709551616");
-  NumericUtilsTestInteger<uint8_t>("-1", "256");
-  NumericUtilsTestInteger<int64_t>("-9223372036854775809",
-                                   "9223372036854775808");
-  NumericUtilsTestInteger<int8_t>("-129", "128");
-  NumericUtilsTestFloat<float>("-3.4029e+38", "+3.4029e+38");
-  NumericUtilsTestFloat<float>("-1.7977e+308", "+1.7977e+308");
-}
-
-void IsAsciiUtilsTest() {
-  char c = -128;
-  for (int cnt = 0; cnt < 256; cnt++) {
-    auto alpha = (('a' <= c) && (c <= 'z')) || (('A' <= c) && (c <= 'Z'));
-    auto dec = (('0' <= c) && (c <= '9'));
-    auto hex = (('a' <= c) && (c <= 'f')) || (('A' <= c) && (c <= 'F'));
-    TEST_EQ(flatbuffers::is_alpha(c), alpha);
-    TEST_EQ(flatbuffers::is_alnum(c), alpha || dec);
-    TEST_EQ(flatbuffers::is_digit(c), dec);
-    TEST_EQ(flatbuffers::is_xdigit(c), dec || hex);
-    c += 1;
-  }
-}
 
 
 void MultiFileNameClashTest() {
