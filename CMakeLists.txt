@@ -217,6 +217,7 @@ set(FlatBuffers_Tests_SRCS
   tests/flexbuffers_test.cpp
   tests/json_test.cpp
   tests/monster_test.cpp
+  tests/optional_scalars_test.cpp
   tests/parser_test.cpp
   tests/proto_test.cpp
   tests/reflection_test.cpp
