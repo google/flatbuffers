@@ -852,5 +852,48 @@ void WarningsAsErrorsTest() {
   }
 }
 
+void StringVectorDefaultsTest() {
+  std::vector<std::string> schemas;
+  schemas.push_back("table Monster { mana: string = \"\"; }");
+  schemas.push_back("table Monster { mana: string = \"mystr\"; }");
+  schemas.push_back("table Monster { mana: string = \"  \"; }");
+  schemas.push_back("table Monster { mana: string = \"null\"; }");
+  schemas.push_back("table Monster { mana: [int] = []; }");
+  schemas.push_back("table Monster { mana: [uint] = [  ]; }");
+  schemas.push_back("table Monster { mana: [byte] = [\t\t\n]; }");
+  schemas.push_back("enum E:int{}table Monster{mana:[E]=[];}");
+  for (auto s = schemas.begin(); s < schemas.end(); s++) {
+    flatbuffers::Parser parser;
+    TEST_ASSERT(parser.Parse(s->c_str()));
+    const auto *mana = parser.structs_.Lookup("Monster")->fields.Lookup("mana");
+    TEST_EQ(mana->IsDefault(), true);
+  }
+}
+
+void FieldIdentifierTest() {
+  using flatbuffers::Parser;
+  TEST_EQ(true, Parser().Parse("table T{ f: int (id:0); }"));
+  // non-integer `id` should be rejected
+  TEST_EQ(false, Parser().Parse("table T{ f: int (id:text); }"));
+  TEST_EQ(false, Parser().Parse("table T{ f: int (id:\"text\"); }"));
+  TEST_EQ(false, Parser().Parse("table T{ f: int (id:0text); }"));
+  TEST_EQ(false, Parser().Parse("table T{ f: int (id:1.0); }"));
+  TEST_EQ(false, Parser().Parse("table T{ f: int (id:-1); g: int (id:0); }"));
+  TEST_EQ(false, Parser().Parse("table T{ f: int (id:129496726); }"));
+  // A unuion filed occupys two ids: enumerator + pointer (offset).
+  TEST_EQ(false,
+          Parser().Parse("union X{} table T{ u: X(id:0); table F{x:int;\n}"));
+  // Positive tests for unions
+  TEST_EQ(true, Parser().Parse("union X{} table T{ u: X (id:1); }"));
+  TEST_EQ(true, Parser().Parse("union X{} table T{ u: X; }"));
+  // Test using 'inf' and 'nan' words both as identifiers and as default values.
+  TEST_EQ(true, Parser().Parse("table T{ nan: string; }"));
+  TEST_EQ(true, Parser().Parse("table T{ inf: string; }"));
+#if defined(FLATBUFFERS_HAS_NEW_STRTOD) && (FLATBUFFERS_HAS_NEW_STRTOD > 0)
+  TEST_EQ(true, Parser().Parse("table T{ inf: float = inf; }"));
+  TEST_EQ(true, Parser().Parse("table T{ nan: float = inf; }"));
+#endif
+}
+
 }  // namespace tests
 }  // namespace flatbuffers

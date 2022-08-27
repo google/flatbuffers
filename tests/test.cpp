@@ -1490,23 +1490,6 @@ void TestEmbeddedBinarySchema() {
           0);
 }
 
-void StringVectorDefaultsTest() {
-  std::vector<std::string> schemas;
-  schemas.push_back("table Monster { mana: string = \"\"; }");
-  schemas.push_back("table Monster { mana: string = \"mystr\"; }");
-  schemas.push_back("table Monster { mana: string = \"  \"; }");
-  schemas.push_back("table Monster { mana: string = \"null\"; }");
-  schemas.push_back("table Monster { mana: [int] = []; }");
-  schemas.push_back("table Monster { mana: [uint] = [  ]; }");
-  schemas.push_back("table Monster { mana: [byte] = [\t\t\n]; }");
-  schemas.push_back("enum E:int{}table Monster{mana:[E]=[];}");
-  for (auto s = schemas.begin(); s < schemas.end(); s++) {
-    flatbuffers::Parser parser;
-    TEST_ASSERT(parser.Parse(s->c_str()));
-    const auto *mana = parser.structs_.Lookup("Monster")->fields.Lookup("mana");
-    TEST_EQ(mana->IsDefault(), true);
-  }
-}
 
 void OptionalScalarsTest() {
   // Simple schemas and a "has optional scalar" sentinal.
@@ -1596,31 +1579,6 @@ void OptionalScalarsTest() {
   TEST_ASSERT(opts->maybe_i32() == flatbuffers::Optional<int64_t>(-1));
 }
 
-void FieldIdentifierTest() {
-  using flatbuffers::Parser;
-  TEST_EQ(true, Parser().Parse("table T{ f: int (id:0); }"));
-  // non-integer `id` should be rejected
-  TEST_EQ(false, Parser().Parse("table T{ f: int (id:text); }"));
-  TEST_EQ(false, Parser().Parse("table T{ f: int (id:\"text\"); }"));
-  TEST_EQ(false, Parser().Parse("table T{ f: int (id:0text); }"));
-  TEST_EQ(false, Parser().Parse("table T{ f: int (id:1.0); }"));
-  TEST_EQ(false, Parser().Parse("table T{ f: int (id:-1); g: int (id:0); }"));
-  TEST_EQ(false, Parser().Parse("table T{ f: int (id:129496726); }"));
-  // A unuion filed occupys two ids: enumerator + pointer (offset).
-  TEST_EQ(false,
-          Parser().Parse("union X{} table T{ u: X(id:0); table F{x:int;\n}"));
-  // Positive tests for unions
-  TEST_EQ(true, Parser().Parse("union X{} table T{ u: X (id:1); }"));
-  TEST_EQ(true, Parser().Parse("union X{} table T{ u: X; }"));
-  // Test using 'inf' and 'nan' words both as identifiers and as default values.
-  TEST_EQ(true, Parser().Parse("table T{ nan: string; }"));
-  TEST_EQ(true, Parser().Parse("table T{ inf: string; }"));
-#if defined(FLATBUFFERS_HAS_NEW_STRTOD) && (FLATBUFFERS_HAS_NEW_STRTOD > 0)
-  TEST_EQ(true, Parser().Parse("table T{ inf: float = inf; }"));
-  TEST_EQ(true, Parser().Parse("table T{ nan: float = inf; }"));
-#endif
-}
-
 void NestedVerifierTest() {
   // Create a nested monster.
   flatbuffers::FlatBufferBuilder nested_builder;
@@ -1700,29 +1658,6 @@ void NestedVerifierTest() {
   }
 }
 
-void ParseIncorrectMonsterJsonTest() {
-  std::string schemafile;
-  TEST_EQ(flatbuffers::LoadFile((test_data_path + "monster_test.bfbs").c_str(),
-                                true, &schemafile),
-          true);
-  flatbuffers::Parser parser;
-  flatbuffers::Verifier verifier(
-      reinterpret_cast<const uint8_t *>(schemafile.c_str()), schemafile.size());
-  TEST_EQ(reflection::VerifySchemaBuffer(verifier), true);
-  TEST_EQ(
-      parser.Deserialize(reinterpret_cast<const uint8_t *>(schemafile.c_str()),
-                         schemafile.size()),
-      true);
-  TEST_EQ(parser.ParseJson("{name:\"monster\"}"), true);
-  TEST_EQ(parser.ParseJson(""), false);
-  TEST_EQ(parser.ParseJson("{name: 1}"), false);
-  TEST_EQ(parser.ParseJson("{name:+1}"), false);
-  TEST_EQ(parser.ParseJson("{name:-1}"), false);
-  TEST_EQ(parser.ParseJson("{name:-f}"), false);
-  TEST_EQ(parser.ParseJson("{name:+f}"), false);
-}
-
-#if !defined(_MSC_VER) || _MSC_VER >= 1700
 template<class T, class Container>
 void TestIterators(const std::vector<T> &expected, const Container &tested) {
   TEST_ASSERT(tested.rbegin().base() == tested.end());
@@ -1781,9 +1716,6 @@ void FlatbuffersIteratorsTest() {
     TestIterators(std::vector<int>(15, 0), int_15);
   }
 }
-#else
-void FlatbuffersIteratorsTest() {}
-#endif
 
 void PrivateAnnotationsLeaks() {
   // Simple schemas and a "has optional scalar" sentinal.
@@ -1906,30 +1838,6 @@ void PrivateAnnotationsLeaks() {
     flatbuffers::Parser parser(opts);
     TEST_ASSERT(parser.Parse(schema->c_str()));
   }
-}
-
-void JsonUnsortedArrayTest() {
-  flatbuffers::Parser parser;
-  TEST_EQ(parser.Deserialize(MyGame::Example::MonsterBinarySchema::data(),
-                             MyGame::Example::MonsterBinarySchema::size()),
-          true);
-  auto jsonStr = R"(
-  {
-    "name": "lookupTest",
-    "testarrayoftables": [
-      { "name": "aaa" },
-      { "name": "ccc" },
-      { "name": "bbb" }
-    ]
-  }
-  )";
-  TEST_EQ(parser.ParseJson(jsonStr), true);
-  auto monster = flatbuffers::GetRoot<MyGame::Example::Monster>(
-      parser.builder_.GetBufferPointer());
-
-  TEST_NOTNULL(monster->testarrayoftables()->LookupByKey("aaa"));
-  TEST_NOTNULL(monster->testarrayoftables()->LookupByKey("bbb"));
-  TEST_NOTNULL(monster->testarrayoftables()->LookupByKey("ccc"));
 }
 
 void VectorSpanTest() {
@@ -2100,7 +2008,7 @@ int FlatBufferTests() {
   FixedLengthArrayConstructorTest();
   FieldIdentifierTest();
   StringVectorDefaultsTest();
-  ParseIncorrectMonsterJsonTest();
+  ParseIncorrectMonsterJsonTest(test_data_path);
   FlexBuffersFloatingPointTest();
   FlatbuffersIteratorsTest();
   FixedLengthArraySpanTest();

@@ -24,6 +24,8 @@ void UnknownFieldsTest();
 void ParseUnionTest();
 void ValidSameNameDifferentNamespaceTest();
 void WarningsAsErrorsTest();
+void StringVectorDefaultsTest();
+void FieldIdentifierTest();
 
 }  // namespace tests
 }  // namespace flatbuffers

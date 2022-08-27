@@ -3,6 +3,7 @@
 #include "flatbuffers/flatbuffers.h"
 #include "flatbuffers/idl.h"
 #include "monster_test_generated.h"
+#include "monster_test_bfbs_generated.h"  
 #include "optional_scalars_generated.h"
 #include "test_assert.h"
 
@@ -121,6 +122,52 @@ void JsonOptionalTest(const std::string& tests_data_path, bool default_scalars) 
       GenerateText(parser, parser.builder_.GetBufferPointer(), &jsongen);
   TEST_EQ(result, true);
   TEST_EQ_STR(jsongen.c_str(), jsonfile.c_str());
+}
+
+void ParseIncorrectMonsterJsonTest(const std::string& tests_data_path) {
+  std::string schemafile;
+  TEST_EQ(flatbuffers::LoadFile((tests_data_path + "monster_test.bfbs").c_str(),
+                                true, &schemafile),
+          true);
+  flatbuffers::Parser parser;
+  flatbuffers::Verifier verifier(
+      reinterpret_cast<const uint8_t *>(schemafile.c_str()), schemafile.size());
+  TEST_EQ(reflection::VerifySchemaBuffer(verifier), true);
+  TEST_EQ(
+      parser.Deserialize(reinterpret_cast<const uint8_t *>(schemafile.c_str()),
+                         schemafile.size()),
+      true);
+  TEST_EQ(parser.ParseJson("{name:\"monster\"}"), true);
+  TEST_EQ(parser.ParseJson(""), false);
+  TEST_EQ(parser.ParseJson("{name: 1}"), false);
+  TEST_EQ(parser.ParseJson("{name:+1}"), false);
+  TEST_EQ(parser.ParseJson("{name:-1}"), false);
+  TEST_EQ(parser.ParseJson("{name:-f}"), false);
+  TEST_EQ(parser.ParseJson("{name:+f}"), false);
+}
+
+void JsonUnsortedArrayTest() {
+  flatbuffers::Parser parser;
+  TEST_EQ(parser.Deserialize(MyGame::Example::MonsterBinarySchema::data(),
+                             MyGame::Example::MonsterBinarySchema::size()),
+          true);
+  auto jsonStr = R"(
+  {
+    "name": "lookupTest",
+    "testarrayoftables": [
+      { "name": "aaa" },
+      { "name": "ccc" },
+      { "name": "bbb" }
+    ]
+  }
+  )";
+  TEST_EQ(parser.ParseJson(jsonStr), true);
+  auto monster = flatbuffers::GetRoot<MyGame::Example::Monster>(
+      parser.builder_.GetBufferPointer());
+
+  TEST_NOTNULL(monster->testarrayoftables()->LookupByKey("aaa"));
+  TEST_NOTNULL(monster->testarrayoftables()->LookupByKey("bbb"));
+  TEST_NOTNULL(monster->testarrayoftables()->LookupByKey("ccc"));
 }
 
 }  // namespace tests
