@@ -25,7 +25,7 @@
 
 namespace flatbuffers {
 
-const char *FLATC_VERSION() { return FLATBUFFERS_VERSION(); }
+static const char *FLATC_VERSION() { return FLATBUFFERS_VERSION(); }
 
 void FlatCompiler::ParseFile(
     flatbuffers::Parser &parser, const std::string &filename,
@@ -641,10 +641,6 @@ int FlatCompiler::Compile(int argc, const char **argv) {
     Error(
         "--cs-gen-json-serializer requires --gen-object-api to be set as "
         "well.");
-  }
-
-  if (opts.ts_flat_file && opts.generate_all) {
-    Error("Combining --ts-flat-file and --gen-all is not supported.");
   }
 
   flatbuffers::Parser conform_parser;

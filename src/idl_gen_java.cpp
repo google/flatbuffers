@@ -25,7 +25,9 @@
 namespace flatbuffers {
 namespace java {
 
-Namer::Config JavaDefaultConfig() {
+namespace {
+
+static Namer::Config JavaDefaultConfig() {
   return {
     /*types=*/Case::kKeep,
     /*constants=*/Case::kScreamingSnake,
@@ -50,7 +52,7 @@ Namer::Config JavaDefaultConfig() {
   };
 }
 
-std::set<std::string> JavaKeywords() {
+static std::set<std::string> JavaKeywords() {
   return {
     "abstract", "continue", "for",        "new",       "switch",
     "assert",   "default",  "goto",       "package",   "synchronized",
@@ -65,15 +67,17 @@ std::set<std::string> JavaKeywords() {
   };
 }
 
-static TypedFloatConstantGenerator JavaFloatGen("Double.", "Float.", "NaN",
+static const TypedFloatConstantGenerator JavaFloatGen("Double.", "Float.", "NaN",
                                                 "POSITIVE_INFINITY",
                                                 "NEGATIVE_INFINITY");
 
-static CommentConfig comment_config = {
+static const CommentConfig comment_config = {
   "/**",
   " *",
   " */",
 };
+
+} // namespace
 
 class JavaGenerator : public BaseGenerator {
   struct FieldArrayLength {
@@ -1654,11 +1658,15 @@ class JavaGenerator : public BaseGenerator {
                 field.value.type.struct_def == nullptr
                     ? "builder.add" + GenMethod(field.value.type.VectorType()) +
                           "(" + variable + "[_j]);"
-                    : type_name + ".pack(builder, " + variable + "[_j]);";
+                    : "_unused_offset = " + type_name + ".pack(builder, " +
+                          variable + "[_j]);";
             code += "    int _" + field_name + " = 0;\n";
             code += "    " + element_type_name + "[] " + variable + " = _o." +
                     get_field + "();\n";
             code += "    if (" + variable + " != null) {\n";
+            if (field.value.type.struct_def != nullptr) {
+              code += "      int _unused_offset = 0;\n";
+            }
             code += "      " + namer_.Method("start", field) +
                     "Vector(builder, " + variable + ".length);\n";
             code += "      for (int _j = " + variable +

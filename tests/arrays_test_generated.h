@@ -10,7 +10,7 @@
 // generated, otherwise it may not be compatible.
 static_assert(FLATBUFFERS_VERSION_MAJOR == 2 &&
               FLATBUFFERS_VERSION_MINOR == 0 &&
-              FLATBUFFERS_VERSION_REVISION == 6,
+              FLATBUFFERS_VERSION_REVISION == 7,
              "Non-compatible flatbuffers version included");
 
 namespace MyGame {
@@ -371,7 +371,7 @@ inline flatbuffers::Offset<ArrayTable> CreateArrayTable(flatbuffers::FlatBufferB
   (void)_rehasher;
   (void)_o;
   struct _VectorArgs { flatbuffers::FlatBufferBuilder *__fbb; const ArrayTableT* __o; const flatbuffers::rehasher_function_t *__rehasher; } _va = { &_fbb, _o, _rehasher}; (void)_va;
-  auto _a = _o->a ? _o->a.get() : 0;
+  auto _a = _o->a ? _o->a.get() : nullptr;
   return MyGame::Example::CreateArrayTable(
       _fbb,
       _a);

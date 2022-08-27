@@ -7,7 +7,7 @@ import * as flatbuffers from 'flatbuffers';
 export class InParentNamespace {
   bb: flatbuffers.ByteBuffer|null = null;
   bb_pos = 0;
-__init(i:number, bb:flatbuffers.ByteBuffer):InParentNamespace {
+  __init(i:number, bb:flatbuffers.ByteBuffer):InParentNamespace {
   this.bb_pos = i;
   this.bb = bb;
   return this;
@@ -23,7 +23,7 @@ static getSizePrefixedRootAsInParentNamespace(bb:flatbuffers.ByteBuffer, obj?:In
 }
 
 static getFullyQualifiedName():string {
-  return 'MyGame.InParentNamespace';
+  return 'MyGame_InParentNamespace';
 }
 
 static startInParentNamespace(builder:flatbuffers.Builder) {

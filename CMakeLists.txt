@@ -74,6 +74,13 @@ option(FLATBUFFERS_ENABLE_PCH
 option(FLATBUFFERS_SKIP_MONSTER_EXTRA 
       "Skip generating monster_extra.fbs that contains non-supported numerical\"
       types." OFF)
+option(FLATBUFFERS_STRICT_MODE 
+      "Build flatbuffers with all warnings as errors (-Werror or /WX)."
+      OFF)
+
+if(NOT DEFINED FLATBUFFERS_CPP_STD)
+  set(FLATBUFFERS_CPP_STD 11)
+endif()
 
 set(MSVC_LIKE OFF)
 if(MSVC OR CMAKE_CXX_COMPILER_FRONTEND_VARIANT STREQUAL "MSVC")
@@ -331,7 +338,7 @@ include_directories(grpc)
 add_library(ProjectConfig INTERFACE)
 target_compile_features(ProjectConfig
   INTERFACE
-    cxx_std_11
+    cxx_std_${FLATBUFFERS_CPP_STD}
 )
 
 # Force the standard to be met.
@@ -344,7 +351,9 @@ if(MSVC_LIKE)
   target_compile_options(ProjectConfig
     INTERFACE 
       /W4
-      /WX
+      $<$<BOOL:${FLATBUFFERS_STRICT_MODE}>:
+        /WX       # Treat all compiler warnings as errors
+      >
       /wd4512   # C4512: assignment operator could not be generated
       /wd4316   # C4316: object allocated on the heap may not be aligned
       /wd4456   # C4456: hides previous local declaration
@@ -353,37 +362,61 @@ if(MSVC_LIKE)
       >
   )
 else()
+  if("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
+    set(IS_CLANG ON)
+  else()
+    set(IS_CLANG OFF)
+  endif()
   target_compile_options(ProjectConfig
     INTERFACE
       -Wall
-      -Werror
+      $<$<BOOL:${FLATBUFFERS_STRICT_MODE}>:
+        -Werror   # Treat all compiler warnings as errors
+
+        -fno-rtti # Disable runtime type information
+
+        $<$<CXX_COMPILER_ID:GNU>:
+          # False positive string overflow
+          # https://github.com/google/flatbuffers/issues/7366
+          -Wno-error=stringop-overflow
+        >
+      >
       -pedantic 
-      -Werror 
       -Wextra 
       -Wno-unused-parameter
       -Wold-style-cast
-      -Wimplicit-fallthrough
       -fsigned-char
       -Wnon-virtual-dtor
 
-      $<$<CXX_COMPILER_ID:CLANG>:
+      # This isn't working for some reason: $<$<CXX_COMPILER_ID:CLANG>:
+      $<$<BOOL:${IS_CLANG}>:
+        -Wno-unknown-warning-option
+        -Wmissing-declarations
+        -Wzero-as-null-pointer-constant
         $<$<VERSION_GREATER:$<CXX_COMPILER_VERSION>,3.8>:
           -Wimplicit-fallthrough
           -Wextra-semi
-          -Werror=unused-private-field
+          $<$<BOOL:${FLATBUFFERS_STRICT_MODE}>:            
+            -Werror=unused-private-field
+          >
         >
       >
 
       $<$<CXX_COMPILER_ID:GNU>:
         $<$<VERSION_GREATER:$<CXX_COMPILER_VERSION>,4.4>:
-          -Wunused-result 
-          -Werror=unused-result 
+          -Wunused-result
           -Wunused-parameter 
           -Werror=unused-parameter
+          -Wmissing-declarations
+        >
+        $<$<VERSION_GREATER:$<CXX_COMPILER_VERSION>,4.7>:
+          -Wzero-as-null-pointer-constant
         >
         $<$<VERSION_GREATER:$<CXX_COMPILER_VERSION>,7.0>:
           -faligned-new 
-          -Werror=implicit-fallthrough=2
+          $<$<BOOL:${FLATBUFFERS_STRICT_MODE}>:
+            -Werror=implicit-fallthrough=2
+          >
         >
         $<$<VERSION_GREATER:$<CXX_COMPILER_VERSION>,8.0>:
           -Wextra-semi

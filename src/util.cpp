@@ -24,7 +24,7 @@
 #  define _XOPEN_SOURCE 700L
 #endif
 
-#ifdef _WIN32
+#if defined(_WIN32) || defined(__MINGW32__) || defined(__MINGW64__) || defined(__CYGWIN__)
 #  ifndef WIN32_LEAN_AND_MEAN
 #    define WIN32_LEAN_AND_MEAN
 #  endif
@@ -35,7 +35,9 @@
 #    include <crtdbg.h>
 #  endif
 #  include <windows.h>  // Must be included before <direct.h>
-#  include <direct.h>
+#  ifndef __CYGWIN__
+#    include <direct.h>
+#  endif
 #  include <winbase.h>
 #  undef interface  // This is also important because of reasons
 #endif
@@ -54,12 +56,14 @@
 
 namespace flatbuffers {
 
-bool FileExistsRaw(const char *name) {
+namespace {
+
+static bool FileExistsRaw(const char *name) {
   std::ifstream ifs(name);
   return ifs.good();
 }
 
-bool LoadFileRaw(const char *name, bool binary, std::string *buf) {
+static bool LoadFileRaw(const char *name, bool binary, std::string *buf) {
   if (DirExists(name)) return false;
   std::ifstream ifs(name, binary ? std::ifstream::binary : std::ifstream::in);
   if (!ifs.is_open()) return false;
@@ -79,8 +83,124 @@ bool LoadFileRaw(const char *name, bool binary, std::string *buf) {
   return !ifs.bad();
 }
 
-static LoadFileFunction g_load_file_function = LoadFileRaw;
-static FileExistsFunction g_file_exists_function = FileExistsRaw;
+LoadFileFunction g_load_file_function = LoadFileRaw;
+FileExistsFunction g_file_exists_function = FileExistsRaw;
+
+static std::string ToCamelCase(const std::string &input, bool first) {
+  std::string s;
+  for (size_t i = 0; i < input.length(); i++) {
+    if (!i && first)
+      s += CharToUpper(input[i]);
+    else if (input[i] == '_' && i + 1 < input.length())
+      s += CharToUpper(input[++i]);
+    else
+      s += input[i];
+  }
+  return s;
+}
+
+static std::string ToSnakeCase(const std::string &input, bool screaming) {
+  std::string s;
+  for (size_t i = 0; i < input.length(); i++) {
+    if (i == 0) {
+      s += screaming ? CharToUpper(input[i]) : CharToLower(input[i]);
+    } else if (input[i] == '_') {
+      s += '_';
+    } else if (!islower(input[i])) {
+      // Prevent duplicate underscores for Upper_Snake_Case strings
+      // and UPPERCASE strings.
+      if (islower(input[i - 1])) { s += '_'; }
+      s += screaming ? CharToUpper(input[i]) : CharToLower(input[i]);
+    } else {
+      s += screaming ? CharToUpper(input[i]) : input[i];
+    }
+  }
+  return s;
+}
+
+std::string ToAll(const std::string &input,
+                         std::function<char(const char)> transform) {
+  std::string s;
+  for (size_t i = 0; i < input.length(); i++) { s += transform(input[i]); }
+  return s;
+}
+
+std::string CamelToSnake(const std::string &input) {
+  std::string s;
+  for (size_t i = 0; i < input.length(); i++) {
+    if (i == 0) {
+      s += CharToLower(input[i]);
+    } else if (input[i] == '_') {
+      s += '_';
+    } else if (!islower(input[i])) {
+      // Prevent duplicate underscores for Upper_Snake_Case strings
+      // and UPPERCASE strings.
+      if (islower(input[i - 1])) { s += '_'; }
+      s += CharToLower(input[i]);
+    } else {
+      s += input[i];
+    }
+  }
+  return s;
+}
+
+std::string DasherToSnake(const std::string &input) {
+  std::string s;
+  for (size_t i = 0; i < input.length(); i++) {
+    if (input[i] == '-') {
+      s += "_";
+    } else {
+      s += input[i];
+    }
+  }
+  return s;
+}
+
+std::string ToDasher(const std::string &input) {
+  std::string s;
+  char p = 0;
+  for (size_t i = 0; i < input.length(); i++) {
+    char const &c = input[i];
+    if (c == '_') {
+      if (i > 0 && p != kPathSeparator &&
+          // The following is a special case to ignore digits after a _. This is
+          // because ThisExample3 would be converted to this_example_3 in the
+          // CamelToSnake conversion, and then dasher would do this-example-3,
+          // but it expects this-example3.
+          !(i + 1 < input.length() && isdigit(input[i + 1])))
+        s += "-";
+    } else {
+      s += c;
+    }
+    p = c;
+  }
+  return s;
+}
+
+
+// Converts foo_bar_123baz_456 to foo_bar123_baz456
+std::string SnakeToSnake2(const std::string &s) {
+  if (s.length() <= 1) return s;
+  std::string result;
+  result.reserve(s.size());
+  for (size_t i = 0; i < s.length() - 1; i++) {
+    if (s[i] == '_' && isdigit(s[i + 1])) {
+      continue;  // Move the `_` until after the digits.
+    }
+
+    result.push_back(s[i]);
+
+    if (isdigit(s[i]) && isalpha(s[i + 1]) && islower(s[i + 1])) {
+      result.push_back('_');
+    }
+  }
+  result.push_back(s.back());
+
+  return result;
+}
+
+} // namespace
+
 
 bool LoadFile(const char *name, bool binary, std::string *buf) {
   FLATBUFFERS_ASSERT(g_load_file_function);
@@ -212,7 +332,7 @@ std::string AbsolutePath(const std::string &filepath) {
   #ifdef FLATBUFFERS_NO_ABSOLUTE_PATH_RESOLUTION
     return filepath;
   #else
-    #ifdef _WIN32
+    #if defined(_WIN32) || defined(__MINGW32__) || defined(__MINGW64__) || defined(__CYGWIN__)
       char abs_path[MAX_PATH];
       return GetFullPathNameA(filepath.c_str(), MAX_PATH, abs_path, nullptr)
     #else
@@ -327,122 +447,6 @@ void SetupDefaultCRTReportMode() {
   #endif
 
   // clang-format on
-}
-
-namespace {
-
-static std::string ToCamelCase(const std::string &input, bool first) {
-  std::string s;
-  for (size_t i = 0; i < input.length(); i++) {
-    if (!i && first)
-      s += CharToUpper(input[i]);
-    else if (input[i] == '_' && i + 1 < input.length())
-      s += CharToUpper(input[++i]);
-    else
-      s += input[i];
-  }
-  return s;
-}
-
-static std::string ToSnakeCase(const std::string &input, bool screaming) {
-  std::string s;
-  for (size_t i = 0; i < input.length(); i++) {
-    if (i == 0) {
-      s += screaming ? CharToUpper(input[i]) : CharToLower(input[i]);
-    } else if (input[i] == '_') {
-      s += '_';
-    } else if (!islower(input[i])) {
-      // Prevent duplicate underscores for Upper_Snake_Case strings
-      // and UPPERCASE strings.
-      if (islower(input[i - 1])) { s += '_'; }
-      s += screaming ? CharToUpper(input[i]) : CharToLower(input[i]);
-    } else {
-      s += screaming ? CharToUpper(input[i]) : input[i];
-    }
-  }
-  return s;
-}
-
-static std::string ToAll(const std::string &input,
-                         std::function<char(const char)> transform) {
-  std::string s;
-  for (size_t i = 0; i < input.length(); i++) { s += transform(input[i]); }
-  return s;
-}
-
-static std::string CamelToSnake(const std::string &input) {
-  std::string s;
-  for (size_t i = 0; i < input.length(); i++) {
-    if (i == 0) {
-      s += CharToLower(input[i]);
-    } else if (input[i] == '_') {
-      s += '_';
-    } else if (!islower(input[i])) {
-      // Prevent duplicate underscores for Upper_Snake_Case strings
-      // and UPPERCASE strings.
-      if (islower(input[i - 1])) { s += '_'; }
-      s += CharToLower(input[i]);
-    } else {
-      s += input[i];
-    }
-  }
-  return s;
-}
-
-static std::string DasherToSnake(const std::string &input) {
-  std::string s;
-  for (size_t i = 0; i < input.length(); i++) {
-    if (input[i] == '-') {
-      s += "_";
-    } else {
-      s += input[i];
-    }
-  }
-  return s;
-}
-
-static std::string ToDasher(const std::string &input) {
-  std::string s;
-  char p = 0;
-  for (size_t i = 0; i < input.length(); i++) {
-    char const &c = input[i];
-    if (c == '_') {
-      if (i > 0 && p != kPathSeparator &&
-          // The following is a special case to ignore digits after a _. This is
-          // because ThisExample3 would be converted to this_example_3 in the
-          // CamelToSnake conversion, and then dasher would do this-example-3,
-          // but it expects this-example3.
-          !(i + 1 < input.length() && isdigit(input[i + 1])))
-        s += "-";
-    } else {
-      s += c;
-    }
-    p = c;
-  }
-  return s;
-}
-
-}  // namespace
-
-// Converts foo_bar_123baz_456 to foo_bar123_baz456
-static std::string SnakeToSnake2(const std::string &s) {
-  if (s.length() <= 1) return s;
-  std::string result;
-  result.reserve(s.size());
-  for (size_t i = 0; i < s.length() - 1; i++) {
-    if (s[i] == '_' && isdigit(s[i + 1])) {
-      continue;  // Move the `_` until after the digits.
-    }
-
-    result.push_back(s[i]);
-
-    if (isdigit(s[i]) && isalpha(s[i + 1]) && islower(s[i + 1])) {
-      result.push_back('_');
-    }
-  }
-  result.push_back(s.back());
-
-  return result;
 }
 
 std::string ConvertCase(const std::string &input, Case output_case,

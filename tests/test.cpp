@@ -16,12 +16,14 @@
 #include <stdint.h>
 
 #include <cmath>
+#include <memory>
 #include <string>
 
 #include "flatbuffers/flatbuffers.h"
 #include "flatbuffers/idl.h"
 #include "flatbuffers/minireflect.h"
 #include "flatbuffers/registry.h"
+#include "flatbuffers/stl_emulation.h"
 #include "flatbuffers/util.h"
 #include "monster_test_generated.h"
 #include "namespace_test/namespace_test1_generated.h"
@@ -39,6 +41,10 @@
 #include "monster_test_bfbs_generated.h"  // Generated using --bfbs-comments --bfbs-builtins --cpp --bfbs-gen-embed
 #include "native_type_test_generated.h"
 #include "test_assert.h"
+
+void FlatBufferBuilderTest();
+
+namespace {
 
 // clang-format off
 // Check that char* and uint8_t* are interoperable types.
@@ -60,8 +66,6 @@ static const auto infinity_f = std::numeric_limits<float>::infinity();
 static const auto infinity_d = std::numeric_limits<double>::infinity();
 
 using namespace MyGame::Example;
-
-void FlatBufferBuilderTest();
 
 // Include simple random number generator to ensure results will be the
 // same cross platform.
@@ -623,7 +627,7 @@ void SizePrefixedTest() {
   // Create size prefixed buffer.
   flatbuffers::FlatBufferBuilder fbb;
   FinishSizePrefixedMonsterBuffer(
-      fbb, CreateMonster(fbb, 0, 200, 300, fbb.CreateString("bob")));
+      fbb, CreateMonster(fbb, nullptr, 200, 300, fbb.CreateString("bob")));
 
   // Verify it.
   flatbuffers::Verifier verifier(fbb.GetBufferPointer(), fbb.GetSize());
@@ -638,7 +642,8 @@ void SizePrefixedTest() {
 
 void TriviallyCopyableTest() {
   // clang-format off
-  #if __GNUG__ && __GNUC__ < 5
+  #if __GNUG__ && __GNUC__ < 5 && \
+      !(defined(__clang__) && __clang_major__ >= 16)
     TEST_EQ(__has_trivial_copy(Vec3), true);
   #else
     #if __cplusplus >= 201103L
@@ -773,19 +778,19 @@ template<typename T, typename U, U qnan_base> bool is_quiet_nan_impl(T v) {
   return ((b & qnan_base) == qnan_base);
 }
 #  if defined(__mips__) || defined(__hppa__)
-static bool is_quiet_nan(float v) {
+bool is_quiet_nan(float v) {
   return is_quiet_nan_impl<float, uint32_t, 0x7FC00000u>(v) ||
          is_quiet_nan_impl<float, uint32_t, 0x7FBFFFFFu>(v);
 }
-static bool is_quiet_nan(double v) {
+bool is_quiet_nan(double v) {
   return is_quiet_nan_impl<double, uint64_t, 0x7FF8000000000000ul>(v) ||
          is_quiet_nan_impl<double, uint64_t, 0x7FF7FFFFFFFFFFFFu>(v);
 }
 #  else
-static bool is_quiet_nan(float v) {
+bool is_quiet_nan(float v) {
   return is_quiet_nan_impl<float, uint32_t, 0x7FC00000u>(v);
 }
-static bool is_quiet_nan(double v) {
+bool is_quiet_nan(double v) {
   return is_quiet_nan_impl<double, uint64_t, 0x7FF8000000000000ul>(v);
 }
 #  endif
@@ -1810,7 +1815,7 @@ void FuzzTest2() {
         break;
       }
     }
-    TEST_NOTNULL(nullptr);  //-V501 (this comment supresses CWE-570 warning)
+    TEST_NOTNULL(nullptr);  //-V501 (this comment suppresses CWE-570 warning)
   }
 
   // clang-format off
@@ -3542,6 +3547,48 @@ void EqualOperatorTest() {
   b.test.type = Any_Monster;
   TEST_EQ(b == a, false);
   TEST_EQ(b != a, true);
+
+  // Test that vector of tables are compared by value and not by reference.
+  {
+    // Two tables are equal by default.
+    MonsterT a, b;
+    TEST_EQ(a == b, true);
+
+    // Adding only a table to one of the monster vectors should make it not
+    // equal (due to size mistmatch).
+    a.testarrayoftables.push_back(
+        flatbuffers::unique_ptr<MonsterT>(new MonsterT));
+    TEST_EQ(a == b, false);
+
+    // Adding an equalivant table to the other monster vector should make it
+    // equal again.
+    b.testarrayoftables.push_back(
+        flatbuffers::unique_ptr<MonsterT>(new MonsterT));
+    TEST_EQ(a == b, true);
+
+    // Create two new monsters that are different.
+    auto c = flatbuffers::unique_ptr<MonsterT>(new MonsterT);
+    auto d = flatbuffers::unique_ptr<MonsterT>(new MonsterT);
+    c->hp = 1;
+    d->hp = 2;
+    TEST_EQ(c == d, false);
+
+    // Adding them to the original monsters should also make them different.
+    a.testarrayoftables.push_back(std::move(c));
+    b.testarrayoftables.push_back(std::move(d));
+    TEST_EQ(a == b, false);
+
+    // Remove the mismatching monsters to get back to equality
+    a.testarrayoftables.pop_back();
+    b.testarrayoftables.pop_back();
+    TEST_EQ(a == b, true);
+
+    // Check that nullptr are OK.
+    a.testarrayoftables.push_back(nullptr);
+    b.testarrayoftables.push_back(
+        flatbuffers::unique_ptr<MonsterT>(new MonsterT));
+    TEST_EQ(a == b, false);
+  }
 }
 
 // For testing any binaries, e.g. from fuzzing.
@@ -3616,14 +3663,14 @@ void CreateSharedStringTest() {
 #if !defined(FLATBUFFERS_USE_STD_SPAN) && !defined(FLATBUFFERS_SPAN_MINIMAL)
 void FlatbuffersSpanTest() {
   // Compile-time checking of non-const [] to const [] conversions.
-  using flatbuffers::internal::is_span_convertable;
-  (void)is_span_convertable<int, 1, int, 1>::type(123);
-  (void)is_span_convertable<const int, 1, int, 1>::type(123);
-  (void)is_span_convertable<const int64_t, 1, int64_t, 1>::type(123);
-  (void)is_span_convertable<const uint64_t, 1, uint64_t, 1>::type(123);
-  (void)is_span_convertable<const int, 1, const int, 1>::type(123);
-  (void)is_span_convertable<const int64_t, 1, const int64_t, 1>::type(123);
-  (void)is_span_convertable<const uint64_t, 1, const uint64_t, 1>::type(123);
+  using flatbuffers::internal::is_span_convertible;
+  (void)is_span_convertible<int, 1, int, 1>::type(123);
+  (void)is_span_convertible<const int, 1, int, 1>::type(123);
+  (void)is_span_convertible<const int64_t, 1, int64_t, 1>::type(123);
+  (void)is_span_convertible<const uint64_t, 1, uint64_t, 1>::type(123);
+  (void)is_span_convertible<const int, 1, const int, 1>::type(123);
+  (void)is_span_convertible<const int64_t, 1, const int64_t, 1>::type(123);
+  (void)is_span_convertible<const uint64_t, 1, const uint64_t, 1>::type(123);
 
   using flatbuffers::span;
   span<char, 0> c1;
@@ -4296,6 +4343,28 @@ void NestedVerifierTest() {
                                    builder.GetSize());
     TEST_EQ(false, VerifyMonsterBuffer(verifier));
   }
+
+  {
+    // Create the outer monster.
+    flatbuffers::FlatBufferBuilder builder;
+
+    // Purposely invalidate the nested flatbuffer setting its length to 0, an
+    // invalid length.
+    uint8_t *invalid_nested_buffer = nullptr;
+    auto nested_monster_bytes = builder.CreateVector(invalid_nested_buffer, 0);
+
+    auto name = builder.CreateString("OuterMonster");
+
+    MonsterBuilder mon_builder(builder);
+    mon_builder.add_name(name);
+    mon_builder.add_testnestedflatbuffer(nested_monster_bytes);
+    FinishMonsterBuffer(builder, mon_builder.Finish());
+
+    // Verify the root monster fails, since the included nested monster fails.
+    flatbuffers::Verifier verifier(builder.GetBufferPointer(),
+                                   builder.GetSize());
+    TEST_EQ(false, VerifyMonsterBuffer(verifier));
+  }
 }
 
 void ParseIncorrectMonsterJsonTest() {
@@ -4443,9 +4512,9 @@ void PrivateAnnotationsLeaks() {
 
   // (private) (table), (public) (struct/enum)
   schemas.push_back(
-    "table Monster (private) { mana: int; }"
-    "struct ABC { mana: int; }"
-    "enum Race:byte { None = -1, Human = 0, }");
+      "table Monster (private) { mana: int; }"
+      "struct ABC { mana: int; }"
+      "enum Race:byte { None = -1, Human = 0, }");
 
   // (public) (struct) containing (public) (enum)
   schemas.push_back(
@@ -4506,6 +4575,99 @@ void PrivateAnnotationsLeaks() {
   }
 }
 
+void JsonUnsortedArrayTest()
+{
+  flatbuffers::Parser parser;
+  TEST_EQ(parser.Deserialize(MyGame::Example::MonsterBinarySchema::data(), MyGame::Example::MonsterBinarySchema::size()), true);
+  auto jsonStr = R"(
+  {
+    "name": "lookupTest",
+    "testarrayoftables": [
+      { "name": "aaa" },
+      { "name": "ccc" },
+      { "name": "bbb" }
+    ]
+  }
+  )";
+  TEST_EQ(parser.ParseJson(jsonStr), true);
+  auto monster = flatbuffers::GetRoot<MyGame::Example::Monster>(parser.builder_.GetBufferPointer());
+
+  TEST_NOTNULL(monster->testarrayoftables()->LookupByKey("aaa"));
+  TEST_NOTNULL(monster->testarrayoftables()->LookupByKey("bbb"));
+  TEST_NOTNULL(monster->testarrayoftables()->LookupByKey("ccc"));
+}
+
+void VectorSpanTest() {
+  flatbuffers::FlatBufferBuilder builder;
+
+  auto mloc =
+      CreateMonster(builder, nullptr, 0, 0, builder.CreateString("Monster"),
+      builder.CreateVector<uint8_t>({ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 }));
+
+  FinishMonsterBuffer(builder, mloc);
+
+  auto monster = GetMonster(builder.GetBufferPointer());
+  auto mutable_monster = GetMutableMonster(builder.GetBufferPointer());
+
+  { // using references
+    TEST_NOTNULL(monster->inventory());
+
+    flatbuffers::span<const uint8_t> const_inventory =
+        flatbuffers::make_span(*monster->inventory());
+    TEST_EQ(const_inventory.size(), 10);
+    TEST_EQ(const_inventory[0], 0);
+    TEST_EQ(const_inventory[9], 9);
+
+    flatbuffers::span<uint8_t> mutable_inventory =
+        flatbuffers::make_span(*mutable_monster->mutable_inventory());
+    TEST_EQ(mutable_inventory.size(), 10);
+    TEST_EQ(mutable_inventory[0], 0);
+    TEST_EQ(mutable_inventory[9], 9);
+
+    mutable_inventory[0] = 42;
+    TEST_EQ(mutable_inventory[0], 42);
+
+    mutable_inventory[0] = 0;
+    TEST_EQ(mutable_inventory[0], 0);
+  }
+
+  { // using pointers
+    TEST_EQ(flatbuffers::VectorLength(monster->inventory()), 10);
+
+    flatbuffers::span<const uint8_t> const_inventory =
+        flatbuffers::make_span(monster->inventory());
+    TEST_EQ(const_inventory.size(), 10);
+    TEST_EQ(const_inventory[0], 0);
+    TEST_EQ(const_inventory[9], 9);
+
+    flatbuffers::span<uint8_t> mutable_inventory =
+        flatbuffers::make_span(mutable_monster->mutable_inventory());
+    TEST_EQ(mutable_inventory.size(), 10);
+    TEST_EQ(mutable_inventory[0], 0);
+    TEST_EQ(mutable_inventory[9], 9);
+
+    mutable_inventory[0] = 42;
+    TEST_EQ(mutable_inventory[0], 42);
+
+    mutable_inventory[0] = 0;
+    TEST_EQ(mutable_inventory[0], 0);
+  }
+
+  {
+    TEST_ASSERT(nullptr == monster->testnestedflatbuffer());
+
+    TEST_EQ(flatbuffers::VectorLength(monster->testnestedflatbuffer()), 0);
+
+    flatbuffers::span<const uint8_t> const_nested =
+        flatbuffers::make_span(monster->testnestedflatbuffer());
+    TEST_ASSERT(const_nested.empty());
+
+    flatbuffers::span<uint8_t> mutable_nested =
+        flatbuffers::make_span(mutable_monster->mutable_testnestedflatbuffer());
+    TEST_ASSERT(mutable_nested.empty());
+  }
+}
+
 int FlatBufferTests() {
   // clang-format off
 
@@ -4562,6 +4724,7 @@ int FlatBufferTests() {
   ErrorTest();
   ValueTest();
   EnumValueTest();
+  NestedListTest();
   EnumStringsTest();
   EnumNamesTest();
   EnumOutOfRangeTest();
@@ -4611,8 +4774,11 @@ int FlatBufferTests() {
   WarningsAsErrorsTest();
   NestedVerifierTest();
   PrivateAnnotationsLeaks();
+  JsonUnsortedArrayTest();
+  VectorSpanTest();
   return 0;
 }
+} // namespace
 
 int main(int argc, const char *argv[]) {
   for (int argi = 1; argi < argc; argi++) {

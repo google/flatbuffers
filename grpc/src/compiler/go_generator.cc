@@ -19,22 +19,23 @@ inline bool ServerOnlyStreaming(const grpc_generator::Method *method) {
 }
 
 namespace grpc_go_generator {
+namespace {
 
 // Returns string with first letter to lowerCase
-grpc::string unexportName(grpc::string s) {
+static grpc::string unexportName(grpc::string s) {
   if (s.empty()) return s;
   s[0] = static_cast<char>(std::tolower(s[0]));
   return s;
 }
 
 // Returns string with first letter to uppercase
-grpc::string exportName(grpc::string s) {
+static grpc::string exportName(grpc::string s) {
   if (s.empty()) return s;
   s[0] = static_cast<char>(std::toupper(s[0]));
   return s;
 }
 
-void GenerateError(grpc_generator::Printer *printer,
+static void GenerateError(grpc_generator::Printer *printer,
                    std::map<grpc::string, grpc::string> vars,
                    const bool multiple_return = true) {
   printer->Print(vars, "if $Error_Check$ {\n");
@@ -46,7 +47,7 @@ void GenerateError(grpc_generator::Printer *printer,
 }
 
 // Generates imports for the service
-void GenerateImports(grpc_generator::File *file,
+static void GenerateImports(grpc_generator::File *file,
                      grpc_generator::Printer *printer,
                      std::map<grpc::string, grpc::string> vars) {
   vars["filename"] = file->filename();
@@ -66,7 +67,7 @@ void GenerateImports(grpc_generator::File *file,
 }
 
 // Generates Server method signature source
-void GenerateServerMethodSignature(const grpc_generator::Method *method,
+static void GenerateServerMethodSignature(const grpc_generator::Method *method,
                                    grpc_generator::Printer *printer,
                                    std::map<grpc::string, grpc::string> vars) {
   vars["Method"] = exportName(method->name());
@@ -86,7 +87,7 @@ void GenerateServerMethodSignature(const grpc_generator::Method *method,
   }
 }
 
-void GenerateServerMethod(const grpc_generator::Method *method,
+static void GenerateServerMethod(const grpc_generator::Method *method,
                           grpc_generator::Printer *printer,
                           std::map<grpc::string, grpc::string> vars) {
   vars["Method"] = exportName(method->name());
@@ -204,7 +205,7 @@ void GenerateServerMethod(const grpc_generator::Method *method,
 }
 
 // Generates Client method signature source
-void GenerateClientMethodSignature(const grpc_generator::Method *method,
+static void GenerateClientMethodSignature(const grpc_generator::Method *method,
                                    grpc_generator::Printer *printer,
                                    std::map<grpc::string, grpc::string> vars) {
   vars["Method"] = exportName(method->name());
@@ -225,7 +226,7 @@ void GenerateClientMethodSignature(const grpc_generator::Method *method,
 }
 
 // Generates Client method source
-void GenerateClientMethod(const grpc_generator::Method *method,
+static void GenerateClientMethod(const grpc_generator::Method *method,
                           grpc_generator::Printer *printer,
                           std::map<grpc::string, grpc::string> vars) {
   printer->Print(vars, "func (c *$ServiceUnexported$Client) ");
@@ -480,6 +481,7 @@ void GenerateService(const grpc_generator::Service *service,
   printer->Outdent();
   printer->Print("}\n");
 }
+}  // namespace
 
 // Returns source for the service
 grpc::string GenerateServiceSource(grpc_generator::File *file,

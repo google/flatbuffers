@@ -117,6 +117,9 @@ bool release_n_verify(flatbuffers::FlatBufferBuilder &fbb,
   return verify(buf, expected_name, color);
 }
 
+// forward-declared in test.cpp
+void FlatBufferBuilderTest();
+
 void FlatBufferBuilderTest() {
   using flatbuffers::FlatBufferBuilder;
 
@@ -137,6 +140,9 @@ void FlatBufferBuilderTest() {
   BuilderReuseTests<GrpcLikeMessageBuilder, GrpcLikeMessageBuilder>::run_tests(
       TestSelector(tests, tests + 4));
 }
+
+// forward-declared in test_builder.h
+void CheckTestGeneratedIsValid(const MyGame::Example::Color&);
 
 // Link-time check using pointer type.
 void CheckTestGeneratedIsValid(const MyGame::Example::Color &) {}
