@@ -213,6 +213,7 @@ set(FlatHash_SRCS
 set(FlatBuffers_Tests_SRCS
   ${FlatBuffers_Library_SRCS}
   src/idl_gen_fbs.cpp
+  tests/evolution_test.cpp
   tests/flexbuffers_test.cpp
   tests/json_test.cpp
   tests/monster_test.cpp
