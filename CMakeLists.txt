@@ -217,6 +217,7 @@ set(FlatBuffers_Tests_SRCS
   tests/json_test.cpp
   tests/monster_test.cpp
   tests/parser_test.cpp
+  tests/proto_test.cpp
   tests/test.cpp
   tests/test_assert.h
   tests/test_assert.cpp
