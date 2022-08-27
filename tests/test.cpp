@@ -37,7 +37,6 @@
 #  include "arrays_test_generated.h"
 #endif
 
-#include "flatbuffers/flexbuffers.h"
 #include "flexbuffers_test.h"
 #include "is_quiet_nan.h"
 #include "monster_test_bfbs_generated.h"  // Generated using --bfbs-comments --bfbs-builtins --cpp --bfbs-gen-embed
@@ -533,9 +532,6 @@ void GenerateTableTextTest() {
   TEST_EQ_STR(jsongen.c_str(), "{a: 10,b: 20}");
 }
 
-
-
-
 void MultiFileNameClashTest() {
   const auto name_clash_path =
       flatbuffers::ConCatPathFileName(test_data_path, "name_clash_test");
@@ -775,53 +771,7 @@ void UnionVectorTest() {
   TEST_EQ(parser2.Parse("{a_type:Bool,a:{b:true}}"), true);
 }
 
-void StructUnionTest() {
-  GadgetUnion gadget;
-  gadget.Set(FallingTub(100));
 
-  HandFanT fan;
-  fan.length = 10;
-  gadget.Set(fan);
-}
-
-void TypeAliasesTest() {
-  flatbuffers::FlatBufferBuilder builder;
-
-  builder.Finish(CreateTypeAliases(
-      builder, flatbuffers::numeric_limits<int8_t>::min(),
-      flatbuffers::numeric_limits<uint8_t>::max(),
-      flatbuffers::numeric_limits<int16_t>::min(),
-      flatbuffers::numeric_limits<uint16_t>::max(),
-      flatbuffers::numeric_limits<int32_t>::min(),
-      flatbuffers::numeric_limits<uint32_t>::max(),
-      flatbuffers::numeric_limits<int64_t>::min(),
-      flatbuffers::numeric_limits<uint64_t>::max(), 2.3f, 2.3));
-
-  auto p = builder.GetBufferPointer();
-  auto ta = flatbuffers::GetRoot<TypeAliases>(p);
-
-  TEST_EQ(ta->i8(), flatbuffers::numeric_limits<int8_t>::min());
-  TEST_EQ(ta->u8(), flatbuffers::numeric_limits<uint8_t>::max());
-  TEST_EQ(ta->i16(), flatbuffers::numeric_limits<int16_t>::min());
-  TEST_EQ(ta->u16(), flatbuffers::numeric_limits<uint16_t>::max());
-  TEST_EQ(ta->i32(), flatbuffers::numeric_limits<int32_t>::min());
-  TEST_EQ(ta->u32(), flatbuffers::numeric_limits<uint32_t>::max());
-  TEST_EQ(ta->i64(), flatbuffers::numeric_limits<int64_t>::min());
-  TEST_EQ(ta->u64(), flatbuffers::numeric_limits<uint64_t>::max());
-  TEST_EQ(ta->f32(), 2.3f);
-  TEST_EQ(ta->f64(), 2.3);
-  using namespace flatbuffers;  // is_same
-  static_assert(is_same<decltype(ta->i8()), int8_t>::value, "invalid type");
-  static_assert(is_same<decltype(ta->i16()), int16_t>::value, "invalid type");
-  static_assert(is_same<decltype(ta->i32()), int32_t>::value, "invalid type");
-  static_assert(is_same<decltype(ta->i64()), int64_t>::value, "invalid type");
-  static_assert(is_same<decltype(ta->u8()), uint8_t>::value, "invalid type");
-  static_assert(is_same<decltype(ta->u16()), uint16_t>::value, "invalid type");
-  static_assert(is_same<decltype(ta->u32()), uint32_t>::value, "invalid type");
-  static_assert(is_same<decltype(ta->u64()), uint64_t>::value, "invalid type");
-  static_assert(is_same<decltype(ta->f32()), float>::value, "invalid type");
-  static_assert(is_same<decltype(ta->f64()), double>::value, "invalid type");
-}
 
 void EndianSwapTest() {
   TEST_EQ(flatbuffers::EndianSwap(static_cast<int16_t>(0x1234)), 0x3412);
@@ -1909,7 +1859,6 @@ int FlatBufferTests() {
   FlexBuffersFloatingPointTest();
   FlatbuffersIteratorsTest();
   FixedLengthArraySpanTest();
-  StructUnionTest();
   WarningsAsErrorsTest();
   NestedVerifierTest();
   PrivateAnnotationsLeaks();

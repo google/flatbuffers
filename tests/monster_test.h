@@ -26,6 +26,8 @@ void TestMonsterExtraFloats(const std::string& tests_data_path);
 
 void EnumNamesTest();
 
+void TypeAliasesTest();
+
 }  // namespace tests
 }  // namespace flatbuffers
 
