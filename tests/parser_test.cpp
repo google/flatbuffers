@@ -1,5 +1,6 @@
 #include "parser_test.h"
 
+#include <cmath>
 #include <string>
 
 #include "flatbuffers/idl.h"
@@ -8,6 +9,10 @@
 namespace flatbuffers {
 namespace tests {
 namespace {
+
+// Shortcuts for the infinity.
+static const auto infinity_f = std::numeric_limits<float>::infinity();
+static const auto infinity_d = std::numeric_limits<double>::infinity();
 
 // Test that parser errors are actually generated.
 static void TestError_(const char *src, const char *error_substr, bool strict_json,
@@ -38,6 +43,8 @@ static void TestError_(const char *src, const char *error_substr, const char *fi
 #  define TestError(src, ...) \
     TestError_(src, __VA_ARGS__, __FILE__, __LINE__, __PRETTY_FUNCTION__)
 #endif
+
+static bool FloatCompare(float a, float b) { return fabs(a - b) < 0.001; }
 
 } // namespace
 
@@ -422,6 +429,272 @@ void InvalidUTF8Test() {
   locale_ident += "root_type T;";
   locale_ident += "{}";
   TestError(locale_ident.c_str(), "");
+}
+
+template<typename T>
+T TestValue(const char *json, const char *type_name,
+            const char *decls = nullptr) {
+  flatbuffers::Parser parser;
+  parser.builder_.ForceDefaults(true);  // return defaults
+  auto check_default = json ? false : true;
+  if (check_default) { parser.opts.output_default_scalars_in_json = true; }
+  // Simple schema.
+  std::string schema = std::string(decls ? decls : "") + "\n" +
+                       "table X { y:" + std::string(type_name) +
+                       "; } root_type X;";
+  auto schema_done = parser.Parse(schema.c_str());
+  TEST_EQ_STR(parser.error_.c_str(), "");
+  TEST_EQ(schema_done, true);
+
+  auto done = parser.Parse(check_default ? "{}" : json);
+  TEST_EQ_STR(parser.error_.c_str(), "");
+  TEST_EQ(done, true);
+
+  // Check with print.
+  std::string print_back;
+  parser.opts.indent_step = -1;
+  TEST_EQ(GenerateText(parser, parser.builder_.GetBufferPointer(), &print_back),
+          true);
+  // restore value from its default
+  if (check_default) { TEST_EQ(parser.Parse(print_back.c_str()), true); }
+
+  auto root = flatbuffers::GetRoot<flatbuffers::Table>(
+      parser.builder_.GetBufferPointer());
+  return root->GetField<T>(flatbuffers::FieldIndexToOffset(0), 0);
+}
+
+// Additional parser testing not covered elsewhere.
+void ValueTest() {
+  // Test scientific notation numbers.
+  TEST_EQ(
+      FloatCompare(TestValue<float>("{ y:0.0314159e+2 }", "float"), 3.14159f),
+      true);
+  // number in string
+  TEST_EQ(FloatCompare(TestValue<float>("{ y:\"0.0314159e+2\" }", "float"),
+                       3.14159f),
+          true);
+
+  // Test conversion functions.
+  TEST_EQ(FloatCompare(TestValue<float>("{ y:cos(rad(180)) }", "float"), -1),
+          true);
+
+  // int embedded to string
+  TEST_EQ(TestValue<int>("{ y:\"-876\" }", "int=-123"), -876);
+  TEST_EQ(TestValue<int>("{ y:\"876\" }", "int=-123"), 876);
+
+  // Test negative hex constant.
+  TEST_EQ(TestValue<int>("{ y:-0x8ea0 }", "int=-0x8ea0"), -36512);
+  TEST_EQ(TestValue<int>(nullptr, "int=-0x8ea0"), -36512);
+
+  // positive hex constant
+  TEST_EQ(TestValue<int>("{ y:0x1abcdef }", "int=0x1"), 0x1abcdef);
+  // with optional '+' sign
+  TEST_EQ(TestValue<int>("{ y:+0x1abcdef }", "int=+0x1"), 0x1abcdef);
+  // hex in string
+  TEST_EQ(TestValue<int>("{ y:\"0x1abcdef\" }", "int=+0x1"), 0x1abcdef);
+
+  // Make sure we do unsigned 64bit correctly.
+  TEST_EQ(TestValue<uint64_t>("{ y:12335089644688340133 }", "ulong"),
+          12335089644688340133ULL);
+
+  // bool in string
+  TEST_EQ(TestValue<bool>("{ y:\"false\" }", "bool=true"), false);
+  TEST_EQ(TestValue<bool>("{ y:\"true\" }", "bool=\"true\""), true);
+  TEST_EQ(TestValue<bool>("{ y:'false' }", "bool=true"), false);
+  TEST_EQ(TestValue<bool>("{ y:'true' }", "bool=\"true\""), true);
+
+  // check comments before and after json object
+  TEST_EQ(TestValue<int>("/*before*/ { y:1 } /*after*/", "int"), 1);
+  TEST_EQ(TestValue<int>("//before \n { y:1 } //after", "int"), 1);
+}
+
+void NestedListTest() {
+  flatbuffers::Parser parser1;
+  TEST_EQ(parser1.Parse("struct Test { a:short; b:byte; } table T { F:[Test]; }"
+                        "root_type T;"
+                        "{ F:[ [10,20], [30,40]] }"),
+          true);
+}
+
+void EnumStringsTest() {
+  flatbuffers::Parser parser1;
+  TEST_EQ(parser1.Parse("enum E:byte { A, B, C } table T { F:[E]; }"
+                        "root_type T;"
+                        "{ F:[ A, B, \"C\", \"A B C\" ] }"),
+          true);
+  flatbuffers::Parser parser2;
+  TEST_EQ(parser2.Parse("enum E:byte { A, B, C } table T { F:[int]; }"
+                        "root_type T;"
+                        "{ F:[ \"E.C\", \"E.A E.B E.C\" ] }"),
+          true);
+  // unsigned bit_flags
+  flatbuffers::Parser parser3;
+  TEST_EQ(
+      parser3.Parse("enum E:uint16 (bit_flags) { F0, F07=7, F08, F14=14, F15 }"
+                    " table T { F: E = \"F15 F08\"; }"
+                    "root_type T;"),
+      true);
+}
+
+void EnumValueTest() {
+  // json: "{ Y:0 }", schema: table X { y: "E"}
+  // 0 in enum (V=0) E then Y=0 is valid.
+  TEST_EQ(TestValue<int>("{ y:0 }", "E", "enum E:int { V }"), 0);
+  TEST_EQ(TestValue<int>("{ y:V }", "E", "enum E:int { V }"), 0);
+  // A default value of Y is 0.
+  TEST_EQ(TestValue<int>("{ }", "E", "enum E:int { V }"), 0);
+  TEST_EQ(TestValue<int>("{ y:5 }", "E=V", "enum E:int { V=5 }"), 5);
+  // Generate json with defaults and check.
+  TEST_EQ(TestValue<int>(nullptr, "E=V", "enum E:int { V=5 }"), 5);
+  // 5 in enum
+  TEST_EQ(TestValue<int>("{ y:5 }", "E", "enum E:int { Z, V=5 }"), 5);
+  TEST_EQ(TestValue<int>("{ y:5 }", "E=V", "enum E:int { Z, V=5 }"), 5);
+  // Generate json with defaults and check.
+  TEST_EQ(TestValue<int>(nullptr, "E", "enum E:int { Z, V=5 }"), 0);
+  TEST_EQ(TestValue<int>(nullptr, "E=V", "enum E:int { Z, V=5 }"), 5);
+  // u84 test
+  TEST_EQ(TestValue<uint64_t>(nullptr, "E=V",
+                              "enum E:ulong { V = 13835058055282163712 }"),
+          13835058055282163712ULL);
+  TEST_EQ(TestValue<uint64_t>(nullptr, "E=V",
+                              "enum E:ulong { V = 18446744073709551615 }"),
+          18446744073709551615ULL);
+  // Assign non-enum value to enum field. Is it right?
+  TEST_EQ(TestValue<int>("{ y:7 }", "E", "enum E:int { V = 0 }"), 7);
+  // Check that non-ascending values are valid.
+  TEST_EQ(TestValue<int>("{ y:5 }", "E=V", "enum E:int { Z=10, V=5 }"), 5);
+}
+
+void IntegerBoundaryTest() {
+  // Check numerical compatibility with non-C++ languages.
+  // By the C++ standard, std::numerical_limits<int64_t>::min() ==
+  // -9223372036854775807 (-2^63+1) or less* The Flatbuffers grammar and most of
+  // the languages (C#, Java, Rust) expect that minimum values are: -128,
+  // -32768,.., -9223372036854775808. Since C++20,
+  // static_cast<int64>(0x8000000000000000ULL) is well-defined two's complement
+  // cast. Therefore -9223372036854775808 should be valid negative value.
+  TEST_EQ(flatbuffers::numeric_limits<int8_t>::min(), -128);
+  TEST_EQ(flatbuffers::numeric_limits<int8_t>::max(), 127);
+  TEST_EQ(flatbuffers::numeric_limits<int16_t>::min(), -32768);
+  TEST_EQ(flatbuffers::numeric_limits<int16_t>::max(), 32767);
+  TEST_EQ(flatbuffers::numeric_limits<int32_t>::min() + 1, -2147483647);
+  TEST_EQ(flatbuffers::numeric_limits<int32_t>::max(), 2147483647ULL);
+  TEST_EQ(flatbuffers::numeric_limits<int64_t>::min() + 1LL,
+          -9223372036854775807LL);
+  TEST_EQ(flatbuffers::numeric_limits<int64_t>::max(), 9223372036854775807ULL);
+  TEST_EQ(flatbuffers::numeric_limits<uint8_t>::max(), 255);
+  TEST_EQ(flatbuffers::numeric_limits<uint16_t>::max(), 65535);
+  TEST_EQ(flatbuffers::numeric_limits<uint32_t>::max(), 4294967295ULL);
+  TEST_EQ(flatbuffers::numeric_limits<uint64_t>::max(),
+          18446744073709551615ULL);
+
+  TEST_EQ(TestValue<int8_t>("{ y:127 }", "byte"), 127);
+  TEST_EQ(TestValue<int8_t>("{ y:-128 }", "byte"), -128);
+  TEST_EQ(TestValue<uint8_t>("{ y:255 }", "ubyte"), 255);
+  TEST_EQ(TestValue<uint8_t>("{ y:0 }", "ubyte"), 0);
+  TEST_EQ(TestValue<int16_t>("{ y:32767 }", "short"), 32767);
+  TEST_EQ(TestValue<int16_t>("{ y:-32768 }", "short"), -32768);
+  TEST_EQ(TestValue<uint16_t>("{ y:65535 }", "ushort"), 65535);
+  TEST_EQ(TestValue<uint16_t>("{ y:0 }", "ushort"), 0);
+  TEST_EQ(TestValue<int32_t>("{ y:2147483647 }", "int"), 2147483647);
+  TEST_EQ(TestValue<int32_t>("{ y:-2147483648 }", "int") + 1, -2147483647);
+  TEST_EQ(TestValue<uint32_t>("{ y:4294967295 }", "uint"), 4294967295);
+  TEST_EQ(TestValue<uint32_t>("{ y:0 }", "uint"), 0);
+  TEST_EQ(TestValue<int64_t>("{ y:9223372036854775807 }", "long"),
+          9223372036854775807LL);
+  TEST_EQ(TestValue<int64_t>("{ y:-9223372036854775808 }", "long") + 1LL,
+          -9223372036854775807LL);
+  TEST_EQ(TestValue<uint64_t>("{ y:18446744073709551615 }", "ulong"),
+          18446744073709551615ULL);
+  TEST_EQ(TestValue<uint64_t>("{ y:0 }", "ulong"), 0);
+  TEST_EQ(TestValue<uint64_t>("{ y: 18446744073709551615 }", "uint64"),
+          18446744073709551615ULL);
+  // check that the default works
+  TEST_EQ(TestValue<uint64_t>(nullptr, "uint64 = 18446744073709551615"),
+          18446744073709551615ULL);
+}
+
+void ValidFloatTest() {
+  // check rounding to infinity
+  TEST_EQ(TestValue<float>("{ y:+3.4029e+38 }", "float"), +infinity_f);
+  TEST_EQ(TestValue<float>("{ y:-3.4029e+38 }", "float"), -infinity_f);
+  TEST_EQ(TestValue<double>("{ y:+1.7977e+308 }", "double"), +infinity_d);
+  TEST_EQ(TestValue<double>("{ y:-1.7977e+308 }", "double"), -infinity_d);
+
+  TEST_EQ(
+      FloatCompare(TestValue<float>("{ y:0.0314159e+2 }", "float"), 3.14159f),
+      true);
+  // float in string
+  TEST_EQ(FloatCompare(TestValue<float>("{ y:\" 0.0314159e+2  \" }", "float"),
+                       3.14159f),
+          true);
+
+  TEST_EQ(TestValue<float>("{ y:1 }", "float"), 1.0f);
+  TEST_EQ(TestValue<float>("{ y:1.0 }", "float"), 1.0f);
+  TEST_EQ(TestValue<float>("{ y:1. }", "float"), 1.0f);
+  TEST_EQ(TestValue<float>("{ y:+1. }", "float"), 1.0f);
+  TEST_EQ(TestValue<float>("{ y:-1. }", "float"), -1.0f);
+  TEST_EQ(TestValue<float>("{ y:1.e0 }", "float"), 1.0f);
+  TEST_EQ(TestValue<float>("{ y:1.e+0 }", "float"), 1.0f);
+  TEST_EQ(TestValue<float>("{ y:1.e-0 }", "float"), 1.0f);
+  TEST_EQ(TestValue<float>("{ y:0.125 }", "float"), 0.125f);
+  TEST_EQ(TestValue<float>("{ y:.125 }", "float"), 0.125f);
+  TEST_EQ(TestValue<float>("{ y:-.125 }", "float"), -0.125f);
+  TEST_EQ(TestValue<float>("{ y:+.125 }", "float"), +0.125f);
+  TEST_EQ(TestValue<float>("{ y:5 }", "float"), 5.0f);
+  TEST_EQ(TestValue<float>("{ y:\"5\" }", "float"), 5.0f);
+
+#if defined(FLATBUFFERS_HAS_NEW_STRTOD) && (FLATBUFFERS_HAS_NEW_STRTOD > 0)
+  // Old MSVC versions may have problem with this check.
+  // https://www.exploringbinary.com/visual-c-plus-plus-strtod-still-broken/
+  TEST_EQ(TestValue<double>("{ y:6.9294956446009195e15 }", "double"),
+          6929495644600920.0);
+  // check nan's
+  TEST_EQ(std::isnan(TestValue<double>("{ y:nan }", "double")), true);
+  TEST_EQ(std::isnan(TestValue<float>("{ y:nan }", "float")), true);
+  TEST_EQ(std::isnan(TestValue<float>("{ y:\"nan\" }", "float")), true);
+  TEST_EQ(std::isnan(TestValue<float>("{ y:\"+nan\" }", "float")), true);
+  TEST_EQ(std::isnan(TestValue<float>("{ y:\"-nan\" }", "float")), true);
+  TEST_EQ(std::isnan(TestValue<float>("{ y:+nan }", "float")), true);
+  TEST_EQ(std::isnan(TestValue<float>("{ y:-nan }", "float")), true);
+  TEST_EQ(std::isnan(TestValue<float>(nullptr, "float=nan")), true);
+  TEST_EQ(std::isnan(TestValue<float>(nullptr, "float=-nan")), true);
+  // check inf
+  TEST_EQ(TestValue<float>("{ y:inf }", "float"), infinity_f);
+  TEST_EQ(TestValue<float>("{ y:\"inf\" }", "float"), infinity_f);
+  TEST_EQ(TestValue<float>("{ y:\"-inf\" }", "float"), -infinity_f);
+  TEST_EQ(TestValue<float>("{ y:\"+inf\" }", "float"), infinity_f);
+  TEST_EQ(TestValue<float>("{ y:+inf }", "float"), infinity_f);
+  TEST_EQ(TestValue<float>("{ y:-inf }", "float"), -infinity_f);
+  TEST_EQ(TestValue<float>(nullptr, "float=inf"), infinity_f);
+  TEST_EQ(TestValue<float>(nullptr, "float=-inf"), -infinity_f);
+  TestValue<double>(
+      "{ y: [0.2, .2, 1.0, -1.0, -2., 2., 1e0, -1e0, 1.0e0, -1.0e0, -3.e2, "
+      "3.0e2] }",
+      "[double]");
+  TestValue<float>(
+      "{ y: [0.2, .2, 1.0, -1.0, -2., 2., 1e0, -1e0, 1.0e0, -1.0e0, -3.e2, "
+      "3.0e2] }",
+      "[float]");
+
+  // Test binary format of float point.
+  // https://en.cppreference.com/w/cpp/language/floating_literal
+  // 0x11.12p-1 = (1*16^1 + 2*16^0 + 3*16^-1 + 4*16^-2) * 2^-1 =
+  TEST_EQ(TestValue<double>("{ y:0x12.34p-1 }", "double"), 9.1015625);
+  // hex fraction 1.2 (decimal 1.125) scaled by 2^3, that is 9.0
+  TEST_EQ(TestValue<float>("{ y:-0x0.2p0 }", "float"), -0.125f);
+  TEST_EQ(TestValue<float>("{ y:-0x.2p1 }", "float"), -0.25f);
+  TEST_EQ(TestValue<float>("{ y:0x1.2p3 }", "float"), 9.0f);
+  TEST_EQ(TestValue<float>("{ y:0x10.1p0 }", "float"), 16.0625f);
+  TEST_EQ(TestValue<double>("{ y:0x1.2p3 }", "double"), 9.0);
+  TEST_EQ(TestValue<double>("{ y:0x10.1p0 }", "double"), 16.0625);
+  TEST_EQ(TestValue<double>("{ y:0xC.68p+2 }", "double"), 49.625);
+  TestValue<double>("{ y: [0x20.4ep1, +0x20.4ep1, -0x20.4ep1] }", "[double]");
+  TestValue<float>("{ y: [0x20.4ep1, +0x20.4ep1, -0x20.4ep1] }", "[float]");
+
+#else   // FLATBUFFERS_HAS_NEW_STRTOD
+  TEST_OUTPUT_LINE("FLATBUFFERS_HAS_NEW_STRTOD tests skipped");
+#endif  // !FLATBUFFERS_HAS_NEW_STRTOD
 }
 
 }  // namespace tests

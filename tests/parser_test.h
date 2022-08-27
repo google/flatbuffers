@@ -10,6 +10,12 @@ void IntegerOutOfRangeTest();
 void InvalidFloatTest();
 void UnicodeInvalidSurrogatesTest();
 void InvalidUTF8Test();
+void ValueTest();
+void NestedListTest();
+void EnumStringsTest();
+void EnumValueTest();
+void IntegerBoundaryTest();
+void ValidFloatTest();
 
 }  // namespace tests
 }  // namespace flatbuffers
