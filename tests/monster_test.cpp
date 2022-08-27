@@ -550,5 +550,23 @@ void CheckMonsterObject(MonsterT *monster2) {
   TEST_EQ(tests[1].b(), 40);
 }
 
+// Prefix a FlatBuffer with a size field.
+void SizePrefixedTest() {
+  // Create size prefixed buffer.
+  flatbuffers::FlatBufferBuilder fbb;
+  FinishSizePrefixedMonsterBuffer(
+      fbb, CreateMonster(fbb, nullptr, 200, 300, fbb.CreateString("bob")));
+
+  // Verify it.
+  flatbuffers::Verifier verifier(fbb.GetBufferPointer(), fbb.GetSize());
+  TEST_EQ(VerifySizePrefixedMonsterBuffer(verifier), true);
+
+  // Access it.
+  auto m = GetSizePrefixedMonster(fbb.GetBufferPointer());
+  TEST_EQ(m->mana(), 200);
+  TEST_EQ(m->hp(), 300);
+  TEST_EQ_STR(m->name()->c_str(), "bob");
+}
+
 }  // namespace tests
 }  // namespace flatbuffers

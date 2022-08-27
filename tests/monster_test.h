@@ -20,6 +20,8 @@ void ObjectFlatBuffersTest(uint8_t *flatbuf);
 
 void CheckMonsterObject(MyGame::Example::MonsterT *monster2);
 
+void SizePrefixedTest();
+
 }  // namespace tests
 }  // namespace flatbuffers
 
