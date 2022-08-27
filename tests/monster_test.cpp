@@ -4,6 +4,7 @@
 
 #include "flatbuffers/flatbuffer_builder.h"
 #include "flatbuffers/idl.h"
+#include "flatbuffers/registry.h"
 #include "flatbuffers/verifier.h"
 #include "monster_extra_generated.h"
 #include "monster_test_generated.h"
@@ -710,6 +711,103 @@ void TypeAliasesTest() {
   static_assert(is_same<decltype(ta->u64()), uint64_t>::value, "invalid type");
   static_assert(is_same<decltype(ta->f32()), float>::value, "invalid type");
   static_assert(is_same<decltype(ta->f64()), double>::value, "invalid type");
+}
+
+// example of parsing text straight into a buffer, and generating
+// text back from it:
+void ParseAndGenerateTextTest(const std::string& tests_data_path, bool binary) {
+  // load FlatBuffer schema (.fbs) and JSON from disk
+  std::string schemafile;
+  std::string jsonfile;
+  TEST_EQ(flatbuffers::LoadFile(
+              (tests_data_path + "monster_test." + (binary ? "bfbs" : "fbs"))
+                  .c_str(),
+              binary, &schemafile),
+          true);
+  TEST_EQ(flatbuffers::LoadFile(
+              (tests_data_path + "monsterdata_test.golden").c_str(), false,
+              &jsonfile),
+          true);
+
+  auto include_test_path =
+      flatbuffers::ConCatPathFileName(tests_data_path, "include_test");
+  const char *include_directories[] = { tests_data_path.c_str(),
+                                        include_test_path.c_str(), nullptr };
+
+  // parse schema first, so we can use it to parse the data after
+  flatbuffers::Parser parser;
+  if (binary) {
+    flatbuffers::Verifier verifier(
+        reinterpret_cast<const uint8_t *>(schemafile.c_str()),
+        schemafile.size());
+    TEST_EQ(reflection::VerifySchemaBuffer(verifier), true);
+    // auto schema = reflection::GetSchema(schemafile.c_str());
+    TEST_EQ(parser.Deserialize(
+                reinterpret_cast<const uint8_t *>(schemafile.c_str()),
+                schemafile.size()),
+            true);
+  } else {
+    TEST_EQ(parser.Parse(schemafile.c_str(), include_directories), true);
+  }
+  TEST_EQ(parser.ParseJson(jsonfile.c_str()), true);
+
+  // here, parser.builder_ contains a binary buffer that is the parsed data.
+
+  // First, verify it, just in case:
+  flatbuffers::Verifier verifier(parser.builder_.GetBufferPointer(),
+                                 parser.builder_.GetSize());
+  TEST_EQ(VerifyMonsterBuffer(verifier), true);
+
+  AccessFlatBufferTest(parser.builder_.GetBufferPointer(),
+                       parser.builder_.GetSize(), false);
+
+  // to ensure it is correct, we now generate text back from the binary,
+  // and compare the two:
+  std::string jsongen;
+  auto result =
+      GenerateText(parser, parser.builder_.GetBufferPointer(), &jsongen);
+  TEST_EQ(result, true);
+  TEST_EQ_STR(jsongen.c_str(), jsonfile.c_str());
+
+  // We can also do the above using the convenient Registry that knows about
+  // a set of file_identifiers mapped to schemas.
+  flatbuffers::Registry registry;
+  // Make sure schemas can find their includes.
+  registry.AddIncludeDirectory(tests_data_path.c_str());
+  registry.AddIncludeDirectory(include_test_path.c_str());
+  // Call this with many schemas if possible.
+  registry.Register(MonsterIdentifier(),
+                    (tests_data_path + "monster_test.fbs").c_str());
+  // Now we got this set up, we can parse by just specifying the identifier,
+  // the correct schema will be loaded on the fly:
+  auto buf = registry.TextToFlatBuffer(jsonfile.c_str(), MonsterIdentifier());
+  // If this fails, check registry.lasterror_.
+  TEST_NOTNULL(buf.data());
+  // Test the buffer, to be sure:
+  AccessFlatBufferTest(buf.data(), buf.size(), false);
+  // We can use the registry to turn this back into text, in this case it
+  // will get the file_identifier from the binary:
+  std::string text;
+  auto ok = registry.FlatBufferToText(buf.data(), buf.size(), &text);
+  // If this fails, check registry.lasterror_.
+  TEST_EQ(ok, true);
+  TEST_EQ_STR(text.c_str(), jsonfile.c_str());
+
+  // Generate text for UTF-8 strings without escapes.
+  std::string jsonfile_utf8;
+  TEST_EQ(flatbuffers::LoadFile((tests_data_path + "unicode_test.json").c_str(),
+                                false, &jsonfile_utf8),
+          true);
+  TEST_EQ(parser.Parse(jsonfile_utf8.c_str(), include_directories), true);
+  // To ensure it is correct, generate utf-8 text back from the binary.
+  std::string jsongen_utf8;
+  // request natural printing for utf-8 strings
+  parser.opts.natural_utf8 = true;
+  parser.opts.strict_json = true;
+  TEST_EQ(
+      GenerateText(parser, parser.builder_.GetBufferPointer(), &jsongen_utf8),
+      true);
+  TEST_EQ_STR(jsongen_utf8.c_str(), jsonfile_utf8.c_str());
 }
 
 }  // namespace tests

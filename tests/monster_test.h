@@ -28,6 +28,8 @@ void EnumNamesTest();
 
 void TypeAliasesTest();
 
+void ParseAndGenerateTextTest(const std::string& tests_data_path, bool binary);
+
 }  // namespace tests
 }  // namespace flatbuffers
 

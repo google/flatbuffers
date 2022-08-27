@@ -25,13 +25,14 @@
 #include "flatbuffers/minireflect.h"
 #include "flatbuffers/registry.h"
 #include "flatbuffers/util.h"
+#include "fuzz_test.h"
 #include "json_test.h"
 #include "monster_test.h"
 #include "monster_test_generated.h"
+#include "optional_scalars_test.h"
 #include "parser_test.h"
 #include "proto_test.h"
 #include "reflection_test.h"
-#include "optional_scalars_test.h"
 #include "union_vector/union_vector_generated.h"
 #if !defined(_MSC_VER) || _MSC_VER >= 1700
 #  include "arrays_test_generated.h"
@@ -67,23 +68,6 @@ static_assert(flatbuffers::is_same<uint8_t, char>::value ||
 
 using namespace MyGame::Example;
 
-// Include simple random number generator to ensure results will be the
-// same cross platform.
-// http://en.wikipedia.org/wiki/Park%E2%80%93Miller_random_number_generator
-uint32_t lcg_seed = 48271;
-uint32_t lcg_rand() {
-  return lcg_seed =
-             (static_cast<uint64_t>(lcg_seed) * 279470273UL) % 4294967291UL;
-}
-void lcg_reset() { lcg_seed = 48271; }
-
-std::string test_data_path =
-#ifdef BAZEL_TEST_DATA_PATH
-    "../com_github_google_flatbuffers/tests/";
-#else
-    "tests/";
-#endif
-
 void TriviallyCopyableTest() {
 // clang-format off
   #if __GNUG__ && __GNUC__ < 5 && \
@@ -97,397 +81,18 @@ void TriviallyCopyableTest() {
   // clang-format on
 }
 
-// example of parsing text straight into a buffer, and generating
-// text back from it:
-void ParseAndGenerateTextTest(bool binary) {
-  // load FlatBuffer schema (.fbs) and JSON from disk
-  std::string schemafile;
-  std::string jsonfile;
-  TEST_EQ(flatbuffers::LoadFile(
-              (test_data_path + "monster_test." + (binary ? "bfbs" : "fbs"))
-                  .c_str(),
-              binary, &schemafile),
-          true);
-  TEST_EQ(flatbuffers::LoadFile(
-              (test_data_path + "monsterdata_test.golden").c_str(), false,
-              &jsonfile),
-          true);
-
-  auto include_test_path =
-      flatbuffers::ConCatPathFileName(test_data_path, "include_test");
-  const char *include_directories[] = { test_data_path.c_str(),
-                                        include_test_path.c_str(), nullptr };
-
-  // parse schema first, so we can use it to parse the data after
-  flatbuffers::Parser parser;
-  if (binary) {
-    flatbuffers::Verifier verifier(
-        reinterpret_cast<const uint8_t *>(schemafile.c_str()),
-        schemafile.size());
-    TEST_EQ(reflection::VerifySchemaBuffer(verifier), true);
-    // auto schema = reflection::GetSchema(schemafile.c_str());
-    TEST_EQ(parser.Deserialize(
-                reinterpret_cast<const uint8_t *>(schemafile.c_str()),
-                schemafile.size()),
-            true);
-  } else {
-    TEST_EQ(parser.Parse(schemafile.c_str(), include_directories), true);
-  }
-  TEST_EQ(parser.ParseJson(jsonfile.c_str()), true);
-
-  // here, parser.builder_ contains a binary buffer that is the parsed data.
-
-  // First, verify it, just in case:
-  flatbuffers::Verifier verifier(parser.builder_.GetBufferPointer(),
-                                 parser.builder_.GetSize());
-  TEST_EQ(VerifyMonsterBuffer(verifier), true);
-
-  AccessFlatBufferTest(parser.builder_.GetBufferPointer(),
-                       parser.builder_.GetSize(), false);
-
-  // to ensure it is correct, we now generate text back from the binary,
-  // and compare the two:
-  std::string jsongen;
-  auto result =
-      GenerateText(parser, parser.builder_.GetBufferPointer(), &jsongen);
-  TEST_EQ(result, true);
-  TEST_EQ_STR(jsongen.c_str(), jsonfile.c_str());
-
-  // We can also do the above using the convenient Registry that knows about
-  // a set of file_identifiers mapped to schemas.
-  flatbuffers::Registry registry;
-  // Make sure schemas can find their includes.
-  registry.AddIncludeDirectory(test_data_path.c_str());
-  registry.AddIncludeDirectory(include_test_path.c_str());
-  // Call this with many schemas if possible.
-  registry.Register(MonsterIdentifier(),
-                    (test_data_path + "monster_test.fbs").c_str());
-  // Now we got this set up, we can parse by just specifying the identifier,
-  // the correct schema will be loaded on the fly:
-  auto buf = registry.TextToFlatBuffer(jsonfile.c_str(), MonsterIdentifier());
-  // If this fails, check registry.lasterror_.
-  TEST_NOTNULL(buf.data());
-  // Test the buffer, to be sure:
-  AccessFlatBufferTest(buf.data(), buf.size(), false);
-  // We can use the registry to turn this back into text, in this case it
-  // will get the file_identifier from the binary:
-  std::string text;
-  auto ok = registry.FlatBufferToText(buf.data(), buf.size(), &text);
-  // If this fails, check registry.lasterror_.
-  TEST_EQ(ok, true);
-  TEST_EQ_STR(text.c_str(), jsonfile.c_str());
-
-  // Generate text for UTF-8 strings without escapes.
-  std::string jsonfile_utf8;
-  TEST_EQ(flatbuffers::LoadFile((test_data_path + "unicode_test.json").c_str(),
-                                false, &jsonfile_utf8),
-          true);
-  TEST_EQ(parser.Parse(jsonfile_utf8.c_str(), include_directories), true);
-  // To ensure it is correct, generate utf-8 text back from the binary.
-  std::string jsongen_utf8;
-  // request natural printing for utf-8 strings
-  parser.opts.natural_utf8 = true;
-  parser.opts.strict_json = true;
-  TEST_EQ(
-      GenerateText(parser, parser.builder_.GetBufferPointer(), &jsongen_utf8),
-      true);
-  TEST_EQ_STR(jsongen_utf8.c_str(), jsonfile_utf8.c_str());
-}
-
-template<typename T>
-void CompareTableFieldValue(flatbuffers::Table *table,
-                            flatbuffers::voffset_t voffset, T val) {
-  T read = table->GetField(voffset, static_cast<T>(0));
-  TEST_EQ(read, val);
-}
-
-
-// Low level stress/fuzz test: serialize/deserialize a variety of
-// different kinds of data in different combinations
-void FuzzTest1() {
-  // Values we're testing against: chosen to ensure no bits get chopped
-  // off anywhere, and also be different from eachother.
-  const uint8_t bool_val = true;
-  const int8_t char_val = -127;  // 0x81
-  const uint8_t uchar_val = 0xFF;
-  const int16_t short_val = -32222;  // 0x8222;
-  const uint16_t ushort_val = 0xFEEE;
-  const int32_t int_val = 0x83333333;
-  const uint32_t uint_val = 0xFDDDDDDD;
-  const int64_t long_val = 0x8444444444444444LL;
-  const uint64_t ulong_val = 0xFCCCCCCCCCCCCCCCULL;
-  const float float_val = 3.14159f;
-  const double double_val = 3.14159265359;
-
-  const int test_values_max = 11;
-  const flatbuffers::voffset_t fields_per_object = 4;
-  const int num_fuzz_objects = 10000;  // The higher, the more thorough :)
-
-  flatbuffers::FlatBufferBuilder builder;
-
-  lcg_reset();  // Keep it deterministic.
-
-  flatbuffers::uoffset_t objects[num_fuzz_objects];
-
-  // Generate num_fuzz_objects random objects each consisting of
-  // fields_per_object fields, each of a random type.
-  for (int i = 0; i < num_fuzz_objects; i++) {
-    auto start = builder.StartTable();
-    for (flatbuffers::voffset_t f = 0; f < fields_per_object; f++) {
-      int choice = lcg_rand() % test_values_max;
-      auto off = flatbuffers::FieldIndexToOffset(f);
-      switch (choice) {
-        case 0: builder.AddElement<uint8_t>(off, bool_val, 0); break;
-        case 1: builder.AddElement<int8_t>(off, char_val, 0); break;
-        case 2: builder.AddElement<uint8_t>(off, uchar_val, 0); break;
-        case 3: builder.AddElement<int16_t>(off, short_val, 0); break;
-        case 4: builder.AddElement<uint16_t>(off, ushort_val, 0); break;
-        case 5: builder.AddElement<int32_t>(off, int_val, 0); break;
-        case 6: builder.AddElement<uint32_t>(off, uint_val, 0); break;
-        case 7: builder.AddElement<int64_t>(off, long_val, 0); break;
-        case 8: builder.AddElement<uint64_t>(off, ulong_val, 0); break;
-        case 9: builder.AddElement<float>(off, float_val, 0); break;
-        case 10: builder.AddElement<double>(off, double_val, 0); break;
-      }
-    }
-    objects[i] = builder.EndTable(start);
-  }
-  builder.PreAlign<flatbuffers::largest_scalar_t>(0);  // Align whole buffer.
-
-  lcg_reset();  // Reset.
-
-  uint8_t *eob = builder.GetCurrentBufferPointer() + builder.GetSize();
-
-  // Test that all objects we generated are readable and return the
-  // expected values. We generate random objects in the same order
-  // so this is deterministic.
-  for (int i = 0; i < num_fuzz_objects; i++) {
-    auto table = reinterpret_cast<flatbuffers::Table *>(eob - objects[i]);
-    for (flatbuffers::voffset_t f = 0; f < fields_per_object; f++) {
-      int choice = lcg_rand() % test_values_max;
-      flatbuffers::voffset_t off = flatbuffers::FieldIndexToOffset(f);
-      switch (choice) {
-        case 0: CompareTableFieldValue(table, off, bool_val); break;
-        case 1: CompareTableFieldValue(table, off, char_val); break;
-        case 2: CompareTableFieldValue(table, off, uchar_val); break;
-        case 3: CompareTableFieldValue(table, off, short_val); break;
-        case 4: CompareTableFieldValue(table, off, ushort_val); break;
-        case 5: CompareTableFieldValue(table, off, int_val); break;
-        case 6: CompareTableFieldValue(table, off, uint_val); break;
-        case 7: CompareTableFieldValue(table, off, long_val); break;
-        case 8: CompareTableFieldValue(table, off, ulong_val); break;
-        case 9: CompareTableFieldValue(table, off, float_val); break;
-        case 10: CompareTableFieldValue(table, off, double_val); break;
-      }
-    }
-  }
-}
-
-// High level stress/fuzz test: generate a big schema and
-// matching json data in random combinations, then parse both,
-// generate json back from the binary, and compare with the original.
-void FuzzTest2() {
-  lcg_reset();  // Keep it deterministic.
-
-  const int num_definitions = 30;
-  const int num_struct_definitions = 5;  // Subset of num_definitions.
-  const int fields_per_definition = 15;
-  const int instances_per_definition = 5;
-  const int deprecation_rate = 10;  // 1 in deprecation_rate fields will
-                                    // be deprecated.
-
-  std::string schema = "namespace test;\n\n";
-
-  struct RndDef {
-    std::string instances[instances_per_definition];
-
-    // Since we're generating schema and corresponding data in tandem,
-    // this convenience function adds strings to both at once.
-    static void Add(RndDef (&definitions_l)[num_definitions],
-                    std::string &schema_l, const int instances_per_definition_l,
-                    const char *schema_add, const char *instance_add,
-                    int definition) {
-      schema_l += schema_add;
-      for (int i = 0; i < instances_per_definition_l; i++)
-        definitions_l[definition].instances[i] += instance_add;
-    }
-  };
-
-// clang-format off
-  #define AddToSchemaAndInstances(schema_add, instance_add) \
-    RndDef::Add(definitions, schema, instances_per_definition, \
-                schema_add, instance_add, definition)
-
-  #define Dummy() \
-    RndDef::Add(definitions, schema, instances_per_definition, \
-                "byte", "1", definition)
-  // clang-format on
-
-  RndDef definitions[num_definitions];
-
-  // We are going to generate num_definitions, the first
-  // num_struct_definitions will be structs, the rest tables. For each
-  // generate random fields, some of which may be struct/table types
-  // referring to previously generated structs/tables.
-  // Simultanenously, we generate instances_per_definition JSON data
-  // definitions, which will have identical structure to the schema
-  // being generated. We generate multiple instances such that when creating
-  // hierarchy, we get some variety by picking one randomly.
-  for (int definition = 0; definition < num_definitions; definition++) {
-    std::string definition_name = "D" + flatbuffers::NumToString(definition);
-
-    bool is_struct = definition < num_struct_definitions;
-
-    AddToSchemaAndInstances(
-        ((is_struct ? "struct " : "table ") + definition_name + " {\n").c_str(),
-        "{\n");
-
-    for (int field = 0; field < fields_per_definition; field++) {
-      const bool is_last_field = field == fields_per_definition - 1;
-
-      // Deprecate 1 in deprecation_rate fields. Only table fields can be
-      // deprecated.
-      // Don't deprecate the last field to avoid dangling commas in JSON.
-      const bool deprecated =
-          !is_struct && !is_last_field && (lcg_rand() % deprecation_rate == 0);
-
-      std::string field_name = "f" + flatbuffers::NumToString(field);
-      AddToSchemaAndInstances(("  " + field_name + ":").c_str(),
-                              deprecated ? "" : (field_name + ": ").c_str());
-      // Pick random type:
-      auto base_type = static_cast<flatbuffers::BaseType>(
-          lcg_rand() % (flatbuffers::BASE_TYPE_UNION + 1));
-      switch (base_type) {
-        case flatbuffers::BASE_TYPE_STRING:
-          if (is_struct) {
-            Dummy();  // No strings in structs.
-          } else {
-            AddToSchemaAndInstances("string", deprecated ? "" : "\"hi\"");
-          }
-          break;
-        case flatbuffers::BASE_TYPE_VECTOR:
-          if (is_struct) {
-            Dummy();  // No vectors in structs.
-          } else {
-            AddToSchemaAndInstances("[ubyte]",
-                                    deprecated ? "" : "[\n0,\n1,\n255\n]");
-          }
-          break;
-        case flatbuffers::BASE_TYPE_NONE:
-        case flatbuffers::BASE_TYPE_UTYPE:
-        case flatbuffers::BASE_TYPE_STRUCT:
-        case flatbuffers::BASE_TYPE_UNION:
-          if (definition) {
-            // Pick a random previous definition and random data instance of
-            // that definition.
-            int defref = lcg_rand() % definition;
-            int instance = lcg_rand() % instances_per_definition;
-            AddToSchemaAndInstances(
-                ("D" + flatbuffers::NumToString(defref)).c_str(),
-                deprecated ? ""
-                           : definitions[defref].instances[instance].c_str());
-          } else {
-            // If this is the first definition, we have no definition we can
-            // refer to.
-            Dummy();
-          }
-          break;
-        case flatbuffers::BASE_TYPE_BOOL:
-          AddToSchemaAndInstances(
-              "bool", deprecated ? "" : (lcg_rand() % 2 ? "true" : "false"));
-          break;
-        case flatbuffers::BASE_TYPE_ARRAY:
-          if (!is_struct) {
-            AddToSchemaAndInstances(
-                "ubyte",
-                deprecated ? "" : "255");  // No fixed-length arrays in tables.
-          } else {
-            AddToSchemaAndInstances("[int:3]", deprecated ? "" : "[\n,\n,\n]");
-          }
-          break;
-        default:
-          // All the scalar types.
-          schema += flatbuffers::kTypeNames[base_type];
-
-          if (!deprecated) {
-            // We want each instance to use its own random value.
-            for (int inst = 0; inst < instances_per_definition; inst++)
-              definitions[definition].instances[inst] +=
-                  flatbuffers::IsFloat(base_type)
-                      ? flatbuffers::NumToString<double>(lcg_rand() % 128)
-                            .c_str()
-                      : flatbuffers::NumToString<int>(lcg_rand() % 128).c_str();
-          }
-      }
-      AddToSchemaAndInstances(deprecated ? "(deprecated);\n" : ";\n",
-                              deprecated      ? ""
-                              : is_last_field ? "\n"
-                                              : ",\n");
-    }
-    AddToSchemaAndInstances("}\n\n", "}");
-  }
-
-  schema += "root_type D" + flatbuffers::NumToString(num_definitions - 1);
-  schema += ";\n";
-
-  flatbuffers::Parser parser;
-
-  // Will not compare against the original if we don't write defaults
-  parser.builder_.ForceDefaults(true);
-
-  // Parse the schema, parse the generated data, then generate text back
-  // from the binary and compare against the original.
-  TEST_EQ(parser.Parse(schema.c_str()), true);
-
-  const std::string &json =
-      definitions[num_definitions - 1].instances[0] + "\n";
-
-  TEST_EQ(parser.Parse(json.c_str()), true);
-
-  std::string jsongen;
-  parser.opts.indent_step = 0;
-  auto result =
-      GenerateText(parser, parser.builder_.GetBufferPointer(), &jsongen);
-  TEST_EQ(result, true);
-
-  if (jsongen != json) {
-    // These strings are larger than a megabyte, so we show the bytes around
-    // the first bytes that are different rather than the whole string.
-    size_t len = std::min(json.length(), jsongen.length());
-    for (size_t i = 0; i < len; i++) {
-      if (json[i] != jsongen[i]) {
-        i -= std::min(static_cast<size_t>(10), i);  // show some context;
-        size_t end = std::min(len, i + 20);
-        for (; i < end; i++)
-          TEST_OUTPUT_LINE("at %d: found \"%c\", expected \"%c\"\n",
-                           static_cast<int>(i), jsongen[i], json[i]);
-        break;
-      }
-    }
-    TEST_NOTNULL(nullptr);  //-V501 (this comment suppresses CWE-570 warning)
-  }
-
-// clang-format off
-  #ifdef FLATBUFFERS_TEST_VERBOSE
-    TEST_OUTPUT_LINE("%dk schema tested with %dk of json\n",
-                     static_cast<int>(schema.length() / 1024),
-                     static_cast<int>(json.length() / 1024));
-  #endif
-  // clang-format on
-}
-
-void GenerateTableTextTest() {
+void GenerateTableTextTest(const std::string &tests_data_path) {
   std::string schemafile;
   std::string jsonfile;
   bool ok =
-      flatbuffers::LoadFile((test_data_path + "monster_test.fbs").c_str(),
+      flatbuffers::LoadFile((tests_data_path + "monster_test.fbs").c_str(),
                             false, &schemafile) &&
-      flatbuffers::LoadFile((test_data_path + "monsterdata_test.json").c_str(),
+      flatbuffers::LoadFile((tests_data_path + "monsterdata_test.json").c_str(),
                             false, &jsonfile);
   TEST_EQ(ok, true);
   auto include_test_path =
-      flatbuffers::ConCatPathFileName(test_data_path, "include_test");
-  const char *include_directories[] = { test_data_path.c_str(),
+      flatbuffers::ConCatPathFileName(tests_data_path, "include_test");
+  const char *include_directories[] = { tests_data_path.c_str(),
                                         include_test_path.c_str(), nullptr };
   flatbuffers::IDLOptions opt;
   opt.indent_step = -1;
@@ -532,9 +137,9 @@ void GenerateTableTextTest() {
   TEST_EQ_STR(jsongen.c_str(), "{a: 10,b: 20}");
 }
 
-void MultiFileNameClashTest() {
+void MultiFileNameClashTest(const std::string &tests_data_path) {
   const auto name_clash_path =
-      flatbuffers::ConCatPathFileName(test_data_path, "name_clash_test");
+      flatbuffers::ConCatPathFileName(tests_data_path, "name_clash_test");
   const char *include_directories[] = { name_clash_path.c_str() };
 
   // Load valid 2 file Flatbuffer schema
@@ -561,15 +166,15 @@ void MultiFileNameClashTest() {
       false);
 }
 
-void InvalidNestedFlatbufferTest() {
+void InvalidNestedFlatbufferTest(const std::string &tests_data_path) {
   // First, load and parse FlatBuffer schema (.fbs)
   std::string schemafile;
-  TEST_EQ(flatbuffers::LoadFile((test_data_path + "monster_test.fbs").c_str(),
+  TEST_EQ(flatbuffers::LoadFile((tests_data_path + "monster_test.fbs").c_str(),
                                 false, &schemafile),
           true);
   auto include_test_path =
-      flatbuffers::ConCatPathFileName(test_data_path, "include_test");
-  const char *include_directories[] = { test_data_path.c_str(),
+      flatbuffers::ConCatPathFileName(tests_data_path, "include_test");
+  const char *include_directories[] = { tests_data_path.c_str(),
                                         include_test_path.c_str(), nullptr };
   flatbuffers::Parser parser1;
   TEST_EQ(parser1.Parse(schemafile.c_str(), include_directories), true);
@@ -580,15 +185,15 @@ void InvalidNestedFlatbufferTest() {
           false);
 }
 
-void UnionVectorTest() {
+void UnionVectorTest(const std::string &tests_data_path) {
   // load FlatBuffer fbs schema and json.
   std::string schemafile, jsonfile;
   TEST_EQ(flatbuffers::LoadFile(
-              (test_data_path + "union_vector/union_vector.fbs").c_str(), false,
-              &schemafile),
+              (tests_data_path + "union_vector/union_vector.fbs").c_str(),
+              false, &schemafile),
           true);
   TEST_EQ(flatbuffers::LoadFile(
-              (test_data_path + "union_vector/union_vector.json").c_str(),
+              (tests_data_path + "union_vector/union_vector.json").c_str(),
               false, &jsonfile),
           true);
 
@@ -770,8 +375,6 @@ void UnionVectorTest() {
           true);
   TEST_EQ(parser2.Parse("{a_type:Bool,a:{b:true}}"), true);
 }
-
-
 
 void EndianSwapTest() {
   TEST_EQ(flatbuffers::EndianSwap(static_cast<int16_t>(0x1234)), 0x3412);
@@ -1238,18 +841,19 @@ void NativeTypeTest() {
 
 // VS10 does not support typed enums, exclude from tests
 #if !defined(_MSC_VER) || _MSC_VER >= 1700
-void FixedLengthArrayJsonTest(bool binary) {
+void FixedLengthArrayJsonTest(const std::string &tests_data_path, bool binary) {
   // load FlatBuffer schema (.fbs) and JSON from disk
   std::string schemafile;
   std::string jsonfile;
-  TEST_EQ(
-      flatbuffers::LoadFile(
-          (test_data_path + "arrays_test." + (binary ? "bfbs" : "fbs")).c_str(),
-          binary, &schemafile),
-      true);
-  TEST_EQ(flatbuffers::LoadFile((test_data_path + "arrays_test.golden").c_str(),
-                                false, &jsonfile),
+  TEST_EQ(flatbuffers::LoadFile(
+              (tests_data_path + "arrays_test." + (binary ? "bfbs" : "fbs"))
+                  .c_str(),
+              binary, &schemafile),
           true);
+  TEST_EQ(
+      flatbuffers::LoadFile((tests_data_path + "arrays_test.golden").c_str(),
+                            false, &jsonfile),
+      true);
 
   // parse schema first, so we can use it to parse the data after
   flatbuffers::Parser parserOrg, parserGen;
@@ -1299,16 +903,17 @@ void FixedLengthArrayJsonTest(bool binary) {
           0);
 }
 
-void FixedLengthArraySpanTest() {
+void FixedLengthArraySpanTest(const std::string &tests_data_path) {
   // load FlatBuffer schema (.fbs) and JSON from disk
   std::string schemafile;
   std::string jsonfile;
-  TEST_EQ(flatbuffers::LoadFile((test_data_path + "arrays_test.fbs").c_str(),
+  TEST_EQ(flatbuffers::LoadFile((tests_data_path + "arrays_test.fbs").c_str(),
                                 false, &schemafile),
           true);
-  TEST_EQ(flatbuffers::LoadFile((test_data_path + "arrays_test.golden").c_str(),
-                                false, &jsonfile),
-          true);
+  TEST_EQ(
+      flatbuffers::LoadFile((tests_data_path + "arrays_test.golden").c_str(),
+                            false, &jsonfile),
+      true);
 
   // parse schema first, so we can use it to parse the data after
   flatbuffers::Parser parser;
@@ -1377,11 +982,11 @@ void FixedLengthArrayJsonTest(bool /*binary*/) {}
 void FixedLengthArraySpanTest() {}
 #endif
 
-void TestEmbeddedBinarySchema() {
+void TestEmbeddedBinarySchema(const std::string &tests_data_path) {
   // load JSON from disk
   std::string jsonfile;
   TEST_EQ(flatbuffers::LoadFile(
-              (test_data_path + "monsterdata_test.golden").c_str(), false,
+              (tests_data_path + "monsterdata_test.golden").c_str(), false,
               &jsonfile),
           true);
 
@@ -1424,8 +1029,6 @@ void TestEmbeddedBinarySchema() {
                       parserOrg.builder_.GetSize()),
           0);
 }
-
-
 
 void NestedVerifierTest() {
   // Create a nested monster.
@@ -1759,9 +1362,7 @@ void VectorSpanTest() {
   }
 }
 
-int FlatBufferTests() {
-  // clang-format off
-
+int FlatBufferTests(const std::string &tests_data_path) {
   // Run our various test suites:
 
   std::string rawbuf;
@@ -1781,28 +1382,30 @@ int FlatBufferTests() {
 
   SizePrefixedTest();
 
-  #ifndef FLATBUFFERS_NO_FILE_TESTS
-    #ifdef FLATBUFFERS_TEST_PATH_PREFIX
-      test_data_path = FLATBUFFERS_STRING(FLATBUFFERS_TEST_PATH_PREFIX) +
-                       test_data_path;
-    #endif
-    ParseAndGenerateTextTest(false);
-    ParseAndGenerateTextTest(true);
-    FixedLengthArrayJsonTest(false);
-    FixedLengthArrayJsonTest(true);
-    ReflectionTest(test_data_path, flatbuf.data(), flatbuf.size());
-    ParseProtoTest(test_data_path);
-    ParseProtoTestWithSuffix(test_data_path);
-    ParseProtoTestWithIncludes(test_data_path);
-    EvolutionTest(test_data_path);
-    UnionDeprecationTest(test_data_path);
-    UnionVectorTest();
-    GenerateTableTextTest();
-    TestEmbeddedBinarySchema();
-    JsonOptionalTest(test_data_path, false);
-    JsonOptionalTest(test_data_path, true);
-  #endif
-  // clang-format on
+#ifndef FLATBUFFERS_NO_FILE_TESTS
+  ParseAndGenerateTextTest(tests_data_path, false);
+  ParseAndGenerateTextTest(tests_data_path, true);
+  FixedLengthArrayJsonTest(tests_data_path, false);
+  FixedLengthArrayJsonTest(tests_data_path, true);
+  ReflectionTest(tests_data_path, flatbuf.data(), flatbuf.size());
+  ParseProtoTest(tests_data_path);
+  ParseProtoTestWithSuffix(tests_data_path);
+  ParseProtoTestWithIncludes(tests_data_path);
+  EvolutionTest(tests_data_path);
+  UnionDeprecationTest(tests_data_path);
+  UnionVectorTest(tests_data_path);
+  GenerateTableTextTest(tests_data_path);
+  TestEmbeddedBinarySchema(tests_data_path);
+  JsonOptionalTest(tests_data_path, false);
+  JsonOptionalTest(tests_data_path, true);
+  MultiFileNameClashTest(tests_data_path);
+  InvalidNestedFlatbufferTest(tests_data_path);
+  JsonDefaultTest(tests_data_path);
+  JsonEnumsTest(tests_data_path);
+  TestMonsterExtraFloats(tests_data_path);
+  ParseIncorrectMonsterJsonTest(tests_data_path);
+  FixedLengthArraySpanTest(tests_data_path);
+#endif
 
   UtilConvertCase();
 
@@ -1828,15 +1431,11 @@ int FlatBufferTests() {
   UnknownFieldsTest();
   ParseUnionTest();
   ValidSameNameDifferentNamespaceTest();
-  MultiFileNameClashTest();
-  InvalidNestedFlatbufferTest();
   ConformTest();
   ParseProtoBufAsciiTest();
   TypeAliasesTest();
   EndianSwapTest();
   CreateSharedStringTest();
-  JsonDefaultTest(test_data_path);
-  JsonEnumsTest(test_data_path);
   FlexBuffersTest();
   FlexBuffersReuseBugTest();
   FlexBuffersDeprecatedTest();
@@ -1846,7 +1445,6 @@ int FlatBufferTests() {
   IsAsciiUtilsTest();
   ValidFloatTest();
   InvalidFloatTest();
-  TestMonsterExtraFloats(test_data_path);
   FixedLengthArrayTest();
   NativeTypeTest();
   OptionalScalarsTest();
@@ -1855,10 +1453,8 @@ int FlatBufferTests() {
   FixedLengthArrayConstructorTest();
   FieldIdentifierTest();
   StringVectorDefaultsTest();
-  ParseIncorrectMonsterJsonTest(test_data_path);
   FlexBuffersFloatingPointTest();
   FlatbuffersIteratorsTest();
-  FixedLengthArraySpanTest();
   WarningsAsErrorsTest();
   NestedVerifierTest();
   PrivateAnnotationsLeaks();
@@ -1871,6 +1467,13 @@ int FlatBufferTests() {
 }  // namespace flatbuffers
 
 int main(int argc, const char *argv[]) {
+  std::string tests_data_path =
+#ifdef BAZEL_TEST_DATA_PATH
+      "../com_github_google_flatbuffers/tests/";
+#else
+      "tests/";
+#endif
+
   for (int argi = 1; argi < argc; argi++) {
     std::string arg = argv[argi];
     if (arg == "--test_path") {
@@ -1878,7 +1481,9 @@ int main(int argc, const char *argv[]) {
         fprintf(stderr, "error: missing path following: %s\n", arg.c_str());
         exit(1);
       }
-      flatbuffers::tests::test_data_path = argv[argi];
+      // Override default path if provided one.
+      tests_data_path = argv[argi];
+
     } else {
       fprintf(stderr, "error: Unknown argument: %s\n", arg.c_str());
       exit(1);
@@ -1899,7 +1504,12 @@ int main(int argc, const char *argv[]) {
     TEST_OUTPUT_LINE("The global C-locale changed: %s", the_locale.c_str());
   }
 
-  flatbuffers::tests::FlatBufferTests();
+#ifdef FLATBUFFERS_TEST_PATH_PREFIX
+  tests_data_path =
+      FLATBUFFERS_STRING(FLATBUFFERS_TEST_PATH_PREFIX) + tests_data_path;
+#endif
+
+  flatbuffers::tests::FlatBufferTests(tests_data_path);
   FlatBufferBuilderTest();
 
   if (!testing_fails) {
