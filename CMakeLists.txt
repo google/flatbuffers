@@ -214,6 +214,7 @@ set(FlatBuffers_Tests_SRCS
   ${FlatBuffers_Library_SRCS}
   src/idl_gen_fbs.cpp
   tests/flexbuffers_test.cpp
+  tests/monster_test.cpp
   tests/test.cpp
   tests/test_assert.h
   tests/test_assert.cpp
