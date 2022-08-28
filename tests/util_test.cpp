@@ -1,4 +1,5 @@
 #include "util_test.h"
+
 #include "flatbuffers/util.h"
 #include "test_assert.h"
 
@@ -31,7 +32,7 @@ void NumericUtilsTestFloat(const char *lower, const char *upper) {
   TEST_EQ(flatbuffers::StringToNumber(lower, &f), true);
   TEST_EQ(f, -flatbuffers::numeric_limits<T>::infinity());
 }
-}
+}  // namespace
 
 void NumericUtilsTest() {
   NumericUtilsTestInteger<uint64_t>("-1", "18446744073709551616");
@@ -59,96 +60,110 @@ void IsAsciiUtilsTest() {
 
 void UtilConvertCase() {
   {
-    std::vector<std::tuple<std::string, flatbuffers::Case, std::string>>
-        cases = {
-          // Tests for the common cases
-          { "the_quick_brown_fox", flatbuffers::Case::kUpperCamel,
-            "TheQuickBrownFox" },
-          { "the_quick_brown_fox", flatbuffers::Case::kLowerCamel,
-            "theQuickBrownFox" },
-          { "the_quick_brown_fox", flatbuffers::Case::kSnake,
-            "the_quick_brown_fox" },
-          { "the_quick_brown_fox", flatbuffers::Case::kScreamingSnake,
-            "THE_QUICK_BROWN_FOX" },
-          { "the_quick_brown_fox", flatbuffers::Case::kAllLower,
-            "the_quick_brown_fox" },
-          { "the_quick_brown_fox", flatbuffers::Case::kAllUpper,
-            "THE_QUICK_BROWN_FOX" },
-          { "the_quick_brown_fox", flatbuffers::Case::kUnknown,
-            "the_quick_brown_fox" },
-          { "the_quick_brown_fox", flatbuffers::Case::kKeep,
-            "the_quick_brown_fox" },
-          { "the_quick_brown_fox", flatbuffers::Case::kSnake2,
-            "the_quick_brown_fox" },
+    struct TestCase {
+      std::string input;
+      flatbuffers::Case output_case;
+      std::string expected_output;
+    };
 
-          // Tests for some snake_cases where the _ is oddly placed or missing.
-          { "single", flatbuffers::Case::kUpperCamel, "Single" },
-          { "Single", flatbuffers::Case::kUpperCamel, "Single" },
-          { "_leading", flatbuffers::Case::kUpperCamel, "_leading" },
-          { "trailing_", flatbuffers::Case::kUpperCamel, "Trailing_" },
-          { "double__underscore", flatbuffers::Case::kUpperCamel,
-            "Double_underscore" },
-          { "single", flatbuffers::Case::kLowerCamel, "single" },
-          { "Single", flatbuffers::Case::kLowerCamel, "Single" },
-          { "_leading", flatbuffers::Case::kLowerCamel, "Leading" },
-          { "trailing_", flatbuffers::Case::kLowerCamel, "trailing_" },
-          { "double__underscore", flatbuffers::Case::kLowerCamel,
-            "double_underscore" },
+    std::vector<TestCase> cases;
 
-          // Tests for some output snake_cases
-          { "single", flatbuffers::Case::kSnake, "single" },
-          { "single", flatbuffers::Case::kScreamingSnake, "SINGLE" },
-          { "_leading", flatbuffers::Case::kScreamingSnake, "_LEADING" },
-          { "trailing_", flatbuffers::Case::kScreamingSnake, "TRAILING_" },
-          { "double__underscore", flatbuffers::Case::kScreamingSnake,
-            "DOUBLE__UNDERSCORE" },
-        };
+    // Tests for the common cases
+    cases.push_back({ "the_quick_brown_fox", flatbuffers::Case::kUpperCamel,
+                      "TheQuickBrownFox" });
+    cases.push_back({ "the_quick_brown_fox", flatbuffers::Case::kLowerCamel,
+                      "theQuickBrownFox" });
+    cases.push_back({ "the_quick_brown_fox", flatbuffers::Case::kSnake,
+                      "the_quick_brown_fox" });
+    cases.push_back({ "the_quick_brown_fox", flatbuffers::Case::kScreamingSnake,
+                      "THE_QUICK_BROWN_FOX" });
+    cases.push_back({ "the_quick_brown_fox", flatbuffers::Case::kAllLower,
+                      "the_quick_brown_fox" });
+    cases.push_back({ "the_quick_brown_fox", flatbuffers::Case::kAllUpper,
+                      "THE_QUICK_BROWN_FOX" });
+    cases.push_back({ "the_quick_brown_fox", flatbuffers::Case::kUnknown,
+                      "the_quick_brown_fox" });
+    cases.push_back({ "the_quick_brown_fox", flatbuffers::Case::kKeep,
+                      "the_quick_brown_fox" });
+    cases.push_back({ "the_quick_brown_fox", flatbuffers::Case::kSnake2,
+                      "the_quick_brown_fox" });
+
+    // Tests for some snake_cases where the _ is oddly placed or
+    // missing.
+    cases.push_back({ "single", flatbuffers::Case::kUpperCamel, "Single" });
+    cases.push_back({ "Single", flatbuffers::Case::kUpperCamel, "Single" });
+    cases.push_back({ "_leading", flatbuffers::Case::kUpperCamel, "_leading" });
+    cases.push_back(
+        { "trailing_", flatbuffers::Case::kUpperCamel, "Trailing_" });
+    cases.push_back({ "double__underscore", flatbuffers::Case::kUpperCamel,
+                      "Double_underscore" });
+    cases.push_back({ "single", flatbuffers::Case::kLowerCamel, "single" });
+    cases.push_back({ "Single", flatbuffers::Case::kLowerCamel, "Single" });
+    cases.push_back({ "_leading", flatbuffers::Case::kLowerCamel, "Leading" });
+    cases.push_back(
+        { "trailing_", flatbuffers::Case::kLowerCamel, "trailing_" });
+    cases.push_back({ "double__underscore", flatbuffers::Case::kLowerCamel,
+                      "double_underscore" });
+
+    // Tests for some output snake_cases
+    cases.push_back({ "single", flatbuffers::Case::kSnake, "single" });
+    cases.push_back({ "single", flatbuffers::Case::kScreamingSnake, "SINGLE" });
+    cases.push_back(
+        { "_leading", flatbuffers::Case::kScreamingSnake, "_LEADING" });
+    cases.push_back(
+        { "trailing_", flatbuffers::Case::kScreamingSnake, "TRAILING_" });
+    cases.push_back({ "double__underscore", flatbuffers::Case::kScreamingSnake,
+                      "DOUBLE__UNDERSCORE" });
 
     for (auto &test_case : cases) {
-      TEST_EQ(std::get<2>(test_case),
-              flatbuffers::ConvertCase(std::get<0>(test_case),
-                                       std::get<1>(test_case)));
+      TEST_EQ(test_case.expected_output,
+              flatbuffers::ConvertCase(test_case.input, test_case.output_case));
     }
   }
 
   // Tests for the non snake_case inputs.
   {
-    std::vector<std::tuple<flatbuffers::Case, std::string, flatbuffers::Case,
-                           std::string>>
-        cases = {
-          { flatbuffers::Case::kUpperCamel, "TheQuickBrownFox",
-            flatbuffers::Case::kSnake, "the_quick_brown_fox" },
-          { flatbuffers::Case::kLowerCamel, "theQuickBrownFox",
-            flatbuffers::Case::kSnake, "the_quick_brown_fox" },
-          { flatbuffers::Case::kSnake, "the_quick_brown_fox",
-            flatbuffers::Case::kSnake, "the_quick_brown_fox" },
-          { flatbuffers::Case::kScreamingSnake, "THE_QUICK_BROWN_FOX",
-            flatbuffers::Case::kSnake, "THE_QUICK_BROWN_FOX" },
-          { flatbuffers::Case::kAllUpper, "SINGLE", flatbuffers::Case::kSnake,
-            "SINGLE" },
-          { flatbuffers::Case::kAllLower, "single", flatbuffers::Case::kSnake,
-            "single" },
-          { flatbuffers::Case::kUpperCamel, "ABCtest",
-            flatbuffers::Case::kSnake, "abctest" },
-          { flatbuffers::Case::kUpperCamel, "tHe_qUiCk_BrOwN_fOx",
-            flatbuffers::Case::kKeep, "tHe_qUiCk_BrOwN_fOx" },
-          { flatbuffers::Case::kLowerCamel, "theQuick12345Fox",
-            flatbuffers::Case::kSnake, "the_quick_12345fox" },
-          { flatbuffers::Case::kLowerCamel, "a12b34c45",
-            flatbuffers::Case::kSnake, "a_12b_34c_45" },
-          { flatbuffers::Case::kLowerCamel, "a12b34c45",
-            flatbuffers::Case::kSnake2, "a12_b34_c45" },
-        };
+    struct TestCase {
+      flatbuffers::Case input_case;
+      std::string input;
+      flatbuffers::Case output_case;
+      std::string expected_output;
+    };
+
+    std::vector<TestCase>
+        cases;
+
+    cases.push_back({ flatbuffers::Case::kUpperCamel, "TheQuickBrownFox",
+                      flatbuffers::Case::kSnake, "the_quick_brown_fox" });
+    cases.push_back({ flatbuffers::Case::kLowerCamel, "theQuickBrownFox",
+                      flatbuffers::Case::kSnake, "the_quick_brown_fox" });
+    cases.push_back({ flatbuffers::Case::kSnake, "the_quick_brown_fox",
+                      flatbuffers::Case::kSnake, "the_quick_brown_fox" });
+    cases.push_back({ flatbuffers::Case::kScreamingSnake, "THE_QUICK_BROWN_FOX",
+                      flatbuffers::Case::kSnake, "THE_QUICK_BROWN_FOX" });
+    cases.push_back({ flatbuffers::Case::kAllUpper, "SINGLE",
+                      flatbuffers::Case::kSnake, "SINGLE" });
+    cases.push_back({ flatbuffers::Case::kAllLower, "single",
+                      flatbuffers::Case::kSnake, "single" });
+    cases.push_back({ flatbuffers::Case::kUpperCamel, "ABCtest",
+                      flatbuffers::Case::kSnake, "abctest" });
+    cases.push_back({ flatbuffers::Case::kUpperCamel, "tHe_qUiCk_BrOwN_fOx",
+                      flatbuffers::Case::kKeep, "tHe_qUiCk_BrOwN_fOx" });
+    cases.push_back({ flatbuffers::Case::kLowerCamel, "theQuick12345Fox",
+                      flatbuffers::Case::kSnake, "the_quick_12345fox" });
+    cases.push_back({ flatbuffers::Case::kLowerCamel, "a12b34c45",
+                      flatbuffers::Case::kSnake, "a_12b_34c_45" });
+    cases.push_back({ flatbuffers::Case::kLowerCamel, "a12b34c45",
+                      flatbuffers::Case::kSnake2, "a12_b34_c45" });
 
     for (auto &test_case : cases) {
-      TEST_EQ(std::get<3>(test_case),
-              flatbuffers::ConvertCase(std::get<1>(test_case),
-                                       std::get<2>(test_case),
-                                       std::get<0>(test_case)));
+      TEST_EQ(test_case.expected_output,
+              flatbuffers::ConvertCase(test_case.input,
+                                       test_case.output_case,
+                                       test_case.input_case));
     }
   }
 }
-
 
 }  // namespace tests
 }  // namespace flatbuffers

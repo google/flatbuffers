@@ -1,5 +1,6 @@
-#include "flatbuffers/flexbuffers.h"
+#include "flexbuffers_test.h"
 
+#include "flatbuffers/flexbuffers.h"
 #include "flatbuffers/idl.h"
 #include "is_quiet_nan.h"
 #include "test_assert.h"
