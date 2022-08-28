@@ -87,6 +87,14 @@ if(MSVC OR CMAKE_CXX_COMPILER_FRONTEND_VARIANT STREQUAL "MSVC")
     set(MSVC_LIKE ON)
 endif()
 
+if(DEFINED FLATBUFFERS_COMPILATION_TIMINGS)
+  message("Recording Compilation Timings to ${FLATBUFFERS_COMPILATION_TIMINGS}")
+  file(REMOVE ${FLATBUFFERS_COMPILATION_TIMINGS})
+  set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE "time -f 'Wall: %E User: %U Sys: %S | %C' -q -a -o ${FLATBUFFERS_COMPILATION_TIMINGS}")
+  set_property(GLOBAL PROPERTY RULE_LAUNCH_CUSTOM "time -f 'Wall: %E User: %U Sys: %S | %C' -q -a -o ${FLATBUFFERS_COMPILATION_TIMINGS}")
+  set_property(GLOBAL PROPERTY RULE_LAUNCH_LINK "time -f 'Wall: %E User: %U Sys: %S | %C' -q -a -o ${FLATBUFFERS_COMPILATION_TIMINGS}")
+endif()
+
 if(NOT FLATBUFFERS_BUILD_FLATC AND FLATBUFFERS_BUILD_TESTS)
     message(WARNING
     "Cannot build tests without building the compiler. Tests will be disabled.")
@@ -205,11 +213,21 @@ set(FlatHash_SRCS
 set(FlatBuffers_Tests_SRCS
   ${FlatBuffers_Library_SRCS}
   src/idl_gen_fbs.cpp
+  tests/evolution_test.cpp
+  tests/flexbuffers_test.cpp
+  tests/fuzz_test.cpp
+  tests/json_test.cpp
+  tests/monster_test.cpp
+  tests/optional_scalars_test.cpp
+  tests/parser_test.cpp
+  tests/proto_test.cpp
+  tests/reflection_test.cpp
   tests/test.cpp
   tests/test_assert.h
   tests/test_assert.cpp
   tests/test_builder.h
   tests/test_builder.cpp
+  tests/util_test.cpp
   tests/native_type_test_impl.h
   tests/native_type_test_impl.cpp
   include/flatbuffers/code_generators.h
