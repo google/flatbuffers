@@ -130,8 +130,7 @@ void UtilConvertCase() {
       std::string expected_output;
     };
 
-    std::vector<TestCase>
-        cases;
+    std::vector<TestCase> cases;
 
     cases.push_back({ flatbuffers::Case::kUpperCamel, "TheQuickBrownFox",
                       flatbuffers::Case::kSnake, "the_quick_brown_fox" });
@@ -158,8 +157,7 @@ void UtilConvertCase() {
 
     for (auto &test_case : cases) {
       TEST_EQ(test_case.expected_output,
-              flatbuffers::ConvertCase(test_case.input,
-                                       test_case.output_case,
+              flatbuffers::ConvertCase(test_case.input, test_case.output_case,
                                        test_case.input_case));
     }
   }
