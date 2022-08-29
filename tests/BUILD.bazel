@@ -25,6 +25,7 @@ cc_test(
         "monster_test_bfbs_generated.h",
         "namespace_test/namespace_test1_generated.h",
         "namespace_test/namespace_test2_generated.h",
+        "native_inline_table_test_generated.h",
         "native_type_test_impl.cpp",
         "native_type_test_impl.h",
         "optional_scalars_generated.h",
