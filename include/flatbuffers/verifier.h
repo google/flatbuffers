@@ -59,11 +59,15 @@ class Verifier FLATBUFFERS_FINAL_CLASS {
   Verifier(const uint8_t *const buf, const size_t buf_len,
            const uoffset_t _max_depth = 64,
            const uoffset_t _max_tables = 1000000,
-           const bool _check_alignment = true,
-           const bool _check_nested_flatbuffers = true)
+           const bool _check_alignment = true)
       : Verifier(buf, buf_len,
-                 { _max_depth, _max_tables, _check_alignment,
-                   _check_nested_flatbuffers }) {}
+                 {
+                     _max_depth,
+                     _max_tables,
+                     _check_alignment,
+                     _check_nested_flatbuffers,
+                     true,
+                 }) {}
 
   // Central location where any verification failures register.
   bool Check(const bool ok) const {
