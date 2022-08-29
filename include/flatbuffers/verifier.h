@@ -65,7 +65,6 @@ class Verifier FLATBUFFERS_FINAL_CLASS {
                      _max_depth,
                      _max_tables,
                      _check_alignment,
-                     _check_nested_flatbuffers,
                      true,
                  }) {}
 
