@@ -1085,6 +1085,14 @@ void NestedVerifierTest() {
     flatbuffers::Verifier verifier(builder.GetBufferPointer(),
                                    builder.GetSize());
     TEST_EQ(false, VerifyMonsterBuffer(verifier));
+
+    // Verify the root monster succeeds, since we've disabled checking nested
+    // flatbuffers
+    flatbuffers::Verifier::Options options;
+    options.check_nested_flatbuffers = false;
+    flatbuffers::Verifier no_check_nested(builder.GetBufferPointer(),
+                                          builder.GetSize(), options);
+    TEST_EQ(true, VerifyMonsterBuffer(no_check_nested));
   }
 
   {
