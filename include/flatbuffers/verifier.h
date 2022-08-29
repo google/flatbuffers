@@ -25,15 +25,27 @@ namespace flatbuffers {
 // Helper class to verify the integrity of a FlatBuffer
 class Verifier FLATBUFFERS_FINAL_CLASS {
  public:
+  struct Options {
+    uoffset_t max_depth = 64;
+    uoffset_t max_tables = 1000000;
+    bool check_alignment = true;
+    bool check_nested_flatbuffers = true;
+  };
+  Verifier(const uint8_t *const buf, const size_t buf_len, Options opts)
+      : Verifier(buf, buf_len, opts.max_depth, opts.max_tables,
+                 opts.check_alignment, opts.check_nested_flatbuffers) {}
+
   Verifier(const uint8_t *const buf, const size_t buf_len,
            const uoffset_t _max_depth = 64,
            const uoffset_t _max_tables = 1000000,
-           const bool _check_alignment = true)
+           const bool _check_alignment = true,
+           const bool _check_nested_flatbuffers = true)
       : buf_(buf),
         size_(buf_len),
         max_depth_(_max_depth),
         max_tables_(_max_tables),
         check_alignment_(_check_alignment),
+        check_nested_flatbuffers_(_check_nested_flatbuffers),
         upper_bound_(0),
         depth_(0),
         num_tables_(0),
@@ -204,11 +216,14 @@ class Verifier FLATBUFFERS_FINAL_CLASS {
   template<typename T>
   bool VerifyNestedFlatBuffer(const Vector<uint8_t> *const buf,
                               const char *const identifier) {
+    // Caller opted out of this.
+    if (!check_nested_flatbuffers_) return true;
+
     // An empty buffer is OK as it indicates not present.
     if (!buf) return true;
 
     // If there is a nested buffer, it must be greater than the min size.
-    if(!Check(buf->size() >= FLATBUFFERS_MIN_BUFFER_SIZE)) return false;
+    if (!Check(buf->size() >= FLATBUFFERS_MIN_BUFFER_SIZE)) return false;
 
     Verifier nested_verifier(buf->data(), buf->size());
     return nested_verifier.VerifyBuffer<T>(identifier);
@@ -291,6 +306,7 @@ class Verifier FLATBUFFERS_FINAL_CLASS {
   const uoffset_t max_depth_;
   const uoffset_t max_tables_;
   const bool check_alignment_;
+  const bool check_nested_flatbuffers_;
 
   mutable size_t upper_bound_;
 
