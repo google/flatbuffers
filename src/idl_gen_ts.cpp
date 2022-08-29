@@ -48,7 +48,7 @@ Namer::Config TypeScriptDefaultConfig() {
            /*variants=*/Case::kKeep,
            /*enum_variant_seperator=*/"::",
            /*escape_keywords=*/Namer::Config::Escape::AfterConvertingCase,
-           /*namespaces=*/Case::kUpperCamel,
+           /*namespaces=*/Case::kKeep,
            /*namespace_seperator=*/"_",
            /*object_prefix=*/"",
            /*object_suffix=*/"T",
@@ -167,8 +167,9 @@ class TsGenerator : public BaseGenerator {
       flat_file_definitions_.insert(&definition);
       return true;
     } else {
-      auto basename = namer_.Directories(*definition.defined_namespace) +
-                      namer_.File(definition, SkipFile::Suffix);
+      auto dirs = namer_.Directories(*definition.defined_namespace);
+      EnsureDirExists(dirs);
+      auto basename = dirs + namer_.File(definition, SkipFile::Suffix);
 
       return SaveFile(basename.c_str(), code, false);
     }
