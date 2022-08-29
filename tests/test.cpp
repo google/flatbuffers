@@ -30,6 +30,7 @@
 #include "monster_test.h"
 #include "monster_test_generated.h"
 #include "optional_scalars_test.h"
+#include "native_inline_table_test_generated.h"
 #include "parser_test.h"
 #include "proto_test.h"
 #include "reflection_test.h"
@@ -1084,6 +1085,14 @@ void NestedVerifierTest() {
     flatbuffers::Verifier verifier(builder.GetBufferPointer(),
                                    builder.GetSize());
     TEST_EQ(false, VerifyMonsterBuffer(verifier));
+
+    // Verify the root monster succeeds, since we've disabled checking nested
+    // flatbuffers
+    flatbuffers::Verifier::Options options;
+    options.check_nested_flatbuffers = false;
+    flatbuffers::Verifier no_check_nested(builder.GetBufferPointer(),
+                                          builder.GetSize(), options);
+    TEST_EQ(true, VerifyMonsterBuffer(no_check_nested));
   }
 
   {
@@ -1362,6 +1371,30 @@ void VectorSpanTest() {
   }
 }
 
+void NativeInlineTableVectorTest() {
+  TestNativeInlineTableT test;
+  for (int i = 0; i < 10; ++i) {
+    NativeInlineTableT t;
+    t.a = i;
+    test.t.push_back(t);
+  }
+
+  flatbuffers::FlatBufferBuilder fbb;
+  auto offset = TestNativeInlineTable::Pack(fbb, &test);
+  fbb.Finish(offset);
+
+  auto *root =
+      flatbuffers::GetRoot<TestNativeInlineTable>(fbb.GetBufferPointer());
+  TestNativeInlineTableT unpacked;
+  root->UnPackTo(&unpacked);
+
+  for (int i = 0; i < 10; ++i) {
+    TEST_ASSERT(unpacked.t[i] == test.t[i]);
+  }
+
+  TEST_ASSERT(unpacked.t == test.t);
+}
+
 int FlatBufferTests(const std::string &tests_data_path) {
   // Run our various test suites:
 
@@ -1460,6 +1493,7 @@ int FlatBufferTests(const std::string &tests_data_path) {
   PrivateAnnotationsLeaks();
   JsonUnsortedArrayTest();
   VectorSpanTest();
+  NativeInlineTableVectorTest();
   return 0;
 }
 }  // namespace
