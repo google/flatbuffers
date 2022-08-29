@@ -33,6 +33,9 @@ class IdlNamer : public Namer {
   std::string Type(const EnumDef &d) const { return Type(d.name); }
 
   std::string Function(const Definition &s) const { return Function(s.name); }
+  std::string Function(const std::string& prefix, const Definition &s) const {
+    return Function(prefix + s.name);
+  }
 
   std::string Field(const FieldDef &s) const { return Field(s.name); }
   std::string Field(const FieldDef &d, const std::string &s) const {
@@ -129,6 +132,12 @@ class IdlNamer : public Namer {
                                  const std::string &suffix) const {
     return prefix + ConvertCase(EscapeKeyword(d.name), Case::kUpperCamel) +
            suffix;
+  }
+
+  // This is a mix of snake case and keep casing, when Ts should be using
+  // lower camel case.
+  std::string LegacyTsMutateMethod(const FieldDef& d) {
+    return "mutate_" + d.name;
   }
 
  private:
