@@ -78,9 +78,21 @@ option(FLATBUFFERS_STRICT_MODE
       "Build flatbuffers with all warnings as errors (-Werror or /WX)."
       OFF)
 
+if(NOT DEFINED FLATBUFFERS_CPP_STD)
+  set(FLATBUFFERS_CPP_STD 11)
+endif()
+
 set(MSVC_LIKE OFF)
 if(MSVC OR CMAKE_CXX_COMPILER_FRONTEND_VARIANT STREQUAL "MSVC")
     set(MSVC_LIKE ON)
+endif()
+
+if(DEFINED FLATBUFFERS_COMPILATION_TIMINGS)
+  message("Recording Compilation Timings to ${FLATBUFFERS_COMPILATION_TIMINGS}")
+  file(REMOVE ${FLATBUFFERS_COMPILATION_TIMINGS})
+  set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE "time -f 'Wall: %E User: %U Sys: %S | %C' -q -a -o ${FLATBUFFERS_COMPILATION_TIMINGS}")
+  set_property(GLOBAL PROPERTY RULE_LAUNCH_CUSTOM "time -f 'Wall: %E User: %U Sys: %S | %C' -q -a -o ${FLATBUFFERS_COMPILATION_TIMINGS}")
+  set_property(GLOBAL PROPERTY RULE_LAUNCH_LINK "time -f 'Wall: %E User: %U Sys: %S | %C' -q -a -o ${FLATBUFFERS_COMPILATION_TIMINGS}")
 endif()
 
 if(NOT FLATBUFFERS_BUILD_FLATC AND FLATBUFFERS_BUILD_TESTS)
@@ -201,11 +213,21 @@ set(FlatHash_SRCS
 set(FlatBuffers_Tests_SRCS
   ${FlatBuffers_Library_SRCS}
   src/idl_gen_fbs.cpp
+  tests/evolution_test.cpp
+  tests/flexbuffers_test.cpp
+  tests/fuzz_test.cpp
+  tests/json_test.cpp
+  tests/monster_test.cpp
+  tests/optional_scalars_test.cpp
+  tests/parser_test.cpp
+  tests/proto_test.cpp
+  tests/reflection_test.cpp
   tests/test.cpp
   tests/test_assert.h
   tests/test_assert.cpp
   tests/test_builder.h
   tests/test_builder.cpp
+  tests/util_test.cpp
   tests/native_type_test_impl.h
   tests/native_type_test_impl.cpp
   include/flatbuffers/code_generators.h
@@ -227,6 +249,8 @@ set(FlatBuffers_Tests_SRCS
   ${CMAKE_CURRENT_BINARY_DIR}/tests/monster_test_bfbs_generated.h
   # file generate by running compiler on tests/optional_scalars.fbs
   ${CMAKE_CURRENT_BINARY_DIR}/tests/optional_scalars_generated.h
+  # file generate by running compiler on tests/native_inline_table_test.fbs
+  ${CMAKE_CURRENT_BINARY_DIR}/tests/native_inline_table_test_generated.h
 )
 
 set(FlatBuffers_Tests_CPP17_SRCS
@@ -334,7 +358,7 @@ include_directories(grpc)
 add_library(ProjectConfig INTERFACE)
 target_compile_features(ProjectConfig
   INTERFACE
-    cxx_std_11
+    cxx_std_${FLATBUFFERS_CPP_STD}
 )
 
 # Force the standard to be met.
@@ -358,26 +382,35 @@ if(MSVC_LIKE)
       >
   )
 else()
+  if("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
+    set(IS_CLANG ON)
+  else()
+    set(IS_CLANG OFF)
+  endif()
   target_compile_options(ProjectConfig
     INTERFACE
       -Wall
-      -Wno-unknown-warning-option
       $<$<BOOL:${FLATBUFFERS_STRICT_MODE}>:
         -Werror   # Treat all compiler warnings as errors
 
-        # False positive string overflow
-        # https://github.com/google/flatbuffers/issues/7366
-        -Wno-error=stringop-overflow
+        -fno-rtti # Disable runtime type information
+
+        $<$<CXX_COMPILER_ID:GNU>:
+          # False positive string overflow
+          # https://github.com/google/flatbuffers/issues/7366
+          -Wno-error=stringop-overflow
+        >
       >
       -pedantic 
       -Wextra 
       -Wno-unused-parameter
       -Wold-style-cast
-      -Wimplicit-fallthrough
       -fsigned-char
       -Wnon-virtual-dtor
 
-      $<$<CXX_COMPILER_ID:CLANG>:
+      # This isn't working for some reason: $<$<CXX_COMPILER_ID:CLANG>:
+      $<$<BOOL:${IS_CLANG}>:
+        -Wno-unknown-warning-option
         -Wmissing-declarations
         -Wzero-as-null-pointer-constant
         $<$<VERSION_GREATER:$<CXX_COMPILER_VERSION>,3.8>:
@@ -589,6 +622,7 @@ if(FLATBUFFERS_BUILD_TESTS)
   compile_flatbuffers_schema_to_cpp_opt(tests/arrays_test.fbs "--scoped-enums;--gen-compare")
   compile_flatbuffers_schema_to_binary(tests/arrays_test.fbs)
   compile_flatbuffers_schema_to_embedded_binary(tests/monster_test.fbs "--no-includes;--gen-compare")
+  compile_flatbuffers_schema_to_cpp(tests/native_inline_table_test.fbs "--gen-compare")
   if(NOT (MSVC AND (MSVC_VERSION LESS 1900)))
     compile_flatbuffers_schema_to_cpp(tests/monster_extra.fbs) # Test floating-point NAN/INF.
   endif()

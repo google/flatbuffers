@@ -38,6 +38,13 @@ struct ImportDefinition {
 };
 
 enum AnnotationType { kParam = 0, kType = 1, kReturns = 2 };
+
+template<typename T>
+struct SupportsObjectAPI : std::false_type {};
+
+template<>
+struct SupportsObjectAPI<StructDef> : std::true_type {};
+
 }  // namespace
 
 namespace ts {
@@ -712,9 +719,9 @@ class TsGenerator : public BaseGenerator {
     return symbols_expression;
   }
 
-  template<typename DefintionT>
+  template<typename DefinitionT>
   ImportDefinition AddImport(import_set &imports, const Definition &dependent,
-                             const DefintionT &dependency) {
+                             const DefinitionT &dependency) {
     // The unique name of the dependency, fully qualified in its namespace.
     const std::string unique_name = GetTypeName(
         dependency, /*object_api = */ false, /*force_ns_wrap=*/true);
@@ -748,8 +755,9 @@ class TsGenerator : public BaseGenerator {
                 // Strip the leading //
                 .substr(2);
         flat_file_import_declarations_[file][import_name] = name;
+
         if (parser_.opts.generate_object_based_api &&
-            typeid(dependency) == typeid(StructDef)) {
+            SupportsObjectAPI<DefinitionT>::value) {
           flat_file_import_declarations_[file][import_name + "T"] = object_name;
         }
       }

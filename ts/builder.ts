@@ -150,7 +150,7 @@ export class Builder {
   
     /**
      * Add an `int8` to the buffer, properly aligned, and grows the buffer (if necessary).
-     * @param value The `int8` to add the the buffer.
+     * @param value The `int8` to add the buffer.
      */
     addInt8(value: number): void {
       this.prep(1, 0);
@@ -159,7 +159,7 @@ export class Builder {
   
     /**
      * Add an `int16` to the buffer, properly aligned, and grows the buffer (if necessary).
-     * @param value The `int16` to add the the buffer.
+     * @param value The `int16` to add the buffer.
      */
     addInt16(value: number): void {
       this.prep(2, 0);
@@ -168,7 +168,7 @@ export class Builder {
   
     /**
      * Add an `int32` to the buffer, properly aligned, and grows the buffer (if necessary).
-     * @param value The `int32` to add the the buffer.
+     * @param value The `int32` to add the buffer.
      */
     addInt32(value: number): void {
       this.prep(4, 0);
@@ -177,7 +177,7 @@ export class Builder {
   
     /**
      * Add an `int64` to the buffer, properly aligned, and grows the buffer (if necessary).
-     * @param value The `int64` to add the the buffer.
+     * @param value The `int64` to add the buffer.
      */
     addInt64(value: bigint): void {
       this.prep(8, 0);
@@ -186,7 +186,7 @@ export class Builder {
   
     /**
      * Add a `float32` to the buffer, properly aligned, and grows the buffer (if necessary).
-     * @param value The `float32` to add the the buffer.
+     * @param value The `float32` to add the buffer.
      */
     addFloat32(value: number): void {
       this.prep(4, 0);
@@ -195,7 +195,7 @@ export class Builder {
   
     /**
      * Add a `float64` to the buffer, properly aligned, and grows the buffer (if necessary).
-     * @param value The `float64` to add the the buffer.
+     * @param value The `float64` to add the buffer.
      */
     addFloat64(value: number): void {
       this.prep(8, 0);
