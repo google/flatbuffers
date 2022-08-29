@@ -41,7 +41,7 @@ struct ImportDefinition {
 Namer::Config TypeScriptDefaultConfig() {
   return { /*types=*/Case::kKeep,
            /*constants=*/Case::kUnknown,
-           /*methods=*/Case::kUnknown,
+           /*methods=*/Case::kLowerCamel,
            /*functions=*/Case::kLowerCamel,
            /*fields=*/Case::kLowerCamel,
            /*variables=*/Case::kLowerCamel,
@@ -95,67 +95,8 @@ class TsGenerator : public BaseGenerator {
               const std::string &file_name)
       : BaseGenerator(parser, path, file_name, "", "_", "ts"),
         namer_(WithFlagOptions(TypeScriptDefaultConfig(), parser.opts, path),
-               TypescriptKeywords()) {
-    // clang-format off
+               TypescriptKeywords()) {}
 
-    // List of keywords retrieved from here:
-    // https://github.com/microsoft/TypeScript/issues/2536
-    // One per line to ease comparisons to that list are easier
-    static const char *const keywords[] = {
-      "arguments",
-      "break",
-      "case",
-      "catch",
-      "class",
-      "const",
-      "continue",
-      "debugger",
-      "default",
-      "delete",
-      "do",
-      "else",
-      "enum",
-      "export",
-      "extends",
-      "false",
-      "finally",
-      "for",
-      "function",
-      "if",
-      "import",
-      "in",
-      "instanceof",
-      "new",
-      "null",
-      "Object",
-      "return",
-      "super",
-      "switch",
-      "this",
-      "throw",
-      "true",
-      "try",
-      "typeof",
-      "var",
-      "void",
-      "while",
-      "with",
-      "as",
-      "implements",
-      "interface",
-      "let",
-      "package",
-      "private",
-      "protected",
-      "public",
-      "static",
-      "yield",
-      nullptr,
-      // clang-format on
-    };
-
-    for (auto kw = keywords; *kw; kw++) keywords_.insert(*kw);
-  }
   bool generate() {
     generateEnums();
     generateStructs();
@@ -234,12 +175,7 @@ class TsGenerator : public BaseGenerator {
   }
 
  private:
-  std::unordered_set<std::string> keywords_;
   IdlNamer namer_;
-
-  std::string EscapeKeyword(const std::string &name) const {
-    return keywords_.find(name) == keywords_.end() ? name : name + "_";
-  }
 
   import_set imports_all_;
 
@@ -322,8 +258,8 @@ class TsGenerator : public BaseGenerator {
               "./" + flatbuffers::StripExtension(include_file);
           code += "import {";
           for (const auto &pair : it.second) {
-            code += EscapeKeyword(pair.first) + " as " +
-                    EscapeKeyword(pair.second) + ", ";
+            code += namer_.EscapeKeyword(pair.first) + " as " +
+                    namer_.EscapeKeyword(pair.second) + ", ";
           }
           code.resize(code.size() - 2);
           code += "} from '" + include_name + "';\n";
@@ -478,7 +414,7 @@ class TsGenerator : public BaseGenerator {
             return AddImport(imports, *value.type.enum_def,
                              *value.type.enum_def)
                        .name +
-                   "." + EscapeKeyword(val->name);
+                   "." + namer_.Variant(*val);
           } else {
             return value.constant;
           }
@@ -608,7 +544,7 @@ class TsGenerator : public BaseGenerator {
   }
 
   std::string GenerateNewExpression(const std::string &object_name) {
-    return "new " + EscapeKeyword(object_name) + "()";
+    return "new " + namer_.Type(object_name) + "()";
   }
 
   void GenerateRootAccessor(StructDef &struct_def, std::string *code_ptr,
@@ -1831,8 +1767,8 @@ class TsGenerator : public BaseGenerator {
       code += "}\n";
 
       code += "\n";
-      code += "static deserialize(buffer: Uint8Array):" + EscapeKeyword(name) +
-              " {\n";
+      code += "static deserialize(buffer: Uint8Array):" +
+              namer_.EscapeKeyword(name) + " {\n";
       code += "  return " + AddImport(imports, struct_def, struct_def).name +
               ".getRootAs" + name + "(new flatbuffers.ByteBuffer(buffer))\n";
       code += "}\n";
