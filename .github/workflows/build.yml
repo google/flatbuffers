@@ -294,6 +294,7 @@ jobs:
       run: echo "::set-output name=hashes::$(shasum -a 256 Mac.flatc.binary.zip | base64)"
 
   build-android:
+   if: false
    name: Build Android (on Linux)
    runs-on: ubuntu-latest
    steps:
