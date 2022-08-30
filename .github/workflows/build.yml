@@ -351,7 +351,7 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - name: Install Dependencies
-      run: mvn dependency:resolve
+      run: mvn test
     - name: test
       working-directory: tests
       run: bash JavaTest.sh
