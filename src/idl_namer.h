@@ -131,6 +131,20 @@ class IdlNamer : public Namer {
            suffix;
   }
 
+  // Php functions for structs are a mix of keep case and lower camel case.
+  std::string LegacyPhpFunction(const std::string &prefix, const StructDef &d,
+                                const std::string &suffix) const {
+    return prefix + d.name + suffix;
+  }
+  std::string LegacyPhpFunction(const StructDef &d,
+                                const std::string &suffix) const {
+    return d.name + suffix;
+  }
+  std::string LegacyPhpFunction(const std::string &prefix,
+                                const StructDef &d) const {
+    return prefix + d.name;
+  }
+
  private:
   std::string NamespacedString(const struct Namespace *ns,
                                const std::string &str) const {
