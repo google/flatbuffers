@@ -350,6 +350,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
+    - name: Install Dependencies
+      run: mvn dependency:resolve
     - name: test
       working-directory: tests
       run: bash JavaTest.sh
