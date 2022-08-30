@@ -34,39 +34,25 @@ class Verifier FLATBUFFERS_FINAL_CLASS {
     bool check_alignment = true;
     // If true, run verifier on nested flatbuffers
     bool check_nested_flatbuffers = true;
-
-    // Manually implemented constructors for compilers that can't figure it out.
-    Options() = default;
-    Options(uoffset_t d, uoffset_t t, bool a, bool n)
-        : max_depth(d),
-          max_tables(t),
-          check_alignment(a),
-          check_nested_flatbuffers(n) {}
   };
 
-  Verifier(const uint8_t *const buf, const size_t buf_len, const Options opts)
-      : buf_(buf),
-        size_(buf_len),
-        opts_(opts),
-        upper_bound_(0),
-        depth_(0),
-        num_tables_(0),
-        flex_reuse_tracker_(nullptr) {
+  explicit Verifier(const uint8_t *const buf, const size_t buf_len,
+                    const Options &opts)
+      : buf_(buf), size_(buf_len), opts_(opts) {
     FLATBUFFERS_ASSERT(size_ < FLATBUFFERS_MAX_BUFFER_SIZE);
   }
 
   // Deprecated API, please construct with Verifier::Options.
   Verifier(const uint8_t *const buf, const size_t buf_len,
-           const uoffset_t _max_depth = 64,
-           const uoffset_t _max_tables = 1000000,
-           const bool _check_alignment = true)
-      : Verifier(buf, buf_len,
-                 {
-                     _max_depth,
-                     _max_tables,
-                     _check_alignment,
-                     true,
-                 }) {}
+           const uoffset_t max_depth = 64, const uoffset_t max_tables = 1000000,
+           const bool check_alignment = true)
+      : Verifier(buf, buf_len, [&] {
+          Options opts;
+          opts.max_depth = max_depth;
+          opts.max_tables = max_tables;
+          opts.check_alignment = check_alignment;
+          return opts;
+        }()) {}
 
   // Central location where any verification failures register.
   bool Check(const bool ok) const {
@@ -153,8 +139,8 @@ class Verifier FLATBUFFERS_FINAL_CLASS {
     const auto veco = static_cast<size_t>(vec - buf_);
     // Check we can read the size field.
     if (!Verify<uoffset_t>(veco)) return false;
-    // Check the whole array. If this is a string, the byte past the array
-    // must be 0.
+    // Check the whole array. If this is a string, the byte past the array must
+    // be 0.
     const auto size = ReadScalar<uoffset_t>(vec);
     const auto max_elems = FLATBUFFERS_MAX_BUFFER_SIZE / elem_size;
     if (!Check(size < max_elems))
@@ -277,9 +263,8 @@ class Verifier FLATBUFFERS_FINAL_CLASS {
   }
 
   // Called at the start of a table to increase counters measuring data
-  // structure depth and amount, and possibly bails out with false if
-  // limits set by the constructor have been hit. Needs to be balanced
-  // with EndTable().
+  // structure depth and amount, and possibly bails out with false if limits set
+  // by the constructor have been hit. Needs to be balanced with EndTable().
   bool VerifyComplexity() {
     depth_++;
     num_tables_++;
@@ -320,11 +305,11 @@ class Verifier FLATBUFFERS_FINAL_CLASS {
   const size_t size_;
   const Options opts_;
 
-  mutable size_t upper_bound_;
+  mutable size_t upper_bound_ = 0;
 
-  uoffset_t depth_;
-  uoffset_t num_tables_;
-  std::vector<uint8_t> *flex_reuse_tracker_;
+  uoffset_t depth_ = 0;
+  uoffset_t num_tables_ = 0;
+  std::vector<uint8_t> *flex_reuse_tracker_ = nullptr;
 };
 
 }  // namespace flatbuffers
