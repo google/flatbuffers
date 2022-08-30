@@ -464,6 +464,10 @@ inline bool IsStruct(const Type &type) {
   return type.base_type == BASE_TYPE_STRUCT && type.struct_def->fixed;
 }
 
+inline bool IsTable(const Type &type) {
+  return type.base_type == BASE_TYPE_STRUCT && !type.struct_def->fixed;
+}
+
 inline bool IsUnion(const Type &type) {
   return type.enum_def != nullptr && type.enum_def->is_union;
 }
@@ -474,6 +478,14 @@ inline bool IsUnionType(const Type &type) {
 
 inline bool IsVector(const Type &type) {
   return type.base_type == BASE_TYPE_VECTOR;
+}
+
+inline bool IsVectorOfStruct(const Type& type) {
+  return IsVector(type) && IsStruct(type.VectorType());
+}
+
+inline bool IsVectorOfTable(const Type& type) {
+  return IsVector(type) && IsTable(type.VectorType());
 }
 
 inline bool IsArray(const Type &type) {

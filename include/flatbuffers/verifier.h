@@ -25,21 +25,34 @@ namespace flatbuffers {
 // Helper class to verify the integrity of a FlatBuffer
 class Verifier FLATBUFFERS_FINAL_CLASS {
  public:
-  Verifier(const uint8_t *const buf, const size_t buf_len,
-           const uoffset_t _max_depth = 64,
-           const uoffset_t _max_tables = 1000000,
-           const bool _check_alignment = true)
-      : buf_(buf),
-        size_(buf_len),
-        max_depth_(_max_depth),
-        max_tables_(_max_tables),
-        check_alignment_(_check_alignment),
-        upper_bound_(0),
-        depth_(0),
-        num_tables_(0),
-        flex_reuse_tracker_(nullptr) {
+  struct Options {
+    // The maximum nesting of tables and vectors before we call it invalid.
+    uoffset_t max_depth = 64;
+    // The maximum number of tables we will verify before we call it invalid.
+    uoffset_t max_tables = 1000000;
+    // If true, verify all data is aligned.
+    bool check_alignment = true;
+    // If true, run verifier on nested flatbuffers
+    bool check_nested_flatbuffers = true;
+  };
+
+  explicit Verifier(const uint8_t *const buf, const size_t buf_len,
+                    const Options &opts)
+      : buf_(buf), size_(buf_len), opts_(opts) {
     FLATBUFFERS_ASSERT(size_ < FLATBUFFERS_MAX_BUFFER_SIZE);
   }
+
+  // Deprecated API, please construct with Verifier::Options.
+  Verifier(const uint8_t *const buf, const size_t buf_len,
+           const uoffset_t max_depth = 64, const uoffset_t max_tables = 1000000,
+           const bool check_alignment = true)
+      : Verifier(buf, buf_len, [&] {
+          Options opts;
+          opts.max_depth = max_depth;
+          opts.max_tables = max_tables;
+          opts.check_alignment = check_alignment;
+          return opts;
+        }()) {}
 
   // Central location where any verification failures register.
   bool Check(const bool ok) const {
@@ -68,7 +81,7 @@ class Verifier FLATBUFFERS_FINAL_CLASS {
   }
 
   bool VerifyAlignment(const size_t elem, const size_t align) const {
-    return Check((elem & (align - 1)) == 0 || !check_alignment_);
+    return Check((elem & (align - 1)) == 0 || !opts_.check_alignment);
   }
 
   // Verify a range indicated by sizeof(T).
@@ -126,8 +139,8 @@ class Verifier FLATBUFFERS_FINAL_CLASS {
     const auto veco = static_cast<size_t>(vec - buf_);
     // Check we can read the size field.
     if (!Verify<uoffset_t>(veco)) return false;
-    // Check the whole array. If this is a string, the byte past the array
-    // must be 0.
+    // Check the whole array. If this is a string, the byte past the array must
+    // be 0.
     const auto size = ReadScalar<uoffset_t>(vec);
     const auto max_elems = FLATBUFFERS_MAX_BUFFER_SIZE / elem_size;
     if (!Check(size < max_elems))
@@ -158,7 +171,7 @@ class Verifier FLATBUFFERS_FINAL_CLASS {
     return true;
   }
 
-  __supress_ubsan__("unsigned-integer-overflow") bool VerifyTableStart(
+  __suppress_ubsan__("unsigned-integer-overflow") bool VerifyTableStart(
       const uint8_t *const table) {
     // Check the vtable offset.
     const auto tableo = static_cast<size_t>(table - buf_);
@@ -204,11 +217,14 @@ class Verifier FLATBUFFERS_FINAL_CLASS {
   template<typename T>
   bool VerifyNestedFlatBuffer(const Vector<uint8_t> *const buf,
                               const char *const identifier) {
+    // Caller opted out of this.
+    if (!opts_.check_nested_flatbuffers) return true;
+
     // An empty buffer is OK as it indicates not present.
     if (!buf) return true;
 
     // If there is a nested buffer, it must be greater than the min size.
-    if(!Check(buf->size() >= FLATBUFFERS_MIN_BUFFER_SIZE)) return false;
+    if (!Check(buf->size() >= FLATBUFFERS_MIN_BUFFER_SIZE)) return false;
 
     Verifier nested_verifier(buf->data(), buf->size());
     return nested_verifier.VerifyBuffer<T>(identifier);
@@ -247,13 +263,12 @@ class Verifier FLATBUFFERS_FINAL_CLASS {
   }
 
   // Called at the start of a table to increase counters measuring data
-  // structure depth and amount, and possibly bails out with false if
-  // limits set by the constructor have been hit. Needs to be balanced
-  // with EndTable().
+  // structure depth and amount, and possibly bails out with false if limits set
+  // by the constructor have been hit. Needs to be balanced with EndTable().
   bool VerifyComplexity() {
     depth_++;
     num_tables_++;
-    return Check(depth_ <= max_depth_ && num_tables_ <= max_tables_);
+    return Check(depth_ <= opts_.max_depth && num_tables_ <= opts_.max_tables);
   }
 
   // Called at the end of a table to pop the depth count.
@@ -288,15 +303,13 @@ class Verifier FLATBUFFERS_FINAL_CLASS {
  private:
   const uint8_t *buf_;
   const size_t size_;
-  const uoffset_t max_depth_;
-  const uoffset_t max_tables_;
-  const bool check_alignment_;
+  const Options opts_;
 
-  mutable size_t upper_bound_;
+  mutable size_t upper_bound_ = 0;
 
-  uoffset_t depth_;
-  uoffset_t num_tables_;
-  std::vector<uint8_t> *flex_reuse_tracker_;
+  uoffset_t depth_ = 0;
+  uoffset_t num_tables_ = 0;
+  std::vector<uint8_t> *flex_reuse_tracker_ = nullptr;
 };
 
 }  // namespace flatbuffers
