@@ -500,12 +500,12 @@ class KotlinGenerator : public BaseGenerator {
         if (!struct_def.fixed) {
           FieldDef *key_field = nullptr;
 
-          // Generate verson check method.
+          // Generate version check method.
           // Force compile time error if not using the same version
           // runtime.
           GenerateFunOneLine(
               writer, "validateVersion", "", "",
-              [&]() { writer += "Constants.FLATBUFFERS_2_0_0()"; },
+              [&]() { writer += "Constants.FLATBUFFERS_2_0_8()"; },
               options.gen_jvmstatic);
 
           GenerateGetRootAsAccessors(namer_.Type(struct_def), writer, options);
