@@ -294,6 +294,7 @@ jobs:
       run: echo "::set-output name=hashes::$(shasum -a 256 Mac.flatc.binary.zip | base64)"
 
   build-android:
+   if: false
    name: Build Android (on Linux)
    runs-on: ubuntu-latest
    steps:
@@ -446,8 +447,10 @@ jobs:
     - name: flatc
       # FIXME: make test script not rely on flatc
       run: cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release -DFLATBUFFERS_BUILD_TESTS=OFF -DFLATBUFFERS_INSTALL=OFF -DFLATBUFFERS_BUILD_FLATLIB=OFF -DFLATBUFFERS_BUILD_FLATHASH=OFF . && make -j
+    - name: deps
+      run: yarn
     - name: compile
-      run: npm run compile
+      run: yarn compile
     - name: test
       working-directory: tests
       run: python3 TypeScriptTest.py
