@@ -2,8 +2,6 @@
 
   <PropertyGroup>
     <TargetFrameworks>netstandard2.1;netstandard2.0;net46</TargetFrameworks>
-    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
-    <PackageId>Google.FlatBuffers</PackageId>
     <Description>A cross-platform memory efficient serialization library</Description>
     <PackageVersion>2.0.8-beta.1</PackageVersion>
     <Authors>Google LLC</Authors>
@@ -14,6 +12,8 @@
     <PackageIcon>flatbuffers.png</PackageIcon>
     <PackageTags>Google;FlatBuffers;Serialization;Buffer;Binary;zero copy</PackageTags>
     <Copyright>Copyright 2022 Google LLC</Copyright>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(UNSAFE_BYTEBUFFER)' == 'true'">
@@ -29,6 +29,10 @@
 
   <ItemGroup Condition="('$(ENABLE_SPAN_T)' == 'true') And (('$(TargetFramework)' == 'netstandard2.0') Or ('$(TargetFramework)' == 'net46'))">
     <PackageReference Include="System.Memory" Version="4.5.4" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.1.1" PrivateAssets="All" />
   </ItemGroup>
 
   <ItemGroup>
