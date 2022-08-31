@@ -164,7 +164,7 @@ struct Type {
         enum_def(_ed),
         fixed_length(_fixed_length) {}
 
-  bool operator==(const Type &o) {
+  bool operator==(const Type &o) const {
     return base_type == o.base_type && element == o.element &&
            struct_def == o.struct_def && enum_def == o.enum_def;
   }
@@ -295,7 +295,7 @@ struct FieldDef : public Definition {
         native_inline(false),
         flexbuffer(false),
         presence(kDefault),
-        nested_flatbuffer(NULL),
+        nested_flatbuffer(nullptr),
         padding(0) {}
 
   Offset<reflection::Field> Serialize(FlatBufferBuilder *builder, uint16_t id,
@@ -464,6 +464,10 @@ inline bool IsStruct(const Type &type) {
   return type.base_type == BASE_TYPE_STRUCT && type.struct_def->fixed;
 }
 
+inline bool IsTable(const Type &type) {
+  return type.base_type == BASE_TYPE_STRUCT && !type.struct_def->fixed;
+}
+
 inline bool IsUnion(const Type &type) {
   return type.enum_def != nullptr && type.enum_def->is_union;
 }
@@ -474,6 +478,14 @@ inline bool IsUnionType(const Type &type) {
 
 inline bool IsVector(const Type &type) {
   return type.base_type == BASE_TYPE_VECTOR;
+}
+
+inline bool IsVectorOfStruct(const Type& type) {
+  return IsVector(type) && IsStruct(type.VectorType());
+}
+
+inline bool IsVectorOfTable(const Type& type) {
+  return IsVector(type) && IsTable(type.VectorType());
 }
 
 inline bool IsArray(const Type &type) {
@@ -537,6 +549,24 @@ struct ServiceDef : public Definition {
   SymbolTable<RPCCall> calls;
 };
 
+struct IncludedFile {
+  // The name of the schema file being included, as defined in the .fbs file.
+  // This includes the prefix (e.g., include "foo/bar/baz.fbs" would mean this
+  // value is "foo/bar/baz.fbs").
+  std::string schema_name;
+
+  // The filename of where the included file was found, after searching the
+  // relative paths plus any other paths included with `flatc -I ...`. Note,
+  // while this is sometimes the same as schema_name, it is not always, since it
+  // can be defined relative to where flatc was invoked.
+  std::string filename;
+};
+
+// Since IncludedFile is contained within a std::set, need to provide ordering.
+inline bool operator<(const IncludedFile &a, const IncludedFile &b) {
+  return a.filename < b.filename;
+}
+
 // Container of options that may apply to any of the source/text generators.
 struct IDLOptions {
   // field case style options for C++
@@ -577,7 +607,7 @@ struct IDLOptions {
   bool allow_non_utf8;
   bool natural_utf8;
   std::string include_prefix;
-  bool keep_include_path;
+  bool keep_prefix;
   bool binary_schema_comments;
   bool binary_schema_builtins;
   bool binary_schema_gen_embed;
@@ -683,7 +713,7 @@ struct IDLOptions {
         union_value_namespacing(true),
         allow_non_utf8(false),
         natural_utf8(false),
-        keep_include_path(false),
+        keep_prefix(false),
         binary_schema_comments(false),
         binary_schema_builtins(false),
         binary_schema_gen_embed(false),
@@ -914,7 +944,7 @@ class Parser : public ParserState {
   // Get the set of included files that are directly referenced by the file
   // being parsed. This does not include files that are transitively included by
   // others includes.
-  std::vector<std::string> GetIncludedFiles() const;
+  std::vector<IncludedFile> GetIncludedFiles() const;
 
  private:
   class ParseDepthGuard;
@@ -1043,7 +1073,7 @@ class Parser : public ParserState {
   std::string file_extension_;
 
   std::map<uint64_t, std::string> included_files_;
-  std::map<std::string, std::set<std::string>> files_included_per_file_;
+  std::map<std::string, std::set<IncludedFile>> files_included_per_file_;
   std::vector<std::string> native_included_files_;
 
   std::map<std::string, bool> known_attributes_;
@@ -1054,10 +1084,10 @@ class Parser : public ParserState {
 
   uint64_t advanced_features_;
 
+  std::string file_being_parsed_;
+
  private:
   const char *source_;
-
-  std::string file_being_parsed_;
 
   std::vector<std::pair<Value, FieldDef *>> field_stack_;
 

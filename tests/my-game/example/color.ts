@@ -3,7 +3,7 @@
 /**
  * Composite components of Monster color.
  */
-export enum Color{
+export enum Color {
   Red = 1,
 
   /**
@@ -17,4 +17,3 @@ export enum Color{
    */
   Blue = 8
 }
-

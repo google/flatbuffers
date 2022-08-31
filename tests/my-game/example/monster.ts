@@ -2,7 +2,7 @@
 
 import * as flatbuffers from 'flatbuffers';
 
-import { Monster as MyGameExample2Monster, MonsterT as MyGameExample2MonsterT } from '../../my-game/example2/monster';
+import { Monster as MyGame_Example2_Monster, MonsterT as MyGame_Example2_MonsterT } from '../../my-game/example2/monster';
 import { Ability, AbilityT } from '../../my-game/example/ability';
 import { Any, unionToAny, unionListToAny } from '../../my-game/example/any';
 import { AnyAmbiguousAliases, unionToAnyAmbiguousAliases, unionListToAnyAmbiguousAliases } from '../../my-game/example/any-ambiguous-aliases';
@@ -23,7 +23,7 @@ import { InParentNamespace, InParentNamespaceT } from '../../my-game/in-parent-n
 export class Monster {
   bb: flatbuffers.ByteBuffer|null = null;
   bb_pos = 0;
-__init(i:number, bb:flatbuffers.ByteBuffer):Monster {
+  __init(i:number, bb:flatbuffers.ByteBuffer):Monster {
   this.bb_pos = i;
   this.bb = bb;
   return this;
@@ -684,7 +684,7 @@ mutate_long_enum_normal_default(value:bigint):boolean {
 }
 
 static getFullyQualifiedName():string {
-  return 'MyGame.Example.Monster';
+  return 'MyGame_Example_Monster';
 }
 
 static startMonster(builder:flatbuffers.Builder) {
@@ -1296,7 +1296,7 @@ constructor(
   public inventory: (number)[] = [],
   public color: Color = Color.Blue,
   public testType: Any = Any.NONE,
-  public test: MonsterT|MyGameExample2MonsterT|TestSimpleTableWithEnumT|null = null,
+  public test: MonsterT|MyGame_Example2_MonsterT|TestSimpleTableWithEnumT|null = null,
   public test4: (TestT)[] = [],
   public testarrayofstring: (string)[] = [],
   public testarrayoftables: (MonsterT)[] = [],
@@ -1332,7 +1332,7 @@ constructor(
   public nonOwningReference: bigint = BigInt('0'),
   public vectorOfNonOwningReferences: (bigint)[] = [],
   public anyUniqueType: AnyUniqueAliases = AnyUniqueAliases.NONE,
-  public anyUnique: MonsterT|MyGameExample2MonsterT|TestSimpleTableWithEnumT|null = null,
+  public anyUnique: MonsterT|MyGame_Example2_MonsterT|TestSimpleTableWithEnumT|null = null,
   public anyAmbiguousType: AnyAmbiguousAliases = AnyAmbiguousAliases.NONE,
   public anyAmbiguous: MonsterT|null = null,
   public vectorOfEnums: (Color)[] = [],

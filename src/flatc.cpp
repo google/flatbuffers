@@ -25,7 +25,7 @@
 
 namespace flatbuffers {
 
-const char *FLATC_VERSION() { return FLATBUFFERS_VERSION(); }
+static const char *FLATC_VERSION() { return FLATBUFFERS_VERSION(); }
 
 void FlatCompiler::ParseFile(
     flatbuffers::Parser &parser, const std::string &filename,
@@ -433,7 +433,7 @@ int FlatCompiler::Compile(int argc, const char **argv) {
         opts.include_prefix = flatbuffers::ConCatPathFileName(
             flatbuffers::PosixPath(argv[argi]), "");
       } else if (arg == "--keep-prefix") {
-        opts.keep_include_path = true;
+        opts.keep_prefix = true;
       } else if (arg == "--strict-json") {
         opts.strict_json = true;
       } else if (arg == "--allow-non-utf8") {
@@ -643,10 +643,6 @@ int FlatCompiler::Compile(int argc, const char **argv) {
         "well.");
   }
 
-  if (opts.ts_flat_file && opts.generate_all) {
-    Error("Combining --ts-flat-file and --gen-all is not supported.");
-  }
-
   flatbuffers::Parser conform_parser;
   if (!conform_to_schema.empty()) {
     std::string contents;
@@ -853,7 +849,7 @@ int FlatCompiler::Compile(int argc, const char **argv) {
           if (params_.generators[i].generateGRPC != nullptr) {
             if (!params_.generators[i].generateGRPC(*parser.get(), output_path,
                                                     filebase)) {
-              Error(std::string("Unable to generate GRPC interface for") +
+              Error(std::string("Unable to generate GRPC interface for ") +
                     params_.generators[i].lang_name);
             }
           } else {

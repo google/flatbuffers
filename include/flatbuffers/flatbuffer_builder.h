@@ -358,7 +358,7 @@ class FlatBufferBuilder {
     // If you get this assert, a corresponding StartTable wasn't called.
     FLATBUFFERS_ASSERT(nested);
     // Write the vtable offset, which is the start of any Table.
-    // We fill it's value later.
+    // We fill its value later.
     auto vtableoffsetloc = PushElement<soffset_t>(0);
     // Write a vtable, which consists entirely of voffset_t elements.
     // It starts with the number of offsets, followed by a type id, followed
@@ -579,7 +579,7 @@ class FlatBufferBuilder {
   /// @param[in] str A const pointer to a `String` struct to add to the buffer.
   /// @return Returns the offset in the buffer where the string starts
   Offset<String> CreateSharedString(const String *str) {
-    return CreateSharedString(str->c_str(), str->size());
+    return str ? CreateSharedString(str->c_str(), str->size()) : 0;
   }
 
   /// @cond FLATBUFFERS_INTERNAL
@@ -747,7 +747,7 @@ class FlatBufferBuilder {
 
   /// @brief Serialize a collection of Strings into a FlatBuffer `vector`.
   /// This is a convenience function for a common case.
-  /// @param begin The begining iterator of the collection
+  /// @param begin The beginning iterator of the collection
   /// @param end The ending iterator of the collection
   /// @return Returns a typed `Offset` into the serialized data indicating
   /// where the vector is stored.
@@ -757,7 +757,7 @@ class FlatBufferBuilder {
     auto scratch_buffer_usage = size * sizeof(Offset<String>);
     // If there is not enough space to store the offsets, there definitely won't
     // be enough space to store all the strings. So ensuring space for the
-    // scratch region is OK, for it it fails, it would have failed later.
+    // scratch region is OK, for if it fails, it would have failed later.
     buf_.ensure_space(scratch_buffer_usage);
     for (auto it = begin; it != end; ++it) {
       buf_.scratch_push_small(CreateString(*it));

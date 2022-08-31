@@ -31,24 +31,22 @@ run 'flattests' or `flatsampletext`, or it will fail to load its files.*
 
 ### Make all warnings into errors
 
-By default all Flatbuffers `cmake` targets are build with `-Werror` flag.
-With this flag (or `/WX` for MSVC) C++ compiler will treat all warnings as errors.
-Additionally `-Wall -pedantic -Wextra` (or `/W4` form MSVC) flags are set.
-These flags minimize the number of possible defects in code and keep code highly portable.
-Using these flags is considered good practice but sometimes it can break dependent projects 
-if a compiler is upgraded or a toolset is changed.
-Usually, newer compiler versions add new compile-time diagnostics that were unavailable before.
-These new diagnostic warnings could stop the build process if `-Werror` flag is set.
+By default all Flatbuffers `cmake` targets are **not** built with the `-Werror` 
+(or `/WX` for MSVC) flag that treats any warning as an error. This allows more 
+flexibility for users of Flatbuffers to use newer compilers and toolsets that
+may add new warnings that would cause a build failure.
 
-It is possible to cancel `warnings as errors` flag at `cmake` configuration stage using 
-`FLATBUFFERS_CXX_FLAGS` option. Compilation flags declared in `FLATBUFFERS_CXX_FLAGS` will be 
-appended to the project-level `CMAKE_CXX_FLAGS` variable.
-Examples:
+To enable a stricter build that does treat warnings as errors, set the
+`FLATBUFFERS_STRICT_MODE` `cmake` compliation flag to `ON`. 
 
-- GCC and Clang: `cmake . -D FLATBUFFERS_CXX_FLAGS="-Wno-error"`
-- MSVC: `cmake . -D FLATBUFFERS_CXX_FLAGS="/WX-"`
-- MSVC: `cmake . -D FLATBUFFERS_CXX_FLAGS="/Wv <compiler.version>"`
+```
+cmake . -DFLATBUFFERS_STRICT_MODE=ON
+```
 
+Our CI builds run with strict mode on, ensuring the code that is committed to 
+the project is as portable and warning free as possible. Thus developers
+contributing to the project should enable strict mode locally before making a 
+PR.
 
 ## Building with VCPKG
 
@@ -62,6 +60,18 @@ You can download and install flatbuffers using the [vcpkg](https://github.com/Mi
 
 The flatbuffers port in vcpkg is kept up to date by Microsoft team members and community contributors.
 If the version is out of date, please [create an issue or pull request](https://github.com/Microsoft/vcpkg) on the vcpkg repository.
+
+## Downloading binaries
+You can download the binaries from the
+[GitHub release page](https://github.com/google/flatbuffers/releases).
+
+We generate [SLSA3 signatures](slsa.dev) using the OpenSSF's [slsa-framework/slsa-github-generator](https://github.com/slsa-framework/slsa-github-generator). To verify the binaries:
+1. Install the verification tool from [slsa-framework/slsa-verifier#installation](https://github.com/slsa-framework/slsa-verifier#installation)
+1. Download the file named `attestation.intoto.jsonl` from the GitHub release
+1. Run:
+```shell
+$ slsa-verifier -artifact-path <downloaded.zip> -provenance attestation.intoto.jsonl -source github.com/google/flatbuffers -tag <version>
+  PASSED: Verified SLSA provenance
 
 ## Building for Android
 

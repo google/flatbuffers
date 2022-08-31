@@ -26,6 +26,10 @@
 #include "flatbuffers/idl.h"
 #include "flatbuffers/util.h"
 
+#ifndef FLATBUFFERS_CPP_OBJECT_UNPACKTO
+#define FLATBUFFERS_CPP_OBJECT_UNPACKTO 0
+#endif
+
 namespace flatbuffers {
 
 // Make numerical literal with type-suffix.
@@ -68,6 +72,15 @@ static std::string GenIncludeGuard(const std::string &file_name,
   guard += "H_";
   std::transform(guard.begin(), guard.end(), guard.begin(), CharToUpper);
   return guard;
+}
+
+static bool IsVectorOfPointers(const FieldDef& field) {
+  const auto& type = field.value.type;
+  const auto& vector_type = type.VectorType();
+  return type.base_type == BASE_TYPE_VECTOR &&
+         vector_type.base_type == BASE_TYPE_STRUCT &&
+         !vector_type.struct_def->fixed &&
+         !field.native_inline;
 }
 
 namespace cpp {
@@ -229,21 +242,27 @@ class CppGenerator : public BaseGenerator {
     }
 
     // Get the directly included file of the file being parsed.
-    std::vector<std::string> included_files(parser_.GetIncludedFiles());
+    std::vector<IncludedFile> included_files(parser_.GetIncludedFiles());
 
     // We are safe to sort them alphabetically, since there shouldn't be any
     // interdependence between them.
     std::stable_sort(included_files.begin(), included_files.end());
 
-    for (const std::string &included_file : included_files) {
-      auto noext = flatbuffers::StripExtension(included_file);
-      code_ +=
-          "#include \"" +
-          GeneratedFileName(
-              opts_.include_prefix,
-              opts_.keep_include_path ? noext : flatbuffers::StripPath(noext),
-              opts_) +
-          "\"";
+    for (const IncludedFile &included_file : included_files) {
+      // Get the name of the included file as defined by the schema, and strip
+      // the .fbs extension.
+      const std::string name_without_ext =
+          flatbuffers::StripExtension(included_file.schema_name);
+
+      // If we are told to keep the prefix of the included schema, leave it
+      // unchanged, otherwise strip the leading path off so just the "basename"
+      // of the include is retained.
+      const std::string basename =
+          opts_.keep_prefix ? name_without_ext
+                            : flatbuffers::StripPath(name_without_ext);
+
+      code_ += "#include \"" +
+               GeneratedFileName(opts_.include_prefix, basename, opts_) + "\"";
     }
 
     if (!parser_.native_included_files_.empty() || !included_files.empty()) {
@@ -875,7 +894,9 @@ class CppGenerator : public BaseGenerator {
           }
         } else {
           const auto nn = WrapNativeNameInNameSpace(*type.struct_def, opts_);
-          return forcopy ? nn : GenTypeNativePtr(nn, &field, false);
+          return (forcopy || field.native_inline)
+                     ? nn
+                     : GenTypeNativePtr(nn, &field, false);
         }
       }
       case BASE_TYPE_UNION: {
@@ -1861,9 +1882,7 @@ class CppGenerator : public BaseGenerator {
         if (vec_type.base_type == BASE_TYPE_UTYPE) continue;
         const auto cpp_type = field.attributes.Lookup("cpp_type");
         const auto cpp_ptr_type = field.attributes.Lookup("cpp_ptr_type");
-        const bool is_ptr =
-            (vec_type.base_type == BASE_TYPE_STRUCT && !IsStruct(vec_type)) ||
-            (cpp_type && cpp_ptr_type->constant != "naked");
+        const bool is_ptr = IsVectorOfPointers(field) || (cpp_type && cpp_ptr_type->constant != "naked");
         if (is_ptr) { return true; }
       }
     }
@@ -1987,9 +2006,7 @@ class CppGenerator : public BaseGenerator {
                                    ? cpp_type->constant
                                    : GenTypeNative(vec_type, /*invector*/ true,
                                                    field, /*forcopy*/ true);
-        const bool is_ptr =
-            (vec_type.base_type == BASE_TYPE_STRUCT && !IsStruct(vec_type)) ||
-            (cpp_type && cpp_ptr_type->constant != "naked");
+        const bool is_ptr = IsVectorOfPointers(field) || (cpp_type && cpp_ptr_type->constant != "naked");
         CodeWriter cw("  ");
         cw.SetValue("FIELD", Name(field));
         cw.SetValue("TYPE", type_name);
@@ -2054,19 +2071,39 @@ class CppGenerator : public BaseGenerator {
     for (auto it = struct_def.fields.vec.begin();
          it != struct_def.fields.vec.end(); ++it) {
       const auto &field = **it;
+      const auto accessor = Name(field) + accessSuffix;
+      const auto lhs_accessor = "lhs." + accessor;
+      const auto rhs_accessor = "rhs." + accessor;
+
       if (!field.deprecated &&  // Deprecated fields won't be accessible.
           field.value.type.base_type != BASE_TYPE_UTYPE &&
           (field.value.type.base_type != BASE_TYPE_VECTOR ||
            field.value.type.element != BASE_TYPE_UTYPE)) {
         if (!compare_op.empty()) { compare_op += " &&\n      "; }
-        auto accessor = Name(field) + accessSuffix;
         if (struct_def.fixed || field.native_inline ||
             field.value.type.base_type != BASE_TYPE_STRUCT) {
-          compare_op += "(lhs." + accessor + " == rhs." + accessor + ")";
+          // If the field is a vector of tables, the table need to be compared
+          // by value, instead of by the default unique_ptr == operator which
+          // compares by address.
+          if (IsVectorOfPointers(field)) {
+            const auto type =
+                GenTypeNative(field.value.type.VectorType(), true, field);
+            const auto equal_length =
+                lhs_accessor + ".size() == " + rhs_accessor + ".size()";
+            const auto elements_equal =
+                "std::equal(" + lhs_accessor + ".cbegin(), " + lhs_accessor +
+                ".cend(), " + rhs_accessor + ".cbegin(), [](" + type +
+                " const &a, " + type +
+                " const &b) { return (a == b) || (a && b && *a == *b); })";
+
+            compare_op += "(" + equal_length + " && " + elements_equal + ")";
+          } else {
+            compare_op += "(" + lhs_accessor + " == " + rhs_accessor + ")";
+          }
         } else {
           // Deep compare of std::unique_ptr. Null is not equal to empty.
           std::string both_null =
-              "(lhs." + accessor + " == rhs." + accessor + ")";
+              "(" + lhs_accessor + " == " + rhs_accessor + ")";
           std::string not_null_and_equal = "(lhs." + accessor + " && rhs." +
                                            accessor + " && *lhs." + accessor +
                                            " == *rhs." + accessor + ")";
@@ -2947,7 +2984,8 @@ class CppGenerator : public BaseGenerator {
             return ptype + "(new " + name + "(*" + val + "))";
           }
         } else {
-          const auto ptype = GenTypeNativePtr(
+          std::string ptype = afield.native_inline ? "*" : "";
+          ptype += GenTypeNativePtr(
               WrapNativeNameInNameSpace(*type.struct_def, opts_), &afield,
               true);
           return ptype + "(" + val + "->UnPack(_resolver))";
@@ -3032,19 +3070,23 @@ class CppGenerator : public BaseGenerator {
               code += "/* else do nothing */";
             }
           } else {
-            const bool is_pointer =
-                field.value.type.VectorType().base_type == BASE_TYPE_STRUCT &&
-                !IsStruct(field.value.type.VectorType());
+            // clang-format off
+            #if FLATBUFFERS_CPP_OBJECT_UNPACKTO
+            const bool is_pointer = IsVectorOfPointers(field);
             if (is_pointer) {
               code += "if(_o->" + name + "[_i]" + ") { ";
               code += indexing + "->UnPackTo(_o->" + name +
                       "[_i].get(), _resolver);";
               code += " } else { ";
             }
+            #endif
             code += "_o->" + name + "[_i]" + access + " = ";
             code += GenUnpackVal(field.value.type.VectorType(), indexing, true,
                                  field);
+            #if FLATBUFFERS_CPP_OBJECT_UNPACKTO
             if (is_pointer) { code += "; }"; }
+            #endif
+            // clang-format on
           }
           code += "; } }";
         }
@@ -3091,17 +3133,21 @@ class CppGenerator : public BaseGenerator {
         } else {
           // Generate code for assigning the value, of the form:
           //  _o->field = value;
-          const bool is_pointer =
-              field.value.type.base_type == BASE_TYPE_STRUCT &&
-              !IsStruct(field.value.type);
+          // clang-format off
+          #if FLATBUFFERS_CPP_OBJECT_UNPACKTO
+          const bool is_pointer = IsVectorOfPointers(field);
           if (is_pointer) {
             code += "{ if(_o->" + Name(field) + ") { ";
             code += "_e->UnPackTo(_o->" + Name(field) + ".get(), _resolver);";
             code += " } else { ";
           }
+          #endif
           code += "_o->" + Name(field) + " = ";
           code += GenUnpackVal(field.value.type, "_e", false, field) + ";";
+          #if FLATBUFFERS_CPP_OBJECT_UNPACKTO
           if (is_pointer) { code += " } }"; }
+          #endif
+          // clang-format on
         }
         break;
       }
@@ -3207,9 +3253,13 @@ class CppGenerator : public BaseGenerator {
               code += "(" + value + ".size(), ";
               code += "[](size_t i, _VectorArgs *__va) { ";
               code += "return Create" + vector_type.struct_def->name;
-              code += "(*__va->__fbb, __va->_" + value + "[i]" +
-                      GenPtrGet(field) + ", ";
-              code += "__va->__rehasher); }, &_va )";
+              code += "(*__va->__fbb, ";
+              if (field.native_inline) {
+                code += "&(__va->_" + value + "[i])";
+              } else {
+                code += "__va->_" + value + "[i]" + GenPtrGet(field);
+              }
+              code += ", __va->__rehasher); }, &_va )";
             }
             break;
           }
@@ -3292,14 +3342,15 @@ class CppGenerator : public BaseGenerator {
           } else if (field.native_inline) {
             code += "&" + value;
           } else {
-            code += value + " ? " + value + GenPtrGet(field) + " : 0";
+            code += value + " ? " + value + GenPtrGet(field) + " : nullptr";
           }
         } else {
           // _o->field ? CreateT(_fbb, _o->field.get(), _rehasher);
           const auto type = field.value.type.struct_def->name;
           code += value + " ? Create" + type;
-          code += "(_fbb, " + value + GenPtrGet(field) + ", _rehasher)";
-          code += " : 0";
+          code += "(_fbb, " + value;
+          if (!field.native_inline) code += GenPtrGet(field);
+          code += ", _rehasher) : 0";
         }
         break;
       }

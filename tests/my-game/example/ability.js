@@ -24,7 +24,7 @@ export class Ability {
         return true;
     }
     static getFullyQualifiedName() {
-        return 'MyGame.Example.Ability';
+        return 'MyGame_Example_Ability';
     }
     static sizeOf() {
         return 8;

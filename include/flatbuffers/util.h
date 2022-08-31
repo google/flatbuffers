@@ -255,7 +255,7 @@ inline void strtoval_impl(double *val, const char *str, char **endptr) {
 }
 
 // UBSAN: double to float is safe if numeric_limits<float>::is_iec559 is true.
-__supress_ubsan__("float-cast-overflow")
+__suppress_ubsan__("float-cast-overflow")
 inline void strtoval_impl(float *val, const char *str, char **endptr) {
   *val = __strtof_impl(str, endptr);
 }
@@ -447,6 +447,9 @@ std::string StripPath(const std::string &filepath);
 
 // Strip the last component of the path + separator.
 std::string StripFileName(const std::string &filepath);
+
+std::string StripPrefix(const std::string &filepath,
+                        const std::string &prefix_to_remove);
 
 // Concatenates a path with a filename, regardless of whether the path
 // ends in a separator or not.

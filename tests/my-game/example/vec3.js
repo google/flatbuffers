@@ -49,7 +49,7 @@ export class Vec3 {
         return (obj || new Test()).__init(this.bb_pos + 26, this.bb);
     }
     static getFullyQualifiedName() {
-        return 'MyGame.Example.Vec3';
+        return 'MyGame_Example_Vec3';
     }
     static sizeOf() {
         return 32;
@@ -92,6 +92,7 @@ export class Vec3T {
         this.test3 = test3;
     }
     pack(builder) {
-        return Vec3.createVec3(builder, this.x, this.y, this.z, this.test1, this.test2, (this.test3 === null ? 0 : this.test3.a), (this.test3 === null ? 0 : this.test3.b));
+        var _a, _b, _c, _d;
+        return Vec3.createVec3(builder, this.x, this.y, this.z, this.test1, this.test2, ((_b = (_a = this.test3) === null || _a === void 0 ? void 0 : _a.a) !== null && _b !== void 0 ? _b : 0), ((_d = (_c = this.test3) === null || _c === void 0 ? void 0 : _c.b) !== null && _d !== void 0 ? _d : 0));
     }
 }

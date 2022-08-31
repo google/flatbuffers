@@ -7,7 +7,7 @@ import * as flatbuffers from 'flatbuffers';
 export class Monster {
   bb: flatbuffers.ByteBuffer|null = null;
   bb_pos = 0;
-__init(i:number, bb:flatbuffers.ByteBuffer):Monster {
+  __init(i:number, bb:flatbuffers.ByteBuffer):Monster {
   this.bb_pos = i;
   this.bb = bb;
   return this;
@@ -23,7 +23,7 @@ static getSizePrefixedRootAsMonster(bb:flatbuffers.ByteBuffer, obj?:Monster):Mon
 }
 
 static getFullyQualifiedName():string {
-  return 'MyGame.Example2.Monster';
+  return 'MyGame_Example2_Monster';
 }
 
 static startMonster(builder:flatbuffers.Builder) {

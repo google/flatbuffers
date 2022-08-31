@@ -2,7 +2,11 @@ name: CI
 permissions: read-all
 
 on:
+  # For manual tests.
+  workflow_dispatch:
   push:
+    tags:
+      - "*" # new tag version, like `0.8.4` or else
     branches:
       - master
   pull_request:
@@ -11,15 +15,21 @@ on:
 
 jobs:
   build-linux:
+    permissions:
+      contents: write
+    outputs:
+      digests-gcc: ${{ steps.hash-gcc.outputs.hashes }}
+      digests-clang: ${{ steps.hash-clang.outputs.hashes }}
     name: Build Linux
     runs-on: ubuntu-latest
     strategy:
       matrix:
         cxx: [g++-10, clang++-12]
+      fail-fast: false
     steps:
     - uses: actions/checkout@v2
     - name: cmake
-      run: CXX=${{ matrix.cxx }} cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release .
+      run: CXX=${{ matrix.cxx }} cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release -DFLATBUFFERS_STRICT_MODE=ON .
     - name: build
       run: make -j
     - name: test
@@ -28,13 +38,81 @@ jobs:
       run: |
         chmod +x flatc
         ./flatc --version
+    - name: flatc tests
+      run: python3 tests/flatc/main.py
     - name: upload build artifacts
       uses: actions/upload-artifact@v1
       with:
         name: Linux flatc binary ${{ matrix.cxx }}
         path: flatc
+    # Below if only for release.
+    - name: Zip file
+      if: startsWith(github.ref, 'refs/tags/')
+      run: zip Linux.flatc.binary.${{ matrix.cxx }}.zip flatc
+    - name: Release zip file
+      uses: softprops/action-gh-release@v1
+      if: startsWith(github.ref, 'refs/tags/')
+      with:
+        files: Linux.flatc.binary.${{ matrix.cxx }}.zip
+    - name: Generate SLSA subjects - clang
+      if: matrix.cxx == 'clang++-12' && startsWith(github.ref, 'refs/tags/')
+      id: hash-clang
+      run: echo "::set-output name=hashes::$(sha256sum Linux.flatc.binary.${{ matrix.cxx }}.zip | base64 -w0)"
+    - name: Generate SLSA subjects - gcc
+      if: matrix.cxx == 'g++-10' && startsWith(github.ref, 'refs/tags/')
+      id: hash-gcc
+      run: echo "::set-output name=hashes::$(sha256sum Linux.flatc.binary.${{ matrix.cxx }}.zip | base64 -w0)"
+
+  build-linux-cpp-std:
+    name: Build Linux C++
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        std: [11, 14, 17, 20, 23]
+        cxx: [g++-10, clang++-12]
+        exclude:
+          # GCC 10.3.0 doesn't support std 23
+          - cxx: g++-10
+            std: 23
+    steps:
+    - uses: actions/checkout@v2
+    - name: cmake
+      run: >
+        CXX=${{ matrix.cxx }} cmake -G "Unix Makefiles" 
+        -DCMAKE_BUILD_TYPE=Release -DFLATBUFFERS_STRICT_MODE=ON 
+        -DFLATBUFFERS_CPP_STD=${{ matrix.std }}
+    - name: build
+      run: make -j
+    - name: test
+      run: ./flattests
+
+  build-windows-cpp-std:
+    name: Build Windows C++
+    runs-on: windows-2019
+    strategy:
+      matrix:
+        std: [11, 14, 17, 20, 23]
+      fail-fast: false
+    steps:
+    - uses: actions/checkout@v2
+    - name: Add msbuild to PATH
+      uses: microsoft/setup-msbuild@v1.1
+    - name: cmake
+      run: >
+        cmake -G "Visual Studio 16 2019" -A x64 -DCMAKE_BUILD_TYPE=Release 
+        -DFLATBUFFERS_STRICT_MODE=ON 
+        -DFLATBUFFERS_CPP_STD=${{ matrix.std }}
+    - name: build
+      run: msbuild.exe FlatBuffers.sln /p:Configuration=Release /p:Platform=x64
+    - name: test
+      run: Release\flattests.exe
 
   build-windows:
+    permissions:
+      contents: write
+    outputs:
+      digests: ${{ steps.hash.outputs.hashes }}
     name: Build Windows 2019 
     runs-on: windows-2019
     steps:
@@ -42,16 +120,32 @@ jobs:
     - name: Add msbuild to PATH
       uses: microsoft/setup-msbuild@v1.1
     - name: cmake
-      run: cmake -G "Visual Studio 16 2019" -A x64 -DCMAKE_BUILD_TYPE=Release -DFLATBUFFERS_BUILD_CPP17=ON .
+      run: cmake -G "Visual Studio 16 2019" -A x64 -DCMAKE_BUILD_TYPE=Release -DFLATBUFFERS_BUILD_CPP17=ON -DFLATBUFFERS_STRICT_MODE=ON .
     - name: build
       run: msbuild.exe FlatBuffers.sln /p:Configuration=Release /p:Platform=x64
     - name: test
       run: Release\flattests.exe
+    - name: flatc tests
+      run: python3 tests/flatc/main.py --flatc Release\flatc.exe
     - name: upload build artifacts
       uses: actions/upload-artifact@v1
       with:
         name: Windows flatc binary
         path: Release\flatc.exe
+    # Below if only for release.
+    - name: Zip file
+      if: startsWith(github.ref, 'refs/tags/')
+      run: move Release/flatc.exe . && Compress-Archive flatc.exe Windows.flatc.binary.zip
+    - name: Release binary
+      uses: softprops/action-gh-release@v1
+      if: startsWith(github.ref, 'refs/tags/')
+      with:
+        files: Windows.flatc.binary.zip
+    - name: Generate SLSA subjects
+      if: startsWith(github.ref, 'refs/tags/')
+      id: hash
+      shell: bash
+      run: echo "::set-output name=hashes::$(sha256sum Windows.flatc.binary.zip | base64 -w0)"
 
   build-windows-2017:
     name: Build Windows 2017
@@ -61,7 +155,7 @@ jobs:
     - name: Add msbuild to PATH
       uses: microsoft/setup-msbuild@v1.1
     - name: cmake
-      run: cmake -G "Visual Studio 16 2019" -A x64 -DCMAKE_BUILD_TYPE=Release .
+      run: cmake -G "Visual Studio 16 2019" -A x64 -DCMAKE_BUILD_TYPE=Release -DFLATBUFFERS_STRICT_MODE=ON .
     - name: build tool version 15 (VS 2017)
       run: msbuild.exe FlatBuffers.sln /p:Configuration=Release /p:Platform=x64 /p:VisualStudioVersion=15.0
     - name: test
@@ -75,7 +169,7 @@ jobs:
     - name: Add msbuild to PATH
       uses: microsoft/setup-msbuild@v1.1
     - name: cmake
-      run: cmake -G "Visual Studio 14 2015" -A x64 -DCMAKE_BUILD_TYPE=Release .
+      run: cmake -G "Visual Studio 14 2015" -A x64 -DCMAKE_BUILD_TYPE=Release -DFLATBUFFERS_STRICT_MODE=ON .
     - name: build tool version 14 (VS 2015)
       run: msbuild.exe FlatBuffers.sln /p:Configuration=Release /p:Platform=x64 /p:VisualStudioVersion=14.0
     - name: test
@@ -110,12 +204,16 @@ jobs:
         out\FlatBuffers.Core.Test.exe
 
   build-mac-intel:
+    permissions:
+      contents: write
+    outputs:
+      digests: ${{ steps.hash.outputs.hashes }}
     name: Build Mac (for Intel)
     runs-on: macos-latest
     steps:
     - uses: actions/checkout@v2
     - name: cmake
-      run: cmake -G "Xcode" -DCMAKE_BUILD_TYPE=Release -DFLATBUFFERS_FLATC_EXECUTABLE=_build/Release/flatc .
+      run: cmake -G "Xcode" -DCMAKE_BUILD_TYPE=Release -DFLATBUFFERS_FLATC_EXECUTABLE=_build/Release/flatc -DFLATBUFFERS_STRICT_MODE=ON .
     - name: build
       # NOTE: we need this _build dir to not have xcodebuild's default ./build dir clash with the BUILD file.
       run: xcodebuild -toolchain clang -configuration Release -target flattests SYMROOT=$(PWD)/_build
@@ -130,19 +228,38 @@ jobs:
       run: |
         chmod +x _build/Release/flatc
         ./_build/Release/flatc --version
+    - name: flatc tests
+      run: python3 tests/flatc/main.py --flatc ./_build/Release/flatc
     - name: upload build artifacts
       uses: actions/upload-artifact@v1
       with:
         name: Mac flatc binary
         path: _build/Release/flatc
+    # Below if only for release.
+    - name: Zip file
+      if: startsWith(github.ref, 'refs/tags/')
+      run: mv _build/Release/flatc . && zip MacIntel.flatc.binary.zip flatc
+    - name: Release binary
+      uses: softprops/action-gh-release@v1
+      if: startsWith(github.ref, 'refs/tags/')
+      with:
+        files: MacIntel.flatc.binary.zip
+    - name: Generate SLSA subjects
+      if: startsWith(github.ref, 'refs/tags/')
+      id: hash
+      run: echo "::set-output name=hashes::$(shasum -a 256 MacIntel.flatc.binary.zip | base64)"
 
   build-mac-universal:
+    permissions:
+      contents: write
+    outputs:
+      digests: ${{ steps.hash.outputs.hashes }}
     name: Build Mac (universal build)
     runs-on: macos-latest
     steps:
     - uses: actions/checkout@v2
     - name: cmake
-      run: cmake -G "Xcode" -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64" -DCMAKE_BUILD_TYPE=Release -DFLATBUFFERS_FLATC_EXECUTABLE=_build/Release/flatc .
+      run: cmake -G "Xcode" -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64" -DCMAKE_BUILD_TYPE=Release -DFLATBUFFERS_FLATC_EXECUTABLE=_build/Release/flatc -DFLATBUFFERS_STRICT_MODE=ON .
     - name: build
       # NOTE: we need this _build dir to not have xcodebuild's default ./build dir clash with the BUILD file.
       run: xcodebuild -toolchain clang -configuration Release -target flattests SYMROOT=$(PWD)/_build
@@ -162,11 +279,23 @@ jobs:
       with:
         name: Mac flatc binary
         path: _build/Release/flatc
+    # Below if only for release.
+    - name: Zip file
+      if: startsWith(github.ref, 'refs/tags/')
+      run: mv _build/Release/flatc . && zip Mac.flatc.binary.zip flatc
+    - name: Release binary
+      uses: softprops/action-gh-release@v1
+      if: startsWith(github.ref, 'refs/tags/')
+      with:
+        files: Mac.flatc.binary.zip
+    - name: Generate SLSA subjects
+      if: startsWith(github.ref, 'refs/tags/')
+      id: hash
+      run: echo "::set-output name=hashes::$(shasum -a 256 Mac.flatc.binary.zip | base64)"
 
   build-android:
-   name: Build Android (on Linux)
-   # Renable once it is working again.
    if: false
+   name: Build Android (on Linux)
    runs-on: ubuntu-latest
    steps:
    - uses: actions/checkout@v2
@@ -176,7 +305,7 @@ jobs:
        java-version: 1.8
    - name: set up flatc
      run: |
-       cmake -DFLATBUFFERS_BUILD_TESTS=OFF -DFLATBUFFERS_BUILD_FLATLIB=OFF -DFLATBUFFERS_BUILD_FLATHASH=OFF .
+       cmake -DFLATBUFFERS_BUILD_TESTS=OFF -DFLATBUFFERS_BUILD_FLATLIB=OFF -DFLATBUFFERS_BUILD_FLATHASH=OFF -DFLATBUFFERS_STRICT_MODE=ON .
        make -j
        echo "${PWD}" >> $GITHUB_PATH
    - name: build
@@ -192,11 +321,11 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - name: cmake
-      run: CXX=${{ matrix.cxx }} cmake -G "Unix Makefiles" -DFLATBUFFERS_BUILD_TESTS=OFF -DCMAKE_BUILD_TYPE=Release . && make -j
+      run: CXX=${{ matrix.cxx }} cmake -G "Unix Makefiles" -DFLATBUFFERS_BUILD_TESTS=OFF -DCMAKE_BUILD_TYPE=Release -DFLATBUFFERS_STRICT_MODE=ON . && make -j
     - name: Generate
       run: scripts/check_generate_code.py
     - name: Generate gRPC
-      run: bash scripts/check-grpc-generated-code.sh
+      run: scripts/check-grpc-generated-code.py
 
   build-benchmarks:
     name: Build Benchmarks (on Linux)
@@ -207,7 +336,7 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - name: cmake
-      run: CXX=${{ matrix.cxx }} cmake -G "Unix Makefiles" -DFLATBUFFERS_CXX_FLAGS="-Wno-unused-parameter -fno-aligned-new" -DFLATBUFFERS_BUILD_BENCHMARKS=ON -DCMAKE_BUILD_TYPE=Release . && make -j
+      run: CXX=${{ matrix.cxx }} cmake -G "Unix Makefiles" -DFLATBUFFERS_CXX_FLAGS="-Wno-unused-parameter -fno-aligned-new" -DFLATBUFFERS_BUILD_BENCHMARKS=ON -DCMAKE_BUILD_TYPE=Release -DFLATBUFFERS_STRICT_MODE=ON . && make -j
     - name: Run benchmarks
       run: ./flatbenchmark --benchmark_repetitions=5 --benchmark_display_aggregates_only=true --benchmark_out_format=console --benchmark_out=benchmarks/results_${{matrix.cxx}}
     - name: Upload benchmarks results
@@ -283,7 +412,7 @@ jobs:
     - uses: actions/checkout@v2
     - name: flatc
       # FIXME: make test script not rely on flatc
-      run: cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release -DFLATBUFFERS_BUILD_TESTS=OFF -DFLATBUFFERS_INSTALL=OFF -DFLATBUFFERS_BUILD_FLATLIB=OFF -DFLATBUFFERS_BUILD_FLATHASH=OFF . && make -j
+      run: cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release -DFLATBUFFERS_BUILD_TESTS=OFF -DFLATBUFFERS_INSTALL=OFF -DFLATBUFFERS_BUILD_FLATLIB=OFF -DFLATBUFFERS_BUILD_FLATHASH=OFF -DFLATBUFFERS_STRICT_MODE=ON . && make -j
     - name: test
       working-directory: tests
       run: bash GoTest.sh
@@ -315,11 +444,16 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
+    - name: flatc
+      # FIXME: make test script not rely on flatc
+      run: cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release -DFLATBUFFERS_BUILD_TESTS=OFF -DFLATBUFFERS_INSTALL=OFF -DFLATBUFFERS_BUILD_FLATLIB=OFF -DFLATBUFFERS_BUILD_FLATHASH=OFF . && make -j
+    - name: deps
+      run: yarn
     - name: compile
-      run: npm run compile
+      run: yarn compile
     - name: test
       working-directory: tests
-      run: sh TypeScriptTest.sh
+      run: python3 TypeScriptTest.py
 
   build-dart:
     name: Build Dart
@@ -331,7 +465,43 @@ jobs:
           sdk: stable
       - name: flatc
         # FIXME: make test script not rely on flatc
-        run: cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release -DFLATBUFFERS_BUILD_TESTS=OFF -DFLATBUFFERS_INSTALL=OFF -DFLATBUFFERS_BUILD_FLATLIB=OFF -DFLATBUFFERS_BUILD_FLATHASH=OFF . && make -j
+        run: cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release -DFLATBUFFERS_BUILD_TESTS=OFF -DFLATBUFFERS_INSTALL=OFF -DFLATBUFFERS_BUILD_FLATLIB=OFF -DFLATBUFFERS_BUILD_FLATHASH=OFF -DFLATBUFFERS_STRICT_MODE=ON . && make -j
       - name: test
         working-directory: tests
         run: bash DartTest.sh
+
+  release-digests:
+    if: startsWith(github.ref, 'refs/tags/')
+    needs: [build-linux, build-windows, build-mac-intel, build-mac-universal]
+    outputs:
+      digests: ${{ steps.hash.outputs.digests }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Merge results
+        id: hash
+        env:
+          LINUXGCC_DIGESTS: "${{ needs.build-linux.outputs.digests-gcc }}"
+          LINUXCLANG_DIGESTS: "${{ needs.build-linux.outputs.digests-clang }}"
+          MAC_DIGESTS: "${{ needs.build-mac-universal.outputs.digests }}"
+          MACINTEL_DIGESTS: "${{ needs.build-mac-intel.outputs.digests }}"
+          WINDOWS_DIGESTS: "${{ needs.build-windows.outputs.digests }}"
+        run: |
+          set -euo pipefail
+          echo "$LINUXGCC_DIGESTS" | base64 -d > checksums.txt
+          echo "$LINUXCLANG_DIGESTS" | base64 -d >> checksums.txt
+          echo "$MAC_DIGESTS" | base64 -d >> checksums.txt
+          echo "$MACINTEL_DIGESTS" | base64 -d >> checksums.txt
+          echo "$WINDOWS_DIGESTS" | base64 -d >> checksums.txt
+          echo "::set-output name=digests::$(cat checksums.txt | base64 -w0)"
+
+  provenance:
+    if: startsWith(github.ref, 'refs/tags/')
+    needs: [release-digests]
+    permissions:
+      actions: read   # To read the workflow path.
+      id-token: write # To sign the provenance.
+      contents: write # To add assets to a release.
+    uses: slsa-framework/slsa-github-generator/.github/workflows/generator_generic_slsa3.yml@v1.2.0
+    with:
+      base64-subjects: "${{ needs.release-digests.outputs.digests }}"
+      upload-assets: true # Optional: Upload to a new release
