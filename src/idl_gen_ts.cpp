@@ -439,7 +439,9 @@ class TsGenerator : public BaseGenerator {
         return "BigInt('" + value.constant + "')";
       }
 
-      default: return value.constant;
+      default:
+        if (value.constant == "nan") { return "NaN"; }
+        return value.constant;
     }
   }
 
