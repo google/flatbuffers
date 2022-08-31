@@ -440,9 +440,7 @@ class TsGenerator : public BaseGenerator {
       }
 
       default:
-        if (value.constant == "nan") {
-          return "NaN";
-        }
+        if (value.constant == "nan") { return "NaN"; }
         return value.constant;
     }
   }
