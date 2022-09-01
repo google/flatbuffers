@@ -25,7 +25,7 @@ public class GadgetUnion {
   public HandFanT AsHandFan() { return this.As<HandFanT>(); }
   public static GadgetUnion FromHandFan(HandFanT _handfan) { return new GadgetUnion{ Type = Gadget.HandFan, Value = _handfan }; }
 
-  public static int Pack(FlatBuffers.FlatBufferBuilder builder, GadgetUnion _o) {
+  public static int Pack(Google.FlatBuffers.FlatBufferBuilder builder, GadgetUnion _o) {
     switch (_o.Type) {
       default: return 0;
       case Gadget.FallingTub: return FallingTub.Pack(builder, _o.AsFallingTub()).Value;

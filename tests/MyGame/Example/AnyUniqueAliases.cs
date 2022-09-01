@@ -31,7 +31,7 @@ public class AnyUniqueAliasesUnion {
   public MyGame.Example2.MonsterT AsM2() { return this.As<MyGame.Example2.MonsterT>(); }
   public static AnyUniqueAliasesUnion FromM2(MyGame.Example2.MonsterT _m2) { return new AnyUniqueAliasesUnion{ Type = AnyUniqueAliases.M2, Value = _m2 }; }
 
-  public static int Pack(FlatBuffers.FlatBufferBuilder builder, AnyUniqueAliasesUnion _o) {
+  public static int Pack(Google.FlatBuffers.FlatBufferBuilder builder, AnyUniqueAliasesUnion _o) {
     switch (_o.Type) {
       default: return 0;
       case AnyUniqueAliases.M: return MyGame.Example.Monster.Pack(builder, _o.AsM()).Value;

@@ -37,7 +37,7 @@ public class CharacterUnion {
   public string AsUnused() { return this.As<string>(); }
   public static CharacterUnion FromUnused(string _unused) { return new CharacterUnion{ Type = Character.Unused, Value = _unused }; }
 
-  public static int Pack(FlatBuffers.FlatBufferBuilder builder, CharacterUnion _o) {
+  public static int Pack(Google.FlatBuffers.FlatBufferBuilder builder, CharacterUnion _o) {
     switch (_o.Type) {
       default: return 0;
       case Character.MuLan: return Attacker.Pack(builder, _o.AsMuLan()).Value;

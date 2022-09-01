@@ -18,7 +18,7 @@ using System;
 using System.Text;
 using System.Runtime.InteropServices;
 
-namespace FlatBuffers
+namespace Google.FlatBuffers
 {
     /// <summary>
     /// All tables in the generated code derive from this struct, and add their own accessors.

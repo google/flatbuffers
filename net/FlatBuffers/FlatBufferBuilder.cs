@@ -23,7 +23,7 @@ using System.Text;
 /// @addtogroup flatbuffers_csharp_api
 /// @{
 
-namespace FlatBuffers
+namespace Google.FlatBuffers
 {
     /// <summary>
     /// Responsible for building up and accessing a FlatBuffer formatted byte

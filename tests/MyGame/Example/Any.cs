@@ -31,7 +31,7 @@ public class AnyUnion {
   public MyGame.Example2.MonsterT AsMyGame_Example2_Monster() { return this.As<MyGame.Example2.MonsterT>(); }
   public static AnyUnion FromMyGame_Example2_Monster(MyGame.Example2.MonsterT _mygame_example2_monster) { return new AnyUnion{ Type = Any.MyGame_Example2_Monster, Value = _mygame_example2_monster }; }
 
-  public static int Pack(FlatBuffers.FlatBufferBuilder builder, AnyUnion _o) {
+  public static int Pack(Google.FlatBuffers.FlatBufferBuilder builder, AnyUnion _o) {
     switch (_o.Type) {
       default: return 0;
       case Any.Monster: return MyGame.Example.Monster.Pack(builder, _o.AsMonster()).Value;

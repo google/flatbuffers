@@ -17,7 +17,7 @@
 using BenchmarkDotNet.Attributes;
 using MyGame.Example;
 
-namespace FlatBuffers.Benchmarks
+namespace Google.FlatBuffers.Benchmarks
 {
     //[EtwProfiler] - needs elevated privileges
     [MemoryDiagnoser]

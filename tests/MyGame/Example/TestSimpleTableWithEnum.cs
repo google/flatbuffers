@@ -7,7 +7,7 @@ namespace MyGame.Example
 
 using global::System;
 using global::System.Collections.Generic;
-using global::FlatBuffers;
+using global::Google.FlatBuffers;
 
 internal partial struct TestSimpleTableWithEnum : IFlatbufferObject
 {

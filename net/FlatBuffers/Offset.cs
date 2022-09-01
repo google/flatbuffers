@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-namespace FlatBuffers
+namespace Google.FlatBuffers
 {
     /// <summary>
     /// Offset class for typesafe assignments.

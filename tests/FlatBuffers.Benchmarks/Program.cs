@@ -16,7 +16,7 @@
 
 using BenchmarkDotNet.Running;
 
-namespace FlatBuffers.Benchmarks
+namespace Google.FlatBuffers.Benchmarks
 {
     public static class Program
     {

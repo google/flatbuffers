@@ -16,7 +16,7 @@
 
 using System;
 
-namespace FlatBuffers
+namespace Google.FlatBuffers
 {
 	/// <summary>
 	/// Class that collects utility functions around `ByteBuffer`.

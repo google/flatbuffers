@@ -19,7 +19,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace FlatBuffers
+namespace Google.FlatBuffers
 {
     public static class FlatBufferConstants
     {

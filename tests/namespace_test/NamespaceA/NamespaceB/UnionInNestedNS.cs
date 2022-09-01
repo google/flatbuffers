@@ -25,7 +25,7 @@ public class UnionInNestedNSUnion {
   public NamespaceA.NamespaceB.TableInNestedNST AsTableInNestedNS() { return this.As<NamespaceA.NamespaceB.TableInNestedNST>(); }
   public static UnionInNestedNSUnion FromTableInNestedNS(NamespaceA.NamespaceB.TableInNestedNST _tableinnestedns) { return new UnionInNestedNSUnion{ Type = UnionInNestedNS.TableInNestedNS, Value = _tableinnestedns }; }
 
-  public static int Pack(FlatBuffers.FlatBufferBuilder builder, UnionInNestedNSUnion _o) {
+  public static int Pack(Google.FlatBuffers.FlatBufferBuilder builder, UnionInNestedNSUnion _o) {
     switch (_o.Type) {
       default: return 0;
       case UnionInNestedNS.TableInNestedNS: return NamespaceA.NamespaceB.TableInNestedNS.Pack(builder, _o.AsTableInNestedNS()).Value;

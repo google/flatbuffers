@@ -16,7 +16,7 @@
 
 using System;
 
-namespace FlatBuffers.Test
+namespace Google.FlatBuffers.Test
 {
     internal static class FuzzTestData
     {

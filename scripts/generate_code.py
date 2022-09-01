@@ -226,7 +226,7 @@ flatc(
 # For Rust we currently generate two independent schemas, with namespace_test2
 # duplicating the types in namespace_test1
 flatc(
-    RUST_OPTS,
+    RUST_OPTS + CS_OPTS,
     prefix="namespace_test",
     schema=[
         "namespace_test/namespace_test1.fbs",

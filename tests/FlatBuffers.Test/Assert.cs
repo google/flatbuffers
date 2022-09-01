@@ -19,7 +19,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace FlatBuffers.Test
+namespace Google.FlatBuffers.Test
 {
 
     public class AssertFailedException : Exception

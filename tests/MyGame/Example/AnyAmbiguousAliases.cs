@@ -31,7 +31,7 @@ public class AnyAmbiguousAliasesUnion {
   public MyGame.Example.MonsterT AsM3() { return this.As<MyGame.Example.MonsterT>(); }
   public static AnyAmbiguousAliasesUnion FromM3(MyGame.Example.MonsterT _m3) { return new AnyAmbiguousAliasesUnion{ Type = AnyAmbiguousAliases.M3, Value = _m3 }; }
 
-  public static int Pack(FlatBuffers.FlatBufferBuilder builder, AnyAmbiguousAliasesUnion _o) {
+  public static int Pack(Google.FlatBuffers.FlatBufferBuilder builder, AnyAmbiguousAliasesUnion _o) {
     switch (_o.Type) {
       default: return 0;
       case AnyAmbiguousAliases.M1: return MyGame.Example.Monster.Pack(builder, _o.AsM1()).Value;
