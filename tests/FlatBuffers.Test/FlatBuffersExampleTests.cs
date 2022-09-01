@@ -21,7 +21,7 @@ using MyGame.Example;
 using optional_scalars;
 using KeywordTest;
 
-namespace FlatBuffers.Test
+namespace Google.FlatBuffers.Test
 {
     [FlatBuffersTestClass]
     public class FlatBuffersExampleTests
