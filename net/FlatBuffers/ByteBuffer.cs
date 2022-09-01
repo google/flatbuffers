@@ -51,7 +51,7 @@ using System.Buffers.Binary;
 #warning ENABLE_SPAN_T requires UNSAFE_BYTEBUFFER to also be defined
 #endif
 
-namespace FlatBuffers
+namespace Google.FlatBuffers
 {
     public abstract class ByteBufferAllocator
     {
