@@ -19,7 +19,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 
-namespace FlatBuffers.Test
+namespace Google.FlatBuffers.Test
 {
     static class Program
     {

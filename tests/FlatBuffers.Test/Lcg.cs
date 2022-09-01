@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-namespace FlatBuffers.Test
+namespace Google.FlatBuffers.Test
 {
     /// <summary>
     /// Lcg Pseudo RNG

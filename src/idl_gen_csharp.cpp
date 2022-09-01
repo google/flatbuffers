@@ -226,7 +226,7 @@ class CSharpGenerator : public BaseGenerator {
     if (needs_includes) {
       code += "using global::System;\n";
       code += "using global::System.Collections.Generic;\n";
-      code += "using global::FlatBuffers;\n\n";
+      code += "using global::Google.FlatBuffers;\n\n";
     }
     code += classcode;
     if (!namespace_name.empty()) { code += "\n}\n"; }
@@ -1307,9 +1307,9 @@ class CSharpGenerator : public BaseGenerator {
       code += "Offset<" + struct_def.name + ">";
       code += "[] offsets) {\n";
       code += "    Array.Sort(offsets,\n";
-      code += "      (Offset<" + struct_def.name +
-              "> o1, Offset<" + struct_def.name + "> o2) =>\n";
-      code += "        "+ GenKeyGetter(struct_def, key_field);
+      code += "      (Offset<" + struct_def.name + "> o1, Offset<" +
+              struct_def.name + "> o2) =>\n";
+      code += "        " + GenKeyGetter(struct_def, key_field);
       code += ");\n";
       code += "    return builder.CreateVectorOfTables(offsets);\n  }\n";
 
@@ -1463,8 +1463,10 @@ class CSharpGenerator : public BaseGenerator {
     }
     code += "\n";
     // Pack()
-    code += "  public static int Pack(FlatBuffers.FlatBufferBuilder builder, " +
-            union_name + " _o) {\n";
+    code +=
+        "  public static int Pack(Google.FlatBuffers.FlatBufferBuilder "
+        "builder, " +
+        union_name + " _o) {\n";
     code += "    switch (_o.Type) {\n";
     for (auto it = enum_def.Vals().begin(); it != enum_def.Vals().end(); ++it) {
       auto &ev = **it;

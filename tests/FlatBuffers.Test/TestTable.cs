@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-namespace FlatBuffers.Test
+namespace Google.FlatBuffers.Test
 {
     /// <summary>
     /// A test Table object that gives easy access to the slot data
