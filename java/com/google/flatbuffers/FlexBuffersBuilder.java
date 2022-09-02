@@ -502,7 +502,9 @@ public class FlexBuffersBuilder {
      * @return Value representing the created vector
      */
     private Value createVector(int key, int start, int length, boolean typed, boolean fixed, Value keys) {
-        assert (!fixed || typed); // typed=false, fixed=true combination is not supported.
+        if (fixed & !typed)
+            throw new UnsupportedOperationException("Untyped fixed vector is not supported");
+
         // Figure out smallest bit width we can store this vector with.
         int bitWidth = Math.max(WIDTH_8, widthUInBits(length));
         int prefixElems = 1;
