@@ -25,7 +25,7 @@ from pathlib import Path
 tests_path = Path(__file__).parent.resolve()
 
 # Get the root path as an absolute path, so all derived paths are absolute.
-root_path = tests_path.parent.absolute()
+root_path = tests_path.parent.parent.absolute()
 
 # Windows works with subprocess.run a bit differently.
 is_windows = platform.system() == "Windows"
@@ -62,26 +62,26 @@ check_call(["npm", "install", "--silent"])
 print("Invoking flatc...")
 flatc(
     options=["--ts", "--gen-name-strings", "--gen-mutable", "--gen-object-api"],
-    schema="monster_test.fbs",
-    include="include_test",
+    schema="../monster_test.fbs",
+    include="../include_test",
 )
 
 flatc(
     options=["--gen-object-api", "-b"],
-    schema="monster_test.fbs",
-    include="include_test",
-    data="unicode_test.json",
+    schema="../monster_test.fbs",
+    include="../include_test",
+    data="../unicode_test.json",
 )
 
 flatc(
     options=["--ts", "--gen-name-strings", "--gen-mutable", "--gen-object-api"],
-    schema="union_vector/union_vector.fbs",
+    schema="../union_vector/union_vector.fbs",
     prefix="union_vector",
 )
 
 flatc(
     options=["--ts", "--gen-name-strings"],
-    schema="optional_scalars.fbs",
+    schema="../optional_scalars.fbs",
 )
 
 flatc(
@@ -90,9 +90,9 @@ flatc(
         "typescript_keywords.fbs",
         "test_dir/typescript_include.fbs",
         "test_dir/typescript_transitive_include.fbs",
-        "../reflection/reflection.fbs",
+        "../../reflection/reflection.fbs",
     ],
-    include="../",
+    include="../../",
 )
 
 flatc(
@@ -107,15 +107,15 @@ flatc(
         "typescript_keywords.fbs",
         "test_dir/typescript_include.fbs",
         "test_dir/typescript_transitive_include.fbs",
-        "../reflection/reflection.fbs",
+        "../../reflection/reflection.fbs",
     ],
-    include="../",
+    include="../../",
 )
 
 print("Running TypeScript Compiler...")
 check_call(["tsc"])
 
-NODE_CMD = ["node", "-r", "esm"]
+NODE_CMD = ["node"]
 
 print("Running TypeScript Tests...")
 check_call(NODE_CMD + ["JavaScriptTest"])

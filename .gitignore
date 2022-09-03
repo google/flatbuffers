@@ -133,6 +133,7 @@ grpc/google/
 **/Package.resolved
 .clangd/**
 package-lock.json
+yarn.lock
 /*.ilk
 /*.pdb
 .clwb
