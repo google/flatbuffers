@@ -20,32 +20,45 @@ maximum memory efficiency. It allows you to directly access serialized data with
 * MacOS X
 * Linux
 * Android
-* And any others with a recent C++ compiler.
+* And any others with a recent C++ compiler (C++ 11 and newer)
 
 ## Supported programming languages
-* C++
-* C#
-* C
-* Dart
-* Go
-* Java
-* JavaScript
-* Lobster
-* Lua
-* PHP
-* Python
-* Rust
-* Swift
-* TypeScript
+
+Code generation and runtime libraries for many popular languages.
+
+1. C
+1. C++ - [snapcraft.io](https://snapcraft.io/flatbuffers)
+1. C# - [nuget.org](https://www.nuget.org/packages/Google.FlatBuffers)
+1. Dart - [pub.dev](https://pub.dev/packages/flat_buffers)
+1. Go - [go.dev](https://pkg.go.dev/github.com/google/flatbuffers/go)
+1. Java - [Maven](https://search.maven.org/artifact/com.google.flatbuffers/flatbuffers-java)
+1. JavaScript - [NPM](https://www.npmjs.com/package/flatbuffers)
+1. Kotlin
+1. Lobster
+1. Lua
+1. PHP
+1. Python - [PyPi](https://pypi.org/project/flatbuffers/)
+1. Rust - [crates.io](https://crates.io/crates/flatbuffers)
+1. Swift
+1. TypeScript - [NPM](https://www.npmjs.com/package/flatbuffers)
 
 *and more in progress...*
 
+1. [Nim](https://github.com/google/flatbuffers/pull/7362)
+
 ## Contribution
-* [FlatBuffers Google Group][] to discuss FlatBuffers with other developers and users.
+
 * [FlatBuffers Issues Tracker][] to submit an issue.
 * [stackoverflow.com][] with [`flatbuffers` tag][] for any questions regarding FlatBuffers.
 
 *To contribute to this project,* see [CONTRIBUTING][].
+
+## Community
+
+* [FlatBuffers Google Group][] to discuss FlatBuffers with other developers and users.
+* [Discord Server](https:///discord.gg/6qgKs3R)
+* [Gitter](https://gitter.im/google/flatbuffers)
+
 
 ## Security
 
