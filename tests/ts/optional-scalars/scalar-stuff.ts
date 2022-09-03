@@ -207,10 +207,6 @@ defaultEnum():OptionalByte {
   return offset ? this.bb!.readInt8(this.bb_pos + offset) : OptionalByte.One;
 }
 
-static getFullyQualifiedName():string {
-  return 'optional_scalars_ScalarStuff';
-}
-
 static startScalarStuff(builder:flatbuffers.Builder) {
   builder.startObject(36);
 }
