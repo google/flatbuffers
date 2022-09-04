@@ -374,7 +374,7 @@ flatc(
 # Optional Scalars
 optional_scalars_schema = "optional_scalars.fbs"
 flatc(["--java", "--kotlin", "--lobster"], schema=optional_scalars_schema)
-flatc(["--ts"], schema=optional_scalars_schema, prefix="ts")
+flatc(TS_OPTS, schema=optional_scalars_schema, prefix="ts")
 
 flatc(["--csharp", "--python", "--gen-object-api"], schema=optional_scalars_schema)
 
