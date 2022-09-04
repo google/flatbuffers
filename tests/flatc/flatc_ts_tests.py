@@ -151,7 +151,7 @@ class TsTests():
         assert_file_and_contents(
             "foo_with_ns_generated.ts",
             [
-                "import {Bar as Bar} from './bar_with_ns_generated';",
+                "import {Bar as Bar} from './bar_with_ns_generated.js';",
                 "export class Foo {",
             ],
         )

@@ -2,9 +2,9 @@
 
 import * as flatbuffers from 'flatbuffers';
 
-import {Schema as Schema, SchemaT as SchemaT} from './reflection_generated';
-import {class_ as foobar_class_} from './typescript_include_generated';
-import {Abc as Abc} from './typescript_transitive_include_generated';
+import {Schema as Schema, SchemaT as SchemaT} from './reflection_generated.js';
+import {class_ as foobar_class_} from './typescript_include_generated.js';
+import {Abc as Abc} from './typescript_transitive_include_generated.js';
 
 export enum class_ {
   new_ = 0,

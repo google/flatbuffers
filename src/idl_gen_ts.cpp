@@ -263,7 +263,7 @@ class TsGenerator : public BaseGenerator {
                     namer_.EscapeKeyword(pair.second) + ", ";
           }
           code.resize(code.size() - 2);
-          code += "} from '" + include_name + "';\n";
+          code += "} from '" + include_name + ".js';\n";
         }
         code += "\n";
       }
