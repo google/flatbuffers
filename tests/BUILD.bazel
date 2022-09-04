@@ -218,9 +218,9 @@ flatbuffer_cc_library(
 
 flatbuffer_ts_library(
     name = "typescript_ts_fbs",
-    srcs = ["typescript_keywords.fbs"],
+    srcs = ["ts/typescript_keywords.fbs"],
     deps = [
-        "//tests/test_dir:include_ts_fbs",
-        "//tests/test_dir:typescript_transitive_ts_fbs",
+        "//tests/ts/test_dir:include_ts_fbs",
+        "//tests/ts/test_dir:typescript_transitive_ts_fbs",
     ],
 )
