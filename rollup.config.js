@@ -1,8 +1,8 @@
 export default {
-  input: 'mjs/index.js',
+  input: 'mjs/flatbuffers.ts',
   output: {
     file: 'flatbuffers.js',
-    format: 'iife',
+    format: 'umd',
     name: 'flatbuffers'
   }
 }
