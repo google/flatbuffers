@@ -35,6 +35,10 @@ cd ./rust_serialize_test
 cargo run $TARGET_FLAG -- --quiet
 check_test_result "Rust serde tests"
 
+cd ../rust_test_no_std_compilation
+cargo build
+check_test_result "Rust flatbuffers test no_std compilation"
+
 cd ../rust_usage_test
 cargo test $TARGET_FLAG -- --quiet
 check_test_result "Rust tests"
@@ -57,10 +61,6 @@ check_test_result "Rust flexbuffers heap alloc test"
 # check_test_result "No Cargo clippy lints test"
 
 cargo bench $TARGET_FLAG
-
-cd ../rust_test_no_std_compilation
-cargo build
-check_test_result "Rust flatbuffers test no_std compilation"
 
 # This test is dependent on flatc.
 if [[ -f ../../flatc ]]; then
