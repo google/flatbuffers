@@ -1,0 +1,9 @@
+[build]
+target = "x86_64-unknown-none"
+
+[target.x86_64-unknown-none]
+rustflags = "-C relocation-model=static -C target-feature=+sse,+sse2,+ssse3,+sse4.1,+sse4.2,+avx,+avx2,-soft-float"
+
+[unstable]
+build-std = ["core", "alloc"]
+build-std-features = ["compiler-builtins-mem"]

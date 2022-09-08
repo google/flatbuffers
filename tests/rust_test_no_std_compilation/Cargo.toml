@@ -1,0 +1,16 @@
+[package]
+name = "rust_test_no_std_compilation"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+flatbuffers = { path = "../../rust/flatbuffers", features = [
+  "no_std"
+], default-features = false }
+linked_list_allocator = { version = "*" }
+
+[profile.dev]
+panic = "abort"
+
+[profile.release]
+panic = "abort"
