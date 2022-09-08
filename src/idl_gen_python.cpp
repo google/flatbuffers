@@ -164,9 +164,14 @@ class PythonGenerator : public BaseGenerator {
 
     GenReceiver(struct_def, code_ptr);
     code += namer_.Method(field) + "Length(self";
-    code += "):" + OffsetPrefix(field);
-    code += Indent + Indent + Indent + "return self._tab.VectorLen(o)\n";
-    code += Indent + Indent + "return 0\n\n";
+    code += "):";
+    if(!IsArray(field.value.type)){
+      code += OffsetPrefix(field);
+      code += GenIndents(3) + "return self._tab.VectorLen(o)\n";
+      code += GenIndents(2) + "return 0\n\n";
+    }else{
+      code += GenIndents(2) + "return "+NumToString(field.value.type.fixed_length)+"\n\n";
+    }
   }
 
   // Determines whether a vector is none or not.
@@ -177,10 +182,15 @@ class PythonGenerator : public BaseGenerator {
     GenReceiver(struct_def, code_ptr);
     code += namer_.Method(field) + "IsNone(self";
     code += "):";
-    code += GenIndents(2) +
-            "o = flatbuffers.number_types.UOffsetTFlags.py_type" +
-            "(self._tab.Offset(" + NumToString(field.value.offset) + "))";
-    code += GenIndents(2) + "return o == 0";
+    if(!IsArray(field.value.type)){
+      code += GenIndents(2) +
+              "o = flatbuffers.number_types.UOffsetTFlags.py_type" +
+              "(self._tab.Offset(" + NumToString(field.value.offset) + "))";
+      code += GenIndents(2) + "return o == 0";
+    } else {
+      //assume that we always have an array as memory is preassigned
+      code += GenIndents(2) + "return False";
+    }
     code += "\n\n";
   }
 
@@ -252,12 +262,13 @@ class PythonGenerator : public BaseGenerator {
       code += ")\n" + Indent + Indent + "return obj\n\n";
     } else {
       auto getter = GenGetter(vec_type);
-      code += "(self): return [" + getter;
+      code += "(self):";
+      code += GenIndents(2) + "return [" + getter;
       code += "self._tab.Pos + flatbuffers.number_types.UOffsetTFlags.py_type(";
       code += NumToString(field.value.offset) + " + i * ";
       code += NumToString(InlineSize(vec_type));
       code += ")) for i in range(";
-      code += NumToString(field.value.type.fixed_length) + ")]\n";
+      code += NumToString(field.value.type.fixed_length) + ")]\n\n";
     }
   }
 
@@ -403,18 +414,25 @@ class PythonGenerator : public BaseGenerator {
 
     GenReceiver(struct_def, code_ptr);
     code += namer_.Method(field) + "AsNumpy(self):";
-    code += OffsetPrefix(field);
+    if(!IsArray(field.value.type)){
+      code += OffsetPrefix(field);
 
-    code += Indent + Indent + Indent;
-    code += "return ";
-    code += "self._tab.GetVectorAsNumpy(flatbuffers.number_types.";
-    code += namer_.Method(GenTypeGet(field.value.type));
-    code += "Flags, o)\n";
+      code += GenIndents(3);
+      code += "return ";
+      code += "self._tab.GetVectorAsNumpy(flatbuffers.number_types.";
+      code += namer_.Method(GenTypeGet(field.value.type));
+      code += "Flags, o)\n";
 
-    if (IsString(vectortype)) {
-      code += Indent + Indent + "return \"\"\n";
-    } else {
-      code += Indent + Indent + "return 0\n";
+      if (IsString(vectortype)) {
+        code += GenIndents(2) + "return \"\"\n";
+      } else {
+        code += GenIndents(2) + "return 0\n";
+      }
+    }else{
+      code += GenIndents(2) + "return ";
+      code += "self._tab.GetArrayAsNumpy(flatbuffers.number_types.";
+      code += namer_.Method(GenTypeGet(field.value.type.VectorType()));
+      code += "Flags, self._tab.Pos + "+NumToString(field.value.offset)+", "+NumToString(field.value.type.VectorType().fixed_length)+")\n";
     }
     code += "\n";
   }
@@ -716,6 +734,7 @@ class PythonGenerator : public BaseGenerator {
       }
     } else if (IsArray(field.value.type)) {
       GetArrayOfStruct(struct_def, field, code_ptr);
+      GetVectorOfNonStructAsNumpy(struct_def, field, code_ptr);
     } else {
       switch (field.value.type.base_type) {
         case BASE_TYPE_STRUCT:
@@ -1061,8 +1080,9 @@ class PythonGenerator : public BaseGenerator {
 
     code += GenIndents(1) + "@classmethod";
     code += GenIndents(1) + "def InitFromBuf(cls, buf, pos):";
+    code += GenIndents(2) + "n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, 0)";
     code += GenIndents(2) + struct_var + " = " + struct_type + "()";
-    code += GenIndents(2) + struct_var + ".Init(buf, pos)";
+    code += GenIndents(2) + struct_var + ".Init(buf, pos+n)";
     code += GenIndents(2) + "return cls.InitFromObj(" + struct_var + ")";
     code += "\n";
   }
