@@ -17,6 +17,7 @@ rem Compile then run the Rust test.
 
 cd rust_usage_test
 cargo test -- --quiet || exit /b 1
+cargo build --bin=rust_test_no_std_compilation || exit /b 1
 cargo run --bin=flatbuffers_alloc_check || exit /b 1
 cargo run --bin=flexbuffers_alloc_check || exit /b 1
 cargo run --bin=monster_example || exit /b 1

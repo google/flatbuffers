@@ -42,6 +42,9 @@ check_test_result "Rust tests"
 cargo test $TARGET_FLAG --no-default-features --features no_std -- --quiet
 check_test_result "Rust tests (no_std)"
 
+cargo build --bin=rust_test_no_std_compilation
+check_test_result "Rust flatbuffers test no_std compilation"
+
 cargo run $TARGET_FLAG --bin=flatbuffers_alloc_check
 check_test_result "Rust flatbuffers heap alloc test"
 
