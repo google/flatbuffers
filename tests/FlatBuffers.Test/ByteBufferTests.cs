@@ -17,7 +17,7 @@
 using System;
 using System.Runtime.InteropServices;
 
-namespace FlatBuffers.Test
+namespace Google.FlatBuffers.Test
 {
     [FlatBuffersTestClass]
     public class ByteBufferTests

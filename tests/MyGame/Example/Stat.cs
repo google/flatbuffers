@@ -7,13 +7,13 @@ namespace MyGame.Example
 
 using global::System;
 using global::System.Collections.Generic;
-using global::FlatBuffers;
+using global::Google.FlatBuffers;
 
 public struct Stat : IFlatbufferObject
 {
   private Table __p;
   public ByteBuffer ByteBuffer { get { return __p.bb; } }
-  public static void ValidateVersion() { FlatBufferConstants.FLATBUFFERS_2_0_0(); }
+  public static void ValidateVersion() { FlatBufferConstants.FLATBUFFERS_2_0_8(); }
   public static Stat GetRootAsStat(ByteBuffer _bb) { return GetRootAsStat(_bb, new Stat()); }
   public static Stat GetRootAsStat(ByteBuffer _bb, Stat obj) { return (obj.__assign(_bb.GetInt(_bb.Position) + _bb.Position, _bb)); }
   public void __init(int _i, ByteBuffer _bb) { __p = new Table(_i, _bb); }
@@ -52,17 +52,21 @@ public struct Stat : IFlatbufferObject
   }
 
   public static VectorOffset CreateSortedVectorOfStat(FlatBufferBuilder builder, Offset<Stat>[] offsets) {
-    Array.Sort(offsets, (Offset<Stat> o1, Offset<Stat> o2) => builder.DataBuffer.GetUshort(Table.__offset(8, o1.Value, builder.DataBuffer)).CompareTo(builder.DataBuffer.GetUshort(Table.__offset(8, o2.Value, builder.DataBuffer))));
+    Array.Sort(offsets,
+      (Offset<Stat> o1, Offset<Stat> o2) =>
+        new Stat().__assign(builder.DataBuffer.Length - o1.Value, builder.DataBuffer).Count.CompareTo(new Stat().__assign(builder.DataBuffer.Length - o2.Value, builder.DataBuffer).Count));
     return builder.CreateVectorOfTables(offsets);
   }
 
   public static Stat? __lookup_by_key(int vectorLocation, ushort key, ByteBuffer bb) {
+    Stat obj_ = new Stat();
     int span = bb.GetInt(vectorLocation - 4);
     int start = 0;
     while (span != 0) {
       int middle = span / 2;
       int tableOffset = Table.__indirect(vectorLocation + 4 * (start + middle), bb);
-      int comp = bb.GetUshort(Table.__offset(8, bb.Length - tableOffset, bb)).CompareTo(key);
+      obj_.__assign(tableOffset, bb);
+      int comp = obj_.Count.CompareTo(key);
       if (comp > 0) {
         span = middle;
       } else if (comp < 0) {
@@ -70,7 +74,7 @@ public struct Stat : IFlatbufferObject
         start += middle;
         span -= middle;
       } else {
-        return new Stat().__assign(tableOffset, bb);
+        return obj_;
       }
     }
     return null;

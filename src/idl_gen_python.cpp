@@ -31,7 +31,9 @@
 namespace flatbuffers {
 namespace python {
 
-std::set<std::string> PythonKeywords() {
+namespace {
+
+static std::set<std::string> PythonKeywords() {
   return { "False", "None",   "True",     "and",   "as",     "assert",
            "break", "class",  "continue", "def",   "del",    "elif",
            "else",  "except", "finally",  "for",   "from",   "global",
@@ -40,7 +42,7 @@ std::set<std::string> PythonKeywords() {
            "while", "with",   "yield" };
 }
 
-Namer::Config PythonDefaultConfig() {
+static Namer::Config PythonDefaultConfig() {
   return { /*types=*/Case::kKeep,
            /*constants=*/Case::kScreamingSnake,
            /*methods=*/Case::kUpperCamel,
@@ -64,8 +66,10 @@ Namer::Config PythonDefaultConfig() {
 }
 
 // Hardcode spaces per indentation.
-const CommentConfig def_comment = { nullptr, "#", nullptr };
-const std::string Indent = "    ";
+static const CommentConfig def_comment = { nullptr, "#", nullptr };
+static const std::string Indent = "    ";
+
+} // namespace
 
 class PythonGenerator : public BaseGenerator {
  public:
@@ -207,7 +211,9 @@ class PythonGenerator : public BaseGenerator {
     if (is_bool) { getter = "bool(" + getter + ")"; }
     code += Indent + Indent + Indent + "return " + getter + "\n";
     std::string default_value;
-    if (is_bool) {
+    if (field.IsScalarOptional()) {
+      default_value = "None";
+    } else if (is_bool) {
       default_value = field.value.constant == "0" ? "False" : "True";
     } else {
       default_value = IsFloat(field.value.type.base_type)
@@ -593,9 +599,13 @@ class PythonGenerator : public BaseGenerator {
       code += field_var;
     }
     code += ", ";
-    code += IsFloat(field.value.type.base_type)
-                ? float_const_gen_.GenFloatConstant(field)
-                : field.value.constant;
+    if (field.IsScalarOptional()) {
+      code += "None";
+    } else if (IsFloat(field.value.type.base_type)) {
+      code += float_const_gen_.GenFloatConstant(field);
+    } else {
+      code += field.value.constant;
+    }
     code += ")\n";
 
     if (!parser_.opts.one_file) {
@@ -868,7 +878,9 @@ class PythonGenerator : public BaseGenerator {
 
   std::string GetDefaultValue(const FieldDef &field) const {
     BaseType base_type = field.value.type.base_type;
-    if (IsBool(base_type)) {
+    if (field.IsScalarOptional()) {
+      return "None";
+    } else if (IsBool(base_type)) {
       return field.value.constant == "0" ? "False" : "True";
     } else if (IsFloat(base_type)) {
       return float_const_gen_.GenFloatConstant(field);
@@ -991,6 +1003,9 @@ class PythonGenerator : public BaseGenerator {
         default:
           // Scalar or sting fields.
           field_type = GetBasePythonTypeForScalarAndString(base_type);
+          if (field.IsScalarOptional()) {
+            field_type = "Optional[" + field_type + "]";
+          }
           break;
       }
 

@@ -7,7 +7,6 @@ import kotlin.math.sign
 import com.google.flatbuffers.*
 
 @Suppress("unused")
-@ExperimentalUnsignedTypes
 class Animal : Table() {
 
     fun __init(_i: Int, _bb: ByteBuffer)  {
@@ -37,7 +36,7 @@ class Animal : Table() {
             return if(o != 0) bb.getShort(o + bb_pos).toUShort() else 0u
         }
     companion object {
-        fun validateVersion() = Constants.FLATBUFFERS_2_0_0()
+        fun validateVersion() = Constants.FLATBUFFERS_2_0_8()
         fun getRootAsAnimal(_bb: ByteBuffer): Animal = getRootAsAnimal(_bb, Animal())
         fun getRootAsAnimal(_bb: ByteBuffer, obj: Animal): Animal {
             _bb.order(ByteOrder.LITTLE_ENDIAN)

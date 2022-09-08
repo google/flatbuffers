@@ -76,7 +76,3 @@ tasks.register<de.undercouch.gradle.tasks.download.Download>("downloadMultipleFi
   dest(File("${project.projectDir.absolutePath}/src/jvmMain/resources"))
   overwrite(false)
 }
-
-project.tasks.named("compileKotlinJvm") {
-  dependsOn("downloadMultipleFiles")
-}

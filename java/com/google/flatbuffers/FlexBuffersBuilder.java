@@ -451,7 +451,7 @@ public class FlexBuffersBuilder {
     /**
      * Finishes a vector, but writing the information in the buffer
      * @param key   key used to store element in map
-     * @param start reference for begining of the vector. Returned by {@link startVector()}
+     * @param start reference for beginning of the vector. Returned by {@link startVector()}
      * @param typed boolean indicating whether vector is typed
      * @param fixed boolean indicating whether vector is fixed
      * @return      Reference to the vector
@@ -502,7 +502,9 @@ public class FlexBuffersBuilder {
      * @return Value representing the created vector
      */
     private Value createVector(int key, int start, int length, boolean typed, boolean fixed, Value keys) {
-        assert (!fixed || typed); // typed=false, fixed=true combination is not supported.
+        if (fixed & !typed)
+            throw new UnsupportedOperationException("Untyped fixed vector is not supported");
+
         // Figure out smallest bit width we can store this vector with.
         int bitWidth = Math.max(WIDTH_8, widthUInBits(length));
         int prefixElems = 1;
@@ -602,7 +604,7 @@ public class FlexBuffersBuilder {
     /**
      * Finishes a map, but writing the information in the buffer
      * @param key   key used to store element in map
-     * @param start reference for begining of the map. Returned by {@link startMap()}
+     * @param start reference for beginning of the map. Returned by {@link startMap()}
      * @return      Reference to the map
      */
     public int endMap(String key, int start) {

@@ -1,6 +1,6 @@
 {
   "name": "flatbuffers",
-  "version": "2.0.6",
+  "version": "2.0.8",
   "description": "Memory Efficient Serialization Library",
   "files": [
     "js/**/*.js",
@@ -16,8 +16,8 @@
     "test": "tests"
   },
   "scripts": {
-    "test": "npm run compile && cd tests && ./TypeScriptTest.sh",
-    "compile": "tsc && tsc -p tsconfig.mjs.json",
+    "test": "npm run compile && cd tests && python3 ./TypeScriptTest.py",
+    "compile": "tsc && tsc -p tsconfig.mjs.json && rollup -c",
     "prepublishOnly": "npm install --only=dev && npm run compile"
   },
   "repository": {
@@ -40,6 +40,7 @@
     "@typescript-eslint/eslint-plugin": "^4.12.0",
     "@typescript-eslint/parser": "^4.12.0",
     "eslint": "^7.17.0",
+    "rollup": "^2.78.0",
     "typescript": "^4.5.5"
   }
 }

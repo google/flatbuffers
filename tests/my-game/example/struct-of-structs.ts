@@ -9,7 +9,7 @@ import { Test, TestT } from '../../my-game/example/test';
 export class StructOfStructs {
   bb: flatbuffers.ByteBuffer|null = null;
   bb_pos = 0;
-__init(i:number, bb:flatbuffers.ByteBuffer):StructOfStructs {
+  __init(i:number, bb:flatbuffers.ByteBuffer):StructOfStructs {
   this.bb_pos = i;
   this.bb = bb;
   return this;
@@ -28,7 +28,7 @@ c(obj?:Ability):Ability|null {
 }
 
 static getFullyQualifiedName():string {
-  return 'MyGame.Example.StructOfStructs';
+  return 'MyGame_Example_StructOfStructs';
 }
 
 static sizeOf():number {

@@ -140,7 +140,7 @@
 
 #define FLATBUFFERS_VERSION_MAJOR 2
 #define FLATBUFFERS_VERSION_MINOR 0
-#define FLATBUFFERS_VERSION_REVISION 6
+#define FLATBUFFERS_VERSION_REVISION 8
 #define FLATBUFFERS_STRING_EXPAND(X) #X
 #define FLATBUFFERS_STRING(X) FLATBUFFERS_STRING_EXPAND(X)
 namespace flatbuffers {
@@ -260,9 +260,12 @@ namespace flatbuffers {
 #endif // !FLATBUFFERS_HAS_NEW_STRTOD
 
 #ifndef FLATBUFFERS_LOCALE_INDEPENDENT
-  // Enable locale independent functions {strtof_l, strtod_l,strtoll_l, strtoull_l}.
-  #if ((defined(_MSC_VER) && _MSC_VER >= 1800)            || \
-       (defined(_XOPEN_VERSION) && (_XOPEN_VERSION>=700)) && (!defined(__ANDROID_API__) || (defined(__ANDROID_API__) && (__ANDROID_API__>=21))))
+  // Enable locale independent functions {strtof_l, strtod_l,strtoll_l,
+  // strtoull_l}.
+  #if (defined(_MSC_VER) && _MSC_VER >= 1800) || \
+      (defined(__ANDROID_API__) && __ANDROID_API__>= 21) || \
+      (defined(_XOPEN_VERSION) && (_XOPEN_VERSION >= 700)) && \
+        (!defined(__Fuchsia__) && !defined(__ANDROID_API__))
     #define FLATBUFFERS_LOCALE_INDEPENDENT 1
   #else
     #define FLATBUFFERS_LOCALE_INDEPENDENT 0
@@ -270,14 +273,14 @@ namespace flatbuffers {
 #endif  // !FLATBUFFERS_LOCALE_INDEPENDENT
 
 // Suppress Undefined Behavior Sanitizer (recoverable only). Usage:
-// - __supress_ubsan__("undefined")
-// - __supress_ubsan__("signed-integer-overflow")
+// - __suppress_ubsan__("undefined")
+// - __suppress_ubsan__("signed-integer-overflow")
 #if defined(__clang__) && (__clang_major__ > 3 || (__clang_major__ == 3 && __clang_minor__ >=7))
-  #define __supress_ubsan__(type) __attribute__((no_sanitize(type)))
+  #define __suppress_ubsan__(type) __attribute__((no_sanitize(type)))
 #elif defined(__GNUC__) && (__GNUC__ * 100 + __GNUC_MINOR__ >= 409)
-  #define __supress_ubsan__(type) __attribute__((no_sanitize_undefined))
+  #define __suppress_ubsan__(type) __attribute__((no_sanitize_undefined))
 #else
-  #define __supress_ubsan__(type)
+  #define __suppress_ubsan__(type)
 #endif
 
 // This is constexpr function used for checking compile-time constants.
@@ -327,6 +330,13 @@ typedef uintmax_t largest_scalar_t;
 
 // In 32bits, this evaluates to 2GB - 1
 #define FLATBUFFERS_MAX_BUFFER_SIZE ((1ULL << (sizeof(::flatbuffers::soffset_t) * 8 - 1)) - 1)
+
+// The minimum size buffer that can be a valid flatbuffer.
+// Includes the offset to the root table (uoffset_t), the offset to the vtable
+// of the root table (soffset_t), the size of the vtable (uint16_t), and the
+// size of the referring table (uint16_t).
+#define FLATBUFFERS_MIN_BUFFER_SIZE sizeof(uoffset_t) + sizeof(soffset_t) + \
+   sizeof(uint16_t) + sizeof(uint16_t)
 
 // We support aligning the contents of buffers up to this size.
 #ifndef FLATBUFFERS_MAX_ALIGNMENT
@@ -403,7 +413,7 @@ template<typename T> T EndianScalar(T t) {
 
 template<typename T>
 // UBSAN: C++ aliasing type rules, see std::bit_cast<> for details.
-__supress_ubsan__("alignment")
+__suppress_ubsan__("alignment")
 T ReadScalar(const void *p) {
   return EndianScalar(*reinterpret_cast<const T *>(p));
 }
@@ -417,13 +427,13 @@ T ReadScalar(const void *p) {
 
 template<typename T>
 // UBSAN: C++ aliasing type rules, see std::bit_cast<> for details.
-__supress_ubsan__("alignment")
+__suppress_ubsan__("alignment")
 void WriteScalar(void *p, T t) {
   *reinterpret_cast<T *>(p) = EndianScalar(t);
 }
 
 template<typename T> struct Offset;
-template<typename T> __supress_ubsan__("alignment") void WriteScalar(void *p, Offset<T> t) {
+template<typename T> __suppress_ubsan__("alignment") void WriteScalar(void *p, Offset<T> t) {
   *reinterpret_cast<uoffset_t *>(p) = EndianScalar(t.o);
 }
 
@@ -434,7 +444,7 @@ template<typename T> __supress_ubsan__("alignment") void WriteScalar(void *p, Of
 // Computes how many bytes you'd have to pad to be able to write an
 // "scalar_size" scalar if the buffer had grown to "buf_size" (downwards in
 // memory).
-__supress_ubsan__("unsigned-integer-overflow")
+__suppress_ubsan__("unsigned-integer-overflow")
 inline size_t PaddingBytes(size_t buf_size, size_t scalar_size) {
   return ((~buf_size) + 1) & (scalar_size - 1);
 }

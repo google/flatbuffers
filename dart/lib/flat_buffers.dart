@@ -1,7 +1,3 @@
-// Copyright (c) 2016, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
 import 'dart:collection';
 import 'dart:convert';
 import 'dart:math';
@@ -399,6 +395,15 @@ class Builder {
   void putFloat32(double value) {
     _prepare(_sizeofFloat32, 1);
     _setFloat32AtTail(_tail, value);
+  }
+
+  /// Writes a bool to the tail of the buffer after preparing space for it.
+  /// Bools are represented as a Uint8, with the value set to '1' for true, and '0' for false
+  ///
+  /// Updates the [offset] pointer.  This method is intended for use when writing structs to the buffer.
+  void putBool(bool value) {
+    _prepare(_sizeofUint8, 1);
+    _buf.setInt8(_buf.lengthInBytes - _tail, value ? 1 : 0);
   }
 
   /// Writes a Int64 to the tail of the buffer after preparing space for it.

@@ -1,0 +1,9 @@
+include "bar/bar.fbs";
+include "bar/bar_with_ns.fbs";
+
+table Foo {
+  bar:Bar;
+  bar2:bar.Bar;
+}
+
+root_type Foo;
