@@ -12,7 +12,7 @@ use linked_list_allocator::LockedHeap;
 #[global_allocator]
 static ALLOCATOR: LockedHeap = LockedHeap::empty();
 
-// Include flatbuffers purely to check that it compiles in in a no_std binary
+// Include flatbuffers purely to check that it compiles in a no_std binary
 #[allow(unused_imports)]
 use flatbuffers;
 
