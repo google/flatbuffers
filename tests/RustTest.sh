@@ -42,9 +42,6 @@ check_test_result "Rust tests"
 cargo test $TARGET_FLAG --no-default-features --features no_std -- --quiet
 check_test_result "Rust tests (no_std)"
 
-cargo build --bin=rust_test_no_std_compilation
-check_test_result "Rust flatbuffers test no_std compilation"
-
 cargo run $TARGET_FLAG --bin=flatbuffers_alloc_check
 check_test_result "Rust flatbuffers heap alloc test"
 
@@ -60,6 +57,10 @@ check_test_result "Rust flexbuffers heap alloc test"
 # check_test_result "No Cargo clippy lints test"
 
 cargo bench $TARGET_FLAG
+
+cd ../rust_test_no_std_compilation
+cargo build
+check_test_result "Rust flatbuffers test no_std compilation"
 
 # This test is dependent on flatc.
 if [[ -f ../../flatc ]]; then
