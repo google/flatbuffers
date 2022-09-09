@@ -7,7 +7,7 @@ edition = "2021"
 flatbuffers = { path = "../../rust/flatbuffers", features = [
   "no_std"
 ], default-features = false }
-linked_list_allocator = { version = "*" }
+wee_alloc = { version = "*" }
 
 [profile.dev]
 panic = "abort"
