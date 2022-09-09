@@ -19,8 +19,8 @@ pub struct MoreDefaults<'a> {
 impl<'a> flatbuffers::Follow<'a> for MoreDefaults<'a> {
   type Inner = MoreDefaults<'a>;
   #[inline]
-  fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
-    Self { _tab: flatbuffers::Table { buf, loc } }
+  unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
+    Self { _tab: flatbuffers::Table::new(buf, loc) }
   }
 }
 
@@ -112,7 +112,7 @@ impl<'a> MoreDefaults<'a> {
   }
   #[inline]
   pub fn bools(&self) -> &'a [bool] {
-    self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'a, bool>>>(MoreDefaults::VT_BOOLS, Some(Default::default())).map(|v| v.safe_slice()).unwrap()
+    self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'a, bool>>>(MoreDefaults::VT_BOOLS, Some(Default::default())).map(|v| v.safe_slice() ).unwrap()
   }
 }
 

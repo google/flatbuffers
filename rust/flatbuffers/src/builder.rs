@@ -16,13 +16,13 @@
 
 extern crate smallvec;
 
+#[cfg(feature = "no_std")]
+use alloc::{vec, vec::Vec};
 use core::cmp::max;
 use core::iter::{DoubleEndedIterator, ExactSizeIterator};
 use core::marker::PhantomData;
 use core::ptr::write_bytes;
 use core::slice::from_raw_parts;
-#[cfg(feature = "no_std")]
-use alloc::{vec, vec::Vec};
 
 use crate::endian_scalar::{emplace_scalar, read_scalar_at};
 use crate::primitives::*;
@@ -153,7 +153,7 @@ impl<'fbb> FlatBufferBuilder<'fbb> {
         self.make_space(sz);
         {
             let (dst, rest) = (&mut self.owned_buf[self.head..]).split_at_mut(sz);
-            x.push(dst, rest);
+            unsafe { x.push(dst, rest) };
         }
         WIPOffset::new(self.used_space() as UOffsetT)
     }
@@ -443,7 +443,7 @@ impl<'fbb> FlatBufferBuilder<'fbb> {
         assert_msg_name: &'static str,
     ) {
         let idx = self.used_space() - tab_revloc.value() as usize;
-        let tab = Table::new(&self.owned_buf[self.head..], idx);
+        let tab = unsafe { Table::new(&self.owned_buf[self.head..], idx) };
         let o = tab.vtable().get(slot_byte_loc) as usize;
         assert!(o != 0, "missing required field {}", assert_msg_name);
     }
@@ -560,11 +560,13 @@ impl<'fbb> FlatBufferBuilder<'fbb> {
             }
         }
         let new_vt_bytes = &self.owned_buf[vt_start_pos..vt_end_pos];
-        let found = self.written_vtable_revpos.binary_search_by(|old_vtable_revpos: &UOffsetT| {
-            let old_vtable_pos = self.owned_buf.len() - *old_vtable_revpos as usize;
-            let old_vtable = VTable::init(&self.owned_buf, old_vtable_pos);
-            new_vt_bytes.cmp(old_vtable.as_bytes())
-        });
+        let found = self
+            .written_vtable_revpos
+            .binary_search_by(|old_vtable_revpos: &UOffsetT| {
+                let old_vtable_pos = self.owned_buf.len() - *old_vtable_revpos as usize;
+                let old_vtable = unsafe { VTable::init(&self.owned_buf, old_vtable_pos) };
+                new_vt_bytes.cmp(old_vtable.as_bytes())
+            });
         let final_vtable_revpos = match found {
             Ok(i) => {
                 // The new vtable is a duplicate so clear it.
@@ -586,7 +588,7 @@ impl<'fbb> FlatBufferBuilder<'fbb> {
         unsafe {
             emplace_scalar::<SOffsetT>(
                 &mut self.owned_buf[table_pos..table_pos + SIZE_SOFFSET],
-                final_vtable_revpos as SOffsetT - object_revloc_to_vtable.value() as SOffsetT
+                final_vtable_revpos as SOffsetT - object_revloc_to_vtable.value() as SOffsetT,
             );
         }
 

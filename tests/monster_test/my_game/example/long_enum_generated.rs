@@ -25,19 +25,17 @@ pub use self::bitflags_long_enum::LongEnum;
 impl<'a> flatbuffers::Follow<'a> for LongEnum {
   type Inner = Self;
   #[inline]
-  fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
-    let b = unsafe {
-      flatbuffers::read_scalar_at::<u64>(buf, loc)
-    };
-    unsafe { Self::from_bits_unchecked(b) }
+  unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
+    let b = flatbuffers::read_scalar_at::<u64>(buf, loc);
+    Self::from_bits_unchecked(b)
   }
 }
 
 impl flatbuffers::Push for LongEnum {
     type Output = LongEnum;
     #[inline]
-    fn push(&self, dst: &mut [u8], _rest: &[u8]) {
-        unsafe { flatbuffers::emplace_scalar::<u64>(dst, self.bits()); }
+    unsafe fn push(&self, dst: &mut [u8], _rest: &[u8]) {
+        flatbuffers::emplace_scalar::<u64>(dst, self.bits());
     }
 }
 

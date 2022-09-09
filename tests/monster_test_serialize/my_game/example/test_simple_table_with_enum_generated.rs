@@ -21,8 +21,8 @@ pub struct TestSimpleTableWithEnum<'a> {
 impl<'a> flatbuffers::Follow<'a> for TestSimpleTableWithEnum<'a> {
   type Inner = TestSimpleTableWithEnum<'a>;
   #[inline]
-  fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
-    Self { _tab: flatbuffers::Table { buf, loc } }
+  unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
+    Self { _tab: flatbuffers::Table::new(buf, loc) }
   }
 }
 

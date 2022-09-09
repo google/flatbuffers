@@ -63,10 +63,8 @@ impl core::fmt::Debug for Race {
 impl<'a> flatbuffers::Follow<'a> for Race {
   type Inner = Self;
   #[inline]
-  fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
-    let b = unsafe {
-      flatbuffers::read_scalar_at::<i8>(buf, loc)
-    };
+  unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
+    let b = flatbuffers::read_scalar_at::<i8>(buf, loc);
     Self(b)
   }
 }
@@ -74,8 +72,8 @@ impl<'a> flatbuffers::Follow<'a> for Race {
 impl flatbuffers::Push for Race {
     type Output = Race;
     #[inline]
-    fn push(&self, dst: &mut [u8], _rest: &[u8]) {
-        unsafe { flatbuffers::emplace_scalar::<i8>(dst, self.0); }
+    unsafe fn push(&self, dst: &mut [u8], _rest: &[u8]) {
+        flatbuffers::emplace_scalar::<i8>(dst, self.0);
     }
 }
 

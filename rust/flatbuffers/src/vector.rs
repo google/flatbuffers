@@ -55,6 +55,7 @@ where
 // and Clone for `T: Copy` and `T: Clone` respectively. However `Vector<'a, T>`
 // can always be copied, no matter that `T` you have.
 impl<'a, T> Copy for Vector<'a, T> {}
+
 impl<'a, T> Clone for Vector<'a, T> {
     fn clone(&self) -> Self {
         *self
@@ -63,7 +64,7 @@ impl<'a, T> Clone for Vector<'a, T> {
 
 impl<'a, T: 'a> Vector<'a, T> {
     #[inline(always)]
-    pub fn new(buf: &'a [u8], loc: usize) -> Self {
+    pub unsafe fn new(buf: &'a [u8], loc: usize) -> Self {
         Vector {
             0: buf,
             1: loc,
@@ -87,7 +88,7 @@ impl<'a, T: Follow<'a> + 'a> Vector<'a, T> {
         assert!(idx < self.len() as usize);
         let sz = size_of::<T>();
         debug_assert!(sz > 0);
-        T::follow(self.0, self.1 as usize + SIZE_UOFFSET + sz * idx)
+        unsafe { T::follow(self.0, self.1 as usize + SIZE_UOFFSET + sz * idx) }
     }
 
     #[inline(always)]
@@ -134,19 +135,19 @@ mod le_safe_slice_impls {
 #[cfg(target_endian = "little")]
 pub use self::le_safe_slice_impls::*;
 
-pub fn follow_cast_ref<'a, T: Sized + 'a>(buf: &'a [u8], loc: usize) -> &'a T {
+pub unsafe fn follow_cast_ref<'a, T: Sized + 'a>(buf: &'a [u8], loc: usize) -> &'a T {
     let sz = size_of::<T>();
     let buf = &buf[loc..loc + sz];
     let ptr = buf.as_ptr() as *const T;
-    unsafe { &*ptr }
+    &*ptr
 }
 
 impl<'a> Follow<'a> for &'a str {
     type Inner = &'a str;
-    fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
-        let len = unsafe { read_scalar_at::<UOffsetT>(buf, loc) } as usize;
+    unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
+        let len = read_scalar_at::<UOffsetT>(buf, loc) as usize;
         let slice = &buf[loc + SIZE_UOFFSET..loc + SIZE_UOFFSET + len];
-        unsafe { from_utf8_unchecked(slice) }
+        from_utf8_unchecked(slice)
     }
 }
 
@@ -165,7 +166,7 @@ fn follow_slice_helper<T>(buf: &[u8], loc: usize) -> &[T] {
 #[cfg(target_endian = "little")]
 impl<'a, T: EndianScalar> Follow<'a> for &'a [T] {
     type Inner = &'a [T];
-    fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
+    unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
         follow_slice_helper::<T>(buf, loc)
     }
 }
@@ -173,7 +174,7 @@ impl<'a, T: EndianScalar> Follow<'a> for &'a [T] {
 /// Implement Follow for all possible Vectors that have Follow-able elements.
 impl<'a, T: Follow<'a> + 'a> Follow<'a> for Vector<'a, T> {
     type Inner = Vector<'a, T>;
-    fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
+    unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
         Vector::new(buf, loc)
     }
 }
@@ -202,7 +203,7 @@ impl<'a, T: 'a> VectorIter<'a, T> {
     }
 
     #[inline]
-    pub fn from_slice(buf: &'a [u8], items_num: usize) -> Self {
+    pub unsafe fn from_slice(buf: &'a [u8], items_num: usize) -> Self {
         VectorIter {
             buf,
             loc: 0,
@@ -235,7 +236,7 @@ impl<'a, T: Follow<'a> + 'a> Iterator for VectorIter<'a, T> {
         if self.remaining == 0 {
             None
         } else {
-            let result = T::follow(self.buf, self.loc);
+            let result = unsafe { T::follow(self.buf, self.loc) };
             self.loc += sz;
             self.remaining -= 1;
             Some(result)
@@ -272,7 +273,7 @@ impl<'a, T: Follow<'a> + 'a> DoubleEndedIterator for VectorIter<'a, T> {
             None
         } else {
             self.remaining -= 1;
-            Some(T::follow(self.buf, self.loc + sz * self.remaining))
+            Some(unsafe { T::follow(self.buf, self.loc + sz * self.remaining) })
         }
     }
 
@@ -309,7 +310,7 @@ impl<'a, 'b, T: Follow<'a> + 'a> IntoIterator for &'b Vector<'a, T> {
     }
 }
 
-#[cfg(feature="serialize")]
+#[cfg(feature = "serialize")]
 impl<'a, T> serde::ser::Serialize for Vector<'a, T>
 where
     T: 'a + Follow<'a>,

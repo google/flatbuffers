@@ -19,8 +19,8 @@ pub struct ScalarStuff<'a> {
 impl<'a> flatbuffers::Follow<'a> for ScalarStuff<'a> {
   type Inner = ScalarStuff<'a>;
   #[inline]
-  fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
-    Self { _tab: flatbuffers::Table { buf, loc } }
+  unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
+    Self { _tab: flatbuffers::Table::new(buf, loc) }
   }
 }
 
@@ -911,12 +911,12 @@ pub unsafe fn size_prefixed_root_as_scalar_stuff_unchecked(buf: &[u8]) -> Scalar
 pub const SCALAR_STUFF_IDENTIFIER: &str = "NULL";
 
 #[inline]
-pub fn scalar_stuff_buffer_has_identifier(buf: &[u8]) -> bool {
+pub unsafe fn scalar_stuff_buffer_has_identifier(buf: &[u8]) -> bool {
   flatbuffers::buffer_has_identifier(buf, SCALAR_STUFF_IDENTIFIER, false)
 }
 
 #[inline]
-pub fn scalar_stuff_size_prefixed_buffer_has_identifier(buf: &[u8]) -> bool {
+pub unsafe fn scalar_stuff_size_prefixed_buffer_has_identifier(buf: &[u8]) -> bool {
   flatbuffers::buffer_has_identifier(buf, SCALAR_STUFF_IDENTIFIER, true)
 }
 

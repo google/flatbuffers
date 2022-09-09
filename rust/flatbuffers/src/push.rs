@@ -24,7 +24,7 @@ use crate::endian_scalar::emplace_scalar;
 /// types.
 pub trait Push: Sized {
     type Output;
-    fn push(&self, dst: &mut [u8], _rest: &[u8]);
+    unsafe fn push(&self, dst: &mut [u8], _rest: &[u8]);
     #[inline]
     fn size() -> usize {
         size_of::<Self::Output>()
@@ -60,10 +60,8 @@ macro_rules! impl_push_for_endian_scalar {
             type Output = $ty;
 
             #[inline]
-            fn push(&self, dst: &mut [u8], _rest: &[u8]) {
-                unsafe {
-                    emplace_scalar::<$ty>(dst, *self);
-                }
+            unsafe fn push(&self, dst: &mut [u8], _rest: &[u8]) {
+                emplace_scalar::<$ty>(dst, *self);
             }
         }
     };

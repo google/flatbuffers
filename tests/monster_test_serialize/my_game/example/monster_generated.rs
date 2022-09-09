@@ -22,8 +22,8 @@ pub struct Monster<'a> {
 impl<'a> flatbuffers::Follow<'a> for Monster<'a> {
   type Inner = Monster<'a>;
   #[inline]
-  fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
-    Self { _tab: flatbuffers::Table { buf, loc } }
+  unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
+    Self { _tab: flatbuffers::Table::new(buf, loc) }
   }
 }
 
@@ -392,7 +392,7 @@ impl<'a> Monster<'a> {
   }
   #[inline]
   pub fn inventory(&self) -> Option<&'a [u8]> {
-    self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'a, u8>>>(Monster::VT_INVENTORY, None).map(|v| v.safe_slice())
+    self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'a, u8>>>(Monster::VT_INVENTORY, None).map(|v| v.safe_slice() )
   }
   #[inline]
   pub fn color(&self) -> Color {
@@ -408,7 +408,7 @@ impl<'a> Monster<'a> {
   }
   #[inline]
   pub fn test4(&self) -> Option<&'a [Test]> {
-    self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'a, Test>>>(Monster::VT_TEST4, None).map(|v| v.safe_slice())
+    self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'a, Test>>>(Monster::VT_TEST4, None).map(|v| v.safe_slice() )
   }
   #[inline]
   pub fn testarrayofstring(&self) -> Option<flatbuffers::Vector<'a, flatbuffers::ForwardsUOffset<&'a str>>> {
@@ -426,12 +426,12 @@ impl<'a> Monster<'a> {
   }
   #[inline]
   pub fn testnestedflatbuffer(&self) -> Option<&'a [u8]> {
-    self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'a, u8>>>(Monster::VT_TESTNESTEDFLATBUFFER, None).map(|v| v.safe_slice())
+    self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'a, u8>>>(Monster::VT_TESTNESTEDFLATBUFFER, None).map(|v| v.safe_slice() )
   }
   pub fn testnestedflatbuffer_nested_flatbuffer(&'a self) -> Option<Monster<'a>> {
     self.testnestedflatbuffer().map(|data| {
       use flatbuffers::Follow;
-      <flatbuffers::ForwardsUOffset<Monster<'a>>>::follow(data, 0)
+      unsafe { <flatbuffers::ForwardsUOffset<Monster<'a>>>::follow(data, 0) }
     })
   }
   #[inline]
@@ -476,7 +476,7 @@ impl<'a> Monster<'a> {
   }
   #[inline]
   pub fn testarrayofbools(&self) -> Option<&'a [bool]> {
-    self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'a, bool>>>(Monster::VT_TESTARRAYOFBOOLS, None).map(|v| v.safe_slice())
+    self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'a, bool>>>(Monster::VT_TESTARRAYOFBOOLS, None).map(|v| v.safe_slice() )
   }
   #[inline]
   pub fn testf(&self) -> f32 {
@@ -496,15 +496,15 @@ impl<'a> Monster<'a> {
   }
   #[inline]
   pub fn testarrayofsortedstruct(&self) -> Option<&'a [Ability]> {
-    self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'a, Ability>>>(Monster::VT_TESTARRAYOFSORTEDSTRUCT, None).map(|v| v.safe_slice())
+    self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'a, Ability>>>(Monster::VT_TESTARRAYOFSORTEDSTRUCT, None).map(|v| v.safe_slice() )
   }
   #[inline]
   pub fn flex(&self) -> Option<&'a [u8]> {
-    self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'a, u8>>>(Monster::VT_FLEX, None).map(|v| v.safe_slice())
+    self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'a, u8>>>(Monster::VT_FLEX, None).map(|v| v.safe_slice() )
   }
   #[inline]
   pub fn test5(&self) -> Option<&'a [Test]> {
-    self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'a, Test>>>(Monster::VT_TEST5, None).map(|v| v.safe_slice())
+    self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'a, Test>>>(Monster::VT_TEST5, None).map(|v| v.safe_slice() )
   }
   #[inline]
   pub fn vector_of_longs(&self) -> Option<flatbuffers::Vector<'a, i64>> {
@@ -576,12 +576,12 @@ impl<'a> Monster<'a> {
   }
   #[inline]
   pub fn testrequirednestedflatbuffer(&self) -> Option<&'a [u8]> {
-    self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'a, u8>>>(Monster::VT_TESTREQUIREDNESTEDFLATBUFFER, None).map(|v| v.safe_slice())
+    self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'a, u8>>>(Monster::VT_TESTREQUIREDNESTEDFLATBUFFER, None).map(|v| v.safe_slice() )
   }
   pub fn testrequirednestedflatbuffer_nested_flatbuffer(&'a self) -> Option<Monster<'a>> {
     self.testrequirednestedflatbuffer().map(|data| {
       use flatbuffers::Follow;
-      <flatbuffers::ForwardsUOffset<Monster<'a>>>::follow(data, 0)
+      unsafe { <flatbuffers::ForwardsUOffset<Monster<'a>>>::follow(data, 0) }
     })
   }
   #[inline]
@@ -1828,12 +1828,12 @@ pub unsafe fn size_prefixed_root_as_monster_unchecked(buf: &[u8]) -> Monster {
 pub const MONSTER_IDENTIFIER: &str = "MONS";
 
 #[inline]
-pub fn monster_buffer_has_identifier(buf: &[u8]) -> bool {
+pub unsafe fn monster_buffer_has_identifier(buf: &[u8]) -> bool {
   flatbuffers::buffer_has_identifier(buf, MONSTER_IDENTIFIER, false)
 }
 
 #[inline]
-pub fn monster_size_prefixed_buffer_has_identifier(buf: &[u8]) -> bool {
+pub unsafe fn monster_size_prefixed_buffer_has_identifier(buf: &[u8]) -> bool {
   flatbuffers::buffer_has_identifier(buf, MONSTER_IDENTIFIER, true)
 }
 

@@ -38,7 +38,7 @@ where
 #[allow(clippy::from_over_into)] // TODO(caspern): Go from From to Into.
 impl<'a, T: 'a, const N: usize> Array<'a, T, N> {
     #[inline(always)]
-    pub fn new(buf: &'a [u8]) -> Self {
+    pub unsafe fn new(buf: &'a [u8]) -> Self {
         assert!(size_of::<T>() * N == buf.len());
 
         Array {
@@ -61,12 +61,12 @@ impl<'a, T: Follow<'a> + 'a, const N: usize> Array<'a, T, N> {
     pub fn get(&self, idx: usize) -> T::Inner {
         assert!(idx < N);
         let sz = size_of::<T>();
-        T::follow(self.0, sz * idx)
+        unsafe { T::follow(self.0, sz * idx) }
     }
 
     #[inline(always)]
     pub fn iter(&self) -> VectorIter<'a, T> {
-        VectorIter::from_slice(self.0, self.len())
+        unsafe { VectorIter::from_slice(self.0, self.len()) }
     }
 }
 
@@ -83,12 +83,12 @@ impl<'a, T: Follow<'a> + Debug, const N: usize> Into<[T::Inner; N]> for Array<'a
 impl<'a, T: Follow<'a> + 'a, const N: usize> Follow<'a> for Array<'a, T, N> {
     type Inner = Array<'a, T, N>;
     #[inline(always)]
-    fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
+    unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
         Array::new(&buf[loc..loc + N * size_of::<T>()])
     }
 }
 
-pub fn emplace_scalar_array<T: EndianScalar, const N: usize>(
+pub unsafe fn emplace_scalar_array<T: EndianScalar, const N: usize>(
     buf: &mut [u8],
     loc: usize,
     src: &[T; N],
@@ -96,14 +96,8 @@ pub fn emplace_scalar_array<T: EndianScalar, const N: usize>(
     let mut buf_ptr = buf[loc..].as_mut_ptr();
     for item in src.iter() {
         let item_le = item.to_little_endian();
-        unsafe {
-            core::ptr::copy_nonoverlapping(
-                &item_le as *const T as *const u8,
-                buf_ptr,
-                size_of::<T>(),
-            );
-            buf_ptr = buf_ptr.add(size_of::<T>());
-        }
+        core::ptr::copy_nonoverlapping(&item_le as *const T as *const u8, buf_ptr, size_of::<T>());
+        buf_ptr = buf_ptr.add(size_of::<T>());
     }
 }
 
@@ -134,7 +128,7 @@ where
     }
 }
 
-#[cfg(feature="serialize")]
+#[cfg(feature = "serialize")]
 impl<'a, T: 'a, const N: usize> serde::ser::Serialize for Array<'a, T, N>
 where
     T: 'a + Follow<'a>,

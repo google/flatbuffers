@@ -21,8 +21,8 @@ pub struct TypeAliases<'a> {
 impl<'a> flatbuffers::Follow<'a> for TypeAliases<'a> {
   type Inner = TypeAliases<'a>;
   #[inline]
-  fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
-    Self { _tab: flatbuffers::Table { buf, loc } }
+  unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
+    Self { _tab: flatbuffers::Table::new(buf, loc) }
   }
 }
 
@@ -144,7 +144,7 @@ impl<'a> TypeAliases<'a> {
   }
   #[inline]
   pub fn v8(&self) -> Option<&'a [i8]> {
-    self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'a, i8>>>(TypeAliases::VT_V8, None).map(|v| v.safe_slice())
+    self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'a, i8>>>(TypeAliases::VT_V8, None).map(|v| v.safe_slice() )
   }
   #[inline]
   pub fn vf64(&self) -> Option<flatbuffers::Vector<'a, f64>> {

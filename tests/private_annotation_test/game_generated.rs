@@ -19,8 +19,8 @@ pub(crate) struct Game<'a> {
 impl<'a> flatbuffers::Follow<'a> for Game<'a> {
   type Inner = Game<'a>;
   #[inline]
-  fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
-    Self { _tab: flatbuffers::Table { buf, loc } }
+  unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
+    Self { _tab: flatbuffers::Table::new(buf, loc) }
   }
 }
 

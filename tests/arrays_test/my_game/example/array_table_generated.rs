@@ -19,8 +19,8 @@ pub struct ArrayTable<'a> {
 impl<'a> flatbuffers::Follow<'a> for ArrayTable<'a> {
   type Inner = ArrayTable<'a>;
   #[inline]
-  fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
-    Self { _tab: flatbuffers::Table { buf, loc } }
+  unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
+    Self { _tab: flatbuffers::Table::new(buf, loc) }
   }
 }
 
@@ -214,12 +214,12 @@ pub unsafe fn size_prefixed_root_as_array_table_unchecked(buf: &[u8]) -> ArrayTa
 pub const ARRAY_TABLE_IDENTIFIER: &str = "ARRT";
 
 #[inline]
-pub fn array_table_buffer_has_identifier(buf: &[u8]) -> bool {
+pub unsafe fn array_table_buffer_has_identifier(buf: &[u8]) -> bool {
   flatbuffers::buffer_has_identifier(buf, ARRAY_TABLE_IDENTIFIER, false)
 }
 
 #[inline]
-pub fn array_table_size_prefixed_buffer_has_identifier(buf: &[u8]) -> bool {
+pub unsafe fn array_table_size_prefixed_buffer_has_identifier(buf: &[u8]) -> bool {
   flatbuffers::buffer_has_identifier(buf, ARRAY_TABLE_IDENTIFIER, true)
 }
 

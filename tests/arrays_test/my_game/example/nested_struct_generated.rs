@@ -34,24 +34,22 @@ impl flatbuffers::SafeSliceAccess for NestedStruct {}
 impl<'a> flatbuffers::Follow<'a> for NestedStruct {
   type Inner = &'a NestedStruct;
   #[inline]
-  fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
+  unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
     <&'a NestedStruct>::follow(buf, loc)
   }
 }
 impl<'a> flatbuffers::Follow<'a> for &'a NestedStruct {
   type Inner = &'a NestedStruct;
   #[inline]
-  fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
+  unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
     flatbuffers::follow_cast_ref::<NestedStruct>(buf, loc)
   }
 }
 impl<'b> flatbuffers::Push for NestedStruct {
     type Output = NestedStruct;
     #[inline]
-    fn push(&self, dst: &mut [u8], _rest: &[u8]) {
-        let src = unsafe {
-            ::core::slice::from_raw_parts(self as *const NestedStruct as *const u8, Self::size())
-        };
+    unsafe fn push(&self, dst: &mut [u8], _rest: &[u8]) {
+        let src = ::core::slice::from_raw_parts(self as *const NestedStruct as *const u8, Self::size());
         dst.copy_from_slice(src);
     }
 }
@@ -59,10 +57,8 @@ impl<'b> flatbuffers::Push for &'b NestedStruct {
     type Output = NestedStruct;
 
     #[inline]
-    fn push(&self, dst: &mut [u8], _rest: &[u8]) {
-        let src = unsafe {
-            ::core::slice::from_raw_parts(*self as *const NestedStruct as *const u8, Self::size())
-        };
+    unsafe fn push(&self, dst: &mut [u8], _rest: &[u8]) {
+        let src = ::core::slice::from_raw_parts(*self as *const NestedStruct as *const u8, Self::size());
         dst.copy_from_slice(src);
     }
 }
@@ -98,11 +94,11 @@ impl<'a> NestedStruct {
   }
 
   pub fn a(&'a self) -> flatbuffers::Array<'a, i32, 2> {
-    flatbuffers::Array::follow(&self.0, 0)
+    unsafe { flatbuffers::Array::follow(&self.0, 0) }
   }
 
   pub fn set_a(&mut self, items: &[i32; 2]) {
-    flatbuffers::emplace_scalar_array(&mut self.0, 0, items);
+    unsafe { flatbuffers::emplace_scalar_array(&mut self.0, 0, items) };
   }
 
   pub fn b(&self) -> TestEnum {
@@ -129,7 +125,7 @@ impl<'a> NestedStruct {
   }
 
   pub fn c(&'a self) -> flatbuffers::Array<'a, TestEnum, 2> {
-    flatbuffers::Array::follow(&self.0, 9)
+    unsafe { flatbuffers::Array::follow(&self.0, 9) }
   }
 
   pub fn set_c(&mut self, x: &[TestEnum; 2]) {
@@ -143,11 +139,11 @@ impl<'a> NestedStruct {
   }
 
   pub fn d(&'a self) -> flatbuffers::Array<'a, i64, 2> {
-    flatbuffers::Array::follow(&self.0, 16)
+    unsafe { flatbuffers::Array::follow(&self.0, 16) }
   }
 
   pub fn set_d(&mut self, items: &[i64; 2]) {
-    flatbuffers::emplace_scalar_array(&mut self.0, 16, items);
+    unsafe { flatbuffers::emplace_scalar_array(&mut self.0, 16, items) };
   }
 
   pub fn unpack(&self) -> NestedStructT {

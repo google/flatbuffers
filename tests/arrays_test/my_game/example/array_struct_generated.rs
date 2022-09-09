@@ -36,24 +36,22 @@ impl flatbuffers::SafeSliceAccess for ArrayStruct {}
 impl<'a> flatbuffers::Follow<'a> for ArrayStruct {
   type Inner = &'a ArrayStruct;
   #[inline]
-  fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
+  unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
     <&'a ArrayStruct>::follow(buf, loc)
   }
 }
 impl<'a> flatbuffers::Follow<'a> for &'a ArrayStruct {
   type Inner = &'a ArrayStruct;
   #[inline]
-  fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
+  unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
     flatbuffers::follow_cast_ref::<ArrayStruct>(buf, loc)
   }
 }
 impl<'b> flatbuffers::Push for ArrayStruct {
     type Output = ArrayStruct;
     #[inline]
-    fn push(&self, dst: &mut [u8], _rest: &[u8]) {
-        let src = unsafe {
-            ::core::slice::from_raw_parts(self as *const ArrayStruct as *const u8, Self::size())
-        };
+    unsafe fn push(&self, dst: &mut [u8], _rest: &[u8]) {
+        let src = ::core::slice::from_raw_parts(self as *const ArrayStruct as *const u8, Self::size());
         dst.copy_from_slice(src);
     }
 }
@@ -61,10 +59,8 @@ impl<'b> flatbuffers::Push for &'b ArrayStruct {
     type Output = ArrayStruct;
 
     #[inline]
-    fn push(&self, dst: &mut [u8], _rest: &[u8]) {
-        let src = unsafe {
-            ::core::slice::from_raw_parts(*self as *const ArrayStruct as *const u8, Self::size())
-        };
+    unsafe fn push(&self, dst: &mut [u8], _rest: &[u8]) {
+        let src = ::core::slice::from_raw_parts(*self as *const ArrayStruct as *const u8, Self::size());
         dst.copy_from_slice(src);
     }
 }
@@ -127,11 +123,11 @@ impl<'a> ArrayStruct {
   }
 
   pub fn b(&'a self) -> flatbuffers::Array<'a, i32, 15> {
-    flatbuffers::Array::follow(&self.0, 4)
+    unsafe { flatbuffers::Array::follow(&self.0, 4) }
   }
 
   pub fn set_b(&mut self, items: &[i32; 15]) {
-    flatbuffers::emplace_scalar_array(&mut self.0, 4, items);
+    unsafe { flatbuffers::emplace_scalar_array(&mut self.0, 4, items) };
   }
 
   pub fn c(&self) -> i8 {
@@ -158,7 +154,7 @@ impl<'a> ArrayStruct {
   }
 
   pub fn d(&'a self) -> flatbuffers::Array<'a, NestedStruct, 2> {
-    flatbuffers::Array::follow(&self.0, 72)
+    unsafe { flatbuffers::Array::follow(&self.0, 72) }
   }
 
   pub fn set_d(&mut self, x: &[NestedStruct; 2]) {
@@ -195,11 +191,11 @@ impl<'a> ArrayStruct {
   }
 
   pub fn f(&'a self) -> flatbuffers::Array<'a, i64, 2> {
-    flatbuffers::Array::follow(&self.0, 144)
+    unsafe { flatbuffers::Array::follow(&self.0, 144) }
   }
 
   pub fn set_f(&mut self, items: &[i64; 2]) {
-    flatbuffers::emplace_scalar_array(&mut self.0, 144, items);
+    unsafe { flatbuffers::emplace_scalar_array(&mut self.0, 144, items) };
   }
 
   pub fn unpack(&self) -> ArrayStructT {

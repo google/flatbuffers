@@ -32,24 +32,22 @@ impl flatbuffers::SafeSliceAccess for StructInNestedNS {}
 impl<'a> flatbuffers::Follow<'a> for StructInNestedNS {
   type Inner = &'a StructInNestedNS;
   #[inline]
-  fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
+  unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
     <&'a StructInNestedNS>::follow(buf, loc)
   }
 }
 impl<'a> flatbuffers::Follow<'a> for &'a StructInNestedNS {
   type Inner = &'a StructInNestedNS;
   #[inline]
-  fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
+  unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
     flatbuffers::follow_cast_ref::<StructInNestedNS>(buf, loc)
   }
 }
 impl<'b> flatbuffers::Push for StructInNestedNS {
     type Output = StructInNestedNS;
     #[inline]
-    fn push(&self, dst: &mut [u8], _rest: &[u8]) {
-        let src = unsafe {
-            ::core::slice::from_raw_parts(self as *const StructInNestedNS as *const u8, Self::size())
-        };
+    unsafe fn push(&self, dst: &mut [u8], _rest: &[u8]) {
+        let src = ::core::slice::from_raw_parts(self as *const StructInNestedNS as *const u8, Self::size());
         dst.copy_from_slice(src);
     }
 }
@@ -57,10 +55,8 @@ impl<'b> flatbuffers::Push for &'b StructInNestedNS {
     type Output = StructInNestedNS;
 
     #[inline]
-    fn push(&self, dst: &mut [u8], _rest: &[u8]) {
-        let src = unsafe {
-            ::core::slice::from_raw_parts(*self as *const StructInNestedNS as *const u8, Self::size())
-        };
+    unsafe fn push(&self, dst: &mut [u8], _rest: &[u8]) {
+        let src = ::core::slice::from_raw_parts(*self as *const StructInNestedNS as *const u8, Self::size());
         dst.copy_from_slice(src);
     }
 }

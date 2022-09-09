@@ -20,18 +20,18 @@ use crate::vtable::VTable;
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct Table<'a> {
-    pub buf: &'a [u8],
-    pub loc: usize,
+    buf: &'a [u8],
+    loc: usize,
 }
 
 impl<'a> Table<'a> {
     #[inline]
-    pub fn new(buf: &'a [u8], loc: usize) -> Self {
+    pub unsafe fn new(buf: &'a [u8], loc: usize) -> Self {
         Table { buf, loc }
     }
     #[inline]
     pub fn vtable(&self) -> VTable<'a> {
-        <BackwardsSOffset<VTable<'a>>>::follow(self.buf, self.loc)
+        unsafe { <BackwardsSOffset<VTable<'a>>>::follow(self.buf, self.loc) }
     }
     #[inline]
     pub fn get<T: Follow<'a> + 'a>(
@@ -43,20 +43,20 @@ impl<'a> Table<'a> {
         if o == 0 {
             return default;
         }
-        Some(<T>::follow(self.buf, self.loc + o))
+        Some(unsafe { <T>::follow(self.buf, self.loc + o) })
     }
 }
 
 impl<'a> Follow<'a> for Table<'a> {
     type Inner = Table<'a>;
     #[inline]
-    fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
+    unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
         Table { buf, loc }
     }
 }
 
 #[inline]
-pub fn buffer_has_identifier(data: &[u8], ident: &str, size_prefixed: bool) -> bool {
+pub unsafe fn buffer_has_identifier(data: &[u8], ident: &str, size_prefixed: bool) -> bool {
     assert_eq!(ident.len(), FILE_IDENTIFIER_LENGTH);
 
     let got = if size_prefixed {

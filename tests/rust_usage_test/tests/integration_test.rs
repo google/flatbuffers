@@ -274,10 +274,12 @@ fn create_serialized_example_with_library_code(builder: &mut flatbuffers::FlatBu
 fn serialized_example_is_accessible_and_correct(bytes: &[u8], identifier_required: bool, size_prefixed: bool) -> Result<(), &'static str> {
 
     if identifier_required {
-        let correct = if size_prefixed {
-            my_game::example::monster_size_prefixed_buffer_has_identifier(bytes)
-        } else {
-            my_game::example::monster_buffer_has_identifier(bytes)
+        let correct = unsafe {
+            if size_prefixed {
+                my_game::example::monster_size_prefixed_buffer_has_identifier(bytes)
+            } else {
+                my_game::example::monster_buffer_has_identifier(bytes)
+            }
         };
         check_eq!(correct, true)?;
     }
@@ -579,7 +581,7 @@ mod lifetime_correctness {
     #[test]
     fn table_get_field_from_static_buffer_2() {
         static DATA: [u8; 4] = [0, 0, 0, 0]; // some binary data
-        let table: flatbuffers::Table<'static> = flatbuffers::Table::new(&DATA, 0);
+        let table: flatbuffers::Table<'static> = unsafe { flatbuffers::Table::new(&DATA, 0) };
         // this line should compile:
         table.get::<&'static str>(0, None);
     }
@@ -1204,7 +1206,7 @@ mod roundtrip_vectors {
 
             let buf = b.finished_data();
 
-            let got = <flatbuffers::ForwardsUOffset<flatbuffers::Vector<T>>>::follow(&buf[..], 0);
+            let got = unsafe { <flatbuffers::ForwardsUOffset<flatbuffers::Vector<T>>>::follow(&buf[..], 0) };
             let mut result_vec: Vec<T> = Vec::with_capacity(got.len());
             for i in 0..got.len() {
                 result_vec.push(got.get(i));
@@ -1271,7 +1273,7 @@ mod roundtrip_vectors {
                     b.create_vector_direct(&xs[..]);
                     let buf = b.unfinished_data();
 
-                    let got = <flatbuffers::Vector<$ty>>::follow(&buf[..], 0).safe_slice();
+                    let got = unsafe { <flatbuffers::Vector<$ty>>::follow(&buf[..], 0).safe_slice() };
                     assert_eq!(got, &xs[..]);
                 }
                 #[test]
@@ -1327,7 +1329,7 @@ mod roundtrip_vectors {
             b.finish_minimal(vecend);
 
             let buf = b.finished_data();
-            let got = <flatbuffers::ForwardsUOffset<flatbuffers::Vector<flatbuffers::ForwardsUOffset<&str>>>>::follow(buf, 0);
+            let got = unsafe { <flatbuffers::ForwardsUOffset<flatbuffers::Vector<flatbuffers::ForwardsUOffset<&str>>>>::follow(buf, 0) };
 
             assert_eq!(got.len(), xs.len());
             for i in 0..xs.len() {
@@ -1361,7 +1363,7 @@ mod roundtrip_vectors {
             b.finish_minimal(vecend);
 
             let buf = b.finished_data();
-            let got = <flatbuffers::ForwardsUOffset<flatbuffers::Vector<flatbuffers::ForwardsUOffset<&str>>>>::follow(buf, 0);
+            let got = unsafe { <flatbuffers::ForwardsUOffset<flatbuffers::Vector<flatbuffers::ForwardsUOffset<&str>>>>::follow(buf, 0) };
 
             assert_eq!(got.len(), xs.len());
             for i in 0..xs.len() {
@@ -1516,7 +1518,7 @@ mod roundtrip_table {
             let table = {
                 let buf = builder.unfinished_data();
                 let loc = buf.len() as flatbuffers::UOffsetT - objects[i];
-                flatbuffers::Table::new(buf, loc as usize)
+                unsafe { flatbuffers::Table::new(buf, loc as usize) }
             };
 
             let fields_per_object = (lcg.next() % (max_fields_per_object as u64)) as flatbuffers::VOffsetT;
@@ -1576,7 +1578,7 @@ mod roundtrip_table {
 
             // use
             let buf = b.finished_data();
-            let tab = <flatbuffers::ForwardsUOffset<flatbuffers::Table>>::follow(buf, 0);
+            let tab = unsafe { <flatbuffers::ForwardsUOffset<flatbuffers::Table>>::follow(buf, 0) };
 
             for i in 0..xs.len() {
                 let v = tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<u8>>>(fi2fo(i as flatbuffers::VOffsetT), None);
@@ -1613,7 +1615,7 @@ mod roundtrip_table {
 
             // use
             let buf = b.finished_data();
-            let tab = <flatbuffers::ForwardsUOffset<flatbuffers::Table>>::follow(buf, 0);
+            let tab = unsafe { <flatbuffers::ForwardsUOffset<flatbuffers::Table>>::follow(buf, 0) };
 
             for i in 0..xs.len() {
                 let v = tab.get::<flatbuffers::ForwardsUOffset<&str>>(fi2fo(i as flatbuffers::VOffsetT), None);
@@ -1669,7 +1671,7 @@ mod roundtrip_table {
 
             // use
             let buf = b.finished_data();
-            let tab = <flatbuffers::ForwardsUOffset<flatbuffers::Table>>::follow(buf, 0);
+            let tab = unsafe { <flatbuffers::ForwardsUOffset<flatbuffers::Table>>::follow(buf, 0) };
 
             for i in 0..vecs.len() {
                 let got = tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<T>>>(fi2fo(i as flatbuffers::VOffsetT), None);
@@ -1774,9 +1776,9 @@ mod roundtrip_push_follow_scalars {
         ($fn_name:ident, $ty:ident) => (
             fn $fn_name(x: $ty) {
                 let mut buf = vec![0u8; ::core::mem::size_of::<$ty>()];
-                x.push(&mut buf[..], &[][..]);
+                unsafe { x.push(&mut buf[..], &[][..]) };
                 let fs: flatbuffers::FollowStart<$ty> = flatbuffers::FollowStart::new();
-                assert_eq!(fs.self_follow(&buf[..], 0), x);
+                assert_eq!(unsafe { fs.self_follow(&buf[..], 0) }, x);
             }
         )
     }
@@ -2120,7 +2122,7 @@ mod builder_asserts {
         struct foo { }
         impl<'b> flatbuffers::Push for &'b foo {
             type Output = foo;
-            fn push<'a>(&'a self, _dst: &'a mut [u8], _rest: &'a [u8]) { }
+            unsafe fn push<'a>(&'a self, _dst: &'a mut [u8], _rest: &'a [u8]) { }
         }
         let mut b = flatbuffers::FlatBufferBuilder::new();
         b.push_slot_always(0, &foo{});
@@ -2177,14 +2179,14 @@ mod follow_impls {
     impl<'a> flatbuffers::Follow<'a> for FooStruct {
         type Inner = &'a FooStruct;
         #[inline(always)]
-        fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
+        unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
             <&'a FooStruct>::follow(buf, loc)
         }
     }
     impl<'a> flatbuffers::Follow<'a> for &'a FooStruct {
         type Inner = &'a FooStruct;
         #[inline(always)]
-        fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
+        unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
             flatbuffers::follow_cast_ref::<FooStruct>(buf, loc)
         }
     }
@@ -2193,88 +2195,88 @@ mod follow_impls {
     fn to_u8() {
         let vec: Vec<u8> = vec![255, 3];
         let fs: flatbuffers::FollowStart<u8> = flatbuffers::FollowStart::new();
-        assert_eq!(fs.self_follow(&vec[..], 1), 3);
+        assert_eq!(unsafe { fs.self_follow(&vec[..], 1) }, 3);
     }
 
     #[test]
     fn to_u16() {
         let vec: Vec<u8> = vec![255, 255, 3, 4];
         let fs: flatbuffers::FollowStart<u16> = flatbuffers::FollowStart::new();
-        assert_eq!(fs.self_follow(&vec[..], 2), 1027);
+        assert_eq!(unsafe { fs.self_follow(&vec[..], 2) }, 1027);
     }
 
     #[test]
     fn to_f32() {
         let vec: Vec<u8> = vec![255, 255, 255, 255, /* start of value */ 208, 15, 73, 64];
         let fs: flatbuffers::FollowStart<f32> = flatbuffers::FollowStart::new();
-        assert_eq!(fs.self_follow(&vec[..], 4), 3.14159);
+        assert_eq!(unsafe { fs.self_follow(&vec[..], 4) }, 3.14159);
     }
 
     #[test]
     fn to_string() {
         let vec: Vec<u8> = vec![255,255,255,255, 3, 0, 0, 0, 'f' as u8, 'o' as u8, 'o' as u8, 0];
         let off: flatbuffers::FollowStart<&str> = flatbuffers::FollowStart::new();
-        assert_eq!(off.self_follow(&vec[..], 4), "foo");
+        assert_eq!(unsafe { off.self_follow(&vec[..], 4) }, "foo");
     }
 
     #[test]
     fn to_byte_slice() {
         let vec: Vec<u8> = vec![255, 255, 255, 255, 4, 0, 0, 0, 1, 2, 3, 4];
         let off: flatbuffers::FollowStart<flatbuffers::Vector<u8>> = flatbuffers::FollowStart::new();
-        assert_eq!(off.self_follow(&vec[..], 4).safe_slice(), &[1, 2, 3, 4][..]);
+        assert_eq!(unsafe { off.self_follow(&vec[..], 4).safe_slice() }, &[1, 2, 3, 4][..]);
     }
 
     #[test]
     fn to_byte_vector() {
         let vec: Vec<u8> = vec![255, 255, 255, 255, 4, 0, 0, 0, 1, 2, 3, 4];
         let off: flatbuffers::FollowStart<flatbuffers::Vector<u8>> = flatbuffers::FollowStart::new();
-        assert_eq!(off.self_follow(&vec[..], 4).safe_slice(), &[1, 2, 3, 4][..]);
+        assert_eq!(unsafe { off.self_follow(&vec[..], 4).safe_slice() }, &[1, 2, 3, 4][..]);
     }
 
     #[test]
     fn to_byte_string_zero_teriminated() {
         let vec: Vec<u8> = vec![255, 255, 255, 255, 3, 0, 0, 0, 1, 2, 3, 0];
         let off: flatbuffers::FollowStart<flatbuffers::Vector<u8>> = flatbuffers::FollowStart::new();
-        assert_eq!(off.self_follow(&vec[..], 4).safe_slice(), &[1, 2, 3][..]);
+        assert_eq!(unsafe { off.self_follow(&vec[..], 4).safe_slice() }, &[1, 2, 3][..]);
     }
 
     #[test]
     fn to_vector_of_u16() {
         let vec: Vec<u8> = vec![255, 255, 255, 255, 2, 0, 0, 0, 1, 2, 3, 4];
         let off: flatbuffers::FollowStart<flatbuffers::Vector<u16>> = flatbuffers::FollowStart::new();
-        assert_eq!(off.self_follow(&vec[..], 4).len(), 2);
-        assert_eq!(off.self_follow(&vec[..], 4).get(0), 513);
-        assert_eq!(off.self_follow(&vec[..], 4).get(1), 1027);
+        assert_eq!(unsafe { off.self_follow(&vec[..], 4).len() }, 2);
+        assert_eq!(unsafe { off.self_follow(&vec[..], 4).get(0) }, 513);
+        assert_eq!(unsafe { off.self_follow(&vec[..], 4).get(1) }, 1027);
     }
 
     #[test]
     fn to_struct() {
         let vec: Vec<u8> = vec![255, 255, 255, 255, 1, 2, 3, 4];
         let off: flatbuffers::FollowStart<&FooStruct> = flatbuffers::FollowStart::new();
-        assert_eq!(*off.self_follow(&vec[..], 4), FooStruct::new(1, 2, 1027));
+        assert_eq!(unsafe { *off.self_follow(&vec[..], 4) }, FooStruct::new(1, 2, 1027));
     }
 
     #[test]
     fn to_vector_of_offset_to_string_elements() {
         let buf: Vec<u8> = vec![/* vec len */ 1, 0, 0, 0, /* offset to string */ 4, 0, 0, 0, /* str length */ 3, 0, 0, 0, 'f' as u8, 'o' as u8, 'o' as u8, 0];
         let s: flatbuffers::FollowStart<flatbuffers::Vector<flatbuffers::ForwardsUOffset<&str>>> = flatbuffers::FollowStart::new();
-        assert_eq!(s.self_follow(&buf[..], 0).len(), 1);
-        assert_eq!(s.self_follow(&buf[..], 0).get(0), "foo");
+        assert_eq!(unsafe {s.self_follow(&buf[..], 0).len() }, 1);
+        assert_eq!(unsafe { s.self_follow(&buf[..], 0).get(0) }, "foo");
     }
 
     #[test]
     fn to_slice_of_struct_elements() {
         let buf: Vec<u8> = vec![1, 0, 0, 0, /* struct data */ 1, 2, 3, 4];
         let fs: flatbuffers::FollowStart<flatbuffers::Vector<FooStruct>> = flatbuffers::FollowStart::new();
-        assert_eq!(fs.self_follow(&buf[..], 0).safe_slice(), &vec![FooStruct::new(1, 2, 1027)][..]);
+        assert_eq!(unsafe { fs.self_follow(&buf[..], 0).safe_slice() }, &vec![FooStruct::new(1, 2, 1027)][..]);
     }
 
     #[test]
     fn to_vector_of_struct_elements() {
         let buf: Vec<u8> = vec![1, 0, 0, 0, /* struct data */ 1, 2, 3, 4];
         let fs: flatbuffers::FollowStart<flatbuffers::Vector<FooStruct>> = flatbuffers::FollowStart::new();
-        assert_eq!(fs.self_follow(&buf[..], 0).len(), 1);
-        assert_eq!(fs.self_follow(&buf[..], 0).get(0), &FooStruct::new(1, 2, 1027));
+        assert_eq!(unsafe { fs.self_follow(&buf[..], 0).len() }, 1);
+        assert_eq!(unsafe { fs.self_follow(&buf[..], 0).get(0) }, &FooStruct::new(1, 2, 1027));
     }
 
     #[test]
@@ -2289,7 +2291,7 @@ mod follow_impls {
             8, 0, 0, 0, // vtable location
         ];
         let fs: flatbuffers::FollowStart<flatbuffers::ForwardsUOffset<flatbuffers::Table>> = flatbuffers::FollowStart::new();
-        assert_eq!(fs.self_follow(&buf[..], 0), flatbuffers::Table::new(&buf[..], 12));
+        unsafe { assert_eq!(fs.self_follow(&buf[..], 0), flatbuffers::Table::new(&buf[..], 12)) };
     }
 
     #[test]
@@ -2306,7 +2308,7 @@ mod follow_impls {
             0, 99 // value (with padding)
         ];
         let fs: flatbuffers::FollowStart<flatbuffers::ForwardsUOffset<flatbuffers::Table>> = flatbuffers::FollowStart::new();
-        let tab = fs.self_follow(&buf[..], 0);
+        let tab = unsafe { fs.self_follow(&buf[..], 0) };
         assert_eq!(tab.get::<u8>(fi2fo(0), Some(123)), Some(99));
     }
 
@@ -2322,7 +2324,7 @@ mod follow_impls {
             8, 0, 0, 0, // vtable location
         ];
         let fs: flatbuffers::FollowStart<flatbuffers::ForwardsUOffset<flatbuffers::Table>> = flatbuffers::FollowStart::new();
-        let tab = fs.self_follow(&buf[..], 0);
+        let tab = unsafe { fs.self_follow(&buf[..], 0)} ;
         assert_eq!(tab.get::<u8>(fi2fo(0), Some(123)), Some(123));
     }
 
@@ -2339,7 +2341,7 @@ mod follow_impls {
             10, 0, 0, 0, // vtable location
         ];
         let fs: flatbuffers::FollowStart<flatbuffers::ForwardsUOffset<flatbuffers::Table>> = flatbuffers::FollowStart::new();
-        let tab = fs.self_follow(&buf[..], 0);
+        let tab = unsafe { fs.self_follow(&buf[..], 0)} ;
         assert_eq!(tab.get::<u8>(fi2fo(0), Some(123)), Some(123));
     }
 
@@ -2360,7 +2362,7 @@ mod follow_impls {
             // enter string
             3, 0, 0, 0, 109, 111, 111, 0 // string length and contents
         ];
-        let tab = <flatbuffers::ForwardsUOffset<flatbuffers::Table>>::follow(&buf[..], 0);
+        let tab = unsafe { <flatbuffers::ForwardsUOffset<flatbuffers::Table>>::follow(&buf[..], 0) };
         assert_eq!(tab.get::<flatbuffers::ForwardsUOffset<&str>>(fi2fo(0), None), Some("moo"));
         let byte_vec = tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<u8>>>(fi2fo(0), None).unwrap().safe_slice();
         assert_eq!(byte_vec, &vec![109, 111, 111][..]);
@@ -2382,7 +2384,7 @@ mod follow_impls {
             // enter table
             8, 0, 0, 0, // vtable location
         ];
-        let tab = <flatbuffers::ForwardsUOffset<flatbuffers::Table>>::follow(&buf[..], 0);
+        let tab = unsafe { <flatbuffers::ForwardsUOffset<flatbuffers::Table>>::follow(&buf[..], 0) };
         assert_eq!(tab.get::<flatbuffers::ForwardsUOffset<&str>>(fi2fo(0), Some("abc")), Some("abc"));
         #[cfg(target_endian = "little")]
         {
@@ -2390,7 +2392,7 @@ mod follow_impls {
         }
 
         let default_vec_buf: Vec<u8> = vec![3, 0, 0, 0, 70, 71, 72, 0];
-        let default_vec = flatbuffers::Vector::new(&default_vec_buf[..], 0);
+        let default_vec = unsafe { flatbuffers::Vector::new(&default_vec_buf[..], 0) };
         let v = tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<u8>>>(fi2fo(0), Some(default_vec)).unwrap();
         assert_eq!(v.len(), 3);
         assert_eq!(v.get(0), 70);
@@ -2410,7 +2412,7 @@ mod follow_impls {
             // enter table
             10, 0, 0, 0, // vtable location
         ];
-        let tab = <flatbuffers::ForwardsUOffset<flatbuffers::Table>>::follow(&buf[..], 0);
+        let tab = unsafe { <flatbuffers::ForwardsUOffset<flatbuffers::Table>>::follow(&buf[..], 0) };
         assert_eq!(tab.get::<flatbuffers::ForwardsUOffset<&str>>(fi2fo(0), Some("abc")), Some("abc"));
         #[cfg(target_endian = "little")]
         {
@@ -2418,7 +2420,7 @@ mod follow_impls {
         }
 
         let default_vec_buf: Vec<u8> = vec![3, 0, 0, 0, 70, 71, 72, 0];
-        let default_vec = flatbuffers::Vector::new(&default_vec_buf[..], 0);
+        let default_vec = unsafe { flatbuffers::Vector::new(&default_vec_buf[..], 0) };
         let v = tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<u8>>>(fi2fo(0), Some(default_vec)).unwrap();
         assert_eq!(v.len(), 3);
         assert_eq!(v.get(0), 70);
@@ -2923,10 +2925,8 @@ mod byte_layouts {
         assert_eq!(::core::mem::size_of::<foo>(), 16);
         impl<'b> flatbuffers::Push for &'b foo {
             type Output = foo;
-            fn push<'a>(&'a self, dst: &'a mut [u8], _rest: &'a [u8]) {
-                let src = unsafe {
-                    ::core::slice::from_raw_parts(*self as *const foo as *const u8, ::core::mem::size_of::<foo>())
-                };
+            unsafe fn push<'a>(&'a self, dst: &'a mut [u8], _rest: &'a [u8]) {
+                let src = ::core::slice::from_raw_parts(*self as *const foo as *const u8, ::core::mem::size_of::<foo>());
                 dst.copy_from_slice(src);
             }
         }

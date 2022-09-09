@@ -33,24 +33,22 @@ impl flatbuffers::SafeSliceAccess for StructOfStructsOfStructs {}
 impl<'a> flatbuffers::Follow<'a> for StructOfStructsOfStructs {
   type Inner = &'a StructOfStructsOfStructs;
   #[inline]
-  fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
+  unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
     <&'a StructOfStructsOfStructs>::follow(buf, loc)
   }
 }
 impl<'a> flatbuffers::Follow<'a> for &'a StructOfStructsOfStructs {
   type Inner = &'a StructOfStructsOfStructs;
   #[inline]
-  fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
+  unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
     flatbuffers::follow_cast_ref::<StructOfStructsOfStructs>(buf, loc)
   }
 }
 impl<'b> flatbuffers::Push for StructOfStructsOfStructs {
     type Output = StructOfStructsOfStructs;
     #[inline]
-    fn push(&self, dst: &mut [u8], _rest: &[u8]) {
-        let src = unsafe {
-            ::core::slice::from_raw_parts(self as *const StructOfStructsOfStructs as *const u8, Self::size())
-        };
+    unsafe fn push(&self, dst: &mut [u8], _rest: &[u8]) {
+        let src = ::core::slice::from_raw_parts(self as *const StructOfStructsOfStructs as *const u8, Self::size());
         dst.copy_from_slice(src);
     }
 }
@@ -58,10 +56,8 @@ impl<'b> flatbuffers::Push for &'b StructOfStructsOfStructs {
     type Output = StructOfStructsOfStructs;
 
     #[inline]
-    fn push(&self, dst: &mut [u8], _rest: &[u8]) {
-        let src = unsafe {
-            ::core::slice::from_raw_parts(*self as *const StructOfStructsOfStructs as *const u8, Self::size())
-        };
+    unsafe fn push(&self, dst: &mut [u8], _rest: &[u8]) {
+        let src = ::core::slice::from_raw_parts(*self as *const StructOfStructsOfStructs as *const u8, Self::size());
         dst.copy_from_slice(src);
     }
 }
