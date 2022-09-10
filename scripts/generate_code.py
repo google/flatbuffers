@@ -64,7 +64,7 @@ assert flatc_path.exists(), "Cannot find the flatc compiler " + str(flatc_path)
 
 # Specify the other paths that will be referenced
 tests_path = Path(root_path, "tests")
-swift_code_gen = Path(root_path, "tests/FlatBuffers.Test.Swift/CodeGenerationTests")
+swift_code_gen = Path(root_path, "tests/swift/tests/CodeGenerationTests")
 samples_path = Path(root_path, "samples")
 reflection_path = Path(root_path, "reflection")
 
@@ -395,7 +395,7 @@ dictionary_lookup_schema = "dictionary_lookup.fbs"
 flatc(["--java", "--kotlin"], schema=dictionary_lookup_schema)
 
 # Swift Tests
-swift_prefix = "FlatBuffers.Test.Swift/Tests/FlatBuffers.Test.SwiftTests"
+swift_prefix = "swift/tests/Tests/FlatBuffers.Test.SwiftTests"
 flatc(
     SWIFT_OPTS + BASE_OPTS + ["--grpc"],
     schema="monster_test.fbs",
