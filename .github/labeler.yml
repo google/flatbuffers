@@ -15,9 +15,7 @@ c#:
 swift:
   - '**/*.swift'
   - swift/**/*
-  - tests/FlatBuffers.GRPC.Swift/**/*
-  - tests/FlatBuffers.Benchmarks.swift/**/*
-  - tests/FlatBuffers.Test.Swift/**/*
+  - tests/swift/**
   - src/idl_gen_swift.cpp
 
 javascript:

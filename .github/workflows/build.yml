@@ -422,7 +422,7 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - name: test
-      working-directory: tests/FlatBuffers.Test.Swift
+      working-directory: tests/swift/tests
       run: sh SwiftTest.sh
 
   build-swift-wasm:
@@ -435,7 +435,7 @@ jobs:
       - name: Setup Wasmer
         uses: wasmerio/setup-wasmer@v1
       - name: Test
-        working-directory: tests/FlatBuffers.Test.Swift.Wasm
+        working-directory: tests/swift/Wasm.tests
         run: carton test
 
   build-ts:

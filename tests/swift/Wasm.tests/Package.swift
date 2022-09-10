@@ -23,7 +23,7 @@ let package = Package(
     .macOS(.v10_14),
   ],
   dependencies: [
-    .package(path: "../../swift/"),
+    .package(path: "../../../swift"),
   ],
   targets: [
     .target(
