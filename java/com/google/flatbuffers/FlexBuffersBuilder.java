@@ -174,6 +174,21 @@ public class FlexBuffersBuilder {
     }
 
     /**
+     * Insert a null value into the buffer
+     */
+    public void putNull() {
+        putNull(null);
+    }
+
+    /**
+     * Insert a null value into the buffer
+     * @param key key used to store element in map
+     */
+    public void putNull(String key) {
+        stack.add(Value.nullValue(putKey(key)));
+    }
+
+    /**
      * Insert a single boolean into the buffer
      * @param val true or false
      */
@@ -673,6 +688,10 @@ public class FlexBuffersBuilder {
             this.minBitWidth = bitWidth;
             this.dValue = dValue;
             this.iValue = Long.MIN_VALUE;
+        }
+
+        static Value nullValue(int key) {
+            return new Value(key, FBT_NULL, WIDTH_8, 0);
         }
 
         static Value bool(int key, boolean b) {
