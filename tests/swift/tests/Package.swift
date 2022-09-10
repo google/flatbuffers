@@ -18,17 +18,20 @@
 import PackageDescription
 
 let package = Package(
-  name: "FlatBuffers.Benchmarks.swift",
+  name: "FlatBuffers.Test.Swift",
   platforms: [
+    .iOS(.v11),
     .macOS(.v10_14),
   ],
   dependencies: [
-    .package(path: "../../swift"),
-    .package(url: "https://github.com/google/swift-benchmark", from: "0.1.0"),
+    .package(path: "../../../swift"),
+    .package(url: "https://github.com/grpc/grpc-swift.git", from: "1.4.1"),
   ],
   targets: [
     .target(
-      name: "FlatBuffers.Benchmarks.swift",
-      dependencies: ["FlatBuffers",
-                     .product(name: "Benchmark", package: "swift-benchmark")]),
+      name: "SwiftFlatBuffers",
+      dependencies: ["FlatBuffers"]),
+    .testTarget(
+      name: "FlatBuffers.Test.SwiftTests",
+      dependencies: ["FlatBuffers", "GRPC"]),
   ])
