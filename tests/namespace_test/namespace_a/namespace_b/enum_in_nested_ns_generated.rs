@@ -68,7 +68,7 @@ impl<'a> flatbuffers::Follow<'a> for EnumInNestedNS {
 impl flatbuffers::Push for EnumInNestedNS {
     type Output = EnumInNestedNS;
     #[inline]
-    unsafe fn push(&self, dst: &mut [u8], _rest: &[u8]) {
+    unsafe fn push(&self, dst: &mut [u8], _written_len: usize) {
         flatbuffers::emplace_scalar::<i8>(dst, self.0);
     }
 }

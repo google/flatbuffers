@@ -54,7 +54,7 @@ impl<'a> TestSimpleTableWithEnum<'a> {
 
   #[inline]
   pub fn color(&self) -> Color {
-    self._tab.get::<Color>(TestSimpleTableWithEnum::VT_COLOR, Some(Color::Green)).unwrap()
+    unsafe { self._tab.get::<Color>(TestSimpleTableWithEnum::VT_COLOR, Some(Color::Green)).unwrap()}
   }
 }
 

@@ -66,15 +66,15 @@ impl<'a> Stat<'a> {
 
   #[inline]
   pub fn id(&self) -> Option<&'a str> {
-    self._tab.get::<flatbuffers::ForwardsUOffset<&str>>(Stat::VT_ID, None)
+    unsafe { self._tab.get::<flatbuffers::ForwardsUOffset<&str>>(Stat::VT_ID, None)}
   }
   #[inline]
   pub fn val(&self) -> i64 {
-    self._tab.get::<i64>(Stat::VT_VAL, Some(0)).unwrap()
+    unsafe { self._tab.get::<i64>(Stat::VT_VAL, Some(0)).unwrap()}
   }
   #[inline]
   pub fn count(&self) -> u16 {
-    self._tab.get::<u16>(Stat::VT_COUNT, Some(0)).unwrap()
+    unsafe { self._tab.get::<u16>(Stat::VT_COUNT, Some(0)).unwrap()}
   }
   #[inline]
   pub fn key_compare_less_than(&self, o: &Stat) -> bool {

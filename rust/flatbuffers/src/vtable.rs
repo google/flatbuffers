@@ -33,24 +33,42 @@ impl<'a> PartialEq for VTable<'a> {
 }
 
 impl<'a> VTable<'a> {
+    /// SAFETY
+    /// `buf` must contain a valid vtable at `loc`
+    ///
+    /// This consists of a number of `VOffsetT`
+    /// - size of vtable in bytes including size element
+    /// - size of object in bytes including the vtable offset
+    /// - n fields where n is the number of fields in the table's schema when the code was compiled
     pub unsafe fn init(buf: &'a [u8], loc: usize) -> Self {
         VTable { buf, loc }
     }
+
     pub fn num_fields(&self) -> usize {
         (self.num_bytes() / SIZE_VOFFSET) - 2
     }
+
     pub fn num_bytes(&self) -> usize {
+        // SAFETY:
+        // Valid VTable at time of construction
         unsafe { read_scalar_at::<VOffsetT>(self.buf, self.loc) as usize }
     }
+
     pub fn object_inline_num_bytes(&self) -> usize {
+        // SAFETY:
+        // Valid VTable at time of construction
         let n = unsafe { read_scalar_at::<VOffsetT>(self.buf, self.loc + SIZE_VOFFSET) };
         n as usize
     }
+
     pub fn get_field(&self, idx: usize) -> VOffsetT {
         // TODO(rw): distinguish between None and 0?
         if idx > self.num_fields() {
             return 0;
         }
+
+        // SAFETY:
+        // Valid VTable at time of construction
         unsafe {
             read_scalar_at::<VOffsetT>(
                 self.buf,
@@ -58,13 +76,17 @@ impl<'a> VTable<'a> {
             )
         }
     }
+
     pub fn get(&self, byte_loc: VOffsetT) -> VOffsetT {
         // TODO(rw): distinguish between None and 0?
-        if byte_loc as usize >= self.num_bytes() {
+        if byte_loc as usize + 2 > self.num_bytes() {
             return 0;
         }
+        // SAFETY:
+        // byte_loc is within bounds of vtable, which was valid at time of construction
         unsafe { read_scalar_at::<VOffsetT>(self.buf, self.loc + byte_loc as usize) }
     }
+
     pub fn as_bytes(&self) -> &[u8] {
         let len = self.num_bytes();
         &self.buf[self.loc..self.loc + len]

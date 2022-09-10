@@ -78,7 +78,7 @@ impl<'a> MoreDefaults<'a> {
     };
     let bools = {
       let x = self.bools();
-      x.to_vec()
+      x.into_iter().collect()
     };
     MoreDefaultsT {
       ints,
@@ -92,27 +92,27 @@ impl<'a> MoreDefaults<'a> {
 
   #[inline]
   pub fn ints(&self) -> flatbuffers::Vector<'a, i32> {
-    self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'a, i32>>>(MoreDefaults::VT_INTS, Some(Default::default())).unwrap()
+    unsafe { self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'a, i32>>>(MoreDefaults::VT_INTS, Some(Default::default())).unwrap()}
   }
   #[inline]
   pub fn floats(&self) -> flatbuffers::Vector<'a, f32> {
-    self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'a, f32>>>(MoreDefaults::VT_FLOATS, Some(Default::default())).unwrap()
+    unsafe { self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'a, f32>>>(MoreDefaults::VT_FLOATS, Some(Default::default())).unwrap()}
   }
   #[inline]
   pub fn empty_string(&self) -> &'a str {
-    self._tab.get::<flatbuffers::ForwardsUOffset<&str>>(MoreDefaults::VT_EMPTY_STRING, Some(&"")).unwrap()
+    unsafe { self._tab.get::<flatbuffers::ForwardsUOffset<&str>>(MoreDefaults::VT_EMPTY_STRING, Some(&"")).unwrap()}
   }
   #[inline]
   pub fn some_string(&self) -> &'a str {
-    self._tab.get::<flatbuffers::ForwardsUOffset<&str>>(MoreDefaults::VT_SOME_STRING, Some(&"some")).unwrap()
+    unsafe { self._tab.get::<flatbuffers::ForwardsUOffset<&str>>(MoreDefaults::VT_SOME_STRING, Some(&"some")).unwrap()}
   }
   #[inline]
   pub fn abcs(&self) -> flatbuffers::Vector<'a, ABC> {
-    self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'a, ABC>>>(MoreDefaults::VT_ABCS, Some(Default::default())).unwrap()
+    unsafe { self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'a, ABC>>>(MoreDefaults::VT_ABCS, Some(Default::default())).unwrap()}
   }
   #[inline]
-  pub fn bools(&self) -> &'a [bool] {
-    self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'a, bool>>>(MoreDefaults::VT_BOOLS, Some(Default::default())).map(|v| v.safe_slice() ).unwrap()
+  pub fn bools(&self) -> flatbuffers::Vector<'a, bool> {
+    unsafe { self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'a, bool>>>(MoreDefaults::VT_BOOLS, Some(Default::default())).unwrap()}
   }
 }
 

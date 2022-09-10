@@ -56,7 +56,7 @@ impl<'a> SecondTableInA<'a> {
 
   #[inline]
   pub fn refer_to_c(&self) -> Option<super::namespace_c::TableInC<'a>> {
-    self._tab.get::<flatbuffers::ForwardsUOffset<super::namespace_c::TableInC>>(SecondTableInA::VT_REFER_TO_C, None)
+    unsafe { self._tab.get::<flatbuffers::ForwardsUOffset<super::namespace_c::TableInC>>(SecondTableInA::VT_REFER_TO_C, None)}
   }
 }
 

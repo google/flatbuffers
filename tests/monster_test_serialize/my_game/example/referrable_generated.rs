@@ -56,7 +56,7 @@ impl<'a> Referrable<'a> {
 
   #[inline]
   pub fn id(&self) -> u64 {
-    self._tab.get::<u64>(Referrable::VT_ID, Some(0)).unwrap()
+    unsafe { self._tab.get::<u64>(Referrable::VT_ID, Some(0)).unwrap()}
   }
   #[inline]
   pub fn key_compare_less_than(&self, o: &Referrable) -> bool {

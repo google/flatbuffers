@@ -56,7 +56,7 @@ impl<'a> ArrayTable<'a> {
 
   #[inline]
   pub fn a(&self) -> Option<&'a ArrayStruct> {
-    self._tab.get::<ArrayStruct>(ArrayTable::VT_A, None)
+    unsafe { self._tab.get::<ArrayStruct>(ArrayTable::VT_A, None)}
   }
 }
 
@@ -214,12 +214,12 @@ pub unsafe fn size_prefixed_root_as_array_table_unchecked(buf: &[u8]) -> ArrayTa
 pub const ARRAY_TABLE_IDENTIFIER: &str = "ARRT";
 
 #[inline]
-pub unsafe fn array_table_buffer_has_identifier(buf: &[u8]) -> bool {
+pub fn array_table_buffer_has_identifier(buf: &[u8]) -> bool {
   flatbuffers::buffer_has_identifier(buf, ARRAY_TABLE_IDENTIFIER, false)
 }
 
 #[inline]
-pub unsafe fn array_table_size_prefixed_buffer_has_identifier(buf: &[u8]) -> bool {
+pub fn array_table_size_prefixed_buffer_has_identifier(buf: &[u8]) -> bool {
   flatbuffers::buffer_has_identifier(buf, ARRAY_TABLE_IDENTIFIER, true)
 }
 

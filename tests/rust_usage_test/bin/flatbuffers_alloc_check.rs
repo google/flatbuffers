@@ -85,8 +85,8 @@ fn create_serialized_example_with_generated_code(builder: &mut flatbuffers::Flat
                 )
                 .as_union_value(),
             ),
-            inventory: Some(builder.create_vector_direct(&[0u8, 1, 2, 3, 4][..])),
-            test4: Some(builder.create_vector_direct(&[
+            inventory: Some(builder.create_vector(&[0u8, 1, 2, 3, 4])),
+            test4: Some(builder.create_vector(&[
                 my_game::example::Test::new(10, 20),
                 my_game::example::Test::new(30, 40),
             ])),
@@ -162,10 +162,10 @@ fn main() {
             let test4 = m.test4().unwrap();
             assert_eq!(test4.len(), 2);
             assert_eq!(
-                i32::from(test4[0].a())
-                    + i32::from(test4[1].a())
-                    + i32::from(test4[0].b())
-                    + i32::from(test4[1].b()),
+                i32::from(test4.get(0).a())
+                    + i32::from(test4.get(1).a())
+                    + i32::from(test4.get(0).b())
+                    + i32::from(test4.get(1).b()),
                 100
             );
 

@@ -54,7 +54,7 @@ impl<'a> TableInNestedNS<'a> {
 
   #[inline]
   pub fn foo(&self) -> i32 {
-    self._tab.get::<i32>(TableInNestedNS::VT_FOO, Some(0)).unwrap()
+    unsafe { self._tab.get::<i32>(TableInNestedNS::VT_FOO, Some(0)).unwrap()}
   }
 }
 

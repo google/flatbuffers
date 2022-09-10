@@ -25,16 +25,29 @@ pub struct Table<'a> {
 }
 
 impl<'a> Table<'a> {
+    /// SAFETY
+    ///
+    /// `buf` must contain a `soffset_t` at `loc`, which points to a valid vtable
     #[inline]
     pub unsafe fn new(buf: &'a [u8], loc: usize) -> Self {
         Table { buf, loc }
     }
+
     #[inline]
     pub fn vtable(&self) -> VTable<'a> {
+        // SAFETY:
+        // Table::new is created with a valid buf and location
         unsafe { <BackwardsSOffset<VTable<'a>>>::follow(self.buf, self.loc) }
     }
+
+    /// Retrieves the value at the provided `slot_byte_loc` returning `default`
+    /// if no value present
+    ///
+    /// SAFETY
+    ///
+    /// The value of the corresponding slot must have type T
     #[inline]
-    pub fn get<T: Follow<'a> + 'a>(
+    pub unsafe fn get<T: Follow<'a> + 'a>(
         &self,
         slot_byte_loc: VOffsetT,
         default: Option<T::Inner>,
@@ -43,7 +56,7 @@ impl<'a> Table<'a> {
         if o == 0 {
             return default;
         }
-        Some(unsafe { <T>::follow(self.buf, self.loc + o) })
+        Some(<T>::follow(self.buf, self.loc + o))
     }
 }
 
@@ -55,14 +68,21 @@ impl<'a> Follow<'a> for Table<'a> {
     }
 }
 
+/// Returns true if data contains a prefix of `ident`
 #[inline]
-pub unsafe fn buffer_has_identifier(data: &[u8], ident: &str, size_prefixed: bool) -> bool {
+pub fn buffer_has_identifier(data: &[u8], ident: &str, size_prefixed: bool) -> bool {
     assert_eq!(ident.len(), FILE_IDENTIFIER_LENGTH);
 
     let got = if size_prefixed {
-        <SkipSizePrefix<SkipRootOffset<FileIdentifier>>>::follow(data, 0)
+        assert!(data.len() >= SIZE_SIZEPREFIX + SIZE_UOFFSET + FILE_IDENTIFIER_LENGTH);
+        // SAFETY
+        // Verified data has sufficient bytes
+        unsafe { <SkipSizePrefix<SkipRootOffset<FileIdentifier>>>::follow(data, 0) }
     } else {
-        <SkipRootOffset<FileIdentifier>>::follow(data, 0)
+        assert!(data.len() >= SIZE_UOFFSET + FILE_IDENTIFIER_LENGTH);
+        // SAFETY
+        // Verified data has sufficient bytes
+        unsafe { <SkipRootOffset<FileIdentifier>>::follow(data, 0) }
     };
 
     ident.as_bytes() == got

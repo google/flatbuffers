@@ -135,8 +135,8 @@ impl<T> Push for WIPOffset<T> {
     type Output = ForwardsUOffset<T>;
 
     #[inline(always)]
-    unsafe fn push(&self, dst: &mut [u8], rest: &[u8]) {
-        let n = (SIZE_UOFFSET + rest.len() - self.value() as usize) as UOffsetT;
+    unsafe fn push(&self, dst: &mut [u8], written_len: usize) {
+        let n = (SIZE_UOFFSET + written_len - self.value() as usize) as UOffsetT;
         emplace_scalar::<UOffsetT>(dst, n);
     }
 }
@@ -145,8 +145,8 @@ impl<T> Push for ForwardsUOffset<T> {
     type Output = Self;
 
     #[inline(always)]
-    unsafe fn push(&self, dst: &mut [u8], rest: &[u8]) {
-        self.value().push(dst, rest);
+    unsafe fn push(&self, dst: &mut [u8], written_len: usize) {
+        self.value().push(dst, written_len);
     }
 }
 
@@ -209,8 +209,8 @@ impl<T> Push for ForwardsVOffset<T> {
     type Output = Self;
 
     #[inline]
-    unsafe fn push(&self, dst: &mut [u8], rest: &[u8]) {
-        self.value().push(dst, rest);
+    unsafe fn push(&self, dst: &mut [u8], written_len: usize) {
+        self.value().push(dst, written_len);
     }
 }
 
@@ -239,8 +239,8 @@ impl<T> Push for BackwardsSOffset<T> {
     type Output = Self;
 
     #[inline]
-    unsafe fn push(&self, dst: &mut [u8], rest: &[u8]) {
-        self.value().push(dst, rest);
+    unsafe fn push(&self, dst: &mut [u8], written_len: usize) {
+        self.value().push(dst, written_len);
     }
 }
 

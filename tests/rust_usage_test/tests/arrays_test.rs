@@ -59,13 +59,12 @@ fn serialized_example_is_accessible_and_correct(
     size_prefixed: bool,
 ) {
     if identifier_required {
-        let correct = unsafe {
-            if size_prefixed {
-                array_table_size_prefixed_buffer_has_identifier(bytes)
-            } else {
-                array_table_buffer_has_identifier(bytes)
-            }
+        let correct = if size_prefixed {
+            array_table_size_prefixed_buffer_has_identifier(bytes)
+        } else {
+            array_table_buffer_has_identifier(bytes)
         };
+
         assert_eq!(correct, true);
     }
 
@@ -326,7 +325,7 @@ mod array_fuzz {
         let native_struct_array: [&NestedStruct; ARRAY_SIZE] = array_init::from_iter(xs.0.iter().map(|x| &x.0)).unwrap();
         for i in 0..ARRAY_SIZE {
             let offset = i * NESTED_STRUCT_SIZE;
-            unsafe { native_struct_array[i].push(&mut test_buf[offset..offset + NESTED_STRUCT_SIZE], &[]) };
+            unsafe { native_struct_array[i].push(&mut test_buf[offset..offset + NESTED_STRUCT_SIZE], 0) };
         }
         let arr: flatbuffers::Array<NestedStruct, ARRAY_SIZE> = unsafe { flatbuffers::Array::follow(&test_buf, 0) };
         let got: [&NestedStruct; ARRAY_SIZE] = arr.into();

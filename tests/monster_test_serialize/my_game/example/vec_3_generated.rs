@@ -52,17 +52,8 @@ impl<'a> flatbuffers::Follow<'a> for &'a Vec3 {
 impl<'b> flatbuffers::Push for Vec3 {
     type Output = Vec3;
     #[inline]
-    unsafe fn push(&self, dst: &mut [u8], _rest: &[u8]) {
+    unsafe fn push(&self, dst: &mut [u8], _written_len: usize) {
         let src = ::core::slice::from_raw_parts(self as *const Vec3 as *const u8, Self::size());
-        dst.copy_from_slice(src);
-    }
-}
-impl<'b> flatbuffers::Push for &'b Vec3 {
-    type Output = Vec3;
-
-    #[inline]
-    unsafe fn push(&self, dst: &mut [u8], _rest: &[u8]) {
-        let src = ::core::slice::from_raw_parts(*self as *const Vec3 as *const u8, Self::size());
         dst.copy_from_slice(src);
     }
 }

@@ -37,6 +37,13 @@ where
 #[allow(clippy::len_without_is_empty)]
 #[allow(clippy::from_over_into)] // TODO(caspern): Go from From to Into.
 impl<'a, T: 'a, const N: usize> Array<'a, T, N> {
+    /// # SAFETY:
+    ///
+    /// buf must be a contiguous array of `T`
+    ///
+    /// # Panics
+    ///
+    /// Panics if `buf.len()` is not `size_of::<T>() * N`
     #[inline(always)]
     pub unsafe fn new(buf: &'a [u8]) -> Self {
         assert!(size_of::<T>() * N == buf.len());

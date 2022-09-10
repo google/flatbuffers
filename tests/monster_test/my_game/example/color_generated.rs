@@ -38,7 +38,7 @@ impl<'a> flatbuffers::Follow<'a> for Color {
 impl flatbuffers::Push for Color {
     type Output = Color;
     #[inline]
-    unsafe fn push(&self, dst: &mut [u8], _rest: &[u8]) {
+    unsafe fn push(&self, dst: &mut [u8], _written_len: usize) {
         flatbuffers::emplace_scalar::<u8>(dst, self.bits());
     }
 }

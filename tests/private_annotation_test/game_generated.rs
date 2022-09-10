@@ -54,7 +54,7 @@ impl<'a> Game<'a> {
 
   #[inline]
   pub fn value(&self) -> i32 {
-    self._tab.get::<i32>(Game::VT_VALUE, Some(0)).unwrap()
+    unsafe { self._tab.get::<i32>(Game::VT_VALUE, Some(0)).unwrap()}
   }
 }
 

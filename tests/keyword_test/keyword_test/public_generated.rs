@@ -60,7 +60,7 @@ impl<'a> flatbuffers::Follow<'a> for public {
 impl flatbuffers::Push for public {
     type Output = public;
     #[inline]
-    unsafe fn push(&self, dst: &mut [u8], _rest: &[u8]) {
+    unsafe fn push(&self, dst: &mut [u8], _written_len: usize) {
         flatbuffers::emplace_scalar::<i32>(dst, self.0);
     }
 }

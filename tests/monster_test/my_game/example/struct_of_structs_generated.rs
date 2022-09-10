@@ -47,17 +47,8 @@ impl<'a> flatbuffers::Follow<'a> for &'a StructOfStructs {
 impl<'b> flatbuffers::Push for StructOfStructs {
     type Output = StructOfStructs;
     #[inline]
-    unsafe fn push(&self, dst: &mut [u8], _rest: &[u8]) {
+    unsafe fn push(&self, dst: &mut [u8], _written_len: usize) {
         let src = ::core::slice::from_raw_parts(self as *const StructOfStructs as *const u8, Self::size());
-        dst.copy_from_slice(src);
-    }
-}
-impl<'b> flatbuffers::Push for &'b StructOfStructs {
-    type Output = StructOfStructs;
-
-    #[inline]
-    unsafe fn push(&self, dst: &mut [u8], _rest: &[u8]) {
-        let src = ::core::slice::from_raw_parts(*self as *const StructOfStructs as *const u8, Self::size());
         dst.copy_from_slice(src);
     }
 }

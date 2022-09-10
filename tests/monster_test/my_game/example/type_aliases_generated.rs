@@ -79,7 +79,7 @@ impl<'a> TypeAliases<'a> {
     let f32_ = self.f32_();
     let f64_ = self.f64_();
     let v8 = self.v8().map(|x| {
-      x.to_vec()
+      x.into_iter().collect()
     });
     let vf64 = self.vf64().map(|x| {
       x.into_iter().collect()
@@ -102,51 +102,51 @@ impl<'a> TypeAliases<'a> {
 
   #[inline]
   pub fn i8_(&self) -> i8 {
-    self._tab.get::<i8>(TypeAliases::VT_I8_, Some(0)).unwrap()
+    unsafe { self._tab.get::<i8>(TypeAliases::VT_I8_, Some(0)).unwrap()}
   }
   #[inline]
   pub fn u8_(&self) -> u8 {
-    self._tab.get::<u8>(TypeAliases::VT_U8_, Some(0)).unwrap()
+    unsafe { self._tab.get::<u8>(TypeAliases::VT_U8_, Some(0)).unwrap()}
   }
   #[inline]
   pub fn i16_(&self) -> i16 {
-    self._tab.get::<i16>(TypeAliases::VT_I16_, Some(0)).unwrap()
+    unsafe { self._tab.get::<i16>(TypeAliases::VT_I16_, Some(0)).unwrap()}
   }
   #[inline]
   pub fn u16_(&self) -> u16 {
-    self._tab.get::<u16>(TypeAliases::VT_U16_, Some(0)).unwrap()
+    unsafe { self._tab.get::<u16>(TypeAliases::VT_U16_, Some(0)).unwrap()}
   }
   #[inline]
   pub fn i32_(&self) -> i32 {
-    self._tab.get::<i32>(TypeAliases::VT_I32_, Some(0)).unwrap()
+    unsafe { self._tab.get::<i32>(TypeAliases::VT_I32_, Some(0)).unwrap()}
   }
   #[inline]
   pub fn u32_(&self) -> u32 {
-    self._tab.get::<u32>(TypeAliases::VT_U32_, Some(0)).unwrap()
+    unsafe { self._tab.get::<u32>(TypeAliases::VT_U32_, Some(0)).unwrap()}
   }
   #[inline]
   pub fn i64_(&self) -> i64 {
-    self._tab.get::<i64>(TypeAliases::VT_I64_, Some(0)).unwrap()
+    unsafe { self._tab.get::<i64>(TypeAliases::VT_I64_, Some(0)).unwrap()}
   }
   #[inline]
   pub fn u64_(&self) -> u64 {
-    self._tab.get::<u64>(TypeAliases::VT_U64_, Some(0)).unwrap()
+    unsafe { self._tab.get::<u64>(TypeAliases::VT_U64_, Some(0)).unwrap()}
   }
   #[inline]
   pub fn f32_(&self) -> f32 {
-    self._tab.get::<f32>(TypeAliases::VT_F32_, Some(0.0)).unwrap()
+    unsafe { self._tab.get::<f32>(TypeAliases::VT_F32_, Some(0.0)).unwrap()}
   }
   #[inline]
   pub fn f64_(&self) -> f64 {
-    self._tab.get::<f64>(TypeAliases::VT_F64_, Some(0.0)).unwrap()
+    unsafe { self._tab.get::<f64>(TypeAliases::VT_F64_, Some(0.0)).unwrap()}
   }
   #[inline]
-  pub fn v8(&self) -> Option<&'a [i8]> {
-    self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'a, i8>>>(TypeAliases::VT_V8, None).map(|v| v.safe_slice() )
+  pub fn v8(&self) -> Option<flatbuffers::Vector<'a, i8>> {
+    unsafe { self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'a, i8>>>(TypeAliases::VT_V8, None)}
   }
   #[inline]
   pub fn vf64(&self) -> Option<flatbuffers::Vector<'a, f64>> {
-    self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'a, f64>>>(TypeAliases::VT_VF64, None)
+    unsafe { self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'a, f64>>>(TypeAliases::VT_VF64, None)}
   }
 }
 

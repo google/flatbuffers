@@ -850,7 +850,7 @@ class RustGenerator : public BaseGenerator {
     code_ += "impl flatbuffers::Push for {{ENUM_TY}} {";
     code_ += "    type Output = {{ENUM_TY}};";
     code_ += "    #[inline]";
-    code_ += "    unsafe fn push(&self, dst: &mut [u8], _rest: &[u8]) {";
+    code_ += "    unsafe fn push(&self, dst: &mut [u8], _written_len: usize) {";
     code_ += "        flatbuffers::emplace_scalar::<{{BASE_TYPE}}>(dst, {{INTO_BASE}});";
     code_ += "    }";
     code_ += "}";
@@ -1423,11 +1423,7 @@ class RustGenerator : public BaseGenerator {
       case ftVectorOfBool:
       case ftVectorOfFloat: {
         const auto typname = GetTypeBasic(type.VectorType());
-        const auto vector_type =
-            IsOneByte(type.VectorType().base_type)
-                ? "&" + lifetime + " [" + typname + "]"
-                : "flatbuffers::Vector<" + lifetime + ", " + typname + ">";
-        return WrapOption(vector_type);
+        return WrapOption("flatbuffers::Vector<" + lifetime + ", " + typname + ">");
       }
       case ftVectorOfEnumKey: {
         const auto typname = WrapInNameSpace(*type.enum_def);
@@ -1436,7 +1432,7 @@ class RustGenerator : public BaseGenerator {
       }
       case ftVectorOfStruct: {
         const auto typname = WrapInNameSpace(*type.struct_def);
-        return WrapOption("&" + lifetime + " [" + typname + "]");
+          return WrapOption("flatbuffers::Vector<" + lifetime + ", " + typname + ">");
       }
       case ftVectorOfTable: {
         const auto typname = WrapInNameSpace(*type.struct_def);
@@ -1554,19 +1550,8 @@ class RustGenerator : public BaseGenerator {
             : "None";
     const std::string unwrap = field.IsOptional() ? "" : ".unwrap()";
 
-    const auto t = GetFullType(field.value.type);
-
-    // TODO(caspern): Shouldn't 1byte VectorOfEnumKey be slice too?
-    const std::string safe_slice =
-        (t == ftVectorOfStruct ||
-         ((t == ftVectorOfBool || t == ftVectorOfFloat ||
-           t == ftVectorOfInteger) &&
-          IsOneByte(field.value.type.VectorType().base_type)))
-            ? ".map(|v| v.safe_slice() )"
-            : "";
-
-    return "self._tab.get::<" + typname + ">({{STRUCT_TY}}::" + vt_offset +
-           ", " + default_value + ")" + safe_slice + unwrap;
+    return "unsafe { self._tab.get::<" + typname + ">({{STRUCT_TY}}::" + vt_offset +
+           ", " + default_value + ")" + unwrap + "}";
   }
 
   // Generates a fully-qualified name getter for use with --gen-name-strings
@@ -1762,16 +1747,7 @@ class RustGenerator : public BaseGenerator {
             break;
           }
           case ftVectorOfInteger:
-          case ftVectorOfBool: {
-            if (IsOneByte(type.VectorType().base_type)) {
-              // 1 byte stuff is viewed w/ slice instead of flatbuffer::Vector
-              // and thus needs to be cloned out of the slice.
-              code_.SetValue("EXPR", "x.to_vec()");
-              break;
-            }
-            code_.SetValue("EXPR", "x.into_iter().collect()");
-            break;
-          }
+          case ftVectorOfBool:
           case ftVectorOfFloat:
           case ftVectorOfEnumKey: {
             code_.SetValue("EXPR", "x.into_iter().collect()");
@@ -1864,14 +1840,14 @@ class RustGenerator : public BaseGenerator {
           code_ += "  use flatbuffers::Follow;";
           code_ +=
               "  unsafe { <flatbuffers::ForwardsUOffset<{{NESTED}}<'a>>>"
-              "::follow(data, 0) }";
+              "::follow(data.safe_slice(), 0) }";
         } else {
           code_ += "Option<{{NESTED}}<'a>> {";
           code_ += "  self.{{FIELD}}().map(|data| {";
           code_ += "    use flatbuffers::Follow;";
           code_ +=
               "    unsafe { <flatbuffers::ForwardsUOffset<{{NESTED}}<'a>>>"
-              "::follow(data, 0) }";
+              "::follow(data.safe_slice(), 0) }";
           code_ += "  })";
         }
         code_ += "}";
@@ -2498,14 +2474,14 @@ class RustGenerator : public BaseGenerator {
 
       // Check if a buffer has the identifier.
       code_ += "#[inline]";
-      code_ += "pub unsafe fn {{STRUCT_FN}}_buffer_has_identifier\\";
+      code_ += "pub fn {{STRUCT_FN}}_buffer_has_identifier\\";
       code_ += "(buf: &[u8]) -> bool {";
       code_ += "  flatbuffers::buffer_has_identifier(buf, \\";
       code_ += "{{STRUCT_CONST}}_IDENTIFIER, false)";
       code_ += "}";
       code_ += "";
       code_ += "#[inline]";
-      code_ += "pub unsafe fn {{STRUCT_FN}}_size_prefixed\\";
+      code_ += "pub fn {{STRUCT_FN}}_size_prefixed\\";
       code_ += "_buffer_has_identifier(buf: &[u8]) -> bool {";
       code_ += "  flatbuffers::buffer_has_identifier(buf, \\";
       code_ += "{{STRUCT_CONST}}_IDENTIFIER, true)";
@@ -2657,17 +2633,8 @@ class RustGenerator : public BaseGenerator {
     code_ += "impl<'b> flatbuffers::Push for {{STRUCT_TY}} {";
     code_ += "    type Output = {{STRUCT_TY}};";
     code_ += "    #[inline]";
-    code_ += "    unsafe fn push(&self, dst: &mut [u8], _rest: &[u8]) {";
+    code_ += "    unsafe fn push(&self, dst: &mut [u8], _written_len: usize) {";
     code_ += "        let src = ::core::slice::from_raw_parts(self as *const {{STRUCT_TY}} as *const u8, Self::size());";
-    code_ += "        dst.copy_from_slice(src);";
-    code_ += "    }";
-    code_ += "}";
-    code_ += "impl<'b> flatbuffers::Push for &'b {{STRUCT_TY}} {";
-    code_ += "    type Output = {{STRUCT_TY}};";
-    code_ += "";
-    code_ += "    #[inline]";
-    code_ += "    unsafe fn push(&self, dst: &mut [u8], _rest: &[u8]) {";
-    code_ += "        let src = ::core::slice::from_raw_parts(*self as *const {{STRUCT_TY}} as *const u8, Self::size());";
     code_ += "        dst.copy_from_slice(src);";
     code_ += "    }";
     code_ += "}";

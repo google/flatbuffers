@@ -45,7 +45,7 @@ impl<'a> flatbuffers::Follow<'a> for LongEnum {
 impl flatbuffers::Push for LongEnum {
     type Output = LongEnum;
     #[inline]
-    unsafe fn push(&self, dst: &mut [u8], _rest: &[u8]) {
+    unsafe fn push(&self, dst: &mut [u8], _written_len: usize) {
         flatbuffers::emplace_scalar::<u64>(dst, self.bits());
     }
 }

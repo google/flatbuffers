@@ -80,23 +80,23 @@ impl<'a> TableInFirstNS<'a> {
 
   #[inline]
   pub fn foo_table(&self) -> Option<namespace_b::TableInNestedNS<'a>> {
-    self._tab.get::<flatbuffers::ForwardsUOffset<namespace_b::TableInNestedNS>>(TableInFirstNS::VT_FOO_TABLE, None)
+    unsafe { self._tab.get::<flatbuffers::ForwardsUOffset<namespace_b::TableInNestedNS>>(TableInFirstNS::VT_FOO_TABLE, None)}
   }
   #[inline]
   pub fn foo_enum(&self) -> namespace_b::EnumInNestedNS {
-    self._tab.get::<namespace_b::EnumInNestedNS>(TableInFirstNS::VT_FOO_ENUM, Some(namespace_b::EnumInNestedNS::A)).unwrap()
+    unsafe { self._tab.get::<namespace_b::EnumInNestedNS>(TableInFirstNS::VT_FOO_ENUM, Some(namespace_b::EnumInNestedNS::A)).unwrap()}
   }
   #[inline]
   pub fn foo_union_type(&self) -> namespace_b::UnionInNestedNS {
-    self._tab.get::<namespace_b::UnionInNestedNS>(TableInFirstNS::VT_FOO_UNION_TYPE, Some(namespace_b::UnionInNestedNS::NONE)).unwrap()
+    unsafe { self._tab.get::<namespace_b::UnionInNestedNS>(TableInFirstNS::VT_FOO_UNION_TYPE, Some(namespace_b::UnionInNestedNS::NONE)).unwrap()}
   }
   #[inline]
   pub fn foo_union(&self) -> Option<flatbuffers::Table<'a>> {
-    self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Table<'a>>>(TableInFirstNS::VT_FOO_UNION, None)
+    unsafe { self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Table<'a>>>(TableInFirstNS::VT_FOO_UNION, None)}
   }
   #[inline]
   pub fn foo_struct(&self) -> Option<&'a namespace_b::StructInNestedNS> {
-    self._tab.get::<namespace_b::StructInNestedNS>(TableInFirstNS::VT_FOO_STRUCT, None)
+    unsafe { self._tab.get::<namespace_b::StructInNestedNS>(TableInFirstNS::VT_FOO_STRUCT, None)}
   }
   #[inline]
   #[allow(non_snake_case)]

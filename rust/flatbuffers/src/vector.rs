@@ -17,13 +17,10 @@
 use core::fmt::{Debug, Formatter, Result};
 use core::iter::{DoubleEndedIterator, ExactSizeIterator, FusedIterator};
 use core::marker::PhantomData;
-use core::mem::size_of;
-use core::slice::from_raw_parts;
+use core::mem::{align_of, size_of};
 use core::str::from_utf8_unchecked;
 
 use crate::endian_scalar::read_scalar_at;
-#[cfg(target_endian = "little")]
-use crate::endian_scalar::EndianScalar;
 use crate::follow::Follow;
 use crate::primitives::*;
 
@@ -63,6 +60,12 @@ impl<'a, T> Clone for Vector<'a, T> {
 }
 
 impl<'a, T: 'a> Vector<'a, T> {
+    /// SAFETY
+    ///
+    /// `buf` contains a valid vector at `loc` consisting of
+    ///
+    /// UOffsetT element count
+    /// Consecutive list of `T` elements
     #[inline(always)]
     pub unsafe fn new(buf: &'a [u8], loc: usize) -> Self {
         Vector {
@@ -74,20 +77,32 @@ impl<'a, T: 'a> Vector<'a, T> {
 
     #[inline(always)]
     pub fn len(&self) -> usize {
+        // SAFETY
+        // Valid vector at time of construction starting with UOffsetT element count
         unsafe { read_scalar_at::<UOffsetT>(self.0, self.1) as usize }
     }
+
     #[inline(always)]
     pub fn is_empty(&self) -> bool {
         self.len() == 0
+    }
+
+    #[inline(always)]
+    pub fn data(&self) -> &[u8] {
+        let sz = size_of::<T>();
+        let len = self.len();
+        &self.0[self.1 + SIZE_UOFFSET..self.1 + SIZE_UOFFSET + sz * len]
     }
 }
 
 impl<'a, T: Follow<'a> + 'a> Vector<'a, T> {
     #[inline(always)]
     pub fn get(&self, idx: usize) -> T::Inner {
-        assert!(idx < self.len() as usize);
+        assert!(idx < self.len());
         let sz = size_of::<T>();
         debug_assert!(sz > 0);
+        // SAFETY
+        // Valid vector at time of construction, verified that idx < element count
         unsafe { T::follow(self.0, self.1 as usize + SIZE_UOFFSET + sz * idx) }
     }
 
@@ -97,48 +112,38 @@ impl<'a, T: Follow<'a> + 'a> Vector<'a, T> {
     }
 }
 
+/// Provides access to the values of a `Vector` as a slice
+///
+/// As we cannot guarantee memory alignment of the vector's data,
+/// this is only supported for types with no alignment requirements
 pub trait SafeSliceAccess {}
+
 impl<'a, T: SafeSliceAccess + 'a> Vector<'a, T> {
     pub fn safe_slice(self) -> &'a [T] {
-        let buf = self.0;
-        let loc = self.1;
-        let sz = size_of::<T>();
-        debug_assert!(sz > 0);
-        let len = unsafe { read_scalar_at::<UOffsetT>(buf, loc) } as usize;
-        let data_buf = &buf[loc + SIZE_UOFFSET..loc + SIZE_UOFFSET + len * sz];
-        let ptr = data_buf.as_ptr() as *const T;
-        let s: &'a [T] = unsafe { from_raw_parts(ptr, len) };
-        s
+        assert_eq!(align_of::<T>(), 1);
+        let data = self.data();
+        // SAFETY:
+        // Valid vector at construction time, i.e. containing element count elements of T
+        // and T has no additional alignment requirements
+        unsafe {
+            core::slice::from_raw_parts(data.as_ptr() as *const T, data.len() / size_of::<T>())
+        }
     }
 }
 
 impl SafeSliceAccess for u8 {}
 impl SafeSliceAccess for i8 {}
-impl SafeSliceAccess for bool {}
 
-// TODO(caspern): Get rid of this. Conditional compliation is unnecessary complexity.
-// Vectors of primitives just don't work on big endian machines!!!
-#[cfg(target_endian = "little")]
-mod le_safe_slice_impls {
-    impl super::SafeSliceAccess for u16 {}
-    impl super::SafeSliceAccess for u32 {}
-    impl super::SafeSliceAccess for u64 {}
-
-    impl super::SafeSliceAccess for i16 {}
-    impl super::SafeSliceAccess for i32 {}
-    impl super::SafeSliceAccess for i64 {}
-
-    impl super::SafeSliceAccess for f32 {}
-    impl super::SafeSliceAccess for f64 {}
-}
-
-#[cfg(target_endian = "little")]
-pub use self::le_safe_slice_impls::*;
-
+/// SAFETY
+///
+/// `buf` must contain a value of T at `loc` and have alignment of 1
 pub unsafe fn follow_cast_ref<'a, T: Sized + 'a>(buf: &'a [u8], loc: usize) -> &'a T {
+    assert_eq!(align_of::<T>(), 1);
     let sz = size_of::<T>();
     let buf = &buf[loc..loc + sz];
     let ptr = buf.as_ptr() as *const T;
+    // SAFETY
+    // buf contains a value at loc of type T and T has no alignment requirements
     &*ptr
 }
 
@@ -151,23 +156,11 @@ impl<'a> Follow<'a> for &'a str {
     }
 }
 
-#[cfg(target_endian = "little")]
-fn follow_slice_helper<T>(buf: &[u8], loc: usize) -> &[T] {
-    let sz = size_of::<T>();
-    debug_assert!(sz > 0);
-    let len = unsafe { read_scalar_at::<UOffsetT>(buf, loc) as usize };
-    let data_buf = &buf[loc + SIZE_UOFFSET..loc + SIZE_UOFFSET + len * sz];
-    let ptr = data_buf.as_ptr() as *const T;
-    let s: &[T] = unsafe { from_raw_parts(ptr, len) };
-    s
-}
-
-/// Implement direct slice access if the host is little-endian.
-#[cfg(target_endian = "little")]
-impl<'a, T: EndianScalar> Follow<'a> for &'a [T] {
-    type Inner = &'a [T];
+impl<'a> Follow<'a> for &'a [u8] {
+    type Inner = &'a [u8];
     unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
-        follow_slice_helper::<T>(buf, loc)
+        let len = read_scalar_at::<UOffsetT>(buf, loc) as usize;
+        &buf[loc + SIZE_UOFFSET..loc + SIZE_UOFFSET + len]
     }
 }
 
@@ -202,6 +195,13 @@ impl<'a, T: 'a> VectorIter<'a, T> {
         }
     }
 
+    /// Creates a new `VectorIter` from the provided slice
+    ///
+    /// # SAFETY
+    ///
+    /// buf must contain a contiguous sequence of `items_num` values of `T`
+    ///
+    /// SAF
     #[inline]
     pub unsafe fn from_slice(buf: &'a [u8], items_num: usize) -> Self {
         VectorIter {
@@ -236,6 +236,9 @@ impl<'a, T: Follow<'a> + 'a> Iterator for VectorIter<'a, T> {
         if self.remaining == 0 {
             None
         } else {
+            // SAFETY:
+            // VectorIter can only be created from a contiguous sequence of `items_num`
+            // And remaining is initialized to `items_num`
             let result = unsafe { T::follow(self.buf, self.loc) };
             self.loc += sz;
             self.remaining -= 1;
@@ -273,6 +276,9 @@ impl<'a, T: Follow<'a> + 'a> DoubleEndedIterator for VectorIter<'a, T> {
             None
         } else {
             self.remaining -= 1;
+            // SAFETY:
+            // VectorIter can only be created from a contiguous sequence of `items_num`
+            // And remaining is initialized to `items_num`
             Some(unsafe { T::follow(self.buf, self.loc + sz * self.remaining) })
         }
     }

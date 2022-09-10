@@ -22,13 +22,12 @@ use core::cmp::max;
 use core::iter::{DoubleEndedIterator, ExactSizeIterator};
 use core::marker::PhantomData;
 use core::ptr::write_bytes;
-use core::slice::from_raw_parts;
 
 use crate::endian_scalar::{emplace_scalar, read_scalar_at};
 use crate::primitives::*;
 use crate::push::{Push, PushAlignment};
 use crate::table::Table;
-use crate::vector::{SafeSliceAccess, Vector};
+use crate::vector::Vector;
 use crate::vtable::{field_index_to_field_offset, VTable};
 use crate::vtable_writer::VTableWriter;
 
@@ -153,7 +152,9 @@ impl<'fbb> FlatBufferBuilder<'fbb> {
         self.make_space(sz);
         {
             let (dst, rest) = (&mut self.owned_buf[self.head..]).split_at_mut(sz);
-            unsafe { x.push(dst, rest) };
+            // SAFETY
+            // Called make_space above
+            unsafe { x.push(dst, rest.len()) };
         }
         WIPOffset::new(self.used_space() as UOffsetT)
     }
@@ -309,33 +310,6 @@ impl<'fbb> FlatBufferBuilder<'fbb> {
         WIPOffset::new(self.used_space() as UOffsetT)
     }
 
-    /// Create a vector by memcpy'ing. This is much faster than calling
-    /// `create_vector`, but the underlying type must be represented as
-    /// little-endian on the host machine. This property is encoded in the
-    /// type system through the SafeSliceAccess trait. The following types are
-    /// always safe, on any platform: bool, u8, i8, and any
-    /// FlatBuffers-generated struct.
-    #[inline]
-    pub fn create_vector_direct<'a: 'b, 'b, T: SafeSliceAccess + Push + Sized + 'b>(
-        &'a mut self,
-        items: &'b [T],
-    ) -> WIPOffset<Vector<'fbb, T>> {
-        self.assert_not_nested(
-            "create_vector_direct can not be called when a table or vector is under construction",
-        );
-        let elem_size = T::size();
-        self.align(items.len() * elem_size, T::alignment().max_of(SIZE_UOFFSET));
-
-        let bytes = {
-            let ptr = items.as_ptr() as *const T as *const u8;
-            unsafe { from_raw_parts(ptr, items.len() * elem_size) }
-        };
-        self.push_bytes_unprefixed(bytes);
-        self.push(items.len() as UOffsetT);
-
-        WIPOffset::new(self.used_space() as UOffsetT)
-    }
-
     /// Create a vector of strings.
     ///
     /// Speed-sensitive users may wish to reduce memory usage by creating the
@@ -367,15 +341,27 @@ impl<'fbb> FlatBufferBuilder<'fbb> {
     /// Speed-sensitive users may wish to reduce memory usage by creating the
     /// vector manually: use `start_vector`, `push`, and `end_vector`.
     #[inline]
-    pub fn create_vector<'a: 'b, 'b, T: Push + Copy + 'b>(
+    pub fn create_vector<'a: 'b, 'b, T: Push + 'b>(
         &'a mut self,
         items: &'b [T],
     ) -> WIPOffset<Vector<'fbb, T::Output>> {
         let elem_size = T::size();
-        self.align(items.len() * elem_size, T::alignment().max_of(SIZE_UOFFSET));
-        for i in (0..items.len()).rev() {
-            self.push(items[i]);
+        let slice_size = items.len() * elem_size;
+        self.align(slice_size, T::alignment().max_of(SIZE_UOFFSET));
+        self.ensure_capacity(slice_size + UOffsetT::size());
+
+        self.head -= slice_size;
+        let mut written_len = self.owned_buf.len() - self.head;
+
+        let buf = &mut self.owned_buf[self.head..self.head + slice_size];
+        for (item, out) in items.iter().zip(buf.chunks_exact_mut(elem_size)) {
+            written_len -= elem_size;
+
+            // SAFETY
+            // Called ensure_capacity and aligned to T above
+            unsafe { item.push(out, written_len) };
         }
+
         WIPOffset::new(self.push::<UOffsetT>(items.len() as UOffsetT).value())
     }
 
@@ -384,17 +370,19 @@ impl<'fbb> FlatBufferBuilder<'fbb> {
     /// Speed-sensitive users may wish to reduce memory usage by creating the
     /// vector manually: use `start_vector`, `push`, and `end_vector`.
     #[inline]
-    pub fn create_vector_from_iter<T: Push + Copy>(
+    pub fn create_vector_from_iter<T: Push>(
         &mut self,
         items: impl ExactSizeIterator<Item = T> + DoubleEndedIterator,
     ) -> WIPOffset<Vector<'fbb, T::Output>> {
         let elem_size = T::size();
         let len = items.len();
         self.align(len * elem_size, T::alignment().max_of(SIZE_UOFFSET));
+        let mut actual = 0;
         for item in items.rev() {
             self.push(item);
+            actual += 1;
         }
-        WIPOffset::new(self.push::<UOffsetT>(len as UOffsetT).value())
+        WIPOffset::new(self.push::<UOffsetT>(actual).value())
     }
 
     /// Set whether default values are stored.

@@ -194,147 +194,147 @@ impl<'a> ScalarStuff<'a> {
 
   #[inline]
   pub fn just_i8(&self) -> i8 {
-    self._tab.get::<i8>(ScalarStuff::VT_JUST_I8, Some(0)).unwrap()
+    unsafe { self._tab.get::<i8>(ScalarStuff::VT_JUST_I8, Some(0)).unwrap()}
   }
   #[inline]
   pub fn maybe_i8(&self) -> Option<i8> {
-    self._tab.get::<i8>(ScalarStuff::VT_MAYBE_I8, None)
+    unsafe { self._tab.get::<i8>(ScalarStuff::VT_MAYBE_I8, None)}
   }
   #[inline]
   pub fn default_i8(&self) -> i8 {
-    self._tab.get::<i8>(ScalarStuff::VT_DEFAULT_I8, Some(42)).unwrap()
+    unsafe { self._tab.get::<i8>(ScalarStuff::VT_DEFAULT_I8, Some(42)).unwrap()}
   }
   #[inline]
   pub fn just_u8(&self) -> u8 {
-    self._tab.get::<u8>(ScalarStuff::VT_JUST_U8, Some(0)).unwrap()
+    unsafe { self._tab.get::<u8>(ScalarStuff::VT_JUST_U8, Some(0)).unwrap()}
   }
   #[inline]
   pub fn maybe_u8(&self) -> Option<u8> {
-    self._tab.get::<u8>(ScalarStuff::VT_MAYBE_U8, None)
+    unsafe { self._tab.get::<u8>(ScalarStuff::VT_MAYBE_U8, None)}
   }
   #[inline]
   pub fn default_u8(&self) -> u8 {
-    self._tab.get::<u8>(ScalarStuff::VT_DEFAULT_U8, Some(42)).unwrap()
+    unsafe { self._tab.get::<u8>(ScalarStuff::VT_DEFAULT_U8, Some(42)).unwrap()}
   }
   #[inline]
   pub fn just_i16(&self) -> i16 {
-    self._tab.get::<i16>(ScalarStuff::VT_JUST_I16, Some(0)).unwrap()
+    unsafe { self._tab.get::<i16>(ScalarStuff::VT_JUST_I16, Some(0)).unwrap()}
   }
   #[inline]
   pub fn maybe_i16(&self) -> Option<i16> {
-    self._tab.get::<i16>(ScalarStuff::VT_MAYBE_I16, None)
+    unsafe { self._tab.get::<i16>(ScalarStuff::VT_MAYBE_I16, None)}
   }
   #[inline]
   pub fn default_i16(&self) -> i16 {
-    self._tab.get::<i16>(ScalarStuff::VT_DEFAULT_I16, Some(42)).unwrap()
+    unsafe { self._tab.get::<i16>(ScalarStuff::VT_DEFAULT_I16, Some(42)).unwrap()}
   }
   #[inline]
   pub fn just_u16(&self) -> u16 {
-    self._tab.get::<u16>(ScalarStuff::VT_JUST_U16, Some(0)).unwrap()
+    unsafe { self._tab.get::<u16>(ScalarStuff::VT_JUST_U16, Some(0)).unwrap()}
   }
   #[inline]
   pub fn maybe_u16(&self) -> Option<u16> {
-    self._tab.get::<u16>(ScalarStuff::VT_MAYBE_U16, None)
+    unsafe { self._tab.get::<u16>(ScalarStuff::VT_MAYBE_U16, None)}
   }
   #[inline]
   pub fn default_u16(&self) -> u16 {
-    self._tab.get::<u16>(ScalarStuff::VT_DEFAULT_U16, Some(42)).unwrap()
+    unsafe { self._tab.get::<u16>(ScalarStuff::VT_DEFAULT_U16, Some(42)).unwrap()}
   }
   #[inline]
   pub fn just_i32(&self) -> i32 {
-    self._tab.get::<i32>(ScalarStuff::VT_JUST_I32, Some(0)).unwrap()
+    unsafe { self._tab.get::<i32>(ScalarStuff::VT_JUST_I32, Some(0)).unwrap()}
   }
   #[inline]
   pub fn maybe_i32(&self) -> Option<i32> {
-    self._tab.get::<i32>(ScalarStuff::VT_MAYBE_I32, None)
+    unsafe { self._tab.get::<i32>(ScalarStuff::VT_MAYBE_I32, None)}
   }
   #[inline]
   pub fn default_i32(&self) -> i32 {
-    self._tab.get::<i32>(ScalarStuff::VT_DEFAULT_I32, Some(42)).unwrap()
+    unsafe { self._tab.get::<i32>(ScalarStuff::VT_DEFAULT_I32, Some(42)).unwrap()}
   }
   #[inline]
   pub fn just_u32(&self) -> u32 {
-    self._tab.get::<u32>(ScalarStuff::VT_JUST_U32, Some(0)).unwrap()
+    unsafe { self._tab.get::<u32>(ScalarStuff::VT_JUST_U32, Some(0)).unwrap()}
   }
   #[inline]
   pub fn maybe_u32(&self) -> Option<u32> {
-    self._tab.get::<u32>(ScalarStuff::VT_MAYBE_U32, None)
+    unsafe { self._tab.get::<u32>(ScalarStuff::VT_MAYBE_U32, None)}
   }
   #[inline]
   pub fn default_u32(&self) -> u32 {
-    self._tab.get::<u32>(ScalarStuff::VT_DEFAULT_U32, Some(42)).unwrap()
+    unsafe { self._tab.get::<u32>(ScalarStuff::VT_DEFAULT_U32, Some(42)).unwrap()}
   }
   #[inline]
   pub fn just_i64(&self) -> i64 {
-    self._tab.get::<i64>(ScalarStuff::VT_JUST_I64, Some(0)).unwrap()
+    unsafe { self._tab.get::<i64>(ScalarStuff::VT_JUST_I64, Some(0)).unwrap()}
   }
   #[inline]
   pub fn maybe_i64(&self) -> Option<i64> {
-    self._tab.get::<i64>(ScalarStuff::VT_MAYBE_I64, None)
+    unsafe { self._tab.get::<i64>(ScalarStuff::VT_MAYBE_I64, None)}
   }
   #[inline]
   pub fn default_i64(&self) -> i64 {
-    self._tab.get::<i64>(ScalarStuff::VT_DEFAULT_I64, Some(42)).unwrap()
+    unsafe { self._tab.get::<i64>(ScalarStuff::VT_DEFAULT_I64, Some(42)).unwrap()}
   }
   #[inline]
   pub fn just_u64(&self) -> u64 {
-    self._tab.get::<u64>(ScalarStuff::VT_JUST_U64, Some(0)).unwrap()
+    unsafe { self._tab.get::<u64>(ScalarStuff::VT_JUST_U64, Some(0)).unwrap()}
   }
   #[inline]
   pub fn maybe_u64(&self) -> Option<u64> {
-    self._tab.get::<u64>(ScalarStuff::VT_MAYBE_U64, None)
+    unsafe { self._tab.get::<u64>(ScalarStuff::VT_MAYBE_U64, None)}
   }
   #[inline]
   pub fn default_u64(&self) -> u64 {
-    self._tab.get::<u64>(ScalarStuff::VT_DEFAULT_U64, Some(42)).unwrap()
+    unsafe { self._tab.get::<u64>(ScalarStuff::VT_DEFAULT_U64, Some(42)).unwrap()}
   }
   #[inline]
   pub fn just_f32(&self) -> f32 {
-    self._tab.get::<f32>(ScalarStuff::VT_JUST_F32, Some(0.0)).unwrap()
+    unsafe { self._tab.get::<f32>(ScalarStuff::VT_JUST_F32, Some(0.0)).unwrap()}
   }
   #[inline]
   pub fn maybe_f32(&self) -> Option<f32> {
-    self._tab.get::<f32>(ScalarStuff::VT_MAYBE_F32, None)
+    unsafe { self._tab.get::<f32>(ScalarStuff::VT_MAYBE_F32, None)}
   }
   #[inline]
   pub fn default_f32(&self) -> f32 {
-    self._tab.get::<f32>(ScalarStuff::VT_DEFAULT_F32, Some(42.0)).unwrap()
+    unsafe { self._tab.get::<f32>(ScalarStuff::VT_DEFAULT_F32, Some(42.0)).unwrap()}
   }
   #[inline]
   pub fn just_f64(&self) -> f64 {
-    self._tab.get::<f64>(ScalarStuff::VT_JUST_F64, Some(0.0)).unwrap()
+    unsafe { self._tab.get::<f64>(ScalarStuff::VT_JUST_F64, Some(0.0)).unwrap()}
   }
   #[inline]
   pub fn maybe_f64(&self) -> Option<f64> {
-    self._tab.get::<f64>(ScalarStuff::VT_MAYBE_F64, None)
+    unsafe { self._tab.get::<f64>(ScalarStuff::VT_MAYBE_F64, None)}
   }
   #[inline]
   pub fn default_f64(&self) -> f64 {
-    self._tab.get::<f64>(ScalarStuff::VT_DEFAULT_F64, Some(42.0)).unwrap()
+    unsafe { self._tab.get::<f64>(ScalarStuff::VT_DEFAULT_F64, Some(42.0)).unwrap()}
   }
   #[inline]
   pub fn just_bool(&self) -> bool {
-    self._tab.get::<bool>(ScalarStuff::VT_JUST_BOOL, Some(false)).unwrap()
+    unsafe { self._tab.get::<bool>(ScalarStuff::VT_JUST_BOOL, Some(false)).unwrap()}
   }
   #[inline]
   pub fn maybe_bool(&self) -> Option<bool> {
-    self._tab.get::<bool>(ScalarStuff::VT_MAYBE_BOOL, None)
+    unsafe { self._tab.get::<bool>(ScalarStuff::VT_MAYBE_BOOL, None)}
   }
   #[inline]
   pub fn default_bool(&self) -> bool {
-    self._tab.get::<bool>(ScalarStuff::VT_DEFAULT_BOOL, Some(true)).unwrap()
+    unsafe { self._tab.get::<bool>(ScalarStuff::VT_DEFAULT_BOOL, Some(true)).unwrap()}
   }
   #[inline]
   pub fn just_enum(&self) -> OptionalByte {
-    self._tab.get::<OptionalByte>(ScalarStuff::VT_JUST_ENUM, Some(OptionalByte::None)).unwrap()
+    unsafe { self._tab.get::<OptionalByte>(ScalarStuff::VT_JUST_ENUM, Some(OptionalByte::None)).unwrap()}
   }
   #[inline]
   pub fn maybe_enum(&self) -> Option<OptionalByte> {
-    self._tab.get::<OptionalByte>(ScalarStuff::VT_MAYBE_ENUM, None)
+    unsafe { self._tab.get::<OptionalByte>(ScalarStuff::VT_MAYBE_ENUM, None)}
   }
   #[inline]
   pub fn default_enum(&self) -> OptionalByte {
-    self._tab.get::<OptionalByte>(ScalarStuff::VT_DEFAULT_ENUM, Some(OptionalByte::One)).unwrap()
+    unsafe { self._tab.get::<OptionalByte>(ScalarStuff::VT_DEFAULT_ENUM, Some(OptionalByte::One)).unwrap()}
   }
 }
 
@@ -911,12 +911,12 @@ pub unsafe fn size_prefixed_root_as_scalar_stuff_unchecked(buf: &[u8]) -> Scalar
 pub const SCALAR_STUFF_IDENTIFIER: &str = "NULL";
 
 #[inline]
-pub unsafe fn scalar_stuff_buffer_has_identifier(buf: &[u8]) -> bool {
+pub fn scalar_stuff_buffer_has_identifier(buf: &[u8]) -> bool {
   flatbuffers::buffer_has_identifier(buf, SCALAR_STUFF_IDENTIFIER, false)
 }
 
 #[inline]
-pub unsafe fn scalar_stuff_size_prefixed_buffer_has_identifier(buf: &[u8]) -> bool {
+pub fn scalar_stuff_size_prefixed_buffer_has_identifier(buf: &[u8]) -> bool {
   flatbuffers::buffer_has_identifier(buf, SCALAR_STUFF_IDENTIFIER, true)
 }
 

@@ -86,8 +86,8 @@ fn create_serialized_example_with_generated_code(
     let mon = {
         let name = builder.create_string("MyMonster");
         let fred_name = builder.create_string("Fred");
-        let inventory = builder.create_vector_direct(&[0u8, 1, 2, 3, 4]);
-        let test4 = builder.create_vector_direct(&[
+        let inventory = builder.create_vector(&[0u8, 1, 2, 3, 4]);
+        let test4 = builder.create_vector(&[
             my_game::example::Test::new(10, 20),
             my_game::example::Test::new(30, 40),
         ]);
@@ -228,7 +228,7 @@ fn create_byte_vector_100_optimal(bench: &mut Bencher) {
 
     let mut i = 0;
     bench.iter(|| {
-        builder.create_vector_direct(v);
+        builder.create_vector(v);
         i += 1;
         if i == 10000 {
             builder.reset();

@@ -68,7 +68,7 @@ impl<'a> flatbuffers::Follow<'a> for ABC {
 impl flatbuffers::Push for ABC {
     type Output = ABC;
     #[inline]
-    unsafe fn push(&self, dst: &mut [u8], _rest: &[u8]) {
+    unsafe fn push(&self, dst: &mut [u8], _written_len: usize) {
         flatbuffers::emplace_scalar::<i32>(dst, self.0);
     }
 }

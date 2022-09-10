@@ -62,11 +62,11 @@ impl<'a> TableInC<'a> {
 
   #[inline]
   pub fn refer_to_a1(&self) -> Option<super::namespace_a::TableInFirstNS<'a>> {
-    self._tab.get::<flatbuffers::ForwardsUOffset<super::namespace_a::TableInFirstNS>>(TableInC::VT_REFER_TO_A1, None)
+    unsafe { self._tab.get::<flatbuffers::ForwardsUOffset<super::namespace_a::TableInFirstNS>>(TableInC::VT_REFER_TO_A1, None)}
   }
   #[inline]
   pub fn refer_to_a2(&self) -> Option<super::namespace_a::SecondTableInA<'a>> {
-    self._tab.get::<flatbuffers::ForwardsUOffset<super::namespace_a::SecondTableInA>>(TableInC::VT_REFER_TO_A2, None)
+    unsafe { self._tab.get::<flatbuffers::ForwardsUOffset<super::namespace_a::SecondTableInA>>(TableInC::VT_REFER_TO_A2, None)}
   }
 }
 

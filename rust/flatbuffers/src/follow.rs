@@ -29,6 +29,9 @@ use core::marker::PhantomData;
 /// continue traversing the FlatBuffer.
 pub trait Follow<'buf> {
     type Inner;
+    /// SAFETY
+    ///
+    /// `buf[loc..]` must contain a valid value of `Self`
     unsafe fn follow(buf: &'buf [u8], loc: usize) -> Self::Inner;
 }
 
@@ -41,6 +44,10 @@ impl<'a, T: Follow<'a> + 'a> FollowStart<T> {
     pub fn new() -> Self {
         Self { 0: PhantomData }
     }
+
+    /// SAFETY
+    ///
+    /// `buf[loc..]` must contain a valid value of `T`
     #[inline]
     pub unsafe fn self_follow(&'a self, buf: &'a [u8], loc: usize) -> T::Inner {
         T::follow(buf, loc)

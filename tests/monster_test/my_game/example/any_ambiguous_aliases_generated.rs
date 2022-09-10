@@ -72,7 +72,7 @@ impl<'a> flatbuffers::Follow<'a> for AnyAmbiguousAliases {
 impl flatbuffers::Push for AnyAmbiguousAliases {
     type Output = AnyAmbiguousAliases;
     #[inline]
-    unsafe fn push(&self, dst: &mut [u8], _rest: &[u8]) {
+    unsafe fn push(&self, dst: &mut [u8], _written_len: usize) {
         flatbuffers::emplace_scalar::<u8>(dst, self.0);
     }
 }

@@ -252,9 +252,12 @@ impl<'opts, 'buf> Verifier<'opts, 'buf> {
     /// memory since `buffer: &[u8]` has alignment 1.
     ///
     /// ### WARNING
+    ///
     /// This does not work for flatbuffers-structs as they have alignment 1 according to
     /// `core::mem::align_of` but are meant to have higher alignment within a Flatbuffer w.r.t.
     /// `buffer[0]`. TODO(caspern).
+    ///
+    /// Note this does not impact soundness as this crate does not assume alignment of structs
     #[inline]
     fn is_aligned<T>(&self, pos: usize) -> Result<()> {
         if pos % core::mem::align_of::<T>() == 0 {

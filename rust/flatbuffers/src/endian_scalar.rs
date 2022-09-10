@@ -150,7 +150,7 @@ pub fn byte_swap_f64(x: f64) -> f64 {
 /// Place an EndianScalar into the provided mutable byte slice. Performs
 /// endian conversion, if necessary.
 /// # Safety
-/// Caller must ensure `s.len() > size_of::<T>()`
+/// Caller must ensure `s.len() >= size_of::<T>()`
 /// and `x` does not overlap with `s`.
 #[inline]
 pub unsafe fn emplace_scalar<T: EndianScalar>(s: &mut [u8], x: T) {
@@ -165,7 +165,7 @@ pub unsafe fn emplace_scalar<T: EndianScalar>(s: &mut [u8], x: T) {
 /// Read an EndianScalar from the provided byte slice at the specified location.
 /// Performs endian conversion, if necessary.
 /// # Safety
-/// Caller must ensure `s.len() > loc + size_of::<T>()`.
+/// Caller must ensure `s.len() >= loc + size_of::<T>()`.
 #[inline]
 pub unsafe fn read_scalar_at<T: EndianScalar>(s: &[u8], loc: usize) -> T {
     read_scalar(&s[loc..])
