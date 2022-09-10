@@ -85,6 +85,7 @@ void ErrorTest() {
   TestError("enum X:float {}", "underlying");
   TestError("enum X:byte { Y, Y }", "value already");
   TestError("enum X:byte { Y=2, Z=2 }", "unique");
+  TestError("enum X:byte (force_align: 4) { Y }", "force_align");
   TestError("table X { Y:int; } table X {", "datatype already");
   TestError("table X { } union X { }", "datatype already");
   TestError("union X { } table X { }", "datatype already");
