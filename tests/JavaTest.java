@@ -959,9 +959,11 @@ class JavaTest {
         int vecPos = b.startVector();
         b.putInt(99);
         b.putString("wow");
+        b.putNull();
         int vecpos2 = b.startVector();
         b.putInt(99);
         b.putString("wow");
+        b.putNull();
         b.endVector(null, vecpos2, false, false);
         b.endVector(null, vecPos, false, false);
         b.finish();
@@ -969,11 +971,12 @@ class JavaTest {
         FlexBuffers.Reference r = FlexBuffers.getRoot(b.getBuffer());
         TestEq(FlexBuffers.FBT_VECTOR, r.getType());
         FlexBuffers.Vector vec = FlexBuffers.getRoot(b.getBuffer()).asVector();
-        TestEq(3, vec.size());
+        TestEq(4, vec.size());
         TestEq(99, vec.get(0).asInt());
         TestEq("wow", vec.get(1).asString());
-        TestEq("[ 99, \"wow\" ]", vec.get(2).toString());
-        TestEq("[ 99, \"wow\", [ 99, \"wow\" ] ]", FlexBuffers.getRoot(b.getBuffer()).toString());
+        TestEq(true, vec.get(2).isNull());
+        TestEq("[ 99, \"wow\", null ]", vec.get(3).toString());
+        TestEq("[ 99, \"wow\", null, [ 99, \"wow\", null ] ]", FlexBuffers.getRoot(b.getBuffer()).toString());
     }
 
     public static void testSingleElementMap() {
@@ -983,6 +986,7 @@ class JavaTest {
         b.putInt("myInt", 0x7fffffbbbfffffffL);
         b.putString("myString", "wow");
         b.putString("myString2", "incredible");
+        b.putNull("myNull");
         int start = b.startVector();
         b.putInt(99);
         b.putString("wow");
@@ -995,14 +999,15 @@ class JavaTest {
         FlexBuffers.Reference r = FlexBuffers.getRoot(b.getBuffer());
         TestEq(FlexBuffers.FBT_MAP, r.getType());
         FlexBuffers.Map map = FlexBuffers.getRoot(b.getBuffer()).asMap();
-        TestEq(5, map.size());
+        TestEq(6, map.size());
         TestEq(0x7fffffbbbfffffffL, map.get("myInt").asLong());
         TestEq("wow", map.get("myString").asString());
         TestEq("incredible", map.get("myString2").asString());
+        TestEq(true, map.get("myNull").isNull());
         TestEq(99, map.get("myVec").asVector().get(0).asInt());
         TestEq("wow", map.get("myVec").asVector().get(1).asString());
         TestEq(Double.compare(0x1.ffffbbbffffffP+1023, map.get("double").asFloat()), 0);
-        TestEq("{ \"double\" : 1.7976894783391937E308, \"myInt\" : 9223371743723257855, \"myString\" : \"wow\", \"myString2\" : \"incredible\", \"myVec\" : [ 99, \"wow\" ] }",
+        TestEq("{ \"double\" : 1.7976894783391937E308, \"myInt\" : 9223371743723257855, \"myNull\" : null, \"myString\" : \"wow\", \"myString2\" : \"incredible\", \"myVec\" : [ 99, \"wow\" ] }",
                 FlexBuffers.getRoot(b.getBuffer()).toString());
     }
 
