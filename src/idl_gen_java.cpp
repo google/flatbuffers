@@ -661,11 +661,11 @@ class JavaGenerator : public BaseGenerator {
     code += " {\n";
 
     if (!struct_def.fixed) {
-      // Generate verson check method.
+      // Generate version check method.
       // Force compile time error if not using the same version runtime.
       code += "  public static void ValidateVersion() {";
       code += " Constants.";
-      code += "FLATBUFFERS_2_0_0(); ";
+      code += "FLATBUFFERS_2_0_8(); ";
       code += "}\n";
 
       // Generate a special accessor for the table that when used as the root

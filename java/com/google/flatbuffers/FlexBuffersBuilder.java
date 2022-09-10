@@ -174,6 +174,21 @@ public class FlexBuffersBuilder {
     }
 
     /**
+     * Insert a null value into the buffer
+     */
+    public void putNull() {
+        putNull(null);
+    }
+
+    /**
+     * Insert a null value into the buffer
+     * @param key key used to store element in map
+     */
+    public void putNull(String key) {
+        stack.add(Value.nullValue(putKey(key)));
+    }
+
+    /**
      * Insert a single boolean into the buffer
      * @param val true or false
      */
@@ -502,7 +517,9 @@ public class FlexBuffersBuilder {
      * @return Value representing the created vector
      */
     private Value createVector(int key, int start, int length, boolean typed, boolean fixed, Value keys) {
-        assert (!fixed || typed); // typed=false, fixed=true combination is not supported.
+        if (fixed & !typed)
+            throw new UnsupportedOperationException("Untyped fixed vector is not supported");
+
         // Figure out smallest bit width we can store this vector with.
         int bitWidth = Math.max(WIDTH_8, widthUInBits(length));
         int prefixElems = 1;
@@ -671,6 +688,10 @@ public class FlexBuffersBuilder {
             this.minBitWidth = bitWidth;
             this.dValue = dValue;
             this.iValue = Long.MIN_VALUE;
+        }
+
+        static Value nullValue(int key) {
+            return new Value(key, FBT_NULL, WIDTH_8, 0);
         }
 
         static Value bool(int key, boolean b) {

@@ -87,6 +87,14 @@ if(MSVC OR CMAKE_CXX_COMPILER_FRONTEND_VARIANT STREQUAL "MSVC")
     set(MSVC_LIKE ON)
 endif()
 
+if(DEFINED FLATBUFFERS_COMPILATION_TIMINGS)
+  message("Recording Compilation Timings to ${FLATBUFFERS_COMPILATION_TIMINGS}")
+  file(REMOVE ${FLATBUFFERS_COMPILATION_TIMINGS})
+  set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE "time -f 'Wall: %E User: %U Sys: %S | %C' -q -a -o ${FLATBUFFERS_COMPILATION_TIMINGS}")
+  set_property(GLOBAL PROPERTY RULE_LAUNCH_CUSTOM "time -f 'Wall: %E User: %U Sys: %S | %C' -q -a -o ${FLATBUFFERS_COMPILATION_TIMINGS}")
+  set_property(GLOBAL PROPERTY RULE_LAUNCH_LINK "time -f 'Wall: %E User: %U Sys: %S | %C' -q -a -o ${FLATBUFFERS_COMPILATION_TIMINGS}")
+endif()
+
 if(NOT FLATBUFFERS_BUILD_FLATC AND FLATBUFFERS_BUILD_TESTS)
     message(WARNING
     "Cannot build tests without building the compiler. Tests will be disabled.")
@@ -205,11 +213,21 @@ set(FlatHash_SRCS
 set(FlatBuffers_Tests_SRCS
   ${FlatBuffers_Library_SRCS}
   src/idl_gen_fbs.cpp
+  tests/evolution_test.cpp
+  tests/flexbuffers_test.cpp
+  tests/fuzz_test.cpp
+  tests/json_test.cpp
+  tests/monster_test.cpp
+  tests/optional_scalars_test.cpp
+  tests/parser_test.cpp
+  tests/proto_test.cpp
+  tests/reflection_test.cpp
   tests/test.cpp
   tests/test_assert.h
   tests/test_assert.cpp
   tests/test_builder.h
   tests/test_builder.cpp
+  tests/util_test.cpp
   tests/native_type_test_impl.h
   tests/native_type_test_impl.cpp
   include/flatbuffers/code_generators.h
@@ -231,6 +249,8 @@ set(FlatBuffers_Tests_SRCS
   ${CMAKE_CURRENT_BINARY_DIR}/tests/monster_test_bfbs_generated.h
   # file generate by running compiler on tests/optional_scalars.fbs
   ${CMAKE_CURRENT_BINARY_DIR}/tests/optional_scalars_generated.h
+  # file generate by running compiler on tests/native_inline_table_test.fbs
+  ${CMAKE_CURRENT_BINARY_DIR}/tests/native_inline_table_test_generated.h
 )
 
 set(FlatBuffers_Tests_CPP17_SRCS
@@ -602,6 +622,7 @@ if(FLATBUFFERS_BUILD_TESTS)
   compile_flatbuffers_schema_to_cpp_opt(tests/arrays_test.fbs "--scoped-enums;--gen-compare")
   compile_flatbuffers_schema_to_binary(tests/arrays_test.fbs)
   compile_flatbuffers_schema_to_embedded_binary(tests/monster_test.fbs "--no-includes;--gen-compare")
+  compile_flatbuffers_schema_to_cpp(tests/native_inline_table_test.fbs "--gen-compare")
   if(NOT (MSVC AND (MSVC_VERSION LESS 1900)))
     compile_flatbuffers_schema_to_cpp(tests/monster_extra.fbs) # Test floating-point NAN/INF.
   endif()
@@ -678,9 +699,12 @@ if(FLATBUFFERS_INSTALL)
 
   set(FB_CMAKE_DIR "${CMAKE_INSTALL_LIBDIR}/cmake/flatbuffers")
 
-  configure_file(CMake/FlatBuffersConfigVersion.cmake.in FlatBuffersConfigVersion.cmake @ONLY)
+  configure_file(CMake/flatbuffers-config-version.cmake.in flatbuffers-config-version.cmake @ONLY)
   install(
-      FILES "CMake/FlatBuffersConfig.cmake" "${CMAKE_CURRENT_BINARY_DIR}/FlatBuffersConfigVersion.cmake"
+      FILES 
+        "CMake/flatbuffers-config.cmake" 
+        "CMake/BuildFlatBuffers.cmake"
+        "${CMAKE_CURRENT_BINARY_DIR}/flatbuffers-config-version.cmake"
       DESTINATION ${FB_CMAKE_DIR}
   )
 

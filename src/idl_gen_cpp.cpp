@@ -74,6 +74,15 @@ static std::string GenIncludeGuard(const std::string &file_name,
   return guard;
 }
 
+static bool IsVectorOfPointers(const FieldDef& field) {
+  const auto& type = field.value.type;
+  const auto& vector_type = type.VectorType();
+  return type.base_type == BASE_TYPE_VECTOR &&
+         vector_type.base_type == BASE_TYPE_STRUCT &&
+         !vector_type.struct_def->fixed &&
+         !field.native_inline;
+}
+
 namespace cpp {
 
 enum CppStandard { CPP_STD_X0 = 0, CPP_STD_11, CPP_STD_17 };
@@ -885,7 +894,9 @@ class CppGenerator : public BaseGenerator {
           }
         } else {
           const auto nn = WrapNativeNameInNameSpace(*type.struct_def, opts_);
-          return forcopy ? nn : GenTypeNativePtr(nn, &field, false);
+          return (forcopy || field.native_inline)
+                     ? nn
+                     : GenTypeNativePtr(nn, &field, false);
         }
       }
       case BASE_TYPE_UNION: {
@@ -1871,9 +1882,7 @@ class CppGenerator : public BaseGenerator {
         if (vec_type.base_type == BASE_TYPE_UTYPE) continue;
         const auto cpp_type = field.attributes.Lookup("cpp_type");
         const auto cpp_ptr_type = field.attributes.Lookup("cpp_ptr_type");
-        const bool is_ptr =
-            (vec_type.base_type == BASE_TYPE_STRUCT && !IsStruct(vec_type)) ||
-            (cpp_type && cpp_ptr_type->constant != "naked");
+        const bool is_ptr = IsVectorOfPointers(field) || (cpp_type && cpp_ptr_type->constant != "naked");
         if (is_ptr) { return true; }
       }
     }
@@ -1997,9 +2006,7 @@ class CppGenerator : public BaseGenerator {
                                    ? cpp_type->constant
                                    : GenTypeNative(vec_type, /*invector*/ true,
                                                    field, /*forcopy*/ true);
-        const bool is_ptr =
-            (vec_type.base_type == BASE_TYPE_STRUCT && !IsStruct(vec_type)) ||
-            (cpp_type && cpp_ptr_type->constant != "naked");
+        const bool is_ptr = IsVectorOfPointers(field) || (cpp_type && cpp_ptr_type->constant != "naked");
         CodeWriter cw("  ");
         cw.SetValue("FIELD", Name(field));
         cw.SetValue("TYPE", type_name);
@@ -2078,9 +2085,7 @@ class CppGenerator : public BaseGenerator {
           // If the field is a vector of tables, the table need to be compared
           // by value, instead of by the default unique_ptr == operator which
           // compares by address.
-          if (field.value.type.base_type == BASE_TYPE_VECTOR &&
-              field.value.type.element == BASE_TYPE_STRUCT &&
-              !field.value.type.struct_def->fixed) {
+          if (IsVectorOfPointers(field)) {
             const auto type =
                 GenTypeNative(field.value.type.VectorType(), true, field);
             const auto equal_length =
@@ -2979,7 +2984,8 @@ class CppGenerator : public BaseGenerator {
             return ptype + "(new " + name + "(*" + val + "))";
           }
         } else {
-          const auto ptype = GenTypeNativePtr(
+          std::string ptype = afield.native_inline ? "*" : "";
+          ptype += GenTypeNativePtr(
               WrapNativeNameInNameSpace(*type.struct_def, opts_), &afield,
               true);
           return ptype + "(" + val + "->UnPack(_resolver))";
@@ -3066,9 +3072,7 @@ class CppGenerator : public BaseGenerator {
           } else {
             // clang-format off
             #if FLATBUFFERS_CPP_OBJECT_UNPACKTO
-            const bool is_pointer =
-                field.value.type.VectorType().base_type == BASE_TYPE_STRUCT &&
-                !IsStruct(field.value.type.VectorType());
+            const bool is_pointer = IsVectorOfPointers(field);
             if (is_pointer) {
               code += "if(_o->" + name + "[_i]" + ") { ";
               code += indexing + "->UnPackTo(_o->" + name +
@@ -3131,9 +3135,7 @@ class CppGenerator : public BaseGenerator {
           //  _o->field = value;
           // clang-format off
           #if FLATBUFFERS_CPP_OBJECT_UNPACKTO
-          const bool is_pointer =
-              field.value.type.base_type == BASE_TYPE_STRUCT &&
-              !IsStruct(field.value.type);
+          const bool is_pointer = IsVectorOfPointers(field);
           if (is_pointer) {
             code += "{ if(_o->" + Name(field) + ") { ";
             code += "_e->UnPackTo(_o->" + Name(field) + ".get(), _resolver);";
@@ -3251,9 +3253,13 @@ class CppGenerator : public BaseGenerator {
               code += "(" + value + ".size(), ";
               code += "[](size_t i, _VectorArgs *__va) { ";
               code += "return Create" + vector_type.struct_def->name;
-              code += "(*__va->__fbb, __va->_" + value + "[i]" +
-                      GenPtrGet(field) + ", ";
-              code += "__va->__rehasher); }, &_va )";
+              code += "(*__va->__fbb, ";
+              if (field.native_inline) {
+                code += "&(__va->_" + value + "[i])";
+              } else {
+                code += "__va->_" + value + "[i]" + GenPtrGet(field);
+              }
+              code += ", __va->__rehasher); }, &_va )";
             }
             break;
           }
@@ -3342,8 +3348,9 @@ class CppGenerator : public BaseGenerator {
           // _o->field ? CreateT(_fbb, _o->field.get(), _rehasher);
           const auto type = field.value.type.struct_def->name;
           code += value + " ? Create" + type;
-          code += "(_fbb, " + value + GenPtrGet(field) + ", _rehasher)";
-          code += " : 0";
+          code += "(_fbb, " + value;
+          if (!field.native_inline) code += GenPtrGet(field);
+          code += ", _rehasher) : 0";
         }
         break;
       }
