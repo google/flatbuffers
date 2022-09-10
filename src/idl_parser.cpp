@@ -79,7 +79,7 @@ static bool IsLowerSnakeCase(const std::string &str) {
 }
 
 static void DeserializeDoc(std::vector<std::string> &doc,
-                    const Vector<Offset<String>> *documentation) {
+                           const Vector<Offset<String>> *documentation) {
   if (documentation == nullptr) return;
   for (uoffset_t index = 0; index < documentation->size(); index++)
     doc.push_back(documentation->Get(index)->str());
@@ -87,12 +87,10 @@ static void DeserializeDoc(std::vector<std::string> &doc,
 
 static CheckedError NoError() { return CheckedError(false); }
 
-template<typename T>
-static std::string TypeToIntervalString() {
+template<typename T> static std::string TypeToIntervalString() {
   return "[" + NumToString((flatbuffers::numeric_limits<T>::lowest)()) + "; " +
          NumToString((flatbuffers::numeric_limits<T>::max)()) + "]";
 }
-
 
 // atot: template version of atoi/atof: convert a string to an instance of T.
 template<typename T>
@@ -120,15 +118,17 @@ static CheckedError atot(const char *s, Parser &parser, T *val) {
 }
 template<>
 CheckedError atot<Offset<void>>(const char *s, Parser &parser,
-                                       Offset<void> *val) {
+                                Offset<void> *val) {
   (void)parser;
   *val = Offset<void>(atoi(s));
   return NoError();
 }
 
 template<typename T>
-static T *LookupTableByName(const SymbolTable<T> &table, const std::string &name,
-                     const Namespace &current_namespace, size_t skip_top) {
+static T *LookupTableByName(const SymbolTable<T> &table,
+                            const std::string &name,
+                            const Namespace &current_namespace,
+                            size_t skip_top) {
   const auto &components = current_namespace.components;
   if (table.dict.empty()) return nullptr;
   if (components.size() < skip_top) return nullptr;
@@ -187,9 +187,7 @@ static std::string TokenToString(int t) {
 }
 // clang-format on
 
-static bool IsIdentifierStart(char c) {
-  return is_alpha(c) || (c == '_');
-}
+static bool IsIdentifierStart(char c) { return is_alpha(c) || (c == '_'); }
 
 static bool CompareSerializedScalars(const uint8_t *a, const uint8_t *b,
                                      const FieldDef &key) {
@@ -258,7 +256,8 @@ static void SwapSerializedTables(Offset<Table> *a, Offset<Table> *b) {
 
 // See below for why we need our own sort :(
 template<typename T, typename F, typename S>
-static void SimpleQsort(T *begin, T *end, size_t width, F comparator, S swapper) {
+static void SimpleQsort(T *begin, T *end, size_t width, F comparator,
+                        S swapper) {
   if (end - begin <= static_cast<ptrdiff_t>(width)) return;
   auto l = begin + width;
   auto r = end;
@@ -276,9 +275,7 @@ static void SimpleQsort(T *begin, T *end, size_t width, F comparator, S swapper)
   SimpleQsort(r, end, width, comparator, swapper);
 }
 
-
-template<typename T>
-static inline void SingleValueRepack(Value &e, T val) {
+template<typename T> static inline void SingleValueRepack(Value &e, T val) {
   // Remove leading zeros.
   if (IsInteger(e.type.base_type)) { e.constant = NumToString(val); }
 }
@@ -293,7 +290,6 @@ static void SingleValueRepack(Value &e, double val) {
   if (val != val) e.constant = "nan";
 }
 #endif
-
 
 template<typename T> static uint64_t EnumDistanceImpl(T e1, T e2) {
   if (e1 < e2) { std::swap(e1, e2); }  // use std for scalars
@@ -346,26 +342,19 @@ static uint64_t HashFile(const char *source_filename, const char *source) {
   return hash;
 }
 
-template<typename T>
-static bool compareName(const T *a, const T *b) {
+template<typename T> static bool compareName(const T *a, const T *b) {
   return a->defined_namespace->GetFullyQualifiedName(a->name) <
          b->defined_namespace->GetFullyQualifiedName(b->name);
 }
 
-template<typename T>
-static void AssignIndices(const std::vector<T *> &defvec) {
+template<typename T> static void AssignIndices(const std::vector<T *> &defvec) {
   // Pre-sort these vectors, such that we can set the correct indices for them.
   auto vec = defvec;
   std::sort(vec.begin(), vec.end(), compareName<T>);
   for (int i = 0; i < static_cast<int>(vec.size()); i++) vec[i]->index = i;
 }
 
-} // namespace
-
-
-
-
-
+}  // namespace
 
 // clang-format off
 const char *const kTypeNames[] = {
@@ -383,7 +372,6 @@ const char kTypeSizes[] = {
   #undef FLATBUFFERS_TD
 };
 // clang-format on
-
 
 void Parser::Message(const std::string &msg) {
   if (!error_.empty()) error_ += "\n";  // log all warnings and errors
@@ -447,7 +435,6 @@ class Parser::ParseDepthGuard {
   const int caller_depth_;
 };
 
-
 std::string Namespace::GetFullyQualifiedName(const std::string &name,
                                              size_t max_components) const {
   // Early exit if we don't have a defined namespace.
@@ -464,7 +451,6 @@ std::string Namespace::GetFullyQualifiedName(const std::string &name,
   }
   return stream_str;
 }
-
 
 std::string Parser::TokenToStringId(int t) const {
   return t == kTokenIdentifier ? attribute_ : TokenToString(t);
@@ -2412,6 +2398,9 @@ CheckedError Parser::ParseEnum(const bool is_union, EnumDef **dest,
       !IsUnsigned(underlying_type)) {
     // todo: Convert to the Error in the future?
     Warning("underlying type of bit_flags enum must be unsigned");
+  }
+  if (enum_def->attributes.Lookup("force_align")) {
+    return Error("`force_align` is not a valid attribute for Enums. ");
   }
   EnumValBuilder evb(*this, *enum_def);
   EXPECT('{');
