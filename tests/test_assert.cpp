@@ -43,8 +43,6 @@ void InitTestEngine(TestFailEventListener listener) {
   setvbuf(stdout, nullptr, _IONBF, 0);
   setvbuf(stderr, nullptr, _IONBF, 0);
 
-  flatbuffers::SetupDefaultCRTReportMode();
-
   // clang-format off
 
   #if defined(FLATBUFFERS_MEMORY_LEAK_TRACKING_MSVC)
