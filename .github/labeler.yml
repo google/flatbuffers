@@ -84,9 +84,7 @@ documentation:
 
 CI:
   - '.github/**/*'
-  - '.travis/**/*'
   - '.bazelci/**/*'
-  - .travis.yml
 
 grpc:
   - grpc/**/*

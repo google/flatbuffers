@@ -685,9 +685,6 @@ bool SetGlobalTestLocale(const char *locale_name,
 bool ReadEnvironmentVariable(const char *var_name,
                              std::string *_value = nullptr);
 
-// MSVC specific: Send all assert reports to STDOUT to prevent CI hangs.
-void SetupDefaultCRTReportMode();
-
 enum class Case {
   kUnknown = 0,
   // TheQuickBrownFox

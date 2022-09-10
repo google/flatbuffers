@@ -52,9 +52,6 @@ void LogCompilerError(const std::string &err) {
 }  // namespace flatbuffers
 
 int main(int argc, const char *argv[]) {
-  // Prevent Appveyor-CI hangs.
-  flatbuffers::SetupDefaultCRTReportMode();
-
   const std::string flatbuffers_version(flatbuffers::FLATBUFFERS_VERSION());
 
   std::unique_ptr<flatbuffers::BfbsGenerator> bfbs_gen_lua =
