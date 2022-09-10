@@ -21,8 +21,6 @@ def get_branch():
 
 def get_version():
     version = get_branch()
-    if os.getenv("TRAVIS", False):
-        version = os.getenv("TRAVIS_BRANCH")
 
     if os.getenv("APPVEYOR", False):
         version = os.getenv("APPVEYOR_REPO_BRANCH")
