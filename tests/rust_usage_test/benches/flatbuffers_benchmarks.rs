@@ -156,7 +156,7 @@ fn traverse_serialized_example_with_generated_code(bytes: &[u8]) {
     blackbox(pos_test3.b());
     blackbox(m.test_type());
     let table2 = m.test().unwrap();
-    let monster2 = my_game::example::Monster::init_from_table(table2);
+    let monster2 = unsafe { my_game::example::Monster::init_from_table(table2) };
     blackbox(monster2.name());
     blackbox(m.inventory());
     blackbox(m.test4());

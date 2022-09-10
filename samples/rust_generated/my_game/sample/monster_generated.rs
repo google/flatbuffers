@@ -41,7 +41,7 @@ impl<'a> Monster<'a> {
   }
 
   #[inline]
-  pub fn init_from_table(table: flatbuffers::Table<'a>) -> Self {
+  pub unsafe fn init_from_table(table: flatbuffers::Table<'a>) -> Self {
     Monster { _tab: table }
   }
   #[allow(unused_mut)]
@@ -148,7 +148,7 @@ impl<'a> Monster<'a> {
   #[allow(non_snake_case)]
   pub fn equipped_as_weapon(&self) -> Option<Weapon<'a>> {
     if self.equipped_type() == Equipment::Weapon {
-      self.equipped().map(Weapon::init_from_table)
+      self.equipped().map(|t| unsafe { Weapon::init_from_table(t) })
     } else {
       None
     }

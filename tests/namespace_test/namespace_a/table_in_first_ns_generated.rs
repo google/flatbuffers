@@ -36,7 +36,7 @@ impl<'a> TableInFirstNS<'a> {
   }
 
   #[inline]
-  pub fn init_from_table(table: flatbuffers::Table<'a>) -> Self {
+  pub unsafe fn init_from_table(table: flatbuffers::Table<'a>) -> Self {
     TableInFirstNS { _tab: table }
   }
   #[allow(unused_mut)]
@@ -102,7 +102,7 @@ impl<'a> TableInFirstNS<'a> {
   #[allow(non_snake_case)]
   pub fn foo_union_as_table_in_nested_ns(&self) -> Option<namespace_b::TableInNestedNS<'a>> {
     if self.foo_union_type() == namespace_b::UnionInNestedNS::TableInNestedNS {
-      self.foo_union().map(namespace_b::TableInNestedNS::init_from_table)
+      self.foo_union().map(|t| unsafe { namespace_b::TableInNestedNS::init_from_table(t) })
     } else {
       None
     }

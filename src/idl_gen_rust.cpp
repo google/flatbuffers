@@ -1655,7 +1655,7 @@ class RustGenerator : public BaseGenerator {
 
     code_ += "  #[inline]";
     code_ +=
-        "  pub fn init_from_table(table: flatbuffers::Table<'a>) -> "
+        "  pub unsafe fn init_from_table(table: flatbuffers::Table<'a>) -> "
         "Self {";
     code_ += "    {{STRUCT_TY}} { _tab: table }";
     code_ += "  }";
@@ -1883,11 +1883,11 @@ class RustGenerator : public BaseGenerator {
             // as of April 10, 2020
             if (field.IsRequired()) {
               code_ += "    let u = self.{{FIELD}}();";
-              code_ += "    Some({{U_ELEMENT_TABLE_TYPE}}::init_from_table(u))";
+              code_ += "    Some(unsafe { {{U_ELEMENT_TABLE_TYPE}}::init_from_table(u) })";
             } else {
               code_ +=
                   "    self.{{FIELD}}().map("
-                  "{{U_ELEMENT_TABLE_TYPE}}::init_from_table)";
+                  "|t| unsafe { {{U_ELEMENT_TABLE_TYPE}}::init_from_table(t) })";
             }
             code_ += "  } else {";
             code_ += "    None";

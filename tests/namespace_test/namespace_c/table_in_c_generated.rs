@@ -33,7 +33,7 @@ impl<'a> TableInC<'a> {
   }
 
   #[inline]
-  pub fn init_from_table(table: flatbuffers::Table<'a>) -> Self {
+  pub unsafe fn init_from_table(table: flatbuffers::Table<'a>) -> Self {
     TableInC { _tab: table }
   }
   #[allow(unused_mut)]

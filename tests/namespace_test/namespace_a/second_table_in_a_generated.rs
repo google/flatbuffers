@@ -32,7 +32,7 @@ impl<'a> SecondTableInA<'a> {
   }
 
   #[inline]
-  pub fn init_from_table(table: flatbuffers::Table<'a>) -> Self {
+  pub unsafe fn init_from_table(table: flatbuffers::Table<'a>) -> Self {
     SecondTableInA { _tab: table }
   }
   #[allow(unused_mut)]

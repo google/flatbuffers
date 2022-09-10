@@ -306,7 +306,7 @@ fn serialized_example_is_accessible_and_correct(bytes: &[u8], identifier_require
     check_eq!(m.test_type(), my_game::example::Any::Monster)?;
     check_is_some!(m.test())?;
     let table2 = m.test().unwrap();
-    let monster2 = my_game::example::Monster::init_from_table(table2);
+    let monster2 = unsafe { my_game::example::Monster::init_from_table(table2) };
 
     check_eq!(monster2.name(), "Fred")?;
 
@@ -696,8 +696,8 @@ mod roundtrip_generated_code {
         let mon = my_game::example::root_as_monster(b.finished_data()).unwrap();
         assert_eq!(mon.name(), "bar");
         assert_eq!(mon.test_type(), my_game::example::Any::Monster);
-        assert_eq!(my_game::example::Monster::init_from_table(mon.test().unwrap()).name(),
-                   "foo");
+        let name = unsafe { my_game::example::Monster::init_from_table(mon.test().unwrap()).name() };
+        assert_eq!(name, "foo");
         assert_eq!(mon.test_as_monster().unwrap().name(), "foo");
         assert_eq!(mon.test_as_test_simple_table_with_enum(), None);
         assert_eq!(mon.test_as_my_game_example_2_monster(), None);

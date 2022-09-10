@@ -151,7 +151,7 @@ fn main() {
             assert_eq!(pos_test3.b(), 6i8);
             assert_eq!(m.test_type(), my_game::example::Any::Monster);
             let table2 = m.test().unwrap();
-            let m2 = my_game::example::Monster::init_from_table(table2);
+            let m2 = unsafe { my_game::example::Monster::init_from_table(table2) };
 
             assert_eq!(m2.name(), "Fred");
 
