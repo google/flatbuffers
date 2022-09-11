@@ -4,6 +4,8 @@
 #ifndef FLATBUFFERS_GENERATED_UNIONVECTOR_H_
 #define FLATBUFFERS_GENERATED_UNIONVECTOR_H_
 
+#include <variant>
+
 #include "flatbuffers/flatbuffers.h"
 
 // Ensure the included flatbuffers.h is the same version as when this file was
@@ -87,6 +89,13 @@ inline const char *EnumNameCharacter(Character e) {
   const size_t index = static_cast<size_t>(e);
   return EnumNamesCharacter()[index];
 }
+
+using CharacterVariant = std::variant<
+  const Attacker *,
+  const BookReader *,
+  const Rapunzel *,
+  const flatbuffers::String *,
+  std::monostate>;
 
 struct CharacterUnion {
   Character type;
@@ -205,6 +214,11 @@ template<> struct GadgetTraits<FallingTub> {
 template<> struct GadgetTraits<HandFan> {
   static const Gadget enum_value = Gadget::HandFan;
 };
+
+using GadgetVariant = std::variant<
+  const FallingTub *,
+  const HandFan *,
+  std::monostate>;
 
 template<typename T> struct GadgetUnionTraits {
   static const Gadget enum_value = Gadget::NONE;
@@ -570,6 +584,18 @@ struct Movie FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   }
   const void *main_character() const {
     return GetPointer<const void *>(VT_MAIN_CHARACTER);
+  }
+  CharacterVariant main_character_variant() const {
+    switch(main_character_type()) {
+      case Character::NONE: break;
+      case Character::MuLan: return static_cast<const Attacker *>(main_character()); 
+      case Character::Rapunzel: return static_cast<const Rapunzel *>(main_character()); 
+      case Character::Belle: return static_cast<const BookReader *>(main_character()); 
+      case Character::BookFan: return static_cast<const BookReader *>(main_character()); 
+      case Character::Other: return static_cast<const flatbuffers::String *>(main_character()); 
+      case Character::Unused: return static_cast<const flatbuffers::String *>(main_character()); 
+    }
+    return std::monostate{};
   }
   const Attacker *main_character_as_MuLan() const {
     return main_character_type() == Character::MuLan ? static_cast<const Attacker *>(main_character()) : nullptr;

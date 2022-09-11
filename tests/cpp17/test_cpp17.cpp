@@ -19,6 +19,8 @@
 // Warning:
 // This is an experimental feature and could change at any time.
 
+#include <variant>
+
 #include "flatbuffers/flatbuffers.h"
 #include "flatbuffers/flex_flat_util.h"
 #include "flatbuffers/flexbuffers.h"
@@ -247,10 +249,62 @@ void OptionalScalarsTest() {
   TEST_ASSERT(opts->maybe_i32() == std::optional<int64_t>(-1));
 }
 
+void VariantUnionTest() {
+  using namespace ::cpp17::MyGame::Example;
+
+  {
+    flatbuffers::FlatBufferBuilder fbb;
+
+    auto name = fbb.CreateString("my_monster");
+    MonsterBuilder builder(fbb);
+    builder.add_name(name);
+    fbb.Finish(builder.Finish());
+    const Monster *monster =
+        flatbuffers::GetRoot<Monster>(fbb.GetBufferPointer());
+
+    // Get the Test field as a variant.
+    AnyVariant any = monster->test_variant();
+
+    // Since Test field was never set, we expect the null "monostate" to be
+    // returned.
+    TEST_ASSERT(std::holds_alternative<std::monostate>(any));
+    TEST_ASSERT(std::get_if<std::monostate>(&any) != nullptr);
+    const std::monostate other_monster = std::get<std::monostate>(any);
+    TEST_ASSERT(other_monster == std::monostate{});
+  }
+
+  {
+    flatbuffers::FlatBufferBuilder fbb;
+
+    auto name = fbb.CreateString("my_monster");
+    auto tst_offset = CreateTestSimpleTableWithEnum(fbb, Color::Blue);
+
+    MonsterBuilder builder(fbb);
+    builder.add_name(name);
+    builder.add_test_type(Any::TestSimpleTableWithEnum);
+    builder.add_test(tst_offset.Union());
+    fbb.Finish(builder.Finish());
+    const Monster *monster =
+        flatbuffers::GetRoot<Monster>(fbb.GetBufferPointer());
+
+    // Get the Test field as a variant.
+    AnyVariant any = monster->test_variant();
+
+    // Since Test was set in the buffer, we expect the variant to indicate that.
+    TEST_ASSERT(std::holds_alternative<const TestSimpleTableWithEnum *>(any));
+    const TestSimpleTableWithEnum **tst =
+        std::get_if<const TestSimpleTableWithEnum *>(&any);
+    TEST_ASSERT(tst != nullptr);
+
+    TEST_EQ((*tst)->color(), Color::Blue);
+  }
+}
+
 int FlatBufferCpp17Tests() {
   CreateTableByTypeTest();
   OptionalScalarsTest();
   StringifyAnyFlatbuffersTypeTest();
+  VariantUnionTest();
   return 0;
 }
 }  // namespace

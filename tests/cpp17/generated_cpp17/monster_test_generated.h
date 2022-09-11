@@ -4,6 +4,8 @@
 #ifndef FLATBUFFERS_GENERATED_MONSTERTEST_MYGAME_EXAMPLE_H_
 #define FLATBUFFERS_GENERATED_MONSTERTEST_MYGAME_EXAMPLE_H_
 
+#include <variant>
+
 #include "flatbuffers/flatbuffers.h"
 #include "flatbuffers/flexbuffers.h"
 #include "flatbuffers/flex_flat_util.h"
@@ -251,6 +253,12 @@ template<> struct AnyTraits<MyGame::Example2::Monster> {
   static const Any enum_value = Any::MyGame_Example2_Monster;
 };
 
+using AnyVariant = std::variant<
+  const MyGame::Example2::Monster *,
+  const MyGame::Example::Monster *,
+  const MyGame::Example::TestSimpleTableWithEnum *,
+  std::monostate>;
+
 template<typename T> struct AnyUnionTraits {
   static const Any enum_value = Any::NONE;
 };
@@ -378,6 +386,12 @@ template<> struct AnyUniqueAliasesTraits<MyGame::Example2::Monster> {
   static const AnyUniqueAliases enum_value = AnyUniqueAliases::M2;
 };
 
+using AnyUniqueAliasesVariant = std::variant<
+  const MyGame::Example2::Monster *,
+  const MyGame::Example::Monster *,
+  const MyGame::Example::TestSimpleTableWithEnum *,
+  std::monostate>;
+
 template<typename T> struct AnyUniqueAliasesUnionTraits {
   static const AnyUniqueAliases enum_value = AnyUniqueAliases::NONE;
 };
@@ -488,6 +502,10 @@ inline const char *EnumNameAnyAmbiguousAliases(AnyAmbiguousAliases e) {
   const size_t index = static_cast<size_t>(e);
   return EnumNamesAnyAmbiguousAliases()[index];
 }
+
+using AnyAmbiguousAliasesVariant = std::variant<
+  const MyGame::Example::Monster *,
+  std::monostate>;
 
 struct AnyAmbiguousAliasesUnion {
   AnyAmbiguousAliases type;
@@ -1439,6 +1457,15 @@ struct Monster FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
     return GetPointer<const void *>(VT_TEST);
   }
   template<typename T> const T *test_as() const;
+  AnyVariant test_variant() const {
+    switch(test_type()) {
+      case MyGame::Example::Any::NONE: break;
+      case MyGame::Example::Any::Monster: return static_cast<const MyGame::Example::Monster *>(test()); 
+      case MyGame::Example::Any::TestSimpleTableWithEnum: return static_cast<const MyGame::Example::TestSimpleTableWithEnum *>(test()); 
+      case MyGame::Example::Any::MyGame_Example2_Monster: return static_cast<const MyGame::Example2::Monster *>(test()); 
+    }
+    return std::monostate{};
+  }
   const MyGame::Example::Monster *test_as_Monster() const {
     return test_type() == MyGame::Example::Any::Monster ? static_cast<const MyGame::Example::Monster *>(test()) : nullptr;
   }
@@ -1670,6 +1697,15 @@ struct Monster FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
     return GetPointer<const void *>(VT_ANY_UNIQUE);
   }
   template<typename T> const T *any_unique_as() const;
+  AnyUniqueAliasesVariant any_unique_variant() const {
+    switch(any_unique_type()) {
+      case MyGame::Example::AnyUniqueAliases::NONE: break;
+      case MyGame::Example::AnyUniqueAliases::M: return static_cast<const MyGame::Example::Monster *>(any_unique()); 
+      case MyGame::Example::AnyUniqueAliases::TS: return static_cast<const MyGame::Example::TestSimpleTableWithEnum *>(any_unique()); 
+      case MyGame::Example::AnyUniqueAliases::M2: return static_cast<const MyGame::Example2::Monster *>(any_unique()); 
+    }
+    return std::monostate{};
+  }
   const MyGame::Example::Monster *any_unique_as_M() const {
     return any_unique_type() == MyGame::Example::AnyUniqueAliases::M ? static_cast<const MyGame::Example::Monster *>(any_unique()) : nullptr;
   }
@@ -1687,6 +1723,15 @@ struct Monster FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   }
   const void *any_ambiguous() const {
     return GetPointer<const void *>(VT_ANY_AMBIGUOUS);
+  }
+  AnyAmbiguousAliasesVariant any_ambiguous_variant() const {
+    switch(any_ambiguous_type()) {
+      case MyGame::Example::AnyAmbiguousAliases::NONE: break;
+      case MyGame::Example::AnyAmbiguousAliases::M1: return static_cast<const MyGame::Example::Monster *>(any_ambiguous()); 
+      case MyGame::Example::AnyAmbiguousAliases::M2: return static_cast<const MyGame::Example::Monster *>(any_ambiguous()); 
+      case MyGame::Example::AnyAmbiguousAliases::M3: return static_cast<const MyGame::Example::Monster *>(any_ambiguous()); 
+    }
+    return std::monostate{};
   }
   const MyGame::Example::Monster *any_ambiguous_as_M1() const {
     return any_ambiguous_type() == MyGame::Example::AnyAmbiguousAliases::M1 ? static_cast<const MyGame::Example::Monster *>(any_ambiguous()) : nullptr;
