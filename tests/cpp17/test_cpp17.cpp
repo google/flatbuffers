@@ -146,6 +146,8 @@ void StringifyAnyFlatbuffersTypeTest() {
         any_unique_type = 0
         any_ambiguous_type = 0
         signed_enum = -1
+        long_enum_non_enum_default = 0
+        long_enum_normal_default = 2
       })";
 
   // Call a generic function that has no specific knowledge of the flatbuffer we
@@ -251,7 +253,7 @@ int FlatBufferCpp17Tests() {
   StringifyAnyFlatbuffersTypeTest();
   return 0;
 }
-} // namespace
+}  // namespace
 
 int main(int /*argc*/, const char * /*argv*/[]) {
   InitTestEngine();
