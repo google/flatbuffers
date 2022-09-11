@@ -82,10 +82,14 @@ jobs:
         CXX=${{ matrix.cxx }} cmake -G "Unix Makefiles" 
         -DCMAKE_BUILD_TYPE=Release -DFLATBUFFERS_STRICT_MODE=ON 
         -DFLATBUFFERS_CPP_STD=${{ matrix.std }}
+        -DFLATBUFFERS_BUILD_CPP17=${{ matrix.std >= 17 && 'On' || 'Off'}}
     - name: build
       run: make -j
     - name: test
       run: ./flattests
+    - name: test C++17
+      if: matrix.std >= 17
+      run: ./flattests_cpp17
 
   build-windows-cpp-std:
     name: Build Windows C++
@@ -103,10 +107,14 @@ jobs:
         cmake -G "Visual Studio 16 2019" -A x64 -DCMAKE_BUILD_TYPE=Release 
         -DFLATBUFFERS_STRICT_MODE=ON 
         -DFLATBUFFERS_CPP_STD=${{ matrix.std }}
+        -DFLATBUFFERS_BUILD_CPP17=${{ matrix.std >= 17 && 'On' || 'Off'}}
     - name: build
       run: msbuild.exe FlatBuffers.sln /p:Configuration=Release /p:Platform=x64
     - name: test
       run: Release\flattests.exe
+    - name: test C++17
+      if: matrix.std >= 17
+      run: Release\flattests_cpp17.exe
 
   build-windows:
     permissions:
