@@ -88,6 +88,7 @@ java/*.iml
 .idea
 *.iml
 target
+java/target
 **/*.pyc
 build/VS2010/FlatBuffers.sdf
 build/VS2010/FlatBuffers.opensdf
