@@ -358,8 +358,8 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - name: test
-      working-directory: tests
-      run: bash JavaTest.sh
+      working-directory: java
+      run: mvn test
 
   build-kotlin-macos:
     name: Build Kotlin MacOS
