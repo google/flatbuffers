@@ -1,6 +1,5 @@
 load("@rules_cc//cc:defs.bzl", "cc_test")
 load("//:build_defs.bzl", "flatbuffer_cc_library")
-load("//:typescript.bzl", "flatbuffer_ts_library")
 
 package(default_visibility = ["//visibility:private"])
 
@@ -213,14 +212,5 @@ flatbuffer_cc_library(
         "--gen-object-api",
         "--gen-mutable",
         "--cpp-ptr-type flatbuffers::unique_ptr",
-    ],
-)
-
-flatbuffer_ts_library(
-    name = "typescript_ts_fbs",
-    srcs = ["typescript_keywords.fbs"],
-    deps = [
-        "//tests/test_dir:include_ts_fbs",
-        "//tests/test_dir:typescript_transitive_ts_fbs",
     ],
 )
