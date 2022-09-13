@@ -21,6 +21,7 @@
 #include <string>
 #include <unordered_set>
 #include <vector>
+#include <iostream>
 
 #include "flatbuffers/code_generators.h"
 #include "flatbuffers/flatbuffers.h"
@@ -254,22 +255,43 @@ class PythonGenerator : public BaseGenerator {
     const auto vec_type = field.value.type.VectorType();
     GenReceiver(struct_def, code_ptr);
     code += namer_.Method(field);
-    if (IsStruct(vec_type)) {
-      code += "(self, obj, i):\n";
-      code += Indent + Indent + "obj.Init(self._tab.Bytes, self._tab.Pos + ";
-      code += NumToString(field.value.offset) + " + i * ";
-      code += NumToString(InlineSize(vec_type));
-      code += ")\n" + Indent + Indent + "return obj\n\n";
-    } else {
-      auto getter = GenGetter(vec_type);
-      code += "(self):";
-      code += GenIndents(2) + "return [" + getter;
-      code += "self._tab.Pos + flatbuffers.number_types.UOffsetTFlags.py_type(";
-      code += NumToString(field.value.offset) + " + i * ";
-      code += NumToString(InlineSize(vec_type));
-      code += ")) for i in range(";
-      code += NumToString(field.value.type.fixed_length) + ")]\n\n";
+    code += "(self, i: int):";
+    if (parser_.opts.include_dependence_headers) {
+      code += GenIndents(2);
+      code += "from " + GenPackageReference(field.value.type) + " import " +
+              TypeName(field);
     }
+    code += GenIndents(2) + "obj = "+ TypeName(field)+"()";
+    code += GenIndents(2) + "obj.Init(self._tab.Bytes, self._tab.Pos + ";
+    code += NumToString(field.value.offset) + " + i * ";
+    code += NumToString(InlineSize(vec_type));
+    code += ")" + GenIndents(2) + "return obj\n\n";
+  }
+
+   // Get the value of a vector's non-struct member. Uses a named return
+  // argument to conveniently set the zero value for the result.
+  void GetArrayOfNonStruct(const StructDef &struct_def,
+                                    const FieldDef &field,
+                                    std::string *code_ptr) const {
+    auto &code = *code_ptr;
+    GenReceiver(struct_def, code_ptr);
+    code += namer_.Method(field);
+    code += "(self, j):";
+    code += GenIndents(2)+"return " + GenGetter(field.value.type);
+    code += "self._tab.Pos + flatbuffers.number_types.UOffsetTFlags.py_type(";
+    code += NumToString(field.value.offset) + " + j * ";
+    code += NumToString(InlineSize(field.value.type.VectorType()));
+    code += "))\n";
+
+    GenReceiver(struct_def, code_ptr);
+    code += namer_.Method(field);
+    code += "(self):";
+    code += GenIndents(2)+"return [" + GenGetter(field.value.type);
+    code += "self._tab.Pos + flatbuffers.number_types.UOffsetTFlags.py_type(";
+    code += NumToString(field.value.offset) + " + j * ";
+    code += NumToString(InlineSize(field.value.type.VectorType()));
+    code += ")) for j in range(";
+    code += NumToString(field.value.type.fixed_length) + ")]\n\n";
   }
 
   // Get a struct by initializing an existing struct.
@@ -732,9 +754,6 @@ class PythonGenerator : public BaseGenerator {
       } else {
         GetScalarFieldOfTable(struct_def, field, code_ptr);
       }
-    } else if (IsArray(field.value.type)) {
-      GetArrayOfStruct(struct_def, field, code_ptr);
-      GetVectorOfNonStructAsNumpy(struct_def, field, code_ptr);
     } else {
       switch (field.value.type.base_type) {
         case BASE_TYPE_STRUCT:
@@ -753,6 +772,17 @@ class PythonGenerator : public BaseGenerator {
             GetMemberOfVectorOfStruct(struct_def, field, code_ptr);
           } else {
             GetMemberOfVectorOfNonStruct(struct_def, field, code_ptr);
+            GetVectorOfNonStructAsNumpy(struct_def, field, code_ptr);
+            GetVectorAsNestedFlatbuffer(struct_def, field, code_ptr);
+          }
+          break;
+        }
+        case BASE_TYPE_ARRAY: {
+          auto vectortype = field.value.type.VectorType();
+          if (vectortype.base_type == BASE_TYPE_STRUCT) {
+            GetArrayOfStruct(struct_def, field, code_ptr);
+          } else {
+            GetArrayOfNonStruct(struct_def, field, code_ptr);
             GetVectorOfNonStructAsNumpy(struct_def, field, code_ptr);
             GetVectorAsNestedFlatbuffer(struct_def, field, code_ptr);
           }
@@ -1163,12 +1193,41 @@ class PythonGenerator : public BaseGenerator {
     auto field_type = TypeName(field);
     auto one_instance = field_type + "_";
     one_instance[0] = CharToLower(one_instance[0]);
-
     if (parser_.opts.include_dependence_headers) {
       auto package_reference = GenPackageReference(field.value.type);
       field_type = package_reference + "." + TypeName(field);
     }
+    code += GenIndents(4) + "if " + struct_var + "." + field_method +
+            "(i) is None:";
+    code += GenIndents(5) + "self." + field_field + ".append(None)";
+    code += GenIndents(4) + "else:";
+    code += GenIndents(5) + one_instance + " = " + field_type +
+            "T.InitFromObj(" + struct_var + "." + field_method + "(i))";
+    code +=
+        GenIndents(5) + "self." + field_field + ".append(" + one_instance + ")";
+  }
 
+  void GenUnpackForTableVector(const StructDef &struct_def,
+                                const FieldDef &field,
+                                std::string *code_ptr) const {
+    auto &code = *code_ptr;
+    const auto field_field = namer_.Field(field);
+    const auto field_method = namer_.Method(field);
+    const auto struct_var = namer_.Variable(struct_def);
+
+    code += GenIndents(2) + "if not " + struct_var + "." + field_method +
+            "IsNone():";
+    code += GenIndents(3) + "self." + field_field + " = []";
+    code += GenIndents(3) + "for i in range(" + struct_var + "." +
+            field_method + "Length()):";
+
+    auto field_type = TypeName(field);
+    auto one_instance = field_type + "_";
+    one_instance[0] = CharToLower(one_instance[0]);
+    if (parser_.opts.include_dependence_headers) {
+      auto package_reference = GenPackageReference(field.value.type);
+      field_type = package_reference + "." + TypeName(field);
+    }
     code += GenIndents(4) + "if " + struct_var + "." + field_method +
             "(i) is None:";
     code += GenIndents(5) + "self." + field_field + ".append(None)";
@@ -1253,6 +1312,7 @@ class PythonGenerator : public BaseGenerator {
           GenUnPackForUnion(struct_def, field, &code);
           break;
         }
+        case BASE_TYPE_ARRAY:
         case BASE_TYPE_VECTOR: {
           auto vectortype = field.value.type.VectorType();
           if (vectortype.base_type == BASE_TYPE_STRUCT) {
@@ -1260,10 +1320,6 @@ class PythonGenerator : public BaseGenerator {
           } else {
             GenUnPackForScalarVector(struct_def, field, &code);
           }
-          break;
-        }
-        case BASE_TYPE_ARRAY: {
-          GenUnPackForScalarVector(struct_def, field, &code);
           break;
         }
         default: GenUnPackForScalar(struct_def, field, &code);
@@ -1502,6 +1558,7 @@ class PythonGenerator : public BaseGenerator {
           GenPackForUnionField(struct_def, field, &code_prefix, &code);
           break;
         }
+        case BASE_TYPE_ARRAY:
         case BASE_TYPE_VECTOR: {
           auto vectortype = field.value.type.VectorType();
           if (vectortype.base_type == BASE_TYPE_STRUCT) {
@@ -1509,10 +1566,6 @@ class PythonGenerator : public BaseGenerator {
           } else {
             GenPackForScalarVectorField(struct_def, field, &code_prefix, &code);
           }
-          break;
-        }
-        case BASE_TYPE_ARRAY: {
-          GenPackForScalarVectorField(struct_def, field, &code_prefix, &code);
           break;
         }
         case BASE_TYPE_STRING: {
@@ -1687,6 +1740,7 @@ class PythonGenerator : public BaseGenerator {
     switch (type.base_type) {
       case BASE_TYPE_STRING: return "string";
       case BASE_TYPE_VECTOR: return GenTypeGet(type.VectorType());
+      case BASE_TYPE_ARRAY: return GenTypeGet(type.VectorType());
       case BASE_TYPE_STRUCT: return type.struct_def->name;
       case BASE_TYPE_UNION:
         // fall through
