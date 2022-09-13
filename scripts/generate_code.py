@@ -64,7 +64,7 @@ assert flatc_path.exists(), "Cannot find the flatc compiler " + str(flatc_path)
 
 # Specify the other paths that will be referenced
 tests_path = Path(root_path, "tests")
-swift_code_gen = Path(root_path, "tests/FlatBuffers.Test.Swift/CodeGenerationTests")
+swift_code_gen = Path(root_path, "tests/swift/tests/CodeGenerationTests")
 samples_path = Path(root_path, "samples")
 reflection_path = Path(root_path, "reflection")
 
@@ -165,7 +165,6 @@ flatc(
     NO_INCL_OPTS
     + CPP_OPTS
     + CS_OPTS
-    + TS_OPTS
     + [
         "--binary",
         "--java",
@@ -176,6 +175,15 @@ flatc(
         "--php",
     ],
     schema="monster_test.fbs",
+    include="include_test",
+    data="monsterdata_test.json",
+)
+
+flatc(
+    NO_INCL_OPTS
+    + TS_OPTS,
+    schema="monster_test.fbs",
+    prefix="ts",
     include="include_test",
     data="monsterdata_test.json",
 )
@@ -226,7 +234,7 @@ flatc(
 # For Rust we currently generate two independent schemas, with namespace_test2
 # duplicating the types in namespace_test1
 flatc(
-    RUST_OPTS,
+    RUST_OPTS + CS_OPTS,
     prefix="namespace_test",
     schema=[
         "namespace_test/namespace_test1.fbs",
@@ -235,14 +243,21 @@ flatc(
 )
 
 flatc(
-    BASE_OPTS + CPP_OPTS + CS_OPTS + TS_OPTS + JAVA_OPTS + KOTLIN_OPTS + PHP_OPTS,
+    BASE_OPTS + CPP_OPTS + CS_OPTS + JAVA_OPTS + KOTLIN_OPTS + PHP_OPTS,
     prefix="union_vector",
+    schema="union_vector/union_vector.fbs",
+)
+
+flatc(
+    BASE_OPTS + TS_OPTS,
+    prefix="ts/union_vector",
     schema="union_vector/union_vector.fbs",
 )
 
 flatc(
     BASE_OPTS + TS_OPTS + ["--gen-name-strings", "--gen-mutable"],
     include="include_test",
+    prefix="ts",
     schema="monster_test.fbs",
 )
 
@@ -257,13 +272,14 @@ flatc(
 flatc(
     BASE_OPTS + TS_OPTS + ["-b"],
     include="include_test",
+    prefix="ts",
     schema="monster_test.fbs",
     data="unicode_test.json",
 )
 
 flatc(
     BASE_OPTS + TS_OPTS + ["--gen-name-strings"],
-    prefix="union_vector",
+    prefix="ts/union_vector",
     schema="union_vector/union_vector.fbs",
 )
 
@@ -357,7 +373,8 @@ flatc(
 
 # Optional Scalars
 optional_scalars_schema = "optional_scalars.fbs"
-flatc(["--java", "--kotlin", "--lobster", "--ts"], schema=optional_scalars_schema)
+flatc(["--java", "--kotlin", "--lobster"], schema=optional_scalars_schema)
+flatc(TS_OPTS, schema=optional_scalars_schema, prefix="ts")
 
 flatc(["--csharp", "--python", "--gen-object-api"], schema=optional_scalars_schema)
 
@@ -395,7 +412,7 @@ dictionary_lookup_schema = "dictionary_lookup.fbs"
 flatc(["--java", "--kotlin"], schema=dictionary_lookup_schema)
 
 # Swift Tests
-swift_prefix = "FlatBuffers.Test.Swift/Tests/FlatBuffers.Test.SwiftTests"
+swift_prefix = "swift/tests/Tests/FlatBuffers.Test.SwiftTests"
 flatc(
     SWIFT_OPTS + BASE_OPTS + ["--grpc"],
     schema="monster_test.fbs",

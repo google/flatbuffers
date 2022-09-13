@@ -1,0 +1,12 @@
+load("//:typescript.bzl", "flatbuffer_ts_library")
+
+package(default_visibility = ["//visibility:private"])
+
+flatbuffer_ts_library(
+    name = "typescript_ts_fbs",
+    srcs = ["typescript_keywords.fbs"],
+    deps = [
+        "//tests/ts/test_dir:include_ts_fbs",
+        "//tests/ts/test_dir:typescript_transitive_ts_fbs",
+    ],
+)

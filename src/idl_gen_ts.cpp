@@ -263,7 +263,7 @@ class TsGenerator : public BaseGenerator {
                     namer_.EscapeKeyword(pair.second) + ", ";
           }
           code.resize(code.size() - 2);
-          code += "} from '" + include_name + "';\n";
+          code += "} from '" + include_name + ".js';\n";
         }
         code += "\n";
       }
@@ -439,7 +439,9 @@ class TsGenerator : public BaseGenerator {
         return "BigInt('" + value.constant + "')";
       }
 
-      default: return value.constant;
+      default:
+        if (value.constant == "nan") { return "NaN"; }
+        return value.constant;
     }
   }
 
@@ -758,9 +760,9 @@ class TsGenerator : public BaseGenerator {
     import.bare_file_path = bare_file_path;
     import.rel_file_path = rel_file_path;
     import.import_statement =
-        "import { " + symbols_expression + " } from '" + rel_file_path + "';";
+        "import { " + symbols_expression + " } from '" + rel_file_path + ".js';";
     import.export_statement =
-        "export { " + symbols_expression + " } from '." + bare_file_path + "';";
+        "export { " + symbols_expression + " } from '." + bare_file_path + ".js';";
     import.dependency = &dependency;
     import.dependent = &dependent;
 
