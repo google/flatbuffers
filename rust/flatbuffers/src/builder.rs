@@ -21,9 +21,10 @@ use core::iter::{DoubleEndedIterator, ExactSizeIterator};
 use core::marker::PhantomData;
 use core::ptr::write_bytes;
 
-use crate::endian_scalar::{emplace_scalar, read_scalar_at};
+use crate::endian_scalar::emplace_scalar;
 use crate::primitives::*;
 use crate::push::{Push, PushAlignment};
+use crate::read_scalar;
 use crate::table::Table;
 use crate::vector::Vector;
 use crate::vtable::{field_index_to_field_offset, VTable};
@@ -329,7 +330,7 @@ impl<'fbb> FlatBufferBuilder<'fbb> {
         for (item, out) in items.iter().zip(buf.chunks_exact_mut(elem_size)) {
             written_len -= elem_size;
 
-            // SAFETY
+            // SAFETY:
             // Called ensure_capacity and aligned to T above
             unsafe { item.push(out, written_len) };
         }
@@ -403,6 +404,14 @@ impl<'fbb> FlatBufferBuilder<'fbb> {
         assert_msg_name: &'static str,
     ) {
         let idx = self.used_space() - tab_revloc.value() as usize;
+
+        // SAFETY:
+        // The value of TableFinishedWIPOffset is the offset from the end of owned_buf
+        // to an SOffsetT pointing to a valid VTable
+        //
+        // `self.owned_buf.len() = self.used_space() + self.head`
+        // `self.owned_buf.len() - tab_revloc = self.used_space() - tab_revloc + self.head`
+        // `self.owned_buf.len() - tab_revloc = idx + self.head`
         let tab = unsafe { Table::new(&self.owned_buf[self.head..], idx) };
         let o = tab.vtable().get(slot_byte_loc) as usize;
         assert!(o != 0, "missing required field {}", assert_msg_name);
@@ -524,6 +533,8 @@ impl<'fbb> FlatBufferBuilder<'fbb> {
             .written_vtable_revpos
             .binary_search_by(|old_vtable_revpos: &UOffsetT| {
                 let old_vtable_pos = self.owned_buf.len() - *old_vtable_revpos as usize;
+                // SAFETY:
+                // Already written vtables are valid by construction
                 let old_vtable = unsafe { VTable::init(&self.owned_buf, old_vtable_pos) };
                 new_vt_bytes.cmp(old_vtable.as_bytes())
             });
@@ -543,14 +554,23 @@ impl<'fbb> FlatBufferBuilder<'fbb> {
         };
         // Write signed offset from table to its vtable.
         let table_pos = self.owned_buf.len() - object_revloc_to_vtable.value() as usize;
-        let tmp_soffset_to_vt = unsafe { read_scalar_at::<UOffsetT>(&self.owned_buf, table_pos) };
-        debug_assert_eq!(tmp_soffset_to_vt, 0xF0F0_F0F0);
+        if cfg!(debug_assertions) {
+            // SAFETY:
+            // Verified slice length
+            let tmp_soffset_to_vt = unsafe {
+                read_scalar::<UOffsetT>(&self.owned_buf[table_pos..table_pos + SIZE_UOFFSET])
+            };
+            assert_eq!(tmp_soffset_to_vt, 0xF0F0_F0F0);
+        }
 
         let buf = &mut self.owned_buf[table_pos..table_pos + SIZE_SOFFSET];
         // SAFETY:
         // Verified length of buf above
         unsafe {
-            emplace_scalar::<SOffsetT>(buf, final_vtable_revpos as SOffsetT - object_revloc_to_vtable.value() as SOffsetT);
+            emplace_scalar::<SOffsetT>(
+                buf,
+                final_vtable_revpos as SOffsetT - object_revloc_to_vtable.value() as SOffsetT,
+            );
         }
 
         self.field_locs.clear();
