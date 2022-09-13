@@ -150,7 +150,7 @@ struct ApplicationData FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
            verifier.EndTable();
   }
   ApplicationDataT *UnPack(const flatbuffers::resolver_function_t *_resolver = nullptr) const;
-  void UnPackTo(ApplicationDataT *_o, const flatbuffers::resolver_function_t *_resolver = nullptr) const;
+  void UnPackTo(ApplicationDataT *_o, const flatbuffers::resolver_function_t *_resolver = nullptr, bool _merge = false) const;
   static flatbuffers::Offset<ApplicationData> Pack(flatbuffers::FlatBufferBuilder &_fbb, const ApplicationDataT* _o, const flatbuffers::rehasher_function_t *_rehasher = nullptr);
 };
 
@@ -205,11 +205,12 @@ inline ApplicationDataT *ApplicationData::UnPack(const flatbuffers::resolver_fun
   return _o.release();
 }
 
-inline void ApplicationData::UnPackTo(ApplicationDataT *_o, const flatbuffers::resolver_function_t *_resolver) const {
+inline void ApplicationData::UnPackTo(ApplicationDataT *_o, const flatbuffers::resolver_function_t *_resolver, bool _merge) const {
   (void)_o;
   (void)_resolver;
-  { auto _e = vectors(); if (_e) { _o->vectors.resize(_e->size()); for (flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->vectors[_i] = flatbuffers::UnPack(*_e->Get(_i)); } } }
-  { auto _e = vectors_alt(); if (_e) { _o->vectors_alt.resize(_e->size()); for (flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->vectors_alt[_i] = flatbuffers::UnPackVector3DAlt(*_e->Get(_i)); } } }
+  (void)_merge;
+  { auto _e = vectors(); if (_e) {_o->vectors.resize(_e->size()); for (flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->vectors[_i] = flatbuffers::UnPack(*_e->Get(_i)); } } else if(!_merge) { _o->vectors.resize(0); _o->vectors.shrink_to_fit(); } }
+  { auto _e = vectors_alt(); if (_e) {_o->vectors_alt.resize(_e->size()); for (flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->vectors_alt[_i] = flatbuffers::UnPackVector3DAlt(*_e->Get(_i)); } } else if(!_merge) { _o->vectors_alt.resize(0); _o->vectors_alt.shrink_to_fit(); } }
 }
 
 inline flatbuffers::Offset<ApplicationData> ApplicationData::Pack(flatbuffers::FlatBufferBuilder &_fbb, const ApplicationDataT* _o, const flatbuffers::rehasher_function_t *_rehasher) {

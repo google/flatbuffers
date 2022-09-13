@@ -6,9 +6,9 @@
 #include "flatbuffers/idl.h"
 #include "flatbuffers/registry.h"
 #include "flatbuffers/verifier.h"
+#include "is_quiet_nan.h"
 #include "monster_extra_generated.h"
 #include "monster_test_generated.h"
-#include "is_quiet_nan.h"
 #include "test_assert.h"
 
 namespace flatbuffers {
@@ -715,7 +715,7 @@ void TypeAliasesTest() {
 
 // example of parsing text straight into a buffer, and generating
 // text back from it:
-void ParseAndGenerateTextTest(const std::string& tests_data_path, bool binary) {
+void ParseAndGenerateTextTest(const std::string &tests_data_path, bool binary) {
   // load FlatBuffer schema (.fbs) and JSON from disk
   std::string schemafile;
   std::string jsonfile;
@@ -808,6 +808,71 @@ void ParseAndGenerateTextTest(const std::string& tests_data_path, bool binary) {
       GenerateText(parser, parser.builder_.GetBufferPointer(), &jsongen_utf8),
       true);
   TEST_EQ_STR(jsongen_utf8.c_str(), jsonfile_utf8.c_str());
+}
+
+void UnPackTo(const uint8_t *flatbuf) {
+  // Get a monster that has a name and no enemy
+  auto orig_monster = GetMonster(flatbuf);
+  TEST_EQ_STR(orig_monster->name()->c_str(), "MyMonster");
+  TEST_ASSERT(orig_monster->enemy() == nullptr);
+
+  // Test UnPackTo without merging state
+  {
+    // Create an enemy
+    MonsterT enemy;
+    enemy.name = "Enemy";
+
+    // And create another monster owning the enemy,
+    MonsterT mon;
+    mon.name = "I'm monster 1";
+    mon.enemy.reset(&enemy);
+    TEST_ASSERT(mon.enemy != nullptr);
+
+    // Assert that all the Monster objects are correct.
+    TEST_EQ_STR(mon.name.c_str(), "I'm monster 1");
+    TEST_EQ_STR(enemy.name.c_str(), "Enemy");
+    TEST_EQ_STR(mon.enemy->name.c_str(), "Enemy");
+
+    // Now unpack monster ("MyMonster") into monster
+    orig_monster->UnPackTo(&mon);
+
+    // Monster name should be from monster
+    TEST_EQ_STR(mon.name.c_str(), "MyMonster");
+
+    // The monster shouldn't have any enemies, because monster didn't.
+    TEST_ASSERT(mon.enemy == nullptr);
+  }
+
+  //Test UnPackTo with merging state
+  {
+    // Create an enemy
+    MonsterT enemy;
+    enemy.name = "Enemy";
+
+    // And create another monster owning the enemy,
+    MonsterT mon;
+    mon.name = "I'm monster 1";
+    mon.enemy.reset(&enemy);
+    TEST_ASSERT(mon.enemy != nullptr);
+
+    // Assert that all the Monster objects are correct.
+    TEST_EQ_STR(mon.name.c_str(), "I'm monster 1");
+    TEST_EQ_STR(enemy.name.c_str(), "Enemy");
+    TEST_EQ_STR(mon.enemy->name.c_str(), "Enemy");
+
+    // Now unpack monster ("MyMonster") into monster, indicating to merge state.
+    orig_monster->UnPackTo(&mon, nullptr, /*_merge=*/true);
+
+    // Monster name should be from monster
+    TEST_EQ_STR(mon.name.c_str(), "MyMonster");
+
+    // Enemy should still have its own name.
+    TEST_EQ_STR(enemy.name.c_str(), "Enemy");
+
+    // The monster should continue to have its original enemy monster, because
+    // the states were merged.
+    TEST_EQ_STR(mon.enemy->name.c_str(), "Enemy");
+  }
 }
 
 }  // namespace tests

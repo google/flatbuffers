@@ -424,7 +424,7 @@ struct Attacker FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
            verifier.EndTable();
   }
   AttackerT *UnPack(const flatbuffers::resolver_function_t *_resolver = nullptr) const;
-  void UnPackTo(AttackerT *_o, const flatbuffers::resolver_function_t *_resolver = nullptr) const;
+  void UnPackTo(AttackerT *_o, const flatbuffers::resolver_function_t *_resolver = nullptr, bool _merge = false) const;
   static flatbuffers::Offset<Attacker> Pack(flatbuffers::FlatBufferBuilder &_fbb, const AttackerT* _o, const flatbuffers::rehasher_function_t *_rehasher = nullptr);
 };
 
@@ -501,7 +501,7 @@ struct HandFan FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
            verifier.EndTable();
   }
   HandFanT *UnPack(const flatbuffers::resolver_function_t *_resolver = nullptr) const;
-  void UnPackTo(HandFanT *_o, const flatbuffers::resolver_function_t *_resolver = nullptr) const;
+  void UnPackTo(HandFanT *_o, const flatbuffers::resolver_function_t *_resolver = nullptr, bool _merge = false) const;
   static flatbuffers::Offset<HandFan> Pack(flatbuffers::FlatBufferBuilder &_fbb, const HandFanT* _o, const flatbuffers::rehasher_function_t *_rehasher = nullptr);
 };
 
@@ -625,7 +625,7 @@ struct Movie FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
            verifier.EndTable();
   }
   MovieT *UnPack(const flatbuffers::resolver_function_t *_resolver = nullptr) const;
-  void UnPackTo(MovieT *_o, const flatbuffers::resolver_function_t *_resolver = nullptr) const;
+  void UnPackTo(MovieT *_o, const flatbuffers::resolver_function_t *_resolver = nullptr, bool _merge = false) const;
   static flatbuffers::Offset<Movie> Pack(flatbuffers::FlatBufferBuilder &_fbb, const MovieT* _o, const flatbuffers::rehasher_function_t *_rehasher = nullptr);
 };
 
@@ -710,9 +710,10 @@ inline AttackerT *Attacker::UnPack(const flatbuffers::resolver_function_t *_reso
   return _o.release();
 }
 
-inline void Attacker::UnPackTo(AttackerT *_o, const flatbuffers::resolver_function_t *_resolver) const {
+inline void Attacker::UnPackTo(AttackerT *_o, const flatbuffers::resolver_function_t *_resolver, bool _merge) const {
   (void)_o;
   (void)_resolver;
+  (void)_merge;
   { auto _e = sword_attack_damage(); _o->sword_attack_damage = _e; }
 }
 
@@ -736,9 +737,10 @@ inline HandFanT *HandFan::UnPack(const flatbuffers::resolver_function_t *_resolv
   return _o.release();
 }
 
-inline void HandFan::UnPackTo(HandFanT *_o, const flatbuffers::resolver_function_t *_resolver) const {
+inline void HandFan::UnPackTo(HandFanT *_o, const flatbuffers::resolver_function_t *_resolver, bool _merge) const {
   (void)_o;
   (void)_resolver;
+  (void)_merge;
   { auto _e = length(); _o->length = _e; }
 }
 
@@ -762,13 +764,14 @@ inline MovieT *Movie::UnPack(const flatbuffers::resolver_function_t *_resolver) 
   return _o.release();
 }
 
-inline void Movie::UnPackTo(MovieT *_o, const flatbuffers::resolver_function_t *_resolver) const {
+inline void Movie::UnPackTo(MovieT *_o, const flatbuffers::resolver_function_t *_resolver, bool _merge) const {
   (void)_o;
   (void)_resolver;
+  (void)_merge;
   { auto _e = main_character_type(); _o->main_character.type = _e; }
   { auto _e = main_character(); if (_e) _o->main_character.value = CharacterUnion::UnPack(_e, main_character_type(), _resolver); }
-  { auto _e = characters_type(); if (_e) { _o->characters.resize(_e->size()); for (flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->characters[_i].type = static_cast<Character>(_e->Get(_i)); } } }
-  { auto _e = characters(); if (_e) { _o->characters.resize(_e->size()); for (flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->characters[_i].value = CharacterUnion::UnPack(_e->Get(_i), characters_type()->GetEnum<Character>(_i), _resolver); } } }
+  { auto _e = characters_type(); if (_e) {_o->characters.resize(_e->size()); for (flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->characters[_i].type = static_cast<Character>(_e->Get(_i)); } } else if(!_merge) { _o->characters.resize(0); _o->characters.shrink_to_fit(); } }
+  { auto _e = characters(); if (_e) {_o->characters.resize(_e->size()); for (flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->characters[_i].value = CharacterUnion::UnPack(_e->Get(_i), characters_type()->GetEnum<Character>(_i), _resolver); } } else if(!_merge) { _o->characters.resize(0); _o->characters.shrink_to_fit(); } }
 }
 
 inline flatbuffers::Offset<Movie> Movie::Pack(flatbuffers::FlatBufferBuilder &_fbb, const MovieT* _o, const flatbuffers::rehasher_function_t *_rehasher) {

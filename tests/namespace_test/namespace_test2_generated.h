@@ -138,7 +138,7 @@ struct TableInFirstNS FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
            verifier.EndTable();
   }
   TableInFirstNST *UnPack(const flatbuffers::resolver_function_t *_resolver = nullptr) const;
-  void UnPackTo(TableInFirstNST *_o, const flatbuffers::resolver_function_t *_resolver = nullptr) const;
+  void UnPackTo(TableInFirstNST *_o, const flatbuffers::resolver_function_t *_resolver = nullptr, bool _merge = false) const;
   static flatbuffers::Offset<TableInFirstNS> Pack(flatbuffers::FlatBufferBuilder &_fbb, const TableInFirstNST* _o, const flatbuffers::rehasher_function_t *_rehasher = nullptr);
 };
 
@@ -245,7 +245,7 @@ struct TableInC FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
            verifier.EndTable();
   }
   TableInCT *UnPack(const flatbuffers::resolver_function_t *_resolver = nullptr) const;
-  void UnPackTo(TableInCT *_o, const flatbuffers::resolver_function_t *_resolver = nullptr) const;
+  void UnPackTo(TableInCT *_o, const flatbuffers::resolver_function_t *_resolver = nullptr, bool _merge = false) const;
   static flatbuffers::Offset<TableInC> Pack(flatbuffers::FlatBufferBuilder &_fbb, const TableInCT* _o, const flatbuffers::rehasher_function_t *_rehasher = nullptr);
 };
 
@@ -323,7 +323,7 @@ struct SecondTableInA FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
            verifier.EndTable();
   }
   SecondTableInAT *UnPack(const flatbuffers::resolver_function_t *_resolver = nullptr) const;
-  void UnPackTo(SecondTableInAT *_o, const flatbuffers::resolver_function_t *_resolver = nullptr) const;
+  void UnPackTo(SecondTableInAT *_o, const flatbuffers::resolver_function_t *_resolver = nullptr, bool _merge = false) const;
   static flatbuffers::Offset<SecondTableInA> Pack(flatbuffers::FlatBufferBuilder &_fbb, const SecondTableInAT* _o, const flatbuffers::rehasher_function_t *_rehasher = nullptr);
 };
 
@@ -390,10 +390,11 @@ inline TableInFirstNST *TableInFirstNS::UnPack(const flatbuffers::resolver_funct
   return _o.release();
 }
 
-inline void TableInFirstNS::UnPackTo(TableInFirstNST *_o, const flatbuffers::resolver_function_t *_resolver) const {
+inline void TableInFirstNS::UnPackTo(TableInFirstNST *_o, const flatbuffers::resolver_function_t *_resolver, bool _merge) const {
   (void)_o;
   (void)_resolver;
-  { auto _e = foo_table(); if (_e) _o->foo_table = flatbuffers::unique_ptr<NamespaceA::NamespaceB::TableInNestedNST>(_e->UnPack(_resolver)); }
+  (void)_merge;
+  { auto _e = foo_table(); if (_e) { if(_o->foo_table) { _e->UnPackTo(_o->foo_table.get(), _resolver, _merge); } else { _o->foo_table = flatbuffers::unique_ptr<NamespaceA::NamespaceB::TableInNestedNST>(_e->UnPack(_resolver)); } } else if (!_merge && _o->foo_table) {_o->foo_table.reset(); } }
   { auto _e = foo_enum(); _o->foo_enum = _e; }
   { auto _e = foo_union_type(); _o->foo_union.type = _e; }
   { auto _e = foo_union(); if (_e) _o->foo_union.value = NamespaceA::NamespaceB::UnionInNestedNSUnion::UnPack(_e, foo_union_type(), _resolver); }
@@ -455,11 +456,12 @@ inline TableInCT *TableInC::UnPack(const flatbuffers::resolver_function_t *_reso
   return _o.release();
 }
 
-inline void TableInC::UnPackTo(TableInCT *_o, const flatbuffers::resolver_function_t *_resolver) const {
+inline void TableInC::UnPackTo(TableInCT *_o, const flatbuffers::resolver_function_t *_resolver, bool _merge) const {
   (void)_o;
   (void)_resolver;
-  { auto _e = refer_to_a1(); if (_e) _o->refer_to_a1 = flatbuffers::unique_ptr<NamespaceA::TableInFirstNST>(_e->UnPack(_resolver)); }
-  { auto _e = refer_to_a2(); if (_e) _o->refer_to_a2 = flatbuffers::unique_ptr<NamespaceA::SecondTableInAT>(_e->UnPack(_resolver)); }
+  (void)_merge;
+  { auto _e = refer_to_a1(); if (_e) { if(_o->refer_to_a1) { _e->UnPackTo(_o->refer_to_a1.get(), _resolver, _merge); } else { _o->refer_to_a1 = flatbuffers::unique_ptr<NamespaceA::TableInFirstNST>(_e->UnPack(_resolver)); } } else if (!_merge && _o->refer_to_a1) {_o->refer_to_a1.reset(); } }
+  { auto _e = refer_to_a2(); if (_e) { if(_o->refer_to_a2) { _e->UnPackTo(_o->refer_to_a2.get(), _resolver, _merge); } else { _o->refer_to_a2 = flatbuffers::unique_ptr<NamespaceA::SecondTableInAT>(_e->UnPack(_resolver)); } } else if (!_merge && _o->refer_to_a2) {_o->refer_to_a2.reset(); } }
 }
 
 inline flatbuffers::Offset<TableInC> TableInC::Pack(flatbuffers::FlatBufferBuilder &_fbb, const TableInCT* _o, const flatbuffers::rehasher_function_t *_rehasher) {
@@ -508,10 +510,11 @@ inline SecondTableInAT *SecondTableInA::UnPack(const flatbuffers::resolver_funct
   return _o.release();
 }
 
-inline void SecondTableInA::UnPackTo(SecondTableInAT *_o, const flatbuffers::resolver_function_t *_resolver) const {
+inline void SecondTableInA::UnPackTo(SecondTableInAT *_o, const flatbuffers::resolver_function_t *_resolver, bool _merge) const {
   (void)_o;
   (void)_resolver;
-  { auto _e = refer_to_c(); if (_e) _o->refer_to_c = flatbuffers::unique_ptr<NamespaceC::TableInCT>(_e->UnPack(_resolver)); }
+  (void)_merge;
+  { auto _e = refer_to_c(); if (_e) { if(_o->refer_to_c) { _e->UnPackTo(_o->refer_to_c.get(), _resolver, _merge); } else { _o->refer_to_c = flatbuffers::unique_ptr<NamespaceC::TableInCT>(_e->UnPack(_resolver)); } } else if (!_merge && _o->refer_to_c) {_o->refer_to_c.reset(); } }
 }
 
 inline flatbuffers::Offset<SecondTableInA> SecondTableInA::Pack(flatbuffers::FlatBufferBuilder &_fbb, const SecondTableInAT* _o, const flatbuffers::rehasher_function_t *_rehasher) {
