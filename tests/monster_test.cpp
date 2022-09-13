@@ -819,18 +819,18 @@ void UnPackTo(const uint8_t *flatbuf) {
   // Test UnPackTo without merging state
   {
     // Create an enemy
-    MonsterT enemy;
-    enemy.name = "Enemy";
+    MonsterT* enemy = new MonsterT();
+    enemy->name = "Enemy";
 
     // And create another monster owning the enemy,
     MonsterT mon;
     mon.name = "I'm monster 1";
-    mon.enemy.reset(&enemy);
+    mon.enemy.reset(enemy);
     TEST_ASSERT(mon.enemy != nullptr);
 
     // Assert that all the Monster objects are correct.
     TEST_EQ_STR(mon.name.c_str(), "I'm monster 1");
-    TEST_EQ_STR(enemy.name.c_str(), "Enemy");
+    TEST_EQ_STR(enemy->name.c_str(), "Enemy");
     TEST_EQ_STR(mon.enemy->name.c_str(), "Enemy");
 
     // Now unpack monster ("MyMonster") into monster
@@ -846,18 +846,18 @@ void UnPackTo(const uint8_t *flatbuf) {
   //Test UnPackTo with merging state
   {
     // Create an enemy
-    MonsterT enemy;
-    enemy.name = "Enemy";
+    MonsterT* enemy = new MonsterT();
+    enemy->name = "Enemy";
 
     // And create another monster owning the enemy,
     MonsterT mon;
     mon.name = "I'm monster 1";
-    mon.enemy.reset(&enemy);
+    mon.enemy.reset(enemy);
     TEST_ASSERT(mon.enemy != nullptr);
 
     // Assert that all the Monster objects are correct.
     TEST_EQ_STR(mon.name.c_str(), "I'm monster 1");
-    TEST_EQ_STR(enemy.name.c_str(), "Enemy");
+    TEST_EQ_STR(enemy->name.c_str(), "Enemy");
     TEST_EQ_STR(mon.enemy->name.c_str(), "Enemy");
 
     // Now unpack monster ("MyMonster") into monster, indicating to merge state.
@@ -867,7 +867,7 @@ void UnPackTo(const uint8_t *flatbuf) {
     TEST_EQ_STR(mon.name.c_str(), "MyMonster");
 
     // Enemy should still have its own name.
-    TEST_EQ_STR(enemy.name.c_str(), "Enemy");
+    TEST_EQ_STR(enemy->name.c_str(), "Enemy");
 
     // The monster should continue to have its original enemy monster, because
     // the states were merged.
