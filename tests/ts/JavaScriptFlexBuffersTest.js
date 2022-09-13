@@ -1,7 +1,7 @@
 // Run this using JavaScriptTest.sh
 import assert from 'assert'
 import fs from 'fs'
-import * as flexbuffers from 'flatbuffers/js/flexbuffers'
+import * as flexbuffers from 'flatbuffers/js/flexbuffers.js'
 
 function main() {
   testSingleValueBuffers();
@@ -341,7 +341,7 @@ function testRoundTripWithBuilder() {
 }
 
 function testGoldBuffer() {
-  const data = new Uint8Array(fs.readFileSync('gold_flexbuffer_example.bin')).buffer;
+  const data = new Uint8Array(fs.readFileSync('../gold_flexbuffer_example.bin')).buffer;
   const b1 = flexbuffers.toReference(data).get("bools").get(1);
   assert.strictEqual(b1.isBool(), true);
   assert.strictEqual(b1.boolValue(), false);
