@@ -634,7 +634,6 @@ struct IDLOptions {
   bool json_nested_legacy_flatbuffers;
   bool ts_flat_file;
   bool no_leak_private_annotations;
-
   // Possible options for the more general generator below.
   enum Language {
     kJava = 1 << 0,
@@ -681,6 +680,10 @@ struct IDLOptions {
   // make the flatbuffer more compact.
   bool set_empty_vectors_to_null;
 
+  // If set, deletion of the last fields of each table/struct will be treated as 
+  // unconformable because subsequent added fields will break the conformity with
+  // historical schemas 
+  bool conform_subsequence;
   IDLOptions()
       : gen_jvmstatic(false),
         use_flexbuffers(false),
@@ -740,7 +743,8 @@ struct IDLOptions {
         rust_module_root_file(false),
         lang_to_generate(0),
         set_empty_strings_to_null(true),
-        set_empty_vectors_to_null(true) {}
+        set_empty_vectors_to_null(true),
+        conform_subsequence(false) {}
 };
 
 // This encapsulates where the parser is in the current source file.
@@ -920,9 +924,10 @@ class Parser : public ParserState {
 
   Type *DeserializeType(const reflection::Type *type);
 
-  // Checks that the schema represented by this parser is a safe evolution
-  // of the schema provided. Returns non-empty error on any problems.
-  std::string ConformTo(const Parser &base);
+  // Checks that the schema represented by this parser is a safe evolution of the schema provided. 
+  // If considerSubsequence is true, the check fails when deletion of foot fields occurs.
+  // Returns non-empty error on any problems.
+  std::string ConformTo(const Parser &base, bool consider_subsequence);
 
   // Similar to Parse(), but now only accepts JSON to be parsed into a
   // FlexBuffer.

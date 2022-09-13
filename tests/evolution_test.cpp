@@ -81,23 +81,41 @@ void EvolutionTest(const std::string &tests_data_path) {
 }
 
 void ConformTest() {
-  flatbuffers::Parser parser;
-  TEST_EQ(parser.Parse("table T { A:int; } enum E:byte { A }"), true);
+  {
+    flatbuffers::Parser parser;
+    TEST_EQ(parser.Parse("table T { A:int; } enum E:byte { A }"), true);
 
-  auto test_conform = [](flatbuffers::Parser &parser1, const char *test,
-                         const char *expected_err) {
-    flatbuffers::Parser parser2;
-    TEST_EQ(parser2.Parse(test), true);
-    auto err = parser2.ConformTo(parser1);
-    TEST_NOTNULL(strstr(err.c_str(), expected_err));
-  };
+    auto test_conform = [](flatbuffers::Parser &parser1, const char *test,
+                          const char *expected_err) {
+      flatbuffers::Parser parser2;
+      TEST_EQ(parser2.Parse(test), true);
+      auto err = parser2.ConformTo(parser1, false);
+      TEST_NOTNULL(strstr(err.c_str(), expected_err));
+    };
 
-  test_conform(parser, "table T { A:byte; }", "types differ for field");
-  test_conform(parser, "table T { B:int; A:int; }", "offsets differ for field");
-  test_conform(parser, "table T { A:int = 1; }", "defaults differ for field");
-  test_conform(parser, "table T { B:float; }",
-               "field renamed to different type");
-  test_conform(parser, "enum E:byte { B, A }", "values differ for enum");
+    test_conform(parser, "table T { A:byte; }", "types differ for field");
+    test_conform(parser, "table T { B:int; A:int; }", "offsets differ for field");
+    test_conform(parser, "table T { A:int = 1; }", "defaults differ for field");
+    test_conform(parser, "table T { B:float; }",
+                "field renamed to different type");
+    test_conform(parser, "enum E:byte { B, A }", "values differ for enum");
+  }
+  {
+    flatbuffers::Parser parser;
+    TEST_EQ(parser.Parse("table T { A:int; B:int; C:float;} table S { A:int; }"), true);
+
+    auto test_conform = [](flatbuffers::Parser &parser1, const char *test,
+                          const char *expected_err) {
+      flatbuffers::Parser parser2;
+      TEST_EQ(parser2.Parse(test), true);
+      auto err = parser2.ConformTo(parser1, true);
+      TEST_NOTNULL(strstr(err.c_str(), expected_err));
+    };
+
+    test_conform(parser, "table T { A:int; }", "field deleted");
+    test_conform(parser, "table T { A:int; B:int; }", "field deleted");
+    test_conform(parser, "table T { A:int; B:int; C:float;}", "struct deleted");
+  }
 }
 
 void UnionDeprecationTest(const std::string& tests_data_path) {

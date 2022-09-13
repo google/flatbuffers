@@ -175,6 +175,10 @@ const static FlatCOption options[] = {
     "errors if not." },
   { "", "conform-includes", "PATH",
     "Include path for the schema given with --conform PATH" },
+  { "", "conform-subsequence", "",
+    "Deletion of the foot fields of each table/struct is no longer treated as "
+    "conformable. This enables that subsequent schema changes can conform with "
+    "historical ones."},
   { "", "filename-suffix", "SUFFIX",
     "The suffix appended to the generated file names (Default is "
     "'_generated')." },
@@ -428,6 +432,8 @@ int FlatCompiler::Compile(int argc, const char **argv) {
             flatbuffers::PosixPath(argv[argi]));
         conform_include_directories.push_back(
             include_directories_storage.back().c_str());
+      } else if (arg == "--conform-subsequence") {
+        opts.conform_subsequence = true;
       } else if (arg == "--include-prefix") {
         if (++argi >= argc) Error("missing path following: " + arg, true);
         opts.include_prefix = flatbuffers::ConCatPathFileName(
@@ -786,7 +792,7 @@ int FlatCompiler::Compile(int argc, const char **argv) {
         }
       }
       if ((is_schema || is_binary_schema) && !conform_to_schema.empty()) {
-        auto err = parser->ConformTo(conform_parser);
+        auto err = parser->ConformTo(conform_parser, opts.conform_subsequence);
         if (!err.empty()) Error("schemas don\'t conform: " + err, false);
       }
       if (schema_binary || opts.binary_schema_gen_embed) {
