@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 
-extern crate smallvec;
-
 #[cfg(feature = "no_std")]
 use alloc::{vec, vec::Vec};
 use core::cmp::max;
@@ -30,8 +28,6 @@ use crate::table::Table;
 use crate::vector::Vector;
 use crate::vtable::{field_index_to_field_offset, VTable};
 use crate::vtable_writer::VTableWriter;
-
-pub const N_SMALLVEC_STRING_VECTOR_CAPACITY: usize = 16;
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 struct FieldLoc {
@@ -310,32 +306,6 @@ impl<'fbb> FlatBufferBuilder<'fbb> {
         self.push_bytes_unprefixed(data);
         self.push(data.len() as UOffsetT);
         WIPOffset::new(self.used_space() as UOffsetT)
-    }
-
-    /// Create a vector of strings.
-    ///
-    /// Speed-sensitive users may wish to reduce memory usage by creating the
-    /// vector manually: use `start_vector`, `push`, and `end_vector`.
-    #[inline]
-    pub fn create_vector_of_strings<'a, 'b>(
-        &'a mut self,
-        xs: &'b [&'b str],
-    ) -> WIPOffset<Vector<'fbb, ForwardsUOffset<&'fbb str>>> {
-        self.assert_not_nested("create_vector_of_strings can not be called when a table or vector is under construction");
-        // internally, smallvec can be a stack-allocated or heap-allocated vector:
-        // if xs.len() > N_SMALLVEC_STRING_VECTOR_CAPACITY then it will overflow to the heap.
-        let mut offsets: smallvec::SmallVec<[WIPOffset<&str>; N_SMALLVEC_STRING_VECTOR_CAPACITY]> =
-            smallvec::SmallVec::with_capacity(xs.len());
-        unsafe {
-            offsets.set_len(xs.len());
-        }
-
-        // note that this happens in reverse, because the buffer is built back-to-front:
-        for (i, &s) in xs.iter().enumerate().rev() {
-            let o = self.create_string(s);
-            offsets[i] = o;
-        }
-        self.create_vector(&offsets[..])
     }
 
     /// Create a vector of Push-able objects.
