@@ -17,11 +17,11 @@
 // independent from idl_parser, since this code is not needed for most clients
 
 #include <cctype>
+#include <iostream>
 #include <set>
 #include <string>
 #include <unordered_set>
 #include <vector>
-#include <iostream>
 
 #include "flatbuffers/code_generators.h"
 #include "flatbuffers/flatbuffers.h"
@@ -261,23 +261,22 @@ class PythonGenerator : public BaseGenerator {
       code += "from " + GenPackageReference(field.value.type) + " import " +
               TypeName(field);
     }
-    code += GenIndents(2) + "obj = "+ TypeName(field)+"()";
+    code += GenIndents(2) + "obj = " + TypeName(field) + "()";
     code += GenIndents(2) + "obj.Init(self._tab.Bytes, self._tab.Pos + ";
     code += NumToString(field.value.offset) + " + i * ";
     code += NumToString(InlineSize(vec_type));
     code += ")" + GenIndents(2) + "return obj\n\n";
   }
 
-   // Get the value of a vector's non-struct member. Uses a named return
+  // Get the value of a vector's non-struct member. Uses a named return
   // argument to conveniently set the zero value for the result.
-  void GetArrayOfNonStruct(const StructDef &struct_def,
-                                    const FieldDef &field,
-                                    std::string *code_ptr) const {
+  void GetArrayOfNonStruct(const StructDef &struct_def, const FieldDef &field,
+                           std::string *code_ptr) const {
     auto &code = *code_ptr;
     GenReceiver(struct_def, code_ptr);
     code += namer_.Method(field);
     code += "(self, j):";
-    code += GenIndents(2)+"return " + GenGetter(field.value.type);
+    code += GenIndents(2) + "return " + GenGetter(field.value.type);
     code += "self._tab.Pos + flatbuffers.number_types.UOffsetTFlags.py_type(";
     code += NumToString(field.value.offset) + " + j * ";
     code += NumToString(InlineSize(field.value.type.VectorType()));
@@ -286,7 +285,7 @@ class PythonGenerator : public BaseGenerator {
     GenReceiver(struct_def, code_ptr);
     code += namer_.Method(field);
     code += "(self):";
-    code += GenIndents(2)+"return [" + GenGetter(field.value.type);
+    code += GenIndents(2) + "return [" + GenGetter(field.value.type);
     code += "self._tab.Pos + flatbuffers.number_types.UOffsetTFlags.py_type(";
     code += NumToString(field.value.offset) + " + j * ";
     code += NumToString(InlineSize(field.value.type.VectorType()));
@@ -1208,8 +1207,8 @@ class PythonGenerator : public BaseGenerator {
   }
 
   void GenUnpackForTableVector(const StructDef &struct_def,
-                                const FieldDef &field,
-                                std::string *code_ptr) const {
+                               const FieldDef &field,
+                               std::string *code_ptr) const {
     auto &code = *code_ptr;
     const auto field_field = namer_.Field(field);
     const auto field_method = namer_.Method(field);
