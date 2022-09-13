@@ -12,6 +12,7 @@ impl TrackingAllocator {
         unsafe { N_ALLOCS }
     }
 }
+
 unsafe impl GlobalAlloc for TrackingAllocator {
     unsafe fn alloc(&self, layout: Layout) -> *mut u8 {
         N_ALLOCS += 1;
@@ -28,6 +29,7 @@ static A: TrackingAllocator = TrackingAllocator;
 
 // import the flatbuffers generated code:
 extern crate flatbuffers;
+
 #[allow(dead_code, unused_imports)]
 #[path = "../../include_test1/mod.rs"]
 pub mod include_test1_generated;
@@ -39,20 +41,22 @@ pub mod include_test2_generated;
 #[allow(dead_code, unused_imports, clippy::approx_constant)]
 #[path = "../../monster_test/mod.rs"]
 mod monster_test_generated;
+
 pub use monster_test_generated::my_game;
 
 // verbatim from the test suite:
 fn create_serialized_example_with_generated_code(builder: &mut flatbuffers::FlatBufferBuilder) {
     let mon = {
-        let _ = builder.create_vector_of_strings(&[
-            "these",
-            "unused",
-            "strings",
-            "check",
-            "the",
-            "create_vector_of_strings",
-            "function",
-        ]);
+        let strings = [
+            builder.create_string("these"),
+            builder.create_string("unused"),
+            builder.create_string("strings"),
+            builder.create_string("check"),
+            builder.create_string("the"),
+            builder.create_string("create_vector_of_strings"),
+            builder.create_string("function")
+        ];
+        let _ = builder.create_vector(&strings);
 
         let s0 = builder.create_string("test1");
         let s1 = builder.create_string("test2");
@@ -83,7 +87,7 @@ fn create_serialized_example_with_generated_code(builder: &mut flatbuffers::Flat
                         ..Default::default()
                     },
                 )
-                .as_union_value(),
+                    .as_union_value(),
             ),
             inventory: Some(builder.create_vector(&[0u8, 1, 2, 3, 4])),
             test4: Some(builder.create_vector(&[

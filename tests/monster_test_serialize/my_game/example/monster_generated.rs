@@ -1610,7 +1610,7 @@ impl MonsterT {
       let w: Vec<_> = x.iter().map(|t| t.pack()).collect();_fbb.create_vector(&w)
     });
     let testarrayofstring = self.testarrayofstring.as_ref().map(|x|{
-      let w: Vec<_> = x.iter().map(|s| s.as_ref()).collect();_fbb.create_vector_of_strings(&w)
+      let w: Vec<_> = x.iter().map(|s| _fbb.create_string(s)).collect();_fbb.create_vector(&w)
     });
     let testarrayoftables = self.testarrayoftables.as_ref().map(|x|{
       let w: Vec<_> = x.iter().map(|t| t.pack(_fbb)).collect();_fbb.create_vector(&w)
@@ -1640,7 +1640,7 @@ impl MonsterT {
     let testf2 = self.testf2;
     let testf3 = self.testf3;
     let testarrayofstring2 = self.testarrayofstring2.as_ref().map(|x|{
-      let w: Vec<_> = x.iter().map(|s| s.as_ref()).collect();_fbb.create_vector_of_strings(&w)
+      let w: Vec<_> = x.iter().map(|s| _fbb.create_string(s)).collect();_fbb.create_vector(&w)
     });
     let testarrayofsortedstruct = self.testarrayofsortedstruct.as_ref().map(|x|{
       let w: Vec<_> = x.iter().map(|t| t.pack()).collect();_fbb.create_vector(&w)
@@ -1753,18 +1753,6 @@ impl MonsterT {
     })
   }
 }
-#[inline]
-#[deprecated(since="2.0.0", note="Deprecated in favor of `root_as...` methods.")]
-pub fn get_root_as_monster<'a>(buf: &'a [u8]) -> Monster<'a> {
-  unsafe { flatbuffers::root_unchecked::<Monster<'a>>(buf) }
-}
-
-#[inline]
-#[deprecated(since="2.0.0", note="Deprecated in favor of `root_as...` methods.")]
-pub fn get_size_prefixed_root_as_monster<'a>(buf: &'a [u8]) -> Monster<'a> {
-  unsafe { flatbuffers::size_prefixed_root_unchecked::<Monster<'a>>(buf) }
-}
-
 #[inline]
 /// Verifies that a buffer of bytes contains a `Monster`
 /// and returns it.

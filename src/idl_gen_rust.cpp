@@ -2256,8 +2256,8 @@ class RustGenerator : public BaseGenerator {
 
           MapNativeTableField(
               field,
-              "let w: Vec<_> = x.iter().map(|s| s.as_ref()).collect();"
-              "_fbb.create_vector_of_strings(&w)");
+              "let w: Vec<_> = x.iter().map(|s| _fbb.create_string(s)).collect();"
+              "_fbb.create_vector(&w)");
           return;
         }
         case ftVectorOfTable: {
@@ -2348,32 +2348,6 @@ class RustGenerator : public BaseGenerator {
     code_.SetValue("STRUCT_FN", namer_.Function(struct_def));
     code_.SetValue("STRUCT_CONST", namer_.Constant(struct_def.name));
 
-    // The root datatype accessors:
-    code_ += "#[inline]";
-    code_ +=
-        "#[deprecated(since=\"2.0.0\", "
-        "note=\"Deprecated in favor of `root_as...` methods.\")]";
-    code_ +=
-        "pub fn get_root_as_{{STRUCT_FN}}<'a>(buf: &'a [u8])"
-        " -> {{STRUCT_TY}}<'a> {";
-    code_ +=
-        "  unsafe { flatbuffers::root_unchecked::<{{STRUCT_TY}}"
-        "<'a>>(buf) }";
-    code_ += "}";
-    code_ += "";
-
-    code_ += "#[inline]";
-    code_ +=
-        "#[deprecated(since=\"2.0.0\", "
-        "note=\"Deprecated in favor of `root_as...` methods.\")]";
-    code_ +=
-        "pub fn get_size_prefixed_root_as_{{STRUCT_FN}}"
-        "<'a>(buf: &'a [u8]) -> {{STRUCT_TY}}<'a> {";
-    code_ +=
-        "  unsafe { flatbuffers::size_prefixed_root_unchecked::<{{STRUCT_TY}}"
-        "<'a>>(buf) }";
-    code_ += "}";
-    code_ += "";
     // Default verifier root fns.
     code_ += "#[inline]";
     code_ += "/// Verifies that a buffer of bytes contains a `{{STRUCT_TY}}`";

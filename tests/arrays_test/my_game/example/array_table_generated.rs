@@ -140,18 +140,6 @@ impl ArrayTableT {
   }
 }
 #[inline]
-#[deprecated(since="2.0.0", note="Deprecated in favor of `root_as...` methods.")]
-pub fn get_root_as_array_table<'a>(buf: &'a [u8]) -> ArrayTable<'a> {
-  unsafe { flatbuffers::root_unchecked::<ArrayTable<'a>>(buf) }
-}
-
-#[inline]
-#[deprecated(since="2.0.0", note="Deprecated in favor of `root_as...` methods.")]
-pub fn get_size_prefixed_root_as_array_table<'a>(buf: &'a [u8]) -> ArrayTable<'a> {
-  unsafe { flatbuffers::size_prefixed_root_unchecked::<ArrayTable<'a>>(buf) }
-}
-
-#[inline]
 /// Verifies that a buffer of bytes contains a `ArrayTable`
 /// and returns it.
 /// Note that verification is still experimental and may not

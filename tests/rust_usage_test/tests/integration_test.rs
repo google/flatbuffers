@@ -254,7 +254,11 @@ fn create_serialized_example_with_library_code(builder: &mut flatbuffers::FlatBu
                                         my_game::example::Test::new(30, 40)][..]);
 
     let name = builder.create_string("MyMonster");
-    let testarrayofstring = builder.create_vector_of_strings(&["test1", "test2"][..]);
+
+    let test1 = builder.create_string("test1");
+    let test2 = builder.create_string("test2");
+
+    let testarrayofstring = builder.create_vector(&[test1, test2]);
 
     // begin building
 
@@ -821,7 +825,8 @@ mod roundtrip_generated_code {
     #[test]
     fn vector_of_string_store_helper_build() {
         let mut b = flatbuffers::FlatBufferBuilder::new();
-        let v = b.create_vector_of_strings(&["foobar", "baz"]);
+        let strings = &[b.create_string("foobar"), b.create_string("baz")];
+        let v = b.create_vector(strings);
         let name = b.create_string("foo");
         let m = build_mon(&mut b, &my_game::example::MonsterArgs{
             name: Some(name),
@@ -1303,12 +1308,11 @@ mod roundtrip_vectors {
         use alloc::vec::Vec;
 
         fn prop(input: Vec<String>) {
-            let xs: Vec<&str> = input.iter().map(|s: &String| &s[..]).collect();
-
             use flatbuffers::Follow;
 
             let mut b = flatbuffers::FlatBufferBuilder::new();
-            let vecend = b.create_vector_of_strings(&xs[..]);
+            let xs: Vec<_> = input.iter().map(|s: &String| b.create_string(s)).collect();
+            let vecend = b.create_vector(&xs);
 
             b.finish_minimal(vecend);
 
@@ -1316,8 +1320,8 @@ mod roundtrip_vectors {
             let got = unsafe { <flatbuffers::ForwardsUOffset<flatbuffers::Vector<flatbuffers::ForwardsUOffset<&str>>>>::follow(buf, 0) };
 
             assert_eq!(got.len(), xs.len());
-            for i in 0..xs.len() {
-                assert_eq!(got.get(i), &xs[i][..]);
+            for (idx, s) in input.iter().enumerate() {
+                assert_eq!(got.get(idx), s);
             }
         }
 

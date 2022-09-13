@@ -366,18 +366,6 @@ impl MonsterT {
   }
 }
 #[inline]
-#[deprecated(since="2.0.0", note="Deprecated in favor of `root_as...` methods.")]
-pub fn get_root_as_monster<'a>(buf: &'a [u8]) -> Monster<'a> {
-  unsafe { flatbuffers::root_unchecked::<Monster<'a>>(buf) }
-}
-
-#[inline]
-#[deprecated(since="2.0.0", note="Deprecated in favor of `root_as...` methods.")]
-pub fn get_size_prefixed_root_as_monster<'a>(buf: &'a [u8]) -> Monster<'a> {
-  unsafe { flatbuffers::size_prefixed_root_unchecked::<Monster<'a>>(buf) }
-}
-
-#[inline]
 /// Verifies that a buffer of bytes contains a `Monster`
 /// and returns it.
 /// Note that verification is still experimental and may not
