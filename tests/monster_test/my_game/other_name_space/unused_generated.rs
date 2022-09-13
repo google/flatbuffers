@@ -27,7 +27,6 @@ impl core::fmt::Debug for Unused {
 }
 
 impl flatbuffers::SimpleToVerifyInSlice for Unused {}
-impl flatbuffers::SafeSliceAccess for Unused {}
 impl<'a> flatbuffers::Follow<'a> for Unused {
   type Inner = &'a Unused;
   #[inline]

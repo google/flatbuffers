@@ -32,7 +32,6 @@ impl core::fmt::Debug for ArrayStruct {
 }
 
 impl flatbuffers::SimpleToVerifyInSlice for ArrayStruct {}
-impl flatbuffers::SafeSliceAccess for ArrayStruct {}
 impl<'a> flatbuffers::Follow<'a> for ArrayStruct {
   type Inner = &'a ArrayStruct;
   #[inline]

@@ -28,7 +28,6 @@ impl core::fmt::Debug for StructInNestedNS {
 }
 
 impl flatbuffers::SimpleToVerifyInSlice for StructInNestedNS {}
-impl flatbuffers::SafeSliceAccess for StructInNestedNS {}
 impl<'a> flatbuffers::Follow<'a> for StructInNestedNS {
   type Inner = &'a StructInNestedNS;
   #[inline]

@@ -29,7 +29,6 @@ impl core::fmt::Debug for StructOfStructs {
 }
 
 impl flatbuffers::SimpleToVerifyInSlice for StructOfStructs {}
-impl flatbuffers::SafeSliceAccess for StructOfStructs {}
 impl<'a> flatbuffers::Follow<'a> for StructOfStructs {
   type Inner = &'a StructOfStructs;
   #[inline]

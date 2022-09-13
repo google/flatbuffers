@@ -30,7 +30,6 @@ impl core::fmt::Debug for NestedStruct {
 }
 
 impl flatbuffers::SimpleToVerifyInSlice for NestedStruct {}
-impl flatbuffers::SafeSliceAccess for NestedStruct {}
 impl<'a> flatbuffers::Follow<'a> for NestedStruct {
   type Inner = &'a NestedStruct;
   #[inline]

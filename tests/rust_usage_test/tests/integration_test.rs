@@ -799,9 +799,9 @@ mod roundtrip_generated_code {
         let m = my_game::example::root_as_monster(b1.finished_data()).unwrap();
 
         assert!(m.testnestedflatbuffer().is_some());
-        assert_eq!(m.testnestedflatbuffer().unwrap().safe_slice(), b0.finished_data());
+        assert_eq!(m.testnestedflatbuffer().unwrap().bytes(), b0.finished_data());
 
-        let m2_a = my_game::example::root_as_monster(m.testnestedflatbuffer().unwrap().safe_slice()).unwrap();
+        let m2_a = my_game::example::root_as_monster(m.testnestedflatbuffer().unwrap().bytes()).unwrap();
         assert_eq!(m2_a.hp(), 123);
         assert_eq!(m2_a.name(), "foobar");
 
@@ -876,7 +876,7 @@ mod roundtrip_generated_code {
             name: Some(name),
             inventory: Some(v), ..Default::default()
         });
-        assert_eq!(m.inventory().unwrap().safe_slice(), &[123, 234]);
+        assert_eq!(m.inventory().unwrap().bytes(), &[123, 234]);
     }
     #[test]
     fn vector_of_bool_store() {
@@ -922,7 +922,6 @@ mod roundtrip_generated_code {
         let m = build_mon(&mut b, &my_game::example::MonsterArgs{
             name: Some(name),
             test4: Some(v), ..Default::default()});
-        assert_eq!(m.test4().unwrap().safe_slice(), &[my_game::example::Test::new(127, -128), my_game::example::Test::new(3, 123)][..]);
 
         let rust_vec_inst = m.test4().unwrap();
         let rust_vec_iter_collect = rust_vec_inst.iter().collect::<Vec<_>>();
@@ -941,7 +940,8 @@ mod roundtrip_generated_code {
         let m = build_mon(&mut b, &my_game::example::MonsterArgs{
             name: Some(name),
             test4: Some(v), ..Default::default()});
-        assert_eq!(m.test4().unwrap().safe_slice(), &[my_game::example::Test::new(127, -128), my_game::example::Test::new(3, 123), my_game::example::Test::new(100, 101)][..]);
+        let vals: Vec<_> = m.test4().unwrap().iter().collect::<Vec<_>>();
+        assert_eq!(vals, vec![&my_game::example::Test::new(127, -128), &my_game::example::Test::new(3, 123), &my_game::example::Test::new(100, 101)]);
     }
      #[test]
      fn vector_of_enums_store() {
@@ -1535,8 +1535,8 @@ mod roundtrip_table {
             for i in 0..xs.len() {
                 let v = unsafe { tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<u8>>>(fi2fo(i as flatbuffers::VOffsetT), None) };
                 assert!(v.is_some());
-                let v2 = v.unwrap().safe_slice();
-                assert_eq!(v2, &xs[i][..]);
+                let v2 = v.unwrap();
+                assert_eq!(v2.bytes(), &xs[i]);
             }
         }
         prop(vec![vec![1,2,3]]);
@@ -2127,7 +2127,6 @@ mod follow_impls {
             }
         }
     }
-    impl flatbuffers::SafeSliceAccess for FooStruct {}
     impl<'a> flatbuffers::Follow<'a> for FooStruct {
         type Inner = &'a FooStruct;
         #[inline(always)]
@@ -2175,21 +2174,7 @@ mod follow_impls {
     fn to_byte_slice() {
         let vec: Vec<u8> = vec![255, 255, 255, 255, 4, 0, 0, 0, 1, 2, 3, 4];
         let off: flatbuffers::FollowStart<flatbuffers::Vector<u8>> = flatbuffers::FollowStart::new();
-        assert_eq!(unsafe { off.self_follow(&vec[..], 4).safe_slice() }, &[1, 2, 3, 4][..]);
-    }
-
-    #[test]
-    fn to_byte_vector() {
-        let vec: Vec<u8> = vec![255, 255, 255, 255, 4, 0, 0, 0, 1, 2, 3, 4];
-        let off: flatbuffers::FollowStart<flatbuffers::Vector<u8>> = flatbuffers::FollowStart::new();
-        assert_eq!(unsafe { off.self_follow(&vec[..], 4).safe_slice() }, &[1, 2, 3, 4][..]);
-    }
-
-    #[test]
-    fn to_byte_string_zero_teriminated() {
-        let vec: Vec<u8> = vec![255, 255, 255, 255, 3, 0, 0, 0, 1, 2, 3, 0];
-        let off: flatbuffers::FollowStart<flatbuffers::Vector<u8>> = flatbuffers::FollowStart::new();
-        assert_eq!(unsafe { off.self_follow(&vec[..], 4).safe_slice() }, &[1, 2, 3][..]);
+        assert_eq!(unsafe { off.self_follow(&vec[..], 4).bytes() }, &[1, 2, 3, 4][..]);
     }
 
     #[test]
@@ -2214,13 +2199,6 @@ mod follow_impls {
         let s: flatbuffers::FollowStart<flatbuffers::Vector<flatbuffers::ForwardsUOffset<&str>>> = flatbuffers::FollowStart::new();
         assert_eq!(unsafe {s.self_follow(&buf[..], 0).len() }, 1);
         assert_eq!(unsafe { s.self_follow(&buf[..], 0).get(0) }, "foo");
-    }
-
-    #[test]
-    fn to_slice_of_struct_elements() {
-        let buf: Vec<u8> = vec![1, 0, 0, 0, /* struct data */ 1, 2, 3, 4];
-        let fs: flatbuffers::FollowStart<flatbuffers::Vector<FooStruct>> = flatbuffers::FollowStart::new();
-        assert_eq!(unsafe { fs.self_follow(&buf[..], 0).safe_slice() }, &vec![FooStruct::new(1, 2, 1027)][..]);
     }
 
     #[test]
@@ -2325,7 +2303,7 @@ mod follow_impls {
         unsafe {
             let tab = <flatbuffers::ForwardsUOffset<flatbuffers::Table>>::follow(&buf[..], 0);
             assert_eq!(tab.get::<flatbuffers::ForwardsUOffset<&str>>(fi2fo(0), None), Some("moo"));
-            let byte_vec = tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<u8>>>(fi2fo(0), None).unwrap().safe_slice();
+            let byte_vec = tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<u8>>>(fi2fo(0), None).unwrap().bytes();
             assert_eq!(byte_vec, &vec![109, 111, 111][..]);
             let v = tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<u8>>>(fi2fo(0), None).unwrap();
             assert_eq!(v.len(), 3);

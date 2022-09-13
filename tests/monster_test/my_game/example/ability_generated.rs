@@ -28,7 +28,6 @@ impl core::fmt::Debug for Ability {
 }
 
 impl flatbuffers::SimpleToVerifyInSlice for Ability {}
-impl flatbuffers::SafeSliceAccess for Ability {}
 impl<'a> flatbuffers::Follow<'a> for Ability {
   type Inner = &'a Ability;
   #[inline]

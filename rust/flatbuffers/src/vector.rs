@@ -88,7 +88,7 @@ impl<'a, T: 'a> Vector<'a, T> {
     }
 
     #[inline(always)]
-    pub fn data(&self) -> &[u8] {
+    pub fn bytes(&self) -> &'a [u8] {
         let sz = size_of::<T>();
         let len = self.len();
         &self.0[self.1 + SIZE_UOFFSET..self.1 + SIZE_UOFFSET + sz * len]
@@ -111,28 +111,6 @@ impl<'a, T: Follow<'a> + 'a> Vector<'a, T> {
         VectorIter::from_vector(*self)
     }
 }
-
-/// Provides access to the values of a `Vector` as a slice
-///
-/// As we cannot guarantee memory alignment of the vector's data,
-/// this is only supported for types with no alignment requirements
-pub trait SafeSliceAccess {}
-
-impl<'a, T: SafeSliceAccess + 'a> Vector<'a, T> {
-    pub fn safe_slice(self) -> &'a [T] {
-        assert_eq!(align_of::<T>(), 1);
-        let data = self.data();
-        // SAFETY:
-        // Valid vector at construction time, i.e. containing element count elements of T
-        // and T has no additional alignment requirements
-        unsafe {
-            core::slice::from_raw_parts(data.as_ptr() as *const T, data.len() / size_of::<T>())
-        }
-    }
-}
-
-impl SafeSliceAccess for u8 {}
-impl SafeSliceAccess for i8 {}
 
 /// SAFETY
 ///

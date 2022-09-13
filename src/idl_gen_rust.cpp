@@ -1840,14 +1840,14 @@ class RustGenerator : public BaseGenerator {
           code_ += "  use flatbuffers::Follow;";
           code_ +=
               "  unsafe { <flatbuffers::ForwardsUOffset<{{NESTED}}<'a>>>"
-              "::follow(data.safe_slice(), 0) }";
+              "::follow(data.bytes(), 0) }";
         } else {
           code_ += "Option<{{NESTED}}<'a>> {";
           code_ += "  self.{{FIELD}}().map(|data| {";
           code_ += "    use flatbuffers::Follow;";
           code_ +=
               "    unsafe { <flatbuffers::ForwardsUOffset<{{NESTED}}<'a>>>"
-              "::follow(data.safe_slice(), 0) }";
+              "::follow(data.bytes(), 0) }";
           code_ += "  })";
         }
         code_ += "}";
@@ -2615,7 +2615,6 @@ class RustGenerator : public BaseGenerator {
     // Follow for the value type, Follow for the reference type, Push for the
     // value type, and Push for the reference type.
     code_ += "impl flatbuffers::SimpleToVerifyInSlice for {{STRUCT_TY}} {}";
-    code_ += "impl flatbuffers::SafeSliceAccess for {{STRUCT_TY}} {}";
     code_ += "impl<'a> flatbuffers::Follow<'a> for {{STRUCT_TY}} {";
     code_ += "  type Inner = &'a {{STRUCT_TY}};";
     code_ += "  #[inline]";

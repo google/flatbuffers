@@ -55,7 +55,7 @@ pub use crate::follow::{Follow, FollowStart};
 pub use crate::primitives::*;
 pub use crate::push::Push;
 pub use crate::table::{buffer_has_identifier, Table};
-pub use crate::vector::{follow_cast_ref, SafeSliceAccess, Vector, VectorIter};
+pub use crate::vector::{follow_cast_ref, Vector, VectorIter};
 pub use crate::verifier::{
     ErrorTraceDetail, InvalidFlatbuffer, SimpleToVerifyInSlice, Verifiable, Verifier,
     VerifierOptions,
@@ -64,6 +64,4 @@ pub use crate::vtable::field_index_to_field_offset;
 pub use bitflags;
 pub use get_root::*;
 
-// TODO(rw): Unify `create_vector` and `create_vector_direct` by using
-//           `Into<Vector<...>>`.
 // TODO(rw): Split fill ops in builder into fill_small, fill_big like in C++.

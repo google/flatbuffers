@@ -29,7 +29,6 @@ impl core::fmt::Debug for Vec3 {
 }
 
 impl flatbuffers::SimpleToVerifyInSlice for Vec3 {}
-impl flatbuffers::SafeSliceAccess for Vec3 {}
 impl<'a> flatbuffers::Follow<'a> for Vec3 {
   type Inner = &'a Vec3;
   #[inline]

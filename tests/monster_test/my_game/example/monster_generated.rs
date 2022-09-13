@@ -429,7 +429,7 @@ impl<'a> Monster<'a> {
   pub fn testnestedflatbuffer_nested_flatbuffer(&'a self) -> Option<Monster<'a>> {
     self.testnestedflatbuffer().map(|data| {
       use flatbuffers::Follow;
-      unsafe { <flatbuffers::ForwardsUOffset<Monster<'a>>>::follow(data.safe_slice(), 0) }
+      unsafe { <flatbuffers::ForwardsUOffset<Monster<'a>>>::follow(data.bytes(), 0) }
     })
   }
   #[inline]
@@ -579,7 +579,7 @@ impl<'a> Monster<'a> {
   pub fn testrequirednestedflatbuffer_nested_flatbuffer(&'a self) -> Option<Monster<'a>> {
     self.testrequirednestedflatbuffer().map(|data| {
       use flatbuffers::Follow;
-      unsafe { <flatbuffers::ForwardsUOffset<Monster<'a>>>::follow(data.safe_slice(), 0) }
+      unsafe { <flatbuffers::ForwardsUOffset<Monster<'a>>>::follow(data.bytes(), 0) }
     })
   }
   #[inline]
