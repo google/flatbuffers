@@ -315,9 +315,9 @@ impl<'opts, 'buf> Verifier<'opts, 'buf> {
 
         // signed offsets are subtracted.
         let derefed = if offset > 0 {
-            pos.checked_sub(offset.abs() as usize)
+            pos.checked_sub(offset.unsigned_abs() as usize)
         } else {
-            pos.checked_add(offset.abs() as usize)
+            pos.checked_add(offset.unsigned_abs() as usize)
         };
         if let Some(x) = derefed {
             if x < self.buffer.len() {
@@ -448,6 +448,8 @@ impl<'ver, 'opts, 'buf> TableVerifier<'ver, 'opts, 'buf> {
             }
             (Some(k), Some(v)) => {
                 trace_field(Key::run_verifier(self.verifier, k), key_field_name, k)?;
+                // SAFETY:
+                // Run verifier on `k` above
                 let discriminant = unsafe { Key::follow(self.verifier.buffer, k) };
                 trace_field(
                     verify_union(discriminant, self.verifier, v),

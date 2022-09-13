@@ -37,7 +37,7 @@ where
 #[allow(clippy::len_without_is_empty)]
 #[allow(clippy::from_over_into)] // TODO(caspern): Go from From to Into.
 impl<'a, T: 'a, const N: usize> Array<'a, T, N> {
-    /// # SAFETY:
+    /// # Safety
     ///
     /// buf must be a contiguous array of `T`
     ///
@@ -46,12 +46,9 @@ impl<'a, T: 'a, const N: usize> Array<'a, T, N> {
     /// Panics if `buf.len()` is not `size_of::<T>() * N`
     #[inline(always)]
     pub unsafe fn new(buf: &'a [u8]) -> Self {
-        assert!(size_of::<T>() * N == buf.len());
+        assert_eq!(size_of::<T>() * N, buf.len());
 
-        Array {
-            0: buf,
-            1: PhantomData,
-        }
+        Array(buf, PhantomData)
     }
 
     #[inline(always)]
@@ -68,23 +65,24 @@ impl<'a, T: Follow<'a> + 'a, const N: usize> Array<'a, T, N> {
     pub fn get(&self, idx: usize) -> T::Inner {
         assert!(idx < N);
         let sz = size_of::<T>();
+        // SAFETY:
+        // self.0 was valid for length `N` on construction and have verified length
         unsafe { T::follow(self.0, sz * idx) }
     }
 
     #[inline(always)]
     pub fn iter(&self) -> VectorIter<'a, T> {
+        // SAFETY:
+        // self.0 was valid for length T on construction
         unsafe { VectorIter::from_slice(self.0, self.len()) }
     }
 }
 
-impl<'a, T: Follow<'a> + Debug, const N: usize> Into<[T::Inner; N]> for Array<'a, T, N> {
-    #[inline(always)]
-    fn into(self) -> [T::Inner; N] {
-        array_init(|i| self.get(i))
+impl <'a, T: Follow<'a> + Debug, const N: usize> From<Array<'a, T, N>> for [T::Inner; N]  {
+    fn from(array: Array<'a, T, N>) -> Self {
+        array_init(|i| array.get(i))
     }
 }
-
-// TODO(caspern): Implement some future safe version of SafeSliceAccess.
 
 /// Implement Follow for all possible Arrays that have Follow-able elements.
 impl<'a, T: Follow<'a> + 'a, const N: usize> Follow<'a> for Array<'a, T, N> {
@@ -95,6 +93,10 @@ impl<'a, T: Follow<'a> + 'a, const N: usize> Follow<'a> for Array<'a, T, N> {
     }
 }
 
+/// Place an array of EndianScalar into the provided mutable byte slice. Performs
+/// endian conversion, if necessary.
+/// # Safety
+/// Caller must ensure `s.len() >= size_of::<[T; N]>()`
 pub unsafe fn emplace_scalar_array<T: EndianScalar, const N: usize>(
     buf: &mut [u8],
     loc: usize,
@@ -125,6 +127,8 @@ where
     let mut array: core::mem::MaybeUninit<[T; N]> = core::mem::MaybeUninit::uninit();
     let mut ptr_i = array.as_mut_ptr() as *mut T;
 
+    // SAFETY:
+    // array is aligned by T, and has length N
     unsafe {
         for i in 0..N {
             let value_i = initializer(i);

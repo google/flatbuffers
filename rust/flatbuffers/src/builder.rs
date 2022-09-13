@@ -120,6 +120,8 @@ impl<'fbb> FlatBufferBuilder<'fbb> {
         {
             let to_clear = self.owned_buf.len() - self.head;
             let ptr = (&mut self.owned_buf[self.head..]).as_mut_ptr();
+            // SAFETY:
+            // Verified ptr is valid for `to_clear` above
             unsafe {
                 write_bytes(ptr, 0, to_clear);
             }
@@ -152,7 +154,7 @@ impl<'fbb> FlatBufferBuilder<'fbb> {
         self.make_space(sz);
         {
             let (dst, rest) = (&mut self.owned_buf[self.head..]).split_at_mut(sz);
-            // SAFETY
+            // SAFETY:
             // Called make_space above
             unsafe { x.push(dst, rest.len()) };
         }
@@ -573,11 +575,12 @@ impl<'fbb> FlatBufferBuilder<'fbb> {
         let table_pos = self.owned_buf.len() - object_revloc_to_vtable.value() as usize;
         let tmp_soffset_to_vt = unsafe { read_scalar_at::<UOffsetT>(&self.owned_buf, table_pos) };
         debug_assert_eq!(tmp_soffset_to_vt, 0xF0F0_F0F0);
+
+        let buf = &mut self.owned_buf[table_pos..table_pos + SIZE_SOFFSET];
+        // SAFETY:
+        // Verified length of buf above
         unsafe {
-            emplace_scalar::<SOffsetT>(
-                &mut self.owned_buf[table_pos..table_pos + SIZE_SOFFSET],
-                final_vtable_revpos as SOffsetT - object_revloc_to_vtable.value() as SOffsetT,
-            );
+            emplace_scalar::<SOffsetT>(buf, final_vtable_revpos as SOffsetT - object_revloc_to_vtable.value() as SOffsetT);
         }
 
         self.field_locs.clear();
@@ -614,6 +617,8 @@ impl<'fbb> FlatBufferBuilder<'fbb> {
         // finally, zero out the old end data.
         {
             let ptr = (&mut self.owned_buf[..middle]).as_mut_ptr();
+            // SAFETY:
+            // ptr is byte aligned and of length middle
             unsafe {
                 write_bytes(ptr, 0, middle);
             }

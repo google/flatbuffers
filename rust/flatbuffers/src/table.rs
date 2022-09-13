@@ -18,14 +18,14 @@ use crate::follow::Follow;
 use crate::primitives::*;
 use crate::vtable::VTable;
 
-#[derive(Clone, Copy, Debug, PartialEq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct Table<'a> {
     buf: &'a [u8],
     loc: usize,
 }
 
 impl<'a> Table<'a> {
-    /// SAFETY
+    /// # Safety
     ///
     /// `buf` must contain a `soffset_t` at `loc`, which points to a valid vtable
     #[inline]
@@ -43,7 +43,7 @@ impl<'a> Table<'a> {
     /// Retrieves the value at the provided `slot_byte_loc` returning `default`
     /// if no value present
     ///
-    /// SAFETY
+    /// # Safety
     ///
     /// The value of the corresponding slot must have type T
     #[inline]
@@ -75,12 +75,12 @@ pub fn buffer_has_identifier(data: &[u8], ident: &str, size_prefixed: bool) -> b
 
     let got = if size_prefixed {
         assert!(data.len() >= SIZE_SIZEPREFIX + SIZE_UOFFSET + FILE_IDENTIFIER_LENGTH);
-        // SAFETY
+        // SAFETY:
         // Verified data has sufficient bytes
         unsafe { <SkipSizePrefix<SkipRootOffset<FileIdentifier>>>::follow(data, 0) }
     } else {
         assert!(data.len() >= SIZE_UOFFSET + FILE_IDENTIFIER_LENGTH);
-        // SAFETY
+        // SAFETY:
         // Verified data has sufficient bytes
         unsafe { <SkipRootOffset<FileIdentifier>>::follow(data, 0) }
     };

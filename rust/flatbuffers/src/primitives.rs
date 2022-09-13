@@ -112,10 +112,7 @@ impl<'a, T: 'a> WIPOffset<T> {
     /// Create a new WIPOffset.
     #[inline]
     pub fn new(o: UOffsetT) -> WIPOffset<T> {
-        WIPOffset {
-            0: o,
-            1: PhantomData,
-        }
+        WIPOffset(o, PhantomData)
     }
 
     /// Return a wrapped value that brings its meaning as a union WIPOffset

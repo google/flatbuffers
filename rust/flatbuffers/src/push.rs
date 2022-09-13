@@ -25,7 +25,7 @@ use crate::endian_scalar::emplace_scalar;
 pub trait Push: Sized {
     type Output;
 
-    /// SAFETY
+    /// # Safety
     ///
     /// dst is aligned to [`Self::alignment`] and has length greater than or equal to [`Self::size`]
     unsafe fn push(&self, dst: &mut [u8], written_len: usize);
@@ -61,7 +61,7 @@ pub struct PushAlignment(usize);
 impl PushAlignment {
     #[inline]
     pub fn new(x: usize) -> Self {
-        PushAlignment { 0: x }
+        PushAlignment(x)
     }
     #[inline]
     pub fn value(&self) -> usize {

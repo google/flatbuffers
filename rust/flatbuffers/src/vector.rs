@@ -60,7 +60,7 @@ impl<'a, T> Clone for Vector<'a, T> {
 }
 
 impl<'a, T: 'a> Vector<'a, T> {
-    /// SAFETY
+    /// # Safety
     ///
     /// `buf` contains a valid vector at `loc` consisting of
     ///
@@ -68,16 +68,12 @@ impl<'a, T: 'a> Vector<'a, T> {
     /// Consecutive list of `T` elements
     #[inline(always)]
     pub unsafe fn new(buf: &'a [u8], loc: usize) -> Self {
-        Vector {
-            0: buf,
-            1: loc,
-            2: PhantomData,
-        }
+        Vector(buf, loc, PhantomData)
     }
 
     #[inline(always)]
     pub fn len(&self) -> usize {
-        // SAFETY
+        // SAFETY:
         // Valid vector at time of construction starting with UOffsetT element count
         unsafe { read_scalar_at::<UOffsetT>(self.0, self.1) as usize }
     }
@@ -101,7 +97,7 @@ impl<'a, T: Follow<'a> + 'a> Vector<'a, T> {
         assert!(idx < self.len());
         let sz = size_of::<T>();
         debug_assert!(sz > 0);
-        // SAFETY
+        // SAFETY:
         // Valid vector at time of construction, verified that idx < element count
         unsafe { T::follow(self.0, self.1 as usize + SIZE_UOFFSET + sz * idx) }
     }
@@ -112,7 +108,7 @@ impl<'a, T: Follow<'a> + 'a> Vector<'a, T> {
     }
 }
 
-/// SAFETY
+/// # Safety
 ///
 /// `buf` must contain a value of T at `loc` and have alignment of 1
 pub unsafe fn follow_cast_ref<'a, T: Sized + 'a>(buf: &'a [u8], loc: usize) -> &'a T {
@@ -175,11 +171,10 @@ impl<'a, T: 'a> VectorIter<'a, T> {
 
     /// Creates a new `VectorIter` from the provided slice
     ///
-    /// # SAFETY
+    /// # Safety
     ///
     /// buf must contain a contiguous sequence of `items_num` values of `T`
     ///
-    /// SAF
     #[inline]
     pub unsafe fn from_slice(buf: &'a [u8], items_num: usize) -> Self {
         VectorIter {
