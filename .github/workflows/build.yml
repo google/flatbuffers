@@ -459,7 +459,7 @@ jobs:
     - name: compile
       run: yarn compile
     - name: test
-      working-directory: tests
+      working-directory: tests/ts
       run: python3 TypeScriptTest.py
 
   build-dart:

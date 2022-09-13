@@ -16,7 +16,7 @@
     "test": "tests"
   },
   "scripts": {
-    "test": "npm run compile && cd tests && python3 ./TypeScriptTest.py",
+    "test": "npm run compile && cd tests/ts && python3 ./TypeScriptTest.py",
     "compile": "tsc && tsc -p tsconfig.mjs.json && rollup -c",
     "prepublishOnly": "npm install --only=dev && npm run compile"
   },
@@ -35,12 +35,12 @@
   "homepage": "https://google.github.io/flatbuffers/",
   "dependencies": {},
   "devDependencies": {
-    "@bazel/typescript": "^5.2.0",
-    "@types/node": "17.0.21",
-    "@typescript-eslint/eslint-plugin": "^4.12.0",
-    "@typescript-eslint/parser": "^4.12.0",
-    "eslint": "^7.17.0",
-    "rollup": "^2.78.0",
-    "typescript": "^4.5.5"
+    "@bazel/typescript": "5.2.0",
+    "@types/node": "18.7.16",
+    "@typescript-eslint/eslint-plugin": "^5.36.2",
+    "@typescript-eslint/parser": "^5.36.2",
+    "eslint": "^8.23.1",
+    "rollup": "^2.79.0",
+    "typescript": "^4.8.3"
   }
 }

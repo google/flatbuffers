@@ -26,8 +26,8 @@ class TsTests():
         assert_file_and_contents(
             "foo_generated.ts",
             [
-                "export { Bar } from './bar';",
-                "export { Foo } from './foo';",
+                "export { Bar } from './bar.js';",
+                "export { Foo } from './foo.js';",
             ],
         )
 
@@ -46,8 +46,8 @@ class TsTests():
         assert_file_and_contents(
             "foo_generated.ts",
             [
-                "export { Bar } from './bar';",
-                "export { Foo } from './foo';",
+                "export { Bar } from './bar.js';",
+                "export { Foo } from './foo.js';",
             ],
         )
 
@@ -66,8 +66,8 @@ class TsTests():
         assert_file_and_contents(
             "foo_with_ns_generated.ts",
             [
-                "export { Bar } from './bar/bar';",
-                "export { Foo } from './something/foo';",
+                "export { Bar } from './bar/bar.js';",
+                "export { Foo } from './something/foo.js';",
             ],
         )
 
@@ -77,7 +77,7 @@ class TsTests():
             "something/foo.ts",
             [
                 "export class Foo {",
-                "import { Bar } from '../bar/bar';",
+                "import { Bar } from '../bar/bar.js';",
             ],
         )
 
@@ -92,9 +92,9 @@ class TsTests():
         assert_file_and_contents(
             "foo_generated.ts",
             [
-                "export { Bar } from './bar'",
-                "export { Baz } from './baz'",
-                "export { Foo } from './foo'",
+                "export { Bar } from './bar.js'",
+                "export { Baz } from './baz.js'",
+                "export { Foo } from './foo.js'",
             ],
         )
 
@@ -102,7 +102,7 @@ class TsTests():
         assert_file_and_contents(
             "foo.ts",
             [
-                "import { Bar } from './bar';",
+                "import { Bar } from './bar.js';",
                 "export class Foo {",
             ],
         )
@@ -111,7 +111,7 @@ class TsTests():
         assert_file_and_contents(
             "bar.ts",
             [
-                "import { Baz } from './baz';",
+                "import { Baz } from './baz.js';",
                 "export class Bar {",
             ],
         )
@@ -134,7 +134,7 @@ class TsTests():
         assert_file_and_contents(
             "foo_generated.ts",
             [
-                "import {Bar as Bar} from './bar_generated';",
+                "import {Bar as Bar} from './bar_generated.js';",
                 "export class Foo {",
             ],
         )
@@ -151,7 +151,7 @@ class TsTests():
         assert_file_and_contents(
             "foo_with_ns_generated.ts",
             [
-                "import {Bar as Bar} from './bar_with_ns_generated';",
+                "import {Bar as Bar} from './bar_with_ns_generated.js';",
                 "export class Foo {",
             ],
         )
@@ -168,7 +168,7 @@ class TsTests():
         assert_file_and_contents(
             "foo_generated.ts",
             [
-                "import {Bar as Bar} from './bar_generated';",
+                "import {Bar as Bar} from './bar_generated.js';",
                 "export class Foo {",
             ],
         )
@@ -178,7 +178,7 @@ class TsTests():
         assert_file_and_contents(
             "bar_generated.ts",
             [
-                "import {Baz as Baz} from './baz_generated';",
+                "import {Baz as Baz} from './baz_generated.js';",
                 "export class Bar {",
             ],
         )
