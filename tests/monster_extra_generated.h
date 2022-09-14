@@ -133,7 +133,7 @@ struct MonsterExtra FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
            verifier.EndTable();
   }
   MonsterExtraT *UnPack(const flatbuffers::resolver_function_t *_resolver = nullptr) const;
-  void UnPackTo(MonsterExtraT *_o, const flatbuffers::resolver_function_t *_resolver = nullptr, bool _merge = false) const;
+  void UnPackTo(MonsterExtraT *_o, const flatbuffers::resolver_function_t *_resolver = nullptr) const;
   static flatbuffers::Offset<MonsterExtra> Pack(flatbuffers::FlatBufferBuilder &_fbb, const MonsterExtraT* _o, const flatbuffers::rehasher_function_t *_rehasher = nullptr);
 };
 
@@ -264,10 +264,9 @@ inline MonsterExtraT *MonsterExtra::UnPack(const flatbuffers::resolver_function_
   return _o.release();
 }
 
-inline void MonsterExtra::UnPackTo(MonsterExtraT *_o, const flatbuffers::resolver_function_t *_resolver, bool _merge) const {
+inline void MonsterExtra::UnPackTo(MonsterExtraT *_o, const flatbuffers::resolver_function_t *_resolver) const {
   (void)_o;
   (void)_resolver;
-  (void)_merge;
   { auto _e = d0(); _o->d0 = _e; }
   { auto _e = d1(); _o->d1 = _e; }
   { auto _e = d2(); _o->d2 = _e; }
@@ -276,8 +275,8 @@ inline void MonsterExtra::UnPackTo(MonsterExtraT *_o, const flatbuffers::resolve
   { auto _e = f1(); _o->f1 = _e; }
   { auto _e = f2(); _o->f2 = _e; }
   { auto _e = f3(); _o->f3 = _e; }
-  { auto _e = dvec(); if (_e) {_o->dvec.resize(_e->size()); for (flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->dvec[_i] = _e->Get(_i); } } else if(!_merge) { _o->dvec.resize(0); _o->dvec.shrink_to_fit(); } }
-  { auto _e = fvec(); if (_e) {_o->fvec.resize(_e->size()); for (flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->fvec[_i] = _e->Get(_i); } } else if(!_merge) { _o->fvec.resize(0); _o->fvec.shrink_to_fit(); } }
+  { auto _e = dvec(); if (_e) {_o->dvec.resize(_e->size()); for (flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->dvec[_i] = _e->Get(_i); } } else { _o->dvec.resize(0); _o->dvec.shrink_to_fit(); } }
+  { auto _e = fvec(); if (_e) {_o->fvec.resize(_e->size()); for (flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->fvec[_i] = _e->Get(_i); } } else { _o->fvec.resize(0); _o->fvec.shrink_to_fit(); } }
 }
 
 inline flatbuffers::Offset<MonsterExtra> MonsterExtra::Pack(flatbuffers::FlatBufferBuilder &_fbb, const MonsterExtraT* _o, const flatbuffers::rehasher_function_t *_rehasher) {

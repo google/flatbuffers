@@ -299,7 +299,7 @@ struct ArrayTable FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
            verifier.EndTable();
   }
   ArrayTableT *UnPack(const flatbuffers::resolver_function_t *_resolver = nullptr) const;
-  void UnPackTo(ArrayTableT *_o, const flatbuffers::resolver_function_t *_resolver = nullptr, bool _merge = false) const;
+  void UnPackTo(ArrayTableT *_o, const flatbuffers::resolver_function_t *_resolver = nullptr) const;
   static flatbuffers::Offset<ArrayTable> Pack(flatbuffers::FlatBufferBuilder &_fbb, const ArrayTableT* _o, const flatbuffers::rehasher_function_t *_rehasher = nullptr);
 };
 
@@ -357,10 +357,9 @@ inline ArrayTableT *ArrayTable::UnPack(const flatbuffers::resolver_function_t *_
   return _o.release();
 }
 
-inline void ArrayTable::UnPackTo(ArrayTableT *_o, const flatbuffers::resolver_function_t *_resolver, bool _merge) const {
+inline void ArrayTable::UnPackTo(ArrayTableT *_o, const flatbuffers::resolver_function_t *_resolver) const {
   (void)_o;
   (void)_resolver;
-  (void)_merge;
   { auto _e = a(); if (_e) _o->a = flatbuffers::unique_ptr<MyGame::Example::ArrayStruct>(new MyGame::Example::ArrayStruct(*_e)); }
 }
 

@@ -170,7 +170,7 @@ flatbuffers::DetachedBuffer CreateFlatBufferTest(std::string &buffer) {
 
   FinishMonsterBuffer(builder, mloc);
 
-// clang-format off
+  // clang-format off
   #ifdef FLATBUFFERS_TEST_VERBOSE
   // print byte data for debugging:
   auto p = builder.GetBufferPointer();
@@ -195,7 +195,7 @@ void AccessFlatBufferTest(const uint8_t *flatbuf, size_t length, bool pooled) {
   verifier.SetFlexReuseTracker(&flex_reuse_tracker);
   TEST_EQ(VerifyMonsterBuffer(verifier), true);
 
-// clang-format off
+  // clang-format off
   #ifdef FLATBUFFERS_TRACK_VERIFIER_BUFFER_SIZE
     std::vector<uint8_t> test_buff;
     test_buff.resize(length * 2);
@@ -816,63 +816,29 @@ void UnPackTo(const uint8_t *flatbuf) {
   TEST_EQ_STR(orig_monster->name()->c_str(), "MyMonster");
   TEST_ASSERT(orig_monster->enemy() == nullptr);
 
-  // Test UnPackTo without merging state
-  {
-    // Create an enemy
-    MonsterT* enemy = new MonsterT();
-    enemy->name = "Enemy";
+  // Create an enemy
+  MonsterT *enemy = new MonsterT();
+  enemy->name = "Enemy";
 
-    // And create another monster owning the enemy,
-    MonsterT mon;
-    mon.name = "I'm monster 1";
-    mon.enemy.reset(enemy);
-    TEST_ASSERT(mon.enemy != nullptr);
+  // And create another monster owning the enemy,
+  MonsterT mon;
+  mon.name = "I'm monster 1";
+  mon.enemy.reset(enemy);
+  TEST_ASSERT(mon.enemy != nullptr);
 
-    // Assert that all the Monster objects are correct.
-    TEST_EQ_STR(mon.name.c_str(), "I'm monster 1");
-    TEST_EQ_STR(enemy->name.c_str(), "Enemy");
-    TEST_EQ_STR(mon.enemy->name.c_str(), "Enemy");
+  // Assert that all the Monster objects are correct.
+  TEST_EQ_STR(mon.name.c_str(), "I'm monster 1");
+  TEST_EQ_STR(enemy->name.c_str(), "Enemy");
+  TEST_EQ_STR(mon.enemy->name.c_str(), "Enemy");
 
-    // Now unpack monster ("MyMonster") into monster
-    orig_monster->UnPackTo(&mon);
+  // Now unpack monster ("MyMonster") into monster
+  orig_monster->UnPackTo(&mon);
 
-    // Monster name should be from monster
-    TEST_EQ_STR(mon.name.c_str(), "MyMonster");
+  // Monster name should be from monster
+  TEST_EQ_STR(mon.name.c_str(), "MyMonster");
 
-    // The monster shouldn't have any enemies, because monster didn't.
-    TEST_ASSERT(mon.enemy == nullptr);
-  }
-
-  //Test UnPackTo with merging state
-  {
-    // Create an enemy
-    MonsterT* enemy = new MonsterT();
-    enemy->name = "Enemy";
-
-    // And create another monster owning the enemy,
-    MonsterT mon;
-    mon.name = "I'm monster 1";
-    mon.enemy.reset(enemy);
-    TEST_ASSERT(mon.enemy != nullptr);
-
-    // Assert that all the Monster objects are correct.
-    TEST_EQ_STR(mon.name.c_str(), "I'm monster 1");
-    TEST_EQ_STR(enemy->name.c_str(), "Enemy");
-    TEST_EQ_STR(mon.enemy->name.c_str(), "Enemy");
-
-    // Now unpack monster ("MyMonster") into monster, indicating to merge state.
-    orig_monster->UnPackTo(&mon, nullptr, /*_merge=*/true);
-
-    // Monster name should be from monster
-    TEST_EQ_STR(mon.name.c_str(), "MyMonster");
-
-    // Enemy should still have its own name.
-    TEST_EQ_STR(enemy->name.c_str(), "Enemy");
-
-    // The monster should continue to have its original enemy monster, because
-    // the states were merged.
-    TEST_EQ_STR(mon.enemy->name.c_str(), "Enemy");
-  }
+  // The monster shouldn't have any enemies, because monster didn't.
+  TEST_ASSERT(mon.enemy == nullptr);
 }
 
 }  // namespace tests

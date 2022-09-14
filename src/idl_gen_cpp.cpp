@@ -1065,8 +1065,7 @@ class CppGenerator : public BaseGenerator {
     return "void " + (inclass ? "" : Name(struct_def) + "::") + "UnPackTo(" +
            NativeName(Name(struct_def), &struct_def, opts) + " *" +
            "_o, const flatbuffers::resolver_function_t *_resolver" +
-           (inclass ? " = nullptr" : "") + ", bool _merge" +
-           (inclass ? " = false" : "") + ") const";
+           (inclass ? " = nullptr" : "") + ") const";
   }
 
   void GenMiniReflectPre(const StructDef *struct_def) {
@@ -3078,7 +3077,7 @@ class CppGenerator : public BaseGenerator {
             if (is_pointer) {
               code += "if(_o->" + name + "[_i]" + ") { ";
               code += indexing + "->UnPackTo(_o->" + name +
-                      "[_i].get(), _resolver, _merge);";
+                      "[_i].get(), _resolver);";
               code += " } else { ";
             }
             code += "_o->" + name + "[_i]" + access + " = ";
@@ -3086,7 +3085,7 @@ class CppGenerator : public BaseGenerator {
                                  field);
             if (is_pointer) { code += "; }"; }
           }
-          code += "; } } else if(!_merge) { " + vector_field + ".resize(0); " +
+          code += "; } } else { " + vector_field + ".resize(0); " +
                   vector_field + ".shrink_to_fit(); }";
         }
         break;
@@ -3138,14 +3137,14 @@ class CppGenerator : public BaseGenerator {
 
           if (is_pointer) {
             code += "{ if(" + out_field + ") { ";
-            code += "_e->UnPackTo(" + out_field + ".get(), _resolver, _merge);";
+            code += "_e->UnPackTo(" + out_field + ".get(), _resolver);";
             code += " } else { ";
           }
           code += out_field + " = ";
           code += GenUnpackVal(field.value.type, "_e", false, field) + ";";
           if (is_pointer) {
-            code += " } } else if (!_merge && " + out_field + ") {" +
-                    out_field + ".reset(); }";
+            code += " } } else if (" + out_field + ") { " + out_field +
+                    ".reset(); }";
           }
         }
         break;
@@ -3398,7 +3397,6 @@ class CppGenerator : public BaseGenerator {
           "inline " + TableUnPackToSignature(struct_def, false, opts_) + " {";
       code_ += "  (void)_o;";
       code_ += "  (void)_resolver;";
-      code_ += "  (void)_merge;";
 
       for (auto it = struct_def.fields.vec.begin();
            it != struct_def.fields.vec.end(); ++it) {

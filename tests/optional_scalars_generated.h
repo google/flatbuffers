@@ -398,7 +398,7 @@ struct ScalarStuff FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
            verifier.EndTable();
   }
   ScalarStuffT *UnPack(const flatbuffers::resolver_function_t *_resolver = nullptr) const;
-  void UnPackTo(ScalarStuffT *_o, const flatbuffers::resolver_function_t *_resolver = nullptr, bool _merge = false) const;
+  void UnPackTo(ScalarStuffT *_o, const flatbuffers::resolver_function_t *_resolver = nullptr) const;
   static flatbuffers::Offset<ScalarStuff> Pack(flatbuffers::FlatBufferBuilder &_fbb, const ScalarStuffT* _o, const flatbuffers::rehasher_function_t *_rehasher = nullptr);
 };
 
@@ -657,10 +657,9 @@ inline ScalarStuffT *ScalarStuff::UnPack(const flatbuffers::resolver_function_t 
   return _o.release();
 }
 
-inline void ScalarStuff::UnPackTo(ScalarStuffT *_o, const flatbuffers::resolver_function_t *_resolver, bool _merge) const {
+inline void ScalarStuff::UnPackTo(ScalarStuffT *_o, const flatbuffers::resolver_function_t *_resolver) const {
   (void)_o;
   (void)_resolver;
-  (void)_merge;
   { auto _e = just_i8(); _o->just_i8 = _e; }
   { auto _e = maybe_i8(); _o->maybe_i8 = _e; }
   { auto _e = default_i8(); _o->default_i8 = _e; }

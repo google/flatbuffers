@@ -56,7 +56,7 @@ struct NativeInlineTable FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
            verifier.EndTable();
   }
   NativeInlineTableT *UnPack(const flatbuffers::resolver_function_t *_resolver = nullptr) const;
-  void UnPackTo(NativeInlineTableT *_o, const flatbuffers::resolver_function_t *_resolver = nullptr, bool _merge = false) const;
+  void UnPackTo(NativeInlineTableT *_o, const flatbuffers::resolver_function_t *_resolver = nullptr) const;
   static flatbuffers::Offset<NativeInlineTable> Pack(flatbuffers::FlatBufferBuilder &_fbb, const NativeInlineTableT* _o, const flatbuffers::rehasher_function_t *_rehasher = nullptr);
 };
 
@@ -116,7 +116,7 @@ struct TestNativeInlineTable FLATBUFFERS_FINAL_CLASS : private flatbuffers::Tabl
            verifier.EndTable();
   }
   TestNativeInlineTableT *UnPack(const flatbuffers::resolver_function_t *_resolver = nullptr) const;
-  void UnPackTo(TestNativeInlineTableT *_o, const flatbuffers::resolver_function_t *_resolver = nullptr, bool _merge = false) const;
+  void UnPackTo(TestNativeInlineTableT *_o, const flatbuffers::resolver_function_t *_resolver = nullptr) const;
   static flatbuffers::Offset<TestNativeInlineTable> Pack(flatbuffers::FlatBufferBuilder &_fbb, const TestNativeInlineTableT* _o, const flatbuffers::rehasher_function_t *_rehasher = nullptr);
 };
 
@@ -174,10 +174,9 @@ inline NativeInlineTableT *NativeInlineTable::UnPack(const flatbuffers::resolver
   return _o.release();
 }
 
-inline void NativeInlineTable::UnPackTo(NativeInlineTableT *_o, const flatbuffers::resolver_function_t *_resolver, bool _merge) const {
+inline void NativeInlineTable::UnPackTo(NativeInlineTableT *_o, const flatbuffers::resolver_function_t *_resolver) const {
   (void)_o;
   (void)_resolver;
-  (void)_merge;
   { auto _e = a(); _o->a = _e; }
 }
 
@@ -212,11 +211,10 @@ inline TestNativeInlineTableT *TestNativeInlineTable::UnPack(const flatbuffers::
   return _o.release();
 }
 
-inline void TestNativeInlineTable::UnPackTo(TestNativeInlineTableT *_o, const flatbuffers::resolver_function_t *_resolver, bool _merge) const {
+inline void TestNativeInlineTable::UnPackTo(TestNativeInlineTableT *_o, const flatbuffers::resolver_function_t *_resolver) const {
   (void)_o;
   (void)_resolver;
-  (void)_merge;
-  { auto _e = t(); if (_e) {_o->t.resize(_e->size()); for (flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->t[_i] = *flatbuffers::unique_ptr<NativeInlineTableT>(_e->Get(_i)->UnPack(_resolver)); } } else if(!_merge) { _o->t.resize(0); _o->t.shrink_to_fit(); } }
+  { auto _e = t(); if (_e) {_o->t.resize(_e->size()); for (flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->t[_i] = *flatbuffers::unique_ptr<NativeInlineTableT>(_e->Get(_i)->UnPack(_resolver)); } } else { _o->t.resize(0); _o->t.shrink_to_fit(); } }
 }
 
 inline flatbuffers::Offset<TestNativeInlineTable> TestNativeInlineTable::Pack(flatbuffers::FlatBufferBuilder &_fbb, const TestNativeInlineTableT* _o, const flatbuffers::rehasher_function_t *_rehasher) {

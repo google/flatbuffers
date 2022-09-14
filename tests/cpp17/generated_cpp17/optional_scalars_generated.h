@@ -436,7 +436,7 @@ struct ScalarStuff FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
            verifier.EndTable();
   }
   ScalarStuffT *UnPack(const flatbuffers::resolver_function_t *_resolver = nullptr) const;
-  void UnPackTo(ScalarStuffT *_o, const flatbuffers::resolver_function_t *_resolver = nullptr, bool _merge = false) const;
+  void UnPackTo(ScalarStuffT *_o, const flatbuffers::resolver_function_t *_resolver = nullptr) const;
   static flatbuffers::Offset<ScalarStuff> Pack(flatbuffers::FlatBufferBuilder &_fbb, const ScalarStuffT* _o, const flatbuffers::rehasher_function_t *_rehasher = nullptr);
 };
 
@@ -697,46 +697,45 @@ inline ScalarStuffT *ScalarStuff::UnPack(const flatbuffers::resolver_function_t 
   return _o.release();
 }
 
-inline void ScalarStuff::UnPackTo(ScalarStuffT *_o, const flatbuffers::resolver_function_t *_resolver, bool _merge) const {
+inline void ScalarStuff::UnPackTo(ScalarStuffT *_o, const flatbuffers::resolver_function_t *_resolver) const {
   (void)_o;
   (void)_resolver;
-  (void)_merge;
-  { auto _e = just_i8(); _o->just_i8 = _e; }
-  { auto _e = maybe_i8(); _o->maybe_i8 = _e; }
-  { auto _e = default_i8(); _o->default_i8 = _e; }
-  { auto _e = just_u8(); _o->just_u8 = _e; }
-  { auto _e = maybe_u8(); _o->maybe_u8 = _e; }
-  { auto _e = default_u8(); _o->default_u8 = _e; }
-  { auto _e = just_i16(); _o->just_i16 = _e; }
-  { auto _e = maybe_i16(); _o->maybe_i16 = _e; }
-  { auto _e = default_i16(); _o->default_i16 = _e; }
-  { auto _e = just_u16(); _o->just_u16 = _e; }
-  { auto _e = maybe_u16(); _o->maybe_u16 = _e; }
-  { auto _e = default_u16(); _o->default_u16 = _e; }
-  { auto _e = just_i32(); _o->just_i32 = _e; }
-  { auto _e = maybe_i32(); _o->maybe_i32 = _e; }
-  { auto _e = default_i32(); _o->default_i32 = _e; }
-  { auto _e = just_u32(); _o->just_u32 = _e; }
-  { auto _e = maybe_u32(); _o->maybe_u32 = _e; }
-  { auto _e = default_u32(); _o->default_u32 = _e; }
-  { auto _e = just_i64(); _o->just_i64 = _e; }
-  { auto _e = maybe_i64(); _o->maybe_i64 = _e; }
-  { auto _e = default_i64(); _o->default_i64 = _e; }
-  { auto _e = just_u64(); _o->just_u64 = _e; }
-  { auto _e = maybe_u64(); _o->maybe_u64 = _e; }
-  { auto _e = default_u64(); _o->default_u64 = _e; }
-  { auto _e = just_f32(); _o->just_f32 = _e; }
-  { auto _e = maybe_f32(); _o->maybe_f32 = _e; }
-  { auto _e = default_f32(); _o->default_f32 = _e; }
-  { auto _e = just_f64(); _o->just_f64 = _e; }
-  { auto _e = maybe_f64(); _o->maybe_f64 = _e; }
-  { auto _e = default_f64(); _o->default_f64 = _e; }
-  { auto _e = just_bool(); _o->just_bool = _e; }
-  { auto _e = maybe_bool(); _o->maybe_bool = _e; }
-  { auto _e = default_bool(); _o->default_bool = _e; }
-  { auto _e = just_enum(); _o->just_enum = _e; }
-  { auto _e = maybe_enum(); _o->maybe_enum = _e; }
-  { auto _e = default_enum(); _o->default_enum = _e; }
+  { auto _e = just_i8();  _o->just_i8 = _e; }
+  { auto _e = maybe_i8();  _o->maybe_i8 = _e; }
+  { auto _e = default_i8();  _o->default_i8 = _e; }
+  { auto _e = just_u8();  _o->just_u8 = _e; }
+  { auto _e = maybe_u8();  _o->maybe_u8 = _e; }
+  { auto _e = default_u8();  _o->default_u8 = _e; }
+  { auto _e = just_i16();  _o->just_i16 = _e; }
+  { auto _e = maybe_i16();  _o->maybe_i16 = _e; }
+  { auto _e = default_i16();  _o->default_i16 = _e; }
+  { auto _e = just_u16();  _o->just_u16 = _e; }
+  { auto _e = maybe_u16();  _o->maybe_u16 = _e; }
+  { auto _e = default_u16();  _o->default_u16 = _e; }
+  { auto _e = just_i32();  _o->just_i32 = _e; }
+  { auto _e = maybe_i32();  _o->maybe_i32 = _e; }
+  { auto _e = default_i32();  _o->default_i32 = _e; }
+  { auto _e = just_u32();  _o->just_u32 = _e; }
+  { auto _e = maybe_u32();  _o->maybe_u32 = _e; }
+  { auto _e = default_u32();  _o->default_u32 = _e; }
+  { auto _e = just_i64();  _o->just_i64 = _e; }
+  { auto _e = maybe_i64();  _o->maybe_i64 = _e; }
+  { auto _e = default_i64();  _o->default_i64 = _e; }
+  { auto _e = just_u64();  _o->just_u64 = _e; }
+  { auto _e = maybe_u64();  _o->maybe_u64 = _e; }
+  { auto _e = default_u64();  _o->default_u64 = _e; }
+  { auto _e = just_f32();  _o->just_f32 = _e; }
+  { auto _e = maybe_f32();  _o->maybe_f32 = _e; }
+  { auto _e = default_f32();  _o->default_f32 = _e; }
+  { auto _e = just_f64();  _o->just_f64 = _e; }
+  { auto _e = maybe_f64();  _o->maybe_f64 = _e; }
+  { auto _e = default_f64();  _o->default_f64 = _e; }
+  { auto _e = just_bool();  _o->just_bool = _e; }
+  { auto _e = maybe_bool();  _o->maybe_bool = _e; }
+  { auto _e = default_bool();  _o->default_bool = _e; }
+  { auto _e = just_enum();  _o->just_enum = _e; }
+  { auto _e = maybe_enum();  _o->maybe_enum = _e; }
+  { auto _e = default_enum();  _o->default_enum = _e; }
 }
 
 inline flatbuffers::Offset<ScalarStuff> ScalarStuff::Pack(flatbuffers::FlatBufferBuilder &_fbb, const ScalarStuffT* _o, const flatbuffers::rehasher_function_t *_rehasher) {

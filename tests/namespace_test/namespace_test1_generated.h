@@ -252,7 +252,7 @@ struct TableInNestedNS FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
            verifier.EndTable();
   }
   TableInNestedNST *UnPack(const flatbuffers::resolver_function_t *_resolver = nullptr) const;
-  void UnPackTo(TableInNestedNST *_o, const flatbuffers::resolver_function_t *_resolver = nullptr, bool _merge = false) const;
+  void UnPackTo(TableInNestedNST *_o, const flatbuffers::resolver_function_t *_resolver = nullptr) const;
   static flatbuffers::Offset<TableInNestedNS> Pack(flatbuffers::FlatBufferBuilder &_fbb, const TableInNestedNST* _o, const flatbuffers::rehasher_function_t *_rehasher = nullptr);
 };
 
@@ -301,10 +301,9 @@ inline TableInNestedNST *TableInNestedNS::UnPack(const flatbuffers::resolver_fun
   return _o.release();
 }
 
-inline void TableInNestedNS::UnPackTo(TableInNestedNST *_o, const flatbuffers::resolver_function_t *_resolver, bool _merge) const {
+inline void TableInNestedNS::UnPackTo(TableInNestedNST *_o, const flatbuffers::resolver_function_t *_resolver) const {
   (void)_o;
   (void)_resolver;
-  (void)_merge;
   { auto _e = foo(); _o->foo = _e; }
 }
 
