@@ -275,8 +275,8 @@ inline void MonsterExtra::UnPackTo(MonsterExtraT *_o, const flatbuffers::resolve
   { auto _e = f1(); _o->f1 = _e; }
   { auto _e = f2(); _o->f2 = _e; }
   { auto _e = f3(); _o->f3 = _e; }
-  { auto _e = dvec(); if (_e) { _o->dvec.resize(_e->size()); for (flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->dvec[_i] = _e->Get(_i); } } }
-  { auto _e = fvec(); if (_e) { _o->fvec.resize(_e->size()); for (flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->fvec[_i] = _e->Get(_i); } } }
+  { auto _e = dvec(); if (_e) { _o->dvec.resize(_e->size()); for (flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->dvec[_i] = _e->Get(_i); } } else { _o->dvec.resize(0); } }
+  { auto _e = fvec(); if (_e) { _o->fvec.resize(_e->size()); for (flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->fvec[_i] = _e->Get(_i); } } else { _o->fvec.resize(0); } }
 }
 
 inline flatbuffers::Offset<MonsterExtra> MonsterExtra::Pack(flatbuffers::FlatBufferBuilder &_fbb, const MonsterExtraT* _o, const flatbuffers::rehasher_function_t *_rehasher) {

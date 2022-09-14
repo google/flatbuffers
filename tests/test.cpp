@@ -1409,6 +1409,7 @@ int FlatBufferTests(const std::string &tests_data_path) {
   MutateFlatBuffersTest(flatbuf.data(), flatbuf.size());
 
   ObjectFlatBuffersTest(flatbuf.data());
+  UnPackTo(flatbuf.data());
 
   MiniReflectFlatBuffersTest(flatbuf.data());
   MiniReflectFixedLengthArrayTest();
