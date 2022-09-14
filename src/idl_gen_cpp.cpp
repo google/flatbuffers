@@ -3016,7 +3016,7 @@ class CppGenerator : public BaseGenerator {
           name = StripUnionType(Name(field));
         }
         const std::string vector_field = "_o->" + name;
-        code += "{" + vector_field + ".resize(_e->size()); ";
+        code += "{ " + vector_field + ".resize(_e->size()); ";
         if (!field.value.type.enum_def && !IsBool(field.value.type.element) &&
             IsOneByte(field.value.type.element)) {
           // For vectors of bytes, std::copy is used to improve performance.
@@ -3085,8 +3085,7 @@ class CppGenerator : public BaseGenerator {
                                  field);
             if (is_pointer) { code += "; }"; }
           }
-          code += "; } } else { " + vector_field + ".resize(0); " +
-                  vector_field + ".shrink_to_fit(); }";
+          code += "; } } else { " + vector_field + ".resize(0); }";
         }
         break;
       }
