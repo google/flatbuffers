@@ -26,10 +26,6 @@
 #include "flatbuffers/idl.h"
 #include "flatbuffers/util.h"
 
-#ifndef FLATBUFFERS_CPP_OBJECT_UNPACKTO
-#define FLATBUFFERS_CPP_OBJECT_UNPACKTO 0
-#endif
-
 namespace flatbuffers {
 
 // Make numerical literal with type-suffix.
@@ -74,13 +70,17 @@ static std::string GenIncludeGuard(const std::string &file_name,
   return guard;
 }
 
-static bool IsVectorOfPointers(const FieldDef& field) {
-  const auto& type = field.value.type;
-  const auto& vector_type = type.VectorType();
+static bool IsVectorOfPointers(const FieldDef &field) {
+  const auto &type = field.value.type;
+  const auto &vector_type = type.VectorType();
   return type.base_type == BASE_TYPE_VECTOR &&
          vector_type.base_type == BASE_TYPE_STRUCT &&
-         !vector_type.struct_def->fixed &&
-         !field.native_inline;
+         !vector_type.struct_def->fixed && !field.native_inline;
+}
+
+static bool IsPointer(const FieldDef &field) {
+  return field.value.type.base_type == BASE_TYPE_STRUCT &&
+         !IsStruct(field.value.type);
 }
 
 namespace cpp {
@@ -1882,7 +1882,8 @@ class CppGenerator : public BaseGenerator {
         if (vec_type.base_type == BASE_TYPE_UTYPE) continue;
         const auto cpp_type = field.attributes.Lookup("cpp_type");
         const auto cpp_ptr_type = field.attributes.Lookup("cpp_ptr_type");
-        const bool is_ptr = IsVectorOfPointers(field) || (cpp_type && cpp_ptr_type->constant != "naked");
+        const bool is_ptr = IsVectorOfPointers(field) ||
+                            (cpp_type && cpp_ptr_type->constant != "naked");
         if (is_ptr) { return true; }
       }
     }
@@ -2006,7 +2007,8 @@ class CppGenerator : public BaseGenerator {
                                    ? cpp_type->constant
                                    : GenTypeNative(vec_type, /*invector*/ true,
                                                    field, /*forcopy*/ true);
-        const bool is_ptr = IsVectorOfPointers(field) || (cpp_type && cpp_ptr_type->constant != "naked");
+        const bool is_ptr = IsVectorOfPointers(field) ||
+                            (cpp_type && cpp_ptr_type->constant != "naked");
         CodeWriter cw("  ");
         cw.SetValue("FIELD", Name(field));
         cw.SetValue("TYPE", type_name);
@@ -3013,7 +3015,8 @@ class CppGenerator : public BaseGenerator {
         if (field.value.type.element == BASE_TYPE_UTYPE) {
           name = StripUnionType(Name(field));
         }
-        code += "{ _o->" + name + ".resize(_e->size()); ";
+        const std::string vector_field = "_o->" + name;
+        code += "{ " + vector_field + ".resize(_e->size()); ";
         if (!field.value.type.enum_def && !IsBool(field.value.type.element) &&
             IsOneByte(field.value.type.element)) {
           // For vectors of bytes, std::copy is used to improve performance.
@@ -3053,7 +3056,7 @@ class CppGenerator : public BaseGenerator {
             //    (*resolver)(&_o->field, (hash_value_t)(_e));
             //  else
             //    _o->field = nullptr;
-            code += "//vector resolver, " + PtrType(&field) + "\n";
+            code += "/*vector resolver, " + PtrType(&field) + "*/ ";
             code += "if (_resolver) ";
             code += "(*_resolver)";
             code += "(reinterpret_cast<void **>(&_o->" + name + "[_i]" +
@@ -3070,8 +3073,6 @@ class CppGenerator : public BaseGenerator {
               code += "/* else do nothing */";
             }
           } else {
-            // clang-format off
-            #if FLATBUFFERS_CPP_OBJECT_UNPACKTO
             const bool is_pointer = IsVectorOfPointers(field);
             if (is_pointer) {
               code += "if(_o->" + name + "[_i]" + ") { ";
@@ -3079,16 +3080,12 @@ class CppGenerator : public BaseGenerator {
                       "[_i].get(), _resolver);";
               code += " } else { ";
             }
-            #endif
             code += "_o->" + name + "[_i]" + access + " = ";
             code += GenUnpackVal(field.value.type.VectorType(), indexing, true,
                                  field);
-            #if FLATBUFFERS_CPP_OBJECT_UNPACKTO
             if (is_pointer) { code += "; }"; }
-            #endif
-            // clang-format on
           }
-          code += "; } }";
+          code += "; } } else { " + vector_field + ".resize(0); }";
         }
         break;
       }
@@ -3116,7 +3113,7 @@ class CppGenerator : public BaseGenerator {
           //    (*resolver)(&_o->field, (hash_value_t)(_e));
           //  else
           //    _o->field = nullptr;
-          code += "//scalar resolver, " + PtrType(&field) + " \n";
+          code += "/*scalar resolver, " + PtrType(&field) + "*/ ";
           code += "if (_resolver) ";
           code += "(*_resolver)";
           code += "(reinterpret_cast<void **>(&_o->" + Name(field) + "), ";
@@ -3133,21 +3130,21 @@ class CppGenerator : public BaseGenerator {
         } else {
           // Generate code for assigning the value, of the form:
           //  _o->field = value;
-          // clang-format off
-          #if FLATBUFFERS_CPP_OBJECT_UNPACKTO
-          const bool is_pointer = IsVectorOfPointers(field);
+          const bool is_pointer = IsPointer(field);
+
+          const std::string out_field = "_o->" + Name(field);
+
           if (is_pointer) {
-            code += "{ if(_o->" + Name(field) + ") { ";
-            code += "_e->UnPackTo(_o->" + Name(field) + ".get(), _resolver);";
+            code += "{ if(" + out_field + ") { ";
+            code += "_e->UnPackTo(" + out_field + ".get(), _resolver);";
             code += " } else { ";
           }
-          #endif
-          code += "_o->" + Name(field) + " = ";
+          code += out_field + " = ";
           code += GenUnpackVal(field.value.type, "_e", false, field) + ";";
-          #if FLATBUFFERS_CPP_OBJECT_UNPACKTO
-          if (is_pointer) { code += " } }"; }
-          #endif
-          // clang-format on
+          if (is_pointer) {
+            code += " } } else if (" + out_field + ") { " + out_field +
+                    ".reset(); }";
+          }
         }
         break;
       }

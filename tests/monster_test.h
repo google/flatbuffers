@@ -30,6 +30,8 @@ void TypeAliasesTest();
 
 void ParseAndGenerateTextTest(const std::string& tests_data_path, bool binary);
 
+void UnPackTo(const uint8_t *flatbuf);
+
 }  // namespace tests
 }  // namespace flatbuffers
 
