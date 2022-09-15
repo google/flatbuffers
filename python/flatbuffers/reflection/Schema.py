@@ -45,9 +45,7 @@ class Schema(object):
     def ObjectsLength(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(4))
         if o != 0:
-
             return self._tab.VectorLen(o)
-
         return 0
 
     # Schema
@@ -72,9 +70,7 @@ class Schema(object):
     def EnumsLength(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(6))
         if o != 0:
-
             return self._tab.VectorLen(o)
-
         return 0
 
     # Schema
@@ -124,9 +120,7 @@ class Schema(object):
     def ServicesLength(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(14))
         if o != 0:
-
             return self._tab.VectorLen(o)
-
         return 0
 
     # Schema
@@ -160,9 +154,7 @@ class Schema(object):
     def FbsFilesLength(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(18))
         if o != 0:
-
             return self._tab.VectorLen(o)
-
         return 0
 
     # Schema

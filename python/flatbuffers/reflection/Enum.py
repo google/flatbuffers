@@ -52,9 +52,7 @@ class Enum(object):
     def ValuesLength(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(6))
         if o != 0:
-
             return self._tab.VectorLen(o)
-
         return 0
 
     # Enum
@@ -97,9 +95,7 @@ class Enum(object):
     def AttributesLength(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(12))
         if o != 0:
-
             return self._tab.VectorLen(o)
-
         return 0
 
     # Enum
@@ -119,9 +115,7 @@ class Enum(object):
     def DocumentationLength(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(14))
         if o != 0:
-
             return self._tab.VectorLen(o)
-
         return 0
 
     # Enum
