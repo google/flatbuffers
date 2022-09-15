@@ -17,7 +17,6 @@
 // independent from idl_parser, since this code is not needed for most clients
 
 #include <cctype>
-#include <iostream>
 #include <set>
 #include <string>
 #include <unordered_set>
@@ -84,11 +83,11 @@ class PythonGenerator : public BaseGenerator {
 
   // Most field accessors need to retrieve and test the field offset first,
   // this is the prefix code for that.
-  std::string OffsetPrefix(const FieldDef &field) const {
+  std::string OffsetPrefix(const FieldDef &field, bool new_line = true) const {
     return "\n" + Indent + Indent +
            "o = flatbuffers.number_types.UOffsetTFlags.py_type" +
            "(self._tab.Offset(" + NumToString(field.value.offset) + "))\n" +
-           Indent + Indent + "if o != 0:\n";
+           Indent + Indent + "if o != 0:" + (new_line ? "\n" : "");
   }
 
   // Begin a class declaration.
@@ -167,8 +166,8 @@ class PythonGenerator : public BaseGenerator {
     code += namer_.Method(field) + "Length(self";
     code += "):";
     if(!IsArray(field.value.type)){
-      code += OffsetPrefix(field);
-      code += GenIndents(3) + "return self._tab.VectorLen(o)\n";
+      code += OffsetPrefix(field,false);
+      code += GenIndents(3) + "return self._tab.VectorLen(o)";
       code += GenIndents(2) + "return 0\n\n";
     }else{
       code += GenIndents(2) + "return "+NumToString(field.value.type.fixed_length)+"\n\n";
@@ -434,7 +433,7 @@ class PythonGenerator : public BaseGenerator {
     GenReceiver(struct_def, code_ptr);
     code += namer_.Method(field) + "AsNumpy(self):";
     if(!IsArray(field.value.type)){
-      code += OffsetPrefix(field);
+      code += OffsetPrefix(field, false);
 
       code += GenIndents(3);
       code += "return ";
