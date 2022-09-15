@@ -439,7 +439,7 @@ class PythonGenerator : public BaseGenerator {
       code += "return ";
       code += "self._tab.GetVectorAsNumpy(flatbuffers.number_types.";
       code += namer_.Method(GenTypeGet(field.value.type));
-      code += "Flags, o)\n";
+      code += "Flags, o)";
 
       if (IsString(vectortype)) {
         code += GenIndents(2) + "return \"\"\n";

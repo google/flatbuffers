@@ -111,7 +111,6 @@ class TypeAliases(object):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(24))
         if o != 0:
             return self._tab.GetVectorAsNumpy(flatbuffers.number_types.Int8Flags, o)
-
         return 0
 
     # TypeAliases
@@ -139,7 +138,6 @@ class TypeAliases(object):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(26))
         if o != 0:
             return self._tab.GetVectorAsNumpy(flatbuffers.number_types.Float64Flags, o)
-
         return 0
 
     # TypeAliases
