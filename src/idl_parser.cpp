@@ -4124,17 +4124,19 @@ std::string Parser::ConformTo(const Parser &base) {
         struct_def.defined_namespace->GetFullyQualifiedName(struct_def.name);
     auto struct_def_base = base.LookupStruct(qualified_name);
     if (!struct_def_base) continue;
+    std::set<FieldDef*> renamed_fields;
     for (auto fit = struct_def.fields.vec.begin();
          fit != struct_def.fields.vec.end(); ++fit) {
       auto &field = **fit;
       auto field_base = struct_def_base->fields.Lookup(field.name);
+      const auto qualified_field_name = qualified_name + "." + field.name;
       if (field_base) {
         if (field.value.offset != field_base->value.offset)
-          return "offsets differ for field: " + field.name;
+          return "offsets differ for field: " + qualified_field_name;
         if (field.value.constant != field_base->value.constant)
-          return "defaults differ for field: " + field.name;
+          return "defaults differ for field: " + qualified_field_name;
         if (!EqualByName(field.value.type, field_base->value.type))
-          return "types differ for field: " + field.name;
+          return "types differ for field: " + qualified_field_name;
       } else {
         // Doesn't have to exist, deleting fields is fine.
         // But we should check if there is a field that has the same offset
@@ -4143,14 +4145,28 @@ std::string Parser::ConformTo(const Parser &base) {
              fbit != struct_def_base->fields.vec.end(); ++fbit) {
           field_base = *fbit;
           if (field.value.offset == field_base->value.offset) {
+            renamed_fields.insert(field_base);
             if (!EqualByName(field.value.type, field_base->value.type))
-              return "field renamed to different type: " + field.name;
+              return "field renamed to different type: " + qualified_field_name;
             break;
           }
         }
       }
     }
+    //deletion of trailing fields are not allowed
+    for (auto fit = struct_def_base->fields.vec.begin();
+      fit != struct_def_base->fields.vec.end(); ++fit ) {  
+      auto &field_base = **fit;
+      //not a renamed field
+      if (renamed_fields.find(&field_base) == renamed_fields.end()) {
+        auto field = struct_def.fields.Lookup(field_base.name);
+        if (!field) { 
+          return "field deleted: " + qualified_name + "." + field_base.name; 
+        }
+      }
+    }
   }
+
   for (auto eit = enums_.vec.begin(); eit != enums_.vec.end(); ++eit) {
     auto &enum_def = **eit;
     auto qualified_name =

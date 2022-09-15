@@ -98,6 +98,8 @@ void ConformTest() {
   test_conform(parser, "table T { B:float; }",
                "field renamed to different type");
   test_conform(parser, "enum E:byte { B, A }", "values differ for enum");
+  test_conform(parser, "table T { }", "field deleted");
+  test_conform(parser, "table T { B:int; }", ""); //renaming a field is allowed
 }
 
 void UnionDeprecationTest(const std::string& tests_data_path) {
