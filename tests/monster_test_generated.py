@@ -120,8 +120,9 @@ class InParentNamespaceT(object):
 
     @classmethod
     def InitFromBuf(cls, buf, pos):
+        n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, 0)
         inParentNamespace = InParentNamespace()
-        inParentNamespace.Init(buf, pos)
+        inParentNamespace.Init(buf, pos+n)
         return cls.InitFromObj(inParentNamespace)
 
     @classmethod
@@ -176,8 +177,9 @@ class MonsterT(object):
 
     @classmethod
     def InitFromBuf(cls, buf, pos):
+        n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, 0)
         monster = Monster()
-        monster.Init(buf, pos)
+        monster.Init(buf, pos+n)
         return cls.InitFromObj(monster)
 
     @classmethod
@@ -231,8 +233,9 @@ class TestT(object):
 
     @classmethod
     def InitFromBuf(cls, buf, pos):
+        n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, 0)
         test = Test()
-        test.Init(buf, pos)
+        test.Init(buf, pos+n)
         return cls.InitFromObj(test)
 
     @classmethod
@@ -295,8 +298,9 @@ class TestSimpleTableWithEnumT(object):
 
     @classmethod
     def InitFromBuf(cls, buf, pos):
+        n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, 0)
         testSimpleTableWithEnum = TestSimpleTableWithEnum()
-        testSimpleTableWithEnum.Init(buf, pos)
+        testSimpleTableWithEnum.Init(buf, pos+n)
         return cls.InitFromObj(testSimpleTableWithEnum)
 
     @classmethod
@@ -380,8 +384,9 @@ class Vec3T(object):
 
     @classmethod
     def InitFromBuf(cls, buf, pos):
+        n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, 0)
         vec3 = Vec3()
-        vec3.Init(buf, pos)
+        vec3.Init(buf, pos+n)
         return cls.InitFromObj(vec3)
 
     @classmethod
@@ -439,8 +444,9 @@ class AbilityT(object):
 
     @classmethod
     def InitFromBuf(cls, buf, pos):
+        n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, 0)
         ability = Ability()
-        ability.Init(buf, pos)
+        ability.Init(buf, pos+n)
         return cls.InitFromObj(ability)
 
     @classmethod
@@ -517,8 +523,9 @@ class StructOfStructsT(object):
 
     @classmethod
     def InitFromBuf(cls, buf, pos):
+        n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, 0)
         structOfStructs = StructOfStructs()
-        structOfStructs.Init(buf, pos)
+        structOfStructs.Init(buf, pos+n)
         return cls.InitFromObj(structOfStructs)
 
     @classmethod
@@ -588,8 +595,9 @@ class StructOfStructsOfStructsT(object):
 
     @classmethod
     def InitFromBuf(cls, buf, pos):
+        n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, 0)
         structOfStructsOfStructs = StructOfStructsOfStructs()
-        structOfStructsOfStructs.Init(buf, pos)
+        structOfStructsOfStructs.Init(buf, pos+n)
         return cls.InitFromObj(structOfStructsOfStructs)
 
     @classmethod
@@ -670,8 +678,9 @@ class StatT(object):
 
     @classmethod
     def InitFromBuf(cls, buf, pos):
+        n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, 0)
         stat = Stat()
-        stat.Init(buf, pos)
+        stat.Init(buf, pos+n)
         return cls.InitFromObj(stat)
 
     @classmethod
@@ -743,8 +752,9 @@ class ReferrableT(object):
 
     @classmethod
     def InitFromBuf(cls, buf, pos):
+        n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, 0)
         referrable = Referrable()
-        referrable.Init(buf, pos)
+        referrable.Init(buf, pos+n)
         return cls.InitFromObj(referrable)
 
     @classmethod
@@ -833,14 +843,18 @@ class Monster(object):
     def InventoryAsNumpy(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(14))
         if o != 0:
+
             return self._tab.GetVectorAsNumpy(flatbuffers.number_types.Uint8Flags, o)
+
         return 0
 
     # Monster
     def InventoryLength(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(14))
         if o != 0:
+
             return self._tab.VectorLen(o)
+
         return 0
 
     # Monster
@@ -887,7 +901,9 @@ class Monster(object):
     def Test4Length(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(22))
         if o != 0:
+
             return self._tab.VectorLen(o)
+
         return 0
 
     # Monster
@@ -907,7 +923,9 @@ class Monster(object):
     def TestarrayofstringLength(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(24))
         if o != 0:
+
             return self._tab.VectorLen(o)
+
         return 0
 
     # Monster
@@ -933,7 +951,9 @@ class Monster(object):
     def TestarrayoftablesLength(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(26))
         if o != 0:
+
             return self._tab.VectorLen(o)
+
         return 0
 
     # Monster
@@ -963,7 +983,9 @@ class Monster(object):
     def TestnestedflatbufferAsNumpy(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(30))
         if o != 0:
+
             return self._tab.GetVectorAsNumpy(flatbuffers.number_types.Uint8Flags, o)
+
         return 0
 
     # Monster
@@ -978,7 +1000,9 @@ class Monster(object):
     def TestnestedflatbufferLength(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(30))
         if o != 0:
+
             return self._tab.VectorLen(o)
+
         return 0
 
     # Monster
@@ -1071,14 +1095,18 @@ class Monster(object):
     def TestarrayofboolsAsNumpy(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(52))
         if o != 0:
+
             return self._tab.GetVectorAsNumpy(flatbuffers.number_types.BoolFlags, o)
+
         return 0
 
     # Monster
     def TestarrayofboolsLength(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(52))
         if o != 0:
+
             return self._tab.VectorLen(o)
+
         return 0
 
     # Monster
@@ -1119,7 +1147,9 @@ class Monster(object):
     def Testarrayofstring2Length(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(60))
         if o != 0:
+
             return self._tab.VectorLen(o)
+
         return 0
 
     # Monster
@@ -1142,7 +1172,9 @@ class Monster(object):
     def TestarrayofsortedstructLength(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(62))
         if o != 0:
+
             return self._tab.VectorLen(o)
+
         return 0
 
     # Monster
@@ -1162,14 +1194,18 @@ class Monster(object):
     def FlexAsNumpy(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(64))
         if o != 0:
+
             return self._tab.GetVectorAsNumpy(flatbuffers.number_types.Uint8Flags, o)
+
         return 0
 
     # Monster
     def FlexLength(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(64))
         if o != 0:
+
             return self._tab.VectorLen(o)
+
         return 0
 
     # Monster
@@ -1192,7 +1228,9 @@ class Monster(object):
     def Test5Length(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(66))
         if o != 0:
+
             return self._tab.VectorLen(o)
+
         return 0
 
     # Monster
@@ -1212,14 +1250,18 @@ class Monster(object):
     def VectorOfLongsAsNumpy(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(68))
         if o != 0:
+
             return self._tab.GetVectorAsNumpy(flatbuffers.number_types.Int64Flags, o)
+
         return 0
 
     # Monster
     def VectorOfLongsLength(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(68))
         if o != 0:
+
             return self._tab.VectorLen(o)
+
         return 0
 
     # Monster
@@ -1239,14 +1281,18 @@ class Monster(object):
     def VectorOfDoublesAsNumpy(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(70))
         if o != 0:
+
             return self._tab.GetVectorAsNumpy(flatbuffers.number_types.Float64Flags, o)
+
         return 0
 
     # Monster
     def VectorOfDoublesLength(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(70))
         if o != 0:
+
             return self._tab.VectorLen(o)
+
         return 0
 
     # Monster
@@ -1280,7 +1326,9 @@ class Monster(object):
     def VectorOfReferrablesLength(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(74))
         if o != 0:
+
             return self._tab.VectorLen(o)
+
         return 0
 
     # Monster
@@ -1307,14 +1355,18 @@ class Monster(object):
     def VectorOfWeakReferencesAsNumpy(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(78))
         if o != 0:
+
             return self._tab.GetVectorAsNumpy(flatbuffers.number_types.Uint64Flags, o)
+
         return 0
 
     # Monster
     def VectorOfWeakReferencesLength(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(78))
         if o != 0:
+
             return self._tab.VectorLen(o)
+
         return 0
 
     # Monster
@@ -1338,7 +1390,9 @@ class Monster(object):
     def VectorOfStrongReferrablesLength(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(80))
         if o != 0:
+
             return self._tab.VectorLen(o)
+
         return 0
 
     # Monster
@@ -1365,14 +1419,18 @@ class Monster(object):
     def VectorOfCoOwningReferencesAsNumpy(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(84))
         if o != 0:
+
             return self._tab.GetVectorAsNumpy(flatbuffers.number_types.Uint64Flags, o)
+
         return 0
 
     # Monster
     def VectorOfCoOwningReferencesLength(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(84))
         if o != 0:
+
             return self._tab.VectorLen(o)
+
         return 0
 
     # Monster
@@ -1399,14 +1457,18 @@ class Monster(object):
     def VectorOfNonOwningReferencesAsNumpy(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(88))
         if o != 0:
+
             return self._tab.GetVectorAsNumpy(flatbuffers.number_types.Uint64Flags, o)
+
         return 0
 
     # Monster
     def VectorOfNonOwningReferencesLength(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(88))
         if o != 0:
+
             return self._tab.VectorLen(o)
+
         return 0
 
     # Monster
@@ -1460,14 +1522,18 @@ class Monster(object):
     def VectorOfEnumsAsNumpy(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(98))
         if o != 0:
+
             return self._tab.GetVectorAsNumpy(flatbuffers.number_types.Uint8Flags, o)
+
         return 0
 
     # Monster
     def VectorOfEnumsLength(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(98))
         if o != 0:
+
             return self._tab.VectorLen(o)
+
         return 0
 
     # Monster
@@ -1494,7 +1560,9 @@ class Monster(object):
     def TestrequirednestedflatbufferAsNumpy(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(102))
         if o != 0:
+
             return self._tab.GetVectorAsNumpy(flatbuffers.number_types.Uint8Flags, o)
+
         return 0
 
     # Monster
@@ -1509,7 +1577,9 @@ class Monster(object):
     def TestrequirednestedflatbufferLength(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(102))
         if o != 0:
+
             return self._tab.VectorLen(o)
+
         return 0
 
     # Monster
@@ -1533,7 +1603,9 @@ class Monster(object):
     def ScalarKeySortedTablesLength(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(104))
         if o != 0:
+
             return self._tab.VectorLen(o)
+
         return 0
 
     # Monster
@@ -1716,8 +1788,9 @@ class MonsterT(object):
 
     @classmethod
     def InitFromBuf(cls, buf, pos):
+        n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, 0)
         monster = Monster()
-        monster.Init(buf, pos)
+        monster.Init(buf, pos+n)
         return cls.InitFromObj(monster)
 
     @classmethod
@@ -2270,14 +2343,18 @@ class TypeAliases(object):
     def V8AsNumpy(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(24))
         if o != 0:
+
             return self._tab.GetVectorAsNumpy(flatbuffers.number_types.Int8Flags, o)
+
         return 0
 
     # TypeAliases
     def V8Length(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(24))
         if o != 0:
+
             return self._tab.VectorLen(o)
+
         return 0
 
     # TypeAliases
@@ -2297,14 +2374,18 @@ class TypeAliases(object):
     def Vf64AsNumpy(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(26))
         if o != 0:
+
             return self._tab.GetVectorAsNumpy(flatbuffers.number_types.Float64Flags, o)
+
         return 0
 
     # TypeAliases
     def Vf64Length(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(26))
         if o != 0:
+
             return self._tab.VectorLen(o)
+
         return 0
 
     # TypeAliases
@@ -2353,8 +2434,9 @@ class TypeAliasesT(object):
 
     @classmethod
     def InitFromBuf(cls, buf, pos):
+        n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, 0)
         typeAliases = TypeAliases()
-        typeAliases.Init(buf, pos)
+        typeAliases.Init(buf, pos+n)
         return cls.InitFromObj(typeAliases)
 
     @classmethod

@@ -96,14 +96,18 @@ class MonsterExtra(object):
     def DvecAsNumpy(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(20))
         if o != 0:
+
             return self._tab.GetVectorAsNumpy(flatbuffers.number_types.Float64Flags, o)
+
         return 0
 
     # MonsterExtra
     def DvecLength(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(20))
         if o != 0:
+
             return self._tab.VectorLen(o)
+
         return 0
 
     # MonsterExtra
@@ -123,14 +127,18 @@ class MonsterExtra(object):
     def FvecAsNumpy(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(22))
         if o != 0:
+
             return self._tab.GetVectorAsNumpy(flatbuffers.number_types.Float32Flags, o)
+
         return 0
 
     # MonsterExtra
     def FvecLength(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(22))
         if o != 0:
+
             return self._tab.VectorLen(o)
+
         return 0
 
     # MonsterExtra
@@ -202,8 +210,9 @@ class MonsterExtraT(object):
 
     @classmethod
     def InitFromBuf(cls, buf, pos):
+        n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, 0)
         monsterExtra = MonsterExtra()
-        monsterExtra.Init(buf, pos)
+        monsterExtra.Init(buf, pos+n)
         return cls.InitFromObj(monsterExtra)
 
     @classmethod

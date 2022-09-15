@@ -52,7 +52,9 @@ class Object(object):
     def FieldsLength(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(6))
         if o != 0:
+
             return self._tab.VectorLen(o)
+
         return 0
 
     # Object
@@ -98,7 +100,9 @@ class Object(object):
     def AttributesLength(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(14))
         if o != 0:
+
             return self._tab.VectorLen(o)
+
         return 0
 
     # Object
@@ -118,7 +122,9 @@ class Object(object):
     def DocumentationLength(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(16))
         if o != 0:
+
             return self._tab.VectorLen(o)
+
         return 0
 
     # Object

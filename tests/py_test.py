@@ -2658,6 +2658,10 @@ class TestFixedLengthArrays(unittest.TestCase):
     self.assertEqual(table.A().D(1).D(), [-2, 2])
     self.assertEqual(table.A().E(), 2)
     self.assertEqual(table.A().F(), [-1, 1])
+    self.assertEqual(table.A().D(0).D(0), -1)
+    self.assertEqual(table.A().D(0).D(1), 1)
+    self.assertEqual(table.A().D(1).D(0), -2)
+    self.assertEqual(table.A().D(1).D(1), 2)
 
 def CheckAgainstGoldDataGo():
   try:
