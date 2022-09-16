@@ -76,7 +76,6 @@ table Field {
     offset:ushort;  // Offset into the vtable for tables, or into the struct.
     default_integer:long = 0;
     default_real:double = 0.0;
-    default_string:string;
     deprecated:bool = false;
     required:bool = false;
     key:bool = false;

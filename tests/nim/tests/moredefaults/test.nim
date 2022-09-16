@@ -18,7 +18,6 @@ suite "TestMoreDefaults":
     var defaults: MoreDefaults
     defaults.GetRootAs(fbb.FinishedBytes(), 0)
     check(defaults.emptyString == "")
-    check(defaults.someString == "some")
     check(defaults.ints == [])
     check(defaults.floats == [])
     check(defaults.bools == [])

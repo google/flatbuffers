@@ -580,14 +580,13 @@ struct Field FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
     VT_OFFSET = 10,
     VT_DEFAULT_INTEGER = 12,
     VT_DEFAULT_REAL = 14,
-    VT_DEFAULT_STRING = 16,
-    VT_DEPRECATED = 18,
-    VT_REQUIRED = 20,
-    VT_KEY = 22,
-    VT_ATTRIBUTES = 24,
-    VT_DOCUMENTATION = 26,
-    VT_OPTIONAL = 28,
-    VT_PADDING = 30
+    VT_DEPRECATED = 16,
+    VT_REQUIRED = 18,
+    VT_KEY = 20,
+    VT_ATTRIBUTES = 22,
+    VT_DOCUMENTATION = 24,
+    VT_OPTIONAL = 26,
+    VT_PADDING = 28
   };
   const flatbuffers::String *name() const {
     return GetPointer<const flatbuffers::String *>(VT_NAME);
@@ -612,9 +611,6 @@ struct Field FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   }
   double default_real() const {
     return GetField<double>(VT_DEFAULT_REAL, 0.0);
-  }
-  const flatbuffers::String *default_string() const {
-    return GetPointer<const flatbuffers::String *>(VT_DEFAULT_STRING);
   }
   bool deprecated() const {
     return GetField<uint8_t>(VT_DEPRECATED, 0) != 0;
@@ -648,8 +644,6 @@ struct Field FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
            VerifyField<uint16_t>(verifier, VT_OFFSET, 2) &&
            VerifyField<int64_t>(verifier, VT_DEFAULT_INTEGER, 8) &&
            VerifyField<double>(verifier, VT_DEFAULT_REAL, 8) &&
-           VerifyOffset(verifier, VT_DEFAULT_STRING) &&
-           verifier.VerifyString(default_string()) &&
            VerifyField<uint8_t>(verifier, VT_DEPRECATED, 1) &&
            VerifyField<uint8_t>(verifier, VT_REQUIRED, 1) &&
            VerifyField<uint8_t>(verifier, VT_KEY, 1) &&
@@ -686,9 +680,6 @@ struct FieldBuilder {
   }
   void add_default_real(double default_real) {
     fbb_.AddElement<double>(Field::VT_DEFAULT_REAL, default_real, 0.0);
-  }
-  void add_default_string(flatbuffers::Offset<flatbuffers::String> default_string) {
-    fbb_.AddOffset(Field::VT_DEFAULT_STRING, default_string);
   }
   void add_deprecated(bool deprecated) {
     fbb_.AddElement<uint8_t>(Field::VT_DEPRECATED, static_cast<uint8_t>(deprecated), 0);
@@ -732,7 +723,6 @@ inline flatbuffers::Offset<Field> CreateField(
     uint16_t offset = 0,
     int64_t default_integer = 0,
     double default_real = 0.0,
-    flatbuffers::Offset<flatbuffers::String> default_string = 0,
     bool deprecated = false,
     bool required = false,
     bool key = false,
@@ -745,7 +735,6 @@ inline flatbuffers::Offset<Field> CreateField(
   builder_.add_default_integer(default_integer);
   builder_.add_documentation(documentation);
   builder_.add_attributes(attributes);
-  builder_.add_default_string(default_string);
   builder_.add_type(type);
   builder_.add_name(name);
   builder_.add_padding(padding);
@@ -766,7 +755,6 @@ inline flatbuffers::Offset<Field> CreateFieldDirect(
     uint16_t offset = 0,
     int64_t default_integer = 0,
     double default_real = 0.0,
-    const char *default_string = nullptr,
     bool deprecated = false,
     bool required = false,
     bool key = false,
@@ -775,7 +763,6 @@ inline flatbuffers::Offset<Field> CreateFieldDirect(
     bool optional = false,
     uint16_t padding = 0) {
   auto name__ = name ? _fbb.CreateString(name) : 0;
-  auto default_string__ = default_string ? _fbb.CreateString(default_string) : 0;
   auto attributes__ = attributes ? _fbb.CreateVectorOfSortedTables<reflection::KeyValue>(attributes) : 0;
   auto documentation__ = documentation ? _fbb.CreateVector<flatbuffers::Offset<flatbuffers::String>>(*documentation) : 0;
   return reflection::CreateField(
@@ -786,7 +773,6 @@ inline flatbuffers::Offset<Field> CreateFieldDirect(
       offset,
       default_integer,
       default_real,
-      default_string__,
       deprecated,
       required,
       key,
