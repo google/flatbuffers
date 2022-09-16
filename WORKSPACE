@@ -56,7 +56,7 @@ http_archive(
 )
 
 ##### GRPC
-_GRPC_VERSION = "1.48.0"  # https://github.com/grpc/grpc/releases/tag/v1.48.0
+_GRPC_VERSION = "1.49.0"  # https://github.com/grpc/grpc/releases/tag/v1.49.0
 
 http_archive(
     name = "com_github_grpc_grpc",
