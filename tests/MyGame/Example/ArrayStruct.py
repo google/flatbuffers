@@ -22,12 +22,12 @@ class ArrayStruct(object):
     # ArrayStruct
     def B(self, j = None):
         if j==None:
-            return [self._tab.Get(flatbuffers.number_types.Int32Flags, self._tab.Pos + flatbuffers.number_types.UOffsetTFlags.py_type(4 + i * 4)) for i in range(15)]
+            return [self._tab.Get(flatbuffers.number_types.Int32Flags, self._tab.Pos + flatbuffers.number_types.UOffsetTFlags.py_type(4 + i * 4)) for i in range(self.BLength())]
         else:
             return self._tab.Get(flatbuffers.number_types.Int32Flags, self._tab.Pos + flatbuffers.number_types.UOffsetTFlags.py_type(4 + j * 4))
     # ArrayStruct
     def BAsNumpy(self):
-        return self._tab.GetArrayAsNumpy(flatbuffers.number_types.Int32Flags, self._tab.Pos + 4, 15)
+        return self._tab.GetArrayAsNumpy(flatbuffers.number_types.Int32Flags, self._tab.Pos + 4, self.BLength())
 
     # ArrayStruct
     def BLength(self):
@@ -59,12 +59,12 @@ class ArrayStruct(object):
     # ArrayStruct
     def F(self, j = None):
         if j==None:
-            return [self._tab.Get(flatbuffers.number_types.Int64Flags, self._tab.Pos + flatbuffers.number_types.UOffsetTFlags.py_type(144 + i * 8)) for i in range(2)]
+            return [self._tab.Get(flatbuffers.number_types.Int64Flags, self._tab.Pos + flatbuffers.number_types.UOffsetTFlags.py_type(144 + i * 8)) for i in range(self.FLength())]
         else:
             return self._tab.Get(flatbuffers.number_types.Int64Flags, self._tab.Pos + flatbuffers.number_types.UOffsetTFlags.py_type(144 + j * 8))
     # ArrayStruct
     def FAsNumpy(self):
-        return self._tab.GetArrayAsNumpy(flatbuffers.number_types.Int64Flags, self._tab.Pos + 144, 2)
+        return self._tab.GetArrayAsNumpy(flatbuffers.number_types.Int64Flags, self._tab.Pos + 144, self.FLength())
 
     # ArrayStruct
     def FLength(self):

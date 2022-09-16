@@ -281,7 +281,7 @@ class PythonGenerator : public BaseGenerator {
     code += NumToString(field.value.offset) + " + i * ";
     code += NumToString(InlineSize(field.value.type.VectorType()));
     code += ")) for i in range(";
-    code += NumToString(field.value.type.fixed_length) + ")]";
+    code += NumToString("self."+namer_.Method(field)+"Length()") + ")]";
     code += GenIndents(2) +"else:";
     code += GenIndents(3) + "return " + GenGetter(field.value.type);
     code += "self._tab.Pos + flatbuffers.number_types.UOffsetTFlags.py_type(";
@@ -450,7 +450,7 @@ class PythonGenerator : public BaseGenerator {
       code += GenIndents(2) + "return ";
       code += "self._tab.GetArrayAsNumpy(flatbuffers.number_types.";
       code += namer_.Method(GenTypeGet(field.value.type.VectorType()));
-      code += "Flags, self._tab.Pos + "+NumToString(field.value.offset)+", "+NumToString(field.value.type.VectorType().fixed_length)+")\n";
+      code += "Flags, self._tab.Pos + "+NumToString(field.value.offset)+", "+NumToString("self."+namer_.Method(field)+"Length()")+")\n";
     }
     code += "\n";
   }
@@ -1735,7 +1735,8 @@ class PythonGenerator : public BaseGenerator {
   std::string GenTypePointer(const Type &type) const {
     switch (type.base_type) {
       case BASE_TYPE_STRING: return "string";
-      case BASE_TYPE_VECTOR: return GenTypeGet(type.VectorType());
+      case BASE_TYPE_VECTOR:
+        // fall through
       case BASE_TYPE_ARRAY: return GenTypeGet(type.VectorType());
       case BASE_TYPE_STRUCT: return type.struct_def->name;
       case BASE_TYPE_UNION:

@@ -149,11 +149,19 @@ void UtilConvertCase() {
     cases.push_back({ flatbuffers::Case::kUpperCamel, "tHe_qUiCk_BrOwN_fOx",
                       flatbuffers::Case::kKeep, "tHe_qUiCk_BrOwN_fOx" });
     cases.push_back({ flatbuffers::Case::kLowerCamel, "theQuick12345Fox",
-                      flatbuffers::Case::kSnake, "the_quick_12345fox" });
+                      flatbuffers::Case::kSnake, "the_quick_12345_fox" });
     cases.push_back({ flatbuffers::Case::kLowerCamel, "a12b34c45",
                       flatbuffers::Case::kSnake, "a_12b_34c_45" });
     cases.push_back({ flatbuffers::Case::kLowerCamel, "a12b34c45",
                       flatbuffers::Case::kSnake2, "a12_b34_c45" });
+    cases.push_back({ flatbuffers::Case::kUpperCamel, "Int32Stamped",
+                      flatbuffers::Case::kSnake, "int_32_stamped" });
+    cases.push_back({ flatbuffers::Case::kUpperCamel, "101DogsTest",
+                      flatbuffers::Case::kSnake, "101_dogs_test" });
+    cases.push_back({ flatbuffers::Case::kUpperCamel, "Int32Stamped",
+                      flatbuffers::Case::kScreamingSnake, "INT_32_STAMPED" });
+    cases.push_back({ flatbuffers::Case::kUpperCamel, "101DogsTest",
+                      flatbuffers::Case::kScreamingSnake, "101_DOGS_TEST" });
 
     for (auto &test_case : cases) {
       TEST_EQ(test_case.expected_output,
