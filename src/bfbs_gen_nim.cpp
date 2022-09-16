@@ -499,9 +499,7 @@ class NimBfbsGenerator : public BaseBfbsGenerator {
       }
       return NumToString((field->default_integer()));
     }
-    if (base_type == r::String) {
-      return "\"" + field->default_string()->str() + "\"";
-    }
+    if (base_type == r::String) { return "\"\""; }
     // represents offsets
     return "0";
   }
