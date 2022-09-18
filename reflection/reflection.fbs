@@ -83,7 +83,7 @@ table Field {
     documentation:[string];
     optional:bool = false;
     /// Number of padding octets to always add after this field. Structs only.
-    padding:uint16 = 0;
+    padding:uint16 = 0; 
 }
 
 table Object {  // Used for both tables and structs.
