@@ -71,10 +71,10 @@ option(FLATBUFFERS_ENABLE_PCH
         Only work if CMake supports 'target_precompile_headers'. \"
         This can speed up compilation time."
        OFF)
-option(FLATBUFFERS_SKIP_MONSTER_EXTRA
+option(FLATBUFFERS_SKIP_MONSTER_EXTRA 
       "Skip generating monster_extra.fbs that contains non-supported numerical\"
       types." OFF)
-option(FLATBUFFERS_STRICT_MODE
+option(FLATBUFFERS_STRICT_MODE 
       "Build flatbuffers with all warnings as errors (-Werror or /WX)."
       OFF)
 
@@ -354,8 +354,8 @@ include_directories(grpc)
 
 # Creates an interface library that stores the configuration settings that each
 # target links too. This is a compromise between setting configuration globally
-# with add_compile_options() and the more targetted target_compile_options().
-# This way each target in this file can share settings and override them if
+# with add_compile_options() and the more targetted target_compile_options(). 
+# This way each target in this file can share settings and override them if 
 # needed.
 add_library(ProjectConfig INTERFACE)
 target_compile_features(ProjectConfig
@@ -371,7 +371,7 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 
 if(MSVC_LIKE)
   target_compile_options(ProjectConfig
-    INTERFACE
+    INTERFACE 
       /W4
       $<$<BOOL:${FLATBUFFERS_STRICT_MODE}>:
         /WX       # Treat all compiler warnings as errors
@@ -403,8 +403,8 @@ else()
           -Wno-error=stringop-overflow
         >
       >
-      -pedantic
-      -Wextra
+      -pedantic 
+      -Wextra 
       -Wno-unused-parameter
       -Wold-style-cast
       -fsigned-char
@@ -418,7 +418,7 @@ else()
         $<$<VERSION_GREATER:$<CXX_COMPILER_VERSION>,3.8>:
           -Wimplicit-fallthrough
           -Wextra-semi
-          $<$<BOOL:${FLATBUFFERS_STRICT_MODE}>:
+          $<$<BOOL:${FLATBUFFERS_STRICT_MODE}>:            
             -Werror=unused-private-field
           >
         >
@@ -427,7 +427,7 @@ else()
       $<$<CXX_COMPILER_ID:GNU>:
         $<$<VERSION_GREATER:$<CXX_COMPILER_VERSION>,4.4>:
           -Wunused-result
-          -Wunused-parameter
+          -Wunused-parameter 
           -Werror=unused-parameter
           -Wmissing-declarations
         >
@@ -435,7 +435,7 @@ else()
           -Wzero-as-null-pointer-constant
         >
         $<$<VERSION_GREATER:$<CXX_COMPILER_VERSION>,7.0>:
-          -faligned-new
+          -faligned-new 
           $<$<BOOL:${FLATBUFFERS_STRICT_MODE}>:
             -Werror=implicit-fallthrough=2
           >
@@ -465,7 +465,7 @@ if(FLATBUFFERS_BUILD_FLATLIB)
   add_library(flatbuffers STATIC ${FlatBuffers_Library_SRCS})
 
   # Attach header directory for when build via add_subdirectory().
-  target_include_directories(flatbuffers
+  target_include_directories(flatbuffers 
     INTERFACE
       $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
   )
@@ -483,7 +483,7 @@ if(FLATBUFFERS_BUILD_FLATC)
   endif()
 
   target_link_libraries(flatc PRIVATE $<BUILD_INTERFACE:ProjectConfig>)
-  target_compile_options(flatc
+  target_compile_options(flatc 
     PUBLIC
       $<$<AND:$<BOOL:${MSVC_LIKE}>,$<CONFIG:Release>>:
         /MT
@@ -684,13 +684,13 @@ if(FLATBUFFERS_BUILD_GRPCTEST)
   find_package(gRPC CONFIG REQUIRED)
   add_executable(grpctest ${FlatBuffers_GRPCTest_SRCS})
   add_dependencies(grpctest generated_code)
-  target_link_libraries(grpctext
-    PRIVATE
+  target_link_libraries(grpctext 
+    PRIVATE 
       $<BUILD_INTERFACE:ProjectConfig>
-      gRPC::grpc++_unsecure
-      gRPC::gpr
+      gRPC::grpc++_unsecure 
+      gRPC::gpr 
       pthread
-      dl
+      dl 
   )
 endif()
 
@@ -703,8 +703,8 @@ if(FLATBUFFERS_INSTALL)
 
   configure_file(CMake/flatbuffers-config-version.cmake.in flatbuffers-config-version.cmake @ONLY)
   install(
-      FILES
-        "CMake/flatbuffers-config.cmake"
+      FILES 
+        "CMake/flatbuffers-config.cmake" 
         "CMake/BuildFlatBuffers.cmake"
         "${CMAKE_CURRENT_BINARY_DIR}/flatbuffers-config-version.cmake"
       DESTINATION ${FB_CMAKE_DIR}
