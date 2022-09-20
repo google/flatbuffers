@@ -17,6 +17,24 @@
 
 use core::mem::size_of;
 
+mod private {
+    /// Types that are trivially transmutable are those where any combination of bits
+    /// represents a valid value of that type
+    ///
+    /// For example integral types are TriviallyTransmutable as all bit patterns are valid,
+    /// however, `bool` is not trivially transmutable as only `0` and `1` are valid
+    pub trait TriviallyTransmutable {}
+
+    impl TriviallyTransmutable for i8 {}
+    impl TriviallyTransmutable for i16 {}
+    impl TriviallyTransmutable for i32 {}
+    impl TriviallyTransmutable for i64 {}
+    impl TriviallyTransmutable for u8 {}
+    impl TriviallyTransmutable for u16 {}
+    impl TriviallyTransmutable for u32 {}
+    impl TriviallyTransmutable for u64 {}
+}
+
 /// Trait for values that must be stored in little-endian byte order, but
 /// might be represented in memory as big-endian. Every type that implements
 /// EndianScalar is a valid FlatBuffers scalar value.
@@ -28,7 +46,7 @@ use core::mem::size_of;
 /// "too much". For example, num-traits provides i128 support, but that is an
 /// invalid FlatBuffers type.
 pub trait EndianScalar: Sized + PartialEq + Copy + Clone {
-    type Scalar;
+    type Scalar: private::TriviallyTransmutable;
 
     fn to_little_endian(self) -> Self::Scalar;
 
