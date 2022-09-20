@@ -55,13 +55,13 @@ std::set<std::string> NimKeywords() {
 }
 
 Namer::Config NimDefaultConfig() {
-  return { /*types=*/Case::kKeep,
-           /*constants=*/Case::kScreamingSnake,
-           /*methods=*/Case::kUpperCamel,
+  return { /*types=*/Case::kUpperCamel,
+           /*constants=*/Case::kUpperCamel,
+           /*methods=*/Case::kLowerCamel,
            /*functions=*/Case::kUpperCamel,
            /*fields=*/Case::kLowerCamel,
            /*variable=*/Case::kLowerCamel,
-           /*variants=*/Case::kKeep,
+           /*variants=*/Case::kUpperCamel,
            /*enum_variant_seperator=*/".",
            /*escape_keywords=*/Namer::Config::Escape::AfterConvertingCase,
            /*namespaces=*/Case::kKeep,
@@ -84,29 +84,6 @@ const std::set<std::string> builtin_types = {
   "uint16",  "int32",  "uint32", "int64", "uint64",  "float32",
   "float64", "string", "int",    "uint",  "uoffset", "Builder"
 };
-
-// Returns the correct name for the type
-// Type:
-//  MyGame.Example.Monster:
-//    Current:
-//      Monster
-//    Imported:
-//      MyGame_Example_Monster.Monster
-std::string Denamespace(const std::string &s, bool current = false) {
-  if (builtin_types.find(s) != builtin_types.end()) { return s; }
-  std::string prefix;
-  const size_t pos = s.find_last_of(".");
-  if (pos != std::string::npos) { prefix = s.substr(0, pos); }
-  std::string suffix = s.substr(pos + 1);
-  if (current) {
-    return suffix;
-  } else {
-    std::string underscored = prefix;
-    underscored += underscored.empty() ? "" : "_";
-    std::replace(underscored.begin(), underscored.end(), '.', '_');
-    return underscored + suffix + "." + suffix;
-  }
-}
 
 class NimBfbsGenerator : public BaseBfbsGenerator {
  public:
@@ -190,13 +167,13 @@ class NimBfbsGenerator : public BaseBfbsGenerator {
           base_type == r::Obj || base_type == r::Union) {
         GenerateDocumentation(field->documentation(), "", code);
 
-        std::string getter_signature = "func " + field_name +
+        std::string getter_signature = "func " + namer_.Method(field_name) +
                                        "*(self: " + object_name +
                                        "): " + field_type + " =\n";
         std::string getter_code;
-        std::string setter_signature = "func `" + field_name +
-                                       "=`*(self: var " + object_name +
-                                       ", n: " + field_type + "): bool =\n";
+        std::string setter_signature =
+            "func `" + namer_.Method(field_name + "=") + "`*(self: var " +
+            object_name + ", n: " + field_type + "): bool =\n";
         std::string setter_code;
 
         if (base_type == r::Obj || base_type == r::Union ||
@@ -253,14 +230,14 @@ class NimBfbsGenerator : public BaseBfbsGenerator {
         }
 
         // Get vector length:
-        code += "func " + field_name + "Length*(self: " + object_name +
-                "): int = \n";
+        code += "func " + namer_.Method(field_name + "Length") +
+                "*(self: " + object_name + "): int = \n";
         code += "  " + offset_prefix;
         code += "  " + offset_prefix_2;
         code += "    return self.tab.VectorLen(o)\n";
 
         // Get single vector field:
-        code += "func " + field_name + "*(self: " + object_name +
+        code += "func " + namer_.Method(field_name) + "*(self: " + object_name +
                 ", j: int): " + GenerateType(field->type(), true) + " = \n";
         code += "  " + offset_prefix;
         code += "  " + offset_prefix_2;
@@ -273,7 +250,7 @@ class NimBfbsGenerator : public BaseBfbsGenerator {
                 "\n";
 
         // Get entire vector:
-        code += "func " + field_name + "*(self: " + object_name +
+        code += "func " + namer_.Method(field_name) + "*(self: " + object_name +
                 "): " + GenerateType(field->type()) + " = \n";
         code += "  let len = self." + field_name + "Length\n";
         code += "  for i in countup(0, len - 1):\n";
@@ -285,14 +262,16 @@ class NimBfbsGenerator : public BaseBfbsGenerator {
 
     // Create all the builders
     if (object->is_struct()) {
-      code += "proc " + object_name + "Create*(self: var Builder";
+      code += "proc " + namer_.Function(object_name + "Create") +
+              "*(self: var Builder";
       code += GenerateStructBuilderArgs(object);
       code += "): uoffset =\n";
       code += AppendStructBuilderBody(object);
       code += "  return self.Offset()\n";
     } else {
       // Table builders
-      code += "proc " + object_name + "Start*(builder: var Builder) =\n";
+      code += "proc " + namer_.Function(object_name + "Start") +
+              "*(builder: var Builder) =\n";
       code += "  builder.StartObject(" + NumToString(object->fields()->size()) +
               ")\n";
 
@@ -303,7 +282,7 @@ class NimBfbsGenerator : public BaseBfbsGenerator {
         const std::string variable_name = namer_.Variable(field->name()->str());
         const std::string variable_type = GenerateTypeBasic(field->type());
 
-        code += "proc " + object_name + "Add" + field_name +
+        code += "proc " + namer_.Function(object_name + "Add" + field_name) +
                 "*(builder: var Builder, " + variable_name + ": " +
                 variable_type + ") =\n";
         code += "  builder.Prepend" + GenerateMethod(field) + "Slot(" +
@@ -311,7 +290,8 @@ class NimBfbsGenerator : public BaseBfbsGenerator {
                 variable_type + "))\n";
 
         if (IsVector(field->type()->base_type())) {
-          code += "proc " + object_name + "Start" + field_name +
+          code += "proc " +
+                  namer_.Function(object_name + "Start" + field_name) +
                   "Vector*(builder: var Builder, numElems: uoffset) =\n";
 
           const int32_t element_size = field->type()->element_size();
@@ -325,7 +305,8 @@ class NimBfbsGenerator : public BaseBfbsGenerator {
         }
       });
 
-      code += "proc " + object_name + "End*(builder: var Builder): uoffset =\n";
+      code += "proc " + namer_.Function(object_name + "End") +
+              "*(builder: var Builder): uoffset =\n";
       code += "  return builder.EndObject()\n";
     }
     EmitCodeBlock(code, object_name, ns, object->declaration_file()->str());
@@ -416,6 +397,25 @@ class NimBfbsGenerator : public BaseBfbsGenerator {
     }
   }
 
+  std::string Denamespace(const std::string &s, std::string &importns,
+                          std::string &ns) const {
+    if (builtin_types.find(s) != builtin_types.end()) { return s; }
+    std::string type = namer_.Type(namer_.Denamespace(s, ns));
+    importns = ns.empty() ? type : ns + "." + type;
+    std::replace(importns.begin(), importns.end(), '.', '_');
+    return type;
+  }
+
+  std::string Denamespace(const std::string &s, std::string &importns) const {
+    std::string ns;
+    return Denamespace(s, importns, ns);
+  }
+
+  std::string Denamespace(const std::string &s) const {
+    std::string importns;
+    return Denamespace(s, importns);
+  }
+
   std::string GenerateType(const r::Type *type, bool element_type = false,
                            bool enum_inner = false) const {
     const r::BaseType base_type =
@@ -423,8 +423,9 @@ class NimBfbsGenerator : public BaseBfbsGenerator {
     if (IsScalar(base_type) && !enum_inner) {
       const r::Enum *type_enum = GetEnum(type, element_type);
       if (type_enum != nullptr) {
-        std::string type_name = type_enum->name()->str();
-        return Denamespace(namer_.Type(type_name));
+        std::string importns;
+        std::string type_name = Denamespace(type_enum->name()->str(), importns);
+        return importns + "." + type_name;
       }
     }
     if (IsScalar(base_type)) { return Denamespace(GenerateType(base_type)); }
@@ -436,8 +437,13 @@ class NimBfbsGenerator : public BaseBfbsGenerator {
       case r::Union: return "Vtable";
       case r::Obj: {
         const r::Object *type_obj = GetObject(type, element_type);
-        std::string type_name = type_obj->name()->str();
-        return Denamespace(namer_.Type(type_name), type_obj == current_obj_);
+        std::string importns;
+        std::string type_name = Denamespace(type_obj->name()->str(), importns);
+        if (type_obj == current_obj_) {
+          return type_name;
+        } else {
+          return importns + "." + type_name;
+        }
       }
       default: return "uoffset";
     }
@@ -559,34 +565,37 @@ class NimBfbsGenerator : public BaseBfbsGenerator {
     return new_path;
   }
 
-  std::string RegisterImports(const r::Object *object, const r::Field *field,
-                              bool use_element = false) {
+  void RegisterImports(const r::Object *object, const r::Field *field,
+                       bool use_element = false) {
+    std::string importns;
     std::string type_name;
 
     const r::BaseType type =
         use_element ? field->type()->element() : field->type()->base_type();
 
     if (IsStructOrTable(type)) {
-      const r::Object *object = GetObjectByIndex(field->type()->index());
-      if (object == current_obj_) { return namer_.Denamespace(object); }
-      type_name = object->name()->str();
+      const r::Object *object_def = GetObjectByIndex(field->type()->index());
+      if (object_def == current_obj_) { return; }
+      std::string ns;
+      type_name = Denamespace(object_def->name()->str(), importns, ns);
+      type_name = ns.empty() ? type_name : ns + "." + type_name;
     } else {
       const r::Enum *enum_def = GetEnumByIndex(field->type()->index());
-      if (enum_def == current_enum_) { return namer_.Denamespace(enum_def); }
-      type_name = enum_def->name()->str();
+      if (enum_def == current_enum_) { return; }
+      std::string ns;
+      type_name = Denamespace(enum_def->name()->str(), importns, ns);
+      type_name = ns.empty() ? type_name : ns + "." + type_name;
     }
 
-    std::string name = type_name;
-    std::replace(name.begin(), name.end(), '.', '_');
     std::string import_path =
         GetRelativePathFromNamespace(object->name()->str(), type_name);
-    return RegisterImports(import_path, name);
+    std::replace(type_name.begin(), type_name.end(), '.', '_');
+    RegisterImports(import_path, importns);
   }
 
-  std::string RegisterImports(const std::string &local_name,
-                              const std::string &imports_name) {
+  void RegisterImports(const std::string &local_name,
+                       const std::string &imports_name) {
     imports_[local_name] = imports_name;
-    return local_name;
   }
 
   void EmitCodeBlock(const std::string &code_block, const std::string &name,
