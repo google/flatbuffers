@@ -35,30 +35,11 @@ pub trait EndianScalar: Sized + PartialEq + Copy + Clone {
     fn from_little_endian(v: Self::Scalar) -> Self;
 }
 
-/// Macro for implementing a no-op endian conversion. This is used for types
-/// that are one byte wide.
-macro_rules! impl_endian_scalar_noop {
-    ($ty:ident) => {
-        impl EndianScalar for $ty {
-            type Scalar = Self;
-
-            #[inline]
-            fn to_little_endian(self) -> Self::Scalar {
-                self
-            }
-            #[inline]
-            fn from_little_endian(v: Self::Scalar) -> Self {
-                v
-            }
-        }
-    };
-}
-
 /// Macro for implementing an endian conversion using the stdlib `to_le` and
 /// `from_le` functions. This is used for integer types. It is not used for
 /// floats, because the `to_le` and `from_le` are not implemented for them in
 /// the stdlib.
-macro_rules! impl_endian_scalar_stdlib_le_conversion {
+macro_rules! impl_endian_scalar {
     ($ty:ident) => {
         impl EndianScalar for $ty {
             type Scalar = Self;
@@ -75,16 +56,26 @@ macro_rules! impl_endian_scalar_stdlib_le_conversion {
     };
 }
 
-impl_endian_scalar_noop!(bool);
-impl_endian_scalar_noop!(u8);
-impl_endian_scalar_noop!(i8);
+impl_endian_scalar!(u8);
+impl_endian_scalar!(i8);
+impl_endian_scalar!(u16);
+impl_endian_scalar!(u32);
+impl_endian_scalar!(u64);
+impl_endian_scalar!(i16);
+impl_endian_scalar!(i32);
+impl_endian_scalar!(i64);
 
-impl_endian_scalar_stdlib_le_conversion!(u16);
-impl_endian_scalar_stdlib_le_conversion!(u32);
-impl_endian_scalar_stdlib_le_conversion!(u64);
-impl_endian_scalar_stdlib_le_conversion!(i16);
-impl_endian_scalar_stdlib_le_conversion!(i32);
-impl_endian_scalar_stdlib_le_conversion!(i64);
+impl EndianScalar for bool {
+    type Scalar = u8;
+
+    fn to_little_endian(self) -> Self::Scalar {
+        self as u8
+    }
+
+    fn from_little_endian(v: Self::Scalar) -> Self {
+        v != 0
+    }
+}
 
 impl EndianScalar for f32 {
     type Scalar = u32;
