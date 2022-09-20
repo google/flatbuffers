@@ -131,6 +131,9 @@ class BaseBfbsGenerator : public BfbsGenerator {
   }
 
  protected:
+  // GetObject returns the underlying object struct of the given type
+  // if element_type is true and GetObject is a list of objects then
+  // GetObject will correctly return the object struct of the vector's elements
   const reflection::Object *GetObject(const reflection::Type *type,
                                       bool element_type = false) const {
     const reflection::BaseType base_type =
@@ -141,6 +144,9 @@ class BaseBfbsGenerator : public BfbsGenerator {
     return nullptr;
   }
 
+  // GetEnum returns the underlying enum struct of the given type
+  // if element_type is true and GetEnum is a list of enums then
+  // GetEnum will correctly return the enum struct of the vector's elements
   const reflection::Enum *GetEnum(const reflection::Type *type,
                                   bool element_type = false) const {
     const reflection::BaseType base_type =
