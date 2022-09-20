@@ -56,6 +56,9 @@ impl<'a> SecondTableInA<'a> {
 
   #[inline]
   pub fn refer_to_c(&self) -> Option<super::namespace_c::TableInC<'a>> {
+    // Safety:
+    // Created from valid Table for this object
+    // which contains a valid value in this slot
     unsafe { self._tab.get::<flatbuffers::ForwardsUOffset<super::namespace_c::TableInC>>(SecondTableInA::VT_REFER_TO_C, None)}
   }
 }

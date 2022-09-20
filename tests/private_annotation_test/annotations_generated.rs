@@ -54,6 +54,9 @@ impl<'a> Annotations<'a> {
 
   #[inline]
   pub fn value(&self) -> i32 {
+    // Safety:
+    // Created from valid Table for this object
+    // which contains a valid value in this slot
     unsafe { self._tab.get::<i32>(Annotations::VT_VALUE, Some(0)).unwrap()}
   }
 }

@@ -56,6 +56,9 @@ impl<'a> Referrable<'a> {
 
   #[inline]
   pub fn id(&self) -> u64 {
+    // Safety:
+    // Created from valid Table for this object
+    // which contains a valid value in this slot
     unsafe { self._tab.get::<u64>(Referrable::VT_ID, Some(0)).unwrap()}
   }
   #[inline]

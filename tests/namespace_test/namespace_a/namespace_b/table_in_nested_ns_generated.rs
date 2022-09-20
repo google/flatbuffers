@@ -54,6 +54,9 @@ impl<'a> TableInNestedNS<'a> {
 
   #[inline]
   pub fn foo(&self) -> i32 {
+    // Safety:
+    // Created from valid Table for this object
+    // which contains a valid value in this slot
     unsafe { self._tab.get::<i32>(TableInNestedNS::VT_FOO, Some(0)).unwrap()}
   }
 }

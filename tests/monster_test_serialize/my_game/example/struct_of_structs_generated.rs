@@ -96,6 +96,9 @@ impl<'a> StructOfStructs {
   }
 
   pub fn a(&self) -> &Ability {
+    // Safety:
+    // Created from a valid Table for this object
+    // Which contains a valid struct in this slot
     unsafe { &*(self.0[0..].as_ptr() as *const Ability) }
   }
 
@@ -105,6 +108,9 @@ impl<'a> StructOfStructs {
   }
 
   pub fn b(&self) -> &Test {
+    // Safety:
+    // Created from a valid Table for this object
+    // Which contains a valid struct in this slot
     unsafe { &*(self.0[8..].as_ptr() as *const Test) }
   }
 
@@ -114,6 +120,9 @@ impl<'a> StructOfStructs {
   }
 
   pub fn c(&self) -> &Ability {
+    // Safety:
+    // Created from a valid Table for this object
+    // Which contains a valid struct in this slot
     unsafe { &*(self.0[12..].as_ptr() as *const Ability) }
   }
 

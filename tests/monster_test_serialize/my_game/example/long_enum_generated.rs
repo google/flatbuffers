@@ -38,7 +38,7 @@ impl<'a> flatbuffers::Follow<'a> for LongEnum {
   #[inline]
   unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
     let b = flatbuffers::read_scalar_at::<u64>(buf, loc);
-    Self::from_bits_unchecked(b)
+    Self::from_bits_truncate(b)
   }
 }
 
@@ -51,16 +51,16 @@ impl flatbuffers::Push for LongEnum {
 }
 
 impl flatbuffers::EndianScalar for LongEnum {
+  type Scalar = u64;
   #[inline]
-  fn to_little_endian(self) -> Self {
-    let b = u64::to_le(self.bits());
-    unsafe { Self::from_bits_unchecked(b) }
+  fn to_little_endian(self) -> u64 {
+    self.bits().to_le()
   }
   #[inline]
   #[allow(clippy::wrong_self_convention)]
-  fn from_little_endian(self) -> Self {
-    let b = u64::from_le(self.bits());
-    unsafe { Self::from_bits_unchecked(b) }
+  fn from_little_endian(v: u64) -> Self {
+    let b = u64::from_le(v);
+    Self::from_bits_truncate(b)
   }
 }
 

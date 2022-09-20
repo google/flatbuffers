@@ -65,20 +65,20 @@ impl<'a, T: Follow<'a> + 'a, const N: usize> Array<'a, T, N> {
     pub fn get(&self, idx: usize) -> T::Inner {
         assert!(idx < N);
         let sz = size_of::<T>();
-        // SAFETY:
-        // self.0 was valid for length `N` on construction and have verified length
+        // Safety:
+        // self.0 was valid for length `N` on construction and have verified `idx < N`
         unsafe { T::follow(self.0, sz * idx) }
     }
 
     #[inline(always)]
     pub fn iter(&self) -> VectorIter<'a, T> {
-        // SAFETY:
-        // self.0 was valid for length T on construction
+        // Safety:
+        // self.0 was valid for length N on construction
         unsafe { VectorIter::from_slice(self.0, self.len()) }
     }
 }
 
-impl <'a, T: Follow<'a> + Debug, const N: usize> From<Array<'a, T, N>> for [T::Inner; N]  {
+impl<'a, T: Follow<'a> + Debug, const N: usize> From<Array<'a, T, N>> for [T::Inner; N] {
     fn from(array: Array<'a, T, N>) -> Self {
         array_init(|i| array.get(i))
     }
@@ -105,8 +105,12 @@ pub unsafe fn emplace_scalar_array<T: EndianScalar, const N: usize>(
     let mut buf_ptr = buf[loc..].as_mut_ptr();
     for item in src.iter() {
         let item_le = item.to_little_endian();
-        core::ptr::copy_nonoverlapping(&item_le as *const T as *const u8, buf_ptr, size_of::<T>());
-        buf_ptr = buf_ptr.add(size_of::<T>());
+        core::ptr::copy_nonoverlapping(
+            &item_le as *const T::Scalar as *const u8,
+            buf_ptr,
+            size_of::<T::Scalar>(),
+        );
+        buf_ptr = buf_ptr.add(size_of::<T::Scalar>());
     }
 }
 
@@ -127,7 +131,7 @@ where
     let mut array: core::mem::MaybeUninit<[T; N]> = core::mem::MaybeUninit::uninit();
     let mut ptr_i = array.as_mut_ptr() as *mut T;
 
-    // SAFETY:
+    // Safety:
     // array is aligned by T, and has length N
     unsafe {
         for i in 0..N {

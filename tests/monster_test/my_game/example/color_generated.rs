@@ -31,7 +31,7 @@ impl<'a> flatbuffers::Follow<'a> for Color {
   #[inline]
   unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
     let b = flatbuffers::read_scalar_at::<u8>(buf, loc);
-    Self::from_bits_unchecked(b)
+    Self::from_bits_truncate(b)
   }
 }
 
@@ -44,16 +44,16 @@ impl flatbuffers::Push for Color {
 }
 
 impl flatbuffers::EndianScalar for Color {
+  type Scalar = u8;
   #[inline]
-  fn to_little_endian(self) -> Self {
-    let b = u8::to_le(self.bits());
-    unsafe { Self::from_bits_unchecked(b) }
+  fn to_little_endian(self) -> u8 {
+    self.bits().to_le()
   }
   #[inline]
   #[allow(clippy::wrong_self_convention)]
-  fn from_little_endian(self) -> Self {
-    let b = u8::from_le(self.bits());
-    unsafe { Self::from_bits_unchecked(b) }
+  fn from_little_endian(v: u8) -> Self {
+    let b = u8::from_le(v);
+    Self::from_bits_truncate(b)
   }
 }
 

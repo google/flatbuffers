@@ -28,8 +28,11 @@ use core::mem::size_of;
 /// "too much". For example, num-traits provides i128 support, but that is an
 /// invalid FlatBuffers type.
 pub trait EndianScalar: Sized + PartialEq + Copy + Clone {
-    fn to_little_endian(self) -> Self;
-    fn from_little_endian(self) -> Self;
+    type Scalar;
+
+    fn to_little_endian(self) -> Self::Scalar;
+
+    fn from_little_endian(v: Self::Scalar) -> Self;
 }
 
 /// Macro for implementing a no-op endian conversion. This is used for types
@@ -37,13 +40,15 @@ pub trait EndianScalar: Sized + PartialEq + Copy + Clone {
 macro_rules! impl_endian_scalar_noop {
     ($ty:ident) => {
         impl EndianScalar for $ty {
+            type Scalar = Self;
+
             #[inline]
-            fn to_little_endian(self) -> Self {
+            fn to_little_endian(self) -> Self::Scalar {
                 self
             }
             #[inline]
-            fn from_little_endian(self) -> Self {
-                self
+            fn from_little_endian(v: Self::Scalar) -> Self {
+                v
             }
         }
     };
@@ -56,13 +61,15 @@ macro_rules! impl_endian_scalar_noop {
 macro_rules! impl_endian_scalar_stdlib_le_conversion {
     ($ty:ident) => {
         impl EndianScalar for $ty {
+            type Scalar = Self;
+
             #[inline]
-            fn to_little_endian(self) -> Self {
+            fn to_little_endian(self) -> Self::Scalar {
                 Self::to_le(self)
             }
             #[inline]
-            fn from_little_endian(self) -> Self {
-                Self::from_le(self)
+            fn from_little_endian(v: Self::Scalar) -> Self {
+                Self::from_le(v)
             }
         }
     };
@@ -80,71 +87,32 @@ impl_endian_scalar_stdlib_le_conversion!(i32);
 impl_endian_scalar_stdlib_le_conversion!(i64);
 
 impl EndianScalar for f32 {
+    type Scalar = u32;
     /// Convert f32 from host endian-ness to little-endian.
     #[inline]
-    fn to_little_endian(self) -> Self {
-        #[cfg(target_endian = "little")]
-        {
-            self
-        }
-        #[cfg(not(target_endian = "little"))]
-        {
-            byte_swap_f32(self)
-        }
+    fn to_little_endian(self) -> u32 {
+        self.to_bits().to_le()
     }
     /// Convert f32 from little-endian to host endian-ness.
     #[inline]
-    fn from_little_endian(self) -> Self {
-        #[cfg(target_endian = "little")]
-        {
-            self
-        }
-        #[cfg(not(target_endian = "little"))]
-        {
-            byte_swap_f32(self)
-        }
+    fn from_little_endian(v: u32) -> Self {
+        f32::from_bits(u32::from_le(v))
     }
 }
 
 impl EndianScalar for f64 {
+    type Scalar = u64;
+
     /// Convert f64 from host endian-ness to little-endian.
     #[inline]
-    fn to_little_endian(self) -> Self {
-        #[cfg(target_endian = "little")]
-        {
-            self
-        }
-        #[cfg(not(target_endian = "little"))]
-        {
-            byte_swap_f64(self)
-        }
+    fn to_little_endian(self) -> u64 {
+        self.to_bits().to_le()
     }
     /// Convert f64 from little-endian to host endian-ness.
     #[inline]
-    fn from_little_endian(self) -> Self {
-        #[cfg(target_endian = "little")]
-        {
-            self
-        }
-        #[cfg(not(target_endian = "little"))]
-        {
-            byte_swap_f64(self)
-        }
+    fn from_little_endian(v: u64) -> Self {
+        f64::from_bits(u64::from_le(v))
     }
-}
-
-/// Swaps the bytes of an f32.
-#[allow(dead_code)]
-#[inline]
-pub fn byte_swap_f32(x: f32) -> f32 {
-    f32::from_bits(x.to_bits().swap_bytes())
-}
-
-/// Swaps the bytes of an f64.
-#[allow(dead_code)]
-#[inline]
-pub fn byte_swap_f64(x: f64) -> f64 {
-    f64::from_bits(x.to_bits().swap_bytes())
 }
 
 /// Place an EndianScalar into the provided mutable byte slice. Performs
@@ -155,9 +123,9 @@ pub fn byte_swap_f64(x: f64) -> f64 {
 pub unsafe fn emplace_scalar<T: EndianScalar>(s: &mut [u8], x: T) {
     let x_le = x.to_little_endian();
     core::ptr::copy_nonoverlapping(
-        &x_le as *const T as *const u8,
+        &x_le as *const T::Scalar as *const u8,
         s.as_mut_ptr() as *mut u8,
-        size_of::<T>(),
+        size_of::<T::Scalar>(),
     );
 }
 
@@ -176,8 +144,12 @@ pub unsafe fn read_scalar_at<T: EndianScalar>(s: &[u8], loc: usize) -> T {
 /// Caller must ensure `s.len() > size_of::<T>()`.
 #[inline]
 pub unsafe fn read_scalar<T: EndianScalar>(s: &[u8]) -> T {
-    let mut mem = core::mem::MaybeUninit::<T>::uninit();
+    let mut mem = core::mem::MaybeUninit::<T::Scalar>::uninit();
     // Since [u8] has alignment 1, we copy it into T which may have higher alignment.
-    core::ptr::copy_nonoverlapping(s.as_ptr(), mem.as_mut_ptr() as *mut u8, size_of::<T>());
-    mem.assume_init().from_little_endian()
+    core::ptr::copy_nonoverlapping(
+        s.as_ptr(),
+        mem.as_mut_ptr() as *mut u8,
+        size_of::<T::Scalar>(),
+    );
+    T::from_little_endian(mem.assume_init())
 }

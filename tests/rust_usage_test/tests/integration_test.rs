@@ -1093,56 +1093,6 @@ mod generated_code_alignment_and_padding {
     }
 }
 
-#[cfg(test)]
-mod roundtrip_byteswap {
-    #[cfg(not(miri))]  // slow.
-    extern crate quickcheck;
-    extern crate flatbuffers;
-
-    const N: u64 = 10000;
-
-    fn palindrome_32(x: f32) -> bool {
-        x == f32::from_bits(x.to_bits().swap_bytes())
-    }
-    fn palindrome_64(x: f64) -> bool {
-        x == f64::from_bits(x.to_bits().swap_bytes())
-    }
-
-    fn prop_f32(x: f32) {
-        use flatbuffers::byte_swap_f32;
-
-        let there = byte_swap_f32(x);
-
-        let back_again = byte_swap_f32(there);
-
-        if !palindrome_32(x) {
-            assert!(x != there);
-        }
-
-        assert_eq!(x, back_again);
-    }
-
-    fn prop_f64(x: f64) {
-        use flatbuffers::byte_swap_f64;
-
-        let there = byte_swap_f64(x);
-        let back_again = byte_swap_f64(there);
-
-        if !palindrome_64(x) {
-            assert!(x != there);
-        }
-
-        assert_eq!(x, back_again);
-    }
-
-    // TODO(rw): Replace the implementations with the new stdlib endian-conversion functions.
-    // TODO(rw): Re-enable these tests (currently, rare CI failures occur that seem spurious).
-    // #[test]
-    // fn fuzz_f32() { quickcheck::QuickCheck::new().max_tests(N).quickcheck(prop_f32 as fn(f32)); }
-    // #[test]
-    // fn fuzz_f64() { quickcheck::QuickCheck::new().max_tests(N).quickcheck(prop_f64 as fn(f64)); }
-}
-
 #[cfg(not(miri))]
 quickcheck! {
   fn struct_of_structs(

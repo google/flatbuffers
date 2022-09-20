@@ -56,6 +56,9 @@ impl<'a> TableB<'a> {
 
   #[inline]
   pub fn a(&self) -> Option<super::super::TableA<'a>> {
+    // Safety:
+    // Created from valid Table for this object
+    // which contains a valid value in this slot
     unsafe { self._tab.get::<flatbuffers::ForwardsUOffset<super::super::TableA>>(TableB::VT_A, None)}
   }
 }

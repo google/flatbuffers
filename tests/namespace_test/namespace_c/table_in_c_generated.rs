@@ -62,10 +62,16 @@ impl<'a> TableInC<'a> {
 
   #[inline]
   pub fn refer_to_a1(&self) -> Option<super::namespace_a::TableInFirstNS<'a>> {
+    // Safety:
+    // Created from valid Table for this object
+    // which contains a valid value in this slot
     unsafe { self._tab.get::<flatbuffers::ForwardsUOffset<super::namespace_a::TableInFirstNS>>(TableInC::VT_REFER_TO_A1, None)}
   }
   #[inline]
   pub fn refer_to_a2(&self) -> Option<super::namespace_a::SecondTableInA<'a>> {
+    // Safety:
+    // Created from valid Table for this object
+    // which contains a valid value in this slot
     unsafe { self._tab.get::<flatbuffers::ForwardsUOffset<super::namespace_a::SecondTableInA>>(TableInC::VT_REFER_TO_A2, None)}
   }
 }

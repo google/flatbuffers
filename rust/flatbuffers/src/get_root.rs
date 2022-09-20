@@ -45,7 +45,7 @@ where
 {
     let mut v = Verifier::new(opts, data);
     <ForwardsUOffset<T>>::run_verifier(&mut v, 0)?;
-    // SAFETY:
+    // Safety:
     // Run verifier above
     Ok(unsafe { root_unchecked::<T>(data) })
 }
@@ -77,7 +77,7 @@ where
 {
     let mut v = Verifier::new(opts, data);
     <SkipSizePrefix<ForwardsUOffset<T>>>::run_verifier(&mut v, 0)?;
-    // SAFETY:
+    // Safety:
     // Run verifier above
     Ok(unsafe { size_prefixed_root_unchecked::<T>(data) })
 }

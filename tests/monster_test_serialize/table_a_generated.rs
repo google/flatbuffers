@@ -58,6 +58,9 @@ impl<'a> TableA<'a> {
 
   #[inline]
   pub fn b(&self) -> Option<my_game::other_name_space::TableB<'a>> {
+    // Safety:
+    // Created from valid Table for this object
+    // which contains a valid value in this slot
     unsafe { self._tab.get::<flatbuffers::ForwardsUOffset<my_game::other_name_space::TableB>>(TableA::VT_B, None)}
   }
 }

@@ -49,13 +49,13 @@ impl<'a> VTable<'a> {
     }
 
     pub fn num_bytes(&self) -> usize {
-        // SAFETY:
+        // Safety:
         // Valid VTable at time of construction
         unsafe { read_scalar_at::<VOffsetT>(self.buf, self.loc) as usize }
     }
 
     pub fn object_inline_num_bytes(&self) -> usize {
-        // SAFETY:
+        // Safety:
         // Valid VTable at time of construction
         let n = unsafe { read_scalar_at::<VOffsetT>(self.buf, self.loc + SIZE_VOFFSET) };
         n as usize
@@ -67,7 +67,7 @@ impl<'a> VTable<'a> {
             return 0;
         }
 
-        // SAFETY:
+        // Safety:
         // Valid VTable at time of construction
         unsafe {
             read_scalar_at::<VOffsetT>(
@@ -82,7 +82,7 @@ impl<'a> VTable<'a> {
         if byte_loc as usize + 2 > self.num_bytes() {
             return 0;
         }
-        // SAFETY:
+        // Safety:
         // byte_loc is within bounds of vtable, which was valid at time of construction
         unsafe { read_scalar_at::<VOffsetT>(self.buf, self.loc + byte_loc as usize) }
     }

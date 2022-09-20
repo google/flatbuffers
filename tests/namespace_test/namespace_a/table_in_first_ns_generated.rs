@@ -80,29 +80,49 @@ impl<'a> TableInFirstNS<'a> {
 
   #[inline]
   pub fn foo_table(&self) -> Option<namespace_b::TableInNestedNS<'a>> {
+    // Safety:
+    // Created from valid Table for this object
+    // which contains a valid value in this slot
     unsafe { self._tab.get::<flatbuffers::ForwardsUOffset<namespace_b::TableInNestedNS>>(TableInFirstNS::VT_FOO_TABLE, None)}
   }
   #[inline]
   pub fn foo_enum(&self) -> namespace_b::EnumInNestedNS {
+    // Safety:
+    // Created from valid Table for this object
+    // which contains a valid value in this slot
     unsafe { self._tab.get::<namespace_b::EnumInNestedNS>(TableInFirstNS::VT_FOO_ENUM, Some(namespace_b::EnumInNestedNS::A)).unwrap()}
   }
   #[inline]
   pub fn foo_union_type(&self) -> namespace_b::UnionInNestedNS {
+    // Safety:
+    // Created from valid Table for this object
+    // which contains a valid value in this slot
     unsafe { self._tab.get::<namespace_b::UnionInNestedNS>(TableInFirstNS::VT_FOO_UNION_TYPE, Some(namespace_b::UnionInNestedNS::NONE)).unwrap()}
   }
   #[inline]
   pub fn foo_union(&self) -> Option<flatbuffers::Table<'a>> {
+    // Safety:
+    // Created from valid Table for this object
+    // which contains a valid value in this slot
     unsafe { self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Table<'a>>>(TableInFirstNS::VT_FOO_UNION, None)}
   }
   #[inline]
   pub fn foo_struct(&self) -> Option<&'a namespace_b::StructInNestedNS> {
+    // Safety:
+    // Created from valid Table for this object
+    // which contains a valid value in this slot
     unsafe { self._tab.get::<namespace_b::StructInNestedNS>(TableInFirstNS::VT_FOO_STRUCT, None)}
   }
   #[inline]
   #[allow(non_snake_case)]
   pub fn foo_union_as_table_in_nested_ns(&self) -> Option<namespace_b::TableInNestedNS<'a>> {
     if self.foo_union_type() == namespace_b::UnionInNestedNS::TableInNestedNS {
-      self.foo_union().map(|t| unsafe { namespace_b::TableInNestedNS::init_from_table(t) })
+      self.foo_union().map(|t| {
+       // Safety:
+       // Created from a valid Table for this object
+       // Which contains a valid union in this slot
+       unsafe { namespace_b::TableInNestedNS::init_from_table(t) }
+     })
     } else {
       None
     }

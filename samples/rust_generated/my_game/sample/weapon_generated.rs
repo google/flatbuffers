@@ -60,10 +60,16 @@ impl<'a> Weapon<'a> {
 
   #[inline]
   pub fn name(&self) -> Option<&'a str> {
+    // Safety:
+    // Created from valid Table for this object
+    // which contains a valid value in this slot
     unsafe { self._tab.get::<flatbuffers::ForwardsUOffset<&str>>(Weapon::VT_NAME, None)}
   }
   #[inline]
   pub fn damage(&self) -> i16 {
+    // Safety:
+    // Created from valid Table for this object
+    // which contains a valid value in this slot
     unsafe { self._tab.get::<i16>(Weapon::VT_DAMAGE, Some(0)).unwrap()}
   }
 }

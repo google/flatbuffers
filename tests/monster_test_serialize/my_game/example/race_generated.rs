@@ -89,15 +89,15 @@ impl flatbuffers::Push for Race {
 }
 
 impl flatbuffers::EndianScalar for Race {
+  type Scalar = i8;
   #[inline]
-  fn to_little_endian(self) -> Self {
-    let b = i8::to_le(self.0);
-    Self(b)
+  fn to_little_endian(self) -> i8 {
+    self.0.to_le()
   }
   #[inline]
   #[allow(clippy::wrong_self_convention)]
-  fn from_little_endian(self) -> Self {
-    let b = i8::from_le(self.0);
+  fn from_little_endian(v: i8) -> Self {
+    let b = i8::from_le(v);
     Self(b)
   }
 }

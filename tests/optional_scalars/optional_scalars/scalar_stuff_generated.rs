@@ -194,146 +194,254 @@ impl<'a> ScalarStuff<'a> {
 
   #[inline]
   pub fn just_i8(&self) -> i8 {
+    // Safety:
+    // Created from valid Table for this object
+    // which contains a valid value in this slot
     unsafe { self._tab.get::<i8>(ScalarStuff::VT_JUST_I8, Some(0)).unwrap()}
   }
   #[inline]
   pub fn maybe_i8(&self) -> Option<i8> {
+    // Safety:
+    // Created from valid Table for this object
+    // which contains a valid value in this slot
     unsafe { self._tab.get::<i8>(ScalarStuff::VT_MAYBE_I8, None)}
   }
   #[inline]
   pub fn default_i8(&self) -> i8 {
+    // Safety:
+    // Created from valid Table for this object
+    // which contains a valid value in this slot
     unsafe { self._tab.get::<i8>(ScalarStuff::VT_DEFAULT_I8, Some(42)).unwrap()}
   }
   #[inline]
   pub fn just_u8(&self) -> u8 {
+    // Safety:
+    // Created from valid Table for this object
+    // which contains a valid value in this slot
     unsafe { self._tab.get::<u8>(ScalarStuff::VT_JUST_U8, Some(0)).unwrap()}
   }
   #[inline]
   pub fn maybe_u8(&self) -> Option<u8> {
+    // Safety:
+    // Created from valid Table for this object
+    // which contains a valid value in this slot
     unsafe { self._tab.get::<u8>(ScalarStuff::VT_MAYBE_U8, None)}
   }
   #[inline]
   pub fn default_u8(&self) -> u8 {
+    // Safety:
+    // Created from valid Table for this object
+    // which contains a valid value in this slot
     unsafe { self._tab.get::<u8>(ScalarStuff::VT_DEFAULT_U8, Some(42)).unwrap()}
   }
   #[inline]
   pub fn just_i16(&self) -> i16 {
+    // Safety:
+    // Created from valid Table for this object
+    // which contains a valid value in this slot
     unsafe { self._tab.get::<i16>(ScalarStuff::VT_JUST_I16, Some(0)).unwrap()}
   }
   #[inline]
   pub fn maybe_i16(&self) -> Option<i16> {
+    // Safety:
+    // Created from valid Table for this object
+    // which contains a valid value in this slot
     unsafe { self._tab.get::<i16>(ScalarStuff::VT_MAYBE_I16, None)}
   }
   #[inline]
   pub fn default_i16(&self) -> i16 {
+    // Safety:
+    // Created from valid Table for this object
+    // which contains a valid value in this slot
     unsafe { self._tab.get::<i16>(ScalarStuff::VT_DEFAULT_I16, Some(42)).unwrap()}
   }
   #[inline]
   pub fn just_u16(&self) -> u16 {
+    // Safety:
+    // Created from valid Table for this object
+    // which contains a valid value in this slot
     unsafe { self._tab.get::<u16>(ScalarStuff::VT_JUST_U16, Some(0)).unwrap()}
   }
   #[inline]
   pub fn maybe_u16(&self) -> Option<u16> {
+    // Safety:
+    // Created from valid Table for this object
+    // which contains a valid value in this slot
     unsafe { self._tab.get::<u16>(ScalarStuff::VT_MAYBE_U16, None)}
   }
   #[inline]
   pub fn default_u16(&self) -> u16 {
+    // Safety:
+    // Created from valid Table for this object
+    // which contains a valid value in this slot
     unsafe { self._tab.get::<u16>(ScalarStuff::VT_DEFAULT_U16, Some(42)).unwrap()}
   }
   #[inline]
   pub fn just_i32(&self) -> i32 {
+    // Safety:
+    // Created from valid Table for this object
+    // which contains a valid value in this slot
     unsafe { self._tab.get::<i32>(ScalarStuff::VT_JUST_I32, Some(0)).unwrap()}
   }
   #[inline]
   pub fn maybe_i32(&self) -> Option<i32> {
+    // Safety:
+    // Created from valid Table for this object
+    // which contains a valid value in this slot
     unsafe { self._tab.get::<i32>(ScalarStuff::VT_MAYBE_I32, None)}
   }
   #[inline]
   pub fn default_i32(&self) -> i32 {
+    // Safety:
+    // Created from valid Table for this object
+    // which contains a valid value in this slot
     unsafe { self._tab.get::<i32>(ScalarStuff::VT_DEFAULT_I32, Some(42)).unwrap()}
   }
   #[inline]
   pub fn just_u32(&self) -> u32 {
+    // Safety:
+    // Created from valid Table for this object
+    // which contains a valid value in this slot
     unsafe { self._tab.get::<u32>(ScalarStuff::VT_JUST_U32, Some(0)).unwrap()}
   }
   #[inline]
   pub fn maybe_u32(&self) -> Option<u32> {
+    // Safety:
+    // Created from valid Table for this object
+    // which contains a valid value in this slot
     unsafe { self._tab.get::<u32>(ScalarStuff::VT_MAYBE_U32, None)}
   }
   #[inline]
   pub fn default_u32(&self) -> u32 {
+    // Safety:
+    // Created from valid Table for this object
+    // which contains a valid value in this slot
     unsafe { self._tab.get::<u32>(ScalarStuff::VT_DEFAULT_U32, Some(42)).unwrap()}
   }
   #[inline]
   pub fn just_i64(&self) -> i64 {
+    // Safety:
+    // Created from valid Table for this object
+    // which contains a valid value in this slot
     unsafe { self._tab.get::<i64>(ScalarStuff::VT_JUST_I64, Some(0)).unwrap()}
   }
   #[inline]
   pub fn maybe_i64(&self) -> Option<i64> {
+    // Safety:
+    // Created from valid Table for this object
+    // which contains a valid value in this slot
     unsafe { self._tab.get::<i64>(ScalarStuff::VT_MAYBE_I64, None)}
   }
   #[inline]
   pub fn default_i64(&self) -> i64 {
+    // Safety:
+    // Created from valid Table for this object
+    // which contains a valid value in this slot
     unsafe { self._tab.get::<i64>(ScalarStuff::VT_DEFAULT_I64, Some(42)).unwrap()}
   }
   #[inline]
   pub fn just_u64(&self) -> u64 {
+    // Safety:
+    // Created from valid Table for this object
+    // which contains a valid value in this slot
     unsafe { self._tab.get::<u64>(ScalarStuff::VT_JUST_U64, Some(0)).unwrap()}
   }
   #[inline]
   pub fn maybe_u64(&self) -> Option<u64> {
+    // Safety:
+    // Created from valid Table for this object
+    // which contains a valid value in this slot
     unsafe { self._tab.get::<u64>(ScalarStuff::VT_MAYBE_U64, None)}
   }
   #[inline]
   pub fn default_u64(&self) -> u64 {
+    // Safety:
+    // Created from valid Table for this object
+    // which contains a valid value in this slot
     unsafe { self._tab.get::<u64>(ScalarStuff::VT_DEFAULT_U64, Some(42)).unwrap()}
   }
   #[inline]
   pub fn just_f32(&self) -> f32 {
+    // Safety:
+    // Created from valid Table for this object
+    // which contains a valid value in this slot
     unsafe { self._tab.get::<f32>(ScalarStuff::VT_JUST_F32, Some(0.0)).unwrap()}
   }
   #[inline]
   pub fn maybe_f32(&self) -> Option<f32> {
+    // Safety:
+    // Created from valid Table for this object
+    // which contains a valid value in this slot
     unsafe { self._tab.get::<f32>(ScalarStuff::VT_MAYBE_F32, None)}
   }
   #[inline]
   pub fn default_f32(&self) -> f32 {
+    // Safety:
+    // Created from valid Table for this object
+    // which contains a valid value in this slot
     unsafe { self._tab.get::<f32>(ScalarStuff::VT_DEFAULT_F32, Some(42.0)).unwrap()}
   }
   #[inline]
   pub fn just_f64(&self) -> f64 {
+    // Safety:
+    // Created from valid Table for this object
+    // which contains a valid value in this slot
     unsafe { self._tab.get::<f64>(ScalarStuff::VT_JUST_F64, Some(0.0)).unwrap()}
   }
   #[inline]
   pub fn maybe_f64(&self) -> Option<f64> {
+    // Safety:
+    // Created from valid Table for this object
+    // which contains a valid value in this slot
     unsafe { self._tab.get::<f64>(ScalarStuff::VT_MAYBE_F64, None)}
   }
   #[inline]
   pub fn default_f64(&self) -> f64 {
+    // Safety:
+    // Created from valid Table for this object
+    // which contains a valid value in this slot
     unsafe { self._tab.get::<f64>(ScalarStuff::VT_DEFAULT_F64, Some(42.0)).unwrap()}
   }
   #[inline]
   pub fn just_bool(&self) -> bool {
+    // Safety:
+    // Created from valid Table for this object
+    // which contains a valid value in this slot
     unsafe { self._tab.get::<bool>(ScalarStuff::VT_JUST_BOOL, Some(false)).unwrap()}
   }
   #[inline]
   pub fn maybe_bool(&self) -> Option<bool> {
+    // Safety:
+    // Created from valid Table for this object
+    // which contains a valid value in this slot
     unsafe { self._tab.get::<bool>(ScalarStuff::VT_MAYBE_BOOL, None)}
   }
   #[inline]
   pub fn default_bool(&self) -> bool {
+    // Safety:
+    // Created from valid Table for this object
+    // which contains a valid value in this slot
     unsafe { self._tab.get::<bool>(ScalarStuff::VT_DEFAULT_BOOL, Some(true)).unwrap()}
   }
   #[inline]
   pub fn just_enum(&self) -> OptionalByte {
+    // Safety:
+    // Created from valid Table for this object
+    // which contains a valid value in this slot
     unsafe { self._tab.get::<OptionalByte>(ScalarStuff::VT_JUST_ENUM, Some(OptionalByte::None)).unwrap()}
   }
   #[inline]
   pub fn maybe_enum(&self) -> Option<OptionalByte> {
+    // Safety:
+    // Created from valid Table for this object
+    // which contains a valid value in this slot
     unsafe { self._tab.get::<OptionalByte>(ScalarStuff::VT_MAYBE_ENUM, None)}
   }
   #[inline]
   pub fn default_enum(&self) -> OptionalByte {
+    // Safety:
+    // Created from valid Table for this object
+    // which contains a valid value in this slot
     unsafe { self._tab.get::<OptionalByte>(ScalarStuff::VT_DEFAULT_ENUM, Some(OptionalByte::One)).unwrap()}
   }
 }

@@ -737,8 +737,7 @@ class RustGenerator : public BaseGenerator {
       code_ += "pub use self::bitflags_{{ENUM_NAMESPACE}}::{{ENUM_TY}};";
       code_ += "";
 
-      code_.SetValue("FROM_BASE", "Self::from_bits_unchecked(b)");
-      code_.SetValue("FROM_BASE_SAFE", "unsafe { Self::from_bits_unchecked(b) }");
+      code_.SetValue("FROM_BASE", "Self::from_bits_truncate(b)");
       code_.SetValue("INTO_BASE", "self.bits()");
     } else {
       // Normal, c-modelled enums.
@@ -812,7 +811,6 @@ class RustGenerator : public BaseGenerator {
       code_ += "}";
 
       code_.SetValue("FROM_BASE", "Self(b)");
-      code_.SetValue("FROM_BASE_SAFE", "Self(b)");
       code_.SetValue("INTO_BASE", "self.0");
     }
 
@@ -856,16 +854,16 @@ class RustGenerator : public BaseGenerator {
     code_ += "}";
     code_ += "";
     code_ += "impl flatbuffers::EndianScalar for {{ENUM_TY}} {";
+    code_ += "  type Scalar = {{BASE_TYPE}};";
     code_ += "  #[inline]";
-    code_ += "  fn to_little_endian(self) -> Self {";
-    code_ += "    let b = {{BASE_TYPE}}::to_le({{INTO_BASE}});";
-    code_ += "    {{FROM_BASE_SAFE}}";
+    code_ += "  fn to_little_endian(self) -> {{BASE_TYPE}} {";
+    code_ += "    {{INTO_BASE}}.to_le()";
     code_ += "  }";
     code_ += "  #[inline]";
     code_ += "  #[allow(clippy::wrong_self_convention)]";
-    code_ += "  fn from_little_endian(self) -> Self {";
-    code_ += "    let b = {{BASE_TYPE}}::from_le({{INTO_BASE}});";
-    code_ += "    {{FROM_BASE_SAFE}}";
+    code_ += "  fn from_little_endian(v: {{BASE_TYPE}}) -> Self {";
+    code_ += "    let b = {{BASE_TYPE}}::from_le(v);";
+    code_ += "    {{FROM_BASE}}";
     code_ += "  }";
     code_ += "}";
     code_ += "";
@@ -1814,6 +1812,9 @@ class RustGenerator : public BaseGenerator {
       this->GenComment(field.doc_comment);
       code_ += "#[inline]";
       code_ += "pub fn {{FIELD}}(&self) -> {{RETURN_TYPE}} {";
+      code_ += "  // Safety:";
+      code_ += "  // Created from valid Table for this object";
+      code_ += "  // which contains a valid value in this slot";
       code_ += "  " + GenTableAccessorFuncBody(field, "'a");
       code_ += "}";
 
@@ -1838,6 +1839,9 @@ class RustGenerator : public BaseGenerator {
           code_ += "{{NESTED}}<'a> {";
           code_ += "  let data = self.{{FIELD}}();";
           code_ += "  use flatbuffers::Follow;";
+          code_ += "  // Safety:";
+          code_ += "  // Created from a valid Table for this object";
+          code_ += "  // Which contains a valid flatbuffer in this slot";
           code_ +=
               "  unsafe { <flatbuffers::ForwardsUOffset<{{NESTED}}<'a>>>"
               "::follow(data.bytes(), 0) }";
@@ -1845,6 +1849,9 @@ class RustGenerator : public BaseGenerator {
           code_ += "Option<{{NESTED}}<'a>> {";
           code_ += "  self.{{FIELD}}().map(|data| {";
           code_ += "    use flatbuffers::Follow;";
+          code_ += "    // Safety:";
+          code_ += "    // Created from a valid Table for this object";
+          code_ += "    // Which contains a valid flatbuffer in this slot";
           code_ +=
               "    unsafe { <flatbuffers::ForwardsUOffset<{{NESTED}}<'a>>>"
               "::follow(data.bytes(), 0) }";
@@ -1883,11 +1890,17 @@ class RustGenerator : public BaseGenerator {
             // as of April 10, 2020
             if (field.IsRequired()) {
               code_ += "    let u = self.{{FIELD}}();";
+              code_ += "    // Safety:";
+              code_ += "    // Created from a valid Table for this object";
+              code_ += "    // Which contains a valid union in this slot";
               code_ += "    Some(unsafe { {{U_ELEMENT_TABLE_TYPE}}::init_from_table(u) })";
             } else {
-              code_ +=
-                  "    self.{{FIELD}}().map("
-                  "|t| unsafe { {{U_ELEMENT_TABLE_TYPE}}::init_from_table(t) })";
+              code_ +="    self.{{FIELD}}().map(|t| {";
+              code_ += "     // Safety:";
+              code_ += "     // Created from a valid Table for this object";
+              code_ += "     // Which contains a valid union in this slot";
+              code_ += "     unsafe { {{U_ELEMENT_TABLE_TYPE}}::init_from_table(t) }";
+              code_ += "   })";
             }
             code_ += "  } else {";
             code_ += "    None";
@@ -2684,6 +2697,9 @@ class RustGenerator : public BaseGenerator {
       // Getter.
       if (IsStruct(field.value.type)) {
         code_ += "pub fn {{FIELD}}(&self) -> &{{FIELD_TYPE}} {";
+        code_ += "  // Safety:";
+        code_ += "  // Created from a valid Table for this object";
+        code_ += "  // Which contains a valid struct in this slot";
         code_ +=
             "  unsafe {"
             " &*(self.0[{{FIELD_OFFSET}}..].as_ptr() as *const"
@@ -2695,20 +2711,26 @@ class RustGenerator : public BaseGenerator {
         code_ +=
             "pub fn {{FIELD}}(&'a self) -> "
             "flatbuffers::Array<'a, {{ARRAY_ITEM}}, {{ARRAY_SIZE}}> {";
+        code_ += "  // Safety:";
+        code_ += "  // Created from a valid Table for this object";
+        code_ += "  // Which contains a valid array in this slot";
         code_ += "  unsafe { flatbuffers::Array::follow(&self.0, {{FIELD_OFFSET}}) }";
       } else {
         code_ += "pub fn {{FIELD}}(&self) -> {{FIELD_TYPE}} {";
         code_ +=
             "  let mut mem = core::mem::MaybeUninit::"
-            "<{{FIELD_TYPE}}>::uninit();";
-        code_ += "  unsafe {";
+            "<<{{FIELD_TYPE}} as EndianScalar>::Scalar>::uninit();";
+        code_ += "  // Safety:";
+        code_ += "  // Created from a valid Table for this object";
+        code_ += "  // Which contains a valid value in this slot";
+        code_ += "  EndianScalar::from_little_endian(unsafe {";
         code_ += "    core::ptr::copy_nonoverlapping(";
         code_ += "      self.0[{{FIELD_OFFSET}}..].as_ptr(),";
         code_ += "      mem.as_mut_ptr() as *mut u8,";
-        code_ += "      core::mem::size_of::<{{FIELD_TYPE}}>(),";
+        code_ += "      core::mem::size_of::<<{{FIELD_TYPE}} as EndianScalar>::Scalar>(),";
         code_ += "    );";
         code_ += "    mem.assume_init()";
-        code_ += "  }.from_little_endian()";
+        code_ += "  })";
       }
       code_ += "}\n";
       // Setter.
@@ -2729,6 +2751,9 @@ class RustGenerator : public BaseGenerator {
           code_ +=
               "pub fn set_{{FIELD}}(&mut self, items: &{{FIELD_TYPE}}) "
               "{";
+          code_ += "  // Safety:";
+          code_ += "  // Created from a valid Table for this object";
+          code_ += "  // Which contains a valid array in this slot";
           code_ +=
               "  unsafe { flatbuffers::emplace_scalar_array(&mut self.0, "
               "{{FIELD_OFFSET}}, items) };";
@@ -2736,6 +2761,9 @@ class RustGenerator : public BaseGenerator {
           code_.SetValue("FIELD_SIZE",
                          NumToString(InlineSize(field.value.type)));
           code_ += "pub fn set_{{FIELD}}(&mut self, x: &{{FIELD_TYPE}}) {";
+          code_ += "  // Safety:";
+          code_ += "  // Created from a valid Table for this object";
+          code_ += "  // Which contains a valid array in this slot";
           code_ += "  unsafe {";
           code_ += "    core::ptr::copy(";
           code_ += "      x.as_ptr() as *const u8,";
@@ -2747,11 +2775,14 @@ class RustGenerator : public BaseGenerator {
       } else {
         code_ += "pub fn set_{{FIELD}}(&mut self, x: {{FIELD_TYPE}}) {";
         code_ += "  let x_le = x.to_little_endian();";
+        code_ += "  // Safety:";
+        code_ += "  // Created from a valid Table for this object";
+        code_ += "  // Which contains a valid value in this slot";
         code_ += "  unsafe {";
         code_ += "    core::ptr::copy_nonoverlapping(";
-        code_ += "      &x_le as *const {{FIELD_TYPE}} as *const u8,";
+        code_ += "      &x_le as *const _ as *const u8,";
         code_ += "      self.0[{{FIELD_OFFSET}}..].as_mut_ptr(),";
-        code_ += "      core::mem::size_of::<{{FIELD_TYPE}}>(),";
+        code_ += "      core::mem::size_of::<<{{FIELD_TYPE}} as EndianScalar>::Scalar>(),";
         code_ += "    );";
         code_ += "  }";
       }

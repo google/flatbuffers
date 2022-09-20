@@ -106,49 +106,84 @@ impl<'a> Monster<'a> {
 
   #[inline]
   pub fn pos(&self) -> Option<&'a Vec3> {
+    // Safety:
+    // Created from valid Table for this object
+    // which contains a valid value in this slot
     unsafe { self._tab.get::<Vec3>(Monster::VT_POS, None)}
   }
   #[inline]
   pub fn mana(&self) -> i16 {
+    // Safety:
+    // Created from valid Table for this object
+    // which contains a valid value in this slot
     unsafe { self._tab.get::<i16>(Monster::VT_MANA, Some(150)).unwrap()}
   }
   #[inline]
   pub fn hp(&self) -> i16 {
+    // Safety:
+    // Created from valid Table for this object
+    // which contains a valid value in this slot
     unsafe { self._tab.get::<i16>(Monster::VT_HP, Some(100)).unwrap()}
   }
   #[inline]
   pub fn name(&self) -> Option<&'a str> {
+    // Safety:
+    // Created from valid Table for this object
+    // which contains a valid value in this slot
     unsafe { self._tab.get::<flatbuffers::ForwardsUOffset<&str>>(Monster::VT_NAME, None)}
   }
   #[inline]
   pub fn inventory(&self) -> Option<flatbuffers::Vector<'a, u8>> {
+    // Safety:
+    // Created from valid Table for this object
+    // which contains a valid value in this slot
     unsafe { self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'a, u8>>>(Monster::VT_INVENTORY, None)}
   }
   #[inline]
   pub fn color(&self) -> Color {
+    // Safety:
+    // Created from valid Table for this object
+    // which contains a valid value in this slot
     unsafe { self._tab.get::<Color>(Monster::VT_COLOR, Some(Color::Blue)).unwrap()}
   }
   #[inline]
   pub fn weapons(&self) -> Option<flatbuffers::Vector<'a, flatbuffers::ForwardsUOffset<Weapon<'a>>>> {
+    // Safety:
+    // Created from valid Table for this object
+    // which contains a valid value in this slot
     unsafe { self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'a, flatbuffers::ForwardsUOffset<Weapon>>>>(Monster::VT_WEAPONS, None)}
   }
   #[inline]
   pub fn equipped_type(&self) -> Equipment {
+    // Safety:
+    // Created from valid Table for this object
+    // which contains a valid value in this slot
     unsafe { self._tab.get::<Equipment>(Monster::VT_EQUIPPED_TYPE, Some(Equipment::NONE)).unwrap()}
   }
   #[inline]
   pub fn equipped(&self) -> Option<flatbuffers::Table<'a>> {
+    // Safety:
+    // Created from valid Table for this object
+    // which contains a valid value in this slot
     unsafe { self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Table<'a>>>(Monster::VT_EQUIPPED, None)}
   }
   #[inline]
   pub fn path(&self) -> Option<flatbuffers::Vector<'a, Vec3>> {
+    // Safety:
+    // Created from valid Table for this object
+    // which contains a valid value in this slot
     unsafe { self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'a, Vec3>>>(Monster::VT_PATH, None)}
   }
   #[inline]
   #[allow(non_snake_case)]
   pub fn equipped_as_weapon(&self) -> Option<Weapon<'a>> {
     if self.equipped_type() == Equipment::Weapon {
-      self.equipped().map(|t| unsafe { Weapon::init_from_table(t) })
+      self.equipped().map(|t| {
+       // Safety:
+       // Created from a valid Table for this object
+       // Which contains a valid union in this slot
+       unsafe { Weapon::init_from_table(t) }
+     })
     } else {
       None
     }

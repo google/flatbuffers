@@ -35,7 +35,7 @@ impl<'a> Table<'a> {
 
     #[inline]
     pub fn vtable(&self) -> VTable<'a> {
-        // SAFETY:
+        // Safety:
         // Table::new is created with a valid buf and location
         unsafe { <BackwardsSOffset<VTable<'a>>>::follow(self.buf, self.loc) }
     }
@@ -75,12 +75,12 @@ pub fn buffer_has_identifier(data: &[u8], ident: &str, size_prefixed: bool) -> b
 
     let got = if size_prefixed {
         assert!(data.len() >= SIZE_SIZEPREFIX + SIZE_UOFFSET + FILE_IDENTIFIER_LENGTH);
-        // SAFETY:
+        // Safety:
         // Verified data has sufficient bytes
         unsafe { <SkipSizePrefix<SkipRootOffset<FileIdentifier>>>::follow(data, 0) }
     } else {
         assert!(data.len() >= SIZE_UOFFSET + FILE_IDENTIFIER_LENGTH);
-        // SAFETY:
+        // Safety:
         // Verified data has sufficient bytes
         unsafe { <SkipRootOffset<FileIdentifier>>::follow(data, 0) }
     };

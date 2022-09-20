@@ -92,26 +92,44 @@ impl<'a> MoreDefaults<'a> {
 
   #[inline]
   pub fn ints(&self) -> flatbuffers::Vector<'a, i32> {
+    // Safety:
+    // Created from valid Table for this object
+    // which contains a valid value in this slot
     unsafe { self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'a, i32>>>(MoreDefaults::VT_INTS, Some(Default::default())).unwrap()}
   }
   #[inline]
   pub fn floats(&self) -> flatbuffers::Vector<'a, f32> {
+    // Safety:
+    // Created from valid Table for this object
+    // which contains a valid value in this slot
     unsafe { self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'a, f32>>>(MoreDefaults::VT_FLOATS, Some(Default::default())).unwrap()}
   }
   #[inline]
   pub fn empty_string(&self) -> &'a str {
+    // Safety:
+    // Created from valid Table for this object
+    // which contains a valid value in this slot
     unsafe { self._tab.get::<flatbuffers::ForwardsUOffset<&str>>(MoreDefaults::VT_EMPTY_STRING, Some(&"")).unwrap()}
   }
   #[inline]
   pub fn some_string(&self) -> &'a str {
+    // Safety:
+    // Created from valid Table for this object
+    // which contains a valid value in this slot
     unsafe { self._tab.get::<flatbuffers::ForwardsUOffset<&str>>(MoreDefaults::VT_SOME_STRING, Some(&"some")).unwrap()}
   }
   #[inline]
   pub fn abcs(&self) -> flatbuffers::Vector<'a, ABC> {
+    // Safety:
+    // Created from valid Table for this object
+    // which contains a valid value in this slot
     unsafe { self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'a, ABC>>>(MoreDefaults::VT_ABCS, Some(Default::default())).unwrap()}
   }
   #[inline]
   pub fn bools(&self) -> flatbuffers::Vector<'a, bool> {
+    // Safety:
+    // Created from valid Table for this object
+    // which contains a valid value in this slot
     unsafe { self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'a, bool>>>(MoreDefaults::VT_BOOLS, Some(Default::default())).unwrap()}
   }
 }

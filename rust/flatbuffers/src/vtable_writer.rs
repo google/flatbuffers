@@ -41,7 +41,7 @@ impl<'a> VTableWriter<'a> {
     #[inline(always)]
     pub fn write_vtable_byte_length(&mut self, n: VOffsetT) {
         let buf = &mut self.buf[..SIZE_VOFFSET];
-        // SAFETY:
+        // Safety:
         // Validated range above
         unsafe {
             emplace_scalar::<VOffsetT>(buf, n);
@@ -53,7 +53,7 @@ impl<'a> VTableWriter<'a> {
     #[inline(always)]
     pub fn write_object_inline_size(&mut self, n: VOffsetT) {
         let buf = &mut self.buf[SIZE_VOFFSET..2 * SIZE_VOFFSET];
-        // SAFETY:
+        // Safety:
         // Validated range above
         unsafe {
             emplace_scalar::<VOffsetT>(buf, n);
@@ -68,7 +68,7 @@ impl<'a> VTableWriter<'a> {
     pub fn write_field_offset(&mut self, vtable_offset: VOffsetT, object_data_offset: VOffsetT) {
         let idx = vtable_offset as usize;
         let buf = &mut self.buf[idx..idx + SIZE_VOFFSET];
-        // SAFETY:
+        // Safety:
         // Validated range above
         unsafe {
             emplace_scalar::<VOffsetT>(buf, object_data_offset);
@@ -83,7 +83,7 @@ impl<'a> VTableWriter<'a> {
         let len = self.buf.len();
         let p = self.buf.as_mut_ptr() as *mut u8;
 
-        // SAFETY:
+        // Safety:
         // p is byte aligned and of length `len`
         unsafe {
             write_bytes(p, 0, len);

@@ -56,6 +56,9 @@ impl<'a> TestSimpleTableWithEnum<'a> {
 
   #[inline]
   pub fn color(&self) -> Color {
+    // Safety:
+    // Created from valid Table for this object
+    // which contains a valid value in this slot
     unsafe { self._tab.get::<Color>(TestSimpleTableWithEnum::VT_COLOR, Some(Color::Green)).unwrap()}
   }
 }

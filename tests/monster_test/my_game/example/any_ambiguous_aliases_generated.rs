@@ -78,15 +78,15 @@ impl flatbuffers::Push for AnyAmbiguousAliases {
 }
 
 impl flatbuffers::EndianScalar for AnyAmbiguousAliases {
+  type Scalar = u8;
   #[inline]
-  fn to_little_endian(self) -> Self {
-    let b = u8::to_le(self.0);
-    Self(b)
+  fn to_little_endian(self) -> u8 {
+    self.0.to_le()
   }
   #[inline]
   #[allow(clippy::wrong_self_convention)]
-  fn from_little_endian(self) -> Self {
-    let b = u8::from_le(self.0);
+  fn from_little_endian(v: u8) -> Self {
+    let b = u8::from_le(v);
     Self(b)
   }
 }

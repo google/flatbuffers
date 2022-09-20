@@ -74,15 +74,15 @@ impl flatbuffers::Push for ABC {
 }
 
 impl flatbuffers::EndianScalar for ABC {
+  type Scalar = i32;
   #[inline]
-  fn to_little_endian(self) -> Self {
-    let b = i32::to_le(self.0);
-    Self(b)
+  fn to_little_endian(self) -> i32 {
+    self.0.to_le()
   }
   #[inline]
   #[allow(clippy::wrong_self_convention)]
-  fn from_little_endian(self) -> Self {
-    let b = i32::from_le(self.0);
+  fn from_little_endian(v: i32) -> Self {
+    let b = i32::from_le(v);
     Self(b)
   }
 }

@@ -64,14 +64,23 @@ impl<'a> Stat<'a> {
 
   #[inline]
   pub fn id(&self) -> Option<&'a str> {
+    // Safety:
+    // Created from valid Table for this object
+    // which contains a valid value in this slot
     unsafe { self._tab.get::<flatbuffers::ForwardsUOffset<&str>>(Stat::VT_ID, None)}
   }
   #[inline]
   pub fn val(&self) -> i64 {
+    // Safety:
+    // Created from valid Table for this object
+    // which contains a valid value in this slot
     unsafe { self._tab.get::<i64>(Stat::VT_VAL, Some(0)).unwrap()}
   }
   #[inline]
   pub fn count(&self) -> u16 {
+    // Safety:
+    // Created from valid Table for this object
+    // which contains a valid value in this slot
     unsafe { self._tab.get::<u16>(Stat::VT_COUNT, Some(0)).unwrap()}
   }
   #[inline]

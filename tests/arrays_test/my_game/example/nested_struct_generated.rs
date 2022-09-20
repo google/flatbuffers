@@ -84,41 +84,59 @@ impl<'a> NestedStruct {
   }
 
   pub fn a(&'a self) -> flatbuffers::Array<'a, i32, 2> {
+    // Safety:
+    // Created from a valid Table for this object
+    // Which contains a valid array in this slot
     unsafe { flatbuffers::Array::follow(&self.0, 0) }
   }
 
   pub fn set_a(&mut self, items: &[i32; 2]) {
+    // Safety:
+    // Created from a valid Table for this object
+    // Which contains a valid array in this slot
     unsafe { flatbuffers::emplace_scalar_array(&mut self.0, 0, items) };
   }
 
   pub fn b(&self) -> TestEnum {
-    let mut mem = core::mem::MaybeUninit::<TestEnum>::uninit();
-    unsafe {
+    let mut mem = core::mem::MaybeUninit::<<TestEnum as EndianScalar>::Scalar>::uninit();
+    // Safety:
+    // Created from a valid Table for this object
+    // Which contains a valid value in this slot
+    EndianScalar::from_little_endian(unsafe {
       core::ptr::copy_nonoverlapping(
         self.0[8..].as_ptr(),
         mem.as_mut_ptr() as *mut u8,
-        core::mem::size_of::<TestEnum>(),
+        core::mem::size_of::<<TestEnum as EndianScalar>::Scalar>(),
       );
       mem.assume_init()
-    }.from_little_endian()
+    })
   }
 
   pub fn set_b(&mut self, x: TestEnum) {
     let x_le = x.to_little_endian();
+    // Safety:
+    // Created from a valid Table for this object
+    // Which contains a valid value in this slot
     unsafe {
       core::ptr::copy_nonoverlapping(
-        &x_le as *const TestEnum as *const u8,
+        &x_le as *const _ as *const u8,
         self.0[8..].as_mut_ptr(),
-        core::mem::size_of::<TestEnum>(),
+        core::mem::size_of::<<TestEnum as EndianScalar>::Scalar>(),
       );
     }
   }
 
   pub fn c(&'a self) -> flatbuffers::Array<'a, TestEnum, 2> {
+    // Safety:
+    // Created from a valid Table for this object
+    // Which contains a valid array in this slot
     unsafe { flatbuffers::Array::follow(&self.0, 9) }
   }
 
   pub fn set_c(&mut self, x: &[TestEnum; 2]) {
+    // Safety:
+    // Created from a valid Table for this object
+    // Which contains a valid array in this slot
     unsafe {
       core::ptr::copy(
         x.as_ptr() as *const u8,
@@ -129,10 +147,16 @@ impl<'a> NestedStruct {
   }
 
   pub fn d(&'a self) -> flatbuffers::Array<'a, i64, 2> {
+    // Safety:
+    // Created from a valid Table for this object
+    // Which contains a valid array in this slot
     unsafe { flatbuffers::Array::follow(&self.0, 16) }
   }
 
   pub fn set_d(&mut self, items: &[i64; 2]) {
+    // Safety:
+    // Created from a valid Table for this object
+    // Which contains a valid array in this slot
     unsafe { flatbuffers::emplace_scalar_array(&mut self.0, 16, items) };
   }
 

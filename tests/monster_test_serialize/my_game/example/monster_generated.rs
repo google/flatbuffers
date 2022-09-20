@@ -366,18 +366,30 @@ impl<'a> Monster<'a> {
 
   #[inline]
   pub fn pos(&self) -> Option<&'a Vec3> {
+    // Safety:
+    // Created from valid Table for this object
+    // which contains a valid value in this slot
     unsafe { self._tab.get::<Vec3>(Monster::VT_POS, None)}
   }
   #[inline]
   pub fn mana(&self) -> i16 {
+    // Safety:
+    // Created from valid Table for this object
+    // which contains a valid value in this slot
     unsafe { self._tab.get::<i16>(Monster::VT_MANA, Some(150)).unwrap()}
   }
   #[inline]
   pub fn hp(&self) -> i16 {
+    // Safety:
+    // Created from valid Table for this object
+    // which contains a valid value in this slot
     unsafe { self._tab.get::<i16>(Monster::VT_HP, Some(100)).unwrap()}
   }
   #[inline]
   pub fn name(&self) -> &'a str {
+    // Safety:
+    // Created from valid Table for this object
+    // which contains a valid value in this slot
     unsafe { self._tab.get::<flatbuffers::ForwardsUOffset<&str>>(Monster::VT_NAME, None).unwrap()}
   }
   #[inline]
@@ -392,219 +404,377 @@ impl<'a> Monster<'a> {
   }
   #[inline]
   pub fn inventory(&self) -> Option<flatbuffers::Vector<'a, u8>> {
+    // Safety:
+    // Created from valid Table for this object
+    // which contains a valid value in this slot
     unsafe { self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'a, u8>>>(Monster::VT_INVENTORY, None)}
   }
   #[inline]
   pub fn color(&self) -> Color {
+    // Safety:
+    // Created from valid Table for this object
+    // which contains a valid value in this slot
     unsafe { self._tab.get::<Color>(Monster::VT_COLOR, Some(Color::Blue)).unwrap()}
   }
   #[inline]
   pub fn test_type(&self) -> Any {
+    // Safety:
+    // Created from valid Table for this object
+    // which contains a valid value in this slot
     unsafe { self._tab.get::<Any>(Monster::VT_TEST_TYPE, Some(Any::NONE)).unwrap()}
   }
   #[inline]
   pub fn test(&self) -> Option<flatbuffers::Table<'a>> {
+    // Safety:
+    // Created from valid Table for this object
+    // which contains a valid value in this slot
     unsafe { self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Table<'a>>>(Monster::VT_TEST, None)}
   }
   #[inline]
   pub fn test4(&self) -> Option<flatbuffers::Vector<'a, Test>> {
+    // Safety:
+    // Created from valid Table for this object
+    // which contains a valid value in this slot
     unsafe { self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'a, Test>>>(Monster::VT_TEST4, None)}
   }
   #[inline]
   pub fn testarrayofstring(&self) -> Option<flatbuffers::Vector<'a, flatbuffers::ForwardsUOffset<&'a str>>> {
+    // Safety:
+    // Created from valid Table for this object
+    // which contains a valid value in this slot
     unsafe { self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'a, flatbuffers::ForwardsUOffset<&'a str>>>>(Monster::VT_TESTARRAYOFSTRING, None)}
   }
   /// an example documentation comment: this will end up in the generated code
   /// multiline too
   #[inline]
   pub fn testarrayoftables(&self) -> Option<flatbuffers::Vector<'a, flatbuffers::ForwardsUOffset<Monster<'a>>>> {
+    // Safety:
+    // Created from valid Table for this object
+    // which contains a valid value in this slot
     unsafe { self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'a, flatbuffers::ForwardsUOffset<Monster>>>>(Monster::VT_TESTARRAYOFTABLES, None)}
   }
   #[inline]
   pub fn enemy(&self) -> Option<Monster<'a>> {
+    // Safety:
+    // Created from valid Table for this object
+    // which contains a valid value in this slot
     unsafe { self._tab.get::<flatbuffers::ForwardsUOffset<Monster>>(Monster::VT_ENEMY, None)}
   }
   #[inline]
   pub fn testnestedflatbuffer(&self) -> Option<flatbuffers::Vector<'a, u8>> {
+    // Safety:
+    // Created from valid Table for this object
+    // which contains a valid value in this slot
     unsafe { self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'a, u8>>>(Monster::VT_TESTNESTEDFLATBUFFER, None)}
   }
   pub fn testnestedflatbuffer_nested_flatbuffer(&'a self) -> Option<Monster<'a>> {
     self.testnestedflatbuffer().map(|data| {
       use flatbuffers::Follow;
+      // Safety:
+      // Created from a valid Table for this object
+      // Which contains a valid flatbuffer in this slot
       unsafe { <flatbuffers::ForwardsUOffset<Monster<'a>>>::follow(data.bytes(), 0) }
     })
   }
   #[inline]
   pub fn testempty(&self) -> Option<Stat<'a>> {
+    // Safety:
+    // Created from valid Table for this object
+    // which contains a valid value in this slot
     unsafe { self._tab.get::<flatbuffers::ForwardsUOffset<Stat>>(Monster::VT_TESTEMPTY, None)}
   }
   #[inline]
   pub fn testbool(&self) -> bool {
+    // Safety:
+    // Created from valid Table for this object
+    // which contains a valid value in this slot
     unsafe { self._tab.get::<bool>(Monster::VT_TESTBOOL, Some(false)).unwrap()}
   }
   #[inline]
   pub fn testhashs32_fnv1(&self) -> i32 {
+    // Safety:
+    // Created from valid Table for this object
+    // which contains a valid value in this slot
     unsafe { self._tab.get::<i32>(Monster::VT_TESTHASHS32_FNV1, Some(0)).unwrap()}
   }
   #[inline]
   pub fn testhashu32_fnv1(&self) -> u32 {
+    // Safety:
+    // Created from valid Table for this object
+    // which contains a valid value in this slot
     unsafe { self._tab.get::<u32>(Monster::VT_TESTHASHU32_FNV1, Some(0)).unwrap()}
   }
   #[inline]
   pub fn testhashs64_fnv1(&self) -> i64 {
+    // Safety:
+    // Created from valid Table for this object
+    // which contains a valid value in this slot
     unsafe { self._tab.get::<i64>(Monster::VT_TESTHASHS64_FNV1, Some(0)).unwrap()}
   }
   #[inline]
   pub fn testhashu64_fnv1(&self) -> u64 {
+    // Safety:
+    // Created from valid Table for this object
+    // which contains a valid value in this slot
     unsafe { self._tab.get::<u64>(Monster::VT_TESTHASHU64_FNV1, Some(0)).unwrap()}
   }
   #[inline]
   pub fn testhashs32_fnv1a(&self) -> i32 {
+    // Safety:
+    // Created from valid Table for this object
+    // which contains a valid value in this slot
     unsafe { self._tab.get::<i32>(Monster::VT_TESTHASHS32_FNV1A, Some(0)).unwrap()}
   }
   #[inline]
   pub fn testhashu32_fnv1a(&self) -> u32 {
+    // Safety:
+    // Created from valid Table for this object
+    // which contains a valid value in this slot
     unsafe { self._tab.get::<u32>(Monster::VT_TESTHASHU32_FNV1A, Some(0)).unwrap()}
   }
   #[inline]
   pub fn testhashs64_fnv1a(&self) -> i64 {
+    // Safety:
+    // Created from valid Table for this object
+    // which contains a valid value in this slot
     unsafe { self._tab.get::<i64>(Monster::VT_TESTHASHS64_FNV1A, Some(0)).unwrap()}
   }
   #[inline]
   pub fn testhashu64_fnv1a(&self) -> u64 {
+    // Safety:
+    // Created from valid Table for this object
+    // which contains a valid value in this slot
     unsafe { self._tab.get::<u64>(Monster::VT_TESTHASHU64_FNV1A, Some(0)).unwrap()}
   }
   #[inline]
   pub fn testarrayofbools(&self) -> Option<flatbuffers::Vector<'a, bool>> {
+    // Safety:
+    // Created from valid Table for this object
+    // which contains a valid value in this slot
     unsafe { self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'a, bool>>>(Monster::VT_TESTARRAYOFBOOLS, None)}
   }
   #[inline]
   pub fn testf(&self) -> f32 {
+    // Safety:
+    // Created from valid Table for this object
+    // which contains a valid value in this slot
     unsafe { self._tab.get::<f32>(Monster::VT_TESTF, Some(3.14159)).unwrap()}
   }
   #[inline]
   pub fn testf2(&self) -> f32 {
+    // Safety:
+    // Created from valid Table for this object
+    // which contains a valid value in this slot
     unsafe { self._tab.get::<f32>(Monster::VT_TESTF2, Some(3.0)).unwrap()}
   }
   #[inline]
   pub fn testf3(&self) -> f32 {
+    // Safety:
+    // Created from valid Table for this object
+    // which contains a valid value in this slot
     unsafe { self._tab.get::<f32>(Monster::VT_TESTF3, Some(0.0)).unwrap()}
   }
   #[inline]
   pub fn testarrayofstring2(&self) -> Option<flatbuffers::Vector<'a, flatbuffers::ForwardsUOffset<&'a str>>> {
+    // Safety:
+    // Created from valid Table for this object
+    // which contains a valid value in this slot
     unsafe { self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'a, flatbuffers::ForwardsUOffset<&'a str>>>>(Monster::VT_TESTARRAYOFSTRING2, None)}
   }
   #[inline]
   pub fn testarrayofsortedstruct(&self) -> Option<flatbuffers::Vector<'a, Ability>> {
+    // Safety:
+    // Created from valid Table for this object
+    // which contains a valid value in this slot
     unsafe { self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'a, Ability>>>(Monster::VT_TESTARRAYOFSORTEDSTRUCT, None)}
   }
   #[inline]
   pub fn flex(&self) -> Option<flatbuffers::Vector<'a, u8>> {
+    // Safety:
+    // Created from valid Table for this object
+    // which contains a valid value in this slot
     unsafe { self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'a, u8>>>(Monster::VT_FLEX, None)}
   }
   #[inline]
   pub fn test5(&self) -> Option<flatbuffers::Vector<'a, Test>> {
+    // Safety:
+    // Created from valid Table for this object
+    // which contains a valid value in this slot
     unsafe { self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'a, Test>>>(Monster::VT_TEST5, None)}
   }
   #[inline]
   pub fn vector_of_longs(&self) -> Option<flatbuffers::Vector<'a, i64>> {
+    // Safety:
+    // Created from valid Table for this object
+    // which contains a valid value in this slot
     unsafe { self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'a, i64>>>(Monster::VT_VECTOR_OF_LONGS, None)}
   }
   #[inline]
   pub fn vector_of_doubles(&self) -> Option<flatbuffers::Vector<'a, f64>> {
+    // Safety:
+    // Created from valid Table for this object
+    // which contains a valid value in this slot
     unsafe { self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'a, f64>>>(Monster::VT_VECTOR_OF_DOUBLES, None)}
   }
   #[inline]
   pub fn parent_namespace_test(&self) -> Option<super::InParentNamespace<'a>> {
+    // Safety:
+    // Created from valid Table for this object
+    // which contains a valid value in this slot
     unsafe { self._tab.get::<flatbuffers::ForwardsUOffset<super::InParentNamespace>>(Monster::VT_PARENT_NAMESPACE_TEST, None)}
   }
   #[inline]
   pub fn vector_of_referrables(&self) -> Option<flatbuffers::Vector<'a, flatbuffers::ForwardsUOffset<Referrable<'a>>>> {
+    // Safety:
+    // Created from valid Table for this object
+    // which contains a valid value in this slot
     unsafe { self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'a, flatbuffers::ForwardsUOffset<Referrable>>>>(Monster::VT_VECTOR_OF_REFERRABLES, None)}
   }
   #[inline]
   pub fn single_weak_reference(&self) -> u64 {
+    // Safety:
+    // Created from valid Table for this object
+    // which contains a valid value in this slot
     unsafe { self._tab.get::<u64>(Monster::VT_SINGLE_WEAK_REFERENCE, Some(0)).unwrap()}
   }
   #[inline]
   pub fn vector_of_weak_references(&self) -> Option<flatbuffers::Vector<'a, u64>> {
+    // Safety:
+    // Created from valid Table for this object
+    // which contains a valid value in this slot
     unsafe { self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'a, u64>>>(Monster::VT_VECTOR_OF_WEAK_REFERENCES, None)}
   }
   #[inline]
   pub fn vector_of_strong_referrables(&self) -> Option<flatbuffers::Vector<'a, flatbuffers::ForwardsUOffset<Referrable<'a>>>> {
+    // Safety:
+    // Created from valid Table for this object
+    // which contains a valid value in this slot
     unsafe { self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'a, flatbuffers::ForwardsUOffset<Referrable>>>>(Monster::VT_VECTOR_OF_STRONG_REFERRABLES, None)}
   }
   #[inline]
   pub fn co_owning_reference(&self) -> u64 {
+    // Safety:
+    // Created from valid Table for this object
+    // which contains a valid value in this slot
     unsafe { self._tab.get::<u64>(Monster::VT_CO_OWNING_REFERENCE, Some(0)).unwrap()}
   }
   #[inline]
   pub fn vector_of_co_owning_references(&self) -> Option<flatbuffers::Vector<'a, u64>> {
+    // Safety:
+    // Created from valid Table for this object
+    // which contains a valid value in this slot
     unsafe { self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'a, u64>>>(Monster::VT_VECTOR_OF_CO_OWNING_REFERENCES, None)}
   }
   #[inline]
   pub fn non_owning_reference(&self) -> u64 {
+    // Safety:
+    // Created from valid Table for this object
+    // which contains a valid value in this slot
     unsafe { self._tab.get::<u64>(Monster::VT_NON_OWNING_REFERENCE, Some(0)).unwrap()}
   }
   #[inline]
   pub fn vector_of_non_owning_references(&self) -> Option<flatbuffers::Vector<'a, u64>> {
+    // Safety:
+    // Created from valid Table for this object
+    // which contains a valid value in this slot
     unsafe { self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'a, u64>>>(Monster::VT_VECTOR_OF_NON_OWNING_REFERENCES, None)}
   }
   #[inline]
   pub fn any_unique_type(&self) -> AnyUniqueAliases {
+    // Safety:
+    // Created from valid Table for this object
+    // which contains a valid value in this slot
     unsafe { self._tab.get::<AnyUniqueAliases>(Monster::VT_ANY_UNIQUE_TYPE, Some(AnyUniqueAliases::NONE)).unwrap()}
   }
   #[inline]
   pub fn any_unique(&self) -> Option<flatbuffers::Table<'a>> {
+    // Safety:
+    // Created from valid Table for this object
+    // which contains a valid value in this slot
     unsafe { self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Table<'a>>>(Monster::VT_ANY_UNIQUE, None)}
   }
   #[inline]
   pub fn any_ambiguous_type(&self) -> AnyAmbiguousAliases {
+    // Safety:
+    // Created from valid Table for this object
+    // which contains a valid value in this slot
     unsafe { self._tab.get::<AnyAmbiguousAliases>(Monster::VT_ANY_AMBIGUOUS_TYPE, Some(AnyAmbiguousAliases::NONE)).unwrap()}
   }
   #[inline]
   pub fn any_ambiguous(&self) -> Option<flatbuffers::Table<'a>> {
+    // Safety:
+    // Created from valid Table for this object
+    // which contains a valid value in this slot
     unsafe { self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Table<'a>>>(Monster::VT_ANY_AMBIGUOUS, None)}
   }
   #[inline]
   pub fn vector_of_enums(&self) -> Option<flatbuffers::Vector<'a, Color>> {
+    // Safety:
+    // Created from valid Table for this object
+    // which contains a valid value in this slot
     unsafe { self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'a, Color>>>(Monster::VT_VECTOR_OF_ENUMS, None)}
   }
   #[inline]
   pub fn signed_enum(&self) -> Race {
+    // Safety:
+    // Created from valid Table for this object
+    // which contains a valid value in this slot
     unsafe { self._tab.get::<Race>(Monster::VT_SIGNED_ENUM, Some(Race::None)).unwrap()}
   }
   #[inline]
   pub fn testrequirednestedflatbuffer(&self) -> Option<flatbuffers::Vector<'a, u8>> {
+    // Safety:
+    // Created from valid Table for this object
+    // which contains a valid value in this slot
     unsafe { self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'a, u8>>>(Monster::VT_TESTREQUIREDNESTEDFLATBUFFER, None)}
   }
   pub fn testrequirednestedflatbuffer_nested_flatbuffer(&'a self) -> Option<Monster<'a>> {
     self.testrequirednestedflatbuffer().map(|data| {
       use flatbuffers::Follow;
+      // Safety:
+      // Created from a valid Table for this object
+      // Which contains a valid flatbuffer in this slot
       unsafe { <flatbuffers::ForwardsUOffset<Monster<'a>>>::follow(data.bytes(), 0) }
     })
   }
   #[inline]
   pub fn scalar_key_sorted_tables(&self) -> Option<flatbuffers::Vector<'a, flatbuffers::ForwardsUOffset<Stat<'a>>>> {
+    // Safety:
+    // Created from valid Table for this object
+    // which contains a valid value in this slot
     unsafe { self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'a, flatbuffers::ForwardsUOffset<Stat>>>>(Monster::VT_SCALAR_KEY_SORTED_TABLES, None)}
   }
   #[inline]
   pub fn native_inline(&self) -> Option<&'a Test> {
+    // Safety:
+    // Created from valid Table for this object
+    // which contains a valid value in this slot
     unsafe { self._tab.get::<Test>(Monster::VT_NATIVE_INLINE, None)}
   }
   #[inline]
   pub fn long_enum_non_enum_default(&self) -> LongEnum {
+    // Safety:
+    // Created from valid Table for this object
+    // which contains a valid value in this slot
     unsafe { self._tab.get::<LongEnum>(Monster::VT_LONG_ENUM_NON_ENUM_DEFAULT, Some(Default::default())).unwrap()}
   }
   #[inline]
   pub fn long_enum_normal_default(&self) -> LongEnum {
+    // Safety:
+    // Created from valid Table for this object
+    // which contains a valid value in this slot
     unsafe { self._tab.get::<LongEnum>(Monster::VT_LONG_ENUM_NORMAL_DEFAULT, Some(LongEnum::LongOne)).unwrap()}
   }
   #[inline]
   #[allow(non_snake_case)]
   pub fn test_as_monster(&self) -> Option<Monster<'a>> {
     if self.test_type() == Any::Monster {
-      self.test().map(|t| unsafe { Monster::init_from_table(t) })
+      self.test().map(|t| {
+       // Safety:
+       // Created from a valid Table for this object
+       // Which contains a valid union in this slot
+       unsafe { Monster::init_from_table(t) }
+     })
     } else {
       None
     }
@@ -614,7 +784,12 @@ impl<'a> Monster<'a> {
   #[allow(non_snake_case)]
   pub fn test_as_test_simple_table_with_enum(&self) -> Option<TestSimpleTableWithEnum<'a>> {
     if self.test_type() == Any::TestSimpleTableWithEnum {
-      self.test().map(|t| unsafe { TestSimpleTableWithEnum::init_from_table(t) })
+      self.test().map(|t| {
+       // Safety:
+       // Created from a valid Table for this object
+       // Which contains a valid union in this slot
+       unsafe { TestSimpleTableWithEnum::init_from_table(t) }
+     })
     } else {
       None
     }
@@ -624,7 +799,12 @@ impl<'a> Monster<'a> {
   #[allow(non_snake_case)]
   pub fn test_as_my_game_example_2_monster(&self) -> Option<super::example_2::Monster<'a>> {
     if self.test_type() == Any::MyGame_Example2_Monster {
-      self.test().map(|t| unsafe { super::example_2::Monster::init_from_table(t) })
+      self.test().map(|t| {
+       // Safety:
+       // Created from a valid Table for this object
+       // Which contains a valid union in this slot
+       unsafe { super::example_2::Monster::init_from_table(t) }
+     })
     } else {
       None
     }
@@ -634,7 +814,12 @@ impl<'a> Monster<'a> {
   #[allow(non_snake_case)]
   pub fn any_unique_as_m(&self) -> Option<Monster<'a>> {
     if self.any_unique_type() == AnyUniqueAliases::M {
-      self.any_unique().map(|t| unsafe { Monster::init_from_table(t) })
+      self.any_unique().map(|t| {
+       // Safety:
+       // Created from a valid Table for this object
+       // Which contains a valid union in this slot
+       unsafe { Monster::init_from_table(t) }
+     })
     } else {
       None
     }
@@ -644,7 +829,12 @@ impl<'a> Monster<'a> {
   #[allow(non_snake_case)]
   pub fn any_unique_as_ts(&self) -> Option<TestSimpleTableWithEnum<'a>> {
     if self.any_unique_type() == AnyUniqueAliases::TS {
-      self.any_unique().map(|t| unsafe { TestSimpleTableWithEnum::init_from_table(t) })
+      self.any_unique().map(|t| {
+       // Safety:
+       // Created from a valid Table for this object
+       // Which contains a valid union in this slot
+       unsafe { TestSimpleTableWithEnum::init_from_table(t) }
+     })
     } else {
       None
     }
@@ -654,7 +844,12 @@ impl<'a> Monster<'a> {
   #[allow(non_snake_case)]
   pub fn any_unique_as_m2(&self) -> Option<super::example_2::Monster<'a>> {
     if self.any_unique_type() == AnyUniqueAliases::M2 {
-      self.any_unique().map(|t| unsafe { super::example_2::Monster::init_from_table(t) })
+      self.any_unique().map(|t| {
+       // Safety:
+       // Created from a valid Table for this object
+       // Which contains a valid union in this slot
+       unsafe { super::example_2::Monster::init_from_table(t) }
+     })
     } else {
       None
     }
@@ -664,7 +859,12 @@ impl<'a> Monster<'a> {
   #[allow(non_snake_case)]
   pub fn any_ambiguous_as_m1(&self) -> Option<Monster<'a>> {
     if self.any_ambiguous_type() == AnyAmbiguousAliases::M1 {
-      self.any_ambiguous().map(|t| unsafe { Monster::init_from_table(t) })
+      self.any_ambiguous().map(|t| {
+       // Safety:
+       // Created from a valid Table for this object
+       // Which contains a valid union in this slot
+       unsafe { Monster::init_from_table(t) }
+     })
     } else {
       None
     }
@@ -674,7 +874,12 @@ impl<'a> Monster<'a> {
   #[allow(non_snake_case)]
   pub fn any_ambiguous_as_m2(&self) -> Option<Monster<'a>> {
     if self.any_ambiguous_type() == AnyAmbiguousAliases::M2 {
-      self.any_ambiguous().map(|t| unsafe { Monster::init_from_table(t) })
+      self.any_ambiguous().map(|t| {
+       // Safety:
+       // Created from a valid Table for this object
+       // Which contains a valid union in this slot
+       unsafe { Monster::init_from_table(t) }
+     })
     } else {
       None
     }
@@ -684,7 +889,12 @@ impl<'a> Monster<'a> {
   #[allow(non_snake_case)]
   pub fn any_ambiguous_as_m3(&self) -> Option<Monster<'a>> {
     if self.any_ambiguous_type() == AnyAmbiguousAliases::M3 {
-      self.any_ambiguous().map(|t| unsafe { Monster::init_from_table(t) })
+      self.any_ambiguous().map(|t| {
+       // Safety:
+       // Created from a valid Table for this object
+       // Which contains a valid union in this slot
+       unsafe { Monster::init_from_table(t) }
+     })
     } else {
       None
     }

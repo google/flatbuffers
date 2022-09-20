@@ -102,50 +102,86 @@ impl<'a> TypeAliases<'a> {
 
   #[inline]
   pub fn i8_(&self) -> i8 {
+    // Safety:
+    // Created from valid Table for this object
+    // which contains a valid value in this slot
     unsafe { self._tab.get::<i8>(TypeAliases::VT_I8_, Some(0)).unwrap()}
   }
   #[inline]
   pub fn u8_(&self) -> u8 {
+    // Safety:
+    // Created from valid Table for this object
+    // which contains a valid value in this slot
     unsafe { self._tab.get::<u8>(TypeAliases::VT_U8_, Some(0)).unwrap()}
   }
   #[inline]
   pub fn i16_(&self) -> i16 {
+    // Safety:
+    // Created from valid Table for this object
+    // which contains a valid value in this slot
     unsafe { self._tab.get::<i16>(TypeAliases::VT_I16_, Some(0)).unwrap()}
   }
   #[inline]
   pub fn u16_(&self) -> u16 {
+    // Safety:
+    // Created from valid Table for this object
+    // which contains a valid value in this slot
     unsafe { self._tab.get::<u16>(TypeAliases::VT_U16_, Some(0)).unwrap()}
   }
   #[inline]
   pub fn i32_(&self) -> i32 {
+    // Safety:
+    // Created from valid Table for this object
+    // which contains a valid value in this slot
     unsafe { self._tab.get::<i32>(TypeAliases::VT_I32_, Some(0)).unwrap()}
   }
   #[inline]
   pub fn u32_(&self) -> u32 {
+    // Safety:
+    // Created from valid Table for this object
+    // which contains a valid value in this slot
     unsafe { self._tab.get::<u32>(TypeAliases::VT_U32_, Some(0)).unwrap()}
   }
   #[inline]
   pub fn i64_(&self) -> i64 {
+    // Safety:
+    // Created from valid Table for this object
+    // which contains a valid value in this slot
     unsafe { self._tab.get::<i64>(TypeAliases::VT_I64_, Some(0)).unwrap()}
   }
   #[inline]
   pub fn u64_(&self) -> u64 {
+    // Safety:
+    // Created from valid Table for this object
+    // which contains a valid value in this slot
     unsafe { self._tab.get::<u64>(TypeAliases::VT_U64_, Some(0)).unwrap()}
   }
   #[inline]
   pub fn f32_(&self) -> f32 {
+    // Safety:
+    // Created from valid Table for this object
+    // which contains a valid value in this slot
     unsafe { self._tab.get::<f32>(TypeAliases::VT_F32_, Some(0.0)).unwrap()}
   }
   #[inline]
   pub fn f64_(&self) -> f64 {
+    // Safety:
+    // Created from valid Table for this object
+    // which contains a valid value in this slot
     unsafe { self._tab.get::<f64>(TypeAliases::VT_F64_, Some(0.0)).unwrap()}
   }
   #[inline]
   pub fn v8(&self) -> Option<flatbuffers::Vector<'a, i8>> {
+    // Safety:
+    // Created from valid Table for this object
+    // which contains a valid value in this slot
     unsafe { self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'a, i8>>>(TypeAliases::VT_V8, None)}
   }
   #[inline]
   pub fn vf64(&self) -> Option<flatbuffers::Vector<'a, f64>> {
+    // Safety:
+    // Created from valid Table for this object
+    // which contains a valid value in this slot
     unsafe { self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'a, f64>>>(TypeAliases::VT_VF64, None)}
   }
 }

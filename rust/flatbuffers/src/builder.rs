@@ -117,7 +117,7 @@ impl<'fbb> FlatBufferBuilder<'fbb> {
         {
             let to_clear = self.owned_buf.len() - self.head;
             let ptr = (&mut self.owned_buf[self.head..]).as_mut_ptr();
-            // SAFETY:
+            // Safety:
             // Verified ptr is valid for `to_clear` above
             unsafe {
                 write_bytes(ptr, 0, to_clear);
@@ -151,7 +151,7 @@ impl<'fbb> FlatBufferBuilder<'fbb> {
         self.make_space(sz);
         {
             let (dst, rest) = (&mut self.owned_buf[self.head..]).split_at_mut(sz);
-            // SAFETY:
+            // Safety:
             // Called make_space above
             unsafe { x.push(dst, rest.len()) };
         }
@@ -330,7 +330,7 @@ impl<'fbb> FlatBufferBuilder<'fbb> {
         for (item, out) in items.iter().zip(buf.chunks_exact_mut(elem_size)) {
             written_len -= elem_size;
 
-            // SAFETY:
+            // Safety:
             // Called ensure_capacity and aligned to T above
             unsafe { item.push(out, written_len) };
         }
@@ -405,7 +405,7 @@ impl<'fbb> FlatBufferBuilder<'fbb> {
     ) {
         let idx = self.used_space() - tab_revloc.value() as usize;
 
-        // SAFETY:
+        // Safety:
         // The value of TableFinishedWIPOffset is the offset from the end of owned_buf
         // to an SOffsetT pointing to a valid VTable
         //
@@ -533,7 +533,7 @@ impl<'fbb> FlatBufferBuilder<'fbb> {
             .written_vtable_revpos
             .binary_search_by(|old_vtable_revpos: &UOffsetT| {
                 let old_vtable_pos = self.owned_buf.len() - *old_vtable_revpos as usize;
-                // SAFETY:
+                // Safety:
                 // Already written vtables are valid by construction
                 let old_vtable = unsafe { VTable::init(&self.owned_buf, old_vtable_pos) };
                 new_vt_bytes.cmp(old_vtable.as_bytes())
@@ -555,7 +555,7 @@ impl<'fbb> FlatBufferBuilder<'fbb> {
         // Write signed offset from table to its vtable.
         let table_pos = self.owned_buf.len() - object_revloc_to_vtable.value() as usize;
         if cfg!(debug_assertions) {
-            // SAFETY:
+            // Safety:
             // Verified slice length
             let tmp_soffset_to_vt = unsafe {
                 read_scalar::<UOffsetT>(&self.owned_buf[table_pos..table_pos + SIZE_UOFFSET])
@@ -564,7 +564,7 @@ impl<'fbb> FlatBufferBuilder<'fbb> {
         }
 
         let buf = &mut self.owned_buf[table_pos..table_pos + SIZE_SOFFSET];
-        // SAFETY:
+        // Safety:
         // Verified length of buf above
         unsafe {
             emplace_scalar::<SOffsetT>(
@@ -607,7 +607,7 @@ impl<'fbb> FlatBufferBuilder<'fbb> {
         // finally, zero out the old end data.
         {
             let ptr = (&mut self.owned_buf[..middle]).as_mut_ptr();
-            // SAFETY:
+            // Safety:
             // ptr is byte aligned and of length middle
             unsafe {
                 write_bytes(ptr, 0, middle);

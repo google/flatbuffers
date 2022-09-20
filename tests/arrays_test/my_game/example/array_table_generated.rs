@@ -56,6 +56,9 @@ impl<'a> ArrayTable<'a> {
 
   #[inline]
   pub fn a(&self) -> Option<&'a ArrayStruct> {
+    // Safety:
+    // Created from valid Table for this object
+    // which contains a valid value in this slot
     unsafe { self._tab.get::<ArrayStruct>(ArrayTable::VT_A, None)}
   }
 }

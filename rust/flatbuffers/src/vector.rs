@@ -73,7 +73,7 @@ impl<'a, T: 'a> Vector<'a, T> {
 
     #[inline(always)]
     pub fn len(&self) -> usize {
-        // SAFETY:
+        // Safety:
         // Valid vector at time of construction starting with UOffsetT element count
         unsafe { read_scalar_at::<UOffsetT>(self.0, self.1) as usize }
     }
@@ -97,7 +97,7 @@ impl<'a, T: Follow<'a> + 'a> Vector<'a, T> {
         assert!(idx < self.len());
         let sz = size_of::<T>();
         debug_assert!(sz > 0);
-        // SAFETY:
+        // Safety:
         // Valid vector at time of construction, verified that idx < element count
         unsafe { T::follow(self.0, self.1 as usize + SIZE_UOFFSET + sz * idx) }
     }
@@ -209,7 +209,7 @@ impl<'a, T: Follow<'a> + 'a> Iterator for VectorIter<'a, T> {
         if self.remaining == 0 {
             None
         } else {
-            // SAFETY:
+            // Safety:
             // VectorIter can only be created from a contiguous sequence of `items_num`
             // And remaining is initialized to `items_num`
             let result = unsafe { T::follow(self.buf, self.loc) };
@@ -249,7 +249,7 @@ impl<'a, T: Follow<'a> + 'a> DoubleEndedIterator for VectorIter<'a, T> {
             None
         } else {
             self.remaining -= 1;
-            // SAFETY:
+            // Safety:
             // VectorIter can only be created from a contiguous sequence of `items_num`
             // And remaining is initialized to `items_num`
             Some(unsafe { T::follow(self.buf, self.loc + sz * self.remaining) })

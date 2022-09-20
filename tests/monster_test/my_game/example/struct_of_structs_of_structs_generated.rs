@@ -75,6 +75,9 @@ impl<'a> StructOfStructsOfStructs {
   }
 
   pub fn a(&self) -> &StructOfStructs {
+    // Safety:
+    // Created from a valid Table for this object
+    // Which contains a valid struct in this slot
     unsafe { &*(self.0[0..].as_ptr() as *const StructOfStructs) }
   }
 

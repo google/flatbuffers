@@ -66,18 +66,30 @@ impl<'a> KeywordsInTable<'a> {
 
   #[inline]
   pub fn is(&self) -> ABC {
+    // Safety:
+    // Created from valid Table for this object
+    // which contains a valid value in this slot
     unsafe { self._tab.get::<ABC>(KeywordsInTable::VT_IS, Some(ABC::void)).unwrap()}
   }
   #[inline]
   pub fn private(&self) -> public {
+    // Safety:
+    // Created from valid Table for this object
+    // which contains a valid value in this slot
     unsafe { self._tab.get::<public>(KeywordsInTable::VT_PRIVATE, Some(public::NONE)).unwrap()}
   }
   #[inline]
   pub fn type_(&self) -> i32 {
+    // Safety:
+    // Created from valid Table for this object
+    // which contains a valid value in this slot
     unsafe { self._tab.get::<i32>(KeywordsInTable::VT_TYPE_, Some(0)).unwrap()}
   }
   #[inline]
   pub fn default(&self) -> bool {
+    // Safety:
+    // Created from valid Table for this object
+    // which contains a valid value in this slot
     unsafe { self._tab.get::<bool>(KeywordsInTable::VT_DEFAULT, Some(false)).unwrap()}
   }
 }
