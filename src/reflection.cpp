@@ -689,9 +689,10 @@ Offset<const Table *> CopyTable(FlatBufferBuilder &fbb,
             FLATBUFFERS_FALLTHROUGH();  // fall thru
           default: {                    // Scalars and structs.
             auto element_size = GetTypeSize(element_base_type);
+            auto element_alignment = element_size; // For primitive elements
             if (elemobjectdef && elemobjectdef->is_struct())
               element_size = elemobjectdef->bytesize();
-            fbb.StartVector(vec->size(), element_size);
+            fbb.StartVector(vec->size(), element_size, element_alignment);
             fbb.PushBytes(vec->Data(), element_size * vec->size());
             offset = fbb.EndVector(vec->size());
             break;

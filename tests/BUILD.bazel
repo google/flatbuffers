@@ -8,6 +8,9 @@ cc_test(
     name = "flatbuffers_test",
     testonly = 1,
     srcs = [
+        "alignment_test.cpp",
+        "alignment_test.h",
+        "alignment_test_generated.h",
         "evolution_test.cpp",
         "evolution_test.h",
         "evolution_test/evolution_v1_generated.h",
@@ -50,6 +53,7 @@ cc_test(
         "-DBAZEL_TEST_DATA_PATH",
     ],
     data = [
+        ":alignment_test.fbs",
         ":arrays_test.bfbs",
         ":arrays_test.fbs",
         ":arrays_test.golden",
@@ -90,6 +94,7 @@ cc_test(
         "include/",
     ],
     deps = [
+        ":alignment_test_cc_fbs",
         ":arrays_test_cc_fbs",
         ":monster_extra_cc_fbs",
         ":monster_test_cc_fbs",
@@ -213,4 +218,9 @@ flatbuffer_cc_library(
         "--gen-mutable",
         "--cpp-ptr-type flatbuffers::unique_ptr",
     ],
+)
+
+flatbuffer_cc_library(
+    name = "alignment_test_cc_fbs",
+    srcs = ["alignment_test.fbs"],
 )
