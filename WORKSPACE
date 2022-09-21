@@ -56,10 +56,13 @@ http_archive(
 )
 
 ##### GRPC
-_GRPC_VERSION = "1.48.0"  # https://github.com/grpc/grpc/releases/tag/v1.48.0
+_GRPC_VERSION = "1.49.0"  # https://github.com/grpc/grpc/releases/tag/v1.48.0
 
 http_archive(
     name = "com_github_grpc_grpc",
+    patch_args = ["-p1"],
+    patches = ["//grpc:build_grpc_with_cxx14.patch"],
+    sha256 = "15715e1847cc9e42014f02c727dbcb48e39dbdb90f79ad3d66fe4361709ff935",
     strip_prefix = "grpc-" + _GRPC_VERSION,
     urls = ["https://github.com/grpc/grpc/archive/refs/tags/v" + _GRPC_VERSION + ".tar.gz"],
 )
