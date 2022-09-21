@@ -275,19 +275,21 @@ class PythonGenerator : public BaseGenerator {
     GenReceiver(struct_def, code_ptr);
     code += namer_.Method(field);
     code += "(self, j = None):";
-    code += GenIndents(2) + "if j==None:";
+    code += GenIndents(2) + "if j is None:";
     code += GenIndents(3) + "return [" + GenGetter(field.value.type);
     code += "self._tab.Pos + flatbuffers.number_types.UOffsetTFlags.py_type(";
     code += NumToString(field.value.offset) + " + i * ";
     code += NumToString(InlineSize(field.value.type.VectorType()));
     code += ")) for i in range(";
-    code += NumToString("self."+namer_.Method(field)+"Length()") + ")]";
-    code += GenIndents(2) +"else:";
+    code += "self."+namer_.Method(field)+"Length()" + ")]";
+    code += GenIndents(2) +"elif j >= 0 and j < self."+namer_.Method(field)+"Length():";
     code += GenIndents(3) + "return " + GenGetter(field.value.type);
     code += "self._tab.Pos + flatbuffers.number_types.UOffsetTFlags.py_type(";
     code += NumToString(field.value.offset) + " + j * ";
     code += NumToString(InlineSize(field.value.type.VectorType()));
-    code += "))\n";
+    code += "))";
+    code += GenIndents(2) + "else:";
+    code += GenIndents(3) + "return None\n\n";
   }
 
   // Get a struct by initializing an existing struct.

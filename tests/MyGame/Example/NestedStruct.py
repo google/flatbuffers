@@ -19,10 +19,13 @@ class NestedStruct(object):
 
     # NestedStruct
     def A(self, j = None):
-        if j==None:
+        if j is None:
             return [self._tab.Get(flatbuffers.number_types.Int32Flags, self._tab.Pos + flatbuffers.number_types.UOffsetTFlags.py_type(0 + i * 4)) for i in range(self.ALength())]
-        else:
+        elif j >= 0 and j < self.ALength():
             return self._tab.Get(flatbuffers.number_types.Int32Flags, self._tab.Pos + flatbuffers.number_types.UOffsetTFlags.py_type(0 + j * 4))
+        else:
+            return None
+
     # NestedStruct
     def AAsNumpy(self):
         return self._tab.GetArrayAsNumpy(flatbuffers.number_types.Int32Flags, self._tab.Pos + 0, self.ALength())
@@ -39,10 +42,13 @@ class NestedStruct(object):
     def B(self): return self._tab.Get(flatbuffers.number_types.Int8Flags, self._tab.Pos + flatbuffers.number_types.UOffsetTFlags.py_type(8))
     # NestedStruct
     def C(self, j = None):
-        if j==None:
+        if j is None:
             return [self._tab.Get(flatbuffers.number_types.Int8Flags, self._tab.Pos + flatbuffers.number_types.UOffsetTFlags.py_type(9 + i * 1)) for i in range(self.CLength())]
-        else:
+        elif j >= 0 and j < self.CLength():
             return self._tab.Get(flatbuffers.number_types.Int8Flags, self._tab.Pos + flatbuffers.number_types.UOffsetTFlags.py_type(9 + j * 1))
+        else:
+            return None
+
     # NestedStruct
     def CAsNumpy(self):
         return self._tab.GetArrayAsNumpy(flatbuffers.number_types.Int8Flags, self._tab.Pos + 9, self.CLength())
@@ -57,10 +63,13 @@ class NestedStruct(object):
 
     # NestedStruct
     def D(self, j = None):
-        if j==None:
+        if j is None:
             return [self._tab.Get(flatbuffers.number_types.Int64Flags, self._tab.Pos + flatbuffers.number_types.UOffsetTFlags.py_type(16 + i * 8)) for i in range(self.DLength())]
-        else:
+        elif j >= 0 and j < self.DLength():
             return self._tab.Get(flatbuffers.number_types.Int64Flags, self._tab.Pos + flatbuffers.number_types.UOffsetTFlags.py_type(16 + j * 8))
+        else:
+            return None
+
     # NestedStruct
     def DAsNumpy(self):
         return self._tab.GetArrayAsNumpy(flatbuffers.number_types.Int64Flags, self._tab.Pos + 16, self.DLength())
