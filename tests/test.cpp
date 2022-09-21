@@ -20,6 +20,7 @@
 #include <string>
 
 #include "evolution_test.h"
+#include "alignment_test.h"
 #include "flatbuffers/flatbuffers.h"
 #include "flatbuffers/idl.h"
 #include "flatbuffers/minireflect.h"
@@ -1415,6 +1416,8 @@ int FlatBufferTests(const std::string &tests_data_path) {
   MiniReflectFixedLengthArrayTest();
 
   SizePrefixedTest();
+
+  AlignmentTest();
 
 #ifndef FLATBUFFERS_NO_FILE_TESTS
   ParseAndGenerateTextTest(tests_data_path, false);

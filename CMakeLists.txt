@@ -230,6 +230,8 @@ set(FlatBuffers_Tests_SRCS
   tests/util_test.cpp
   tests/native_type_test_impl.h
   tests/native_type_test_impl.cpp
+  tests/alignment_test.h
+  tests/alignment_test.cpp
   include/flatbuffers/code_generators.h
   src/code_generators.cpp
   # file generate by running compiler on tests/monster_test.fbs
@@ -251,6 +253,8 @@ set(FlatBuffers_Tests_SRCS
   ${CMAKE_CURRENT_BINARY_DIR}/tests/optional_scalars_generated.h
   # file generate by running compiler on tests/native_inline_table_test.fbs
   ${CMAKE_CURRENT_BINARY_DIR}/tests/native_inline_table_test_generated.h
+  # file generate by running compiler on tests/alignment_test.fbs
+  ${CMAKE_CURRENT_BINARY_DIR}/tests/alignment_test_generated.h
 )
 
 set(FlatBuffers_Tests_CPP17_SRCS
@@ -623,6 +627,7 @@ if(FLATBUFFERS_BUILD_TESTS)
   compile_flatbuffers_schema_to_binary(tests/arrays_test.fbs)
   compile_flatbuffers_schema_to_embedded_binary(tests/monster_test.fbs "--no-includes;--gen-compare")
   compile_flatbuffers_schema_to_cpp(tests/native_inline_table_test.fbs "--gen-compare")
+  compile_flatbuffers_schema_to_cpp(tests/alignment_test.fbs "--gen-compare")
   if(NOT (MSVC AND (MSVC_VERSION LESS 1900)))
     compile_flatbuffers_schema_to_cpp(tests/monster_extra.fbs) # Test floating-point NAN/INF.
   endif()
