@@ -100,11 +100,15 @@ impl EndianScalar for f32 {
     /// Convert f32 from host endian-ness to little-endian.
     #[inline]
     fn to_little_endian(self) -> u32 {
+        // Floats and Ints have the same endianness on all supported platforms.
+        // <https://doc.rust-lang.org/std/primitive.f32.html#method.from_bits>
         self.to_bits().to_le()
     }
     /// Convert f32 from little-endian to host endian-ness.
     #[inline]
     fn from_little_endian(v: u32) -> Self {
+        // Floats and Ints have the same endianness on all supported platforms.
+        // <https://doc.rust-lang.org/std/primitive.f32.html#method.from_bits>
         f32::from_bits(u32::from_le(v))
     }
 }
@@ -115,11 +119,15 @@ impl EndianScalar for f64 {
     /// Convert f64 from host endian-ness to little-endian.
     #[inline]
     fn to_little_endian(self) -> u64 {
+        // Floats and Ints have the same endianness on all supported platforms.
+        // <https://doc.rust-lang.org/std/primitive.f64.html#method.from_bits>
         self.to_bits().to_le()
     }
     /// Convert f64 from little-endian to host endian-ness.
     #[inline]
     fn from_little_endian(v: u64) -> Self {
+        // Floats and Ints have the same endianness on all supported platforms.
+        // <https://doc.rust-lang.org/std/primitive.f64.html#method.from_bits>
         f64::from_bits(u64::from_le(v))
     }
 }

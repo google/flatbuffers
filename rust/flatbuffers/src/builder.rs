@@ -348,8 +348,7 @@ impl<'fbb> FlatBufferBuilder<'fbb> {
         items: impl ExactSizeIterator<Item = T> + DoubleEndedIterator,
     ) -> WIPOffset<Vector<'fbb, T::Output>> {
         let elem_size = T::size();
-        let len = items.len();
-        self.align(len * elem_size, T::alignment().max_of(SIZE_UOFFSET));
+        self.align(items.len() * elem_size, T::alignment().max_of(SIZE_UOFFSET));
         let mut actual = 0;
         for item in items.rev() {
             self.push(item);
