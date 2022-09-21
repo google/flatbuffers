@@ -737,7 +737,6 @@ class RustGenerator : public BaseGenerator {
       code_ += "pub use self::bitflags_{{ENUM_NAMESPACE}}::{{ENUM_TY}};";
       code_ += "";
 
-      code_.SetValue("FROM_BASE", "Self::from_bits_truncate(b)");
       code_.SetValue("INTO_BASE", "self.bits()");
     } else {
       // Normal, c-modelled enums.
@@ -810,7 +809,6 @@ class RustGenerator : public BaseGenerator {
       code_ += "  }";
       code_ += "}";
 
-      code_.SetValue("FROM_BASE", "Self(b)");
       code_.SetValue("INTO_BASE", "self.0");
     }
 
@@ -841,7 +839,19 @@ class RustGenerator : public BaseGenerator {
     code_ += "  #[inline]";
     code_ += "  unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {";
     code_ += "    let b = flatbuffers::read_scalar_at::<{{BASE_TYPE}}>(buf, loc);";
-    code_ += "    {{FROM_BASE}}";
+    if (IsBitFlagsEnum(enum_def)) {
+      // Safety:
+      // This is safe because we know bitflags is implemented with a repr transparent uint of the correct size.
+      // from_bits_unchecked will be replaced by an equivalent but safe from_bits_retain in bitflags 2.0
+      // https://github.com/bitflags/bitflags/issues/262
+      code_ += "    // Safety:";
+      code_ += "    // This is safe because we know bitflags is implemented with a repr transparent uint of the correct size.";
+      code_ += "    // from_bits_unchecked will be replaced by an equivalent but safe from_bits_retain in bitflags 2.0";
+      code_ += "    // https://github.com/bitflags/bitflags/issues/262";
+      code_ += "    Self::from_bits_unchecked(b)";
+    } else {
+      code_ += "    Self(b)";
+    }
     code_ += "  }";
     code_ += "}";
     code_ += "";
@@ -863,7 +873,19 @@ class RustGenerator : public BaseGenerator {
     code_ += "  #[allow(clippy::wrong_self_convention)]";
     code_ += "  fn from_little_endian(v: {{BASE_TYPE}}) -> Self {";
     code_ += "    let b = {{BASE_TYPE}}::from_le(v);";
-    code_ += "    {{FROM_BASE}}";
+    if (IsBitFlagsEnum(enum_def)) {
+      // Safety:
+      // This is safe because we know bitflags is implemented with a repr transparent uint of the correct size.
+      // from_bits_unchecked will be replaced by an equivalent but safe from_bits_retain in bitflags 2.0
+      // https://github.com/bitflags/bitflags/issues/262
+      code_ += "    // Safety:";
+      code_ += "    // This is safe because we know bitflags is implemented with a repr transparent uint of the correct size.";
+      code_ += "    // from_bits_unchecked will be replaced by an equivalent but safe from_bits_retain in bitflags 2.0";
+      code_ += "    // https://github.com/bitflags/bitflags/issues/262";
+      code_ += "    unsafe { Self::from_bits_unchecked(b) }";
+    } else {
+      code_ += "    Self(b)";
+    }
     code_ += "  }";
     code_ += "}";
     code_ += "";

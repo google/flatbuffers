@@ -64,8 +64,8 @@ impl<'a, T: 'a> Vector<'a, T> {
     ///
     /// `buf` contains a valid vector at `loc` consisting of
     ///
-    /// UOffsetT element count
-    /// Consecutive list of `T` elements
+    /// - UOffsetT element count
+    /// - Consecutive list of `T` elements
     #[inline(always)]
     pub unsafe fn new(buf: &'a [u8], loc: usize) -> Self {
         Vector(buf, loc, PhantomData)
