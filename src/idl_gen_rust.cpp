@@ -137,6 +137,12 @@ static std::set<std::string> RustKeywords() {
   };
 }
 
+enum FullyQualifiedNameType {
+  fqStruct = 0,
+  fqTable = 1,
+  fqMethod = 2,
+};
+
 // Encapsulate all logical field types in this enum. This allows us to write
 // field logic based on type switches, instead of branches on the properties
 // set on the Type.
@@ -1573,12 +1579,23 @@ class RustGenerator : public BaseGenerator {
 
   // Generates a fully-qualified name getter for use with --gen-name-strings
   void GenFullyQualifiedNameGetter(const StructDef &struct_def,
-                                   const std::string &name) {
+                                   const std::string &name,
+                                   FullyQualifiedNameType method_type) {
     const std::string fully_qualified_name =
         struct_def.defined_namespace->GetFullyQualifiedName(name);
-    code_ += "  pub const fn get_fully_qualified_name() -> &'static str {";
+    if (method_type == fqStruct || method_type == fqTable) {
+      code_ += "impl flatbuffers::FullyQualifiedName for {{STRUCT_TY}}\\";
+    }
+    if (method_type == fqTable) { code_ += "<'_>\\"; }
+    if (method_type == fqStruct || method_type == fqTable) {
+      code_ += " {";
+      code_ += "  fn get_fully_qualified_name() -> &'static str {";
+    } else {
+      code_ += "  pub const fn get_fully_qualified_name() -> &'static str {";
+    }
     code_ += "    \"" + fully_qualified_name + "\"";
     code_ += "  }";
+    if (method_type == fqStruct || method_type == fqTable) { code_ += "}"; }
     code_ += "";
   }
 
@@ -1667,7 +1684,7 @@ class RustGenerator : public BaseGenerator {
     code_ += "";
 
     if (parser_.opts.generate_name_strings) {
-      GenFullyQualifiedNameGetter(struct_def, struct_def.name);
+      GenFullyQualifiedNameGetter(struct_def, struct_def.name, fqMethod);
     }
 
     code_ += "  #[inline]";
@@ -1924,6 +1941,10 @@ class RustGenerator : public BaseGenerator {
     });
     code_ += "}";  // End of table impl.
     code_ += "";
+
+    if (parser_.opts.generate_name_strings) {
+      GenFullyQualifiedNameGetter(struct_def, struct_def.name, fqTable);
+    }
 
     // Generate Verifier;
     code_ += "impl flatbuffers::Verifiable for {{STRUCT_TY}}<'_> {";
@@ -2745,7 +2766,7 @@ class RustGenerator : public BaseGenerator {
     code_ += "";
 
     if (parser_.opts.generate_name_strings) {
-      GenFullyQualifiedNameGetter(struct_def, struct_def.name);
+      GenFullyQualifiedNameGetter(struct_def, struct_def.name, fqMethod);
     }
 
     // Generate accessor methods for the struct.
@@ -2857,6 +2878,10 @@ class RustGenerator : public BaseGenerator {
 
     code_ += "}";  // End impl Struct methods.
     code_ += "";
+
+    if (parser_.opts.generate_name_strings) {
+      GenFullyQualifiedNameGetter(struct_def, struct_def.name, fqStruct);
+    }
 
     // Generate Struct Object.
     if (parser_.opts.generate_object_based_api) {

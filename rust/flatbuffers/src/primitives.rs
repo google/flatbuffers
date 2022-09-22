@@ -326,3 +326,12 @@ impl_follow_for_endian_scalar!(i32);
 impl_follow_for_endian_scalar!(i64);
 impl_follow_for_endian_scalar!(f32);
 impl_follow_for_endian_scalar!(f64);
+
+pub trait FullyQualifiedName {
+    /// Returns the fully-qualified name for this table. This will include all namespaces,like
+    /// `MyGame.Monster`.
+    ///
+    /// Use `--gen-name-strings` when running the flatbuffers compile to generate implementations
+    /// of this trait for all tables.
+    fn get_fully_qualified_name() -> &'static str;
+}
