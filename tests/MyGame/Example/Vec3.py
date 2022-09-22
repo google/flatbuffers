@@ -68,8 +68,9 @@ class Vec3T(object):
 
     @classmethod
     def InitFromBuf(cls, buf, pos):
+        n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, 0)
         vec3 = Vec3()
-        vec3.Init(buf, pos)
+        vec3.Init(buf, pos+n)
         return cls.InitFromObj(vec3)
 
     @classmethod

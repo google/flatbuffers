@@ -109,7 +109,7 @@ static std::string ToSnakeCase(const std::string &input, bool screaming) {
     } else if (!islower(input[i])) {
       // Prevent duplicate underscores for Upper_Snake_Case strings
       // and UPPERCASE strings.
-      if (islower(input[i - 1])) { s += '_'; }
+      if (islower(input[i - 1]) || (isdigit(input[i-1]) && !isdigit(input[i]))) { s += '_'; }
       s += screaming ? CharToUpper(input[i]) : CharToLower(input[i]);
     } else {
       s += screaming ? CharToUpper(input[i]) : input[i];
@@ -135,7 +135,7 @@ std::string CamelToSnake(const std::string &input) {
     } else if (!islower(input[i])) {
       // Prevent duplicate underscores for Upper_Snake_Case strings
       // and UPPERCASE strings.
-      if (islower(input[i - 1])) { s += '_'; }
+      if (islower(input[i - 1]) || (isdigit(input[i-1]) && !isdigit(input[i]))) { s += '_'; }
       s += CharToLower(input[i]);
     } else {
       s += input[i];

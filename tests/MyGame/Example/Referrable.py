@@ -53,8 +53,9 @@ class ReferrableT(object):
 
     @classmethod
     def InitFromBuf(cls, buf, pos):
+        n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, 0)
         referrable = Referrable()
-        referrable.Init(buf, pos)
+        referrable.Init(buf, pos+n)
         return cls.InitFromObj(referrable)
 
     @classmethod

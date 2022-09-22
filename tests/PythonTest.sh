@@ -17,12 +17,13 @@
 pushd "$(dirname $0)" >/dev/null
 test_dir="$(pwd)"
 gen_code_path=${test_dir}
-runtime_library_dir=${test_dir}/../python
+runtime_library_dir=${test_dir}/../../python
 
 # Emit Python code for the example schema in the test dir:
 ${test_dir}/../flatc -p -o ${gen_code_path} -I include_test monster_test.fbs --gen-object-api
 ${test_dir}/../flatc -p -o ${gen_code_path} -I include_test monster_test.fbs --gen-object-api --gen-onefile
 ${test_dir}/../flatc -p -o ${gen_code_path} -I include_test monster_extra.fbs --gen-object-api
+${test_dir}/../flatc -p -o ${gen_code_path} -I include_test arrays_test.fbs --gen-object-api
 
 # Syntax: run_tests <interpreter> <benchmark vtable dedupes>
 #                   <benchmark read count> <benchmark build count>
@@ -73,7 +74,7 @@ if $(which coverage >/dev/null); then
 
   PYTHONDONTWRITEBYTECODE=1 \
   PYTHONPATH=${runtime_library_dir}:${gen_code_path} \
-  coverage run --source=flatbuffers,MyGame py_test.py 0 0 0 > /dev/null
+  coverage run --source=flatbuffers,MyGame py_test.py 0 0 0 false > /dev/null
 
   echo
   cov_result=`coverage report --omit="*flatbuffers/vendor*,*py_test*" \

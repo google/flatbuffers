@@ -1613,6 +1613,7 @@ CheckedError Parser::ParseVector(const Type &type, uoffset_t *ovalue,
   });
   ECHECK(err);
 
+  const size_t alignment = InlineAlignment(type);
   const size_t len = count * InlineSize(type) / InlineAlignment(type);
   const size_t elemsize = InlineAlignment(type);
   const auto force_align = field->attributes.Lookup("force_align");
@@ -1622,7 +1623,8 @@ CheckedError Parser::ParseVector(const Type &type, uoffset_t *ovalue,
     if (align > 1) { builder_.ForceVectorAlignment(len, elemsize, align); }
   }
 
-  builder_.StartVector(len, elemsize);
+  // TODO Fix using element alignment as size (`elemsize`)!
+  builder_.StartVector(len, elemsize, alignment);
   for (uoffset_t i = 0; i < count; i++) {
     // start at the back, since we're building the data backwards.
     auto &val = field_stack_.back().first;
