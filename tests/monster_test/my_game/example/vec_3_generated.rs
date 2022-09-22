@@ -241,7 +241,7 @@ impl<'a> Vec3 {
 
 impl flatbuffers::FullyQualifiedName for Vec3 {
   fn get_fully_qualified_name() -> &'static str {
-    "MyGame.Example.Vec3"
+    Vec3::get_fully_qualified_name()
   }
 }
 

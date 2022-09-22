@@ -90,7 +90,7 @@ impl<'a> Stat<'a> {
 
 impl flatbuffers::FullyQualifiedName for Stat<'_> {
   fn get_fully_qualified_name() -> &'static str {
-    "MyGame.Example.Stat"
+    Stat::get_fully_qualified_name()
   }
 }
 

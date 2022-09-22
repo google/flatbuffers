@@ -62,7 +62,7 @@ impl<'a> ArrayTable<'a> {
 
 impl flatbuffers::FullyQualifiedName for ArrayTable<'_> {
   fn get_fully_qualified_name() -> &'static str {
-    "MyGame.Example.ArrayTable"
+    ArrayTable::get_fully_qualified_name()
   }
 }
 

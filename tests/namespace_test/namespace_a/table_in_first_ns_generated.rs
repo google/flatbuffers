@@ -112,7 +112,7 @@ impl<'a> TableInFirstNS<'a> {
 
 impl flatbuffers::FullyQualifiedName for TableInFirstNS<'_> {
   fn get_fully_qualified_name() -> &'static str {
-    "NamespaceA.TableInFirstNS"
+    TableInFirstNS::get_fully_qualified_name()
   }
 }
 

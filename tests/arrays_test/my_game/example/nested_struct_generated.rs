@@ -162,7 +162,7 @@ impl<'a> NestedStruct {
 
 impl flatbuffers::FullyQualifiedName for NestedStruct {
   fn get_fully_qualified_name() -> &'static str {
-    "MyGame.Example.NestedStruct"
+    NestedStruct::get_fully_qualified_name()
   }
 }
 

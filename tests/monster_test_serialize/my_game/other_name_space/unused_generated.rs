@@ -133,7 +133,7 @@ impl<'a> Unused {
 
 impl flatbuffers::FullyQualifiedName for Unused {
   fn get_fully_qualified_name() -> &'static str {
-    "MyGame.OtherNameSpace.Unused"
+    Unused::get_fully_qualified_name()
   }
 }
 

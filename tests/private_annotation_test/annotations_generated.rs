@@ -60,7 +60,7 @@ impl<'a> Annotations<'a> {
 
 impl flatbuffers::FullyQualifiedName for Annotations<'_> {
   fn get_fully_qualified_name() -> &'static str {
-    "Annotations"
+    Annotations::get_fully_qualified_name()
   }
 }
 

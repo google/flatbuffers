@@ -62,7 +62,7 @@ impl<'a> SecondTableInA<'a> {
 
 impl flatbuffers::FullyQualifiedName for SecondTableInA<'_> {
   fn get_fully_qualified_name() -> &'static str {
-    "NamespaceA.SecondTableInA"
+    SecondTableInA::get_fully_qualified_name()
   }
 }
 

@@ -216,7 +216,7 @@ impl<'a> ArrayStruct {
 
 impl flatbuffers::FullyQualifiedName for ArrayStruct {
   fn get_fully_qualified_name() -> &'static str {
-    "MyGame.Example.ArrayStruct"
+    ArrayStruct::get_fully_qualified_name()
   }
 }
 

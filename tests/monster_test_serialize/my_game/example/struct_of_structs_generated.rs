@@ -147,7 +147,7 @@ impl<'a> StructOfStructs {
 
 impl flatbuffers::FullyQualifiedName for StructOfStructs {
   fn get_fully_qualified_name() -> &'static str {
-    "MyGame.Example.StructOfStructs"
+    StructOfStructs::get_fully_qualified_name()
   }
 }
 

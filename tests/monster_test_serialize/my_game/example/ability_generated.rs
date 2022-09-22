@@ -171,7 +171,7 @@ impl<'a> Ability {
 
 impl flatbuffers::FullyQualifiedName for Ability {
   fn get_fully_qualified_name() -> &'static str {
-    "MyGame.Example.Ability"
+    Ability::get_fully_qualified_name()
   }
 }
 

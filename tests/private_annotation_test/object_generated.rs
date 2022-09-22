@@ -120,7 +120,7 @@ impl<'a> Object {
 
 impl flatbuffers::FullyQualifiedName for Object {
   fn get_fully_qualified_name() -> &'static str {
-    "Object"
+    Object::get_fully_qualified_name()
   }
 }
 

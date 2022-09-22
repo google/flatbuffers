@@ -70,7 +70,7 @@ impl<'a> Weapon<'a> {
 
 impl flatbuffers::FullyQualifiedName for Weapon<'_> {
   fn get_fully_qualified_name() -> &'static str {
-    "MyGame.Sample.Weapon"
+    Weapon::get_fully_qualified_name()
   }
 }
 

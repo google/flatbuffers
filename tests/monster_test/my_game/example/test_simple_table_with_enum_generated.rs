@@ -60,7 +60,7 @@ impl<'a> TestSimpleTableWithEnum<'a> {
 
 impl flatbuffers::FullyQualifiedName for TestSimpleTableWithEnum<'_> {
   fn get_fully_qualified_name() -> &'static str {
-    "MyGame.Example.TestSimpleTableWithEnum"
+    TestSimpleTableWithEnum::get_fully_qualified_name()
   }
 }
 

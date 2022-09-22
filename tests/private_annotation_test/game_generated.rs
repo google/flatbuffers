@@ -60,7 +60,7 @@ impl<'a> Game<'a> {
 
 impl flatbuffers::FullyQualifiedName for Game<'_> {
   fn get_fully_qualified_name() -> &'static str {
-    "Game"
+    Game::get_fully_qualified_name()
   }
 }
 

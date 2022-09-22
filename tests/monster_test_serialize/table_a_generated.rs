@@ -64,7 +64,7 @@ impl<'a> TableA<'a> {
 
 impl flatbuffers::FullyQualifiedName for TableA<'_> {
   fn get_fully_qualified_name() -> &'static str {
-    "TableA"
+    TableA::get_fully_qualified_name()
   }
 }
 

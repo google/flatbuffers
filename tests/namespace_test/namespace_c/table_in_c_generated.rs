@@ -72,7 +72,7 @@ impl<'a> TableInC<'a> {
 
 impl flatbuffers::FullyQualifiedName for TableInC<'_> {
   fn get_fully_qualified_name() -> &'static str {
-    "NamespaceC.TableInC"
+    TableInC::get_fully_qualified_name()
   }
 }
 

@@ -147,7 +147,7 @@ impl<'a> StructInNestedNS {
 
 impl flatbuffers::FullyQualifiedName for StructInNestedNS {
   fn get_fully_qualified_name() -> &'static str {
-    "NamespaceA.NamespaceB.StructInNestedNS"
+    StructInNestedNS::get_fully_qualified_name()
   }
 }
 

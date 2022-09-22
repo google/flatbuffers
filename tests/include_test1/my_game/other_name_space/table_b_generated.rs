@@ -62,7 +62,7 @@ impl<'a> TableB<'a> {
 
 impl flatbuffers::FullyQualifiedName for TableB<'_> {
   fn get_fully_qualified_name() -> &'static str {
-    "MyGame.OtherNameSpace.TableB"
+    TableB::get_fully_qualified_name()
   }
 }
 
