@@ -51,7 +51,7 @@ pub use crate::builder::FlatBufferBuilder;
 pub use crate::endian_scalar::{
     byte_swap_f32, byte_swap_f64, emplace_scalar, read_scalar, read_scalar_at, EndianScalar,
 };
-pub use crate::follow::{Follow, FollowStart};
+pub use crate::follow::{Follow, FollowStart, FollowWith};
 pub use crate::primitives::*;
 pub use crate::push::Push;
 pub use crate::table::{buffer_has_identifier, Table};

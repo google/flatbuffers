@@ -53,3 +53,7 @@ impl<'a, T: Follow<'a>> Follow<'a> for FollowStart<T> {
         T::follow(buf, loc)
     }
 }
+
+pub trait FollowWith<'a> {
+    type Inner: Follow<'a>;
+}
