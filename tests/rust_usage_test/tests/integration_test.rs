@@ -3232,6 +3232,19 @@ mod fully_qualified_name {
         assert!(check_eq!(super::my_game::example::Vec3::get_fully_qualified_name(), "MyGame.Example.Vec3").is_ok());
         assert!(check_eq!(super::my_game::example::Ability::get_fully_qualified_name(), "MyGame.Example.Ability").is_ok());
     }
+
+    #[test]
+    fn fully_qualified_name_generated_trait() {
+        fn check_fully_qualified_name_trait<T: flatbuffers::FullyQualifiedName>(expected: &str) {
+            assert!(check_eq!(T::get_fully_qualified_name(), expected).is_ok());
+        }
+
+        check_fully_qualified_name_trait::<super::my_game::example::Monster>("MyGame.Example.Monster");
+        check_fully_qualified_name_trait::<super::my_game::example_2::Monster>("MyGame.Example2.Monster");
+
+        check_fully_qualified_name_trait::<super::my_game::example::Vec3>("MyGame.Example.Vec3");
+        check_fully_qualified_name_trait::<super::my_game::example::Ability>("MyGame.Example.Ability");
+    }
 }
 
 // this is not technically a test, but we want to always keep this generated
