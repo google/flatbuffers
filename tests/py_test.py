@@ -2728,23 +2728,26 @@ class TestFixedLengthArrays(unittest.TestCase):
     self.assertEqual(table.A().B(), \
         [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14])
     self.assertEqual(table.A().C(), 1)
-    self.assertEqual(table.A().D(nested, 0).A(), [1, 2])
-    self.assertEqual(table.A().D(nested, 1).A(), [3, 4])
-    self.assertEqual(table.A().D(nested, 0).B(), \
+    self.assertEqual(table.A().D(0).A(), [1, 2])
+    self.assertEqual(table.A().D(1).A(), [3, 4])
+    self.assertEqual(table.A().D(0).B(), \
         MyGame.Example.TestEnum.TestEnum.B)
-    self.assertEqual(table.A().D(nested, 1).B(), \
+    self.assertEqual(table.A().D(1).B(), \
         MyGame.Example.TestEnum.TestEnum.C)
-    self.assertEqual(table.A().D(nested, 0).C(), \
+    self.assertEqual(table.A().D(0).C(), \
         [MyGame.Example.TestEnum.TestEnum.A, \
          MyGame.Example.TestEnum.TestEnum.B])
-    self.assertEqual(table.A().D(nested, 1).C(), \
+    self.assertEqual(table.A().D(1).C(), \
         [MyGame.Example.TestEnum.TestEnum.C, \
          MyGame.Example.TestEnum.TestEnum.B])
-    self.assertEqual(table.A().D(nested, 0).D(), [-1, 1])
-    self.assertEqual(table.A().D(nested, 1).D(), [-2, 2])
+    self.assertEqual(table.A().D(0).D(), [-1, 1])
+    self.assertEqual(table.A().D(1).D(), [-2, 2])
     self.assertEqual(table.A().E(), 2)
     self.assertEqual(table.A().F(), [-1, 1])
-
+    self.assertEqual(table.A().D(0).D(0), -1)
+    self.assertEqual(table.A().D(0).D(1), 1)
+    self.assertEqual(table.A().D(1).D(0), -2)
+    self.assertEqual(table.A().D(1).D(1), 2)
 
 def CheckAgainstGoldDataGo():
   try:

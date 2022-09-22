@@ -38,8 +38,9 @@ class AbilityT(object):
 
     @classmethod
     def InitFromBuf(cls, buf, pos):
+        n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, 0)
         ability = Ability()
-        ability.Init(buf, pos)
+        ability.Init(buf, pos+n)
         return cls.InitFromObj(ability)
 
     @classmethod

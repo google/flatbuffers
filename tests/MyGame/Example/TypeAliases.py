@@ -224,8 +224,9 @@ class TypeAliasesT(object):
 
     @classmethod
     def InitFromBuf(cls, buf, pos):
+        n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, 0)
         typeAliases = TypeAliases()
-        typeAliases.Init(buf, pos)
+        typeAliases.Init(buf, pos+n)
         return cls.InitFromObj(typeAliases)
 
     @classmethod

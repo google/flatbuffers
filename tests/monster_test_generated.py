@@ -120,8 +120,9 @@ class InParentNamespaceT(object):
 
     @classmethod
     def InitFromBuf(cls, buf, pos):
+        n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, 0)
         inParentNamespace = InParentNamespace()
-        inParentNamespace.Init(buf, pos)
+        inParentNamespace.Init(buf, pos+n)
         return cls.InitFromObj(inParentNamespace)
 
     @classmethod
@@ -176,8 +177,9 @@ class MonsterT(object):
 
     @classmethod
     def InitFromBuf(cls, buf, pos):
+        n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, 0)
         monster = Monster()
-        monster.Init(buf, pos)
+        monster.Init(buf, pos+n)
         return cls.InitFromObj(monster)
 
     @classmethod
@@ -231,8 +233,9 @@ class TestT(object):
 
     @classmethod
     def InitFromBuf(cls, buf, pos):
+        n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, 0)
         test = Test()
-        test.Init(buf, pos)
+        test.Init(buf, pos+n)
         return cls.InitFromObj(test)
 
     @classmethod
@@ -295,8 +298,9 @@ class TestSimpleTableWithEnumT(object):
 
     @classmethod
     def InitFromBuf(cls, buf, pos):
+        n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, 0)
         testSimpleTableWithEnum = TestSimpleTableWithEnum()
-        testSimpleTableWithEnum.Init(buf, pos)
+        testSimpleTableWithEnum.Init(buf, pos+n)
         return cls.InitFromObj(testSimpleTableWithEnum)
 
     @classmethod
@@ -380,8 +384,9 @@ class Vec3T(object):
 
     @classmethod
     def InitFromBuf(cls, buf, pos):
+        n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, 0)
         vec3 = Vec3()
-        vec3.Init(buf, pos)
+        vec3.Init(buf, pos+n)
         return cls.InitFromObj(vec3)
 
     @classmethod
@@ -439,8 +444,9 @@ class AbilityT(object):
 
     @classmethod
     def InitFromBuf(cls, buf, pos):
+        n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, 0)
         ability = Ability()
-        ability.Init(buf, pos)
+        ability.Init(buf, pos+n)
         return cls.InitFromObj(ability)
 
     @classmethod
@@ -517,8 +523,9 @@ class StructOfStructsT(object):
 
     @classmethod
     def InitFromBuf(cls, buf, pos):
+        n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, 0)
         structOfStructs = StructOfStructs()
-        structOfStructs.Init(buf, pos)
+        structOfStructs.Init(buf, pos+n)
         return cls.InitFromObj(structOfStructs)
 
     @classmethod
@@ -588,8 +595,9 @@ class StructOfStructsOfStructsT(object):
 
     @classmethod
     def InitFromBuf(cls, buf, pos):
+        n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, 0)
         structOfStructsOfStructs = StructOfStructsOfStructs()
-        structOfStructsOfStructs.Init(buf, pos)
+        structOfStructsOfStructs.Init(buf, pos+n)
         return cls.InitFromObj(structOfStructsOfStructs)
 
     @classmethod
@@ -670,8 +678,9 @@ class StatT(object):
 
     @classmethod
     def InitFromBuf(cls, buf, pos):
+        n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, 0)
         stat = Stat()
-        stat.Init(buf, pos)
+        stat.Init(buf, pos+n)
         return cls.InitFromObj(stat)
 
     @classmethod
@@ -743,8 +752,9 @@ class ReferrableT(object):
 
     @classmethod
     def InitFromBuf(cls, buf, pos):
+        n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, 0)
         referrable = Referrable()
-        referrable.Init(buf, pos)
+        referrable.Init(buf, pos+n)
         return cls.InitFromObj(referrable)
 
     @classmethod
@@ -1716,8 +1726,9 @@ class MonsterT(object):
 
     @classmethod
     def InitFromBuf(cls, buf, pos):
+        n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, 0)
         monster = Monster()
-        monster.Init(buf, pos)
+        monster.Init(buf, pos+n)
         return cls.InitFromObj(monster)
 
     @classmethod
@@ -2353,8 +2364,9 @@ class TypeAliasesT(object):
 
     @classmethod
     def InitFromBuf(cls, buf, pos):
+        n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, 0)
         typeAliases = TypeAliases()
-        typeAliases.Init(buf, pos)
+        typeAliases.Init(buf, pos+n)
         return cls.InitFromObj(typeAliases)
 
     @classmethod
