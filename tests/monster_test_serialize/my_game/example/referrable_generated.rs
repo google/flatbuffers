@@ -70,6 +70,12 @@ impl<'a> Referrable<'a> {
   }
 }
 
+impl flatbuffers::FullyQualifiedName for Referrable<'_> {
+  fn get_fully_qualified_name() -> &'static str {
+    "MyGame.Example.Referrable"
+  }
+}
+
 impl flatbuffers::Verifiable for Referrable<'_> {
   #[inline]
   fn run_verifier(

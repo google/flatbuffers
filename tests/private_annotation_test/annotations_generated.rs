@@ -58,6 +58,12 @@ impl<'a> Annotations<'a> {
   }
 }
 
+impl flatbuffers::FullyQualifiedName for Annotations<'_> {
+  fn get_fully_qualified_name() -> &'static str {
+    "Annotations"
+  }
+}
+
 impl flatbuffers::Verifiable for Annotations<'_> {
   #[inline]
   fn run_verifier(

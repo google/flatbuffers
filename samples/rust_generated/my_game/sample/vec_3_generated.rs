@@ -172,6 +172,12 @@ impl<'a> Vec3 {
   }
 }
 
+impl flatbuffers::FullyQualifiedName for Vec3 {
+  fn get_fully_qualified_name() -> &'static str {
+    "MyGame.Sample.Vec3"
+  }
+}
+
 #[derive(Debug, Clone, PartialEq, Default)]
 pub struct Vec3T {
   pub x: f32,

@@ -88,6 +88,12 @@ impl<'a> Stat<'a> {
   }
 }
 
+impl flatbuffers::FullyQualifiedName for Stat<'_> {
+  fn get_fully_qualified_name() -> &'static str {
+    "MyGame.Example.Stat"
+  }
+}
+
 impl flatbuffers::Verifiable for Stat<'_> {
   #[inline]
   fn run_verifier(

@@ -131,6 +131,12 @@ impl<'a> Unused {
   }
 }
 
+impl flatbuffers::FullyQualifiedName for Unused {
+  fn get_fully_qualified_name() -> &'static str {
+    "MyGame.OtherNameSpace.Unused"
+  }
+}
+
 #[derive(Debug, Clone, PartialEq, Default)]
 pub struct UnusedT {
   pub a: i32,

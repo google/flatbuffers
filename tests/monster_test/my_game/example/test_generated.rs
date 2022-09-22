@@ -145,6 +145,12 @@ impl<'a> Test {
   }
 }
 
+impl flatbuffers::FullyQualifiedName for Test {
+  fn get_fully_qualified_name() -> &'static str {
+    "MyGame.Example.Test"
+  }
+}
+
 #[derive(Debug, Clone, PartialEq, Default)]
 pub struct TestT {
   pub a: i16,

@@ -49,6 +49,12 @@ impl<'a> InParentNamespace<'a> {
   }
 }
 
+impl flatbuffers::FullyQualifiedName for InParentNamespace<'_> {
+  fn get_fully_qualified_name() -> &'static str {
+    "MyGame.InParentNamespace"
+  }
+}
+
 impl flatbuffers::Verifiable for InParentNamespace<'_> {
   #[inline]
   fn run_verifier(

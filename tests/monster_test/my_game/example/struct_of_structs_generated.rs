@@ -130,6 +130,12 @@ impl<'a> StructOfStructs {
   }
 }
 
+impl flatbuffers::FullyQualifiedName for StructOfStructs {
+  fn get_fully_qualified_name() -> &'static str {
+    "MyGame.Example.StructOfStructs"
+  }
+}
+
 #[derive(Debug, Clone, PartialEq, Default)]
 pub struct StructOfStructsT {
   pub a: AbilityT,

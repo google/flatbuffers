@@ -58,6 +58,12 @@ impl<'a> TableInNestedNS<'a> {
   }
 }
 
+impl flatbuffers::FullyQualifiedName for TableInNestedNS<'_> {
+  fn get_fully_qualified_name() -> &'static str {
+    "NamespaceA.NamespaceB.TableInNestedNS"
+  }
+}
+
 impl flatbuffers::Verifiable for TableInNestedNS<'_> {
   #[inline]
   fn run_verifier(

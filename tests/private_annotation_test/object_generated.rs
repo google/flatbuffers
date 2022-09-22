@@ -118,6 +118,12 @@ impl<'a> Object {
   }
 }
 
+impl flatbuffers::FullyQualifiedName for Object {
+  fn get_fully_qualified_name() -> &'static str {
+    "Object"
+  }
+}
+
 #[derive(Debug, Clone, PartialEq, Default)]
 pub(crate) struct ObjectT {
   pub value: i32,

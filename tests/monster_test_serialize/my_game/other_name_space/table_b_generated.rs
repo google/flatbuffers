@@ -62,6 +62,12 @@ impl<'a> TableB<'a> {
   }
 }
 
+impl flatbuffers::FullyQualifiedName for TableB<'_> {
+  fn get_fully_qualified_name() -> &'static str {
+    "MyGame.OtherNameSpace.TableB"
+  }
+}
+
 impl flatbuffers::Verifiable for TableB<'_> {
   #[inline]
   fn run_verifier(

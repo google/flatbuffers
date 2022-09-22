@@ -116,6 +116,12 @@ impl<'a> MoreDefaults<'a> {
   }
 }
 
+impl flatbuffers::FullyQualifiedName for MoreDefaults<'_> {
+  fn get_fully_qualified_name() -> &'static str {
+    "MoreDefaults"
+  }
+}
+
 impl flatbuffers::Verifiable for MoreDefaults<'_> {
   #[inline]
   fn run_verifier(

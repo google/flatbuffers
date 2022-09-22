@@ -338,6 +338,12 @@ impl<'a> ScalarStuff<'a> {
   }
 }
 
+impl flatbuffers::FullyQualifiedName for ScalarStuff<'_> {
+  fn get_fully_qualified_name() -> &'static str {
+    "optional_scalars.ScalarStuff"
+  }
+}
+
 impl flatbuffers::Verifiable for ScalarStuff<'_> {
   #[inline]
   fn run_verifier(

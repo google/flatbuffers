@@ -690,6 +690,12 @@ impl<'a> Monster<'a> {
 
 }
 
+impl flatbuffers::FullyQualifiedName for Monster<'_> {
+  fn get_fully_qualified_name() -> &'static str {
+    "MyGame.Example.Monster"
+  }
+}
+
 impl flatbuffers::Verifiable for Monster<'_> {
   #[inline]
   fn run_verifier(

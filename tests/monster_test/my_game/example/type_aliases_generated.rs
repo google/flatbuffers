@@ -150,6 +150,12 @@ impl<'a> TypeAliases<'a> {
   }
 }
 
+impl flatbuffers::FullyQualifiedName for TypeAliases<'_> {
+  fn get_fully_qualified_name() -> &'static str {
+    "MyGame.Example.TypeAliases"
+  }
+}
+
 impl flatbuffers::Verifiable for TypeAliases<'_> {
   #[inline]
   fn run_verifier(

@@ -145,6 +145,12 @@ impl<'a> StructInNestedNS {
   }
 }
 
+impl flatbuffers::FullyQualifiedName for StructInNestedNS {
+  fn get_fully_qualified_name() -> &'static str {
+    "NamespaceA.NamespaceB.StructInNestedNS"
+  }
+}
+
 #[derive(Debug, Clone, PartialEq, Default)]
 pub struct StructInNestedNST {
   pub a: i32,

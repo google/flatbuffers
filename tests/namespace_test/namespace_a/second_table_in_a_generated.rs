@@ -60,6 +60,12 @@ impl<'a> SecondTableInA<'a> {
   }
 }
 
+impl flatbuffers::FullyQualifiedName for SecondTableInA<'_> {
+  fn get_fully_qualified_name() -> &'static str {
+    "NamespaceA.SecondTableInA"
+  }
+}
+
 impl flatbuffers::Verifiable for SecondTableInA<'_> {
   #[inline]
   fn run_verifier(

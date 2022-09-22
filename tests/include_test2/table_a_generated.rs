@@ -60,6 +60,12 @@ impl<'a> TableA<'a> {
   }
 }
 
+impl flatbuffers::FullyQualifiedName for TableA<'_> {
+  fn get_fully_qualified_name() -> &'static str {
+    "TableA"
+  }
+}
+
 impl flatbuffers::Verifiable for TableA<'_> {
   #[inline]
   fn run_verifier(

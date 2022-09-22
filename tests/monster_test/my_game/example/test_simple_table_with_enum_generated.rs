@@ -58,6 +58,12 @@ impl<'a> TestSimpleTableWithEnum<'a> {
   }
 }
 
+impl flatbuffers::FullyQualifiedName for TestSimpleTableWithEnum<'_> {
+  fn get_fully_qualified_name() -> &'static str {
+    "MyGame.Example.TestSimpleTableWithEnum"
+  }
+}
+
 impl flatbuffers::Verifiable for TestSimpleTableWithEnum<'_> {
   #[inline]
   fn run_verifier(

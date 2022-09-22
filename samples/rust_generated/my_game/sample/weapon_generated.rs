@@ -68,6 +68,12 @@ impl<'a> Weapon<'a> {
   }
 }
 
+impl flatbuffers::FullyQualifiedName for Weapon<'_> {
+  fn get_fully_qualified_name() -> &'static str {
+    "MyGame.Sample.Weapon"
+  }
+}
+
 impl flatbuffers::Verifiable for Weapon<'_> {
   #[inline]
   fn run_verifier(

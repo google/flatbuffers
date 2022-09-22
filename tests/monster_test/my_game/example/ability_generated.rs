@@ -155,6 +155,12 @@ impl<'a> Ability {
   }
 }
 
+impl flatbuffers::FullyQualifiedName for Ability {
+  fn get_fully_qualified_name() -> &'static str {
+    "MyGame.Example.Ability"
+  }
+}
+
 #[derive(Debug, Clone, PartialEq, Default)]
 pub struct AbilityT {
   pub id: u32,

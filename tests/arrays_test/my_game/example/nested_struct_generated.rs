@@ -160,6 +160,12 @@ impl<'a> NestedStruct {
   }
 }
 
+impl flatbuffers::FullyQualifiedName for NestedStruct {
+  fn get_fully_qualified_name() -> &'static str {
+    "MyGame.Example.NestedStruct"
+  }
+}
+
 #[derive(Debug, Clone, PartialEq, Default)]
 pub struct NestedStructT {
   pub a: [i32; 2],

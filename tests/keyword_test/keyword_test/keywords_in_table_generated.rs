@@ -82,6 +82,12 @@ impl<'a> KeywordsInTable<'a> {
   }
 }
 
+impl flatbuffers::FullyQualifiedName for KeywordsInTable<'_> {
+  fn get_fully_qualified_name() -> &'static str {
+    "KeywordTest.KeywordsInTable"
+  }
+}
+
 impl flatbuffers::Verifiable for KeywordsInTable<'_> {
   #[inline]
   fn run_verifier(
