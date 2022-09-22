@@ -135,6 +135,7 @@ class NimBfbsGenerator : public BaseBfbsGenerator {
   }
 
   void GenerateObject(const r::Object *object, const r::Object *root_object) {
+    (void)root_object;
     // Register the main flatbuffers module.
     RegisterImports("flatbuffers", "");
     std::string code;
@@ -205,7 +206,7 @@ class NimBfbsGenerator : public BaseBfbsGenerator {
           }
           getter_code += "    return " + field_getter + "\n";
           if (!field->optional()) {
-            getter_code += "  return " + DefaultValue(object, field) + "\n";
+            getter_code += "  return " + DefaultValue(field) + "\n";
           }
 
           // TODO: parser opts:
@@ -489,8 +490,7 @@ class NimBfbsGenerator : public BaseBfbsGenerator {
     }
   }
 
-  std::string DefaultValue(const r::Object *object,
-                           const r::Field *field) const {
+  std::string DefaultValue(const r::Field *field) const {
     const r::BaseType base_type = field->type()->base_type();
     if (IsFloatingPoint(base_type)) {
       return NumToString(field->default_real());
