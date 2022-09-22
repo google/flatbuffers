@@ -24,6 +24,10 @@ impl<'a> flatbuffers::Follow<'a> for TypeAliases<'a> {
   }
 }
 
+impl<'a, 'b> flatbuffers::FollowWith<'a> for TypeAliases<'b> {
+  type Inner = TypeAliases<'a>;
+}
+
 impl<'a> TypeAliases<'a> {
   pub const VT_I8_: flatbuffers::VOffsetT = 4;
   pub const VT_U8_: flatbuffers::VOffsetT = 6;

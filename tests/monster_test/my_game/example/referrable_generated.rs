@@ -24,6 +24,10 @@ impl<'a> flatbuffers::Follow<'a> for Referrable<'a> {
   }
 }
 
+impl<'a, 'b> flatbuffers::FollowWith<'a> for Referrable<'b> {
+  type Inner = Referrable<'a>;
+}
+
 impl<'a> Referrable<'a> {
   pub const VT_ID: flatbuffers::VOffsetT = 4;
 

@@ -24,6 +24,10 @@ impl<'a> flatbuffers::Follow<'a> for Weapon<'a> {
   }
 }
 
+impl<'a, 'b> flatbuffers::FollowWith<'a> for Weapon<'b> {
+  type Inner = Weapon<'a>;
+}
+
 impl<'a> Weapon<'a> {
   pub const VT_NAME: flatbuffers::VOffsetT = 4;
   pub const VT_DAMAGE: flatbuffers::VOffsetT = 6;

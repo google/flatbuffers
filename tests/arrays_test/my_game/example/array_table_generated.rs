@@ -24,6 +24,10 @@ impl<'a> flatbuffers::Follow<'a> for ArrayTable<'a> {
   }
 }
 
+impl<'a, 'b> flatbuffers::FollowWith<'a> for ArrayTable<'b> {
+  type Inner = ArrayTable<'a>;
+}
+
 impl<'a> ArrayTable<'a> {
   pub const VT_A: flatbuffers::VOffsetT = 4;
 

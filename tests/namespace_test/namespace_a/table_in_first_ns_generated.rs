@@ -24,6 +24,10 @@ impl<'a> flatbuffers::Follow<'a> for TableInFirstNS<'a> {
   }
 }
 
+impl<'a, 'b> flatbuffers::FollowWith<'a> for TableInFirstNS<'b> {
+  type Inner = TableInFirstNS<'a>;
+}
+
 impl<'a> TableInFirstNS<'a> {
   pub const VT_FOO_TABLE: flatbuffers::VOffsetT = 4;
   pub const VT_FOO_ENUM: flatbuffers::VOffsetT = 6;

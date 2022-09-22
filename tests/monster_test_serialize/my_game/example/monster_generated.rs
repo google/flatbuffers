@@ -27,6 +27,10 @@ impl<'a> flatbuffers::Follow<'a> for Monster<'a> {
   }
 }
 
+impl<'a, 'b> flatbuffers::FollowWith<'a> for Monster<'b> {
+  type Inner = Monster<'a>;
+}
+
 impl<'a> Monster<'a> {
   pub const VT_POS: flatbuffers::VOffsetT = 4;
   pub const VT_MANA: flatbuffers::VOffsetT = 6;

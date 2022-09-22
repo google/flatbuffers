@@ -24,6 +24,10 @@ impl<'a> flatbuffers::Follow<'a> for ScalarStuff<'a> {
   }
 }
 
+impl<'a, 'b> flatbuffers::FollowWith<'a> for ScalarStuff<'b> {
+  type Inner = ScalarStuff<'a>;
+}
+
 impl<'a> ScalarStuff<'a> {
   pub const VT_JUST_I8: flatbuffers::VOffsetT = 4;
   pub const VT_MAYBE_I8: flatbuffers::VOffsetT = 6;

@@ -24,6 +24,10 @@ impl<'a> flatbuffers::Follow<'a> for Game<'a> {
   }
 }
 
+impl<'a, 'b> flatbuffers::FollowWith<'a> for Game<'b> {
+  type Inner = Game<'a>;
+}
+
 impl<'a> Game<'a> {
   pub const VT_VALUE: flatbuffers::VOffsetT = 4;
 

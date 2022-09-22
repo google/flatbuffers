@@ -24,6 +24,10 @@ impl<'a> flatbuffers::Follow<'a> for TableInNestedNS<'a> {
   }
 }
 
+impl<'a, 'b> flatbuffers::FollowWith<'a> for TableInNestedNS<'b> {
+  type Inner = TableInNestedNS<'a>;
+}
+
 impl<'a> TableInNestedNS<'a> {
   pub const VT_FOO: flatbuffers::VOffsetT = 4;
 

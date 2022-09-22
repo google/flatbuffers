@@ -26,6 +26,10 @@ impl<'a> flatbuffers::Follow<'a> for InParentNamespace<'a> {
   }
 }
 
+impl<'a, 'b> flatbuffers::FollowWith<'a> for InParentNamespace<'b> {
+  type Inner = InParentNamespace<'a>;
+}
+
 impl<'a> InParentNamespace<'a> {
 
   pub const fn get_fully_qualified_name() -> &'static str {

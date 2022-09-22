@@ -24,6 +24,10 @@ impl<'a> flatbuffers::Follow<'a> for MoreDefaults<'a> {
   }
 }
 
+impl<'a, 'b> flatbuffers::FollowWith<'a> for MoreDefaults<'b> {
+  type Inner = MoreDefaults<'a>;
+}
+
 impl<'a> MoreDefaults<'a> {
   pub const VT_INTS: flatbuffers::VOffsetT = 4;
   pub const VT_FLOATS: flatbuffers::VOffsetT = 6;

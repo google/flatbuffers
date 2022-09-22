@@ -26,6 +26,10 @@ impl<'a> flatbuffers::Follow<'a> for Stat<'a> {
   }
 }
 
+impl<'a, 'b> flatbuffers::FollowWith<'a> for Stat<'b> {
+  type Inner = Stat<'a>;
+}
+
 impl<'a> Stat<'a> {
   pub const VT_ID: flatbuffers::VOffsetT = 4;
   pub const VT_VAL: flatbuffers::VOffsetT = 6;

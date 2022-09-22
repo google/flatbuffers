@@ -26,6 +26,10 @@ impl<'a> flatbuffers::Follow<'a> for TestSimpleTableWithEnum<'a> {
   }
 }
 
+impl<'a, 'b> flatbuffers::FollowWith<'a> for TestSimpleTableWithEnum<'b> {
+  type Inner = TestSimpleTableWithEnum<'a>;
+}
+
 impl<'a> TestSimpleTableWithEnum<'a> {
   pub const VT_COLOR: flatbuffers::VOffsetT = 4;
 

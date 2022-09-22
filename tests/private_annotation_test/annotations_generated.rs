@@ -24,6 +24,10 @@ impl<'a> flatbuffers::Follow<'a> for Annotations<'a> {
   }
 }
 
+impl<'a, 'b> flatbuffers::FollowWith<'a> for Annotations<'b> {
+  type Inner = Annotations<'a>;
+}
+
 impl<'a> Annotations<'a> {
   pub const VT_VALUE: flatbuffers::VOffsetT = 4;
 

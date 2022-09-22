@@ -24,6 +24,10 @@ impl<'a> flatbuffers::Follow<'a> for KeywordsInTable<'a> {
   }
 }
 
+impl<'a, 'b> flatbuffers::FollowWith<'a> for KeywordsInTable<'b> {
+  type Inner = KeywordsInTable<'a>;
+}
+
 impl<'a> KeywordsInTable<'a> {
   pub const VT_IS: flatbuffers::VOffsetT = 4;
   pub const VT_PRIVATE: flatbuffers::VOffsetT = 6;

@@ -24,6 +24,10 @@ impl<'a> flatbuffers::Follow<'a> for TableB<'a> {
   }
 }
 
+impl<'a, 'b> flatbuffers::FollowWith<'a> for TableB<'b> {
+  type Inner = TableB<'a>;
+}
+
 impl<'a> TableB<'a> {
   pub const VT_A: flatbuffers::VOffsetT = 4;
 
