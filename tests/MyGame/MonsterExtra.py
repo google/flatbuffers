@@ -202,8 +202,9 @@ class MonsterExtraT(object):
 
     @classmethod
     def InitFromBuf(cls, buf, pos):
+        n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, 0)
         monsterExtra = MonsterExtra()
-        monsterExtra.Init(buf, pos)
+        monsterExtra.Init(buf, pos+n)
         return cls.InitFromObj(monsterExtra)
 
     @classmethod
