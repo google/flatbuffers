@@ -18,48 +18,69 @@ class NestedStruct(object):
         self._tab = flatbuffers.table.Table(buf, pos)
 
     # NestedStruct
-    def A(self): return [self._tab.Get(flatbuffers.number_types.Int32Flags, self._tab.Pos + flatbuffers.number_types.UOffsetTFlags.py_type(0 + i * 4)) for i in range(2)]
+    def A(self, j = None):
+        if j is None:
+            return [self._tab.Get(flatbuffers.number_types.Int32Flags, self._tab.Pos + flatbuffers.number_types.UOffsetTFlags.py_type(0 + i * 4)) for i in range(self.ALength())]
+        elif j >= 0 and j < self.ALength():
+            return self._tab.Get(flatbuffers.number_types.Int32Flags, self._tab.Pos + flatbuffers.number_types.UOffsetTFlags.py_type(0 + j * 4))
+        else:
+            return None
+
+    # NestedStruct
+    def AAsNumpy(self):
+        return self._tab.GetArrayAsNumpy(flatbuffers.number_types.Int32Flags, self._tab.Pos + 0, self.ALength())
+
     # NestedStruct
     def ALength(self):
-        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(0))
-        if o != 0:
-            return self._tab.VectorLen(o)
-        return 0
+        return 2
 
     # NestedStruct
     def AIsNone(self):
-        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(0))
-        return o == 0
+        return False
 
     # NestedStruct
     def B(self): return self._tab.Get(flatbuffers.number_types.Int8Flags, self._tab.Pos + flatbuffers.number_types.UOffsetTFlags.py_type(8))
     # NestedStruct
-    def C(self): return [self._tab.Get(flatbuffers.number_types.Int8Flags, self._tab.Pos + flatbuffers.number_types.UOffsetTFlags.py_type(9 + i * 1)) for i in range(2)]
+    def C(self, j = None):
+        if j is None:
+            return [self._tab.Get(flatbuffers.number_types.Int8Flags, self._tab.Pos + flatbuffers.number_types.UOffsetTFlags.py_type(9 + i * 1)) for i in range(self.CLength())]
+        elif j >= 0 and j < self.CLength():
+            return self._tab.Get(flatbuffers.number_types.Int8Flags, self._tab.Pos + flatbuffers.number_types.UOffsetTFlags.py_type(9 + j * 1))
+        else:
+            return None
+
+    # NestedStruct
+    def CAsNumpy(self):
+        return self._tab.GetArrayAsNumpy(flatbuffers.number_types.Int8Flags, self._tab.Pos + 9, self.CLength())
+
     # NestedStruct
     def CLength(self):
-        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(9))
-        if o != 0:
-            return self._tab.VectorLen(o)
-        return 0
+        return 2
 
     # NestedStruct
     def CIsNone(self):
-        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(9))
-        return o == 0
+        return False
 
     # NestedStruct
-    def D(self): return [self._tab.Get(flatbuffers.number_types.Int64Flags, self._tab.Pos + flatbuffers.number_types.UOffsetTFlags.py_type(16 + i * 8)) for i in range(2)]
+    def D(self, j = None):
+        if j is None:
+            return [self._tab.Get(flatbuffers.number_types.Int64Flags, self._tab.Pos + flatbuffers.number_types.UOffsetTFlags.py_type(16 + i * 8)) for i in range(self.DLength())]
+        elif j >= 0 and j < self.DLength():
+            return self._tab.Get(flatbuffers.number_types.Int64Flags, self._tab.Pos + flatbuffers.number_types.UOffsetTFlags.py_type(16 + j * 8))
+        else:
+            return None
+
+    # NestedStruct
+    def DAsNumpy(self):
+        return self._tab.GetArrayAsNumpy(flatbuffers.number_types.Int64Flags, self._tab.Pos + 16, self.DLength())
+
     # NestedStruct
     def DLength(self):
-        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(16))
-        if o != 0:
-            return self._tab.VectorLen(o)
-        return 0
+        return 2
 
     # NestedStruct
     def DIsNone(self):
-        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(16))
-        return o == 0
+        return False
 
 
 def CreateNestedStruct(builder, a, b, c, d):
@@ -90,8 +111,9 @@ class NestedStructT(object):
 
     @classmethod
     def InitFromBuf(cls, buf, pos):
+        n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, 0)
         nestedStruct = NestedStruct()
-        nestedStruct.Init(buf, pos)
+        nestedStruct.Init(buf, pos+n)
         return cls.InitFromObj(nestedStruct)
 
     @classmethod

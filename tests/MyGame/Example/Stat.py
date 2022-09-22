@@ -75,8 +75,9 @@ class StatT(object):
 
     @classmethod
     def InitFromBuf(cls, buf, pos):
+        n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, 0)
         stat = Stat()
-        stat.Init(buf, pos)
+        stat.Init(buf, pos+n)
         return cls.InitFromObj(stat)
 
     @classmethod

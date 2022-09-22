@@ -53,8 +53,9 @@ class TestSimpleTableWithEnumT(object):
 
     @classmethod
     def InitFromBuf(cls, buf, pos):
+        n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, 0)
         testSimpleTableWithEnum = TestSimpleTableWithEnum()
-        testSimpleTableWithEnum.Init(buf, pos)
+        testSimpleTableWithEnum.Init(buf, pos+n)
         return cls.InitFromObj(testSimpleTableWithEnum)
 
     @classmethod
