@@ -5,26 +5,13 @@ import shutil
 import subprocess
 from pathlib import Path
 
-test_nim_dir = Path(__file__).parent
+test_nim_dir = Path(__file__).absolute().parent
 test_dir = test_nim_dir.parent
 generated_dir = test_nim_dir / "generated"
-# Get the root path as an absolute path, so all derived paths are absolute.
-root_path = test_dir.parent.absolute()
-
-# Windows works with subprocess.run a bit differently.
-is_windows = platform.system() == "Windows"
-# Get the location of the flatc executable
-flatc_exe = Path("flatc.exe" if is_windows else "flatc")
-# Find and assert flatc compiler is present.
-if root_path in flatc_exe.parents:
-    flatc_exe = flatc_exe.relative_to(root_path)
-flatc_path = Path(root_path, flatc_exe)
+root_path = test_dir.parent
+flatc_exe = Path("flatc.exe" if  platform.system() == "Windows" else "flatc")
+flatc_path = root_path / flatc_exe
 assert flatc_path.exists(), "Cannot find the flatc compiler " + str(flatc_path)
-
-
-def check_call(args, cwd=test_nim_dir):
-    subprocess.check_call(args, cwd=str(cwd), shell=is_windows)
-
 
 # Execute the flatc compiler with the specified parameters
 def flatc(options, schema, prefix=None, include=None, data=None, cwd=root_path):
