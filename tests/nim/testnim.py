@@ -9,7 +9,7 @@ test_nim_dir = Path(__file__).parent
 test_dir = test_nim_dir.parent
 generated_dir = test_nim_dir / "generated"
 scripts_dir = test_dir.parent / "scripts"
-sys.path.insert(0, str(scripts_dir))
+sys.path.insert(0, str(scripts_dir.absolute()))
 from util import flatc
 
 
