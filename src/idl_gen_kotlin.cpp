@@ -505,7 +505,7 @@ class KotlinGenerator : public BaseGenerator {
           // runtime.
           GenerateFunOneLine(
               writer, "validateVersion", "", "",
-              [&]() { writer += "Constants.FLATBUFFERS_2_0_8()"; },
+              [&]() { writer += "Constants.FLATBUFFERS_22_9_24()"; },
               options.gen_jvmstatic);
 
           GenerateGetRootAsAccessors(namer_.Type(struct_def), writer, options);
