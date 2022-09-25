@@ -759,10 +759,10 @@ class TsGenerator : public BaseGenerator {
     import.object_name = object_name;
     import.bare_file_path = bare_file_path;
     import.rel_file_path = rel_file_path;
-    import.import_statement =
-        "import { " + symbols_expression + " } from '" + rel_file_path + ".js';";
-    import.export_statement =
-        "export { " + symbols_expression + " } from '." + bare_file_path + ".js';";
+    import.import_statement = "import { " + symbols_expression + " } from '" +
+                              rel_file_path + ".js';";
+    import.export_statement = "export { " + symbols_expression + " } from '." +
+                              bare_file_path + ".js';";
     import.dependency = &dependency;
     import.dependent = &dependent;
 
@@ -1102,12 +1102,13 @@ class TsGenerator : public BaseGenerator {
             switch (vectortype.base_type) {
               case BASE_TYPE_STRUCT: {
                 const auto &sd = *field.value.type.struct_def;
-                const auto field_type_name = GetTypeName(sd, /*object_api=*/true);
+                const auto field_type_name =
+                    GetTypeName(sd, /*object_api=*/true);
                 field_type += field_type_name;
                 field_type += ")[]";
 
-                field_val = GenBBAccess() + ".createObjList<" + vectortypename + ", " +
-                            field_type_name + ">(" +
+                field_val = GenBBAccess() + ".createObjList<" + vectortypename +
+                            ", " + field_type_name + ">(" +
                             field_binded_method + ", this." +
                             namer_.Method(field, "Length") + "())";
 
@@ -1163,9 +1164,9 @@ class TsGenerator : public BaseGenerator {
                   field_type += vectortypename;
                 }
                 field_type += ")[]";
-                field_val = GenBBAccess() + ".createScalarList<" + vectortypename + ">(" +
-                            field_binded_method + ", this." +
-                            namer_.Method(field, "Length") + "())";
+                field_val = GenBBAccess() + ".createScalarList<" +
+                            vectortypename + ">(" + field_binded_method +
+                            ", this." + namer_.Method(field, "Length") + "())";
 
                 field_offset_decl =
                     AddImport(imports, struct_def, struct_def).name + "." +
@@ -1306,7 +1307,8 @@ class TsGenerator : public BaseGenerator {
     code += "export class ";
     code += object_name;
     if (parser.opts.generate_object_based_api)
-      code += " implements flatbuffers.IUnpackableObject<" + object_api_name + "> {\n";
+      code += " implements flatbuffers.IUnpackableObject<" + object_api_name +
+              "> {\n";
     else
       code += " {\n";
     code += "  bb: flatbuffers.ByteBuffer|null = null;\n";
