@@ -11,7 +11,7 @@ export enum class_ {
   instanceof_ = 1
 }
 
-export class Object_ {
+export class Object_ implements flatbuffers.IUnpackableObject<Object_T> {
   bb: flatbuffers.ByteBuffer|null = null;
   bb_pos = 0;
   __init(i:number, bb:flatbuffers.ByteBuffer):Object_ {
@@ -196,7 +196,7 @@ unpackTo(_o: Object_T): void {
 }
 }
 
-export class Object_T {
+export class Object_T implements flatbuffers.IGeneratedObject {
 constructor(
   public return_: number = 0,
   public if_: number = 0,

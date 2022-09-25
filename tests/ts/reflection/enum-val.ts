@@ -5,7 +5,7 @@ import * as flatbuffers from 'flatbuffers';
 import { Type, TypeT } from '../reflection/type.js';
 
 
-export class EnumVal {
+export class EnumVal implements flatbuffers.IUnpackableObject<EnumValT> {
   bb: flatbuffers.ByteBuffer|null = null;
   bb_pos = 0;
   __init(i:number, bb:flatbuffers.ByteBuffer):EnumVal {
@@ -111,7 +111,7 @@ unpack(): EnumValT {
     this.name(),
     this.value(),
     (this.unionType() !== null ? this.unionType()!.unpack() : null),
-    this.bb!.createScalarList(this.documentation.bind(this), this.documentationLength())
+    this.bb!.createScalarList<string>(this.documentation.bind(this), this.documentationLength())
   );
 }
 
@@ -120,11 +120,11 @@ unpackTo(_o: EnumValT): void {
   _o.name = this.name();
   _o.value = this.value();
   _o.unionType = (this.unionType() !== null ? this.unionType()!.unpack() : null);
-  _o.documentation = this.bb!.createScalarList(this.documentation.bind(this), this.documentationLength());
+  _o.documentation = this.bb!.createScalarList<string>(this.documentation.bind(this), this.documentationLength());
 }
 }
 
-export class EnumValT {
+export class EnumValT implements flatbuffers.IGeneratedObject {
 constructor(
   public name: string|Uint8Array|null = null,
   public value: bigint = BigInt('0'),

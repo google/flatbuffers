@@ -5,7 +5,7 @@ import * as flatbuffers from 'flatbuffers';
 import { StructOfStructs, StructOfStructsT } from '../../my-game/example/struct-of-structs.js';
 
 
-export class StructOfStructsOfStructs {
+export class StructOfStructsOfStructs implements flatbuffers.IUnpackableObject<StructOfStructsOfStructsT> {
   bb: flatbuffers.ByteBuffer|null = null;
   bb_pos = 0;
   __init(i:number, bb:flatbuffers.ByteBuffer):StructOfStructsOfStructs {
@@ -55,7 +55,7 @@ unpackTo(_o: StructOfStructsOfStructsT): void {
 }
 }
 
-export class StructOfStructsOfStructsT {
+export class StructOfStructsOfStructsT implements flatbuffers.IGeneratedObject {
 constructor(
   public a: StructOfStructsT|null = null
 ){}

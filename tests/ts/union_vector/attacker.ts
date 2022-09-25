@@ -4,7 +4,7 @@ import * as flatbuffers from 'flatbuffers';
 
 
 
-export class Attacker {
+export class Attacker implements flatbuffers.IUnpackableObject<AttackerT> {
   bb: flatbuffers.ByteBuffer|null = null;
   bb_pos = 0;
   __init(i:number, bb:flatbuffers.ByteBuffer):Attacker {
@@ -73,7 +73,7 @@ unpackTo(_o: AttackerT): void {
 }
 }
 
-export class AttackerT {
+export class AttackerT implements flatbuffers.IGeneratedObject {
 constructor(
   public swordAttackDamage: number = 0
 ){}
