@@ -104,7 +104,11 @@ impl core::fmt::Display for InvalidFlatbuffer {
                 field_type,
                 error_trace,
             } => {
-                writeln!(f,"Union exactly one of union discriminant (`{}`) and value (`{}`) are present.\n{}", field_type, field, error_trace)?;
+                writeln!(
+                    f,
+                    "Exactly one of union discriminant (`{}`) and value (`{}`) are present.\n{}",
+                    field_type, field, error_trace
+                )?;
             }
             InvalidFlatbuffer::Utf8Error {
                 error,
