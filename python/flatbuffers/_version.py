@@ -14,4 +14,4 @@
 
 # Placeholder, to be updated during the release process
 # by the setup.py
-__version__ = u"2.0.8"
+__version__ = u"22.9.24"

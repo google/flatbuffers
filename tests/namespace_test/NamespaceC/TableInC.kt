@@ -36,7 +36,7 @@ class TableInC : Table() {
         }
     }
     companion object {
-        fun validateVersion() = Constants.FLATBUFFERS_2_0_8()
+        fun validateVersion() = Constants.FLATBUFFERS_22_9_24()
         fun getRootAsTableInC(_bb: ByteBuffer): TableInC = getRootAsTableInC(_bb, TableInC())
         fun getRootAsTableInC(_bb: ByteBuffer, obj: TableInC): TableInC {
             _bb.order(ByteOrder.LITTLE_ENDIAN)

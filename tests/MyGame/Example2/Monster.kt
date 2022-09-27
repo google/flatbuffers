@@ -17,7 +17,7 @@ class Monster : Table() {
         return this
     }
     companion object {
-        fun validateVersion() = Constants.FLATBUFFERS_2_0_8()
+        fun validateVersion() = Constants.FLATBUFFERS_22_9_24()
         fun getRootAsMonster(_bb: ByteBuffer): Monster = getRootAsMonster(_bb, Monster())
         fun getRootAsMonster(_bb: ByteBuffer, obj: Monster): Monster {
             _bb.order(ByteOrder.LITTLE_ENDIAN)

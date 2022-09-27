@@ -31,7 +31,7 @@ class TestSimpleTableWithEnum : Table() {
         }
     }
     companion object {
-        fun validateVersion() = Constants.FLATBUFFERS_2_0_8()
+        fun validateVersion() = Constants.FLATBUFFERS_22_9_24()
         fun getRootAsTestSimpleTableWithEnum(_bb: ByteBuffer): TestSimpleTableWithEnum = getRootAsTestSimpleTableWithEnum(_bb, TestSimpleTableWithEnum())
         fun getRootAsTestSimpleTableWithEnum(_bb: ByteBuffer, obj: TestSimpleTableWithEnum): TestSimpleTableWithEnum {
             _bb.order(ByteOrder.LITTLE_ENDIAN)
