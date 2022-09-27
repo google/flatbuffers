@@ -9,7 +9,7 @@ test_nim_dir = Path(__file__).absolute().parent
 test_dir = test_nim_dir.parent
 generated_dir = test_nim_dir / "generated"
 root_path = test_dir.parent
-flatc_exe = Path("flatc.exe" if  platform.system() == "Windows" else "flatc")
+flatc_exe = Path("flatc.exe" if platform.system() == "Windows" else "flatc")
 flatc_path = root_path / flatc_exe
 assert flatc_path.exists(), "Cannot find the flatc compiler " + str(flatc_path)
 

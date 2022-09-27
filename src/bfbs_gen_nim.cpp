@@ -104,13 +104,14 @@ class NimBfbsGenerator : public BaseBfbsGenerator {
     });
     ForAllObjects(schema->objects(), [&](const r::Object *object) {
       StartCodeBlock(object);
-      GenerateObject(object, schema->root_table());
+      GenerateObject(object);
     });
     return OK;
   }
 
   uint64_t SupportedAdvancedFeatures() const FLATBUFFERS_OVERRIDE {
-    return 0xF;
+    return r::AdvancedArrayFeatures | r::AdvancedUnionFeatures |
+           r::OptionalScalars | r::DefaultVectorsAndStrings;
   }
 
  protected:
@@ -134,8 +135,7 @@ class NimBfbsGenerator : public BaseBfbsGenerator {
     EmitCodeBlock(code, enum_name, ns, enum_def->declaration_file()->str());
   }
 
-  void GenerateObject(const r::Object *object, const r::Object *root_object) {
-    (void)root_object;
+  void GenerateObject(const r::Object *object) {
     // Register the main flatbuffers module.
     RegisterImports("flatbuffers", "");
     std::string code;
@@ -184,23 +184,18 @@ class NimBfbsGenerator : public BaseBfbsGenerator {
 
         if (object->is_struct()) {
           std::string field_getter =
-              ReplaceString(GenerateGetter(field->type()), "{offset}",
-                            NumToString(field->offset()));
+              GenerateGetter(field->type(), NumToString(field->offset()));
           getter_code += "  return " + field_getter + "\n";
 
-          // TODO: parser opts:
-          // if (parser_.opts.m utable_buffer) {
           if (IsScalar(base_type)) {
             setter_code += "  return self.tab.Mutate(self.tab.Pos + " +
                            NumToString(field->offset()) + ", n)\n";
           }
-          //}
         } else {
           // Table accessors
           getter_code += "  " + offset_prefix;
           getter_code += "  " + offset_prefix_2;
-          std::string field_getter =
-              ReplaceString(GenerateGetter(field->type()), "{offset}", "o");
+          std::string field_getter = GenerateGetter(field->type(), "o");
           if (field->optional()) {
             field_getter = "some(" + field_getter + ")";
           }
@@ -209,18 +204,13 @@ class NimBfbsGenerator : public BaseBfbsGenerator {
             getter_code += "  return " + DefaultValue(field) + "\n";
           }
 
-          // TODO: parser opts:
-          // if (parser_.opts.mutable_buffer) {
           if (IsScalar(base_type)) {
             setter_code += "  return self.tab.MutateSlot(" +
                            NumToString(field->offset()) + ", n)\n";
           }
-          //}
         }
         code += getter_signature + getter_code;
-        // if (parser_.opts.mutable_buffer) {
         if (IsScalar(base_type)) { code += setter_signature + setter_code; }
-        //}
       } else if (base_type == r::Array || base_type == r::Vector) {
         const r::BaseType vector_base_type = field->type()->element();
         int32_t element_size = field->type()->element_size();
@@ -245,10 +235,7 @@ class NimBfbsGenerator : public BaseBfbsGenerator {
         code += "    var x = self.tab.Vector(o)\n";
         code +=
             "    x += j.uoffset * " + NumToString(element_size) + ".uoffset\n";
-        code += "    return " +
-                ReplaceString(GenerateGetter(field->type(), true), "{offset}",
-                              "x") +
-                "\n";
+        code += "    return " + GenerateGetter(field->type(), "x", true) + "\n";
 
         // Get entire vector:
         code += "func " + namer_.Method(field_name) + "*(self: " + object_name +
@@ -257,7 +244,7 @@ class NimBfbsGenerator : public BaseBfbsGenerator {
         code += "  for i in countup(0, len - 1):\n";
         code += "    result.add(self." + field_name + "(i))\n";
 
-        (void)IsSingleByte(vector_base_type);  // Unused exception
+        (void)IsSingleByte(vector_base_type);  // unnused function warning
       }
     });
 
@@ -372,20 +359,20 @@ class NimBfbsGenerator : public BaseBfbsGenerator {
     return "";
   }
 
-  std::string GenerateGetter(const r::Type *type,
+  std::string GenerateGetter(const r::Type *type, const std::string &offsetval,
                              bool element_type = false) const {
     const r::BaseType base_type =
         element_type ? type->element() : type->base_type();
-    std::string offset = "{offset}";
+    std::string offset = offsetval;
     if (!element_type) { offset = "self.tab.Pos + " + offset; }
     switch (base_type) {
       case r::String: return "self.tab.String(" + offset + ")";
-      case r::Union: return "self.tab.Union({offset})";
+      case r::Union: return "self.tab.Union(" + offsetval + ")";
       case r::Obj: {
         return GenerateType(type, element_type) +
                "(tab: Vtable(Bytes: self.tab.Bytes, Pos: " + offset + "))";
       }
-      case r::Vector: return GenerateGetter(type, true);
+      case r::Vector: return GenerateGetter(type, offsetval, true);
       default:
         const r::Enum *type_enum = GetEnum(type, element_type);
         if (type_enum != nullptr) {
@@ -459,15 +446,6 @@ class NimBfbsGenerator : public BaseBfbsGenerator {
     } else {
       return "uoffset";
     }
-  }
-
-  std::string ReplaceString(std::string subject, const std::string &search,
-                            const std::string &replace) {
-    size_t pos = subject.find(search, 0);
-    if (pos != std::string::npos) {
-      subject.replace(pos, search.length(), replace);
-    }
-    return subject;
   }
 
   std::string GenerateType(const r::BaseType base_type) const {
