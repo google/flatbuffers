@@ -23,7 +23,7 @@ let package = Package(
     .macOS(.v10_14),
   ],
   dependencies: [
-    .package(path: "../../../swift"),
+    .package(path: "../../.."),
     .package(url: "https://github.com/google/swift-benchmark", from: "0.1.0"),
   ],
   targets: [
