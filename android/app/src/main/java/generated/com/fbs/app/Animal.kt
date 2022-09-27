@@ -36,7 +36,7 @@ class Animal : Table() {
             return if(o != 0) bb.getShort(o + bb_pos).toUShort() else 0u
         }
     companion object {
-        fun validateVersion() = Constants.FLATBUFFERS_2_0_8()
+        fun validateVersion() = Constants.FLATBUFFERS_22_9_24()
         fun getRootAsAnimal(_bb: ByteBuffer): Animal = getRootAsAnimal(_bb, Animal())
         fun getRootAsAnimal(_bb: ByteBuffer, obj: Animal): Animal {
             _bb.order(ByteOrder.LITTLE_ENDIAN)

@@ -6,7 +6,7 @@ import FlatBuffers
 
 public struct Swift_Tests_Vectors: FlatBufferObject, Verifiable {
 
-  static func validateVersion() { FlatBuffersVersion_2_0_8() }
+  static func validateVersion() { FlatBuffersVersion_22_9_24() }
   public var __buffer: ByteBuffer! { return _accessor.bb }
   private var _accessor: Table
 
