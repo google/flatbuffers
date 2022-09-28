@@ -109,7 +109,7 @@ static std::string ToSnakeCase(const std::string &input, bool screaming) {
     } else if (!islower(input[i])) {
       // Prevent duplicate underscores for Upper_Snake_Case strings
       // and UPPERCASE strings.
-      if (islower(input[i - 1])) { s += '_'; }
+      if (islower(input[i - 1]) || (isdigit(input[i-1]) && !isdigit(input[i]))) { s += '_'; }
       s += screaming ? CharToUpper(input[i]) : CharToLower(input[i]);
     } else {
       s += screaming ? CharToUpper(input[i]) : input[i];
@@ -135,7 +135,7 @@ std::string CamelToSnake(const std::string &input) {
     } else if (!islower(input[i])) {
       // Prevent duplicate underscores for Upper_Snake_Case strings
       // and UPPERCASE strings.
-      if (islower(input[i - 1])) { s += '_'; }
+      if (islower(input[i - 1]) || (isdigit(input[i-1]) && !isdigit(input[i]))) { s += '_'; }
       s += CharToLower(input[i]);
     } else {
       s += input[i];
@@ -424,29 +424,6 @@ bool ReadEnvironmentVariable(const char *var_name, std::string *_value) {
   if (!env_str) return false;
   if (_value) *_value = std::string(env_str);
   return true;
-}
-
-void SetupDefaultCRTReportMode() {
-  // clang-format off
-
-  #ifdef _MSC_VER
-    // By default, send all reports to STDOUT to prevent CI hangs.
-    // Enable assert report box [Abort|Retry|Ignore] if a debugger is present.
-    const int dbg_mode = (_CRTDBG_MODE_FILE | _CRTDBG_MODE_DEBUG) |
-                         (IsDebuggerPresent() ? _CRTDBG_MODE_WNDW : 0);
-    (void)dbg_mode; // release mode fix
-    // CrtDebug reports to _CRT_WARN channel.
-    _CrtSetReportMode(_CRT_WARN, dbg_mode);
-    _CrtSetReportFile(_CRT_WARN, _CRTDBG_FILE_STDOUT);
-    // The assert from <assert.h> reports to _CRT_ERROR channel
-    _CrtSetReportMode(_CRT_ERROR, dbg_mode);
-    _CrtSetReportFile(_CRT_ERROR, _CRTDBG_FILE_STDOUT);
-    // Internal CRT assert channel?
-    _CrtSetReportMode(_CRT_ASSERT, dbg_mode);
-    _CrtSetReportFile(_CRT_ASSERT, _CRTDBG_FILE_STDOUT);
-  #endif
-
-  // clang-format on
 }
 
 std::string ConvertCase(const std::string &input, Case output_case,

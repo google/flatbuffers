@@ -9,7 +9,7 @@ import com.google.flatbuffers.*;
 
 @SuppressWarnings("unused")
 public final class LongFloatEntry extends Table {
-  public static void ValidateVersion() { Constants.FLATBUFFERS_2_0_8(); }
+  public static void ValidateVersion() { Constants.FLATBUFFERS_22_9_24(); }
   public static LongFloatEntry getRootAsLongFloatEntry(ByteBuffer _bb) { return getRootAsLongFloatEntry(_bb, new LongFloatEntry()); }
   public static LongFloatEntry getRootAsLongFloatEntry(ByteBuffer _bb, LongFloatEntry obj) { _bb.order(ByteOrder.LITTLE_ENDIAN); return (obj.__assign(_bb.getInt(_bb.position()) + _bb.position(), _bb)); }
   public void __init(int _i, ByteBuffer _bb) { __reset(_i, _bb); }

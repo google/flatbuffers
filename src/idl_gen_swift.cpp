@@ -1198,7 +1198,8 @@ class SwiftGenerator : public BaseGenerator {
 
   void GenEnum(const EnumDef &enum_def) {
     if (enum_def.generated) return;
-    const auto is_private_access = enum_def.attributes.Lookup("private");
+    const bool is_private_access = parser_.opts.swift_implementation_only ||
+       enum_def.attributes.Lookup("private") != nullptr;
     code_.SetValue("ENUM_TYPE",
                    enum_def.is_union ? "UnionEnum" : "Enum, Verifiable");
     code_.SetValue("ACCESS_TYPE", is_private_access ? "internal" : "public");
@@ -1873,7 +1874,7 @@ class SwiftGenerator : public BaseGenerator {
   }
 
   std::string ValidateFunc() {
-    return "static func validateVersion() { FlatBuffersVersion_2_0_8() }";
+    return "static func validateVersion() { FlatBuffersVersion_22_9_24() }";
   }
 
   std::string GenType(const Type &type,
