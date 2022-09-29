@@ -55,10 +55,8 @@ impl core::fmt::Debug for UnionInNestedNS {
 impl<'a> flatbuffers::Follow<'a> for UnionInNestedNS {
   type Inner = Self;
   #[inline]
-  fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
-    let b = unsafe {
-      flatbuffers::read_scalar_at::<u8>(buf, loc)
-    };
+  unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
+    let b = flatbuffers::read_scalar_at::<u8>(buf, loc);
     Self(b)
   }
 }
@@ -66,21 +64,21 @@ impl<'a> flatbuffers::Follow<'a> for UnionInNestedNS {
 impl flatbuffers::Push for UnionInNestedNS {
     type Output = UnionInNestedNS;
     #[inline]
-    fn push(&self, dst: &mut [u8], _rest: &[u8]) {
-        unsafe { flatbuffers::emplace_scalar::<u8>(dst, self.0); }
+    unsafe fn push(&self, dst: &mut [u8], _written_len: usize) {
+        flatbuffers::emplace_scalar::<u8>(dst, self.0);
     }
 }
 
 impl flatbuffers::EndianScalar for UnionInNestedNS {
+  type Scalar = u8;
   #[inline]
-  fn to_little_endian(self) -> Self {
-    let b = u8::to_le(self.0);
-    Self(b)
+  fn to_little_endian(self) -> u8 {
+    self.0.to_le()
   }
   #[inline]
   #[allow(clippy::wrong_self_convention)]
-  fn from_little_endian(self) -> Self {
-    let b = u8::from_le(self.0);
+  fn from_little_endian(v: u8) -> Self {
+    let b = u8::from_le(v);
     Self(b)
   }
 }
