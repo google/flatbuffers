@@ -5,7 +5,7 @@ import * as flatbuffers from 'flatbuffers';
 import { Color } from '../../my-game/example/color.js';
 
 
-export class TestSimpleTableWithEnum {
+export class TestSimpleTableWithEnum implements flatbuffers.IUnpackableObject<TestSimpleTableWithEnumT> {
   bb: flatbuffers.ByteBuffer|null = null;
   bb_pos = 0;
   __init(i:number, bb:flatbuffers.ByteBuffer):TestSimpleTableWithEnum {
@@ -82,7 +82,7 @@ unpackTo(_o: TestSimpleTableWithEnumT): void {
 }
 }
 
-export class TestSimpleTableWithEnumT {
+export class TestSimpleTableWithEnumT implements flatbuffers.IGeneratedObject {
 constructor(
   public color: Color = Color.Green
 ){}

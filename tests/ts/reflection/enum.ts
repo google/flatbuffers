@@ -7,7 +7,7 @@ import { KeyValue, KeyValueT } from '../reflection/key-value.js';
 import { Type, TypeT } from '../reflection/type.js';
 
 
-export class Enum {
+export class Enum implements flatbuffers.IUnpackableObject<EnumT> {
   bb: flatbuffers.ByteBuffer|null = null;
   bb_pos = 0;
   __init(i:number, bb:flatbuffers.ByteBuffer):Enum {
@@ -179,11 +179,11 @@ static endEnum(builder:flatbuffers.Builder):flatbuffers.Offset {
 unpack(): EnumT {
   return new EnumT(
     this.name(),
-    this.bb!.createObjList(this.values.bind(this), this.valuesLength()),
+    this.bb!.createObjList<EnumVal, EnumValT>(this.values.bind(this), this.valuesLength()),
     this.isUnion(),
     (this.underlyingType() !== null ? this.underlyingType()!.unpack() : null),
-    this.bb!.createObjList(this.attributes.bind(this), this.attributesLength()),
-    this.bb!.createScalarList(this.documentation.bind(this), this.documentationLength()),
+    this.bb!.createObjList<KeyValue, KeyValueT>(this.attributes.bind(this), this.attributesLength()),
+    this.bb!.createScalarList<string>(this.documentation.bind(this), this.documentationLength()),
     this.declarationFile()
   );
 }
@@ -191,16 +191,16 @@ unpack(): EnumT {
 
 unpackTo(_o: EnumT): void {
   _o.name = this.name();
-  _o.values = this.bb!.createObjList(this.values.bind(this), this.valuesLength());
+  _o.values = this.bb!.createObjList<EnumVal, EnumValT>(this.values.bind(this), this.valuesLength());
   _o.isUnion = this.isUnion();
   _o.underlyingType = (this.underlyingType() !== null ? this.underlyingType()!.unpack() : null);
-  _o.attributes = this.bb!.createObjList(this.attributes.bind(this), this.attributesLength());
-  _o.documentation = this.bb!.createScalarList(this.documentation.bind(this), this.documentationLength());
+  _o.attributes = this.bb!.createObjList<KeyValue, KeyValueT>(this.attributes.bind(this), this.attributesLength());
+  _o.documentation = this.bb!.createScalarList<string>(this.documentation.bind(this), this.documentationLength());
   _o.declarationFile = this.declarationFile();
 }
 }
 
-export class EnumT {
+export class EnumT implements flatbuffers.IGeneratedObject {
 constructor(
   public name: string|Uint8Array|null = null,
   public values: (EnumValT)[] = [],

@@ -1,6 +1,6 @@
 import { FILE_IDENTIFIER_LENGTH, SIZEOF_INT } from "./constants.js";
 import { int32, isLittleEndian, float32, float64 } from "./utils.js";
-import { Offset, Table, IGeneratedObject } from "./types.js";
+import { Offset, Table, IGeneratedObject, IUnpackableObject } from "./types.js";
 import { Encoding } from "./encoding.js";
 
 export class ByteBuffer {
@@ -257,33 +257,31 @@ export class ByteBuffer {
     /**
      * A helper function for generating list for obj api
      */
-    createScalarList(listAccessor: (i: number) => unknown, listLength: number): any[] {
-      const ret: any[]  = [];
+    createScalarList<T>(listAccessor: (i: number) => T | null, listLength: number): T[] {
+      const ret: T[]  = [];
       for(let i = 0; i < listLength; ++i) {
-        if(listAccessor(i) !== null) {
-          ret.push(listAccessor(i));
+        const val = listAccessor(i);
+        if(val !== null) {
+          ret.push(val);
         }
       }
-  
       return ret;
     }
-  
+
     /**
      * A helper function for generating list for obj api
      * @param listAccessor function that accepts an index and return data at that index
      * @param listLength listLength
      * @param res result list
      */
-    createObjList(listAccessor: (i: number) => unknown, listLength: number): any[] {
-      const ret: any[] = [];
+    createObjList<T1 extends IUnpackableObject<T2>, T2 extends IGeneratedObject>(listAccessor: (i: number) => T1 | null, listLength: number): T2[] {
+      const ret: T2[] = [];
       for(let i = 0; i < listLength; ++i) {
         const val = listAccessor(i);
         if(val !== null) {
-          ret.push((val as IGeneratedObject).unpack());
+          ret.push(val.unpack());
         }
       }
-      
       return ret;
     }
-  
   }

@@ -6,7 +6,7 @@ import { Color } from '../../my-game/example/color.js';
 import { Test, TestT } from '../../my-game/example/test.js';
 
 
-export class Vec3 {
+export class Vec3 implements flatbuffers.IUnpackableObject<Vec3T> {
   bb: flatbuffers.ByteBuffer|null = null;
   bb_pos = 0;
   __init(i:number, bb:flatbuffers.ByteBuffer):Vec3 {
@@ -112,7 +112,7 @@ unpackTo(_o: Vec3T): void {
 }
 }
 
-export class Vec3T {
+export class Vec3T implements flatbuffers.IGeneratedObject {
 constructor(
   public x: number = 0.0,
   public y: number = 0.0,
