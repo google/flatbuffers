@@ -6,7 +6,7 @@ import { KeyValue, KeyValueT } from '../reflection/key-value.js';
 import { RPCCall, RPCCallT } from '../reflection/rpccall.js';
 
 
-export class Service {
+export class Service implements flatbuffers.IUnpackableObject<ServiceT> {
   bb: flatbuffers.ByteBuffer|null = null;
   bb_pos = 0;
   __init(i:number, bb:flatbuffers.ByteBuffer):Service {
@@ -156,9 +156,9 @@ static createService(builder:flatbuffers.Builder, nameOffset:flatbuffers.Offset,
 unpack(): ServiceT {
   return new ServiceT(
     this.name(),
-    this.bb!.createObjList(this.calls.bind(this), this.callsLength()),
-    this.bb!.createObjList(this.attributes.bind(this), this.attributesLength()),
-    this.bb!.createScalarList(this.documentation.bind(this), this.documentationLength()),
+    this.bb!.createObjList<RPCCall, RPCCallT>(this.calls.bind(this), this.callsLength()),
+    this.bb!.createObjList<KeyValue, KeyValueT>(this.attributes.bind(this), this.attributesLength()),
+    this.bb!.createScalarList<string>(this.documentation.bind(this), this.documentationLength()),
     this.declarationFile()
   );
 }
@@ -166,14 +166,14 @@ unpack(): ServiceT {
 
 unpackTo(_o: ServiceT): void {
   _o.name = this.name();
-  _o.calls = this.bb!.createObjList(this.calls.bind(this), this.callsLength());
-  _o.attributes = this.bb!.createObjList(this.attributes.bind(this), this.attributesLength());
-  _o.documentation = this.bb!.createScalarList(this.documentation.bind(this), this.documentationLength());
+  _o.calls = this.bb!.createObjList<RPCCall, RPCCallT>(this.calls.bind(this), this.callsLength());
+  _o.attributes = this.bb!.createObjList<KeyValue, KeyValueT>(this.attributes.bind(this), this.attributesLength());
+  _o.documentation = this.bb!.createScalarList<string>(this.documentation.bind(this), this.documentationLength());
   _o.declarationFile = this.declarationFile();
 }
 }
 
-export class ServiceT {
+export class ServiceT implements flatbuffers.IGeneratedObject {
 constructor(
   public name: string|Uint8Array|null = null,
   public calls: (RPCCallT)[] = [],

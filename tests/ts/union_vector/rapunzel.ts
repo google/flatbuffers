@@ -4,7 +4,7 @@ import * as flatbuffers from 'flatbuffers';
 
 
 
-export class Rapunzel {
+export class Rapunzel implements flatbuffers.IUnpackableObject<RapunzelT> {
   bb: flatbuffers.ByteBuffer|null = null;
   bb_pos = 0;
   __init(i:number, bb:flatbuffers.ByteBuffer):Rapunzel {
@@ -49,7 +49,7 @@ unpackTo(_o: RapunzelT): void {
 }
 }
 
-export class RapunzelT {
+export class RapunzelT implements flatbuffers.IGeneratedObject {
 constructor(
   public hairLength: number = 0
 ){}

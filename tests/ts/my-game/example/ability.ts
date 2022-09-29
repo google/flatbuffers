@@ -4,7 +4,7 @@ import * as flatbuffers from 'flatbuffers';
 
 
 
-export class Ability {
+export class Ability implements flatbuffers.IUnpackableObject<AbilityT> {
   bb: flatbuffers.ByteBuffer|null = null;
   bb_pos = 0;
   __init(i:number, bb:flatbuffers.ByteBuffer):Ability {
@@ -61,7 +61,7 @@ unpackTo(_o: AbilityT): void {
 }
 }
 
-export class AbilityT {
+export class AbilityT implements flatbuffers.IGeneratedObject {
 constructor(
   public id: number = 0,
   public distance: number = 0

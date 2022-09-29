@@ -35,7 +35,7 @@ export enum AdvancedFeatures {
   DefaultVectorsAndStrings = '8'
 }
 
-export class Type {
+export class Type implements flatbuffers.IUnpackableObject<TypeT> {
   bb: flatbuffers.ByteBuffer|null = null;
   bb_pos = 0;
   __init(i:number, bb:flatbuffers.ByteBuffer):Type {
@@ -225,7 +225,7 @@ unpackTo(_o: TypeT): void {
 }
 }
 
-export class TypeT {
+export class TypeT implements flatbuffers.IGeneratedObject {
 constructor(
   public baseType: BaseType = BaseType.None,
   public element: BaseType = BaseType.None,
@@ -248,7 +248,7 @@ pack(builder:flatbuffers.Builder): flatbuffers.Offset {
 }
 }
 
-export class KeyValue {
+export class KeyValue implements flatbuffers.IUnpackableObject<KeyValueT> {
   bb: flatbuffers.ByteBuffer|null = null;
   bb_pos = 0;
   __init(i:number, bb:flatbuffers.ByteBuffer):KeyValue {
@@ -323,7 +323,7 @@ unpackTo(_o: KeyValueT): void {
 }
 }
 
-export class KeyValueT {
+export class KeyValueT implements flatbuffers.IGeneratedObject {
 constructor(
   public key: string|Uint8Array|null = null,
   public value: string|Uint8Array|null = null
@@ -341,7 +341,7 @@ pack(builder:flatbuffers.Builder): flatbuffers.Offset {
 }
 }
 
-export class EnumVal {
+export class EnumVal implements flatbuffers.IUnpackableObject<EnumValT> {
   bb: flatbuffers.ByteBuffer|null = null;
   bb_pos = 0;
   __init(i:number, bb:flatbuffers.ByteBuffer):EnumVal {
@@ -447,7 +447,7 @@ unpack(): EnumValT {
     this.name(),
     this.value(),
     (this.unionType() !== null ? this.unionType()!.unpack() : null),
-    this.bb!.createScalarList(this.documentation.bind(this), this.documentationLength())
+    this.bb!.createScalarList<string>(this.documentation.bind(this), this.documentationLength())
   );
 }
 
@@ -456,11 +456,11 @@ unpackTo(_o: EnumValT): void {
   _o.name = this.name();
   _o.value = this.value();
   _o.unionType = (this.unionType() !== null ? this.unionType()!.unpack() : null);
-  _o.documentation = this.bb!.createScalarList(this.documentation.bind(this), this.documentationLength());
+  _o.documentation = this.bb!.createScalarList<string>(this.documentation.bind(this), this.documentationLength());
 }
 }
 
-export class EnumValT {
+export class EnumValT implements flatbuffers.IGeneratedObject {
 constructor(
   public name: string|Uint8Array|null = null,
   public value: bigint = BigInt('0'),
@@ -484,7 +484,7 @@ pack(builder:flatbuffers.Builder): flatbuffers.Offset {
 }
 }
 
-export class Enum {
+export class Enum implements flatbuffers.IUnpackableObject<EnumT> {
   bb: flatbuffers.ByteBuffer|null = null;
   bb_pos = 0;
   __init(i:number, bb:flatbuffers.ByteBuffer):Enum {
@@ -656,11 +656,11 @@ static endEnum(builder:flatbuffers.Builder):flatbuffers.Offset {
 unpack(): EnumT {
   return new EnumT(
     this.name(),
-    this.bb!.createObjList(this.values.bind(this), this.valuesLength()),
+    this.bb!.createObjList<EnumVal, EnumValT>(this.values.bind(this), this.valuesLength()),
     this.isUnion(),
     (this.underlyingType() !== null ? this.underlyingType()!.unpack() : null),
-    this.bb!.createObjList(this.attributes.bind(this), this.attributesLength()),
-    this.bb!.createScalarList(this.documentation.bind(this), this.documentationLength()),
+    this.bb!.createObjList<KeyValue, KeyValueT>(this.attributes.bind(this), this.attributesLength()),
+    this.bb!.createScalarList<string>(this.documentation.bind(this), this.documentationLength()),
     this.declarationFile()
   );
 }
@@ -668,16 +668,16 @@ unpack(): EnumT {
 
 unpackTo(_o: EnumT): void {
   _o.name = this.name();
-  _o.values = this.bb!.createObjList(this.values.bind(this), this.valuesLength());
+  _o.values = this.bb!.createObjList<EnumVal, EnumValT>(this.values.bind(this), this.valuesLength());
   _o.isUnion = this.isUnion();
   _o.underlyingType = (this.underlyingType() !== null ? this.underlyingType()!.unpack() : null);
-  _o.attributes = this.bb!.createObjList(this.attributes.bind(this), this.attributesLength());
-  _o.documentation = this.bb!.createScalarList(this.documentation.bind(this), this.documentationLength());
+  _o.attributes = this.bb!.createObjList<KeyValue, KeyValueT>(this.attributes.bind(this), this.attributesLength());
+  _o.documentation = this.bb!.createScalarList<string>(this.documentation.bind(this), this.documentationLength());
   _o.declarationFile = this.declarationFile();
 }
 }
 
-export class EnumT {
+export class EnumT implements flatbuffers.IGeneratedObject {
 constructor(
   public name: string|Uint8Array|null = null,
   public values: (EnumValT)[] = [],
@@ -710,7 +710,7 @@ pack(builder:flatbuffers.Builder): flatbuffers.Offset {
 }
 }
 
-export class Field {
+export class Field implements flatbuffers.IUnpackableObject<FieldT> {
   bb: flatbuffers.ByteBuffer|null = null;
   bb_pos = 0;
   __init(i:number, bb:flatbuffers.ByteBuffer):Field {
@@ -1012,8 +1012,8 @@ unpack(): FieldT {
     this.deprecated(),
     this.required(),
     this.key(),
-    this.bb!.createObjList(this.attributes.bind(this), this.attributesLength()),
-    this.bb!.createScalarList(this.documentation.bind(this), this.documentationLength()),
+    this.bb!.createObjList<KeyValue, KeyValueT>(this.attributes.bind(this), this.attributesLength()),
+    this.bb!.createScalarList<string>(this.documentation.bind(this), this.documentationLength()),
     this.optional(),
     this.padding()
   );
@@ -1030,14 +1030,14 @@ unpackTo(_o: FieldT): void {
   _o.deprecated = this.deprecated();
   _o.required = this.required();
   _o.key = this.key();
-  _o.attributes = this.bb!.createObjList(this.attributes.bind(this), this.attributesLength());
-  _o.documentation = this.bb!.createScalarList(this.documentation.bind(this), this.documentationLength());
+  _o.attributes = this.bb!.createObjList<KeyValue, KeyValueT>(this.attributes.bind(this), this.attributesLength());
+  _o.documentation = this.bb!.createScalarList<string>(this.documentation.bind(this), this.documentationLength());
   _o.optional = this.optional();
   _o.padding = this.padding();
 }
 }
 
-export class FieldT {
+export class FieldT implements flatbuffers.IGeneratedObject {
 constructor(
   public name: string|Uint8Array|null = null,
   public type: TypeT|null = null,
@@ -1080,7 +1080,7 @@ pack(builder:flatbuffers.Builder): flatbuffers.Offset {
 }
 }
 
-export class Object_ {
+export class Object_ implements flatbuffers.IUnpackableObject<Object_T> {
   bb: flatbuffers.ByteBuffer|null = null;
   bb_pos = 0;
   __init(i:number, bb:flatbuffers.ByteBuffer):Object_ {
@@ -1294,12 +1294,12 @@ static createObject(builder:flatbuffers.Builder, nameOffset:flatbuffers.Offset, 
 unpack(): Object_T {
   return new Object_T(
     this.name(),
-    this.bb!.createObjList(this.fields.bind(this), this.fieldsLength()),
+    this.bb!.createObjList<Field, FieldT>(this.fields.bind(this), this.fieldsLength()),
     this.isStruct(),
     this.minalign(),
     this.bytesize(),
-    this.bb!.createObjList(this.attributes.bind(this), this.attributesLength()),
-    this.bb!.createScalarList(this.documentation.bind(this), this.documentationLength()),
+    this.bb!.createObjList<KeyValue, KeyValueT>(this.attributes.bind(this), this.attributesLength()),
+    this.bb!.createScalarList<string>(this.documentation.bind(this), this.documentationLength()),
     this.declarationFile()
   );
 }
@@ -1307,17 +1307,17 @@ unpack(): Object_T {
 
 unpackTo(_o: Object_T): void {
   _o.name = this.name();
-  _o.fields = this.bb!.createObjList(this.fields.bind(this), this.fieldsLength());
+  _o.fields = this.bb!.createObjList<Field, FieldT>(this.fields.bind(this), this.fieldsLength());
   _o.isStruct = this.isStruct();
   _o.minalign = this.minalign();
   _o.bytesize = this.bytesize();
-  _o.attributes = this.bb!.createObjList(this.attributes.bind(this), this.attributesLength());
-  _o.documentation = this.bb!.createScalarList(this.documentation.bind(this), this.documentationLength());
+  _o.attributes = this.bb!.createObjList<KeyValue, KeyValueT>(this.attributes.bind(this), this.attributesLength());
+  _o.documentation = this.bb!.createScalarList<string>(this.documentation.bind(this), this.documentationLength());
   _o.declarationFile = this.declarationFile();
 }
 }
 
-export class Object_T {
+export class Object_T implements flatbuffers.IGeneratedObject {
 constructor(
   public name: string|Uint8Array|null = null,
   public fields: (FieldT)[] = [],
@@ -1350,7 +1350,7 @@ pack(builder:flatbuffers.Builder): flatbuffers.Offset {
 }
 }
 
-export class RPCCall {
+export class RPCCall implements flatbuffers.IUnpackableObject<RPCCallT> {
   bb: flatbuffers.ByteBuffer|null = null;
   bb_pos = 0;
   __init(i:number, bb:flatbuffers.ByteBuffer):RPCCall {
@@ -1473,8 +1473,8 @@ unpack(): RPCCallT {
     this.name(),
     (this.request() !== null ? this.request()!.unpack() : null),
     (this.response() !== null ? this.response()!.unpack() : null),
-    this.bb!.createObjList(this.attributes.bind(this), this.attributesLength()),
-    this.bb!.createScalarList(this.documentation.bind(this), this.documentationLength())
+    this.bb!.createObjList<KeyValue, KeyValueT>(this.attributes.bind(this), this.attributesLength()),
+    this.bb!.createScalarList<string>(this.documentation.bind(this), this.documentationLength())
   );
 }
 
@@ -1483,12 +1483,12 @@ unpackTo(_o: RPCCallT): void {
   _o.name = this.name();
   _o.request = (this.request() !== null ? this.request()!.unpack() : null);
   _o.response = (this.response() !== null ? this.response()!.unpack() : null);
-  _o.attributes = this.bb!.createObjList(this.attributes.bind(this), this.attributesLength());
-  _o.documentation = this.bb!.createScalarList(this.documentation.bind(this), this.documentationLength());
+  _o.attributes = this.bb!.createObjList<KeyValue, KeyValueT>(this.attributes.bind(this), this.attributesLength());
+  _o.documentation = this.bb!.createScalarList<string>(this.documentation.bind(this), this.documentationLength());
 }
 }
 
-export class RPCCallT {
+export class RPCCallT implements flatbuffers.IGeneratedObject {
 constructor(
   public name: string|Uint8Array|null = null,
   public request: Object_T|null = null,
@@ -1516,7 +1516,7 @@ pack(builder:flatbuffers.Builder): flatbuffers.Offset {
 }
 }
 
-export class Service {
+export class Service implements flatbuffers.IUnpackableObject<ServiceT> {
   bb: flatbuffers.ByteBuffer|null = null;
   bb_pos = 0;
   __init(i:number, bb:flatbuffers.ByteBuffer):Service {
@@ -1666,9 +1666,9 @@ static createService(builder:flatbuffers.Builder, nameOffset:flatbuffers.Offset,
 unpack(): ServiceT {
   return new ServiceT(
     this.name(),
-    this.bb!.createObjList(this.calls.bind(this), this.callsLength()),
-    this.bb!.createObjList(this.attributes.bind(this), this.attributesLength()),
-    this.bb!.createScalarList(this.documentation.bind(this), this.documentationLength()),
+    this.bb!.createObjList<RPCCall, RPCCallT>(this.calls.bind(this), this.callsLength()),
+    this.bb!.createObjList<KeyValue, KeyValueT>(this.attributes.bind(this), this.attributesLength()),
+    this.bb!.createScalarList<string>(this.documentation.bind(this), this.documentationLength()),
     this.declarationFile()
   );
 }
@@ -1676,14 +1676,14 @@ unpack(): ServiceT {
 
 unpackTo(_o: ServiceT): void {
   _o.name = this.name();
-  _o.calls = this.bb!.createObjList(this.calls.bind(this), this.callsLength());
-  _o.attributes = this.bb!.createObjList(this.attributes.bind(this), this.attributesLength());
-  _o.documentation = this.bb!.createScalarList(this.documentation.bind(this), this.documentationLength());
+  _o.calls = this.bb!.createObjList<RPCCall, RPCCallT>(this.calls.bind(this), this.callsLength());
+  _o.attributes = this.bb!.createObjList<KeyValue, KeyValueT>(this.attributes.bind(this), this.attributesLength());
+  _o.documentation = this.bb!.createScalarList<string>(this.documentation.bind(this), this.documentationLength());
   _o.declarationFile = this.declarationFile();
 }
 }
 
-export class ServiceT {
+export class ServiceT implements flatbuffers.IGeneratedObject {
 constructor(
   public name: string|Uint8Array|null = null,
   public calls: (RPCCallT)[] = [],
@@ -1715,7 +1715,7 @@ pack(builder:flatbuffers.Builder): flatbuffers.Offset {
  * Symbols declared within a file may be recovered by iterating over all
  * symbols and examining the `declaration_file` field.
  */
-export class SchemaFile {
+export class SchemaFile implements flatbuffers.IUnpackableObject<SchemaFileT> {
   bb: flatbuffers.ByteBuffer|null = null;
   bb_pos = 0;
   __init(i:number, bb:flatbuffers.ByteBuffer):SchemaFile {
@@ -1802,18 +1802,18 @@ static createSchemaFile(builder:flatbuffers.Builder, filenameOffset:flatbuffers.
 unpack(): SchemaFileT {
   return new SchemaFileT(
     this.filename(),
-    this.bb!.createScalarList(this.includedFilenames.bind(this), this.includedFilenamesLength())
+    this.bb!.createScalarList<string>(this.includedFilenames.bind(this), this.includedFilenamesLength())
   );
 }
 
 
 unpackTo(_o: SchemaFileT): void {
   _o.filename = this.filename();
-  _o.includedFilenames = this.bb!.createScalarList(this.includedFilenames.bind(this), this.includedFilenamesLength());
+  _o.includedFilenames = this.bb!.createScalarList<string>(this.includedFilenames.bind(this), this.includedFilenamesLength());
 }
 }
 
-export class SchemaFileT {
+export class SchemaFileT implements flatbuffers.IGeneratedObject {
 constructor(
   public filename: string|Uint8Array|null = null,
   public includedFilenames: (string)[] = []
@@ -1831,7 +1831,7 @@ pack(builder:flatbuffers.Builder): flatbuffers.Offset {
 }
 }
 
-export class Schema {
+export class Schema implements flatbuffers.IUnpackableObject<SchemaT> {
   bb: flatbuffers.ByteBuffer|null = null;
   bb_pos = 0;
   __init(i:number, bb:flatbuffers.ByteBuffer):Schema {
@@ -2038,31 +2038,31 @@ static finishSizePrefixedSchemaBuffer(builder:flatbuffers.Builder, offset:flatbu
 
 unpack(): SchemaT {
   return new SchemaT(
-    this.bb!.createObjList(this.objects.bind(this), this.objectsLength()),
-    this.bb!.createObjList(this.enums.bind(this), this.enumsLength()),
+    this.bb!.createObjList<Object_, Object_T>(this.objects.bind(this), this.objectsLength()),
+    this.bb!.createObjList<Enum, EnumT>(this.enums.bind(this), this.enumsLength()),
     this.fileIdent(),
     this.fileExt(),
     (this.rootTable() !== null ? this.rootTable()!.unpack() : null),
-    this.bb!.createObjList(this.services.bind(this), this.servicesLength()),
+    this.bb!.createObjList<Service, ServiceT>(this.services.bind(this), this.servicesLength()),
     this.advancedFeatures(),
-    this.bb!.createObjList(this.fbsFiles.bind(this), this.fbsFilesLength())
+    this.bb!.createObjList<SchemaFile, SchemaFileT>(this.fbsFiles.bind(this), this.fbsFilesLength())
   );
 }
 
 
 unpackTo(_o: SchemaT): void {
-  _o.objects = this.bb!.createObjList(this.objects.bind(this), this.objectsLength());
-  _o.enums = this.bb!.createObjList(this.enums.bind(this), this.enumsLength());
+  _o.objects = this.bb!.createObjList<Object_, Object_T>(this.objects.bind(this), this.objectsLength());
+  _o.enums = this.bb!.createObjList<Enum, EnumT>(this.enums.bind(this), this.enumsLength());
   _o.fileIdent = this.fileIdent();
   _o.fileExt = this.fileExt();
   _o.rootTable = (this.rootTable() !== null ? this.rootTable()!.unpack() : null);
-  _o.services = this.bb!.createObjList(this.services.bind(this), this.servicesLength());
+  _o.services = this.bb!.createObjList<Service, ServiceT>(this.services.bind(this), this.servicesLength());
   _o.advancedFeatures = this.advancedFeatures();
-  _o.fbsFiles = this.bb!.createObjList(this.fbsFiles.bind(this), this.fbsFilesLength());
+  _o.fbsFiles = this.bb!.createObjList<SchemaFile, SchemaFileT>(this.fbsFiles.bind(this), this.fbsFilesLength());
 }
 }
 
-export class SchemaT {
+export class SchemaT implements flatbuffers.IGeneratedObject {
 constructor(
   public objects: (Object_T)[] = [],
   public enums: (EnumT)[] = [],

@@ -8,7 +8,7 @@ import { Character, unionToCharacter, unionListToCharacter } from './character.j
 import { Rapunzel, RapunzelT } from './rapunzel.js';
 
 
-export class Movie {
+export class Movie implements flatbuffers.IUnpackableObject<MovieT> {
   bb: flatbuffers.ByteBuffer|null = null;
   bb_pos = 0;
   __init(i:number, bb:flatbuffers.ByteBuffer):Movie {
@@ -139,19 +139,19 @@ unpack(): MovieT {
   return new MovieT(
     this.mainCharacterType(),
     (() => {
-      let temp = unionToCharacter(this.mainCharacterType(), this.mainCharacter.bind(this));
+      const temp = unionToCharacter(this.mainCharacterType(), this.mainCharacter.bind(this));
       if(temp === null) { return null; }
       if(typeof temp === 'string') { return temp; }
       return temp.unpack()
   })(),
-    this.bb!.createScalarList(this.charactersType.bind(this), this.charactersTypeLength()),
+    this.bb!.createScalarList<Character>(this.charactersType.bind(this), this.charactersTypeLength()),
     (() => {
-    let ret = [];
+    const ret = [];
     for(let targetEnumIndex = 0; targetEnumIndex < this.charactersTypeLength(); ++targetEnumIndex) {
-      let targetEnum = this.charactersType(targetEnumIndex);
+      const targetEnum = this.charactersType(targetEnumIndex);
       if(targetEnum === null || Character[targetEnum!] === 'NONE') { continue; }
 
-      let temp = unionListToCharacter(targetEnum, this.characters.bind(this), targetEnumIndex);
+      const temp = unionListToCharacter(targetEnum, this.characters.bind(this), targetEnumIndex);
       if(temp === null) { continue; }
       if(typeof temp === 'string') { ret.push(temp); continue; }
       ret.push(temp.unpack());
@@ -165,19 +165,19 @@ unpack(): MovieT {
 unpackTo(_o: MovieT): void {
   _o.mainCharacterType = this.mainCharacterType();
   _o.mainCharacter = (() => {
-      let temp = unionToCharacter(this.mainCharacterType(), this.mainCharacter.bind(this));
+      const temp = unionToCharacter(this.mainCharacterType(), this.mainCharacter.bind(this));
       if(temp === null) { return null; }
       if(typeof temp === 'string') { return temp; }
       return temp.unpack()
   })();
-  _o.charactersType = this.bb!.createScalarList(this.charactersType.bind(this), this.charactersTypeLength());
+  _o.charactersType = this.bb!.createScalarList<Character>(this.charactersType.bind(this), this.charactersTypeLength());
   _o.characters = (() => {
-    let ret = [];
+    const ret = [];
     for(let targetEnumIndex = 0; targetEnumIndex < this.charactersTypeLength(); ++targetEnumIndex) {
-      let targetEnum = this.charactersType(targetEnumIndex);
+      const targetEnum = this.charactersType(targetEnumIndex);
       if(targetEnum === null || Character[targetEnum!] === 'NONE') { continue; }
 
-      let temp = unionListToCharacter(targetEnum, this.characters.bind(this), targetEnumIndex);
+      const temp = unionListToCharacter(targetEnum, this.characters.bind(this), targetEnumIndex);
       if(temp === null) { continue; }
       if(typeof temp === 'string') { ret.push(temp); continue; }
       ret.push(temp.unpack());
@@ -187,7 +187,7 @@ unpackTo(_o: MovieT): void {
 }
 }
 
-export class MovieT {
+export class MovieT implements flatbuffers.IGeneratedObject {
 constructor(
   public mainCharacterType: Character = Character.NONE,
   public mainCharacter: AttackerT|BookReaderT|RapunzelT|string|null = null,

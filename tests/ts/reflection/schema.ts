@@ -8,7 +8,7 @@ import { SchemaFile, SchemaFileT } from '../reflection/schema-file.js';
 import { Service, ServiceT } from '../reflection/service.js';
 
 
-export class Schema {
+export class Schema implements flatbuffers.IUnpackableObject<SchemaT> {
   bb: flatbuffers.ByteBuffer|null = null;
   bb_pos = 0;
   __init(i:number, bb:flatbuffers.ByteBuffer):Schema {
@@ -215,31 +215,31 @@ static finishSizePrefixedSchemaBuffer(builder:flatbuffers.Builder, offset:flatbu
 
 unpack(): SchemaT {
   return new SchemaT(
-    this.bb!.createObjList(this.objects.bind(this), this.objectsLength()),
-    this.bb!.createObjList(this.enums.bind(this), this.enumsLength()),
+    this.bb!.createObjList<Object_, Object_T>(this.objects.bind(this), this.objectsLength()),
+    this.bb!.createObjList<Enum, EnumT>(this.enums.bind(this), this.enumsLength()),
     this.fileIdent(),
     this.fileExt(),
     (this.rootTable() !== null ? this.rootTable()!.unpack() : null),
-    this.bb!.createObjList(this.services.bind(this), this.servicesLength()),
+    this.bb!.createObjList<Service, ServiceT>(this.services.bind(this), this.servicesLength()),
     this.advancedFeatures(),
-    this.bb!.createObjList(this.fbsFiles.bind(this), this.fbsFilesLength())
+    this.bb!.createObjList<SchemaFile, SchemaFileT>(this.fbsFiles.bind(this), this.fbsFilesLength())
   );
 }
 
 
 unpackTo(_o: SchemaT): void {
-  _o.objects = this.bb!.createObjList(this.objects.bind(this), this.objectsLength());
-  _o.enums = this.bb!.createObjList(this.enums.bind(this), this.enumsLength());
+  _o.objects = this.bb!.createObjList<Object_, Object_T>(this.objects.bind(this), this.objectsLength());
+  _o.enums = this.bb!.createObjList<Enum, EnumT>(this.enums.bind(this), this.enumsLength());
   _o.fileIdent = this.fileIdent();
   _o.fileExt = this.fileExt();
   _o.rootTable = (this.rootTable() !== null ? this.rootTable()!.unpack() : null);
-  _o.services = this.bb!.createObjList(this.services.bind(this), this.servicesLength());
+  _o.services = this.bb!.createObjList<Service, ServiceT>(this.services.bind(this), this.servicesLength());
   _o.advancedFeatures = this.advancedFeatures();
-  _o.fbsFiles = this.bb!.createObjList(this.fbsFiles.bind(this), this.fbsFilesLength());
+  _o.fbsFiles = this.bb!.createObjList<SchemaFile, SchemaFileT>(this.fbsFiles.bind(this), this.fbsFilesLength());
 }
 }
 
-export class SchemaT {
+export class SchemaT implements flatbuffers.IGeneratedObject {
 constructor(
   public objects: (Object_T)[] = [],
   public enums: (EnumT)[] = [],

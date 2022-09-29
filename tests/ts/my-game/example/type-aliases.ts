@@ -4,7 +4,7 @@ import * as flatbuffers from 'flatbuffers';
 
 
 
-export class TypeAliases {
+export class TypeAliases implements flatbuffers.IUnpackableObject<TypeAliasesT> {
   bb: flatbuffers.ByteBuffer|null = null;
   bb_pos = 0;
   __init(i:number, bb:flatbuffers.ByteBuffer):TypeAliases {
@@ -344,8 +344,8 @@ unpack(): TypeAliasesT {
     this.u64(),
     this.f32(),
     this.f64(),
-    this.bb!.createScalarList(this.v8.bind(this), this.v8Length()),
-    this.bb!.createScalarList(this.vf64.bind(this), this.vf64Length())
+    this.bb!.createScalarList<number>(this.v8.bind(this), this.v8Length()),
+    this.bb!.createScalarList<number>(this.vf64.bind(this), this.vf64Length())
   );
 }
 
@@ -361,12 +361,12 @@ unpackTo(_o: TypeAliasesT): void {
   _o.u64 = this.u64();
   _o.f32 = this.f32();
   _o.f64 = this.f64();
-  _o.v8 = this.bb!.createScalarList(this.v8.bind(this), this.v8Length());
-  _o.vf64 = this.bb!.createScalarList(this.vf64.bind(this), this.vf64Length());
+  _o.v8 = this.bb!.createScalarList<number>(this.v8.bind(this), this.v8Length());
+  _o.vf64 = this.bb!.createScalarList<number>(this.vf64.bind(this), this.vf64Length());
 }
 }
 
-export class TypeAliasesT {
+export class TypeAliasesT implements flatbuffers.IGeneratedObject {
 constructor(
   public i8: number = 0,
   public u8: number = 0,

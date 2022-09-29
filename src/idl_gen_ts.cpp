@@ -759,10 +759,10 @@ class TsGenerator : public BaseGenerator {
     import.object_name = object_name;
     import.bare_file_path = bare_file_path;
     import.rel_file_path = rel_file_path;
-    import.import_statement =
-        "import { " + symbols_expression + " } from '" + rel_file_path + ".js';";
-    import.export_statement =
-        "export { " + symbols_expression + " } from '." + bare_file_path + ".js';";
+    import.import_statement = "import { " + symbols_expression + " } from '" +
+                              rel_file_path + ".js';";
+    import.export_statement = "export { " + symbols_expression + " } from '." +
+                              bare_file_path + ".js';";
     import.dependency = &dependency;
     import.dependent = &dependent;
 
@@ -903,7 +903,7 @@ class TsGenerator : public BaseGenerator {
         const auto conversion_function = GenUnionConvFuncName(enum_def);
 
         ret = "(() => {\n";
-        ret += "      let temp = " + conversion_function + "(this." +
+        ret += "      const temp = " + conversion_function + "(this." +
                namer_.Method(field_name, "Type") + "(), " +
                field_binded_method + ");\n";
         ret += "      if(temp === null) { return null; }\n";
@@ -916,17 +916,17 @@ class TsGenerator : public BaseGenerator {
         const auto conversion_function = GenUnionListConvFuncName(enum_def);
 
         ret = "(() => {\n";
-        ret += "    let ret = [];\n";
+        ret += "    const ret = [];\n";
         ret += "    for(let targetEnumIndex = 0; targetEnumIndex < this." +
                namer_.Method(field_name, "TypeLength") + "()" +
                "; "
                "++targetEnumIndex) {\n";
-        ret += "      let targetEnum = this." +
+        ret += "      const targetEnum = this." +
                namer_.Method(field_name, "Type") + "(targetEnumIndex);\n";
         ret += "      if(targetEnum === null || " + enum_type +
                "[targetEnum!] === 'NONE') { "
                "continue; }\n\n";
-        ret += "      let temp = " + conversion_function + "(targetEnum, " +
+        ret += "      const temp = " + conversion_function + "(targetEnum, " +
                field_binded_method + ", targetEnumIndex);\n";
         ret += "      if(temp === null) { continue; }\n";
         ret += union_has_string ? "      if(typeof temp === 'string') { "
@@ -1102,11 +1102,13 @@ class TsGenerator : public BaseGenerator {
             switch (vectortype.base_type) {
               case BASE_TYPE_STRUCT: {
                 const auto &sd = *field.value.type.struct_def;
-                field_type += GetTypeName(sd, /*object_api=*/true);
-                ;
+                const auto field_type_name =
+                    GetTypeName(sd, /*object_api=*/true);
+                field_type += field_type_name;
                 field_type += ")[]";
 
-                field_val = GenBBAccess() + ".createObjList(" +
+                field_val = GenBBAccess() + ".createObjList<" + vectortypename +
+                            ", " + field_type_name + ">(" +
                             field_binded_method + ", this." +
                             namer_.Method(field, "Length") + "())";
 
@@ -1128,7 +1130,7 @@ class TsGenerator : public BaseGenerator {
 
               case BASE_TYPE_STRING: {
                 field_type += "string)[]";
-                field_val = GenBBAccess() + ".createScalarList(" +
+                field_val = GenBBAccess() + ".createScalarList<string>(" +
                             field_binded_method + ", this." +
                             namer_.Field(field, "Length") + "())";
                 field_offset_decl =
@@ -1162,9 +1164,9 @@ class TsGenerator : public BaseGenerator {
                   field_type += vectortypename;
                 }
                 field_type += ")[]";
-                field_val = GenBBAccess() + ".createScalarList(" +
-                            field_binded_method + ", this." +
-                            namer_.Method(field, "Length") + "())";
+                field_val = GenBBAccess() + ".createScalarList<" +
+                            vectortypename + ">(" + field_binded_method +
+                            ", this." + namer_.Method(field, "Length") + "())";
 
                 field_offset_decl =
                     AddImport(imports, struct_def, struct_def).name + "." +
@@ -1260,7 +1262,7 @@ class TsGenerator : public BaseGenerator {
     obj_api_class = "\n";
     obj_api_class += "export class ";
     obj_api_class += GetTypeName(struct_def, /*object_api=*/true);
-    obj_api_class += " {\n";
+    obj_api_class += " implements flatbuffers.IGeneratedObject {\n";
     obj_api_class += constructor_func;
     obj_api_class += pack_func_prototype + pack_func_offset_decl +
                      pack_func_create_call + "\n}";
@@ -1298,12 +1300,17 @@ class TsGenerator : public BaseGenerator {
     }
 
     const std::string object_name = GetTypeName(struct_def);
+    const std::string object_api_name = GetTypeName(struct_def, true);
 
     // Emit constructor
     GenDocComment(struct_def.doc_comment, code_ptr);
     code += "export class ";
     code += object_name;
-    code += " {\n";
+    if (parser.opts.generate_object_based_api)
+      code += " implements flatbuffers.IUnpackableObject<" + object_api_name +
+              "> {\n";
+    else
+      code += " {\n";
     code += "  bb: flatbuffers.ByteBuffer|null = null;\n";
     code += "  bb_pos = 0;\n";
 

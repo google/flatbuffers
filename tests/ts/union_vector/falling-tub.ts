@@ -4,7 +4,7 @@ import * as flatbuffers from 'flatbuffers';
 
 
 
-export class FallingTub {
+export class FallingTub implements flatbuffers.IUnpackableObject<FallingTubT> {
   bb: flatbuffers.ByteBuffer|null = null;
   bb_pos = 0;
   __init(i:number, bb:flatbuffers.ByteBuffer):FallingTub {
@@ -49,7 +49,7 @@ unpackTo(_o: FallingTubT): void {
 }
 }
 
-export class FallingTubT {
+export class FallingTubT implements flatbuffers.IGeneratedObject {
 constructor(
   public weight: number = 0
 ){}

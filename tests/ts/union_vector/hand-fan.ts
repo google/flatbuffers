@@ -4,7 +4,7 @@ import * as flatbuffers from 'flatbuffers';
 
 
 
-export class HandFan {
+export class HandFan implements flatbuffers.IUnpackableObject<HandFanT> {
   bb: flatbuffers.ByteBuffer|null = null;
   bb_pos = 0;
   __init(i:number, bb:flatbuffers.ByteBuffer):HandFan {
@@ -73,7 +73,7 @@ unpackTo(_o: HandFanT): void {
 }
 }
 
-export class HandFanT {
+export class HandFanT implements flatbuffers.IGeneratedObject {
 constructor(
   public length: number = 0
 ){}

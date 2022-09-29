@@ -17,6 +17,7 @@
   },
   "scripts": {
     "test": "npm run compile && cd tests/ts && python3 ./TypeScriptTest.py",
+    "lint": "eslint ts",
     "compile": "tsc && tsc -p tsconfig.mjs.json && rollup -c",
     "prepublishOnly": "npm install --only=dev && npm run compile"
   },
