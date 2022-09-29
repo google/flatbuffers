@@ -8,7 +8,7 @@ import { Schema, SchemaT } from '../reflection/schema.js';
 import { class_ } from '../typescript/class.js';
 
 
-export class Object_ {
+export class Object_ implements flatbuffers.IUnpackableObject<Object_T> {
   bb: flatbuffers.ByteBuffer|null = null;
   bb_pos = 0;
   __init(i:number, bb:flatbuffers.ByteBuffer):Object_ {
@@ -193,7 +193,7 @@ unpackTo(_o: Object_T): void {
 }
 }
 
-export class Object_T {
+export class Object_T implements flatbuffers.IGeneratedObject {
 constructor(
   public return_: number = 0,
   public if_: number = 0,

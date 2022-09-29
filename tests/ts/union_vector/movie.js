@@ -107,7 +107,7 @@ export class Movie {
     }
     unpack() {
         return new MovieT(this.mainCharacterType(), (() => {
-            let temp = unionToCharacter(this.mainCharacterType(), this.mainCharacter.bind(this));
+            const temp = unionToCharacter(this.mainCharacterType(), this.mainCharacter.bind(this));
             if (temp === null) {
                 return null;
             }
@@ -116,13 +116,13 @@ export class Movie {
             }
             return temp.unpack();
         })(), this.bb.createScalarList(this.charactersType.bind(this), this.charactersTypeLength()), (() => {
-            let ret = [];
+            const ret = [];
             for (let targetEnumIndex = 0; targetEnumIndex < this.charactersTypeLength(); ++targetEnumIndex) {
-                let targetEnum = this.charactersType(targetEnumIndex);
+                const targetEnum = this.charactersType(targetEnumIndex);
                 if (targetEnum === null || Character[targetEnum] === 'NONE') {
                     continue;
                 }
-                let temp = unionListToCharacter(targetEnum, this.characters.bind(this), targetEnumIndex);
+                const temp = unionListToCharacter(targetEnum, this.characters.bind(this), targetEnumIndex);
                 if (temp === null) {
                     continue;
                 }
@@ -138,7 +138,7 @@ export class Movie {
     unpackTo(_o) {
         _o.mainCharacterType = this.mainCharacterType();
         _o.mainCharacter = (() => {
-            let temp = unionToCharacter(this.mainCharacterType(), this.mainCharacter.bind(this));
+            const temp = unionToCharacter(this.mainCharacterType(), this.mainCharacter.bind(this));
             if (temp === null) {
                 return null;
             }
@@ -149,13 +149,13 @@ export class Movie {
         })();
         _o.charactersType = this.bb.createScalarList(this.charactersType.bind(this), this.charactersTypeLength());
         _o.characters = (() => {
-            let ret = [];
+            const ret = [];
             for (let targetEnumIndex = 0; targetEnumIndex < this.charactersTypeLength(); ++targetEnumIndex) {
-                let targetEnum = this.charactersType(targetEnumIndex);
+                const targetEnum = this.charactersType(targetEnumIndex);
                 if (targetEnum === null || Character[targetEnum] === 'NONE') {
                     continue;
                 }
-                let temp = unionListToCharacter(targetEnum, this.characters.bind(this), targetEnumIndex);
+                const temp = unionListToCharacter(targetEnum, this.characters.bind(this), targetEnumIndex);
                 if (temp === null) {
                     continue;
                 }

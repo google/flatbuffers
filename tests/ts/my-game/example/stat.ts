@@ -4,7 +4,7 @@ import * as flatbuffers from 'flatbuffers';
 
 
 
-export class Stat {
+export class Stat implements flatbuffers.IUnpackableObject<StatT> {
   bb: flatbuffers.ByteBuffer|null = null;
   bb_pos = 0;
   __init(i:number, bb:flatbuffers.ByteBuffer):Stat {
@@ -118,7 +118,7 @@ unpackTo(_o: StatT): void {
 }
 }
 
-export class StatT {
+export class StatT implements flatbuffers.IGeneratedObject {
 constructor(
   public id: string|Uint8Array|null = null,
   public val: bigint = BigInt('0'),

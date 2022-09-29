@@ -4,7 +4,7 @@ import * as flatbuffers from 'flatbuffers';
 
 
 
-export class Monster {
+export class Monster implements flatbuffers.IUnpackableObject<MonsterT> {
   bb: flatbuffers.ByteBuffer|null = null;
   bb_pos = 0;
   __init(i:number, bb:flatbuffers.ByteBuffer):Monster {
@@ -56,7 +56,7 @@ unpack(): MonsterT {
 unpackTo(_o: MonsterT): void {}
 }
 
-export class MonsterT {
+export class MonsterT implements flatbuffers.IGeneratedObject {
 constructor(){}
 
 

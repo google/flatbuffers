@@ -6,7 +6,7 @@ import { KeyValue, KeyValueT } from '../reflection/key-value.js';
 import { Type, TypeT } from '../reflection/type.js';
 
 
-export class Field {
+export class Field implements flatbuffers.IUnpackableObject<FieldT> {
   bb: flatbuffers.ByteBuffer|null = null;
   bb_pos = 0;
   __init(i:number, bb:flatbuffers.ByteBuffer):Field {
@@ -308,8 +308,8 @@ unpack(): FieldT {
     this.deprecated(),
     this.required(),
     this.key(),
-    this.bb!.createObjList(this.attributes.bind(this), this.attributesLength()),
-    this.bb!.createScalarList(this.documentation.bind(this), this.documentationLength()),
+    this.bb!.createObjList<KeyValue, KeyValueT>(this.attributes.bind(this), this.attributesLength()),
+    this.bb!.createScalarList<string>(this.documentation.bind(this), this.documentationLength()),
     this.optional(),
     this.padding()
   );
@@ -326,14 +326,14 @@ unpackTo(_o: FieldT): void {
   _o.deprecated = this.deprecated();
   _o.required = this.required();
   _o.key = this.key();
-  _o.attributes = this.bb!.createObjList(this.attributes.bind(this), this.attributesLength());
-  _o.documentation = this.bb!.createScalarList(this.documentation.bind(this), this.documentationLength());
+  _o.attributes = this.bb!.createObjList<KeyValue, KeyValueT>(this.attributes.bind(this), this.attributesLength());
+  _o.documentation = this.bb!.createScalarList<string>(this.documentation.bind(this), this.documentationLength());
   _o.optional = this.optional();
   _o.padding = this.padding();
 }
 }
 
-export class FieldT {
+export class FieldT implements flatbuffers.IGeneratedObject {
 constructor(
   public name: string|Uint8Array|null = null,
   public type: TypeT|null = null,

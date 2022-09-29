@@ -6,7 +6,7 @@ import { KeyValue, KeyValueT } from '../reflection/key-value.js';
 import { Object_, Object_T } from '../reflection/object.js';
 
 
-export class RPCCall {
+export class RPCCall implements flatbuffers.IUnpackableObject<RPCCallT> {
   bb: flatbuffers.ByteBuffer|null = null;
   bb_pos = 0;
   __init(i:number, bb:flatbuffers.ByteBuffer):RPCCall {
@@ -129,8 +129,8 @@ unpack(): RPCCallT {
     this.name(),
     (this.request() !== null ? this.request()!.unpack() : null),
     (this.response() !== null ? this.response()!.unpack() : null),
-    this.bb!.createObjList(this.attributes.bind(this), this.attributesLength()),
-    this.bb!.createScalarList(this.documentation.bind(this), this.documentationLength())
+    this.bb!.createObjList<KeyValue, KeyValueT>(this.attributes.bind(this), this.attributesLength()),
+    this.bb!.createScalarList<string>(this.documentation.bind(this), this.documentationLength())
   );
 }
 
@@ -139,12 +139,12 @@ unpackTo(_o: RPCCallT): void {
   _o.name = this.name();
   _o.request = (this.request() !== null ? this.request()!.unpack() : null);
   _o.response = (this.response() !== null ? this.response()!.unpack() : null);
-  _o.attributes = this.bb!.createObjList(this.attributes.bind(this), this.attributesLength());
-  _o.documentation = this.bb!.createScalarList(this.documentation.bind(this), this.documentationLength());
+  _o.attributes = this.bb!.createObjList<KeyValue, KeyValueT>(this.attributes.bind(this), this.attributesLength());
+  _o.documentation = this.bb!.createScalarList<string>(this.documentation.bind(this), this.documentationLength());
 }
 }
 
-export class RPCCallT {
+export class RPCCallT implements flatbuffers.IGeneratedObject {
 constructor(
   public name: string|Uint8Array|null = null,
   public request: Object_T|null = null,

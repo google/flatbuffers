@@ -6,7 +6,7 @@ import { Field, FieldT } from '../reflection/field.js';
 import { KeyValue, KeyValueT } from '../reflection/key-value.js';
 
 
-export class Object_ {
+export class Object_ implements flatbuffers.IUnpackableObject<Object_T> {
   bb: flatbuffers.ByteBuffer|null = null;
   bb_pos = 0;
   __init(i:number, bb:flatbuffers.ByteBuffer):Object_ {
@@ -220,12 +220,12 @@ static createObject(builder:flatbuffers.Builder, nameOffset:flatbuffers.Offset, 
 unpack(): Object_T {
   return new Object_T(
     this.name(),
-    this.bb!.createObjList(this.fields.bind(this), this.fieldsLength()),
+    this.bb!.createObjList<Field, FieldT>(this.fields.bind(this), this.fieldsLength()),
     this.isStruct(),
     this.minalign(),
     this.bytesize(),
-    this.bb!.createObjList(this.attributes.bind(this), this.attributesLength()),
-    this.bb!.createScalarList(this.documentation.bind(this), this.documentationLength()),
+    this.bb!.createObjList<KeyValue, KeyValueT>(this.attributes.bind(this), this.attributesLength()),
+    this.bb!.createScalarList<string>(this.documentation.bind(this), this.documentationLength()),
     this.declarationFile()
   );
 }
@@ -233,17 +233,17 @@ unpack(): Object_T {
 
 unpackTo(_o: Object_T): void {
   _o.name = this.name();
-  _o.fields = this.bb!.createObjList(this.fields.bind(this), this.fieldsLength());
+  _o.fields = this.bb!.createObjList<Field, FieldT>(this.fields.bind(this), this.fieldsLength());
   _o.isStruct = this.isStruct();
   _o.minalign = this.minalign();
   _o.bytesize = this.bytesize();
-  _o.attributes = this.bb!.createObjList(this.attributes.bind(this), this.attributesLength());
-  _o.documentation = this.bb!.createScalarList(this.documentation.bind(this), this.documentationLength());
+  _o.attributes = this.bb!.createObjList<KeyValue, KeyValueT>(this.attributes.bind(this), this.attributesLength());
+  _o.documentation = this.bb!.createScalarList<string>(this.documentation.bind(this), this.documentationLength());
   _o.declarationFile = this.declarationFile();
 }
 }
 
-export class Object_T {
+export class Object_T implements flatbuffers.IGeneratedObject {
 constructor(
   public name: string|Uint8Array|null = null,
   public fields: (FieldT)[] = [],

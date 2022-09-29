@@ -4,7 +4,7 @@ import * as flatbuffers from 'flatbuffers';
 
 
 
-export class BookReader {
+export class BookReader implements flatbuffers.IUnpackableObject<BookReaderT> {
   bb: flatbuffers.ByteBuffer|null = null;
   bb_pos = 0;
   __init(i:number, bb:flatbuffers.ByteBuffer):BookReader {
@@ -49,7 +49,7 @@ unpackTo(_o: BookReaderT): void {
 }
 }
 
-export class BookReaderT {
+export class BookReaderT implements flatbuffers.IGeneratedObject {
 constructor(
   public booksRead: number = 0
 ){}

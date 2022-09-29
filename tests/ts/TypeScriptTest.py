@@ -61,7 +61,7 @@ check_call(["npm", "install", "--silent"])
 
 print("Invoking flatc...")
 flatc(
-    options=["--ts", "--gen-name-strings", "--gen-mutable", "--gen-object-api"],
+    options=["--ts", "--reflect-names", "--gen-name-strings", "--gen-mutable", "--gen-object-api"],
     schema="../monster_test.fbs",
     include="../include_test",
 )
@@ -74,18 +74,18 @@ flatc(
 )
 
 flatc(
-    options=["--ts", "--gen-name-strings", "--gen-mutable", "--gen-object-api"],
+    options=["--ts", "--reflect-names", "--gen-name-strings", "--gen-mutable", "--gen-object-api"],
     schema="../union_vector/union_vector.fbs",
     prefix="union_vector",
 )
 
 flatc(
-    options=["--ts", "--gen-name-strings"],
+    options=["--ts", "--reflect-names", "--gen-name-strings"],
     schema="../optional_scalars.fbs",
 )
 
 flatc(
-    options=["--ts", "--gen-name-strings", "--gen-mutable", "--gen-object-api"],
+    options=["--ts", "--reflect-names", "--gen-name-strings", "--gen-mutable", "--gen-object-api"],
     schema=[
         "typescript_keywords.fbs",
         "test_dir/typescript_include.fbs",
@@ -98,6 +98,7 @@ flatc(
 flatc(
     options=[
         "--ts",
+        "--reflect-names",
         "--gen-name-strings",
         "--gen-mutable",
         "--gen-object-api",

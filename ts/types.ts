@@ -10,5 +10,8 @@ export type Table = {
 
 export interface IGeneratedObject {
   pack(builder:Builder): Offset
-  unpack(): IGeneratedObject
+}
+
+export interface IUnpackableObject<T> {
+  unpack(): T
 }

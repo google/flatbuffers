@@ -4,7 +4,7 @@ import * as flatbuffers from 'flatbuffers';
 
 
 
-export class KeyValue {
+export class KeyValue implements flatbuffers.IUnpackableObject<KeyValueT> {
   bb: flatbuffers.ByteBuffer|null = null;
   bb_pos = 0;
   __init(i:number, bb:flatbuffers.ByteBuffer):KeyValue {
@@ -79,7 +79,7 @@ unpackTo(_o: KeyValueT): void {
 }
 }
 
-export class KeyValueT {
+export class KeyValueT implements flatbuffers.IGeneratedObject {
 constructor(
   public key: string|Uint8Array|null = null,
   public value: string|Uint8Array|null = null

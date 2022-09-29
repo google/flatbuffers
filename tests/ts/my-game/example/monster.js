@@ -889,19 +889,19 @@ export class Monster {
     }
     unpack() {
         return new MonsterT((this.pos() !== null ? this.pos().unpack() : null), this.mana(), this.hp(), this.name(), this.bb.createScalarList(this.inventory.bind(this), this.inventoryLength()), this.color(), this.testType(), (() => {
-            let temp = unionToAny(this.testType(), this.test.bind(this));
+            const temp = unionToAny(this.testType(), this.test.bind(this));
             if (temp === null) {
                 return null;
             }
             return temp.unpack();
         })(), this.bb.createObjList(this.test4.bind(this), this.test4Length()), this.bb.createScalarList(this.testarrayofstring.bind(this), this.testarrayofstringLength()), this.bb.createObjList(this.testarrayoftables.bind(this), this.testarrayoftablesLength()), (this.enemy() !== null ? this.enemy().unpack() : null), this.bb.createScalarList(this.testnestedflatbuffer.bind(this), this.testnestedflatbufferLength()), (this.testempty() !== null ? this.testempty().unpack() : null), this.testbool(), this.testhashs32Fnv1(), this.testhashu32Fnv1(), this.testhashs64Fnv1(), this.testhashu64Fnv1(), this.testhashs32Fnv1a(), this.testhashu32Fnv1a(), this.testhashs64Fnv1a(), this.testhashu64Fnv1a(), this.bb.createScalarList(this.testarrayofbools.bind(this), this.testarrayofboolsLength()), this.testf(), this.testf2(), this.testf3(), this.bb.createScalarList(this.testarrayofstring2.bind(this), this.testarrayofstring2Length()), this.bb.createObjList(this.testarrayofsortedstruct.bind(this), this.testarrayofsortedstructLength()), this.bb.createScalarList(this.flex.bind(this), this.flexLength()), this.bb.createObjList(this.test5.bind(this), this.test5Length()), this.bb.createScalarList(this.vectorOfLongs.bind(this), this.vectorOfLongsLength()), this.bb.createScalarList(this.vectorOfDoubles.bind(this), this.vectorOfDoublesLength()), (this.parentNamespaceTest() !== null ? this.parentNamespaceTest().unpack() : null), this.bb.createObjList(this.vectorOfReferrables.bind(this), this.vectorOfReferrablesLength()), this.singleWeakReference(), this.bb.createScalarList(this.vectorOfWeakReferences.bind(this), this.vectorOfWeakReferencesLength()), this.bb.createObjList(this.vectorOfStrongReferrables.bind(this), this.vectorOfStrongReferrablesLength()), this.coOwningReference(), this.bb.createScalarList(this.vectorOfCoOwningReferences.bind(this), this.vectorOfCoOwningReferencesLength()), this.nonOwningReference(), this.bb.createScalarList(this.vectorOfNonOwningReferences.bind(this), this.vectorOfNonOwningReferencesLength()), this.anyUniqueType(), (() => {
-            let temp = unionToAnyUniqueAliases(this.anyUniqueType(), this.anyUnique.bind(this));
+            const temp = unionToAnyUniqueAliases(this.anyUniqueType(), this.anyUnique.bind(this));
             if (temp === null) {
                 return null;
             }
             return temp.unpack();
         })(), this.anyAmbiguousType(), (() => {
-            let temp = unionToAnyAmbiguousAliases(this.anyAmbiguousType(), this.anyAmbiguous.bind(this));
+            const temp = unionToAnyAmbiguousAliases(this.anyAmbiguousType(), this.anyAmbiguous.bind(this));
             if (temp === null) {
                 return null;
             }
@@ -917,7 +917,7 @@ export class Monster {
         _o.color = this.color();
         _o.testType = this.testType();
         _o.test = (() => {
-            let temp = unionToAny(this.testType(), this.test.bind(this));
+            const temp = unionToAny(this.testType(), this.test.bind(this));
             if (temp === null) {
                 return null;
             }
@@ -959,7 +959,7 @@ export class Monster {
         _o.vectorOfNonOwningReferences = this.bb.createScalarList(this.vectorOfNonOwningReferences.bind(this), this.vectorOfNonOwningReferencesLength());
         _o.anyUniqueType = this.anyUniqueType();
         _o.anyUnique = (() => {
-            let temp = unionToAnyUniqueAliases(this.anyUniqueType(), this.anyUnique.bind(this));
+            const temp = unionToAnyUniqueAliases(this.anyUniqueType(), this.anyUnique.bind(this));
             if (temp === null) {
                 return null;
             }
@@ -967,7 +967,7 @@ export class Monster {
         })();
         _o.anyAmbiguousType = this.anyAmbiguousType();
         _o.anyAmbiguous = (() => {
-            let temp = unionToAnyAmbiguousAliases(this.anyAmbiguousType(), this.anyAmbiguous.bind(this));
+            const temp = unionToAnyAmbiguousAliases(this.anyAmbiguousType(), this.anyAmbiguous.bind(this));
             if (temp === null) {
                 return null;
             }

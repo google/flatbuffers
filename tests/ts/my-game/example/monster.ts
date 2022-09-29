@@ -20,7 +20,7 @@ import { InParentNamespace, InParentNamespaceT } from '../../my-game/in-parent-n
 /**
  * an example documentation comment: "monster object"
  */
-export class Monster {
+export class Monster implements flatbuffers.IUnpackableObject<MonsterT> {
   bb: flatbuffers.ByteBuffer|null = null;
   bb_pos = 0;
   __init(i:number, bb:flatbuffers.ByteBuffer):Monster {
@@ -1153,19 +1153,19 @@ unpack(): MonsterT {
     this.mana(),
     this.hp(),
     this.name(),
-    this.bb!.createScalarList(this.inventory.bind(this), this.inventoryLength()),
+    this.bb!.createScalarList<number>(this.inventory.bind(this), this.inventoryLength()),
     this.color(),
     this.testType(),
     (() => {
-      let temp = unionToAny(this.testType(), this.test.bind(this));
+      const temp = unionToAny(this.testType(), this.test.bind(this));
       if(temp === null) { return null; }
       return temp.unpack()
   })(),
-    this.bb!.createObjList(this.test4.bind(this), this.test4Length()),
-    this.bb!.createScalarList(this.testarrayofstring.bind(this), this.testarrayofstringLength()),
-    this.bb!.createObjList(this.testarrayoftables.bind(this), this.testarrayoftablesLength()),
+    this.bb!.createObjList<Test, TestT>(this.test4.bind(this), this.test4Length()),
+    this.bb!.createScalarList<string>(this.testarrayofstring.bind(this), this.testarrayofstringLength()),
+    this.bb!.createObjList<Monster, MonsterT>(this.testarrayoftables.bind(this), this.testarrayoftablesLength()),
     (this.enemy() !== null ? this.enemy()!.unpack() : null),
-    this.bb!.createScalarList(this.testnestedflatbuffer.bind(this), this.testnestedflatbufferLength()),
+    this.bb!.createScalarList<number>(this.testnestedflatbuffer.bind(this), this.testnestedflatbufferLength()),
     (this.testempty() !== null ? this.testempty()!.unpack() : null),
     this.testbool(),
     this.testhashs32Fnv1(),
@@ -1176,41 +1176,41 @@ unpack(): MonsterT {
     this.testhashu32Fnv1a(),
     this.testhashs64Fnv1a(),
     this.testhashu64Fnv1a(),
-    this.bb!.createScalarList(this.testarrayofbools.bind(this), this.testarrayofboolsLength()),
+    this.bb!.createScalarList<boolean>(this.testarrayofbools.bind(this), this.testarrayofboolsLength()),
     this.testf(),
     this.testf2(),
     this.testf3(),
-    this.bb!.createScalarList(this.testarrayofstring2.bind(this), this.testarrayofstring2Length()),
-    this.bb!.createObjList(this.testarrayofsortedstruct.bind(this), this.testarrayofsortedstructLength()),
-    this.bb!.createScalarList(this.flex.bind(this), this.flexLength()),
-    this.bb!.createObjList(this.test5.bind(this), this.test5Length()),
-    this.bb!.createScalarList(this.vectorOfLongs.bind(this), this.vectorOfLongsLength()),
-    this.bb!.createScalarList(this.vectorOfDoubles.bind(this), this.vectorOfDoublesLength()),
+    this.bb!.createScalarList<string>(this.testarrayofstring2.bind(this), this.testarrayofstring2Length()),
+    this.bb!.createObjList<Ability, AbilityT>(this.testarrayofsortedstruct.bind(this), this.testarrayofsortedstructLength()),
+    this.bb!.createScalarList<number>(this.flex.bind(this), this.flexLength()),
+    this.bb!.createObjList<Test, TestT>(this.test5.bind(this), this.test5Length()),
+    this.bb!.createScalarList<bigint>(this.vectorOfLongs.bind(this), this.vectorOfLongsLength()),
+    this.bb!.createScalarList<number>(this.vectorOfDoubles.bind(this), this.vectorOfDoublesLength()),
     (this.parentNamespaceTest() !== null ? this.parentNamespaceTest()!.unpack() : null),
-    this.bb!.createObjList(this.vectorOfReferrables.bind(this), this.vectorOfReferrablesLength()),
+    this.bb!.createObjList<Referrable, ReferrableT>(this.vectorOfReferrables.bind(this), this.vectorOfReferrablesLength()),
     this.singleWeakReference(),
-    this.bb!.createScalarList(this.vectorOfWeakReferences.bind(this), this.vectorOfWeakReferencesLength()),
-    this.bb!.createObjList(this.vectorOfStrongReferrables.bind(this), this.vectorOfStrongReferrablesLength()),
+    this.bb!.createScalarList<bigint>(this.vectorOfWeakReferences.bind(this), this.vectorOfWeakReferencesLength()),
+    this.bb!.createObjList<Referrable, ReferrableT>(this.vectorOfStrongReferrables.bind(this), this.vectorOfStrongReferrablesLength()),
     this.coOwningReference(),
-    this.bb!.createScalarList(this.vectorOfCoOwningReferences.bind(this), this.vectorOfCoOwningReferencesLength()),
+    this.bb!.createScalarList<bigint>(this.vectorOfCoOwningReferences.bind(this), this.vectorOfCoOwningReferencesLength()),
     this.nonOwningReference(),
-    this.bb!.createScalarList(this.vectorOfNonOwningReferences.bind(this), this.vectorOfNonOwningReferencesLength()),
+    this.bb!.createScalarList<bigint>(this.vectorOfNonOwningReferences.bind(this), this.vectorOfNonOwningReferencesLength()),
     this.anyUniqueType(),
     (() => {
-      let temp = unionToAnyUniqueAliases(this.anyUniqueType(), this.anyUnique.bind(this));
+      const temp = unionToAnyUniqueAliases(this.anyUniqueType(), this.anyUnique.bind(this));
       if(temp === null) { return null; }
       return temp.unpack()
   })(),
     this.anyAmbiguousType(),
     (() => {
-      let temp = unionToAnyAmbiguousAliases(this.anyAmbiguousType(), this.anyAmbiguous.bind(this));
+      const temp = unionToAnyAmbiguousAliases(this.anyAmbiguousType(), this.anyAmbiguous.bind(this));
       if(temp === null) { return null; }
       return temp.unpack()
   })(),
-    this.bb!.createScalarList(this.vectorOfEnums.bind(this), this.vectorOfEnumsLength()),
+    this.bb!.createScalarList<Color>(this.vectorOfEnums.bind(this), this.vectorOfEnumsLength()),
     this.signedEnum(),
-    this.bb!.createScalarList(this.testrequirednestedflatbuffer.bind(this), this.testrequirednestedflatbufferLength()),
-    this.bb!.createObjList(this.scalarKeySortedTables.bind(this), this.scalarKeySortedTablesLength()),
+    this.bb!.createScalarList<number>(this.testrequirednestedflatbuffer.bind(this), this.testrequirednestedflatbufferLength()),
+    this.bb!.createObjList<Stat, StatT>(this.scalarKeySortedTables.bind(this), this.scalarKeySortedTablesLength()),
     (this.nativeInline() !== null ? this.nativeInline()!.unpack() : null),
     this.longEnumNonEnumDefault(),
     this.longEnumNormalDefault()
@@ -1223,19 +1223,19 @@ unpackTo(_o: MonsterT): void {
   _o.mana = this.mana();
   _o.hp = this.hp();
   _o.name = this.name();
-  _o.inventory = this.bb!.createScalarList(this.inventory.bind(this), this.inventoryLength());
+  _o.inventory = this.bb!.createScalarList<number>(this.inventory.bind(this), this.inventoryLength());
   _o.color = this.color();
   _o.testType = this.testType();
   _o.test = (() => {
-      let temp = unionToAny(this.testType(), this.test.bind(this));
+      const temp = unionToAny(this.testType(), this.test.bind(this));
       if(temp === null) { return null; }
       return temp.unpack()
   })();
-  _o.test4 = this.bb!.createObjList(this.test4.bind(this), this.test4Length());
-  _o.testarrayofstring = this.bb!.createScalarList(this.testarrayofstring.bind(this), this.testarrayofstringLength());
-  _o.testarrayoftables = this.bb!.createObjList(this.testarrayoftables.bind(this), this.testarrayoftablesLength());
+  _o.test4 = this.bb!.createObjList<Test, TestT>(this.test4.bind(this), this.test4Length());
+  _o.testarrayofstring = this.bb!.createScalarList<string>(this.testarrayofstring.bind(this), this.testarrayofstringLength());
+  _o.testarrayoftables = this.bb!.createObjList<Monster, MonsterT>(this.testarrayoftables.bind(this), this.testarrayoftablesLength());
   _o.enemy = (this.enemy() !== null ? this.enemy()!.unpack() : null);
-  _o.testnestedflatbuffer = this.bb!.createScalarList(this.testnestedflatbuffer.bind(this), this.testnestedflatbufferLength());
+  _o.testnestedflatbuffer = this.bb!.createScalarList<number>(this.testnestedflatbuffer.bind(this), this.testnestedflatbufferLength());
   _o.testempty = (this.testempty() !== null ? this.testempty()!.unpack() : null);
   _o.testbool = this.testbool();
   _o.testhashs32Fnv1 = this.testhashs32Fnv1();
@@ -1246,48 +1246,48 @@ unpackTo(_o: MonsterT): void {
   _o.testhashu32Fnv1a = this.testhashu32Fnv1a();
   _o.testhashs64Fnv1a = this.testhashs64Fnv1a();
   _o.testhashu64Fnv1a = this.testhashu64Fnv1a();
-  _o.testarrayofbools = this.bb!.createScalarList(this.testarrayofbools.bind(this), this.testarrayofboolsLength());
+  _o.testarrayofbools = this.bb!.createScalarList<boolean>(this.testarrayofbools.bind(this), this.testarrayofboolsLength());
   _o.testf = this.testf();
   _o.testf2 = this.testf2();
   _o.testf3 = this.testf3();
-  _o.testarrayofstring2 = this.bb!.createScalarList(this.testarrayofstring2.bind(this), this.testarrayofstring2Length());
-  _o.testarrayofsortedstruct = this.bb!.createObjList(this.testarrayofsortedstruct.bind(this), this.testarrayofsortedstructLength());
-  _o.flex = this.bb!.createScalarList(this.flex.bind(this), this.flexLength());
-  _o.test5 = this.bb!.createObjList(this.test5.bind(this), this.test5Length());
-  _o.vectorOfLongs = this.bb!.createScalarList(this.vectorOfLongs.bind(this), this.vectorOfLongsLength());
-  _o.vectorOfDoubles = this.bb!.createScalarList(this.vectorOfDoubles.bind(this), this.vectorOfDoublesLength());
+  _o.testarrayofstring2 = this.bb!.createScalarList<string>(this.testarrayofstring2.bind(this), this.testarrayofstring2Length());
+  _o.testarrayofsortedstruct = this.bb!.createObjList<Ability, AbilityT>(this.testarrayofsortedstruct.bind(this), this.testarrayofsortedstructLength());
+  _o.flex = this.bb!.createScalarList<number>(this.flex.bind(this), this.flexLength());
+  _o.test5 = this.bb!.createObjList<Test, TestT>(this.test5.bind(this), this.test5Length());
+  _o.vectorOfLongs = this.bb!.createScalarList<bigint>(this.vectorOfLongs.bind(this), this.vectorOfLongsLength());
+  _o.vectorOfDoubles = this.bb!.createScalarList<number>(this.vectorOfDoubles.bind(this), this.vectorOfDoublesLength());
   _o.parentNamespaceTest = (this.parentNamespaceTest() !== null ? this.parentNamespaceTest()!.unpack() : null);
-  _o.vectorOfReferrables = this.bb!.createObjList(this.vectorOfReferrables.bind(this), this.vectorOfReferrablesLength());
+  _o.vectorOfReferrables = this.bb!.createObjList<Referrable, ReferrableT>(this.vectorOfReferrables.bind(this), this.vectorOfReferrablesLength());
   _o.singleWeakReference = this.singleWeakReference();
-  _o.vectorOfWeakReferences = this.bb!.createScalarList(this.vectorOfWeakReferences.bind(this), this.vectorOfWeakReferencesLength());
-  _o.vectorOfStrongReferrables = this.bb!.createObjList(this.vectorOfStrongReferrables.bind(this), this.vectorOfStrongReferrablesLength());
+  _o.vectorOfWeakReferences = this.bb!.createScalarList<bigint>(this.vectorOfWeakReferences.bind(this), this.vectorOfWeakReferencesLength());
+  _o.vectorOfStrongReferrables = this.bb!.createObjList<Referrable, ReferrableT>(this.vectorOfStrongReferrables.bind(this), this.vectorOfStrongReferrablesLength());
   _o.coOwningReference = this.coOwningReference();
-  _o.vectorOfCoOwningReferences = this.bb!.createScalarList(this.vectorOfCoOwningReferences.bind(this), this.vectorOfCoOwningReferencesLength());
+  _o.vectorOfCoOwningReferences = this.bb!.createScalarList<bigint>(this.vectorOfCoOwningReferences.bind(this), this.vectorOfCoOwningReferencesLength());
   _o.nonOwningReference = this.nonOwningReference();
-  _o.vectorOfNonOwningReferences = this.bb!.createScalarList(this.vectorOfNonOwningReferences.bind(this), this.vectorOfNonOwningReferencesLength());
+  _o.vectorOfNonOwningReferences = this.bb!.createScalarList<bigint>(this.vectorOfNonOwningReferences.bind(this), this.vectorOfNonOwningReferencesLength());
   _o.anyUniqueType = this.anyUniqueType();
   _o.anyUnique = (() => {
-      let temp = unionToAnyUniqueAliases(this.anyUniqueType(), this.anyUnique.bind(this));
+      const temp = unionToAnyUniqueAliases(this.anyUniqueType(), this.anyUnique.bind(this));
       if(temp === null) { return null; }
       return temp.unpack()
   })();
   _o.anyAmbiguousType = this.anyAmbiguousType();
   _o.anyAmbiguous = (() => {
-      let temp = unionToAnyAmbiguousAliases(this.anyAmbiguousType(), this.anyAmbiguous.bind(this));
+      const temp = unionToAnyAmbiguousAliases(this.anyAmbiguousType(), this.anyAmbiguous.bind(this));
       if(temp === null) { return null; }
       return temp.unpack()
   })();
-  _o.vectorOfEnums = this.bb!.createScalarList(this.vectorOfEnums.bind(this), this.vectorOfEnumsLength());
+  _o.vectorOfEnums = this.bb!.createScalarList<Color>(this.vectorOfEnums.bind(this), this.vectorOfEnumsLength());
   _o.signedEnum = this.signedEnum();
-  _o.testrequirednestedflatbuffer = this.bb!.createScalarList(this.testrequirednestedflatbuffer.bind(this), this.testrequirednestedflatbufferLength());
-  _o.scalarKeySortedTables = this.bb!.createObjList(this.scalarKeySortedTables.bind(this), this.scalarKeySortedTablesLength());
+  _o.testrequirednestedflatbuffer = this.bb!.createScalarList<number>(this.testrequirednestedflatbuffer.bind(this), this.testrequirednestedflatbufferLength());
+  _o.scalarKeySortedTables = this.bb!.createObjList<Stat, StatT>(this.scalarKeySortedTables.bind(this), this.scalarKeySortedTablesLength());
   _o.nativeInline = (this.nativeInline() !== null ? this.nativeInline()!.unpack() : null);
   _o.longEnumNonEnumDefault = this.longEnumNonEnumDefault();
   _o.longEnumNormalDefault = this.longEnumNormalDefault();
 }
 }
 
-export class MonsterT {
+export class MonsterT implements flatbuffers.IGeneratedObject {
 constructor(
   public pos: Vec3T|null = null,
   public mana: number = 150,
