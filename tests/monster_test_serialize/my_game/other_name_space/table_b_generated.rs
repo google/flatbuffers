@@ -21,8 +21,8 @@ pub struct TableB<'a> {
 impl<'a> flatbuffers::Follow<'a> for TableB<'a> {
   type Inner = TableB<'a>;
   #[inline]
-  fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
-    Self { _tab: flatbuffers::Table { buf, loc } }
+  unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
+    Self { _tab: flatbuffers::Table::new(buf, loc) }
   }
 }
 
@@ -34,7 +34,7 @@ impl<'a> TableB<'a> {
   }
 
   #[inline]
-  pub fn init_from_table(table: flatbuffers::Table<'a>) -> Self {
+  pub unsafe fn init_from_table(table: flatbuffers::Table<'a>) -> Self {
     TableB { _tab: table }
   }
   #[allow(unused_mut)]
@@ -58,7 +58,10 @@ impl<'a> TableB<'a> {
 
   #[inline]
   pub fn a(&self) -> Option<super::super::TableA<'a>> {
-    self._tab.get::<flatbuffers::ForwardsUOffset<super::super::TableA>>(TableB::VT_A, None)
+    // Safety:
+    // Created from valid Table for this object
+    // which contains a valid value in this slot
+    unsafe { self._tab.get::<flatbuffers::ForwardsUOffset<super::super::TableA>>(TableB::VT_A, None)}
   }
 }
 

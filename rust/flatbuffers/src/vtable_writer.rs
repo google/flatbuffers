@@ -40,8 +40,11 @@ impl<'a> VTableWriter<'a> {
     /// to the provided value.
     #[inline(always)]
     pub fn write_vtable_byte_length(&mut self, n: VOffsetT) {
+        let buf = &mut self.buf[..SIZE_VOFFSET];
+        // Safety:
+        // Validated range above
         unsafe {
-            emplace_scalar::<VOffsetT>(&mut self.buf[..SIZE_VOFFSET], n);
+            emplace_scalar::<VOffsetT>(buf, n);
         }
         debug_assert_eq!(n as usize, self.buf.len());
     }
@@ -49,8 +52,11 @@ impl<'a> VTableWriter<'a> {
     /// Writes an object length (in bytes) into the vtable.
     #[inline(always)]
     pub fn write_object_inline_size(&mut self, n: VOffsetT) {
+        let buf = &mut self.buf[SIZE_VOFFSET..2 * SIZE_VOFFSET];
+        // Safety:
+        // Validated range above
         unsafe {
-            emplace_scalar::<VOffsetT>(&mut self.buf[SIZE_VOFFSET..2 * SIZE_VOFFSET], n);
+            emplace_scalar::<VOffsetT>(buf, n);
         }
     }
 
@@ -61,8 +67,11 @@ impl<'a> VTableWriter<'a> {
     #[inline(always)]
     pub fn write_field_offset(&mut self, vtable_offset: VOffsetT, object_data_offset: VOffsetT) {
         let idx = vtable_offset as usize;
+        let buf = &mut self.buf[idx..idx + SIZE_VOFFSET];
+        // Safety:
+        // Validated range above
         unsafe {
-            emplace_scalar::<VOffsetT>(&mut self.buf[idx..idx + SIZE_VOFFSET], object_data_offset);
+            emplace_scalar::<VOffsetT>(buf, object_data_offset);
         }
     }
 
@@ -73,6 +82,9 @@ impl<'a> VTableWriter<'a> {
         // This is the closest thing to memset in Rust right now.
         let len = self.buf.len();
         let p = self.buf.as_mut_ptr() as *mut u8;
+
+        // Safety:
+        // p is byte aligned and of length `len`
         unsafe {
             write_bytes(p, 0, len);
         }

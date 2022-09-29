@@ -19,8 +19,8 @@ pub struct ArrayTable<'a> {
 impl<'a> flatbuffers::Follow<'a> for ArrayTable<'a> {
   type Inner = ArrayTable<'a>;
   #[inline]
-  fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
-    Self { _tab: flatbuffers::Table { buf, loc } }
+  unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
+    Self { _tab: flatbuffers::Table::new(buf, loc) }
   }
 }
 
@@ -32,7 +32,7 @@ impl<'a> ArrayTable<'a> {
   }
 
   #[inline]
-  pub fn init_from_table(table: flatbuffers::Table<'a>) -> Self {
+  pub unsafe fn init_from_table(table: flatbuffers::Table<'a>) -> Self {
     ArrayTable { _tab: table }
   }
   #[allow(unused_mut)]
@@ -56,7 +56,10 @@ impl<'a> ArrayTable<'a> {
 
   #[inline]
   pub fn a(&self) -> Option<&'a ArrayStruct> {
-    self._tab.get::<ArrayStruct>(ArrayTable::VT_A, None)
+    // Safety:
+    // Created from valid Table for this object
+    // which contains a valid value in this slot
+    unsafe { self._tab.get::<ArrayStruct>(ArrayTable::VT_A, None)}
   }
 }
 
@@ -139,18 +142,6 @@ impl ArrayTableT {
     })
   }
 }
-#[inline]
-#[deprecated(since="2.0.0", note="Deprecated in favor of `root_as...` methods.")]
-pub fn get_root_as_array_table<'a>(buf: &'a [u8]) -> ArrayTable<'a> {
-  unsafe { flatbuffers::root_unchecked::<ArrayTable<'a>>(buf) }
-}
-
-#[inline]
-#[deprecated(since="2.0.0", note="Deprecated in favor of `root_as...` methods.")]
-pub fn get_size_prefixed_root_as_array_table<'a>(buf: &'a [u8]) -> ArrayTable<'a> {
-  unsafe { flatbuffers::size_prefixed_root_unchecked::<ArrayTable<'a>>(buf) }
-}
-
 #[inline]
 /// Verifies that a buffer of bytes contains a `ArrayTable`
 /// and returns it.

@@ -28,39 +28,25 @@ impl core::fmt::Debug for Ability {
 }
 
 impl flatbuffers::SimpleToVerifyInSlice for Ability {}
-impl flatbuffers::SafeSliceAccess for Ability {}
 impl<'a> flatbuffers::Follow<'a> for Ability {
   type Inner = &'a Ability;
   #[inline]
-  fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
+  unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
     <&'a Ability>::follow(buf, loc)
   }
 }
 impl<'a> flatbuffers::Follow<'a> for &'a Ability {
   type Inner = &'a Ability;
   #[inline]
-  fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
+  unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
     flatbuffers::follow_cast_ref::<Ability>(buf, loc)
   }
 }
 impl<'b> flatbuffers::Push for Ability {
     type Output = Ability;
     #[inline]
-    fn push(&self, dst: &mut [u8], _rest: &[u8]) {
-        let src = unsafe {
-            ::core::slice::from_raw_parts(self as *const Ability as *const u8, Self::size())
-        };
-        dst.copy_from_slice(src);
-    }
-}
-impl<'b> flatbuffers::Push for &'b Ability {
-    type Output = Ability;
-
-    #[inline]
-    fn push(&self, dst: &mut [u8], _rest: &[u8]) {
-        let src = unsafe {
-            ::core::slice::from_raw_parts(*self as *const Ability as *const u8, Self::size())
-        };
+    unsafe fn push(&self, dst: &mut [u8], _written_len: usize) {
+        let src = ::core::slice::from_raw_parts(self as *const Ability as *const u8, Self::size());
         dst.copy_from_slice(src);
     }
 }
@@ -92,24 +78,30 @@ impl<'a> Ability {
   }
 
   pub fn id(&self) -> u32 {
-    let mut mem = core::mem::MaybeUninit::<u32>::uninit();
-    unsafe {
+    let mut mem = core::mem::MaybeUninit::<<u32 as EndianScalar>::Scalar>::uninit();
+    // Safety:
+    // Created from a valid Table for this object
+    // Which contains a valid value in this slot
+    EndianScalar::from_little_endian(unsafe {
       core::ptr::copy_nonoverlapping(
         self.0[0..].as_ptr(),
         mem.as_mut_ptr() as *mut u8,
-        core::mem::size_of::<u32>(),
+        core::mem::size_of::<<u32 as EndianScalar>::Scalar>(),
       );
       mem.assume_init()
-    }.from_little_endian()
+    })
   }
 
   pub fn set_id(&mut self, x: u32) {
     let x_le = x.to_little_endian();
+    // Safety:
+    // Created from a valid Table for this object
+    // Which contains a valid value in this slot
     unsafe {
       core::ptr::copy_nonoverlapping(
-        &x_le as *const u32 as *const u8,
+        &x_le as *const _ as *const u8,
         self.0[0..].as_mut_ptr(),
-        core::mem::size_of::<u32>(),
+        core::mem::size_of::<<u32 as EndianScalar>::Scalar>(),
       );
     }
   }
@@ -125,24 +117,30 @@ impl<'a> Ability {
     key.cmp(&val)
   }
   pub fn distance(&self) -> u32 {
-    let mut mem = core::mem::MaybeUninit::<u32>::uninit();
-    unsafe {
+    let mut mem = core::mem::MaybeUninit::<<u32 as EndianScalar>::Scalar>::uninit();
+    // Safety:
+    // Created from a valid Table for this object
+    // Which contains a valid value in this slot
+    EndianScalar::from_little_endian(unsafe {
       core::ptr::copy_nonoverlapping(
         self.0[4..].as_ptr(),
         mem.as_mut_ptr() as *mut u8,
-        core::mem::size_of::<u32>(),
+        core::mem::size_of::<<u32 as EndianScalar>::Scalar>(),
       );
       mem.assume_init()
-    }.from_little_endian()
+    })
   }
 
   pub fn set_distance(&mut self, x: u32) {
     let x_le = x.to_little_endian();
+    // Safety:
+    // Created from a valid Table for this object
+    // Which contains a valid value in this slot
     unsafe {
       core::ptr::copy_nonoverlapping(
-        &x_le as *const u32 as *const u8,
+        &x_le as *const _ as *const u8,
         self.0[4..].as_mut_ptr(),
-        core::mem::size_of::<u32>(),
+        core::mem::size_of::<<u32 as EndianScalar>::Scalar>(),
       );
     }
   }

@@ -19,8 +19,8 @@ pub struct TestSimpleTableWithEnum<'a> {
 impl<'a> flatbuffers::Follow<'a> for TestSimpleTableWithEnum<'a> {
   type Inner = TestSimpleTableWithEnum<'a>;
   #[inline]
-  fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
-    Self { _tab: flatbuffers::Table { buf, loc } }
+  unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
+    Self { _tab: flatbuffers::Table::new(buf, loc) }
   }
 }
 
@@ -32,7 +32,7 @@ impl<'a> TestSimpleTableWithEnum<'a> {
   }
 
   #[inline]
-  pub fn init_from_table(table: flatbuffers::Table<'a>) -> Self {
+  pub unsafe fn init_from_table(table: flatbuffers::Table<'a>) -> Self {
     TestSimpleTableWithEnum { _tab: table }
   }
   #[allow(unused_mut)]
@@ -54,7 +54,10 @@ impl<'a> TestSimpleTableWithEnum<'a> {
 
   #[inline]
   pub fn color(&self) -> Color {
-    self._tab.get::<Color>(TestSimpleTableWithEnum::VT_COLOR, Some(Color::Green)).unwrap()
+    // Safety:
+    // Created from valid Table for this object
+    // which contains a valid value in this slot
+    unsafe { self._tab.get::<Color>(TestSimpleTableWithEnum::VT_COLOR, Some(Color::Green)).unwrap()}
   }
 }
 

@@ -36,8 +36,8 @@ fn create_serialized_example_with_generated_code(builder: &mut flatbuffers::Flat
                 )
                 .as_union_value(),
             ),
-            inventory: Some(builder.create_vector_direct(&[0u8, 1, 2, 3, 4][..])),
-            test4: Some(builder.create_vector_direct(&[
+            inventory: Some(builder.create_vector(&[0u8, 1, 2, 3, 4])),
+            test4: Some(builder.create_vector(&[
                 my_game::example::Test::new(10, 20),
                 my_game::example::Test::new(30, 40),
             ])),

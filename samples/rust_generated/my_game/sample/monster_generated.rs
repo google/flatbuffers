@@ -19,8 +19,8 @@ pub struct Monster<'a> {
 impl<'a> flatbuffers::Follow<'a> for Monster<'a> {
   type Inner = Monster<'a>;
   #[inline]
-  fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
-    Self { _tab: flatbuffers::Table { buf, loc } }
+  unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
+    Self { _tab: flatbuffers::Table::new(buf, loc) }
   }
 }
 
@@ -41,7 +41,7 @@ impl<'a> Monster<'a> {
   }
 
   #[inline]
-  pub fn init_from_table(table: flatbuffers::Table<'a>) -> Self {
+  pub unsafe fn init_from_table(table: flatbuffers::Table<'a>) -> Self {
     Monster { _tab: table }
   }
   #[allow(unused_mut)]
@@ -73,7 +73,7 @@ impl<'a> Monster<'a> {
       x.to_string()
     });
     let inventory = self.inventory().map(|x| {
-      x.to_vec()
+      x.into_iter().collect()
     });
     let color = self.color();
     let weapons = self.weapons().map(|x| {
@@ -106,49 +106,84 @@ impl<'a> Monster<'a> {
 
   #[inline]
   pub fn pos(&self) -> Option<&'a Vec3> {
-    self._tab.get::<Vec3>(Monster::VT_POS, None)
+    // Safety:
+    // Created from valid Table for this object
+    // which contains a valid value in this slot
+    unsafe { self._tab.get::<Vec3>(Monster::VT_POS, None)}
   }
   #[inline]
   pub fn mana(&self) -> i16 {
-    self._tab.get::<i16>(Monster::VT_MANA, Some(150)).unwrap()
+    // Safety:
+    // Created from valid Table for this object
+    // which contains a valid value in this slot
+    unsafe { self._tab.get::<i16>(Monster::VT_MANA, Some(150)).unwrap()}
   }
   #[inline]
   pub fn hp(&self) -> i16 {
-    self._tab.get::<i16>(Monster::VT_HP, Some(100)).unwrap()
+    // Safety:
+    // Created from valid Table for this object
+    // which contains a valid value in this slot
+    unsafe { self._tab.get::<i16>(Monster::VT_HP, Some(100)).unwrap()}
   }
   #[inline]
   pub fn name(&self) -> Option<&'a str> {
-    self._tab.get::<flatbuffers::ForwardsUOffset<&str>>(Monster::VT_NAME, None)
+    // Safety:
+    // Created from valid Table for this object
+    // which contains a valid value in this slot
+    unsafe { self._tab.get::<flatbuffers::ForwardsUOffset<&str>>(Monster::VT_NAME, None)}
   }
   #[inline]
-  pub fn inventory(&self) -> Option<&'a [u8]> {
-    self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'a, u8>>>(Monster::VT_INVENTORY, None).map(|v| v.safe_slice())
+  pub fn inventory(&self) -> Option<flatbuffers::Vector<'a, u8>> {
+    // Safety:
+    // Created from valid Table for this object
+    // which contains a valid value in this slot
+    unsafe { self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'a, u8>>>(Monster::VT_INVENTORY, None)}
   }
   #[inline]
   pub fn color(&self) -> Color {
-    self._tab.get::<Color>(Monster::VT_COLOR, Some(Color::Blue)).unwrap()
+    // Safety:
+    // Created from valid Table for this object
+    // which contains a valid value in this slot
+    unsafe { self._tab.get::<Color>(Monster::VT_COLOR, Some(Color::Blue)).unwrap()}
   }
   #[inline]
   pub fn weapons(&self) -> Option<flatbuffers::Vector<'a, flatbuffers::ForwardsUOffset<Weapon<'a>>>> {
-    self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'a, flatbuffers::ForwardsUOffset<Weapon>>>>(Monster::VT_WEAPONS, None)
+    // Safety:
+    // Created from valid Table for this object
+    // which contains a valid value in this slot
+    unsafe { self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'a, flatbuffers::ForwardsUOffset<Weapon>>>>(Monster::VT_WEAPONS, None)}
   }
   #[inline]
   pub fn equipped_type(&self) -> Equipment {
-    self._tab.get::<Equipment>(Monster::VT_EQUIPPED_TYPE, Some(Equipment::NONE)).unwrap()
+    // Safety:
+    // Created from valid Table for this object
+    // which contains a valid value in this slot
+    unsafe { self._tab.get::<Equipment>(Monster::VT_EQUIPPED_TYPE, Some(Equipment::NONE)).unwrap()}
   }
   #[inline]
   pub fn equipped(&self) -> Option<flatbuffers::Table<'a>> {
-    self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Table<'a>>>(Monster::VT_EQUIPPED, None)
+    // Safety:
+    // Created from valid Table for this object
+    // which contains a valid value in this slot
+    unsafe { self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Table<'a>>>(Monster::VT_EQUIPPED, None)}
   }
   #[inline]
-  pub fn path(&self) -> Option<&'a [Vec3]> {
-    self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'a, Vec3>>>(Monster::VT_PATH, None).map(|v| v.safe_slice())
+  pub fn path(&self) -> Option<flatbuffers::Vector<'a, Vec3>> {
+    // Safety:
+    // Created from valid Table for this object
+    // which contains a valid value in this slot
+    unsafe { self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'a, Vec3>>>(Monster::VT_PATH, None)}
   }
   #[inline]
   #[allow(non_snake_case)]
   pub fn equipped_as_weapon(&self) -> Option<Weapon<'a>> {
     if self.equipped_type() == Equipment::Weapon {
-      self.equipped().map(Weapon::init_from_table)
+      self.equipped().map(|t| {
+       // Safety:
+       // Created from a valid Table for this object
+       // Which contains a valid union in this slot
+       unsafe { Weapon::init_from_table(t) }
+     })
     } else {
       None
     }
@@ -365,18 +400,6 @@ impl MonsterT {
     })
   }
 }
-#[inline]
-#[deprecated(since="2.0.0", note="Deprecated in favor of `root_as...` methods.")]
-pub fn get_root_as_monster<'a>(buf: &'a [u8]) -> Monster<'a> {
-  unsafe { flatbuffers::root_unchecked::<Monster<'a>>(buf) }
-}
-
-#[inline]
-#[deprecated(since="2.0.0", note="Deprecated in favor of `root_as...` methods.")]
-pub fn get_size_prefixed_root_as_monster<'a>(buf: &'a [u8]) -> Monster<'a> {
-  unsafe { flatbuffers::size_prefixed_root_unchecked::<Monster<'a>>(buf) }
-}
-
 #[inline]
 /// Verifies that a buffer of bytes contains a `Monster`
 /// and returns it.

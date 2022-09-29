@@ -55,10 +55,8 @@ impl core::fmt::Debug for AB {
 impl<'a> flatbuffers::Follow<'a> for AB {
   type Inner = Self;
   #[inline]
-  fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
-    let b = unsafe {
-      flatbuffers::read_scalar_at::<i8>(buf, loc)
-    };
+  unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
+    let b = flatbuffers::read_scalar_at::<i8>(buf, loc);
     Self(b)
   }
 }
@@ -66,21 +64,21 @@ impl<'a> flatbuffers::Follow<'a> for AB {
 impl flatbuffers::Push for AB {
     type Output = AB;
     #[inline]
-    fn push(&self, dst: &mut [u8], _rest: &[u8]) {
-        unsafe { flatbuffers::emplace_scalar::<i8>(dst, self.0); }
+    unsafe fn push(&self, dst: &mut [u8], _written_len: usize) {
+        flatbuffers::emplace_scalar::<i8>(dst, self.0);
     }
 }
 
 impl flatbuffers::EndianScalar for AB {
+  type Scalar = i8;
   #[inline]
-  fn to_little_endian(self) -> Self {
-    let b = i8::to_le(self.0);
-    Self(b)
+  fn to_little_endian(self) -> i8 {
+    self.0.to_le()
   }
   #[inline]
   #[allow(clippy::wrong_self_convention)]
-  fn from_little_endian(self) -> Self {
-    let b = i8::from_le(self.0);
+  fn from_little_endian(v: i8) -> Self {
+    let b = i8::from_le(v);
     Self(b)
   }
 }
