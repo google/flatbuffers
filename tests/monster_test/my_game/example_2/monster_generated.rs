@@ -19,8 +19,8 @@ pub struct Monster<'a> {
 impl<'a> flatbuffers::Follow<'a> for Monster<'a> {
   type Inner = Monster<'a>;
   #[inline]
-  fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
-    Self { _tab: flatbuffers::Table { buf, loc } }
+  unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
+    Self { _tab: flatbuffers::Table::new(buf, loc) }
   }
 }
 
@@ -31,7 +31,7 @@ impl<'a> Monster<'a> {
   }
 
   #[inline]
-  pub fn init_from_table(table: flatbuffers::Table<'a>) -> Self {
+  pub unsafe fn init_from_table(table: flatbuffers::Table<'a>) -> Self {
     Monster { _tab: table }
   }
   #[allow(unused_mut)]

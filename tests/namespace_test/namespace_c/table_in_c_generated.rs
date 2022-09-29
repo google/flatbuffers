@@ -19,8 +19,8 @@ pub struct TableInC<'a> {
 impl<'a> flatbuffers::Follow<'a> for TableInC<'a> {
   type Inner = TableInC<'a>;
   #[inline]
-  fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
-    Self { _tab: flatbuffers::Table { buf, loc } }
+  unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
+    Self { _tab: flatbuffers::Table::new(buf, loc) }
   }
 }
 
@@ -33,7 +33,7 @@ impl<'a> TableInC<'a> {
   }
 
   #[inline]
-  pub fn init_from_table(table: flatbuffers::Table<'a>) -> Self {
+  pub unsafe fn init_from_table(table: flatbuffers::Table<'a>) -> Self {
     TableInC { _tab: table }
   }
   #[allow(unused_mut)]
@@ -62,11 +62,17 @@ impl<'a> TableInC<'a> {
 
   #[inline]
   pub fn refer_to_a1(&self) -> Option<super::namespace_a::TableInFirstNS<'a>> {
-    self._tab.get::<flatbuffers::ForwardsUOffset<super::namespace_a::TableInFirstNS>>(TableInC::VT_REFER_TO_A1, None)
+    // Safety:
+    // Created from valid Table for this object
+    // which contains a valid value in this slot
+    unsafe { self._tab.get::<flatbuffers::ForwardsUOffset<super::namespace_a::TableInFirstNS>>(TableInC::VT_REFER_TO_A1, None)}
   }
   #[inline]
   pub fn refer_to_a2(&self) -> Option<super::namespace_a::SecondTableInA<'a>> {
-    self._tab.get::<flatbuffers::ForwardsUOffset<super::namespace_a::SecondTableInA>>(TableInC::VT_REFER_TO_A2, None)
+    // Safety:
+    // Created from valid Table for this object
+    // which contains a valid value in this slot
+    unsafe { self._tab.get::<flatbuffers::ForwardsUOffset<super::namespace_a::SecondTableInA>>(TableInC::VT_REFER_TO_A2, None)}
   }
 }
 

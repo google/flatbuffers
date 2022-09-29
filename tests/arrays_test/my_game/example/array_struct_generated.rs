@@ -32,39 +32,25 @@ impl core::fmt::Debug for ArrayStruct {
 }
 
 impl flatbuffers::SimpleToVerifyInSlice for ArrayStruct {}
-impl flatbuffers::SafeSliceAccess for ArrayStruct {}
 impl<'a> flatbuffers::Follow<'a> for ArrayStruct {
   type Inner = &'a ArrayStruct;
   #[inline]
-  fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
+  unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
     <&'a ArrayStruct>::follow(buf, loc)
   }
 }
 impl<'a> flatbuffers::Follow<'a> for &'a ArrayStruct {
   type Inner = &'a ArrayStruct;
   #[inline]
-  fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
+  unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
     flatbuffers::follow_cast_ref::<ArrayStruct>(buf, loc)
   }
 }
 impl<'b> flatbuffers::Push for ArrayStruct {
     type Output = ArrayStruct;
     #[inline]
-    fn push(&self, dst: &mut [u8], _rest: &[u8]) {
-        let src = unsafe {
-            ::core::slice::from_raw_parts(self as *const ArrayStruct as *const u8, Self::size())
-        };
-        dst.copy_from_slice(src);
-    }
-}
-impl<'b> flatbuffers::Push for &'b ArrayStruct {
-    type Output = ArrayStruct;
-
-    #[inline]
-    fn push(&self, dst: &mut [u8], _rest: &[u8]) {
-        let src = unsafe {
-            ::core::slice::from_raw_parts(*self as *const ArrayStruct as *const u8, Self::size())
-        };
+    unsafe fn push(&self, dst: &mut [u8], _written_len: usize) {
+        let src = ::core::slice::from_raw_parts(self as *const ArrayStruct as *const u8, Self::size());
         dst.copy_from_slice(src);
     }
 }
@@ -104,64 +90,88 @@ impl<'a> ArrayStruct {
   }
 
   pub fn a(&self) -> f32 {
-    let mut mem = core::mem::MaybeUninit::<f32>::uninit();
-    unsafe {
+    let mut mem = core::mem::MaybeUninit::<<f32 as EndianScalar>::Scalar>::uninit();
+    // Safety:
+    // Created from a valid Table for this object
+    // Which contains a valid value in this slot
+    EndianScalar::from_little_endian(unsafe {
       core::ptr::copy_nonoverlapping(
         self.0[0..].as_ptr(),
         mem.as_mut_ptr() as *mut u8,
-        core::mem::size_of::<f32>(),
+        core::mem::size_of::<<f32 as EndianScalar>::Scalar>(),
       );
       mem.assume_init()
-    }.from_little_endian()
+    })
   }
 
   pub fn set_a(&mut self, x: f32) {
     let x_le = x.to_little_endian();
+    // Safety:
+    // Created from a valid Table for this object
+    // Which contains a valid value in this slot
     unsafe {
       core::ptr::copy_nonoverlapping(
-        &x_le as *const f32 as *const u8,
+        &x_le as *const _ as *const u8,
         self.0[0..].as_mut_ptr(),
-        core::mem::size_of::<f32>(),
+        core::mem::size_of::<<f32 as EndianScalar>::Scalar>(),
       );
     }
   }
 
   pub fn b(&'a self) -> flatbuffers::Array<'a, i32, 15> {
-    flatbuffers::Array::follow(&self.0, 4)
+    // Safety:
+    // Created from a valid Table for this object
+    // Which contains a valid array in this slot
+    unsafe { flatbuffers::Array::follow(&self.0, 4) }
   }
 
   pub fn set_b(&mut self, items: &[i32; 15]) {
-    flatbuffers::emplace_scalar_array(&mut self.0, 4, items);
+    // Safety:
+    // Created from a valid Table for this object
+    // Which contains a valid array in this slot
+    unsafe { flatbuffers::emplace_scalar_array(&mut self.0, 4, items) };
   }
 
   pub fn c(&self) -> i8 {
-    let mut mem = core::mem::MaybeUninit::<i8>::uninit();
-    unsafe {
+    let mut mem = core::mem::MaybeUninit::<<i8 as EndianScalar>::Scalar>::uninit();
+    // Safety:
+    // Created from a valid Table for this object
+    // Which contains a valid value in this slot
+    EndianScalar::from_little_endian(unsafe {
       core::ptr::copy_nonoverlapping(
         self.0[64..].as_ptr(),
         mem.as_mut_ptr() as *mut u8,
-        core::mem::size_of::<i8>(),
+        core::mem::size_of::<<i8 as EndianScalar>::Scalar>(),
       );
       mem.assume_init()
-    }.from_little_endian()
+    })
   }
 
   pub fn set_c(&mut self, x: i8) {
     let x_le = x.to_little_endian();
+    // Safety:
+    // Created from a valid Table for this object
+    // Which contains a valid value in this slot
     unsafe {
       core::ptr::copy_nonoverlapping(
-        &x_le as *const i8 as *const u8,
+        &x_le as *const _ as *const u8,
         self.0[64..].as_mut_ptr(),
-        core::mem::size_of::<i8>(),
+        core::mem::size_of::<<i8 as EndianScalar>::Scalar>(),
       );
     }
   }
 
   pub fn d(&'a self) -> flatbuffers::Array<'a, NestedStruct, 2> {
-    flatbuffers::Array::follow(&self.0, 72)
+    // Safety:
+    // Created from a valid Table for this object
+    // Which contains a valid array in this slot
+    unsafe { flatbuffers::Array::follow(&self.0, 72) }
   }
 
   pub fn set_d(&mut self, x: &[NestedStruct; 2]) {
+    // Safety:
+    // Created from a valid Table for this object
+    // Which contains a valid array in this slot
     unsafe {
       core::ptr::copy(
         x.as_ptr() as *const u8,
@@ -172,34 +182,46 @@ impl<'a> ArrayStruct {
   }
 
   pub fn e(&self) -> i32 {
-    let mut mem = core::mem::MaybeUninit::<i32>::uninit();
-    unsafe {
+    let mut mem = core::mem::MaybeUninit::<<i32 as EndianScalar>::Scalar>::uninit();
+    // Safety:
+    // Created from a valid Table for this object
+    // Which contains a valid value in this slot
+    EndianScalar::from_little_endian(unsafe {
       core::ptr::copy_nonoverlapping(
         self.0[136..].as_ptr(),
         mem.as_mut_ptr() as *mut u8,
-        core::mem::size_of::<i32>(),
+        core::mem::size_of::<<i32 as EndianScalar>::Scalar>(),
       );
       mem.assume_init()
-    }.from_little_endian()
+    })
   }
 
   pub fn set_e(&mut self, x: i32) {
     let x_le = x.to_little_endian();
+    // Safety:
+    // Created from a valid Table for this object
+    // Which contains a valid value in this slot
     unsafe {
       core::ptr::copy_nonoverlapping(
-        &x_le as *const i32 as *const u8,
+        &x_le as *const _ as *const u8,
         self.0[136..].as_mut_ptr(),
-        core::mem::size_of::<i32>(),
+        core::mem::size_of::<<i32 as EndianScalar>::Scalar>(),
       );
     }
   }
 
   pub fn f(&'a self) -> flatbuffers::Array<'a, i64, 2> {
-    flatbuffers::Array::follow(&self.0, 144)
+    // Safety:
+    // Created from a valid Table for this object
+    // Which contains a valid array in this slot
+    unsafe { flatbuffers::Array::follow(&self.0, 144) }
   }
 
   pub fn set_f(&mut self, items: &[i64; 2]) {
-    flatbuffers::emplace_scalar_array(&mut self.0, 144, items);
+    // Safety:
+    // Created from a valid Table for this object
+    // Which contains a valid array in this slot
+    unsafe { flatbuffers::emplace_scalar_array(&mut self.0, 144, items) };
   }
 
   pub fn unpack(&self) -> ArrayStructT {

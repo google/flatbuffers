@@ -21,8 +21,8 @@ pub struct Stat<'a> {
 impl<'a> flatbuffers::Follow<'a> for Stat<'a> {
   type Inner = Stat<'a>;
   #[inline]
-  fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
-    Self { _tab: flatbuffers::Table { buf, loc } }
+  unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
+    Self { _tab: flatbuffers::Table::new(buf, loc) }
   }
 }
 
@@ -36,7 +36,7 @@ impl<'a> Stat<'a> {
   }
 
   #[inline]
-  pub fn init_from_table(table: flatbuffers::Table<'a>) -> Self {
+  pub unsafe fn init_from_table(table: flatbuffers::Table<'a>) -> Self {
     Stat { _tab: table }
   }
   #[allow(unused_mut)]
@@ -66,15 +66,24 @@ impl<'a> Stat<'a> {
 
   #[inline]
   pub fn id(&self) -> Option<&'a str> {
-    self._tab.get::<flatbuffers::ForwardsUOffset<&str>>(Stat::VT_ID, None)
+    // Safety:
+    // Created from valid Table for this object
+    // which contains a valid value in this slot
+    unsafe { self._tab.get::<flatbuffers::ForwardsUOffset<&str>>(Stat::VT_ID, None)}
   }
   #[inline]
   pub fn val(&self) -> i64 {
-    self._tab.get::<i64>(Stat::VT_VAL, Some(0)).unwrap()
+    // Safety:
+    // Created from valid Table for this object
+    // which contains a valid value in this slot
+    unsafe { self._tab.get::<i64>(Stat::VT_VAL, Some(0)).unwrap()}
   }
   #[inline]
   pub fn count(&self) -> u16 {
-    self._tab.get::<u16>(Stat::VT_COUNT, Some(0)).unwrap()
+    // Safety:
+    // Created from valid Table for this object
+    // which contains a valid value in this slot
+    unsafe { self._tab.get::<u16>(Stat::VT_COUNT, Some(0)).unwrap()}
   }
   #[inline]
   pub fn key_compare_less_than(&self, o: &Stat) -> bool {

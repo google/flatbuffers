@@ -737,7 +737,6 @@ class RustGenerator : public BaseGenerator {
       code_ += "pub use self::bitflags_{{ENUM_NAMESPACE}}::{{ENUM_TY}};";
       code_ += "";
 
-      code_.SetValue("FROM_BASE", "unsafe { Self::from_bits_unchecked(b) }");
       code_.SetValue("INTO_BASE", "self.bits()");
     } else {
       // Normal, c-modelled enums.
@@ -810,7 +809,6 @@ class RustGenerator : public BaseGenerator {
       code_ += "  }";
       code_ += "}";
 
-      code_.SetValue("FROM_BASE", "Self(b)");
       code_.SetValue("INTO_BASE", "self.0");
     }
 
@@ -839,35 +837,55 @@ class RustGenerator : public BaseGenerator {
     code_ += "impl<'a> flatbuffers::Follow<'a> for {{ENUM_TY}} {";
     code_ += "  type Inner = Self;";
     code_ += "  #[inline]";
-    code_ += "  fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {";
-    code_ += "    let b = unsafe {";
-    code_ += "      flatbuffers::read_scalar_at::<{{BASE_TYPE}}>(buf, loc)";
-    code_ += "    };";
-    code_ += "    {{FROM_BASE}}";
+    code_ += "  unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {";
+    code_ += "    let b = flatbuffers::read_scalar_at::<{{BASE_TYPE}}>(buf, loc);";
+    if (IsBitFlagsEnum(enum_def)) {
+      // Safety:
+      // This is safe because we know bitflags is implemented with a repr transparent uint of the correct size.
+      // from_bits_unchecked will be replaced by an equivalent but safe from_bits_retain in bitflags 2.0
+      // https://github.com/bitflags/bitflags/issues/262
+      code_ += "    // Safety:";
+      code_ += "    // This is safe because we know bitflags is implemented with a repr transparent uint of the correct size.";
+      code_ += "    // from_bits_unchecked will be replaced by an equivalent but safe from_bits_retain in bitflags 2.0";
+      code_ += "    // https://github.com/bitflags/bitflags/issues/262";
+      code_ += "    Self::from_bits_unchecked(b)";
+    } else {
+      code_ += "    Self(b)";
+    }
     code_ += "  }";
     code_ += "}";
     code_ += "";
     code_ += "impl flatbuffers::Push for {{ENUM_TY}} {";
     code_ += "    type Output = {{ENUM_TY}};";
     code_ += "    #[inline]";
-    code_ += "    fn push(&self, dst: &mut [u8], _rest: &[u8]) {";
-    code_ +=
-        "        unsafe { flatbuffers::emplace_scalar::<{{BASE_TYPE}}>"
-        "(dst, {{INTO_BASE}}); }";
+    code_ += "    unsafe fn push(&self, dst: &mut [u8], _written_len: usize) {";
+    code_ += "        flatbuffers::emplace_scalar::<{{BASE_TYPE}}>(dst, {{INTO_BASE}});";
     code_ += "    }";
     code_ += "}";
     code_ += "";
     code_ += "impl flatbuffers::EndianScalar for {{ENUM_TY}} {";
+    code_ += "  type Scalar = {{BASE_TYPE}};";
     code_ += "  #[inline]";
-    code_ += "  fn to_little_endian(self) -> Self {";
-    code_ += "    let b = {{BASE_TYPE}}::to_le({{INTO_BASE}});";
-    code_ += "    {{FROM_BASE}}";
+    code_ += "  fn to_little_endian(self) -> {{BASE_TYPE}} {";
+    code_ += "    {{INTO_BASE}}.to_le()";
     code_ += "  }";
     code_ += "  #[inline]";
     code_ += "  #[allow(clippy::wrong_self_convention)]";
-    code_ += "  fn from_little_endian(self) -> Self {";
-    code_ += "    let b = {{BASE_TYPE}}::from_le({{INTO_BASE}});";
-    code_ += "    {{FROM_BASE}}";
+    code_ += "  fn from_little_endian(v: {{BASE_TYPE}}) -> Self {";
+    code_ += "    let b = {{BASE_TYPE}}::from_le(v);";
+    if (IsBitFlagsEnum(enum_def)) {
+      // Safety:
+      // This is safe because we know bitflags is implemented with a repr transparent uint of the correct size.
+      // from_bits_unchecked will be replaced by an equivalent but safe from_bits_retain in bitflags 2.0
+      // https://github.com/bitflags/bitflags/issues/262
+      code_ += "    // Safety:";
+      code_ += "    // This is safe because we know bitflags is implemented with a repr transparent uint of the correct size.";
+      code_ += "    // from_bits_unchecked will be replaced by an equivalent but safe from_bits_retain in bitflags 2.0";
+      code_ += "    // https://github.com/bitflags/bitflags/issues/262";
+      code_ += "    unsafe { Self::from_bits_unchecked(b) }";
+    } else {
+      code_ += "    Self(b)";
+    }
     code_ += "  }";
     code_ += "}";
     code_ += "";
@@ -1425,11 +1443,7 @@ class RustGenerator : public BaseGenerator {
       case ftVectorOfBool:
       case ftVectorOfFloat: {
         const auto typname = GetTypeBasic(type.VectorType());
-        const auto vector_type =
-            IsOneByte(type.VectorType().base_type)
-                ? "&" + lifetime + " [" + typname + "]"
-                : "flatbuffers::Vector<" + lifetime + ", " + typname + ">";
-        return WrapOption(vector_type);
+        return WrapOption("flatbuffers::Vector<" + lifetime + ", " + typname + ">");
       }
       case ftVectorOfEnumKey: {
         const auto typname = WrapInNameSpace(*type.enum_def);
@@ -1438,7 +1452,7 @@ class RustGenerator : public BaseGenerator {
       }
       case ftVectorOfStruct: {
         const auto typname = WrapInNameSpace(*type.struct_def);
-        return WrapOption("&" + lifetime + " [" + typname + "]");
+          return WrapOption("flatbuffers::Vector<" + lifetime + ", " + typname + ">");
       }
       case ftVectorOfTable: {
         const auto typname = WrapInNameSpace(*type.struct_def);
@@ -1556,19 +1570,8 @@ class RustGenerator : public BaseGenerator {
             : "None";
     const std::string unwrap = field.IsOptional() ? "" : ".unwrap()";
 
-    const auto t = GetFullType(field.value.type);
-
-    // TODO(caspern): Shouldn't 1byte VectorOfEnumKey be slice too?
-    const std::string safe_slice =
-        (t == ftVectorOfStruct ||
-         ((t == ftVectorOfBool || t == ftVectorOfFloat ||
-           t == ftVectorOfInteger) &&
-          IsOneByte(field.value.type.VectorType().base_type)))
-            ? ".map(|v| v.safe_slice())"
-            : "";
-
-    return "self._tab.get::<" + typname + ">({{STRUCT_TY}}::" + vt_offset +
-           ", " + default_value + ")" + safe_slice + unwrap;
+    return "unsafe { self._tab.get::<" + typname + ">({{STRUCT_TY}}::" + vt_offset +
+           ", " + default_value + ")" + unwrap + "}";
   }
 
   // Generates a fully-qualified name getter for use with --gen-name-strings
@@ -1650,8 +1653,8 @@ class RustGenerator : public BaseGenerator {
     code_ += "impl<'a> flatbuffers::Follow<'a> for {{STRUCT_TY}}<'a> {";
     code_ += "  type Inner = {{STRUCT_TY}}<'a>;";
     code_ += "  #[inline]";
-    code_ += "  fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {";
-    code_ += "    Self { _tab: flatbuffers::Table { buf, loc } }";
+    code_ += "  unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {";
+    code_ += "    Self { _tab: flatbuffers::Table::new(buf, loc) }";
     code_ += "  }";
     code_ += "}";
     code_ += "";
@@ -1672,7 +1675,7 @@ class RustGenerator : public BaseGenerator {
 
     code_ += "  #[inline]";
     code_ +=
-        "  pub fn init_from_table(table: flatbuffers::Table<'a>) -> "
+        "  pub unsafe fn init_from_table(table: flatbuffers::Table<'a>) -> "
         "Self {";
     code_ += "    {{STRUCT_TY}} { _tab: table }";
     code_ += "  }";
@@ -1764,16 +1767,7 @@ class RustGenerator : public BaseGenerator {
             break;
           }
           case ftVectorOfInteger:
-          case ftVectorOfBool: {
-            if (IsOneByte(type.VectorType().base_type)) {
-              // 1 byte stuff is viewed w/ slice instead of flatbuffer::Vector
-              // and thus needs to be cloned out of the slice.
-              code_.SetValue("EXPR", "x.to_vec()");
-              break;
-            }
-            code_.SetValue("EXPR", "x.into_iter().collect()");
-            break;
-          }
+          case ftVectorOfBool:
           case ftVectorOfFloat:
           case ftVectorOfEnumKey: {
             code_.SetValue("EXPR", "x.into_iter().collect()");
@@ -1840,6 +1834,9 @@ class RustGenerator : public BaseGenerator {
       this->GenComment(field.doc_comment);
       code_ += "#[inline]";
       code_ += "pub fn {{FIELD}}(&self) -> {{RETURN_TYPE}} {";
+      code_ += "  // Safety:";
+      code_ += "  // Created from valid Table for this object";
+      code_ += "  // which contains a valid value in this slot";
       code_ += "  " + GenTableAccessorFuncBody(field, "'a");
       code_ += "}";
 
@@ -1864,16 +1861,22 @@ class RustGenerator : public BaseGenerator {
           code_ += "{{NESTED}}<'a> {";
           code_ += "  let data = self.{{FIELD}}();";
           code_ += "  use flatbuffers::Follow;";
+          code_ += "  // Safety:";
+          code_ += "  // Created from a valid Table for this object";
+          code_ += "  // Which contains a valid flatbuffer in this slot";
           code_ +=
-              "  <flatbuffers::ForwardsUOffset<{{NESTED}}<'a>>>"
-              "::follow(data, 0)";
+              "  unsafe { <flatbuffers::ForwardsUOffset<{{NESTED}}<'a>>>"
+              "::follow(data.bytes(), 0) }";
         } else {
           code_ += "Option<{{NESTED}}<'a>> {";
           code_ += "  self.{{FIELD}}().map(|data| {";
           code_ += "    use flatbuffers::Follow;";
+          code_ += "    // Safety:";
+          code_ += "    // Created from a valid Table for this object";
+          code_ += "    // Which contains a valid flatbuffer in this slot";
           code_ +=
-              "    <flatbuffers::ForwardsUOffset<{{NESTED}}<'a>>>"
-              "::follow(data, 0)";
+              "    unsafe { <flatbuffers::ForwardsUOffset<{{NESTED}}<'a>>>"
+              "::follow(data.bytes(), 0) }";
           code_ += "  })";
         }
         code_ += "}";
@@ -1909,11 +1912,17 @@ class RustGenerator : public BaseGenerator {
             // as of April 10, 2020
             if (field.IsRequired()) {
               code_ += "    let u = self.{{FIELD}}();";
-              code_ += "    Some({{U_ELEMENT_TABLE_TYPE}}::init_from_table(u))";
+              code_ += "    // Safety:";
+              code_ += "    // Created from a valid Table for this object";
+              code_ += "    // Which contains a valid union in this slot";
+              code_ += "    Some(unsafe { {{U_ELEMENT_TABLE_TYPE}}::init_from_table(u) })";
             } else {
-              code_ +=
-                  "    self.{{FIELD}}().map("
-                  "{{U_ELEMENT_TABLE_TYPE}}::init_from_table)";
+              code_ +="    self.{{FIELD}}().map(|t| {";
+              code_ += "     // Safety:";
+              code_ += "     // Created from a valid Table for this object";
+              code_ += "     // Which contains a valid union in this slot";
+              code_ += "     unsafe { {{U_ELEMENT_TABLE_TYPE}}::init_from_table(t) }";
+              code_ += "   })";
             }
             code_ += "  } else {";
             code_ += "    None";
@@ -2282,8 +2291,8 @@ class RustGenerator : public BaseGenerator {
 
           MapNativeTableField(
               field,
-              "let w: Vec<_> = x.iter().map(|s| s.as_ref()).collect();"
-              "_fbb.create_vector_of_strings(&w)");
+              "let w: Vec<_> = x.iter().map(|s| _fbb.create_string(s)).collect();"
+              "_fbb.create_vector(&w)");
           return;
         }
         case ftVectorOfTable: {
@@ -2374,32 +2383,6 @@ class RustGenerator : public BaseGenerator {
     code_.SetValue("STRUCT_FN", namer_.Function(struct_def));
     code_.SetValue("STRUCT_CONST", namer_.Constant(struct_def.name));
 
-    // The root datatype accessors:
-    code_ += "#[inline]";
-    code_ +=
-        "#[deprecated(since=\"2.0.0\", "
-        "note=\"Deprecated in favor of `root_as...` methods.\")]";
-    code_ +=
-        "pub fn get_root_as_{{STRUCT_FN}}<'a>(buf: &'a [u8])"
-        " -> {{STRUCT_TY}}<'a> {";
-    code_ +=
-        "  unsafe { flatbuffers::root_unchecked::<{{STRUCT_TY}}"
-        "<'a>>(buf) }";
-    code_ += "}";
-    code_ += "";
-
-    code_ += "#[inline]";
-    code_ +=
-        "#[deprecated(since=\"2.0.0\", "
-        "note=\"Deprecated in favor of `root_as...` methods.\")]";
-    code_ +=
-        "pub fn get_size_prefixed_root_as_{{STRUCT_FN}}"
-        "<'a>(buf: &'a [u8]) -> {{STRUCT_TY}}<'a> {";
-    code_ +=
-        "  unsafe { flatbuffers::size_prefixed_root_unchecked::<{{STRUCT_TY}}"
-        "<'a>>(buf) }";
-    code_ += "}";
-    code_ += "";
     // Default verifier root fns.
     code_ += "#[inline]";
     code_ += "/// Verifies that a buffer of bytes contains a `{{STRUCT_TY}}`";
@@ -2641,43 +2624,25 @@ class RustGenerator : public BaseGenerator {
     // Follow for the value type, Follow for the reference type, Push for the
     // value type, and Push for the reference type.
     code_ += "impl flatbuffers::SimpleToVerifyInSlice for {{STRUCT_TY}} {}";
-    code_ += "impl flatbuffers::SafeSliceAccess for {{STRUCT_TY}} {}";
     code_ += "impl<'a> flatbuffers::Follow<'a> for {{STRUCT_TY}} {";
     code_ += "  type Inner = &'a {{STRUCT_TY}};";
     code_ += "  #[inline]";
-    code_ += "  fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {";
+    code_ += "  unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {";
     code_ += "    <&'a {{STRUCT_TY}}>::follow(buf, loc)";
     code_ += "  }";
     code_ += "}";
     code_ += "impl<'a> flatbuffers::Follow<'a> for &'a {{STRUCT_TY}} {";
     code_ += "  type Inner = &'a {{STRUCT_TY}};";
     code_ += "  #[inline]";
-    code_ += "  fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {";
+    code_ += "  unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {";
     code_ += "    flatbuffers::follow_cast_ref::<{{STRUCT_TY}}>(buf, loc)";
     code_ += "  }";
     code_ += "}";
     code_ += "impl<'b> flatbuffers::Push for {{STRUCT_TY}} {";
     code_ += "    type Output = {{STRUCT_TY}};";
     code_ += "    #[inline]";
-    code_ += "    fn push(&self, dst: &mut [u8], _rest: &[u8]) {";
-    code_ += "        let src = unsafe {";
-    code_ +=
-        "            ::core::slice::from_raw_parts("
-        "self as *const {{STRUCT_TY}} as *const u8, Self::size())";
-    code_ += "        };";
-    code_ += "        dst.copy_from_slice(src);";
-    code_ += "    }";
-    code_ += "}";
-    code_ += "impl<'b> flatbuffers::Push for &'b {{STRUCT_TY}} {";
-    code_ += "    type Output = {{STRUCT_TY}};";
-    code_ += "";
-    code_ += "    #[inline]";
-    code_ += "    fn push(&self, dst: &mut [u8], _rest: &[u8]) {";
-    code_ += "        let src = unsafe {";
-    code_ +=
-        "            ::core::slice::from_raw_parts("
-        "*self as *const {{STRUCT_TY}} as *const u8, Self::size())";
-    code_ += "        };";
+    code_ += "    unsafe fn push(&self, dst: &mut [u8], _written_len: usize) {";
+    code_ += "        let src = ::core::slice::from_raw_parts(self as *const {{STRUCT_TY}} as *const u8, Self::size());";
     code_ += "        dst.copy_from_slice(src);";
     code_ += "    }";
     code_ += "}";
@@ -2754,6 +2719,9 @@ class RustGenerator : public BaseGenerator {
       // Getter.
       if (IsStruct(field.value.type)) {
         code_ += "pub fn {{FIELD}}(&self) -> &{{FIELD_TYPE}} {";
+        code_ += "  // Safety:";
+        code_ += "  // Created from a valid Table for this object";
+        code_ += "  // Which contains a valid struct in this slot";
         code_ +=
             "  unsafe {"
             " &*(self.0[{{FIELD_OFFSET}}..].as_ptr() as *const"
@@ -2765,20 +2733,26 @@ class RustGenerator : public BaseGenerator {
         code_ +=
             "pub fn {{FIELD}}(&'a self) -> "
             "flatbuffers::Array<'a, {{ARRAY_ITEM}}, {{ARRAY_SIZE}}> {";
-        code_ += "  flatbuffers::Array::follow(&self.0, {{FIELD_OFFSET}})";
+        code_ += "  // Safety:";
+        code_ += "  // Created from a valid Table for this object";
+        code_ += "  // Which contains a valid array in this slot";
+        code_ += "  unsafe { flatbuffers::Array::follow(&self.0, {{FIELD_OFFSET}}) }";
       } else {
         code_ += "pub fn {{FIELD}}(&self) -> {{FIELD_TYPE}} {";
         code_ +=
             "  let mut mem = core::mem::MaybeUninit::"
-            "<{{FIELD_TYPE}}>::uninit();";
-        code_ += "  unsafe {";
+            "<<{{FIELD_TYPE}} as EndianScalar>::Scalar>::uninit();";
+        code_ += "  // Safety:";
+        code_ += "  // Created from a valid Table for this object";
+        code_ += "  // Which contains a valid value in this slot";
+        code_ += "  EndianScalar::from_little_endian(unsafe {";
         code_ += "    core::ptr::copy_nonoverlapping(";
         code_ += "      self.0[{{FIELD_OFFSET}}..].as_ptr(),";
         code_ += "      mem.as_mut_ptr() as *mut u8,";
-        code_ += "      core::mem::size_of::<{{FIELD_TYPE}}>(),";
+        code_ += "      core::mem::size_of::<<{{FIELD_TYPE}} as EndianScalar>::Scalar>(),";
         code_ += "    );";
         code_ += "    mem.assume_init()";
-        code_ += "  }.from_little_endian()";
+        code_ += "  })";
       }
       code_ += "}\n";
       // Setter.
@@ -2799,13 +2773,19 @@ class RustGenerator : public BaseGenerator {
           code_ +=
               "pub fn set_{{FIELD}}(&mut self, items: &{{FIELD_TYPE}}) "
               "{";
+          code_ += "  // Safety:";
+          code_ += "  // Created from a valid Table for this object";
+          code_ += "  // Which contains a valid array in this slot";
           code_ +=
-              "  flatbuffers::emplace_scalar_array(&mut self.0, "
-              "{{FIELD_OFFSET}}, items);";
+              "  unsafe { flatbuffers::emplace_scalar_array(&mut self.0, "
+              "{{FIELD_OFFSET}}, items) };";
         } else {
           code_.SetValue("FIELD_SIZE",
                          NumToString(InlineSize(field.value.type)));
           code_ += "pub fn set_{{FIELD}}(&mut self, x: &{{FIELD_TYPE}}) {";
+          code_ += "  // Safety:";
+          code_ += "  // Created from a valid Table for this object";
+          code_ += "  // Which contains a valid array in this slot";
           code_ += "  unsafe {";
           code_ += "    core::ptr::copy(";
           code_ += "      x.as_ptr() as *const u8,";
@@ -2817,11 +2797,14 @@ class RustGenerator : public BaseGenerator {
       } else {
         code_ += "pub fn set_{{FIELD}}(&mut self, x: {{FIELD_TYPE}}) {";
         code_ += "  let x_le = x.to_little_endian();";
+        code_ += "  // Safety:";
+        code_ += "  // Created from a valid Table for this object";
+        code_ += "  // Which contains a valid value in this slot";
         code_ += "  unsafe {";
         code_ += "    core::ptr::copy_nonoverlapping(";
-        code_ += "      &x_le as *const {{FIELD_TYPE}} as *const u8,";
+        code_ += "      &x_le as *const _ as *const u8,";
         code_ += "      self.0[{{FIELD_OFFSET}}..].as_mut_ptr(),";
-        code_ += "      core::mem::size_of::<{{FIELD_TYPE}}>(),";
+        code_ += "      core::mem::size_of::<<{{FIELD_TYPE}} as EndianScalar>::Scalar>(),";
         code_ += "    );";
         code_ += "  }";
       }

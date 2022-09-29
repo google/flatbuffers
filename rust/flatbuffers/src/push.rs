@@ -24,7 +24,11 @@ use crate::endian_scalar::emplace_scalar;
 /// types.
 pub trait Push: Sized {
     type Output;
-    fn push(&self, dst: &mut [u8], _rest: &[u8]);
+
+    /// # Safety
+    ///
+    /// dst is aligned to [`Self::alignment`] and has length greater than or equal to [`Self::size`]
+    unsafe fn push(&self, dst: &mut [u8], written_len: usize);
     #[inline]
     fn size() -> usize {
         size_of::<Self::Output>()
@@ -35,13 +39,29 @@ pub trait Push: Sized {
     }
 }
 
+impl<'a, T: Push> Push for &'a T {
+    type Output = T::Output;
+
+    unsafe fn push(&self, dst: &mut [u8], written_len: usize) {
+        T::push(self, dst, written_len)
+    }
+
+    fn size() -> usize {
+        T::size()
+    }
+
+    fn alignment() -> PushAlignment {
+        T::alignment()
+    }
+}
+
 /// Ensure Push alignment calculations are typesafe (because this helps reduce
 /// implementation issues when using FlatBufferBuilder::align).
 pub struct PushAlignment(usize);
 impl PushAlignment {
     #[inline]
     pub fn new(x: usize) -> Self {
-        PushAlignment { 0: x }
+        PushAlignment(x)
     }
     #[inline]
     pub fn value(&self) -> usize {
@@ -60,10 +80,8 @@ macro_rules! impl_push_for_endian_scalar {
             type Output = $ty;
 
             #[inline]
-            fn push(&self, dst: &mut [u8], _rest: &[u8]) {
-                unsafe {
-                    emplace_scalar::<$ty>(dst, *self);
-                }
+            unsafe fn push(&self, dst: &mut [u8], _written_len: usize) {
+                emplace_scalar::<$ty>(dst, *self);
             }
         }
     };
