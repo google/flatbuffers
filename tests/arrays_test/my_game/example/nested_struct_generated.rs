@@ -30,39 +30,25 @@ impl core::fmt::Debug for NestedStruct {
 }
 
 impl flatbuffers::SimpleToVerifyInSlice for NestedStruct {}
-impl flatbuffers::SafeSliceAccess for NestedStruct {}
 impl<'a> flatbuffers::Follow<'a> for NestedStruct {
   type Inner = &'a NestedStruct;
   #[inline]
-  fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
+  unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
     <&'a NestedStruct>::follow(buf, loc)
   }
 }
 impl<'a> flatbuffers::Follow<'a> for &'a NestedStruct {
   type Inner = &'a NestedStruct;
   #[inline]
-  fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
+  unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
     flatbuffers::follow_cast_ref::<NestedStruct>(buf, loc)
   }
 }
 impl<'b> flatbuffers::Push for NestedStruct {
     type Output = NestedStruct;
     #[inline]
-    fn push(&self, dst: &mut [u8], _rest: &[u8]) {
-        let src = unsafe {
-            ::core::slice::from_raw_parts(self as *const NestedStruct as *const u8, Self::size())
-        };
-        dst.copy_from_slice(src);
-    }
-}
-impl<'b> flatbuffers::Push for &'b NestedStruct {
-    type Output = NestedStruct;
-
-    #[inline]
-    fn push(&self, dst: &mut [u8], _rest: &[u8]) {
-        let src = unsafe {
-            ::core::slice::from_raw_parts(*self as *const NestedStruct as *const u8, Self::size())
-        };
+    unsafe fn push(&self, dst: &mut [u8], _written_len: usize) {
+        let src = ::core::slice::from_raw_parts(self as *const NestedStruct as *const u8, Self::size());
         dst.copy_from_slice(src);
     }
 }
@@ -98,41 +84,59 @@ impl<'a> NestedStruct {
   }
 
   pub fn a(&'a self) -> flatbuffers::Array<'a, i32, 2> {
-    flatbuffers::Array::follow(&self.0, 0)
+    // Safety:
+    // Created from a valid Table for this object
+    // Which contains a valid array in this slot
+    unsafe { flatbuffers::Array::follow(&self.0, 0) }
   }
 
   pub fn set_a(&mut self, items: &[i32; 2]) {
-    flatbuffers::emplace_scalar_array(&mut self.0, 0, items);
+    // Safety:
+    // Created from a valid Table for this object
+    // Which contains a valid array in this slot
+    unsafe { flatbuffers::emplace_scalar_array(&mut self.0, 0, items) };
   }
 
   pub fn b(&self) -> TestEnum {
-    let mut mem = core::mem::MaybeUninit::<TestEnum>::uninit();
-    unsafe {
+    let mut mem = core::mem::MaybeUninit::<<TestEnum as EndianScalar>::Scalar>::uninit();
+    // Safety:
+    // Created from a valid Table for this object
+    // Which contains a valid value in this slot
+    EndianScalar::from_little_endian(unsafe {
       core::ptr::copy_nonoverlapping(
         self.0[8..].as_ptr(),
         mem.as_mut_ptr() as *mut u8,
-        core::mem::size_of::<TestEnum>(),
+        core::mem::size_of::<<TestEnum as EndianScalar>::Scalar>(),
       );
       mem.assume_init()
-    }.from_little_endian()
+    })
   }
 
   pub fn set_b(&mut self, x: TestEnum) {
     let x_le = x.to_little_endian();
+    // Safety:
+    // Created from a valid Table for this object
+    // Which contains a valid value in this slot
     unsafe {
       core::ptr::copy_nonoverlapping(
-        &x_le as *const TestEnum as *const u8,
+        &x_le as *const _ as *const u8,
         self.0[8..].as_mut_ptr(),
-        core::mem::size_of::<TestEnum>(),
+        core::mem::size_of::<<TestEnum as EndianScalar>::Scalar>(),
       );
     }
   }
 
   pub fn c(&'a self) -> flatbuffers::Array<'a, TestEnum, 2> {
-    flatbuffers::Array::follow(&self.0, 9)
+    // Safety:
+    // Created from a valid Table for this object
+    // Which contains a valid array in this slot
+    unsafe { flatbuffers::Array::follow(&self.0, 9) }
   }
 
   pub fn set_c(&mut self, x: &[TestEnum; 2]) {
+    // Safety:
+    // Created from a valid Table for this object
+    // Which contains a valid array in this slot
     unsafe {
       core::ptr::copy(
         x.as_ptr() as *const u8,
@@ -143,11 +147,17 @@ impl<'a> NestedStruct {
   }
 
   pub fn d(&'a self) -> flatbuffers::Array<'a, i64, 2> {
-    flatbuffers::Array::follow(&self.0, 16)
+    // Safety:
+    // Created from a valid Table for this object
+    // Which contains a valid array in this slot
+    unsafe { flatbuffers::Array::follow(&self.0, 16) }
   }
 
   pub fn set_d(&mut self, items: &[i64; 2]) {
-    flatbuffers::emplace_scalar_array(&mut self.0, 16, items);
+    // Safety:
+    // Created from a valid Table for this object
+    // Which contains a valid array in this slot
+    unsafe { flatbuffers::emplace_scalar_array(&mut self.0, 16, items) };
   }
 
   pub fn unpack(&self) -> NestedStructT {
