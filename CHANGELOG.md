@@ -4,6 +4,10 @@ All major or breaking changes will be documented in this file, as well as any
 new features that should be highlighted. Minor fixes or improvements are not
 necessarily listed.
 
+## 22.9.29 (Sept 29 2022)
+
+* Rust soundness fixes to avoid the crate from bing labelled unsafe (#7518).
+
 ## 22.9.24 (Sept 24 2022)
 
 * 20 Major releases in a row? Nope, we switched to a new
