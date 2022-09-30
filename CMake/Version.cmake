@@ -1,6 +1,6 @@
 set(VERSION_MAJOR 22)
 set(VERSION_MINOR 9)
-set(VERSION_PATCH 24)
+set(VERSION_PATCH 29)
 set(VERSION_COMMIT 0)
 
 find_program(GIT git)
