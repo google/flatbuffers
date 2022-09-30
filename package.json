@@ -1,6 +1,6 @@
 {
   "name": "flatbuffers",
-  "version": "22.9.24",
+  "version": "22.9.29",
   "description": "Memory Efficient Serialization Library",
   "files": [
     "js/**/*.js",

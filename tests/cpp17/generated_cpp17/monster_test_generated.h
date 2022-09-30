@@ -12,7 +12,7 @@
 // generated, otherwise it may not be compatible.
 static_assert(FLATBUFFERS_VERSION_MAJOR == 22 &&
               FLATBUFFERS_VERSION_MINOR == 9 &&
-              FLATBUFFERS_VERSION_REVISION == 24,
+              FLATBUFFERS_VERSION_REVISION == 29,
              "Non-compatible flatbuffers version included");
 
 namespace MyGame {
