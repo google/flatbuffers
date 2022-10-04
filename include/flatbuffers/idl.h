@@ -642,7 +642,8 @@ struct IDLOptions {
   bool json_nested_flatbuffers;
   bool json_nested_flexbuffers;
   bool json_nested_legacy_flatbuffers;
-  bool ts_flat_file;
+  bool ts_flat_files;
+  bool ts_entry_points;
   bool no_leak_private_annotations;
   bool require_json_eof;
 
@@ -745,7 +746,8 @@ struct IDLOptions {
         json_nested_flatbuffers(true),
         json_nested_flexbuffers(true),
         json_nested_legacy_flatbuffers(false),
-        ts_flat_file(false),
+        ts_flat_files(false),
+        ts_entry_points(false),
         no_leak_private_annotations(false),
         require_json_eof(true),
         mini_reflect(IDLOptions::kNone),

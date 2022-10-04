@@ -39,7 +39,9 @@ jobs:
         chmod +x flatc
         ./flatc --version
     - name: flatc tests
-      run: python3 tests/flatc/main.py
+      run: |
+        yarn global add esbuild
+        python3 tests/flatc/main.py
     - name: upload build artifacts
       uses: actions/upload-artifact@v1
       with:
@@ -462,7 +464,9 @@ jobs:
       run: yarn compile
     - name: test
       working-directory: tests/ts
-      run: python3 TypeScriptTest.py
+      run: |
+        yarn global add esbuild
+        python3 TypeScriptTest.py
 
   build-dart:
     name: Build Dart

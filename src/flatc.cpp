@@ -220,7 +220,9 @@ const static FlatCOption options[] = {
     "Allow a nested_flatbuffer field to be parsed as a vector of bytes "
     "in JSON, which is unsafe unless checked by a verifier afterwards." },
   { "", "ts-flat-files", "",
-    "Only generated one typescript file per .fbs file." },
+    "Generate a single typescript file per .fbs file. Implies ts_entry_points." },
+  { "", "ts-entry-points", "",
+    "Generate entry point typescript per namespace. Implies gen-all." },
   { "", "annotate", "SCHEMA",
     "Annotate the provided BINARY_FILE with the specified SCHEMA file." },
   { "", "no-leak-private-annotation", "",
@@ -602,7 +604,12 @@ int FlatCompiler::Compile(int argc, const char **argv) {
       } else if (arg == "--json-nested-bytes") {
         opts.json_nested_legacy_flatbuffers = true;
       } else if (arg == "--ts-flat-files") {
-        opts.ts_flat_file = true;
+        opts.ts_flat_files = true;
+        opts.ts_entry_points = true;
+        opts.generate_all = true;
+      } else if (arg == "--ts-entry-points") {
+        opts.ts_entry_points = true;
+        opts.generate_all = true;
       } else if (arg == "--no-leak-private-annotation") {
         opts.no_leak_private_annotations = true;
       } else if (arg == "--annotate") {

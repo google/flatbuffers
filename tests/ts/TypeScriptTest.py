@@ -61,7 +61,7 @@ check_call(["npm", "install", "--silent"])
 
 print("Invoking flatc...")
 flatc(
-    options=["--ts", "--reflect-names", "--gen-name-strings", "--gen-mutable", "--gen-object-api"],
+    options=["--ts", "--reflect-names", "--gen-name-strings", "--gen-mutable", "--gen-object-api", "--ts-entry-points", "--ts-flat-files"],
     schema="../monster_test.fbs",
     include="../include_test",
 )
@@ -74,7 +74,7 @@ flatc(
 )
 
 flatc(
-    options=["--ts", "--reflect-names", "--gen-name-strings", "--gen-mutable", "--gen-object-api"],
+    options=["--ts", "--reflect-names", "--gen-name-strings", "--gen-mutable", "--gen-object-api", "--ts-entry-points", "--ts-flat-files"],
     schema="../union_vector/union_vector.fbs",
     prefix="union_vector",
 )
@@ -85,31 +85,13 @@ flatc(
 )
 
 flatc(
-    options=["--ts", "--reflect-names", "--gen-name-strings", "--gen-mutable", "--gen-object-api"],
-    schema=[
-        "typescript_keywords.fbs",
-        "test_dir/typescript_include.fbs",
-        "test_dir/typescript_transitive_include.fbs",
-        "../../reflection/reflection.fbs",
-    ],
-    include="../../",
-)
-
-flatc(
     options=["--ts", "--reflect-names", "--ts-flat-files", "--gen-name-strings", "--gen-object-api"],
     schema="arrays_test_complex/arrays_test_complex.fbs",
     prefix="arrays_test_complex"
 )
 
 flatc(
-    options=[
-        "--ts",
-        "--reflect-names",
-        "--gen-name-strings",
-        "--gen-mutable",
-        "--gen-object-api",
-        "--ts-flat-files",
-    ],
+    options=["--ts", "--reflect-names", "--gen-name-strings", "--gen-mutable", "--gen-object-api", "--ts-entry-points", "--ts-flat-files"],
     schema=[
         "typescript_keywords.fbs",
         "test_dir/typescript_include.fbs",

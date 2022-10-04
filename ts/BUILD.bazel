@@ -8,7 +8,7 @@ ts_project(
         "byte-buffer.ts",
         "constants.ts",
         "encoding.ts",
-        "index.ts",
+        "flatbuffers.ts",
         "types.ts",
         "utils.ts",
     ],
