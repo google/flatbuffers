@@ -37,7 +37,7 @@ enum class Enum : int8_t {
 inline const Enum (&EnumValuesEnum())[2] {
   static const Enum values[] = {
     Enum::King,
-    Enum::Queen
+    Enum::Queen,
   };
   return values;
 }
@@ -69,7 +69,7 @@ inline const Union (&EnumValuesUnion())[3] {
   static const Union values[] = {
     Union::NONE,
     Union::TableA,
-    Union::TableB
+    Union::TableB,
   };
   return values;
 }

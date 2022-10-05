@@ -44,7 +44,7 @@ inline const Enum (&EnumValuesEnum())[4] {
     Enum::King,
     Enum::Queen,
     Enum::Rook,
-    Enum::Bishop
+    Enum::Bishop,
   };
   return values;
 }
@@ -80,7 +80,7 @@ inline const Union (&EnumValuesUnion())[4] {
     Union::NONE,
     Union::TableA,
     Union::TableB,
-    Union::TableC
+    Union::TableC,
   };
   return values;
 }

@@ -49,7 +49,7 @@ inline const TestEnum (&EnumValuesTestEnum())[3] {
   static const TestEnum values[] = {
     TestEnum::A,
     TestEnum::B,
-    TestEnum::C
+    TestEnum::C,
   };
   return values;
 }
