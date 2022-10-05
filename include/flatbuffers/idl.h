@@ -578,6 +578,7 @@ struct IDLOptions {
   bool strict_json;
   bool output_default_scalars_in_json;
   int indent_step;
+  bool cpp_minify_enums{};
   bool output_enum_identifiers;
   bool prefixed_enums;
   bool scoped_enums;
