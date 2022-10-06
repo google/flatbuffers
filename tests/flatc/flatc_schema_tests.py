@@ -23,7 +23,7 @@ class SchemaTests:
         assert_file_exists("enum_val_attributes.bfbs")
 
         # Then turn it into JSON
-        flatc(["--json", "--strict-json", reflection_fbs_path(), "--", "enum_val_attributes.bfbs"])
+        flatc(["--json", "--strict-json", str(reflection_fbs_path()), "--", "enum_val_attributes.bfbs"])
 
         # The attributes should be present in JSON
         schema_json = json.loads(get_file_contents("enum_val_attributes.json"))
