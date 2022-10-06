@@ -51,6 +51,10 @@ def flatc(options, cwd=script_path):
     subprocess.check_call(cmd, cwd=str(cwd))
 
 
+def reflection_fbs_path():
+    return Path(root_path, "reflection/reflection.fbs")
+
+
 def make_absolute(filename, path=script_path):
     return str(Path(path, filename).absolute())
 
