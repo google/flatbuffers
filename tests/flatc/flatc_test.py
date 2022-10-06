@@ -52,7 +52,7 @@ def flatc(options, cwd=script_path):
 
 
 def reflection_fbs_path():
-    return Path(root_path, "reflection/reflection.fbs")
+    return Path(root_path).joinpath("reflection", "reflection.fbs")
 
 
 def make_absolute(filename, path=script_path):
