@@ -71,6 +71,14 @@ def assert_file_doesnt_exists(filename, path=script_path):
     return file
 
 
+def get_file_contents(filename, path=script_path):
+    file = Path(path, filename)
+    contents = ""
+    with open(file) as file:
+        contents = file.read()
+    return contents
+
+
 def assert_file_contains(file, needles):
     with open(file) as file:
         contents = file.read()

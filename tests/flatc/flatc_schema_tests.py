@@ -15,10 +15,6 @@
 from flatc_test import *
 import json
 
-def load_file_as_json(file):
-    with open(file) as file:
-        contents = file.read()
-        return json.loads(contents)
 
 class SchemaTests:
     def EnumValAttributes(self):
@@ -30,7 +26,7 @@ class SchemaTests:
         flatc(["--json", "--strict-json", reflection_fbs_path(), "--", "enum_val_attributes.bfbs"])
 
         # The attributes should be present in JSON
-        schema_json = load_file_as_json("enum_val_attributes.json")
+        schema_json = json.loads(get_file_contents("enum_val_attributes.json"))
 
         assert schema_json["enums"][0]["name"] == "ValAttributes"
         assert schema_json["enums"][0]["values"][0]["name"] == "Val1"
