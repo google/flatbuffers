@@ -2450,14 +2450,17 @@ CheckedError Parser::ParseEnum(const bool is_union, EnumDef **dest,
         EXPECT(kTokenIntegerConstant);
       }
 
-      ECHECK(evb.AcceptEnumerator());
-
       if (opts.proto_mode && Is('[')) {
         NEXT();
         // ignore attributes on enums.
         while (token_ != ']') NEXT();
         NEXT();
+      } else {
+        // parse attributes in fbs schema
+        ECHECK(ParseMetaData(&ev.attributes));
       }
+
+      ECHECK(evb.AcceptEnumerator());
     }
     if (!Is(opts.proto_mode ? ';' : ',')) break;
     NEXT();
@@ -3637,6 +3640,44 @@ std::set<std::string> Parser::GetIncludedFilesRecursive(
 
 // Schema serialization functionality:
 
+static flatbuffers::Offset<
+    flatbuffers::Vector<flatbuffers::Offset<reflection::KeyValue>>>
+SerializeAttributesCommon(const SymbolTable<Value> &attributes,
+                          FlatBufferBuilder *builder, const Parser &parser) {
+  std::vector<flatbuffers::Offset<reflection::KeyValue>> attrs;
+  for (auto kv = attributes.dict.begin(); kv != attributes.dict.end(); ++kv) {
+    auto it = parser.known_attributes_.find(kv->first);
+    FLATBUFFERS_ASSERT(it != parser.known_attributes_.end());
+    if (parser.opts.binary_schema_builtins || !it->second) {
+      auto key = builder->CreateString(kv->first);
+      auto val = builder->CreateString(kv->second->constant);
+      attrs.push_back(reflection::CreateKeyValue(*builder, key, val));
+    }
+  }
+  if (attrs.size()) {
+    return builder->CreateVectorOfSortedTables(&attrs);
+  } else {
+    return 0;
+  }
+}
+
+static bool DeserializeAttributesCommon(
+    SymbolTable<Value> &attributes, Parser &parser,
+    const Vector<Offset<reflection::KeyValue>> *attrs) {
+  if (attrs == nullptr) return true;
+  for (uoffset_t i = 0; i < attrs->size(); ++i) {
+    auto kv = attrs->Get(i);
+    auto value = new Value();
+    if (kv->value()) { value->constant = kv->value()->str(); }
+    if (attributes.Add(kv->key()->str(), value)) {
+      delete value;
+      return false;
+    }
+    parser.known_attributes_[kv->key()->str()];
+  }
+  return true;
+}
+
 void Parser::Serialize() {
   builder_.Clear();
   AssignIndices(structs_.vec);
@@ -3922,21 +3963,35 @@ bool EnumDef::Deserialize(Parser &parser, const reflection::Enum *_enum) {
   return true;
 }
 
-Offset<reflection::EnumVal> EnumVal::Serialize(FlatBufferBuilder *builder,
-                                               const Parser &parser) const {
-  auto name__ = builder->CreateString(name);
-  auto type__ = union_type.Serialize(builder);
-  auto docs__ = parser.opts.binary_schema_comments
-                    ? builder->CreateVectorOfStrings(doc_comment)
-                    : 0;
-  return reflection::CreateEnumVal(*builder, name__, value, type__, docs__);
+flatbuffers::Offset<
+    flatbuffers::Vector<flatbuffers::Offset<reflection::KeyValue>>>
+EnumVal::SerializeAttributes(FlatBufferBuilder *builder,
+                             const Parser &parser) const {
+  return SerializeAttributesCommon(attributes, builder, parser);
 }
 
-bool EnumVal::Deserialize(const Parser &parser,
-                          const reflection::EnumVal *val) {
+bool EnumVal::DeserializeAttributes(
+    Parser &parser, const Vector<Offset<reflection::KeyValue>> *attrs) {
+  return DeserializeAttributesCommon(attributes, parser, attrs);
+}
+
+Offset<reflection::EnumVal> EnumVal::Serialize(FlatBufferBuilder *builder,
+                                               const Parser &parser) const {
+  const auto name__ = builder->CreateString(name);
+  const auto type__ = union_type.Serialize(builder);
+  const auto attr__ = SerializeAttributes(builder, parser);
+  const auto docs__ = parser.opts.binary_schema_comments
+                          ? builder->CreateVectorOfStrings(doc_comment)
+                          : 0;
+  return reflection::CreateEnumVal(*builder, name__, value, type__, docs__,
+                                   attr__);
+}
+
+bool EnumVal::Deserialize(Parser &parser, const reflection::EnumVal *val) {
   name = val->name()->str();
   value = val->value();
   if (!union_type.Deserialize(parser, val->union_type())) return false;
+  if (!DeserializeAttributes(parser, val->attributes())) return false;
   DeserializeDoc(doc_comment, val->documentation());
   return true;
 }
@@ -3981,37 +4036,12 @@ flatbuffers::Offset<
     flatbuffers::Vector<flatbuffers::Offset<reflection::KeyValue>>>
 Definition::SerializeAttributes(FlatBufferBuilder *builder,
                                 const Parser &parser) const {
-  std::vector<flatbuffers::Offset<reflection::KeyValue>> attrs;
-  for (auto kv = attributes.dict.begin(); kv != attributes.dict.end(); ++kv) {
-    auto it = parser.known_attributes_.find(kv->first);
-    FLATBUFFERS_ASSERT(it != parser.known_attributes_.end());
-    if (parser.opts.binary_schema_builtins || !it->second) {
-      auto key = builder->CreateString(kv->first);
-      auto val = builder->CreateString(kv->second->constant);
-      attrs.push_back(reflection::CreateKeyValue(*builder, key, val));
-    }
-  }
-  if (attrs.size()) {
-    return builder->CreateVectorOfSortedTables(&attrs);
-  } else {
-    return 0;
-  }
+  return SerializeAttributesCommon(attributes, builder, parser);
 }
 
 bool Definition::DeserializeAttributes(
     Parser &parser, const Vector<Offset<reflection::KeyValue>> *attrs) {
-  if (attrs == nullptr) return true;
-  for (uoffset_t i = 0; i < attrs->size(); ++i) {
-    auto kv = attrs->Get(i);
-    auto value = new Value();
-    if (kv->value()) { value->constant = kv->value()->str(); }
-    if (attributes.Add(kv->key()->str(), value)) {
-      delete value;
-      return false;
-    }
-    parser.known_attributes_[kv->key()->str()];
-  }
-  return true;
+  return DeserializeAttributesCommon(attributes, parser, attrs);
 }
 
 /************************************************************************/
