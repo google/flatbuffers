@@ -382,7 +382,14 @@ struct EnumVal {
   Offset<reflection::EnumVal> Serialize(FlatBufferBuilder *builder,
                                         const Parser &parser) const;
 
-  bool Deserialize(const Parser &parser, const reflection::EnumVal *val);
+  bool Deserialize(Parser &parser, const reflection::EnumVal *val);
+
+  flatbuffers::Offset<
+      flatbuffers::Vector<flatbuffers::Offset<reflection::KeyValue>>>
+  SerializeAttributes(FlatBufferBuilder *builder, const Parser &parser) const;
+
+  bool DeserializeAttributes(Parser &parser,
+                             const Vector<Offset<reflection::KeyValue>> *attrs);
 
   uint64_t GetAsUInt64() const { return static_cast<uint64_t>(value); }
   int64_t GetAsInt64() const { return value; }
@@ -392,6 +399,7 @@ struct EnumVal {
   std::string name;
   std::vector<std::string> doc_comment;
   Type union_type;
+  SymbolTable<Value> attributes;
 
  private:
   friend EnumDef;

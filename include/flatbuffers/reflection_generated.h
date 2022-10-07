@@ -334,7 +334,8 @@ struct EnumVal FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
     VT_NAME = 4,
     VT_VALUE = 6,
     VT_UNION_TYPE = 10,
-    VT_DOCUMENTATION = 12
+    VT_DOCUMENTATION = 12,
+    VT_ATTRIBUTES = 14
   };
   const flatbuffers::String *name() const {
     return GetPointer<const flatbuffers::String *>(VT_NAME);
@@ -354,6 +355,9 @@ struct EnumVal FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   const flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>> *documentation() const {
     return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>> *>(VT_DOCUMENTATION);
   }
+  const flatbuffers::Vector<flatbuffers::Offset<reflection::KeyValue>> *attributes() const {
+    return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<reflection::KeyValue>> *>(VT_ATTRIBUTES);
+  }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffsetRequired(verifier, VT_NAME) &&
@@ -364,6 +368,9 @@ struct EnumVal FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
            VerifyOffset(verifier, VT_DOCUMENTATION) &&
            verifier.VerifyVector(documentation()) &&
            verifier.VerifyVectorOfStrings(documentation()) &&
+           VerifyOffset(verifier, VT_ATTRIBUTES) &&
+           verifier.VerifyVector(attributes()) &&
+           verifier.VerifyVectorOfTables(attributes()) &&
            verifier.EndTable();
   }
 };
@@ -384,6 +391,9 @@ struct EnumValBuilder {
   void add_documentation(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>>> documentation) {
     fbb_.AddOffset(EnumVal::VT_DOCUMENTATION, documentation);
   }
+  void add_attributes(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<reflection::KeyValue>>> attributes) {
+    fbb_.AddOffset(EnumVal::VT_ATTRIBUTES, attributes);
+  }
   explicit EnumValBuilder(flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
@@ -401,9 +411,11 @@ inline flatbuffers::Offset<EnumVal> CreateEnumVal(
     flatbuffers::Offset<flatbuffers::String> name = 0,
     int64_t value = 0,
     flatbuffers::Offset<reflection::Type> union_type = 0,
-    flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>>> documentation = 0) {
+    flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>>> documentation = 0,
+    flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<reflection::KeyValue>>> attributes = 0) {
   EnumValBuilder builder_(_fbb);
   builder_.add_value(value);
+  builder_.add_attributes(attributes);
   builder_.add_documentation(documentation);
   builder_.add_union_type(union_type);
   builder_.add_name(name);
@@ -415,15 +427,18 @@ inline flatbuffers::Offset<EnumVal> CreateEnumValDirect(
     const char *name = nullptr,
     int64_t value = 0,
     flatbuffers::Offset<reflection::Type> union_type = 0,
-    const std::vector<flatbuffers::Offset<flatbuffers::String>> *documentation = nullptr) {
+    const std::vector<flatbuffers::Offset<flatbuffers::String>> *documentation = nullptr,
+    std::vector<flatbuffers::Offset<reflection::KeyValue>> *attributes = nullptr) {
   auto name__ = name ? _fbb.CreateString(name) : 0;
   auto documentation__ = documentation ? _fbb.CreateVector<flatbuffers::Offset<flatbuffers::String>>(*documentation) : 0;
+  auto attributes__ = attributes ? _fbb.CreateVectorOfSortedTables<reflection::KeyValue>(attributes) : 0;
   return reflection::CreateEnumVal(
       _fbb,
       name__,
       value,
       union_type,
-      documentation__);
+      documentation__,
+      attributes__);
 }
 
 struct Enum FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
