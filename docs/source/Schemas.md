@@ -309,11 +309,11 @@ in the corresponding C++ code. Multiple such lines per item are allowed.
 
 ### Attributes
 
-Attributes may be attached to a declaration, behind a field, or after
-the name of a table/struct/enum/union. These may either have a value or
-not. Some attributes like `deprecated` are understood by the compiler;
-user defined ones need to be declared with the attribute declaration
-(like `priority` in the example above), and are
+Attributes may be attached to a declaration, behind a field/enum value,
+or after the name of a table/struct/enum/union. These may either have
+a value or not. Some attributes like `deprecated` are understood by
+the compiler; user defined ones need to be declared with the attribute
+declaration (like `priority` in the example above), and are
 available to query if you parse the schema at runtime.
 This is useful if you write your own code generators/editors etc., and
 you wish to add additional information specific to your tool (such as a
