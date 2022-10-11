@@ -48,28 +48,28 @@ mod flexbuffers_tests;
 mod more_defaults_test;
 mod optional_scalars_test;
 
-#[allow(dead_code, unused_imports)]
+#[allow(dead_code, unused_imports, clippy::all)]
 #[path = "../../include_test1/mod.rs"]
 pub mod include_test1_generated;
 
-#[allow(dead_code, unused_imports)]
+#[allow(dead_code, unused_imports, clippy::all)]
 #[path = "../../include_test2/mod.rs"]
 pub mod include_test2_generated;
 
-#[allow(dead_code, unused_imports)]
+#[allow(dead_code, unused_imports, clippy::all)]
 #[path = "../../namespace_test/mod.rs"]
 pub mod namespace_test_generated;
 
-#[allow(dead_code, unused_imports)]
+#[allow(dead_code, unused_imports, clippy::all)]
 #[path = "../../monster_test/mod.rs"]
 mod monster_test_generated;
 pub use monster_test_generated::my_game;
 
-#[allow(dead_code, unused_imports)]
+#[allow(dead_code, unused_imports, clippy::all)]
 #[path = "../../optional_scalars/mod.rs"]
 mod optional_scalars_generated;
 
-#[allow(dead_code, unused_imports)]
+#[allow(dead_code, unused_imports, clippy::all)]
 #[path = "../../arrays_test/mod.rs"]
 mod arrays_test_generated;
 

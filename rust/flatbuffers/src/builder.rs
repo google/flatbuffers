@@ -116,7 +116,7 @@ impl<'fbb> FlatBufferBuilder<'fbb> {
         // memset only the part of the buffer that could be dirty:
         {
             let to_clear = self.owned_buf.len() - self.head;
-            let ptr = (&mut self.owned_buf[self.head..]).as_mut_ptr();
+            let ptr = self.owned_buf[self.head..].as_mut_ptr();
             // Safety:
             // Verified ptr is valid for `to_clear` above
             unsafe {
@@ -150,7 +150,7 @@ impl<'fbb> FlatBufferBuilder<'fbb> {
         self.align(sz, P::alignment());
         self.make_space(sz);
         {
-            let (dst, rest) = (&mut self.owned_buf[self.head..]).split_at_mut(sz);
+            let (dst, rest) = self.owned_buf[self.head..].split_at_mut(sz);
             // Safety:
             // Called make_space above
             unsafe { x.push(dst, rest.len()) };
@@ -605,7 +605,7 @@ impl<'fbb> FlatBufferBuilder<'fbb> {
         }
         // finally, zero out the old end data.
         {
-            let ptr = (&mut self.owned_buf[..middle]).as_mut_ptr();
+            let ptr = self.owned_buf[..middle].as_mut_ptr();
             // Safety:
             // ptr is byte aligned and of length middle
             unsafe {

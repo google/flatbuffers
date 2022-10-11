@@ -32,6 +32,7 @@ fn main() {
         .arg("-o")
         .arg(&out_dir)
         .arg("--rust")
+        .arg("--rust-module-root-file")
         .arg(&sample_schema)
         .output()
         .expect("Failed to generate file");

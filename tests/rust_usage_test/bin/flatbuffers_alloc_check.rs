@@ -3,6 +3,7 @@
 // global variable).
 use std::alloc::{GlobalAlloc, Layout, System};
 
+
 static mut N_ALLOCS: usize = 0;
 
 struct TrackingAllocator;
@@ -30,15 +31,15 @@ static A: TrackingAllocator = TrackingAllocator;
 // import the flatbuffers generated code:
 extern crate flatbuffers;
 
-#[allow(dead_code, unused_imports)]
+#[allow(dead_code, unused_imports, clippy::all)]
 #[path = "../../include_test1/mod.rs"]
 pub mod include_test1_generated;
 
-#[allow(dead_code, unused_imports)]
+#[allow(dead_code, unused_imports, clippy::all)]
 #[path = "../../include_test2/mod.rs"]
 pub mod include_test2_generated;
 
-#[allow(dead_code, unused_imports, clippy::approx_constant)]
+#[allow(dead_code, unused_imports, clippy::all)]
 #[path = "../../monster_test/mod.rs"]
 mod monster_test_generated;
 

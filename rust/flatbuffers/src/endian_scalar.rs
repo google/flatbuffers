@@ -179,10 +179,6 @@ pub unsafe fn read_scalar<T: EndianScalar>(s: &[u8]) -> T {
 
     let mut mem = core::mem::MaybeUninit::<T::Scalar>::uninit();
     // Since [u8] has alignment 1, we copy it into T which may have higher alignment.
-    core::ptr::copy_nonoverlapping(
-        s.as_ptr(),
-        mem.as_mut_ptr() as *mut u8,
-        size,
-    );
+    core::ptr::copy_nonoverlapping(s.as_ptr(), mem.as_mut_ptr() as *mut u8, size);
     T::from_little_endian(mem.assume_init())
 }

@@ -29,7 +29,7 @@
 //             Serde with maps - field names and type names.
 
 // Until flat/flexbuffers is on Rust v1.42, we cannot use the previously unstable matches! macro.
-#![allow(clippy::unknown_clippy_lints)]
+#![allow(unknown_lints)]
 #![allow(clippy::match_like_matches_macro)]
 
 #[macro_use]
