@@ -380,7 +380,7 @@ impl<B: Buffer> Reader<B> {
     }
 
     pub fn as_blob(&self) -> Blob<B> {
-        self.get_blob().unwrap_or(Blob(B::empty()))
+        self.get_blob().unwrap_or_else(|_| Blob(B::empty()))
     }
 
     /// Retrieves str pointer, errors if invalid UTF-8, or the provided index
@@ -580,8 +580,8 @@ impl<B: Buffer> Reader<B> {
     /// Returns empty string if you're not trying to read a string.
     pub fn as_str(&self) -> B::BufferString {
         match self.fxb_type {
-            FlexBufferType::String => self.get_str().unwrap_or(B::empty_str()),
-            FlexBufferType::Key => self.get_key().unwrap_or(B::empty_str()),
+            FlexBufferType::String => self.get_str().unwrap_or_else(|_| B::empty_str()),
+            FlexBufferType::Key => self.get_key().unwrap_or_else(|_| B::empty_str()),
             _ => B::empty_str(),
         }
     }

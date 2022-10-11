@@ -39,7 +39,7 @@ impl<'a> VectorBuilder<'a> {
     pub fn start_vector(&mut self) -> VectorBuilder {
         let start = Some(self.builder.values.len());
         VectorBuilder {
-            builder: &mut self.builder,
+            builder: self.builder,
             start,
         }
     }
@@ -48,7 +48,7 @@ impl<'a> VectorBuilder<'a> {
     pub fn start_map(&mut self) -> MapBuilder {
         let start = Some(self.builder.values.len());
         MapBuilder {
-            builder: &mut self.builder,
+            builder: self.builder,
             start,
         }
     }

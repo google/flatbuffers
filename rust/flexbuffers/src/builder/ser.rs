@@ -98,7 +98,7 @@ impl ser::Error for Error {
         Self::Serde(format!("{}", msg))
     }
 }
-impl<'a> ser::SerializeSeq for &mut FlexbufferSerializer {
+impl ser::SerializeSeq for &mut FlexbufferSerializer {
     type Ok = ();
     type Error = Error;
     fn serialize_element<T: ?Sized>(&mut self, value: &T) -> Result<(), Self::Error>
@@ -113,14 +113,14 @@ impl<'a> ser::SerializeSeq for &mut FlexbufferSerializer {
 }
 // This is unlike a flexbuffers map which requires CString like keys.
 // Its implemented as alternating keys and values (hopefully).
-impl<'a> ser::SerializeMap for &'a mut FlexbufferSerializer {
+impl ser::SerializeMap for &mut FlexbufferSerializer {
     type Ok = ();
     type Error = Error;
     fn serialize_key<T: ?Sized>(&mut self, key: &T) -> Result<(), Self::Error>
     where
         T: Serialize,
     {
-        key.serialize(MapKeySerializer(&mut **self))
+        key.serialize(MapKeySerializer(self))
     }
     fn serialize_value<T: ?Sized>(&mut self, value: &T) -> Result<(), Self::Error>
     where
@@ -132,7 +132,7 @@ impl<'a> ser::SerializeMap for &'a mut FlexbufferSerializer {
         self.end_map()
     }
 }
-impl<'a> ser::SerializeTuple for &mut FlexbufferSerializer {
+impl ser::SerializeTuple for &mut FlexbufferSerializer {
     type Ok = ();
     type Error = Error;
     fn serialize_element<T: ?Sized>(&mut self, value: &T) -> Result<(), Self::Error>
@@ -145,7 +145,7 @@ impl<'a> ser::SerializeTuple for &mut FlexbufferSerializer {
         self.end_vector()
     }
 }
-impl<'a> ser::SerializeTupleStruct for &mut FlexbufferSerializer {
+impl ser::SerializeTupleStruct for &mut FlexbufferSerializer {
     type Ok = ();
     type Error = Error;
     fn serialize_field<T: ?Sized>(&mut self, value: &T) -> Result<(), Self::Error>
@@ -158,7 +158,7 @@ impl<'a> ser::SerializeTupleStruct for &mut FlexbufferSerializer {
         self.end_vector()
     }
 }
-impl<'a> ser::SerializeStruct for &mut FlexbufferSerializer {
+impl ser::SerializeStruct for &mut FlexbufferSerializer {
     type Ok = ();
     type Error = Error;
     fn serialize_field<T: ?Sized>(
@@ -176,7 +176,7 @@ impl<'a> ser::SerializeStruct for &mut FlexbufferSerializer {
         self.end_map()
     }
 }
-impl<'a> ser::SerializeTupleVariant for &mut FlexbufferSerializer {
+impl ser::SerializeTupleVariant for &mut FlexbufferSerializer {
     type Ok = ();
     type Error = Error;
     fn serialize_field<T: ?Sized>(&mut self, value: &T) -> Result<(), Self::Error>
@@ -190,7 +190,7 @@ impl<'a> ser::SerializeTupleVariant for &mut FlexbufferSerializer {
         self.end_map()
     }
 }
-impl<'a> ser::SerializeStructVariant for &mut FlexbufferSerializer {
+impl ser::SerializeStructVariant for &mut FlexbufferSerializer {
     type Ok = ();
     type Error = Error;
     fn serialize_field<T: ?Sized>(
