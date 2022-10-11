@@ -3854,6 +3854,10 @@ bool FieldDef::Deserialize(Parser &parser, const reflection::Field *field) {
     auto nested_qualified_name =
         parser.current_namespace_->GetFullyQualifiedName(nested->constant);
     nested_flatbuffer = parser.LookupStruct(nested_qualified_name);
+    if (!nested_flatbuffer) {
+      nested_flatbuffer = 
+          parser.LookupStructThruParentNamespaces(nested->constant);
+    }
     if (!nested_flatbuffer) return false;
   }
   shared = attributes.Lookup("shared") != nullptr;
