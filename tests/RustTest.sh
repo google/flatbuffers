@@ -48,13 +48,9 @@ check_test_result "Rust flatbuffers heap alloc test"
 cargo run $TARGET_FLAG --bin=flexbuffers_alloc_check
 check_test_result "Rust flexbuffers heap alloc test"
 
-# TODO(caspern): Fix this.
-#   Temporarily disabled due to error in upstream configuration
-#   https://github.com/google/flatbuffers/issues/6491
-#
-# rustup component add clippy
-# cargo clippy $TARGET_FLAG
-# check_test_result "No Cargo clippy lints test"
+rustup component add clippy
+cargo clippy $TARGET_FLAG
+check_test_result "No Cargo clippy lints test"
 
 cargo bench $TARGET_FLAG
 
