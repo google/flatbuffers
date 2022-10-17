@@ -703,8 +703,72 @@ function mt:LongEnumNormalDefault()
   return 2
 end
 
+function mt:NanDefault()
+  local o = self.view:Offset(112)
+  if o ~= 0 then
+    return self.view:Get(flatbuffers.N.Float32, self.view.pos + o)
+  end
+  return nan
+end
+
+function mt:InfDefault()
+  local o = self.view:Offset(114)
+  if o ~= 0 then
+    return self.view:Get(flatbuffers.N.Float32, self.view.pos + o)
+  end
+  return inf
+end
+
+function mt:PositiveInfDefault()
+  local o = self.view:Offset(116)
+  if o ~= 0 then
+    return self.view:Get(flatbuffers.N.Float32, self.view.pos + o)
+  end
+  return inf
+end
+
+function mt:InfinityDefault()
+  local o = self.view:Offset(118)
+  if o ~= 0 then
+    return self.view:Get(flatbuffers.N.Float32, self.view.pos + o)
+  end
+  return inf
+end
+
+function mt:PositiveInfinityDefault()
+  local o = self.view:Offset(120)
+  if o ~= 0 then
+    return self.view:Get(flatbuffers.N.Float32, self.view.pos + o)
+  end
+  return inf
+end
+
+function mt:NegativeInfDefault()
+  local o = self.view:Offset(122)
+  if o ~= 0 then
+    return self.view:Get(flatbuffers.N.Float32, self.view.pos + o)
+  end
+  return -inf
+end
+
+function mt:NegativeInfinityDefault()
+  local o = self.view:Offset(124)
+  if o ~= 0 then
+    return self.view:Get(flatbuffers.N.Float32, self.view.pos + o)
+  end
+  return -inf
+end
+
+function mt:DoubleInfDefault()
+  local o = self.view:Offset(126)
+  if o ~= 0 then
+    return self.view:Get(flatbuffers.N.Float64, self.view.pos + o)
+  end
+  return inf
+end
+
 function Monster.Start(builder)
-  builder:StartObject(54)
+  builder:StartObject(62)
 end
 
 function Monster.AddPos(builder, pos)
@@ -997,6 +1061,38 @@ end
 
 function Monster.AddLongEnumNormalDefault(builder, longEnumNormalDefault)
   builder:PrependUint64Slot(53, longEnumNormalDefault, 2)
+end
+
+function Monster.AddNanDefault(builder, nanDefault)
+  builder:PrependFloat32Slot(54, nanDefault, nan)
+end
+
+function Monster.AddInfDefault(builder, infDefault)
+  builder:PrependFloat32Slot(55, infDefault, inf)
+end
+
+function Monster.AddPositiveInfDefault(builder, positiveInfDefault)
+  builder:PrependFloat32Slot(56, positiveInfDefault, inf)
+end
+
+function Monster.AddInfinityDefault(builder, infinityDefault)
+  builder:PrependFloat32Slot(57, infinityDefault, inf)
+end
+
+function Monster.AddPositiveInfinityDefault(builder, positiveInfinityDefault)
+  builder:PrependFloat32Slot(58, positiveInfinityDefault, inf)
+end
+
+function Monster.AddNegativeInfDefault(builder, negativeInfDefault)
+  builder:PrependFloat32Slot(59, negativeInfDefault, -inf)
+end
+
+function Monster.AddNegativeInfinityDefault(builder, negativeInfinityDefault)
+  builder:PrependFloat32Slot(60, negativeInfinityDefault, -inf)
+end
+
+function Monster.AddDoubleInfDefault(builder, doubleInfDefault)
+  builder:PrependFloat64Slot(61, doubleInfDefault, inf)
 end
 
 function Monster.End(builder)

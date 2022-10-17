@@ -423,6 +423,12 @@ void UninitializedVectorTest() {
 void EqualOperatorTest() {
   MonsterT a;
   MonsterT b;
+  // We have to reset the fields that are NaN to zero to allow the equality
+  // to evaluate to true.
+  TEST_EQ(std::isnan(a.nan_default), true);
+  TEST_EQ(std::isnan(b.nan_default), true);
+  a.nan_default = 0;
+  b.nan_default = 0;
   TEST_EQ(b == a, true);
   TEST_EQ(b != a, false);
 
@@ -441,12 +447,14 @@ void EqualOperatorTest() {
   TEST_EQ(b != a, false);
 
   a.enemy.reset(new MonsterT());
+  a.enemy->nan_default = 0;
   TEST_EQ(b != a, true);
   a.enemy->mana = 33;
   TEST_EQ(b == a, false);
   TEST_EQ(b != a, true);
 
   b.enemy.reset(new MonsterT());
+  b.enemy->nan_default = 0;
   TEST_EQ(b == a, false);
   TEST_EQ(b != a, true);
   b.enemy->mana = 33;
@@ -460,6 +468,7 @@ void EqualOperatorTest() {
   TEST_EQ(b == a, false);
   TEST_EQ(b != a, true);
   a.enemy.reset(new MonsterT());
+  a.enemy->nan_default = 0;
   TEST_EQ(b == a, true);
   TEST_EQ(b != a, false);
 
@@ -473,23 +482,29 @@ void EqualOperatorTest() {
   {
     // Two tables are equal by default.
     MonsterT a, b;
+    a.nan_default = 0;
+    b.nan_default = 0;
     TEST_EQ(a == b, true);
 
     // Adding only a table to one of the monster vectors should make it not
     // equal (due to size mistmatch).
     a.testarrayoftables.push_back(
         flatbuffers::unique_ptr<MonsterT>(new MonsterT));
+    a.testarrayoftables.back()->nan_default = 0;
     TEST_EQ(a == b, false);
 
     // Adding an equalivant table to the other monster vector should make it
     // equal again.
     b.testarrayoftables.push_back(
         flatbuffers::unique_ptr<MonsterT>(new MonsterT));
+    b.testarrayoftables.back()->nan_default = 0;
     TEST_EQ(a == b, true);
 
     // Create two new monsters that are different.
     auto c = flatbuffers::unique_ptr<MonsterT>(new MonsterT);
     auto d = flatbuffers::unique_ptr<MonsterT>(new MonsterT);
+    c->nan_default = 0;
+    d->nan_default = 0;
     c->hp = 1;
     d->hp = 2;
     TEST_EQ(c == d, false);
