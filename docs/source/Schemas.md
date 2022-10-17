@@ -552,7 +552,7 @@ the world. If this is not practical for you, use explicit field ids, which
 should always generate a merge conflict if two people try to allocate the same
 id.
 
-### Schema evolution examples
+### Schema evolution examples (tables)
 
 Some examples to clarify what happens as you change a schema:
 
@@ -614,6 +614,41 @@ Occasionally ok. You've renamed fields, which will break all code (and JSON
 files!) that use this schema, but as long as the change is obvious, this is not
 incompatible with the actual binary buffers, since those only ever address
 fields by id/offset.
+
+#### Schema evolution examples (unions)
+
+Suppose we have the following schema:
+```
+union Foo { A, B }
+```
+We can add another variant at the end.
+```
+union Foo { A, B, another_a: A }
+```
+and this will be okay. Old code will not recognize `another_a`.
+However if we add `another_a` anywhere but the end, e.g.
+```
+union Foo { A, another_a: A, B }
+```
+this is not okay. When new code writes `another_a`, old code will
+misinterpret it as `B` (and vice versa). However you can explicitly
+set the union's "discriminant" value like so:
+```
+union Foo { A = 1, another_a: A = 3, B = 2 }
+```
+This is okay.
+
+```
+union Foo { original_a: A = 1, another_a: A = 3, B = 2 }
+```
+Renaming fields will break code and any saved human readable representations,
+such as json files, but the binary buffers will be the same.
+
+
+
+
+
+
 <br>
 
 ### Testing whether a field is present in a table
