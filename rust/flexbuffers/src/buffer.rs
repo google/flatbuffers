@@ -70,7 +70,7 @@ impl<'de> Buffer for &'de [u8] {
     /// Based off of the `empty` function, allows override for optimization purposes.
     #[inline]
     fn empty_str() -> Self::BufferString {
-        &""
+        ""
     }
 
     #[inline]
