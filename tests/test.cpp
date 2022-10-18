@@ -83,6 +83,8 @@ void TriviallyCopyableTest() {
   // clang-format on
 }
 
+// Guard against -Wunused-function on platforms without file tests.
+#ifndef FLATBUFFERS_NO_FILE_TESTS
 void GenerateTableTextTest(const std::string &tests_data_path) {
   std::string schemafile;
   std::string jsonfile;
@@ -377,6 +379,7 @@ void UnionVectorTest(const std::string &tests_data_path) {
           true);
   TEST_EQ(parser2.Parse("{a_type:Bool,a:{b:true}}"), true);
 }
+#endif
 
 void EndianSwapTest() {
   TEST_EQ(flatbuffers::EndianSwap(static_cast<int16_t>(0x1234)), 0x3412);
@@ -841,6 +844,8 @@ void NativeTypeTest() {
   }
 }
 
+// Guard against -Wunused-function on platforms without file tests.
+#ifndef FLATBUFFERS_NO_FILE_TESTS
 // VS10 does not support typed enums, exclude from tests
 #if !defined(_MSC_VER) || _MSC_VER >= 1700
 void FixedLengthArrayJsonTest(const std::string &tests_data_path, bool binary) {
@@ -1031,6 +1036,7 @@ void TestEmbeddedBinarySchema(const std::string &tests_data_path) {
                       parserOrg.builder_.GetSize()),
           0);
 }
+#endif
 
 void NestedVerifierTest() {
   // Create a nested monster.
