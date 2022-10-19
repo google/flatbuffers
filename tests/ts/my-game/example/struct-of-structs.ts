@@ -6,7 +6,7 @@ import { Ability, AbilityT } from '../../my-game/example/ability.js';
 import { Test, TestT } from '../../my-game/example/test.js';
 
 
-export class StructOfStructs {
+export class StructOfStructs implements flatbuffers.IUnpackableObject<StructOfStructsT> {
   bb: flatbuffers.ByteBuffer|null = null;
   bb_pos = 0;
   __init(i:number, bb:flatbuffers.ByteBuffer):StructOfStructs {
@@ -67,7 +67,7 @@ unpackTo(_o: StructOfStructsT): void {
 }
 }
 
-export class StructOfStructsT {
+export class StructOfStructsT implements flatbuffers.IGeneratedObject {
 constructor(
   public a: AbilityT|null = null,
   public b: TestT|null = null,

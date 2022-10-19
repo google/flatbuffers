@@ -9,7 +9,7 @@ import * as flatbuffers from 'flatbuffers';
  * Symbols declared within a file may be recovered by iterating over all
  * symbols and examining the `declaration_file` field.
  */
-export class SchemaFile {
+export class SchemaFile implements flatbuffers.IUnpackableObject<SchemaFileT> {
   bb: flatbuffers.ByteBuffer|null = null;
   bb_pos = 0;
   __init(i:number, bb:flatbuffers.ByteBuffer):SchemaFile {
@@ -96,18 +96,18 @@ static createSchemaFile(builder:flatbuffers.Builder, filenameOffset:flatbuffers.
 unpack(): SchemaFileT {
   return new SchemaFileT(
     this.filename(),
-    this.bb!.createScalarList(this.includedFilenames.bind(this), this.includedFilenamesLength())
+    this.bb!.createScalarList<string>(this.includedFilenames.bind(this), this.includedFilenamesLength())
   );
 }
 
 
 unpackTo(_o: SchemaFileT): void {
   _o.filename = this.filename();
-  _o.includedFilenames = this.bb!.createScalarList(this.includedFilenames.bind(this), this.includedFilenamesLength());
+  _o.includedFilenames = this.bb!.createScalarList<string>(this.includedFilenames.bind(this), this.includedFilenamesLength());
 }
 }
 
-export class SchemaFileT {
+export class SchemaFileT implements flatbuffers.IGeneratedObject {
 constructor(
   public filename: string|Uint8Array|null = null,
   public includedFilenames: (string)[] = []

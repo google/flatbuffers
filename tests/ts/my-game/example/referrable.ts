@@ -4,7 +4,7 @@ import * as flatbuffers from 'flatbuffers';
 
 
 
-export class Referrable {
+export class Referrable implements flatbuffers.IUnpackableObject<ReferrableT> {
   bb: flatbuffers.ByteBuffer|null = null;
   bb_pos = 0;
   __init(i:number, bb:flatbuffers.ByteBuffer):Referrable {
@@ -81,7 +81,7 @@ unpackTo(_o: ReferrableT): void {
 }
 }
 
-export class ReferrableT {
+export class ReferrableT implements flatbuffers.IGeneratedObject {
 constructor(
   public id: bigint = BigInt('0')
 ){}
