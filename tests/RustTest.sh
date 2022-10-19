@@ -35,11 +35,18 @@ cd ./rust_serialize_test
 cargo run $TARGET_FLAG -- --quiet
 check_test_result "Rust serde tests"
 
+cd ../rust_no_std_compilation_test
+rustup install nightly
+rustup component add rust-src --toolchain nightly
+rustup target add thumbv7m-none-eabi
+cargo +nightly build
+check_test_result "Rust flatbuffers test no_std compilation"
+
 cd ../rust_usage_test
 cargo test $TARGET_FLAG -- --quiet
 check_test_result "Rust tests"
 
-cargo test $TARGET_FLAG --no-default-features --features no_std -- --quiet
+cargo test $TARGET_FLAG --no-default-features -- --quiet
 check_test_result "Rust tests (no_std)"
 
 cargo run $TARGET_FLAG --bin=flatbuffers_alloc_check

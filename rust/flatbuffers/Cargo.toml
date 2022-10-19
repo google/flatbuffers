@@ -12,14 +12,13 @@ categories = ["encoding", "data-structures", "memory-management"]
 rust = "1.51"
 
 [features]
-default = ["thiserror"]
-no_std = ["core2", "thiserror_core2"]
+default = ["std"]
+std = []
 serialize = ["serde"]
 
 [dependencies]
 bitflags = "1.2.1"
 serde = { version = "1.0", optional = true }
-thiserror = { version = "1.0.30", optional = true }
-core2 = { version = "0.4.0", optional = true }
-# This version is compliant with mainline 1.0.30
-thiserror_core2 = { version = "2.0.0", default-features = false, optional = true }
+
+[build-dependencies]
+rustc_version = "0.4.0"

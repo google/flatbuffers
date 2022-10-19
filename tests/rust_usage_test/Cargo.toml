@@ -16,7 +16,7 @@ libc_alloc = { version = "1.0.3", optional = true }
 
 [features]
 default = ["flatbuffers/default"]
-no_std = ["flatbuffers/no_std", "libc_alloc"]
+no_std = ["libc_alloc"]
 
 [[bin]]
 name = "monster_example"
