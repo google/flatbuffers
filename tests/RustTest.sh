@@ -35,11 +35,18 @@ cd ./rust_serialize_test
 cargo run $TARGET_FLAG -- --quiet
 check_test_result "Rust serde tests"
 
+cd ../rust_no_std_compilation_test
+rustup install nightly
+rustup component add rust-src --toolchain nightly
+rustup target add thumbv7m-none-eabi
+cargo +nightly build
+check_test_result "Rust flatbuffers test no_std compilation"
+
 cd ../rust_usage_test
 cargo test $TARGET_FLAG -- --quiet
 check_test_result "Rust tests"
 
-cargo test $TARGET_FLAG --no-default-features --features no_std -- --quiet
+cargo test $TARGET_FLAG --no-default-features -- --quiet
 check_test_result "Rust tests (no_std)"
 
 cargo run $TARGET_FLAG --bin=flatbuffers_alloc_check
@@ -48,13 +55,9 @@ check_test_result "Rust flatbuffers heap alloc test"
 cargo run $TARGET_FLAG --bin=flexbuffers_alloc_check
 check_test_result "Rust flexbuffers heap alloc test"
 
-# TODO(caspern): Fix this.
-#   Temporarily disabled due to error in upstream configuration
-#   https://github.com/google/flatbuffers/issues/6491
-#
-# rustup component add clippy
-# cargo clippy $TARGET_FLAG
-# check_test_result "No Cargo clippy lints test"
+rustup component add clippy
+cargo clippy $TARGET_FLAG
+check_test_result "No Cargo clippy lints test"
 
 cargo bench $TARGET_FLAG
 

@@ -19,7 +19,7 @@ extern crate flatbuffers;
 
 // import the generated code
 #[allow(dead_code, unused_imports)]
-#[allow(clippy::approx_constant)]  // We use low precision PI as a default value.
+#[allow(clippy::all)]
 mod rust_generated;
 pub use rust_generated::my_game::sample::{Color, Equipment,
                                              Monster, MonsterArgs,
