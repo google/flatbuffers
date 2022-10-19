@@ -24,7 +24,7 @@ let package = Package(
     .macOS(.v10_14),
   ],
   dependencies: [
-    .package(path: "../../../swift"),
+    .package(path: "../../.."),
     .package(url: "https://github.com/grpc/grpc-swift.git", from: "1.4.1"),
   ],
   targets: [

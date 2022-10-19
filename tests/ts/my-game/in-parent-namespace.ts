@@ -4,7 +4,7 @@ import * as flatbuffers from 'flatbuffers';
 
 
 
-export class InParentNamespace {
+export class InParentNamespace implements flatbuffers.IUnpackableObject<InParentNamespaceT> {
   bb: flatbuffers.ByteBuffer|null = null;
   bb_pos = 0;
   __init(i:number, bb:flatbuffers.ByteBuffer):InParentNamespace {
@@ -56,7 +56,7 @@ unpack(): InParentNamespaceT {
 unpackTo(_o: InParentNamespaceT): void {}
 }
 
-export class InParentNamespaceT {
+export class InParentNamespaceT implements flatbuffers.IGeneratedObject {
 constructor(){}
 
 

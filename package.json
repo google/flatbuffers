@@ -1,6 +1,6 @@
 {
   "name": "flatbuffers",
-  "version": "2.0.8",
+  "version": "22.9.29",
   "description": "Memory Efficient Serialization Library",
   "files": [
     "js/**/*.js",
@@ -17,6 +17,7 @@
   },
   "scripts": {
     "test": "npm run compile && cd tests/ts && python3 ./TypeScriptTest.py",
+    "lint": "eslint ts",
     "compile": "tsc && tsc -p tsconfig.mjs.json && rollup -c",
     "prepublishOnly": "npm install --only=dev && npm run compile"
   },

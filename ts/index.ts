@@ -3,7 +3,7 @@ export { SIZEOF_INT } from './constants.js'
 export { FILE_IDENTIFIER_LENGTH } from './constants.js'
 export { SIZE_PREFIX_LENGTH } from './constants.js'
 
-export { Table, Offset } from './types.js'
+export { Table, Offset, IGeneratedObject, IUnpackableObject } from './types.js'
 
 export { int32, float32, float64, isLittleEndian } from './utils.js'
 

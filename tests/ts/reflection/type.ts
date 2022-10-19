@@ -5,7 +5,7 @@ import * as flatbuffers from 'flatbuffers';
 import { BaseType } from '../reflection/base-type.js';
 
 
-export class Type {
+export class Type implements flatbuffers.IUnpackableObject<TypeT> {
   bb: flatbuffers.ByteBuffer|null = null;
   bb_pos = 0;
   __init(i:number, bb:flatbuffers.ByteBuffer):Type {
@@ -195,7 +195,7 @@ unpackTo(_o: TypeT): void {
 }
 }
 
-export class TypeT {
+export class TypeT implements flatbuffers.IGeneratedObject {
 constructor(
   public baseType: BaseType = BaseType.None,
   public element: BaseType = BaseType.None,

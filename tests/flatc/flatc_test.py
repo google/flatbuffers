@@ -51,6 +51,10 @@ def flatc(options, cwd=script_path):
     subprocess.check_call(cmd, cwd=str(cwd))
 
 
+def reflection_fbs_path():
+    return Path(root_path).joinpath("reflection", "reflection.fbs")
+
+
 def make_absolute(filename, path=script_path):
     return str(Path(path, filename).absolute())
 
@@ -65,6 +69,14 @@ def assert_file_doesnt_exists(filename, path=script_path):
     file = Path(path, filename)
     assert not file.exists(), "file exists but shouldn't: " + filename
     return file
+
+
+def get_file_contents(filename, path=script_path):
+    file = Path(path, filename)
+    contents = ""
+    with open(file) as file:
+        contents = file.read()
+    return contents
 
 
 def assert_file_contains(file, needles):

@@ -49,7 +49,7 @@ impl<'a> MapBuilder<'a> {
         // Nested vector.
         let start = Some(self.builder.values.len());
         VectorBuilder {
-            builder: &mut self.builder,
+            builder: self.builder,
             start,
         }
     }
@@ -64,7 +64,7 @@ impl<'a> MapBuilder<'a> {
         // Nested map.
         let start = Some(self.builder.values.len());
         MapBuilder {
-            builder: &mut self.builder,
+            builder: self.builder,
             start,
         }
     }
