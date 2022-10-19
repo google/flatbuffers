@@ -1,14 +1,14 @@
 use crate::follow::Follow;
 use crate::{ForwardsUOffset, SOffsetT, SkipSizePrefix, UOffsetT, VOffsetT, Vector, SIZE_UOFFSET};
-#[cfg(feature = "no_std")]
+#[cfg(not(feature = "std"))]
 use alloc::vec::Vec;
 use core::ops::Range;
 use core::option::Option;
 
-#[cfg(not(feature = "no_std"))]
-use thiserror::Error;
-#[cfg(feature = "no_std")]
-use thiserror_core2::Error;
+#[cfg(all(nightly, not(feature = "std")))]
+use core::error::Error;
+#[cfg(feature = "std")]
+use std::error::Error;
 
 /// Traces the location of data errors. Not populated for Dos detecting errors.
 /// Useful for MissingRequiredField and Utf8Error in particular, though
@@ -41,62 +41,136 @@ impl core::convert::AsRef<[ErrorTraceDetail]> for ErrorTrace {
 
 /// Describes how a flatuffer is invalid and, for data errors, roughly where. No extra tracing
 /// information is given for DoS detecting errors since it will probably be a lot.
-#[derive(Clone, Error, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub enum InvalidFlatbuffer {
-    #[error("Missing required field `{required}`.\n{error_trace}")]
     MissingRequiredField {
         required: &'static str,
         error_trace: ErrorTrace,
     },
-    #[error(
-        "Union exactly one of union discriminant (`{field_type}`) and value \
-             (`{field}`) are present.\n{error_trace}"
-    )]
     InconsistentUnion {
         field: &'static str,
         field_type: &'static str,
         error_trace: ErrorTrace,
     },
-    #[error("Utf8 error for string in {range:?}: {error}\n{error_trace}")]
     Utf8Error {
-        #[source]
         error: core::str::Utf8Error,
         range: Range<usize>,
         error_trace: ErrorTrace,
     },
-    #[error("String in range [{}, {}) is missing its null terminator.\n{error_trace}",
-    range.start, range.end)]
     MissingNullTerminator {
         range: Range<usize>,
         error_trace: ErrorTrace,
     },
-    #[error("Type `{unaligned_type}` at position {position} is unaligned.\n{error_trace}")]
     Unaligned {
         position: usize,
         unaligned_type: &'static str,
         error_trace: ErrorTrace,
     },
-    #[error("Range [{}, {}) is out of bounds.\n{error_trace}", range.start, range.end)]
     RangeOutOfBounds {
         range: Range<usize>,
         error_trace: ErrorTrace,
     },
-    #[error(
-        "Signed offset at position {position} has value {soffset} which points out of bounds.\
-             \n{error_trace}"
-    )]
     SignedOffsetOutOfBounds {
         soffset: SOffsetT,
         position: usize,
         error_trace: ErrorTrace,
     },
     // Dos detecting errors. These do not get error traces since it will probably be very large.
-    #[error("Too many tables.")]
     TooManyTables,
-    #[error("Apparent size too large.")]
     ApparentSizeTooLarge,
-    #[error("Nested table depth limit reached.")]
     DepthLimitReached,
+}
+
+#[cfg(any(nightly, feature = "std"))]
+impl Error for InvalidFlatbuffer {
+    fn source(&self) -> Option<&(dyn Error + 'static)> {
+        if let InvalidFlatbuffer::Utf8Error { error: source, .. } = self {
+            Some(source)
+        } else {
+            None
+        }
+    }
+}
+
+impl core::fmt::Display for InvalidFlatbuffer {
+    fn fmt(&self, f: &mut core::fmt::Formatter) -> core::fmt::Result {
+        match self {
+            InvalidFlatbuffer::MissingRequiredField {
+                required,
+                error_trace,
+            } => {
+                writeln!(f, "Missing required field `{}`.\n{}", required, error_trace)?;
+            }
+            InvalidFlatbuffer::InconsistentUnion {
+                field,
+                field_type,
+                error_trace,
+            } => {
+                writeln!(
+                    f,
+                    "Exactly one of union discriminant (`{}`) and value (`{}`) are present.\n{}",
+                    field_type, field, error_trace
+                )?;
+            }
+            InvalidFlatbuffer::Utf8Error {
+                error,
+                range,
+                error_trace,
+            } => {
+                writeln!(
+                    f,
+                    "Utf8 error for string in {:?}: {}\n{}",
+                    range, error, error_trace
+                )?;
+            }
+            InvalidFlatbuffer::MissingNullTerminator { range, error_trace } => {
+                writeln!(
+                    f,
+                    "String in range [{}, {}) is missing its null terminator.\n{}",
+                    range.start, range.end, error_trace
+                )?;
+            }
+            InvalidFlatbuffer::Unaligned {
+                position,
+                unaligned_type,
+                error_trace,
+            } => {
+                writeln!(
+                    f,
+                    "Type `{}` at position {} is unaligned.\n{}",
+                    unaligned_type, position, error_trace
+                )?;
+            }
+            InvalidFlatbuffer::RangeOutOfBounds { range, error_trace } => {
+                writeln!(
+                    f,
+                    "Range [{}, {}) is out of bounds.\n{}",
+                    range.start, range.end, error_trace
+                )?;
+            }
+            InvalidFlatbuffer::SignedOffsetOutOfBounds {
+                soffset,
+                position,
+                error_trace,
+            } => {
+                writeln!(
+                    f,
+                    "Signed offset at position {} has value {} which points out of bounds.\n{}",
+                    position, soffset, error_trace
+                )?;
+            }
+            InvalidFlatbuffer::TooManyTables {} => {
+                writeln!(f, "Too many tables.")?;
+            }
+            InvalidFlatbuffer::ApparentSizeTooLarge {} => {
+                writeln!(f, "Apparent size too large.")?;
+            }
+            InvalidFlatbuffer::DepthLimitReached {} => {
+                writeln!(f, "Nested table depth limit reached.")?;
+            }
+        }
+        Ok(())
+    }
 }
 
 impl core::fmt::Display for ErrorTrace {
