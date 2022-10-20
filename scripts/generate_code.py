@@ -540,4 +540,4 @@ flatc_annotate(
 )
 
 # Run the generate_grpc_examples script
-# generate_grpc_examples.GenerateGRPCExamples()
+generate_grpc_examples.GenerateGRPCExamples()
