@@ -5,8 +5,8 @@ package MyGame.Example;
 @SuppressWarnings("unused")
 public final class LongEnum {
   private LongEnum() { }
-  public static final long LongOne = 2;
-  public static final long LongTwo = 4;
-  public static final long LongBig = 1099511627776;
+  public static final long LongOne = 2L;
+  public static final long LongTwo = 4L;
+  public static final long LongBig = 1099511627776L;
 }
 

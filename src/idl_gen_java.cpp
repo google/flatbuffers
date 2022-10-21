@@ -397,6 +397,10 @@ class JavaGenerator : public BaseGenerator {
       code += " ";
       code += namer_.Variant(ev) + " = ";
       code += enum_def.ToString(ev);
+      if (enum_def.underlying_type.base_type == BASE_TYPE_LONG ||
+          enum_def.underlying_type.base_type == BASE_TYPE_ULONG) {
+        code += "L";
+      }
       code += ";\n";
     }
 
