@@ -27,14 +27,15 @@ struct String;
 
 // An STL compatible iterator implementation for Vector below, effectively
 // calling Get() for every element.
-template<typename T, typename IT> struct VectorIterator {
+template<typename T, typename IT, typename Data = uint8_t *>
+struct VectorIterator {
   typedef std::random_access_iterator_tag iterator_category;
   typedef IT value_type;
   typedef ptrdiff_t difference_type;
   typedef IT *pointer;
   typedef IT &reference;
 
-  VectorIterator(const uint8_t *data, uoffset_t i)
+  VectorIterator(Data data, uoffset_t i)
       : data_(data + IndirectHelper<T>::element_stride * i) {}
   VectorIterator(const VectorIterator &other) : data_(other.data_) {}
   VectorIterator() : data_(nullptr) {}
@@ -116,8 +117,11 @@ template<typename T, typename IT> struct VectorIterator {
   }
 
  private:
-  const uint8_t *data_;
+  Data data_;
 };
+
+template<typename T, typename IT>
+using VectorConstIterator = VectorIterator<T, IT, const uint8_t *>;
 
 template<typename Iterator>
 struct VectorReverseIterator : public std::reverse_iterator<Iterator> {
@@ -145,7 +149,7 @@ template<typename T> class Vector {
  public:
   typedef VectorIterator<T, typename IndirectHelper<T>::mutable_return_type>
       iterator;
-  typedef VectorIterator<T, typename IndirectHelper<T>::return_type>
+  typedef VectorConstIterator<T, typename IndirectHelper<T>::return_type>
       const_iterator;
   typedef VectorReverseIterator<iterator> reverse_iterator;
   typedef VectorReverseIterator<const_iterator> const_reverse_iterator;
