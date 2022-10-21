@@ -449,6 +449,13 @@ flatc(
     cwd=swift_code_gen
 )
 
+# Nim Tests
+NIM_OPTS = BASE_OPTS + ["--nim"]
+flatc(NIM_OPTS, schema="monster_test.fbs", include="include_test")
+flatc(NIM_OPTS, schema="optional_scalars.fbs")
+flatc(NIM_OPTS, schema="more_defaults.fbs")
+flatc(NIM_OPTS, schema="MutatingBool.fbs")
+
 # --filename-suffix and --filename-ext tests
 flatc(
     CPP_OPTS + NO_INCL_OPTS + ["--grpc", "--filename-ext", "hpp"],
