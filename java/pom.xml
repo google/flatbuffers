@@ -63,7 +63,6 @@
       <configuration>
         <release>8</release>
         <testExcludes>
-          <testExclude>**/LongEnum.java</testExclude>
           <testExclude>MyGame/Example/MonsterStorageGrpc.java</testExclude>
           <testExclude>MyGame/Example/StructOfStructs**</testExclude>
           <testExclude>MyGame/OtherNameSpace/TableBT.java</testExclude>
