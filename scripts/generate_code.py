@@ -305,8 +305,8 @@ flatc(
 
 # Generate the annotated binary of the monster_test binary schema.
 flatc_annotate(
-    schema="../reflection/reflection.fbs",
-    file="monster_test.bfbs",
+    schema="../reflection/reflection.fbs", 
+    file="monster_test.bfbs", 
     include="include_test"
 )
 
