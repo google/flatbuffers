@@ -47,12 +47,12 @@ public final class StructOfStructsOfStructs extends Struct {
   }
   public static int pack(FlatBufferBuilder builder, StructOfStructsOfStructsT _o) {
     if (_o == null) return 0;
-    int _a_a_id = _o.getA().getA().getId();
-    int _a_a_distance = _o.getA().getA().getDistance();
+    int _a_a_id = (int) _o.getA().getA().getId();
+    int _a_a_distance = (int) _o.getA().getA().getDistance();
     short _a_b_a = _o.getA().getB().getA();
     byte _a_b_b = _o.getA().getB().getB();
-    int _a_c_id = _o.getA().getC().getId();
-    int _a_c_distance = _o.getA().getC().getDistance();
+    int _a_c_id = (int) _o.getA().getC().getId();
+    int _a_c_distance = (int) _o.getA().getC().getDistance();
     return createStructOfStructsOfStructs(
       builder,
       _a_a_id,

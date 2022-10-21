@@ -1893,6 +1893,7 @@ class JavaGenerator : public BaseGenerator {
           }
         } else {
           code += " " + name + " = ";
+          code += SourceCast(field_type);
           code += "_o";
           for (size_t i = 0; i < array_lengths.size(); ++i) {
             code += "." + namer_.Method("get", array_lengths[i].name) + "()";
