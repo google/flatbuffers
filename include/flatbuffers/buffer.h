@@ -76,6 +76,9 @@ template<typename T> struct IndirectHelper {
   static return_type Read(const uint8_t *p, uoffset_t i) {
     return EndianScalar((reinterpret_cast<const T *>(p))[i]);
   }
+  static return_type Read(uint8_t *p, uoffset_t i) {
+    return Read(const_cast<const uint8_t *>(p), i);
+  }
 };
 template<typename T> struct IndirectHelper<Offset<T>> {
   typedef const T *return_type;
@@ -85,13 +88,20 @@ template<typename T> struct IndirectHelper<Offset<T>> {
     p += i * sizeof(uoffset_t);
     return reinterpret_cast<return_type>(p + ReadScalar<uoffset_t>(p));
   }
+  static mutable_return_type Read(uint8_t *p, uoffset_t i) {
+    p += i * sizeof(uoffset_t);
+    return reinterpret_cast<mutable_return_type>(p + ReadScalar<uoffset_t>(p));
+  }
 };
 template<typename T> struct IndirectHelper<const T *> {
   typedef const T *return_type;
   typedef T *mutable_return_type;
   static const size_t element_stride = sizeof(T);
   static return_type Read(const uint8_t *p, uoffset_t i) {
-    return reinterpret_cast<const T *>(p + i * sizeof(T));
+    return reinterpret_cast<return_type>(p + i * sizeof(T));
+  }
+  static mutable_return_type Read(uint8_t *p, uoffset_t i) {
+    return reinterpret_cast<mutable_return_type>(p + i * sizeof(T));
   }
 };
 

@@ -35,7 +35,7 @@ template<typename T, uint16_t length> class Array {
  public:
   typedef uint16_t size_type;
   typedef typename IndirectHelper<IndirectHelperType>::return_type return_type;
-  typedef VectorIterator<T, return_type> const_iterator;
+  typedef VectorConstIterator<T, return_type> const_iterator;
   typedef VectorReverseIterator<const_iterator> const_reverse_iterator;
 
   // If T is a LE-scalar or a struct (!scalar_tag::value).
