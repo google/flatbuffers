@@ -18,6 +18,7 @@
 #include <memory>
 
 #include "bfbs_gen_lua.h"
+#include "bfbs_gen_nim.h"
 #include "flatbuffers/base.h"
 #include "flatbuffers/flatc.h"
 #include "flatbuffers/util.h"
@@ -56,6 +57,8 @@ int main(int argc, const char *argv[]) {
 
   std::unique_ptr<flatbuffers::BfbsGenerator> bfbs_gen_lua =
       flatbuffers::NewLuaBfbsGenerator(flatbuffers_version);
+  std::unique_ptr<flatbuffers::BfbsGenerator> bfbs_gen_nim =
+      flatbuffers::NewNimBfbsGenerator(flatbuffers_version);
 
   g_program_name = argv[0];
 
@@ -142,6 +145,10 @@ int main(int argc, const char *argv[]) {
       flatbuffers::FlatCOption{ "", "swift", "",
                                 "Generate Swift files for tables/structs" },
       nullptr, nullptr, nullptr },
+    { nullptr, "Nim", true, nullptr, flatbuffers::IDLOptions::kNim,
+      flatbuffers::FlatCOption{ "", "nim", "",
+                                "Generate Nim files for tables/structs" },
+      nullptr, bfbs_gen_nim.get(), nullptr },
   };
 
   flatbuffers::FlatCompiler::InitParams params;

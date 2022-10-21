@@ -477,6 +477,22 @@ jobs:
         working-directory: tests
         run: bash DartTest.sh
 
+  build-nim:
+    name: Build Nim
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: flatc
+      # FIXME: make test script not rely on flatc
+      run: cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release -DFLATBUFFERS_BUILD_TESTS=OFF -DFLATBUFFERS_INSTALL=OFF -DFLATBUFFERS_BUILD_FLATLIB=OFF -DFLATBUFFERS_BUILD_FLATHASH=OFF . && make -j
+    - uses: jiro4989/setup-nim-action@v1
+    - name: install library
+      working-directory: nim
+      run: nimble -y develop
+    - name: test
+      working-directory: tests/nim
+      run: python3 testnim.py
+
   release-digests:
     if: startsWith(github.ref, 'refs/tags/')
     needs: [build-linux, build-windows, build-mac-intel, build-mac-universal]

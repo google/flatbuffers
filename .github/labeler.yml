@@ -18,6 +18,12 @@ swift:
   - tests/swift/**
   - src/idl_gen_swift.cpp
 
+nim:
+  - '**/*.nim'
+  - nim/**/*
+  - src/idl_gen_nim.cpp
+  - src/bfbs_gen_nim.cpp
+
 javascript:
   - '**/*.js'
   - src/idl_gen_ts.cpp
@@ -61,7 +67,7 @@ rust:
   - '**/*.rs'
   - rust/**/*
   - src/idl_gen_rust.cpp
-  
+
 dart:
   - '**/*.dart'
   - src/idl_gen_dart.cpp

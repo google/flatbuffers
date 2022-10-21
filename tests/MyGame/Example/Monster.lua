@@ -359,7 +359,7 @@ function mt:Testarrayofsortedstruct(j)
   local o = self.view:Offset(62)
   if o ~= 0 then
     local x = self.view:Vector(o)
-    x = x + ((j-1) * 4)
+    x = x + ((j-1) * 8)
     local obj = __MyGame_Example_Ability.New()
     obj:Init(self.view.bytes, x)
     return obj
@@ -852,7 +852,7 @@ function Monster.AddTestarrayofsortedstruct(builder, testarrayofsortedstruct)
 end
 
 function Monster.StartTestarrayofsortedstructVector(builder, numElems)
-  return builder:StartVector(4, numElems, 4)
+  return builder:StartVector(8, numElems, 4)
 end
 
 function Monster.AddFlex(builder, flex)

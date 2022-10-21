@@ -3438,7 +3438,7 @@ table (reflection.Type):
   +0x1F5A | 0E                      | uint8_t     | 0x0E (14)                          | table field `base_type` (Byte)
   +0x1F5B | 0F                      | uint8_t     | 0x0F (15)                          | table field `element` (Byte)
   +0x1F5C | 00 00 00 00             | uint32_t    | 0x00000000 (0)                     | table field `index` (Int)
-  +0x1F60 | 04 00 00 00             | uint32_t    | 0x00000004 (4)                     | table field `element_size` (UInt)
+  +0x1F60 | 08 00 00 00             | uint32_t    | 0x00000008 (8)                     | table field `element_size` (UInt)
 
 string (reflection.Field.name):
   +0x1F64 | 17 00 00 00             | uint32_t    | 0x00000017 (23)                    | length of string

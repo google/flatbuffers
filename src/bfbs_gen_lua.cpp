@@ -175,7 +175,7 @@ class LuaBfbsGenerator : public BaseBfbsGenerator {
         // Skip writing deprecated fields altogether.
         if (field->deprecated()) { return; }
 
-        const std::string field_name = namer_.Field(field->name()->str());
+        const std::string field_name = namer_.Field(*field);
         const r::BaseType base_type = field->type()->base_type();
 
         // Generate some fixed strings so we don't repeat outselves later.
@@ -367,9 +367,8 @@ class LuaBfbsGenerator : public BaseBfbsGenerator {
         ForAllFields(object, /*reverse=*/false, [&](const r::Field *field) {
           if (field->deprecated()) { return; }
 
-          const std::string field_name = namer_.Field(field->name()->str());
-          const std::string variable_name =
-              namer_.Variable(field->name()->str());
+          const std::string field_name = namer_.Field(*field);
+          const std::string variable_name = namer_.Variable(*field);
 
           code += "function " + object_name + ".Add" + field_name +
                   "(builder, " + variable_name + ")\n";
@@ -428,9 +427,9 @@ class LuaBfbsGenerator : public BaseBfbsGenerator {
       if (IsStructOrTable(field->type()->base_type())) {
         const r::Object *field_object = GetObject(field->type());
         signature += GenerateStructBuilderArgs(
-            field_object, prefix + namer_.Variable(field->name()->str()) + "_");
+            field_object, prefix + namer_.Variable(*field) + "_");
       } else {
-        signature += ", " + prefix + namer_.Variable(field->name()->str());
+        signature += ", " + prefix + namer_.Variable(*field);
       }
     });
     return signature;
@@ -451,11 +450,11 @@ class LuaBfbsGenerator : public BaseBfbsGenerator {
       }
       if (IsStructOrTable(field->type()->base_type())) {
         const r::Object *field_object = GetObject(field->type());
-        code += AppendStructBuilderBody(
-            field_object, prefix + namer_.Variable(field->name()->str()) + "_");
+        code += AppendStructBuilderBody(field_object,
+                                        prefix + namer_.Variable(*field) + "_");
       } else {
         code += "  builder:Prepend" + GenerateMethod(field) + "(" + prefix +
-                namer_.Variable(field->name()->str()) + ")\n";
+                namer_.Variable(*field) + ")\n";
       }
     });
 
