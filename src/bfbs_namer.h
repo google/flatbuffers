@@ -36,6 +36,14 @@ class BfbsNamer : public Namer {
   std::string Denamespace(T t, const char delimiter = '.') const {
     return Namer::Denamespace(t->name()->c_str(), delimiter);
   }
+
+  virtual std::string Field(const ::reflection::Field &f) const {
+    return Field(f.name()->str());
+  }
+
+  virtual std::string Variable(const ::reflection::Field &f) const {
+    return Variable(f.name()->str());
+  }
 };
 
 }  // namespace flatbuffers
