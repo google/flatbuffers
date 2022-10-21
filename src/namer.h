@@ -139,6 +139,10 @@ class Namer {
     return Format(s, config_.variables);
   }
 
+  virtual std::string Variable(const ::reflection::Field &f) const {
+    return Variable(f.name()->str());
+  }
+
   template<typename T>
   std::string Variable(const std::string &p, const T &s) const {
     return Format(p + "_" + s.name, config_.variables);
@@ -221,6 +225,10 @@ class Namer {
 
   virtual std::string Field(const std::string &s) const {
     return Format(s, config_.fields);
+  }
+
+  virtual std::string Field(const ::reflection::Field &f) const {
+    return Field(f.name()->str());
   }
 
   virtual std::string Variant(const std::string &s) const {

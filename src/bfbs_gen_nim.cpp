@@ -151,7 +151,7 @@ class NimBfbsGenerator : public BaseBfbsGenerator {
       // Skip writing deprecated fields altogether.
       if (field->deprecated()) { return; }
 
-      const std::string field_name = namer_.Field(field->name()->str());
+      const std::string field_name = namer_.Field(*field);
       const r::BaseType base_type = field->type()->base_type();
       std::string field_type = GenerateType(field->type());
 
@@ -213,7 +213,7 @@ class NimBfbsGenerator : public BaseBfbsGenerator {
         if (IsScalar(base_type)) { code += setter_signature + setter_code; }
       } else if (base_type == r::Array || base_type == r::Vector) {
         const r::BaseType vector_base_type = field->type()->element();
-        int32_t element_size = field->type()->element_size();
+        uint32_t element_size = field->type()->element_size();
 
         if (vector_base_type == r::Obj || vector_base_type == r::Union ||
             field->type()->index() >= 0) {
@@ -266,8 +266,8 @@ class NimBfbsGenerator : public BaseBfbsGenerator {
       ForAllFields(object, /*reverse=*/false, [&](const r::Field *field) {
         if (field->deprecated()) { return; }
 
-        const std::string field_name = namer_.Field(field->name()->str());
-        const std::string variable_name = namer_.Variable(field->name()->str());
+        const std::string field_name = namer_.Field(*field);
+        const std::string variable_name = namer_.Variable(*field);
         const std::string variable_type = GenerateTypeBasic(field->type());
 
         code += "proc " + namer_.Function(object_name + "Add" + field_name) +
@@ -318,10 +318,10 @@ class NimBfbsGenerator : public BaseBfbsGenerator {
       if (IsStructOrTable(field->type()->base_type())) {
         const r::Object *field_object = GetObject(field->type());
         signature += GenerateStructBuilderArgs(
-            field_object, prefix + namer_.Variable(field->name()->str()) + "_");
+            field_object, prefix + namer_.Variable(*field) + "_");
       } else {
-        signature += ", " + prefix + namer_.Variable(field->name()->str()) +
-                     ": " + GenerateType(field->type());
+        signature += ", " + prefix + namer_.Variable(*field) + ": " +
+                     GenerateType(field->type());
       }
     });
     return signature;
@@ -342,11 +342,10 @@ class NimBfbsGenerator : public BaseBfbsGenerator {
       }
       if (IsStructOrTable(field->type()->base_type())) {
         const r::Object *field_object = GetObject(field->type());
-        code += AppendStructBuilderBody(
-            field_object, prefix + namer_.Variable(field->name()->str()) + "_");
+        code += AppendStructBuilderBody(field_object,
+                                        prefix + namer_.Variable(*field) + "_");
       } else {
-        code += "  self.Prepend(" + prefix +
-                namer_.Variable(field->name()->str()) + ")\n";
+        code += "  self.Prepend(" + prefix + namer_.Variable(*field) + ")\n";
       }
     });
 
