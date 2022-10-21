@@ -305,8 +305,8 @@ flatc(
 
 # Generate the annotated binary of the monster_test binary schema.
 flatc_annotate(
-    schema="../reflection/reflection.fbs", 
-    file="monster_test.bfbs", 
+    schema="../reflection/reflection.fbs",
+    file="monster_test.bfbs",
     include="include_test"
 )
 
@@ -448,6 +448,13 @@ flatc(
     schema="test_no_include.fbs",
     cwd=swift_code_gen
 )
+
+# Nim Tests
+NIM_OPTS = BASE_OPTS + ["--nim"]
+flatc(NIM_OPTS, schema="monster_test.fbs", include="include_test")
+flatc(NIM_OPTS, schema="optional_scalars.fbs")
+flatc(NIM_OPTS, schema="more_defaults.fbs")
+flatc(NIM_OPTS, schema="MutatingBool.fbs")
 
 # --filename-suffix and --filename-ext tests
 flatc(

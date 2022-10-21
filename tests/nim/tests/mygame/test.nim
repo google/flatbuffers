@@ -6,11 +6,11 @@ discard """
 import std/unittest
 import std/options
 import flatbuffers
-import ../../generated/MyGame/Example/Test
-import ../../generated/MyGame/Example/Monster
-import ../../generated/MyGame/Example/Vec3
-import ../../generated/MyGame/Example/Color as ColorMod
-import ../../generated/MyGame/Example/Any as AnyMod
+import ../../../MyGame/Example/Test
+import ../../../MyGame/Example/Monster
+import ../../../MyGame/Example/Vec3
+import ../../../MyGame/Example/Color as ColorMod
+import ../../../MyGame/Example/Any as AnyMod
 
 proc verifyMonster(monster: var Monster) =
   check(monster.hp == 80)
