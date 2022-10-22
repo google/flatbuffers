@@ -1133,7 +1133,7 @@ class PythonGenerator : public BaseGenerator {
                           std::string *code_ptr) const {
     auto &code = *code_ptr;
     code += GenIndents(1) + "def __eq__(self, other):";
-    code += GenIndents(2) + "return type(self) == type(other)"
+    code += GenIndents(2) + "return type(self) == type(other)";
     for (auto it = struct_def.fields.vec.begin();
             it != struct_def.fields.vec.end(); ++it) {
           auto &field = **it;
