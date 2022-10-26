@@ -203,7 +203,7 @@ class TypeAliases : Table() {
         }
     }
     companion object {
-        fun validateVersion() = Constants.FLATBUFFERS_22_9_29()
+        fun validateVersion() = Constants.FLATBUFFERS_22_10_25()
         fun getRootAsTypeAliases(_bb: ByteBuffer): TypeAliases = getRootAsTypeAliases(_bb, TypeAliases())
         fun getRootAsTypeAliases(_bb: ByteBuffer, obj: TypeAliases): TypeAliases {
             _bb.order(ByteOrder.LITTLE_ENDIAN)

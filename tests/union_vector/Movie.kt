@@ -67,7 +67,7 @@ class Movie : Table() {
             val o = __offset(10); return if (o != 0) __vector_len(o) else 0
         }
     companion object {
-        fun validateVersion() = Constants.FLATBUFFERS_22_9_29()
+        fun validateVersion() = Constants.FLATBUFFERS_22_10_25()
         fun getRootAsMovie(_bb: ByteBuffer): Movie = getRootAsMovie(_bb, Movie())
         fun getRootAsMovie(_bb: ByteBuffer, obj: Movie): Movie {
             _bb.order(ByteOrder.LITTLE_ENDIAN)
