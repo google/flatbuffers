@@ -147,7 +147,7 @@ TS_OPTS = ["--ts", "--gen-name-strings"]
 LOBSTER_OPTS = ["--lobster"]
 SWIFT_OPTS = ["--swift", "--gen-json-emit", "--bfbs-filenames", str(tests_path)]
 SWIFT_OPTS_CODE_GEN = [
-    "--swift", 
+    "--swift",
     "--gen-json-emit",
     "--bfbs-filenames",
     swift_code_gen
@@ -305,14 +305,14 @@ flatc(
 
 # Generate the annotated binary of the monster_test binary schema.
 flatc_annotate(
-    schema="../reflection/reflection.fbs", 
-    file="monster_test.bfbs", 
+    schema="../reflection/reflection.fbs",
+    file="monster_test.bfbs",
     include="include_test"
 )
 
 flatc_annotate(
-    schema="monster_test.fbs", 
-    file="monsterdata_test.mon", 
+    schema="monster_test.fbs",
+    file="monsterdata_test.mon",
     include="include_test"
 )
 
@@ -368,6 +368,12 @@ flatc(
 flatc(
     BASE_OPTS + PYTHON_OPTS,
     schema="arrays_test.fbs",
+)
+
+
+flatc(
+    BASE_OPTS + PYTHON_OPTS,
+    schema="nested_union_test.fbs",
 )
 
 
