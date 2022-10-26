@@ -37,6 +37,7 @@ jobs:
       
       - name: Build
         run: |
+          cd python
           python3 setup.py sdist bdist_wheel
          
       - name: Upload to PyPi
