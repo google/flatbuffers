@@ -49,6 +49,31 @@ jobs:
           TWINE_USERNAME: __token__
           TWINE_PASSWORD: ${{ secrets.TWINE_TOKEN }}
 
+  publish-nuget:
+    name: Publish NuGet
+    runs-on: windows-2019
+    defaults:
+      run:
+        working-directory: ./net/flatbuffers
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: '3.1.x'
+          
+      - name: Build
+        run: |
+          dotnet build Google.FlatBuffers.csproj -c Release
+          
+      - name: Pack
+        run: |
+          dotnet pack Google.FlatBuffers.csproj -c Release
+          
+      - name: Upload to NuGet
+        run: |
+          dotnet nuget push ./bin/Release/*.nupkg Google.FlatBuffers.csproj --api-key $NUGET_API_KEY --source https://api.nuget.org/v3/index.json
+        env:
+          NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
           
       
     
