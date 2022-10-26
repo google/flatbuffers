@@ -120,10 +120,14 @@ class InParentNamespaceT(object):
 
     @classmethod
     def InitFromBuf(cls, buf, pos):
-        n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, 0)
         inParentNamespace = InParentNamespace()
-        inParentNamespace.Init(buf, pos+n)
+        inParentNamespace.Init(buf, pos)
         return cls.InitFromObj(inParentNamespace)
+
+    @classmethod
+    def InitFromPackedBuf(cls, buf, pos=0):
+        n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, pos)
+        return cls.InitFromBuf(buf, pos+n)
 
     @classmethod
     def InitFromObj(cls, inParentNamespace):
@@ -177,10 +181,14 @@ class MonsterT(object):
 
     @classmethod
     def InitFromBuf(cls, buf, pos):
-        n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, 0)
         monster = Monster()
-        monster.Init(buf, pos+n)
+        monster.Init(buf, pos)
         return cls.InitFromObj(monster)
+
+    @classmethod
+    def InitFromPackedBuf(cls, buf, pos=0):
+        n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, pos)
+        return cls.InitFromBuf(buf, pos+n)
 
     @classmethod
     def InitFromObj(cls, monster):
@@ -233,10 +241,14 @@ class TestT(object):
 
     @classmethod
     def InitFromBuf(cls, buf, pos):
-        n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, 0)
         test = Test()
-        test.Init(buf, pos+n)
+        test.Init(buf, pos)
         return cls.InitFromObj(test)
+
+    @classmethod
+    def InitFromPackedBuf(cls, buf, pos=0):
+        n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, pos)
+        return cls.InitFromBuf(buf, pos+n)
 
     @classmethod
     def InitFromObj(cls, test):
@@ -298,10 +310,14 @@ class TestSimpleTableWithEnumT(object):
 
     @classmethod
     def InitFromBuf(cls, buf, pos):
-        n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, 0)
         testSimpleTableWithEnum = TestSimpleTableWithEnum()
-        testSimpleTableWithEnum.Init(buf, pos+n)
+        testSimpleTableWithEnum.Init(buf, pos)
         return cls.InitFromObj(testSimpleTableWithEnum)
+
+    @classmethod
+    def InitFromPackedBuf(cls, buf, pos=0):
+        n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, pos)
+        return cls.InitFromBuf(buf, pos+n)
 
     @classmethod
     def InitFromObj(cls, testSimpleTableWithEnum):
@@ -384,10 +400,14 @@ class Vec3T(object):
 
     @classmethod
     def InitFromBuf(cls, buf, pos):
-        n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, 0)
         vec3 = Vec3()
-        vec3.Init(buf, pos+n)
+        vec3.Init(buf, pos)
         return cls.InitFromObj(vec3)
+
+    @classmethod
+    def InitFromPackedBuf(cls, buf, pos=0):
+        n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, pos)
+        return cls.InitFromBuf(buf, pos+n)
 
     @classmethod
     def InitFromObj(cls, vec3):
@@ -444,10 +464,14 @@ class AbilityT(object):
 
     @classmethod
     def InitFromBuf(cls, buf, pos):
-        n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, 0)
         ability = Ability()
-        ability.Init(buf, pos+n)
+        ability.Init(buf, pos)
         return cls.InitFromObj(ability)
+
+    @classmethod
+    def InitFromPackedBuf(cls, buf, pos=0):
+        n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, pos)
+        return cls.InitFromBuf(buf, pos+n)
 
     @classmethod
     def InitFromObj(cls, ability):
@@ -523,10 +547,14 @@ class StructOfStructsT(object):
 
     @classmethod
     def InitFromBuf(cls, buf, pos):
-        n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, 0)
         structOfStructs = StructOfStructs()
-        structOfStructs.Init(buf, pos+n)
+        structOfStructs.Init(buf, pos)
         return cls.InitFromObj(structOfStructs)
+
+    @classmethod
+    def InitFromPackedBuf(cls, buf, pos=0):
+        n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, pos)
+        return cls.InitFromBuf(buf, pos+n)
 
     @classmethod
     def InitFromObj(cls, structOfStructs):
@@ -595,10 +623,14 @@ class StructOfStructsOfStructsT(object):
 
     @classmethod
     def InitFromBuf(cls, buf, pos):
-        n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, 0)
         structOfStructsOfStructs = StructOfStructsOfStructs()
-        structOfStructsOfStructs.Init(buf, pos+n)
+        structOfStructsOfStructs.Init(buf, pos)
         return cls.InitFromObj(structOfStructsOfStructs)
+
+    @classmethod
+    def InitFromPackedBuf(cls, buf, pos=0):
+        n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, pos)
+        return cls.InitFromBuf(buf, pos+n)
 
     @classmethod
     def InitFromObj(cls, structOfStructsOfStructs):
@@ -678,10 +710,14 @@ class StatT(object):
 
     @classmethod
     def InitFromBuf(cls, buf, pos):
-        n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, 0)
         stat = Stat()
-        stat.Init(buf, pos+n)
+        stat.Init(buf, pos)
         return cls.InitFromObj(stat)
+
+    @classmethod
+    def InitFromPackedBuf(cls, buf, pos=0):
+        n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, pos)
+        return cls.InitFromBuf(buf, pos+n)
 
     @classmethod
     def InitFromObj(cls, stat):
@@ -752,10 +788,14 @@ class ReferrableT(object):
 
     @classmethod
     def InitFromBuf(cls, buf, pos):
-        n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, 0)
         referrable = Referrable()
-        referrable.Init(buf, pos+n)
+        referrable.Init(buf, pos)
         return cls.InitFromObj(referrable)
+
+    @classmethod
+    def InitFromPackedBuf(cls, buf, pos=0):
+        n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, pos)
+        return cls.InitFromBuf(buf, pos+n)
 
     @classmethod
     def InitFromObj(cls, referrable):
@@ -1726,10 +1766,14 @@ class MonsterT(object):
 
     @classmethod
     def InitFromBuf(cls, buf, pos):
-        n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, 0)
         monster = Monster()
-        monster.Init(buf, pos+n)
+        monster.Init(buf, pos)
         return cls.InitFromObj(monster)
+
+    @classmethod
+    def InitFromPackedBuf(cls, buf, pos=0):
+        n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, pos)
+        return cls.InitFromBuf(buf, pos+n)
 
     @classmethod
     def InitFromObj(cls, monster):
@@ -2364,10 +2408,14 @@ class TypeAliasesT(object):
 
     @classmethod
     def InitFromBuf(cls, buf, pos):
-        n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, 0)
         typeAliases = TypeAliases()
-        typeAliases.Init(buf, pos+n)
+        typeAliases.Init(buf, pos)
         return cls.InitFromObj(typeAliases)
+
+    @classmethod
+    def InitFromPackedBuf(cls, buf, pos=0):
+        n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, pos)
+        return cls.InitFromBuf(buf, pos+n)
 
     @classmethod
     def InitFromObj(cls, typeAliases):

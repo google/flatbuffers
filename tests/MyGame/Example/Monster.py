@@ -1131,10 +1131,14 @@ class MonsterT(object):
 
     @classmethod
     def InitFromBuf(cls, buf, pos):
-        n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, 0)
         monster = Monster()
-        monster.Init(buf, pos+n)
+        monster.Init(buf, pos)
         return cls.InitFromObj(monster)
+
+    @classmethod
+    def InitFromPackedBuf(cls, buf, pos=0):
+        n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, pos)
+        return cls.InitFromBuf(buf, pos+n)
 
     @classmethod
     def InitFromObj(cls, monster):

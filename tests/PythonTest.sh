@@ -24,6 +24,7 @@ ${test_dir}/../flatc -p -o ${gen_code_path} -I include_test monster_test.fbs --g
 ${test_dir}/../flatc -p -o ${gen_code_path} -I include_test monster_test.fbs --gen-object-api --gen-onefile
 ${test_dir}/../flatc -p -o ${gen_code_path} -I include_test monster_extra.fbs --gen-object-api
 ${test_dir}/../flatc -p -o ${gen_code_path} -I include_test arrays_test.fbs --gen-object-api
+${test_dir}/../flatc -p -o ${gen_code_path} -I include_test nested_union_test.fbs --gen-object-api
 
 # Syntax: run_tests <interpreter> <benchmark vtable dedupes>
 #                   <benchmark read count> <benchmark build count>
