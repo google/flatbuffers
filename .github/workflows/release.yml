@@ -10,13 +10,14 @@ on:
 jobs:
   publish-npm:
     name: Publish NPM
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-latest    
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
         with:
           node-version: '16.x'
           registry-url: 'https://registry.npmjs.org'
+          
       - run: npm publish
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
@@ -24,6 +25,9 @@ jobs:
   publish-pypi:
     name: Publish PyPi
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./python
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-python@v4
@@ -37,7 +41,6 @@ jobs:
       
       - name: Build
         run: |
-          cd python
           python3 setup.py sdist bdist_wheel
          
       - name: Upload to PyPi
@@ -47,6 +50,31 @@ jobs:
           TWINE_USERNAME: __token__
           TWINE_PASSWORD: ${{ secrets.TWINE_TOKEN }}
 
+  publish-nuget:
+    name: Publish NuGet
+    runs-on: windows-2019
+    defaults:
+      run:
+        working-directory: ./net/flatbuffers
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: '3.1.x'
+          
+      - name: Build
+        run: |
+          dotnet build Google.FlatBuffers.csproj -c Release
+          
+      - name: Pack
+        run: |
+          dotnet pack Google.FlatBuffers.csproj -c Release
+          
+      - name: Upload to NuGet
+        run: |
+          dotnet nuget push ./bin/Release/*.nupkg --api-key $NUGET_AUTH_TOKEN --source https://api.nuget.org/v3/index.json
+        env:
+          NUGET_AUTH_TOKEN: ${{ secrets.NUGET_API_KEY }}
           
       
     

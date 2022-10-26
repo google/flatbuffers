@@ -58,6 +58,11 @@ sed -i \
   -e "s/\(__version__ = u\).*/\1\"$version\"/" \
   python/flatbuffers/_version.py
 
+echo "Updating python/setup.py..."
+sed -i \
+  -e "s/\(version='\).*/\1$version',/" \
+  python/setup.py
+
 echo "Updating FlatBuffers.podspec..."
 sed -i \
   -e "s/\(s.version\s*= \).*/\1'$version'/" \
