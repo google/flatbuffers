@@ -1,0 +1,23 @@
+name: Release
+permissions: read-all
+
+on:
+  # For manual tests.
+  workflow_dispatch:
+  release:
+    types: [created]
+
+jobs:
+  publish-npm:
+    name: Publish NPM
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: '16.x'
+          registry-url: 'https://registry.npmjs.org'
+      - run: npm ci
+      - run: npm publish
+        env:
+          NODE_AUTH_TOEKN: ${{ secrets.NPM_TOKEN }}
