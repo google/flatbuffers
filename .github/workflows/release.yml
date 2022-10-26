@@ -24,6 +24,9 @@ jobs:
   publish-pypi:
     name: Publish PyPi
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./python
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-python@v4
@@ -37,7 +40,6 @@ jobs:
       
       - name: Build
         run: |
-          cd python
           python3 setup.py sdist bdist_wheel
          
       - name: Upload to PyPi
