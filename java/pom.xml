@@ -3,7 +3,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.google.flatbuffers</groupId>
   <artifactId>flatbuffers-java</artifactId>
-  <version>22.9.29</version>
+  <version>22.10.25</version>
   <packaging>bundle</packaging>
   <name>FlatBuffers Java API</name>
   <description>
@@ -58,17 +58,17 @@
   </distributionManagement>
   <build>
     <plugins>
-    <plugin>
-      <artifactId>maven-compiler-plugin</artifactId>
-      <configuration>
-        <release>8</release>
-        <testExcludes>
-          <testExclude>MyGame/Example/MonsterStorageGrpc.java</testExclude>
-          <testExclude>MyGame/OtherNameSpace/TableBT.java</testExclude>
-        </testExcludes>
-      </configuration>
-      <version>3.8.1</version>
-    </plugin>
+      <plugin>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <configuration>
+          <release>8</release>
+          <testExcludes>
+            <testExclude>MyGame/Example/MonsterStorageGrpc.java</testExclude>
+            <testExclude>MyGame/OtherNameSpace/TableBT.java</testExclude>
+          </testExcludes>
+        </configuration>
+        <version>3.8.1</version>
+      </plugin>
     </plugins>
   </build>
   <profiles>
@@ -147,10 +147,10 @@
                   <goal>sign</goal>
                 </goals>
                 <configuration>
-                    <gpgArguments>
-                        <arg>--pinentry-mode</arg>
-                        <arg>loopback</arg>
-                    </gpgArguments>
+                  <gpgArguments>
+                    <arg>--pinentry-mode</arg>
+                    <arg>loopback</arg>
+                  </gpgArguments>
                 </configuration>
               </execution>
             </executions>
@@ -171,4 +171,3 @@
     </profile>
   </profiles>
 </project>
-
