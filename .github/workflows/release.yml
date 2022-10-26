@@ -10,13 +10,14 @@ on:
 jobs:
   publish-npm:
     name: Publish NPM
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-latest    
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
         with:
           node-version: '16.x'
           registry-url: 'https://registry.npmjs.org'
+          
       - run: npm publish
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
@@ -71,9 +72,9 @@ jobs:
           
       - name: Upload to NuGet
         run: |
-          dotnet nuget push ./bin/Release/*.nupkg Google.FlatBuffers.csproj --api-key $NUGET_API_KEY --source https://api.nuget.org/v3/index.json
+          dotnet nuget push ./bin/Release/*.nupkg --api-key $NUGET_AUTH_TOKEN --source https://api.nuget.org/v3/index.json
         env:
-          NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
+          NUGET_AUTH_TOKEN: ${{ secrets.NUGET_API_KEY }}
           
       
     
