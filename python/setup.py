@@ -12,19 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import fileinput
-import os
-import re
-import sys
-from datetime import datetime
 from setuptools import setup
 
 setup(
     name='flatbuffers',
-    version='22.10.25',
+    version='22.10.26',
     license='Apache 2.0',
-    author='FlatBuffers Contributors',
-    author_email='me@rwinslow.com',
+    author='Derek Bailey',
+    author_email='derekbailey@google.com',
     url='https://google.github.io/flatbuffers/',
     long_description=('Python runtime library for use with the '
                       '`Flatbuffers <https://google.github.io/flatbuffers/>`_ '
