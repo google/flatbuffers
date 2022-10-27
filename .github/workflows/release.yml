@@ -72,9 +72,6 @@ jobs:
           
       - name: Upload to NuGet
         run: |
-          dotnet nuget push -s https://api.nuget.org/v3/index.json -k $NUGET_AUTH_TOKEN */bin/Release/*.nupkg 
-        env:
-          NUGET_AUTH_TOKEN: ${{ secrets.NUGET_API_KEY }}
-          
+          dotnet nuget push "*/bin/Release/*.nupkg" -k ${{ secrets.NUGET_API_KEY }} -s https://api.nuget.org/v3/index.json 
       
     
