@@ -52,7 +52,7 @@ jobs:
 
   publish-nuget:
     name: Publish NuGet
-    runs-on: windows-2019
+    runs-on: windows-latest
     defaults:
       run:
         working-directory: ./net/flatbuffers
@@ -60,7 +60,7 @@ jobs:
       - uses: actions/checkout@v3
       - uses: actions/setup-dotnet@v3
         with:
-          dotnet-version: '3.1.x'
+          dotnet-version: '6.0.x'
           
       - name: Build
         run: |
@@ -72,6 +72,6 @@ jobs:
           
       - name: Upload to NuGet
         run: |
-          dotnet nuget push "*/bin/Release/*.nupkg" -k ${{ secrets.NUGET_API_KEY }} -s https://api.nuget.org/v3/index.json 
+          dotnet nuget push .\bin\Release\Google.FlatBuffers.*.nupkg -k ${{ secrets.NUGET_API_KEY }} -s https://api.nuget.org/v3/index.json 
       
     
