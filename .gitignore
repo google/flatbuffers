@@ -150,4 +150,3 @@ flatbuffers.pc
 **/latex/**
 # https://cmake.org/cmake/help/latest/module/FetchContent.html#variable:FETCHCONTENT_BASE_DIR
 _deps/
-tests/ts/arrays_test_complex/arrays_test_complex.bfbs
