@@ -54,7 +54,7 @@ static sizeOf():number {
   return 2656;
 }
 
-static createArrayStruct(builder:flatbuffers.Builder, a_underscore: number, b_underscore: number[]|null, c: number, d:  (any|NestedStructT)[] | null, e: number, f:  (any|OuterStructT)[] | null, g: bigint[]|null):flatbuffers.Offset {
+static createArrayStruct(builder:flatbuffers.Builder, a_underscore: number, b_underscore: number[]|null, c: number, d: (any|NestedStructT)[]|null, e: number, f: (any|OuterStructT)[]|null, g: bigint[]|null):flatbuffers.Offset {
   builder.prep(8, 2656);
 
   for (let i = 1; i >= 0; --i) {
@@ -387,7 +387,7 @@ static sizeOf():number {
   return 1072;
 }
 
-static createNestedStruct(builder:flatbuffers.Builder, a: number[]|null, b: TestEnum, c_underscore: number[]|null, d_outer:  (any|OuterStructT)[] | null, e: bigint[]|null):flatbuffers.Offset {
+static createNestedStruct(builder:flatbuffers.Builder, a: number[]|null, b: TestEnum, c_underscore: number[]|null, d_outer: (any|OuterStructT)[]|null, e: bigint[]|null):flatbuffers.Offset {
   builder.prep(8, 1072);
 
   for (let i = 1; i >= 0; --i) {
@@ -519,7 +519,7 @@ static sizeOf():number {
   return 208;
 }
 
-static createOuterStruct(builder:flatbuffers.Builder, a: boolean, b: number, c_underscore_a: number, c_underscore_b: number[]|null, c_underscore_c: number, c_underscore_d_underscore: bigint, d:  (any|InnerStructT)[] | null, e_a: number, e_b: number[]|null, e_c: number, e_d_underscore: bigint, f: number[]|null):flatbuffers.Offset {
+static createOuterStruct(builder:flatbuffers.Builder, a: boolean, b: number, c_underscore_a: number, c_underscore_b: number[]|null, c_underscore_c: number, c_underscore_d_underscore: bigint, d: (any|InnerStructT)[]|null, e_a: number, e_b: number[]|null, e_c: number, e_d_underscore: bigint, f: number[]|null):flatbuffers.Offset {
   builder.prep(8, 208);
 
   for (let i = 3; i >= 0; --i) {

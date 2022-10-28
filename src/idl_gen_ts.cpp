@@ -402,27 +402,26 @@ class TsGenerator : public BaseGenerator {
     const auto &value = field.value;
     if (value.type.enum_def && value.type.base_type != BASE_TYPE_UNION &&
         value.type.base_type != BASE_TYPE_VECTOR) {
-      // If the value is an enum with a 64-bit base type, we have to just
-      // return the bigint value directly since typescript does not support
-      // enums with bigint backing types.
       switch (value.type.base_type) {
         case BASE_TYPE_ARRAY: {
           std::string ret = "[";
           for (auto i = 0; i < value.type.fixed_length; ++i) {
-            ret +=
+            std::string enum_name =
                 AddImport(imports, *value.type.enum_def, *value.type.enum_def)
-                    .name +
-                "." +
-                namer_.Variant(
-                    *value.type.enum_def->FindByValue(value.constant));
-            if (i < value.type.fixed_length - 1) { ret += ", "; }
+                    .name;
+            std::string enum_value = namer_.Variant(
+                *value.type.enum_def->FindByValue(value.constant));
+            ret += enum_name + "." + enum_value +
+                   (i < value.type.fixed_length - 1 ? ", " : "");
           }
           ret += "]";
           return ret;
-          break;
         }
         case BASE_TYPE_LONG:
         case BASE_TYPE_ULONG: {
+          // If the value is an enum with a 64-bit base type, we have to just
+          // return the bigint value directly since typescript does not support
+          // enums with bigint backing types.
           return "BigInt('" + value.constant + "')";
         }
         default: {
@@ -481,20 +480,20 @@ class TsGenerator : public BaseGenerator {
       case BASE_TYPE_LONG:
       case BASE_TYPE_ULONG: return allowNull ? "bigint|null" : "bigint";
       case BASE_TYPE_ARRAY: {
+        std::string name;
         if (type.element == BASE_TYPE_LONG || type.element == BASE_TYPE_ULONG) {
-          return allowNull ? "bigint[]|null" : "bigint[]";
-        }
-        if (type.element != BASE_TYPE_STRUCT) {
-          return allowNull ? "number[]|null" : "number[]";
+          name = "bigint[]";
+        } else if (type.element != BASE_TYPE_STRUCT) {
+          name = "number[]";
+        } else {
+          name = "any[]";
+          if (parser_.opts.generate_object_based_api) {
+            name = "(any|" +
+                   GetTypeName(*type.struct_def, /*object_api =*/true) + ")[]";
+          }
         }
 
-        std::string name = "any";
-
-        if (parser_.opts.generate_object_based_api) {
-          name += "|" + GetTypeName(*type.struct_def, /*object_api =*/true);
-        }
-
-        return allowNull ? " (" + name + ")[] | null" : name;
+        return name + (allowNull ? "|null" : "");
       }
       default:
         if (IsScalar(type.base_type)) {
@@ -568,8 +567,9 @@ class TsGenerator : public BaseGenerator {
         // Generate arguments for a struct inside a struct. To ensure names
         // don't clash, and to make it obvious these arguments are constructing
         // a nested struct, prefix the name with the field name.
-        GenStructBody(*field.value.type.struct_def, body,
-                      nameprefix.length() ? nameprefix + "_" + field.name : field.name);
+        GenStructBody(
+            *field.value.type.struct_def, body,
+            nameprefix.length() ? nameprefix + "_" + field.name : field.name);
       } else {
         auto element_type = field.value.type.element;
 
@@ -578,25 +578,33 @@ class TsGenerator : public BaseGenerator {
             case BASE_TYPE_STRUCT: {
               std::string str_last_item_idx =
                   NumToString(field.value.type.fixed_length - 1);
-              *body += "\n  for (let i = " + str_last_item_idx + "; i >= 0; --i" + ") {\n";
+              *body += "\n  for (let i = " + str_last_item_idx +
+                       "; i >= 0; --i" + ") {\n";
 
-              std::string fname = nameprefix.length() ? nameprefix + "_" + field.name : field.name;
+              std::string fname = nameprefix.length()
+                                      ? nameprefix + "_" + field.name
+                                      : field.name;
 
               *body += "    const item = " + fname + "?.[i];\n\n";
-              
+
               if (parser_.opts.generate_object_based_api) {
-                *body += "    if (item instanceof " + GetTypeName(*field.value.type.struct_def, /*object_api =*/true) + ") {\n";
+                *body += "    if (item instanceof " +
+                         GetTypeName(*field.value.type.struct_def,
+                                     /*object_api =*/true) +
+                         ") {\n";
                 *body += "      item.pack(builder);\n";
                 *body += "      continue;\n";
                 *body += "    }\n\n";
               }
 
-              std::string class_name = GetPrefixedName(*field.value.type.struct_def);
+              std::string class_name =
+                  GetPrefixedName(*field.value.type.struct_def);
               std::string pack_func_create_call =
                   class_name + ".create" + class_name + "(builder,\n";
               pack_func_create_call +=
-                  "    " + GenStructMemberValueTS(*field.value.type.struct_def,
-                                            "item", ",\n    ", false) +
+                  "    " +
+                  GenStructMemberValueTS(*field.value.type.struct_def, "item",
+                                         ",\n    ", false) +
                   "\n  ";
               *body += "    " + pack_func_create_call;
               *body += "  );\n  }\n\n";
@@ -606,12 +614,15 @@ class TsGenerator : public BaseGenerator {
             default: {
               std::string str_last_item_idx =
                   NumToString(field.value.type.fixed_length - 1);
-              std::string fname = nameprefix.length() ? nameprefix + "_" + field.name : field.name;
+              std::string fname = nameprefix.length()
+                                      ? nameprefix + "_" + field.name
+                                      : field.name;
 
-              *body += "\n  for (let i = " + str_last_item_idx + "; i >= 0; --i) {\n";
+              *body += "\n  for (let i = " + str_last_item_idx +
+                       "; i >= 0; --i) {\n";
               *body += "    builder.write";
-              *body +=
-                  GenWriteMethod(static_cast<flatbuffers::Type>(field.value.type.element));
+              *body += GenWriteMethod(
+                  static_cast<flatbuffers::Type>(field.value.type.element));
               *body += "(";
               *body += element_type == BASE_TYPE_BOOL ? "+" : "";
 
@@ -626,10 +637,10 @@ class TsGenerator : public BaseGenerator {
             }
           }
         } else {
-          std::string fname = nameprefix.length() ? nameprefix + "_" + field.name : field.name;
+          std::string fname =
+              nameprefix.length() ? nameprefix + "_" + field.name : field.name;
 
-          *body += "  builder.write" +
-                   GenWriteMethod(field.value.type) + "(";
+          *body += "  builder.write" + GenWriteMethod(field.value.type) + "(";
           if (field.value.type.base_type == BASE_TYPE_BOOL) {
             *body += "Number(Boolean(" + fname + ")));\n";
             continue;
@@ -1015,7 +1026,10 @@ class TsGenerator : public BaseGenerator {
         const auto conversion_function = GenUnionListConvFuncName(enum_def);
 
         ret = "(() => {\n";
-        ret += "    const ret: (" + GenObjApiUnionTypeTS(imports, *union_type.struct_def, parser_.opts, *union_type.enum_def) + ")[] = [];\n";
+        ret += "    const ret: (" +
+               GenObjApiUnionTypeTS(imports, *union_type.struct_def,
+                                    parser_.opts, *union_type.enum_def) +
+               ")[] = [];\n";
         ret += "    for(let targetEnumIndex = 0; targetEnumIndex < this." +
                namer_.Method(field_name, "TypeLength") + "()" +
                "; "
