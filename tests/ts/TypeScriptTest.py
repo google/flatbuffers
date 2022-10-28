@@ -96,14 +96,8 @@ flatc(
 )
 
 flatc(
-    options=["-b", "--schema"],
-    schema="arrays_test_complex/arrays_test_complex.fbs",
-    prefix="arrays_test_complex"
-)
-
-flatc(
     options=["--ts", "--reflect-names", "--ts-flat-files", "--gen-name-strings", "--gen-object-api"],
-    schema="arrays_test_complex/arrays_test_complex.bfbs",
+    schema="arrays_test_complex/arrays_test_complex.fbs",
     prefix="arrays_test_complex"
 )
 

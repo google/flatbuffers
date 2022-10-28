@@ -6,6 +6,240 @@ export var TestEnum;
     TestEnum[TestEnum["B"] = 1] = "B";
     TestEnum[TestEnum["C"] = 2] = "C";
 })(TestEnum || (TestEnum = {}));
+export class InnerStruct {
+    constructor() {
+        this.bb = null;
+        this.bb_pos = 0;
+    }
+    __init(i, bb) {
+        this.bb_pos = i;
+        this.bb = bb;
+        return this;
+    }
+    a() {
+        return this.bb.readFloat64(this.bb_pos);
+    }
+    b(index) {
+        return this.bb.readUint8(this.bb_pos + 8 + index);
+    }
+    c() {
+        return this.bb.readInt8(this.bb_pos + 21);
+    }
+    dUnderscore() {
+        return this.bb.readInt64(this.bb_pos + 24);
+    }
+    static getFullyQualifiedName() {
+        return 'MyGame_Example_InnerStruct';
+    }
+    static sizeOf() {
+        return 32;
+    }
+    static createInnerStruct(builder, a, b, c, d_underscore) {
+        var _a;
+        builder.prep(8, 32);
+        builder.writeInt64(BigInt(d_underscore !== null && d_underscore !== void 0 ? d_underscore : 0));
+        builder.pad(2);
+        builder.writeInt8(c);
+        for (let i = 12; i >= 0; --i) {
+            builder.writeInt8(((_a = b === null || b === void 0 ? void 0 : b[i]) !== null && _a !== void 0 ? _a : 0));
+        }
+        builder.writeFloat64(a);
+        return builder.offset();
+    }
+    unpack() {
+        return new InnerStructT(this.a(), this.bb.createScalarList(this.b.bind(this), 13), this.c(), this.dUnderscore());
+    }
+    unpackTo(_o) {
+        _o.a = this.a();
+        _o.b = this.bb.createScalarList(this.b.bind(this), 13);
+        _o.c = this.c();
+        _o.dUnderscore = this.dUnderscore();
+    }
+}
+export class InnerStructT {
+    constructor(a = 0.0, b = [], c = 0, dUnderscore = BigInt('0')) {
+        this.a = a;
+        this.b = b;
+        this.c = c;
+        this.dUnderscore = dUnderscore;
+    }
+    pack(builder) {
+        return InnerStruct.createInnerStruct(builder, this.a, this.b, this.c, this.dUnderscore);
+    }
+}
+export class OuterStruct {
+    constructor() {
+        this.bb = null;
+        this.bb_pos = 0;
+    }
+    __init(i, bb) {
+        this.bb_pos = i;
+        this.bb = bb;
+        return this;
+    }
+    a() {
+        return !!this.bb.readInt8(this.bb_pos);
+    }
+    b() {
+        return this.bb.readFloat64(this.bb_pos + 8);
+    }
+    cUnderscore(obj) {
+        return (obj || new InnerStruct()).__init(this.bb_pos + 16, this.bb);
+    }
+    d(index, obj) {
+        return (obj || new InnerStruct()).__init(this.bb_pos + 48 + index * 32, this.bb);
+    }
+    e(obj) {
+        return (obj || new InnerStruct()).__init(this.bb_pos + 144, this.bb);
+    }
+    f(index) {
+        return this.bb.readFloat64(this.bb_pos + 176 + index * 8);
+    }
+    static getFullyQualifiedName() {
+        return 'MyGame_Example_OuterStruct';
+    }
+    static sizeOf() {
+        return 208;
+    }
+    static createOuterStruct(builder, a, b, c_underscore_a, c_underscore_b, c_underscore_c, c_underscore_d_underscore, d, e_a, e_b, e_c, e_d_underscore, f) {
+        var _a, _b, _c;
+        builder.prep(8, 208);
+        for (let i = 3; i >= 0; --i) {
+            builder.writeFloat64(((_a = f === null || f === void 0 ? void 0 : f[i]) !== null && _a !== void 0 ? _a : 0));
+        }
+        builder.prep(8, 32);
+        builder.writeInt64(BigInt(e_d_underscore !== null && e_d_underscore !== void 0 ? e_d_underscore : 0));
+        builder.pad(2);
+        builder.writeInt8(e_c);
+        for (let i = 12; i >= 0; --i) {
+            builder.writeInt8(((_b = e_b === null || e_b === void 0 ? void 0 : e_b[i]) !== null && _b !== void 0 ? _b : 0));
+        }
+        builder.writeFloat64(e_a);
+        for (let i = 2; i >= 0; --i) {
+            const item = d === null || d === void 0 ? void 0 : d[i];
+            if (item instanceof InnerStructT) {
+                item.pack(builder);
+                continue;
+            }
+            InnerStruct.createInnerStruct(builder, item === null || item === void 0 ? void 0 : item.a, item === null || item === void 0 ? void 0 : item.b, item === null || item === void 0 ? void 0 : item.c, item === null || item === void 0 ? void 0 : item.dUnderscore);
+        }
+        builder.prep(8, 32);
+        builder.writeInt64(BigInt(c_underscore_d_underscore !== null && c_underscore_d_underscore !== void 0 ? c_underscore_d_underscore : 0));
+        builder.pad(2);
+        builder.writeInt8(c_underscore_c);
+        for (let i = 12; i >= 0; --i) {
+            builder.writeInt8(((_c = c_underscore_b === null || c_underscore_b === void 0 ? void 0 : c_underscore_b[i]) !== null && _c !== void 0 ? _c : 0));
+        }
+        builder.writeFloat64(c_underscore_a);
+        builder.writeFloat64(b);
+        builder.pad(7);
+        builder.writeInt8(Number(Boolean(a)));
+        return builder.offset();
+    }
+    unpack() {
+        return new OuterStructT(this.a(), this.b(), (this.cUnderscore() !== null ? this.cUnderscore().unpack() : null), this.bb.createObjList(this.d.bind(this), 3), (this.e() !== null ? this.e().unpack() : null), this.bb.createScalarList(this.f.bind(this), 4));
+    }
+    unpackTo(_o) {
+        _o.a = this.a();
+        _o.b = this.b();
+        _o.cUnderscore = (this.cUnderscore() !== null ? this.cUnderscore().unpack() : null);
+        _o.d = this.bb.createObjList(this.d.bind(this), 3);
+        _o.e = (this.e() !== null ? this.e().unpack() : null);
+        _o.f = this.bb.createScalarList(this.f.bind(this), 4);
+    }
+}
+export class OuterStructT {
+    constructor(a = false, b = 0.0, cUnderscore = null, d = [], e = null, f = []) {
+        this.a = a;
+        this.b = b;
+        this.cUnderscore = cUnderscore;
+        this.d = d;
+        this.e = e;
+        this.f = f;
+    }
+    pack(builder) {
+        var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _p, _q, _r, _s;
+        return OuterStruct.createOuterStruct(builder, this.a, this.b, ((_b = (_a = this.cUnderscore) === null || _a === void 0 ? void 0 : _a.a) !== null && _b !== void 0 ? _b : 0), ((_d = (_c = this.cUnderscore) === null || _c === void 0 ? void 0 : _c.b) !== null && _d !== void 0 ? _d : []), ((_f = (_e = this.cUnderscore) === null || _e === void 0 ? void 0 : _e.c) !== null && _f !== void 0 ? _f : 0), ((_h = (_g = this.cUnderscore) === null || _g === void 0 ? void 0 : _g.dUnderscore) !== null && _h !== void 0 ? _h : BigInt(0)), this.d, ((_k = (_j = this.e) === null || _j === void 0 ? void 0 : _j.a) !== null && _k !== void 0 ? _k : 0), ((_m = (_l = this.e) === null || _l === void 0 ? void 0 : _l.b) !== null && _m !== void 0 ? _m : []), ((_q = (_p = this.e) === null || _p === void 0 ? void 0 : _p.c) !== null && _q !== void 0 ? _q : 0), ((_s = (_r = this.e) === null || _r === void 0 ? void 0 : _r.dUnderscore) !== null && _s !== void 0 ? _s : BigInt(0)), this.f);
+    }
+}
+export class NestedStruct {
+    constructor() {
+        this.bb = null;
+        this.bb_pos = 0;
+    }
+    __init(i, bb) {
+        this.bb_pos = i;
+        this.bb = bb;
+        return this;
+    }
+    a(index) {
+        return this.bb.readInt32(this.bb_pos + 0 + index * 4);
+    }
+    b() {
+        return this.bb.readInt8(this.bb_pos + 8);
+    }
+    cUnderscore(index) {
+        return this.bb.readInt8(this.bb_pos + 9 + index);
+    }
+    dOuter(index, obj) {
+        return (obj || new OuterStruct()).__init(this.bb_pos + 16 + index * 208, this.bb);
+    }
+    e(index) {
+        return this.bb.readInt64(this.bb_pos + 1056 + index * 8);
+    }
+    static getFullyQualifiedName() {
+        return 'MyGame_Example_NestedStruct';
+    }
+    static sizeOf() {
+        return 1072;
+    }
+    static createNestedStruct(builder, a, b, c_underscore, d_outer, e) {
+        var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _p, _q, _r, _s, _t, _u, _v;
+        builder.prep(8, 1072);
+        for (let i = 1; i >= 0; --i) {
+            builder.writeInt64(BigInt((_a = e === null || e === void 0 ? void 0 : e[i]) !== null && _a !== void 0 ? _a : 0));
+        }
+        for (let i = 4; i >= 0; --i) {
+            const item = d_outer === null || d_outer === void 0 ? void 0 : d_outer[i];
+            if (item instanceof OuterStructT) {
+                item.pack(builder);
+                continue;
+            }
+            OuterStruct.createOuterStruct(builder, item === null || item === void 0 ? void 0 : item.a, item === null || item === void 0 ? void 0 : item.b, ((_c = (_b = item === null || item === void 0 ? void 0 : item.cUnderscore) === null || _b === void 0 ? void 0 : _b.a) !== null && _c !== void 0 ? _c : 0), ((_e = (_d = item === null || item === void 0 ? void 0 : item.cUnderscore) === null || _d === void 0 ? void 0 : _d.b) !== null && _e !== void 0 ? _e : []), ((_g = (_f = item === null || item === void 0 ? void 0 : item.cUnderscore) === null || _f === void 0 ? void 0 : _f.c) !== null && _g !== void 0 ? _g : 0), ((_j = (_h = item === null || item === void 0 ? void 0 : item.cUnderscore) === null || _h === void 0 ? void 0 : _h.dUnderscore) !== null && _j !== void 0 ? _j : BigInt(0)), item === null || item === void 0 ? void 0 : item.d, ((_l = (_k = item === null || item === void 0 ? void 0 : item.e) === null || _k === void 0 ? void 0 : _k.a) !== null && _l !== void 0 ? _l : 0), ((_p = (_m = item === null || item === void 0 ? void 0 : item.e) === null || _m === void 0 ? void 0 : _m.b) !== null && _p !== void 0 ? _p : []), ((_r = (_q = item === null || item === void 0 ? void 0 : item.e) === null || _q === void 0 ? void 0 : _q.c) !== null && _r !== void 0 ? _r : 0), ((_t = (_s = item === null || item === void 0 ? void 0 : item.e) === null || _s === void 0 ? void 0 : _s.dUnderscore) !== null && _t !== void 0 ? _t : BigInt(0)), item === null || item === void 0 ? void 0 : item.f);
+        }
+        builder.pad(5);
+        for (let i = 1; i >= 0; --i) {
+            builder.writeInt8(((_u = c_underscore === null || c_underscore === void 0 ? void 0 : c_underscore[i]) !== null && _u !== void 0 ? _u : 0));
+        }
+        builder.writeInt8(b);
+        for (let i = 1; i >= 0; --i) {
+            builder.writeInt32(((_v = a === null || a === void 0 ? void 0 : a[i]) !== null && _v !== void 0 ? _v : 0));
+        }
+        return builder.offset();
+    }
+    unpack() {
+        return new NestedStructT(this.bb.createScalarList(this.a.bind(this), 2), this.b(), this.bb.createScalarList(this.cUnderscore.bind(this), 2), this.bb.createObjList(this.dOuter.bind(this), 5), this.bb.createScalarList(this.e.bind(this), 2));
+    }
+    unpackTo(_o) {
+        _o.a = this.bb.createScalarList(this.a.bind(this), 2);
+        _o.b = this.b();
+        _o.cUnderscore = this.bb.createScalarList(this.cUnderscore.bind(this), 2);
+        _o.dOuter = this.bb.createObjList(this.dOuter.bind(this), 5);
+        _o.e = this.bb.createScalarList(this.e.bind(this), 2);
+    }
+}
+export class NestedStructT {
+    constructor(a = [], b = TestEnum.A, cUnderscore = [TestEnum.A, TestEnum.A], dOuter = [], e = []) {
+        this.a = a;
+        this.b = b;
+        this.cUnderscore = cUnderscore;
+        this.dOuter = dOuter;
+        this.e = e;
+    }
+    pack(builder) {
+        return NestedStruct.createNestedStruct(builder, this.a, this.b, this.cUnderscore, this.dOuter, this.e);
+    }
+}
 export class ArrayStruct {
     constructor() {
         this.bb = null;
@@ -171,239 +405,5 @@ export class ArrayTableT {
         ArrayTable.addA(builder, a);
         ArrayTable.addCUnderscore(builder, (this.cUnderscore !== null ? this.cUnderscore.pack(builder) : 0));
         return ArrayTable.endArrayTable(builder);
-    }
-}
-export class InnerStruct {
-    constructor() {
-        this.bb = null;
-        this.bb_pos = 0;
-    }
-    __init(i, bb) {
-        this.bb_pos = i;
-        this.bb = bb;
-        return this;
-    }
-    a() {
-        return this.bb.readFloat64(this.bb_pos);
-    }
-    b(index) {
-        return this.bb.readUint8(this.bb_pos + 8 + index);
-    }
-    c() {
-        return this.bb.readInt8(this.bb_pos + 21);
-    }
-    dUnderscore() {
-        return this.bb.readInt64(this.bb_pos + 24);
-    }
-    static getFullyQualifiedName() {
-        return 'MyGame_Example_InnerStruct';
-    }
-    static sizeOf() {
-        return 32;
-    }
-    static createInnerStruct(builder, a, b, c, d_underscore) {
-        var _a;
-        builder.prep(8, 32);
-        builder.writeInt64(BigInt(d_underscore !== null && d_underscore !== void 0 ? d_underscore : 0));
-        builder.pad(2);
-        builder.writeInt8(c);
-        for (let i = 12; i >= 0; --i) {
-            builder.writeInt8(((_a = b === null || b === void 0 ? void 0 : b[i]) !== null && _a !== void 0 ? _a : 0));
-        }
-        builder.writeFloat64(a);
-        return builder.offset();
-    }
-    unpack() {
-        return new InnerStructT(this.a(), this.bb.createScalarList(this.b.bind(this), 13), this.c(), this.dUnderscore());
-    }
-    unpackTo(_o) {
-        _o.a = this.a();
-        _o.b = this.bb.createScalarList(this.b.bind(this), 13);
-        _o.c = this.c();
-        _o.dUnderscore = this.dUnderscore();
-    }
-}
-export class InnerStructT {
-    constructor(a = 0.0, b = [], c = 0, dUnderscore = BigInt('0')) {
-        this.a = a;
-        this.b = b;
-        this.c = c;
-        this.dUnderscore = dUnderscore;
-    }
-    pack(builder) {
-        return InnerStruct.createInnerStruct(builder, this.a, this.b, this.c, this.dUnderscore);
-    }
-}
-export class NestedStruct {
-    constructor() {
-        this.bb = null;
-        this.bb_pos = 0;
-    }
-    __init(i, bb) {
-        this.bb_pos = i;
-        this.bb = bb;
-        return this;
-    }
-    a(index) {
-        return this.bb.readInt32(this.bb_pos + 0 + index * 4);
-    }
-    b() {
-        return this.bb.readInt8(this.bb_pos + 8);
-    }
-    cUnderscore(index) {
-        return this.bb.readInt8(this.bb_pos + 9 + index);
-    }
-    dOuter(index, obj) {
-        return (obj || new OuterStruct()).__init(this.bb_pos + 16 + index * 208, this.bb);
-    }
-    e(index) {
-        return this.bb.readInt64(this.bb_pos + 1056 + index * 8);
-    }
-    static getFullyQualifiedName() {
-        return 'MyGame_Example_NestedStruct';
-    }
-    static sizeOf() {
-        return 1072;
-    }
-    static createNestedStruct(builder, a, b, c_underscore, d_outer, e) {
-        var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _p, _q, _r, _s, _t, _u, _v;
-        builder.prep(8, 1072);
-        for (let i = 1; i >= 0; --i) {
-            builder.writeInt64(BigInt((_a = e === null || e === void 0 ? void 0 : e[i]) !== null && _a !== void 0 ? _a : 0));
-        }
-        for (let i = 4; i >= 0; --i) {
-            const item = d_outer === null || d_outer === void 0 ? void 0 : d_outer[i];
-            if (item instanceof OuterStructT) {
-                item.pack(builder);
-                continue;
-            }
-            OuterStruct.createOuterStruct(builder, item === null || item === void 0 ? void 0 : item.a, item === null || item === void 0 ? void 0 : item.b, ((_c = (_b = item === null || item === void 0 ? void 0 : item.cUnderscore) === null || _b === void 0 ? void 0 : _b.a) !== null && _c !== void 0 ? _c : 0), ((_e = (_d = item === null || item === void 0 ? void 0 : item.cUnderscore) === null || _d === void 0 ? void 0 : _d.b) !== null && _e !== void 0 ? _e : []), ((_g = (_f = item === null || item === void 0 ? void 0 : item.cUnderscore) === null || _f === void 0 ? void 0 : _f.c) !== null && _g !== void 0 ? _g : 0), ((_j = (_h = item === null || item === void 0 ? void 0 : item.cUnderscore) === null || _h === void 0 ? void 0 : _h.dUnderscore) !== null && _j !== void 0 ? _j : BigInt(0)), item === null || item === void 0 ? void 0 : item.d, ((_l = (_k = item === null || item === void 0 ? void 0 : item.e) === null || _k === void 0 ? void 0 : _k.a) !== null && _l !== void 0 ? _l : 0), ((_p = (_m = item === null || item === void 0 ? void 0 : item.e) === null || _m === void 0 ? void 0 : _m.b) !== null && _p !== void 0 ? _p : []), ((_r = (_q = item === null || item === void 0 ? void 0 : item.e) === null || _q === void 0 ? void 0 : _q.c) !== null && _r !== void 0 ? _r : 0), ((_t = (_s = item === null || item === void 0 ? void 0 : item.e) === null || _s === void 0 ? void 0 : _s.dUnderscore) !== null && _t !== void 0 ? _t : BigInt(0)), item === null || item === void 0 ? void 0 : item.f);
-        }
-        builder.pad(5);
-        for (let i = 1; i >= 0; --i) {
-            builder.writeInt8(((_u = c_underscore === null || c_underscore === void 0 ? void 0 : c_underscore[i]) !== null && _u !== void 0 ? _u : 0));
-        }
-        builder.writeInt8(b);
-        for (let i = 1; i >= 0; --i) {
-            builder.writeInt32(((_v = a === null || a === void 0 ? void 0 : a[i]) !== null && _v !== void 0 ? _v : 0));
-        }
-        return builder.offset();
-    }
-    unpack() {
-        return new NestedStructT(this.bb.createScalarList(this.a.bind(this), 2), this.b(), this.bb.createScalarList(this.cUnderscore.bind(this), 2), this.bb.createObjList(this.dOuter.bind(this), 5), this.bb.createScalarList(this.e.bind(this), 2));
-    }
-    unpackTo(_o) {
-        _o.a = this.bb.createScalarList(this.a.bind(this), 2);
-        _o.b = this.b();
-        _o.cUnderscore = this.bb.createScalarList(this.cUnderscore.bind(this), 2);
-        _o.dOuter = this.bb.createObjList(this.dOuter.bind(this), 5);
-        _o.e = this.bb.createScalarList(this.e.bind(this), 2);
-    }
-}
-export class NestedStructT {
-    constructor(a = [], b = TestEnum.A, cUnderscore = [TestEnum.A, TestEnum.A], dOuter = [], e = []) {
-        this.a = a;
-        this.b = b;
-        this.cUnderscore = cUnderscore;
-        this.dOuter = dOuter;
-        this.e = e;
-    }
-    pack(builder) {
-        return NestedStruct.createNestedStruct(builder, this.a, this.b, this.cUnderscore, this.dOuter, this.e);
-    }
-}
-export class OuterStruct {
-    constructor() {
-        this.bb = null;
-        this.bb_pos = 0;
-    }
-    __init(i, bb) {
-        this.bb_pos = i;
-        this.bb = bb;
-        return this;
-    }
-    a() {
-        return !!this.bb.readInt8(this.bb_pos);
-    }
-    b() {
-        return this.bb.readFloat64(this.bb_pos + 8);
-    }
-    cUnderscore(obj) {
-        return (obj || new InnerStruct()).__init(this.bb_pos + 16, this.bb);
-    }
-    d(index, obj) {
-        return (obj || new InnerStruct()).__init(this.bb_pos + 48 + index * 32, this.bb);
-    }
-    e(obj) {
-        return (obj || new InnerStruct()).__init(this.bb_pos + 144, this.bb);
-    }
-    f(index) {
-        return this.bb.readFloat64(this.bb_pos + 176 + index * 8);
-    }
-    static getFullyQualifiedName() {
-        return 'MyGame_Example_OuterStruct';
-    }
-    static sizeOf() {
-        return 208;
-    }
-    static createOuterStruct(builder, a, b, c_underscore_a, c_underscore_b, c_underscore_c, c_underscore_d_underscore, d, e_a, e_b, e_c, e_d_underscore, f) {
-        var _a, _b, _c;
-        builder.prep(8, 208);
-        for (let i = 3; i >= 0; --i) {
-            builder.writeFloat64(((_a = f === null || f === void 0 ? void 0 : f[i]) !== null && _a !== void 0 ? _a : 0));
-        }
-        builder.prep(8, 32);
-        builder.writeInt64(BigInt(e_d_underscore !== null && e_d_underscore !== void 0 ? e_d_underscore : 0));
-        builder.pad(2);
-        builder.writeInt8(e_c);
-        for (let i = 12; i >= 0; --i) {
-            builder.writeInt8(((_b = e_b === null || e_b === void 0 ? void 0 : e_b[i]) !== null && _b !== void 0 ? _b : 0));
-        }
-        builder.writeFloat64(e_a);
-        for (let i = 2; i >= 0; --i) {
-            const item = d === null || d === void 0 ? void 0 : d[i];
-            if (item instanceof InnerStructT) {
-                item.pack(builder);
-                continue;
-            }
-            InnerStruct.createInnerStruct(builder, item === null || item === void 0 ? void 0 : item.a, item === null || item === void 0 ? void 0 : item.b, item === null || item === void 0 ? void 0 : item.c, item === null || item === void 0 ? void 0 : item.dUnderscore);
-        }
-        builder.prep(8, 32);
-        builder.writeInt64(BigInt(c_underscore_d_underscore !== null && c_underscore_d_underscore !== void 0 ? c_underscore_d_underscore : 0));
-        builder.pad(2);
-        builder.writeInt8(c_underscore_c);
-        for (let i = 12; i >= 0; --i) {
-            builder.writeInt8(((_c = c_underscore_b === null || c_underscore_b === void 0 ? void 0 : c_underscore_b[i]) !== null && _c !== void 0 ? _c : 0));
-        }
-        builder.writeFloat64(c_underscore_a);
-        builder.writeFloat64(b);
-        builder.pad(7);
-        builder.writeInt8(Number(Boolean(a)));
-        return builder.offset();
-    }
-    unpack() {
-        return new OuterStructT(this.a(), this.b(), (this.cUnderscore() !== null ? this.cUnderscore().unpack() : null), this.bb.createObjList(this.d.bind(this), 3), (this.e() !== null ? this.e().unpack() : null), this.bb.createScalarList(this.f.bind(this), 4));
-    }
-    unpackTo(_o) {
-        _o.a = this.a();
-        _o.b = this.b();
-        _o.cUnderscore = (this.cUnderscore() !== null ? this.cUnderscore().unpack() : null);
-        _o.d = this.bb.createObjList(this.d.bind(this), 3);
-        _o.e = (this.e() !== null ? this.e().unpack() : null);
-        _o.f = this.bb.createScalarList(this.f.bind(this), 4);
-    }
-}
-export class OuterStructT {
-    constructor(a = false, b = 0.0, cUnderscore = null, d = [], e = null, f = []) {
-        this.a = a;
-        this.b = b;
-        this.cUnderscore = cUnderscore;
-        this.d = d;
-        this.e = e;
-        this.f = f;
-    }
-    pack(builder) {
-        var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _p, _q, _r, _s;
-        return OuterStruct.createOuterStruct(builder, this.a, this.b, ((_b = (_a = this.cUnderscore) === null || _a === void 0 ? void 0 : _a.a) !== null && _b !== void 0 ? _b : 0), ((_d = (_c = this.cUnderscore) === null || _c === void 0 ? void 0 : _c.b) !== null && _d !== void 0 ? _d : []), ((_f = (_e = this.cUnderscore) === null || _e === void 0 ? void 0 : _e.c) !== null && _f !== void 0 ? _f : 0), ((_h = (_g = this.cUnderscore) === null || _g === void 0 ? void 0 : _g.dUnderscore) !== null && _h !== void 0 ? _h : BigInt(0)), this.d, ((_k = (_j = this.e) === null || _j === void 0 ? void 0 : _j.a) !== null && _k !== void 0 ? _k : 0), ((_m = (_l = this.e) === null || _l === void 0 ? void 0 : _l.b) !== null && _m !== void 0 ? _m : []), ((_q = (_p = this.e) === null || _p === void 0 ? void 0 : _p.c) !== null && _q !== void 0 ? _q : 0), ((_s = (_r = this.e) === null || _r === void 0 ? void 0 : _r.dUnderscore) !== null && _s !== void 0 ? _s : BigInt(0)), this.f);
     }
 }

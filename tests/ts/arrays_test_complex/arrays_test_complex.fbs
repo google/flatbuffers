@@ -1,11 +1,5 @@
 namespace MyGame.Example;
 
-// it appears that the library has already a problem with Enums
-// when generating ts file with '--ts-flat-files' from a fbs.
-// bfbs is fine.
-// workaround is to generate bfbs from fbs first, and then 
-// generate flat .ts from bfbs if you have enum(s) in your chema
-
 enum TestEnum : byte { A, B, C }
 
 struct InnerStruct {

@@ -9,6 +9,366 @@ export enum TestEnum {
   C = 2
 }
 
+export class InnerStruct implements flatbuffers.IUnpackableObject<InnerStructT> {
+  bb: flatbuffers.ByteBuffer|null = null;
+  bb_pos = 0;
+  __init(i:number, bb:flatbuffers.ByteBuffer):InnerStruct {
+  this.bb_pos = i;
+  this.bb = bb;
+  return this;
+}
+
+a():number {
+  return this.bb!.readFloat64(this.bb_pos);
+}
+
+b(index: number):number|null {
+    return this.bb!.readUint8(this.bb_pos + 8 + index);
+}
+
+c():number {
+  return this.bb!.readInt8(this.bb_pos + 21);
+}
+
+dUnderscore():bigint {
+  return this.bb!.readInt64(this.bb_pos + 24);
+}
+
+static getFullyQualifiedName():string {
+  return 'MyGame_Example_InnerStruct';
+}
+
+static sizeOf():number {
+  return 32;
+}
+
+static createInnerStruct(builder:flatbuffers.Builder, a: number, b: number[]|null, c: number, d_underscore: bigint):flatbuffers.Offset {
+  builder.prep(8, 32);
+  builder.writeInt64(BigInt(d_underscore ?? 0));
+  builder.pad(2);
+  builder.writeInt8(c);
+
+  for (let i = 12; i >= 0; --i) {
+    builder.writeInt8((b?.[i] ?? 0));
+
+  }
+
+  builder.writeFloat64(a);
+  return builder.offset();
+}
+
+
+unpack(): InnerStructT {
+  return new InnerStructT(
+    this.a(),
+    this.bb!.createScalarList<number>(this.b.bind(this), 13),
+    this.c(),
+    this.dUnderscore()
+  );
+}
+
+
+unpackTo(_o: InnerStructT): void {
+  _o.a = this.a();
+  _o.b = this.bb!.createScalarList<number>(this.b.bind(this), 13);
+  _o.c = this.c();
+  _o.dUnderscore = this.dUnderscore();
+}
+}
+
+export class InnerStructT implements flatbuffers.IGeneratedObject {
+constructor(
+  public a: number = 0.0,
+  public b: (number)[] = [],
+  public c: number = 0,
+  public dUnderscore: bigint = BigInt('0')
+){}
+
+
+pack(builder:flatbuffers.Builder): flatbuffers.Offset {
+  return InnerStruct.createInnerStruct(builder,
+    this.a,
+    this.b,
+    this.c,
+    this.dUnderscore
+  );
+}
+}
+
+export class OuterStruct implements flatbuffers.IUnpackableObject<OuterStructT> {
+  bb: flatbuffers.ByteBuffer|null = null;
+  bb_pos = 0;
+  __init(i:number, bb:flatbuffers.ByteBuffer):OuterStruct {
+  this.bb_pos = i;
+  this.bb = bb;
+  return this;
+}
+
+a():boolean {
+  return !!this.bb!.readInt8(this.bb_pos);
+}
+
+b():number {
+  return this.bb!.readFloat64(this.bb_pos + 8);
+}
+
+cUnderscore(obj?:InnerStruct):InnerStruct|null {
+  return (obj || new InnerStruct()).__init(this.bb_pos + 16, this.bb!);
+}
+
+d(index: number, obj?:InnerStruct):InnerStruct|null {
+    return (obj || new InnerStruct()).__init(this.bb_pos + 48 + index * 32, this.bb!);
+}
+
+e(obj?:InnerStruct):InnerStruct|null {
+  return (obj || new InnerStruct()).__init(this.bb_pos + 144, this.bb!);
+}
+
+f(index: number):number|null {
+    return this.bb!.readFloat64(this.bb_pos + 176 + index * 8);
+}
+
+static getFullyQualifiedName():string {
+  return 'MyGame_Example_OuterStruct';
+}
+
+static sizeOf():number {
+  return 208;
+}
+
+static createOuterStruct(builder:flatbuffers.Builder, a: boolean, b: number, c_underscore_a: number, c_underscore_b: number[]|null, c_underscore_c: number, c_underscore_d_underscore: bigint, d: (any|InnerStructT)[]|null, e_a: number, e_b: number[]|null, e_c: number, e_d_underscore: bigint, f: number[]|null):flatbuffers.Offset {
+  builder.prep(8, 208);
+
+  for (let i = 3; i >= 0; --i) {
+    builder.writeFloat64((f?.[i] ?? 0));
+
+  }
+
+  builder.prep(8, 32);
+  builder.writeInt64(BigInt(e_d_underscore ?? 0));
+  builder.pad(2);
+  builder.writeInt8(e_c);
+
+  for (let i = 12; i >= 0; --i) {
+    builder.writeInt8((e_b?.[i] ?? 0));
+
+  }
+
+  builder.writeFloat64(e_a);
+
+  for (let i = 2; i >= 0; --i) {
+    const item = d?.[i];
+
+    if (item instanceof InnerStructT) {
+      item.pack(builder);
+      continue;
+    }
+
+    InnerStruct.createInnerStruct(builder,
+    item?.a,
+    item?.b,
+    item?.c,
+    item?.dUnderscore
+    );
+  }
+
+  builder.prep(8, 32);
+  builder.writeInt64(BigInt(c_underscore_d_underscore ?? 0));
+  builder.pad(2);
+  builder.writeInt8(c_underscore_c);
+
+  for (let i = 12; i >= 0; --i) {
+    builder.writeInt8((c_underscore_b?.[i] ?? 0));
+
+  }
+
+  builder.writeFloat64(c_underscore_a);
+  builder.writeFloat64(b);
+  builder.pad(7);
+  builder.writeInt8(Number(Boolean(a)));
+  return builder.offset();
+}
+
+
+unpack(): OuterStructT {
+  return new OuterStructT(
+    this.a(),
+    this.b(),
+    (this.cUnderscore() !== null ? this.cUnderscore()!.unpack() : null),
+    this.bb!.createObjList<InnerStruct, InnerStructT>(this.d.bind(this), 3),
+    (this.e() !== null ? this.e()!.unpack() : null),
+    this.bb!.createScalarList<number>(this.f.bind(this), 4)
+  );
+}
+
+
+unpackTo(_o: OuterStructT): void {
+  _o.a = this.a();
+  _o.b = this.b();
+  _o.cUnderscore = (this.cUnderscore() !== null ? this.cUnderscore()!.unpack() : null);
+  _o.d = this.bb!.createObjList<InnerStruct, InnerStructT>(this.d.bind(this), 3);
+  _o.e = (this.e() !== null ? this.e()!.unpack() : null);
+  _o.f = this.bb!.createScalarList<number>(this.f.bind(this), 4);
+}
+}
+
+export class OuterStructT implements flatbuffers.IGeneratedObject {
+constructor(
+  public a: boolean = false,
+  public b: number = 0.0,
+  public cUnderscore: InnerStructT|null = null,
+  public d: (InnerStructT)[] = [],
+  public e: InnerStructT|null = null,
+  public f: (number)[] = []
+){}
+
+
+pack(builder:flatbuffers.Builder): flatbuffers.Offset {
+  return OuterStruct.createOuterStruct(builder,
+    this.a,
+    this.b,
+    (this.cUnderscore?.a ?? 0),
+    (this.cUnderscore?.b ?? []),
+    (this.cUnderscore?.c ?? 0),
+    (this.cUnderscore?.dUnderscore ?? BigInt(0)),
+    this.d,
+    (this.e?.a ?? 0),
+    (this.e?.b ?? []),
+    (this.e?.c ?? 0),
+    (this.e?.dUnderscore ?? BigInt(0)),
+    this.f
+  );
+}
+}
+
+export class NestedStruct implements flatbuffers.IUnpackableObject<NestedStructT> {
+  bb: flatbuffers.ByteBuffer|null = null;
+  bb_pos = 0;
+  __init(i:number, bb:flatbuffers.ByteBuffer):NestedStruct {
+  this.bb_pos = i;
+  this.bb = bb;
+  return this;
+}
+
+a(index: number):number|null {
+    return this.bb!.readInt32(this.bb_pos + 0 + index * 4);
+}
+
+b():TestEnum {
+  return this.bb!.readInt8(this.bb_pos + 8);
+}
+
+cUnderscore(index: number):TestEnum|null {
+    return this.bb!.readInt8(this.bb_pos + 9 + index);
+}
+
+dOuter(index: number, obj?:OuterStruct):OuterStruct|null {
+    return (obj || new OuterStruct()).__init(this.bb_pos + 16 + index * 208, this.bb!);
+}
+
+e(index: number):bigint|null {
+    return this.bb!.readInt64(this.bb_pos + 1056 + index * 8);
+}
+
+static getFullyQualifiedName():string {
+  return 'MyGame_Example_NestedStruct';
+}
+
+static sizeOf():number {
+  return 1072;
+}
+
+static createNestedStruct(builder:flatbuffers.Builder, a: number[]|null, b: TestEnum, c_underscore: number[]|null, d_outer: (any|OuterStructT)[]|null, e: bigint[]|null):flatbuffers.Offset {
+  builder.prep(8, 1072);
+
+  for (let i = 1; i >= 0; --i) {
+    builder.writeInt64(BigInt(e?.[i] ?? 0));
+  }
+
+
+  for (let i = 4; i >= 0; --i) {
+    const item = d_outer?.[i];
+
+    if (item instanceof OuterStructT) {
+      item.pack(builder);
+      continue;
+    }
+
+    OuterStruct.createOuterStruct(builder,
+    item?.a,
+    item?.b,
+    (item?.cUnderscore?.a ?? 0),
+    (item?.cUnderscore?.b ?? []),
+    (item?.cUnderscore?.c ?? 0),
+    (item?.cUnderscore?.dUnderscore ?? BigInt(0)),
+    item?.d,
+    (item?.e?.a ?? 0),
+    (item?.e?.b ?? []),
+    (item?.e?.c ?? 0),
+    (item?.e?.dUnderscore ?? BigInt(0)),
+    item?.f
+    );
+  }
+
+  builder.pad(5);
+
+  for (let i = 1; i >= 0; --i) {
+    builder.writeInt8((c_underscore?.[i] ?? 0));
+
+  }
+
+  builder.writeInt8(b);
+
+  for (let i = 1; i >= 0; --i) {
+    builder.writeInt32((a?.[i] ?? 0));
+
+  }
+
+  return builder.offset();
+}
+
+
+unpack(): NestedStructT {
+  return new NestedStructT(
+    this.bb!.createScalarList<number>(this.a.bind(this), 2),
+    this.b(),
+    this.bb!.createScalarList<TestEnum>(this.cUnderscore.bind(this), 2),
+    this.bb!.createObjList<OuterStruct, OuterStructT>(this.dOuter.bind(this), 5),
+    this.bb!.createScalarList<bigint>(this.e.bind(this), 2)
+  );
+}
+
+
+unpackTo(_o: NestedStructT): void {
+  _o.a = this.bb!.createScalarList<number>(this.a.bind(this), 2);
+  _o.b = this.b();
+  _o.cUnderscore = this.bb!.createScalarList<TestEnum>(this.cUnderscore.bind(this), 2);
+  _o.dOuter = this.bb!.createObjList<OuterStruct, OuterStructT>(this.dOuter.bind(this), 5);
+  _o.e = this.bb!.createScalarList<bigint>(this.e.bind(this), 2);
+}
+}
+
+export class NestedStructT implements flatbuffers.IGeneratedObject {
+constructor(
+  public a: (number)[] = [],
+  public b: TestEnum = TestEnum.A,
+  public cUnderscore: (TestEnum)[] = [TestEnum.A, TestEnum.A],
+  public dOuter: (OuterStructT)[] = [],
+  public e: (bigint)[] = []
+){}
+
+
+pack(builder:flatbuffers.Builder): flatbuffers.Offset {
+  return NestedStruct.createNestedStruct(builder,
+    this.a,
+    this.b,
+    this.cUnderscore,
+    this.dOuter,
+    this.e
+  );
+}
+}
+
 export class ArrayStruct implements flatbuffers.IUnpackableObject<ArrayStructT> {
   bb: flatbuffers.ByteBuffer|null = null;
   bb_pos = 0;
@@ -261,366 +621,6 @@ pack(builder:flatbuffers.Builder): flatbuffers.Offset {
   ArrayTable.addCUnderscore(builder, (this.cUnderscore !== null ? this.cUnderscore!.pack(builder) : 0));
 
   return ArrayTable.endArrayTable(builder);
-}
-}
-
-export class InnerStruct implements flatbuffers.IUnpackableObject<InnerStructT> {
-  bb: flatbuffers.ByteBuffer|null = null;
-  bb_pos = 0;
-  __init(i:number, bb:flatbuffers.ByteBuffer):InnerStruct {
-  this.bb_pos = i;
-  this.bb = bb;
-  return this;
-}
-
-a():number {
-  return this.bb!.readFloat64(this.bb_pos);
-}
-
-b(index: number):number|null {
-    return this.bb!.readUint8(this.bb_pos + 8 + index);
-}
-
-c():number {
-  return this.bb!.readInt8(this.bb_pos + 21);
-}
-
-dUnderscore():bigint {
-  return this.bb!.readInt64(this.bb_pos + 24);
-}
-
-static getFullyQualifiedName():string {
-  return 'MyGame_Example_InnerStruct';
-}
-
-static sizeOf():number {
-  return 32;
-}
-
-static createInnerStruct(builder:flatbuffers.Builder, a: number, b: number[]|null, c: number, d_underscore: bigint):flatbuffers.Offset {
-  builder.prep(8, 32);
-  builder.writeInt64(BigInt(d_underscore ?? 0));
-  builder.pad(2);
-  builder.writeInt8(c);
-
-  for (let i = 12; i >= 0; --i) {
-    builder.writeInt8((b?.[i] ?? 0));
-
-  }
-
-  builder.writeFloat64(a);
-  return builder.offset();
-}
-
-
-unpack(): InnerStructT {
-  return new InnerStructT(
-    this.a(),
-    this.bb!.createScalarList<number>(this.b.bind(this), 13),
-    this.c(),
-    this.dUnderscore()
-  );
-}
-
-
-unpackTo(_o: InnerStructT): void {
-  _o.a = this.a();
-  _o.b = this.bb!.createScalarList<number>(this.b.bind(this), 13);
-  _o.c = this.c();
-  _o.dUnderscore = this.dUnderscore();
-}
-}
-
-export class InnerStructT implements flatbuffers.IGeneratedObject {
-constructor(
-  public a: number = 0.0,
-  public b: (number)[] = [],
-  public c: number = 0,
-  public dUnderscore: bigint = BigInt('0')
-){}
-
-
-pack(builder:flatbuffers.Builder): flatbuffers.Offset {
-  return InnerStruct.createInnerStruct(builder,
-    this.a,
-    this.b,
-    this.c,
-    this.dUnderscore
-  );
-}
-}
-
-export class NestedStruct implements flatbuffers.IUnpackableObject<NestedStructT> {
-  bb: flatbuffers.ByteBuffer|null = null;
-  bb_pos = 0;
-  __init(i:number, bb:flatbuffers.ByteBuffer):NestedStruct {
-  this.bb_pos = i;
-  this.bb = bb;
-  return this;
-}
-
-a(index: number):number|null {
-    return this.bb!.readInt32(this.bb_pos + 0 + index * 4);
-}
-
-b():TestEnum {
-  return this.bb!.readInt8(this.bb_pos + 8);
-}
-
-cUnderscore(index: number):TestEnum|null {
-    return this.bb!.readInt8(this.bb_pos + 9 + index);
-}
-
-dOuter(index: number, obj?:OuterStruct):OuterStruct|null {
-    return (obj || new OuterStruct()).__init(this.bb_pos + 16 + index * 208, this.bb!);
-}
-
-e(index: number):bigint|null {
-    return this.bb!.readInt64(this.bb_pos + 1056 + index * 8);
-}
-
-static getFullyQualifiedName():string {
-  return 'MyGame_Example_NestedStruct';
-}
-
-static sizeOf():number {
-  return 1072;
-}
-
-static createNestedStruct(builder:flatbuffers.Builder, a: number[]|null, b: TestEnum, c_underscore: number[]|null, d_outer: (any|OuterStructT)[]|null, e: bigint[]|null):flatbuffers.Offset {
-  builder.prep(8, 1072);
-
-  for (let i = 1; i >= 0; --i) {
-    builder.writeInt64(BigInt(e?.[i] ?? 0));
-  }
-
-
-  for (let i = 4; i >= 0; --i) {
-    const item = d_outer?.[i];
-
-    if (item instanceof OuterStructT) {
-      item.pack(builder);
-      continue;
-    }
-
-    OuterStruct.createOuterStruct(builder,
-    item?.a,
-    item?.b,
-    (item?.cUnderscore?.a ?? 0),
-    (item?.cUnderscore?.b ?? []),
-    (item?.cUnderscore?.c ?? 0),
-    (item?.cUnderscore?.dUnderscore ?? BigInt(0)),
-    item?.d,
-    (item?.e?.a ?? 0),
-    (item?.e?.b ?? []),
-    (item?.e?.c ?? 0),
-    (item?.e?.dUnderscore ?? BigInt(0)),
-    item?.f
-    );
-  }
-
-  builder.pad(5);
-
-  for (let i = 1; i >= 0; --i) {
-    builder.writeInt8((c_underscore?.[i] ?? 0));
-
-  }
-
-  builder.writeInt8(b);
-
-  for (let i = 1; i >= 0; --i) {
-    builder.writeInt32((a?.[i] ?? 0));
-
-  }
-
-  return builder.offset();
-}
-
-
-unpack(): NestedStructT {
-  return new NestedStructT(
-    this.bb!.createScalarList<number>(this.a.bind(this), 2),
-    this.b(),
-    this.bb!.createScalarList<TestEnum>(this.cUnderscore.bind(this), 2),
-    this.bb!.createObjList<OuterStruct, OuterStructT>(this.dOuter.bind(this), 5),
-    this.bb!.createScalarList<bigint>(this.e.bind(this), 2)
-  );
-}
-
-
-unpackTo(_o: NestedStructT): void {
-  _o.a = this.bb!.createScalarList<number>(this.a.bind(this), 2);
-  _o.b = this.b();
-  _o.cUnderscore = this.bb!.createScalarList<TestEnum>(this.cUnderscore.bind(this), 2);
-  _o.dOuter = this.bb!.createObjList<OuterStruct, OuterStructT>(this.dOuter.bind(this), 5);
-  _o.e = this.bb!.createScalarList<bigint>(this.e.bind(this), 2);
-}
-}
-
-export class NestedStructT implements flatbuffers.IGeneratedObject {
-constructor(
-  public a: (number)[] = [],
-  public b: TestEnum = TestEnum.A,
-  public cUnderscore: (TestEnum)[] = [TestEnum.A, TestEnum.A],
-  public dOuter: (OuterStructT)[] = [],
-  public e: (bigint)[] = []
-){}
-
-
-pack(builder:flatbuffers.Builder): flatbuffers.Offset {
-  return NestedStruct.createNestedStruct(builder,
-    this.a,
-    this.b,
-    this.cUnderscore,
-    this.dOuter,
-    this.e
-  );
-}
-}
-
-export class OuterStruct implements flatbuffers.IUnpackableObject<OuterStructT> {
-  bb: flatbuffers.ByteBuffer|null = null;
-  bb_pos = 0;
-  __init(i:number, bb:flatbuffers.ByteBuffer):OuterStruct {
-  this.bb_pos = i;
-  this.bb = bb;
-  return this;
-}
-
-a():boolean {
-  return !!this.bb!.readInt8(this.bb_pos);
-}
-
-b():number {
-  return this.bb!.readFloat64(this.bb_pos + 8);
-}
-
-cUnderscore(obj?:InnerStruct):InnerStruct|null {
-  return (obj || new InnerStruct()).__init(this.bb_pos + 16, this.bb!);
-}
-
-d(index: number, obj?:InnerStruct):InnerStruct|null {
-    return (obj || new InnerStruct()).__init(this.bb_pos + 48 + index * 32, this.bb!);
-}
-
-e(obj?:InnerStruct):InnerStruct|null {
-  return (obj || new InnerStruct()).__init(this.bb_pos + 144, this.bb!);
-}
-
-f(index: number):number|null {
-    return this.bb!.readFloat64(this.bb_pos + 176 + index * 8);
-}
-
-static getFullyQualifiedName():string {
-  return 'MyGame_Example_OuterStruct';
-}
-
-static sizeOf():number {
-  return 208;
-}
-
-static createOuterStruct(builder:flatbuffers.Builder, a: boolean, b: number, c_underscore_a: number, c_underscore_b: number[]|null, c_underscore_c: number, c_underscore_d_underscore: bigint, d: (any|InnerStructT)[]|null, e_a: number, e_b: number[]|null, e_c: number, e_d_underscore: bigint, f: number[]|null):flatbuffers.Offset {
-  builder.prep(8, 208);
-
-  for (let i = 3; i >= 0; --i) {
-    builder.writeFloat64((f?.[i] ?? 0));
-
-  }
-
-  builder.prep(8, 32);
-  builder.writeInt64(BigInt(e_d_underscore ?? 0));
-  builder.pad(2);
-  builder.writeInt8(e_c);
-
-  for (let i = 12; i >= 0; --i) {
-    builder.writeInt8((e_b?.[i] ?? 0));
-
-  }
-
-  builder.writeFloat64(e_a);
-
-  for (let i = 2; i >= 0; --i) {
-    const item = d?.[i];
-
-    if (item instanceof InnerStructT) {
-      item.pack(builder);
-      continue;
-    }
-
-    InnerStruct.createInnerStruct(builder,
-    item?.a,
-    item?.b,
-    item?.c,
-    item?.dUnderscore
-    );
-  }
-
-  builder.prep(8, 32);
-  builder.writeInt64(BigInt(c_underscore_d_underscore ?? 0));
-  builder.pad(2);
-  builder.writeInt8(c_underscore_c);
-
-  for (let i = 12; i >= 0; --i) {
-    builder.writeInt8((c_underscore_b?.[i] ?? 0));
-
-  }
-
-  builder.writeFloat64(c_underscore_a);
-  builder.writeFloat64(b);
-  builder.pad(7);
-  builder.writeInt8(Number(Boolean(a)));
-  return builder.offset();
-}
-
-
-unpack(): OuterStructT {
-  return new OuterStructT(
-    this.a(),
-    this.b(),
-    (this.cUnderscore() !== null ? this.cUnderscore()!.unpack() : null),
-    this.bb!.createObjList<InnerStruct, InnerStructT>(this.d.bind(this), 3),
-    (this.e() !== null ? this.e()!.unpack() : null),
-    this.bb!.createScalarList<number>(this.f.bind(this), 4)
-  );
-}
-
-
-unpackTo(_o: OuterStructT): void {
-  _o.a = this.a();
-  _o.b = this.b();
-  _o.cUnderscore = (this.cUnderscore() !== null ? this.cUnderscore()!.unpack() : null);
-  _o.d = this.bb!.createObjList<InnerStruct, InnerStructT>(this.d.bind(this), 3);
-  _o.e = (this.e() !== null ? this.e()!.unpack() : null);
-  _o.f = this.bb!.createScalarList<number>(this.f.bind(this), 4);
-}
-}
-
-export class OuterStructT implements flatbuffers.IGeneratedObject {
-constructor(
-  public a: boolean = false,
-  public b: number = 0.0,
-  public cUnderscore: InnerStructT|null = null,
-  public d: (InnerStructT)[] = [],
-  public e: InnerStructT|null = null,
-  public f: (number)[] = []
-){}
-
-
-pack(builder:flatbuffers.Builder): flatbuffers.Offset {
-  return OuterStruct.createOuterStruct(builder,
-    this.a,
-    this.b,
-    (this.cUnderscore?.a ?? 0),
-    (this.cUnderscore?.b ?? []),
-    (this.cUnderscore?.c ?? 0),
-    (this.cUnderscore?.dUnderscore ?? BigInt(0)),
-    this.d,
-    (this.e?.a ?? 0),
-    (this.e?.b ?? []),
-    (this.e?.c ?? 0),
-    (this.e?.dUnderscore ?? BigInt(0)),
-    this.f
-  );
 }
 }
 
