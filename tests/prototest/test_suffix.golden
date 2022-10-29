@@ -54,6 +54,7 @@ table ProtoMessage {
   u:float = +inf;
   v:float = +inf;
   w:float = -inf;
+  ids:[proto.test.test_namespace_suffix.ProtoMessage_.IdsEntry];
 }
 
 namespace proto.test.test_namespace_suffix.ProtoMessage_;
@@ -71,5 +72,10 @@ table Anonymous0 {
   /// doc comment for t on 2
   /// lines.
   t:proto.test.test_namespace_suffix.ProtoMessage_.OtherMessage;
+}
+
+table IdsEntry {
+  key:string (key);
+  value:float;
 }
 

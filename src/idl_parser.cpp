@@ -16,6 +16,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <iostream>
 #include <list>
 #include <string>
 #include <utility>
@@ -507,6 +508,8 @@ CheckedError Parser::Next() {
       case ')':
       case '[':
       case ']':
+	  case '<':
+	  case '>':
       case ',':
       case ':':
       case ';':
@@ -2896,6 +2899,8 @@ CheckedError Parser::ParseProtoFields(StructDef *struct_def, bool isextend,
       NEXT();
       while (!Is(';')) { NEXT(); }  // A variety of formats, just skip.
       NEXT();
+    } else if (IsIdent("map")) {
+      ECHECK(ParseProtoMapField(struct_def));
     } else {
       std::vector<std::string> field_comment = doc_comment_;
       // Parse the qualifier.
@@ -3027,6 +3032,41 @@ CheckedError Parser::ParseProtoFields(StructDef *struct_def, bool isextend,
     }
   }
   NEXT();
+  return NoError();
+}
+
+CheckedError Parser::ParseProtoMapField(StructDef *struct_def) {
+  NEXT();
+  EXPECT('<');
+  Type key_type;
+  ECHECK(ParseType(key_type));
+  EXPECT(',');
+  Type value_type;
+  ECHECK(ParseType(value_type));
+  EXPECT('>');
+  auto field_name = attribute_;
+  NEXT();
+  EXPECT('=');
+  EXPECT(kTokenIntegerConstant);
+  EXPECT(';');
+
+  auto table_name = ConvertCase(field_name, Case::kUpperCamel) + "Entry";
+  StructDef *table_struct_def;
+  ECHECK(StartStruct(table_name, &table_struct_def));
+  table_struct_def->has_key = true;
+  FieldDef *key_field_def;
+  ECHECK(AddField(*table_struct_def, "key", key_type, &key_field_def));
+  key_field_def->key = true;
+  FieldDef *value_field_def;
+  ECHECK(AddField(*table_struct_def, "value", value_type, &value_field_def));
+
+  Type field_type;
+  field_type.base_type = BASE_TYPE_VECTOR;
+  field_type.element = BASE_TYPE_STRUCT;
+  field_type.struct_def = table_struct_def;
+  FieldDef *field_def;
+  ECHECK(AddField(*struct_def, field_name, field_type, &field_def));
+
   return NoError();
 }
 

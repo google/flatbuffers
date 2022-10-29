@@ -71,4 +71,6 @@ message ProtoMessage {
   optional float u = 34 [default = inf];
   optional float v = 35 [default = +inf];
   optional float w = 36 [default = -inf];
+
+  map<string, float> ids = 37;
 }
