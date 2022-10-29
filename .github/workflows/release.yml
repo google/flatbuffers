@@ -73,5 +73,34 @@ jobs:
       - name: Upload to NuGet
         run: |
           dotnet nuget push .\bin\Release\Google.FlatBuffers.*.nupkg -k ${{ secrets.NUGET_API_KEY }} -s https://api.nuget.org/v3/index.json 
+   
+  publish-maven:
+    name: Publish Maven
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./java
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Set up Maven Central Repository
+        uses: actions/setup-java@v3
+        with:
+          java-version: '11'
+          distribution: 'adopt'
+          cache: 'maven'
+          server-id: ossrh
+          server-username: OSSRH_USERNAME
+          server-password: OSSRH_PASSWORD
+          gpg-private-key: ${{ secrets.MAVEN_GPG_PRIVATE_KEY }}
+          gpg-passphrase: MAVEN_GPG_PASSPHRASE # this needs to be an env var
+      
+      - name: Publish Maven
+        run: mvn --batch-mode clean deploy
+        env:
+          OSSRH_USERNAME: ${{ secrets.OSSRH_USERNAME }}
+          OSSRH_PASSWORD: ${{ secrets.OSSRH_TOKEN }}
+          MAVEN_GPG_PASSPHRASE: ${{ secrets.MAVEN_GPG_PASSPHRASE }}
+          
       
     
