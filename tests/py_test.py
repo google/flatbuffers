@@ -1069,6 +1069,48 @@ class TestByteLayout(unittest.TestCase):
     b.EndVector()
     self.assertBuilderEquals(b, [2, 0, 0, 0, 0xBA, 0xDC, 0xCD, 0xAB])
 
+  def test_create_ascii_shared_string(self):
+    b = flatbuffers.Builder(0)
+    b.CreateSharedString(u'foo', encoding='ascii')
+    b.CreateSharedString(u'foo', encoding='ascii')
+
+    # 0-terminated, no pad:
+    self.assertBuilderEquals(b, [3, 0, 0, 0, 'f', 'o', 'o', 0])
+    b.CreateSharedString(u'moop', encoding='ascii')
+    b.CreateSharedString(u'moop', encoding='ascii')
+    # 0-terminated, 3-byte pad:
+    self.assertBuilderEquals(b, [
+        4, 0, 0, 0, 'm', 'o', 'o', 'p', 0, 0, 0, 0, 3, 0, 0, 0, 'f', 'o', 'o', 0
+    ])
+
+  def test_create_utf8_shared_string(self):
+    b = flatbuffers.Builder(0)
+    b.CreateSharedString(u'Цлїςσδε')
+    b.CreateSharedString(u'Цлїςσδε')
+    self.assertBuilderEquals(b, '\x0e\x00\x00\x00\xd0\xa6\xd0\xbb\xd1\x97' \
+        '\xcf\x82\xcf\x83\xce\xb4\xce\xb5\x00\x00')
+
+    b.CreateSharedString(u'ﾌﾑｱﾑｶﾓｹﾓ')
+    b.CreateSharedString(u'ﾌﾑｱﾑｶﾓｹﾓ')
+    self.assertBuilderEquals(b, '\x18\x00\x00\x00\xef\xbe\x8c\xef\xbe\x91' \
+        '\xef\xbd\xb1\xef\xbe\x91\xef\xbd\xb6\xef\xbe\x93\xef\xbd\xb9\xef' \
+        '\xbe\x93\x00\x00\x00\x00\x0e\x00\x00\x00\xd0\xa6\xd0\xbb\xd1\x97' \
+        '\xcf\x82\xcf\x83\xce\xb4\xce\xb5\x00\x00')
+
+  def test_create_arbitrary_shared_string(self):
+    b = flatbuffers.Builder(0)
+    s = '\x01\x02\x03'
+    b.CreateSharedString(s)  # Default encoding is utf-8.
+    b.CreateSharedString(s)
+    # 0-terminated, no pad:
+    self.assertBuilderEquals(b, [3, 0, 0, 0, 1, 2, 3, 0])
+    s2 = '\x04\x05\x06\x07'
+    b.CreateSharedString(s2)  # Default encoding is utf-8.
+    b.CreateSharedString(s2)
+    # 0-terminated, 3-byte pad:
+    self.assertBuilderEquals(
+        b, [4, 0, 0, 0, 4, 5, 6, 7, 0, 0, 0, 0, 3, 0, 0, 0, 1, 2, 3, 0])
+
   def test_create_ascii_string(self):
     b = flatbuffers.Builder(0)
     b.CreateString(u'foo', encoding='ascii')
@@ -2673,6 +2715,13 @@ class TestExceptions(unittest.TestCase):
     b = flatbuffers.Builder(0)
     assertRaises(self, lambda: b.PrependUOffsetTRelative(1),
                  flatbuffers.builder.OffsetArithmeticError)
+
+  def test_create_shared_string_is_nested_error(self):
+    b = flatbuffers.Builder(0)
+    b.StartObject(0)
+    s = 'test1'
+    assertRaises(self, lambda: b.CreateSharedString(s),
+                 flatbuffers.builder.IsNestedError)
 
   def test_create_string_is_nested_error(self):
     b = flatbuffers.Builder(0)
