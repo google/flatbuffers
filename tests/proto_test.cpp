@@ -2,7 +2,6 @@
 
 #include "flatbuffers/idl.h"
 #include "test_assert.h"
-#include <iostream>
 
 namespace flatbuffers {
 namespace tests {
