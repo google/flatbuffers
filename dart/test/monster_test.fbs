@@ -31,6 +31,14 @@ enum Race:byte {
   Elf,
 }
 
+enum LongEnum:ulong (bit_flags) {
+  LongOne = 1,
+  LongTwo = 2,
+  // Because this is a bitflag, 40 will be out of range of a 32-bit integer,
+  // allowing us to exercise any logic special to big numbers.
+  LongBig = 40,
+}
+
 union Any { Monster, TestSimpleTableWithEnum, MyGame.Example2.Monster }
 
 union AnyUniqueAliases { M: Monster, TS: TestSimpleTableWithEnum, M2: MyGame.Example2.Monster }
@@ -60,6 +68,10 @@ struct StructOfStructs {
   a: Ability;
   b: Test;
   c: Ability;
+}
+
+struct StructOfStructsOfStructs {
+ a: StructOfStructs;
 }
 
 table Stat {
@@ -124,6 +136,11 @@ table Monster {
   signed_enum:Race = None (id:48);
   testrequirednestedflatbuffer:[ubyte] (id:49, nested_flatbuffer: "Monster");
   scalar_key_sorted_tables:[Stat] (id: 50);
+  native_inline:Test (id: 51, native_inline);
+  // The default value of this enum will be a numeric zero, which isn't a valid
+  // enum value.
+  long_enum_non_enum_default:LongEnum (id: 52);
+  long_enum_normal_default:LongEnum = LongOne (id: 53);
 }
 
 table TypeAliases {
