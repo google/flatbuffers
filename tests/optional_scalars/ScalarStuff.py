@@ -438,10 +438,14 @@ class ScalarStuffT(object):
 
     @classmethod
     def InitFromBuf(cls, buf, pos):
-        n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, 0)
         scalarStuff = ScalarStuff()
-        scalarStuff.Init(buf, pos+n)
+        scalarStuff.Init(buf, pos)
         return cls.InitFromObj(scalarStuff)
+
+    @classmethod
+    def InitFromPackedBuf(cls, buf, pos=0):
+        n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, pos)
+        return cls.InitFromBuf(buf, pos+n)
 
     @classmethod
     def InitFromObj(cls, scalarStuff):
