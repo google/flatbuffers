@@ -2,6 +2,7 @@
 
 import * as flatbuffers from 'flatbuffers';
 
+import { KeyValue, KeyValueT } from '../reflection/key-value.js';
 import { Type, TypeT } from '../reflection/type.js';
 
 
@@ -63,12 +64,22 @@ documentationLength():number {
   return offset ? this.bb!.__vector_len(this.bb_pos + offset) : 0;
 }
 
+attributes(index: number, obj?:KeyValue):KeyValue|null {
+  const offset = this.bb!.__offset(this.bb_pos, 14);
+  return offset ? (obj || new KeyValue()).__init(this.bb!.__indirect(this.bb!.__vector(this.bb_pos + offset) + index * 4), this.bb!) : null;
+}
+
+attributesLength():number {
+  const offset = this.bb!.__offset(this.bb_pos, 14);
+  return offset ? this.bb!.__vector_len(this.bb_pos + offset) : 0;
+}
+
 static getFullyQualifiedName():string {
   return 'reflection_EnumVal';
 }
 
 static startEnumVal(builder:flatbuffers.Builder) {
-  builder.startObject(5);
+  builder.startObject(6);
 }
 
 static addName(builder:flatbuffers.Builder, nameOffset:flatbuffers.Offset) {
@@ -99,6 +110,22 @@ static startDocumentationVector(builder:flatbuffers.Builder, numElems:number) {
   builder.startVector(4, numElems, 4);
 }
 
+static addAttributes(builder:flatbuffers.Builder, attributesOffset:flatbuffers.Offset) {
+  builder.addFieldOffset(5, attributesOffset, 0);
+}
+
+static createAttributesVector(builder:flatbuffers.Builder, data:flatbuffers.Offset[]):flatbuffers.Offset {
+  builder.startVector(4, data.length, 4);
+  for (let i = data.length - 1; i >= 0; i--) {
+    builder.addOffset(data[i]!);
+  }
+  return builder.endVector();
+}
+
+static startAttributesVector(builder:flatbuffers.Builder, numElems:number) {
+  builder.startVector(4, numElems, 4);
+}
+
 static endEnumVal(builder:flatbuffers.Builder):flatbuffers.Offset {
   const offset = builder.endObject();
   builder.requiredField(offset, 4) // name
@@ -111,7 +138,8 @@ unpack(): EnumValT {
     this.name(),
     this.value(),
     (this.unionType() !== null ? this.unionType()!.unpack() : null),
-    this.bb!.createScalarList<string>(this.documentation.bind(this), this.documentationLength())
+    this.bb!.createScalarList<string>(this.documentation.bind(this), this.documentationLength()),
+    this.bb!.createObjList<KeyValue, KeyValueT>(this.attributes.bind(this), this.attributesLength())
   );
 }
 
@@ -121,6 +149,7 @@ unpackTo(_o: EnumValT): void {
   _o.value = this.value();
   _o.unionType = (this.unionType() !== null ? this.unionType()!.unpack() : null);
   _o.documentation = this.bb!.createScalarList<string>(this.documentation.bind(this), this.documentationLength());
+  _o.attributes = this.bb!.createObjList<KeyValue, KeyValueT>(this.attributes.bind(this), this.attributesLength());
 }
 }
 
@@ -129,7 +158,8 @@ constructor(
   public name: string|Uint8Array|null = null,
   public value: bigint = BigInt('0'),
   public unionType: TypeT|null = null,
-  public documentation: (string)[] = []
+  public documentation: (string)[] = [],
+  public attributes: (KeyValueT)[] = []
 ){}
 
 
@@ -137,12 +167,14 @@ pack(builder:flatbuffers.Builder): flatbuffers.Offset {
   const name = (this.name !== null ? builder.createString(this.name!) : 0);
   const unionType = (this.unionType !== null ? this.unionType!.pack(builder) : 0);
   const documentation = EnumVal.createDocumentationVector(builder, builder.createObjectOffsetList(this.documentation));
+  const attributes = EnumVal.createAttributesVector(builder, builder.createObjectOffsetList(this.attributes));
 
   EnumVal.startEnumVal(builder);
   EnumVal.addName(builder, name);
   EnumVal.addValue(builder, this.value);
   EnumVal.addUnionType(builder, unionType);
   EnumVal.addDocumentation(builder, documentation);
+  EnumVal.addAttributes(builder, attributes);
 
   return EnumVal.endEnumVal(builder);
 }
