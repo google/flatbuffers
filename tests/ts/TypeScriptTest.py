@@ -96,6 +96,12 @@ flatc(
 )
 
 flatc(
+    options=["--ts", "--reflect-names", "--ts-flat-files", "--gen-name-strings", "--gen-object-api"],
+    schema="arrays_test_complex/arrays_test_complex.fbs",
+    prefix="arrays_test_complex"
+)
+
+flatc(
     options=[
         "--ts",
         "--reflect-names",
@@ -122,3 +128,4 @@ print("Running TypeScript Tests...")
 check_call(NODE_CMD + ["JavaScriptTest"])
 check_call(NODE_CMD + ["JavaScriptUnionVectorTest"])
 check_call(NODE_CMD + ["JavaScriptFlexBuffersTest"])
+check_call(NODE_CMD + ["JavaScriptComplexArraysTest"])
