@@ -3050,22 +3050,22 @@ CheckedError Parser::ParseProtoMapField(StructDef *struct_def) {
   EXPECT(kTokenIntegerConstant);
   EXPECT(';');
 
-  auto table_name = ConvertCase(field_name, Case::kUpperCamel) + "Entry";
-  StructDef *table_struct_def;
-  ECHECK(StartStruct(table_name, &table_struct_def));
-  table_struct_def->has_key = true;
-  FieldDef *key_field_def;
-  ECHECK(AddField(*table_struct_def, "key", key_type, &key_field_def));
-  key_field_def->key = true;
-  FieldDef *value_field_def;
-  ECHECK(AddField(*table_struct_def, "value", value_type, &value_field_def));
+  auto entry_table_name = ConvertCase(field_name, Case::kUpperCamel) + "Entry";
+  StructDef *entry_table;
+  ECHECK(StartStruct(entry_table_name, &entry_table));
+  entry_table->has_key = true;
+  FieldDef *key_field;
+  ECHECK(AddField(*entry_table, "key", key_type, &key_field));
+  key_field->key = true;
+  FieldDef *value_field;
+  ECHECK(AddField(*entry_table, "value", value_type, &value_field));
 
   Type field_type;
   field_type.base_type = BASE_TYPE_VECTOR;
   field_type.element = BASE_TYPE_STRUCT;
-  field_type.struct_def = table_struct_def;
-  FieldDef *field_def;
-  ECHECK(AddField(*struct_def, field_name, field_type, &field_def));
+  field_type.struct_def = entry_table;
+  FieldDef *field;
+  ECHECK(AddField(*struct_def, field_name, field_type, &field));
 
   return NoError();
 }
