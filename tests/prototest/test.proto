@@ -72,5 +72,6 @@ message ProtoMessage {
   optional float v = 35 [default = +inf];
   optional float w = 36 [default = -inf];
 
-  map<string, float> ids = 37;
+  map<string, float> grades = 37;
+  map<string, OtherMessage> other_message_map = 38;
 }

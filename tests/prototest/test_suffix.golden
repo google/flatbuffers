@@ -54,7 +54,8 @@ table ProtoMessage {
   u:float = +inf;
   v:float = +inf;
   w:float = -inf;
-  ids:[proto.test.test_namespace_suffix.ProtoMessage_.IdsEntry];
+  grades:[proto.test.test_namespace_suffix.ProtoMessage_.GradesEntry];
+  other_message_map:[proto.test.test_namespace_suffix.ProtoMessage_.OtherMessageMapEntry];
 }
 
 namespace proto.test.test_namespace_suffix.ProtoMessage_;
@@ -74,8 +75,13 @@ table Anonymous0 {
   t:proto.test.test_namespace_suffix.ProtoMessage_.OtherMessage;
 }
 
-table IdsEntry {
+table GradesEntry {
   key:string (key);
   value:float;
+}
+
+table OtherMessageMapEntry {
+  key:string (key);
+  value:proto.test.test_namespace_suffix.ProtoMessage_.OtherMessage;
 }
 
