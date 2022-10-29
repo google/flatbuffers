@@ -222,7 +222,7 @@ const static FlatCOption options[] = {
   { "", "annotate", "SCHEMA",
     "Annotate the provided BINARY_FILE with the specified SCHEMA file." },
   { "", "no-leak-private-annotation", "",
-    "Prevents multiple type of annotations within a Fbs SCHEMA file."
+    "Prevents multiple type of annotations within a Fbs SCHEMA file. "
     "Currently this is required to generate private types in Rust" },
 };
 
