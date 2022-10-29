@@ -146,7 +146,7 @@ unpack(): MovieT {
   })(),
     this.bb!.createScalarList<Character>(this.charactersType.bind(this), this.charactersTypeLength()),
     (() => {
-    const ret = [];
+    const ret: (AttackerT|BookReaderT|RapunzelT|string)[] = [];
     for(let targetEnumIndex = 0; targetEnumIndex < this.charactersTypeLength(); ++targetEnumIndex) {
       const targetEnum = this.charactersType(targetEnumIndex);
       if(targetEnum === null || Character[targetEnum!] === 'NONE') { continue; }
@@ -172,7 +172,7 @@ unpackTo(_o: MovieT): void {
   })();
   _o.charactersType = this.bb!.createScalarList<Character>(this.charactersType.bind(this), this.charactersTypeLength());
   _o.characters = (() => {
-    const ret = [];
+    const ret: (AttackerT|BookReaderT|RapunzelT|string)[] = [];
     for(let targetEnumIndex = 0; targetEnumIndex < this.charactersTypeLength(); ++targetEnumIndex) {
       const targetEnum = this.charactersType(targetEnumIndex);
       if(targetEnum === null || Character[targetEnum!] === 'NONE') { continue; }
