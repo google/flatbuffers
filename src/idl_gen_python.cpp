@@ -1189,8 +1189,8 @@ class PythonGenerator : public BaseGenerator {
       code += field_type + "()";
     }
     code += ") is not None:";
-    code += GenIndents(3) + "self." + field_field + " = " + field_type +
-            "T.InitFromObj(" + struct_var + "." + field_method + "(";
+    code += GenIndents(3) + "self." + field_field + " = " + namer_.ObjectType(field_type) +
+            + ".InitFromObj(" + struct_var + "." + field_method + "(";
     // A struct's accessor requires a struct buf instance.
     if (struct_def.fixed && field.value.type.base_type == BASE_TYPE_STRUCT) {
       code += field_type + "()";
@@ -1240,8 +1240,8 @@ class PythonGenerator : public BaseGenerator {
             "(i) is None:";
     code += GenIndents(5) + "self." + field_field + ".append(None)";
     code += GenIndents(4) + "else:";
-    code += GenIndents(5) + one_instance + " = " + field_type +
-            "T.InitFromObj(" + struct_var + "." + field_method + "(i))";
+    code += GenIndents(5) + one_instance + " = " + namer_.ObjectType(field_type) +
+            ".InitFromObj(" + struct_var + "." + field_method + "(i))";
     code +=
         GenIndents(5) + "self." + field_field + ".append(" + one_instance + ")";
   }
@@ -1271,8 +1271,8 @@ class PythonGenerator : public BaseGenerator {
             "(i) is None:";
     code += GenIndents(5) + "self." + field_field + ".append(None)";
     code += GenIndents(4) + "else:";
-    code += GenIndents(5) + one_instance + " = " + field_type +
-            "T.InitFromObj(" + struct_var + "." + field_method + "(i))";
+    code += GenIndents(5) + one_instance + " = " + namer_.ObjectType(field_type) +
+            ".InitFromObj(" + struct_var + "." + field_method + "(i))";
     code +=
         GenIndents(5) + "self." + field_field + ".append(" + one_instance + ")";
   }
