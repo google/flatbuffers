@@ -397,6 +397,10 @@ class JavaGenerator : public BaseGenerator {
       code += " ";
       code += namer_.Variant(ev) + " = ";
       code += enum_def.ToString(ev);
+      if (enum_def.underlying_type.base_type == BASE_TYPE_LONG ||
+          enum_def.underlying_type.base_type == BASE_TYPE_ULONG) {
+        code += "L";
+      }
       code += ";\n";
     }
 
@@ -665,7 +669,7 @@ class JavaGenerator : public BaseGenerator {
       // Force compile time error if not using the same version runtime.
       code += "  public static void ValidateVersion() {";
       code += " Constants.";
-      code += "FLATBUFFERS_22_9_29(); ";
+      code += "FLATBUFFERS_22_10_26(); ";
       code += "}\n";
 
       // Generate a special accessor for the table that when used as the root
@@ -1889,6 +1893,7 @@ class JavaGenerator : public BaseGenerator {
           }
         } else {
           code += " " + name + " = ";
+          code += SourceCast(field_type);
           code += "_o";
           for (size_t i = 0; i < array_lengths.size(); ++i) {
             code += "." + namer_.Method("get", array_lengths[i].name) + "()";

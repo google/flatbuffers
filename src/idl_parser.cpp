@@ -1584,7 +1584,6 @@ CheckedError Parser::ParseVectorDelimiters(uoffset_t &count, F body) {
   return NoError();
 }
 
-
 CheckedError Parser::ParseAlignAttribute(const std::string &align_constant,
                                          size_t min_align, size_t *align) {
   // Use uint8_t to avoid problems with size_t==`unsigned long` on LP64.
@@ -2450,14 +2449,17 @@ CheckedError Parser::ParseEnum(const bool is_union, EnumDef **dest,
         EXPECT(kTokenIntegerConstant);
       }
 
-      ECHECK(evb.AcceptEnumerator());
-
       if (opts.proto_mode && Is('[')) {
         NEXT();
         // ignore attributes on enums.
         while (token_ != ']') NEXT();
         NEXT();
+      } else {
+        // parse attributes in fbs schema
+        ECHECK(ParseMetaData(&ev.attributes));
       }
+
+      ECHECK(evb.AcceptEnumerator());
     }
     if (!Is(opts.proto_mode ? ';' : ',')) break;
     NEXT();
@@ -2552,7 +2554,8 @@ bool Parser::SupportsOptionalScalars(const flatbuffers::IDLOptions &opts) {
       IDLOptions::kRust | IDLOptions::kSwift | IDLOptions::kLobster |
       IDLOptions::kKotlin | IDLOptions::kCpp | IDLOptions::kJava |
       IDLOptions::kCSharp | IDLOptions::kTs | IDLOptions::kBinary |
-      IDLOptions::kGo | IDLOptions::kPython | IDLOptions::kJson;
+      IDLOptions::kGo | IDLOptions::kPython | IDLOptions::kJson |
+      IDLOptions::kNim;
   unsigned long langs = opts.lang_to_generate;
   return (langs > 0 && langs < IDLOptions::kMAX) && !(langs & ~supported_langs);
 }
@@ -2563,7 +2566,7 @@ bool Parser::SupportsOptionalScalars() const {
 
 bool Parser::SupportsDefaultVectorsAndStrings() const {
   static FLATBUFFERS_CONSTEXPR unsigned long supported_langs =
-      IDLOptions::kRust | IDLOptions::kSwift;
+      IDLOptions::kRust | IDLOptions::kSwift | IDLOptions::kNim;
   return !(opts.lang_to_generate & ~supported_langs);
 }
 
@@ -2571,14 +2574,14 @@ bool Parser::SupportsAdvancedUnionFeatures() const {
   return (opts.lang_to_generate &
           ~(IDLOptions::kCpp | IDLOptions::kTs | IDLOptions::kPhp |
             IDLOptions::kJava | IDLOptions::kCSharp | IDLOptions::kKotlin |
-            IDLOptions::kBinary | IDLOptions::kSwift)) == 0;
+            IDLOptions::kBinary | IDLOptions::kSwift | IDLOptions::kNim)) == 0;
 }
 
 bool Parser::SupportsAdvancedArrayFeatures() const {
   return (opts.lang_to_generate &
           ~(IDLOptions::kCpp | IDLOptions::kPython | IDLOptions::kJava |
             IDLOptions::kCSharp | IDLOptions::kJsonSchema | IDLOptions::kJson |
-            IDLOptions::kBinary | IDLOptions::kRust)) == 0;
+            IDLOptions::kBinary | IDLOptions::kRust | IDLOptions::kTs)) == 0;
 }
 
 Namespace *Parser::UniqueNamespace(Namespace *ns) {
@@ -3415,7 +3418,6 @@ CheckedError Parser::CheckPrivatelyLeakedFields(const Definition &def,
   return NoError();
 }
 
-
 CheckedError Parser::DoParse(const char *source, const char **include_paths,
                              const char *source_filename,
                              const char *include_filename) {
@@ -3632,6 +3634,44 @@ std::set<std::string> Parser::GetIncludedFilesRecursive(
 }
 
 // Schema serialization functionality:
+
+static flatbuffers::Offset<
+    flatbuffers::Vector<flatbuffers::Offset<reflection::KeyValue>>>
+SerializeAttributesCommon(const SymbolTable<Value> &attributes,
+                          FlatBufferBuilder *builder, const Parser &parser) {
+  std::vector<flatbuffers::Offset<reflection::KeyValue>> attrs;
+  for (auto kv = attributes.dict.begin(); kv != attributes.dict.end(); ++kv) {
+    auto it = parser.known_attributes_.find(kv->first);
+    FLATBUFFERS_ASSERT(it != parser.known_attributes_.end());
+    if (parser.opts.binary_schema_builtins || !it->second) {
+      auto key = builder->CreateString(kv->first);
+      auto val = builder->CreateString(kv->second->constant);
+      attrs.push_back(reflection::CreateKeyValue(*builder, key, val));
+    }
+  }
+  if (attrs.size()) {
+    return builder->CreateVectorOfSortedTables(&attrs);
+  } else {
+    return 0;
+  }
+}
+
+static bool DeserializeAttributesCommon(
+    SymbolTable<Value> &attributes, Parser &parser,
+    const Vector<Offset<reflection::KeyValue>> *attrs) {
+  if (attrs == nullptr) return true;
+  for (uoffset_t i = 0; i < attrs->size(); ++i) {
+    auto kv = attrs->Get(i);
+    auto value = new Value();
+    if (kv->value()) { value->constant = kv->value()->str(); }
+    if (attributes.Add(kv->key()->str(), value)) {
+      delete value;
+      return false;
+    }
+    parser.known_attributes_[kv->key()->str()];
+  }
+  return true;
+}
 
 void Parser::Serialize() {
   builder_.Clear();
@@ -3918,32 +3958,52 @@ bool EnumDef::Deserialize(Parser &parser, const reflection::Enum *_enum) {
   return true;
 }
 
-Offset<reflection::EnumVal> EnumVal::Serialize(FlatBufferBuilder *builder,
-                                               const Parser &parser) const {
-  auto name__ = builder->CreateString(name);
-  auto type__ = union_type.Serialize(builder);
-  auto docs__ = parser.opts.binary_schema_comments
-                    ? builder->CreateVectorOfStrings(doc_comment)
-                    : 0;
-  return reflection::CreateEnumVal(*builder, name__, value, type__, docs__);
+flatbuffers::Offset<
+    flatbuffers::Vector<flatbuffers::Offset<reflection::KeyValue>>>
+EnumVal::SerializeAttributes(FlatBufferBuilder *builder,
+                             const Parser &parser) const {
+  return SerializeAttributesCommon(attributes, builder, parser);
 }
 
-bool EnumVal::Deserialize(const Parser &parser,
-                          const reflection::EnumVal *val) {
+bool EnumVal::DeserializeAttributes(
+    Parser &parser, const Vector<Offset<reflection::KeyValue>> *attrs) {
+  return DeserializeAttributesCommon(attributes, parser, attrs);
+}
+
+Offset<reflection::EnumVal> EnumVal::Serialize(FlatBufferBuilder *builder,
+                                               const Parser &parser) const {
+  const auto name__ = builder->CreateString(name);
+  const auto type__ = union_type.Serialize(builder);
+  const auto attr__ = SerializeAttributes(builder, parser);
+  const auto docs__ = parser.opts.binary_schema_comments
+                          ? builder->CreateVectorOfStrings(doc_comment)
+                          : 0;
+  return reflection::CreateEnumVal(*builder, name__, value, type__, docs__,
+                                   attr__);
+}
+
+bool EnumVal::Deserialize(Parser &parser, const reflection::EnumVal *val) {
   name = val->name()->str();
   value = val->value();
   if (!union_type.Deserialize(parser, val->union_type())) return false;
+  if (!DeserializeAttributes(parser, val->attributes())) return false;
   DeserializeDoc(doc_comment, val->documentation());
   return true;
 }
 
 Offset<reflection::Type> Type::Serialize(FlatBufferBuilder *builder) const {
+  size_t element_size = SizeOf(element);
+  if (base_type == BASE_TYPE_VECTOR && element == BASE_TYPE_STRUCT &&
+      struct_def->bytesize != 0) {
+    // struct_def->bytesize==0 means struct is table
+    element_size = struct_def->bytesize;
+  }
   return reflection::CreateType(
       *builder, static_cast<reflection::BaseType>(base_type),
       static_cast<reflection::BaseType>(element),
       struct_def ? struct_def->index : (enum_def ? enum_def->index : -1),
       fixed_length, static_cast<uint32_t>(SizeOf(base_type)),
-      static_cast<uint32_t>(SizeOf(element)));
+      static_cast<uint32_t>(element_size));
 }
 
 bool Type::Deserialize(const Parser &parser, const reflection::Type *type) {
@@ -3977,37 +4037,12 @@ flatbuffers::Offset<
     flatbuffers::Vector<flatbuffers::Offset<reflection::KeyValue>>>
 Definition::SerializeAttributes(FlatBufferBuilder *builder,
                                 const Parser &parser) const {
-  std::vector<flatbuffers::Offset<reflection::KeyValue>> attrs;
-  for (auto kv = attributes.dict.begin(); kv != attributes.dict.end(); ++kv) {
-    auto it = parser.known_attributes_.find(kv->first);
-    FLATBUFFERS_ASSERT(it != parser.known_attributes_.end());
-    if (parser.opts.binary_schema_builtins || !it->second) {
-      auto key = builder->CreateString(kv->first);
-      auto val = builder->CreateString(kv->second->constant);
-      attrs.push_back(reflection::CreateKeyValue(*builder, key, val));
-    }
-  }
-  if (attrs.size()) {
-    return builder->CreateVectorOfSortedTables(&attrs);
-  } else {
-    return 0;
-  }
+  return SerializeAttributesCommon(attributes, builder, parser);
 }
 
 bool Definition::DeserializeAttributes(
     Parser &parser, const Vector<Offset<reflection::KeyValue>> *attrs) {
-  if (attrs == nullptr) return true;
-  for (uoffset_t i = 0; i < attrs->size(); ++i) {
-    auto kv = attrs->Get(i);
-    auto value = new Value();
-    if (kv->value()) { value->constant = kv->value()->str(); }
-    if (attributes.Add(kv->key()->str(), value)) {
-      delete value;
-      return false;
-    }
-    parser.known_attributes_[kv->key()->str()];
-  }
-  return true;
+  return DeserializeAttributesCommon(attributes, parser, attrs);
 }
 
 /************************************************************************/
@@ -4122,7 +4157,7 @@ std::string Parser::ConformTo(const Parser &base) {
         struct_def.defined_namespace->GetFullyQualifiedName(struct_def.name);
     auto struct_def_base = base.LookupStruct(qualified_name);
     if (!struct_def_base) continue;
-    std::set<FieldDef*> renamed_fields;
+    std::set<FieldDef *> renamed_fields;
     for (auto fit = struct_def.fields.vec.begin();
          fit != struct_def.fields.vec.end(); ++fit) {
       auto &field = **fit;
@@ -4151,15 +4186,15 @@ std::string Parser::ConformTo(const Parser &base) {
         }
       }
     }
-    //deletion of trailing fields are not allowed
+    // deletion of trailing fields are not allowed
     for (auto fit = struct_def_base->fields.vec.begin();
-      fit != struct_def_base->fields.vec.end(); ++fit ) {  
+         fit != struct_def_base->fields.vec.end(); ++fit) {
       auto &field_base = **fit;
-      //not a renamed field
+      // not a renamed field
       if (renamed_fields.find(&field_base) == renamed_fields.end()) {
         auto field = struct_def.fields.Lookup(field_base.name);
-        if (!field) { 
-          return "field deleted: " + qualified_name + "." + field_base.name; 
+        if (!field) {
+          return "field deleted: " + qualified_name + "." + field_base.name;
         }
       }
     }

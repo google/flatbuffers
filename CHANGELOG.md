@@ -4,6 +4,10 @@ All major or breaking changes will be documented in this file, as well as any
 new features that should be highlighted. Minor fixes or improvements are not
 necessarily listed.
 
+## 22.10.25 (Oct 25 2002)
+
+* Added Nim language support with generator and runtime libraries (#7534).
+
 ## 22.9.29 (Sept 29 2022)
 
 * Rust soundness fixes to avoid the crate from bing labelled unsafe (#7518).
@@ -27,8 +31,8 @@ necessarily listed.
   `AlignOf()` for structs (#7520).
 
 * C# has an
-  [offical Nuget package](https://www.nuget.org/packages/Google.FlatBuffers) now
-  (#7496).
+  [official Nuget package](https://www.nuget.org/packages/Google.FlatBuffers)
+  now (#7496).
 
 ## 2.0.8 (Aug 29 2022)
 

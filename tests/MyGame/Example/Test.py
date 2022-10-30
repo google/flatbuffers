@@ -39,10 +39,14 @@ class TestT(object):
 
     @classmethod
     def InitFromBuf(cls, buf, pos):
-        n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, 0)
         test = Test()
-        test.Init(buf, pos+n)
+        test.Init(buf, pos)
         return cls.InitFromObj(test)
+
+    @classmethod
+    def InitFromPackedBuf(cls, buf, pos=0):
+        n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, pos)
+        return cls.InitFromBuf(buf, pos+n)
 
     @classmethod
     def InitFromObj(cls, test):
