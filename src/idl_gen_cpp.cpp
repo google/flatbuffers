@@ -1451,9 +1451,11 @@ class CppGenerator : public BaseGenerator {
     code_ += "inline const {{ENUM_NAME}} (&EnumValues{{ENUM_NAME}}())[" +
              num_fields + "] {";
     code_ += "  static const {{ENUM_NAME}} values[] = {";
-    for (const auto ev : enum_def.Vals()) {
-      auto value = GetEnumValUse(enum_def, *ev);
-      code_ += "    " + value + ",";
+    for (auto it = enum_def.Vals().begin(); it != enum_def.Vals().end(); ++it) {
+      const auto &ev = **it;
+      auto value = GetEnumValUse(enum_def, ev);
+      auto suffix = *it != enum_def.Vals().back() ? "," : "";
+      code_ += "    " + value + suffix;
     }
     code_ += "  };";
     code_ += "  return values;";
