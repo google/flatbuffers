@@ -33,7 +33,7 @@ inline const OptionalByte (&EnumValuesOptionalByte())[3] {
   static const OptionalByte values[] = {
     OptionalByte::None,
     OptionalByte::One,
-    OptionalByte::Two,
+    OptionalByte::Two
   };
   return values;
 }

@@ -87,7 +87,7 @@ inline const BaseType (&EnumValuesBaseType())[19] {
     Obj,
     Union,
     Array,
-    MaxBaseType,
+    MaxBaseType
   };
   return values;
 }
@@ -137,7 +137,7 @@ inline const AdvancedFeatures (&EnumValuesAdvancedFeatures())[4] {
     AdvancedArrayFeatures,
     AdvancedUnionFeatures,
     OptionalScalars,
-    DefaultVectorsAndStrings,
+    DefaultVectorsAndStrings
   };
   return values;
 }

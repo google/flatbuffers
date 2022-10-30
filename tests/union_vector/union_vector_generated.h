@@ -76,7 +76,7 @@ inline const Character (&EnumValuesCharacter())[7] {
     Character_Belle,
     Character_BookFan,
     Character_Other,
-    Character_Unused,
+    Character_Unused
   };
   return values;
 }
@@ -227,7 +227,7 @@ inline const Gadget (&EnumValuesGadget())[3] {
   static const Gadget values[] = {
     Gadget_NONE,
     Gadget_FallingTub,
-    Gadget_HandFan,
+    Gadget_HandFan
   };
   return values;
 }

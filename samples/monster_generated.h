@@ -51,7 +51,7 @@ inline const Color (&EnumValuesColor())[3] {
   static const Color values[] = {
     Color_Red,
     Color_Green,
-    Color_Blue,
+    Color_Blue
   };
   return values;
 }
@@ -82,7 +82,7 @@ enum Equipment : uint8_t {
 inline const Equipment (&EnumValuesEquipment())[2] {
   static const Equipment values[] = {
     Equipment_NONE,
-    Equipment_Weapon,
+    Equipment_Weapon
   };
   return values;
 }

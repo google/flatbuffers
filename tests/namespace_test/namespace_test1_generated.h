@@ -41,7 +41,7 @@ enum UnionInNestedNS : uint8_t {
 inline const UnionInNestedNS (&EnumValuesUnionInNestedNS())[2] {
   static const UnionInNestedNS values[] = {
     UnionInNestedNS_NONE,
-    UnionInNestedNS_TableInNestedNS,
+    UnionInNestedNS_TableInNestedNS
   };
   return values;
 }
@@ -153,7 +153,7 @@ inline const EnumInNestedNS (&EnumValuesEnumInNestedNS())[3] {
   static const EnumInNestedNS values[] = {
     EnumInNestedNS_A,
     EnumInNestedNS_B,
-    EnumInNestedNS_C,
+    EnumInNestedNS_C
   };
   return values;
 }

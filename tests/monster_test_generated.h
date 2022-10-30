@@ -142,7 +142,7 @@ inline const Color (&EnumValuesColor())[3] {
   static const Color values[] = {
     Color_Red,
     Color_Green,
-    Color_Blue,
+    Color_Blue
   };
   return values;
 }
@@ -182,7 +182,7 @@ inline const Race (&EnumValuesRace())[4] {
     Race_None,
     Race_Human,
     Race_Dwarf,
-    Race_Elf,
+    Race_Elf
   };
   return values;
 }
@@ -216,7 +216,7 @@ inline const LongEnum (&EnumValuesLongEnum())[3] {
   static const LongEnum values[] = {
     LongEnum_LongOne,
     LongEnum_LongTwo,
-    LongEnum_LongBig,
+    LongEnum_LongBig
   };
   return values;
 }
@@ -244,7 +244,7 @@ inline const Any (&EnumValuesAny())[4] {
     Any_NONE,
     Any_Monster,
     Any_TestSimpleTableWithEnum,
-    Any_MyGame_Example2_Monster,
+    Any_MyGame_Example2_Monster
   };
   return values;
 }
@@ -400,7 +400,7 @@ inline const AnyUniqueAliases (&EnumValuesAnyUniqueAliases())[4] {
     AnyUniqueAliases_NONE,
     AnyUniqueAliases_M,
     AnyUniqueAliases_TS,
-    AnyUniqueAliases_M2,
+    AnyUniqueAliases_M2
   };
   return values;
 }
@@ -556,7 +556,7 @@ inline const AnyAmbiguousAliases (&EnumValuesAnyAmbiguousAliases())[4] {
     AnyAmbiguousAliases_NONE,
     AnyAmbiguousAliases_M1,
     AnyAmbiguousAliases_M2,
-    AnyAmbiguousAliases_M3,
+    AnyAmbiguousAliases_M3
   };
   return values;
 }
