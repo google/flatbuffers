@@ -125,6 +125,13 @@ if(NOT DEFINED FLATBUFFERS_LOCALE_INDEPENDENT)
 endif()
 add_definitions(-DFLATBUFFERS_LOCALE_INDEPENDENT=$<BOOL:${FLATBUFFERS_LOCALE_INDEPENDENT}>)
 
+if(NOT WIN32)
+  check_symbol_exists(realpath "stdlib.h" HAVE_REALPATH)
+  if(NOT HAVE_REALPATH)
+    add_definitions(-DFLATBUFFERS_NO_ABSOLUTE_PATH_RESOLUTION)
+  endif()
+endif()
+
 set(FlatBuffers_Library_SRCS
   include/flatbuffers/allocator.h
   include/flatbuffers/array.h
@@ -182,6 +189,7 @@ set(FlatBuffers_Compiler_SRCS
   src/flatc_main.cpp
   src/bfbs_gen.h
   src/bfbs_gen_lua.h
+  src/bfbs_gen_nim.h
   src/bfbs_namer.h
   include/flatbuffers/code_generators.h
   src/binary_annotator.h
@@ -189,6 +197,7 @@ set(FlatBuffers_Compiler_SRCS
   src/annotated_binary_text_gen.h
   src/annotated_binary_text_gen.cpp
   src/bfbs_gen_lua.cpp
+  src/bfbs_gen_nim.cpp
   src/code_generators.cpp
   grpc/src/compiler/schema_interface.h
   grpc/src/compiler/cpp_generator.h

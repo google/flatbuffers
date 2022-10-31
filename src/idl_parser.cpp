@@ -1584,7 +1584,6 @@ CheckedError Parser::ParseVectorDelimiters(uoffset_t &count, F body) {
   return NoError();
 }
 
-
 CheckedError Parser::ParseAlignAttribute(const std::string &align_constant,
                                          size_t min_align, size_t *align) {
   // Use uint8_t to avoid problems with size_t==`unsigned long` on LP64.
@@ -2555,7 +2554,8 @@ bool Parser::SupportsOptionalScalars(const flatbuffers::IDLOptions &opts) {
       IDLOptions::kRust | IDLOptions::kSwift | IDLOptions::kLobster |
       IDLOptions::kKotlin | IDLOptions::kCpp | IDLOptions::kJava |
       IDLOptions::kCSharp | IDLOptions::kTs | IDLOptions::kBinary |
-      IDLOptions::kGo | IDLOptions::kPython | IDLOptions::kJson;
+      IDLOptions::kGo | IDLOptions::kPython | IDLOptions::kJson |
+      IDLOptions::kNim;
   unsigned long langs = opts.lang_to_generate;
   return (langs > 0 && langs < IDLOptions::kMAX) && !(langs & ~supported_langs);
 }
@@ -2566,7 +2566,7 @@ bool Parser::SupportsOptionalScalars() const {
 
 bool Parser::SupportsDefaultVectorsAndStrings() const {
   static FLATBUFFERS_CONSTEXPR unsigned long supported_langs =
-      IDLOptions::kRust | IDLOptions::kSwift;
+      IDLOptions::kRust | IDLOptions::kSwift | IDLOptions::kNim;
   return !(opts.lang_to_generate & ~supported_langs);
 }
 
@@ -2574,14 +2574,14 @@ bool Parser::SupportsAdvancedUnionFeatures() const {
   return (opts.lang_to_generate &
           ~(IDLOptions::kCpp | IDLOptions::kTs | IDLOptions::kPhp |
             IDLOptions::kJava | IDLOptions::kCSharp | IDLOptions::kKotlin |
-            IDLOptions::kBinary | IDLOptions::kSwift)) == 0;
+            IDLOptions::kBinary | IDLOptions::kSwift | IDLOptions::kNim)) == 0;
 }
 
 bool Parser::SupportsAdvancedArrayFeatures() const {
   return (opts.lang_to_generate &
           ~(IDLOptions::kCpp | IDLOptions::kPython | IDLOptions::kJava |
             IDLOptions::kCSharp | IDLOptions::kJsonSchema | IDLOptions::kJson |
-            IDLOptions::kBinary | IDLOptions::kRust)) == 0;
+            IDLOptions::kBinary | IDLOptions::kRust | IDLOptions::kTs)) == 0;
 }
 
 Namespace *Parser::UniqueNamespace(Namespace *ns) {
@@ -3418,7 +3418,6 @@ CheckedError Parser::CheckPrivatelyLeakedFields(const Definition &def,
   return NoError();
 }
 
-
 CheckedError Parser::DoParse(const char *source, const char **include_paths,
                              const char *source_filename,
                              const char *include_filename) {
@@ -3993,12 +3992,18 @@ bool EnumVal::Deserialize(Parser &parser, const reflection::EnumVal *val) {
 }
 
 Offset<reflection::Type> Type::Serialize(FlatBufferBuilder *builder) const {
+  size_t element_size = SizeOf(element);
+  if (base_type == BASE_TYPE_VECTOR && element == BASE_TYPE_STRUCT &&
+      struct_def->bytesize != 0) {
+    // struct_def->bytesize==0 means struct is table
+    element_size = struct_def->bytesize;
+  }
   return reflection::CreateType(
       *builder, static_cast<reflection::BaseType>(base_type),
       static_cast<reflection::BaseType>(element),
       struct_def ? struct_def->index : (enum_def ? enum_def->index : -1),
       fixed_length, static_cast<uint32_t>(SizeOf(base_type)),
-      static_cast<uint32_t>(SizeOf(element)));
+      static_cast<uint32_t>(element_size));
 }
 
 bool Type::Deserialize(const Parser &parser, const reflection::Type *type) {
@@ -4152,7 +4157,7 @@ std::string Parser::ConformTo(const Parser &base) {
         struct_def.defined_namespace->GetFullyQualifiedName(struct_def.name);
     auto struct_def_base = base.LookupStruct(qualified_name);
     if (!struct_def_base) continue;
-    std::set<FieldDef*> renamed_fields;
+    std::set<FieldDef *> renamed_fields;
     for (auto fit = struct_def.fields.vec.begin();
          fit != struct_def.fields.vec.end(); ++fit) {
       auto &field = **fit;
@@ -4181,15 +4186,15 @@ std::string Parser::ConformTo(const Parser &base) {
         }
       }
     }
-    //deletion of trailing fields are not allowed
+    // deletion of trailing fields are not allowed
     for (auto fit = struct_def_base->fields.vec.begin();
-      fit != struct_def_base->fields.vec.end(); ++fit ) {  
+         fit != struct_def_base->fields.vec.end(); ++fit) {
       auto &field_base = **fit;
-      //not a renamed field
+      // not a renamed field
       if (renamed_fields.find(&field_base) == renamed_fields.end()) {
         auto field = struct_def.fields.Lookup(field_base.name);
-        if (!field) { 
-          return "field deleted: " + qualified_name + "." + field_base.name; 
+        if (!field) {
+          return "field deleted: " + qualified_name + "." + field_base.name;
         }
       }
     }
