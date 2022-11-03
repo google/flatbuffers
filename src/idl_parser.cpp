@@ -3269,6 +3269,10 @@ bool Parser::ParseJson(const char *json, const char *json_filename) {
   return done;
 }
 
+std::ptrdiff_t Parser::BytesConsumed() const {
+  return std::distance(source_, cursor_);
+}
+
 CheckedError Parser::StartParseFile(const char *source,
                                     const char *source_filename) {
   file_being_parsed_ = source_filename ? source_filename : "";
@@ -3606,9 +3610,11 @@ CheckedError Parser::DoParseJson() {
                                                : nullptr);
     }
   }
-  // Check that JSON file doesn't contain more objects or IDL directives.
-  // Comments after JSON are allowed.
-  EXPECT(kTokenEof);
+  if (opts.require_json_eof) {
+    // Check that JSON file doesn't contain more objects or IDL directives.
+    // Comments after JSON are allowed.
+    EXPECT(kTokenEof);
+  }
   return NoError();
 }
 

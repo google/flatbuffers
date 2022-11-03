@@ -1402,6 +1402,49 @@ void NativeInlineTableVectorTest() {
   TEST_ASSERT(unpacked.t == test.t);
 }
 
+void DoNotRequireEofTest(const std::string& tests_data_path) {
+  std::string schemafile;
+  bool ok = flatbuffers::LoadFile(
+      (tests_data_path + "monster_test.fbs").c_str(), false, &schemafile);
+  TEST_EQ(ok, true);
+  auto include_test_path =
+      flatbuffers::ConCatPathFileName(tests_data_path, "include_test");
+  const char *include_directories[] = { tests_data_path.c_str(),
+                                        include_test_path.c_str(), nullptr };
+  flatbuffers::IDLOptions opt;
+  opt.require_json_eof = false;
+  flatbuffers::Parser parser(opt);
+  ok = parser.Parse(schemafile.c_str(), include_directories);
+  TEST_EQ(ok, true);
+  
+  const char *str = R"(This string contains two monsters, the first one is {
+      "name": "Blob",
+      "hp": 5
+    }
+    and the second one is {
+      "name": "Imp",
+      "hp": 10
+    }
+  )";
+  const char *tableStart = std::strchr(str, '{');
+  ok = parser.ParseJson(tableStart);
+  TEST_EQ(ok, true);
+
+  const Monster *monster = GetMonster(parser.builder_.GetBufferPointer());
+  TEST_EQ_STR(monster->name()->c_str(), "Blob");
+  TEST_EQ(monster->hp(), 5);
+  
+  tableStart += parser.BytesConsumed();
+
+  tableStart = std::strchr(tableStart + 1, '{');
+  ok = parser.ParseJson(tableStart);
+  TEST_EQ(ok, true);
+
+  monster = GetMonster(parser.builder_.GetBufferPointer());
+  TEST_EQ_STR(monster->name()->c_str(), "Imp");
+  TEST_EQ(monster->hp(), 10);
+}
+
 int FlatBufferTests(const std::string &tests_data_path) {
   // Run our various test suites:
 
@@ -1448,6 +1491,7 @@ int FlatBufferTests(const std::string &tests_data_path) {
   TestMonsterExtraFloats(tests_data_path);
   ParseIncorrectMonsterJsonTest(tests_data_path);
   FixedLengthArraySpanTest(tests_data_path);
+  DoNotRequireEofTest(tests_data_path);
 #endif
 
   UtilConvertCase();
