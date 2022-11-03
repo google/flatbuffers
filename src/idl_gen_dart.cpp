@@ -92,7 +92,7 @@ class DartGenerator : public BaseGenerator {
     GenerateEnums(namespace_code);
     GenerateStructs(namespace_code);
 
-    std::string import_code;
+    std::string import_code = "";
     for (const auto& included_file : parser_.included_files_) {
       for (const auto& struct_ : parser_.structs_.vec) {
         if (struct_->file == included_file.second) {
@@ -127,10 +127,9 @@ class DartGenerator : public BaseGenerator {
                   "' as " + ImportAliasName(kv2->first) + ";\n";
         }
       }
-      code += "\n";
+
       code += import_code;
       code += "\n";
-
       code += kv->second;
 
       if (!SaveFile(Filename(kv->first).c_str(), code, false)) { return false; }
