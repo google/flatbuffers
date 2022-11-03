@@ -92,6 +92,21 @@ class DartGenerator : public BaseGenerator {
     GenerateEnums(namespace_code);
     GenerateStructs(namespace_code);
 
+    std::string import_code;
+    for (auto itt : parser_.included_files_) {
+      for (auto i : parser_.structs_.vec) {
+        if (i->file == itt.second) {
+          for (auto it : i->defined_namespace->components) {
+            std::string filebase =
+                flatbuffers::StripPath(flatbuffers::StripExtension(i->file));
+            std::string filename = namer_.File(filebase + "_" + it);
+            import_code +=
+                "import './" + filename + "' as " + ImportAliasName(it) + ";\n";
+          }
+        }
+      }
+    }
+
     for (auto kv = namespace_code.begin(); kv != namespace_code.end(); ++kv) {
       code.clear();
       code = code + "// " + FlatBuffersGeneratedWarning() + "\n";
@@ -113,6 +128,9 @@ class DartGenerator : public BaseGenerator {
         }
       }
       code += "\n";
+      code += import_code;
+      code += "\n";
+
       code += kv->second;
 
       if (!SaveFile(Filename(kv->first).c_str(), code, false)) { return false; }
