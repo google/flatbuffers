@@ -93,15 +93,15 @@ class DartGenerator : public BaseGenerator {
     GenerateStructs(namespace_code);
 
     std::string import_code;
-    for (auto itt : parser_.included_files_) {
-      for (auto i : parser_.structs_.vec) {
-        if (i->file == itt.second) {
-          for (auto it : i->defined_namespace->components) {
+    for (const auto& included_file : parser_.included_files_) {
+      for (const auto& struct_ : parser_.structs_.vec) {
+        if (struct_->file == included_file.second) {
+          for (const auto& component : struct_->defined_namespace->components) {
             std::string filebase =
-                flatbuffers::StripPath(flatbuffers::StripExtension(i->file));
-            std::string filename = namer_.File(filebase + "_" + it);
+                flatbuffers::StripPath(flatbuffers::StripExtension(struct_->file));
+            std::string filename = namer_.File(filebase + "_" + component);
             import_code +=
-                "import './" + filename + "' as " + ImportAliasName(it) + ";\n";
+                "import './" + filename + "' as " + ImportAliasName(component) + ";\n";
           }
         }
       }
