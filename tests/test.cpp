@@ -29,6 +29,7 @@
 #include "flatbuffers/util.h"
 #include "fuzz_test.h"
 #include "json_test.h"
+#include "key_field_test.h"
 #include "monster_test.h"
 #include "monster_test_generated.h"
 #include "optional_scalars_test.h"
@@ -1432,7 +1433,7 @@ void DoNotRequireEofTest(const std::string& tests_data_path) {
   flatbuffers::Parser parser(opt);
   ok = parser.Parse(schemafile.c_str(), include_directories);
   TEST_EQ(ok, true);
-  
+
   const char *str = R"(This string contains two monsters, the first one is {
       "name": "Blob",
       "hp": 5
@@ -1449,7 +1450,7 @@ void DoNotRequireEofTest(const std::string& tests_data_path) {
   const Monster *monster = GetMonster(parser.builder_.GetBufferPointer());
   TEST_EQ_STR(monster->name()->c_str(), "Blob");
   TEST_EQ(monster->hp(), 5);
-  
+
   tableStart += parser.BytesConsumed();
 
   tableStart = std::strchr(tableStart + 1, '{');
@@ -1564,6 +1565,7 @@ int FlatBufferTests(const std::string &tests_data_path) {
   JsonUnsortedArrayTest();
   VectorSpanTest();
   NativeInlineTableVectorTest();
+  FixedSizedScalarKeyInStructTest();
   return 0;
 }
 }  // namespace
