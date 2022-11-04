@@ -1057,8 +1057,13 @@ CheckedError Parser::ParseField(StructDef &struct_def) {
   if (field->key) {
     if (struct_def.has_key) return Error("only one field may be set as 'key'");
     struct_def.has_key = true;
-    if (!IsScalar(type.base_type) && !IsString(type)) {
-      return Error("'key' field must be string or scalar type");
+    auto valid = IsScalar(type.base_type) || IsString(type) || IsStruct(type);
+    if (IsArray(type)) {
+      const auto &elem_type = type.VectorType();
+      valid |= IsScalar(elem_type.base_type);
+    }
+    if (!valid) {
+      return Error("'key' field must be string or scalar type or fixed size array of scalar");
     }
   }
 

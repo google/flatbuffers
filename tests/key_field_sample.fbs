@@ -1,0 +1,21 @@
+namespace keyfield.sample;
+
+struct Baz {
+  a: [uint8:4] (key);
+  b: uint8 ;
+}
+
+struct Bar {
+  a: [float:3] (key);
+  b: uint8;
+}
+
+table FooTable {
+  a: int;
+  b: int;
+  c: string (key);
+  d: [Baz];
+  e: [Bar];
+}
+root_type FooTable;
+

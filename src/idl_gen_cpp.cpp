@@ -2279,11 +2279,20 @@ class CppGenerator : public BaseGenerator {
   void GenKeyFieldMethods(const FieldDef &field) {
     FLATBUFFERS_ASSERT(field.key);
     const bool is_string = (IsString(field.value.type));
+    const bool is_array = (IsArray(field.value.type));
 
     code_ += "  bool KeyCompareLessThan(const {{STRUCT_NAME}} *o) const {";
     if (is_string) {
       // use operator< of flatbuffers::String
       code_ += "    return *{{FIELD_NAME}}() < *o->{{FIELD_NAME}}();";
+    } else if (is_array){
+      const auto &elem_type = field.value.type.VectorType();
+      if (IsScalar(elem_type.base_type)) {
+        code_ += "    for (auto i = 0; i < {{FIELD_NAME}}()->size(); i++){ ";
+        code_ += "      if ({{FIELD_NAME}}()->Get(i) != o->{{FIELD_NAME}}()->Get(i)) return {{FIELD_NAME}}()->Get(i) < o->{{FIELD_NAME}}()->Get(i);";
+        code_ += "    }";
+        code_ += "    return false;";
+      }
     } else {
       code_ += "    return {{FIELD_NAME}}() < o->{{FIELD_NAME}}();";
     }
@@ -2292,7 +2301,23 @@ class CppGenerator : public BaseGenerator {
     if (is_string) {
       code_ += "  int KeyCompareWithValue(const char *_{{FIELD_NAME}}) const {";
       code_ += "    return strcmp({{FIELD_NAME}}()->c_str(), _{{FIELD_NAME}});";
-      code_ += "  }";
+    } else if (is_array) {
+      const auto &elem_type = field.value.type.VectorType();
+      if (IsScalar(elem_type.base_type)) {
+        const auto face_type = GenTypeGet(elem_type, " ", "", "", false);
+        std::string input_param = face_type + "_{{FIELD_NAME}}[" +
+        NumToString(elem_type.fixed_length) + "]";
+
+        code_ += "  int KeyCompareWithValue(const "+input_param+") const { ";
+        code_ += "    for (auto i = 0; i < {{FIELD_NAME}}()->size(); i++) {";
+        code_ += "      if({{FIELD_NAME}}()->Get(i) != _{{FIELD_NAME}}[i]) ";
+        code_ +=
+            "        return static_cast<int>({{FIELD_NAME}}()->Get(i) > "
+            "_{{FIELD_NAME}}[i]) - static_cast<int>({{FIELD_NAME}}()->Get(i) "
+            "< _{{FIELD_NAME}}[i]);";
+        code_ += "  }";
+        code_ += "    return 0;";
+      }
     } else {
       FLATBUFFERS_ASSERT(IsScalar(field.value.type.base_type));
       auto type = GenTypeBasic(field.value.type, false);
@@ -2307,8 +2332,9 @@ class CppGenerator : public BaseGenerator {
       code_ +=
           "    return static_cast<int>({{FIELD_NAME}}() > _{{FIELD_NAME}}) - "
           "static_cast<int>({{FIELD_NAME}}() < _{{FIELD_NAME}});";
-      code_ += "  }";
     }
+    code_ += "  }";
+
   }
 
   void GenTableUnionAsGetters(const FieldDef &field) {
