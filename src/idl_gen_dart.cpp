@@ -84,6 +84,25 @@ class DartGenerator : public BaseGenerator {
       : BaseGenerator(parser, path, file_name, "", ".", "dart"),
         namer_(WithFlagOptions(DartDefaultConfig(), parser.opts, path),
                DartKeywords()) {}
+
+  template <typename T>
+  void import_generateor(const std::vector<T *> &definitions,
+                         const std::string &included, std::set<std::string> &imports) {
+    for (const auto &item : definitions) {
+      if (item->file == included) {
+        std::string component = namer_.Namespace(*item->defined_namespace);
+        std::string filebase =
+            flatbuffers::StripPath(flatbuffers::StripExtension(item->file));
+        std::string filename =
+            namer_.File(filebase + (component.empty() ? "" : "_" + component));
+
+        imports.emplace(
+            "import './" + filename + "'" +
+            (component.empty() ? "\n" : " as " + component + ";\n"));
+      }
+    }
+  }
+
   // Iterate through all definitions we haven't generate code for (enums,
   // structs, and tables) and output them to a single file.
   bool generate() {
@@ -92,20 +111,21 @@ class DartGenerator : public BaseGenerator {
     GenerateEnums(namespace_code);
     GenerateStructs(namespace_code);
 
-    std::string import_code = "";
-    for (const auto& included_file : parser_.included_files_) {
-      for (const auto& struct_ : parser_.structs_.vec) {
-        if (struct_->file == included_file.second) {
-          for (const auto& component : struct_->defined_namespace->components) {
-            std::string filebase =
-                flatbuffers::StripPath(flatbuffers::StripExtension(struct_->file));
-            std::string filename = namer_.File(filebase + "_" + component);
-            import_code +=
-                "import './" + filename + "' as " + ImportAliasName(component) + ";\n";
-          }
-        }
-      }
+    std::set<std::string> imports;
+
+    for (const auto &included_file : parser_.GetIncludedFiles()) {
+      if (included_file.filename == parser_.file_being_parsed_) continue;
+
+      import_generateor(parser_.structs_.vec, included_file.filename, imports);
+      import_generateor(parser_.enums_.vec, included_file.filename, imports);
     }
+
+    std::string import_code = "";
+    for (const auto& file : imports) {
+      import_code += file;
+    }
+
+    import_code += import_code.empty() ? "" : "\n";
 
     for (auto kv = namespace_code.begin(); kv != namespace_code.end(); ++kv) {
       code.clear();
@@ -128,8 +148,9 @@ class DartGenerator : public BaseGenerator {
         }
       }
 
-      code += import_code;
       code += "\n";
+      code += import_code;
+
       code += kv->second;
 
       if (!SaveFile(Filename(kv->first).c_str(), code, false)) { return false; }

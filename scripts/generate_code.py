@@ -181,6 +181,40 @@ flatc(
 
 flatc(
     NO_INCL_OPTS
+    + CPP_OPTS
+    + CS_OPTS
+    + [
+        "--binary",
+        "--java",
+        "--kotlin",
+        "--dart",
+        "--go",
+        "--lobster",
+        "--php",
+    ],
+    schema="include_test/include_test1.fbs",
+    include="include_test/sub",
+)
+
+flatc(
+    NO_INCL_OPTS
+    + CPP_OPTS
+    + CS_OPTS
+    + [
+        "--binary",
+        "--java",
+        "--kotlin",
+        "--dart",
+#        "--go", TODO: Go code generator emit exception in this test
+        "--lobster",
+        "--php",
+    ],
+    schema="include_test/sub/include_test2.fbs",
+    include="include_test",
+)
+
+flatc(
+    NO_INCL_OPTS
     + TS_OPTS,
     schema="monster_test.fbs",
     prefix="ts",
