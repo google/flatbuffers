@@ -69,7 +69,7 @@ static std::set<std::string> DartKeywords() {
     "dynamic",  "implements", "set",
   };
 }
-} // namespace
+}  // namespace
 
 const std::string _kFb = "fb";
 
@@ -85,9 +85,10 @@ class DartGenerator : public BaseGenerator {
         namer_(WithFlagOptions(DartDefaultConfig(), parser.opts, path),
                DartKeywords()) {}
 
-  template <typename T>
+  template<typename T>
   void import_generateor(const std::vector<T *> &definitions,
-                         const std::string &included, std::set<std::string> &imports) {
+                         const std::string &included,
+                         std::set<std::string> &imports) {
     for (const auto &item : definitions) {
       if (item->file == included) {
         std::string component = namer_.Namespace(*item->defined_namespace);
@@ -96,9 +97,10 @@ class DartGenerator : public BaseGenerator {
         std::string filename =
             namer_.File(filebase + (component.empty() ? "" : "_" + component));
 
-        imports.emplace(
-            "import './" + filename + "'" +
-            (component.empty() ? "\n" : " as " + component + ";\n"));
+        imports.emplace("import './" + filename + "'" +
+                        (component.empty()
+                             ? "\n"
+                             : " as " + ImportAliasName(component) + ";\n"));
       }
     }
   }
@@ -121,9 +123,7 @@ class DartGenerator : public BaseGenerator {
     }
 
     std::string import_code = "";
-    for (const auto& file : imports) {
-      import_code += file;
-    }
+    for (const auto &file : imports) { import_code += file; }
 
     import_code += import_code.empty() ? "" : "\n";
 
