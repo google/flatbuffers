@@ -17,6 +17,7 @@
 #ifndef FLATBUFFERS_FLATBUFFER_BUILDER_H_
 #define FLATBUFFERS_FLATBUFFER_BUILDER_H_
 
+#include <algorithm>
 #include <functional>
 #include <initializer_list>
 

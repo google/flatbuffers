@@ -16,6 +16,8 @@
 
 #include "flatbuffers/flatc.h"
 
+#include <algorithm>
+#include <limits>
 #include <list>
 #include <sstream>
 

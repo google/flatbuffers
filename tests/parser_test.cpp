@@ -1,6 +1,7 @@
 #include "parser_test.h"
 
 #include <cmath>
+#include <limits>
 #include <string>
 
 #include "flatbuffers/idl.h"

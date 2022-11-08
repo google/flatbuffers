@@ -1,5 +1,6 @@
 #include "binary_annotator.h"
 
+#include <algorithm>
 #include <limits>
 #include <string>
 #include <vector>

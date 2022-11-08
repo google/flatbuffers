@@ -16,6 +16,7 @@
 #include <stdint.h>
 
 #include <cmath>
+#include <limits>
 #include <memory>
 #include <string>
 
