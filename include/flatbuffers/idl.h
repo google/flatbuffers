@@ -17,6 +17,7 @@
 #ifndef FLATBUFFERS_IDL_H_
 #define FLATBUFFERS_IDL_H_
 
+#include <algorithm>
 #include <functional>
 #include <map>
 #include <memory>

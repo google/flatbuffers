@@ -31,6 +31,7 @@
 #  include <stdio.h>
 #endif  // FLATBUFFERS_PREFER_PRINTF
 
+#include <limits>
 #include <string>
 
 namespace flatbuffers {

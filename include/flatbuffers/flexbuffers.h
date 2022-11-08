@@ -17,6 +17,7 @@
 #ifndef FLATBUFFERS_FLEXBUFFERS_H_
 #define FLATBUFFERS_FLEXBUFFERS_H_
 
+#include <algorithm>
 #include <map>
 // Used to select STL variant.
 #include "flatbuffers/base.h"
