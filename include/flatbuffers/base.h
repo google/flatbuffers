@@ -32,7 +32,7 @@
 #include <cstdlib>
 #include <cstring>
 
-#if defined(ARDUINO) && !defined(ARDUINOSTL_M_H)
+#if defined(ARDUINO) && !defined(ARDUINOSTL_M_H) && defined(__AVR__)
   #include <utility.h>
 #else
   #include <utility>
