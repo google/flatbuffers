@@ -52,6 +52,8 @@ table ProtoMessage {
   u:float = +inf;
   v:float = +inf;
   w:float = -inf;
+  grades:[proto.test.ProtoMessage_.GradesEntry];
+  other_message_map:[proto.test.ProtoMessage_.OtherMessageMapEntry];
 }
 
 namespace proto.test.ProtoMessage_;
@@ -69,5 +71,15 @@ table Anonymous0 {
   /// doc comment for t on 2
   /// lines.
   t:proto.test.ProtoMessage_.OtherMessage;
+}
+
+table GradesEntry {
+  key:string (key);
+  value:float;
+}
+
+table OtherMessageMapEntry {
+  key:string (key);
+  value:proto.test.ProtoMessage_.OtherMessage;
 }
 

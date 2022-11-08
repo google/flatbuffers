@@ -137,6 +137,7 @@ std::string GenerateFBS(const Parser &parser, const std::string &file_name) {
         schema += "  " + field.name + ":" + GenType(field.value.type);
         if (field.value.constant != "0") schema += " = " + field.value.constant;
         if (field.IsRequired()) schema += " (required)";
+        if (field.key) schema += " (key)";
         schema += ";\n";
       }
     }
