@@ -507,6 +507,8 @@ CheckedError Parser::Next() {
       case ')':
       case '[':
       case ']':
+      case '<':
+      case '>':
       case ',':
       case ':':
       case ';':
@@ -2901,6 +2903,8 @@ CheckedError Parser::ParseProtoFields(StructDef *struct_def, bool isextend,
       NEXT();
       while (!Is(';')) { NEXT(); }  // A variety of formats, just skip.
       NEXT();
+    } else if (IsIdent("map")) {
+      ECHECK(ParseProtoMapField(struct_def));
     } else {
       std::vector<std::string> field_comment = doc_comment_;
       // Parse the qualifier.
@@ -3032,6 +3036,41 @@ CheckedError Parser::ParseProtoFields(StructDef *struct_def, bool isextend,
     }
   }
   NEXT();
+  return NoError();
+}
+
+CheckedError Parser::ParseProtoMapField(StructDef *struct_def) {
+  NEXT();
+  EXPECT('<');
+  Type key_type;
+  ECHECK(ParseType(key_type));
+  EXPECT(',');
+  Type value_type;
+  ECHECK(ParseType(value_type));
+  EXPECT('>');
+  auto field_name = attribute_;
+  NEXT();
+  EXPECT('=');
+  EXPECT(kTokenIntegerConstant);
+  EXPECT(';');
+
+  auto entry_table_name = ConvertCase(field_name, Case::kUpperCamel) + "Entry";
+  StructDef *entry_table;
+  ECHECK(StartStruct(entry_table_name, &entry_table));
+  entry_table->has_key = true;
+  FieldDef *key_field;
+  ECHECK(AddField(*entry_table, "key", key_type, &key_field));
+  key_field->key = true;
+  FieldDef *value_field;
+  ECHECK(AddField(*entry_table, "value", value_type, &value_field));
+
+  Type field_type;
+  field_type.base_type = BASE_TYPE_VECTOR;
+  field_type.element = BASE_TYPE_STRUCT;
+  field_type.struct_def = entry_table;
+  FieldDef *field;
+  ECHECK(AddField(*struct_def, field_name, field_type, &field));
+
   return NoError();
 }
 
