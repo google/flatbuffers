@@ -99,7 +99,7 @@ class DartGenerator : public BaseGenerator {
 
         imports.emplace("import './" + filename + "'" +
                         (component.empty()
-                             ? "\n"
+                             ? ";\n"
                              : " as " + ImportAliasName(component) + ";\n"));
       }
     }

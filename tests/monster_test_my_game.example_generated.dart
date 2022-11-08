@@ -9,7 +9,7 @@ import 'package:flat_buffers/flat_buffers.dart' as fb;
 import './monster_test_my_game_generated.dart' as my_game;
 import './monster_test_my_game.example2_generated.dart' as my_game_example2;
 
-import './include_test1_generated.dart'
+import './include_test1_generated.dart';
 
 ///  Composite components of Monster color.
 class Color {

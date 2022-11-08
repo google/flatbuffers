@@ -185,7 +185,6 @@ flatc(
     + CS_OPTS
     + [
         "--binary",
-        "--java",
         "--kotlin",
         "--dart",
         "--go",
@@ -202,10 +201,9 @@ flatc(
     + CS_OPTS
     + [
         "--binary",
-        "--java",
         "--kotlin",
         "--dart",
-#        "--go", TODO: Go code generator emit exception in this test
+        #"--go", TODO: go throw exception in example
         "--lobster",
         "--php",
     ],
