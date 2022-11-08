@@ -1,5 +1,6 @@
 #include "monster_test.h"
 
+#include <limits>
 #include <vector>
 
 #include "flatbuffers/flatbuffer_builder.h"
