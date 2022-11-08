@@ -16,6 +16,7 @@
 
 #include <algorithm>
 #include <cassert>
+#include <cmath>
 #include <unordered_map>
 #include <unordered_set>
 
@@ -454,9 +455,16 @@ class TsGenerator : public BaseGenerator {
         return "BigInt('" + value.constant + "')";
       }
 
-      default:
-        if (value.constant == "nan") { return "NaN"; }
+      default: {
+        if (StringIsFlatbufferNan(value.constant)) {
+          return "NaN";
+        } else if (StringIsFlatbufferPositiveInfinity(value.constant)) {
+          return "Infinity";
+        } else if (StringIsFlatbufferNegativeInfinity(value.constant)) {
+          return "-Infinity";
+        }
         return value.constant;
+      }
     }
   }
 

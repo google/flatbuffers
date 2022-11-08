@@ -16,6 +16,7 @@
 
 // independent from idl_parser, since this code is not needed for most clients
 #include <cassert>
+#include <cmath>
 
 #include "flatbuffers/code_generators.h"
 #include "flatbuffers/flatbuffers.h"
@@ -721,16 +722,17 @@ class DartGenerator : public BaseGenerator {
     if (!value.constant.empty() && value.constant != "0") {
       if (IsBool(value.type.base_type)) {
         return "true";
-      } else if (value.constant == "nan" || value.constant == "+nan" ||
-                 value.constant == "-nan") {
-        return "double.nan";
-      } else if (value.constant == "inf" || value.constant == "+inf") {
-        return "double.infinity";
-      } else if (value.constant == "-inf") {
-        return "double.negativeInfinity";
-      } else {
-        return value.constant;
       }
+      if (IsScalar(value.type.base_type)) {
+        if (StringIsFlatbufferNan(value.constant)) {
+          return "double.nan";
+        } else if (StringIsFlatbufferPositiveInfinity(value.constant)) {
+          return "double.infinity";
+        } else if (StringIsFlatbufferNegativeInfinity(value.constant)) {
+          return "double.negativeInfinity";
+        }
+      }
+      return value.constant;
     } else if (IsBool(value.type.base_type)) {
       return "false";
     } else if (IsScalar(value.type.base_type) && !IsUnion(value.type)) {

@@ -510,8 +510,64 @@ func longEnumNormalDefault*(self: Monster): MyGame_Example_LongEnum.LongEnum =
   return type(result)(2)
 func `longEnumNormalDefault=`*(self: var Monster, n: MyGame_Example_LongEnum.LongEnum): bool =
   return self.tab.MutateSlot(110, n)
+func nanDefault*(self: Monster): float32 =
+  let o = self.tab.Offset(112)
+  if o != 0:
+    return Get[float32](self.tab, self.tab.Pos + o)
+  return NaN
+func `nanDefault=`*(self: var Monster, n: float32): bool =
+  return self.tab.MutateSlot(112, n)
+func infDefault*(self: Monster): float32 =
+  let o = self.tab.Offset(114)
+  if o != 0:
+    return Get[float32](self.tab, self.tab.Pos + o)
+  return Inf
+func `infDefault=`*(self: var Monster, n: float32): bool =
+  return self.tab.MutateSlot(114, n)
+func positiveInfDefault*(self: Monster): float32 =
+  let o = self.tab.Offset(116)
+  if o != 0:
+    return Get[float32](self.tab, self.tab.Pos + o)
+  return Inf
+func `positiveInfDefault=`*(self: var Monster, n: float32): bool =
+  return self.tab.MutateSlot(116, n)
+func infinityDefault*(self: Monster): float32 =
+  let o = self.tab.Offset(118)
+  if o != 0:
+    return Get[float32](self.tab, self.tab.Pos + o)
+  return Inf
+func `infinityDefault=`*(self: var Monster, n: float32): bool =
+  return self.tab.MutateSlot(118, n)
+func positiveInfinityDefault*(self: Monster): float32 =
+  let o = self.tab.Offset(120)
+  if o != 0:
+    return Get[float32](self.tab, self.tab.Pos + o)
+  return Inf
+func `positiveInfinityDefault=`*(self: var Monster, n: float32): bool =
+  return self.tab.MutateSlot(120, n)
+func negativeInfDefault*(self: Monster): float32 =
+  let o = self.tab.Offset(122)
+  if o != 0:
+    return Get[float32](self.tab, self.tab.Pos + o)
+  return -Inf
+func `negativeInfDefault=`*(self: var Monster, n: float32): bool =
+  return self.tab.MutateSlot(122, n)
+func negativeInfinityDefault*(self: Monster): float32 =
+  let o = self.tab.Offset(124)
+  if o != 0:
+    return Get[float32](self.tab, self.tab.Pos + o)
+  return -Inf
+func `negativeInfinityDefault=`*(self: var Monster, n: float32): bool =
+  return self.tab.MutateSlot(124, n)
+func doubleInfDefault*(self: Monster): float64 =
+  let o = self.tab.Offset(126)
+  if o != 0:
+    return Get[float64](self.tab, self.tab.Pos + o)
+  return Inf
+func `doubleInfDefault=`*(self: var Monster, n: float64): bool =
+  return self.tab.MutateSlot(126, n)
 proc MonsterStart*(builder: var Builder) =
-  builder.StartObject(54)
+  builder.StartObject(62)
 proc MonsterAddpos*(builder: var Builder, pos: uoffset) =
   builder.PrependStructSlot(0, pos, default(uoffset))
 proc MonsterAddmana*(builder: var Builder, mana: int16) =
@@ -658,5 +714,21 @@ proc MonsterAddlongEnumNonEnumDefault*(builder: var Builder, longEnumNonEnumDefa
   builder.PrependSlot(52, longEnumNonEnumDefault, default(uint64))
 proc MonsterAddlongEnumNormalDefault*(builder: var Builder, longEnumNormalDefault: uint64) =
   builder.PrependSlot(53, longEnumNormalDefault, default(uint64))
+proc MonsterAddnanDefault*(builder: var Builder, nanDefault: float32) =
+  builder.PrependSlot(54, nanDefault, default(float32))
+proc MonsterAddinfDefault*(builder: var Builder, infDefault: float32) =
+  builder.PrependSlot(55, infDefault, default(float32))
+proc MonsterAddpositiveInfDefault*(builder: var Builder, positiveInfDefault: float32) =
+  builder.PrependSlot(56, positiveInfDefault, default(float32))
+proc MonsterAddinfinityDefault*(builder: var Builder, infinityDefault: float32) =
+  builder.PrependSlot(57, infinityDefault, default(float32))
+proc MonsterAddpositiveInfinityDefault*(builder: var Builder, positiveInfinityDefault: float32) =
+  builder.PrependSlot(58, positiveInfinityDefault, default(float32))
+proc MonsterAddnegativeInfDefault*(builder: var Builder, negativeInfDefault: float32) =
+  builder.PrependSlot(59, negativeInfDefault, default(float32))
+proc MonsterAddnegativeInfinityDefault*(builder: var Builder, negativeInfinityDefault: float32) =
+  builder.PrependSlot(60, negativeInfinityDefault, default(float32))
+proc MonsterAdddoubleInfDefault*(builder: var Builder, doubleInfDefault: float64) =
+  builder.PrependSlot(61, doubleInfDefault, default(float64))
 proc MonsterEnd*(builder: var Builder): uoffset =
   return builder.EndObject()

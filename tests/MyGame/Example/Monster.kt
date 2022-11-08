@@ -870,6 +870,118 @@ class Monster : Table() {
             false
         }
     }
+    val nanDefault : Float
+        get() {
+            val o = __offset(112)
+            return if(o != 0) bb.getFloat(o + bb_pos) else Float.NaN
+        }
+    fun mutateNanDefault(nanDefault: Float) : Boolean {
+        val o = __offset(112)
+        return if (o != 0) {
+            bb.putFloat(o + bb_pos, nanDefault)
+            true
+        } else {
+            false
+        }
+    }
+    val infDefault : Float
+        get() {
+            val o = __offset(114)
+            return if(o != 0) bb.getFloat(o + bb_pos) else Float.POSITIVE_INFINITY
+        }
+    fun mutateInfDefault(infDefault: Float) : Boolean {
+        val o = __offset(114)
+        return if (o != 0) {
+            bb.putFloat(o + bb_pos, infDefault)
+            true
+        } else {
+            false
+        }
+    }
+    val positiveInfDefault : Float
+        get() {
+            val o = __offset(116)
+            return if(o != 0) bb.getFloat(o + bb_pos) else Float.POSITIVE_INFINITY
+        }
+    fun mutatePositiveInfDefault(positiveInfDefault: Float) : Boolean {
+        val o = __offset(116)
+        return if (o != 0) {
+            bb.putFloat(o + bb_pos, positiveInfDefault)
+            true
+        } else {
+            false
+        }
+    }
+    val infinityDefault : Float
+        get() {
+            val o = __offset(118)
+            return if(o != 0) bb.getFloat(o + bb_pos) else Float.POSITIVE_INFINITY
+        }
+    fun mutateInfinityDefault(infinityDefault: Float) : Boolean {
+        val o = __offset(118)
+        return if (o != 0) {
+            bb.putFloat(o + bb_pos, infinityDefault)
+            true
+        } else {
+            false
+        }
+    }
+    val positiveInfinityDefault : Float
+        get() {
+            val o = __offset(120)
+            return if(o != 0) bb.getFloat(o + bb_pos) else Float.POSITIVE_INFINITY
+        }
+    fun mutatePositiveInfinityDefault(positiveInfinityDefault: Float) : Boolean {
+        val o = __offset(120)
+        return if (o != 0) {
+            bb.putFloat(o + bb_pos, positiveInfinityDefault)
+            true
+        } else {
+            false
+        }
+    }
+    val negativeInfDefault : Float
+        get() {
+            val o = __offset(122)
+            return if(o != 0) bb.getFloat(o + bb_pos) else Float.NEGATIVE_INFINITY
+        }
+    fun mutateNegativeInfDefault(negativeInfDefault: Float) : Boolean {
+        val o = __offset(122)
+        return if (o != 0) {
+            bb.putFloat(o + bb_pos, negativeInfDefault)
+            true
+        } else {
+            false
+        }
+    }
+    val negativeInfinityDefault : Float
+        get() {
+            val o = __offset(124)
+            return if(o != 0) bb.getFloat(o + bb_pos) else Float.NEGATIVE_INFINITY
+        }
+    fun mutateNegativeInfinityDefault(negativeInfinityDefault: Float) : Boolean {
+        val o = __offset(124)
+        return if (o != 0) {
+            bb.putFloat(o + bb_pos, negativeInfinityDefault)
+            true
+        } else {
+            false
+        }
+    }
+    val doubleInfDefault : Double
+        get() {
+            val o = __offset(126)
+            return if(o != 0) bb.getDouble(o + bb_pos) else Double.POSITIVE_INFINITY
+        }
+    fun mutateDoubleInfDefault(doubleInfDefault: Double) : Boolean {
+        val o = __offset(126)
+        return if (o != 0) {
+            bb.putDouble(o + bb_pos, doubleInfDefault)
+            true
+        } else {
+            false
+        }
+    }
     override fun keysCompare(o1: Int, o2: Int, _bb: ByteBuffer) : Int {
          return compareStrings(__offset(10, o1, _bb), __offset(10, o2, _bb), _bb)
     }
@@ -881,7 +993,7 @@ class Monster : Table() {
             return (obj.__assign(_bb.getInt(_bb.position()) + _bb.position(), _bb))
         }
         fun MonsterBufferHasIdentifier(_bb: ByteBuffer) : Boolean = __has_identifier(_bb, "MONS")
-        fun startMonster(builder: FlatBufferBuilder) = builder.startTable(54)
+        fun startMonster(builder: FlatBufferBuilder) = builder.startTable(62)
         fun addPos(builder: FlatBufferBuilder, pos: Int) = builder.addStruct(0, pos, 0)
         fun addMana(builder: FlatBufferBuilder, mana: Short) = builder.addShort(1, mana, 150)
         fun addHp(builder: FlatBufferBuilder, hp: Short) = builder.addShort(2, hp, 100)
@@ -1077,6 +1189,14 @@ class Monster : Table() {
         fun addNativeInline(builder: FlatBufferBuilder, nativeInline: Int) = builder.addStruct(51, nativeInline, 0)
         fun addLongEnumNonEnumDefault(builder: FlatBufferBuilder, longEnumNonEnumDefault: ULong) = builder.addLong(52, longEnumNonEnumDefault.toLong(), 0)
         fun addLongEnumNormalDefault(builder: FlatBufferBuilder, longEnumNormalDefault: ULong) = builder.addLong(53, longEnumNormalDefault.toLong(), 2)
+        fun addNanDefault(builder: FlatBufferBuilder, nanDefault: Float) = builder.addFloat(54, nanDefault, Double.NaN)
+        fun addInfDefault(builder: FlatBufferBuilder, infDefault: Float) = builder.addFloat(55, infDefault, Double.POSITIVE_INFINITY)
+        fun addPositiveInfDefault(builder: FlatBufferBuilder, positiveInfDefault: Float) = builder.addFloat(56, positiveInfDefault, Double.POSITIVE_INFINITY)
+        fun addInfinityDefault(builder: FlatBufferBuilder, infinityDefault: Float) = builder.addFloat(57, infinityDefault, Double.POSITIVE_INFINITY)
+        fun addPositiveInfinityDefault(builder: FlatBufferBuilder, positiveInfinityDefault: Float) = builder.addFloat(58, positiveInfinityDefault, Double.POSITIVE_INFINITY)
+        fun addNegativeInfDefault(builder: FlatBufferBuilder, negativeInfDefault: Float) = builder.addFloat(59, negativeInfDefault, Double.NEGATIVE_INFINITY)
+        fun addNegativeInfinityDefault(builder: FlatBufferBuilder, negativeInfinityDefault: Float) = builder.addFloat(60, negativeInfinityDefault, Double.NEGATIVE_INFINITY)
+        fun addDoubleInfDefault(builder: FlatBufferBuilder, doubleInfDefault: Double) = builder.addDouble(61, doubleInfDefault, Double.POSITIVE_INFINITY)
         fun endMonster(builder: FlatBufferBuilder) : Int {
             val o = builder.endTable()
                 builder.required(o, 10)
