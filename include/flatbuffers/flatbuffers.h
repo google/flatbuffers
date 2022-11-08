@@ -17,6 +17,8 @@
 #ifndef FLATBUFFERS_H_
 #define FLATBUFFERS_H_
 
+#include <algorithm>
+
 // TODO: These includes are for mitigating the pains of users editing their
 // source because they relied on flatbuffers.h to include everything for them.
 #include "flatbuffers/array.h"

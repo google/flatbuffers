@@ -1,3 +1,5 @@
+#include <algorithm>
+
 #include "fuzz_test.h"
 
 #include "flatbuffers/flatbuffers.h"
