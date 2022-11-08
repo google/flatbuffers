@@ -1309,6 +1309,14 @@ struct MonsterT : public flatbuffers::NativeTable {
   MyGame::Example::Test native_inline{};
   MyGame::Example::LongEnum long_enum_non_enum_default = static_cast<MyGame::Example::LongEnum>(0);
   MyGame::Example::LongEnum long_enum_normal_default = MyGame::Example::LongEnum_LongOne;
+  float nan_default = std::numeric_limits<float>::quiet_NaN();
+  float inf_default = std::numeric_limits<float>::infinity();
+  float positive_inf_default = std::numeric_limits<float>::infinity();
+  float infinity_default = std::numeric_limits<float>::infinity();
+  float positive_infinity_default = std::numeric_limits<float>::infinity();
+  float negative_inf_default = -std::numeric_limits<float>::infinity();
+  float negative_infinity_default = -std::numeric_limits<float>::infinity();
+  double double_inf_default = std::numeric_limits<double>::infinity();
   MonsterT() = default;
   MonsterT(const MonsterT &o);
   MonsterT(MonsterT&&) FLATBUFFERS_NOEXCEPT = default;
@@ -1375,7 +1383,15 @@ struct Monster FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
     VT_SCALAR_KEY_SORTED_TABLES = 104,
     VT_NATIVE_INLINE = 106,
     VT_LONG_ENUM_NON_ENUM_DEFAULT = 108,
-    VT_LONG_ENUM_NORMAL_DEFAULT = 110
+    VT_LONG_ENUM_NORMAL_DEFAULT = 110,
+    VT_NAN_DEFAULT = 112,
+    VT_INF_DEFAULT = 114,
+    VT_POSITIVE_INF_DEFAULT = 116,
+    VT_INFINITY_DEFAULT = 118,
+    VT_POSITIVE_INFINITY_DEFAULT = 120,
+    VT_NEGATIVE_INF_DEFAULT = 122,
+    VT_NEGATIVE_INFINITY_DEFAULT = 124,
+    VT_DOUBLE_INF_DEFAULT = 126
   };
   const MyGame::Example::Vec3 *pos() const {
     return GetStruct<const MyGame::Example::Vec3 *>(VT_POS);
@@ -1732,6 +1748,54 @@ struct Monster FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   bool mutate_long_enum_normal_default(MyGame::Example::LongEnum _long_enum_normal_default = static_cast<MyGame::Example::LongEnum>(2ULL)) {
     return SetField<uint64_t>(VT_LONG_ENUM_NORMAL_DEFAULT, static_cast<uint64_t>(_long_enum_normal_default), 2ULL);
   }
+  float nan_default() const {
+    return GetField<float>(VT_NAN_DEFAULT, std::numeric_limits<float>::quiet_NaN());
+  }
+  bool mutate_nan_default(float _nan_default = std::numeric_limits<float>::quiet_NaN()) {
+    return SetField<float>(VT_NAN_DEFAULT, _nan_default, std::numeric_limits<float>::quiet_NaN());
+  }
+  float inf_default() const {
+    return GetField<float>(VT_INF_DEFAULT, std::numeric_limits<float>::infinity());
+  }
+  bool mutate_inf_default(float _inf_default = std::numeric_limits<float>::infinity()) {
+    return SetField<float>(VT_INF_DEFAULT, _inf_default, std::numeric_limits<float>::infinity());
+  }
+  float positive_inf_default() const {
+    return GetField<float>(VT_POSITIVE_INF_DEFAULT, std::numeric_limits<float>::infinity());
+  }
+  bool mutate_positive_inf_default(float _positive_inf_default = std::numeric_limits<float>::infinity()) {
+    return SetField<float>(VT_POSITIVE_INF_DEFAULT, _positive_inf_default, std::numeric_limits<float>::infinity());
+  }
+  float infinity_default() const {
+    return GetField<float>(VT_INFINITY_DEFAULT, std::numeric_limits<float>::infinity());
+  }
+  bool mutate_infinity_default(float _infinity_default = std::numeric_limits<float>::infinity()) {
+    return SetField<float>(VT_INFINITY_DEFAULT, _infinity_default, std::numeric_limits<float>::infinity());
+  }
+  float positive_infinity_default() const {
+    return GetField<float>(VT_POSITIVE_INFINITY_DEFAULT, std::numeric_limits<float>::infinity());
+  }
+  bool mutate_positive_infinity_default(float _positive_infinity_default = std::numeric_limits<float>::infinity()) {
+    return SetField<float>(VT_POSITIVE_INFINITY_DEFAULT, _positive_infinity_default, std::numeric_limits<float>::infinity());
+  }
+  float negative_inf_default() const {
+    return GetField<float>(VT_NEGATIVE_INF_DEFAULT, -std::numeric_limits<float>::infinity());
+  }
+  bool mutate_negative_inf_default(float _negative_inf_default = -std::numeric_limits<float>::infinity()) {
+    return SetField<float>(VT_NEGATIVE_INF_DEFAULT, _negative_inf_default, -std::numeric_limits<float>::infinity());
+  }
+  float negative_infinity_default() const {
+    return GetField<float>(VT_NEGATIVE_INFINITY_DEFAULT, -std::numeric_limits<float>::infinity());
+  }
+  bool mutate_negative_infinity_default(float _negative_infinity_default = -std::numeric_limits<float>::infinity()) {
+    return SetField<float>(VT_NEGATIVE_INFINITY_DEFAULT, _negative_infinity_default, -std::numeric_limits<float>::infinity());
+  }
+  double double_inf_default() const {
+    return GetField<double>(VT_DOUBLE_INF_DEFAULT, std::numeric_limits<double>::infinity());
+  }
+  bool mutate_double_inf_default(double _double_inf_default = std::numeric_limits<double>::infinity()) {
+    return SetField<double>(VT_DOUBLE_INF_DEFAULT, _double_inf_default, std::numeric_limits<double>::infinity());
+  }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyField<MyGame::Example::Vec3>(verifier, VT_POS, 8) &&
@@ -1823,6 +1887,14 @@ struct Monster FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
            VerifyField<MyGame::Example::Test>(verifier, VT_NATIVE_INLINE, 2) &&
            VerifyField<uint64_t>(verifier, VT_LONG_ENUM_NON_ENUM_DEFAULT, 8) &&
            VerifyField<uint64_t>(verifier, VT_LONG_ENUM_NORMAL_DEFAULT, 8) &&
+           VerifyField<float>(verifier, VT_NAN_DEFAULT, 4) &&
+           VerifyField<float>(verifier, VT_INF_DEFAULT, 4) &&
+           VerifyField<float>(verifier, VT_POSITIVE_INF_DEFAULT, 4) &&
+           VerifyField<float>(verifier, VT_INFINITY_DEFAULT, 4) &&
+           VerifyField<float>(verifier, VT_POSITIVE_INFINITY_DEFAULT, 4) &&
+           VerifyField<float>(verifier, VT_NEGATIVE_INF_DEFAULT, 4) &&
+           VerifyField<float>(verifier, VT_NEGATIVE_INFINITY_DEFAULT, 4) &&
+           VerifyField<double>(verifier, VT_DOUBLE_INF_DEFAULT, 8) &&
            verifier.EndTable();
   }
   MonsterT *UnPack(const flatbuffers::resolver_function_t *_resolver = nullptr) const;
@@ -2017,6 +2089,30 @@ struct MonsterBuilder {
   void add_long_enum_normal_default(MyGame::Example::LongEnum long_enum_normal_default) {
     fbb_.AddElement<uint64_t>(Monster::VT_LONG_ENUM_NORMAL_DEFAULT, static_cast<uint64_t>(long_enum_normal_default), 2ULL);
   }
+  void add_nan_default(float nan_default) {
+    fbb_.AddElement<float>(Monster::VT_NAN_DEFAULT, nan_default, std::numeric_limits<float>::quiet_NaN());
+  }
+  void add_inf_default(float inf_default) {
+    fbb_.AddElement<float>(Monster::VT_INF_DEFAULT, inf_default, std::numeric_limits<float>::infinity());
+  }
+  void add_positive_inf_default(float positive_inf_default) {
+    fbb_.AddElement<float>(Monster::VT_POSITIVE_INF_DEFAULT, positive_inf_default, std::numeric_limits<float>::infinity());
+  }
+  void add_infinity_default(float infinity_default) {
+    fbb_.AddElement<float>(Monster::VT_INFINITY_DEFAULT, infinity_default, std::numeric_limits<float>::infinity());
+  }
+  void add_positive_infinity_default(float positive_infinity_default) {
+    fbb_.AddElement<float>(Monster::VT_POSITIVE_INFINITY_DEFAULT, positive_infinity_default, std::numeric_limits<float>::infinity());
+  }
+  void add_negative_inf_default(float negative_inf_default) {
+    fbb_.AddElement<float>(Monster::VT_NEGATIVE_INF_DEFAULT, negative_inf_default, -std::numeric_limits<float>::infinity());
+  }
+  void add_negative_infinity_default(float negative_infinity_default) {
+    fbb_.AddElement<float>(Monster::VT_NEGATIVE_INFINITY_DEFAULT, negative_infinity_default, -std::numeric_limits<float>::infinity());
+  }
+  void add_double_inf_default(double double_inf_default) {
+    fbb_.AddElement<double>(Monster::VT_DOUBLE_INF_DEFAULT, double_inf_default, std::numeric_limits<double>::infinity());
+  }
   explicit MonsterBuilder(flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
@@ -2083,8 +2179,17 @@ inline flatbuffers::Offset<Monster> CreateMonster(
     flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<MyGame::Example::Stat>>> scalar_key_sorted_tables = 0,
     const MyGame::Example::Test *native_inline = nullptr,
     MyGame::Example::LongEnum long_enum_non_enum_default = static_cast<MyGame::Example::LongEnum>(0),
-    MyGame::Example::LongEnum long_enum_normal_default = MyGame::Example::LongEnum_LongOne) {
+    MyGame::Example::LongEnum long_enum_normal_default = MyGame::Example::LongEnum_LongOne,
+    float nan_default = std::numeric_limits<float>::quiet_NaN(),
+    float inf_default = std::numeric_limits<float>::infinity(),
+    float positive_inf_default = std::numeric_limits<float>::infinity(),
+    float infinity_default = std::numeric_limits<float>::infinity(),
+    float positive_infinity_default = std::numeric_limits<float>::infinity(),
+    float negative_inf_default = -std::numeric_limits<float>::infinity(),
+    float negative_infinity_default = -std::numeric_limits<float>::infinity(),
+    double double_inf_default = std::numeric_limits<double>::infinity()) {
   MonsterBuilder builder_(_fbb);
+  builder_.add_double_inf_default(double_inf_default);
   builder_.add_long_enum_normal_default(long_enum_normal_default);
   builder_.add_long_enum_non_enum_default(long_enum_non_enum_default);
   builder_.add_non_owning_reference(non_owning_reference);
@@ -2094,6 +2199,13 @@ inline flatbuffers::Offset<Monster> CreateMonster(
   builder_.add_testhashs64_fnv1a(testhashs64_fnv1a);
   builder_.add_testhashu64_fnv1(testhashu64_fnv1);
   builder_.add_testhashs64_fnv1(testhashs64_fnv1);
+  builder_.add_negative_infinity_default(negative_infinity_default);
+  builder_.add_negative_inf_default(negative_inf_default);
+  builder_.add_positive_infinity_default(positive_infinity_default);
+  builder_.add_infinity_default(infinity_default);
+  builder_.add_positive_inf_default(positive_inf_default);
+  builder_.add_inf_default(inf_default);
+  builder_.add_nan_default(nan_default);
   builder_.add_native_inline(native_inline);
   builder_.add_scalar_key_sorted_tables(scalar_key_sorted_tables);
   builder_.add_testrequirednestedflatbuffer(testrequirednestedflatbuffer);
@@ -2195,7 +2307,15 @@ inline flatbuffers::Offset<Monster> CreateMonsterDirect(
     std::vector<flatbuffers::Offset<MyGame::Example::Stat>> *scalar_key_sorted_tables = nullptr,
     const MyGame::Example::Test *native_inline = nullptr,
     MyGame::Example::LongEnum long_enum_non_enum_default = static_cast<MyGame::Example::LongEnum>(0),
-    MyGame::Example::LongEnum long_enum_normal_default = MyGame::Example::LongEnum_LongOne) {
+    MyGame::Example::LongEnum long_enum_normal_default = MyGame::Example::LongEnum_LongOne,
+    float nan_default = std::numeric_limits<float>::quiet_NaN(),
+    float inf_default = std::numeric_limits<float>::infinity(),
+    float positive_inf_default = std::numeric_limits<float>::infinity(),
+    float infinity_default = std::numeric_limits<float>::infinity(),
+    float positive_infinity_default = std::numeric_limits<float>::infinity(),
+    float negative_inf_default = -std::numeric_limits<float>::infinity(),
+    float negative_infinity_default = -std::numeric_limits<float>::infinity(),
+    double double_inf_default = std::numeric_limits<double>::infinity()) {
   auto name__ = name ? _fbb.CreateString(name) : 0;
   auto inventory__ = inventory ? _fbb.CreateVector<uint8_t>(*inventory) : 0;
   auto test4__ = test4 ? _fbb.CreateVectorOfStructs<MyGame::Example::Test>(*test4) : 0;
@@ -2271,7 +2391,15 @@ inline flatbuffers::Offset<Monster> CreateMonsterDirect(
       scalar_key_sorted_tables__,
       native_inline,
       long_enum_non_enum_default,
-      long_enum_normal_default);
+      long_enum_normal_default,
+      nan_default,
+      inf_default,
+      positive_inf_default,
+      infinity_default,
+      positive_infinity_default,
+      negative_inf_default,
+      negative_infinity_default,
+      double_inf_default);
 }
 
 flatbuffers::Offset<Monster> CreateMonster(flatbuffers::FlatBufferBuilder &_fbb, const MonsterT *_o, const flatbuffers::rehasher_function_t *_rehasher = nullptr);
@@ -2767,7 +2895,15 @@ inline bool operator==(const MonsterT &lhs, const MonsterT &rhs) {
       (lhs.scalar_key_sorted_tables.size() == rhs.scalar_key_sorted_tables.size() && std::equal(lhs.scalar_key_sorted_tables.cbegin(), lhs.scalar_key_sorted_tables.cend(), rhs.scalar_key_sorted_tables.cbegin(), [](flatbuffers::unique_ptr<MyGame::Example::StatT> const &a, flatbuffers::unique_ptr<MyGame::Example::StatT> const &b) { return (a == b) || (a && b && *a == *b); })) &&
       (lhs.native_inline == rhs.native_inline) &&
       (lhs.long_enum_non_enum_default == rhs.long_enum_non_enum_default) &&
-      (lhs.long_enum_normal_default == rhs.long_enum_normal_default);
+      (lhs.long_enum_normal_default == rhs.long_enum_normal_default) &&
+      (lhs.nan_default == rhs.nan_default) &&
+      (lhs.inf_default == rhs.inf_default) &&
+      (lhs.positive_inf_default == rhs.positive_inf_default) &&
+      (lhs.infinity_default == rhs.infinity_default) &&
+      (lhs.positive_infinity_default == rhs.positive_infinity_default) &&
+      (lhs.negative_inf_default == rhs.negative_inf_default) &&
+      (lhs.negative_infinity_default == rhs.negative_infinity_default) &&
+      (lhs.double_inf_default == rhs.double_inf_default);
 }
 
 inline bool operator!=(const MonsterT &lhs, const MonsterT &rhs) {
@@ -2820,7 +2956,15 @@ inline MonsterT::MonsterT(const MonsterT &o)
         testrequirednestedflatbuffer(o.testrequirednestedflatbuffer),
         native_inline(o.native_inline),
         long_enum_non_enum_default(o.long_enum_non_enum_default),
-        long_enum_normal_default(o.long_enum_normal_default) {
+        long_enum_normal_default(o.long_enum_normal_default),
+        nan_default(o.nan_default),
+        inf_default(o.inf_default),
+        positive_inf_default(o.positive_inf_default),
+        infinity_default(o.infinity_default),
+        positive_infinity_default(o.positive_infinity_default),
+        negative_inf_default(o.negative_inf_default),
+        negative_infinity_default(o.negative_infinity_default),
+        double_inf_default(o.double_inf_default) {
   testarrayoftables.reserve(o.testarrayoftables.size());
   for (const auto &testarrayoftables_ : o.testarrayoftables) { testarrayoftables.emplace_back((testarrayoftables_) ? new MyGame::Example::MonsterT(*testarrayoftables_) : nullptr); }
   vector_of_referrables.reserve(o.vector_of_referrables.size());
@@ -2884,6 +3028,14 @@ inline MonsterT &MonsterT::operator=(MonsterT o) FLATBUFFERS_NOEXCEPT {
   std::swap(native_inline, o.native_inline);
   std::swap(long_enum_non_enum_default, o.long_enum_non_enum_default);
   std::swap(long_enum_normal_default, o.long_enum_normal_default);
+  std::swap(nan_default, o.nan_default);
+  std::swap(inf_default, o.inf_default);
+  std::swap(positive_inf_default, o.positive_inf_default);
+  std::swap(infinity_default, o.infinity_default);
+  std::swap(positive_infinity_default, o.positive_infinity_default);
+  std::swap(negative_inf_default, o.negative_inf_default);
+  std::swap(negative_infinity_default, o.negative_infinity_default);
+  std::swap(double_inf_default, o.double_inf_default);
   return *this;
 }
 
@@ -2949,6 +3101,14 @@ inline void Monster::UnPackTo(MonsterT *_o, const flatbuffers::resolver_function
   { auto _e = native_inline(); if (_e) _o->native_inline = *_e; }
   { auto _e = long_enum_non_enum_default(); _o->long_enum_non_enum_default = _e; }
   { auto _e = long_enum_normal_default(); _o->long_enum_normal_default = _e; }
+  { auto _e = nan_default(); _o->nan_default = _e; }
+  { auto _e = inf_default(); _o->inf_default = _e; }
+  { auto _e = positive_inf_default(); _o->positive_inf_default = _e; }
+  { auto _e = infinity_default(); _o->infinity_default = _e; }
+  { auto _e = positive_infinity_default(); _o->positive_infinity_default = _e; }
+  { auto _e = negative_inf_default(); _o->negative_inf_default = _e; }
+  { auto _e = negative_infinity_default(); _o->negative_infinity_default = _e; }
+  { auto _e = double_inf_default(); _o->double_inf_default = _e; }
 }
 
 inline flatbuffers::Offset<Monster> Monster::Pack(flatbuffers::FlatBufferBuilder &_fbb, const MonsterT* _o, const flatbuffers::rehasher_function_t *_rehasher) {
@@ -3012,6 +3172,14 @@ inline flatbuffers::Offset<Monster> CreateMonster(flatbuffers::FlatBufferBuilder
   auto _native_inline = &_o->native_inline;
   auto _long_enum_non_enum_default = _o->long_enum_non_enum_default;
   auto _long_enum_normal_default = _o->long_enum_normal_default;
+  auto _nan_default = _o->nan_default;
+  auto _inf_default = _o->inf_default;
+  auto _positive_inf_default = _o->positive_inf_default;
+  auto _infinity_default = _o->infinity_default;
+  auto _positive_infinity_default = _o->positive_infinity_default;
+  auto _negative_inf_default = _o->negative_inf_default;
+  auto _negative_infinity_default = _o->negative_infinity_default;
+  auto _double_inf_default = _o->double_inf_default;
   return MyGame::Example::CreateMonster(
       _fbb,
       _pos,
@@ -3066,7 +3234,15 @@ inline flatbuffers::Offset<Monster> CreateMonster(flatbuffers::FlatBufferBuilder
       _scalar_key_sorted_tables,
       _native_inline,
       _long_enum_non_enum_default,
-      _long_enum_normal_default);
+      _long_enum_normal_default,
+      _nan_default,
+      _inf_default,
+      _positive_inf_default,
+      _infinity_default,
+      _positive_infinity_default,
+      _negative_inf_default,
+      _negative_infinity_default,
+      _double_inf_default);
 }
 
 
@@ -3846,7 +4022,15 @@ inline const flatbuffers::TypeTable *MonsterTypeTable() {
     { flatbuffers::ET_SEQUENCE, 1, 5 },
     { flatbuffers::ET_SEQUENCE, 0, 3 },
     { flatbuffers::ET_ULONG, 0, 12 },
-    { flatbuffers::ET_ULONG, 0, 12 }
+    { flatbuffers::ET_ULONG, 0, 12 },
+    { flatbuffers::ET_FLOAT, 0, -1 },
+    { flatbuffers::ET_FLOAT, 0, -1 },
+    { flatbuffers::ET_FLOAT, 0, -1 },
+    { flatbuffers::ET_FLOAT, 0, -1 },
+    { flatbuffers::ET_FLOAT, 0, -1 },
+    { flatbuffers::ET_FLOAT, 0, -1 },
+    { flatbuffers::ET_FLOAT, 0, -1 },
+    { flatbuffers::ET_DOUBLE, 0, -1 }
   };
   static const flatbuffers::TypeFunction type_refs[] = {
     MyGame::Example::Vec3TypeTable,
@@ -3917,10 +4101,18 @@ inline const flatbuffers::TypeTable *MonsterTypeTable() {
     "scalar_key_sorted_tables",
     "native_inline",
     "long_enum_non_enum_default",
-    "long_enum_normal_default"
+    "long_enum_normal_default",
+    "nan_default",
+    "inf_default",
+    "positive_inf_default",
+    "infinity_default",
+    "positive_infinity_default",
+    "negative_inf_default",
+    "negative_infinity_default",
+    "double_inf_default"
   };
   static const flatbuffers::TypeTable tt = {
-    flatbuffers::ST_TABLE, 54, type_codes, type_refs, nullptr, nullptr, names
+    flatbuffers::ST_TABLE, 62, type_codes, type_refs, nullptr, nullptr, names
   };
   return &tt;
 }

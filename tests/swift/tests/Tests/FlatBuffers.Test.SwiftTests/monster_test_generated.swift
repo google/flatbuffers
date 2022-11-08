@@ -1184,6 +1184,14 @@ public struct MyGame_Example_Monster: FlatBufferObject, Verifiable, ObjectAPIPac
     case nativeInline = 106
     case longEnumNonEnumDefault = 108
     case longEnumNormalDefault = 110
+    case nanDefault = 112
+    case infDefault = 114
+    case positiveInfDefault = 116
+    case infinityDefault = 118
+    case positiveInfinityDefault = 120
+    case negativeInfDefault = 122
+    case negativeInfinityDefault = 124
+    case doubleInfDefault = 126
     var v: Int32 { Int32(self.rawValue) }
     var p: VOffset { self.rawValue }
   }
@@ -1334,7 +1342,23 @@ public struct MyGame_Example_Monster: FlatBufferObject, Verifiable, ObjectAPIPac
   @discardableResult public func mutate(longEnumNonEnumDefault: MyGame_Example_LongEnum) -> Bool {let o = _accessor.offset(VTOFFSET.longEnumNonEnumDefault.v);  return _accessor.mutate(longEnumNonEnumDefault.rawValue, index: o) }
   public var longEnumNormalDefault: MyGame_Example_LongEnum { let o = _accessor.offset(VTOFFSET.longEnumNormalDefault.v); return o == 0 ? .longone : MyGame_Example_LongEnum(rawValue: _accessor.readBuffer(of: UInt64.self, at: o)) ?? .longone }
   @discardableResult public func mutate(longEnumNormalDefault: MyGame_Example_LongEnum) -> Bool {let o = _accessor.offset(VTOFFSET.longEnumNormalDefault.v);  return _accessor.mutate(longEnumNormalDefault.rawValue, index: o) }
-  public static func startMonster(_ fbb: inout FlatBufferBuilder) -> UOffset { fbb.startTable(with: 54) }
+  public var nanDefault: Float32 { let o = _accessor.offset(VTOFFSET.nanDefault.v); return o == 0 ? nan : _accessor.readBuffer(of: Float32.self, at: o) }
+  @discardableResult public func mutate(nanDefault: Float32) -> Bool {let o = _accessor.offset(VTOFFSET.nanDefault.v);  return _accessor.mutate(nanDefault, index: o) }
+  public var infDefault: Float32 { let o = _accessor.offset(VTOFFSET.infDefault.v); return o == 0 ? inf : _accessor.readBuffer(of: Float32.self, at: o) }
+  @discardableResult public func mutate(infDefault: Float32) -> Bool {let o = _accessor.offset(VTOFFSET.infDefault.v);  return _accessor.mutate(infDefault, index: o) }
+  public var positiveInfDefault: Float32 { let o = _accessor.offset(VTOFFSET.positiveInfDefault.v); return o == 0 ? +inf : _accessor.readBuffer(of: Float32.self, at: o) }
+  @discardableResult public func mutate(positiveInfDefault: Float32) -> Bool {let o = _accessor.offset(VTOFFSET.positiveInfDefault.v);  return _accessor.mutate(positiveInfDefault, index: o) }
+  public var infinityDefault: Float32 { let o = _accessor.offset(VTOFFSET.infinityDefault.v); return o == 0 ? infinity : _accessor.readBuffer(of: Float32.self, at: o) }
+  @discardableResult public func mutate(infinityDefault: Float32) -> Bool {let o = _accessor.offset(VTOFFSET.infinityDefault.v);  return _accessor.mutate(infinityDefault, index: o) }
+  public var positiveInfinityDefault: Float32 { let o = _accessor.offset(VTOFFSET.positiveInfinityDefault.v); return o == 0 ? +infinity : _accessor.readBuffer(of: Float32.self, at: o) }
+  @discardableResult public func mutate(positiveInfinityDefault: Float32) -> Bool {let o = _accessor.offset(VTOFFSET.positiveInfinityDefault.v);  return _accessor.mutate(positiveInfinityDefault, index: o) }
+  public var negativeInfDefault: Float32 { let o = _accessor.offset(VTOFFSET.negativeInfDefault.v); return o == 0 ? -inf : _accessor.readBuffer(of: Float32.self, at: o) }
+  @discardableResult public func mutate(negativeInfDefault: Float32) -> Bool {let o = _accessor.offset(VTOFFSET.negativeInfDefault.v);  return _accessor.mutate(negativeInfDefault, index: o) }
+  public var negativeInfinityDefault: Float32 { let o = _accessor.offset(VTOFFSET.negativeInfinityDefault.v); return o == 0 ? -infinity : _accessor.readBuffer(of: Float32.self, at: o) }
+  @discardableResult public func mutate(negativeInfinityDefault: Float32) -> Bool {let o = _accessor.offset(VTOFFSET.negativeInfinityDefault.v);  return _accessor.mutate(negativeInfinityDefault, index: o) }
+  public var doubleInfDefault: Double { let o = _accessor.offset(VTOFFSET.doubleInfDefault.v); return o == 0 ? inf : _accessor.readBuffer(of: Double.self, at: o) }
+  @discardableResult public func mutate(doubleInfDefault: Double) -> Bool {let o = _accessor.offset(VTOFFSET.doubleInfDefault.v);  return _accessor.mutate(doubleInfDefault, index: o) }
+  public static func startMonster(_ fbb: inout FlatBufferBuilder) -> UOffset { fbb.startTable(with: 62) }
   public static func add(pos: MyGame_Example_Vec3?, _ fbb: inout FlatBufferBuilder) { guard let pos = pos else { return }; fbb.create(struct: pos, position: VTOFFSET.pos.p) }
   public static func add(mana: Int16, _ fbb: inout FlatBufferBuilder) { fbb.add(element: mana, def: 150, at: VTOFFSET.mana.p) }
   public static func add(hp: Int16, _ fbb: inout FlatBufferBuilder) { fbb.add(element: hp, def: 100, at: VTOFFSET.hp.p) }
@@ -1398,6 +1422,14 @@ public struct MyGame_Example_Monster: FlatBufferObject, Verifiable, ObjectAPIPac
   public static func add(nativeInline: MyGame_Example_Test?, _ fbb: inout FlatBufferBuilder) { guard let nativeInline = nativeInline else { return }; fbb.create(struct: nativeInline, position: VTOFFSET.nativeInline.p) }
   public static func add(longEnumNonEnumDefault: MyGame_Example_LongEnum, _ fbb: inout FlatBufferBuilder) { fbb.add(element: longEnumNonEnumDefault.rawValue, def: 0, at: VTOFFSET.longEnumNonEnumDefault.p) }
   public static func add(longEnumNormalDefault: MyGame_Example_LongEnum, _ fbb: inout FlatBufferBuilder) { fbb.add(element: longEnumNormalDefault.rawValue, def: 2, at: VTOFFSET.longEnumNormalDefault.p) }
+  public static func add(nanDefault: Float32, _ fbb: inout FlatBufferBuilder) { fbb.add(element: nanDefault, def: nan, at: VTOFFSET.nanDefault.p) }
+  public static func add(infDefault: Float32, _ fbb: inout FlatBufferBuilder) { fbb.add(element: infDefault, def: inf, at: VTOFFSET.infDefault.p) }
+  public static func add(positiveInfDefault: Float32, _ fbb: inout FlatBufferBuilder) { fbb.add(element: positiveInfDefault, def: +inf, at: VTOFFSET.positiveInfDefault.p) }
+  public static func add(infinityDefault: Float32, _ fbb: inout FlatBufferBuilder) { fbb.add(element: infinityDefault, def: infinity, at: VTOFFSET.infinityDefault.p) }
+  public static func add(positiveInfinityDefault: Float32, _ fbb: inout FlatBufferBuilder) { fbb.add(element: positiveInfinityDefault, def: +infinity, at: VTOFFSET.positiveInfinityDefault.p) }
+  public static func add(negativeInfDefault: Float32, _ fbb: inout FlatBufferBuilder) { fbb.add(element: negativeInfDefault, def: -inf, at: VTOFFSET.negativeInfDefault.p) }
+  public static func add(negativeInfinityDefault: Float32, _ fbb: inout FlatBufferBuilder) { fbb.add(element: negativeInfinityDefault, def: -infinity, at: VTOFFSET.negativeInfinityDefault.p) }
+  public static func add(doubleInfDefault: Double, _ fbb: inout FlatBufferBuilder) { fbb.add(element: doubleInfDefault, def: inf, at: VTOFFSET.doubleInfDefault.p) }
   public static func endMonster(_ fbb: inout FlatBufferBuilder, start: UOffset) -> Offset { let end = Offset(offset: fbb.endTable(at: start)); fbb.require(table: end, fields: [10]); return end }
   public static func createMonster(
     _ fbb: inout FlatBufferBuilder,
@@ -1453,7 +1485,15 @@ public struct MyGame_Example_Monster: FlatBufferObject, Verifiable, ObjectAPIPac
     scalarKeySortedTablesVectorOffset scalarKeySortedTables: Offset = Offset(),
     nativeInline: MyGame_Example_Test? = nil,
     longEnumNonEnumDefault: MyGame_Example_LongEnum = .longone,
-    longEnumNormalDefault: MyGame_Example_LongEnum = .longone
+    longEnumNormalDefault: MyGame_Example_LongEnum = .longone,
+    nanDefault: Float32 = nan,
+    infDefault: Float32 = inf,
+    positiveInfDefault: Float32 = +inf,
+    infinityDefault: Float32 = infinity,
+    positiveInfinityDefault: Float32 = +infinity,
+    negativeInfDefault: Float32 = -inf,
+    negativeInfinityDefault: Float32 = -infinity,
+    doubleInfDefault: Double = inf
   ) -> Offset {
     let __start = MyGame_Example_Monster.startMonster(&fbb)
     MyGame_Example_Monster.add(pos: pos, &fbb)
@@ -1509,6 +1549,14 @@ public struct MyGame_Example_Monster: FlatBufferObject, Verifiable, ObjectAPIPac
     MyGame_Example_Monster.add(nativeInline: nativeInline, &fbb)
     MyGame_Example_Monster.add(longEnumNonEnumDefault: longEnumNonEnumDefault, &fbb)
     MyGame_Example_Monster.add(longEnumNormalDefault: longEnumNormalDefault, &fbb)
+    MyGame_Example_Monster.add(nanDefault: nanDefault, &fbb)
+    MyGame_Example_Monster.add(infDefault: infDefault, &fbb)
+    MyGame_Example_Monster.add(positiveInfDefault: positiveInfDefault, &fbb)
+    MyGame_Example_Monster.add(infinityDefault: infinityDefault, &fbb)
+    MyGame_Example_Monster.add(positiveInfinityDefault: positiveInfinityDefault, &fbb)
+    MyGame_Example_Monster.add(negativeInfDefault: negativeInfDefault, &fbb)
+    MyGame_Example_Monster.add(negativeInfinityDefault: negativeInfinityDefault, &fbb)
+    MyGame_Example_Monster.add(doubleInfDefault: doubleInfDefault, &fbb)
     return MyGame_Example_Monster.endMonster(&fbb, start: __start)
   }
   public static func sortVectorOfMonster(offsets:[Offset], _ fbb: inout FlatBufferBuilder) -> Offset {
@@ -1668,6 +1716,14 @@ public struct MyGame_Example_Monster: FlatBufferObject, Verifiable, ObjectAPIPac
     MyGame_Example_Monster.add(nativeInline: obj.nativeInline, &builder)
     MyGame_Example_Monster.add(longEnumNonEnumDefault: obj.longEnumNonEnumDefault, &builder)
     MyGame_Example_Monster.add(longEnumNormalDefault: obj.longEnumNormalDefault, &builder)
+    MyGame_Example_Monster.add(nanDefault: obj.nanDefault, &builder)
+    MyGame_Example_Monster.add(infDefault: obj.infDefault, &builder)
+    MyGame_Example_Monster.add(positiveInfDefault: obj.positiveInfDefault, &builder)
+    MyGame_Example_Monster.add(infinityDefault: obj.infinityDefault, &builder)
+    MyGame_Example_Monster.add(positiveInfinityDefault: obj.positiveInfinityDefault, &builder)
+    MyGame_Example_Monster.add(negativeInfDefault: obj.negativeInfDefault, &builder)
+    MyGame_Example_Monster.add(negativeInfinityDefault: obj.negativeInfinityDefault, &builder)
+    MyGame_Example_Monster.add(doubleInfDefault: obj.doubleInfDefault, &builder)
     return MyGame_Example_Monster.endMonster(&builder, start: __root)
   }
 
@@ -1756,6 +1812,14 @@ public struct MyGame_Example_Monster: FlatBufferObject, Verifiable, ObjectAPIPac
     try _v.visit(field: VTOFFSET.nativeInline.p, fieldName: "nativeInline", required: false, type: MyGame_Example_Test.self)
     try _v.visit(field: VTOFFSET.longEnumNonEnumDefault.p, fieldName: "longEnumNonEnumDefault", required: false, type: MyGame_Example_LongEnum.self)
     try _v.visit(field: VTOFFSET.longEnumNormalDefault.p, fieldName: "longEnumNormalDefault", required: false, type: MyGame_Example_LongEnum.self)
+    try _v.visit(field: VTOFFSET.nanDefault.p, fieldName: "nanDefault", required: false, type: Float32.self)
+    try _v.visit(field: VTOFFSET.infDefault.p, fieldName: "infDefault", required: false, type: Float32.self)
+    try _v.visit(field: VTOFFSET.positiveInfDefault.p, fieldName: "positiveInfDefault", required: false, type: Float32.self)
+    try _v.visit(field: VTOFFSET.infinityDefault.p, fieldName: "infinityDefault", required: false, type: Float32.self)
+    try _v.visit(field: VTOFFSET.positiveInfinityDefault.p, fieldName: "positiveInfinityDefault", required: false, type: Float32.self)
+    try _v.visit(field: VTOFFSET.negativeInfDefault.p, fieldName: "negativeInfDefault", required: false, type: Float32.self)
+    try _v.visit(field: VTOFFSET.negativeInfinityDefault.p, fieldName: "negativeInfinityDefault", required: false, type: Float32.self)
+    try _v.visit(field: VTOFFSET.doubleInfDefault.p, fieldName: "doubleInfDefault", required: false, type: Double.self)
     _v.finish()
   }
 }
@@ -1816,6 +1880,14 @@ extension MyGame_Example_Monster: Encodable {
     case nativeInline = "native_inline"
     case longEnumNonEnumDefault = "long_enum_non_enum_default"
     case longEnumNormalDefault = "long_enum_normal_default"
+    case nanDefault = "nan_default"
+    case infDefault = "inf_default"
+    case positiveInfDefault = "positive_inf_default"
+    case infinityDefault = "infinity_default"
+    case positiveInfinityDefault = "positive_infinity_default"
+    case negativeInfDefault = "negative_inf_default"
+    case negativeInfinityDefault = "negative_infinity_default"
+    case doubleInfDefault = "double_inf_default"
   }
   public func encode(to encoder: Encoder) throws {
     var container = encoder.container(keyedBy: CodingKeys.self)
@@ -2033,6 +2105,30 @@ extension MyGame_Example_Monster: Encodable {
     if longEnumNormalDefault != .longone {
       try container.encodeIfPresent(longEnumNormalDefault, forKey: .longEnumNormalDefault)
     }
+    if nanDefault != nan {
+      try container.encodeIfPresent(nanDefault, forKey: .nanDefault)
+    }
+    if infDefault != inf {
+      try container.encodeIfPresent(infDefault, forKey: .infDefault)
+    }
+    if positiveInfDefault != +inf {
+      try container.encodeIfPresent(positiveInfDefault, forKey: .positiveInfDefault)
+    }
+    if infinityDefault != infinity {
+      try container.encodeIfPresent(infinityDefault, forKey: .infinityDefault)
+    }
+    if positiveInfinityDefault != +infinity {
+      try container.encodeIfPresent(positiveInfinityDefault, forKey: .positiveInfinityDefault)
+    }
+    if negativeInfDefault != -inf {
+      try container.encodeIfPresent(negativeInfDefault, forKey: .negativeInfDefault)
+    }
+    if negativeInfinityDefault != -infinity {
+      try container.encodeIfPresent(negativeInfinityDefault, forKey: .negativeInfinityDefault)
+    }
+    if doubleInfDefault != inf {
+      try container.encodeIfPresent(doubleInfDefault, forKey: .doubleInfDefault)
+    }
   }
 }
 
@@ -2088,6 +2184,14 @@ public class MyGame_Example_MonsterT: NativeObject {
   public var nativeInline: MyGame_Example_Test?
   public var longEnumNonEnumDefault: MyGame_Example_LongEnum
   public var longEnumNormalDefault: MyGame_Example_LongEnum
+  public var nanDefault: Float32
+  public var infDefault: Float32
+  public var positiveInfDefault: Float32
+  public var infinityDefault: Float32
+  public var positiveInfinityDefault: Float32
+  public var negativeInfDefault: Float32
+  public var negativeInfinityDefault: Float32
+  public var doubleInfDefault: Double
 
   public init(_ _t: inout MyGame_Example_Monster) {
     pos = _t.pos
@@ -2240,6 +2344,14 @@ public class MyGame_Example_MonsterT: NativeObject {
     nativeInline = _t.nativeInline
     longEnumNonEnumDefault = _t.longEnumNonEnumDefault
     longEnumNormalDefault = _t.longEnumNormalDefault
+    nanDefault = _t.nanDefault
+    infDefault = _t.infDefault
+    positiveInfDefault = _t.positiveInfDefault
+    infinityDefault = _t.infinityDefault
+    positiveInfinityDefault = _t.positiveInfinityDefault
+    negativeInfDefault = _t.negativeInfDefault
+    negativeInfinityDefault = _t.negativeInfinityDefault
+    doubleInfDefault = _t.doubleInfDefault
   }
 
   public init() {
@@ -2290,6 +2402,14 @@ public class MyGame_Example_MonsterT: NativeObject {
     nativeInline = MyGame_Example_Test()
     longEnumNonEnumDefault = .longone
     longEnumNormalDefault = .longone
+    nanDefault = nan
+    infDefault = inf
+    positiveInfDefault = +inf
+    infinityDefault = infinity
+    positiveInfinityDefault = +infinity
+    negativeInfDefault = -inf
+    negativeInfinityDefault = -infinity
+    doubleInfDefault = inf
   }
 
   public func serialize() -> ByteBuffer { return serialize(type: MyGame_Example_Monster.self) }

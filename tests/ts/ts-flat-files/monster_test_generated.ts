@@ -1152,8 +1152,48 @@ longEnumNormalDefault():bigint {
   return offset ? this.bb!.readUint64(this.bb_pos + offset) : BigInt('2');
 }
 
+nanDefault():number {
+  const offset = this.bb!.__offset(this.bb_pos, 112);
+  return offset ? this.bb!.readFloat32(this.bb_pos + offset) : NaN;
+}
+
+infDefault():number {
+  const offset = this.bb!.__offset(this.bb_pos, 114);
+  return offset ? this.bb!.readFloat32(this.bb_pos + offset) : Infinity;
+}
+
+positiveInfDefault():number {
+  const offset = this.bb!.__offset(this.bb_pos, 116);
+  return offset ? this.bb!.readFloat32(this.bb_pos + offset) : Infinity;
+}
+
+infinityDefault():number {
+  const offset = this.bb!.__offset(this.bb_pos, 118);
+  return offset ? this.bb!.readFloat32(this.bb_pos + offset) : Infinity;
+}
+
+positiveInfinityDefault():number {
+  const offset = this.bb!.__offset(this.bb_pos, 120);
+  return offset ? this.bb!.readFloat32(this.bb_pos + offset) : Infinity;
+}
+
+negativeInfDefault():number {
+  const offset = this.bb!.__offset(this.bb_pos, 122);
+  return offset ? this.bb!.readFloat32(this.bb_pos + offset) : -Infinity;
+}
+
+negativeInfinityDefault():number {
+  const offset = this.bb!.__offset(this.bb_pos, 124);
+  return offset ? this.bb!.readFloat32(this.bb_pos + offset) : -Infinity;
+}
+
+doubleInfDefault():number {
+  const offset = this.bb!.__offset(this.bb_pos, 126);
+  return offset ? this.bb!.readFloat64(this.bb_pos + offset) : Infinity;
+}
+
 static startMonster(builder:flatbuffers.Builder) {
-  builder.startObject(54);
+  builder.startObject(62);
 }
 
 static addPos(builder:flatbuffers.Builder, posOffset:flatbuffers.Offset) {
@@ -1587,6 +1627,38 @@ static addLongEnumNonEnumDefault(builder:flatbuffers.Builder, longEnumNonEnumDef
 
 static addLongEnumNormalDefault(builder:flatbuffers.Builder, longEnumNormalDefault:bigint) {
   builder.addFieldInt64(53, longEnumNormalDefault, BigInt('2'));
+}
+
+static addNanDefault(builder:flatbuffers.Builder, nanDefault:number) {
+  builder.addFieldFloat32(54, nanDefault, NaN);
+}
+
+static addInfDefault(builder:flatbuffers.Builder, infDefault:number) {
+  builder.addFieldFloat32(55, infDefault, Infinity);
+}
+
+static addPositiveInfDefault(builder:flatbuffers.Builder, positiveInfDefault:number) {
+  builder.addFieldFloat32(56, positiveInfDefault, Infinity);
+}
+
+static addInfinityDefault(builder:flatbuffers.Builder, infinityDefault:number) {
+  builder.addFieldFloat32(57, infinityDefault, Infinity);
+}
+
+static addPositiveInfinityDefault(builder:flatbuffers.Builder, positiveInfinityDefault:number) {
+  builder.addFieldFloat32(58, positiveInfinityDefault, Infinity);
+}
+
+static addNegativeInfDefault(builder:flatbuffers.Builder, negativeInfDefault:number) {
+  builder.addFieldFloat32(59, negativeInfDefault, -Infinity);
+}
+
+static addNegativeInfinityDefault(builder:flatbuffers.Builder, negativeInfinityDefault:number) {
+  builder.addFieldFloat32(60, negativeInfinityDefault, -Infinity);
+}
+
+static addDoubleInfDefault(builder:flatbuffers.Builder, doubleInfDefault:number) {
+  builder.addFieldFloat64(61, doubleInfDefault, Infinity);
 }
 
 static endMonster(builder:flatbuffers.Builder):flatbuffers.Offset {

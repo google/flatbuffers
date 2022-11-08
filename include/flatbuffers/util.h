@@ -393,6 +393,18 @@ inline uint64_t StringToUInt(const char *s, int base = 10) {
   return StringToIntegerImpl(&val, s, base) ? val : 0;
 }
 
+inline bool StringIsFlatbufferNan(const std::string &s) {
+  return s == "nan" || s == "+nan" || s == "-nan";
+}
+
+inline bool StringIsFlatbufferPositiveInfinity(const std::string &s) {
+  return s == "inf" || s == "+inf" || s == "infinity" || s == "+infinity";
+}
+
+inline bool StringIsFlatbufferNegativeInfinity(const std::string &s) {
+  return s == "-inf" || s == "-infinity";
+}
+
 typedef bool (*LoadFileFunction)(const char *filename, bool binary,
                                  std::string *dest);
 typedef bool (*FileExistsFunction)(const char *filename);

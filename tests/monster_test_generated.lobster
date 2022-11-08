@@ -425,13 +425,29 @@ class Monster : flatbuffers_handle
         return LongEnum(buf_.flatbuffers_field_uint64(pos_, 108, 0))
     def long_enum_normal_default() -> LongEnum:
         return LongEnum(buf_.flatbuffers_field_uint64(pos_, 110, 2))
+    def nan_default() -> float:
+        return buf_.flatbuffers_field_float32(pos_, 112, nan)
+    def inf_default() -> float:
+        return buf_.flatbuffers_field_float32(pos_, 114, inf)
+    def positive_inf_default() -> float:
+        return buf_.flatbuffers_field_float32(pos_, 116, +inf)
+    def infinity_default() -> float:
+        return buf_.flatbuffers_field_float32(pos_, 118, infinity)
+    def positive_infinity_default() -> float:
+        return buf_.flatbuffers_field_float32(pos_, 120, +infinity)
+    def negative_inf_default() -> float:
+        return buf_.flatbuffers_field_float32(pos_, 122, -inf)
+    def negative_infinity_default() -> float:
+        return buf_.flatbuffers_field_float32(pos_, 124, -infinity)
+    def double_inf_default() -> float:
+        return buf_.flatbuffers_field_float64(pos_, 126, inf)
 
 def GetRootAsMonster(buf:string): return Monster { buf, buf.flatbuffers_indirect(0) }
 
 struct MonsterBuilder:
     b_:flatbuffers_builder
     def start():
-        b_.StartObject(54)
+        b_.StartObject(62)
         return this
     def add_pos(pos:flatbuffers_offset):
         b_.PrependStructSlot(0, pos)
@@ -591,6 +607,30 @@ struct MonsterBuilder:
         return this
     def add_long_enum_normal_default(long_enum_normal_default:LongEnum):
         b_.PrependUint64Slot(53, long_enum_normal_default, 2)
+        return this
+    def add_nan_default(nan_default:float):
+        b_.PrependFloat32Slot(54, nan_default, nan)
+        return this
+    def add_inf_default(inf_default:float):
+        b_.PrependFloat32Slot(55, inf_default, inf)
+        return this
+    def add_positive_inf_default(positive_inf_default:float):
+        b_.PrependFloat32Slot(56, positive_inf_default, +inf)
+        return this
+    def add_infinity_default(infinity_default:float):
+        b_.PrependFloat32Slot(57, infinity_default, infinity)
+        return this
+    def add_positive_infinity_default(positive_infinity_default:float):
+        b_.PrependFloat32Slot(58, positive_infinity_default, +infinity)
+        return this
+    def add_negative_inf_default(negative_inf_default:float):
+        b_.PrependFloat32Slot(59, negative_inf_default, -inf)
+        return this
+    def add_negative_infinity_default(negative_infinity_default:float):
+        b_.PrependFloat32Slot(60, negative_infinity_default, -infinity)
+        return this
+    def add_double_inf_default(double_inf_default:float):
+        b_.PrependFloat64Slot(61, double_inf_default, inf)
         return this
     def end():
         return b_.EndObject()

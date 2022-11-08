@@ -216,8 +216,24 @@ public final class Monster extends Table {
   public boolean mutateLongEnumNonEnumDefault(long long_enum_non_enum_default) { int o = __offset(108); if (o != 0) { bb.putLong(o + bb_pos, long_enum_non_enum_default); return true; } else { return false; } }
   public long longEnumNormalDefault() { int o = __offset(110); return o != 0 ? bb.getLong(o + bb_pos) : 2L; }
   public boolean mutateLongEnumNormalDefault(long long_enum_normal_default) { int o = __offset(110); if (o != 0) { bb.putLong(o + bb_pos, long_enum_normal_default); return true; } else { return false; } }
+  public float nanDefault() { int o = __offset(112); return o != 0 ? bb.getFloat(o + bb_pos) : Float.NaN; }
+  public boolean mutateNanDefault(float nan_default) { int o = __offset(112); if (o != 0) { bb.putFloat(o + bb_pos, nan_default); return true; } else { return false; } }
+  public float infDefault() { int o = __offset(114); return o != 0 ? bb.getFloat(o + bb_pos) : Float.POSITIVE_INFINITY; }
+  public boolean mutateInfDefault(float inf_default) { int o = __offset(114); if (o != 0) { bb.putFloat(o + bb_pos, inf_default); return true; } else { return false; } }
+  public float positiveInfDefault() { int o = __offset(116); return o != 0 ? bb.getFloat(o + bb_pos) : Float.POSITIVE_INFINITY; }
+  public boolean mutatePositiveInfDefault(float positive_inf_default) { int o = __offset(116); if (o != 0) { bb.putFloat(o + bb_pos, positive_inf_default); return true; } else { return false; } }
+  public float infinityDefault() { int o = __offset(118); return o != 0 ? bb.getFloat(o + bb_pos) : Float.POSITIVE_INFINITY; }
+  public boolean mutateInfinityDefault(float infinity_default) { int o = __offset(118); if (o != 0) { bb.putFloat(o + bb_pos, infinity_default); return true; } else { return false; } }
+  public float positiveInfinityDefault() { int o = __offset(120); return o != 0 ? bb.getFloat(o + bb_pos) : Float.POSITIVE_INFINITY; }
+  public boolean mutatePositiveInfinityDefault(float positive_infinity_default) { int o = __offset(120); if (o != 0) { bb.putFloat(o + bb_pos, positive_infinity_default); return true; } else { return false; } }
+  public float negativeInfDefault() { int o = __offset(122); return o != 0 ? bb.getFloat(o + bb_pos) : Float.NEGATIVE_INFINITY; }
+  public boolean mutateNegativeInfDefault(float negative_inf_default) { int o = __offset(122); if (o != 0) { bb.putFloat(o + bb_pos, negative_inf_default); return true; } else { return false; } }
+  public float negativeInfinityDefault() { int o = __offset(124); return o != 0 ? bb.getFloat(o + bb_pos) : Float.NEGATIVE_INFINITY; }
+  public boolean mutateNegativeInfinityDefault(float negative_infinity_default) { int o = __offset(124); if (o != 0) { bb.putFloat(o + bb_pos, negative_infinity_default); return true; } else { return false; } }
+  public double doubleInfDefault() { int o = __offset(126); return o != 0 ? bb.getDouble(o + bb_pos) : Double.POSITIVE_INFINITY; }
+  public boolean mutateDoubleInfDefault(double double_inf_default) { int o = __offset(126); if (o != 0) { bb.putDouble(o + bb_pos, double_inf_default); return true; } else { return false; } }
 
-  public static void startMonster(FlatBufferBuilder builder) { builder.startTable(54); }
+  public static void startMonster(FlatBufferBuilder builder) { builder.startTable(62); }
   public static void addPos(FlatBufferBuilder builder, int posOffset) { builder.addStruct(0, posOffset, 0); }
   public static void addMana(FlatBufferBuilder builder, short mana) { builder.addShort(1, mana, 150); }
   public static void addHp(FlatBufferBuilder builder, short hp) { builder.addShort(2, hp, 100); }
@@ -313,6 +329,14 @@ public final class Monster extends Table {
   public static void addNativeInline(FlatBufferBuilder builder, int nativeInlineOffset) { builder.addStruct(51, nativeInlineOffset, 0); }
   public static void addLongEnumNonEnumDefault(FlatBufferBuilder builder, long longEnumNonEnumDefault) { builder.addLong(52, longEnumNonEnumDefault, 0L); }
   public static void addLongEnumNormalDefault(FlatBufferBuilder builder, long longEnumNormalDefault) { builder.addLong(53, longEnumNormalDefault, 2L); }
+  public static void addNanDefault(FlatBufferBuilder builder, float nanDefault) { builder.addFloat(54, nanDefault, Float.NaN); }
+  public static void addInfDefault(FlatBufferBuilder builder, float infDefault) { builder.addFloat(55, infDefault, Float.POSITIVE_INFINITY); }
+  public static void addPositiveInfDefault(FlatBufferBuilder builder, float positiveInfDefault) { builder.addFloat(56, positiveInfDefault, Float.POSITIVE_INFINITY); }
+  public static void addInfinityDefault(FlatBufferBuilder builder, float infinityDefault) { builder.addFloat(57, infinityDefault, Float.POSITIVE_INFINITY); }
+  public static void addPositiveInfinityDefault(FlatBufferBuilder builder, float positiveInfinityDefault) { builder.addFloat(58, positiveInfinityDefault, Float.POSITIVE_INFINITY); }
+  public static void addNegativeInfDefault(FlatBufferBuilder builder, float negativeInfDefault) { builder.addFloat(59, negativeInfDefault, Float.NEGATIVE_INFINITY); }
+  public static void addNegativeInfinityDefault(FlatBufferBuilder builder, float negativeInfinityDefault) { builder.addFloat(60, negativeInfinityDefault, Float.NEGATIVE_INFINITY); }
+  public static void addDoubleInfDefault(FlatBufferBuilder builder, double doubleInfDefault) { builder.addDouble(61, doubleInfDefault, Double.POSITIVE_INFINITY); }
   public static int endMonster(FlatBufferBuilder builder) {
     int o = builder.endTable();
     builder.required(o, 10);  // name
@@ -533,6 +557,22 @@ public final class Monster extends Table {
     _o.setLongEnumNonEnumDefault(_oLongEnumNonEnumDefault);
     long _oLongEnumNormalDefault = longEnumNormalDefault();
     _o.setLongEnumNormalDefault(_oLongEnumNormalDefault);
+    float _oNanDefault = nanDefault();
+    _o.setNanDefault(_oNanDefault);
+    float _oInfDefault = infDefault();
+    _o.setInfDefault(_oInfDefault);
+    float _oPositiveInfDefault = positiveInfDefault();
+    _o.setPositiveInfDefault(_oPositiveInfDefault);
+    float _oInfinityDefault = infinityDefault();
+    _o.setInfinityDefault(_oInfinityDefault);
+    float _oPositiveInfinityDefault = positiveInfinityDefault();
+    _o.setPositiveInfinityDefault(_oPositiveInfinityDefault);
+    float _oNegativeInfDefault = negativeInfDefault();
+    _o.setNegativeInfDefault(_oNegativeInfDefault);
+    float _oNegativeInfinityDefault = negativeInfinityDefault();
+    _o.setNegativeInfinityDefault(_oNegativeInfinityDefault);
+    double _oDoubleInfDefault = doubleInfDefault();
+    _o.setDoubleInfDefault(_oDoubleInfDefault);
   }
   public static int pack(FlatBufferBuilder builder, MonsterT _o) {
     if (_o == null) return 0;
@@ -725,6 +765,14 @@ public final class Monster extends Table {
     addNativeInline(builder, MyGame.Example.Test.pack(builder, _o.getNativeInline()));
     addLongEnumNonEnumDefault(builder, _o.getLongEnumNonEnumDefault());
     addLongEnumNormalDefault(builder, _o.getLongEnumNormalDefault());
+    addNanDefault(builder, _o.getNanDefault());
+    addInfDefault(builder, _o.getInfDefault());
+    addPositiveInfDefault(builder, _o.getPositiveInfDefault());
+    addInfinityDefault(builder, _o.getInfinityDefault());
+    addPositiveInfinityDefault(builder, _o.getPositiveInfinityDefault());
+    addNegativeInfDefault(builder, _o.getNegativeInfDefault());
+    addNegativeInfinityDefault(builder, _o.getNegativeInfinityDefault());
+    addDoubleInfDefault(builder, _o.getDoubleInfDefault());
     return endMonster(builder);
   }
 }

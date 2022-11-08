@@ -470,6 +470,13 @@ class NimBfbsGenerator : public BaseBfbsGenerator {
   std::string DefaultValue(const r::Field *field) const {
     const r::BaseType base_type = field->type()->base_type();
     if (IsFloatingPoint(base_type)) {
+      if (field->default_real() != field->default_real()) {
+        return "NaN";
+      } else if (field->default_real() == std::numeric_limits<double>::infinity()) {
+        return "Inf";
+      } else if (field->default_real() == -std::numeric_limits<double>::infinity()) {
+        return "-Inf";
+      }
       return NumToString(field->default_real());
     }
     if (IsBool(base_type)) {

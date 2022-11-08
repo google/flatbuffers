@@ -16,6 +16,8 @@
 
 // independent from idl_parser, since this code is not needed for most clients
 
+#include <cmath>
+
 #include "flatbuffers/code_generators.h"
 #include "flatbuffers/flatbuffers.h"
 #include "flatbuffers/idl.h"
@@ -1046,8 +1048,19 @@ class RustGenerator : public BaseGenerator {
       if (field.IsOptional() && !IsUnion(field.value.type)) { return "None"; }
     }
     switch (GetFullType(field.value.type)) {
-      case ftInteger:
+      case ftInteger: {
+        return field.value.constant;
+      }
       case ftFloat: {
+        const std::string float_prefix =
+            (field.value.type.base_type == BASE_TYPE_FLOAT) ? "f32::" : "f64::";
+        if (StringIsFlatbufferNan(field.value.constant)) {
+          return float_prefix + "NAN";
+        } else if (StringIsFlatbufferPositiveInfinity(field.value.constant)) {
+          return float_prefix + "INFINITY";
+        } else if (StringIsFlatbufferNegativeInfinity(field.value.constant)) {
+          return float_prefix + "NEG_INFINITY";
+        }
         return field.value.constant;
       }
       case ftBool: {

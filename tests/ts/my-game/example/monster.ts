@@ -683,12 +683,140 @@ mutate_long_enum_normal_default(value:bigint):boolean {
   return true;
 }
 
+nanDefault():number {
+  const offset = this.bb!.__offset(this.bb_pos, 112);
+  return offset ? this.bb!.readFloat32(this.bb_pos + offset) : NaN;
+}
+
+mutate_nan_default(value:number):boolean {
+  const offset = this.bb!.__offset(this.bb_pos, 112);
+
+  if (offset === 0) {
+    return false;
+  }
+
+  this.bb!.writeFloat32(this.bb_pos + offset, value);
+  return true;
+}
+
+infDefault():number {
+  const offset = this.bb!.__offset(this.bb_pos, 114);
+  return offset ? this.bb!.readFloat32(this.bb_pos + offset) : Infinity;
+}
+
+mutate_inf_default(value:number):boolean {
+  const offset = this.bb!.__offset(this.bb_pos, 114);
+
+  if (offset === 0) {
+    return false;
+  }
+
+  this.bb!.writeFloat32(this.bb_pos + offset, value);
+  return true;
+}
+
+positiveInfDefault():number {
+  const offset = this.bb!.__offset(this.bb_pos, 116);
+  return offset ? this.bb!.readFloat32(this.bb_pos + offset) : Infinity;
+}
+
+mutate_positive_inf_default(value:number):boolean {
+  const offset = this.bb!.__offset(this.bb_pos, 116);
+
+  if (offset === 0) {
+    return false;
+  }
+
+  this.bb!.writeFloat32(this.bb_pos + offset, value);
+  return true;
+}
+
+infinityDefault():number {
+  const offset = this.bb!.__offset(this.bb_pos, 118);
+  return offset ? this.bb!.readFloat32(this.bb_pos + offset) : Infinity;
+}
+
+mutate_infinity_default(value:number):boolean {
+  const offset = this.bb!.__offset(this.bb_pos, 118);
+
+  if (offset === 0) {
+    return false;
+  }
+
+  this.bb!.writeFloat32(this.bb_pos + offset, value);
+  return true;
+}
+
+positiveInfinityDefault():number {
+  const offset = this.bb!.__offset(this.bb_pos, 120);
+  return offset ? this.bb!.readFloat32(this.bb_pos + offset) : Infinity;
+}
+
+mutate_positive_infinity_default(value:number):boolean {
+  const offset = this.bb!.__offset(this.bb_pos, 120);
+
+  if (offset === 0) {
+    return false;
+  }
+
+  this.bb!.writeFloat32(this.bb_pos + offset, value);
+  return true;
+}
+
+negativeInfDefault():number {
+  const offset = this.bb!.__offset(this.bb_pos, 122);
+  return offset ? this.bb!.readFloat32(this.bb_pos + offset) : -Infinity;
+}
+
+mutate_negative_inf_default(value:number):boolean {
+  const offset = this.bb!.__offset(this.bb_pos, 122);
+
+  if (offset === 0) {
+    return false;
+  }
+
+  this.bb!.writeFloat32(this.bb_pos + offset, value);
+  return true;
+}
+
+negativeInfinityDefault():number {
+  const offset = this.bb!.__offset(this.bb_pos, 124);
+  return offset ? this.bb!.readFloat32(this.bb_pos + offset) : -Infinity;
+}
+
+mutate_negative_infinity_default(value:number):boolean {
+  const offset = this.bb!.__offset(this.bb_pos, 124);
+
+  if (offset === 0) {
+    return false;
+  }
+
+  this.bb!.writeFloat32(this.bb_pos + offset, value);
+  return true;
+}
+
+doubleInfDefault():number {
+  const offset = this.bb!.__offset(this.bb_pos, 126);
+  return offset ? this.bb!.readFloat64(this.bb_pos + offset) : Infinity;
+}
+
+mutate_double_inf_default(value:number):boolean {
+  const offset = this.bb!.__offset(this.bb_pos, 126);
+
+  if (offset === 0) {
+    return false;
+  }
+
+  this.bb!.writeFloat64(this.bb_pos + offset, value);
+  return true;
+}
+
 static getFullyQualifiedName():string {
   return 'MyGame_Example_Monster';
 }
 
 static startMonster(builder:flatbuffers.Builder) {
-  builder.startObject(54);
+  builder.startObject(62);
 }
 
 static addPos(builder:flatbuffers.Builder, posOffset:flatbuffers.Offset) {
@@ -1124,6 +1252,38 @@ static addLongEnumNormalDefault(builder:flatbuffers.Builder, longEnumNormalDefau
   builder.addFieldInt64(53, longEnumNormalDefault, BigInt('2'));
 }
 
+static addNanDefault(builder:flatbuffers.Builder, nanDefault:number) {
+  builder.addFieldFloat32(54, nanDefault, NaN);
+}
+
+static addInfDefault(builder:flatbuffers.Builder, infDefault:number) {
+  builder.addFieldFloat32(55, infDefault, Infinity);
+}
+
+static addPositiveInfDefault(builder:flatbuffers.Builder, positiveInfDefault:number) {
+  builder.addFieldFloat32(56, positiveInfDefault, Infinity);
+}
+
+static addInfinityDefault(builder:flatbuffers.Builder, infinityDefault:number) {
+  builder.addFieldFloat32(57, infinityDefault, Infinity);
+}
+
+static addPositiveInfinityDefault(builder:flatbuffers.Builder, positiveInfinityDefault:number) {
+  builder.addFieldFloat32(58, positiveInfinityDefault, Infinity);
+}
+
+static addNegativeInfDefault(builder:flatbuffers.Builder, negativeInfDefault:number) {
+  builder.addFieldFloat32(59, negativeInfDefault, -Infinity);
+}
+
+static addNegativeInfinityDefault(builder:flatbuffers.Builder, negativeInfinityDefault:number) {
+  builder.addFieldFloat32(60, negativeInfinityDefault, -Infinity);
+}
+
+static addDoubleInfDefault(builder:flatbuffers.Builder, doubleInfDefault:number) {
+  builder.addFieldFloat64(61, doubleInfDefault, Infinity);
+}
+
 static endMonster(builder:flatbuffers.Builder):flatbuffers.Offset {
   const offset = builder.endObject();
   builder.requiredField(offset, 10) // name
@@ -1213,7 +1373,15 @@ unpack(): MonsterT {
     this.bb!.createObjList<Stat, StatT>(this.scalarKeySortedTables.bind(this), this.scalarKeySortedTablesLength()),
     (this.nativeInline() !== null ? this.nativeInline()!.unpack() : null),
     this.longEnumNonEnumDefault(),
-    this.longEnumNormalDefault()
+    this.longEnumNormalDefault(),
+    this.nanDefault(),
+    this.infDefault(),
+    this.positiveInfDefault(),
+    this.infinityDefault(),
+    this.positiveInfinityDefault(),
+    this.negativeInfDefault(),
+    this.negativeInfinityDefault(),
+    this.doubleInfDefault()
   );
 }
 
@@ -1284,6 +1452,14 @@ unpackTo(_o: MonsterT): void {
   _o.nativeInline = (this.nativeInline() !== null ? this.nativeInline()!.unpack() : null);
   _o.longEnumNonEnumDefault = this.longEnumNonEnumDefault();
   _o.longEnumNormalDefault = this.longEnumNormalDefault();
+  _o.nanDefault = this.nanDefault();
+  _o.infDefault = this.infDefault();
+  _o.positiveInfDefault = this.positiveInfDefault();
+  _o.infinityDefault = this.infinityDefault();
+  _o.positiveInfinityDefault = this.positiveInfinityDefault();
+  _o.negativeInfDefault = this.negativeInfDefault();
+  _o.negativeInfinityDefault = this.negativeInfinityDefault();
+  _o.doubleInfDefault = this.doubleInfDefault();
 }
 }
 
@@ -1341,7 +1517,15 @@ constructor(
   public scalarKeySortedTables: (StatT)[] = [],
   public nativeInline: TestT|null = null,
   public longEnumNonEnumDefault: bigint = BigInt('0'),
-  public longEnumNormalDefault: bigint = BigInt('2')
+  public longEnumNormalDefault: bigint = BigInt('2'),
+  public nanDefault: number = NaN,
+  public infDefault: number = Infinity,
+  public positiveInfDefault: number = Infinity,
+  public infinityDefault: number = Infinity,
+  public positiveInfinityDefault: number = Infinity,
+  public negativeInfDefault: number = -Infinity,
+  public negativeInfinityDefault: number = -Infinity,
+  public doubleInfDefault: number = Infinity
 ){}
 
 
@@ -1428,6 +1612,14 @@ pack(builder:flatbuffers.Builder): flatbuffers.Offset {
   Monster.addNativeInline(builder, (this.nativeInline !== null ? this.nativeInline!.pack(builder) : 0));
   Monster.addLongEnumNonEnumDefault(builder, this.longEnumNonEnumDefault);
   Monster.addLongEnumNormalDefault(builder, this.longEnumNormalDefault);
+  Monster.addNanDefault(builder, this.nanDefault);
+  Monster.addInfDefault(builder, this.infDefault);
+  Monster.addPositiveInfDefault(builder, this.positiveInfDefault);
+  Monster.addInfinityDefault(builder, this.infinityDefault);
+  Monster.addPositiveInfinityDefault(builder, this.positiveInfinityDefault);
+  Monster.addNegativeInfDefault(builder, this.negativeInfDefault);
+  Monster.addNegativeInfinityDefault(builder, this.negativeInfinityDefault);
+  Monster.addDoubleInfDefault(builder, this.doubleInfDefault);
 
   return Monster.endMonster(builder);
 }

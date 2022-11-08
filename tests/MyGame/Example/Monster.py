@@ -816,7 +816,63 @@ class Monster(object):
             return self._tab.Get(flatbuffers.number_types.Uint64Flags, o + self._tab.Pos)
         return 2
 
-def MonsterStart(builder): builder.StartObject(54)
+    # Monster
+    def NanDefault(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(112))
+        if o != 0:
+            return self._tab.Get(flatbuffers.number_types.Float32Flags, o + self._tab.Pos)
+        return float('nan')
+
+    # Monster
+    def InfDefault(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(114))
+        if o != 0:
+            return self._tab.Get(flatbuffers.number_types.Float32Flags, o + self._tab.Pos)
+        return float('inf')
+
+    # Monster
+    def PositiveInfDefault(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(116))
+        if o != 0:
+            return self._tab.Get(flatbuffers.number_types.Float32Flags, o + self._tab.Pos)
+        return float('inf')
+
+    # Monster
+    def InfinityDefault(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(118))
+        if o != 0:
+            return self._tab.Get(flatbuffers.number_types.Float32Flags, o + self._tab.Pos)
+        return float('inf')
+
+    # Monster
+    def PositiveInfinityDefault(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(120))
+        if o != 0:
+            return self._tab.Get(flatbuffers.number_types.Float32Flags, o + self._tab.Pos)
+        return float('inf')
+
+    # Monster
+    def NegativeInfDefault(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(122))
+        if o != 0:
+            return self._tab.Get(flatbuffers.number_types.Float32Flags, o + self._tab.Pos)
+        return float('-inf')
+
+    # Monster
+    def NegativeInfinityDefault(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(124))
+        if o != 0:
+            return self._tab.Get(flatbuffers.number_types.Float32Flags, o + self._tab.Pos)
+        return float('-inf')
+
+    # Monster
+    def DoubleInfDefault(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(126))
+        if o != 0:
+            return self._tab.Get(flatbuffers.number_types.Float64Flags, o + self._tab.Pos)
+        return float('inf')
+
+def MonsterStart(builder): builder.StartObject(62)
 def Start(builder):
     return MonsterStart(builder)
 def MonsterAddPos(builder, pos): builder.PrependStructSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(pos), 0)
@@ -1052,6 +1108,30 @@ def AddLongEnumNonEnumDefault(builder, longEnumNonEnumDefault):
 def MonsterAddLongEnumNormalDefault(builder, longEnumNormalDefault): builder.PrependUint64Slot(53, longEnumNormalDefault, 2)
 def AddLongEnumNormalDefault(builder, longEnumNormalDefault):
     return MonsterAddLongEnumNormalDefault(builder, longEnumNormalDefault)
+def MonsterAddNanDefault(builder, nanDefault): builder.PrependFloat32Slot(54, nanDefault, float('nan'))
+def AddNanDefault(builder, nanDefault):
+    return MonsterAddNanDefault(builder, nanDefault)
+def MonsterAddInfDefault(builder, infDefault): builder.PrependFloat32Slot(55, infDefault, float('inf'))
+def AddInfDefault(builder, infDefault):
+    return MonsterAddInfDefault(builder, infDefault)
+def MonsterAddPositiveInfDefault(builder, positiveInfDefault): builder.PrependFloat32Slot(56, positiveInfDefault, float('inf'))
+def AddPositiveInfDefault(builder, positiveInfDefault):
+    return MonsterAddPositiveInfDefault(builder, positiveInfDefault)
+def MonsterAddInfinityDefault(builder, infinityDefault): builder.PrependFloat32Slot(57, infinityDefault, float('inf'))
+def AddInfinityDefault(builder, infinityDefault):
+    return MonsterAddInfinityDefault(builder, infinityDefault)
+def MonsterAddPositiveInfinityDefault(builder, positiveInfinityDefault): builder.PrependFloat32Slot(58, positiveInfinityDefault, float('inf'))
+def AddPositiveInfinityDefault(builder, positiveInfinityDefault):
+    return MonsterAddPositiveInfinityDefault(builder, positiveInfinityDefault)
+def MonsterAddNegativeInfDefault(builder, negativeInfDefault): builder.PrependFloat32Slot(59, negativeInfDefault, float('-inf'))
+def AddNegativeInfDefault(builder, negativeInfDefault):
+    return MonsterAddNegativeInfDefault(builder, negativeInfDefault)
+def MonsterAddNegativeInfinityDefault(builder, negativeInfinityDefault): builder.PrependFloat32Slot(60, negativeInfinityDefault, float('-inf'))
+def AddNegativeInfinityDefault(builder, negativeInfinityDefault):
+    return MonsterAddNegativeInfinityDefault(builder, negativeInfinityDefault)
+def MonsterAddDoubleInfDefault(builder, doubleInfDefault): builder.PrependFloat64Slot(61, doubleInfDefault, float('inf'))
+def AddDoubleInfDefault(builder, doubleInfDefault):
+    return MonsterAddDoubleInfDefault(builder, doubleInfDefault)
 def MonsterEnd(builder): return builder.EndObject()
 def End(builder):
     return MonsterEnd(builder)
@@ -1128,6 +1208,14 @@ class MonsterT(object):
         self.nativeInline = None  # type: Optional[MyGame.Example.Test.TestT]
         self.longEnumNonEnumDefault = 0  # type: int
         self.longEnumNormalDefault = 2  # type: int
+        self.nanDefault = float('nan')  # type: float
+        self.infDefault = float('inf')  # type: float
+        self.positiveInfDefault = float('inf')  # type: float
+        self.infinityDefault = float('inf')  # type: float
+        self.positiveInfinityDefault = float('inf')  # type: float
+        self.negativeInfDefault = float('-inf')  # type: float
+        self.negativeInfinityDefault = float('-inf')  # type: float
+        self.doubleInfDefault = float('inf')  # type: float
 
     @classmethod
     def InitFromBuf(cls, buf, pos):
@@ -1329,6 +1417,14 @@ class MonsterT(object):
             self.nativeInline = MyGame.Example.Test.TestT.InitFromObj(monster.NativeInline())
         self.longEnumNonEnumDefault = monster.LongEnumNonEnumDefault()
         self.longEnumNormalDefault = monster.LongEnumNormalDefault()
+        self.nanDefault = monster.NanDefault()
+        self.infDefault = monster.InfDefault()
+        self.positiveInfDefault = monster.PositiveInfDefault()
+        self.infinityDefault = monster.InfinityDefault()
+        self.positiveInfinityDefault = monster.PositiveInfinityDefault()
+        self.negativeInfDefault = monster.NegativeInfDefault()
+        self.negativeInfinityDefault = monster.NegativeInfinityDefault()
+        self.doubleInfDefault = monster.DoubleInfDefault()
 
     # MonsterT
     def Pack(self, builder):
@@ -1582,5 +1678,13 @@ class MonsterT(object):
             MonsterAddNativeInline(builder, nativeInline)
         MonsterAddLongEnumNonEnumDefault(builder, self.longEnumNonEnumDefault)
         MonsterAddLongEnumNormalDefault(builder, self.longEnumNormalDefault)
+        MonsterAddNanDefault(builder, self.nanDefault)
+        MonsterAddInfDefault(builder, self.infDefault)
+        MonsterAddPositiveInfDefault(builder, self.positiveInfDefault)
+        MonsterAddInfinityDefault(builder, self.infinityDefault)
+        MonsterAddPositiveInfinityDefault(builder, self.positiveInfinityDefault)
+        MonsterAddNegativeInfDefault(builder, self.negativeInfDefault)
+        MonsterAddNegativeInfinityDefault(builder, self.negativeInfinityDefault)
+        MonsterAddDoubleInfDefault(builder, self.doubleInfDefault)
         monster = MonsterEnd(builder)
         return monster

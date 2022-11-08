@@ -755,21 +755,93 @@ class Monster extends Table
     }
 
     /**
+     * @return float
+     */
+    public function getNanDefault()
+    {
+        $o = $this->__offset(112);
+        return $o != 0 ? $this->bb->getFloat($o + $this->bb_pos) : nan;
+    }
+
+    /**
+     * @return float
+     */
+    public function getInfDefault()
+    {
+        $o = $this->__offset(114);
+        return $o != 0 ? $this->bb->getFloat($o + $this->bb_pos) : inf;
+    }
+
+    /**
+     * @return float
+     */
+    public function getPositiveInfDefault()
+    {
+        $o = $this->__offset(116);
+        return $o != 0 ? $this->bb->getFloat($o + $this->bb_pos) : +inf;
+    }
+
+    /**
+     * @return float
+     */
+    public function getInfinityDefault()
+    {
+        $o = $this->__offset(118);
+        return $o != 0 ? $this->bb->getFloat($o + $this->bb_pos) : infinity;
+    }
+
+    /**
+     * @return float
+     */
+    public function getPositiveInfinityDefault()
+    {
+        $o = $this->__offset(120);
+        return $o != 0 ? $this->bb->getFloat($o + $this->bb_pos) : +infinity;
+    }
+
+    /**
+     * @return float
+     */
+    public function getNegativeInfDefault()
+    {
+        $o = $this->__offset(122);
+        return $o != 0 ? $this->bb->getFloat($o + $this->bb_pos) : -inf;
+    }
+
+    /**
+     * @return float
+     */
+    public function getNegativeInfinityDefault()
+    {
+        $o = $this->__offset(124);
+        return $o != 0 ? $this->bb->getFloat($o + $this->bb_pos) : -infinity;
+    }
+
+    /**
+     * @return double
+     */
+    public function getDoubleInfDefault()
+    {
+        $o = $this->__offset(126);
+        return $o != 0 ? $this->bb->getDouble($o + $this->bb_pos) : inf;
+    }
+
+    /**
      * @param FlatBufferBuilder $builder
      * @return void
      */
     public static function startMonster(FlatBufferBuilder $builder)
     {
-        $builder->StartObject(54);
+        $builder->StartObject(62);
     }
 
     /**
      * @param FlatBufferBuilder $builder
      * @return Monster
      */
-    public static function createMonster(FlatBufferBuilder $builder, $pos, $mana, $hp, $name, $inventory, $color, $test_type, $test, $test4, $testarrayofstring, $testarrayoftables, $enemy, $testnestedflatbuffer, $testempty, $testbool, $testhashs32_fnv1, $testhashu32_fnv1, $testhashs64_fnv1, $testhashu64_fnv1, $testhashs32_fnv1a, $testhashu32_fnv1a, $testhashs64_fnv1a, $testhashu64_fnv1a, $testarrayofbools, $testf, $testf2, $testf3, $testarrayofstring2, $testarrayofsortedstruct, $flex, $test5, $vector_of_longs, $vector_of_doubles, $parent_namespace_test, $vector_of_referrables, $single_weak_reference, $vector_of_weak_references, $vector_of_strong_referrables, $co_owning_reference, $vector_of_co_owning_references, $non_owning_reference, $vector_of_non_owning_references, $any_unique_type, $any_unique, $any_ambiguous_type, $any_ambiguous, $vector_of_enums, $signed_enum, $testrequirednestedflatbuffer, $scalar_key_sorted_tables, $native_inline, $long_enum_non_enum_default, $long_enum_normal_default)
+    public static function createMonster(FlatBufferBuilder $builder, $pos, $mana, $hp, $name, $inventory, $color, $test_type, $test, $test4, $testarrayofstring, $testarrayoftables, $enemy, $testnestedflatbuffer, $testempty, $testbool, $testhashs32_fnv1, $testhashu32_fnv1, $testhashs64_fnv1, $testhashu64_fnv1, $testhashs32_fnv1a, $testhashu32_fnv1a, $testhashs64_fnv1a, $testhashu64_fnv1a, $testarrayofbools, $testf, $testf2, $testf3, $testarrayofstring2, $testarrayofsortedstruct, $flex, $test5, $vector_of_longs, $vector_of_doubles, $parent_namespace_test, $vector_of_referrables, $single_weak_reference, $vector_of_weak_references, $vector_of_strong_referrables, $co_owning_reference, $vector_of_co_owning_references, $non_owning_reference, $vector_of_non_owning_references, $any_unique_type, $any_unique, $any_ambiguous_type, $any_ambiguous, $vector_of_enums, $signed_enum, $testrequirednestedflatbuffer, $scalar_key_sorted_tables, $native_inline, $long_enum_non_enum_default, $long_enum_normal_default, $nan_default, $inf_default, $positive_inf_default, $infinity_default, $positive_infinity_default, $negative_inf_default, $negative_infinity_default, $double_inf_default)
     {
-        $builder->startObject(54);
+        $builder->startObject(62);
         self::addPos($builder, $pos);
         self::addMana($builder, $mana);
         self::addHp($builder, $hp);
@@ -823,6 +895,14 @@ class Monster extends Table
         self::addNativeInline($builder, $native_inline);
         self::addLongEnumNonEnumDefault($builder, $long_enum_non_enum_default);
         self::addLongEnumNormalDefault($builder, $long_enum_normal_default);
+        self::addNanDefault($builder, $nan_default);
+        self::addInfDefault($builder, $inf_default);
+        self::addPositiveInfDefault($builder, $positive_inf_default);
+        self::addInfinityDefault($builder, $infinity_default);
+        self::addPositiveInfinityDefault($builder, $positive_infinity_default);
+        self::addNegativeInfDefault($builder, $negative_inf_default);
+        self::addNegativeInfinityDefault($builder, $negative_infinity_default);
+        self::addDoubleInfDefault($builder, $double_inf_default);
         $o = $builder->endObject();
         $builder->required($o, 10);  // name
         return $o;
@@ -1821,6 +1901,86 @@ class Monster extends Table
     public static function addLongEnumNormalDefault(FlatBufferBuilder $builder, $longEnumNormalDefault)
     {
         $builder->addUlongX(53, $longEnumNormalDefault, 2);
+    }
+
+    /**
+     * @param FlatBufferBuilder $builder
+     * @param float
+     * @return void
+     */
+    public static function addNanDefault(FlatBufferBuilder $builder, $nanDefault)
+    {
+        $builder->addFloatX(54, $nanDefault, nan);
+    }
+
+    /**
+     * @param FlatBufferBuilder $builder
+     * @param float
+     * @return void
+     */
+    public static function addInfDefault(FlatBufferBuilder $builder, $infDefault)
+    {
+        $builder->addFloatX(55, $infDefault, inf);
+    }
+
+    /**
+     * @param FlatBufferBuilder $builder
+     * @param float
+     * @return void
+     */
+    public static function addPositiveInfDefault(FlatBufferBuilder $builder, $positiveInfDefault)
+    {
+        $builder->addFloatX(56, $positiveInfDefault, +inf);
+    }
+
+    /**
+     * @param FlatBufferBuilder $builder
+     * @param float
+     * @return void
+     */
+    public static function addInfinityDefault(FlatBufferBuilder $builder, $infinityDefault)
+    {
+        $builder->addFloatX(57, $infinityDefault, infinity);
+    }
+
+    /**
+     * @param FlatBufferBuilder $builder
+     * @param float
+     * @return void
+     */
+    public static function addPositiveInfinityDefault(FlatBufferBuilder $builder, $positiveInfinityDefault)
+    {
+        $builder->addFloatX(58, $positiveInfinityDefault, +infinity);
+    }
+
+    /**
+     * @param FlatBufferBuilder $builder
+     * @param float
+     * @return void
+     */
+    public static function addNegativeInfDefault(FlatBufferBuilder $builder, $negativeInfDefault)
+    {
+        $builder->addFloatX(59, $negativeInfDefault, -inf);
+    }
+
+    /**
+     * @param FlatBufferBuilder $builder
+     * @param float
+     * @return void
+     */
+    public static function addNegativeInfinityDefault(FlatBufferBuilder $builder, $negativeInfinityDefault)
+    {
+        $builder->addFloatX(60, $negativeInfinityDefault, -infinity);
+    }
+
+    /**
+     * @param FlatBufferBuilder $builder
+     * @param double
+     * @return void
+     */
+    public static function addDoubleInfDefault(FlatBufferBuilder $builder, $doubleInfDefault)
+    {
+        $builder->addDoubleX(61, $doubleInfDefault, inf);
     }
 
     /**

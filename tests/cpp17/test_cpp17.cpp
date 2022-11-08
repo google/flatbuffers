@@ -148,6 +148,14 @@ void StringifyAnyFlatbuffersTypeTest() {
         signed_enum = -1
         long_enum_non_enum_default = 0
         long_enum_normal_default = 2
+        nan_default = nan
+        inf_default = inf
+        positive_inf_default = inf
+        infinity_default = inf
+        positive_infinity_default = inf
+        negative_inf_default = -inf
+        negative_infinity_default = -inf
+        double_inf_default = inf
       })";
 
   // Call a generic function that has no specific knowledge of the flatbuffer we

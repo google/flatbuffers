@@ -340,6 +340,30 @@
               },
         "long_enum_normal_default" : {
                 "$ref" : "#/definitions/MyGame_Example_LongEnum"
+              },
+        "nan_default" : {
+                "type" : "number"
+              },
+        "inf_default" : {
+                "type" : "number"
+              },
+        "positive_inf_default" : {
+                "type" : "number"
+              },
+        "infinity_default" : {
+                "type" : "number"
+              },
+        "positive_infinity_default" : {
+                "type" : "number"
+              },
+        "negative_inf_default" : {
+                "type" : "number"
+              },
+        "negative_infinity_default" : {
+                "type" : "number"
+              },
+        "double_inf_default" : {
+                "type" : "number"
               }
       },
       "required" : ["name"],
