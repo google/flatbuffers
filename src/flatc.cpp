@@ -90,7 +90,7 @@ const static FlatCOption options[] = {
     "--no-prefix." },
   { "", "swift-implementation-only", "",
     "Adds a @_implementationOnly to swift imports" },
-  { "", "gen-inclues", "",
+  { "", "gen-includes", "",
     "(deprecated), this is the default behavior. If the original behavior is "
     "required (no include statements) use --no-includes." },
   { "", "no-includes", "",
