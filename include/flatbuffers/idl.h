@@ -489,11 +489,11 @@ inline bool IsVector(const Type &type) {
   return type.base_type == BASE_TYPE_VECTOR;
 }
 
-inline bool IsVectorOfStruct(const Type& type) {
+inline bool IsVectorOfStruct(const Type &type) {
   return IsVector(type) && IsStruct(type.VectorType());
 }
 
-inline bool IsVectorOfTable(const Type& type) {
+inline bool IsVectorOfTable(const Type &type) {
   return IsVector(type) && IsTable(type.VectorType());
 }
 
@@ -1031,6 +1031,7 @@ class Parser : public ParserState {
   FLATBUFFERS_CHECKED_ERROR ParseService(const char *filename);
   FLATBUFFERS_CHECKED_ERROR ParseProtoFields(StructDef *struct_def,
                                              bool isextend, bool inside_oneof);
+  FLATBUFFERS_CHECKED_ERROR ParseProtoMapField(StructDef *struct_def);
   FLATBUFFERS_CHECKED_ERROR ParseProtoOption();
   FLATBUFFERS_CHECKED_ERROR ParseProtoKey();
   FLATBUFFERS_CHECKED_ERROR ParseProtoDecl();
