@@ -16,6 +16,7 @@
 
 // independent from idl_parser, since this code is not needed for most clients
 
+#include <algorithm>
 #include <cmath>
 #include <sstream>
 #include <string>

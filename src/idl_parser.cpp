@@ -507,6 +507,8 @@ CheckedError Parser::Next() {
       case ')':
       case '[':
       case ']':
+      case '<':
+      case '>':
       case ',':
       case ':':
       case ';':
@@ -2896,6 +2898,8 @@ CheckedError Parser::ParseProtoFields(StructDef *struct_def, bool isextend,
       NEXT();
       while (!Is(';')) { NEXT(); }  // A variety of formats, just skip.
       NEXT();
+    } else if (IsIdent("map")) {
+      ECHECK(ParseProtoMapField(struct_def));
     } else {
       std::vector<std::string> field_comment = doc_comment_;
       // Parse the qualifier.
@@ -3027,6 +3031,41 @@ CheckedError Parser::ParseProtoFields(StructDef *struct_def, bool isextend,
     }
   }
   NEXT();
+  return NoError();
+}
+
+CheckedError Parser::ParseProtoMapField(StructDef *struct_def) {
+  NEXT();
+  EXPECT('<');
+  Type key_type;
+  ECHECK(ParseType(key_type));
+  EXPECT(',');
+  Type value_type;
+  ECHECK(ParseType(value_type));
+  EXPECT('>');
+  auto field_name = attribute_;
+  NEXT();
+  EXPECT('=');
+  EXPECT(kTokenIntegerConstant);
+  EXPECT(';');
+
+  auto entry_table_name = ConvertCase(field_name, Case::kUpperCamel) + "Entry";
+  StructDef *entry_table;
+  ECHECK(StartStruct(entry_table_name, &entry_table));
+  entry_table->has_key = true;
+  FieldDef *key_field;
+  ECHECK(AddField(*entry_table, "key", key_type, &key_field));
+  key_field->key = true;
+  FieldDef *value_field;
+  ECHECK(AddField(*entry_table, "value", value_type, &value_field));
+
+  Type field_type;
+  field_type.base_type = BASE_TYPE_VECTOR;
+  field_type.element = BASE_TYPE_STRUCT;
+  field_type.struct_def = entry_table;
+  FieldDef *field;
+  ECHECK(AddField(*struct_def, field_name, field_type, &field));
+
   return NoError();
 }
 
@@ -3262,6 +3301,10 @@ bool Parser::ParseJson(const char *json, const char *json_filename) {
       !StartParseFile(json, json_filename).Check() && !DoParseJson().Check();
   FLATBUFFERS_ASSERT(initial_depth == parse_depth_counter_);
   return done;
+}
+
+std::ptrdiff_t Parser::BytesConsumed() const {
+  return std::distance(source_, cursor_);
 }
 
 CheckedError Parser::StartParseFile(const char *source,
@@ -3601,9 +3644,11 @@ CheckedError Parser::DoParseJson() {
                                                : nullptr);
     }
   }
-  // Check that JSON file doesn't contain more objects or IDL directives.
-  // Comments after JSON are allowed.
-  EXPECT(kTokenEof);
+  if (opts.require_json_eof) {
+    // Check that JSON file doesn't contain more objects or IDL directives.
+    // Comments after JSON are allowed.
+    EXPECT(kTokenEof);
+  }
   return NoError();
 }
 
