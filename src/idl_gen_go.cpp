@@ -17,6 +17,7 @@
 // independent from idl_parser, since this code is not needed for most clients
 
 #include <algorithm>
+#include <cmath>
 #include <sstream>
 #include <string>
 
@@ -102,6 +103,7 @@ class GoGenerator : public BaseGenerator {
     for (auto it = parser_.enums_.vec.begin(); it != parser_.enums_.vec.end();
          ++it) {
       tracked_imported_namespaces_.clear();
+      needs_math_import_ = false;
       needs_imports = false;
       std::string enumcode;
       GenEnum(**it, &enumcode);
@@ -121,6 +123,7 @@ class GoGenerator : public BaseGenerator {
     for (auto it = parser_.structs_.vec.begin();
          it != parser_.structs_.vec.end(); ++it) {
       tracked_imported_namespaces_.clear();
+      needs_math_import_ = false;
       std::string declcode;
       GenStruct(**it, &declcode);
       if (parser_.opts.one_file) {
@@ -154,6 +157,7 @@ class GoGenerator : public BaseGenerator {
     }
   };
   std::set<const Namespace *, NamespacePtrLess> tracked_imported_namespaces_;
+  bool needs_math_import_ = false;
 
   // Most field accessors need to retrieve and test the field offset first,
   // this is the prefix code for that.
@@ -1277,6 +1281,23 @@ class GoGenerator : public BaseGenerator {
     switch (field.value.type.base_type) {
       case BASE_TYPE_BOOL:
         return field.value.constant == "0" ? "false" : "true";
+      case BASE_TYPE_FLOAT:
+      case BASE_TYPE_DOUBLE: {
+        const std::string float_type =
+            field.value.type.base_type == BASE_TYPE_FLOAT ? "float32"
+                                                          : "float64";
+        if (StringIsFlatbufferNan(field.value.constant)) {
+          needs_math_import_ = true;
+          return float_type + "(math.NaN())";
+        } else if (StringIsFlatbufferPositiveInfinity(field.value.constant)) {
+          needs_math_import_ = true;
+          return float_type + "(math.Inf(1))";
+        } else if (StringIsFlatbufferNegativeInfinity(field.value.constant)) {
+          needs_math_import_ = true;
+          return float_type + "(math.Inf(-1))";
+        }
+        return field.value.constant;
+      }
       default: return field.value.constant;
     }
   }
@@ -1330,6 +1351,8 @@ class GoGenerator : public BaseGenerator {
     if (needs_imports) {
       code += "import (\n";
       if (is_enum) { code += "\t\"strconv\"\n\n"; }
+      // math is needed to support non-finite scalar default values.
+      if (needs_math_import_) { code += "\t\"math\"\n\n"; }
       if (!parser_.opts.go_import.empty()) {
         code += "\tflatbuffers \"" + parser_.opts.go_import + "\"\n";
       } else {
@@ -1346,6 +1369,10 @@ class GoGenerator : public BaseGenerator {
       code += ")\n\n";
     } else {
       if (is_enum) { code += "import \"strconv\"\n\n"; }
+      if (needs_math_import_) {
+        // math is needed to support non-finite scalar default values.
+        code += "import \"math\"\n\n";
+      }
     }
   }
 

@@ -81,6 +81,14 @@ impl<'a> Monster<'a> {
   pub const VT_NATIVE_INLINE: flatbuffers::VOffsetT = 106;
   pub const VT_LONG_ENUM_NON_ENUM_DEFAULT: flatbuffers::VOffsetT = 108;
   pub const VT_LONG_ENUM_NORMAL_DEFAULT: flatbuffers::VOffsetT = 110;
+  pub const VT_NAN_DEFAULT: flatbuffers::VOffsetT = 112;
+  pub const VT_INF_DEFAULT: flatbuffers::VOffsetT = 114;
+  pub const VT_POSITIVE_INF_DEFAULT: flatbuffers::VOffsetT = 116;
+  pub const VT_INFINITY_DEFAULT: flatbuffers::VOffsetT = 118;
+  pub const VT_POSITIVE_INFINITY_DEFAULT: flatbuffers::VOffsetT = 120;
+  pub const VT_NEGATIVE_INF_DEFAULT: flatbuffers::VOffsetT = 122;
+  pub const VT_NEGATIVE_INFINITY_DEFAULT: flatbuffers::VOffsetT = 124;
+  pub const VT_DOUBLE_INF_DEFAULT: flatbuffers::VOffsetT = 126;
 
   pub const fn get_fully_qualified_name() -> &'static str {
     "MyGame.Example.Monster"
@@ -96,6 +104,7 @@ impl<'a> Monster<'a> {
     args: &'args MonsterArgs<'args>
   ) -> flatbuffers::WIPOffset<Monster<'bldr>> {
     let mut builder = MonsterBuilder::new(_fbb);
+    builder.add_double_inf_default(args.double_inf_default);
     builder.add_long_enum_normal_default(args.long_enum_normal_default);
     builder.add_long_enum_non_enum_default(args.long_enum_non_enum_default);
     builder.add_non_owning_reference(args.non_owning_reference);
@@ -105,6 +114,13 @@ impl<'a> Monster<'a> {
     builder.add_testhashs64_fnv1a(args.testhashs64_fnv1a);
     builder.add_testhashu64_fnv1(args.testhashu64_fnv1);
     builder.add_testhashs64_fnv1(args.testhashs64_fnv1);
+    builder.add_negative_infinity_default(args.negative_infinity_default);
+    builder.add_negative_inf_default(args.negative_inf_default);
+    builder.add_positive_infinity_default(args.positive_infinity_default);
+    builder.add_infinity_default(args.infinity_default);
+    builder.add_positive_inf_default(args.positive_inf_default);
+    builder.add_inf_default(args.inf_default);
+    builder.add_nan_default(args.nan_default);
     if let Some(x) = args.native_inline { builder.add_native_inline(x); }
     if let Some(x) = args.scalar_key_sorted_tables { builder.add_scalar_key_sorted_tables(x); }
     if let Some(x) = args.testrequirednestedflatbuffer { builder.add_testrequirednestedflatbuffer(x); }
@@ -310,6 +326,14 @@ impl<'a> Monster<'a> {
     });
     let long_enum_non_enum_default = self.long_enum_non_enum_default();
     let long_enum_normal_default = self.long_enum_normal_default();
+    let nan_default = self.nan_default();
+    let inf_default = self.inf_default();
+    let positive_inf_default = self.positive_inf_default();
+    let infinity_default = self.infinity_default();
+    let positive_infinity_default = self.positive_infinity_default();
+    let negative_inf_default = self.negative_inf_default();
+    let negative_infinity_default = self.negative_infinity_default();
+    let double_inf_default = self.double_inf_default();
     MonsterT {
       pos,
       mana,
@@ -361,6 +385,14 @@ impl<'a> Monster<'a> {
       native_inline,
       long_enum_non_enum_default,
       long_enum_normal_default,
+      nan_default,
+      inf_default,
+      positive_inf_default,
+      infinity_default,
+      positive_infinity_default,
+      negative_inf_default,
+      negative_infinity_default,
+      double_inf_default,
     }
   }
 
@@ -766,6 +798,62 @@ impl<'a> Monster<'a> {
     unsafe { self._tab.get::<LongEnum>(Monster::VT_LONG_ENUM_NORMAL_DEFAULT, Some(LongEnum::LongOne)).unwrap()}
   }
   #[inline]
+  pub fn nan_default(&self) -> f32 {
+    // Safety:
+    // Created from valid Table for this object
+    // which contains a valid value in this slot
+    unsafe { self._tab.get::<f32>(Monster::VT_NAN_DEFAULT, Some(f32::NAN)).unwrap()}
+  }
+  #[inline]
+  pub fn inf_default(&self) -> f32 {
+    // Safety:
+    // Created from valid Table for this object
+    // which contains a valid value in this slot
+    unsafe { self._tab.get::<f32>(Monster::VT_INF_DEFAULT, Some(f32::INFINITY)).unwrap()}
+  }
+  #[inline]
+  pub fn positive_inf_default(&self) -> f32 {
+    // Safety:
+    // Created from valid Table for this object
+    // which contains a valid value in this slot
+    unsafe { self._tab.get::<f32>(Monster::VT_POSITIVE_INF_DEFAULT, Some(f32::INFINITY)).unwrap()}
+  }
+  #[inline]
+  pub fn infinity_default(&self) -> f32 {
+    // Safety:
+    // Created from valid Table for this object
+    // which contains a valid value in this slot
+    unsafe { self._tab.get::<f32>(Monster::VT_INFINITY_DEFAULT, Some(f32::INFINITY)).unwrap()}
+  }
+  #[inline]
+  pub fn positive_infinity_default(&self) -> f32 {
+    // Safety:
+    // Created from valid Table for this object
+    // which contains a valid value in this slot
+    unsafe { self._tab.get::<f32>(Monster::VT_POSITIVE_INFINITY_DEFAULT, Some(f32::INFINITY)).unwrap()}
+  }
+  #[inline]
+  pub fn negative_inf_default(&self) -> f32 {
+    // Safety:
+    // Created from valid Table for this object
+    // which contains a valid value in this slot
+    unsafe { self._tab.get::<f32>(Monster::VT_NEGATIVE_INF_DEFAULT, Some(f32::NEG_INFINITY)).unwrap()}
+  }
+  #[inline]
+  pub fn negative_infinity_default(&self) -> f32 {
+    // Safety:
+    // Created from valid Table for this object
+    // which contains a valid value in this slot
+    unsafe { self._tab.get::<f32>(Monster::VT_NEGATIVE_INFINITY_DEFAULT, Some(f32::NEG_INFINITY)).unwrap()}
+  }
+  #[inline]
+  pub fn double_inf_default(&self) -> f64 {
+    // Safety:
+    // Created from valid Table for this object
+    // which contains a valid value in this slot
+    unsafe { self._tab.get::<f64>(Monster::VT_DOUBLE_INF_DEFAULT, Some(f64::INFINITY)).unwrap()}
+  }
+  #[inline]
   #[allow(non_snake_case)]
   pub fn test_as_monster(&self) -> Option<Monster<'a>> {
     if self.test_type() == Any::Monster {
@@ -980,6 +1068,14 @@ impl flatbuffers::Verifiable for Monster<'_> {
      .visit_field::<Test>("native_inline", Self::VT_NATIVE_INLINE, false)?
      .visit_field::<LongEnum>("long_enum_non_enum_default", Self::VT_LONG_ENUM_NON_ENUM_DEFAULT, false)?
      .visit_field::<LongEnum>("long_enum_normal_default", Self::VT_LONG_ENUM_NORMAL_DEFAULT, false)?
+     .visit_field::<f32>("nan_default", Self::VT_NAN_DEFAULT, false)?
+     .visit_field::<f32>("inf_default", Self::VT_INF_DEFAULT, false)?
+     .visit_field::<f32>("positive_inf_default", Self::VT_POSITIVE_INF_DEFAULT, false)?
+     .visit_field::<f32>("infinity_default", Self::VT_INFINITY_DEFAULT, false)?
+     .visit_field::<f32>("positive_infinity_default", Self::VT_POSITIVE_INFINITY_DEFAULT, false)?
+     .visit_field::<f32>("negative_inf_default", Self::VT_NEGATIVE_INF_DEFAULT, false)?
+     .visit_field::<f32>("negative_infinity_default", Self::VT_NEGATIVE_INFINITY_DEFAULT, false)?
+     .visit_field::<f64>("double_inf_default", Self::VT_DOUBLE_INF_DEFAULT, false)?
      .finish();
     Ok(())
   }
@@ -1038,6 +1134,14 @@ pub struct MonsterArgs<'a> {
     pub native_inline: Option<&'a Test>,
     pub long_enum_non_enum_default: LongEnum,
     pub long_enum_normal_default: LongEnum,
+    pub nan_default: f32,
+    pub inf_default: f32,
+    pub positive_inf_default: f32,
+    pub infinity_default: f32,
+    pub positive_infinity_default: f32,
+    pub negative_inf_default: f32,
+    pub negative_infinity_default: f32,
+    pub double_inf_default: f64,
 }
 impl<'a> Default for MonsterArgs<'a> {
   #[inline]
@@ -1096,6 +1200,14 @@ impl<'a> Default for MonsterArgs<'a> {
       native_inline: None,
       long_enum_non_enum_default: Default::default(),
       long_enum_normal_default: LongEnum::LongOne,
+      nan_default: f32::NAN,
+      inf_default: f32::INFINITY,
+      positive_inf_default: f32::INFINITY,
+      infinity_default: f32::INFINITY,
+      positive_infinity_default: f32::INFINITY,
+      negative_inf_default: f32::NEG_INFINITY,
+      negative_infinity_default: f32::NEG_INFINITY,
+      double_inf_default: f64::INFINITY,
     }
   }
 }
@@ -1105,7 +1217,7 @@ impl Serialize for Monster<'_> {
   where
     S: Serializer,
   {
-    let mut s = serializer.serialize_struct("Monster", 54)?;
+    let mut s = serializer.serialize_struct("Monster", 62)?;
       if let Some(f) = self.pos() {
         s.serialize_field("pos", &f)?;
       } else {
@@ -1313,6 +1425,14 @@ impl Serialize for Monster<'_> {
       }
       s.serialize_field("long_enum_non_enum_default", &self.long_enum_non_enum_default())?;
       s.serialize_field("long_enum_normal_default", &self.long_enum_normal_default())?;
+      s.serialize_field("nan_default", &self.nan_default())?;
+      s.serialize_field("inf_default", &self.inf_default())?;
+      s.serialize_field("positive_inf_default", &self.positive_inf_default())?;
+      s.serialize_field("infinity_default", &self.infinity_default())?;
+      s.serialize_field("positive_infinity_default", &self.positive_infinity_default())?;
+      s.serialize_field("negative_inf_default", &self.negative_inf_default())?;
+      s.serialize_field("negative_infinity_default", &self.negative_infinity_default())?;
+      s.serialize_field("double_inf_default", &self.double_inf_default())?;
     s.end()
   }
 }
@@ -1535,6 +1655,38 @@ impl<'a: 'b, 'b> MonsterBuilder<'a, 'b> {
     self.fbb_.push_slot::<LongEnum>(Monster::VT_LONG_ENUM_NORMAL_DEFAULT, long_enum_normal_default, LongEnum::LongOne);
   }
   #[inline]
+  pub fn add_nan_default(&mut self, nan_default: f32) {
+    self.fbb_.push_slot::<f32>(Monster::VT_NAN_DEFAULT, nan_default, f32::NAN);
+  }
+  #[inline]
+  pub fn add_inf_default(&mut self, inf_default: f32) {
+    self.fbb_.push_slot::<f32>(Monster::VT_INF_DEFAULT, inf_default, f32::INFINITY);
+  }
+  #[inline]
+  pub fn add_positive_inf_default(&mut self, positive_inf_default: f32) {
+    self.fbb_.push_slot::<f32>(Monster::VT_POSITIVE_INF_DEFAULT, positive_inf_default, f32::INFINITY);
+  }
+  #[inline]
+  pub fn add_infinity_default(&mut self, infinity_default: f32) {
+    self.fbb_.push_slot::<f32>(Monster::VT_INFINITY_DEFAULT, infinity_default, f32::INFINITY);
+  }
+  #[inline]
+  pub fn add_positive_infinity_default(&mut self, positive_infinity_default: f32) {
+    self.fbb_.push_slot::<f32>(Monster::VT_POSITIVE_INFINITY_DEFAULT, positive_infinity_default, f32::INFINITY);
+  }
+  #[inline]
+  pub fn add_negative_inf_default(&mut self, negative_inf_default: f32) {
+    self.fbb_.push_slot::<f32>(Monster::VT_NEGATIVE_INF_DEFAULT, negative_inf_default, f32::NEG_INFINITY);
+  }
+  #[inline]
+  pub fn add_negative_infinity_default(&mut self, negative_infinity_default: f32) {
+    self.fbb_.push_slot::<f32>(Monster::VT_NEGATIVE_INFINITY_DEFAULT, negative_infinity_default, f32::NEG_INFINITY);
+  }
+  #[inline]
+  pub fn add_double_inf_default(&mut self, double_inf_default: f64) {
+    self.fbb_.push_slot::<f64>(Monster::VT_DOUBLE_INF_DEFAULT, double_inf_default, f64::INFINITY);
+  }
+  #[inline]
   pub fn new(_fbb: &'b mut flatbuffers::FlatBufferBuilder<'a>) -> MonsterBuilder<'a, 'b> {
     let start = _fbb.start_table();
     MonsterBuilder {
@@ -1684,6 +1836,14 @@ impl core::fmt::Debug for Monster<'_> {
       ds.field("native_inline", &self.native_inline());
       ds.field("long_enum_non_enum_default", &self.long_enum_non_enum_default());
       ds.field("long_enum_normal_default", &self.long_enum_normal_default());
+      ds.field("nan_default", &self.nan_default());
+      ds.field("inf_default", &self.inf_default());
+      ds.field("positive_inf_default", &self.positive_inf_default());
+      ds.field("infinity_default", &self.infinity_default());
+      ds.field("positive_infinity_default", &self.positive_infinity_default());
+      ds.field("negative_inf_default", &self.negative_inf_default());
+      ds.field("negative_infinity_default", &self.negative_infinity_default());
+      ds.field("double_inf_default", &self.double_inf_default());
       ds.finish()
   }
 }
@@ -1740,6 +1900,14 @@ pub struct MonsterT {
   pub native_inline: Option<TestT>,
   pub long_enum_non_enum_default: LongEnum,
   pub long_enum_normal_default: LongEnum,
+  pub nan_default: f32,
+  pub inf_default: f32,
+  pub positive_inf_default: f32,
+  pub infinity_default: f32,
+  pub positive_infinity_default: f32,
+  pub negative_inf_default: f32,
+  pub negative_infinity_default: f32,
+  pub double_inf_default: f64,
 }
 impl Default for MonsterT {
   fn default() -> Self {
@@ -1794,6 +1962,14 @@ impl Default for MonsterT {
       native_inline: None,
       long_enum_non_enum_default: Default::default(),
       long_enum_normal_default: LongEnum::LongOne,
+      nan_default: f32::NAN,
+      inf_default: f32::INFINITY,
+      positive_inf_default: f32::INFINITY,
+      infinity_default: f32::INFINITY,
+      positive_infinity_default: f32::INFINITY,
+      negative_inf_default: f32::NEG_INFINITY,
+      negative_infinity_default: f32::NEG_INFINITY,
+      double_inf_default: f64::INFINITY,
     }
   }
 }
@@ -1906,6 +2082,14 @@ impl MonsterT {
     let native_inline = native_inline_tmp.as_ref();
     let long_enum_non_enum_default = self.long_enum_non_enum_default;
     let long_enum_normal_default = self.long_enum_normal_default;
+    let nan_default = self.nan_default;
+    let inf_default = self.inf_default;
+    let positive_inf_default = self.positive_inf_default;
+    let infinity_default = self.infinity_default;
+    let positive_infinity_default = self.positive_infinity_default;
+    let negative_inf_default = self.negative_inf_default;
+    let negative_infinity_default = self.negative_infinity_default;
+    let double_inf_default = self.double_inf_default;
     Monster::create(_fbb, &MonsterArgs{
       pos,
       mana,
@@ -1960,6 +2144,14 @@ impl MonsterT {
       native_inline,
       long_enum_non_enum_default,
       long_enum_normal_default,
+      nan_default,
+      inf_default,
+      positive_inf_default,
+      infinity_default,
+      positive_infinity_default,
+      negative_inf_default,
+      negative_infinity_default,
+      double_inf_default,
     })
   }
 }
