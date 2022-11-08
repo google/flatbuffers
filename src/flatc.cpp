@@ -217,14 +217,14 @@ const static FlatCOption options[] = {
     "Allows (de)serialization of JSON text in the Object API. (requires "
     "--gen-object-api)." },
   { "", "json-nested-bytes", "",
-    "Allow a nested_flatbuffer field to be parsed as a vector of bytes"
+    "Allow a nested_flatbuffer field to be parsed as a vector of bytes "
     "in JSON, which is unsafe unless checked by a verifier afterwards." },
   { "", "ts-flat-files", "",
     "Only generated one typescript file per .fbs file." },
   { "", "annotate", "SCHEMA",
     "Annotate the provided BINARY_FILE with the specified SCHEMA file." },
   { "", "no-leak-private-annotation", "",
-    "Prevents multiple type of annotations within a Fbs SCHEMA file."
+    "Prevents multiple type of annotations within a Fbs SCHEMA file. "
     "Currently this is required to generate private types in Rust" },
 };
 
