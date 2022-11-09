@@ -526,11 +526,95 @@ export class Monster {
         this.bb.writeUint64(this.bb_pos + offset, value);
         return true;
     }
+    nanDefault() {
+        const offset = this.bb.__offset(this.bb_pos, 112);
+        return offset ? this.bb.readFloat32(this.bb_pos + offset) : NaN;
+    }
+    mutate_nan_default(value) {
+        const offset = this.bb.__offset(this.bb_pos, 112);
+        if (offset === 0) {
+            return false;
+        }
+        this.bb.writeFloat32(this.bb_pos + offset, value);
+        return true;
+    }
+    infDefault() {
+        const offset = this.bb.__offset(this.bb_pos, 114);
+        return offset ? this.bb.readFloat32(this.bb_pos + offset) : Infinity;
+    }
+    mutate_inf_default(value) {
+        const offset = this.bb.__offset(this.bb_pos, 114);
+        if (offset === 0) {
+            return false;
+        }
+        this.bb.writeFloat32(this.bb_pos + offset, value);
+        return true;
+    }
+    positiveInfDefault() {
+        const offset = this.bb.__offset(this.bb_pos, 116);
+        return offset ? this.bb.readFloat32(this.bb_pos + offset) : Infinity;
+    }
+    mutate_positive_inf_default(value) {
+        const offset = this.bb.__offset(this.bb_pos, 116);
+        if (offset === 0) {
+            return false;
+        }
+        this.bb.writeFloat32(this.bb_pos + offset, value);
+        return true;
+    }
+    infinityDefault() {
+        const offset = this.bb.__offset(this.bb_pos, 118);
+        return offset ? this.bb.readFloat32(this.bb_pos + offset) : Infinity;
+    }
+    mutate_infinity_default(value) {
+        const offset = this.bb.__offset(this.bb_pos, 118);
+        if (offset === 0) {
+            return false;
+        }
+        this.bb.writeFloat32(this.bb_pos + offset, value);
+        return true;
+    }
+    positiveInfinityDefault() {
+        const offset = this.bb.__offset(this.bb_pos, 120);
+        return offset ? this.bb.readFloat32(this.bb_pos + offset) : Infinity;
+    }
+    mutate_positive_infinity_default(value) {
+        const offset = this.bb.__offset(this.bb_pos, 120);
+        if (offset === 0) {
+            return false;
+        }
+        this.bb.writeFloat32(this.bb_pos + offset, value);
+        return true;
+    }
+    negativeInfDefault() {
+        const offset = this.bb.__offset(this.bb_pos, 122);
+        return offset ? this.bb.readFloat32(this.bb_pos + offset) : -Infinity;
+    }
+    mutate_negative_inf_default(value) {
+        const offset = this.bb.__offset(this.bb_pos, 122);
+        if (offset === 0) {
+            return false;
+        }
+        this.bb.writeFloat32(this.bb_pos + offset, value);
+        return true;
+    }
+    negativeInfinityDefault() {
+        const offset = this.bb.__offset(this.bb_pos, 124);
+        return offset ? this.bb.readFloat32(this.bb_pos + offset) : -Infinity;
+    }
+    mutate_negative_infinity_default(value) {
+        const offset = this.bb.__offset(this.bb_pos, 124);
+        if (offset === 0) {
+            return false;
+        }
+        this.bb.writeFloat32(this.bb_pos + offset, value);
+        return true;
+    }
     static getFullyQualifiedName() {
         return 'MyGame_Example_Monster';
     }
     static startMonster(builder) {
-        builder.startObject(54);
+        builder.startObject(61);
     }
     static addPos(builder, posOffset) {
         builder.addFieldStruct(0, posOffset, 0);
@@ -870,6 +954,27 @@ export class Monster {
     static addLongEnumNormalDefault(builder, longEnumNormalDefault) {
         builder.addFieldInt64(53, longEnumNormalDefault, BigInt('2'));
     }
+    static addNanDefault(builder, nanDefault) {
+        builder.addFieldFloat32(54, nanDefault, NaN);
+    }
+    static addInfDefault(builder, infDefault) {
+        builder.addFieldFloat32(55, infDefault, Infinity);
+    }
+    static addPositiveInfDefault(builder, positiveInfDefault) {
+        builder.addFieldFloat32(56, positiveInfDefault, Infinity);
+    }
+    static addInfinityDefault(builder, infinityDefault) {
+        builder.addFieldFloat32(57, infinityDefault, Infinity);
+    }
+    static addPositiveInfinityDefault(builder, positiveInfinityDefault) {
+        builder.addFieldFloat32(58, positiveInfinityDefault, Infinity);
+    }
+    static addNegativeInfDefault(builder, negativeInfDefault) {
+        builder.addFieldFloat32(59, negativeInfDefault, -Infinity);
+    }
+    static addNegativeInfinityDefault(builder, negativeInfinityDefault) {
+        builder.addFieldFloat32(60, negativeInfinityDefault, -Infinity);
+    }
     static endMonster(builder) {
         const offset = builder.endObject();
         builder.requiredField(offset, 10); // name
@@ -906,7 +1011,7 @@ export class Monster {
                 return null;
             }
             return temp.unpack();
-        })(), this.bb.createScalarList(this.vectorOfEnums.bind(this), this.vectorOfEnumsLength()), this.signedEnum(), this.bb.createScalarList(this.testrequirednestedflatbuffer.bind(this), this.testrequirednestedflatbufferLength()), this.bb.createObjList(this.scalarKeySortedTables.bind(this), this.scalarKeySortedTablesLength()), (this.nativeInline() !== null ? this.nativeInline().unpack() : null), this.longEnumNonEnumDefault(), this.longEnumNormalDefault());
+        })(), this.bb.createScalarList(this.vectorOfEnums.bind(this), this.vectorOfEnumsLength()), this.signedEnum(), this.bb.createScalarList(this.testrequirednestedflatbuffer.bind(this), this.testrequirednestedflatbufferLength()), this.bb.createObjList(this.scalarKeySortedTables.bind(this), this.scalarKeySortedTablesLength()), (this.nativeInline() !== null ? this.nativeInline().unpack() : null), this.longEnumNonEnumDefault(), this.longEnumNormalDefault(), this.nanDefault(), this.infDefault(), this.positiveInfDefault(), this.infinityDefault(), this.positiveInfinityDefault(), this.negativeInfDefault(), this.negativeInfinityDefault());
     }
     unpackTo(_o) {
         _o.pos = (this.pos() !== null ? this.pos().unpack() : null);
@@ -980,10 +1085,17 @@ export class Monster {
         _o.nativeInline = (this.nativeInline() !== null ? this.nativeInline().unpack() : null);
         _o.longEnumNonEnumDefault = this.longEnumNonEnumDefault();
         _o.longEnumNormalDefault = this.longEnumNormalDefault();
+        _o.nanDefault = this.nanDefault();
+        _o.infDefault = this.infDefault();
+        _o.positiveInfDefault = this.positiveInfDefault();
+        _o.infinityDefault = this.infinityDefault();
+        _o.positiveInfinityDefault = this.positiveInfinityDefault();
+        _o.negativeInfDefault = this.negativeInfDefault();
+        _o.negativeInfinityDefault = this.negativeInfinityDefault();
     }
 }
 export class MonsterT {
-    constructor(pos = null, mana = 150, hp = 100, name = null, inventory = [], color = Color.Blue, testType = Any.NONE, test = null, test4 = [], testarrayofstring = [], testarrayoftables = [], enemy = null, testnestedflatbuffer = [], testempty = null, testbool = false, testhashs32Fnv1 = 0, testhashu32Fnv1 = 0, testhashs64Fnv1 = BigInt('0'), testhashu64Fnv1 = BigInt('0'), testhashs32Fnv1a = 0, testhashu32Fnv1a = 0, testhashs64Fnv1a = BigInt('0'), testhashu64Fnv1a = BigInt('0'), testarrayofbools = [], testf = 3.14159, testf2 = 3.0, testf3 = 0.0, testarrayofstring2 = [], testarrayofsortedstruct = [], flex = [], test5 = [], vectorOfLongs = [], vectorOfDoubles = [], parentNamespaceTest = null, vectorOfReferrables = [], singleWeakReference = BigInt('0'), vectorOfWeakReferences = [], vectorOfStrongReferrables = [], coOwningReference = BigInt('0'), vectorOfCoOwningReferences = [], nonOwningReference = BigInt('0'), vectorOfNonOwningReferences = [], anyUniqueType = AnyUniqueAliases.NONE, anyUnique = null, anyAmbiguousType = AnyAmbiguousAliases.NONE, anyAmbiguous = null, vectorOfEnums = [], signedEnum = Race.None, testrequirednestedflatbuffer = [], scalarKeySortedTables = [], nativeInline = null, longEnumNonEnumDefault = BigInt('0'), longEnumNormalDefault = BigInt('2')) {
+    constructor(pos = null, mana = 150, hp = 100, name = null, inventory = [], color = Color.Blue, testType = Any.NONE, test = null, test4 = [], testarrayofstring = [], testarrayoftables = [], enemy = null, testnestedflatbuffer = [], testempty = null, testbool = false, testhashs32Fnv1 = 0, testhashu32Fnv1 = 0, testhashs64Fnv1 = BigInt('0'), testhashu64Fnv1 = BigInt('0'), testhashs32Fnv1a = 0, testhashu32Fnv1a = 0, testhashs64Fnv1a = BigInt('0'), testhashu64Fnv1a = BigInt('0'), testarrayofbools = [], testf = 3.14159, testf2 = 3.0, testf3 = 0.0, testarrayofstring2 = [], testarrayofsortedstruct = [], flex = [], test5 = [], vectorOfLongs = [], vectorOfDoubles = [], parentNamespaceTest = null, vectorOfReferrables = [], singleWeakReference = BigInt('0'), vectorOfWeakReferences = [], vectorOfStrongReferrables = [], coOwningReference = BigInt('0'), vectorOfCoOwningReferences = [], nonOwningReference = BigInt('0'), vectorOfNonOwningReferences = [], anyUniqueType = AnyUniqueAliases.NONE, anyUnique = null, anyAmbiguousType = AnyAmbiguousAliases.NONE, anyAmbiguous = null, vectorOfEnums = [], signedEnum = Race.None, testrequirednestedflatbuffer = [], scalarKeySortedTables = [], nativeInline = null, longEnumNonEnumDefault = BigInt('0'), longEnumNormalDefault = BigInt('2'), nanDefault = NaN, infDefault = Infinity, positiveInfDefault = Infinity, infinityDefault = Infinity, positiveInfinityDefault = Infinity, negativeInfDefault = -Infinity, negativeInfinityDefault = -Infinity) {
         this.pos = pos;
         this.mana = mana;
         this.hp = hp;
@@ -1037,6 +1149,13 @@ export class MonsterT {
         this.nativeInline = nativeInline;
         this.longEnumNonEnumDefault = longEnumNonEnumDefault;
         this.longEnumNormalDefault = longEnumNormalDefault;
+        this.nanDefault = nanDefault;
+        this.infDefault = infDefault;
+        this.positiveInfDefault = positiveInfDefault;
+        this.infinityDefault = infinityDefault;
+        this.positiveInfinityDefault = positiveInfinityDefault;
+        this.negativeInfDefault = negativeInfDefault;
+        this.negativeInfinityDefault = negativeInfinityDefault;
     }
     pack(builder) {
         const name = (this.name !== null ? builder.createString(this.name) : 0);
@@ -1120,6 +1239,13 @@ export class MonsterT {
         Monster.addNativeInline(builder, (this.nativeInline !== null ? this.nativeInline.pack(builder) : 0));
         Monster.addLongEnumNonEnumDefault(builder, this.longEnumNonEnumDefault);
         Monster.addLongEnumNormalDefault(builder, this.longEnumNormalDefault);
+        Monster.addNanDefault(builder, this.nanDefault);
+        Monster.addInfDefault(builder, this.infDefault);
+        Monster.addPositiveInfDefault(builder, this.positiveInfDefault);
+        Monster.addInfinityDefault(builder, this.infinityDefault);
+        Monster.addPositiveInfinityDefault(builder, this.positiveInfinityDefault);
+        Monster.addNegativeInfDefault(builder, this.negativeInfDefault);
+        Monster.addNegativeInfinityDefault(builder, this.negativeInfinityDefault);
         return Monster.endMonster(builder);
     }
 }

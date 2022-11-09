@@ -17,7 +17,7 @@ maximum memory efficiency. It allows you to directly access serialized data with
 
 ## Supported operating systems
 * Windows
-* MacOS X
+* macOS
 * Linux
 * Android
 * And any others with a recent C++ compiler (C++ 11 and newer)
