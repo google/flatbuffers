@@ -2281,7 +2281,8 @@ class CppGenerator : public BaseGenerator {
     const bool is_string = IsString(field.value.type);
     const bool is_array = IsArray(field.value.type);
 
-    code_ += "  bool KeyCompareLessThan(const {{STRUCT_NAME}} * const o) const {";
+    code_ +=
+        "  bool KeyCompareLessThan(const {{STRUCT_NAME}} * const o) const {";
     if (is_string) {
       // use operator< of flatbuffers::String
       code_ += "    return *{{FIELD_NAME}}() < *o->{{FIELD_NAME}}();";
@@ -2289,14 +2290,17 @@ class CppGenerator : public BaseGenerator {
       const auto &elem_type = field.value.type.VectorType();
       if (IsScalar(elem_type.base_type)) {
         code_ += "    for (auto i = 0; i < {{FIELD_NAME}}()->size(); i++){ ";
-        code_ += "      const auto {{FIELD_NAME}}_l = {{FIELD_NAME}}()->Get(i);";
-        code_ += "      const auto {{FIELD_NAME}}_r = o->{{FIELD_NAME}}()->Get(i);";
+        code_ +=
+            "      const auto {{FIELD_NAME}}_l = {{FIELD_NAME}}()->Get(i);";
+        code_ +=
+            "      const auto {{FIELD_NAME}}_r = o->{{FIELD_NAME}}()->Get(i);";
         code_ += "      if ({{FIELD_NAME}}_l != {{FIELD_NAME}}_r)";
         code_ += "        return {{FIELD_NAME}}_l < {{FIELD_NAME}}_r;";
         // code_ +=
         //     "      if ({{FIELD_NAME}}()->Get(i) != "
         //     "o->{{FIELD_NAME}}()->Get(i)) ";
-        // code_ += "        return {{FIELD_NAME}}()->Get(i) < o->{{FIELD_NAME}}()->Get(i);";
+        // code_ += "        return {{FIELD_NAME}}()->Get(i) <
+        // o->{{FIELD_NAME}}()->Get(i);";
         code_ += "    }";
         code_ += "    return false;";
       }
@@ -2313,7 +2317,8 @@ class CppGenerator : public BaseGenerator {
       if (IsScalar(elem_type.base_type)) {
         const std::string face_type = GenTypeGet(elem_type, " ", "", "", false);
         const std::string input_param = face_type + "_{{FIELD_NAME}}[" +
-                                  NumToString(elem_type.fixed_length) + "]";
+                                        NumToString(elem_type.fixed_length) +
+                                        "]";
 
         code_ +=
             "  int KeyCompareWithValue(const " + input_param + ") const { ";

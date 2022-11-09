@@ -73,7 +73,7 @@ static_assert(flatbuffers::is_same<uint8_t, char>::value ||
 using namespace MyGame::Example;
 
 void TriviallyCopyableTest() {
-  // clang-format off
+// clang-format off
   #if __GNUG__ && __GNUC__ < 5 && \
       !(defined(__clang__) && __clang_major__ >= 16)
     TEST_EQ(__has_trivial_copy(Vec3), true);
