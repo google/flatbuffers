@@ -44,9 +44,12 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(1) Baz FLATBUFFERS_FINAL_CLASS {
   const flatbuffers::Array<uint8_t, 4> *a() const {
     return &flatbuffers::CastToArray(a_);
   }
-  bool KeyCompareLessThan(const Baz *o) const {
+  bool KeyCompareLessThan(const Baz * const o) const {
     for (auto i = 0; i < a()->size(); i++){ 
-      if (a()->Get(i) != o->a()->Get(i)) return a()->Get(i) < o->a()->Get(i);
+      const auto a_l = a()->Get(i);
+      const auto a_r = o->a()->Get(i);
+      if (a_l != a_r)
+        return a_l < a_r;
     }
     return false;
   }
@@ -97,9 +100,12 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) Bar FLATBUFFERS_FINAL_CLASS {
   const flatbuffers::Array<float, 3> *a() const {
     return &flatbuffers::CastToArray(a_);
   }
-  bool KeyCompareLessThan(const Bar *o) const {
+  bool KeyCompareLessThan(const Bar * const o) const {
     for (auto i = 0; i < a()->size(); i++){ 
-      if (a()->Get(i) != o->a()->Get(i)) return a()->Get(i) < o->a()->Get(i);
+      const auto a_l = a()->Get(i);
+      const auto a_r = o->a()->Get(i);
+      if (a_l != a_r)
+        return a_l < a_r;
     }
     return false;
   }
@@ -134,7 +140,7 @@ struct FooTable FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   const flatbuffers::String *c() const {
     return GetPointer<const flatbuffers::String *>(VT_C);
   }
-  bool KeyCompareLessThan(const FooTable *o) const {
+  bool KeyCompareLessThan(const FooTable * const o) const {
     return *c() < *o->c();
   }
   int KeyCompareWithValue(const char *_c) const {

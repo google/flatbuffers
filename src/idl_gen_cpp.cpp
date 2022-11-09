@@ -2278,18 +2278,25 @@ class CppGenerator : public BaseGenerator {
   // Generate CompareWithValue method for a key field.
   void GenKeyFieldMethods(const FieldDef &field) {
     FLATBUFFERS_ASSERT(field.key);
-    const bool is_string = (IsString(field.value.type));
-    const bool is_array = (IsArray(field.value.type));
+    const bool is_string = IsString(field.value.type);
+    const bool is_array = IsArray(field.value.type);
 
-    code_ += "  bool KeyCompareLessThan(const {{STRUCT_NAME}} *o) const {";
+    code_ += "  bool KeyCompareLessThan(const {{STRUCT_NAME}} * const o) const {";
     if (is_string) {
       // use operator< of flatbuffers::String
       code_ += "    return *{{FIELD_NAME}}() < *o->{{FIELD_NAME}}();";
-    } else if (is_array){
+    } else if (is_array) {
       const auto &elem_type = field.value.type.VectorType();
       if (IsScalar(elem_type.base_type)) {
         code_ += "    for (auto i = 0; i < {{FIELD_NAME}}()->size(); i++){ ";
-        code_ += "      if ({{FIELD_NAME}}()->Get(i) != o->{{FIELD_NAME}}()->Get(i)) return {{FIELD_NAME}}()->Get(i) < o->{{FIELD_NAME}}()->Get(i);";
+        code_ += "      const auto {{FIELD_NAME}}_l = {{FIELD_NAME}}()->Get(i);";
+        code_ += "      const auto {{FIELD_NAME}}_r = o->{{FIELD_NAME}}()->Get(i);";
+        code_ += "      if ({{FIELD_NAME}}_l != {{FIELD_NAME}}_r)";
+        code_ += "        return {{FIELD_NAME}}_l < {{FIELD_NAME}}_r;";
+        // code_ +=
+        //     "      if ({{FIELD_NAME}}()->Get(i) != "
+        //     "o->{{FIELD_NAME}}()->Get(i)) ";
+        // code_ += "        return {{FIELD_NAME}}()->Get(i) < o->{{FIELD_NAME}}()->Get(i);";
         code_ += "    }";
         code_ += "    return false;";
       }
@@ -2304,11 +2311,12 @@ class CppGenerator : public BaseGenerator {
     } else if (is_array) {
       const auto &elem_type = field.value.type.VectorType();
       if (IsScalar(elem_type.base_type)) {
-        const auto face_type = GenTypeGet(elem_type, " ", "", "", false);
-        std::string input_param = face_type + "_{{FIELD_NAME}}[" +
-        NumToString(elem_type.fixed_length) + "]";
+        const std::string face_type = GenTypeGet(elem_type, " ", "", "", false);
+        const std::string input_param = face_type + "_{{FIELD_NAME}}[" +
+                                  NumToString(elem_type.fixed_length) + "]";
 
-        code_ += "  int KeyCompareWithValue(const "+input_param+") const { ";
+        code_ +=
+            "  int KeyCompareWithValue(const " + input_param + ") const { ";
         code_ += "    for (auto i = 0; i < {{FIELD_NAME}}()->size(); i++) {";
         code_ += "      if({{FIELD_NAME}}()->Get(i) != _{{FIELD_NAME}}[i]) ";
         code_ +=
@@ -2334,7 +2342,6 @@ class CppGenerator : public BaseGenerator {
           "static_cast<int>({{FIELD_NAME}}() < _{{FIELD_NAME}});";
     }
     code_ += "  }";
-
   }
 
   void GenTableUnionAsGetters(const FieldDef &field) {

@@ -1,12 +1,12 @@
 namespace keyfield.sample;
 
 struct Baz {
-  a: [uint8:4] (key);
+  a: [uint8:4] (key); // A fixed-sized array of uint8 as a Key
   b: uint8 ;
 }
 
 struct Bar {
-  a: [float:3] (key);
+  a: [float:3] (key); // A fixed-sized array of float as a Key
   b: uint8;
 }
 
