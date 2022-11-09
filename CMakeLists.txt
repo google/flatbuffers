@@ -265,8 +265,8 @@ set(FlatBuffers_Tests_SRCS
   ${CMAKE_CURRENT_BINARY_DIR}/tests/native_inline_table_test_generated.h
   # file generate by running compiler on tests/alignment_test.fbs
   ${CMAKE_CURRENT_BINARY_DIR}/tests/alignment_test_generated.h
-  # file generate by running compiler on tests/key_field_sample.fbs
-  ${CMAKE_CURRENT_BINARY_DIR}/tests/key_field_sample_generated.h
+  # file generate by running compiler on tests/key_field/key_field_sample.fbs
+  ${CMAKE_CURRENT_BINARY_DIR}/tests/key_field/key_field_sample_generated.h
 )
 
 set(FlatBuffers_Tests_CPP17_SRCS
