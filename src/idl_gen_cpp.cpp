@@ -2296,11 +2296,6 @@ class CppGenerator : public BaseGenerator {
             "      const auto {{FIELD_NAME}}_r = o->{{FIELD_NAME}}()->Get(i);";
         code_ += "      if ({{FIELD_NAME}}_l != {{FIELD_NAME}}_r)";
         code_ += "        return {{FIELD_NAME}}_l < {{FIELD_NAME}}_r;";
-        // code_ +=
-        //     "      if ({{FIELD_NAME}}()->Get(i) != "
-        //     "o->{{FIELD_NAME}}()->Get(i)) ";
-        // code_ += "        return {{FIELD_NAME}}()->Get(i) <
-        // o->{{FIELD_NAME}}()->Get(i);";
         code_ += "    }";
         code_ += "    return false;";
       }
@@ -2323,12 +2318,15 @@ class CppGenerator : public BaseGenerator {
         code_ +=
             "  int KeyCompareWithValue(const " + input_param + ") const { ";
         code_ += "    for (auto i = 0; i < {{FIELD_NAME}}()->size(); i++) {";
-        code_ += "      if({{FIELD_NAME}}()->Get(i) != _{{FIELD_NAME}}[i]) ";
         code_ +=
-            "        return static_cast<int>({{FIELD_NAME}}()->Get(i) > "
-            "_{{FIELD_NAME}}[i]) - static_cast<int>({{FIELD_NAME}}()->Get(i) "
-            "< _{{FIELD_NAME}}[i]);";
-        code_ += "  }";
+            "      const auto {{FIELD_NAME}}_l = {{FIELD_NAME}}()->Get(i);";
+        code_ += "      const auto {{FIELD_NAME}}_r = _{{FIELD_NAME}}[i];";
+        code_ += "      if({{FIELD_NAME}}_l != {{FIELD_NAME}}_r) ";
+        code_ +=
+            "        return static_cast<int>({{FIELD_NAME}}_l > "
+            "{{FIELD_NAME}}_r)"
+            " - static_cast<int>({{FIELD_NAME}}_l < {{FIELD_NAME}}_r);";
+        code_ += "    }";
         code_ += "    return 0;";
       }
     } else {
