@@ -2310,13 +2310,11 @@ class CppGenerator : public BaseGenerator {
     } else if (is_array) {
       const auto &elem_type = field.value.type.VectorType();
       if (IsScalar(elem_type.base_type)) {
-        const std::string face_type = GenTypeGet(elem_type, " ", "", "", false);
-        const std::string input_param = face_type + "_{{FIELD_NAME}}[" +
-                                        NumToString(elem_type.fixed_length) +
-                                        "]";
-
+        code_.SetValue("FACE_TYPE", GenTypeGet(elem_type, " ", "", "", false));
+        code_.SetValue("SIZE", NumToString(elem_type.fixed_length));
         code_ +=
-            "  int KeyCompareWithValue(const " + input_param + ") const { ";
+            "  int KeyCompareWithValue(const {{FACE_TYPE}} "
+            "_{{FIELD_NAME}}[{{SIZE}}]) const { ";
         code_ += "    for (auto i = 0; i < {{FIELD_NAME}}()->size(); i++) {";
         code_ +=
             "      const auto {{FIELD_NAME}}_l = {{FIELD_NAME}}()->Get(i);";

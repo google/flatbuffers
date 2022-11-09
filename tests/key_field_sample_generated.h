@@ -53,7 +53,7 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(1) Baz FLATBUFFERS_FINAL_CLASS {
     }
     return false;
   }
-  int KeyCompareWithValue(const uint8_t _a[4]) const { 
+  int KeyCompareWithValue(const uint8_t  _a[4]) const { 
     for (auto i = 0; i < a()->size(); i++) {
       const auto a_l = a()->Get(i);
       const auto a_r = _a[i];
@@ -111,7 +111,7 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) Bar FLATBUFFERS_FINAL_CLASS {
     }
     return false;
   }
-  int KeyCompareWithValue(const float _a[3]) const { 
+  int KeyCompareWithValue(const float  _a[3]) const { 
     for (auto i = 0; i < a()->size(); i++) {
       const auto a_l = a()->Get(i);
       const auto a_r = _a[i];
