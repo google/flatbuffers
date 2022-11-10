@@ -87,7 +87,7 @@ class DartGenerator : public BaseGenerator {
                DartKeywords()) {}
 
   template<typename T>
-  void import_generateor(const std::vector<T *> &definitions,
+  void import_generator(const std::vector<T *> &definitions,
                          const std::string &included,
                          std::set<std::string> &imports) {
     for (const auto &item : definitions) {
@@ -119,8 +119,8 @@ class DartGenerator : public BaseGenerator {
     for (const auto &included_file : parser_.GetIncludedFiles()) {
       if (included_file.filename == parser_.file_being_parsed_) continue;
 
-      import_generateor(parser_.structs_.vec, included_file.filename, imports);
-      import_generateor(parser_.enums_.vec, included_file.filename, imports);
+      import_generator(parser_.structs_.vec, included_file.filename, imports);
+      import_generator(parser_.enums_.vec, included_file.filename, imports);
     }
 
     std::string import_code = "";
