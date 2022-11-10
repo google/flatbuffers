@@ -2289,15 +2289,8 @@ class CppGenerator : public BaseGenerator {
     } else if (is_array) {
       const auto &elem_type = field.value.type.VectorType();
       if (IsScalar(elem_type.base_type)) {
-        code_ += "    for (auto i = 0; i < {{FIELD_NAME}}()->size(); i++){ ";
         code_ +=
-            "      const auto {{FIELD_NAME}}_l = {{FIELD_NAME}}()->Get(i);";
-        code_ +=
-            "      const auto {{FIELD_NAME}}_r = o->{{FIELD_NAME}}()->Get(i);";
-        code_ += "      if ({{FIELD_NAME}}_l != {{FIELD_NAME}}_r)";
-        code_ += "        return {{FIELD_NAME}}_l < {{FIELD_NAME}}_r;";
-        code_ += "    }";
-        code_ += "    return false;";
+            "    return KeyCompareWithValue(o->{{FIELD_NAME}}()->data()) < 0;";
       }
     } else {
       code_ += "    return {{FIELD_NAME}}() < o->{{FIELD_NAME}}();";
