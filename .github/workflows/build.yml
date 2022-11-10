@@ -431,7 +431,9 @@ jobs:
     - uses: actions/checkout@v2
     - name: test
       working-directory: tests/swift/tests
-      run: sh SwiftTest.sh
+      run: |
+        swift build --build-tests
+        swift test
 
   build-swift-wasm:
     name: Build Swift Wasm
