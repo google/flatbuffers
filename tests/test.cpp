@@ -16,6 +16,7 @@
 #include <stdint.h>
 
 #include <cmath>
+#include <limits>
 #include <memory>
 #include <string>
 
@@ -423,6 +424,12 @@ void UninitializedVectorTest() {
 void EqualOperatorTest() {
   MonsterT a;
   MonsterT b;
+  // We have to reset the fields that are NaN to zero to allow the equality
+  // to evaluate to true.
+  TEST_EQ(std::isnan(a.nan_default), true);
+  TEST_EQ(std::isnan(b.nan_default), true);
+  a.nan_default = 0;
+  b.nan_default = 0;
   TEST_EQ(b == a, true);
   TEST_EQ(b != a, false);
 
@@ -441,12 +448,14 @@ void EqualOperatorTest() {
   TEST_EQ(b != a, false);
 
   a.enemy.reset(new MonsterT());
+  a.enemy->nan_default = 0;
   TEST_EQ(b != a, true);
   a.enemy->mana = 33;
   TEST_EQ(b == a, false);
   TEST_EQ(b != a, true);
 
   b.enemy.reset(new MonsterT());
+  b.enemy->nan_default = 0;
   TEST_EQ(b == a, false);
   TEST_EQ(b != a, true);
   b.enemy->mana = 33;
@@ -460,6 +469,7 @@ void EqualOperatorTest() {
   TEST_EQ(b == a, false);
   TEST_EQ(b != a, true);
   a.enemy.reset(new MonsterT());
+  a.enemy->nan_default = 0;
   TEST_EQ(b == a, true);
   TEST_EQ(b != a, false);
 
@@ -473,23 +483,29 @@ void EqualOperatorTest() {
   {
     // Two tables are equal by default.
     MonsterT a, b;
+    a.nan_default = 0;
+    b.nan_default = 0;
     TEST_EQ(a == b, true);
 
     // Adding only a table to one of the monster vectors should make it not
     // equal (due to size mistmatch).
     a.testarrayoftables.push_back(
         flatbuffers::unique_ptr<MonsterT>(new MonsterT));
+    a.testarrayoftables.back()->nan_default = 0;
     TEST_EQ(a == b, false);
 
     // Adding an equalivant table to the other monster vector should make it
     // equal again.
     b.testarrayoftables.push_back(
         flatbuffers::unique_ptr<MonsterT>(new MonsterT));
+    b.testarrayoftables.back()->nan_default = 0;
     TEST_EQ(a == b, true);
 
     // Create two new monsters that are different.
     auto c = flatbuffers::unique_ptr<MonsterT>(new MonsterT);
     auto d = flatbuffers::unique_ptr<MonsterT>(new MonsterT);
+    c->nan_default = 0;
+    d->nan_default = 0;
     c->hp = 1;
     d->hp = 2;
     TEST_EQ(c == d, false);
@@ -1402,6 +1418,49 @@ void NativeInlineTableVectorTest() {
   TEST_ASSERT(unpacked.t == test.t);
 }
 
+void DoNotRequireEofTest(const std::string& tests_data_path) {
+  std::string schemafile;
+  bool ok = flatbuffers::LoadFile(
+      (tests_data_path + "monster_test.fbs").c_str(), false, &schemafile);
+  TEST_EQ(ok, true);
+  auto include_test_path =
+      flatbuffers::ConCatPathFileName(tests_data_path, "include_test");
+  const char *include_directories[] = { tests_data_path.c_str(),
+                                        include_test_path.c_str(), nullptr };
+  flatbuffers::IDLOptions opt;
+  opt.require_json_eof = false;
+  flatbuffers::Parser parser(opt);
+  ok = parser.Parse(schemafile.c_str(), include_directories);
+  TEST_EQ(ok, true);
+  
+  const char *str = R"(This string contains two monsters, the first one is {
+      "name": "Blob",
+      "hp": 5
+    }
+    and the second one is {
+      "name": "Imp",
+      "hp": 10
+    }
+  )";
+  const char *tableStart = std::strchr(str, '{');
+  ok = parser.ParseJson(tableStart);
+  TEST_EQ(ok, true);
+
+  const Monster *monster = GetMonster(parser.builder_.GetBufferPointer());
+  TEST_EQ_STR(monster->name()->c_str(), "Blob");
+  TEST_EQ(monster->hp(), 5);
+  
+  tableStart += parser.BytesConsumed();
+
+  tableStart = std::strchr(tableStart + 1, '{');
+  ok = parser.ParseJson(tableStart);
+  TEST_EQ(ok, true);
+
+  monster = GetMonster(parser.builder_.GetBufferPointer());
+  TEST_EQ_STR(monster->name()->c_str(), "Imp");
+  TEST_EQ(monster->hp(), 10);
+}
+
 int FlatBufferTests(const std::string &tests_data_path) {
   // Run our various test suites:
 
@@ -1448,6 +1507,7 @@ int FlatBufferTests(const std::string &tests_data_path) {
   TestMonsterExtraFloats(tests_data_path);
   ParseIncorrectMonsterJsonTest(tests_data_path);
   FixedLengthArraySpanTest(tests_data_path);
+  DoNotRequireEofTest(tests_data_path);
 #endif
 
   UtilConvertCase();

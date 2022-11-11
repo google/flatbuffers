@@ -533,6 +533,14 @@ func CheckObjectAPI(buf []byte, offset flatbuffers.UOffsetT, sizePrefix bool, fa
 		fail(FailString("mana", 150, got))
 	}
 
+	if monster.Test != nil && monster.Test.Type == example.AnyMonster {
+		monster.Test.Value.(*example.MonsterT).NanDefault = 0.0
+	}
+	if monster.Enemy != nil {
+		monster.Enemy.NanDefault = 0.0
+	}
+	monster.NanDefault = 0.0
+
 	builder := flatbuffers.NewBuilder(0)
 	builder.Finish(monster.Pack(builder))
 	monster2 := example.GetRootAsMonster(builder.FinishedBytes(), 0).UnPack()
