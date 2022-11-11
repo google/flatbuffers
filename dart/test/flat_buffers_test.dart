@@ -87,7 +87,10 @@ class CheckOtherLangaugesData {
       'testrequirednestedflatbuffer: null, scalarKeySortedTables: null, '
       'nativeInline: null, '
       'longEnumNonEnumDefault: LongEnum{value: 0}, '
-      'longEnumNormalDefault: LongEnum{value: 2}}, '
+      'longEnumNormalDefault: LongEnum{value: 2}, nanDefault: NaN, '
+      'infDefault: Infinity, positiveInfDefault: Infinity, infinityDefault: '
+      'Infinity, positiveInfinityDefault: Infinity, negativeInfDefault: '
+      '-Infinity, negativeInfinityDefault: -Infinity, doubleInfDefault: Infinity}, '
       'test4: [Test{a: 10, b: 20}, Test{a: 30, b: 40}], '
       'testarrayofstring: [test1, test2], testarrayoftables: null, '
       'enemy: Monster{pos: null, mana: 150, hp: 100, name: Fred, '
@@ -110,7 +113,10 @@ class CheckOtherLangaugesData {
       'testrequirednestedflatbuffer: null, scalarKeySortedTables: null, '
       'nativeInline: null, '
       'longEnumNonEnumDefault: LongEnum{value: 0}, '
-      'longEnumNormalDefault: LongEnum{value: 2}}, '
+      'longEnumNormalDefault: LongEnum{value: 2}, nanDefault: NaN, '
+      'infDefault: Infinity, positiveInfDefault: Infinity, infinityDefault: '
+      'Infinity, positiveInfinityDefault: Infinity, negativeInfDefault: '
+      '-Infinity, negativeInfinityDefault: -Infinity, doubleInfDefault: Infinity}, '
       'testnestedflatbuffer: null, testempty: null, testbool: true, '
       'testhashs32Fnv1: -579221183, testhashu32Fnv1: 3715746113, '
       'testhashs64Fnv1: 7930699090847568257, '
@@ -137,7 +143,10 @@ class CheckOtherLangaugesData {
       'miss, val: 0, count: 0}, Stat{id: hit, val: 10, count: 1}], '
       'nativeInline: Test{a: 1, b: 2}, '
       'longEnumNonEnumDefault: LongEnum{value: 0}, '
-      'longEnumNormalDefault: LongEnum{value: 2}}',
+      'longEnumNormalDefault: LongEnum{value: 2}, nanDefault: NaN, '
+      'infDefault: Infinity, positiveInfDefault: Infinity, infinityDefault: '
+      'Infinity, positiveInfinityDefault: Infinity, negativeInfDefault: '
+      '-Infinity, negativeInfinityDefault: -Infinity, doubleInfDefault: Infinity}'
     );
   }
 }
