@@ -1170,6 +1170,23 @@ class PythonGenerator : public BaseGenerator {
     code += "\n";
   }
 
+  void GenCompareOperator(const StructDef &struct_def, 
+                          std::string *code_ptr) const {
+    auto &code = *code_ptr;
+    code += GenIndents(1) + "def __eq__(self, other):";
+    code += GenIndents(2) + "return type(self) == type(other)";
+    for (auto it = struct_def.fields.vec.begin();
+            it != struct_def.fields.vec.end(); ++it) {
+          auto &field = **it;
+          if (field.deprecated) continue;
+
+          // Wrties the comparison statement for this field.
+          const auto field_field = namer_.Field(field);
+          code += " and \\" + GenIndents(3) + "self." + field_field + " == " + "other." + field_field;
+        }
+    code += "\n";
+  }
+
   void GenUnPackForStruct(const StructDef &struct_def, const FieldDef &field,
                           std::string *code_ptr) const {
     auto &code = *code_ptr;
@@ -1651,6 +1668,10 @@ class PythonGenerator : public BaseGenerator {
     InitializeFromPackedBuf(struct_def, &code);
 
     InitializeFromObjForObject(struct_def, &code);
+
+    if (parser_.opts.gen_compare) {
+      GenCompareOperator(struct_def, &code);
+    }
 
     GenUnPack(struct_def, &code);
 
