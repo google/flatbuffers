@@ -149,4 +149,4 @@ flatbuffers.pc
 **/html/**
 **/latex/**
 # https://cmake.org/cmake/help/latest/module/FetchContent.html#variable:FETCHCONTENT_BASE_DIR
-_deps/
+cmake-build-debug/
