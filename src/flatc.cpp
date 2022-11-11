@@ -454,6 +454,8 @@ int FlatCompiler::Compile(int argc, const char **argv) {
         opts.skip_unexpected_fields_in_json = true;
       } else if (arg == "--no-prefix") {
         opts.prefixed_enums = false;
+      } else if (arg == "--cpp-minify-enums") {
+        opts.cpp_minify_enums = true;
       } else if (arg == "--scoped-enums") {
         opts.prefixed_enums = false;
         opts.scoped_enums = true;
