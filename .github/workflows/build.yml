@@ -530,3 +530,4 @@ jobs:
     with:
       base64-subjects: "${{ needs.release-digests.outputs.digests }}"
       upload-assets: true # Optional: Upload to a new release
+      compile-generator: true # Workaround for https://github.com/slsa-framework/slsa-github-generator/issues/1163
