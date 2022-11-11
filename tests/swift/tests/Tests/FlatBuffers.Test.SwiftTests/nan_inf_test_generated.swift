@@ -28,7 +28,7 @@ public struct Swift_Tests_NanInfTable: FlatBufferObject, Verifiable {
   }
 
   public var defaultNan: Double { let o = _accessor.offset(VTOFFSET.defaultNan.v); return o == 0 ? .nan : _accessor.readBuffer(of: Double.self, at: o) }
-  public var defaultInf: Double { let o = _accessor.offset(VTOFFSET.defaultInf.v); return o == 0 ? +.infinity : _accessor.readBuffer(of: Double.self, at: o) }
+  public var defaultInf: Double { let o = _accessor.offset(VTOFFSET.defaultInf.v); return o == 0 ? .infinity : _accessor.readBuffer(of: Double.self, at: o) }
   public var defaultNinf: Double { let o = _accessor.offset(VTOFFSET.defaultNinf.v); return o == 0 ? -.infinity : _accessor.readBuffer(of: Double.self, at: o) }
   public var valueNan: Double { let o = _accessor.offset(VTOFFSET.valueNan.v); return o == 0 ? 0.0 : _accessor.readBuffer(of: Double.self, at: o) }
   public var valueInf: Double { let o = _accessor.offset(VTOFFSET.valueInf.v); return o == 0 ? 0.0 : _accessor.readBuffer(of: Double.self, at: o) }
@@ -36,7 +36,7 @@ public struct Swift_Tests_NanInfTable: FlatBufferObject, Verifiable {
   public var value: Double { let o = _accessor.offset(VTOFFSET.value.v); return o == 0 ? 0.0 : _accessor.readBuffer(of: Double.self, at: o) }
   public static func startNanInfTable(_ fbb: inout FlatBufferBuilder) -> UOffset { fbb.startTable(with: 7) }
   public static func add(defaultNan: Double, _ fbb: inout FlatBufferBuilder) { fbb.add(element: defaultNan, def: .nan, at: VTOFFSET.defaultNan.p) }
-  public static func add(defaultInf: Double, _ fbb: inout FlatBufferBuilder) { fbb.add(element: defaultInf, def: +.infinity, at: VTOFFSET.defaultInf.p) }
+  public static func add(defaultInf: Double, _ fbb: inout FlatBufferBuilder) { fbb.add(element: defaultInf, def: .infinity, at: VTOFFSET.defaultInf.p) }
   public static func add(defaultNinf: Double, _ fbb: inout FlatBufferBuilder) { fbb.add(element: defaultNinf, def: -.infinity, at: VTOFFSET.defaultNinf.p) }
   public static func add(valueNan: Double, _ fbb: inout FlatBufferBuilder) { fbb.add(element: valueNan, def: 0.0, at: VTOFFSET.valueNan.p) }
   public static func add(valueInf: Double, _ fbb: inout FlatBufferBuilder) { fbb.add(element: valueInf, def: 0.0, at: VTOFFSET.valueInf.p) }
@@ -46,7 +46,7 @@ public struct Swift_Tests_NanInfTable: FlatBufferObject, Verifiable {
   public static func createNanInfTable(
     _ fbb: inout FlatBufferBuilder,
     defaultNan: Double = .nan,
-    defaultInf: Double = +.infinity,
+    defaultInf: Double = .infinity,
     defaultNinf: Double = -.infinity,
     valueNan: Double = 0.0,
     valueInf: Double = 0.0,
@@ -93,7 +93,7 @@ extension Swift_Tests_NanInfTable: Encodable {
     if !defaultNan.isNaN {
       try container.encodeIfPresent(defaultNan, forKey: .defaultNan)
     }
-    if defaultInf != +.infinity {
+    if defaultInf != .infinity {
       try container.encodeIfPresent(defaultInf, forKey: .defaultInf)
     }
     if defaultNinf != -.infinity {

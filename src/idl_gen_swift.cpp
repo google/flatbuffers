@@ -1834,7 +1834,7 @@ class SwiftGenerator : public BaseGenerator {
   std::string SwiftConstant(const FieldDef& field) {
     const auto default_value =
         StringIsFlatbufferNan(field.value.constant) ? ".nan" :
-        StringIsFlatbufferPositiveInfinity(field.value.constant) ? "+.infinity" :
+        StringIsFlatbufferPositiveInfinity(field.value.constant) ? ".infinity" :
         StringIsFlatbufferNegativeInfinity(field.value.constant) ? "-.infinity" :
         // IsEnum(field.value.type) ? (field.IsOptional() ? "nil" : GenEnumDefaultValue(field)) :
         IsBool(field.value.type.base_type) ? ("0" == field.value.constant ? "false" : "true") :
