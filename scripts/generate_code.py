@@ -432,6 +432,7 @@ flatc(
 )
 flatc(SWIFT_OPTS, schema="optional_scalars.fbs", prefix=swift_prefix)
 flatc(SWIFT_OPTS, schema="vector_has_test.fbs", prefix=swift_prefix)
+flatc(SWIFT_OPTS, schema="nan_inf_test.fbs", prefix=swift_prefix)
 flatc(
     SWIFT_OPTS + ["--gen-object-api"],
     schema="more_defaults.fbs",
