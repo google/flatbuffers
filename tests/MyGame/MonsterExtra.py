@@ -202,16 +202,33 @@ class MonsterExtraT(object):
 
     @classmethod
     def InitFromBuf(cls, buf, pos):
-        n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, 0)
         monsterExtra = MonsterExtra()
-        monsterExtra.Init(buf, pos+n)
+        monsterExtra.Init(buf, pos)
         return cls.InitFromObj(monsterExtra)
+
+    @classmethod
+    def InitFromPackedBuf(cls, buf, pos=0):
+        n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, pos)
+        return cls.InitFromBuf(buf, pos+n)
 
     @classmethod
     def InitFromObj(cls, monsterExtra):
         x = MonsterExtraT()
         x._UnPack(monsterExtra)
         return x
+
+    def __eq__(self, other):
+        return type(self) == type(other) and \
+            self.d0 == other.d0 and \
+            self.d1 == other.d1 and \
+            self.d2 == other.d2 and \
+            self.d3 == other.d3 and \
+            self.f0 == other.f0 and \
+            self.f1 == other.f1 and \
+            self.f2 == other.f2 and \
+            self.f3 == other.f3 and \
+            self.dvec == other.dvec and \
+            self.fvec == other.fvec
 
     # MonsterExtraT
     def _UnPack(self, monsterExtra):

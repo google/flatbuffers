@@ -120,10 +120,14 @@ class InParentNamespaceT(object):
 
     @classmethod
     def InitFromBuf(cls, buf, pos):
-        n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, 0)
         inParentNamespace = InParentNamespace()
-        inParentNamespace.Init(buf, pos+n)
+        inParentNamespace.Init(buf, pos)
         return cls.InitFromObj(inParentNamespace)
+
+    @classmethod
+    def InitFromPackedBuf(cls, buf, pos=0):
+        n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, pos)
+        return cls.InitFromBuf(buf, pos+n)
 
     @classmethod
     def InitFromObj(cls, inParentNamespace):
@@ -177,10 +181,14 @@ class MonsterT(object):
 
     @classmethod
     def InitFromBuf(cls, buf, pos):
-        n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, 0)
         monster = Monster()
-        monster.Init(buf, pos+n)
+        monster.Init(buf, pos)
         return cls.InitFromObj(monster)
+
+    @classmethod
+    def InitFromPackedBuf(cls, buf, pos=0):
+        n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, pos)
+        return cls.InitFromBuf(buf, pos+n)
 
     @classmethod
     def InitFromObj(cls, monster):
@@ -233,10 +241,14 @@ class TestT(object):
 
     @classmethod
     def InitFromBuf(cls, buf, pos):
-        n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, 0)
         test = Test()
-        test.Init(buf, pos+n)
+        test.Init(buf, pos)
         return cls.InitFromObj(test)
+
+    @classmethod
+    def InitFromPackedBuf(cls, buf, pos=0):
+        n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, pos)
+        return cls.InitFromBuf(buf, pos+n)
 
     @classmethod
     def InitFromObj(cls, test):
@@ -298,10 +310,14 @@ class TestSimpleTableWithEnumT(object):
 
     @classmethod
     def InitFromBuf(cls, buf, pos):
-        n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, 0)
         testSimpleTableWithEnum = TestSimpleTableWithEnum()
-        testSimpleTableWithEnum.Init(buf, pos+n)
+        testSimpleTableWithEnum.Init(buf, pos)
         return cls.InitFromObj(testSimpleTableWithEnum)
+
+    @classmethod
+    def InitFromPackedBuf(cls, buf, pos=0):
+        n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, pos)
+        return cls.InitFromBuf(buf, pos+n)
 
     @classmethod
     def InitFromObj(cls, testSimpleTableWithEnum):
@@ -384,10 +400,14 @@ class Vec3T(object):
 
     @classmethod
     def InitFromBuf(cls, buf, pos):
-        n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, 0)
         vec3 = Vec3()
-        vec3.Init(buf, pos+n)
+        vec3.Init(buf, pos)
         return cls.InitFromObj(vec3)
+
+    @classmethod
+    def InitFromPackedBuf(cls, buf, pos=0):
+        n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, pos)
+        return cls.InitFromBuf(buf, pos+n)
 
     @classmethod
     def InitFromObj(cls, vec3):
@@ -444,10 +464,14 @@ class AbilityT(object):
 
     @classmethod
     def InitFromBuf(cls, buf, pos):
-        n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, 0)
         ability = Ability()
-        ability.Init(buf, pos+n)
+        ability.Init(buf, pos)
         return cls.InitFromObj(ability)
+
+    @classmethod
+    def InitFromPackedBuf(cls, buf, pos=0):
+        n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, pos)
+        return cls.InitFromBuf(buf, pos+n)
 
     @classmethod
     def InitFromObj(cls, ability):
@@ -523,10 +547,14 @@ class StructOfStructsT(object):
 
     @classmethod
     def InitFromBuf(cls, buf, pos):
-        n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, 0)
         structOfStructs = StructOfStructs()
-        structOfStructs.Init(buf, pos+n)
+        structOfStructs.Init(buf, pos)
         return cls.InitFromObj(structOfStructs)
+
+    @classmethod
+    def InitFromPackedBuf(cls, buf, pos=0):
+        n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, pos)
+        return cls.InitFromBuf(buf, pos+n)
 
     @classmethod
     def InitFromObj(cls, structOfStructs):
@@ -595,10 +623,14 @@ class StructOfStructsOfStructsT(object):
 
     @classmethod
     def InitFromBuf(cls, buf, pos):
-        n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, 0)
         structOfStructsOfStructs = StructOfStructsOfStructs()
-        structOfStructsOfStructs.Init(buf, pos+n)
+        structOfStructsOfStructs.Init(buf, pos)
         return cls.InitFromObj(structOfStructsOfStructs)
+
+    @classmethod
+    def InitFromPackedBuf(cls, buf, pos=0):
+        n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, pos)
+        return cls.InitFromBuf(buf, pos+n)
 
     @classmethod
     def InitFromObj(cls, structOfStructsOfStructs):
@@ -678,10 +710,14 @@ class StatT(object):
 
     @classmethod
     def InitFromBuf(cls, buf, pos):
-        n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, 0)
         stat = Stat()
-        stat.Init(buf, pos+n)
+        stat.Init(buf, pos)
         return cls.InitFromObj(stat)
+
+    @classmethod
+    def InitFromPackedBuf(cls, buf, pos=0):
+        n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, pos)
+        return cls.InitFromBuf(buf, pos+n)
 
     @classmethod
     def InitFromObj(cls, stat):
@@ -752,10 +788,14 @@ class ReferrableT(object):
 
     @classmethod
     def InitFromBuf(cls, buf, pos):
-        n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, 0)
         referrable = Referrable()
-        referrable.Init(buf, pos+n)
+        referrable.Init(buf, pos)
         return cls.InitFromObj(referrable)
+
+    @classmethod
+    def InitFromPackedBuf(cls, buf, pos=0):
+        n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, pos)
+        return cls.InitFromBuf(buf, pos+n)
 
     @classmethod
     def InitFromObj(cls, referrable):
@@ -1575,7 +1615,63 @@ class Monster(object):
             return self._tab.Get(flatbuffers.number_types.Uint64Flags, o + self._tab.Pos)
         return 2
 
-def MonsterStart(builder): builder.StartObject(54)
+    # Monster
+    def NanDefault(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(112))
+        if o != 0:
+            return self._tab.Get(flatbuffers.number_types.Float32Flags, o + self._tab.Pos)
+        return float('nan')
+
+    # Monster
+    def InfDefault(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(114))
+        if o != 0:
+            return self._tab.Get(flatbuffers.number_types.Float32Flags, o + self._tab.Pos)
+        return float('inf')
+
+    # Monster
+    def PositiveInfDefault(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(116))
+        if o != 0:
+            return self._tab.Get(flatbuffers.number_types.Float32Flags, o + self._tab.Pos)
+        return float('inf')
+
+    # Monster
+    def InfinityDefault(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(118))
+        if o != 0:
+            return self._tab.Get(flatbuffers.number_types.Float32Flags, o + self._tab.Pos)
+        return float('inf')
+
+    # Monster
+    def PositiveInfinityDefault(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(120))
+        if o != 0:
+            return self._tab.Get(flatbuffers.number_types.Float32Flags, o + self._tab.Pos)
+        return float('inf')
+
+    # Monster
+    def NegativeInfDefault(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(122))
+        if o != 0:
+            return self._tab.Get(flatbuffers.number_types.Float32Flags, o + self._tab.Pos)
+        return float('-inf')
+
+    # Monster
+    def NegativeInfinityDefault(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(124))
+        if o != 0:
+            return self._tab.Get(flatbuffers.number_types.Float32Flags, o + self._tab.Pos)
+        return float('-inf')
+
+    # Monster
+    def DoubleInfDefault(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(126))
+        if o != 0:
+            return self._tab.Get(flatbuffers.number_types.Float64Flags, o + self._tab.Pos)
+        return float('inf')
+
+def MonsterStart(builder): builder.StartObject(62)
 def MonsterAddPos(builder, pos): builder.PrependStructSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(pos), 0)
 def MonsterAddMana(builder, mana): builder.PrependInt16Slot(1, mana, 150)
 def MonsterAddHp(builder, hp): builder.PrependInt16Slot(2, hp, 100)
@@ -1659,6 +1755,14 @@ def MonsterStartScalarKeySortedTablesVector(builder, numElems): return builder.S
 def MonsterAddNativeInline(builder, nativeInline): builder.PrependStructSlot(51, flatbuffers.number_types.UOffsetTFlags.py_type(nativeInline), 0)
 def MonsterAddLongEnumNonEnumDefault(builder, longEnumNonEnumDefault): builder.PrependUint64Slot(52, longEnumNonEnumDefault, 0)
 def MonsterAddLongEnumNormalDefault(builder, longEnumNormalDefault): builder.PrependUint64Slot(53, longEnumNormalDefault, 2)
+def MonsterAddNanDefault(builder, nanDefault): builder.PrependFloat32Slot(54, nanDefault, float('nan'))
+def MonsterAddInfDefault(builder, infDefault): builder.PrependFloat32Slot(55, infDefault, float('inf'))
+def MonsterAddPositiveInfDefault(builder, positiveInfDefault): builder.PrependFloat32Slot(56, positiveInfDefault, float('inf'))
+def MonsterAddInfinityDefault(builder, infinityDefault): builder.PrependFloat32Slot(57, infinityDefault, float('inf'))
+def MonsterAddPositiveInfinityDefault(builder, positiveInfinityDefault): builder.PrependFloat32Slot(58, positiveInfinityDefault, float('inf'))
+def MonsterAddNegativeInfDefault(builder, negativeInfDefault): builder.PrependFloat32Slot(59, negativeInfDefault, float('-inf'))
+def MonsterAddNegativeInfinityDefault(builder, negativeInfinityDefault): builder.PrependFloat32Slot(60, negativeInfinityDefault, float('-inf'))
+def MonsterAddDoubleInfDefault(builder, doubleInfDefault): builder.PrependFloat64Slot(61, doubleInfDefault, float('inf'))
 def MonsterEnd(builder): return builder.EndObject()
 
 try:
@@ -1723,13 +1827,25 @@ class MonsterT(object):
         self.nativeInline = None  # type: Optional[TestT]
         self.longEnumNonEnumDefault = 0  # type: int
         self.longEnumNormalDefault = 2  # type: int
+        self.nanDefault = float('nan')  # type: float
+        self.infDefault = float('inf')  # type: float
+        self.positiveInfDefault = float('inf')  # type: float
+        self.infinityDefault = float('inf')  # type: float
+        self.positiveInfinityDefault = float('inf')  # type: float
+        self.negativeInfDefault = float('-inf')  # type: float
+        self.negativeInfinityDefault = float('-inf')  # type: float
+        self.doubleInfDefault = float('inf')  # type: float
 
     @classmethod
     def InitFromBuf(cls, buf, pos):
-        n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, 0)
         monster = Monster()
-        monster.Init(buf, pos+n)
+        monster.Init(buf, pos)
         return cls.InitFromObj(monster)
+
+    @classmethod
+    def InitFromPackedBuf(cls, buf, pos=0):
+        n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, pos)
+        return cls.InitFromBuf(buf, pos+n)
 
     @classmethod
     def InitFromObj(cls, monster):
@@ -1920,6 +2036,14 @@ class MonsterT(object):
             self.nativeInline = TestT.InitFromObj(monster.NativeInline())
         self.longEnumNonEnumDefault = monster.LongEnumNonEnumDefault()
         self.longEnumNormalDefault = monster.LongEnumNormalDefault()
+        self.nanDefault = monster.NanDefault()
+        self.infDefault = monster.InfDefault()
+        self.positiveInfDefault = monster.PositiveInfDefault()
+        self.infinityDefault = monster.InfinityDefault()
+        self.positiveInfinityDefault = monster.PositiveInfinityDefault()
+        self.negativeInfDefault = monster.NegativeInfDefault()
+        self.negativeInfinityDefault = monster.NegativeInfinityDefault()
+        self.doubleInfDefault = monster.DoubleInfDefault()
 
     # MonsterT
     def Pack(self, builder):
@@ -2173,6 +2297,14 @@ class MonsterT(object):
             MonsterAddNativeInline(builder, nativeInline)
         MonsterAddLongEnumNonEnumDefault(builder, self.longEnumNonEnumDefault)
         MonsterAddLongEnumNormalDefault(builder, self.longEnumNormalDefault)
+        MonsterAddNanDefault(builder, self.nanDefault)
+        MonsterAddInfDefault(builder, self.infDefault)
+        MonsterAddPositiveInfDefault(builder, self.positiveInfDefault)
+        MonsterAddInfinityDefault(builder, self.infinityDefault)
+        MonsterAddPositiveInfinityDefault(builder, self.positiveInfinityDefault)
+        MonsterAddNegativeInfDefault(builder, self.negativeInfDefault)
+        MonsterAddNegativeInfinityDefault(builder, self.negativeInfinityDefault)
+        MonsterAddDoubleInfDefault(builder, self.doubleInfDefault)
         monster = MonsterEnd(builder)
         return monster
 
@@ -2364,10 +2496,14 @@ class TypeAliasesT(object):
 
     @classmethod
     def InitFromBuf(cls, buf, pos):
-        n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, 0)
         typeAliases = TypeAliases()
-        typeAliases.Init(buf, pos+n)
+        typeAliases.Init(buf, pos)
         return cls.InitFromObj(typeAliases)
+
+    @classmethod
+    def InitFromPackedBuf(cls, buf, pos=0):
+        n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, pos)
+        return cls.InitFromBuf(buf, pos+n)
 
     @classmethod
     def InitFromObj(cls, typeAliases):
