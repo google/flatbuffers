@@ -152,8 +152,10 @@ fn object_api_defaults() {
             b: 0
         }
     });
+    let mut default_without_nan = MonsterT::default();
+    default_without_nan.nan_default = 0.0;
     assert_eq!(
-        MonsterT::default(),
+        default_without_nan,
         MonsterT {
             pos: None,
             hp: 100,
@@ -205,6 +207,14 @@ fn object_api_defaults() {
             native_inline: None,
             long_enum_non_enum_default: Default::default(),
             long_enum_normal_default: LongEnum::LongOne,
+            nan_default: 0.0,
+            inf_default: f32::INFINITY,
+            positive_inf_default: f32::INFINITY,
+            infinity_default: f32::INFINITY,
+            positive_infinity_default: f32::INFINITY,
+            negative_inf_default: f32::NEG_INFINITY,
+            negative_infinity_default: f32::NEG_INFINITY,
+            double_inf_default: f64::INFINITY,
         }
     );
 }
@@ -467,7 +477,7 @@ fn verifier_apparent_size_too_large() {
     });
     b.finish(m, None);
     let data = b.finished_data();
-    assert!(data.len() < 5100);  // est 4000 for the vector + 1000 for the string + 100 overhead.
+    assert!(data.len() < 5200);  // est 4000 for the vector + 1000 for the string + 200 overhead.
     let mut opts = flatbuffers::VerifierOptions::default();
     opts.max_apparent_size = 1_000_000;
 
@@ -1774,7 +1784,10 @@ mod write_and_read_examples {
             vector_of_enums: None, signed_enum: None, \
             testrequirednestedflatbuffer: None, scalar_key_sorted_tables: None, \
             native_inline: None, long_enum_non_enum_default: (empty), \
-            long_enum_normal_default: LongOne }, \
+            long_enum_normal_default: LongOne, nan_default: NaN, inf_default: \
+            inf, positive_inf_default: inf, infinity_default: inf, \
+            positive_infinity_default: inf, negative_inf_default: -inf, \
+            negative_infinity_default: -inf, double_inf_default: inf }, \
             test4: Some([Test { a: 10, b: 20 }, Test { a: 30, b: 40 }]), \
             testarrayofstring: Some([\"test1\", \"test2\"]), \
             testarrayoftables: None, enemy: None, testnestedflatbuffer: None, \
@@ -1794,7 +1807,10 @@ mod write_and_read_examples {
             vector_of_enums: None, signed_enum: None, \
             testrequirednestedflatbuffer: None, scalar_key_sorted_tables: None, \
             native_inline: None, long_enum_non_enum_default: (empty), \
-            long_enum_normal_default: LongOne }"
+            long_enum_normal_default: LongOne, nan_default: NaN, inf_default: \
+            inf, positive_inf_default: inf, infinity_default: inf, \
+            positive_infinity_default: inf, negative_inf_default: -inf, \
+            negative_infinity_default: -inf, double_inf_default: inf }"
         );
     }
 
