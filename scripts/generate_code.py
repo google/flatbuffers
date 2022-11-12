@@ -181,32 +181,14 @@ flatc(
 
 flatc(
     NO_INCL_OPTS
-    + CPP_OPTS
-    + CS_OPTS
-    + [
-        "--binary",
-        "--kotlin",
-        "--dart",
-        "--go",
-        "--lobster",
-        "--php",
-    ],
+    + DART_OPTS,
     schema="include_test/include_test1.fbs",
     include="include_test/sub",
 )
 
 flatc(
     NO_INCL_OPTS
-    + CPP_OPTS
-    + CS_OPTS
-    + [
-        "--binary",
-        "--kotlin",
-        "--dart",
-        #"--go", TODO: go throw exception in example
-        "--lobster",
-        "--php",
-    ],
+    + DART_OPTS,
     schema="include_test/sub/include_test2.fbs",
     include="include_test",
 )
