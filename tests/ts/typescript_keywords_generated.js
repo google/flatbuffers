@@ -53,10 +53,80 @@ var flatbuffers10 = __toESM(require("flatbuffers"), 1);
 var flatbuffers4 = __toESM(require("flatbuffers"), 1);
 
 // reflection/enum-val.js
-var flatbuffers2 = __toESM(require("flatbuffers"), 1);
+var flatbuffers3 = __toESM(require("flatbuffers"), 1);
+
+// reflection/key-value.js
+var flatbuffers = __toESM(require("flatbuffers"), 1);
+var KeyValue = class {
+  constructor() {
+    this.bb = null;
+    this.bb_pos = 0;
+  }
+  __init(i, bb) {
+    this.bb_pos = i;
+    this.bb = bb;
+    return this;
+  }
+  static getRootAsKeyValue(bb, obj) {
+    return (obj || new KeyValue()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+  }
+  static getSizePrefixedRootAsKeyValue(bb, obj) {
+    bb.setPosition(bb.position() + flatbuffers.SIZE_PREFIX_LENGTH);
+    return (obj || new KeyValue()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+  }
+  key(optionalEncoding) {
+    const offset = this.bb.__offset(this.bb_pos, 4);
+    return offset ? this.bb.__string(this.bb_pos + offset, optionalEncoding) : null;
+  }
+  value(optionalEncoding) {
+    const offset = this.bb.__offset(this.bb_pos, 6);
+    return offset ? this.bb.__string(this.bb_pos + offset, optionalEncoding) : null;
+  }
+  static getFullyQualifiedName() {
+    return "reflection_KeyValue";
+  }
+  static startKeyValue(builder) {
+    builder.startObject(2);
+  }
+  static addKey(builder, keyOffset) {
+    builder.addFieldOffset(0, keyOffset, 0);
+  }
+  static addValue(builder, valueOffset) {
+    builder.addFieldOffset(1, valueOffset, 0);
+  }
+  static endKeyValue(builder) {
+    const offset = builder.endObject();
+    builder.requiredField(offset, 4);
+    return offset;
+  }
+  static createKeyValue(builder, keyOffset, valueOffset) {
+    KeyValue.startKeyValue(builder);
+    KeyValue.addKey(builder, keyOffset);
+    KeyValue.addValue(builder, valueOffset);
+    return KeyValue.endKeyValue(builder);
+  }
+  unpack() {
+    return new KeyValueT(this.key(), this.value());
+  }
+  unpackTo(_o) {
+    _o.key = this.key();
+    _o.value = this.value();
+  }
+};
+var KeyValueT = class {
+  constructor(key = null, value = null) {
+    this.key = key;
+    this.value = value;
+  }
+  pack(builder) {
+    const key = this.key !== null ? builder.createString(this.key) : 0;
+    const value = this.value !== null ? builder.createString(this.value) : 0;
+    return KeyValue.createKeyValue(builder, key, value);
+  }
+};
 
 // reflection/type.js
-var flatbuffers = __toESM(require("flatbuffers"), 1);
+var flatbuffers2 = __toESM(require("flatbuffers"), 1);
 
 // reflection/base-type.js
 var BaseType;
@@ -97,7 +167,7 @@ var Type = class {
     return (obj || new Type()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
   }
   static getSizePrefixedRootAsType(bb, obj) {
-    bb.setPosition(bb.position() + flatbuffers.SIZE_PREFIX_LENGTH);
+    bb.setPosition(bb.position() + flatbuffers2.SIZE_PREFIX_LENGTH);
     return (obj || new Type()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
   }
   baseType() {
@@ -251,7 +321,7 @@ var EnumVal = class {
     return (obj || new EnumVal()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
   }
   static getSizePrefixedRootAsEnumVal(bb, obj) {
-    bb.setPosition(bb.position() + flatbuffers2.SIZE_PREFIX_LENGTH);
+    bb.setPosition(bb.position() + flatbuffers3.SIZE_PREFIX_LENGTH);
     return (obj || new EnumVal()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
   }
   name(optionalEncoding) {
@@ -282,11 +352,19 @@ var EnumVal = class {
     const offset = this.bb.__offset(this.bb_pos, 12);
     return offset ? this.bb.__vector_len(this.bb_pos + offset) : 0;
   }
+  attributes(index, obj) {
+    const offset = this.bb.__offset(this.bb_pos, 14);
+    return offset ? (obj || new KeyValue()).__init(this.bb.__indirect(this.bb.__vector(this.bb_pos + offset) + index * 4), this.bb) : null;
+  }
+  attributesLength() {
+    const offset = this.bb.__offset(this.bb_pos, 14);
+    return offset ? this.bb.__vector_len(this.bb_pos + offset) : 0;
+  }
   static getFullyQualifiedName() {
     return "reflection_EnumVal";
   }
   static startEnumVal(builder) {
-    builder.startObject(5);
+    builder.startObject(6);
   }
   static addName(builder, nameOffset) {
     builder.addFieldOffset(0, nameOffset, 0);
@@ -310,108 +388,55 @@ var EnumVal = class {
   static startDocumentationVector(builder, numElems) {
     builder.startVector(4, numElems, 4);
   }
+  static addAttributes(builder, attributesOffset) {
+    builder.addFieldOffset(5, attributesOffset, 0);
+  }
+  static createAttributesVector(builder, data) {
+    builder.startVector(4, data.length, 4);
+    for (let i = data.length - 1; i >= 0; i--) {
+      builder.addOffset(data[i]);
+    }
+    return builder.endVector();
+  }
+  static startAttributesVector(builder, numElems) {
+    builder.startVector(4, numElems, 4);
+  }
   static endEnumVal(builder) {
     const offset = builder.endObject();
     builder.requiredField(offset, 4);
     return offset;
   }
   unpack() {
-    return new EnumValT(this.name(), this.value(), this.unionType() !== null ? this.unionType().unpack() : null, this.bb.createScalarList(this.documentation.bind(this), this.documentationLength()));
+    return new EnumValT(this.name(), this.value(), this.unionType() !== null ? this.unionType().unpack() : null, this.bb.createScalarList(this.documentation.bind(this), this.documentationLength()), this.bb.createObjList(this.attributes.bind(this), this.attributesLength()));
   }
   unpackTo(_o) {
     _o.name = this.name();
     _o.value = this.value();
     _o.unionType = this.unionType() !== null ? this.unionType().unpack() : null;
     _o.documentation = this.bb.createScalarList(this.documentation.bind(this), this.documentationLength());
+    _o.attributes = this.bb.createObjList(this.attributes.bind(this), this.attributesLength());
   }
 };
 var EnumValT = class {
-  constructor(name = null, value = BigInt("0"), unionType = null, documentation = []) {
+  constructor(name = null, value = BigInt("0"), unionType = null, documentation = [], attributes = []) {
     this.name = name;
     this.value = value;
     this.unionType = unionType;
     this.documentation = documentation;
+    this.attributes = attributes;
   }
   pack(builder) {
     const name = this.name !== null ? builder.createString(this.name) : 0;
     const unionType = this.unionType !== null ? this.unionType.pack(builder) : 0;
     const documentation = EnumVal.createDocumentationVector(builder, builder.createObjectOffsetList(this.documentation));
+    const attributes = EnumVal.createAttributesVector(builder, builder.createObjectOffsetList(this.attributes));
     EnumVal.startEnumVal(builder);
     EnumVal.addName(builder, name);
     EnumVal.addValue(builder, this.value);
     EnumVal.addUnionType(builder, unionType);
     EnumVal.addDocumentation(builder, documentation);
+    EnumVal.addAttributes(builder, attributes);
     return EnumVal.endEnumVal(builder);
-  }
-};
-
-// reflection/key-value.js
-var flatbuffers3 = __toESM(require("flatbuffers"), 1);
-var KeyValue = class {
-  constructor() {
-    this.bb = null;
-    this.bb_pos = 0;
-  }
-  __init(i, bb) {
-    this.bb_pos = i;
-    this.bb = bb;
-    return this;
-  }
-  static getRootAsKeyValue(bb, obj) {
-    return (obj || new KeyValue()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
-  }
-  static getSizePrefixedRootAsKeyValue(bb, obj) {
-    bb.setPosition(bb.position() + flatbuffers3.SIZE_PREFIX_LENGTH);
-    return (obj || new KeyValue()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
-  }
-  key(optionalEncoding) {
-    const offset = this.bb.__offset(this.bb_pos, 4);
-    return offset ? this.bb.__string(this.bb_pos + offset, optionalEncoding) : null;
-  }
-  value(optionalEncoding) {
-    const offset = this.bb.__offset(this.bb_pos, 6);
-    return offset ? this.bb.__string(this.bb_pos + offset, optionalEncoding) : null;
-  }
-  static getFullyQualifiedName() {
-    return "reflection_KeyValue";
-  }
-  static startKeyValue(builder) {
-    builder.startObject(2);
-  }
-  static addKey(builder, keyOffset) {
-    builder.addFieldOffset(0, keyOffset, 0);
-  }
-  static addValue(builder, valueOffset) {
-    builder.addFieldOffset(1, valueOffset, 0);
-  }
-  static endKeyValue(builder) {
-    const offset = builder.endObject();
-    builder.requiredField(offset, 4);
-    return offset;
-  }
-  static createKeyValue(builder, keyOffset, valueOffset) {
-    KeyValue.startKeyValue(builder);
-    KeyValue.addKey(builder, keyOffset);
-    KeyValue.addValue(builder, valueOffset);
-    return KeyValue.endKeyValue(builder);
-  }
-  unpack() {
-    return new KeyValueT(this.key(), this.value());
-  }
-  unpackTo(_o) {
-    _o.key = this.key();
-    _o.value = this.value();
-  }
-};
-var KeyValueT = class {
-  constructor(key = null, value = null) {
-    this.key = key;
-    this.value = value;
-  }
-  pack(builder) {
-    const key = this.key !== null ? builder.createString(this.key) : 0;
-    const value = this.value !== null ? builder.createString(this.value) : 0;
-    return KeyValue.createKeyValue(builder, key, value);
   }
 };
 

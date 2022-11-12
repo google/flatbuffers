@@ -174,13 +174,13 @@ class TsGenerator : public BaseGenerator {
     std::string symbolic_name;
     if (definition.defined_namespace->components.size() > 0) {
       path = namer_.Directories(*definition.defined_namespace,
-                                SkipDir::OutputPathAndTrailingPathSeparator);
+                                SkipDir::TrailingPathSeperator);
       filepath = path + ".ts";
       symbolic_name = definition.defined_namespace->components.back();
     } else {
       auto def_mod_name = namer_.File(definition, SkipFile::SuffixAndExtension);
       symbolic_name = file_name_;
-      filepath = symbolic_name + ".ts";
+      filepath = path_ + symbolic_name + ".ts";
     }
     if (ns_defs_.count(path) == 0) {
       NsDefinition nsDef;
@@ -255,11 +255,12 @@ class TsGenerator : public BaseGenerator {
         auto base_file_name =
             namer_.File(*(def.second), SkipFile::SuffixAndExtension);
         auto base_name =
-            namer_.Directories(it.second.ns->components, SkipDir::None) +
+            namer_.Directories(it.second.ns->components, SkipDir::OutputPath) +
             base_file_name;
         auto ts_file_path = base_name + ".ts";
         auto base_name_rel = std::string("./");
-        base_name_rel += namer_.Directories(rel_components, SkipDir::None);
+        base_name_rel +=
+            namer_.Directories(rel_components, SkipDir::OutputPath);
         base_name_rel += base_file_name;
         auto ts_file_path_rel = base_name_rel + ".ts";
         auto type_name = def.first;
@@ -287,13 +288,12 @@ class TsGenerator : public BaseGenerator {
       std::string inputpath;
       std::string symbolic_name = file_name_;
       if (parser_.current_namespace_->components.size() > 0) {
-        std::string path =
-            namer_.Directories(*parser_.current_namespace_,
-                               SkipDir::OutputPathAndTrailingPathSeparator);
+        std::string path = namer_.Directories(*parser_.current_namespace_,
+                                              SkipDir::TrailingPathSeperator);
         inputpath = path + ".ts";
         symbolic_name = parser_.current_namespace_->components.back();
       } else {
-        inputpath = file_name_ + ".ts";
+        inputpath = path_ + file_name_ + ".ts";
       }
       std::string bundlepath =
           GeneratedFileName(path_, file_name_, parser_.opts);

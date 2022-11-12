@@ -1262,11 +1262,23 @@ var Monster2 = class {
     this.bb.writeFloat32(this.bb_pos + offset, value);
     return true;
   }
+  doubleInfDefault() {
+    const offset = this.bb.__offset(this.bb_pos, 126);
+    return offset ? this.bb.readFloat64(this.bb_pos + offset) : Infinity;
+  }
+  mutate_double_inf_default(value) {
+    const offset = this.bb.__offset(this.bb_pos, 126);
+    if (offset === 0) {
+      return false;
+    }
+    this.bb.writeFloat64(this.bb_pos + offset, value);
+    return true;
+  }
   static getFullyQualifiedName() {
     return "MyGame_Example_Monster";
   }
   static startMonster(builder) {
-    builder.startObject(61);
+    builder.startObject(62);
   }
   static addPos(builder, posOffset) {
     builder.addFieldStruct(0, posOffset, 0);
@@ -1627,6 +1639,9 @@ var Monster2 = class {
   static addNegativeInfinityDefault(builder, negativeInfinityDefault) {
     builder.addFieldFloat32(60, negativeInfinityDefault, -Infinity);
   }
+  static addDoubleInfDefault(builder, doubleInfDefault) {
+    builder.addFieldFloat64(61, doubleInfDefault, Infinity);
+  }
   static endMonster(builder) {
     const offset = builder.endObject();
     builder.requiredField(offset, 10);
@@ -1663,7 +1678,7 @@ var Monster2 = class {
         return null;
       }
       return temp.unpack();
-    })(), this.bb.createScalarList(this.vectorOfEnums.bind(this), this.vectorOfEnumsLength()), this.signedEnum(), this.bb.createScalarList(this.testrequirednestedflatbuffer.bind(this), this.testrequirednestedflatbufferLength()), this.bb.createObjList(this.scalarKeySortedTables.bind(this), this.scalarKeySortedTablesLength()), this.nativeInline() !== null ? this.nativeInline().unpack() : null, this.longEnumNonEnumDefault(), this.longEnumNormalDefault(), this.nanDefault(), this.infDefault(), this.positiveInfDefault(), this.infinityDefault(), this.positiveInfinityDefault(), this.negativeInfDefault(), this.negativeInfinityDefault());
+    })(), this.bb.createScalarList(this.vectorOfEnums.bind(this), this.vectorOfEnumsLength()), this.signedEnum(), this.bb.createScalarList(this.testrequirednestedflatbuffer.bind(this), this.testrequirednestedflatbufferLength()), this.bb.createObjList(this.scalarKeySortedTables.bind(this), this.scalarKeySortedTablesLength()), this.nativeInline() !== null ? this.nativeInline().unpack() : null, this.longEnumNonEnumDefault(), this.longEnumNormalDefault(), this.nanDefault(), this.infDefault(), this.positiveInfDefault(), this.infinityDefault(), this.positiveInfinityDefault(), this.negativeInfDefault(), this.negativeInfinityDefault(), this.doubleInfDefault());
   }
   unpackTo(_o) {
     _o.pos = this.pos() !== null ? this.pos().unpack() : null;
@@ -1744,10 +1759,11 @@ var Monster2 = class {
     _o.positiveInfinityDefault = this.positiveInfinityDefault();
     _o.negativeInfDefault = this.negativeInfDefault();
     _o.negativeInfinityDefault = this.negativeInfinityDefault();
+    _o.doubleInfDefault = this.doubleInfDefault();
   }
 };
 var MonsterT2 = class {
-  constructor(pos = null, mana = 150, hp = 100, name = null, inventory = [], color = Color.Blue, testType = Any.NONE, test = null, test4 = [], testarrayofstring = [], testarrayoftables = [], enemy = null, testnestedflatbuffer = [], testempty = null, testbool = false, testhashs32Fnv1 = 0, testhashu32Fnv1 = 0, testhashs64Fnv1 = BigInt("0"), testhashu64Fnv1 = BigInt("0"), testhashs32Fnv1a = 0, testhashu32Fnv1a = 0, testhashs64Fnv1a = BigInt("0"), testhashu64Fnv1a = BigInt("0"), testarrayofbools = [], testf = 3.14159, testf2 = 3, testf3 = 0, testarrayofstring2 = [], testarrayofsortedstruct = [], flex = [], test5 = [], vectorOfLongs = [], vectorOfDoubles = [], parentNamespaceTest = null, vectorOfReferrables = [], singleWeakReference = BigInt("0"), vectorOfWeakReferences = [], vectorOfStrongReferrables = [], coOwningReference = BigInt("0"), vectorOfCoOwningReferences = [], nonOwningReference = BigInt("0"), vectorOfNonOwningReferences = [], anyUniqueType = AnyUniqueAliases.NONE, anyUnique = null, anyAmbiguousType = AnyAmbiguousAliases.NONE, anyAmbiguous = null, vectorOfEnums = [], signedEnum = Race.None, testrequirednestedflatbuffer = [], scalarKeySortedTables = [], nativeInline = null, longEnumNonEnumDefault = BigInt("0"), longEnumNormalDefault = BigInt("2"), nanDefault = NaN, infDefault = Infinity, positiveInfDefault = Infinity, infinityDefault = Infinity, positiveInfinityDefault = Infinity, negativeInfDefault = -Infinity, negativeInfinityDefault = -Infinity) {
+  constructor(pos = null, mana = 150, hp = 100, name = null, inventory = [], color = Color.Blue, testType = Any.NONE, test = null, test4 = [], testarrayofstring = [], testarrayoftables = [], enemy = null, testnestedflatbuffer = [], testempty = null, testbool = false, testhashs32Fnv1 = 0, testhashu32Fnv1 = 0, testhashs64Fnv1 = BigInt("0"), testhashu64Fnv1 = BigInt("0"), testhashs32Fnv1a = 0, testhashu32Fnv1a = 0, testhashs64Fnv1a = BigInt("0"), testhashu64Fnv1a = BigInt("0"), testarrayofbools = [], testf = 3.14159, testf2 = 3, testf3 = 0, testarrayofstring2 = [], testarrayofsortedstruct = [], flex = [], test5 = [], vectorOfLongs = [], vectorOfDoubles = [], parentNamespaceTest = null, vectorOfReferrables = [], singleWeakReference = BigInt("0"), vectorOfWeakReferences = [], vectorOfStrongReferrables = [], coOwningReference = BigInt("0"), vectorOfCoOwningReferences = [], nonOwningReference = BigInt("0"), vectorOfNonOwningReferences = [], anyUniqueType = AnyUniqueAliases.NONE, anyUnique = null, anyAmbiguousType = AnyAmbiguousAliases.NONE, anyAmbiguous = null, vectorOfEnums = [], signedEnum = Race.None, testrequirednestedflatbuffer = [], scalarKeySortedTables = [], nativeInline = null, longEnumNonEnumDefault = BigInt("0"), longEnumNormalDefault = BigInt("2"), nanDefault = NaN, infDefault = Infinity, positiveInfDefault = Infinity, infinityDefault = Infinity, positiveInfinityDefault = Infinity, negativeInfDefault = -Infinity, negativeInfinityDefault = -Infinity, doubleInfDefault = Infinity) {
     this.pos = pos;
     this.mana = mana;
     this.hp = hp;
@@ -1808,6 +1824,7 @@ var MonsterT2 = class {
     this.positiveInfinityDefault = positiveInfinityDefault;
     this.negativeInfDefault = negativeInfDefault;
     this.negativeInfinityDefault = negativeInfinityDefault;
+    this.doubleInfDefault = doubleInfDefault;
   }
   pack(builder) {
     const name = this.name !== null ? builder.createString(this.name) : 0;
@@ -1898,6 +1915,7 @@ var MonsterT2 = class {
     Monster2.addPositiveInfinityDefault(builder, this.positiveInfinityDefault);
     Monster2.addNegativeInfDefault(builder, this.negativeInfDefault);
     Monster2.addNegativeInfinityDefault(builder, this.negativeInfinityDefault);
+    Monster2.addDoubleInfDefault(builder, this.doubleInfDefault);
     return Monster2.endMonster(builder);
   }
 };
