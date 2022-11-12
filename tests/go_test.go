@@ -17,6 +17,7 @@
 package main
 
 import (
+	order "order"
 	mygame "MyGame"          // refers to generated code
 	example "MyGame/Example" // refers to generated code
 	"encoding/json"
@@ -98,6 +99,54 @@ func TestTextParsing(t *testing.T) {
 	}
 }
 
+func CheckPizza(fail func(string, ...interface{})) {
+	var empty, nonempty []byte
+
+	// create food with an empty pizza
+	{
+		builder := flatbuffers.NewBuilder(0)
+
+		order.FoodStart(builder)
+		m := order.FoodEnd(builder)
+		builder.Finish(m)
+
+		empty = make([]byte, len(builder.FinishedBytes()))
+		copy(empty, builder.FinishedBytes())
+	}
+
+	// create food with a non-empty pizza field
+	{
+		builder := flatbuffers.NewBuilder(0)
+		mygame.InParentNamespaceStart(builder)
+		pn := mygame.InParentNamespaceEnd(builder)
+
+		order.FoodStart(builder)
+		order.FoodAddPizzaTest(builder, pn)
+		m := order.FoodEnd(builder)
+
+		builder.Finish(m)
+
+		nonempty = make([]byte, len(builder.FinishedBytes()))
+		copy(nonempty, builder.FinishedBytes())
+	}
+
+	// read food with empty pizza field
+	{
+		m := order.GetRootAsFood(empty, 0)
+		if m.PizzaTest(nil) != nil {
+			fail("expected nil ParentNamespaceTest for empty field")
+		}
+	}
+
+	// read food with non-empty pizza field
+	{
+		m := order.GetRootAsFood(nonempty, 0)
+		if m.PizzaTest(nil) == nil {
+			fail("expected non-nil ParentNamespaceTest for non-empty field")
+		}
+	}
+}
+
 // TestAll runs all checks, failing if any errors occur.
 func TestAll(t *testing.T) {
 	// Verify that the Go FlatBuffers runtime library generates the
@@ -159,6 +208,9 @@ func TestAll(t *testing.T) {
 
 	// Check a parent namespace import
 	CheckParentNamespace(t.Fatalf)
+
+	// Check a pizza import
+	CheckPizza(t.Fatalf)
 
 	// Check size-prefixed flatbuffers
 	CheckSizePrefixedBuffer(t.Fatalf)

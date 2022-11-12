@@ -1363,8 +1363,8 @@ class GoGenerator : public BaseGenerator {
         for (auto it = tracked_imported_namespaces_.begin();
              it != tracked_imported_namespaces_.end(); ++it) {
           if ((*it)->defined_namespace->components.empty()) {
-            code += "\t" + (*it)->name + "\"" +
-                    namer_.File(*(*it), SkipFile::Suffix) + "\"\n";
+            code += "\t" + (*it)->name + " \"" +
+                    (*it)->name + "\"\n";
           } else {
             code += "\t" + NamespaceImportName((*it)->defined_namespace) +
                     " \"" + NamespaceImportPath((*it)->defined_namespace) +
@@ -1390,7 +1390,7 @@ class GoGenerator : public BaseGenerator {
     Namespace &ns = go_namespace_.components.empty() ? *def.defined_namespace
                                                      : go_namespace_;
     std::string code = "";
-    BeginFile(ns.components.empty() ? namer_.File(def, SkipFile::Suffix)
+    BeginFile(ns.components.empty() ? def.name
                                     : LastNamespacePart(ns),
               needs_imports, is_enum, &code);
     code += classcode;
