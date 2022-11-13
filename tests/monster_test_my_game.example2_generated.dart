@@ -9,6 +9,8 @@ import 'package:flat_buffers/flat_buffers.dart' as fb;
 import './monster_test_my_game_generated.dart' as my_game;
 import './monster_test_my_game.example_generated.dart' as my_game_example;
 
+import './include_test1_generated.dart';
+
 class Monster {
   Monster._(this._bc, this._bcOffset);
   factory Monster(List<int> bytes) {

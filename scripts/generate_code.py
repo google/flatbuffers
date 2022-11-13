@@ -181,6 +181,20 @@ flatc(
 
 flatc(
     NO_INCL_OPTS
+    + DART_OPTS,
+    schema="include_test/include_test1.fbs",
+    include="include_test/sub",
+)
+
+flatc(
+    NO_INCL_OPTS
+    + DART_OPTS,
+    schema="include_test/sub/include_test2.fbs",
+    include="include_test",
+)
+
+flatc(
+    NO_INCL_OPTS
     + TS_OPTS,
     schema="monster_test.fbs",
     prefix="ts",

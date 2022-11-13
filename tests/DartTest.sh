@@ -20,6 +20,9 @@ command -v dart >/dev/null 2>&1 || { echo >&2 "Dart tests require dart to be in 
 # output required files to the dart folder so that pub will be able to
 # distribute them and more people can more easily run the dart tests
 ../flatc --dart --gen-object-api -I include_test -o ../dart/test monster_test.fbs
+../flatc --dart --gen-object-api -I include_test/sub -o ../dart/test include_test/include_test1.fbs
+../flatc --dart --gen-object-api -I include_test -o ../dart/test include_test/sub/include_test2.fbs
+
 cp monsterdata_test.mon ../dart/test
 cp monster_test.fbs ../dart/test
 
