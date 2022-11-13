@@ -16,6 +16,8 @@
 
 #include "flatbuffers/flatc.h"
 
+#include <algorithm>
+#include <limits>
 #include <list>
 #include <sstream>
 
@@ -88,7 +90,7 @@ const static FlatCOption options[] = {
     "--no-prefix." },
   { "", "swift-implementation-only", "",
     "Adds a @_implementationOnly to swift imports" },
-  { "", "gen-inclues", "",
+  { "", "gen-includes", "",
     "(deprecated), this is the default behavior. If the original behavior is "
     "required (no include statements) use --no-includes." },
   { "", "no-includes", "",
@@ -215,14 +217,14 @@ const static FlatCOption options[] = {
     "Allows (de)serialization of JSON text in the Object API. (requires "
     "--gen-object-api)." },
   { "", "json-nested-bytes", "",
-    "Allow a nested_flatbuffer field to be parsed as a vector of bytes"
+    "Allow a nested_flatbuffer field to be parsed as a vector of bytes "
     "in JSON, which is unsafe unless checked by a verifier afterwards." },
   { "", "ts-flat-files", "",
     "Only generated one typescript file per .fbs file." },
   { "", "annotate", "SCHEMA",
     "Annotate the provided BINARY_FILE with the specified SCHEMA file." },
   { "", "no-leak-private-annotation", "",
-    "Prevents multiple type of annotations within a Fbs SCHEMA file."
+    "Prevents multiple type of annotations within a Fbs SCHEMA file. "
     "Currently this is required to generate private types in Rust" },
 };
 
@@ -452,6 +454,8 @@ int FlatCompiler::Compile(int argc, const char **argv) {
         opts.skip_unexpected_fields_in_json = true;
       } else if (arg == "--no-prefix") {
         opts.prefixed_enums = false;
+      } else if (arg == "--cpp-minify-enums") {
+        opts.cpp_minify_enums = true;
       } else if (arg == "--scoped-enums") {
         opts.prefixed_enums = false;
         opts.scoped_enums = true;

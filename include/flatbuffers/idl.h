@@ -17,6 +17,7 @@
 #ifndef FLATBUFFERS_IDL_H_
 #define FLATBUFFERS_IDL_H_
 
+#include <algorithm>
 #include <functional>
 #include <map>
 #include <memory>
@@ -488,11 +489,11 @@ inline bool IsVector(const Type &type) {
   return type.base_type == BASE_TYPE_VECTOR;
 }
 
-inline bool IsVectorOfStruct(const Type& type) {
+inline bool IsVectorOfStruct(const Type &type) {
   return IsVector(type) && IsStruct(type.VectorType());
 }
 
-inline bool IsVectorOfTable(const Type& type) {
+inline bool IsVectorOfTable(const Type &type) {
   return IsVector(type) && IsTable(type.VectorType());
 }
 
@@ -586,6 +587,7 @@ struct IDLOptions {
   bool strict_json;
   bool output_default_scalars_in_json;
   int indent_step;
+  bool cpp_minify_enums;
   bool output_enum_identifiers;
   bool prefixed_enums;
   bool scoped_enums;
@@ -642,6 +644,7 @@ struct IDLOptions {
   bool json_nested_legacy_flatbuffers;
   bool ts_flat_file;
   bool no_leak_private_annotations;
+  bool require_json_eof;
 
   // Possible options for the more general generator below.
   enum Language {
@@ -696,6 +699,7 @@ struct IDLOptions {
         strict_json(false),
         output_default_scalars_in_json(false),
         indent_step(2),
+        cpp_minify_enums(false),
         output_enum_identifiers(true),
         prefixed_enums(true),
         scoped_enums(false),
@@ -743,6 +747,7 @@ struct IDLOptions {
         json_nested_legacy_flatbuffers(false),
         ts_flat_file(false),
         no_leak_private_annotations(false),
+        require_json_eof(true),
         mini_reflect(IDLOptions::kNone),
         require_explicit_ids(false),
         rust_serialize(false),
@@ -905,6 +910,9 @@ class Parser : public ParserState {
 
   bool ParseJson(const char *json, const char *json_filename = nullptr);
 
+  // Returns the number of characters were consumed when parsing a JSON string.
+  std::ptrdiff_t BytesConsumed() const;
+   
   // Set the root type. May override the one set in the schema.
   bool SetRootType(const char *name);
 
@@ -1025,6 +1033,7 @@ class Parser : public ParserState {
   FLATBUFFERS_CHECKED_ERROR ParseService(const char *filename);
   FLATBUFFERS_CHECKED_ERROR ParseProtoFields(StructDef *struct_def,
                                              bool isextend, bool inside_oneof);
+  FLATBUFFERS_CHECKED_ERROR ParseProtoMapField(StructDef *struct_def);
   FLATBUFFERS_CHECKED_ERROR ParseProtoOption();
   FLATBUFFERS_CHECKED_ERROR ParseProtoKey();
   FLATBUFFERS_CHECKED_ERROR ParseProtoDecl();
