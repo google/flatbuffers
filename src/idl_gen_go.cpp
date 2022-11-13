@@ -906,7 +906,10 @@ class GoGenerator : public BaseGenerator {
       const EnumVal &ev = **it2;
       if (ev.IsZero()) continue;
       code += "\tcase " + namer_.EnumVariant(enum_def, ev) + ":\n";
-      code += "\t\tx := " + ev.union_type.struct_def->name + "{_tab: table}\n";
+      code += "\t\tvar x " +
+              WrapInNameSpaceAndTrack(*ev.union_type.struct_def) +
+              "\n";
+      code += "\t\tx.Init(table.Bytes, table.Pos)\n";
 
       code += "\t\treturn &" +
               WrapInNameSpaceAndTrack(enum_def.defined_namespace,
