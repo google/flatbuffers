@@ -141,6 +141,15 @@ table Monster {
   // enum value.
   long_enum_non_enum_default:LongEnum (id: 52);
   long_enum_normal_default:LongEnum = LongOne (id: 53);
+  // Test that default values nan and +/-inf work.
+  nan_default:float = nan (id: 54);
+  inf_default:float = inf (id: 55);
+  positive_inf_default:float = +inf (id: 56);
+  infinity_default:float = infinity (id: 57);
+  positive_infinity_default:float = +infinity (id: 58);
+  negative_inf_default:float = -inf (id: 59);
+  negative_infinity_default:float = -infinity (id: 60);
+  double_inf_default:double = inf (id: 61);
 }
 
 table TypeAliases {
