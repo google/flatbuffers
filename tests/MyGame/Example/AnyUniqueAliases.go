@@ -63,13 +63,16 @@ func (t *AnyUniqueAliasesT) Pack(builder *flatbuffers.Builder) flatbuffers.UOffs
 func (rcv AnyUniqueAliases) UnPack(table flatbuffers.Table) *AnyUniqueAliasesT {
 	switch rcv {
 	case AnyUniqueAliasesM:
-		x := Monster{_tab: table}
+		var x Monster
+		x.Init(table.Bytes, table.Pos)
 		return &AnyUniqueAliasesT{ Type: AnyUniqueAliasesM, Value: x.UnPack() }
 	case AnyUniqueAliasesTS:
-		x := TestSimpleTableWithEnum{_tab: table}
+		var x TestSimpleTableWithEnum
+		x.Init(table.Bytes, table.Pos)
 		return &AnyUniqueAliasesT{ Type: AnyUniqueAliasesTS, Value: x.UnPack() }
 	case AnyUniqueAliasesM2:
-		x := Monster{_tab: table}
+		var x MyGame__Example2.Monster
+		x.Init(table.Bytes, table.Pos)
 		return &AnyUniqueAliasesT{ Type: AnyUniqueAliasesM2, Value: x.UnPack() }
 	}
 	return nil
