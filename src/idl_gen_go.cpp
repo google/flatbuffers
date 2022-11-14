@@ -906,7 +906,7 @@ class GoGenerator : public BaseGenerator {
       if (ev.IsZero()) continue;
       code += "\tcase " + namer_.EnumVariant(enum_def, ev) + ":\n";
       code += "\t\tvar x " +
-              WrapInNameSpaceAndTrack(*ev.union_type.struct_def) +
+              WrapInNameSpaceAndTrack(ev.union_type.struct_def, ev.union_type.struct_def->name) +
               "\n";
       code += "\t\tx.Init(table.Bytes, table.Pos)\n";
 

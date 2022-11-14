@@ -181,7 +181,7 @@ flatc(
 
 flatc(
     NO_INCL_OPTS
-    + DART_OPTS,
+    + DART_OPTS
     + ["--go"],
     schema="include_test/include_test1.fbs",
     include="include_test/sub",
@@ -189,7 +189,7 @@ flatc(
 
 flatc(
     NO_INCL_OPTS
-    + DART_OPTS,
+    + DART_OPTS
     + ["--go"],
     schema="include_test/sub/include_test2.fbs",
     include="include_test",

@@ -10,18 +10,22 @@ import (
 
 type FoodT struct {
 	Pizza *Pizza.PizzaT `json:"pizza"`
+	PizzaTest *Pizza.PizzaT `json:"pizza_test"`
 }
 
 func (t *FoodT) Pack(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
 	if t == nil { return 0 }
 	pizzaOffset := t.Pizza.Pack(builder)
+	pizzaTestOffset := t.PizzaTest.Pack(builder)
 	FoodStart(builder)
 	FoodAddPizza(builder, pizzaOffset)
+	FoodAddPizzaTest(builder, pizzaTestOffset)
 	return FoodEnd(builder)
 }
 
 func (rcv *Food) UnPackTo(t *FoodT) {
 	t.Pizza = rcv.Pizza(nil).UnPack()
+	t.PizzaTest = rcv.PizzaTest(nil).UnPack()
 }
 
 func (rcv *Food) UnPack() *FoodT {
@@ -71,11 +75,27 @@ func (rcv *Food) Pizza(obj *Pizza.Pizza) *Pizza.Pizza {
 	return nil
 }
 
+func (rcv *Food) PizzaTest(obj *Pizza.Pizza) *Pizza.Pizza {
+	o := flatbuffers.UOffsetT(rcv._tab.Offset(6))
+	if o != 0 {
+		x := rcv._tab.Indirect(o + rcv._tab.Pos)
+		if obj == nil {
+			obj = new(Pizza.Pizza)
+		}
+		obj.Init(rcv._tab.Bytes, x)
+		return obj
+	}
+	return nil
+}
+
 func FoodStart(builder *flatbuffers.Builder) {
-	builder.StartObject(1)
+	builder.StartObject(2)
 }
 func FoodAddPizza(builder *flatbuffers.Builder, pizza flatbuffers.UOffsetT) {
 	builder.PrependUOffsetTSlot(0, flatbuffers.UOffsetT(pizza), 0)
+}
+func FoodAddPizzaTest(builder *flatbuffers.Builder, pizzaTest flatbuffers.UOffsetT) {
+	builder.PrependUOffsetTSlot(1, flatbuffers.UOffsetT(pizzaTest), 0)
 }
 func FoodEnd(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
 	return builder.EndObject()
