@@ -47,7 +47,7 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(1) Baz FLATBUFFERS_FINAL_CLASS {
   bool KeyCompareLessThan(const Baz * const o) const {
     return KeyCompareWithValue(o->a()) < 0;
   }
-  int KeyCompareWithValue(const flatbuffers::Array<uint8_t , 4> *_a) const { 
+  int KeyCompareWithValue(const flatbuffers::Array<uint8_t, 4> *_a) const { 
     for (auto i = 0; i < a()->size(); i++) {
       const auto a_l = a_[i];
       const auto a_r = _a->Get(i);
@@ -99,7 +99,7 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) Bar FLATBUFFERS_FINAL_CLASS {
   bool KeyCompareLessThan(const Bar * const o) const {
     return KeyCompareWithValue(o->a()) < 0;
   }
-  int KeyCompareWithValue(const flatbuffers::Array<float , 3> *_a) const { 
+  int KeyCompareWithValue(const flatbuffers::Array<float, 3> *_a) const { 
     for (auto i = 0; i < a()->size(); i++) {
       const auto a_l = a_[i];
       const auto a_r = _a->Get(i);

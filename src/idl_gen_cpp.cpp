@@ -2302,11 +2302,12 @@ class CppGenerator : public BaseGenerator {
     } else if (is_array) {
       const auto &elem_type = field.value.type.VectorType();
       if (IsScalar(elem_type.base_type)) {
-        code_.SetValue("FACE_TYPE", GenTypeGet(elem_type, " ", "", "", false));
-        code_.SetValue("SIZE", NumToString(elem_type.fixed_length));
+        std::string input_type = "flatbuffers::Array<" +
+                                 GenTypeBasic(elem_type, false) + ", " +
+                                 NumToString(elem_type.fixed_length) + ">";
+        code_.SetValue("INPUT_TYPE", input_type);
         code_ +=
-            "  int KeyCompareWithValue(const flatbuffers::Array<{{FACE_TYPE}}, "
-            "{{SIZE}}> *_{{FIELD_NAME}}"
+            "  int KeyCompareWithValue(const {{INPUT_TYPE}} *_{{FIELD_NAME}}"
             ") const { ";
         code_ += "    for (auto i = 0; i < {{FIELD_NAME}}()->size(); i++) {";
         code_ += "      const auto {{FIELD_NAME}}_l = {{FIELD_NAME}}_[i];";
