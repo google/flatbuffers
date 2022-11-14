@@ -3,17 +3,13 @@ Rules for building typescript flatbuffers with Bazel.
 """
 
 load("@build_bazel_rules_nodejs//:index.bzl", "js_library")
-load("@build_bazel_rules_nodejs//toolchains/esbuild:esbuild_repositories.bzl", "esbuild_repositories")
 load("@npm//@bazel/typescript:index.bzl", "ts_project")
 load(":build_defs.bzl", "DEFAULT_INCLUDE_PATHS", "flatbuffer_library_public")
 
-esbuild_repositories(npm_repository = "npm")
-
-npm_install(
+yarn_install(
     name = "npm",
-    # @bazel/esbuild is a dependency in this package.json
     package_json = "//:package.json",
-    package_lock_json = "//:package-lock.json",
+    yarn_lock = "//:yarn.lock",
 )
 
 DEFAULT_FLATC_TS_ARGS = [
