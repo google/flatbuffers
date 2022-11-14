@@ -392,4 +392,40 @@ class FlatBuffersMonsterWriterTests: XCTestCase {
     {\"hp\":80,\"inventory\":[0,1,2,3,4],\"test\":{\"name\":\"Fred\"},\"testarrayofstring\":[\"test1\",\"test2\"],\"testarrayoftables\":[{\"name\":\"Barney\"},{\"name\":\"Frodo\"},{\"name\":\"Wilma\"}],\"test4\":[{\"a\":30,\"b\":40},{\"a\":10,\"b\":20}],\"testbool\":true,\"test_type\":\"Monster\",\"pos\":{\"y\":2,\"test3\":{\"a\":5,\"b\":6},\"z\":3,\"x\":1,\"test1\":3,\"test2\":\"Green\"},\"name\":\"MyMonster\"}
     """
   }
+
+    func testUnalignedRead() {
+            // Aligned read
+            let fbb = createMonster(withPrefix: false)
+            let testAligned: () -> Bool = {
+                let bytes = fbb.sizedByteArray
+
+                var monster = Monster.getRootAsMonster(bb: ByteBuffer(bytes: bytes))
+
+                self.readFlatbufferMonster(monster: &monster)
+
+                return true
+            }
+            XCTAssertEqual(testAligned(), true)
+#if swift(>=5.7)
+            // Unaligned read
+            let testUnaligned: () -> Bool = {
+                var bytes: [UInt8] = [0x00]
+                bytes.append(contentsOf: fbb.sizedByteArray)
+                return bytes.withUnsafeMutableBytes { ptr in
+                    guard var baseAddress = ptr.baseAddress else {
+                        XCTFail("Base pointer is not defined")
+                        return false
+                    }
+                    baseAddress = baseAddress.advanced(by: 1)
+                    let unlignedPtr = UnsafeMutableRawPointer(baseAddress)
+                    var monster = Monster.getRootAsMonster(bb:
+                        ByteBuffer(assumingMemoryBound: unlignedPtr, capacity: ptr.count - 1))
+
+                    self.readFlatbufferMonster(monster: &monster)
+                    return true
+                }
+            }
+            XCTAssertEqual(testUnaligned(), true)
+#endif
+        }
 }

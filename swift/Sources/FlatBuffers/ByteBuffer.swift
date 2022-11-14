@@ -352,7 +352,11 @@ public struct ByteBuffer {
   ///   - position: the index of the object in the buffer
   @inline(__always)
   public func read<T>(def: T.Type, position: Int) -> T {
+#if swift(<5.7)
     _storage.memory.advanced(by: position).load(as: T.self)
+#else
+    _storage.memory.advanced(by: position).loadUnaligned(as: T.self)
+#endif
   }
 
   /// Reads a slice from the memory assuming a type of T

@@ -287,7 +287,11 @@ public struct FlatBufferBuilder {
     var isAlreadyAdded: Int?
 
     let vt2 = _bb.memory.advanced(by: _bb.writerIndex)
+#if swift(<5.7)
     let len2 = vt2.load(fromByteOffset: 0, as: Int16.self)
+#else
+    let len2 = vt2.loadUnaligned(fromByteOffset: 0, as: Int16.self)
+#endif
 
     for table in _vtables {
       let position = _bb.capacity &- Int(table)
@@ -907,7 +911,11 @@ extension FlatBufferBuilder: CustomDebugStringConvertible {
     /// - Returns: a FieldLoc at index
     @inline(__always)
     func load(at index: Int) -> FieldLoc {
+#if swift(<5.7)
       memory.load(fromByteOffset: index, as: FieldLoc.self)
+#else
+      memory.loadUnaligned(fromByteOffset: index, as: FieldLoc.self)
+#endif
     }
 
   }
