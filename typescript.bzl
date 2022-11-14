@@ -67,7 +67,7 @@ def flatbuffer_ts_library(
         name = srcs_lib,
         srcs = srcs,
         outs = pre_outs,
-        language_flag = "--ts",
+        language_flag = "--ts --ts-flat-files",
         includes = includes,
         include_paths = include_paths,
         flatc_args = flatc_args + ["--filename-suffix _pregenerated"],
