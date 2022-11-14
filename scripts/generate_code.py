@@ -65,6 +65,7 @@ assert flatc_path.exists(), "Cannot find the flatc compiler " + str(flatc_path)
 # Specify the other paths that will be referenced
 tests_path = Path(root_path, "tests")
 swift_code_gen = Path(root_path, "tests/swift/tests/CodeGenerationTests")
+ts_code_gen = Path(root_path, "tests/ts")
 samples_path = Path(root_path, "samples")
 reflection_path = Path(root_path, "reflection")
 
@@ -182,10 +183,10 @@ flatc(
 flatc(
     NO_INCL_OPTS
     + TS_OPTS,
-    cwd="ts",
+    cwd=ts_code_gen,
     schema="../monster_test.fbs",
     include="../include_test",
-    data="monsterdata_test.json",
+    data="../monsterdata_test.json",
 )
 
 flatc(
@@ -250,31 +251,31 @@ flatc(
 
 flatc(
     BASE_OPTS + TS_OPTS,
-    cwd="ts",
+    cwd=ts_code_gen,
     prefix="union_vector",
-    schema="union_vector/union_vector.fbs",
+    schema="../union_vector/union_vector.fbs",
 )
 
 flatc(
     BASE_OPTS + TS_OPTS + ["--gen-name-strings", "--gen-mutable"],
-    cwd="ts",
+    cwd=ts_code_gen,
     include="../include_test",
     schema="../monster_test.fbs",
 )
 
 flatc(
     BASE_OPTS + TS_OPTS + ["-b"],
-    cwd="ts",
+    cwd=ts_code_gen,
     include="../include_test",
-    schema="monster_test.fbs",
-    data="unicode_test.json",
+    schema="../monster_test.fbs",
+    data="../unicode_test.json",
 )
 
 flatc(
     BASE_OPTS + TS_OPTS + ["--gen-name-strings"],
-    cwd="ts",
+    cwd=ts_code_gen,
     prefix="union_vector",
-    schema="union_vector/union_vector.fbs",
+    schema="../union_vector/union_vector.fbs",
 )
 
 flatc(
@@ -374,7 +375,7 @@ flatc(
 # Optional Scalars
 optional_scalars_schema = "optional_scalars.fbs"
 flatc(["--java", "--kotlin", "--lobster"], schema=optional_scalars_schema)
-flatc(TS_OPTS, cwd="ts", schema=optional_scalars_schema)
+flatc(TS_OPTS, cwd=ts_code_gen, schema="../optional_scalars.fbs")
 
 flatc(["--csharp", "--python", "--gen-object-api"], schema=optional_scalars_schema)
 
