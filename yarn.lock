@@ -2,6 +2,11 @@
 # yarn lockfile v1
 
 
+"@bazel/esbuild@^5.7.1":
+  version "5.7.1"
+  resolved "https://registry.yarnpkg.com/@bazel/esbuild/-/esbuild-5.7.1.tgz#3e72ad6d71ab868429a7f02f914bba8958c2e05e"
+  integrity sha512-mNi5AaXQ5h6kwIkgXCtwZIvzhf+iEgj54PS4riHyWmk3qwFa+XqgLK+b//9tdjNVtisrIoyiZ0+J2Q6dU5YQsA==
+
 "@bazel/typescript@5.2.0":
   version "5.2.0"
   resolved "https://registry.yarnpkg.com/@bazel/typescript/-/typescript-5.2.0.tgz#131127c8016c712ef1b291f2b52108e5326f0447"
