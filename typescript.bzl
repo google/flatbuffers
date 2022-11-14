@@ -12,6 +12,7 @@ DEFAULT_FLATC_TS_ARGS = [
     "--reflect-names",
     "--gen-name-strings",
     "--keep-prefix",
+    "--ts-flat-files",
 ]
 
 def flatbuffer_ts_library(
@@ -67,7 +68,7 @@ def flatbuffer_ts_library(
         name = srcs_lib,
         srcs = srcs,
         outs = pre_outs,
-        language_flag = "--ts --ts-flat-files",
+        language_flag = "--ts",
         includes = includes,
         include_paths = include_paths,
         flatc_args = flatc_args + ["--filename-suffix _pregenerated"],
