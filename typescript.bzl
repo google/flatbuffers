@@ -59,8 +59,8 @@ def flatbuffer_ts_library(
     # reflection has to get special-cased to get imported when
     # run within bazel. As such, generate the code using the _pregenerate
     # suffix; then do a find/replace to fix-up all the reflection imports.
-    pre_outs = ["%s_pregenerated.ts" % s for s in out_base]
-    outs = ["%s_generated.ts" % s for s in out_base]
+    pre_outs = ["%s_pregenerated.js" % s for s in out_base]
+    outs = ["%s_generated.js" % s for s in out_base]
     includes = [d + "_includes" for d in deps]
     reflection_name = "%s_reflection" % name if gen_reflections else ""
     flatbuffer_library_public(

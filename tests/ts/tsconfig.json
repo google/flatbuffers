@@ -8,7 +8,6 @@
   "include": [
     "monster_test.ts",
     "typescript_keywords.ts",
-    "typescript_keywords_generated.ts",
     "my-game/**/*.ts",
     "typescript/**/*.ts",
     "optional_scalars/**/*.ts",
