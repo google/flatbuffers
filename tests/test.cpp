@@ -984,7 +984,7 @@ void FixedLengthArraySpanTest(const std::string &tests_data_path) {
         std::equal(const_d_c.begin(), const_d_c.end(), mutable_d_c.begin()));
   }
   // test little endian array of int32
-#    if FLATBUFFERS_LITTLEENDIAN
+#  if FLATBUFFERS_LITTLEENDIAN
   {
     flatbuffers::span<const int32_t, 2> const_d_a =
         flatbuffers::make_span(*const_nested.a());
@@ -999,12 +999,12 @@ void FixedLengthArraySpanTest(const std::string &tests_data_path) {
     TEST_ASSERT(
         std::equal(const_d_a.begin(), const_d_a.end(), mutable_d_a.begin()));
   }
-#    endif
+#  endif
 }
-#  else
+#else
 void FixedLengthArrayJsonTest(bool /*binary*/) {}
 void FixedLengthArraySpanTest() {}
-#  endif
+#endif
 
 void TestEmbeddedBinarySchema(const std::string &tests_data_path) {
   // load JSON from disk
@@ -1412,7 +1412,9 @@ void NativeInlineTableVectorTest() {
   TestNativeInlineTableT unpacked;
   root->UnPackTo(&unpacked);
 
-  for (int i = 0; i < 10; ++i) { TEST_ASSERT(unpacked.t[i] == test.t[i]); }
+  for (int i = 0; i < 10; ++i) {
+    TEST_ASSERT(unpacked.t[i] == test.t[i]);
+  }
 
   TEST_ASSERT(unpacked.t == test.t);
 }
