@@ -45,8 +45,11 @@ void FixedSizedScalarKeyInStructTest() {
   auto sorted_baz_vec = foo_table->d();
   TEST_EQ(sorted_baz_vec->Get(0)->b(), 1);
   TEST_EQ(sorted_baz_vec->Get(3)->b(), 4);
-  TEST_NOTNULL(sorted_baz_vec->LookupByKey(&flatbuffers::CastToArray(test_array1)));
-  TEST_EQ(sorted_baz_vec->LookupByKey(&flatbuffers::CastToArray(test_array1))->b(), 4);
+  TEST_NOTNULL(
+      sorted_baz_vec->LookupByKey(&flatbuffers::CastToArray(test_array1)));
+  TEST_EQ(
+      sorted_baz_vec->LookupByKey(&flatbuffers::CastToArray(test_array1))->b(),
+      4);
   uint8_t array_int[4] = { 7, 2, 3, 0 };
   TEST_EQ(sorted_baz_vec->LookupByKey(&flatbuffers::CastToArray(array_int)),
           static_cast<const Baz *>(nullptr));
@@ -54,8 +57,12 @@ void FixedSizedScalarKeyInStructTest() {
   auto sorted_bar_vec = foo_table->e();
   TEST_EQ(sorted_bar_vec->Get(0)->b(), 1);
   TEST_EQ(sorted_bar_vec->Get(3)->b(), 4);
-  TEST_NOTNULL(sorted_bar_vec->LookupByKey(&flatbuffers::CastToArray(test_float_array1)));
-  TEST_EQ(sorted_bar_vec->LookupByKey(&flatbuffers::CastToArray(test_float_array1))->b(), 3);
+  TEST_NOTNULL(sorted_bar_vec->LookupByKey(
+      &flatbuffers::CastToArray(test_float_array1)));
+  TEST_EQ(
+      sorted_bar_vec->LookupByKey(&flatbuffers::CastToArray(test_float_array1))
+          ->b(),
+      3);
   float array_float[3] = { -1, -2, -3 };
   TEST_EQ(sorted_bar_vec->LookupByKey(&flatbuffers::CastToArray(array_float)),
           static_cast<const Bar *>(nullptr));
