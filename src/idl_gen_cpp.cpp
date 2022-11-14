@@ -2289,8 +2289,7 @@ class CppGenerator : public BaseGenerator {
     } else if (is_array) {
       const auto &elem_type = field.value.type.VectorType();
       if (IsScalar(elem_type.base_type)) {
-        code_ +=
-            "    return KeyCompareWithValue(o->{{FIELD_NAME}}()) < 0;";
+        code_ += "    return KeyCompareWithValue(o->{{FIELD_NAME}}()) < 0;";
       }
     } else {
       code_ += "    return {{FIELD_NAME}}() < o->{{FIELD_NAME}}();";
@@ -2306,11 +2305,11 @@ class CppGenerator : public BaseGenerator {
         code_.SetValue("FACE_TYPE", GenTypeGet(elem_type, " ", "", "", false));
         code_.SetValue("SIZE", NumToString(elem_type.fixed_length));
         code_ +=
-            "  int KeyCompareWithValue(const flatbuffers::Array<{{FACE_TYPE}}, {{SIZE}}> *_{{FIELD_NAME}}"
+            "  int KeyCompareWithValue(const flatbuffers::Array<{{FACE_TYPE}}, "
+            "{{SIZE}}> *_{{FIELD_NAME}}"
             ") const { ";
         code_ += "    for (auto i = 0; i < {{FIELD_NAME}}()->size(); i++) {";
-        code_ +=
-            "      const auto {{FIELD_NAME}}_l = {{FIELD_NAME}}_[i];";
+        code_ += "      const auto {{FIELD_NAME}}_l = {{FIELD_NAME}}_[i];";
         code_ += "      const auto {{FIELD_NAME}}_r = _{{FIELD_NAME}}->Get(i);";
         code_ += "      if({{FIELD_NAME}}_l != {{FIELD_NAME}}_r) ";
         code_ +=
