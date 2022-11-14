@@ -864,7 +864,7 @@ void NativeTypeTest() {
 // Guard against -Wunused-function on platforms without file tests.
 #ifndef FLATBUFFERS_NO_FILE_TESTS
 // VS10 does not support typed enums, exclude from tests
-#  if !defined(_MSC_VER) || _MSC_VER >= 1700
+#if !defined(_MSC_VER) || _MSC_VER >= 1700
 void FixedLengthArrayJsonTest(const std::string &tests_data_path, bool binary) {
   // load FlatBuffer schema (.fbs) and JSON from disk
   std::string schemafile;
