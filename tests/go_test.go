@@ -2215,7 +2215,6 @@ func CheckByKey(fail func(string, ...interface{})) {
 	slimeBossMon := &example.Monster{}
 	monster.TestarrayoftablesByKey(slimeBossMon, slimeBoss.Name)
 
-	//TODO(michaeltle): Test this
 	strStat := &example.Stat{}
 	monster.ScalarKeySortedTablesByKey(strStat, str.Count)
 	lukStat := &example.Stat{}
