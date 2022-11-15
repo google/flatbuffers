@@ -723,7 +723,8 @@ class GoGenerator : public BaseGenerator {
             GetMemberOfVectorOfStruct(struct_def, field, code_ptr);
             // TODO(michaeltle): Support querying fixed struct by key.
             // Currently, we only support keyed tables.
-            if (!vectortype.struct_def->fixed && vectortype.struct_def->has_key) {
+            if (!vectortype.struct_def->fixed &&
+                vectortype.struct_def->has_key) {
               GetMemberOfVectorOfStructByKey(struct_def, field, code_ptr);
             }
           } else {
