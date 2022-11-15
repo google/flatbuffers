@@ -572,7 +572,7 @@ func MonsterKeyCompare(o1, o2 flatbuffers.UOffsetT, buf []byte) bool {
 	return flatbuffers.CompareString(flatbuffers.GetFieldOffset(buf, 10, o1), flatbuffers.GetFieldOffset(buf, 10, o2), buf) < 0
 }
 
-func MonsterLookupByKey(obj *Monster, key string, vectorLocation flatbuffers.UOffsetT, buf []byte) bool {
+func (rcv *Monster) LookupByKey(key string, vectorLocation flatbuffers.UOffsetT, buf []byte) bool {
 	span := flatbuffers.GetUOffsetT(buf[vectorLocation - 4:])
 	start := flatbuffers.UOffsetT(0)
 	for span != 0 {
@@ -586,7 +586,7 @@ func MonsterLookupByKey(obj *Monster, key string, vectorLocation flatbuffers.UOf
 			start += middle
 			span -= middle
 		} else {
-			obj.Init(buf, tableOffset)
+			rcv.Init(buf, tableOffset)
 			return true
 		}
 	}
@@ -714,7 +714,7 @@ func (rcv *Monster) TestarrayoftablesByKey(obj *Monster, key string) bool{
 	o := flatbuffers.UOffsetT(rcv._tab.Offset(26))
 	if o != 0 {
 		x := rcv._tab.Vector(o)
-		return MonsterLookupByKey(obj, key, x, rcv._tab.Bytes)
+		return obj.LookupByKey(key, x, rcv._tab.Bytes)
 	}
 	return false
 }
@@ -1129,7 +1129,7 @@ func (rcv *Monster) VectorOfReferrablesByKey(obj *Referrable, key uint64) bool{
 	o := flatbuffers.UOffsetT(rcv._tab.Offset(74))
 	if o != 0 {
 		x := rcv._tab.Vector(o)
-		return ReferrableLookupByKey(obj, key, x, rcv._tab.Bytes)
+		return obj.LookupByKey(key, x, rcv._tab.Bytes)
 	}
 	return false
 }
@@ -1196,7 +1196,7 @@ func (rcv *Monster) VectorOfStrongReferrablesByKey(obj *Referrable, key uint64) 
 	o := flatbuffers.UOffsetT(rcv._tab.Offset(80))
 	if o != 0 {
 		x := rcv._tab.Vector(o)
-		return ReferrableLookupByKey(obj, key, x, rcv._tab.Bytes)
+		return obj.LookupByKey(key, x, rcv._tab.Bytes)
 	}
 	return false
 }
@@ -1423,7 +1423,7 @@ func (rcv *Monster) ScalarKeySortedTablesByKey(obj *Stat, key uint16) bool{
 	o := flatbuffers.UOffsetT(rcv._tab.Offset(104))
 	if o != 0 {
 		x := rcv._tab.Vector(o)
-		return StatLookupByKey(obj, key, x, rcv._tab.Bytes)
+		return obj.LookupByKey(key, x, rcv._tab.Bytes)
 	}
 	return false
 }

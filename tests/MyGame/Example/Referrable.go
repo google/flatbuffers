@@ -73,7 +73,7 @@ func ReferrableKeyCompare(o1, o2 flatbuffers.UOffsetT, buf []byte) bool {
 	return val1 < val2
 }
 
-func ReferrableLookupByKey(obj *Referrable, key uint64, vectorLocation flatbuffers.UOffsetT, buf []byte) bool {
+func (rcv *Referrable) LookupByKey(key uint64, vectorLocation flatbuffers.UOffsetT, buf []byte) bool {
 	span := flatbuffers.GetUOffsetT(buf[vectorLocation - 4:])
 	start := flatbuffers.UOffsetT(0)
 	for span != 0 {
@@ -88,7 +88,7 @@ func ReferrableLookupByKey(obj *Referrable, key uint64, vectorLocation flatbuffe
 			start += middle
 			span -= middle
 		} else {
-			obj.Init(buf, tableOffset)
+			rcv.Init(buf, tableOffset)
 			return true
 		}
 	}
