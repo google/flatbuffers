@@ -2207,7 +2207,7 @@ func CheckByKey(fail func(string, ...interface{})) {
 	moff := example.MonsterEnd(b)
 	b.Finish(moff)
 
-	monster := example.GetRootAsMonster(b.Bytes, b.Head())	
+	monster := example.GetRootAsMonster(b.Bytes, b.Head())
 	slimeMon := &example.Monster{}
 	monster.TestarrayoftablesByKey(slimeMon, slime.Name)
 	mushroomMon := &example.Monster{}
@@ -2230,11 +2230,10 @@ func CheckByKey(fail func(string, ...interface{})) {
 	expectEq("Strength Id", string(strStat.Id()), str.Id)
 	expectEq("Strength Count", strStat.Count(), str.Count)
 	expectEq("Luck Id", string(lukStat.Id()), luk.Id)
-	expectEq("Luck Count", lukStat.Count(), luk.Count)	
+	expectEq("Luck Count", lukStat.Count(), luk.Count)
 	expectEq("Mana Id", string(mpStat.Id()), mp.Id)
 	expectEq("Mana Count", mpStat.Count(), mp.Count)
 }
-
 
 // BenchmarkVtableDeduplication measures the speed of vtable deduplication
 // by creating prePop vtables, then populating b.N objects with a
