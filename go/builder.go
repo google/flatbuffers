@@ -1,5 +1,7 @@
 package flatbuffers
 
+import "sort"
+
 // Builder is a state machine for creating FlatBuffer objects.
 // Use a Builder to construct object(s) starting from leaf nodes.
 //
@@ -313,6 +315,64 @@ func (b *Builder) EndVector(vectorNumElems int) UOffsetT {
 
 	b.nested = false
 	return b.Offset()
+}
+
+// CreateVectorOfTables serializes slice of table offsets into a vector.
+func (b *Builder) CreateVectorOfTables(offsets []UOffsetT) UOffsetT {
+	b.assertNotNested()
+	b.StartVector(4, len(offsets), 4)
+	for i := len(offsets) - 1; i >= 0; i-- {
+		b.PrependUOffsetT(offsets[i])
+	}
+	return b.EndVector(len(offsets))
+}
+
+type KeyCompare func(o1, o2 UOffsetT, buf []byte) bool
+
+func (b *Builder) CreateVectorOfSortedTables(offsets []UOffsetT, keyCompare KeyCompare) UOffsetT {
+	sort.Slice(offsets, func(i, j int) bool {
+		return keyCompare(offsets[i], offsets[j], b.Bytes)
+	})
+	return b.CreateVectorOfTables(offsets)
+}
+
+// CompareString compares two strings in the buffer buf at offsets o1 and o2.
+func CompareString(o1, o2 UOffsetT, buf []byte) int {
+	o1 += GetUOffsetT(buf[o1:])
+	o2 += GetUOffsetT(buf[o2:])
+	len1 := GetUOffsetT(buf[o1:])
+	len2 := GetUOffsetT(buf[o2:])
+	startPos1 := o1 + UOffsetT(SizeUOffsetT)
+	startPos2 := o2 + UOffsetT(SizeUOffsetT)
+	minLen := len1
+	if len1 > len2 {
+		minLen = len2
+	}
+	for i := UOffsetT(0); i < minLen; i++ {
+		if buf[i+startPos1] != buf[i+startPos2] {
+			return int(buf[i+startPos1]) - int(buf[i+startPos2])
+		}
+	}
+	return int(len1) - int(len2)
+}
+
+// CompareStringAndKey compares a string in the buffer `buf` at offset `off` against a key.
+func CompareStringAndKey(off UOffsetT, key string, buf []byte) int {
+	off += GetUOffsetT(buf[off:])
+	bKey := []byte(key)
+	len1 := GetUOffsetT(buf[off:])
+	len2 := UOffsetT(len(bKey))
+	startPos1 := off + UOffsetT(SizeUOffsetT)
+	minLen := len1
+	if len1 > len2 {
+		minLen = len2
+	}
+	for i := UOffsetT(0); i < minLen; i++ {
+		if buf[i+startPos1] != bKey[i] {
+			return int(buf[i+startPos1]) - int(bKey[i])
+		}
+	}
+	return int(len1) - int(len2)
 }
 
 // CreateSharedString Checks if the string is already written

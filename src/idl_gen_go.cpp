@@ -21,6 +21,7 @@
 #include <sstream>
 #include <string>
 
+#include "flatbuffers/base.h"
 #include "flatbuffers/code_generators.h"
 #include "flatbuffers/flatbuffers.h"
 #include "flatbuffers/idl.h"
@@ -79,7 +80,7 @@ static Namer::Config GoDefaultConfig() {
            /*filename_extension=*/".go" };
 }
 
-} // namespace
+}  // namespace
 
 class GoGenerator : public BaseGenerator {
  public:
@@ -490,6 +491,35 @@ class GoGenerator : public BaseGenerator {
     code += "}\n\n";
   }
 
+  void GetMemberOfVectorOfStructByKey(const StructDef &struct_def,
+                                      const FieldDef &field,
+                                      std::string *code_ptr) {
+    std::string &code = *code_ptr;
+    auto vectortype = field.value.type.VectorType();
+    FLATBUFFERS_ASSERT(vectortype.struct_def->has_key);
+
+    auto &vector_struct_fields = vectortype.struct_def->fields.vec;
+    auto kit =
+        std::find_if(vector_struct_fields.begin(), vector_struct_fields.end(),
+                     [&](FieldDef *field) { return field->key; });
+
+    auto &key_field = **kit;
+    FLATBUFFERS_ASSERT(key_field.key);
+
+    GenReceiver(struct_def, code_ptr);
+    code += " " + namer_.Field(field) + "ByKey";
+    code += "(obj *" + TypeName(field);
+    code += ", key " + NativeType(key_field.value.type) + ") bool" +
+            OffsetPrefix(field);
+    code += "\t\tx := rcv._tab.Vector(o)\n";
+    code += "\t\treturn ";
+    code += namer_.Type(*vectortype.struct_def) +
+            "LookupByKey(obj, key, x, rcv._tab.Bytes)\n";
+    code += "\t}\n";
+    code += "\treturn false\n";
+    code += "}\n\n";
+  }
+
   // Get the value of a vector's non-struct member.
   void GetMemberOfVectorOfNonStruct(const StructDef &struct_def,
                                     const FieldDef &field,
@@ -691,6 +721,11 @@ class GoGenerator : public BaseGenerator {
           auto vectortype = field.value.type.VectorType();
           if (vectortype.base_type == BASE_TYPE_STRUCT) {
             GetMemberOfVectorOfStruct(struct_def, field, code_ptr);
+            // TODO(michaeltle): Support querying fixed struct by key.
+            // Currently, we only support keyed tables.
+            if (!vectortype.struct_def->fixed && vectortype.struct_def->has_key) {
+              GetMemberOfVectorOfStructByKey(struct_def, field, code_ptr);
+            }
           } else {
             GetMemberOfVectorOfNonStruct(struct_def, field, code_ptr);
           }
@@ -825,6 +860,12 @@ class GoGenerator : public BaseGenerator {
 
       GenStructAccessor(struct_def, field, code_ptr);
       GenStructMutator(struct_def, field, code_ptr);
+      // TODO(michaeltle): Support querying fixed struct by key. Currently,
+      // we only support keyed tables.
+      if (!struct_def.fixed && field.key) {
+        GenKeyCompare(struct_def, field, code_ptr);
+        GenLookupByKey(struct_def, field, code_ptr);
+      }
     }
 
     // Generate builders
@@ -835,6 +876,79 @@ class GoGenerator : public BaseGenerator {
       // Create a set of functions that allow table construction.
       GenTableBuilders(struct_def, code_ptr);
     }
+  }
+
+  void GenKeyCompare(const StructDef &struct_def, const FieldDef &field,
+                     std::string *code_ptr) {
+    FLATBUFFERS_ASSERT(struct_def.has_key);
+    FLATBUFFERS_ASSERT(field.key);
+    std::string &code = *code_ptr;
+
+    code += "func " + namer_.Type(struct_def) + "KeyCompare(";
+    code += "o1, o2 flatbuffers.UOffsetT, buf []byte) bool {\n";
+    if (IsString(field.value.type)) {
+      code += "\treturn flatbuffers.CompareString(flatbuffers.GetFieldOffset(";
+      code += "buf, " + NumToString(field.value.offset);
+      code += ", o1), flatbuffers.GetFieldOffset(buf, ";
+      code += NumToString(field.value.offset) + ", o2), buf) < 0\n";
+    } else {
+      code += "\tval1 := flatbuffers.Get" +
+              namer_.Function(GenTypeBasic(field.value.type));
+      code += "(buf[flatbuffers.GetFieldOffset(buf, ";
+      code += NumToString(field.value.offset) + ", o1):])\n";
+      code += "\tval2 := flatbuffers.Get" +
+              namer_.Function(GenTypeBasic(field.value.type));
+      code += "(buf[flatbuffers.GetFieldOffset(buf, ";
+      code += NumToString(field.value.offset) + ", o2):])\n";
+      code += "\treturn val1 < val2\n";
+    }
+    code += "}\n\n";
+  }
+
+  void GenLookupByKey(const StructDef &struct_def, const FieldDef &field,
+                      std::string *code_ptr) {
+    FLATBUFFERS_ASSERT(struct_def.has_key);
+    FLATBUFFERS_ASSERT(field.key);
+    std::string &code = *code_ptr;
+
+    code += "func " + namer_.Type(struct_def) + "LookupByKey(";
+    code += "obj *" + namer_.Type(struct_def) + ", ";
+    code += "key " + NativeType(field.value.type) + ", ";
+    code += "vectorLocation flatbuffers.UOffsetT, ";
+    code += "buf []byte) bool {\n";
+    code += "\tspan := flatbuffers.GetUOffsetT(buf[vectorLocation - 4:])\n";
+    code += "\tstart := flatbuffers.UOffsetT(0)\n";
+    code += "\tfor span != 0 {\n";
+    code += "\t\tmiddle := span / 2\n";
+    code += "\t\ttableOffset := flatbuffers.GetIndirectOffset(buf, ";
+    code += "vectorLocation+ 4 * (start + middle))\n";
+
+    if (IsString(field.value.type)) {
+      code += "\t\tcomp := flatbuffers.CompareStringAndKey(";
+      code += "flatbuffers.GetFieldOffset(buf, ";
+      code += NumToString(field.value.offset);
+      code += ", flatbuffers.UOffsetT(len(buf)) - tableOffset), key, buf)\n";
+    } else {
+      code += "\t\tval := flatbuffers.Get";
+      code += namer_.Function(GenTypeBasic(field.value.type));
+      code += "(buf[flatbuffers.GetFieldOffset(buf, ";
+      code += NumToString(field.value.offset);
+      code += ", flatbuffers.UOffsetT(len(buf)) - tableOffset):])\n";
+      code += "\t\tcomp := int(val) - int(key)\n";
+    }
+    code += "\t\tif comp > 0 {\n";
+    code += "\t\t\tspan = middle\n";
+    code += "\t\t} else if comp < 0 {\n";
+    code += "\t\t\tmiddle += 1\n";
+    code += "\t\t\tstart += middle\n";
+    code += "\t\t\tspan -= middle\n";
+    code += "\t\t} else {\n";
+    code += "\t\t\tobj.Init(buf, tableOffset)\n";
+    code += "\t\t\treturn true\n";
+    code += "\t\t}\n";
+    code += "\t}\n";
+    code += "\treturn false\n";
+    code += "}\n\n";
   }
 
   void GenNativeStruct(const StructDef &struct_def, std::string *code_ptr) {
@@ -907,8 +1021,7 @@ class GoGenerator : public BaseGenerator {
       if (ev.IsZero()) continue;
       code += "\tcase " + namer_.EnumVariant(enum_def, ev) + ":\n";
       code += "\t\tvar x " +
-              WrapInNameSpaceAndTrack(*ev.union_type.struct_def) +
-              "\n";
+              WrapInNameSpaceAndTrack(*ev.union_type.struct_def) + "\n";
       code += "\t\tx.Init(table.Bytes, table.Pos)\n";
 
       code += "\t\treturn &" +

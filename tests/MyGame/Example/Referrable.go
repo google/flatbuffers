@@ -67,6 +67,34 @@ func (rcv *Referrable) MutateId(n uint64) bool {
 	return rcv._tab.MutateUint64Slot(4, n)
 }
 
+func ReferrableKeyCompare(o1, o2 flatbuffers.UOffsetT, buf []byte) bool {
+	val1 := flatbuffers.GetUint64(buf[flatbuffers.GetFieldOffset(buf, 4, o1):])
+	val2 := flatbuffers.GetUint64(buf[flatbuffers.GetFieldOffset(buf, 4, o2):])
+	return val1 < val2
+}
+
+func ReferrableLookupByKey(obj *Referrable, key uint64, vectorLocation flatbuffers.UOffsetT, buf []byte) bool {
+	span := flatbuffers.GetUOffsetT(buf[vectorLocation - 4:])
+	start := flatbuffers.UOffsetT(0)
+	for span != 0 {
+		middle := span / 2
+		tableOffset := flatbuffers.GetIndirectOffset(buf, vectorLocation+ 4 * (start + middle))
+		val := flatbuffers.GetUint64(buf[flatbuffers.GetFieldOffset(buf, 4, flatbuffers.UOffsetT(len(buf)) - tableOffset):])
+		comp := int(val) - int(key)
+		if comp > 0 {
+			span = middle
+		} else if comp < 0 {
+			middle += 1
+			start += middle
+			span -= middle
+		} else {
+			obj.Init(buf, tableOffset)
+			return true
+		}
+	}
+	return false
+}
+
 func ReferrableStart(builder *flatbuffers.Builder) {
 	builder.StartObject(1)
 }
