@@ -513,8 +513,7 @@ class GoGenerator : public BaseGenerator {
             OffsetPrefix(field);
     code += "\t\tx := rcv._tab.Vector(o)\n";
     code += "\t\treturn ";
-    code += namer_.Type(*vectortype.struct_def) +
-            "LookupByKey(obj, key, x, rcv._tab.Bytes)\n";
+    code += "obj.LookupByKey(key, x, rcv._tab.Bytes)\n";
     code += "\t}\n";
     code += "\treturn false\n";
     code += "}\n\n";
@@ -912,8 +911,8 @@ class GoGenerator : public BaseGenerator {
     FLATBUFFERS_ASSERT(field.key);
     std::string &code = *code_ptr;
 
-    code += "func " + namer_.Type(struct_def) + "LookupByKey(";
-    code += "obj *" + namer_.Type(struct_def) + ", ";
+    GenReceiver(struct_def, code_ptr);
+    code += " LookupByKey(";
     code += "key " + NativeType(field.value.type) + ", ";
     code += "vectorLocation flatbuffers.UOffsetT, ";
     code += "buf []byte) bool {\n";
@@ -944,7 +943,7 @@ class GoGenerator : public BaseGenerator {
     code += "\t\t\tstart += middle\n";
     code += "\t\t\tspan -= middle\n";
     code += "\t\t} else {\n";
-    code += "\t\t\tobj.Init(buf, tableOffset)\n";
+    code += "\t\t\trcv.Init(buf, tableOffset)\n";
     code += "\t\t\treturn true\n";
     code += "\t\t}\n";
     code += "\t}\n";
