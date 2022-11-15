@@ -1994,6 +1994,37 @@ func CheckOptionalScalars(fail func(string, ...interface{})) {
 		}
 	}
 
+	resolvePointer := func(v interface{}) interface{} {
+		switch v := v.(type) {
+		case *int8:
+			return *v
+		case *byte:
+			return *v
+		case *int16:
+			return *v
+		case *uint16:
+			return *v
+		case *int32:
+			return *v
+		case *uint32:
+			return *v
+		case *int64:
+			return *v
+		case *uint64:
+			return *v
+		case *float32:
+			return *v
+		case *float64:
+			return *v
+		case *bool:
+			return *v
+		case *optional_scalars.OptionalByte:
+			return *v
+		default:
+			return v
+		}
+	}
+
 	buildAssignedTable := func(b *flatbuffers.Builder) *optional_scalars.ScalarStuff {
 		optional_scalars.ScalarStuffStart(b)
 		optional_scalars.ScalarStuffAddJustI8(b, int8(5))
@@ -2166,7 +2197,7 @@ func CheckOptionalScalars(fail func(string, ...interface{})) {
 
 func CheckByKey(fail func(string, ...interface{})) {
 	expectEq := func(what string, a, b interface{}) {
-		if resolvePointer(a) != b {
+		if a != b {
 			fail(FailString("Lookup by key: "+what, b, a))
 		}
 	}
@@ -2387,36 +2418,5 @@ func BenchmarkBuildGold(b *testing.B) {
 		mon := example.MonsterEnd(bldr)
 
 		bldr.Finish(mon)
-	}
-}
-
-func resolvePointer(v interface{}) interface{} {
-	switch v := v.(type) {
-	case *int8:
-		return *v
-	case *byte:
-		return *v
-	case *int16:
-		return *v
-	case *uint16:
-		return *v
-	case *int32:
-		return *v
-	case *uint32:
-		return *v
-	case *int64:
-		return *v
-	case *uint64:
-		return *v
-	case *float32:
-		return *v
-	case *float64:
-		return *v
-	case *bool:
-		return *v
-	case *optional_scalars.OptionalByte:
-		return *v
-	default:
-		return v
 	}
 }
