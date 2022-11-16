@@ -25,9 +25,11 @@
 
 // Ensure no includes to flatc internals. bfbs_gen.h and generator.h are OK.
 #include "bfbs_gen.h"
+#include "bfbs_namer.h"
 #include "flatbuffers/bfbs_generator.h"
 
 // The intermediate representation schema.
+#include "flatbuffers/reflection.h"
 #include "flatbuffers/reflection_generated.h"
 
 namespace flatbuffers {
@@ -35,6 +37,36 @@ namespace {
 
 // To reduce typing
 namespace r = ::reflection;
+
+std::set<std::string> LuaKeywords() {
+  return { "and",   "break", "do",       "else", "elseif", "end",
+           "false", "for",   "function", "goto", "if",     "in",
+           "local", "nil",   "not",      "or",   "repeat", "return",
+           "then",  "true",  "until",    "while" };
+}
+
+Namer::Config LuaDefaultConfig() {
+  return { /*types=*/Case::kUpperCamel,
+           /*constants=*/Case::kUnknown,
+           /*methods=*/Case::kUpperCamel,
+           /*functions=*/Case::kUpperCamel,
+           /*fields=*/Case::kUpperCamel,
+           /*variables=*/Case::kLowerCamel,
+           /*variants=*/Case::kKeep,
+           /*enum_variant_seperator=*/"",
+           /*escape_keywords=*/Namer::Config::Escape::AfterConvertingCase,
+           /*namespaces=*/Case::kKeep,
+           /*namespace_seperator=*/"__",
+           /*object_prefix=*/"",
+           /*object_suffix=*/"",
+           /*keyword_prefix=*/"",
+           /*keyword_suffix=*/"_",
+           /*filenames=*/Case::kKeep,
+           /*directories=*/Case::kKeep,
+           /*output_path=*/"",
+           /*filename_suffix=*/"",
+           /*filename_extension=*/".lua" };
+}
 
 class LuaBfbsGenerator : public BaseBfbsGenerator {
  public:
@@ -44,14 +76,8 @@ class LuaBfbsGenerator : public BaseBfbsGenerator {
         requires_(),
         current_obj_(nullptr),
         current_enum_(nullptr),
-        flatc_version_(flatc_version) {
-    static const char *const keywords[] = {
-      "and",      "break",  "do",   "else", "elseif", "end",  "false", "for",
-      "function", "goto",   "if",   "in",   "local",  "nil",  "not",   "or",
-      "repeat",   "return", "then", "true", "until",  "while"
-    };
-    keywords_.insert(std::begin(keywords), std::end(keywords));
-  }
+        flatc_version_(flatc_version),
+        namer_(LuaDefaultConfig(), LuaKeywords()) {}
 
   GeneratorStatus GenerateFromSchema(const r::Schema *schema)
       FLATBUFFERS_OVERRIDE {
@@ -76,14 +102,14 @@ class LuaBfbsGenerator : public BaseBfbsGenerator {
 
       std::string ns;
       const std::string enum_name =
-          NormalizeName(Denamespace(enum_def->name(), ns));
+          namer_.Type(namer_.Denamespace(enum_def, ns));
 
       GenerateDocumentation(enum_def->documentation(), "", code);
       code += "local " + enum_name + " = {\n";
 
       ForAllEnumValues(enum_def, [&](const reflection::EnumVal *enum_val) {
         GenerateDocumentation(enum_val->documentation(), "  ", code);
-        code += "  " + NormalizeName(enum_val->name()) + " = " +
+        code += "  " + namer_.Variant(enum_val->name()->str()) + " = " +
                 NumToString(enum_val->value()) + ",\n";
       });
       code += "}\n";
@@ -107,7 +133,7 @@ class LuaBfbsGenerator : public BaseBfbsGenerator {
 
       std::string ns;
       const std::string object_name =
-          NormalizeName(Denamespace(object->name(), ns));
+          namer_.Type(namer_.Denamespace(object, ns));
 
       GenerateDocumentation(object->documentation(), "", code);
 
@@ -149,14 +175,12 @@ class LuaBfbsGenerator : public BaseBfbsGenerator {
         // Skip writing deprecated fields altogether.
         if (field->deprecated()) { return; }
 
-        const std::string field_name = NormalizeName(field->name());
-        const std::string field_name_camel_case =
-            ConvertCase(field_name, Case::kUpperCamel);
+        const std::string field_name = namer_.Field(field->name()->str());
         const r::BaseType base_type = field->type()->base_type();
 
         // Generate some fixed strings so we don't repeat outselves later.
         const std::string getter_signature =
-            "function mt:" + field_name_camel_case + "()\n";
+            "function mt:" + field_name + "()\n";
         const std::string offset_prefix = "local o = self.view:Offset(" +
                                           NumToString(field->offset()) + ")\n";
         const std::string offset_prefix_2 = "if o ~= 0 then\n";
@@ -201,7 +225,7 @@ class LuaBfbsGenerator : public BaseBfbsGenerator {
             }
             case r::Obj: {
               if (object->is_struct()) {
-                code += "function mt:" + field_name_camel_case + "(obj)\n";
+                code += "function mt:" + field_name + "(obj)\n";
                 code += "  obj:Init(self.view.bytes, self.view.pos + " +
                         NumToString(field->offset()) + ")\n";
                 code += "  return obj\n";
@@ -252,7 +276,7 @@ class LuaBfbsGenerator : public BaseBfbsGenerator {
             case r::Vector: {
               const r::BaseType vector_base_type = field->type()->element();
               int32_t element_size = field->type()->element_size();
-              code += "function mt:" + field_name_camel_case + "(j)\n";
+              code += "function mt:" + field_name + "(j)\n";
               code += "  " + offset_prefix;
               code += "  " + offset_prefix_2;
 
@@ -297,8 +321,7 @@ class LuaBfbsGenerator : public BaseBfbsGenerator {
               // generate a helper function to get it as a byte string in
               // Lua.
               if (IsSingleByte(vector_base_type)) {
-                code += "function mt:" + field_name_camel_case +
-                        "AsString(start, stop)\n";
+                code += "function mt:" + field_name + "AsString(start, stop)\n";
                 code += "  return self.view:VectorAsString(" +
                         NumToString(field->offset()) + ", start, stop)\n";
                 code += "end\n";
@@ -307,7 +330,7 @@ class LuaBfbsGenerator : public BaseBfbsGenerator {
 
               // We also make a new accessor to query just the length of the
               // vector.
-              code += "function mt:" + field_name_camel_case + "Length()\n";
+              code += "function mt:" + field_name + "Length()\n";
               code += "  " + offset_prefix;
               code += "  " + offset_prefix_2;
               code += "    return self.view:VectorLen(o)\n";
@@ -344,21 +367,20 @@ class LuaBfbsGenerator : public BaseBfbsGenerator {
         ForAllFields(object, /*reverse=*/false, [&](const r::Field *field) {
           if (field->deprecated()) { return; }
 
-          const std::string field_name = NormalizeName(field->name());
+          const std::string field_name = namer_.Field(field->name()->str());
+          const std::string variable_name =
+              namer_.Variable(field->name()->str());
 
-          code += "function " + object_name + ".Add" +
-                  ConvertCase(field_name, Case::kUpperCamel) + "(builder, " +
-                  ConvertCase(field_name, Case::kLowerCamel) + ")\n";
+          code += "function " + object_name + ".Add" + field_name +
+                  "(builder, " + variable_name + ")\n";
           code += "  builder:Prepend" + GenerateMethod(field) + "Slot(" +
-                  NumToString(field->id()) + ", " +
-                  ConvertCase(field_name, Case::kLowerCamel) + ", " +
+                  NumToString(field->id()) + ", " + variable_name + ", " +
                   DefaultValue(field) + ")\n";
           code += "end\n";
           code += "\n";
 
           if (IsVector(field->type()->base_type())) {
-            code += "function " + object_name + ".Start" +
-                    ConvertCase(field_name, Case::kUpperCamel) +
+            code += "function " + object_name + ".Start" + field_name +
                     "Vector(builder, numElems)\n";
 
             const int32_t element_size = field->type()->element_size();
@@ -406,11 +428,9 @@ class LuaBfbsGenerator : public BaseBfbsGenerator {
       if (IsStructOrTable(field->type()->base_type())) {
         const r::Object *field_object = GetObject(field->type());
         signature += GenerateStructBuilderArgs(
-            field_object, prefix + NormalizeName(field->name()) + "_");
+            field_object, prefix + namer_.Variable(field->name()->str()) + "_");
       } else {
-        signature +=
-            ", " + prefix +
-            ConvertCase(NormalizeName(field->name()), Case::kLowerCamel);
+        signature += ", " + prefix + namer_.Variable(field->name()->str());
       }
     });
     return signature;
@@ -432,11 +452,10 @@ class LuaBfbsGenerator : public BaseBfbsGenerator {
       if (IsStructOrTable(field->type()->base_type())) {
         const r::Object *field_object = GetObject(field->type());
         code += AppendStructBuilderBody(
-            field_object, prefix + NormalizeName(field->name()) + "_");
+            field_object, prefix + namer_.Variable(field->name()->str()) + "_");
       } else {
         code += "  builder:Prepend" + GenerateMethod(field) + "(" + prefix +
-                ConvertCase(NormalizeName(field->name()), Case::kLowerCamel) +
-                ")\n";
+                namer_.Variable(field->name()->str()) + ")\n";
       }
     });
 
@@ -445,9 +464,7 @@ class LuaBfbsGenerator : public BaseBfbsGenerator {
 
   std::string GenerateMethod(const r::Field *field) const {
     const r::BaseType base_type = field->type()->base_type();
-    if (IsScalar(base_type)) {
-      return ConvertCase(GenerateType(base_type), Case::kUpperCamel);
-    }
+    if (IsScalar(base_type)) { return namer_.Type(GenerateType(base_type)); }
     if (IsStructOrTable(base_type)) { return "Struct"; }
     return "UOffsetTRelative";
   }
@@ -460,9 +477,7 @@ class LuaBfbsGenerator : public BaseBfbsGenerator {
       case r::Vector: return GenerateGetter(type, true);
       default:
         return "self.view:Get(flatbuffers.N." +
-               ConvertCase(GenerateType(type, element_type),
-                           Case::kUpperCamel) +
-               ", ";
+               namer_.Type(GenerateType(type, element_type)) + ", ";
     }
   }
 
@@ -474,10 +489,8 @@ class LuaBfbsGenerator : public BaseBfbsGenerator {
     switch (base_type) {
       case r::String: return "string";
       case r::Vector: return GenerateGetter(type, true);
-      case r::Obj: {
-        const r::Object *obj = GetObject(type);
-        return NormalizeName(Denamespace(obj->name()));
-      };
+      case r::Obj: return namer_.Type(namer_.Denamespace(GetObject(type)));
+
       default: return "*flatbuffers.Table";
     }
   }
@@ -515,14 +528,6 @@ class LuaBfbsGenerator : public BaseBfbsGenerator {
     return "0";
   }
 
-  std::string NormalizeName(const std::string name) const {
-    return keywords_.find(name) == keywords_.end() ? name : "_" + name;
-  }
-
-  std::string NormalizeName(const flatbuffers::String *name) const {
-    return NormalizeName(name->str());
-  }
-
   void StartCodeBlock(const reflection::Enum *enum_def) {
     current_enum_ = enum_def;
     current_obj_ = nullptr;
@@ -544,11 +549,11 @@ class LuaBfbsGenerator : public BaseBfbsGenerator {
 
     if (IsStructOrTable(type)) {
       const r::Object *object = GetObjectByIndex(field->type()->index());
-      if (object == current_obj_) { return Denamespace(object->name()); }
+      if (object == current_obj_) { return namer_.Denamespace(object); }
       type_name = object->name()->str();
     } else {
       const r::Enum *enum_def = GetEnumByIndex(field->type()->index());
-      if (enum_def == current_enum_) { return Denamespace(enum_def->name()); }
+      if (enum_def == current_enum_) { return namer_.Denamespace(enum_def); }
       type_name = enum_def->name()->str();
     }
 
@@ -600,7 +605,7 @@ class LuaBfbsGenerator : public BaseBfbsGenerator {
     // Namespaces are '.' deliminted, so replace it with the path separator.
     std::string path = ns;
 
-    if (path.empty()) {
+    if (ns.empty()) {
       path = ".";
     } else {
       std::replace(path.begin(), path.end(), '.', '/');
@@ -608,7 +613,7 @@ class LuaBfbsGenerator : public BaseBfbsGenerator {
 
     // TODO(derekbailey): figure out a save file without depending on util.h
     EnsureDirExists(path);
-    const std::string file_name = path + "/" + name + ".lua";
+    const std::string file_name = path + "/" + namer_.File(name);
     SaveFile(file_name.c_str(), code, false);
   }
 
@@ -617,6 +622,7 @@ class LuaBfbsGenerator : public BaseBfbsGenerator {
   const r::Object *current_obj_;
   const r::Enum *current_enum_;
   const std::string flatc_version_;
+  const BfbsNamer namer_;
 };
 }  // namespace
 

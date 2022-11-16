@@ -120,6 +120,23 @@ std::string GetAnyValueS(reflection::BaseType type, const uint8_t *data,
   }
 }
 
+void ForAllFields(const reflection::Object *object, bool reverse,
+                  std::function<void(const reflection::Field *)> func) {
+  std::vector<uint32_t> field_to_id_map;
+  field_to_id_map.resize(object->fields()->size());
+
+  // Create the mapping of field ID to the index into the vector.
+  for (uint32_t i = 0; i < object->fields()->size(); ++i) {
+    auto field = object->fields()->Get(i);
+    field_to_id_map[field->id()] = i;
+  }
+
+  for (size_t i = 0; i < field_to_id_map.size(); ++i) {
+    func(object->fields()->Get(
+        field_to_id_map[reverse ? field_to_id_map.size() - i + 1 : i]));
+  }
+}
+
 void SetAnyValueI(reflection::BaseType type, uint8_t *data, int64_t val) {
   // clang-format off
   #define FLATBUFFERS_SET(T) WriteScalar(data, static_cast<T>(val))
@@ -719,10 +736,20 @@ bool VerifyObject(flatbuffers::Verifier &v, const reflection::Schema &schema,
 }
 
 bool Verify(const reflection::Schema &schema, const reflection::Object &root,
-            const uint8_t *buf, size_t length, uoffset_t max_depth /*= 64*/,
-            uoffset_t max_tables /*= 1000000*/) {
+            const uint8_t *const buf, const size_t length,
+            const uoffset_t max_depth, const uoffset_t max_tables) {
   Verifier v(buf, length, max_depth, max_tables);
-  return VerifyObject(v, schema, root, flatbuffers::GetAnyRoot(buf), true);
+  return VerifyObject(v, schema, root, flatbuffers::GetAnyRoot(buf),
+                      /*required=*/true);
+}
+
+bool VerifySizePrefixed(const reflection::Schema &schema,
+                        const reflection::Object &root,
+                        const uint8_t *const buf, const size_t length,
+                        const uoffset_t max_depth, const uoffset_t max_tables) {
+  Verifier v(buf, length, max_depth, max_tables);
+  return VerifyObject(v, schema, root, flatbuffers::GetAnySizePrefixedRoot(buf),
+                      /*required=*/true);
 }
 
 }  // namespace flatbuffers

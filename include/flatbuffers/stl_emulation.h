@@ -26,16 +26,20 @@
 #include <memory>
 #include <limits>
 
-// Detect C++17 compatible compiler.
-// __cplusplus >= 201703L - a compiler has support of 'static inline' variables.
-#if defined(FLATBUFFERS_USE_STD_OPTIONAL) \
-    || (defined(__cplusplus) && __cplusplus >= 201703L) \
-    || (defined(_MSVC_LANG) &&  (_MSVC_LANG >= 201703L))
+#ifndef FLATBUFFERS_USE_STD_OPTIONAL
+  // Detect C++17 compatible compiler.
+  // __cplusplus >= 201703L - a compiler has support of 'static inline' variables.
+  #if (defined(__cplusplus) && __cplusplus >= 201703L) \
+      || (defined(_MSVC_LANG) && _MSVC_LANG >= 201703L)
+    #define FLATBUFFERS_USE_STD_OPTIONAL 1
+  #else
+    #define FLATBUFFERS_USE_STD_OPTIONAL 0
+  #endif // (defined(__cplusplus) && __cplusplus >= 201703L) ...
+#endif // FLATBUFFERS_USE_STD_OPTIONAL
+
+#if FLATBUFFERS_USE_STD_OPTIONAL
   #include <optional>
-  #ifndef FLATBUFFERS_USE_STD_OPTIONAL
-    #define FLATBUFFERS_USE_STD_OPTIONAL
-  #endif
-#endif // defined(FLATBUFFERS_USE_STD_OPTIONAL) ...
+#endif
 
 // The __cpp_lib_span is the predefined feature macro.
 #if defined(FLATBUFFERS_USE_STD_SPAN)
@@ -128,7 +132,7 @@ namespace flatbuffers {
   };
 #endif  // defined(FLATBUFFERS_TEMPLATES_ALIASES)
 
-#ifdef FLATBUFFERS_USE_STD_OPTIONAL
+#if FLATBUFFERS_USE_STD_OPTIONAL
 template<class T>
 using Optional = std::optional<T>;
 using nullopt_t = std::nullopt_t;

@@ -8,10 +8,16 @@
 
 if (POLICY CMP0048)
   cmake_policy(SET CMP0048 NEW)
-  project(FlatBuffers
-        DESCRIPTION "Flatbuffers serialization library"
-        VERSION 2.0.0
-        LANGUAGES CXX)
+  if(CMAKE_VERSION VERSION_LESS 3.9)
+    project(FlatBuffers
+      VERSION 2.0.0
+      LANGUAGES CXX)
+  else()
+    project(FlatBuffers
+      DESCRIPTION "Flatbuffers serialization library"
+      VERSION 2.0.0
+      LANGUAGES CXX)
+  endif()
 else()
   project(FlatBuffers)
 endif (POLICY CMP0048)

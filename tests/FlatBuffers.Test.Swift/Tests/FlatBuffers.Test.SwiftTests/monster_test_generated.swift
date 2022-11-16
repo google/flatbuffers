@@ -611,6 +611,72 @@ public struct MyGame_Example_StructOfStructs_Mutable: FlatBufferObject {
   }
 }
 
+public struct MyGame_Example_StructOfStructsOfStructs: NativeStruct, Verifiable, FlatbuffersInitializable, NativeObject {
+
+  static func validateVersion() { FlatBuffersVersion_2_0_0() }
+
+  private var _a: MyGame_Example_StructOfStructs
+
+  public init(_ bb: ByteBuffer, o: Int32) {
+    let _accessor = Struct(bb: bb, position: o)
+    _a = MyGame_Example_StructOfStructs(_accessor.bb, o: _accessor.postion + 0)
+  }
+
+  public init(a: MyGame_Example_StructOfStructs) {
+    _a = a
+  }
+
+  public init() {
+    _a = MyGame_Example_StructOfStructs()
+  }
+
+  public init(_ _t: inout MyGame_Example_StructOfStructsOfStructs_Mutable) {
+    var _va = _t.a
+    _a = _va.unpack()
+  }
+
+  public var a: MyGame_Example_StructOfStructs { _a }
+
+  public static func verify<T>(_ verifier: inout Verifier, at position: Int, of type: T.Type) throws where T: Verifiable {
+    try verifier.inBuffer(position: position, of: MyGame_Example_StructOfStructsOfStructs.self)
+  }
+}
+
+extension MyGame_Example_StructOfStructsOfStructs: Encodable {
+
+  enum CodingKeys: String, CodingKey {
+    case a = "a"
+  }
+  public func encode(to encoder: Encoder) throws {
+    var container = encoder.container(keyedBy: CodingKeys.self)
+    try container.encodeIfPresent(a, forKey: .a)
+  }
+}
+
+public struct MyGame_Example_StructOfStructsOfStructs_Mutable: FlatBufferObject {
+
+  static func validateVersion() { FlatBuffersVersion_2_0_0() }
+  public var __buffer: ByteBuffer! { return _accessor.bb }
+  private var _accessor: Struct
+
+  public init(_ bb: ByteBuffer, o: Int32) { _accessor = Struct(bb: bb, position: o) }
+
+  public var a: MyGame_Example_StructOfStructs_Mutable { return MyGame_Example_StructOfStructs_Mutable(_accessor.bb, o: _accessor.postion + 0) }
+  
+
+  public mutating func unpack() -> MyGame_Example_StructOfStructsOfStructs {
+    return MyGame_Example_StructOfStructsOfStructs(&self)
+  }
+  public static func pack(_ builder: inout FlatBufferBuilder, obj: inout MyGame_Example_StructOfStructsOfStructs?) -> Offset {
+    guard var obj = obj else { return Offset() }
+    return pack(&builder, obj: &obj)
+  }
+
+  public static func pack(_ builder: inout FlatBufferBuilder, obj: inout MyGame_Example_StructOfStructsOfStructs) -> Offset {
+    return builder.create(struct: obj)
+  }
+}
+
 public struct MyGame_InParentNamespace: FlatBufferObject, Verifiable, ObjectAPIPacker {
 
   static func validateVersion() { FlatBuffersVersion_2_0_0() }

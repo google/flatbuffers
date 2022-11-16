@@ -13,6 +13,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import './monster_test_my_game.example_generated.dart' as example;
 import './monster_test_my_game.example2_generated.dart' as example2;
+import './list_of_enums_generated.dart' as example3;
 
 main() {
   defineReflectiveSuite(() {
@@ -20,6 +21,7 @@ main() {
     defineReflectiveTests(ObjectAPITest);
     defineReflectiveTests(CheckOtherLangaugesData);
     defineReflectiveTests(GeneratorTest);
+    defineReflectiveTests(ListOfEnumsTest);
   });
 }
 
@@ -900,5 +902,19 @@ class GeneratorTest {
         same(example.AnyUniqueAliasesTypeId.values));
     expect(example.AnyAmbiguousAliasesTypeId.values,
         same(example.AnyAmbiguousAliasesTypeId.values));
+  }
+}
+
+// See #6869
+@reflectiveTest
+class ListOfEnumsTest {
+  void test_listOfEnums() async {
+    var mytable = example3.MyTableObjectBuilder(
+      options: [example3.OptionsEnum.A, example3.OptionsEnum.B, example3.OptionsEnum.C]);
+    var bytes = mytable.toBytes();
+    var mytable_read = example3.MyTable(bytes);
+    expect(mytable_read.options![0].value, example3.OptionsEnum.A.value);
+    expect(mytable_read.options![1].value, example3.OptionsEnum.B.value);
+    expect(mytable_read.options![2].value, example3.OptionsEnum.C.value);
   }
 }

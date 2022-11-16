@@ -70,6 +70,10 @@ struct StructOfStructs {
   c: Ability;
 }
 
+struct StructOfStructsOfStructs {
+ a: StructOfStructs;
+}
+
 table Stat {
   id:string;
   val:long;
