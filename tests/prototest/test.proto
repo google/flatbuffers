@@ -67,4 +67,11 @@ message ProtoMessage {
     OtherMessage t = 18;
   }
   optional ProtoEnum outer_enum = 33;
+  // Tests that `inf` and `+/-inf` can be parsed in proto options.
+  optional float u = 34 [default = inf];
+  optional float v = 35 [default = +inf];
+  optional float w = 36 [default = -inf];
+
+  map<string, float> grades = 37;
+  map<string, OtherMessage> other_message_map = 38;
 }

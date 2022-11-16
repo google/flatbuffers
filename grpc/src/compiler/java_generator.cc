@@ -44,8 +44,9 @@ typedef grpc_generator::Method MethodDescriptor;
 
 namespace grpc_java_generator {
 typedef std::string string;
+namespace {
 // Generates imports for the service
-void GenerateImports(grpc_generator::File *file,
+static void GenerateImports(grpc_generator::File *file,
                      grpc_generator::Printer *printer, VARS &vars) {
   vars["filename"] = file->filename();
   printer->Print(vars,
@@ -287,7 +288,7 @@ static void GrpcWriteServiceDocComment(Printer *printer, VARS &vars,
   printer->Print(" */\n");
 }
 
-void GrpcWriteMethodDocComment(Printer *printer, VARS &vars,
+static void GrpcWriteMethodDocComment(Printer *printer, VARS &vars,
                                const MethodDescriptor *method) {
   printer->Print("/**\n");
   std::vector<string> lines = GrpcGetDocLinesForDescriptor(method);
@@ -1029,7 +1030,7 @@ static void PrintService(Printer *p, VARS &vars,
   p->Print("}\n");
 }
 
-void PrintStaticImports(Printer *p) {
+static void PrintStaticImports(Printer *p) {
   p->Print(
       "import java.nio.ByteBuffer;\n"
       "import static "
@@ -1062,7 +1063,7 @@ void PrintStaticImports(Printer *p) {
       "io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall;\n\n");
 }
 
-void GenerateService(const grpc_generator::Service *service,
+static void GenerateService(const grpc_generator::Service *service,
                      grpc_generator::Printer *printer, VARS &vars,
                      bool disable_version) {
   // All non-generated classes must be referred by fully qualified names to
@@ -1097,6 +1098,7 @@ void GenerateService(const grpc_generator::Service *service,
 
   PrintService(printer, vars, service, disable_version);
 }
+} // namespace
 
 grpc::string GenerateServiceSource(
     grpc_generator::File *file, const grpc_generator::Service *service,

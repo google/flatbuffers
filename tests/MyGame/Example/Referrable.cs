@@ -7,13 +7,13 @@ namespace MyGame.Example
 
 using global::System;
 using global::System.Collections.Generic;
-using global::FlatBuffers;
+using global::Google.FlatBuffers;
 
 public struct Referrable : IFlatbufferObject
 {
   private Table __p;
   public ByteBuffer ByteBuffer { get { return __p.bb; } }
-  public static void ValidateVersion() { FlatBufferConstants.FLATBUFFERS_2_0_0(); }
+  public static void ValidateVersion() { FlatBufferConstants.FLATBUFFERS_22_10_26(); }
   public static Referrable GetRootAsReferrable(ByteBuffer _bb) { return GetRootAsReferrable(_bb, new Referrable()); }
   public static Referrable GetRootAsReferrable(ByteBuffer _bb, Referrable obj) { return (obj.__assign(_bb.GetInt(_bb.Position) + _bb.Position, _bb)); }
   public void __init(int _i, ByteBuffer _bb) { __p = new Table(_i, _bb); }
@@ -37,17 +37,21 @@ public struct Referrable : IFlatbufferObject
   }
 
   public static VectorOffset CreateSortedVectorOfReferrable(FlatBufferBuilder builder, Offset<Referrable>[] offsets) {
-    Array.Sort(offsets, (Offset<Referrable> o1, Offset<Referrable> o2) => builder.DataBuffer.GetUlong(Table.__offset(4, o1.Value, builder.DataBuffer)).CompareTo(builder.DataBuffer.GetUlong(Table.__offset(4, o2.Value, builder.DataBuffer))));
+    Array.Sort(offsets,
+      (Offset<Referrable> o1, Offset<Referrable> o2) =>
+        new Referrable().__assign(builder.DataBuffer.Length - o1.Value, builder.DataBuffer).Id.CompareTo(new Referrable().__assign(builder.DataBuffer.Length - o2.Value, builder.DataBuffer).Id));
     return builder.CreateVectorOfTables(offsets);
   }
 
   public static Referrable? __lookup_by_key(int vectorLocation, ulong key, ByteBuffer bb) {
+    Referrable obj_ = new Referrable();
     int span = bb.GetInt(vectorLocation - 4);
     int start = 0;
     while (span != 0) {
       int middle = span / 2;
       int tableOffset = Table.__indirect(vectorLocation + 4 * (start + middle), bb);
-      int comp = bb.GetUlong(Table.__offset(4, bb.Length - tableOffset, bb)).CompareTo(key);
+      obj_.__assign(tableOffset, bb);
+      int comp = obj_.Id.CompareTo(key);
       if (comp > 0) {
         span = middle;
       } else if (comp < 0) {
@@ -55,7 +59,7 @@ public struct Referrable : IFlatbufferObject
         start += middle;
         span -= middle;
       } else {
-        return new Referrable().__assign(tableOffset, bb);
+        return obj_;
       }
     }
     return null;

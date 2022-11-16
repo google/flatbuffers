@@ -51,7 +51,7 @@ using System.Buffers.Binary;
 #warning ENABLE_SPAN_T requires UNSAFE_BYTEBUFFER to also be defined
 #endif
 
-namespace FlatBuffers
+namespace Google.FlatBuffers
 {
     public abstract class ByteBufferAllocator
     {
@@ -223,6 +223,18 @@ namespace FlatBuffers
         public static int ArraySize<T>(T[] x)
         {
             return SizeOf<T>() * x.Length;
+        }
+
+        /// <summary>
+        /// Get the wire-size (in bytes) of an typed array segment, taking only the
+        /// range specified by <paramref name="x"/> into account.
+        /// </summary>
+        /// <typeparam name="T">The type of the array</typeparam>
+        /// <param name="x">The array segment to get the size of</param>
+        /// <returns>The number of bytes the array segment takes on wire</returns>
+        public static int ArraySize<T>(ArraySegment<T> x)
+        {
+            return SizeOf<T>() * x.Count;
         }
 
 #if ENABLE_SPAN_T && (UNSAFE_BYTEBUFFER || NETSTANDARD2_1)
@@ -869,7 +881,30 @@ namespace FlatBuffers
                 throw new ArgumentNullException("Cannot put a null array");
             }
 
-            if (x.Length == 0)
+            return Put(offset, new ArraySegment<T>(x));
+        }
+
+        /// <summary>
+        /// Copies an array segment of type T into this buffer, ending at the 
+        /// given offset into this buffer. The starting offset is calculated 
+        /// based on the count of the array segment and is the value returned.
+        /// </summary>
+        /// <typeparam name="T">The type of the input data (must be a struct)
+        /// </typeparam>
+        /// <param name="offset">The offset into this buffer where the copy 
+        /// will end</param>
+        /// <param name="x">The array segment to copy data from</param>
+        /// <returns>The 'start' location of this buffer now, after the copy 
+        /// completed</returns>
+        public int Put<T>(int offset, ArraySegment<T> x)
+            where T : struct
+        {
+            if (x.Equals(default(ArraySegment<T>)))
+            {
+                throw new ArgumentNullException("Cannot put a uninitialized array segment");
+            }
+
+            if (x.Count == 0)
             {
                 throw new ArgumentException("Cannot put an empty array");
             }
@@ -889,7 +924,68 @@ namespace FlatBuffers
 #if ENABLE_SPAN_T && (UNSAFE_BYTEBUFFER || NETSTANDARD2_1)
                 MemoryMarshal.Cast<T, byte>(x).CopyTo(_buffer.Span.Slice(offset, numBytes));
 #else
-                Buffer.BlockCopy(x, 0, _buffer.Buffer, offset, numBytes);
+                var srcOffset = ByteBuffer.SizeOf<T>() * x.Offset;
+                Buffer.BlockCopy(x.Array, srcOffset, _buffer.Buffer, offset, numBytes);
+#endif
+            }
+            else
+            {
+                throw new NotImplementedException("Big Endian Support not implemented yet " +
+                    "for putting typed arrays");
+                // if we are BE, we have to swap each element by itself
+                //for(int i = x.Length - 1; i >= 0; i--)
+                //{
+                //  todo: low priority, but need to genericize the Put<T>() functions
+                //}
+            }
+            return offset;
+        }
+
+        /// <summary>
+        /// Copies an array segment of type T into this buffer, ending at the 
+        /// given offset into this buffer. The starting offset is calculated 
+        /// based on the count of the array segment and is the value returned.
+        /// </summary>
+        /// <typeparam name="T">The type of the input data (must be a struct)
+        /// </typeparam>
+        /// <param name="offset">The offset into this buffer where the copy 
+        /// will end</param>
+        /// <param name="ptr">The pointer to copy data from</param>
+        /// <param name="sizeInBytes">The number of bytes to copy</param>
+        /// <returns>The 'start' location of this buffer now, after the copy 
+        /// completed</returns>
+        public int Put<T>(int offset, IntPtr ptr, int sizeInBytes)
+            where T : struct
+        {
+            if (ptr == IntPtr.Zero)
+            {
+                throw new ArgumentNullException("Cannot add a null pointer");
+            }
+
+            if(sizeInBytes <= 0)
+            {
+                throw new ArgumentException("Cannot put an empty array");
+            }
+
+            if (!IsSupportedType<T>())
+            {
+                throw new ArgumentException("Cannot put an array of type "
+                    + typeof(T) + " into this buffer");
+            }
+
+            if (BitConverter.IsLittleEndian)
+            {
+                offset -= sizeInBytes;
+                AssertOffsetAndLength(offset, sizeInBytes);
+                // if we are LE, just do a block copy
+#if ENABLE_SPAN_T && UNSAFE_BYTEBUFFER
+                unsafe
+                { 
+                    var span = new Span<byte>(ptr.ToPointer(), sizeInBytes);
+                    span.CopyTo(_buffer.Span.Slice(offset, sizeInBytes));
+                }
+#else
+                Marshal.Copy(ptr, _buffer.Buffer, offset, sizeInBytes);
 #endif
             }
             else

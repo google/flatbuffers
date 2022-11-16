@@ -1,5 +1,5 @@
 plugins {
-  kotlin("multiplatform") version "1.4.20"
+  kotlin("multiplatform")
 }
 
 group = "com.google.flatbuffers.kotlin"
@@ -10,13 +10,13 @@ kotlin {
   jvm()
   js {
     browser {
-      binaries.executable()
-      testTask {
+     testTask {
         useKarma {
           useChromeHeadless()
         }
       }
     }
+    binaries.executable()
   }
   macosX64()
   iosArm32()
@@ -32,8 +32,7 @@ kotlin {
 
     val commonTest by getting {
       dependencies {
-        implementation(kotlin("test-common"))
-        implementation(kotlin("test-annotations-common"))
+        implementation(kotlin("test"))
       }
     }
     val jvmTest by getting {
@@ -43,9 +42,6 @@ kotlin {
     }
     val jvmMain by getting {
       kotlin.srcDir("java")
-      dependencies {
-        implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.4.1")
-      }
     }
 
     val jsMain by getting {
@@ -79,19 +75,12 @@ kotlin {
 
     all {
       languageSettings.enableLanguageFeature("InlineClasses")
-      languageSettings.useExperimentalAnnotation("kotlin.ExperimentalUnsignedTypes")
+      languageSettings.optIn("kotlin.ExperimentalUnsignedTypes")
     }
   }
+}
 
-  /* Targets configuration omitted.
-   *  To find out how to configure the targets, please follow the link:
-   *  https://kotlinlang.org/docs/reference/building-mpp-with-gradle.html#setting-up-targets */
-  targets {
-    targetFromPreset(presets.getAt("jvm"))
-    targetFromPreset(presets.getAt("js"))
-    targetFromPreset(presets.getAt("macosX64"))
-    targetFromPreset(presets.getAt("iosArm32"))
-    targetFromPreset(presets.getAt("iosArm64"))
-    targetFromPreset(presets.getAt("iosX64"))
-  }
+// Fixes JS issue: https://youtrack.jetbrains.com/issue/KT-49109
+rootProject.plugins.withType<org.jetbrains.kotlin.gradle.targets.js.nodejs.NodeJsRootPlugin> {
+  rootProject.the<org.jetbrains.kotlin.gradle.targets.js.nodejs.NodeJsRootExtension>().nodeVersion = "16.0.0"
 }

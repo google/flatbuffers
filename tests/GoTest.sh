@@ -41,6 +41,11 @@ cp -a ../go/* ./go_gen/src/github.com/google/flatbuffers/go
 cp -a ./go_test.go ./go_gen/src/flatbuffers_test/
 cp -a optional_scalars/*.go ./go_gen/src/optional_scalars
 
+# https://stackoverflow.com/a/63545857/7024978
+# We need to turn off go modules for this script
+# to work.
+go env -w  GO111MODULE=off
+
 # Run tests with necessary flags.
 # Developers may wish to see more detail by appending the verbosity flag
 # -test.v to arguments for this command, as in:

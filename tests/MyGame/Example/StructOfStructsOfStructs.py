@@ -57,6 +57,11 @@ class StructOfStructsOfStructsT(object):
         return cls.InitFromObj(structOfStructsOfStructs)
 
     @classmethod
+    def InitFromPackedBuf(cls, buf, pos=0):
+        n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, pos)
+        return cls.InitFromBuf(buf, pos+n)
+
+    @classmethod
     def InitFromObj(cls, structOfStructsOfStructs):
         x = StructOfStructsOfStructsT()
         x._UnPack(structOfStructsOfStructs)

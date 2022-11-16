@@ -19,6 +19,7 @@
 
 #include "flatbuffers/base.h"
 #include "flatbuffers/buffer.h"
+#include "flatbuffers/stl_emulation.h"
 
 namespace flatbuffers {
 
@@ -26,14 +27,15 @@ struct String;
 
 // An STL compatible iterator implementation for Vector below, effectively
 // calling Get() for every element.
-template<typename T, typename IT> struct VectorIterator {
+template<typename T, typename IT, typename Data = uint8_t *>
+struct VectorIterator {
   typedef std::random_access_iterator_tag iterator_category;
   typedef IT value_type;
   typedef ptrdiff_t difference_type;
   typedef IT *pointer;
   typedef IT &reference;
 
-  VectorIterator(const uint8_t *data, uoffset_t i)
+  VectorIterator(Data data, uoffset_t i)
       : data_(data + IndirectHelper<T>::element_stride * i) {}
   VectorIterator(const VectorIterator &other) : data_(other.data_) {}
   VectorIterator() : data_(nullptr) {}
@@ -115,8 +117,11 @@ template<typename T, typename IT> struct VectorIterator {
   }
 
  private:
-  const uint8_t *data_;
+  Data data_;
 };
+
+template<typename T, typename IT>
+using VectorConstIterator = VectorIterator<T, IT, const uint8_t *>;
 
 template<typename Iterator>
 struct VectorReverseIterator : public std::reverse_iterator<Iterator> {
@@ -144,7 +149,7 @@ template<typename T> class Vector {
  public:
   typedef VectorIterator<T, typename IndirectHelper<T>::mutable_return_type>
       iterator;
-  typedef VectorIterator<T, typename IndirectHelper<T>::return_type>
+  typedef VectorConstIterator<T, typename IndirectHelper<T>::return_type>
       const_iterator;
   typedef VectorReverseIterator<iterator> reverse_iterator;
   typedef VectorReverseIterator<const_iterator> const_reverse_iterator;
@@ -324,6 +329,24 @@ FLATBUFFERS_CONSTEXPR_CPP11 flatbuffers::span<const uint8_t> make_bytes_span(
   static_assert(Vector<U>::scalar_tag::value,
                 "wrong type U, only LE-scalar, or byte types are allowed");
   return span<const uint8_t>(vec.Data(), vec.size() * sizeof(U));
+}
+
+// Convenient helper functions to get a span of any vector, regardless
+// of whether it is null or not (the field is not set).
+template<class U>
+FLATBUFFERS_CONSTEXPR_CPP11 flatbuffers::span<U> make_span(Vector<U> *ptr)
+    FLATBUFFERS_NOEXCEPT {
+  static_assert(Vector<U>::is_span_observable,
+                "wrong type U, only LE-scalar, or byte types are allowed");
+  return ptr ? make_span(*ptr) : span<U>();
+}
+
+template<class U>
+FLATBUFFERS_CONSTEXPR_CPP11 flatbuffers::span<const U> make_span(
+    const Vector<U> *ptr) FLATBUFFERS_NOEXCEPT {
+  static_assert(Vector<U>::is_span_observable,
+                "wrong type U, only LE-scalar, or byte types are allowed");
+  return ptr ? make_span(*ptr) : span<const U>();
 }
 
 // Represent a vector much like the template above, but in this case we

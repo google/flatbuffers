@@ -1,13 +1,14 @@
-#[cfg(feature = "no_std")]
+use crate::follow::Follow;
+use crate::{ForwardsUOffset, SOffsetT, SkipSizePrefix, UOffsetT, VOffsetT, Vector, SIZE_UOFFSET};
+#[cfg(not(feature = "std"))]
 use alloc::vec::Vec;
 use core::ops::Range;
 use core::option::Option;
-use crate::follow::Follow;
-use crate::{ForwardsUOffset, SOffsetT, SkipSizePrefix, UOffsetT, VOffsetT, Vector, SIZE_UOFFSET};
 
-#[cfg(feature="no_std")]
-extern crate thiserror_core2 as thiserror;
-use thiserror::Error;
+#[cfg(all(nightly, not(feature = "std")))]
+use core::error::Error;
+#[cfg(feature = "std")]
+use std::error::Error;
 
 /// Traces the location of data errors. Not populated for Dos detecting errors.
 /// Useful for MissingRequiredField and Utf8Error in particular, though
@@ -27,8 +28,10 @@ pub enum ErrorTraceDetail {
         position: usize,
     },
 }
+
 #[derive(PartialEq, Eq, Default, Debug, Clone)]
 pub struct ErrorTrace(Vec<ErrorTraceDetail>);
+
 impl core::convert::AsRef<[ErrorTraceDetail]> for ErrorTrace {
     #[inline]
     fn as_ref(&self) -> &[ErrorTraceDetail] {
@@ -38,62 +41,136 @@ impl core::convert::AsRef<[ErrorTraceDetail]> for ErrorTrace {
 
 /// Describes how a flatuffer is invalid and, for data errors, roughly where. No extra tracing
 /// information is given for DoS detecting errors since it will probably be a lot.
-#[derive(Clone, Error, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub enum InvalidFlatbuffer {
-    #[error("Missing required field `{required}`.\n{error_trace}")]
     MissingRequiredField {
         required: &'static str,
         error_trace: ErrorTrace,
     },
-    #[error(
-        "Union exactly one of union discriminant (`{field_type}`) and value \
-             (`{field}`) are present.\n{error_trace}"
-    )]
     InconsistentUnion {
         field: &'static str,
         field_type: &'static str,
         error_trace: ErrorTrace,
     },
-    #[error("Utf8 error for string in {range:?}: {error}\n{error_trace}")]
     Utf8Error {
-        #[source]
         error: core::str::Utf8Error,
         range: Range<usize>,
         error_trace: ErrorTrace,
     },
-    #[error("String in range [{}, {}) is missing its null terminator.\n{error_trace}",
-            range.start, range.end)]
     MissingNullTerminator {
         range: Range<usize>,
         error_trace: ErrorTrace,
     },
-    #[error("Type `{unaligned_type}` at position {position} is unaligned.\n{error_trace}")]
     Unaligned {
         position: usize,
         unaligned_type: &'static str,
         error_trace: ErrorTrace,
     },
-    #[error("Range [{}, {}) is out of bounds.\n{error_trace}", range.start, range.end)]
     RangeOutOfBounds {
         range: Range<usize>,
         error_trace: ErrorTrace,
     },
-    #[error(
-        "Signed offset at position {position} has value {soffset} which points out of bounds.\
-             \n{error_trace}"
-    )]
     SignedOffsetOutOfBounds {
         soffset: SOffsetT,
         position: usize,
         error_trace: ErrorTrace,
     },
     // Dos detecting errors. These do not get error traces since it will probably be very large.
-    #[error("Too many tables.")]
     TooManyTables,
-    #[error("Apparent size too large.")]
     ApparentSizeTooLarge,
-    #[error("Nested table depth limit reached.")]
     DepthLimitReached,
+}
+
+#[cfg(any(nightly, feature = "std"))]
+impl Error for InvalidFlatbuffer {
+    fn source(&self) -> Option<&(dyn Error + 'static)> {
+        if let InvalidFlatbuffer::Utf8Error { error: source, .. } = self {
+            Some(source)
+        } else {
+            None
+        }
+    }
+}
+
+impl core::fmt::Display for InvalidFlatbuffer {
+    fn fmt(&self, f: &mut core::fmt::Formatter) -> core::fmt::Result {
+        match self {
+            InvalidFlatbuffer::MissingRequiredField {
+                required,
+                error_trace,
+            } => {
+                writeln!(f, "Missing required field `{}`.\n{}", required, error_trace)?;
+            }
+            InvalidFlatbuffer::InconsistentUnion {
+                field,
+                field_type,
+                error_trace,
+            } => {
+                writeln!(
+                    f,
+                    "Exactly one of union discriminant (`{}`) and value (`{}`) are present.\n{}",
+                    field_type, field, error_trace
+                )?;
+            }
+            InvalidFlatbuffer::Utf8Error {
+                error,
+                range,
+                error_trace,
+            } => {
+                writeln!(
+                    f,
+                    "Utf8 error for string in {:?}: {}\n{}",
+                    range, error, error_trace
+                )?;
+            }
+            InvalidFlatbuffer::MissingNullTerminator { range, error_trace } => {
+                writeln!(
+                    f,
+                    "String in range [{}, {}) is missing its null terminator.\n{}",
+                    range.start, range.end, error_trace
+                )?;
+            }
+            InvalidFlatbuffer::Unaligned {
+                position,
+                unaligned_type,
+                error_trace,
+            } => {
+                writeln!(
+                    f,
+                    "Type `{}` at position {} is unaligned.\n{}",
+                    unaligned_type, position, error_trace
+                )?;
+            }
+            InvalidFlatbuffer::RangeOutOfBounds { range, error_trace } => {
+                writeln!(
+                    f,
+                    "Range [{}, {}) is out of bounds.\n{}",
+                    range.start, range.end, error_trace
+                )?;
+            }
+            InvalidFlatbuffer::SignedOffsetOutOfBounds {
+                soffset,
+                position,
+                error_trace,
+            } => {
+                writeln!(
+                    f,
+                    "Signed offset at position {} has value {} which points out of bounds.\n{}",
+                    position, soffset, error_trace
+                )?;
+            }
+            InvalidFlatbuffer::TooManyTables {} => {
+                writeln!(f, "Too many tables.")?;
+            }
+            InvalidFlatbuffer::ApparentSizeTooLarge {} => {
+                writeln!(f, "Apparent size too large.")?;
+            }
+            InvalidFlatbuffer::DepthLimitReached {} => {
+                writeln!(f, "Nested table depth limit reached.")?;
+            }
+        }
+        Ok(())
+    }
 }
 
 impl core::fmt::Display for ErrorTrace {
@@ -183,6 +260,7 @@ fn trace_field<T>(res: Result<T>, field_name: &'static str, position: usize) -> 
         },
     )
 }
+
 /// Adds a TableField trace detail if `res` is a data error.
 fn trace_elem<T>(res: Result<T>, index: usize, position: usize) -> Result<T> {
     append_trace(res, ErrorTraceDetail::VectorElement { index, position })
@@ -204,6 +282,7 @@ pub struct VerifierOptions {
     // options to error un-recognized enums and unions? possible footgun.
     // Ignore nested flatbuffers, etc?
 }
+
 impl Default for VerifierOptions {
     fn default() -> Self {
         Self {
@@ -225,6 +304,7 @@ pub struct Verifier<'opts, 'buf> {
     num_tables: usize,
     apparent_size: usize,
 }
+
 impl<'opts, 'buf> Verifier<'opts, 'buf> {
     pub fn new(opts: &'opts VerifierOptions, buffer: &'buf [u8]) -> Self {
         Self {
@@ -246,9 +326,12 @@ impl<'opts, 'buf> Verifier<'opts, 'buf> {
     /// memory since `buffer: &[u8]` has alignment 1.
     ///
     /// ### WARNING
+    ///
     /// This does not work for flatbuffers-structs as they have alignment 1 according to
     /// `core::mem::align_of` but are meant to have higher alignment within a Flatbuffer w.r.t.
     /// `buffer[0]`. TODO(caspern).
+    ///
+    /// Note this does not impact soundness as this crate does not assume alignment of structs
     #[inline]
     fn is_aligned<T>(&self, pos: usize) -> Result<()> {
         if pos % core::mem::align_of::<T>() == 0 {
@@ -306,9 +389,9 @@ impl<'opts, 'buf> Verifier<'opts, 'buf> {
 
         // signed offsets are subtracted.
         let derefed = if offset > 0 {
-            pos.checked_sub(offset.abs() as usize)
+            pos.checked_sub(offset.unsigned_abs() as usize)
         } else {
-            pos.checked_add(offset.abs() as usize)
+            pos.checked_add(offset.unsigned_abs() as usize)
         };
         if let Some(x) = derefed {
             if x < self.buffer.len() {
@@ -371,6 +454,7 @@ pub struct TableVerifier<'ver, 'opts, 'buf> {
     // Verifier struct which holds the surrounding state and options.
     verifier: &'ver mut Verifier<'opts, 'buf>,
 }
+
 impl<'ver, 'opts, 'buf> TableVerifier<'ver, 'opts, 'buf> {
     fn deref(&mut self, field: VOffsetT) -> Result<Option<usize>> {
         let field = field as usize;
@@ -438,7 +522,9 @@ impl<'ver, 'opts, 'buf> TableVerifier<'ver, 'opts, 'buf> {
             }
             (Some(k), Some(v)) => {
                 trace_field(Key::run_verifier(self.verifier, k), key_field_name, k)?;
-                let discriminant = Key::follow(self.verifier.buffer, k);
+                // Safety:
+                // Run verifier on `k` above
+                let discriminant = unsafe { Key::follow(self.verifier.buffer, k) };
                 trace_field(
                     verify_union(discriminant, self.verifier, v),
                     val_field_name,
@@ -485,16 +571,27 @@ fn verify_vector_range<T>(v: &mut Verifier, pos: usize) -> Result<core::ops::Ran
 }
 
 pub trait SimpleToVerifyInSlice {}
+
 impl SimpleToVerifyInSlice for bool {}
+
 impl SimpleToVerifyInSlice for i8 {}
+
 impl SimpleToVerifyInSlice for u8 {}
+
 impl SimpleToVerifyInSlice for i16 {}
+
 impl SimpleToVerifyInSlice for u16 {}
+
 impl SimpleToVerifyInSlice for i32 {}
+
 impl SimpleToVerifyInSlice for u32 {}
+
 impl SimpleToVerifyInSlice for f32 {}
+
 impl SimpleToVerifyInSlice for i64 {}
+
 impl SimpleToVerifyInSlice for u64 {}
+
 impl SimpleToVerifyInSlice for f64 {}
 
 impl<T: SimpleToVerifyInSlice> Verifiable for Vector<'_, T> {

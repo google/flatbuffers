@@ -51,6 +51,11 @@ table ProtoMessage {
   /// doc comment for r.
   r:proto.test.test_namespace_suffix.ProtoMessage_.Anonymous0;
   outer_enum:proto.test.test_namespace_suffix.ProtoEnum;
+  u:float = +inf;
+  v:float = +inf;
+  w:float = -inf;
+  grades:[proto.test.test_namespace_suffix.ProtoMessage_.GradesEntry];
+  other_message_map:[proto.test.test_namespace_suffix.ProtoMessage_.OtherMessageMapEntry];
 }
 
 namespace proto.test.test_namespace_suffix.ProtoMessage_;
@@ -68,5 +73,15 @@ table Anonymous0 {
   /// doc comment for t on 2
   /// lines.
   t:proto.test.test_namespace_suffix.ProtoMessage_.OtherMessage;
+}
+
+table GradesEntry {
+  key:string (key);
+  value:float;
+}
+
+table OtherMessageMapEntry {
+  key:string (key);
+  value:proto.test.test_namespace_suffix.ProtoMessage_.OtherMessage;
 }
 

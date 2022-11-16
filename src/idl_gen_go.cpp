@@ -16,6 +16,8 @@
 
 // independent from idl_parser, since this code is not needed for most clients
 
+#include <algorithm>
+#include <cmath>
 #include <sstream>
 #include <string>
 
@@ -38,8 +40,10 @@ namespace flatbuffers {
 
 namespace go {
 
+namespace {
+
 // see https://golang.org/ref/spec#Keywords
-std::set<std::string> GoKeywords() {
+static std::set<std::string> GoKeywords() {
   return {
     "break",    "default",     "func",   "interface", "select",
     "case",     "defer",       "go",     "map",       "struct",
@@ -49,7 +53,7 @@ std::set<std::string> GoKeywords() {
   };
 }
 
-Namer::Config GoDefaultConfig() {
+static Namer::Config GoDefaultConfig() {
   // Note that the functions with user defined types in the name use
   // upper camel case for all but the user defined type itself, which is keep
   // cased. Despite being a function, we interpret it as a Type.
@@ -61,7 +65,7 @@ Namer::Config GoDefaultConfig() {
            /*variables=*/Case::kLowerCamel,
            /*variants=*/Case::kKeep,
            /*enum_variant_seperator=*/"",  // I.e. Concatenate.
-           /*escape_keywords=*/Namer::Config::Escape::BeforeConvertingCase,
+           /*escape_keywords=*/Namer::Config::Escape::AfterConvertingCase,
            /*namespaces=*/Case::kKeep,
            /*namespace_seperator=*/"__",
            /*object_prefix=*/"",
@@ -74,6 +78,8 @@ Namer::Config GoDefaultConfig() {
            /*filename_suffix=*/"",
            /*filename_extension=*/".go" };
 }
+
+} // namespace
 
 class GoGenerator : public BaseGenerator {
  public:
@@ -97,6 +103,7 @@ class GoGenerator : public BaseGenerator {
     for (auto it = parser_.enums_.vec.begin(); it != parser_.enums_.vec.end();
          ++it) {
       tracked_imported_namespaces_.clear();
+      needs_math_import_ = false;
       needs_imports = false;
       std::string enumcode;
       GenEnum(**it, &enumcode);
@@ -116,6 +123,7 @@ class GoGenerator : public BaseGenerator {
     for (auto it = parser_.structs_.vec.begin();
          it != parser_.structs_.vec.end(); ++it) {
       tracked_imported_namespaces_.clear();
+      needs_math_import_ = false;
       std::string declcode;
       GenStruct(**it, &declcode);
       if (parser_.opts.one_file) {
@@ -149,6 +157,7 @@ class GoGenerator : public BaseGenerator {
     }
   };
   std::set<const Namespace *, NamespacePtrLess> tracked_imported_namespaces_;
+  bool needs_math_import_ = false;
 
   // Most field accessors need to retrieve and test the field offset first,
   // this is the prefix code for that.
@@ -842,7 +851,8 @@ class GoGenerator : public BaseGenerator {
         continue;
       code += "\t" + namer_.Field(field) + " ";
       if (field.IsScalarOptional()) { code += "*"; }
-      code += NativeType(field.value.type) + "\n";
+      code += NativeType(field.value.type) + " `json:\"" + field.name + "\"`" +
+              "\n";
     }
     code += "}\n\n";
 
@@ -896,7 +906,10 @@ class GoGenerator : public BaseGenerator {
       const EnumVal &ev = **it2;
       if (ev.IsZero()) continue;
       code += "\tcase " + namer_.EnumVariant(enum_def, ev) + ":\n";
-      code += "\t\tx := " + ev.union_type.struct_def->name + "{_tab: table}\n";
+      code += "\t\tvar x " +
+              WrapInNameSpaceAndTrack(*ev.union_type.struct_def) +
+              "\n";
+      code += "\t\tx.Init(table.Bytes, table.Pos)\n";
 
       code += "\t\treturn &" +
               WrapInNameSpaceAndTrack(enum_def.defined_namespace,
@@ -1271,6 +1284,23 @@ class GoGenerator : public BaseGenerator {
     switch (field.value.type.base_type) {
       case BASE_TYPE_BOOL:
         return field.value.constant == "0" ? "false" : "true";
+      case BASE_TYPE_FLOAT:
+      case BASE_TYPE_DOUBLE: {
+        const std::string float_type =
+            field.value.type.base_type == BASE_TYPE_FLOAT ? "float32"
+                                                          : "float64";
+        if (StringIsFlatbufferNan(field.value.constant)) {
+          needs_math_import_ = true;
+          return float_type + "(math.NaN())";
+        } else if (StringIsFlatbufferPositiveInfinity(field.value.constant)) {
+          needs_math_import_ = true;
+          return float_type + "(math.Inf(1))";
+        } else if (StringIsFlatbufferNegativeInfinity(field.value.constant)) {
+          needs_math_import_ = true;
+          return float_type + "(math.Inf(-1))";
+        }
+        return field.value.constant;
+      }
       default: return field.value.constant;
     }
   }
@@ -1324,6 +1354,8 @@ class GoGenerator : public BaseGenerator {
     if (needs_imports) {
       code += "import (\n";
       if (is_enum) { code += "\t\"strconv\"\n\n"; }
+      // math is needed to support non-finite scalar default values.
+      if (needs_math_import_) { code += "\t\"math\"\n\n"; }
       if (!parser_.opts.go_import.empty()) {
         code += "\tflatbuffers \"" + parser_.opts.go_import + "\"\n";
       } else {
@@ -1340,6 +1372,10 @@ class GoGenerator : public BaseGenerator {
       code += ")\n\n";
     } else {
       if (is_enum) { code += "import \"strconv\"\n\n"; }
+      if (needs_math_import_) {
+        // math is needed to support non-finite scalar default values.
+        code += "import \"math\"\n\n";
+      }
     }
   }
 
@@ -1357,8 +1393,10 @@ class GoGenerator : public BaseGenerator {
     while (code.length() > 2 && code.substr(code.length() - 2) == "\n\n") {
       code.pop_back();
     }
-    std::string filename =
-        namer_.Directories(ns) + namer_.File(def, SkipFile::Suffix);
+    std::string directory = namer_.Directories(ns);
+    std::string file = namer_.File(def, SkipFile::Suffix);
+    EnsureDirExists(directory);
+    std::string filename = directory + file;
     return SaveFile(filename.c_str(), code, false);
   }
 

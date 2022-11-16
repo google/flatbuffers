@@ -47,7 +47,14 @@ import MyGame.Example.ArrayTable  # refers to generated code
 import MyGame.Example.ArrayStruct  # refers to generated code
 import MyGame.Example.NestedStruct  # refers to generated code
 import MyGame.Example.TestEnum  # refers to generated code
+import MyGame.Example.NestedUnion.NestedUnionTest  # refers to generated code
+import MyGame.Example.NestedUnion.Vec3  # refers to generated code
+import MyGame.Example.NestedUnion.Any  # refers to generated code
+import MyGame.Example.NestedUnion.Test  # refers to generated code
+import MyGame.Example.NestedUnion.Color  # refers to generated code
 import monster_test_generated  # the one-file version
+import optional_scalars
+import optional_scalars.ScalarStuff
 
 
 def create_namespace_shortcut(is_onefile):
@@ -273,6 +280,35 @@ class TestObjectBasedAPI(unittest.TestCase):
     self.assertEqual(monster2.VectorOfEnumsAsNumpy(), 0)
     self.assertEqual(monster2.VectorOfEnumsLength(), 0)
     self.assertTrue(monster2.VectorOfEnumsIsNone())
+
+  def test_optional_scalars_with_pack_and_unpack(self):
+    """ Serializes and deserializes between a buffer with optional values (no
+        specific values are filled when the buffer is created) and its python
+        object.
+    """
+    # Creates a flatbuffer with optional values.
+    b1 = flatbuffers.Builder(0)
+    optional_scalars.ScalarStuff.ScalarStuffStart(b1)
+    gen_opt = optional_scalars.ScalarStuff.ScalarStuffEnd(b1)
+    b1.Finish(gen_opt)
+
+    # Converts the flatbuffer into the object class.
+    opts1 = optional_scalars.ScalarStuff.ScalarStuff.GetRootAs(b1.Bytes, b1.Head())
+    optsT1 = optional_scalars.ScalarStuff.ScalarStuffT.InitFromObj(opts1)
+
+    # Packs the object class into another flatbuffer.
+    b2 = flatbuffers.Builder(0)
+    b2.Finish(optsT1.Pack(b2))
+    opts2 = optional_scalars.ScalarStuff.ScalarStuff.GetRootAs(b2.Bytes, b2.Head())
+    optsT2 = optional_scalars.ScalarStuff.ScalarStuffT.InitFromObj(opts2)
+    # Checks the default values.
+    self.assertTrue(opts2.JustI8() == 0)
+    self.assertTrue(opts2.MaybeF32() is None)
+    self.assertTrue(opts2.DefaultBool() is True)
+    self.assertTrue(optsT2.justU16 == 0)
+    self.assertTrue(optsT2.maybeEnum is None)
+    self.assertTrue(optsT2.defaultU64 == 42)
+
 
 
 class TestAllMutableCodePathsOfExampleSchema(unittest.TestCase):
@@ -946,6 +982,48 @@ class TestByteLayout(unittest.TestCase):
     self.assertBuilderEquals(b, [0xBA, 0xDC, 0xCD, 0xAB])
     b.EndVector()
     self.assertBuilderEquals(b, [2, 0, 0, 0, 0xBA, 0xDC, 0xCD, 0xAB])
+
+  def test_create_ascii_shared_string(self):
+    b = flatbuffers.Builder(0)
+    b.CreateSharedString(u'foo', encoding='ascii')
+    b.CreateSharedString(u'foo', encoding='ascii')
+
+    # 0-terminated, no pad:
+    self.assertBuilderEquals(b, [3, 0, 0, 0, 'f', 'o', 'o', 0])
+    b.CreateSharedString(u'moop', encoding='ascii')
+    b.CreateSharedString(u'moop', encoding='ascii')
+    # 0-terminated, 3-byte pad:
+    self.assertBuilderEquals(b, [
+        4, 0, 0, 0, 'm', 'o', 'o', 'p', 0, 0, 0, 0, 3, 0, 0, 0, 'f', 'o', 'o', 0
+    ])
+
+  def test_create_utf8_shared_string(self):
+    b = flatbuffers.Builder(0)
+    b.CreateSharedString(u'Цлїςσδε')
+    b.CreateSharedString(u'Цлїςσδε')
+    self.assertBuilderEquals(b, '\x0e\x00\x00\x00\xd0\xa6\xd0\xbb\xd1\x97' \
+        '\xcf\x82\xcf\x83\xce\xb4\xce\xb5\x00\x00')
+
+    b.CreateSharedString(u'ﾌﾑｱﾑｶﾓｹﾓ')
+    b.CreateSharedString(u'ﾌﾑｱﾑｶﾓｹﾓ')
+    self.assertBuilderEquals(b, '\x18\x00\x00\x00\xef\xbe\x8c\xef\xbe\x91' \
+        '\xef\xbd\xb1\xef\xbe\x91\xef\xbd\xb6\xef\xbe\x93\xef\xbd\xb9\xef' \
+        '\xbe\x93\x00\x00\x00\x00\x0e\x00\x00\x00\xd0\xa6\xd0\xbb\xd1\x97' \
+        '\xcf\x82\xcf\x83\xce\xb4\xce\xb5\x00\x00')
+
+  def test_create_arbitrary_shared_string(self):
+    b = flatbuffers.Builder(0)
+    s = '\x01\x02\x03'
+    b.CreateSharedString(s)  # Default encoding is utf-8.
+    b.CreateSharedString(s)
+    # 0-terminated, no pad:
+    self.assertBuilderEquals(b, [3, 0, 0, 0, 1, 2, 3, 0])
+    s2 = '\x04\x05\x06\x07'
+    b.CreateSharedString(s2)  # Default encoding is utf-8.
+    b.CreateSharedString(s2)
+    # 0-terminated, 3-byte pad:
+    self.assertBuilderEquals(
+        b, [4, 0, 0, 0, 4, 5, 6, 7, 0, 0, 0, 0, 3, 0, 0, 0, 1, 2, 3, 0])
 
   def test_create_ascii_string(self):
     b = flatbuffers.Builder(0)
@@ -2552,6 +2630,13 @@ class TestExceptions(unittest.TestCase):
     assertRaises(self, lambda: b.PrependUOffsetTRelative(1),
                  flatbuffers.builder.OffsetArithmeticError)
 
+  def test_create_shared_string_is_nested_error(self):
+    b = flatbuffers.Builder(0)
+    b.StartObject(0)
+    s = 'test1'
+    assertRaises(self, lambda: b.CreateSharedString(s),
+                 flatbuffers.builder.IsNestedError)
+
   def test_create_string_is_nested_error(self):
     b = flatbuffers.Builder(0)
     b.StartObject(0)
@@ -2611,22 +2696,84 @@ class TestFixedLengthArrays(unittest.TestCase):
     self.assertEqual(table.A().B(), \
         [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14])
     self.assertEqual(table.A().C(), 1)
-    self.assertEqual(table.A().D(nested, 0).A(), [1, 2])
-    self.assertEqual(table.A().D(nested, 1).A(), [3, 4])
-    self.assertEqual(table.A().D(nested, 0).B(), \
+    self.assertEqual(table.A().D(0).A(), [1, 2])
+    self.assertEqual(table.A().D(1).A(), [3, 4])
+    self.assertEqual(table.A().D(0).B(), \
         MyGame.Example.TestEnum.TestEnum.B)
-    self.assertEqual(table.A().D(nested, 1).B(), \
+    self.assertEqual(table.A().D(1).B(), \
         MyGame.Example.TestEnum.TestEnum.C)
-    self.assertEqual(table.A().D(nested, 0).C(), \
+    self.assertEqual(table.A().D(0).C(), \
         [MyGame.Example.TestEnum.TestEnum.A, \
          MyGame.Example.TestEnum.TestEnum.B])
-    self.assertEqual(table.A().D(nested, 1).C(), \
+    self.assertEqual(table.A().D(1).C(), \
         [MyGame.Example.TestEnum.TestEnum.C, \
          MyGame.Example.TestEnum.TestEnum.B])
-    self.assertEqual(table.A().D(nested, 0).D(), [-1, 1])
-    self.assertEqual(table.A().D(nested, 1).D(), [-2, 2])
+    self.assertEqual(table.A().D(0).D(), [-1, 1])
+    self.assertEqual(table.A().D(1).D(), [-2, 2])
     self.assertEqual(table.A().E(), 2)
     self.assertEqual(table.A().F(), [-1, 1])
+    self.assertEqual(table.A().D(0).D(0), -1)
+    self.assertEqual(table.A().D(0).D(1), 1)
+    self.assertEqual(table.A().D(1).D(0), -2)
+    self.assertEqual(table.A().D(1).D(1), 2)
+
+class TestNestedUnionTables(unittest.TestCase):
+
+  def test_nested_union_tables(self):
+    nestUnion = MyGame.Example.NestedUnion.NestedUnionTest.NestedUnionTestT()
+    nestUnion.name = b"testUnion1"
+    nestUnion.id = 1
+    nestUnion.data = MyGame.Example.NestedUnion.Vec3.Vec3T()
+    nestUnion.dataType = MyGame.Example.NestedUnion.Any.Any.Vec3
+    nestUnion.data.x = 4.278975356
+    nestUnion.data.y = 5.32
+    nestUnion.data.z = -6.464
+    nestUnion.data.test1 = 0.9
+    nestUnion.data.test2 = MyGame.Example.NestedUnion.Color.Color.Red
+    nestUnion.data.test3 = MyGame.Example.NestedUnion.Test.TestT()
+    nestUnion.data.test3.a = 5
+    nestUnion.data.test3.b = 2
+
+    b = flatbuffers.Builder(0)
+    b.Finish(nestUnion.Pack(b))
+
+    nestUnionDecode = MyGame.Example.NestedUnion.NestedUnionTest.NestedUnionTest.GetRootAs(b.Bytes, b.Head())
+    nestUnionDecodeT = MyGame.Example.NestedUnion.NestedUnionTest.NestedUnionTestT.InitFromObj(nestUnionDecode)
+    self.assertEqual(nestUnionDecodeT.name, nestUnion.name)
+    self.assertEqual(nestUnionDecodeT.id, nestUnion.id)
+    self.assertEqual(nestUnionDecodeT.dataType, nestUnion.dataType)
+    self.assertEqual(nestUnionDecodeT.data.x, nestUnion.data.x)
+    self.assertEqual(nestUnionDecodeT.data.y, nestUnion.data.y)
+    self.assertEqual(nestUnionDecodeT.data.z, nestUnion.data.z)
+    self.assertEqual(nestUnionDecodeT.data.test1, nestUnion.data.test1)
+    self.assertEqual(nestUnionDecodeT.data.test2, nestUnion.data.test2)
+    self.assertEqual(nestUnionDecodeT.data.test3.a, nestUnion.data.test3.a)
+    self.assertEqual(nestUnionDecodeT.data.test3.b, nestUnion.data.test3.b)
+
+    nestUnionDecodeTFromBuf = MyGame.Example.NestedUnion.NestedUnionTest.NestedUnionTestT.InitFromPackedBuf(b.Bytes, b.Head())
+    self.assertEqual(nestUnionDecodeTFromBuf.name, nestUnion.name)
+    self.assertEqual(nestUnionDecodeTFromBuf.id, nestUnion.id)
+    self.assertEqual(nestUnionDecodeTFromBuf.dataType, nestUnion.dataType)
+    self.assertEqual(nestUnionDecodeTFromBuf.data.x, nestUnion.data.x)
+    self.assertEqual(nestUnionDecodeTFromBuf.data.y, nestUnion.data.y)
+    self.assertEqual(nestUnionDecodeTFromBuf.data.z, nestUnion.data.z)
+    self.assertEqual(nestUnionDecodeTFromBuf.data.test1, nestUnion.data.test1)
+    self.assertEqual(nestUnionDecodeTFromBuf.data.test2, nestUnion.data.test2)
+    self.assertEqual(nestUnionDecodeTFromBuf.data.test3.a, nestUnion.data.test3.a)
+    self.assertEqual(nestUnionDecodeTFromBuf.data.test3.b, nestUnion.data.test3.b)
+
+
+    nestUnionDecodeTFromBuf2 = MyGame.Example.NestedUnion.NestedUnionTest.NestedUnionTestT.InitFromPackedBuf(b.Output())
+    self.assertEqual(nestUnionDecodeTFromBuf2.name, nestUnion.name)
+    self.assertEqual(nestUnionDecodeTFromBuf2.id, nestUnion.id)
+    self.assertEqual(nestUnionDecodeTFromBuf2.dataType, nestUnion.dataType)
+    self.assertEqual(nestUnionDecodeTFromBuf2.data.x, nestUnion.data.x)
+    self.assertEqual(nestUnionDecodeTFromBuf2.data.y, nestUnion.data.y)
+    self.assertEqual(nestUnionDecodeTFromBuf2.data.z, nestUnion.data.z)
+    self.assertEqual(nestUnionDecodeTFromBuf2.data.test1, nestUnion.data.test1)
+    self.assertEqual(nestUnionDecodeTFromBuf2.data.test2, nestUnion.data.test2)
+    self.assertEqual(nestUnionDecodeTFromBuf2.data.test3.a, nestUnion.data.test3.a)
+    self.assertEqual(nestUnionDecodeTFromBuf2.data.test3.b, nestUnion.data.test3.b)
 
 
 def CheckAgainstGoldDataGo():

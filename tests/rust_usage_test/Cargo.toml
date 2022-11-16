@@ -4,6 +4,7 @@ version = "0.1.0"
 authors = ["Robert Winslow <hello@rwinslow.com>",
            "Casper Neo <cneo@google.com>",
            "FlatBuffers Maintainers"]
+edition = "2018"
 
 [dependencies]
 flatbuffers = { path = "../../rust/flatbuffers", default-features = false }
@@ -15,7 +16,7 @@ libc_alloc = { version = "1.0.3", optional = true }
 
 [features]
 default = ["flatbuffers/default"]
-no_std = ["flatbuffers/no_std", "libc_alloc"]
+no_std = ["libc_alloc"]
 
 [[bin]]
 name = "monster_example"
