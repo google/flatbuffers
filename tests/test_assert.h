@@ -51,10 +51,10 @@ int CloseTestEngine(bool force_report = false);
 
 // Write captured state to a log and terminate test run.
 void TestFail(const char *expval, const char *val, const char *exp,
-              const char *file, int line, const char *func = 0);
+              const char *file, int line, const char *func = nullptr);
 
 void TestEqStr(const char *expval, const char *val, const char *exp,
-               const char *file, int line, const char *func = 0);
+               const char *file, int line, const char *func = nullptr);
 
 // Workaround for `enum class` printing.
 // There is an issue with the printing of enums with a fixed underlying type.

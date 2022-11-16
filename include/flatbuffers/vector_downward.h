@@ -17,6 +17,8 @@
 #ifndef FLATBUFFERS_VECTOR_DOWNWARD_H_
 #define FLATBUFFERS_VECTOR_DOWNWARD_H_
 
+#include <algorithm>
+
 #include "flatbuffers/base.h"
 #include "flatbuffers/default_allocator.h"
 #include "flatbuffers/detached_buffer.h"
@@ -24,7 +26,7 @@
 namespace flatbuffers {
 
 // This is a minimal replication of std::vector<uint8_t> functionality,
-// except growing from higher to lower addresses. i.e push_back() inserts data
+// except growing from higher to lower addresses. i.e. push_back() inserts data
 // in the lowest address in the vector.
 // Since this vector leaves the lower part unused, we support a "scratch-pad"
 // that can be stored there for temporary data, to share the allocated space.

@@ -6,6 +6,13 @@
 
 #include "flatbuffers/flatbuffers.h"
 
+// Ensure the included flatbuffers.h is the same version as when this file was
+// generated, otherwise it may not be compatible.
+static_assert(FLATBUFFERS_VERSION_MAJOR == 2 &&
+              FLATBUFFERS_VERSION_MINOR == 0 &&
+              FLATBUFFERS_VERSION_REVISION == 8,
+             "Non-compatible flatbuffers version included");
+
 namespace com {
 namespace fbs {
 namespace app {
@@ -35,7 +42,7 @@ struct Animal FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
            verifier.VerifyString(name()) &&
            VerifyOffset(verifier, VT_SOUND) &&
            verifier.VerifyString(sound()) &&
-           VerifyField<uint16_t>(verifier, VT_WEIGHT) &&
+           VerifyField<uint16_t>(verifier, VT_WEIGHT, 2) &&
            verifier.EndTable();
   }
 };
@@ -57,7 +64,6 @@ struct AnimalBuilder {
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  AnimalBuilder &operator=(const AnimalBuilder &);
   flatbuffers::Offset<Animal> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<Animal>(end);

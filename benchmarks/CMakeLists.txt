@@ -16,7 +16,7 @@ FetchContent_Declare(
 FetchContent_Declare(
     googlebenchmark
     GIT_REPOSITORY https://github.com/google/benchmark.git
-    GIT_TAG        f91b6b42b1b9854772a90ae9501464a161707d1e # v1.6.0
+    GIT_TAG        0d98dba29d66e93259db7daa53a9327df767a415 # v1.6.1
 )
 
 # For Windows: Prevent overriding the parent project's compiler/linker 
@@ -64,6 +64,12 @@ add_executable(flatbenchmark ${FlatBenchmark_SRCS})
 # Benchmark requires C++11 
 target_compile_features(flatbenchmark PUBLIC
     cxx_std_11
+)
+
+target_compile_options(flatbenchmark
+    PRIVATE
+        -fno-aligned-new
+        -Wno-deprecated-declarations
 )
 
 # Set the output directory to the root binary directory

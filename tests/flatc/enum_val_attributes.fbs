@@ -1,0 +1,8 @@
+attribute display_name;
+
+enum ValAttributes : int
+{
+    Val1 = 0 (display_name: "Value 1"),
+    Val2 (display_name: "Value 2"),
+    Val3 (deprecated, display_name: "Value 3 (deprecated)"),
+}

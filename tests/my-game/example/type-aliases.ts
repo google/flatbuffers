@@ -7,7 +7,7 @@ import * as flatbuffers from 'flatbuffers';
 export class TypeAliases {
   bb: flatbuffers.ByteBuffer|null = null;
   bb_pos = 0;
-__init(i:number, bb:flatbuffers.ByteBuffer):TypeAliases {
+  __init(i:number, bb:flatbuffers.ByteBuffer):TypeAliases {
   this.bb_pos = i;
   this.bb = bb;
   return this;
@@ -213,7 +213,7 @@ vf64Array():Float64Array|null {
 }
 
 static getFullyQualifiedName():string {
-  return 'MyGame.Example.TypeAliases';
+  return 'MyGame_Example_TypeAliases';
 }
 
 static startTypeAliases(builder:flatbuffers.Builder) {

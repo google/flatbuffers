@@ -1,10 +1,11 @@
 import { FILE_IDENTIFIER_LENGTH, SIZEOF_INT } from "./constants.js";
 import { int32, isLittleEndian, float32, float64 } from "./utils.js";
-import { Offset, Table, IGeneratedObject } from "./types.js";
+import { Offset, Table, IGeneratedObject, IUnpackableObject } from "./types.js";
 import { Encoding } from "./encoding.js";
 
 export class ByteBuffer {
     private position_ = 0;
+    private text_decoder_ = new TextDecoder();
   
     /**
      * Create a new ByteBuffer with a given array of bytes (`Uint8Array`)
@@ -187,70 +188,22 @@ export class ByteBuffer {
      * Create a JavaScript string from UTF-8 data stored inside the FlatBuffer.
      * This allocates a new string and converts to wide chars upon each access.
      *
-     * To avoid the conversion to UTF-16, pass Encoding.UTF8_BYTES as
-     * the "optionalEncoding" argument. This is useful for avoiding conversion to
-     * and from UTF-16 when the data will just be packaged back up in another
-     * FlatBuffer later on.
+     * To avoid the conversion to string, pass Encoding.UTF8_BYTES as the
+     * "optionalEncoding" argument. This is useful for avoiding conversion when
+     * the data will just be packaged back up in another FlatBuffer later on.
      *
      * @param offset
      * @param opt_encoding Defaults to UTF16_STRING
      */
     __string(offset: number, opt_encoding?: Encoding): string | Uint8Array {
       offset += this.readInt32(offset);
-  
       const length = this.readInt32(offset);
-      let result = '';
-      let i = 0;
-  
       offset += SIZEOF_INT;
-  
-      if (opt_encoding === Encoding.UTF8_BYTES) {
-        return this.bytes_.subarray(offset, offset + length);
-      }
-  
-      while (i < length) {
-        let codePoint;
-  
-        // Decode UTF-8
-        const a = this.readUint8(offset + i++);
-        if (a < 0xC0) {
-          codePoint = a;
-        } else {
-          const b = this.readUint8(offset + i++);
-          if (a < 0xE0) {
-            codePoint =
-              ((a & 0x1F) << 6) |
-              (b & 0x3F);
-          } else {
-            const c = this.readUint8(offset + i++);
-            if (a < 0xF0) {
-              codePoint =
-                ((a & 0x0F) << 12) |
-                ((b & 0x3F) << 6) |
-                (c & 0x3F);
-            } else {
-              const d = this.readUint8(offset + i++);
-              codePoint =
-                ((a & 0x07) << 18) |
-                ((b & 0x3F) << 12) |
-                ((c & 0x3F) << 6) |
-                (d & 0x3F);
-            }
-          }
-        }
-  
-        // Encode UTF-16
-        if (codePoint < 0x10000) {
-          result += String.fromCharCode(codePoint);
-        } else {
-          codePoint -= 0x10000;
-          result += String.fromCharCode(
-            (codePoint >> 10) + 0xD800,
-            (codePoint & ((1 << 10) - 1)) + 0xDC00);
-        }
-      }
-  
-      return result;
+      const utf8bytes = this.bytes_.subarray(offset, offset + length);
+      if (opt_encoding === Encoding.UTF8_BYTES)
+        return utf8bytes;
+      else
+        return this.text_decoder_.decode(utf8bytes);
     }
   
     /**
@@ -304,33 +257,31 @@ export class ByteBuffer {
     /**
      * A helper function for generating list for obj api
      */
-    createScalarList(listAccessor: (i: number) => unknown, listLength: number): any[] {
-      const ret: any[]  = [];
+    createScalarList<T>(listAccessor: (i: number) => T | null, listLength: number): T[] {
+      const ret: T[]  = [];
       for(let i = 0; i < listLength; ++i) {
-        if(listAccessor(i) !== null) {
-          ret.push(listAccessor(i));
+        const val = listAccessor(i);
+        if(val !== null) {
+          ret.push(val);
         }
       }
-  
       return ret;
     }
-  
+
     /**
      * A helper function for generating list for obj api
      * @param listAccessor function that accepts an index and return data at that index
      * @param listLength listLength
      * @param res result list
      */
-    createObjList(listAccessor: (i: number) => unknown, listLength: number): any[] {
-      const ret: any[] = [];
+    createObjList<T1 extends IUnpackableObject<T2>, T2 extends IGeneratedObject>(listAccessor: (i: number) => T1 | null, listLength: number): T2[] {
+      const ret: T2[] = [];
       for(let i = 0; i < listLength; ++i) {
         const val = listAccessor(i);
         if(val !== null) {
-          ret.push((val as IGeneratedObject).unpack());
+          ret.push(val.unpack());
         }
       }
-      
       return ret;
     }
-  
   }

@@ -19,7 +19,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace FlatBuffers
+namespace Google.FlatBuffers
 {
     public static class FlatBufferConstants
     {
@@ -32,6 +32,6 @@ namespace FlatBuffers
         Changes to the C# implementation need to be sure to change
         the version here and in the code generator on every possible
         incompatible change */
-        public static void FLATBUFFERS_2_0_0() {}
+        public static void FLATBUFFERS_22_10_26() {}
     }
 }

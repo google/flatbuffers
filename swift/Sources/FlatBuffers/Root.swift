@@ -14,7 +14,11 @@
  * limitations under the License.
  */
 
+#if !os(WASI)
 import Foundation
+#else
+import SwiftOverlayShims
+#endif
 
 /// Takes in a prefixed sized buffer, where the prefixed size would be skipped.
 /// And would verify that the buffer passed is a valid `Flatbuffers` Object.
@@ -28,10 +32,39 @@ import Foundation
 /// the ``ByteBuffer`` and verifies the buffer by calling ``getCheckedRoot(byteBuffer:options:)``
 public func getPrefixedSizeCheckedRoot<T: FlatBufferObject & Verifiable>(
   byteBuffer: inout ByteBuffer,
+  fileId: String? = nil,
   options: VerifierOptions = .init()) throws -> T
 {
   byteBuffer.skipPrefix()
-  return try getCheckedRoot(byteBuffer: &byteBuffer, options: options)
+  return try getCheckedRoot(
+    byteBuffer: &byteBuffer,
+    fileId: fileId,
+    options: options)
+}
+
+/// Takes in a prefixed sized buffer, where we check if the sized buffer is equal to prefix size.
+/// And would verify that the buffer passed is a valid `Flatbuffers` Object.
+/// - Parameters:
+///   - byteBuffer: Buffer that needs to be checked and read
+///   - options: Verifier options
+/// - Throws: FlatbuffersErrors
+/// - Returns: Returns a valid, checked Flatbuffers object
+///
+/// ``getPrefixedSizeCheckedRoot(byteBuffer:options:)`` would skip the first Bytes in
+/// the ``ByteBuffer`` and verifies the buffer by calling ``getCheckedRoot(byteBuffer:options:)``
+public func getCheckedPrefixedSizeRoot<T: FlatBufferObject & Verifiable>(
+  byteBuffer: inout ByteBuffer,
+  fileId: String? = nil,
+  options: VerifierOptions = .init()) throws -> T
+{
+  let prefix = byteBuffer.skipPrefix()
+  if prefix != byteBuffer.size {
+    throw FlatbuffersErrors.prefixedSizeNotEqualToBufferSize
+  }
+  return try getCheckedRoot(
+    byteBuffer: &byteBuffer,
+    fileId: fileId,
+    options: options)
 }
 
 /// Takes in a prefixed sized buffer, where the prefixed size would be skipped.
@@ -61,9 +94,13 @@ public func getPrefixedSizeRoot<T: FlatBufferObject>(byteBuffer: inout ByteBuffe
 /// and within the ``ByteBuffer`` range.
 public func getCheckedRoot<T: FlatBufferObject & Verifiable>(
   byteBuffer: inout ByteBuffer,
+  fileId: String? = nil,
   options: VerifierOptions = .init()) throws -> T
 {
   var verifier = try Verifier(buffer: &byteBuffer, options: options)
+  if let fileId = fileId {
+    try verifier.verify(id: fileId)
+  }
   try ForwardOffset<T>.verify(&verifier, at: 0, of: T.self)
   return T.init(
     byteBuffer,

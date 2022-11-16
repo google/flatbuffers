@@ -1,0 +1,7 @@
+{
+    "type": "module",
+    "dependencies": {
+        "@grpc/grpc-js": "^1.7.0",
+        "flatbuffers": "../../"
+    }
+}

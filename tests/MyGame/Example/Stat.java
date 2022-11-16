@@ -9,7 +9,7 @@ import com.google.flatbuffers.*;
 
 @SuppressWarnings("unused")
 public final class Stat extends Table {
-  public static void ValidateVersion() { Constants.FLATBUFFERS_2_0_0(); }
+  public static void ValidateVersion() { Constants.FLATBUFFERS_22_10_26(); }
   public static Stat getRootAsStat(ByteBuffer _bb) { return getRootAsStat(_bb, new Stat()); }
   public static Stat getRootAsStat(ByteBuffer _bb, Stat obj) { _bb.order(ByteOrder.LITTLE_ENDIAN); return (obj.__assign(_bb.getInt(_bb.position()) + _bb.position(), _bb)); }
   public void __init(int _i, ByteBuffer _bb) { __reset(_i, _bb); }
@@ -37,7 +37,7 @@ public final class Stat extends Table {
   public static void startStat(FlatBufferBuilder builder) { builder.startTable(3); }
   public static void addId(FlatBufferBuilder builder, int idOffset) { builder.addOffset(0, idOffset, 0); }
   public static void addVal(FlatBufferBuilder builder, long val) { builder.addLong(1, val, 0L); }
-  public static void addCount(FlatBufferBuilder builder, int count) { builder.addShort(2, (short) count, (short) 0); }
+  public static void addCount(FlatBufferBuilder builder, int count) { builder.addShort((short) count); builder.slot(2); }
   public static int endStat(FlatBufferBuilder builder) {
     int o = builder.endTable();
     return o;

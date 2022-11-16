@@ -48,6 +48,11 @@ class InParentNamespaceT(object):
         return cls.InitFromObj(inParentNamespace)
 
     @classmethod
+    def InitFromPackedBuf(cls, buf, pos=0):
+        n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, pos)
+        return cls.InitFromBuf(buf, pos+n)
+
+    @classmethod
     def InitFromObj(cls, inParentNamespace):
         x = InParentNamespaceT()
         x._UnPack(inParentNamespace)

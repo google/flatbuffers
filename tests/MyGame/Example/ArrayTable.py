@@ -67,6 +67,11 @@ class ArrayTableT(object):
         return cls.InitFromObj(arrayTable)
 
     @classmethod
+    def InitFromPackedBuf(cls, buf, pos=0):
+        n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, pos)
+        return cls.InitFromBuf(buf, pos+n)
+
+    @classmethod
     def InitFromObj(cls, arrayTable):
         x = ArrayTableT()
         x._UnPack(arrayTable)

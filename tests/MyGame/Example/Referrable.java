@@ -9,7 +9,7 @@ import com.google.flatbuffers.*;
 
 @SuppressWarnings("unused")
 public final class Referrable extends Table {
-  public static void ValidateVersion() { Constants.FLATBUFFERS_2_0_0(); }
+  public static void ValidateVersion() { Constants.FLATBUFFERS_22_10_26(); }
   public static Referrable getRootAsReferrable(ByteBuffer _bb) { return getRootAsReferrable(_bb, new Referrable()); }
   public static Referrable getRootAsReferrable(ByteBuffer _bb, Referrable obj) { _bb.order(ByteOrder.LITTLE_ENDIAN); return (obj.__assign(_bb.getInt(_bb.position()) + _bb.position(), _bb)); }
   public void __init(int _i, ByteBuffer _bb) { __reset(_i, _bb); }
@@ -26,7 +26,7 @@ public final class Referrable extends Table {
   }
 
   public static void startReferrable(FlatBufferBuilder builder) { builder.startTable(1); }
-  public static void addId(FlatBufferBuilder builder, long id) { builder.addLong(0, id, 0L); }
+  public static void addId(FlatBufferBuilder builder, long id) { builder.addLong(id); builder.slot(0); }
   public static int endReferrable(FlatBufferBuilder builder) {
     int o = builder.endTable();
     return o;

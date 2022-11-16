@@ -25,14 +25,22 @@ class IdlNamer : public Namer {
   using Namer::Variable;
   using Namer::Variant;
 
+  std::string Constant(const FieldDef &d) const { return Constant(d.name); }
+
   // Types are always structs or enums so we can only expose these two
   // overloads.
   std::string Type(const StructDef &d) const { return Type(d.name); }
   std::string Type(const EnumDef &d) const { return Type(d.name); }
 
   std::string Function(const Definition &s) const { return Function(s.name); }
+  std::string Function(const std::string& prefix, const Definition &s) const {
+    return Function(prefix + s.name);
+  }
 
   std::string Field(const FieldDef &s) const { return Field(s.name); }
+  std::string Field(const FieldDef &d, const std::string &s) const {
+    return Field(d.name + "_" + s);
+  }
 
   std::string Variable(const FieldDef &s) const { return Variable(s.name); }
 
@@ -49,8 +57,26 @@ class IdlNamer : public Namer {
   }
   std::string ObjectType(const EnumDef &d) const { return ObjectType(d.name); }
 
+  std::string Method(const FieldDef &d, const std::string &suffix) const {
+    return Method(d.name, suffix);
+  }
+  std::string Method(const std::string &prefix, const StructDef &d) const {
+    return Method(prefix, d.name);
+  }
+  std::string Method(const std::string &prefix, const FieldDef &d) const {
+    return Method(prefix, d.name);
+  }
+  std::string Method(const std::string &prefix, const FieldDef &d,
+                     const std::string &suffix) const {
+    return Method(prefix, d.name, suffix);
+  }
+
   std::string Namespace(const struct Namespace &ns) const {
     return Namespace(ns.components);
+  }
+
+  std::string NamespacedEnumVariant(const EnumDef &e, const EnumVal &v) const {
+    return NamespacedString(e.defined_namespace, EnumVariant(e, v));
   }
 
   std::string NamespacedType(const Definition &def) const {
@@ -77,13 +103,41 @@ class IdlNamer : public Namer {
     return "VT_" + ConvertCase(EscapeKeyword(field.name), Case::kAllUpper);
   }
 
-  // TODO(caspern): What's up with this case style?
   std::string LegacySwiftVariant(const EnumVal &ev) const {
     auto name = ev.name;
     if (isupper(name.front())) {
       std::transform(name.begin(), name.end(), name.begin(), CharToLower);
     }
     return EscapeKeyword(ConvertCase(name, Case::kLowerCamel));
+  }
+
+  // Also used by Kotlin, lol.
+  std::string LegacyJavaMethod2(const std::string &prefix, const StructDef &sd,
+                                const std::string &suffix) const {
+    return prefix + sd.name + suffix;
+  }
+
+  std::string LegacyKotlinVariant(EnumVal &ev) const {
+    // Namer assumes the input case is snake case which is wrong...
+    return ConvertCase(EscapeKeyword(ev.name), Case::kLowerCamel);
+  }
+  // Kotlin methods escapes keywords after case conversion but before
+  // prefixing and suffixing.
+  std::string LegacyKotlinMethod(const std::string &prefix, const FieldDef &d,
+                                 const std::string &suffix) const {
+    return prefix + ConvertCase(EscapeKeyword(d.name), Case::kUpperCamel) +
+           suffix;
+  }
+  std::string LegacyKotlinMethod(const std::string &prefix, const StructDef &d,
+                                 const std::string &suffix) const {
+    return prefix + ConvertCase(EscapeKeyword(d.name), Case::kUpperCamel) +
+           suffix;
+  }
+
+  // This is a mix of snake case and keep casing, when Ts should be using
+  // lower camel case.
+  std::string LegacyTsMutateMethod(const FieldDef& d) {
+    return "mutate_" + d.name;
   }
 
  private:

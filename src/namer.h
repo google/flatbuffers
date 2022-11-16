@@ -108,10 +108,21 @@ class Namer {
   Namer(Config config, std::set<std::string> keywords)
       : config_(config), keywords_(std::move(keywords)) {}
 
+  virtual ~Namer() {}
+
   template<typename T> std::string Method(const T &s) const {
     return Method(s.name);
   }
 
+  virtual std::string Method(const std::string &pre,
+                             const std::string &mid,
+                             const std::string &suf) const {
+    return Format(pre + "_" +  mid + "_" + suf, config_.methods);
+  }
+  virtual std::string Method(const std::string &pre,
+                             const std::string &suf) const {
+    return Format(pre + "_" + suf, config_.methods);
+  }
   virtual std::string Method(const std::string &s) const {
     return Format(s, config_.methods);
   }
@@ -126,6 +137,15 @@ class Namer {
 
   virtual std::string Variable(const std::string &s) const {
     return Format(s, config_.variables);
+  }
+
+  template<typename T>
+  std::string Variable(const std::string &p, const T &s) const {
+    return Format(p + "_" + s.name, config_.variables);
+  }
+  virtual std::string Variable(const std::string &p,
+                               const std::string &s) const {
+    return Format(p + "_" + s, config_.variables);
   }
 
   virtual std::string Namespace(const std::string &s) const {
@@ -190,6 +210,9 @@ class Namer {
 
   virtual std::string Type(const std::string &s) const {
     return Format(s, config_.types);
+  }
+  virtual std::string Type(const std::string &t, const std::string &s) const {
+    return Format(t + "_" + s, config_.types);
   }
 
   virtual std::string ObjectType(const std::string &s) const {
