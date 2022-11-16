@@ -63,16 +63,13 @@ func (t *AnyT) Pack(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
 func (rcv Any) UnPack(table flatbuffers.Table) *AnyT {
 	switch rcv {
 	case AnyMonster:
-		var x Monster
-		x.Init(table.Bytes, table.Pos)
+		x := Monster{_tab: table}
 		return &AnyT{ Type: AnyMonster, Value: x.UnPack() }
 	case AnyTestSimpleTableWithEnum:
-		var x TestSimpleTableWithEnum
-		x.Init(table.Bytes, table.Pos)
+		x := TestSimpleTableWithEnum{_tab: table}
 		return &AnyT{ Type: AnyTestSimpleTableWithEnum, Value: x.UnPack() }
 	case AnyMyGame_Example2_Monster:
-		var x MyGame__Example2.Monster
-		x.Init(table.Bytes, table.Pos)
+		x := Monster{_tab: table}
 		return &AnyT{ Type: AnyMyGame_Example2_Monster, Value: x.UnPack() }
 	}
 	return nil

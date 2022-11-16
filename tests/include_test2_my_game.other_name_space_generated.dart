@@ -7,8 +7,6 @@ import 'dart:typed_data' show Uint8List;
 import 'package:flat_buffers/flat_buffers.dart' as fb;
 
 
-import './include_test1_generated.dart';
-
 class FromInclude {
   final int value;
   const FromInclude._(this.value);
