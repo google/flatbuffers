@@ -1864,7 +1864,7 @@ table (reflection.Field):
   +0x11F4 | 48 00 00 00             | UOffset32   | 0x00000048 (72) Loc: +0x123C       | offset to field `name` (string)
   +0x11F8 | 38 00 00 00             | UOffset32   | 0x00000038 (56) Loc: +0x1230       | offset to field `type` (table)
   +0x11FC | 10 00 00 00             | UOffset32   | 0x00000010 (16) Loc: +0x120C       | offset to field `attributes` (vector)
-  +0x1200 | FF FF FF FF FF FF FF 7F | double      | 0x7FFFFFFFFFFFFFFF (nan)           | table field `default_real` (Double)
+  +0x1200 | 00 00 00 00 00 00 F8 7F | double      | 0x7FF8000000000000 (nan)           | table field `default_real` (Double)
   +0x1208 | 00 00 00 00             | uint8_t[4]  | ....                               | padding
 
 vector (reflection.Field.attributes):
