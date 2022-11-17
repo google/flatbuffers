@@ -5,6 +5,8 @@ import 'dart:typed_data' show Uint8List;
 import 'package:flat_buffers/flat_buffers.dart' as fb;
 
 
+import './include_test2_my_game.other_name_space_generated.dart' as my_game_other_name_space;
+
 class TableA {
   TableA._(this._bc, this._bcOffset);
   factory TableA(List<int> bytes) {

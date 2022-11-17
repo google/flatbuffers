@@ -27,17 +27,17 @@ public struct Swift_Tests_NanInfTable: FlatBufferObject, Verifiable {
     var p: VOffset { self.rawValue }
   }
 
-  public var defaultNan: Double { let o = _accessor.offset(VTOFFSET.defaultNan.v); return o == 0 ? nan : _accessor.readBuffer(of: Double.self, at: o) }
-  public var defaultInf: Double { let o = _accessor.offset(VTOFFSET.defaultInf.v); return o == 0 ? inf : _accessor.readBuffer(of: Double.self, at: o) }
-  public var defaultNinf: Double { let o = _accessor.offset(VTOFFSET.defaultNinf.v); return o == 0 ? -inf : _accessor.readBuffer(of: Double.self, at: o) }
+  public var defaultNan: Double { let o = _accessor.offset(VTOFFSET.defaultNan.v); return o == 0 ? .nan : _accessor.readBuffer(of: Double.self, at: o) }
+  public var defaultInf: Double { let o = _accessor.offset(VTOFFSET.defaultInf.v); return o == 0 ? .infinity : _accessor.readBuffer(of: Double.self, at: o) }
+  public var defaultNinf: Double { let o = _accessor.offset(VTOFFSET.defaultNinf.v); return o == 0 ? -.infinity : _accessor.readBuffer(of: Double.self, at: o) }
   public var valueNan: Double { let o = _accessor.offset(VTOFFSET.valueNan.v); return o == 0 ? 0.0 : _accessor.readBuffer(of: Double.self, at: o) }
   public var valueInf: Double { let o = _accessor.offset(VTOFFSET.valueInf.v); return o == 0 ? 0.0 : _accessor.readBuffer(of: Double.self, at: o) }
   public var valueNinf: Double { let o = _accessor.offset(VTOFFSET.valueNinf.v); return o == 0 ? 0.0 : _accessor.readBuffer(of: Double.self, at: o) }
   public var value: Double { let o = _accessor.offset(VTOFFSET.value.v); return o == 0 ? 0.0 : _accessor.readBuffer(of: Double.self, at: o) }
   public static func startNanInfTable(_ fbb: inout FlatBufferBuilder) -> UOffset { fbb.startTable(with: 7) }
-  public static func add(defaultNan: Double, _ fbb: inout FlatBufferBuilder) { fbb.add(element: defaultNan, def: nan, at: VTOFFSET.defaultNan.p) }
-  public static func add(defaultInf: Double, _ fbb: inout FlatBufferBuilder) { fbb.add(element: defaultInf, def: inf, at: VTOFFSET.defaultInf.p) }
-  public static func add(defaultNinf: Double, _ fbb: inout FlatBufferBuilder) { fbb.add(element: defaultNinf, def: -inf, at: VTOFFSET.defaultNinf.p) }
+  public static func add(defaultNan: Double, _ fbb: inout FlatBufferBuilder) { fbb.add(element: defaultNan, def: .nan, at: VTOFFSET.defaultNan.p) }
+  public static func add(defaultInf: Double, _ fbb: inout FlatBufferBuilder) { fbb.add(element: defaultInf, def: .infinity, at: VTOFFSET.defaultInf.p) }
+  public static func add(defaultNinf: Double, _ fbb: inout FlatBufferBuilder) { fbb.add(element: defaultNinf, def: -.infinity, at: VTOFFSET.defaultNinf.p) }
   public static func add(valueNan: Double, _ fbb: inout FlatBufferBuilder) { fbb.add(element: valueNan, def: 0.0, at: VTOFFSET.valueNan.p) }
   public static func add(valueInf: Double, _ fbb: inout FlatBufferBuilder) { fbb.add(element: valueInf, def: 0.0, at: VTOFFSET.valueInf.p) }
   public static func add(valueNinf: Double, _ fbb: inout FlatBufferBuilder) { fbb.add(element: valueNinf, def: 0.0, at: VTOFFSET.valueNinf.p) }
@@ -45,9 +45,9 @@ public struct Swift_Tests_NanInfTable: FlatBufferObject, Verifiable {
   public static func endNanInfTable(_ fbb: inout FlatBufferBuilder, start: UOffset) -> Offset { let end = Offset(offset: fbb.endTable(at: start)); return end }
   public static func createNanInfTable(
     _ fbb: inout FlatBufferBuilder,
-    defaultNan: Double = nan,
-    defaultInf: Double = inf,
-    defaultNinf: Double = -inf,
+    defaultNan: Double = .nan,
+    defaultInf: Double = .infinity,
+    defaultNinf: Double = -.infinity,
     valueNan: Double = 0.0,
     valueInf: Double = 0.0,
     valueNinf: Double = 0.0,
@@ -90,13 +90,13 @@ extension Swift_Tests_NanInfTable: Encodable {
   }
   public func encode(to encoder: Encoder) throws {
     var container = encoder.container(keyedBy: CodingKeys.self)
-    if defaultNan != nan {
+    if !defaultNan.isNaN {
       try container.encodeIfPresent(defaultNan, forKey: .defaultNan)
     }
-    if defaultInf != inf {
+    if defaultInf != .infinity {
       try container.encodeIfPresent(defaultInf, forKey: .defaultInf)
     }
-    if defaultNinf != -inf {
+    if defaultNinf != -.infinity {
       try container.encodeIfPresent(defaultNinf, forKey: .defaultNinf)
     }
     if valueNan != 0.0 {
