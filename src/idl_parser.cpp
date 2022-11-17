@@ -3803,7 +3803,7 @@ Offset<reflection::Object> StructDef::Serialize(FlatBufferBuilder *builder,
   const auto name__ = builder->CreateString(qualified_name);
   const auto flds__ = builder->CreateVectorOfSortedTables(&field_offsets);
   const auto attr__ = SerializeAttributes(builder, parser);
-  const auto docs__ = parser.opts.binary_schema_comments
+  const auto docs__ = parser.opts.binary_schema_comments && !doc_comment.empty()
                           ? builder->CreateVectorOfStrings(doc_comment)
                           : 0;
   std::string decl_file_in_project = declaration_file ? *declaration_file : "";
@@ -3861,7 +3861,7 @@ Offset<reflection::Field> FieldDef::Serialize(FlatBufferBuilder *builder,
   auto name__ = builder->CreateString(name);
   auto type__ = value.type.Serialize(builder);
   auto attr__ = SerializeAttributes(builder, parser);
-  auto docs__ = parser.opts.binary_schema_comments
+  auto docs__ = parser.opts.binary_schema_comments && !doc_comment.empty()
                     ? builder->CreateVectorOfStrings(doc_comment)
                     : 0;
   double d;
@@ -3914,7 +3914,7 @@ Offset<reflection::RPCCall> RPCCall::Serialize(FlatBufferBuilder *builder,
                                                const Parser &parser) const {
   auto name__ = builder->CreateString(name);
   auto attr__ = SerializeAttributes(builder, parser);
-  auto docs__ = parser.opts.binary_schema_comments
+  auto docs__ = parser.opts.binary_schema_comments && !doc_comment.empty()
                     ? builder->CreateVectorOfStrings(doc_comment)
                     : 0;
   return reflection::CreateRPCCall(
@@ -3942,7 +3942,7 @@ Offset<reflection::Service> ServiceDef::Serialize(FlatBufferBuilder *builder,
   const auto name__ = builder->CreateString(qualified_name);
   const auto call__ = builder->CreateVector(servicecall_offsets);
   const auto attr__ = SerializeAttributes(builder, parser);
-  const auto docs__ = parser.opts.binary_schema_comments
+  const auto docs__ = parser.opts.binary_schema_comments && !doc_comment.empty()
                           ? builder->CreateVectorOfStrings(doc_comment)
                           : 0;
   std::string decl_file_in_project = declaration_file ? *declaration_file : "";
@@ -3980,7 +3980,7 @@ Offset<reflection::Enum> EnumDef::Serialize(FlatBufferBuilder *builder,
   const auto vals__ = builder->CreateVector(enumval_offsets);
   const auto type__ = underlying_type.Serialize(builder);
   const auto attr__ = SerializeAttributes(builder, parser);
-  const auto docs__ = parser.opts.binary_schema_comments
+  const auto docs__ = parser.opts.binary_schema_comments && !doc_comment.empty()
                           ? builder->CreateVectorOfStrings(doc_comment)
                           : 0;
   std::string decl_file_in_project = declaration_file ? *declaration_file : "";
@@ -4025,7 +4025,7 @@ Offset<reflection::EnumVal> EnumVal::Serialize(FlatBufferBuilder *builder,
   const auto name__ = builder->CreateString(name);
   const auto type__ = union_type.Serialize(builder);
   const auto attr__ = SerializeAttributes(builder, parser);
-  const auto docs__ = parser.opts.binary_schema_comments
+  const auto docs__ = parser.opts.binary_schema_comments && !doc_comment.empty()
                           ? builder->CreateVectorOfStrings(doc_comment)
                           : 0;
   return reflection::CreateEnumVal(*builder, name__, value, type__, docs__,
