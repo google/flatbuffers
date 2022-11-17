@@ -1614,7 +1614,8 @@ class CSharpGenerator : public BaseGenerator {
       } else {
         code += indent + "  case " + NamespacedName(enum_def) + "." + ev.name +
                 ":\n";
-        code += indent + "    " + varialbe_name + "." + class_member + " = this." + camel_name;
+        code += indent + "    " + varialbe_name + "." + class_member +
+                " = this." + camel_name;
         if (IsString(ev.union_type)) {
           code += "AsString" + func_suffix + ";\n";
         } else {
