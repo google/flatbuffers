@@ -68,9 +68,11 @@ func (rcv *Referrable) MutateId(n uint64) bool {
 }
 
 func ReferrableKeyCompare(o1, o2 flatbuffers.UOffsetT, buf []byte) bool {
-	val1 := flatbuffers.GetUint64(buf[flatbuffers.GetFieldOffset(buf, 4, o1):])
-	val2 := flatbuffers.GetUint64(buf[flatbuffers.GetFieldOffset(buf, 4, o2):])
-	return val1 < val2
+	obj1 := &Referrable{}
+	obj2 := &Referrable{}
+	obj1.Init(buf, flatbuffers.UOffsetT(len(buf)) - o1)
+	obj2.Init(buf, flatbuffers.UOffsetT(len(buf)) - o2)
+	return obj1.Id() < obj2.Id()
 }
 
 func (rcv *Referrable) LookupByKey(key uint64, vectorLocation flatbuffers.UOffsetT, buf []byte) bool {
@@ -79,8 +81,15 @@ func (rcv *Referrable) LookupByKey(key uint64, vectorLocation flatbuffers.UOffse
 	for span != 0 {
 		middle := span / 2
 		tableOffset := flatbuffers.GetIndirectOffset(buf, vectorLocation+ 4 * (start + middle))
-		val := flatbuffers.GetUint64(buf[flatbuffers.GetFieldOffset(buf, 4, flatbuffers.UOffsetT(len(buf)) - tableOffset):])
-		comp := int(val) - int(key)
+		obj := &Referrable{}
+		obj.Init(buf, tableOffset)
+		val := obj.Id()
+		comp := 0
+		if val > key {
+			comp = 1
+		} else if val < key {
+			comp = -1
+		}
 		if comp > 0 {
 			span = middle
 		} else if comp < 0 {

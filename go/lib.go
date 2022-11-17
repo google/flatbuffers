@@ -24,13 +24,6 @@ func GetSizePrefix(buf []byte, offset UOffsetT) uint32 {
 	return GetUint32(buf[offset:])
 }
 
-// GetFieldOffset computes the offset of field inside a vtable relative to the provided buffer.
-func GetFieldOffset(buf []byte, vtableOffset VOffsetT, offset UOffsetT) UOffsetT {
-	vtable := UOffsetT(len(buf)) - offset
-	field := vtable + UOffsetT(vtableOffset) - GetUOffsetT(buf[vtable:])
-	return UOffsetT(GetVOffsetT(buf[field:])) + vtable
-}
-
 // GetIndirectOffset retrives the realtive offset in the provided buffer stored at `offset`.
 func GetIndirectOffset(buf []byte, offset UOffsetT) UOffsetT {
 	return offset + GetUOffsetT(buf[offset:])

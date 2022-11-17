@@ -2222,7 +2222,8 @@ func CheckByKey(fail func(string, ...interface{})) {
 	str := &example.StatT{Id: "Strength", Count: 42}
 	luk := &example.StatT{Id: "Luck", Count: 51}
 	hp := &example.StatT{Id: "Health", Count: 12}
-	mp := &example.StatT{Id: "Mana", Count: 66}
+	// Test default count value of 0
+	mp := &example.StatT{Id: "Mana"}
 
 	statOffsets := make([]flatbuffers.UOffsetT, 4)
 	statOffsets[0] = str.Pack(b)
@@ -2262,7 +2263,8 @@ func CheckByKey(fail func(string, ...interface{})) {
 	expectEq("Luck Id", string(lukStat.Id()), luk.Id)
 	expectEq("Luck Count", lukStat.Count(), luk.Count)
 	expectEq("Mana Id", string(mpStat.Id()), mp.Id)
-	expectEq("Mana Count", mpStat.Count(), mp.Count)
+	// Use default count value as key
+	expectEq("Mana Count", mpStat.Count(), uint16(0))
 }
 
 // BenchmarkVtableDeduplication measures the speed of vtable deduplication

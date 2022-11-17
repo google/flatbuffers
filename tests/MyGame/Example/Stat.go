@@ -95,9 +95,11 @@ func (rcv *Stat) MutateCount(n uint16) bool {
 }
 
 func StatKeyCompare(o1, o2 flatbuffers.UOffsetT, buf []byte) bool {
-	val1 := flatbuffers.GetUint16(buf[flatbuffers.GetFieldOffset(buf, 8, o1):])
-	val2 := flatbuffers.GetUint16(buf[flatbuffers.GetFieldOffset(buf, 8, o2):])
-	return val1 < val2
+	obj1 := &Stat{}
+	obj2 := &Stat{}
+	obj1.Init(buf, flatbuffers.UOffsetT(len(buf)) - o1)
+	obj2.Init(buf, flatbuffers.UOffsetT(len(buf)) - o2)
+	return obj1.Count() < obj2.Count()
 }
 
 func (rcv *Stat) LookupByKey(key uint16, vectorLocation flatbuffers.UOffsetT, buf []byte) bool {
@@ -106,8 +108,15 @@ func (rcv *Stat) LookupByKey(key uint16, vectorLocation flatbuffers.UOffsetT, bu
 	for span != 0 {
 		middle := span / 2
 		tableOffset := flatbuffers.GetIndirectOffset(buf, vectorLocation+ 4 * (start + middle))
-		val := flatbuffers.GetUint16(buf[flatbuffers.GetFieldOffset(buf, 8, flatbuffers.UOffsetT(len(buf)) - tableOffset):])
-		comp := int(val) - int(key)
+		obj := &Stat{}
+		obj.Init(buf, tableOffset)
+		val := obj.Count()
+		comp := 0
+		if val > key {
+			comp = 1
+		} else if val < key {
+			comp = -1
+		}
 		if comp > 0 {
 			span = middle
 		} else if comp < 0 {

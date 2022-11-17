@@ -3,8 +3,8 @@
 package Example
 
 import (
+	"bytes"
 	"math"
-
 	flatbuffers "github.com/google/flatbuffers/go"
 
 	MyGame "MyGame"
@@ -569,7 +569,11 @@ func (rcv *Monster) Name() []byte {
 }
 
 func MonsterKeyCompare(o1, o2 flatbuffers.UOffsetT, buf []byte) bool {
-	return flatbuffers.CompareString(flatbuffers.GetFieldOffset(buf, 10, o1), flatbuffers.GetFieldOffset(buf, 10, o2), buf) < 0
+	obj1 := &Monster{}
+	obj2 := &Monster{}
+	obj1.Init(buf, flatbuffers.UOffsetT(len(buf)) - o1)
+	obj2.Init(buf, flatbuffers.UOffsetT(len(buf)) - o2)
+	return string(obj1.Name()) < string(obj2.Name())
 }
 
 func (rcv *Monster) LookupByKey(key string, vectorLocation flatbuffers.UOffsetT, buf []byte) bool {
@@ -578,7 +582,10 @@ func (rcv *Monster) LookupByKey(key string, vectorLocation flatbuffers.UOffsetT,
 	for span != 0 {
 		middle := span / 2
 		tableOffset := flatbuffers.GetIndirectOffset(buf, vectorLocation+ 4 * (start + middle))
-		comp := flatbuffers.CompareStringAndKey(flatbuffers.GetFieldOffset(buf, 10, flatbuffers.UOffsetT(len(buf)) - tableOffset), key, buf)
+		obj := &Monster{}
+		obj.Init(buf, tableOffset)
+		bKey := []byte(key)
+		comp := bytes.Compare(obj.Name(), bKey)
 		if comp > 0 {
 			span = middle
 		} else if comp < 0 {

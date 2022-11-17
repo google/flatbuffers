@@ -105,6 +105,7 @@ class GoGenerator : public BaseGenerator {
          ++it) {
       tracked_imported_namespaces_.clear();
       needs_math_import_ = false;
+      needs_bytes_import_ = false;
       needs_imports = false;
       std::string enumcode;
       GenEnum(**it, &enumcode);
@@ -125,6 +126,7 @@ class GoGenerator : public BaseGenerator {
          it != parser_.structs_.vec.end(); ++it) {
       tracked_imported_namespaces_.clear();
       needs_math_import_ = false;
+      needs_bytes_import_ = false;
       std::string declcode;
       GenStruct(**it, &declcode);
       if (parser_.opts.one_file) {
@@ -159,6 +161,7 @@ class GoGenerator : public BaseGenerator {
   };
   std::set<const Namespace *, NamespacePtrLess> tracked_imported_namespaces_;
   bool needs_math_import_ = false;
+  bool needs_bytes_import_ = false;
 
   // Most field accessors need to retrieve and test the field offset first,
   // this is the prefix code for that.
@@ -886,21 +889,16 @@ class GoGenerator : public BaseGenerator {
 
     code += "func " + namer_.Type(struct_def) + "KeyCompare(";
     code += "o1, o2 flatbuffers.UOffsetT, buf []byte) bool {\n";
+    code += "\tobj1 := &" + namer_.Type(struct_def) + "{}\n";
+    code += "\tobj2 := &" + namer_.Type(struct_def) + "{}\n";
+    code += "\tobj1.Init(buf, flatbuffers.UOffsetT(len(buf)) - o1)\n";
+    code += "\tobj2.Init(buf, flatbuffers.UOffsetT(len(buf)) - o2)\n";
     if (IsString(field.value.type)) {
-      code += "\treturn flatbuffers.CompareString(flatbuffers.GetFieldOffset(";
-      code += "buf, " + NumToString(field.value.offset);
-      code += ", o1), flatbuffers.GetFieldOffset(buf, ";
-      code += NumToString(field.value.offset) + ", o2), buf) < 0\n";
+      code += "\treturn string(obj1." + namer_.Function(field.name) + "()) < ";
+      code += "string(obj2." + namer_.Function(field.name) + "())\n";
     } else {
-      code += "\tval1 := flatbuffers.Get" +
-              namer_.Function(GenTypeBasic(field.value.type));
-      code += "(buf[flatbuffers.GetFieldOffset(buf, ";
-      code += NumToString(field.value.offset) + ", o1):])\n";
-      code += "\tval2 := flatbuffers.Get" +
-              namer_.Function(GenTypeBasic(field.value.type));
-      code += "(buf[flatbuffers.GetFieldOffset(buf, ";
-      code += NumToString(field.value.offset) + ", o2):])\n";
-      code += "\treturn val1 < val2\n";
+      code += "\treturn obj1." + namer_.Function(field.name) + "() < ";
+      code += "obj2." + namer_.Function(field.name) + "()\n";
     }
     code += "}\n\n";
   }
@@ -923,18 +921,23 @@ class GoGenerator : public BaseGenerator {
     code += "\t\ttableOffset := flatbuffers.GetIndirectOffset(buf, ";
     code += "vectorLocation+ 4 * (start + middle))\n";
 
+    code += "\t\tobj := &" + namer_.Type(struct_def) + "{}\n";
+    code += "\t\tobj.Init(buf, tableOffset)\n";
+
     if (IsString(field.value.type)) {
-      code += "\t\tcomp := flatbuffers.CompareStringAndKey(";
-      code += "flatbuffers.GetFieldOffset(buf, ";
-      code += NumToString(field.value.offset);
-      code += ", flatbuffers.UOffsetT(len(buf)) - tableOffset), key, buf)\n";
+      code += "\t\tbKey := []byte(key)\n";
+      needs_bytes_import_ = true;
+      code +=
+          "\t\tcomp := bytes.Compare(obj." + namer_.Function(field.name) + "()";
+      code += ", bKey)\n";
     } else {
-      code += "\t\tval := flatbuffers.Get";
-      code += namer_.Function(GenTypeBasic(field.value.type));
-      code += "(buf[flatbuffers.GetFieldOffset(buf, ";
-      code += NumToString(field.value.offset);
-      code += ", flatbuffers.UOffsetT(len(buf)) - tableOffset):])\n";
-      code += "\t\tcomp := int(val) - int(key)\n";
+      code += "\t\tval := obj." + namer_.Function(field.name) + "()\n";
+      code += "\t\tcomp := 0\n";
+      code += "\t\tif val > key {\n";
+      code += "\t\t\tcomp = 1\n";
+      code += "\t\t} else if val < key {\n";
+      code += "\t\t\tcomp = -1\n";
+      code += "\t\t}\n";
     }
     code += "\t\tif comp > 0 {\n";
     code += "\t\t\tspan = middle\n";
@@ -1466,9 +1469,10 @@ class GoGenerator : public BaseGenerator {
     code += "package " + name_space_name + "\n\n";
     if (needs_imports) {
       code += "import (\n";
-      if (is_enum) { code += "\t\"strconv\"\n\n"; }
+      if (needs_bytes_import_) code += "\t\"bytes\"\n";
       // math is needed to support non-finite scalar default values.
-      if (needs_math_import_) { code += "\t\"math\"\n\n"; }
+      if (needs_math_import_) { code += "\t\"math\"\n"; }
+      if (is_enum) { code += "\t\"strconv\"\n"; }
       if (!parser_.opts.go_import.empty()) {
         code += "\tflatbuffers \"" + parser_.opts.go_import + "\"\n";
       } else {
