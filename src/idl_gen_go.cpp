@@ -79,7 +79,7 @@ static Namer::Config GoDefaultConfig() {
            /*filename_extension=*/".go" };
 }
 
-} // namespace
+}  // namespace
 
 class GoGenerator : public BaseGenerator {
  public:
@@ -906,7 +906,8 @@ class GoGenerator : public BaseGenerator {
       if (ev.IsZero()) continue;
       code += "\tcase " + namer_.EnumVariant(enum_def, ev) + ":\n";
       code += "\t\tvar x " +
-              WrapInNameSpaceAndTrack(ev.union_type.struct_def, ev.union_type.struct_def->name) +
+              WrapInNameSpaceAndTrack(ev.union_type.struct_def,
+                                      ev.union_type.struct_def->name) +
               "\n";
       code += "\t\tx.Init(table.Bytes, table.Pos)\n";
 
@@ -1366,8 +1367,7 @@ class GoGenerator : public BaseGenerator {
         for (auto it = tracked_imported_namespaces_.begin();
              it != tracked_imported_namespaces_.end(); ++it) {
           if ((*it)->defined_namespace->components.empty()) {
-            code += "\t" + (*it)->name + " \"" +
-                    (*it)->name + "\"\n";
+            code += "\t" + (*it)->name + " \"" + (*it)->name + "\"\n";
           } else {
             code += "\t" + NamespaceImportName((*it)->defined_namespace) +
                     " \"" + NamespaceImportPath((*it)->defined_namespace) +
@@ -1393,8 +1393,7 @@ class GoGenerator : public BaseGenerator {
     Namespace &ns = go_namespace_.components.empty() ? *def.defined_namespace
                                                      : go_namespace_;
     std::string code = "";
-    BeginFile(ns.components.empty() ? def.name
-                                    : LastNamespacePart(ns),
+    BeginFile(ns.components.empty() ? def.name : LastNamespacePart(ns),
               needs_imports, is_enum, &code);
     code += classcode;
     // Strip extra newlines at end of file to make it gofmt-clean.
