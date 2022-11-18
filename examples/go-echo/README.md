@@ -1,6 +1,6 @@
 # Go Echo Example
 
-A simple example demonstrating how to send a flatbuffers over the network in Go.
+A simple example demonstrating how to send flatbuffers over the network in Go.
 
 ## Generate flatbuffer code
 
