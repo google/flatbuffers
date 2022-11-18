@@ -1057,8 +1057,12 @@ CheckedError Parser::ParseField(StructDef &struct_def) {
   if (field->key) {
     if (struct_def.has_key) return Error("only one field may be set as 'key'");
     struct_def.has_key = true;
-    if (!IsScalar(type.base_type) && !IsString(type)) {
-      return Error("'key' field must be string or scalar type");
+    auto is_valid = IsScalar(type.base_type) || IsString(type);
+    if (IsArray(type)) { is_valid |= IsScalar(type.VectorType().base_type); }
+    if (!is_valid) {
+      return Error(
+          "'key' field must be string, scalar type or fixed size array of "
+          "scalars");
     }
   }
 
@@ -1502,7 +1506,7 @@ CheckedError Parser::ParseTable(const StructDef &struct_def, std::string *value,
       if (!struct_def.sortbysize ||
           size == SizeOf(field_value.type.base_type)) {
         switch (field_value.type.base_type) {
-          // clang-format off
+// clang-format off
           #define FLATBUFFERS_TD(ENUM, IDLTYPE, CTYPE, ...) \
             case BASE_TYPE_ ## ENUM: \
               builder_.Pad(field->padding); \
@@ -1631,7 +1635,7 @@ CheckedError Parser::ParseVector(const Type &type, uoffset_t *ovalue,
     // start at the back, since we're building the data backwards.
     auto &val = field_stack_.back().first;
     switch (val.type.base_type) {
-      // clang-format off
+// clang-format off
       #define FLATBUFFERS_TD(ENUM, IDLTYPE, CTYPE,...) \
         case BASE_TYPE_ ## ENUM: \
           if (IsStruct(val.type)) SerializeStruct(*val.type.struct_def, val); \
@@ -2267,8 +2271,12 @@ template<typename T> void EnumDef::ChangeEnumValue(EnumVal *ev, T new_value) {
 }
 
 namespace EnumHelper {
-template<BaseType E> struct EnumValType { typedef int64_t type; };
-template<> struct EnumValType<BASE_TYPE_ULONG> { typedef uint64_t type; };
+template<BaseType E> struct EnumValType {
+  typedef int64_t type;
+};
+template<> struct EnumValType<BASE_TYPE_ULONG> {
+  typedef uint64_t type;
+};
 }  // namespace EnumHelper
 
 struct EnumValBuilder {

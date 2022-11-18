@@ -730,7 +730,7 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) Ability FLATBUFFERS_FINAL_CLASS {
   void mutate_id(uint32_t _id) {
     flatbuffers::WriteScalar(&id_, _id);
   }
-  bool KeyCompareLessThan(const Ability *o) const {
+  bool KeyCompareLessThan(const Ability * const o) const {
     return id() < o->id();
   }
   int KeyCompareWithValue(uint32_t _id) const {
@@ -1094,7 +1094,7 @@ struct Stat FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   bool mutate_count(uint16_t _count = 0) {
     return SetField<uint16_t>(VT_COUNT, _count, 0);
   }
-  bool KeyCompareLessThan(const Stat *o) const {
+  bool KeyCompareLessThan(const Stat * const o) const {
     return count() < o->count();
   }
   int KeyCompareWithValue(uint16_t _count) const {
@@ -1207,7 +1207,7 @@ struct Referrable FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   bool mutate_id(uint64_t _id = 0) {
     return SetField<uint64_t>(VT_ID, _id, 0);
   }
-  bool KeyCompareLessThan(const Referrable *o) const {
+  bool KeyCompareLessThan(const Referrable * const o) const {
     return id() < o->id();
   }
   int KeyCompareWithValue(uint64_t _id) const {
@@ -1430,7 +1430,7 @@ struct Monster FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   flatbuffers::String *mutable_name() {
     return GetPointer<flatbuffers::String *>(VT_NAME);
   }
-  bool KeyCompareLessThan(const Monster *o) const {
+  bool KeyCompareLessThan(const Monster * const o) const {
     return *name() < *o->name();
   }
   int KeyCompareWithValue(const char *_name) const {
