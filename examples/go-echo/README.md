@@ -10,12 +10,17 @@ flatc -g --gen-object-api --go-module-name echo hero.fbs net.fbs
 
 ## Running example
 
-1. Start a server
+1. Run go mod tidy to get dependencies.
+```
+go mod tidy
+```
+
+2. Start a server
 ```
 go run server/server.go
 ```
 
-2. Run the client in another terminal
+3. Run the client in another terminal
 ```
 go run client/client.go
 ```
