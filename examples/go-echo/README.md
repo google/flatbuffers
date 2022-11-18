@@ -10,7 +10,7 @@ flatc -g --gen-object-api --go-module-name echo hero.fbs net.fbs
 
 ## Running example
 
-1. Run go mod tidy to get dependencies.
+1. Run go mod tidy to get dependencies
 ```
 go mod tidy
 ```
