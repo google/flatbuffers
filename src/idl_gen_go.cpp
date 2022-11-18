@@ -79,7 +79,7 @@ static Namer::Config GoDefaultConfig() {
            /*filename_extension=*/".go" };
 }
 
-} // namespace
+}  // namespace
 
 class GoGenerator : public BaseGenerator {
  public:
@@ -907,8 +907,7 @@ class GoGenerator : public BaseGenerator {
       if (ev.IsZero()) continue;
       code += "\tcase " + namer_.EnumVariant(enum_def, ev) + ":\n";
       code += "\t\tvar x " +
-              WrapInNameSpaceAndTrack(*ev.union_type.struct_def) +
-              "\n";
+              WrapInNameSpaceAndTrack(*ev.union_type.struct_def) + "\n";
       code += "\t\tx.Init(table.Bytes, table.Pos)\n";
 
       code += "\t\treturn &" +
@@ -1407,7 +1406,12 @@ class GoGenerator : public BaseGenerator {
 
   // Create the full path for the imported namespace (format: A/B/C).
   std::string NamespaceImportPath(const Namespace *ns) const {
-    return namer_.Directories(*ns, SkipDir::OutputPathAndTrailingPathSeparator);
+    std::string path =
+        namer_.Directories(*ns, SkipDir::OutputPathAndTrailingPathSeparator);
+    if (!parser_.opts.go_module_name.empty()) {
+      path = parser_.opts.go_module_name + "/" + path;
+    }
+    return path;
   }
 
   // Ensure that a type is prefixed with its go package import name if it is
