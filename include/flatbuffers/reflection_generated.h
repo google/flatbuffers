@@ -265,7 +265,7 @@ struct KeyValue FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   const flatbuffers::String *key() const {
     return GetPointer<const flatbuffers::String *>(VT_KEY);
   }
-  bool KeyCompareLessThan(const KeyValue *o) const {
+  bool KeyCompareLessThan(const KeyValue * const o) const {
     return *key() < *o->key();
   }
   int KeyCompareWithValue(const char *_key) const {
@@ -343,7 +343,7 @@ struct EnumVal FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   int64_t value() const {
     return GetField<int64_t>(VT_VALUE, 0);
   }
-  bool KeyCompareLessThan(const EnumVal *o) const {
+  bool KeyCompareLessThan(const EnumVal * const o) const {
     return value() < o->value();
   }
   int KeyCompareWithValue(int64_t _value) const {
@@ -455,7 +455,7 @@ struct Enum FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   const flatbuffers::String *name() const {
     return GetPointer<const flatbuffers::String *>(VT_NAME);
   }
-  bool KeyCompareLessThan(const Enum *o) const {
+  bool KeyCompareLessThan(const Enum * const o) const {
     return *name() < *o->name();
   }
   int KeyCompareWithValue(const char *_name) const {
@@ -606,7 +606,7 @@ struct Field FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   const flatbuffers::String *name() const {
     return GetPointer<const flatbuffers::String *>(VT_NAME);
   }
-  bool KeyCompareLessThan(const Field *o) const {
+  bool KeyCompareLessThan(const Field * const o) const {
     return *name() < *o->name();
   }
   int KeyCompareWithValue(const char *_name) const {
@@ -812,7 +812,7 @@ struct Object FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   const flatbuffers::String *name() const {
     return GetPointer<const flatbuffers::String *>(VT_NAME);
   }
-  bool KeyCompareLessThan(const Object *o) const {
+  bool KeyCompareLessThan(const Object * const o) const {
     return *name() < *o->name();
   }
   int KeyCompareWithValue(const char *_name) const {
@@ -964,7 +964,7 @@ struct RPCCall FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   const flatbuffers::String *name() const {
     return GetPointer<const flatbuffers::String *>(VT_NAME);
   }
-  bool KeyCompareLessThan(const RPCCall *o) const {
+  bool KeyCompareLessThan(const RPCCall * const o) const {
     return *name() < *o->name();
   }
   int KeyCompareWithValue(const char *_name) const {
@@ -1080,7 +1080,7 @@ struct Service FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   const flatbuffers::String *name() const {
     return GetPointer<const flatbuffers::String *>(VT_NAME);
   }
-  bool KeyCompareLessThan(const Service *o) const {
+  bool KeyCompareLessThan(const Service * const o) const {
     return *name() < *o->name();
   }
   int KeyCompareWithValue(const char *_name) const {
@@ -1199,7 +1199,7 @@ struct SchemaFile FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   const flatbuffers::String *filename() const {
     return GetPointer<const flatbuffers::String *>(VT_FILENAME);
   }
-  bool KeyCompareLessThan(const SchemaFile *o) const {
+  bool KeyCompareLessThan(const SchemaFile * const o) const {
     return *filename() < *o->filename();
   }
   int KeyCompareWithValue(const char *_filename) const {
