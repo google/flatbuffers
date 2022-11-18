@@ -180,7 +180,7 @@ func TestAll(t *testing.T) {
 	// Check a parent namespace import
 	CheckParentNamespace(t.Fatalf)
 
-	// Check a no namespace pizza import
+	// Check a no namespace import
 	CheckNoNamespaceImport(t.Fatalf)
 
 	// Check size-prefixed flatbuffers
