@@ -1,4 +1,4 @@
-include "header.fbs";
+include "no_namespace.fbs";
 
 namespace order;
 

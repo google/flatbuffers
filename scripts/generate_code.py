@@ -181,16 +181,14 @@ flatc(
 
 flatc(
     NO_INCL_OPTS
-    + DART_OPTS
-    + ["--go"],
+    + DART_OPTS,
     schema="include_test/include_test1.fbs",
     include="include_test/sub",
 )
 
 flatc(
     NO_INCL_OPTS
-    + DART_OPTS
-    + ["--go"],
+    + DART_OPTS,
     schema="include_test/sub/include_test2.fbs",
     include="include_test",
 )

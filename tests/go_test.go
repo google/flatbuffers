@@ -18,6 +18,7 @@ package main
 
 import (
 	order "order"
+	pizza "Pizza"
 	mygame "MyGame"          // refers to generated code
 	example "MyGame/Example" // refers to generated code
 	"encoding/json"
@@ -99,51 +100,21 @@ func TestTextParsing(t *testing.T) {
 	}
 }
 
-func CheckPizza(fail func(string, ...interface{})) {
-	var empty, nonempty []byte
+func CheckNoNamespaceImport(fail func(string, ...interface{})) {
+	const size = 13
+	// Order a pizza with specific size
+	builder := flatbuffers.NewBuilder(0)
+	ordered_pizza := pizza.PizzaT{Size: size}
+	food := order.FoodT{Pizza: &ordered_pizza}
+	builder.Finish(food.Pack(builder))
 
-	// create food with an empty pizza
-	{
-		builder := flatbuffers.NewBuilder(0)
+	// Receive order
+	received_food := order.GetRootAsFood(builder.FinishedBytes(), 0)
+	received_pizza := received_food.Pizza(nil).UnPack()
 
-		order.FoodStart(builder)
-		m := order.FoodEnd(builder)
-		builder.Finish(m)
-
-		empty = make([]byte, len(builder.FinishedBytes()))
-		copy(empty, builder.FinishedBytes())
-	}
-
-	// create food with a non-empty pizza field
-	{
-		builder := flatbuffers.NewBuilder(0)
-		mygame.InParentNamespaceStart(builder)
-		pn := mygame.InParentNamespaceEnd(builder)
-
-		order.FoodStart(builder)
-		order.FoodAddPizzaTest(builder, pn)
-		m := order.FoodEnd(builder)
-
-		builder.Finish(m)
-
-		nonempty = make([]byte, len(builder.FinishedBytes()))
-		copy(nonempty, builder.FinishedBytes())
-	}
-
-	// read food with empty pizza field
-	{
-		m := order.GetRootAsFood(empty, 0)
-		if m.PizzaTest(nil) != nil {
-			fail("expected nil ParentNamespaceTest for empty field")
-		}
-	}
-
-	// read food with non-empty pizza field
-	{
-		m := order.GetRootAsFood(nonempty, 0)
-		if m.PizzaTest(nil) == nil {
-			fail("expected non-nil ParentNamespaceTest for non-empty field")
-		}
+	// Check if received pizza is equal to ordered pizza
+	if !reflect.DeepEqual(ordered_pizza, *received_pizza) {
+		fail(FailString("no namespace import", ordered_pizza, received_pizza))
 	}
 }
 
@@ -209,8 +180,8 @@ func TestAll(t *testing.T) {
 	// Check a parent namespace import
 	CheckParentNamespace(t.Fatalf)
 
-	// Check a pizza import
-	CheckPizza(t.Fatalf)
+	// Check a no namespace pizza import
+	CheckNoNamespaceImport(t.Fatalf)
 
 	// Check size-prefixed flatbuffers
 	CheckSizePrefixedBuffer(t.Fatalf)

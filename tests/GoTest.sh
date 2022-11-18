@@ -21,19 +21,17 @@ go_src=${go_path}/src
 
 # Emit Go code for the example schemas in the test dir:
 ../flatc -g --gen-object-api -I include_test -o ${go_src} monster_test.fbs optional_scalars.fbs
-../flatc -g --gen-object-api -I include_test/sub -o ${go_src} include_test/foo.fbs
-../flatc -g --gen-object-api -o ${go_src} include_test/sub/header.fbs
+../flatc -g --gen-object-api -I include_test/sub -o ${go_src} include_test/order.fbs
+../flatc -g --gen-object-api -o ${go_src}/Pizza include_test/sub/no_namespace.fbs
 
 # Go requires a particular layout of files in order to link multiple packages.
 # Copy flatbuffer Go files to their own package directories to compile the
 # test binary:
 mkdir -p ${go_src}/github.com/google/flatbuffers/go
 mkdir -p ${go_src}/flatbuffers_test
-mkdir -p ${go_src}/Pizza
 
 cp -a ../go/* ./go_gen/src/github.com/google/flatbuffers/go
 cp -a ./go_test.go ./go_gen/src/flatbuffers_test/
-mv ${go_src}/Pizza.go ${go_src}/Pizza/
 
 # https://stackoverflow.com/a/63545857/7024978
 # We need to turn off go modules for this script
