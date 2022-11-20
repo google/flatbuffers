@@ -26,51 +26,51 @@ namespace proto.test;
 /// 2nd table doc comment with
 /// many lines.
 table ProtoMessage {
-  c:int = 16;
-  d:long;
-  p:uint;
-  e:ulong;
+  c:int = 16 (id: 12);
+  d:long (id: 1);
+  p:uint (id: 1);
+  e:ulong (id: 2);
   /// doc comment for f.
-  f:int = -1;
-  g:long;
-  h:uint;
-  q:ulong;
-  i:int;
-  j:long;
+  f:int = -1 (id: 3);
+  g:long (id: 4);
+  h:uint (id: 5);
+  q:ulong (id: 6);
+  i:int (id: 7);
+  j:long (id: 8);
   /// doc comment for k.
-  k:bool;
+  k:bool (id: 9);
   /// doc comment for l on 2
   /// lines
-  l:string (required);
-  m:[ubyte];
-  n:proto.test.ProtoMessage_.OtherMessage;
-  o:[string];
-  z:proto.test.ImportedMessage;
+  l:string (required) (id: 10);
+  m:[ubyte] (id: 11);
+  n:proto.test.ProtoMessage_.OtherMessage (id: 12);
+  o:[string] (id: 14);
+  z:proto.test.ImportedMessage (id: 16);
   /// doc comment for r.
   r:proto.test.ProtoMessage_.Anonymous0;
-  outer_enum:proto.test.ProtoEnum;
-  u:float = +inf;
-  v:float = +inf;
-  w:float = -inf;
-  grades:[proto.test.ProtoMessage_.GradesEntry];
-  other_message_map:[proto.test.ProtoMessage_.OtherMessageMapEntry];
+  outer_enum:proto.test.ProtoEnum (id: 33);
+  u:float = +inf (id: 34);
+  v:float = +inf (id: 35);
+  w:float = -inf (id: 36);
+  grades:[proto.test.ProtoMessage_.GradesEntry] (id: 37);
+  other_message_map:[proto.test.ProtoMessage_.OtherMessageMapEntry] (id: 38);
 }
 
 namespace proto.test.ProtoMessage_;
 
 table OtherMessage {
-  a:double;
+  a:double (id: 26);
   /// doc comment for b.
-  b:float = 3.14149;
-  foo_bar_baz:proto.test.ProtoMessage_.OtherMessage_.ProtoEnum;
+  b:float = 3.14149 (id: 32);
+  foo_bar_baz:proto.test.ProtoMessage_.OtherMessage_.ProtoEnum (id: 33);
 }
 
 table Anonymous0 {
   /// doc comment for s.
-  s:proto.test.ImportedMessage;
+  s:proto.test.ImportedMessage (id: 17);
   /// doc comment for t on 2
   /// lines.
-  t:proto.test.ProtoMessage_.OtherMessage;
+  t:proto.test.ProtoMessage_.OtherMessage (id: 18);
 }
 
 table GradesEntry {

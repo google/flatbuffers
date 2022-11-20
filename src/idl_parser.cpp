@@ -1506,7 +1506,7 @@ CheckedError Parser::ParseTable(const StructDef &struct_def, std::string *value,
       if (!struct_def.sortbysize ||
           size == SizeOf(field_value.type.base_type)) {
         switch (field_value.type.base_type) {
-// clang-format off
+          // clang-format off
           #define FLATBUFFERS_TD(ENUM, IDLTYPE, CTYPE, ...) \
             case BASE_TYPE_ ## ENUM: \
               builder_.Pad(field->padding); \
@@ -1635,7 +1635,7 @@ CheckedError Parser::ParseVector(const Type &type, uoffset_t *ovalue,
     // start at the back, since we're building the data backwards.
     auto &val = field_stack_.back().first;
     switch (val.type.base_type) {
-// clang-format off
+      // clang-format off
       #define FLATBUFFERS_TD(ENUM, IDLTYPE, CTYPE,...) \
         case BASE_TYPE_ ## ENUM: \
           if (IsStruct(val.type)) SerializeStruct(*val.type.struct_def, val); \
@@ -2271,12 +2271,8 @@ template<typename T> void EnumDef::ChangeEnumValue(EnumVal *ev, T new_value) {
 }
 
 namespace EnumHelper {
-template<BaseType E> struct EnumValType {
-  typedef int64_t type;
-};
-template<> struct EnumValType<BASE_TYPE_ULONG> {
-  typedef uint64_t type;
-};
+template<BaseType E> struct EnumValType { typedef int64_t type; };
+template<> struct EnumValType<BASE_TYPE_ULONG> { typedef uint64_t type; };
 }  // namespace EnumHelper
 
 struct EnumValBuilder {
@@ -2295,11 +2291,13 @@ struct EnumValBuilder {
     return temp;
   }
 
-  FLATBUFFERS_CHECKED_ERROR AcceptEnumerator(const std::string &name) {
+  FLATBUFFERS_CHECKED_ERROR AcceptEnumerator(const std::string &name,
+                                             std::string id = "") {
     FLATBUFFERS_ASSERT(temp);
     ECHECK(ValidateValue(&temp->value, false == user_value));
     FLATBUFFERS_ASSERT((temp->union_type.enum_def == nullptr) ||
                        (temp->union_type.enum_def == &enum_def));
+    temp->id = id;
     auto not_unique = enum_def.vals.Add(name, temp);
     temp = nullptr;
     if (not_unique) return parser.Error("enum value already exists: " + name);
@@ -2962,11 +2960,13 @@ CheckedError Parser::ParseProtoFields(StructDef *struct_def, bool isextend,
       }
       std::string name = attribute_;
       EXPECT(kTokenIdentifier);
+      std::string id = "";
       if (!oneof) {
         // Parse the field id. Since we're just translating schemas, not
         // any kind of binary compatibility, we can safely ignore these, and
         // assign our own.
         EXPECT('=');
+        id = attribute_;
         EXPECT(kTokenIntegerConstant);
       }
       FieldDef *field = nullptr;
@@ -2977,6 +2977,7 @@ CheckedError Parser::ParseProtoFields(StructDef *struct_def, bool isextend,
       }
       if (!field) ECHECK(AddField(*struct_def, name, type, &field));
       field->doc_comment = field_comment;
+      field->id = id;
       if (!IsScalar(type.base_type) && required) {
         field->presence = FieldDef::kRequired;
       }
@@ -3031,7 +3032,7 @@ CheckedError Parser::ParseProtoFields(StructDef *struct_def, bool isextend,
           auto ev = evb.CreateEnumerator(oneof_type.struct_def->name);
           ev->union_type = oneof_type;
           ev->doc_comment = oneof_field.doc_comment;
-          ECHECK(evb.AcceptEnumerator(oneof_field.name));
+          ECHECK(evb.AcceptEnumerator(oneof_field.name, oneof_field.id));
         }
       } else {
         EXPECT(';');
@@ -3054,6 +3055,7 @@ CheckedError Parser::ParseProtoMapField(StructDef *struct_def) {
   auto field_name = attribute_;
   NEXT();
   EXPECT('=');
+  std::string id = attribute_;
   EXPECT(kTokenIntegerConstant);
   EXPECT(';');
 
@@ -3073,6 +3075,7 @@ CheckedError Parser::ParseProtoMapField(StructDef *struct_def) {
   field_type.struct_def = entry_table;
   FieldDef *field;
   ECHECK(AddField(*struct_def, field_name, field_type, &field));
+  field->id = id;
 
   return NoError();
 }

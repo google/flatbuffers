@@ -112,9 +112,11 @@ std::string GenerateFBS(const Parser &parser, const std::string &file_name) {
     for (auto it = enum_def.Vals().begin(); it != enum_def.Vals().end(); ++it) {
       auto &ev = **it;
       GenComment(ev.doc_comment, &schema, nullptr, "  ");
-      if (enum_def.is_union)
-        schema += "  " + GenType(ev.union_type) + ",\n";
-      else
+      if (enum_def.is_union) {
+        schema += "  " + GenType(ev.union_type);
+        if (!ev.id.empty()) schema += " (id: " + ev.id + ")";
+        schema += ",\n";
+      } else
         schema += "  " + ev.name + " = " + enum_def.ToString(ev) + ",\n";
     }
     schema += "}\n\n";
@@ -138,6 +140,7 @@ std::string GenerateFBS(const Parser &parser, const std::string &file_name) {
         if (field.value.constant != "0") schema += " = " + field.value.constant;
         if (field.IsRequired()) schema += " (required)";
         if (field.key) schema += " (key)";
+        if (!field.id.empty()) schema += " (id: " + field.id + ")";
         schema += ";\n";
       }
     }
