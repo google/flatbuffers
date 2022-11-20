@@ -299,11 +299,11 @@ template<typename T> static uint64_t EnumDistanceImpl(T e1, T e2) {
 }
 
 static bool compareFieldDefs(const FieldDef *a, const FieldDef *b) {
-  uint16_t a_id = 0;
+  int a_id = 0;
   if (a->attributes.Lookup("id"))
     a_id = atoi(a->attributes.Lookup("id")->constant.c_str());
 
-  uint16_t b_id = 0;
+  int b_id = 0;
   if (b->attributes.Lookup("id"))
     b_id = atoi(b->attributes.Lookup("id")->constant.c_str());
 
