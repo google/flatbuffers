@@ -43,7 +43,7 @@ table ProtoMessage {
   k:bool (id: 9);
   /// doc comment for l on 2
   /// lines
-  l:string (required) (id: 10);
+  l:string (required, id: 10);
   m:[ubyte] (id: 11);
   n:proto.test.ProtoMessage_.OtherMessage (id: 12);
   o:[string] (id: 14);

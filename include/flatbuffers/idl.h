@@ -342,7 +342,6 @@ struct FieldDef : public Definition {
 
   StructDef *nested_flatbuffer;  // This field contains nested FlatBuffer data.
   size_t padding;                // Bytes to always pad after this field.
-  std::string id;                // Proto id
 };
 
 struct StructDef : public Definition {
@@ -402,7 +401,6 @@ struct EnumVal {
   std::vector<std::string> doc_comment;
   Type union_type;
   SymbolTable<Value> attributes;
-  std::string id;  // Proto id in union
 
  private:
   friend EnumDef;

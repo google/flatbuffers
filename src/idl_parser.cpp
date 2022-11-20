@@ -299,8 +299,14 @@ template<typename T> static uint64_t EnumDistanceImpl(T e1, T e2) {
 }
 
 static bool compareFieldDefs(const FieldDef *a, const FieldDef *b) {
-  auto a_id = atoi(a->attributes.Lookup("id")->constant.c_str());
-  auto b_id = atoi(b->attributes.Lookup("id")->constant.c_str());
+  uint16_t a_id = 0;
+  if (a->attributes.Lookup("id"))
+    a_id = atoi(a->attributes.Lookup("id")->constant.c_str());
+
+  uint16_t b_id = 0;
+  if (b->attributes.Lookup("id"))
+    b_id = atoi(b->attributes.Lookup("id")->constant.c_str());
+
   return a_id < b_id;
 }
 
@@ -1506,7 +1512,7 @@ CheckedError Parser::ParseTable(const StructDef &struct_def, std::string *value,
       if (!struct_def.sortbysize ||
           size == SizeOf(field_value.type.base_type)) {
         switch (field_value.type.base_type) {
-          // clang-format off
+// clang-format off
           #define FLATBUFFERS_TD(ENUM, IDLTYPE, CTYPE, ...) \
             case BASE_TYPE_ ## ENUM: \
               builder_.Pad(field->padding); \
@@ -1635,7 +1641,7 @@ CheckedError Parser::ParseVector(const Type &type, uoffset_t *ovalue,
     // start at the back, since we're building the data backwards.
     auto &val = field_stack_.back().first;
     switch (val.type.base_type) {
-      // clang-format off
+// clang-format off
       #define FLATBUFFERS_TD(ENUM, IDLTYPE, CTYPE,...) \
         case BASE_TYPE_ ## ENUM: \
           if (IsStruct(val.type)) SerializeStruct(*val.type.struct_def, val); \
@@ -2291,13 +2297,11 @@ struct EnumValBuilder {
     return temp;
   }
 
-  FLATBUFFERS_CHECKED_ERROR AcceptEnumerator(const std::string &name,
-                                             std::string id = "") {
+  FLATBUFFERS_CHECKED_ERROR AcceptEnumerator(const std::string &name) {
     FLATBUFFERS_ASSERT(temp);
     ECHECK(ValidateValue(&temp->value, false == user_value));
     FLATBUFFERS_ASSERT((temp->union_type.enum_def == nullptr) ||
                        (temp->union_type.enum_def == &enum_def));
-    temp->id = id;
     auto not_unique = enum_def.vals.Add(name, temp);
     temp = nullptr;
     if (not_unique) return parser.Error("enum value already exists: " + name);
@@ -2654,7 +2658,15 @@ CheckedError Parser::ParseDecl(const char *filename) {
   if (!fixed && fields.size()) {
     size_t num_id_fields = 0;
     for (auto it = fields.begin(); it != fields.end(); ++it) {
-      if ((*it)->attributes.Lookup("id")) num_id_fields++;
+      if ((*it)->attributes.Lookup("id")) {
+        num_id_fields++;
+        voffset_t id = 0;
+        auto id_str = (*it)->attributes.Lookup("id")->constant;
+        const auto done = !atot(id_str.c_str(), *this, &id).Check();
+        if (!done)
+          return Error("field id\'s must be non-negative number, field: " +
+                       (*it)->name + ", id: " + id_str);
+      }
     }
     // If any fields have ids..
     if (num_id_fields || opts.require_explicit_ids) {
@@ -2664,9 +2676,6 @@ CheckedError Parser::ParseDecl(const char *filename) {
           return Error(
               "all fields must have an 'id' attribute when "
               "--require-explicit-ids is used");
-        } else {
-          return Error(
-              "either all fields or no fields must have an 'id' attribute");
         }
       }
       // Simply sort by id, then the fields are the same as if no ids had
@@ -2677,20 +2686,6 @@ CheckedError Parser::ParseDecl(const char *filename) {
                          flatbuffers::numeric_limits<voffset_t>::max());
       for (voffset_t i = 0; i < static_cast<voffset_t>(fields.size()); i++) {
         auto &field = *fields[i];
-        const auto &id_str = field.attributes.Lookup("id")->constant;
-        // Metadata values have a dynamic type, they can be `float`, 'int', or
-        // 'string`.
-        // The FieldIndexToOffset(i) expects the voffset_t so `id` is limited by
-        // this type.
-        voffset_t id = 0;
-        const auto done = !atot(id_str.c_str(), *this, &id).Check();
-        if (!done)
-          return Error("field id\'s must be non-negative number, field: " +
-                       field.name + ", id: " + id_str);
-        if (i != id)
-          return Error("field id\'s must be consecutive from 0, id " +
-                       NumToString(i) + " missing or set twice, field: " +
-                       field.name + ", id: " + id_str);
         field.value.offset = FieldIndexToOffset(i);
       }
     }
@@ -2977,7 +2972,9 @@ CheckedError Parser::ParseProtoFields(StructDef *struct_def, bool isextend,
       }
       if (!field) ECHECK(AddField(*struct_def, name, type, &field));
       field->doc_comment = field_comment;
-      field->id = id;
+      auto val = new Value();
+      val->constant = id;
+      field->attributes.Add("id", val);
       if (!IsScalar(type.base_type) && required) {
         field->presence = FieldDef::kRequired;
       }
@@ -3032,7 +3029,10 @@ CheckedError Parser::ParseProtoFields(StructDef *struct_def, bool isextend,
           auto ev = evb.CreateEnumerator(oneof_type.struct_def->name);
           ev->union_type = oneof_type;
           ev->doc_comment = oneof_field.doc_comment;
-          ECHECK(evb.AcceptEnumerator(oneof_field.name, oneof_field.id));
+          auto val = new Value();
+          val->constant = oneof_field.attributes.Lookup("id")->constant;
+          ev->attributes.Add("id", val);
+          ECHECK(evb.AcceptEnumerator(oneof_field.name));
         }
       } else {
         EXPECT(';');
@@ -3075,7 +3075,9 @@ CheckedError Parser::ParseProtoMapField(StructDef *struct_def) {
   field_type.struct_def = entry_table;
   FieldDef *field;
   ECHECK(AddField(*struct_def, field_name, field_type, &field));
-  field->id = id;
+  auto val = new Value();
+  val->constant = id;
+  field->attributes.Add("id", val);
 
   return NoError();
 }

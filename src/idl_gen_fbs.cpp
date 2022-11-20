@@ -114,7 +114,9 @@ std::string GenerateFBS(const Parser &parser, const std::string &file_name) {
       GenComment(ev.doc_comment, &schema, nullptr, "  ");
       if (enum_def.is_union) {
         schema += "  " + GenType(ev.union_type);
-        if (!ev.id.empty()) schema += " (id: " + ev.id + ")";
+        const auto &id_str = ev.attributes.Lookup("id");
+        if (id_str && !id_str->constant.empty())
+          schema += " (id: " + id_str->constant + ")";
         schema += ",\n";
       } else
         schema += "  " + ev.name + " = " + enum_def.ToString(ev) + ",\n";
@@ -138,9 +140,28 @@ std::string GenerateFBS(const Parser &parser, const std::string &file_name) {
         GenComment(field.doc_comment, &schema, nullptr, "  ");
         schema += "  " + field.name + ":" + GenType(field.value.type);
         if (field.value.constant != "0") schema += " = " + field.value.constant;
-        if (field.IsRequired()) schema += " (required)";
-        if (field.key) schema += " (key)";
-        if (!field.id.empty()) schema += " (id: " + field.id + ")";
+        bool metadata = false;
+        if (field.IsRequired()) {
+          metadata = true;
+          schema += " (required";
+        }
+        if (field.key) {
+          if (metadata)
+            schema += " ,key";
+          else
+            schema += " (key";
+          metadata = true;
+        }
+        const auto &id_str = field.attributes.Lookup("id");
+        if (id_str && !id_str->constant.empty()) {
+          if (metadata)
+            schema += ", id: " + id_str->constant;
+          else
+            schema += " (id: " + id_str->constant;
+          metadata = true;
+        }
+        if (metadata) schema += ")";
+
         schema += ";\n";
       }
     }
