@@ -27,9 +27,14 @@
 #include "flatbuffers/reflection_generated.h"
 #include "flatbuffers/util.h"
 
+#if defined(MZ_CUSTOM_FLATBUFFERS) && MZ_CUSTOM_FLATBUFFERS
+#  include <../../stduuid/include/uuid.h>
+#endif  // defined(MZ_CUSTOM_FLATBUFFERS) && MZ_CUSTOM_FLATBUFFERS
+
+
 namespace flatbuffers {
 
-// Reflects the version at the compiling time of binary(lib/dll/so).
+  // Reflects the version at the compiling time of binary(lib/dll/so).
 const char *FLATBUFFERS_VERSION() {
   // clang-format off
   return
@@ -1116,6 +1121,7 @@ CheckedError Parser::ParseField(StructDef &struct_def) {
   // Nonscalars are kOptional unless required;
   field->key = field->attributes.Lookup("key") != nullptr;
   const bool required = field->attributes.Lookup("required") != nullptr ||
+                        field->attributes.Lookup("dynamic") != nullptr ||
                         (IsString(type) && field->key);
   const bool default_str_or_vec =
       ((IsString(type) || IsVector(type)) && field->value.constant != "0");
@@ -1399,7 +1405,25 @@ CheckedError Parser::ParseAnyValue(Value &val, FieldDef *field,
       break;
     }
     case BASE_TYPE_STRUCT:
-      ECHECK(ParseTable(*val.type.struct_def, &val.constant, nullptr));
+#if defined(MZ_CUSTOM_FLATBUFFERS) && MZ_CUSTOM_FLATBUFFERS // clang-format off      
+      if (mzIsId(val.type)) 
+      {
+        // parse string id and serialize uuid struct
+        val.constant.assign(val.type.struct_def->bytesize, 0); // 16
+        auto readId = uuids::uuid::from_string(attribute_);
+        EXPECT(kTokenStringConstant);
+        if (readId.has_value() && readId.value().as_bytes().size_bytes() == val.type.struct_def->bytesize)
+        {
+          // note that this is a shortcut, usually flatbuffers would first call SerializeStruct(*val.type.struct_def, val);
+          // and roll back the builder (clear offset, end struct..) and cache the value in val.constant and then serialize it 
+          // after the parent table is finished; since we know nothing will recur, we are directly caching it to val.constant
+          // check out what it does at the end of Parser::ParseTable() - the fixed size path
+          val.constant.assign((char *)readId.value().as_bytes().data(), val.type.struct_def->bytesize);
+        }
+      } 
+      else
+#endif  // defined(MZ_CUSTOM_FLATBUFFERS) && MZ_CUSTOM_FLATBUFFERS // clang-format on
+        ECHECK(ParseTable(*val.type.struct_def, &val.constant, nullptr));
       break;
     case BASE_TYPE_STRING: {
       ECHECK(ParseString(val, field->shared));
@@ -1489,10 +1513,12 @@ CheckedError Parser::ParseTableDelimiters(size_t &fieldn,
   return NoError();
 }
 
-CheckedError Parser::ParseTable(const StructDef &struct_def, std::string *value,
-                                uoffset_t *ovalue) {
+  CheckedError Parser::ParseTable(const StructDef &struct_def, std::string *value,
+                                uoffset_t *ovalue, bool fill) {
   ParseDepthGuard depth_guard(this);
   ECHECK(depth_guard.Check());
+
+  size_t lastFieldCount = field_stack_.size();
 
   size_t fieldn_outer = 0;
   auto err = ParseTableDelimiters(
@@ -1500,7 +1526,7 @@ CheckedError Parser::ParseTable(const StructDef &struct_def, std::string *value,
       [&](const std::string &name, size_t &fieldn,
           const StructDef *struct_def_inner) -> CheckedError {
         if (name == "$schema") {
-          ECHECK(Expect(kTokenStringConstant));
+           ECHECK(Expect(kTokenStringConstant));
           return NoError();
         }
         auto field = struct_def_inner->fields.Lookup(name);
@@ -1527,8 +1553,72 @@ CheckedError Parser::ParseTable(const StructDef &struct_def, std::string *value,
               val.constant = NumToString(off.o);
             } else if (field->nested_flatbuffer) {
               ECHECK(
-                  ParseNestedFlatbuffer(val, field, fieldn, struct_def_inner));
+                ParseNestedFlatbuffer(val, field, fieldn, struct_def_inner));
             } else {
+#if defined(MZ_CUSTOM_FLATBUFFERS) && MZ_CUSTOM_FLATBUFFERS // clang-format off
+              if (auto typeName = LookupDynamicFieldType(field, struct_def_inner))
+              {
+                if (ResolveDynamicTypes(typeName, val.type, field))
+                {
+                  if (val.type.struct_def)
+                  {
+                    ECHECK(ParseTable(*val.type.struct_def, &val.constant, nullptr, true));
+
+                    builder_.ForceVectorAlignment(val.constant.size(), sizeof(uint8_t), val.type.struct_def->minalign);
+                    auto off = builder_.CreateVector(val.constant.c_str(), val.constant.size());
+                    val.constant = NumToString(off.o);
+                  }
+                  else
+                  {
+                    // scalars and strings
+                    if (val.type.base_type == BASE_TYPE_STRING)
+                    {
+                      auto str = attribute_;
+                      EXPECT(kTokenStringConstant);
+
+                      builder_.ForceVectorAlignment(str.size() + 1, sizeof(uint8_t), 1);
+                      auto off = builder_.CreateVector(str.c_str(), str.size() + 1);
+                      val.constant = NumToString(off.o);
+                    }
+                    else
+                    {
+                      ECHECK(ParseAnyValue(val, field, fieldn, struct_def_inner, 0));
+
+                      FlatBufferBuilder fbb;
+                      switch (val.type.base_type) 
+                      {
+                      #undef FLATBUFFERS_TD
+                      #define FLATBUFFERS_TD(ENUM, IDLTYPE, CTYPE, ...) \
+                        case BASE_TYPE_ ## ENUM: \
+                          {\
+                              CTYPE val_; \
+                              ECHECK(atot(val.constant.c_str(), *this, &val_)); \
+                              fbb.AddElement(val.offset, val_); \
+                          } \
+                          break;
+                        FLATBUFFERS_GEN_TYPES_SCALAR(FLATBUFFERS_TD)
+                      #undef FLATBUFFERS_TD
+                      }
+                      
+                      if (!fbb.GetSize())
+                      {
+                        return Error("Only structs, tables, scalars and strings are supported as dynamic types");
+                      }
+                      
+                      builder_.ForceVectorAlignment(fbb.GetSize(), sizeof(uint8_t), 1);
+                      auto off = builder_.CreateVector(fbb.GetCurrentBufferPointer(), fbb.GetSize());
+                      val.constant = NumToString(off.o);
+                    }
+                  }
+                  val.type.struct_def = nullptr;
+                  val.type.element = BASE_TYPE_UCHAR;
+                  val.type.base_type = BASE_TYPE_VECTOR;
+                }
+                else
+                  return Error("Type not found: " + std::string(typeName));
+              }
+              else
+#endif  // defined(MZ_CUSTOM_FLATBUFFERS) && MZ_CUSTOM_FLATBUFFERS // clang-format on
               ECHECK(ParseAnyValue(val, field, fieldn, struct_def_inner, 0));
             }
             // Hardcoded insertion-sort with error-check.
@@ -1555,7 +1645,7 @@ CheckedError Parser::ParseTable(const StructDef &struct_def, std::string *value,
   for (auto field_it = struct_def.fields.vec.begin();
        field_it != struct_def.fields.vec.end(); ++field_it) {
     auto required_field = *field_it;
-    if (!required_field->IsRequired()) { continue; }
+    if (!fill && !required_field->IsRequired()) { continue; }
     bool found = false;
     for (auto pf_it = field_stack_.end() - fieldn_outer;
          pf_it != field_stack_.end(); ++pf_it) {
@@ -1565,13 +1655,86 @@ CheckedError Parser::ParseTable(const StructDef &struct_def, std::string *value,
         break;
       }
     }
+#if defined(MZ_CUSTOM_FLATBUFFERS) && MZ_CUSTOM_FLATBUFFERS // clang-format off
+    if (fill && !found)
+    {
+      auto absent_field = *field_it;
+
+      // find the correct place to insert
+      auto elem = field_stack_.rbegin();
+      for (; size_t(elem - field_stack_.rend()) > lastFieldCount; ++elem)
+      {
+        auto existing_field = elem->second;
+        if (existing_field->value.offset < absent_field->value.offset)
+            break;
+      }
+
+      // create empty entries for strings
+      if (auto typeName = LookupDynamicFieldType(absent_field, &struct_def))
+      {
+        Type type;
+        if (ResolveDynamicTypes(typeName, type, absent_field))
+        {
+          if (type.base_type == BASE_TYPE_STRING)
+          {
+            char term = '\0';
+            Value val_ = absent_field->value;
+            builder_.ForceVectorAlignment(1, sizeof(uint8_t), 1);
+            auto off = builder_.CreateVector(&term, 1);
+            val_.constant = NumToString(off.o);
+
+            found = true;
+            fieldn_outer++;
+            field_stack_.insert((elem + 1).base(), std::make_pair(val_, absent_field));
+          }
+          else if (type.base_type == BASE_TYPE_STRUCT)
+          {
+            Value val_ = absent_field->value;
+            auto size = type.struct_def->bytesize;
+
+            std::vector<uint8_t> empty(size);
+            builder_.ForceVectorAlignment(size, sizeof(uint8_t), type.struct_def->minalign);
+            auto off = builder_.CreateVector(empty);
+            val_.constant = NumToString(off.o);
+            
+            found = true;
+            fieldn_outer++;
+            field_stack_.insert(elem.base(), std::make_pair(val_, absent_field));
+          }
+          else
+          {
+            Value val_ = absent_field->value;
+            auto size = InlineSize(type);
+
+            std::vector<uint8_t> empty(size);
+            builder_.ForceVectorAlignment(size, sizeof(uint8_t), InlineAlignment(type));
+            auto off = builder_.CreateVector(empty);
+            val_.constant = NumToString(off.o);
+            
+            found = true;
+            fieldn_outer++;
+            field_stack_.insert(elem.base(), std::make_pair(val_, absent_field));
+          }
+        }
+      }
+
+      // auto-complete missing fields of structs
+      if (!found && struct_def.fixed)
+      {
+        found = true;
+        fieldn_outer++;
+        assert(absent_field);
+        field_stack_.insert(elem.base(), std::make_pair(absent_field->value, absent_field));
+      }
+    }
+#endif  // defined(MZ_CUSTOM_FLATBUFFERS) && MZ_CUSTOM_FLATBUFFERS // clang-format on
     if (!found) {
       return Error("required field is missing: " + required_field->name +
                    " in " + struct_def.name);
     }
   }
 
-  if (struct_def.fixed && fieldn_outer != struct_def.fields.vec.size())
+  if (struct_def.fixed && fieldn_outer != struct_def.fields.vec.size()) 
     return Error("struct: wrong number of initializers: " + struct_def.name);
 
   auto start = struct_def.fixed ? builder_.StartStruct(struct_def.minalign)
@@ -2372,12 +2535,8 @@ template<typename T> void EnumDef::ChangeEnumValue(EnumVal *ev, T new_value) {
 }
 
 namespace EnumHelper {
-template<BaseType E> struct EnumValType {
-  typedef int64_t type;
-};
-template<> struct EnumValType<BASE_TYPE_ULONG> {
-  typedef uint64_t type;
-};
+template<BaseType E> struct EnumValType { typedef int64_t type; };
+template<> struct EnumValType<BASE_TYPE_ULONG> { typedef uint64_t type; };
 }  // namespace EnumHelper
 
 struct EnumValBuilder {
@@ -3827,9 +3986,9 @@ CheckedError Parser::DoParseJson() {
     }
   }
   if (opts.require_json_eof) {
-    // Check that JSON file doesn't contain more objects or IDL directives.
-    // Comments after JSON are allowed.
-    EXPECT(kTokenEof);
+  // Check that JSON file doesn't contain more objects or IDL directives.
+  // Comments after JSON are allowed.
+  EXPECT(kTokenEof);
   }
   return NoError();
 }
@@ -4205,7 +4364,7 @@ Offset<reflection::EnumVal> EnumVal::Serialize(FlatBufferBuilder *builder,
   const auto attr__ = SerializeAttributes(builder, parser);
   const auto docs__ = parser.opts.binary_schema_comments && !doc_comment.empty()
                           ? builder->CreateVectorOfStrings(doc_comment)
-                          : 0;
+                    : 0;
   return reflection::CreateEnumVal(*builder, name__, value, type__, docs__,
                                    attr__);
 }
@@ -4214,7 +4373,6 @@ bool EnumVal::Deserialize(Parser &parser, const reflection::EnumVal *val) {
   name = val->name()->str();
   value = val->value();
   if (!union_type.Deserialize(parser, val->union_type())) return false;
-  if (!DeserializeAttributes(parser, val->attributes())) return false;
   DeserializeDoc(doc_comment, val->documentation());
   return true;
 }
@@ -4432,8 +4590,8 @@ std::string Parser::ConformTo(const Parser &base) {
       // not a renamed field
       if (renamed_fields.find(&field_base) == renamed_fields.end()) {
         auto field = struct_def.fields.Lookup(field_base.name);
-        if (!field) {
-          return "field deleted: " + qualified_name + "." + field_base.name;
+        if (!field) { 
+          return "field deleted: " + qualified_name + "." + field_base.name; 
         }
       }
     }
@@ -4462,4 +4620,96 @@ std::string Parser::ConformTo(const Parser &base) {
   return "";
 }
 
+// clang-format off
+Parser::type_lookup *Parser::LookupPrimitiveType(std::string const &name) {
+  static type_lookup lookup[] = {
+    { "f32", BASE_TYPE_FLOAT, BASE_TYPE_NONE },
+    { "f64", BASE_TYPE_DOUBLE, BASE_TYPE_NONE },
+    { "float", BASE_TYPE_FLOAT, BASE_TYPE_NONE },
+    { "double", BASE_TYPE_DOUBLE, BASE_TYPE_NONE },
+    { "i32", BASE_TYPE_INT, BASE_TYPE_NONE },
+    { "int", BASE_TYPE_INT, BASE_TYPE_NONE },
+    { "int32", BASE_TYPE_INT, BASE_TYPE_NONE },
+    { "int64", BASE_TYPE_LONG, BASE_TYPE_NONE },
+    { "u32", BASE_TYPE_UINT, BASE_TYPE_NONE },
+    { "uint", BASE_TYPE_UINT, BASE_TYPE_NONE },
+    { "uint32", BASE_TYPE_UINT, BASE_TYPE_NONE },
+    { "uint64", BASE_TYPE_ULONG, BASE_TYPE_NONE },
+    { "ulong", BASE_TYPE_ULONG, BASE_TYPE_NONE },
+    { "sint32", BASE_TYPE_INT, BASE_TYPE_NONE },
+    { "sint64", BASE_TYPE_LONG, BASE_TYPE_NONE },
+    { "fixed32", BASE_TYPE_UINT, BASE_TYPE_NONE },
+    { "fixed64", BASE_TYPE_ULONG, BASE_TYPE_NONE },
+    { "sfixed32", BASE_TYPE_INT, BASE_TYPE_NONE },
+    { "sfixed64", BASE_TYPE_LONG, BASE_TYPE_NONE },
+    { "bool", BASE_TYPE_BOOL, BASE_TYPE_NONE },
+    { "string", BASE_TYPE_STRING, BASE_TYPE_NONE },
+    { "bytes", BASE_TYPE_VECTOR, BASE_TYPE_UCHAR },
+    { nullptr, BASE_TYPE_NONE, BASE_TYPE_NONE }
+  };
+  for (auto tl = lookup; tl->proto_type; tl++) {
+    if (name == tl->proto_type) { return tl; }
+  }
+  return nullptr;
+}
+
+const char *Parser::LookupDynamicFieldType(const FieldDef *dynamic_field, const StructDef* struct_def) 
+{
+  const char *typeName = nullptr;
+  if (auto typeNameFieldName = dynamic_field->attributes.Lookup("dynamic")) 
+  {
+    auto typeNameField = struct_def->fields.Lookup(typeNameFieldName->constant);
+    for (auto it = field_stack_.rbegin(); it != field_stack_.rend(); ++it) 
+    {
+      auto &field_value = it->first;
+      if (it->second == typeNameField) 
+      {
+        uoffset_t tempOffset;
+        StringToNumber<uoffset_t>(field_value.constant.c_str(), &tempOffset);
+        typeName = reinterpret_cast<const String *>(builder_.GetCurrentBufferPointer() + builder_.GetSize() - tempOffset)->c_str();
+        break;
+      }
+    }
+  }
+  return typeName;
+}
+bool Parser::ResolveDynamicTypes(const char* typeName, Type& type, const FieldDef *field)
+{
+  if (field->attributes.Lookup("dynamic")) 
+  {
+      if (auto type_info = LookupPrimitiveType(typeName)) 
+      {
+        type.element = type_info->element;
+        type.base_type = type_info->fb_type;
+      } 
+      else 
+      {
+          if (auto enum_def = LookupTableByName(enums_, typeName, *current_namespace_, 0)) 
+          {
+            type = enum_def->underlying_type;
+            type.enum_def = enum_def;
+            enum_def->refcount++;
+            if (enum_def->is_union) 
+            {
+              type.base_type = BASE_TYPE_UNION;
+            }
+          } 
+          else 
+          {
+            if (auto mz_struct_def = LookupStruct(typeName)) 
+            {
+              type.struct_def = mz_struct_def;
+              type.base_type = BASE_TYPE_STRUCT;
+            }
+            else
+            {
+              return false;
+              //parser->Error("mz: type not found, check namespace: " + typeName);
+            }
+          }
+      }
+      return true;
+  }  
+  return false;
+}
 }  // namespace flatbuffers

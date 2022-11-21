@@ -1084,7 +1084,7 @@ class Parser : public ParserState {
                                                  const StructDef *struct_def,
                                                  F body);
   FLATBUFFERS_CHECKED_ERROR ParseTable(const StructDef &struct_def,
-                                       std::string *value, uoffset_t *ovalue);
+                                       std::string *value, uoffset_t *ovalue, bool fill = false);
   void SerializeStruct(const StructDef &struct_def, const Value &val);
   void SerializeStruct(FlatBufferBuilder &builder, const StructDef &struct_def,
                        const Value &val);
@@ -1205,6 +1205,18 @@ class Parser : public ParserState {
 
   int anonymous_counter_;
   int parse_depth_counter_;  // stack-overflow guard
+
+public:
+  struct type_lookup {
+    const char *proto_type;
+    BaseType fb_type, element;
+  };
+  type_lookup *LookupPrimitiveType(std::string const &name);
+  bool ResolveDynamicTypes(const char *typeName, Type &type, const FieldDef *field);
+  const char* LookupDynamicFieldType(const FieldDef *dynamic_field, const StructDef *struct_def);
+
+  bool mzIsId(const StructDef *def) { return (def && def->attributes.Lookup("mz_id"));}
+  bool mzIsId(const Type &type) { return (type.base_type == BASE_TYPE_STRUCT && mzIsId(type.struct_def)); }
 };
 
 // Utility functions for multiple generators:
