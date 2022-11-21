@@ -4671,24 +4671,34 @@ bool Parser::CompleteMissingField(FieldDef* absent_field, const StructDef &struc
     if (ResolveDynamicType(typeName, type, absent_field))
     {
       // we want zero-initialized default pin data
-      Value _val_ = absent_field->value;
-      std::vector<uint8_t> _empty(type.base_type == BASE_TYPE_STRING ? 1 : InlineSize(type));
-      builder_.ForceVectorAlignment(_empty.size(), sizeof(uint8_t), type.base_type == BASE_TYPE_STRING ? 1 : InlineAlignment(type));
-      auto off = builder_.CreateVector(_empty);
-      _val_.constant = NumToString(off.o);
+      Value val = absent_field->value;
+      std::vector<uint8_t> empty(type.base_type == BASE_TYPE_STRING ? 1 : InlineSize(type));
+      builder_.ForceVectorAlignment(empty.size(), sizeof(uint8_t), type.base_type == BASE_TYPE_STRING ? 1 : InlineAlignment(type));
+      auto off = builder_.CreateVector(empty);
+      val.constant = NumToString(off.o);
 
       found = true;
       fieldn_outer++;
-      field_stack_.insert(elem.base(), std::make_pair(_val_, absent_field));
+      field_stack_.insert(elem.base(), std::make_pair(val, absent_field));
     }
   }
   // auto-complete missing fields of a struct
-  if (!found && struct_def.fixed && !IsStruct(absent_field->value.type))
+  if (!found && struct_def.fixed)
   {
     found = true;
     fieldn_outer++;
-    // TODO: this works for scalar fields only, implement nested structs as well
-    field_stack_.insert(elem.base(), std::make_pair(absent_field->value, absent_field));
+
+    Value val = absent_field->value;
+    if (IsStruct(val.type))
+    {
+      val.constant.assign(InlineSize(val.type), 0);
+    }
+    else
+    {
+      val.constant = "0";
+    }
+
+    field_stack_.insert(elem.base(), std::make_pair(val, absent_field));
   }
 
   return found;
