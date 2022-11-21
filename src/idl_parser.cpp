@@ -1658,68 +1658,33 @@ CheckedError Parser::ParseTableDelimiters(size_t &fieldn,
     if (!found && (fill || required_field->attributes.Lookup("dynamic")))
     {
       auto absent_field = *field_it;
-
       // find the correct place to insert
       auto elem = field_stack_.rbegin();
-      auto cursor = field_stack_.rend() - elem;
       for (; field_stack_.rend() - elem > lastFieldCount; ++elem)
       {
-        cursor = field_stack_.rend() - elem;
-
         auto existing_field = elem->second;
         if (existing_field->value.offset < absent_field->value.offset)
+        {
             break;
+        }
       }
-
-      // create empty entries for strings
       if (auto typeName = LookupDynamicFieldType(absent_field, &struct_def))
       {
         Type type;
         if (ResolveDynamicTypes(typeName, type, absent_field))
         {
-          if (type.base_type == BASE_TYPE_STRING)
-          {
-            char term = '\0';
-            Value val_ = absent_field->value;
-            builder_.ForceVectorAlignment(1, sizeof(uint8_t), 1);
-            auto off = builder_.CreateVector(&term, 1);
-            val_.constant = NumToString(off.o);
+          // we want zero-initialized default pin data
+          Value _val_ = absent_field->value;
+          std::vector<uint8_t> _empty(type.base_type == BASE_TYPE_STRING ? 1 : InlineSize(type));
+          builder_.ForceVectorAlignment(_empty.size(), sizeof(uint8_t), InlineAlignment(type));
+          auto off = builder_.CreateVector(_empty);
+          _val_.constant = NumToString(off.o);
 
-            found = true;
-            fieldn_outer++;
-            field_stack_.insert((elem + 1).base(), std::make_pair(val_, absent_field));
-          }
-          else if (type.base_type == BASE_TYPE_STRUCT)
-          {
-            Value val_ = absent_field->value;
-            auto size = type.struct_def->bytesize;
-
-            std::vector<uint8_t> empty(size);
-            builder_.ForceVectorAlignment(size, sizeof(uint8_t), type.struct_def->minalign);
-            auto off = builder_.CreateVector(empty);
-            val_.constant = NumToString(off.o);
-            
-            found = true;
-            fieldn_outer++;
-            field_stack_.insert(elem.base(), std::make_pair(val_, absent_field));
-          }
-          else
-          {
-            Value val_ = absent_field->value;
-            auto size = InlineSize(type);
-
-            std::vector<uint8_t> empty(size);
-            builder_.ForceVectorAlignment(size, sizeof(uint8_t), InlineAlignment(type));
-            auto off = builder_.CreateVector(empty);
-            val_.constant = NumToString(off.o);
-            
-            found = true;
-            fieldn_outer++;
-            field_stack_.insert(elem.base(), std::make_pair(val_, absent_field));
-          }
+          found = true;
+          fieldn_outer++;
+          field_stack_.insert(elem.base(), std::make_pair(_val_, absent_field));
         }
       }
-
       // auto-complete missing fields of structs
       if (!found && struct_def.fixed)
       {
@@ -4662,7 +4627,7 @@ const char *Parser::LookupDynamicFieldType(const FieldDef *dynamic_field, const 
   if (auto typeNameFieldName = dynamic_field->attributes.Lookup("dynamic")) 
   {
     auto typeNameField = struct_def->fields.Lookup(typeNameFieldName->constant);
-    for (auto it = field_stack_.rbegin(); it != field_stack_.rend(); ++it) 
+    for (auto it = field_stack_.rbegin(); it != field_stack_.rend(); ++it)
     {
       auto &field_value = it->first;
       if (it->second == typeNameField) 
