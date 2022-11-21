@@ -1121,7 +1121,6 @@ CheckedError Parser::ParseField(StructDef &struct_def) {
   // Nonscalars are kOptional unless required;
   field->key = field->attributes.Lookup("key") != nullptr;
   const bool required = field->attributes.Lookup("required") != nullptr ||
-                        field->attributes.Lookup("dynamic") != nullptr ||
                         (IsString(type) && field->key);
   const bool default_str_or_vec =
       ((IsString(type) || IsVector(type)) && field->value.constant != "0");
@@ -1518,7 +1517,7 @@ CheckedError Parser::ParseTableDelimiters(size_t &fieldn,
   ParseDepthGuard depth_guard(this);
   ECHECK(depth_guard.Check());
 
-  size_t lastFieldCount = field_stack_.size();
+  int32_t lastFieldCount = int32_t(field_stack_.size());
 
   size_t fieldn_outer = 0;
   auto err = ParseTableDelimiters(
@@ -1645,7 +1644,7 @@ CheckedError Parser::ParseTableDelimiters(size_t &fieldn,
   for (auto field_it = struct_def.fields.vec.begin();
        field_it != struct_def.fields.vec.end(); ++field_it) {
     auto required_field = *field_it;
-    if (!fill && !required_field->IsRequired()) { continue; }
+    if (!(fill || required_field->attributes.Lookup("dynamic")) && !required_field->IsRequired()) { continue; }
     bool found = false;
     for (auto pf_it = field_stack_.end() - fieldn_outer;
          pf_it != field_stack_.end(); ++pf_it) {
@@ -1656,14 +1655,17 @@ CheckedError Parser::ParseTableDelimiters(size_t &fieldn,
       }
     }
 #if defined(MZ_CUSTOM_FLATBUFFERS) && MZ_CUSTOM_FLATBUFFERS // clang-format off
-    if (fill && !found)
+    if (!found && (fill || required_field->attributes.Lookup("dynamic")))
     {
       auto absent_field = *field_it;
 
       // find the correct place to insert
       auto elem = field_stack_.rbegin();
-      for (; size_t(elem - field_stack_.rend()) > lastFieldCount; ++elem)
+      auto cursor = field_stack_.rend() - elem;
+      for (; field_stack_.rend() - elem > lastFieldCount; ++elem)
       {
+        cursor = field_stack_.rend() - elem;
+
         auto existing_field = elem->second;
         if (existing_field->value.offset < absent_field->value.offset)
             break;
@@ -4630,6 +4632,7 @@ Parser::type_lookup *Parser::LookupPrimitiveType(std::string const &name) {
     { "i32", BASE_TYPE_INT, BASE_TYPE_NONE },
     { "int", BASE_TYPE_INT, BASE_TYPE_NONE },
     { "int32", BASE_TYPE_INT, BASE_TYPE_NONE },
+    { "long", BASE_TYPE_LONG, BASE_TYPE_NONE },
     { "int64", BASE_TYPE_LONG, BASE_TYPE_NONE },
     { "u32", BASE_TYPE_UINT, BASE_TYPE_NONE },
     { "uint", BASE_TYPE_UINT, BASE_TYPE_NONE },
