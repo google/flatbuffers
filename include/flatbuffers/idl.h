@@ -1207,22 +1207,20 @@ class Parser : public ParserState {
   int parse_depth_counter_;  // stack-overflow guard
 
 public:
-//clang-format off
+// clang-format off
   struct type_lookup {
     const char *proto_type;
     BaseType fb_type, element;
   };
   type_lookup *LookupPrimitiveType(std::string const &name);
-  bool ResolveDynamicTypes(const char *typeName, Type &type, const FieldDef *field);
+  bool ResolveDynamicType(const char *typeName, Type &type, const FieldDef *field);
   const char* LookupDynamicFieldType(const FieldDef *dynamic_field, const StructDef *struct_def);
-  FLATBUFFERS_CHECKED_ERROR ParseDynamic(Value &val, FieldDef *field,
-                                         size_t fieldn,
-                                         const StructDef *struct_def_inner,
-                                         const char *typeName);
+  bool CompleteMissingField(FieldDef *absent_field, const StructDef &struct_def, size_t& fieldn_outer, int32_t lastFieldCount);
+  FLATBUFFERS_CHECKED_ERROR ParseDynamic(Value &val, FieldDef *field, size_t fieldn, const StructDef *struct_def_inner, const char *typeName);
 
   bool mzIsId(const StructDef *def) { return (def && def->attributes.Lookup("mz_id"));}
   bool mzIsId(const Type &type) { return (type.base_type == BASE_TYPE_STRUCT && mzIsId(type.struct_def)); }
-//clang-format on
+// clang-format on
 };
 
 // Utility functions for multiple generators:

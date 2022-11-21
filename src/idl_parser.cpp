@@ -1600,42 +1600,7 @@ CheckedError Parser::ParseTableDelimiters(size_t &fieldn,
 #if defined(MZ_CUSTOM_FLATBUFFERS) && MZ_CUSTOM_FLATBUFFERS // clang-format off
     if (!found && (fill || required_field->attributes.Lookup("dynamic")))
     {
-      auto absent_field = *field_it;
-      // find the correct place to insert
-      auto elem = field_stack_.rbegin();
-      for (; field_stack_.rend() - elem > lastFieldCount; ++elem)
-      {
-        auto existing_field = elem->second;
-        if (existing_field->value.offset < absent_field->value.offset)
-        {
-            break;
-        }
-      }
-      if (auto typeName = LookupDynamicFieldType(absent_field, &struct_def))
-      {
-        Type type;
-        if (ResolveDynamicTypes(typeName, type, absent_field))
-        {
-          // we want zero-initialized default pin data
-          Value _val_ = absent_field->value;
-          std::vector<uint8_t> _empty(type.base_type == BASE_TYPE_STRING ? 1 : InlineSize(type));
-          builder_.ForceVectorAlignment(_empty.size(), sizeof(uint8_t), InlineAlignment(type));
-          auto off = builder_.CreateVector(_empty);
-          _val_.constant = NumToString(off.o);
-
-          found = true;
-          fieldn_outer++;
-          field_stack_.insert(elem.base(), std::make_pair(_val_, absent_field));
-        }
-      }
-      // auto-complete missing fields of a struct
-      if (!found && struct_def.fixed && !IsStruct(absent_field->value.type))
-      {
-        found = true;
-        fieldn_outer++;
-        // TODO: this works for scalar fields only, implement nested structs as well
-        field_stack_.insert(elem.base(), std::make_pair(absent_field->value, absent_field));
-      }
+      found = CompleteMissingField(required_field, struct_def, fieldn_outer, lastFieldCount);
     }
 #endif  // defined(MZ_CUSTOM_FLATBUFFERS) && MZ_CUSTOM_FLATBUFFERS // clang-format on
     if (!found) {
@@ -4584,7 +4549,7 @@ const char *Parser::LookupDynamicFieldType(const FieldDef *dynamic_field, const 
   }
   return typeName;
 }
-bool Parser::ResolveDynamicTypes(const char* typeName, Type& type, const FieldDef *field)
+bool Parser::ResolveDynamicType(const char* typeName, Type& type, const FieldDef *field)
 {
   if (field->attributes.Lookup("dynamic")) 
   {
@@ -4626,7 +4591,7 @@ bool Parser::ResolveDynamicTypes(const char* typeName, Type& type, const FieldDe
 
 CheckedError Parser::ParseDynamic(Value& val, FieldDef* field, size_t fieldn, const StructDef* struct_def_inner, const char* typeName)
 {
-  if (ResolveDynamicTypes(typeName, val.type, field))
+  if (ResolveDynamicType(typeName, val.type, field))
   {
     if (val.type.struct_def)
     {
@@ -4687,4 +4652,47 @@ CheckedError Parser::ParseDynamic(Value& val, FieldDef* field, size_t fieldn, co
 
   return NoError();
 }
+
+bool Parser::CompleteMissingField(FieldDef* absent_field, const StructDef &struct_def, size_t& fieldn_outer, int32_t lastFieldCount)
+{
+  bool found = false;
+  // find the correct place to insert
+  auto elem = field_stack_.rbegin();
+  for (; field_stack_.rend() - elem > lastFieldCount; ++elem)
+  {
+    auto existing_field = elem->second;
+    if (existing_field->value.offset < absent_field->value.offset)
+    {
+        break;
+    }
+  }
+  if (auto typeName = LookupDynamicFieldType(absent_field, &struct_def))
+  {
+    Type type;
+    if (ResolveDynamicType(typeName, type, absent_field))
+    {
+      // we want zero-initialized default pin data
+      Value _val_ = absent_field->value;
+      std::vector<uint8_t> _empty(type.base_type == BASE_TYPE_STRING ? 1 : InlineSize(type));
+      builder_.ForceVectorAlignment(_empty.size(), sizeof(uint8_t), InlineAlignment(type));
+      auto off = builder_.CreateVector(_empty);
+      _val_.constant = NumToString(off.o);
+
+      found = true;
+      fieldn_outer++;
+      field_stack_.insert(elem.base(), std::make_pair(_val_, absent_field));
+    }
+  }
+  // auto-complete missing fields of a struct
+  if (!found && struct_def.fixed && !IsStruct(absent_field->value.type))
+  {
+    found = true;
+    fieldn_outer++;
+    // TODO: this works for scalar fields only, implement nested structs as well
+    field_stack_.insert(elem.base(), std::make_pair(absent_field->value, absent_field));
+  }
+
+  return found;
+}
+
 }  // namespace flatbuffers

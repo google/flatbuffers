@@ -335,7 +335,7 @@ struct JsonPrinter {
       }
 
       auto typeName = table->GetPointer<String*>(typeNameFieldDef->value.offset)->c_str();
-      if (mzParser->ResolveDynamicTypes(typeName, type, &fd))
+      if (mzParser->ResolveDynamicType(typeName, type, &fd))
       {
         auto data = table->GetPointer<const Vector<uint8_t> *>(fd.value.offset);
         if (type.base_type == BASE_TYPE_STRUCT)
