@@ -4608,7 +4608,6 @@ CheckedError Parser::ParseDynamic(Value& val, FieldDef* field, size_t fieldn, co
       {
         auto str = attribute_;
         EXPECT(kTokenStringConstant);
-
         builder_.ForceVectorAlignment(str.size() + 1, sizeof(uint8_t), 1);
         auto off = builder_.CreateVector(str.c_str(), str.size() + 1);
         val.constant = NumToString(off.o);
@@ -4674,7 +4673,7 @@ bool Parser::CompleteMissingField(FieldDef* absent_field, const StructDef &struc
       // we want zero-initialized default pin data
       Value _val_ = absent_field->value;
       std::vector<uint8_t> _empty(type.base_type == BASE_TYPE_STRING ? 1 : InlineSize(type));
-      builder_.ForceVectorAlignment(_empty.size(), sizeof(uint8_t), InlineAlignment(type));
+      builder_.ForceVectorAlignment(_empty.size(), sizeof(uint8_t), type.base_type == BASE_TYPE_STRING ? 1 : InlineAlignment(type));
       auto off = builder_.CreateVector(_empty);
       _val_.constant = NumToString(off.o);
 
