@@ -1557,64 +1557,7 @@ CheckedError Parser::ParseTableDelimiters(size_t &fieldn,
 #if defined(MZ_CUSTOM_FLATBUFFERS) && MZ_CUSTOM_FLATBUFFERS // clang-format off
               if (auto typeName = LookupDynamicFieldType(field, struct_def_inner))
               {
-                if (ResolveDynamicTypes(typeName, val.type, field))
-                {
-                  if (val.type.struct_def)
-                  {
-                    ECHECK(ParseTable(*val.type.struct_def, &val.constant, nullptr, true));
-
-                    builder_.ForceVectorAlignment(val.constant.size(), sizeof(uint8_t), val.type.struct_def->minalign);
-                    auto off = builder_.CreateVector(val.constant.c_str(), val.constant.size());
-                    val.constant = NumToString(off.o);
-                  }
-                  else
-                  {
-                    // scalars and strings
-                    if (val.type.base_type == BASE_TYPE_STRING)
-                    {
-                      auto str = attribute_;
-                      EXPECT(kTokenStringConstant);
-
-                      builder_.ForceVectorAlignment(str.size() + 1, sizeof(uint8_t), 1);
-                      auto off = builder_.CreateVector(str.c_str(), str.size() + 1);
-                      val.constant = NumToString(off.o);
-                    }
-                    else
-                    {
-                      ECHECK(ParseAnyValue(val, field, fieldn, struct_def_inner, 0));
-
-                      FlatBufferBuilder fbb;
-                      switch (val.type.base_type) 
-                      {
-                      #undef FLATBUFFERS_TD
-                      #define FLATBUFFERS_TD(ENUM, IDLTYPE, CTYPE, ...) \
-                        case BASE_TYPE_ ## ENUM: \
-                          {\
-                              CTYPE val_; \
-                              ECHECK(atot(val.constant.c_str(), *this, &val_)); \
-                              fbb.AddElement(val.offset, val_); \
-                          } \
-                          break;
-                        FLATBUFFERS_GEN_TYPES_SCALAR(FLATBUFFERS_TD)
-                      #undef FLATBUFFERS_TD
-                      }
-                      
-                      if (!fbb.GetSize())
-                      {
-                        return Error("Only structs, tables, scalars and strings are supported as dynamic types");
-                      }
-                      
-                      builder_.ForceVectorAlignment(fbb.GetSize(), sizeof(uint8_t), 1);
-                      auto off = builder_.CreateVector(fbb.GetCurrentBufferPointer(), fbb.GetSize());
-                      val.constant = NumToString(off.o);
-                    }
-                  }
-                  val.type.struct_def = nullptr;
-                  val.type.element = BASE_TYPE_UCHAR;
-                  val.type.base_type = BASE_TYPE_VECTOR;
-                }
-                else
-                  return Error("Type not found: " + std::string(typeName));
+                ECHECK(ParseDynamic(val, field, fieldn, struct_def_inner, typeName));
               }
               else
 #endif  // defined(MZ_CUSTOM_FLATBUFFERS) && MZ_CUSTOM_FLATBUFFERS // clang-format on
@@ -4679,5 +4622,69 @@ bool Parser::ResolveDynamicTypes(const char* typeName, Type& type, const FieldDe
       return true;
   }  
   return false;
+}
+
+CheckedError Parser::ParseDynamic(Value& val, FieldDef* field, size_t fieldn, const StructDef* struct_def_inner, const char* typeName)
+{
+  if (ResolveDynamicTypes(typeName, val.type, field))
+  {
+    if (val.type.struct_def)
+    {
+      ECHECK(ParseTable(*val.type.struct_def, &val.constant, nullptr, true));
+
+      builder_.ForceVectorAlignment(val.constant.size(), sizeof(uint8_t), val.type.struct_def->minalign);
+      auto off = builder_.CreateVector(val.constant.c_str(), val.constant.size());
+      val.constant = NumToString(off.o);
+    }
+    else
+    {
+      // scalars and strings
+      if (val.type.base_type == BASE_TYPE_STRING)
+      {
+        auto str = attribute_;
+        EXPECT(kTokenStringConstant);
+
+        builder_.ForceVectorAlignment(str.size() + 1, sizeof(uint8_t), 1);
+        auto off = builder_.CreateVector(str.c_str(), str.size() + 1);
+        val.constant = NumToString(off.o);
+      }
+      else
+      {
+        ECHECK(ParseAnyValue(val, field, fieldn, struct_def_inner, 0));
+
+        FlatBufferBuilder fbb;
+        switch (val.type.base_type) 
+        {
+        #undef FLATBUFFERS_TD
+        #define FLATBUFFERS_TD(ENUM, IDLTYPE, CTYPE, ...) \
+          case BASE_TYPE_ ## ENUM: \
+            {\
+                CTYPE val_; \
+                ECHECK(atot(val.constant.c_str(), *this, &val_)); \
+                fbb.AddElement(val.offset, val_); \
+            } \
+            break;
+          FLATBUFFERS_GEN_TYPES_SCALAR(FLATBUFFERS_TD)
+        #undef FLATBUFFERS_TD
+        }
+                      
+        if (!fbb.GetSize())
+        {
+          return Error("Only structs, tables, scalars and strings are supported as dynamic types");
+        }
+                      
+        builder_.ForceVectorAlignment(fbb.GetSize(), sizeof(uint8_t), 1);
+        auto off = builder_.CreateVector(fbb.GetCurrentBufferPointer(), fbb.GetSize());
+        val.constant = NumToString(off.o);
+      }
+    }
+    val.type.struct_def = nullptr;
+    val.type.element = BASE_TYPE_UCHAR;
+    val.type.base_type = BASE_TYPE_VECTOR;
+  }
+  else
+    return Error("Type not found: " + std::string(typeName));
+
+  return NoError();
 }
 }  // namespace flatbuffers
