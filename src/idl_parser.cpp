@@ -1685,12 +1685,12 @@ CheckedError Parser::ParseTableDelimiters(size_t &fieldn,
           field_stack_.insert(elem.base(), std::make_pair(_val_, absent_field));
         }
       }
-      // auto-complete missing fields of structs
-      if (!found && struct_def.fixed)
+      // auto-complete missing fields of a struct
+      if (!found && struct_def.fixed && !IsStruct(absent_field->value.type))
       {
         found = true;
         fieldn_outer++;
-        assert(absent_field);
+        // TODO: this works for scalar fields only, implement nested structs as well
         field_stack_.insert(elem.base(), std::make_pair(absent_field->value, absent_field));
       }
     }
