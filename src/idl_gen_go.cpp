@@ -1532,7 +1532,12 @@ class GoGenerator : public BaseGenerator {
 
   // Create the full path for the imported namespace (format: A/B/C).
   std::string NamespaceImportPath(const Namespace *ns) const {
-    return namer_.Directories(*ns, SkipDir::OutputPathAndTrailingPathSeparator);
+    std::string path =
+        namer_.Directories(*ns, SkipDir::OutputPathAndTrailingPathSeparator);
+    if (!parser_.opts.go_module_name.empty()) {
+      path = parser_.opts.go_module_name + "/" + path;
+    }
+    return path;
   }
 
   // Ensure that a type is prefixed with its go package import name if it is
