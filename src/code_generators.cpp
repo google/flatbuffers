@@ -99,6 +99,7 @@ void CodeWriter::operator+=(std::string text) {
       const std::string &value = iter->second;
       stream_ << value;
     } else {
+      printf("Could not find key:%s\n", key.c_str());
       FLATBUFFERS_ASSERT(false && "could not find key");
       stream_ << key;
     }

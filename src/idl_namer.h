@@ -140,6 +140,11 @@ class IdlNamer : public Namer {
     return "mutate_" + d.name;
   }
 
+  std::string LegacyRustUnionTypeMethod(const FieldDef &d) {
+    // assert d is a union
+    return Method(d.name + "_type");
+  }
+
  private:
   std::string NamespacedString(const struct Namespace *ns,
                                const std::string &str) const {
