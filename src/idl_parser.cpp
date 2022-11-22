@@ -4500,6 +4500,12 @@ std::string Parser::ConformTo(const Parser &base) {
 #if defined(MZ_CUSTOM_FLATBUFFERS) && MZ_CUSTOM_FLATBUFFERS  // clang-format off
 Parser::type_lookup *Parser::LookupPrimitiveType(std::string const &name) {
   static type_lookup lookup[] = {
+    { "i8", BASE_TYPE_CHAR, BASE_TYPE_NONE },
+    { "u8", BASE_TYPE_UCHAR, BASE_TYPE_NONE },
+    { "byte", BASE_TYPE_CHAR, BASE_TYPE_NONE },
+    { "ubyte", BASE_TYPE_UCHAR, BASE_TYPE_NONE },
+    { "ushort", BASE_TYPE_USHORT, BASE_TYPE_NONE },
+    { "short", BASE_TYPE_SHORT, BASE_TYPE_NONE },
     { "f32", BASE_TYPE_FLOAT, BASE_TYPE_NONE },
     { "f64", BASE_TYPE_DOUBLE, BASE_TYPE_NONE },
     { "float", BASE_TYPE_FLOAT, BASE_TYPE_NONE },
