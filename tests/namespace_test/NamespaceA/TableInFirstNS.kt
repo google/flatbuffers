@@ -67,7 +67,7 @@ class TableInFirstNS : Table() {
         }
     }
     companion object {
-        fun validateVersion() = Constants.FLATBUFFERS_22_10_26()
+        fun validateVersion() = Constants.FLATBUFFERS_22_11_22()
         fun getRootAsTableInFirstNS(_bb: ByteBuffer): TableInFirstNS = getRootAsTableInFirstNS(_bb, TableInFirstNS())
         fun getRootAsTableInFirstNS(_bb: ByteBuffer, obj: TableInFirstNS): TableInFirstNS {
             _bb.order(ByteOrder.LITTLE_ENDIAN)

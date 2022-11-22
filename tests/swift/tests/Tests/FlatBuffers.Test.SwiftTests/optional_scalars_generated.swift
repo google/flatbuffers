@@ -29,7 +29,7 @@ extension optional_scalars_OptionalByte: Encodable {
 
 public struct optional_scalars_ScalarStuff: FlatBufferObject, Verifiable {
 
-  static func validateVersion() { FlatBuffersVersion_22_10_26() }
+  static func validateVersion() { FlatBuffersVersion_22_11_22() }
   public var __buffer: ByteBuffer! { return _accessor.bb }
   private var _accessor: Table
 

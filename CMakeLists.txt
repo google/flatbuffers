@@ -640,6 +640,7 @@ if(FLATBUFFERS_BUILD_TESTS)
   compile_flatbuffers_schema_to_embedded_binary(tests/monster_test.fbs "--no-includes;--gen-compare")
   compile_flatbuffers_schema_to_cpp(tests/native_inline_table_test.fbs "--gen-compare")
   compile_flatbuffers_schema_to_cpp(tests/alignment_test.fbs "--gen-compare")
+  compile_flatbuffers_schema_to_cpp(tests/key_field/key_field_sample.fbs)
   if(NOT (MSVC AND (MSVC_VERSION LESS 1900)))
     compile_flatbuffers_schema_to_cpp(tests/monster_extra.fbs) # Test floating-point NAN/INF.
   endif()
