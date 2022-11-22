@@ -387,8 +387,7 @@ class TsGenerator : public BaseGenerator {
         return GenBBAccess() + ".__union_with_string" + arguments;
       case BASE_TYPE_VECTOR: return GenGetter(type.VectorType(), arguments);
       default: {
-        auto getter = GenBBAccess() + "." +
-                      namer_.Method("read_" + GenType(type)) + arguments;
+        auto getter = GenBBAccess() + "." + "read" + GenType(type) + arguments;
         if (type.base_type == BASE_TYPE_BOOL) { getter = "!!" + getter; }
         return getter;
       }
