@@ -1,0 +1,6 @@
+namespace hero;
+
+table Warrior {
+	name: string;
+	hp: uint32;
+}
