@@ -59,8 +59,11 @@ class Monster : Table() {
     val name : String
         get() {
             val o = __offset(10)
-            return if (o != 0) __string(o + bb_pos)
-            else throw AssertionError("No value for (required) field name")
+            return if (o != 0) {
+                __string(o + bb_pos)
+            } else {
+                throw AssertionError("No value for (required) field name")
+            }
         }
     val nameAsByteBuffer : ByteBuffer get() = __vector_as_bytebuffer(10, 1)
     fun nameInByteBuffer(_bb: ByteBuffer) : ByteBuffer = __vector_in_bytebuffer(_bb, 10, 1)

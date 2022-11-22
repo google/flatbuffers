@@ -1004,19 +1004,30 @@ class KotlinGenerator : public BaseGenerator {
             // val Name : String?
             //     get() = {
             //         val o = __offset(10)
-            //         return if (o != 0) __string(o + bb_pos) else null
+            //          return if (o != 0) {
+            //              __string(o + bb_pos)
+            //          } else {
+            //              null
+            //          }
             //     }
             // ? adds nullability annotation
             GenerateGetter(writer, field_name, return_type, [&]() {
               writer += "val o = __offset({{offset}})";
-              writer += "return if (o != 0) __string(o + bb_pos)";
+              writer += "return if (o != 0) {";
+              writer.IncrementIdentLevel();
+              writer += "__string(o + bb_pos)";
+              writer.DecrementIdentLevel();
+              writer += "} else {";
+              writer.IncrementIdentLevel();
               if (field.IsRequired()) {
                 writer +=
-                    "else throw AssertionError(\"No value for (required) field "
+                    "throw AssertionError(\"No value for (required) field "
                     "{{field_name}}\")";
               } else {
-                writer += "else null";
+                writer += "null";
               }
+              writer.DecrementIdentLevel();
+              writer += "}";
             });
             break;
           case BASE_TYPE_VECTOR: {
