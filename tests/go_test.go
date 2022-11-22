@@ -17,6 +17,8 @@
 package main
 
 import (
+	order "order"
+	pizza "Pizza"
 	mygame "MyGame"          // refers to generated code
 	example "MyGame/Example" // refers to generated code
 	"encoding/json"
@@ -98,6 +100,24 @@ func TestTextParsing(t *testing.T) {
 	}
 }
 
+func CheckNoNamespaceImport(fail func(string, ...interface{})) {
+	const size = 13
+	// Order a pizza with specific size
+	builder := flatbuffers.NewBuilder(0)
+	ordered_pizza := pizza.PizzaT{Size: size}
+	food := order.FoodT{Pizza: &ordered_pizza}
+	builder.Finish(food.Pack(builder))
+
+	// Receive order
+	received_food := order.GetRootAsFood(builder.FinishedBytes(), 0)
+	received_pizza := received_food.Pizza(nil).UnPack()
+
+	// Check if received pizza is equal to ordered pizza
+	if !reflect.DeepEqual(ordered_pizza, *received_pizza) {
+		fail(FailString("no namespace import", ordered_pizza, received_pizza))
+	}
+}
+
 // TestAll runs all checks, failing if any errors occur.
 func TestAll(t *testing.T) {
 	// Verify that the Go FlatBuffers runtime library generates the
@@ -159,6 +179,9 @@ func TestAll(t *testing.T) {
 
 	// Check a parent namespace import
 	CheckParentNamespace(t.Fatalf)
+
+	// Check a no namespace import
+	CheckNoNamespaceImport(t.Fatalf)
 
 	// Check size-prefixed flatbuffers
 	CheckSizePrefixedBuffer(t.Fatalf)
