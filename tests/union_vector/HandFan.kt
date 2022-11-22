@@ -29,7 +29,7 @@ class HandFan : Table() {
         }
     }
     companion object {
-        fun validateVersion() = Constants.FLATBUFFERS_22_10_26()
+        fun validateVersion() = Constants.FLATBUFFERS_22_11_22()
         fun getRootAsHandFan(_bb: ByteBuffer): HandFan = getRootAsHandFan(_bb, HandFan())
         fun getRootAsHandFan(_bb: ByteBuffer, obj: HandFan): HandFan {
             _bb.order(ByteOrder.LITTLE_ENDIAN)
