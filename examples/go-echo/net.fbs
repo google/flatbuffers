@@ -1,0 +1,11 @@
+include "hero.fbs";
+
+namespace net;
+
+table Request {
+	player: hero.Warrior;
+}
+
+table Response  {
+	player: hero.Warrior;
+}

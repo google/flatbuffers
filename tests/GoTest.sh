@@ -72,3 +72,6 @@ if [[ ${NOT_FMT_FILES} != "" ]]; then
     # enable this when enums are properly formated
     # exit 1
 fi
+
+# Re-enable go modules when done tests
+go env -w  GO111MODULE=on
