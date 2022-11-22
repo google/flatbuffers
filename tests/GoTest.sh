@@ -20,26 +20,18 @@ go_path=${test_dir}/go_gen
 go_src=${go_path}/src
 
 # Emit Go code for the example schemas in the test dir:
-../flatc -g --gen-object-api -I include_test monster_test.fbs optional_scalars.fbs
+../flatc -g --gen-object-api -I include_test -o ${go_src} monster_test.fbs optional_scalars.fbs
+../flatc -g --gen-object-api -I include_test/sub -o ${go_src} include_test/order.fbs
+../flatc -g --gen-object-api -o ${go_src}/Pizza include_test/sub/no_namespace.fbs
 
 # Go requires a particular layout of files in order to link multiple packages.
 # Copy flatbuffer Go files to their own package directories to compile the
 # test binary:
-mkdir -p ${go_src}/MyGame/Example
-mkdir -p ${go_src}/MyGame/Example2
 mkdir -p ${go_src}/github.com/google/flatbuffers/go
 mkdir -p ${go_src}/flatbuffers_test
-mkdir -p ${go_src}/optional_scalars
 
-cp -a MyGame/*.go ./go_gen/src/MyGame/
-cp -a MyGame/Example/*.go ./go_gen/src/MyGame/Example/
-cp -a MyGame/Example2/*.go ./go_gen/src/MyGame/Example2/
-# do not compile the gRPC generated files, which are not tested by go_test.go
-# below, but have their own test.
-rm ./go_gen/src/MyGame/Example/*_grpc.go
 cp -a ../go/* ./go_gen/src/github.com/google/flatbuffers/go
 cp -a ./go_test.go ./go_gen/src/flatbuffers_test/
-cp -a optional_scalars/*.go ./go_gen/src/optional_scalars
 
 # https://stackoverflow.com/a/63545857/7024978
 # We need to turn off go modules for this script
@@ -72,7 +64,7 @@ else
     exit 1
 fi
 
-NOT_FMT_FILES=$(gofmt -l MyGame)
+NOT_FMT_FILES=$(gofmt -l .)
 if [[ ${NOT_FMT_FILES} != "" ]]; then
     echo "These files are not well gofmt'ed:"
     echo
