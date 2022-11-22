@@ -196,7 +196,7 @@ class Namer {
       result += ConvertCase(*d, config_.directories, Case::kUpperCamel);
       result.push_back(kPathSeparator);
     }
-    if (skip_trailing_seperator) result.pop_back();
+    if (skip_trailing_seperator && !result.empty()) result.pop_back();
     return result;
   }
 
