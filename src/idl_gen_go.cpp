@@ -155,11 +155,11 @@ class GoGenerator : public BaseGenerator {
   const IdlNamer namer_;
 
   struct NamespacePtrLess {
-    bool operator()(const Namespace *a, const Namespace *b) const {
-      return *a < *b;
+    bool operator()(const Definition *a, const Definition *b) const {
+      return *a->defined_namespace < *b->defined_namespace;
     }
   };
-  std::set<const Namespace *, NamespacePtrLess> tracked_imported_namespaces_;
+  std::set<const Definition *, NamespacePtrLess> tracked_imported_namespaces_;
   bool needs_math_import_ = false;
   bool needs_bytes_import_ = false;
 
@@ -184,8 +184,7 @@ class GoGenerator : public BaseGenerator {
 
   // Construct the name of the type for this enum.
   std::string GetEnumTypeName(const EnumDef &enum_def) {
-    return WrapInNameSpaceAndTrack(enum_def.defined_namespace,
-                                   namer_.Type(enum_def));
+    return WrapInNameSpaceAndTrack(&enum_def, namer_.Type(enum_def));
   }
 
   // Create a type for the enum values.
@@ -1024,12 +1023,13 @@ class GoGenerator : public BaseGenerator {
       if (ev.IsZero()) continue;
       code += "\tcase " + namer_.EnumVariant(enum_def, ev) + ":\n";
       code += "\t\tvar x " +
-              WrapInNameSpaceAndTrack(*ev.union_type.struct_def) + "\n";
+              WrapInNameSpaceAndTrack(ev.union_type.struct_def,
+                                      ev.union_type.struct_def->name) +
+              "\n";
       code += "\t\tx.Init(table.Bytes, table.Pos)\n";
 
       code += "\t\treturn &" +
-              WrapInNameSpaceAndTrack(enum_def.defined_namespace,
-                                      NativeName(enum_def)) +
+              WrapInNameSpaceAndTrack(&enum_def, NativeName(enum_def)) +
               "{ Type: " + namer_.EnumVariant(enum_def, ev) +
               ", Value: x.UnPack() }\n";
     }
@@ -1190,7 +1190,8 @@ class GoGenerator : public BaseGenerator {
         code += "\tfor j := 0; j < " + length + "; j++ {\n";
         if (field.value.type.element == BASE_TYPE_STRUCT) {
           code += "\t\tx := " +
-                  WrapInNameSpaceAndTrack(*field.value.type.struct_def) +
+                  WrapInNameSpaceAndTrack(field.value.type.struct_def,
+                                          field.value.type.struct_def->name) +
                   "{}\n";
           code += "\t\trcv." + field_field + "(&x, j)\n";
         }
@@ -1357,7 +1358,8 @@ class GoGenerator : public BaseGenerator {
     switch (type.base_type) {
       case BASE_TYPE_STRING: return "[]byte";
       case BASE_TYPE_VECTOR: return GenTypeGet(type.VectorType());
-      case BASE_TYPE_STRUCT: return WrapInNameSpaceAndTrack(*type.struct_def);
+      case BASE_TYPE_STRUCT:
+        return WrapInNameSpaceAndTrack(type.struct_def, type.struct_def->name);
       case BASE_TYPE_UNION:
         // fall through
       default: return "*flatbuffers.Table";
@@ -1441,11 +1443,11 @@ class GoGenerator : public BaseGenerator {
     } else if (IsVector(type)) {
       return "[]" + NativeType(type.VectorType());
     } else if (type.base_type == BASE_TYPE_STRUCT) {
-      return "*" + WrapInNameSpaceAndTrack(type.struct_def->defined_namespace,
+      return "*" + WrapInNameSpaceAndTrack(type.struct_def,
                                            NativeName(*type.struct_def));
     } else if (type.base_type == BASE_TYPE_UNION) {
-      return "*" + WrapInNameSpaceAndTrack(type.enum_def->defined_namespace,
-                                           NativeName(*type.enum_def));
+      return "*" +
+             WrapInNameSpaceAndTrack(type.enum_def, NativeName(*type.enum_def));
     }
     FLATBUFFERS_ASSERT(0);
     return std::string();
@@ -1482,8 +1484,13 @@ class GoGenerator : public BaseGenerator {
         code += "\n";
         for (auto it = tracked_imported_namespaces_.begin();
              it != tracked_imported_namespaces_.end(); ++it) {
-          code += "\t" + NamespaceImportName(*it) + " \"" +
-                  NamespaceImportPath(*it) + "\"\n";
+          if ((*it)->defined_namespace->components.empty()) {
+            code += "\t" + (*it)->name + " \"" + (*it)->name + "\"\n";
+          } else {
+            code += "\t" + NamespaceImportName((*it)->defined_namespace) +
+                    " \"" + NamespaceImportPath((*it)->defined_namespace) +
+                    "\"\n";
+          }
         }
       }
       code += ")\n\n";
@@ -1504,7 +1511,8 @@ class GoGenerator : public BaseGenerator {
     Namespace &ns = go_namespace_.components.empty() ? *def.defined_namespace
                                                      : go_namespace_;
     std::string code = "";
-    BeginFile(LastNamespacePart(ns), needs_imports, is_enum, &code);
+    BeginFile(ns.components.empty() ? def.name : LastNamespacePart(ns),
+              needs_imports, is_enum, &code);
     code += classcode;
     // Strip extra newlines at end of file to make it gofmt-clean.
     while (code.length() > 2 && code.substr(code.length() - 2) == "\n\n") {
@@ -1529,16 +1537,14 @@ class GoGenerator : public BaseGenerator {
 
   // Ensure that a type is prefixed with its go package import name if it is
   // used outside of its namespace.
-  std::string WrapInNameSpaceAndTrack(const Namespace *ns,
+  std::string WrapInNameSpaceAndTrack(const Definition *def,
                                       const std::string &name) {
-    if (CurrentNameSpace() == ns) return name;
-
-    tracked_imported_namespaces_.insert(ns);
-    return NamespaceImportName(ns) + "." + name;
-  }
-
-  std::string WrapInNameSpaceAndTrack(const Definition &def) {
-    return WrapInNameSpaceAndTrack(def.defined_namespace, def.name);
+    if (CurrentNameSpace() == def->defined_namespace) return name;
+    tracked_imported_namespaces_.insert(def);
+    if (def->defined_namespace->components.empty())
+      return def->name + "." + name;
+    else
+      return NamespaceImportName(def->defined_namespace) + "." + name;
   }
 
   const Namespace *CurrentNameSpace() const { return cur_name_space_; }
