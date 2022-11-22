@@ -4,7 +4,6 @@ package Example
 
 import (
 	"strconv"
-
 	flatbuffers "github.com/google/flatbuffers/go"
 
 	MyGame__Example2 "MyGame/Example2"
