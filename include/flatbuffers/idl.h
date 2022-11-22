@@ -623,6 +623,7 @@ struct IDLOptions {
   bool binary_schema_gen_embed;
   std::string go_import;
   std::string go_namespace;
+  std::string go_module_name;
   bool protobuf_ascii_alike;
   bool size_prefixed;
   std::string root_type;
@@ -915,7 +916,7 @@ class Parser : public ParserState {
 
   // Returns the number of characters were consumed when parsing a JSON string.
   std::ptrdiff_t BytesConsumed() const;
-   
+
   // Set the root type. May override the one set in the schema.
   bool SetRootType(const char *name);
 
