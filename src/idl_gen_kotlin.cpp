@@ -178,10 +178,11 @@ class KotlinGenerator : public BaseGenerator {
     auto r_type = GenTypeGet(field.value.type);
     if (field.IsScalarOptional() ||
         // string, structs and unions
-        (base_type == BASE_TYPE_STRING || base_type == BASE_TYPE_STRUCT ||
-         base_type == BASE_TYPE_UNION) ||
+        (!field.IsRequired() &&
+         (base_type == BASE_TYPE_STRING || base_type == BASE_TYPE_STRUCT ||
+          base_type == BASE_TYPE_UNION)) ||
         // vector of anything not scalar
-        (base_type == BASE_TYPE_VECTOR &&
+        (base_type == BASE_TYPE_VECTOR && !field.IsRequired() &&
          !IsScalar(field.value.type.VectorType().base_type))) {
       r_type += "?";
     }
@@ -985,7 +986,15 @@ class KotlinGenerator : public BaseGenerator {
                     OffsetWrapper(
                         writer, offset_val,
                         [&]() { writer += "obj.__assign({{seek}}, bb)"; },
-                        [&]() { writer += "null"; });
+                        [&]() {
+                          if (field.IsRequired()) {
+                            writer +=
+                                "throw AssertionError(\"No value for "
+                                "(required) field {{field_name}}\")";
+                          } else {
+                            writer += "null";
+                          }
+                        });
                   });
             }
             break;
@@ -1000,7 +1009,14 @@ class KotlinGenerator : public BaseGenerator {
             // ? adds nullability annotation
             GenerateGetter(writer, field_name, return_type, [&]() {
               writer += "val o = __offset({{offset}})";
-              writer += "return if (o != 0) __string(o + bb_pos) else null";
+              writer += "return if (o != 0) __string(o + bb_pos)";
+              if (field.IsRequired()) {
+                writer +=
+                    "else throw AssertionError(\"No value for (required) field "
+                    "{{field_name}}\")";
+              } else {
+                writer += "else null";
+              }
             });
             break;
           case BASE_TYPE_VECTOR: {
@@ -1025,7 +1041,11 @@ class KotlinGenerator : public BaseGenerator {
             GenerateFun(writer, field_name, params, return_type, [&]() {
               auto inline_size = NumToString(InlineSize(vectortype));
               auto index = "__vector(o) + j * " + inline_size;
-              auto not_found = NotFoundReturn(field.value.type.element);
+              auto not_found =
+                  field.IsRequired()
+                      ? "throw IndexOutOfBoundsException(\"Index out of range: "
+                        "$j, vector {{field_name}} is empty\")"
+                      : NotFoundReturn(field.value.type.element);
               auto found = "";
               writer.SetValue("index", index);
               switch (vectortype.base_type) {
