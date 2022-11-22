@@ -483,6 +483,7 @@ CheckedError Parser::SkipByteOrderMark() {
 
 CheckedError Parser::Next() {
   doc_comment_.clear();
+  prev_cursor_ = cursor_;
   bool seen_newline = cursor_ == source_;
   attribute_.clear();
   attr_is_trivial_ascii_string_ = true;
@@ -3317,7 +3318,7 @@ bool Parser::ParseJson(const char *json, const char *json_filename) {
 }
 
 std::ptrdiff_t Parser::BytesConsumed() const {
-  return std::distance(source_, cursor_);
+  return std::distance(source_, prev_cursor_);
 }
 
 CheckedError Parser::StartParseFile(const char *source,

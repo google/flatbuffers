@@ -1434,14 +1434,14 @@ void DoNotRequireEofTest(const std::string &tests_data_path) {
   ok = parser.Parse(schemafile.c_str(), include_directories);
   TEST_EQ(ok, true);
 
-  const char *str = R"(This string contains two monsters, the first one is {
+  const char *str = R"(Some text at the beginning. {
       "name": "Blob",
       "hp": 5
-    }
-    and the second one is {
+    }{
       "name": "Imp",
       "hp": 10
     }
+    Some extra text at the end too.
   )";
   const char *tableStart = std::strchr(str, '{');
   ok = parser.ParseJson(tableStart);
@@ -1453,7 +1453,6 @@ void DoNotRequireEofTest(const std::string &tests_data_path) {
 
   tableStart += parser.BytesConsumed();
 
-  tableStart = std::strchr(tableStart + 1, '{');
   ok = parser.ParseJson(tableStart);
   TEST_EQ(ok, true);
 
