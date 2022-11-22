@@ -1629,7 +1629,7 @@ class RustGenerator : public BaseGenerator {
       code_.SetValue("OFFSET_VALUE", NumToString(field.value.offset));
       code_.SetValue("FIELD", namer_.Field(field));
       code_.SetValue("BLDR_DEF_VAL", GetDefaultValue(field, kBuilder));
-      code_.SetValue("DISCRIMINANT", namer_.Field(field) + "_type");
+      code_.SetValue("DISCRIMINANT", namer_.LegacyRustUnionTypeMethod(field));
       code_.IncrementIdentLevel();
       cb(field);
       code_.DecrementIdentLevel();
@@ -1976,7 +1976,7 @@ class RustGenerator : public BaseGenerator {
       const EnumDef &union_def = *field.value.type.enum_def;
       code_.SetValue("UNION_TYPE", WrapInNameSpace(union_def));
       code_.SetValue("UNION_TYPE_OFFSET_NAME",
-                     namer_.LegacyRustFieldOffsetName(field) + "_TYPE");
+                     namer_.LegacyRustUnionTypeOffsetName(field));
       code_.SetValue("UNION_TYPE_METHOD",
                      namer_.LegacyRustUnionTypeMethod(field));
       code_ +=
@@ -2262,8 +2262,9 @@ class RustGenerator : public BaseGenerator {
         case ftUnionValue: {
           code_.SetValue("ENUM_METHOD",
                          namer_.Method(*field.value.type.enum_def));
+          code_.SetValue("DISCRIMINANT", namer_.LegacyRustUnionTypeMethod(field));
           code_ +=
-              "  let {{FIELD}}_type = "
+              "  let {{DISCRIMINANT}} = "
               "self.{{FIELD}}.{{ENUM_METHOD}}_type();";
           code_ += "  let {{FIELD}} = self.{{FIELD}}.pack(_fbb);";
           return;

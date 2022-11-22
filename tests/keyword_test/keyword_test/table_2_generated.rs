@@ -84,7 +84,7 @@ impl<'a> Table2<'a> {
   #[inline]
   #[allow(non_snake_case)]
   pub fn type__as_static_(&self) -> Option<KeywordsInTable<'a>> {
-    if self.type__type() == KeywordsInUnion::static_ {
+    if self.type_type() == KeywordsInUnion::static_ {
       self.type_().map(|t| {
        // Safety:
        // Created from a valid Table for this object
@@ -99,7 +99,7 @@ impl<'a> Table2<'a> {
   #[inline]
   #[allow(non_snake_case)]
   pub fn type__as_internal(&self) -> Option<KeywordsInTable<'a>> {
-    if self.type__type() == KeywordsInUnion::internal {
+    if self.type_type() == KeywordsInUnion::internal {
       self.type_().map(|t| {
        // Safety:
        // Created from a valid Table for this object
@@ -120,7 +120,7 @@ impl flatbuffers::Verifiable for Table2<'_> {
   ) -> Result<(), flatbuffers::InvalidFlatbuffer> {
     use self::flatbuffers::Verifiable;
     v.visit_table(pos)?
-     .visit_union::<KeywordsInUnion, _>("type_type", Self::VT_TYPE__TYPE, "type_", Self::VT_TYPE_, false, |key, v, pos| {
+     .visit_union::<KeywordsInUnion, _>("type_type", Self::VT_TYPE_TYPE, "type_", Self::VT_TYPE_, false, |key, v, pos| {
         match key {
           KeywordsInUnion::static_ => v.verify_union_variant::<flatbuffers::ForwardsUOffset<KeywordsInTable>>("KeywordsInUnion::static_", pos),
           KeywordsInUnion::internal => v.verify_union_variant::<flatbuffers::ForwardsUOffset<KeywordsInTable>>("KeywordsInUnion::internal", pos),
@@ -177,7 +177,7 @@ impl core::fmt::Debug for Table2<'_> {
   fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
     let mut ds = f.debug_struct("Table2");
       ds.field("type_type", &self.type_type());
-      match self.type__type() {
+      match self.type_type() {
         KeywordsInUnion::static_ => {
           if let Some(x) = self.type__as_static_() {
             ds.field("type_", &x)
@@ -217,7 +217,7 @@ impl Table2T {
     &self,
     _fbb: &mut flatbuffers::FlatBufferBuilder<'b>
   ) -> flatbuffers::WIPOffset<Table2<'b>> {
-    let type__type = self.type_.keywords_in_union_type();
+    let type_type = self.type_.keywords_in_union_type();
     let type_ = self.type_.pack(_fbb);
     Table2::create(_fbb, &Table2Args{
       type_type,

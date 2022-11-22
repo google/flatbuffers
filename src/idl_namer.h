@@ -102,6 +102,10 @@ class IdlNamer : public Namer {
   std::string LegacyRustFieldOffsetName(const FieldDef &field) const {
     return "VT_" + ConvertCase(EscapeKeyword(field.name), Case::kAllUpper);
   }
+    std::string LegacyRustUnionTypeOffsetName(const FieldDef &field) const {
+    return "VT_" + ConvertCase(EscapeKeyword(field.name + "_type"), Case::kAllUpper);
+  }
+
 
   std::string LegacySwiftVariant(const EnumVal &ev) const {
     auto name = ev.name;
