@@ -1205,9 +1205,8 @@ class Parser : public ParserState {
 
   int anonymous_counter_;
   int parse_depth_counter_;  // stack-overflow guard
-
+#if defined(MZ_CUSTOM_FLATBUFFERS) && MZ_CUSTOM_FLATBUFFERS  // clang-format off
 public:
-// clang-format off
   struct type_lookup {
     const char *proto_type;
     BaseType fb_type, element;
@@ -1220,7 +1219,7 @@ public:
 
   bool mzIsId(const StructDef *def) { return (def && def->attributes.Lookup("mz_id"));}
   bool mzIsId(const Type &type) { return (type.base_type == BASE_TYPE_STRUCT && mzIsId(type.struct_def)); }
-// clang-format on
+#endif // defined(MZ_CUSTOM_FLATBUFFERS) && MZ_CUSTOM_FLATBUFFERS  // clang-format on
 };
 
 // Utility functions for multiple generators:

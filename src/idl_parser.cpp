@@ -1404,7 +1404,7 @@ CheckedError Parser::ParseAnyValue(Value &val, FieldDef *field,
       break;
     }
     case BASE_TYPE_STRUCT:
-#if defined(MZ_CUSTOM_FLATBUFFERS) && MZ_CUSTOM_FLATBUFFERS // clang-format off      
+#if defined(MZ_CUSTOM_FLATBUFFERS) && MZ_CUSTOM_FLATBUFFERS // clang-format off
       if (mzIsId(val.type)) 
       {
         // parse string id and serialize uuid struct
@@ -1589,7 +1589,11 @@ CheckedError Parser::ParseTableDelimiters(size_t &fieldn,
   for (auto field_it = struct_def.fields.vec.begin();
        field_it != struct_def.fields.vec.end(); ++field_it) {
     auto required_field = *field_it;
+#if defined(MZ_CUSTOM_FLATBUFFERS) && MZ_CUSTOM_FLATBUFFERS // clang-format off
     if (!(fill || required_field->attributes.Lookup("dynamic")) && !required_field->IsRequired()) { continue; }
+#else
+    if (!required_field->IsRequired()) { continue; }
+#endif  // defined(MZ_CUSTOM_FLATBUFFERS) && MZ_CUSTOM_FLATBUFFERS // clang-format on
     bool found = false;
     for (auto pf_it = field_stack_.end() - fieldn_outer;
          pf_it != field_stack_.end(); ++pf_it) {
