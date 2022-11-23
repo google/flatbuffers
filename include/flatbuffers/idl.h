@@ -623,6 +623,7 @@ struct IDLOptions {
   bool binary_schema_gen_embed;
   std::string go_import;
   std::string go_namespace;
+  std::string go_module_name;
   bool protobuf_ascii_alike;
   bool size_prefixed;
   std::string root_type;
@@ -762,7 +763,8 @@ struct IDLOptions {
 // This encapsulates where the parser is in the current source file.
 struct ParserState {
   ParserState()
-      : cursor_(nullptr),
+      : prev_cursor_(nullptr),
+        cursor_(nullptr),
         line_start_(nullptr),
         line_(0),
         token_(-1),
@@ -770,6 +772,7 @@ struct ParserState {
 
  protected:
   void ResetState(const char *source) {
+    prev_cursor_ = source;
     cursor_ = source;
     line_ = 0;
     MarkNewLine();
@@ -784,7 +787,8 @@ struct ParserState {
     FLATBUFFERS_ASSERT(cursor_ && line_start_ && cursor_ >= line_start_);
     return static_cast<int64_t>(cursor_ - line_start_);
   }
-
+  
+  const char *prev_cursor_;
   const char *cursor_;
   const char *line_start_;
   int line_;  // the current line being parsed
@@ -914,7 +918,7 @@ class Parser : public ParserState {
 
   // Returns the number of characters were consumed when parsing a JSON string.
   std::ptrdiff_t BytesConsumed() const;
-   
+
   // Set the root type. May override the one set in the schema.
   bool SetRootType(const char *name);
 

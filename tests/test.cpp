@@ -20,8 +20,8 @@
 #include <memory>
 #include <string>
 
-#include "evolution_test.h"
 #include "alignment_test.h"
+#include "evolution_test.h"
 #include "flatbuffers/flatbuffers.h"
 #include "flatbuffers/idl.h"
 #include "flatbuffers/minireflect.h"
@@ -29,10 +29,11 @@
 #include "flatbuffers/util.h"
 #include "fuzz_test.h"
 #include "json_test.h"
+#include "key_field_test.h"
 #include "monster_test.h"
 #include "monster_test_generated.h"
-#include "optional_scalars_test.h"
 #include "native_inline_table_test_generated.h"
+#include "optional_scalars_test.h"
 #include "parser_test.h"
 #include "proto_test.h"
 #include "reflection_test.h"
@@ -1418,7 +1419,7 @@ void NativeInlineTableVectorTest() {
   TEST_ASSERT(unpacked.t == test.t);
 }
 
-void DoNotRequireEofTest(const std::string& tests_data_path) {
+void DoNotRequireEofTest(const std::string &tests_data_path) {
   std::string schemafile;
   bool ok = flatbuffers::LoadFile(
       (tests_data_path + "monster_test.fbs").c_str(), false, &schemafile);
@@ -1432,15 +1433,15 @@ void DoNotRequireEofTest(const std::string& tests_data_path) {
   flatbuffers::Parser parser(opt);
   ok = parser.Parse(schemafile.c_str(), include_directories);
   TEST_EQ(ok, true);
-  
-  const char *str = R"(This string contains two monsters, the first one is {
+
+  const char *str = R"(Some text at the beginning. {
       "name": "Blob",
       "hp": 5
-    }
-    and the second one is {
+    }{
       "name": "Imp",
       "hp": 10
     }
+    Some extra text at the end too.
   )";
   const char *tableStart = std::strchr(str, '{');
   ok = parser.ParseJson(tableStart);
@@ -1449,10 +1450,9 @@ void DoNotRequireEofTest(const std::string& tests_data_path) {
   const Monster *monster = GetMonster(parser.builder_.GetBufferPointer());
   TEST_EQ_STR(monster->name()->c_str(), "Blob");
   TEST_EQ(monster->hp(), 5);
-  
+
   tableStart += parser.BytesConsumed();
 
-  tableStart = std::strchr(tableStart + 1, '{');
   ok = parser.ParseJson(tableStart);
   TEST_EQ(ok, true);
 
@@ -1564,6 +1564,7 @@ int FlatBufferTests(const std::string &tests_data_path) {
   JsonUnsortedArrayTest();
   VectorSpanTest();
   NativeInlineTableVectorTest();
+  FixedSizedScalarKeyInStructTest();
   return 0;
 }
 }  // namespace
