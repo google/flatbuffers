@@ -10,7 +10,7 @@
 // generated, otherwise it may not be compatible.
 static_assert(FLATBUFFERS_VERSION_MAJOR == 22 &&
               FLATBUFFERS_VERSION_MINOR == 11 &&
-              FLATBUFFERS_VERSION_REVISION == 22,
+              FLATBUFFERS_VERSION_REVISION == 23,
              "Non-compatible flatbuffers version included");
 
 struct Attacker;
