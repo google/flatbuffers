@@ -197,7 +197,7 @@ class ScalarStuff : Table() {
             return if(o != 0) bb.get(o + bb_pos) else 1
         }
     companion object {
-        fun validateVersion() = Constants.FLATBUFFERS_22_11_22()
+        fun validateVersion() = Constants.FLATBUFFERS_22_11_23()
         fun getRootAsScalarStuff(_bb: ByteBuffer): ScalarStuff = getRootAsScalarStuff(_bb, ScalarStuff())
         fun getRootAsScalarStuff(_bb: ByteBuffer, obj: ScalarStuff): ScalarStuff {
             _bb.order(ByteOrder.LITTLE_ENDIAN)
