@@ -9,7 +9,7 @@ import com.google.flatbuffers.*;
 
 @SuppressWarnings("unused")
 public final class ScalarStuff extends Table {
-  public static void ValidateVersion() { Constants.FLATBUFFERS_22_11_22(); }
+  public static void ValidateVersion() { Constants.FLATBUFFERS_22_11_23(); }
   public static ScalarStuff getRootAsScalarStuff(ByteBuffer _bb) { return getRootAsScalarStuff(_bb, new ScalarStuff()); }
   public static ScalarStuff getRootAsScalarStuff(ByteBuffer _bb, ScalarStuff obj) { _bb.order(ByteOrder.LITTLE_ENDIAN); return (obj.__assign(_bb.getInt(_bb.position()) + _bb.position(), _bb)); }
   public static boolean ScalarStuffBufferHasIdentifier(ByteBuffer _bb) { return __has_identifier(_bb, "NULL"); }
