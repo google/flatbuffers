@@ -140,27 +140,25 @@ std::string GenerateFBS(const Parser &parser, const std::string &file_name) {
         GenComment(field.doc_comment, &schema, nullptr, "  ");
         schema += "  " + field.name + ":" + GenType(field.value.type);
         if (field.value.constant != "0") schema += " = " + field.value.constant;
-        bool metadata = false;
-        if (field.IsRequired()) {
-          metadata = true;
-          schema += " (required";
-        }
-        if (field.key) {
-          if (metadata)
-            schema += " ,key";
-          else
-            schema += " (key";
-          metadata = true;
-        }
+		std::vector<std::string> attributes;
+        if (field.IsRequired())
+			attributes.push_back("required");
+        if (field.key)
+			attributes.push_back("key");
+
         const auto &id_str = field.attributes.Lookup("id");
-        if (id_str && !id_str->constant.empty()) {
-          if (metadata)
-            schema += ", id: " + id_str->constant;
-          else
-            schema += " (id: " + id_str->constant;
-          metadata = true;
-        }
-        if (metadata) schema += ")";
+        if (id_str && !id_str->constant.empty())
+			attributes.push_back("id: " + id_str->constant);
+		
+		if (!attributes.empty()) {
+			schema += " (";
+			for (const auto& attribute : attributes) {
+				schema += attribute + ",";
+
+			}
+			schema.pop_back();
+			schema += ")";
+		}
 
         schema += ";\n";
       }
