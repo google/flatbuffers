@@ -3,8 +3,8 @@
 package Example
 
 import (
+	"bytes"
 	"math"
-
 	flatbuffers "github.com/google/flatbuffers/go"
 
 	MyGame "MyGame"
@@ -568,6 +568,38 @@ func (rcv *Monster) Name() []byte {
 	return nil
 }
 
+func MonsterKeyCompare(o1, o2 flatbuffers.UOffsetT, buf []byte) bool {
+	obj1 := &Monster{}
+	obj2 := &Monster{}
+	obj1.Init(buf, flatbuffers.UOffsetT(len(buf)) - o1)
+	obj2.Init(buf, flatbuffers.UOffsetT(len(buf)) - o2)
+	return string(obj1.Name()) < string(obj2.Name())
+}
+
+func (rcv *Monster) LookupByKey(key string, vectorLocation flatbuffers.UOffsetT, buf []byte) bool {
+	span := flatbuffers.GetUOffsetT(buf[vectorLocation - 4:])
+	start := flatbuffers.UOffsetT(0)
+	for span != 0 {
+		middle := span / 2
+		tableOffset := flatbuffers.GetIndirectOffset(buf, vectorLocation+ 4 * (start + middle))
+		obj := &Monster{}
+		obj.Init(buf, tableOffset)
+		bKey := []byte(key)
+		comp := bytes.Compare(obj.Name(), bKey)
+		if comp > 0 {
+			span = middle
+		} else if comp < 0 {
+			middle += 1
+			start += middle
+			span -= middle
+		} else {
+			rcv.Init(buf, tableOffset)
+			return true
+		}
+	}
+	return false
+}
+
 func (rcv *Monster) Inventory(j int) byte {
 	o := flatbuffers.UOffsetT(rcv._tab.Offset(14))
 	if o != 0 {
@@ -681,6 +713,15 @@ func (rcv *Monster) Testarrayoftables(obj *Monster, j int) bool {
 		x = rcv._tab.Indirect(x)
 		obj.Init(rcv._tab.Bytes, x)
 		return true
+	}
+	return false
+}
+
+func (rcv *Monster) TestarrayoftablesByKey(obj *Monster, key string) bool{
+	o := flatbuffers.UOffsetT(rcv._tab.Offset(26))
+	if o != 0 {
+		x := rcv._tab.Vector(o)
+		return obj.LookupByKey(key, x, rcv._tab.Bytes)
 	}
 	return false
 }
@@ -1091,6 +1132,15 @@ func (rcv *Monster) VectorOfReferrables(obj *Referrable, j int) bool {
 	return false
 }
 
+func (rcv *Monster) VectorOfReferrablesByKey(obj *Referrable, key uint64) bool{
+	o := flatbuffers.UOffsetT(rcv._tab.Offset(74))
+	if o != 0 {
+		x := rcv._tab.Vector(o)
+		return obj.LookupByKey(key, x, rcv._tab.Bytes)
+	}
+	return false
+}
+
 func (rcv *Monster) VectorOfReferrablesLength() int {
 	o := flatbuffers.UOffsetT(rcv._tab.Offset(74))
 	if o != 0 {
@@ -1145,6 +1195,15 @@ func (rcv *Monster) VectorOfStrongReferrables(obj *Referrable, j int) bool {
 		x = rcv._tab.Indirect(x)
 		obj.Init(rcv._tab.Bytes, x)
 		return true
+	}
+	return false
+}
+
+func (rcv *Monster) VectorOfStrongReferrablesByKey(obj *Referrable, key uint64) bool{
+	o := flatbuffers.UOffsetT(rcv._tab.Offset(80))
+	if o != 0 {
+		x := rcv._tab.Vector(o)
+		return obj.LookupByKey(key, x, rcv._tab.Bytes)
 	}
 	return false
 }
@@ -1363,6 +1422,15 @@ func (rcv *Monster) ScalarKeySortedTables(obj *Stat, j int) bool {
 		x = rcv._tab.Indirect(x)
 		obj.Init(rcv._tab.Bytes, x)
 		return true
+	}
+	return false
+}
+
+func (rcv *Monster) ScalarKeySortedTablesByKey(obj *Stat, key uint16) bool{
+	o := flatbuffers.UOffsetT(rcv._tab.Offset(104))
+	if o != 0 {
+		x := rcv._tab.Vector(o)
+		return obj.LookupByKey(key, x, rcv._tab.Bytes)
 	}
 	return false
 }

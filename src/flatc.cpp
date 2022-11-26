@@ -152,6 +152,8 @@ const static FlatCOption options[] = {
   { "", "go-import", "IMPORT",
     "Generate the overriding import for flatbuffers in Golang (default is "
     "\"github.com/google/flatbuffers/go\")." },
+  { "", "go-module-name", "",
+    "Prefix local import paths of generated go code with the module name" },
   { "", "raw-binary", "",
     "Allow binaries without file_identifier to be read. This may crash flatc "
     "given a mismatched schema." },
@@ -448,6 +450,9 @@ int FlatCompiler::Compile(int argc, const char **argv) {
       } else if (arg == "--go-import") {
         if (++argi >= argc) Error("missing golang import" + arg, true);
         opts.go_import = argv[argi];
+      } else if (arg == "--go-module-name") {
+        if (++argi >= argc) Error("missing golang module name" + arg, true);
+        opts.go_module_name = argv[argi];
       } else if (arg == "--defaults-json") {
         opts.output_default_scalars_in_json = true;
       } else if (arg == "--unknown-json") {
