@@ -2,6 +2,11 @@
 
 package MyGame;
 
+import com.google.flatbuffers.Table;
+import com.google.flatbuffers.Struct;
+import com.google.flatbuffers.FlatBufferBuilder;
+import com.google.flatbuffers.BaseVector;
+import java.nio.ByteBuffer;
 
 public class MonsterExtraT {
   private double d0;

@@ -2,6 +2,11 @@
 
 package DictionaryLookup;
 
+import com.google.flatbuffers.Table;
+import com.google.flatbuffers.Struct;
+import com.google.flatbuffers.FlatBufferBuilder;
+import com.google.flatbuffers.BaseVector;
+import java.nio.ByteBuffer;
 
 @SuppressWarnings("unused")
 public final class LongFloatEntry extends Table {
