@@ -94,6 +94,7 @@ std::string GenerateFBS(const Parser &parser, const std::string &file_name) {
     if (num_includes) schema += "\n";
     // clang-format on
   }
+  int counter = 999;
   // Generate code for all the enum declarations.
   const Namespace *last_namespace = nullptr;
   for (auto enum_def_it = parser.enums_.vec.begin();
@@ -147,6 +148,8 @@ std::string GenerateFBS(const Parser &parser, const std::string &file_name) {
         const auto &id_str = field.attributes.Lookup("id");
         if (id_str && !id_str->constant.empty())
           attributes.push_back("id: " + id_str->constant);
+		else
+		  attributes.push_back("id: " + std::to_string(counter++));
 
         if (!attributes.empty()) {
           schema += " (";

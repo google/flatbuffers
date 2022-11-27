@@ -59,7 +59,7 @@ table ProtoMessage {
   o:[string] (id: 14);
   z:proto.test.ImportedMessage (id: 16);
   /// doc comment for r.
-  r:proto.test.ProtoMessage_.RUnion;
+  r:proto.test.ProtoMessage_.RUnion (id: 999);
   outer_enum:proto.test.ProtoEnum (id: 33);
   u:float = +inf (id: 34);
   v:float = +inf (id: 35);
@@ -78,12 +78,12 @@ table OtherMessage {
 }
 
 table GradesEntry {
-  key:string (key);
-  value:float;
+  key:string (key,id: 1000);
+  value:float (id: 1001);
 }
 
 table OtherMessageMapEntry {
-  key:string (key);
-  value:proto.test.ProtoMessage_.OtherMessage;
+  key:string (key,id: 1002);
+  value:proto.test.ProtoMessage_.OtherMessage (id: 1003);
 }
 
