@@ -2,10 +2,6 @@
 
 package optional_scalars;
 
-import java.nio.*;
-import java.lang.*;
-import java.util.*;
-import com.google.flatbuffers.*;
 
 @SuppressWarnings("unused")
 public final class ScalarStuff extends Table {

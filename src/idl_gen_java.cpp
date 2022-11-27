@@ -177,9 +177,9 @@ class JavaGenerator : public BaseGenerator {
       code += "\n\n";
     }
     if (needs_includes) {
-      code +=
-          "import java.nio.*;\nimport java.lang.*;\nimport "
-          "java.util.*;\nimport com.google.flatbuffers.*;\n";
+//      code +=
+//          "import java.nio.*;\nimport java.lang.*;\nimport "
+//          "java.util.*;\nimport com.google.flatbuffers.*;\n";
       if (parser_.opts.gen_nullable) {
         code += "\nimport javax.annotation.Nullable;\n";
       }
