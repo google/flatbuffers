@@ -182,6 +182,15 @@ class JavaGenerator : public BaseGenerator {
 		  "import com.google.flatbuffers.Struct;\n"
 		  "import com.google.flatbuffers.FlatBufferBuilder;\n"
 		  "import com.google.flatbuffers.BaseVector;\n"
+		  "import com.google.flatbuffers.ByteVector;\n"
+		  "import com.google.flatbuffers.UnionVector;\n"
+		  "import com.google.flatbuffers.DoubleVector;\n"
+		  "import com.google.flatbuffers.StringVector;\n"
+		  "import com.google.flatbuffers.BooleanVector;\n"
+		  "import com.google.flatbuffers.LongVector;\n"
+		  "import com.google.flatbuffers.FloatVector;\n"
+		  "import com.google.flatbuffers.Constants;\n"
+		  "import java.nio.ByteOrder;\n"
 		  "import java.nio.ByteBuffer;\n";
       if (parser_.opts.gen_nullable) {
         code += "\nimport javax.annotation.Nullable;\n";
