@@ -94,6 +94,43 @@ func (rcv *Stat) MutateCount(n uint16) bool {
 	return rcv._tab.MutateUint16Slot(8, n)
 }
 
+func StatKeyCompare(o1, o2 flatbuffers.UOffsetT, buf []byte) bool {
+	obj1 := &Stat{}
+	obj2 := &Stat{}
+	obj1.Init(buf, flatbuffers.UOffsetT(len(buf)) - o1)
+	obj2.Init(buf, flatbuffers.UOffsetT(len(buf)) - o2)
+	return obj1.Count() < obj2.Count()
+}
+
+func (rcv *Stat) LookupByKey(key uint16, vectorLocation flatbuffers.UOffsetT, buf []byte) bool {
+	span := flatbuffers.GetUOffsetT(buf[vectorLocation - 4:])
+	start := flatbuffers.UOffsetT(0)
+	for span != 0 {
+		middle := span / 2
+		tableOffset := flatbuffers.GetIndirectOffset(buf, vectorLocation+ 4 * (start + middle))
+		obj := &Stat{}
+		obj.Init(buf, tableOffset)
+		val := obj.Count()
+		comp := 0
+		if val > key {
+			comp = 1
+		} else if val < key {
+			comp = -1
+		}
+		if comp > 0 {
+			span = middle
+		} else if comp < 0 {
+			middle += 1
+			start += middle
+			span -= middle
+		} else {
+			rcv.Init(buf, tableOffset)
+			return true
+		}
+	}
+	return false
+}
+
 func StatStart(builder *flatbuffers.Builder) {
 	builder.StartObject(3)
 }
