@@ -299,14 +299,8 @@ template<typename T> static uint64_t EnumDistanceImpl(T e1, T e2) {
 }
 
 static bool compareFieldDefs(const FieldDef *a, const FieldDef *b) {
-  int a_id = 0;
-  if (a->attributes.Lookup("id"))
-    a_id = atoi(a->attributes.Lookup("id")->constant.c_str());
-
-  int b_id = 0;
-  if (b->attributes.Lookup("id"))
-    b_id = atoi(b->attributes.Lookup("id")->constant.c_str());
-
+  auto a_id = atoi(a->attributes.Lookup("id")->constant.c_str());
+  auto b_id = atoi(b->attributes.Lookup("id")->constant.c_str());
   return a_id < b_id;
 }
 
@@ -2676,11 +2670,20 @@ CheckedError Parser::ParseDecl(const char *filename) {
           return Error(
               "all fields must have an 'id' attribute when "
               "--require-explicit-ids is used");
+        } else {
+          return Error(
+              "either all fields or no fields must have an 'id' attribute");
         }
       }
       // Simply sort by id, then the fields are the same as if no ids had
       // been specified.
       std::sort(fields.begin(), fields.end(), compareFieldDefs);
+      for (auto it = std::begin(fields); it != std::prev(std::end(fields));
+           std::advance(it, 1))
+        if ((*it)->attributes.Lookup("id")->constant ==
+            (*std::next(it))->attributes.Lookup("id")->constant)
+          return Error("field id\'s set twice, field: " + (*it)->name +
+                       ", id: " + (*it)->attributes.Lookup("id")->constant);
       // Verify we have a contiguous set, and reassign vtable offsets.
       FLATBUFFERS_ASSERT(fields.size() <=
                          flatbuffers::numeric_limits<voffset_t>::max());

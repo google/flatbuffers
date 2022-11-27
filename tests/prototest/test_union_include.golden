@@ -38,7 +38,7 @@ namespace proto.test;
 table ProtoMessage {
   c:int = 16 (id: 12);
   d:long (id: 1);
-  p:uint (id: 1);
+  p:uint (id: 40);
   e:ulong (id: 2);
   /// doc comment for f.
   f:int = -1 (id: 3);
@@ -53,7 +53,7 @@ table ProtoMessage {
   /// lines
   l:string (required,id: 10);
   m:[ubyte] (id: 11);
-  n:proto.test.ProtoMessage_.OtherMessage (id: 12);
+  n:proto.test.ProtoMessage_.OtherMessage (id: 41);
   o:[string] (id: 14);
   z:proto.test.ImportedMessage (id: 16);
   /// doc comment for r.
