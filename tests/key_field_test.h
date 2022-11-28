@@ -5,6 +5,7 @@ namespace flatbuffers {
 namespace tests {
 
 void FixedSizedScalarKeyInStructTest();
+void StructKeyInStructTest();
 
 }  // namespace tests
 }  // namespace flatbuffers

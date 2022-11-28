@@ -1565,7 +1565,8 @@ int FlatBufferTests(const std::string &tests_data_path) {
   JsonUnsortedArrayTest();
   VectorSpanTest();
   NativeInlineTableVectorTest();
-  FixedSizedScalarKeyInStructTest();
+  //FixedSizedScalarKeyInStructTest();
+  StructKeyInStructTest();
   return 0;
 }
 }  // namespace

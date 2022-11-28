@@ -20,6 +20,8 @@ struct Baz;
 
 struct Bar;
 
+struct BarParent;
+
 struct FooTable;
 struct FooTableBuilder;
 
@@ -47,11 +49,11 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(1) Baz FLATBUFFERS_FINAL_CLASS {
   bool KeyCompareLessThan(const Baz * const o) const {
     return KeyCompareWithValue(o->a()) < 0;
   }
-  int KeyCompareWithValue(const flatbuffers::Array<uint8_t, 4> *_a) const { 
+  int KeyCompareWithValue(const flatbuffers::Array<uint8_t, 4> *_a) const {
     for (auto i = 0; i < a()->size(); i++) {
       const auto a_l = a_[i];
       const auto a_r = _a->Get(i);
-      if(a_l != a_r) 
+      if(a_l != a_r)
         return static_cast<int>(a_l > a_r) - static_cast<int>(a_l < a_r);
     }
     return 0;
@@ -99,11 +101,11 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) Bar FLATBUFFERS_FINAL_CLASS {
   bool KeyCompareLessThan(const Bar * const o) const {
     return KeyCompareWithValue(o->a()) < 0;
   }
-  int KeyCompareWithValue(const flatbuffers::Array<float, 3> *_a) const { 
+  int KeyCompareWithValue(const flatbuffers::Array<float, 3> *_a) const {
     for (auto i = 0; i < a()->size(); i++) {
       const auto a_l = a_[i];
       const auto a_r = _a->Get(i);
-      if(a_l != a_r) 
+      if(a_l != a_r)
         return static_cast<int>(a_l > a_r) - static_cast<int>(a_l < a_r);
     }
     return 0;
@@ -114,6 +116,49 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) Bar FLATBUFFERS_FINAL_CLASS {
 };
 FLATBUFFERS_STRUCT_END(Bar, 16);
 
+FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) BarParent FLATBUFFERS_FINAL_CLASS {
+ private:
+  uint8_t a_;
+  int8_t padding0__;  int16_t padding1__;
+  keyfield::sample::Bar b_;
+
+ public:
+  BarParent()
+      : a_(0),
+        padding0__(0),
+        padding1__(0),
+        b_() {
+    (void)padding0__;
+    (void)padding1__;
+  }
+  BarParent(uint8_t _a, const keyfield::sample::Bar &_b)
+      : a_(flatbuffers::EndianScalar(_a)),
+        padding0__(0),
+        padding1__(0),
+        b_(_b) {
+    (void)padding0__;
+    (void)padding1__;
+  }
+  uint8_t a() const {
+    return flatbuffers::EndianScalar(a_);
+  }
+  const keyfield::sample::Bar &b() const {
+    return b_;
+  }
+  bool KeyCompareLessThan(const BarParent * const o) const {
+    char buffer1[16];
+    memcpy(&buffer1, &b_, 16);
+    char buffer2[16];
+    memcpy(&buffer2, &o->b(), 16);
+
+    return strcmp(buffer1, buffer2) < 0;
+  }
+  // int KeyCompareWithValue(Offset<void> _b) const {
+  //   return static_cast<int>(b() > _b) - static_cast<int>(b() < _b);
+  // }
+};
+FLATBUFFERS_STRUCT_END(BarParent, 20);
+
 struct FooTable FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   typedef FooTableBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
@@ -121,7 +166,8 @@ struct FooTable FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
     VT_B = 6,
     VT_C = 8,
     VT_D = 10,
-    VT_E = 12
+    VT_E = 12,
+    VT_F = 14
   };
   int32_t a() const {
     return GetField<int32_t>(VT_A, 0);
@@ -144,6 +190,9 @@ struct FooTable FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   const flatbuffers::Vector<const keyfield::sample::Bar *> *e() const {
     return GetPointer<const flatbuffers::Vector<const keyfield::sample::Bar *> *>(VT_E);
   }
+  const flatbuffers::Vector<const keyfield::sample::BarParent *> *f() const {
+    return GetPointer<const flatbuffers::Vector<const keyfield::sample::BarParent *> *>(VT_F);
+  }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyField<int32_t>(verifier, VT_A, 4) &&
@@ -154,6 +203,8 @@ struct FooTable FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
            verifier.VerifyVector(d()) &&
            VerifyOffset(verifier, VT_E) &&
            verifier.VerifyVector(e()) &&
+           VerifyOffset(verifier, VT_F) &&
+           verifier.VerifyVector(f()) &&
            verifier.EndTable();
   }
 };
@@ -177,6 +228,9 @@ struct FooTableBuilder {
   void add_e(flatbuffers::Offset<flatbuffers::Vector<const keyfield::sample::Bar *>> e) {
     fbb_.AddOffset(FooTable::VT_E, e);
   }
+  void add_f(flatbuffers::Offset<flatbuffers::Vector<const keyfield::sample::BarParent *>> f) {
+    fbb_.AddOffset(FooTable::VT_F, f);
+  }
   explicit FooTableBuilder(flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
@@ -195,8 +249,10 @@ inline flatbuffers::Offset<FooTable> CreateFooTable(
     int32_t b = 0,
     flatbuffers::Offset<flatbuffers::String> c = 0,
     flatbuffers::Offset<flatbuffers::Vector<const keyfield::sample::Baz *>> d = 0,
-    flatbuffers::Offset<flatbuffers::Vector<const keyfield::sample::Bar *>> e = 0) {
+    flatbuffers::Offset<flatbuffers::Vector<const keyfield::sample::Bar *>> e = 0,
+    flatbuffers::Offset<flatbuffers::Vector<const keyfield::sample::BarParent *>> f = 0) {
   FooTableBuilder builder_(_fbb);
+  builder_.add_f(f);
   builder_.add_e(e);
   builder_.add_d(d);
   builder_.add_c(c);
@@ -211,17 +267,20 @@ inline flatbuffers::Offset<FooTable> CreateFooTableDirect(
     int32_t b = 0,
     const char *c = nullptr,
     std::vector<keyfield::sample::Baz> *d = nullptr,
-    std::vector<keyfield::sample::Bar> *e = nullptr) {
+    std::vector<keyfield::sample::Bar> *e = nullptr,
+    std::vector<keyfield::sample::BarParent> *f = nullptr) {
   auto c__ = c ? _fbb.CreateString(c) : 0;
   auto d__ = d ? _fbb.CreateVectorOfSortedStructs<keyfield::sample::Baz>(d) : 0;
   auto e__ = e ? _fbb.CreateVectorOfSortedStructs<keyfield::sample::Bar>(e) : 0;
+  auto f__ = f ? _fbb.CreateVectorOfSortedStructs<keyfield::sample::BarParent>(f) : 0;
   return keyfield::sample::CreateFooTable(
       _fbb,
       a,
       b,
       c__,
       d__,
-      e__);
+      e__,
+      f__);
 }
 
 inline const keyfield::sample::FooTable *GetFooTable(const void *buf) {

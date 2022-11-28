@@ -10,12 +10,18 @@ struct Bar {
   b: uint8;
 }
 
+struct BarParent {
+  a: uint8;
+  b: Bar (key);
+}
+
 table FooTable {
   a: int;
   b: int;
   c: string (key);
   d: [Baz];
   e: [Bar];
+  f: [BarParent];
 }
 root_type FooTable;
 

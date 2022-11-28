@@ -37,6 +37,7 @@ void FixedSizedScalarKeyInStructTest() {
   auto bar_vec = fbb.CreateVectorOfSortedStructs(&bars);
 
   auto t = CreateFooTable(fbb, 1, 2, test_string, baz_vec, bar_vec);
+
   fbb.Finish(t);
 
   uint8_t *buf = fbb.GetBufferPointer();
@@ -66,6 +67,37 @@ void FixedSizedScalarKeyInStructTest() {
   float array_float[3] = { -1, -2, -3 };
   TEST_EQ(sorted_bar_vec->LookupByKey(&flatbuffers::CastToArray(array_float)),
           static_cast<const Bar *>(nullptr));
+}
+
+void StructKeyInStructTest() {
+  flatbuffers::FlatBufferBuilder fbb;
+  std::vector<BarParent> barparents;
+  float test_float_array1[3] = { 1.5, 2.5, 0 };
+  float test_float_array2[3] = { 7.5, 2.5, 0 };
+  float test_float_array3[3] = { 1.5, 2.5, -1 };
+  barparents.push_back(BarParent(2,Bar(flatbuffers::make_span(test_float_array1), 3)));
+  barparents.push_back(BarParent(3,Bar(flatbuffers::make_span(test_float_array2), 3)));
+  barparents.push_back(BarParent(-2,Bar(flatbuffers::make_span(test_float_array3), 1)));
+
+  auto barparent_vec = fbb.CreateVectorOfSortedStructs(&barparents);
+  auto test_string = fbb.CreateString("TEST");
+
+  FooTableBuilder foo_builder(fbb);
+  foo_builder.add_a(1);
+  foo_builder.add_c(test_string);
+
+  foo_builder.add_f(barparent_vec);
+
+  auto orc = foo_builder.Finish();
+  fbb.Finish(orc);
+
+
+  uint8_t *buf = fbb.GetBufferPointer();
+  auto foo_table = GetFooTable(buf);
+
+  auto sorted_fooparent_vec = foo_table->f();
+  TEST_EQ(sorted_fooparent_vec->Get(0)->a(), -2);
+
 }
 
 }  // namespace tests
