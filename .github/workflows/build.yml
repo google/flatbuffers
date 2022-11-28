@@ -306,10 +306,11 @@ jobs:
    runs-on: ubuntu-latest
    steps:
    - uses: actions/checkout@v3
-   - name: set up JDK 1.8
+   - name: set up Java
      uses: actions/setup-java@v3
-     with:
-       java-version: 1.8
+      with:
+        distribution: 'temurin'
+        java-version: '11'
    - name: set up flatc
      run: |
        cmake -DFLATBUFFERS_BUILD_TESTS=OFF -DFLATBUFFERS_BUILD_FLATLIB=OFF -DFLATBUFFERS_BUILD_FLATHASH=OFF -DFLATBUFFERS_STRICT_MODE=ON .
@@ -370,7 +371,7 @@ jobs:
     - uses: gradle/wrapper-validation-action@v1.0.5
     - uses: actions/setup-java@v3
       with:
-        distribution: 'adopt-hotspot'
+        distribution: 'temurin'
         java-version: '11'
     - name: Build
       working-directory: kotlin
@@ -384,7 +385,7 @@ jobs:
       uses: actions/checkout@v3
     - uses: actions/setup-java@v3
       with:
-        distribution: 'adopt-hotspot'
+        distribution: 'temurin'
         java-version: '11'
     - uses: gradle/wrapper-validation-action@v1.0.5
     - name: Build
