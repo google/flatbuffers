@@ -146,12 +146,18 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) BarParent FLATBUFFERS_FINAL_CLASS {
     return b_;
   }
   bool KeyCompareLessThan(const BarParent * const o) const {
-    char buffer1[16];
+    uint8_t buffer1[16];
     memcpy(&buffer1, &b_, 16);
-    char buffer2[16];
+    uint8_t buffer2[16];
     memcpy(&buffer2, &o->b(), 16);
 
-    return strcmp(buffer1, buffer2) < 0;
+    // return strcmp(buffer1, buffer2) < 0;
+    for (int i = 0; i < 16; i++) {
+      if (buffer1[i] != buffer2[i]) {
+        return buffer1[i] < buffer2[i];
+      }
+    }
+    return false;
   }
   // int KeyCompareWithValue(Offset<void> _b) const {
   //   return static_cast<int>(b() > _b) - static_cast<int>(b() < _b);
