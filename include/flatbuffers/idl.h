@@ -351,7 +351,8 @@ struct StructDef : public Definition {
         sortbysize(true),
         has_key(false),
         minalign(1),
-        bytesize(0) {}
+        bytesize(0),
+        should_check(false) {}
 
   void PadLastField(size_t min_align) {
     auto padding = PaddingBytes(bytesize, min_align);
@@ -374,6 +375,7 @@ struct StructDef : public Definition {
   size_t bytesize;  // Size if fixed.
 
   flatbuffers::unique_ptr<std::string> original_location;
+  bool should_check; // If it should be checked later because of struct field constraint
 };
 
 struct EnumDef;
@@ -471,6 +473,10 @@ inline bool IsString(const Type &type) {
 
 inline bool IsStruct(const Type &type) {
   return type.base_type == BASE_TYPE_STRUCT && type.struct_def->fixed;
+}
+
+inline bool IsPredeclStruct(const Type &type) {
+  return type.base_type == BASE_TYPE_STRUCT && type.struct_def->predecl;
 }
 
 inline bool IsTable(const Type &type) {
@@ -988,6 +994,7 @@ class Parser : public ParserState {
                                      const std::string &name, const Type &type,
                                      FieldDef **dest);
   FLATBUFFERS_CHECKED_ERROR ParseField(StructDef &struct_def);
+  FLATBUFFERS_CHECKED_ERROR CheckStructField(const Type &type);
   FLATBUFFERS_CHECKED_ERROR ParseString(Value &val, bool use_string_pooling);
   FLATBUFFERS_CHECKED_ERROR ParseComma();
   FLATBUFFERS_CHECKED_ERROR ParseAnyValue(Value &val, FieldDef *field,

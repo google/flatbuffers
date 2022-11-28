@@ -901,7 +901,21 @@ CheckedError Parser::AddField(StructDef &struct_def, const std::string &name,
   return NoError();
 }
 
-CheckedError Parser::ParseField(StructDef &struct_def) {
+CheckedError Parser::CheckStructField(const Type &type)
+{
+    auto valid = IsScalar(type.base_type) || IsStruct(type);
+    if (!valid && IsArray(type)) {
+      const auto &elem_type = type.VectorType();
+      valid |= IsScalar(elem_type.base_type) || IsStruct(elem_type);
+    }
+    if (!valid) {
+      return Error("structs may contain only scalar or struct fields");
+    }
+    
+    return NoError();
+}
+
+CheckedError Parser::ParseField(StructDef &struct_def) { 
   std::string name = attribute_;
 
   if (LookupCreateStruct(name, false, false))
@@ -918,13 +932,14 @@ CheckedError Parser::ParseField(StructDef &struct_def) {
   ECHECK(ParseType(type));
 
   if (struct_def.fixed) {
-    auto valid = IsScalar(type.base_type) || IsStruct(type);
-    if (!valid && IsArray(type)) {
-      const auto &elem_type = type.VectorType();
-      valid |= IsScalar(elem_type.base_type) || IsStruct(elem_type);
-    }
-    if (!valid)
-      return Error("structs may contain only scalar or struct fields");
+    // If field type is struct with `predecl` is true, we should check it later,
+    // because we can't get its `fixed` property correctly at this time.
+    if (IsPredeclStruct(type))
+        type.struct_def->should_check = true;
+    else if (IsVector(type) && IsPredeclStruct(type.VectorType()))
+        type.VectorType().struct_def->should_check = true;
+    else
+        ECHECK(CheckStructField(type));
   }
 
   if (!struct_def.fixed && IsArray(type))
@@ -2632,6 +2647,9 @@ CheckedError Parser::ParseDecl(const char *filename) {
   ECHECK(StartStruct(name, &struct_def));
   struct_def->doc_comment = dc;
   struct_def->fixed = fixed;
+  if (struct_def->should_check && !struct_def->fixed) {
+    return Error(std::string("table type can\'t be used as struct field, at: ") + *(struct_def->original_location));
+  }
   if (filename && !opts.project_root.empty()) {
     struct_def->declaration_file =
         &GetPooledString(RelativeToRootPath(opts.project_root, filename));

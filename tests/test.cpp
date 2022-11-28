@@ -37,6 +37,7 @@
 #include "parser_test.h"
 #include "proto_test.h"
 #include "reflection_test.h"
+#include "nested_predecl_struct_test.h"
 #include "union_vector/union_vector_generated.h"
 #if !defined(_MSC_VER) || _MSC_VER >= 1700
 #  include "arrays_test_generated.h"
@@ -1565,6 +1566,7 @@ int FlatBufferTests(const std::string &tests_data_path) {
   VectorSpanTest();
   NativeInlineTableVectorTest();
   FixedSizedScalarKeyInStructTest();
+  NestedPredeclStructTest();
   return 0;
 }
 }  // namespace
