@@ -70,12 +70,20 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(1) Baz FLATBUFFERS_FINAL_CLASS {
     return KeyCompareWithValue(o->a()) < 0;
   }
   int KeyCompareWithValue(const flatbuffers::Array<uint8_t, 4> *_a) const {
+<<<<<<< HEAD
     const flatbuffers::Array<uint8_t, 4> *curr_a = a();
     for (flatbuffers::uoffset_t i = 0; i < curr_a->size(); i++) {
       const auto lhs = curr_a->Get(i);
       const auto rhs = _a->Get(i);
       if(lhs != rhs)
         return static_cast<int>(lhs > rhs) - static_cast<int>(lhs < rhs);
+=======
+    for (auto i = 0; i < a()->size(); i++) {
+      const auto a_l = a_[i];
+      const auto a_r = _a->Get(i);
+      if(a_l != a_r)
+        return static_cast<int>(a_l > a_r) - static_cast<int>(a_l < a_r);
+>>>>>>> 2e871fd6 (commit test code with experimenting comparing two struct as char array)
     }
     return 0;
   }
@@ -143,12 +151,20 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) Bar FLATBUFFERS_FINAL_CLASS {
     return KeyCompareWithValue(o->a()) < 0;
   }
   int KeyCompareWithValue(const flatbuffers::Array<float, 3> *_a) const {
+<<<<<<< HEAD
     const flatbuffers::Array<float, 3> *curr_a = a();
     for (flatbuffers::uoffset_t i = 0; i < curr_a->size(); i++) {
       const auto lhs = curr_a->Get(i);
       const auto rhs = _a->Get(i);
       if(lhs != rhs)
         return static_cast<int>(lhs > rhs) - static_cast<int>(lhs < rhs);
+=======
+    for (auto i = 0; i < a()->size(); i++) {
+      const auto a_l = a_[i];
+      const auto a_r = _a->Get(i);
+      if(a_l != a_r)
+        return static_cast<int>(a_l > a_r) - static_cast<int>(a_l < a_r);
+>>>>>>> 2e871fd6 (commit test code with experimenting comparing two struct as char array)
     }
     return 0;
   }
@@ -161,6 +177,7 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) Bar FLATBUFFERS_FINAL_CLASS {
 };
 FLATBUFFERS_STRUCT_END(Bar, 16);
 
+<<<<<<< HEAD
 inline bool operator==(const Bar &lhs, const Bar &rhs) {
   return
       (lhs.a() == rhs.a()) &&
@@ -180,6 +197,50 @@ struct FooTableT : public flatbuffers::NativeTable {
   std::vector<keyfield::sample::Baz> d{};
   std::vector<keyfield::sample::Bar> e{};
 };
+=======
+FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) BarParent FLATBUFFERS_FINAL_CLASS {
+ private:
+  uint8_t a_;
+  int8_t padding0__;  int16_t padding1__;
+  keyfield::sample::Bar b_;
+
+ public:
+  BarParent()
+      : a_(0),
+        padding0__(0),
+        padding1__(0),
+        b_() {
+    (void)padding0__;
+    (void)padding1__;
+  }
+  BarParent(uint8_t _a, const keyfield::sample::Bar &_b)
+      : a_(flatbuffers::EndianScalar(_a)),
+        padding0__(0),
+        padding1__(0),
+        b_(_b) {
+    (void)padding0__;
+    (void)padding1__;
+  }
+  uint8_t a() const {
+    return flatbuffers::EndianScalar(a_);
+  }
+  const keyfield::sample::Bar &b() const {
+    return b_;
+  }
+  bool KeyCompareLessThan(const BarParent * const o) const {
+    char buffer1[16];
+    memcpy(&buffer1, &b_, 16);
+    char buffer2[16];
+    memcpy(&buffer2, &o->b(), 16);
+
+    return strcmp(buffer1, buffer2) < 0;
+  }
+  // int KeyCompareWithValue(Offset<void> _b) const {
+  //   return static_cast<int>(b() > _b) - static_cast<int>(b() < _b);
+  // }
+};
+FLATBUFFERS_STRUCT_END(BarParent, 20);
+>>>>>>> 2e871fd6 (commit test code with experimenting comparing two struct as char array)
 
 struct FooTable FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   typedef FooTableT NativeTableType;
@@ -228,8 +289,13 @@ struct FooTable FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   const flatbuffers::Vector<const keyfield::sample::Bar *> *e() const {
     return GetPointer<const flatbuffers::Vector<const keyfield::sample::Bar *> *>(VT_E);
   }
+<<<<<<< HEAD
   flatbuffers::Vector<const keyfield::sample::Bar *> *mutable_e() {
     return GetPointer<flatbuffers::Vector<const keyfield::sample::Bar *> *>(VT_E);
+=======
+  const flatbuffers::Vector<const keyfield::sample::BarParent *> *f() const {
+    return GetPointer<const flatbuffers::Vector<const keyfield::sample::BarParent *> *>(VT_F);
+>>>>>>> 2e871fd6 (commit test code with experimenting comparing two struct as char array)
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
