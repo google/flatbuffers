@@ -371,21 +371,21 @@ function testByteBuffer(Assert $assert) {
     $buffer = "\0";
     $uut = Google\FlatBuffers\ByteBuffer::wrap($buffer);
     $assert->Throws(new OutOfRangeException(), function()  use ($uut) {
-        $uut->putShort(2, "\x63"); // 99
+        $uut->putShort(2, 2); // 99
     });
 
     //Test: ByteBuffer_PutShortChecksLength
     $buffer = "\0";
     $uut = Google\FlatBuffers\ByteBuffer::wrap($buffer);
     $assert->Throws(new OutOfRangeException(), function()  use ($uut) {
-        $uut->putShort(0, "\x63"); // 99
+        $uut->putShort(0, 2); // 99
     });
 
     //Test: ByteBuffer_PutShortChecksLengthAndOffset
     $buffer = str_repeat("\0", 2);
     $uut = Google\FlatBuffers\ByteBuffer::wrap($buffer);
     $assert->Throws(new OutOfRangeException(), function()  use ($uut) {
-        $uut->putShort(1, "\x63"); // 99
+        $uut->putShort(1, 2); // 99
     });
 
     //Test: ByteBuffer_PutIntPopulatesBufferCorrectly
@@ -625,7 +625,7 @@ class Assert {
             throw new \Exception("passed statement don't throw an exception.");
         } catch (\Exception $e) {
             if (get_class($e) != get_class($class)) {
-                throw new Exception("passed statement doesn't throw " . get_class($class) . ". throwws " . get_class($e));
+                throw new Exception("passed statement doesn't throw " . get_class($class) . ". throws " . get_class($e) . ": {$e->getMessage()}");
             }
         }
     }
