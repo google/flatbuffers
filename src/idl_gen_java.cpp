@@ -178,8 +178,20 @@ class JavaGenerator : public BaseGenerator {
     }
     if (needs_includes) {
       code +=
-          "import java.nio.*;\nimport java.lang.*;\nimport "
-          "java.util.*;\nimport com.google.flatbuffers.*;\n";
+          "import com.google.flatbuffers.BaseVector;\n"
+          "import com.google.flatbuffers.BooleanVector;\n"
+          "import com.google.flatbuffers.ByteVector;\n"
+          "import com.google.flatbuffers.Constants;\n"
+          "import com.google.flatbuffers.DoubleVector;\n"
+          "import com.google.flatbuffers.FlatBufferBuilder;\n"
+          "import com.google.flatbuffers.FloatVector;\n"
+          "import com.google.flatbuffers.LongVector;\n"
+          "import com.google.flatbuffers.StringVector;\n"
+          "import com.google.flatbuffers.Struct;\n"
+          "import com.google.flatbuffers.Table;\n"
+          "import com.google.flatbuffers.UnionVector;\n"
+          "import java.nio.ByteBuffer;\n"
+          "import java.nio.ByteOrder;\n";
       if (parser_.opts.gen_nullable) {
         code += "\nimport javax.annotation.Nullable;\n";
       }
