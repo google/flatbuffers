@@ -9,7 +9,7 @@ import { Test, TestT } from '../../my-game/example/test';
 export class Vec3 {
   bb: flatbuffers.ByteBuffer|null = null;
   bb_pos = 0;
-__init(i:number, bb:flatbuffers.ByteBuffer):Vec3 {
+  __init(i:number, bb:flatbuffers.ByteBuffer):Vec3 {
   this.bb_pos = i;
   this.bb = bb;
   return this;
@@ -65,7 +65,7 @@ test3(obj?:Test):Test|null {
 }
 
 static getFullyQualifiedName():string {
-  return 'MyGame.Example.Vec3';
+  return 'MyGame_Example_Vec3';
 }
 
 static sizeOf():number {
@@ -130,8 +130,8 @@ pack(builder:flatbuffers.Builder): flatbuffers.Offset {
     this.z,
     this.test1,
     this.test2,
-    (this.test3 === null ? 0 : this.test3.a!),
-    (this.test3 === null ? 0 : this.test3.b!)
+    (this.test3?.a ?? 0),
+    (this.test3?.b ?? 0)
   );
 }
 }

@@ -15,10 +15,14 @@ c#:
 swift:
   - '**/*.swift'
   - swift/**/*
-  - tests/FlatBuffers.GRPC.Swift/**/*
-  - tests/FlatBuffers.Benchmarks.swift/**/*
-  - tests/FlatBuffers.Test.Swift/**/*
+  - tests/swift/**
   - src/idl_gen_swift.cpp
+
+nim:
+  - '**/*.nim'
+  - nim/**/*
+  - src/idl_gen_nim.cpp
+  - src/bfbs_gen_nim.cpp
 
 javascript:
   - '**/*.js'
@@ -63,7 +67,7 @@ rust:
   - '**/*.rs'
   - rust/**/*
   - src/idl_gen_rust.cpp
-  
+
 dart:
   - '**/*.dart'
   - src/idl_gen_dart.cpp
@@ -86,9 +90,7 @@ documentation:
 
 CI:
   - '.github/**/*'
-  - '.travis/**/*'
   - '.bazelci/**/*'
-  - .travis.yml
 
 grpc:
   - grpc/**/*

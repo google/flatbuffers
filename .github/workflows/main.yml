@@ -1,5 +1,15 @@
-name: CIFuzz
-on: [pull_request]
+name: OSS-Fuzz
+permissions: read-all
+
+on: 
+  pull_request:
+    branches:
+      - master
+    paths:
+      - include/**
+      - src/**
+      - tests/**.cpp
+      - tests/**.h
 jobs:
  Fuzzing:
    runs-on: ubuntu-latest
@@ -15,7 +25,7 @@ jobs:
      with:
        oss-fuzz-project-name: 'flatbuffers'
        language: c++
-       fuzz-seconds: 600
+       fuzz-seconds: 60
    - name: Upload Crash
      uses: actions/upload-artifact@v1
      if: failure() && steps.build.outcome == 'success'

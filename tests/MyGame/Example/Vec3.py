@@ -73,6 +73,11 @@ class Vec3T(object):
         return cls.InitFromObj(vec3)
 
     @classmethod
+    def InitFromPackedBuf(cls, buf, pos=0):
+        n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, pos)
+        return cls.InitFromBuf(buf, pos+n)
+
+    @classmethod
     def InitFromObj(cls, vec3):
         x = Vec3T()
         x._UnPack(vec3)

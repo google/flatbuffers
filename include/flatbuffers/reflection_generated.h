@@ -6,6 +6,13 @@
 
 #include "flatbuffers/flatbuffers.h"
 
+// Ensure the included flatbuffers.h is the same version as when this file was
+// generated, otherwise it may not be compatible.
+static_assert(FLATBUFFERS_VERSION_MAJOR == 22 &&
+              FLATBUFFERS_VERSION_MINOR == 11 &&
+              FLATBUFFERS_VERSION_REVISION == 23,
+             "Non-compatible flatbuffers version included");
+
 namespace reflection {
 
 struct Type;
@@ -258,7 +265,7 @@ struct KeyValue FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   const flatbuffers::String *key() const {
     return GetPointer<const flatbuffers::String *>(VT_KEY);
   }
-  bool KeyCompareLessThan(const KeyValue *o) const {
+  bool KeyCompareLessThan(const KeyValue * const o) const {
     return *key() < *o->key();
   }
   int KeyCompareWithValue(const char *_key) const {
@@ -327,7 +334,8 @@ struct EnumVal FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
     VT_NAME = 4,
     VT_VALUE = 6,
     VT_UNION_TYPE = 10,
-    VT_DOCUMENTATION = 12
+    VT_DOCUMENTATION = 12,
+    VT_ATTRIBUTES = 14
   };
   const flatbuffers::String *name() const {
     return GetPointer<const flatbuffers::String *>(VT_NAME);
@@ -335,7 +343,7 @@ struct EnumVal FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   int64_t value() const {
     return GetField<int64_t>(VT_VALUE, 0);
   }
-  bool KeyCompareLessThan(const EnumVal *o) const {
+  bool KeyCompareLessThan(const EnumVal * const o) const {
     return value() < o->value();
   }
   int KeyCompareWithValue(int64_t _value) const {
@@ -347,6 +355,9 @@ struct EnumVal FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   const flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>> *documentation() const {
     return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>> *>(VT_DOCUMENTATION);
   }
+  const flatbuffers::Vector<flatbuffers::Offset<reflection::KeyValue>> *attributes() const {
+    return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<reflection::KeyValue>> *>(VT_ATTRIBUTES);
+  }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffsetRequired(verifier, VT_NAME) &&
@@ -357,6 +368,9 @@ struct EnumVal FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
            VerifyOffset(verifier, VT_DOCUMENTATION) &&
            verifier.VerifyVector(documentation()) &&
            verifier.VerifyVectorOfStrings(documentation()) &&
+           VerifyOffset(verifier, VT_ATTRIBUTES) &&
+           verifier.VerifyVector(attributes()) &&
+           verifier.VerifyVectorOfTables(attributes()) &&
            verifier.EndTable();
   }
 };
@@ -377,6 +391,9 @@ struct EnumValBuilder {
   void add_documentation(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>>> documentation) {
     fbb_.AddOffset(EnumVal::VT_DOCUMENTATION, documentation);
   }
+  void add_attributes(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<reflection::KeyValue>>> attributes) {
+    fbb_.AddOffset(EnumVal::VT_ATTRIBUTES, attributes);
+  }
   explicit EnumValBuilder(flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
@@ -394,9 +411,11 @@ inline flatbuffers::Offset<EnumVal> CreateEnumVal(
     flatbuffers::Offset<flatbuffers::String> name = 0,
     int64_t value = 0,
     flatbuffers::Offset<reflection::Type> union_type = 0,
-    flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>>> documentation = 0) {
+    flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>>> documentation = 0,
+    flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<reflection::KeyValue>>> attributes = 0) {
   EnumValBuilder builder_(_fbb);
   builder_.add_value(value);
+  builder_.add_attributes(attributes);
   builder_.add_documentation(documentation);
   builder_.add_union_type(union_type);
   builder_.add_name(name);
@@ -408,15 +427,18 @@ inline flatbuffers::Offset<EnumVal> CreateEnumValDirect(
     const char *name = nullptr,
     int64_t value = 0,
     flatbuffers::Offset<reflection::Type> union_type = 0,
-    const std::vector<flatbuffers::Offset<flatbuffers::String>> *documentation = nullptr) {
+    const std::vector<flatbuffers::Offset<flatbuffers::String>> *documentation = nullptr,
+    std::vector<flatbuffers::Offset<reflection::KeyValue>> *attributes = nullptr) {
   auto name__ = name ? _fbb.CreateString(name) : 0;
   auto documentation__ = documentation ? _fbb.CreateVector<flatbuffers::Offset<flatbuffers::String>>(*documentation) : 0;
+  auto attributes__ = attributes ? _fbb.CreateVectorOfSortedTables<reflection::KeyValue>(attributes) : 0;
   return reflection::CreateEnumVal(
       _fbb,
       name__,
       value,
       union_type,
-      documentation__);
+      documentation__,
+      attributes__);
 }
 
 struct Enum FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
@@ -433,7 +455,7 @@ struct Enum FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   const flatbuffers::String *name() const {
     return GetPointer<const flatbuffers::String *>(VT_NAME);
   }
-  bool KeyCompareLessThan(const Enum *o) const {
+  bool KeyCompareLessThan(const Enum * const o) const {
     return *name() < *o->name();
   }
   int KeyCompareWithValue(const char *_name) const {
@@ -584,7 +606,7 @@ struct Field FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   const flatbuffers::String *name() const {
     return GetPointer<const flatbuffers::String *>(VT_NAME);
   }
-  bool KeyCompareLessThan(const Field *o) const {
+  bool KeyCompareLessThan(const Field * const o) const {
     return *name() < *o->name();
   }
   int KeyCompareWithValue(const char *_name) const {
@@ -790,7 +812,7 @@ struct Object FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   const flatbuffers::String *name() const {
     return GetPointer<const flatbuffers::String *>(VT_NAME);
   }
-  bool KeyCompareLessThan(const Object *o) const {
+  bool KeyCompareLessThan(const Object * const o) const {
     return *name() < *o->name();
   }
   int KeyCompareWithValue(const char *_name) const {
@@ -942,7 +964,7 @@ struct RPCCall FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   const flatbuffers::String *name() const {
     return GetPointer<const flatbuffers::String *>(VT_NAME);
   }
-  bool KeyCompareLessThan(const RPCCall *o) const {
+  bool KeyCompareLessThan(const RPCCall * const o) const {
     return *name() < *o->name();
   }
   int KeyCompareWithValue(const char *_name) const {
@@ -1058,7 +1080,7 @@ struct Service FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   const flatbuffers::String *name() const {
     return GetPointer<const flatbuffers::String *>(VT_NAME);
   }
-  bool KeyCompareLessThan(const Service *o) const {
+  bool KeyCompareLessThan(const Service * const o) const {
     return *name() < *o->name();
   }
   int KeyCompareWithValue(const char *_name) const {
@@ -1177,7 +1199,7 @@ struct SchemaFile FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   const flatbuffers::String *filename() const {
     return GetPointer<const flatbuffers::String *>(VT_FILENAME);
   }
-  bool KeyCompareLessThan(const SchemaFile *o) const {
+  bool KeyCompareLessThan(const SchemaFile * const o) const {
     return *filename() < *o->filename();
   }
   int KeyCompareWithValue(const char *_filename) const {

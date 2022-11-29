@@ -1,5 +1,5 @@
 # This is the legacy minimum version flatbuffers supported for a while.
-cmake_minimum_required(VERSION 2.8.12)
+cmake_minimum_required(VERSION 2.8.12...3.22.1)
 
 # CMake version 3.16 is the 'de-facto' minimum version for flatbuffers. If the
 # current cmake is older than this, warn the user and include the legacy file to
@@ -15,17 +15,18 @@ if(CMAKE_VERSION VERSION_LESS 3.16)
   return()
 endif()
 
+# Attempt to read the current version of flatbuffers by looking at the latest tag.
+include(CMake/Version.cmake)
+
 if (POLICY CMP0048)
   cmake_policy(SET CMP0048 NEW)
   project(FlatBuffers
         DESCRIPTION "Flatbuffers serialization library"
-        VERSION 2.0.0
+        VERSION ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}
         LANGUAGES CXX)
 else()
   project(FlatBuffers)
 endif (POLICY CMP0048)
-
-include(CMake/Version.cmake)
 
 # generate compile_commands.json
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
@@ -41,8 +42,7 @@ option(FLATBUFFERS_BUILD_FLATC "Enable the build of the flatbuffers compiler"
 option(FLATBUFFERS_STATIC_FLATC "Build flatbuffers compiler with -static flag"
        OFF)
 option(FLATBUFFERS_BUILD_FLATHASH "Enable the build of flathash" ON)
-option(FLATBUFFERS_BUILD_BENCHMARKS "Enable the build of flatbenchmark. \"
-       Requires C++11."
+option(FLATBUFFERS_BUILD_BENCHMARKS "Enable the build of flatbenchmark."
        OFF)
 option(FLATBUFFERS_BUILD_GRPCTEST "Enable the build of grpctest" OFF)
 option(FLATBUFFERS_BUILD_SHAREDLIB
@@ -71,12 +71,29 @@ option(FLATBUFFERS_ENABLE_PCH
         Only work if CMake supports 'target_precompile_headers'. \"
         This can speed up compilation time."
        OFF)
-option(FLATBUFFERS_SKIP_MONSTER_EXTRA 
+option(FLATBUFFERS_SKIP_MONSTER_EXTRA
       "Skip generating monster_extra.fbs that contains non-supported numerical\"
       types." OFF)
-option(FLATBUFFERS_OSX_BUILD_UNIVERSAL
-      "Enable the build for multiple architectures on OS X (arm64, x86_64)."
-      ON)
+option(FLATBUFFERS_STRICT_MODE
+      "Build flatbuffers with all warnings as errors (-Werror or /WX)."
+      OFF)
+
+if(NOT DEFINED FLATBUFFERS_CPP_STD)
+  set(FLATBUFFERS_CPP_STD 11)
+endif()
+
+set(MSVC_LIKE OFF)
+if(MSVC OR CMAKE_CXX_COMPILER_FRONTEND_VARIANT STREQUAL "MSVC")
+    set(MSVC_LIKE ON)
+endif()
+
+if(DEFINED FLATBUFFERS_COMPILATION_TIMINGS)
+  message("Recording Compilation Timings to ${FLATBUFFERS_COMPILATION_TIMINGS}")
+  file(REMOVE ${FLATBUFFERS_COMPILATION_TIMINGS})
+  set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE "time -f 'Wall: %E User: %U Sys: %S | %C' -q -a -o ${FLATBUFFERS_COMPILATION_TIMINGS}")
+  set_property(GLOBAL PROPERTY RULE_LAUNCH_CUSTOM "time -f 'Wall: %E User: %U Sys: %S | %C' -q -a -o ${FLATBUFFERS_COMPILATION_TIMINGS}")
+  set_property(GLOBAL PROPERTY RULE_LAUNCH_LINK "time -f 'Wall: %E User: %U Sys: %S | %C' -q -a -o ${FLATBUFFERS_COMPILATION_TIMINGS}")
+endif()
 
 if(NOT FLATBUFFERS_BUILD_FLATC AND FLATBUFFERS_BUILD_TESTS)
     message(WARNING
@@ -95,7 +112,7 @@ if(NOT DEFINED FLATBUFFERS_LOCALE_INDEPENDENT)
   include(CheckCXXSymbolExists)
 
   set(FLATBUFFERS_LOCALE_INDEPENDENT 0)
-  if(MSVC)
+  if(MSVC_LIKE)
     check_cxx_symbol_exists(_strtof_l stdlib.h FLATBUFFERS_HAS_STRTOF_L)
     check_cxx_symbol_exists(_strtoui64_l stdlib.h FLATBUFFERS_HAS_STRTOULL_L)
   else()
@@ -107,6 +124,13 @@ if(NOT DEFINED FLATBUFFERS_LOCALE_INDEPENDENT)
   endif()
 endif()
 add_definitions(-DFLATBUFFERS_LOCALE_INDEPENDENT=$<BOOL:${FLATBUFFERS_LOCALE_INDEPENDENT}>)
+
+if(NOT WIN32)
+  check_symbol_exists(realpath "stdlib.h" HAVE_REALPATH)
+  if(NOT HAVE_REALPATH)
+    add_definitions(-DFLATBUFFERS_NO_ABSOLUTE_PATH_RESOLUTION)
+  endif()
+endif()
 
 set(FlatBuffers_Library_SRCS
   include/flatbuffers/allocator.h
@@ -120,6 +144,7 @@ set(FlatBuffers_Library_SRCS
   include/flatbuffers/flatbuffer_builder.h
   include/flatbuffers/flatbuffers.h
   include/flatbuffers/flexbuffers.h
+  include/flatbuffers/flex_flat_util.h
   include/flatbuffers/hash.h
   include/flatbuffers/idl.h
   include/flatbuffers/minireflect.h
@@ -158,12 +183,21 @@ set(FlatBuffers_Compiler_SRCS
   src/idl_gen_grpc.cpp
   src/idl_gen_json_schema.cpp
   src/idl_gen_swift.cpp
+  src/idl_namer.h
+  src/namer.h
   src/flatc.cpp
   src/flatc_main.cpp
   src/bfbs_gen.h
   src/bfbs_gen_lua.h
+  src/bfbs_gen_nim.h
+  src/bfbs_namer.h
   include/flatbuffers/code_generators.h
+  src/binary_annotator.h
+  src/binary_annotator.cpp
+  src/annotated_binary_text_gen.h
+  src/annotated_binary_text_gen.cpp
   src/bfbs_gen_lua.cpp
+  src/bfbs_gen_nim.cpp
   src/code_generators.cpp
   grpc/src/compiler/schema_interface.h
   grpc/src/compiler/cpp_generator.h
@@ -188,13 +222,26 @@ set(FlatHash_SRCS
 set(FlatBuffers_Tests_SRCS
   ${FlatBuffers_Library_SRCS}
   src/idl_gen_fbs.cpp
+  tests/evolution_test.cpp
+  tests/flexbuffers_test.cpp
+  tests/fuzz_test.cpp
+  tests/json_test.cpp
+  tests/key_field_test.cpp
+  tests/monster_test.cpp
+  tests/optional_scalars_test.cpp
+  tests/parser_test.cpp
+  tests/proto_test.cpp
+  tests/reflection_test.cpp
   tests/test.cpp
   tests/test_assert.h
   tests/test_assert.cpp
   tests/test_builder.h
   tests/test_builder.cpp
+  tests/util_test.cpp
   tests/native_type_test_impl.h
   tests/native_type_test_impl.cpp
+  tests/alignment_test.h
+  tests/alignment_test.cpp
   include/flatbuffers/code_generators.h
   src/code_generators.cpp
   # file generate by running compiler on tests/monster_test.fbs
@@ -214,6 +261,12 @@ set(FlatBuffers_Tests_SRCS
   ${CMAKE_CURRENT_BINARY_DIR}/tests/monster_test_bfbs_generated.h
   # file generate by running compiler on tests/optional_scalars.fbs
   ${CMAKE_CURRENT_BINARY_DIR}/tests/optional_scalars_generated.h
+  # file generate by running compiler on tests/native_inline_table_test.fbs
+  ${CMAKE_CURRENT_BINARY_DIR}/tests/native_inline_table_test_generated.h
+  # file generate by running compiler on tests/alignment_test.fbs
+  ${CMAKE_CURRENT_BINARY_DIR}/tests/alignment_test_generated.h
+  # file generate by running compiler on tests/key_field/key_field_sample.fbs
+  ${CMAKE_CURRENT_BINARY_DIR}/tests/key_field/key_field_sample_generated.h
 )
 
 set(FlatBuffers_Tests_CPP17_SRCS
@@ -266,98 +319,14 @@ set(FlatBuffers_GRPCTest_SRCS
   ${CMAKE_CURRENT_BINARY_DIR}/tests/monster_test_generated.h
 )
 
-# source_group(Compiler FILES ${FlatBuffers_Compiler_SRCS})
-# source_group(Tests FILES ${FlatBuffers_Tests_SRCS})
-
-if(EXISTS "${CMAKE_TOOLCHAIN_FILE}")
-  # do not apply any global settings if the toolchain
-  # is being configured externally
-  message(STATUS "Using toolchain file: ${CMAKE_TOOLCHAIN_FILE}.")
-elseif(CMAKE_COMPILER_IS_GNUCXX)
-  if(CYGWIN)
-    set(CMAKE_CXX_FLAGS
-      "${CMAKE_CXX_FLAGS} -std=gnu++11")
-  else(CYGWIN)
-    set(CMAKE_CXX_FLAGS
-      "${CMAKE_CXX_FLAGS} -std=c++0x")
-  endif(CYGWIN)
-  set(CMAKE_CXX_FLAGS
-    "${CMAKE_CXX_FLAGS} -Wall -pedantic -Werror -Wextra -Werror=shadow")
-  set(FLATBUFFERS_PRIVATE_CXX_FLAGS "-Wold-style-cast")
-  if (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 4.4)
-    if (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 7.0)
-      set(CMAKE_CXX_FLAGS
-        "${CMAKE_CXX_FLAGS} -faligned-new -Werror=implicit-fallthrough=2")
-    endif()
-    set(CMAKE_CXX_FLAGS
-      "${CMAKE_CXX_FLAGS} -Wunused-result -Werror=unused-result -Wunused-parameter -Werror=unused-parameter")
-  endif()
-
-  # Certain platforms such as ARM do not use signed chars by default
-  # which causes issues with certain bounds checks.
-  set(CMAKE_CXX_FLAGS
-    "${CMAKE_CXX_FLAGS} -fsigned-char")
-
-# MSVC **MUST** come before the Clang check, as clang-cl is flagged by CMake as "MSVC", but it still textually 
-# matches as Clang in its Compiler Id :)
-# Note: in CMake >= 3.14 we can check CMAKE_CXX_COMPILER_FRONTEND_VARIANT STREQUAL "GNU" or "MSVC" to differentiate...
-elseif(MSVC)
-  # Visual Studio pedantic build settings
-  # warning C4512: assignment operator could not be generated
-  # warning C4316: object allocated on the heap may not be aligned
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W4 /WX /wd4512 /wd4316")
-
-  if(${CMAKE_CXX_COMPILER_ID} MATCHES "Clang")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /D_CRT_SECURE_NO_WARNINGS")
-  endif()
-
-elseif(${CMAKE_CXX_COMPILER_ID} MATCHES "Clang")
-  if(APPLE)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
-
-    if(FLATBUFFERS_OSX_BUILD_UNIVERSAL)
-      set(CMAKE_OSX_ARCHITECTURES "arm64;x86_64")
-    endif()
-  else()
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x")
-  endif()
-
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -pedantic -Werror -Wextra -Wno-unused-parameter")
-  set(FLATBUFFERS_PRIVATE_CXX_FLAGS "-Wold-style-cast")
-  if(NOT CMAKE_CXX_COMPILER_VERSION VERSION_LESS 3.8)
-    list(APPEND FLATBUFFERS_PRIVATE_CXX_FLAGS "-Wimplicit-fallthrough" "-Wextra-semi" "-Werror=unused-private-field") # enable warning
-  endif()
-  if(FLATBUFFERS_LIBCXX_WITH_CLANG)
-    if(NOT "${CMAKE_SYSTEM_NAME}" MATCHES "Linux")
-      set(CMAKE_CXX_FLAGS
-          "${CMAKE_CXX_FLAGS} -stdlib=libc++")
-    endif()
-    if(NOT ("${CMAKE_SYSTEM_NAME}" MATCHES "FreeBSD" OR
-            "${CMAKE_SYSTEM_NAME}" MATCHES "Linux"))
-      set(CMAKE_EXE_LINKER_FLAGS
-          "${CMAKE_EXE_LINKER_FLAGS} -lc++abi")
-    endif()
-  endif()
-
-  # Certain platforms such as ARM do not use signed chars by default
-  # which causes issues with certain bounds checks.
-  set(CMAKE_CXX_FLAGS
-    "${CMAKE_CXX_FLAGS} -fsigned-char")
-
-endif()
-
+# TODO(dbaileychess): Figure out how this would now work. I posted a question on
+# https://stackoverflow.com/questions/71772330/override-target-compile-options-via-cmake-command-line.
 # Append FLATBUFFERS_CXX_FLAGS to CMAKE_CXX_FLAGS.
 if(DEFINED FLATBUFFERS_CXX_FLAGS AND NOT EXISTS "${CMAKE_TOOLCHAIN_FILE}")
   message(STATUS "extend CXX_FLAGS with ${FLATBUFFERS_CXX_FLAGS}")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${FLATBUFFERS_CXX_FLAGS}")
 endif()
 message(STATUS "CMAKE_CXX_FLAGS: ${CMAKE_CXX_FLAGS}")
-
-if(FLATBUFFERS_CODE_COVERAGE)
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -fprofile-arcs -ftest-coverage")
-  set(CMAKE_EXE_LINKER_FLAGS
-      "${CMAKE_EXE_LINKER_FLAGS} -fprofile-arcs -ftest-coverage")
-endif()
 
 function(add_fsanitize_to_target _target _sanitizer)
   if(WIN32)
@@ -397,12 +366,125 @@ endfunction()
 include_directories(include)
 include_directories(grpc)
 
+# Creates an interface library that stores the configuration settings that each
+# target links too. This is a compromise between setting configuration globally
+# with add_compile_options() and the more targetted target_compile_options().
+# This way each target in this file can share settings and override them if
+# needed.
+add_library(ProjectConfig INTERFACE)
+target_compile_features(ProjectConfig
+  INTERFACE
+    cxx_std_${FLATBUFFERS_CPP_STD}
+)
+
+# Force the standard to be met.
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+# We shouldn't rely on any compiler-extensions to make things work.
+set(CMAKE_CXX_EXTENSIONS OFF)
+
+if(MSVC_LIKE)
+  target_compile_options(ProjectConfig
+    INTERFACE
+      /W4
+      $<$<BOOL:${FLATBUFFERS_STRICT_MODE}>:
+        /WX       # Treat all compiler warnings as errors
+      >
+      /wd4512   # C4512: assignment operator could not be generated
+      /wd4316   # C4316: object allocated on the heap may not be aligned
+      /wd4456   # C4456: hides previous local declaration
+      $<$<CXX_COMPILER_ID:Clang>:
+        /D_CRT_SECURE_NO_WARNINGS
+      >
+  )
+else()
+  if("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
+    set(IS_CLANG ON)
+  else()
+    set(IS_CLANG OFF)
+  endif()
+  target_compile_options(ProjectConfig
+    INTERFACE
+      -Wall
+      $<$<BOOL:${FLATBUFFERS_STRICT_MODE}>:
+        -Werror   # Treat all compiler warnings as errors
+
+        -fno-rtti # Disable runtime type information
+
+        $<$<CXX_COMPILER_ID:GNU>:
+          # False positive string overflow
+          # https://github.com/google/flatbuffers/issues/7366
+          -Wno-error=stringop-overflow
+        >
+      >
+      -pedantic
+      -Wextra
+      -Wno-unused-parameter
+      -Wold-style-cast
+      -fsigned-char
+      -Wnon-virtual-dtor
+
+      # This isn't working for some reason: $<$<CXX_COMPILER_ID:CLANG>:
+      $<$<BOOL:${IS_CLANG}>:
+        -Wno-unknown-warning-option
+        -Wmissing-declarations
+        -Wzero-as-null-pointer-constant
+        $<$<VERSION_GREATER:$<CXX_COMPILER_VERSION>,3.8>:
+          -Wimplicit-fallthrough
+          -Wextra-semi
+          $<$<BOOL:${FLATBUFFERS_STRICT_MODE}>:
+            -Werror=unused-private-field
+          >
+        >
+      >
+
+      $<$<CXX_COMPILER_ID:GNU>:
+        $<$<VERSION_GREATER:$<CXX_COMPILER_VERSION>,4.4>:
+          -Wunused-result
+          -Wunused-parameter
+          -Werror=unused-parameter
+          -Wmissing-declarations
+        >
+        $<$<VERSION_GREATER:$<CXX_COMPILER_VERSION>,4.7>:
+          -Wzero-as-null-pointer-constant
+        >
+        $<$<VERSION_GREATER:$<CXX_COMPILER_VERSION>,7.0>:
+          -faligned-new
+          $<$<BOOL:${FLATBUFFERS_STRICT_MODE}>:
+            -Werror=implicit-fallthrough=2
+          >
+        >
+        $<$<VERSION_GREATER:$<CXX_COMPILER_VERSION>,8.0>:
+          -Wextra-semi
+        >
+      >
+
+      $<$<BOOL:${FLATBUFFERS_CODE_COVERAGE}>:
+        -g
+        -fprofile-arcs
+        -ftest-coverage
+      >
+    )
+
+  if(FLATBUFFERS_CODE_COVERAGE)
+    target_link_options(ProjectConfig
+      INTERFACE
+        -fprofile-arcs
+        -ftest-coverage
+    )
+  endif()
+endif()
+
 if(FLATBUFFERS_BUILD_FLATLIB)
   add_library(flatbuffers STATIC ${FlatBuffers_Library_SRCS})
+
   # Attach header directory for when build via add_subdirectory().
-  target_include_directories(flatbuffers INTERFACE
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>)
-  target_compile_options(flatbuffers PRIVATE "${FLATBUFFERS_PRIVATE_CXX_FLAGS}")
+  target_include_directories(flatbuffers
+    INTERFACE
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+  )
+  target_link_libraries(flatbuffers PRIVATE $<BUILD_INTERFACE:ProjectConfig>)
+
   if(FLATBUFFERS_ENABLE_PCH)
     add_pch_to_target(flatbuffers include/flatbuffers/pch/pch.h)
   endif()
@@ -413,16 +495,20 @@ if(FLATBUFFERS_BUILD_FLATC)
   if(FLATBUFFERS_ENABLE_PCH)
     add_pch_to_target(flatc include/flatbuffers/pch/flatc_pch.h)
   endif()
-  target_compile_options(flatc PRIVATE "${FLATBUFFERS_PRIVATE_CXX_FLAGS}")
+
+  target_link_libraries(flatc PRIVATE $<BUILD_INTERFACE:ProjectConfig>)
+  target_compile_options(flatc
+    PUBLIC
+      $<$<AND:$<BOOL:${MSVC_LIKE}>,$<CONFIG:Release>>:
+        /MT
+      >
+  )
+
   if(FLATBUFFERS_CODE_SANITIZE AND NOT WIN32)
     add_fsanitize_to_target(flatc ${FLATBUFFERS_CODE_SANITIZE})
   endif()
   if(NOT FLATBUFFERS_FLATC_EXECUTABLE)
     set(FLATBUFFERS_FLATC_EXECUTABLE $<TARGET_FILE:flatc>)
-  endif()
-  if(MSVC)
-    # Make flatc.exe not depend on runtime dlls for easy distribution.
-    target_compile_options(flatc PUBLIC $<$<CONFIG:Release>:/MT>)
   endif()
   if(FLATBUFFERS_STATIC_FLATC AND NOT MSVC)
     target_link_libraries(flatc PRIVATE -static)
@@ -431,11 +517,12 @@ endif()
 
 if(FLATBUFFERS_BUILD_FLATHASH)
   add_executable(flathash ${FlatHash_SRCS})
+  target_link_libraries(flathash PRIVATE $<BUILD_INTERFACE:ProjectConfig>)
 endif()
 
 if(FLATBUFFERS_BUILD_SHAREDLIB)
   add_library(flatbuffers_shared SHARED ${FlatBuffers_Library_SRCS})
-
+  target_link_libraries(flatbuffers_shared PRIVATE $<BUILD_INTERFACE:ProjectConfig>)
   # Shared object version: "major.minor.micro"
   # - micro updated every release when there is no API/ABI changes
   # - minor updated when there are additions in API/ABI
@@ -501,7 +588,7 @@ function(compile_flatbuffers_schema_to_binary SRC_FBS)
     OUTPUT ${GEN_BINARY_SCHEMA}
     COMMAND "${FLATBUFFERS_FLATC_EXECUTABLE}"
             -b --schema --bfbs-comments --bfbs-builtins
-            --bfbs-filenames ${SRC_FBS_DIR}
+            --bfbs-filenames "${CMAKE_CURRENT_SOURCE_DIR}/${SRC_FBS_DIR}"
             -I "${CMAKE_CURRENT_SOURCE_DIR}/tests/include_test"
             -o "${SRC_FBS_DIR}"
             "${CMAKE_CURRENT_SOURCE_DIR}/${SRC_FBS}"
@@ -536,30 +623,6 @@ function(compile_flatbuffers_schema_to_embedded_binary SRC_FBS OPT)
   register_generated_output(${GEN_BFBS_HEADER})
 endfunction()
 
-# Look if we have python 3.5 installed so that we can run the generate code
-# python script after flatc is built.
-find_package(Python3 3.5 COMPONENTS Interpreter)
-
-if(Python3_Interpreter_FOUND)
-  set(GENERATION_OPTS --flatc "${FLATBUFFERS_FLATC_EXECUTABLE}")
-  if(FLATBUFFERS_BUILD_LEGACY)
-    # Need to set --cpp-std c++-0x options
-    set(GENERATION_OPTS ${GENERATION_OPTS}--cpp-0x)
-  endif()
-  if(FLATBUFFERS_SKIP_MONSTER_EXTRA)
-    set(GENERATION_OPTS ${GENERATION_OPTS} --skip-monster-extra)
-  endif()
-  add_custom_command(
-    TARGET flatc
-    POST_BUILD
-    COMMAND ${Python3_EXECUTABLE} scripts/generate_code.py ${GENERATION_OPTS} --skip-gen-reflection
-    WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
-    COMMENT "Running scripts/generate_code.py..."
-    VERBATIM)
-else()
-  message("No Python3 interpreter found! Unable to generate files automatically.")
-endif()
-
 if(FLATBUFFERS_BUILD_TESTS)
   file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/tests" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}")
   file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/samples" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}")
@@ -575,15 +638,18 @@ if(FLATBUFFERS_BUILD_TESTS)
   compile_flatbuffers_schema_to_cpp_opt(tests/arrays_test.fbs "--scoped-enums;--gen-compare")
   compile_flatbuffers_schema_to_binary(tests/arrays_test.fbs)
   compile_flatbuffers_schema_to_embedded_binary(tests/monster_test.fbs "--no-includes;--gen-compare")
+  compile_flatbuffers_schema_to_cpp(tests/native_inline_table_test.fbs "--gen-compare")
+  compile_flatbuffers_schema_to_cpp(tests/alignment_test.fbs "--gen-compare")
+  compile_flatbuffers_schema_to_cpp(tests/key_field/key_field_sample.fbs)
   if(NOT (MSVC AND (MSVC_VERSION LESS 1900)))
     compile_flatbuffers_schema_to_cpp(tests/monster_extra.fbs) # Test floating-point NAN/INF.
   endif()
   include_directories(${CMAKE_CURRENT_BINARY_DIR}/tests)
   add_executable(flattests ${FlatBuffers_Tests_SRCS})
+  target_link_libraries(flattests PRIVATE $<BUILD_INTERFACE:ProjectConfig>)
+
   add_dependencies(flattests generated_code)
-  set_property(TARGET flattests
-    PROPERTY COMPILE_DEFINITIONS FLATBUFFERS_TRACK_VERIFIER_BUFFER_SIZE
-    FLATBUFFERS_DEBUG_VERIFICATION_FAILURE=1)
+
   if(FLATBUFFERS_CODE_SANITIZE)
     add_fsanitize_to_target(flattests ${FLATBUFFERS_CODE_SANITIZE})
   endif()
@@ -591,24 +657,27 @@ if(FLATBUFFERS_BUILD_TESTS)
   compile_flatbuffers_schema_to_cpp(samples/monster.fbs)
   compile_flatbuffers_schema_to_binary(samples/monster.fbs)
   include_directories(${CMAKE_CURRENT_BINARY_DIR}/samples)
+
   add_executable(flatsamplebinary ${FlatBuffers_Sample_Binary_SRCS})
+  target_link_libraries(flatsamplebinary PRIVATE $<BUILD_INTERFACE:ProjectConfig>)
   add_dependencies(flatsamplebinary generated_code)
+
   add_executable(flatsampletext ${FlatBuffers_Sample_Text_SRCS})
+  target_link_libraries(flatsampletext PRIVATE $<BUILD_INTERFACE:ProjectConfig>)
   add_dependencies(flatsampletext generated_code)
+
   add_executable(flatsamplebfbs ${FlatBuffers_Sample_BFBS_SRCS})
+  target_link_libraries(flatsamplebfbs PRIVATE $<BUILD_INTERFACE:ProjectConfig>)
   add_dependencies(flatsamplebfbs generated_code)
 
   if(FLATBUFFERS_BUILD_CPP17)
     # Don't generate header for flattests_cpp17 target.
     # This target uses "generated_cpp17/monster_test_generated.h"
-    # produced by direct call of generate_code.py script.
     add_executable(flattests_cpp17 ${FlatBuffers_Tests_CPP17_SRCS})
     add_dependencies(flattests_cpp17 generated_code)
+    target_link_libraries(flattests_cpp17 PRIVATE $<BUILD_INTERFACE:ProjectConfig>)
     target_compile_features(flattests_cpp17 PRIVATE cxx_std_17)
-    target_compile_definitions(flattests_cpp17 PRIVATE
-      FLATBUFFERS_TRACK_VERIFIER_BUFFER_SIZE
-      FLATBUFFERS_DEBUG_VERIFICATION_FAILURE=1
-    )
+
     if(FLATBUFFERS_CODE_SANITIZE)
       add_fsanitize_to_target(flattests_cpp17 ${FLATBUFFERS_CODE_SANITIZE})
     endif()
@@ -616,9 +685,6 @@ if(FLATBUFFERS_BUILD_TESTS)
 endif()
 
 if(FLATBUFFERS_BUILD_GRPCTEST)
-  if(CMAKE_COMPILER_IS_GNUCXX)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-unused-parameter -Wno-shadow")
-  endif()
   if(NOT GRPC_INSTALL_PATH)
     message(SEND_ERROR "GRPC_INSTALL_PATH variable is not defined. See grpc/README.md")
   endif()
@@ -634,13 +700,15 @@ if(FLATBUFFERS_BUILD_GRPCTEST)
   find_package(gRPC CONFIG REQUIRED)
   add_executable(grpctest ${FlatBuffers_GRPCTest_SRCS})
   add_dependencies(grpctest generated_code)
-  target_link_libraries(grpctest PRIVATE gRPC::grpc++_unsecure gRPC::grpc_unsecure gRPC::gpr pthread dl)
-  if(FLATBUFFERS_CODE_SANITIZE AND NOT WIN32)
-    # GRPC test has problems with alignment and will fail under ASAN/UBSAN.
-    # add_fsanitize_to_target(grpctest ${FLATBUFFERS_CODE_SANITIZE})
-  endif()
+  target_link_libraries(grpctext
+    PRIVATE
+      $<BUILD_INTERFACE:ProjectConfig>
+      gRPC::grpc++_unsecure
+      gRPC::gpr
+      pthread
+      dl
+  )
 endif()
-
 
 if(FLATBUFFERS_INSTALL)
   include(GNUInstallDirs)
@@ -649,21 +717,24 @@ if(FLATBUFFERS_INSTALL)
 
   set(FB_CMAKE_DIR "${CMAKE_INSTALL_LIBDIR}/cmake/flatbuffers")
 
-  configure_file(CMake/FlatbuffersConfigVersion.cmake.in FlatbuffersConfigVersion.cmake @ONLY)
+  configure_file(CMake/flatbuffers-config-version.cmake.in flatbuffers-config-version.cmake @ONLY)
   install(
-      FILES "CMake/FlatbuffersConfig.cmake" "${CMAKE_CURRENT_BINARY_DIR}/FlatbuffersConfigVersion.cmake"
+      FILES
+        "CMake/flatbuffers-config.cmake"
+        "CMake/BuildFlatBuffers.cmake"
+        "${CMAKE_CURRENT_BINARY_DIR}/flatbuffers-config-version.cmake"
       DESTINATION ${FB_CMAKE_DIR}
   )
 
   if(FLATBUFFERS_BUILD_FLATLIB)
     install(
-      TARGETS flatbuffers EXPORT FlatbuffersTargets
+      TARGETS flatbuffers EXPORT FlatBuffersTargets
       ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
       INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
     )
 
-    install(EXPORT FlatbuffersTargets
-      FILE FlatbuffersTargets.cmake
+    install(EXPORT FlatBuffersTargets
+      FILE FlatBuffersTargets.cmake
       NAMESPACE flatbuffers::
       DESTINATION ${FB_CMAKE_DIR}
     )
@@ -685,7 +756,7 @@ if(FLATBUFFERS_INSTALL)
 
   if(FLATBUFFERS_BUILD_SHAREDLIB)
     install(
-      TARGETS flatbuffers_shared EXPORT FlatbuffersSharedTargets
+      TARGETS flatbuffers_shared EXPORT FlatBuffersSharedTargets
       ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
       RUNTIME DESTINATION ${CMAKE_INSTALL_LIBDIR}
       LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
@@ -693,8 +764,8 @@ if(FLATBUFFERS_INSTALL)
     )
 
     install(
-      EXPORT FlatbuffersSharedTargets
-      FILE FlatbuffersSharedTargets.cmake
+      EXPORT FlatBuffersSharedTargets
+      FILE FlatBuffersSharedTargets.cmake
       NAMESPACE flatbuffers::
       DESTINATION ${FB_CMAKE_DIR}
     )

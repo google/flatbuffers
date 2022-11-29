@@ -498,11 +498,39 @@ export class Monster {
         const offset = this.bb.__offset(this.bb_pos, 104);
         return offset ? this.bb.__vector_len(this.bb_pos + offset) : 0;
     }
+    nativeInline(obj) {
+        const offset = this.bb.__offset(this.bb_pos, 106);
+        return offset ? (obj || new Test()).__init(this.bb_pos + offset, this.bb) : null;
+    }
+    longEnumNonEnumDefault() {
+        const offset = this.bb.__offset(this.bb_pos, 108);
+        return offset ? this.bb.readUint64(this.bb_pos + offset) : BigInt('0');
+    }
+    mutate_long_enum_non_enum_default(value) {
+        const offset = this.bb.__offset(this.bb_pos, 108);
+        if (offset === 0) {
+            return false;
+        }
+        this.bb.writeUint64(this.bb_pos + offset, value);
+        return true;
+    }
+    longEnumNormalDefault() {
+        const offset = this.bb.__offset(this.bb_pos, 110);
+        return offset ? this.bb.readUint64(this.bb_pos + offset) : BigInt('2');
+    }
+    mutate_long_enum_normal_default(value) {
+        const offset = this.bb.__offset(this.bb_pos, 110);
+        if (offset === 0) {
+            return false;
+        }
+        this.bb.writeUint64(this.bb_pos + offset, value);
+        return true;
+    }
     static getFullyQualifiedName() {
-        return 'MyGame.Example.Monster';
+        return 'MyGame_Example_Monster';
     }
     static startMonster(builder) {
-        builder.startObject(51);
+        builder.startObject(54);
     }
     static addPos(builder, posOffset) {
         builder.addFieldStruct(0, posOffset, 0);
@@ -833,6 +861,15 @@ export class Monster {
     static startScalarKeySortedTablesVector(builder, numElems) {
         builder.startVector(4, numElems, 4);
     }
+    static addNativeInline(builder, nativeInlineOffset) {
+        builder.addFieldStruct(51, nativeInlineOffset, 0);
+    }
+    static addLongEnumNonEnumDefault(builder, longEnumNonEnumDefault) {
+        builder.addFieldInt64(52, longEnumNonEnumDefault, BigInt('0'));
+    }
+    static addLongEnumNormalDefault(builder, longEnumNormalDefault) {
+        builder.addFieldInt64(53, longEnumNormalDefault, BigInt('2'));
+    }
     static endMonster(builder) {
         const offset = builder.endObject();
         builder.requiredField(offset, 10); // name
@@ -869,7 +906,7 @@ export class Monster {
                 return null;
             }
             return temp.unpack();
-        })(), this.bb.createScalarList(this.vectorOfEnums.bind(this), this.vectorOfEnumsLength()), this.signedEnum(), this.bb.createScalarList(this.testrequirednestedflatbuffer.bind(this), this.testrequirednestedflatbufferLength()), this.bb.createObjList(this.scalarKeySortedTables.bind(this), this.scalarKeySortedTablesLength()));
+        })(), this.bb.createScalarList(this.vectorOfEnums.bind(this), this.vectorOfEnumsLength()), this.signedEnum(), this.bb.createScalarList(this.testrequirednestedflatbuffer.bind(this), this.testrequirednestedflatbufferLength()), this.bb.createObjList(this.scalarKeySortedTables.bind(this), this.scalarKeySortedTablesLength()), (this.nativeInline() !== null ? this.nativeInline().unpack() : null), this.longEnumNonEnumDefault(), this.longEnumNormalDefault());
     }
     unpackTo(_o) {
         _o.pos = (this.pos() !== null ? this.pos().unpack() : null);
@@ -940,10 +977,13 @@ export class Monster {
         _o.signedEnum = this.signedEnum();
         _o.testrequirednestedflatbuffer = this.bb.createScalarList(this.testrequirednestedflatbuffer.bind(this), this.testrequirednestedflatbufferLength());
         _o.scalarKeySortedTables = this.bb.createObjList(this.scalarKeySortedTables.bind(this), this.scalarKeySortedTablesLength());
+        _o.nativeInline = (this.nativeInline() !== null ? this.nativeInline().unpack() : null);
+        _o.longEnumNonEnumDefault = this.longEnumNonEnumDefault();
+        _o.longEnumNormalDefault = this.longEnumNormalDefault();
     }
 }
 export class MonsterT {
-    constructor(pos = null, mana = 150, hp = 100, name = null, inventory = [], color = Color.Blue, testType = Any.NONE, test = null, test4 = [], testarrayofstring = [], testarrayoftables = [], enemy = null, testnestedflatbuffer = [], testempty = null, testbool = false, testhashs32Fnv1 = 0, testhashu32Fnv1 = 0, testhashs64Fnv1 = BigInt('0'), testhashu64Fnv1 = BigInt('0'), testhashs32Fnv1a = 0, testhashu32Fnv1a = 0, testhashs64Fnv1a = BigInt('0'), testhashu64Fnv1a = BigInt('0'), testarrayofbools = [], testf = 3.14159, testf2 = 3.0, testf3 = 0.0, testarrayofstring2 = [], testarrayofsortedstruct = [], flex = [], test5 = [], vectorOfLongs = [], vectorOfDoubles = [], parentNamespaceTest = null, vectorOfReferrables = [], singleWeakReference = BigInt('0'), vectorOfWeakReferences = [], vectorOfStrongReferrables = [], coOwningReference = BigInt('0'), vectorOfCoOwningReferences = [], nonOwningReference = BigInt('0'), vectorOfNonOwningReferences = [], anyUniqueType = AnyUniqueAliases.NONE, anyUnique = null, anyAmbiguousType = AnyAmbiguousAliases.NONE, anyAmbiguous = null, vectorOfEnums = [], signedEnum = Race.None, testrequirednestedflatbuffer = [], scalarKeySortedTables = []) {
+    constructor(pos = null, mana = 150, hp = 100, name = null, inventory = [], color = Color.Blue, testType = Any.NONE, test = null, test4 = [], testarrayofstring = [], testarrayoftables = [], enemy = null, testnestedflatbuffer = [], testempty = null, testbool = false, testhashs32Fnv1 = 0, testhashu32Fnv1 = 0, testhashs64Fnv1 = BigInt('0'), testhashu64Fnv1 = BigInt('0'), testhashs32Fnv1a = 0, testhashu32Fnv1a = 0, testhashs64Fnv1a = BigInt('0'), testhashu64Fnv1a = BigInt('0'), testarrayofbools = [], testf = 3.14159, testf2 = 3.0, testf3 = 0.0, testarrayofstring2 = [], testarrayofsortedstruct = [], flex = [], test5 = [], vectorOfLongs = [], vectorOfDoubles = [], parentNamespaceTest = null, vectorOfReferrables = [], singleWeakReference = BigInt('0'), vectorOfWeakReferences = [], vectorOfStrongReferrables = [], coOwningReference = BigInt('0'), vectorOfCoOwningReferences = [], nonOwningReference = BigInt('0'), vectorOfNonOwningReferences = [], anyUniqueType = AnyUniqueAliases.NONE, anyUnique = null, anyAmbiguousType = AnyAmbiguousAliases.NONE, anyAmbiguous = null, vectorOfEnums = [], signedEnum = Race.None, testrequirednestedflatbuffer = [], scalarKeySortedTables = [], nativeInline = null, longEnumNonEnumDefault = BigInt('0'), longEnumNormalDefault = BigInt('2')) {
         this.pos = pos;
         this.mana = mana;
         this.hp = hp;
@@ -994,6 +1034,9 @@ export class MonsterT {
         this.signedEnum = signedEnum;
         this.testrequirednestedflatbuffer = testrequirednestedflatbuffer;
         this.scalarKeySortedTables = scalarKeySortedTables;
+        this.nativeInline = nativeInline;
+        this.longEnumNonEnumDefault = longEnumNonEnumDefault;
+        this.longEnumNormalDefault = longEnumNormalDefault;
     }
     pack(builder) {
         const name = (this.name !== null ? builder.createString(this.name) : 0);
@@ -1074,6 +1117,9 @@ export class MonsterT {
         Monster.addSignedEnum(builder, this.signedEnum);
         Monster.addTestrequirednestedflatbuffer(builder, testrequirednestedflatbuffer);
         Monster.addScalarKeySortedTables(builder, scalarKeySortedTables);
+        Monster.addNativeInline(builder, (this.nativeInline !== null ? this.nativeInline.pack(builder) : 0));
+        Monster.addLongEnumNonEnumDefault(builder, this.longEnumNonEnumDefault);
+        Monster.addLongEnumNormalDefault(builder, this.longEnumNormalDefault);
         return Monster.endMonster(builder);
     }
 }

@@ -9,6 +9,8 @@ import 'package:flat_buffers/flat_buffers.dart' as fb;
 import './monster_test_my_game_generated.dart' as my_game;
 import './monster_test_my_game.example2_generated.dart' as my_game_example2;
 
+import './include_test1_generated.dart';
+
 ///  Composite components of Monster color.
 class Color {
   final int value;
@@ -17,7 +19,11 @@ class Color {
   factory Color.fromValue(int value) {
     final result = values[value];
     if (result == null) {
-      throw StateError('Invalid value $value for bit flag enum Color');
+      if (value == 0) {
+        return Color._(0);
+      } else {
+        throw StateError('Invalid value $value for bit flag enum Color');
+      }
     }
     return result;
   }
@@ -66,7 +72,7 @@ class Race {
   factory Race.fromValue(int value) {
     final result = values[value];
     if (result == null) {
-      throw StateError('Invalid value $value for bit flag enum Race');
+        throw StateError('Invalid value $value for bit flag enum Race');
     }
     return result;
   }
@@ -107,6 +113,54 @@ class _RaceReader extends fb.Reader<Race> {
       Race.fromValue(const fb.Int8Reader().read(bc, offset));
 }
 
+class LongEnum {
+  final int value;
+  const LongEnum._(this.value);
+
+  factory LongEnum.fromValue(int value) {
+    final result = values[value];
+    if (result == null) {
+      if (value == 0) {
+        return LongEnum._(0);
+      } else {
+        throw StateError('Invalid value $value for bit flag enum LongEnum');
+      }
+    }
+    return result;
+  }
+
+  static LongEnum? _createOrNull(int? value) => 
+      value == null ? null : LongEnum.fromValue(value);
+
+  static bool containsValue(int value) => values.containsKey(value);
+
+  static const LongEnum LongOne = LongEnum._(2);
+  static const LongEnum LongTwo = LongEnum._(4);
+  static const LongEnum LongBig = LongEnum._(1099511627776);
+  static const Map<int, LongEnum> values = {
+    2: LongOne,
+    4: LongTwo,
+    1099511627776: LongBig};
+
+  static const fb.Reader<LongEnum> reader = _LongEnumReader();
+
+  @override
+  String toString() {
+    return 'LongEnum{value: $value}';
+  }
+}
+
+class _LongEnumReader extends fb.Reader<LongEnum> {
+  const _LongEnumReader();
+
+  @override
+  int get size => 8;
+
+  @override
+  LongEnum read(fb.BufferContext bc, int offset) =>
+      LongEnum.fromValue(const fb.Uint64Reader().read(bc, offset));
+}
+
 class AnyTypeId {
   final int value;
   const AnyTypeId._(this.value);
@@ -114,7 +168,7 @@ class AnyTypeId {
   factory AnyTypeId.fromValue(int value) {
     final result = values[value];
     if (result == null) {
-      throw StateError('Invalid value $value for bit flag enum AnyTypeId');
+        throw StateError('Invalid value $value for bit flag enum AnyTypeId');
     }
     return result;
   }
@@ -162,7 +216,7 @@ class AnyUniqueAliasesTypeId {
   factory AnyUniqueAliasesTypeId.fromValue(int value) {
     final result = values[value];
     if (result == null) {
-      throw StateError('Invalid value $value for bit flag enum AnyUniqueAliasesTypeId');
+        throw StateError('Invalid value $value for bit flag enum AnyUniqueAliasesTypeId');
     }
     return result;
   }
@@ -210,7 +264,7 @@ class AnyAmbiguousAliasesTypeId {
   factory AnyAmbiguousAliasesTypeId.fromValue(int value) {
     final result = values[value];
     if (result == null) {
-      throw StateError('Invalid value $value for bit flag enum AnyAmbiguousAliasesTypeId');
+        throw StateError('Invalid value $value for bit flag enum AnyAmbiguousAliasesTypeId');
     }
     return result;
   }
@@ -264,7 +318,7 @@ class Test {
 
   @override
   String toString() {
-    return 'Test{a: $a, b: $b}';
+    return 'Test{a: ${a}, b: ${b}}';
   }
 
   TestT unpack() => TestT(
@@ -295,7 +349,7 @@ class TestT implements fb.Packable {
 
   @override
   String toString() {
-    return 'TestT{a: $a, b: $b}';
+    return 'TestT{a: ${a}, b: ${b}}';
   }
 }
 
@@ -368,7 +422,7 @@ class TestSimpleTableWithEnum {
 
   @override
   String toString() {
-    return 'TestSimpleTableWithEnum{color: $color}';
+    return 'TestSimpleTableWithEnum{color: ${color}}';
   }
 
   TestSimpleTableWithEnumT unpack() => TestSimpleTableWithEnumT(
@@ -395,7 +449,7 @@ class TestSimpleTableWithEnumT implements fb.Packable {
 
   @override
   String toString() {
-    return 'TestSimpleTableWithEnumT{color: $color}';
+    return 'TestSimpleTableWithEnumT{color: ${color}}';
   }
 }
 
@@ -467,7 +521,7 @@ class Vec3 {
 
   @override
   String toString() {
-    return 'Vec3{x: $x, y: $y, z: $z, test1: $test1, test2: $test2, test3: $test3}';
+    return 'Vec3{x: ${x}, y: ${y}, z: ${z}, test1: ${test1}, test2: ${test2}, test3: ${test3}}';
   }
 
   Vec3T unpack() => Vec3T(
@@ -516,7 +570,7 @@ class Vec3T implements fb.Packable {
 
   @override
   String toString() {
-    return 'Vec3T{x: $x, y: $y, z: $z, test1: $test1, test2: $test2, test3: $test3}';
+    return 'Vec3T{x: ${x}, y: ${y}, z: ${z}, test1: ${test1}, test2: ${test2}, test3: ${test3}}';
   }
 }
 
@@ -610,7 +664,7 @@ class Ability {
 
   @override
   String toString() {
-    return 'Ability{id: $id, distance: $distance}';
+    return 'Ability{id: ${id}, distance: ${distance}}';
   }
 
   AbilityT unpack() => AbilityT(
@@ -640,7 +694,7 @@ class AbilityT implements fb.Packable {
 
   @override
   String toString() {
-    return 'AbilityT{id: $id, distance: $distance}';
+    return 'AbilityT{id: ${id}, distance: ${distance}}';
   }
 }
 
@@ -709,7 +763,7 @@ class StructOfStructs {
 
   @override
   String toString() {
-    return 'StructOfStructs{a: $a, b: $b, c: $c}';
+    return 'StructOfStructs{a: ${a}, b: ${b}, c: ${c}}';
   }
 
   StructOfStructsT unpack() => StructOfStructsT(
@@ -743,7 +797,7 @@ class StructOfStructsT implements fb.Packable {
 
   @override
   String toString() {
-    return 'StructOfStructsT{a: $a, b: $b, c: $c}';
+    return 'StructOfStructsT{a: ${a}, b: ${b}, c: ${c}}';
   }
 }
 
@@ -803,6 +857,94 @@ class StructOfStructsObjectBuilder extends fb.ObjectBuilder {
     return fbBuilder.buffer;
   }
 }
+class StructOfStructsOfStructs {
+  StructOfStructsOfStructs._(this._bc, this._bcOffset);
+
+  static const fb.Reader<StructOfStructsOfStructs> reader = _StructOfStructsOfStructsReader();
+
+  final fb.BufferContext _bc;
+  final int _bcOffset;
+
+  StructOfStructs get a => StructOfStructs.reader.read(_bc, _bcOffset + 0);
+
+  @override
+  String toString() {
+    return 'StructOfStructsOfStructs{a: ${a}}';
+  }
+
+  StructOfStructsOfStructsT unpack() => StructOfStructsOfStructsT(
+      a: a.unpack());
+
+  static int pack(fb.Builder fbBuilder, StructOfStructsOfStructsT? object) {
+    if (object == null) return 0;
+    return object.pack(fbBuilder);
+  }
+}
+
+class StructOfStructsOfStructsT implements fb.Packable {
+  StructOfStructsT a;
+
+  StructOfStructsOfStructsT({
+      required this.a});
+
+  @override
+  int pack(fb.Builder fbBuilder) {
+    a.pack(fbBuilder);
+    return fbBuilder.offset;
+  }
+
+  @override
+  String toString() {
+    return 'StructOfStructsOfStructsT{a: ${a}}';
+  }
+}
+
+class _StructOfStructsOfStructsReader extends fb.StructReader<StructOfStructsOfStructs> {
+  const _StructOfStructsOfStructsReader();
+
+  @override
+  int get size => 20;
+
+  @override
+  StructOfStructsOfStructs createObject(fb.BufferContext bc, int offset) => 
+    StructOfStructsOfStructs._(bc, offset);
+}
+
+class StructOfStructsOfStructsBuilder {
+  StructOfStructsOfStructsBuilder(this.fbBuilder);
+
+  final fb.Builder fbBuilder;
+
+  int finish(fb.StructBuilder a) {
+    a();
+    return fbBuilder.offset;
+  }
+
+}
+
+class StructOfStructsOfStructsObjectBuilder extends fb.ObjectBuilder {
+  final StructOfStructsObjectBuilder _a;
+
+  StructOfStructsOfStructsObjectBuilder({
+    required StructOfStructsObjectBuilder a,
+  })
+      : _a = a;
+
+  /// Finish building, and store into the [fbBuilder].
+  @override
+  int finish(fb.Builder fbBuilder) {
+    _a.finish(fbBuilder);
+    return fbBuilder.offset;
+  }
+
+  /// Convenience method to serialize to byte list.
+  @override
+  Uint8List toBytes([String? fileIdentifier]) {
+    final fbBuilder = fb.Builder(deduplicateTables: false);
+    fbBuilder.finish(finish(fbBuilder), fileIdentifier);
+    return fbBuilder.buffer;
+  }
+}
 class Stat {
   Stat._(this._bc, this._bcOffset);
   factory Stat(List<int> bytes) {
@@ -821,7 +963,7 @@ class Stat {
 
   @override
   String toString() {
-    return 'Stat{id: $id, val: $val, count: $count}';
+    return 'Stat{id: ${id}, val: ${val}, count: ${count}}';
   }
 
   StatT unpack() => StatT(
@@ -858,7 +1000,7 @@ class StatT implements fb.Packable {
 
   @override
   String toString() {
-    return 'StatT{id: $id, val: $val, count: $count}';
+    return 'StatT{id: ${id}, val: ${val}, count: ${count}}';
   }
 }
 
@@ -947,7 +1089,7 @@ class Referrable {
 
   @override
   String toString() {
-    return 'Referrable{id: $id}';
+    return 'Referrable{id: ${id}}';
   }
 
   ReferrableT unpack() => ReferrableT(
@@ -974,7 +1116,7 @@ class ReferrableT implements fb.Packable {
 
   @override
   String toString() {
-    return 'ReferrableT{id: $id}';
+    return 'ReferrableT{id: ${id}}';
   }
 }
 
@@ -1116,10 +1258,20 @@ class Monster {
   List<int>? get testrequirednestedflatbuffer => const fb.Uint8ListReader().vTableGetNullable(_bc, _bcOffset, 102);
   List<Stat>? get scalarKeySortedTables => const fb.ListReader<Stat>(Stat.reader).vTableGetNullable(_bc, _bcOffset, 104);
   Test? get nativeInline => Test.reader.vTableGetNullable(_bc, _bcOffset, 106);
+  LongEnum get longEnumNonEnumDefault => LongEnum.fromValue(const fb.Uint64Reader().vTableGet(_bc, _bcOffset, 108, 0));
+  LongEnum get longEnumNormalDefault => LongEnum.fromValue(const fb.Uint64Reader().vTableGet(_bc, _bcOffset, 110, 2));
+  double get nanDefault => const fb.Float32Reader().vTableGet(_bc, _bcOffset, 112, double.nan);
+  double get infDefault => const fb.Float32Reader().vTableGet(_bc, _bcOffset, 114, double.infinity);
+  double get positiveInfDefault => const fb.Float32Reader().vTableGet(_bc, _bcOffset, 116, double.infinity);
+  double get infinityDefault => const fb.Float32Reader().vTableGet(_bc, _bcOffset, 118, double.infinity);
+  double get positiveInfinityDefault => const fb.Float32Reader().vTableGet(_bc, _bcOffset, 120, double.infinity);
+  double get negativeInfDefault => const fb.Float32Reader().vTableGet(_bc, _bcOffset, 122, double.negativeInfinity);
+  double get negativeInfinityDefault => const fb.Float32Reader().vTableGet(_bc, _bcOffset, 124, double.negativeInfinity);
+  double get doubleInfDefault => const fb.Float64Reader().vTableGet(_bc, _bcOffset, 126, double.infinity);
 
   @override
   String toString() {
-    return 'Monster{pos: $pos, mana: $mana, hp: $hp, name: $name, inventory: $inventory, color: $color, testType: $testType, test: $test, test4: $test4, testarrayofstring: $testarrayofstring, testarrayoftables: $testarrayoftables, enemy: $enemy, testnestedflatbuffer: $testnestedflatbuffer, testempty: $testempty, testbool: $testbool, testhashs32Fnv1: $testhashs32Fnv1, testhashu32Fnv1: $testhashu32Fnv1, testhashs64Fnv1: $testhashs64Fnv1, testhashu64Fnv1: $testhashu64Fnv1, testhashs32Fnv1a: $testhashs32Fnv1a, testhashu32Fnv1a: $testhashu32Fnv1a, testhashs64Fnv1a: $testhashs64Fnv1a, testhashu64Fnv1a: $testhashu64Fnv1a, testarrayofbools: $testarrayofbools, testf: $testf, testf2: $testf2, testf3: $testf3, testarrayofstring2: $testarrayofstring2, testarrayofsortedstruct: $testarrayofsortedstruct, flex: $flex, test5: $test5, vectorOfLongs: $vectorOfLongs, vectorOfDoubles: $vectorOfDoubles, parentNamespaceTest: $parentNamespaceTest, vectorOfReferrables: $vectorOfReferrables, singleWeakReference: $singleWeakReference, vectorOfWeakReferences: $vectorOfWeakReferences, vectorOfStrongReferrables: $vectorOfStrongReferrables, coOwningReference: $coOwningReference, vectorOfCoOwningReferences: $vectorOfCoOwningReferences, nonOwningReference: $nonOwningReference, vectorOfNonOwningReferences: $vectorOfNonOwningReferences, anyUniqueType: $anyUniqueType, anyUnique: $anyUnique, anyAmbiguousType: $anyAmbiguousType, anyAmbiguous: $anyAmbiguous, vectorOfEnums: $vectorOfEnums, signedEnum: $signedEnum, testrequirednestedflatbuffer: $testrequirednestedflatbuffer, scalarKeySortedTables: $scalarKeySortedTables, nativeInline: $nativeInline}';
+    return 'Monster{pos: ${pos}, mana: ${mana}, hp: ${hp}, name: ${name}, inventory: ${inventory}, color: ${color}, testType: ${testType}, test: ${test}, test4: ${test4}, testarrayofstring: ${testarrayofstring}, testarrayoftables: ${testarrayoftables}, enemy: ${enemy}, testnestedflatbuffer: ${testnestedflatbuffer}, testempty: ${testempty}, testbool: ${testbool}, testhashs32Fnv1: ${testhashs32Fnv1}, testhashu32Fnv1: ${testhashu32Fnv1}, testhashs64Fnv1: ${testhashs64Fnv1}, testhashu64Fnv1: ${testhashu64Fnv1}, testhashs32Fnv1a: ${testhashs32Fnv1a}, testhashu32Fnv1a: ${testhashu32Fnv1a}, testhashs64Fnv1a: ${testhashs64Fnv1a}, testhashu64Fnv1a: ${testhashu64Fnv1a}, testarrayofbools: ${testarrayofbools}, testf: ${testf}, testf2: ${testf2}, testf3: ${testf3}, testarrayofstring2: ${testarrayofstring2}, testarrayofsortedstruct: ${testarrayofsortedstruct}, flex: ${flex}, test5: ${test5}, vectorOfLongs: ${vectorOfLongs}, vectorOfDoubles: ${vectorOfDoubles}, parentNamespaceTest: ${parentNamespaceTest}, vectorOfReferrables: ${vectorOfReferrables}, singleWeakReference: ${singleWeakReference}, vectorOfWeakReferences: ${vectorOfWeakReferences}, vectorOfStrongReferrables: ${vectorOfStrongReferrables}, coOwningReference: ${coOwningReference}, vectorOfCoOwningReferences: ${vectorOfCoOwningReferences}, nonOwningReference: ${nonOwningReference}, vectorOfNonOwningReferences: ${vectorOfNonOwningReferences}, anyUniqueType: ${anyUniqueType}, anyUnique: ${anyUnique}, anyAmbiguousType: ${anyAmbiguousType}, anyAmbiguous: ${anyAmbiguous}, vectorOfEnums: ${vectorOfEnums}, signedEnum: ${signedEnum}, testrequirednestedflatbuffer: ${testrequirednestedflatbuffer}, scalarKeySortedTables: ${scalarKeySortedTables}, nativeInline: ${nativeInline}, longEnumNonEnumDefault: ${longEnumNonEnumDefault}, longEnumNormalDefault: ${longEnumNormalDefault}, nanDefault: ${nanDefault}, infDefault: ${infDefault}, positiveInfDefault: ${positiveInfDefault}, infinityDefault: ${infinityDefault}, positiveInfinityDefault: ${positiveInfinityDefault}, negativeInfDefault: ${negativeInfDefault}, negativeInfinityDefault: ${negativeInfinityDefault}, doubleInfDefault: ${doubleInfDefault}}';
   }
 
   MonsterT unpack() => MonsterT(
@@ -1173,7 +1325,17 @@ class Monster {
       signedEnum: signedEnum,
       testrequirednestedflatbuffer: const fb.Uint8ListReader(lazy: false).vTableGetNullable(_bc, _bcOffset, 102),
       scalarKeySortedTables: scalarKeySortedTables?.map((e) => e.unpack()).toList(),
-      nativeInline: nativeInline?.unpack());
+      nativeInline: nativeInline?.unpack(),
+      longEnumNonEnumDefault: longEnumNonEnumDefault,
+      longEnumNormalDefault: longEnumNormalDefault,
+      nanDefault: nanDefault,
+      infDefault: infDefault,
+      positiveInfDefault: positiveInfDefault,
+      infinityDefault: infinityDefault,
+      positiveInfinityDefault: positiveInfinityDefault,
+      negativeInfDefault: negativeInfDefault,
+      negativeInfinityDefault: negativeInfinityDefault,
+      doubleInfDefault: doubleInfDefault);
 
   static int pack(fb.Builder fbBuilder, MonsterT? object) {
     if (object == null) return 0;
@@ -1236,6 +1398,16 @@ class MonsterT implements fb.Packable {
   List<int>? testrequirednestedflatbuffer;
   List<StatT>? scalarKeySortedTables;
   TestT? nativeInline;
+  LongEnum longEnumNonEnumDefault;
+  LongEnum longEnumNormalDefault;
+  double nanDefault;
+  double infDefault;
+  double positiveInfDefault;
+  double infinityDefault;
+  double positiveInfinityDefault;
+  double negativeInfDefault;
+  double negativeInfinityDefault;
+  double doubleInfDefault;
 
   MonsterT({
       this.pos,
@@ -1288,7 +1460,17 @@ class MonsterT implements fb.Packable {
       this.signedEnum = Race.None,
       this.testrequirednestedflatbuffer,
       this.scalarKeySortedTables,
-      this.nativeInline});
+      this.nativeInline,
+      this.longEnumNonEnumDefault = const LongEnum._(0),
+      this.longEnumNormalDefault = LongEnum.LongOne,
+      this.nanDefault = double.nan,
+      this.infDefault = double.infinity,
+      this.positiveInfDefault = double.infinity,
+      this.infinityDefault = double.infinity,
+      this.positiveInfinityDefault = double.infinity,
+      this.negativeInfDefault = double.negativeInfinity,
+      this.negativeInfinityDefault = double.negativeInfinity,
+      this.doubleInfDefault = double.infinity});
 
   @override
   int pack(fb.Builder fbBuilder) {
@@ -1349,7 +1531,7 @@ class MonsterT implements fb.Packable {
         : fbBuilder.writeListUint8(testrequirednestedflatbuffer!);
     final int? scalarKeySortedTablesOffset = scalarKeySortedTables == null ? null
         : fbBuilder.writeList(scalarKeySortedTables!.map((b) => b.pack(fbBuilder)).toList());
-    fbBuilder.startTable(51);
+    fbBuilder.startTable(62);
     if (pos != null) {
       fbBuilder.addStruct(0, pos!.pack(fbBuilder));
     }
@@ -1405,12 +1587,22 @@ class MonsterT implements fb.Packable {
     if (nativeInline != null) {
       fbBuilder.addStruct(51, nativeInline!.pack(fbBuilder));
     }
+    fbBuilder.addUint64(52, longEnumNonEnumDefault.value);
+    fbBuilder.addUint64(53, longEnumNormalDefault.value);
+    fbBuilder.addFloat32(54, nanDefault);
+    fbBuilder.addFloat32(55, infDefault);
+    fbBuilder.addFloat32(56, positiveInfDefault);
+    fbBuilder.addFloat32(57, infinityDefault);
+    fbBuilder.addFloat32(58, positiveInfinityDefault);
+    fbBuilder.addFloat32(59, negativeInfDefault);
+    fbBuilder.addFloat32(60, negativeInfinityDefault);
+    fbBuilder.addFloat64(61, doubleInfDefault);
     return fbBuilder.endTable();
   }
 
   @override
   String toString() {
-    return 'MonsterT{pos: $pos, mana: $mana, hp: $hp, name: $name, inventory: $inventory, color: $color, testType: $testType, test: $test, test4: $test4, testarrayofstring: $testarrayofstring, testarrayoftables: $testarrayoftables, enemy: $enemy, testnestedflatbuffer: $testnestedflatbuffer, testempty: $testempty, testbool: $testbool, testhashs32Fnv1: $testhashs32Fnv1, testhashu32Fnv1: $testhashu32Fnv1, testhashs64Fnv1: $testhashs64Fnv1, testhashu64Fnv1: $testhashu64Fnv1, testhashs32Fnv1a: $testhashs32Fnv1a, testhashu32Fnv1a: $testhashu32Fnv1a, testhashs64Fnv1a: $testhashs64Fnv1a, testhashu64Fnv1a: $testhashu64Fnv1a, testarrayofbools: $testarrayofbools, testf: $testf, testf2: $testf2, testf3: $testf3, testarrayofstring2: $testarrayofstring2, testarrayofsortedstruct: $testarrayofsortedstruct, flex: $flex, test5: $test5, vectorOfLongs: $vectorOfLongs, vectorOfDoubles: $vectorOfDoubles, parentNamespaceTest: $parentNamespaceTest, vectorOfReferrables: $vectorOfReferrables, singleWeakReference: $singleWeakReference, vectorOfWeakReferences: $vectorOfWeakReferences, vectorOfStrongReferrables: $vectorOfStrongReferrables, coOwningReference: $coOwningReference, vectorOfCoOwningReferences: $vectorOfCoOwningReferences, nonOwningReference: $nonOwningReference, vectorOfNonOwningReferences: $vectorOfNonOwningReferences, anyUniqueType: $anyUniqueType, anyUnique: $anyUnique, anyAmbiguousType: $anyAmbiguousType, anyAmbiguous: $anyAmbiguous, vectorOfEnums: $vectorOfEnums, signedEnum: $signedEnum, testrequirednestedflatbuffer: $testrequirednestedflatbuffer, scalarKeySortedTables: $scalarKeySortedTables, nativeInline: $nativeInline}';
+    return 'MonsterT{pos: ${pos}, mana: ${mana}, hp: ${hp}, name: ${name}, inventory: ${inventory}, color: ${color}, testType: ${testType}, test: ${test}, test4: ${test4}, testarrayofstring: ${testarrayofstring}, testarrayoftables: ${testarrayoftables}, enemy: ${enemy}, testnestedflatbuffer: ${testnestedflatbuffer}, testempty: ${testempty}, testbool: ${testbool}, testhashs32Fnv1: ${testhashs32Fnv1}, testhashu32Fnv1: ${testhashu32Fnv1}, testhashs64Fnv1: ${testhashs64Fnv1}, testhashu64Fnv1: ${testhashu64Fnv1}, testhashs32Fnv1a: ${testhashs32Fnv1a}, testhashu32Fnv1a: ${testhashu32Fnv1a}, testhashs64Fnv1a: ${testhashs64Fnv1a}, testhashu64Fnv1a: ${testhashu64Fnv1a}, testarrayofbools: ${testarrayofbools}, testf: ${testf}, testf2: ${testf2}, testf3: ${testf3}, testarrayofstring2: ${testarrayofstring2}, testarrayofsortedstruct: ${testarrayofsortedstruct}, flex: ${flex}, test5: ${test5}, vectorOfLongs: ${vectorOfLongs}, vectorOfDoubles: ${vectorOfDoubles}, parentNamespaceTest: ${parentNamespaceTest}, vectorOfReferrables: ${vectorOfReferrables}, singleWeakReference: ${singleWeakReference}, vectorOfWeakReferences: ${vectorOfWeakReferences}, vectorOfStrongReferrables: ${vectorOfStrongReferrables}, coOwningReference: ${coOwningReference}, vectorOfCoOwningReferences: ${vectorOfCoOwningReferences}, nonOwningReference: ${nonOwningReference}, vectorOfNonOwningReferences: ${vectorOfNonOwningReferences}, anyUniqueType: ${anyUniqueType}, anyUnique: ${anyUnique}, anyAmbiguousType: ${anyAmbiguousType}, anyAmbiguous: ${anyAmbiguous}, vectorOfEnums: ${vectorOfEnums}, signedEnum: ${signedEnum}, testrequirednestedflatbuffer: ${testrequirednestedflatbuffer}, scalarKeySortedTables: ${scalarKeySortedTables}, nativeInline: ${nativeInline}, longEnumNonEnumDefault: ${longEnumNonEnumDefault}, longEnumNormalDefault: ${longEnumNormalDefault}, nanDefault: ${nanDefault}, infDefault: ${infDefault}, positiveInfDefault: ${positiveInfDefault}, infinityDefault: ${infinityDefault}, positiveInfinityDefault: ${positiveInfinityDefault}, negativeInfDefault: ${negativeInfDefault}, negativeInfinityDefault: ${negativeInfinityDefault}, doubleInfDefault: ${doubleInfDefault}}';
   }
 }
 
@@ -1428,7 +1620,7 @@ class MonsterBuilder {
   final fb.Builder fbBuilder;
 
   void begin() {
-    fbBuilder.startTable(51);
+    fbBuilder.startTable(62);
   }
 
   int addPos(int offset) {
@@ -1635,6 +1827,46 @@ class MonsterBuilder {
     fbBuilder.addStruct(51, offset);
     return fbBuilder.offset;
   }
+  int addLongEnumNonEnumDefault(LongEnum? longEnumNonEnumDefault) {
+    fbBuilder.addUint64(52, longEnumNonEnumDefault?.value);
+    return fbBuilder.offset;
+  }
+  int addLongEnumNormalDefault(LongEnum? longEnumNormalDefault) {
+    fbBuilder.addUint64(53, longEnumNormalDefault?.value);
+    return fbBuilder.offset;
+  }
+  int addNanDefault(double? nanDefault) {
+    fbBuilder.addFloat32(54, nanDefault);
+    return fbBuilder.offset;
+  }
+  int addInfDefault(double? infDefault) {
+    fbBuilder.addFloat32(55, infDefault);
+    return fbBuilder.offset;
+  }
+  int addPositiveInfDefault(double? positiveInfDefault) {
+    fbBuilder.addFloat32(56, positiveInfDefault);
+    return fbBuilder.offset;
+  }
+  int addInfinityDefault(double? infinityDefault) {
+    fbBuilder.addFloat32(57, infinityDefault);
+    return fbBuilder.offset;
+  }
+  int addPositiveInfinityDefault(double? positiveInfinityDefault) {
+    fbBuilder.addFloat32(58, positiveInfinityDefault);
+    return fbBuilder.offset;
+  }
+  int addNegativeInfDefault(double? negativeInfDefault) {
+    fbBuilder.addFloat32(59, negativeInfDefault);
+    return fbBuilder.offset;
+  }
+  int addNegativeInfinityDefault(double? negativeInfinityDefault) {
+    fbBuilder.addFloat32(60, negativeInfinityDefault);
+    return fbBuilder.offset;
+  }
+  int addDoubleInfDefault(double? doubleInfDefault) {
+    fbBuilder.addFloat64(61, doubleInfDefault);
+    return fbBuilder.offset;
+  }
 
   int finish() {
     return fbBuilder.endTable();
@@ -1693,6 +1925,16 @@ class MonsterObjectBuilder extends fb.ObjectBuilder {
   final List<int>? _testrequirednestedflatbuffer;
   final List<StatObjectBuilder>? _scalarKeySortedTables;
   final TestObjectBuilder? _nativeInline;
+  final LongEnum? _longEnumNonEnumDefault;
+  final LongEnum? _longEnumNormalDefault;
+  final double? _nanDefault;
+  final double? _infDefault;
+  final double? _positiveInfDefault;
+  final double? _infinityDefault;
+  final double? _positiveInfinityDefault;
+  final double? _negativeInfDefault;
+  final double? _negativeInfinityDefault;
+  final double? _doubleInfDefault;
 
   MonsterObjectBuilder({
     Vec3ObjectBuilder? pos,
@@ -1746,6 +1988,16 @@ class MonsterObjectBuilder extends fb.ObjectBuilder {
     List<int>? testrequirednestedflatbuffer,
     List<StatObjectBuilder>? scalarKeySortedTables,
     TestObjectBuilder? nativeInline,
+    LongEnum? longEnumNonEnumDefault,
+    LongEnum? longEnumNormalDefault,
+    double? nanDefault,
+    double? infDefault,
+    double? positiveInfDefault,
+    double? infinityDefault,
+    double? positiveInfinityDefault,
+    double? negativeInfDefault,
+    double? negativeInfinityDefault,
+    double? doubleInfDefault,
   })
       : _pos = pos,
         _mana = mana,
@@ -1797,7 +2049,17 @@ class MonsterObjectBuilder extends fb.ObjectBuilder {
         _signedEnum = signedEnum,
         _testrequirednestedflatbuffer = testrequirednestedflatbuffer,
         _scalarKeySortedTables = scalarKeySortedTables,
-        _nativeInline = nativeInline;
+        _nativeInline = nativeInline,
+        _longEnumNonEnumDefault = longEnumNonEnumDefault,
+        _longEnumNormalDefault = longEnumNormalDefault,
+        _nanDefault = nanDefault,
+        _infDefault = infDefault,
+        _positiveInfDefault = positiveInfDefault,
+        _infinityDefault = infinityDefault,
+        _positiveInfinityDefault = positiveInfinityDefault,
+        _negativeInfDefault = negativeInfDefault,
+        _negativeInfinityDefault = negativeInfinityDefault,
+        _doubleInfDefault = doubleInfDefault;
 
   /// Finish building, and store into the [fbBuilder].
   @override
@@ -1850,7 +2112,7 @@ class MonsterObjectBuilder extends fb.ObjectBuilder {
         : fbBuilder.writeListUint8(_testrequirednestedflatbuffer!);
     final int? scalarKeySortedTablesOffset = _scalarKeySortedTables == null ? null
         : fbBuilder.writeList(_scalarKeySortedTables!.map((b) => b.getOrCreateOffset(fbBuilder)).toList());
-    fbBuilder.startTable(51);
+    fbBuilder.startTable(62);
     if (_pos != null) {
       fbBuilder.addStruct(0, _pos!.finish(fbBuilder));
     }
@@ -1906,6 +2168,16 @@ class MonsterObjectBuilder extends fb.ObjectBuilder {
     if (_nativeInline != null) {
       fbBuilder.addStruct(51, _nativeInline!.finish(fbBuilder));
     }
+    fbBuilder.addUint64(52, _longEnumNonEnumDefault?.value);
+    fbBuilder.addUint64(53, _longEnumNormalDefault?.value);
+    fbBuilder.addFloat32(54, _nanDefault);
+    fbBuilder.addFloat32(55, _infDefault);
+    fbBuilder.addFloat32(56, _positiveInfDefault);
+    fbBuilder.addFloat32(57, _infinityDefault);
+    fbBuilder.addFloat32(58, _positiveInfinityDefault);
+    fbBuilder.addFloat32(59, _negativeInfDefault);
+    fbBuilder.addFloat32(60, _negativeInfinityDefault);
+    fbBuilder.addFloat64(61, _doubleInfDefault);
     return fbBuilder.endTable();
   }
 
@@ -1944,7 +2216,7 @@ class TypeAliases {
 
   @override
   String toString() {
-    return 'TypeAliases{i8: $i8, u8: $u8, i16: $i16, u16: $u16, i32: $i32, u32: $u32, i64: $i64, u64: $u64, f32: $f32, f64: $f64, v8: $v8, vf64: $vf64}';
+    return 'TypeAliases{i8: ${i8}, u8: ${u8}, i16: ${i16}, u16: ${u16}, i32: ${i32}, u32: ${u32}, i64: ${i64}, u64: ${u64}, f32: ${f32}, f64: ${f64}, v8: ${v8}, vf64: ${vf64}}';
   }
 
   TypeAliasesT unpack() => TypeAliasesT(
@@ -2019,7 +2291,7 @@ class TypeAliasesT implements fb.Packable {
 
   @override
   String toString() {
-    return 'TypeAliasesT{i8: $i8, u8: $u8, i16: $i16, u16: $u16, i32: $i32, u32: $u32, i64: $i64, u64: $u64, f32: $f32, f64: $f64, v8: $v8, vf64: $vf64}';
+    return 'TypeAliasesT{i8: ${i8}, u8: ${u8}, i16: ${i16}, u16: ${u16}, i32: ${i32}, u32: ${u32}, i64: ${i64}, u64: ${u64}, f32: ${f32}, f64: ${f64}, v8: ${v8}, vf64: ${vf64}}';
   }
 }
 

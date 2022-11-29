@@ -2,10 +2,20 @@
 
 package MyGame.Example;
 
-import java.nio.*;
-import java.lang.*;
-import java.util.*;
-import com.google.flatbuffers.*;
+import com.google.flatbuffers.BaseVector;
+import com.google.flatbuffers.BooleanVector;
+import com.google.flatbuffers.ByteVector;
+import com.google.flatbuffers.Constants;
+import com.google.flatbuffers.DoubleVector;
+import com.google.flatbuffers.FlatBufferBuilder;
+import com.google.flatbuffers.FloatVector;
+import com.google.flatbuffers.LongVector;
+import com.google.flatbuffers.StringVector;
+import com.google.flatbuffers.Struct;
+import com.google.flatbuffers.Table;
+import com.google.flatbuffers.UnionVector;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 
 public class MonsterT {
   private MyGame.Example.Vec3T pos;
@@ -56,6 +66,16 @@ public class MonsterT {
   private int[] testrequirednestedflatbuffer;
   private MyGame.Example.StatT[] scalarKeySortedTables;
   private MyGame.Example.TestT nativeInline;
+  private long longEnumNonEnumDefault;
+  private long longEnumNormalDefault;
+  private float nanDefault;
+  private float infDefault;
+  private float positiveInfDefault;
+  private float infinityDefault;
+  private float positiveInfinityDefault;
+  private float negativeInfDefault;
+  private float negativeInfinityDefault;
+  private double doubleInfDefault;
 
   public MyGame.Example.Vec3T getPos() { return pos; }
 
@@ -249,6 +269,46 @@ public class MonsterT {
 
   public void setNativeInline(MyGame.Example.TestT nativeInline) { this.nativeInline = nativeInline; }
 
+  public long getLongEnumNonEnumDefault() { return longEnumNonEnumDefault; }
+
+  public void setLongEnumNonEnumDefault(long longEnumNonEnumDefault) { this.longEnumNonEnumDefault = longEnumNonEnumDefault; }
+
+  public long getLongEnumNormalDefault() { return longEnumNormalDefault; }
+
+  public void setLongEnumNormalDefault(long longEnumNormalDefault) { this.longEnumNormalDefault = longEnumNormalDefault; }
+
+  public float getNanDefault() { return nanDefault; }
+
+  public void setNanDefault(float nanDefault) { this.nanDefault = nanDefault; }
+
+  public float getInfDefault() { return infDefault; }
+
+  public void setInfDefault(float infDefault) { this.infDefault = infDefault; }
+
+  public float getPositiveInfDefault() { return positiveInfDefault; }
+
+  public void setPositiveInfDefault(float positiveInfDefault) { this.positiveInfDefault = positiveInfDefault; }
+
+  public float getInfinityDefault() { return infinityDefault; }
+
+  public void setInfinityDefault(float infinityDefault) { this.infinityDefault = infinityDefault; }
+
+  public float getPositiveInfinityDefault() { return positiveInfinityDefault; }
+
+  public void setPositiveInfinityDefault(float positiveInfinityDefault) { this.positiveInfinityDefault = positiveInfinityDefault; }
+
+  public float getNegativeInfDefault() { return negativeInfDefault; }
+
+  public void setNegativeInfDefault(float negativeInfDefault) { this.negativeInfDefault = negativeInfDefault; }
+
+  public float getNegativeInfinityDefault() { return negativeInfinityDefault; }
+
+  public void setNegativeInfinityDefault(float negativeInfinityDefault) { this.negativeInfinityDefault = negativeInfinityDefault; }
+
+  public double getDoubleInfDefault() { return doubleInfDefault; }
+
+  public void setDoubleInfDefault(double doubleInfDefault) { this.doubleInfDefault = doubleInfDefault; }
+
 
   public MonsterT() {
     this.pos = new MyGame.Example.Vec3T();
@@ -299,6 +359,16 @@ public class MonsterT {
     this.testrequirednestedflatbuffer = null;
     this.scalarKeySortedTables = null;
     this.nativeInline = new MyGame.Example.TestT();
+    this.longEnumNonEnumDefault = 0L;
+    this.longEnumNormalDefault = 2L;
+    this.nanDefault = Float.NaN;
+    this.infDefault = Float.POSITIVE_INFINITY;
+    this.positiveInfDefault = Float.POSITIVE_INFINITY;
+    this.infinityDefault = Float.POSITIVE_INFINITY;
+    this.positiveInfinityDefault = Float.POSITIVE_INFINITY;
+    this.negativeInfDefault = Float.NEGATIVE_INFINITY;
+    this.negativeInfinityDefault = Float.NEGATIVE_INFINITY;
+    this.doubleInfDefault = Double.POSITIVE_INFINITY;
   }
   public static MonsterT deserializeFromBinary(byte[] fbBuffer) {
     return Monster.getRootAsMonster(ByteBuffer.wrap(fbBuffer)).unpack();

@@ -40,10 +40,8 @@ void InitTestEngine(TestFailEventListener listener) {
   testing_fails = 0;
   // Disable stdout buffering to prevent information lost on assertion or core
   // dump.
-  setvbuf(stdout, NULL, _IONBF, 0);
-  setvbuf(stderr, NULL, _IONBF, 0);
-
-  flatbuffers::SetupDefaultCRTReportMode();
+  setvbuf(stdout, nullptr, _IONBF, 0);
+  setvbuf(stderr, nullptr, _IONBF, 0);
 
   // clang-format off
 

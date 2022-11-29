@@ -14,7 +14,11 @@
  * limitations under the License.
  */
 
+#if !os(WASI)
 import Foundation
+#else
+import SwiftOverlayShims
+#endif
 
 /// NativeObject is a protocol that all of the `Object-API` generated code should be
 /// conforming to since it allows developers the ease of use to pack and unpack their

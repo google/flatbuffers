@@ -54,6 +54,8 @@ flathash
 flathash.exe
 flattests
 flattests.exe
+flattests_cpp17
+flattests_cpp17.exe
 flatsamplebinary
 flatsamplebinary.exe
 flatsampletext
@@ -76,7 +78,7 @@ tests/php/
 CMakeLists.txt.user
 CMakeScripts/**
 CTestTestfile.cmake
-FlatbuffersConfigVersion.cmake
+flatbuffers-config-version.cmake
 FlatBuffers.cbp
 build/Xcode/FlatBuffers.xcodeproj/project.xcworkspace/**
 build/Xcode/FlatBuffers.xcodeproj/xcuserdata/**
@@ -86,6 +88,7 @@ java/*.iml
 .idea
 *.iml
 target
+java/target
 **/*.pyc
 build/VS2010/FlatBuffers.sdf
 build/VS2010/FlatBuffers.opensdf
@@ -146,4 +149,5 @@ flatbuffers.pc
 **/html/**
 **/latex/**
 # https://cmake.org/cmake/help/latest/module/FetchContent.html#variable:FETCHCONTENT_BASE_DIR
+cmake-build-debug/
 _deps/

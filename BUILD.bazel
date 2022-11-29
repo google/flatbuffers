@@ -8,6 +8,7 @@ package(
 
 exports_files([
     "LICENSE",
+    "tsconfig.json",
 ])
 
 config_setting(
@@ -48,6 +49,7 @@ filegroup(
         "include/flatbuffers/detached_buffer.h",
         "include/flatbuffers/flatbuffer_builder.h",
         "include/flatbuffers/flatbuffers.h",
+        "include/flatbuffers/flex_flat_util.h",
         "include/flatbuffers/flexbuffers.h",
         "include/flatbuffers/grpc.h",
         "include/flatbuffers/hash.h",
@@ -79,6 +81,7 @@ cc_library(
 # Public flatc compiler.
 cc_binary(
     name = "flatc",
+    data = ["//reflection:reflection_fbs_schema"],
     deps = [
         "//src:flatc",
     ],

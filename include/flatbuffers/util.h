@@ -31,6 +31,7 @@
 #  include <stdio.h>
 #endif  // FLATBUFFERS_PREFER_PRINTF
 
+#include <limits>
 #include <string>
 
 namespace flatbuffers {
@@ -255,7 +256,7 @@ inline void strtoval_impl(double *val, const char *str, char **endptr) {
 }
 
 // UBSAN: double to float is safe if numeric_limits<float>::is_iec559 is true.
-__supress_ubsan__("float-cast-overflow")
+__suppress_ubsan__("float-cast-overflow")
 inline void strtoval_impl(float *val, const char *str, char **endptr) {
   *val = __strtof_impl(str, endptr);
 }
@@ -392,6 +393,18 @@ inline uint64_t StringToUInt(const char *s, int base = 10) {
   return StringToIntegerImpl(&val, s, base) ? val : 0;
 }
 
+inline bool StringIsFlatbufferNan(const std::string &s) {
+  return s == "nan" || s == "+nan" || s == "-nan";
+}
+
+inline bool StringIsFlatbufferPositiveInfinity(const std::string &s) {
+  return s == "inf" || s == "+inf" || s == "infinity" || s == "+infinity";
+}
+
+inline bool StringIsFlatbufferNegativeInfinity(const std::string &s) {
+  return s == "-inf" || s == "-infinity";
+}
+
 typedef bool (*LoadFileFunction)(const char *filename, bool binary,
                                  std::string *dest);
 typedef bool (*FileExistsFunction)(const char *filename);
@@ -447,6 +460,9 @@ std::string StripPath(const std::string &filepath);
 
 // Strip the last component of the path + separator.
 std::string StripFileName(const std::string &filepath);
+
+std::string StripPrefix(const std::string &filepath,
+                        const std::string &prefix_to_remove);
 
 // Concatenates a path with a filename, regardless of whether the path
 // ends in a separator or not.
@@ -682,8 +698,31 @@ bool SetGlobalTestLocale(const char *locale_name,
 bool ReadEnvironmentVariable(const char *var_name,
                              std::string *_value = nullptr);
 
-// MSVC specific: Send all assert reports to STDOUT to prevent CI hangs.
-void SetupDefaultCRTReportMode();
+enum class Case {
+  kUnknown = 0,
+  // TheQuickBrownFox
+  kUpperCamel = 1,
+  // theQuickBrownFox
+  kLowerCamel = 2,
+  // the_quick_brown_fox
+  kSnake = 3,
+  // THE_QUICK_BROWN_FOX
+  kScreamingSnake = 4,
+  // THEQUICKBROWNFOX
+  kAllUpper = 5,
+  // thequickbrownfox
+  kAllLower = 6,
+  // the-quick-brown-fox
+  kDasher = 7,
+  // THEQuiCKBr_ownFox (or whatever you want, we won't change it)
+  kKeep = 8,
+  // the_quick_brown_fox123 (as opposed to the_quick_brown_fox_123)
+  kSnake2 = 9,
+};
+
+// Convert the `input` string of case `input_case` to the specified `output_case`.
+std::string ConvertCase(const std::string &input, Case output_case,
+                    Case input_case = Case::kSnake);
 
 }  // namespace flatbuffers
 

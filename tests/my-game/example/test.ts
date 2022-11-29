@@ -7,7 +7,7 @@ import * as flatbuffers from 'flatbuffers';
 export class Test {
   bb: flatbuffers.ByteBuffer|null = null;
   bb_pos = 0;
-__init(i:number, bb:flatbuffers.ByteBuffer):Test {
+  __init(i:number, bb:flatbuffers.ByteBuffer):Test {
   this.bb_pos = i;
   this.bb = bb;
   return this;
@@ -32,7 +32,7 @@ mutate_b(value:number):boolean {
 }
 
 static getFullyQualifiedName():string {
-  return 'MyGame.Example.Test';
+  return 'MyGame_Example_Test';
 }
 
 static sizeOf():number {

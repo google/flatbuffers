@@ -30,6 +30,52 @@
 
 namespace flatbuffers {
 
+namespace {
+
+static std::string JavaCSharpMakeRule(const bool java, const Parser &parser,
+                               const std::string &path,
+                               const std::string &file_name) {
+  const std::string file_extension = java ? ".java" : ".cs";
+  std::string make_rule;
+
+  for (auto it = parser.enums_.vec.begin(); it != parser.enums_.vec.end();
+       ++it) {
+    auto &enum_def = **it;
+    if (!make_rule.empty()) make_rule += " ";
+    std::string directory =
+        BaseGenerator::NamespaceDir(parser, path, *enum_def.defined_namespace);
+    make_rule += directory + enum_def.name + file_extension;
+  }
+
+  for (auto it = parser.structs_.vec.begin(); it != parser.structs_.vec.end();
+       ++it) {
+    auto &struct_def = **it;
+    if (!make_rule.empty()) make_rule += " ";
+    std::string directory = BaseGenerator::NamespaceDir(
+        parser, path, *struct_def.defined_namespace);
+    make_rule += directory + struct_def.name + file_extension;
+  }
+
+  make_rule += ": ";
+  auto included_files = parser.GetIncludedFilesRecursive(file_name);
+  for (auto it = included_files.begin(); it != included_files.end(); ++it) {
+    make_rule += " " + *it;
+  }
+  return make_rule;
+}
+
+
+static std::string BinaryFileName(const Parser &parser, const std::string &path,
+                           const std::string &file_name) {
+  auto ext = parser.file_extension_.length() ? parser.file_extension_ : "bin";
+  return path + file_name + "." + ext;
+}
+
+} // namespace
+
+
+
+
 void CodeWriter::operator+=(std::string text) {
   if (!ignore_ident_ && !text.empty()) AppendIdent(stream_);
 
@@ -91,7 +137,8 @@ std::string BaseGenerator::NamespaceDir(const Parser &parser,
   std::string namespace_dir = path;  // Either empty or ends in separator.
   auto &namespaces = ns.components;
   for (auto it = namespaces.begin(); it != namespaces.end(); ++it) {
-    namespace_dir += !dasherize ? *it : ToDasherizedCase(*it);
+    namespace_dir +=
+        !dasherize ? *it : ConvertCase(*it, Case::kDasher, Case::kUpperCamel);
     namespace_dir += kPathSeparator;
     EnsureDirExists(namespace_dir);
   }
@@ -101,22 +148,6 @@ std::string BaseGenerator::NamespaceDir(const Parser &parser,
 std::string BaseGenerator::NamespaceDir(const Namespace &ns,
                                         const bool dasherize) const {
   return BaseGenerator::NamespaceDir(parser_, path_, ns, dasherize);
-}
-
-std::string BaseGenerator::ToDasherizedCase(const std::string pascal_case) {
-  std::string dasherized_case;
-  char p = 0;
-  for (size_t i = 0; i < pascal_case.length(); i++) {
-    char const &c = pascal_case[i];
-    if (is_alpha_upper(c)) {
-      if (i > 0 && p != kPathSeparator) dasherized_case += "-";
-      dasherized_case += CharToLower(c);
-    } else {
-      dasherized_case += c;
-    }
-    p = c;
-  }
-  return dasherized_case;
 }
 
 std::string BaseGenerator::FullNamespace(const char *separator,
@@ -146,8 +177,9 @@ std::string BaseGenerator::WrapInNameSpace(const Namespace *ns,
   return qualified_name + name;
 }
 
-std::string BaseGenerator::WrapInNameSpace(const Definition &def) const {
-  return WrapInNameSpace(def.defined_namespace, def.name);
+std::string BaseGenerator::WrapInNameSpace(const Definition &def,
+                                           const std::string &suffix) const {
+  return WrapInNameSpace(def.defined_namespace, def.name + suffix);
 }
 
 std::string BaseGenerator::GetNameSpace(const Definition &def) const {
@@ -314,37 +346,6 @@ std::string SimpleFloatConstantGenerator::NaN(float v) const {
   return this->NaN(static_cast<double>(v));
 }
 
-std::string JavaCSharpMakeRule(const bool java, const Parser &parser,
-                               const std::string &path,
-                               const std::string &file_name) {
-  const std::string file_extension = java ? ".java" : ".cs";
-  std::string make_rule;
-
-  for (auto it = parser.enums_.vec.begin(); it != parser.enums_.vec.end();
-       ++it) {
-    auto &enum_def = **it;
-    if (!make_rule.empty()) make_rule += " ";
-    std::string directory =
-        BaseGenerator::NamespaceDir(parser, path, *enum_def.defined_namespace);
-    make_rule += directory + enum_def.name + file_extension;
-  }
-
-  for (auto it = parser.structs_.vec.begin(); it != parser.structs_.vec.end();
-       ++it) {
-    auto &struct_def = **it;
-    if (!make_rule.empty()) make_rule += " ";
-    std::string directory = BaseGenerator::NamespaceDir(
-        parser, path, *struct_def.defined_namespace);
-    make_rule += directory + struct_def.name + file_extension;
-  }
-
-  make_rule += ": ";
-  auto included_files = parser.GetIncludedFilesRecursive(file_name);
-  for (auto it = included_files.begin(); it != included_files.end(); ++it) {
-    make_rule += " " + *it;
-  }
-  return make_rule;
-}
 
 std::string JavaMakeRule(const Parser &parser, const std::string &path,
                          const std::string &file_name) {
@@ -353,12 +354,6 @@ std::string JavaMakeRule(const Parser &parser, const std::string &path,
 std::string CSharpMakeRule(const Parser &parser, const std::string &path,
                            const std::string &file_name) {
   return JavaCSharpMakeRule(false, parser, path, file_name);
-}
-
-std::string BinaryFileName(const Parser &parser, const std::string &path,
-                           const std::string &file_name) {
-  auto ext = parser.file_extension_.length() ? parser.file_extension_ : "bin";
-  return path + file_name + "." + ext;
 }
 
 bool GenerateBinary(const Parser &parser, const std::string &path,

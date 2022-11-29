@@ -57,7 +57,7 @@ class Stat : Table() {
         return (val_1 - val_2).sign
     }
     companion object {
-        fun validateVersion() = Constants.FLATBUFFERS_2_0_0()
+        fun validateVersion() = Constants.FLATBUFFERS_22_11_23()
         fun getRootAsStat(_bb: ByteBuffer): Stat = getRootAsStat(_bb, Stat())
         fun getRootAsStat(_bb: ByteBuffer, obj: Stat): Stat {
             _bb.order(ByteOrder.LITTLE_ENDIAN)
@@ -73,7 +73,10 @@ class Stat : Table() {
         fun startStat(builder: FlatBufferBuilder) = builder.startTable(3)
         fun addId(builder: FlatBufferBuilder, id: Int) = builder.addOffset(0, id, 0)
         fun addVal_(builder: FlatBufferBuilder, val_: Long) = builder.addLong(1, val_, 0L)
-        fun addCount(builder: FlatBufferBuilder, count: UShort) = builder.addShort(2, count.toShort(), 0)
+        fun addCount(builder: FlatBufferBuilder, count: UShort)  {
+            builder.addShort(count.toShort())
+            builder.slot(2)
+        }
         fun endStat(builder: FlatBufferBuilder) : Int {
             val o = builder.endTable()
             return o

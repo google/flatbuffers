@@ -11,77 +11,77 @@ enum OptionalByte:
 class ScalarStuff
 
 class ScalarStuff : flatbuffers_handle
-    def just_i8():
+    def just_i8() -> int:
         return buf_.flatbuffers_field_int8(pos_, 4, 0)
-    def maybe_i8():
+    def maybe_i8() -> int, bool:
         return buf_.flatbuffers_field_int8(pos_, 6, 0), buf_.flatbuffers_field_present(pos_, 6)
-    def default_i8():
+    def default_i8() -> int:
         return buf_.flatbuffers_field_int8(pos_, 8, 42)
-    def just_u8():
-        return buf_.flatbuffers_field_int8(pos_, 10, 0)
-    def maybe_u8():
-        return buf_.flatbuffers_field_int8(pos_, 12, 0), buf_.flatbuffers_field_present(pos_, 12)
-    def default_u8():
-        return buf_.flatbuffers_field_int8(pos_, 14, 42)
-    def just_i16():
+    def just_u8() -> int:
+        return buf_.flatbuffers_field_uint8(pos_, 10, 0)
+    def maybe_u8() -> int, bool:
+        return buf_.flatbuffers_field_uint8(pos_, 12, 0), buf_.flatbuffers_field_present(pos_, 12)
+    def default_u8() -> int:
+        return buf_.flatbuffers_field_uint8(pos_, 14, 42)
+    def just_i16() -> int:
         return buf_.flatbuffers_field_int16(pos_, 16, 0)
-    def maybe_i16():
+    def maybe_i16() -> int, bool:
         return buf_.flatbuffers_field_int16(pos_, 18, 0), buf_.flatbuffers_field_present(pos_, 18)
-    def default_i16():
+    def default_i16() -> int:
         return buf_.flatbuffers_field_int16(pos_, 20, 42)
-    def just_u16():
-        return buf_.flatbuffers_field_int16(pos_, 22, 0)
-    def maybe_u16():
-        return buf_.flatbuffers_field_int16(pos_, 24, 0), buf_.flatbuffers_field_present(pos_, 24)
-    def default_u16():
-        return buf_.flatbuffers_field_int16(pos_, 26, 42)
-    def just_i32():
+    def just_u16() -> int:
+        return buf_.flatbuffers_field_uint16(pos_, 22, 0)
+    def maybe_u16() -> int, bool:
+        return buf_.flatbuffers_field_uint16(pos_, 24, 0), buf_.flatbuffers_field_present(pos_, 24)
+    def default_u16() -> int:
+        return buf_.flatbuffers_field_uint16(pos_, 26, 42)
+    def just_i32() -> int:
         return buf_.flatbuffers_field_int32(pos_, 28, 0)
-    def maybe_i32():
+    def maybe_i32() -> int, bool:
         return buf_.flatbuffers_field_int32(pos_, 30, 0), buf_.flatbuffers_field_present(pos_, 30)
-    def default_i32():
+    def default_i32() -> int:
         return buf_.flatbuffers_field_int32(pos_, 32, 42)
-    def just_u32():
-        return buf_.flatbuffers_field_int32(pos_, 34, 0)
-    def maybe_u32():
-        return buf_.flatbuffers_field_int32(pos_, 36, 0), buf_.flatbuffers_field_present(pos_, 36)
-    def default_u32():
-        return buf_.flatbuffers_field_int32(pos_, 38, 42)
-    def just_i64():
+    def just_u32() -> int:
+        return buf_.flatbuffers_field_uint32(pos_, 34, 0)
+    def maybe_u32() -> int, bool:
+        return buf_.flatbuffers_field_uint32(pos_, 36, 0), buf_.flatbuffers_field_present(pos_, 36)
+    def default_u32() -> int:
+        return buf_.flatbuffers_field_uint32(pos_, 38, 42)
+    def just_i64() -> int:
         return buf_.flatbuffers_field_int64(pos_, 40, 0)
-    def maybe_i64():
+    def maybe_i64() -> int, bool:
         return buf_.flatbuffers_field_int64(pos_, 42, 0), buf_.flatbuffers_field_present(pos_, 42)
-    def default_i64():
+    def default_i64() -> int:
         return buf_.flatbuffers_field_int64(pos_, 44, 42)
-    def just_u64():
-        return buf_.flatbuffers_field_int64(pos_, 46, 0)
-    def maybe_u64():
-        return buf_.flatbuffers_field_int64(pos_, 48, 0), buf_.flatbuffers_field_present(pos_, 48)
-    def default_u64():
-        return buf_.flatbuffers_field_int64(pos_, 50, 42)
-    def just_f32():
+    def just_u64() -> int:
+        return buf_.flatbuffers_field_uint64(pos_, 46, 0)
+    def maybe_u64() -> int, bool:
+        return buf_.flatbuffers_field_uint64(pos_, 48, 0), buf_.flatbuffers_field_present(pos_, 48)
+    def default_u64() -> int:
+        return buf_.flatbuffers_field_uint64(pos_, 50, 42)
+    def just_f32() -> float:
         return buf_.flatbuffers_field_float32(pos_, 52, 0.0)
-    def maybe_f32():
+    def maybe_f32() -> float, bool:
         return buf_.flatbuffers_field_float32(pos_, 54, 0), buf_.flatbuffers_field_present(pos_, 54)
-    def default_f32():
+    def default_f32() -> float:
         return buf_.flatbuffers_field_float32(pos_, 56, 42.0)
-    def just_f64():
+    def just_f64() -> float:
         return buf_.flatbuffers_field_float64(pos_, 58, 0.0)
-    def maybe_f64():
+    def maybe_f64() -> float, bool:
         return buf_.flatbuffers_field_float64(pos_, 60, 0), buf_.flatbuffers_field_present(pos_, 60)
-    def default_f64():
+    def default_f64() -> float:
         return buf_.flatbuffers_field_float64(pos_, 62, 42.0)
-    def just_bool():
-        return buf_.flatbuffers_field_int8(pos_, 64, 0)
-    def maybe_bool():
-        return buf_.flatbuffers_field_int8(pos_, 66, 0), buf_.flatbuffers_field_present(pos_, 66)
-    def default_bool():
-        return buf_.flatbuffers_field_int8(pos_, 68, 1)
-    def just_enum():
+    def just_bool() -> bool:
+        return bool(buf_.flatbuffers_field_int8(pos_, 64, 0))
+    def maybe_bool() -> bool, bool:
+        return bool(buf_.flatbuffers_field_int8(pos_, 66, 0)), buf_.flatbuffers_field_present(pos_, 66)
+    def default_bool() -> bool:
+        return bool(buf_.flatbuffers_field_int8(pos_, 68, 1))
+    def just_enum() -> OptionalByte:
         return OptionalByte(buf_.flatbuffers_field_int8(pos_, 70, 0))
-    def maybe_enum():
+    def maybe_enum() -> OptionalByte, bool:
         return OptionalByte(buf_.flatbuffers_field_int8(pos_, 72, 0)), buf_.flatbuffers_field_present(pos_, 72)
-    def default_enum():
+    def default_enum() -> OptionalByte:
         return OptionalByte(buf_.flatbuffers_field_int8(pos_, 74, 1))
 
 def GetRootAsScalarStuff(buf:string): return ScalarStuff { buf, buf.flatbuffers_indirect(0) }
@@ -181,13 +181,13 @@ struct ScalarStuffBuilder:
     def add_default_f64(default_f64:float):
         b_.PrependFloat64Slot(29, default_f64, 42.0)
         return this
-    def add_just_bool(just_bool:int):
+    def add_just_bool(just_bool:bool):
         b_.PrependBoolSlot(30, just_bool, 0)
         return this
-    def add_maybe_bool(maybe_bool:int):
+    def add_maybe_bool(maybe_bool:bool):
         b_.PrependBoolSlot(31, maybe_bool)
         return this
-    def add_default_bool(default_bool:int):
+    def add_default_bool(default_bool:bool):
         b_.PrependBoolSlot(32, default_bool, 1)
         return this
     def add_just_enum(just_enum:OptionalByte):

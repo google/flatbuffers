@@ -46,7 +46,8 @@ int main(int /*argc*/, const char * /*argv*/[]) {
 
   // inizialize parser by deserializing bfbs schema
   flatbuffers::Parser parser2;
-  ok = parser2.Deserialize((uint8_t *)bfbs_file.c_str(), bfbs_file.length());
+  ok = parser2.Deserialize(reinterpret_cast<const uint8_t *>(bfbs_file.c_str()),
+                           bfbs_file.length());
   assert(ok);
 
   // parse json in parser from fbs and bfbs

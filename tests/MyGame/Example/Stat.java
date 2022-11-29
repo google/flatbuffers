@@ -2,14 +2,24 @@
 
 package MyGame.Example;
 
-import java.nio.*;
-import java.lang.*;
-import java.util.*;
-import com.google.flatbuffers.*;
+import com.google.flatbuffers.BaseVector;
+import com.google.flatbuffers.BooleanVector;
+import com.google.flatbuffers.ByteVector;
+import com.google.flatbuffers.Constants;
+import com.google.flatbuffers.DoubleVector;
+import com.google.flatbuffers.FlatBufferBuilder;
+import com.google.flatbuffers.FloatVector;
+import com.google.flatbuffers.LongVector;
+import com.google.flatbuffers.StringVector;
+import com.google.flatbuffers.Struct;
+import com.google.flatbuffers.Table;
+import com.google.flatbuffers.UnionVector;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 
 @SuppressWarnings("unused")
 public final class Stat extends Table {
-  public static void ValidateVersion() { Constants.FLATBUFFERS_2_0_0(); }
+  public static void ValidateVersion() { Constants.FLATBUFFERS_22_11_23(); }
   public static Stat getRootAsStat(ByteBuffer _bb) { return getRootAsStat(_bb, new Stat()); }
   public static Stat getRootAsStat(ByteBuffer _bb, Stat obj) { _bb.order(ByteOrder.LITTLE_ENDIAN); return (obj.__assign(_bb.getInt(_bb.position()) + _bb.position(), _bb)); }
   public void __init(int _i, ByteBuffer _bb) { __reset(_i, _bb); }
@@ -37,7 +47,7 @@ public final class Stat extends Table {
   public static void startStat(FlatBufferBuilder builder) { builder.startTable(3); }
   public static void addId(FlatBufferBuilder builder, int idOffset) { builder.addOffset(0, idOffset, 0); }
   public static void addVal(FlatBufferBuilder builder, long val) { builder.addLong(1, val, 0L); }
-  public static void addCount(FlatBufferBuilder builder, int count) { builder.addShort(2, (short) count, (short) 0); }
+  public static void addCount(FlatBufferBuilder builder, int count) { builder.addShort((short) count); builder.slot(2); }
   public static int endStat(FlatBufferBuilder builder) {
     int o = builder.endTable();
     return o;

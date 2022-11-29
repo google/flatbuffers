@@ -19,11 +19,11 @@ class Monster
 class Weapon
 
 class Vec3 : flatbuffers_handle
-    def x():
+    def x() -> float:
         return buf_.read_float32_le(pos_ + 0)
-    def y():
+    def y() -> float:
         return buf_.read_float32_le(pos_ + 4)
-    def z():
+    def z() -> float:
         return buf_.read_float32_le(pos_ + 8)
 
 def CreateVec3(b_:flatbuffers_builder, x:float, y:float, z:float):
@@ -34,32 +34,32 @@ def CreateVec3(b_:flatbuffers_builder, x:float, y:float, z:float):
     return b_.Offset()
 
 class Monster : flatbuffers_handle
-    def pos():
+    def pos() -> MyGame_Sample_Vec3?:
         let o = buf_.flatbuffers_field_struct(pos_, 4)
         return if o: MyGame_Sample_Vec3 { buf_, o } else: nil
-    def mana():
+    def mana() -> int:
         return buf_.flatbuffers_field_int16(pos_, 6, 150)
-    def hp():
+    def hp() -> int:
         return buf_.flatbuffers_field_int16(pos_, 8, 100)
-    def name():
+    def name() -> string:
         return buf_.flatbuffers_field_string(pos_, 10)
-    def inventory(i:int):
-        return buf_.read_int8_le(buf_.flatbuffers_field_vector(pos_, 14) + i * 1)
-    def inventory_length():
+    def inventory(i:int) -> int:
+        return buf_.read_uint8_le(buf_.flatbuffers_field_vector(pos_, 14) + i * 1)
+    def inventory_length() -> int:
         return buf_.flatbuffers_field_vector_len(pos_, 14)
-    def color():
+    def color() -> Color:
         return Color(buf_.flatbuffers_field_int8(pos_, 16, 2))
-    def weapons(i:int):
+    def weapons(i:int) -> MyGame_Sample_Weapon:
         return MyGame_Sample_Weapon { buf_, buf_.flatbuffers_indirect(buf_.flatbuffers_field_vector(pos_, 18) + i * 4) }
-    def weapons_length():
+    def weapons_length() -> int:
         return buf_.flatbuffers_field_vector_len(pos_, 18)
-    def equipped_type():
-        return Equipment(buf_.flatbuffers_field_int8(pos_, 20, 0))
+    def equipped_type() -> Equipment:
+        return Equipment(buf_.flatbuffers_field_uint8(pos_, 20, 0))
     def equipped_as_Weapon():
         return MyGame_Sample_Weapon { buf_, buf_.flatbuffers_field_table(pos_, 22) }
-    def path(i:int):
+    def path(i:int) -> MyGame_Sample_Vec3:
         return MyGame_Sample_Vec3 { buf_, buf_.flatbuffers_field_vector(pos_, 24) + i * 12 }
-    def path_length():
+    def path_length() -> int:
         return buf_.flatbuffers_field_vector_len(pos_, 24)
 
 def GetRootAsMonster(buf:string): return Monster { buf, buf.flatbuffers_indirect(0) }
@@ -120,9 +120,9 @@ def MonsterStartPathVector(b_:flatbuffers_builder, n_:int):
     b_.StartVector(12, n_, 4)
 
 class Weapon : flatbuffers_handle
-    def name():
+    def name() -> string:
         return buf_.flatbuffers_field_string(pos_, 4)
-    def damage():
+    def damage() -> int:
         return buf_.flatbuffers_field_int16(pos_, 6, 0)
 
 def GetRootAsWeapon(buf:string): return Weapon { buf, buf.flatbuffers_indirect(0) }

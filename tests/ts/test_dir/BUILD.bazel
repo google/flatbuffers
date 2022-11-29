@@ -1,0 +1,14 @@
+load("//:typescript.bzl", "flatbuffer_ts_library")
+
+flatbuffer_ts_library(
+    name = "typescript_transitive_ts_fbs",
+    srcs = ["typescript_transitive_include.fbs"],
+    visibility = ["//visibility:public"],
+)
+
+flatbuffer_ts_library(
+    name = "include_ts_fbs",
+    srcs = ["typescript_include.fbs"],
+    visibility = ["//visibility:public"],
+    deps = [":typescript_transitive_ts_fbs"],
+)

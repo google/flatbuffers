@@ -1,0 +1,6 @@
+include 'typescript_transitive_include.fbs';
+namespace foobar;
+
+enum class: int {
+  arguments,
+}

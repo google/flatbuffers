@@ -32,7 +32,7 @@ class MonsterExtra {
 
   @override
   String toString() {
-    return 'MonsterExtra{d0: $d0, d1: $d1, d2: $d2, d3: $d3, f0: $f0, f1: $f1, f2: $f2, f3: $f3, dvec: $dvec, fvec: $fvec}';
+    return 'MonsterExtra{d0: ${d0}, d1: ${d1}, d2: ${d2}, d3: ${d3}, f0: ${f0}, f1: ${f1}, f2: ${f2}, f3: ${f3}, dvec: ${dvec}, fvec: ${fvec}}';
   }
 
   MonsterExtraT unpack() => MonsterExtraT(
@@ -83,7 +83,7 @@ class MonsterExtraT implements fb.Packable {
         : fbBuilder.writeListFloat64(dvec!);
     final int? fvecOffset = fvec == null ? null
         : fbBuilder.writeListFloat32(fvec!);
-    fbBuilder.startTable(10);
+    fbBuilder.startTable(11);
     fbBuilder.addFloat64(0, d0);
     fbBuilder.addFloat64(1, d1);
     fbBuilder.addFloat64(2, d2);
@@ -99,7 +99,7 @@ class MonsterExtraT implements fb.Packable {
 
   @override
   String toString() {
-    return 'MonsterExtraT{d0: $d0, d1: $d1, d2: $d2, d3: $d3, f0: $f0, f1: $f1, f2: $f2, f3: $f3, dvec: $dvec, fvec: $fvec}';
+    return 'MonsterExtraT{d0: ${d0}, d1: ${d1}, d2: ${d2}, d3: ${d3}, f0: ${f0}, f1: ${f1}, f2: ${f2}, f3: ${f3}, dvec: ${dvec}, fvec: ${fvec}}';
   }
 }
 
@@ -117,7 +117,7 @@ class MonsterExtraBuilder {
   final fb.Builder fbBuilder;
 
   void begin() {
-    fbBuilder.startTable(10);
+    fbBuilder.startTable(11);
   }
 
   int addD0(double? d0) {
@@ -208,7 +208,7 @@ class MonsterExtraObjectBuilder extends fb.ObjectBuilder {
         : fbBuilder.writeListFloat64(_dvec!);
     final int? fvecOffset = _fvec == null ? null
         : fbBuilder.writeListFloat32(_fvec!);
-    fbBuilder.startTable(10);
+    fbBuilder.startTable(11);
     fbBuilder.addFloat64(0, _d0);
     fbBuilder.addFloat64(1, _d1);
     fbBuilder.addFloat64(2, _d2);

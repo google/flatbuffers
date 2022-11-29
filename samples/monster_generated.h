@@ -6,6 +6,13 @@
 
 #include "flatbuffers/flatbuffers.h"
 
+// Ensure the included flatbuffers.h is the same version as when this file was
+// generated, otherwise it may not be compatible.
+static_assert(FLATBUFFERS_VERSION_MAJOR == 22 &&
+              FLATBUFFERS_VERSION_MINOR == 11 &&
+              FLATBUFFERS_VERSION_REVISION == 23,
+             "Non-compatible flatbuffers version included");
+
 namespace MyGame {
 namespace Sample {
 
@@ -549,7 +556,7 @@ inline bool operator==(const MonsterT &lhs, const MonsterT &rhs) {
       (lhs.name == rhs.name) &&
       (lhs.inventory == rhs.inventory) &&
       (lhs.color == rhs.color) &&
-      (lhs.weapons == rhs.weapons) &&
+      (lhs.weapons.size() == rhs.weapons.size() && std::equal(lhs.weapons.cbegin(), lhs.weapons.cend(), rhs.weapons.cbegin(), [](flatbuffers::unique_ptr<MyGame::Sample::WeaponT> const &a, flatbuffers::unique_ptr<MyGame::Sample::WeaponT> const &b) { return (a == b) || (a && b && *a == *b); })) &&
       (lhs.equipped == rhs.equipped) &&
       (lhs.path == rhs.path);
 }
@@ -569,7 +576,7 @@ inline MonsterT::MonsterT(const MonsterT &o)
         equipped(o.equipped),
         path(o.path) {
   weapons.reserve(o.weapons.size());
-  for (const auto &v : o.weapons) { weapons.emplace_back((v) ? new MyGame::Sample::WeaponT(*v) : nullptr); }
+  for (const auto &weapons_ : o.weapons) { weapons.emplace_back((weapons_) ? new MyGame::Sample::WeaponT(*weapons_) : nullptr); }
 }
 
 inline MonsterT &MonsterT::operator=(MonsterT o) FLATBUFFERS_NOEXCEPT {
@@ -600,10 +607,10 @@ inline void Monster::UnPackTo(MonsterT *_o, const flatbuffers::resolver_function
   { auto _e = name(); if (_e) _o->name = _e->str(); }
   { auto _e = inventory(); if (_e) { _o->inventory.resize(_e->size()); std::copy(_e->begin(), _e->end(), _o->inventory.begin()); } }
   { auto _e = color(); _o->color = _e; }
-  { auto _e = weapons(); if (_e) { _o->weapons.resize(_e->size()); for (flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { if(_o->weapons[_i]) { _e->Get(_i)->UnPackTo(_o->weapons[_i].get(), _resolver); } else { _o->weapons[_i] = flatbuffers::unique_ptr<MyGame::Sample::WeaponT>(_e->Get(_i)->UnPack(_resolver)); }; } } }
+  { auto _e = weapons(); if (_e) { _o->weapons.resize(_e->size()); for (flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { if(_o->weapons[_i]) { _e->Get(_i)->UnPackTo(_o->weapons[_i].get(), _resolver); } else { _o->weapons[_i] = flatbuffers::unique_ptr<MyGame::Sample::WeaponT>(_e->Get(_i)->UnPack(_resolver)); }; } } else { _o->weapons.resize(0); } }
   { auto _e = equipped_type(); _o->equipped.type = _e; }
   { auto _e = equipped(); if (_e) _o->equipped.value = MyGame::Sample::EquipmentUnion::UnPack(_e, equipped_type(), _resolver); }
-  { auto _e = path(); if (_e) { _o->path.resize(_e->size()); for (flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->path[_i] = *_e->Get(_i); } } }
+  { auto _e = path(); if (_e) { _o->path.resize(_e->size()); for (flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->path[_i] = *_e->Get(_i); } } else { _o->path.resize(0); } }
 }
 
 inline flatbuffers::Offset<Monster> Monster::Pack(flatbuffers::FlatBufferBuilder &_fbb, const MonsterT* _o, const flatbuffers::rehasher_function_t *_rehasher) {
@@ -614,7 +621,7 @@ inline flatbuffers::Offset<Monster> CreateMonster(flatbuffers::FlatBufferBuilder
   (void)_rehasher;
   (void)_o;
   struct _VectorArgs { flatbuffers::FlatBufferBuilder *__fbb; const MonsterT* __o; const flatbuffers::rehasher_function_t *__rehasher; } _va = { &_fbb, _o, _rehasher}; (void)_va;
-  auto _pos = _o->pos ? _o->pos.get() : 0;
+  auto _pos = _o->pos ? _o->pos.get() : nullptr;
   auto _mana = _o->mana;
   auto _hp = _o->hp;
   auto _name = _o->name.empty() ? 0 : _fbb.CreateString(_o->name);

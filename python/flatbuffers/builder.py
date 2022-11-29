@@ -23,6 +23,8 @@ from .compat import range_func
 from .compat import memoryview_type
 from .compat import import_numpy, NumpyRequiredForThisFeature
 
+import warnings
+
 np = import_numpy()
 ## @file
 ## @addtogroup flatbuffers_python_api
@@ -75,6 +77,13 @@ class BuilderNotFinishedError(RuntimeError):
     """
     pass
 
+class EndVectorLengthMismatched(RuntimeError):
+    """
+    The number of elements passed to EndVector does not match the number 
+    specified in StartVector.
+    """
+    pass
+
 
 # VtableMetadataFields is the count of metadata fields in each vtable.
 VtableMetadataFields = 2
@@ -103,7 +112,8 @@ class Builder(object):
 
     ## @cond FLATBUFFERS_INTENRAL
     __slots__ = ("Bytes", "current_vtable", "head", "minalign", "objectEnd",
-                 "vtables", "nested", "forceDefaults", "finished", "vectorNumElems")
+                 "vtables", "nested", "forceDefaults", "finished", "vectorNumElems",
+                 "sharedStrings")
 
     """Maximum buffer size constant, in bytes.
 
@@ -132,6 +142,7 @@ class Builder(object):
         self.vtables = {}
         self.nested = False
         self.forceDefaults = False
+        self.sharedStrings = {}
         ## @endcond
         self.finished = False
 
@@ -377,17 +388,38 @@ class Builder(object):
         return self.Offset()
     ## @endcond
 
-    def EndVector(self):
+    def EndVector(self, numElems = None):
         """EndVector writes data necessary to finish vector construction."""
 
         self.assertNested()
         ## @cond FLATBUFFERS_INTERNAL
         self.nested = False
         ## @endcond
+               
+        if numElems:
+            warnings.warn("numElems is deprecated.", 
+                          DeprecationWarning, stacklevel=2)
+            if numElems != self.vectorNumElems:
+                raise EndVectorLengthMismatched();
+
         # we already made space for this, so write without PrependUint32
         self.PlaceUOffsetT(self.vectorNumElems)
         self.vectorNumElems = None
         return self.Offset()
+
+    def CreateSharedString(self, s, encoding='utf-8', errors='strict'):
+        """
+        CreateSharedString checks if the string is already written to the buffer
+        before calling CreateString.
+        """
+
+        if s in self.sharedStrings:
+            return self.sharedStrings[s]
+
+        off = self.CreateString(s, encoding, errors)
+        self.sharedStrings[s] = off
+
+        return off
 
     def CreateString(self, s, encoding='utf-8', errors='strict'):
         """CreateString writes a null-terminated byte string as a vector."""
@@ -562,9 +594,11 @@ class Builder(object):
         self.Place(off, flags)
 
     def PrependSlot(self, flags, o, x, d):
-        N.enforce_number(x, flags)
-        N.enforce_number(d, flags)
-        if x != d or self.forceDefaults:
+        if x is not None:
+            N.enforce_number(x, flags)
+        if d is not None:
+            N.enforce_number(d, flags)
+        if x != d or (self.forceDefaults and d is not None):
             self.Prepend(flags, x)
             self.Slot(o)
 

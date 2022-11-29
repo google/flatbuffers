@@ -14,7 +14,11 @@
  * limitations under the License.
  */
 
+#if !os(WASI)
 import Foundation
+#else
+import SwiftOverlayShims
+#endif
 
 /// Struct is a representation of a mutable `Flatbuffers` struct
 /// since native structs are value types and cant be mutated

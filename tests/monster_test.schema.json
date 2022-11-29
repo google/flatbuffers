@@ -13,6 +13,10 @@
       "type" : "string",
       "enum": ["None", "Human", "Dwarf", "Elf"]
     },
+    "MyGame_Example_LongEnum" : {
+      "type" : "string",
+      "enum": ["LongOne", "LongTwo", "LongBig"]
+    },
     "MyGame_Example_Any" : {
       "type" : "string",
       "enum": ["NONE", "Monster", "TestSimpleTableWithEnum", "MyGame_Example2_Monster"]
@@ -132,6 +136,15 @@
               },
         "c" : {
                 "$ref" : "#/definitions/MyGame_Example_Ability"
+              }
+      },
+      "additionalProperties" : false
+    },
+    "MyGame_Example_StructOfStructsOfStructs" : {
+      "type" : "object",
+      "properties" : {
+        "a" : {
+                "$ref" : "#/definitions/MyGame_Example_StructOfStructs"
               }
       },
       "additionalProperties" : false
@@ -321,6 +334,36 @@
               },
         "native_inline" : {
                 "$ref" : "#/definitions/MyGame_Example_Test"
+              },
+        "long_enum_non_enum_default" : {
+                "$ref" : "#/definitions/MyGame_Example_LongEnum"
+              },
+        "long_enum_normal_default" : {
+                "$ref" : "#/definitions/MyGame_Example_LongEnum"
+              },
+        "nan_default" : {
+                "type" : "number"
+              },
+        "inf_default" : {
+                "type" : "number"
+              },
+        "positive_inf_default" : {
+                "type" : "number"
+              },
+        "infinity_default" : {
+                "type" : "number"
+              },
+        "positive_infinity_default" : {
+                "type" : "number"
+              },
+        "negative_inf_default" : {
+                "type" : "number"
+              },
+        "negative_infinity_default" : {
+                "type" : "number"
+              },
+        "double_inf_default" : {
+                "type" : "number"
               }
       },
       "required" : ["name"],

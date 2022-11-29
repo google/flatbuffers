@@ -24,27 +24,30 @@
 
 namespace flatbuffers {
 
-void ForAllEnums(
+namespace {
+
+static void ForAllEnums(
     const flatbuffers::Vector<flatbuffers::Offset<reflection::Enum>> *enums,
     std::function<void(const reflection::Enum *)> func) {
   for (auto it = enums->cbegin(); it != enums->cend(); ++it) { func(*it); }
 }
 
-void ForAllObjects(
+static void ForAllObjects(
     const flatbuffers::Vector<flatbuffers::Offset<reflection::Object>> *objects,
     std::function<void(const reflection::Object *)> func) {
   for (auto it = objects->cbegin(); it != objects->cend(); ++it) { func(*it); }
 }
 
-void ForAllEnumValues(const reflection::Enum *enum_def,
-                      std::function<void(const reflection::EnumVal *)> func) {
+static void ForAllEnumValues(
+    const reflection::Enum *enum_def,
+    std::function<void(const reflection::EnumVal *)> func) {
   for (auto it = enum_def->values()->cbegin(); it != enum_def->values()->cend();
        ++it) {
     func(*it);
   }
 }
 
-void ForAllDocumentation(
+static void ForAllDocumentation(
     const flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>>
         *documentation,
     std::function<void(const flatbuffers::String *)> func) {
@@ -73,10 +76,6 @@ static bool IsStructOrTable(const reflection::BaseType base_type) {
   return base_type == reflection::Obj;
 }
 
-static bool IsScalar(const reflection::BaseType base_type) {
-  return base_type >= reflection::UType && base_type <= reflection::Double;
-}
-
 static bool IsFloatingPoint(const reflection::BaseType base_type) {
   return base_type == reflection::Float || base_type == reflection::Double;
 }
@@ -93,35 +92,7 @@ static bool IsVector(const reflection::BaseType base_type) {
   return base_type == reflection::Vector;
 }
 
-static std::string MakeCamelCase(const std::string &in,
-                                 bool uppercase_first = true) {
-  std::string s;
-  for (size_t i = 0; i < in.length(); i++) {
-    if (!i && uppercase_first)
-      s += static_cast<char>(::toupper(static_cast<unsigned char>(in[0])));
-    else if (in[i] == '_' && i + 1 < in.length())
-      s += static_cast<char>(::toupper(static_cast<unsigned char>(in[++i])));
-    else
-      s += in[i];
-  }
-  return s;
-}
-
-static std::string Denamespace(const flatbuffers::String *name,
-                               std::string &ns) {
-  const size_t pos = name->str().find_last_of('.');
-  if (pos == std::string::npos) {
-    ns = "";
-    return name->str();
-  }
-  ns = name->str().substr(0, pos);
-  return name->str().substr(pos + 1);
-}
-
-static std::string Denamespace(const flatbuffers::String *name) {
-  std::string ns;
-  return Denamespace(name, ns);
-}
+}  // namespace
 
 // A concrete base Flatbuffer Generator that specific language generators can
 // derive from.
@@ -160,17 +131,29 @@ class BaseBfbsGenerator : public BfbsGenerator {
   }
 
  protected:
-  const reflection::Object *GetObject(const reflection::Type *type) const {
-    if (type->index() >= 0 && IsStructOrTable(type->base_type())) {
+  // GetObject returns the underlying object struct of the given type
+  // if element_type is true and GetObject is a list of objects then
+  // GetObject will correctly return the object struct of the vector's elements
+  const reflection::Object *GetObject(const reflection::Type *type,
+                                      bool element_type = false) const {
+    const reflection::BaseType base_type =
+        element_type ? type->element() : type->base_type();
+    if (type->index() >= 0 && IsStructOrTable(base_type)) {
       return GetObjectByIndex(type->index());
     }
     return nullptr;
   }
 
-  const reflection::Enum *GetEnum(const reflection::Type *type) const {
+  // GetEnum returns the underlying enum struct of the given type
+  // if element_type is true and GetEnum is a list of enums then
+  // GetEnum will correctly return the enum struct of the vector's elements
+  const reflection::Enum *GetEnum(const reflection::Type *type,
+                                  bool element_type = false) const {
+    const reflection::BaseType base_type =
+        element_type ? type->element() : type->base_type();
     // TODO(derekbailey): it would be better to have a explicit list of allowed
     // base types, instead of negating Obj types.
-    if (type->index() >= 0 && !IsStructOrTable(type->base_type())) {
+    if (type->index() >= 0 && !IsStructOrTable(base_type)) {
       return GetEnumByIndex(type->index());
     }
     return nullptr;

@@ -14,11 +14,19 @@
  * limitations under the License.
  */
 
+#if !os(WASI)
 import Foundation
+#else
+import SwiftOverlayShims
+#endif
 
 /// Collection of thrown from the Flatbuffer verifier
 public enum FlatbuffersErrors: Error, Equatable {
 
+  /// Thrown when verifying a file id that doesnt match buffer id
+  case bufferIdDidntMatchPassedId
+  /// Prefixed size doesnt match the current (readable) buffer size
+  case prefixedSizeNotEqualToBufferSize
   /// Thrown when buffer is bigger than the allowed 2GiB
   case exceedsMaxSizeAllowed
   /// Thrown when there is an missaligned pointer at position
@@ -53,10 +61,17 @@ public enum FlatbuffersErrors: Error, Equatable {
     fieldName: String)
   case apparentSizeTooLarge
 
-  public static func == (
-    lhs: FlatbuffersErrors,
-    rhs: FlatbuffersErrors) -> Bool
-  {
-    lhs.localizedDescription == rhs.localizedDescription
-  }
 }
+
+#if !os(WASI)
+
+extension FlatbuffersErrors {
+    public static func == (
+      lhs: FlatbuffersErrors,
+      rhs: FlatbuffersErrors) -> Bool
+    {
+      lhs.localizedDescription == rhs.localizedDescription
+    }
+}
+
+#endif

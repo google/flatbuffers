@@ -2,7 +2,7 @@
 
 import * as flatbuffers from 'flatbuffers';
 
-import { Monster as MyGameExample2Monster, MonsterT as MyGameExample2MonsterT } from '../../my-game/example2/monster';
+import { Monster as MyGame_Example2_Monster, MonsterT as MyGame_Example2_MonsterT } from '../../my-game/example2/monster';
 import { Ability, AbilityT } from '../../my-game/example/ability';
 import { Any, unionToAny, unionListToAny } from '../../my-game/example/any';
 import { AnyAmbiguousAliases, unionToAnyAmbiguousAliases, unionListToAnyAmbiguousAliases } from '../../my-game/example/any-ambiguous-aliases';
@@ -23,7 +23,7 @@ import { InParentNamespace, InParentNamespaceT } from '../../my-game/in-parent-n
 export class Monster {
   bb: flatbuffers.ByteBuffer|null = null;
   bb_pos = 0;
-__init(i:number, bb:flatbuffers.ByteBuffer):Monster {
+  __init(i:number, bb:flatbuffers.ByteBuffer):Monster {
   this.bb_pos = i;
   this.bb = bb;
   return this;
@@ -651,12 +651,44 @@ nativeInline(obj?:Test):Test|null {
   return offset ? (obj || new Test()).__init(this.bb_pos + offset, this.bb!) : null;
 }
 
+longEnumNonEnumDefault():bigint {
+  const offset = this.bb!.__offset(this.bb_pos, 108);
+  return offset ? this.bb!.readUint64(this.bb_pos + offset) : BigInt('0');
+}
+
+mutate_long_enum_non_enum_default(value:bigint):boolean {
+  const offset = this.bb!.__offset(this.bb_pos, 108);
+
+  if (offset === 0) {
+    return false;
+  }
+
+  this.bb!.writeUint64(this.bb_pos + offset, value);
+  return true;
+}
+
+longEnumNormalDefault():bigint {
+  const offset = this.bb!.__offset(this.bb_pos, 110);
+  return offset ? this.bb!.readUint64(this.bb_pos + offset) : BigInt('2');
+}
+
+mutate_long_enum_normal_default(value:bigint):boolean {
+  const offset = this.bb!.__offset(this.bb_pos, 110);
+
+  if (offset === 0) {
+    return false;
+  }
+
+  this.bb!.writeUint64(this.bb_pos + offset, value);
+  return true;
+}
+
 static getFullyQualifiedName():string {
-  return 'MyGame.Example.Monster';
+  return 'MyGame_Example_Monster';
 }
 
 static startMonster(builder:flatbuffers.Builder) {
-  builder.startObject(52);
+  builder.startObject(54);
 }
 
 static addPos(builder:flatbuffers.Builder, posOffset:flatbuffers.Offset) {
@@ -1084,6 +1116,14 @@ static addNativeInline(builder:flatbuffers.Builder, nativeInlineOffset:flatbuffe
   builder.addFieldStruct(51, nativeInlineOffset, 0);
 }
 
+static addLongEnumNonEnumDefault(builder:flatbuffers.Builder, longEnumNonEnumDefault:bigint) {
+  builder.addFieldInt64(52, longEnumNonEnumDefault, BigInt('0'));
+}
+
+static addLongEnumNormalDefault(builder:flatbuffers.Builder, longEnumNormalDefault:bigint) {
+  builder.addFieldInt64(53, longEnumNormalDefault, BigInt('2'));
+}
+
 static endMonster(builder:flatbuffers.Builder):flatbuffers.Offset {
   const offset = builder.endObject();
   builder.requiredField(offset, 10) // name
@@ -1171,7 +1211,9 @@ unpack(): MonsterT {
     this.signedEnum(),
     this.bb!.createScalarList(this.testrequirednestedflatbuffer.bind(this), this.testrequirednestedflatbufferLength()),
     this.bb!.createObjList(this.scalarKeySortedTables.bind(this), this.scalarKeySortedTablesLength()),
-    (this.nativeInline() !== null ? this.nativeInline()!.unpack() : null)
+    (this.nativeInline() !== null ? this.nativeInline()!.unpack() : null),
+    this.longEnumNonEnumDefault(),
+    this.longEnumNormalDefault()
   );
 }
 
@@ -1240,6 +1282,8 @@ unpackTo(_o: MonsterT): void {
   _o.testrequirednestedflatbuffer = this.bb!.createScalarList(this.testrequirednestedflatbuffer.bind(this), this.testrequirednestedflatbufferLength());
   _o.scalarKeySortedTables = this.bb!.createObjList(this.scalarKeySortedTables.bind(this), this.scalarKeySortedTablesLength());
   _o.nativeInline = (this.nativeInline() !== null ? this.nativeInline()!.unpack() : null);
+  _o.longEnumNonEnumDefault = this.longEnumNonEnumDefault();
+  _o.longEnumNormalDefault = this.longEnumNormalDefault();
 }
 }
 
@@ -1252,7 +1296,7 @@ constructor(
   public inventory: (number)[] = [],
   public color: Color = Color.Blue,
   public testType: Any = Any.NONE,
-  public test: MonsterT|MyGameExample2MonsterT|TestSimpleTableWithEnumT|null = null,
+  public test: MonsterT|MyGame_Example2_MonsterT|TestSimpleTableWithEnumT|null = null,
   public test4: (TestT)[] = [],
   public testarrayofstring: (string)[] = [],
   public testarrayoftables: (MonsterT)[] = [],
@@ -1288,14 +1332,16 @@ constructor(
   public nonOwningReference: bigint = BigInt('0'),
   public vectorOfNonOwningReferences: (bigint)[] = [],
   public anyUniqueType: AnyUniqueAliases = AnyUniqueAliases.NONE,
-  public anyUnique: MonsterT|MyGameExample2MonsterT|TestSimpleTableWithEnumT|null = null,
+  public anyUnique: MonsterT|MyGame_Example2_MonsterT|TestSimpleTableWithEnumT|null = null,
   public anyAmbiguousType: AnyAmbiguousAliases = AnyAmbiguousAliases.NONE,
   public anyAmbiguous: MonsterT|null = null,
   public vectorOfEnums: (Color)[] = [],
   public signedEnum: Race = Race.None,
   public testrequirednestedflatbuffer: (number)[] = [],
   public scalarKeySortedTables: (StatT)[] = [],
-  public nativeInline: TestT|null = null
+  public nativeInline: TestT|null = null,
+  public longEnumNonEnumDefault: bigint = BigInt('0'),
+  public longEnumNormalDefault: bigint = BigInt('2')
 ){}
 
 
@@ -1380,6 +1426,8 @@ pack(builder:flatbuffers.Builder): flatbuffers.Offset {
   Monster.addTestrequirednestedflatbuffer(builder, testrequirednestedflatbuffer);
   Monster.addScalarKeySortedTables(builder, scalarKeySortedTables);
   Monster.addNativeInline(builder, (this.nativeInline !== null ? this.nativeInline!.pack(builder) : 0));
+  Monster.addLongEnumNonEnumDefault(builder, this.longEnumNonEnumDefault);
+  Monster.addLongEnumNormalDefault(builder, this.longEnumNormalDefault);
 
   return Monster.endMonster(builder);
 }

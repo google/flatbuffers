@@ -17,13 +17,14 @@
 // clang-format off
 // Dont't remove `format off`, it prevent reordering of win-includes.
 
+#include <cstring>
 #if defined(__MINGW32__) || defined(__MINGW64__) || defined(__CYGWIN__) || \
     defined(__QNXNTO__)
 #  define _POSIX_C_SOURCE 200809L
 #  define _XOPEN_SOURCE 700L
 #endif
 
-#ifdef _WIN32
+#if defined(_WIN32) || defined(__MINGW32__) || defined(__MINGW64__) || defined(__CYGWIN__)
 #  ifndef WIN32_LEAN_AND_MEAN
 #    define WIN32_LEAN_AND_MEAN
 #  endif
@@ -34,7 +35,9 @@
 #    include <crtdbg.h>
 #  endif
 #  include <windows.h>  // Must be included before <direct.h>
-#  include <direct.h>
+#  ifndef __CYGWIN__
+#    include <direct.h>
+#  endif
 #  include <winbase.h>
 #  undef interface  // This is also important because of reasons
 #endif
@@ -47,17 +50,20 @@
 #include <clocale>
 #include <cstdlib>
 #include <fstream>
+#include <functional>
 
 #include "flatbuffers/base.h"
 
 namespace flatbuffers {
 
-bool FileExistsRaw(const char *name) {
+namespace {
+
+static bool FileExistsRaw(const char *name) {
   std::ifstream ifs(name);
   return ifs.good();
 }
 
-bool LoadFileRaw(const char *name, bool binary, std::string *buf) {
+static bool LoadFileRaw(const char *name, bool binary, std::string *buf) {
   if (DirExists(name)) return false;
   std::ifstream ifs(name, binary ? std::ifstream::binary : std::ifstream::in);
   if (!ifs.is_open()) return false;
@@ -77,8 +83,124 @@ bool LoadFileRaw(const char *name, bool binary, std::string *buf) {
   return !ifs.bad();
 }
 
-static LoadFileFunction g_load_file_function = LoadFileRaw;
-static FileExistsFunction g_file_exists_function = FileExistsRaw;
+LoadFileFunction g_load_file_function = LoadFileRaw;
+FileExistsFunction g_file_exists_function = FileExistsRaw;
+
+static std::string ToCamelCase(const std::string &input, bool first) {
+  std::string s;
+  for (size_t i = 0; i < input.length(); i++) {
+    if (!i && first)
+      s += CharToUpper(input[i]);
+    else if (input[i] == '_' && i + 1 < input.length())
+      s += CharToUpper(input[++i]);
+    else
+      s += input[i];
+  }
+  return s;
+}
+
+static std::string ToSnakeCase(const std::string &input, bool screaming) {
+  std::string s;
+  for (size_t i = 0; i < input.length(); i++) {
+    if (i == 0) {
+      s += screaming ? CharToUpper(input[i]) : CharToLower(input[i]);
+    } else if (input[i] == '_') {
+      s += '_';
+    } else if (!islower(input[i])) {
+      // Prevent duplicate underscores for Upper_Snake_Case strings
+      // and UPPERCASE strings.
+      if (islower(input[i - 1]) || (isdigit(input[i-1]) && !isdigit(input[i]))) { s += '_'; }
+      s += screaming ? CharToUpper(input[i]) : CharToLower(input[i]);
+    } else {
+      s += screaming ? CharToUpper(input[i]) : input[i];
+    }
+  }
+  return s;
+}
+
+std::string ToAll(const std::string &input,
+                         std::function<char(const char)> transform) {
+  std::string s;
+  for (size_t i = 0; i < input.length(); i++) { s += transform(input[i]); }
+  return s;
+}
+
+std::string CamelToSnake(const std::string &input) {
+  std::string s;
+  for (size_t i = 0; i < input.length(); i++) {
+    if (i == 0) {
+      s += CharToLower(input[i]);
+    } else if (input[i] == '_') {
+      s += '_';
+    } else if (!islower(input[i])) {
+      // Prevent duplicate underscores for Upper_Snake_Case strings
+      // and UPPERCASE strings.
+      if (islower(input[i - 1]) || (isdigit(input[i-1]) && !isdigit(input[i]))) { s += '_'; }
+      s += CharToLower(input[i]);
+    } else {
+      s += input[i];
+    }
+  }
+  return s;
+}
+
+std::string DasherToSnake(const std::string &input) {
+  std::string s;
+  for (size_t i = 0; i < input.length(); i++) {
+    if (input[i] == '-') {
+      s += "_";
+    } else {
+      s += input[i];
+    }
+  }
+  return s;
+}
+
+std::string ToDasher(const std::string &input) {
+  std::string s;
+  char p = 0;
+  for (size_t i = 0; i < input.length(); i++) {
+    char const &c = input[i];
+    if (c == '_') {
+      if (i > 0 && p != kPathSeparator &&
+          // The following is a special case to ignore digits after a _. This is
+          // because ThisExample3 would be converted to this_example_3 in the
+          // CamelToSnake conversion, and then dasher would do this-example-3,
+          // but it expects this-example3.
+          !(i + 1 < input.length() && isdigit(input[i + 1])))
+        s += "-";
+    } else {
+      s += c;
+    }
+    p = c;
+  }
+  return s;
+}
+
+
+// Converts foo_bar_123baz_456 to foo_bar123_baz456
+std::string SnakeToSnake2(const std::string &s) {
+  if (s.length() <= 1) return s;
+  std::string result;
+  result.reserve(s.size());
+  for (size_t i = 0; i < s.length() - 1; i++) {
+    if (s[i] == '_' && isdigit(s[i + 1])) {
+      continue;  // Move the `_` until after the digits.
+    }
+
+    result.push_back(s[i]);
+
+    if (isdigit(s[i]) && isalpha(s[i + 1]) && islower(s[i + 1])) {
+      result.push_back('_');
+    }
+  }
+  result.push_back(s.back());
+
+  return result;
+}
+
+} // namespace
+
 
 bool LoadFile(const char *name, bool binary, std::string *buf) {
   FLATBUFFERS_ASSERT(g_load_file_function);
@@ -154,6 +276,15 @@ std::string StripFileName(const std::string &filepath) {
   return i != std::string::npos ? filepath.substr(0, i) : "";
 }
 
+std::string StripPrefix(const std::string &filepath,
+                        const std::string &prefix_to_remove) {
+  if (!strncmp(filepath.c_str(), prefix_to_remove.c_str(),
+               prefix_to_remove.size())) {
+    return filepath.substr(prefix_to_remove.size());
+  }
+  return filepath;
+}
+
 std::string ConCatPathFileName(const std::string &path,
                                const std::string &filename) {
   std::string filepath = path;
@@ -201,7 +332,7 @@ std::string AbsolutePath(const std::string &filepath) {
   #ifdef FLATBUFFERS_NO_ABSOLUTE_PATH_RESOLUTION
     return filepath;
   #else
-    #ifdef _WIN32
+    #if defined(_WIN32) || defined(__MINGW32__) || defined(__MINGW64__) || defined(__CYGWIN__)
       char abs_path[MAX_PATH];
       return GetFullPathNameA(filepath.c_str(), MAX_PATH, abs_path, nullptr)
     #else
@@ -295,27 +426,36 @@ bool ReadEnvironmentVariable(const char *var_name, std::string *_value) {
   return true;
 }
 
-void SetupDefaultCRTReportMode() {
-  // clang-format off
+std::string ConvertCase(const std::string &input, Case output_case,
+                        Case input_case) {
+  if (output_case == Case::kKeep) return input;
+  // The output cases expect snake_case inputs, so if we don't have that input
+  // format, try to convert to snake_case.
+  switch (input_case) {
+    case Case::kLowerCamel:
+    case Case::kUpperCamel:
+      return ConvertCase(CamelToSnake(input), output_case);
+    case Case::kDasher: return ConvertCase(DasherToSnake(input), output_case);
+    case Case::kKeep: printf("WARNING: Converting from kKeep case.\n"); break;
+    default:
+    case Case::kSnake:
+    case Case::kScreamingSnake:
+    case Case::kAllLower:
+    case Case::kAllUpper: break;
+  }
 
-  #ifdef _MSC_VER
-    // By default, send all reports to STDOUT to prevent CI hangs.
-    // Enable assert report box [Abort|Retry|Ignore] if a debugger is present.
-    const int dbg_mode = (_CRTDBG_MODE_FILE | _CRTDBG_MODE_DEBUG) |
-                         (IsDebuggerPresent() ? _CRTDBG_MODE_WNDW : 0);
-    (void)dbg_mode; // release mode fix
-    // CrtDebug reports to _CRT_WARN channel.
-    _CrtSetReportMode(_CRT_WARN, dbg_mode);
-    _CrtSetReportFile(_CRT_WARN, _CRTDBG_FILE_STDOUT);
-    // The assert from <assert.h> reports to _CRT_ERROR channel
-    _CrtSetReportMode(_CRT_ERROR, dbg_mode);
-    _CrtSetReportFile(_CRT_ERROR, _CRTDBG_FILE_STDOUT);
-    // Internal CRT assert channel?
-    _CrtSetReportMode(_CRT_ASSERT, dbg_mode);
-    _CrtSetReportFile(_CRT_ASSERT, _CRTDBG_FILE_STDOUT);
-  #endif
-
-  // clang-format on
+  switch (output_case) {
+    case Case::kUpperCamel: return ToCamelCase(input, true);
+    case Case::kLowerCamel: return ToCamelCase(input, false);
+    case Case::kSnake: return input;
+    case Case::kScreamingSnake: return ToSnakeCase(input, true);
+    case Case::kAllUpper: return ToAll(input, CharToUpper);
+    case Case::kAllLower: return ToAll(input, CharToLower);
+    case Case::kDasher: return ToDasher(input);
+    case Case::kSnake2: return SnakeToSnake2(input);
+    default:
+    case Case::kUnknown: return input;
+  }
 }
 
 }  // namespace flatbuffers
