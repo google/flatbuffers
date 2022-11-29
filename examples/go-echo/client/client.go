@@ -16,13 +16,7 @@ func RequestBody() *bytes.Reader {
 	b := flatbuffers.NewBuilder(0)
 	r := net.RequestT{Player: &hero.WarriorT{Name: "Krull", Hp: 100}}
 	b.Finish(r.Pack(b))
-
-	// Encode builder head in last 4 bytes of request body
-	buf := make([]byte, 4)
-	flatbuffers.WriteUOffsetT(buf, b.Head())
-	buf = append(b.Bytes, buf...)
-
-	return bytes.NewReader(buf)
+	return bytes.NewReader(b.FinishedBytes())
 }
 
 func ReadResponse(r *http.Response) {
@@ -32,18 +26,13 @@ func ReadResponse(r *http.Response) {
 		return
 	}
 
-	// Last 4 bytes is offset.
-	off := flatbuffers.GetUOffsetT(body[len(body)-4:])
-	buf := body[:len(body) - 4] 
-
-	res := net.GetRootAsResponse(buf, off)
+	res := net.GetRootAsResponse(body, 0)
 	player := res.Player(nil)
 	
 	fmt.Printf("Got response (name: %v, hp: %v)\n", string(player.Name()), player.Hp())
 }
 
 func main() {
-
 	body := RequestBody()	
 	req, err := http.NewRequest("POST", "http://localhost:8080/echo", body)
 	if err != nil {
