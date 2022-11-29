@@ -221,32 +221,31 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     - name: cmake
-      run: cmake -G "Xcode" -DCMAKE_BUILD_TYPE=Release -DFLATBUFFERS_FLATC_EXECUTABLE=$(PWD)/_build/Release/flatc -DFLATBUFFERS_STRICT_MODE=ON .
+      run: cmake -G "Xcode" -DCMAKE_BUILD_TYPE=Release -DFLATBUFFERS_STRICT_MODE=ON .
     - name: build
-      # NOTE: we need this _build dir to not have xcodebuild's default ./build dir clash with the BUILD file.
-      run: xcodebuild -toolchain clang -configuration Release -target flattests SYMROOT=$(PWD)/_build
+      run: xcodebuild -toolchain clang -configuration Release -target flattests
     - name: check that the binary is x86_64
       run: |
-        info=$(file _build/Release/flatc)
+        info=$(file Release/flatc)
         echo $info
         echo $info | grep "Mach-O 64-bit executable x86_64"
     - name: test
-      run: _build/Release/flattests
+      run: Release/flattests
     - name: make flatc executable
       run: |
-        chmod +x _build/Release/flatc
-        ./_build/Release/flatc --version
+        chmod +x Release/flatc
+        Release/flatc --version
     - name: flatc tests
-      run: python3 tests/flatc/main.py --flatc ./_build/Release/flatc
+      run: python3 tests/flatc/main.py --flatc Release/flatc
     - name: upload build artifacts
       uses: actions/upload-artifact@v1
       with:
         name: Mac flatc binary
-        path: _build/Release/flatc
+        path: Release/flatc
     # Below if only for release.
     - name: Zip file
       if: startsWith(github.ref, 'refs/tags/')
-      run: mv _build/Release/flatc . && zip MacIntel.flatc.binary.zip flatc
+      run: mv Release/flatc . && zip MacIntel.flatc.binary.zip flatc
     - name: Release binary
       uses: softprops/action-gh-release@v1
       if: startsWith(github.ref, 'refs/tags/')
@@ -267,30 +266,29 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     - name: cmake
-      run: cmake -G "Xcode" -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64" -DCMAKE_BUILD_TYPE=Release -DFLATBUFFERS_FLATC_EXECUTABLE=$(PWD)/_build/Release/flatc -DFLATBUFFERS_STRICT_MODE=ON .
+      run: cmake -G "Xcode" -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64" -DCMAKE_BUILD_TYPE=Release -DFLATBUFFERS_STRICT_MODE=ON .
     - name: build
-      # NOTE: we need this _build dir to not have xcodebuild's default ./build dir clash with the BUILD file.
-      run: xcodebuild -toolchain clang -configuration Release -target flattests SYMROOT=$(PWD)/_build
+      run: xcodebuild -toolchain clang -configuration Release -target flattests
     - name: check that the binary is "universal"
       run: |
-        info=$(file _build/Release/flatc)
+        info=$(file Release/flatc)
         echo $info
         echo $info | grep "Mach-O universal binary with 2 architectures"
     - name: test
-      run: _build/Release/flattests
+      run: Release/flattests
     - name: make flatc executable
       run: |
-        chmod +x _build/Release/flatc
-        ./_build/Release/flatc --version
+        chmod +x Release/flatc
+        Release/flatc --version
     - name: upload build artifacts
       uses: actions/upload-artifact@v1
       with:
         name: Mac flatc binary
-        path: _build/Release/flatc
+        path: Release/flatc
     # Below if only for release.
     - name: Zip file
       if: startsWith(github.ref, 'refs/tags/')
-      run: mv _build/Release/flatc . && zip Mac.flatc.binary.zip flatc
+      run: mv Release/flatc . && zip Mac.flatc.binary.zip flatc
     - name: Release binary
       uses: softprops/action-gh-release@v1
       if: startsWith(github.ref, 'refs/tags/')
