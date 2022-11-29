@@ -5,8 +5,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
-
-	flatbuffers "github.com/google/flatbuffers/go"
 )
 
 func echo(w http.ResponseWriter, r *http.Request) {
@@ -16,11 +14,7 @@ func echo(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Last 4 bytes is offset. See client.go.
-	off := flatbuffers.GetUOffsetT(body[len(body)-4:])
-	buf := body[:len(body) - 4] 
-
-	req := net.GetRootAsRequest(buf, off)
+	req := net.GetRootAsRequest(body, 0)
 	player := req.Player(nil)
 
 	fmt.Printf("Got request (name: %v, hp: %v)\n", string(player.Name()), player.Hp())
