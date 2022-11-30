@@ -4682,6 +4682,11 @@ bool Parser::CompleteMissingField(FieldDef* absent_field, const StructDef &struc
     Type type;
     if (ResolveDynamicType(typeName, type, absent_field))
     {
+      if (type.struct_def && !type.struct_def->fixed)
+      {
+        return true;
+      }
+
       // we want zero-initialized default pin data
       Value val = absent_field->value;
       std::vector<uint8_t> empty(type.base_type == BASE_TYPE_STRING ? 1 : InlineSize(type));
