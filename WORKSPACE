@@ -99,3 +99,14 @@ yarn_install(
     symlink_node_modules = False,
     yarn_lock = "//:yarn.lock",
 )
+
+npm_install(
+    name = "npm",
+    # @bazel/esbuild is a dependency in this package.json
+    package_json = "//:package.json",
+    package_lock_json = "//:package-lock.json",
+)
+
+load("@build_bazel_rules_nodejs//toolchains/esbuild:esbuild_repositories.bzl", "esbuild_repositories")
+
+esbuild_repositories(npm_repository = "npm")
