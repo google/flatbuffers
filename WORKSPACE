@@ -94,18 +94,9 @@ yarn_install(
     name = "npm",
     exports_directories_only = False,
     # Unfreeze to add/remove packages.
-    frozen_lockfile = True,
+    frozen_lockfile = False,
     package_json = "//:package.json",
     symlink_node_modules = False,
-    yarn_lock = "//:yarn.lock",
-)
-
-yarn_install(
-    name = "npm",
-    # Unfreeze to add/remove packages.
-    frozen_lockfile = False,
-    # @bazel/esbuild is a dependency in this package.json
-    package_json = "//:package.json",
     yarn_lock = "//:yarn.lock",
 )
 
