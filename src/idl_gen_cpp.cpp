@@ -2310,7 +2310,7 @@ class CppGenerator : public BaseGenerator {
             "  int KeyCompareWithValue(const {{INPUT_TYPE}} *_{{FIELD_NAME}}"
             ") const { ";
         code_ += "    for (auto i = 0; i < {{FIELD_NAME}}()->size(); i++) {";
-        code_ += "      const auto {{FIELD_NAME}}_l = {{FIELD_NAME}}_[i];";
+        code_ += "      const auto {{FIELD_NAME}}_l = flatbuffers::EndianScalar({{FIELD_NAME}}_[i]);";
         code_ += "      const auto {{FIELD_NAME}}_r = _{{FIELD_NAME}}->Get(i);";
         code_ += "      if({{FIELD_NAME}}_l != {{FIELD_NAME}}_r) ";
         code_ +=
