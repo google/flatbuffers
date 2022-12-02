@@ -101,7 +101,7 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) Bar FLATBUFFERS_FINAL_CLASS {
   }
   int KeyCompareWithValue(const flatbuffers::Array<float, 3> *_a) const {
     for (auto i = 0; i < a()->size(); i++) {
-      const auto a_l = flatbuffers::(a_[i]);
+      const auto a_l = flatbuffers::EndianScalar(a_[i]);
       const auto a_r = _a->Get(i);
       if(a_l != a_r)
         return static_cast<int>(a_l > a_r) - static_cast<int>(a_l < a_r);
