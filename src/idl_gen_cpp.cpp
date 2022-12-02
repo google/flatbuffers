@@ -2309,7 +2309,7 @@ class CppGenerator : public BaseGenerator {
         code_ +=
             "  int KeyCompareWithValue(const {{INPUT_TYPE}} *_{{FIELD_NAME}}"
             ") const { ";
-        code_ += "    curr_{{FIELD_NAME}} = {{FIELD_NAME}}();";
+        code_ += "    auto curr_{{FIELD_NAME}} = {{FIELD_NAME}}();";
         code_ += "    for (auto i = 0; i < {{FIELD_NAME}}()->size(); i++) {";
         code_ +=
             "      const auto {{FIELD_NAME}}_l = curr_{{FIELD_NAME}}->Get(i);";
