@@ -82,7 +82,7 @@ pass to the `GetRootAsMyRootType` function:
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.cs}
     using MyGame.Example;
-    using FlatBuffers;
+    using Google.FlatBuffers;
 
     // This snippet ignores exceptions for brevity.
     byte[] data = File.ReadAllBytes("monsterdata_test.mon");
