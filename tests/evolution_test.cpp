@@ -80,26 +80,37 @@ void EvolutionTest(const std::string &tests_data_path) {
 #endif
 }
 
-void ConformTest() {
-  flatbuffers::Parser parser;
-  TEST_EQ(parser.Parse("table T { A:int; } enum E:byte { A }"), true);
 
-  auto test_conform = [](flatbuffers::Parser &parser1, const char *test,
+void ConformTest() {
+  const char ref[] = "table T { A:int; } enum E:byte { A }";
+
+  auto test_conform = [](const char *ref, const char *test,
                          const char *expected_err) {
+    flatbuffers::Parser parser1;
+    TEST_EQ(parser1.Parse(ref), true);
     flatbuffers::Parser parser2;
     TEST_EQ(parser2.Parse(test), true);
     auto err = parser2.ConformTo(parser1);
-    TEST_NOTNULL(strstr(err.c_str(), expected_err));
+    if (*expected_err == '\0') {
+      TEST_EQ_STR(err.c_str(), expected_err);
+    } else {
+      TEST_NOTNULL(strstr(err.c_str(), expected_err));
+    }
   };
 
-  test_conform(parser, "table T { A:byte; }", "types differ for field");
-  test_conform(parser, "table T { B:int; A:int; }", "offsets differ for field");
-  test_conform(parser, "table T { A:int = 1; }", "defaults differ for field");
-  test_conform(parser, "table T { B:float; }",
-               "field renamed to different type");
-  test_conform(parser, "enum E:byte { B, A }", "values differ for enum");
-  test_conform(parser, "table T { }", "field deleted");
-  test_conform(parser, "table T { B:int; }", ""); //renaming a field is allowed
+  test_conform(ref, "table T { A:byte; }", "types differ for field: T.A");
+  test_conform(ref, "table T { B:int; A:int; }",
+               "offsets differ for field: T.A");
+  test_conform(ref, "table T { A:int = 1; }", "defaults differ for field: T.A");
+  test_conform(ref, "table T { B:float; }",
+               "field renamed to different type: T.B (renamed from T.A)");
+  test_conform(ref, "enum E:byte { B, A }", "values differ for enum: A");
+  test_conform(ref, "table T { }", "field deleted: T.A");
+  test_conform(ref, "table T { B:int; }", "");  // renaming a field is allowed
+
+  const char ref2[] = "enum E:byte { A } table T2 { f:E; } ";
+  test_conform(ref2, "enum E:int32 { A } table T2 { df:byte; f:E; }",
+               "field renamed to different type: T2.df (renamed from T2.f)");
 }
 
 void UnionDeprecationTest(const std::string& tests_data_path) {

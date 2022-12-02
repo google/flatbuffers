@@ -4244,8 +4244,13 @@ std::string Parser::ConformTo(const Parser &base) {
           field_base = *fbit;
           if (field.value.offset == field_base->value.offset) {
             renamed_fields.insert(field_base);
-            if (!EqualByName(field.value.type, field_base->value.type))
-              return "field renamed to different type: " + qualified_field_name;
+            if (!EqualByName(field.value.type, field_base->value.type)) {
+              const auto qualified_field_base =
+                  qualified_name + "." + field_base->name;
+              return "field renamed to different type: " +
+                     qualified_field_name + " (renamed from " +
+                     qualified_field_base + ")";
+            }
             break;
           }
         }
