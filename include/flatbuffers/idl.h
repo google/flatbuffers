@@ -541,8 +541,11 @@ inline bool operator!=(const EnumVal &lhs, const EnumVal &rhs) {
 inline bool EqualByName(const Type &a, const Type &b) {
   return a.base_type == b.base_type && a.element == b.element &&
          (a.struct_def == b.struct_def ||
-          a.struct_def->name == b.struct_def->name) &&
-         (a.enum_def == b.enum_def || a.enum_def->name == b.enum_def->name);
+          (a.struct_def != nullptr && b.struct_def != nullptr &&
+           a.struct_def->name == b.struct_def->name)) &&
+         (a.enum_def == b.enum_def ||
+          (a.enum_def != nullptr && b.enum_def != nullptr &&
+           a.enum_def->name == b.enum_def->name));
 }
 
 struct RPCCall : public Definition {
