@@ -49,7 +49,7 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(1) Baz FLATBUFFERS_FINAL_CLASS {
   }
   int KeyCompareWithValue(const flatbuffers::Array<uint8_t, 4> *_a) const { 
     auto curr_a = a();
-    for (auto i = 0; i < a()->size(); i++) {
+    for (auto i = 0; i < curr_a->size(); i++) {
       const auto a_l = curr_a->Get(i);
       const auto a_r = _a->Get(i);
       if(a_l != a_r) 
@@ -102,7 +102,7 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) Bar FLATBUFFERS_FINAL_CLASS {
   }
   int KeyCompareWithValue(const flatbuffers::Array<float, 3> *_a) const { 
     auto curr_a = a();
-    for (auto i = 0; i < a()->size(); i++) {
+    for (auto i = 0; i < curr_a->size(); i++) {
       const auto a_l = curr_a->Get(i);
       const auto a_r = _a->Get(i);
       if(a_l != a_r) 
