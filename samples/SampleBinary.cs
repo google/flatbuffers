@@ -17,7 +17,7 @@
 // To run, use the `csharp_sample.sh` script.
 
 using System;
-using FlatBuffers;
+using Google.FlatBuffers;
 using MyGame.Sample;
 
 class SampleBinary
