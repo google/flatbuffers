@@ -4,7 +4,7 @@ namespace NamespaceA
 {
 
 using System;
-using FlatBuffers;
+using Google.FlatBuffers;
 
 public sealed class TableInC : Table {
   public static TableInC GetRootAsTableInC(ByteBuffer _bb) { return GetRootAsTableInC(_bb, new TableInC()); }
