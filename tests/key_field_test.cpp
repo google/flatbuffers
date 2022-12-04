@@ -50,7 +50,7 @@ void FixedSizedScalarKeyInStructTest() {
   TEST_EQ(sorted_baz_vec->Get(3)->b(), 4);
 
   uint8_t test_array[4];
-  auto key_array = &flatbuffers::CastToArray(test_array);
+  auto* key_array = &flatbuffers::CastToArray(test_array);
   key_array->CopyFromSpan(flatbuffers::make_span(test_array1));
 
 
@@ -69,7 +69,7 @@ void FixedSizedScalarKeyInStructTest() {
   TEST_EQ(sorted_bar_vec->Get(3)->b(), 4);
 
   float test_float_array[3];
-  auto key_float_array = &flatbuffers::CastToArray(test_float_array);
+  auto* key_float_array = &flatbuffers::CastToArray(test_float_array);
   key_float_array->CopyFromSpan(flatbuffers::make_span(test_float_array1));
   TEST_NOTNULL(sorted_bar_vec->LookupByKey(key_float_array));
   TEST_EQ(sorted_bar_vec->LookupByKey(key_float_array)->b(), 3);
