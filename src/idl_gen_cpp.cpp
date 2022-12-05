@@ -235,7 +235,8 @@ class CppGenerator : public BaseGenerator {
 
   void GenIncludeDependencies() {
     if (opts_.generate_object_based_api) {
-      for (const std::string &native_included_file : parser_.native_included_files_) {
+      for (const std::string &native_included_file :
+           parser_.native_included_files_) {
         code_ += "#include \"" + native_included_file + "\"";
       }
     }
