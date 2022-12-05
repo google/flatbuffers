@@ -2309,16 +2309,15 @@ class CppGenerator : public BaseGenerator {
         code_ +=
             "  int KeyCompareWithValue(const {{INPUT_TYPE}} *_{{FIELD_NAME}}"
             ") const { ";
-        code_ += "    const auto* curr_{{FIELD_NAME}} = {{FIELD_NAME}}();";
-        code_ += "    for (auto i = 0; i < curr_{{FIELD_NAME}}->size(); i++) {";
+        code_ += "    const {{INPUT_TYPE}} *curr_{{FIELD_NAME}} = {{FIELD_NAME}}();";
+        code_ += "    for (size_t i = 0; i < curr_{{FIELD_NAME}}->size(); i++) {";
         code_ +=
-            "      const auto {{FIELD_NAME}}_l = curr_{{FIELD_NAME}}->Get(i);";
-        code_ += "      const auto {{FIELD_NAME}}_r = _{{FIELD_NAME}}->Get(i);";
-        code_ += "      if({{FIELD_NAME}}_l != {{FIELD_NAME}}_r) ";
+            "      const auto lhs = curr_{{FIELD_NAME}}->Get(i);";
+        code_ += "      const auto rhs = _{{FIELD_NAME}}->Get(i);";
+        code_ += "      if(lhs != rhs) ";
         code_ +=
-            "        return static_cast<int>({{FIELD_NAME}}_l > "
-            "{{FIELD_NAME}}_r)"
-            " - static_cast<int>({{FIELD_NAME}}_l < {{FIELD_NAME}}_r);";
+            "        return static_cast<int>(lhs > rhs)"
+            " - static_cast<int>(lhs < rhs);";
         code_ += "    }";
         code_ += "    return 0;";
       }
