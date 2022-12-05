@@ -22,15 +22,15 @@ enum ProtoEnum : int {
 namespace proto.test.test_namespace_suffix;
 
 table ImportedMessage {
-  a:int (id: 26);
+  a:int (id: 0);
 }
 
 /// 2nd table doc comment with
 /// many lines.
 table ProtoMessage {
-  c:int = 16 (id: 12);
+  /// doc comment for r.
+  r:proto.test.test_namespace_suffix.ProtoMessage_.Anonymous0 (id: 0);
   d:long (id: 1);
-  p:uint (id: 40);
   e:ulong (id: 2);
   /// doc comment for f.
   f:int = -1 (id: 3);
@@ -45,43 +45,43 @@ table ProtoMessage {
   /// lines
   l:string (required,id: 10);
   m:[ubyte] (id: 11);
-  n:proto.test.test_namespace_suffix.ProtoMessage_.OtherMessage (id: 41);
-  o:[string] (id: 14);
-  z:proto.test.test_namespace_suffix.ImportedMessage (id: 16);
-  /// doc comment for r.
-  r:proto.test.test_namespace_suffix.ProtoMessage_.Anonymous0 (id: 999);
-  outer_enum:proto.test.test_namespace_suffix.ProtoEnum (id: 33);
-  u:float = +inf (id: 34);
-  v:float = +inf (id: 35);
-  w:float = -inf (id: 36);
-  grades:[proto.test.test_namespace_suffix.ProtoMessage_.GradesEntry] (id: 37);
-  other_message_map:[proto.test.test_namespace_suffix.ProtoMessage_.OtherMessageMapEntry] (id: 38);
+  c:int = 16 (id: 12);
+  o:[string] (id: 13);
+  z:proto.test.test_namespace_suffix.ImportedMessage (id: 14);
+  outer_enum:proto.test.test_namespace_suffix.ProtoEnum (id: 15);
+  u:float = +inf (id: 16);
+  v:float = +inf (id: 17);
+  w:float = -inf (id: 18);
+  grades:[proto.test.test_namespace_suffix.ProtoMessage_.GradesEntry] (id: 19);
+  other_message_map:[proto.test.test_namespace_suffix.ProtoMessage_.OtherMessageMapEntry] (id: 20);
+  p:uint (id: 21);
+  n:proto.test.test_namespace_suffix.ProtoMessage_.OtherMessage (id: 22);
 }
 
 namespace proto.test.test_namespace_suffix.ProtoMessage_;
 
 table OtherMessage {
-  a:double (id: 26);
+  a:double (id: 0);
   /// doc comment for b.
-  b:float = 3.14149 (id: 32);
-  foo_bar_baz:proto.test.test_namespace_suffix.ProtoMessage_.OtherMessage_.ProtoEnum (id: 33);
+  b:float = 3.14149 (id: 1);
+  foo_bar_baz:proto.test.test_namespace_suffix.ProtoMessage_.OtherMessage_.ProtoEnum (id: 2);
 }
 
 table Anonymous0 {
   /// doc comment for s.
-  s:proto.test.test_namespace_suffix.ImportedMessage (id: 17);
+  s:proto.test.test_namespace_suffix.ImportedMessage (id: 0);
   /// doc comment for t on 2
   /// lines.
-  t:proto.test.test_namespace_suffix.ProtoMessage_.OtherMessage (id: 18);
+  t:proto.test.test_namespace_suffix.ProtoMessage_.OtherMessage (id: 1);
 }
 
 table GradesEntry {
-  key:string (key,id: 1000);
-  value:float (id: 1001);
+  key:string (key);
+  value:float;
 }
 
 table OtherMessageMapEntry {
-  key:string (key,id: 1002);
-  value:proto.test.test_namespace_suffix.ProtoMessage_.OtherMessage (id: 1003);
+  key:string (key);
+  value:proto.test.test_namespace_suffix.ProtoMessage_.OtherMessage;
 }
 

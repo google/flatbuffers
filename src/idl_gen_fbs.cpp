@@ -16,11 +16,13 @@
 
 // independent from idl_parser, since this code is not needed for most clients
 
+#include <unordered_map>
+
 #include "flatbuffers/code_generators.h"
 #include "flatbuffers/flatbuffers.h"
+#include "flatbuffers/flatc.h"
 #include "flatbuffers/idl.h"
 #include "flatbuffers/util.h"
-
 namespace flatbuffers {
 
 static std::string GenType(const Type &type, bool underlying = false) {
@@ -37,6 +39,77 @@ static std::string GenType(const Type &type, bool underlying = false) {
         return kTypeNames[type.base_type];
       }
   }
+}
+
+static std::unordered_map<std::string, int> MapEnumID(EnumDef &enum_def) {
+  if (!enum_def.is_union) return {};
+
+  std::unordered_map<std::string, int> map;
+  std::vector<int> ids;
+
+  for (auto it = enum_def.Vals().begin(); it != enum_def.Vals().end(); ++it) {
+    if ((*it)->attributes.Lookup("id"))
+      ids.push_back(std::stoi((*it)->attributes.Lookup("id")->constant));
+    else
+      fprintf(stderr, "Empty");
+  }
+
+  std::sort(ids.begin(), ids.end());
+  int counter = 0;
+  for (auto id : ids) {
+    auto result = map.emplace(std::to_string(id), counter++);
+    if (!result.second) fprintf(stderr, "Duplicate");
+  }
+
+  return map;
+}
+
+static std::unordered_map<std::string, int> MapFieldID(StructDef &struct_def) {
+  bool found = false;
+  for (auto field_it = struct_def.fields.vec.begin();
+       field_it != struct_def.fields.vec.end(); ++field_it) {
+    if ((*field_it)->attributes.Lookup("id")) {
+      found = true;
+      break;
+    }
+  }
+
+  if (!found) return {};
+
+  std::unordered_map<std::string, int> map;
+  std::sort(struct_def.fields.vec.begin(), struct_def.fields.vec.end(),
+            [](const FieldDef *a, const FieldDef *b) {
+              auto a_id = 0;
+              if (a->attributes.Lookup("id") &&
+                  !a->attributes.Lookup("id")->constant.empty())
+                a_id = atoi(a->attributes.Lookup("id")->constant.c_str());
+
+              auto b_id = 0;
+              if (b->attributes.Lookup("id") &&
+                  !b->attributes.Lookup("id")->constant.empty())
+                b_id = atoi(b->attributes.Lookup("id")->constant.c_str());
+
+              return a_id < b_id;
+            });
+
+  voffset_t id = 0;
+  for (auto field_it = struct_def.fields.vec.begin();
+       field_it != struct_def.fields.vec.end(); ++field_it) {
+    if (!(*field_it)->attributes.Lookup("id") &&
+        (*field_it)->value.type.base_type != BASE_TYPE_UNION)
+      fprintf(stderr, "missinig: %s ", (*field_it)->name.c_str());
+
+    if (field_it != struct_def.fields.vec.begin() &&
+        (*(std::prev(field_it)))->attributes.Lookup("id") &&
+        (*field_it)->attributes.Lookup("id")->constant ==
+            (*(std::prev(field_it)))->attributes.Lookup("id")->constant)
+      fprintf(stderr, "duplicate");
+
+    if ((*field_it)->value.type.base_type == BASE_TYPE_UNION) id++;
+    map.emplace((*field_it)->name, id++);
+  }
+
+  return map;
 }
 
 static void GenNameSpace(const Namespace &name_space, std::string *_schema,
@@ -94,7 +167,7 @@ std::string GenerateFBS(const Parser &parser, const std::string &file_name) {
     if (num_includes) schema += "\n";
     // clang-format on
   }
-  int counter = 999;
+
   // Generate code for all the enum declarations.
   const Namespace *last_namespace = nullptr;
   for (auto enum_def_it = parser.enums_.vec.begin();
@@ -109,7 +182,11 @@ std::string GenerateFBS(const Parser &parser, const std::string &file_name) {
       schema += "union " + enum_def.name;
     else
       schema += "enum " + enum_def.name + " : ";
+
     schema += GenType(enum_def.underlying_type, true) + " {\n";
+
+    auto map = MapEnumID(enum_def);
+
     for (auto it = enum_def.Vals().begin(); it != enum_def.Vals().end(); ++it) {
       auto &ev = **it;
       GenComment(ev.doc_comment, &schema, nullptr, "  ");
@@ -117,7 +194,7 @@ std::string GenerateFBS(const Parser &parser, const std::string &file_name) {
         schema += "  " + GenType(ev.union_type);
         const auto &id_str = ev.attributes.Lookup("id");
         if (id_str && !id_str->constant.empty())
-          schema += " (id: " + id_str->constant + ")";
+          schema += " (id: " + std::to_string(map[id_str->constant]) + ")";
         schema += ",\n";
       } else
         schema += "  " + ev.name + " = " + enum_def.ToString(ev) + ",\n";
@@ -128,6 +205,7 @@ std::string GenerateFBS(const Parser &parser, const std::string &file_name) {
   for (auto it = parser.structs_.vec.begin(); it != parser.structs_.vec.end();
        ++it) {
     StructDef &struct_def = **it;
+    auto map = MapFieldID(struct_def);
     if (parser.opts.include_dependence_headers && struct_def.generated) {
       continue;
     }
@@ -145,12 +223,9 @@ std::string GenerateFBS(const Parser &parser, const std::string &file_name) {
         if (field.IsRequired()) attributes.push_back("required");
         if (field.key) attributes.push_back("key");
 
-        const auto &id_str = field.attributes.Lookup("id");
-        if (id_str && !id_str->constant.empty())
-          attributes.push_back("id: " + id_str->constant);
-		else
-		  attributes.push_back("id: " + std::to_string(counter++));
-
+        auto it = map.find(field.name);
+        if (it != map.end())
+          attributes.push_back("id: " + std::to_string(it->second));
         if (!attributes.empty()) {
           schema += " (";
           for (const auto &attribute : attributes) {

@@ -918,10 +918,13 @@ CheckedError Parser::ParseField(StructDef &struct_def) {
   ECHECK(ParseType(type));
 
   if (struct_def.fixed) {
-    if (IsIncompleteStruct(type) || 
+    if (IsIncompleteStruct(type) ||
         (IsArray(type) && IsIncompleteStruct(type.VectorType()))) {
-      std::string type_name = IsArray(type) ? type.VectorType().struct_def->name : type.struct_def->name;
-      return Error(std::string("Incomplete type in struct is not allowed, type name: ") + type_name);
+      std::string type_name = IsArray(type) ? type.VectorType().struct_def->name
+                                            : type.struct_def->name;
+      return Error(
+          std::string("Incomplete type in struct is not allowed, type name: ") +
+          type_name);
     }
 
     auto valid = IsScalar(type.base_type) || IsStruct(type);
@@ -2659,15 +2662,7 @@ CheckedError Parser::ParseDecl(const char *filename) {
   if (!fixed && fields.size()) {
     size_t num_id_fields = 0;
     for (auto it = fields.begin(); it != fields.end(); ++it) {
-      if ((*it)->attributes.Lookup("id")) {
-        num_id_fields++;
-        voffset_t id = 0;
-        auto id_str = (*it)->attributes.Lookup("id")->constant;
-        const auto done = !atot(id_str.c_str(), *this, &id).Check();
-        if (!done)
-          return Error("field id\'s must be non-negative number, field: " +
-                       (*it)->name + ", id: " + id_str);
-      }
+      if ((*it)->attributes.Lookup("id")) num_id_fields++;
     }
     // If any fields have ids..
     if (num_id_fields || opts.require_explicit_ids) {
@@ -2685,17 +2680,26 @@ CheckedError Parser::ParseDecl(const char *filename) {
       // Simply sort by id, then the fields are the same as if no ids had
       // been specified.
       std::sort(fields.begin(), fields.end(), compareFieldDefs);
-      for (auto it = std::begin(fields); it != std::prev(std::end(fields));
-           std::advance(it, 1))
-        if ((*it)->attributes.Lookup("id")->constant ==
-            (*std::next(it))->attributes.Lookup("id")->constant)
-          return Error("field id\'s set twice, field: " + (*it)->name +
-                       ", id: " + (*it)->attributes.Lookup("id")->constant);
       // Verify we have a contiguous set, and reassign vtable offsets.
       FLATBUFFERS_ASSERT(fields.size() <=
                          flatbuffers::numeric_limits<voffset_t>::max());
       for (voffset_t i = 0; i < static_cast<voffset_t>(fields.size()); i++) {
         auto &field = *fields[i];
+        const auto &id_str = field.attributes.Lookup("id")->constant;
+
+        // Metadata values have a dynamic type, they can be `float`, 'int', or
+        // 'string`.
+        // The FieldIndexToOffset(i) expects the voffset_t so `id` is limited by
+        // this type.
+        voffset_t id = 0;
+        const auto done = !atot(id_str.c_str(), *this, &id).Check();
+        if (!done)
+          return Error("field id\'s must be non-negative number, field: " +
+                       field.name + ", id: " + id_str);
+        if (i != id)
+          return Error("field id\'s must be consecutive from 0, id " +
+                       NumToString(i) + " missing or set twice, field: " +
+                       field.name + ", id: " + id_str);
         field.value.offset = FieldIndexToOffset(i);
       }
     }
