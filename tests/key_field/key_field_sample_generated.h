@@ -67,12 +67,12 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(1) Baz FLATBUFFERS_FINAL_CLASS {
   bool KeyCompareLessThan(const Baz * const o) const {
     return KeyCompareWithValue(o->a()) < 0;
   }
-  int KeyCompareWithValue(const flatbuffers::Array<uint8_t, 4> *_a) const { 
+  int KeyCompareWithValue(const flatbuffers::Array<uint8_t, 4> *_a) const {
     const flatbuffers::Array<uint8_t, 4> *curr_a = a();
-    for (size_t i = 0; i < curr_a->size(); i++) {
+    for (auto i = 0; i < curr_a->size(); i++) {
       const auto lhs = curr_a->Get(i);
       const auto rhs = _a->Get(i);
-      if(lhs != rhs) 
+      if(lhs != rhs)
         return static_cast<int>(lhs > rhs) - static_cast<int>(lhs < rhs);
     }
     return 0;
@@ -140,12 +140,12 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) Bar FLATBUFFERS_FINAL_CLASS {
   bool KeyCompareLessThan(const Bar * const o) const {
     return KeyCompareWithValue(o->a()) < 0;
   }
-  int KeyCompareWithValue(const flatbuffers::Array<float, 3> *_a) const { 
+  int KeyCompareWithValue(const flatbuffers::Array<float, 3> *_a) const {
     const flatbuffers::Array<float, 3> *curr_a = a();
-    for (size_t i = 0; i < curr_a->size(); i++) {
+    for (auto i = 0; i < curr_a->size(); i++) {
       const auto lhs = curr_a->Get(i);
       const auto rhs = _a->Get(i);
-      if(lhs != rhs) 
+      if(lhs != rhs)
         return static_cast<int>(lhs > rhs) - static_cast<int>(lhs < rhs);
     }
     return 0;
