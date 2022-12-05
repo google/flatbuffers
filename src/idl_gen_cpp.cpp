@@ -60,9 +60,8 @@ static std::string GenIncludeGuard(const std::string &file_name,
   guard = "FLATBUFFERS_GENERATED_" + guard;
   guard += "_";
   // For further uniqueness, also add the namespace.
-  for (auto it = name_space.components.begin();
-       it != name_space.components.end(); ++it) {
-    guard += *it + "_";
+  for (const std::string &component : name_space.components) {
+    guard += component + "_";
   }
   // Anything extra to add to the guard?
   if (!postfix.empty()) { guard += postfix + "_"; }
@@ -236,7 +235,7 @@ class CppGenerator : public BaseGenerator {
 
   void GenIncludeDependencies() {
     if (opts_.generate_object_based_api) {
-      for (const auto &native_included_file : parser_.native_included_files_) {
+      for (const std::string &native_included_file : parser_.native_included_files_) {
         code_ += "#include \"" + native_included_file + "\"";
       }
     }
@@ -271,7 +270,7 @@ class CppGenerator : public BaseGenerator {
   }
 
   void GenExtraIncludes() {
-    for (const auto & cpp_include : opts_.cpp_includes) {
+    for (const std::string &cpp_include : opts_.cpp_includes) {
       code_ += "#include \"" + cpp_include + "\"";
     }
     if (!opts_.cpp_includes.empty()) { code_ += ""; }
@@ -410,17 +409,16 @@ class CppGenerator : public BaseGenerator {
 
     // Generate forward declarations for all structs/tables, since they may
     // have circular references.
-    for (auto it : parser_.structs_.vec) {
-      const auto &struct_def = *it;
-      if (!struct_def.generated) {
-        SetNameSpace(struct_def.defined_namespace);
-        code_ += "struct " + Name(struct_def) + ";";
-        if (!struct_def.fixed) {
-          code_ += "struct " + Name(struct_def) + "Builder;";
+    for (const auto &struct_def : parser_.structs_.vec) {
+      if (!struct_def->generated) {
+        SetNameSpace(struct_def->defined_namespace);
+        code_ += "struct " + Name(*struct_def) + ";";
+        if (!struct_def->fixed) {
+          code_ += "struct " + Name(*struct_def) + "Builder;";
         }
         if (opts_.generate_object_based_api) {
-          auto nativeName = NativeName(Name(struct_def), &struct_def, opts_);
-          if (!struct_def.fixed) { code_ += "struct " + nativeName + ";"; }
+          auto nativeName = NativeName(Name(*struct_def), struct_def, opts_);
+          if (!struct_def->fixed) { code_ += "struct " + nativeName + ";"; }
         }
         code_ += "";
       }
@@ -428,11 +426,10 @@ class CppGenerator : public BaseGenerator {
 
     // Generate forward declarations for all equal operators
     if (opts_.generate_object_based_api && opts_.gen_compare) {
-      for (const auto &it : parser_.structs_.vec) {
-        const auto &struct_def = *it;
-        if (!struct_def.generated) {
-          SetNameSpace(struct_def.defined_namespace);
-          auto nativeName = NativeName(Name(struct_def), &struct_def, opts_);
+      for (const auto &struct_def : parser_.structs_.vec) {
+        if (!struct_def->generated) {
+          SetNameSpace(struct_def->defined_namespace);
+          auto nativeName = NativeName(Name(*struct_def), struct_def, opts_);
           code_ += "bool operator==(const " + nativeName + " &lhs, const " +
                    nativeName + " &rhs);";
           code_ += "bool operator!=(const " + nativeName + " &lhs, const " +
@@ -1451,12 +1448,12 @@ class CppGenerator : public BaseGenerator {
                NumToString(range + 1 + 1) + "] = {";
 
       auto val = enum_def.Vals().front();
-      for (const auto &ev : enum_def.Vals()) {
-        for (auto k = enum_def.Distance(val, ev); k > 1; --k) {
+      for (const auto &enum_value : enum_def.Vals()) {
+        for (auto k = enum_def.Distance(val, enum_value); k > 1; --k) {
           code_ += "    \"\",";
         }
-        val = ev;
-        code_ += "    \"" + Name(*ev) + "\",";
+        val = enum_value;
+        code_ += "    \"" + Name(*enum_value) + "\",";
       }
       code_ += "    nullptr";
       code_ += "  };";
@@ -1814,7 +1811,7 @@ class CppGenerator : public BaseGenerator {
                       : GenTypeNativePtr(cpp_type->constant, &field, false))
                : type + " ");
       // Generate default member initializers for >= C++11.
-      std::string field_di = "";
+      std::string field_di;
       if (opts_.g_cpp_std >= cpp::CPP_STD_11) {
         field_di = "{}";
         auto native_default = field.attributes.Lookup("native_default");
@@ -3860,7 +3857,7 @@ std::string CPPMakeRule(const Parser &parser, const std::string &path,
   const auto included_files = parser.GetIncludedFilesRecursive(file_name);
   std::string make_rule =
       geneartor.GeneratedFileName(path, filebase, parser.opts) + ": ";
-  for (const auto &included_file : included_files) {
+  for (const std::string &included_file : included_files) {
     make_rule += " " + included_file;
   }
   return make_rule;
