@@ -20,8 +20,8 @@ use crate::vtable::VTable;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct Table<'a> {
-    buf: &'a [u8],
-    loc: usize,
+    pub buf: &'a [u8],
+    pub loc: usize,
 }
 
 impl<'a> Table<'a> {
