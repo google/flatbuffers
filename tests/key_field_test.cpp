@@ -24,7 +24,9 @@ void FixedSizedScalarKeyInStructTest() {
   bazs.push_back(Baz(flatbuffers::make_span(test_array3), 2));
   bazs.push_back(Baz(flatbuffers::make_span(test_array4), 3));
   auto baz_vec = fbb.CreateVectorOfSortedStructs(&bazs);
+
   auto test_string = fbb.CreateString("TEST");
+
   float test_float_array1[3] = { 1.5, 2.5, 0 };
   float test_float_array2[3] = { 7.5, 2.5, 0 };
   float test_float_array3[3] = { 1.5, 2.5, -1 };
@@ -36,6 +38,7 @@ void FixedSizedScalarKeyInStructTest() {
   bars.push_back(Bar(flatbuffers::make_span(test_float_array4), 1));
   auto bar_vec = fbb.CreateVectorOfSortedStructs(&bars);
 
+
   auto t = CreateFooTable(fbb, 1, 2, test_string, baz_vec, bar_vec);
   fbb.Finish(t);
 
@@ -45,26 +48,34 @@ void FixedSizedScalarKeyInStructTest() {
   auto sorted_baz_vec = foo_table->d();
   TEST_EQ(sorted_baz_vec->Get(0)->b(), 1);
   TEST_EQ(sorted_baz_vec->Get(3)->b(), 4);
+
+  uint8_t test_array[4];
+  auto* key_array = &flatbuffers::CastToArray(test_array);
+  key_array->CopyFromSpan(flatbuffers::make_span(test_array1));
+
+
   TEST_NOTNULL(
-      sorted_baz_vec->LookupByKey(&flatbuffers::CastToArray(test_array1)));
+      sorted_baz_vec->LookupByKey(key_array));
   TEST_EQ(
-      sorted_baz_vec->LookupByKey(&flatbuffers::CastToArray(test_array1))->b(),
+      sorted_baz_vec->LookupByKey(key_array)->b(),
       4);
   uint8_t array_int[4] = { 7, 2, 3, 0 };
-  TEST_EQ(sorted_baz_vec->LookupByKey(&flatbuffers::CastToArray(array_int)),
+  key_array->CopyFromSpan(flatbuffers::make_span(array_int));
+  TEST_EQ(sorted_baz_vec->LookupByKey(key_array),
           static_cast<const Baz *>(nullptr));
 
   auto sorted_bar_vec = foo_table->e();
   TEST_EQ(sorted_bar_vec->Get(0)->b(), 1);
   TEST_EQ(sorted_bar_vec->Get(3)->b(), 4);
-  TEST_NOTNULL(sorted_bar_vec->LookupByKey(
-      &flatbuffers::CastToArray(test_float_array1)));
-  TEST_EQ(
-      sorted_bar_vec->LookupByKey(&flatbuffers::CastToArray(test_float_array1))
-          ->b(),
-      3);
+
+  float test_float_array[3];
+  auto* key_float_array = &flatbuffers::CastToArray(test_float_array);
+  key_float_array->CopyFromSpan(flatbuffers::make_span(test_float_array1));
+  TEST_NOTNULL(sorted_bar_vec->LookupByKey(key_float_array));
+  TEST_EQ(sorted_bar_vec->LookupByKey(key_float_array)->b(), 3);
   float array_float[3] = { -1, -2, -3 };
-  TEST_EQ(sorted_bar_vec->LookupByKey(&flatbuffers::CastToArray(array_float)),
+  key_float_array->CopyFromSpan(flatbuffers::make_span(array_float));
+  TEST_EQ(sorted_bar_vec->LookupByKey(key_float_array),
           static_cast<const Bar *>(nullptr));
 }
 
