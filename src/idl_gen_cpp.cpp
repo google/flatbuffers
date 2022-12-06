@@ -2273,7 +2273,7 @@ class CppGenerator : public BaseGenerator {
         code_ +=
             "    const {{INPUT_TYPE}} *curr_{{FIELD_NAME}} = {{FIELD_NAME}}();";
         code_ +=
-            "    for (uint32_t i = 0; i < curr_{{FIELD_NAME}}->size(); i++) {";
+            "    for (flatbuffers::uoffset_t i = 0; i < curr_{{FIELD_NAME}}->size(); i++) {";
         code_ += "      const auto lhs = curr_{{FIELD_NAME}}->Get(i);";
         code_ += "      const auto rhs = _{{FIELD_NAME}}->Get(i);";
         code_ += "      if(lhs != rhs) ";
