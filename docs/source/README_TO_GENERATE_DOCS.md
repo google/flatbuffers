@@ -4,7 +4,7 @@ To generate the docs for FlatBuffers from the source files, you
 will first need to install two programs.
 
 1. You will need to install `doxygen`. See
-   [Download Doxygen](http://www.stack.nl/~dimitri/doxygen/download.html).
+   [Download Doxygen](https://doxygen.nl/download.html).
 
 2. You will need to install `doxypypy` to format python comments appropriately.
    Install it from [here](https://github.com/Feneric/doxypypy).
