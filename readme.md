@@ -40,12 +40,9 @@ Code generation and runtime libraries for many popular languages.
 1. PHP
 1. Python - [PyPi](https://pypi.org/project/flatbuffers/)
 1. Rust - [crates.io](https://crates.io/crates/flatbuffers)
-1. Swift
+1. Swift - [swiftpackageindex](https://swiftpackageindex.com/google/flatbuffers)
 1. TypeScript - [NPM](https://www.npmjs.com/package/flatbuffers)
-
-*and more in progress...*
-
-1. [Nim](https://github.com/google/flatbuffers/pull/7362)
+1. Nim
 
 ## Contribution
 
