@@ -17,6 +17,8 @@
 // independent from idl_parser, since this code is not needed for most clients
 
 #include <unordered_map>
+#include <utility>
+#include <vector>
 
 #include "flatbuffers/code_generators.h"
 #include "flatbuffers/flatbuffers.h"
@@ -41,96 +43,49 @@ static std::string GenType(const Type &type, bool underlying = false) {
   }
 }
 
-static std::unordered_map<std::string, int> MapUnionId(
-    const EnumDef &enum_def) {
-  if (!enum_def.is_union) return {};
-
-  std::unordered_map<std::string, int> map;
-  std::vector<voffset_t> ids;
-  voffset_t id = 0;
-  for (const auto &it : enum_def.Vals()) {
-    if (it->attributes.Lookup("id")) {
-      if (StringToNumber(it->attributes.Lookup("id")->constant.c_str(), &id))
-        ids.push_back(id);
+static std::unordered_map<std::string, int> MapStructId(
+    const StructDef &struct_def) {
+  std::vector<std::pair<std::string, std::string> > ids;
+  size_t counter = 0;
+  bool missed = false;
+  // Check if there is a field with id or not.
+  for (const auto &field_it : struct_def.fields.vec) {
+    if (field_it->attributes.Lookup("id")) {
+      counter++;
+      if (field_it->attributes.Lookup("id")->constant.empty() &&
+          field_it->value.type.base_type != BASE_TYPE_UNION)
+        ids.push_back(std::make_pair("0", field_it->name));
       else
-        fprintf(
-            stderr,
-            "Field id in field %s in Union %s is not a non-negative number\n",
-            it->name.c_str(), enum_def.name.c_str());
-    } else
-      fprintf(stderr, "Field id in field %s in Union %s is missing\n",
-              it->name.c_str(), enum_def.name.c_str());
+        ids.push_back(std::make_pair(
+            field_it->attributes.Lookup("id")->constant, field_it->name));
+    } else {
+      if (field_it->value.type.base_type != BASE_TYPE_UNION) missed = true;
+      ids.push_back(std::make_pair(std::string(), field_it->name));
+    }
   }
 
-  std::sort(ids.begin(), ids.end());
-  voffset_t generated_id = 0;
-  for (auto id : ids) {
-    auto result = map.emplace(NumToString(id), generated_id++);
-    if (!result.second)
-      fprintf(stderr, "Id %u is set twice in Union %s\n", id,
-              enum_def.name.c_str());
+  // Non of the fields have id
+  if (counter == 0) return {};
+  if (missed)
+    fprintf(stderr, "Field id in struct : %s is missing\n",
+            struct_def.name.c_str());
+
+  // Sort ids, consider 0 if the field does not have an id.
+  std::sort(ids.begin(), ids.end(), [](const auto &lhs, const auto &rhs) {
+    auto a_id = lhs.first.empty() ? 0 : std::stoi(lhs.first);
+    auto b_id = rhs.first.empty() ? 0 : std::stoi(rhs.first);
+    return a_id < b_id;
+  });
+
+  std::unordered_map<std::string, int> map;
+
+  voffset_t id = 0;
+  for (const auto &element : ids) {
+    if (element.first.empty()) id++;
+    map.emplace(element.second, id++);
   }
 
   return map;
-}
-
-static void MapStructId(StructDef &struct_def) {
-  // Check if there is a field with id or not.
-  bool has_id = false;
-  for (const auto &field_it : struct_def.fields.vec) {
-    if (field_it->attributes.Lookup("id")) {
-      has_id = true;
-      break;
-    }
-  }
-  // Non of the fields have id
-  if (!has_id) return;
-
-  // Sort struct fields based on ids, consider 0 if the field does not have an
-  // id or it is empty.
-  std::sort(struct_def.fields.vec.begin(), struct_def.fields.vec.end(),
-            [](const FieldDef *a, const FieldDef *b) {
-              auto a_id = 0;
-              if (a->attributes.Lookup("id") &&
-                  !a->attributes.Lookup("id")->constant.empty())
-                a_id = std::stoi(a->attributes.Lookup("id")->constant);
-
-              auto b_id = 0;
-              if (b->attributes.Lookup("id") &&
-                  !b->attributes.Lookup("id")->constant.empty())
-                b_id = std::stoi(b->attributes.Lookup("id")->constant);
-
-              return a_id < b_id;
-            });
-  // Check for duplicate id usage
-  for (auto it = std::next(struct_def.fields.vec.begin());
-       it != struct_def.fields.vec.end(); it++) {
-    if ((*(it - 1))->attributes.Lookup("id") && (*it)->attributes.Lookup("id"))
-      if ((*(it - 1))->attributes.Lookup("id")->constant ==
-          (*it)->attributes.Lookup("id")->constant)
-        fprintf(stderr, "Id %s is set twice in struct %s\n",
-                (*it)->attributes.Lookup("id")->constant.c_str(),
-                struct_def.name.c_str());
-  }
-
-  voffset_t id = 0;
-  for (auto field_it = struct_def.fields.vec.begin();
-       field_it != struct_def.fields.vec.end(); ++field_it) {
-    if (!(*field_it)->attributes.Lookup("id") &&
-        (*field_it)->value.type.base_type != BASE_TYPE_UNION)
-      fprintf(stderr, "Field id in field %s in struct : %s is missing\n",
-              (*field_it)->name.c_str(), struct_def.name.c_str());
-
-    if ((*field_it)->value.type.base_type == BASE_TYPE_UNION) id++;
-
-    if ((*field_it)->attributes.Lookup("id"))
-      (*field_it)->attributes.Lookup("id")->constant = NumToString(id++);
-    else {
-      auto val = new Value();
-      val->constant = NumToString(id++);
-      (*field_it)->attributes.Add("id", val);
-    }
-  }
 }
 
 static void GenNameSpace(const Namespace &name_space, std::string *_schema,
@@ -206,17 +161,12 @@ std::string GenerateFBS(const Parser &parser, const std::string &file_name) {
 
     schema += GenType(enum_def.underlying_type, true) + " {\n";
 
-    const auto map = MapUnionId(enum_def);
     for (auto it = enum_def.Vals().begin(); it != enum_def.Vals().end(); ++it) {
       auto &ev = **it;
       GenComment(ev.doc_comment, &schema, nullptr, "  ");
-      if (enum_def.is_union) {
-        schema += "  " + GenType(ev.union_type);
-        const auto &id_str = ev.attributes.Lookup("id");
-        if (id_str && !id_str->constant.empty())
-          schema += " (id: " + NumToString(map.at(id_str->constant)) + ")";
-        schema += ",\n";
-      } else
+      if (enum_def.is_union)
+        schema += "  " + GenType(ev.union_type) + ",\n";
+      else
         schema += "  " + ev.name + " = " + enum_def.ToString(ev) + ",\n";
     }
     schema += "}\n\n";
@@ -225,7 +175,7 @@ std::string GenerateFBS(const Parser &parser, const std::string &file_name) {
   for (auto it = parser.structs_.vec.begin(); it != parser.structs_.vec.end();
        ++it) {
     StructDef &struct_def = **it;
-    MapStructId(struct_def);
+    const auto map = MapStructId(struct_def);
     if (parser.opts.include_dependence_headers && struct_def.generated) {
       continue;
     }
@@ -243,9 +193,9 @@ std::string GenerateFBS(const Parser &parser, const std::string &file_name) {
         if (field.IsRequired()) attributes.push_back("required");
         if (field.key) attributes.push_back("key");
 
-        if (field.attributes.Lookup("id"))
-          attributes.push_back("id: " +
-                               field.attributes.Lookup("id")->constant);
+        auto it = map.find(field.name);
+        if (it != map.end())
+          attributes.push_back("id: " + NumToString(it->second));
         if (!attributes.empty()) {
           schema += " (";
           for (const auto &attribute : attributes) {

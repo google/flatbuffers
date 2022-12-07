@@ -2969,7 +2969,7 @@ CheckedError Parser::ParseProtoFields(StructDef *struct_def, bool isextend,
       }
       std::string name = attribute_;
       EXPECT(kTokenIdentifier);
-      std::string id = "";
+      std::string id;
       if (!oneof) {
         // Parse the field id. Since we're just translating schemas, not
         // any kind of binary compatibility, we can safely ignore these, and
@@ -2986,9 +2986,11 @@ CheckedError Parser::ParseProtoFields(StructDef *struct_def, bool isextend,
       }
       if (!field) ECHECK(AddField(*struct_def, name, type, &field));
       field->doc_comment = field_comment;
-      auto val = new Value();
-      val->constant = id;
-      field->attributes.Add("id", val);
+      if (!id.empty() || oneof) {
+        auto val = new Value();
+        val->constant = id;
+        field->attributes.Add("id", val);
+      }
       if (!IsScalar(type.base_type) && required) {
         field->presence = FieldDef::kRequired;
       }
@@ -3043,9 +3045,6 @@ CheckedError Parser::ParseProtoFields(StructDef *struct_def, bool isextend,
           auto ev = evb.CreateEnumerator(oneof_type.struct_def->name);
           ev->union_type = oneof_type;
           ev->doc_comment = oneof_field.doc_comment;
-          auto val = new Value();
-          val->constant = oneof_field.attributes.Lookup("id")->constant;
-          ev->attributes.Add("id", val);
           ECHECK(evb.AcceptEnumerator(oneof_field.name));
         }
       } else {
@@ -3089,9 +3088,11 @@ CheckedError Parser::ParseProtoMapField(StructDef *struct_def) {
   field_type.struct_def = entry_table;
   FieldDef *field;
   ECHECK(AddField(*struct_def, field_name, field_type, &field));
-  auto val = new Value();
-  val->constant = id;
-  field->attributes.Add("id", val);
+  if (!id.empty()) {
+    auto val = new Value();
+    val->constant = id;
+    field->attributes.Add("id", val);
+  }
 
   return NoError();
 }

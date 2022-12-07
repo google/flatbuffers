@@ -25,10 +25,10 @@ namespace proto.test.ProtoMessage_;
 
 union RUnion {
   /// doc comment for s.
-  proto.test.ImportedMessage (id: 0),
+  proto.test.ImportedMessage,
   /// doc comment for t on 2
   /// lines.
-  proto.test.ProtoMessage_.OtherMessage (id: 1),
+  proto.test.ProtoMessage_.OtherMessage,
 }
 
 namespace proto.test;
@@ -36,9 +36,9 @@ namespace proto.test;
 /// 2nd table doc comment with
 /// many lines.
 table ProtoMessage {
-  /// doc comment for r.
-  r:proto.test.ProtoMessage_.RUnion (id: 1);
+  c:int = 16 (id: 13);
   d:long (id: 2);
+  p:uint (id: 22);
   e:ulong (id: 3);
   /// doc comment for f.
   f:int = -1 (id: 4);
@@ -53,17 +53,17 @@ table ProtoMessage {
   /// lines
   l:string (required,id: 11);
   m:[ubyte] (id: 12);
-  c:int = 16 (id: 13);
+  n:proto.test.ProtoMessage_.OtherMessage (id: 23);
   o:[string] (id: 14);
   z:proto.test.ImportedMessage (id: 15);
+  /// doc comment for r.
+  r:proto.test.ProtoMessage_.RUnion (id: 1);
   outer_enum:proto.test.ProtoEnum (id: 16);
   u:float = +inf (id: 17);
   v:float = +inf (id: 18);
   w:float = -inf (id: 19);
   grades:[proto.test.ProtoMessage_.GradesEntry] (id: 20);
   other_message_map:[proto.test.ProtoMessage_.OtherMessageMapEntry] (id: 21);
-  p:uint (id: 22);
-  n:proto.test.ProtoMessage_.OtherMessage (id: 23);
 }
 
 namespace proto.test.ProtoMessage_;

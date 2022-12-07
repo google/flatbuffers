@@ -26,9 +26,9 @@ namespace proto.test;
 /// 2nd table doc comment with
 /// many lines.
 table ProtoMessage {
-  /// doc comment for r.
-  r:proto.test.ProtoMessage_.Anonymous0 (id: 0);
+  c:int = 16 (id: 12);
   d:long (id: 1);
+  p:uint (id: 21);
   e:ulong (id: 2);
   /// doc comment for f.
   f:int = -1 (id: 3);
@@ -43,17 +43,17 @@ table ProtoMessage {
   /// lines
   l:string (required,id: 10);
   m:[ubyte] (id: 11);
-  c:int = 16 (id: 12);
+  n:proto.test.ProtoMessage_.OtherMessage (id: 22);
   o:[string] (id: 13);
   z:proto.test.ImportedMessage (id: 14);
+  /// doc comment for r.
+  r:proto.test.ProtoMessage_.Anonymous0 (id: 0);
   outer_enum:proto.test.ProtoEnum (id: 15);
   u:float = +inf (id: 16);
   v:float = +inf (id: 17);
   w:float = -inf (id: 18);
   grades:[proto.test.ProtoMessage_.GradesEntry] (id: 19);
   other_message_map:[proto.test.ProtoMessage_.OtherMessageMapEntry] (id: 20);
-  p:uint (id: 21);
-  n:proto.test.ProtoMessage_.OtherMessage (id: 22);
 }
 
 namespace proto.test.ProtoMessage_;
