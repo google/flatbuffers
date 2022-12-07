@@ -36,7 +36,7 @@ class Referrable : Table() {
         return (val_1 - val_2).sign
     }
     companion object {
-        fun validateVersion() = Constants.FLATBUFFERS_22_11_23()
+        fun validateVersion() = Constants.FLATBUFFERS_22_12_06()
         fun getRootAsReferrable(_bb: ByteBuffer): Referrable = getRootAsReferrable(_bb, Referrable())
         fun getRootAsReferrable(_bb: ByteBuffer, obj: Referrable): Referrable {
             _bb.order(ByteOrder.LITTLE_ENDIAN)

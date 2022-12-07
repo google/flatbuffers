@@ -4,7 +4,11 @@ All major or breaking changes will be documented in this file, as well as any
 new features that should be highlighted. Minor fixes or improvements are not
 necessarily listed.
 
-## 22.10.25 (Oct 25 2002)
+## 22.12.06 (Dec 06 2022)
+
+* Bug fixing release, no major changes.
+
+## 22.10.25 (Oct 25 2022)
 
 * Added Nim language support with generator and runtime libraries (#7534).
 

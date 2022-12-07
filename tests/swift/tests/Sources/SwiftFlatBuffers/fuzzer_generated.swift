@@ -32,7 +32,7 @@ extension Color: Encodable {
 
 public struct Test: NativeStruct, Verifiable, FlatbuffersInitializable {
 
-  static func validateVersion() { FlatBuffersVersion_22_11_23() }
+  static func validateVersion() { FlatBuffersVersion_22_12_06() }
 
   private var _a: Int16
   private var _b: Int8
@@ -81,7 +81,7 @@ extension Test: Encodable {
 
 public struct Test_Mutable: FlatBufferObject {
 
-  static func validateVersion() { FlatBuffersVersion_22_11_23() }
+  static func validateVersion() { FlatBuffersVersion_22_12_06() }
   public var __buffer: ByteBuffer! { return _accessor.bb }
   private var _accessor: Struct
 
@@ -93,7 +93,7 @@ public struct Test_Mutable: FlatBufferObject {
 
 public struct Vec3: NativeStruct, Verifiable, FlatbuffersInitializable {
 
-  static func validateVersion() { FlatBuffersVersion_22_11_23() }
+  static func validateVersion() { FlatBuffersVersion_22_12_06() }
 
   private var _x: Float32
   private var _y: Float32
@@ -178,7 +178,7 @@ extension Vec3: Encodable {
 
 public struct Vec3_Mutable: FlatBufferObject {
 
-  static func validateVersion() { FlatBuffersVersion_22_11_23() }
+  static func validateVersion() { FlatBuffersVersion_22_12_06() }
   public var __buffer: ByteBuffer! { return _accessor.bb }
   private var _accessor: Struct
 
@@ -195,7 +195,7 @@ public struct Vec3_Mutable: FlatBufferObject {
 ///  an example documentation comment: "monster object"
 public struct Monster: FlatBufferObject, Verifiable {
 
-  static func validateVersion() { FlatBuffersVersion_22_11_23() }
+  static func validateVersion() { FlatBuffersVersion_22_12_06() }
   public var __buffer: ByteBuffer! { return _accessor.bb }
   private var _accessor: Table
 

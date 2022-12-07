@@ -31,7 +31,7 @@ public enum MyGame_Sample_Equipment: UInt8, Enum {
 
 public struct MyGame_Sample_Vec3: NativeStruct {
 
-  static func validateVersion() { FlatBuffersVersion_22_11_23() }
+  static func validateVersion() { FlatBuffersVersion_22_12_06() }
 
   private var _x: Float32
   private var _y: Float32
@@ -56,7 +56,7 @@ public struct MyGame_Sample_Vec3: NativeStruct {
 
 public struct MyGame_Sample_Vec3_Mutable: FlatBufferObject {
 
-  static func validateVersion() { FlatBuffersVersion_22_11_23() }
+  static func validateVersion() { FlatBuffersVersion_22_12_06() }
   public var __buffer: ByteBuffer! { return _accessor.bb }
   private var _accessor: Struct
 
@@ -72,7 +72,7 @@ public struct MyGame_Sample_Vec3_Mutable: FlatBufferObject {
 
 public struct MyGame_Sample_Monster: FlatBufferObject {
 
-  static func validateVersion() { FlatBuffersVersion_22_11_23() }
+  static func validateVersion() { FlatBuffersVersion_22_12_06() }
   public var __buffer: ByteBuffer! { return _accessor.bb }
   private var _accessor: Table
 
@@ -162,7 +162,7 @@ public struct MyGame_Sample_Monster: FlatBufferObject {
 
 public struct MyGame_Sample_Weapon: FlatBufferObject {
 
-  static func validateVersion() { FlatBuffersVersion_22_11_23() }
+  static func validateVersion() { FlatBuffersVersion_22_12_06() }
   public var __buffer: ByteBuffer! { return _accessor.bb }
   private var _accessor: Table
 

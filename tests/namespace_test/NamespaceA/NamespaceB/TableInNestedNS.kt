@@ -32,7 +32,7 @@ class TableInNestedNS : Table() {
         }
     }
     companion object {
-        fun validateVersion() = Constants.FLATBUFFERS_22_11_23()
+        fun validateVersion() = Constants.FLATBUFFERS_22_12_06()
         fun getRootAsTableInNestedNS(_bb: ByteBuffer): TableInNestedNS = getRootAsTableInNestedNS(_bb, TableInNestedNS())
         fun getRootAsTableInNestedNS(_bb: ByteBuffer, obj: TableInNestedNS): TableInNestedNS {
             _bb.order(ByteOrder.LITTLE_ENDIAN)
