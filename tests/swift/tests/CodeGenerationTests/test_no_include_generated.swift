@@ -4,7 +4,7 @@
 
 public struct BytesCount: NativeStruct, Verifiable, FlatbuffersInitializable, NativeObject {
 
-  static func validateVersion() { FlatBuffersVersion_22_11_23() }
+  static func validateVersion() { FlatBuffersVersion_22_12_06() }
 
   private var _x: Int64
 
@@ -47,7 +47,7 @@ extension BytesCount: Encodable {
 
 public struct BytesCount_Mutable: FlatBufferObject {
 
-  static func validateVersion() { FlatBuffersVersion_22_11_23() }
+  static func validateVersion() { FlatBuffersVersion_22_12_06() }
   public var __buffer: ByteBuffer! { return _accessor.bb }
   private var _accessor: Struct
 
@@ -72,7 +72,7 @@ public struct BytesCount_Mutable: FlatBufferObject {
 
 public struct InternalMessage: FlatBufferObject, Verifiable, ObjectAPIPacker {
 
-  static func validateVersion() { FlatBuffersVersion_22_11_23() }
+  static func validateVersion() { FlatBuffersVersion_22_12_06() }
   public var __buffer: ByteBuffer! { return _accessor.bb }
   private var _accessor: Table
 
@@ -157,7 +157,7 @@ public class InternalMessageT: NativeObject {
 }
 public struct Message: FlatBufferObject, Verifiable, ObjectAPIPacker {
 
-  static func validateVersion() { FlatBuffersVersion_22_11_23() }
+  static func validateVersion() { FlatBuffersVersion_22_12_06() }
   public var __buffer: ByteBuffer! { return _accessor.bb }
   private var _accessor: Table
 
