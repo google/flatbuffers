@@ -384,7 +384,7 @@ class Reference {
 
   Reference(const uint8_t *data, uint8_t parent_width, uint8_t packed_type)
       : data_(data), parent_width_(parent_width) {
-    byte_width_ = 1U << static_cast<BitWidth>(packed_type & 3);
+    byte_width_ = static_cast<BitWidth>(1U << (packed_type & 3));
     type_ = static_cast<Type>(packed_type >> 2);
   }
 
