@@ -44,7 +44,7 @@ static std::string GenType(const Type &type, bool underlying = false) {
 }
 
 static std::unordered_map<std::string, int> MapStructId(
-    const StructDef &struct_def) {
+    const StructDef &struct_def, IDLOptions::ProtoIdGapAction gap_action) {
   std::vector<std::pair<std::string, std::string> > ids;
   size_t counter = 0;
   bool missed = false;
@@ -54,7 +54,7 @@ static std::unordered_map<std::string, int> MapStructId(
       counter++;
       if (field_it->attributes.Lookup("id")->constant.empty() &&
           field_it->value.type.base_type != BASE_TYPE_UNION)
-        ids.push_back(std::make_pair("0", field_it->name));
+        ids.push_back(std::make_pair("-1", field_it->name));
       else
         ids.push_back(std::make_pair(
             field_it->attributes.Lookup("id")->constant, field_it->name));
@@ -76,6 +76,42 @@ static std::unordered_map<std::string, int> MapStructId(
     auto b_id = rhs.first.empty() ? 0 : std::stoi(rhs.first);
     return a_id < b_id;
   });
+
+  for (auto it = std::next(ids.begin()); it != ids.end(); it++) {
+    if (std::find(struct_def.reserved_ids.begin(),
+                  struct_def.reserved_ids.end(),
+                  stoul(it->first)) != struct_def.reserved_ids.end())
+      fprintf(stderr,
+              "Field %s with id %s in struct %s uses id from reserved ids\n",
+              it->second.c_str(), it->first.c_str(), struct_def.name.c_str());
+
+    // Check for twice use of ids
+    if (!it->first.empty() && std::prev(it)->first == it->first)
+      fprintf(stderr, "Fields %s and %s with use id %s in struct %s twice\n",
+              it->second.c_str(), std::prev(it)->second.c_str(),
+              it->first.c_str(), struct_def.name.c_str());
+
+    if (gap_action != IDLOptions::ProtoIdGapAction::NO_OP) {
+      if (!it->first.empty() && !std::prev(it)->first.empty() &&
+          it->first != "-1" && std::prev(it)->first != "-1")
+        if (std::stoi(it->first) != std::stoi(std::prev(it)->first) + 1) {
+          if (gap_action == IDLOptions::ProtoIdGapAction::ERROR)
+            fprintf(stderr,
+                    "Field %s with id %s  and field %s with id %s in struct : "
+                    "%s have gap\n",
+                    it->second.c_str(), it->first.c_str(),
+                    std::prev(it)->second.c_str(), std::prev(it)->first.c_str(),
+                    struct_def.name.c_str());
+          else if (gap_action == IDLOptions::ProtoIdGapAction::WARNING)
+            printf(
+                "Field %s with id %s  and field %s with id %s in struct : %s "
+                "have gap\n",
+                it->second.c_str(), it->first.c_str(),
+                std::prev(it)->second.c_str(), std::prev(it)->first.c_str(),
+                struct_def.name.c_str());
+        }
+    }
+  }
 
   std::unordered_map<std::string, int> map;
 
@@ -175,7 +211,8 @@ std::string GenerateFBS(const Parser &parser, const std::string &file_name) {
   for (auto it = parser.structs_.vec.begin(); it != parser.structs_.vec.end();
        ++it) {
     StructDef &struct_def = **it;
-    const auto map = MapStructId(struct_def);
+    const auto map =
+        MapStructId(struct_def, parser.opts.disallow_proto_field_gaps);
     if (parser.opts.include_dependence_headers && struct_def.generated) {
       continue;
     }
@@ -193,9 +230,12 @@ std::string GenerateFBS(const Parser &parser, const std::string &file_name) {
         if (field.IsRequired()) attributes.push_back("required");
         if (field.key) attributes.push_back("key");
 
-        auto it = map.find(field.name);
-        if (it != map.end())
-          attributes.push_back("id: " + NumToString(it->second));
+        if (parser.opts.keep_proto_id) {
+          auto it = map.find(field.name);
+          if (it != map.end())
+            attributes.push_back("id: " + NumToString(it->second));
+        }
+
         if (!attributes.empty()) {
           schema += " (";
           for (const auto &attribute : attributes) {

@@ -2911,7 +2911,27 @@ CheckedError Parser::ParseProtoFields(StructDef *struct_def, bool isextend,
       EXPECT(';');
     } else if (IsIdent("reserved")) {  // Skip these.
       NEXT();
-      while (!Is(';')) { NEXT(); }  // A variety of formats, just skip.
+      bool range = false;
+      std::string from;
+      std::string to;
+
+      while (!Is(';')) {
+        if (token_ == kTokenIntegerConstant) {
+          if (range) {
+            for (int id = std::stoi(from) + 1; id <= stoi(attribute_); id++)
+              struct_def->reserved_ids.push_back(id);
+            range = false;
+          } else
+            struct_def->reserved_ids.push_back(std::stoi(attribute_));
+
+          from = attribute_;
+        }
+
+        if (attribute_ == "to") range = true;
+
+        NEXT();
+      }  // A variety of formats, just skip.
+
       NEXT();
     } else if (IsIdent("map")) {
       ECHECK(ParseProtoMapField(struct_def));
