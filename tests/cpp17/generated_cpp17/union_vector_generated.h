@@ -9,8 +9,8 @@
 // Ensure the included flatbuffers.h is the same version as when this file was
 // generated, otherwise it may not be compatible.
 static_assert(FLATBUFFERS_VERSION_MAJOR == 22 &&
-              FLATBUFFERS_VERSION_MINOR == 11 &&
-              FLATBUFFERS_VERSION_REVISION == 23,
+              FLATBUFFERS_VERSION_MINOR == 12 &&
+              FLATBUFFERS_VERSION_REVISION == 6,
              "Non-compatible flatbuffers version included");
 
 struct Attacker;
