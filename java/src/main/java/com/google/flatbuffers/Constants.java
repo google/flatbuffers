@@ -46,7 +46,7 @@ public class Constants {
     Changes to the Java implementation need to be sure to change
     the version here and in the code generator on every possible
     incompatible change */
-    public static void FLATBUFFERS_22_11_23() {}
+    public static void FLATBUFFERS_22_12_06() {}
 }
 
 /// @endcond
