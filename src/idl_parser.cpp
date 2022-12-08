@@ -2918,7 +2918,8 @@ CheckedError Parser::ParseProtoFields(StructDef *struct_def, bool isextend,
       while (!Is(';')) {
         if (token_ == kTokenIntegerConstant) {
           if (range) {
-            for (voffset_t id = std::stoul(from) + 1; id <= stoul(attribute_); id++)
+            for (voffset_t id = std::stoul(from) + 1; id <= stoul(attribute_);
+                 id++)
               struct_def->reserved_ids.push_back(id);
             range = false;
           } else

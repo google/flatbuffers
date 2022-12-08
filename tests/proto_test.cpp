@@ -1,183 +1,222 @@
 #include "proto_test.h"
 
-#include "flatbuffers/idl.h"
 #include "test_assert.h"
 
 namespace flatbuffers {
 namespace tests {
 
-// Parse a .proto schema, output as .fbs
-void ParseProtoTest(const std::string &tests_data_path) {
-  // load the .proto and the golden file from disk
-  std::string protofile;
-  std::string goldenfile;
-  std::string goldenunionfile;
-  TEST_EQ(
-      flatbuffers::LoadFile((tests_data_path + "prototest/test.proto").c_str(),
-                            false, &protofile),
-      true);
-  TEST_EQ(
-      flatbuffers::LoadFile((tests_data_path + "prototest/test.golden").c_str(),
-                            false, &goldenfile),
-      true);
-  TEST_EQ(flatbuffers::LoadFile(
-              (tests_data_path + "prototest/test_union.golden").c_str(), false,
-              &goldenunionfile),
-          true);
-
-  flatbuffers::IDLOptions opts;
-  opts.include_dependence_headers = false;
-  opts.proto_mode = true;
+void RunTest(const flatbuffers::IDLOptions &opts, const std::string &protopath,
+             const std::string &protofile, const std::string &goldenfile,
+             const std::string importprotofile) {
+  const char *include_directories[] = { protopath.c_str(), nullptr };
 
   // Parse proto.
   flatbuffers::Parser parser(opts);
-  auto protopath = tests_data_path + "prototest/";
-  const char *include_directories[] = { protopath.c_str(), nullptr };
   TEST_EQ(parser.Parse(protofile.c_str(), include_directories), true);
-
   // Generate fbs.
   auto fbs = flatbuffers::GenerateFBS(parser, "test");
 
   // Ensure generated file is parsable.
   flatbuffers::Parser parser2;
+
+  if (!importprotofile.empty()) {
+    // Generate fbs from import.proto
+    flatbuffers::Parser import_parser(opts);
+    TEST_EQ(import_parser.Parse(importprotofile.c_str(), include_directories),
+            true);
+    auto import_fbs = flatbuffers::GenerateFBS(import_parser, "test");
+    // Since `imported.fbs` isn't in the filesystem AbsolutePath can't figure it
+    // out by itself. We manually construct it so Parser works.
+    std::string imported_fbs = flatbuffers::PosixPath(
+        flatbuffers::AbsolutePath(protopath) + "/imported.fbs");
+    TEST_EQ(parser2.Parse(import_fbs.c_str(), include_directories,
+                          imported_fbs.c_str()),
+            true);
+  }
+
   TEST_EQ(parser2.Parse(fbs.c_str(), nullptr), true);
   TEST_EQ_STR(fbs.c_str(), goldenfile.c_str());
-
-  // Parse proto with --oneof-union option.
-  opts.proto_oneof_union = true;
-  flatbuffers::Parser parser3(opts);
-  TEST_EQ(parser3.Parse(protofile.c_str(), include_directories), true);
-
-  // Generate fbs.
-  auto fbs_union = flatbuffers::GenerateFBS(parser3, "test");
-
-  // Ensure generated file is parsable.
-  flatbuffers::Parser parser4;
-  TEST_EQ(parser4.Parse(fbs_union.c_str(), nullptr), true);
-  TEST_EQ_STR(fbs_union.c_str(), goldenunionfile.c_str());
 }
 
-// Parse a .proto schema, output as .fbs
-void ParseProtoTestWithSuffix(const std::string &tests_data_path) {
+void proto_test(std::string protopath, const std::string &protofile) {
+  flatbuffers::IDLOptions opts;
+  opts.include_dependence_headers = false;
+  opts.proto_mode = true;
+
   // load the .proto and the golden file from disk
-  std::string protofile;
   std::string goldenfile;
-  std::string goldenunionfile;
-  TEST_EQ(
-      flatbuffers::LoadFile((tests_data_path + "prototest/test.proto").c_str(),
-                            false, &protofile),
-      true);
-  TEST_EQ(flatbuffers::LoadFile(
-              (tests_data_path + "prototest/test_suffix.golden").c_str(), false,
-              &goldenfile),
-          true);
-  TEST_EQ(flatbuffers::LoadFile(
-              (tests_data_path + "prototest/test_union_suffix.golden").c_str(),
-              false, &goldenunionfile),
+  TEST_EQ(flatbuffers::LoadFile((protopath + "test.golden").c_str(), false,
+                                &goldenfile),
           true);
 
+  RunTest(opts, protopath, protofile, goldenfile);
+}
+
+void proto_test_id(std::string protopath, const std::string &protofile) {
+  flatbuffers::IDLOptions opts;
+  opts.include_dependence_headers = false;
+  opts.proto_mode = true;
+  opts.keep_proto_id = true;
+
+  // load the .proto and the golden file from disk
+  std::string goldenfile;
+  TEST_EQ(flatbuffers::LoadFile((protopath + "test_id.golden").c_str(), false,
+                                &goldenfile),
+          true);
+
+  RunTest(opts, protopath, protofile, goldenfile);
+}
+
+void proto_test_union(std::string protopath, const std::string &protofile) {
+  // Parse proto with --oneof-union option.
+  flatbuffers::IDLOptions opts;
+  opts.include_dependence_headers = false;
+  opts.proto_mode = true;
+  opts.proto_oneof_union = true;
+
+  std::string goldenfile;
+  TEST_EQ(flatbuffers::LoadFile((protopath + "test_union.golden").c_str(),
+                                false, &goldenfile),
+          true);
+  RunTest(opts, protopath, protofile, goldenfile);
+}
+
+void proto_test_union_id(std::string protopath, const std::string &protofile) {
+  // Parse proto with --oneof-union option.
+  flatbuffers::IDLOptions opts;
+  opts.include_dependence_headers = false;
+  opts.proto_mode = true;
+  opts.proto_oneof_union = true;
+  opts.keep_proto_id = true;
+
+  std::string goldenfile;
+  TEST_EQ(flatbuffers::LoadFile((protopath + "test_union_id.golden").c_str(),
+                                false, &goldenfile),
+          true);
+  RunTest(opts, protopath, protofile, goldenfile);
+}
+
+void proto_test_union_suffix(std::string protopath,
+                             const std::string &protofile) {
   flatbuffers::IDLOptions opts;
   opts.include_dependence_headers = false;
   opts.proto_mode = true;
   opts.proto_namespace_suffix = "test_namespace_suffix";
-
-  // Parse proto.
-  flatbuffers::Parser parser(opts);
-  auto protopath = tests_data_path + "prototest/";
-  const char *include_directories[] = { protopath.c_str(), nullptr };
-  TEST_EQ(parser.Parse(protofile.c_str(), include_directories), true);
-
-  // Generate fbs.
-  auto fbs = flatbuffers::GenerateFBS(parser, "test");
-
-  // Ensure generated file is parsable.
-  flatbuffers::Parser parser2;
-  TEST_EQ(parser2.Parse(fbs.c_str(), nullptr), true);
-  TEST_EQ_STR(fbs.c_str(), goldenfile.c_str());
-
-  // Parse proto with --oneof-union option.
   opts.proto_oneof_union = true;
-  flatbuffers::Parser parser3(opts);
-  TEST_EQ(parser3.Parse(protofile.c_str(), include_directories), true);
 
-  // Generate fbs.
-  auto fbs_union = flatbuffers::GenerateFBS(parser3, "test");
-
-  // Ensure generated file is parsable.
-  flatbuffers::Parser parser4;
-  TEST_EQ(parser4.Parse(fbs_union.c_str(), nullptr), true);
-  TEST_EQ_STR(fbs_union.c_str(), goldenunionfile.c_str());
+  std::string goldenfile;
+  TEST_EQ(
+      flatbuffers::LoadFile((protopath + "test_union_suffix.golden").c_str(),
+                            false, &goldenfile),
+      true);
+  RunTest(opts, protopath, protofile, goldenfile);
 }
 
-// Parse a .proto schema, output as .fbs
-void ParseProtoTestWithIncludes(const std::string &tests_data_path) {
-  // load the .proto and the golden file from disk
-  std::string protofile;
-  std::string goldenfile;
-  std::string goldenunionfile;
-  std::string importprotofile;
-  TEST_EQ(
-      flatbuffers::LoadFile((tests_data_path + "prototest/test.proto").c_str(),
-                            false, &protofile),
-      true);
-  TEST_EQ(flatbuffers::LoadFile(
-              (tests_data_path + "prototest/imported.proto").c_str(), false,
-              &importprotofile),
-          true);
-  TEST_EQ(flatbuffers::LoadFile(
-              (tests_data_path + "prototest/test_include.golden").c_str(),
-              false, &goldenfile),
-          true);
-  TEST_EQ(flatbuffers::LoadFile(
-              (tests_data_path + "prototest/test_union_include.golden").c_str(),
-              false, &goldenunionfile),
-          true);
+void proto_test_union_suffix_id(std::string protopath,
+                                const std::string &protofile) {
+  flatbuffers::IDLOptions opts;
+  opts.include_dependence_headers = false;
+  opts.proto_mode = true;
+  opts.proto_namespace_suffix = "test_namespace_suffix";
+  opts.proto_oneof_union = true;
+  opts.keep_proto_id = true;
 
+  std::string goldenfile;
+  TEST_EQ(
+      flatbuffers::LoadFile((protopath + "test_union_suffix_id.golden").c_str(),
+                            false, &goldenfile),
+      true);
+  RunTest(opts, protopath, protofile, goldenfile);
+}
+
+void proto_test_include(std::string protopath, const std::string &protofile,
+                        const std::string &importprotofile) {
   flatbuffers::IDLOptions opts;
   opts.include_dependence_headers = true;
   opts.proto_mode = true;
 
-  // Parse proto.
-  flatbuffers::Parser parser(opts);
-  auto protopath = tests_data_path + "prototest/";
-  const char *include_directories[] = { protopath.c_str(), nullptr };
-  TEST_EQ(parser.Parse(protofile.c_str(), include_directories), true);
-
-  // Generate fbs.
-  auto fbs = flatbuffers::GenerateFBS(parser, "test");
-
-  // Generate fbs from import.proto
-  flatbuffers::Parser import_parser(opts);
-  TEST_EQ(import_parser.Parse(importprotofile.c_str(), include_directories),
+  std::string goldenfile;
+  TEST_EQ(flatbuffers::LoadFile((protopath + "test_include.golden").c_str(),
+                                false, &goldenfile),
           true);
-  auto import_fbs = flatbuffers::GenerateFBS(import_parser, "test");
 
-  // Ensure generated file is parsable.
-  flatbuffers::Parser parser2;
-  // Since `imported.fbs` isn't in the filesystem AbsolutePath can't figure it
-  // out by itself. We manually construct it so Parser works.
-  std::string imported_fbs = flatbuffers::PosixPath(
-      flatbuffers::AbsolutePath(protopath) + "/imported.fbs");
-  TEST_EQ(parser2.Parse(import_fbs.c_str(), include_directories,
-                        imported_fbs.c_str()),
+  RunTest(opts, protopath, protofile, goldenfile, importprotofile);
+}
+
+void proto_test_include_id(std::string protopath, const std::string &protofile,
+                           const std::string &importprotofile) {
+  flatbuffers::IDLOptions opts;
+  opts.include_dependence_headers = true;
+  opts.proto_mode = true;
+  opts.keep_proto_id = true;
+
+  std::string goldenfile;
+  TEST_EQ(flatbuffers::LoadFile((protopath + "test_include_id.golden").c_str(),
+                                false, &goldenfile),
           true);
-  TEST_EQ(parser2.Parse(fbs.c_str(), nullptr), true);
-  TEST_EQ_STR(fbs.c_str(), goldenfile.c_str());
 
-  // Parse proto with --oneof-union option.
+  RunTest(opts, protopath, protofile, goldenfile, importprotofile);
+}
+
+void proto_test_include_union(std::string protopath, std::string protofile,
+                              std::string importprotofile) {
+  flatbuffers::IDLOptions opts;
+  opts.include_dependence_headers = true;
+  opts.proto_mode = true;
   opts.proto_oneof_union = true;
-  flatbuffers::Parser parser3(opts);
-  TEST_EQ(parser3.Parse(protofile.c_str(), include_directories), true);
 
-  // Generate fbs.
-  auto fbs_union = flatbuffers::GenerateFBS(parser3, "test");
+  std::string goldenfile;
+  TEST_EQ(
+      flatbuffers::LoadFile((protopath + "test_union_include.golden").c_str(),
+                            false, &goldenfile),
+      true);
 
-  // Ensure generated file is parsable.
-  flatbuffers::Parser parser4;
-  TEST_EQ(parser4.Parse(import_fbs.c_str(), nullptr, imported_fbs.c_str()),
+  RunTest(opts, protopath, protofile, goldenfile, importprotofile);
+}
+
+void proto_test_include_union_id(std::string protopath, std::string protofile,
+                                 std::string importprotofile) {
+  flatbuffers::IDLOptions opts;
+  opts.include_dependence_headers = true;
+  opts.proto_mode = true;
+  opts.proto_oneof_union = true;
+  opts.keep_proto_id = true;
+
+  std::string goldenfile;
+  TEST_EQ(flatbuffers::LoadFile(
+              (protopath + "test_union_include_id.golden").c_str(), false,
+              &goldenfile),
           true);
-  TEST_EQ(parser4.Parse(fbs_union.c_str(), nullptr), true);
-  TEST_EQ_STR(fbs_union.c_str(), goldenunionfile.c_str());
+
+  RunTest(opts, protopath, protofile, goldenfile, importprotofile);
+}
+
+// Parse a .proto schema, output as .fbs
+void ParseProtoTest(const std::string &tests_data_path) {
+  auto protopath = tests_data_path + "prototest/";
+  std::string protofile;
+  TEST_EQ(
+      flatbuffers::LoadFile((tests_data_path + "prototest/test.proto").c_str(),
+                            false, &protofile),
+      true);
+
+  std::string importprotofile;
+  TEST_EQ(flatbuffers::LoadFile(
+              (tests_data_path + "prototest/imported.proto").c_str(), false,
+              &importprotofile),
+          true);
+
+  proto_test(protopath, protofile);
+  proto_test_union(protopath, protofile);
+  proto_test_union_suffix(protopath, protofile);
+  proto_test_include(protopath, protofile, importprotofile);
+  proto_test_include_union(protopath, protofile, importprotofile);
+
+  proto_test_id(protopath, protofile);
+  proto_test_union_id(protopath, protofile);
+  proto_test_union_suffix_id(protopath, protofile);
+  proto_test_include_id(protopath, protofile, importprotofile);
+  proto_test_include_union_id(protopath, protofile, importprotofile);
 }
 
 void ParseProtoBufAsciiTest() {

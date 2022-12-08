@@ -165,7 +165,8 @@ const static FlatCOption options[] = {
   { "", "keep-proto-id", "", "Keep protobuf ids in generated fbs file." },
   { "", "disallow-proto-field-gaps", "",
     "disallow protobuf ids to have gap. Supported values: * "
-    "'nop' - do not care about gap * 'warn' - Warn about gap in protobuf ids (default) "
+    "'nop' - do not care about gap * 'warn' - Warn about gap in protobuf ids "
+    "(default) "
     "* 'error' - Show error and no generate file." },
   { "", "grpc", "", "Generate GRPC interfaces for the specified languages." },
   { "", "schema", "", "Serialize schemas instead of JSON (use with -b)." },
@@ -543,14 +544,15 @@ int FlatCompiler::Compile(int argc, const char **argv) {
         opts.proto_namespace_suffix = argv[argi];
       } else if (arg == "--oneof-union") {
         opts.proto_oneof_union = true;
-      } else if (arg == "--keep-protoid") {
+      } else if (arg == "--keep-proto-id") {
         opts.keep_proto_id = true;
       } else if (arg == "--disallow-proto-field-gaps") {
         if (++argi >= argc) Error("missing case style following: " + arg, true);
         if (!strcmp(argv[argi], "nop"))
           opts.disallow_proto_field_gaps = IDLOptions::ProtoIdGapAction::NO_OP;
         else if (!strcmp(argv[argi], "warn"))
-          opts.disallow_proto_field_gaps = IDLOptions::ProtoIdGapAction::WARNING;
+          opts.disallow_proto_field_gaps =
+              IDLOptions::ProtoIdGapAction::WARNING;
         else if (!strcmp(argv[argi], "error"))
           opts.disallow_proto_field_gaps = IDLOptions::ProtoIdGapAction::ERROR;
         else
