@@ -398,8 +398,17 @@ struct JsonPrinter {
                            IsScalar(fd.value.type.base_type) && !fd.deprecated;
       if (is_present || output_anyway) {
         if (fieldout++) { AddComma(); }
+#if defined(MZ_CUSTOM_FLATBUFFERS) && MZ_CUSTOM_FLATBUFFERS // clang-format off
+        if (struct_def.fields.vec.size() > 4)
+        {
+#endif  // defined(MZ_CUSTOM_FLATBUFFERS) && MZ_CUSTOM_FLATBUFFERS // clang-format on
         AddNewLine();
         AddIndent(elem_indent);
+#if defined(MZ_CUSTOM_FLATBUFFERS) && MZ_CUSTOM_FLATBUFFERS // clang-format off
+        }
+        else
+          AddIndent(1);
+#endif  // defined(MZ_CUSTOM_FLATBUFFERS) && MZ_CUSTOM_FLATBUFFERS // clang-format on
         OutputIdentifier(fd.name);
         if (!opts.protobuf_ascii_alike ||
             (fd.value.type.base_type != BASE_TYPE_STRUCT &&
@@ -435,8 +444,17 @@ struct JsonPrinter {
         }
       }
     }
+#if defined(MZ_CUSTOM_FLATBUFFERS) && MZ_CUSTOM_FLATBUFFERS  // clang-format off
+        if (struct_def.fields.vec.size() > 4)
+        {
+#endif  // defined(MZ_CUSTOM_FLATBUFFERS) && MZ_CUSTOM_FLATBUFFERS // clang-format on
     AddNewLine();
     AddIndent(indent);
+#if defined(MZ_CUSTOM_FLATBUFFERS) && MZ_CUSTOM_FLATBUFFERS // clang-format off
+        }
+        else
+          AddIndent(1);
+#endif  // defined(MZ_CUSTOM_FLATBUFFERS) && MZ_CUSTOM_FLATBUFFERS // clang-format on
     text += '}';
     return nullptr;
   }
