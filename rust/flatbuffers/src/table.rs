@@ -25,6 +25,16 @@ pub struct Table<'a> {
 }
 
 impl<'a> Table<'a> {
+    #[inline]
+    pub fn buf(&self) -> &'a [u8] {
+        self.buf
+    }
+
+    #[inline]
+    pub fn loc(&self) -> usize {
+        self.loc
+    }
+
     /// # Safety
     ///
     /// `buf` must contain a `soffset_t` at `loc`, which points to a valid vtable
