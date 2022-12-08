@@ -20,11 +20,21 @@ use crate::vtable::VTable;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct Table<'a> {
-    pub buf: &'a [u8],
-    pub loc: usize,
+    buf: &'a [u8],
+    loc: usize,
 }
 
 impl<'a> Table<'a> {
+    #[inline]
+    pub fn buf(&self) -> &'a [u8] {
+        self.buf
+    }
+
+    #[inline]
+    pub fn loc(&self) -> usize {
+        self.loc
+    }
+
     /// # Safety
     ///
     /// `buf` must contain a `soffset_t` at `loc`, which points to a valid vtable
