@@ -22,57 +22,57 @@ enum ProtoEnum : int {
 namespace proto.test;
 
 table ImportedMessage {
-  a:int (id: 0);
+  a:int;
 }
 
 /// 2nd table doc comment with
 /// many lines.
 table ProtoMessage {
-  c:int = 16 (id: 12);
-  d:long (id: 1);
-  p:uint (id: 21);
-  e:ulong (id: 2);
+  c:int = 16;
+  d:long;
+  p:uint;
+  e:ulong;
   /// doc comment for f.
-  f:int = -1 (id: 3);
-  g:long (id: 4);
-  h:uint (id: 5);
-  q:ulong (id: 6);
-  i:int (id: 7);
-  j:long (id: 8);
+  f:int = -1;
+  g:long;
+  h:uint;
+  q:ulong;
+  i:int;
+  j:long;
   /// doc comment for k.
-  k:bool (id: 9);
+  k:bool;
   /// doc comment for l on 2
   /// lines
-  l:string (required,id: 10);
-  m:[ubyte] (id: 11);
-  n:proto.test.ProtoMessage_.OtherMessage (id: 22);
-  o:[string] (id: 13);
-  z:proto.test.ImportedMessage (id: 14);
+  l:string (required);
+  m:[ubyte];
+  n:proto.test.ProtoMessage_.OtherMessage;
+  o:[string];
+  z:proto.test.ImportedMessage;
   /// doc comment for r.
-  r:proto.test.ProtoMessage_.Anonymous0 (id: 0);
-  outer_enum:proto.test.ProtoEnum (id: 15);
-  u:float = +inf (id: 16);
-  v:float = +inf (id: 17);
-  w:float = -inf (id: 18);
-  grades:[proto.test.ProtoMessage_.GradesEntry] (id: 19);
-  other_message_map:[proto.test.ProtoMessage_.OtherMessageMapEntry] (id: 20);
+  r:proto.test.ProtoMessage_.Anonymous0;
+  outer_enum:proto.test.ProtoEnum;
+  u:float = +inf;
+  v:float = +inf;
+  w:float = -inf;
+  grades:[proto.test.ProtoMessage_.GradesEntry];
+  other_message_map:[proto.test.ProtoMessage_.OtherMessageMapEntry];
 }
 
 namespace proto.test.ProtoMessage_;
 
 table OtherMessage {
-  a:double (id: 0);
+  a:double;
   /// doc comment for b.
-  b:float = 3.14149 (id: 1);
-  foo_bar_baz:proto.test.ProtoMessage_.OtherMessage_.ProtoEnum (id: 2);
+  b:float = 3.14149;
+  foo_bar_baz:proto.test.ProtoMessage_.OtherMessage_.ProtoEnum;
 }
 
 table Anonymous0 {
   /// doc comment for s.
-  s:proto.test.ImportedMessage (id: 0);
+  s:proto.test.ImportedMessage;
   /// doc comment for t on 2
   /// lines.
-  t:proto.test.ProtoMessage_.OtherMessage (id: 1);
+  t:proto.test.ProtoMessage_.OtherMessage;
 }
 
 table GradesEntry {

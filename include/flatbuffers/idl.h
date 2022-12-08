@@ -759,7 +759,7 @@ struct IDLOptions {
         ts_flat_file(false),
         no_leak_private_annotations(false),
         require_json_eof(true),
-        keep_proto_id(true),
+        keep_proto_id(false),
         disallow_proto_field_gaps(ProtoIdGapAction::WARNING),
         mini_reflect(IDLOptions::kNone),
         require_explicit_ids(false),
