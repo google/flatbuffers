@@ -338,9 +338,17 @@ struct JsonPrinter {
       if (mzParser->ResolveDynamicType(typeName, type, &fd))
       {
         auto data = table->GetPointer<const Vector<uint8_t> *>(fd.value.offset);
+
         if (type.base_type == BASE_TYPE_STRUCT)
         {
-          return GenStruct(*type.struct_def, reinterpret_cast<const Table *>(data->Data()), indent);
+          // use nullptr instead of empty vector
+          // when serializing dynamic field data
+          // so that the tags will never be created
+          FLATBUFFERS_ASSERT(data->size());
+
+          return GenStruct(*type.struct_def, IsStruct(type) 
+                            ? reinterpret_cast<const Table *>(data->Data())
+                            : flatbuffers::GetRoot<Table>(data->Data()), indent);
         }
         if (type.base_type == BASE_TYPE_STRING)
         {
