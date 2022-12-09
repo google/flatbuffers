@@ -21,10 +21,10 @@ enum ProtoEnum {
 /// 2nd table doc comment with
 /// many lines.
 message ProtoMessage {
+  reserved 200, 9 to 11, 1500;
   // Ignored non-doc comment.
   // A nested message declaration, will be moved to top level in .fbs
   message OtherMessage {
-    reserved 2, 9 to 11, 15;
     optional double a = 26;
     /// doc comment for b.
     optional float b = 32 [default = 3.14149];

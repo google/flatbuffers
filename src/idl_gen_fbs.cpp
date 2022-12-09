@@ -45,7 +45,8 @@ static std::string GenType(const Type &type, bool underlying = false) {
 
 static std::unordered_map<std::string, voffset_t> MapStructId(
     const StructDef &struct_def, IDLOptions::ProtoIdGapAction gap_action) {
-  std::vector<std::pair<std::string, std::string> > ids;
+  using FieldIdNamePair = std::pair<std::string, std::string>;
+  std::vector<FieldIdNamePair> ids;
 
   bool fields_with_id = false;
   bool possible_missing_id = false;
@@ -87,7 +88,7 @@ static std::unordered_map<std::string, voffset_t> MapStructId(
             struct_def.name.c_str());
 
   // Sort ids, consider 0 if the field does not have an id.
-  std::sort(ids.begin(), ids.end(), [](const auto &lhs, const auto &rhs) {
+  std::sort(ids.begin(), ids.end(), [](const FieldIdNamePair &lhs, const FieldIdNamePair &rhs) {
     auto a_id = lhs.first.empty() ? 0 : std::stoi(lhs.first);
     auto b_id = rhs.first.empty() ? 0 : std::stoi(rhs.first);
     return a_id < b_id;

@@ -24,7 +24,6 @@ message ProtoMessage {
   // Ignored non-doc comment.
   // A nested message declaration, will be moved to top level in .fbs
   message OtherMessage {
-    reserved 2, 9 to 11, 15;
     optional double a = 26;
     /// doc comment for b.
     optional float b = 32 [default = 3.14149];
@@ -43,6 +42,7 @@ message ProtoMessage {
   optional int64 d = 1 [default = 0];
   optional uint32 p = 40;
   optional uint64 e = 2;
+  optional uint64 twice = 2;
   /// doc comment for f.
   optional sint32 f = 3 [default = -1];
   optional sint64 g = 4;
