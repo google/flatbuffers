@@ -1223,6 +1223,8 @@ class CppGenerator : public BaseGenerator {
       FLATBUFFERS_ASSERT(minv && maxv);
 
       code_.SetValue("SEP", ",\n");
+
+      // MIN & MAX are useless for bit_flags
       if (enum_def.attributes.Lookup("bit_flags")) {
         code_.SetValue("KEY", GenEnumValDecl(enum_def, "NONE"));
         code_.SetValue("VALUE", "0");
@@ -1233,7 +1235,7 @@ class CppGenerator : public BaseGenerator {
                        NumToStringCpp(enum_def.AllFlags(),
                                       enum_def.underlying_type.base_type));
         code_ += "{{SEP}}  {{KEY}} = {{VALUE}}\\";
-      } else {  // MIN & MAX are useless for bit_flags
+      } else if (opts_.emit_min_max_enum_values) {
         code_.SetValue("KEY", GenEnumValDecl(enum_def, "MIN"));
         code_.SetValue("VALUE", GenEnumValDecl(enum_def, Name(*minv)));
         code_ += "{{SEP}}  {{KEY}} = {{VALUE}}\\";
