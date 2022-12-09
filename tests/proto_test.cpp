@@ -1,5 +1,7 @@
 #include "proto_test.h"
 
+#include <stdexcept>
+
 #include "test_assert.h"
 
 namespace flatbuffers {
@@ -199,6 +201,75 @@ void proto_test_include_union_id(const std::string &proto_path,
   RunTest(opts, proto_path, proto_file, golden_file, import_proto_file);
 }
 
+void ParseCorruptedProto(const std::string &proto_path) {
+  const char *include_directories[] = { proto_path.c_str(), nullptr };
+
+  flatbuffers::IDLOptions opts;
+  opts.include_dependence_headers = true;
+  opts.proto_mode = true;
+  opts.proto_oneof_union = true;
+
+  std::string proto_file;
+
+  // Parse proto with non positive id.
+  {
+    flatbuffers::Parser parser(opts);
+    TEST_EQ(
+        flatbuffers::LoadFile((proto_path + "non-positive-id.proto").c_str(),
+                              false, &proto_file),
+        true);
+    TEST_EQ(parser.Parse(proto_file.c_str(), include_directories), true);
+    bool exception = false;
+    try {
+      auto fbs = flatbuffers::GenerateFBS(parser, "test");
+    } catch (const std::exception &e) { exception = true; }
+    TEST_EQ(exception, true);
+  }
+
+  // Parse proto with twice id.
+  {
+    flatbuffers::Parser parser(opts);
+    TEST_EQ(flatbuffers::LoadFile((proto_path + "twice-id.proto").c_str(),
+                                  false, &proto_file),
+            true);
+    TEST_EQ(parser.Parse(proto_file.c_str(), include_directories), true);
+    bool exception = false;
+    try {
+      auto fbs = flatbuffers::GenerateFBS(parser, "test");
+    } catch (const std::exception &e) { exception = true; }
+    TEST_EQ(exception, true);
+  }
+
+  // Parse proto with using reserved id.
+  {
+    flatbuffers::Parser parser(opts);
+    TEST_EQ(flatbuffers::LoadFile((proto_path + "twice-id.proto").c_str(),
+                                  false, &proto_file),
+            true);
+    TEST_EQ(parser.Parse(proto_file.c_str(), include_directories), true);
+    bool exception = false;
+    try {
+      auto fbs = flatbuffers::GenerateFBS(parser, "test");
+    } catch (const std::exception &e) { exception = true; }
+    TEST_EQ(exception, true);
+  }
+
+  // Parse proto with error on gap.
+  {
+    opts.proto_id_gap_action = IDLOptions::ProtoIdGapAction::ERROR;
+    flatbuffers::Parser parser(opts);
+    TEST_EQ(flatbuffers::LoadFile((proto_path + "test.proto").c_str(), false,
+                                  &proto_file),
+            true);
+    TEST_EQ(parser.Parse(proto_file.c_str(), include_directories), true);
+    bool exception = false;
+    try {
+      auto fbs = flatbuffers::GenerateFBS(parser, "test");
+    } catch (const std::exception &e) { exception = true; }
+    TEST_EQ(exception, true);
+  }
+}
+
 // Parse a .proto schema, output as .fbs
 void ParseProtoTest(const std::string &tests_data_path) {
   auto proto_path = tests_data_path + "prototest/";
@@ -225,6 +296,8 @@ void ParseProtoTest(const std::string &tests_data_path) {
   proto_test_union_suffix_id(proto_path, proto_file);
   proto_test_include_id(proto_path, proto_file, import_proto_file);
   proto_test_include_union_id(proto_path, proto_file, import_proto_file);
+
+  ParseCorruptedProto(proto_path);
 }
 
 void ParseProtoBufAsciiTest() {

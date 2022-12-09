@@ -16,6 +16,7 @@
 
 // independent from idl_parser, since this code is not needed for most clients
 
+#include <stdexcept>
 #include <unordered_map>
 #include <utility>
 #include <vector>
@@ -49,7 +50,6 @@ static std::unordered_map<std::string, voffset_t> MapStructId(
   std::vector<FieldIdNamePair> ids;
 
   bool fields_with_id = false;
-  bool possible_missing_id = false;
 
   for (const auto &field : struct_def.fields.vec) {
     if (field->attributes.Lookup("id")) {
@@ -67,14 +67,11 @@ static std::unordered_map<std::string, voffset_t> MapStructId(
           bool done = StringToNumber(
               field->attributes.Lookup("id")->constant.c_str(), &id);
           if (!done)
-            fprintf(stderr,
-                    "Field id in struct %s has a non positive number value\n",
-                    struct_def.name.c_str());
+            throw std::runtime_error("Field id in struct" + struct_def.name +
+                                     "has a non positive number value\n");
         }
       }
     } else {
-      if (field->value.type.base_type != BASE_TYPE_UNION)
-        possible_missing_id = true;
       ids.push_back(std::make_pair(std::string(), field->name));
     }
   }
@@ -82,31 +79,28 @@ static std::unordered_map<std::string, voffset_t> MapStructId(
   // None of the fields has id
   if (!fields_with_id) return {};
 
-  // Check for missing id
-  if (possible_missing_id)
-    fprintf(stderr, "Field id in struct : %s is missing\n",
-            struct_def.name.c_str());
-
   // Sort ids, consider 0 if the field does not have an id.
-  std::sort(ids.begin(), ids.end(), [](const FieldIdNamePair &lhs, const FieldIdNamePair &rhs) {
-    auto a_id = lhs.first.empty() ? 0 : std::stoi(lhs.first);
-    auto b_id = rhs.first.empty() ? 0 : std::stoi(rhs.first);
-    return a_id < b_id;
-  });
+  std::sort(ids.begin(), ids.end(),
+            [](const FieldIdNamePair &lhs, const FieldIdNamePair &rhs) {
+              auto a_id = lhs.first.empty() ? 0 : std::stoi(lhs.first);
+              auto b_id = rhs.first.empty() ? 0 : std::stoi(rhs.first);
+              return a_id < b_id;
+            });
 
   for (auto it = std::next(ids.begin()); it != ids.end(); it++) {
     if (std::find(struct_def.reserved_ids.begin(),
                   struct_def.reserved_ids.end(),
                   stoi(it->first)) != struct_def.reserved_ids.end())
-      fprintf(stderr,
-              "Field %s with id %s in struct %s uses id from reserved ids\n",
-              it->second.c_str(), it->first.c_str(), struct_def.name.c_str());
+      throw std::runtime_error("Field " + it->second + " with id " + it->first +
+                               " in struct " + struct_def.name +
+                               " uses id from reserved ids\n");
 
     // Check for twice use of ids
     if (!it->first.empty() && std::prev(it)->first == it->first)
-      fprintf(stderr, "Fields %s and %s with use id %s in struct %s twice\n",
-              it->second.c_str(), std::prev(it)->second.c_str(),
-              it->first.c_str(), struct_def.name.c_str());
+      throw std::runtime_error("Fields " + it->second + " and " +
+                               std::prev(it)->second + " with use id " +
+                               it->first + " in struct" + struct_def.name +
+                               " twice\n");
 
     // Check for gap between ids
     if (gap_action != IDLOptions::ProtoIdGapAction::NO_OP) {
@@ -114,12 +108,11 @@ static std::unordered_map<std::string, voffset_t> MapStructId(
           it->first != "-1" && std::prev(it)->first != "-1")
         if (std::stoi(it->first) != std::stoi(std::prev(it)->first) + 1) {
           if (gap_action == IDLOptions::ProtoIdGapAction::ERROR)
-            fprintf(stderr,
-                    "Field %s with id %s  and field %s with id %s in struct"
-                    "%s have gap\n",
-                    it->second.c_str(), it->first.c_str(),
-                    std::prev(it)->second.c_str(), std::prev(it)->first.c_str(),
-                    struct_def.name.c_str());
+            throw std::runtime_error("Field " + it->second + " with id " +
+                                     it->first + "  and field " +
+                                     std::prev(it)->second + " with id " +
+                                     std::prev(it)->first + " in struct " +
+                                     struct_def.name + " have gap\n");  //,
           else if (gap_action == IDLOptions::ProtoIdGapAction::WARNING)
             printf(
                 "Field %s with id %s  and field %s with id %s in struct %s "
