@@ -4607,11 +4607,44 @@ CheckedError Parser::ParseDynamic(Value& val, FieldDef* field, size_t fieldn, co
   {
     if (val.type.struct_def)
     {
-      ECHECK(ParseTable(*val.type.struct_def, &val.constant, nullptr, true));
+      if (val.type.struct_def->fixed)
+      {
+        ECHECK(ParseTable(*val.type.struct_def, &val.constant, nullptr, true));
+        builder_.ForceVectorAlignment(val.constant.size(), sizeof(uint8_t), val.type.struct_def->minalign);
+        auto off = builder_.CreateVector(val.constant.c_str(), val.constant.size());
+        val.constant = NumToString(off.o);
+      }
+      else
+      {
+        // we have to use a separate parser 
+        // checkout ParseNestedFlatbuffer()
+        auto cursor_at_value_begin = cursor_;
+        ECHECK(SkipAnyJsonValue());
+        std::string substring(cursor_at_value_begin - 1, cursor_ - 1);
 
-      builder_.ForceVectorAlignment(val.constant.size(), sizeof(uint8_t), val.type.struct_def->minalign);
-      auto off = builder_.CreateVector(val.constant.c_str(), val.constant.size());
-      val.constant = NumToString(off.o);
+        // Create and initialize new parser
+        Parser nested_parser;
+        nested_parser.root_struct_def_ = val.type.struct_def;
+        nested_parser.enums_ = enums_;
+        nested_parser.opts = opts;
+        nested_parser.uses_flexbuffers_ = false;
+        nested_parser.parse_depth_counter_ = parse_depth_counter_;
+        // Parse JSON substring into new flatbuffer builder using nested_parser
+        bool ok = nested_parser.Parse(substring.c_str(), nullptr, nullptr);
+
+        // Clean nested_parser to avoid deleting the elements in
+        // the SymbolTables on destruction
+        nested_parser.enums_.dict.clear();
+        nested_parser.enums_.vec.clear();
+
+        if (!ok) 
+          ECHECK(Error(nested_parser.error_));
+
+        // Force alignment for nested flatbuffer
+        builder_.ForceVectorAlignment(nested_parser.builder_.GetSize(), sizeof(uint8_t), nested_parser.builder_.GetBufferMinAlignment());
+        auto off = builder_.CreateVector(nested_parser.builder_.GetBufferPointer(), nested_parser.builder_.GetSize());
+        val.constant = NumToString(off.o);
+      }
     }
     else
     {
