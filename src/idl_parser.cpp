@@ -2911,21 +2911,27 @@ CheckedError Parser::ParseProtoFields(StructDef *struct_def, bool isextend,
       EXPECT(';');
     } else if (IsIdent("reserved")) {  // Skip these.
       NEXT();
+
       bool range = false;
-      std::string from;
-      std::string to;
+      voffset_t from = 0;
 
       while (!Is(';')) {
         if (token_ == kTokenIntegerConstant) {
-          if (range) {
-            for (voffset_t id = std::stoul(from) + 1; id <= stoul(attribute_);
-                 id++)
-              struct_def->reserved_ids.push_back(id);
-            range = false;
-          } else
-            struct_def->reserved_ids.push_back(std::stoi(attribute_));
+          voffset_t attribute = 0;
+          bool done = StringToNumber(attribute_.c_str(), &attribute);
+          if (!done)
+            return Error("Protobuf has non positive number in reserved ids");
 
-          from = attribute_;
+          if (range) {
+            for (voffset_t id = from + 1; id <= attribute; id++)
+              struct_def->reserved_ids.push_back(id);
+
+            range = false;
+          } else {
+            struct_def->reserved_ids.push_back(attribute);
+          }
+
+          from = attribute;
         }
 
         if (attribute_ == "to") range = true;

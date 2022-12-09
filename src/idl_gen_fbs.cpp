@@ -43,30 +43,46 @@ static std::string GenType(const Type &type, bool underlying = false) {
   }
 }
 
-static std::unordered_map<std::string, int> MapStructId(
+static std::unordered_map<std::string, voffset_t> MapStructId(
     const StructDef &struct_def, IDLOptions::ProtoIdGapAction gap_action) {
   std::vector<std::pair<std::string, std::string> > ids;
-  size_t counter = 0;
-  bool missed = false;
-  // Check if there is a field with id or not.
-  for (const auto &field_it : struct_def.fields.vec) {
-    if (field_it->attributes.Lookup("id")) {
-      counter++;
-      if (field_it->attributes.Lookup("id")->constant.empty() &&
-          field_it->value.type.base_type != BASE_TYPE_UNION)
-        ids.push_back(std::make_pair("-1", field_it->name));
-      else
-        ids.push_back(std::make_pair(
-            field_it->attributes.Lookup("id")->constant, field_it->name));
+
+  bool fields_with_id = false;
+  bool possible_missing_id = false;
+
+  for (const auto &field : struct_def.fields.vec) {
+    if (field->attributes.Lookup("id")) {
+      fields_with_id = true;
+      if (field->attributes.Lookup("id")->constant.empty() &&
+          field->value.type.base_type != BASE_TYPE_UNION)
+        ids.push_back(std::make_pair("-1", field->name));
+      else {
+        ids.push_back(std::make_pair(field->attributes.Lookup("id")->constant,
+                                     field->name));
+
+        // Check for non positive id number
+        if (!field->attributes.Lookup("id")->constant.empty()) {
+          voffset_t id = 0;
+          bool done = StringToNumber(
+              field->attributes.Lookup("id")->constant.c_str(), &id);
+          if (!done)
+            fprintf(stderr,
+                    "Field id in struct %s has a non positive number value\n",
+                    struct_def.name.c_str());
+        }
+      }
     } else {
-      if (field_it->value.type.base_type != BASE_TYPE_UNION) missed = true;
-      ids.push_back(std::make_pair(std::string(), field_it->name));
+      if (field->value.type.base_type != BASE_TYPE_UNION)
+        possible_missing_id = true;
+      ids.push_back(std::make_pair(std::string(), field->name));
     }
   }
 
-  // Non of the fields have id
-  if (counter == 0) return {};
-  if (missed)
+  // None of the fields has id
+  if (!fields_with_id) return {};
+
+  // Check for missing id
+  if (possible_missing_id)
     fprintf(stderr, "Field id in struct : %s is missing\n",
             struct_def.name.c_str());
 
@@ -80,7 +96,7 @@ static std::unordered_map<std::string, int> MapStructId(
   for (auto it = std::next(ids.begin()); it != ids.end(); it++) {
     if (std::find(struct_def.reserved_ids.begin(),
                   struct_def.reserved_ids.end(),
-                  stoul(it->first)) != struct_def.reserved_ids.end())
+                  stoi(it->first)) != struct_def.reserved_ids.end())
       fprintf(stderr,
               "Field %s with id %s in struct %s uses id from reserved ids\n",
               it->second.c_str(), it->first.c_str(), struct_def.name.c_str());
@@ -91,20 +107,21 @@ static std::unordered_map<std::string, int> MapStructId(
               it->second.c_str(), std::prev(it)->second.c_str(),
               it->first.c_str(), struct_def.name.c_str());
 
+    // Check for gap between ids
     if (gap_action != IDLOptions::ProtoIdGapAction::NO_OP) {
       if (!it->first.empty() && !std::prev(it)->first.empty() &&
           it->first != "-1" && std::prev(it)->first != "-1")
         if (std::stoi(it->first) != std::stoi(std::prev(it)->first) + 1) {
           if (gap_action == IDLOptions::ProtoIdGapAction::ERROR)
             fprintf(stderr,
-                    "Field %s with id %s  and field %s with id %s in struct : "
+                    "Field %s with id %s  and field %s with id %s in struct"
                     "%s have gap\n",
                     it->second.c_str(), it->first.c_str(),
                     std::prev(it)->second.c_str(), std::prev(it)->first.c_str(),
                     struct_def.name.c_str());
           else if (gap_action == IDLOptions::ProtoIdGapAction::WARNING)
             printf(
-                "Field %s with id %s  and field %s with id %s in struct : %s "
+                "Field %s with id %s  and field %s with id %s in struct %s "
                 "have gap\n",
                 it->second.c_str(), it->first.c_str(),
                 std::prev(it)->second.c_str(), std::prev(it)->first.c_str(),
@@ -113,15 +130,15 @@ static std::unordered_map<std::string, int> MapStructId(
     }
   }
 
-  std::unordered_map<std::string, int> map;
+  std::unordered_map<std::string, voffset_t> proto_fbs_ids;
 
   voffset_t id = 0;
   for (const auto &element : ids) {
     if (element.first.empty()) id++;
-    map.emplace(element.second, id++);
+    proto_fbs_ids.emplace(element.second, id++);
   }
 
-  return map;
+  return proto_fbs_ids;
 }
 
 static void GenNameSpace(const Namespace &name_space, std::string *_schema,
@@ -211,11 +228,11 @@ std::string GenerateFBS(const Parser &parser, const std::string &file_name) {
   for (auto it = parser.structs_.vec.begin(); it != parser.structs_.vec.end();
        ++it) {
     StructDef &struct_def = **it;
-    const auto map =
-        MapStructId(struct_def, parser.opts.disallow_proto_field_gaps);
-    if (parser.opts.include_dependence_headers && struct_def.generated) {
+    const auto proto_fbs_ids =
+        MapStructId(struct_def, parser.opts.proto_id_gap_action);
+    if (parser.opts.include_dependence_headers && struct_def.generated)
       continue;
-    }
+
     GenNameSpace(*struct_def.defined_namespace, &schema, &last_namespace);
     GenComment(struct_def.doc_comment, &schema, nullptr);
     schema += "table " + struct_def.name + " {\n";
@@ -231,8 +248,8 @@ std::string GenerateFBS(const Parser &parser, const std::string &file_name) {
         if (field.key) attributes.push_back("key");
 
         if (parser.opts.keep_proto_id) {
-          auto it = map.find(field.name);
-          if (it != map.end())
+          auto it = proto_fbs_ids.find(field.name);
+          if (it != proto_fbs_ids.end())
             attributes.push_back("id: " + NumToString(it->second));
         }
 

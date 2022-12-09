@@ -163,11 +163,14 @@ const static FlatCOption options[] = {
     "Add this namespace to any flatbuffers generated from protobufs." },
   { "", "oneof-union", "", "Translate .proto oneofs to flatbuffer unions." },
   { "", "keep-proto-id", "", "Keep protobuf ids in generated fbs file." },
-  { "", "disallow-proto-field-gaps", "",
-    "disallow protobuf ids to have gap. Supported values: * "
-    "'nop' - do not care about gap * 'warn' - Warn about gap in protobuf ids "
+  { "", "proto-id-gap", "",
+    "Action that should be taken when a gap between protobuf ids found. "
+    "Supported values: * "
+    "'nop' - do not care about gap * 'warn' - A warning message will be shown "
+    "about the gap in protobuf ids"
     "(default) "
-    "* 'error' - Show error and no generate file." },
+    "* 'error' - An error message will be shown and the fbs generation will be "
+    "interrupted." },
   { "", "grpc", "", "Generate GRPC interfaces for the specified languages." },
   { "", "schema", "", "Serialize schemas instead of JSON (use with -b)." },
   { "", "bfbs-filenames", "PATH",
@@ -546,15 +549,14 @@ int FlatCompiler::Compile(int argc, const char **argv) {
         opts.proto_oneof_union = true;
       } else if (arg == "--keep-proto-id") {
         opts.keep_proto_id = true;
-      } else if (arg == "--disallow-proto-field-gaps") {
+      } else if (arg == "--proto-id-gap") {
         if (++argi >= argc) Error("missing case style following: " + arg, true);
         if (!strcmp(argv[argi], "nop"))
-          opts.disallow_proto_field_gaps = IDLOptions::ProtoIdGapAction::NO_OP;
+          opts.proto_id_gap_action = IDLOptions::ProtoIdGapAction::NO_OP;
         else if (!strcmp(argv[argi], "warn"))
-          opts.disallow_proto_field_gaps =
-              IDLOptions::ProtoIdGapAction::WARNING;
+          opts.proto_id_gap_action = IDLOptions::ProtoIdGapAction::WARNING;
         else if (!strcmp(argv[argi], "error"))
-          opts.disallow_proto_field_gaps = IDLOptions::ProtoIdGapAction::ERROR;
+          opts.proto_id_gap_action = IDLOptions::ProtoIdGapAction::ERROR;
         else
           Error("unknown case style: " + std::string(argv[argi]), true);
       } else if (arg == "--schema") {

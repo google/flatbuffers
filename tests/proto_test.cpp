@@ -5,83 +5,87 @@
 namespace flatbuffers {
 namespace tests {
 
-void RunTest(const flatbuffers::IDLOptions &opts, const std::string &protopath,
-             const std::string &protofile, const std::string &goldenfile,
-             const std::string importprotofile) {
-  const char *include_directories[] = { protopath.c_str(), nullptr };
+void RunTest(const flatbuffers::IDLOptions &opts, const std::string &proto_path,
+             const std::string &proto_file, const std::string &golden_file,
+             const std::string import_proto_file) {
+  const char *include_directories[] = { proto_path.c_str(), nullptr };
 
   // Parse proto.
   flatbuffers::Parser parser(opts);
-  TEST_EQ(parser.Parse(protofile.c_str(), include_directories), true);
+  TEST_EQ(parser.Parse(proto_file.c_str(), include_directories), true);
+
   // Generate fbs.
   auto fbs = flatbuffers::GenerateFBS(parser, "test");
 
   // Ensure generated file is parsable.
   flatbuffers::Parser parser2;
 
-  if (!importprotofile.empty()) {
+  if (!import_proto_file.empty()) {
     // Generate fbs from import.proto
     flatbuffers::Parser import_parser(opts);
-    TEST_EQ(import_parser.Parse(importprotofile.c_str(), include_directories),
+    TEST_EQ(import_parser.Parse(import_proto_file.c_str(), include_directories),
             true);
     auto import_fbs = flatbuffers::GenerateFBS(import_parser, "test");
     // Since `imported.fbs` isn't in the filesystem AbsolutePath can't figure it
     // out by itself. We manually construct it so Parser works.
     std::string imported_fbs = flatbuffers::PosixPath(
-        flatbuffers::AbsolutePath(protopath) + "/imported.fbs");
+        flatbuffers::AbsolutePath(proto_path) + "/imported.fbs");
     TEST_EQ(parser2.Parse(import_fbs.c_str(), include_directories,
                           imported_fbs.c_str()),
             true);
   }
 
   TEST_EQ(parser2.Parse(fbs.c_str(), nullptr), true);
-  TEST_EQ_STR(fbs.c_str(), goldenfile.c_str());
+  TEST_EQ_STR(fbs.c_str(), golden_file.c_str());
 }
 
-void proto_test(std::string protopath, const std::string &protofile) {
+void proto_test(const std::string &proto_path, const std::string &proto_file) {
   flatbuffers::IDLOptions opts;
   opts.include_dependence_headers = false;
   opts.proto_mode = true;
 
   // load the .proto and the golden file from disk
-  std::string goldenfile;
-  TEST_EQ(flatbuffers::LoadFile((protopath + "test.golden").c_str(), false,
-                                &goldenfile),
+  std::string golden_file;
+  TEST_EQ(flatbuffers::LoadFile((proto_path + "test.golden").c_str(), false,
+                                &golden_file),
           true);
 
-  RunTest(opts, protopath, protofile, goldenfile);
+  RunTest(opts, proto_path, proto_file, golden_file);
 }
 
-void proto_test_id(std::string protopath, const std::string &protofile) {
+void proto_test_id(const std::string &proto_path,
+                   const std::string &proto_file) {
   flatbuffers::IDLOptions opts;
   opts.include_dependence_headers = false;
   opts.proto_mode = true;
   opts.keep_proto_id = true;
 
   // load the .proto and the golden file from disk
-  std::string goldenfile;
-  TEST_EQ(flatbuffers::LoadFile((protopath + "test_id.golden").c_str(), false,
-                                &goldenfile),
+  std::string golden_file;
+  TEST_EQ(flatbuffers::LoadFile((proto_path + "test_id.golden").c_str(), false,
+                                &golden_file),
           true);
 
-  RunTest(opts, protopath, protofile, goldenfile);
+  RunTest(opts, proto_path, proto_file, golden_file);
 }
 
-void proto_test_union(std::string protopath, const std::string &protofile) {
+void proto_test_union(const std::string &proto_path,
+                      const std::string &proto_file) {
   // Parse proto with --oneof-union option.
   flatbuffers::IDLOptions opts;
   opts.include_dependence_headers = false;
   opts.proto_mode = true;
   opts.proto_oneof_union = true;
 
-  std::string goldenfile;
-  TEST_EQ(flatbuffers::LoadFile((protopath + "test_union.golden").c_str(),
-                                false, &goldenfile),
+  std::string golden_file;
+  TEST_EQ(flatbuffers::LoadFile((proto_path + "test_union.golden").c_str(),
+                                false, &golden_file),
           true);
-  RunTest(opts, protopath, protofile, goldenfile);
+  RunTest(opts, proto_path, proto_file, golden_file);
 }
 
-void proto_test_union_id(std::string protopath, const std::string &protofile) {
+void proto_test_union_id(const std::string &proto_path,
+                         const std::string &proto_file) {
   // Parse proto with --oneof-union option.
   flatbuffers::IDLOptions opts;
   opts.include_dependence_headers = false;
@@ -89,31 +93,31 @@ void proto_test_union_id(std::string protopath, const std::string &protofile) {
   opts.proto_oneof_union = true;
   opts.keep_proto_id = true;
 
-  std::string goldenfile;
-  TEST_EQ(flatbuffers::LoadFile((protopath + "test_union_id.golden").c_str(),
-                                false, &goldenfile),
+  std::string golden_file;
+  TEST_EQ(flatbuffers::LoadFile((proto_path + "test_union_id.golden").c_str(),
+                                false, &golden_file),
           true);
-  RunTest(opts, protopath, protofile, goldenfile);
+  RunTest(opts, proto_path, proto_file, golden_file);
 }
 
-void proto_test_union_suffix(std::string protopath,
-                             const std::string &protofile) {
+void proto_test_union_suffix(const std::string &proto_path,
+                             const std::string &proto_file) {
   flatbuffers::IDLOptions opts;
   opts.include_dependence_headers = false;
   opts.proto_mode = true;
   opts.proto_namespace_suffix = "test_namespace_suffix";
   opts.proto_oneof_union = true;
 
-  std::string goldenfile;
+  std::string golden_file;
   TEST_EQ(
-      flatbuffers::LoadFile((protopath + "test_union_suffix.golden").c_str(),
-                            false, &goldenfile),
+      flatbuffers::LoadFile((proto_path + "test_union_suffix.golden").c_str(),
+                            false, &golden_file),
       true);
-  RunTest(opts, protopath, protofile, goldenfile);
+  RunTest(opts, proto_path, proto_file, golden_file);
 }
 
-void proto_test_union_suffix_id(std::string protopath,
-                                const std::string &protofile) {
+void proto_test_union_suffix_id(const std::string &proto_path,
+                                const std::string &proto_file) {
   flatbuffers::IDLOptions opts;
   opts.include_dependence_headers = false;
   opts.proto_mode = true;
@@ -121,102 +125,106 @@ void proto_test_union_suffix_id(std::string protopath,
   opts.proto_oneof_union = true;
   opts.keep_proto_id = true;
 
-  std::string goldenfile;
-  TEST_EQ(
-      flatbuffers::LoadFile((protopath + "test_union_suffix_id.golden").c_str(),
-                            false, &goldenfile),
-      true);
-  RunTest(opts, protopath, protofile, goldenfile);
-}
-
-void proto_test_include(std::string protopath, const std::string &protofile,
-                        const std::string &importprotofile) {
-  flatbuffers::IDLOptions opts;
-  opts.include_dependence_headers = true;
-  opts.proto_mode = true;
-
-  std::string goldenfile;
-  TEST_EQ(flatbuffers::LoadFile((protopath + "test_include.golden").c_str(),
-                                false, &goldenfile),
-          true);
-
-  RunTest(opts, protopath, protofile, goldenfile, importprotofile);
-}
-
-void proto_test_include_id(std::string protopath, const std::string &protofile,
-                           const std::string &importprotofile) {
-  flatbuffers::IDLOptions opts;
-  opts.include_dependence_headers = true;
-  opts.proto_mode = true;
-  opts.keep_proto_id = true;
-
-  std::string goldenfile;
-  TEST_EQ(flatbuffers::LoadFile((protopath + "test_include_id.golden").c_str(),
-                                false, &goldenfile),
-          true);
-
-  RunTest(opts, protopath, protofile, goldenfile, importprotofile);
-}
-
-void proto_test_include_union(std::string protopath, std::string protofile,
-                              std::string importprotofile) {
-  flatbuffers::IDLOptions opts;
-  opts.include_dependence_headers = true;
-  opts.proto_mode = true;
-  opts.proto_oneof_union = true;
-
-  std::string goldenfile;
-  TEST_EQ(
-      flatbuffers::LoadFile((protopath + "test_union_include.golden").c_str(),
-                            false, &goldenfile),
-      true);
-
-  RunTest(opts, protopath, protofile, goldenfile, importprotofile);
-}
-
-void proto_test_include_union_id(std::string protopath, std::string protofile,
-                                 std::string importprotofile) {
-  flatbuffers::IDLOptions opts;
-  opts.include_dependence_headers = true;
-  opts.proto_mode = true;
-  opts.proto_oneof_union = true;
-  opts.keep_proto_id = true;
-
-  std::string goldenfile;
+  std::string golden_file;
   TEST_EQ(flatbuffers::LoadFile(
-              (protopath + "test_union_include_id.golden").c_str(), false,
-              &goldenfile),
+              (proto_path + "test_union_suffix_id.golden").c_str(), false,
+              &golden_file),
+          true);
+  RunTest(opts, proto_path, proto_file, golden_file);
+}
+
+void proto_test_include(const std::string &proto_path,
+                        const std::string &proto_file,
+                        const std::string &import_proto_file) {
+  flatbuffers::IDLOptions opts;
+  opts.include_dependence_headers = true;
+  opts.proto_mode = true;
+
+  std::string golden_file;
+  TEST_EQ(flatbuffers::LoadFile((proto_path + "test_include.golden").c_str(),
+                                false, &golden_file),
           true);
 
-  RunTest(opts, protopath, protofile, goldenfile, importprotofile);
+  RunTest(opts, proto_path, proto_file, golden_file, import_proto_file);
+}
+
+void proto_test_include_id(const std::string &proto_path,
+                           const std::string &proto_file,
+                           const std::string &import_proto_file) {
+  flatbuffers::IDLOptions opts;
+  opts.include_dependence_headers = true;
+  opts.proto_mode = true;
+  opts.keep_proto_id = true;
+
+  std::string golden_file;
+  TEST_EQ(flatbuffers::LoadFile((proto_path + "test_include_id.golden").c_str(),
+                                false, &golden_file),
+          true);
+
+  RunTest(opts, proto_path, proto_file, golden_file, import_proto_file);
+}
+
+void proto_test_include_union(const std::string &proto_path,
+                              const std::string &proto_file,
+                              const std::string &import_proto_file) {
+  flatbuffers::IDLOptions opts;
+  opts.include_dependence_headers = true;
+  opts.proto_mode = true;
+  opts.proto_oneof_union = true;
+
+  std::string golden_file;
+  TEST_EQ(
+      flatbuffers::LoadFile((proto_path + "test_union_include.golden").c_str(),
+                            false, &golden_file),
+      true);
+
+  RunTest(opts, proto_path, proto_file, golden_file, import_proto_file);
+}
+
+void proto_test_include_union_id(const std::string &proto_path,
+                                 const std::string &proto_file,
+                                 const std::string &import_proto_file) {
+  flatbuffers::IDLOptions opts;
+  opts.include_dependence_headers = true;
+  opts.proto_mode = true;
+  opts.proto_oneof_union = true;
+  opts.keep_proto_id = true;
+
+  std::string golden_file;
+  TEST_EQ(flatbuffers::LoadFile(
+              (proto_path + "test_union_include_id.golden").c_str(), false,
+              &golden_file),
+          true);
+
+  RunTest(opts, proto_path, proto_file, golden_file, import_proto_file);
 }
 
 // Parse a .proto schema, output as .fbs
 void ParseProtoTest(const std::string &tests_data_path) {
-  auto protopath = tests_data_path + "prototest/";
-  std::string protofile;
+  auto proto_path = tests_data_path + "prototest/";
+  std::string proto_file;
   TEST_EQ(
       flatbuffers::LoadFile((tests_data_path + "prototest/test.proto").c_str(),
-                            false, &protofile),
+                            false, &proto_file),
       true);
 
-  std::string importprotofile;
+  std::string import_proto_file;
   TEST_EQ(flatbuffers::LoadFile(
               (tests_data_path + "prototest/imported.proto").c_str(), false,
-              &importprotofile),
+              &import_proto_file),
           true);
 
-  proto_test(protopath, protofile);
-  proto_test_union(protopath, protofile);
-  proto_test_union_suffix(protopath, protofile);
-  proto_test_include(protopath, protofile, importprotofile);
-  proto_test_include_union(protopath, protofile, importprotofile);
+  proto_test(proto_path, proto_file);
+  proto_test_union(proto_path, proto_file);
+  proto_test_union_suffix(proto_path, proto_file);
+  proto_test_include(proto_path, proto_file, import_proto_file);
+  proto_test_include_union(proto_path, proto_file, import_proto_file);
 
-  proto_test_id(protopath, protofile);
-  proto_test_union_id(protopath, protofile);
-  proto_test_union_suffix_id(protopath, protofile);
-  proto_test_include_id(protopath, protofile, importprotofile);
-  proto_test_include_union_id(protopath, protofile, importprotofile);
+  proto_test_id(proto_path, proto_file);
+  proto_test_union_id(proto_path, proto_file);
+  proto_test_union_suffix_id(proto_path, proto_file);
+  proto_test_include_id(proto_path, proto_file, import_proto_file);
+  proto_test_include_union_id(proto_path, proto_file, import_proto_file);
 }
 
 void ParseProtoBufAsciiTest() {
