@@ -15,17 +15,16 @@
  */
 
 // independent from idl_parser, since this code is not needed for most clients
+#include "flatbuffers/code_generators.h"
+#include "flatbuffers/flatbuffers.h"
+#include "flatbuffers/idl.h"
+#include "flatbuffers/util.h"
 
 #include <stdexcept>
 #include <unordered_map>
 #include <utility>
 #include <vector>
 
-#include "flatbuffers/code_generators.h"
-#include "flatbuffers/flatbuffers.h"
-#include "flatbuffers/flatc.h"
-#include "flatbuffers/idl.h"
-#include "flatbuffers/util.h"
 namespace flatbuffers {
 
 static std::string GenType(const Type &type, bool underlying = false) {

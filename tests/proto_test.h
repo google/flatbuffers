@@ -1,9 +1,10 @@
 #ifndef TESTS_PROTO_TEST_H
 #define TESTS_PROTO_TEST_H
 
+#include "flatbuffers/idl.h"
+
 #include <string>
 
-#include "flatbuffers/idl.h"
 namespace flatbuffers {
 namespace tests {
 
