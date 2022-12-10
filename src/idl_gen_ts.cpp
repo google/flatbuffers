@@ -17,6 +17,7 @@
 #include <algorithm>
 #include <cassert>
 #include <cmath>
+#include <iostream>
 #include <unordered_map>
 #include <unordered_set>
 
@@ -305,7 +306,9 @@ class TsGenerator : public BaseGenerator {
       cmd += " --format=cjs --bundle --outfile=";
       cmd += bundlepath;
       cmd += " --external:flatbuffers";
-      if (system(cmd.c_str()) != 0) return false;
+      std::cout << "Entry point " << inputpath << " generated." << std::endl;
+      std::cout << "A single file bundle can be created using fx. esbuild with:" << std::endl;
+      std::cout << "> " << cmd << std::endl;
     }
     return true;
   }
