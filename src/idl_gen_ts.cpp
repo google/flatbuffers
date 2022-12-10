@@ -309,7 +309,8 @@ class TsGenerator : public BaseGenerator {
       cmd += bundlepath;
       cmd += " --external:flatbuffers";
       std::cout << "Entry point " << inputpath << " generated." << std::endl;
-      std::cout << "A single file bundle can be created using fx. esbuild with:" << std::endl;
+      std::cout << "A single file bundle can be created using fx. esbuild with:"
+                << std::endl;
       std::cout << "> " << cmd << std::endl;
     }
     return true;
