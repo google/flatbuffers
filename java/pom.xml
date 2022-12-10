@@ -3,7 +3,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.google.flatbuffers</groupId>
   <artifactId>flatbuffers-java</artifactId>
-  <version>22.11.23</version>
+  <version>22.12.06</version>
   <packaging>bundle</packaging>
   <name>FlatBuffers Java API</name>
   <description>

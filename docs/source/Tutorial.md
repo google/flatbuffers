@@ -414,7 +414,7 @@ The first step is to import/include the library, generated files, etc.
 </div>
 <div class="language-csharp">
 ~~~{.cs}
-  using FlatBuffers;
+  using Google.FlatBuffers;
   using MyGame.Sample; // The `flatc` generated files. (Monster, Vec3, etc.)
 ~~~
 </div>
@@ -2199,7 +2199,7 @@ before:
 </div>
 <div class="language-csharp">
 ~~~{.cs}
-  using FlatBuffers;
+  using Google.FlatBuffers;
   using MyGame.Sample; // The `flatc` generated files. (Monster, Vec3, etc.)
 ~~~
 </div>
@@ -3448,7 +3448,7 @@ Java supports vectors of unions, but it isn't currently documented.
 </div>
 <div class="language-csharp">
 ~~~{.cs}
-using FlatBuffers;
+using Google.FlatBuffers;
 using Example.VectorOfUnions;
 
 var fbb = new FlatBufferBuilder(100);
