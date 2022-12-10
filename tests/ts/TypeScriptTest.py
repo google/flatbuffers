@@ -44,6 +44,7 @@ def check_call(args, cwd=tests_path):
 
 # Execute the flatc compiler with the specified parameters
 def flatc(options, schema, prefix=None, include=None, data=None, cwd=tests_path):
+    print("Invoking flatc on schema " + str(schema))
     cmd = [str(flatc_path)] + options
     if prefix:
         cmd += ["-o"] + [prefix]
@@ -65,7 +66,6 @@ shutil.rmtree(Path(tests_path, "node_modules"), ignore_errors=True)
 
 check_call(["npm", "install", "--silent"])
 
-print("Invoking flatc...")
 flatc(
     options=["--ts", "--reflect-names", "--gen-name-strings", "--gen-mutable", "--gen-object-api", "--ts-entry-points", "--ts-flat-files"],
     schema="../monster_test.fbs",
@@ -121,6 +121,7 @@ NODE_CMD = ["node"]
 
 print("Running TypeScript Tests...")
 check_call(NODE_CMD + ["JavaScriptTest"])
+#check_call(NODE_CMD + ["JavaScriptTestv1.cjs"])
 check_call(NODE_CMD + ["JavaScriptUnionVectorTest"])
 check_call(NODE_CMD + ["JavaScriptFlexBuffersTest"])
 check_call(NODE_CMD + ["JavaScriptComplexArraysTest"])
