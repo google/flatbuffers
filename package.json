@@ -49,7 +49,6 @@
   "dependencies": {},
   "devDependencies": {
     "@bazel/typescript": "5.2.0",
-    "@bazel/esbuild": "5.7.3",
     "@types/node": "18.7.16",
     "@typescript-eslint/eslint-plugin": "^5.46.0",
     "@typescript-eslint/parser": "^5.46.0",

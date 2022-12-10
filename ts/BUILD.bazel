@@ -28,10 +28,7 @@ ts_project(
         },
     },
     visibility = ["//visibility:public"],
-    deps = [
-      "@npm//@bazel/esbuild",
-      "@npm//@types/node",      
-    ],
+    deps = ["@npm//@types/node"],
 )
 
 js_library(
