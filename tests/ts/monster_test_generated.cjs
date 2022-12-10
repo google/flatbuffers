@@ -23,7 +23,207 @@ var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__ge
 ));
 var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
 
-// my-game/example.ts
+// monster_test.ts
+var monster_test_exports = {};
+__export(monster_test_exports, {
+  MyGame: () => my_game_exports,
+  TableA: () => TableA
+});
+module.exports = __toCommonJS(monster_test_exports);
+
+// table-a.js
+var flatbuffers2 = __toESM(require("flatbuffers"), 1);
+
+// my-game/other-name-space/table-b.js
+var flatbuffers = __toESM(require("flatbuffers"), 1);
+var TableB = class {
+  constructor() {
+    this.bb = null;
+    this.bb_pos = 0;
+  }
+  __init(i, bb) {
+    this.bb_pos = i;
+    this.bb = bb;
+    return this;
+  }
+  static getRootAsTableB(bb, obj) {
+    return (obj || new TableB()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+  }
+  static getSizePrefixedRootAsTableB(bb, obj) {
+    bb.setPosition(bb.position() + flatbuffers.SIZE_PREFIX_LENGTH);
+    return (obj || new TableB()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+  }
+  a(obj) {
+    const offset = this.bb.__offset(this.bb_pos, 4);
+    return offset ? (obj || new TableA()).__init(this.bb.__indirect(this.bb_pos + offset), this.bb) : null;
+  }
+  static getFullyQualifiedName() {
+    return "MyGame_OtherNameSpace_TableB";
+  }
+  static startTableB(builder) {
+    builder.startObject(1);
+  }
+  static addA(builder, aOffset) {
+    builder.addFieldOffset(0, aOffset, 0);
+  }
+  static endTableB(builder) {
+    const offset = builder.endObject();
+    return offset;
+  }
+  static createTableB(builder, aOffset) {
+    TableB.startTableB(builder);
+    TableB.addA(builder, aOffset);
+    return TableB.endTableB(builder);
+  }
+  serialize() {
+    return this.bb.bytes();
+  }
+  static deserialize(buffer) {
+    return TableB.getRootAsTableB(new flatbuffers.ByteBuffer(buffer));
+  }
+  unpack() {
+    return new TableBT(this.a() !== null ? this.a().unpack() : null);
+  }
+  unpackTo(_o) {
+    _o.a = this.a() !== null ? this.a().unpack() : null;
+  }
+};
+var TableBT = class {
+  constructor(a = null) {
+    this.a = a;
+  }
+  pack(builder) {
+    const a = this.a !== null ? this.a.pack(builder) : 0;
+    return TableB.createTableB(builder, a);
+  }
+};
+
+// table-a.js
+var TableA = class {
+  constructor() {
+    this.bb = null;
+    this.bb_pos = 0;
+  }
+  __init(i, bb) {
+    this.bb_pos = i;
+    this.bb = bb;
+    return this;
+  }
+  static getRootAsTableA(bb, obj) {
+    return (obj || new TableA()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+  }
+  static getSizePrefixedRootAsTableA(bb, obj) {
+    bb.setPosition(bb.position() + flatbuffers2.SIZE_PREFIX_LENGTH);
+    return (obj || new TableA()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+  }
+  b(obj) {
+    const offset = this.bb.__offset(this.bb_pos, 4);
+    return offset ? (obj || new TableB()).__init(this.bb.__indirect(this.bb_pos + offset), this.bb) : null;
+  }
+  static getFullyQualifiedName() {
+    return "TableA";
+  }
+  static startTableA(builder) {
+    builder.startObject(1);
+  }
+  static addB(builder, bOffset) {
+    builder.addFieldOffset(0, bOffset, 0);
+  }
+  static endTableA(builder) {
+    const offset = builder.endObject();
+    return offset;
+  }
+  static createTableA(builder, bOffset) {
+    TableA.startTableA(builder);
+    TableA.addB(builder, bOffset);
+    return TableA.endTableA(builder);
+  }
+  serialize() {
+    return this.bb.bytes();
+  }
+  static deserialize(buffer) {
+    return TableA.getRootAsTableA(new flatbuffers2.ByteBuffer(buffer));
+  }
+  unpack() {
+    return new TableAT(this.b() !== null ? this.b().unpack() : null);
+  }
+  unpackTo(_o) {
+    _o.b = this.b() !== null ? this.b().unpack() : null;
+  }
+};
+var TableAT = class {
+  constructor(b = null) {
+    this.b = b;
+  }
+  pack(builder) {
+    const b = this.b !== null ? this.b.pack(builder) : 0;
+    return TableA.createTableA(builder, b);
+  }
+};
+
+// my-game.js
+var my_game_exports = {};
+__export(my_game_exports, {
+  Example: () => example_exports,
+  Example2: () => example2_exports,
+  InParentNamespace: () => InParentNamespace,
+  OtherNameSpace: () => other_name_space_exports
+});
+
+// my-game/in-parent-namespace.js
+var flatbuffers3 = __toESM(require("flatbuffers"), 1);
+var InParentNamespace = class {
+  constructor() {
+    this.bb = null;
+    this.bb_pos = 0;
+  }
+  __init(i, bb) {
+    this.bb_pos = i;
+    this.bb = bb;
+    return this;
+  }
+  static getRootAsInParentNamespace(bb, obj) {
+    return (obj || new InParentNamespace()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+  }
+  static getSizePrefixedRootAsInParentNamespace(bb, obj) {
+    bb.setPosition(bb.position() + flatbuffers3.SIZE_PREFIX_LENGTH);
+    return (obj || new InParentNamespace()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+  }
+  static getFullyQualifiedName() {
+    return "MyGame_InParentNamespace";
+  }
+  static startInParentNamespace(builder) {
+    builder.startObject(0);
+  }
+  static endInParentNamespace(builder) {
+    const offset = builder.endObject();
+    return offset;
+  }
+  static createInParentNamespace(builder) {
+    InParentNamespace.startInParentNamespace(builder);
+    return InParentNamespace.endInParentNamespace(builder);
+  }
+  serialize() {
+    return this.bb.bytes();
+  }
+  static deserialize(buffer) {
+    return InParentNamespace.getRootAsInParentNamespace(new flatbuffers3.ByteBuffer(buffer));
+  }
+  unpack() {
+    return new InParentNamespaceT();
+  }
+  unpackTo(_o) {
+  }
+};
+var InParentNamespaceT = class {
+  constructor() {
+  }
+  pack(builder) {
+    return InParentNamespace.createInParentNamespace(builder);
+  }
+};
+
+// my-game/example.js
 var example_exports = {};
 __export(example_exports, {
   Ability: () => Ability,
@@ -43,7 +243,6 @@ __export(example_exports, {
   TypeAliases: () => TypeAliases,
   Vec3: () => Vec3
 });
-module.exports = __toCommonJS(example_exports);
 
 // my-game/example/ability.js
 var Ability = class {
@@ -101,7 +300,7 @@ var AbilityT = class {
 };
 
 // my-game/example2/monster.js
-var flatbuffers = __toESM(require("flatbuffers"), 1);
+var flatbuffers4 = __toESM(require("flatbuffers"), 1);
 var Monster = class {
   constructor() {
     this.bb = null;
@@ -116,7 +315,7 @@ var Monster = class {
     return (obj || new Monster()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
   }
   static getSizePrefixedRootAsMonster(bb, obj) {
-    bb.setPosition(bb.position() + flatbuffers.SIZE_PREFIX_LENGTH);
+    bb.setPosition(bb.position() + flatbuffers4.SIZE_PREFIX_LENGTH);
     return (obj || new Monster()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
   }
   static getFullyQualifiedName() {
@@ -137,7 +336,7 @@ var Monster = class {
     return this.bb.bytes();
   }
   static deserialize(buffer) {
-    return Monster.getRootAsMonster(new flatbuffers.ByteBuffer(buffer));
+    return Monster.getRootAsMonster(new flatbuffers4.ByteBuffer(buffer));
   }
   unpack() {
     return new MonsterT();
@@ -154,7 +353,7 @@ var MonsterT = class {
 };
 
 // my-game/example/monster.js
-var flatbuffers6 = __toESM(require("flatbuffers"), 1);
+var flatbuffers8 = __toESM(require("flatbuffers"), 1);
 
 // my-game/example/any-ambiguous-aliases.js
 var AnyAmbiguousAliases;
@@ -180,7 +379,7 @@ function unionToAnyAmbiguousAliases(type, accessor) {
 }
 
 // my-game/example/test-simple-table-with-enum.js
-var flatbuffers2 = __toESM(require("flatbuffers"), 1);
+var flatbuffers5 = __toESM(require("flatbuffers"), 1);
 
 // my-game/example/color.js
 var Color;
@@ -205,7 +404,7 @@ var TestSimpleTableWithEnum = class {
     return (obj || new TestSimpleTableWithEnum()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
   }
   static getSizePrefixedRootAsTestSimpleTableWithEnum(bb, obj) {
-    bb.setPosition(bb.position() + flatbuffers2.SIZE_PREFIX_LENGTH);
+    bb.setPosition(bb.position() + flatbuffers5.SIZE_PREFIX_LENGTH);
     return (obj || new TestSimpleTableWithEnum()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
   }
   color() {
@@ -242,7 +441,7 @@ var TestSimpleTableWithEnum = class {
     return this.bb.bytes();
   }
   static deserialize(buffer) {
-    return TestSimpleTableWithEnum.getRootAsTestSimpleTableWithEnum(new flatbuffers2.ByteBuffer(buffer));
+    return TestSimpleTableWithEnum.getRootAsTestSimpleTableWithEnum(new flatbuffers5.ByteBuffer(buffer));
   }
   unpack() {
     return new TestSimpleTableWithEnumT(this.color());
@@ -293,7 +492,7 @@ var Race;
 })(Race = Race || (Race = {}));
 
 // my-game/example/referrable.js
-var flatbuffers3 = __toESM(require("flatbuffers"), 1);
+var flatbuffers6 = __toESM(require("flatbuffers"), 1);
 var Referrable = class {
   constructor() {
     this.bb = null;
@@ -308,7 +507,7 @@ var Referrable = class {
     return (obj || new Referrable()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
   }
   static getSizePrefixedRootAsReferrable(bb, obj) {
-    bb.setPosition(bb.position() + flatbuffers3.SIZE_PREFIX_LENGTH);
+    bb.setPosition(bb.position() + flatbuffers6.SIZE_PREFIX_LENGTH);
     return (obj || new Referrable()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
   }
   id() {
@@ -345,7 +544,7 @@ var Referrable = class {
     return this.bb.bytes();
   }
   static deserialize(buffer) {
-    return Referrable.getRootAsReferrable(new flatbuffers3.ByteBuffer(buffer));
+    return Referrable.getRootAsReferrable(new flatbuffers6.ByteBuffer(buffer));
   }
   unpack() {
     return new ReferrableT(this.id());
@@ -364,7 +563,7 @@ var ReferrableT = class {
 };
 
 // my-game/example/stat.js
-var flatbuffers4 = __toESM(require("flatbuffers"), 1);
+var flatbuffers7 = __toESM(require("flatbuffers"), 1);
 var Stat = class {
   constructor() {
     this.bb = null;
@@ -379,7 +578,7 @@ var Stat = class {
     return (obj || new Stat()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
   }
   static getSizePrefixedRootAsStat(bb, obj) {
-    bb.setPosition(bb.position() + flatbuffers4.SIZE_PREFIX_LENGTH);
+    bb.setPosition(bb.position() + flatbuffers7.SIZE_PREFIX_LENGTH);
     return (obj || new Stat()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
   }
   id(optionalEncoding) {
@@ -440,7 +639,7 @@ var Stat = class {
     return this.bb.bytes();
   }
   static deserialize(buffer) {
-    return Stat.getRootAsStat(new flatbuffers4.ByteBuffer(buffer));
+    return Stat.getRootAsStat(new flatbuffers7.ByteBuffer(buffer));
   }
   unpack() {
     return new StatT(this.id(), this.val(), this.count());
@@ -616,59 +815,6 @@ var Vec3T = class {
   }
 };
 
-// my-game/in-parent-namespace.js
-var flatbuffers5 = __toESM(require("flatbuffers"), 1);
-var InParentNamespace = class {
-  constructor() {
-    this.bb = null;
-    this.bb_pos = 0;
-  }
-  __init(i, bb) {
-    this.bb_pos = i;
-    this.bb = bb;
-    return this;
-  }
-  static getRootAsInParentNamespace(bb, obj) {
-    return (obj || new InParentNamespace()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
-  }
-  static getSizePrefixedRootAsInParentNamespace(bb, obj) {
-    bb.setPosition(bb.position() + flatbuffers5.SIZE_PREFIX_LENGTH);
-    return (obj || new InParentNamespace()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
-  }
-  static getFullyQualifiedName() {
-    return "MyGame_InParentNamespace";
-  }
-  static startInParentNamespace(builder) {
-    builder.startObject(0);
-  }
-  static endInParentNamespace(builder) {
-    const offset = builder.endObject();
-    return offset;
-  }
-  static createInParentNamespace(builder) {
-    InParentNamespace.startInParentNamespace(builder);
-    return InParentNamespace.endInParentNamespace(builder);
-  }
-  serialize() {
-    return this.bb.bytes();
-  }
-  static deserialize(buffer) {
-    return InParentNamespace.getRootAsInParentNamespace(new flatbuffers5.ByteBuffer(buffer));
-  }
-  unpack() {
-    return new InParentNamespaceT();
-  }
-  unpackTo(_o) {
-  }
-};
-var InParentNamespaceT = class {
-  constructor() {
-  }
-  pack(builder) {
-    return InParentNamespace.createInParentNamespace(builder);
-  }
-};
-
 // my-game/example/monster.js
 var Monster2 = class {
   constructor() {
@@ -684,7 +830,7 @@ var Monster2 = class {
     return (obj || new Monster2()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
   }
   static getSizePrefixedRootAsMonster(bb, obj) {
-    bb.setPosition(bb.position() + flatbuffers6.SIZE_PREFIX_LENGTH);
+    bb.setPosition(bb.position() + flatbuffers8.SIZE_PREFIX_LENGTH);
     return (obj || new Monster2()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
   }
   static bufferHasIdentifier(bb) {
@@ -1657,7 +1803,7 @@ var Monster2 = class {
     return this.bb.bytes();
   }
   static deserialize(buffer) {
-    return Monster2.getRootAsMonster(new flatbuffers6.ByteBuffer(buffer));
+    return Monster2.getRootAsMonster(new flatbuffers8.ByteBuffer(buffer));
   }
   unpack() {
     return new MonsterT2(this.pos() !== null ? this.pos().unpack() : null, this.mana(), this.hp(), this.name(), this.bb.createScalarList(this.inventory.bind(this), this.inventoryLength()), this.color(), this.testType(), (() => {
@@ -2063,7 +2209,7 @@ var StructOfStructsOfStructsT = class {
 };
 
 // my-game/example/type-aliases.js
-var flatbuffers7 = __toESM(require("flatbuffers"), 1);
+var flatbuffers9 = __toESM(require("flatbuffers"), 1);
 var TypeAliases = class {
   constructor() {
     this.bb = null;
@@ -2078,7 +2224,7 @@ var TypeAliases = class {
     return (obj || new TypeAliases()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
   }
   static getSizePrefixedRootAsTypeAliases(bb, obj) {
-    bb.setPosition(bb.position() + flatbuffers7.SIZE_PREFIX_LENGTH);
+    bb.setPosition(bb.position() + flatbuffers9.SIZE_PREFIX_LENGTH);
     return (obj || new TypeAliases()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
   }
   i8() {
@@ -2311,7 +2457,7 @@ var TypeAliases = class {
     return this.bb.bytes();
   }
   static deserialize(buffer) {
-    return TypeAliases.getRootAsTypeAliases(new flatbuffers7.ByteBuffer(buffer));
+    return TypeAliases.getRootAsTypeAliases(new flatbuffers9.ByteBuffer(buffer));
   }
   unpack() {
     return new TypeAliasesT(this.i8(), this.u8(), this.i16(), this.u16(), this.i32(), this.u32(), this.i64(), this.u64(), this.f32(), this.f64(), this.bb.createScalarList(this.v8.bind(this), this.v8Length()), this.bb.createScalarList(this.vf64.bind(this), this.vf64Length()));
@@ -2350,5 +2496,70 @@ var TypeAliasesT = class {
     const v8 = TypeAliases.createV8Vector(builder, this.v8);
     const vf64 = TypeAliases.createVf64Vector(builder, this.vf64);
     return TypeAliases.createTypeAliases(builder, this.i8, this.u8, this.i16, this.u16, this.i32, this.u32, this.i64, this.u64, this.f32, this.f64, v8, vf64);
+  }
+};
+
+// my-game/example2.js
+var example2_exports = {};
+__export(example2_exports, {
+  Monster: () => Monster
+});
+
+// my-game/other-name-space.js
+var other_name_space_exports = {};
+__export(other_name_space_exports, {
+  FromInclude: () => FromInclude,
+  TableB: () => TableB,
+  Unused: () => Unused
+});
+
+// my-game/other-name-space/from-include.js
+var FromInclude;
+(function(FromInclude2) {
+  FromInclude2["IncludeVal"] = "0";
+})(FromInclude = FromInclude || (FromInclude = {}));
+
+// my-game/other-name-space/unused.js
+var Unused = class {
+  constructor() {
+    this.bb = null;
+    this.bb_pos = 0;
+  }
+  __init(i, bb) {
+    this.bb_pos = i;
+    this.bb = bb;
+    return this;
+  }
+  a() {
+    return this.bb.readInt32(this.bb_pos);
+  }
+  mutate_a(value) {
+    this.bb.writeInt32(this.bb_pos + 0, value);
+    return true;
+  }
+  static getFullyQualifiedName() {
+    return "MyGame_OtherNameSpace_Unused";
+  }
+  static sizeOf() {
+    return 4;
+  }
+  static createUnused(builder, a) {
+    builder.prep(4, 4);
+    builder.writeInt32(a);
+    return builder.offset();
+  }
+  unpack() {
+    return new UnusedT(this.a());
+  }
+  unpackTo(_o) {
+    _o.a = this.a();
+  }
+};
+var UnusedT = class {
+  constructor(a = 0) {
+    this.a = a;
+  }
+  pack(builder) {
+    return Unused.createUnused(builder, this.a);
   }
 };

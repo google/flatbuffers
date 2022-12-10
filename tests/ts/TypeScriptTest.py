@@ -71,7 +71,7 @@ flatc(
     schema="../monster_test.fbs",
     include="../include_test",
 )
-esbuild("my-game/example.ts", "monster_test_generated.js")
+esbuild("monster_test.ts", "monster_test_generated.cjs")
 
 flatc(
     options=["--gen-object-api", "-b"],
@@ -85,7 +85,7 @@ flatc(
     schema="../union_vector/union_vector.fbs",
     prefix="union_vector",
 )
-esbuild("union_vector/union_vector.ts", "union_vector/union_vector_generated.js")
+esbuild("union_vector/union_vector.ts", "union_vector/union_vector_generated.cjs")
 
 flatc(
     options=["--ts", "--reflect-names", "--gen-name-strings"],
@@ -97,7 +97,7 @@ flatc(
     schema="arrays_test_complex/arrays_test_complex.fbs",
     prefix="arrays_test_complex"
 )
-esbuild("arrays_test_complex/my-game/example.ts", "arrays_test_complex/arrays_test_complex_generated.js")
+esbuild("arrays_test_complex/my-game/example.ts", "arrays_test_complex/arrays_test_complex_generated.cjs")
 
 flatc(
     options=["--ts", "--reflect-names", "--gen-name-strings", "--gen-mutable", "--gen-object-api", "--ts-entry-points", "--ts-flat-files"],
@@ -109,10 +109,10 @@ flatc(
     ],
     include="../../",
 )
-esbuild("typescript.ts", "typescript_keywords_generated.js")
-esbuild("foobar.ts", "typescript_include_generated.js")
-esbuild("foobar.ts", "typescript_transitive_include_generated.js")
-esbuild("reflection.ts", "reflection_generated.js")
+esbuild("typescript.ts", "typescript_keywords_generated.cjs")
+esbuild("foobar.ts", "typescript_include_generated.cjs")
+esbuild("foobar.ts", "typescript_transitive_include_generated.cjs")
+esbuild("reflection.ts", "reflection_generated.cjs")
 
 print("Running TypeScript Compiler...")
 check_call(["tsc"])
@@ -121,7 +121,7 @@ NODE_CMD = ["node"]
 
 print("Running TypeScript Tests...")
 check_call(NODE_CMD + ["JavaScriptTest"])
-#check_call(NODE_CMD + ["JavaScriptTestv1.cjs"])
+check_call(NODE_CMD + ["JavaScriptTestv1.cjs", "./monster_test_generated.cjs"])
 check_call(NODE_CMD + ["JavaScriptUnionVectorTest"])
 check_call(NODE_CMD + ["JavaScriptFlexBuffersTest"])
 check_call(NODE_CMD + ["JavaScriptComplexArraysTest"])

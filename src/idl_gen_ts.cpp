@@ -288,14 +288,16 @@ class TsGenerator : public BaseGenerator {
     if (parser_.opts.ts_flat_files) {
       std::string inputpath;
       std::string symbolic_name = file_name_;
-      if (parser_.current_namespace_->components.size() > 0) {
+      // TODO: unsure when/why this was sensible
+      /*if (parser_.current_namespace_->components.size() > 0) {
         std::string path = namer_.Directories(*parser_.current_namespace_,
                                               SkipDir::TrailingPathSeperator);
         inputpath = path + ".ts";
         symbolic_name = parser_.current_namespace_->components.back();
       } else {
         inputpath = path_ + file_name_ + ".ts";
-      }
+      }*/
+      inputpath = path_ + file_name_ + ".ts";
       std::string bundlepath =
           GeneratedFileName(path_, file_name_, parser_.opts);
       bundlepath = bundlepath.substr(0, bundlepath.size() - 3) + ".js";
