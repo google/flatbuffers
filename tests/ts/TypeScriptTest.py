@@ -54,6 +54,12 @@ def flatc(options, schema, prefix=None, include=None, data=None, cwd=tests_path)
         cmd += [data] if isinstance(data, str) else data
     check_call(cmd)
 
+# Execute esbuild with the specified parameters
+def esbuild(input, output):
+    cmd = ["esbuild", input, "--outfile=" + output]
+    cmd += ["--format=cjs", "--bundle", "--external:flatbuffers"]
+    check_call(cmd)
+
 print("Removing node_modules/ directory...")
 shutil.rmtree(Path(tests_path, "node_modules"), ignore_errors=True)
 
@@ -65,6 +71,7 @@ flatc(
     schema="../monster_test.fbs",
     include="../include_test",
 )
+esbuild("my-game/example.ts", "monster_test_generated.js")
 
 flatc(
     options=["--gen-object-api", "-b"],
@@ -78,6 +85,7 @@ flatc(
     schema="../union_vector/union_vector.fbs",
     prefix="union_vector",
 )
+esbuild("union_vector/union_vector.ts", "union_vector/union_vector_generated.js")
 
 flatc(
     options=["--ts", "--reflect-names", "--gen-name-strings"],
@@ -89,6 +97,7 @@ flatc(
     schema="arrays_test_complex/arrays_test_complex.fbs",
     prefix="arrays_test_complex"
 )
+esbuild("arrays_test_complex/my-game/example.ts", "arrays_test_complex/arrays_test_complex_generated.js")
 
 flatc(
     options=["--ts", "--reflect-names", "--gen-name-strings", "--gen-mutable", "--gen-object-api", "--ts-entry-points", "--ts-flat-files"],
@@ -100,6 +109,10 @@ flatc(
     ],
     include="../../",
 )
+esbuild("typescript.ts", "typescript_keywords_generated.js")
+esbuild("foobar.ts", "typescript_include_generated.js")
+esbuild("foobar.ts", "typescript_transitive_include_generated.js")
+esbuild("reflection.ts", "reflection_generated.js")
 
 print("Running TypeScript Compiler...")
 check_call(["tsc"])

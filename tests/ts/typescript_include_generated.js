@@ -20,8 +20,7 @@ var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: tru
 // foobar.ts
 var foobar_exports = {};
 __export(foobar_exports, {
-  Abc: () => Abc,
-  class_: () => class_
+  Abc: () => Abc
 });
 module.exports = __toCommonJS(foobar_exports);
 
@@ -30,9 +29,3 @@ var Abc;
 (function(Abc2) {
   Abc2[Abc2["a"] = 0] = "a";
 })(Abc = Abc || (Abc = {}));
-
-// foobar/class.js
-var class_;
-(function(class_2) {
-  class_2[class_2["arguments_"] = 0] = "arguments_";
-})(class_ = class_ || (class_ = {}));
