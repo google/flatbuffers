@@ -222,7 +222,7 @@ void ParseCorruptedProto(const std::string &proto_path) {
     bool exception = false;
     try {
       auto fbs = flatbuffers::GenerateFBS(parser, "test");
-    } catch (const std::exception &e) { exception = true; }
+    } catch (const std::exception &) { exception = true; }
     TEST_EQ(exception, true);
   }
 
@@ -236,7 +236,7 @@ void ParseCorruptedProto(const std::string &proto_path) {
     bool exception = false;
     try {
       auto fbs = flatbuffers::GenerateFBS(parser, "test");
-    } catch (const std::exception &e) { exception = true; }
+    } catch (const std::exception &) { exception = true; }
     TEST_EQ(exception, true);
   }
 
@@ -250,7 +250,7 @@ void ParseCorruptedProto(const std::string &proto_path) {
     bool exception = false;
     try {
       auto fbs = flatbuffers::GenerateFBS(parser, "test");
-    } catch (const std::exception &e) { exception = true; }
+    } catch (const std::exception &) { exception = true; }
     TEST_EQ(exception, true);
   }
 
@@ -265,7 +265,7 @@ void ParseCorruptedProto(const std::string &proto_path) {
     bool exception = false;
     try {
       auto fbs = flatbuffers::GenerateFBS(parser, "test");
-    } catch (const std::exception &e) { exception = true; }
+    } catch (const std::exception &) { exception = true; }
     TEST_EQ(exception, true);
   }
 }
