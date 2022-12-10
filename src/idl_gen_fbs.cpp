@@ -48,11 +48,11 @@ static std::unordered_map<std::string, voffset_t> MapStructId(
   using FieldIdNamePair = std::pair<std::string, std::string>;
   std::vector<FieldIdNamePair> ids;
 
-  bool fields_with_id = false;
+  bool field_with_id = false;
 
   for (const auto &field : struct_def.fields.vec) {
     if (field->attributes.Lookup("id")) {
-      fields_with_id = true;
+      field_with_id = true;
       if (field->attributes.Lookup("id")->constant.empty() &&
           field->value.type.base_type != BASE_TYPE_UNION)
         ids.push_back(std::make_pair("-1", field->name));
@@ -76,7 +76,7 @@ static std::unordered_map<std::string, voffset_t> MapStructId(
   }
 
   // None of the fields has id
-  if (!fields_with_id) return {};
+  if (!field_with_id) return {};
 
   // Sort ids, consider 0 if the field does not have an id.
   std::sort(ids.begin(), ids.end(),
