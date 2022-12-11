@@ -103,10 +103,12 @@ class GoGenerator : public BaseGenerator {
     bool needs_imports = false;
     for (auto it = parser_.enums_.vec.begin(); it != parser_.enums_.vec.end();
          ++it) {
-      tracked_imported_namespaces_.clear();
-      needs_math_import_ = false;
-      needs_bytes_import_ = false;
-      needs_imports = false;
+      if (!parser_.opts.one_file) {
+        tracked_imported_namespaces_.clear();
+        needs_math_import_ = false;
+        needs_bytes_import_ = false;
+        needs_imports = false;
+      }
       std::string enumcode;
       GenEnum(**it, &enumcode);
       if ((*it)->is_union && parser_.opts.generate_object_based_api) {
@@ -124,9 +126,11 @@ class GoGenerator : public BaseGenerator {
 
     for (auto it = parser_.structs_.vec.begin();
          it != parser_.structs_.vec.end(); ++it) {
-      tracked_imported_namespaces_.clear();
-      needs_math_import_ = false;
-      needs_bytes_import_ = false;
+      if (!parser_.opts.one_file) {
+        tracked_imported_namespaces_.clear();
+        needs_math_import_ = false;
+        needs_bytes_import_ = false;
+      }
       std::string declcode;
       GenStruct(**it, &declcode);
       if (parser_.opts.one_file) {
@@ -915,6 +919,7 @@ class GoGenerator : public BaseGenerator {
     code += "buf []byte) bool {\n";
     code += "\tspan := flatbuffers.GetUOffsetT(buf[vectorLocation - 4:])\n";
     code += "\tstart := flatbuffers.UOffsetT(0)\n";
+    if (IsString(field.value.type)) code += "\tbKey := []byte(key)\n";
     code += "\tfor span != 0 {\n";
     code += "\t\tmiddle := span / 2\n";
     code += "\t\ttableOffset := flatbuffers.GetIndirectOffset(buf, ";
@@ -924,7 +929,6 @@ class GoGenerator : public BaseGenerator {
     code += "\t\tobj.Init(buf, tableOffset)\n";
 
     if (IsString(field.value.type)) {
-      code += "\t\tbKey := []byte(key)\n";
       needs_bytes_import_ = true;
       code +=
           "\t\tcomp := bytes.Compare(obj." + namer_.Function(field.name) + "()";
