@@ -63,6 +63,28 @@ jobs:
       id: hash-gcc
       run: echo "::set-output name=hashes::$(sha256sum Linux.flatc.binary.${{ matrix.cxx }}.zip | base64 -w0)"
 
+  build-linux-s390x:
+    name: Build Linux on s390x arch
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: uraimo/run-on-arch-action@v2
+        name: Run commands
+        id: runcmd
+        with:
+          arch: s390x
+          distro: ubuntu_latest
+          install: |
+            apt-get update -q -y
+            apt-get install make
+          run: |
+            cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release
+            make -j
+            ./flattests
+
+
+
+
   build-linux-cpp-std:
     name: Build Linux C++
     runs-on: ubuntu-latest
@@ -79,8 +101,8 @@ jobs:
     - uses: actions/checkout@v3
     - name: cmake
       run: >
-        CXX=${{ matrix.cxx }} cmake -G "Unix Makefiles" 
-        -DCMAKE_BUILD_TYPE=Release -DFLATBUFFERS_STRICT_MODE=ON 
+        CXX=${{ matrix.cxx }} cmake -G "Unix Makefiles"
+        -DCMAKE_BUILD_TYPE=Release -DFLATBUFFERS_STRICT_MODE=ON
         -DFLATBUFFERS_CPP_STD=${{ matrix.std }}
         -DFLATBUFFERS_BUILD_CPP17=${{ matrix.std >= 17 && 'On' || 'Off'}}
     - name: build
@@ -104,8 +126,8 @@ jobs:
       uses: microsoft/setup-msbuild@v1.1
     - name: cmake
       run: >
-        cmake -G "Visual Studio 16 2019" -A x64 -DCMAKE_BUILD_TYPE=Release 
-        -DFLATBUFFERS_STRICT_MODE=ON 
+        cmake -G "Visual Studio 16 2019" -A x64 -DCMAKE_BUILD_TYPE=Release
+        -DFLATBUFFERS_STRICT_MODE=ON
         -DFLATBUFFERS_CPP_STD=${{ matrix.std }}
         -DFLATBUFFERS_BUILD_CPP17=${{ matrix.std >= 17 && 'On' || 'Off'}}
     - name: build
@@ -121,7 +143,7 @@ jobs:
       contents: write
     outputs:
       digests: ${{ steps.hash.outputs.hashes }}
-    name: Build Windows 2019 
+    name: Build Windows 2019
     runs-on: windows-2019
     steps:
     - uses: actions/checkout@v3
@@ -190,7 +212,7 @@ jobs:
       matrix:
         configuration: [
           '',
-          '-p:UnsafeByteBuffer=true', 
+          '-p:UnsafeByteBuffer=true',
           # Fails two tests currently.
           #'-p:EnableSpanT=true,UnsafeByteBuffer=true'
           ]
@@ -198,7 +220,7 @@ jobs:
     - uses: actions/checkout@v3
     - name: Setup .NET Core SDK
       uses: actions/setup-dotnet@v3
-      with: 
+      with:
         dotnet-version: '3.1.x'
     - name: Build
       run: |
