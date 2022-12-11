@@ -76,6 +76,7 @@ jobs:
           distro: ubuntu_latest
           install: |
             apt-get update -q -y
+            apt-get install cmake
             apt-get install make
           run: |
             cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release
