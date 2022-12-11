@@ -78,6 +78,7 @@ jobs:
             apt-get update -q -y
             apt-get -y install cmake
             apt-get -y install make
+            apt-get -y install g++
           run: |
             cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release
             make -j
