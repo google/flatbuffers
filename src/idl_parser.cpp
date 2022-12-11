@@ -3510,12 +3510,13 @@ CheckedError Parser::DoParse(const char *source, const char **include_paths,
         // Look for the file in include_paths.
         for (auto paths = include_paths; paths && *paths; paths++) {
           filepath = flatbuffers::ConCatPathFileName(*paths, name);
-          if (FileExists(filepath.c_str())) break;
+          if (FileExists(filepath.c_str())) { break; }
         }
       }
-      if (filepath.empty())
+      if (filepath.empty()) {
         return Error("unable to locate include file: " + name);
-      if (source_filename) {
+      }
+      if (source_filename != nullptr) {
         IncludedFile included_file;
         included_file.filename = filepath;
         included_file.schema_name = name;
@@ -3532,7 +3533,7 @@ CheckedError Parser::DoParse(const char *source, const char **include_paths,
         ECHECK(DoParse(contents.c_str(), include_paths, filepath.c_str(),
                        name.c_str()));
         // We generally do not want to output code for any included files:
-        if (!opts.generate_all) MarkGenerated();
+        if (!opts.generate_all) { MarkGenerated(); }
         // Reset these just in case the included file had them, and the
         // parent doesn't.
         root_struct_def_ = nullptr;
@@ -3572,9 +3573,12 @@ CheckedError Parser::DoParse(const char *source, const char **include_paths,
       EXPECT(kTokenIdentifier);
       ECHECK(ParseNamespacing(root_type));
       if (opts.root_type.empty()) {
-        if (!SetRootType(root_type.c_str()))
+        if (!SetRootType(root_type.c_str())) {
           return Error("unknown root type: " + root_type);
-        if (root_struct_def_->fixed) return Error("root type must be a table");
+        }
+        if (root_struct_def_->fixed) {
+          return Error("root type must be a table");
+        }
       }
       EXPECT(';');
     } else if (IsIdent("file_identifier")) {
@@ -3620,20 +3624,22 @@ CheckedError Parser::DoParseJson() {
   if (token_ != '{') {
     EXPECT('{');
   } else {
-    if (!root_struct_def_) return Error("no root type set to parse json with");
-    if (builder_.GetSize()) {
+    if (root_struct_def_ == nullptr) {
+      return Error("no root type set to parse json with");
+    }
+    if (builder_.GetSize() != 0u) {
       return Error("cannot have more than one json object in a file");
     }
-    uoffset_t toff;
+    uoffset_t toff = 0;
     ECHECK(ParseTable(*root_struct_def_, nullptr, &toff));
     if (opts.size_prefixed) {
       builder_.FinishSizePrefixed(
           Offset<Table>(toff),
           file_identifier_.length() ? file_identifier_.c_str() : nullptr);
     } else {
-      builder_.Finish(Offset<Table>(toff), file_identifier_.length()
-                                               ? file_identifier_.c_str()
-                                               : nullptr);
+      builder_.Finish(Offset<Table>(toff), file_identifier_.empty()
+                                               ? nullptr
+                                               : file_identifier_.c_str());
     }
   }
   if (opts.require_json_eof) {
@@ -3649,7 +3655,7 @@ std::set<std::string> Parser::GetIncludedFilesRecursive(
   std::set<std::string> included_files;
   std::list<std::string> to_process;
 
-  if (file_name.empty()) return included_files;
+  if (file_name.empty()) { return included_files; }
   to_process.push_back(file_name);
 
   while (!to_process.empty()) {
@@ -3657,13 +3663,11 @@ std::set<std::string> Parser::GetIncludedFilesRecursive(
     to_process.pop_front();
     included_files.insert(current);
 
-    // Workaround the lack of const accessor in C++98 maps.
-    auto &new_files =
-        (*const_cast<std::map<std::string, std::set<IncludedFile>> *>(
-            &files_included_per_file_))[current];
-    for (auto it = new_files.begin(); it != new_files.end(); ++it) {
-      if (included_files.find(it->filename) == included_files.end())
-        to_process.push_back(it->filename);
+    const auto &new_files = files_included_per_file_.at(current);
+    for (const auto &new_file : new_files) {
+      if (included_files.find(new_file.filename) == included_files.end()) {
+        to_process.push_back(new_file.filename);
+      }
     }
   }
 
@@ -3677,30 +3681,27 @@ static flatbuffers::Offset<
 SerializeAttributesCommon(const SymbolTable<Value> &attributes,
                           FlatBufferBuilder *builder, const Parser &parser) {
   std::vector<flatbuffers::Offset<reflection::KeyValue>> attrs;
-  for (auto kv = attributes.dict.begin(); kv != attributes.dict.end(); ++kv) {
-    auto it = parser.known_attributes_.find(kv->first);
+  for (const auto &kv : attributes.dict) {
+    auto it = parser.known_attributes_.find(kv.first);
     FLATBUFFERS_ASSERT(it != parser.known_attributes_.end());
     if (parser.opts.binary_schema_builtins || !it->second) {
-      auto key = builder->CreateString(kv->first);
-      auto val = builder->CreateString(kv->second->constant);
+      auto key = builder->CreateString(kv.first);
+      auto val = builder->CreateString(kv.second->constant);
       attrs.push_back(reflection::CreateKeyValue(*builder, key, val));
     }
   }
-  if (attrs.size()) {
-    return builder->CreateVectorOfSortedTables(&attrs);
-  } else {
-    return 0;
-  }
+  if (!attrs.empty()) { return builder->CreateVectorOfSortedTables(&attrs); }
+  return 0;
 }
 
 static bool DeserializeAttributesCommon(
     SymbolTable<Value> &attributes, Parser &parser,
     const Vector<Offset<reflection::KeyValue>> *attrs) {
-  if (attrs == nullptr) return true;
+  if (attrs == nullptr) { return true; }
   for (uoffset_t i = 0; i < attrs->size(); ++i) {
-    auto kv = attrs->Get(i);
-    auto value = new Value();
-    if (kv->value()) { value->constant = kv->value()->str(); }
+    const auto *kv = attrs->Get(i);
+    auto *value = new Value();
+    if (kv->value() != nullptr) { value->constant = kv->value()->str(); }
     if (attributes.Add(kv->key()->str(), value)) {
       delete value;
       return false;
@@ -3716,62 +3717,63 @@ void Parser::Serialize() {
   AssignIndices(enums_.vec);
   std::vector<Offset<reflection::Object>> object_offsets;
   std::set<std::string> files;
-  for (auto it = structs_.vec.begin(); it != structs_.vec.end(); ++it) {
-    auto offset = (*it)->Serialize(&builder_, *this);
+  for (auto *it : structs_.vec) {
+    auto offset = it->Serialize(&builder_, *this);
     object_offsets.push_back(offset);
-    (*it)->serialized_location = offset.o;
-    const std::string *file = (*it)->declaration_file;
-    if (file) files.insert(*file);
+    it->serialized_location = offset.o;
+    const std::string *file = it->declaration_file;
+    if (file != nullptr) files.insert(*file);
   }
+
   std::vector<Offset<reflection::Enum>> enum_offsets;
-  for (auto it = enums_.vec.begin(); it != enums_.vec.end(); ++it) {
-    auto offset = (*it)->Serialize(&builder_, *this);
+  for (const auto *it : enums_.vec) {
+    auto offset = it->Serialize(&builder_, *this);
     enum_offsets.push_back(offset);
-    const std::string *file = (*it)->declaration_file;
-    if (file) files.insert(*file);
+    const std::string *file = it->declaration_file;
+    if (file != nullptr) files.insert(*file);
   }
+
   std::vector<Offset<reflection::Service>> service_offsets;
-  for (auto it = services_.vec.begin(); it != services_.vec.end(); ++it) {
-    auto offset = (*it)->Serialize(&builder_, *this);
+  for (const auto *it : services_.vec) {
+    auto offset = it->Serialize(&builder_, *this);
     service_offsets.push_back(offset);
-    const std::string *file = (*it)->declaration_file;
-    if (file) files.insert(*file);
+    const std::string *file = it->declaration_file;
+    if (file != nullptr) { files.insert(*file); }
   }
 
   // Create Schemafiles vector of tables.
   flatbuffers::Offset<
       flatbuffers::Vector<flatbuffers::Offset<reflection::SchemaFile>>>
-      schema_files__;
+      schema_files_;
   if (!opts.project_root.empty()) {
     std::vector<Offset<reflection::SchemaFile>> schema_files;
     std::vector<Offset<flatbuffers::String>> included_files;
-    for (auto f = files_included_per_file_.begin();
-         f != files_included_per_file_.end(); f++) {
-      const auto filename__ = builder_.CreateSharedString(
-          RelativeToRootPath(opts.project_root, f->first));
-      for (auto i = f->second.begin(); i != f->second.end(); i++) {
+    for (const auto &files : files_included_per_file_) {
+      const auto &filename_ = builder_.CreateSharedString(
+          RelativeToRootPath(opts.project_root, files.first));
+      for (const auto &file : files.second) {
         included_files.push_back(builder_.CreateSharedString(
-            RelativeToRootPath(opts.project_root, i->filename)));
+            RelativeToRootPath(opts.project_root, file.filename)));
       }
-      const auto included_files__ = builder_.CreateVector(included_files);
+      const auto &included_files_ = builder_.CreateVector(included_files);
       included_files.clear();
 
       schema_files.push_back(
-          reflection::CreateSchemaFile(builder_, filename__, included_files__));
+          reflection::CreateSchemaFile(builder_, filename_, included_files_));
     }
-    schema_files__ = builder_.CreateVectorOfSortedTables(&schema_files);
+    schema_files_ = builder_.CreateVectorOfSortedTables(&schema_files);
   }
 
-  const auto objs__ = builder_.CreateVectorOfSortedTables(&object_offsets);
-  const auto enum__ = builder_.CreateVectorOfSortedTables(&enum_offsets);
-  const auto fiid__ = builder_.CreateString(file_identifier_);
-  const auto fext__ = builder_.CreateString(file_extension_);
-  const auto serv__ = builder_.CreateVectorOfSortedTables(&service_offsets);
+  const auto objs_ = builder_.CreateVectorOfSortedTables(&object_offsets);
+  const auto enum_ = builder_.CreateVectorOfSortedTables(&enum_offsets);
+  const auto fiid_ = builder_.CreateString(file_identifier_);
+  const auto fext_ = builder_.CreateString(file_extension_);
+  const auto serv_ = builder_.CreateVectorOfSortedTables(&service_offsets);
   const auto schema_offset = reflection::CreateSchema(
-      builder_, objs__, enum__, fiid__, fext__,
-      (root_struct_def_ ? root_struct_def_->serialized_location : 0), serv__,
-      static_cast<reflection::AdvancedFeatures>(advanced_features_),
-      schema_files__);
+      builder_, objs_, enum_, fiid_, fext_,
+      (root_struct_def_ != nullptr ? root_struct_def_->serialized_location : 0),
+      serv_, static_cast<reflection::AdvancedFeatures>(advanced_features_),
+      schema_files_);
   if (opts.size_prefixed) {
     builder_.FinishSizePrefixed(schema_offset, reflection::SchemaIdentifier());
   } else {
@@ -3787,17 +3789,17 @@ Offset<reflection::Object> StructDef::Serialize(FlatBufferBuilder *builder,
         builder, static_cast<uint16_t>(it - fields.vec.begin()), parser));
   }
   const auto qualified_name = defined_namespace->GetFullyQualifiedName(name);
-  const auto name__ = builder->CreateString(qualified_name);
-  const auto flds__ = builder->CreateVectorOfSortedTables(&field_offsets);
-  const auto attr__ = SerializeAttributes(builder, parser);
-  const auto docs__ = parser.opts.binary_schema_comments && !doc_comment.empty()
+  const auto &name_ = builder->CreateString(qualified_name);
+  const auto &flds_ = builder->CreateVectorOfSortedTables(&field_offsets);
+  const auto &attr_ = SerializeAttributes(builder, parser);
+  const auto &docs_ = parser.opts.binary_schema_comments && !doc_comment.empty()
                           ? builder->CreateVectorOfStrings(doc_comment)
                           : 0;
   std::string decl_file_in_project = declaration_file ? *declaration_file : "";
-  const auto file__ = builder->CreateSharedString(decl_file_in_project);
+  const auto file_ = builder->CreateSharedString(decl_file_in_project);
   return reflection::CreateObject(
-      *builder, name__, flds__, fixed, static_cast<int>(minalign),
-      static_cast<int>(bytesize), attr__, docs__, file__);
+      *builder, name_, flds_, fixed, static_cast<int>(minalign),
+      static_cast<int>(bytesize), attr_, docs_, file_);
 }
 
 bool StructDef::Deserialize(Parser &parser, const reflection::Object *object) {
@@ -3808,10 +3810,10 @@ bool StructDef::Deserialize(Parser &parser, const reflection::Object *object) {
   sortbysize = attributes.Lookup("original_order") == nullptr && !fixed;
   const auto &of = *(object->fields());
   auto indexes = std::vector<uoffset_t>(of.size());
-  for (uoffset_t i = 0; i < of.size(); i++) indexes[of.Get(i)->id()] = i;
+  for (uoffset_t i = 0; i < of.size(); i++) { indexes[of.Get(i)->id()] = i; }
   size_t tmp_struct_size = 0;
   for (size_t i = 0; i < indexes.size(); i++) {
-    auto field = of.Get(indexes[i]);
+    const auto *field = of.Get(indexes[i]);
     auto *field_def = new FieldDef();
     if (!field_def->Deserialize(parser, field) ||
         fields.Add(field_def->name, field_def)) {
@@ -4173,12 +4175,11 @@ bool Parser::Deserialize(const reflection::Schema *schema) {
   advanced_features_ = schema->advanced_features();
 
   if (schema->fbs_files() != nullptr) {
-    for (auto schema : *schema->fbs_files()) {
-      for (auto filename : *schema->included_filenames()) {
+    for (auto fbs : *schema->fbs_files()) {
+      for (auto filename : *fbs->included_filenames()) {
         IncludedFile included_file;
         included_file.filename = filename->str();
-        files_included_per_file_[schema->filename()->str()].insert(
-            included_file);
+        files_included_per_file_[fbs->filename()->str()].insert(included_file);
       }
     }
   }
