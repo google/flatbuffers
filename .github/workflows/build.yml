@@ -84,9 +84,6 @@ jobs:
             make -j
             ./flattests
 
-
-
-
   build-linux-cpp-std:
     name: Build Linux C++
     runs-on: ubuntu-latest
