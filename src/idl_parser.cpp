@@ -3443,8 +3443,8 @@ CheckedError Parser::CheckPrivateLeak() {
 CheckedError Parser::CheckPrivatelyLeakedFields(const Definition &def,
                                                 const Definition &value_type) {
   if (!opts.no_leak_private_annotations) return NoError();
-  const auto is_private = def.attributes.Lookup("private");
-  const auto is_field_private = value_type.attributes.Lookup("private");
+  auto *const is_private = def.attributes.Lookup("private");
+  auto *const is_field_private = value_type.attributes.Lookup("private");
   if (!is_private && is_field_private) {
     return Error(
         "Leaking private implementation, verify all objects have similar "
@@ -3457,7 +3457,7 @@ CheckedError Parser::DoParse(const char *source, const char **include_paths,
                              const char *source_filename,
                              const char *include_filename) {
   uint64_t source_hash = 0;
-  if (source_filename) {
+  if (source_filename != nullptr) {
     // If the file is in-memory, don't include its contents in the hash as we
     // won't be able to load them later.
     if (FileExists(source_filename))
@@ -3466,13 +3466,14 @@ CheckedError Parser::DoParse(const char *source, const char **include_paths,
       source_hash = HashFile(source_filename, nullptr);
 
     if (included_files_.find(source_hash) == included_files_.end()) {
-      included_files_[source_hash] = include_filename ? include_filename : "";
+      included_files_[source_hash] =
+          include_filename != nullptr ? include_filename : "";
       files_included_per_file_[source_filename] = std::set<IncludedFile>();
     } else {
       return NoError();
     }
   }
-  if (!include_paths) {
+  if (include_paths == nullptr) {
     static const char *current_directory[] = { "", nullptr };
     include_paths = current_directory;
   }
@@ -3501,7 +3502,7 @@ CheckedError Parser::DoParse(const char *source, const char **include_paths,
       EXPECT(kTokenStringConstant);
       // Look for the file relative to the directory of the current file.
       std::string filepath;
-      if (source_filename) {
+      if (source_filename != nullptr) {
         auto source_file_directory =
             flatbuffers::StripFileName(source_filename);
         filepath = flatbuffers::ConCatPathFileName(source_file_directory, name);
@@ -3529,7 +3530,9 @@ CheckedError Parser::DoParse(const char *source, const char **include_paths,
           included_files_.end()) {
         // We found an include file that we have not parsed yet.
         // Parse it.
-        if (!file_loaded) return Error("unable to load include file: " + name);
+        if (!file_loaded) {
+          return Error("unable to load include file: " + name);
+        }
         ECHECK(DoParse(contents.c_str(), include_paths, filepath.c_str(),
                        name.c_str()));
         // We generally do not want to output code for any included files:
@@ -3627,7 +3630,7 @@ CheckedError Parser::DoParseJson() {
     if (root_struct_def_ == nullptr) {
       return Error("no root type set to parse json with");
     }
-    if (builder_.GetSize() != 0u) {
+    if (builder_.GetSize() != 0U) {
       return Error("cannot have more than one json object in a file");
     }
     uoffset_t toff = 0;
@@ -3717,27 +3720,27 @@ void Parser::Serialize() {
   AssignIndices(enums_.vec);
   std::vector<Offset<reflection::Object>> object_offsets;
   std::set<std::string> files;
-  for (auto *it : structs_.vec) {
-    auto offset = it->Serialize(&builder_, *this);
+  for (auto *struct_ptr : structs_.vec) {
+    auto offset = struct_ptr->Serialize(&builder_, *this);
     object_offsets.push_back(offset);
-    it->serialized_location = offset.o;
-    const std::string *file = it->declaration_file;
+    struct_ptr->serialized_location = offset.o;
+    const std::string *file = struct_ptr->declaration_file;
     if (file != nullptr) files.insert(*file);
   }
 
   std::vector<Offset<reflection::Enum>> enum_offsets;
-  for (const auto *it : enums_.vec) {
-    auto offset = it->Serialize(&builder_, *this);
+  for (const auto *enum_ptr : enums_.vec) {
+    auto offset = enum_ptr->Serialize(&builder_, *this);
     enum_offsets.push_back(offset);
-    const std::string *file = it->declaration_file;
-    if (file != nullptr) files.insert(*file);
+    const std::string *file = enum_ptr->declaration_file;
+    if (file != nullptr) { files.insert(*file); }
   }
 
   std::vector<Offset<reflection::Service>> service_offsets;
-  for (const auto *it : services_.vec) {
-    auto offset = it->Serialize(&builder_, *this);
+  for (const auto *service : services_.vec) {
+    auto offset = service->Serialize(&builder_, *this);
     service_offsets.push_back(offset);
-    const std::string *file = it->declaration_file;
+    const std::string *file = service->declaration_file;
     if (file != nullptr) { files.insert(*file); }
   }
 
@@ -3755,11 +3758,12 @@ void Parser::Serialize() {
         included_files.push_back(builder_.CreateSharedString(
             RelativeToRootPath(opts.project_root, file.filename)));
       }
-      const auto &included_files_ = builder_.CreateVector(included_files);
+      const auto &serialized_included_files =
+          builder_.CreateVector(included_files);
       included_files.clear();
 
-      schema_files.push_back(
-          reflection::CreateSchemaFile(builder_, filename_, included_files_));
+      schema_files.push_back(reflection::CreateSchemaFile(
+          builder_, filename_, serialized_included_files));
     }
     schema_files_ = builder_.CreateVectorOfSortedTables(&schema_files);
   }
@@ -3795,7 +3799,8 @@ Offset<reflection::Object> StructDef::Serialize(FlatBufferBuilder *builder,
   const auto &docs_ = parser.opts.binary_schema_comments && !doc_comment.empty()
                           ? builder->CreateVectorOfStrings(doc_comment)
                           : 0;
-  std::string decl_file_in_project = declaration_file ? *declaration_file : "";
+  std::string decl_file_in_project =
+      declaration_file != nullptr ? *declaration_file : "";
   const auto file_ = builder->CreateSharedString(decl_file_in_project);
   return reflection::CreateObject(
       *builder, name_, flds_, fixed, static_cast<int>(minalign),
@@ -3919,14 +3924,14 @@ bool RPCCall::Deserialize(Parser &parser, const reflection::RPCCall *call) {
   DeserializeDoc(doc_comment, call->documentation());
   request = parser.structs_.Lookup(call->request()->name()->str());
   response = parser.structs_.Lookup(call->response()->name()->str());
-  return !(!request || !response);
+  return request != nullptr && response != nullptr;
 }
 
 Offset<reflection::Service> ServiceDef::Serialize(FlatBufferBuilder *builder,
                                                   const Parser &parser) const {
   std::vector<Offset<reflection::RPCCall>> servicecall_offsets;
-  for (auto it : calls.vec) {
-    servicecall_offsets.push_back(it->Serialize(builder, parser));
+  for (const auto *rpc_call : calls.vec) {
+    servicecall_offsets.push_back(rpc_call->Serialize(builder, parser));
   }
   const auto &qualified_name = defined_namespace->GetFullyQualifiedName(name);
   const auto &name_ = builder->CreateString(qualified_name);
@@ -3935,7 +3940,8 @@ Offset<reflection::Service> ServiceDef::Serialize(FlatBufferBuilder *builder,
   const auto &docs_ = parser.opts.binary_schema_comments && !doc_comment.empty()
                           ? builder->CreateVectorOfStrings(doc_comment)
                           : 0;
-  std::string decl_file_in_project = declaration_file ? *declaration_file : "";
+  std::string decl_file_in_project =
+      declaration_file != nullptr ? *declaration_file : "";
   const auto &file_ = builder->CreateSharedString(decl_file_in_project);
   return reflection::CreateService(*builder, name_, call_, attr_, docs_, file_);
 }
@@ -3961,8 +3967,8 @@ bool ServiceDef::Deserialize(Parser &parser,
 Offset<reflection::Enum> EnumDef::Serialize(FlatBufferBuilder *builder,
                                             const Parser &parser) const {
   std::vector<Offset<reflection::EnumVal>> enumval_offsets;
-  for (auto it : vals.vec) {
-    enumval_offsets.push_back(it->Serialize(builder, parser));
+  for (const auto *enum_val : vals.vec) {
+    enumval_offsets.push_back(enum_val->Serialize(builder, parser));
   }
   const auto qualified_name = defined_namespace->GetFullyQualifiedName(name);
   const auto &name_ = builder->CreateString(qualified_name);
@@ -3972,8 +3978,9 @@ Offset<reflection::Enum> EnumDef::Serialize(FlatBufferBuilder *builder,
   const auto &docs_ = parser.opts.binary_schema_comments && !doc_comment.empty()
                           ? builder->CreateVectorOfStrings(doc_comment)
                           : 0;
-  std::string decl_file_in_project = declaration_file ? *declaration_file : "";
-  const auto file_ = builder->CreateSharedString(decl_file_in_project);
+  std::string decl_file_in_project =
+      declaration_file != nullptr ? *declaration_file : "";
+  const auto &file_ = builder->CreateSharedString(decl_file_in_project);
   return reflection::CreateEnum(*builder, name_, vals_, is_union, type_, attr_,
                                 docs_, file_);
 }
@@ -4114,58 +4121,58 @@ bool Parser::Deserialize(const reflection::Schema *schema) {
 
   // Create defs without deserializing so references from fields to structs and
   // enums can be resolved.
-  for (auto it : *schema->objects()) {
+  for (const auto *object : *schema->objects()) {
     auto *struct_def = new StructDef();
-    struct_def->bytesize = it->bytesize();
-    struct_def->fixed = it->is_struct();
-    struct_def->minalign = it->minalign();
-    if (structs_.Add(it->name()->str(), struct_def)) {
+    struct_def->bytesize = object->bytesize();
+    struct_def->fixed = object->is_struct();
+    struct_def->minalign = object->minalign();
+    if (structs_.Add(object->name()->str(), struct_def)) {
       delete struct_def;
       return false;
     }
     auto *type = new Type(BASE_TYPE_STRUCT, struct_def, nullptr);
-    if (types_.Add(it->name()->str(), type)) {
+    if (types_.Add(object->name()->str(), type)) {
       delete type;
       return false;
     }
   }
-  for (auto it : *schema->enums()) {
+  for (const auto *enum_ptr : *schema->enums()) {
     auto *enum_def = new EnumDef();
-    if (enums_.Add(it->name()->str(), enum_def)) {
+    if (enums_.Add(enum_ptr->name()->str(), enum_def)) {
       delete enum_def;
       return false;
     }
     auto *type = new Type(BASE_TYPE_UNION, nullptr, enum_def);
-    if (types_.Add(it->name()->str(), type)) {
+    if (types_.Add(enum_ptr->name()->str(), type)) {
       delete type;
       return false;
     }
   }
 
   // Now fields can refer to structs and enums by index.
-  for (auto it : *schema->objects()) {
-    std::string qualified_name = it->name()->str();
+  for (const auto *object : *schema->objects()) {
+    std::string qualified_name = object->name()->str();
     auto *struct_def = structs_.Lookup(qualified_name);
     struct_def->defined_namespace =
         GetNamespace(qualified_name, namespaces_, namespaces_index);
-    if (!struct_def->Deserialize(*this, it)) { return false; }
-    if (schema->root_table() == it) { root_struct_def_ = struct_def; }
+    if (!struct_def->Deserialize(*this, object)) { return false; }
+    if (schema->root_table() == object) { root_struct_def_ = struct_def; }
   }
-  for (auto it : *schema->enums()) {
-    std::string qualified_name = it->name()->str();
+  for (const auto *enum_ptr : *schema->enums()) {
+    std::string qualified_name = enum_ptr->name()->str();
     auto *enum_def = enums_.Lookup(qualified_name);
     enum_def->defined_namespace =
         GetNamespace(qualified_name, namespaces_, namespaces_index);
-    if (!enum_def->Deserialize(*this, it)) { return false; }
+    if (!enum_def->Deserialize(*this, enum_ptr)) { return false; }
   }
 
   if (schema->services() != nullptr) {
-    for (auto it : *schema->services()) {
-      std::string qualified_name = it->name()->str();
+    for (const auto *service : *schema->services()) {
+      const std::string &qualified_name = service->name()->str();
       auto *service_def = new ServiceDef();
       service_def->defined_namespace =
           GetNamespace(qualified_name, namespaces_, namespaces_index);
-      if (!service_def->Deserialize(*this, it) ||
+      if (!service_def->Deserialize(*this, service) ||
           services_.Add(qualified_name, service_def)) {
         delete service_def;
         return false;
@@ -4175,8 +4182,8 @@ bool Parser::Deserialize(const reflection::Schema *schema) {
   advanced_features_ = schema->advanced_features();
 
   if (schema->fbs_files() != nullptr) {
-    for (auto fbs : *schema->fbs_files()) {
-      for (auto filename : *fbs->included_filenames()) {
+    for (const auto *fbs : *schema->fbs_files()) {
+      for (const auto *filename : *fbs->included_filenames()) {
         IncludedFile included_file;
         included_file.filename = filename->str();
         files_included_per_file_[fbs->filename()->str()].insert(included_file);
@@ -4193,10 +4200,10 @@ std::string Parser::ConformTo(const Parser &base) {
     auto qualified_name =
         struct_def.defined_namespace->GetFullyQualifiedName(struct_def.name);
     const auto *struct_def_base = base.LookupStruct(qualified_name);
-    if (!struct_def_base) { continue; }
+    if (struct_def_base == nullptr) { continue; }
     std::set<FieldDef *> renamed_fields;
-    for (auto fit : struct_def.fields.vec) {
-      auto &field = *fit;
+    for (const auto *fit : struct_def.fields.vec) {
+      const auto &field = *fit;
       const auto *field_base = struct_def_base->fields.Lookup(field.name);
       const auto qualified_field_name = qualified_name + "." + field.name;
       if (field_base != nullptr) {
@@ -4213,7 +4220,7 @@ std::string Parser::ConformTo(const Parser &base) {
         // Doesn't have to exist, deleting fields is fine.
         // But we should check if there is a field that has the same offset
         // but is incompatible (in the case of field renaming).
-        for (auto field_base : struct_def_base->fields.vec) {
+        for (auto *field_base : struct_def_base->fields.vec) {
           if (field.value.offset == field_base->value.offset) {
             renamed_fields.insert(field_base);
             if (!EqualByName(field.value.type, field_base->value.type)) {
@@ -4241,13 +4248,13 @@ std::string Parser::ConformTo(const Parser &base) {
     }
   }
 
-  for (auto eit : enums_.vec) {
+  for (const auto *eit : enums_.vec) {
     auto &enum_def = *eit;
     auto qualified_name =
         enum_def.defined_namespace->GetFullyQualifiedName(enum_def.name);
     const auto *enum_def_base = base.enums_.Lookup(qualified_name);
     if (enum_def_base == nullptr) { continue; }
-    for (const auto evit : enum_def.Vals()) {
+    for (const auto *evit : enum_def.Vals()) {
       auto &enum_val = *evit;
       const auto *enum_val_base = enum_def_base->Lookup(enum_val.name);
       if (enum_val_base != nullptr) {
