@@ -64,7 +64,7 @@ jobs:
       run: echo "::set-output name=hashes::$(sha256sum Linux.flatc.binary.${{ matrix.cxx }}.zip | base64 -w0)"
 
   build-linux-s390x:
-    name: Build Linux on s390x arch
+    name: Build Linux on S390X Arch
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
