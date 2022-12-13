@@ -41,6 +41,10 @@ void main() {
       expect(flx.finish(), [255, 251, 5, 2]);
     }
     {
+      var builder = Builder()..addDouble(1.0);
+      expect(builder.finish(), [0, 0, 128, 63, 14, 4]);
+    }
+    {
       var flx = Builder();
       flx.addDouble(0.1);
       expect(flx.finish(), [154, 153, 153, 153, 153, 153, 185, 63, 15, 8]);
