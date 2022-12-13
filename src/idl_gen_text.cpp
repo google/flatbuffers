@@ -341,9 +341,8 @@ struct JsonPrinter {
 
         if (type.base_type == BASE_TYPE_STRUCT)
         {
-          // use nullptr instead of empty vector
-          // when serializing dynamic field data
-          // so that the tags will never be created
+          // empty vectors should be filtered out 
+          // by ValidateDynamicFieldPresence()
           FLATBUFFERS_ASSERT(data->size());
 
           return GenStruct(*type.struct_def, IsStruct(type) 
@@ -372,6 +371,18 @@ struct JsonPrinter {
     return PrintOffset(val, fd.value.type, indent, prev_val, -1);
   }
 
+#if defined(MZ_CUSTOM_FLATBUFFERS) && MZ_CUSTOM_FLATBUFFERS // clang-format off
+  void ValidateDynamicFieldPresence(FieldDef const& fd, Table const* table, bool& is_present, bool& output_anyway)
+  {
+    if (fd.attributes.Lookup("dynamic") && 
+        fd.value.type.base_type == BASE_TYPE_VECTOR && 
+        fd.value.type.element == BASE_TYPE_UCHAR && 
+        table->CheckField(fd.value.offset) &&
+        table->GetPointer<const Vector<uint8_t> *>(fd.value.offset)->size() == 0)
+      is_present = output_anyway = false;
+  }
+#endif  // defined(MZ_CUSTOM_FLATBUFFERS) && MZ_CUSTOM_FLATBUFFERS // clang-format on
+
   // Generate text for a struct or table, values separated by commas, indented,
   // and bracketed by "{}"
   const char *GenStruct(const StructDef &struct_def, const Table *table,
@@ -396,6 +407,9 @@ struct JsonPrinter {
       auto is_present = struct_def.fixed || table->CheckField(fd.value.offset);
       auto output_anyway = (opts.output_default_scalars_in_json || fd.key) &&
                            IsScalar(fd.value.type.base_type) && !fd.deprecated;
+#if defined(MZ_CUSTOM_FLATBUFFERS) && MZ_CUSTOM_FLATBUFFERS // clang-format off
+    ValidateDynamicFieldPresence(fd, table, is_present, output_anyway);
+#endif  // defined(MZ_CUSTOM_FLATBUFFERS) && MZ_CUSTOM_FLATBUFFERS // clang-format on
       if (is_present || output_anyway) {
         if (fieldout++) { AddComma(); }
 #if defined(MZ_CUSTOM_FLATBUFFERS) && MZ_CUSTOM_FLATBUFFERS // clang-format off
