@@ -1,0 +1,30 @@
+name: Regression tests
+permissions: read-all
+
+on:
+  schedule:
+  - cron: "30 20 * * *"
+
+jobs:
+  build-linux-s390x:
+    name: Build Linux on S390X Arch and run unit tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: uraimo/run-on-arch-action@v2
+        name: Run commands
+        id: runcmd
+        with:
+          arch: s390x
+          distro: ubuntu_latest
+          install: |
+            apt-get update -q -y
+            apt-get -y install cmake
+            apt-get -y install make
+            apt-get -y install g++
+          run: |
+            lscpu | grep Endian
+            cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release
+            make -j
+            ./flattests
+

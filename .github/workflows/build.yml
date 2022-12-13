@@ -63,28 +63,6 @@ jobs:
       id: hash-gcc
       run: echo "::set-output name=hashes::$(sha256sum Linux.flatc.binary.${{ matrix.cxx }}.zip | base64 -w0)"
 
-  build-linux-s390x:
-    name: Build Linux on S390X Arch
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - uses: uraimo/run-on-arch-action@v2
-        name: Run commands
-        id: runcmd
-        with:
-          arch: s390x
-          distro: ubuntu_latest
-          install: |
-            apt-get update -q -y
-            apt-get -y install cmake
-            apt-get -y install make
-            apt-get -y install g++
-          run: |
-            lscpu | grep Endian
-            cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release
-            make -j
-            ./flattests
-
   build-linux-cpp-std:
     name: Build Linux C++
     runs-on: ubuntu-latest
