@@ -20,24 +20,10 @@ struct Baz;
 
 struct Bar;
 
-struct BarParent;
+struct Apple;
 
 struct FooTable;
 struct FooTableBuilder;
-struct FooTableT;
-
-bool operator==(const Baz &lhs, const Baz &rhs);
-bool operator!=(const Baz &lhs, const Baz &rhs);
-bool operator==(const Bar &lhs, const Bar &rhs);
-bool operator!=(const Bar &lhs, const Bar &rhs);
-bool operator==(const FooTableT &lhs, const FooTableT &rhs);
-bool operator!=(const FooTableT &lhs, const FooTableT &rhs);
-
-inline const flatbuffers::TypeTable *BazTypeTable();
-
-inline const flatbuffers::TypeTable *BarTypeTable();
-
-inline const flatbuffers::TypeTable *FooTableTypeTable();
 
 FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(1) Baz FLATBUFFERS_FINAL_CLASS {
  private:
@@ -45,9 +31,6 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(1) Baz FLATBUFFERS_FINAL_CLASS {
   uint8_t b_;
 
  public:
-  static const flatbuffers::TypeTable *MiniReflectTypeTable() {
-    return BazTypeTable();
-  }
   Baz()
       : a_(),
         b_(0) {
@@ -63,49 +46,24 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(1) Baz FLATBUFFERS_FINAL_CLASS {
   const flatbuffers::Array<uint8_t, 4> *a() const {
     return &flatbuffers::CastToArray(a_);
   }
-  flatbuffers::Array<uint8_t, 4> *mutable_a() {
-    return &flatbuffers::CastToArray(a_);
-  }
   bool KeyCompareLessThan(const Baz * const o) const {
     return KeyCompareWithValue(o->a()) < 0;
   }
   int KeyCompareWithValue(const flatbuffers::Array<uint8_t, 4> *_a) const {
-<<<<<<< HEAD
     const flatbuffers::Array<uint8_t, 4> *curr_a = a();
     for (flatbuffers::uoffset_t i = 0; i < curr_a->size(); i++) {
       const auto lhs = curr_a->Get(i);
       const auto rhs = _a->Get(i);
       if(lhs != rhs)
         return static_cast<int>(lhs > rhs) - static_cast<int>(lhs < rhs);
-=======
-    for (auto i = 0; i < a()->size(); i++) {
-      const auto a_l = a_[i];
-      const auto a_r = _a->Get(i);
-      if(a_l != a_r)
-        return static_cast<int>(a_l > a_r) - static_cast<int>(a_l < a_r);
->>>>>>> 2e871fd6 (commit test code with experimenting comparing two struct as char array)
     }
     return 0;
   }
   uint8_t b() const {
     return flatbuffers::EndianScalar(b_);
   }
-  void mutate_b(uint8_t _b) {
-    flatbuffers::WriteScalar(&b_, _b);
-  }
 };
 FLATBUFFERS_STRUCT_END(Baz, 5);
-
-inline bool operator==(const Baz &lhs, const Baz &rhs) {
-  return
-      (lhs.a() == rhs.a()) &&
-      (lhs.b() == rhs.b());
-}
-
-inline bool operator!=(const Baz &lhs, const Baz &rhs) {
-    return !(lhs == rhs);
-}
-
 
 FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) Bar FLATBUFFERS_FINAL_CLASS {
  private:
@@ -114,9 +72,6 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) Bar FLATBUFFERS_FINAL_CLASS {
   int8_t padding0__;  int16_t padding1__;
 
  public:
-  static const flatbuffers::TypeTable *MiniReflectTypeTable() {
-    return BarTypeTable();
-  }
   Bar()
       : a_(),
         b_(0),
@@ -144,68 +99,33 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) Bar FLATBUFFERS_FINAL_CLASS {
   const flatbuffers::Array<float, 3> *a() const {
     return &flatbuffers::CastToArray(a_);
   }
-  flatbuffers::Array<float, 3> *mutable_a() {
-    return &flatbuffers::CastToArray(a_);
-  }
   bool KeyCompareLessThan(const Bar * const o) const {
     return KeyCompareWithValue(o->a()) < 0;
   }
   int KeyCompareWithValue(const flatbuffers::Array<float, 3> *_a) const {
-<<<<<<< HEAD
     const flatbuffers::Array<float, 3> *curr_a = a();
     for (flatbuffers::uoffset_t i = 0; i < curr_a->size(); i++) {
       const auto lhs = curr_a->Get(i);
       const auto rhs = _a->Get(i);
       if(lhs != rhs)
         return static_cast<int>(lhs > rhs) - static_cast<int>(lhs < rhs);
-=======
-    for (auto i = 0; i < a()->size(); i++) {
-      const auto a_l = a_[i];
-      const auto a_r = _a->Get(i);
-      if(a_l != a_r)
-        return static_cast<int>(a_l > a_r) - static_cast<int>(a_l < a_r);
->>>>>>> 2e871fd6 (commit test code with experimenting comparing two struct as char array)
     }
     return 0;
   }
   uint8_t b() const {
     return flatbuffers::EndianScalar(b_);
   }
-  void mutate_b(uint8_t _b) {
-    flatbuffers::WriteScalar(&b_, _b);
-  }
 };
 FLATBUFFERS_STRUCT_END(Bar, 16);
 
-<<<<<<< HEAD
-inline bool operator==(const Bar &lhs, const Bar &rhs) {
-  return
-      (lhs.a() == rhs.a()) &&
-      (lhs.b() == rhs.b());
-}
-
-inline bool operator!=(const Bar &lhs, const Bar &rhs) {
-    return !(lhs == rhs);
-}
-
-
-struct FooTableT : public flatbuffers::NativeTable {
-  typedef FooTable TableType;
-  int32_t a = 0;
-  int32_t b = 0;
-  std::string c{};
-  std::vector<keyfield::sample::Baz> d{};
-  std::vector<keyfield::sample::Bar> e{};
-};
-=======
-FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) BarParent FLATBUFFERS_FINAL_CLASS {
+FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) Apple FLATBUFFERS_FINAL_CLASS {
  private:
   uint8_t a_;
   int8_t padding0__;  int16_t padding1__;
   keyfield::sample::Bar b_;
 
  public:
-  BarParent()
+  Apple()
       : a_(0),
         padding0__(0),
         padding1__(0),
@@ -213,7 +133,7 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) BarParent FLATBUFFERS_FINAL_CLASS {
     (void)padding0__;
     (void)padding1__;
   }
-  BarParent(uint8_t _a, const keyfield::sample::Bar &_b)
+  Apple(uint8_t _a, const keyfield::sample::Bar &_b)
       : a_(flatbuffers::EndianScalar(_a)),
         padding0__(0),
         padding1__(0),
@@ -227,27 +147,17 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) BarParent FLATBUFFERS_FINAL_CLASS {
   const keyfield::sample::Bar &b() const {
     return b_;
   }
-  bool KeyCompareLessThan(const BarParent * const o) const {
-    char buffer1[16];
-    memcpy(&buffer1, &b_, 16);
-    char buffer2[16];
-    memcpy(&buffer2, &o->b(), 16);
-
-    return strcmp(buffer1, buffer2) < 0;
+  bool KeyCompareLessThan(const Apple * const o) const {
+    return b() < o->b();
   }
-  // int KeyCompareWithValue(Offset<void> _b) const {
-  //   return static_cast<int>(b() > _b) - static_cast<int>(b() < _b);
-  // }
+  int KeyCompareWithValue(Offset<void> _b) const {
+    return static_cast<int>(b() > _b) - static_cast<int>(b() < _b);
+  }
 };
-FLATBUFFERS_STRUCT_END(BarParent, 20);
->>>>>>> 2e871fd6 (commit test code with experimenting comparing two struct as char array)
+FLATBUFFERS_STRUCT_END(Apple, 20);
 
 struct FooTable FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
-  typedef FooTableT NativeTableType;
   typedef FooTableBuilder Builder;
-  static const flatbuffers::TypeTable *MiniReflectTypeTable() {
-    return FooTableTypeTable();
-  }
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_A = 4,
     VT_B = 6,
@@ -259,20 +169,11 @@ struct FooTable FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   int32_t a() const {
     return GetField<int32_t>(VT_A, 0);
   }
-  bool mutate_a(int32_t _a = 0) {
-    return SetField<int32_t>(VT_A, _a, 0);
-  }
   int32_t b() const {
     return GetField<int32_t>(VT_B, 0);
   }
-  bool mutate_b(int32_t _b = 0) {
-    return SetField<int32_t>(VT_B, _b, 0);
-  }
   const flatbuffers::String *c() const {
     return GetPointer<const flatbuffers::String *>(VT_C);
-  }
-  flatbuffers::String *mutable_c() {
-    return GetPointer<flatbuffers::String *>(VT_C);
   }
   bool KeyCompareLessThan(const FooTable * const o) const {
     return *c() < *o->c();
@@ -283,19 +184,11 @@ struct FooTable FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   const flatbuffers::Vector<const keyfield::sample::Baz *> *d() const {
     return GetPointer<const flatbuffers::Vector<const keyfield::sample::Baz *> *>(VT_D);
   }
-  flatbuffers::Vector<const keyfield::sample::Baz *> *mutable_d() {
-    return GetPointer<flatbuffers::Vector<const keyfield::sample::Baz *> *>(VT_D);
-  }
   const flatbuffers::Vector<const keyfield::sample::Bar *> *e() const {
     return GetPointer<const flatbuffers::Vector<const keyfield::sample::Bar *> *>(VT_E);
   }
-<<<<<<< HEAD
-  flatbuffers::Vector<const keyfield::sample::Bar *> *mutable_e() {
-    return GetPointer<flatbuffers::Vector<const keyfield::sample::Bar *> *>(VT_E);
-=======
-  const flatbuffers::Vector<const keyfield::sample::BarParent *> *f() const {
-    return GetPointer<const flatbuffers::Vector<const keyfield::sample::BarParent *> *>(VT_F);
->>>>>>> 2e871fd6 (commit test code with experimenting comparing two struct as char array)
+  const flatbuffers::Vector<const keyfield::sample::Apple *> *f() const {
+    return GetPointer<const flatbuffers::Vector<const keyfield::sample::Apple *> *>(VT_F);
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
@@ -311,9 +204,6 @@ struct FooTable FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
            verifier.VerifyVector(f()) &&
            verifier.EndTable();
   }
-  FooTableT *UnPack(const flatbuffers::resolver_function_t *_resolver = nullptr) const;
-  void UnPackTo(FooTableT *_o, const flatbuffers::resolver_function_t *_resolver = nullptr) const;
-  static flatbuffers::Offset<FooTable> Pack(flatbuffers::FlatBufferBuilder &_fbb, const FooTableT* _o, const flatbuffers::rehasher_function_t *_rehasher = nullptr);
 };
 
 struct FooTableBuilder {
@@ -335,7 +225,7 @@ struct FooTableBuilder {
   void add_e(flatbuffers::Offset<flatbuffers::Vector<const keyfield::sample::Bar *>> e) {
     fbb_.AddOffset(FooTable::VT_E, e);
   }
-  void add_f(flatbuffers::Offset<flatbuffers::Vector<const keyfield::sample::BarParent *>> f) {
+  void add_f(flatbuffers::Offset<flatbuffers::Vector<const keyfield::sample::Apple *>> f) {
     fbb_.AddOffset(FooTable::VT_F, f);
   }
   explicit FooTableBuilder(flatbuffers::FlatBufferBuilder &_fbb)
@@ -357,7 +247,7 @@ inline flatbuffers::Offset<FooTable> CreateFooTable(
     flatbuffers::Offset<flatbuffers::String> c = 0,
     flatbuffers::Offset<flatbuffers::Vector<const keyfield::sample::Baz *>> d = 0,
     flatbuffers::Offset<flatbuffers::Vector<const keyfield::sample::Bar *>> e = 0,
-    flatbuffers::Offset<flatbuffers::Vector<const keyfield::sample::BarParent *>> f = 0) {
+    flatbuffers::Offset<flatbuffers::Vector<const keyfield::sample::Apple *>> f = 0) {
   FooTableBuilder builder_(_fbb);
   builder_.add_f(f);
   builder_.add_e(e);
@@ -375,11 +265,11 @@ inline flatbuffers::Offset<FooTable> CreateFooTableDirect(
     const char *c = nullptr,
     std::vector<keyfield::sample::Baz> *d = nullptr,
     std::vector<keyfield::sample::Bar> *e = nullptr,
-    std::vector<keyfield::sample::BarParent> *f = nullptr) {
+    std::vector<keyfield::sample::Apple> *f = nullptr) {
   auto c__ = c ? _fbb.CreateString(c) : 0;
   auto d__ = d ? _fbb.CreateVectorOfSortedStructs<keyfield::sample::Baz>(d) : 0;
   auto e__ = e ? _fbb.CreateVectorOfSortedStructs<keyfield::sample::Bar>(e) : 0;
-  auto f__ = f ? _fbb.CreateVectorOfSortedStructs<keyfield::sample::BarParent>(f) : 0;
+  auto f__ = f ? _fbb.CreateVectorOfSortedStructs<keyfield::sample::Apple>(f) : 0;
   return keyfield::sample::CreateFooTable(
       _fbb,
       a,
@@ -390,134 +280,12 @@ inline flatbuffers::Offset<FooTable> CreateFooTableDirect(
       f__);
 }
 
-flatbuffers::Offset<FooTable> CreateFooTable(flatbuffers::FlatBufferBuilder &_fbb, const FooTableT *_o, const flatbuffers::rehasher_function_t *_rehasher = nullptr);
-
-
-inline bool operator==(const FooTableT &lhs, const FooTableT &rhs) {
-  return
-      (lhs.a == rhs.a) &&
-      (lhs.b == rhs.b) &&
-      (lhs.c == rhs.c) &&
-      (lhs.d == rhs.d) &&
-      (lhs.e == rhs.e);
-}
-
-inline bool operator!=(const FooTableT &lhs, const FooTableT &rhs) {
-    return !(lhs == rhs);
-}
-
-
-inline FooTableT *FooTable::UnPack(const flatbuffers::resolver_function_t *_resolver) const {
-  auto _o = std::unique_ptr<FooTableT>(new FooTableT());
-  UnPackTo(_o.get(), _resolver);
-  return _o.release();
-}
-
-inline void FooTable::UnPackTo(FooTableT *_o, const flatbuffers::resolver_function_t *_resolver) const {
-  (void)_o;
-  (void)_resolver;
-  { auto _e = a(); _o->a = _e; }
-  { auto _e = b(); _o->b = _e; }
-  { auto _e = c(); if (_e) _o->c = _e->str(); }
-  { auto _e = d(); if (_e) { _o->d.resize(_e->size()); for (flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->d[_i] = *_e->Get(_i); } } else { _o->d.resize(0); } }
-  { auto _e = e(); if (_e) { _o->e.resize(_e->size()); for (flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->e[_i] = *_e->Get(_i); } } else { _o->e.resize(0); } }
-}
-
-inline flatbuffers::Offset<FooTable> FooTable::Pack(flatbuffers::FlatBufferBuilder &_fbb, const FooTableT* _o, const flatbuffers::rehasher_function_t *_rehasher) {
-  return CreateFooTable(_fbb, _o, _rehasher);
-}
-
-inline flatbuffers::Offset<FooTable> CreateFooTable(flatbuffers::FlatBufferBuilder &_fbb, const FooTableT *_o, const flatbuffers::rehasher_function_t *_rehasher) {
-  (void)_rehasher;
-  (void)_o;
-  struct _VectorArgs { flatbuffers::FlatBufferBuilder *__fbb; const FooTableT* __o; const flatbuffers::rehasher_function_t *__rehasher; } _va = { &_fbb, _o, _rehasher}; (void)_va;
-  auto _a = _o->a;
-  auto _b = _o->b;
-  auto _c = _fbb.CreateString(_o->c);
-  auto _d = _o->d.size() ? _fbb.CreateVectorOfStructs(_o->d) : 0;
-  auto _e = _o->e.size() ? _fbb.CreateVectorOfStructs(_o->e) : 0;
-  return keyfield::sample::CreateFooTable(
-      _fbb,
-      _a,
-      _b,
-      _c,
-      _d,
-      _e);
-}
-
-inline const flatbuffers::TypeTable *BazTypeTable() {
-  static const flatbuffers::TypeCode type_codes[] = {
-    { flatbuffers::ET_UCHAR, 1, -1 },
-    { flatbuffers::ET_UCHAR, 0, -1 }
-  };
-  static const int16_t array_sizes[] = { 4,  };
-  static const int64_t values[] = { 0, 4, 5 };
-  static const char * const names[] = {
-    "a",
-    "b"
-  };
-  static const flatbuffers::TypeTable tt = {
-    flatbuffers::ST_STRUCT, 2, type_codes, nullptr, array_sizes, values, names
-  };
-  return &tt;
-}
-
-inline const flatbuffers::TypeTable *BarTypeTable() {
-  static const flatbuffers::TypeCode type_codes[] = {
-    { flatbuffers::ET_FLOAT, 1, -1 },
-    { flatbuffers::ET_UCHAR, 0, -1 }
-  };
-  static const int16_t array_sizes[] = { 3,  };
-  static const int64_t values[] = { 0, 12, 16 };
-  static const char * const names[] = {
-    "a",
-    "b"
-  };
-  static const flatbuffers::TypeTable tt = {
-    flatbuffers::ST_STRUCT, 2, type_codes, nullptr, array_sizes, values, names
-  };
-  return &tt;
-}
-
-inline const flatbuffers::TypeTable *FooTableTypeTable() {
-  static const flatbuffers::TypeCode type_codes[] = {
-    { flatbuffers::ET_INT, 0, -1 },
-    { flatbuffers::ET_INT, 0, -1 },
-    { flatbuffers::ET_STRING, 0, -1 },
-    { flatbuffers::ET_SEQUENCE, 1, 0 },
-    { flatbuffers::ET_SEQUENCE, 1, 1 }
-  };
-  static const flatbuffers::TypeFunction type_refs[] = {
-    keyfield::sample::BazTypeTable,
-    keyfield::sample::BarTypeTable
-  };
-  static const char * const names[] = {
-    "a",
-    "b",
-    "c",
-    "d",
-    "e"
-  };
-  static const flatbuffers::TypeTable tt = {
-    flatbuffers::ST_TABLE, 5, type_codes, type_refs, nullptr, nullptr, names
-  };
-  return &tt;
-}
-
 inline const keyfield::sample::FooTable *GetFooTable(const void *buf) {
   return flatbuffers::GetRoot<keyfield::sample::FooTable>(buf);
 }
 
 inline const keyfield::sample::FooTable *GetSizePrefixedFooTable(const void *buf) {
   return flatbuffers::GetSizePrefixedRoot<keyfield::sample::FooTable>(buf);
-}
-
-inline FooTable *GetMutableFooTable(void *buf) {
-  return flatbuffers::GetMutableRoot<FooTable>(buf);
-}
-
-inline keyfield::sample::FooTable *GetMutableSizePrefixedFooTable(void *buf) {
-  return flatbuffers::GetMutableSizePrefixedRoot<keyfield::sample::FooTable>(buf);
 }
 
 inline bool VerifyFooTableBuffer(
@@ -540,18 +308,6 @@ inline void FinishSizePrefixedFooTableBuffer(
     flatbuffers::FlatBufferBuilder &fbb,
     flatbuffers::Offset<keyfield::sample::FooTable> root) {
   fbb.FinishSizePrefixed(root);
-}
-
-inline flatbuffers::unique_ptr<keyfield::sample::FooTableT> UnPackFooTable(
-    const void *buf,
-    const flatbuffers::resolver_function_t *res = nullptr) {
-  return flatbuffers::unique_ptr<keyfield::sample::FooTableT>(GetFooTable(buf)->UnPack(res));
-}
-
-inline flatbuffers::unique_ptr<keyfield::sample::FooTableT> UnPackSizePrefixedFooTable(
-    const void *buf,
-    const flatbuffers::resolver_function_t *res = nullptr) {
-  return flatbuffers::unique_ptr<keyfield::sample::FooTableT>(GetSizePrefixedFooTable(buf)->UnPack(res));
 }
 
 }  // namespace sample

@@ -82,22 +82,22 @@ void FixedSizedScalarKeyInStructTest() {
 
 void StructKeyInStructTest() {
   flatbuffers::FlatBufferBuilder fbb;
-  std::vector<BarParent> barparents;
+  std::vector<Apple> apples;
   float test_float_array1[3] = { 1.5, 2.5, 0 };
   float test_float_array2[3] = { 7.5, 2.5, 0 };
   float test_float_array3[3] = { 1.5, 2.5, -1 };
-  barparents.push_back(BarParent(2,Bar(flatbuffers::make_span(test_float_array1), 3)));
-  barparents.push_back(BarParent(3,Bar(flatbuffers::make_span(test_float_array2), 3)));
-  barparents.push_back(BarParent(-2,Bar(flatbuffers::make_span(test_float_array3), 1)));
+  apples.push_back(Apple(2,Bar(flatbuffers::make_span(test_float_array1), 3)));
+  apples.push_back(Apple(3,Bar(flatbuffers::make_span(test_float_array2), 3)));
+  apples.push_back(Apple(-2,Bar(flatbuffers::make_span(test_float_array3), 1)));
 
-  auto barparent_vec = fbb.CreateVectorOfSortedStructs(&barparents);
+  auto apples_vec = fbb.CreateVectorOfSortedStructs(&apples);
   auto test_string = fbb.CreateString("TEST");
 
   FooTableBuilder foo_builder(fbb);
   foo_builder.add_a(1);
   foo_builder.add_c(test_string);
 
-  foo_builder.add_f(barparent_vec);
+  foo_builder.add_f(apples_vec);
 
   auto orc = foo_builder.Finish();
   fbb.Finish(orc);
@@ -106,8 +106,8 @@ void StructKeyInStructTest() {
   uint8_t *buf = fbb.GetBufferPointer();
   auto foo_table = GetFooTable(buf);
 
-  auto sorted_fooparent_vec = foo_table->f();
-  TEST_EQ(sorted_fooparent_vec->Get(0)->a(), -2);
+  auto sorted_apple_vec = foo_table->f();
+  TEST_EQ(sorted_apple_vec->Get(0)->a(), -2);
 
 }
 

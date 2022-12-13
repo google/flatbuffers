@@ -10,7 +10,7 @@ struct Bar {
   b: uint8;
 }
 
-struct BarParent {
+struct Apple {
   a: uint8;
   b: Bar (key);
 }
@@ -21,7 +21,7 @@ table FooTable {
   c: string (key);
   d: [Baz];
   e: [Bar];
-  f: [BarParent];
+  f: [Apple];
 }
 root_type FooTable;
 

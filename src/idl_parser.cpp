@@ -918,7 +918,7 @@ CheckedError Parser::ParseField(StructDef &struct_def) {
   ECHECK(ParseType(type));
 
   if (struct_def.fixed) {
-    if (IsIncompleteStruct(type) || 
+    if (IsIncompleteStruct(type) ||
         (IsArray(type) && IsIncompleteStruct(type.VectorType()))) {
       std::string type_name = IsArray(type) ? type.VectorType().struct_def->name : type.struct_def->name;
       return Error(std::string("Incomplete type in struct is not allowed, type name: ") + type_name);
