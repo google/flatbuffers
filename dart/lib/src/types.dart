@@ -9,7 +9,7 @@ class BitWidthUtil {
   }
 
   static BitWidth width(num value) {
-    if (value.toInt() == value) {
+    if (value is int) {
       var v = value.toInt().abs();
       if (v >> 7 == 0) return BitWidth.width8;
       if (v >> 15 == 0) return BitWidth.width16;
