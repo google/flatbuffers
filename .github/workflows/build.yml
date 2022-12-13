@@ -80,6 +80,7 @@ jobs:
             apt-get -y install make
             apt-get -y install g++
           run: |
+            lscpu | grep Endian
             cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release
             make -j
             ./flattests
