@@ -579,12 +579,12 @@ func MonsterKeyCompare(o1, o2 flatbuffers.UOffsetT, buf []byte) bool {
 func (rcv *Monster) LookupByKey(key string, vectorLocation flatbuffers.UOffsetT, buf []byte) bool {
 	span := flatbuffers.GetUOffsetT(buf[vectorLocation - 4:])
 	start := flatbuffers.UOffsetT(0)
+	bKey := []byte(key)
 	for span != 0 {
 		middle := span / 2
 		tableOffset := flatbuffers.GetIndirectOffset(buf, vectorLocation+ 4 * (start + middle))
 		obj := &Monster{}
 		obj.Init(buf, tableOffset)
-		bKey := []byte(key)
 		comp := bytes.Compare(obj.Name(), bKey)
 		if comp > 0 {
 			span = middle
