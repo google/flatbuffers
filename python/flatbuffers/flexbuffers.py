@@ -730,7 +730,7 @@ class Ref:
   @property
   def AsStringBytes(self):
     if self.IsString:
-      return String(self._Indirect(), self._byte_width)
+      return String(self._Indirect(), self._byte_width).Bytes
     elif self.IsKey:
       return self.AsKeyBytes
     else:
