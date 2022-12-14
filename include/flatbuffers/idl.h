@@ -158,7 +158,7 @@ class Parser;
 // and additional information for vectors/structs_.
 struct Type {
   explicit Type(BaseType _base_type = BASE_TYPE_NONE, StructDef *_sd = nullptr,
-                const EnumDef *_ed = nullptr, uint16_t _fixed_length = 0)
+                EnumDef *_ed = nullptr, uint16_t _fixed_length = 0)
       : base_type(_base_type),
         element(BASE_TYPE_NONE),
         struct_def(_sd),
@@ -181,8 +181,8 @@ struct Type {
   BaseType base_type;
   BaseType element;       // only set if t == BASE_TYPE_VECTOR
   StructDef *struct_def;  // only set if t or element == BASE_TYPE_STRUCT
-  const EnumDef *enum_def;  // set if t == BASE_TYPE_UNION / BASE_TYPE_UTYPE,
-                            // or for an integral type derived from an enum.
+  EnumDef *enum_def;      // set if t == BASE_TYPE_UNION / BASE_TYPE_UTYPE,
+                          // or for an integral type derived from an enum.
   uint16_t fixed_length;  // only set if t == BASE_TYPE_ARRAY
 };
 
@@ -975,6 +975,8 @@ class Parser : public ParserState {
   std::vector<IncludedFile> GetIncludedFiles() const;
 
  private:
+  class ParseDepthGuard;
+
   void Message(const std::string &msg);
   void Warning(const std::string &msg);
   FLATBUFFERS_CHECKED_ERROR ParseHexNum(int nibbles, uint64_t *val);
@@ -985,8 +987,8 @@ class Parser : public ParserState {
   FLATBUFFERS_CHECKED_ERROR Expect(int t);
   std::string TokenToStringId(int t) const;
   EnumDef *LookupEnum(const std::string &id);
-  FLATBUFFERS_CHECKED_ERROR ParseNamespacing(std::string &id,
-                                             std::string *last = nullptr);
+  FLATBUFFERS_CHECKED_ERROR ParseNamespacing(std::string *id,
+                                             std::string *last);
   FLATBUFFERS_CHECKED_ERROR ParseTypeIdent(Type &type);
   FLATBUFFERS_CHECKED_ERROR ParseType(Type &type);
   FLATBUFFERS_CHECKED_ERROR AddField(StructDef &struct_def,
@@ -1077,12 +1079,12 @@ class Parser : public ParserState {
   bool SupportsDefaultVectorsAndStrings() const;
   Namespace *UniqueNamespace(Namespace *ns);
 
+  FLATBUFFERS_CHECKED_ERROR RecurseError();
   template<typename F> CheckedError Recurse(F f);
 
   const std::string &GetPooledString(const std::string &s) const;
 
  public:
-  FLATBUFFERS_CHECKED_ERROR RecurseError();
   SymbolTable<Type> types_;
   SymbolTable<StructDef> structs_;
   SymbolTable<EnumDef> enums_;
@@ -1112,7 +1114,6 @@ class Parser : public ParserState {
   uint64_t advanced_features_;
 
   std::string file_being_parsed_;
-  int GetParseDepthCounter() const noexcept { return parse_depth_counter_; }
 
  private:
   const char *source_;

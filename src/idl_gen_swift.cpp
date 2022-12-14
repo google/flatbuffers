@@ -910,7 +910,7 @@ class SwiftGenerator : public BaseGenerator {
   }
 
   void GenerateEncoderUnionBody(const FieldDef &field) {
-    const EnumDef &union_def = *field.value.type.enum_def;
+    EnumDef &union_def = *field.value.type.enum_def;
     const auto is_vector = field.value.type.base_type == BASE_TYPE_VECTOR ||
                            field.value.type.base_type == BASE_TYPE_ARRAY;
     if (field.value.type.base_type == BASE_TYPE_UTYPE ||
@@ -1085,7 +1085,7 @@ class SwiftGenerator : public BaseGenerator {
         (is_vector &&
          field.value.type.VectorType().base_type == BASE_TYPE_UTYPE))
       return;
-    const EnumDef &union_def = *field.value.type.enum_def;
+    EnumDef &union_def = *field.value.type.enum_def;
     code_.SetValue("VALUETYPE", namer_.NamespacedType(union_def));
     code_.SetValue("FUNCTION_NAME", is_vector ? "visitUnionVector" : "visit");
     code_ +=
