@@ -37,6 +37,7 @@ void main() {
 //      expect(FlxValue.fromBuffer(b([255, 255, 255, 255, 255, 255, 255, 255, 11, 8])).intValue, 18446744073709551615);
   });
   test('double value', () {
+    expect(Reference.fromBuffer(b([0, 0, 128, 63, 14, 4])).doubleValue, 1.0);
     expect(Reference.fromBuffer(b([0, 0, 144, 64, 14, 4])).doubleValue, 4.5);
     expect(Reference.fromBuffer(b([205, 204, 204, 61, 14, 4])).doubleValue,
         closeTo(.1, .001));
