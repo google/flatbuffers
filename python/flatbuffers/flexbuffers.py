@@ -728,6 +728,15 @@ class Ref:
     return self._type is Type.STRING
 
   @property
+  def AsStringBytes(self):
+    if self.IsString:
+      return String(self._Indirect(), self._byte_width).Bytes
+    elif self.IsKey:
+      return self.AsKeyBytes
+    else:
+      raise self._ConvertError(Type.STRING)
+
+  @property
   def AsString(self):
     if self.IsString:
       return str(String(self._Indirect(), self._byte_width))
