@@ -15,15 +15,14 @@
  */
 
 // independent from idl_parser, since this code is not needed for most clients
+#include <unordered_map>
+#include <utility>
+#include <vector>
+
 #include "flatbuffers/code_generators.h"
 #include "flatbuffers/flatbuffers.h"
 #include "flatbuffers/idl.h"
 #include "flatbuffers/util.h"
-
-#include <stdexcept>
-#include <unordered_map>
-#include <utility>
-#include <vector>
 
 namespace flatbuffers {
 
@@ -43,95 +42,165 @@ static std::string GenType(const Type &type, bool underlying = false) {
   }
 }
 
-static std::unordered_map<std::string, voffset_t> MapStructId(
+static bool HasFieldWithId(const std::vector<FieldDef *> &fields) {
+  static const std::string ID = "id";
+
+  for (const auto *field : fields) {
+    const auto *id_attribute = field->attributes.Lookup(ID);
+    if (id_attribute != nullptr && !id_attribute->constant.empty()) {
+      return true;
+    }
+  }
+  return false;
+}
+
+static bool HasNonPositiveFieldId(const std::vector<FieldDef *> &fields) {
+  static const std::string ID = "id";
+
+  for (const auto *field : fields) {
+    const auto *id_attribute = field->attributes.Lookup(ID);
+    if (id_attribute != nullptr && !id_attribute->constant.empty()) {
+      voffset_t proto_id = 0;
+      bool done = StringToNumber(id_attribute->constant.c_str(), &proto_id);
+      if (!done) { return true; }
+    }
+  }
+  return false;
+}
+
+static bool HasFieldIdFromReservedIds(
+    const std::vector<FieldDef *> &fields,
+    const std::vector<voffset_t> &reserved_ids) {
+  static const std::string ID = "id";
+
+  for (const auto *field : fields) {
+    const auto *id_attribute = field->attributes.Lookup(ID);
+    if (id_attribute != nullptr && !id_attribute->constant.empty()) {
+      voffset_t proto_id = 0;
+      bool done = StringToNumber(id_attribute->constant.c_str(), &proto_id);
+      if (!done) { return true; }
+      auto id_it =
+          std::find(std::begin(reserved_ids), std::end(reserved_ids), proto_id);
+      if (id_it != reserved_ids.end()) { return true; }
+    }
+  }
+  return false;
+}
+
+static bool HasTwiceUsedId(const std::vector<FieldDef *> &fields) {
+  static const std::string ID = "id";
+  std::vector<voffset_t> used_proto_ids;
+  for (const auto *field : fields) {
+    const auto *id_attribute = field->attributes.Lookup(ID);
+    if (id_attribute != nullptr && !id_attribute->constant.empty()) {
+      voffset_t proto_id = 0;
+      bool done = StringToNumber(id_attribute->constant.c_str(), &proto_id);
+      if (done) { used_proto_ids.push_back(proto_id); }
+    }
+  }
+  std::sort(std::begin(used_proto_ids), std::end(used_proto_ids));
+  for (auto it = std::next(std::begin(used_proto_ids));
+       it != std::end(used_proto_ids); it++) {
+    if (*it == *std::prev(it)) { return true; }
+  }
+
+  return false;
+}
+
+static bool HasGapInProtoId(const std::vector<FieldDef *> &fields) {
+  static const std::string ID = "id";
+  std::vector<voffset_t> used_proto_ids;
+  for (const auto *field : fields) {
+    const auto *id_attribute = field->attributes.Lookup(ID);
+    if (id_attribute != nullptr && !id_attribute->constant.empty()) {
+      voffset_t proto_id = 0;
+      bool done = StringToNumber(id_attribute->constant.c_str(), &proto_id);
+      if (done) { used_proto_ids.push_back(proto_id); }
+    }
+  }
+  std::sort(std::begin(used_proto_ids), std::end(used_proto_ids));
+  for (auto it = std::next(std::begin(used_proto_ids));
+       it != std::end(used_proto_ids); it++) {
+    if (*it != *std::prev(it) + 1) { return true; }
+  }
+
+  return false;
+}
+
+struct ProtobufToFbsIdMap {
+  using FieldName = std::string;
+  using FieldID = voffset_t;
+  using FieldNameToIdMap = std::unordered_map<FieldName, FieldID>;
+
+  FieldNameToIdMap field_to_id;
+  bool successful = false;
+};
+
+static ProtobufToFbsIdMap MapProtoIdsToFieldsId(
     const StructDef &struct_def, IDLOptions::ProtoIdGapAction gap_action) {
-  using FieldIdNamePair = std::pair<std::string, std::string>;
-  std::vector<FieldIdNamePair> ids;
+  const auto &fields = struct_def.fields.vec;
 
-  bool field_with_id = false;
+  if (!HasFieldWithId(fields)) { return { {}, true }; }
 
-  for (const auto &field : struct_def.fields.vec) {
-    if (field->attributes.Lookup("id")) {
-      field_with_id = true;
-      if (field->attributes.Lookup("id")->constant.empty() &&
-          field->value.type.base_type != BASE_TYPE_UNION)
-        ids.push_back(std::make_pair("-1", field->name));
-      else {
-        ids.push_back(std::make_pair(field->attributes.Lookup("id")->constant,
-                                     field->name));
+  if (HasNonPositiveFieldId(fields)) {
+    fprintf(stderr, "Non positive\n");
+    return { {}, false };
+  }
 
-        // Check for non positive id number
-        if (!field->attributes.Lookup("id")->constant.empty()) {
-          voffset_t id = 0;
-          bool done = StringToNumber(
-              field->attributes.Lookup("id")->constant.c_str(), &id);
-          if (!done)
-            throw std::runtime_error("Field id in struct" + struct_def.name +
-                                     "has a non positive number value\n");
-        }
+  if (HasTwiceUsedId(fields)) {
+    fprintf(stderr, "Twice\n");
+    return { {}, false };
+  }
+
+  if (HasFieldIdFromReservedIds(fields, struct_def.reserved_ids)) {
+    fprintf(stderr, "reserved\n");
+    return { {}, false };
+  }
+
+  if (gap_action != IDLOptions::ProtoIdGapAction::NO_OP) {
+    if (HasGapInProtoId(fields)) {
+      if (gap_action == IDLOptions::ProtoIdGapAction::WARNING) {
+        printf("Gap warning\n");
+      } else {
+        fprintf(stderr, "Gap error\n");
+        return { {}, false };
+      }
+    }
+  }
+
+  static constexpr int UNION_ID = -1;
+  std::vector<std::pair<int, std::string>> proto_ids;
+
+  for (const auto *field : fields) {
+    const auto *id_attribute = field->attributes.Lookup("id");
+    if (id_attribute != nullptr) {
+      // When we have union but do not use union flag to keep them
+      if (id_attribute->constant.empty() &&
+          field->value.type.base_type == BASE_TYPE_UNION) {
+        proto_ids.emplace_back(UNION_ID, field->name);
+      } else {
+        voffset_t proto_id = 0;
+        StringToNumber(id_attribute->constant.c_str(), &proto_id);
+        proto_ids.emplace_back(proto_id, field->name);
       }
     } else {
-      ids.push_back(std::make_pair(std::string(), field->name));
+      fprintf(stderr, "Fuck\n");
+      return { {}, false };
     }
   }
 
-  // None of the fields has id
-  if (!field_with_id) return {};
-
-  // Sort ids, consider 0 if the field does not have an id.
-  std::sort(ids.begin(), ids.end(),
-            [](const FieldIdNamePair &lhs, const FieldIdNamePair &rhs) {
-              auto a_id = lhs.first.empty() ? 0 : std::stoi(lhs.first);
-              auto b_id = rhs.first.empty() ? 0 : std::stoi(rhs.first);
-              return a_id < b_id;
-            });
-
-  for (auto it = std::next(ids.begin()); it != ids.end(); it++) {
-    if (std::find(struct_def.reserved_ids.begin(),
-                  struct_def.reserved_ids.end(),
-                  stoi(it->first)) != struct_def.reserved_ids.end())
-      throw std::runtime_error("Field " + it->second + " with id " + it->first +
-                               " in struct " + struct_def.name +
-                               " uses id from reserved ids\n");
-
-    // Check for twice use of ids
-    if (!it->first.empty() && std::prev(it)->first == it->first)
-      throw std::runtime_error("Fields " + it->second + " and " +
-                               std::prev(it)->second + " with use id " +
-                               it->first + " in struct" + struct_def.name +
-                               " twice\n");
-
-    // Check for gap between ids
-    if (gap_action != IDLOptions::ProtoIdGapAction::NO_OP) {
-      if (!it->first.empty() && !std::prev(it)->first.empty() &&
-          it->first != "-1" && std::prev(it)->first != "-1")
-        if (std::stoi(it->first) != std::stoi(std::prev(it)->first) + 1) {
-          if (gap_action == IDLOptions::ProtoIdGapAction::ERROR)
-            throw std::runtime_error("Field " + it->second + " with id " +
-                                     it->first + "  and field " +
-                                     std::prev(it)->second + " with id " +
-                                     std::prev(it)->first + " in struct " +
-                                     struct_def.name + " have gap\n");  //,
-          else if (gap_action == IDLOptions::ProtoIdGapAction::WARNING)
-            printf(
-                "Field %s with id %s  and field %s with id %s in struct %s "
-                "have gap\n",
-                it->second.c_str(), it->first.c_str(),
-                std::prev(it)->second.c_str(), std::prev(it)->first.c_str(),
-                struct_def.name.c_str());
-        }
-    }
-  }
-
+  std::sort(
+      std::begin(proto_ids), std::end(proto_ids),
+      [](const auto &rhs, const auto &lhs) { return rhs.first < lhs.first; });
   std::unordered_map<std::string, voffset_t> proto_fbs_ids;
 
   voffset_t id = 0;
-  for (const auto &element : ids) {
-    if (element.first.empty()) id++;
+  for (const auto &element : proto_ids) {
+    if (element.first == UNION_ID) { id++; }
     proto_fbs_ids.emplace(element.second, id++);
   }
 
-  return proto_fbs_ids;
+  return { proto_fbs_ids, true };
 }
 
 static void GenNameSpace(const Namespace &name_space, std::string *_schema,
@@ -222,7 +291,9 @@ std::string GenerateFBS(const Parser &parser, const std::string &file_name) {
        ++it) {
     StructDef &struct_def = **it;
     const auto proto_fbs_ids =
-        MapStructId(struct_def, parser.opts.proto_id_gap_action);
+        MapProtoIdsToFieldsId(struct_def, parser.opts.proto_id_gap_action);
+    if (!proto_fbs_ids.successful) { return {}; }
+
     if (parser.opts.include_dependence_headers && struct_def.generated)
       continue;
 
@@ -241,9 +312,10 @@ std::string GenerateFBS(const Parser &parser, const std::string &file_name) {
         if (field.key) attributes.push_back("key");
 
         if (parser.opts.keep_proto_id) {
-          auto it = proto_fbs_ids.find(field.name);
-          if (it != proto_fbs_ids.end())
+          auto it = proto_fbs_ids.field_to_id.find(field.name);
+          if (it != proto_fbs_ids.field_to_id.end()) {
             attributes.push_back("id: " + NumToString(it->second));
+          }  // If not found it means we do not have any ids
         }
 
         if (!attributes.empty()) {
@@ -265,8 +337,9 @@ std::string GenerateFBS(const Parser &parser, const std::string &file_name) {
 
 bool GenerateFBS(const Parser &parser, const std::string &path,
                  const std::string &file_name) {
-  return SaveFile((path + file_name + ".fbs").c_str(),
-                  GenerateFBS(parser, file_name), false);
+  const std::string fbs = GenerateFBS(parser, file_name);
+  if (fbs.empty()) return false;
+  return SaveFile((path + file_name + ".fbs").c_str(), fbs, false);
 }
 
 }  // namespace flatbuffers

@@ -1,7 +1,5 @@
 #include "proto_test.h"
 
-#include <stdexcept>
-
 #include "test_assert.h"
 
 namespace flatbuffers {
@@ -48,7 +46,7 @@ void proto_test(const std::string &proto_path, const std::string &proto_file) {
 
   // load the .proto and the golden file from disk
   std::string golden_file;
-  TEST_EQ(flatbuffers::LoadFile((proto_path + "test.golden").c_str(), false,
+  TEST_EQ(flatbuffers::LoadFile((proto_path + "test.golden.fbs").c_str(), false,
                                 &golden_file),
           true);
 
@@ -64,8 +62,8 @@ void proto_test_id(const std::string &proto_path,
 
   // load the .proto and the golden file from disk
   std::string golden_file;
-  TEST_EQ(flatbuffers::LoadFile((proto_path + "test_id.golden").c_str(), false,
-                                &golden_file),
+  TEST_EQ(flatbuffers::LoadFile((proto_path + "test_id.golden.fbs").c_str(),
+                                false, &golden_file),
           true);
 
   RunTest(opts, proto_path, proto_file, golden_file);
@@ -80,7 +78,7 @@ void proto_test_union(const std::string &proto_path,
   opts.proto_oneof_union = true;
 
   std::string golden_file;
-  TEST_EQ(flatbuffers::LoadFile((proto_path + "test_union.golden").c_str(),
+  TEST_EQ(flatbuffers::LoadFile((proto_path + "test_union.golden.fbs").c_str(),
                                 false, &golden_file),
           true);
   RunTest(opts, proto_path, proto_file, golden_file);
@@ -96,9 +94,10 @@ void proto_test_union_id(const std::string &proto_path,
   opts.keep_proto_id = true;
 
   std::string golden_file;
-  TEST_EQ(flatbuffers::LoadFile((proto_path + "test_union_id.golden").c_str(),
-                                false, &golden_file),
-          true);
+  TEST_EQ(
+      flatbuffers::LoadFile((proto_path + "test_union_id.golden.fbs").c_str(),
+                            false, &golden_file),
+      true);
   RunTest(opts, proto_path, proto_file, golden_file);
 }
 
@@ -111,10 +110,10 @@ void proto_test_union_suffix(const std::string &proto_path,
   opts.proto_oneof_union = true;
 
   std::string golden_file;
-  TEST_EQ(
-      flatbuffers::LoadFile((proto_path + "test_union_suffix.golden").c_str(),
-                            false, &golden_file),
-      true);
+  TEST_EQ(flatbuffers::LoadFile(
+              (proto_path + "test_union_suffix.golden.fbs").c_str(), false,
+              &golden_file),
+          true);
   RunTest(opts, proto_path, proto_file, golden_file);
 }
 
@@ -129,7 +128,7 @@ void proto_test_union_suffix_id(const std::string &proto_path,
 
   std::string golden_file;
   TEST_EQ(flatbuffers::LoadFile(
-              (proto_path + "test_union_suffix_id.golden").c_str(), false,
+              (proto_path + "test_union_suffix_id.golden.fbs").c_str(), false,
               &golden_file),
           true);
   RunTest(opts, proto_path, proto_file, golden_file);
@@ -143,9 +142,10 @@ void proto_test_include(const std::string &proto_path,
   opts.proto_mode = true;
 
   std::string golden_file;
-  TEST_EQ(flatbuffers::LoadFile((proto_path + "test_include.golden").c_str(),
-                                false, &golden_file),
-          true);
+  TEST_EQ(
+      flatbuffers::LoadFile((proto_path + "test_include.golden.fbs").c_str(),
+                            false, &golden_file),
+      true);
 
   RunTest(opts, proto_path, proto_file, golden_file, import_proto_file);
 }
@@ -159,9 +159,10 @@ void proto_test_include_id(const std::string &proto_path,
   opts.keep_proto_id = true;
 
   std::string golden_file;
-  TEST_EQ(flatbuffers::LoadFile((proto_path + "test_include_id.golden").c_str(),
-                                false, &golden_file),
-          true);
+  TEST_EQ(
+      flatbuffers::LoadFile((proto_path + "test_include_id.golden.fbs").c_str(),
+                            false, &golden_file),
+      true);
 
   RunTest(opts, proto_path, proto_file, golden_file, import_proto_file);
 }
@@ -175,10 +176,10 @@ void proto_test_include_union(const std::string &proto_path,
   opts.proto_oneof_union = true;
 
   std::string golden_file;
-  TEST_EQ(
-      flatbuffers::LoadFile((proto_path + "test_union_include.golden").c_str(),
-                            false, &golden_file),
-      true);
+  TEST_EQ(flatbuffers::LoadFile(
+              (proto_path + "test_union_include.golden.fbs").c_str(), false,
+              &golden_file),
+          true);
 
   RunTest(opts, proto_path, proto_file, golden_file, import_proto_file);
 }
@@ -194,7 +195,7 @@ void proto_test_include_union_id(const std::string &proto_path,
 
   std::string golden_file;
   TEST_EQ(flatbuffers::LoadFile(
-              (proto_path + "test_union_include_id.golden").c_str(), false,
+              (proto_path + "test_union_include_id.golden.fbs").c_str(), false,
               &golden_file),
           true);
 
@@ -219,11 +220,8 @@ void ParseCorruptedProto(const std::string &proto_path) {
                               false, &proto_file),
         true);
     TEST_EQ(parser.Parse(proto_file.c_str(), include_directories), true);
-    bool exception = false;
-    try {
-      auto fbs = flatbuffers::GenerateFBS(parser, "test");
-    } catch (const std::exception &) { exception = true; }
-    TEST_EQ(exception, true);
+    auto fbs = flatbuffers::GenerateFBS(parser, "test");
+    TEST_EQ(fbs.empty(), true);
   }
 
   // Parse proto with twice id.
@@ -233,11 +231,8 @@ void ParseCorruptedProto(const std::string &proto_path) {
                                   false, &proto_file),
             true);
     TEST_EQ(parser.Parse(proto_file.c_str(), include_directories), true);
-    bool exception = false;
-    try {
-      auto fbs = flatbuffers::GenerateFBS(parser, "test");
-    } catch (const std::exception &) { exception = true; }
-    TEST_EQ(exception, true);
+    auto fbs = flatbuffers::GenerateFBS(parser, "test");
+    TEST_EQ(fbs.empty(), true);
   }
 
   // Parse proto with using reserved id.
@@ -247,11 +242,8 @@ void ParseCorruptedProto(const std::string &proto_path) {
                                   false, &proto_file),
             true);
     TEST_EQ(parser.Parse(proto_file.c_str(), include_directories), true);
-    bool exception = false;
-    try {
-      auto fbs = flatbuffers::GenerateFBS(parser, "test");
-    } catch (const std::exception &) { exception = true; }
-    TEST_EQ(exception, true);
+    auto fbs = flatbuffers::GenerateFBS(parser, "test");
+    TEST_EQ(fbs.empty(), true);
   }
 
   // Parse proto with error on gap.
@@ -262,11 +254,8 @@ void ParseCorruptedProto(const std::string &proto_path) {
                                   &proto_file),
             true);
     TEST_EQ(parser.Parse(proto_file.c_str(), include_directories), true);
-    bool exception = false;
-    try {
-      auto fbs = flatbuffers::GenerateFBS(parser, "test");
-    } catch (const std::exception &) { exception = true; }
-    TEST_EQ(exception, true);
+    auto fbs = flatbuffers::GenerateFBS(parser, "test");
+    TEST_EQ(fbs.empty(), true);
   }
 }
 

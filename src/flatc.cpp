@@ -162,7 +162,7 @@ const static FlatCOption options[] = {
   { "", "proto-namespace-suffix", "SUFFIX",
     "Add this namespace to any flatbuffers generated from protobufs." },
   { "", "oneof-union", "", "Translate .proto oneofs to flatbuffer unions." },
-  { "", "keep-proto-id", "", "Keep protobuf ids in generated fbs file." },
+  { "", "keep-proto-id", "", "Keep protobuf field ids in generated fbs file." },
   { "", "proto-id-gap", "",
     "Action that should be taken when a gap between protobuf ids found. "
     "Supported values: * "
