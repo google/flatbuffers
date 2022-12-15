@@ -15,3 +15,7 @@ union KeywordsInUnion {
   static: KeywordsInTable,
   internal: KeywordsInTable,
 }
+
+table Table2 {
+  type: KeywordsInUnion;
+}
