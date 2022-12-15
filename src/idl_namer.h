@@ -102,6 +102,10 @@ class IdlNamer : public Namer {
   std::string LegacyRustFieldOffsetName(const FieldDef &field) const {
     return "VT_" + ConvertCase(EscapeKeyword(field.name), Case::kAllUpper);
   }
+    std::string LegacyRustUnionTypeOffsetName(const FieldDef &field) const {
+    return "VT_" + ConvertCase(EscapeKeyword(field.name + "_type"), Case::kAllUpper);
+  }
+
 
   std::string LegacySwiftVariant(const EnumVal &ev) const {
     auto name = ev.name;
@@ -138,6 +142,11 @@ class IdlNamer : public Namer {
   // lower camel case.
   std::string LegacyTsMutateMethod(const FieldDef& d) {
     return "mutate_" + d.name;
+  }
+
+  std::string LegacyRustUnionTypeMethod(const FieldDef &d) {
+    // assert d is a union
+    return Method(d.name + "_type");
   }
 
  private:
