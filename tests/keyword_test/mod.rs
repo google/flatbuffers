@@ -10,4 +10,6 @@ pub mod keyword_test {
   pub use self::keywords_in_union_generated::*;
   mod keywords_in_table_generated;
   pub use self::keywords_in_table_generated::*;
+  mod table_2_generated;
+  pub use self::table_2_generated::*;
 } // keyword_test

@@ -278,3 +278,122 @@ class KeywordsInTableObjectBuilder extends fb.ObjectBuilder {
     return fbBuilder.buffer;
   }
 }
+class Table2 {
+  Table2._(this._bc, this._bcOffset);
+  factory Table2(List<int> bytes) {
+    final rootRef = fb.BufferContext.fromBytes(bytes);
+    return reader.read(rootRef, 0);
+  }
+
+  static const fb.Reader<Table2> reader = _Table2Reader();
+
+  final fb.BufferContext _bc;
+  final int _bcOffset;
+
+  KeywordsInUnionTypeId? get typeType => KeywordsInUnionTypeId._createOrNull(const fb.Uint8Reader().vTableGetNullable(_bc, _bcOffset, 4));
+  dynamic get type {
+    switch (typeType?.value) {
+      case 1: return KeywordsInTable.reader.vTableGetNullable(_bc, _bcOffset, 6);
+      case 2: return KeywordsInTable.reader.vTableGetNullable(_bc, _bcOffset, 6);
+      default: return null;
+    }
+  }
+
+  @override
+  String toString() {
+    return 'Table2{typeType: ${typeType}, type: ${type}}';
+  }
+
+  Table2T unpack() => Table2T(
+      typeType: typeType,
+      type: type);
+
+  static int pack(fb.Builder fbBuilder, Table2T? object) {
+    if (object == null) return 0;
+    return object.pack(fbBuilder);
+  }
+}
+
+class Table2T implements fb.Packable {
+  KeywordsInUnionTypeId? typeType;
+  dynamic type;
+
+  Table2T({
+      this.typeType,
+      this.type});
+
+  @override
+  int pack(fb.Builder fbBuilder) {
+    final int? typeOffset = type?.pack(fbBuilder);
+    fbBuilder.startTable(2);
+    fbBuilder.addUint8(0, typeType?.value);
+    fbBuilder.addOffset(1, typeOffset);
+    return fbBuilder.endTable();
+  }
+
+  @override
+  String toString() {
+    return 'Table2T{typeType: ${typeType}, type: ${type}}';
+  }
+}
+
+class _Table2Reader extends fb.TableReader<Table2> {
+  const _Table2Reader();
+
+  @override
+  Table2 createObject(fb.BufferContext bc, int offset) => 
+    Table2._(bc, offset);
+}
+
+class Table2Builder {
+  Table2Builder(this.fbBuilder);
+
+  final fb.Builder fbBuilder;
+
+  void begin() {
+    fbBuilder.startTable(2);
+  }
+
+  int addTypeType(KeywordsInUnionTypeId? typeType) {
+    fbBuilder.addUint8(0, typeType?.value);
+    return fbBuilder.offset;
+  }
+  int addTypeOffset(int? offset) {
+    fbBuilder.addOffset(1, offset);
+    return fbBuilder.offset;
+  }
+
+  int finish() {
+    return fbBuilder.endTable();
+  }
+}
+
+class Table2ObjectBuilder extends fb.ObjectBuilder {
+  final KeywordsInUnionTypeId? _typeType;
+  final dynamic _type;
+
+  Table2ObjectBuilder({
+    KeywordsInUnionTypeId? typeType,
+    dynamic type,
+  })
+      : _typeType = typeType,
+        _type = type;
+
+  /// Finish building, and store into the [fbBuilder].
+  @override
+  int finish(fb.Builder fbBuilder) {
+    final int? typeOffset = _type?.getOrCreateOffset(fbBuilder);
+    fbBuilder.startTable(2);
+    fbBuilder.addUint8(0, _typeType?.value);
+    fbBuilder.addOffset(1, typeOffset);
+    return fbBuilder.endTable();
+  }
+
+  /// Convenience method to serialize to byte list.
+  @override
+  Uint8List toBytes([String? fileIdentifier]) {
+    final fbBuilder = fb.Builder(deduplicateTables: false);
+    fbBuilder.finish(finish(fbBuilder), fileIdentifier);
+    return fbBuilder.buffer;
+  }
+}
