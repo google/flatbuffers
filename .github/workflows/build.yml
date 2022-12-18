@@ -346,8 +346,6 @@ jobs:
       run: msbuild.exe FlatBuffers.sln /p:Configuration=Release /p:Platform=x64
     - name: Generate
       run: python3 scripts/check_generate_code.py
-    - name: Generate gRPC
-      run: python3 scripts/check-grpc-generated-code.py
 
   build-benchmarks:
     name: Build Benchmarks (on Linux)
