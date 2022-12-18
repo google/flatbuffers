@@ -37,3 +37,18 @@ js_library(
     visibility = ["//visibility:public"],
     deps = [":flatbuffers_ts"],
 )
+
+sh_binary(
+    name = "compile_flat_file",
+    srcs = ["compile_flat_file.sh"],
+    data = [
+        "@com_github_google_flatbuffers//:flatc",
+        "@npm//esbuild/bin:esbuild",
+    ],
+    env = {
+        "FLATC": "$(location @com_github_google_flatbuffers//:flatc)",
+        "ESBUILD": "$(location @npm//esbuild/bin:esbuild)",
+    },
+    visibility = ["//visibility:public"],
+    deps = ["@bazel_tools//tools/bash/runfiles"],
+)
