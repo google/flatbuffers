@@ -140,7 +140,11 @@ static ProtobufToFbsIdMap MapProtoIdsToFieldsId(
     const StructDef &struct_def, IDLOptions::ProtoIdGapAction gap_action) {
   const auto &fields = struct_def.fields.vec;
 
-  if (!HasFieldWithId(fields)) { return ProtobufToFbsIdMap{ {}, true }; }
+  if (!HasFieldWithId(fields)) { 
+    ProtobufToFbsIdMap result;
+    result.successful = true;
+    return result;
+  }
 
   if (HasNonPositiveFieldId(fields)) {
     fprintf(stderr,
@@ -194,15 +198,15 @@ static ProtobufToFbsIdMap MapProtoIdsToFieldsId(
   std::sort(
       std::begin(proto_ids), std::end(proto_ids),
       [](const ProtoIdNamePair &rhs, const ProtoIdNamePair &lhs) { return rhs.first < lhs.first; });
-  std::unordered_map<std::string, voffset_t> proto_fbs_ids;
+  struct ProtobufToFbsIdMap proto_to_fbs;
 
   voffset_t id = 0;
   for (const auto &element : proto_ids) {
     if (element.first == UNION_ID) { id++; }
-    proto_fbs_ids.emplace(element.second, id++);
+    proto_to_fbs.field_to_id.emplace(element.second, id++);
   }
-
-  return { proto_fbs_ids, true };
+  proto_to_fbs.successful = true;
+  return proto_to_fbs;
 }
 
 static void GenNameSpace(const Namespace &name_space, std::string *_schema,
