@@ -140,36 +140,38 @@ static ProtobufToFbsIdMap MapProtoIdsToFieldsId(
     const StructDef &struct_def, IDLOptions::ProtoIdGapAction gap_action) {
   const auto &fields = struct_def.fields.vec;
 
-  if (!HasFieldWithId(fields)) { return { {}, true }; }
+  if (!HasFieldWithId(fields)) { return ProtobufToFbsIdMap{ {}, true }; }
 
   if (HasNonPositiveFieldId(fields)) {
-    fprintf(stderr, "Non positive\n");
-    return { {}, false };
+    fprintf(stderr,
+                    "Field id in struct %s has a non positive number value\n",
+                    struct_def.name.c_str());
+    return {};
   }
 
   if (HasTwiceUsedId(fields)) {
-    fprintf(stderr, "Twice\n");
-    return { {}, false };
+    fprintf(stderr, "Fields in struct %s have used an id twice\n", struct_def.name.c_str());
+    return {};
   }
 
   if (HasFieldIdFromReservedIds(fields, struct_def.reserved_ids)) {
-    fprintf(stderr, "reserved\n");
-    return { {}, false };
+    fprintf(stderr,
+    "Fields in struct %s use id from reserved ids\n", struct_def.name.c_str());
+    return {};
   }
 
   if (gap_action != IDLOptions::ProtoIdGapAction::NO_OP) {
     if (HasGapInProtoId(fields)) {
-      if (gap_action == IDLOptions::ProtoIdGapAction::WARNING) {
-        printf("Gap warning\n");
-      } else {
-        fprintf(stderr, "Gap error\n");
-        return { {}, false };
+      fprintf(stderr, "Fields in struct %s have gap between ids\n", struct_def.name.c_str());
+      if (gap_action == IDLOptions::ProtoIdGapAction::ERROR) {
+        return {};
       }
     }
   }
 
   static constexpr int UNION_ID = -1;
-  std::vector<std::pair<int, std::string>> proto_ids;
+  using ProtoIdNamePair = std::pair<int, std::string>;
+  std::vector<ProtoIdNamePair> proto_ids;
 
   for (const auto *field : fields) {
     const auto *id_attribute = field->attributes.Lookup("id");
@@ -184,14 +186,14 @@ static ProtobufToFbsIdMap MapProtoIdsToFieldsId(
         proto_ids.emplace_back(proto_id, field->name);
       }
     } else {
-      fprintf(stderr, "Fuck\n");
-      return { {}, false };
+      fprintf(stderr, "Fields id in struct %s is missing\n", struct_def.name.c_str());
+      return {};
     }
   }
 
   std::sort(
       std::begin(proto_ids), std::end(proto_ids),
-      [](const auto &rhs, const auto &lhs) { return rhs.first < lhs.first; });
+      [](const ProtoIdNamePair &rhs, const ProtoIdNamePair &lhs) { return rhs.first < lhs.first; });
   std::unordered_map<std::string, voffset_t> proto_fbs_ids;
 
   voffset_t id = 0;
