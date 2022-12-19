@@ -129,6 +129,7 @@ static bool ProtobufIdSanityCheck(const StructDef &struct_def,
                                   IDLOptions::ProtoIdGapAction gap_action) {
   const auto &fields = struct_def.fields.vec;
   if (HasNonPositiveFieldId(fields)) {
+    // TODO: Use LogCompilerWarn
     fprintf(stderr,
                     "Field id in struct %s has a non positive number value\n",
                     struct_def.name.c_str());
@@ -136,11 +137,13 @@ static bool ProtobufIdSanityCheck(const StructDef &struct_def,
   }
 
   if (HasTwiceUsedId(fields)) {
+    // TODO: Use LogCompilerWarn
     fprintf(stderr, "Fields in struct %s have used an id twice\n", struct_def.name.c_str());
     return false;
   }
 
   if (HasFieldIdFromReservedIds(fields, struct_def.reserved_ids)) {
+    // TODO: Use LogCompilerWarn
     fprintf(stderr,
     "Fields in struct %s use id from reserved ids\n", struct_def.name.c_str());
     return false;
@@ -148,6 +151,7 @@ static bool ProtobufIdSanityCheck(const StructDef &struct_def,
 
   if (gap_action != IDLOptions::ProtoIdGapAction::NO_OP) {
     if (HasGapInProtoId(fields)) {
+      // TODO: Use LogCompilerWarn
       fprintf(stderr, "Fields in struct %s have gap between ids\n", struct_def.name.c_str());
       if (gap_action == IDLOptions::ProtoIdGapAction::ERROR) { return false; }
     }
@@ -194,6 +198,7 @@ static ProtobufToFbsIdMap MapProtoIdsToFieldsId(
         proto_ids.emplace_back(proto_id, field->name);
       }
     } else {
+      // TODO: Use LogCompilerWarn
       fprintf(stderr, "Fields id in struct %s is missing\n", struct_def.name.c_str());
       return {};
     }
@@ -354,7 +359,8 @@ std::string GenerateFBS(const Parser &parser, const std::string &file_name) {
 bool GenerateFBS(const Parser &parser, const std::string &path,
                  const std::string &file_name) {
   const std::string fbs = GenerateFBS(parser, file_name);
-  if (fbs.empty()) return false;
+  if (fbs.empty()) { return false; }
+  // TODO: Use LogCompilerWarn
   fprintf(stderr,
           "When you use --proto, that you should check for conformity "
           "yourself, using the existing --conform");
