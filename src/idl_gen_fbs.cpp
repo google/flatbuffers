@@ -87,7 +87,8 @@ static bool HasFieldIdFromReservedIds(
   return false;
 }
 
-static bool HasTwiceUsedId(const std::vector<FieldDef *> &fields) {
+static std::vector<voffset_t> ExtractProtobufIds(
+    const std::vector<FieldDef *> &fields) {
   static const std::string ID = "id";
   std::vector<voffset_t> used_proto_ids;
   for (const auto *field : fields) {
@@ -98,6 +99,12 @@ static bool HasTwiceUsedId(const std::vector<FieldDef *> &fields) {
       if (done) { used_proto_ids.push_back(proto_id); }
     }
   }
+
+  return used_proto_ids;
+}
+
+static bool HasTwiceUsedId(const std::vector<FieldDef *> &fields) {
+  std::vector<voffset_t> used_proto_ids = ExtractProtobufIds(fields);
   std::sort(std::begin(used_proto_ids), std::end(used_proto_ids));
   for (auto it = std::next(std::begin(used_proto_ids));
        it != std::end(used_proto_ids); it++) {
@@ -108,16 +115,7 @@ static bool HasTwiceUsedId(const std::vector<FieldDef *> &fields) {
 }
 
 static bool HasGapInProtoId(const std::vector<FieldDef *> &fields) {
-  static const std::string ID = "id";
-  std::vector<voffset_t> used_proto_ids;
-  for (const auto *field : fields) {
-    const auto *id_attribute = field->attributes.Lookup(ID);
-    if (id_attribute != nullptr && !id_attribute->constant.empty()) {
-      voffset_t proto_id = 0;
-      bool done = StringToNumber(id_attribute->constant.c_str(), &proto_id);
-      if (done) { used_proto_ids.push_back(proto_id); }
-    }
-  }
+  std::vector<voffset_t> used_proto_ids = ExtractProtobufIds(fields);
   std::sort(std::begin(used_proto_ids), std::end(used_proto_ids));
   for (auto it = std::next(std::begin(used_proto_ids));
        it != std::end(used_proto_ids); it++) {
@@ -125,6 +123,37 @@ static bool HasGapInProtoId(const std::vector<FieldDef *> &fields) {
   }
 
   return false;
+}
+
+static bool ProtobufIdSanityCheck(const StructDef &struct_def,
+                                  IDLOptions::ProtoIdGapAction gap_action) {
+  const auto &fields = struct_def.fields.vec;
+  if (HasNonPositiveFieldId(fields)) {
+    fprintf(stderr,
+                    "Field id in struct %s has a non positive number value\n",
+                    struct_def.name.c_str());
+    return false;
+  }
+
+  if (HasTwiceUsedId(fields)) {
+    fprintf(stderr, "Fields in struct %s have used an id twice\n", struct_def.name.c_str());
+    return false;
+  }
+
+  if (HasFieldIdFromReservedIds(fields, struct_def.reserved_ids)) {
+    fprintf(stderr,
+    "Fields in struct %s use id from reserved ids\n", struct_def.name.c_str());
+    return false;
+  }
+
+  if (gap_action != IDLOptions::ProtoIdGapAction::NO_OP) {
+    if (HasGapInProtoId(fields)) {
+      fprintf(stderr, "Fields in struct %s have gap between ids\n", struct_def.name.c_str());
+      if (gap_action == IDLOptions::ProtoIdGapAction::ERROR) { return false; }
+    }
+  }
+
+  return true;
 }
 
 struct ProtobufToFbsIdMap {
@@ -140,42 +169,17 @@ static ProtobufToFbsIdMap MapProtoIdsToFieldsId(
     const StructDef &struct_def, IDLOptions::ProtoIdGapAction gap_action) {
   const auto &fields = struct_def.fields.vec;
 
-  if (!HasFieldWithId(fields)) { 
+  if (!HasFieldWithId(fields)) {
     ProtobufToFbsIdMap result;
     result.successful = true;
     return result;
   }
 
-  if (HasNonPositiveFieldId(fields)) {
-    fprintf(stderr,
-                    "Field id in struct %s has a non positive number value\n",
-                    struct_def.name.c_str());
-    return {};
-  }
-
-  if (HasTwiceUsedId(fields)) {
-    fprintf(stderr, "Fields in struct %s have used an id twice\n", struct_def.name.c_str());
-    return {};
-  }
-
-  if (HasFieldIdFromReservedIds(fields, struct_def.reserved_ids)) {
-    fprintf(stderr,
-    "Fields in struct %s use id from reserved ids\n", struct_def.name.c_str());
-    return {};
-  }
-
-  if (gap_action != IDLOptions::ProtoIdGapAction::NO_OP) {
-    if (HasGapInProtoId(fields)) {
-      fprintf(stderr, "Fields in struct %s have gap between ids\n", struct_def.name.c_str());
-      if (gap_action == IDLOptions::ProtoIdGapAction::ERROR) {
-        return {};
-      }
-    }
-  }
+  if (!ProtobufIdSanityCheck(struct_def, gap_action)) { return {}; }
 
   static constexpr int UNION_ID = -1;
-  using ProtoIdNamePair = std::pair<int, std::string>;
-  std::vector<ProtoIdNamePair> proto_ids;
+  using ProtoIdFieldNamePair = std::pair<int, std::string>;
+  std::vector<ProtoIdFieldNamePair> proto_ids;
 
   for (const auto *field : fields) {
     const auto *id_attribute = field->attributes.Lookup("id");
@@ -197,7 +201,9 @@ static ProtobufToFbsIdMap MapProtoIdsToFieldsId(
 
   std::sort(
       std::begin(proto_ids), std::end(proto_ids),
-      [](const ProtoIdNamePair &rhs, const ProtoIdNamePair &lhs) { return rhs.first < lhs.first; });
+      [](const ProtoIdFieldNamePair &rhs, const ProtoIdFieldNamePair &lhs) {
+        return rhs.first < lhs.first;
+      });
   struct ProtobufToFbsIdMap proto_to_fbs;
 
   voffset_t id = 0;
@@ -249,8 +255,9 @@ std::string GenerateFBS(const Parser &parser, const std::string &file_name) {
     int num_includes = 0;
     for (auto it = parser.included_files_.begin();
          it != parser.included_files_.end(); ++it) {
-      if (it->second.empty())
+      if (it->second.empty()) {
         continue;
+}
       std::string basename;
       if(parser.opts.keep_prefix) {
         basename = flatbuffers::StripExtension(it->second);
@@ -275,20 +282,22 @@ std::string GenerateFBS(const Parser &parser, const std::string &file_name) {
     }
     GenNameSpace(*enum_def.defined_namespace, &schema, &last_namespace);
     GenComment(enum_def.doc_comment, &schema, nullptr);
-    if (enum_def.is_union)
+    if (enum_def.is_union) {
       schema += "union " + enum_def.name;
-    else
+    } else {
       schema += "enum " + enum_def.name + " : ";
+    }
 
     schema += GenType(enum_def.underlying_type, true) + " {\n";
 
     for (auto it = enum_def.Vals().begin(); it != enum_def.Vals().end(); ++it) {
       auto &ev = **it;
       GenComment(ev.doc_comment, &schema, nullptr, "  ");
-      if (enum_def.is_union)
+      if (enum_def.is_union) {
         schema += "  " + GenType(ev.union_type) + ",\n";
-      else
+      } else {
         schema += "  " + ev.name + " = " + enum_def.ToString(ev) + ",\n";
+      }
     }
     schema += "}\n\n";
   }
@@ -300,8 +309,9 @@ std::string GenerateFBS(const Parser &parser, const std::string &file_name) {
         MapProtoIdsToFieldsId(struct_def, parser.opts.proto_id_gap_action);
     if (!proto_fbs_ids.successful) { return {}; }
 
-    if (parser.opts.include_dependence_headers && struct_def.generated)
+    if (parser.opts.include_dependence_headers && struct_def.generated) {
       continue;
+    }
 
     GenNameSpace(*struct_def.defined_namespace, &schema, &last_namespace);
     GenComment(struct_def.doc_comment, &schema, nullptr);
@@ -345,6 +355,9 @@ bool GenerateFBS(const Parser &parser, const std::string &path,
                  const std::string &file_name) {
   const std::string fbs = GenerateFBS(parser, file_name);
   if (fbs.empty()) return false;
+  fprintf(stderr,
+          "When you use --proto, that you should check for conformity "
+          "yourself, using the existing --conform");
   return SaveFile((path + file_name + ".fbs").c_str(), fbs, false);
 }
 

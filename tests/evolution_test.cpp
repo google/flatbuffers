@@ -80,6 +80,7 @@ void EvolutionTest(const std::string &tests_data_path) {
 #endif
 }
 
+
 void ConformTest() {
   const char ref[] = "table T { A:int; } enum E:byte { A }";
 
