@@ -68,6 +68,15 @@ static bool ValidateUTF8(const std::string &str) {
   return true;
 }
 
+static CheckedError CheckDepthGuard(Parser &parser) {
+  FLATBUFFERS_ASSERT(parser.GetParseDepthCounter() <=
+                         (FLATBUFFERS_MAX_PARSING_DEPTH) &&
+                     "Check() must be called to prevent stack overflow");
+  return parser.GetParseDepthCounter() + 1 >= (FLATBUFFERS_MAX_PARSING_DEPTH)
+             ? parser.RecurseError()
+             : CheckedError(false);
+}
+
 static bool IsLowerSnakeCase(const std::string &str) {
   for (size_t i = 0; i < str.length(); i++) {
     char c = str[i];
@@ -410,31 +419,6 @@ const std::string &Parser::GetPooledString(const std::string &s) const {
   return *(string_cache_.insert(s).first);
 }
 
-class Parser::ParseDepthGuard {
- public:
-  explicit ParseDepthGuard(Parser *parser_not_null)
-      : parser_(*parser_not_null), caller_depth_(parser_.parse_depth_counter_) {
-    FLATBUFFERS_ASSERT(caller_depth_ <= (FLATBUFFERS_MAX_PARSING_DEPTH) &&
-                       "Check() must be called to prevent stack overflow");
-    parser_.parse_depth_counter_ += 1;
-  }
-
-  ~ParseDepthGuard() { parser_.parse_depth_counter_ -= 1; }
-
-  CheckedError Check() {
-    return caller_depth_ >= (FLATBUFFERS_MAX_PARSING_DEPTH)
-               ? parser_.RecurseError()
-               : CheckedError(false);
-  }
-
-  FLATBUFFERS_DELETE_FUNC(ParseDepthGuard(const ParseDepthGuard &));
-  FLATBUFFERS_DELETE_FUNC(ParseDepthGuard &operator=(const ParseDepthGuard &));
-
- private:
-  Parser &parser_;
-  const int caller_depth_;
-};
-
 std::string Namespace::GetFullyQualifiedName(const std::string &name,
                                              size_t max_components) const {
   // Early exit if we don't have a defined namespace.
@@ -754,11 +738,11 @@ CheckedError Parser::Expect(int t) {
   return NoError();
 }
 
-CheckedError Parser::ParseNamespacing(std::string *id, std::string *last) {
+CheckedError Parser::ParseNamespacing(std::string& id, std::string *last) {
   while (Is('.')) {
     NEXT();
-    *id += ".";
-    *id += attribute_;
+    id += ".";
+    id += attribute_;
     if (last) *last = attribute_;
     EXPECT(kTokenIdentifier);
   }
@@ -786,7 +770,7 @@ StructDef *Parser::LookupStructThruParentNamespaces(
 CheckedError Parser::ParseTypeIdent(Type &type) {
   std::string id = attribute_;
   EXPECT(kTokenIdentifier);
-  ECHECK(ParseNamespacing(&id, nullptr));
+  ECHECK(ParseNamespacing(id, nullptr));
   auto enum_def = LookupEnum(id);
   if (enum_def) {
     type = enum_def->underlying_type;
@@ -841,8 +825,7 @@ CheckedError Parser::ParseType(Type &type) {
       ECHECK(ParseTypeIdent(type));
     }
   } else if (token_ == '[') {
-    ParseDepthGuard depth_guard(this);
-    ECHECK(depth_guard.Check());
+    ECHECK(CheckDepthGuard(*this));
     NEXT();
     Type subtype;
     ECHECK(ParseType(subtype));
@@ -1285,8 +1268,7 @@ CheckedError Parser::ParseAnyValue(Value &val, FieldDef *field,
         }
         if (next_name == type_name) {
           EXPECT(':');
-          ParseDepthGuard depth_guard(this);
-          ECHECK(depth_guard.Check());
+          ECHECK(CheckDepthGuard(*this));
           Value type_val = type_field->value;
           ECHECK(ParseAnyValue(type_val, type_field, 0, nullptr, 0));
           constant = type_val.constant;
@@ -1417,9 +1399,7 @@ CheckedError Parser::ParseTableDelimiters(size_t &fieldn,
 
 CheckedError Parser::ParseTable(const StructDef &struct_def, std::string *value,
                                 uoffset_t *ovalue) {
-  ParseDepthGuard depth_guard(this);
-  ECHECK(depth_guard.Check());
-
+  ECHECK(CheckDepthGuard(*this));
   size_t fieldn_outer = 0;
   auto err = ParseTableDelimiters(
       fieldn_outer, &struct_def,
@@ -1926,9 +1906,7 @@ CheckedError Parser::TokenError() {
 }
 
 CheckedError Parser::ParseFunction(const std::string *name, Value &e) {
-  ParseDepthGuard depth_guard(this);
-  ECHECK(depth_guard.Check());
-
+  ECHECK(CheckDepthGuard(*this));
   // Copy name, attribute will be changed on NEXT().
   const auto functionname = attribute_;
   if (!IsFloat(e.type.base_type)) {
@@ -2437,7 +2415,7 @@ CheckedError Parser::ParseEnum(const bool is_union, EnumDef **dest,
       ev.doc_comment = doc_comment_;
       EXPECT(kTokenIdentifier);
       if (is_union) {
-        ECHECK(ParseNamespacing(&full_name, &ev.name));
+        ECHECK(ParseNamespacing(full_name, &ev.name));
         if (opts.union_value_namespacing) {
           // Since we can't namespace the actual enum identifiers, turn
           // namespace parts into part of the identifier.
@@ -2825,7 +2803,7 @@ CheckedError Parser::ParseProtoDecl() {
       if (Is('.')) NEXT();  // qualified names may start with a . ?
       auto id = attribute_;
       EXPECT(kTokenIdentifier);
-      ECHECK(ParseNamespacing(&id, nullptr));
+      ECHECK(ParseNamespacing(id, nullptr));
       struct_def = LookupCreateStruct(id, false);
       if (!struct_def)
         return Error("cannot extend unknown message type: " + id);
@@ -3162,8 +3140,7 @@ CheckedError Parser::ParseTypeFromProtoType(Type *type) {
 }
 
 CheckedError Parser::SkipAnyJsonValue() {
-  ParseDepthGuard depth_guard(this);
-  ECHECK(depth_guard.Check());
+  ECHECK(CheckDepthGuard(*this));
 
   switch (token_) {
     case '{': {
@@ -3205,8 +3182,7 @@ CheckedError Parser::ParseFlexBufferNumericConstant(
 }
 
 CheckedError Parser::ParseFlexBufferValue(flexbuffers::Builder *builder) {
-  ParseDepthGuard depth_guard(this);
-  ECHECK(depth_guard.Check());
+  ECHECK(CheckDepthGuard(*this));
 
   switch (token_) {
     case '{': {
@@ -3593,7 +3569,7 @@ CheckedError Parser::DoParse(const char *source, const char **include_paths,
       NEXT();
       auto root_type = attribute_;
       EXPECT(kTokenIdentifier);
-      ECHECK(ParseNamespacing(&root_type, nullptr));
+      ECHECK(ParseNamespacing(root_type, nullptr));
       if (opts.root_type.empty()) {
         if (!SetRootType(root_type.c_str()))
           return Error("unknown root type: " + root_type);
