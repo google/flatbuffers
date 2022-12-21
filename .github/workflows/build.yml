@@ -69,7 +69,7 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     - name: cmake
-      run: CXX=${{ matrix.cxx }} cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release -DFLATBUFFERS_STRICT_MODE=ON -DFLATBUFFERS_NO_FILE_TESTS .
+      run: cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release -DFLATBUFFERS_STRICT_MODE=ON -DFLATBUFFERS_NO_FILE_TESTS .
     - name: build
       run: make -j
 
