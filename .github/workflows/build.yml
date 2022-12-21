@@ -64,11 +64,11 @@ jobs:
       run: echo "::set-output name=hashes::$(sha256sum Linux.flatc.binary.${{ matrix.cxx }}.zip | base64 -w0)"
       
   build-linux-no-file-tests:    
-    name: Build Linux (with -DFLATBUFFERS_NO_FILE_TESTS)
+    name: Build Linux with -DFLATBUFFERS_NO_FILE_TESTS
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        cxx: [g++-10]
+        cxx: [g++-10, clang++-12]
     steps:
     - uses: actions/checkout@v3
     - name: cmake
