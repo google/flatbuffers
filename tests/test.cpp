@@ -1419,6 +1419,8 @@ void NativeInlineTableVectorTest() {
   TEST_ASSERT(unpacked.t == test.t);
 }
 
+// Guard against -Wunused-function on platforms without file tests.
+#ifndef FLATBUFFERS_NO_FILE_TESTS
 void DoNotRequireEofTest(const std::string &tests_data_path) {
   std::string schemafile;
   bool ok = flatbuffers::LoadFile(
@@ -1460,6 +1462,7 @@ void DoNotRequireEofTest(const std::string &tests_data_path) {
   TEST_EQ_STR(monster->name()->c_str(), "Imp");
   TEST_EQ(monster->hp(), 10);
 }
+#endif
 
 int FlatBufferTests(const std::string &tests_data_path) {
   // Run our various test suites:
