@@ -3,7 +3,7 @@ Thank you for submitting a PR!
 Please delete this standard text once you've created your own description.
 
 If you make changes to any of the code generators (`src/idl_gen*`) be sure to
-build your project, as it will generate code based on the changes. If necessary
+[build](https://google.github.io/flatbuffers/flatbuffers_guide_building.html) your project, as it will generate code based on the changes. If necessary
 the code generation script can be directly run (`scripts/generate_code.py`),
 requires Python3. This allows us to better see the effect of the PR.
 
