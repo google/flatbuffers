@@ -1418,7 +1418,7 @@ class TestByteLayout(unittest.TestCase):
 
       # Systems endian:
       b = flatbuffers.Builder(0)
-      x = np.array([True, False, True], dtype=np.bool)
+      x = np.array([True, False, True], dtype=bool)
       b.CreateNumpyVector(x)
       self.assertBuilderEquals(
           b,
