@@ -75,7 +75,7 @@ attributesLength():number {
 }
 
 static getFullyQualifiedName():string {
-  return 'reflection_EnumVal';
+  return 'reflection.EnumVal';
 }
 
 static startEnumVal(builder:flatbuffers.Builder) {

@@ -14,7 +14,7 @@ export class StructOfStructsOfStructs {
         return (obj || new StructOfStructs()).__init(this.bb_pos, this.bb);
     }
     static getFullyQualifiedName() {
-        return 'MyGame_Example_StructOfStructsOfStructs';
+        return 'MyGame.Example.StructOfStructsOfStructs';
     }
     static sizeOf() {
         return 20;

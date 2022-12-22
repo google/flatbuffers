@@ -56,7 +56,7 @@ export class EnumVal {
         return offset ? this.bb.__vector_len(this.bb_pos + offset) : 0;
     }
     static getFullyQualifiedName() {
-        return 'reflection_EnumVal';
+        return 'reflection.EnumVal';
     }
     static startEnumVal(builder) {
         builder.startObject(6);

@@ -28,7 +28,7 @@ c(obj?:Ability):Ability|null {
 }
 
 static getFullyQualifiedName():string {
-  return 'MyGame_Example_StructOfStructs';
+  return 'MyGame.Example.StructOfStructs';
 }
 
 static sizeOf():number {

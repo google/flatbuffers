@@ -52,7 +52,7 @@ export class Service {
         return offset ? this.bb.__string(this.bb_pos + offset, optionalEncoding) : null;
     }
     static getFullyQualifiedName() {
-        return 'reflection_Service';
+        return 'reflection.Service';
     }
     static startService(builder) {
         builder.startObject(5);

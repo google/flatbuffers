@@ -98,7 +98,7 @@ export class Object_ {
         return offset ? (obj || new Schema()).__init(this.bb.__indirect(this.bb_pos + offset), this.bb) : null;
     }
     static getFullyQualifiedName() {
-        return 'typescript_Object';
+        return 'typescript.Object';
     }
     static startObject(builder) {
         builder.startObject(7);

@@ -110,7 +110,7 @@ fbsFilesLength():number {
 }
 
 static getFullyQualifiedName():string {
-  return 'reflection_Schema';
+  return 'reflection.Schema';
 }
 
 static startSchema(builder:flatbuffers.Builder) {

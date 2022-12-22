@@ -18,7 +18,7 @@ export class InParentNamespace {
         return (obj || new InParentNamespace()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
     }
     static getFullyQualifiedName() {
-        return 'MyGame_InParentNamespace';
+        return 'MyGame.InParentNamespace';
     }
     static startInParentNamespace(builder) {
         builder.startObject(0);

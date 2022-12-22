@@ -32,7 +32,7 @@ mutate_b(value:number):boolean {
 }
 
 static getFullyQualifiedName():string {
-  return 'MyGame_Example_Test';
+  return 'MyGame.Example.Test';
 }
 
 static sizeOf():number {

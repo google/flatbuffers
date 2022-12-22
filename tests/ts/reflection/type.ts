@@ -126,7 +126,7 @@ mutate_element_size(value:number):boolean {
 }
 
 static getFullyQualifiedName():string {
-  return 'reflection_Type';
+  return 'reflection.Type';
 }
 
 static startType(builder:flatbuffers.Builder) {

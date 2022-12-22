@@ -64,7 +64,7 @@ documentationLength():number {
 }
 
 static getFullyQualifiedName():string {
-  return 'reflection_RPCCall';
+  return 'reflection.RPCCall';
 }
 
 static startRPCCall(builder:flatbuffers.Builder) {

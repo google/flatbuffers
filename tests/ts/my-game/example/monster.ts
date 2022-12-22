@@ -812,7 +812,7 @@ mutate_double_inf_default(value:number):boolean {
 }
 
 static getFullyQualifiedName():string {
-  return 'MyGame_Example_Monster';
+  return 'MyGame.Example.Monster';
 }
 
 static startMonster(builder:flatbuffers.Builder) {

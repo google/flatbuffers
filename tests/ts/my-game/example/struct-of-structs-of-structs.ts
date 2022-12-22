@@ -19,7 +19,7 @@ a(obj?:StructOfStructs):StructOfStructs|null {
 }
 
 static getFullyQualifiedName():string {
-  return 'MyGame_Example_StructOfStructsOfStructs';
+  return 'MyGame.Example.StructOfStructsOfStructs';
 }
 
 static sizeOf():number {

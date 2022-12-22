@@ -65,7 +65,7 @@ test3(obj?:Test):Test|null {
 }
 
 static getFullyQualifiedName():string {
-  return 'MyGame_Example_Vec3';
+  return 'MyGame.Example.Vec3';
 }
 
 static sizeOf():number {

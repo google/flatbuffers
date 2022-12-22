@@ -69,7 +69,7 @@ export class Enum {
         return offset ? this.bb.__string(this.bb_pos + offset, optionalEncoding) : null;
     }
     static getFullyQualifiedName() {
-        return 'reflection_Enum';
+        return 'reflection.Enum';
     }
     static startEnum(builder) {
         builder.startObject(7);

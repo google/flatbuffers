@@ -96,7 +96,7 @@ declarationFile(optionalEncoding?:any):string|Uint8Array|null {
 }
 
 static getFullyQualifiedName():string {
-  return 'reflection_Enum';
+  return 'reflection.Enum';
 }
 
 static startEnum(builder:flatbuffers.Builder) {

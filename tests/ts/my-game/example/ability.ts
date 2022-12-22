@@ -32,7 +32,7 @@ mutate_distance(value:number):boolean {
 }
 
 static getFullyQualifiedName():string {
-  return 'MyGame_Example_Ability';
+  return 'MyGame.Example.Ability';
 }
 
 static sizeOf():number {

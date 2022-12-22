@@ -39,7 +39,7 @@ mutate_id(value:bigint):boolean {
 }
 
 static getFullyQualifiedName():string {
-  return 'MyGame_Example_Referrable';
+  return 'MyGame.Example.Referrable';
 }
 
 static startReferrable(builder:flatbuffers.Builder) {
