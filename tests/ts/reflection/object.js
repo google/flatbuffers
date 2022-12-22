@@ -88,7 +88,7 @@ export class Object_ {
         return offset ? this.bb.__string(this.bb_pos + offset, optionalEncoding) : null;
     }
     static getFullyQualifiedName() {
-        return 'reflection_Object';
+        return 'reflection.Object';
     }
     static startObject(builder) {
         builder.startObject(8);

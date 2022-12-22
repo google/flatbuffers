@@ -213,7 +213,7 @@ vf64Array():Float64Array|null {
 }
 
 static getFullyQualifiedName():string {
-  return 'MyGame_Example_TypeAliases';
+  return 'MyGame.Example.TypeAliases';
 }
 
 static startTypeAliases(builder:flatbuffers.Builder) {
