@@ -156,7 +156,7 @@ mutate_element_size(value:number):boolean {
 }
 
 static getFullyQualifiedName():string {
-  return 'reflection_Type';
+  return 'reflection.Type';
 }
 
 static startType(builder:flatbuffers.Builder) {
@@ -281,7 +281,7 @@ value(optionalEncoding?:any):string|Uint8Array|null {
 }
 
 static getFullyQualifiedName():string {
-  return 'reflection_KeyValue';
+  return 'reflection.KeyValue';
 }
 
 static startKeyValue(builder:flatbuffers.Builder) {
@@ -410,7 +410,7 @@ attributesLength():number {
 }
 
 static getFullyQualifiedName():string {
-  return 'reflection_EnumVal';
+  return 'reflection.EnumVal';
 }
 
 static startEnumVal(builder:flatbuffers.Builder) {
@@ -604,7 +604,7 @@ declarationFile(optionalEncoding?:any):string|Uint8Array|null {
 }
 
 static getFullyQualifiedName():string {
-  return 'reflection_Enum';
+  return 'reflection.Enum';
 }
 
 static startEnum(builder:flatbuffers.Builder) {
@@ -941,7 +941,7 @@ mutate_padding(value:number):boolean {
 }
 
 static getFullyQualifiedName():string {
-  return 'reflection_Field';
+  return 'reflection.Field';
 }
 
 static startField(builder:flatbuffers.Builder) {
@@ -1227,7 +1227,7 @@ declarationFile(optionalEncoding?:any):string|Uint8Array|null {
 }
 
 static getFullyQualifiedName():string {
-  return 'reflection_Object';
+  return 'reflection.Object';
 }
 
 static startObject(builder:flatbuffers.Builder) {
@@ -1439,7 +1439,7 @@ documentationLength():number {
 }
 
 static getFullyQualifiedName():string {
-  return 'reflection_RPCCall';
+  return 'reflection.RPCCall';
 }
 
 static startRPCCall(builder:flatbuffers.Builder) {
@@ -1615,7 +1615,7 @@ declarationFile(optionalEncoding?:any):string|Uint8Array|null {
 }
 
 static getFullyQualifiedName():string {
-  return 'reflection_Service';
+  return 'reflection.Service';
 }
 
 static startService(builder:flatbuffers.Builder) {
@@ -1790,7 +1790,7 @@ includedFilenamesLength():number {
 }
 
 static getFullyQualifiedName():string {
-  return 'reflection_SchemaFile';
+  return 'reflection.SchemaFile';
 }
 
 static startSchemaFile(builder:flatbuffers.Builder) {
@@ -1964,7 +1964,7 @@ fbsFilesLength():number {
 }
 
 static getFullyQualifiedName():string {
-  return 'reflection_Schema';
+  return 'reflection.Schema';
 }
 
 static startSchema(builder:flatbuffers.Builder) {
