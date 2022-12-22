@@ -6,6 +6,7 @@
 #include <vector>
 
 #include "flatbuffers/reflection.h"
+#include "flatbuffers/util.h"
 #include "flatbuffers/verifier.h"
 
 namespace flatbuffers {
@@ -679,7 +680,8 @@ void BinaryAnnotator::BuildTable(const uint64_t table_offset,
 
         if (next_object->is_struct()) {
           // Structs are stored inline.
-          BuildStruct(field_offset, regions, next_object);
+          BuildStruct(field_offset, regions, field->name()->c_str(),
+                      next_object);
         } else {
           offset_field_comment.default_value = "(table)";
 
@@ -780,6 +782,7 @@ void BinaryAnnotator::BuildTable(const uint64_t table_offset,
 
 uint64_t BinaryAnnotator::BuildStruct(const uint64_t struct_offset,
                                       std::vector<BinaryRegion> &regions,
+                                      const std::string referring_field_name,
                                       const reflection::Object *const object) {
   if (!object->is_struct()) { return struct_offset; }
   uint64_t offset = struct_offset;
@@ -794,9 +797,8 @@ uint64_t BinaryAnnotator::BuildStruct(const uint64_t struct_offset,
 
       BinaryRegionComment comment;
       comment.type = BinaryRegionCommentType::StructField;
-      comment.name =
-          std::string(object->name()->c_str()) + "." + field->name()->c_str();
-      comment.default_value = "(" +
+      comment.name = referring_field_name + "." + field->name()->str();
+      comment.default_value = "of '" + object->name()->str() + "' (" +
                               std::string(reflection::EnumNameBaseType(
                                   field->type()->base_type())) +
                               ")";
@@ -821,6 +823,7 @@ uint64_t BinaryAnnotator::BuildStruct(const uint64_t struct_offset,
     } else if (field->type()->base_type() == reflection::BaseType::Obj) {
       // Structs are stored inline, even when nested.
       offset = BuildStruct(offset, regions,
+                           referring_field_name + "." + field->name()->str(),
                            schema_->objects()->Get(field->type()->index()));
     } else if (field->type()->base_type() == reflection::BaseType::Array) {
       const bool is_scalar = IsScalar(field->type()->element());
@@ -833,11 +836,11 @@ uint64_t BinaryAnnotator::BuildStruct(const uint64_t struct_offset,
         if (is_scalar) {
           BinaryRegionComment array_comment;
           array_comment.type = BinaryRegionCommentType::ArrayField;
-          array_comment.name = std::string(object->name()->c_str()) + "." +
-                               field->name()->c_str();
+          array_comment.name =
+              referring_field_name + "." + field->name()->str();
           array_comment.index = i;
           array_comment.default_value =
-              "(" +
+              "of '" + object->name()->str() + "' (" +
               std::string(
                   reflection::EnumNameBaseType(field->type()->element())) +
               ")";
@@ -869,8 +872,10 @@ uint64_t BinaryAnnotator::BuildStruct(const uint64_t struct_offset,
           // TODO(dbaileychess): This works, but the comments on the fields lose
           // some context. Need to figure a way how to plumb the nested arrays
           // comments together that isn't too confusing.
-          offset = BuildStruct(offset, regions,
-                               schema_->objects()->Get(field->type()->index()));
+          offset =
+              BuildStruct(offset, regions,
+                          referring_field_name + "." + field->name()->str(),
+                          schema_->objects()->Get(field->type()->index()));
         }
       }
     }
@@ -1018,7 +1023,8 @@ void BinaryAnnotator::BuildVector(const uint64_t vector_offset,
         // Vector of structs
         for (size_t i = 0; i < vector_length.value(); ++i) {
           // Structs are inline to the vector.
-          const uint64_t next_offset = BuildStruct(offset, regions, object);
+          const uint64_t next_offset =
+              BuildStruct(offset, regions, "[" + NumToString(i) + "]", object);
           if (next_offset == offset) { break; }
           offset = next_offset;
         }
@@ -1301,7 +1307,7 @@ std::string BinaryAnnotator::BuildUnion(const uint64_t union_offset,
       // Union of vectors point to a new Binary section
       std::vector<BinaryRegion> regions;
 
-      BuildStruct(union_offset, regions, object);
+      BuildStruct(union_offset, regions, field->name()->c_str(), object);
 
       AddSection(
           union_offset,
