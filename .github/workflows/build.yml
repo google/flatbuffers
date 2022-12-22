@@ -62,6 +62,16 @@ jobs:
       if: matrix.cxx == 'g++-10' && startsWith(github.ref, 'refs/tags/')
       id: hash-gcc
       run: echo "::set-output name=hashes::$(sha256sum Linux.flatc.binary.${{ matrix.cxx }}.zip | base64 -w0)"
+      
+  build-linux-no-file-tests:    
+    name: Build Linux with -DFLATBUFFERS_NO_FILE_TESTS
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - name: cmake
+      run: CXX=clang++-12 cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release -DFLATBUFFERS_STRICT_MODE=ON -DFLATBUFFERS_CXX_FLAGS="-DFLATBUFFERS_NO_FILE_TESTS" .
+    - name: build
+      run: make -j
 
   build-linux-cpp-std:
     name: Build Linux C++
