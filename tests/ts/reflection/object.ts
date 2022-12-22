@@ -122,7 +122,7 @@ declarationFile(optionalEncoding?:any):string|Uint8Array|null {
 }
 
 static getFullyQualifiedName():string {
-  return 'reflection_Object';
+  return 'reflection.Object';
 }
 
 static startObject(builder:flatbuffers.Builder) {

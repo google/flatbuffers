@@ -46,7 +46,7 @@ export class Stat {
         return true;
     }
     static getFullyQualifiedName() {
-        return 'MyGame_Example_Stat';
+        return 'MyGame.Example.Stat';
     }
     static startStat(builder) {
         builder.startObject(3);

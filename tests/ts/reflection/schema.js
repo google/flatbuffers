@@ -85,7 +85,7 @@ export class Schema {
         return offset ? this.bb.__vector_len(this.bb_pos + offset) : 0;
     }
     static getFullyQualifiedName() {
-        return 'reflection_Schema';
+        return 'reflection.Schema';
     }
     static startSchema(builder) {
         builder.startObject(8);

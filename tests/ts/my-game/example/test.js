@@ -24,7 +24,7 @@ export class Test {
         return true;
     }
     static getFullyQualifiedName() {
-        return 'MyGame_Example_Test';
+        return 'MyGame.Example.Test';
     }
     static sizeOf() {
         return 4;

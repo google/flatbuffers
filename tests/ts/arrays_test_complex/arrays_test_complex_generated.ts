@@ -35,7 +35,7 @@ dUnderscore():bigint {
 }
 
 static getFullyQualifiedName():string {
-  return 'MyGame_Example_InnerStruct';
+  return 'MyGame.Example.InnerStruct';
 }
 
 static sizeOf():number {
@@ -129,7 +129,7 @@ f(index: number):number|null {
 }
 
 static getFullyQualifiedName():string {
-  return 'MyGame_Example_OuterStruct';
+  return 'MyGame.Example.OuterStruct';
 }
 
 static sizeOf():number {
@@ -271,7 +271,7 @@ e(index: number):bigint|null {
 }
 
 static getFullyQualifiedName():string {
-  return 'MyGame_Example_NestedStruct';
+  return 'MyGame.Example.NestedStruct';
 }
 
 static sizeOf():number {
@@ -407,7 +407,7 @@ g(index: number):bigint|null {
 }
 
 static getFullyQualifiedName():string {
-  return 'MyGame_Example_ArrayStruct';
+  return 'MyGame.Example.ArrayStruct';
 }
 
 static sizeOf():number {
@@ -563,7 +563,7 @@ cUnderscore(obj?:ArrayStruct):ArrayStruct|null {
 }
 
 static getFullyQualifiedName():string {
-  return 'MyGame_Example_ArrayTable';
+  return 'MyGame.Example.ArrayTable';
 }
 
 static startArrayTable(builder:flatbuffers.Builder) {

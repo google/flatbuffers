@@ -53,7 +53,7 @@ includedFilenamesLength():number {
 }
 
 static getFullyQualifiedName():string {
-  return 'reflection_SchemaFile';
+  return 'reflection.SchemaFile';
 }
 
 static startSchemaFile(builder:flatbuffers.Builder) {

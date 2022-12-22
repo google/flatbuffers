@@ -128,7 +128,7 @@ reflect(obj?:Schema):Schema|null {
 }
 
 static getFullyQualifiedName():string {
-  return 'typescript_Object';
+  return 'typescript.Object';
 }
 
 static startObject(builder:flatbuffers.Builder) {

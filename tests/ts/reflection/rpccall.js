@@ -48,7 +48,7 @@ export class RPCCall {
         return offset ? this.bb.__vector_len(this.bb_pos + offset) : 0;
     }
     static getFullyQualifiedName() {
-        return 'reflection_RPCCall';
+        return 'reflection.RPCCall';
     }
     static startRPCCall(builder) {
         builder.startObject(5);

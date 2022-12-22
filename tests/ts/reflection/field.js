@@ -155,7 +155,7 @@ export class Field {
         return true;
     }
     static getFullyQualifiedName() {
-        return 'reflection_Field';
+        return 'reflection.Field';
     }
     static startField(builder) {
         builder.startObject(13);

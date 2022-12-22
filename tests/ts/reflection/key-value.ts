@@ -37,7 +37,7 @@ value(optionalEncoding?:any):string|Uint8Array|null {
 }
 
 static getFullyQualifiedName():string {
-  return 'reflection_KeyValue';
+  return 'reflection.KeyValue';
 }
 
 static startKeyValue(builder:flatbuffers.Builder) {

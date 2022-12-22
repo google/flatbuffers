@@ -206,7 +206,7 @@ mutate_padding(value:number):boolean {
 }
 
 static getFullyQualifiedName():string {
-  return 'reflection_Field';
+  return 'reflection.Field';
 }
 
 static startField(builder:flatbuffers.Builder) {
