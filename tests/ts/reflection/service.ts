@@ -74,7 +74,7 @@ declarationFile(optionalEncoding?:any):string|Uint8Array|null {
 }
 
 static getFullyQualifiedName():string {
-  return 'reflection_Service';
+  return 'reflection.Service';
 }
 
 static startService(builder:flatbuffers.Builder) {

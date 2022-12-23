@@ -1898,7 +1898,10 @@ class TsGenerator : public BaseGenerator {
     if (parser_.opts.generate_name_strings) {
       GenDocComment(code_ptr);
       code += "static getFullyQualifiedName():string {\n";
-      code += "  return '" + WrapInNameSpace(struct_def) + "';\n";
+      code +=
+          "  return '" +
+          struct_def.defined_namespace->GetFullyQualifiedName(struct_def.name) +
+          "';\n";
       code += "}\n\n";
     }
 
