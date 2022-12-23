@@ -150,7 +150,7 @@ SWIFT_OPTS_CODE_GEN = [
     "--swift",
     "--gen-json-emit",
     "--bfbs-filenames",
-    swift_code_gen
+    str(swift_code_gen)
 ]
 JAVA_OPTS = ["--java"]
 KOTLIN_OPTS = ["--kotlin"]
