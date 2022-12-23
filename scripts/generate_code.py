@@ -51,7 +51,7 @@ root_path = script_path.parent.absolute()
 # Get the location of the flatc executable, reading from the first command line
 # argument or defaulting to default names.
 flatc_exe = Path(
-    ("flatc" if not platform.system() == "Windows" else "flatc.exe")
+    ("flatc" if not platform.system() == "Windows" else "Release/flatc.exe")
     if not args.flatc
     else args.flatc
 )
