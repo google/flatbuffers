@@ -83,7 +83,7 @@ var KeyValue = class {
     return offset ? this.bb.__string(this.bb_pos + offset, optionalEncoding) : null;
   }
   static getFullyQualifiedName() {
-    return "reflection_KeyValue";
+    return "reflection.KeyValue";
   }
   static startKeyValue(builder) {
     builder.startObject(2);
@@ -243,7 +243,7 @@ var Type = class {
     return true;
   }
   static getFullyQualifiedName() {
-    return "reflection_Type";
+    return "reflection.Type";
   }
   static startType(builder) {
     builder.startObject(6);
@@ -361,7 +361,7 @@ var EnumVal = class {
     return offset ? this.bb.__vector_len(this.bb_pos + offset) : 0;
   }
   static getFullyQualifiedName() {
-    return "reflection_EnumVal";
+    return "reflection.EnumVal";
   }
   static startEnumVal(builder) {
     builder.startObject(6);
@@ -507,7 +507,7 @@ var Enum = class {
     return offset ? this.bb.__string(this.bb_pos + offset, optionalEncoding) : null;
   }
   static getFullyQualifiedName() {
-    return "reflection_Enum";
+    return "reflection.Enum";
   }
   static startEnum(builder) {
     builder.startObject(7);
@@ -767,7 +767,7 @@ var Field = class {
     return true;
   }
   static getFullyQualifiedName() {
-    return "reflection_Field";
+    return "reflection.Field";
   }
   static startField(builder) {
     builder.startObject(13);
@@ -982,7 +982,7 @@ var Object_ = class {
     return offset ? this.bb.__string(this.bb_pos + offset, optionalEncoding) : null;
   }
   static getFullyQualifiedName() {
-    return "reflection_Object";
+    return "reflection.Object";
   }
   static startObject(builder) {
     builder.startObject(8);
@@ -1126,7 +1126,7 @@ var SchemaFile = class {
     return offset ? this.bb.__vector_len(this.bb_pos + offset) : 0;
   }
   static getFullyQualifiedName() {
-    return "reflection_SchemaFile";
+    return "reflection.SchemaFile";
   }
   static startSchemaFile(builder) {
     builder.startObject(2);
@@ -1229,7 +1229,7 @@ var RPCCall = class {
     return offset ? this.bb.__vector_len(this.bb_pos + offset) : 0;
   }
   static getFullyQualifiedName() {
-    return "reflection_RPCCall";
+    return "reflection.RPCCall";
   }
   static startRPCCall(builder) {
     builder.startObject(5);
@@ -1362,7 +1362,7 @@ var Service = class {
     return offset ? this.bb.__string(this.bb_pos + offset, optionalEncoding) : null;
   }
   static getFullyQualifiedName() {
-    return "reflection_Service";
+    return "reflection.Service";
   }
   static startService(builder) {
     builder.startObject(5);
@@ -1533,7 +1533,7 @@ var Schema = class {
     return offset ? this.bb.__vector_len(this.bb_pos + offset) : 0;
   }
   static getFullyQualifiedName() {
-    return "reflection_Schema";
+    return "reflection.Schema";
   }
   static startSchema(builder) {
     builder.startObject(8);
@@ -1762,7 +1762,7 @@ var Object_2 = class {
     return offset ? (obj || new Schema()).__init(this.bb.__indirect(this.bb_pos + offset), this.bb) : null;
   }
   static getFullyQualifiedName() {
-    return "typescript_Object";
+    return "typescript.Object";
   }
   static startObject(builder) {
     builder.startObject(7);
