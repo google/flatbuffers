@@ -23,7 +23,7 @@ static getSizePrefixedRootAsMonster(bb:flatbuffers.ByteBuffer, obj?:Monster):Mon
 }
 
 static getFullyQualifiedName():string {
-  return 'MyGame_Example2_Monster';
+  return 'MyGame.Example2.Monster';
 }
 
 static startMonster(builder:flatbuffers.Builder) {

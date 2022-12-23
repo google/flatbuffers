@@ -1054,8 +1054,11 @@ class GoGenerator : public BaseGenerator {
       const std::string offset = field_var + "Offset";
 
       if (IsString(field.value.type)) {
-        code +=
-            "\t" + offset + " := builder.CreateString(t." + field_field + ")\n";
+        code += "\t" + offset + " := flatbuffers.UOffsetT(0)\n";
+        code += "\tif t." + field_field + " != \"\" {\n";
+        code += "\t\t" + offset + " = builder.CreateString(t." + field_field +
+                ")\n";
+        code += "\t}\n";
       } else if (IsVector(field.value.type) &&
                  field.value.type.element == BASE_TYPE_UCHAR &&
                  field.value.type.enum_def == nullptr) {

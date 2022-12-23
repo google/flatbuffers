@@ -97,7 +97,7 @@ export class Type {
         return true;
     }
     static getFullyQualifiedName() {
-        return 'reflection_Type';
+        return 'reflection.Type';
     }
     static startType(builder) {
         builder.startObject(6);
