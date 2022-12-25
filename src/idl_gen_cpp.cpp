@@ -2306,7 +2306,7 @@ class CppGenerator : public BaseGenerator {
     FLATBUFFERS_ASSERT(field.key);
     const bool is_string = IsString(field.value.type);
     const bool is_array = IsArray(field.value.type);
-
+    const bool is_struct = IsStruct(field.value.type);
     code_ +=
         "  bool KeyCompareLessThan(const {{STRUCT_NAME}} * const o) const {";
     if (is_string) {
@@ -2314,9 +2314,11 @@ class CppGenerator : public BaseGenerator {
       code_ += "    return *{{FIELD_NAME}}() < *o->{{FIELD_NAME}}();";
     } else if (is_array) {
       const auto &elem_type = field.value.type.VectorType();
-      if (IsScalar(elem_type.base_type)) {
+      if (IsScalar(elem_type.base_type) || IsStruct(elem_type)) {
         code_ += "    return KeyCompareWithValue(o->{{FIELD_NAME}}()) < 0;";
       }
+    } else if (is_struct) {
+      code_ += "    return KeyCompareWithValue(o->{{FIELD_NAME}}()) < 0;";
     } else {
       code_ += "    return {{FIELD_NAME}}() < o->{{FIELD_NAME}}();";
     }
@@ -2327,28 +2329,52 @@ class CppGenerator : public BaseGenerator {
       code_ += "    return strcmp({{FIELD_NAME}}()->c_str(), _{{FIELD_NAME}});";
     } else if (is_array) {
       const auto &elem_type = field.value.type.VectorType();
+      std::string input_type = "flatbuffers::Array<" +
+                               GenTypeGet(elem_type, " ", "", " ", false) +
+                               ", " + NumToString(elem_type.fixed_length) + ">";
+      code_.SetValue("INPUT_TYPE", input_type);
+      code_ +=
+          "  int KeyCompareWithValue(const {{INPUT_TYPE}} *_{{FIELD_NAME}}"
+          ") const {";
+      code_ +=
+          "    const {{INPUT_TYPE}} *curr_{{FIELD_NAME}} = {{FIELD_NAME}}();";
+      code_ +=
+          "    for (flatbuffers::uoffset_t i = 0; i < "
+          "curr_{{FIELD_NAME}}->size(); i++) {";
+
       if (IsScalar(elem_type.base_type)) {
-        std::string input_type = "::flatbuffers::Array<" +
-                                 GenTypeBasic(elem_type, false) + ", " +
-                                 NumToString(elem_type.fixed_length) + ">";
-        code_.SetValue("INPUT_TYPE", input_type);
-        code_ +=
-            "  int KeyCompareWithValue(const {{INPUT_TYPE}} *_{{FIELD_NAME}}"
-            ") const {";
-        code_ +=
-            "    const {{INPUT_TYPE}} *curr_{{FIELD_NAME}} = {{FIELD_NAME}}();";
-        code_ +=
-            "    for (::flatbuffers::uoffset_t i = 0; i < "
-            "curr_{{FIELD_NAME}}->size(); i++) {";
         code_ += "      const auto lhs = curr_{{FIELD_NAME}}->Get(i);";
         code_ += "      const auto rhs = _{{FIELD_NAME}}->Get(i);";
         code_ += "      if(lhs != rhs)";
         code_ +=
             "        return static_cast<int>(lhs > rhs)"
             " - static_cast<int>(lhs < rhs);";
-        code_ += "    }";
-        code_ += "    return 0;";
+      } else if (IsStruct(elem_type)) {
+        code_ +=
+            "      const auto lhs_{{FIELD_NAME}} = "
+            "*(curr_{{FIELD_NAME}}->Get(i));";
+        code_ +=
+            "      const auto rhs_{{FIELD_NAME}} = *(_{{FIELD_NAME}}->Get(i));";
+        GetComparatorForStruct(*elem_type.struct_def, 6,
+                               "lhs_" + code_.GetValue("FIELD_NAME"),
+                               "rhs_" + code_.GetValue("FIELD_NAME"));
       }
+      code_ += "    }";
+      code_ += "    return 0;";
+    } else if (is_struct) {
+      const auto *struct_def = field.value.type.struct_def;
+      code_.SetValue("INPUT_TYPE",
+                     GenTypeGet(field.value.type, " ", "", " ", false));
+      code_ +=
+          "  int KeyCompareWithValue(const {{INPUT_TYPE}} &_{{FIELD_NAME}}) "
+          "const {";
+      code_ += "    const auto lhs_{{FIELD_NAME}} = {{FIELD_NAME}}();";
+      code_ += "    const auto rhs_{{FIELD_NAME}} = _{{FIELD_NAME}};";
+      GetComparatorForStruct(*struct_def, 4,
+                             "lhs_" + code_.GetValue("FIELD_NAME"),
+                             "rhs_" + code_.GetValue("FIELD_NAME"));
+      code_ += "    return 0;";
+
     } else {
       FLATBUFFERS_ASSERT(IsScalar(field.value.type.base_type));
       auto type = GenTypeBasic(field.value.type, false);
