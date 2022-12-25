@@ -494,9 +494,6 @@ struct FooTable FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   int32_t a() const {
     return GetField<int32_t>(VT_A, 0);
   }
-  bool mutate_a(int32_t _a = 0) {
-    return SetField<int32_t>(VT_A, _a, 0);
-  }
   int32_t b() const {
     return GetField<int32_t>(VT_B, 0);
   }
