@@ -3,19 +3,18 @@
 package MyGame.Example
 
 import com.google.flatbuffers.kotlin.*
-import kotlin.math.sign
 @Suppress("unused")
 class Referrable : Table() {
 
     fun init(i: Int, buffer: ReadWriteBuffer) : Referrable = reset(i, buffer)
     fun assign(i: Int, buffer: ReadWriteBuffer) : Referrable = init(i, buffer)
 
-    val id : ULong get() = lookupField(4, 0UL ) { bb.getLong(it + bufferPos).toULong() }
+    val id : ULong get() = lookupField(4, 0UL ) { bb.getULong(it + bufferPos) }
 
     override fun keysCompare(o1: Int, o2: Int, buffer: ReadWriteBuffer) : Int {
-        val val_1 = buffer.getLong(offset(4, o1, buffer))
-        val val_2 = buffer.getLong(offset(4, o2, buffer))
-        return (val_1 - val_2).sign
+        val a = buffer.getULong(offset(4, o1, buffer))
+        val b = buffer.getULong(offset(4, o2, buffer))
+        return (a - b).toInt().sign()
     }
     companion object {
         fun validateVersion() = VERSION_2_0_8
@@ -32,7 +31,7 @@ class Referrable : Table() {
         fun startReferrable(builder: FlatBufferBuilder) = builder.startTable(1)
 
         fun addId(builder: FlatBufferBuilder, id: ULong)  {
-            builder.addLong(id.toLong())
+            builder.add(id)
             builder.slot(0)
         }
 
@@ -47,7 +46,7 @@ class Referrable : Table() {
             while (span != 0) {
                 var middle = span / 2
                 val tableOffset = indirect(vectorLocation + 4 * (start + middle), bb)
-                val value = bb.getLong(offset(4, bb.capacity - tableOffset, bb)).toULong()
+                val value = bb.getULong(offset(4, bb.capacity - tableOffset, bb))
                 val comp = value.compareTo(key)
                 when {
                     comp > 0 -> span = middle

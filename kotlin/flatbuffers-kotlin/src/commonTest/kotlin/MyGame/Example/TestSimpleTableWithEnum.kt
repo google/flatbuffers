@@ -9,7 +9,7 @@ class TestSimpleTableWithEnum : Table() {
     fun init(i: Int, buffer: ReadWriteBuffer) : TestSimpleTableWithEnum = reset(i, buffer)
     fun assign(i: Int, buffer: ReadWriteBuffer) : TestSimpleTableWithEnum = init(i, buffer)
 
-    val color : UByte get() = lookupField(4, 2u ) { bb.get(it + bufferPos).toUByte() }
+    val color : UByte get() = lookupField(4, 2u ) { bb.getUByte(it + bufferPos) }
 
     companion object {
         fun validateVersion() = VERSION_2_0_8
@@ -25,7 +25,7 @@ class TestSimpleTableWithEnum : Table() {
         }
         fun startTestSimpleTableWithEnum(builder: FlatBufferBuilder) = builder.startTable(1)
 
-        fun addColor(builder: FlatBufferBuilder, color: UByte) = builder.addByte(0, color.toByte(), 2)
+        fun addColor(builder: FlatBufferBuilder, color: UByte) = builder.add(0, color, 2)
 
         fun endTestSimpleTableWithEnum(builder: FlatBufferBuilder) : Int {
             val o = builder.endTable()

@@ -83,7 +83,6 @@ class KotlinKMPGenerator : public BaseGenerator {
   bool generate() FLATBUFFERS_OVERRIDE {
 
     std::string one_file_code;
-    bool import_sign = false;
 
     for (auto it = parser_.enums_.vec.begin(); it != parser_.enums_.vec.end();
          ++it) {
@@ -96,7 +95,7 @@ class KotlinKMPGenerator : public BaseGenerator {
         one_file_code += enumWriter.ToString();
       } else {
         if (!SaveType(enum_def.name, *enum_def.defined_namespace,
-                      enumWriter.ToString(), true, false))
+                      enumWriter.ToString(), true))
           return false;
       }
     }
@@ -108,17 +107,16 @@ class KotlinKMPGenerator : public BaseGenerator {
       GenStruct(struct_def, structWriter, parser_.opts);
       if (parser_.opts.one_file) {
         one_file_code += structWriter.ToString();
-        import_sign |= struct_def.has_key && !struct_def.fixed;
       } else {
         if (!SaveType(struct_def.name, *struct_def.defined_namespace,
-                      structWriter.ToString(), true, struct_def.has_key && !struct_def.fixed))
+                      structWriter.ToString(), true))
           return false;
       }
     }
 
     if (parser_.opts.one_file) {
       return SaveType(file_name_, *parser_.current_namespace_, one_file_code,
-                      true, import_sign);
+                      true);
     }
     return true;
   }
@@ -126,8 +124,7 @@ class KotlinKMPGenerator : public BaseGenerator {
   // Save out the generated code for a single class while adding
   // declaration boilerplate.
   bool SaveType(const std::string &defname, const Namespace &ns,
-                const std::string &classcode, bool needs_includes,
-                bool needs_unsigned) const {
+                const std::string &classcode, bool needs_includes) const {
     if (!classcode.length()) return true;
 
     std::string code =
@@ -140,9 +137,6 @@ class KotlinKMPGenerator : public BaseGenerator {
     }
     if (needs_includes) {
       code += "import com.google.flatbuffers.kotlin.*\n";
-      if (needs_unsigned) {
-        code += "import kotlin.math.sign\n";
-      }
     }
     code += classcode;
     const std::string dirs = namer_.Directories(ns);
@@ -212,21 +206,9 @@ class KotlinKMPGenerator : public BaseGenerator {
 
   // Generate default values to compare against a default value when
   // `force_defaults` is `false`.
-  // Main differences are:
-  // - Floats are upcasted to doubles
-  // - Unsigned are casted to signed
   std::string GenFBBDefaultValue(const FieldDef &field) const {
     if (field.IsScalarOptional()) {
-      // although default value is null, java API forces us to present a real
-      // default value for scalars, while adding a field to the buffer. This is
-      // not a problem because the default can be representing just by not
-      // calling builder.addMyField()
-      switch (field.value.type.base_type) {
-        case BASE_TYPE_DOUBLE:
-        case BASE_TYPE_FLOAT: return "0.0";
-        case BASE_TYPE_BOOL: return "false";
-        default: return "0";
-      }
+      return "null";
     }
     auto out = GenDefaultValue(field, true);
     // All FlatBufferBuilder default floating point values are doubles
@@ -238,15 +220,6 @@ class KotlinKMPGenerator : public BaseGenerator {
     // Guarantee all values are doubles
     if (out.back() == 'f') out.pop_back();
     return out;
-  }
-
-  // FlatBufferBuilder only store signed types, so this function
-  // returns a cast for unsigned values
-  std::string GenFBBValueCast(const FieldDef &field) const {
-    if (IsUnsigned(field.value.type.base_type)) {
-      return CastToSigned(field.value.type);
-    }
-    return "";
   }
 
   std::string GenDefaultValue(const FieldDef &field,
@@ -346,46 +319,23 @@ class KotlinKMPGenerator : public BaseGenerator {
       case BASE_TYPE_UNION: return "union";
       case BASE_TYPE_VECTOR:
         return ByteBufferGetter(type.VectorType(), bb_var_name);
-      case BASE_TYPE_INT:
-      case BASE_TYPE_UINT: return bb_var_name + ".getInt";
-      case BASE_TYPE_SHORT:
-      case BASE_TYPE_USHORT: return bb_var_name + ".getShort";
-      case BASE_TYPE_ULONG:
+      case BASE_TYPE_INT: return bb_var_name + ".getInt";
+      case BASE_TYPE_UINT: return bb_var_name + ".getUInt";
+      case BASE_TYPE_SHORT: return bb_var_name + ".getShort";
+      case BASE_TYPE_USHORT: return bb_var_name + ".getUShort";
+      case BASE_TYPE_ULONG: return bb_var_name + ".getULong";
       case BASE_TYPE_LONG: return bb_var_name + ".getLong";
       case BASE_TYPE_FLOAT: return bb_var_name + ".getFloat";
       case BASE_TYPE_DOUBLE: return bb_var_name + ".getDouble";
+      case BASE_TYPE_UTYPE:
+      case BASE_TYPE_UCHAR: return bb_var_name + ".getUByte";
       case BASE_TYPE_CHAR:
-      case BASE_TYPE_UCHAR:
-      case BASE_TYPE_NONE:
-      case BASE_TYPE_UTYPE: return bb_var_name + ".get";
+      case BASE_TYPE_NONE: return bb_var_name + ".get";
       case BASE_TYPE_BOOL: return "0.toByte() != " + bb_var_name + ".get";
       default:
         return bb_var_name + "." +
                namer_.Method("get", GenTypeBasic(type.base_type));
     }
-  }
-
-  std::string ByteBufferSetter(const Type &type) const {
-    if (IsScalar(type.base_type)) {
-      switch (type.base_type) {
-        case BASE_TYPE_INT:
-        case BASE_TYPE_UINT: return "bb.putInt";
-        case BASE_TYPE_SHORT:
-        case BASE_TYPE_USHORT: return "bb.putShort";
-        case BASE_TYPE_ULONG:
-        case BASE_TYPE_LONG: return "bb.putLong";
-        case BASE_TYPE_FLOAT: return "bb.putFloat";
-        case BASE_TYPE_DOUBLE: return "bb.putDouble";
-        case BASE_TYPE_CHAR:
-        case BASE_TYPE_UCHAR:
-        case BASE_TYPE_BOOL:
-        case BASE_TYPE_NONE:
-        case BASE_TYPE_UTYPE: return "bb.put";
-        default:
-          return "bb." + namer_.Method("put", GenTypeBasic(type.base_type));
-      }
-    }
-    return "";
   }
 
   // Returns the function name that is able to read a value of the given type.
@@ -399,7 +349,7 @@ class KotlinKMPGenerator : public BaseGenerator {
 
   // Returns the method name for use with add/put calls.
   static std::string GenMethod(const Type &type) {
-    return IsScalar(type.base_type) ? ToSignedType(type)
+    return IsScalar(type.base_type) ? ""
                                     : (IsStruct(type) ? "Struct" : "Offset");
   }
 
@@ -447,8 +397,7 @@ class KotlinKMPGenerator : public BaseGenerator {
       } else {
         writer.SetValue("type", GenMethod(field.value.type));
         writer.SetValue("argname", nameprefix + namer_.Variable(field));
-        writer.SetValue("cast", CastToSigned(field.value.type));
-        writer += "builder.put{{type}}({{argname}}{{cast}})";
+        writer += "builder.put{{type}}({{argname}})";
       }
     }
   }
@@ -620,9 +569,8 @@ class KotlinKMPGenerator : public BaseGenerator {
         writer += GenOffsetGetter(key_field) + "\\";
         writer += ", byteKey, bb)";
       } else {
-        auto cast = CastToUsigned(key_field->value.type);
         auto get_val = GenLookupByKey(key_field, "bb");
-        writer += "val value = " + get_val + cast;
+        writer += "val value = " + get_val;
         writer += "val comp = value.compareTo(key)";
       }
       writer += "when {";
@@ -713,7 +661,6 @@ class KotlinKMPGenerator : public BaseGenerator {
     writer.SetValue("size", NumToString(InlineSize(vector_type)));
     writer.SetValue("align", NumToString(InlineAlignment(vector_type)));
     writer.SetValue("root", GenMethod(vector_type));
-    writer.SetValue("cast", CastToSigned(vector_type));
 
     GenerateFun(
         writer, method_name, params, "Int",
@@ -721,7 +668,7 @@ class KotlinKMPGenerator : public BaseGenerator {
           writer += "builder.startVector({{size}}, data.size, {{align}})";
           writer += "for (i in data.size - 1 downTo 0) {";
           writer.IncrementIdentLevel();
-          writer += "builder.add{{root}}(data[i]{{cast}})";
+          writer += "builder.add{{root}}(data[i])";
           writer.DecrementIdentLevel();
           writer += "}";
           writer += "return builder.endVector()";
@@ -757,17 +704,17 @@ class KotlinKMPGenerator : public BaseGenerator {
       writer.SetValue("method_name", method);
       writer.SetValue("pos", field_pos);
       writer.SetValue("default", GenFBBDefaultValue(field));
-      writer.SetValue("cast", GenFBBValueCast(field));
+
       if (field.key) {
         // field has key attribute, so always need to exist
         // even if its value is equal to default.
         // Generated code will bypass default checking
         // resulting in { builder.addShort(name); slot(id); }
-        writer += "builder.add{{method_name}}({{field_name}}{{cast}})";
+        writer += "builder.add{{method_name}}({{field_name}})";
         writer += "builder.slot({{pos}})";
       } else {
         writer += "builder.add{{method_name}}({{pos}}, \\";
-        writer += "{{field_name}}{{cast}}, {{default}})";
+        writer += "{{field_name}}, {{default}})";
       }
     };
     auto signature = namer_.LegacyKotlinMethod("add", field, "");
@@ -939,7 +886,6 @@ class KotlinKMPGenerator : public BaseGenerator {
       auto field_default_value = GenDefaultValue(field);
       auto return_type = GetterReturnType(field);
       auto bbgetter = ByteBufferGetter(field.value.type, "bb");
-      auto ucast = CastToUsigned(field);
       auto offset_val = NumToString(field.value.offset);
       auto offset_prefix =
           "val o = offset(" + offset_val + "); return o != 0 ? ";
@@ -952,7 +898,6 @@ class KotlinKMPGenerator : public BaseGenerator {
       writer.SetValue("field_name", field_name);
       writer.SetValue("field_default", field_default_value);
       writer.SetValue("bbgetter", bbgetter);
-      writer.SetValue("ucast", ucast);
 
       // Generate the accessors that don't do object reuse.
       if (value_base_type == BASE_TYPE_STRUCT) {
@@ -976,11 +921,11 @@ class KotlinKMPGenerator : public BaseGenerator {
       if (IsScalar(value_base_type)) {
         if (struct_def.fixed) {
           GenerateGetterOneLine(writer, field_name, return_type, [&]() {
-            writer += "{{bbgetter}}(bufferPos + {{offset}}){{ucast}}";
+            writer += "{{bbgetter}}(bufferPos + {{offset}})";
           });
         } else {
           GenerateGetterOneLine(writer, field_name, return_type, [&]() {
-            writer += LookupFieldOneLine(offset_val, "{{bbgetter}}(it + bufferPos){{ucast}}", "{{field_default}}");
+            writer += LookupFieldOneLine(offset_val, "{{bbgetter}}(it + bufferPos)", "{{field_default}}");
           });
         }
       } else {
@@ -1061,9 +1006,9 @@ class KotlinKMPGenerator : public BaseGenerator {
                   break;
                 }
                 case BASE_TYPE_UNION:
-                  found = "{{bbgetter}}(obj, {{index}}){{ucast}}";
+                  found = "{{bbgetter}}(obj, {{index}})";
                   break;
-                default: found = "{{bbgetter}}({{index}}){{ucast}}";
+                default: found = "{{bbgetter}}({{index}})";
               }
               writer += LookupFieldOneLine(offset_val, found, not_found);
             });
@@ -1155,52 +1100,6 @@ class KotlinKMPGenerator : public BaseGenerator {
                     });
       }
 
-      // Generate mutators for scalar fields or vectors of scalars.
-      if (parser_.opts.mutable_buffer) {
-        auto value_type = field.value.type;
-        auto underlying_type = value_base_type == BASE_TYPE_VECTOR
-                                   ? value_type.VectorType()
-                                   : value_type;
-        auto name = namer_.LegacyKotlinMethod("mutate", field, "");
-        auto size = NumToString(InlineSize(underlying_type));
-        auto params = namer_.Field(field) + ": " + GenTypeGet(underlying_type);
-        // A vector mutator also needs the index of the vector element it should
-        // mutate.
-        if (value_base_type == BASE_TYPE_VECTOR) params.insert(0, "j: Int, ");
-
-        // Boolean parameters have to be explicitly converted to byte
-        // representation.
-        auto setter_parameter =
-            underlying_type.base_type == BASE_TYPE_BOOL
-                ? "(if(" + namer_.Field(field) + ") 1 else 0).toByte()"
-                : namer_.Field(field);
-
-        auto setter_index =
-            value_base_type == BASE_TYPE_VECTOR
-                ? "vector(it) + j * " + size
-                : (struct_def.fixed ? "bufferPos + " + offset_val : "it + bufferPos");
-        if (IsScalar(value_base_type) ||
-            (value_base_type == BASE_TYPE_VECTOR &&
-             IsScalar(value_type.VectorType().base_type))) {
-          auto statements = [&]() {
-            writer.SetValue("bbsetter", ByteBufferSetter(underlying_type));
-            writer.SetValue("index", setter_index);
-            writer.SetValue("params", setter_parameter);
-            writer.SetValue("cast", CastToSigned(field));
-            if (struct_def.fixed) {
-              writer += "{{bbsetter}}({{index}}, {{params}}{{cast}})";
-            } else {
-              LookupFieldOneLine(offset_val, "{{bbsetter}}({{index}}, {{params}}{{cast}})\ntrue", "false");
-            }
-          };
-
-          if (struct_def.fixed) {
-            GenerateFunOneLine(writer, name, params, "ReadWriteBuffer", statements);
-          } else {
-            GenerateFunOneLine(writer, name, params, "Boolean", statements);
-          }
-        }
-      }
       writer += ""; // Initial line break between fields
     }
     if (struct_def.has_key && !struct_def.fixed) {
@@ -1217,43 +1116,11 @@ class KotlinKMPGenerator : public BaseGenerator {
             } else {
               auto getter1 = GenLookupByKey(key_field, "buffer", "o1");
               auto getter2 = GenLookupByKey(key_field, "buffer", "o2");
-              writer += "val val_1 = " + getter1;
-              writer += "val val_2 = " + getter2;
-              writer += "return (val_1 - val_2).sign";
+              writer += "val a = " + getter1;
+              writer += "val b = " + getter2;
+              writer += "return (a - b).toInt().sign()";
             }
           });
-    }
-  }
-
-  static std::string CastToUsigned(const FieldDef &field) {
-    return CastToUsigned(field.value.type);
-  }
-
-  static std::string CastToUsigned(const Type type) {
-    switch (type.base_type) {
-      case BASE_TYPE_UINT: return ".toUInt()";
-      case BASE_TYPE_UCHAR:
-      case BASE_TYPE_UTYPE: return ".toUByte()";
-      case BASE_TYPE_USHORT: return ".toUShort()";
-      case BASE_TYPE_ULONG: return ".toULong()";
-      case BASE_TYPE_VECTOR: return CastToUsigned(type.VectorType());
-      default: return "";
-    }
-  }
-
-  static std::string CastToSigned(const FieldDef &field) {
-    return CastToSigned(field.value.type);
-  }
-
-  static std::string CastToSigned(const Type type) {
-    switch (type.base_type) {
-      case BASE_TYPE_UINT: return ".toInt()";
-      case BASE_TYPE_UCHAR:
-      case BASE_TYPE_UTYPE: return ".toByte()";
-      case BASE_TYPE_USHORT: return ".toShort()";
-      case BASE_TYPE_ULONG: return ".toLong()";
-      case BASE_TYPE_VECTOR: return CastToSigned(type.VectorType());
-      default: return "";
     }
   }
 

@@ -15,11 +15,11 @@ class ScalarStuff : Table() {
 
     val defaultI8 : Byte get() = lookupField(8, 42 ) { bb.get(it + bufferPos) }
 
-    val justU8 : UByte get() = lookupField(10, 0u ) { bb.get(it + bufferPos).toUByte() }
+    val justU8 : UByte get() = lookupField(10, 0u ) { bb.getUByte(it + bufferPos) }
 
-    val maybeU8 : UByte? get() = lookupField(12, null ) { bb.get(it + bufferPos).toUByte() }
+    val maybeU8 : UByte? get() = lookupField(12, null ) { bb.getUByte(it + bufferPos) }
 
-    val defaultU8 : UByte get() = lookupField(14, 42u ) { bb.get(it + bufferPos).toUByte() }
+    val defaultU8 : UByte get() = lookupField(14, 42u ) { bb.getUByte(it + bufferPos) }
 
     val justI16 : Short get() = lookupField(16, 0 ) { bb.getShort(it + bufferPos) }
 
@@ -27,11 +27,11 @@ class ScalarStuff : Table() {
 
     val defaultI16 : Short get() = lookupField(20, 42 ) { bb.getShort(it + bufferPos) }
 
-    val justU16 : UShort get() = lookupField(22, 0u ) { bb.getShort(it + bufferPos).toUShort() }
+    val justU16 : UShort get() = lookupField(22, 0u ) { bb.getUShort(it + bufferPos) }
 
-    val maybeU16 : UShort? get() = lookupField(24, null ) { bb.getShort(it + bufferPos).toUShort() }
+    val maybeU16 : UShort? get() = lookupField(24, null ) { bb.getUShort(it + bufferPos) }
 
-    val defaultU16 : UShort get() = lookupField(26, 42u ) { bb.getShort(it + bufferPos).toUShort() }
+    val defaultU16 : UShort get() = lookupField(26, 42u ) { bb.getUShort(it + bufferPos) }
 
     val justI32 : Int get() = lookupField(28, 0 ) { bb.getInt(it + bufferPos) }
 
@@ -39,11 +39,11 @@ class ScalarStuff : Table() {
 
     val defaultI32 : Int get() = lookupField(32, 42 ) { bb.getInt(it + bufferPos) }
 
-    val justU32 : UInt get() = lookupField(34, 0u ) { bb.getInt(it + bufferPos).toUInt() }
+    val justU32 : UInt get() = lookupField(34, 0u ) { bb.getUInt(it + bufferPos) }
 
-    val maybeU32 : UInt? get() = lookupField(36, null ) { bb.getInt(it + bufferPos).toUInt() }
+    val maybeU32 : UInt? get() = lookupField(36, null ) { bb.getUInt(it + bufferPos) }
 
-    val defaultU32 : UInt get() = lookupField(38, 42u ) { bb.getInt(it + bufferPos).toUInt() }
+    val defaultU32 : UInt get() = lookupField(38, 42u ) { bb.getUInt(it + bufferPos) }
 
     val justI64 : Long get() = lookupField(40, 0L ) { bb.getLong(it + bufferPos) }
 
@@ -51,11 +51,11 @@ class ScalarStuff : Table() {
 
     val defaultI64 : Long get() = lookupField(44, 42L ) { bb.getLong(it + bufferPos) }
 
-    val justU64 : ULong get() = lookupField(46, 0UL ) { bb.getLong(it + bufferPos).toULong() }
+    val justU64 : ULong get() = lookupField(46, 0UL ) { bb.getULong(it + bufferPos) }
 
-    val maybeU64 : ULong? get() = lookupField(48, null ) { bb.getLong(it + bufferPos).toULong() }
+    val maybeU64 : ULong? get() = lookupField(48, null ) { bb.getULong(it + bufferPos) }
 
-    val defaultU64 : ULong get() = lookupField(50, 42UL ) { bb.getLong(it + bufferPos).toULong() }
+    val defaultU64 : ULong get() = lookupField(50, 42UL ) { bb.getULong(it + bufferPos) }
 
     val justF32 : Float get() = lookupField(52, 0.0f ) { bb.getFloat(it + bufferPos) }
 
@@ -131,77 +131,77 @@ class ScalarStuff : Table() {
         }
         fun startScalarStuff(builder: FlatBufferBuilder) = builder.startTable(36)
 
-        fun addJustI8(builder: FlatBufferBuilder, justI8: Byte) = builder.addByte(0, justI8, 0)
+        fun addJustI8(builder: FlatBufferBuilder, justI8: Byte) = builder.add(0, justI8, 0)
 
-        fun addMaybeI8(builder: FlatBufferBuilder, maybeI8: Byte) = builder.addByte(1, maybeI8, 0)
+        fun addMaybeI8(builder: FlatBufferBuilder, maybeI8: Byte) = builder.add(1, maybeI8, null)
 
-        fun addDefaultI8(builder: FlatBufferBuilder, defaultI8: Byte) = builder.addByte(2, defaultI8, 42)
+        fun addDefaultI8(builder: FlatBufferBuilder, defaultI8: Byte) = builder.add(2, defaultI8, 42)
 
-        fun addJustU8(builder: FlatBufferBuilder, justU8: UByte) = builder.addByte(3, justU8.toByte(), 0)
+        fun addJustU8(builder: FlatBufferBuilder, justU8: UByte) = builder.add(3, justU8, 0)
 
-        fun addMaybeU8(builder: FlatBufferBuilder, maybeU8: UByte) = builder.addByte(4, maybeU8.toByte(), 0)
+        fun addMaybeU8(builder: FlatBufferBuilder, maybeU8: UByte) = builder.add(4, maybeU8, null)
 
-        fun addDefaultU8(builder: FlatBufferBuilder, defaultU8: UByte) = builder.addByte(5, defaultU8.toByte(), 42)
+        fun addDefaultU8(builder: FlatBufferBuilder, defaultU8: UByte) = builder.add(5, defaultU8, 42)
 
-        fun addJustI16(builder: FlatBufferBuilder, justI16: Short) = builder.addShort(6, justI16, 0)
+        fun addJustI16(builder: FlatBufferBuilder, justI16: Short) = builder.add(6, justI16, 0)
 
-        fun addMaybeI16(builder: FlatBufferBuilder, maybeI16: Short) = builder.addShort(7, maybeI16, 0)
+        fun addMaybeI16(builder: FlatBufferBuilder, maybeI16: Short) = builder.add(7, maybeI16, null)
 
-        fun addDefaultI16(builder: FlatBufferBuilder, defaultI16: Short) = builder.addShort(8, defaultI16, 42)
+        fun addDefaultI16(builder: FlatBufferBuilder, defaultI16: Short) = builder.add(8, defaultI16, 42)
 
-        fun addJustU16(builder: FlatBufferBuilder, justU16: UShort) = builder.addShort(9, justU16.toShort(), 0)
+        fun addJustU16(builder: FlatBufferBuilder, justU16: UShort) = builder.add(9, justU16, 0)
 
-        fun addMaybeU16(builder: FlatBufferBuilder, maybeU16: UShort) = builder.addShort(10, maybeU16.toShort(), 0)
+        fun addMaybeU16(builder: FlatBufferBuilder, maybeU16: UShort) = builder.add(10, maybeU16, null)
 
-        fun addDefaultU16(builder: FlatBufferBuilder, defaultU16: UShort) = builder.addShort(11, defaultU16.toShort(), 42)
+        fun addDefaultU16(builder: FlatBufferBuilder, defaultU16: UShort) = builder.add(11, defaultU16, 42)
 
-        fun addJustI32(builder: FlatBufferBuilder, justI32: Int) = builder.addInt(12, justI32, 0)
+        fun addJustI32(builder: FlatBufferBuilder, justI32: Int) = builder.add(12, justI32, 0)
 
-        fun addMaybeI32(builder: FlatBufferBuilder, maybeI32: Int) = builder.addInt(13, maybeI32, 0)
+        fun addMaybeI32(builder: FlatBufferBuilder, maybeI32: Int) = builder.add(13, maybeI32, null)
 
-        fun addDefaultI32(builder: FlatBufferBuilder, defaultI32: Int) = builder.addInt(14, defaultI32, 42)
+        fun addDefaultI32(builder: FlatBufferBuilder, defaultI32: Int) = builder.add(14, defaultI32, 42)
 
-        fun addJustU32(builder: FlatBufferBuilder, justU32: UInt) = builder.addInt(15, justU32.toInt(), 0)
+        fun addJustU32(builder: FlatBufferBuilder, justU32: UInt) = builder.add(15, justU32, 0)
 
-        fun addMaybeU32(builder: FlatBufferBuilder, maybeU32: UInt) = builder.addInt(16, maybeU32.toInt(), 0)
+        fun addMaybeU32(builder: FlatBufferBuilder, maybeU32: UInt) = builder.add(16, maybeU32, null)
 
-        fun addDefaultU32(builder: FlatBufferBuilder, defaultU32: UInt) = builder.addInt(17, defaultU32.toInt(), 42)
+        fun addDefaultU32(builder: FlatBufferBuilder, defaultU32: UInt) = builder.add(17, defaultU32, 42)
 
-        fun addJustI64(builder: FlatBufferBuilder, justI64: Long) = builder.addLong(18, justI64, 0L)
+        fun addJustI64(builder: FlatBufferBuilder, justI64: Long) = builder.add(18, justI64, 0L)
 
-        fun addMaybeI64(builder: FlatBufferBuilder, maybeI64: Long) = builder.addLong(19, maybeI64, 0)
+        fun addMaybeI64(builder: FlatBufferBuilder, maybeI64: Long) = builder.add(19, maybeI64, null)
 
-        fun addDefaultI64(builder: FlatBufferBuilder, defaultI64: Long) = builder.addLong(20, defaultI64, 42L)
+        fun addDefaultI64(builder: FlatBufferBuilder, defaultI64: Long) = builder.add(20, defaultI64, 42L)
 
-        fun addJustU64(builder: FlatBufferBuilder, justU64: ULong) = builder.addLong(21, justU64.toLong(), 0)
+        fun addJustU64(builder: FlatBufferBuilder, justU64: ULong) = builder.add(21, justU64, 0)
 
-        fun addMaybeU64(builder: FlatBufferBuilder, maybeU64: ULong) = builder.addLong(22, maybeU64.toLong(), 0)
+        fun addMaybeU64(builder: FlatBufferBuilder, maybeU64: ULong) = builder.add(22, maybeU64, null)
 
-        fun addDefaultU64(builder: FlatBufferBuilder, defaultU64: ULong) = builder.addLong(23, defaultU64.toLong(), 42)
+        fun addDefaultU64(builder: FlatBufferBuilder, defaultU64: ULong) = builder.add(23, defaultU64, 42)
 
-        fun addJustF32(builder: FlatBufferBuilder, justF32: Float) = builder.addFloat(24, justF32, 0.0)
+        fun addJustF32(builder: FlatBufferBuilder, justF32: Float) = builder.add(24, justF32, 0.0)
 
-        fun addMaybeF32(builder: FlatBufferBuilder, maybeF32: Float) = builder.addFloat(25, maybeF32, 0.0)
+        fun addMaybeF32(builder: FlatBufferBuilder, maybeF32: Float) = builder.add(25, maybeF32, null)
 
-        fun addDefaultF32(builder: FlatBufferBuilder, defaultF32: Float) = builder.addFloat(26, defaultF32, 42.0)
+        fun addDefaultF32(builder: FlatBufferBuilder, defaultF32: Float) = builder.add(26, defaultF32, 42.0)
 
-        fun addJustF64(builder: FlatBufferBuilder, justF64: Double) = builder.addDouble(27, justF64, 0.0)
+        fun addJustF64(builder: FlatBufferBuilder, justF64: Double) = builder.add(27, justF64, 0.0)
 
-        fun addMaybeF64(builder: FlatBufferBuilder, maybeF64: Double) = builder.addDouble(28, maybeF64, 0.0)
+        fun addMaybeF64(builder: FlatBufferBuilder, maybeF64: Double) = builder.add(28, maybeF64, null)
 
-        fun addDefaultF64(builder: FlatBufferBuilder, defaultF64: Double) = builder.addDouble(29, defaultF64, 42.0)
+        fun addDefaultF64(builder: FlatBufferBuilder, defaultF64: Double) = builder.add(29, defaultF64, 42.0)
 
-        fun addJustBool(builder: FlatBufferBuilder, justBool: Boolean) = builder.addBoolean(30, justBool, false)
+        fun addJustBool(builder: FlatBufferBuilder, justBool: Boolean) = builder.add(30, justBool, false)
 
-        fun addMaybeBool(builder: FlatBufferBuilder, maybeBool: Boolean) = builder.addBoolean(31, maybeBool, false)
+        fun addMaybeBool(builder: FlatBufferBuilder, maybeBool: Boolean) = builder.add(31, maybeBool, null)
 
-        fun addDefaultBool(builder: FlatBufferBuilder, defaultBool: Boolean) = builder.addBoolean(32, defaultBool, true)
+        fun addDefaultBool(builder: FlatBufferBuilder, defaultBool: Boolean) = builder.add(32, defaultBool, true)
 
-        fun addJustEnum(builder: FlatBufferBuilder, justEnum: Byte) = builder.addByte(33, justEnum, 0)
+        fun addJustEnum(builder: FlatBufferBuilder, justEnum: Byte) = builder.add(33, justEnum, 0)
 
-        fun addMaybeEnum(builder: FlatBufferBuilder, maybeEnum: Byte) = builder.addByte(34, maybeEnum, 0)
+        fun addMaybeEnum(builder: FlatBufferBuilder, maybeEnum: Byte) = builder.add(34, maybeEnum, null)
 
-        fun addDefaultEnum(builder: FlatBufferBuilder, defaultEnum: Byte) = builder.addByte(35, defaultEnum, 1)
+        fun addDefaultEnum(builder: FlatBufferBuilder, defaultEnum: Byte) = builder.add(35, defaultEnum, 1)
 
         fun endScalarStuff(builder: FlatBufferBuilder) : Int {
             val o = builder.endTable()

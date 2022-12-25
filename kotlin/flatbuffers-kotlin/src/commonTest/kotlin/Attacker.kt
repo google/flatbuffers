@@ -23,7 +23,7 @@ class Attacker : Table() {
         }
         fun startAttacker(builder: FlatBufferBuilder) = builder.startTable(1)
 
-        fun addSwordAttackDamage(builder: FlatBufferBuilder, swordAttackDamage: Int) = builder.addInt(0, swordAttackDamage, 0)
+        fun addSwordAttackDamage(builder: FlatBufferBuilder, swordAttackDamage: Int) = builder.add(0, swordAttackDamage, 0)
 
         fun endAttacker(builder: FlatBufferBuilder) : Int {
             val o = builder.endTable()

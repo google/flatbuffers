@@ -13,7 +13,7 @@ class FallingTub : Struct() {
 
         fun createFallingTub(builder: FlatBufferBuilder, weight: Int) : Int {
             builder.prep(4, 4)
-            builder.putInt(weight)
+            builder.put(weight)
             return builder.offset()
         }
     }
