@@ -11,19 +11,19 @@ class TypeAliases : Table() {
 
     val i8 : Byte get() = lookupField(4, 0 ) { bb.get(it + bufferPos) }
 
-    val u8 : UByte get() = lookupField(6, 0u ) { bb.get(it + bufferPos).toUByte() }
+    val u8 : UByte get() = lookupField(6, 0u ) { bb.getUByte(it + bufferPos) }
 
     val i16 : Short get() = lookupField(8, 0 ) { bb.getShort(it + bufferPos) }
 
-    val u16 : UShort get() = lookupField(10, 0u ) { bb.getShort(it + bufferPos).toUShort() }
+    val u16 : UShort get() = lookupField(10, 0u ) { bb.getUShort(it + bufferPos) }
 
     val i32 : Int get() = lookupField(12, 0 ) { bb.getInt(it + bufferPos) }
 
-    val u32 : UInt get() = lookupField(14, 0u ) { bb.getInt(it + bufferPos).toUInt() }
+    val u32 : UInt get() = lookupField(14, 0u ) { bb.getUInt(it + bufferPos) }
 
     val i64 : Long get() = lookupField(16, 0L ) { bb.getLong(it + bufferPos) }
 
-    val u64 : ULong get() = lookupField(18, 0UL ) { bb.getLong(it + bufferPos).toULong() }
+    val u64 : ULong get() = lookupField(18, 0UL ) { bb.getULong(it + bufferPos) }
 
     val f32 : Float get() = lookupField(20, 0.0f ) { bb.getFloat(it + bufferPos) }
 
@@ -62,32 +62,32 @@ class TypeAliases : Table() {
         }
         fun startTypeAliases(builder: FlatBufferBuilder) = builder.startTable(12)
 
-        fun addI8(builder: FlatBufferBuilder, i8: Byte) = builder.addByte(0, i8, 0)
+        fun addI8(builder: FlatBufferBuilder, i8: Byte) = builder.add(0, i8, 0)
 
-        fun addU8(builder: FlatBufferBuilder, u8: UByte) = builder.addByte(1, u8.toByte(), 0)
+        fun addU8(builder: FlatBufferBuilder, u8: UByte) = builder.add(1, u8, 0)
 
-        fun addI16(builder: FlatBufferBuilder, i16: Short) = builder.addShort(2, i16, 0)
+        fun addI16(builder: FlatBufferBuilder, i16: Short) = builder.add(2, i16, 0)
 
-        fun addU16(builder: FlatBufferBuilder, u16: UShort) = builder.addShort(3, u16.toShort(), 0)
+        fun addU16(builder: FlatBufferBuilder, u16: UShort) = builder.add(3, u16, 0)
 
-        fun addI32(builder: FlatBufferBuilder, i32: Int) = builder.addInt(4, i32, 0)
+        fun addI32(builder: FlatBufferBuilder, i32: Int) = builder.add(4, i32, 0)
 
-        fun addU32(builder: FlatBufferBuilder, u32: UInt) = builder.addInt(5, u32.toInt(), 0)
+        fun addU32(builder: FlatBufferBuilder, u32: UInt) = builder.add(5, u32, 0)
 
-        fun addI64(builder: FlatBufferBuilder, i64: Long) = builder.addLong(6, i64, 0L)
+        fun addI64(builder: FlatBufferBuilder, i64: Long) = builder.add(6, i64, 0L)
 
-        fun addU64(builder: FlatBufferBuilder, u64: ULong) = builder.addLong(7, u64.toLong(), 0)
+        fun addU64(builder: FlatBufferBuilder, u64: ULong) = builder.add(7, u64, 0)
 
-        fun addF32(builder: FlatBufferBuilder, f32: Float) = builder.addFloat(8, f32, 0.0)
+        fun addF32(builder: FlatBufferBuilder, f32: Float) = builder.add(8, f32, 0.0)
 
-        fun addF64(builder: FlatBufferBuilder, f64: Double) = builder.addDouble(9, f64, 0.0)
+        fun addF64(builder: FlatBufferBuilder, f64: Double) = builder.add(9, f64, 0.0)
 
         fun addV8(builder: FlatBufferBuilder, v8: Int) = builder.addOffset(10, v8, 0)
 
         fun createV8Vector(builder: FlatBufferBuilder, data: ByteArray) : Int {
             builder.startVector(1, data.size, 1)
             for (i in data.size - 1 downTo 0) {
-                builder.addByte(data[i])
+                builder.add(data[i])
             }
             return builder.endVector()
         }
@@ -99,7 +99,7 @@ class TypeAliases : Table() {
         fun createVf64Vector(builder: FlatBufferBuilder, data: DoubleArray) : Int {
             builder.startVector(8, data.size, 8)
             for (i in data.size - 1 downTo 0) {
-                builder.addDouble(data[i])
+                builder.add(data[i])
             }
             return builder.endVector()
         }

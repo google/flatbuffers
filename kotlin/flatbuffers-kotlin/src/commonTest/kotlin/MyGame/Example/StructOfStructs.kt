@@ -23,15 +23,15 @@ class StructOfStructs : Struct() {
         fun createStructOfStructs(builder: FlatBufferBuilder, a_id: UInt, a_distance: UInt, b_a: Short, b_b: Byte, c_id: UInt, c_distance: UInt) : Int {
             builder.prep(4, 20)
             builder.prep(4, 8)
-            builder.putInt(c_distance.toInt())
-            builder.putInt(c_id.toInt())
+            builder.put(c_distance)
+            builder.put(c_id)
             builder.prep(2, 4)
             builder.pad(1)
-            builder.putByte(b_b)
-            builder.putShort(b_a)
+            builder.put(b_b)
+            builder.put(b_a)
             builder.prep(4, 8)
-            builder.putInt(a_distance.toInt())
-            builder.putInt(a_id.toInt())
+            builder.put(a_distance)
+            builder.put(a_id)
             return builder.offset()
         }
     }

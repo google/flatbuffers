@@ -14,7 +14,7 @@ class TableInFirstNS : Table() {
 
     val fooEnum : Byte get() = lookupField(6, 0 ) { bb.get(it + bufferPos) }
 
-    val fooUnionType : UByte get() = lookupField(8, 0u ) { bb.get(it + bufferPos).toUByte() }
+    val fooUnionType : UByte get() = lookupField(8, 0u ) { bb.getUByte(it + bufferPos) }
 
     fun fooUnion(obj: Table) : Table? = lookupField(10, null ) { union(obj, it + bufferPos) }
 
@@ -32,9 +32,9 @@ class TableInFirstNS : Table() {
 
         fun addFooTable(builder: FlatBufferBuilder, fooTable: Int) = builder.addOffset(0, fooTable, 0)
 
-        fun addFooEnum(builder: FlatBufferBuilder, fooEnum: Byte) = builder.addByte(1, fooEnum, 0)
+        fun addFooEnum(builder: FlatBufferBuilder, fooEnum: Byte) = builder.add(1, fooEnum, 0)
 
-        fun addFooUnionType(builder: FlatBufferBuilder, fooUnionType: UByte) = builder.addByte(2, fooUnionType.toByte(), 0)
+        fun addFooUnionType(builder: FlatBufferBuilder, fooUnionType: UByte) = builder.add(2, fooUnionType, 0)
 
         fun addFooUnion(builder: FlatBufferBuilder, fooUnion: Int) = builder.addOffset(3, fooUnion, 0)
 

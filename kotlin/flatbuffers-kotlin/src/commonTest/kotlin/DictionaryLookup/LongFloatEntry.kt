@@ -3,7 +3,6 @@
 package DictionaryLookup
 
 import com.google.flatbuffers.kotlin.*
-import kotlin.math.sign
 @Suppress("unused")
 class LongFloatEntry : Table() {
 
@@ -15,9 +14,9 @@ class LongFloatEntry : Table() {
     val value : Float get() = lookupField(6, 0.0f ) { bb.getFloat(it + bufferPos) }
 
     override fun keysCompare(o1: Int, o2: Int, buffer: ReadWriteBuffer) : Int {
-        val val_1 = buffer.getLong(offset(4, o1, buffer))
-        val val_2 = buffer.getLong(offset(4, o2, buffer))
-        return (val_1 - val_2).sign
+        val a = buffer.getLong(offset(4, o1, buffer))
+        val b = buffer.getLong(offset(4, o2, buffer))
+        return (a - b).toInt().sign()
     }
     companion object {
         fun validateVersion() = VERSION_2_0_8
@@ -35,11 +34,11 @@ class LongFloatEntry : Table() {
         fun startLongFloatEntry(builder: FlatBufferBuilder) = builder.startTable(2)
 
         fun addKey(builder: FlatBufferBuilder, key: Long)  {
-            builder.addLong(key)
+            builder.add(key)
             builder.slot(0)
         }
 
-        fun addValue(builder: FlatBufferBuilder, value: Float) = builder.addFloat(1, value, 0.0)
+        fun addValue(builder: FlatBufferBuilder, value: Float) = builder.add(1, value, 0.0)
 
         fun endLongFloatEntry(builder: FlatBufferBuilder) : Int {
             val o = builder.endTable()

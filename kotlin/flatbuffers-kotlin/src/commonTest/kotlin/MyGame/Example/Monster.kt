@@ -3,7 +3,6 @@
 package MyGame.Example
 
 import com.google.flatbuffers.kotlin.*
-import kotlin.math.sign
 /**
  * an example documentation comment: "monster object"
  */
@@ -23,13 +22,13 @@ class Monster : Table() {
     val name : String? get() = lookupField(10, null ) { string(it + bufferPos) }
     fun nameAsBuffer() : ReadBuffer = vectorAsBuffer(bb, 10, 1)
 
-    fun inventory(j: Int) : UByte = lookupField(14, 0u ) { bb.get(vector(it) + j * 1).toUByte() }
+    fun inventory(j: Int) : UByte = lookupField(14, 0u ) { bb.getUByte(vector(it) + j * 1) }
     val inventoryLength : Int get() = lookupField(14, 0 ) { vectorLength(it) }
     fun inventoryAsBuffer() : ReadBuffer = vectorAsBuffer(bb, 14, 1)
 
-    val color : UByte get() = lookupField(16, 8u ) { bb.get(it + bufferPos).toUByte() }
+    val color : UByte get() = lookupField(16, 8u ) { bb.getUByte(it + bufferPos) }
 
-    val testType : UByte get() = lookupField(18, 0u ) { bb.get(it + bufferPos).toUByte() }
+    val testType : UByte get() = lookupField(18, 0u ) { bb.getUByte(it + bufferPos) }
 
     fun test(obj: Table) : Table? = lookupField(20, null ) { union(obj, it + bufferPos) }
 
@@ -53,7 +52,7 @@ class Monster : Table() {
     val enemy : MyGame.Example.Monster? get() = enemy(MyGame.Example.Monster())
     fun enemy(obj: MyGame.Example.Monster) : MyGame.Example.Monster? = lookupField(28, null ) { obj.assign(indirect(it + bufferPos), bb) }
 
-    fun testnestedflatbuffer(j: Int) : UByte = lookupField(30, 0u ) { bb.get(vector(it) + j * 1).toUByte() }
+    fun testnestedflatbuffer(j: Int) : UByte = lookupField(30, 0u ) { bb.getUByte(vector(it) + j * 1) }
     val testnestedflatbufferLength : Int get() = lookupField(30, 0 ) { vectorLength(it) }
     fun testnestedflatbufferAsBuffer() : ReadBuffer = vectorAsBuffer(bb, 30, 1)
     val testnestedflatbufferAsMonster : MyGame.Example.Monster? get() = testnestedflatbufferAsMonster(MyGame.Example.Monster())
@@ -66,19 +65,19 @@ class Monster : Table() {
 
     val testhashs32Fnv1 : Int get() = lookupField(36, 0 ) { bb.getInt(it + bufferPos) }
 
-    val testhashu32Fnv1 : UInt get() = lookupField(38, 0u ) { bb.getInt(it + bufferPos).toUInt() }
+    val testhashu32Fnv1 : UInt get() = lookupField(38, 0u ) { bb.getUInt(it + bufferPos) }
 
     val testhashs64Fnv1 : Long get() = lookupField(40, 0L ) { bb.getLong(it + bufferPos) }
 
-    val testhashu64Fnv1 : ULong get() = lookupField(42, 0UL ) { bb.getLong(it + bufferPos).toULong() }
+    val testhashu64Fnv1 : ULong get() = lookupField(42, 0UL ) { bb.getULong(it + bufferPos) }
 
     val testhashs32Fnv1a : Int get() = lookupField(44, 0 ) { bb.getInt(it + bufferPos) }
 
-    val testhashu32Fnv1a : UInt get() = lookupField(46, 0u ) { bb.getInt(it + bufferPos).toUInt() }
+    val testhashu32Fnv1a : UInt get() = lookupField(46, 0u ) { bb.getUInt(it + bufferPos) }
 
     val testhashs64Fnv1a : Long get() = lookupField(48, 0L ) { bb.getLong(it + bufferPos) }
 
-    val testhashu64Fnv1a : ULong get() = lookupField(50, 0UL ) { bb.getLong(it + bufferPos).toULong() }
+    val testhashu64Fnv1a : ULong get() = lookupField(50, 0UL ) { bb.getULong(it + bufferPos) }
 
     fun testarrayofbools(j: Int) : Boolean = lookupField(52, false ) { 0.toByte() != bb.get(vector(it) + j * 1) }
     val testarrayofboolsLength : Int get() = lookupField(52, 0 ) { vectorLength(it) }
@@ -97,7 +96,7 @@ class Monster : Table() {
     fun testarrayofsortedstruct(obj: MyGame.Example.Ability, j: Int) : MyGame.Example.Ability? = lookupField(62, null ) { obj.assign(vector(it) + j * 8, bb) }
     val testarrayofsortedstructLength : Int get() = lookupField(62, 0 ) { vectorLength(it) }
 
-    fun flex(j: Int) : UByte = lookupField(64, 0u ) { bb.get(vector(it) + j * 1).toUByte() }
+    fun flex(j: Int) : UByte = lookupField(64, 0u ) { bb.getUByte(vector(it) + j * 1) }
     val flexLength : Int get() = lookupField(64, 0 ) { vectorLength(it) }
     fun flexAsBuffer() : ReadBuffer = vectorAsBuffer(bb, 64, 1)
 
@@ -122,9 +121,9 @@ class Monster : Table() {
     fun vectorOfReferrablesByKey(key: ULong) : MyGame.Example.Referrable? = lookupField(74, null ) { MyGame.Example.Referrable.lookupByKey(null, vector(it), key, bb) }
     fun vectorOfReferrablesByKey(obj: MyGame.Example.Referrable, key: ULong) : MyGame.Example.Referrable? = lookupField(74, null ) { MyGame.Example.Referrable.lookupByKey(obj, vector(it), key, bb) }
 
-    val singleWeakReference : ULong get() = lookupField(76, 0UL ) { bb.getLong(it + bufferPos).toULong() }
+    val singleWeakReference : ULong get() = lookupField(76, 0UL ) { bb.getULong(it + bufferPos) }
 
-    fun vectorOfWeakReferences(j: Int) : ULong = lookupField(78, 0uL ) { bb.getLong(vector(it) + j * 8).toULong() }
+    fun vectorOfWeakReferences(j: Int) : ULong = lookupField(78, 0uL ) { bb.getULong(vector(it) + j * 8) }
     val vectorOfWeakReferencesLength : Int get() = lookupField(78, 0 ) { vectorLength(it) }
     fun vectorOfWeakReferencesAsBuffer() : ReadBuffer = vectorAsBuffer(bb, 78, 8)
 
@@ -134,33 +133,33 @@ class Monster : Table() {
     fun vectorOfStrongReferrablesByKey(key: ULong) : MyGame.Example.Referrable? = lookupField(80, null ) { MyGame.Example.Referrable.lookupByKey(null, vector(it), key, bb) }
     fun vectorOfStrongReferrablesByKey(obj: MyGame.Example.Referrable, key: ULong) : MyGame.Example.Referrable? = lookupField(80, null ) { MyGame.Example.Referrable.lookupByKey(obj, vector(it), key, bb) }
 
-    val coOwningReference : ULong get() = lookupField(82, 0UL ) { bb.getLong(it + bufferPos).toULong() }
+    val coOwningReference : ULong get() = lookupField(82, 0UL ) { bb.getULong(it + bufferPos) }
 
-    fun vectorOfCoOwningReferences(j: Int) : ULong = lookupField(84, 0uL ) { bb.getLong(vector(it) + j * 8).toULong() }
+    fun vectorOfCoOwningReferences(j: Int) : ULong = lookupField(84, 0uL ) { bb.getULong(vector(it) + j * 8) }
     val vectorOfCoOwningReferencesLength : Int get() = lookupField(84, 0 ) { vectorLength(it) }
     fun vectorOfCoOwningReferencesAsBuffer() : ReadBuffer = vectorAsBuffer(bb, 84, 8)
 
-    val nonOwningReference : ULong get() = lookupField(86, 0UL ) { bb.getLong(it + bufferPos).toULong() }
+    val nonOwningReference : ULong get() = lookupField(86, 0UL ) { bb.getULong(it + bufferPos) }
 
-    fun vectorOfNonOwningReferences(j: Int) : ULong = lookupField(88, 0uL ) { bb.getLong(vector(it) + j * 8).toULong() }
+    fun vectorOfNonOwningReferences(j: Int) : ULong = lookupField(88, 0uL ) { bb.getULong(vector(it) + j * 8) }
     val vectorOfNonOwningReferencesLength : Int get() = lookupField(88, 0 ) { vectorLength(it) }
     fun vectorOfNonOwningReferencesAsBuffer() : ReadBuffer = vectorAsBuffer(bb, 88, 8)
 
-    val anyUniqueType : UByte get() = lookupField(90, 0u ) { bb.get(it + bufferPos).toUByte() }
+    val anyUniqueType : UByte get() = lookupField(90, 0u ) { bb.getUByte(it + bufferPos) }
 
     fun anyUnique(obj: Table) : Table? = lookupField(92, null ) { union(obj, it + bufferPos) }
 
-    val anyAmbiguousType : UByte get() = lookupField(94, 0u ) { bb.get(it + bufferPos).toUByte() }
+    val anyAmbiguousType : UByte get() = lookupField(94, 0u ) { bb.getUByte(it + bufferPos) }
 
     fun anyAmbiguous(obj: Table) : Table? = lookupField(96, null ) { union(obj, it + bufferPos) }
 
-    fun vectorOfEnums(j: Int) : UByte = lookupField(98, 0u ) { bb.get(vector(it) + j * 1).toUByte() }
+    fun vectorOfEnums(j: Int) : UByte = lookupField(98, 0u ) { bb.getUByte(vector(it) + j * 1) }
     val vectorOfEnumsLength : Int get() = lookupField(98, 0 ) { vectorLength(it) }
     fun vectorOfEnumsAsBuffer() : ReadBuffer = vectorAsBuffer(bb, 98, 1)
 
     val signedEnum : Byte get() = lookupField(100, -1 ) { bb.get(it + bufferPos) }
 
-    fun testrequirednestedflatbuffer(j: Int) : UByte = lookupField(102, 0u ) { bb.get(vector(it) + j * 1).toUByte() }
+    fun testrequirednestedflatbuffer(j: Int) : UByte = lookupField(102, 0u ) { bb.getUByte(vector(it) + j * 1) }
     val testrequirednestedflatbufferLength : Int get() = lookupField(102, 0 ) { vectorLength(it) }
     fun testrequirednestedflatbufferAsBuffer() : ReadBuffer = vectorAsBuffer(bb, 102, 1)
     val testrequirednestedflatbufferAsMonster : MyGame.Example.Monster? get() = testrequirednestedflatbufferAsMonster(MyGame.Example.Monster())
@@ -175,9 +174,9 @@ class Monster : Table() {
     val nativeInline : MyGame.Example.Test? get() = nativeInline(MyGame.Example.Test())
     fun nativeInline(obj: MyGame.Example.Test) : MyGame.Example.Test? = lookupField(106, null ) { obj.assign(it + bufferPos, bb) }
 
-    val longEnumNonEnumDefault : ULong get() = lookupField(108, 0UL ) { bb.getLong(it + bufferPos).toULong() }
+    val longEnumNonEnumDefault : ULong get() = lookupField(108, 0UL ) { bb.getULong(it + bufferPos) }
 
-    val longEnumNormalDefault : ULong get() = lookupField(110, 2UL ) { bb.getLong(it + bufferPos).toULong() }
+    val longEnumNormalDefault : ULong get() = lookupField(110, 2UL ) { bb.getULong(it + bufferPos) }
 
     override fun keysCompare(o1: Int, o2: Int, buffer: ReadWriteBuffer) : Int {
          return compareStrings(offset(10, o1, buffer), offset(10, o2, buffer), buffer)
@@ -194,9 +193,9 @@ class Monster : Table() {
 
         fun addPos(builder: FlatBufferBuilder, pos: Int) = builder.addStruct(0, pos, 0)
 
-        fun addMana(builder: FlatBufferBuilder, mana: Short) = builder.addShort(1, mana, 150)
+        fun addMana(builder: FlatBufferBuilder, mana: Short) = builder.add(1, mana, 150)
 
-        fun addHp(builder: FlatBufferBuilder, hp: Short) = builder.addShort(2, hp, 100)
+        fun addHp(builder: FlatBufferBuilder, hp: Short) = builder.add(2, hp, 100)
 
         fun addName(builder: FlatBufferBuilder, name: Int)  {
             builder.addOffset(name)
@@ -208,16 +207,16 @@ class Monster : Table() {
         fun createInventoryVector(builder: FlatBufferBuilder, data: UByteArray) : Int {
             builder.startVector(1, data.size, 1)
             for (i in data.size - 1 downTo 0) {
-                builder.addByte(data[i].toByte())
+                builder.add(data[i])
             }
             return builder.endVector()
         }
 
         fun startInventoryVector(builder: FlatBufferBuilder, numElems: Int) = builder.startVector(1, numElems, 1)
 
-        fun addColor(builder: FlatBufferBuilder, color: UByte) = builder.addByte(6, color.toByte(), 8)
+        fun addColor(builder: FlatBufferBuilder, color: UByte) = builder.add(6, color, 8)
 
-        fun addTestType(builder: FlatBufferBuilder, testType: UByte) = builder.addByte(7, testType.toByte(), 0)
+        fun addTestType(builder: FlatBufferBuilder, testType: UByte) = builder.add(7, testType, 0)
 
         fun addTest(builder: FlatBufferBuilder, test: Int) = builder.addOffset(8, test, 0)
 
@@ -256,7 +255,7 @@ class Monster : Table() {
         fun createTestnestedflatbufferVector(builder: FlatBufferBuilder, data: UByteArray) : Int {
             builder.startVector(1, data.size, 1)
             for (i in data.size - 1 downTo 0) {
-                builder.addByte(data[i].toByte())
+                builder.add(data[i])
             }
             return builder.endVector()
         }
@@ -265,41 +264,41 @@ class Monster : Table() {
 
         fun addTestempty(builder: FlatBufferBuilder, testempty: Int) = builder.addOffset(14, testempty, 0)
 
-        fun addTestbool(builder: FlatBufferBuilder, testbool: Boolean) = builder.addBoolean(15, testbool, false)
+        fun addTestbool(builder: FlatBufferBuilder, testbool: Boolean) = builder.add(15, testbool, false)
 
-        fun addTesthashs32Fnv1(builder: FlatBufferBuilder, testhashs32Fnv1: Int) = builder.addInt(16, testhashs32Fnv1, 0)
+        fun addTesthashs32Fnv1(builder: FlatBufferBuilder, testhashs32Fnv1: Int) = builder.add(16, testhashs32Fnv1, 0)
 
-        fun addTesthashu32Fnv1(builder: FlatBufferBuilder, testhashu32Fnv1: UInt) = builder.addInt(17, testhashu32Fnv1.toInt(), 0)
+        fun addTesthashu32Fnv1(builder: FlatBufferBuilder, testhashu32Fnv1: UInt) = builder.add(17, testhashu32Fnv1, 0)
 
-        fun addTesthashs64Fnv1(builder: FlatBufferBuilder, testhashs64Fnv1: Long) = builder.addLong(18, testhashs64Fnv1, 0L)
+        fun addTesthashs64Fnv1(builder: FlatBufferBuilder, testhashs64Fnv1: Long) = builder.add(18, testhashs64Fnv1, 0L)
 
-        fun addTesthashu64Fnv1(builder: FlatBufferBuilder, testhashu64Fnv1: ULong) = builder.addLong(19, testhashu64Fnv1.toLong(), 0)
+        fun addTesthashu64Fnv1(builder: FlatBufferBuilder, testhashu64Fnv1: ULong) = builder.add(19, testhashu64Fnv1, 0)
 
-        fun addTesthashs32Fnv1a(builder: FlatBufferBuilder, testhashs32Fnv1a: Int) = builder.addInt(20, testhashs32Fnv1a, 0)
+        fun addTesthashs32Fnv1a(builder: FlatBufferBuilder, testhashs32Fnv1a: Int) = builder.add(20, testhashs32Fnv1a, 0)
 
-        fun addTesthashu32Fnv1a(builder: FlatBufferBuilder, testhashu32Fnv1a: UInt) = builder.addInt(21, testhashu32Fnv1a.toInt(), 0)
+        fun addTesthashu32Fnv1a(builder: FlatBufferBuilder, testhashu32Fnv1a: UInt) = builder.add(21, testhashu32Fnv1a, 0)
 
-        fun addTesthashs64Fnv1a(builder: FlatBufferBuilder, testhashs64Fnv1a: Long) = builder.addLong(22, testhashs64Fnv1a, 0L)
+        fun addTesthashs64Fnv1a(builder: FlatBufferBuilder, testhashs64Fnv1a: Long) = builder.add(22, testhashs64Fnv1a, 0L)
 
-        fun addTesthashu64Fnv1a(builder: FlatBufferBuilder, testhashu64Fnv1a: ULong) = builder.addLong(23, testhashu64Fnv1a.toLong(), 0)
+        fun addTesthashu64Fnv1a(builder: FlatBufferBuilder, testhashu64Fnv1a: ULong) = builder.add(23, testhashu64Fnv1a, 0)
 
         fun addTestarrayofbools(builder: FlatBufferBuilder, testarrayofbools: Int) = builder.addOffset(24, testarrayofbools, 0)
 
         fun createTestarrayofboolsVector(builder: FlatBufferBuilder, data: BooleanArray) : Int {
             builder.startVector(1, data.size, 1)
             for (i in data.size - 1 downTo 0) {
-                builder.addBoolean(data[i])
+                builder.add(data[i])
             }
             return builder.endVector()
         }
 
         fun startTestarrayofboolsVector(builder: FlatBufferBuilder, numElems: Int) = builder.startVector(1, numElems, 1)
 
-        fun addTestf(builder: FlatBufferBuilder, testf: Float) = builder.addFloat(25, testf, 3.14159)
+        fun addTestf(builder: FlatBufferBuilder, testf: Float) = builder.add(25, testf, 3.14159)
 
-        fun addTestf2(builder: FlatBufferBuilder, testf2: Float) = builder.addFloat(26, testf2, 3.0)
+        fun addTestf2(builder: FlatBufferBuilder, testf2: Float) = builder.add(26, testf2, 3.0)
 
-        fun addTestf3(builder: FlatBufferBuilder, testf3: Float) = builder.addFloat(27, testf3, 0.0)
+        fun addTestf3(builder: FlatBufferBuilder, testf3: Float) = builder.add(27, testf3, 0.0)
 
         fun addTestarrayofstring2(builder: FlatBufferBuilder, testarrayofstring2: Int) = builder.addOffset(28, testarrayofstring2, 0)
 
@@ -322,7 +321,7 @@ class Monster : Table() {
         fun createFlexVector(builder: FlatBufferBuilder, data: UByteArray) : Int {
             builder.startVector(1, data.size, 1)
             for (i in data.size - 1 downTo 0) {
-                builder.addByte(data[i].toByte())
+                builder.add(data[i])
             }
             return builder.endVector()
         }
@@ -338,7 +337,7 @@ class Monster : Table() {
         fun createVectorOfLongsVector(builder: FlatBufferBuilder, data: LongArray) : Int {
             builder.startVector(8, data.size, 8)
             for (i in data.size - 1 downTo 0) {
-                builder.addLong(data[i])
+                builder.add(data[i])
             }
             return builder.endVector()
         }
@@ -350,7 +349,7 @@ class Monster : Table() {
         fun createVectorOfDoublesVector(builder: FlatBufferBuilder, data: DoubleArray) : Int {
             builder.startVector(8, data.size, 8)
             for (i in data.size - 1 downTo 0) {
-                builder.addDouble(data[i])
+                builder.add(data[i])
             }
             return builder.endVector()
         }
@@ -371,14 +370,14 @@ class Monster : Table() {
 
         fun startVectorOfReferrablesVector(builder: FlatBufferBuilder, numElems: Int) = builder.startVector(4, numElems, 4)
 
-        fun addSingleWeakReference(builder: FlatBufferBuilder, singleWeakReference: ULong) = builder.addLong(36, singleWeakReference.toLong(), 0)
+        fun addSingleWeakReference(builder: FlatBufferBuilder, singleWeakReference: ULong) = builder.add(36, singleWeakReference, 0)
 
         fun addVectorOfWeakReferences(builder: FlatBufferBuilder, vectorOfWeakReferences: Int) = builder.addOffset(37, vectorOfWeakReferences, 0)
 
         fun createVectorOfWeakReferencesVector(builder: FlatBufferBuilder, data: ULongArray) : Int {
             builder.startVector(8, data.size, 8)
             for (i in data.size - 1 downTo 0) {
-                builder.addLong(data[i].toLong())
+                builder.add(data[i])
             }
             return builder.endVector()
         }
@@ -397,39 +396,39 @@ class Monster : Table() {
 
         fun startVectorOfStrongReferrablesVector(builder: FlatBufferBuilder, numElems: Int) = builder.startVector(4, numElems, 4)
 
-        fun addCoOwningReference(builder: FlatBufferBuilder, coOwningReference: ULong) = builder.addLong(39, coOwningReference.toLong(), 0)
+        fun addCoOwningReference(builder: FlatBufferBuilder, coOwningReference: ULong) = builder.add(39, coOwningReference, 0)
 
         fun addVectorOfCoOwningReferences(builder: FlatBufferBuilder, vectorOfCoOwningReferences: Int) = builder.addOffset(40, vectorOfCoOwningReferences, 0)
 
         fun createVectorOfCoOwningReferencesVector(builder: FlatBufferBuilder, data: ULongArray) : Int {
             builder.startVector(8, data.size, 8)
             for (i in data.size - 1 downTo 0) {
-                builder.addLong(data[i].toLong())
+                builder.add(data[i])
             }
             return builder.endVector()
         }
 
         fun startVectorOfCoOwningReferencesVector(builder: FlatBufferBuilder, numElems: Int) = builder.startVector(8, numElems, 8)
 
-        fun addNonOwningReference(builder: FlatBufferBuilder, nonOwningReference: ULong) = builder.addLong(41, nonOwningReference.toLong(), 0)
+        fun addNonOwningReference(builder: FlatBufferBuilder, nonOwningReference: ULong) = builder.add(41, nonOwningReference, 0)
 
         fun addVectorOfNonOwningReferences(builder: FlatBufferBuilder, vectorOfNonOwningReferences: Int) = builder.addOffset(42, vectorOfNonOwningReferences, 0)
 
         fun createVectorOfNonOwningReferencesVector(builder: FlatBufferBuilder, data: ULongArray) : Int {
             builder.startVector(8, data.size, 8)
             for (i in data.size - 1 downTo 0) {
-                builder.addLong(data[i].toLong())
+                builder.add(data[i])
             }
             return builder.endVector()
         }
 
         fun startVectorOfNonOwningReferencesVector(builder: FlatBufferBuilder, numElems: Int) = builder.startVector(8, numElems, 8)
 
-        fun addAnyUniqueType(builder: FlatBufferBuilder, anyUniqueType: UByte) = builder.addByte(43, anyUniqueType.toByte(), 0)
+        fun addAnyUniqueType(builder: FlatBufferBuilder, anyUniqueType: UByte) = builder.add(43, anyUniqueType, 0)
 
         fun addAnyUnique(builder: FlatBufferBuilder, anyUnique: Int) = builder.addOffset(44, anyUnique, 0)
 
-        fun addAnyAmbiguousType(builder: FlatBufferBuilder, anyAmbiguousType: UByte) = builder.addByte(45, anyAmbiguousType.toByte(), 0)
+        fun addAnyAmbiguousType(builder: FlatBufferBuilder, anyAmbiguousType: UByte) = builder.add(45, anyAmbiguousType, 0)
 
         fun addAnyAmbiguous(builder: FlatBufferBuilder, anyAmbiguous: Int) = builder.addOffset(46, anyAmbiguous, 0)
 
@@ -438,21 +437,21 @@ class Monster : Table() {
         fun createVectorOfEnumsVector(builder: FlatBufferBuilder, data: UByteArray) : Int {
             builder.startVector(1, data.size, 1)
             for (i in data.size - 1 downTo 0) {
-                builder.addByte(data[i].toByte())
+                builder.add(data[i])
             }
             return builder.endVector()
         }
 
         fun startVectorOfEnumsVector(builder: FlatBufferBuilder, numElems: Int) = builder.startVector(1, numElems, 1)
 
-        fun addSignedEnum(builder: FlatBufferBuilder, signedEnum: Byte) = builder.addByte(48, signedEnum, -1)
+        fun addSignedEnum(builder: FlatBufferBuilder, signedEnum: Byte) = builder.add(48, signedEnum, -1)
 
         fun addTestrequirednestedflatbuffer(builder: FlatBufferBuilder, testrequirednestedflatbuffer: Int) = builder.addOffset(49, testrequirednestedflatbuffer, 0)
 
         fun createTestrequirednestedflatbufferVector(builder: FlatBufferBuilder, data: UByteArray) : Int {
             builder.startVector(1, data.size, 1)
             for (i in data.size - 1 downTo 0) {
-                builder.addByte(data[i].toByte())
+                builder.add(data[i])
             }
             return builder.endVector()
         }
@@ -473,9 +472,9 @@ class Monster : Table() {
 
         fun addNativeInline(builder: FlatBufferBuilder, nativeInline: Int) = builder.addStruct(51, nativeInline, 0)
 
-        fun addLongEnumNonEnumDefault(builder: FlatBufferBuilder, longEnumNonEnumDefault: ULong) = builder.addLong(52, longEnumNonEnumDefault.toLong(), 0)
+        fun addLongEnumNonEnumDefault(builder: FlatBufferBuilder, longEnumNonEnumDefault: ULong) = builder.add(52, longEnumNonEnumDefault, 0)
 
-        fun addLongEnumNormalDefault(builder: FlatBufferBuilder, longEnumNormalDefault: ULong) = builder.addLong(53, longEnumNormalDefault.toLong(), 2)
+        fun addLongEnumNormalDefault(builder: FlatBufferBuilder, longEnumNormalDefault: ULong) = builder.add(53, longEnumNormalDefault, 2)
 
         fun endMonster(builder: FlatBufferBuilder) : Int {
             val o = builder.endTable()

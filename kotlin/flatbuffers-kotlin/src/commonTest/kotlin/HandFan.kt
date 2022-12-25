@@ -23,7 +23,7 @@ class HandFan : Table() {
         }
         fun startHandFan(builder: FlatBufferBuilder) = builder.startTable(1)
 
-        fun addLength(builder: FlatBufferBuilder, length: Int) = builder.addInt(0, length, 0)
+        fun addLength(builder: FlatBufferBuilder, length: Int) = builder.add(0, length, 0)
 
         fun endHandFan(builder: FlatBufferBuilder) : Int {
             val o = builder.endTable()

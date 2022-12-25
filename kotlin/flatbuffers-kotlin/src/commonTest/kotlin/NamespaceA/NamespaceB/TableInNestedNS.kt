@@ -25,7 +25,7 @@ class TableInNestedNS : Table() {
         }
         fun startTableInNestedNS(builder: FlatBufferBuilder) = builder.startTable(1)
 
-        fun addFoo(builder: FlatBufferBuilder, foo: Int) = builder.addInt(0, foo, 0)
+        fun addFoo(builder: FlatBufferBuilder, foo: Int) = builder.add(0, foo, 0)
 
         fun endTableInNestedNS(builder: FlatBufferBuilder) : Int {
             val o = builder.endTable()

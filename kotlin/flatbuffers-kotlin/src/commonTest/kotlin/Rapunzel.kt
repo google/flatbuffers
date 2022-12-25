@@ -13,7 +13,7 @@ class Rapunzel : Struct() {
 
         fun createRapunzel(builder: FlatBufferBuilder, hairLength: Int) : Int {
             builder.prep(4, 4)
-            builder.putInt(hairLength)
+            builder.put(hairLength)
             return builder.offset()
         }
     }

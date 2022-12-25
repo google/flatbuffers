@@ -17,8 +17,8 @@ class StructInNestedNS : Struct() {
 
         fun createStructInNestedNS(builder: FlatBufferBuilder, a: Int, b: Int) : Int {
             builder.prep(4, 8)
-            builder.putInt(b)
-            builder.putInt(a)
+            builder.put(b)
+            builder.put(a)
             return builder.offset()
         }
     }

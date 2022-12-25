@@ -18,8 +18,8 @@ class Test : Struct() {
         fun createTest(builder: FlatBufferBuilder, a: Short, b: Byte) : Int {
             builder.prep(2, 4)
             builder.pad(1)
-            builder.putByte(b)
-            builder.putShort(a)
+            builder.put(b)
+            builder.put(a)
             return builder.offset()
         }
     }

@@ -127,132 +127,192 @@ public class FlatBufferBuilder @JvmOverloads constructor(
    *
    * @param x A `boolean` to put into the buffer.
    */
-  public fun putBoolean(x: Boolean) {
+  public fun put(x: Boolean) {
     buffer[Byte.SIZE_BYTES.let { space -= it; space }] = (if (x) 1 else 0).toByte()
   }
 
   /**
-   * Add a `byte` to the buffer, backwards from the current location. Doesn't align nor
+   * Add a [UByte] to the buffer, backwards from the current location. Doesn't align nor
    * check for space.
    *
-   * @param x A `byte` to put into the buffer.
+   * @param x A [UByte] to put into the buffer.
    */
-  public fun putByte(x: Byte): Unit = run {
+  public fun put(x: UByte): Unit = put(x.toByte())
+
+  /**
+   * Add a [Byte] to the buffer, backwards from the current location. Doesn't align nor
+   * check for space.
+   *
+   * @param x A [Byte] to put into the buffer.
+   */
+  public fun put(x: Byte): Unit = run {
     buffer[Byte.SIZE_BYTES.let { space -= it; space }] = x }
 
   /**
-   * Add a `short` to the buffer, backwards from the current location. Doesn't align nor
+   * Add a [UShort] to the buffer, backwards from the current location. Doesn't align nor
    * check for space.
    *
-   * @param x A `short` to put into the buffer.
+   * @param x A [UShort] to put into the buffer.
    */
-  public fun putShort(x: Short): Unit = run {
+  public fun put(x: UShort): Unit = put(x.toShort())
+
+  /**
+   * Add a [Short] to the buffer, backwards from the current location. Doesn't align nor
+   * check for space.
+   *
+   * @param x A [Short] to put into the buffer.
+   */
+  public fun put(x: Short): Unit = run {
     buffer.set(Short.SIZE_BYTES.let { space -= it; space }, x) }
 
   /**
-   * Add an `int` to the buffer, backwards from the current location. Doesn't align nor
+   * Add an [UInt] to the buffer, backwards from the current location. Doesn't align nor
    * check for space.
    *
-   * @param x An `int` to put into the buffer.
+   * @param x An [UInt] to put into the buffer.
    */
-  public fun putInt(x: Int): Unit = run {
+  public fun put(x: UInt): Unit = put(x.toInt())
+
+  /**
+   * Add an [Int] to the buffer, backwards from the current location. Doesn't align nor
+   * check for space.
+   *
+   * @param x An [Int] to put into the buffer.
+   */
+  public fun put(x: Int): Unit = run {
     buffer.set(Int.SIZE_BYTES.let { space -= it; space }, x) }
 
   /**
-   * Add a `long` to the buffer, backwards from the current location. Doesn't align nor
+   * Add a [ULong] to the buffer, backwards from the current location. Doesn't align nor
    * check for space.
    *
-   * @param x A `long` to put into the buffer.
+   * @param x A [ULong] to put into the buffer.
    */
-  public fun putLong(x: Long): Unit = run {
+  public fun put(x: ULong): Unit = put(x.toLong())
+
+  /**
+   * Add a [Long] to the buffer, backwards from the current location. Doesn't align nor
+   * check for space.
+   *
+   * @param x A [Long] to put into the buffer.
+   */
+  public fun put(x: Long): Unit = run {
     buffer.set(Long.SIZE_BYTES.let { space -= it; space }, x) }
 
   /**
-   * Add a `float` to the buffer, backwards from the current location. Doesn't align nor
+   * Add a [Float] to the buffer, backwards from the current location. Doesn't align nor
    * check for space.
    *
-   * @param x A `float` to put into the buffer.
+   * @param x A [Float] to put into the buffer.
    */
-  public fun putFloat(x: Float): Unit = run {
+  public fun put(x: Float): Unit = run {
     buffer.set(Float.SIZE_BYTES.let { space -= it; space }, x) }
 
   /**
-   * Add a `double` to the buffer, backwards from the current location. Doesn't align nor
+   * Add a [Double] to the buffer, backwards from the current location. Doesn't align nor
    * check for space.
    *
-   * @param x A `double` to put into the buffer.
+   * @param x A [Double] to put into the buffer.
    */
-  public fun putDouble(x: Double): Unit = run {
+  public fun put(x: Double): Unit = run {
     buffer.set(Double.SIZE_BYTES.let { space -= it; space }, x) }
 
   /**
-   * Add a `boolean` to the buffer, properly aligned, and grows the buffer (if necessary).
+   * Add a [Boolean] to the buffer, properly aligned, and grows the buffer (if necessary).
    *
-   * @param x A `boolean` to put into the buffer.
+   * @param x A [Boolean] to put into the buffer.
    */
-  public fun addBoolean(x: Boolean) {
+  public fun add(x: Boolean) {
     prep(Byte.SIZE_BYTES, 0)
-    putBoolean(x)
+    put(x)
   }
 
   /**
-   * Add a `byte` to the buffer, properly aligned, and grows the buffer (if necessary).
+   * Add a [UByte] to the buffer, properly aligned, and grows the buffer (if necessary).
    *
-   * @param x A `byte` to put into the buffer.
+   * @param x A [UByte] to put into the buffer.
    */
-  public fun addByte(x: Byte) {
+  public fun add(x: UByte): Unit = add(x.toByte())
+
+  /**
+   * Add a [Byte] to the buffer, properly aligned, and grows the buffer (if necessary).
+   *
+   * @param x A [Byte] to put into the buffer.
+   */
+  public fun add(x: Byte) {
     prep(Byte.SIZE_BYTES, 0)
-    putByte(x)
+    put(x)
   }
 
   /**
-   * Add a `short` to the buffer, properly aligned, and grows the buffer (if necessary).
+   * Add a [UShort] to the buffer, properly aligned, and grows the buffer (if necessary).
    *
-   * @param x A `short` to put into the buffer.
+   * @param x A [UShort] to put into the buffer.
    */
-  public fun addShort(x: Short) {
+  public fun add(x: UShort): Unit = add(x.toShort())
+
+  /**
+   * Add a [Short] to the buffer, properly aligned, and grows the buffer (if necessary).
+   *
+   * @param x A [Short] to put into the buffer.
+   */
+  public fun add(x: Short) {
     prep(Short.SIZE_BYTES, 0)
-    putShort(x)
+    put(x)
   }
 
   /**
-   * Add an `int` to the buffer, properly aligned, and grows the buffer (if necessary).
+   * Add an [Unit] to the buffer, properly aligned, and grows the buffer (if necessary).
    *
-   * @param x An `int` to put into the buffer.
+   * @param x An [Unit] to put into the buffer.
    */
-  public fun addInt(x: Int) {
+  public fun add(x: UInt): Unit = add(x.toInt())
+
+  /**
+   * Add an [Int] to the buffer, properly aligned, and grows the buffer (if necessary).
+   *
+   * @param x An [Int] to put into the buffer.
+   */
+  public fun add(x: Int) {
     prep(Int.SIZE_BYTES, 0)
-    putInt(x)
+    put(x)
   }
+
+  /**
+   * Add a [ULong] to the buffer, properly aligned, and grows the buffer (if necessary).
+   *
+   * @param x A [ULong] to put into the buffer.
+   */
+  public fun add(x: ULong): Unit = add(x.toLong())
 
   /**
    * Add a `long` to the buffer, properly aligned, and grows the buffer (if necessary).
    *
    * @param x A `long` to put into the buffer.
    */
-  public fun addLong(x: Long) {
+  public fun add(x: Long) {
     prep(Long.SIZE_BYTES, 0)
-    putLong(x)
+    put(x)
   }
 
   /**
-   * Add a `float` to the buffer, properly aligned, and grows the buffer (if necessary).
+   * Add a [Float] to the buffer, properly aligned, and grows the buffer (if necessary).
    *
-   * @param x A `float` to put into the buffer.
+   * @param x A [Float] to put into the buffer.
    */
-  public fun addFloat(x: Float) {
+  public fun add(x: Float) {
     prep(Float.SIZE_BYTES, 0)
-    putFloat(x)
+    put(x)
   }
 
   /**
-   * Add a `double` to the buffer, properly aligned, and grows the buffer (if necessary).
+   * Add a [Double] to the buffer, properly aligned, and grows the buffer (if necessary).
    *
-   * @param x A `double` to put into the buffer.
+   * @param x A [Double] to put into the buffer.
    */
-  public fun addDouble(x: Double) {
+  public fun add(x: Double) {
     prep(Double.SIZE_BYTES, 0)
-    putDouble(x)
+    put(x)
   }
 
   /**
@@ -264,7 +324,7 @@ public class FlatBufferBuilder @JvmOverloads constructor(
     var off1 = off
     prep(Int.SIZE_BYTES, 0) // Ensure alignment is already done.
     off1 = offset() - off1 + Int.SIZE_BYTES
-    putInt(off1)
+    put(off1)
   }
 
   /**
@@ -328,7 +388,7 @@ public class FlatBufferBuilder @JvmOverloads constructor(
   public fun endVector(): Int {
     if (!nested) throw AssertionError("FlatBuffers: endVector called without startVector")
     nested = false
-    putInt(vectorNumElems)
+    put(vectorNumElems)
     return offset()
   }
 
@@ -408,7 +468,7 @@ public class FlatBufferBuilder @JvmOverloads constructor(
    */
   public fun createString(s: CharSequence): Int {
     val length: Int = Utf8.encodedLength(s)
-    addByte(0.toByte())
+    add(0.toByte())
     startVector(1, length, 1)
     buffer.writePosition = length.let { space -= it; space }
     buffer.put(s, length)
@@ -423,7 +483,7 @@ public class FlatBufferBuilder @JvmOverloads constructor(
    */
  public fun createString(s: ReadBuffer): Int {
     val length: Int = s.limit
-    addByte(0.toByte())
+    add(0.toByte())
     startVector(1, length, 1)
     buffer.writePosition = length.let { space -= it; space }
     buffer.put(s)
@@ -559,113 +619,113 @@ public class FlatBufferBuilder @JvmOverloads constructor(
   }
 
   /**
-   * Add a `boolean` to a table at `o` into its vtable, with value `x` and default `d`.
-   *
-   * @param o The index into the vtable.
-   * @param x A `boolean` to put into the buffer, depending on how defaults are handled. If
-   * `force_defaults` is `false`, compare `x` against the default value `d`. If `x` contains the
+   * Add a [Boolean] to a table at `o` into its vtable, with value `x` and default `d`.
+   * If `force_defaults` is `false`, compare `x` against the default value `d`. If `x` contains the
    * default value, it can be skipped.
-   * @param d A `boolean` default value to compare against when `force_defaults` is `false`.
    */
-  public fun addBoolean(o: Int, x: Boolean, d: Boolean) {
+  public fun add(o: Int, x: Boolean, d: Boolean?) {
     if (forceDefaults || x != d) {
-      addBoolean(x)
+      add(x)
       slot(o)
     }
   }
 
   /**
-   * Add a `byte` to a table at `o` into its vtable, with value `x` and default `d`.
-   *
-   * @param o The index into the vtable.
-   * @param x A `byte` to put into the buffer, depending on how defaults are handled. If
-   * `force_defaults` is `false`, compare `x` against the default value `d`. If `x` contains the
+   * Add a [UByte] to a table at `o` into its vtable, with value `x` and default `d`.
+   * If `force_defaults` is `false`, compare `x` against the default value `d`. If `x` contains the
    * default value, it can be skipped.
-   * @param d A `byte` default value to compare against when `force_defaults` is `false`.
    */
-  public fun addByte(o: Int, x: Byte, d: Int) {
+  public fun add(o: Int, x: UByte, d: Int?): Unit = add(o, x.toByte(), d)
+
+  /**
+   * Add a [Byte] to a table at `o` into its vtable, with value `x` and default `d`.
+   * If `force_defaults` is `false`, compare `x` against the default value `d`. If `x` contains the
+   * default value, it can be skipped.
+   */
+  public fun add(o: Int, x: Byte, d: Int?) {
     if (forceDefaults || x.toInt() != d) {
-      addByte(x)
+      add(x)
       slot(o)
     }
   }
 
   /**
-   * Add a `short` to a table at `o` into its vtable, with value `x` and default `d`.
-   *
-   * @param o The index into the vtable.
-   * @param x A `short` to put into the buffer, depending on how defaults are handled. If
-   * `force_defaults` is `false`, compare `x` against the default value `d`. If `x` contains the
+   * Add a [UShort] to a table at `o` into its vtable, with value `x` and default `d`.
+   * If `force_defaults` is `false`, compare `x` against the default value `d`. If `x` contains the
    * default value, it can be skipped.
-   * @param d A `short` default value to compare against when `force_defaults` is `false`.
    */
-  public fun addShort(o: Int, x: Short, d: Int) {
+  public fun add(o: Int, x: UShort, d: Int?): Unit = add(o, x.toShort(), d)
+
+  /**
+   * Add a [Short] to a table at `o` into its vtable, with value `x` and default `d`.
+   * If `force_defaults` is `false`, compare `x` against the default value `d`. If `x` contains the
+   * default value, it can be skipped.
+   */
+  public fun add(o: Int, x: Short, d: Int?) {
     if (forceDefaults || x.toInt() != d) {
-      addShort(x)
+      add(x)
       slot(o)
     }
   }
 
   /**
-   * Add an `int` to a table at `o` into its vtable, with value `x` and default `d`.
-   *
-   * @param o The index into the vtable.
-   * @param x An `int` to put into the buffer, depending on how defaults are handled. If
-   * `force_defaults` is `false`, compare `x` against the default value `d`. If `x` contains the
+   * Add a [UInt] to a table at `o` into its vtable, with value `x` and default `d`.
+   * If `force_defaults` is `false`, compare `x` against the default value `d`. If `x` contains the
    * default value, it can be skipped.
-   * @param d An `int` default value to compare against when `force_defaults` is `false`.
    */
-  public fun addInt(o: Int, x: Int, d: Int) {
+  public fun add(o: Int, x: UInt, d: Int?): Unit = add(o, x.toInt(), d)
+
+  /**
+   * Add a [Int] to a table at `o` into its vtable, with value `x` and default `d`.
+   * If `force_defaults` is `false`, compare `x` against the default value `d`. If `x` contains the
+   * default value, it can be skipped.
+   */
+  public fun add(o: Int, x: Int, d: Int?) {
     if (forceDefaults || x != d) {
-      addInt(x)
+      add(x)
       slot(o)
     }
   }
 
   /**
-   * Add a `long` to a table at `o` into its vtable, with value `x` and default `d`.
-   *
-   * @param o The index into the vtable.
-   * @param x A `long` to put into the buffer, depending on how defaults are handled. If
-   * `force_defaults` is `false`, compare `x` against the default value `d`. If `x` contains the
+   * Add a [ULong] to a table at `o` into its vtable, with value `x` and default `d`.
+   * If `force_defaults` is `false`, compare `x` against the default value `d`. If `x` contains the
    * default value, it can be skipped.
-   * @param d A `long` default value to compare against when `force_defaults` is `false`.
    */
-  public fun addLong(o: Int, x: Long, d: Long) {
+  public fun add(o: Int, x: ULong, d: Long?): Unit = add(o, x.toLong(), d)
+
+  /**
+   * Add a [Long] to a table at `o` into its vtable, with value `x` and default `d`.
+   * If `force_defaults` is `false`, compare `x` against the default value `d`. If `x` contains the
+   * default value, it can be skipped.
+   */
+  public fun add(o: Int, x: Long, d: Long?) {
     if (forceDefaults || x != d) {
-      addLong(x)
+      add(x)
       slot(o)
     }
   }
 
   /**
-   * Add a `float` to a table at `o` into its vtable, with value `x` and default `d`.
-   *
-   * @param o The index into the vtable.
-   * @param x A `float` to put into the buffer, depending on how defaults are handled. If
-   * `force_defaults` is `false`, compare `x` against the default value `d`. If `x` contains the
+   * Add a [Float] to a table at `o` into its vtable, with value `x` and default `d`.
+   * If `force_defaults` is `false`, compare `x` against the default value `d`. If `x` contains the
    * default value, it can be skipped.
-   * @param d A `float` default value to compare against when `force_defaults` is `false`.
    */
-  public fun addFloat(o: Int, x: Float, d: Double) {
+  public fun add(o: Int, x: Float, d: Double?) {
     if (forceDefaults || x.toDouble() != d) {
-      addFloat(x)
+      add(x)
       slot(o)
     }
   }
 
   /**
-   * Add a `double` to a table at `o` into its vtable, with value `x` and default `d`.
-   *
-   * @param o The index into the vtable.
-   * @param x A `double` to put into the buffer, depending on how defaults are handled. If
-   * `force_defaults` is `false`, compare `x` against the default value `d`. If `x` contains the
+   * Add a [Double] to a table at `o` into its vtable, with value `x` and default `d`.
+   * If `force_defaults` is `false`, compare `x` against the default value `d`. If `x` contains the
    * default value, it can be skipped.
-   * @param d A `double` default value to compare against when `force_defaults` is `false`.
    */
-  public fun addDouble(o: Int, x: Double, d: Double) {
+  public fun add(o: Int, x: Double, d: Double?) {
     if (forceDefaults || x != d) {
-      addDouble(x)
+      add(x)
       slot(o)
     }
   }
@@ -679,7 +739,7 @@ public class FlatBufferBuilder @JvmOverloads constructor(
    * default value, it can be skipped.
    * @param d An `offset` default value to compare against when `force_defaults` is `false`.
    */
-  public fun addOffset(o: Int, x: Int, d: Int) {
+  public fun addOffset(o: Int, x: Int, d: Int?) {
     if (forceDefaults || x != d) {
       addOffset(x)
       slot(o)
@@ -693,7 +753,7 @@ public class FlatBufferBuilder @JvmOverloads constructor(
    * @param x The offset of the created struct.
    * @param d The default value is always `0`.
    */
-  public fun addStruct(voffset: Int, x: Int, d: Int) {
+  public fun addStruct(voffset: Int, x: Int, d: Int?) {
     if (x != d) {
       nested(x)
       slot(voffset)
@@ -718,7 +778,7 @@ public class FlatBufferBuilder @JvmOverloads constructor(
    */
   public fun endTable(): Int {
     if (vtable == null || !nested) throw AssertionError("FlatBuffers: endTable called without startTable")
-    addInt(0)
+    add(0)
     val vtableloc = offset()
     // Write out the current vtable.
     var i: Int = vtableInUse - 1
@@ -726,20 +786,19 @@ public class FlatBufferBuilder @JvmOverloads constructor(
     while (i >= 0 && vtable!![i] == 0) {
       i--
     }
-    val trimmed_size = i + 1
+    val trimmedSize = i + 1
     while (i >= 0) {
 
       // Offset relative to the start of the table.
-      val off = (if (vtable!![i] != 0) vtableloc - vtable!![i] else 0).toShort()
-      addShort(off)
+      add((if (vtable!![i] != 0) vtableloc - vtable!![i] else 0).toShort())
       i--
     }
-    val standard_fields = 2 // The fields below:
-    addShort((vtableloc - objectStart).toShort())
-    addShort(((trimmed_size + standard_fields) * Short.SIZE_BYTES).toShort())
+    val standardFields = 2 // The fields below:
+    add((vtableloc - objectStart).toShort())
+    add(((trimmedSize + standardFields) * Short.SIZE_BYTES).toShort())
 
     // Search for an existing vtable that matches the current one.
-    var existing_vtable = 0
+    var existingVtable = 0
     i = 0
     outer_loop@ while (i < numVtables) {
       val vt1: Int = buffer.capacity - vtables[i]
@@ -754,77 +813,17 @@ public class FlatBufferBuilder @JvmOverloads constructor(
           }
           j += Short.SIZE_BYTES
         }
-        existing_vtable = vtables[i]
+        existingVtable = vtables[i]
         break@outer_loop
       }
       i++
     }
-    if (existing_vtable != 0) {
+    if (existingVtable != 0) {
       // Found a match:
       // Remove the current vtable.
       space = buffer.capacity - vtableloc
       // Point table to existing vtable.
-      buffer.set(space, existing_vtable - vtableloc)
-    } else {
-      // No match:
-      // Add the location of the current vtable to the list of vtables.
-      if (numVtables == vtables.size) vtables = vtables.copyOf(numVtables * 2)
-      vtables[numVtables++] = offset()
-      // Point table to current vtable.
-      buffer.set(buffer.capacity - vtableloc, offset() - vtableloc)
-    }
-    nested = false
-    return vtableloc
-  }
-  public fun endTable2(): Int {
-    if (vtable == null || !nested) throw AssertionError("FlatBuffers: endTable called without startTable")
-    addInt(0)
-    val vtableloc = offset()
-    // Write out the current vtable.
-    var i = vtableInUse - 1
-    // Trim trailing zeroes.
-    while (i >= 0 && vtable!![i] == 0) {
-      i--
-    }
-    val trimmed_size = i + 1
-    while (i >= 0) {
-
-      // Offset relative to the start of the table.
-      val off = (if (vtable!![i] != 0) vtableloc - vtable!![i] else 0).toShort()
-      addShort(off)
-      i--
-    }
-    val standard_fields = 2 // The fields below:
-    addShort((vtableloc - objectStart).toShort())
-    addShort(((trimmed_size + standard_fields) * Short.SIZE_BYTES).toShort())
-
-    // Search for an existing vtable that matches the current one.
-    var existing_vtable = 0
-    i = 0
-    outer_loop@ while (i < numVtables) {
-      val vt1: Int = buffer.capacity - vtables[i]
-      val vt2 = space
-      val len: Short = buffer.getShort(vt1)
-      if (len == buffer.getShort(vt2)) {
-        var j: Int = Short.SIZE_BYTES
-        while (j < len) {
-          if (buffer.getShort(vt1 + j) != buffer.getShort(vt2 + j)) {
-            i++
-            continue@outer_loop
-          }
-          j += Short.SIZE_BYTES
-        }
-        existing_vtable = vtables[i]
-        break@outer_loop
-      }
-      i++
-    }
-    if (existing_vtable != 0) {
-      // Found a match:
-      // Remove the current vtable.
-      space = buffer.limit - vtableloc
-      // Point table to existing vtable.
-      buffer.set(space, existing_vtable - vtableloc)
+      buffer.set(space, existingVtable - vtableloc)
     } else {
       // No match:
       // Add the location of the current vtable to the list of vtables.
@@ -855,14 +854,14 @@ public class FlatBufferBuilder @JvmOverloads constructor(
   /**
    * Finalize a buffer, pointing to the given `root_table`.
    *
-   * @param root_table An offset to be added to the buffer.
-   * @param size_prefix Whether to prefix the size to the buffer.
+   * @param rootTable An offset to be added to the buffer.
+   * @param sizePrefix Whether to prefix the size to the buffer.
    */
-  protected fun finish(root_table: Int, size_prefix: Boolean) {
-    prep(minalign, Int.SIZE_BYTES + if (size_prefix) Int.SIZE_BYTES else 0)
-    addOffset(root_table)
-    if (size_prefix) {
-      addInt(buffer.capacity - space)
+  protected fun finish(rootTable: Int, sizePrefix: Boolean) {
+    prep(minalign, Int.SIZE_BYTES + if (sizePrefix) Int.SIZE_BYTES else 0)
+    addOffset(rootTable)
+    if (sizePrefix) {
+      add(buffer.capacity - space)
     }
     buffer.writePosition = space
     finished = true
@@ -902,7 +901,7 @@ public class FlatBufferBuilder @JvmOverloads constructor(
         FILE_IDENTIFIER_LENGTH
     )
     for (i in FILE_IDENTIFIER_LENGTH - 1 downTo 0) {
-      addByte(file_identifier[i].code.toByte())
+      add(file_identifier[i].code.toByte())
     }
     finish(root_table, size_prefix)
   }
@@ -973,4 +972,24 @@ public class FlatBufferBuilder @JvmOverloads constructor(
    * @return true if the filed is present
   */
   public fun Table.isFieldPresent(offset: Int): Boolean = this.offset(offset) != 0
+}
+
+public fun Double.sign(): Double = when {
+  this.isNaN() -> Double.NaN
+  this > 0 -> 1.0
+  this < 0 -> -1.0
+  else -> this
+}
+
+public fun Float.sign(): Float = when {
+  this.isNaN() -> Float.NaN
+  this > 0 -> 1.0f
+  this < 0 -> -1.0f
+  else -> this
+}
+
+public fun Int.sign(): Int = when {
+  this > 0 -> 1
+  this < 0 -> -1
+  else -> this
 }

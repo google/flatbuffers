@@ -3,7 +3,6 @@
 package MyGame.Example
 
 import com.google.flatbuffers.kotlin.*
-import kotlin.math.sign
 @Suppress("unused")
 class Stat : Table() {
 
@@ -15,12 +14,12 @@ class Stat : Table() {
 
     val val_ : Long get() = lookupField(6, 0L ) { bb.getLong(it + bufferPos) }
 
-    val count : UShort get() = lookupField(8, 0u ) { bb.getShort(it + bufferPos).toUShort() }
+    val count : UShort get() = lookupField(8, 0u ) { bb.getUShort(it + bufferPos) }
 
     override fun keysCompare(o1: Int, o2: Int, buffer: ReadWriteBuffer) : Int {
-        val val_1 = buffer.getShort(offset(8, o1, buffer))
-        val val_2 = buffer.getShort(offset(8, o2, buffer))
-        return (val_1 - val_2).sign
+        val a = buffer.getUShort(offset(8, o1, buffer))
+        val b = buffer.getUShort(offset(8, o2, buffer))
+        return (a - b).toInt().sign()
     }
     companion object {
         fun validateVersion() = VERSION_2_0_8
@@ -40,10 +39,10 @@ class Stat : Table() {
 
         fun addId(builder: FlatBufferBuilder, id: Int) = builder.addOffset(0, id, 0)
 
-        fun addVal_(builder: FlatBufferBuilder, val_: Long) = builder.addLong(1, val_, 0L)
+        fun addVal_(builder: FlatBufferBuilder, val_: Long) = builder.add(1, val_, 0L)
 
         fun addCount(builder: FlatBufferBuilder, count: UShort)  {
-            builder.addShort(count.toShort())
+            builder.add(count)
             builder.slot(2)
         }
 
@@ -58,7 +57,7 @@ class Stat : Table() {
             while (span != 0) {
                 var middle = span / 2
                 val tableOffset = indirect(vectorLocation + 4 * (start + middle), bb)
-                val value = bb.getShort(offset(8, bb.capacity - tableOffset, bb)).toUShort()
+                val value = bb.getUShort(offset(8, bb.capacity - tableOffset, bb))
                 val comp = value.compareTo(key)
                 when {
                     comp > 0 -> span = middle

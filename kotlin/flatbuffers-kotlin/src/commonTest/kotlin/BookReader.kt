@@ -13,7 +13,7 @@ class BookReader : Struct() {
 
         fun createBookReader(builder: FlatBufferBuilder, booksRead: Int) : Int {
             builder.prep(4, 4)
-            builder.putInt(booksRead)
+            builder.put(booksRead)
             return builder.offset()
         }
     }

@@ -7,11 +7,11 @@ class Movie : Table() {
     fun init(i: Int, buffer: ReadWriteBuffer) : Movie = reset(i, buffer)
     fun assign(i: Int, buffer: ReadWriteBuffer) : Movie = init(i, buffer)
 
-    val mainCharacterType : UByte get() = lookupField(4, 0u ) { bb.get(it + bufferPos).toUByte() }
+    val mainCharacterType : UByte get() = lookupField(4, 0u ) { bb.getUByte(it + bufferPos) }
 
     fun mainCharacter(obj: Table) : Table? = lookupField(6, null ) { union(obj, it + bufferPos) }
 
-    fun charactersType(j: Int) : UByte = lookupField(8, 0u ) { bb.get(vector(it) + j * 1).toUByte() }
+    fun charactersType(j: Int) : UByte = lookupField(8, 0u ) { bb.getUByte(vector(it) + j * 1) }
     val charactersTypeLength : Int get() = lookupField(8, 0 ) { vectorLength(it) }
     fun charactersTypeAsBuffer() : ReadBuffer = vectorAsBuffer(bb, 8, 1)
 
@@ -36,7 +36,7 @@ class Movie : Table() {
         }
         fun startMovie(builder: FlatBufferBuilder) = builder.startTable(4)
 
-        fun addMainCharacterType(builder: FlatBufferBuilder, mainCharacterType: UByte) = builder.addByte(0, mainCharacterType.toByte(), 0)
+        fun addMainCharacterType(builder: FlatBufferBuilder, mainCharacterType: UByte) = builder.add(0, mainCharacterType, 0)
 
         fun addMainCharacter(builder: FlatBufferBuilder, mainCharacter: Int) = builder.addOffset(1, mainCharacter, 0)
 
@@ -45,7 +45,7 @@ class Movie : Table() {
         fun createCharactersTypeVector(builder: FlatBufferBuilder, data: UByteArray) : Int {
             builder.startVector(1, data.size, 1)
             for (i in data.size - 1 downTo 0) {
-                builder.addByte(data[i].toByte())
+                builder.add(data[i])
             }
             return builder.endVector()
         }

@@ -17,7 +17,7 @@ class Vec3 : Struct() {
 
     val test1 : Double get() = bb.getDouble(bufferPos + 16)
 
-    val test2 : UByte get() = bb.get(bufferPos + 24).toUByte()
+    val test2 : UByte get() = bb.getUByte(bufferPos + 24)
 
     val test3 : MyGame.Example.Test? get() = test3(MyGame.Example.Test())
     fun test3(obj: MyGame.Example.Test) : MyGame.Example.Test? = obj.assign(bufferPos + 26, bb)
@@ -29,15 +29,15 @@ class Vec3 : Struct() {
             builder.pad(2)
             builder.prep(2, 4)
             builder.pad(1)
-            builder.putByte(test3_b)
-            builder.putShort(test3_a)
+            builder.put(test3_b)
+            builder.put(test3_a)
             builder.pad(1)
-            builder.putByte(test2.toByte())
-            builder.putDouble(test1)
+            builder.put(test2)
+            builder.put(test1)
             builder.pad(4)
-            builder.putFloat(z)
-            builder.putFloat(y)
-            builder.putFloat(x)
+            builder.put(z)
+            builder.put(y)
+            builder.put(x)
             return builder.offset()
         }
     }
