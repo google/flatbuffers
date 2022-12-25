@@ -2245,6 +2245,62 @@ class CppGenerator : public BaseGenerator {
     }
   }
 
+  void GetComparatorForStruct(const StructDef &struct_def, size_t space_size,
+                              const std::string lhs_struct,
+                              std::string rhs_struct) {
+    code_.SetValue("LHS_PREFIX", lhs_struct);
+    code_.SetValue("RHS_PREFIX", rhs_struct);
+    std::string space(space_size, ' ');
+    for (const auto &curr_field : struct_def.fields.vec) {
+      const bool is_scalar = IsScalar(curr_field->value.type.base_type);
+      const bool is_array = IsArray(curr_field->value.type);
+      const bool is_struct = IsStruct(curr_field->value.type);
+      code_.SetValue("CURR_FIELD_NAME", Name(*curr_field));
+      code_.SetValue("LHS", lhs_struct + "_" + Name(*curr_field));
+      code_.SetValue("RHS", rhs_struct + "_" + Name(*curr_field));
+
+      code_ +=
+          space + "const auto {{LHS}} = {{LHS_PREFIX}}.{{CURR_FIELD_NAME}}();";
+      code_ +=
+          space + "const auto {{RHS}} = {{RHS_PREFIX}}.{{CURR_FIELD_NAME}}();";
+      if (is_scalar) {
+        code_ += space + "if ({{LHS}} !=  {{RHS}})";
+        code_ += space +
+                 "  return static_cast<int>({{LHS}} > {{RHS}}) - "
+                 "static_cast<int>({{LHS}} < {{RHS}});";
+      } else if (is_array) {
+        const auto &elem_type = curr_field->value.type.VectorType();
+        if (IsScalar(elem_type.base_type)) {
+          code_ +=
+              space +
+              "for (flatbuffers::uoffset_t i = 0; i < {{LHS}}->size(); i++) {";
+          code_ += space + "  const auto lhs = {{LHS}}->Get(i);";
+          code_ += space + "  const auto rhs = {{RHS}}->Get(i);";
+          code_ += space + "  if (lhs != rhs)";
+          code_ += space +
+                   "    return static_cast<int>(lhs > rhs) - "
+                   "static_cast<int>(lhs < rhs);";
+          code_ += space + "}";
+
+        } else if (IsStruct(elem_type)) {
+          code_ +=
+              space +
+              "for (flatbuffers::uoffset_t i = 0; i < {{LHS}}->size(); i++) {";
+          code_ += space + "  const auto lhs = {{LHS}}->Get(i);";
+          code_ += space + "  const auto rhs = {{RHS}}->Get(i);";
+          GetComparatorForStruct(*curr_field->value.type.struct_def,
+                                 space_size + 2, "lhs", "rhs");
+
+          code_ += space + "}";
+        }
+
+      } else if (is_struct) {
+        GetComparatorForStruct(*curr_field->value.type.struct_def, space_size,
+                               code_.GetValue("LHS"), code_.GetValue("RHS"));
+      }
+    }
+  }
+
   // Generate CompareWithValue method for a key field.
   void GenKeyFieldMethods(const FieldDef &field) {
     FLATBUFFERS_ASSERT(field.key);
