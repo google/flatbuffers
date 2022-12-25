@@ -86,9 +86,12 @@ void StructKeyInStructTest() {
   float test_float_array1[3] = { 1.5, 2.5, 0 };
   float test_float_array2[3] = { 7.5, 2.5, 0 };
   float test_float_array3[3] = { 1.5, 2.5, -1 };
-  apples.push_back(Apple(2,Color(flatbuffers::make_span(test_float_array1), 3)));
-  apples.push_back(Apple(3,Color(flatbuffers::make_span(test_float_array2), 3)));
-  apples.push_back(Apple(1,Color(flatbuffers::make_span(test_float_array3), 1)));
+  apples.push_back(
+      Apple(2, Color(flatbuffers::make_span(test_float_array1), 3)));
+  apples.push_back(
+      Apple(3, Color(flatbuffers::make_span(test_float_array2), 3)));
+  apples.push_back(
+      Apple(1, Color(flatbuffers::make_span(test_float_array3), 1)));
 
   auto apples_vec = fbb.CreateVectorOfSortedStructs(&apples);
   auto test_string = fbb.CreateString("TEST");
@@ -108,7 +111,6 @@ void StructKeyInStructTest() {
 
   auto sorted_apple_vec = foo_table->f();
   TEST_EQ(sorted_apple_vec->Get(0)->tag(), 1);
-
 }
 
 void NestedStructKeyInStructTest() {
@@ -118,10 +120,12 @@ void NestedStructKeyInStructTest() {
   float test_float_array2[3] = { 1.5, 2.5, 0 };
   float test_float_array3[3] = { 1.5, 2.5, -1 };
 
-  fruits.push_back(Fruit(Apple(2, Color(flatbuffers::make_span(test_float_array1), 2)),2));
-  fruits.push_back(Fruit(Apple(2, Color(flatbuffers::make_span(test_float_array2), 1)),1));
-  fruits.push_back(Fruit(Apple(2, Color(flatbuffers::make_span(test_float_array3), 3)),3));
-
+  fruits.push_back(
+      Fruit(Apple(2, Color(flatbuffers::make_span(test_float_array1), 2)), 2));
+  fruits.push_back(
+      Fruit(Apple(2, Color(flatbuffers::make_span(test_float_array2), 1)), 1));
+  fruits.push_back(
+      Fruit(Apple(2, Color(flatbuffers::make_span(test_float_array3), 3)), 3));
 
   auto test_string = fbb.CreateString("TEST");
   auto fruits_vec = fbb.CreateVectorOfSortedStructs(&fruits);
@@ -140,10 +144,9 @@ void NestedStructKeyInStructTest() {
   TEST_EQ(sorted_fruit_vec->Get(0)->b(), 3);
   TEST_EQ(sorted_fruit_vec->Get(1)->b(), 1);
   TEST_EQ(sorted_fruit_vec->Get(2)->b(), 2);
-
 }
 
-void FixedSizedStructArrayKeyInStructTest(){
+void FixedSizedStructArrayKeyInStructTest() {
   flatbuffers::FlatBufferBuilder fbb;
   std::vector<Grain> grains;
   uint8_t test_char_array1[3] = { 'u', 's', 'a' };
@@ -153,9 +156,21 @@ void FixedSizedStructArrayKeyInStructTest(){
   uint8_t test_char_array5[3] = { 'i', 'n', 'd' };
   uint8_t test_char_array6[3] = { 'i', 't', 'a' };
 
-  Rice test_rice_array1[3] = {Rice(flatbuffers::make_span(test_char_array1), 2),Rice(flatbuffers::make_span(test_char_array2), 1),Rice(flatbuffers::make_span(test_char_array3), 2)};
-  Rice test_rice_array2[3] = {Rice(flatbuffers::make_span(test_char_array4), 2),Rice(flatbuffers::make_span(test_char_array5), 1),Rice(flatbuffers::make_span(test_char_array6), 2)};
-  Rice test_rice_array3[3] = {Rice(flatbuffers::make_span(test_char_array4), 2),Rice(flatbuffers::make_span(test_char_array6), 1),Rice(flatbuffers::make_span(test_char_array1), 2)};
+  Rice test_rice_array1[3] = {
+    Rice(flatbuffers::make_span(test_char_array1), 2),
+    Rice(flatbuffers::make_span(test_char_array2), 1),
+    Rice(flatbuffers::make_span(test_char_array3), 2)
+  };
+  Rice test_rice_array2[3] = {
+    Rice(flatbuffers::make_span(test_char_array4), 2),
+    Rice(flatbuffers::make_span(test_char_array5), 1),
+    Rice(flatbuffers::make_span(test_char_array6), 2)
+  };
+  Rice test_rice_array3[3] = {
+    Rice(flatbuffers::make_span(test_char_array4), 2),
+    Rice(flatbuffers::make_span(test_char_array6), 1),
+    Rice(flatbuffers::make_span(test_char_array1), 2)
+  };
 
   grains.push_back(Grain(flatbuffers::make_span(test_rice_array1), 3));
   grains.push_back(Grain(flatbuffers::make_span(test_rice_array2), 1));
@@ -177,7 +192,6 @@ void FixedSizedStructArrayKeyInStructTest(){
   TEST_EQ(sorted_grain_vec->Get(0)->tag(), 1);
   TEST_EQ(sorted_grain_vec->Get(1)->tag(), 2);
   TEST_EQ(sorted_grain_vec->Get(2)->tag(), 3);
-
 }
 
 }  // namespace tests

@@ -2235,10 +2235,11 @@ class CppGenerator : public BaseGenerator {
       }
     }
   }
-  void GetComparatorForStruct(const StructDef &struct_def,
-  size_t space_size, const std::string lhs_struct, std::string rhs_struct){
-    code_.SetValue("LHS_PREFIX",lhs_struct);
-    code_.SetValue("RHS_PREFIX",rhs_struct);
+  void GetComparatorForStruct(const StructDef &struct_def, size_t space_size,
+                              const std::string lhs_struct,
+                              std::string rhs_struct) {
+    code_.SetValue("LHS_PREFIX", lhs_struct);
+    code_.SetValue("RHS_PREFIX", rhs_struct);
     std::string space(space_size, ' ');
     for (const auto &curr_field : struct_def.fields.vec) {
       const bool is_scalar = IsScalar(curr_field->value.type.base_type);
@@ -2248,39 +2249,46 @@ class CppGenerator : public BaseGenerator {
       code_.SetValue("LHS", lhs_struct + "_" + Name(*curr_field));
       code_.SetValue("RHS", rhs_struct + "_" + Name(*curr_field));
 
-      code_ += space + "const auto {{LHS}} = {{LHS_PREFIX}}.{{CURR_FIELD_NAME}}();";
-      code_ += space + "const auto {{RHS}} = {{RHS_PREFIX}}.{{CURR_FIELD_NAME}}();";
+      code_ +=
+          space + "const auto {{LHS}} = {{LHS_PREFIX}}.{{CURR_FIELD_NAME}}();";
+      code_ +=
+          space + "const auto {{RHS}} = {{RHS_PREFIX}}.{{CURR_FIELD_NAME}}();";
       if (is_scalar) {
         code_ += space + "if ({{LHS}} !=  {{RHS}})";
-        code_ += space + "  return static_cast<int>({{LHS}} > {{RHS}}) - static_cast<int>({{LHS}} < {{RHS}});";
+        code_ += space +
+                 "  return static_cast<int>({{LHS}} > {{RHS}}) - "
+                 "static_cast<int>({{LHS}} < {{RHS}});";
       } else if (is_array) {
         const auto &elem_type = curr_field->value.type.VectorType();
-        if (IsScalar(elem_type.base_type)){
-          code_ += space + "for (flatbuffers::uoffset_t i = 0; i < {{LHS}}->size(); i++) {";
+        if (IsScalar(elem_type.base_type)) {
+          code_ +=
+              space +
+              "for (flatbuffers::uoffset_t i = 0; i < {{LHS}}->size(); i++) {";
           code_ += space + "  const auto lhs = {{LHS}}->Get(i);";
           code_ += space + "  const auto rhs = {{RHS}}->Get(i);";
           code_ += space + "  if (lhs != rhs)";
-          code_ += space + "    return static_cast<int>(lhs > rhs) - static_cast<int>(lhs < rhs);";
+          code_ += space +
+                   "    return static_cast<int>(lhs > rhs) - "
+                   "static_cast<int>(lhs < rhs);";
           code_ += space + "}";
 
-        } else if (IsStruct(elem_type)){
-          code_ += space + "for (flatbuffers::uoffset_t i = 0; i < {{LHS}}->size(); i++) {";
+        } else if (IsStruct(elem_type)) {
+          code_ +=
+              space +
+              "for (flatbuffers::uoffset_t i = 0; i < {{LHS}}->size(); i++) {";
           code_ += space + "  const auto lhs = {{LHS}}->Get(i);";
           code_ += space + "  const auto rhs = {{RHS}}->Get(i);";
-          GetComparatorForStruct(*curr_field->value.type.struct_def,space_size + 2,"lhs","rhs");
+          GetComparatorForStruct(*curr_field->value.type.struct_def,
+                                 space_size + 2, "lhs", "rhs");
 
           code_ += space + "}";
         }
 
       } else if (is_struct) {
-        GetComparatorForStruct(*curr_field->value.type.struct_def,space_size,code_.GetValue("LHS"),code_.GetValue("RHS"));
+        GetComparatorForStruct(*curr_field->value.type.struct_def, space_size,
+                               code_.GetValue("LHS"), code_.GetValue("RHS"));
       }
-
     }
-
-
-
-
   }
 
   // Generate CompareWithValue method for a key field.
@@ -2300,7 +2308,7 @@ class CppGenerator : public BaseGenerator {
         code_ += "    return KeyCompareWithValue(o->{{FIELD_NAME}}()) < 0;";
       }
     } else if (is_struct) {
-        code_ += "    return KeyCompareWithValue(o->{{FIELD_NAME}}()) < 0;";
+      code_ += "    return KeyCompareWithValue(o->{{FIELD_NAME}}()) < 0;";
     } else {
       code_ += "    return {{FIELD_NAME}}() < o->{{FIELD_NAME}}();";
     }
@@ -2312,14 +2320,14 @@ class CppGenerator : public BaseGenerator {
     } else if (is_array) {
       const auto &elem_type = field.value.type.VectorType();
       std::string input_type = "flatbuffers::Array<" +
-                                 GenTypeGet(elem_type, " ", "", " ", false) + ", " +
-                                 NumToString(elem_type.fixed_length) + ">";
+                               GenTypeGet(elem_type, " ", "", " ", false) +
+                               ", " + NumToString(elem_type.fixed_length) + ">";
       code_.SetValue("INPUT_TYPE", input_type);
       code_ +=
           "  int KeyCompareWithValue(const {{INPUT_TYPE}} *_{{FIELD_NAME}}"
           ") const {";
       code_ +=
-            "    const {{INPUT_TYPE}} *curr_{{FIELD_NAME}} = {{FIELD_NAME}}();";
+          "    const {{INPUT_TYPE}} *curr_{{FIELD_NAME}} = {{FIELD_NAME}}();";
       code_ +=
           "    for (flatbuffers::uoffset_t i = 0; i < "
           "curr_{{FIELD_NAME}}->size(); i++) {";
@@ -2331,25 +2339,33 @@ class CppGenerator : public BaseGenerator {
         code_ +=
             "        return static_cast<int>(lhs > rhs)"
             " - static_cast<int>(lhs < rhs);";
-      }
-      else if (IsStruct(elem_type)) {
-        code_ += "      const auto lhs_{{FIELD_NAME}} = *(curr_{{FIELD_NAME}}->Get(i));";
-        code_ += "      const auto rhs_{{FIELD_NAME}} = *(_{{FIELD_NAME}}->Get(i));";
-        GetComparatorForStruct(*elem_type.struct_def,6,"lhs_"+code_.GetValue("FIELD_NAME"),"rhs_" + code_.GetValue("FIELD_NAME"));
+      } else if (IsStruct(elem_type)) {
+        code_ +=
+            "      const auto lhs_{{FIELD_NAME}} = "
+            "*(curr_{{FIELD_NAME}}->Get(i));";
+        code_ +=
+            "      const auto rhs_{{FIELD_NAME}} = *(_{{FIELD_NAME}}->Get(i));";
+        GetComparatorForStruct(*elem_type.struct_def, 6,
+                               "lhs_" + code_.GetValue("FIELD_NAME"),
+                               "rhs_" + code_.GetValue("FIELD_NAME"));
       }
       code_ += "    }";
       code_ += "    return 0;";
-    } else if (is_struct){
+    } else if (is_struct) {
       const auto *struct_def = field.value.type.struct_def;
-      code_.SetValue("INPUT_TYPE", GenTypeGet(field.value.type, " ", "", " ", false));
-      code_ += "  int KeyCompareWithValue(const {{INPUT_TYPE}} &_{{FIELD_NAME}}) const {";
+      code_.SetValue("INPUT_TYPE",
+                     GenTypeGet(field.value.type, " ", "", " ", false));
+      code_ +=
+          "  int KeyCompareWithValue(const {{INPUT_TYPE}} &_{{FIELD_NAME}}) "
+          "const {";
       code_ += "    const auto lhs_{{FIELD_NAME}} = {{FIELD_NAME}}();";
       code_ += "    const auto rhs_{{FIELD_NAME}} = _{{FIELD_NAME}};";
-      GetComparatorForStruct(*struct_def, 4, "lhs_" + code_.GetValue("FIELD_NAME"), "rhs_" + code_.GetValue("FIELD_NAME"));
+      GetComparatorForStruct(*struct_def, 4,
+                             "lhs_" + code_.GetValue("FIELD_NAME"),
+                             "rhs_" + code_.GetValue("FIELD_NAME"));
       code_ += "    return 0;";
 
-    }
-    else {
+    } else {
       FLATBUFFERS_ASSERT(IsScalar(field.value.type.base_type));
       auto type = GenTypeBasic(field.value.type, false);
       if (opts_.scoped_enums && field.value.type.enum_def &&
