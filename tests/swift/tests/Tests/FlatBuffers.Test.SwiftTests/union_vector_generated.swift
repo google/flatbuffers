@@ -330,8 +330,6 @@ public struct Attacker: FlatBufferObject, Verifiable, ObjectAPIPacker {
 
   public static var id: String { "MOVI" } 
   public static func finish(_ fbb: inout FlatBufferBuilder, end: Offset, prefix: Bool = false) { fbb.finish(offset: end, fileId: Attacker.id, addPrefix: prefix) }
-  public static func getRootAsAttacker(bb: ByteBuffer) -> Attacker { return Attacker(Table(bb: bb, position: Int32(bb.read(def: UOffset.self, position: bb.reader)) + Int32(bb.reader))) }
-
   private init(_ t: Table) { _accessor = t }
   public init(_ bb: ByteBuffer, o: Int32) { _accessor = Table(bb: bb, position: o) }
 
@@ -413,8 +411,6 @@ public struct HandFan: FlatBufferObject, Verifiable, ObjectAPIPacker {
 
   public static var id: String { "MOVI" } 
   public static func finish(_ fbb: inout FlatBufferBuilder, end: Offset, prefix: Bool = false) { fbb.finish(offset: end, fileId: HandFan.id, addPrefix: prefix) }
-  public static func getRootAsHandFan(bb: ByteBuffer) -> HandFan { return HandFan(Table(bb: bb, position: Int32(bb.read(def: UOffset.self, position: bb.reader)) + Int32(bb.reader))) }
-
   private init(_ t: Table) { _accessor = t }
   public init(_ bb: ByteBuffer, o: Int32) { _accessor = Table(bb: bb, position: o) }
 
@@ -496,8 +492,6 @@ public struct Movie: FlatBufferObject, Verifiable, ObjectAPIPacker {
 
   public static var id: String { "MOVI" } 
   public static func finish(_ fbb: inout FlatBufferBuilder, end: Offset, prefix: Bool = false) { fbb.finish(offset: end, fileId: Movie.id, addPrefix: prefix) }
-  public static func getRootAsMovie(bb: ByteBuffer) -> Movie { return Movie(Table(bb: bb, position: Int32(bb.read(def: UOffset.self, position: bb.reader)) + Int32(bb.reader))) }
-
   private init(_ t: Table) { _accessor = t }
   public init(_ bb: ByteBuffer, o: Int32) { _accessor = Table(bb: bb, position: o) }
 
