@@ -2329,7 +2329,7 @@ class CppGenerator : public BaseGenerator {
       code_ += "    return *{{FIELD_NAME}}() < *o->{{FIELD_NAME}}();";
     } else if (is_array || is_struct) {
       code_ += "    return KeyCompareWithValue(o->{{FIELD_NAME}}()) < 0;";
-    } else {
+    }else {
       code_ += "    return {{FIELD_NAME}}() < o->{{FIELD_NAME}}();";
     }
     code_ += "  }";

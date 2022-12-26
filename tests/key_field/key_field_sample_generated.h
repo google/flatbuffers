@@ -187,6 +187,7 @@ inline bool operator==(const Bar &lhs, const Bar &rhs) {
       (lhs.b() == rhs.b());
 }
 
+<<<<<<< HEAD
 inline bool operator!=(const Bar &lhs, const Bar &rhs) {
     return !(lhs == rhs);
 }
@@ -475,6 +476,289 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) Grain FLATBUFFERS_FINAL_CLASS {
 };
 FLATBUFFERS_STRUCT_END(Grain, 28);
 
+<<<<<<< HEAD
+=======
+inline bool operator==(const Grain &lhs, const Grain &rhs) {
+  return
+      (lhs.a() == rhs.a()) &&
+      (lhs.tag() == rhs.tag());
+}
+
+inline bool operator!=(const Grain &lhs, const Grain &rhs) {
+    return !(lhs == rhs);
+}
+
+
+struct FooTableT : public flatbuffers::NativeTable {
+  typedef FooTable TableType;
+  int32_t a = 0;
+  int32_t b = 0;
+  std::string c{};
+  std::vector<keyfield::sample::Baz> d{};
+  std::vector<keyfield::sample::Bar> e{};
+<<<<<<< HEAD
+  std::vector<keyfield::sample::Apple> f{};
+  std::vector<keyfield::sample::Fruit> g{};
+  std::vector<keyfield::sample::Grain> h{};
+=======
+=======
+ public:
+  Color()
+      : rgb_(),
+        tag_(0),
+        padding0__(0),
+        padding1__(0) {
+    (void)padding0__;
+    (void)padding1__;
+  }
+  Color(uint8_t _tag)
+      : rgb_(),
+        tag_(flatbuffers::EndianScalar(_tag)),
+        padding0__(0),
+        padding1__(0) {
+    (void)padding0__;
+    (void)padding1__;
+  }
+  Color(flatbuffers::span<const float, 3> _rgb, uint8_t _tag)
+      : tag_(flatbuffers::EndianScalar(_tag)),
+        padding0__(0),
+        padding1__(0) {
+    flatbuffers::CastToArray(rgb_).CopyFromSpan(_rgb);
+    (void)padding0__;
+    (void)padding1__;
+  }
+  const flatbuffers::Array<float, 3> *rgb() const {
+    return &flatbuffers::CastToArray(rgb_);
+  }
+  bool KeyCompareLessThan(const Color * const o) const {
+    return KeyCompareWithValue(o->rgb()) < 0;
+  }
+  int KeyCompareWithValue(const flatbuffers::Array<float, 3> *_rgb) const {
+    const flatbuffers::Array<float, 3> *curr_rgb = rgb();
+    for (flatbuffers::uoffset_t i = 0; i < curr_rgb->size(); i++) {
+      const auto lhs = curr_rgb->Get(i);
+      const auto rhs = _rgb->Get(i);
+      if(lhs != rhs)
+        return static_cast<int>(lhs > rhs) - static_cast<int>(lhs < rhs);
+    }
+    return 0;
+  }
+  uint8_t tag() const {
+    return flatbuffers::EndianScalar(tag_);
+  }
+>>>>>>> 6a23836b (add more unit tests)
+>>>>>>> d0c5fb5a (add more unit tests)
+};
+FLATBUFFERS_STRUCT_END(Color, 16);
+
+FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) Apple FLATBUFFERS_FINAL_CLASS {
+ private:
+  uint8_t tag_;
+  int8_t padding0__;  int16_t padding1__;
+  keyfield::sample::Color color_;
+
+ public:
+  Apple()
+      : tag_(0),
+        padding0__(0),
+        padding1__(0),
+        color_() {
+    (void)padding0__;
+    (void)padding1__;
+  }
+  Apple(uint8_t _tag, const keyfield::sample::Color &_color)
+      : tag_(flatbuffers::EndianScalar(_tag)),
+        padding0__(0),
+        padding1__(0),
+        color_(_color) {
+    (void)padding0__;
+    (void)padding1__;
+  }
+  uint8_t tag() const {
+    return flatbuffers::EndianScalar(tag_);
+  }
+  const keyfield::sample::Color &color() const {
+    return color_;
+  }
+  bool KeyCompareLessThan(const Apple * const o) const {
+    return KeyCompareWithValue(o->color()) < 0;
+  }
+  int KeyCompareWithValue(const keyfield::sample::Color  &_color) const {
+    const auto lhs_color = color();
+    const auto rhs_color = _color;
+    const auto lhs_color_rgb = lhs_color.rgb();
+    const auto rhs_color_rgb = rhs_color.rgb();
+    for (flatbuffers::uoffset_t i = 0; i < lhs_color_rgb->size(); i++) {
+      const auto lhs_color_rgb_elem = lhs_color_rgb->Get(i);
+      const auto rhs_color_rgb_elem = rhs_color_rgb->Get(i);
+      if (lhs_color_rgb_elem != rhs_color_rgb_elem)
+        return static_cast<int>(lhs_color_rgb_elem > rhs_color_rgb_elem) - static_cast<int>(lhs_color_rgb_elem < rhs_color_rgb_elem);
+    }
+    const auto lhs_color_tag = lhs_color.tag();
+    const auto rhs_color_tag = rhs_color.tag();
+    if (lhs_color_tag !=  rhs_color_tag)
+      return static_cast<int>(lhs_color_tag > rhs_color_tag) - static_cast<int>(lhs_color_tag < rhs_color_tag);
+    return 0;
+  }
+};
+FLATBUFFERS_STRUCT_END(Apple, 20);
+
+FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) Fruit FLATBUFFERS_FINAL_CLASS {
+ private:
+  keyfield::sample::Apple a_;
+  uint8_t b_;
+  int8_t padding0__;  int16_t padding1__;
+
+ public:
+  Fruit()
+      : a_(),
+        b_(0),
+        padding0__(0),
+        padding1__(0) {
+    (void)padding0__;
+    (void)padding1__;
+  }
+  Fruit(const keyfield::sample::Apple &_a, uint8_t _b)
+      : a_(_a),
+        b_(flatbuffers::EndianScalar(_b)),
+        padding0__(0),
+        padding1__(0) {
+    (void)padding0__;
+    (void)padding1__;
+  }
+  const keyfield::sample::Apple &a() const {
+    return a_;
+  }
+  bool KeyCompareLessThan(const Fruit * const o) const {
+    return KeyCompareWithValue(o->a()) < 0;
+  }
+  int KeyCompareWithValue(const keyfield::sample::Apple  &_a) const {
+    const auto lhs_a = a();
+    const auto rhs_a = _a;
+    const auto lhs_a_tag = lhs_a.tag();
+    const auto rhs_a_tag = rhs_a.tag();
+    if (lhs_a_tag !=  rhs_a_tag)
+      return static_cast<int>(lhs_a_tag > rhs_a_tag) - static_cast<int>(lhs_a_tag < rhs_a_tag);
+    const auto lhs_a_color = lhs_a.color();
+    const auto rhs_a_color = rhs_a.color();
+    const auto lhs_a_color_rgb = lhs_a_color.rgb();
+    const auto rhs_a_color_rgb = rhs_a_color.rgb();
+    for (flatbuffers::uoffset_t i = 0; i < lhs_a_color_rgb->size(); i++) {
+      const auto lhs_a_color_rgb_elem = lhs_a_color_rgb->Get(i);
+      const auto rhs_a_color_rgb_elem = rhs_a_color_rgb->Get(i);
+      if (lhs_a_color_rgb_elem != rhs_a_color_rgb_elem)
+        return static_cast<int>(lhs_a_color_rgb_elem > rhs_a_color_rgb_elem) - static_cast<int>(lhs_a_color_rgb_elem < rhs_a_color_rgb_elem);
+    }
+    const auto lhs_a_color_tag = lhs_a_color.tag();
+    const auto rhs_a_color_tag = rhs_a_color.tag();
+    if (lhs_a_color_tag !=  rhs_a_color_tag)
+      return static_cast<int>(lhs_a_color_tag > rhs_a_color_tag) - static_cast<int>(lhs_a_color_tag < rhs_a_color_tag);
+    return 0;
+  }
+  uint8_t b() const {
+    return flatbuffers::EndianScalar(b_);
+  }
+};
+FLATBUFFERS_STRUCT_END(Fruit, 24);
+
+FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) Rice FLATBUFFERS_FINAL_CLASS {
+ private:
+  uint8_t origin_[3];
+  int8_t padding0__;
+  uint32_t quantity_;
+
+ public:
+  Rice()
+      : origin_(),
+        padding0__(0),
+        quantity_(0) {
+    (void)padding0__;
+  }
+  Rice(uint32_t _quantity)
+      : origin_(),
+        padding0__(0),
+        quantity_(flatbuffers::EndianScalar(_quantity)) {
+    (void)padding0__;
+  }
+  Rice(flatbuffers::span<const uint8_t, 3> _origin, uint32_t _quantity)
+      : padding0__(0),
+        quantity_(flatbuffers::EndianScalar(_quantity)) {
+    flatbuffers::CastToArray(origin_).CopyFromSpan(_origin);
+    (void)padding0__;
+  }
+  const flatbuffers::Array<uint8_t, 3> *origin() const {
+    return &flatbuffers::CastToArray(origin_);
+  }
+  uint32_t quantity() const {
+    return flatbuffers::EndianScalar(quantity_);
+  }
+};
+FLATBUFFERS_STRUCT_END(Rice, 8);
+
+FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) Grain FLATBUFFERS_FINAL_CLASS {
+ private:
+  keyfield::sample::Rice a_[3];
+  uint8_t tag_;
+  int8_t padding0__;  int16_t padding1__;
+
+ public:
+  Grain()
+      : a_(),
+        tag_(0),
+        padding0__(0),
+        padding1__(0) {
+    (void)padding0__;
+    (void)padding1__;
+  }
+  Grain(uint8_t _tag)
+      : a_(),
+        tag_(flatbuffers::EndianScalar(_tag)),
+        padding0__(0),
+        padding1__(0) {
+    (void)padding0__;
+    (void)padding1__;
+  }
+  Grain(flatbuffers::span<const keyfield::sample::Rice, 3> _a, uint8_t _tag)
+      : tag_(flatbuffers::EndianScalar(_tag)),
+        padding0__(0),
+        padding1__(0) {
+    flatbuffers::CastToArray(a_).CopyFromSpan(_a);
+    (void)padding0__;
+    (void)padding1__;
+  }
+  const flatbuffers::Array<keyfield::sample::Rice, 3> *a() const {
+    return &flatbuffers::CastToArray(a_);
+  }
+  bool KeyCompareLessThan(const Grain * const o) const {
+    return KeyCompareWithValue(o->a()) < 0;
+  }
+  int KeyCompareWithValue(const flatbuffers::Array<keyfield::sample::Rice , 3> *_a) const {
+    const flatbuffers::Array<keyfield::sample::Rice , 3> *curr_a = a();
+    for (flatbuffers::uoffset_t i = 0; i < curr_a->size(); i++) {
+      const auto lhs_a = *(curr_a->Get(i));
+      const auto rhs_a = *(_a->Get(i));
+      const auto lhs_a_origin = lhs_a.origin();
+      const auto rhs_a_origin = rhs_a.origin();
+      for (flatbuffers::uoffset_t i = 0; i < lhs_a_origin->size(); i++) {
+        const auto lhs_a_origin_elem = lhs_a_origin->Get(i);
+        const auto rhs_a_origin_elem = rhs_a_origin->Get(i);
+        if (lhs_a_origin_elem != rhs_a_origin_elem)
+          return static_cast<int>(lhs_a_origin_elem > rhs_a_origin_elem) - static_cast<int>(lhs_a_origin_elem < rhs_a_origin_elem);
+      }
+      const auto lhs_a_quantity = lhs_a.quantity();
+      const auto rhs_a_quantity = rhs_a.quantity();
+      if (lhs_a_quantity !=  rhs_a_quantity)
+        return static_cast<int>(lhs_a_quantity > rhs_a_quantity) - static_cast<int>(lhs_a_quantity < rhs_a_quantity);
+    }
+    return 0;
+  }
+  uint8_t tag() const {
+    return flatbuffers::EndianScalar(tag_);
+  }
+};
+FLATBUFFERS_STRUCT_END(Grain, 28);
+
+>>>>>>> 5f14cb31 (add more unit tests)
 struct FooTable FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   typedef FooTableT NativeTableType;
   typedef FooTableBuilder Builder;
