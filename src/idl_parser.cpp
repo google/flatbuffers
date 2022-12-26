@@ -4710,27 +4710,10 @@ bool Parser::CompleteMissingField(FieldDef* absent_field, const StructDef &struc
         break;
     }
   }
-  if (auto typeName = LookupDynamicFieldType(absent_field, &struct_def))
+  if (LookupDynamicFieldType(absent_field, &struct_def))
   {
-    Type type;
-    if (ResolveDynamicType(typeName, type, absent_field))
-    {
-      if (type.struct_def && !type.struct_def->fixed)
-      {
-        return true;
-      }
-
-      // we want zero-initialized default pin data
-      Value val = absent_field->value;
-      std::vector<uint8_t> empty(type.base_type == BASE_TYPE_STRING ? 1 : InlineSize(type));
-      builder_.ForceVectorAlignment(empty.size(), sizeof(uint8_t), type.base_type == BASE_TYPE_STRING ? 1 : InlineAlignment(type));
-      auto off = builder_.CreateVector(empty);
-      val.constant = NumToString(off.o);
-
-      found = true;
-      fieldn_outer++;
-      field_stack_.insert(elem.base(), std::make_pair(val, absent_field));
-    }
+    // Do not complete dynamic fields any more.
+    return true;
   }
   // auto-complete missing fields of a struct
   if (!found && struct_def.fixed)
