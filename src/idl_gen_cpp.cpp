@@ -2271,8 +2271,8 @@ class CppGenerator : public BaseGenerator {
       } else if (is_array) {
         const auto &elem_type = curr_field->value.type.VectorType();
         code_ +=
-              space +
-              "for (flatbuffers::uoffset_t i = 0; i < {{LHS}}->size(); i++) {";
+            space +
+            "for (flatbuffers::uoffset_t i = 0; i < {{LHS}}->size(); i++) {";
         code_ += space + "  const auto {{LHS}}_elem = {{LHS}}->Get(i);";
         code_ += space + "  const auto {{RHS}}_elem = {{RHS}}->Get(i);";
         if (IsScalar(elem_type.base_type)) {
@@ -2283,9 +2283,9 @@ class CppGenerator : public BaseGenerator {
           code_ += space + "}";
 
         } else if (IsStruct(elem_type)) {
-
-          GenComparatorForStruct(*curr_field->value.type.struct_def,
-                                 space_size + 2, code_.GetValue("LHS") + "_elem", code_.GetValue("RHS") + "_elem");
+          GenComparatorForStruct(
+              *curr_field->value.type.struct_def, space_size + 2,
+              code_.GetValue("LHS") + "_elem", code_.GetValue("RHS") + "_elem");
 
           code_ += space + "}";
         }
@@ -2311,7 +2311,7 @@ class CppGenerator : public BaseGenerator {
       code_ += "    return *{{FIELD_NAME}}() < *o->{{FIELD_NAME}}();";
     } else if (is_array || is_struct) {
       code_ += "    return KeyCompareWithValue(o->{{FIELD_NAME}}()) < 0;";
-    }else {
+    } else {
       code_ += "    return {{FIELD_NAME}}() < o->{{FIELD_NAME}}();";
     }
     code_ += "  }";
