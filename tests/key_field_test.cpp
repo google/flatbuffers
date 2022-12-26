@@ -111,6 +111,11 @@ void StructKeyInStructTest() {
 
   auto sorted_apple_vec = foo_table->f();
   TEST_EQ(sorted_apple_vec->Get(0)->tag(), 1);
+  TEST_EQ(sorted_apple_vec->Get(1)->tag(), 2);
+  TEST_EQ(sorted_apple_vec->Get(2)->tag(), 3);
+  TEST_EQ(sorted_apple_vec->LookupByKey(Color(flatbuffers::make_span(test_float_array1), 3))->tag(), 2);
+  TEST_EQ(sorted_apple_vec->LookupByKey(Color(flatbuffers::make_span(test_float_array1), 0)), static_cast<const Apple *>(nullptr));
+
 }
 
 void NestedStructKeyInStructTest() {
@@ -144,6 +149,9 @@ void NestedStructKeyInStructTest() {
   TEST_EQ(sorted_fruit_vec->Get(0)->b(), 3);
   TEST_EQ(sorted_fruit_vec->Get(1)->b(), 1);
   TEST_EQ(sorted_fruit_vec->Get(2)->b(), 2);
+  TEST_EQ(sorted_fruit_vec->LookupByKey(Apple(2, Color(flatbuffers::make_span(test_float_array2), 1)))->b(), 1);
+  TEST_EQ(sorted_fruit_vec->LookupByKey(Apple(1, Color(flatbuffers::make_span(test_float_array2), 1))), static_cast<const Fruit *>(nullptr));
+
 }
 
 void FixedSizedStructArrayKeyInStructTest() {
@@ -192,6 +200,14 @@ void FixedSizedStructArrayKeyInStructTest() {
   TEST_EQ(sorted_grain_vec->Get(0)->tag(), 1);
   TEST_EQ(sorted_grain_vec->Get(1)->tag(), 2);
   TEST_EQ(sorted_grain_vec->Get(2)->tag(), 3);
+  TEST_EQ(sorted_grain_vec->LookupByKey(&flatbuffers::CastToArray(test_rice_array1))->tag(), 3);
+  Rice test_rice_array[3] = {
+    Rice(flatbuffers::make_span(test_char_array3), 2),
+    Rice(flatbuffers::make_span(test_char_array2), 1),
+    Rice(flatbuffers::make_span(test_char_array1), 2)
+  };
+  TEST_EQ(sorted_grain_vec->LookupByKey(&flatbuffers::CastToArray(test_rice_array)), static_cast<const Grain *>(nullptr));
+
 }
 
 }  // namespace tests

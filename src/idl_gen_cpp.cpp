@@ -2245,19 +2245,19 @@ class CppGenerator : public BaseGenerator {
     }
   }
 
-  void GetComparatorForStruct(const StructDef &struct_def, size_t space_size,
-                              const std::string lhs_struct,
-                              std::string rhs_struct) {
-    code_.SetValue("LHS_PREFIX", lhs_struct);
-    code_.SetValue("RHS_PREFIX", rhs_struct);
+  void GenComparatorForStruct(const StructDef &struct_def, size_t space_size,
+                              const std::string lhs_struct_literal,
+                              const std::string rhs_struct_literal) {
+    code_.SetValue("LHS_PREFIX", lhs_struct_literal);
+    code_.SetValue("RHS_PREFIX", rhs_struct_literal);
     std::string space(space_size, ' ');
     for (const auto &curr_field : struct_def.fields.vec) {
       const bool is_scalar = IsScalar(curr_field->value.type.base_type);
       const bool is_array = IsArray(curr_field->value.type);
       const bool is_struct = IsStruct(curr_field->value.type);
       code_.SetValue("CURR_FIELD_NAME", Name(*curr_field));
-      code_.SetValue("LHS", lhs_struct + "_" + Name(*curr_field));
-      code_.SetValue("RHS", rhs_struct + "_" + Name(*curr_field));
+      code_.SetValue("LHS", lhs_struct_literal + "_" + Name(*curr_field));
+      code_.SetValue("RHS", rhs_struct_literal + "_" + Name(*curr_field));
 
       code_ +=
           space + "const auto {{LHS}} = {{LHS_PREFIX}}.{{CURR_FIELD_NAME}}();";
@@ -2270,32 +2270,28 @@ class CppGenerator : public BaseGenerator {
                  "static_cast<int>({{LHS}} < {{RHS}});";
       } else if (is_array) {
         const auto &elem_type = curr_field->value.type.VectorType();
-        if (IsScalar(elem_type.base_type)) {
-          code_ +=
+        code_ +=
               space +
               "for (flatbuffers::uoffset_t i = 0; i < {{LHS}}->size(); i++) {";
-          code_ += space + "  const auto lhs = {{LHS}}->Get(i);";
-          code_ += space + "  const auto rhs = {{RHS}}->Get(i);";
-          code_ += space + "  if (lhs != rhs)";
+        code_ += space + "  const auto {{LHS}}_elem = {{LHS}}->Get(i);";
+        code_ += space + "  const auto {{RHS}}_elem = {{RHS}}->Get(i);";
+        if (IsScalar(elem_type.base_type)) {
+          code_ += space + "  if ({{LHS}}_elem != {{RHS}}_elem)";
           code_ += space +
-                   "    return static_cast<int>(lhs > rhs) - "
-                   "static_cast<int>(lhs < rhs);";
+                   "    return static_cast<int>({{LHS}}_elem > {{RHS}}_elem) - "
+                   "static_cast<int>({{LHS}}_elem < {{RHS}}_elem);";
           code_ += space + "}";
 
         } else if (IsStruct(elem_type)) {
-          code_ +=
-              space +
-              "for (flatbuffers::uoffset_t i = 0; i < {{LHS}}->size(); i++) {";
-          code_ += space + "  const auto lhs = {{LHS}}->Get(i);";
-          code_ += space + "  const auto rhs = {{RHS}}->Get(i);";
-          GetComparatorForStruct(*curr_field->value.type.struct_def,
-                                 space_size + 2, "lhs", "rhs");
+
+          GenComparatorForStruct(*curr_field->value.type.struct_def,
+                                 space_size + 2, code_.GetValue("LHS") + "_elem", code_.GetValue("RHS") + "_elem");
 
           code_ += space + "}";
         }
 
       } else if (is_struct) {
-        GetComparatorForStruct(*curr_field->value.type.struct_def, space_size,
+        GenComparatorForStruct(*curr_field->value.type.struct_def, space_size,
                                code_.GetValue("LHS"), code_.GetValue("RHS"));
       }
     }
@@ -2307,30 +2303,27 @@ class CppGenerator : public BaseGenerator {
     const bool is_string = IsString(field.value.type);
     const bool is_array = IsArray(field.value.type);
     const bool is_struct = IsStruct(field.value.type);
+    // Generate KeyCompareLessThan function
     code_ +=
         "  bool KeyCompareLessThan(const {{STRUCT_NAME}} * const o) const {";
     if (is_string) {
       // use operator< of ::flatbuffers::String
       code_ += "    return *{{FIELD_NAME}}() < *o->{{FIELD_NAME}}();";
-    } else if (is_array) {
-      const auto &elem_type = field.value.type.VectorType();
-      if (IsScalar(elem_type.base_type) || IsStruct(elem_type)) {
-        code_ += "    return KeyCompareWithValue(o->{{FIELD_NAME}}()) < 0;";
-      }
-    } else if (is_struct) {
+    } else if (is_array || is_struct) {
       code_ += "    return KeyCompareWithValue(o->{{FIELD_NAME}}()) < 0;";
-    } else {
+    }else {
       code_ += "    return {{FIELD_NAME}}() < o->{{FIELD_NAME}}();";
     }
     code_ += "  }";
 
+    // Generate KeyCompareWithValue function
     if (is_string) {
       code_ += "  int KeyCompareWithValue(const char *_{{FIELD_NAME}}) const {";
       code_ += "    return strcmp({{FIELD_NAME}}()->c_str(), _{{FIELD_NAME}});";
     } else if (is_array) {
       const auto &elem_type = field.value.type.VectorType();
       std::string input_type = "flatbuffers::Array<" +
-                               GenTypeGet(elem_type, " ", "", " ", false) +
+                               GenTypeGet(elem_type, "", "", " ", false) +
                                ", " + NumToString(elem_type.fixed_length) + ">";
       code_.SetValue("INPUT_TYPE", input_type);
       code_ +=
@@ -2355,7 +2348,7 @@ class CppGenerator : public BaseGenerator {
             "*(curr_{{FIELD_NAME}}->Get(i));";
         code_ +=
             "      const auto rhs_{{FIELD_NAME}} = *(_{{FIELD_NAME}}->Get(i));";
-        GetComparatorForStruct(*elem_type.struct_def, 6,
+        GenComparatorForStruct(*elem_type.struct_def, 6,
                                "lhs_" + code_.GetValue("FIELD_NAME"),
                                "rhs_" + code_.GetValue("FIELD_NAME"));
       }
@@ -2370,7 +2363,7 @@ class CppGenerator : public BaseGenerator {
           "const {";
       code_ += "    const auto lhs_{{FIELD_NAME}} = {{FIELD_NAME}}();";
       code_ += "    const auto rhs_{{FIELD_NAME}} = _{{FIELD_NAME}};";
-      GetComparatorForStruct(*struct_def, 4,
+      GenComparatorForStruct(*struct_def, 4,
                              "lhs_" + code_.GetValue("FIELD_NAME"),
                              "rhs_" + code_.GetValue("FIELD_NAME"));
       code_ += "    return 0;";

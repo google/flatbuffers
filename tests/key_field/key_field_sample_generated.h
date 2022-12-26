@@ -228,10 +228,10 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) Apple FLATBUFFERS_FINAL_CLASS {
     const auto lhs_color_rgb = lhs_color.rgb();
     const auto rhs_color_rgb = rhs_color.rgb();
     for (flatbuffers::uoffset_t i = 0; i < lhs_color_rgb->size(); i++) {
-      const auto lhs = lhs_color_rgb->Get(i);
-      const auto rhs = rhs_color_rgb->Get(i);
-      if (lhs != rhs)
-        return static_cast<int>(lhs > rhs) - static_cast<int>(lhs < rhs);
+      const auto lhs_color_rgb_elem = lhs_color_rgb->Get(i);
+      const auto rhs_color_rgb_elem = rhs_color_rgb->Get(i);
+      if (lhs_color_rgb_elem != rhs_color_rgb_elem)
+        return static_cast<int>(lhs_color_rgb_elem > rhs_color_rgb_elem) - static_cast<int>(lhs_color_rgb_elem < rhs_color_rgb_elem);
     }
     const auto lhs_color_tag = lhs_color.tag();
     const auto rhs_color_tag = rhs_color.tag();
@@ -283,10 +283,10 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) Fruit FLATBUFFERS_FINAL_CLASS {
     const auto lhs_a_color_rgb = lhs_a_color.rgb();
     const auto rhs_a_color_rgb = rhs_a_color.rgb();
     for (flatbuffers::uoffset_t i = 0; i < lhs_a_color_rgb->size(); i++) {
-      const auto lhs = lhs_a_color_rgb->Get(i);
-      const auto rhs = rhs_a_color_rgb->Get(i);
-      if (lhs != rhs)
-        return static_cast<int>(lhs > rhs) - static_cast<int>(lhs < rhs);
+      const auto lhs_a_color_rgb_elem = lhs_a_color_rgb->Get(i);
+      const auto rhs_a_color_rgb_elem = rhs_a_color_rgb->Get(i);
+      if (lhs_a_color_rgb_elem != rhs_a_color_rgb_elem)
+        return static_cast<int>(lhs_a_color_rgb_elem > rhs_a_color_rgb_elem) - static_cast<int>(lhs_a_color_rgb_elem < rhs_a_color_rgb_elem);
     }
     const auto lhs_a_color_tag = lhs_a_color.tag();
     const auto rhs_a_color_tag = rhs_a_color.tag();
@@ -379,10 +379,10 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) Grain FLATBUFFERS_FINAL_CLASS {
       const auto lhs_a_origin = lhs_a.origin();
       const auto rhs_a_origin = rhs_a.origin();
       for (flatbuffers::uoffset_t i = 0; i < lhs_a_origin->size(); i++) {
-        const auto lhs = lhs_a_origin->Get(i);
-        const auto rhs = rhs_a_origin->Get(i);
-        if (lhs != rhs)
-          return static_cast<int>(lhs > rhs) - static_cast<int>(lhs < rhs);
+        const auto lhs_a_origin_elem = lhs_a_origin->Get(i);
+        const auto rhs_a_origin_elem = rhs_a_origin->Get(i);
+        if (lhs_a_origin_elem != rhs_a_origin_elem)
+          return static_cast<int>(lhs_a_origin_elem > rhs_a_origin_elem) - static_cast<int>(lhs_a_origin_elem < rhs_a_origin_elem);
       }
       const auto lhs_a_quantity = lhs_a.quantity();
       const auto rhs_a_quantity = rhs_a.quantity();
