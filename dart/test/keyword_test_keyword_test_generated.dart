@@ -298,15 +298,25 @@ class Table2 {
       default: return null;
     }
   }
+  KeywordsInUnionTypeId? get constexprType => KeywordsInUnionTypeId._createOrNull(const fb.Uint8Reader().vTableGetNullable(_bc, _bcOffset, 8));
+  dynamic get constexpr {
+    switch (constexprType?.value) {
+      case 1: return KeywordsInTable.reader.vTableGetNullable(_bc, _bcOffset, 10);
+      case 2: return KeywordsInTable.reader.vTableGetNullable(_bc, _bcOffset, 10);
+      default: return null;
+    }
+  }
 
   @override
   String toString() {
-    return 'Table2{typeType: ${typeType}, type: ${type}}';
+    return 'Table2{typeType: ${typeType}, type: ${type}, constexprType: ${constexprType}, constexpr: ${constexpr}}';
   }
 
   Table2T unpack() => Table2T(
       typeType: typeType,
-      type: type);
+      type: type,
+      constexprType: constexprType,
+      constexpr: constexpr);
 
   static int pack(fb.Builder fbBuilder, Table2T? object) {
     if (object == null) return 0;
@@ -317,23 +327,30 @@ class Table2 {
 class Table2T implements fb.Packable {
   KeywordsInUnionTypeId? typeType;
   dynamic type;
+  KeywordsInUnionTypeId? constexprType;
+  dynamic constexpr;
 
   Table2T({
       this.typeType,
-      this.type});
+      this.type,
+      this.constexprType,
+      this.constexpr});
 
   @override
   int pack(fb.Builder fbBuilder) {
     final int? typeOffset = type?.pack(fbBuilder);
-    fbBuilder.startTable(2);
+    final int? constexprOffset = constexpr?.pack(fbBuilder);
+    fbBuilder.startTable(4);
     fbBuilder.addUint8(0, typeType?.value);
     fbBuilder.addOffset(1, typeOffset);
+    fbBuilder.addUint8(2, constexprType?.value);
+    fbBuilder.addOffset(3, constexprOffset);
     return fbBuilder.endTable();
   }
 
   @override
   String toString() {
-    return 'Table2T{typeType: ${typeType}, type: ${type}}';
+    return 'Table2T{typeType: ${typeType}, type: ${type}, constexprType: ${constexprType}, constexpr: ${constexpr}}';
   }
 }
 
@@ -351,7 +368,7 @@ class Table2Builder {
   final fb.Builder fbBuilder;
 
   void begin() {
-    fbBuilder.startTable(2);
+    fbBuilder.startTable(4);
   }
 
   int addTypeType(KeywordsInUnionTypeId? typeType) {
@@ -360,6 +377,14 @@ class Table2Builder {
   }
   int addTypeOffset(int? offset) {
     fbBuilder.addOffset(1, offset);
+    return fbBuilder.offset;
+  }
+  int addConstexprType(KeywordsInUnionTypeId? constexprType) {
+    fbBuilder.addUint8(2, constexprType?.value);
+    return fbBuilder.offset;
+  }
+  int addConstexprOffset(int? offset) {
+    fbBuilder.addOffset(3, offset);
     return fbBuilder.offset;
   }
 
@@ -371,21 +396,30 @@ class Table2Builder {
 class Table2ObjectBuilder extends fb.ObjectBuilder {
   final KeywordsInUnionTypeId? _typeType;
   final dynamic _type;
+  final KeywordsInUnionTypeId? _constexprType;
+  final dynamic _constexpr;
 
   Table2ObjectBuilder({
     KeywordsInUnionTypeId? typeType,
     dynamic type,
+    KeywordsInUnionTypeId? constexprType,
+    dynamic constexpr,
   })
       : _typeType = typeType,
-        _type = type;
+        _type = type,
+        _constexprType = constexprType,
+        _constexpr = constexpr;
 
   /// Finish building, and store into the [fbBuilder].
   @override
   int finish(fb.Builder fbBuilder) {
     final int? typeOffset = _type?.getOrCreateOffset(fbBuilder);
-    fbBuilder.startTable(2);
+    final int? constexprOffset = _constexpr?.getOrCreateOffset(fbBuilder);
+    fbBuilder.startTable(4);
     fbBuilder.addUint8(0, _typeType?.value);
     fbBuilder.addOffset(1, typeOffset);
+    fbBuilder.addUint8(2, _constexprType?.value);
+    fbBuilder.addOffset(3, constexprOffset);
     return fbBuilder.endTable();
   }
 

@@ -30,6 +30,7 @@
 #include "fuzz_test.h"
 #include "json_test.h"
 #include "key_field_test.h"
+#include "keyword_test.h"
 #include "monster_test.h"
 #include "monster_test_generated.h"
 #include "native_inline_table_test_generated.h"
@@ -1466,6 +1467,7 @@ void DoNotRequireEofTest(const std::string &tests_data_path) {
 
 int FlatBufferTests(const std::string &tests_data_path) {
   // Run our various test suites:
+  check_keyword();
 
   std::string rawbuf;
   auto flatbuf1 = CreateFlatBufferTest(rawbuf);

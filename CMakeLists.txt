@@ -228,6 +228,7 @@ set(FlatBuffers_Tests_SRCS
   tests/json_test.cpp
   tests/key_field_test.cpp
   tests/monster_test.cpp
+  tests/keyword_test.cpp
   tests/optional_scalars_test.cpp
   tests/parser_test.cpp
   tests/proto_test.cpp

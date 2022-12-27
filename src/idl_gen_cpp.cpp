@@ -281,14 +281,19 @@ class CppGenerator : public BaseGenerator {
     return keywords_.find(name) == keywords_.end() ? name : name + "_";
   }
 
-  std::string Name(const FieldDef &field) const {
+  std::string Name(const FieldDef &field, bool escape = true) const {
     // the union type field suffix is immutable.
     static size_t union_suffix_len = strlen(UnionTypeFieldSuffix());
     const bool is_union_type = field.value.type.base_type == BASE_TYPE_UTYPE;
     // early return if no case transformation required
     if (opts_.cpp_object_api_field_case_style ==
-        IDLOptions::CaseStyle_Unchanged)
-      return EscapeKeyword(field.name);
+        IDLOptions::CaseStyle_Unchanged) {
+      if (escape) {
+        return EscapeKeyword(field.name);
+      } else {
+        return field.name;
+      }
+    }
     std::string name = field.name;
     // do not change the case style of the union type field suffix
     if (is_union_type) {
@@ -302,7 +307,11 @@ class CppGenerator : public BaseGenerator {
       name = ConvertCase(name, Case::kLowerCamel);
     // restore the union field type suffix
     if (is_union_type) name.append(UnionTypeFieldSuffix(), union_suffix_len);
-    return EscapeKeyword(name);
+    if (escape) {
+      return EscapeKeyword(field.name);
+    } else {
+      return field.name;
+    }
   }
 
   std::string Name(const Definition &def) const {
@@ -724,7 +733,10 @@ class CppGenerator : public BaseGenerator {
     };
     // clang-format on
     if (user_facing_type) {
-      if (type.enum_def) return WrapInNameSpace(*type.enum_def);
+      if (type.enum_def)
+        return WrapInNameSpace(
+            *type.enum_def,
+            keywords_.find(type.enum_def->name) == keywords_.end() ? "" : "_");
       if (type.base_type == BASE_TYPE_BOOL) return "bool";
     }
     return ctypename[type.base_type];
@@ -1827,6 +1839,7 @@ class CppGenerator : public BaseGenerator {
           }
         }
       }
+
       code_.SetValue("FIELD_TYPE", full_type);
       code_.SetValue("FIELD_NAME", Name(field));
       code_.SetValue("FIELD_DI", field_di);
@@ -2160,7 +2173,8 @@ class CppGenerator : public BaseGenerator {
   // Generate the code to call the appropriate Verify function(s) for a field.
   void GenVerifyCall(const FieldDef &field, const char *prefix) {
     code_.SetValue("PRE", prefix);
-    code_.SetValue("NAME", Name(field));
+    code_.SetValue("NAME_", Name(field));
+    code_.SetValue("NAME", Name(field, false));
     code_.SetValue("REQUIRED", field.IsRequired() ? "Required" : "");
     code_.SetValue("SIZE", GenTypeSize(field.value.type));
     code_.SetValue("OFFSET", GenFieldOffsetName(field));
@@ -2178,7 +2192,7 @@ class CppGenerator : public BaseGenerator {
         code_.SetValue("ENUM_NAME", field.value.type.enum_def->name);
         code_.SetValue("SUFFIX", UnionTypeFieldSuffix());
         code_ +=
-            "{{PRE}}Verify{{ENUM_NAME}}(verifier, {{NAME}}(), "
+            "{{PRE}}Verify{{ENUM_NAME}}(verifier, {{NAME_}}(), "
             "{{NAME}}{{SUFFIX}}())\\";
         break;
       }
@@ -2317,8 +2331,8 @@ class CppGenerator : public BaseGenerator {
       auto full_struct_name = GetUnionElement(ev, false, opts_);
 
       // @TODO: Mby make this decisions more universal? How?
-      code_.SetValue("U_GET_TYPE",
-                     EscapeKeyword(Name(field) + UnionTypeFieldSuffix()));
+      code_.SetValue("U_GET_TYPE", EscapeKeyword(Name(field, false) +
+                                                 UnionTypeFieldSuffix()));
       code_.SetValue("U_ELEMENT_TYPE", WrapInNameSpace(u->defined_namespace,
                                                        GetEnumValUse(*u, ev)));
       code_.SetValue("U_FIELD_TYPE", "const " + full_struct_name + " *");
@@ -3073,7 +3087,7 @@ class CppGenerator : public BaseGenerator {
                            BASE_TYPE_UNION);
         // Generate code that sets the union type, of the form:
         //   _o->field.type = _e;
-        code += "_o->" + union_field->name + ".type = _e;";
+        code += "_o->" + Name(*union_field) + ".type = _e;";
         break;
       }
       case BASE_TYPE_UNION: {
@@ -3134,7 +3148,7 @@ class CppGenerator : public BaseGenerator {
   std::string GenCreateParam(const FieldDef &field) {
     std::string value = "_o->";
     if (field.value.type.base_type == BASE_TYPE_UTYPE) {
-      value += StripUnionType(Name(field));
+      value += EscapeKeyword(StripUnionType(Name(field)));
       value += ".type";
     } else {
       value += Name(field);
