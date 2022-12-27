@@ -26,7 +26,7 @@ export class KeyValue {
         return offset ? this.bb.__string(this.bb_pos + offset, optionalEncoding) : null;
     }
     static getFullyQualifiedName() {
-        return 'reflection_KeyValue';
+        return 'reflection.KeyValue';
     }
     static startKeyValue(builder) {
         builder.startObject(2);

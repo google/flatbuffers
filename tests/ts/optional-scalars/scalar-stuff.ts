@@ -208,7 +208,7 @@ defaultEnum():OptionalByte {
 }
 
 static getFullyQualifiedName():string {
-  return 'optional_scalars_ScalarStuff';
+  return 'optional_scalars.ScalarStuff';
 }
 
 static startScalarStuff(builder:flatbuffers.Builder) {
