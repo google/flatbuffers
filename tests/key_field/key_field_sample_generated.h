@@ -38,12 +38,32 @@ bool operator==(const Baz &lhs, const Baz &rhs);
 bool operator!=(const Baz &lhs, const Baz &rhs);
 bool operator==(const Bar &lhs, const Bar &rhs);
 bool operator!=(const Bar &lhs, const Bar &rhs);
+bool operator==(const Color &lhs, const Color &rhs);
+bool operator!=(const Color &lhs, const Color &rhs);
+bool operator==(const Apple &lhs, const Apple &rhs);
+bool operator!=(const Apple &lhs, const Apple &rhs);
+bool operator==(const Fruit &lhs, const Fruit &rhs);
+bool operator!=(const Fruit &lhs, const Fruit &rhs);
+bool operator==(const Rice &lhs, const Rice &rhs);
+bool operator!=(const Rice &lhs, const Rice &rhs);
+bool operator==(const Grain &lhs, const Grain &rhs);
+bool operator!=(const Grain &lhs, const Grain &rhs);
 bool operator==(const FooTableT &lhs, const FooTableT &rhs);
 bool operator!=(const FooTableT &lhs, const FooTableT &rhs);
 
 inline const ::flatbuffers::TypeTable *BazTypeTable();
 
 inline const ::flatbuffers::TypeTable *BarTypeTable();
+
+inline const ::flatbuffers::TypeTable *ColorTypeTable();
+
+inline const ::flatbuffers::TypeTable *AppleTypeTable();
+
+inline const ::flatbuffers::TypeTable *FruitTypeTable();
+
+inline const ::flatbuffers::TypeTable *RiceTypeTable();
+
+inline const ::flatbuffers::TypeTable *GrainTypeTable();
 
 inline const ::flatbuffers::TypeTable *FooTableTypeTable();
 
@@ -74,27 +94,21 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(1) Baz FLATBUFFERS_FINAL_CLASS {
   ::flatbuffers::Array<uint8_t, 4> *mutable_a() {
     return &::flatbuffers::CastToArray(a_);
   }
-  ::flatbuffers::Array<uint8_t, 4> *mutable_a() {
-    return &::flatbuffers::CastToArray(a_);
-  }
   bool KeyCompareLessThan(const Baz * const o) const {
     return KeyCompareWithValue(o->a()) < 0;
   }
-  int KeyCompareWithValue(const ::flatbuffers::Array<uint8_t, 4> *_a) const {
-    const ::flatbuffers::Array<uint8_t, 4> *curr_a = a();
-    for (::flatbuffers::uoffset_t i = 0; i < curr_a->size(); i++) {
+  int KeyCompareWithValue(const flatbuffers::Array<uint8_t, 4> *_a) const {
+    const flatbuffers::Array<uint8_t, 4> *curr_a = a();
+    for (flatbuffers::uoffset_t i = 0; i < curr_a->size(); i++) {
       const auto lhs = curr_a->Get(i);
       const auto rhs = _a->Get(i);
-      if(lhs != rhs)
+      if (lhs != rhs)
         return static_cast<int>(lhs > rhs) - static_cast<int>(lhs < rhs);
     }
     return 0;
   }
   uint8_t b() const {
     return ::flatbuffers::EndianScalar(b_);
-  }
-  void mutate_b(uint8_t _b) {
-    ::flatbuffers::WriteScalar(&b_, _b);
   }
   void mutate_b(uint8_t _b) {
     ::flatbuffers::WriteScalar(&b_, _b);
@@ -153,27 +167,21 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) Bar FLATBUFFERS_FINAL_CLASS {
   ::flatbuffers::Array<float, 3> *mutable_a() {
     return &::flatbuffers::CastToArray(a_);
   }
-  ::flatbuffers::Array<float, 3> *mutable_a() {
-    return &::flatbuffers::CastToArray(a_);
-  }
   bool KeyCompareLessThan(const Bar * const o) const {
     return KeyCompareWithValue(o->a()) < 0;
   }
-  int KeyCompareWithValue(const ::flatbuffers::Array<float, 3> *_a) const {
-    const ::flatbuffers::Array<float, 3> *curr_a = a();
-    for (::flatbuffers::uoffset_t i = 0; i < curr_a->size(); i++) {
+  int KeyCompareWithValue(const flatbuffers::Array<float, 3> *_a) const {
+    const flatbuffers::Array<float, 3> *curr_a = a();
+    for (flatbuffers::uoffset_t i = 0; i < curr_a->size(); i++) {
       const auto lhs = curr_a->Get(i);
       const auto rhs = _a->Get(i);
-      if(lhs != rhs)
+      if (lhs != rhs)
         return static_cast<int>(lhs > rhs) - static_cast<int>(lhs < rhs);
     }
     return 0;
   }
   uint8_t b() const {
     return ::flatbuffers::EndianScalar(b_);
-  }
-  void mutate_b(uint8_t _b) {
-    ::flatbuffers::WriteScalar(&b_, _b);
   }
   void mutate_b(uint8_t _b) {
     ::flatbuffers::WriteScalar(&b_, _b);
@@ -187,25 +195,76 @@ inline bool operator==(const Bar &lhs, const Bar &rhs) {
       (lhs.b() == rhs.b());
 }
 
-<<<<<<< HEAD
 inline bool operator!=(const Bar &lhs, const Bar &rhs) {
     return !(lhs == rhs);
 }
 
 
-struct FooTableT : public ::flatbuffers::NativeTable {
-  typedef FooTable TableType;
-  int32_t a = 0;
-  int32_t b = 0;
-  std::string c{};
-  std::vector<keyfield::sample::Baz> d{};
-  std::vector<keyfield::sample::Bar> e{};
+FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) Color FLATBUFFERS_FINAL_CLASS {
+ private:
+  float rgb_[3];
+  uint8_t tag_;
+  int8_t padding0__;  int16_t padding1__;
+
+ public:
+  static const ::flatbuffers::TypeTable *MiniReflectTypeTable() {
+    return ColorTypeTable();
+  }
+  Color()
+      : rgb_(),
+        tag_(0),
+        padding0__(0),
+        padding1__(0) {
+    (void)padding0__;
+    (void)padding1__;
+  }
+  Color(uint8_t _tag)
+      : rgb_(),
+        tag_(::flatbuffers::EndianScalar(_tag)),
+        padding0__(0),
+        padding1__(0) {
+    (void)padding0__;
+    (void)padding1__;
+  }
+  Color(::flatbuffers::span<const float, 3> _rgb, uint8_t _tag)
+      : tag_(::flatbuffers::EndianScalar(_tag)),
+        padding0__(0),
+        padding1__(0) {
+    ::flatbuffers::CastToArray(rgb_).CopyFromSpan(_rgb);
+    (void)padding0__;
+    (void)padding1__;
+  }
+  const ::flatbuffers::Array<float, 3> *rgb() const {
+    return &::flatbuffers::CastToArray(rgb_);
+  }
+  ::flatbuffers::Array<float, 3> *mutable_rgb() {
+    return &::flatbuffers::CastToArray(rgb_);
+  }
+  bool KeyCompareLessThan(const Color * const o) const {
+    return KeyCompareWithValue(o->rgb()) < 0;
+  }
+  int KeyCompareWithValue(const flatbuffers::Array<float, 3> *_rgb) const {
+    const flatbuffers::Array<float, 3> *curr_rgb = rgb();
+    for (flatbuffers::uoffset_t i = 0; i < curr_rgb->size(); i++) {
+      const auto lhs = curr_rgb->Get(i);
+      const auto rhs = _rgb->Get(i);
+      if (lhs != rhs)
+        return static_cast<int>(lhs > rhs) - static_cast<int>(lhs < rhs);
+    }
+    return 0;
+  }
+  uint8_t tag() const {
+    return ::flatbuffers::EndianScalar(tag_);
+  }
+  void mutate_tag(uint8_t _tag) {
+    ::flatbuffers::WriteScalar(&tag_, _tag);
+  }
 };
 FLATBUFFERS_STRUCT_END(Color, 16);
 
 inline bool operator==(const Color &lhs, const Color &rhs) {
   return
-      (lhs.rgb() == rhs.rgb()) &&
+      (*lhs.rgb() == *rhs.rgb()) &&
       (lhs.tag() == rhs.tag());
 }
 
@@ -221,7 +280,7 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) Apple FLATBUFFERS_FINAL_CLASS {
   keyfield::sample::Color color_;
 
  public:
-  static const flatbuffers::TypeTable *MiniReflectTypeTable() {
+  static const ::flatbuffers::TypeTable *MiniReflectTypeTable() {
     return AppleTypeTable();
   }
   Apple()
@@ -233,7 +292,7 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) Apple FLATBUFFERS_FINAL_CLASS {
     (void)padding1__;
   }
   Apple(uint8_t _tag, const keyfield::sample::Color &_color)
-      : tag_(flatbuffers::EndianScalar(_tag)),
+      : tag_(::flatbuffers::EndianScalar(_tag)),
         padding0__(0),
         padding1__(0),
         color_(_color) {
@@ -241,10 +300,10 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) Apple FLATBUFFERS_FINAL_CLASS {
     (void)padding1__;
   }
   uint8_t tag() const {
-    return flatbuffers::EndianScalar(tag_);
+    return ::flatbuffers::EndianScalar(tag_);
   }
   void mutate_tag(uint8_t _tag) {
-    flatbuffers::WriteScalar(&tag_, _tag);
+    ::flatbuffers::WriteScalar(&tag_, _tag);
   }
   const keyfield::sample::Color &color() const {
     return color_;
@@ -255,9 +314,9 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) Apple FLATBUFFERS_FINAL_CLASS {
   bool KeyCompareLessThan(const Apple * const o) const {
     return KeyCompareWithValue(o->color()) < 0;
   }
-  int KeyCompareWithValue(const keyfield::sample::Color  &_color) const {
-    const auto lhs_color = color();
-    const auto rhs_color = _color;
+  int KeyCompareWithValue(const keyfield::sample::Color &_color) const {
+    const auto &lhs_color = color();
+    const auto &rhs_color = _color;
     const auto rhs_color_rgb = rhs_color.rgb();
     const auto rgb_compare_result = lhs_color.KeyCompareWithValue(rhs_color_rgb);
     if (rgb_compare_result != 0)
@@ -289,7 +348,7 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) Fruit FLATBUFFERS_FINAL_CLASS {
   int8_t padding0__;  int16_t padding1__;
 
  public:
-  static const flatbuffers::TypeTable *MiniReflectTypeTable() {
+  static const ::flatbuffers::TypeTable *MiniReflectTypeTable() {
     return FruitTypeTable();
   }
   Fruit()
@@ -302,7 +361,7 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) Fruit FLATBUFFERS_FINAL_CLASS {
   }
   Fruit(const keyfield::sample::Apple &_a, uint8_t _b)
       : a_(_a),
-        b_(flatbuffers::EndianScalar(_b)),
+        b_(::flatbuffers::EndianScalar(_b)),
         padding0__(0),
         padding1__(0) {
     (void)padding0__;
@@ -317,9 +376,9 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) Fruit FLATBUFFERS_FINAL_CLASS {
   bool KeyCompareLessThan(const Fruit * const o) const {
     return KeyCompareWithValue(o->a()) < 0;
   }
-  int KeyCompareWithValue(const keyfield::sample::Apple  &_a) const {
-    const auto lhs_a = a();
-    const auto rhs_a = _a;
+  int KeyCompareWithValue(const keyfield::sample::Apple &_a) const {
+    const auto &lhs_a = a();
+    const auto &rhs_a = _a;
     const auto lhs_a_tag = lhs_a.tag();
     const auto rhs_a_tag = rhs_a.tag();
     if (lhs_a_tag !=  rhs_a_tag)
@@ -331,10 +390,10 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) Fruit FLATBUFFERS_FINAL_CLASS {
     return 0;
   }
   uint8_t b() const {
-    return flatbuffers::EndianScalar(b_);
+    return ::flatbuffers::EndianScalar(b_);
   }
   void mutate_b(uint8_t _b) {
-    flatbuffers::WriteScalar(&b_, _b);
+    ::flatbuffers::WriteScalar(&b_, _b);
   }
 };
 FLATBUFFERS_STRUCT_END(Fruit, 24);
@@ -357,7 +416,7 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) Rice FLATBUFFERS_FINAL_CLASS {
   uint32_t quantity_;
 
  public:
-  static const flatbuffers::TypeTable *MiniReflectTypeTable() {
+  static const ::flatbuffers::TypeTable *MiniReflectTypeTable() {
     return RiceTypeTable();
   }
   Rice()
@@ -369,33 +428,33 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) Rice FLATBUFFERS_FINAL_CLASS {
   Rice(uint32_t _quantity)
       : origin_(),
         padding0__(0),
-        quantity_(flatbuffers::EndianScalar(_quantity)) {
+        quantity_(::flatbuffers::EndianScalar(_quantity)) {
     (void)padding0__;
   }
-  Rice(flatbuffers::span<const uint8_t, 3> _origin, uint32_t _quantity)
+  Rice(::flatbuffers::span<const uint8_t, 3> _origin, uint32_t _quantity)
       : padding0__(0),
-        quantity_(flatbuffers::EndianScalar(_quantity)) {
-    flatbuffers::CastToArray(origin_).CopyFromSpan(_origin);
+        quantity_(::flatbuffers::EndianScalar(_quantity)) {
+    ::flatbuffers::CastToArray(origin_).CopyFromSpan(_origin);
     (void)padding0__;
   }
-  const flatbuffers::Array<uint8_t, 3> *origin() const {
-    return &flatbuffers::CastToArray(origin_);
+  const ::flatbuffers::Array<uint8_t, 3> *origin() const {
+    return &::flatbuffers::CastToArray(origin_);
   }
-  flatbuffers::Array<uint8_t, 3> *mutable_origin() {
-    return &flatbuffers::CastToArray(origin_);
+  ::flatbuffers::Array<uint8_t, 3> *mutable_origin() {
+    return &::flatbuffers::CastToArray(origin_);
   }
   uint32_t quantity() const {
-    return flatbuffers::EndianScalar(quantity_);
+    return ::flatbuffers::EndianScalar(quantity_);
   }
   void mutate_quantity(uint32_t _quantity) {
-    flatbuffers::WriteScalar(&quantity_, _quantity);
+    ::flatbuffers::WriteScalar(&quantity_, _quantity);
   }
 };
 FLATBUFFERS_STRUCT_END(Rice, 8);
 
 inline bool operator==(const Rice &lhs, const Rice &rhs) {
   return
-      (lhs.origin() == rhs.origin()) &&
+      (*lhs.origin() == *rhs.origin()) &&
       (lhs.quantity() == rhs.quantity());
 }
 
@@ -411,7 +470,7 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) Grain FLATBUFFERS_FINAL_CLASS {
   int8_t padding0__;  int16_t padding1__;
 
  public:
-  static const flatbuffers::TypeTable *MiniReflectTypeTable() {
+  static const ::flatbuffers::TypeTable *MiniReflectTypeTable() {
     return GrainTypeTable();
   }
   Grain()
@@ -424,25 +483,25 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) Grain FLATBUFFERS_FINAL_CLASS {
   }
   Grain(uint8_t _tag)
       : a_(),
-        tag_(flatbuffers::EndianScalar(_tag)),
+        tag_(::flatbuffers::EndianScalar(_tag)),
         padding0__(0),
         padding1__(0) {
     (void)padding0__;
     (void)padding1__;
   }
-  Grain(flatbuffers::span<const keyfield::sample::Rice, 3> _a, uint8_t _tag)
-      : tag_(flatbuffers::EndianScalar(_tag)),
+  Grain(::flatbuffers::span<const keyfield::sample::Rice, 3> _a, uint8_t _tag)
+      : tag_(::flatbuffers::EndianScalar(_tag)),
         padding0__(0),
         padding1__(0) {
-    flatbuffers::CastToArray(a_).CopyFromSpan(_a);
+    ::flatbuffers::CastToArray(a_).CopyFromSpan(_a);
     (void)padding0__;
     (void)padding1__;
   }
-  const flatbuffers::Array<keyfield::sample::Rice, 3> *a() const {
-    return &flatbuffers::CastToArray(a_);
+  const ::flatbuffers::Array<keyfield::sample::Rice, 3> *a() const {
+    return &::flatbuffers::CastToArray(a_);
   }
-  flatbuffers::Array<keyfield::sample::Rice, 3> *mutable_a() {
-    return &flatbuffers::CastToArray(a_);
+  ::flatbuffers::Array<keyfield::sample::Rice, 3> *mutable_a() {
+    return &::flatbuffers::CastToArray(a_);
   }
   bool KeyCompareLessThan(const Grain * const o) const {
     return KeyCompareWithValue(o->a()) < 0;
@@ -450,8 +509,8 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) Grain FLATBUFFERS_FINAL_CLASS {
   int KeyCompareWithValue(const flatbuffers::Array<keyfield::sample::Rice , 3> *_a) const {
     const flatbuffers::Array<keyfield::sample::Rice , 3> *curr_a = a();
     for (flatbuffers::uoffset_t i = 0; i < curr_a->size(); i++) {
-      const auto lhs_a = *(curr_a->Get(i));
-      const auto rhs_a = *(_a->Get(i));
+      const auto &lhs_a = *(curr_a->Get(i));
+      const auto &rhs_a = *(_a->Get(i));
       const auto lhs_a_origin = lhs_a.origin();
       const auto rhs_a_origin = rhs_a.origin();
       for (flatbuffers::uoffset_t i = 0; i < lhs_a_origin->size(); i++) {
@@ -468,19 +527,17 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) Grain FLATBUFFERS_FINAL_CLASS {
     return 0;
   }
   uint8_t tag() const {
-    return flatbuffers::EndianScalar(tag_);
+    return ::flatbuffers::EndianScalar(tag_);
   }
   void mutate_tag(uint8_t _tag) {
-    flatbuffers::WriteScalar(&tag_, _tag);
+    ::flatbuffers::WriteScalar(&tag_, _tag);
   }
 };
 FLATBUFFERS_STRUCT_END(Grain, 28);
 
-<<<<<<< HEAD
-=======
 inline bool operator==(const Grain &lhs, const Grain &rhs) {
   return
-      (lhs.a() == rhs.a()) &&
+      (*lhs.a() == *rhs.a()) &&
       (lhs.tag() == rhs.tag());
 }
 
@@ -489,276 +546,18 @@ inline bool operator!=(const Grain &lhs, const Grain &rhs) {
 }
 
 
-struct FooTableT : public flatbuffers::NativeTable {
+struct FooTableT : public ::flatbuffers::NativeTable {
   typedef FooTable TableType;
   int32_t a = 0;
   int32_t b = 0;
   std::string c{};
   std::vector<keyfield::sample::Baz> d{};
   std::vector<keyfield::sample::Bar> e{};
-<<<<<<< HEAD
   std::vector<keyfield::sample::Apple> f{};
   std::vector<keyfield::sample::Fruit> g{};
   std::vector<keyfield::sample::Grain> h{};
-=======
-=======
- public:
-  Color()
-      : rgb_(),
-        tag_(0),
-        padding0__(0),
-        padding1__(0) {
-    (void)padding0__;
-    (void)padding1__;
-  }
-  Color(uint8_t _tag)
-      : rgb_(),
-        tag_(flatbuffers::EndianScalar(_tag)),
-        padding0__(0),
-        padding1__(0) {
-    (void)padding0__;
-    (void)padding1__;
-  }
-  Color(flatbuffers::span<const float, 3> _rgb, uint8_t _tag)
-      : tag_(flatbuffers::EndianScalar(_tag)),
-        padding0__(0),
-        padding1__(0) {
-    flatbuffers::CastToArray(rgb_).CopyFromSpan(_rgb);
-    (void)padding0__;
-    (void)padding1__;
-  }
-  const flatbuffers::Array<float, 3> *rgb() const {
-    return &flatbuffers::CastToArray(rgb_);
-  }
-  bool KeyCompareLessThan(const Color * const o) const {
-    return KeyCompareWithValue(o->rgb()) < 0;
-  }
-  int KeyCompareWithValue(const flatbuffers::Array<float, 3> *_rgb) const {
-    const flatbuffers::Array<float, 3> *curr_rgb = rgb();
-    for (flatbuffers::uoffset_t i = 0; i < curr_rgb->size(); i++) {
-      const auto lhs = curr_rgb->Get(i);
-      const auto rhs = _rgb->Get(i);
-      if(lhs != rhs)
-        return static_cast<int>(lhs > rhs) - static_cast<int>(lhs < rhs);
-    }
-    return 0;
-  }
-  uint8_t tag() const {
-    return flatbuffers::EndianScalar(tag_);
-  }
->>>>>>> 6a23836b (add more unit tests)
->>>>>>> d0c5fb5a (add more unit tests)
 };
-FLATBUFFERS_STRUCT_END(Color, 16);
 
-FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) Apple FLATBUFFERS_FINAL_CLASS {
- private:
-  uint8_t tag_;
-  int8_t padding0__;  int16_t padding1__;
-  keyfield::sample::Color color_;
-
- public:
-  Apple()
-      : tag_(0),
-        padding0__(0),
-        padding1__(0),
-        color_() {
-    (void)padding0__;
-    (void)padding1__;
-  }
-  Apple(uint8_t _tag, const keyfield::sample::Color &_color)
-      : tag_(flatbuffers::EndianScalar(_tag)),
-        padding0__(0),
-        padding1__(0),
-        color_(_color) {
-    (void)padding0__;
-    (void)padding1__;
-  }
-  uint8_t tag() const {
-    return flatbuffers::EndianScalar(tag_);
-  }
-  const keyfield::sample::Color &color() const {
-    return color_;
-  }
-  bool KeyCompareLessThan(const Apple * const o) const {
-    return KeyCompareWithValue(o->color()) < 0;
-  }
-  int KeyCompareWithValue(const keyfield::sample::Color  &_color) const {
-    const auto lhs_color = color();
-    const auto rhs_color = _color;
-    const auto lhs_color_rgb = lhs_color.rgb();
-    const auto rhs_color_rgb = rhs_color.rgb();
-    for (flatbuffers::uoffset_t i = 0; i < lhs_color_rgb->size(); i++) {
-      const auto lhs_color_rgb_elem = lhs_color_rgb->Get(i);
-      const auto rhs_color_rgb_elem = rhs_color_rgb->Get(i);
-      if (lhs_color_rgb_elem != rhs_color_rgb_elem)
-        return static_cast<int>(lhs_color_rgb_elem > rhs_color_rgb_elem) - static_cast<int>(lhs_color_rgb_elem < rhs_color_rgb_elem);
-    }
-    const auto lhs_color_tag = lhs_color.tag();
-    const auto rhs_color_tag = rhs_color.tag();
-    if (lhs_color_tag !=  rhs_color_tag)
-      return static_cast<int>(lhs_color_tag > rhs_color_tag) - static_cast<int>(lhs_color_tag < rhs_color_tag);
-    return 0;
-  }
-};
-FLATBUFFERS_STRUCT_END(Apple, 20);
-
-FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) Fruit FLATBUFFERS_FINAL_CLASS {
- private:
-  keyfield::sample::Apple a_;
-  uint8_t b_;
-  int8_t padding0__;  int16_t padding1__;
-
- public:
-  Fruit()
-      : a_(),
-        b_(0),
-        padding0__(0),
-        padding1__(0) {
-    (void)padding0__;
-    (void)padding1__;
-  }
-  Fruit(const keyfield::sample::Apple &_a, uint8_t _b)
-      : a_(_a),
-        b_(flatbuffers::EndianScalar(_b)),
-        padding0__(0),
-        padding1__(0) {
-    (void)padding0__;
-    (void)padding1__;
-  }
-  const keyfield::sample::Apple &a() const {
-    return a_;
-  }
-  bool KeyCompareLessThan(const Fruit * const o) const {
-    return KeyCompareWithValue(o->a()) < 0;
-  }
-  int KeyCompareWithValue(const keyfield::sample::Apple  &_a) const {
-    const auto lhs_a = a();
-    const auto rhs_a = _a;
-    const auto lhs_a_tag = lhs_a.tag();
-    const auto rhs_a_tag = rhs_a.tag();
-    if (lhs_a_tag !=  rhs_a_tag)
-      return static_cast<int>(lhs_a_tag > rhs_a_tag) - static_cast<int>(lhs_a_tag < rhs_a_tag);
-    const auto lhs_a_color = lhs_a.color();
-    const auto rhs_a_color = rhs_a.color();
-    const auto lhs_a_color_rgb = lhs_a_color.rgb();
-    const auto rhs_a_color_rgb = rhs_a_color.rgb();
-    for (flatbuffers::uoffset_t i = 0; i < lhs_a_color_rgb->size(); i++) {
-      const auto lhs_a_color_rgb_elem = lhs_a_color_rgb->Get(i);
-      const auto rhs_a_color_rgb_elem = rhs_a_color_rgb->Get(i);
-      if (lhs_a_color_rgb_elem != rhs_a_color_rgb_elem)
-        return static_cast<int>(lhs_a_color_rgb_elem > rhs_a_color_rgb_elem) - static_cast<int>(lhs_a_color_rgb_elem < rhs_a_color_rgb_elem);
-    }
-    const auto lhs_a_color_tag = lhs_a_color.tag();
-    const auto rhs_a_color_tag = rhs_a_color.tag();
-    if (lhs_a_color_tag !=  rhs_a_color_tag)
-      return static_cast<int>(lhs_a_color_tag > rhs_a_color_tag) - static_cast<int>(lhs_a_color_tag < rhs_a_color_tag);
-    return 0;
-  }
-  uint8_t b() const {
-    return flatbuffers::EndianScalar(b_);
-  }
-};
-FLATBUFFERS_STRUCT_END(Fruit, 24);
-
-FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) Rice FLATBUFFERS_FINAL_CLASS {
- private:
-  uint8_t origin_[3];
-  int8_t padding0__;
-  uint32_t quantity_;
-
- public:
-  Rice()
-      : origin_(),
-        padding0__(0),
-        quantity_(0) {
-    (void)padding0__;
-  }
-  Rice(uint32_t _quantity)
-      : origin_(),
-        padding0__(0),
-        quantity_(flatbuffers::EndianScalar(_quantity)) {
-    (void)padding0__;
-  }
-  Rice(flatbuffers::span<const uint8_t, 3> _origin, uint32_t _quantity)
-      : padding0__(0),
-        quantity_(flatbuffers::EndianScalar(_quantity)) {
-    flatbuffers::CastToArray(origin_).CopyFromSpan(_origin);
-    (void)padding0__;
-  }
-  const flatbuffers::Array<uint8_t, 3> *origin() const {
-    return &flatbuffers::CastToArray(origin_);
-  }
-  uint32_t quantity() const {
-    return flatbuffers::EndianScalar(quantity_);
-  }
-};
-FLATBUFFERS_STRUCT_END(Rice, 8);
-
-FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) Grain FLATBUFFERS_FINAL_CLASS {
- private:
-  keyfield::sample::Rice a_[3];
-  uint8_t tag_;
-  int8_t padding0__;  int16_t padding1__;
-
- public:
-  Grain()
-      : a_(),
-        tag_(0),
-        padding0__(0),
-        padding1__(0) {
-    (void)padding0__;
-    (void)padding1__;
-  }
-  Grain(uint8_t _tag)
-      : a_(),
-        tag_(flatbuffers::EndianScalar(_tag)),
-        padding0__(0),
-        padding1__(0) {
-    (void)padding0__;
-    (void)padding1__;
-  }
-  Grain(flatbuffers::span<const keyfield::sample::Rice, 3> _a, uint8_t _tag)
-      : tag_(flatbuffers::EndianScalar(_tag)),
-        padding0__(0),
-        padding1__(0) {
-    flatbuffers::CastToArray(a_).CopyFromSpan(_a);
-    (void)padding0__;
-    (void)padding1__;
-  }
-  const flatbuffers::Array<keyfield::sample::Rice, 3> *a() const {
-    return &flatbuffers::CastToArray(a_);
-  }
-  bool KeyCompareLessThan(const Grain * const o) const {
-    return KeyCompareWithValue(o->a()) < 0;
-  }
-  int KeyCompareWithValue(const flatbuffers::Array<keyfield::sample::Rice , 3> *_a) const {
-    const flatbuffers::Array<keyfield::sample::Rice , 3> *curr_a = a();
-    for (flatbuffers::uoffset_t i = 0; i < curr_a->size(); i++) {
-      const auto lhs_a = *(curr_a->Get(i));
-      const auto rhs_a = *(_a->Get(i));
-      const auto lhs_a_origin = lhs_a.origin();
-      const auto rhs_a_origin = rhs_a.origin();
-      for (flatbuffers::uoffset_t i = 0; i < lhs_a_origin->size(); i++) {
-        const auto lhs_a_origin_elem = lhs_a_origin->Get(i);
-        const auto rhs_a_origin_elem = rhs_a_origin->Get(i);
-        if (lhs_a_origin_elem != rhs_a_origin_elem)
-          return static_cast<int>(lhs_a_origin_elem > rhs_a_origin_elem) - static_cast<int>(lhs_a_origin_elem < rhs_a_origin_elem);
-      }
-      const auto lhs_a_quantity = lhs_a.quantity();
-      const auto rhs_a_quantity = rhs_a.quantity();
-      if (lhs_a_quantity !=  rhs_a_quantity)
-        return static_cast<int>(lhs_a_quantity > rhs_a_quantity) - static_cast<int>(lhs_a_quantity < rhs_a_quantity);
-    }
-    return 0;
-  }
-  uint8_t tag() const {
-    return flatbuffers::EndianScalar(tag_);
-  }
-};
-FLATBUFFERS_STRUCT_END(Grain, 28);
-
->>>>>>> 5f14cb31 (add more unit tests)
 struct FooTable FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   typedef FooTableT NativeTableType;
   typedef FooTableBuilder Builder;
@@ -778,6 +577,9 @@ struct FooTable FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   int32_t a() const {
     return GetField<int32_t>(VT_A, 0);
   }
+  bool mutate_a(int32_t _a = 0) {
+    return SetField<int32_t>(VT_A, _a, 0);
+  }
   int32_t b() const {
     return GetField<int32_t>(VT_B, 0);
   }
@@ -786,9 +588,6 @@ struct FooTable FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   }
   const ::flatbuffers::String *c() const {
     return GetPointer<const ::flatbuffers::String *>(VT_C);
-  }
-  ::flatbuffers::String *mutable_c() {
-    return GetPointer<::flatbuffers::String *>(VT_C);
   }
   ::flatbuffers::String *mutable_c() {
     return GetPointer<::flatbuffers::String *>(VT_C);
@@ -810,6 +609,24 @@ struct FooTable FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   }
   ::flatbuffers::Vector<const keyfield::sample::Bar *> *mutable_e() {
     return GetPointer<::flatbuffers::Vector<const keyfield::sample::Bar *> *>(VT_E);
+  }
+  const ::flatbuffers::Vector<const keyfield::sample::Apple *> *f() const {
+    return GetPointer<const ::flatbuffers::Vector<const keyfield::sample::Apple *> *>(VT_F);
+  }
+  ::flatbuffers::Vector<const keyfield::sample::Apple *> *mutable_f() {
+    return GetPointer<::flatbuffers::Vector<const keyfield::sample::Apple *> *>(VT_F);
+  }
+  const ::flatbuffers::Vector<const keyfield::sample::Fruit *> *g() const {
+    return GetPointer<const ::flatbuffers::Vector<const keyfield::sample::Fruit *> *>(VT_G);
+  }
+  ::flatbuffers::Vector<const keyfield::sample::Fruit *> *mutable_g() {
+    return GetPointer<::flatbuffers::Vector<const keyfield::sample::Fruit *> *>(VT_G);
+  }
+  const ::flatbuffers::Vector<const keyfield::sample::Grain *> *h() const {
+    return GetPointer<const ::flatbuffers::Vector<const keyfield::sample::Grain *> *>(VT_H);
+  }
+  ::flatbuffers::Vector<const keyfield::sample::Grain *> *mutable_h() {
+    return GetPointer<::flatbuffers::Vector<const keyfield::sample::Grain *> *>(VT_H);
   }
   bool Verify(::flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
@@ -853,6 +670,15 @@ struct FooTableBuilder {
   void add_e(::flatbuffers::Offset<::flatbuffers::Vector<const keyfield::sample::Bar *>> e) {
     fbb_.AddOffset(FooTable::VT_E, e);
   }
+  void add_f(::flatbuffers::Offset<::flatbuffers::Vector<const keyfield::sample::Apple *>> f) {
+    fbb_.AddOffset(FooTable::VT_F, f);
+  }
+  void add_g(::flatbuffers::Offset<::flatbuffers::Vector<const keyfield::sample::Fruit *>> g) {
+    fbb_.AddOffset(FooTable::VT_G, g);
+  }
+  void add_h(::flatbuffers::Offset<::flatbuffers::Vector<const keyfield::sample::Grain *>> h) {
+    fbb_.AddOffset(FooTable::VT_H, h);
+  }
   explicit FooTableBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
@@ -871,7 +697,10 @@ inline ::flatbuffers::Offset<FooTable> CreateFooTable(
     int32_t b = 0,
     ::flatbuffers::Offset<::flatbuffers::String> c = 0,
     ::flatbuffers::Offset<::flatbuffers::Vector<const keyfield::sample::Baz *>> d = 0,
-    ::flatbuffers::Offset<::flatbuffers::Vector<const keyfield::sample::Bar *>> e = 0) {
+    ::flatbuffers::Offset<::flatbuffers::Vector<const keyfield::sample::Bar *>> e = 0,
+    ::flatbuffers::Offset<::flatbuffers::Vector<const keyfield::sample::Apple *>> f = 0,
+    ::flatbuffers::Offset<::flatbuffers::Vector<const keyfield::sample::Fruit *>> g = 0,
+    ::flatbuffers::Offset<::flatbuffers::Vector<const keyfield::sample::Grain *>> h = 0) {
   FooTableBuilder builder_(_fbb);
   builder_.add_h(h);
   builder_.add_g(g);
@@ -906,121 +735,10 @@ inline ::flatbuffers::Offset<FooTable> CreateFooTableDirect(
       b,
       c__,
       d__,
-      e__);
-}
-
-::flatbuffers::Offset<FooTable> CreateFooTable(::flatbuffers::FlatBufferBuilder &_fbb, const FooTableT *_o, const ::flatbuffers::rehasher_function_t *_rehasher = nullptr);
-
-
-inline bool operator==(const FooTableT &lhs, const FooTableT &rhs) {
-  return
-      (lhs.a == rhs.a) &&
-      (lhs.b == rhs.b) &&
-      (lhs.c == rhs.c) &&
-      (lhs.d == rhs.d) &&
-      (lhs.e == rhs.e);
-}
-
-inline bool operator!=(const FooTableT &lhs, const FooTableT &rhs) {
-    return !(lhs == rhs);
-}
-
-
-inline FooTableT *FooTable::UnPack(const ::flatbuffers::resolver_function_t *_resolver) const {
-  auto _o = std::unique_ptr<FooTableT>(new FooTableT());
-  UnPackTo(_o.get(), _resolver);
-  return _o.release();
-}
-
-inline void FooTable::UnPackTo(FooTableT *_o, const ::flatbuffers::resolver_function_t *_resolver) const {
-  (void)_o;
-  (void)_resolver;
-  { auto _e = a(); _o->a = _e; }
-  { auto _e = b(); _o->b = _e; }
-  { auto _e = c(); if (_e) _o->c = _e->str(); }
-  { auto _e = d(); if (_e) { _o->d.resize(_e->size()); for (::flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->d[_i] = *_e->Get(_i); } } else { _o->d.resize(0); } }
-  { auto _e = e(); if (_e) { _o->e.resize(_e->size()); for (::flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->e[_i] = *_e->Get(_i); } } else { _o->e.resize(0); } }
-}
-
-inline ::flatbuffers::Offset<FooTable> FooTable::Pack(::flatbuffers::FlatBufferBuilder &_fbb, const FooTableT* _o, const ::flatbuffers::rehasher_function_t *_rehasher) {
-  return CreateFooTable(_fbb, _o, _rehasher);
-}
-
-inline ::flatbuffers::Offset<FooTable> CreateFooTable(::flatbuffers::FlatBufferBuilder &_fbb, const FooTableT *_o, const ::flatbuffers::rehasher_function_t *_rehasher) {
-  (void)_rehasher;
-  (void)_o;
-  struct _VectorArgs { ::flatbuffers::FlatBufferBuilder *__fbb; const FooTableT* __o; const ::flatbuffers::rehasher_function_t *__rehasher; } _va = { &_fbb, _o, _rehasher}; (void)_va;
-  auto _a = _o->a;
-  auto _b = _o->b;
-  auto _c = _fbb.CreateString(_o->c);
-  auto _d = _o->d.size() ? _fbb.CreateVectorOfStructs(_o->d) : 0;
-  auto _e = _o->e.size() ? _fbb.CreateVectorOfStructs(_o->e) : 0;
-  return keyfield::sample::CreateFooTable(
-      _fbb,
-      _a,
-      _b,
-      _c,
-      _d,
-      _e);
-}
-
-inline const ::flatbuffers::TypeTable *BazTypeTable() {
-  static const ::flatbuffers::TypeCode type_codes[] = {
-    { ::flatbuffers::ET_UCHAR, 1, -1 },
-    { ::flatbuffers::ET_UCHAR, 0, -1 }
-  };
-  static const int16_t array_sizes[] = { 4,  };
-  static const int64_t values[] = { 0, 4, 5 };
-  static const char * const names[] = {
-    "a",
-    "b"
-  };
-  static const ::flatbuffers::TypeTable tt = {
-    ::flatbuffers::ST_STRUCT, 2, type_codes, nullptr, array_sizes, values, names
-  };
-  return &tt;
-}
-
-inline const ::flatbuffers::TypeTable *BarTypeTable() {
-  static const ::flatbuffers::TypeCode type_codes[] = {
-    { ::flatbuffers::ET_FLOAT, 1, -1 },
-    { ::flatbuffers::ET_UCHAR, 0, -1 }
-  };
-  static const int16_t array_sizes[] = { 3,  };
-  static const int64_t values[] = { 0, 12, 16 };
-  static const char * const names[] = {
-    "a",
-    "b"
-  };
-  static const ::flatbuffers::TypeTable tt = {
-    ::flatbuffers::ST_STRUCT, 2, type_codes, nullptr, array_sizes, values, names
-  };
-  return &tt;
-}
-
-inline const ::flatbuffers::TypeTable *FooTableTypeTable() {
-  static const ::flatbuffers::TypeCode type_codes[] = {
-    { ::flatbuffers::ET_INT, 0, -1 },
-    { ::flatbuffers::ET_INT, 0, -1 },
-    { ::flatbuffers::ET_STRING, 0, -1 },
-    { ::flatbuffers::ET_SEQUENCE, 1, 0 },
-    { ::flatbuffers::ET_SEQUENCE, 1, 1 }
-  };
-  static const ::flatbuffers::TypeFunction type_refs[] = {
-    keyfield::sample::BazTypeTable,
-    keyfield::sample::BarTypeTable
-  };
-  static const char * const names[] = {
-    "a",
-    "b",
-    "c",
-    "d",
-    "e"
-  };
-  static const ::flatbuffers::TypeTable tt = {
-    ::flatbuffers::ST_TABLE, 5, type_codes, type_refs, nullptr, nullptr, names
-  };
-  return &tt;
+      e__,
+      f__,
+      g__,
+      h__);
 }
 
 ::flatbuffers::Offset<FooTable> CreateFooTable(::flatbuffers::FlatBufferBuilder &_fbb, const FooTableT *_o, const ::flatbuffers::rehasher_function_t *_rehasher = nullptr);
@@ -1055,11 +773,11 @@ inline void FooTable::UnPackTo(FooTableT *_o, const ::flatbuffers::resolver_func
   { auto _e = a(); _o->a = _e; }
   { auto _e = b(); _o->b = _e; }
   { auto _e = c(); if (_e) _o->c = _e->str(); }
-  { auto _e = d(); if (_e) { _o->d.resize(_e->size()); for (flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->d[_i] = *_e->Get(_i); } } else { _o->d.resize(0); } }
-  { auto _e = e(); if (_e) { _o->e.resize(_e->size()); for (flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->e[_i] = *_e->Get(_i); } } else { _o->e.resize(0); } }
-  { auto _e = f(); if (_e) { _o->f.resize(_e->size()); for (flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->f[_i] = *_e->Get(_i); } } else { _o->f.resize(0); } }
-  { auto _e = g(); if (_e) { _o->g.resize(_e->size()); for (flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->g[_i] = *_e->Get(_i); } } else { _o->g.resize(0); } }
-  { auto _e = h(); if (_e) { _o->h.resize(_e->size()); for (flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->h[_i] = *_e->Get(_i); } } else { _o->h.resize(0); } }
+  { auto _e = d(); if (_e) { _o->d.resize(_e->size()); for (::flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->d[_i] = *_e->Get(_i); } } else { _o->d.resize(0); } }
+  { auto _e = e(); if (_e) { _o->e.resize(_e->size()); for (::flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->e[_i] = *_e->Get(_i); } } else { _o->e.resize(0); } }
+  { auto _e = f(); if (_e) { _o->f.resize(_e->size()); for (::flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->f[_i] = *_e->Get(_i); } } else { _o->f.resize(0); } }
+  { auto _e = g(); if (_e) { _o->g.resize(_e->size()); for (::flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->g[_i] = *_e->Get(_i); } } else { _o->g.resize(0); } }
+  { auto _e = h(); if (_e) { _o->h.resize(_e->size()); for (::flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->h[_i] = *_e->Get(_i); } } else { _o->h.resize(0); } }
 }
 
 inline ::flatbuffers::Offset<FooTable> FooTable::Pack(::flatbuffers::FlatBufferBuilder &_fbb, const FooTableT* _o, const ::flatbuffers::rehasher_function_t *_rehasher) {
@@ -1124,10 +842,10 @@ inline const ::flatbuffers::TypeTable *BarTypeTable() {
   return &tt;
 }
 
-inline const flatbuffers::TypeTable *ColorTypeTable() {
-  static const flatbuffers::TypeCode type_codes[] = {
-    { flatbuffers::ET_FLOAT, 1, -1 },
-    { flatbuffers::ET_UCHAR, 0, -1 }
+inline const ::flatbuffers::TypeTable *ColorTypeTable() {
+  static const ::flatbuffers::TypeCode type_codes[] = {
+    { ::flatbuffers::ET_FLOAT, 1, -1 },
+    { ::flatbuffers::ET_UCHAR, 0, -1 }
   };
   static const int16_t array_sizes[] = { 3,  };
   static const int64_t values[] = { 0, 12, 16 };
@@ -1135,18 +853,18 @@ inline const flatbuffers::TypeTable *ColorTypeTable() {
     "rgb",
     "tag"
   };
-  static const flatbuffers::TypeTable tt = {
-    flatbuffers::ST_STRUCT, 2, type_codes, nullptr, array_sizes, values, names
+  static const ::flatbuffers::TypeTable tt = {
+    ::flatbuffers::ST_STRUCT, 2, type_codes, nullptr, array_sizes, values, names
   };
   return &tt;
 }
 
-inline const flatbuffers::TypeTable *AppleTypeTable() {
-  static const flatbuffers::TypeCode type_codes[] = {
-    { flatbuffers::ET_UCHAR, 0, -1 },
-    { flatbuffers::ET_SEQUENCE, 0, 0 }
+inline const ::flatbuffers::TypeTable *AppleTypeTable() {
+  static const ::flatbuffers::TypeCode type_codes[] = {
+    { ::flatbuffers::ET_UCHAR, 0, -1 },
+    { ::flatbuffers::ET_SEQUENCE, 0, 0 }
   };
-  static const flatbuffers::TypeFunction type_refs[] = {
+  static const ::flatbuffers::TypeFunction type_refs[] = {
     keyfield::sample::ColorTypeTable
   };
   static const int64_t values[] = { 0, 4, 20 };
@@ -1154,18 +872,18 @@ inline const flatbuffers::TypeTable *AppleTypeTable() {
     "tag",
     "color"
   };
-  static const flatbuffers::TypeTable tt = {
-    flatbuffers::ST_STRUCT, 2, type_codes, type_refs, nullptr, values, names
+  static const ::flatbuffers::TypeTable tt = {
+    ::flatbuffers::ST_STRUCT, 2, type_codes, type_refs, nullptr, values, names
   };
   return &tt;
 }
 
-inline const flatbuffers::TypeTable *FruitTypeTable() {
-  static const flatbuffers::TypeCode type_codes[] = {
-    { flatbuffers::ET_SEQUENCE, 0, 0 },
-    { flatbuffers::ET_UCHAR, 0, -1 }
+inline const ::flatbuffers::TypeTable *FruitTypeTable() {
+  static const ::flatbuffers::TypeCode type_codes[] = {
+    { ::flatbuffers::ET_SEQUENCE, 0, 0 },
+    { ::flatbuffers::ET_UCHAR, 0, -1 }
   };
-  static const flatbuffers::TypeFunction type_refs[] = {
+  static const ::flatbuffers::TypeFunction type_refs[] = {
     keyfield::sample::AppleTypeTable
   };
   static const int64_t values[] = { 0, 20, 24 };
@@ -1173,16 +891,16 @@ inline const flatbuffers::TypeTable *FruitTypeTable() {
     "a",
     "b"
   };
-  static const flatbuffers::TypeTable tt = {
-    flatbuffers::ST_STRUCT, 2, type_codes, type_refs, nullptr, values, names
+  static const ::flatbuffers::TypeTable tt = {
+    ::flatbuffers::ST_STRUCT, 2, type_codes, type_refs, nullptr, values, names
   };
   return &tt;
 }
 
-inline const flatbuffers::TypeTable *RiceTypeTable() {
-  static const flatbuffers::TypeCode type_codes[] = {
-    { flatbuffers::ET_UCHAR, 1, -1 },
-    { flatbuffers::ET_UINT, 0, -1 }
+inline const ::flatbuffers::TypeTable *RiceTypeTable() {
+  static const ::flatbuffers::TypeCode type_codes[] = {
+    { ::flatbuffers::ET_UCHAR, 1, -1 },
+    { ::flatbuffers::ET_UINT, 0, -1 }
   };
   static const int16_t array_sizes[] = { 3,  };
   static const int64_t values[] = { 0, 4, 8 };
@@ -1190,18 +908,18 @@ inline const flatbuffers::TypeTable *RiceTypeTable() {
     "origin",
     "quantity"
   };
-  static const flatbuffers::TypeTable tt = {
-    flatbuffers::ST_STRUCT, 2, type_codes, nullptr, array_sizes, values, names
+  static const ::flatbuffers::TypeTable tt = {
+    ::flatbuffers::ST_STRUCT, 2, type_codes, nullptr, array_sizes, values, names
   };
   return &tt;
 }
 
-inline const flatbuffers::TypeTable *GrainTypeTable() {
-  static const flatbuffers::TypeCode type_codes[] = {
-    { flatbuffers::ET_SEQUENCE, 1, 0 },
-    { flatbuffers::ET_UCHAR, 0, -1 }
+inline const ::flatbuffers::TypeTable *GrainTypeTable() {
+  static const ::flatbuffers::TypeCode type_codes[] = {
+    { ::flatbuffers::ET_SEQUENCE, 1, 0 },
+    { ::flatbuffers::ET_UCHAR, 0, -1 }
   };
-  static const flatbuffers::TypeFunction type_refs[] = {
+  static const ::flatbuffers::TypeFunction type_refs[] = {
     keyfield::sample::RiceTypeTable
   };
   static const int16_t array_sizes[] = { 3,  };
@@ -1210,22 +928,22 @@ inline const flatbuffers::TypeTable *GrainTypeTable() {
     "a",
     "tag"
   };
-  static const flatbuffers::TypeTable tt = {
-    flatbuffers::ST_STRUCT, 2, type_codes, type_refs, array_sizes, values, names
+  static const ::flatbuffers::TypeTable tt = {
+    ::flatbuffers::ST_STRUCT, 2, type_codes, type_refs, array_sizes, values, names
   };
   return &tt;
 }
 
-inline const flatbuffers::TypeTable *FooTableTypeTable() {
-  static const flatbuffers::TypeCode type_codes[] = {
-    { flatbuffers::ET_INT, 0, -1 },
-    { flatbuffers::ET_INT, 0, -1 },
-    { flatbuffers::ET_STRING, 0, -1 },
-    { flatbuffers::ET_SEQUENCE, 1, 0 },
-    { flatbuffers::ET_SEQUENCE, 1, 1 },
-    { flatbuffers::ET_SEQUENCE, 1, 2 },
-    { flatbuffers::ET_SEQUENCE, 1, 3 },
-    { flatbuffers::ET_SEQUENCE, 1, 4 }
+inline const ::flatbuffers::TypeTable *FooTableTypeTable() {
+  static const ::flatbuffers::TypeCode type_codes[] = {
+    { ::flatbuffers::ET_INT, 0, -1 },
+    { ::flatbuffers::ET_INT, 0, -1 },
+    { ::flatbuffers::ET_STRING, 0, -1 },
+    { ::flatbuffers::ET_SEQUENCE, 1, 0 },
+    { ::flatbuffers::ET_SEQUENCE, 1, 1 },
+    { ::flatbuffers::ET_SEQUENCE, 1, 2 },
+    { ::flatbuffers::ET_SEQUENCE, 1, 3 },
+    { ::flatbuffers::ET_SEQUENCE, 1, 4 }
   };
   static const ::flatbuffers::TypeFunction type_refs[] = {
     keyfield::sample::BazTypeTable,
@@ -1244,8 +962,8 @@ inline const flatbuffers::TypeTable *FooTableTypeTable() {
     "g",
     "h"
   };
-  static const flatbuffers::TypeTable tt = {
-    flatbuffers::ST_TABLE, 8, type_codes, type_refs, nullptr, nullptr, names
+  static const ::flatbuffers::TypeTable tt = {
+    ::flatbuffers::ST_TABLE, 8, type_codes, type_refs, nullptr, nullptr, names
   };
   return &tt;
 }
@@ -1256,14 +974,6 @@ inline const keyfield::sample::FooTable *GetFooTable(const void *buf) {
 
 inline const keyfield::sample::FooTable *GetSizePrefixedFooTable(const void *buf) {
   return ::flatbuffers::GetSizePrefixedRoot<keyfield::sample::FooTable>(buf);
-}
-
-inline FooTable *GetMutableFooTable(void *buf) {
-  return ::flatbuffers::GetMutableRoot<FooTable>(buf);
-}
-
-inline keyfield::sample::FooTable *GetMutableSizePrefixedFooTable(void *buf) {
-  return ::flatbuffers::GetMutableSizePrefixedRoot<keyfield::sample::FooTable>(buf);
 }
 
 inline FooTable *GetMutableFooTable(void *buf) {
