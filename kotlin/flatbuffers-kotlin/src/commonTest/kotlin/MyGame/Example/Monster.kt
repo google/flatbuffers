@@ -178,7 +178,7 @@ class Monster : Table() {
 
     val longEnumNormalDefault : ULong get() = lookupField(110, 2UL ) { bb.getULong(it + bufferPos) }
 
-    override fun keysCompare(o1: Int, o2: Int, buffer: ReadWriteBuffer) : Int {
+    override fun keysCompare(o1: Offset<*>, o2: Offset<*>, buffer: ReadWriteBuffer) : Int {
          return compareStrings(offset(10, o1, buffer), offset(10, o2, buffer), buffer)
     }
     companion object {
@@ -191,20 +191,20 @@ class Monster : Table() {
 
         fun startMonster(builder: FlatBufferBuilder) = builder.startTable(54)
 
-        fun addPos(builder: FlatBufferBuilder, pos: Int) = builder.addStruct(0, pos, 0)
+        fun addPos(builder: FlatBufferBuilder, pos: Offset<MyGame.Example.Vec3>) = builder.addStruct(0, pos, null)
 
         fun addMana(builder: FlatBufferBuilder, mana: Short) = builder.add(1, mana, 150)
 
         fun addHp(builder: FlatBufferBuilder, hp: Short) = builder.add(2, hp, 100)
 
-        fun addName(builder: FlatBufferBuilder, name: Int)  {
+        fun addName(builder: FlatBufferBuilder, name: Offset<String>)  {
             builder.addOffset(name)
             builder.slot(3)
         }
 
-        fun addInventory(builder: FlatBufferBuilder, inventory: Int) = builder.addOffset(5, inventory, 0)
+        fun addInventory(builder: FlatBufferBuilder, inventory: ArrayOffset<UByte>) = builder.addOffset(5, inventory, null)
 
-        fun createInventoryVector(builder: FlatBufferBuilder, data: UByteArray) : Int {
+        fun createInventoryVector(builder: FlatBufferBuilder, data: UByteArray) : ArrayOffset<UByte> {
             builder.startVector(1, data.size, 1)
             for (i in data.size - 1 downTo 0) {
                 builder.add(data[i])
@@ -218,15 +218,15 @@ class Monster : Table() {
 
         fun addTestType(builder: FlatBufferBuilder, testType: UByte) = builder.add(7, testType, 0)
 
-        fun addTest(builder: FlatBufferBuilder, test: Int) = builder.addOffset(8, test, 0)
+        fun addTest(builder: FlatBufferBuilder, test: Offset<Any>) = builder.addOffset(8, test, null)
 
-        fun addTest4(builder: FlatBufferBuilder, test4: Int) = builder.addOffset(9, test4, 0)
+        fun addTest4(builder: FlatBufferBuilder, test4: ArrayOffset<MyGame.Example.Test>) = builder.addOffset(9, test4, null)
 
         fun startTest4Vector(builder: FlatBufferBuilder, numElems: Int) = builder.startVector(4, numElems, 2)
 
-        fun addTestarrayofstring(builder: FlatBufferBuilder, testarrayofstring: Int) = builder.addOffset(10, testarrayofstring, 0)
+        fun addTestarrayofstring(builder: FlatBufferBuilder, testarrayofstring: ArrayOffset<String>) = builder.addOffset(10, testarrayofstring, null)
 
-        fun createTestarrayofstringVector(builder: FlatBufferBuilder, data: IntArray) : Int {
+        fun createTestarrayofstringVector(builder: FlatBufferBuilder, data: Array<Offset<String>>) : ArrayOffset<String> {
             builder.startVector(4, data.size, 4)
             for (i in data.size - 1 downTo 0) {
                 builder.addOffset(data[i])
@@ -236,9 +236,9 @@ class Monster : Table() {
 
         fun startTestarrayofstringVector(builder: FlatBufferBuilder, numElems: Int) = builder.startVector(4, numElems, 4)
 
-        fun addTestarrayoftables(builder: FlatBufferBuilder, testarrayoftables: Int) = builder.addOffset(11, testarrayoftables, 0)
+        fun addTestarrayoftables(builder: FlatBufferBuilder, testarrayoftables: ArrayOffset<MyGame.Example.Monster>) = builder.addOffset(11, testarrayoftables, null)
 
-        fun createTestarrayoftablesVector(builder: FlatBufferBuilder, data: IntArray) : Int {
+        fun createTestarrayoftablesVector(builder: FlatBufferBuilder, data: Array<Offset<MyGame.Example.Monster>>) : ArrayOffset<MyGame.Example.Monster> {
             builder.startVector(4, data.size, 4)
             for (i in data.size - 1 downTo 0) {
                 builder.addOffset(data[i])
@@ -248,11 +248,11 @@ class Monster : Table() {
 
         fun startTestarrayoftablesVector(builder: FlatBufferBuilder, numElems: Int) = builder.startVector(4, numElems, 4)
 
-        fun addEnemy(builder: FlatBufferBuilder, enemy: Int) = builder.addOffset(12, enemy, 0)
+        fun addEnemy(builder: FlatBufferBuilder, enemy: Offset<MyGame.Example.Monster>) = builder.addOffset(12, enemy, null)
 
-        fun addTestnestedflatbuffer(builder: FlatBufferBuilder, testnestedflatbuffer: Int) = builder.addOffset(13, testnestedflatbuffer, 0)
+        fun addTestnestedflatbuffer(builder: FlatBufferBuilder, testnestedflatbuffer: ArrayOffset<UByte>) = builder.addOffset(13, testnestedflatbuffer, null)
 
-        fun createTestnestedflatbufferVector(builder: FlatBufferBuilder, data: UByteArray) : Int {
+        fun createTestnestedflatbufferVector(builder: FlatBufferBuilder, data: UByteArray) : ArrayOffset<UByte> {
             builder.startVector(1, data.size, 1)
             for (i in data.size - 1 downTo 0) {
                 builder.add(data[i])
@@ -262,7 +262,7 @@ class Monster : Table() {
 
         fun startTestnestedflatbufferVector(builder: FlatBufferBuilder, numElems: Int) = builder.startVector(1, numElems, 1)
 
-        fun addTestempty(builder: FlatBufferBuilder, testempty: Int) = builder.addOffset(14, testempty, 0)
+        fun addTestempty(builder: FlatBufferBuilder, testempty: Offset<MyGame.Example.Stat>) = builder.addOffset(14, testempty, null)
 
         fun addTestbool(builder: FlatBufferBuilder, testbool: Boolean) = builder.add(15, testbool, false)
 
@@ -282,9 +282,9 @@ class Monster : Table() {
 
         fun addTesthashu64Fnv1a(builder: FlatBufferBuilder, testhashu64Fnv1a: ULong) = builder.add(23, testhashu64Fnv1a, 0)
 
-        fun addTestarrayofbools(builder: FlatBufferBuilder, testarrayofbools: Int) = builder.addOffset(24, testarrayofbools, 0)
+        fun addTestarrayofbools(builder: FlatBufferBuilder, testarrayofbools: ArrayOffset<Boolean>) = builder.addOffset(24, testarrayofbools, null)
 
-        fun createTestarrayofboolsVector(builder: FlatBufferBuilder, data: BooleanArray) : Int {
+        fun createTestarrayofboolsVector(builder: FlatBufferBuilder, data: BooleanArray) : ArrayOffset<Boolean> {
             builder.startVector(1, data.size, 1)
             for (i in data.size - 1 downTo 0) {
                 builder.add(data[i])
@@ -300,9 +300,9 @@ class Monster : Table() {
 
         fun addTestf3(builder: FlatBufferBuilder, testf3: Float) = builder.add(27, testf3, 0.0)
 
-        fun addTestarrayofstring2(builder: FlatBufferBuilder, testarrayofstring2: Int) = builder.addOffset(28, testarrayofstring2, 0)
+        fun addTestarrayofstring2(builder: FlatBufferBuilder, testarrayofstring2: ArrayOffset<String>) = builder.addOffset(28, testarrayofstring2, null)
 
-        fun createTestarrayofstring2Vector(builder: FlatBufferBuilder, data: IntArray) : Int {
+        fun createTestarrayofstring2Vector(builder: FlatBufferBuilder, data: Array<Offset<String>>) : ArrayOffset<String> {
             builder.startVector(4, data.size, 4)
             for (i in data.size - 1 downTo 0) {
                 builder.addOffset(data[i])
@@ -312,13 +312,13 @@ class Monster : Table() {
 
         fun startTestarrayofstring2Vector(builder: FlatBufferBuilder, numElems: Int) = builder.startVector(4, numElems, 4)
 
-        fun addTestarrayofsortedstruct(builder: FlatBufferBuilder, testarrayofsortedstruct: Int) = builder.addOffset(29, testarrayofsortedstruct, 0)
+        fun addTestarrayofsortedstruct(builder: FlatBufferBuilder, testarrayofsortedstruct: ArrayOffset<MyGame.Example.Ability>) = builder.addOffset(29, testarrayofsortedstruct, null)
 
         fun startTestarrayofsortedstructVector(builder: FlatBufferBuilder, numElems: Int) = builder.startVector(8, numElems, 4)
 
-        fun addFlex(builder: FlatBufferBuilder, flex: Int) = builder.addOffset(30, flex, 0)
+        fun addFlex(builder: FlatBufferBuilder, flex: ArrayOffset<UByte>) = builder.addOffset(30, flex, null)
 
-        fun createFlexVector(builder: FlatBufferBuilder, data: UByteArray) : Int {
+        fun createFlexVector(builder: FlatBufferBuilder, data: UByteArray) : ArrayOffset<UByte> {
             builder.startVector(1, data.size, 1)
             for (i in data.size - 1 downTo 0) {
                 builder.add(data[i])
@@ -328,13 +328,13 @@ class Monster : Table() {
 
         fun startFlexVector(builder: FlatBufferBuilder, numElems: Int) = builder.startVector(1, numElems, 1)
 
-        fun addTest5(builder: FlatBufferBuilder, test5: Int) = builder.addOffset(31, test5, 0)
+        fun addTest5(builder: FlatBufferBuilder, test5: ArrayOffset<MyGame.Example.Test>) = builder.addOffset(31, test5, null)
 
         fun startTest5Vector(builder: FlatBufferBuilder, numElems: Int) = builder.startVector(4, numElems, 2)
 
-        fun addVectorOfLongs(builder: FlatBufferBuilder, vectorOfLongs: Int) = builder.addOffset(32, vectorOfLongs, 0)
+        fun addVectorOfLongs(builder: FlatBufferBuilder, vectorOfLongs: ArrayOffset<Long>) = builder.addOffset(32, vectorOfLongs, null)
 
-        fun createVectorOfLongsVector(builder: FlatBufferBuilder, data: LongArray) : Int {
+        fun createVectorOfLongsVector(builder: FlatBufferBuilder, data: LongArray) : ArrayOffset<Long> {
             builder.startVector(8, data.size, 8)
             for (i in data.size - 1 downTo 0) {
                 builder.add(data[i])
@@ -344,9 +344,9 @@ class Monster : Table() {
 
         fun startVectorOfLongsVector(builder: FlatBufferBuilder, numElems: Int) = builder.startVector(8, numElems, 8)
 
-        fun addVectorOfDoubles(builder: FlatBufferBuilder, vectorOfDoubles: Int) = builder.addOffset(33, vectorOfDoubles, 0)
+        fun addVectorOfDoubles(builder: FlatBufferBuilder, vectorOfDoubles: ArrayOffset<Double>) = builder.addOffset(33, vectorOfDoubles, null)
 
-        fun createVectorOfDoublesVector(builder: FlatBufferBuilder, data: DoubleArray) : Int {
+        fun createVectorOfDoublesVector(builder: FlatBufferBuilder, data: DoubleArray) : ArrayOffset<Double> {
             builder.startVector(8, data.size, 8)
             for (i in data.size - 1 downTo 0) {
                 builder.add(data[i])
@@ -356,11 +356,11 @@ class Monster : Table() {
 
         fun startVectorOfDoublesVector(builder: FlatBufferBuilder, numElems: Int) = builder.startVector(8, numElems, 8)
 
-        fun addParentNamespaceTest(builder: FlatBufferBuilder, parentNamespaceTest: Int) = builder.addOffset(34, parentNamespaceTest, 0)
+        fun addParentNamespaceTest(builder: FlatBufferBuilder, parentNamespaceTest: Offset<MyGame.InParentNamespace>) = builder.addOffset(34, parentNamespaceTest, null)
 
-        fun addVectorOfReferrables(builder: FlatBufferBuilder, vectorOfReferrables: Int) = builder.addOffset(35, vectorOfReferrables, 0)
+        fun addVectorOfReferrables(builder: FlatBufferBuilder, vectorOfReferrables: ArrayOffset<MyGame.Example.Referrable>) = builder.addOffset(35, vectorOfReferrables, null)
 
-        fun createVectorOfReferrablesVector(builder: FlatBufferBuilder, data: IntArray) : Int {
+        fun createVectorOfReferrablesVector(builder: FlatBufferBuilder, data: Array<Offset<MyGame.Example.Referrable>>) : ArrayOffset<MyGame.Example.Referrable> {
             builder.startVector(4, data.size, 4)
             for (i in data.size - 1 downTo 0) {
                 builder.addOffset(data[i])
@@ -372,9 +372,9 @@ class Monster : Table() {
 
         fun addSingleWeakReference(builder: FlatBufferBuilder, singleWeakReference: ULong) = builder.add(36, singleWeakReference, 0)
 
-        fun addVectorOfWeakReferences(builder: FlatBufferBuilder, vectorOfWeakReferences: Int) = builder.addOffset(37, vectorOfWeakReferences, 0)
+        fun addVectorOfWeakReferences(builder: FlatBufferBuilder, vectorOfWeakReferences: ArrayOffset<ULong>) = builder.addOffset(37, vectorOfWeakReferences, null)
 
-        fun createVectorOfWeakReferencesVector(builder: FlatBufferBuilder, data: ULongArray) : Int {
+        fun createVectorOfWeakReferencesVector(builder: FlatBufferBuilder, data: ULongArray) : ArrayOffset<ULong> {
             builder.startVector(8, data.size, 8)
             for (i in data.size - 1 downTo 0) {
                 builder.add(data[i])
@@ -384,9 +384,9 @@ class Monster : Table() {
 
         fun startVectorOfWeakReferencesVector(builder: FlatBufferBuilder, numElems: Int) = builder.startVector(8, numElems, 8)
 
-        fun addVectorOfStrongReferrables(builder: FlatBufferBuilder, vectorOfStrongReferrables: Int) = builder.addOffset(38, vectorOfStrongReferrables, 0)
+        fun addVectorOfStrongReferrables(builder: FlatBufferBuilder, vectorOfStrongReferrables: ArrayOffset<MyGame.Example.Referrable>) = builder.addOffset(38, vectorOfStrongReferrables, null)
 
-        fun createVectorOfStrongReferrablesVector(builder: FlatBufferBuilder, data: IntArray) : Int {
+        fun createVectorOfStrongReferrablesVector(builder: FlatBufferBuilder, data: Array<Offset<MyGame.Example.Referrable>>) : ArrayOffset<MyGame.Example.Referrable> {
             builder.startVector(4, data.size, 4)
             for (i in data.size - 1 downTo 0) {
                 builder.addOffset(data[i])
@@ -398,9 +398,9 @@ class Monster : Table() {
 
         fun addCoOwningReference(builder: FlatBufferBuilder, coOwningReference: ULong) = builder.add(39, coOwningReference, 0)
 
-        fun addVectorOfCoOwningReferences(builder: FlatBufferBuilder, vectorOfCoOwningReferences: Int) = builder.addOffset(40, vectorOfCoOwningReferences, 0)
+        fun addVectorOfCoOwningReferences(builder: FlatBufferBuilder, vectorOfCoOwningReferences: ArrayOffset<ULong>) = builder.addOffset(40, vectorOfCoOwningReferences, null)
 
-        fun createVectorOfCoOwningReferencesVector(builder: FlatBufferBuilder, data: ULongArray) : Int {
+        fun createVectorOfCoOwningReferencesVector(builder: FlatBufferBuilder, data: ULongArray) : ArrayOffset<ULong> {
             builder.startVector(8, data.size, 8)
             for (i in data.size - 1 downTo 0) {
                 builder.add(data[i])
@@ -412,9 +412,9 @@ class Monster : Table() {
 
         fun addNonOwningReference(builder: FlatBufferBuilder, nonOwningReference: ULong) = builder.add(41, nonOwningReference, 0)
 
-        fun addVectorOfNonOwningReferences(builder: FlatBufferBuilder, vectorOfNonOwningReferences: Int) = builder.addOffset(42, vectorOfNonOwningReferences, 0)
+        fun addVectorOfNonOwningReferences(builder: FlatBufferBuilder, vectorOfNonOwningReferences: ArrayOffset<ULong>) = builder.addOffset(42, vectorOfNonOwningReferences, null)
 
-        fun createVectorOfNonOwningReferencesVector(builder: FlatBufferBuilder, data: ULongArray) : Int {
+        fun createVectorOfNonOwningReferencesVector(builder: FlatBufferBuilder, data: ULongArray) : ArrayOffset<ULong> {
             builder.startVector(8, data.size, 8)
             for (i in data.size - 1 downTo 0) {
                 builder.add(data[i])
@@ -426,15 +426,15 @@ class Monster : Table() {
 
         fun addAnyUniqueType(builder: FlatBufferBuilder, anyUniqueType: UByte) = builder.add(43, anyUniqueType, 0)
 
-        fun addAnyUnique(builder: FlatBufferBuilder, anyUnique: Int) = builder.addOffset(44, anyUnique, 0)
+        fun addAnyUnique(builder: FlatBufferBuilder, anyUnique: Offset<Any>) = builder.addOffset(44, anyUnique, null)
 
         fun addAnyAmbiguousType(builder: FlatBufferBuilder, anyAmbiguousType: UByte) = builder.add(45, anyAmbiguousType, 0)
 
-        fun addAnyAmbiguous(builder: FlatBufferBuilder, anyAmbiguous: Int) = builder.addOffset(46, anyAmbiguous, 0)
+        fun addAnyAmbiguous(builder: FlatBufferBuilder, anyAmbiguous: Offset<Any>) = builder.addOffset(46, anyAmbiguous, null)
 
-        fun addVectorOfEnums(builder: FlatBufferBuilder, vectorOfEnums: Int) = builder.addOffset(47, vectorOfEnums, 0)
+        fun addVectorOfEnums(builder: FlatBufferBuilder, vectorOfEnums: ArrayOffset<UByte>) = builder.addOffset(47, vectorOfEnums, null)
 
-        fun createVectorOfEnumsVector(builder: FlatBufferBuilder, data: UByteArray) : Int {
+        fun createVectorOfEnumsVector(builder: FlatBufferBuilder, data: UByteArray) : ArrayOffset<UByte> {
             builder.startVector(1, data.size, 1)
             for (i in data.size - 1 downTo 0) {
                 builder.add(data[i])
@@ -446,9 +446,9 @@ class Monster : Table() {
 
         fun addSignedEnum(builder: FlatBufferBuilder, signedEnum: Byte) = builder.add(48, signedEnum, -1)
 
-        fun addTestrequirednestedflatbuffer(builder: FlatBufferBuilder, testrequirednestedflatbuffer: Int) = builder.addOffset(49, testrequirednestedflatbuffer, 0)
+        fun addTestrequirednestedflatbuffer(builder: FlatBufferBuilder, testrequirednestedflatbuffer: ArrayOffset<UByte>) = builder.addOffset(49, testrequirednestedflatbuffer, null)
 
-        fun createTestrequirednestedflatbufferVector(builder: FlatBufferBuilder, data: UByteArray) : Int {
+        fun createTestrequirednestedflatbufferVector(builder: FlatBufferBuilder, data: UByteArray) : ArrayOffset<UByte> {
             builder.startVector(1, data.size, 1)
             for (i in data.size - 1 downTo 0) {
                 builder.add(data[i])
@@ -458,9 +458,9 @@ class Monster : Table() {
 
         fun startTestrequirednestedflatbufferVector(builder: FlatBufferBuilder, numElems: Int) = builder.startVector(1, numElems, 1)
 
-        fun addScalarKeySortedTables(builder: FlatBufferBuilder, scalarKeySortedTables: Int) = builder.addOffset(50, scalarKeySortedTables, 0)
+        fun addScalarKeySortedTables(builder: FlatBufferBuilder, scalarKeySortedTables: ArrayOffset<MyGame.Example.Stat>) = builder.addOffset(50, scalarKeySortedTables, null)
 
-        fun createScalarKeySortedTablesVector(builder: FlatBufferBuilder, data: IntArray) : Int {
+        fun createScalarKeySortedTablesVector(builder: FlatBufferBuilder, data: Array<Offset<MyGame.Example.Stat>>) : ArrayOffset<MyGame.Example.Stat> {
             builder.startVector(4, data.size, 4)
             for (i in data.size - 1 downTo 0) {
                 builder.addOffset(data[i])
@@ -470,21 +470,21 @@ class Monster : Table() {
 
         fun startScalarKeySortedTablesVector(builder: FlatBufferBuilder, numElems: Int) = builder.startVector(4, numElems, 4)
 
-        fun addNativeInline(builder: FlatBufferBuilder, nativeInline: Int) = builder.addStruct(51, nativeInline, 0)
+        fun addNativeInline(builder: FlatBufferBuilder, nativeInline: Offset<MyGame.Example.Test>) = builder.addStruct(51, nativeInline, null)
 
         fun addLongEnumNonEnumDefault(builder: FlatBufferBuilder, longEnumNonEnumDefault: ULong) = builder.add(52, longEnumNonEnumDefault, 0)
 
         fun addLongEnumNormalDefault(builder: FlatBufferBuilder, longEnumNormalDefault: ULong) = builder.add(53, longEnumNormalDefault, 2)
 
-        fun endMonster(builder: FlatBufferBuilder) : Int {
-            val o = builder.endTable()
+        fun endMonster(builder: FlatBufferBuilder) : Offset<Monster> {
+            val o: Offset<Monster> = builder.endTable()
                 builder.required(o, 10)
             return o
         }
 
-        fun finishMonsterBuffer(builder: FlatBufferBuilder, offset: Int) = builder.finish(offset, "MONS")
+        fun finishMonsterBuffer(builder: FlatBufferBuilder, offset: Offset<Monster>) = builder.finish(offset, "MONS")
 
-        fun finishSizePrefixedMonsterBuffer(builder: FlatBufferBuilder, offset: Int) = builder.finishSizePrefixed(offset, "MONS")
+        fun finishSizePrefixedMonsterBuffer(builder: FlatBufferBuilder, offset: Offset<Monster>) = builder.finishSizePrefixed(offset, "MONS")
 
         fun lookupByKey(obj: Monster?, vectorLocation: Int, key: String, bb: ReadWriteBuffer) : Monster? {
             val byteKey = key.encodeToByteArray()
@@ -493,7 +493,7 @@ class Monster : Table() {
             while (span != 0) {
                 var middle = span / 2
                 val tableOffset = indirect(vectorLocation + 4 * (start + middle), bb)
-                val comp = compareStrings(offset(10, bb.capacity - tableOffset, bb), byteKey, bb)
+                val comp = compareStrings(offset(10, (bb.capacity - tableOffset).toOffset<Int>(), bb), byteKey, bb)
                 when {
                     comp > 0 -> span = middle
                     comp < 0 -> {

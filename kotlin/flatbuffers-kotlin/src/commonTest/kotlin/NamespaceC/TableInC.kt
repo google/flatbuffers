@@ -22,7 +22,7 @@ class TableInC : Table() {
         fun asRoot(buffer: ReadWriteBuffer, obj: TableInC) : TableInC = obj.assign(buffer.getInt(buffer.limit) + buffer.limit, buffer)
 
 
-        fun createTableInC(builder: FlatBufferBuilder, referToA1Offset: Int, referToA2Offset: Int) : Int {
+        fun createTableInC(builder: FlatBufferBuilder, referToA1Offset: Offset<NamespaceA.TableInFirstNS>, referToA2Offset: Offset<NamespaceA.SecondTableInA>) : Offset<TableInC> {
             builder.startTable(2)
             addReferToA2(builder, referToA2Offset)
             addReferToA1(builder, referToA1Offset)
@@ -30,12 +30,12 @@ class TableInC : Table() {
         }
         fun startTableInC(builder: FlatBufferBuilder) = builder.startTable(2)
 
-        fun addReferToA1(builder: FlatBufferBuilder, referToA1: Int) = builder.addOffset(0, referToA1, 0)
+        fun addReferToA1(builder: FlatBufferBuilder, referToA1: Offset<NamespaceA.TableInFirstNS>) = builder.addOffset(0, referToA1, null)
 
-        fun addReferToA2(builder: FlatBufferBuilder, referToA2: Int) = builder.addOffset(1, referToA2, 0)
+        fun addReferToA2(builder: FlatBufferBuilder, referToA2: Offset<NamespaceA.SecondTableInA>) = builder.addOffset(1, referToA2, null)
 
-        fun endTableInC(builder: FlatBufferBuilder) : Int {
-            val o = builder.endTable()
+        fun endTableInC(builder: FlatBufferBuilder) : Offset<TableInC> {
+            val o: Offset<TableInC> = builder.endTable()
             return o
         }
     }

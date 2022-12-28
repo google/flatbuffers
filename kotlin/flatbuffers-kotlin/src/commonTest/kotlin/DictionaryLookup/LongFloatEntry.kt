@@ -13,7 +13,7 @@ class LongFloatEntry : Table() {
 
     val value : Float get() = lookupField(6, 0.0f ) { bb.getFloat(it + bufferPos) }
 
-    override fun keysCompare(o1: Int, o2: Int, buffer: ReadWriteBuffer) : Int {
+    override fun keysCompare(o1: Offset<*>, o2: Offset<*>, buffer: ReadWriteBuffer) : Int {
         val a = buffer.getLong(offset(4, o1, buffer))
         val b = buffer.getLong(offset(4, o2, buffer))
         return (a - b).toInt().sign()
@@ -25,7 +25,7 @@ class LongFloatEntry : Table() {
         fun asRoot(buffer: ReadWriteBuffer, obj: LongFloatEntry) : LongFloatEntry = obj.assign(buffer.getInt(buffer.limit) + buffer.limit, buffer)
 
 
-        fun createLongFloatEntry(builder: FlatBufferBuilder, key: Long, value: Float) : Int {
+        fun createLongFloatEntry(builder: FlatBufferBuilder, key: Long, value: Float) : Offset<LongFloatEntry> {
             builder.startTable(2)
             addKey(builder, key)
             addValue(builder, value)
@@ -40,8 +40,8 @@ class LongFloatEntry : Table() {
 
         fun addValue(builder: FlatBufferBuilder, value: Float) = builder.add(1, value, 0.0)
 
-        fun endLongFloatEntry(builder: FlatBufferBuilder) : Int {
-            val o = builder.endTable()
+        fun endLongFloatEntry(builder: FlatBufferBuilder) : Offset<LongFloatEntry> {
+            val o: Offset<LongFloatEntry> = builder.endTable()
             return o
         }
 
@@ -51,7 +51,7 @@ class LongFloatEntry : Table() {
             while (span != 0) {
                 var middle = span / 2
                 val tableOffset = indirect(vectorLocation + 4 * (start + middle), bb)
-                val value = bb.getLong(offset(4, bb.capacity - tableOffset, bb))
+                val value = bb.getLong(offset(4, (bb.capacity - tableOffset).toOffset<Int>(), bb))
                 val comp = value.compareTo(key)
                 when {
                     comp > 0 -> span = middle

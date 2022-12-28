@@ -16,7 +16,7 @@ class Attacker : Table() {
         fun asRoot(buffer: ReadWriteBuffer, obj: Attacker) : Attacker = obj.assign(buffer.getInt(buffer.limit) + buffer.limit, buffer)
 
 
-        fun createAttacker(builder: FlatBufferBuilder, swordAttackDamage: Int) : Int {
+        fun createAttacker(builder: FlatBufferBuilder, swordAttackDamage: Int) : Offset<Attacker> {
             builder.startTable(1)
             addSwordAttackDamage(builder, swordAttackDamage)
             return endAttacker(builder)
@@ -25,8 +25,8 @@ class Attacker : Table() {
 
         fun addSwordAttackDamage(builder: FlatBufferBuilder, swordAttackDamage: Int) = builder.add(0, swordAttackDamage, 0)
 
-        fun endAttacker(builder: FlatBufferBuilder) : Int {
-            val o = builder.endTable()
+        fun endAttacker(builder: FlatBufferBuilder) : Offset<Attacker> {
+            val o: Offset<Attacker> = builder.endTable()
             return o
         }
     }

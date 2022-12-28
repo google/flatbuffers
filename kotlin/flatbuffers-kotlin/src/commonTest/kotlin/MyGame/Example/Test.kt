@@ -15,12 +15,12 @@ class Test : Struct() {
 
     companion object {
 
-        fun createTest(builder: FlatBufferBuilder, a: Short, b: Byte) : Int {
+        fun createTest(builder: FlatBufferBuilder, a: Short, b: Byte) : Offset<Test> {
             builder.prep(2, 4)
             builder.pad(1)
             builder.put(b)
             builder.put(a)
-            return builder.offset()
+            return Offset(builder.offset())
         }
     }
 }

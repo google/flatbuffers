@@ -22,16 +22,16 @@ class LongFloatMap : Table() {
         fun asRoot(buffer: ReadWriteBuffer, obj: LongFloatMap) : LongFloatMap = obj.assign(buffer.getInt(buffer.limit) + buffer.limit, buffer)
 
 
-        fun createLongFloatMap(builder: FlatBufferBuilder, entriesOffset: Int) : Int {
+        fun createLongFloatMap(builder: FlatBufferBuilder, entriesOffset: ArrayOffset<DictionaryLookup.LongFloatEntry>) : Offset<LongFloatMap> {
             builder.startTable(1)
             addEntries(builder, entriesOffset)
             return endLongFloatMap(builder)
         }
         fun startLongFloatMap(builder: FlatBufferBuilder) = builder.startTable(1)
 
-        fun addEntries(builder: FlatBufferBuilder, entries: Int) = builder.addOffset(0, entries, 0)
+        fun addEntries(builder: FlatBufferBuilder, entries: ArrayOffset<DictionaryLookup.LongFloatEntry>) = builder.addOffset(0, entries, null)
 
-        fun createEntriesVector(builder: FlatBufferBuilder, data: IntArray) : Int {
+        fun createEntriesVector(builder: FlatBufferBuilder, data: Array<Offset<DictionaryLookup.LongFloatEntry>>) : ArrayOffset<DictionaryLookup.LongFloatEntry> {
             builder.startVector(4, data.size, 4)
             for (i in data.size - 1 downTo 0) {
                 builder.addOffset(data[i])
@@ -41,13 +41,13 @@ class LongFloatMap : Table() {
 
         fun startEntriesVector(builder: FlatBufferBuilder, numElems: Int) = builder.startVector(4, numElems, 4)
 
-        fun endLongFloatMap(builder: FlatBufferBuilder) : Int {
-            val o = builder.endTable()
+        fun endLongFloatMap(builder: FlatBufferBuilder) : Offset<LongFloatMap> {
+            val o: Offset<LongFloatMap> = builder.endTable()
             return o
         }
 
-        fun finishLongFloatMapBuffer(builder: FlatBufferBuilder, offset: Int) = builder.finish(offset)
+        fun finishLongFloatMapBuffer(builder: FlatBufferBuilder, offset: Offset<LongFloatMap>) = builder.finish(offset)
 
-        fun finishSizePrefixedLongFloatMapBuffer(builder: FlatBufferBuilder, offset: Int) = builder.finishSizePrefixed(offset)
+        fun finishSizePrefixedLongFloatMapBuffer(builder: FlatBufferBuilder, offset: Offset<LongFloatMap>) = builder.finishSizePrefixed(offset)
     }
 }

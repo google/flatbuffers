@@ -11,10 +11,10 @@ class FallingTub : Struct() {
 
     companion object {
 
-        fun createFallingTub(builder: FlatBufferBuilder, weight: Int) : Int {
+        fun createFallingTub(builder: FlatBufferBuilder, weight: Int) : Offset<FallingTub> {
             builder.prep(4, 4)
             builder.put(weight)
-            return builder.offset()
+            return Offset(builder.offset())
         }
     }
 }

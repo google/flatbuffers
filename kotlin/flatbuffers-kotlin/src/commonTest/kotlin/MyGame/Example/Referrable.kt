@@ -11,7 +11,7 @@ class Referrable : Table() {
 
     val id : ULong get() = lookupField(4, 0UL ) { bb.getULong(it + bufferPos) }
 
-    override fun keysCompare(o1: Int, o2: Int, buffer: ReadWriteBuffer) : Int {
+    override fun keysCompare(o1: Offset<*>, o2: Offset<*>, buffer: ReadWriteBuffer) : Int {
         val a = buffer.getULong(offset(4, o1, buffer))
         val b = buffer.getULong(offset(4, o2, buffer))
         return (a - b).toInt().sign()
@@ -23,7 +23,7 @@ class Referrable : Table() {
         fun asRoot(buffer: ReadWriteBuffer, obj: Referrable) : Referrable = obj.assign(buffer.getInt(buffer.limit) + buffer.limit, buffer)
 
 
-        fun createReferrable(builder: FlatBufferBuilder, id: ULong) : Int {
+        fun createReferrable(builder: FlatBufferBuilder, id: ULong) : Offset<Referrable> {
             builder.startTable(1)
             addId(builder, id)
             return endReferrable(builder)
@@ -35,8 +35,8 @@ class Referrable : Table() {
             builder.slot(0)
         }
 
-        fun endReferrable(builder: FlatBufferBuilder) : Int {
-            val o = builder.endTable()
+        fun endReferrable(builder: FlatBufferBuilder) : Offset<Referrable> {
+            val o: Offset<Referrable> = builder.endTable()
             return o
         }
 
@@ -46,7 +46,7 @@ class Referrable : Table() {
             while (span != 0) {
                 var middle = span / 2
                 val tableOffset = indirect(vectorLocation + 4 * (start + middle), bb)
-                val value = bb.getULong(offset(4, bb.capacity - tableOffset, bb))
+                val value = bb.getULong(offset(4, (bb.capacity - tableOffset).toOffset<Int>(), bb))
                 val comp = value.compareTo(key)
                 when {
                     comp > 0 -> span = middle

@@ -11,10 +11,10 @@ class Rapunzel : Struct() {
 
     companion object {
 
-        fun createRapunzel(builder: FlatBufferBuilder, hairLength: Int) : Int {
+        fun createRapunzel(builder: FlatBufferBuilder, hairLength: Int) : Offset<Rapunzel> {
             builder.prep(4, 4)
             builder.put(hairLength)
-            return builder.offset()
+            return Offset(builder.offset())
         }
     }
 }

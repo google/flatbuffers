@@ -18,7 +18,7 @@ class TestSimpleTableWithEnum : Table() {
         fun asRoot(buffer: ReadWriteBuffer, obj: TestSimpleTableWithEnum) : TestSimpleTableWithEnum = obj.assign(buffer.getInt(buffer.limit) + buffer.limit, buffer)
 
 
-        fun createTestSimpleTableWithEnum(builder: FlatBufferBuilder, color: UByte) : Int {
+        fun createTestSimpleTableWithEnum(builder: FlatBufferBuilder, color: UByte) : Offset<TestSimpleTableWithEnum> {
             builder.startTable(1)
             addColor(builder, color)
             return endTestSimpleTableWithEnum(builder)
@@ -27,8 +27,8 @@ class TestSimpleTableWithEnum : Table() {
 
         fun addColor(builder: FlatBufferBuilder, color: UByte) = builder.add(0, color, 2)
 
-        fun endTestSimpleTableWithEnum(builder: FlatBufferBuilder) : Int {
-            val o = builder.endTable()
+        fun endTestSimpleTableWithEnum(builder: FlatBufferBuilder) : Offset<TestSimpleTableWithEnum> {
+            val o: Offset<TestSimpleTableWithEnum> = builder.endTable()
             return o
         }
     }

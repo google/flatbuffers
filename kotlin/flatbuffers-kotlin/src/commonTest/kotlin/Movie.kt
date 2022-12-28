@@ -26,7 +26,7 @@ class Movie : Table() {
 
         fun MovieBufferHasIdentifier(buffer: ReadWriteBuffer) : Boolean = hasIdentifier(buffer, "MOVI")
 
-        fun createMovie(builder: FlatBufferBuilder, mainCharacterType: UByte, mainCharacterOffset: Int, charactersTypeOffset: Int, charactersOffset: Int) : Int {
+        fun createMovie(builder: FlatBufferBuilder, mainCharacterType: UByte, mainCharacterOffset: Offset<Any>, charactersTypeOffset: ArrayOffset<UByte>, charactersOffset: ArrayOffset<Any>) : Offset<Movie> {
             builder.startTable(4)
             addCharacters(builder, charactersOffset)
             addCharactersType(builder, charactersTypeOffset)
@@ -38,11 +38,11 @@ class Movie : Table() {
 
         fun addMainCharacterType(builder: FlatBufferBuilder, mainCharacterType: UByte) = builder.add(0, mainCharacterType, 0)
 
-        fun addMainCharacter(builder: FlatBufferBuilder, mainCharacter: Int) = builder.addOffset(1, mainCharacter, 0)
+        fun addMainCharacter(builder: FlatBufferBuilder, mainCharacter: Offset<Any>) = builder.addOffset(1, mainCharacter, null)
 
-        fun addCharactersType(builder: FlatBufferBuilder, charactersType: Int) = builder.addOffset(2, charactersType, 0)
+        fun addCharactersType(builder: FlatBufferBuilder, charactersType: ArrayOffset<UByte>) = builder.addOffset(2, charactersType, null)
 
-        fun createCharactersTypeVector(builder: FlatBufferBuilder, data: UByteArray) : Int {
+        fun createCharactersTypeVector(builder: FlatBufferBuilder, data: UByteArray) : ArrayOffset<UByte> {
             builder.startVector(1, data.size, 1)
             for (i in data.size - 1 downTo 0) {
                 builder.add(data[i])
@@ -52,9 +52,9 @@ class Movie : Table() {
 
         fun startCharactersTypeVector(builder: FlatBufferBuilder, numElems: Int) = builder.startVector(1, numElems, 1)
 
-        fun addCharacters(builder: FlatBufferBuilder, characters: Int) = builder.addOffset(3, characters, 0)
+        fun addCharacters(builder: FlatBufferBuilder, characters: ArrayOffset<Any>) = builder.addOffset(3, characters, null)
 
-        fun createCharactersVector(builder: FlatBufferBuilder, data: IntArray) : Int {
+        fun createCharactersVector(builder: FlatBufferBuilder, data: Array<Offset<Any>>) : ArrayOffset<Any> {
             builder.startVector(4, data.size, 4)
             for (i in data.size - 1 downTo 0) {
                 builder.addOffset(data[i])
@@ -64,13 +64,13 @@ class Movie : Table() {
 
         fun startCharactersVector(builder: FlatBufferBuilder, numElems: Int) = builder.startVector(4, numElems, 4)
 
-        fun endMovie(builder: FlatBufferBuilder) : Int {
-            val o = builder.endTable()
+        fun endMovie(builder: FlatBufferBuilder) : Offset<Movie> {
+            val o: Offset<Movie> = builder.endTable()
             return o
         }
 
-        fun finishMovieBuffer(builder: FlatBufferBuilder, offset: Int) = builder.finish(offset, "MOVI")
+        fun finishMovieBuffer(builder: FlatBufferBuilder, offset: Offset<Movie>) = builder.finish(offset, "MOVI")
 
-        fun finishSizePrefixedMovieBuffer(builder: FlatBufferBuilder, offset: Int) = builder.finishSizePrefixed(offset, "MOVI")
+        fun finishSizePrefixedMovieBuffer(builder: FlatBufferBuilder, offset: Offset<Movie>) = builder.finishSizePrefixed(offset, "MOVI")
     }
 }

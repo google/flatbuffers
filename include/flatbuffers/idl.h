@@ -59,13 +59,13 @@ namespace flatbuffers {
   TD(FLOAT,    "float",  float,    float,  float32, float,  float32, f32,  Float, Float32, 11) /* begin float */ \
   TD(DOUBLE,   "double", double,   double, float64, double, float64, f64,  Double, Double, 12) /* end float/scalar */
 #define FLATBUFFERS_GEN_TYPES_POINTER(TD) \
-  TD(STRING,   "string", Offset<void>,   int, int, StringOffset, int, unused, Int, Offset<String>, 13) \
-  TD(VECTOR,   "",       Offset<void>,   int, int, VectorOffset, int, unused, Int, Offset<UOffset>, 14) \
-  TD(VECTOR64, "",       Offset64<void>, int, int, VectorOffset, int, unused, Int, Offset<UOffset>, 18) \
-  TD(STRUCT,   "",       Offset<void>,   int, int, int,          int, unused, Int, Offset<UOffset>, 15) \
-  TD(UNION,    "",       Offset<void>,   int, int, int,          int, unused, Int, Offset<UOffset>, 16)
+  TD(STRING,   "string", Offset<void>,   int, int, StringOffset, int, unused, Offset, Offset<String>, 13) \
+  TD(VECTOR,   "",       Offset<void>,   int, int, VectorOffset, int, unused, VectorOffset, Offset<UOffset>, 14) \
+  TD(VECTOR64, "",       Offset64<void>, int, int, VectorOffset, int, unused, VectorOffset, Offset<UOffset>, 18) \
+  TD(STRUCT,   "",       Offset<void>,   int, int, int,          int, unused, Offset, Offset<UOffset>, 15) \
+  TD(UNION,    "",       Offset<void>,   int, int, int,          int, unused, Offset, Offset<UOffset>, 16)
 #define FLATBUFFERS_GEN_TYPE_ARRAY(TD) \
-  TD(ARRAY,    "",       int,            int, int, int,          int, unused, Int, Offset<UOffset>, 17)
+  TD(ARRAY,    "",       int,            int, int, int,          int, unused, VectorOffset, Offset<UOffset>, 17)
 // The fields are:
 // - enum
 // - FlatBuffers schema type.
@@ -342,7 +342,10 @@ struct FieldDef : public Definition {
   bool Deserialize(Parser &parser, const reflection::Field *field);
 
   bool IsScalarOptional() const {
-    return IsScalar(value.type.base_type) && IsOptional();
+    return IsScalar() && IsOptional();
+  }
+  bool IsScalar() const {
+      return ::flatbuffers::IsScalar(value.type.base_type);
   }
   bool IsOptional() const { return presence == kOptional; }
   bool IsRequired() const { return presence == kRequired; }

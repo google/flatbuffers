@@ -86,8 +86,8 @@ class FlatBufferBuilderTest {
   @Test
   fun testSortedVector() {
     val fbb = FlatBufferBuilder()
-    val names = intArrayOf(fbb.createString("Frodo"), fbb.createString("Barney"), fbb.createString("Wilma"))
-    val off = IntArray(3)
+    val names = arrayOf(fbb.createString("Frodo"), fbb.createString("Barney"), fbb.createString("Wilma"))
+    val off = Array<Offset<Monster>>(3) { Offset(0) }
     Monster.startMonster(fbb)
     Monster.addName(fbb, names[0])
     off[0] = Monster.endMonster(fbb)
@@ -121,8 +121,8 @@ class FlatBufferBuilderTest {
   fun testCreateBufferVector() {
     val fbb = FlatBufferBuilder(16)
     val str = fbb.createString("MyMonster")
-    val inventory = byteArrayOf(0, 1, 2, 3, 4, 5, 6, 88, 99, 122, -1)
-    val vec = fbb.createByteVector(inventory)
+    val inventory = ubyteArrayOf(0u, 1u, 2u, 3u, 4u, 5u, 6u, 88u, 99u, 122u, 1u)
+    val vec = Monster.createInventoryVector(fbb, inventory)//fbb.createByteVector(inventory)
     Monster.startMonster(fbb)
     Monster.addInventory(fbb, vec)
     Monster.addName(fbb, str)
@@ -135,8 +135,8 @@ class FlatBufferBuilderTest {
     assertEquals(iBuffer.limit, inventory.size)
 
     for (i in inventory.indices) {
-      assertEquals(inventory[i].toUByte(), monsterObject.inventory(i))
-      assertEquals(inventory[i].toUByte(), iBuffer.getUByte(i))
+      assertEquals(inventory[i], monsterObject.inventory(i))
+      assertEquals(inventory[i], iBuffer.getUByte(i))
     }
   }
 
@@ -149,7 +149,7 @@ class FlatBufferBuilderTest {
     for (i in inventory) {
       uninitializedBuffer.put(i)
     }
-    val vec = fbb.endVector()
+    val vec = fbb.endVector<UByte>()
     Monster.startMonster(fbb)
     Monster.addInventory(fbb, vec)
     Monster.addName(fbb, str)
@@ -166,8 +166,8 @@ class FlatBufferBuilderTest {
   @Test
   fun testBuilderBasics() {
     val fbb = FlatBufferBuilder()
-    val names = intArrayOf(fbb.createString("Frodo"), fbb.createString("Barney"), fbb.createString("Wilma"))
-    val off = IntArray(3)
+    val names = arrayOf(fbb.createString("Frodo"), fbb.createString("Barney"), fbb.createString("Wilma"))
+    val off = Array<Offset<Monster>>(3) { Offset(0) }
     Monster.startMonster(fbb)
     Monster.addName(fbb, names[0])
     off[0] = Monster.endMonster(fbb)
@@ -193,10 +193,10 @@ class FlatBufferBuilderTest {
     Monster.startTest4Vector(fbb, 2)
     MyGame.Example.Test.createTest(fbb, 10.toShort(), 20.toByte())
     MyGame.Example.Test.createTest(fbb, 30.toShort(), 40.toByte())
-    val test4 = fbb.endVector()
+    val test4 = fbb.endVector<MyGame.Example.Test>()
 
     val testArrayOfString =
-      Monster.createTestarrayofstringVector(fbb, intArrayOf(fbb.createString("test1"), fbb.createString("test2")))
+      Monster.createTestarrayofstringVector(fbb, arrayOf(fbb.createString("test1"), fbb.createString("test2")))
 
     Monster.startMonster(fbb)
     Monster.addPos(
@@ -210,7 +210,7 @@ class FlatBufferBuilderTest {
     Monster.addMana(fbb, 150)
     Monster.addInventory(fbb, inv)
     Monster.addTestType(fbb, Any_.Monster)
-    Monster.addTest(fbb, mon2)
+    Monster.addTest(fbb, mon2 as Offset<Any>) //TODO: Improve this
     Monster.addTest4(fbb, test4)
     Monster.addTestarrayofstring(fbb, testArrayOfString)
     Monster.addTestbool(fbb, true)
@@ -250,16 +250,16 @@ class FlatBufferBuilderTest {
     val fbb = FlatBufferBuilder()
     val swordAttackDamage = 1
 
-    val characterVector = intArrayOf(Attacker.createAttacker(fbb, swordAttackDamage))
+    val characterVector = arrayOf(Attacker.createAttacker(fbb, swordAttackDamage))
     val characterTypeVector = ubyteArrayOf(Character_.MuLan)
     Movie.finishMovieBuffer(
       fbb,
       Movie.createMovie(
         fbb,
         0.toUByte(),
-        0,
+        Offset(0),
         Movie.createCharactersTypeVector(fbb, characterTypeVector),
-        Movie.createCharactersVector(fbb, characterVector)
+        Movie.createCharactersVector(fbb, characterVector as Array<Offset<Any>>) // TODO: fix me
       )
     )
 
@@ -290,7 +290,7 @@ class FlatBufferBuilderTest {
     assertEquals("ByteMonster", monsterObject.name)
     assertEquals(data.size, monsterObject.inventoryLength)
     assertEquals(monsterObject.inventory(4), data[4])
-    offset = fbb.createByteVector(data.toByteArray())
+    offset = fbb.createByteVector(data.toByteArray()) as ArrayOffset<UByte> // TODO: fix me
     str = fbb.createString("ByteMonster")
     Monster.startMonster(fbb)
     Monster.addName(fbb, str)
@@ -304,7 +304,7 @@ class FlatBufferBuilderTest {
       assertEquals(monsterObject2.inventory(i), data[i])
     }
     fbb.clear()
-    offset = fbb.createByteVector(data.toByteArray(), 3, 4)
+    offset = fbb.createByteVector(data.toByteArray(), 3, 4) as ArrayOffset<UByte>
     str = fbb.createString("ByteMonster")
     Monster.startMonster(fbb)
     Monster.addName(fbb, str)
@@ -330,7 +330,7 @@ class FlatBufferBuilderTest {
     fbb.clear()
 
     val largeData = ByteArray(1024)
-    offset = fbb.createByteVector(largeData)
+    offset = fbb.createByteVector(largeData) as ArrayOffset<UByte> //TODO: fix me
     str = fbb.createString("ByteMonster")
     Monster.startMonster(fbb)
     Monster.addName(fbb, str)
@@ -344,7 +344,7 @@ class FlatBufferBuilderTest {
     fbb.clear()
 
     var bb = ArrayReadBuffer(largeData, 512)
-    offset = fbb.createByteVector(bb)
+    offset = fbb.createByteVector(bb) as ArrayOffset<UByte> //TODO: fix me
     str = fbb.createString("ByteMonster")
     Monster.startMonster(fbb)
     Monster.addName(fbb, str)
@@ -358,7 +358,7 @@ class FlatBufferBuilderTest {
 
     bb = ArrayReadBuffer(largeData, largeData.size - 216)
     val stringBuffer = ArrayReadBuffer("AlreadyBufferedString".encodeToByteArray())
-    offset = fbb.createByteVector(bb)
+    offset = fbb.createByteVector(bb) as ArrayOffset<UByte> //TODO: fix me
     str = fbb.createString(stringBuffer)
     Monster.startMonster(fbb)
     Monster.addName(fbb, str)
@@ -393,7 +393,7 @@ class FlatBufferBuilderTest {
   fun testScalarOptional() {
     val fbb = FlatBufferBuilder(1)
     ScalarStuff.startScalarStuff(fbb)
-    var pos: Int = ScalarStuff.endScalarStuff(fbb)
+    var pos = ScalarStuff.endScalarStuff(fbb)
     fbb.finish(pos)
     var scalarStuff: ScalarStuff = ScalarStuff.asRoot(fbb.dataBuffer())
     assertEquals(scalarStuff.justI8, 0.toByte())
@@ -517,7 +517,7 @@ class FlatBufferBuilderTest {
     val fbb = FlatBufferBuilder(1)
     TableInNestedNS.startTableInNestedNS(fbb)
     TableInNestedNS.addFoo(fbb, 1234)
-    val nestedTableOff: Int = TableInNestedNS.endTableInNestedNS(fbb)
+    val nestedTableOff = TableInNestedNS.endTableInNestedNS(fbb)
     TableInFirstNS.startTableInFirstNS(fbb)
     TableInFirstNS.addFooTable(fbb, nestedTableOff)
     TableInFirstNS.endTableInFirstNS(fbb)
@@ -559,9 +559,9 @@ class FlatBufferBuilderTest {
   @Test
   fun testDictionaryLookup() {
     val fbb = FlatBufferBuilder(16)
-    val lfIndex: Int = LongFloatEntry.createLongFloatEntry(fbb, 0, 99.0f)
-    val vectorEntriesIdx: Int = LongFloatMap.createEntriesVector(fbb, intArrayOf(lfIndex))
-    val rootIdx: Int = LongFloatMap.createLongFloatMap(fbb, vectorEntriesIdx)
+    val lfIndex = LongFloatEntry.createLongFloatEntry(fbb, 0, 99.0f)
+    val vectorEntriesIdx = LongFloatMap.createEntriesVector(fbb, arrayOf(lfIndex))
+    val rootIdx = LongFloatMap.createLongFloatMap(fbb, vectorEntriesIdx)
     LongFloatMap.finishLongFloatMapBuffer(fbb, rootIdx)
     val map: LongFloatMap = LongFloatMap.asRoot(fbb.dataBuffer())
 

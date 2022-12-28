@@ -16,7 +16,7 @@ class Stat : Table() {
 
     val count : UShort get() = lookupField(8, 0u ) { bb.getUShort(it + bufferPos) }
 
-    override fun keysCompare(o1: Int, o2: Int, buffer: ReadWriteBuffer) : Int {
+    override fun keysCompare(o1: Offset<*>, o2: Offset<*>, buffer: ReadWriteBuffer) : Int {
         val a = buffer.getUShort(offset(8, o1, buffer))
         val b = buffer.getUShort(offset(8, o2, buffer))
         return (a - b).toInt().sign()
@@ -28,7 +28,7 @@ class Stat : Table() {
         fun asRoot(buffer: ReadWriteBuffer, obj: Stat) : Stat = obj.assign(buffer.getInt(buffer.limit) + buffer.limit, buffer)
 
 
-        fun createStat(builder: FlatBufferBuilder, idOffset: Int, val_: Long, count: UShort) : Int {
+        fun createStat(builder: FlatBufferBuilder, idOffset: Offset<String>, val_: Long, count: UShort) : Offset<Stat> {
             builder.startTable(3)
             addVal_(builder, val_)
             addId(builder, idOffset)
@@ -37,7 +37,7 @@ class Stat : Table() {
         }
         fun startStat(builder: FlatBufferBuilder) = builder.startTable(3)
 
-        fun addId(builder: FlatBufferBuilder, id: Int) = builder.addOffset(0, id, 0)
+        fun addId(builder: FlatBufferBuilder, id: Offset<String>) = builder.addOffset(0, id, null)
 
         fun addVal_(builder: FlatBufferBuilder, val_: Long) = builder.add(1, val_, 0L)
 
@@ -46,8 +46,8 @@ class Stat : Table() {
             builder.slot(2)
         }
 
-        fun endStat(builder: FlatBufferBuilder) : Int {
-            val o = builder.endTable()
+        fun endStat(builder: FlatBufferBuilder) : Offset<Stat> {
+            val o: Offset<Stat> = builder.endTable()
             return o
         }
 
@@ -57,7 +57,7 @@ class Stat : Table() {
             while (span != 0) {
                 var middle = span / 2
                 val tableOffset = indirect(vectorLocation + 4 * (start + middle), bb)
-                val value = bb.getUShort(offset(8, bb.capacity - tableOffset, bb))
+                val value = bb.getUShort(offset(8, (bb.capacity - tableOffset).toOffset<Int>(), bb))
                 val comp = value.compareTo(key)
                 when {
                     comp > 0 -> span = middle

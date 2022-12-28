@@ -44,7 +44,7 @@ class TypeAliases : Table() {
         fun asRoot(buffer: ReadWriteBuffer, obj: TypeAliases) : TypeAliases = obj.assign(buffer.getInt(buffer.limit) + buffer.limit, buffer)
 
 
-        fun createTypeAliases(builder: FlatBufferBuilder, i8: Byte, u8: UByte, i16: Short, u16: UShort, i32: Int, u32: UInt, i64: Long, u64: ULong, f32: Float, f64: Double, v8Offset: Int, vf64Offset: Int) : Int {
+        fun createTypeAliases(builder: FlatBufferBuilder, i8: Byte, u8: UByte, i16: Short, u16: UShort, i32: Int, u32: UInt, i64: Long, u64: ULong, f32: Float, f64: Double, v8Offset: ArrayOffset<Byte>, vf64Offset: ArrayOffset<Double>) : Offset<TypeAliases> {
             builder.startTable(12)
             addF64(builder, f64)
             addU64(builder, u64)
@@ -82,9 +82,9 @@ class TypeAliases : Table() {
 
         fun addF64(builder: FlatBufferBuilder, f64: Double) = builder.add(9, f64, 0.0)
 
-        fun addV8(builder: FlatBufferBuilder, v8: Int) = builder.addOffset(10, v8, 0)
+        fun addV8(builder: FlatBufferBuilder, v8: ArrayOffset<Byte>) = builder.addOffset(10, v8, null)
 
-        fun createV8Vector(builder: FlatBufferBuilder, data: ByteArray) : Int {
+        fun createV8Vector(builder: FlatBufferBuilder, data: ByteArray) : ArrayOffset<Byte> {
             builder.startVector(1, data.size, 1)
             for (i in data.size - 1 downTo 0) {
                 builder.add(data[i])
@@ -94,9 +94,9 @@ class TypeAliases : Table() {
 
         fun startV8Vector(builder: FlatBufferBuilder, numElems: Int) = builder.startVector(1, numElems, 1)
 
-        fun addVf64(builder: FlatBufferBuilder, vf64: Int) = builder.addOffset(11, vf64, 0)
+        fun addVf64(builder: FlatBufferBuilder, vf64: ArrayOffset<Double>) = builder.addOffset(11, vf64, null)
 
-        fun createVf64Vector(builder: FlatBufferBuilder, data: DoubleArray) : Int {
+        fun createVf64Vector(builder: FlatBufferBuilder, data: DoubleArray) : ArrayOffset<Double> {
             builder.startVector(8, data.size, 8)
             for (i in data.size - 1 downTo 0) {
                 builder.add(data[i])
@@ -106,8 +106,8 @@ class TypeAliases : Table() {
 
         fun startVf64Vector(builder: FlatBufferBuilder, numElems: Int) = builder.startVector(8, numElems, 8)
 
-        fun endTypeAliases(builder: FlatBufferBuilder) : Int {
-            val o = builder.endTable()
+        fun endTypeAliases(builder: FlatBufferBuilder) : Offset<TypeAliases> {
+            val o: Offset<TypeAliases> = builder.endTable()
             return o
         }
     }
