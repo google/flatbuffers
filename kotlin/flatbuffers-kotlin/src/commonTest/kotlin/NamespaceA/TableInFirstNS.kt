@@ -30,18 +30,18 @@ class TableInFirstNS : Table() {
 
         fun startTableInFirstNS(builder: FlatBufferBuilder) = builder.startTable(5)
 
-        fun addFooTable(builder: FlatBufferBuilder, fooTable: Int) = builder.addOffset(0, fooTable, 0)
+        fun addFooTable(builder: FlatBufferBuilder, fooTable: Offset<NamespaceA.NamespaceB.TableInNestedNS>) = builder.addOffset(0, fooTable, null)
 
         fun addFooEnum(builder: FlatBufferBuilder, fooEnum: Byte) = builder.add(1, fooEnum, 0)
 
         fun addFooUnionType(builder: FlatBufferBuilder, fooUnionType: UByte) = builder.add(2, fooUnionType, 0)
 
-        fun addFooUnion(builder: FlatBufferBuilder, fooUnion: Int) = builder.addOffset(3, fooUnion, 0)
+        fun addFooUnion(builder: FlatBufferBuilder, fooUnion: Offset<Any>) = builder.addOffset(3, fooUnion, null)
 
-        fun addFooStruct(builder: FlatBufferBuilder, fooStruct: Int) = builder.addStruct(4, fooStruct, 0)
+        fun addFooStruct(builder: FlatBufferBuilder, fooStruct: Offset<NamespaceA.NamespaceB.StructInNestedNS>) = builder.addStruct(4, fooStruct, null)
 
-        fun endTableInFirstNS(builder: FlatBufferBuilder) : Int {
-            val o = builder.endTable()
+        fun endTableInFirstNS(builder: FlatBufferBuilder) : Offset<TableInFirstNS> {
+            val o: Offset<TableInFirstNS> = builder.endTable()
             return o
         }
     }

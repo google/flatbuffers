@@ -18,8 +18,8 @@ class Monster : Table() {
 
         fun startMonster(builder: FlatBufferBuilder) = builder.startTable(0)
 
-        fun endMonster(builder: FlatBufferBuilder) : Int {
-            val o = builder.endTable()
+        fun endMonster(builder: FlatBufferBuilder) : Offset<Monster> {
+            val o: Offset<Monster> = builder.endTable()
             return o
         }
     }

@@ -20,7 +20,7 @@ class StructOfStructs : Struct() {
 
     companion object {
 
-        fun createStructOfStructs(builder: FlatBufferBuilder, a_id: UInt, a_distance: UInt, b_a: Short, b_b: Byte, c_id: UInt, c_distance: UInt) : Int {
+        fun createStructOfStructs(builder: FlatBufferBuilder, a_id: UInt, a_distance: UInt, b_a: Short, b_b: Byte, c_id: UInt, c_distance: UInt) : Offset<StructOfStructs> {
             builder.prep(4, 20)
             builder.prep(4, 8)
             builder.put(c_distance)
@@ -32,7 +32,7 @@ class StructOfStructs : Struct() {
             builder.prep(4, 8)
             builder.put(a_distance)
             builder.put(a_id)
-            return builder.offset()
+            return Offset(builder.offset())
         }
     }
 }

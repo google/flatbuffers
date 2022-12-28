@@ -15,11 +15,11 @@ class StructInNestedNS : Struct() {
 
     companion object {
 
-        fun createStructInNestedNS(builder: FlatBufferBuilder, a: Int, b: Int) : Int {
+        fun createStructInNestedNS(builder: FlatBufferBuilder, a: Int, b: Int) : Offset<StructInNestedNS> {
             builder.prep(4, 8)
             builder.put(b)
             builder.put(a)
-            return builder.offset()
+            return Offset(builder.offset())
         }
     }
 }

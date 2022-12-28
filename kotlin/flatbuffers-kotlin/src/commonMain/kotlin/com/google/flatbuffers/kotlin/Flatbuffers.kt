@@ -15,9 +15,24 @@
  */
 package com.google.flatbuffers.kotlin
 
+import kotlin.jvm.JvmInline
 import kotlin.math.min
 
-// / @cond FLATBUFFERS_INTERNAL
+@JvmInline
+public value class Offset<T>(public val pos: Int)
+
+@JvmInline
+public value class ArrayOffset<T>(public val pos: Int)
+
+public inline fun <T> Int.toOffset(): Offset<T> = Offset(this)
+
+public inline operator fun <T> Offset<T>.minus(other: Int): Offset<T> {
+  return Offset(this.pos - other)
+}
+
+public inline operator fun <T> Int.minus(other: Offset<T>): Int {
+  return this - other.pos
+}
 /**
  * All tables in the generated code derive from this class, and add their own accessors.
  */
@@ -128,7 +143,7 @@ public open class Table {
    * @param offsets An 'int' indexes of the tables into the bb.
    * @param bb A `ReadWriteBuffer` to get the tables.
    */
-  public fun sortTables(offsets: IntArray, bb: ReadWriteBuffer) {
+  public fun <T> sortTables(offsets: Array<Offset<T>>, bb: ReadWriteBuffer) {
     val off = offsets.sortedWith { o1, o2 -> keysCompare(o1, o2, bb) }
     for (i in offsets.indices) offsets[i] = off[i]
   }
@@ -140,7 +155,7 @@ public open class Table {
    * @param o2 An 'Integer' index of the second key into the bb.
    * @param buffer A `ReadWriteBuffer` to get the keys.
    */
-  public open fun keysCompare(o1: Int, o2: Int, buffer: ReadWriteBuffer): Int = 0
+  public open fun keysCompare(o1: Offset<*>, o2: Offset<*>, buffer: ReadWriteBuffer): Int = 0
 
   /**
    * Re-init the internal state with an external buffer `ReadWriteBuffer` and an offset within.
@@ -173,8 +188,8 @@ public open class Table {
 
   public companion object {
 
-    public fun offset(vtable_offset: Int, offset: Int, bb: ReadWriteBuffer): Int {
-      val vtable: Int = bb.capacity - offset
+    public fun offset(vtable_offset: Int, offset: Offset<*>, bb: ReadWriteBuffer): Int {
+      val vtable: Int = bb.capacity - offset.pos
       return bb.getShort(vtable + vtable_offset - bb.getInt(vtable)) + vtable
     }
 

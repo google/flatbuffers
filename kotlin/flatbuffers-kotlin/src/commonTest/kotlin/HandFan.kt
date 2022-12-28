@@ -16,7 +16,7 @@ class HandFan : Table() {
         fun asRoot(buffer: ReadWriteBuffer, obj: HandFan) : HandFan = obj.assign(buffer.getInt(buffer.limit) + buffer.limit, buffer)
 
 
-        fun createHandFan(builder: FlatBufferBuilder, length: Int) : Int {
+        fun createHandFan(builder: FlatBufferBuilder, length: Int) : Offset<HandFan> {
             builder.startTable(1)
             addLength(builder, length)
             return endHandFan(builder)
@@ -25,8 +25,8 @@ class HandFan : Table() {
 
         fun addLength(builder: FlatBufferBuilder, length: Int) = builder.add(0, length, 0)
 
-        fun endHandFan(builder: FlatBufferBuilder) : Int {
-            val o = builder.endTable()
+        fun endHandFan(builder: FlatBufferBuilder) : Offset<HandFan> {
+            val o: Offset<HandFan> = builder.endTable()
             return o
         }
     }

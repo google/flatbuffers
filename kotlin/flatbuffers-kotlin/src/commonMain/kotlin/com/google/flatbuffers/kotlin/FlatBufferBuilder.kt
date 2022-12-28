@@ -17,6 +17,7 @@ package com.google.flatbuffers.kotlin
 
 import kotlin.jvm.JvmOverloads
 
+
 /**
  * Class that helps you build a FlatBuffer.  See the section
  * "Use in Kotlin" in the main FlatBuffers documentation.
@@ -59,7 +60,7 @@ public class FlatBufferBuilder @JvmOverloads constructor(
   private var forceDefaults = false
 
   // map used to cache shared strings.
-  private var stringPool: MutableMap<CharSequence, Int>? = null
+  private var stringPool: MutableMap<CharSequence, Offset<String>>? = null
 
   /**
    * Reset the FlatBufferBuilder by purging all data that it holds.
@@ -320,7 +321,9 @@ public class FlatBufferBuilder @JvmOverloads constructor(
    *
    * @param off The offset to add.
    */
-  public fun addOffset(off: Int) {
+  public fun addOffset(off: Offset<*>): Unit = addOffset(off.pos)
+  public fun addOffset(off: ArrayOffset<*>): Unit = addOffset(off.pos)
+  private fun addOffset(off: Int) {
     var off1 = off
     prep(Int.SIZE_BYTES, 0) // Ensure alignment is already done.
     off1 = offset() - off1 + Int.SIZE_BYTES
@@ -366,17 +369,18 @@ public class FlatBufferBuilder @JvmOverloads constructor(
    * int offsetOfTheVector = fbb.endVector();
    `</pre> *
    *
-   * @param elem_size The size of each element in the array.
-   * @param num_elems The number of elements in the array.
+   * @param elemSize The size of each element in the array.
+   * @param numElems The number of elements in the array.
    * @param alignment The alignment of the array.
    */
-  public fun startVector(elem_size: Int, num_elems: Int, alignment: Int) {
+  public fun startVector(elemSize: Int, numElems: Int, alignment: Int) {
     notNested()
-    vectorNumElems = num_elems
-    prep(Int.SIZE_BYTES, elem_size * num_elems)
-    prep(alignment, elem_size * num_elems) // Just in case alignment > int.
+    vectorNumElems = numElems
+    prep(Int.SIZE_BYTES, elemSize * numElems)
+    prep(alignment, elemSize * numElems) // Just in case alignment > int.
     nested = true
   }
+  public fun startString(numElems: Int): Unit = startVector(1, numElems, 1)
 
   /**
    * Finish off the creation of an array and all its elements.  The array
@@ -385,7 +389,21 @@ public class FlatBufferBuilder @JvmOverloads constructor(
    * @return The offset at which the newly created array starts.
    * @see .startVector
    */
-  public fun endVector(): Int {
+  public fun <T> endVector(): ArrayOffset<T> {
+    if (!nested) throw AssertionError("FlatBuffers: endVector called without startVector")
+    nested = false
+    put(vectorNumElems)
+    return ArrayOffset(offset())
+  }
+
+  public fun endString(): Offset<String> {
+    if (!nested) throw AssertionError("FlatBuffers: endString called without startString")
+    nested = false
+    put(vectorNumElems)
+    return Offset(offset())
+  }
+
+  private fun endVector(): Int {
     if (!nested) throw AssertionError("FlatBuffers: endVector called without startVector")
     nested = false
     put(vectorNumElems)
@@ -415,11 +433,11 @@ public class FlatBufferBuilder @JvmOverloads constructor(
    * @param offsets Offsets of the tables.
    * @return Returns offset of the vector.
    */
-  public fun createVectorOfTables(offsets: IntArray): Int {
+  public fun <T> createVectorOfTables(offsets: Array<Offset<T>>): ArrayOffset<T> {
     notNested()
     startVector(Int.SIZE_BYTES, offsets.size, Int.SIZE_BYTES)
     for (i in offsets.indices.reversed()) addOffset(offsets[i])
-    return endVector()
+    return ArrayOffset(endVector())
   }
 
   /**
@@ -429,7 +447,7 @@ public class FlatBufferBuilder @JvmOverloads constructor(
    * @param offsets Offsets of the tables.
    * @return Returns offset of the sorted vector.
    */
-  public fun <T : Table> createSortedVectorOfTables(obj: T, offsets: IntArray): Int {
+  public fun <T : Table> createSortedVectorOfTables(obj: T, offsets: Array<Offset<T>>): ArrayOffset<T> {
     obj.sortTables(offsets, buffer)
     return createVectorOfTables(offsets)
   }
@@ -446,14 +464,14 @@ public class FlatBufferBuilder @JvmOverloads constructor(
    * @param s The String to encode.
    * @return The offset in the buffer where the encoded String starts.
    */
-  public fun createSharedString(s: CharSequence): Int {
+  public fun createSharedString(s: CharSequence): Offset<String> {
     if (stringPool == null) {
       stringPool = HashMap()
-      val offset: Int = createString(s)
+      val offset = createString(s)
       stringPool!![s] = offset
       return offset
     }
-    var offset: Int? = stringPool!![s]
+    var offset = stringPool!![s]
     if (offset == null) {
       offset = createString(s)
       stringPool?.put(s, offset)
@@ -466,13 +484,13 @@ public class FlatBufferBuilder @JvmOverloads constructor(
    * @param s The [CharSequence] to encode.
    * @return The offset in the buffer where the encoded string starts.
    */
-  public fun createString(s: CharSequence): Int {
+  public fun createString(s: CharSequence): Offset<String> {
     val length: Int = Utf8.encodedLength(s)
     add(0.toByte())
-    startVector(1, length, 1)
+    startString(length)
     buffer.writePosition = length.let { space -= it; space }
     buffer.put(s, length)
-    return endVector()
+    return endString()
   }
 
   /**
@@ -481,13 +499,13 @@ public class FlatBufferBuilder @JvmOverloads constructor(
    * @param s An already encoded UTF-8 string as a `ByteBuffer`.
    * @return The offset in the buffer where the encoded string starts.
    */
- public fun createString(s: ReadBuffer): Int {
+ public fun createString(s: ReadBuffer): Offset<String> {
     val length: Int = s.limit
     add(0.toByte())
     startVector(1, length, 1)
     buffer.writePosition = length.let { space -= it; space }
     buffer.put(s)
-    return endVector()
+    return endString()
   }
 
   /**
@@ -496,12 +514,12 @@ public class FlatBufferBuilder @JvmOverloads constructor(
    * @param arr A source array with data
    * @return The offset in the buffer where the encoded array starts.
    */
-  public fun createByteVector(arr: ByteArray): Int {
+  public fun createByteVector(arr: ByteArray): ArrayOffset<Byte> {
     val length = arr.size
     startVector(1, length, 1)
     buffer.writePosition = length.let { space -= it; space }
     buffer.put(arr)
-    return endVector()
+    return ArrayOffset(endVector())
   }
 
   /**
@@ -512,11 +530,11 @@ public class FlatBufferBuilder @JvmOverloads constructor(
    * @param length the number of bytes to copy from the source array.
    * @return The offset in the buffer where the encoded array starts.
    */
-  public fun createByteVector(arr: ByteArray, offset: Int, length: Int): Int {
+  public fun createByteVector(arr: ByteArray, offset: Int, length: Int): ArrayOffset<Byte> {
     startVector(1, length, 1)
     buffer.writePosition = length.let { space -= it; space }
     buffer.put(arr, offset, length)
-    return endVector()
+    return ArrayOffset(endVector())
   }
 
   /**
@@ -528,12 +546,12 @@ public class FlatBufferBuilder @JvmOverloads constructor(
    * @param data A source [ReadBuffer] with data.
    * @return The offset in the buffer where the encoded array starts.
    */
- public fun createByteVector(data: ReadBuffer, from: Int = 0, until: Int = data.limit): Int {
+ public fun createByteVector(data: ReadBuffer, from: Int = 0, until: Int = data.limit): ArrayOffset<Byte> {
     val length: Int = until - from
     startVector(1, length, 1)
     buffer.writePosition = length.let { space -= it; space }
     buffer.put(data, from, until)
-    return endVector()
+    return ArrayOffset(endVector())
   }
 
   /**
@@ -739,7 +757,13 @@ public class FlatBufferBuilder @JvmOverloads constructor(
    * default value, it can be skipped.
    * @param d An `offset` default value to compare against when `force_defaults` is `false`.
    */
-  public fun addOffset(o: Int, x: Int, d: Int?) {
+  public fun addOffset(o: Int, x: Offset<*>, d: Offset<*>?) {
+    if (forceDefaults || x != d) {
+      addOffset(x)
+      slot(o)
+    }
+  }
+  public fun addOffset(o: Int, x: ArrayOffset<*>, d: ArrayOffset<*>?) {
     if (forceDefaults || x != d) {
       addOffset(x)
       slot(o)
@@ -753,6 +777,7 @@ public class FlatBufferBuilder @JvmOverloads constructor(
    * @param x The offset of the created struct.
    * @param d The default value is always `0`.
    */
+  public fun addStruct(voffset: Int, x: Offset<*>, d: Offset<*>?): Unit = addStruct(voffset, x.pos, d?.pos)
   public fun addStruct(voffset: Int, x: Int, d: Int?) {
     if (x != d) {
       nested(x)
@@ -776,7 +801,7 @@ public class FlatBufferBuilder @JvmOverloads constructor(
    * @return The offset to the object inside [.dataBuffer].
    * @see .startTable
    */
-  public fun endTable(): Int {
+  public fun <T> endTable(): Offset<T> {
     if (vtable == null || !nested) throw AssertionError("FlatBuffers: endTable called without startTable")
     add(0)
     val vtableloc = offset()
@@ -833,7 +858,7 @@ public class FlatBufferBuilder @JvmOverloads constructor(
       buffer.set(buffer.capacity - vtableloc, offset() - vtableloc)
     }
     nested = false
-    return vtableloc
+    return Offset(vtableloc)
   }
 
   /**
@@ -843,7 +868,7 @@ public class FlatBufferBuilder @JvmOverloads constructor(
    * @param table The offset to the start of the table from the `ByteBuffer` capacity.
    * @param field The offset to the field in the vtable.
    */
-  public fun required(table: Int, field: Int) {
+  public fun required(table: Offset<*>, field: Int) {
     val tableStart: Int = buffer.capacity - table
     val vtableStart: Int = tableStart - buffer.getInt(tableStart)
     val ok = buffer.getShort(vtableStart + field).toInt() != 0
@@ -857,7 +882,7 @@ public class FlatBufferBuilder @JvmOverloads constructor(
    * @param rootTable An offset to be added to the buffer.
    * @param sizePrefix Whether to prefix the size to the buffer.
    */
-  protected fun finish(rootTable: Int, sizePrefix: Boolean) {
+  protected fun finish(rootTable: Offset<*>, sizePrefix: Boolean) {
     prep(minalign, Int.SIZE_BYTES + if (sizePrefix) Int.SIZE_BYTES else 0)
     addOffset(rootTable)
     if (sizePrefix) {
@@ -870,40 +895,40 @@ public class FlatBufferBuilder @JvmOverloads constructor(
   /**
    * Finalize a buffer, pointing to the given `root_table`.
    *
-   * @param root_table An offset to be added to the buffer.
+   * @param rootTable An offset to be added to the buffer.
    */
-  public fun finish(root_table: Int) {
-    finish(root_table, false)
+  public fun finish(rootTable: Offset<*>) {
+    finish(rootTable, false)
   }
 
   /**
    * Finalize a buffer, pointing to the given `root_table`, with the size prefixed.
    *
-   * @param root_table An offset to be added to the buffer.
+   * @param rootTable An offset to be added to the buffer.
    */
-  public fun finishSizePrefixed(root_table: Int) {
-    finish(root_table, true)
+  public fun finishSizePrefixed(rootTable: Offset<*>) {
+    finish(rootTable, true)
   }
 
   /**
    * Finalize a buffer, pointing to the given `root_table`.
    *
-   * @param root_table An offset to be added to the buffer.
-   * @param file_identifier A FlatBuffer file identifier to be added to the buffer before
+   * @param rootTable An offset to be added to the buffer.
+   * @param fileIdentifier A FlatBuffer file identifier to be added to the buffer before
    * `root_table`.
-   * @param size_prefix Whether to prefix the size to the buffer.
+   * @param sizePrefix Whether to prefix the size to the buffer.
    */
-  protected fun finish(root_table: Int, file_identifier: String, size_prefix: Boolean) {
-    val FILE_IDENTIFIER_LENGTH = 4
-    prep(minalign, Int.SIZE_BYTES + FILE_IDENTIFIER_LENGTH + if (size_prefix) Int.SIZE_BYTES else 0)
-    if (file_identifier.length != FILE_IDENTIFIER_LENGTH) throw AssertionError(
+  protected fun finish(rootTable: Offset<*>, fileIdentifier: String, sizePrefix: Boolean) {
+    val identifierSize = 4
+    prep(minalign, Int.SIZE_BYTES + identifierSize + if (sizePrefix) Int.SIZE_BYTES else 0)
+    if (fileIdentifier.length != identifierSize) throw AssertionError(
       "FlatBuffers: file identifier must be length " +
-        FILE_IDENTIFIER_LENGTH
+        identifierSize
     )
-    for (i in FILE_IDENTIFIER_LENGTH - 1 downTo 0) {
-      add(file_identifier[i].code.toByte())
+    for (i in identifierSize - 1 downTo 0) {
+      add(fileIdentifier[i].code.toByte())
     }
-    finish(root_table, size_prefix)
+    finish(rootTable, sizePrefix)
   }
 
   /**
@@ -913,19 +938,19 @@ public class FlatBufferBuilder @JvmOverloads constructor(
    * @param fileIdentifier A FlatBuffer file identifier to be added to the buffer before
    * `root_table`.
    */
-  public fun finish(rootTable: Int, fileIdentifier: String) {
+  public fun finish(rootTable: Offset<*>, fileIdentifier: String) {
     finish(rootTable, fileIdentifier, false)
   }
 
   /**
    * Finalize a buffer, pointing to the given `root_table`, with the size prefixed.
    *
-   * @param root_table An offset to be added to the buffer.
-   * @param file_identifier A FlatBuffer file identifier to be added to the buffer before
+   * @param rootTable An offset to be added to the buffer.
+   * @param fileIdentifier A FlatBuffer file identifier to be added to the buffer before
    * `root_table`.
    */
-  public fun finishSizePrefixed(root_table: Int, file_identifier: String) {
-    finish(root_table, file_identifier, true)
+  public fun finishSizePrefixed(rootTable: Offset<*>, fileIdentifier: String) {
+    finish(rootTable, fileIdentifier, true)
   }
 
   /**

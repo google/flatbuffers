@@ -11,10 +11,10 @@ class BookReader : Struct() {
 
     companion object {
 
-        fun createBookReader(builder: FlatBufferBuilder, booksRead: Int) : Int {
+        fun createBookReader(builder: FlatBufferBuilder, booksRead: Int) : Offset<BookReader> {
             builder.prep(4, 4)
             builder.put(booksRead)
-            return builder.offset()
+            return Offset(builder.offset())
         }
     }
 }

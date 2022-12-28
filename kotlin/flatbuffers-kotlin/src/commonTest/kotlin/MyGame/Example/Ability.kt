@@ -15,11 +15,11 @@ class Ability : Struct() {
 
     companion object {
 
-        fun createAbility(builder: FlatBufferBuilder, id: UInt, distance: UInt) : Int {
+        fun createAbility(builder: FlatBufferBuilder, id: UInt, distance: UInt) : Offset<Ability> {
             builder.prep(4, 8)
             builder.put(distance)
             builder.put(id)
-            return builder.offset()
+            return Offset(builder.offset())
         }
     }
 }

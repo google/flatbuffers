@@ -18,8 +18,8 @@ class InParentNamespace : Table() {
 
         fun startInParentNamespace(builder: FlatBufferBuilder) = builder.startTable(0)
 
-        fun endInParentNamespace(builder: FlatBufferBuilder) : Int {
-            val o = builder.endTable()
+        fun endInParentNamespace(builder: FlatBufferBuilder) : Offset<InParentNamespace> {
+            val o: Offset<InParentNamespace> = builder.endTable()
             return o
         }
     }

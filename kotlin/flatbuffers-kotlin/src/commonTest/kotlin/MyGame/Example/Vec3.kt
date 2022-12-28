@@ -24,7 +24,7 @@ class Vec3 : Struct() {
 
     companion object {
 
-        fun createVec3(builder: FlatBufferBuilder, x: Float, y: Float, z: Float, test1: Double, test2: UByte, test3_a: Short, test3_b: Byte) : Int {
+        fun createVec3(builder: FlatBufferBuilder, x: Float, y: Float, z: Float, test1: Double, test2: UByte, test3_a: Short, test3_b: Byte) : Offset<Vec3> {
             builder.prep(8, 32)
             builder.pad(2)
             builder.prep(2, 4)
@@ -38,7 +38,7 @@ class Vec3 : Struct() {
             builder.put(z)
             builder.put(y)
             builder.put(x)
-            return builder.offset()
+            return Offset(builder.offset())
         }
     }
 }

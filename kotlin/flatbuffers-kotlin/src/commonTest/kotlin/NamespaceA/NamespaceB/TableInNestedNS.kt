@@ -18,7 +18,7 @@ class TableInNestedNS : Table() {
         fun asRoot(buffer: ReadWriteBuffer, obj: TableInNestedNS) : TableInNestedNS = obj.assign(buffer.getInt(buffer.limit) + buffer.limit, buffer)
 
 
-        fun createTableInNestedNS(builder: FlatBufferBuilder, foo: Int) : Int {
+        fun createTableInNestedNS(builder: FlatBufferBuilder, foo: Int) : Offset<TableInNestedNS> {
             builder.startTable(1)
             addFoo(builder, foo)
             return endTableInNestedNS(builder)
@@ -27,8 +27,8 @@ class TableInNestedNS : Table() {
 
         fun addFoo(builder: FlatBufferBuilder, foo: Int) = builder.add(0, foo, 0)
 
-        fun endTableInNestedNS(builder: FlatBufferBuilder) : Int {
-            val o = builder.endTable()
+        fun endTableInNestedNS(builder: FlatBufferBuilder) : Offset<TableInNestedNS> {
+            val o: Offset<TableInNestedNS> = builder.endTable()
             return o
         }
     }
