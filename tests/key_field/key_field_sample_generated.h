@@ -74,6 +74,9 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(1) Baz FLATBUFFERS_FINAL_CLASS {
   ::flatbuffers::Array<uint8_t, 4> *mutable_a() {
     return &::flatbuffers::CastToArray(a_);
   }
+  flatbuffers::Array<uint8_t, 4> *mutable_a() {
+    return &flatbuffers::CastToArray(a_);
+  }
   bool KeyCompareLessThan(const Baz * const o) const {
     return KeyCompareWithValue(o->a()) < 0;
   }
@@ -92,6 +95,9 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(1) Baz FLATBUFFERS_FINAL_CLASS {
   }
   void mutate_b(uint8_t _b) {
     ::flatbuffers::WriteScalar(&b_, _b);
+  }
+  void mutate_b(uint8_t _b) {
+    flatbuffers::WriteScalar(&b_, _b);
   }
 };
 FLATBUFFERS_STRUCT_END(Baz, 5);
@@ -147,6 +153,9 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) Bar FLATBUFFERS_FINAL_CLASS {
   ::flatbuffers::Array<float, 3> *mutable_a() {
     return &::flatbuffers::CastToArray(a_);
   }
+  flatbuffers::Array<float, 3> *mutable_a() {
+    return &flatbuffers::CastToArray(a_);
+  }
   bool KeyCompareLessThan(const Bar * const o) const {
     return KeyCompareWithValue(o->a()) < 0;
   }
@@ -165,6 +174,9 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) Bar FLATBUFFERS_FINAL_CLASS {
   }
   void mutate_b(uint8_t _b) {
     ::flatbuffers::WriteScalar(&b_, _b);
+  }
+  void mutate_b(uint8_t _b) {
+    flatbuffers::WriteScalar(&b_, _b);
   }
 };
 FLATBUFFERS_STRUCT_END(Bar, 16);
@@ -190,6 +202,17 @@ struct FooTableT : public ::flatbuffers::NativeTable {
 };
 FLATBUFFERS_STRUCT_END(Color, 16);
 
+inline bool operator==(const Color &lhs, const Color &rhs) {
+  return
+      (lhs.rgb() == rhs.rgb()) &&
+      (lhs.tag() == rhs.tag());
+}
+
+inline bool operator!=(const Color &lhs, const Color &rhs) {
+    return !(lhs == rhs);
+}
+
+
 FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) Apple FLATBUFFERS_FINAL_CLASS {
  private:
   uint8_t tag_;
@@ -197,6 +220,9 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) Apple FLATBUFFERS_FINAL_CLASS {
   keyfield::sample::Color color_;
 
  public:
+  static const flatbuffers::TypeTable *MiniReflectTypeTable() {
+    return AppleTypeTable();
+  }
   Apple()
       : tag_(0),
         padding0__(0),
@@ -216,7 +242,13 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) Apple FLATBUFFERS_FINAL_CLASS {
   uint8_t tag() const {
     return flatbuffers::EndianScalar(tag_);
   }
+  void mutate_tag(uint8_t _tag) {
+    flatbuffers::WriteScalar(&tag_, _tag);
+  }
   const keyfield::sample::Color &color() const {
+    return color_;
+  }
+  keyfield::sample::Color &mutable_color() {
     return color_;
   }
   bool KeyCompareLessThan(const Apple * const o) const {
@@ -242,6 +274,17 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) Apple FLATBUFFERS_FINAL_CLASS {
 };
 FLATBUFFERS_STRUCT_END(Apple, 20);
 
+inline bool operator==(const Apple &lhs, const Apple &rhs) {
+  return
+      (lhs.tag() == rhs.tag()) &&
+      (lhs.color() == rhs.color());
+}
+
+inline bool operator!=(const Apple &lhs, const Apple &rhs) {
+    return !(lhs == rhs);
+}
+
+
 FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) Fruit FLATBUFFERS_FINAL_CLASS {
  private:
   keyfield::sample::Apple a_;
@@ -249,6 +292,9 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) Fruit FLATBUFFERS_FINAL_CLASS {
   int8_t padding0__;  int16_t padding1__;
 
  public:
+  static const flatbuffers::TypeTable *MiniReflectTypeTable() {
+    return FruitTypeTable();
+  }
   Fruit()
       : a_(),
         b_(0),
@@ -266,6 +312,9 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) Fruit FLATBUFFERS_FINAL_CLASS {
     (void)padding1__;
   }
   const keyfield::sample::Apple &a() const {
+    return a_;
+  }
+  keyfield::sample::Apple &mutable_a() {
     return a_;
   }
   bool KeyCompareLessThan(const Fruit * const o) const {
@@ -297,8 +346,22 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) Fruit FLATBUFFERS_FINAL_CLASS {
   uint8_t b() const {
     return flatbuffers::EndianScalar(b_);
   }
+  void mutate_b(uint8_t _b) {
+    flatbuffers::WriteScalar(&b_, _b);
+  }
 };
 FLATBUFFERS_STRUCT_END(Fruit, 24);
+
+inline bool operator==(const Fruit &lhs, const Fruit &rhs) {
+  return
+      (lhs.a() == rhs.a()) &&
+      (lhs.b() == rhs.b());
+}
+
+inline bool operator!=(const Fruit &lhs, const Fruit &rhs) {
+    return !(lhs == rhs);
+}
+
 
 FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) Rice FLATBUFFERS_FINAL_CLASS {
  private:
@@ -307,6 +370,9 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) Rice FLATBUFFERS_FINAL_CLASS {
   uint32_t quantity_;
 
  public:
+  static const flatbuffers::TypeTable *MiniReflectTypeTable() {
+    return RiceTypeTable();
+  }
   Rice()
       : origin_(),
         padding0__(0),
@@ -328,11 +394,28 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) Rice FLATBUFFERS_FINAL_CLASS {
   const flatbuffers::Array<uint8_t, 3> *origin() const {
     return &flatbuffers::CastToArray(origin_);
   }
+  flatbuffers::Array<uint8_t, 3> *mutable_origin() {
+    return &flatbuffers::CastToArray(origin_);
+  }
   uint32_t quantity() const {
     return flatbuffers::EndianScalar(quantity_);
   }
+  void mutate_quantity(uint32_t _quantity) {
+    flatbuffers::WriteScalar(&quantity_, _quantity);
+  }
 };
 FLATBUFFERS_STRUCT_END(Rice, 8);
+
+inline bool operator==(const Rice &lhs, const Rice &rhs) {
+  return
+      (lhs.origin() == rhs.origin()) &&
+      (lhs.quantity() == rhs.quantity());
+}
+
+inline bool operator!=(const Rice &lhs, const Rice &rhs) {
+    return !(lhs == rhs);
+}
+
 
 FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) Grain FLATBUFFERS_FINAL_CLASS {
  private:
@@ -341,6 +424,9 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) Grain FLATBUFFERS_FINAL_CLASS {
   int8_t padding0__;  int16_t padding1__;
 
  public:
+  static const flatbuffers::TypeTable *MiniReflectTypeTable() {
+    return GrainTypeTable();
+  }
   Grain()
       : a_(),
         tag_(0),
@@ -366,6 +452,9 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) Grain FLATBUFFERS_FINAL_CLASS {
     (void)padding1__;
   }
   const flatbuffers::Array<keyfield::sample::Rice, 3> *a() const {
+    return &flatbuffers::CastToArray(a_);
+  }
+  flatbuffers::Array<keyfield::sample::Rice, 3> *mutable_a() {
     return &flatbuffers::CastToArray(a_);
   }
   bool KeyCompareLessThan(const Grain * const o) const {
@@ -394,6 +483,9 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) Grain FLATBUFFERS_FINAL_CLASS {
   uint8_t tag() const {
     return flatbuffers::EndianScalar(tag_);
   }
+  void mutate_tag(uint8_t _tag) {
+    flatbuffers::WriteScalar(&tag_, _tag);
+  }
 };
 FLATBUFFERS_STRUCT_END(Grain, 28);
 
@@ -416,6 +508,9 @@ struct FooTable FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   int32_t a() const {
     return GetField<int32_t>(VT_A, 0);
   }
+  bool mutate_a(int32_t _a = 0) {
+    return SetField<int32_t>(VT_A, _a, 0);
+  }
   int32_t b() const {
     return GetField<int32_t>(VT_B, 0);
   }
@@ -427,6 +522,9 @@ struct FooTable FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   }
   ::flatbuffers::String *mutable_c() {
     return GetPointer<::flatbuffers::String *>(VT_C);
+  }
+  flatbuffers::String *mutable_c() {
+    return GetPointer<flatbuffers::String *>(VT_C);
   }
   bool KeyCompareLessThan(const FooTable * const o) const {
     return *c() < *o->c();
@@ -658,6 +756,233 @@ inline const ::flatbuffers::TypeTable *FooTableTypeTable() {
   return &tt;
 }
 
+flatbuffers::Offset<FooTable> CreateFooTable(flatbuffers::FlatBufferBuilder &_fbb, const FooTableT *_o, const flatbuffers::rehasher_function_t *_rehasher = nullptr);
+
+
+inline bool operator==(const FooTableT &lhs, const FooTableT &rhs) {
+  return
+      (lhs.a == rhs.a) &&
+      (lhs.b == rhs.b) &&
+      (lhs.c == rhs.c) &&
+      (lhs.d == rhs.d) &&
+      (lhs.e == rhs.e) &&
+      (lhs.f == rhs.f) &&
+      (lhs.g == rhs.g) &&
+      (lhs.h == rhs.h);
+}
+
+inline bool operator!=(const FooTableT &lhs, const FooTableT &rhs) {
+    return !(lhs == rhs);
+}
+
+
+inline FooTableT *FooTable::UnPack(const flatbuffers::resolver_function_t *_resolver) const {
+  auto _o = std::unique_ptr<FooTableT>(new FooTableT());
+  UnPackTo(_o.get(), _resolver);
+  return _o.release();
+}
+
+inline void FooTable::UnPackTo(FooTableT *_o, const flatbuffers::resolver_function_t *_resolver) const {
+  (void)_o;
+  (void)_resolver;
+  { auto _e = a(); _o->a = _e; }
+  { auto _e = b(); _o->b = _e; }
+  { auto _e = c(); if (_e) _o->c = _e->str(); }
+  { auto _e = d(); if (_e) { _o->d.resize(_e->size()); for (flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->d[_i] = *_e->Get(_i); } } else { _o->d.resize(0); } }
+  { auto _e = e(); if (_e) { _o->e.resize(_e->size()); for (flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->e[_i] = *_e->Get(_i); } } else { _o->e.resize(0); } }
+  { auto _e = f(); if (_e) { _o->f.resize(_e->size()); for (flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->f[_i] = *_e->Get(_i); } } else { _o->f.resize(0); } }
+  { auto _e = g(); if (_e) { _o->g.resize(_e->size()); for (flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->g[_i] = *_e->Get(_i); } } else { _o->g.resize(0); } }
+  { auto _e = h(); if (_e) { _o->h.resize(_e->size()); for (flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->h[_i] = *_e->Get(_i); } } else { _o->h.resize(0); } }
+}
+
+inline flatbuffers::Offset<FooTable> FooTable::Pack(flatbuffers::FlatBufferBuilder &_fbb, const FooTableT* _o, const flatbuffers::rehasher_function_t *_rehasher) {
+  return CreateFooTable(_fbb, _o, _rehasher);
+}
+
+inline flatbuffers::Offset<FooTable> CreateFooTable(flatbuffers::FlatBufferBuilder &_fbb, const FooTableT *_o, const flatbuffers::rehasher_function_t *_rehasher) {
+  (void)_rehasher;
+  (void)_o;
+  struct _VectorArgs { flatbuffers::FlatBufferBuilder *__fbb; const FooTableT* __o; const flatbuffers::rehasher_function_t *__rehasher; } _va = { &_fbb, _o, _rehasher}; (void)_va;
+  auto _a = _o->a;
+  auto _b = _o->b;
+  auto _c = _fbb.CreateString(_o->c);
+  auto _d = _o->d.size() ? _fbb.CreateVectorOfStructs(_o->d) : 0;
+  auto _e = _o->e.size() ? _fbb.CreateVectorOfStructs(_o->e) : 0;
+  auto _f = _o->f.size() ? _fbb.CreateVectorOfStructs(_o->f) : 0;
+  auto _g = _o->g.size() ? _fbb.CreateVectorOfStructs(_o->g) : 0;
+  auto _h = _o->h.size() ? _fbb.CreateVectorOfStructs(_o->h) : 0;
+  return keyfield::sample::CreateFooTable(
+      _fbb,
+      _a,
+      _b,
+      _c,
+      _d,
+      _e,
+      _f,
+      _g,
+      _h);
+}
+
+inline const flatbuffers::TypeTable *BazTypeTable() {
+  static const flatbuffers::TypeCode type_codes[] = {
+    { flatbuffers::ET_UCHAR, 1, -1 },
+    { flatbuffers::ET_UCHAR, 0, -1 }
+  };
+  static const int16_t array_sizes[] = { 4,  };
+  static const int64_t values[] = { 0, 4, 5 };
+  static const char * const names[] = {
+    "a",
+    "b"
+  };
+  static const flatbuffers::TypeTable tt = {
+    flatbuffers::ST_STRUCT, 2, type_codes, nullptr, array_sizes, values, names
+  };
+  return &tt;
+}
+
+inline const flatbuffers::TypeTable *BarTypeTable() {
+  static const flatbuffers::TypeCode type_codes[] = {
+    { flatbuffers::ET_FLOAT, 1, -1 },
+    { flatbuffers::ET_UCHAR, 0, -1 }
+  };
+  static const int16_t array_sizes[] = { 3,  };
+  static const int64_t values[] = { 0, 12, 16 };
+  static const char * const names[] = {
+    "a",
+    "b"
+  };
+  static const flatbuffers::TypeTable tt = {
+    flatbuffers::ST_STRUCT, 2, type_codes, nullptr, array_sizes, values, names
+  };
+  return &tt;
+}
+
+inline const flatbuffers::TypeTable *ColorTypeTable() {
+  static const flatbuffers::TypeCode type_codes[] = {
+    { flatbuffers::ET_FLOAT, 1, -1 },
+    { flatbuffers::ET_UCHAR, 0, -1 }
+  };
+  static const int16_t array_sizes[] = { 3,  };
+  static const int64_t values[] = { 0, 12, 16 };
+  static const char * const names[] = {
+    "rgb",
+    "tag"
+  };
+  static const flatbuffers::TypeTable tt = {
+    flatbuffers::ST_STRUCT, 2, type_codes, nullptr, array_sizes, values, names
+  };
+  return &tt;
+}
+
+inline const flatbuffers::TypeTable *AppleTypeTable() {
+  static const flatbuffers::TypeCode type_codes[] = {
+    { flatbuffers::ET_UCHAR, 0, -1 },
+    { flatbuffers::ET_SEQUENCE, 0, 0 }
+  };
+  static const flatbuffers::TypeFunction type_refs[] = {
+    keyfield::sample::ColorTypeTable
+  };
+  static const int64_t values[] = { 0, 4, 20 };
+  static const char * const names[] = {
+    "tag",
+    "color"
+  };
+  static const flatbuffers::TypeTable tt = {
+    flatbuffers::ST_STRUCT, 2, type_codes, type_refs, nullptr, values, names
+  };
+  return &tt;
+}
+
+inline const flatbuffers::TypeTable *FruitTypeTable() {
+  static const flatbuffers::TypeCode type_codes[] = {
+    { flatbuffers::ET_SEQUENCE, 0, 0 },
+    { flatbuffers::ET_UCHAR, 0, -1 }
+  };
+  static const flatbuffers::TypeFunction type_refs[] = {
+    keyfield::sample::AppleTypeTable
+  };
+  static const int64_t values[] = { 0, 20, 24 };
+  static const char * const names[] = {
+    "a",
+    "b"
+  };
+  static const flatbuffers::TypeTable tt = {
+    flatbuffers::ST_STRUCT, 2, type_codes, type_refs, nullptr, values, names
+  };
+  return &tt;
+}
+
+inline const flatbuffers::TypeTable *RiceTypeTable() {
+  static const flatbuffers::TypeCode type_codes[] = {
+    { flatbuffers::ET_UCHAR, 1, -1 },
+    { flatbuffers::ET_UINT, 0, -1 }
+  };
+  static const int16_t array_sizes[] = { 3,  };
+  static const int64_t values[] = { 0, 4, 8 };
+  static const char * const names[] = {
+    "origin",
+    "quantity"
+  };
+  static const flatbuffers::TypeTable tt = {
+    flatbuffers::ST_STRUCT, 2, type_codes, nullptr, array_sizes, values, names
+  };
+  return &tt;
+}
+
+inline const flatbuffers::TypeTable *GrainTypeTable() {
+  static const flatbuffers::TypeCode type_codes[] = {
+    { flatbuffers::ET_SEQUENCE, 1, 0 },
+    { flatbuffers::ET_UCHAR, 0, -1 }
+  };
+  static const flatbuffers::TypeFunction type_refs[] = {
+    keyfield::sample::RiceTypeTable
+  };
+  static const int16_t array_sizes[] = { 3,  };
+  static const int64_t values[] = { 0, 24, 28 };
+  static const char * const names[] = {
+    "a",
+    "tag"
+  };
+  static const flatbuffers::TypeTable tt = {
+    flatbuffers::ST_STRUCT, 2, type_codes, type_refs, array_sizes, values, names
+  };
+  return &tt;
+}
+
+inline const flatbuffers::TypeTable *FooTableTypeTable() {
+  static const flatbuffers::TypeCode type_codes[] = {
+    { flatbuffers::ET_INT, 0, -1 },
+    { flatbuffers::ET_INT, 0, -1 },
+    { flatbuffers::ET_STRING, 0, -1 },
+    { flatbuffers::ET_SEQUENCE, 1, 0 },
+    { flatbuffers::ET_SEQUENCE, 1, 1 },
+    { flatbuffers::ET_SEQUENCE, 1, 2 },
+    { flatbuffers::ET_SEQUENCE, 1, 3 },
+    { flatbuffers::ET_SEQUENCE, 1, 4 }
+  };
+  static const flatbuffers::TypeFunction type_refs[] = {
+    keyfield::sample::BazTypeTable,
+    keyfield::sample::BarTypeTable,
+    keyfield::sample::AppleTypeTable,
+    keyfield::sample::FruitTypeTable,
+    keyfield::sample::GrainTypeTable
+  };
+  static const char * const names[] = {
+    "a",
+    "b",
+    "c",
+    "d",
+    "e",
+    "f",
+    "g",
+    "h"
+  };
+  static const flatbuffers::TypeTable tt = {
+    flatbuffers::ST_TABLE, 8, type_codes, type_refs, nullptr, nullptr, names
+  };
+  return &tt;
+}
+
 inline const keyfield::sample::FooTable *GetFooTable(const void *buf) {
   return ::flatbuffers::GetRoot<keyfield::sample::FooTable>(buf);
 }
@@ -672,6 +997,14 @@ inline FooTable *GetMutableFooTable(void *buf) {
 
 inline keyfield::sample::FooTable *GetMutableSizePrefixedFooTable(void *buf) {
   return ::flatbuffers::GetMutableSizePrefixedRoot<keyfield::sample::FooTable>(buf);
+}
+
+inline FooTable *GetMutableFooTable(void *buf) {
+  return flatbuffers::GetMutableRoot<FooTable>(buf);
+}
+
+inline keyfield::sample::FooTable *GetMutableSizePrefixedFooTable(void *buf) {
+  return flatbuffers::GetMutableSizePrefixedRoot<keyfield::sample::FooTable>(buf);
 }
 
 inline bool VerifyFooTableBuffer(
