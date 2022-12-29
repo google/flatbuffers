@@ -1,0 +1,26 @@
+namespace namespace;
+
+enum explicit: int { void, extern, mutable }
+
+enum public: int { }
+
+table noexcept {
+  switch: explicit = void (id : 0);
+  private: public (id : 1);
+  default: bool = false (id : 2);
+  friend: string (id: 3, key);
+}
+
+union throw {
+  static: noexcept,
+  try: noexcept,
+}
+
+table delete {
+  constexpr: throw;
+  goto: [noexcept];
+  dynamic_cast: short = 150 (key);
+  inline: [float64];
+}
+
+root_type delete;

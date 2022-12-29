@@ -27,8 +27,6 @@ impl<'a> flatbuffers::Follow<'a> for Table2<'a> {
 impl<'a> Table2<'a> {
   pub const VT_TYPE_TYPE: flatbuffers::VOffsetT = 4;
   pub const VT_TYPE_: flatbuffers::VOffsetT = 6;
-  pub const VT_CONSTEXPR_TYPE: flatbuffers::VOffsetT = 8;
-  pub const VT_CONSTEXPR: flatbuffers::VOffsetT = 10;
 
   pub const fn get_fully_qualified_name() -> &'static str {
     "KeywordTest.Table2"
@@ -44,9 +42,7 @@ impl<'a> Table2<'a> {
     args: &'args Table2Args
   ) -> flatbuffers::WIPOffset<Table2<'bldr>> {
     let mut builder = Table2Builder::new(_fbb);
-    if let Some(x) = args.constexpr { builder.add_constexpr(x); }
     if let Some(x) = args.type_ { builder.add_type_(x); }
-    builder.add_constexpr_type(args.constexpr_type);
     builder.add_type_type(args.type_type);
     builder.finish()
   }
@@ -66,23 +62,8 @@ impl<'a> Table2<'a> {
       )),
       _ => KeywordsInUnionT::NONE,
     };
-    let constexpr = match self.constexpr_type() {
-      KeywordsInUnion::NONE => KeywordsInUnionT::NONE,
-      KeywordsInUnion::static_ => KeywordsInUnionT::Static_(Box::new(
-        self.constexpr_as_static_()
-            .expect("Invalid union table, expected `KeywordsInUnion::static_`.")
-            .unpack()
-      )),
-      KeywordsInUnion::internal => KeywordsInUnionT::Internal(Box::new(
-        self.constexpr_as_internal()
-            .expect("Invalid union table, expected `KeywordsInUnion::internal`.")
-            .unpack()
-      )),
-      _ => KeywordsInUnionT::NONE,
-    };
     Table2T {
       type_,
-      constexpr,
     }
   }
 
@@ -99,20 +80,6 @@ impl<'a> Table2<'a> {
     // Created from valid Table for this object
     // which contains a valid value in this slot
     unsafe { self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Table<'a>>>(Table2::VT_TYPE_, None)}
-  }
-  #[inline]
-  pub fn constexpr_type(&self) -> KeywordsInUnion {
-    // Safety:
-    // Created from valid Table for this object
-    // which contains a valid value in this slot
-    unsafe { self._tab.get::<KeywordsInUnion>(Table2::VT_CONSTEXPR_TYPE, Some(KeywordsInUnion::NONE)).unwrap()}
-  }
-  #[inline]
-  pub fn constexpr(&self) -> Option<flatbuffers::Table<'a>> {
-    // Safety:
-    // Created from valid Table for this object
-    // which contains a valid value in this slot
-    unsafe { self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Table<'a>>>(Table2::VT_CONSTEXPR, None)}
   }
   #[inline]
   #[allow(non_snake_case)]
@@ -144,36 +111,6 @@ impl<'a> Table2<'a> {
     }
   }
 
-  #[inline]
-  #[allow(non_snake_case)]
-  pub fn constexpr_as_static_(&self) -> Option<KeywordsInTable<'a>> {
-    if self.constexpr_type() == KeywordsInUnion::static_ {
-      self.constexpr().map(|t| {
-       // Safety:
-       // Created from a valid Table for this object
-       // Which contains a valid union in this slot
-       unsafe { KeywordsInTable::init_from_table(t) }
-     })
-    } else {
-      None
-    }
-  }
-
-  #[inline]
-  #[allow(non_snake_case)]
-  pub fn constexpr_as_internal(&self) -> Option<KeywordsInTable<'a>> {
-    if self.constexpr_type() == KeywordsInUnion::internal {
-      self.constexpr().map(|t| {
-       // Safety:
-       // Created from a valid Table for this object
-       // Which contains a valid union in this slot
-       unsafe { KeywordsInTable::init_from_table(t) }
-     })
-    } else {
-      None
-    }
-  }
-
 }
 
 impl flatbuffers::Verifiable for Table2<'_> {
@@ -190,13 +127,6 @@ impl flatbuffers::Verifiable for Table2<'_> {
           _ => Ok(()),
         }
      })?
-     .visit_union::<KeywordsInUnion, _>("constexpr_type", Self::VT_CONSTEXPR_TYPE, "constexpr", Self::VT_CONSTEXPR, false, |key, v, pos| {
-        match key {
-          KeywordsInUnion::static_ => v.verify_union_variant::<flatbuffers::ForwardsUOffset<KeywordsInTable>>("KeywordsInUnion::static_", pos),
-          KeywordsInUnion::internal => v.verify_union_variant::<flatbuffers::ForwardsUOffset<KeywordsInTable>>("KeywordsInUnion::internal", pos),
-          _ => Ok(()),
-        }
-     })?
      .finish();
     Ok(())
   }
@@ -204,8 +134,6 @@ impl flatbuffers::Verifiable for Table2<'_> {
 pub struct Table2Args {
     pub type_type: KeywordsInUnion,
     pub type_: Option<flatbuffers::WIPOffset<flatbuffers::UnionWIPOffset>>,
-    pub constexpr_type: KeywordsInUnion,
-    pub constexpr: Option<flatbuffers::WIPOffset<flatbuffers::UnionWIPOffset>>,
 }
 impl<'a> Default for Table2Args {
   #[inline]
@@ -213,8 +141,6 @@ impl<'a> Default for Table2Args {
     Table2Args {
       type_type: KeywordsInUnion::NONE,
       type_: None,
-      constexpr_type: KeywordsInUnion::NONE,
-      constexpr: None,
     }
   }
 }
@@ -231,14 +157,6 @@ impl<'a: 'b, 'b> Table2Builder<'a, 'b> {
   #[inline]
   pub fn add_type_(&mut self, type_: flatbuffers::WIPOffset<flatbuffers::UnionWIPOffset>) {
     self.fbb_.push_slot_always::<flatbuffers::WIPOffset<_>>(Table2::VT_TYPE_, type_);
-  }
-  #[inline]
-  pub fn add_constexpr_type(&mut self, constexpr_type: KeywordsInUnion) {
-    self.fbb_.push_slot::<KeywordsInUnion>(Table2::VT_CONSTEXPR_TYPE, constexpr_type, KeywordsInUnion::NONE);
-  }
-  #[inline]
-  pub fn add_constexpr(&mut self, constexpr: flatbuffers::WIPOffset<flatbuffers::UnionWIPOffset>) {
-    self.fbb_.push_slot_always::<flatbuffers::WIPOffset<_>>(Table2::VT_CONSTEXPR, constexpr);
   }
   #[inline]
   pub fn new(_fbb: &'b mut flatbuffers::FlatBufferBuilder<'a>) -> Table2Builder<'a, 'b> {
@@ -279,27 +197,6 @@ impl core::fmt::Debug for Table2<'_> {
           ds.field("type_", &x)
         },
       };
-      ds.field("constexpr_type", &self.constexpr_type());
-      match self.constexpr_type() {
-        KeywordsInUnion::static_ => {
-          if let Some(x) = self.constexpr_as_static_() {
-            ds.field("constexpr", &x)
-          } else {
-            ds.field("constexpr", &"InvalidFlatbuffer: Union discriminant does not match value.")
-          }
-        },
-        KeywordsInUnion::internal => {
-          if let Some(x) = self.constexpr_as_internal() {
-            ds.field("constexpr", &x)
-          } else {
-            ds.field("constexpr", &"InvalidFlatbuffer: Union discriminant does not match value.")
-          }
-        },
-        _ => {
-          let x: Option<()> = None;
-          ds.field("constexpr", &x)
-        },
-      };
       ds.finish()
   }
 }
@@ -307,13 +204,11 @@ impl core::fmt::Debug for Table2<'_> {
 #[derive(Debug, Clone, PartialEq)]
 pub struct Table2T {
   pub type_: KeywordsInUnionT,
-  pub constexpr: KeywordsInUnionT,
 }
 impl Default for Table2T {
   fn default() -> Self {
     Self {
       type_: KeywordsInUnionT::NONE,
-      constexpr: KeywordsInUnionT::NONE,
     }
   }
 }
@@ -324,13 +219,9 @@ impl Table2T {
   ) -> flatbuffers::WIPOffset<Table2<'b>> {
     let type_type = self.type_.keywords_in_union_type();
     let type_ = self.type_.pack(_fbb);
-    let constexpr_type = self.constexpr.keywords_in_union_type();
-    let constexpr = self.constexpr.pack(_fbb);
     Table2::create(_fbb, &Table2Args{
       type_type,
       type_,
-      constexpr_type,
-      constexpr,
     })
   }
 }

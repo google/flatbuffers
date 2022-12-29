@@ -169,17 +169,25 @@ std::string BaseGenerator::LastNamespacePart(const Namespace &ns) {
 }
 
 // Ensure that a type is prefixed with its namespace.
-std::string BaseGenerator::WrapInNameSpace(const Namespace *ns,
-                                           const std::string &name) const {
+std::string BaseGenerator::WrapInNameSpace(const Namespace *ns, const std::string &name,
+    const std::unordered_set<std::string> *keywords_) const {
+  ;
   std::string qualified_name = qualifying_start_;
   for (auto it = ns->components.begin(); it != ns->components.end(); ++it)
-    qualified_name += *it + qualifying_separator_;
+    if (keywords_ && keywords_->find(*it) != keywords_->end()) {
+      qualified_name += *it + "_" + qualifying_separator_;                            
+    } else {
+      qualified_name += *it + qualifying_separator_;
+    }
+
   return qualified_name + name;
 }
 
-std::string BaseGenerator::WrapInNameSpace(const Definition &def,
-                                           const std::string &suffix) const {
-  return WrapInNameSpace(def.defined_namespace, def.name + suffix);
+std::string BaseGenerator::WrapInNameSpace(const Definition &def, const std::string &suffix,
+    const std::unordered_set<std::string> *keywords_) const {
+  std::string name = def.name;
+  if (keywords_ && keywords_->find(name) != keywords_->end()) name += "_";
+  return WrapInNameSpace(def.defined_namespace, name + suffix, keywords_);
 }
 
 std::string BaseGenerator::GetNameSpace(const Definition &def) const {

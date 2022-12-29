@@ -418,7 +418,8 @@ flatc(
 )
 
 # Generate the keywords tests
-flatc(BASE_OPTS + CS_OPTS + CPP_OPTS, schema="keyword_test.fbs")
+flatc(BASE_OPTS + CS_OPTS, schema="keyword_test.fbs")
+flatc(CPP_OPTS, schema="keyword_test_cpp.fbs")
 flatc(RUST_OPTS, prefix="keyword_test", schema="keyword_test.fbs")
 flatc(
     BASE_OPTS + CS_OPTS + ["--cs-global-alias", "--gen-onefile"],

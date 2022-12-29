@@ -23,29 +23,19 @@ public struct Table2 : IFlatbufferObject
   public TTable? Type<TTable>() where TTable : struct, IFlatbufferObject { int o = __p.__offset(6); return o != 0 ? (TTable?)__p.__union<TTable>(o + __p.bb_pos) : null; }
   public KeywordTest.KeywordsInTable TypeAsstatic() { return Type<KeywordTest.KeywordsInTable>().Value; }
   public KeywordTest.KeywordsInTable TypeAsinternal() { return Type<KeywordTest.KeywordsInTable>().Value; }
-  public KeywordTest.KeywordsInUnion ConstexprType { get { int o = __p.__offset(8); return o != 0 ? (KeywordTest.KeywordsInUnion)__p.bb.Get(o + __p.bb_pos) : KeywordTest.KeywordsInUnion.NONE; } }
-  public TTable? Constexpr<TTable>() where TTable : struct, IFlatbufferObject { int o = __p.__offset(10); return o != 0 ? (TTable?)__p.__union<TTable>(o + __p.bb_pos) : null; }
-  public KeywordTest.KeywordsInTable ConstexprAsstatic() { return Constexpr<KeywordTest.KeywordsInTable>().Value; }
-  public KeywordTest.KeywordsInTable ConstexprAsinternal() { return Constexpr<KeywordTest.KeywordsInTable>().Value; }
 
   public static Offset<KeywordTest.Table2> CreateTable2(FlatBufferBuilder builder,
       KeywordTest.KeywordsInUnion type_type = KeywordTest.KeywordsInUnion.NONE,
-      int typeOffset = 0,
-      KeywordTest.KeywordsInUnion constexpr_type = KeywordTest.KeywordsInUnion.NONE,
-      int constexprOffset = 0) {
-    builder.StartTable(4);
-    Table2.AddConstexpr(builder, constexprOffset);
+      int typeOffset = 0) {
+    builder.StartTable(2);
     Table2.AddType(builder, typeOffset);
-    Table2.AddConstexprType(builder, constexpr_type);
     Table2.AddTypeType(builder, type_type);
     return Table2.EndTable2(builder);
   }
 
-  public static void StartTable2(FlatBufferBuilder builder) { builder.StartTable(4); }
+  public static void StartTable2(FlatBufferBuilder builder) { builder.StartTable(2); }
   public static void AddTypeType(FlatBufferBuilder builder, KeywordTest.KeywordsInUnion typeType) { builder.AddByte(0, (byte)typeType, 0); }
   public static void AddType(FlatBufferBuilder builder, int typeOffset) { builder.AddOffset(1, typeOffset, 0); }
-  public static void AddConstexprType(FlatBufferBuilder builder, KeywordTest.KeywordsInUnion constexprType) { builder.AddByte(2, (byte)constexprType, 0); }
-  public static void AddConstexpr(FlatBufferBuilder builder, int constexprOffset) { builder.AddOffset(3, constexprOffset, 0); }
   public static Offset<KeywordTest.Table2> EndTable2(FlatBufferBuilder builder) {
     int o = builder.EndTable();
     return new Offset<KeywordTest.Table2>(o);
@@ -67,30 +57,15 @@ public struct Table2 : IFlatbufferObject
         _o.Type.Value = this.Type<KeywordTest.KeywordsInTable>().HasValue ? this.Type<KeywordTest.KeywordsInTable>().Value.UnPack() : null;
         break;
     }
-    _o.Constexpr = new KeywordTest.KeywordsInUnionUnion();
-    _o.Constexpr.Type = this.ConstexprType;
-    switch (this.ConstexprType) {
-      default: break;
-      case KeywordTest.KeywordsInUnion.static:
-        _o.Constexpr.Value = this.Constexpr<KeywordTest.KeywordsInTable>().HasValue ? this.Constexpr<KeywordTest.KeywordsInTable>().Value.UnPack() : null;
-        break;
-      case KeywordTest.KeywordsInUnion.internal:
-        _o.Constexpr.Value = this.Constexpr<KeywordTest.KeywordsInTable>().HasValue ? this.Constexpr<KeywordTest.KeywordsInTable>().Value.UnPack() : null;
-        break;
-    }
   }
   public static Offset<KeywordTest.Table2> Pack(FlatBufferBuilder builder, Table2T _o) {
     if (_o == null) return default(Offset<KeywordTest.Table2>);
     var _type_type = _o.Type == null ? KeywordTest.KeywordsInUnion.NONE : _o.Type.Type;
     var _type = _o.Type == null ? 0 : KeywordTest.KeywordsInUnionUnion.Pack(builder, _o.Type);
-    var _constexpr_type = _o.Constexpr == null ? KeywordTest.KeywordsInUnion.NONE : _o.Constexpr.Type;
-    var _constexpr = _o.Constexpr == null ? 0 : KeywordTest.KeywordsInUnionUnion.Pack(builder, _o.Constexpr);
     return CreateTable2(
       builder,
       _type_type,
-      _type,
-      _constexpr_type,
-      _constexpr);
+      _type);
   }
 }
 
@@ -109,23 +84,9 @@ public class Table2T
   [Newtonsoft.Json.JsonProperty("type")]
   [Newtonsoft.Json.JsonConverter(typeof(KeywordTest.KeywordsInUnionUnion_JsonConverter))]
   public KeywordTest.KeywordsInUnionUnion Type { get; set; }
-  [Newtonsoft.Json.JsonProperty("constexpr_type")]
-  private KeywordTest.KeywordsInUnion ConstexprType {
-    get {
-      return this.Constexpr != null ? this.Constexpr.Type : KeywordTest.KeywordsInUnion.NONE;
-    }
-    set {
-      this.Constexpr = new KeywordTest.KeywordsInUnionUnion();
-      this.Constexpr.Type = value;
-    }
-  }
-  [Newtonsoft.Json.JsonProperty("constexpr")]
-  [Newtonsoft.Json.JsonConverter(typeof(KeywordTest.KeywordsInUnionUnion_JsonConverter))]
-  public KeywordTest.KeywordsInUnionUnion Constexpr { get; set; }
 
   public Table2T() {
     this.Type = null;
-    this.Constexpr = null;
   }
 }
 

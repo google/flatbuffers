@@ -18,5 +18,4 @@ union KeywordsInUnion {
 
 table Table2 {
   type: KeywordsInUnion;
-  constexpr: KeywordsInUnion;
 }
