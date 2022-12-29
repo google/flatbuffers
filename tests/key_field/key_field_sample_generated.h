@@ -257,14 +257,10 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) Apple FLATBUFFERS_FINAL_CLASS {
   int KeyCompareWithValue(const keyfield::sample::Color  &_color) const {
     const auto lhs_color = color();
     const auto rhs_color = _color;
-    const auto lhs_color_rgb = lhs_color.rgb();
     const auto rhs_color_rgb = rhs_color.rgb();
-    for (flatbuffers::uoffset_t i = 0; i < lhs_color_rgb->size(); i++) {
-      const auto lhs_color_rgb_elem = lhs_color_rgb->Get(i);
-      const auto rhs_color_rgb_elem = rhs_color_rgb->Get(i);
-      if (lhs_color_rgb_elem != rhs_color_rgb_elem)
-        return static_cast<int>(lhs_color_rgb_elem > rhs_color_rgb_elem) - static_cast<int>(lhs_color_rgb_elem < rhs_color_rgb_elem);
-    }
+    const auto rgb_compare_result = lhs_color.KeyCompareWithValue(rhs_color_rgb);
+    if (rgb_compare_result != 0)
+      return rgb_compare_result;
     const auto lhs_color_tag = lhs_color.tag();
     const auto rhs_color_tag = rhs_color.tag();
     if (lhs_color_tag !=  rhs_color_tag)
@@ -327,20 +323,10 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) Fruit FLATBUFFERS_FINAL_CLASS {
     const auto rhs_a_tag = rhs_a.tag();
     if (lhs_a_tag !=  rhs_a_tag)
       return static_cast<int>(lhs_a_tag > rhs_a_tag) - static_cast<int>(lhs_a_tag < rhs_a_tag);
-    const auto lhs_a_color = lhs_a.color();
     const auto rhs_a_color = rhs_a.color();
-    const auto lhs_a_color_rgb = lhs_a_color.rgb();
-    const auto rhs_a_color_rgb = rhs_a_color.rgb();
-    for (flatbuffers::uoffset_t i = 0; i < lhs_a_color_rgb->size(); i++) {
-      const auto lhs_a_color_rgb_elem = lhs_a_color_rgb->Get(i);
-      const auto rhs_a_color_rgb_elem = rhs_a_color_rgb->Get(i);
-      if (lhs_a_color_rgb_elem != rhs_a_color_rgb_elem)
-        return static_cast<int>(lhs_a_color_rgb_elem > rhs_a_color_rgb_elem) - static_cast<int>(lhs_a_color_rgb_elem < rhs_a_color_rgb_elem);
-    }
-    const auto lhs_a_color_tag = lhs_a_color.tag();
-    const auto rhs_a_color_tag = rhs_a_color.tag();
-    if (lhs_a_color_tag !=  rhs_a_color_tag)
-      return static_cast<int>(lhs_a_color_tag > rhs_a_color_tag) - static_cast<int>(lhs_a_color_tag < rhs_a_color_tag);
+    const auto color_compare_result = lhs_a.KeyCompareWithValue(rhs_a_color);
+    if (color_compare_result != 0)
+      return color_compare_result;
     return 0;
   }
   uint8_t b() const {
