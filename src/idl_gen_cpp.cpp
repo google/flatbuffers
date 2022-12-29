@@ -2252,12 +2252,24 @@ class CppGenerator : public BaseGenerator {
     code_.SetValue("RHS_PREFIX", rhs_struct_literal);
     std::string space(space_size, ' ');
     for (const auto &curr_field : struct_def.fields.vec) {
+      const auto curr_field_name = Name(*curr_field);
+      code_.SetValue("CURR_FIELD_NAME", curr_field_name);
+      code_.SetValue("LHS", lhs_struct_literal + "_" + curr_field_name);
+      code_.SetValue("RHS", rhs_struct_literal + "_" + curr_field_name);
       const bool is_scalar = IsScalar(curr_field->value.type.base_type);
       const bool is_array = IsArray(curr_field->value.type);
       const bool is_struct = IsStruct(curr_field->value.type);
-      code_.SetValue("CURR_FIELD_NAME", Name(*curr_field));
-      code_.SetValue("LHS", lhs_struct_literal + "_" + Name(*curr_field));
-      code_.SetValue("RHS", rhs_struct_literal + "_" + Name(*curr_field));
+
+      // If encouter a key field, call KeyCompareWithValue to compare this field.
+      if (curr_field->key) {
+        code_ +=
+          space + "const auto {{RHS}} = {{RHS_PREFIX}}.{{CURR_FIELD_NAME}}();";
+        code_ += space + "const auto {{CURR_FIELD_NAME}}_compare_result = {{LHS_PREFIX}}.KeyCompareWithValue({{RHS}});";
+
+        code_ += space + "if ({{CURR_FIELD_NAME}}_compare_result != 0)";
+        code_ += space + "  return {{CURR_FIELD_NAME}}_compare_result;";
+        continue;
+      }
 
       code_ +=
           space + "const auto {{LHS}} = {{LHS_PREFIX}}.{{CURR_FIELD_NAME}}();";
@@ -2283,6 +2295,12 @@ class CppGenerator : public BaseGenerator {
           code_ += space + "}";
 
         } else if (IsStruct(elem_type)) {
+          if (curr_field->key) {
+            code_ += space + "const auto {{CURR_FIELD_NAME}}_compare_result = {{LHS_PREFIX}}.KeyCompareWithValue({{RHS}});";
+            code_ += space + "if ({{CURR_FIELD_NAME}}_compare_result != 0)";
+            code_ += space + "  return {{CURR_FIELD_NAME}}_compare_result;";
+            continue;
+          }
           GenComparatorForStruct(
               *curr_field->value.type.struct_def, space_size + 2,
               code_.GetValue("LHS") + "_elem", code_.GetValue("RHS") + "_elem");
