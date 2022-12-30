@@ -19,9 +19,9 @@
 
 #include <map>
 #include <sstream>
+#include <unordered_set>
 
 #include "flatbuffers/idl.h"
-#include <unordered_set>
 
 namespace flatbuffers {
 
@@ -136,11 +136,13 @@ class BaseGenerator {
   // Ensure that a type is prefixed with its namespace even within
   // its own namespace to avoid conflict between generated method
   // names and similarly named classes or structs
-  std::string WrapInNameSpace(const Namespace *ns, const std::string &name,
-                              const std::unordered_set<std::string> *keywords_ = nullptr) const;
+  std::string WrapInNameSpace(
+      const Namespace *ns, const std::string &name,
+      const std::unordered_set<std::string> *keywords_ = nullptr) const;
 
-  std::string WrapInNameSpace(const Definition &def, const std::string &suffix = "",
-                              const std::unordered_set<std::string> *keywords_ = nullptr) const;
+  std::string WrapInNameSpace(
+      const Definition &def, const std::string &suffix = "",
+      const std::unordered_set<std::string> *keywords_ = nullptr) const;
 
   std::string GetNameSpace(const Definition &def) const;
 
