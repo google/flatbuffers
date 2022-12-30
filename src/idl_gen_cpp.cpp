@@ -724,8 +724,6 @@ class CppGenerator : public BaseGenerator {
     // clang-format on
     if (user_facing_type) {
       if (type.enum_def) {
-        /*std::string suffix =
-            keywords_.find(type.enum_def->name) == keywords_.end() ? "" : "_";*/
         return WrapInNameSpace(*type.enum_def, "", &keywords_);
       }
       if (type.base_type == BASE_TYPE_BOOL) return "bool";
@@ -2372,7 +2370,6 @@ class CppGenerator : public BaseGenerator {
                      GenTypeGet(type, " ", "const ", afterptr.c_str(), true));
       code_.SetValue("FIELD_VALUE", GenUnderlyingCast(field, true, call));
       code_.SetValue("NULLABLE_EXT", NullableExtension());
-      // printf("%s\n", GenUnderlyingCast(field, true, call).c_str());
       code_ += "  {{FIELD_TYPE}}{{FIELD_NAME}}() const {";
       code_ += "    return {{FIELD_VALUE}};";
       code_ += "  }";
@@ -2635,7 +2632,6 @@ class CppGenerator : public BaseGenerator {
       }
 
       code_.SetValue("FIELD_NAME", Name(*field));
-      // printf("%s\n", Name(*field).c_str());
       GenTableFieldGetter(*field);
       if (opts_.mutable_buffer) { GenTableFieldSetter(*field); }
 
@@ -2881,7 +2877,7 @@ class CppGenerator : public BaseGenerator {
       for (const auto &field : struct_def.fields.vec) {
         if (!field->deprecated) { GenParam(*field, true, ",\n    "); }
       }
-      //// Need to call "Create" with the struct namespace.
+      // Need to call "Create" with the struct namespace.
       code_.SetValue(
           "CREATE_NAME",
           WrapInNameSpace(struct_def.defined_namespace, "Create", &keywords_));
@@ -3452,8 +3448,6 @@ class CppGenerator : public BaseGenerator {
         code_ += "  auto _" + Name(field) + " = " + GenCreateParam(field) + ";";
       }
       // Need to call "Create" with the struct namespace.
-      // const auto qualified_create_name =
-      //    struct_def.defined_namespace->GetFullyQualifiedName("Create");
       code_.SetValue(
           "CREATE_NAME",
           WrapInNameSpace(struct_def.defined_namespace, "Create", &keywords_));

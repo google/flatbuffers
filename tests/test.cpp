@@ -1467,8 +1467,6 @@ void DoNotRequireEofTest(const std::string &tests_data_path) {
 
 int FlatBufferTests(const std::string &tests_data_path) {
   // Run our various test suites:
-  check_keyword();
-
   std::string rawbuf;
   auto flatbuf1 = CreateFlatBufferTest(rawbuf);
   auto flatbuf = std::move(flatbuf1);  // Test move assignment.
@@ -1488,6 +1486,8 @@ int FlatBufferTests(const std::string &tests_data_path) {
   SizePrefixedTest();
 
   AlignmentTest();
+
+  keyword_test();
 
 #ifndef FLATBUFFERS_NO_FILE_TESTS
   ParseAndGenerateTextTest(tests_data_path, false);

@@ -7,7 +7,7 @@ namespace tests {
 
 using namespace namespace_;
 
-void check_keyword() {
+void keyword_test() {
   flatbuffers::FlatBufferBuilder fbb;
   auto noex =
       Createnoexcept_(fbb, namespace_::explicit__extern_,

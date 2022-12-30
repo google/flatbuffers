@@ -6,7 +6,7 @@
 namespace flatbuffers {
 namespace tests {
 
-void check_keyword();
+void keyword_test();
 
 }  // namespace tests
 }  // namespace flatbuffers
