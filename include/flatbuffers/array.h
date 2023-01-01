@@ -238,6 +238,12 @@ const Array<E, length> &CastToArrayOfEnum(const T (&arr)[length]) {
   return *reinterpret_cast<const Array<E, length> *>(arr);
 }
 
+template<typename T, uint16_t length>
+bool operator==(const Array<T, length> &lhs, const Array<T, length> &rhs) {
+  return (lhs.size() == rhs.size() &&
+          std::memcmp(lhs.Data(), rhs.Data(), rhs.size() * sizeof(T)) == 0);
+}
+
 }  // namespace flatbuffers
 
 #endif  // FLATBUFFERS_ARRAY_H_
