@@ -78,6 +78,8 @@ public class MonsterT {
   private float negativeInfDefault;
   private float negativeInfinityDefault;
   private double doubleInfDefault;
+  private MyGame.Example.ValueUnion valueMember;
+  private MyGame.Example.AnyUnion value;
 
   public MyGame.Example.Vec3T getPos() { return pos; }
 
@@ -311,6 +313,14 @@ public class MonsterT {
 
   public void setDoubleInfDefault(double doubleInfDefault) { this.doubleInfDefault = doubleInfDefault; }
 
+  public MyGame.Example.ValueUnion getValueMember() { return valueMember; }
+
+  public void setValueMember(MyGame.Example.ValueUnion valueMember) { this.valueMember = valueMember; }
+
+  public MyGame.Example.AnyUnion getValue() { return value; }
+
+  public void setValue(MyGame.Example.AnyUnion value) { this.value = value; }
+
 
   public MonsterT() {
     this.pos = new MyGame.Example.Vec3T();
@@ -371,6 +381,8 @@ public class MonsterT {
     this.negativeInfDefault = Float.NEGATIVE_INFINITY;
     this.negativeInfinityDefault = Float.NEGATIVE_INFINITY;
     this.doubleInfDefault = Double.POSITIVE_INFINITY;
+    this.valueMember = null;
+    this.value = null;
   }
   public static MonsterT deserializeFromBinary(byte[] fbBuffer) {
     return Monster.getRootAsMonster(ByteBuffer.wrap(fbBuffer)).unpack();

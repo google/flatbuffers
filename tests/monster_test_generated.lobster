@@ -41,6 +41,10 @@ enum AnyAmbiguousAliases:
     AnyAmbiguousAliases_M2 = 2
     AnyAmbiguousAliases_M3 = 3
 
+enum Value:
+    Value_NONE = 0
+    Value_Monster = 1
+
 namespace MyGame
 
 class InParentNamespace
@@ -441,13 +445,25 @@ class Monster : flatbuffers_handle
         return buf_.flatbuffers_field_float32(pos_, 124, -infinity)
     def double_inf_default() -> float:
         return buf_.flatbuffers_field_float64(pos_, 126, inf)
+    def value_member_type() -> Value:
+        return Value(buf_.flatbuffers_field_uint8(pos_, 128, 0))
+    def value_member_as_Monster():
+        return MyGame_Example_Monster { buf_, buf_.flatbuffers_field_table(pos_, 130) }
+    def value_type() -> Any:
+        return Any(buf_.flatbuffers_field_uint8(pos_, 132, 0))
+    def value_as_Monster():
+        return MyGame_Example_Monster { buf_, buf_.flatbuffers_field_table(pos_, 134) }
+    def value_as_TestSimpleTableWithEnum():
+        return MyGame_Example_TestSimpleTableWithEnum { buf_, buf_.flatbuffers_field_table(pos_, 134) }
+    def value_as_MyGame_Example2_Monster():
+        return MyGame_Example2_Monster { buf_, buf_.flatbuffers_field_table(pos_, 134) }
 
 def GetRootAsMonster(buf:string): return Monster { buf, buf.flatbuffers_indirect(0) }
 
 struct MonsterBuilder:
     b_:flatbuffers_builder
     def start():
-        b_.StartObject(62)
+        b_.StartObject(66)
         return this
     def add_pos(pos:flatbuffers_offset):
         b_.PrependStructSlot(0, pos)
@@ -631,6 +647,18 @@ struct MonsterBuilder:
         return this
     def add_double_inf_default(double_inf_default:float):
         b_.PrependFloat64Slot(61, double_inf_default, inf)
+        return this
+    def add_value_member_type(value_member_type:Value):
+        b_.PrependUint8Slot(62, value_member_type, 0)
+        return this
+    def add_value_member(value_member:flatbuffers_offset):
+        b_.PrependUOffsetTRelativeSlot(63, value_member)
+        return this
+    def add_value_type(value_type:Any):
+        b_.PrependUint8Slot(64, value_type, 0)
+        return this
+    def add_value(value:flatbuffers_offset):
+        b_.PrependUOffsetTRelativeSlot(65, value)
         return this
     def end():
         return b_.EndObject()

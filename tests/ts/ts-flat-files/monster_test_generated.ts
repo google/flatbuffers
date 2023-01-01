@@ -139,6 +139,34 @@ export function unionListToAnyAmbiguousAliases(
   }
 }
 
+export enum MyGame_Example_Value {
+  NONE = 0,
+  Monster = 1
+}
+
+export function unionToValue(
+  type: MyGame_Example_Value,
+  accessor: (obj:MyGame_Example_Monster) => MyGame_Example_Monster|null
+): MyGame_Example_Monster|null {
+  switch(MyGame_Example_Value[type]) {
+    case 'NONE': return null; 
+    case 'Monster': return accessor(new MyGame_Example_Monster())! as MyGame_Example_Monster;
+    default: return null;
+  }
+}
+
+export function unionListToValue(
+  type: MyGame_Example_Value, 
+  accessor: (index: number, obj:MyGame_Example_Monster) => MyGame_Example_Monster|null, 
+  index: number
+): MyGame_Example_Monster|null {
+  switch(MyGame_Example_Value[type]) {
+    case 'NONE': return null; 
+    case 'Monster': return accessor(index, new MyGame_Example_Monster())! as MyGame_Example_Monster;
+    default: return null;
+  }
+}
+
 export class MyGame_OtherNameSpace_Unused {
   bb: flatbuffers.ByteBuffer|null = null;
   bb_pos = 0;
@@ -1192,8 +1220,28 @@ doubleInfDefault():number {
   return offset ? this.bb!.readFloat64(this.bb_pos + offset) : Infinity;
 }
 
+valueMemberType():MyGame_Example_Value {
+  const offset = this.bb!.__offset(this.bb_pos, 128);
+  return offset ? this.bb!.readUint8(this.bb_pos + offset) : MyGame_Example_Value.NONE;
+}
+
+valueMember<T extends flatbuffers.Table>(obj:any):any|null {
+  const offset = this.bb!.__offset(this.bb_pos, 130);
+  return offset ? this.bb!.__union(obj, this.bb_pos + offset) : null;
+}
+
+valueType():MyGame_Example_Any {
+  const offset = this.bb!.__offset(this.bb_pos, 132);
+  return offset ? this.bb!.readUint8(this.bb_pos + offset) : MyGame_Example_Any.NONE;
+}
+
+value<T extends flatbuffers.Table>(obj:any):any|null {
+  const offset = this.bb!.__offset(this.bb_pos, 134);
+  return offset ? this.bb!.__union(obj, this.bb_pos + offset) : null;
+}
+
 static startMonster(builder:flatbuffers.Builder) {
-  builder.startObject(62);
+  builder.startObject(66);
 }
 
 static addPos(builder:flatbuffers.Builder, posOffset:flatbuffers.Offset) {
@@ -1659,6 +1707,22 @@ static addNegativeInfinityDefault(builder:flatbuffers.Builder, negativeInfinityD
 
 static addDoubleInfDefault(builder:flatbuffers.Builder, doubleInfDefault:number) {
   builder.addFieldFloat64(61, doubleInfDefault, Infinity);
+}
+
+static addValueMemberType(builder:flatbuffers.Builder, valueMemberType:MyGame_Example_Value) {
+  builder.addFieldInt8(62, valueMemberType, MyGame_Example_Value.NONE);
+}
+
+static addValueMember(builder:flatbuffers.Builder, valueMemberOffset:flatbuffers.Offset) {
+  builder.addFieldOffset(63, valueMemberOffset, 0);
+}
+
+static addValueType(builder:flatbuffers.Builder, valueType:MyGame_Example_Any) {
+  builder.addFieldInt8(64, valueType, MyGame_Example_Any.NONE);
+}
+
+static addValue(builder:flatbuffers.Builder, valueOffset:flatbuffers.Offset) {
+  builder.addFieldOffset(65, valueOffset, 0);
 }
 
 static endMonster(builder:flatbuffers.Builder):flatbuffers.Offset {

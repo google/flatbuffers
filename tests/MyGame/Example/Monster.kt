@@ -982,6 +982,40 @@ class Monster : Table() {
             false
         }
     }
+    val valueMemberType : UByte
+        get() {
+            val o = __offset(128)
+            return if(o != 0) bb.get(o + bb_pos).toUByte() else 0u
+        }
+    fun mutateValueMemberType(valueMemberType: UByte) : Boolean {
+        val o = __offset(128)
+        return if (o != 0) {
+            bb.put(o + bb_pos, valueMemberType.toByte())
+            true
+        } else {
+            false
+        }
+    }
+    fun valueMember(obj: Table) : Table? {
+        val o = __offset(130); return if (o != 0) __union(obj, o + bb_pos) else null
+    }
+    val valueType : UByte
+        get() {
+            val o = __offset(132)
+            return if(o != 0) bb.get(o + bb_pos).toUByte() else 0u
+        }
+    fun mutateValueType(valueType: UByte) : Boolean {
+        val o = __offset(132)
+        return if (o != 0) {
+            bb.put(o + bb_pos, valueType.toByte())
+            true
+        } else {
+            false
+        }
+    }
+    fun value(obj: Table) : Table? {
+        val o = __offset(134); return if (o != 0) __union(obj, o + bb_pos) else null
+    }
     override fun keysCompare(o1: Int, o2: Int, _bb: ByteBuffer) : Int {
          return compareStrings(__offset(10, o1, _bb), __offset(10, o2, _bb), _bb)
     }
@@ -993,7 +1027,7 @@ class Monster : Table() {
             return (obj.__assign(_bb.getInt(_bb.position()) + _bb.position(), _bb))
         }
         fun MonsterBufferHasIdentifier(_bb: ByteBuffer) : Boolean = __has_identifier(_bb, "MONS")
-        fun startMonster(builder: FlatBufferBuilder) = builder.startTable(62)
+        fun startMonster(builder: FlatBufferBuilder) = builder.startTable(66)
         fun addPos(builder: FlatBufferBuilder, pos: Int) = builder.addStruct(0, pos, 0)
         fun addMana(builder: FlatBufferBuilder, mana: Short) = builder.addShort(1, mana, 150)
         fun addHp(builder: FlatBufferBuilder, hp: Short) = builder.addShort(2, hp, 100)
@@ -1197,6 +1231,10 @@ class Monster : Table() {
         fun addNegativeInfDefault(builder: FlatBufferBuilder, negativeInfDefault: Float) = builder.addFloat(59, negativeInfDefault, Double.NEGATIVE_INFINITY)
         fun addNegativeInfinityDefault(builder: FlatBufferBuilder, negativeInfinityDefault: Float) = builder.addFloat(60, negativeInfinityDefault, Double.NEGATIVE_INFINITY)
         fun addDoubleInfDefault(builder: FlatBufferBuilder, doubleInfDefault: Double) = builder.addDouble(61, doubleInfDefault, Double.POSITIVE_INFINITY)
+        fun addValueMemberType(builder: FlatBufferBuilder, valueMemberType: UByte) = builder.addByte(62, valueMemberType.toByte(), 0)
+        fun addValueMember(builder: FlatBufferBuilder, valueMember: Int) = builder.addOffset(63, valueMember, 0)
+        fun addValueType(builder: FlatBufferBuilder, valueType: UByte) = builder.addByte(64, valueType.toByte(), 0)
+        fun addValue(builder: FlatBufferBuilder, value: Int) = builder.addOffset(65, value, 0)
         fun endMonster(builder: FlatBufferBuilder) : Int {
             val o = builder.endTable()
                 builder.required(o, 10)

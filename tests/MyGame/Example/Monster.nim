@@ -19,6 +19,7 @@ import Race as MyGame_Example_Race
 import Referrable as MyGame_Example_Referrable
 import Stat as MyGame_Example_Stat
 import Test as MyGame_Example_Test
+import Value as MyGame_Example_Value
 import Vec3 as MyGame_Example_Vec3
 import flatbuffers
 import std/options
@@ -566,8 +567,30 @@ func doubleInfDefault*(self: Monster): float64 =
   return Inf
 func `doubleInfDefault=`*(self: var Monster, n: float64): bool =
   return self.tab.MutateSlot(126, n)
+func valueMemberType*(self: Monster): MyGame_Example_Value.Value =
+  let o = self.tab.Offset(128)
+  if o != 0:
+    return MyGame_Example_Value.Value(Get[uint8](self.tab, self.tab.Pos + o))
+  return type(result)(0)
+func `valueMemberType=`*(self: var Monster, n: MyGame_Example_Value.Value): bool =
+  return self.tab.MutateSlot(128, n)
+func valueMember*(self: Monster): Option[Vtable] =
+  let o = self.tab.Offset(130)
+  if o != 0:
+    return some(self.tab.Union(o))
+func valueType*(self: Monster): MyGame_Example_Any.Any =
+  let o = self.tab.Offset(132)
+  if o != 0:
+    return MyGame_Example_Any.Any(Get[uint8](self.tab, self.tab.Pos + o))
+  return type(result)(0)
+func `valueType=`*(self: var Monster, n: MyGame_Example_Any.Any): bool =
+  return self.tab.MutateSlot(132, n)
+func value*(self: Monster): Option[Vtable] =
+  let o = self.tab.Offset(134)
+  if o != 0:
+    return some(self.tab.Union(o))
 proc MonsterStart*(builder: var Builder) =
-  builder.StartObject(62)
+  builder.StartObject(66)
 proc MonsterAddpos*(builder: var Builder, pos: uoffset) =
   builder.PrependStructSlot(0, pos, default(uoffset))
 proc MonsterAddmana*(builder: var Builder, mana: int16) =
@@ -730,5 +753,13 @@ proc MonsterAddnegativeInfinityDefault*(builder: var Builder, negativeInfinityDe
   builder.PrependSlot(60, negativeInfinityDefault, default(float32))
 proc MonsterAdddoubleInfDefault*(builder: var Builder, doubleInfDefault: float64) =
   builder.PrependSlot(61, doubleInfDefault, default(float64))
+proc MonsterAddvalueMemberType*(builder: var Builder, valueMemberType: uint8) =
+  builder.PrependSlot(62, valueMemberType, default(uint8))
+proc MonsterAddvalueMember*(builder: var Builder, valueMember: uoffset) =
+  builder.PrependSlot(63, valueMember, default(uoffset))
+proc MonsterAddvalueType*(builder: var Builder, valueType: uint8) =
+  builder.PrependSlot(64, valueType, default(uint8))
+proc MonsterAddvalue*(builder: var Builder, value: uoffset) =
+  builder.PrependSlot(65, value, default(uoffset))
 proc MonsterEnd*(builder: var Builder): uoffset =
   return builder.EndObject()

@@ -156,6 +156,8 @@ void StringifyAnyFlatbuffersTypeTest() {
         negative_inf_default = -inf
         negative_infinity_default = -inf
         double_inf_default = inf
+        value_member_type = 0
+        value_type = 0
       })";
 
   // Call a generic function that has no specific knowledge of the flatbuffer we

@@ -231,6 +231,14 @@ public struct Monster : IFlatbufferObject
   public bool MutateNegativeInfinityDefault(float negative_infinity_default) { int o = __p.__offset(124); if (o != 0) { __p.bb.PutFloat(o + __p.bb_pos, negative_infinity_default); return true; } else { return false; } }
   public double DoubleInfDefault { get { int o = __p.__offset(126); return o != 0 ? __p.bb.GetDouble(o + __p.bb_pos) : (double)Double.PositiveInfinity; } }
   public bool MutateDoubleInfDefault(double double_inf_default) { int o = __p.__offset(126); if (o != 0) { __p.bb.PutDouble(o + __p.bb_pos, double_inf_default); return true; } else { return false; } }
+  public MyGame.Example.Value ValueMemberType { get { int o = __p.__offset(128); return o != 0 ? (MyGame.Example.Value)__p.bb.Get(o + __p.bb_pos) : MyGame.Example.Value.NONE; } }
+  public TTable? ValueMember<TTable>() where TTable : struct, IFlatbufferObject { int o = __p.__offset(130); return o != 0 ? (TTable?)__p.__union<TTable>(o + __p.bb_pos) : null; }
+  public MyGame.Example.Monster ValueMemberAsMonster() { return ValueMember<MyGame.Example.Monster>().Value; }
+  public MyGame.Example.Any ValueType { get { int o = __p.__offset(132); return o != 0 ? (MyGame.Example.Any)__p.bb.Get(o + __p.bb_pos) : MyGame.Example.Any.NONE; } }
+  public TTable? Value<TTable>() where TTable : struct, IFlatbufferObject { int o = __p.__offset(134); return o != 0 ? (TTable?)__p.__union<TTable>(o + __p.bb_pos) : null; }
+  public MyGame.Example.Monster ValueAsMonster() { return Value<MyGame.Example.Monster>().Value; }
+  internal MyGame.Example.TestSimpleTableWithEnum ValueAsTestSimpleTableWithEnum() { return Value<MyGame.Example.TestSimpleTableWithEnum>().Value; }
+  public MyGame.Example2.Monster ValueAsMyGame_Example2_Monster() { return Value<MyGame.Example2.Monster>().Value; }
 
   public static Offset<MyGame.Example.Monster> CreateMonster(FlatBufferBuilder builder,
       MyGame.Example.Vec3T pos = null,
@@ -293,8 +301,12 @@ public struct Monster : IFlatbufferObject
       float positive_infinity_default = Single.PositiveInfinity,
       float negative_inf_default = Single.NegativeInfinity,
       float negative_infinity_default = Single.NegativeInfinity,
-      double double_inf_default = Double.PositiveInfinity) {
-    builder.StartTable(62);
+      double double_inf_default = Double.PositiveInfinity,
+      MyGame.Example.Value value_member_type = MyGame.Example.Value.NONE,
+      int value_memberOffset = 0,
+      MyGame.Example.Any value_type = MyGame.Example.Any.NONE,
+      int valueOffset = 0) {
+    builder.StartTable(66);
     Monster.AddDoubleInfDefault(builder, double_inf_default);
     Monster.AddLongEnumNormalDefault(builder, long_enum_normal_default);
     Monster.AddLongEnumNonEnumDefault(builder, long_enum_non_enum_default);
@@ -305,6 +317,8 @@ public struct Monster : IFlatbufferObject
     Monster.AddTesthashs64Fnv1a(builder, testhashs64_fnv1a);
     Monster.AddTesthashu64Fnv1(builder, testhashu64_fnv1);
     Monster.AddTesthashs64Fnv1(builder, testhashs64_fnv1);
+    Monster.AddValue(builder, valueOffset);
+    Monster.AddValueMember(builder, value_memberOffset);
     Monster.AddNegativeInfinityDefault(builder, negative_infinity_default);
     Monster.AddNegativeInfDefault(builder, negative_inf_default);
     Monster.AddPositiveInfinityDefault(builder, positive_infinity_default);
@@ -350,6 +364,8 @@ public struct Monster : IFlatbufferObject
     Monster.AddPos(builder, MyGame.Example.Vec3.Pack(builder, pos));
     Monster.AddHp(builder, hp);
     Monster.AddMana(builder, mana);
+    Monster.AddValueType(builder, value_type);
+    Monster.AddValueMemberType(builder, value_member_type);
     Monster.AddSignedEnum(builder, signed_enum);
     Monster.AddAnyAmbiguousType(builder, any_ambiguous_type);
     Monster.AddAnyUniqueType(builder, any_unique_type);
@@ -359,7 +375,7 @@ public struct Monster : IFlatbufferObject
     return Monster.EndMonster(builder);
   }
 
-  public static void StartMonster(FlatBufferBuilder builder) { builder.StartTable(62); }
+  public static void StartMonster(FlatBufferBuilder builder) { builder.StartTable(66); }
   public static void AddPos(FlatBufferBuilder builder, Offset<MyGame.Example.Vec3> posOffset) { builder.AddStruct(0, posOffset.Value, 0); }
   public static void AddMana(FlatBufferBuilder builder, short mana) { builder.AddShort(1, mana, 150); }
   public static void AddHp(FlatBufferBuilder builder, short hp) { builder.AddShort(2, hp, 100); }
@@ -509,6 +525,10 @@ public struct Monster : IFlatbufferObject
   public static void AddNegativeInfDefault(FlatBufferBuilder builder, float negativeInfDefault) { builder.AddFloat(59, negativeInfDefault, Single.NegativeInfinity); }
   public static void AddNegativeInfinityDefault(FlatBufferBuilder builder, float negativeInfinityDefault) { builder.AddFloat(60, negativeInfinityDefault, Single.NegativeInfinity); }
   public static void AddDoubleInfDefault(FlatBufferBuilder builder, double doubleInfDefault) { builder.AddDouble(61, doubleInfDefault, Double.PositiveInfinity); }
+  public static void AddValueMemberType(FlatBufferBuilder builder, MyGame.Example.Value valueMemberType) { builder.AddByte(62, (byte)valueMemberType, 0); }
+  public static void AddValueMember(FlatBufferBuilder builder, int valueMemberOffset) { builder.AddOffset(63, valueMemberOffset, 0); }
+  public static void AddValueType(FlatBufferBuilder builder, MyGame.Example.Any valueType) { builder.AddByte(64, (byte)valueType, 0); }
+  public static void AddValue(FlatBufferBuilder builder, int valueOffset) { builder.AddOffset(65, valueOffset, 0); }
   public static Offset<MyGame.Example.Monster> EndMonster(FlatBufferBuilder builder) {
     int o = builder.EndTable();
     builder.Required(o, 10);  // name
@@ -668,6 +688,28 @@ public struct Monster : IFlatbufferObject
     _o.NegativeInfDefault = this.NegativeInfDefault;
     _o.NegativeInfinityDefault = this.NegativeInfinityDefault;
     _o.DoubleInfDefault = this.DoubleInfDefault;
+    _o.ValueMember = new MyGame.Example.ValueUnion();
+    _o.ValueMember.Type = this.ValueMemberType;
+    switch (this.ValueMemberType) {
+      default: break;
+      case MyGame.Example.Value.Monster:
+        _o.ValueMember.Value_ = this.ValueMember<MyGame.Example.Monster>().HasValue ? this.ValueMember<MyGame.Example.Monster>().Value.UnPack() : null;
+        break;
+    }
+    _o.Value = new MyGame.Example.AnyUnion();
+    _o.Value.Type = this.ValueType;
+    switch (this.ValueType) {
+      default: break;
+      case MyGame.Example.Any.Monster:
+        _o.Value.Value = this.Value<MyGame.Example.Monster>().HasValue ? this.Value<MyGame.Example.Monster>().Value.UnPack() : null;
+        break;
+      case MyGame.Example.Any.TestSimpleTableWithEnum:
+        _o.Value.Value = this.Value<MyGame.Example.TestSimpleTableWithEnum>().HasValue ? this.Value<MyGame.Example.TestSimpleTableWithEnum>().Value.UnPack() : null;
+        break;
+      case MyGame.Example.Any.MyGame_Example2_Monster:
+        _o.Value.Value = this.Value<MyGame.Example2.Monster>().HasValue ? this.Value<MyGame.Example2.Monster>().Value.UnPack() : null;
+        break;
+    }
   }
   public static Offset<MyGame.Example.Monster> Pack(FlatBufferBuilder builder, MonsterT _o) {
     if (_o == null) return default(Offset<MyGame.Example.Monster>);
@@ -790,6 +832,10 @@ public struct Monster : IFlatbufferObject
       for (var _j = 0; _j < __scalar_key_sorted_tables.Length; ++_j) { __scalar_key_sorted_tables[_j] = MyGame.Example.Stat.Pack(builder, _o.ScalarKeySortedTables[_j]); }
       _scalar_key_sorted_tables = CreateScalarKeySortedTablesVector(builder, __scalar_key_sorted_tables);
     }
+    var _value_member_type = _o.ValueMember == null ? MyGame.Example.Value.NONE : _o.ValueMember.Type;
+    var _value_member = _o.ValueMember == null ? 0 : MyGame.Example.ValueUnion.Pack(builder, _o.ValueMember);
+    var _value_type = _o.Value == null ? MyGame.Example.Any.NONE : _o.Value.Type;
+    var _value = _o.Value == null ? 0 : MyGame.Example.AnyUnion.Pack(builder, _o.Value);
     return CreateMonster(
       builder,
       _o.Pos,
@@ -852,7 +898,11 @@ public struct Monster : IFlatbufferObject
       _o.PositiveInfinityDefault,
       _o.NegativeInfDefault,
       _o.NegativeInfinityDefault,
-      _o.DoubleInfDefault);
+      _o.DoubleInfDefault,
+      _value_member_type,
+      _value_member,
+      _value_type,
+      _value);
   }
 }
 
@@ -1021,6 +1071,32 @@ public class MonsterT
   public float NegativeInfinityDefault { get; set; }
   [Newtonsoft.Json.JsonProperty("double_inf_default")]
   public double DoubleInfDefault { get; set; }
+  [Newtonsoft.Json.JsonProperty("value_member_type")]
+  private MyGame.Example.Value ValueMemberType {
+    get {
+      return this.ValueMember != null ? this.ValueMember.Type : MyGame.Example.Value.NONE;
+    }
+    set {
+      this.ValueMember = new MyGame.Example.ValueUnion();
+      this.ValueMember.Type = value;
+    }
+  }
+  [Newtonsoft.Json.JsonProperty("value_member")]
+  [Newtonsoft.Json.JsonConverter(typeof(MyGame.Example.ValueUnion_JsonConverter))]
+  public MyGame.Example.ValueUnion ValueMember { get; set; }
+  [Newtonsoft.Json.JsonProperty("value_type")]
+  private MyGame.Example.Any ValueType {
+    get {
+      return this.Value != null ? this.Value.Type : MyGame.Example.Any.NONE;
+    }
+    set {
+      this.Value = new MyGame.Example.AnyUnion();
+      this.Value.Type = value;
+    }
+  }
+  [Newtonsoft.Json.JsonProperty("value")]
+  [Newtonsoft.Json.JsonConverter(typeof(MyGame.Example.AnyUnion_JsonConverter))]
+  public MyGame.Example.AnyUnion Value { get; set; }
 
   public MonsterT() {
     this.Pos = new MyGame.Example.Vec3T();
@@ -1081,6 +1157,8 @@ public class MonsterT
     this.NegativeInfDefault = Single.NegativeInfinity;
     this.NegativeInfinityDefault = Single.NegativeInfinity;
     this.DoubleInfDefault = Double.PositiveInfinity;
+    this.ValueMember = null;
+    this.Value = null;
   }
 
   public static MonsterT DeserializeFromJson(string jsonText) {

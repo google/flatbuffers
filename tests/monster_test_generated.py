@@ -86,6 +86,19 @@ def AnyAmbiguousAliasesCreator(unionType, table):
     return None
 
 
+class Value(object):
+    NONE = 0
+    Monster = 1
+
+def ValueCreator(unionType, table):
+    from flatbuffers.table import Table
+    if not isinstance(table, Table):
+        return None
+    if unionType == Value().Monster:
+        return MonsterT.InitFromBuf(table.Bytes, table.Pos)
+    return None
+
+
 class InParentNamespace(object):
     __slots__ = ['_tab']
 
@@ -1671,7 +1684,41 @@ class Monster(object):
             return self._tab.Get(flatbuffers.number_types.Float64Flags, o + self._tab.Pos)
         return float('inf')
 
-def MonsterStart(builder): builder.StartObject(62)
+    # Monster
+    def ValueMemberType(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(128))
+        if o != 0:
+            return self._tab.Get(flatbuffers.number_types.Uint8Flags, o + self._tab.Pos)
+        return 0
+
+    # Monster
+    def ValueMember(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(130))
+        if o != 0:
+            from flatbuffers.table import Table
+            obj = Table(bytearray(), 0)
+            self._tab.Union(obj, o)
+            return obj
+        return None
+
+    # Monster
+    def ValueType(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(132))
+        if o != 0:
+            return self._tab.Get(flatbuffers.number_types.Uint8Flags, o + self._tab.Pos)
+        return 0
+
+    # Monster
+    def Value(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(134))
+        if o != 0:
+            from flatbuffers.table import Table
+            obj = Table(bytearray(), 0)
+            self._tab.Union(obj, o)
+            return obj
+        return None
+
+def MonsterStart(builder): builder.StartObject(66)
 def MonsterAddPos(builder, pos): builder.PrependStructSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(pos), 0)
 def MonsterAddMana(builder, mana): builder.PrependInt16Slot(1, mana, 150)
 def MonsterAddHp(builder, hp): builder.PrependInt16Slot(2, hp, 100)
@@ -1763,6 +1810,10 @@ def MonsterAddPositiveInfinityDefault(builder, positiveInfinityDefault): builder
 def MonsterAddNegativeInfDefault(builder, negativeInfDefault): builder.PrependFloat32Slot(59, negativeInfDefault, float('-inf'))
 def MonsterAddNegativeInfinityDefault(builder, negativeInfinityDefault): builder.PrependFloat32Slot(60, negativeInfinityDefault, float('-inf'))
 def MonsterAddDoubleInfDefault(builder, doubleInfDefault): builder.PrependFloat64Slot(61, doubleInfDefault, float('inf'))
+def MonsterAddValueMemberType(builder, valueMemberType): builder.PrependUint8Slot(62, valueMemberType, 0)
+def MonsterAddValueMember(builder, valueMember): builder.PrependUOffsetTRelativeSlot(63, flatbuffers.number_types.UOffsetTFlags.py_type(valueMember), 0)
+def MonsterAddValueType(builder, valueType): builder.PrependUint8Slot(64, valueType, 0)
+def MonsterAddValue(builder, value): builder.PrependUOffsetTRelativeSlot(65, flatbuffers.number_types.UOffsetTFlags.py_type(value), 0)
 def MonsterEnd(builder): return builder.EndObject()
 
 try:
@@ -1835,6 +1886,10 @@ class MonsterT(object):
         self.negativeInfDefault = float('-inf')  # type: float
         self.negativeInfinityDefault = float('-inf')  # type: float
         self.doubleInfDefault = float('inf')  # type: float
+        self.valueMemberType = 0  # type: int
+        self.valueMember = None  # type: Union[None, MonsterT]
+        self.valueType = 0  # type: int
+        self.value = None  # type: Union[None, MonsterT, TestSimpleTableWithEnumT, MonsterT]
 
     @classmethod
     def InitFromBuf(cls, buf, pos):
@@ -2044,6 +2099,10 @@ class MonsterT(object):
         self.negativeInfDefault = monster.NegativeInfDefault()
         self.negativeInfinityDefault = monster.NegativeInfinityDefault()
         self.doubleInfDefault = monster.DoubleInfDefault()
+        self.valueMemberType = monster.ValueMemberType()
+        self.valueMember = ValueCreator(self.valueMemberType, monster.ValueMember())
+        self.valueType = monster.ValueType()
+        self.value = AnyCreator(self.valueType, monster.Value())
 
     # MonsterT
     def Pack(self, builder):
@@ -2212,6 +2271,10 @@ class MonsterT(object):
             for i in reversed(range(len(self.scalarKeySortedTables))):
                 builder.PrependUOffsetTRelative(scalarKeySortedTableslist[i])
             scalarKeySortedTables = builder.EndVector()
+        if self.valueMember is not None:
+            valueMember = self.valueMember.Pack(builder)
+        if self.value is not None:
+            value = self.value.Pack(builder)
         MonsterStart(builder)
         if self.pos is not None:
             pos = self.pos.Pack(builder)
@@ -2305,6 +2368,12 @@ class MonsterT(object):
         MonsterAddNegativeInfDefault(builder, self.negativeInfDefault)
         MonsterAddNegativeInfinityDefault(builder, self.negativeInfinityDefault)
         MonsterAddDoubleInfDefault(builder, self.doubleInfDefault)
+        MonsterAddValueMemberType(builder, self.valueMemberType)
+        if self.valueMember is not None:
+            MonsterAddValueMember(builder, valueMember)
+        MonsterAddValueType(builder, self.valueType)
+        if self.value is not None:
+            MonsterAddValue(builder, value)
         monster = MonsterEnd(builder)
         return monster
 

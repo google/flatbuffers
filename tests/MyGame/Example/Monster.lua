@@ -767,8 +767,42 @@ function mt:DoubleInfDefault()
   return inf
 end
 
+function mt:ValueMemberType()
+  local o = self.view:Offset(128)
+  if o ~= 0 then
+    return self.view:Get(flatbuffers.N.Uint8, self.view.pos + o)
+  end
+  return 0
+end
+
+function mt:ValueMember()
+  local o = self.view:Offset(130)
+  if o ~= 0 then
+   local obj = flatbuffers.view.New(flatbuffers.binaryArray.New(0), 0)
+    self.view:Union(obj, o)
+    return obj
+  end
+end
+
+function mt:ValueType()
+  local o = self.view:Offset(132)
+  if o ~= 0 then
+    return self.view:Get(flatbuffers.N.Uint8, self.view.pos + o)
+  end
+  return 0
+end
+
+function mt:Value()
+  local o = self.view:Offset(134)
+  if o ~= 0 then
+   local obj = flatbuffers.view.New(flatbuffers.binaryArray.New(0), 0)
+    self.view:Union(obj, o)
+    return obj
+  end
+end
+
 function Monster.Start(builder)
-  builder:StartObject(62)
+  builder:StartObject(66)
 end
 
 function Monster.AddPos(builder, pos)
@@ -1093,6 +1127,22 @@ end
 
 function Monster.AddDoubleInfDefault(builder, doubleInfDefault)
   builder:PrependFloat64Slot(61, doubleInfDefault, inf)
+end
+
+function Monster.AddValueMemberType(builder, valueMemberType)
+  builder:PrependUint8Slot(62, valueMemberType, 0)
+end
+
+function Monster.AddValueMember(builder, valueMember)
+  builder:PrependUOffsetTRelativeSlot(63, valueMember, 0)
+end
+
+function Monster.AddValueType(builder, valueType)
+  builder:PrependUint8Slot(64, valueType, 0)
+end
+
+function Monster.AddValue(builder, value)
+  builder:PrependUOffsetTRelativeSlot(65, value, 0)
 end
 
 function Monster.End(builder)

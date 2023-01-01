@@ -16,6 +16,8 @@ pub mod my_game {
     pub use self::any_unique_aliases_generated::*;
     mod any_ambiguous_aliases_generated;
     pub use self::any_ambiguous_aliases_generated::*;
+    mod value_generated;
+    pub use self::value_generated::*;
     mod test_generated;
     pub use self::test_generated::*;
     mod test_simple_table_with_enum_generated;

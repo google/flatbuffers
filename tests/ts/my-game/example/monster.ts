@@ -13,6 +13,7 @@ import { Referrable, ReferrableT } from '../../my-game/example/referrable.js';
 import { Stat, StatT } from '../../my-game/example/stat.js';
 import { Test, TestT } from '../../my-game/example/test.js';
 import { TestSimpleTableWithEnum, TestSimpleTableWithEnumT } from '../../my-game/example/test-simple-table-with-enum.js';
+import { Value, unionToValue, unionListToValue } from '../../my-game/example/value.js';
 import { Vec3, Vec3T } from '../../my-game/example/vec3.js';
 import { InParentNamespace, InParentNamespaceT } from '../../my-game/in-parent-namespace.js';
 
@@ -811,12 +812,32 @@ mutate_double_inf_default(value:number):boolean {
   return true;
 }
 
+valueMemberType():Value {
+  const offset = this.bb!.__offset(this.bb_pos, 128);
+  return offset ? this.bb!.readUint8(this.bb_pos + offset) : Value.NONE;
+}
+
+valueMember<T extends flatbuffers.Table>(obj:any):any|null {
+  const offset = this.bb!.__offset(this.bb_pos, 130);
+  return offset ? this.bb!.__union(obj, this.bb_pos + offset) : null;
+}
+
+valueType():Any {
+  const offset = this.bb!.__offset(this.bb_pos, 132);
+  return offset ? this.bb!.readUint8(this.bb_pos + offset) : Any.NONE;
+}
+
+value<T extends flatbuffers.Table>(obj:any):any|null {
+  const offset = this.bb!.__offset(this.bb_pos, 134);
+  return offset ? this.bb!.__union(obj, this.bb_pos + offset) : null;
+}
+
 static getFullyQualifiedName():string {
   return 'MyGame.Example.Monster';
 }
 
 static startMonster(builder:flatbuffers.Builder) {
-  builder.startObject(62);
+  builder.startObject(66);
 }
 
 static addPos(builder:flatbuffers.Builder, posOffset:flatbuffers.Offset) {
@@ -1284,6 +1305,22 @@ static addDoubleInfDefault(builder:flatbuffers.Builder, doubleInfDefault:number)
   builder.addFieldFloat64(61, doubleInfDefault, Infinity);
 }
 
+static addValueMemberType(builder:flatbuffers.Builder, valueMemberType:Value) {
+  builder.addFieldInt8(62, valueMemberType, Value.NONE);
+}
+
+static addValueMember(builder:flatbuffers.Builder, valueMemberOffset:flatbuffers.Offset) {
+  builder.addFieldOffset(63, valueMemberOffset, 0);
+}
+
+static addValueType(builder:flatbuffers.Builder, valueType:Any) {
+  builder.addFieldInt8(64, valueType, Any.NONE);
+}
+
+static addValue(builder:flatbuffers.Builder, valueOffset:flatbuffers.Offset) {
+  builder.addFieldOffset(65, valueOffset, 0);
+}
+
 static endMonster(builder:flatbuffers.Builder):flatbuffers.Offset {
   const offset = builder.endObject();
   builder.requiredField(offset, 10) // name
@@ -1381,7 +1418,19 @@ unpack(): MonsterT {
     this.positiveInfinityDefault(),
     this.negativeInfDefault(),
     this.negativeInfinityDefault(),
-    this.doubleInfDefault()
+    this.doubleInfDefault(),
+    this.valueMemberType(),
+    (() => {
+      const temp = unionToValue(this.valueMemberType(), this.valueMember.bind(this));
+      if(temp === null) { return null; }
+      return temp.unpack()
+  })(),
+    this.valueType(),
+    (() => {
+      const temp = unionToAny(this.valueType(), this.value.bind(this));
+      if(temp === null) { return null; }
+      return temp.unpack()
+  })()
   );
 }
 
@@ -1460,6 +1509,18 @@ unpackTo(_o: MonsterT): void {
   _o.negativeInfDefault = this.negativeInfDefault();
   _o.negativeInfinityDefault = this.negativeInfinityDefault();
   _o.doubleInfDefault = this.doubleInfDefault();
+  _o.valueMemberType = this.valueMemberType();
+  _o.valueMember = (() => {
+      const temp = unionToValue(this.valueMemberType(), this.valueMember.bind(this));
+      if(temp === null) { return null; }
+      return temp.unpack()
+  })();
+  _o.valueType = this.valueType();
+  _o.value = (() => {
+      const temp = unionToAny(this.valueType(), this.value.bind(this));
+      if(temp === null) { return null; }
+      return temp.unpack()
+  })();
 }
 }
 
@@ -1525,7 +1586,11 @@ constructor(
   public positiveInfinityDefault: number = Infinity,
   public negativeInfDefault: number = -Infinity,
   public negativeInfinityDefault: number = -Infinity,
-  public doubleInfDefault: number = Infinity
+  public doubleInfDefault: number = Infinity,
+  public valueMemberType: Value = Value.NONE,
+  public valueMember: MonsterT|null = null,
+  public valueType: Any = Any.NONE,
+  public value: MonsterT|MyGame_Example2_MonsterT|TestSimpleTableWithEnumT|null = null
 ){}
 
 
@@ -1557,6 +1622,8 @@ pack(builder:flatbuffers.Builder): flatbuffers.Offset {
   const vectorOfEnums = Monster.createVectorOfEnumsVector(builder, this.vectorOfEnums);
   const testrequirednestedflatbuffer = Monster.createTestrequirednestedflatbufferVector(builder, this.testrequirednestedflatbuffer);
   const scalarKeySortedTables = Monster.createScalarKeySortedTablesVector(builder, builder.createObjectOffsetList(this.scalarKeySortedTables));
+  const valueMember = builder.createObjectOffset(this.valueMember);
+  const value = builder.createObjectOffset(this.value);
 
   Monster.startMonster(builder);
   Monster.addPos(builder, (this.pos !== null ? this.pos!.pack(builder) : 0));
@@ -1620,6 +1687,10 @@ pack(builder:flatbuffers.Builder): flatbuffers.Offset {
   Monster.addNegativeInfDefault(builder, this.negativeInfDefault);
   Monster.addNegativeInfinityDefault(builder, this.negativeInfinityDefault);
   Monster.addDoubleInfDefault(builder, this.doubleInfDefault);
+  Monster.addValueMemberType(builder, this.valueMemberType);
+  Monster.addValueMember(builder, valueMember);
+  Monster.addValueType(builder, this.valueType);
+  Monster.addValue(builder, value);
 
   return Monster.endMonster(builder);
 }

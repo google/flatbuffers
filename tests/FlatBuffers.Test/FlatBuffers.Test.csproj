@@ -10,7 +10,7 @@
     <AssemblyName>FlatBuffers.Test</AssemblyName>
     <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
     <RuntimeIdentifier>win</RuntimeIdentifier>
-    <LangVersion>4</LangVersion>
+    <LangVersion>7.3</LangVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
@@ -90,6 +90,9 @@
     <Compile Include="..\MyGame\Example\Race.cs">
       <Link>MyGame\Example\Race.cs</Link>
     </Compile>
+    <Compile Include="..\MyGame\Example\LongEnum.cs">
+      <Link>MyGame\Example\LongEnum.cs</Link>
+    </Compile>
     <Compile Include="..\MyGame\Example\Monster.cs">
       <Link>MyGame\Example\Monster.cs</Link>
     </Compile>
@@ -125,6 +128,9 @@
     </Compile>
     <Compile Include="..\MyGame\Example\TestEnum.cs">
       <Link>MyGame\Example\TestEnum.cs</Link>
+    </Compile>
+    <Compile Include="..\MyGame\Example\Value.cs">
+      <Link>MyGame\Example\Value.cs</Link>
     </Compile>
     <Compile Include="..\MyGame\InParentNamespace.cs">
       <Link>MyGame\InParentNamespace.cs</Link>

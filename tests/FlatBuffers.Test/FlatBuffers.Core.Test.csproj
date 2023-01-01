@@ -109,6 +109,9 @@
     <Compile Include="..\MyGame\Example\TestEnum.cs">
       <Link>MyGame\Example\TestEnum.cs</Link>
     </Compile>
+    <Compile Include="..\MyGame\Example\Value.cs">
+      <Link>MyGame\Example\Value.cs</Link>
+    </Compile>
     <Compile Include="..\MyGame\InParentNamespace.cs">
       <Link>MyGame\InParentNamespace.cs</Link>
     </Compile>

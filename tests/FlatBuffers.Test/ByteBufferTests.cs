@@ -19,6 +19,16 @@ using System.Runtime.InteropServices;
 
 namespace Google.FlatBuffers.Test
 {
+    public static class ArraySegmentExtensions
+    {
+        public static T[] ToArray<T>(this ArraySegment<T> segment)
+        {
+          T[] array = new T[segment.Count];
+          Array.Copy(segment.Array, segment.Offset, array, 0, segment.Count);
+          return array;
+        }
+    }
+
     [FlatBuffersTestClass]
     public class ByteBufferTests
     {
@@ -409,7 +419,7 @@ namespace Google.FlatBuffers.Test
             Assert.ArrayEqual(data, bbArray);
         }
 
-        public void ByteBuffer_Put_ArraySegment_Helper<T>(ArraySegment<T> data, int typeSize)
+    public void ByteBuffer_Put_ArraySegment_Helper<T>(ArraySegment<T> data, int typeSize)
             where T : struct
         {
             // Create the Byte Buffer

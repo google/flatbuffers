@@ -215,6 +215,8 @@ fn object_api_defaults() {
             negative_inf_default: f32::NEG_INFINITY,
             negative_infinity_default: f32::NEG_INFINITY,
             double_inf_default: f64::INFINITY,
+            value_member: ValueT::NONE,
+            value: AnyT::NONE,
         }
     );
 }
@@ -1787,7 +1789,9 @@ mod write_and_read_examples {
             long_enum_normal_default: LongOne, nan_default: NaN, inf_default: \
             inf, positive_inf_default: inf, infinity_default: inf, \
             positive_infinity_default: inf, negative_inf_default: -inf, \
-            negative_infinity_default: -inf, double_inf_default: inf }, \
+            negative_infinity_default: -inf, double_inf_default: inf, \
+            value_member_type: NONE, value_member: None, \
+            value_type: NONE, value: None }, \
             test4: Some([Test { a: 10, b: 20 }, Test { a: 30, b: 40 }]), \
             testarrayofstring: Some([\"test1\", \"test2\"]), \
             testarrayoftables: None, enemy: None, testnestedflatbuffer: None, \
@@ -1810,7 +1814,9 @@ mod write_and_read_examples {
             long_enum_normal_default: LongOne, nan_default: NaN, inf_default: \
             inf, positive_inf_default: inf, infinity_default: inf, \
             positive_infinity_default: inf, negative_inf_default: -inf, \
-            negative_infinity_default: -inf, double_inf_default: inf }"
+            negative_infinity_default: -inf, double_inf_default: inf, \
+            value_member_type: NONE, value_member: None, \
+            value_type: NONE, value: None }"
         );
     }
 

@@ -305,6 +305,50 @@ class _AnyAmbiguousAliasesTypeIdReader extends fb.Reader<AnyAmbiguousAliasesType
       AnyAmbiguousAliasesTypeId.fromValue(const fb.Uint8Reader().read(bc, offset));
 }
 
+class ValueTypeId {
+  final int value;
+  const ValueTypeId._(this.value);
+
+  factory ValueTypeId.fromValue(int value) {
+    final result = values[value];
+    if (result == null) {
+        throw StateError('Invalid value $value for bit flag enum ValueTypeId');
+    }
+    return result;
+  }
+
+  static ValueTypeId? _createOrNull(int? value) => 
+      value == null ? null : ValueTypeId.fromValue(value);
+
+  static const int minValue = 0;
+  static const int maxValue = 1;
+  static bool containsValue(int value) => values.containsKey(value);
+
+  static const ValueTypeId NONE = ValueTypeId._(0);
+  static const ValueTypeId Monster = ValueTypeId._(1);
+  static const Map<int, ValueTypeId> values = {
+    0: NONE,
+    1: Monster};
+
+  static const fb.Reader<ValueTypeId> reader = _ValueTypeIdReader();
+
+  @override
+  String toString() {
+    return 'ValueTypeId{value: $value}';
+  }
+}
+
+class _ValueTypeIdReader extends fb.Reader<ValueTypeId> {
+  const _ValueTypeIdReader();
+
+  @override
+  int get size => 1;
+
+  @override
+  ValueTypeId read(fb.BufferContext bc, int offset) =>
+      ValueTypeId.fromValue(const fb.Uint8Reader().read(bc, offset));
+}
+
 class Test {
   Test._(this._bc, this._bcOffset);
 
@@ -1268,10 +1312,26 @@ class Monster {
   double get negativeInfDefault => const fb.Float32Reader().vTableGet(_bc, _bcOffset, 122, double.negativeInfinity);
   double get negativeInfinityDefault => const fb.Float32Reader().vTableGet(_bc, _bcOffset, 124, double.negativeInfinity);
   double get doubleInfDefault => const fb.Float64Reader().vTableGet(_bc, _bcOffset, 126, double.infinity);
+  ValueTypeId? get valueMemberType => ValueTypeId._createOrNull(const fb.Uint8Reader().vTableGetNullable(_bc, _bcOffset, 128));
+  dynamic get valueMember {
+    switch (valueMemberType?.value) {
+      case 1: return Monster.reader.vTableGetNullable(_bc, _bcOffset, 130);
+      default: return null;
+    }
+  }
+  AnyTypeId? get valueType => AnyTypeId._createOrNull(const fb.Uint8Reader().vTableGetNullable(_bc, _bcOffset, 132));
+  dynamic get value {
+    switch (valueType?.value) {
+      case 1: return Monster.reader.vTableGetNullable(_bc, _bcOffset, 134);
+      case 2: return TestSimpleTableWithEnum.reader.vTableGetNullable(_bc, _bcOffset, 134);
+      case 3: return my_game_example2.Monster.reader.vTableGetNullable(_bc, _bcOffset, 134);
+      default: return null;
+    }
+  }
 
   @override
   String toString() {
-    return 'Monster{pos: ${pos}, mana: ${mana}, hp: ${hp}, name: ${name}, inventory: ${inventory}, color: ${color}, testType: ${testType}, test: ${test}, test4: ${test4}, testarrayofstring: ${testarrayofstring}, testarrayoftables: ${testarrayoftables}, enemy: ${enemy}, testnestedflatbuffer: ${testnestedflatbuffer}, testempty: ${testempty}, testbool: ${testbool}, testhashs32Fnv1: ${testhashs32Fnv1}, testhashu32Fnv1: ${testhashu32Fnv1}, testhashs64Fnv1: ${testhashs64Fnv1}, testhashu64Fnv1: ${testhashu64Fnv1}, testhashs32Fnv1a: ${testhashs32Fnv1a}, testhashu32Fnv1a: ${testhashu32Fnv1a}, testhashs64Fnv1a: ${testhashs64Fnv1a}, testhashu64Fnv1a: ${testhashu64Fnv1a}, testarrayofbools: ${testarrayofbools}, testf: ${testf}, testf2: ${testf2}, testf3: ${testf3}, testarrayofstring2: ${testarrayofstring2}, testarrayofsortedstruct: ${testarrayofsortedstruct}, flex: ${flex}, test5: ${test5}, vectorOfLongs: ${vectorOfLongs}, vectorOfDoubles: ${vectorOfDoubles}, parentNamespaceTest: ${parentNamespaceTest}, vectorOfReferrables: ${vectorOfReferrables}, singleWeakReference: ${singleWeakReference}, vectorOfWeakReferences: ${vectorOfWeakReferences}, vectorOfStrongReferrables: ${vectorOfStrongReferrables}, coOwningReference: ${coOwningReference}, vectorOfCoOwningReferences: ${vectorOfCoOwningReferences}, nonOwningReference: ${nonOwningReference}, vectorOfNonOwningReferences: ${vectorOfNonOwningReferences}, anyUniqueType: ${anyUniqueType}, anyUnique: ${anyUnique}, anyAmbiguousType: ${anyAmbiguousType}, anyAmbiguous: ${anyAmbiguous}, vectorOfEnums: ${vectorOfEnums}, signedEnum: ${signedEnum}, testrequirednestedflatbuffer: ${testrequirednestedflatbuffer}, scalarKeySortedTables: ${scalarKeySortedTables}, nativeInline: ${nativeInline}, longEnumNonEnumDefault: ${longEnumNonEnumDefault}, longEnumNormalDefault: ${longEnumNormalDefault}, nanDefault: ${nanDefault}, infDefault: ${infDefault}, positiveInfDefault: ${positiveInfDefault}, infinityDefault: ${infinityDefault}, positiveInfinityDefault: ${positiveInfinityDefault}, negativeInfDefault: ${negativeInfDefault}, negativeInfinityDefault: ${negativeInfinityDefault}, doubleInfDefault: ${doubleInfDefault}}';
+    return 'Monster{pos: ${pos}, mana: ${mana}, hp: ${hp}, name: ${name}, inventory: ${inventory}, color: ${color}, testType: ${testType}, test: ${test}, test4: ${test4}, testarrayofstring: ${testarrayofstring}, testarrayoftables: ${testarrayoftables}, enemy: ${enemy}, testnestedflatbuffer: ${testnestedflatbuffer}, testempty: ${testempty}, testbool: ${testbool}, testhashs32Fnv1: ${testhashs32Fnv1}, testhashu32Fnv1: ${testhashu32Fnv1}, testhashs64Fnv1: ${testhashs64Fnv1}, testhashu64Fnv1: ${testhashu64Fnv1}, testhashs32Fnv1a: ${testhashs32Fnv1a}, testhashu32Fnv1a: ${testhashu32Fnv1a}, testhashs64Fnv1a: ${testhashs64Fnv1a}, testhashu64Fnv1a: ${testhashu64Fnv1a}, testarrayofbools: ${testarrayofbools}, testf: ${testf}, testf2: ${testf2}, testf3: ${testf3}, testarrayofstring2: ${testarrayofstring2}, testarrayofsortedstruct: ${testarrayofsortedstruct}, flex: ${flex}, test5: ${test5}, vectorOfLongs: ${vectorOfLongs}, vectorOfDoubles: ${vectorOfDoubles}, parentNamespaceTest: ${parentNamespaceTest}, vectorOfReferrables: ${vectorOfReferrables}, singleWeakReference: ${singleWeakReference}, vectorOfWeakReferences: ${vectorOfWeakReferences}, vectorOfStrongReferrables: ${vectorOfStrongReferrables}, coOwningReference: ${coOwningReference}, vectorOfCoOwningReferences: ${vectorOfCoOwningReferences}, nonOwningReference: ${nonOwningReference}, vectorOfNonOwningReferences: ${vectorOfNonOwningReferences}, anyUniqueType: ${anyUniqueType}, anyUnique: ${anyUnique}, anyAmbiguousType: ${anyAmbiguousType}, anyAmbiguous: ${anyAmbiguous}, vectorOfEnums: ${vectorOfEnums}, signedEnum: ${signedEnum}, testrequirednestedflatbuffer: ${testrequirednestedflatbuffer}, scalarKeySortedTables: ${scalarKeySortedTables}, nativeInline: ${nativeInline}, longEnumNonEnumDefault: ${longEnumNonEnumDefault}, longEnumNormalDefault: ${longEnumNormalDefault}, nanDefault: ${nanDefault}, infDefault: ${infDefault}, positiveInfDefault: ${positiveInfDefault}, infinityDefault: ${infinityDefault}, positiveInfinityDefault: ${positiveInfinityDefault}, negativeInfDefault: ${negativeInfDefault}, negativeInfinityDefault: ${negativeInfinityDefault}, doubleInfDefault: ${doubleInfDefault}, valueMemberType: ${valueMemberType}, valueMember: ${valueMember}, valueType: ${valueType}, value: ${value}}';
   }
 
   MonsterT unpack() => MonsterT(
@@ -1335,7 +1395,11 @@ class Monster {
       positiveInfinityDefault: positiveInfinityDefault,
       negativeInfDefault: negativeInfDefault,
       negativeInfinityDefault: negativeInfinityDefault,
-      doubleInfDefault: doubleInfDefault);
+      doubleInfDefault: doubleInfDefault,
+      valueMemberType: valueMemberType,
+      valueMember: valueMember,
+      valueType: valueType,
+      value: value);
 
   static int pack(fb.Builder fbBuilder, MonsterT? object) {
     if (object == null) return 0;
@@ -1408,6 +1472,10 @@ class MonsterT implements fb.Packable {
   double negativeInfDefault;
   double negativeInfinityDefault;
   double doubleInfDefault;
+  ValueTypeId? valueMemberType;
+  dynamic valueMember;
+  AnyTypeId? valueType;
+  dynamic value;
 
   MonsterT({
       this.pos,
@@ -1470,7 +1538,11 @@ class MonsterT implements fb.Packable {
       this.positiveInfinityDefault = double.infinity,
       this.negativeInfDefault = double.negativeInfinity,
       this.negativeInfinityDefault = double.negativeInfinity,
-      this.doubleInfDefault = double.infinity});
+      this.doubleInfDefault = double.infinity,
+      this.valueMemberType,
+      this.valueMember,
+      this.valueType,
+      this.value});
 
   @override
   int pack(fb.Builder fbBuilder) {
@@ -1531,7 +1603,9 @@ class MonsterT implements fb.Packable {
         : fbBuilder.writeListUint8(testrequirednestedflatbuffer!);
     final int? scalarKeySortedTablesOffset = scalarKeySortedTables == null ? null
         : fbBuilder.writeList(scalarKeySortedTables!.map((b) => b.pack(fbBuilder)).toList());
-    fbBuilder.startTable(62);
+    final int? valueMemberOffset = valueMember?.pack(fbBuilder);
+    final int? valueOffset = value?.pack(fbBuilder);
+    fbBuilder.startTable(66);
     if (pos != null) {
       fbBuilder.addStruct(0, pos!.pack(fbBuilder));
     }
@@ -1597,12 +1671,16 @@ class MonsterT implements fb.Packable {
     fbBuilder.addFloat32(59, negativeInfDefault);
     fbBuilder.addFloat32(60, negativeInfinityDefault);
     fbBuilder.addFloat64(61, doubleInfDefault);
+    fbBuilder.addUint8(62, valueMemberType?.value);
+    fbBuilder.addOffset(63, valueMemberOffset);
+    fbBuilder.addUint8(64, valueType?.value);
+    fbBuilder.addOffset(65, valueOffset);
     return fbBuilder.endTable();
   }
 
   @override
   String toString() {
-    return 'MonsterT{pos: ${pos}, mana: ${mana}, hp: ${hp}, name: ${name}, inventory: ${inventory}, color: ${color}, testType: ${testType}, test: ${test}, test4: ${test4}, testarrayofstring: ${testarrayofstring}, testarrayoftables: ${testarrayoftables}, enemy: ${enemy}, testnestedflatbuffer: ${testnestedflatbuffer}, testempty: ${testempty}, testbool: ${testbool}, testhashs32Fnv1: ${testhashs32Fnv1}, testhashu32Fnv1: ${testhashu32Fnv1}, testhashs64Fnv1: ${testhashs64Fnv1}, testhashu64Fnv1: ${testhashu64Fnv1}, testhashs32Fnv1a: ${testhashs32Fnv1a}, testhashu32Fnv1a: ${testhashu32Fnv1a}, testhashs64Fnv1a: ${testhashs64Fnv1a}, testhashu64Fnv1a: ${testhashu64Fnv1a}, testarrayofbools: ${testarrayofbools}, testf: ${testf}, testf2: ${testf2}, testf3: ${testf3}, testarrayofstring2: ${testarrayofstring2}, testarrayofsortedstruct: ${testarrayofsortedstruct}, flex: ${flex}, test5: ${test5}, vectorOfLongs: ${vectorOfLongs}, vectorOfDoubles: ${vectorOfDoubles}, parentNamespaceTest: ${parentNamespaceTest}, vectorOfReferrables: ${vectorOfReferrables}, singleWeakReference: ${singleWeakReference}, vectorOfWeakReferences: ${vectorOfWeakReferences}, vectorOfStrongReferrables: ${vectorOfStrongReferrables}, coOwningReference: ${coOwningReference}, vectorOfCoOwningReferences: ${vectorOfCoOwningReferences}, nonOwningReference: ${nonOwningReference}, vectorOfNonOwningReferences: ${vectorOfNonOwningReferences}, anyUniqueType: ${anyUniqueType}, anyUnique: ${anyUnique}, anyAmbiguousType: ${anyAmbiguousType}, anyAmbiguous: ${anyAmbiguous}, vectorOfEnums: ${vectorOfEnums}, signedEnum: ${signedEnum}, testrequirednestedflatbuffer: ${testrequirednestedflatbuffer}, scalarKeySortedTables: ${scalarKeySortedTables}, nativeInline: ${nativeInline}, longEnumNonEnumDefault: ${longEnumNonEnumDefault}, longEnumNormalDefault: ${longEnumNormalDefault}, nanDefault: ${nanDefault}, infDefault: ${infDefault}, positiveInfDefault: ${positiveInfDefault}, infinityDefault: ${infinityDefault}, positiveInfinityDefault: ${positiveInfinityDefault}, negativeInfDefault: ${negativeInfDefault}, negativeInfinityDefault: ${negativeInfinityDefault}, doubleInfDefault: ${doubleInfDefault}}';
+    return 'MonsterT{pos: ${pos}, mana: ${mana}, hp: ${hp}, name: ${name}, inventory: ${inventory}, color: ${color}, testType: ${testType}, test: ${test}, test4: ${test4}, testarrayofstring: ${testarrayofstring}, testarrayoftables: ${testarrayoftables}, enemy: ${enemy}, testnestedflatbuffer: ${testnestedflatbuffer}, testempty: ${testempty}, testbool: ${testbool}, testhashs32Fnv1: ${testhashs32Fnv1}, testhashu32Fnv1: ${testhashu32Fnv1}, testhashs64Fnv1: ${testhashs64Fnv1}, testhashu64Fnv1: ${testhashu64Fnv1}, testhashs32Fnv1a: ${testhashs32Fnv1a}, testhashu32Fnv1a: ${testhashu32Fnv1a}, testhashs64Fnv1a: ${testhashs64Fnv1a}, testhashu64Fnv1a: ${testhashu64Fnv1a}, testarrayofbools: ${testarrayofbools}, testf: ${testf}, testf2: ${testf2}, testf3: ${testf3}, testarrayofstring2: ${testarrayofstring2}, testarrayofsortedstruct: ${testarrayofsortedstruct}, flex: ${flex}, test5: ${test5}, vectorOfLongs: ${vectorOfLongs}, vectorOfDoubles: ${vectorOfDoubles}, parentNamespaceTest: ${parentNamespaceTest}, vectorOfReferrables: ${vectorOfReferrables}, singleWeakReference: ${singleWeakReference}, vectorOfWeakReferences: ${vectorOfWeakReferences}, vectorOfStrongReferrables: ${vectorOfStrongReferrables}, coOwningReference: ${coOwningReference}, vectorOfCoOwningReferences: ${vectorOfCoOwningReferences}, nonOwningReference: ${nonOwningReference}, vectorOfNonOwningReferences: ${vectorOfNonOwningReferences}, anyUniqueType: ${anyUniqueType}, anyUnique: ${anyUnique}, anyAmbiguousType: ${anyAmbiguousType}, anyAmbiguous: ${anyAmbiguous}, vectorOfEnums: ${vectorOfEnums}, signedEnum: ${signedEnum}, testrequirednestedflatbuffer: ${testrequirednestedflatbuffer}, scalarKeySortedTables: ${scalarKeySortedTables}, nativeInline: ${nativeInline}, longEnumNonEnumDefault: ${longEnumNonEnumDefault}, longEnumNormalDefault: ${longEnumNormalDefault}, nanDefault: ${nanDefault}, infDefault: ${infDefault}, positiveInfDefault: ${positiveInfDefault}, infinityDefault: ${infinityDefault}, positiveInfinityDefault: ${positiveInfinityDefault}, negativeInfDefault: ${negativeInfDefault}, negativeInfinityDefault: ${negativeInfinityDefault}, doubleInfDefault: ${doubleInfDefault}, valueMemberType: ${valueMemberType}, valueMember: ${valueMember}, valueType: ${valueType}, value: ${value}}';
   }
 }
 
@@ -1620,7 +1698,7 @@ class MonsterBuilder {
   final fb.Builder fbBuilder;
 
   void begin() {
-    fbBuilder.startTable(62);
+    fbBuilder.startTable(66);
   }
 
   int addPos(int offset) {
@@ -1867,6 +1945,22 @@ class MonsterBuilder {
     fbBuilder.addFloat64(61, doubleInfDefault);
     return fbBuilder.offset;
   }
+  int addValueMemberType(ValueTypeId? valueMemberType) {
+    fbBuilder.addUint8(62, valueMemberType?.value);
+    return fbBuilder.offset;
+  }
+  int addValueMemberOffset(int? offset) {
+    fbBuilder.addOffset(63, offset);
+    return fbBuilder.offset;
+  }
+  int addValueType(AnyTypeId? valueType) {
+    fbBuilder.addUint8(64, valueType?.value);
+    return fbBuilder.offset;
+  }
+  int addValueOffset(int? offset) {
+    fbBuilder.addOffset(65, offset);
+    return fbBuilder.offset;
+  }
 
   int finish() {
     return fbBuilder.endTable();
@@ -1935,6 +2029,10 @@ class MonsterObjectBuilder extends fb.ObjectBuilder {
   final double? _negativeInfDefault;
   final double? _negativeInfinityDefault;
   final double? _doubleInfDefault;
+  final ValueTypeId? _valueMemberType;
+  final dynamic _valueMember;
+  final AnyTypeId? _valueType;
+  final dynamic _value;
 
   MonsterObjectBuilder({
     Vec3ObjectBuilder? pos,
@@ -1998,6 +2096,10 @@ class MonsterObjectBuilder extends fb.ObjectBuilder {
     double? negativeInfDefault,
     double? negativeInfinityDefault,
     double? doubleInfDefault,
+    ValueTypeId? valueMemberType,
+    dynamic valueMember,
+    AnyTypeId? valueType,
+    dynamic value,
   })
       : _pos = pos,
         _mana = mana,
@@ -2059,7 +2161,11 @@ class MonsterObjectBuilder extends fb.ObjectBuilder {
         _positiveInfinityDefault = positiveInfinityDefault,
         _negativeInfDefault = negativeInfDefault,
         _negativeInfinityDefault = negativeInfinityDefault,
-        _doubleInfDefault = doubleInfDefault;
+        _doubleInfDefault = doubleInfDefault,
+        _valueMemberType = valueMemberType,
+        _valueMember = valueMember,
+        _valueType = valueType,
+        _value = value;
 
   /// Finish building, and store into the [fbBuilder].
   @override
@@ -2112,7 +2218,9 @@ class MonsterObjectBuilder extends fb.ObjectBuilder {
         : fbBuilder.writeListUint8(_testrequirednestedflatbuffer!);
     final int? scalarKeySortedTablesOffset = _scalarKeySortedTables == null ? null
         : fbBuilder.writeList(_scalarKeySortedTables!.map((b) => b.getOrCreateOffset(fbBuilder)).toList());
-    fbBuilder.startTable(62);
+    final int? valueMemberOffset = _valueMember?.getOrCreateOffset(fbBuilder);
+    final int? valueOffset = _value?.getOrCreateOffset(fbBuilder);
+    fbBuilder.startTable(66);
     if (_pos != null) {
       fbBuilder.addStruct(0, _pos!.finish(fbBuilder));
     }
@@ -2178,6 +2286,10 @@ class MonsterObjectBuilder extends fb.ObjectBuilder {
     fbBuilder.addFloat32(59, _negativeInfDefault);
     fbBuilder.addFloat32(60, _negativeInfinityDefault);
     fbBuilder.addFloat64(61, _doubleInfDefault);
+    fbBuilder.addUint8(62, _valueMemberType?.value);
+    fbBuilder.addOffset(63, valueMemberOffset);
+    fbBuilder.addUint8(64, _valueType?.value);
+    fbBuilder.addOffset(65, valueOffset);
     return fbBuilder.endTable();
   }
 

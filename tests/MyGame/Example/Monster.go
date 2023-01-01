@@ -70,6 +70,8 @@ type MonsterT struct {
 	NegativeInfDefault float32 `json:"negative_inf_default"`
 	NegativeInfinityDefault float32 `json:"negative_infinity_default"`
 	DoubleInfDefault float64 `json:"double_inf_default"`
+	ValueMember *ValueT `json:"value_member"`
+	Value *AnyT `json:"value"`
 }
 
 func (t *MonsterT) Pack(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
@@ -271,6 +273,10 @@ func (t *MonsterT) Pack(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
 		}
 		scalarKeySortedTablesOffset = builder.EndVector(scalarKeySortedTablesLength)
 	}
+	valueMemberOffset := t.ValueMember.Pack(builder)
+	
+	valueOffset := t.Value.Pack(builder)
+	
 	MonsterStart(builder)
 	posOffset := t.Pos.Pack(builder)
 	MonsterAddPos(builder, posOffset)
@@ -341,6 +347,14 @@ func (t *MonsterT) Pack(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
 	MonsterAddNegativeInfDefault(builder, t.NegativeInfDefault)
 	MonsterAddNegativeInfinityDefault(builder, t.NegativeInfinityDefault)
 	MonsterAddDoubleInfDefault(builder, t.DoubleInfDefault)
+	if t.ValueMember != nil {
+		MonsterAddValueMemberType(builder, t.ValueMember.Type)
+	}
+	MonsterAddValueMember(builder, valueMemberOffset)
+	if t.Value != nil {
+		MonsterAddValueType(builder, t.Value.Type)
+	}
+	MonsterAddValue(builder, valueOffset)
 	return MonsterEnd(builder)
 }
 
@@ -490,6 +504,14 @@ func (rcv *Monster) UnPackTo(t *MonsterT) {
 	t.NegativeInfDefault = rcv.NegativeInfDefault()
 	t.NegativeInfinityDefault = rcv.NegativeInfinityDefault()
 	t.DoubleInfDefault = rcv.DoubleInfDefault()
+	valueMemberTable := flatbuffers.Table{}
+	if rcv.ValueMember(&valueMemberTable) {
+		t.ValueMember = rcv.ValueMemberType().UnPack(valueMemberTable)
+	}
+	valueTable := flatbuffers.Table{}
+	if rcv.Value(&valueTable) {
+		t.Value = rcv.ValueType().UnPack(valueTable)
+	}
 }
 
 func (rcv *Monster) UnPack() *MonsterT {
@@ -1579,8 +1601,50 @@ func (rcv *Monster) MutateDoubleInfDefault(n float64) bool {
 	return rcv._tab.MutateFloat64Slot(126, n)
 }
 
+func (rcv *Monster) ValueMemberType() Value {
+	o := flatbuffers.UOffsetT(rcv._tab.Offset(128))
+	if o != 0 {
+		return Value(rcv._tab.GetByte(o + rcv._tab.Pos))
+	}
+	return 0
+}
+
+func (rcv *Monster) MutateValueMemberType(n Value) bool {
+	return rcv._tab.MutateByteSlot(128, byte(n))
+}
+
+func (rcv *Monster) ValueMember(obj *flatbuffers.Table) bool {
+	o := flatbuffers.UOffsetT(rcv._tab.Offset(130))
+	if o != 0 {
+		rcv._tab.Union(obj, o)
+		return true
+	}
+	return false
+}
+
+func (rcv *Monster) ValueType() Any {
+	o := flatbuffers.UOffsetT(rcv._tab.Offset(132))
+	if o != 0 {
+		return Any(rcv._tab.GetByte(o + rcv._tab.Pos))
+	}
+	return 0
+}
+
+func (rcv *Monster) MutateValueType(n Any) bool {
+	return rcv._tab.MutateByteSlot(132, byte(n))
+}
+
+func (rcv *Monster) Value(obj *flatbuffers.Table) bool {
+	o := flatbuffers.UOffsetT(rcv._tab.Offset(134))
+	if o != 0 {
+		rcv._tab.Union(obj, o)
+		return true
+	}
+	return false
+}
+
 func MonsterStart(builder *flatbuffers.Builder) {
-	builder.StartObject(62)
+	builder.StartObject(66)
 }
 func MonsterAddPos(builder *flatbuffers.Builder, pos flatbuffers.UOffsetT) {
 	builder.PrependStructSlot(0, flatbuffers.UOffsetT(pos), 0)
@@ -1824,6 +1888,18 @@ func MonsterAddNegativeInfinityDefault(builder *flatbuffers.Builder, negativeInf
 }
 func MonsterAddDoubleInfDefault(builder *flatbuffers.Builder, doubleInfDefault float64) {
 	builder.PrependFloat64Slot(61, doubleInfDefault, float64(math.Inf(1)))
+}
+func MonsterAddValueMemberType(builder *flatbuffers.Builder, valueMemberType Value) {
+	builder.PrependByteSlot(62, byte(valueMemberType), 0)
+}
+func MonsterAddValueMember(builder *flatbuffers.Builder, valueMember flatbuffers.UOffsetT) {
+	builder.PrependUOffsetTSlot(63, flatbuffers.UOffsetT(valueMember), 0)
+}
+func MonsterAddValueType(builder *flatbuffers.Builder, valueType Any) {
+	builder.PrependByteSlot(64, byte(valueType), 0)
+}
+func MonsterAddValue(builder *flatbuffers.Builder, value flatbuffers.UOffsetT) {
+	builder.PrependUOffsetTSlot(65, flatbuffers.UOffsetT(value), 0)
 }
 func MonsterEnd(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
 	return builder.EndObject()

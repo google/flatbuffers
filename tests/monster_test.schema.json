@@ -29,6 +29,10 @@
       "type" : "string",
       "enum": ["NONE", "M1", "M2", "M3"]
     },
+    "MyGame_Example_Value" : {
+      "type" : "string",
+      "enum": ["NONE", "Monster"]
+    },
     "MyGame_OtherNameSpace_Unused" : {
       "type" : "object",
       "properties" : {
@@ -364,6 +368,18 @@
               },
         "double_inf_default" : {
                 "type" : "number"
+              },
+        "value_member_type" : {
+                "$ref" : "#/definitions/MyGame_Example_Value"
+              },
+        "value_member" : {
+                "anyOf": [{ "$ref" : "#/definitions/MyGame_Example_Monster" }]
+              },
+        "value_type" : {
+                "$ref" : "#/definitions/MyGame_Example_Any"
+              },
+        "value" : {
+                "anyOf": [{ "$ref" : "#/definitions/MyGame_Example_Monster" },{ "$ref" : "#/definitions/MyGame_Example_TestSimpleTableWithEnum" },{ "$ref" : "#/definitions/MyGame_Example2_Monster" }]
               }
       },
       "required" : ["name"],

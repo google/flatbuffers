@@ -44,6 +44,8 @@ union Any { Monster, TestSimpleTableWithEnum, MyGame.Example2.Monster }
 union AnyUniqueAliases { M: Monster, TS: TestSimpleTableWithEnum, M2: MyGame.Example2.Monster }
 union AnyAmbiguousAliases { M1: Monster, M2: Monster, M3: Monster }
 
+union Value { Monster }
+
 struct Test { a:short; b:byte; }
 
 table TestSimpleTableWithEnum (csharp_partial, private) {
@@ -150,6 +152,8 @@ table Monster {
   negative_inf_default:float = -inf (id: 59);
   negative_infinity_default:float = -infinity (id: 60);
   double_inf_default:double = inf (id: 61);
+  value_member:Value (id: 63);
+  value:Any (id: 65);
 }
 
 table TypeAliases {

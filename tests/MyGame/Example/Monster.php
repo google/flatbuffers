@@ -827,21 +827,57 @@ class Monster extends Table
     }
 
     /**
+     * @return byte
+     */
+    public function getValueMemberType()
+    {
+        $o = $this->__offset(128);
+        return $o != 0 ? $this->bb->getByte($o + $this->bb_pos) : \MyGame\Example\Value::NONE;
+    }
+
+    /**
+     * @returnint
+     */
+    public function getValueMember($obj)
+    {
+        $o = $this->__offset(130);
+        return $o != 0 ? $this->__union($obj, $o) : null;
+    }
+
+    /**
+     * @return byte
+     */
+    public function getValueType()
+    {
+        $o = $this->__offset(132);
+        return $o != 0 ? $this->bb->getByte($o + $this->bb_pos) : \MyGame\Example\Any::NONE;
+    }
+
+    /**
+     * @returnint
+     */
+    public function getValue($obj)
+    {
+        $o = $this->__offset(134);
+        return $o != 0 ? $this->__union($obj, $o) : null;
+    }
+
+    /**
      * @param FlatBufferBuilder $builder
      * @return void
      */
     public static function startMonster(FlatBufferBuilder $builder)
     {
-        $builder->StartObject(62);
+        $builder->StartObject(66);
     }
 
     /**
      * @param FlatBufferBuilder $builder
      * @return Monster
      */
-    public static function createMonster(FlatBufferBuilder $builder, $pos, $mana, $hp, $name, $inventory, $color, $test_type, $test, $test4, $testarrayofstring, $testarrayoftables, $enemy, $testnestedflatbuffer, $testempty, $testbool, $testhashs32_fnv1, $testhashu32_fnv1, $testhashs64_fnv1, $testhashu64_fnv1, $testhashs32_fnv1a, $testhashu32_fnv1a, $testhashs64_fnv1a, $testhashu64_fnv1a, $testarrayofbools, $testf, $testf2, $testf3, $testarrayofstring2, $testarrayofsortedstruct, $flex, $test5, $vector_of_longs, $vector_of_doubles, $parent_namespace_test, $vector_of_referrables, $single_weak_reference, $vector_of_weak_references, $vector_of_strong_referrables, $co_owning_reference, $vector_of_co_owning_references, $non_owning_reference, $vector_of_non_owning_references, $any_unique_type, $any_unique, $any_ambiguous_type, $any_ambiguous, $vector_of_enums, $signed_enum, $testrequirednestedflatbuffer, $scalar_key_sorted_tables, $native_inline, $long_enum_non_enum_default, $long_enum_normal_default, $nan_default, $inf_default, $positive_inf_default, $infinity_default, $positive_infinity_default, $negative_inf_default, $negative_infinity_default, $double_inf_default)
+    public static function createMonster(FlatBufferBuilder $builder, $pos, $mana, $hp, $name, $inventory, $color, $test_type, $test, $test4, $testarrayofstring, $testarrayoftables, $enemy, $testnestedflatbuffer, $testempty, $testbool, $testhashs32_fnv1, $testhashu32_fnv1, $testhashs64_fnv1, $testhashu64_fnv1, $testhashs32_fnv1a, $testhashu32_fnv1a, $testhashs64_fnv1a, $testhashu64_fnv1a, $testarrayofbools, $testf, $testf2, $testf3, $testarrayofstring2, $testarrayofsortedstruct, $flex, $test5, $vector_of_longs, $vector_of_doubles, $parent_namespace_test, $vector_of_referrables, $single_weak_reference, $vector_of_weak_references, $vector_of_strong_referrables, $co_owning_reference, $vector_of_co_owning_references, $non_owning_reference, $vector_of_non_owning_references, $any_unique_type, $any_unique, $any_ambiguous_type, $any_ambiguous, $vector_of_enums, $signed_enum, $testrequirednestedflatbuffer, $scalar_key_sorted_tables, $native_inline, $long_enum_non_enum_default, $long_enum_normal_default, $nan_default, $inf_default, $positive_inf_default, $infinity_default, $positive_infinity_default, $negative_inf_default, $negative_infinity_default, $double_inf_default, $value_member_type, $value_member, $value_type, $value)
     {
-        $builder->startObject(62);
+        $builder->startObject(66);
         self::addPos($builder, $pos);
         self::addMana($builder, $mana);
         self::addHp($builder, $hp);
@@ -903,6 +939,10 @@ class Monster extends Table
         self::addNegativeInfDefault($builder, $negative_inf_default);
         self::addNegativeInfinityDefault($builder, $negative_infinity_default);
         self::addDoubleInfDefault($builder, $double_inf_default);
+        self::addValueMemberType($builder, $value_member_type);
+        self::addValueMember($builder, $value_member);
+        self::addValueType($builder, $value_type);
+        self::addValue($builder, $value);
         $o = $builder->endObject();
         $builder->required($o, 10);  // name
         return $o;
@@ -1981,6 +2021,36 @@ class Monster extends Table
     public static function addDoubleInfDefault(FlatBufferBuilder $builder, $doubleInfDefault)
     {
         $builder->addDoubleX(61, $doubleInfDefault, inf);
+    }
+
+    /**
+     * @param FlatBufferBuilder $builder
+     * @param byte
+     * @return void
+     */
+    public static function addValueMemberType(FlatBufferBuilder $builder, $valueMemberType)
+    {
+        $builder->addByteX(62, $valueMemberType, 0);
+    }
+
+    public static function addValueMember(FlatBufferBuilder $builder, $offset)
+    {
+        $builder->addOffsetX(63, $offset, 0);
+    }
+
+    /**
+     * @param FlatBufferBuilder $builder
+     * @param byte
+     * @return void
+     */
+    public static function addValueType(FlatBufferBuilder $builder, $valueType)
+    {
+        $builder->addByteX(64, $valueType, 0);
+    }
+
+    public static function addValue(FlatBufferBuilder $builder, $offset)
+    {
+        $builder->addOffsetX(65, $offset, 0);
     }
 
     /**

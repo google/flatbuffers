@@ -87,6 +87,10 @@ impl<'a> Monster<'a> {
   pub const VT_NEGATIVE_INF_DEFAULT: flatbuffers::VOffsetT = 122;
   pub const VT_NEGATIVE_INFINITY_DEFAULT: flatbuffers::VOffsetT = 124;
   pub const VT_DOUBLE_INF_DEFAULT: flatbuffers::VOffsetT = 126;
+  pub const VT_VALUE_MEMBER_TYPE: flatbuffers::VOffsetT = 128;
+  pub const VT_VALUE_MEMBER: flatbuffers::VOffsetT = 130;
+  pub const VT_VALUE_TYPE: flatbuffers::VOffsetT = 132;
+  pub const VT_VALUE: flatbuffers::VOffsetT = 134;
 
   pub const fn get_fully_qualified_name() -> &'static str {
     "MyGame.Example.Monster"
@@ -112,6 +116,8 @@ impl<'a> Monster<'a> {
     builder.add_testhashs64_fnv1a(args.testhashs64_fnv1a);
     builder.add_testhashu64_fnv1(args.testhashu64_fnv1);
     builder.add_testhashs64_fnv1(args.testhashs64_fnv1);
+    if let Some(x) = args.value { builder.add_value(x); }
+    if let Some(x) = args.value_member { builder.add_value_member(x); }
     builder.add_negative_infinity_default(args.negative_infinity_default);
     builder.add_negative_inf_default(args.negative_inf_default);
     builder.add_positive_infinity_default(args.positive_infinity_default);
@@ -157,6 +163,8 @@ impl<'a> Monster<'a> {
     if let Some(x) = args.pos { builder.add_pos(x); }
     builder.add_hp(args.hp);
     builder.add_mana(args.mana);
+    builder.add_value_type(args.value_type);
+    builder.add_value_member_type(args.value_member_type);
     builder.add_signed_enum(args.signed_enum);
     builder.add_any_ambiguous_type(args.any_ambiguous_type);
     builder.add_any_unique_type(args.any_unique_type);
@@ -332,6 +340,34 @@ impl<'a> Monster<'a> {
     let negative_inf_default = self.negative_inf_default();
     let negative_infinity_default = self.negative_infinity_default();
     let double_inf_default = self.double_inf_default();
+    let value_member = match self.value_member_type() {
+      Value::NONE => ValueT::NONE,
+      Value::Monster => ValueT::Monster(Box::new(
+        self.value_member_as_monster()
+            .expect("Invalid union table, expected `Value::Monster`.")
+            .unpack()
+      )),
+      _ => ValueT::NONE,
+    };
+    let value = match self.value_type() {
+      Any::NONE => AnyT::NONE,
+      Any::Monster => AnyT::Monster(Box::new(
+        self.value_as_monster()
+            .expect("Invalid union table, expected `Any::Monster`.")
+            .unpack()
+      )),
+      Any::TestSimpleTableWithEnum => AnyT::TestSimpleTableWithEnum(Box::new(
+        self.value_as_test_simple_table_with_enum()
+            .expect("Invalid union table, expected `Any::TestSimpleTableWithEnum`.")
+            .unpack()
+      )),
+      Any::MyGame_Example2_Monster => AnyT::MyGameExample2Monster(Box::new(
+        self.value_as_my_game_example_2_monster()
+            .expect("Invalid union table, expected `Any::MyGame_Example2_Monster`.")
+            .unpack()
+      )),
+      _ => AnyT::NONE,
+    };
     MonsterT {
       pos,
       mana,
@@ -391,6 +427,8 @@ impl<'a> Monster<'a> {
       negative_inf_default,
       negative_infinity_default,
       double_inf_default,
+      value_member,
+      value,
     }
   }
 
@@ -852,6 +890,34 @@ impl<'a> Monster<'a> {
     unsafe { self._tab.get::<f64>(Monster::VT_DOUBLE_INF_DEFAULT, Some(f64::INFINITY)).unwrap()}
   }
   #[inline]
+  pub fn value_member_type(&self) -> Value {
+    // Safety:
+    // Created from valid Table for this object
+    // which contains a valid value in this slot
+    unsafe { self._tab.get::<Value>(Monster::VT_VALUE_MEMBER_TYPE, Some(Value::NONE)).unwrap()}
+  }
+  #[inline]
+  pub fn value_member(&self) -> Option<flatbuffers::Table<'a>> {
+    // Safety:
+    // Created from valid Table for this object
+    // which contains a valid value in this slot
+    unsafe { self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Table<'a>>>(Monster::VT_VALUE_MEMBER, None)}
+  }
+  #[inline]
+  pub fn value_type(&self) -> Any {
+    // Safety:
+    // Created from valid Table for this object
+    // which contains a valid value in this slot
+    unsafe { self._tab.get::<Any>(Monster::VT_VALUE_TYPE, Some(Any::NONE)).unwrap()}
+  }
+  #[inline]
+  pub fn value(&self) -> Option<flatbuffers::Table<'a>> {
+    // Safety:
+    // Created from valid Table for this object
+    // which contains a valid value in this slot
+    unsafe { self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Table<'a>>>(Monster::VT_VALUE, None)}
+  }
+  #[inline]
   #[allow(non_snake_case)]
   pub fn test_as_monster(&self) -> Option<Monster<'a>> {
     if self.test_type() == Any::Monster {
@@ -986,6 +1052,66 @@ impl<'a> Monster<'a> {
     }
   }
 
+  #[inline]
+  #[allow(non_snake_case)]
+  pub fn value_member_as_monster(&self) -> Option<Monster<'a>> {
+    if self.value_member_type() == Value::Monster {
+      self.value_member().map(|t| {
+       // Safety:
+       // Created from a valid Table for this object
+       // Which contains a valid union in this slot
+       unsafe { Monster::init_from_table(t) }
+     })
+    } else {
+      None
+    }
+  }
+
+  #[inline]
+  #[allow(non_snake_case)]
+  pub fn value_as_monster(&self) -> Option<Monster<'a>> {
+    if self.value_type() == Any::Monster {
+      self.value().map(|t| {
+       // Safety:
+       // Created from a valid Table for this object
+       // Which contains a valid union in this slot
+       unsafe { Monster::init_from_table(t) }
+     })
+    } else {
+      None
+    }
+  }
+
+  #[inline]
+  #[allow(non_snake_case)]
+  pub fn value_as_test_simple_table_with_enum(&self) -> Option<TestSimpleTableWithEnum<'a>> {
+    if self.value_type() == Any::TestSimpleTableWithEnum {
+      self.value().map(|t| {
+       // Safety:
+       // Created from a valid Table for this object
+       // Which contains a valid union in this slot
+       unsafe { TestSimpleTableWithEnum::init_from_table(t) }
+     })
+    } else {
+      None
+    }
+  }
+
+  #[inline]
+  #[allow(non_snake_case)]
+  pub fn value_as_my_game_example_2_monster(&self) -> Option<super::example_2::Monster<'a>> {
+    if self.value_type() == Any::MyGame_Example2_Monster {
+      self.value().map(|t| {
+       // Safety:
+       // Created from a valid Table for this object
+       // Which contains a valid union in this slot
+       unsafe { super::example_2::Monster::init_from_table(t) }
+     })
+    } else {
+      None
+    }
+  }
+
 }
 
 impl flatbuffers::Verifiable for Monster<'_> {
@@ -1074,6 +1200,20 @@ impl flatbuffers::Verifiable for Monster<'_> {
      .visit_field::<f32>("negative_inf_default", Self::VT_NEGATIVE_INF_DEFAULT, false)?
      .visit_field::<f32>("negative_infinity_default", Self::VT_NEGATIVE_INFINITY_DEFAULT, false)?
      .visit_field::<f64>("double_inf_default", Self::VT_DOUBLE_INF_DEFAULT, false)?
+     .visit_union::<Value, _>("value_member_type", Self::VT_VALUE_MEMBER_TYPE, "value_member", Self::VT_VALUE_MEMBER, false, |key, v, pos| {
+        match key {
+          Value::Monster => v.verify_union_variant::<flatbuffers::ForwardsUOffset<Monster>>("Value::Monster", pos),
+          _ => Ok(()),
+        }
+     })?
+     .visit_union::<Any, _>("value_type", Self::VT_VALUE_TYPE, "value", Self::VT_VALUE, false, |key, v, pos| {
+        match key {
+          Any::Monster => v.verify_union_variant::<flatbuffers::ForwardsUOffset<Monster>>("Any::Monster", pos),
+          Any::TestSimpleTableWithEnum => v.verify_union_variant::<flatbuffers::ForwardsUOffset<TestSimpleTableWithEnum>>("Any::TestSimpleTableWithEnum", pos),
+          Any::MyGame_Example2_Monster => v.verify_union_variant::<flatbuffers::ForwardsUOffset<super::example_2::Monster>>("Any::MyGame_Example2_Monster", pos),
+          _ => Ok(()),
+        }
+     })?
      .finish();
     Ok(())
   }
@@ -1140,6 +1280,10 @@ pub struct MonsterArgs<'a> {
     pub negative_inf_default: f32,
     pub negative_infinity_default: f32,
     pub double_inf_default: f64,
+    pub value_member_type: Value,
+    pub value_member: Option<flatbuffers::WIPOffset<flatbuffers::UnionWIPOffset>>,
+    pub value_type: Any,
+    pub value: Option<flatbuffers::WIPOffset<flatbuffers::UnionWIPOffset>>,
 }
 impl<'a> Default for MonsterArgs<'a> {
   #[inline]
@@ -1206,6 +1350,10 @@ impl<'a> Default for MonsterArgs<'a> {
       negative_inf_default: f32::NEG_INFINITY,
       negative_infinity_default: f32::NEG_INFINITY,
       double_inf_default: f64::INFINITY,
+      value_member_type: Value::NONE,
+      value_member: None,
+      value_type: Any::NONE,
+      value: None,
     }
   }
 }
@@ -1460,6 +1608,22 @@ impl<'a: 'b, 'b> MonsterBuilder<'a, 'b> {
     self.fbb_.push_slot::<f64>(Monster::VT_DOUBLE_INF_DEFAULT, double_inf_default, f64::INFINITY);
   }
   #[inline]
+  pub fn add_value_member_type(&mut self, value_member_type: Value) {
+    self.fbb_.push_slot::<Value>(Monster::VT_VALUE_MEMBER_TYPE, value_member_type, Value::NONE);
+  }
+  #[inline]
+  pub fn add_value_member(&mut self, value_member: flatbuffers::WIPOffset<flatbuffers::UnionWIPOffset>) {
+    self.fbb_.push_slot_always::<flatbuffers::WIPOffset<_>>(Monster::VT_VALUE_MEMBER, value_member);
+  }
+  #[inline]
+  pub fn add_value_type(&mut self, value_type: Any) {
+    self.fbb_.push_slot::<Any>(Monster::VT_VALUE_TYPE, value_type, Any::NONE);
+  }
+  #[inline]
+  pub fn add_value(&mut self, value: flatbuffers::WIPOffset<flatbuffers::UnionWIPOffset>) {
+    self.fbb_.push_slot_always::<flatbuffers::WIPOffset<_>>(Monster::VT_VALUE, value);
+  }
+  #[inline]
   pub fn new(_fbb: &'b mut flatbuffers::FlatBufferBuilder<'a>) -> MonsterBuilder<'a, 'b> {
     let start = _fbb.start_table();
     MonsterBuilder {
@@ -1617,6 +1781,48 @@ impl core::fmt::Debug for Monster<'_> {
       ds.field("negative_inf_default", &self.negative_inf_default());
       ds.field("negative_infinity_default", &self.negative_infinity_default());
       ds.field("double_inf_default", &self.double_inf_default());
+      ds.field("value_member_type", &self.value_member_type());
+      match self.value_member_type() {
+        Value::Monster => {
+          if let Some(x) = self.value_member_as_monster() {
+            ds.field("value_member", &x)
+          } else {
+            ds.field("value_member", &"InvalidFlatbuffer: Union discriminant does not match value.")
+          }
+        },
+        _ => {
+          let x: Option<()> = None;
+          ds.field("value_member", &x)
+        },
+      };
+      ds.field("value_type", &self.value_type());
+      match self.value_type() {
+        Any::Monster => {
+          if let Some(x) = self.value_as_monster() {
+            ds.field("value", &x)
+          } else {
+            ds.field("value", &"InvalidFlatbuffer: Union discriminant does not match value.")
+          }
+        },
+        Any::TestSimpleTableWithEnum => {
+          if let Some(x) = self.value_as_test_simple_table_with_enum() {
+            ds.field("value", &x)
+          } else {
+            ds.field("value", &"InvalidFlatbuffer: Union discriminant does not match value.")
+          }
+        },
+        Any::MyGame_Example2_Monster => {
+          if let Some(x) = self.value_as_my_game_example_2_monster() {
+            ds.field("value", &x)
+          } else {
+            ds.field("value", &"InvalidFlatbuffer: Union discriminant does not match value.")
+          }
+        },
+        _ => {
+          let x: Option<()> = None;
+          ds.field("value", &x)
+        },
+      };
       ds.finish()
   }
 }
@@ -1681,6 +1887,8 @@ pub struct MonsterT {
   pub negative_inf_default: f32,
   pub negative_infinity_default: f32,
   pub double_inf_default: f64,
+  pub value_member: ValueT,
+  pub value: AnyT,
 }
 impl Default for MonsterT {
   fn default() -> Self {
@@ -1743,6 +1951,8 @@ impl Default for MonsterT {
       negative_inf_default: f32::NEG_INFINITY,
       negative_infinity_default: f32::NEG_INFINITY,
       double_inf_default: f64::INFINITY,
+      value_member: ValueT::NONE,
+      value: AnyT::NONE,
     }
   }
 }
@@ -1863,6 +2073,10 @@ impl MonsterT {
     let negative_inf_default = self.negative_inf_default;
     let negative_infinity_default = self.negative_infinity_default;
     let double_inf_default = self.double_inf_default;
+    let value_member_type = self.value_member.value_type();
+    let value_member = self.value_member.pack(_fbb);
+    let value_type = self.value.any_type();
+    let value = self.value.pack(_fbb);
     Monster::create(_fbb, &MonsterArgs{
       pos,
       mana,
@@ -1925,6 +2139,10 @@ impl MonsterT {
       negative_inf_default,
       negative_infinity_default,
       double_inf_default,
+      value_member_type,
+      value_member,
+      value_type,
+      value,
     })
   }
 }

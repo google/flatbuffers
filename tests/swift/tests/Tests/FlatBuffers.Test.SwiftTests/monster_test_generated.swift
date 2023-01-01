@@ -235,6 +235,48 @@ public struct MyGame_Example_AnyAmbiguousAliasesUnion {
     }
   }
 }
+public enum MyGame_Example_Value: UInt8, UnionEnum {
+  public typealias T = UInt8
+
+  public init?(value: T) {
+    self.init(rawValue: value)
+  }
+
+  public static var byteSize: Int { return MemoryLayout<UInt8>.size }
+  public var value: UInt8 { return self.rawValue }
+  case none_ = 0
+  case monster = 1
+
+  public static var max: MyGame_Example_Value { return .monster }
+  public static var min: MyGame_Example_Value { return .none_ }
+}
+
+extension MyGame_Example_Value: Encodable {
+  public func encode(to encoder: Encoder) throws {
+    var container = encoder.singleValueContainer()
+    switch self {
+    case .none_: try container.encode("NONE")
+    case .monster: try container.encode("Monster")
+    }
+  }
+}
+
+public struct MyGame_Example_ValueUnion {
+  public var type: MyGame_Example_Value
+  public var value: NativeObject?
+  public init(_ v: NativeObject?, type: MyGame_Example_Value) {
+    self.type = type
+    self.value = v
+  }
+  public func pack(builder: inout FlatBufferBuilder) -> Offset {
+    switch type {
+    case .monster:
+      var __obj = value as? MyGame_Example_MonsterT
+      return MyGame_Example_Monster.pack(&builder, obj: &__obj)
+    default: return Offset()
+    }
+  }
+}
 public struct MyGame_Example_Test: NativeStruct, Verifiable, FlatbuffersInitializable, NativeObject {
 
   static func validateVersion() { FlatBuffersVersion_22_12_06() }
@@ -1192,6 +1234,10 @@ public struct MyGame_Example_Monster: FlatBufferObject, Verifiable, ObjectAPIPac
     case negativeInfDefault = 122
     case negativeInfinityDefault = 124
     case doubleInfDefault = 126
+    case valueMemberType = 128
+    case valueMember = 130
+    case valueType = 132
+    case value = 134
     var v: Int32 { Int32(self.rawValue) }
     var p: VOffset { self.rawValue }
   }
@@ -1358,7 +1404,11 @@ public struct MyGame_Example_Monster: FlatBufferObject, Verifiable, ObjectAPIPac
   @discardableResult public func mutate(negativeInfinityDefault: Float32) -> Bool {let o = _accessor.offset(VTOFFSET.negativeInfinityDefault.v);  return _accessor.mutate(negativeInfinityDefault, index: o) }
   public var doubleInfDefault: Double { let o = _accessor.offset(VTOFFSET.doubleInfDefault.v); return o == 0 ? .infinity : _accessor.readBuffer(of: Double.self, at: o) }
   @discardableResult public func mutate(doubleInfDefault: Double) -> Bool {let o = _accessor.offset(VTOFFSET.doubleInfDefault.v);  return _accessor.mutate(doubleInfDefault, index: o) }
-  public static func startMonster(_ fbb: inout FlatBufferBuilder) -> UOffset { fbb.startTable(with: 62) }
+  public var valueMemberType: MyGame_Example_Value { let o = _accessor.offset(VTOFFSET.valueMemberType.v); return o == 0 ? .none_ : MyGame_Example_Value(rawValue: _accessor.readBuffer(of: UInt8.self, at: o)) ?? .none_ }
+  public func valueMember<T: FlatbuffersInitializable>(type: T.Type) -> T? { let o = _accessor.offset(VTOFFSET.valueMember.v); return o == 0 ? nil : _accessor.union(o) }
+  public var valueType: MyGame_Example_Any_ { let o = _accessor.offset(VTOFFSET.valueType.v); return o == 0 ? .none_ : MyGame_Example_Any_(rawValue: _accessor.readBuffer(of: UInt8.self, at: o)) ?? .none_ }
+  public func value<T: FlatbuffersInitializable>(type: T.Type) -> T? { let o = _accessor.offset(VTOFFSET.value.v); return o == 0 ? nil : _accessor.union(o) }
+  public static func startMonster(_ fbb: inout FlatBufferBuilder) -> UOffset { fbb.startTable(with: 66) }
   public static func add(pos: MyGame_Example_Vec3?, _ fbb: inout FlatBufferBuilder) { guard let pos = pos else { return }; fbb.create(struct: pos, position: VTOFFSET.pos.p) }
   public static func add(mana: Int16, _ fbb: inout FlatBufferBuilder) { fbb.add(element: mana, def: 150, at: VTOFFSET.mana.p) }
   public static func add(hp: Int16, _ fbb: inout FlatBufferBuilder) { fbb.add(element: hp, def: 100, at: VTOFFSET.hp.p) }
@@ -1430,6 +1480,10 @@ public struct MyGame_Example_Monster: FlatBufferObject, Verifiable, ObjectAPIPac
   public static func add(negativeInfDefault: Float32, _ fbb: inout FlatBufferBuilder) { fbb.add(element: negativeInfDefault, def: -.infinity, at: VTOFFSET.negativeInfDefault.p) }
   public static func add(negativeInfinityDefault: Float32, _ fbb: inout FlatBufferBuilder) { fbb.add(element: negativeInfinityDefault, def: -.infinity, at: VTOFFSET.negativeInfinityDefault.p) }
   public static func add(doubleInfDefault: Double, _ fbb: inout FlatBufferBuilder) { fbb.add(element: doubleInfDefault, def: .infinity, at: VTOFFSET.doubleInfDefault.p) }
+  public static func add(valueMemberType: MyGame_Example_Value, _ fbb: inout FlatBufferBuilder) { fbb.add(element: valueMemberType.rawValue, def: 0, at: VTOFFSET.valueMemberType.p) }
+  public static func add(valueMember: Offset, _ fbb: inout FlatBufferBuilder) { fbb.add(offset: valueMember, at: VTOFFSET.valueMember.p) }
+  public static func add(valueType: MyGame_Example_Any_, _ fbb: inout FlatBufferBuilder) { fbb.add(element: valueType.rawValue, def: 0, at: VTOFFSET.valueType.p) }
+  public static func add(value: Offset, _ fbb: inout FlatBufferBuilder) { fbb.add(offset: value, at: VTOFFSET.value.p) }
   public static func endMonster(_ fbb: inout FlatBufferBuilder, start: UOffset) -> Offset { let end = Offset(offset: fbb.endTable(at: start)); fbb.require(table: end, fields: [10]); return end }
   public static func createMonster(
     _ fbb: inout FlatBufferBuilder,
@@ -1493,7 +1547,11 @@ public struct MyGame_Example_Monster: FlatBufferObject, Verifiable, ObjectAPIPac
     positiveInfinityDefault: Float32 = .infinity,
     negativeInfDefault: Float32 = -.infinity,
     negativeInfinityDefault: Float32 = -.infinity,
-    doubleInfDefault: Double = .infinity
+    doubleInfDefault: Double = .infinity,
+    valueMemberType: MyGame_Example_Value = .none_,
+    valueMemberOffset valueMember: Offset = Offset(),
+    valueType: MyGame_Example_Any_ = .none_,
+    valueOffset value: Offset = Offset()
   ) -> Offset {
     let __start = MyGame_Example_Monster.startMonster(&fbb)
     MyGame_Example_Monster.add(pos: pos, &fbb)
@@ -1557,6 +1615,10 @@ public struct MyGame_Example_Monster: FlatBufferObject, Verifiable, ObjectAPIPac
     MyGame_Example_Monster.add(negativeInfDefault: negativeInfDefault, &fbb)
     MyGame_Example_Monster.add(negativeInfinityDefault: negativeInfinityDefault, &fbb)
     MyGame_Example_Monster.add(doubleInfDefault: doubleInfDefault, &fbb)
+    MyGame_Example_Monster.add(valueMemberType: valueMemberType, &fbb)
+    MyGame_Example_Monster.add(valueMember: valueMember, &fbb)
+    MyGame_Example_Monster.add(valueType: valueType, &fbb)
+    MyGame_Example_Monster.add(value: value, &fbb)
     return MyGame_Example_Monster.endMonster(&fbb, start: __start)
   }
   public static func sortVectorOfMonster(offsets:[Offset], _ fbb: inout FlatBufferBuilder) -> Offset {
@@ -1653,6 +1715,8 @@ public struct MyGame_Example_Monster: FlatBufferObject, Verifiable, ObjectAPIPac
       __scalarKeySortedTables__.append(MyGame_Example_Stat.pack(&builder, obj: &i))
     }
     let __scalarKeySortedTables = builder.createVector(ofOffsets: __scalarKeySortedTables__)
+    let __valueMember = obj.valueMember?.pack(builder: &builder) ?? Offset()
+    let __value = obj.value?.pack(builder: &builder) ?? Offset()
     let __root = MyGame_Example_Monster.startMonster(&builder)
     MyGame_Example_Monster.add(pos: obj.pos, &builder)
     MyGame_Example_Monster.add(mana: obj.mana, &builder)
@@ -1724,6 +1788,16 @@ public struct MyGame_Example_Monster: FlatBufferObject, Verifiable, ObjectAPIPac
     MyGame_Example_Monster.add(negativeInfDefault: obj.negativeInfDefault, &builder)
     MyGame_Example_Monster.add(negativeInfinityDefault: obj.negativeInfinityDefault, &builder)
     MyGame_Example_Monster.add(doubleInfDefault: obj.doubleInfDefault, &builder)
+    if let o = obj.valueMember?.type {
+      MyGame_Example_Monster.add(valueMemberType: o, &builder)
+      MyGame_Example_Monster.add(valueMember: __valueMember, &builder)
+    }
+
+    if let o = obj.value?.type {
+      MyGame_Example_Monster.add(valueType: o, &builder)
+      MyGame_Example_Monster.add(value: __value, &builder)
+    }
+
     return MyGame_Example_Monster.endMonster(&builder, start: __root)
   }
 
@@ -1820,6 +1894,26 @@ public struct MyGame_Example_Monster: FlatBufferObject, Verifiable, ObjectAPIPac
     try _v.visit(field: VTOFFSET.negativeInfDefault.p, fieldName: "negativeInfDefault", required: false, type: Float32.self)
     try _v.visit(field: VTOFFSET.negativeInfinityDefault.p, fieldName: "negativeInfinityDefault", required: false, type: Float32.self)
     try _v.visit(field: VTOFFSET.doubleInfDefault.p, fieldName: "doubleInfDefault", required: false, type: Double.self)
+    try _v.visit(unionKey: VTOFFSET.valueMemberType.p, unionField: VTOFFSET.valueMember.p, unionKeyName: "valueMemberType", fieldName: "valueMember", required: false, completion: { (verifier, key: MyGame_Example_Value, pos) in
+      switch key {
+      case .none_:
+        break // NOTE - SWIFT doesnt support none
+      case .monster:
+        try ForwardOffset<MyGame_Example_Monster>.verify(&verifier, at: pos, of: MyGame_Example_Monster.self)
+      }
+    })
+    try _v.visit(unionKey: VTOFFSET.valueType.p, unionField: VTOFFSET.value.p, unionKeyName: "valueType", fieldName: "value", required: false, completion: { (verifier, key: MyGame_Example_Any_, pos) in
+      switch key {
+      case .none_:
+        break // NOTE - SWIFT doesnt support none
+      case .monster:
+        try ForwardOffset<MyGame_Example_Monster>.verify(&verifier, at: pos, of: MyGame_Example_Monster.self)
+      case .testsimpletablewithenum:
+        try ForwardOffset<MyGame_Example_TestSimpleTableWithEnum>.verify(&verifier, at: pos, of: MyGame_Example_TestSimpleTableWithEnum.self)
+      case .mygameExample2Monster:
+        try ForwardOffset<MyGame_Example2_Monster>.verify(&verifier, at: pos, of: MyGame_Example2_Monster.self)
+      }
+    })
     _v.finish()
   }
 }
@@ -1888,6 +1982,10 @@ extension MyGame_Example_Monster: Encodable {
     case negativeInfDefault = "negative_inf_default"
     case negativeInfinityDefault = "negative_infinity_default"
     case doubleInfDefault = "double_inf_default"
+    case valueMemberType = "value_member_type"
+    case valueMember = "value_member"
+    case valueType = "value_type"
+    case value = "value"
   }
   public func encode(to encoder: Encoder) throws {
     var container = encoder.container(keyedBy: CodingKeys.self)
@@ -2129,6 +2227,30 @@ extension MyGame_Example_Monster: Encodable {
     if doubleInfDefault != .infinity {
       try container.encodeIfPresent(doubleInfDefault, forKey: .doubleInfDefault)
     }
+    if valueMemberType != .none_ {
+      try container.encodeIfPresent(valueMemberType, forKey: .valueMemberType)
+    }
+    switch valueMemberType {
+    case .monster:
+      let _v = valueMember(type: MyGame_Example_Monster.self)
+      try container.encodeIfPresent(_v, forKey: .valueMember)
+    default: break;
+    }
+    if valueType != .none_ {
+      try container.encodeIfPresent(valueType, forKey: .valueType)
+    }
+    switch valueType {
+    case .monster:
+      let _v = value(type: MyGame_Example_Monster.self)
+      try container.encodeIfPresent(_v, forKey: .value)
+    case .testsimpletablewithenum:
+      let _v = value(type: MyGame_Example_TestSimpleTableWithEnum.self)
+      try container.encodeIfPresent(_v, forKey: .value)
+    case .mygameExample2Monster:
+      let _v = value(type: MyGame_Example2_Monster.self)
+      try container.encodeIfPresent(_v, forKey: .value)
+    default: break;
+    }
   }
 }
 
@@ -2192,6 +2314,8 @@ public class MyGame_Example_MonsterT: NativeObject {
   public var negativeInfDefault: Float32
   public var negativeInfinityDefault: Float32
   public var doubleInfDefault: Double
+  public var valueMember: MyGame_Example_ValueUnion?
+  public var value: MyGame_Example_Any_Union?
 
   public init(_ _t: inout MyGame_Example_Monster) {
     pos = _t.pos
@@ -2352,6 +2476,24 @@ public class MyGame_Example_MonsterT: NativeObject {
     negativeInfDefault = _t.negativeInfDefault
     negativeInfinityDefault = _t.negativeInfinityDefault
     doubleInfDefault = _t.doubleInfDefault
+    switch _t.valueMemberType {
+    case .monster:
+      var _v = _t.valueMember(type: MyGame_Example_Monster.self)
+      valueMember = MyGame_Example_ValueUnion(_v?.unpack(), type: .monster)
+    default: break
+    }
+    switch _t.valueType {
+    case .monster:
+      var _v = _t.value(type: MyGame_Example_Monster.self)
+      value = MyGame_Example_Any_Union(_v?.unpack(), type: .monster)
+    case .testsimpletablewithenum:
+      var _v = _t.value(type: MyGame_Example_TestSimpleTableWithEnum.self)
+      value = MyGame_Example_Any_Union(_v?.unpack(), type: .testsimpletablewithenum)
+    case .mygameExample2Monster:
+      var _v = _t.value(type: MyGame_Example2_Monster.self)
+      value = MyGame_Example_Any_Union(_v?.unpack(), type: .mygameExample2Monster)
+    default: break
+    }
   }
 
   public init() {

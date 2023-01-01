@@ -656,6 +656,116 @@ inline bool operator!=(const AnyAmbiguousAliasesUnion &lhs, const AnyAmbiguousAl
 bool VerifyAnyAmbiguousAliases(flatbuffers::Verifier &verifier, const void *obj, AnyAmbiguousAliases type);
 bool VerifyAnyAmbiguousAliasesVector(flatbuffers::Verifier &verifier, const flatbuffers::Vector<flatbuffers::Offset<void>> *values, const flatbuffers::Vector<uint8_t> *types);
 
+enum Value : uint8_t {
+  Value_NONE = 0,
+  Value_Monster = 1,
+  Value_MIN = Value_NONE,
+  Value_MAX = Value_Monster
+};
+
+inline const Value (&EnumValuesValue())[2] {
+  static const Value values[] = {
+    Value_NONE,
+    Value_Monster
+  };
+  return values;
+}
+
+inline const char * const *EnumNamesValue() {
+  static const char * const names[3] = {
+    "NONE",
+    "Monster",
+    nullptr
+  };
+  return names;
+}
+
+inline const char *EnumNameValue(Value e) {
+  if (flatbuffers::IsOutRange(e, Value_NONE, Value_Monster)) return "";
+  const size_t index = static_cast<size_t>(e);
+  return EnumNamesValue()[index];
+}
+
+template<typename T> struct ValueTraits {
+  static const Value enum_value = Value_NONE;
+};
+
+template<> struct ValueTraits<MyGame::Example::Monster> {
+  static const Value enum_value = Value_Monster;
+};
+
+template<typename T> struct ValueUnionTraits {
+  static const Value enum_value = Value_NONE;
+};
+
+template<> struct ValueUnionTraits<MyGame::Example::MonsterT> {
+  static const Value enum_value = Value_Monster;
+};
+
+struct ValueUnion {
+  Value type;
+  void *value;
+
+  ValueUnion() : type(Value_NONE), value(nullptr) {}
+  ValueUnion(ValueUnion&& u) FLATBUFFERS_NOEXCEPT :
+    type(Value_NONE), value(nullptr)
+    { std::swap(type, u.type); std::swap(value, u.value); }
+  ValueUnion(const ValueUnion &);
+  ValueUnion &operator=(const ValueUnion &u)
+    { ValueUnion t(u); std::swap(type, t.type); std::swap(value, t.value); return *this; }
+  ValueUnion &operator=(ValueUnion &&u) FLATBUFFERS_NOEXCEPT
+    { std::swap(type, u.type); std::swap(value, u.value); return *this; }
+  ~ValueUnion() { Reset(); }
+
+  void Reset();
+
+  template <typename T>
+  void Set(T&& val) {
+    typedef typename std::remove_reference<T>::type RT;
+    Reset();
+    type = ValueUnionTraits<RT>::enum_value;
+    if (type != Value_NONE) {
+      value = new RT(std::forward<T>(val));
+    }
+  }
+
+  static void *UnPack(const void *obj, Value type, const flatbuffers::resolver_function_t *resolver);
+  flatbuffers::Offset<void> Pack(flatbuffers::FlatBufferBuilder &_fbb, const flatbuffers::rehasher_function_t *_rehasher = nullptr) const;
+
+  MyGame::Example::MonsterT *AsMonster() {
+    return type == Value_Monster ?
+      reinterpret_cast<MyGame::Example::MonsterT *>(value) : nullptr;
+  }
+  const MyGame::Example::MonsterT *AsMonster() const {
+    return type == Value_Monster ?
+      reinterpret_cast<const MyGame::Example::MonsterT *>(value) : nullptr;
+  }
+};
+
+
+inline bool operator==(const ValueUnion &lhs, const ValueUnion &rhs) {
+  if (lhs.type != rhs.type) return false;
+  switch (lhs.type) {
+    case Value_NONE: {
+      return true;
+    }
+    case Value_Monster: {
+      return *(reinterpret_cast<const MyGame::Example::MonsterT *>(lhs.value)) ==
+             *(reinterpret_cast<const MyGame::Example::MonsterT *>(rhs.value));
+    }
+    default: {
+      return false;
+    }
+  }
+}
+
+inline bool operator!=(const ValueUnion &lhs, const ValueUnion &rhs) {
+    return !(lhs == rhs);
+}
+
+bool VerifyValue(flatbuffers::Verifier &verifier, const void *obj, Value type);
+bool VerifyValueVector(flatbuffers::Verifier &verifier, const flatbuffers::Vector<flatbuffers::Offset<void>> *values, const flatbuffers::Vector<uint8_t> *types);
+
 FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(2) Test FLATBUFFERS_FINAL_CLASS {
  private:
   int16_t a_;
@@ -1317,6 +1427,8 @@ struct MonsterT : public flatbuffers::NativeTable {
   float negative_inf_default = -std::numeric_limits<float>::infinity();
   float negative_infinity_default = -std::numeric_limits<float>::infinity();
   double double_inf_default = std::numeric_limits<double>::infinity();
+  MyGame::Example::ValueUnion value_member{};
+  MyGame::Example::AnyUnion value{};
   MonsterT() = default;
   MonsterT(const MonsterT &o);
   MonsterT(MonsterT&&) FLATBUFFERS_NOEXCEPT = default;
@@ -1391,7 +1503,11 @@ struct Monster FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
     VT_POSITIVE_INFINITY_DEFAULT = 120,
     VT_NEGATIVE_INF_DEFAULT = 122,
     VT_NEGATIVE_INFINITY_DEFAULT = 124,
-    VT_DOUBLE_INF_DEFAULT = 126
+    VT_DOUBLE_INF_DEFAULT = 126,
+    VT_VALUE_MEMBER_TYPE = 128,
+    VT_VALUE_MEMBER = 130,
+    VT_VALUE_TYPE = 132,
+    VT_VALUE = 134
   };
   const MyGame::Example::Vec3 *pos() const {
     return GetStruct<const MyGame::Example::Vec3 *>(VT_POS);
@@ -1796,6 +1912,38 @@ struct Monster FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   bool mutate_double_inf_default(double _double_inf_default = std::numeric_limits<double>::infinity()) {
     return SetField<double>(VT_DOUBLE_INF_DEFAULT, _double_inf_default, std::numeric_limits<double>::infinity());
   }
+  MyGame::Example::Value value_member_type() const {
+    return static_cast<MyGame::Example::Value>(GetField<uint8_t>(VT_VALUE_MEMBER_TYPE, 0));
+  }
+  const void *value_member() const {
+    return GetPointer<const void *>(VT_VALUE_MEMBER);
+  }
+  template<typename T> const T *value_member_as() const;
+  const MyGame::Example::Monster *value_member_as_Monster() const {
+    return value_member_type() == MyGame::Example::Value_Monster ? static_cast<const MyGame::Example::Monster *>(value_member()) : nullptr;
+  }
+  void *mutable_value_member() {
+    return GetPointer<void *>(VT_VALUE_MEMBER);
+  }
+  MyGame::Example::Any value_type() const {
+    return static_cast<MyGame::Example::Any>(GetField<uint8_t>(VT_VALUE_TYPE, 0));
+  }
+  const void *value() const {
+    return GetPointer<const void *>(VT_VALUE);
+  }
+  template<typename T> const T *value_as() const;
+  const MyGame::Example::Monster *value_as_Monster() const {
+    return value_type() == MyGame::Example::Any_Monster ? static_cast<const MyGame::Example::Monster *>(value()) : nullptr;
+  }
+  const MyGame::Example::TestSimpleTableWithEnum *value_as_TestSimpleTableWithEnum() const {
+    return value_type() == MyGame::Example::Any_TestSimpleTableWithEnum ? static_cast<const MyGame::Example::TestSimpleTableWithEnum *>(value()) : nullptr;
+  }
+  const MyGame::Example2::Monster *value_as_MyGame_Example2_Monster() const {
+    return value_type() == MyGame::Example::Any_MyGame_Example2_Monster ? static_cast<const MyGame::Example2::Monster *>(value()) : nullptr;
+  }
+  void *mutable_value() {
+    return GetPointer<void *>(VT_VALUE);
+  }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyField<MyGame::Example::Vec3>(verifier, VT_POS, 8) &&
@@ -1895,6 +2043,12 @@ struct Monster FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
            VerifyField<float>(verifier, VT_NEGATIVE_INF_DEFAULT, 4) &&
            VerifyField<float>(verifier, VT_NEGATIVE_INFINITY_DEFAULT, 4) &&
            VerifyField<double>(verifier, VT_DOUBLE_INF_DEFAULT, 8) &&
+           VerifyField<uint8_t>(verifier, VT_VALUE_MEMBER_TYPE, 1) &&
+           VerifyOffset(verifier, VT_VALUE_MEMBER) &&
+           VerifyValue(verifier, value_member(), value_member_type()) &&
+           VerifyField<uint8_t>(verifier, VT_VALUE_TYPE, 1) &&
+           VerifyOffset(verifier, VT_VALUE) &&
+           VerifyAny(verifier, value(), value_type()) &&
            verifier.EndTable();
   }
   MonsterT *UnPack(const flatbuffers::resolver_function_t *_resolver = nullptr) const;
@@ -1924,6 +2078,22 @@ template<> inline const MyGame::Example::TestSimpleTableWithEnum *Monster::any_u
 
 template<> inline const MyGame::Example2::Monster *Monster::any_unique_as<MyGame::Example2::Monster>() const {
   return any_unique_as_M2();
+}
+
+template<> inline const MyGame::Example::Monster *Monster::value_member_as<MyGame::Example::Monster>() const {
+  return value_member_as_Monster();
+}
+
+template<> inline const MyGame::Example::Monster *Monster::value_as<MyGame::Example::Monster>() const {
+  return value_as_Monster();
+}
+
+template<> inline const MyGame::Example::TestSimpleTableWithEnum *Monster::value_as<MyGame::Example::TestSimpleTableWithEnum>() const {
+  return value_as_TestSimpleTableWithEnum();
+}
+
+template<> inline const MyGame::Example2::Monster *Monster::value_as<MyGame::Example2::Monster>() const {
+  return value_as_MyGame_Example2_Monster();
 }
 
 struct MonsterBuilder {
@@ -2113,6 +2283,18 @@ struct MonsterBuilder {
   void add_double_inf_default(double double_inf_default) {
     fbb_.AddElement<double>(Monster::VT_DOUBLE_INF_DEFAULT, double_inf_default, std::numeric_limits<double>::infinity());
   }
+  void add_value_member_type(MyGame::Example::Value value_member_type) {
+    fbb_.AddElement<uint8_t>(Monster::VT_VALUE_MEMBER_TYPE, static_cast<uint8_t>(value_member_type), 0);
+  }
+  void add_value_member(flatbuffers::Offset<void> value_member) {
+    fbb_.AddOffset(Monster::VT_VALUE_MEMBER, value_member);
+  }
+  void add_value_type(MyGame::Example::Any value_type) {
+    fbb_.AddElement<uint8_t>(Monster::VT_VALUE_TYPE, static_cast<uint8_t>(value_type), 0);
+  }
+  void add_value(flatbuffers::Offset<void> value) {
+    fbb_.AddOffset(Monster::VT_VALUE, value);
+  }
   explicit MonsterBuilder(flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
@@ -2187,7 +2369,11 @@ inline flatbuffers::Offset<Monster> CreateMonster(
     float positive_infinity_default = std::numeric_limits<float>::infinity(),
     float negative_inf_default = -std::numeric_limits<float>::infinity(),
     float negative_infinity_default = -std::numeric_limits<float>::infinity(),
-    double double_inf_default = std::numeric_limits<double>::infinity()) {
+    double double_inf_default = std::numeric_limits<double>::infinity(),
+    MyGame::Example::Value value_member_type = MyGame::Example::Value_NONE,
+    flatbuffers::Offset<void> value_member = 0,
+    MyGame::Example::Any value_type = MyGame::Example::Any_NONE,
+    flatbuffers::Offset<void> value = 0) {
   MonsterBuilder builder_(_fbb);
   builder_.add_double_inf_default(double_inf_default);
   builder_.add_long_enum_normal_default(long_enum_normal_default);
@@ -2199,6 +2385,8 @@ inline flatbuffers::Offset<Monster> CreateMonster(
   builder_.add_testhashs64_fnv1a(testhashs64_fnv1a);
   builder_.add_testhashu64_fnv1(testhashu64_fnv1);
   builder_.add_testhashs64_fnv1(testhashs64_fnv1);
+  builder_.add_value(value);
+  builder_.add_value_member(value_member);
   builder_.add_negative_infinity_default(negative_infinity_default);
   builder_.add_negative_inf_default(negative_inf_default);
   builder_.add_positive_infinity_default(positive_infinity_default);
@@ -2244,6 +2432,8 @@ inline flatbuffers::Offset<Monster> CreateMonster(
   builder_.add_pos(pos);
   builder_.add_hp(hp);
   builder_.add_mana(mana);
+  builder_.add_value_type(value_type);
+  builder_.add_value_member_type(value_member_type);
   builder_.add_signed_enum(signed_enum);
   builder_.add_any_ambiguous_type(any_ambiguous_type);
   builder_.add_any_unique_type(any_unique_type);
@@ -2315,7 +2505,11 @@ inline flatbuffers::Offset<Monster> CreateMonsterDirect(
     float positive_infinity_default = std::numeric_limits<float>::infinity(),
     float negative_inf_default = -std::numeric_limits<float>::infinity(),
     float negative_infinity_default = -std::numeric_limits<float>::infinity(),
-    double double_inf_default = std::numeric_limits<double>::infinity()) {
+    double double_inf_default = std::numeric_limits<double>::infinity(),
+    MyGame::Example::Value value_member_type = MyGame::Example::Value_NONE,
+    flatbuffers::Offset<void> value_member = 0,
+    MyGame::Example::Any value_type = MyGame::Example::Any_NONE,
+    flatbuffers::Offset<void> value = 0) {
   auto name__ = name ? _fbb.CreateString(name) : 0;
   auto inventory__ = inventory ? _fbb.CreateVector<uint8_t>(*inventory) : 0;
   auto test4__ = test4 ? _fbb.CreateVectorOfStructs<MyGame::Example::Test>(*test4) : 0;
@@ -2399,7 +2593,11 @@ inline flatbuffers::Offset<Monster> CreateMonsterDirect(
       positive_infinity_default,
       negative_inf_default,
       negative_infinity_default,
-      double_inf_default);
+      double_inf_default,
+      value_member_type,
+      value_member,
+      value_type,
+      value);
 }
 
 flatbuffers::Offset<Monster> CreateMonster(flatbuffers::FlatBufferBuilder &_fbb, const MonsterT *_o, const flatbuffers::rehasher_function_t *_rehasher = nullptr);
@@ -2903,7 +3101,9 @@ inline bool operator==(const MonsterT &lhs, const MonsterT &rhs) {
       (lhs.positive_infinity_default == rhs.positive_infinity_default) &&
       (lhs.negative_inf_default == rhs.negative_inf_default) &&
       (lhs.negative_infinity_default == rhs.negative_infinity_default) &&
-      (lhs.double_inf_default == rhs.double_inf_default);
+      (lhs.double_inf_default == rhs.double_inf_default) &&
+      (lhs.value_member == rhs.value_member) &&
+      (lhs.value == rhs.value);
 }
 
 inline bool operator!=(const MonsterT &lhs, const MonsterT &rhs) {
@@ -2964,7 +3164,9 @@ inline MonsterT::MonsterT(const MonsterT &o)
         positive_infinity_default(o.positive_infinity_default),
         negative_inf_default(o.negative_inf_default),
         negative_infinity_default(o.negative_infinity_default),
-        double_inf_default(o.double_inf_default) {
+        double_inf_default(o.double_inf_default),
+        value_member(o.value_member),
+        value(o.value) {
   testarrayoftables.reserve(o.testarrayoftables.size());
   for (const auto &testarrayoftables_ : o.testarrayoftables) { testarrayoftables.emplace_back((testarrayoftables_) ? new MyGame::Example::MonsterT(*testarrayoftables_) : nullptr); }
   vector_of_referrables.reserve(o.vector_of_referrables.size());
@@ -3036,6 +3238,8 @@ inline MonsterT &MonsterT::operator=(MonsterT o) FLATBUFFERS_NOEXCEPT {
   std::swap(negative_inf_default, o.negative_inf_default);
   std::swap(negative_infinity_default, o.negative_infinity_default);
   std::swap(double_inf_default, o.double_inf_default);
+  std::swap(value_member, o.value_member);
+  std::swap(value, o.value);
   return *this;
 }
 
@@ -3109,6 +3313,10 @@ inline void Monster::UnPackTo(MonsterT *_o, const flatbuffers::resolver_function
   { auto _e = negative_inf_default(); _o->negative_inf_default = _e; }
   { auto _e = negative_infinity_default(); _o->negative_infinity_default = _e; }
   { auto _e = double_inf_default(); _o->double_inf_default = _e; }
+  { auto _e = value_member_type(); _o->value_member.type = _e; }
+  { auto _e = value_member(); if (_e) _o->value_member.value = MyGame::Example::ValueUnion::UnPack(_e, value_member_type(), _resolver); }
+  { auto _e = value_type(); _o->value.type = _e; }
+  { auto _e = value(); if (_e) _o->value.value = MyGame::Example::AnyUnion::UnPack(_e, value_type(), _resolver); }
 }
 
 inline flatbuffers::Offset<Monster> Monster::Pack(flatbuffers::FlatBufferBuilder &_fbb, const MonsterT* _o, const flatbuffers::rehasher_function_t *_rehasher) {
@@ -3180,6 +3388,10 @@ inline flatbuffers::Offset<Monster> CreateMonster(flatbuffers::FlatBufferBuilder
   auto _negative_inf_default = _o->negative_inf_default;
   auto _negative_infinity_default = _o->negative_infinity_default;
   auto _double_inf_default = _o->double_inf_default;
+  auto _value_member_type = _o->value_member.type;
+  auto _value_member = _o->value_member.Pack(_fbb);
+  auto _value_type = _o->value.type;
+  auto _value = _o->value.Pack(_fbb);
   return MyGame::Example::CreateMonster(
       _fbb,
       _pos,
@@ -3242,7 +3454,11 @@ inline flatbuffers::Offset<Monster> CreateMonster(flatbuffers::FlatBufferBuilder
       _positive_infinity_default,
       _negative_inf_default,
       _negative_infinity_default,
-      _double_inf_default);
+      _double_inf_default,
+      _value_member_type,
+      _value_member,
+      _value_type,
+      _value);
 }
 
 
@@ -3665,6 +3881,77 @@ inline void AnyAmbiguousAliasesUnion::Reset() {
   type = AnyAmbiguousAliases_NONE;
 }
 
+inline bool VerifyValue(flatbuffers::Verifier &verifier, const void *obj, Value type) {
+  switch (type) {
+    case Value_NONE: {
+      return true;
+    }
+    case Value_Monster: {
+      auto ptr = reinterpret_cast<const MyGame::Example::Monster *>(obj);
+      return verifier.VerifyTable(ptr);
+    }
+    default: return true;
+  }
+}
+
+inline bool VerifyValueVector(flatbuffers::Verifier &verifier, const flatbuffers::Vector<flatbuffers::Offset<void>> *values, const flatbuffers::Vector<uint8_t> *types) {
+  if (!values || !types) return !values && !types;
+  if (values->size() != types->size()) return false;
+  for (flatbuffers::uoffset_t i = 0; i < values->size(); ++i) {
+    if (!VerifyValue(
+        verifier,  values->Get(i), types->GetEnum<Value>(i))) {
+      return false;
+    }
+  }
+  return true;
+}
+
+inline void *ValueUnion::UnPack(const void *obj, Value type, const flatbuffers::resolver_function_t *resolver) {
+  (void)resolver;
+  switch (type) {
+    case Value_Monster: {
+      auto ptr = reinterpret_cast<const MyGame::Example::Monster *>(obj);
+      return ptr->UnPack(resolver);
+    }
+    default: return nullptr;
+  }
+}
+
+inline flatbuffers::Offset<void> ValueUnion::Pack(flatbuffers::FlatBufferBuilder &_fbb, const flatbuffers::rehasher_function_t *_rehasher) const {
+  (void)_rehasher;
+  switch (type) {
+    case Value_Monster: {
+      auto ptr = reinterpret_cast<const MyGame::Example::MonsterT *>(value);
+      return CreateMonster(_fbb, ptr, _rehasher).Union();
+    }
+    default: return 0;
+  }
+}
+
+inline ValueUnion::ValueUnion(const ValueUnion &u) : type(u.type), value(nullptr) {
+  switch (type) {
+    case Value_Monster: {
+      value = new MyGame::Example::MonsterT(*reinterpret_cast<MyGame::Example::MonsterT *>(u.value));
+      break;
+    }
+    default:
+      break;
+  }
+}
+
+inline void ValueUnion::Reset() {
+  switch (type) {
+    case Value_Monster: {
+      auto ptr = reinterpret_cast<MyGame::Example::MonsterT *>(value);
+      delete ptr;
+      break;
+    }
+    default: break;
+  }
+  value = nullptr;
+  type = Value_NONE;
+}
+
 inline const flatbuffers::TypeTable *ColorTypeTable() {
   static const flatbuffers::TypeCode type_codes[] = {
     { flatbuffers::ET_UCHAR, 0, 0 },
@@ -3796,6 +4083,24 @@ inline const flatbuffers::TypeTable *AnyAmbiguousAliasesTypeTable() {
   };
   static const flatbuffers::TypeTable tt = {
     flatbuffers::ST_UNION, 4, type_codes, type_refs, nullptr, nullptr, names
+  };
+  return &tt;
+}
+
+inline const flatbuffers::TypeTable *ValueTypeTable() {
+  static const flatbuffers::TypeCode type_codes[] = {
+    { flatbuffers::ET_SEQUENCE, 0, -1 },
+    { flatbuffers::ET_SEQUENCE, 0, 0 }
+  };
+  static const flatbuffers::TypeFunction type_refs[] = {
+    MyGame::Example::MonsterTypeTable
+  };
+  static const char * const names[] = {
+    "NONE",
+    "Monster"
+  };
+  static const flatbuffers::TypeTable tt = {
+    flatbuffers::ST_UNION, 2, type_codes, type_refs, nullptr, nullptr, names
   };
   return &tt;
 }
@@ -4030,7 +4335,11 @@ inline const flatbuffers::TypeTable *MonsterTypeTable() {
     { flatbuffers::ET_FLOAT, 0, -1 },
     { flatbuffers::ET_FLOAT, 0, -1 },
     { flatbuffers::ET_FLOAT, 0, -1 },
-    { flatbuffers::ET_DOUBLE, 0, -1 }
+    { flatbuffers::ET_DOUBLE, 0, -1 },
+    { flatbuffers::ET_UTYPE, 0, 13 },
+    { flatbuffers::ET_SEQUENCE, 0, 13 },
+    { flatbuffers::ET_UTYPE, 0, 2 },
+    { flatbuffers::ET_SEQUENCE, 0, 2 }
   };
   static const flatbuffers::TypeFunction type_refs[] = {
     MyGame::Example::Vec3TypeTable,
@@ -4045,7 +4354,8 @@ inline const flatbuffers::TypeTable *MonsterTypeTable() {
     MyGame::Example::AnyUniqueAliasesTypeTable,
     MyGame::Example::AnyAmbiguousAliasesTypeTable,
     MyGame::Example::RaceTypeTable,
-    MyGame::Example::LongEnumTypeTable
+    MyGame::Example::LongEnumTypeTable,
+    MyGame::Example::ValueTypeTable
   };
   static const char * const names[] = {
     "pos",
@@ -4109,10 +4419,14 @@ inline const flatbuffers::TypeTable *MonsterTypeTable() {
     "positive_infinity_default",
     "negative_inf_default",
     "negative_infinity_default",
-    "double_inf_default"
+    "double_inf_default",
+    "value_member_type",
+    "value_member",
+    "value_type",
+    "value"
   };
   static const flatbuffers::TypeTable tt = {
-    flatbuffers::ST_TABLE, 62, type_codes, type_refs, nullptr, nullptr, names
+    flatbuffers::ST_TABLE, 66, type_codes, type_refs, nullptr, nullptr, names
   };
   return &tt;
 }

@@ -244,8 +244,12 @@ public final class Monster extends Table {
   public boolean mutateNegativeInfinityDefault(float negative_infinity_default) { int o = __offset(124); if (o != 0) { bb.putFloat(o + bb_pos, negative_infinity_default); return true; } else { return false; } }
   public double doubleInfDefault() { int o = __offset(126); return o != 0 ? bb.getDouble(o + bb_pos) : Double.POSITIVE_INFINITY; }
   public boolean mutateDoubleInfDefault(double double_inf_default) { int o = __offset(126); if (o != 0) { bb.putDouble(o + bb_pos, double_inf_default); return true; } else { return false; } }
+  public byte valueMemberType() { int o = __offset(128); return o != 0 ? bb.get(o + bb_pos) : 0; }
+  public Table valueMember(Table obj) { int o = __offset(130); return o != 0 ? __union(obj, o + bb_pos) : null; }
+  public byte valueType() { int o = __offset(132); return o != 0 ? bb.get(o + bb_pos) : 0; }
+  public Table value(Table obj) { int o = __offset(134); return o != 0 ? __union(obj, o + bb_pos) : null; }
 
-  public static void startMonster(FlatBufferBuilder builder) { builder.startTable(62); }
+  public static void startMonster(FlatBufferBuilder builder) { builder.startTable(66); }
   public static void addPos(FlatBufferBuilder builder, int posOffset) { builder.addStruct(0, posOffset, 0); }
   public static void addMana(FlatBufferBuilder builder, short mana) { builder.addShort(1, mana, 150); }
   public static void addHp(FlatBufferBuilder builder, short hp) { builder.addShort(2, hp, 100); }
@@ -349,6 +353,10 @@ public final class Monster extends Table {
   public static void addNegativeInfDefault(FlatBufferBuilder builder, float negativeInfDefault) { builder.addFloat(59, negativeInfDefault, Float.NEGATIVE_INFINITY); }
   public static void addNegativeInfinityDefault(FlatBufferBuilder builder, float negativeInfinityDefault) { builder.addFloat(60, negativeInfinityDefault, Float.NEGATIVE_INFINITY); }
   public static void addDoubleInfDefault(FlatBufferBuilder builder, double doubleInfDefault) { builder.addDouble(61, doubleInfDefault, Double.POSITIVE_INFINITY); }
+  public static void addValueMemberType(FlatBufferBuilder builder, byte valueMemberType) { builder.addByte(62, valueMemberType, 0); }
+  public static void addValueMember(FlatBufferBuilder builder, int valueMemberOffset) { builder.addOffset(63, valueMemberOffset, 0); }
+  public static void addValueType(FlatBufferBuilder builder, byte valueType) { builder.addByte(64, valueType, 0); }
+  public static void addValue(FlatBufferBuilder builder, int valueOffset) { builder.addOffset(65, valueOffset, 0); }
   public static int endMonster(FlatBufferBuilder builder) {
     int o = builder.endTable();
     builder.required(o, 10);  // name
@@ -585,6 +593,38 @@ public final class Monster extends Table {
     _o.setNegativeInfinityDefault(_oNegativeInfinityDefault);
     double _oDoubleInfDefault = doubleInfDefault();
     _o.setDoubleInfDefault(_oDoubleInfDefault);
+    MyGame.Example.ValueUnion _oValueMember = new MyGame.Example.ValueUnion();
+    byte _oValueMemberType = valueMemberType();
+    _oValueMember.setType(_oValueMemberType);
+    Table _oValueMemberValue;
+    switch (_oValueMemberType) {
+      case MyGame.Example.Value.Monster:
+        _oValueMemberValue = valueMember(new MyGame.Example.Monster());
+        _oValueMember.setValue(_oValueMemberValue != null ? ((MyGame.Example.Monster) _oValueMemberValue).unpack() : null);
+        break;
+      default: break;
+    }
+    _o.setValueMember(_oValueMember);
+    MyGame.Example.AnyUnion _oValue = new MyGame.Example.AnyUnion();
+    byte _oValueType = valueType();
+    _oValue.setType(_oValueType);
+    Table _oValueValue;
+    switch (_oValueType) {
+      case MyGame.Example.Any.Monster:
+        _oValueValue = value(new MyGame.Example.Monster());
+        _oValue.setValue(_oValueValue != null ? ((MyGame.Example.Monster) _oValueValue).unpack() : null);
+        break;
+      case MyGame.Example.Any.TestSimpleTableWithEnum:
+        _oValueValue = value(new MyGame.Example.TestSimpleTableWithEnum());
+        _oValue.setValue(_oValueValue != null ? ((MyGame.Example.TestSimpleTableWithEnum) _oValueValue).unpack() : null);
+        break;
+      case MyGame.Example.Any.MyGame_Example2_Monster:
+        _oValueValue = value(new MyGame.Example2.Monster());
+        _oValue.setValue(_oValueValue != null ? ((MyGame.Example2.Monster) _oValueValue).unpack() : null);
+        break;
+      default: break;
+    }
+    _o.setValue(_oValue);
   }
   public static int pack(FlatBufferBuilder builder, MonsterT _o) {
     if (_o == null) return 0;
@@ -723,6 +763,10 @@ public final class Monster extends Table {
       for (MyGame.Example.StatT _e : _o.getScalarKeySortedTables()) { __scalarKeySortedTables[_j] = MyGame.Example.Stat.pack(builder, _e); _j++;}
       _scalarKeySortedTables = createScalarKeySortedTablesVector(builder, __scalarKeySortedTables);
     }
+    byte _valueMemberType = _o.getValueMember() == null ? MyGame.Example.Value.NONE : _o.getValueMember().getType();
+    int _valueMember = _o.getValueMember() == null ? 0 : MyGame.Example.ValueUnion.pack(builder, _o.getValueMember());
+    byte _valueType = _o.getValue() == null ? MyGame.Example.Any.NONE : _o.getValue().getType();
+    int _value = _o.getValue() == null ? 0 : MyGame.Example.AnyUnion.pack(builder, _o.getValue());
     startMonster(builder);
     addPos(builder, MyGame.Example.Vec3.pack(builder, _o.getPos()));
     addMana(builder, _o.getMana());
@@ -785,6 +829,10 @@ public final class Monster extends Table {
     addNegativeInfDefault(builder, _o.getNegativeInfDefault());
     addNegativeInfinityDefault(builder, _o.getNegativeInfinityDefault());
     addDoubleInfDefault(builder, _o.getDoubleInfDefault());
+    addValueMemberType(builder, _valueMemberType);
+    addValueMember(builder, _valueMember);
+    addValueType(builder, _valueType);
+    addValue(builder, _value);
     return endMonster(builder);
   }
 }

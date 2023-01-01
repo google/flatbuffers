@@ -15,5 +15,6 @@ export { StructOfStructsOfStructs, StructOfStructsOfStructsT } from './my-game/e
 export { Test, TestT } from './my-game/example/test.js';
 export { TestSimpleTableWithEnum, TestSimpleTableWithEnumT } from './my-game/example/test-simple-table-with-enum.js';
 export { TypeAliases, TypeAliasesT } from './my-game/example/type-aliases.js';
+export { Value, unionToValue, unionListToValue } from './my-game/example/value.js';
 export { Vec3, Vec3T } from './my-game/example/vec3.js';
 export { InParentNamespace, InParentNamespaceT } from './my-game/in-parent-namespace.js';
