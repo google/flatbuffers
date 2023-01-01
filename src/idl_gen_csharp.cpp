@@ -1525,7 +1525,7 @@ class CSharpGenerator : public BaseGenerator {
               " _o, "
               "Newtonsoft.Json.JsonSerializer serializer) {\n";
       code += "    if (_o == null) return;\n";
-      code += "    serializer.Serialize(writer, _o.Value);\n";
+      code += "    serializer.Serialize(writer, _o." + class_member  + ");\n";
       code += "  }\n";
       code +=
           "  public override object ReadJson(Newtonsoft.Json.JsonReader "
@@ -1562,8 +1562,8 @@ class CSharpGenerator : public BaseGenerator {
           code += "      default: break;\n";
         } else {
           auto type_name = GenTypeGet_ObjectAPI(ev.union_type, opts);
-          code += "      case " + Name(enum_def) + "." + Name(ev) +
-                  ": _o.Value = serializer.Deserialize<" + type_name +
+          code += "      case " + Name(enum_def) + "." + Name(ev) + ": _o." +
+                  class_member + " = serializer.Deserialize<" + type_name +
                   ">(reader); break;\n";
         }
       }
@@ -1586,7 +1586,7 @@ class CSharpGenerator : public BaseGenerator {
     auto &code = *code_ptr;
     std::string varialbe_name = "_o." + camel_name;
     std::string class_member = "Value";
-    if (class_member == camel_name) class_member += "_";
+    if (class_member == enum_def.name) class_member += "_";
     std::string type_suffix = "";
     std::string func_suffix = "()";
     std::string indent = "    ";
