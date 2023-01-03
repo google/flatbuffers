@@ -514,6 +514,9 @@ class KotlinKMPGenerator : public BaseGenerator {
           GenerateBufferHasIdentifier(struct_def, writer, options);
 
           writer += "";
+          GenerateTableBuilder(struct_def, writer, options);
+
+          writer += "";
           GenerateTableCreator(struct_def, writer, options);
 
           GenerateStartStructMethod(struct_def, writer, options);
@@ -772,6 +775,85 @@ class KotlinKMPGenerator : public BaseGenerator {
                   NumToString(struct_def.fields.vec.size()) + ")";
         },
         options.gen_jvmstatic);
+  }
+
+  void GenerateTableBuilder(StructDef &struct_def, CodeWriter &writer,
+                            const IDLOptions options) const {
+      auto fields_vec = struct_def.fields.vec;
+      auto name_type = namer_.Type(struct_def);
+      auto builder_name = namer_.Type(struct_def) + "Builder";
+      auto type_name = namer_.Type(struct_def);
+
+      std::vector<FieldDef*> required_fields;
+      std::stringstream params;
+
+      params << "builder: FlatBufferBuilder";
+      // add required fields as parameters.
+      for (auto i = 0u; i < fields_vec.size(); ++i) {
+        auto &field = *fields_vec[i];
+
+        if (field.value.type.base_type == BASE_TYPE_UTYPE &&
+            fields_vec[i + 1]->IsRequired()) {
+            // union type field are never marked required even
+            // if its union field countapart is. So we check it
+            // here and add if needed.
+            params << ", " << namer_.Variable(field) << ": "
+                   << GenTypeBasic(field.value.type);
+            required_fields.push_back(&field);
+        }
+
+        if (!field.deprecated && field.IsRequired()) {
+           params << ", " << namer_.Variable(field) << ": "
+                  << GenTypeBasic(field.value.type)
+                  << (field.IsScalarOptional() ? "?" : "");
+           required_fields.push_back(&field);
+        }
+      }
+
+      writer += "class " + builder_name + "(val builder: FlatBufferBuilder) {";
+      writer.IncrementIdentLevel();
+
+      // Static Add for fields
+      auto fields = struct_def.fields.vec;
+      int field_pos = -1;
+      for (auto i = 0u; i < fields_vec.size(); ++i) {
+        auto &field = *fields_vec[i];
+        field_pos++;
+        if (field.deprecated ||
+            field.IsRequired() ||
+            (field.value.type.base_type == BASE_TYPE_UTYPE &&
+                 fields_vec[i + 1]->IsRequired())) continue;
+        writer += "";
+        auto field_name = namer_.Field(field);
+        auto return_type = GenTypeBasic(field.value.type);
+        auto method = GenMethod(field.value.type);
+        auto def = GenFBBDefaultValue(field);
+        auto getter = "error(\"This methods should never be called\")";
+        auto setter = namer_.LegacyKotlinMethod("add", field, "") + "(builder, value)";
+        GenerateVarGetterSetterOneLine(writer, field_name, return_type,
+                             getter, setter);
+
+      }
+
+      // Declarative constructor function
+      writer.DecrementIdentLevel();
+      writer += "}";
+
+      // add builder lambda
+      params << ", lambda: " << builder_name << ".() -> Unit = {}";
+
+      // finally, fun body
+      GenerateFun(
+          writer, "create" + name_type, params.str(), "Offset<" + name_type + '>',
+          [&]() {
+          writer += "val b = " + namer_.Type(struct_def) + "Builder(builder)";
+          writer += namer_.LegacyKotlinMethod("start", struct_def, "") + "(builder)";
+          for (auto it = required_fields.begin(); it != required_fields.end(); ++it) {
+              writer += namer_.LegacyKotlinMethod("add", **it, "") + "(builder, " + namer_.Variable(**it) + ")";
+          }
+          writer += "b.apply(lambda)";
+          writer += "return " + namer_.LegacyKotlinMethod("end", struct_def, "") + "(builder)";
+      });
   }
 
   void GenerateTableCreator(StructDef &struct_def, CodeWriter &writer,
@@ -1221,7 +1303,24 @@ class KotlinKMPGenerator : public BaseGenerator {
     return out.str();
   }
 
-
+  static void GenerateVarGetterSetterOneLine(CodeWriter &writer, const std::string &name,
+                             const std::string &type,
+                             const std::string &getter,
+                             const std::string &setter) {
+    // Generates Kotlin getter for properties
+    // e.g.:
+    // val prop: Mytype
+    //     get() = {
+    //       return x
+    //     }
+    writer.SetValue("name", name);
+    writer.SetValue("type", type);
+    writer += "var {{name}} : {{type}}";
+    writer.IncrementIdentLevel();
+    writer += "get() = " + getter;
+    writer += "set(value) = " + setter;
+    writer.DecrementIdentLevel();
+  }
 
   static void GeneratePropertyOneLine(CodeWriter &writer,
                                       const std::string &name,

@@ -23,6 +23,19 @@ class Referrable : Table() {
         fun asRoot(buffer: ReadWriteBuffer, obj: Referrable) : Referrable = obj.assign(buffer.getInt(buffer.limit) + buffer.limit, buffer)
 
 
+        class ReferrableBuilder(val builder: FlatBufferBuilder) {
+
+            var id : ULong
+                get() = error("This methods should never be called")
+                set(value) = addId(builder, value)
+        }
+        fun createReferrable(builder: FlatBufferBuilder, lambda: ReferrableBuilder.() -> Unit = {}) : Offset<Referrable> {
+            val b = ReferrableBuilder(builder)
+            startReferrable(builder)
+            b.apply(lambda)
+            return endReferrable(builder)
+        }
+
         fun createReferrable(builder: FlatBufferBuilder, id: ULong) : Offset<Referrable> {
             builder.startTable(1)
             addId(builder, id)

@@ -89,6 +89,159 @@ class ScalarStuff : Table() {
 
         fun ScalarStuffBufferHasIdentifier(buffer: ReadWriteBuffer) : Boolean = hasIdentifier(buffer, "NULL")
 
+        class ScalarStuffBuilder(val builder: FlatBufferBuilder) {
+
+            var justI8 : Byte
+                get() = error("This methods should never be called")
+                set(value) = addJustI8(builder, value)
+
+            var maybeI8 : Byte
+                get() = error("This methods should never be called")
+                set(value) = addMaybeI8(builder, value)
+
+            var defaultI8 : Byte
+                get() = error("This methods should never be called")
+                set(value) = addDefaultI8(builder, value)
+
+            var justU8 : UByte
+                get() = error("This methods should never be called")
+                set(value) = addJustU8(builder, value)
+
+            var maybeU8 : UByte
+                get() = error("This methods should never be called")
+                set(value) = addMaybeU8(builder, value)
+
+            var defaultU8 : UByte
+                get() = error("This methods should never be called")
+                set(value) = addDefaultU8(builder, value)
+
+            var justI16 : Short
+                get() = error("This methods should never be called")
+                set(value) = addJustI16(builder, value)
+
+            var maybeI16 : Short
+                get() = error("This methods should never be called")
+                set(value) = addMaybeI16(builder, value)
+
+            var defaultI16 : Short
+                get() = error("This methods should never be called")
+                set(value) = addDefaultI16(builder, value)
+
+            var justU16 : UShort
+                get() = error("This methods should never be called")
+                set(value) = addJustU16(builder, value)
+
+            var maybeU16 : UShort
+                get() = error("This methods should never be called")
+                set(value) = addMaybeU16(builder, value)
+
+            var defaultU16 : UShort
+                get() = error("This methods should never be called")
+                set(value) = addDefaultU16(builder, value)
+
+            var justI32 : Int
+                get() = error("This methods should never be called")
+                set(value) = addJustI32(builder, value)
+
+            var maybeI32 : Int
+                get() = error("This methods should never be called")
+                set(value) = addMaybeI32(builder, value)
+
+            var defaultI32 : Int
+                get() = error("This methods should never be called")
+                set(value) = addDefaultI32(builder, value)
+
+            var justU32 : UInt
+                get() = error("This methods should never be called")
+                set(value) = addJustU32(builder, value)
+
+            var maybeU32 : UInt
+                get() = error("This methods should never be called")
+                set(value) = addMaybeU32(builder, value)
+
+            var defaultU32 : UInt
+                get() = error("This methods should never be called")
+                set(value) = addDefaultU32(builder, value)
+
+            var justI64 : Long
+                get() = error("This methods should never be called")
+                set(value) = addJustI64(builder, value)
+
+            var maybeI64 : Long
+                get() = error("This methods should never be called")
+                set(value) = addMaybeI64(builder, value)
+
+            var defaultI64 : Long
+                get() = error("This methods should never be called")
+                set(value) = addDefaultI64(builder, value)
+
+            var justU64 : ULong
+                get() = error("This methods should never be called")
+                set(value) = addJustU64(builder, value)
+
+            var maybeU64 : ULong
+                get() = error("This methods should never be called")
+                set(value) = addMaybeU64(builder, value)
+
+            var defaultU64 : ULong
+                get() = error("This methods should never be called")
+                set(value) = addDefaultU64(builder, value)
+
+            var justF32 : Float
+                get() = error("This methods should never be called")
+                set(value) = addJustF32(builder, value)
+
+            var maybeF32 : Float
+                get() = error("This methods should never be called")
+                set(value) = addMaybeF32(builder, value)
+
+            var defaultF32 : Float
+                get() = error("This methods should never be called")
+                set(value) = addDefaultF32(builder, value)
+
+            var justF64 : Double
+                get() = error("This methods should never be called")
+                set(value) = addJustF64(builder, value)
+
+            var maybeF64 : Double
+                get() = error("This methods should never be called")
+                set(value) = addMaybeF64(builder, value)
+
+            var defaultF64 : Double
+                get() = error("This methods should never be called")
+                set(value) = addDefaultF64(builder, value)
+
+            var justBool : Boolean
+                get() = error("This methods should never be called")
+                set(value) = addJustBool(builder, value)
+
+            var maybeBool : Boolean
+                get() = error("This methods should never be called")
+                set(value) = addMaybeBool(builder, value)
+
+            var defaultBool : Boolean
+                get() = error("This methods should never be called")
+                set(value) = addDefaultBool(builder, value)
+
+            var justEnum : Byte
+                get() = error("This methods should never be called")
+                set(value) = addJustEnum(builder, value)
+
+            var maybeEnum : Byte
+                get() = error("This methods should never be called")
+                set(value) = addMaybeEnum(builder, value)
+
+            var defaultEnum : Byte
+                get() = error("This methods should never be called")
+                set(value) = addDefaultEnum(builder, value)
+        }
+        fun createScalarStuff(builder: FlatBufferBuilder, lambda: ScalarStuffBuilder.() -> Unit = {}) : Offset<ScalarStuff> {
+            val b = ScalarStuffBuilder(builder)
+            startScalarStuff(builder)
+            b.apply(lambda)
+            return endScalarStuff(builder)
+        }
+
         fun createScalarStuff(builder: FlatBufferBuilder, justI8: Byte, maybeI8: Byte?, defaultI8: Byte, justU8: UByte, maybeU8: UByte?, defaultU8: UByte, justI16: Short, maybeI16: Short?, defaultI16: Short, justU16: UShort, maybeU16: UShort?, defaultU16: UShort, justI32: Int, maybeI32: Int?, defaultI32: Int, justU32: UInt, maybeU32: UInt?, defaultU32: UInt, justI64: Long, maybeI64: Long?, defaultI64: Long, justU64: ULong, maybeU64: ULong?, defaultU64: ULong, justF32: Float, maybeF32: Float?, defaultF32: Float, justF64: Double, maybeF64: Double?, defaultF64: Double, justBool: Boolean, maybeBool: Boolean?, defaultBool: Boolean, justEnum: Byte, maybeEnum: Byte?, defaultEnum: Byte) : Offset<ScalarStuff> {
             builder.startTable(36)
             addDefaultF64(builder, defaultF64)

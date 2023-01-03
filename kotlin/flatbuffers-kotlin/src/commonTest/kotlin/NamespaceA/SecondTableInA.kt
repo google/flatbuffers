@@ -19,6 +19,19 @@ class SecondTableInA : Table() {
         fun asRoot(buffer: ReadWriteBuffer, obj: SecondTableInA) : SecondTableInA = obj.assign(buffer.getInt(buffer.limit) + buffer.limit, buffer)
 
 
+        class SecondTableInABuilder(val builder: FlatBufferBuilder) {
+
+            var referToC : Offset<NamespaceC.TableInC>
+                get() = error("This methods should never be called")
+                set(value) = addReferToC(builder, value)
+        }
+        fun createSecondTableInA(builder: FlatBufferBuilder, lambda: SecondTableInABuilder.() -> Unit = {}) : Offset<SecondTableInA> {
+            val b = SecondTableInABuilder(builder)
+            startSecondTableInA(builder)
+            b.apply(lambda)
+            return endSecondTableInA(builder)
+        }
+
         fun createSecondTableInA(builder: FlatBufferBuilder, referToCOffset: Offset<NamespaceC.TableInC>) : Offset<SecondTableInA> {
             builder.startTable(1)
             addReferToC(builder, referToCOffset)

@@ -22,6 +22,23 @@ class TableInC : Table() {
         fun asRoot(buffer: ReadWriteBuffer, obj: TableInC) : TableInC = obj.assign(buffer.getInt(buffer.limit) + buffer.limit, buffer)
 
 
+        class TableInCBuilder(val builder: FlatBufferBuilder) {
+
+            var referToA1 : Offset<NamespaceA.TableInFirstNS>
+                get() = error("This methods should never be called")
+                set(value) = addReferToA1(builder, value)
+
+            var referToA2 : Offset<NamespaceA.SecondTableInA>
+                get() = error("This methods should never be called")
+                set(value) = addReferToA2(builder, value)
+        }
+        fun createTableInC(builder: FlatBufferBuilder, lambda: TableInCBuilder.() -> Unit = {}) : Offset<TableInC> {
+            val b = TableInCBuilder(builder)
+            startTableInC(builder)
+            b.apply(lambda)
+            return endTableInC(builder)
+        }
+
         fun createTableInC(builder: FlatBufferBuilder, referToA1Offset: Offset<NamespaceA.TableInFirstNS>, referToA2Offset: Offset<NamespaceA.SecondTableInA>) : Offset<TableInC> {
             builder.startTable(2)
             addReferToA2(builder, referToA2Offset)

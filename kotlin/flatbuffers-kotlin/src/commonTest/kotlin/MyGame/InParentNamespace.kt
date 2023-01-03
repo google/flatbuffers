@@ -16,6 +16,15 @@ class InParentNamespace : Table() {
         fun asRoot(buffer: ReadWriteBuffer, obj: InParentNamespace) : InParentNamespace = obj.assign(buffer.getInt(buffer.limit) + buffer.limit, buffer)
 
 
+        class InParentNamespaceBuilder(val builder: FlatBufferBuilder) {
+        }
+        fun createInParentNamespace(builder: FlatBufferBuilder, lambda: InParentNamespaceBuilder.() -> Unit = {}) : Offset<InParentNamespace> {
+            val b = InParentNamespaceBuilder(builder)
+            startInParentNamespace(builder)
+            b.apply(lambda)
+            return endInParentNamespace(builder)
+        }
+
         fun startInParentNamespace(builder: FlatBufferBuilder) = builder.startTable(0)
 
         fun endInParentNamespace(builder: FlatBufferBuilder) : Offset<InParentNamespace> {

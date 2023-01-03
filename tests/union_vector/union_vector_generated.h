@@ -650,7 +650,7 @@ struct Movie FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   bool Verify(::flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyField<uint8_t>(verifier, VT_MAIN_CHARACTER_TYPE, 1) &&
-           VerifyOffset(verifier, VT_MAIN_CHARACTER) &&
+           VerifyOffsetRequired(verifier, VT_MAIN_CHARACTER) &&
            VerifyCharacter(verifier, main_character(), main_character_type()) &&
            VerifyOffset(verifier, VT_CHARACTERS_TYPE) &&
            verifier.VerifyVector(characters_type()) &&

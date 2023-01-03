@@ -44,6 +44,63 @@ class TypeAliases : Table() {
         fun asRoot(buffer: ReadWriteBuffer, obj: TypeAliases) : TypeAliases = obj.assign(buffer.getInt(buffer.limit) + buffer.limit, buffer)
 
 
+        class TypeAliasesBuilder(val builder: FlatBufferBuilder) {
+
+            var i8 : Byte
+                get() = error("This methods should never be called")
+                set(value) = addI8(builder, value)
+
+            var u8 : UByte
+                get() = error("This methods should never be called")
+                set(value) = addU8(builder, value)
+
+            var i16 : Short
+                get() = error("This methods should never be called")
+                set(value) = addI16(builder, value)
+
+            var u16 : UShort
+                get() = error("This methods should never be called")
+                set(value) = addU16(builder, value)
+
+            var i32 : Int
+                get() = error("This methods should never be called")
+                set(value) = addI32(builder, value)
+
+            var u32 : UInt
+                get() = error("This methods should never be called")
+                set(value) = addU32(builder, value)
+
+            var i64 : Long
+                get() = error("This methods should never be called")
+                set(value) = addI64(builder, value)
+
+            var u64 : ULong
+                get() = error("This methods should never be called")
+                set(value) = addU64(builder, value)
+
+            var f32 : Float
+                get() = error("This methods should never be called")
+                set(value) = addF32(builder, value)
+
+            var f64 : Double
+                get() = error("This methods should never be called")
+                set(value) = addF64(builder, value)
+
+            var v8 : ArrayOffset<Byte>
+                get() = error("This methods should never be called")
+                set(value) = addV8(builder, value)
+
+            var vf64 : ArrayOffset<Double>
+                get() = error("This methods should never be called")
+                set(value) = addVf64(builder, value)
+        }
+        fun createTypeAliases(builder: FlatBufferBuilder, lambda: TypeAliasesBuilder.() -> Unit = {}) : Offset<TypeAliases> {
+            val b = TypeAliasesBuilder(builder)
+            startTypeAliases(builder)
+            b.apply(lambda)
+            return endTypeAliases(builder)
+        }
+
         fun createTypeAliases(builder: FlatBufferBuilder, i8: Byte, u8: UByte, i16: Short, u16: UShort, i32: Int, u32: UInt, i64: Long, u64: ULong, f32: Float, f64: Double, v8Offset: ArrayOffset<Byte>, vf64Offset: ArrayOffset<Double>) : Offset<TypeAliases> {
             builder.startTable(12)
             addF64(builder, f64)

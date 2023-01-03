@@ -28,6 +28,27 @@ class Stat : Table() {
         fun asRoot(buffer: ReadWriteBuffer, obj: Stat) : Stat = obj.assign(buffer.getInt(buffer.limit) + buffer.limit, buffer)
 
 
+        class StatBuilder(val builder: FlatBufferBuilder) {
+
+            var id : Offset<String>
+                get() = error("This methods should never be called")
+                set(value) = addId(builder, value)
+
+            var val_ : Long
+                get() = error("This methods should never be called")
+                set(value) = addVal_(builder, value)
+
+            var count : UShort
+                get() = error("This methods should never be called")
+                set(value) = addCount(builder, value)
+        }
+        fun createStat(builder: FlatBufferBuilder, lambda: StatBuilder.() -> Unit = {}) : Offset<Stat> {
+            val b = StatBuilder(builder)
+            startStat(builder)
+            b.apply(lambda)
+            return endStat(builder)
+        }
+
         fun createStat(builder: FlatBufferBuilder, idOffset: Offset<String>, val_: Long, count: UShort) : Offset<Stat> {
             builder.startTable(3)
             addVal_(builder, val_)

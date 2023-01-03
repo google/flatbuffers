@@ -18,6 +18,19 @@ class TestSimpleTableWithEnum : Table() {
         fun asRoot(buffer: ReadWriteBuffer, obj: TestSimpleTableWithEnum) : TestSimpleTableWithEnum = obj.assign(buffer.getInt(buffer.limit) + buffer.limit, buffer)
 
 
+        class TestSimpleTableWithEnumBuilder(val builder: FlatBufferBuilder) {
+
+            var color : UByte
+                get() = error("This methods should never be called")
+                set(value) = addColor(builder, value)
+        }
+        fun createTestSimpleTableWithEnum(builder: FlatBufferBuilder, lambda: TestSimpleTableWithEnumBuilder.() -> Unit = {}) : Offset<TestSimpleTableWithEnum> {
+            val b = TestSimpleTableWithEnumBuilder(builder)
+            startTestSimpleTableWithEnum(builder)
+            b.apply(lambda)
+            return endTestSimpleTableWithEnum(builder)
+        }
+
         fun createTestSimpleTableWithEnum(builder: FlatBufferBuilder, color: UByte) : Offset<TestSimpleTableWithEnum> {
             builder.startTable(1)
             addColor(builder, color)
