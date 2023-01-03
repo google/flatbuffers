@@ -28,6 +28,35 @@ class TableInFirstNS : Table() {
         fun asRoot(buffer: ReadWriteBuffer, obj: TableInFirstNS) : TableInFirstNS = obj.assign(buffer.getInt(buffer.limit) + buffer.limit, buffer)
 
 
+        class TableInFirstNSBuilder(val builder: FlatBufferBuilder) {
+
+            var fooTable : Offset<NamespaceA.NamespaceB.TableInNestedNS>
+                get() = error("This methods should never be called")
+                set(value) = addFooTable(builder, value)
+
+            var fooEnum : Byte
+                get() = error("This methods should never be called")
+                set(value) = addFooEnum(builder, value)
+
+            var fooUnionType : UByte
+                get() = error("This methods should never be called")
+                set(value) = addFooUnionType(builder, value)
+
+            var fooUnion : Offset<Any>
+                get() = error("This methods should never be called")
+                set(value) = addFooUnion(builder, value)
+
+            var fooStruct : Offset<NamespaceA.NamespaceB.StructInNestedNS>
+                get() = error("This methods should never be called")
+                set(value) = addFooStruct(builder, value)
+        }
+        fun createTableInFirstNS(builder: FlatBufferBuilder, lambda: TableInFirstNSBuilder.() -> Unit = {}) : Offset<TableInFirstNS> {
+            val b = TableInFirstNSBuilder(builder)
+            startTableInFirstNS(builder)
+            b.apply(lambda)
+            return endTableInFirstNS(builder)
+        }
+
         fun startTableInFirstNS(builder: FlatBufferBuilder) = builder.startTable(5)
 
         fun addFooTable(builder: FlatBufferBuilder, fooTable: Offset<NamespaceA.NamespaceB.TableInNestedNS>) = builder.addOffset(0, fooTable, null)

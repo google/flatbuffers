@@ -16,6 +16,19 @@ class Attacker : Table() {
         fun asRoot(buffer: ReadWriteBuffer, obj: Attacker) : Attacker = obj.assign(buffer.getInt(buffer.limit) + buffer.limit, buffer)
 
 
+        class AttackerBuilder(val builder: FlatBufferBuilder) {
+
+            var swordAttackDamage : Int
+                get() = error("This methods should never be called")
+                set(value) = addSwordAttackDamage(builder, value)
+        }
+        fun createAttacker(builder: FlatBufferBuilder, lambda: AttackerBuilder.() -> Unit = {}) : Offset<Attacker> {
+            val b = AttackerBuilder(builder)
+            startAttacker(builder)
+            b.apply(lambda)
+            return endAttacker(builder)
+        }
+
         fun createAttacker(builder: FlatBufferBuilder, swordAttackDamage: Int) : Offset<Attacker> {
             builder.startTable(1)
             addSwordAttackDamage(builder, swordAttackDamage)

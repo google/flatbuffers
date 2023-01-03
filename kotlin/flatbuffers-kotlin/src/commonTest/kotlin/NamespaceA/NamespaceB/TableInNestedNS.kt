@@ -18,6 +18,19 @@ class TableInNestedNS : Table() {
         fun asRoot(buffer: ReadWriteBuffer, obj: TableInNestedNS) : TableInNestedNS = obj.assign(buffer.getInt(buffer.limit) + buffer.limit, buffer)
 
 
+        class TableInNestedNSBuilder(val builder: FlatBufferBuilder) {
+
+            var foo : Int
+                get() = error("This methods should never be called")
+                set(value) = addFoo(builder, value)
+        }
+        fun createTableInNestedNS(builder: FlatBufferBuilder, lambda: TableInNestedNSBuilder.() -> Unit = {}) : Offset<TableInNestedNS> {
+            val b = TableInNestedNSBuilder(builder)
+            startTableInNestedNS(builder)
+            b.apply(lambda)
+            return endTableInNestedNS(builder)
+        }
+
         fun createTableInNestedNS(builder: FlatBufferBuilder, foo: Int) : Offset<TableInNestedNS> {
             builder.startTable(1)
             addFoo(builder, foo)

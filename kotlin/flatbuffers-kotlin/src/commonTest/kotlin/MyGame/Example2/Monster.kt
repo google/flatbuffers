@@ -16,6 +16,15 @@ class Monster : Table() {
         fun asRoot(buffer: ReadWriteBuffer, obj: Monster) : Monster = obj.assign(buffer.getInt(buffer.limit) + buffer.limit, buffer)
 
 
+        class MonsterBuilder(val builder: FlatBufferBuilder) {
+        }
+        fun createMonster(builder: FlatBufferBuilder, lambda: MonsterBuilder.() -> Unit = {}) : Offset<Monster> {
+            val b = MonsterBuilder(builder)
+            startMonster(builder)
+            b.apply(lambda)
+            return endMonster(builder)
+        }
+
         fun startMonster(builder: FlatBufferBuilder) = builder.startTable(0)
 
         fun endMonster(builder: FlatBufferBuilder) : Offset<Monster> {

@@ -26,6 +26,25 @@ class Movie : Table() {
 
         fun MovieBufferHasIdentifier(buffer: ReadWriteBuffer) : Boolean = hasIdentifier(buffer, "MOVI")
 
+        class MovieBuilder(val builder: FlatBufferBuilder) {
+
+            var charactersType : ArrayOffset<UByte>
+                get() = error("This methods should never be called")
+                set(value) = addCharactersType(builder, value)
+
+            var characters : ArrayOffset<Any>
+                get() = error("This methods should never be called")
+                set(value) = addCharacters(builder, value)
+        }
+        fun createMovie(builder: FlatBufferBuilder, mainCharacterType: UByte, mainCharacter: Offset<Any>, lambda: MovieBuilder.() -> Unit = {}) : Offset<Movie> {
+            val b = MovieBuilder(builder)
+            startMovie(builder)
+            addMainCharacterType(builder, mainCharacterType)
+            addMainCharacter(builder, mainCharacter)
+            b.apply(lambda)
+            return endMovie(builder)
+        }
+
         fun createMovie(builder: FlatBufferBuilder, mainCharacterType: UByte, mainCharacterOffset: Offset<Any>, charactersTypeOffset: ArrayOffset<UByte>, charactersOffset: ArrayOffset<Any>) : Offset<Movie> {
             builder.startTable(4)
             addCharacters(builder, charactersOffset)
@@ -66,6 +85,7 @@ class Movie : Table() {
 
         fun endMovie(builder: FlatBufferBuilder) : Offset<Movie> {
             val o: Offset<Movie> = builder.endTable()
+                builder.required(o, 6)
             return o
         }
 

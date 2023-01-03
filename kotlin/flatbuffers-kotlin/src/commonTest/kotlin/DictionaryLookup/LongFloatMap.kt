@@ -22,6 +22,19 @@ class LongFloatMap : Table() {
         fun asRoot(buffer: ReadWriteBuffer, obj: LongFloatMap) : LongFloatMap = obj.assign(buffer.getInt(buffer.limit) + buffer.limit, buffer)
 
 
+        class LongFloatMapBuilder(val builder: FlatBufferBuilder) {
+
+            var entries : ArrayOffset<DictionaryLookup.LongFloatEntry>
+                get() = error("This methods should never be called")
+                set(value) = addEntries(builder, value)
+        }
+        fun createLongFloatMap(builder: FlatBufferBuilder, lambda: LongFloatMapBuilder.() -> Unit = {}) : Offset<LongFloatMap> {
+            val b = LongFloatMapBuilder(builder)
+            startLongFloatMap(builder)
+            b.apply(lambda)
+            return endLongFloatMap(builder)
+        }
+
         fun createLongFloatMap(builder: FlatBufferBuilder, entriesOffset: ArrayOffset<DictionaryLookup.LongFloatEntry>) : Offset<LongFloatMap> {
             builder.startTable(1)
             addEntries(builder, entriesOffset)

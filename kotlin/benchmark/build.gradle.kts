@@ -25,7 +25,7 @@ benchmark {
       iterationTime = 300
       iterationTimeUnit = "ms"
       // uncomment for benchmarking JSON op only
-      include(".*JsonBenchmark.*")
+       include(".*FlatbufferBenchmark.*")
     }
   }
   targets {
@@ -59,4 +59,79 @@ tasks.register<de.undercouch.gradle.tasks.download.Download>("downloadMultipleFi
   src(listOf("$baseUrl/canada.json", "$baseUrl/twitter.json", "$baseUrl/citm_catalog.json"))
   dest(File("${project.projectDir.absolutePath}/src/jvmMain/resources"))
   overwrite(false)
+}
+
+abstract class GenerateFBTestClasses : DefaultTask() {
+  @get:InputFiles
+  abstract val inputFiles: ConfigurableFileCollection
+
+  @get:Input
+  abstract val includeFolder: Property<String>
+
+  @get:Input
+  abstract val outputFolder: Property<String>
+
+  @get:Input
+  abstract val variant: Property<String>
+
+  @Inject
+  protected open fun getExecActionFactory(): org.gradle.process.internal.ExecActionFactory? {
+    throw UnsupportedOperationException()
+  }
+
+  init {
+    includeFolder.set("")
+  }
+
+  @TaskAction
+  fun compile() {
+    val execAction = getExecActionFactory()!!.newExecAction()
+    val sources = inputFiles.asPath.split(":")
+    val args = mutableListOf("/Users/ppinheiro/git_tree/flatbuffers/flatc","-o", outputFolder.get(), "--${variant.get()}")
+    if (includeFolder.get().isNotEmpty()) {
+      args.add("-I")
+      args.add(includeFolder.get())
+    }
+    args.addAll(sources)
+    println(args)
+    execAction.commandLine = args
+    print(execAction.execute())
+  }
+}
+
+// Use the default greeting
+tasks.register<GenerateFBTestClasses>("generateFBTestClassesKt") {
+  inputFiles.setFrom("$rootDir/../tests/monster_test.fbs",
+    "$rootDir/../tests/dictionary_lookup.fbs")
+  includeFolder.set("$rootDir/../tests/include_test")
+  outputFolder.set("${projectDir}/src/jvmMain/kotlin/")
+  variant.set("kotlin-kmp")
+}
+
+//../flatc --cpp --java --kotlin --csharp --ts --php  -o union_vector ./union_vector/union_vector.fbs
+tasks.register<GenerateFBTestClasses>("generateFBTestClassesKtVec") {
+  inputFiles.setFrom("$rootDir/../tests/union_vector/union_vector.fbs")
+  outputFolder.set("${projectDir}/src/jvmMain/kotlin/")
+  variant.set("kotlin-kmp")
+}
+
+//../flatc --java --kotlin --lobster --ts optional_scalars.fbs
+tasks.register<GenerateFBTestClasses>("generateFBTestClassesKtOptionalScalars") {
+  inputFiles.setFrom("$rootDir/../tests/optional_scalars.fbs")
+  outputFolder.set("${projectDir}/src/jvmMain/kotlin/")
+  variant.set("kotlin-kmp")
+}
+
+//../flatc --java --kotlin --lobster --ts optional_scalars.fbs
+tasks.register<GenerateFBTestClasses>("generateFBTestClassesKtNameSpace") {
+  inputFiles.setFrom("$rootDir/../tests/namespace_test/namespace_test1.fbs", "$rootDir/../tests/namespace_test/namespace_test2.fbs")
+  outputFolder.set("${projectDir}/src/jvmMain/kotlin/")
+  variant.set("kotlin-kmp")
+}
+
+project.tasks.named("compileKotlinJvm") {
+  dependsOn("generateFBTestClassesKt")
+  dependsOn("generateFBTestClassesKtVec")
+  dependsOn("generateFBTestClassesKtOptionalScalars")
+  dependsOn("generateFBTestClassesKtNameSpace")
 }

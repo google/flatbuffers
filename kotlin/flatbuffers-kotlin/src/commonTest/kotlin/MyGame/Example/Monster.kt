@@ -189,6 +189,224 @@ class Monster : Table() {
 
         fun MonsterBufferHasIdentifier(buffer: ReadWriteBuffer) : Boolean = hasIdentifier(buffer, "MONS")
 
+        class MonsterBuilder(val builder: FlatBufferBuilder) {
+
+            var pos : Offset<MyGame.Example.Vec3>
+                get() = error("This methods should never be called")
+                set(value) = addPos(builder, value)
+
+            var mana : Short
+                get() = error("This methods should never be called")
+                set(value) = addMana(builder, value)
+
+            var hp : Short
+                get() = error("This methods should never be called")
+                set(value) = addHp(builder, value)
+
+            var inventory : ArrayOffset<UByte>
+                get() = error("This methods should never be called")
+                set(value) = addInventory(builder, value)
+
+            var color : UByte
+                get() = error("This methods should never be called")
+                set(value) = addColor(builder, value)
+
+            var testType : UByte
+                get() = error("This methods should never be called")
+                set(value) = addTestType(builder, value)
+
+            var test : Offset<Any>
+                get() = error("This methods should never be called")
+                set(value) = addTest(builder, value)
+
+            var test4 : ArrayOffset<MyGame.Example.Test>
+                get() = error("This methods should never be called")
+                set(value) = addTest4(builder, value)
+
+            var testarrayofstring : ArrayOffset<String>
+                get() = error("This methods should never be called")
+                set(value) = addTestarrayofstring(builder, value)
+
+            var testarrayoftables : ArrayOffset<MyGame.Example.Monster>
+                get() = error("This methods should never be called")
+                set(value) = addTestarrayoftables(builder, value)
+
+            var enemy : Offset<MyGame.Example.Monster>
+                get() = error("This methods should never be called")
+                set(value) = addEnemy(builder, value)
+
+            var testnestedflatbuffer : ArrayOffset<UByte>
+                get() = error("This methods should never be called")
+                set(value) = addTestnestedflatbuffer(builder, value)
+
+            var testempty : Offset<MyGame.Example.Stat>
+                get() = error("This methods should never be called")
+                set(value) = addTestempty(builder, value)
+
+            var testbool : Boolean
+                get() = error("This methods should never be called")
+                set(value) = addTestbool(builder, value)
+
+            var testhashs32Fnv1 : Int
+                get() = error("This methods should never be called")
+                set(value) = addTesthashs32Fnv1(builder, value)
+
+            var testhashu32Fnv1 : UInt
+                get() = error("This methods should never be called")
+                set(value) = addTesthashu32Fnv1(builder, value)
+
+            var testhashs64Fnv1 : Long
+                get() = error("This methods should never be called")
+                set(value) = addTesthashs64Fnv1(builder, value)
+
+            var testhashu64Fnv1 : ULong
+                get() = error("This methods should never be called")
+                set(value) = addTesthashu64Fnv1(builder, value)
+
+            var testhashs32Fnv1a : Int
+                get() = error("This methods should never be called")
+                set(value) = addTesthashs32Fnv1a(builder, value)
+
+            var testhashu32Fnv1a : UInt
+                get() = error("This methods should never be called")
+                set(value) = addTesthashu32Fnv1a(builder, value)
+
+            var testhashs64Fnv1a : Long
+                get() = error("This methods should never be called")
+                set(value) = addTesthashs64Fnv1a(builder, value)
+
+            var testhashu64Fnv1a : ULong
+                get() = error("This methods should never be called")
+                set(value) = addTesthashu64Fnv1a(builder, value)
+
+            var testarrayofbools : ArrayOffset<Boolean>
+                get() = error("This methods should never be called")
+                set(value) = addTestarrayofbools(builder, value)
+
+            var testf : Float
+                get() = error("This methods should never be called")
+                set(value) = addTestf(builder, value)
+
+            var testf2 : Float
+                get() = error("This methods should never be called")
+                set(value) = addTestf2(builder, value)
+
+            var testf3 : Float
+                get() = error("This methods should never be called")
+                set(value) = addTestf3(builder, value)
+
+            var testarrayofstring2 : ArrayOffset<String>
+                get() = error("This methods should never be called")
+                set(value) = addTestarrayofstring2(builder, value)
+
+            var testarrayofsortedstruct : ArrayOffset<MyGame.Example.Ability>
+                get() = error("This methods should never be called")
+                set(value) = addTestarrayofsortedstruct(builder, value)
+
+            var flex : ArrayOffset<UByte>
+                get() = error("This methods should never be called")
+                set(value) = addFlex(builder, value)
+
+            var test5 : ArrayOffset<MyGame.Example.Test>
+                get() = error("This methods should never be called")
+                set(value) = addTest5(builder, value)
+
+            var vectorOfLongs : ArrayOffset<Long>
+                get() = error("This methods should never be called")
+                set(value) = addVectorOfLongs(builder, value)
+
+            var vectorOfDoubles : ArrayOffset<Double>
+                get() = error("This methods should never be called")
+                set(value) = addVectorOfDoubles(builder, value)
+
+            var parentNamespaceTest : Offset<MyGame.InParentNamespace>
+                get() = error("This methods should never be called")
+                set(value) = addParentNamespaceTest(builder, value)
+
+            var vectorOfReferrables : ArrayOffset<MyGame.Example.Referrable>
+                get() = error("This methods should never be called")
+                set(value) = addVectorOfReferrables(builder, value)
+
+            var singleWeakReference : ULong
+                get() = error("This methods should never be called")
+                set(value) = addSingleWeakReference(builder, value)
+
+            var vectorOfWeakReferences : ArrayOffset<ULong>
+                get() = error("This methods should never be called")
+                set(value) = addVectorOfWeakReferences(builder, value)
+
+            var vectorOfStrongReferrables : ArrayOffset<MyGame.Example.Referrable>
+                get() = error("This methods should never be called")
+                set(value) = addVectorOfStrongReferrables(builder, value)
+
+            var coOwningReference : ULong
+                get() = error("This methods should never be called")
+                set(value) = addCoOwningReference(builder, value)
+
+            var vectorOfCoOwningReferences : ArrayOffset<ULong>
+                get() = error("This methods should never be called")
+                set(value) = addVectorOfCoOwningReferences(builder, value)
+
+            var nonOwningReference : ULong
+                get() = error("This methods should never be called")
+                set(value) = addNonOwningReference(builder, value)
+
+            var vectorOfNonOwningReferences : ArrayOffset<ULong>
+                get() = error("This methods should never be called")
+                set(value) = addVectorOfNonOwningReferences(builder, value)
+
+            var anyUniqueType : UByte
+                get() = error("This methods should never be called")
+                set(value) = addAnyUniqueType(builder, value)
+
+            var anyUnique : Offset<Any>
+                get() = error("This methods should never be called")
+                set(value) = addAnyUnique(builder, value)
+
+            var anyAmbiguousType : UByte
+                get() = error("This methods should never be called")
+                set(value) = addAnyAmbiguousType(builder, value)
+
+            var anyAmbiguous : Offset<Any>
+                get() = error("This methods should never be called")
+                set(value) = addAnyAmbiguous(builder, value)
+
+            var vectorOfEnums : ArrayOffset<UByte>
+                get() = error("This methods should never be called")
+                set(value) = addVectorOfEnums(builder, value)
+
+            var signedEnum : Byte
+                get() = error("This methods should never be called")
+                set(value) = addSignedEnum(builder, value)
+
+            var testrequirednestedflatbuffer : ArrayOffset<UByte>
+                get() = error("This methods should never be called")
+                set(value) = addTestrequirednestedflatbuffer(builder, value)
+
+            var scalarKeySortedTables : ArrayOffset<MyGame.Example.Stat>
+                get() = error("This methods should never be called")
+                set(value) = addScalarKeySortedTables(builder, value)
+
+            var nativeInline : Offset<MyGame.Example.Test>
+                get() = error("This methods should never be called")
+                set(value) = addNativeInline(builder, value)
+
+            var longEnumNonEnumDefault : ULong
+                get() = error("This methods should never be called")
+                set(value) = addLongEnumNonEnumDefault(builder, value)
+
+            var longEnumNormalDefault : ULong
+                get() = error("This methods should never be called")
+                set(value) = addLongEnumNormalDefault(builder, value)
+        }
+        fun createMonster(builder: FlatBufferBuilder, name: Offset<String>, lambda: MonsterBuilder.() -> Unit = {}) : Offset<Monster> {
+            val b = MonsterBuilder(builder)
+            startMonster(builder)
+            addName(builder, name)
+            b.apply(lambda)
+            return endMonster(builder)
+        }
+
         fun startMonster(builder: FlatBufferBuilder) = builder.startTable(54)
 
         fun addPos(builder: FlatBufferBuilder, pos: Offset<MyGame.Example.Vec3>) = builder.addStruct(0, pos, null)

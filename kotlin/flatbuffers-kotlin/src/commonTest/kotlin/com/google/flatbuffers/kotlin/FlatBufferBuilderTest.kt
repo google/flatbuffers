@@ -13,6 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+@file:Suppress("UNCHECKED_CAST")
+
 package com.google.flatbuffers.kotlin
 
 import Attacker
@@ -198,25 +200,41 @@ class FlatBufferBuilderTest {
     val testArrayOfString =
       Monster.createTestarrayofstringVector(fbb, arrayOf(fbb.createString("test1"), fbb.createString("test2")))
 
-    Monster.startMonster(fbb)
-    Monster.addPos(
-      fbb, Vec3.createVec3(
+    val mon = Monster.createMonster(fbb, str) {
+      pos = Vec3.createVec3(
         fbb, 1.0f, 2.0f, 3.0f, 3.0,
         Color.Green, 5.toShort(), 6.toByte()
       )
-    )
-    Monster.addHp(fbb, 80.toShort())
-    Monster.addName(fbb, str)
-    Monster.addMana(fbb, 150)
-    Monster.addInventory(fbb, inv)
-    Monster.addTestType(fbb, Any_.Monster)
-    Monster.addTest(fbb, mon2 as Offset<Any>) //TODO: Improve this
-    Monster.addTest4(fbb, test4)
-    Monster.addTestarrayofstring(fbb, testArrayOfString)
-    Monster.addTestbool(fbb, true)
-    Monster.addTesthashu32Fnv1(fbb, (Int.MAX_VALUE + 1L).toUInt())
-    Monster.addTestarrayoftables(fbb, sortMons)
-    val mon = Monster.endMonster(fbb)
+      hp = 80
+      mana = 150
+      inventory = inv
+      testType = Any_.Monster
+      test = mon2 as Offset<Any>
+      this.test4 = test4
+      testarrayofstring = testArrayOfString
+      testbool = true
+      testhashu32Fnv1 = (Int.MAX_VALUE + 1L).toUInt()
+      testarrayoftables = sortMons
+    }
+//    Monster.startMonster(fbb)
+//    Monster.addPos(
+//      fbb, Vec3.createVec3(
+//        fbb, 1.0f, 2.0f, 3.0f, 3.0,
+//        Color.Green, 5.toShort(), 6.toByte()
+//      )
+//    )
+//    Monster.addHp(fbb, 80.toShort())
+//    Monster.addName(fbb, str)
+//    Monster.addMana(fbb, 150)
+//    Monster.addInventory(fbb, inv)
+//    Monster.addTestType(fbb, Any_.Monster)
+//    Monster.addTest(fbb, mon2 as Offset<Any>) //TODO: Improve this
+//    Monster.addTest4(fbb, test4)
+//    Monster.addTestarrayofstring(fbb, testArrayOfString)
+//    Monster.addTestbool(fbb, true)
+//    Monster.addTesthashu32Fnv1(fbb, (Int.MAX_VALUE + 1L).toUInt())
+//    Monster.addTestarrayoftables(fbb, sortMons)
+//    val mon = Monster.endMonster(fbb)
     Monster.finishMonsterBuffer(fbb, mon)
     //Attempt to mutate Monster fields and check whether the buffer has been mutated properly
     // revert to original values after testing

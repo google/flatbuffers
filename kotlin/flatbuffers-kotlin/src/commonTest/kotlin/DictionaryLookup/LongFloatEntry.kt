@@ -25,6 +25,23 @@ class LongFloatEntry : Table() {
         fun asRoot(buffer: ReadWriteBuffer, obj: LongFloatEntry) : LongFloatEntry = obj.assign(buffer.getInt(buffer.limit) + buffer.limit, buffer)
 
 
+        class LongFloatEntryBuilder(val builder: FlatBufferBuilder) {
+
+            var key : Long
+                get() = error("This methods should never be called")
+                set(value) = addKey(builder, value)
+
+            var value : Float
+                get() = error("This methods should never be called")
+                set(value) = addValue(builder, value)
+        }
+        fun createLongFloatEntry(builder: FlatBufferBuilder, lambda: LongFloatEntryBuilder.() -> Unit = {}) : Offset<LongFloatEntry> {
+            val b = LongFloatEntryBuilder(builder)
+            startLongFloatEntry(builder)
+            b.apply(lambda)
+            return endLongFloatEntry(builder)
+        }
+
         fun createLongFloatEntry(builder: FlatBufferBuilder, key: Long, value: Float) : Offset<LongFloatEntry> {
             builder.startTable(2)
             addKey(builder, key)
