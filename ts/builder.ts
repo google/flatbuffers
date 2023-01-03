@@ -372,6 +372,7 @@ export class Builder {
       const trimmed_size = i + 1;
   
       // Write out the current vtable.
+      i = this.vtable_in_use - 1;
       for (; i >= 0; i--) {
         // Offset relative to the start of the table.
         this.addInt16(this.vtable[i] != 0 ? vtableloc - this.vtable[i] : 0);

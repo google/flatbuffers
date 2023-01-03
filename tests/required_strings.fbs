@@ -1,0 +1,6 @@
+namespace required_strings;
+
+table Foo {
+  str_a:string (required);
+  str_b:string (required);
+}
