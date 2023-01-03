@@ -57,6 +57,14 @@ option(FLATBUFFERS_SKIP_MONSTER_EXTRA
 option(FLATBUFFERS_STRICT_MODE
       "Build flatbuffers with all warnings as errors (-Werror or /WX)."
       OFF)
+# Begin MZ_CUSTOM_FLATBUFFERS
+option(MZ_CUSTOM_FLATBUFFERS
+      "Build customized flatbuffers for mediaZ."
+      OFF)
+if (${MZ_CUSTOM_FLATBUFFERS})
+  add_definitions(-DMZ_CUSTOM_FLATBUFFERS=1)
+endif()
+
 
 if(NOT DEFINED FLATBUFFERS_CPP_STD)
   set(FLATBUFFERS_CPP_STD 11)
@@ -150,8 +158,13 @@ set(FlatBuffers_Library_SRCS
   src/idl_gen_text.cpp
   src/reflection.cpp
   src/util.cpp
-  src/idl_gen_json_schema.cpp
 )
+
+if (${MZ_CUSTOM_FLATBUFFERS})
+  list(APPEND FlatBuffers_Library_SRCS
+    src/idl_gen_json_schema.cpp
+  )
+endif()
 
 set(FlatBuffers_Compiler_SRCS
   ${FlatBuffers_Library_SRCS}
