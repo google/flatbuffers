@@ -829,7 +829,7 @@ void FixedLengthArrayConstructorTest() {
 void FixedLengthArrayConstructorTest() {}
 #endif
 
-void FixedLengthArrayOpratorEqualTest() {
+void FixedLengthArrayOperatorEqualTest() {
   const int32_t nested_a[2] = { 1, 2 };
   MyGame::Example::TestEnum nested_c[2] = { MyGame::Example::TestEnum::A,
                                             MyGame::Example::TestEnum::B };
@@ -1608,7 +1608,7 @@ int FlatBufferTests(const std::string &tests_data_path) {
   ParseFlexbuffersFromJsonWithNullTest();
   FlatbuffersSpanTest();
   FixedLengthArrayConstructorTest();
-  FixedLengthArrayOpratorEqualTest();
+  FixedLengthArrayOperatorEqualTest();
   FieldIdentifierTest();
   StringVectorDefaultsTest();
   FlexBuffersFloatingPointTest();
