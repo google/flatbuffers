@@ -4,19 +4,37 @@ All major or breaking changes will be documented in this file, as well as any
 new features that should be highlighted. Minor fixes or improvements are not
 necessarily listed.
 
-## 22.12.06 (Dec 06 2022)
+## [23.1.4 (Jan 4 2023)](https://github.com/google/flatbuffers/releases/tag/v23.1.4)
+
+* Major release! Just kidding, we are continuing the
+  [versioning scheme](https://github.com/google/flatbuffers/wiki/Versioning) of
+  using a date to signify releases. This results in the first release of the new
+  year to bump the tradition major version field.
+
+* Go minimum version is now 1.19 (#7720) with the addition of Go modules.
+
+* Added CI support for Big Endian regression testing (#7707).
+
+* Fixed `getFullyQualifiedName` in typescript to return name delimited by '.'
+  instead of '_' (#7730).
+
+* Fixed the versioning scheme to not include leading zeros which are not
+  consistently handled by every package manager. Only the last release
+  (12.12.06) should have suffered from this.
+
+## [22.12.06 (Dec 06 2022)](https://github.com/google/flatbuffers/releases/tag/v22.12.06)
 
 * Bug fixing release, no major changes.
 
-## 22.10.25 (Oct 25 2022)
+## [22.10.25 (Oct 25 2022)](https://github.com/google/flatbuffers/releases/tag/v22.10.25)
 
 * Added Nim language support with generator and runtime libraries (#7534).
 
-## 22.9.29 (Sept 29 2022)
+## [22.9.29 (Sept 29 2022)](https://github.com/google/flatbuffers/releases/tag/v22.9.29)
 
 * Rust soundness fixes to avoid the crate from bing labelled unsafe (#7518).
 
-## 22.9.24 (Sept 24 2022)
+## [22.9.24 (Sept 24 2022)](https://github.com/google/flatbuffers/releases/tag/v22.9.24)
 
 * 20 Major releases in a row? Nope, we switched to a new
   [versioning scheme](https://github.com/google/flatbuffers/wiki/Versioning)
