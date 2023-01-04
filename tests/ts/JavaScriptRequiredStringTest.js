@@ -1,32 +1,31 @@
 import assert from 'assert'
 import * as flatbuffers from 'flatbuffers';
-// import * as flatbuffers from '~/src/mediasoup/node_modules/flatbuffers/js'
 import { Foo } from './required-strings/foo.js';
 
 
 var builder = new flatbuffers.Builder();
 
 function main() {
-  testMissingRequiredStringA();
+  testMissingFirstRequiredString();
   builder.clear();
-  testMissingRequiredStringB();
+  testMissingSecondRequiredString();
 }
 
-function testMissingRequiredStringA() {
-	const strA = builder.createString(undefined);
-	const strB = builder.createString('B');
+function testMissingFirstRequiredString() {
+	const undefined_string = builder.createString(undefined);
+	const defined_string = builder.createString('cat');
 
 	assert.throws(() => Foo.createFoo(
-		builder, strA, strB
+		builder, undefined_string, defined_string
 	));
 }
 
-function testMissingRequiredStringB() {
-	const strA = builder.createString('A');
-	const strB = builder.createString(undefined);
+function testMissingSecondRequiredString() {
+	const defined_string = builder.createString('cat');
+	const undefined_string = builder.createString(undefined);
 
 	assert.throws(() => Foo.createFoo(
-		builder, strA, strB
+		builder, defined_string, undefined_string
 	));
 }
 
