@@ -20,7 +20,6 @@ import glob
 import platform
 import shutil
 import subprocess
-import generate_grpc_examples
 from pathlib import Path
 
 parser = argparse.ArgumentParser()
@@ -51,7 +50,7 @@ root_path = script_path.parent.absolute()
 # Get the location of the flatc executable, reading from the first command line
 # argument or defaulting to default names.
 flatc_exe = Path(
-    ("flatc" if not platform.system() == "Windows" else "Release/flatc.exe")
+    ("flatc" if not platform.system() == "Windows" else "flatc.exe")
     if not args.flatc
     else args.flatc
 )
@@ -561,5 +560,50 @@ flatc_annotate(
     schema="monster_test.fbs", include="include_test", data="monsterdata_test.mon"
 )
 
-# Run the generate_grpc_examples script
-generate_grpc_examples.GenerateGRPCExamples()
+# Generate grpc examples
+grpc_examples_path = Path(root_path, "grpc/examples")
+
+greeter_schema = Path(grpc_examples_path, "greeter.fbs")
+
+COMMON_ARGS = [
+    "--grpc",
+    "--bfbs-filenames",
+    str(grpc_examples_path),
+]
+
+flatc(
+    COMMON_ARGS
+    + [
+        "--go",
+    ],
+    schema=str(greeter_schema),
+    cwd=Path(grpc_examples_path, "go/greeter"),
+)
+
+flatc(
+    COMMON_ARGS
+    + [
+        "--python",
+    ],
+    schema=str(greeter_schema),
+    cwd=Path(grpc_examples_path, "python/greeter"),
+)
+
+flatc(
+    COMMON_ARGS
+    + [
+        "--swift",
+        "--gen-json-emit",
+    ],
+    schema=str(greeter_schema),
+    cwd=Path(grpc_examples_path, "swift/Greeter/Sources/Model"),
+)
+
+flatc(
+    COMMON_ARGS
+    + [
+        "--ts",
+    ],
+    schema=str(greeter_schema),
+    cwd=Path(grpc_examples_path, "ts/greeter/src"),
+)
