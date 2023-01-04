@@ -1,3 +1,3 @@
-module github.com/google/flatbuffers
+module github.com/google/flatbuffers/go
 
 go 1.19
