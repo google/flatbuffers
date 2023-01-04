@@ -373,6 +373,7 @@ export class Builder {
   
       // Write out the current vtable.
       i = this.vtable_in_use - 1;
+      // Add the offset of every field.
       for (; i >= 0; i--) {
         // Offset relative to the start of the table.
         this.addInt16(this.vtable[i] != 0 ? vtableloc - this.vtable[i] : 0);
