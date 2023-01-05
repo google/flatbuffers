@@ -132,9 +132,22 @@ class KotlinGenerator : public BaseGenerator {
       code += "\n\n";
     }
     if (needs_includes) {
-      code += "import java.nio.*\n";
-      code += "import kotlin.math.sign\n";
-      code += "import com.google.flatbuffers.*\n\n";
+      code +=
+          "import com.google.flatbuffers.BaseVector\n"
+          "import com.google.flatbuffers.BooleanVector\n"
+          "import com.google.flatbuffers.ByteVector\n"
+          "import com.google.flatbuffers.Constants\n"
+          "import com.google.flatbuffers.DoubleVector\n"
+          "import com.google.flatbuffers.FlatBufferBuilder\n"
+          "import com.google.flatbuffers.FloatVector\n"
+          "import com.google.flatbuffers.LongVector\n"
+          "import com.google.flatbuffers.StringVector\n"
+          "import com.google.flatbuffers.Struct\n"
+          "import com.google.flatbuffers.Table\n"
+          "import com.google.flatbuffers.UnionVector\n"
+          "import java.nio.ByteBuffer\n"
+          "import java.nio.ByteOrder\n"
+          "import kotlin.math.sign\n\n";
     }
     code += classcode;
     const std::string dirs = namer_.Directories(ns);
