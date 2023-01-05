@@ -269,6 +269,16 @@ class JsonSchemaGenerator : public BaseGenerator {
         typeLine += GenType(property->value.type);
         typeLine += arrayInfo;
         typeLine += deprecated_info;
+#if defined(MZ_CUSTOM_FLATBUFFERS) && MZ_CUSTOM_FLATBUFFERS
+        if (property->attributes.dict.size() > 0) { // Generate attributes
+          typeLine += "," + NewLine() + Indent(8) + "\"attributes\" : {";
+          for (auto const &[key, value] : property->attributes.dict) {
+            typeLine += NewLine() + Indent(9) + "\"" + key + "\" : \"" +
+                        value->constant + "\"";
+          }
+          typeLine += NewLine() + Indent(8) + "}";
+        }
+#endif
         auto description = PrepareDescription(property->doc_comment);
         if (description != "") {
           typeLine +=
