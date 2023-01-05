@@ -34,7 +34,11 @@ template<class T> static std::string GenFullName(const T *enum_def) {
   std::string full_name;
   const auto &name_spaces = enum_def->defined_namespace->components;
   for (auto ns = name_spaces.cbegin(); ns != name_spaces.cend(); ++ns) {
+#if defined(MZ_CUSTOM_FLATBUFFERS) && MZ_CUSTOM_FLATBUFFERS
+    full_name.append(*ns + ".");
+#else
     full_name.append(*ns + "_");
+#endif
   }
   full_name.append(enum_def->name);
   return full_name;
