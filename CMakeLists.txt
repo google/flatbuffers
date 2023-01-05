@@ -426,6 +426,7 @@ else()
 
       # This isn't working for some reason: $<$<CXX_COMPILER_ID:CLANG>:
       $<$<BOOL:${IS_CLANG}>:
+        -Wnewline-eof
         -Wno-unknown-warning-option
         -Wmissing-declarations
         -Wzero-as-null-pointer-constant
@@ -632,7 +633,7 @@ if(FLATBUFFERS_BUILD_TESTS)
   compile_flatbuffers_schema_to_binary(tests/monster_test.fbs)
   compile_flatbuffers_schema_to_cpp_opt(tests/namespace_test/namespace_test1.fbs "--no-includes;--gen-compare;--gen-name-strings")
   compile_flatbuffers_schema_to_cpp_opt(tests/namespace_test/namespace_test2.fbs "--no-includes;--gen-compare;--gen-name-strings")
-  compile_flatbuffers_schema_to_cpp_opt(tests/union_vector/union_vector.fbs "--no-includes;--gen-compare;--gen-name-strings")
+  compile_flatbuffers_schema_to_cpp_opt(tests/union_vector/union_vector.fbs "--no-includes;--gen-compare;")
   compile_flatbuffers_schema_to_cpp(tests/optional_scalars.fbs)
   compile_flatbuffers_schema_to_cpp_opt(tests/native_type_test.fbs "")
   compile_flatbuffers_schema_to_cpp_opt(tests/arrays_test.fbs "--scoped-enums;--gen-compare")
@@ -640,6 +641,7 @@ if(FLATBUFFERS_BUILD_TESTS)
   compile_flatbuffers_schema_to_embedded_binary(tests/monster_test.fbs "--no-includes;--gen-compare")
   compile_flatbuffers_schema_to_cpp(tests/native_inline_table_test.fbs "--gen-compare")
   compile_flatbuffers_schema_to_cpp(tests/alignment_test.fbs "--gen-compare")
+  compile_flatbuffers_schema_to_cpp(tests/key_field/key_field_sample.fbs)
   if(NOT (MSVC AND (MSVC_VERSION LESS 1900)))
     compile_flatbuffers_schema_to_cpp(tests/monster_extra.fbs) # Test floating-point NAN/INF.
   endif()

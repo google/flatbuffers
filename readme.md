@@ -2,6 +2,7 @@
 ===========
 
 ![Build status](https://github.com/google/flatbuffers/actions/workflows/build.yml/badge.svg?branch=master)
+[![BuildKite status](https://badge.buildkite.com/7979d93bc6279aa539971f271253c65d5e8fe2fe43c90bbb25.svg)](https://buildkite.com/bazel/flatbuffers)
 [![Fuzzing Status](https://oss-fuzz-build-logs.storage.googleapis.com/badges/flatbuffers.svg)](https://bugs.chromium.org/p/oss-fuzz/issues/list?sort=-opened&can=1&q=proj:flatbuffers)
 [![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/google/flatbuffers/badge)](https://api.securityscorecards.dev/projects/github.com/google/flatbuffers)
 [![Join the chat at https://gitter.im/google/flatbuffers](https://badges.gitter.im/google/flatbuffers.svg)](https://gitter.im/google/flatbuffers?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
@@ -39,12 +40,9 @@ Code generation and runtime libraries for many popular languages.
 1. PHP
 1. Python - [PyPi](https://pypi.org/project/flatbuffers/)
 1. Rust - [crates.io](https://crates.io/crates/flatbuffers)
-1. Swift
+1. Swift - [swiftpackageindex](https://swiftpackageindex.com/google/flatbuffers)
 1. TypeScript - [NPM](https://www.npmjs.com/package/flatbuffers)
-
-*and more in progress...*
-
-1. [Nim](https://github.com/google/flatbuffers/pull/7362)
+1. Nim
 
 ## Contribution
 

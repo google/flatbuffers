@@ -918,6 +918,12 @@ CheckedError Parser::ParseField(StructDef &struct_def) {
   ECHECK(ParseType(type));
 
   if (struct_def.fixed) {
+    if (IsIncompleteStruct(type) || 
+        (IsArray(type) && IsIncompleteStruct(type.VectorType()))) {
+      std::string type_name = IsArray(type) ? type.VectorType().struct_def->name : type.struct_def->name;
+      return Error(std::string("Incomplete type in struct is not allowed, type name: ") + type_name);
+    }
+
     auto valid = IsScalar(type.base_type) || IsStruct(type);
     if (!valid && IsArray(type)) {
       const auto &elem_type = type.VectorType();
@@ -4233,8 +4239,13 @@ std::string Parser::ConformTo(const Parser &base) {
           field_base = *fbit;
           if (field.value.offset == field_base->value.offset) {
             renamed_fields.insert(field_base);
-            if (!EqualByName(field.value.type, field_base->value.type))
-              return "field renamed to different type: " + qualified_field_name;
+            if (!EqualByName(field.value.type, field_base->value.type)) {
+              const auto qualified_field_base =
+                  qualified_name + "." + field_base->name;
+              return "field renamed to different type: " +
+                     qualified_field_name + " (renamed from " +
+                     qualified_field_base + ")";
+            }
             break;
           }
         }

@@ -1,7 +1,7 @@
 
 printf -v year '%(%y)T' -1
-printf -v month '%(%m)T' -1
-printf -v day '%(%d)T' -1
+printf -v month '%(%-m)T' -1
+printf -v day '%(%-d)T' -1
 
 version="$year.$month.$day"
 version_underscore="$year\_$month\_$day"
@@ -62,6 +62,11 @@ echo "Updating python/setup.py..."
 sed -i \
   -e "s/\(version='\).*/\1$version',/" \
   python/setup.py
+
+echo "Updating rust/flatbuffers/Cargo.toml..."
+sed -i \
+  "s/^version = \".*\"$/version = \"$version\"/g" \
+  rust/flatbuffers/Cargo.toml
 
 echo "Updating FlatBuffers.podspec..."
 sed -i \
