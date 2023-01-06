@@ -297,7 +297,8 @@ struct FieldDef : public Definition {
         flexbuffer(false),
         presence(kDefault),
         nested_flatbuffer(nullptr),
-        padding(0) {}
+        padding(0),
+        sibling_union_field(nullptr){}
 
   Offset<reflection::Field> Serialize(FlatBufferBuilder *builder, uint16_t id,
                                       const Parser &parser) const;
@@ -342,6 +343,12 @@ struct FieldDef : public Definition {
 
   StructDef *nested_flatbuffer;  // This field contains nested FlatBuffer data.
   size_t padding;                // Bytes to always pad after this field.
+
+  // sibling_union_field is always set to nullptr. The only exception is
+  // when FieldDef is a union field or an union type field. Therefore,
+  // sibling_union_field on a union field points to the union type field
+  // and vice-versa.
+  FieldDef *sibling_union_field;
 };
 
 struct StructDef : public Definition {
