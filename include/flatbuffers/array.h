@@ -17,6 +17,8 @@
 #ifndef FLATBUFFERS_ARRAY_H_
 #define FLATBUFFERS_ARRAY_H_
 
+#include <memory>
+
 #include "flatbuffers/base.h"
 #include "flatbuffers/stl_emulation.h"
 #include "flatbuffers/vector.h"
@@ -236,6 +238,14 @@ template<typename E, typename T, uint16_t length>
 const Array<E, length> &CastToArrayOfEnum(const T (&arr)[length]) {
   static_assert(sizeof(E) == sizeof(T), "invalid enum type E");
   return *reinterpret_cast<const Array<E, length> *>(arr);
+}
+
+template<typename T, uint16_t length>
+bool operator==(const Array<T, length> &lhs,
+                const Array<T, length> &rhs) noexcept {
+  return std::addressof(lhs) == std::addressof(rhs) ||
+         (lhs.size() == rhs.size() &&
+          std::memcmp(lhs.Data(), rhs.Data(), rhs.size() * sizeof(T)) == 0);
 }
 
 }  // namespace flatbuffers
