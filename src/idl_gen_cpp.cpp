@@ -2044,7 +2044,6 @@ class CppGenerator : public BaseGenerator {
       const auto accessor = Name(field) + accessSuffix;
       const auto lhs_accessor = "lhs." + accessor;
       const auto rhs_accessor = "rhs." + accessor;
-
       if (!field.deprecated &&  // Deprecated fields won't be accessible.
           field.value.type.base_type != BASE_TYPE_UTYPE &&
           (field.value.type.base_type != BASE_TYPE_VECTOR ||
@@ -2067,6 +2066,8 @@ class CppGenerator : public BaseGenerator {
                 " const &b) { return (a == b) || (a && b && *a == *b); })";
 
             compare_op += "(" + equal_length + " && " + elements_equal + ")";
+          } else if (field.value.type.base_type == BASE_TYPE_ARRAY) {
+            compare_op += "(*" + lhs_accessor + " == *" + rhs_accessor + ")";
           } else {
             compare_op += "(" + lhs_accessor + " == " + rhs_accessor + ")";
           }
