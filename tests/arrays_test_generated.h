@@ -141,10 +141,10 @@ FLATBUFFERS_STRUCT_END(NestedStruct, 32);
 
 inline bool operator==(const NestedStruct &lhs, const NestedStruct &rhs) {
   return
-      (lhs.a() == rhs.a()) &&
+      (*lhs.a() == *rhs.a()) &&
       (lhs.b() == rhs.b()) &&
-      (lhs.c() == rhs.c()) &&
-      (lhs.d() == rhs.d());
+      (*lhs.c() == *rhs.c()) &&
+      (*lhs.d() == *rhs.d());
 }
 
 inline bool operator!=(const NestedStruct &lhs, const NestedStruct &rhs) {
@@ -257,11 +257,11 @@ FLATBUFFERS_STRUCT_END(ArrayStruct, 160);
 inline bool operator==(const ArrayStruct &lhs, const ArrayStruct &rhs) {
   return
       (lhs.a() == rhs.a()) &&
-      (lhs.b() == rhs.b()) &&
+      (*lhs.b() == *rhs.b()) &&
       (lhs.c() == rhs.c()) &&
-      (lhs.d() == rhs.d()) &&
+      (*lhs.d() == *rhs.d()) &&
       (lhs.e() == rhs.e()) &&
-      (lhs.f() == rhs.f());
+      (*lhs.f() == *rhs.f());
 }
 
 inline bool operator!=(const ArrayStruct &lhs, const ArrayStruct &rhs) {

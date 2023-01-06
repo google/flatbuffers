@@ -88,7 +88,7 @@ FLATBUFFERS_STRUCT_END(Baz, 5);
 
 inline bool operator==(const Baz &lhs, const Baz &rhs) {
   return
-      (lhs.a() == rhs.a()) &&
+      (*lhs.a() == *rhs.a()) &&
       (lhs.b() == rhs.b());
 }
 
@@ -161,7 +161,7 @@ FLATBUFFERS_STRUCT_END(Bar, 16);
 
 inline bool operator==(const Bar &lhs, const Bar &rhs) {
   return
-      (lhs.a() == rhs.a()) &&
+      (*lhs.a() == *rhs.a()) &&
       (lhs.b() == rhs.b());
 }
 
