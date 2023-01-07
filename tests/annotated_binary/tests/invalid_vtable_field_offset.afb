@@ -52,15 +52,15 @@ root_table (AnnotatedBinary.Foo):
   +0x004F | 01                      | UType8       | 0x01 (1)                       | table field `anything_type` (UType)
   +0x0050 | D2 04 00 00             | uint32_t     | 0x000004D2 (1234)              | table field `counter` (Int)
   +0x0054 | 28 02 00 00             | ?uint8_t[4]  | (...                           | WARN: nothing refers to this section.
-  +0x0058 | 01 00 00 00             | uint32_t     | 0x00000001 (1)                 | struct field `AnnotatedBinary.Building.floors` (Int)
-  +0x005C | 02 00 00 00             | uint32_t     | 0x00000002 (2)                 | struct field `AnnotatedBinary.Building.doors` (Int)
-  +0x0060 | 0C 00 00 00             | uint32_t     | 0x0000000C (12)                | struct field `AnnotatedBinary.Building.windows` (Int)
-  +0x0064 | 0A 00 00 00             | uint32_t     | 0x0000000A (10)                | array field `AnnotatedBinary.Dimension.values`[0] (Int)
-  +0x0068 | 0C 00 00 00             | uint32_t     | 0x0000000C (12)                | array field `AnnotatedBinary.Dimension.values`[1] (Int)
-  +0x006C | 14 00 00 00             | uint32_t     | 0x00000014 (20)                | array field `AnnotatedBinary.Dimension.values`[2] (Int)
-  +0x0070 | 01                      | uint8_t      | 0x01 (1)                       | struct field `AnnotatedBinary.Tolerance.width` (UByte)
-  +0x0071 | 02                      | uint8_t      | 0x02 (2)                       | struct field `AnnotatedBinary.Tolerance.width` (UByte)
-  +0x0072 | 03                      | uint8_t      | 0x03 (3)                       | struct field `AnnotatedBinary.Tolerance.width` (UByte)
+  +0x0058 | 01 00 00 00             | uint32_t     | 0x00000001 (1)                 | struct field `home.floors` of 'AnnotatedBinary.Building' (Int)
+  +0x005C | 02 00 00 00             | uint32_t     | 0x00000002 (2)                 | struct field `home.doors` of 'AnnotatedBinary.Building' (Int)
+  +0x0060 | 0C 00 00 00             | uint32_t     | 0x0000000C (12)                | struct field `home.windows` of 'AnnotatedBinary.Building' (Int)
+  +0x0064 | 0A 00 00 00             | uint32_t     | 0x0000000A (10)                | array field `home.dimensions.values`[0] of 'AnnotatedBinary.Dimension' (Int)
+  +0x0068 | 0C 00 00 00             | uint32_t     | 0x0000000C (12)                | array field `home.dimensions.values`[1] of 'AnnotatedBinary.Dimension' (Int)
+  +0x006C | 14 00 00 00             | uint32_t     | 0x00000014 (20)                | array field `home.dimensions.values`[2] of 'AnnotatedBinary.Dimension' (Int)
+  +0x0070 | 01                      | uint8_t      | 0x01 (1)                       | struct field `home.dimensions.tolerances.width` of 'AnnotatedBinary.Tolerance' (UByte)
+  +0x0071 | 02                      | uint8_t      | 0x02 (2)                       | struct field `home.dimensions.tolerances.width` of 'AnnotatedBinary.Tolerance' (UByte)
+  +0x0072 | 03                      | uint8_t      | 0x03 (3)                       | struct field `home.dimensions.tolerances.width` of 'AnnotatedBinary.Tolerance' (UByte)
   +0x0073 | 00                      | uint8_t[1]   | .                              | padding
   +0x0074 | C8 01 00 00             | UOffset32    | 0x000001C8 (456) Loc: +0x023C  | offset to field `name` (string)
   +0x0078 | 5C 01 00 00             | UOffset32    | 0x0000015C (348) Loc: +0x01D4  | offset to field `bars` (vector)
@@ -98,7 +98,7 @@ table (AnnotatedBinary.Bar):
   +0x00D0 | 00 00 00                | uint8_t[3]   | ...                            | padding
 
 union (AnnotatedBinary.Tolerance.measurement):
-  +0x00D3 | 05                      | uint8_t      | 0x05 (5)                       | struct field `AnnotatedBinary.Tolerance.width` (UByte)
+  +0x00D3 | 05                      | uint8_t      | 0x05 (5)                       | struct field `measurement.width` of 'AnnotatedBinary.Tolerance' (UByte)
 
 vector (AnnotatedBinary.Foo.foobars):
   +0x00D4 | 03 00 00 00             | uint32_t     | 0x00000003 (3)                 | length of vector (# items)
@@ -145,12 +145,12 @@ vector (AnnotatedBinary.Foo.foobars_type):
 
 vector (AnnotatedBinary.Foo.points_of_interest):
   +0x0134 | 03 00 00 00             | uint32_t     | 0x00000003 (3)                 | length of vector (# items)
-  +0x0138 | 33 33 33 33 33 A3 45 40 | double       | 0x4045A33333333333 (43.275)    | struct field `AnnotatedBinary.Location.latitude` (Double)
-  +0x0140 | 7E 57 04 FF 5B 87 53 C0 | double       | 0xC053875BFF04577E (-78.115)   | struct field `AnnotatedBinary.Location.longitude` (Double)
-  +0x0148 | 8D F0 F6 20 04 B6 42 40 | double       | 0x4042B60420F6F08D (37.422)    | struct field `AnnotatedBinary.Location.latitude` (Double)
-  +0x0150 | 9F 77 63 41 61 85 5E C0 | double       | 0xC05E85614163779F (-122.084)  | struct field `AnnotatedBinary.Location.longitude` (Double)
-  +0x0158 | 8F 35 23 83 DC 35 4B C0 | double       | 0xC04B35DC8323358F (-54.4208)  | struct field `AnnotatedBinary.Location.latitude` (Double)
-  +0x0160 | F6 97 DD 93 87 C5 0A 40 | double       | 0x400AC58793DD97F6 (3.34645)   | struct field `AnnotatedBinary.Location.longitude` (Double)
+  +0x0138 | 33 33 33 33 33 A3 45 40 | double       | 0x4045A33333333333 (43.275)    | struct field `[0].latitude` of 'AnnotatedBinary.Location' (Double)
+  +0x0140 | 7E 57 04 FF 5B 87 53 C0 | double       | 0xC053875BFF04577E (-78.115)   | struct field `[0].longitude` of 'AnnotatedBinary.Location' (Double)
+  +0x0148 | 8D F0 F6 20 04 B6 42 40 | double       | 0x4042B60420F6F08D (37.422)    | struct field `[1].latitude` of 'AnnotatedBinary.Location' (Double)
+  +0x0150 | 9F 77 63 41 61 85 5E C0 | double       | 0xC05E85614163779F (-122.084)  | struct field `[1].longitude` of 'AnnotatedBinary.Location' (Double)
+  +0x0158 | 8F 35 23 83 DC 35 4B C0 | double       | 0xC04B35DC8323358F (-54.4208)  | struct field `[2].latitude` of 'AnnotatedBinary.Location' (Double)
+  +0x0160 | F6 97 DD 93 87 C5 0A 40 | double       | 0x400AC58793DD97F6 (3.34645)   | struct field `[2].longitude` of 'AnnotatedBinary.Location' (Double)
 
 padding:
   +0x0168 | 00 00 00 00             | uint8_t[4]   | ....                           | padding

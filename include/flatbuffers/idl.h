@@ -297,7 +297,8 @@ struct FieldDef : public Definition {
         flexbuffer(false),
         presence(kDefault),
         nested_flatbuffer(nullptr),
-        padding(0) {}
+        padding(0),
+        sibling_union_field(nullptr){}
 
   Offset<reflection::Field> Serialize(FlatBufferBuilder *builder, uint16_t id,
                                       const Parser &parser) const;
@@ -342,6 +343,12 @@ struct FieldDef : public Definition {
 
   StructDef *nested_flatbuffer;  // This field contains nested FlatBuffer data.
   size_t padding;                // Bytes to always pad after this field.
+
+  // sibling_union_field is always set to nullptr. The only exception is
+  // when FieldDef is a union field or an union type field. Therefore,
+  // sibling_union_field on a union field points to the union type field
+  // and vice-versa.
+  FieldDef *sibling_union_field;
 };
 
 struct StructDef : public Definition {
@@ -598,6 +605,7 @@ struct IDLOptions {
   bool output_enum_identifiers;
   bool prefixed_enums;
   bool scoped_enums;
+  bool emit_min_max_enum_values;
   bool swift_implementation_only;
   bool include_dependence_headers;
   bool mutable_buffer;
@@ -712,6 +720,7 @@ struct IDLOptions {
         output_enum_identifiers(true),
         prefixed_enums(true),
         scoped_enums(false),
+        emit_min_max_enum_values(true),
         swift_implementation_only(false),
         include_dependence_headers(true),
         mutable_buffer(false),
