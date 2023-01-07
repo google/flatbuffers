@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 Google Inc. All rights reserved.
+ * Copyright 2023 Google Inc. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -118,7 +118,8 @@ final class FlatBuffersVectors: XCTestCase {
     let finish = Swift_Tests_Vectors.endVectors(&builder, start: start)
     builder.finish(offset: finish)
 
-    let msg = Swift_Tests_Vectors.getRootAsVectors(bb: ByteBuffer(bytes: builder.sizedByteArray))
+    var byteBuffer = ByteBuffer(bytes: builder.sizedByteArray)
+    let msg: Swift_Tests_Vectors = getRoot(byteBuffer: &byteBuffer)
     XCTAssertEqual(msg.hasNone, false)
     XCTAssertEqual(msg.hasEmpty, true)
     XCTAssertEqual(msg.emptyCount, 0)
