@@ -71,15 +71,15 @@ root_table (MyGame.Example.Monster):
   +0x007C | 01                      | UType8     | 0x01 (1)                                 | table field `test_type` (UType)
   +0x007D | 01                      | uint8_t    | 0x01 (1)                                 | table field `testbool` (Bool)
   +0x007E | 50 00                   | int16_t    | 0x0050 (80)                              | table field `hp` (Short)
-  +0x0080 | 00 00 80 3F             | float      | 0x3F800000 (1)                           | struct field `MyGame.Example.Vec3.x` (Float)
-  +0x0084 | 00 00 00 40             | float      | 0x40000000 (2)                           | struct field `MyGame.Example.Vec3.y` (Float)
-  +0x0088 | 00 00 40 40             | float      | 0x40400000 (3)                           | struct field `MyGame.Example.Vec3.z` (Float)
+  +0x0080 | 00 00 80 3F             | float      | 0x3F800000 (1)                           | struct field `pos.x` of 'MyGame.Example.Vec3' (Float)
+  +0x0084 | 00 00 00 40             | float      | 0x40000000 (2)                           | struct field `pos.y` of 'MyGame.Example.Vec3' (Float)
+  +0x0088 | 00 00 40 40             | float      | 0x40400000 (3)                           | struct field `pos.z` of 'MyGame.Example.Vec3' (Float)
   +0x008C | 00 00 00 00             | uint8_t[4] | ....                                     | padding
-  +0x0090 | 00 00 00 00 00 00 08 40 | double     | 0x4008000000000000 (3)                   | struct field `MyGame.Example.Vec3.test1` (Double)
-  +0x0098 | 02                      | uint8_t    | 0x02 (2)                                 | struct field `MyGame.Example.Vec3.test2` (UByte)
+  +0x0090 | 00 00 00 00 00 00 08 40 | double     | 0x4008000000000000 (3)                   | struct field `pos.test1` of 'MyGame.Example.Vec3' (Double)
+  +0x0098 | 02                      | uint8_t    | 0x02 (2)                                 | struct field `pos.test2` of 'MyGame.Example.Vec3' (UByte)
   +0x0099 | 00                      | uint8_t[1] | .                                        | padding
-  +0x009A | 05 00                   | int16_t    | 0x0005 (5)                               | struct field `MyGame.Example.Test.a` (Short)
-  +0x009C | 06                      | uint8_t    | 0x06 (6)                                 | struct field `MyGame.Example.Test.b` (Byte)
+  +0x009A | 05 00                   | int16_t    | 0x0005 (5)                               | struct field `pos.test3.a` of 'MyGame.Example.Test' (Short)
+  +0x009C | 06                      | uint8_t    | 0x06 (6)                                 | struct field `pos.test3.b` of 'MyGame.Example.Test' (Byte)
   +0x009D | 00                      | uint8_t[1] | .                                        | padding
   +0x009E | 00 00                   | uint8_t[2] | ..                                       | padding
   +0x00A0 | 00 00 00 00             | uint8_t[4] | ....                                     | padding
@@ -99,8 +99,8 @@ root_table (MyGame.Example.Monster):
   +0x00D8 | 34 01 00 00             | UOffset32  | 0x00000134 (308) Loc: +0x020C            | offset to field `vector_of_longs` (vector)
   +0x00DC | 10 01 00 00             | UOffset32  | 0x00000110 (272) Loc: +0x01EC            | offset to field `vector_of_doubles` (vector)
   +0x00E0 | 2C 00 00 00             | UOffset32  | 0x0000002C (44) Loc: +0x010C             | offset to field `scalar_key_sorted_tables` (vector)
-  +0x00E4 | 01 00                   | int16_t    | 0x0001 (1)                               | struct field `MyGame.Example.Test.a` (Short)
-  +0x00E6 | 02                      | uint8_t    | 0x02 (2)                                 | struct field `MyGame.Example.Test.b` (Byte)
+  +0x00E4 | 01 00                   | int16_t    | 0x0001 (1)                               | struct field `native_inline.a` of 'MyGame.Example.Test' (Short)
+  +0x00E6 | 02                      | uint8_t    | 0x02 (2)                                 | struct field `native_inline.b` of 'MyGame.Example.Test' (Byte)
   +0x00E7 | 00                      | uint8_t[1] | .                                        | padding
   +0x00E8 | 81 91 7B F2 CD 80 0F 6E | int64_t    | 0x6E0F80CDF27B9181 (7930699090847568257) | table field `testhashs64_fnv1` (Long)
   +0x00F0 | 81 91 7B F2 CD 80 0F 6E | uint64_t   | 0x6E0F80CDF27B9181 (7930699090847568257) | table field `testhashu64_fnv1` (ULong)
@@ -151,12 +151,12 @@ string (MyGame.Example.Stat.id):
 
 vector (MyGame.Example.Monster.testarrayofsortedstruct):
   +0x0158 | 03 00 00 00             | uint32_t   | 0x00000003 (3)                           | length of vector (# items)
-  +0x015C | 00 00 00 00             | uint32_t   | 0x00000000 (0)                           | struct field `MyGame.Example.Ability.id` (UInt)
-  +0x0160 | 2D 00 00 00             | uint32_t   | 0x0000002D (45)                          | struct field `MyGame.Example.Ability.distance` (UInt)
-  +0x0164 | 01 00 00 00             | uint32_t   | 0x00000001 (1)                           | struct field `MyGame.Example.Ability.id` (UInt)
-  +0x0168 | 15 00 00 00             | uint32_t   | 0x00000015 (21)                          | struct field `MyGame.Example.Ability.distance` (UInt)
-  +0x016C | 05 00 00 00             | uint32_t   | 0x00000005 (5)                           | struct field `MyGame.Example.Ability.id` (UInt)
-  +0x0170 | 0C 00 00 00             | uint32_t   | 0x0000000C (12)                          | struct field `MyGame.Example.Ability.distance` (UInt)
+  +0x015C | 00 00 00 00             | uint32_t   | 0x00000000 (0)                           | struct field `[0].id` of 'MyGame.Example.Ability' (UInt)
+  +0x0160 | 2D 00 00 00             | uint32_t   | 0x0000002D (45)                          | struct field `[0].distance` of 'MyGame.Example.Ability' (UInt)
+  +0x0164 | 01 00 00 00             | uint32_t   | 0x00000001 (1)                           | struct field `[1].id` of 'MyGame.Example.Ability' (UInt)
+  +0x0168 | 15 00 00 00             | uint32_t   | 0x00000015 (21)                          | struct field `[1].distance` of 'MyGame.Example.Ability' (UInt)
+  +0x016C | 05 00 00 00             | uint32_t   | 0x00000005 (5)                           | struct field `[2].id` of 'MyGame.Example.Ability' (UInt)
+  +0x0170 | 0C 00 00 00             | uint32_t   | 0x0000000C (12)                          | struct field `[2].distance` of 'MyGame.Example.Ability' (UInt)
 
 vector (MyGame.Example.Monster.testarrayofbools):
   +0x0174 | 03 00 00 00             | uint32_t   | 0x00000003 (3)                           | length of vector (# items)
@@ -199,20 +199,20 @@ padding:
 
 vector (MyGame.Example.Monster.test5):
   +0x01B4 | 02 00 00 00             | uint32_t   | 0x00000002 (2)                           | length of vector (# items)
-  +0x01B8 | 0A 00                   | int16_t    | 0x000A (10)                              | struct field `MyGame.Example.Test.a` (Short)
-  +0x01BA | 14                      | uint8_t    | 0x14 (20)                                | struct field `MyGame.Example.Test.b` (Byte)
+  +0x01B8 | 0A 00                   | int16_t    | 0x000A (10)                              | struct field `[0].a` of 'MyGame.Example.Test' (Short)
+  +0x01BA | 14                      | uint8_t    | 0x14 (20)                                | struct field `[0].b` of 'MyGame.Example.Test' (Byte)
   +0x01BB | 00                      | uint8_t[1] | .                                        | padding
-  +0x01BC | 1E 00                   | int16_t    | 0x001E (30)                              | struct field `MyGame.Example.Test.a` (Short)
-  +0x01BE | 28                      | uint8_t    | 0x28 (40)                                | struct field `MyGame.Example.Test.b` (Byte)
+  +0x01BC | 1E 00                   | int16_t    | 0x001E (30)                              | struct field `[1].a` of 'MyGame.Example.Test' (Short)
+  +0x01BE | 28                      | uint8_t    | 0x28 (40)                                | struct field `[1].b` of 'MyGame.Example.Test' (Byte)
   +0x01BF | 00                      | uint8_t[1] | .                                        | padding
 
 vector (MyGame.Example.Monster.test4):
   +0x01C0 | 02 00 00 00             | uint32_t   | 0x00000002 (2)                           | length of vector (# items)
-  +0x01C4 | 0A 00                   | int16_t    | 0x000A (10)                              | struct field `MyGame.Example.Test.a` (Short)
-  +0x01C6 | 14                      | uint8_t    | 0x14 (20)                                | struct field `MyGame.Example.Test.b` (Byte)
+  +0x01C4 | 0A 00                   | int16_t    | 0x000A (10)                              | struct field `[0].a` of 'MyGame.Example.Test' (Short)
+  +0x01C6 | 14                      | uint8_t    | 0x14 (20)                                | struct field `[0].b` of 'MyGame.Example.Test' (Byte)
   +0x01C7 | 00                      | uint8_t[1] | .                                        | padding
-  +0x01C8 | 1E 00                   | int16_t    | 0x001E (30)                              | struct field `MyGame.Example.Test.a` (Short)
-  +0x01CA | 28                      | uint8_t    | 0x28 (40)                                | struct field `MyGame.Example.Test.b` (Byte)
+  +0x01C8 | 1E 00                   | int16_t    | 0x001E (30)                              | struct field `[1].a` of 'MyGame.Example.Test' (Short)
+  +0x01CA | 28                      | uint8_t    | 0x28 (40)                                | struct field `[1].b` of 'MyGame.Example.Test' (Byte)
   +0x01CB | 00                      | uint8_t[1] | .                                        | padding
 
 vtable (MyGame.Example.Monster):
