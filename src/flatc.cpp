@@ -613,6 +613,8 @@ int FlatCompiler::Compile(int argc, const char **argv) {
         opts.json_nested_legacy_flatbuffers = true;
       } else if (arg == "--ts-flat-files") {
         opts.ts_flat_file = true;
+      } else if (arg == "--ts-no-import-ext") {
+        opts.ts_no_import_ext = true;
       } else if (arg == "--no-leak-private-annotation") {
         opts.no_leak_private_annotations = true;
       } else if (arg == "--annotate") {

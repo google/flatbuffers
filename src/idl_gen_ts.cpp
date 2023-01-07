@@ -256,15 +256,16 @@ class TsGenerator : public BaseGenerator {
           // specified here? Should we always be adding the "./" for a relative
           // path or turn it off if --include-prefix is specified, or something
           // else?
+          std::string import_extension = parser_.opts.ts_no_import_ext ? "" : ".js";
           std::string include_name =
-              "./" + flatbuffers::StripExtension(include_file);
+              "./" + flatbuffers::StripExtension(include_file) + import_extension;
           code += "import {";
           for (const auto &pair : it.second) {
             code += namer_.EscapeKeyword(pair.first) + " as " +
                     namer_.EscapeKeyword(pair.second) + ", ";
           }
           code.resize(code.size() - 2);
-          code += "} from '" + include_name + ".js';\n";
+          code += "} from '" + include_name + "';\n";
         }
         code += "\n";
       }
@@ -883,10 +884,11 @@ class TsGenerator : public BaseGenerator {
     import.object_name = object_name;
     import.bare_file_path = bare_file_path;
     import.rel_file_path = rel_file_path;
+    std::string import_extension = parser_.opts.ts_no_import_ext ? "" : ".js";
     import.import_statement = "import { " + symbols_expression + " } from '" +
-                              rel_file_path + ".js';";
+                              rel_file_path + import_extension + "';";
     import.export_statement = "export { " + symbols_expression + " } from '." +
-                              bare_file_path + ".js';";
+                              bare_file_path + import_extension + "';";
     import.dependency = &dependency;
     import.dependent = &dependent;
 
