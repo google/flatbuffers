@@ -22,9 +22,9 @@ struct MonsterExtraT;
 bool operator==(const MonsterExtraT &lhs, const MonsterExtraT &rhs);
 bool operator!=(const MonsterExtraT &lhs, const MonsterExtraT &rhs);
 
-inline const flatbuffers::TypeTable *MonsterExtraTypeTable();
+inline const ::flatbuffers::TypeTable *MonsterExtraTypeTable();
 
-struct MonsterExtraT : public flatbuffers::NativeTable {
+struct MonsterExtraT : public ::flatbuffers::NativeTable {
   typedef MonsterExtra TableType;
   double d0 = std::numeric_limits<double>::quiet_NaN();
   double d1 = std::numeric_limits<double>::quiet_NaN();
@@ -38,10 +38,10 @@ struct MonsterExtraT : public flatbuffers::NativeTable {
   std::vector<float> fvec{};
 };
 
-struct MonsterExtra FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+struct MonsterExtra FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   typedef MonsterExtraT NativeTableType;
   typedef MonsterExtraBuilder Builder;
-  static const flatbuffers::TypeTable *MiniReflectTypeTable() {
+  static const ::flatbuffers::TypeTable *MiniReflectTypeTable() {
     return MonsterExtraTypeTable();
   }
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
@@ -104,19 +104,19 @@ struct MonsterExtra FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   bool mutate_f3(float _f3 = -std::numeric_limits<float>::infinity()) {
     return SetField<float>(VT_F3, _f3, -std::numeric_limits<float>::infinity());
   }
-  const flatbuffers::Vector<double> *dvec() const {
-    return GetPointer<const flatbuffers::Vector<double> *>(VT_DVEC);
+  const ::flatbuffers::Vector<double> *dvec() const {
+    return GetPointer<const ::flatbuffers::Vector<double> *>(VT_DVEC);
   }
-  flatbuffers::Vector<double> *mutable_dvec() {
-    return GetPointer<flatbuffers::Vector<double> *>(VT_DVEC);
+  ::flatbuffers::Vector<double> *mutable_dvec() {
+    return GetPointer<::flatbuffers::Vector<double> *>(VT_DVEC);
   }
-  const flatbuffers::Vector<float> *fvec() const {
-    return GetPointer<const flatbuffers::Vector<float> *>(VT_FVEC);
+  const ::flatbuffers::Vector<float> *fvec() const {
+    return GetPointer<const ::flatbuffers::Vector<float> *>(VT_FVEC);
   }
-  flatbuffers::Vector<float> *mutable_fvec() {
-    return GetPointer<flatbuffers::Vector<float> *>(VT_FVEC);
+  ::flatbuffers::Vector<float> *mutable_fvec() {
+    return GetPointer<::flatbuffers::Vector<float> *>(VT_FVEC);
   }
-  bool Verify(flatbuffers::Verifier &verifier) const {
+  bool Verify(::flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyField<double>(verifier, VT_D0, 8) &&
            VerifyField<double>(verifier, VT_D1, 8) &&
@@ -132,15 +132,15 @@ struct MonsterExtra FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
            verifier.VerifyVector(fvec()) &&
            verifier.EndTable();
   }
-  MonsterExtraT *UnPack(const flatbuffers::resolver_function_t *_resolver = nullptr) const;
-  void UnPackTo(MonsterExtraT *_o, const flatbuffers::resolver_function_t *_resolver = nullptr) const;
-  static flatbuffers::Offset<MonsterExtra> Pack(flatbuffers::FlatBufferBuilder &_fbb, const MonsterExtraT* _o, const flatbuffers::rehasher_function_t *_rehasher = nullptr);
+  MonsterExtraT *UnPack(const ::flatbuffers::resolver_function_t *_resolver = nullptr) const;
+  void UnPackTo(MonsterExtraT *_o, const ::flatbuffers::resolver_function_t *_resolver = nullptr) const;
+  static ::flatbuffers::Offset<MonsterExtra> Pack(::flatbuffers::FlatBufferBuilder &_fbb, const MonsterExtraT* _o, const ::flatbuffers::rehasher_function_t *_rehasher = nullptr);
 };
 
 struct MonsterExtraBuilder {
   typedef MonsterExtra Table;
-  flatbuffers::FlatBufferBuilder &fbb_;
-  flatbuffers::uoffset_t start_;
+  ::flatbuffers::FlatBufferBuilder &fbb_;
+  ::flatbuffers::uoffset_t start_;
   void add_d0(double d0) {
     fbb_.AddElement<double>(MonsterExtra::VT_D0, d0, std::numeric_limits<double>::quiet_NaN());
   }
@@ -165,25 +165,25 @@ struct MonsterExtraBuilder {
   void add_f3(float f3) {
     fbb_.AddElement<float>(MonsterExtra::VT_F3, f3, -std::numeric_limits<float>::infinity());
   }
-  void add_dvec(flatbuffers::Offset<flatbuffers::Vector<double>> dvec) {
+  void add_dvec(::flatbuffers::Offset<::flatbuffers::Vector<double>> dvec) {
     fbb_.AddOffset(MonsterExtra::VT_DVEC, dvec);
   }
-  void add_fvec(flatbuffers::Offset<flatbuffers::Vector<float>> fvec) {
+  void add_fvec(::flatbuffers::Offset<::flatbuffers::Vector<float>> fvec) {
     fbb_.AddOffset(MonsterExtra::VT_FVEC, fvec);
   }
-  explicit MonsterExtraBuilder(flatbuffers::FlatBufferBuilder &_fbb)
+  explicit MonsterExtraBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  flatbuffers::Offset<MonsterExtra> Finish() {
+  ::flatbuffers::Offset<MonsterExtra> Finish() {
     const auto end = fbb_.EndTable(start_);
-    auto o = flatbuffers::Offset<MonsterExtra>(end);
+    auto o = ::flatbuffers::Offset<MonsterExtra>(end);
     return o;
   }
 };
 
-inline flatbuffers::Offset<MonsterExtra> CreateMonsterExtra(
-    flatbuffers::FlatBufferBuilder &_fbb,
+inline ::flatbuffers::Offset<MonsterExtra> CreateMonsterExtra(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
     double d0 = std::numeric_limits<double>::quiet_NaN(),
     double d1 = std::numeric_limits<double>::quiet_NaN(),
     double d2 = std::numeric_limits<double>::infinity(),
@@ -192,8 +192,8 @@ inline flatbuffers::Offset<MonsterExtra> CreateMonsterExtra(
     float f1 = std::numeric_limits<float>::quiet_NaN(),
     float f2 = std::numeric_limits<float>::infinity(),
     float f3 = -std::numeric_limits<float>::infinity(),
-    flatbuffers::Offset<flatbuffers::Vector<double>> dvec = 0,
-    flatbuffers::Offset<flatbuffers::Vector<float>> fvec = 0) {
+    ::flatbuffers::Offset<::flatbuffers::Vector<double>> dvec = 0,
+    ::flatbuffers::Offset<::flatbuffers::Vector<float>> fvec = 0) {
   MonsterExtraBuilder builder_(_fbb);
   builder_.add_d3(d3);
   builder_.add_d2(d2);
@@ -208,8 +208,8 @@ inline flatbuffers::Offset<MonsterExtra> CreateMonsterExtra(
   return builder_.Finish();
 }
 
-inline flatbuffers::Offset<MonsterExtra> CreateMonsterExtraDirect(
-    flatbuffers::FlatBufferBuilder &_fbb,
+inline ::flatbuffers::Offset<MonsterExtra> CreateMonsterExtraDirect(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
     double d0 = std::numeric_limits<double>::quiet_NaN(),
     double d1 = std::numeric_limits<double>::quiet_NaN(),
     double d2 = std::numeric_limits<double>::infinity(),
@@ -236,7 +236,7 @@ inline flatbuffers::Offset<MonsterExtra> CreateMonsterExtraDirect(
       fvec__);
 }
 
-flatbuffers::Offset<MonsterExtra> CreateMonsterExtra(flatbuffers::FlatBufferBuilder &_fbb, const MonsterExtraT *_o, const flatbuffers::rehasher_function_t *_rehasher = nullptr);
+::flatbuffers::Offset<MonsterExtra> CreateMonsterExtra(::flatbuffers::FlatBufferBuilder &_fbb, const MonsterExtraT *_o, const ::flatbuffers::rehasher_function_t *_rehasher = nullptr);
 
 
 inline bool operator==(const MonsterExtraT &lhs, const MonsterExtraT &rhs) {
@@ -258,13 +258,13 @@ inline bool operator!=(const MonsterExtraT &lhs, const MonsterExtraT &rhs) {
 }
 
 
-inline MonsterExtraT *MonsterExtra::UnPack(const flatbuffers::resolver_function_t *_resolver) const {
+inline MonsterExtraT *MonsterExtra::UnPack(const ::flatbuffers::resolver_function_t *_resolver) const {
   auto _o = std::unique_ptr<MonsterExtraT>(new MonsterExtraT());
   UnPackTo(_o.get(), _resolver);
   return _o.release();
 }
 
-inline void MonsterExtra::UnPackTo(MonsterExtraT *_o, const flatbuffers::resolver_function_t *_resolver) const {
+inline void MonsterExtra::UnPackTo(MonsterExtraT *_o, const ::flatbuffers::resolver_function_t *_resolver) const {
   (void)_o;
   (void)_resolver;
   { auto _e = d0(); _o->d0 = _e; }
@@ -275,18 +275,18 @@ inline void MonsterExtra::UnPackTo(MonsterExtraT *_o, const flatbuffers::resolve
   { auto _e = f1(); _o->f1 = _e; }
   { auto _e = f2(); _o->f2 = _e; }
   { auto _e = f3(); _o->f3 = _e; }
-  { auto _e = dvec(); if (_e) { _o->dvec.resize(_e->size()); for (flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->dvec[_i] = _e->Get(_i); } } else { _o->dvec.resize(0); } }
-  { auto _e = fvec(); if (_e) { _o->fvec.resize(_e->size()); for (flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->fvec[_i] = _e->Get(_i); } } else { _o->fvec.resize(0); } }
+  { auto _e = dvec(); if (_e) { _o->dvec.resize(_e->size()); for (::flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->dvec[_i] = _e->Get(_i); } } else { _o->dvec.resize(0); } }
+  { auto _e = fvec(); if (_e) { _o->fvec.resize(_e->size()); for (::flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->fvec[_i] = _e->Get(_i); } } else { _o->fvec.resize(0); } }
 }
 
-inline flatbuffers::Offset<MonsterExtra> MonsterExtra::Pack(flatbuffers::FlatBufferBuilder &_fbb, const MonsterExtraT* _o, const flatbuffers::rehasher_function_t *_rehasher) {
+inline ::flatbuffers::Offset<MonsterExtra> MonsterExtra::Pack(::flatbuffers::FlatBufferBuilder &_fbb, const MonsterExtraT* _o, const ::flatbuffers::rehasher_function_t *_rehasher) {
   return CreateMonsterExtra(_fbb, _o, _rehasher);
 }
 
-inline flatbuffers::Offset<MonsterExtra> CreateMonsterExtra(flatbuffers::FlatBufferBuilder &_fbb, const MonsterExtraT *_o, const flatbuffers::rehasher_function_t *_rehasher) {
+inline ::flatbuffers::Offset<MonsterExtra> CreateMonsterExtra(::flatbuffers::FlatBufferBuilder &_fbb, const MonsterExtraT *_o, const ::flatbuffers::rehasher_function_t *_rehasher) {
   (void)_rehasher;
   (void)_o;
-  struct _VectorArgs { flatbuffers::FlatBufferBuilder *__fbb; const MonsterExtraT* __o; const flatbuffers::rehasher_function_t *__rehasher; } _va = { &_fbb, _o, _rehasher}; (void)_va;
+  struct _VectorArgs { ::flatbuffers::FlatBufferBuilder *__fbb; const MonsterExtraT* __o; const ::flatbuffers::rehasher_function_t *__rehasher; } _va = { &_fbb, _o, _rehasher}; (void)_va;
   auto _d0 = _o->d0;
   auto _d1 = _o->d1;
   auto _d2 = _o->d2;
@@ -311,19 +311,19 @@ inline flatbuffers::Offset<MonsterExtra> CreateMonsterExtra(flatbuffers::FlatBuf
       _fvec);
 }
 
-inline const flatbuffers::TypeTable *MonsterExtraTypeTable() {
-  static const flatbuffers::TypeCode type_codes[] = {
-    { flatbuffers::ET_DOUBLE, 0, -1 },
-    { flatbuffers::ET_DOUBLE, 0, -1 },
-    { flatbuffers::ET_DOUBLE, 0, -1 },
-    { flatbuffers::ET_DOUBLE, 0, -1 },
-    { flatbuffers::ET_FLOAT, 0, -1 },
-    { flatbuffers::ET_FLOAT, 0, -1 },
-    { flatbuffers::ET_FLOAT, 0, -1 },
-    { flatbuffers::ET_FLOAT, 0, -1 },
-    { flatbuffers::ET_DOUBLE, 1, -1 },
-    { flatbuffers::ET_FLOAT, 1, -1 },
-    { flatbuffers::ET_INT, 0, -1 }
+inline const ::flatbuffers::TypeTable *MonsterExtraTypeTable() {
+  static const ::flatbuffers::TypeCode type_codes[] = {
+    { ::flatbuffers::ET_DOUBLE, 0, -1 },
+    { ::flatbuffers::ET_DOUBLE, 0, -1 },
+    { ::flatbuffers::ET_DOUBLE, 0, -1 },
+    { ::flatbuffers::ET_DOUBLE, 0, -1 },
+    { ::flatbuffers::ET_FLOAT, 0, -1 },
+    { ::flatbuffers::ET_FLOAT, 0, -1 },
+    { ::flatbuffers::ET_FLOAT, 0, -1 },
+    { ::flatbuffers::ET_FLOAT, 0, -1 },
+    { ::flatbuffers::ET_DOUBLE, 1, -1 },
+    { ::flatbuffers::ET_FLOAT, 1, -1 },
+    { ::flatbuffers::ET_INT, 0, -1 }
   };
   static const char * const names[] = {
     "d0",
@@ -338,26 +338,26 @@ inline const flatbuffers::TypeTable *MonsterExtraTypeTable() {
     "fvec",
     "deprec"
   };
-  static const flatbuffers::TypeTable tt = {
-    flatbuffers::ST_TABLE, 11, type_codes, nullptr, nullptr, nullptr, names
+  static const ::flatbuffers::TypeTable tt = {
+    ::flatbuffers::ST_TABLE, 11, type_codes, nullptr, nullptr, nullptr, names
   };
   return &tt;
 }
 
 inline const MyGame::MonsterExtra *GetMonsterExtra(const void *buf) {
-  return flatbuffers::GetRoot<MyGame::MonsterExtra>(buf);
+  return ::flatbuffers::GetRoot<MyGame::MonsterExtra>(buf);
 }
 
 inline const MyGame::MonsterExtra *GetSizePrefixedMonsterExtra(const void *buf) {
-  return flatbuffers::GetSizePrefixedRoot<MyGame::MonsterExtra>(buf);
+  return ::flatbuffers::GetSizePrefixedRoot<MyGame::MonsterExtra>(buf);
 }
 
 inline MonsterExtra *GetMutableMonsterExtra(void *buf) {
-  return flatbuffers::GetMutableRoot<MonsterExtra>(buf);
+  return ::flatbuffers::GetMutableRoot<MonsterExtra>(buf);
 }
 
 inline MyGame::MonsterExtra *GetMutableSizePrefixedMonsterExtra(void *buf) {
-  return flatbuffers::GetMutableSizePrefixedRoot<MyGame::MonsterExtra>(buf);
+  return ::flatbuffers::GetMutableSizePrefixedRoot<MyGame::MonsterExtra>(buf);
 }
 
 inline const char *MonsterExtraIdentifier() {
@@ -365,22 +365,22 @@ inline const char *MonsterExtraIdentifier() {
 }
 
 inline bool MonsterExtraBufferHasIdentifier(const void *buf) {
-  return flatbuffers::BufferHasIdentifier(
+  return ::flatbuffers::BufferHasIdentifier(
       buf, MonsterExtraIdentifier());
 }
 
 inline bool SizePrefixedMonsterExtraBufferHasIdentifier(const void *buf) {
-  return flatbuffers::BufferHasIdentifier(
+  return ::flatbuffers::BufferHasIdentifier(
       buf, MonsterExtraIdentifier(), true);
 }
 
 inline bool VerifyMonsterExtraBuffer(
-    flatbuffers::Verifier &verifier) {
+    ::flatbuffers::Verifier &verifier) {
   return verifier.VerifyBuffer<MyGame::MonsterExtra>(MonsterExtraIdentifier());
 }
 
 inline bool VerifySizePrefixedMonsterExtraBuffer(
-    flatbuffers::Verifier &verifier) {
+    ::flatbuffers::Verifier &verifier) {
   return verifier.VerifySizePrefixedBuffer<MyGame::MonsterExtra>(MonsterExtraIdentifier());
 }
 
@@ -389,26 +389,26 @@ inline const char *MonsterExtraExtension() {
 }
 
 inline void FinishMonsterExtraBuffer(
-    flatbuffers::FlatBufferBuilder &fbb,
-    flatbuffers::Offset<MyGame::MonsterExtra> root) {
+    ::flatbuffers::FlatBufferBuilder &fbb,
+    ::flatbuffers::Offset<MyGame::MonsterExtra> root) {
   fbb.Finish(root, MonsterExtraIdentifier());
 }
 
 inline void FinishSizePrefixedMonsterExtraBuffer(
-    flatbuffers::FlatBufferBuilder &fbb,
-    flatbuffers::Offset<MyGame::MonsterExtra> root) {
+    ::flatbuffers::FlatBufferBuilder &fbb,
+    ::flatbuffers::Offset<MyGame::MonsterExtra> root) {
   fbb.FinishSizePrefixed(root, MonsterExtraIdentifier());
 }
 
 inline flatbuffers::unique_ptr<MyGame::MonsterExtraT> UnPackMonsterExtra(
     const void *buf,
-    const flatbuffers::resolver_function_t *res = nullptr) {
+    const ::flatbuffers::resolver_function_t *res = nullptr) {
   return flatbuffers::unique_ptr<MyGame::MonsterExtraT>(GetMonsterExtra(buf)->UnPack(res));
 }
 
 inline flatbuffers::unique_ptr<MyGame::MonsterExtraT> UnPackSizePrefixedMonsterExtra(
     const void *buf,
-    const flatbuffers::resolver_function_t *res = nullptr) {
+    const ::flatbuffers::resolver_function_t *res = nullptr) {
   return flatbuffers::unique_ptr<MyGame::MonsterExtraT>(GetSizePrefixedMonsterExtra(buf)->UnPack(res));
 }
 
