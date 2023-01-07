@@ -74,8 +74,8 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(1) Baz FLATBUFFERS_FINAL_CLASS {
   ::flatbuffers::Array<uint8_t, 4> *mutable_a() {
     return &::flatbuffers::CastToArray(a_);
   }
-  flatbuffers::Array<uint8_t, 4> *mutable_a() {
-    return &flatbuffers::CastToArray(a_);
+  ::flatbuffers::Array<uint8_t, 4> *mutable_a() {
+    return &::flatbuffers::CastToArray(a_);
   }
   bool KeyCompareLessThan(const Baz * const o) const {
     return KeyCompareWithValue(o->a()) < 0;
@@ -97,7 +97,7 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(1) Baz FLATBUFFERS_FINAL_CLASS {
     ::flatbuffers::WriteScalar(&b_, _b);
   }
   void mutate_b(uint8_t _b) {
-    flatbuffers::WriteScalar(&b_, _b);
+    ::flatbuffers::WriteScalar(&b_, _b);
   }
 };
 FLATBUFFERS_STRUCT_END(Baz, 5);
@@ -153,8 +153,8 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) Bar FLATBUFFERS_FINAL_CLASS {
   ::flatbuffers::Array<float, 3> *mutable_a() {
     return &::flatbuffers::CastToArray(a_);
   }
-  flatbuffers::Array<float, 3> *mutable_a() {
-    return &flatbuffers::CastToArray(a_);
+  ::flatbuffers::Array<float, 3> *mutable_a() {
+    return &::flatbuffers::CastToArray(a_);
   }
   bool KeyCompareLessThan(const Bar * const o) const {
     return KeyCompareWithValue(o->a()) < 0;
@@ -176,7 +176,7 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) Bar FLATBUFFERS_FINAL_CLASS {
     ::flatbuffers::WriteScalar(&b_, _b);
   }
   void mutate_b(uint8_t _b) {
-    flatbuffers::WriteScalar(&b_, _b);
+    ::flatbuffers::WriteScalar(&b_, _b);
   }
 };
 FLATBUFFERS_STRUCT_END(Bar, 16);
@@ -509,8 +509,8 @@ struct FooTable FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   ::flatbuffers::String *mutable_c() {
     return GetPointer<::flatbuffers::String *>(VT_C);
   }
-  flatbuffers::String *mutable_c() {
-    return GetPointer<flatbuffers::String *>(VT_C);
+  ::flatbuffers::String *mutable_c() {
+    return GetPointer<::flatbuffers::String *>(VT_C);
   }
   bool KeyCompareLessThan(const FooTable * const o) const {
     return *c() < *o->c();
@@ -742,7 +742,7 @@ inline const ::flatbuffers::TypeTable *FooTableTypeTable() {
   return &tt;
 }
 
-flatbuffers::Offset<FooTable> CreateFooTable(flatbuffers::FlatBufferBuilder &_fbb, const FooTableT *_o, const flatbuffers::rehasher_function_t *_rehasher = nullptr);
+::flatbuffers::Offset<FooTable> CreateFooTable(::flatbuffers::FlatBufferBuilder &_fbb, const FooTableT *_o, const ::flatbuffers::rehasher_function_t *_rehasher = nullptr);
 
 
 inline bool operator==(const FooTableT &lhs, const FooTableT &rhs) {
@@ -762,13 +762,13 @@ inline bool operator!=(const FooTableT &lhs, const FooTableT &rhs) {
 }
 
 
-inline FooTableT *FooTable::UnPack(const flatbuffers::resolver_function_t *_resolver) const {
+inline FooTableT *FooTable::UnPack(const ::flatbuffers::resolver_function_t *_resolver) const {
   auto _o = std::unique_ptr<FooTableT>(new FooTableT());
   UnPackTo(_o.get(), _resolver);
   return _o.release();
 }
 
-inline void FooTable::UnPackTo(FooTableT *_o, const flatbuffers::resolver_function_t *_resolver) const {
+inline void FooTable::UnPackTo(FooTableT *_o, const ::flatbuffers::resolver_function_t *_resolver) const {
   (void)_o;
   (void)_resolver;
   { auto _e = a(); _o->a = _e; }
@@ -781,14 +781,14 @@ inline void FooTable::UnPackTo(FooTableT *_o, const flatbuffers::resolver_functi
   { auto _e = h(); if (_e) { _o->h.resize(_e->size()); for (flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->h[_i] = *_e->Get(_i); } } else { _o->h.resize(0); } }
 }
 
-inline flatbuffers::Offset<FooTable> FooTable::Pack(flatbuffers::FlatBufferBuilder &_fbb, const FooTableT* _o, const flatbuffers::rehasher_function_t *_rehasher) {
+inline ::flatbuffers::Offset<FooTable> FooTable::Pack(::flatbuffers::FlatBufferBuilder &_fbb, const FooTableT* _o, const ::flatbuffers::rehasher_function_t *_rehasher) {
   return CreateFooTable(_fbb, _o, _rehasher);
 }
 
-inline flatbuffers::Offset<FooTable> CreateFooTable(flatbuffers::FlatBufferBuilder &_fbb, const FooTableT *_o, const flatbuffers::rehasher_function_t *_rehasher) {
+inline ::flatbuffers::Offset<FooTable> CreateFooTable(::flatbuffers::FlatBufferBuilder &_fbb, const FooTableT *_o, const ::flatbuffers::rehasher_function_t *_rehasher) {
   (void)_rehasher;
   (void)_o;
-  struct _VectorArgs { flatbuffers::FlatBufferBuilder *__fbb; const FooTableT* __o; const flatbuffers::rehasher_function_t *__rehasher; } _va = { &_fbb, _o, _rehasher}; (void)_va;
+  struct _VectorArgs { ::flatbuffers::FlatBufferBuilder *__fbb; const FooTableT* __o; const ::flatbuffers::rehasher_function_t *__rehasher; } _va = { &_fbb, _o, _rehasher}; (void)_va;
   auto _a = _o->a;
   auto _b = _o->b;
   auto _c = _fbb.CreateString(_o->c);
@@ -809,10 +809,10 @@ inline flatbuffers::Offset<FooTable> CreateFooTable(flatbuffers::FlatBufferBuild
       _h);
 }
 
-inline const flatbuffers::TypeTable *BazTypeTable() {
-  static const flatbuffers::TypeCode type_codes[] = {
-    { flatbuffers::ET_UCHAR, 1, -1 },
-    { flatbuffers::ET_UCHAR, 0, -1 }
+inline const ::flatbuffers::TypeTable *BazTypeTable() {
+  static const ::flatbuffers::TypeCode type_codes[] = {
+    { ::flatbuffers::ET_UCHAR, 1, -1 },
+    { ::flatbuffers::ET_UCHAR, 0, -1 }
   };
   static const int16_t array_sizes[] = { 4,  };
   static const int64_t values[] = { 0, 4, 5 };
@@ -820,16 +820,16 @@ inline const flatbuffers::TypeTable *BazTypeTable() {
     "a",
     "b"
   };
-  static const flatbuffers::TypeTable tt = {
-    flatbuffers::ST_STRUCT, 2, type_codes, nullptr, array_sizes, values, names
+  static const ::flatbuffers::TypeTable tt = {
+    ::flatbuffers::ST_STRUCT, 2, type_codes, nullptr, array_sizes, values, names
   };
   return &tt;
 }
 
-inline const flatbuffers::TypeTable *BarTypeTable() {
-  static const flatbuffers::TypeCode type_codes[] = {
-    { flatbuffers::ET_FLOAT, 1, -1 },
-    { flatbuffers::ET_UCHAR, 0, -1 }
+inline const ::flatbuffers::TypeTable *BarTypeTable() {
+  static const ::flatbuffers::TypeCode type_codes[] = {
+    { ::flatbuffers::ET_FLOAT, 1, -1 },
+    { ::flatbuffers::ET_UCHAR, 0, -1 }
   };
   static const int16_t array_sizes[] = { 3,  };
   static const int64_t values[] = { 0, 12, 16 };
@@ -837,8 +837,8 @@ inline const flatbuffers::TypeTable *BarTypeTable() {
     "a",
     "b"
   };
-  static const flatbuffers::TypeTable tt = {
-    flatbuffers::ST_STRUCT, 2, type_codes, nullptr, array_sizes, values, names
+  static const ::flatbuffers::TypeTable tt = {
+    ::flatbuffers::ST_STRUCT, 2, type_codes, nullptr, array_sizes, values, names
   };
   return &tt;
 }
@@ -946,7 +946,7 @@ inline const flatbuffers::TypeTable *FooTableTypeTable() {
     { flatbuffers::ET_SEQUENCE, 1, 3 },
     { flatbuffers::ET_SEQUENCE, 1, 4 }
   };
-  static const flatbuffers::TypeFunction type_refs[] = {
+  static const ::flatbuffers::TypeFunction type_refs[] = {
     keyfield::sample::BazTypeTable,
     keyfield::sample::BarTypeTable,
     keyfield::sample::AppleTypeTable,
@@ -986,11 +986,11 @@ inline keyfield::sample::FooTable *GetMutableSizePrefixedFooTable(void *buf) {
 }
 
 inline FooTable *GetMutableFooTable(void *buf) {
-  return flatbuffers::GetMutableRoot<FooTable>(buf);
+  return ::flatbuffers::GetMutableRoot<FooTable>(buf);
 }
 
 inline keyfield::sample::FooTable *GetMutableSizePrefixedFooTable(void *buf) {
-  return flatbuffers::GetMutableSizePrefixedRoot<keyfield::sample::FooTable>(buf);
+  return ::flatbuffers::GetMutableSizePrefixedRoot<keyfield::sample::FooTable>(buf);
 }
 
 inline bool VerifyFooTableBuffer(
