@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 Google Inc. All rights reserved.
+ * Copyright 2023 Google Inc. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,8 +26,8 @@ final class FlatBuffersStructsTests: XCTestCase {
     let root = TestMutatingBool.endTestMutatingBool(&fbb, start: start)
     fbb.finish(offset: root)
 
-    let testMutatingBool = TestMutatingBool
-      .getRootAsTestMutatingBool(bb: fbb.sizedBuffer)
+    var buffer = fbb.sizedBuffer
+    let testMutatingBool: TestMutatingBool = getRoot(byteBuffer: &buffer)
     let property = testMutatingBool.mutableB
     XCTAssertEqual(property?.property, false)
     property?.mutate(property: false)
