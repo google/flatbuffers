@@ -605,6 +605,7 @@ struct IDLOptions {
   bool output_enum_identifiers;
   bool prefixed_enums;
   bool scoped_enums;
+  bool emit_min_max_enum_values;
   bool swift_implementation_only;
   bool include_dependence_headers;
   bool mutable_buffer;
@@ -718,6 +719,7 @@ struct IDLOptions {
         output_enum_identifiers(true),
         prefixed_enums(true),
         scoped_enums(false),
+        emit_min_max_enum_values(true),
         swift_implementation_only(false),
         include_dependence_headers(true),
         mutable_buffer(false),
