@@ -72,7 +72,10 @@ Now you can access values like this:
 In some cases it's necessary to modify values in an existing FlatBuffer in place (without creating a copy). For this reason, scalar fields of a Flatbuffer table or struct can be mutated.
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.swift}
-    let monster = Monster.getRootAsMonster(bb: ByteBuffer(data: data))
+    var byteBuffer = ByteBuffer(bytes: data)
+    // Get an accessor to the root object inside the buffer.
+    let monster: Monster = try! getCheckedRoot(byteBuffer: &byteBuffer)
+    // let monster: Monster = getRoot(byteBuffer: &byteBuffer)
 
     if !monster.mutate(hp: 10) {
       fatalError("couldn't mutate")

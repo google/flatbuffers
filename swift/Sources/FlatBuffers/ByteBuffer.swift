@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 Google Inc. All rights reserved.
+ * Copyright 2023 Google Inc. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -429,13 +429,13 @@ public struct ByteBuffer {
   }
 
   /// Returns the written bytes into the ``ByteBuffer``
-    public var underlyingBytes: [UInt8] {
-      let cp = capacity &- writerIndex
-      let start = memory.advanced(by: writerIndex)
-                                .bindMemory(to: UInt8.self, capacity: cp)
+  public var underlyingBytes: [UInt8] {
+    let cp = capacity &- writerIndex
+    let start = memory.advanced(by: writerIndex)
+      .bindMemory(to: UInt8.self, capacity: cp)
 
-      let ptr = UnsafeBufferPointer<UInt8>(start: start, count: cp)
-      return Array(ptr)
+    let ptr = UnsafeBufferPointer<UInt8>(start: start, count: cp)
+    return Array(ptr)
   }
 
   /// SkipPrefix Skips the first 4 bytes in case one of the following

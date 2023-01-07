@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 Google Inc. All rights reserved.
+ * Copyright 2023 Google Inc. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -108,8 +108,8 @@ final class FlatBuffersTests: XCTestCase {
       justEnum: .one,
       maybeEnum: nil)
     b.finish(offset: root)
-    let scalarTable = optional_scalars_ScalarStuff
-      .getRootAsScalarStuff(bb: b.sizedBuffer)
+    var buffer = b.sizedBuffer
+    let scalarTable: optional_scalars_ScalarStuff = getRoot(byteBuffer: &buffer)
     XCTAssertEqual(scalarTable.justI8, 80)
     XCTAssertNil(scalarTable.maybeI8)
     XCTAssertEqual(scalarTable.maybeBool, true)

@@ -32,6 +32,6 @@ let package = Package(
     .target(
       name: "FlatBuffers",
       dependencies: [],
-      path: "swift/Sources")
+      path: "swift/Sources"),
   ])
 
