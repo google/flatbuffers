@@ -409,7 +409,7 @@ flatc(["--csharp", "--gen-object-api"], schema=type_field_collsion_schema)
 
 # Union / value collision
 flatc(
-    BASE_OPTS + CPP_OPTS + CS_OPTS + ["--gen-onefile"],
+    CS_OPTS + ["--gen-object-api", "--gen-onefile"],
     prefix="union_value_collsion",
     schema="union_value_collision.fbs"
 )

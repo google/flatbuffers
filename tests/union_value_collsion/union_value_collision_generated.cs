@@ -158,7 +158,6 @@ public struct IntValue : IFlatbufferObject
   public IntValue __assign(int _i, ByteBuffer _bb) { __init(_i, _bb); return this; }
 
   public int Value { get { int o = __p.__offset(4); return o != 0 ? __p.bb.GetInt(o + __p.bb_pos) : (int)0; } }
-  public bool MutateValue(int value) { int o = __p.__offset(4); if (o != 0) { __p.bb.PutInt(o + __p.bb_pos, value); return true; } else { return false; } }
 
   public static Offset<union_value_collsion.IntValue> CreateIntValue(FlatBufferBuilder builder,
       int value = 0) {
