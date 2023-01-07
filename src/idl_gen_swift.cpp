@@ -483,12 +483,6 @@ class SwiftGenerator : public BaseGenerator {
             "fileId: "
             "{{STRUCTNAME}}.id, addPrefix: prefix) }";
       }
-      code_ +=
-          "{{ACCESS_TYPE}} static func getRootAs{{SHORT_STRUCTNAME}}(bb: "
-          "ByteBuffer) -> "
-          "{{STRUCTNAME}} { return {{STRUCTNAME}}(Table(bb: bb, position: "
-          "Int32(bb.read(def: UOffset.self, position: bb.reader)) + "
-          "Int32(bb.reader))) }\n";
       code_ += "private init(_ t: Table) { {{ACCESS}} = t }";
     }
     code_ +=

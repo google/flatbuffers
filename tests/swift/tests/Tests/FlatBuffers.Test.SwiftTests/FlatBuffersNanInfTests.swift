@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 Google Inc. All rights reserved.
+ * Copyright 2023 Google Inc. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,50 +19,54 @@ import XCTest
 
 final class FlatBuffersNanInfTests: XCTestCase {
 
-    func createTestTable() -> FlatBufferBuilder {
-        var fbb = FlatBufferBuilder()
-        let msg = Swift_Tests_NanInfTable.createNanInfTable(&fbb,
-            valueNan: .nan,
-            valueInf: .infinity,
-            valueNinf: -.infinity,
-            value: 100.0
-        )
-        fbb.finish(offset: msg)
-        return fbb
-    }
+  func createTestTable() -> FlatBufferBuilder {
+    var fbb = FlatBufferBuilder()
+    let msg = Swift_Tests_NanInfTable.createNanInfTable(
+      &fbb,
+      valueNan: .nan,
+      valueInf: .infinity,
+      valueNinf: -.infinity,
+      value: 100.0)
+    fbb.finish(offset: msg)
+    return fbb
+  }
 
-    func testInfNanBinary() {
-        let fbb = createTestTable()
-        let data = fbb.sizedByteArray
-        
-        let table = Swift_Tests_NanInfTable.getRootAsNanInfTable(bb: ByteBuffer(bytes: data))
-        XCTAssert(table.defaultNan.isNaN)
-        XCTAssertEqual(table.defaultInf, .infinity)
-        XCTAssertEqual(table.defaultNinf, -.infinity)
-        XCTAssert(table.valueNan.isNaN)
-        XCTAssertEqual(table.valueInf, .infinity)
-        XCTAssertEqual(table.valueNinf, -.infinity)
-        XCTAssertEqual(table.value, 100.0)
+  func testInfNanBinary() {
+    let fbb = createTestTable()
+    let data = fbb.sizedByteArray
+
+    var buffer = ByteBuffer(bytes: data)
+    let table: Swift_Tests_NanInfTable = getRoot(byteBuffer: &buffer)
+    XCTAssert(table.defaultNan.isNaN)
+    XCTAssertEqual(table.defaultInf, .infinity)
+    XCTAssertEqual(table.defaultNinf, -.infinity)
+    XCTAssert(table.valueNan.isNaN)
+    XCTAssertEqual(table.valueInf, .infinity)
+    XCTAssertEqual(table.valueNinf, -.infinity)
+    XCTAssertEqual(table.value, 100.0)
+  }
+
+  func testInfNanJSON() {
+    let fbb = createTestTable()
+    var bb = fbb.sizedBuffer
+    do {
+      let reader: Swift_Tests_NanInfTable = try getCheckedRoot(byteBuffer: &bb)
+      let encoder = JSONEncoder()
+      encoder.keyEncodingStrategy = .convertToSnakeCase
+      encoder.nonConformingFloatEncodingStrategy =
+        .convertToString(
+          positiveInfinity: "inf",
+          negativeInfinity: "-inf",
+          nan: "nan")
+      let data = try encoder.encode(reader)
+      XCTAssertEqual(data, jsonData.data(using: .utf8))
+    } catch {
+      XCTFail(error.localizedDescription)
     }
-    
-    func testInfNanJSON() {
-        let fbb = createTestTable()
-        var bb = fbb.sizedBuffer
-        do {
-            let reader: Swift_Tests_NanInfTable = try getCheckedRoot(byteBuffer: &bb)
-            let encoder = JSONEncoder()
-            encoder.keyEncodingStrategy = .convertToSnakeCase
-            encoder.nonConformingFloatEncodingStrategy =
-                .convertToString(positiveInfinity: "inf", negativeInfinity: "-inf", nan: "nan")
-            let data = try encoder.encode(reader)
-            XCTAssertEqual(data, jsonData.data(using: .utf8))
-        } catch {
-            XCTFail(error.localizedDescription)
-        }
-    }
-    
-    var jsonData: String {
-        "{\"value_inf\":\"inf\",\"value\":100,\"value_nan\":\"nan\",\"value_ninf\":\"-inf\"}"
-    }
-    
+  }
+
+  var jsonData: String {
+    "{\"value_inf\":\"inf\",\"value\":100,\"value_nan\":\"nan\",\"value_ninf\":\"-inf\"}"
+  }
+
 }

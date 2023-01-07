@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 Google Inc. All rights reserved.
+ * Copyright 2023 Google Inc. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -205,7 +205,9 @@ final class FlatbuffersVerifierTests: XCTestCase {
     // swiftformat:disable all
     var byteBuffer = ByteBuffer(bytes: [20, 0, 0, 0, 77, 79, 86, 73, 12, 0, 12, 0, 0, 0, 0, 0, 8, 0, 4, 0, 12, 0, 0, 0, 8, 0, 0, 0, 20, 0, 0, 0, 3, 0, 0, 0, 24, 0, 0, 0, 32, 0, 0, 0, 12, 0, 0, 0, 3, 0, 0, 0, 3, 1, 4, 0, 2, 0, 0, 0, 7, 0, 0, 0, 0, 0, 6, 0, 8, 0, 4, 0, 6, 0, 0, 0, 8, 0, 0, 0])
     // swiftformat:enable all
-    XCTAssertThrowsError(try getCheckedRoot(byteBuffer: &byteBuffer, fileId: "FLEX") as Movie)
+    XCTAssertThrowsError(try getCheckedRoot(
+      byteBuffer: &byteBuffer,
+      fileId: "FLEX") as Movie)
   }
 
   func testVerifyPrefixedBuffer() {

@@ -76,8 +76,6 @@ public struct InternalMessage: FlatBufferObject, Verifiable, ObjectAPIPacker {
   public var __buffer: ByteBuffer! { return _accessor.bb }
   private var _accessor: Table
 
-  public static func getRootAsInternalMessage(bb: ByteBuffer) -> InternalMessage { return InternalMessage(Table(bb: bb, position: Int32(bb.read(def: UOffset.self, position: bb.reader)) + Int32(bb.reader))) }
-
   private init(_ t: Table) { _accessor = t }
   public init(_ bb: ByteBuffer, o: Int32) { _accessor = Table(bb: bb, position: o) }
 
@@ -160,8 +158,6 @@ public struct Message: FlatBufferObject, Verifiable, ObjectAPIPacker {
   static func validateVersion() { FlatBuffersVersion_23_1_4() }
   public var __buffer: ByteBuffer! { return _accessor.bb }
   private var _accessor: Table
-
-  public static func getRootAsMessage(bb: ByteBuffer) -> Message { return Message(Table(bb: bb, position: Int32(bb.read(def: UOffset.self, position: bb.reader)) + Int32(bb.reader))) }
 
   private init(_ t: Table) { _accessor = t }
   public init(_ bb: ByteBuffer, o: Int32) { _accessor = Table(bb: bb, position: o) }

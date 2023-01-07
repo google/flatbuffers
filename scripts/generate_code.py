@@ -470,6 +470,15 @@ flatc(
     cwd=swift_code_gen
 )
 
+# Swift Wasm Tests
+swift_Wasm_prefix = "swift/Wasm.tests/Tests/FlatBuffers.Test.Swift.WasmTests"
+flatc(
+    SWIFT_OPTS + BASE_OPTS,
+    schema="monster_test.fbs",
+    include="include_test",
+    prefix=swift_Wasm_prefix,
+)
+
 # Nim Tests
 NIM_OPTS = BASE_OPTS + ["--nim"]
 flatc(NIM_OPTS, schema="monster_test.fbs", include="include_test")
