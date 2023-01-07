@@ -88,6 +88,9 @@ const static FlatCOption options[] = {
   { "", "scoped-enums", "",
     "Use C++11 style scoped and strongly typed enums. Also implies "
     "--no-prefix." },
+  { "", "no-emit-min-max-enum-values", "",
+    "Disable generation of MIN and MAX enumerated values for scoped enums "
+    "and prefixed enums." },
   { "", "swift-implementation-only", "",
     "Adds a @_implementationOnly to swift imports" },
   { "", "gen-includes", "",
@@ -464,6 +467,8 @@ int FlatCompiler::Compile(int argc, const char **argv) {
       } else if (arg == "--scoped-enums") {
         opts.prefixed_enums = false;
         opts.scoped_enums = true;
+      } else if (arg == "--no-emit-min-max-enum-values") {
+        opts.emit_min_max_enum_values = false;
       } else if (arg == "--no-union-value-namespacing") {
         opts.union_value_namespacing = false;
       } else if (arg == "--gen-mutable") {
