@@ -85,6 +85,12 @@ flatc(
 )
 
 flatc(
+    options=["--ts", "--reflect-names", "--gen-name-strings", "--ts-no-import-ext"],
+    schema="../optional_scalars.fbs",
+    prefix="no_import_ext",
+)
+
+flatc(
     options=["--ts", "--reflect-names", "--gen-name-strings", "--gen-mutable", "--gen-object-api"],
     schema=[
         "typescript_keywords.fbs",
