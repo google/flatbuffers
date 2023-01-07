@@ -273,6 +273,7 @@ class BinaryAnnotator {
                   const reflection::Object *table);
 
   uint64_t BuildStruct(uint64_t offset, std::vector<BinaryRegion> &regions,
+                       const std::string referring_field_name,
                        const reflection::Object *structure);
 
   void BuildString(uint64_t offset, const reflection::Object *table,

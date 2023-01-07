@@ -51,15 +51,15 @@ root_table (AnnotatedBinary.Foo):
   +0x4F | 01                      | UType8      | 0x01 (1)                     | table field `anything_type` (UType)
   +0x50 | D2 04 00 00             | uint32_t    | 0x000004D2 (1234)            | table field `counter` (Int)
   +0x54 | 28 02 00 00             | UOffset32   | 0x00000228 (552) Loc: +0x27C | ERROR: offset to field `bar`. Invalid offset, points outside the binary.
-  +0x58 | 01 00 00 00             | uint32_t    | 0x00000001 (1)               | struct field `AnnotatedBinary.Building.floors` (Int)
-  +0x5C | 02 00 00 00             | uint32_t    | 0x00000002 (2)               | struct field `AnnotatedBinary.Building.doors` (Int)
-  +0x60 | 0C 00 00 00             | uint32_t    | 0x0000000C (12)              | struct field `AnnotatedBinary.Building.windows` (Int)
-  +0x64 | 0A 00 00 00             | uint32_t    | 0x0000000A (10)              | array field `AnnotatedBinary.Dimension.values`[0] (Int)
-  +0x68 | 0C 00 00 00             | uint32_t    | 0x0000000C (12)              | array field `AnnotatedBinary.Dimension.values`[1] (Int)
-  +0x6C | 14 00 00 00             | uint32_t    | 0x00000014 (20)              | array field `AnnotatedBinary.Dimension.values`[2] (Int)
-  +0x70 | 01                      | uint8_t     | 0x01 (1)                     | struct field `AnnotatedBinary.Tolerance.width` (UByte)
-  +0x71 | 02                      | uint8_t     | 0x02 (2)                     | struct field `AnnotatedBinary.Tolerance.width` (UByte)
-  +0x72 | 03                      | uint8_t     | 0x03 (3)                     | struct field `AnnotatedBinary.Tolerance.width` (UByte)
+  +0x58 | 01 00 00 00             | uint32_t    | 0x00000001 (1)               | struct field `home.floors` of 'AnnotatedBinary.Building' (Int)
+  +0x5C | 02 00 00 00             | uint32_t    | 0x00000002 (2)               | struct field `home.doors` of 'AnnotatedBinary.Building' (Int)
+  +0x60 | 0C 00 00 00             | uint32_t    | 0x0000000C (12)              | struct field `home.windows` of 'AnnotatedBinary.Building' (Int)
+  +0x64 | 0A 00 00 00             | uint32_t    | 0x0000000A (10)              | array field `home.dimensions.values`[0] of 'AnnotatedBinary.Dimension' (Int)
+  +0x68 | 0C 00 00 00             | uint32_t    | 0x0000000C (12)              | array field `home.dimensions.values`[1] of 'AnnotatedBinary.Dimension' (Int)
+  +0x6C | 14 00 00 00             | uint32_t    | 0x00000014 (20)              | array field `home.dimensions.values`[2] of 'AnnotatedBinary.Dimension' (Int)
+  +0x70 | 01                      | uint8_t     | 0x01 (1)                     | struct field `home.dimensions.tolerances.width` of 'AnnotatedBinary.Tolerance' (UByte)
+  +0x71 | 02                      | uint8_t     | 0x02 (2)                     | struct field `home.dimensions.tolerances.width` of 'AnnotatedBinary.Tolerance' (UByte)
+  +0x72 | 03                      | uint8_t     | 0x03 (3)                     | struct field `home.dimensions.tolerances.width` of 'AnnotatedBinary.Tolerance' (UByte)
   +0x73 | 00                      | uint8_t[1]  | .                            | padding
   +0x74 | C8 01 00 00             | UOffset32   | 0x000001C8 (456) Loc: +0x23C | ERROR: offset to field `name`. Invalid offset, points outside the binary.
   +0x78 | 5C 01 00 00             | UOffset32   | 0x0000015C (348) Loc: +0x1D4 | ERROR: offset to field `bars`. Invalid offset, points outside the binary.
