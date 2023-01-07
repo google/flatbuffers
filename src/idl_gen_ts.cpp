@@ -277,6 +277,13 @@ class TsGenerator : public BaseGenerator {
       for (auto it = imports_all_.begin(); it != imports_all_.end(); it++) {
         code += it->second.export_statement + "\n";
       }
+
+      if (imports_all_.empty()) {
+        // if the file is empty, add an empty export so that tsc doesn't
+        // complain when running under `--isolatedModules` mode
+        code += "export {}";
+      }
+
       const std::string path =
           GeneratedFileName(path_, file_name_, parser_.opts);
       SaveFile(path.c_str(), code, false);
