@@ -158,5 +158,11 @@ int main(int argc, const char *argv[]) {
   params.error_fn = Error;
 
   flatbuffers::FlatCompiler flatc(params);
-  return flatc.Compile(argc, argv);
+
+  // Create the FlatC options by parsing the command line arguments.
+  const flatbuffers::FlatCOptions &options =
+      flatc.ParseFromCommandLineArguments(argc, argv);
+
+  // Compile with the extracted FlatC options.
+  return flatc.Compile(options);
 }

@@ -298,7 +298,7 @@ struct FieldDef : public Definition {
         presence(kDefault),
         nested_flatbuffer(nullptr),
         padding(0),
-        sibling_union_field(nullptr){}
+        sibling_union_field(nullptr) {}
 
   Offset<reflection::Field> Serialize(FlatBufferBuilder *builder, uint16_t id,
                                       const Parser &parser) const;
@@ -803,7 +803,7 @@ struct ParserState {
     FLATBUFFERS_ASSERT(cursor_ && line_start_ && cursor_ >= line_start_);
     return static_cast<int64_t>(cursor_ - line_start_);
   }
-  
+
   const char *prev_cursor_;
   const char *cursor_;
   const char *line_start_;
@@ -909,6 +909,13 @@ class Parser : public ParserState {
     known_attributes_["flexbuffer"] = true;
     known_attributes_["private"] = true;
   }
+
+  // Copying is not allowed
+  Parser(const Parser &) = delete;
+  Parser &operator=(const Parser &) = delete;
+
+  Parser(Parser &&) = default;
+  Parser &operator=(Parser &&) = default;
 
   ~Parser() {
     for (auto it = namespaces_.begin(); it != namespaces_.end(); ++it) {
