@@ -372,8 +372,6 @@ export class Builder {
       const trimmed_size = i + 1;
   
       // Write out the current vtable.
-      i = this.vtable_in_use - 1;
-      // Add the offset of every field.
       for (; i >= 0; i--) {
         // Offset relative to the start of the table.
         this.addInt16(this.vtable[i] != 0 ? vtableloc - this.vtable[i] : 0);
@@ -460,7 +458,8 @@ export class Builder {
     requiredField(table: Offset, field: number): void {
       const table_start = this.bb.capacity() - table;
       const vtable_start = table_start - this.bb.readInt32(table_start);
-      const ok = this.bb.readInt16(vtable_start + field) != 0;
+      const ok = field < this.bb.readInt16(vtable_start) &&
+                 this.bb.readInt16(vtable_start + field) != 0;
   
       // If this fails, the caller will show what field needs to be set.
       if (!ok) {
