@@ -141,6 +141,7 @@ set(FlatBuffers_Library_SRCS
   include/flatbuffers/buffer_ref.h
   include/flatbuffers/default_allocator.h
   include/flatbuffers/detached_buffer.h
+  include/flatbuffers/code_generator.h
   include/flatbuffers/flatbuffer_builder.h
   include/flatbuffers/flatbuffers.h
   include/flatbuffers/flexbuffers.h

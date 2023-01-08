@@ -20,8 +20,11 @@
 #include "bfbs_gen_lua.h"
 #include "bfbs_gen_nim.h"
 #include "flatbuffers/base.h"
+#include "flatbuffers/code_generator.h"
 #include "flatbuffers/flatc.h"
 #include "flatbuffers/util.h"
+
+
 
 static const char *g_program_name = nullptr;
 
@@ -158,6 +161,12 @@ int main(int argc, const char *argv[]) {
   params.error_fn = Error;
 
   flatbuffers::FlatCompiler flatc(params);
+
+  std::shared_ptr<flatbuffers::CodeGenerator> cpp_generator =
+      flatbuffers::NewCppCodeGenerator();
+
+  flatc.RegisterCodeGenerator("--cpp", cpp_generator);
+  flatc.RegisterCodeGenerator("-c", cpp_generator);
 
   // Create the FlatC options by parsing the command line arguments.
   const flatbuffers::FlatCOptions &options =
