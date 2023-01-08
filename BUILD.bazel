@@ -44,6 +44,7 @@ filegroup(
         "include/flatbuffers/bfbs_generator.h",
         "include/flatbuffers/buffer.h",
         "include/flatbuffers/buffer_ref.h",
+        "include/flatbuffers/code_generator.h",
         "include/flatbuffers/code_generators.h",
         "include/flatbuffers/default_allocator.h",
         "include/flatbuffers/detached_buffer.h",

@@ -20,14 +20,20 @@
 #include <functional>
 #include <limits>
 #include <list>
+#include <memory>
 #include <string>
 
 #include "flatbuffers/bfbs_generator.h"
+#include "flatbuffers/code_generator.h"
 #include "flatbuffers/flatbuffers.h"
 #include "flatbuffers/idl.h"
 #include "flatbuffers/util.h"
 
 namespace flatbuffers {
+
+// TODO(derekbailey): It would be better to define these as normal includes and
+// not as extern functions. But this can be done at a later time.
+extern std::unique_ptr<flatbuffers::CodeGenerator> NewCppCodeGenerator();
 
 extern void LogCompilerWarn(const std::string &warn);
 extern void LogCompilerError(const std::string &err);
@@ -54,6 +60,8 @@ struct FlatCOptions {
   bool schema_binary = false;
   bool grpc_enabled = false;
   bool requires_bfbs = false;
+
+  std::vector<std::shared_ptr<CodeGenerator>> generators;
 };
 
 struct FlatCOption {
@@ -110,10 +118,13 @@ class FlatCompiler {
 
   explicit FlatCompiler(const InitParams &params) : params_(params) {}
 
+  bool RegisterCodeGenerator(const std::string& flag,
+                             std::shared_ptr<CodeGenerator> code_generator);
+
   int Compile(const FlatCOptions &options);
 
-  std::string GetShortUsageString(const std::string& program_name) const;
-  std::string GetUsageString(const std::string& program_name) const;
+  std::string GetShortUsageString(const std::string &program_name) const;
+  std::string GetUsageString(const std::string &program_name) const;
 
   // Parse the FlatC options from command line arguments.
   FlatCOptions ParseFromCommandLineArguments(int argc, const char **argv);
@@ -141,7 +152,9 @@ class FlatCompiler {
   Parser GetConformParser(const FlatCOptions &options);
 
   std::unique_ptr<Parser> GenerateCode(const FlatCOptions &options,
-                    Parser &conform_parser);
+                                       Parser &conform_parser);
+
+  std::map<std::string, std::shared_ptr<CodeGenerator>> code_generators_;
 
   InitParams params_;
 };
