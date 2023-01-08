@@ -19,10 +19,12 @@
 #include <algorithm>
 #include <limits>
 #include <list>
+#include <memory>
 #include <sstream>
 
 #include "annotated_binary_text_gen.h"
 #include "binary_annotator.h"
+#include "flatbuffers/idl.h"
 #include "flatbuffers/util.h"
 
 namespace flatbuffers {
@@ -32,17 +34,19 @@ static const char *FLATC_VERSION() { return FLATBUFFERS_VERSION(); }
 void FlatCompiler::ParseFile(
     flatbuffers::Parser &parser, const std::string &filename,
     const std::string &contents,
-    std::vector<const char *> &include_directories) const {
+    const std::vector<const char *> &include_directories) const {
   auto local_include_directory = flatbuffers::StripFileName(filename);
-  include_directories.push_back(local_include_directory.c_str());
-  include_directories.push_back(nullptr);
-  if (!parser.Parse(contents.c_str(), &include_directories[0],
-                    filename.c_str())) {
+
+  std::vector<const char *> inc_directories;
+  inc_directories.insert(inc_directories.end(), include_directories.begin(),
+                         include_directories.end());
+  inc_directories.push_back(local_include_directory.c_str());
+  inc_directories.push_back(nullptr);
+
+  if (!parser.Parse(contents.c_str(), &inc_directories[0], filename.c_str())) {
     Error(parser.error_, false, false);
   }
   if (!parser.error_.empty()) { Warn(parser.error_, false); }
-  include_directories.pop_back();
-  include_directories.pop_back();
 }
 
 void FlatCompiler::LoadBinarySchema(flatbuffers::Parser &parser,
@@ -63,7 +67,7 @@ void FlatCompiler::Error(const std::string &err, bool usage,
   params_.error_fn(this, err, usage, show_exe_name);
 }
 
-const static FlatCOption options[] = {
+const static FlatCOption flatc_options[] = {
   { "o", "", "PATH", "Prefix PATH to all generated files." },
   { "I", "", "PATH", "Search for includes in the specified path." },
   { "M", "", "", "Print make rules for generated files." },
@@ -300,7 +304,8 @@ static void AppendShortOption(std::stringstream &ss,
   if (!option.long_opt.empty()) { ss << "--" << option.long_opt; }
 }
 
-std::string FlatCompiler::GetShortUsageString(const char *program_name) const {
+std::string FlatCompiler::GetShortUsageString(
+    const std::string &program_name) const {
   std::stringstream ss;
   ss << "Usage: " << program_name << " [";
   for (size_t i = 0; i < params_.num_generators; ++i) {
@@ -308,7 +313,7 @@ std::string FlatCompiler::GetShortUsageString(const char *program_name) const {
     AppendShortOption(ss, g.option);
     ss << ", ";
   }
-  for (const FlatCOption &option : options) {
+  for (const FlatCOption &option : flatc_options) {
     AppendShortOption(ss, option);
     ss << ", ";
   }
@@ -320,7 +325,8 @@ std::string FlatCompiler::GetShortUsageString(const char *program_name) const {
   return ss_textwrap.str();
 }
 
-std::string FlatCompiler::GetUsageString(const char *program_name) const {
+std::string FlatCompiler::GetUsageString(
+    const std::string &program_name) const {
   std::stringstream ss;
   ss << "Usage: " << program_name
      << " [OPTION]... FILE... [-- BINARY_FILE...]\n";
@@ -330,7 +336,7 @@ std::string FlatCompiler::GetUsageString(const char *program_name) const {
   }
 
   ss << "\n";
-  for (const FlatCOption &option : options) {
+  for (const FlatCOption &option : flatc_options) {
     AppendOption(ss, option, 80, 25);
   }
   ss << "\n";
@@ -341,7 +347,7 @@ std::string FlatCompiler::GetUsageString(const char *program_name) const {
       "after the -- must be binary flatbuffer format files. Output files are "
       "named using the base file name of the input, and written to the current "
       "directory or the path given by -o. example: " +
-      std::string(program_name) + " -c -b schema1.fbs schema2.fbs data.json";
+      program_name + " -c -b schema1.fbs schema2.fbs data.json";
   AppendTextWrappedString(ss, files_description, 80, 0);
   ss << "\n";
   return ss.str();
@@ -379,48 +385,34 @@ void FlatCompiler::AnnotateBinaries(
   }
 }
 
-int FlatCompiler::Compile(int argc, const char **argv) {
-  if (params_.generators == nullptr || params_.num_generators == 0) {
-    return 0;
-  }
-
+FlatCOptions FlatCompiler::ParseFromCommandLineArguments(int argc,
+                                                         const char **argv) {
   if (argc <= 1) { Error("Need to provide at least one argument."); }
 
-  flatbuffers::IDLOptions opts;
-  std::string output_path;
+  FlatCOptions options;
 
-  bool any_generator = false;
-  bool print_make_rules = false;
-  bool raw_binary = false;
-  bool schema_binary = false;
-  bool grpc_enabled = false;
-  bool requires_bfbs = false;
-  std::vector<std::string> filenames;
-  std::list<std::string> include_directories_storage;
-  std::vector<const char *> include_directories;
-  std::vector<const char *> conform_include_directories;
-  std::vector<bool> generator_enabled(params_.num_generators, false);
-  size_t binary_files_from = std::numeric_limits<size_t>::max();
-  std::string conform_to_schema;
-  std::string annotate_schema;
+  // Default all generates to disabled.
+  options.generator_enabled.resize(params_.num_generators, false);
 
-  const char *program_name = argv[0];
+  options.program_name = std::string(argv[0]);
+
+  IDLOptions &opts = options.opts;
 
   for (int argi = 1; argi < argc; argi++) {
     std::string arg = argv[argi];
     if (arg[0] == '-') {
-      if (filenames.size() && arg[1] != '-')
+      if (options.filenames.size() && arg[1] != '-')
         Error("invalid option location: " + arg, true);
       if (arg == "-o") {
         if (++argi >= argc) Error("missing path following: " + arg, true);
-        output_path = flatbuffers::ConCatPathFileName(
+        options.output_path = flatbuffers::ConCatPathFileName(
             flatbuffers::PosixPath(argv[argi]), "");
       } else if (arg == "-I") {
         if (++argi >= argc) Error("missing path following: " + arg, true);
-        include_directories_storage.push_back(
+        options.include_directories_storage.push_back(
             flatbuffers::PosixPath(argv[argi]));
-        include_directories.push_back(
-            include_directories_storage.back().c_str());
+        options.include_directories.push_back(
+            options.include_directories_storage.back().c_str());
       } else if (arg == "--bfbs-filenames") {
         if (++argi > argc) Error("missing path following: " + arg, true);
         opts.project_root = argv[argi];
@@ -428,13 +420,13 @@ int FlatCompiler::Compile(int argc, const char **argv) {
           Error(arg + " is not a directory: " + opts.project_root);
       } else if (arg == "--conform") {
         if (++argi >= argc) Error("missing path following: " + arg, true);
-        conform_to_schema = flatbuffers::PosixPath(argv[argi]);
+        options.conform_to_schema = flatbuffers::PosixPath(argv[argi]);
       } else if (arg == "--conform-includes") {
         if (++argi >= argc) Error("missing path following: " + arg, true);
-        include_directories_storage.push_back(
+        options.include_directories_storage.push_back(
             flatbuffers::PosixPath(argv[argi]));
-        conform_include_directories.push_back(
-            include_directories_storage.back().c_str());
+        options.conform_include_directories.push_back(
+            options.include_directories_storage.back().c_str());
       } else if (arg == "--include-prefix") {
         if (++argi >= argc) Error("missing path following: " + arg, true);
         opts.include_prefix = flatbuffers::ConCatPathFileName(
@@ -531,11 +523,11 @@ int FlatCompiler::Compile(int argc, const char **argv) {
         opts.one_file = true;
         opts.include_dependence_headers = false;
       } else if (arg == "--raw-binary") {
-        raw_binary = true;
+        options.raw_binary = true;
       } else if (arg == "--size-prefixed") {
         opts.size_prefixed = true;
       } else if (arg == "--") {  // Separator between text and binary inputs.
-        binary_files_from = filenames.size();
+        options.binary_files_from = options.filenames.size();
       } else if (arg == "--proto") {
         opts.proto_mode = true;
       } else if (arg == "--proto-namespace-suffix") {
@@ -544,17 +536,17 @@ int FlatCompiler::Compile(int argc, const char **argv) {
       } else if (arg == "--oneof-union") {
         opts.proto_oneof_union = true;
       } else if (arg == "--schema") {
-        schema_binary = true;
+        options.schema_binary = true;
       } else if (arg == "-M") {
-        print_make_rules = true;
+        options.print_make_rules = true;
       } else if (arg == "--version") {
         printf("flatc version %s\n", FLATC_VERSION());
         exit(0);
       } else if (arg == "--help" || arg == "-h") {
-        printf("%s\n", GetUsageString(program_name).c_str());
+        printf("%s\n", GetUsageString(options.program_name).c_str());
         exit(0);
       } else if (arg == "--grpc") {
-        grpc_enabled = true;
+        options.grpc_enabled = true;
       } else if (arg == "--bfbs-comments") {
         opts.binary_schema_comments = true;
       } else if (arg == "--bfbs-builtins") {
@@ -619,17 +611,17 @@ int FlatCompiler::Compile(int argc, const char **argv) {
         opts.no_leak_private_annotations = true;
       } else if (arg == "--annotate") {
         if (++argi >= argc) Error("missing path following: " + arg, true);
-        annotate_schema = flatbuffers::PosixPath(argv[argi]);
+        options.annotate_schema = flatbuffers::PosixPath(argv[argi]);
       } else {
         for (size_t i = 0; i < params_.num_generators; ++i) {
           if (arg == "--" + params_.generators[i].option.long_opt ||
               arg == "-" + params_.generators[i].option.short_opt) {
-            generator_enabled[i] = true;
-            any_generator = true;
+            options.generator_enabled[i] = true;
+            options.any_generator = true;
             opts.lang_to_generate |= params_.generators[i].lang;
             if (params_.generators[i].bfbs_generator) {
               opts.binary_schema_comments = true;
-              requires_bfbs = true;
+              options.requires_bfbs = true;
             }
             goto found;
           }
@@ -639,17 +631,23 @@ int FlatCompiler::Compile(int argc, const char **argv) {
       found:;
       }
     } else {
-      filenames.push_back(flatbuffers::PosixPath(argv[argi]));
+      options.filenames.push_back(flatbuffers::PosixPath(argv[argi]));
     }
   }
 
-  if (!filenames.size()) Error("missing input files", false, true);
+  return options;
+}
+
+void FlatCompiler::ValidateOptions(const FlatCOptions &options) {
+  const IDLOptions &opts = options.opts;
+
+  if (!options.filenames.size()) Error("missing input files", false, true);
 
   if (opts.proto_mode) {
-    if (any_generator)
+    if (options.any_generator)
       Error("cannot generate code directly from .proto files", true);
-  } else if (!any_generator && conform_to_schema.empty() &&
-             annotate_schema.empty()) {
+  } else if (!options.any_generator && options.conform_to_schema.empty() &&
+             options.annotate_schema.empty()) {
     Error("no options: specify at least one generator.", true);
   }
 
@@ -658,80 +656,45 @@ int FlatCompiler::Compile(int argc, const char **argv) {
         "--cs-gen-json-serializer requires --gen-object-api to be set as "
         "well.");
   }
+}
 
+flatbuffers::Parser FlatCompiler::GetConformParser(
+    const FlatCOptions &options) {
   flatbuffers::Parser conform_parser;
-  if (!conform_to_schema.empty()) {
+  if (!options.conform_to_schema.empty()) {
     std::string contents;
-    if (!flatbuffers::LoadFile(conform_to_schema.c_str(), true, &contents))
-      Error("unable to load schema: " + conform_to_schema);
+    if (!flatbuffers::LoadFile(options.conform_to_schema.c_str(), true,
+                               &contents)) {
+      Error("unable to load schema: " + options.conform_to_schema);
+    }
 
-    if (flatbuffers::GetExtension(conform_to_schema) ==
+    if (flatbuffers::GetExtension(options.conform_to_schema) ==
         reflection::SchemaExtension()) {
-      LoadBinarySchema(conform_parser, conform_to_schema, contents);
+      LoadBinarySchema(conform_parser, options.conform_to_schema, contents);
     } else {
-      ParseFile(conform_parser, conform_to_schema, contents,
-                conform_include_directories);
+      ParseFile(conform_parser, options.conform_to_schema, contents,
+                options.conform_include_directories);
     }
   }
+  return conform_parser;
+}
 
-  if (!annotate_schema.empty()) {
-    const std::string ext = flatbuffers::GetExtension(annotate_schema);
-    if (!(ext == reflection::SchemaExtension() || ext == "fbs")) {
-      Error("Expected a `.bfbs` or `.fbs` schema, got: " + annotate_schema);
-    }
+std::unique_ptr<Parser> FlatCompiler::GenerateCode(const FlatCOptions &options,
+                                                   Parser &conform_parser) {
+  std::unique_ptr<Parser> parser =
+      std::unique_ptr<Parser>(new Parser(options.opts));
 
-    const bool is_binary_schema = ext == reflection::SchemaExtension();
+  for (auto file_it = options.filenames.begin();
+       file_it != options.filenames.end(); ++file_it) {
+    IDLOptions opts = options.opts;
 
-    std::string schema_contents;
-    if (!flatbuffers::LoadFile(annotate_schema.c_str(),
-                               /*binary=*/is_binary_schema, &schema_contents)) {
-      Error("unable to load schema: " + annotate_schema);
-    }
-
-    const uint8_t *binary_schema = nullptr;
-    uint64_t binary_schema_size = 0;
-
-    IDLOptions binary_opts;
-    binary_opts.lang_to_generate |= flatbuffers::IDLOptions::kBinary;
-    flatbuffers::Parser parser(binary_opts);
-
-    if (is_binary_schema) {
-      binary_schema =
-          reinterpret_cast<const uint8_t *>(schema_contents.c_str());
-      binary_schema_size = schema_contents.size();
-    } else {
-      // If we need to generate the .bfbs file from the provided schema file
-      // (.fbs)
-      ParseFile(parser, annotate_schema, schema_contents, include_directories);
-      parser.Serialize();
-
-      binary_schema = parser.builder_.GetBufferPointer();
-      binary_schema_size = parser.builder_.GetSize();
-    }
-
-    if (binary_schema == nullptr || !binary_schema_size) {
-      Error("could not parse a value binary schema from: " + annotate_schema);
-    }
-
-    // Annotate the provided files with the binary_schema.
-    AnnotateBinaries(binary_schema, binary_schema_size, annotate_schema,
-                     filenames);
-
-    // We don't support doing anything else after annotating a binary.
-    return 0;
-  }
-
-  std::unique_ptr<flatbuffers::Parser> parser(new flatbuffers::Parser(opts));
-
-  for (auto file_it = filenames.begin(); file_it != filenames.end();
-       ++file_it) {
     auto &filename = *file_it;
     std::string contents;
     if (!flatbuffers::LoadFile(filename.c_str(), true, &contents))
       Error("unable to load file: " + filename);
 
-    bool is_binary =
-        static_cast<size_t>(file_it - filenames.begin()) >= binary_files_from;
+    bool is_binary = static_cast<size_t>(file_it - options.filenames.begin()) >=
+                     options.binary_files_from;
     auto ext = flatbuffers::GetExtension(filename);
     const bool is_schema = ext == "fbs" || ext == "proto";
     if (is_schema && opts.project_root.empty()) {
@@ -743,7 +706,7 @@ int FlatCompiler::Compile(int argc, const char **argv) {
       parser->builder_.PushFlatBuffer(
           reinterpret_cast<const uint8_t *>(contents.c_str()),
           contents.length());
-      if (!raw_binary) {
+      if (!options.raw_binary) {
         // Generally reading binaries that do not correspond to the schema
         // will crash, and sadly there's no way around that when the binary
         // does not contain a file identifier.
@@ -773,12 +736,12 @@ int FlatCompiler::Compile(int argc, const char **argv) {
         // If we're processing multiple schemas, make sure to start each
         // one from scratch. If it depends on previous schemas it must do
         // so explicitly using an include.
-        parser.reset(new flatbuffers::Parser(opts));
+        parser.reset(new Parser(opts));
       }
       // Try to parse the file contents (binary schema/flexbuffer/textual
       // schema)
       if (is_binary_schema) {
-        LoadBinarySchema(*parser.get(), filename, contents);
+        LoadBinarySchema(*parser, filename, contents);
       } else if (opts.use_flexbuffers) {
         if (opts.lang_to_generate == IDLOptions::kJson) {
           auto data = reinterpret_cast<const uint8_t *>(contents.c_str());
@@ -789,10 +752,10 @@ int FlatCompiler::Compile(int argc, const char **argv) {
           parser->flex_root_ = flexbuffers::GetRoot(data, size);
         } else {
           parser->flex_builder_.Clear();
-          ParseFile(*parser.get(), filename, contents, include_directories);
+          ParseFile(*parser, filename, contents, options.include_directories);
         }
       } else {
-        ParseFile(*parser.get(), filename, contents, include_directories);
+        ParseFile(*parser, filename, contents, options.include_directories);
         if (!is_schema && !parser->builder_.GetSize()) {
           // If a file doesn't end in .fbs, it must be json/binary. Ensure we
           // didn't just parse a schema with a different extension.
@@ -801,14 +764,15 @@ int FlatCompiler::Compile(int argc, const char **argv) {
                 true);
         }
       }
-      if ((is_schema || is_binary_schema) && !conform_to_schema.empty()) {
+      if ((is_schema || is_binary_schema) &&
+          !options.conform_to_schema.empty()) {
         auto err = parser->ConformTo(conform_parser);
         if (!err.empty()) Error("schemas don\'t conform: " + err, false);
       }
-      if (schema_binary || opts.binary_schema_gen_embed) {
+      if (options.schema_binary || opts.binary_schema_gen_embed) {
         parser->Serialize();
       }
-      if (schema_binary) {
+      if (options.schema_binary) {
         parser->file_extension_ = reflection::SchemaExtension();
       }
     }
@@ -819,16 +783,16 @@ int FlatCompiler::Compile(int argc, const char **argv) {
     // the serialized buffer and length.
     const uint8_t *bfbs_buffer = nullptr;
     int64_t bfbs_length = 0;
-    if (requires_bfbs) {
+    if (options.requires_bfbs) {
       parser->Serialize();
       bfbs_buffer = parser->builder_.GetBufferPointer();
       bfbs_length = parser->builder_.GetSize();
     }
 
     for (size_t i = 0; i < params_.num_generators; ++i) {
-      if (generator_enabled[i]) {
-        if (!print_make_rules) {
-          flatbuffers::EnsureDirExists(output_path);
+      if (options.generator_enabled[i]) {
+        if (!options.print_make_rules) {
+          flatbuffers::EnsureDirExists(options.output_path);
 
           // Prefer bfbs generators if present.
           if (params_.generators[i].bfbs_generator) {
@@ -843,7 +807,7 @@ int FlatCompiler::Compile(int argc, const char **argv) {
           } else {
             if ((!params_.generators[i].schema_only ||
                  (is_schema || is_binary_schema)) &&
-                !params_.generators[i].generate(*parser.get(), output_path,
+                !params_.generators[i].generate(*parser, options.output_path,
                                                 filebase)) {
               Error(std::string("Unable to generate ") +
                     params_.generators[i].lang_name + " for " + filebase);
@@ -855,16 +819,16 @@ int FlatCompiler::Compile(int argc, const char **argv) {
                   params_.generators[i].lang_name);
           } else {
             std::string make_rule = params_.generators[i].make_rule(
-                *parser.get(), output_path, filename);
+                *parser, options.output_path, filename);
             if (!make_rule.empty())
               printf("%s\n",
                      flatbuffers::WordWrap(make_rule, 80, " ", " \\").c_str());
           }
         }
-        if (grpc_enabled) {
+        if (options.grpc_enabled) {
           if (params_.generators[i].generateGRPC != nullptr) {
-            if (!params_.generators[i].generateGRPC(*parser.get(), output_path,
-                                                    filebase)) {
+            if (!params_.generators[i].generateGRPC(
+                    *parser, options.output_path, filebase)) {
               Error(std::string("Unable to generate GRPC interface for ") +
                     params_.generators[i].lang_name);
             }
@@ -883,19 +847,84 @@ int FlatCompiler::Compile(int argc, const char **argv) {
         Error("root type must be a table");
     }
 
-    if (opts.proto_mode) GenerateFBS(*parser.get(), output_path, filebase);
+    if (opts.proto_mode) GenerateFBS(*parser, options.output_path, filebase);
 
     // We do not want to generate code for the definitions in this file
     // in any files coming up next.
     parser->MarkGenerated();
   }
 
+  return parser;
+}
+
+int FlatCompiler::Compile(const FlatCOptions &options) {
+  if (params_.generators == nullptr || params_.num_generators == 0) {
+    return 0;
+  }
+
+  // TODO(derekbailey): change to std::optional<Parser>
+  Parser conform_parser = GetConformParser(options);
+
+  // TODO(derekbailey): split to own method.
+  if (!options.annotate_schema.empty()) {
+    const std::string ext = flatbuffers::GetExtension(options.annotate_schema);
+    if (!(ext == reflection::SchemaExtension() || ext == "fbs")) {
+      Error("Expected a `.bfbs` or `.fbs` schema, got: " +
+            options.annotate_schema);
+    }
+
+    const bool is_binary_schema = ext == reflection::SchemaExtension();
+
+    std::string schema_contents;
+    if (!flatbuffers::LoadFile(options.annotate_schema.c_str(),
+                               /*binary=*/is_binary_schema, &schema_contents)) {
+      Error("unable to load schema: " + options.annotate_schema);
+    }
+
+    const uint8_t *binary_schema = nullptr;
+    uint64_t binary_schema_size = 0;
+
+    IDLOptions binary_opts;
+    binary_opts.lang_to_generate |= flatbuffers::IDLOptions::kBinary;
+    Parser parser(binary_opts);
+
+    if (is_binary_schema) {
+      binary_schema =
+          reinterpret_cast<const uint8_t *>(schema_contents.c_str());
+      binary_schema_size = schema_contents.size();
+    } else {
+      // If we need to generate the .bfbs file from the provided schema file
+      // (.fbs)
+      ParseFile(parser, options.annotate_schema, schema_contents,
+                options.include_directories);
+      parser.Serialize();
+
+      binary_schema = parser.builder_.GetBufferPointer();
+      binary_schema_size = parser.builder_.GetSize();
+    }
+
+    if (binary_schema == nullptr || !binary_schema_size) {
+      Error("could not parse a value binary schema from: " +
+            options.annotate_schema);
+    }
+
+    // Annotate the provided files with the binary_schema.
+    AnnotateBinaries(binary_schema, binary_schema_size, options.annotate_schema,
+                     options.filenames);
+
+    // We don't support doing anything else after annotating a binary.
+    return 0;
+  }
+
+  std::unique_ptr<Parser> parser = GenerateCode(options, conform_parser);
+
   // Once all the files have been parsed, run any generators Parsing Completed
   // function for final generation.
   for (size_t i = 0; i < params_.num_generators; ++i) {
-    if (generator_enabled[i] &&
+    if (options.generator_enabled[i] &&
         params_.generators[i].parsing_completed != nullptr) {
-      if (!params_.generators[i].parsing_completed(*parser, output_path)) {
+      if (!params_.generators[i].parsing_completed(*parser,
+                                                   options.output_path)) {
         Error("failed running parsing completed for " +
               std::string(params_.generators[i].lang_name));
       }
