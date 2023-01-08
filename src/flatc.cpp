@@ -24,6 +24,7 @@
 
 #include "annotated_binary_text_gen.h"
 #include "binary_annotator.h"
+#include "flatbuffers/code_generator.h"
 #include "flatbuffers/idl.h"
 #include "flatbuffers/util.h"
 
@@ -308,6 +309,7 @@ std::string FlatCompiler::GetShortUsageString(
     const std::string &program_name) const {
   std::stringstream ss;
   ss << "Usage: " << program_name << " [";
+  // TODO(derekbailey): These should be generated from this.generators
   for (size_t i = 0; i < params_.num_generators; ++i) {
     const Generator &g = params_.generators[i];
     AppendShortOption(ss, g.option);
@@ -330,6 +332,7 @@ std::string FlatCompiler::GetUsageString(
   std::stringstream ss;
   ss << "Usage: " << program_name
      << " [OPTION]... FILE... [-- BINARY_FILE...]\n";
+  // TODO(derekbailey): These should be generated from this.generators
   for (size_t i = 0; i < params_.num_generators; ++i) {
     const Generator &g = params_.generators[i];
     AppendOption(ss, g.option, 80, 25);
@@ -613,20 +616,41 @@ FlatCOptions FlatCompiler::ParseFromCommandLineArguments(int argc,
         if (++argi >= argc) Error("missing path following: " + arg, true);
         options.annotate_schema = flatbuffers::PosixPath(argv[argi]);
       } else {
-        for (size_t i = 0; i < params_.num_generators; ++i) {
-          if (arg == "--" + params_.generators[i].option.long_opt ||
-              arg == "-" + params_.generators[i].option.short_opt) {
-            options.generator_enabled[i] = true;
-            options.any_generator = true;
-            opts.lang_to_generate |= params_.generators[i].lang;
-            if (params_.generators[i].bfbs_generator) {
-              opts.binary_schema_comments = true;
-              options.requires_bfbs = true;
-            }
-            goto found;
+        // Look up if the command line argument refers to a code generator.
+        auto code_generator_it = code_generators_.find(arg);
+        if (code_generator_it != code_generators_.end()) {
+          std::shared_ptr<CodeGenerator> code_generator =
+              code_generator_it->second;
+
+          // TODO(derekbailey): remove in favor of just checking if
+          // generators.empty().
+          options.any_generator = true;
+          opts.lang_to_generate |= code_generator->Language();
+
+          if (code_generator->SupportsBfbsGeneration()) {
+            opts.binary_schema_comments = true;
+            options.requires_bfbs = true;
           }
+
+          options.generators.push_back(std::move(code_generator));
+        } else {
+          // TODO(derekbailey): deprecate the following logic in favor of the
+          // code generator map above.
+          for (size_t i = 0; i < params_.num_generators; ++i) {
+            if (arg == "--" + params_.generators[i].option.long_opt ||
+                arg == "-" + params_.generators[i].option.short_opt) {
+              options.generator_enabled[i] = true;
+              options.any_generator = true;
+              opts.lang_to_generate |= params_.generators[i].lang;
+              if (params_.generators[i].bfbs_generator) {
+                opts.binary_schema_comments = true;
+                options.requires_bfbs = true;
+              }
+              goto found;
+            }
+          }
+          Error("unknown commandline argument: " + arg, true);
         }
-        Error("unknown commandline argument: " + arg, true);
 
       found:;
       }
@@ -789,6 +813,57 @@ std::unique_ptr<Parser> FlatCompiler::GenerateCode(const FlatCOptions &options,
       bfbs_length = parser->builder_.GetSize();
     }
 
+    for (const std::shared_ptr<CodeGenerator> &code_generator :
+         options.generators) {
+      if (options.print_make_rules) {
+        std::string make_rule;
+        const CodeGenerator::Status status = code_generator->GenerateMakeRule(
+            *parser, options.output_path, filename, make_rule);
+        if (status == CodeGenerator::Status::OK && !make_rule.empty()) {
+          printf("%s\n",
+                 flatbuffers::WordWrap(make_rule, 80, " ", " \\").c_str());
+        } else {
+          Error("Cannot generate make rule for " +
+                code_generator->LanguageName());
+        }
+      } else {
+        flatbuffers::EnsureDirExists(options.output_path);
+
+        // Prefer bfbs generators if present.
+        if (code_generator->SupportsBfbsGeneration()) {
+          const CodeGenerator::Status status =
+              code_generator->GenerateCode(bfbs_buffer, bfbs_length);
+          if (status != CodeGenerator::Status::OK) {
+            Error("Unable to generate " + code_generator->LanguageName() +
+                  " for " + filebase + " using bfbs generator.");
+          }
+        } else {
+          if ((!code_generator->IsSchemaOnly() ||
+               (is_schema || is_binary_schema)) &&
+              code_generator->GenerateCode(*parser, options.output_path,
+                                           filebase) !=
+                  CodeGenerator::Status::OK) {
+            Error("Unable to generate " + code_generator->LanguageName() +
+                  " for " + filebase);
+          }
+        }
+      }
+
+      if (options.grpc_enabled) {
+        const CodeGenerator::Status status = code_generator->GenerateGrpcCode(
+            *parser, options.output_path, filebase);
+
+        if (status == CodeGenerator::Status::NOT_IMPLEMENTED) {
+          Warn("GRPC interface generator not implemented for " +
+               code_generator->LanguageName());
+        } else if (status == CodeGenerator::Status::ERROR) {
+          Error("Unable to generate GRPC interface for " +
+                code_generator->LanguageName());
+        }
+      }
+    }
+
+    // TODO(derekbailey): Deprecate the following in favor to the above.
     for (size_t i = 0; i < params_.num_generators; ++i) {
       if (options.generator_enabled[i]) {
         if (!options.print_make_rules) {
@@ -932,6 +1007,16 @@ int FlatCompiler::Compile(const FlatCOptions &options) {
   }
 
   return 0;
+}
+
+bool FlatCompiler::RegisterCodeGenerator(
+    const std::string &flag, std::shared_ptr<CodeGenerator> code_generator) {
+  if (code_generators_.find(flag) != code_generators_.end()) {
+    Error("multiple generators registered under: " + flag, false, false);
+    return false;
+  }
+  code_generators_[flag] = std::move(code_generator);
+  return true;
 }
 
 }  // namespace flatbuffers

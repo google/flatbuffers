@@ -17,6 +17,7 @@
 // independent from idl_parser, since this code is not needed for most clients
 
 #include <limits>
+#include <memory>
 #include <string>
 #include <unordered_set>
 
@@ -3869,6 +3870,52 @@ std::string CPPMakeRule(const Parser &parser, const std::string &path,
     make_rule += " " + included_file;
   }
   return make_rule;
+}
+
+namespace {
+
+class CppCodeGenerator : public CodeGenerator {
+ public:
+  Status GenerateCode(const Parser &parser, const std::string &path,
+                      const std::string &filename) override {
+    if (!GenerateCPP(parser, path, filename)) { return Status::ERROR; }
+    return Status::OK;
+  }
+
+  // Generate code from the provided `buffer` of given `length`. The buffer is a
+  // serialized reflection.fbs.
+  Status GenerateCode(const uint8_t *buffer, int64_t length) override {
+    (void) buffer;
+    (void) length;
+    return Status::NOT_IMPLEMENTED;
+  }
+
+  Status GenerateMakeRule(const Parser &parser, const std::string &path,
+                          const std::string &filename,
+                          std::string &output) override {
+    output = CPPMakeRule(parser, path, filename);
+    return Status::OK;
+  }
+
+  Status GenerateGrpcCode(const Parser &parser, const std::string &path,
+                          const std::string &filename) override {
+    if (!GenerateCppGRPC(parser, path, filename)) { return Status::ERROR; }
+    return Status::OK;
+  }
+
+  bool IsSchemaOnly() const override { return true; }
+
+  bool SupportsBfbsGeneration() const override { return false; }
+
+  IDLOptions::Language Language() const override { return IDLOptions::kCpp; }
+
+  std::string LanguageName() const override { return "C++"; }
+};
+
+}  // namespace
+
+std::unique_ptr<CodeGenerator> NewCppCodeGenerator() {
+  return std::unique_ptr<CppCodeGenerator>(new CppCodeGenerator());
 }
 
 }  // namespace flatbuffers
