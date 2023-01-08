@@ -67,7 +67,7 @@ void FlatCompiler::Error(const std::string &err, bool usage,
   params_.error_fn(this, err, usage, show_exe_name);
 }
 
-const static FlatCOption options[] = {
+const static FlatCOption flatc_options[] = {
   { "o", "", "PATH", "Prefix PATH to all generated files." },
   { "I", "", "PATH", "Search for includes in the specified path." },
   { "M", "", "", "Print make rules for generated files." },
@@ -313,7 +313,7 @@ std::string FlatCompiler::GetShortUsageString(
     AppendShortOption(ss, g.option);
     ss << ", ";
   }
-  for (const FlatCOption &option : options) {
+  for (const FlatCOption &option : flatc_options) {
     AppendShortOption(ss, option);
     ss << ", ";
   }
@@ -336,7 +336,7 @@ std::string FlatCompiler::GetUsageString(
   }
 
   ss << "\n";
-  for (const FlatCOption &option : options) {
+  for (const FlatCOption &option : flatc_options) {
     AppendOption(ss, option, 80, 25);
   }
   ss << "\n";
@@ -681,7 +681,8 @@ flatbuffers::Parser FlatCompiler::GetConformParser(
 
 std::unique_ptr<Parser> FlatCompiler::GenerateCode(const FlatCOptions &options,
                                                    Parser &conform_parser) {
-  std::unique_ptr<Parser> parser = std::make_unique<Parser>(options.opts);
+  std::unique_ptr<Parser> parser =
+      std::unique_ptr<Parser>(new Parser(options.opts));
 
   for (auto file_it = options.filenames.begin();
        file_it != options.filenames.end(); ++file_it) {
