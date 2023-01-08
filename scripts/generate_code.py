@@ -353,6 +353,13 @@ type_field_collsion_schema = "type_field_collsion.fbs"
 
 flatc(["--csharp", "--gen-object-api"], schema=type_field_collsion_schema)
 
+# Union / value collision
+flatc(
+    CS_OPTS + ["--gen-object-api", "--gen-onefile"],
+    prefix="union_value_collsion",
+    schema="union_value_collision.fbs"
+)
+
 # Generate string/vector default code for tests
 flatc(RUST_OPTS, prefix="more_defaults", schema="more_defaults.fbs")
 
@@ -414,6 +421,15 @@ flatc(
     SWIFT_OPTS_CODE_GEN + NO_INCL_OPTS + ["--grpc"],
     schema="test_no_include.fbs",
     cwd=swift_code_gen
+)
+
+# Swift Wasm Tests
+swift_Wasm_prefix = "swift/Wasm.tests/Tests/FlatBuffers.Test.Swift.WasmTests"
+flatc(
+    SWIFT_OPTS + BASE_OPTS,
+    schema="monster_test.fbs",
+    include="include_test",
+    prefix=swift_Wasm_prefix,
 )
 
 # Nim Tests
