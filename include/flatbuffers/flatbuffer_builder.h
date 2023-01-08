@@ -98,7 +98,7 @@ class FlatBufferBuilder {
   }
 
   /// @brief Move constructor for FlatBufferBuilder.
-  FlatBufferBuilder(FlatBufferBuilder &&other)
+  FlatBufferBuilder(FlatBufferBuilder &&other) noexcept
       : buf_(1024, nullptr, false, AlignOf<largest_scalar_t>()),
         num_field_loc(0),
         max_voffset_(0),
@@ -116,7 +116,7 @@ class FlatBufferBuilder {
   }
 
   /// @brief Move assignment operator for FlatBufferBuilder.
-  FlatBufferBuilder &operator=(FlatBufferBuilder &&other) {
+  FlatBufferBuilder &operator=(FlatBufferBuilder &&other) noexcept {
     // Move construct a temporary and swap idiom
     FlatBufferBuilder temp(std::move(other));
     Swap(temp);
