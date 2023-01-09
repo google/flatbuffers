@@ -137,7 +137,7 @@ class TestWireFormat(unittest.TestCase):
 class TestObjectBasedAPI(unittest.TestCase):
   """ Tests the generated object based API."""
 
-  def test_consistenty_with_repeated_pack_and_unpack(self):
+  def test_consistency_with_repeated_pack_and_unpack(self):
     """ Checks the serialization and deserialization between a buffer and
 
         its python object. It tests in the same way as the C++ object API test,
