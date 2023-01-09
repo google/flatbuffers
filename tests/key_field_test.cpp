@@ -120,7 +120,6 @@ void StructKeyInStructTest() {
   TEST_EQ(sorted_apple_vec->LookupByKey(
               Color(flatbuffers::make_span(test_float_array1), 0)),
           static_cast<const Apple *>(nullptr));
-
 }
 
 void NestedStructKeyInStructTest() {
@@ -216,8 +215,10 @@ void FixedSizedStructArrayKeyInStructTest() {
   TEST_EQ(
       sorted_grain_vec->LookupByKey(&flatbuffers::CastToArray(test_rice_array)),
       static_cast<const Grain *>(nullptr));
-  TEST_EQ(sorted_grain_vec->LookupByKey(&flatbuffers::CastToArray(test_rice_array1))->tag(), 3);
-
+  TEST_EQ(
+      sorted_grain_vec->LookupByKey(&flatbuffers::CastToArray(test_rice_array1))
+          ->tag(),
+      3);
 }
 
 }  // namespace tests
