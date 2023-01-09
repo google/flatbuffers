@@ -2362,10 +2362,10 @@ class CppGenerator : public BaseGenerator {
             " - static_cast<int>(lhs < rhs);";
       } else if (IsStruct(elem_type)) {
         code_ +=
-            "      const auto lhs_{{FIELD_NAME}} = "
+            "      const auto &lhs_{{FIELD_NAME}} = "
             "*(curr_{{FIELD_NAME}}->Get(i));";
         code_ +=
-            "      const auto rhs_{{FIELD_NAME}} = *(_{{FIELD_NAME}}->Get(i));";
+            "      const auto &rhs_{{FIELD_NAME}} = *(_{{FIELD_NAME}}->Get(i));";
         GenComparatorForStruct(*elem_type.struct_def, 6,
                                "lhs_" + code_.GetValue("FIELD_NAME"),
                                "rhs_" + code_.GetValue("FIELD_NAME"));
@@ -2379,8 +2379,8 @@ class CppGenerator : public BaseGenerator {
       code_ +=
           "  int KeyCompareWithValue(const {{INPUT_TYPE}} &_{{FIELD_NAME}}) "
           "const {";
-      code_ += "    const auto lhs_{{FIELD_NAME}} = {{FIELD_NAME}}();";
-      code_ += "    const auto rhs_{{FIELD_NAME}} = _{{FIELD_NAME}};";
+      code_ += "    const auto &lhs_{{FIELD_NAME}} = {{FIELD_NAME}}();";
+      code_ += "    const auto &rhs_{{FIELD_NAME}} = _{{FIELD_NAME}};";
       GenComparatorForStruct(*struct_def, 4,
                              "lhs_" + code_.GetValue("FIELD_NAME"),
                              "rhs_" + code_.GetValue("FIELD_NAME"));
