@@ -2356,7 +2356,7 @@ class CppGenerator : public BaseGenerator {
       if (IsScalar(elem_type.base_type)) {
         code_ += "      const auto lhs = curr_{{FIELD_NAME}}->Get(i);";
         code_ += "      const auto rhs = _{{FIELD_NAME}}->Get(i);";
-        code_ += "      if(lhs != rhs)";
+        code_ += "      if (lhs != rhs)";
         code_ +=
             "        return static_cast<int>(lhs > rhs)"
             " - static_cast<int>(lhs < rhs);";
@@ -2375,7 +2375,7 @@ class CppGenerator : public BaseGenerator {
     } else if (is_struct) {
       const auto *struct_def = field.value.type.struct_def;
       code_.SetValue("INPUT_TYPE",
-                     GenTypeGet(field.value.type, " ", "", " ", false));
+                     GenTypeGet(field.value.type, "", "", "", false));
       code_ +=
           "  int KeyCompareWithValue(const {{INPUT_TYPE}} &_{{FIELD_NAME}}) "
           "const {";
