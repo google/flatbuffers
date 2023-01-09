@@ -45,7 +45,7 @@ class SampleBinary {
 
         // Serialize the FlatBuffer data.
         val name = builder.createString("Orc")
-        val treasure = byteArrayOf(0, 1, 2, 3, 4, 5, 6, 7, 8, 9)
+        val treasure = byteArrayOf(0, 1, 2, 3, 4, 5, 6, 7, 8, 9).asUByteArray()
         val inv = Monster.createInventoryVector(builder, treasure)
         val weapons = Monster.createWeaponsVector(builder, weaps)
         val pos = Vec3.createVec3(builder, 1.0f, 2.0f, 3.0f)
@@ -85,7 +85,7 @@ class SampleBinary {
 
         // Get and test the `inventory` FlatBuffer `vector`.
         for (i in 0 until monster.inventoryLength) {
-            assert(monster.inventory(i) == i.toByte().toInt())
+            assert(monster.inventory(i) == i.toUByte())
         }
 
         // Get and test the `weapons` FlatBuffer `vector` of `table`s.
