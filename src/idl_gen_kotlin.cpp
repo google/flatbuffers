@@ -313,7 +313,10 @@ class KotlinGenerator : public BaseGenerator {
       // Average distance between values above which we consider a table
       // "too sparse". Change at will.
       static const uint64_t kMaxSparseness = 5;
-      if (range / static_cast<uint64_t>(enum_def.size()) < kMaxSparseness) {
+      bool generate_names =
+          range / static_cast<uint64_t>(enum_def.size()) < kMaxSparseness &&
+          parser_.opts.mini_reflect == IDLOptions::kTypesAndNames;
+      if (generate_names) {
         GeneratePropertyOneLine(writer, "names", "Array<String>", [&]() {
           writer += "arrayOf(\\";
           auto val = enum_def.Vals().front();

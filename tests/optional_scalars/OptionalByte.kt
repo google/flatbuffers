@@ -8,7 +8,5 @@ class OptionalByte private constructor() {
         const val None: Byte = 0
         const val One: Byte = 1
         const val Two: Byte = 2
-        val names : Array<String> = arrayOf("None", "One", "Two")
-        fun name(e: Int) : String = names[e]
     }
 }
