@@ -24,6 +24,7 @@ import MyGame.Sample.Weapon
 
 import com.google.flatbuffers.FlatBufferBuilder
 
+@kotlin.ExperimentalUnsignedTypes
 class SampleBinary {
 
   companion object {
