@@ -120,8 +120,6 @@ void StructKeyInStructTest() {
   TEST_EQ(sorted_apple_vec->LookupByKey(
               Color(flatbuffers::make_span(test_float_array1), 0)),
           static_cast<const Apple *>(nullptr));
-  TEST_EQ(sorted_apple_vec->LookupByKey(Color(flatbuffers::make_span(test_float_array1), 3))->tag(), 2);
-  TEST_EQ(sorted_apple_vec->LookupByKey(Color(flatbuffers::make_span(test_float_array1), 0)), static_cast<const Apple *>(nullptr));
 
 }
 
@@ -219,12 +217,6 @@ void FixedSizedStructArrayKeyInStructTest() {
       sorted_grain_vec->LookupByKey(&flatbuffers::CastToArray(test_rice_array)),
       static_cast<const Grain *>(nullptr));
   TEST_EQ(sorted_grain_vec->LookupByKey(&flatbuffers::CastToArray(test_rice_array1))->tag(), 3);
-  Rice test_rice_array[3] = {
-    Rice(flatbuffers::make_span(test_char_array3), 2),
-    Rice(flatbuffers::make_span(test_char_array2), 1),
-    Rice(flatbuffers::make_span(test_char_array1), 2)
-  };
-  TEST_EQ(sorted_grain_vec->LookupByKey(&flatbuffers::CastToArray(test_rice_array)), static_cast<const Grain *>(nullptr));
 
 }
 
