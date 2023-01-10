@@ -787,18 +787,18 @@ def CheckReadBuffer(buf, offset, sizePrefix=False, file_identifier=None):
     import numpy as np
 
     asserter(monster.InventoryAsNumpy().sum() == 10)
-    asserter(monster.InventoryAsNumpy().dtype == np.dtype('uint8'))
+    asserter(monster.InventoryAsNumpy().dtype == np.dtype('<u1'))
 
     VectorOfLongs = monster.VectorOfLongsAsNumpy()
-    asserter(VectorOfLongs.dtype == np.dtype('int64'))
+    asserter(VectorOfLongs.dtype == np.dtype('<i8'))
     for i in range(5):
       asserter(VectorOfLongs[i] == 10**(i * 2))
 
     VectorOfDoubles = monster.VectorOfDoublesAsNumpy()
-    asserter(VectorOfDoubles.dtype == np.dtype('float64'))
-    asserter(VectorOfDoubles[0] == np.finfo('float64').min)
+    asserter(VectorOfDoubles.dtype == np.dtype('<f8'))
+    asserter(VectorOfDoubles[0] == np.finfo('<f8').min)
     asserter(VectorOfDoubles[1] == 0.0)
-    asserter(VectorOfDoubles[2] == np.finfo('float64').max)
+    asserter(VectorOfDoubles[2] == np.finfo('<f8').max)
 
   except ImportError:
     # If numpy does not exist, trying to get vector as numpy
@@ -943,33 +943,33 @@ class TestFuzz(unittest.TestCase):
           check(table, 'bool', self.boolVal,
                 table.GetSlot(f, False, N.BoolFlags))
         elif choice == 1:
-          check(table, 'int8', self.int8Val, table.GetSlot(f, 0, N.Int8Flags))
+          check(table, '<i1', self.int8Val, table.GetSlot(f, 0, N.Int8Flags))
         elif choice == 2:
-          check(table, 'uint8', self.uint8Val,
+          check(table, '<u1', self.uint8Val,
                 table.GetSlot(f, 0, N.Uint8Flags))
         elif choice == 3:
-          check(table, 'int16', self.int16Val,
+          check(table, '<i2', self.int16Val,
                 table.GetSlot(f, 0, N.Int16Flags))
         elif choice == 4:
-          check(table, 'uint16', self.uint16Val,
+          check(table, '<u2', self.uint16Val,
                 table.GetSlot(f, 0, N.Uint16Flags))
         elif choice == 5:
-          check(table, 'int32', self.int32Val,
+          check(table, '<i4', self.int32Val,
                 table.GetSlot(f, 0, N.Int32Flags))
         elif choice == 6:
-          check(table, 'uint32', self.uint32Val,
+          check(table, '<u4', self.uint32Val,
                 table.GetSlot(f, 0, N.Uint32Flags))
         elif choice == 7:
-          check(table, 'int64', self.int64Val,
+          check(table, '<i8', self.int64Val,
                 table.GetSlot(f, 0, N.Int64Flags))
         elif choice == 8:
-          check(table, 'uint64', self.uint64Val,
+          check(table, '<u8', self.uint64Val,
                 table.GetSlot(f, 0, N.Uint64Flags))
         elif choice == 9:
-          check(table, 'float32', self.float32Val,
+          check(table, '<f4', self.float32Val,
                 table.GetSlot(f, 0, N.Float32Flags))
         elif choice == 10:
-          check(table, 'float64', self.float64Val,
+          check(table, '<f8', self.float64Val,
                 table.GetSlot(f, 0, N.Float64Flags))
         else:
           raise RuntimeError('unreachable')
