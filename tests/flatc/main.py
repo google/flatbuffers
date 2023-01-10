@@ -18,10 +18,11 @@ import sys
 
 from flatc_test import run_all
 from flatc_cpp_tests import CppTests
+from flatc_kotlin_tests import KotlinTests
 from flatc_ts_tests import TsTests
 from flatc_schema_tests import SchemaTests
 
-passing, failing = run_all(CppTests, TsTests, SchemaTests)
+passing, failing = run_all(CppTests, KotlinTests, TsTests, SchemaTests)
 
 print("")
 print("{0} of {1} tests passed".format(passing, passing + failing))
