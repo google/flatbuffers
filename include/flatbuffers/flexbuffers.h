@@ -1845,7 +1845,7 @@ class Verifier FLATBUFFERS_FINAL_CLASS {
         uint8_t len = 0;
         auto vtype = ToFixedTypedVectorElementType(r.type_, &len);
         if (!VerifyType(vtype)) return false;
-        return VerifyFromPointer(p, r.byte_width_ * len);
+        return VerifyFromPointer(p, static_cast<size_t>(r.byte_width_) * len);
       }
       default: return false;
     }
