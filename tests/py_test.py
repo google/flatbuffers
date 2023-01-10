@@ -15,7 +15,6 @@
 
 import os.path
 import sys
-import imp
 PY_VERSION = sys.version_info[:2]
 
 import ctypes
@@ -781,7 +780,6 @@ def CheckReadBuffer(buf, offset, sizePrefix=False, file_identifier=None):
   ]))
 
   try:
-    imp.find_module('numpy')
     # if numpy exists, then we should be able to get the
     # vector as a numpy array
     import numpy as np
@@ -1160,7 +1158,6 @@ class TestByteLayout(unittest.TestCase):
 
   def test_create_numpy_vector_int8(self):
     try:
-      imp.find_module('numpy')
       # if numpy exists, then we should be able to get the
       # vector as a numpy array
       import numpy as np
@@ -1206,7 +1203,6 @@ class TestByteLayout(unittest.TestCase):
 
   def test_create_numpy_vector_uint16(self):
     try:
-      imp.find_module('numpy')
       # if numpy exists, then we should be able to get the
       # vector as a numpy array
       import numpy as np
@@ -1260,7 +1256,6 @@ class TestByteLayout(unittest.TestCase):
 
   def test_create_numpy_vector_int64(self):
     try:
-      imp.find_module('numpy')
       # if numpy exists, then we should be able to get the
       # vector as a numpy array
       import numpy as np
@@ -1347,7 +1342,6 @@ class TestByteLayout(unittest.TestCase):
 
   def test_create_numpy_vector_float32(self):
     try:
-      imp.find_module('numpy')
       # if numpy exists, then we should be able to get the
       # vector as a numpy array
       import numpy as np
@@ -1410,7 +1404,6 @@ class TestByteLayout(unittest.TestCase):
 
   def test_create_numpy_vector_float64(self):
     try:
-      imp.find_module('numpy')
       # if numpy exists, then we should be able to get the
       # vector as a numpy array
       import numpy as np
@@ -1497,7 +1490,6 @@ class TestByteLayout(unittest.TestCase):
 
   def test_create_numpy_vector_bool(self):
     try:
-      imp.find_module('numpy')
       # if numpy exists, then we should be able to get the
       # vector as a numpy array
       import numpy as np
@@ -1544,7 +1536,6 @@ class TestByteLayout(unittest.TestCase):
 
   def test_create_numpy_vector_reject_strings(self):
     try:
-      imp.find_module('numpy')
       # if numpy exists, then we should be able to get the
       # vector as a numpy array
       import numpy as np
@@ -1562,7 +1553,6 @@ class TestByteLayout(unittest.TestCase):
 
   def test_create_numpy_vector_reject_object(self):
     try:
-      imp.find_module('numpy')
       # if numpy exists, then we should be able to get the
       # vector as a numpy array
       import numpy as np
@@ -2429,9 +2419,10 @@ class TestAllCodePathsOfExampleSchema(unittest.TestCase):
     self.assertEqual(2, mon2.Testnestedflatbuffer(1))
     self.assertEqual(4, mon2.Testnestedflatbuffer(2))
     try:
-      imp.find_module('numpy')
       # if numpy exists, then we should be able to get the
       # vector as a numpy array
+      import numpy as np
+
       self.assertEqual([0, 2, 4], mon2.TestnestedflatbufferAsNumpy().tolist())
     except ImportError:
       assertRaises(self, lambda: mon2.TestnestedflatbufferAsNumpy(),
