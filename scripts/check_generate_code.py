@@ -26,7 +26,7 @@ script_path = Path(__file__).parent.resolve()
 # Get the root path as an absolute path, so all derived paths are absolute.
 root_path = script_path.parent.absolute()
 
-result = subprocess.run(["git", "diff", "--quiet"], cwd=root_path)
+result = subprocess.run(["git", "diff", "--quiet", "--ignore-cr-at-eol"], cwd=root_path)
 
 if result.returncode != 0:
     print(
@@ -46,7 +46,7 @@ if platform.system() == "Windows":
     gen_cmd = ["py"] + gen_cmd
 subprocess.run(gen_cmd, cwd=root_path)
 
-result = subprocess.run(["git", "diff", "--quiet"], cwd=root_path)
+result = subprocess.run(["git", "diff", "--quiet", "--ignore-cr-at-eol"], cwd=root_path)
 
 if result.returncode != 0:
     print(
