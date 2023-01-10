@@ -22,6 +22,7 @@ import kotlin.math.sign
  * an example documentation comment: "monster object"
  */
 @Suppress("unused")
+@kotlin.ExperimentalUnsignedTypes
 class Monster : Table() {
 
     fun __init(_i: Int, _bb: ByteBuffer)  {
