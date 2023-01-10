@@ -19,17 +19,50 @@
 
 #include <functional>
 #include <limits>
+#include <list>
+#include <memory>
 #include <string>
 
 #include "flatbuffers/bfbs_generator.h"
+#include "flatbuffers/code_generator.h"
 #include "flatbuffers/flatbuffers.h"
 #include "flatbuffers/idl.h"
 #include "flatbuffers/util.h"
 
 namespace flatbuffers {
 
+// TODO(derekbailey): It would be better to define these as normal includes and
+// not as extern functions. But this can be done at a later time.
+extern std::unique_ptr<flatbuffers::CodeGenerator> NewCppCodeGenerator();
+
 extern void LogCompilerWarn(const std::string &warn);
 extern void LogCompilerError(const std::string &err);
+
+struct FlatCOptions {
+  IDLOptions opts;
+
+  std::string program_name;
+
+  std::string output_path;
+
+  std::vector<std::string> filenames;
+
+  std::list<std::string> include_directories_storage;
+  std::vector<const char *> include_directories;
+  std::vector<const char *> conform_include_directories;
+  std::vector<bool> generator_enabled;
+  size_t binary_files_from = std::numeric_limits<size_t>::max();
+  std::string conform_to_schema;
+  std::string annotate_schema;
+  bool any_generator = false;
+  bool print_make_rules = false;
+  bool raw_binary = false;
+  bool schema_binary = false;
+  bool grpc_enabled = false;
+  bool requires_bfbs = false;
+
+  std::vector<std::shared_ptr<CodeGenerator>> generators;
+};
 
 struct FlatCOption {
   std::string short_opt;
@@ -85,15 +118,21 @@ class FlatCompiler {
 
   explicit FlatCompiler(const InitParams &params) : params_(params) {}
 
-  int Compile(int argc, const char **argv);
+  bool RegisterCodeGenerator(const std::string& flag,
+                             std::shared_ptr<CodeGenerator> code_generator);
 
-  std::string GetShortUsageString(const char *program_name) const;
-  std::string GetUsageString(const char *program_name) const;
+  int Compile(const FlatCOptions &options);
+
+  std::string GetShortUsageString(const std::string &program_name) const;
+  std::string GetUsageString(const std::string &program_name) const;
+
+  // Parse the FlatC options from command line arguments.
+  FlatCOptions ParseFromCommandLineArguments(int argc, const char **argv);
 
  private:
   void ParseFile(flatbuffers::Parser &parser, const std::string &filename,
                  const std::string &contents,
-                 std::vector<const char *> &include_directories) const;
+                 const std::vector<const char *> &include_directories) const;
 
   void LoadBinarySchema(Parser &parser, const std::string &filename,
                         const std::string &contents);
@@ -105,8 +144,17 @@ class FlatCompiler {
 
   void AnnotateBinaries(const uint8_t *binary_schema,
                         uint64_t binary_schema_size,
-                        const std::string & schema_filename,
+                        const std::string &schema_filename,
                         const std::vector<std::string> &binary_files);
+
+  void ValidateOptions(const FlatCOptions &options);
+
+  Parser GetConformParser(const FlatCOptions &options);
+
+  std::unique_ptr<Parser> GenerateCode(const FlatCOptions &options,
+                                       Parser &conform_parser);
+
+  std::map<std::string, std::shared_ptr<CodeGenerator>> code_generators_;
 
   InitParams params_;
 };
