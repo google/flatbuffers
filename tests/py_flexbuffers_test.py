@@ -74,15 +74,15 @@ def int_sizes(value):
 
 
 def int_bytes(value, byte_width):
-  return struct.pack({1: 'b', 2: 'h', 4: 'i', 8: 'q'}[byte_width], value)
+  return struct.pack('<%s' % {1: 'b', 2: 'h', 4: 'i', 8: 'q'}[byte_width], value)
 
 
 def uint_bytes(value, byte_width):
-  return struct.pack({1: 'B', 2: 'H', 4: 'I', 8: 'Q'}[byte_width], value)
+  return struct.pack('<%s' % {1: 'B', 2: 'H', 4: 'I', 8: 'Q'}[byte_width], value)
 
 
 def float_bytes(value, byte_width):
-  return struct.pack({4: 'f', 8: 'd'}[byte_width], value)
+  return struct.pack('<%s' % {4: 'f', 8: 'd'}[byte_width], value)
 
 
 def min_value(type_, byte_width):
