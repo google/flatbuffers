@@ -287,6 +287,7 @@ class KotlinGenerator : public BaseGenerator {
     GenerateComment(enum_def.doc_comment, writer, &comment_config);
 
     writer += "@Suppress(\"unused\")";
+    writer += "@kotlin.ExperimentalUnsignedTypes";
     writer += "class " + namer_.Type(enum_def) + " private constructor() {";
     writer.IncrementIdentLevel();
 
@@ -313,7 +314,10 @@ class KotlinGenerator : public BaseGenerator {
       // Average distance between values above which we consider a table
       // "too sparse". Change at will.
       static const uint64_t kMaxSparseness = 5;
-      if (range / static_cast<uint64_t>(enum_def.size()) < kMaxSparseness) {
+      bool generate_names =
+          range / static_cast<uint64_t>(enum_def.size()) < kMaxSparseness &&
+          parser_.opts.mini_reflect == IDLOptions::kTypesAndNames;
+      if (generate_names) {
         GeneratePropertyOneLine(writer, "names", "Array<String>", [&]() {
           writer += "arrayOf(\\";
           auto val = enum_def.Vals().front();
@@ -489,6 +493,7 @@ class KotlinGenerator : public BaseGenerator {
     writer.SetValue("superclass", fixed ? "Struct" : "Table");
 
     writer += "@Suppress(\"unused\")";
+    writer += "@kotlin.ExperimentalUnsignedTypes";
     writer += "class {{struct_name}} : {{superclass}}() {\n";
 
     writer.IncrementIdentLevel();

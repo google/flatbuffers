@@ -3,6 +3,7 @@
 package MyGame.Example
 
 @Suppress("unused")
+@kotlin.ExperimentalUnsignedTypes
 class AnyAmbiguousAliases private constructor() {
     companion object {
         const val NONE: UByte = 0u

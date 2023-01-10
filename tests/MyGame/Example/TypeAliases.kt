@@ -19,6 +19,7 @@ import java.nio.ByteOrder
 import kotlin.math.sign
 
 @Suppress("unused")
+@kotlin.ExperimentalUnsignedTypes
 class TypeAliases : Table() {
 
     fun __init(_i: Int, _bb: ByteBuffer)  {
