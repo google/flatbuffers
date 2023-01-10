@@ -343,6 +343,22 @@ jobs:
     - name: Generate gRPC
       run: scripts/check-grpc-generated-code.py
 
+  build-generator-windows:
+    name: Check Generated Code on Windows
+    runs-on: windows-2019
+    steps:
+    - uses: actions/checkout@v3
+    - name: Add msbuild to PATH
+      uses: microsoft/setup-msbuild@v1.1
+    - name: cmake
+      run: cmake -G "Visual Studio 16 2019" -A x64 -DCMAKE_BUILD_TYPE=Release -DFLATBUFFERS_BUILD_CPP17=ON -DFLATBUFFERS_STRICT_MODE=ON .
+    - name: build
+      run: msbuild.exe FlatBuffers.sln /p:Configuration=Release /p:Platform=x64
+    - name: Generate
+      run: python3 scripts/check_generate_code.py --flatc Release\flatc.exe
+    - name: Generate gRPC
+      run: python3 scripts/check-grpc-generated-code.py --flatc Release\flatc.exe
+
   build-benchmarks:
     name: Build Benchmarks (on Linux)
     runs-on: ubuntu-latest
