@@ -344,6 +344,19 @@ class JsonSchemaGenerator : public BaseGenerator {
       }
       code_ += Indent(3) + "}," + NewLine();  // close properties
 
+#if defined(MZ_CUSTOM_FLATBUFFERS) && MZ_CUSTOM_FLATBUFFERS
+      if (structure->fixed) {
+        code_ += Indent(3) + "\"required\": [" + NewLine();
+        for (auto prop = properties.cbegin(); prop != properties.cend();
+             ++prop) {
+          code_ += Indent(4) + "\"" + (*prop)->name + "\"";
+          if (*prop != properties.back()) { code_ += ","; }
+          code_ += NewLine();
+        }
+        code_ += Indent(3) + "]," + NewLine();
+      }
+#endif
+
       std::vector<FieldDef *> requiredProperties;
       std::copy_if(properties.begin(), properties.end(),
                    back_inserter(requiredProperties),
