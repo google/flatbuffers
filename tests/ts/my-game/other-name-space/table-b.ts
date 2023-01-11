@@ -29,7 +29,7 @@ a(obj?:TableA):TableA|null {
 }
 
 static getFullyQualifiedName():string {
-  return 'MyGame_OtherNameSpace_TableB';
+  return 'MyGame.OtherNameSpace.TableB';
 }
 
 static startTableB(builder:flatbuffers.Builder) {

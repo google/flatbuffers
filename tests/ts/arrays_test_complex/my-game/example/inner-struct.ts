@@ -30,7 +30,7 @@ dUnderscore():bigint {
 }
 
 static getFullyQualifiedName():string {
-  return 'MyGame_Example_InnerStruct';
+  return 'MyGame.Example.InnerStruct';
 }
 
 static sizeOf():number {

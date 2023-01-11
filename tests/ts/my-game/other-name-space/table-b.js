@@ -23,7 +23,7 @@ export class TableB {
         return offset ? (obj || new TableA()).__init(this.bb.__indirect(this.bb_pos + offset), this.bb) : null;
     }
     static getFullyQualifiedName() {
-        return 'MyGame_OtherNameSpace_TableB';
+        return 'MyGame.OtherNameSpace.TableB';
     }
     static startTableB(builder) {
         builder.startObject(1);

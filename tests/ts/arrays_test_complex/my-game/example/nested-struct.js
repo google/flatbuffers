@@ -27,7 +27,7 @@ export class NestedStruct {
         return this.bb.readInt64(this.bb_pos + 1056 + index * 8);
     }
     static getFullyQualifiedName() {
-        return 'MyGame_Example_NestedStruct';
+        return 'MyGame.Example.NestedStruct';
     }
     static sizeOf() {
         return 1072;

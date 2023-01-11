@@ -29,7 +29,7 @@ export class OuterStruct {
         return this.bb.readFloat64(this.bb_pos + 176 + index * 8);
     }
     static getFullyQualifiedName() {
-        return 'MyGame_Example_OuterStruct';
+        return 'MyGame.Example.OuterStruct';
     }
     static sizeOf() {
         return 208;

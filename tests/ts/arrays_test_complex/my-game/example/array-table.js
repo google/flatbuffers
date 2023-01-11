@@ -30,7 +30,7 @@ export class ArrayTable {
         return offset ? (obj || new ArrayStruct()).__init(this.bb_pos + offset, this.bb) : null;
     }
     static getFullyQualifiedName() {
-        return 'MyGame_Example_ArrayTable';
+        return 'MyGame.Example.ArrayTable';
     }
     static startArrayTable(builder) {
         builder.startObject(2);

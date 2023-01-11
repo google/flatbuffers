@@ -36,7 +36,7 @@ e(index: number):bigint|null {
 }
 
 static getFullyQualifiedName():string {
-  return 'MyGame_Example_NestedStruct';
+  return 'MyGame.Example.NestedStruct';
 }
 
 static sizeOf():number {

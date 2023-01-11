@@ -23,7 +23,7 @@ mutate_a(value:number):boolean {
 }
 
 static getFullyQualifiedName():string {
-  return 'MyGame_OtherNameSpace_Unused';
+  return 'MyGame.OtherNameSpace.Unused';
 }
 
 static sizeOf():number {

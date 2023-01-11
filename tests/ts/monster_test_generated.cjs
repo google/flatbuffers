@@ -58,7 +58,7 @@ var TableB = class {
     return offset ? (obj || new TableA()).__init(this.bb.__indirect(this.bb_pos + offset), this.bb) : null;
   }
   static getFullyQualifiedName() {
-    return "MyGame_OtherNameSpace_TableB";
+    return "MyGame.OtherNameSpace.TableB";
   }
   static startTableB(builder) {
     builder.startObject(1);
@@ -190,7 +190,7 @@ var InParentNamespace = class {
     return (obj || new InParentNamespace()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
   }
   static getFullyQualifiedName() {
-    return "MyGame_InParentNamespace";
+    return "MyGame.InParentNamespace";
   }
   static startInParentNamespace(builder) {
     builder.startObject(0);
@@ -270,7 +270,7 @@ var Ability = class {
     return true;
   }
   static getFullyQualifiedName() {
-    return "MyGame_Example_Ability";
+    return "MyGame.Example.Ability";
   }
   static sizeOf() {
     return 8;
@@ -319,7 +319,7 @@ var Monster = class {
     return (obj || new Monster()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
   }
   static getFullyQualifiedName() {
-    return "MyGame_Example2_Monster";
+    return "MyGame.Example2.Monster";
   }
   static startMonster(builder) {
     builder.startObject(0);
@@ -420,7 +420,7 @@ var TestSimpleTableWithEnum = class {
     return true;
   }
   static getFullyQualifiedName() {
-    return "MyGame_Example_TestSimpleTableWithEnum";
+    return "MyGame.Example.TestSimpleTableWithEnum";
   }
   static startTestSimpleTableWithEnum(builder) {
     builder.startObject(1);
@@ -523,7 +523,7 @@ var Referrable = class {
     return true;
   }
   static getFullyQualifiedName() {
-    return "MyGame_Example_Referrable";
+    return "MyGame.Example.Referrable";
   }
   static startReferrable(builder) {
     builder.startObject(1);
@@ -610,7 +610,7 @@ var Stat = class {
     return true;
   }
   static getFullyQualifiedName() {
-    return "MyGame_Example_Stat";
+    return "MyGame.Example.Stat";
   }
   static startStat(builder) {
     builder.startObject(3);
@@ -688,7 +688,7 @@ var Test = class {
     return true;
   }
   static getFullyQualifiedName() {
-    return "MyGame_Example_Test";
+    return "MyGame.Example.Test";
   }
   static sizeOf() {
     return 4;
@@ -768,7 +768,7 @@ var Vec3 = class {
     return (obj || new Test()).__init(this.bb_pos + 26, this.bb);
   }
   static getFullyQualifiedName() {
-    return "MyGame_Example_Vec3";
+    return "MyGame.Example.Vec3";
   }
   static sizeOf() {
     return 32;
@@ -1421,7 +1421,7 @@ var Monster2 = class {
     return true;
   }
   static getFullyQualifiedName() {
-    return "MyGame_Example_Monster";
+    return "MyGame.Example.Monster";
   }
   static startMonster(builder) {
     builder.startObject(62);
@@ -2118,7 +2118,7 @@ var StructOfStructs = class {
     return (obj || new Ability()).__init(this.bb_pos + 12, this.bb);
   }
   static getFullyQualifiedName() {
-    return "MyGame_Example_StructOfStructs";
+    return "MyGame.Example.StructOfStructs";
   }
   static sizeOf() {
     return 20;
@@ -2172,7 +2172,7 @@ var StructOfStructsOfStructs = class {
     return (obj || new StructOfStructs()).__init(this.bb_pos, this.bb);
   }
   static getFullyQualifiedName() {
-    return "MyGame_Example_StructOfStructsOfStructs";
+    return "MyGame.Example.StructOfStructsOfStructs";
   }
   static sizeOf() {
     return 20;
@@ -2372,7 +2372,7 @@ var TypeAliases = class {
     return offset ? new Float64Array(this.bb.bytes().buffer, this.bb.bytes().byteOffset + this.bb.__vector(this.bb_pos + offset), this.bb.__vector_len(this.bb_pos + offset)) : null;
   }
   static getFullyQualifiedName() {
-    return "MyGame_Example_TypeAliases";
+    return "MyGame.Example.TypeAliases";
   }
   static startTypeAliases(builder) {
     builder.startObject(12);
@@ -2538,7 +2538,7 @@ var Unused = class {
     return true;
   }
   static getFullyQualifiedName() {
-    return "MyGame_OtherNameSpace_Unused";
+    return "MyGame.OtherNameSpace.Unused";
   }
   static sizeOf() {
     return 4;

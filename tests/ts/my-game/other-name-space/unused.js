@@ -17,7 +17,7 @@ export class Unused {
         return true;
     }
     static getFullyQualifiedName() {
-        return 'MyGame_OtherNameSpace_Unused';
+        return 'MyGame.OtherNameSpace.Unused';
     }
     static sizeOf() {
         return 4;

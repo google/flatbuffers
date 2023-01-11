@@ -59,7 +59,7 @@ var InnerStruct = class {
     return this.bb.readInt64(this.bb_pos + 24);
   }
   static getFullyQualifiedName() {
-    return "MyGame_Example_InnerStruct";
+    return "MyGame.Example.InnerStruct";
   }
   static sizeOf() {
     return 32;
@@ -127,7 +127,7 @@ var OuterStruct = class {
     return this.bb.readFloat64(this.bb_pos + 176 + index * 8);
   }
   static getFullyQualifiedName() {
-    return "MyGame_Example_OuterStruct";
+    return "MyGame.Example.OuterStruct";
   }
   static sizeOf() {
     return 208;
@@ -227,7 +227,7 @@ var NestedStruct = class {
     return this.bb.readInt64(this.bb_pos + 1056 + index * 8);
   }
   static getFullyQualifiedName() {
-    return "MyGame_Example_NestedStruct";
+    return "MyGame.Example.NestedStruct";
   }
   static sizeOf() {
     return 1072;
@@ -312,7 +312,7 @@ var ArrayStruct = class {
     return this.bb.readInt64(this.bb_pos + 2640 + index * 8);
   }
   static getFullyQualifiedName() {
-    return "MyGame_Example_ArrayStruct";
+    return "MyGame.Example.ArrayStruct";
   }
   static sizeOf() {
     return 2656;
@@ -407,7 +407,7 @@ var ArrayTable = class {
     return offset ? (obj || new ArrayStruct()).__init(this.bb_pos + offset, this.bb) : null;
   }
   static getFullyQualifiedName() {
-    return "MyGame_Example_ArrayTable";
+    return "MyGame.Example.ArrayTable";
   }
   static startArrayTable(builder) {
     builder.startObject(2);

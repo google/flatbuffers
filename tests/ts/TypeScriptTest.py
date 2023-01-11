@@ -109,10 +109,7 @@ flatc(
     ],
     include="../../",
 )
-esbuild("typescript.ts", "typescript_keywords_generated.cjs")
-esbuild("foobar.ts", "typescript_include_generated.cjs")
-esbuild("foobar.ts", "typescript_transitive_include_generated.cjs")
-esbuild("reflection.ts", "reflection_generated.cjs")
+esbuild("typescript_keywords.ts", "typescript_keywords_generated.cjs")
 
 print("Running TypeScript Compiler...")
 check_call(["tsc"])

@@ -44,7 +44,7 @@ g(index: number):bigint|null {
 }
 
 static getFullyQualifiedName():string {
-  return 'MyGame_Example_ArrayStruct';
+  return 'MyGame.Example.ArrayStruct';
 }
 
 static sizeOf():number {

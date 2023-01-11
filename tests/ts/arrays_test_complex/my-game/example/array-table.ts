@@ -40,7 +40,7 @@ cUnderscore(obj?:ArrayStruct):ArrayStruct|null {
 }
 
 static getFullyQualifiedName():string {
-  return 'MyGame_Example_ArrayTable';
+  return 'MyGame.Example.ArrayTable';
 }
 
 static startArrayTable(builder:flatbuffers.Builder) {

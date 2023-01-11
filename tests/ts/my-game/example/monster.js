@@ -623,7 +623,7 @@ export class Monster {
         return true;
     }
     static getFullyQualifiedName() {
-        return 'MyGame_Example_Monster';
+        return 'MyGame.Example.Monster';
     }
     static startMonster(builder) {
         builder.startObject(62);

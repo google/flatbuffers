@@ -22,7 +22,7 @@ export class InnerStruct {
         return this.bb.readInt64(this.bb_pos + 24);
     }
     static getFullyQualifiedName() {
-        return 'MyGame_Example_InnerStruct';
+        return 'MyGame.Example.InnerStruct';
     }
     static sizeOf() {
         return 32;

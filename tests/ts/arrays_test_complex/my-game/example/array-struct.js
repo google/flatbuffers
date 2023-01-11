@@ -33,7 +33,7 @@ export class ArrayStruct {
         return this.bb.readInt64(this.bb_pos + 2640 + index * 8);
     }
     static getFullyQualifiedName() {
-        return 'MyGame_Example_ArrayStruct';
+        return 'MyGame.Example.ArrayStruct';
     }
     static sizeOf() {
         return 2656;

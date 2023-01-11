@@ -39,7 +39,7 @@ f(index: number):number|null {
 }
 
 static getFullyQualifiedName():string {
-  return 'MyGame_Example_OuterStruct';
+  return 'MyGame.Example.OuterStruct';
 }
 
 static sizeOf():number {

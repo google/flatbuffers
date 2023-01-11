@@ -23,16 +23,20 @@ var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__ge
 ));
 var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
 
-// typescript.ts
-var typescript_exports = {};
-__export(typescript_exports, {
-  Object_: () => Object_2,
-  class_: () => class_2
+// typescript_keywords.ts
+var typescript_keywords_exports = {};
+__export(typescript_keywords_exports, {
+  foobar: () => foobar_exports,
+  reflection: () => reflection_exports,
+  typescript: () => typescript_exports
 });
-module.exports = __toCommonJS(typescript_exports);
+module.exports = __toCommonJS(typescript_keywords_exports);
 
-// typescript/object.js
-var flatbuffers11 = __toESM(require("flatbuffers"), 1);
+// foobar.js
+var foobar_exports = {};
+__export(foobar_exports, {
+  Abc: () => Abc
+});
 
 // foobar/abc.js
 var Abc;
@@ -40,14 +44,55 @@ var Abc;
   Abc2[Abc2["a"] = 0] = "a";
 })(Abc = Abc || (Abc = {}));
 
-// foobar/class.js
-var class_;
-(function(class_3) {
-  class_3[class_3["arguments_"] = 0] = "arguments_";
-})(class_ = class_ || (class_ = {}));
+// reflection.js
+var reflection_exports = {};
+__export(reflection_exports, {
+  AdvancedFeatures: () => AdvancedFeatures,
+  BaseType: () => BaseType,
+  Enum: () => Enum,
+  EnumVal: () => EnumVal,
+  Field: () => Field,
+  KeyValue: () => KeyValue,
+  Object_: () => Object_,
+  RPCCall: () => RPCCall,
+  Schema: () => Schema,
+  SchemaFile: () => SchemaFile,
+  Service: () => Service,
+  Type: () => Type
+});
 
-// reflection/schema.js
-var flatbuffers10 = __toESM(require("flatbuffers"), 1);
+// reflection/advanced-features.js
+var AdvancedFeatures;
+(function(AdvancedFeatures2) {
+  AdvancedFeatures2["AdvancedArrayFeatures"] = "1";
+  AdvancedFeatures2["AdvancedUnionFeatures"] = "2";
+  AdvancedFeatures2["OptionalScalars"] = "4";
+  AdvancedFeatures2["DefaultVectorsAndStrings"] = "8";
+})(AdvancedFeatures = AdvancedFeatures || (AdvancedFeatures = {}));
+
+// reflection/base-type.js
+var BaseType;
+(function(BaseType2) {
+  BaseType2[BaseType2["None"] = 0] = "None";
+  BaseType2[BaseType2["UType"] = 1] = "UType";
+  BaseType2[BaseType2["Bool"] = 2] = "Bool";
+  BaseType2[BaseType2["Byte"] = 3] = "Byte";
+  BaseType2[BaseType2["UByte"] = 4] = "UByte";
+  BaseType2[BaseType2["Short"] = 5] = "Short";
+  BaseType2[BaseType2["UShort"] = 6] = "UShort";
+  BaseType2[BaseType2["Int"] = 7] = "Int";
+  BaseType2[BaseType2["UInt"] = 8] = "UInt";
+  BaseType2[BaseType2["Long"] = 9] = "Long";
+  BaseType2[BaseType2["ULong"] = 10] = "ULong";
+  BaseType2[BaseType2["Float"] = 11] = "Float";
+  BaseType2[BaseType2["Double"] = 12] = "Double";
+  BaseType2[BaseType2["String"] = 13] = "String";
+  BaseType2[BaseType2["Vector"] = 14] = "Vector";
+  BaseType2[BaseType2["Obj"] = 15] = "Obj";
+  BaseType2[BaseType2["Union"] = 16] = "Union";
+  BaseType2[BaseType2["Array"] = 17] = "Array";
+  BaseType2[BaseType2["MaxBaseType"] = 18] = "MaxBaseType";
+})(BaseType = BaseType || (BaseType = {}));
 
 // reflection/enum.js
 var flatbuffers4 = __toESM(require("flatbuffers"), 1);
@@ -83,7 +128,7 @@ var KeyValue = class {
     return offset ? this.bb.__string(this.bb_pos + offset, optionalEncoding) : null;
   }
   static getFullyQualifiedName() {
-    return "reflection_KeyValue";
+    return "reflection.KeyValue";
   }
   static startKeyValue(builder) {
     builder.startObject(2);
@@ -127,32 +172,6 @@ var KeyValueT = class {
 
 // reflection/type.js
 var flatbuffers2 = __toESM(require("flatbuffers"), 1);
-
-// reflection/base-type.js
-var BaseType;
-(function(BaseType2) {
-  BaseType2[BaseType2["None"] = 0] = "None";
-  BaseType2[BaseType2["UType"] = 1] = "UType";
-  BaseType2[BaseType2["Bool"] = 2] = "Bool";
-  BaseType2[BaseType2["Byte"] = 3] = "Byte";
-  BaseType2[BaseType2["UByte"] = 4] = "UByte";
-  BaseType2[BaseType2["Short"] = 5] = "Short";
-  BaseType2[BaseType2["UShort"] = 6] = "UShort";
-  BaseType2[BaseType2["Int"] = 7] = "Int";
-  BaseType2[BaseType2["UInt"] = 8] = "UInt";
-  BaseType2[BaseType2["Long"] = 9] = "Long";
-  BaseType2[BaseType2["ULong"] = 10] = "ULong";
-  BaseType2[BaseType2["Float"] = 11] = "Float";
-  BaseType2[BaseType2["Double"] = 12] = "Double";
-  BaseType2[BaseType2["String"] = 13] = "String";
-  BaseType2[BaseType2["Vector"] = 14] = "Vector";
-  BaseType2[BaseType2["Obj"] = 15] = "Obj";
-  BaseType2[BaseType2["Union"] = 16] = "Union";
-  BaseType2[BaseType2["Array"] = 17] = "Array";
-  BaseType2[BaseType2["MaxBaseType"] = 18] = "MaxBaseType";
-})(BaseType = BaseType || (BaseType = {}));
-
-// reflection/type.js
 var Type = class {
   constructor() {
     this.bb = null;
@@ -243,7 +262,7 @@ var Type = class {
     return true;
   }
   static getFullyQualifiedName() {
-    return "reflection_Type";
+    return "reflection.Type";
   }
   static startType(builder) {
     builder.startObject(6);
@@ -361,7 +380,7 @@ var EnumVal = class {
     return offset ? this.bb.__vector_len(this.bb_pos + offset) : 0;
   }
   static getFullyQualifiedName() {
-    return "reflection_EnumVal";
+    return "reflection.EnumVal";
   }
   static startEnumVal(builder) {
     builder.startObject(6);
@@ -507,7 +526,7 @@ var Enum = class {
     return offset ? this.bb.__string(this.bb_pos + offset, optionalEncoding) : null;
   }
   static getFullyQualifiedName() {
-    return "reflection_Enum";
+    return "reflection.Enum";
   }
   static startEnum(builder) {
     builder.startObject(7);
@@ -611,9 +630,6 @@ var EnumT = class {
     return Enum.endEnum(builder);
   }
 };
-
-// reflection/object.js
-var flatbuffers6 = __toESM(require("flatbuffers"), 1);
 
 // reflection/field.js
 var flatbuffers5 = __toESM(require("flatbuffers"), 1);
@@ -767,7 +783,7 @@ var Field = class {
     return true;
   }
   static getFullyQualifiedName() {
-    return "reflection_Field";
+    return "reflection.Field";
   }
   static startField(builder) {
     builder.startObject(13);
@@ -896,6 +912,7 @@ var FieldT = class {
 };
 
 // reflection/object.js
+var flatbuffers6 = __toESM(require("flatbuffers"), 1);
 var Object_ = class {
   constructor() {
     this.bb = null;
@@ -982,7 +999,7 @@ var Object_ = class {
     return offset ? this.bb.__string(this.bb_pos + offset, optionalEncoding) : null;
   }
   static getFullyQualifiedName() {
-    return "reflection_Object";
+    return "reflection.Object";
   }
   static startObject(builder) {
     builder.startObject(8);
@@ -1094,95 +1111,8 @@ var Object_T = class {
   }
 };
 
-// reflection/schema-file.js
-var flatbuffers7 = __toESM(require("flatbuffers"), 1);
-var SchemaFile = class {
-  constructor() {
-    this.bb = null;
-    this.bb_pos = 0;
-  }
-  __init(i, bb) {
-    this.bb_pos = i;
-    this.bb = bb;
-    return this;
-  }
-  static getRootAsSchemaFile(bb, obj) {
-    return (obj || new SchemaFile()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
-  }
-  static getSizePrefixedRootAsSchemaFile(bb, obj) {
-    bb.setPosition(bb.position() + flatbuffers7.SIZE_PREFIX_LENGTH);
-    return (obj || new SchemaFile()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
-  }
-  filename(optionalEncoding) {
-    const offset = this.bb.__offset(this.bb_pos, 4);
-    return offset ? this.bb.__string(this.bb_pos + offset, optionalEncoding) : null;
-  }
-  includedFilenames(index, optionalEncoding) {
-    const offset = this.bb.__offset(this.bb_pos, 6);
-    return offset ? this.bb.__string(this.bb.__vector(this.bb_pos + offset) + index * 4, optionalEncoding) : null;
-  }
-  includedFilenamesLength() {
-    const offset = this.bb.__offset(this.bb_pos, 6);
-    return offset ? this.bb.__vector_len(this.bb_pos + offset) : 0;
-  }
-  static getFullyQualifiedName() {
-    return "reflection_SchemaFile";
-  }
-  static startSchemaFile(builder) {
-    builder.startObject(2);
-  }
-  static addFilename(builder, filenameOffset) {
-    builder.addFieldOffset(0, filenameOffset, 0);
-  }
-  static addIncludedFilenames(builder, includedFilenamesOffset) {
-    builder.addFieldOffset(1, includedFilenamesOffset, 0);
-  }
-  static createIncludedFilenamesVector(builder, data) {
-    builder.startVector(4, data.length, 4);
-    for (let i = data.length - 1; i >= 0; i--) {
-      builder.addOffset(data[i]);
-    }
-    return builder.endVector();
-  }
-  static startIncludedFilenamesVector(builder, numElems) {
-    builder.startVector(4, numElems, 4);
-  }
-  static endSchemaFile(builder) {
-    const offset = builder.endObject();
-    builder.requiredField(offset, 4);
-    return offset;
-  }
-  static createSchemaFile(builder, filenameOffset, includedFilenamesOffset) {
-    SchemaFile.startSchemaFile(builder);
-    SchemaFile.addFilename(builder, filenameOffset);
-    SchemaFile.addIncludedFilenames(builder, includedFilenamesOffset);
-    return SchemaFile.endSchemaFile(builder);
-  }
-  unpack() {
-    return new SchemaFileT(this.filename(), this.bb.createScalarList(this.includedFilenames.bind(this), this.includedFilenamesLength()));
-  }
-  unpackTo(_o) {
-    _o.filename = this.filename();
-    _o.includedFilenames = this.bb.createScalarList(this.includedFilenames.bind(this), this.includedFilenamesLength());
-  }
-};
-var SchemaFileT = class {
-  constructor(filename = null, includedFilenames = []) {
-    this.filename = filename;
-    this.includedFilenames = includedFilenames;
-  }
-  pack(builder) {
-    const filename = this.filename !== null ? builder.createString(this.filename) : 0;
-    const includedFilenames = SchemaFile.createIncludedFilenamesVector(builder, builder.createObjectOffsetList(this.includedFilenames));
-    return SchemaFile.createSchemaFile(builder, filename, includedFilenames);
-  }
-};
-
-// reflection/service.js
-var flatbuffers9 = __toESM(require("flatbuffers"), 1);
-
 // reflection/rpccall.js
-var flatbuffers8 = __toESM(require("flatbuffers"), 1);
+var flatbuffers7 = __toESM(require("flatbuffers"), 1);
 var RPCCall = class {
   constructor() {
     this.bb = null;
@@ -1197,7 +1127,7 @@ var RPCCall = class {
     return (obj || new RPCCall()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
   }
   static getSizePrefixedRootAsRPCCall(bb, obj) {
-    bb.setPosition(bb.position() + flatbuffers8.SIZE_PREFIX_LENGTH);
+    bb.setPosition(bb.position() + flatbuffers7.SIZE_PREFIX_LENGTH);
     return (obj || new RPCCall()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
   }
   name(optionalEncoding) {
@@ -1229,7 +1159,7 @@ var RPCCall = class {
     return offset ? this.bb.__vector_len(this.bb_pos + offset) : 0;
   }
   static getFullyQualifiedName() {
-    return "reflection_RPCCall";
+    return "reflection.RPCCall";
   }
   static startRPCCall(builder) {
     builder.startObject(5);
@@ -1311,7 +1241,95 @@ var RPCCallT = class {
   }
 };
 
+// reflection/schema.js
+var flatbuffers10 = __toESM(require("flatbuffers"), 1);
+
+// reflection/schema-file.js
+var flatbuffers8 = __toESM(require("flatbuffers"), 1);
+var SchemaFile = class {
+  constructor() {
+    this.bb = null;
+    this.bb_pos = 0;
+  }
+  __init(i, bb) {
+    this.bb_pos = i;
+    this.bb = bb;
+    return this;
+  }
+  static getRootAsSchemaFile(bb, obj) {
+    return (obj || new SchemaFile()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+  }
+  static getSizePrefixedRootAsSchemaFile(bb, obj) {
+    bb.setPosition(bb.position() + flatbuffers8.SIZE_PREFIX_LENGTH);
+    return (obj || new SchemaFile()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+  }
+  filename(optionalEncoding) {
+    const offset = this.bb.__offset(this.bb_pos, 4);
+    return offset ? this.bb.__string(this.bb_pos + offset, optionalEncoding) : null;
+  }
+  includedFilenames(index, optionalEncoding) {
+    const offset = this.bb.__offset(this.bb_pos, 6);
+    return offset ? this.bb.__string(this.bb.__vector(this.bb_pos + offset) + index * 4, optionalEncoding) : null;
+  }
+  includedFilenamesLength() {
+    const offset = this.bb.__offset(this.bb_pos, 6);
+    return offset ? this.bb.__vector_len(this.bb_pos + offset) : 0;
+  }
+  static getFullyQualifiedName() {
+    return "reflection.SchemaFile";
+  }
+  static startSchemaFile(builder) {
+    builder.startObject(2);
+  }
+  static addFilename(builder, filenameOffset) {
+    builder.addFieldOffset(0, filenameOffset, 0);
+  }
+  static addIncludedFilenames(builder, includedFilenamesOffset) {
+    builder.addFieldOffset(1, includedFilenamesOffset, 0);
+  }
+  static createIncludedFilenamesVector(builder, data) {
+    builder.startVector(4, data.length, 4);
+    for (let i = data.length - 1; i >= 0; i--) {
+      builder.addOffset(data[i]);
+    }
+    return builder.endVector();
+  }
+  static startIncludedFilenamesVector(builder, numElems) {
+    builder.startVector(4, numElems, 4);
+  }
+  static endSchemaFile(builder) {
+    const offset = builder.endObject();
+    builder.requiredField(offset, 4);
+    return offset;
+  }
+  static createSchemaFile(builder, filenameOffset, includedFilenamesOffset) {
+    SchemaFile.startSchemaFile(builder);
+    SchemaFile.addFilename(builder, filenameOffset);
+    SchemaFile.addIncludedFilenames(builder, includedFilenamesOffset);
+    return SchemaFile.endSchemaFile(builder);
+  }
+  unpack() {
+    return new SchemaFileT(this.filename(), this.bb.createScalarList(this.includedFilenames.bind(this), this.includedFilenamesLength()));
+  }
+  unpackTo(_o) {
+    _o.filename = this.filename();
+    _o.includedFilenames = this.bb.createScalarList(this.includedFilenames.bind(this), this.includedFilenamesLength());
+  }
+};
+var SchemaFileT = class {
+  constructor(filename = null, includedFilenames = []) {
+    this.filename = filename;
+    this.includedFilenames = includedFilenames;
+  }
+  pack(builder) {
+    const filename = this.filename !== null ? builder.createString(this.filename) : 0;
+    const includedFilenames = SchemaFile.createIncludedFilenamesVector(builder, builder.createObjectOffsetList(this.includedFilenames));
+    return SchemaFile.createSchemaFile(builder, filename, includedFilenames);
+  }
+};
+
 // reflection/service.js
+var flatbuffers9 = __toESM(require("flatbuffers"), 1);
 var Service = class {
   constructor() {
     this.bb = null;
@@ -1362,7 +1380,7 @@ var Service = class {
     return offset ? this.bb.__string(this.bb_pos + offset, optionalEncoding) : null;
   }
   static getFullyQualifiedName() {
-    return "reflection_Service";
+    return "reflection.Service";
   }
   static startService(builder) {
     builder.startObject(5);
@@ -1533,7 +1551,7 @@ var Schema = class {
     return offset ? this.bb.__vector_len(this.bb_pos + offset) : 0;
   }
   static getFullyQualifiedName() {
-    return "reflection_Schema";
+    return "reflection.Schema";
   }
   static startSchema(builder) {
     builder.startObject(8);
@@ -1660,6 +1678,22 @@ var SchemaT = class {
   }
 };
 
+// typescript.js
+var typescript_exports = {};
+__export(typescript_exports, {
+  Object_: () => Object_2,
+  class_: () => class_2
+});
+
+// typescript/object.js
+var flatbuffers11 = __toESM(require("flatbuffers"), 1);
+
+// foobar/class.js
+var class_;
+(function(class_3) {
+  class_3[class_3["arguments_"] = 0] = "arguments_";
+})(class_ = class_ || (class_ = {}));
+
 // typescript/class.js
 var class_2;
 (function(class_3) {
@@ -1762,7 +1796,7 @@ var Object_2 = class {
     return offset ? (obj || new Schema()).__init(this.bb.__indirect(this.bb_pos + offset), this.bb) : null;
   }
   static getFullyQualifiedName() {
-    return "typescript_Object";
+    return "typescript.Object";
   }
   static startObject(builder) {
     builder.startObject(7);
