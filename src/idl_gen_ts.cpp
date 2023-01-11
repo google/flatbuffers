@@ -237,6 +237,17 @@ class TsGenerator : public BaseGenerator {
   void generateEntry() {
     std::string code;
 
+    // add root namespace def if not already existing from defs tracking
+    std::string root;
+    if (ns_defs_.count(root) == 0) {
+      NsDefinition nsDef;
+      nsDef.path = root;
+      nsDef.symbolic_name = file_name_;
+      nsDef.filepath = path_ + file_name_ + ".ts";
+      nsDef.ns = new Namespace();
+      ns_defs_[nsDef.path] = nsDef;
+    }
+
     for (const auto &it : ns_defs_) {
       code = "// " + std::string(FlatBuffersGeneratedWarning()) + "\n\n";
 
