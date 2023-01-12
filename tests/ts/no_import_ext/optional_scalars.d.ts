@@ -1,1 +1,1 @@
-export * as optional_scalars from './no_import_ext/optional-scalars.js';
+export * as optional_scalars from './optional-scalars.js';

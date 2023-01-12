@@ -177,6 +177,8 @@ class TsGenerator : public BaseGenerator {
       path = namer_.Directories(*definition.defined_namespace,
                                 SkipDir::TrailingPathSeperator);
       filepath = path + ".ts";
+      path = namer_.Directories(*definition.defined_namespace,
+                                SkipDir::OutputPathAndTrailingPathSeparator);
       symbolic_name = definition.defined_namespace->components.back();
     } else {
       auto def_mod_name = namer_.File(definition, SkipFile::SuffixAndExtension);
@@ -288,7 +290,8 @@ class TsGenerator : public BaseGenerator {
         if (it2.second.ns->components.size() != child_ns_level) continue;
         auto ts_file_path = it2.second.path + ".ts";
         code += "export * as " + it2.second.symbolic_name + " from './";
-        code += it2.second.path + ".js';\n";
+        std::string rel_path = it2.second.path;
+        code += rel_path + ".js';\n";
         export_counter++;
       }
 
@@ -300,15 +303,6 @@ class TsGenerator : public BaseGenerator {
     if (parser_.opts.ts_flat_files) {
       std::string inputpath;
       std::string symbolic_name = file_name_;
-      // TODO: unsure when/why this was sensible
-      /*if (parser_.current_namespace_->components.size() > 0) {
-        std::string path = namer_.Directories(*parser_.current_namespace_,
-                                              SkipDir::TrailingPathSeperator);
-        inputpath = path + ".ts";
-        symbolic_name = parser_.current_namespace_->components.back();
-      } else {
-        inputpath = path_ + file_name_ + ".ts";
-      }*/
       inputpath = path_ + file_name_ + ".ts";
       std::string bundlepath =
           GeneratedFileName(path_, file_name_, parser_.opts);
