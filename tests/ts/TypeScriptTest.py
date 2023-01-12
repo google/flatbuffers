@@ -119,6 +119,8 @@ esbuild("typescript_keywords.ts", "typescript_keywords_generated.cjs")
 
 print("Running TypeScript Compiler...")
 check_call(["tsc"])
+print("Running TypeScript Compiler in old node resolution mode for no_import_ext...")
+check_call(["tsc", "-p", "./tsconfig.node.json"])
 
 NODE_CMD = ["node"]
 

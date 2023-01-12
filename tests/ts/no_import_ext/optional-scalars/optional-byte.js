@@ -4,4 +4,4 @@ export var OptionalByte;
     OptionalByte[OptionalByte["None"] = 0] = "None";
     OptionalByte[OptionalByte["One"] = 1] = "One";
     OptionalByte[OptionalByte["Two"] = 2] = "Two";
-})(OptionalByte = OptionalByte || (OptionalByte = {}));
+})(OptionalByte || (OptionalByte = {}));
