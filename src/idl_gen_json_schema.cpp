@@ -48,63 +48,30 @@ template<class T> static std::string GenTypeRef(const T *enum_def) {
   return "\"$ref\" : \"#/definitions/" + GenFullName(enum_def) + "\"";
 }
 
+#if defined(MZ_CUSTOM_FLATBUFFERS) && MZ_CUSTOM_FLATBUFFERS
+static std::string GenTypeRef(BaseType type) {
+  switch (type) {
+    case BASE_TYPE_BOOL: return "\"$ref\": \"#/definitions/bool\"";
+    case BASE_TYPE_CHAR: return "\"$ref\": \"#/definitions/byte\"";
+    case BASE_TYPE_UCHAR: return "\"$ref\": \"#/definitions/ubyte\"";
+    case BASE_TYPE_SHORT: return "\"$ref\": \"#/definitions/short\"";
+    case BASE_TYPE_USHORT: return "\"$ref\": \"#/definitions/ushort\"";
+    case BASE_TYPE_INT: return "\"$ref\": \"#/definitions/int\"";
+    case BASE_TYPE_UINT: return "\"$ref\": \"#/definitions/uint\"";
+    case BASE_TYPE_LONG: return "\"$ref\": \"#/definitions/long\"";
+    case BASE_TYPE_ULONG: return "\"$ref\": \"#/definitions/ulong\"";
+    case BASE_TYPE_FLOAT: return "\"$ref\": \"#/definitions/float\"";
+    case BASE_TYPE_DOUBLE: return "\"$ref\": \"#/definitions/double\"";
+    default: return "";
+  }
+}
+#endif
+
 static std::string GenType(const std::string &name) {
   return "\"type\" : \"" + name + "\"";
 }
 
 static std::string GenType(BaseType type) {
-#if defined(MZ_CUSTOM_FLATBUFFERS) && MZ_CUSTOM_FLATBUFFERS
-  switch (type) {
-    case BASE_TYPE_BOOL: return "\"type\" : \"boolean\", \"flatbuffersBuiltinType\": \"bool\"";
-    case BASE_TYPE_CHAR:
-      return "\"type\" : \"integer\", \"minimum\" : " +
-             NumToString(std::numeric_limits<int8_t>::min()) +
-             ", \"maximum\" : " +
-             NumToString(std::numeric_limits<int8_t>::max()) +
-              ", \"flatbuffersBuiltinType\": \"byte\"";
-    case BASE_TYPE_UCHAR:
-      return "\"type\" : \"integer\", \"minimum\" : 0, \"maximum\" :" +
-             NumToString(std::numeric_limits<uint8_t>::max()) +
-              ", \"flatbuffersBuiltinType\": \"ubyte\"";
-    case BASE_TYPE_SHORT:
-      return "\"type\" : \"integer\", \"minimum\" : " +
-             NumToString(std::numeric_limits<int16_t>::min()) +
-             ", \"maximum\" : " +
-             NumToString(std::numeric_limits<int16_t>::max()) +
-              ", \"flatbuffersBuiltinType\": \"short\"";
-    case BASE_TYPE_USHORT:
-      return "\"type\" : \"integer\", \"minimum\" : 0, \"maximum\" : " +
-             NumToString(std::numeric_limits<uint16_t>::max()) +
-              ", \"flatbuffersBuiltinType\": \"ushort\"";
-    case BASE_TYPE_INT:
-      return "\"type\" : \"integer\", \"minimum\" : " +
-             NumToString(std::numeric_limits<int32_t>::min()) +
-             ", \"maximum\" : " +
-             NumToString(std::numeric_limits<int32_t>::max()) +
-              ", \"flatbuffersBuiltinType\": \"int\"";
-    case BASE_TYPE_UINT:
-      return "\"type\" : \"integer\", \"minimum\" : 0, \"maximum\" : " +
-             NumToString(std::numeric_limits<uint32_t>::max()) +
-              ", \"flatbuffersBuiltinType\": \"uint\"";
-    case BASE_TYPE_LONG:
-      return "\"type\" : \"integer\", \"minimum\" : " +
-             NumToString(std::numeric_limits<int64_t>::min()) +
-             ", \"maximum\" : " +
-             NumToString(std::numeric_limits<int64_t>::max()) +
-              ", \"flatbuffersBuiltinType\": \"long\"";
-    case BASE_TYPE_ULONG:
-      return "\"type\" : \"integer\", \"minimum\" : 0, \"maximum\" : " +
-             NumToString(std::numeric_limits<uint64_t>::max()) +
-              ", \"flatbuffersBuiltinType\": \"ulong\"";
-    case BASE_TYPE_FLOAT:
-      return "\"type\" : \"number\""
-              ", \"flatbuffersBuiltinType\": \"float\"";
-    case BASE_TYPE_DOUBLE: return "\"type\" : \"number\""
-              ", \"flatbuffersBuiltinType\": \"double\"";
-    case BASE_TYPE_STRING: return "\"type\" : \"string\"";
-    default: return "";
-  }
-#else
   switch (type) {
     case BASE_TYPE_BOOL: return "\"type\" : \"boolean\"";
     case BASE_TYPE_CHAR:
@@ -141,27 +108,40 @@ static std::string GenType(BaseType type) {
              NumToString(std::numeric_limits<uint64_t>::max());
     case BASE_TYPE_FLOAT:
     case BASE_TYPE_DOUBLE: return "\"type\" : \"number\"";
+#if not (defined(MZ_CUSTOM_FLATBUFFERS) && MZ_CUSTOM_FLATBUFFERS)
     case BASE_TYPE_STRING: return "\"type\" : \"string\"";
+#endif
     default: return "";
   }
-#endif
 }
 
 static std::string GenBaseType(const Type &type) {
   if (type.struct_def != nullptr) { return GenTypeRef(type.struct_def); }
   if (type.enum_def != nullptr) { return GenTypeRef(type.enum_def); }
+#if defined(MZ_CUSTOM_FLATBUFFERS) && MZ_CUSTOM_FLATBUFFERS
+  if (type.base_type == BASE_TYPE_STRING) { return GenType("string"); }
+  return GenTypeRef(type.base_type);
+#else
   return GenType(type.base_type);
+#endif
 }
 
 static std::string GenArrayType(const Type &type) {
   std::string element_type;
-  if (type.struct_def != nullptr) {
-    element_type = GenTypeRef(type.struct_def);
-  } else if (type.enum_def != nullptr) {
-    element_type = GenTypeRef(type.enum_def);
-  } else {
-    element_type = GenType(type.element);
-  }
+    if (type.struct_def != nullptr) {
+      element_type = GenTypeRef(type.struct_def);
+    } else if (type.enum_def != nullptr) {
+      element_type = GenTypeRef(type.enum_def);
+#if defined(MZ_CUSTOM_FLATBUFFERS) && MZ_CUSTOM_FLATBUFFERS
+    } else if (type.element == BASE_TYPE_STRING) {
+      element_type = GenType("string");
+    } else {
+      element_type = GenTypeRef(type.element);
+#else
+    } else {
+      element_type = GenType(type.element);
+#endif
+    }
 
   return "\"type\" : \"array\", \"items\" : {" + element_type + "}";
 }
@@ -199,7 +179,24 @@ static std::string GenType(const Type &type) {
   }
 }
 
-}  // namespace
+#if defined(MZ_CUSTOM_FLATBUFFERS) && MZ_CUSTOM_FLATBUFFERS
+static std::string GenPrimitiveTypes(int indent = 0) {
+  std::string indentStr(indent, ' ');
+  return indentStr + "\"bool\": { " + GenType(BASE_TYPE_BOOL) + " },\n" +
+         indentStr + "\"byte\": { " + GenType(BASE_TYPE_CHAR) + " },\n" +
+         indentStr + "\"ubyte\": { " + GenType(BASE_TYPE_UCHAR) + " },\n" +
+         indentStr + "\"short\": { " + GenType(BASE_TYPE_SHORT) + " },\n" +
+         indentStr + "\"ushort\": { " + GenType(BASE_TYPE_USHORT) + " },\n" +
+         indentStr + "\"int\": { " + GenType(BASE_TYPE_INT) + " },\n" +
+         indentStr + "\"uint\": { " + GenType(BASE_TYPE_UINT) + " },\n" +
+         indentStr + "\"long\": { " + GenType(BASE_TYPE_LONG) + " },\n" +
+         indentStr + "\"ulong\": { " + GenType(BASE_TYPE_ULONG) + " },\n" +
+         indentStr + "\"float\": { " + GenType(BASE_TYPE_FLOAT) + " },\n" +
+         indentStr + "\"double\": { " + GenType(BASE_TYPE_DOUBLE) + " },";
+}
+#endif
+
+} // namespace
 
 class JsonSchemaGenerator : public BaseGenerator {
  private:
@@ -275,6 +272,11 @@ class JsonSchemaGenerator : public BaseGenerator {
              "\"$schema\": \"https://json-schema.org/draft/2019-09/schema\"," +
              NewLine();
     code_ += Indent(1) + "\"definitions\": {" + NewLine();
+#if defined(MZ_CUSTOM_FLATBUFFERS) && MZ_CUSTOM_FLATBUFFERS
+    // add builtin types. the builtins inside structures can also refer to these,
+    // instead of using JSON schema primitives.
+    code_ += Indent(2) + GenPrimitiveTypes(3) + NewLine();
+#endif
     for (auto e = parser_.enums_.vec.cbegin(); e != parser_.enums_.vec.cend();
          ++e) {
       code_ += Indent(2) + "\"" + GenFullName(*e) + "\" : {" + NewLine();
@@ -355,8 +357,8 @@ class JsonSchemaGenerator : public BaseGenerator {
         }
         code_ += Indent(3) + "]," + NewLine();
       }
+      else {
 #endif
-
       std::vector<FieldDef *> requiredProperties;
       std::copy_if(properties.begin(), properties.end(),
                    back_inserter(requiredProperties),
@@ -373,6 +375,9 @@ class JsonSchemaGenerator : public BaseGenerator {
         required_string.append("],");
         code_ += required_string + NewLine();
       }
+#if defined(MZ_CUSTOM_FLATBUFFERS) && MZ_CUSTOM_FLATBUFFERS
+      }
+#endif
       code_ += Indent(3) + "\"additionalProperties\" : false" + NewLine();
       auto closeType(Indent(2) + "}");
       if (*s != parser_.structs_.vec.back()) { closeType.append(","); }
