@@ -829,6 +829,54 @@ void FixedLengthArrayConstructorTest() {
 void FixedLengthArrayConstructorTest() {}
 #endif
 
+void FixedLengthArrayOperatorEqualTest() {
+  const int32_t nested_a[2] = { 1, 2 };
+  MyGame::Example::TestEnum nested_c[2] = { MyGame::Example::TestEnum::A,
+                                            MyGame::Example::TestEnum::B };
+
+  MyGame::Example::TestEnum nested_cc[2] = { MyGame::Example::TestEnum::A,
+                                             MyGame::Example::TestEnum::C };
+  const int64_t int64_2[2] = { -2, -1 };
+
+  std::array<MyGame::Example::NestedStruct, 2> init_d = {
+    { MyGame::Example::NestedStruct(nested_a, MyGame::Example::TestEnum::B,
+                                    nested_c, int64_2),
+      MyGame::Example::NestedStruct(nested_a, MyGame::Example::TestEnum::B,
+                                    nested_c,
+                                    std::array<int64_t, 2>{ { -2, -1 } }) }
+  };
+
+  auto different = MyGame::Example::NestedStruct(
+      nested_a, MyGame::Example::TestEnum::B, nested_cc,
+      std::array<int64_t, 2>{ { -2, -1 } });
+
+  TEST_ASSERT(init_d[0] == init_d[1]);
+  TEST_ASSERT(init_d[0] != different);
+
+  std::array<MyGame::Example::ArrayStruct, 3> arr_struct = {
+    MyGame::Example::ArrayStruct(
+        8.125,
+        std::array<int32_t, 0xF>{
+            { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 } },
+        -17, init_d, 10, int64_2),
+
+    MyGame::Example::ArrayStruct(
+        8.125,
+        std::array<int32_t, 0xF>{
+            { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 } },
+        -17, init_d, 10, int64_2),
+
+    MyGame::Example::ArrayStruct(
+        8.125,
+        std::array<int32_t, 0xF>{
+            { 1000, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 } },
+        -17, init_d, 10, int64_2)
+  };
+
+  TEST_ASSERT(arr_struct[0] == arr_struct[1]);
+  TEST_ASSERT(arr_struct[1] != arr_struct[2]);
+}
+
 void NativeTypeTest() {
   const int N = 3;
 
@@ -1560,6 +1608,7 @@ int FlatBufferTests(const std::string &tests_data_path) {
   ParseFlexbuffersFromJsonWithNullTest();
   FlatbuffersSpanTest();
   FixedLengthArrayConstructorTest();
+  FixedLengthArrayOperatorEqualTest();
   FieldIdentifierTest();
   StringVectorDefaultsTest();
   FlexBuffersFloatingPointTest();

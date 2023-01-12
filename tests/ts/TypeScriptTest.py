@@ -85,6 +85,12 @@ flatc(
 )
 
 flatc(
+    options=["--ts", "--reflect-names", "--gen-name-strings", "--ts-no-import-ext"],
+    schema="../optional_scalars.fbs",
+    prefix="no_import_ext",
+)
+
+flatc(
     options=["--ts", "--reflect-names", "--gen-name-strings", "--gen-mutable", "--gen-object-api"],
     schema=[
         "typescript_keywords.fbs",
@@ -129,3 +135,4 @@ check_call(NODE_CMD + ["JavaScriptTest"])
 check_call(NODE_CMD + ["JavaScriptUnionVectorTest"])
 check_call(NODE_CMD + ["JavaScriptFlexBuffersTest"])
 check_call(NODE_CMD + ["JavaScriptComplexArraysTest"])
+check_call(NODE_CMD + ["JavaScriptRequiredStringTest"])
