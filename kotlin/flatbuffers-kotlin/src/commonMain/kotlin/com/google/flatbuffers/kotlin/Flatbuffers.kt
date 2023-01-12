@@ -19,19 +19,19 @@ import kotlin.jvm.JvmInline
 import kotlin.math.min
 
 @JvmInline
-public value class Offset<T>(public val pos: Int)
+public value class Offset<T>(public val value: Int)
 
 @JvmInline
-public value class ArrayOffset<T>(public val pos: Int)
+public value class ArrayOffset<T>(public val value: Int)
 
 public inline fun <T> Int.toOffset(): Offset<T> = Offset(this)
 
 public inline operator fun <T> Offset<T>.minus(other: Int): Offset<T> {
-  return Offset(this.pos - other)
+  return Offset(this.value - other)
 }
 
 public inline operator fun <T> Int.minus(other: Offset<T>): Int {
-  return this - other.pos
+  return this - other.value
 }
 /**
  * All tables in the generated code derive from this class, and add their own accessors.
@@ -189,7 +189,7 @@ public open class Table {
   public companion object {
 
     public fun offset(vtable_offset: Int, offset: Offset<*>, bb: ReadWriteBuffer): Int {
-      val vtable: Int = bb.capacity - offset.pos
+      val vtable: Int = bb.capacity - offset.value
       return bb.getShort(vtable + vtable_offset - bb.getInt(vtable)) + vtable
     }
 

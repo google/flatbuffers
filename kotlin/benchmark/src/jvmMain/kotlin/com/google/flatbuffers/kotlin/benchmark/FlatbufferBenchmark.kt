@@ -4,13 +4,10 @@ package com.google.flatbuffers.kotlin.benchmark
 
 import Attacker
 import BookReader
-import Character_
-import Movie
-import MyGame.Example.Any_
+import MyGame.Example.AnyE
 import MyGame.Example.Color
 import MyGame.Example.Monster
 import MyGame.Example.Vec3
-import com.google.flatbuffers.kotlin.ArrayOffset
 import com.google.flatbuffers.kotlin.FlatBufferBuilder
 import com.google.flatbuffers.kotlin.Offset
 import kotlinx.benchmark.Blackhole
@@ -27,7 +24,7 @@ open class FlatbufferBenchmark {
   val repetition = 10000
 
   @Benchmark
-  fun builderCreate1KMonsters(blackhole: Blackhole) {
+  fun monsters1KBuilder() {
     fbb.clear()
     val names = arrayOf(fbb.createString("Frodo"), fbb.createString("Barney"), fbb.createString("Wilma"))
     val off = arrayOf(
@@ -49,7 +46,6 @@ open class FlatbufferBenchmark {
     val testArrayOfString =
       Monster.createTestarrayofstringVector(fbb, arrayOf(fbb.createString("test1"), fbb.createString("test2")))
 
-    //val all_monsters = arrayOf(1000) {
     val all_monsters = Array(repetition) {
       Monster.createMonster(fbb, str) {
         pos = Vec3.createVec3(
@@ -59,7 +55,7 @@ open class FlatbufferBenchmark {
         hp = 80
         mana = 150
         inventory = inv
-        testType = Any_.Monster
+        testType = AnyE.Monster
         test = mon2 as Offset<Any>
         this.test4 = test4
         testarrayofstring = testArrayOfString
@@ -72,7 +68,7 @@ open class FlatbufferBenchmark {
   }
 
   @Benchmark
-  fun manualCreate1KMonsters(blackhole: Blackhole) {
+  fun monsters1KManual() {
     fbb.clear()
     val names = arrayOf(fbb.createString("Frodo"), fbb.createString("Barney"), fbb.createString("Wilma"))
     val off = Array<Offset<Monster>>(3) { Offset(0) }
@@ -118,7 +114,7 @@ open class FlatbufferBenchmark {
       Monster.addName(fbb, str)
       Monster.addMana(fbb, 150)
       Monster.addInventory(fbb, inv)
-      Monster.addTestType(fbb, Any_.Monster)
+      Monster.addTestType(fbb, AnyE.Monster)
       Monster.addTest(fbb, mon2 as Offset<Any>) //TODO: Improve this
       Monster.addTest4(fbb, test4)
       Monster.addTestarrayofstring(fbb, testArrayOfString)
@@ -131,13 +127,13 @@ open class FlatbufferBenchmark {
   }
 
   @Benchmark
-  fun builderCreate1kMovies(blackhole: Blackhole) {
+  fun movies1KBuilder() {
     fbb.clear()
     val all_movies = Array(repetition) {
       val att = Attacker.createAttacker(fbb) { swordAttackDamage = it } as Offset<Any>
       val charsType = Movie.createCharactersTypeVector(
         fbb,
-        ubyteArrayOf(Character_.BookFan, Character_.BookFan, Character_.BookFan)
+        arrayOf(CharacterE.BookFan, CharacterE.BookFan, CharacterE.BookFan)
       )
       val characters = Movie.createCharactersVector(
           fbb, arrayOf(
@@ -147,7 +143,7 @@ open class FlatbufferBenchmark {
           )
         )
       Movie.createMovie(fbb,
-        mainCharacterType = Character_.MuLan,
+        mainCharacterType = CharacterE.MuLan,
         mainCharacter = att) {
         charactersType = charsType
         this.characters = characters
@@ -157,7 +153,7 @@ open class FlatbufferBenchmark {
   }
 
   @Benchmark
-  fun manualCreate1kMovies(blackhole: Blackhole) {
+  fun movies1KManual() {
     fbb.clear()
     val all_movies = Array(repetition) {
       Attacker.startAttacker(fbb)
@@ -166,7 +162,7 @@ open class FlatbufferBenchmark {
 
       val charsType = Movie.createCharactersTypeVector(
         fbb,
-        ubyteArrayOf(Character_.BookFan, Character_.BookFan, Character_.BookFan)
+        arrayOf(CharacterE.BookFan, CharacterE.BookFan, CharacterE.BookFan)
       )
 
       val charsVec = Movie.createCharactersVector(
@@ -178,7 +174,7 @@ open class FlatbufferBenchmark {
       )
 
       Movie.startMovie(fbb)
-      Movie.addMainCharacterType(fbb, Character_.MuLan)
+      Movie.addMainCharacterType(fbb, CharacterE.MuLan)
       Movie.addMainCharacter(fbb, att as Offset<Any>)
 
       Movie.addCharactersType(fbb, charsType)

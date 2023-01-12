@@ -18,11 +18,10 @@
 package com.google.flatbuffers.kotlin
 
 import Attacker
-import Character_
 import DictionaryLookup.LongFloatEntry
 import DictionaryLookup.LongFloatMap
 import Movie
-import MyGame.Example.Any_
+import MyGame.Example.AnyE
 import MyGame.Example.Color
 import MyGame.Example.Monster
 import MyGame.Example.Vec3
@@ -54,7 +53,7 @@ class FlatBufferBuilderTest {
     Monster.addName(fbb, name)
     Monster.addMana(fbb, 150)
     Monster.addInventory(fbb, inv)
-    Monster.addTestType(fbb, Any_.Monster)
+    Monster.addTestType(fbb, AnyE.Monster)
     Monster.addTestbool(fbb, true)
     Monster.addTesthashu32Fnv1(fbb, (Int.MAX_VALUE + 1L).toUInt())
     val root = Monster.endMonster(fbb)
@@ -208,7 +207,7 @@ class FlatBufferBuilderTest {
       hp = 80
       mana = 150
       inventory = inv
-      testType = Any_.Monster
+      testType = AnyE.Monster
       test = mon2 as Offset<Any>
       this.test4 = test4
       testarrayofstring = testArrayOfString
@@ -216,25 +215,7 @@ class FlatBufferBuilderTest {
       testhashu32Fnv1 = (Int.MAX_VALUE + 1L).toUInt()
       testarrayoftables = sortMons
     }
-//    Monster.startMonster(fbb)
-//    Monster.addPos(
-//      fbb, Vec3.createVec3(
-//        fbb, 1.0f, 2.0f, 3.0f, 3.0,
-//        Color.Green, 5.toShort(), 6.toByte()
-//      )
-//    )
-//    Monster.addHp(fbb, 80.toShort())
-//    Monster.addName(fbb, str)
-//    Monster.addMana(fbb, 150)
-//    Monster.addInventory(fbb, inv)
-//    Monster.addTestType(fbb, Any_.Monster)
-//    Monster.addTest(fbb, mon2 as Offset<Any>) //TODO: Improve this
-//    Monster.addTest4(fbb, test4)
-//    Monster.addTestarrayofstring(fbb, testArrayOfString)
-//    Monster.addTestbool(fbb, true)
-//    Monster.addTesthashu32Fnv1(fbb, (Int.MAX_VALUE + 1L).toUInt())
-//    Monster.addTestarrayoftables(fbb, sortMons)
-//    val mon = Monster.endMonster(fbb)
+
     Monster.finishMonsterBuffer(fbb, mon)
     //Attempt to mutate Monster fields and check whether the buffer has been mutated properly
     // revert to original values after testing
@@ -243,6 +224,7 @@ class FlatBufferBuilderTest {
     // mana is optional and does not exist in the buffer so the mutation should fail
     // the mana field should retain its default value
     assertEquals(monster.mana, 150.toShort())
+    assertEquals(monster.hp, 80)
 
     // Accessing a vector of sorted by the key tables
     assertEquals(monster.testarrayoftables(0)!!.name, "Barney")
@@ -261,6 +243,7 @@ class FlatBufferBuilderTest {
     // get a struct field and edit one of its fields
     val pos = monster.pos!!
     assertEquals(pos.x, 1.0f)
+    assertEquals(pos.test2, Color.Green)
   }
 
   @Test
@@ -269,13 +252,13 @@ class FlatBufferBuilderTest {
     val swordAttackDamage = 1
 
     val characterVector = arrayOf(Attacker.createAttacker(fbb, swordAttackDamage))
-    val characterTypeVector = ubyteArrayOf(Character_.MuLan)
+    val characterTypeVector = arrayOf(CharacterE.MuLan)
     Movie.finishMovieBuffer(
       fbb,
       Movie.createMovie(
         fbb,
-        0.toUByte(),
-        Offset(0),
+        CharacterE.MuLan,
+        characterVector[0] as Offset<Any>,
         Movie.createCharactersTypeVector(fbb, characterTypeVector),
         Movie.createCharactersVector(fbb, characterVector as Array<Offset<Any>>) // TODO: fix me
       )
@@ -393,8 +376,8 @@ class FlatBufferBuilderTest {
   fun testEnums() {
     assertEquals(Color.name(Color.Red), "Red")
     assertEquals(Color.name(Color.Blue), "Blue")
-    assertEquals(Any_.name(Any_.NONE), "NONE")
-    assertEquals(Any_.name(Any_.Monster), "Monster")
+    assertEquals(AnyE.name(AnyE.NONE), "NONE")
+    assertEquals(AnyE.name(AnyE.Monster), "Monster")
   }
 
   @Test

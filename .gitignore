@@ -152,3 +152,4 @@ flatbuffers.pc
 cmake-build-debug/
 _deps/
 **/.gradle/**
+kotlin/**/generated
