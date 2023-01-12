@@ -61,9 +61,7 @@ option(FLATBUFFERS_STRICT_MODE
 option(MZ_CUSTOM_FLATBUFFERS
       "Build customized flatbuffers for mediaZ."
       OFF)
-if (${MZ_CUSTOM_FLATBUFFERS})
-  add_definitions(-DMZ_CUSTOM_FLATBUFFERS=1)
-endif()
+# End MZ_CUSTOM_FLATBUFFERS
 
 
 if(NOT DEFINED FLATBUFFERS_CPP_STD)
@@ -160,11 +158,13 @@ set(FlatBuffers_Library_SRCS
   src/util.cpp
 )
 
+# Begin MZ_CUSTOM_FLATBUFFERS
 if (${MZ_CUSTOM_FLATBUFFERS})
   list(APPEND FlatBuffers_Library_SRCS
     src/idl_gen_json_schema.cpp
   )
 endif()
+# End MZ_CUSTOM_FLATBUFFERS
 
 set(FlatBuffers_Compiler_SRCS
   ${FlatBuffers_Library_SRCS}
@@ -443,6 +443,12 @@ endif()
 
 if(FLATBUFFERS_BUILD_FLATLIB)
   add_library(flatbuffers STATIC ${FlatBuffers_Library_SRCS})
+
+  # Begin MZ_CUSTOM_FLATBUFFERS
+  if (${MZ_CUSTOM_FLATBUFFERS})
+    target_compile_definitions(flatbuffers PUBLIC MZ_CUSTOM_FLATBUFFERS=1)
+  endif()
+  # End MZ_CUSTOM_FLATBUFFERS
 
   # Attach header directory for when build via add_subdirectory().
   target_include_directories(flatbuffers
