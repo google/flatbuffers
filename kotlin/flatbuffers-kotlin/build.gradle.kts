@@ -37,6 +37,8 @@ kotlin {
       dependencies {
         implementation(kotlin("test"))
       }
+
+      kotlin.srcDir("src/commonTest/generated/kotlin/")
     }
     val jvmTest by getting {
       dependencies {
@@ -45,7 +47,6 @@ kotlin {
       }
     }
     val jvmMain by getting {
-      kotlin.srcDir("java")
     }
 
     val macosX64Main by getting
@@ -83,28 +84,28 @@ tasks.register<GenerateFBTestClasses>("generateFBTestClassesKt") {
   inputFiles.setFrom("$rootDir/../tests/monster_test.fbs",
     "$rootDir/../tests/dictionary_lookup.fbs")
   includeFolder.set("$rootDir/../tests/include_test")
-  outputFolder.set("${projectDir}/src/commonTest/kotlin/")
+  outputFolder.set("${projectDir}/src/commonTest/generated/kotlin/")
   variant.set("kotlin-kmp")
 }
 
 //../flatc --cpp --java --kotlin --csharp --ts --php  -o union_vector ./union_vector/union_vector.fbs
 tasks.register<GenerateFBTestClasses>("generateFBTestClassesKtVec") {
   inputFiles.setFrom("$rootDir/../tests/union_vector/union_vector.fbs")
-  outputFolder.set("${projectDir}/src/commonTest/kotlin/")
+  outputFolder.set("${projectDir}/src/commonTest/generated/kotlin/")
   variant.set("kotlin-kmp")
 }
 
 //../flatc --java --kotlin --lobster --ts optional_scalars.fbs
 tasks.register<GenerateFBTestClasses>("generateFBTestClassesKtOptionalScalars") {
   inputFiles.setFrom("$rootDir/../tests/optional_scalars.fbs")
-  outputFolder.set("${projectDir}/src/commonTest/kotlin/")
+  outputFolder.set("${projectDir}/src/commonTest/generated/kotlin/")
   variant.set("kotlin-kmp")
 }
 
 //../flatc --java --kotlin --lobster --ts optional_scalars.fbs
 tasks.register<GenerateFBTestClasses>("generateFBTestClassesKtNameSpace") {
   inputFiles.setFrom("$rootDir/../tests/namespace_test/namespace_test1.fbs", "$rootDir/../tests/namespace_test/namespace_test2.fbs")
-  outputFolder.set("${projectDir}/src/commonTest/kotlin/")
+  outputFolder.set("${projectDir}/src/commonTest/generated/kotlin/")
   variant.set("kotlin-kmp")
 }
 

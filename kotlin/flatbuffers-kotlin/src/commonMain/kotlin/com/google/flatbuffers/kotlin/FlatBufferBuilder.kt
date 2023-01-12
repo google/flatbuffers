@@ -321,8 +321,8 @@ public class FlatBufferBuilder @JvmOverloads constructor(
    *
    * @param off The offset to add.
    */
-  public fun addOffset(off: Offset<*>): Unit = addOffset(off.pos)
-  public fun addOffset(off: ArrayOffset<*>): Unit = addOffset(off.pos)
+  public fun add(off: Offset<*>): Unit = addOffset(off.value)
+  public fun add(off: ArrayOffset<*>): Unit = addOffset(off.value)
   private fun addOffset(off: Int) {
     var off1 = off
     prep(Int.SIZE_BYTES, 0) // Ensure alignment is already done.
@@ -436,7 +436,7 @@ public class FlatBufferBuilder @JvmOverloads constructor(
   public fun <T> createVectorOfTables(offsets: Array<Offset<T>>): ArrayOffset<T> {
     notNested()
     startVector(Int.SIZE_BYTES, offsets.size, Int.SIZE_BYTES)
-    for (i in offsets.indices.reversed()) addOffset(offsets[i])
+    for (i in offsets.indices.reversed()) add(offsets[i])
     return ArrayOffset(endVector())
   }
 
@@ -653,15 +653,15 @@ public class FlatBufferBuilder @JvmOverloads constructor(
    * If `force_defaults` is `false`, compare `x` against the default value `d`. If `x` contains the
    * default value, it can be skipped.
    */
-  public fun add(o: Int, x: UByte, d: Int?): Unit = add(o, x.toByte(), d)
+  public fun add(o: Int, x: UByte, d: UByte?): Unit = add(o, x.toByte(), d?.toByte())
 
   /**
    * Add a [Byte] to a table at `o` into its vtable, with value `x` and default `d`.
    * If `force_defaults` is `false`, compare `x` against the default value `d`. If `x` contains the
    * default value, it can be skipped.
    */
-  public fun add(o: Int, x: Byte, d: Int?) {
-    if (forceDefaults || x.toInt() != d) {
+  public fun add(o: Int, x: Byte, d: Byte?) {
+    if (forceDefaults || x != d) {
       add(x)
       slot(o)
     }
@@ -672,15 +672,15 @@ public class FlatBufferBuilder @JvmOverloads constructor(
    * If `force_defaults` is `false`, compare `x` against the default value `d`. If `x` contains the
    * default value, it can be skipped.
    */
-  public fun add(o: Int, x: UShort, d: Int?): Unit = add(o, x.toShort(), d)
+  public fun add(o: Int, x: UShort, d: UShort?): Unit = add(o, x.toShort(), d?.toShort())
 
   /**
    * Add a [Short] to a table at `o` into its vtable, with value `x` and default `d`.
    * If `force_defaults` is `false`, compare `x` against the default value `d`. If `x` contains the
    * default value, it can be skipped.
    */
-  public fun add(o: Int, x: Short, d: Int?) {
-    if (forceDefaults || x.toInt() != d) {
+  public fun add(o: Int, x: Short, d: Short?) {
+    if (forceDefaults || x != d) {
       add(x)
       slot(o)
     }
@@ -691,7 +691,7 @@ public class FlatBufferBuilder @JvmOverloads constructor(
    * If `force_defaults` is `false`, compare `x` against the default value `d`. If `x` contains the
    * default value, it can be skipped.
    */
-  public fun add(o: Int, x: UInt, d: Int?): Unit = add(o, x.toInt(), d)
+  public fun add(o: Int, x: UInt, d: UInt?): Unit = add(o, x.toInt(), d?.toInt())
 
   /**
    * Add a [Int] to a table at `o` into its vtable, with value `x` and default `d`.
@@ -710,7 +710,7 @@ public class FlatBufferBuilder @JvmOverloads constructor(
    * If `force_defaults` is `false`, compare `x` against the default value `d`. If `x` contains the
    * default value, it can be skipped.
    */
-  public fun add(o: Int, x: ULong, d: Long?): Unit = add(o, x.toLong(), d)
+  public fun add(o: Int, x: ULong, d: ULong?): Unit = add(o, x.toLong(), d?.toLong())
 
   /**
    * Add a [Long] to a table at `o` into its vtable, with value `x` and default `d`.
@@ -729,8 +729,8 @@ public class FlatBufferBuilder @JvmOverloads constructor(
    * If `force_defaults` is `false`, compare `x` against the default value `d`. If `x` contains the
    * default value, it can be skipped.
    */
-  public fun add(o: Int, x: Float, d: Double?) {
-    if (forceDefaults || x.toDouble() != d) {
+  public fun add(o: Int, x: Float, d: Float?) {
+    if (forceDefaults || x != d) {
       add(x)
       slot(o)
     }
@@ -757,15 +757,15 @@ public class FlatBufferBuilder @JvmOverloads constructor(
    * default value, it can be skipped.
    * @param d An `offset` default value to compare against when `force_defaults` is `false`.
    */
-  public fun addOffset(o: Int, x: Offset<*>, d: Offset<*>?) {
-    if (forceDefaults || x != d) {
-      addOffset(x)
+  public fun add(o: Int, x: Offset<*>, d: Int) {
+    if (forceDefaults || x.value != d) {
+      add(x)
       slot(o)
     }
   }
-  public fun addOffset(o: Int, x: ArrayOffset<*>, d: ArrayOffset<*>?) {
-    if (forceDefaults || x != d) {
-      addOffset(x)
+  public fun add(o: Int, x: ArrayOffset<*>, d: Int) {
+    if (forceDefaults || x.value != d) {
+      add(x)
       slot(o)
     }
   }
@@ -777,7 +777,7 @@ public class FlatBufferBuilder @JvmOverloads constructor(
    * @param x The offset of the created struct.
    * @param d The default value is always `0`.
    */
-  public fun addStruct(voffset: Int, x: Offset<*>, d: Offset<*>?): Unit = addStruct(voffset, x.pos, d?.pos)
+  public fun addStruct(voffset: Int, x: Offset<*>, d: Offset<*>?): Unit = addStruct(voffset, x.value, d?.value)
   public fun addStruct(voffset: Int, x: Int, d: Int?) {
     if (x != d) {
       nested(x)
@@ -884,7 +884,7 @@ public class FlatBufferBuilder @JvmOverloads constructor(
    */
   protected fun finish(rootTable: Offset<*>, sizePrefix: Boolean) {
     prep(minalign, Int.SIZE_BYTES + if (sizePrefix) Int.SIZE_BYTES else 0)
-    addOffset(rootTable)
+    add(rootTable)
     if (sizePrefix) {
       add(buffer.capacity - space)
     }
