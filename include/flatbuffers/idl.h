@@ -1207,11 +1207,7 @@ class Parser : public ParserState {
   int parse_depth_counter_;  // stack-overflow guard
 #if defined(MZ_CUSTOM_FLATBUFFERS) && MZ_CUSTOM_FLATBUFFERS  // clang-format off
 public:
-  struct type_lookup {
-    const char *proto_type;
-    BaseType fb_type, element;
-  };
-  type_lookup *LookupPrimitiveType(std::string const &name);
+  const Type* LookupPrimitiveType(std::string const &name);
   bool ResolveDynamicType(const char *typeName, Type &type, const FieldDef *field);
   const char* LookupDynamicFieldType(const FieldDef *dynamic_field, const StructDef *struct_def);
   bool CompleteMissingField(FieldDef *absent_field, const StructDef &struct_def, size_t& fieldn_outer, int32_t lastFieldCount);

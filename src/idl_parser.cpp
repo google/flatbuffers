@@ -4502,42 +4502,44 @@ std::string Parser::ConformTo(const Parser &base) {
 }
 
 #if defined(MZ_CUSTOM_FLATBUFFERS) && MZ_CUSTOM_FLATBUFFERS  // clang-format off
-Parser::type_lookup *Parser::LookupPrimitiveType(std::string const &name) {
-  static type_lookup lookup[] = {
-    { "i8", BASE_TYPE_CHAR, BASE_TYPE_NONE },
-    { "u8", BASE_TYPE_UCHAR, BASE_TYPE_NONE },
-    { "byte", BASE_TYPE_CHAR, BASE_TYPE_NONE },
-    { "ubyte", BASE_TYPE_UCHAR, BASE_TYPE_NONE },
-    { "ushort", BASE_TYPE_USHORT, BASE_TYPE_NONE },
-    { "short", BASE_TYPE_SHORT, BASE_TYPE_NONE },
-    { "f32", BASE_TYPE_FLOAT, BASE_TYPE_NONE },
-    { "f64", BASE_TYPE_DOUBLE, BASE_TYPE_NONE },
-    { "float", BASE_TYPE_FLOAT, BASE_TYPE_NONE },
-    { "double", BASE_TYPE_DOUBLE, BASE_TYPE_NONE },
-    { "i32", BASE_TYPE_INT, BASE_TYPE_NONE },
-    { "int", BASE_TYPE_INT, BASE_TYPE_NONE },
-    { "int32", BASE_TYPE_INT, BASE_TYPE_NONE },
-    { "long", BASE_TYPE_LONG, BASE_TYPE_NONE },
-    { "int64", BASE_TYPE_LONG, BASE_TYPE_NONE },
-    { "u32", BASE_TYPE_UINT, BASE_TYPE_NONE },
-    { "uint", BASE_TYPE_UINT, BASE_TYPE_NONE },
-    { "uint32", BASE_TYPE_UINT, BASE_TYPE_NONE },
-    { "uint64", BASE_TYPE_ULONG, BASE_TYPE_NONE },
-    { "ulong", BASE_TYPE_ULONG, BASE_TYPE_NONE },
-    { "sint32", BASE_TYPE_INT, BASE_TYPE_NONE },
-    { "sint64", BASE_TYPE_LONG, BASE_TYPE_NONE },
-    { "fixed32", BASE_TYPE_UINT, BASE_TYPE_NONE },
-    { "fixed64", BASE_TYPE_ULONG, BASE_TYPE_NONE },
-    { "sfixed32", BASE_TYPE_INT, BASE_TYPE_NONE },
-    { "sfixed64", BASE_TYPE_LONG, BASE_TYPE_NONE },
-    { "bool", BASE_TYPE_BOOL, BASE_TYPE_NONE },
-    { "string", BASE_TYPE_STRING, BASE_TYPE_NONE },
-    { "bytes", BASE_TYPE_VECTOR, BASE_TYPE_UCHAR },
-    { nullptr, BASE_TYPE_NONE, BASE_TYPE_NONE }
+const flatbuffers::Type *Parser::LookupPrimitiveType(std::string const &name) {
+
+  static std::unordered_map<std::string, Type> lookup = {
+    { "i8",       flatbuffers::Type(BASE_TYPE_CHAR)   },
+    { "u8",       flatbuffers::Type(BASE_TYPE_UCHAR)  },
+    { "byte",     flatbuffers::Type(BASE_TYPE_CHAR)   },
+    { "ubyte",    flatbuffers::Type(BASE_TYPE_UCHAR)  },
+    { "ushort",   flatbuffers::Type(BASE_TYPE_USHORT) },
+    { "short",    flatbuffers::Type(BASE_TYPE_SHORT)  },
+    { "f32",      flatbuffers::Type(BASE_TYPE_FLOAT)  },
+    { "f64",      flatbuffers::Type(BASE_TYPE_DOUBLE) },
+    { "float",    flatbuffers::Type(BASE_TYPE_FLOAT)  },
+    { "double",   flatbuffers::Type(BASE_TYPE_DOUBLE) },
+    { "i32",      flatbuffers::Type(BASE_TYPE_INT)    },
+    { "int",      flatbuffers::Type(BASE_TYPE_INT)    },
+    { "int32",    flatbuffers::Type(BASE_TYPE_INT)    },
+    { "long",     flatbuffers::Type(BASE_TYPE_LONG)   },
+    { "int64",    flatbuffers::Type(BASE_TYPE_LONG)   },
+    { "u32",      flatbuffers::Type(BASE_TYPE_UINT)   },
+    { "uint",     flatbuffers::Type(BASE_TYPE_UINT)   },
+    { "uint32",   flatbuffers::Type(BASE_TYPE_UINT)   },
+    { "uint64",   flatbuffers::Type(BASE_TYPE_ULONG)  },
+    { "ulong",    flatbuffers::Type(BASE_TYPE_ULONG)  },
+    { "sint32",   flatbuffers::Type(BASE_TYPE_INT)    },
+    { "sint64",   flatbuffers::Type(BASE_TYPE_LONG)   },
+    { "fixed32",  flatbuffers::Type(BASE_TYPE_UINT)   },
+    { "fixed64",  flatbuffers::Type(BASE_TYPE_ULONG)  },
+    { "sfixed32", flatbuffers::Type(BASE_TYPE_INT)    },
+    { "sfixed64", flatbuffers::Type(BASE_TYPE_LONG)   },
+    { "bool",     flatbuffers::Type(BASE_TYPE_BOOL)   },
+    { "string",   flatbuffers::Type(BASE_TYPE_STRING) },
+    { nullptr,    flatbuffers::Type(BASE_TYPE_NONE)   }
   };
-  for (auto tl = lookup; tl->proto_type; tl++) {
-    if (name == tl->proto_type) { return tl; }
-  }
+
+  auto result = lookup.find(name);
+  if (result != lookup.end())
+    return &result->second;
+
   return nullptr;
 }
 
@@ -4565,10 +4567,9 @@ bool Parser::ResolveDynamicType(const char* typeName, Type& type, const FieldDef
 {
   if (field->attributes.Lookup("dynamic")) 
   {
-      if (auto type_info = LookupPrimitiveType(typeName)) 
+      if (auto type_result = LookupPrimitiveType(typeName)) 
       {
-        type.element = type_info->element;
-        type.base_type = type_info->fb_type;
+        type = *type_result;
       } 
       else 
       {
