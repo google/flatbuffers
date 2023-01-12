@@ -4533,7 +4533,7 @@ const flatbuffers::Type *Parser::LookupPrimitiveType(std::string const &name) {
     { "sfixed64", flatbuffers::Type(BASE_TYPE_LONG)   },
     { "bool",     flatbuffers::Type(BASE_TYPE_BOOL)   },
     { "string",   flatbuffers::Type(BASE_TYPE_STRING) },
-    { nullptr,    flatbuffers::Type(BASE_TYPE_NONE)   }
+    { "",         flatbuffers::Type(BASE_TYPE_NONE)   }
   };
 
   auto result = lookup.find(name);
