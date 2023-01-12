@@ -27,7 +27,7 @@ FetchContent_MakeAvailable(
     googlebenchmark
 )
 
-set(CPP_BENCH_DIR cpp)
+set(CPP_BENCH_DIR ${CMAKE_CURRENT_SOURCE_DIR}/cpp)
 set(CPP_FB_BENCH_DIR ${CPP_BENCH_DIR}/flatbuffers)
 set(CPP_RAW_BENCH_DIR ${CPP_BENCH_DIR}/raw)
 set(CPP_BENCH_FBS ${CPP_FB_BENCH_DIR}/bench.fbs)
