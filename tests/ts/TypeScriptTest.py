@@ -93,6 +93,12 @@ flatc(
 )
 
 flatc(
+    options=["--ts", "--reflect-names", "--gen-name-strings", "--ts-no-import-ext"],
+    schema="../optional_scalars.fbs",
+    prefix="no_import_ext",
+)
+
+flatc(
     options=["--ts", "--reflect-names", "--gen-name-strings", "--gen-object-api", "--ts-entry-points", "--ts-flat-files"],
     schema="arrays_test_complex/arrays_test_complex.fbs",
     prefix="arrays_test_complex"
