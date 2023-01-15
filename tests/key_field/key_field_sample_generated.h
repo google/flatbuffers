@@ -97,9 +97,9 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(1) Baz FLATBUFFERS_FINAL_CLASS {
   bool KeyCompareLessThan(const Baz * const o) const {
     return KeyCompareWithValue(o->a()) < 0;
   }
-  int KeyCompareWithValue(const flatbuffers::Array<uint8_t, 4> *_a) const {
-    const flatbuffers::Array<uint8_t, 4> *curr_a = a();
-    for (flatbuffers::uoffset_t i = 0; i < curr_a->size(); i++) {
+  int KeyCompareWithValue(const ::flatbuffers::Array<uint8_t, 4> *_a) const {
+    const ::flatbuffers::Array<uint8_t, 4> *curr_a = a();
+    for (::flatbuffers::uoffset_t i = 0; i < curr_a->size(); i++) {
       const auto lhs = curr_a->Get(i);
       const auto rhs = _a->Get(i);
       if (lhs != rhs)
@@ -170,9 +170,9 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) Bar FLATBUFFERS_FINAL_CLASS {
   bool KeyCompareLessThan(const Bar * const o) const {
     return KeyCompareWithValue(o->a()) < 0;
   }
-  int KeyCompareWithValue(const flatbuffers::Array<float, 3> *_a) const {
-    const flatbuffers::Array<float, 3> *curr_a = a();
-    for (flatbuffers::uoffset_t i = 0; i < curr_a->size(); i++) {
+  int KeyCompareWithValue(const ::flatbuffers::Array<float, 3> *_a) const {
+    const ::flatbuffers::Array<float, 3> *curr_a = a();
+    for (::flatbuffers::uoffset_t i = 0; i < curr_a->size(); i++) {
       const auto lhs = curr_a->Get(i);
       const auto rhs = _a->Get(i);
       if (lhs != rhs)
@@ -243,9 +243,9 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) Color FLATBUFFERS_FINAL_CLASS {
   bool KeyCompareLessThan(const Color * const o) const {
     return KeyCompareWithValue(o->rgb()) < 0;
   }
-  int KeyCompareWithValue(const flatbuffers::Array<float, 3> *_rgb) const {
-    const flatbuffers::Array<float, 3> *curr_rgb = rgb();
-    for (flatbuffers::uoffset_t i = 0; i < curr_rgb->size(); i++) {
+  int KeyCompareWithValue(const ::flatbuffers::Array<float, 3> *_rgb) const {
+    const ::flatbuffers::Array<float, 3> *curr_rgb = rgb();
+    for (::flatbuffers::uoffset_t i = 0; i < curr_rgb->size(); i++) {
       const auto lhs = curr_rgb->Get(i);
       const auto rhs = _rgb->Get(i);
       if (lhs != rhs)
@@ -506,14 +506,14 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) Grain FLATBUFFERS_FINAL_CLASS {
   bool KeyCompareLessThan(const Grain * const o) const {
     return KeyCompareWithValue(o->a()) < 0;
   }
-  int KeyCompareWithValue(const flatbuffers::Array<keyfield::sample::Rice , 3> *_a) const {
-    const flatbuffers::Array<keyfield::sample::Rice , 3> *curr_a = a();
-    for (flatbuffers::uoffset_t i = 0; i < curr_a->size(); i++) {
+  int KeyCompareWithValue(const ::flatbuffers::Array<keyfield::sample::Rice , 3> *_a) const {
+    const ::flatbuffers::Array<keyfield::sample::Rice , 3> *curr_a = a();
+    for (::flatbuffers::uoffset_t i = 0; i < curr_a->size(); i++) {
       const auto &lhs_a = *(curr_a->Get(i));
       const auto &rhs_a = *(_a->Get(i));
       const auto lhs_a_origin = lhs_a.origin();
       const auto rhs_a_origin = rhs_a.origin();
-      for (flatbuffers::uoffset_t i = 0; i < lhs_a_origin->size(); i++) {
+      for (::flatbuffers::uoffset_t i = 0; i < lhs_a_origin->size(); i++) {
         const auto lhs_a_origin_elem = lhs_a_origin->Get(i);
         const auto rhs_a_origin_elem = rhs_a_origin->Get(i);
         if (lhs_a_origin_elem != rhs_a_origin_elem)

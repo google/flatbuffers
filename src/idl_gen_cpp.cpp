@@ -2284,7 +2284,7 @@ class CppGenerator : public BaseGenerator {
         const auto &elem_type = curr_field->value.type.VectorType();
         code_ +=
             space +
-            "for (flatbuffers::uoffset_t i = 0; i < {{LHS}}->size(); i++) {";
+            "for (::flatbuffers::uoffset_t i = 0; i < {{LHS}}->size(); i++) {";
         code_ += space + "  const auto {{LHS}}_elem = {{LHS}}->Get(i);";
         code_ += space + "  const auto {{RHS}}_elem = {{RHS}}->Get(i);";
         if (IsScalar(elem_type.base_type)) {
@@ -2340,7 +2340,7 @@ class CppGenerator : public BaseGenerator {
       code_ += "    return strcmp({{FIELD_NAME}}()->c_str(), _{{FIELD_NAME}});";
     } else if (is_array) {
       const auto &elem_type = field.value.type.VectorType();
-      std::string input_type = "flatbuffers::Array<" +
+      std::string input_type = "::flatbuffers::Array<" +
                                GenTypeGet(elem_type, "", "", " ", false) +
                                ", " + NumToString(elem_type.fixed_length) + ">";
       code_.SetValue("INPUT_TYPE", input_type);
@@ -2350,7 +2350,7 @@ class CppGenerator : public BaseGenerator {
       code_ +=
           "    const {{INPUT_TYPE}} *curr_{{FIELD_NAME}} = {{FIELD_NAME}}();";
       code_ +=
-          "    for (flatbuffers::uoffset_t i = 0; i < "
+          "    for (::flatbuffers::uoffset_t i = 0; i < "
           "curr_{{FIELD_NAME}}->size(); i++) {";
 
       if (IsScalar(elem_type.base_type)) {
