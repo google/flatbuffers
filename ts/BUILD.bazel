@@ -43,12 +43,15 @@ sh_binary(
     srcs = ["compile_flat_file.sh"],
     data = [
         "@com_github_google_flatbuffers//:flatc",
+        "@nodejs_linux_amd64//:node_bin",
         "@npm//esbuild/bin:esbuild",
     ],
-    env = {
-        "FLATC": "$(location @com_github_google_flatbuffers//:flatc)",
-        "ESBUILD": "$(location @npm//esbuild/bin:esbuild)",
-    },
+    # We just depend directly on the linux amd64 nodejs binary, so only support
+    # running this script on amd64 for now.
+    target_compatible_with = [
+        "@platforms//cpu:x86_64",
+        "@platforms//os:linux",
+    ],
     visibility = ["//visibility:public"],
     deps = ["@bazel_tools//tools/bash/runfiles"],
 )

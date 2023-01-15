@@ -19,4 +19,5 @@ runfiles_export_envvars
 FLATC=$(rlocation com_github_google_flatbuffers/flatc)
 ESBUILD=$(rlocation npm/node_modules/esbuild/bin/esbuild)
 TS_FILE=$(${FLATC}  $@  | grep  "Entry point.*generated" | grep -o "bazel-out.*ts")
+export PATH=$(rlocation nodejs_linux_amd64/bin/nodejs/bin)
 ${ESBUILD} ${TS_FILE} --format=cjs --bundle --outfile="${OUTPUT_FILE}"  --external:flatbuffers --log-level=warning
