@@ -12,9 +12,28 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import argparse
 import platform
 import subprocess
 from pathlib import Path
+
+parser = argparse.ArgumentParser()
+parser.add_argument(
+    "--flatc",
+    help="path of the Flat C compiler relative to the root directory",
+)
+parser.add_argument("--cpp-0x", action="store_true", help="use --cpp-std c++ox")
+parser.add_argument(
+    "--skip-monster-extra",
+    action="store_true",
+    help="skip generating tests involving monster_extra.fbs",
+)
+parser.add_argument(
+    "--skip-gen-reflection",
+    action="store_true",
+    help="skip generating the reflection.fbs files",
+)
+args = parser.parse_args()
 
 # Get the path where this script is located so we can invoke the script from
 # any directory and have the paths work correctly.
@@ -22,10 +41,15 @@ script_path = Path(__file__).parent.resolve()
 
 # Get the root path as an absolute path, so all derived paths are absolute.
 root_path = script_path.parent.absolute()
+tests_path = Path(root_path, "tests")
 
 # Get the location of the flatc executable, reading from the first command line
 # argument or defaulting to default names.
-flatc_exe = Path("flatc" if not platform.system() == "Windows" else "flatc.exe")
+flatc_exe = Path(
+    ("flatc" if not platform.system() == "Windows" else "flatc.exe")
+    if not args.flatc
+    else args.flatc
+)
 
 # Find and assert flatc compiler is present.
 if root_path in flatc_exe.parents:
@@ -34,18 +58,13 @@ flatc_path = Path(root_path, flatc_exe)
 assert flatc_path.exists(), "Cannot find the flatc compiler " + str(flatc_path)
 
 # Execute the flatc compiler with the specified parameters
-def flatc(options, schema, prefix=None, include=None, data=None, cwd=root_path):
+def flatc(options, schema, prefix=None, include=None, data=None, cwd=tests_path):
     cmd = [str(flatc_path)] + options
     if prefix:
         cmd += ["-o"] + [prefix]
     if include:
         cmd += ["-I"] + [include]
-    if isinstance(schema, Path):
-      cmd += [str(schema)]
-    elif isinstance(schema, str):
-      cmd += [schema]
-    else:
-      cmd += schema
+    cmd += [schema] if isinstance(schema, str) else schema
     if data:
         cmd += [data] if isinstance(data, str) else data
-    return subprocess.check_call(cmd, cwd=str(cwd))
+    result = subprocess.run(cmd, cwd=str(cwd), check=True)
