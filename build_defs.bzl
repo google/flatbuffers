@@ -71,6 +71,7 @@ def flatbuffer_library_public(
         for, instead of default-supported environments.
       target_compatible_with: Optional, The list of target platform constraints
         to use.
+      flatc_path: Bazel target corresponding to the flatc compiler to use.
       output_to_bindir: Passed to genrule for output to bin directory.
 
 

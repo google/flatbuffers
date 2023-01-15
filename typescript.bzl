@@ -3,8 +3,7 @@ Rules for building typescript flatbuffers with Bazel.
 """
 
 load("@build_bazel_rules_nodejs//:index.bzl", "js_library")
-load("@npm//@bazel/typescript:index.bzl", "ts_project")
-load(":build_defs.bzl", "DEFAULT_INCLUDE_PATHS", "flatbuffer_library_public")
+load(":build_defs.bzl", "flatbuffer_library_public")
 
 DEFAULT_FLATC_TS_ARGS = [
     "--gen-object-api",
@@ -25,7 +24,6 @@ def flatbuffer_ts_library(
         flatc_args = DEFAULT_FLATC_TS_ARGS,
         visibility = None,
         restricted_to = None,
-        include_reflection = True,
         gen_reflections = False,
         package_name = None):
     """Generates a ts_library rule for a given flatbuffer definition.
@@ -46,9 +44,6 @@ def flatbuffer_ts_library(
         for, instead of default-supported environments.
       target_compatible_with: Optional, The list of target platform constraints
         to use.
-      include_reflection: Optional, Whether to depend on the flatbuffer
-        reflection library automatically. Only really relevant for the
-        target that builds the reflection library itself.
       gen_reflections: Optional, if true this will generate the flatbuffer
         reflection binaries for the schemas.
       package_name: Optional, Package name to use for the generated code.
