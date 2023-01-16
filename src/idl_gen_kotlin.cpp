@@ -594,7 +594,8 @@ class KotlinGenerator : public BaseGenerator {
 
     // add inline class for offset
     writer += "";
-    GenerateInlineClass(writer, namer_.LegacyKotlinOffsetClass(struct_def), "offset", "Int");
+    GenerateInlineClass(writer, namer_.LegacyKotlinOffsetClass(struct_def),
+                        "offset", "Int");
   }
 
   // TODO: move key_field to reference instead of pointer
@@ -1420,7 +1421,8 @@ class KotlinGenerator : public BaseGenerator {
     auto params = StructConstructorParams(struct_def);
     auto returns = GetOffsetType(struct_def);
     GenerateFun(
-        code, namer_.LegacyJavaMethod2("create", struct_def, ""), params, returns,
+        code, namer_.LegacyJavaMethod2("create", struct_def, ""), params,
+        returns,
         [&]() {
           GenStructBody(struct_def, code, "");
           code.SetValue("offset_class", returns);
@@ -1563,8 +1565,7 @@ class KotlinGenerator : public BaseGenerator {
     writer += statement;
   }
 
-  static void GenerateInlineClass(CodeWriter &writer,
-                                  const std::string &name,
+  static void GenerateInlineClass(CodeWriter &writer, const std::string &name,
                                   const std::string &value,
                                   const std::string &type) {
     // Generates a simple Kotlin value class

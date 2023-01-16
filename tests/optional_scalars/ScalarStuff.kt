@@ -217,7 +217,7 @@ class ScalarStuff : Table() {
             return (obj.__assign(_bb.getInt(_bb.position()) + _bb.position(), _bb))
         }
         fun ScalarStuffBufferHasIdentifier(_bb: ByteBuffer) : Boolean = __has_identifier(_bb, "NULL")
-        fun createScalarStuff(builder: FlatBufferBuilder, justI8: Byte, maybeI8: Byte?, defaultI8: Byte, justU8: UByte, maybeU8: UByte?, defaultU8: UByte, justI16: Short, maybeI16: Short?, defaultI16: Short, justU16: UShort, maybeU16: UShort?, defaultU16: UShort, justI32: Int, maybeI32: Int?, defaultI32: Int, justU32: UInt, maybeU32: UInt?, defaultU32: UInt, justI64: Long, maybeI64: Long?, defaultI64: Long, justU64: ULong, maybeU64: ULong?, defaultU64: ULong, justF32: Float, maybeF32: Float?, defaultF32: Float, justF64: Double, maybeF64: Double?, defaultF64: Double, justBool: Boolean, maybeBool: Boolean?, defaultBool: Boolean, justEnum: Byte, maybeEnum: Byte?, defaultEnum: Byte) : Int {
+        fun createScalarStuff(builder: FlatBufferBuilder, justI8: Byte, maybeI8: Byte?, defaultI8: Byte, justU8: UByte, maybeU8: UByte?, defaultU8: UByte, justI16: Short, maybeI16: Short?, defaultI16: Short, justU16: UShort, maybeU16: UShort?, defaultU16: UShort, justI32: Int, maybeI32: Int?, defaultI32: Int, justU32: UInt, maybeU32: UInt?, defaultU32: UInt, justI64: Long, maybeI64: Long?, defaultI64: Long, justU64: ULong, maybeU64: ULong?, defaultU64: ULong, justF32: Float, maybeF32: Float?, defaultF32: Float, justF64: Double, maybeF64: Double?, defaultF64: Double, justBool: Boolean, maybeBool: Boolean?, defaultBool: Boolean, justEnum: Byte, maybeEnum: Byte?, defaultEnum: Byte) : ScalarStuffOffset {
             builder.startTable(36)
             addDefaultF64(builder, defaultF64)
             maybeF64?.run { addMaybeF64(builder, maybeF64) }
@@ -255,7 +255,7 @@ class ScalarStuff : Table() {
             addDefaultI8(builder, defaultI8)
             maybeI8?.run { addMaybeI8(builder, maybeI8) }
             addJustI8(builder, justI8)
-            return endScalarStuff(builder)
+            return ScalarStuffOffset(endScalarStuff(builder))
         }
         fun startScalarStuff(builder: FlatBufferBuilder) = builder.startTable(36)
         fun addJustI8(builder: FlatBufferBuilder, justI8: Byte) = builder.addByte(0, justI8, 0)
@@ -294,11 +294,14 @@ class ScalarStuff : Table() {
         fun addJustEnum(builder: FlatBufferBuilder, justEnum: Byte) = builder.addByte(33, justEnum, 0)
         fun addMaybeEnum(builder: FlatBufferBuilder, maybeEnum: Byte) = builder.addByte(34, maybeEnum, 0)
         fun addDefaultEnum(builder: FlatBufferBuilder, defaultEnum: Byte) = builder.addByte(35, defaultEnum, 1)
-        fun endScalarStuff(builder: FlatBufferBuilder) : Int {
+        fun endScalarStuff(builder: FlatBufferBuilder) : ScalarStuffOffset {
             val o = builder.endTable()
-            return o
+            return ScalarStuffOffset(o)
         }
         fun finishScalarStuffBuffer(builder: FlatBufferBuilder, offset: Int) = builder.finish(offset, "NULL")
         fun finishSizePrefixedScalarStuffBuffer(builder: FlatBufferBuilder, offset: Int) = builder.finishSizePrefixed(offset, "NULL")
     }
 }
+
+@JvmInline
+value class ScalarStuffOffset(val offset: Int)

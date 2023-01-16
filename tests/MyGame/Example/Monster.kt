@@ -1011,7 +1011,7 @@ class Monster : Table() {
         }
         fun MonsterBufferHasIdentifier(_bb: ByteBuffer) : Boolean = __has_identifier(_bb, "MONS")
         fun startMonster(builder: FlatBufferBuilder) = builder.startTable(62)
-        fun addPos(builder: FlatBufferBuilder, pos: Int) = builder.addStruct(0, pos, 0)
+        fun addPos(builder: FlatBufferBuilder, pos: MyGame.Example.Vec3Offset) = builder.addStruct(0, pos, 0)
         fun addMana(builder: FlatBufferBuilder, mana: Short) = builder.addShort(1, mana, 150)
         fun addHp(builder: FlatBufferBuilder, hp: Short) = builder.addShort(2, hp, 100)
         fun addName(builder: FlatBufferBuilder, name: Int)  {
@@ -1050,7 +1050,7 @@ class Monster : Table() {
             return builder.endVector()
         }
         fun startTestarrayoftablesVector(builder: FlatBufferBuilder, numElems: Int) = builder.startVector(4, numElems, 4)
-        fun addEnemy(builder: FlatBufferBuilder, enemy: Int) = builder.addOffset(12, enemy, 0)
+        fun addEnemy(builder: FlatBufferBuilder, enemy: MyGame.Example.MonsterOffset) = builder.addOffset(12, enemy, 0)
         fun addTestnestedflatbuffer(builder: FlatBufferBuilder, testnestedflatbuffer: Int) = builder.addOffset(13, testnestedflatbuffer, 0)
         fun createTestnestedflatbufferVector(builder: FlatBufferBuilder, data: UByteArray) : Int {
             builder.startVector(1, data.size, 1)
@@ -1060,7 +1060,7 @@ class Monster : Table() {
             return builder.endVector()
         }
         fun startTestnestedflatbufferVector(builder: FlatBufferBuilder, numElems: Int) = builder.startVector(1, numElems, 1)
-        fun addTestempty(builder: FlatBufferBuilder, testempty: Int) = builder.addOffset(14, testempty, 0)
+        fun addTestempty(builder: FlatBufferBuilder, testempty: MyGame.Example.StatOffset) = builder.addOffset(14, testempty, 0)
         fun addTestbool(builder: FlatBufferBuilder, testbool: Boolean) = builder.addBoolean(15, testbool, false)
         fun addTesthashs32Fnv1(builder: FlatBufferBuilder, testhashs32Fnv1: Int) = builder.addInt(16, testhashs32Fnv1, 0)
         fun addTesthashu32Fnv1(builder: FlatBufferBuilder, testhashu32Fnv1: UInt) = builder.addInt(17, testhashu32Fnv1.toInt(), 0)
@@ -1122,7 +1122,7 @@ class Monster : Table() {
             return builder.endVector()
         }
         fun startVectorOfDoublesVector(builder: FlatBufferBuilder, numElems: Int) = builder.startVector(8, numElems, 8)
-        fun addParentNamespaceTest(builder: FlatBufferBuilder, parentNamespaceTest: Int) = builder.addOffset(34, parentNamespaceTest, 0)
+        fun addParentNamespaceTest(builder: FlatBufferBuilder, parentNamespaceTest: MyGame.InParentNamespaceOffset) = builder.addOffset(34, parentNamespaceTest, 0)
         fun addVectorOfReferrables(builder: FlatBufferBuilder, vectorOfReferrables: Int) = builder.addOffset(35, vectorOfReferrables, 0)
         fun createVectorOfReferrablesVector(builder: FlatBufferBuilder, data: IntArray) : Int {
             builder.startVector(4, data.size, 4)
@@ -1203,7 +1203,7 @@ class Monster : Table() {
             return builder.endVector()
         }
         fun startScalarKeySortedTablesVector(builder: FlatBufferBuilder, numElems: Int) = builder.startVector(4, numElems, 4)
-        fun addNativeInline(builder: FlatBufferBuilder, nativeInline: Int) = builder.addStruct(51, nativeInline, 0)
+        fun addNativeInline(builder: FlatBufferBuilder, nativeInline: MyGame.Example.TestOffset) = builder.addStruct(51, nativeInline, 0)
         fun addLongEnumNonEnumDefault(builder: FlatBufferBuilder, longEnumNonEnumDefault: ULong) = builder.addLong(52, longEnumNonEnumDefault.toLong(), 0)
         fun addLongEnumNormalDefault(builder: FlatBufferBuilder, longEnumNormalDefault: ULong) = builder.addLong(53, longEnumNormalDefault.toLong(), 2)
         fun addNanDefault(builder: FlatBufferBuilder, nanDefault: Float) = builder.addFloat(54, nanDefault, Double.NaN)
@@ -1214,10 +1214,10 @@ class Monster : Table() {
         fun addNegativeInfDefault(builder: FlatBufferBuilder, negativeInfDefault: Float) = builder.addFloat(59, negativeInfDefault, Double.NEGATIVE_INFINITY)
         fun addNegativeInfinityDefault(builder: FlatBufferBuilder, negativeInfinityDefault: Float) = builder.addFloat(60, negativeInfinityDefault, Double.NEGATIVE_INFINITY)
         fun addDoubleInfDefault(builder: FlatBufferBuilder, doubleInfDefault: Double) = builder.addDouble(61, doubleInfDefault, Double.POSITIVE_INFINITY)
-        fun endMonster(builder: FlatBufferBuilder) : Int {
+        fun endMonster(builder: FlatBufferBuilder) : MonsterOffset {
             val o = builder.endTable()
                 builder.required(o, 10)
-            return o
+            return MonsterOffset(o)
         }
         fun finishMonsterBuffer(builder: FlatBufferBuilder, offset: Int) = builder.finish(offset, "MONS")
         fun finishSizePrefixedMonsterBuffer(builder: FlatBufferBuilder, offset: Int) = builder.finishSizePrefixed(offset, "MONS")
@@ -1245,3 +1245,6 @@ class Monster : Table() {
         }
     }
 }
+
+@JvmInline
+value class MonsterOffset(val offset: Int)

@@ -30,10 +30,13 @@ class BookReader : Struct() {
     val booksRead : Int get() = bb.getInt(bb_pos + 0)
     fun mutateBooksRead(booksRead: Int) : ByteBuffer = bb.putInt(bb_pos + 0, booksRead)
     companion object {
-        fun createBookReader(builder: FlatBufferBuilder, booksRead: Int) : Int {
+        fun createBookReader(builder: FlatBufferBuilder, booksRead: Int) : BookReaderOffset {
             builder.prep(4, 4)
             builder.putInt(booksRead)
-            return builder.offset()
+            return BookReaderOffset(builder.offset())
         }
     }
 }
+
+@JvmInline
+value class BookReaderOffset(val offset: Int)

@@ -30,10 +30,13 @@ class FallingTub : Struct() {
     val weight : Int get() = bb.getInt(bb_pos + 0)
     fun mutateWeight(weight: Int) : ByteBuffer = bb.putInt(bb_pos + 0, weight)
     companion object {
-        fun createFallingTub(builder: FlatBufferBuilder, weight: Int) : Int {
+        fun createFallingTub(builder: FlatBufferBuilder, weight: Int) : FallingTubOffset {
             builder.prep(4, 4)
             builder.putInt(weight)
-            return builder.offset()
+            return FallingTubOffset(builder.offset())
         }
     }
 }
+
+@JvmInline
+value class FallingTubOffset(val offset: Int)
