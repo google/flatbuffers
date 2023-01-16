@@ -202,6 +202,24 @@ class KotlinGenerator : public BaseGenerator {
     return r_type;
   }
 
+  std::string GetOffsetType(const StructDef &struct_def) const {
+    return namer_.LegacyKotlinOffsetClass(struct_def);
+  }
+
+  std::string GetOffsetType(const EnumDef &enum_def) const {
+    return namer_.LegacyKotlinOffsetClass(enum_def);
+  }
+
+  std::string GetOffsetType(const FieldDef &field) const {
+    auto base_type = field.value.type.base_type;
+
+    if (base_type == BASE_TYPE_STRUCT) {
+      return GenTypeGet(field.value.type) + "Offset";
+    }
+    // TODO: Handle strings and vectors as their own inline class.
+    return GenTypeBasic(base_type);
+  }
+
   std::string GenTypeGet(const Type &type) const {
     return IsScalar(type.base_type) ? GenTypeBasic(type.base_type)
                                     : GenTypePointer(type);
@@ -573,6 +591,10 @@ class KotlinGenerator : public BaseGenerator {
     // class closing
     writer.DecrementIdentLevel();
     writer += "}";
+
+    // add inline class for offset
+    writer += "";
+    GenerateInlineClass(writer, namer_.LegacyKotlinOffsetClass(struct_def), "offset", "Int");
   }
 
   // TODO: move key_field to reference instead of pointer
@@ -669,7 +691,7 @@ class KotlinGenerator : public BaseGenerator {
     // Generate end{{TableName}}(builder: FlatBufferBuilder) method
     auto name = namer_.LegacyJavaMethod2("end", struct_def, "");
     auto params = "builder: FlatBufferBuilder";
-    auto returns = "Int";
+    auto returns = GetOffsetType(struct_def);
     auto field_vec = struct_def.fields.vec;
 
     GenerateFun(
@@ -684,7 +706,8 @@ class KotlinGenerator : public BaseGenerator {
             writer += "builder.required(o, {{offset}})";
           }
           writer.DecrementIdentLevel();
-          writer += "return o";
+          writer.SetValue("offset_class", returns);
+          writer += "return {{offset_class}}(o)";
         },
         options.gen_jvmstatic);
   }
@@ -694,6 +717,7 @@ class KotlinGenerator : public BaseGenerator {
                                  const IDLOptions options) const {
     auto vector_type = field.value.type.VectorType();
     auto method_name = namer_.Method("create", field, "vector");
+    // TODO: There is no simple way to do a primitive array with an inline class
     auto params = "builder: FlatBufferBuilder, data: " +
                   GenTypeBasic(vector_type.base_type) + "Array";
     writer.SetValue("size", NumToString(InlineSize(vector_type)));
@@ -701,6 +725,7 @@ class KotlinGenerator : public BaseGenerator {
     writer.SetValue("root", GenMethod(vector_type));
     writer.SetValue("cast", CastToSigned(vector_type));
 
+    // TODO: Make it return an inline class for vector offsets
     GenerateFun(
         writer, method_name, params, "Int",
         [&]() {
@@ -734,7 +759,7 @@ class KotlinGenerator : public BaseGenerator {
 
   void GenerateAddField(std::string field_pos, FieldDef &field,
                         CodeWriter &writer, const IDLOptions options) const {
-    auto field_type = GenTypeBasic(field.value.type.base_type);
+    auto field_type = GetOffsetType(field);
     auto secondArg = namer_.Variable(field.name) + ": " + field_type;
 
     auto content = [&]() {
@@ -842,6 +867,7 @@ class KotlinGenerator : public BaseGenerator {
       // public static int createName(FlatBufferBuilder builder, args...)
 
       auto name = namer_.LegacyJavaMethod2("create", struct_def, "");
+      auto returns = GetOffsetType(struct_def);
       std::stringstream params;
       params << "builder: FlatBufferBuilder";
       for (auto it = fields_vec.begin(); it != fields_vec.end(); ++it) {
@@ -854,11 +880,11 @@ class KotlinGenerator : public BaseGenerator {
           params << ": ";
         }
         auto optional = field.IsScalarOptional() ? "?" : "";
-        params << GenTypeBasic(field.value.type.base_type) << optional;
+        params << GetOffsetType(field) << optional;
       }
 
       GenerateFun(
-          writer, name, params.str(), "Int",
+          writer, name, params.str(), returns,
           [&]() {
             writer.SetValue("vec_size", NumToString(fields_vec.size()));
 
@@ -890,7 +916,8 @@ class KotlinGenerator : public BaseGenerator {
                 }
               }
             }
-            writer += "return end{{struct_name}}(builder)";
+            writer.SetValue("offset_class", returns);
+            writer += "return {{offset_class}}(end{{struct_name}}(builder))";
           },
           options.gen_jvmstatic);
     }
@@ -1391,11 +1418,13 @@ class KotlinGenerator : public BaseGenerator {
                                  const IDLOptions options) const {
     // create a struct constructor function
     auto params = StructConstructorParams(struct_def);
+    auto returns = GetOffsetType(struct_def);
     GenerateFun(
-        code, namer_.LegacyJavaMethod2("create", struct_def, ""), params, "Int",
+        code, namer_.LegacyJavaMethod2("create", struct_def, ""), params, returns,
         [&]() {
           GenStructBody(struct_def, code, "");
-          code += "return builder.offset()";
+          code.SetValue("offset_class", returns);
+          code += "return {{offset_class}}(builder.offset())";
         },
         options.gen_jvmstatic);
   }
@@ -1532,6 +1561,20 @@ class KotlinGenerator : public BaseGenerator {
                     returnType.empty() ? "" : " : " + returnType);
     writer += "override fun {{name}}({{params}}){{return_type}} = \\";
     writer += statement;
+  }
+
+  static void GenerateInlineClass(CodeWriter &writer,
+                                  const std::string &name,
+                                  const std::string &value,
+                                  const std::string &type) {
+    // Generates a simple Kotlin value class
+    // e.g.:
+    // value class TableOffset(val value: Int)
+    writer.SetValue("name", name);
+    writer.SetValue("value", value);
+    writer.SetValue("type", type);
+    writer += "@JvmInline";
+    writer += "value class {{name}}(val {{value}}: {{type}})";
   }
 
   static std::string OffsetWrapperOneLine(const std::string &offset,

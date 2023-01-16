@@ -138,6 +138,13 @@ class IdlNamer : public Namer {
            suffix;
   }
 
+  std::string LegacyKotlinOffsetClass(const EnumDef &d) const {
+    return Type(d) + "Offset";
+  }
+  std::string LegacyKotlinOffsetClass(const StructDef &d) const {
+    return Type(d) + "Offset";
+  }
+
   // This is a mix of snake case and keep casing, when Ts should be using
   // lower camel case.
   std::string LegacyTsMutateMethod(const FieldDef& d) {
