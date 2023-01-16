@@ -279,7 +279,8 @@ class TsGenerator : public BaseGenerator {
         auto ts_file_path_rel = base_name_rel + ".ts";
         auto type_name = def.first;
         code += "export { " + type_name + " } from '";
-        std::string import_extension = parser_.opts.ts_no_import_ext ? "" : ".js";
+        std::string import_extension =
+            parser_.opts.ts_no_import_ext ? "" : ".js";
         code += base_name_rel + import_extension + "';\n";
         export_counter++;
       }

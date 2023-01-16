@@ -230,7 +230,8 @@ const static FlatCOption flatc_options[] = {
     "Allow a nested_flatbuffer field to be parsed as a vector of bytes "
     "in JSON, which is unsafe unless checked by a verifier afterwards." },
   { "", "ts-flat-files", "",
-    "Generate a single typescript file per .fbs file. Implies ts_entry_points." },
+    "Generate a single typescript file per .fbs file. Implies "
+    "ts_entry_points." },
   { "", "ts-entry-points", "",
     "Generate entry point typescript per namespace. Implies gen-all." },
   { "", "annotate", "SCHEMA",
