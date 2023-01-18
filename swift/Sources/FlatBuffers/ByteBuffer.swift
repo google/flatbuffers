@@ -350,14 +350,27 @@ public struct ByteBuffer {
   /// - Parameters:
   ///   - def: Type of the object
   ///   - position: the index of the object in the buffer
+#if swift(<5.7)
   @inline(__always)
   public func read<T>(def: T.Type, position: Int) -> T {
-#if swift(<5.7)
     _storage.memory.advanced(by: position).load(as: T.self)
-#else
-    _storage.memory.advanced(by: position).loadUnaligned(as: T.self)
-#endif
   }
+#else
+  @inline(__always)
+  @_specialize(exported: true, where T==Int8)
+  @_specialize(exported: true, where T==Int16)
+  @_specialize(exported: true, where T==Int32)
+  @_specialize(exported: true, where T==Int64)
+  @_specialize(exported: true, where T==UInt8)
+  @_specialize(exported: true, where T==UInt16)
+  @_specialize(exported: true, where T==UInt32)
+  @_specialize(exported: true, where T==UInt64)
+  @_specialize(exported: true, where T==Float)
+  @_specialize(exported: true, where T==Double)
+  public func read<T>(def: T.Type, position: Int) -> T {
+    _storage.memory.advanced(by: position).loadUnaligned(as: T.self)
+  }
+#endif
 
   /// Reads a slice from the memory assuming a type of T
   /// - Parameters:

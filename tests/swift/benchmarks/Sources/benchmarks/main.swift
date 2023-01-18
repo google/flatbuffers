@@ -72,10 +72,9 @@ benchmark("structs") {
   fb.finish(offset: root)
 }
 
-// function to be used to avoid possible compiler optimization
+// to be used to avoid possible compiler optimization
 // which will just eliminate a block of code result of which not used
-@inline(never)
-func blackHole<T>(_: T) {}
+var _blackHole : UInt32 = 0
 
 benchmark("load") {
   let size = (1024 * 4)
@@ -87,7 +86,7 @@ benchmark("load") {
     let pos = (i * MemoryLayout<UInt32>.size)
     sum = sum &+ bb.read(def: UInt32.self, position: pos)
   }
-  blackHole(sum)
+  _blackHole = sum
 }
 
 let str = (0...99).map { _ -> String in "x" }.joined()
