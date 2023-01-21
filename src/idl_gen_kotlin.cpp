@@ -1182,9 +1182,10 @@ class KotlinGenerator : public BaseGenerator {
             });
       }
 
-      if(value_base_type == BASE_TYPE_VECTOR
-          && field.value.type.VectorType().base_type == BASE_TYPE_STRING) {
-        auto inline_size = NumToString(InlineSize(field.value.type.VectorType()));
+      if (value_base_type == BASE_TYPE_VECTOR &&
+          field.value.type.VectorType().base_type == BASE_TYPE_STRING) {
+        auto inline_size =
+            NumToString(InlineSize(field.value.type.VectorType()));
         auto index = "__vector(o) + j * " + inline_size;
         auto not_found =
             field.IsRequired()
@@ -1195,7 +1196,7 @@ class KotlinGenerator : public BaseGenerator {
         // Generate a ByteBuffer function for string vectors, similar to above
 
         GenerateFun(
-            writer, field_name + "AsByteBuffer", "j: Int","ByteBuffer?",
+            writer, field_name + "AsByteBuffer", "j: Int", "ByteBuffer?",
             [&]() {
               OffsetWrapper(
                   writer, offset_val,
@@ -1207,14 +1208,16 @@ class KotlinGenerator : public BaseGenerator {
         // e.g.
         // fun inventoryInByteBuffer(_bb: Bytebuffer):
         //     ByteBuffer = __vector_as_bytebuffer(_bb, 14, 1)
-        GenerateFun(
-            writer, field_name + "InByteBuffer", "_bb: ByteBuffer, j: Int",
-            "ByteBuffer", [&]() {
-              OffsetWrapper(
-                  writer, offset_val,
-                  [&]() { writer += "__vector_in_bytebuffer(_bb, {{index}}, 1)"; },
-                  [&]() { writer += not_found; });
-            });
+        GenerateFun(writer, field_name + "InByteBuffer",
+                    "_bb: ByteBuffer, j: Int", "ByteBuffer", [&]() {
+                      OffsetWrapper(
+                          writer, offset_val,
+                          [&]() {
+                            writer +=
+                                "__vector_in_bytebuffer(_bb, {{index}}, 1)";
+                          },
+                          [&]() { writer += not_found; });
+                    });
       }
 
       // generate object accessors if is nested_flatbuffer

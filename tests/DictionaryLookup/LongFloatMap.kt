@@ -65,10 +65,10 @@ class LongFloatMap : Table() {
             _bb.order(ByteOrder.LITTLE_ENDIAN)
             return (obj.__assign(_bb.getInt(_bb.position()) + _bb.position(), _bb))
         }
-        fun createLongFloatMap(builder: FlatBufferBuilder, entriesOffset: Int) : LongFloatMapOffset {
+        fun createLongFloatMap(builder: FlatBufferBuilder, entriesOffset: Int) : Int {
             builder.startTable(1)
             addEntries(builder, entriesOffset)
-            return LongFloatMapOffset(endLongFloatMap(builder))
+            return endLongFloatMap(builder)
         }
         fun startLongFloatMap(builder: FlatBufferBuilder) = builder.startTable(1)
         fun addEntries(builder: FlatBufferBuilder, entries: Int) = builder.addOffset(0, entries, 0)
@@ -80,14 +80,11 @@ class LongFloatMap : Table() {
             return builder.endVector()
         }
         fun startEntriesVector(builder: FlatBufferBuilder, numElems: Int) = builder.startVector(4, numElems, 4)
-        fun endLongFloatMap(builder: FlatBufferBuilder) : LongFloatMapOffset {
+        fun endLongFloatMap(builder: FlatBufferBuilder) : Int {
             val o = builder.endTable()
-            return LongFloatMapOffset(o)
+            return o
         }
         fun finishLongFloatMapBuffer(builder: FlatBufferBuilder, offset: Int) = builder.finish(offset)
         fun finishSizePrefixedLongFloatMapBuffer(builder: FlatBufferBuilder, offset: Int) = builder.finishSizePrefixed(offset)
     }
 }
-
-@JvmInline
-value class LongFloatMapOffset(val offset: Int)

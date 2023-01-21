@@ -48,19 +48,16 @@ class HandFan : Table() {
             _bb.order(ByteOrder.LITTLE_ENDIAN)
             return (obj.__assign(_bb.getInt(_bb.position()) + _bb.position(), _bb))
         }
-        fun createHandFan(builder: FlatBufferBuilder, length: Int) : HandFanOffset {
+        fun createHandFan(builder: FlatBufferBuilder, length: Int) : Int {
             builder.startTable(1)
             addLength(builder, length)
-            return HandFanOffset(endHandFan(builder))
+            return endHandFan(builder)
         }
         fun startHandFan(builder: FlatBufferBuilder) = builder.startTable(1)
         fun addLength(builder: FlatBufferBuilder, length: Int) = builder.addInt(0, length, 0)
-        fun endHandFan(builder: FlatBufferBuilder) : HandFanOffset {
+        fun endHandFan(builder: FlatBufferBuilder) : Int {
             val o = builder.endTable()
-            return HandFanOffset(o)
+            return o
         }
     }
 }
-
-@JvmInline
-value class HandFanOffset(val offset: Int)

@@ -34,15 +34,12 @@ class Test : Struct() {
     val b : Byte get() = bb.get(bb_pos + 2)
     fun mutateB(b: Byte) : ByteBuffer = bb.put(bb_pos + 2, b)
     companion object {
-        fun createTest(builder: FlatBufferBuilder, a: Short, b: Byte) : TestOffset {
+        fun createTest(builder: FlatBufferBuilder, a: Short, b: Byte) : Int {
             builder.prep(2, 4)
             builder.pad(1)
             builder.putByte(b)
             builder.putShort(a)
-            return TestOffset(builder.offset())
+            return builder.offset()
         }
     }
 }
-
-@JvmInline
-value class TestOffset(val offset: Int)

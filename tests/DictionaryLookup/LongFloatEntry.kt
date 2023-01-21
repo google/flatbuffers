@@ -51,11 +51,11 @@ class LongFloatEntry : Table() {
             _bb.order(ByteOrder.LITTLE_ENDIAN)
             return (obj.__assign(_bb.getInt(_bb.position()) + _bb.position(), _bb))
         }
-        fun createLongFloatEntry(builder: FlatBufferBuilder, key: Long, value: Float) : LongFloatEntryOffset {
+        fun createLongFloatEntry(builder: FlatBufferBuilder, key: Long, value: Float) : Int {
             builder.startTable(2)
             addKey(builder, key)
             addValue(builder, value)
-            return LongFloatEntryOffset(endLongFloatEntry(builder))
+            return endLongFloatEntry(builder)
         }
         fun startLongFloatEntry(builder: FlatBufferBuilder) = builder.startTable(2)
         fun addKey(builder: FlatBufferBuilder, key: Long)  {
@@ -63,9 +63,9 @@ class LongFloatEntry : Table() {
             builder.slot(0)
         }
         fun addValue(builder: FlatBufferBuilder, value: Float) = builder.addFloat(1, value, 0.0)
-        fun endLongFloatEntry(builder: FlatBufferBuilder) : LongFloatEntryOffset {
+        fun endLongFloatEntry(builder: FlatBufferBuilder) : Int {
             val o = builder.endTable()
-            return LongFloatEntryOffset(o)
+            return o
         }
         fun __lookup_by_key(obj: LongFloatEntry?, vectorLocation: Int, key: Long, bb: ByteBuffer) : LongFloatEntry? {
             var span = bb.getInt(vectorLocation - 4)
@@ -91,6 +91,3 @@ class LongFloatEntry : Table() {
         }
     }
 }
-
-@JvmInline
-value class LongFloatEntryOffset(val offset: Int)

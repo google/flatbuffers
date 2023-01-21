@@ -55,19 +55,19 @@ class Referrable : Table() {
             _bb.order(ByteOrder.LITTLE_ENDIAN)
             return (obj.__assign(_bb.getInt(_bb.position()) + _bb.position(), _bb))
         }
-        fun createReferrable(builder: FlatBufferBuilder, id: ULong) : ReferrableOffset {
+        fun createReferrable(builder: FlatBufferBuilder, id: ULong) : Int {
             builder.startTable(1)
             addId(builder, id)
-            return ReferrableOffset(endReferrable(builder))
+            return endReferrable(builder)
         }
         fun startReferrable(builder: FlatBufferBuilder) = builder.startTable(1)
         fun addId(builder: FlatBufferBuilder, id: ULong)  {
             builder.addLong(id.toLong())
             builder.slot(0)
         }
-        fun endReferrable(builder: FlatBufferBuilder) : ReferrableOffset {
+        fun endReferrable(builder: FlatBufferBuilder) : Int {
             val o = builder.endTable()
-            return ReferrableOffset(o)
+            return o
         }
         fun __lookup_by_key(obj: Referrable?, vectorLocation: Int, key: ULong, bb: ByteBuffer) : Referrable? {
             var span = bb.getInt(vectorLocation - 4)
@@ -93,6 +93,3 @@ class Referrable : Table() {
         }
     }
 }
-
-@JvmInline
-value class ReferrableOffset(val offset: Int)

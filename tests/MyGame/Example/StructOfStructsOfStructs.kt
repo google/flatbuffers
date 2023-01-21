@@ -32,7 +32,7 @@ class StructOfStructsOfStructs : Struct() {
     val a : MyGame.Example.StructOfStructs? get() = a(MyGame.Example.StructOfStructs())
     fun a(obj: MyGame.Example.StructOfStructs) : MyGame.Example.StructOfStructs? = obj.__assign(bb_pos + 0, bb)
     companion object {
-        fun createStructOfStructsOfStructs(builder: FlatBufferBuilder, a_a_id: UInt, a_a_distance: UInt, a_b_a: Short, a_b_b: Byte, a_c_id: UInt, a_c_distance: UInt) : StructOfStructsOfStructsOffset {
+        fun createStructOfStructsOfStructs(builder: FlatBufferBuilder, a_a_id: UInt, a_a_distance: UInt, a_b_a: Short, a_b_b: Byte, a_c_id: UInt, a_c_distance: UInt) : Int {
             builder.prep(4, 20)
             builder.prep(4, 20)
             builder.prep(4, 8)
@@ -45,10 +45,7 @@ class StructOfStructsOfStructs : Struct() {
             builder.prep(4, 8)
             builder.putInt(a_a_distance.toInt())
             builder.putInt(a_a_id.toInt())
-            return StructOfStructsOfStructsOffset(builder.offset())
+            return builder.offset()
         }
     }
 }
-
-@JvmInline
-value class StructOfStructsOfStructsOffset(val offset: Int)

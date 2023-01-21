@@ -195,7 +195,7 @@ class MonsterExtra : Table() {
             return (obj.__assign(_bb.getInt(_bb.position()) + _bb.position(), _bb))
         }
         fun MonsterExtraBufferHasIdentifier(_bb: ByteBuffer) : Boolean = __has_identifier(_bb, "MONE")
-        fun createMonsterExtra(builder: FlatBufferBuilder, d0: Double, d1: Double, d2: Double, d3: Double, f0: Float, f1: Float, f2: Float, f3: Float, dvecOffset: Int, fvecOffset: Int) : MonsterExtraOffset {
+        fun createMonsterExtra(builder: FlatBufferBuilder, d0: Double, d1: Double, d2: Double, d3: Double, f0: Float, f1: Float, f2: Float, f3: Float, dvecOffset: Int, fvecOffset: Int) : Int {
             builder.startTable(11)
             addD3(builder, d3)
             addD2(builder, d2)
@@ -207,7 +207,7 @@ class MonsterExtra : Table() {
             addF2(builder, f2)
             addF1(builder, f1)
             addF0(builder, f0)
-            return MonsterExtraOffset(endMonsterExtra(builder))
+            return endMonsterExtra(builder)
         }
         fun startMonsterExtra(builder: FlatBufferBuilder) = builder.startTable(11)
         fun addD0(builder: FlatBufferBuilder, d0: Double) = builder.addDouble(0, d0, Double.NaN)
@@ -236,14 +236,11 @@ class MonsterExtra : Table() {
             return builder.endVector()
         }
         fun startFvecVector(builder: FlatBufferBuilder, numElems: Int) = builder.startVector(4, numElems, 4)
-        fun endMonsterExtra(builder: FlatBufferBuilder) : MonsterExtraOffset {
+        fun endMonsterExtra(builder: FlatBufferBuilder) : Int {
             val o = builder.endTable()
-            return MonsterExtraOffset(o)
+            return o
         }
         fun finishMonsterExtraBuffer(builder: FlatBufferBuilder, offset: Int) = builder.finish(offset, "MONE")
         fun finishSizePrefixedMonsterExtraBuffer(builder: FlatBufferBuilder, offset: Int) = builder.finishSizePrefixed(offset, "MONE")
     }
 }
-
-@JvmInline
-value class MonsterExtraOffset(val offset: Int)

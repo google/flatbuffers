@@ -30,13 +30,10 @@ class Rapunzel : Struct() {
     val hairLength : Int get() = bb.getInt(bb_pos + 0)
     fun mutateHairLength(hairLength: Int) : ByteBuffer = bb.putInt(bb_pos + 0, hairLength)
     companion object {
-        fun createRapunzel(builder: FlatBufferBuilder, hairLength: Int) : RapunzelOffset {
+        fun createRapunzel(builder: FlatBufferBuilder, hairLength: Int) : Int {
             builder.prep(4, 4)
             builder.putInt(hairLength)
-            return RapunzelOffset(builder.offset())
+            return builder.offset()
         }
     }
 }
-
-@JvmInline
-value class RapunzelOffset(val offset: Int)

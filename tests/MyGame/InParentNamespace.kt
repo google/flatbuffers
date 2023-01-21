@@ -37,12 +37,9 @@ class InParentNamespace : Table() {
             return (obj.__assign(_bb.getInt(_bb.position()) + _bb.position(), _bb))
         }
         fun startInParentNamespace(builder: FlatBufferBuilder) = builder.startTable(0)
-        fun endInParentNamespace(builder: FlatBufferBuilder) : InParentNamespaceOffset {
+        fun endInParentNamespace(builder: FlatBufferBuilder) : Int {
             val o = builder.endTable()
-            return InParentNamespaceOffset(o)
+            return o
         }
     }
 }
-
-@JvmInline
-value class InParentNamespaceOffset(val offset: Int)

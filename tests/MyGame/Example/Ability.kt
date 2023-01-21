@@ -34,14 +34,11 @@ class Ability : Struct() {
     val distance : UInt get() = bb.getInt(bb_pos + 4).toUInt()
     fun mutateDistance(distance: UInt) : ByteBuffer = bb.putInt(bb_pos + 4, distance.toInt())
     companion object {
-        fun createAbility(builder: FlatBufferBuilder, id: UInt, distance: UInt) : AbilityOffset {
+        fun createAbility(builder: FlatBufferBuilder, id: UInt, distance: UInt) : Int {
             builder.prep(4, 8)
             builder.putInt(distance.toInt())
             builder.putInt(id.toInt())
-            return AbilityOffset(builder.offset())
+            return builder.offset()
         }
     }
 }
-
-@JvmInline
-value class AbilityOffset(val offset: Int)

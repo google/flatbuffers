@@ -87,13 +87,13 @@ class Movie : Table() {
             return (obj.__assign(_bb.getInt(_bb.position()) + _bb.position(), _bb))
         }
         fun MovieBufferHasIdentifier(_bb: ByteBuffer) : Boolean = __has_identifier(_bb, "MOVI")
-        fun createMovie(builder: FlatBufferBuilder, mainCharacterType: UByte, mainCharacterOffset: Int, charactersTypeOffset: Int, charactersOffset: Int) : MovieOffset {
+        fun createMovie(builder: FlatBufferBuilder, mainCharacterType: UByte, mainCharacterOffset: Int, charactersTypeOffset: Int, charactersOffset: Int) : Int {
             builder.startTable(4)
             addCharacters(builder, charactersOffset)
             addCharactersType(builder, charactersTypeOffset)
             addMainCharacter(builder, mainCharacterOffset)
             addMainCharacterType(builder, mainCharacterType)
-            return MovieOffset(endMovie(builder))
+            return endMovie(builder)
         }
         fun startMovie(builder: FlatBufferBuilder) = builder.startTable(4)
         fun addMainCharacterType(builder: FlatBufferBuilder, mainCharacterType: UByte) = builder.addByte(0, mainCharacterType.toByte(), 0)
@@ -116,14 +116,11 @@ class Movie : Table() {
             return builder.endVector()
         }
         fun startCharactersVector(builder: FlatBufferBuilder, numElems: Int) = builder.startVector(4, numElems, 4)
-        fun endMovie(builder: FlatBufferBuilder) : MovieOffset {
+        fun endMovie(builder: FlatBufferBuilder) : Int {
             val o = builder.endTable()
-            return MovieOffset(o)
+            return o
         }
         fun finishMovieBuffer(builder: FlatBufferBuilder, offset: Int) = builder.finish(offset, "MOVI")
         fun finishSizePrefixedMovieBuffer(builder: FlatBufferBuilder, offset: Int) = builder.finishSizePrefixed(offset, "MOVI")
     }
 }
-
-@JvmInline
-value class MovieOffset(val offset: Int)

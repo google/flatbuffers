@@ -42,7 +42,7 @@ class Vec3 : Struct() {
     val test3 : MyGame.Example.Test? get() = test3(MyGame.Example.Test())
     fun test3(obj: MyGame.Example.Test) : MyGame.Example.Test? = obj.__assign(bb_pos + 26, bb)
     companion object {
-        fun createVec3(builder: FlatBufferBuilder, x: Float, y: Float, z: Float, test1: Double, test2: UByte, test3_a: Short, test3_b: Byte) : Vec3Offset {
+        fun createVec3(builder: FlatBufferBuilder, x: Float, y: Float, z: Float, test1: Double, test2: UByte, test3_a: Short, test3_b: Byte) : Int {
             builder.prep(8, 32)
             builder.pad(2)
             builder.prep(2, 4)
@@ -56,10 +56,7 @@ class Vec3 : Struct() {
             builder.putFloat(z)
             builder.putFloat(y)
             builder.putFloat(x)
-            return Vec3Offset(builder.offset())
+            return builder.offset()
         }
     }
 }
-
-@JvmInline
-value class Vec3Offset(val offset: Int)

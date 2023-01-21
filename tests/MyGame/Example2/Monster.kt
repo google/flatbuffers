@@ -37,12 +37,9 @@ class Monster : Table() {
             return (obj.__assign(_bb.getInt(_bb.position()) + _bb.position(), _bb))
         }
         fun startMonster(builder: FlatBufferBuilder) = builder.startTable(0)
-        fun endMonster(builder: FlatBufferBuilder) : MonsterOffset {
+        fun endMonster(builder: FlatBufferBuilder) : Int {
             val o = builder.endTable()
-            return MonsterOffset(o)
+            return o
         }
     }
 }
-
-@JvmInline
-value class MonsterOffset(val offset: Int)

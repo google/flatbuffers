@@ -48,19 +48,16 @@ class Attacker : Table() {
             _bb.order(ByteOrder.LITTLE_ENDIAN)
             return (obj.__assign(_bb.getInt(_bb.position()) + _bb.position(), _bb))
         }
-        fun createAttacker(builder: FlatBufferBuilder, swordAttackDamage: Int) : AttackerOffset {
+        fun createAttacker(builder: FlatBufferBuilder, swordAttackDamage: Int) : Int {
             builder.startTable(1)
             addSwordAttackDamage(builder, swordAttackDamage)
-            return AttackerOffset(endAttacker(builder))
+            return endAttacker(builder)
         }
         fun startAttacker(builder: FlatBufferBuilder) = builder.startTable(1)
         fun addSwordAttackDamage(builder: FlatBufferBuilder, swordAttackDamage: Int) = builder.addInt(0, swordAttackDamage, 0)
-        fun endAttacker(builder: FlatBufferBuilder) : AttackerOffset {
+        fun endAttacker(builder: FlatBufferBuilder) : Int {
             val o = builder.endTable()
-            return AttackerOffset(o)
+            return o
         }
     }
 }
-
-@JvmInline
-value class AttackerOffset(val offset: Int)
