@@ -278,7 +278,7 @@ static std::string GenerateDocumentation(const BinaryRegion &region,
 
   {
     std::stringstream ss;
-    ss << std::setw(output_config.largest_type_string) << std::left;
+    ss << std::setw(static_cast<int>(output_config.largest_type_string)) << std::left;
     ss << GenerateTypeString(region);
     s += ss.str();
   }
@@ -293,7 +293,7 @@ static std::string GenerateDocumentation(const BinaryRegion &region,
     const std::string value = ToValueString(region, binary, output_config);
 
     std::stringstream ss;
-    ss << std::setw(output_config.largest_value_string) << std::left;
+    ss << std::setw(static_cast<int>(output_config.largest_value_string)) << std::left;
     ss << value.substr(0, output_config.max_bytes_per_line);
     s += ss.str();
 
@@ -301,7 +301,7 @@ static std::string GenerateDocumentation(const BinaryRegion &region,
         value.substr(std::min(output_config.max_bytes_per_line, value.size()));
   } else {
     std::stringstream ss;
-    ss << std::setw(output_config.largest_value_string) << std::left;
+    ss << std::setw(static_cast<int>(output_config.largest_value_string)) << std::left;
     ss << ToValueString(region, binary, output_config);
     s += ss.str();
   }

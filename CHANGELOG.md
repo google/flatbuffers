@@ -4,6 +4,10 @@ All major or breaking changes will be documented in this file, as well as any
 new features that should be highlighted. Minor fixes or improvements are not
 necessarily listed.
 
+## [23.1.20 (Jan 20 2023)](https://github.com/google/flatbuffers/releases/tag/v23.1.20)
+
+* Removed go.mod files after some versioning issues were being report ([#7780](https://github.com/google/flatbuffers/issues/7780)).
+
 ## [23.1.4 (Jan 4 2023)](https://github.com/google/flatbuffers/releases/tag/v23.1.4)
 
 * Major release! Just kidding, we are continuing the
