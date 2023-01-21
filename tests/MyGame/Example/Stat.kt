@@ -74,7 +74,7 @@ class Stat : Table() {
         return (val_1 - val_2).sign
     }
     companion object {
-        fun validateVersion() = Constants.FLATBUFFERS_23_1_20()
+        fun validateVersion() = Constants.FLATBUFFERS_23_1_21()
         fun getRootAsStat(_bb: ByteBuffer): Stat = getRootAsStat(_bb, Stat())
         fun getRootAsStat(_bb: ByteBuffer, obj: Stat): Stat {
             _bb.order(ByteOrder.LITTLE_ENDIAN)
