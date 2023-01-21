@@ -3,15 +3,12 @@
 import assert from 'assert';
 import { readFileSync, writeFileSync } from 'fs';
 import * as flatbuffers from 'flatbuffers';
-import {
-  ArrayStructT,
-  ArrayTable,
-  ArrayTableT,
-  InnerStructT,
-  NestedStructT,
-  OuterStructT,
-  TestEnum,
-} from './arrays_test_complex/arrays_test_complex_generated.js';
+import { ArrayStructT } from './arrays_test_complex/my-game/example/array-struct.js'
+import { ArrayTable, ArrayTableT } from './arrays_test_complex/my-game/example/array-table.js'
+import { InnerStructT } from './arrays_test_complex/my-game/example/inner-struct.js'
+import { NestedStructT } from './arrays_test_complex/my-game/example/nested-struct.js'
+import { OuterStructT } from './arrays_test_complex/my-game/example/outer-struct.js'
+import { TestEnum } from './arrays_test_complex/my-game/example/test-enum.js'
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 BigInt.prototype.toJSON = function () {
   return this.toString();
