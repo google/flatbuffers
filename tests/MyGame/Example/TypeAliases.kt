@@ -222,7 +222,7 @@ class TypeAliases : Table() {
             _bb.order(ByteOrder.LITTLE_ENDIAN)
             return (obj.__assign(_bb.getInt(_bb.position()) + _bb.position(), _bb))
         }
-        fun createTypeAliases(builder: FlatBufferBuilder, i8: Byte, u8: UByte, i16: Short, u16: UShort, i32: Int, u32: UInt, i64: Long, u64: ULong, f32: Float, f64: Double, v8Offset: Int, vf64Offset: Int) : Int {
+        fun createTypeAliases(builder: FlatBufferBuilder, i8: Byte, u8: UByte, i16: Short, u16: UShort, i32: Int, u32: UInt, i64: Long, u64: ULong, f32: Float, f64: Double, v8Offset: Int, vf64Offset: Int) : TypeAliasesOffset {
             builder.startTable(12)
             addF64(builder, f64)
             addU64(builder, u64)
@@ -236,7 +236,7 @@ class TypeAliases : Table() {
             addI16(builder, i16)
             addU8(builder, u8)
             addI8(builder, i8)
-            return endTypeAliases(builder)
+            return TypeAliasesOffset(endTypeAliases(builder))
         }
         fun startTypeAliases(builder: FlatBufferBuilder) = builder.startTable(12)
         fun addI8(builder: FlatBufferBuilder, i8: Byte) = builder.addByte(0, i8, 0)
@@ -267,9 +267,12 @@ class TypeAliases : Table() {
             return builder.endVector()
         }
         fun startVf64Vector(builder: FlatBufferBuilder, numElems: Int) = builder.startVector(8, numElems, 8)
-        fun endTypeAliases(builder: FlatBufferBuilder) : Int {
+        fun endTypeAliases(builder: FlatBufferBuilder) : TypeAliasesOffset {
             val o = builder.endTable()
-            return o
+            return TypeAliasesOffset(o)
         }
     }
 }
+
+@JvmInline
+value class TypeAliasesOffset(val offset: Int)

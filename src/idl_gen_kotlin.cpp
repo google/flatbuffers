@@ -1182,6 +1182,41 @@ class KotlinGenerator : public BaseGenerator {
             });
       }
 
+      if(value_base_type == BASE_TYPE_VECTOR
+          && field.value.type.VectorType().base_type == BASE_TYPE_STRING) {
+        auto inline_size = NumToString(InlineSize(field.value.type.VectorType()));
+        auto index = "__vector(o) + j * " + inline_size;
+        auto not_found =
+            field.IsRequired()
+                ? "throw IndexOutOfBoundsException(\"Index out of range: "
+                  "$j, vector {{field_name}} is empty\")"
+                : NotFoundReturn(field.value.type.element);
+        writer.SetValue("index", index);
+        // Generate a ByteBuffer function for string vectors, similar to above
+
+        GenerateFun(
+            writer, field_name + "AsByteBuffer", "j: Int","ByteBuffer?",
+            [&]() {
+              OffsetWrapper(
+                  writer, offset_val,
+                  [&]() { writer += "__vector_as_bytebuffer({{index}}, 1)"; },
+                  [&]() { writer += not_found; });
+            });
+
+        // Generate a ByteBuffer accessor for strings & vectors of scalars.
+        // e.g.
+        // fun inventoryInByteBuffer(_bb: Bytebuffer):
+        //     ByteBuffer = __vector_as_bytebuffer(_bb, 14, 1)
+        GenerateFun(
+            writer, field_name + "InByteBuffer", "_bb: ByteBuffer, j: Int",
+            "ByteBuffer", [&]() {
+              OffsetWrapper(
+                  writer, offset_val,
+                  [&]() { writer += "__vector_in_bytebuffer(_bb, {{index}}, 1)"; },
+                  [&]() { writer += not_found; });
+            });
+      }
+
       // generate object accessors if is nested_flatbuffer
       // fun testnestedflatbufferAsMonster() : Monster?
       //{ return testnestedflatbufferAsMonster(new Monster()); }

@@ -50,16 +50,19 @@ class TestSimpleTableWithEnum : Table() {
             _bb.order(ByteOrder.LITTLE_ENDIAN)
             return (obj.__assign(_bb.getInt(_bb.position()) + _bb.position(), _bb))
         }
-        fun createTestSimpleTableWithEnum(builder: FlatBufferBuilder, color: UByte) : Int {
+        fun createTestSimpleTableWithEnum(builder: FlatBufferBuilder, color: UByte) : TestSimpleTableWithEnumOffset {
             builder.startTable(1)
             addColor(builder, color)
-            return endTestSimpleTableWithEnum(builder)
+            return TestSimpleTableWithEnumOffset(endTestSimpleTableWithEnum(builder))
         }
         fun startTestSimpleTableWithEnum(builder: FlatBufferBuilder) = builder.startTable(1)
         fun addColor(builder: FlatBufferBuilder, color: UByte) = builder.addByte(0, color.toByte(), 2)
-        fun endTestSimpleTableWithEnum(builder: FlatBufferBuilder) : Int {
+        fun endTestSimpleTableWithEnum(builder: FlatBufferBuilder) : TestSimpleTableWithEnumOffset {
             val o = builder.endTable()
-            return o
+            return TestSimpleTableWithEnumOffset(o)
         }
     }
 }
+
+@JvmInline
+value class TestSimpleTableWithEnumOffset(val offset: Int)

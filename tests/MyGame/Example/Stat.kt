@@ -80,12 +80,12 @@ class Stat : Table() {
             _bb.order(ByteOrder.LITTLE_ENDIAN)
             return (obj.__assign(_bb.getInt(_bb.position()) + _bb.position(), _bb))
         }
-        fun createStat(builder: FlatBufferBuilder, idOffset: Int, val_: Long, count: UShort) : Int {
+        fun createStat(builder: FlatBufferBuilder, idOffset: Int, val_: Long, count: UShort) : StatOffset {
             builder.startTable(3)
             addVal_(builder, val_)
             addId(builder, idOffset)
             addCount(builder, count)
-            return endStat(builder)
+            return StatOffset(endStat(builder))
         }
         fun startStat(builder: FlatBufferBuilder) = builder.startTable(3)
         fun addId(builder: FlatBufferBuilder, id: Int) = builder.addOffset(0, id, 0)
@@ -94,9 +94,9 @@ class Stat : Table() {
             builder.addShort(count.toShort())
             builder.slot(2)
         }
-        fun endStat(builder: FlatBufferBuilder) : Int {
+        fun endStat(builder: FlatBufferBuilder) : StatOffset {
             val o = builder.endTable()
-            return o
+            return StatOffset(o)
         }
         fun __lookup_by_key(obj: Stat?, vectorLocation: Int, key: UShort, bb: ByteBuffer) : Stat? {
             var span = bb.getInt(vectorLocation - 4)
@@ -122,3 +122,6 @@ class Stat : Table() {
         }
     }
 }
+
+@JvmInline
+value class StatOffset(val offset: Int)
