@@ -14,4 +14,4 @@ export var Color;
      * \brief color Blue (1u << 3)
      */
     Color[Color["Blue"] = 8] = "Blue";
-})(Color || (Color = {}));
+})(Color = Color || (Color = {}));
