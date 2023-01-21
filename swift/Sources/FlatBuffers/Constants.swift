@@ -119,4 +119,4 @@ extension UInt64: Scalar, Verifiable {
   public typealias NumericValue = UInt64
 }
 
-public func FlatBuffersVersion_23_1_20() {}
+public func FlatBuffersVersion_23_1_21() {}
