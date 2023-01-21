@@ -167,7 +167,7 @@ class Monster : Table() {
             null
         }
     }
-    fun testarrayofstringInByteBuffer(_bb: ByteBuffer, j: Int) : ByteBuffer {
+    fun testarrayofstringInByteBuffer(_bb: ByteBuffer, j: Int) : ByteBuffer? {
         val o = __offset(24)
         return if (o != 0) {
             __vector_in_bytebuffer(_bb, __vector(o) + j * 4, 1)
@@ -469,7 +469,7 @@ class Monster : Table() {
             null
         }
     }
-    fun testarrayofstring2InByteBuffer(_bb: ByteBuffer, j: Int) : ByteBuffer {
+    fun testarrayofstring2InByteBuffer(_bb: ByteBuffer, j: Int) : ByteBuffer? {
         val o = __offset(60)
         return if (o != 0) {
             __vector_in_bytebuffer(_bb, __vector(o) + j * 4, 1)

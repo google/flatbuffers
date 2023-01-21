@@ -1209,7 +1209,7 @@ class KotlinGenerator : public BaseGenerator {
         // fun inventoryInByteBuffer(_bb: Bytebuffer):
         //     ByteBuffer = __vector_as_bytebuffer(_bb, 14, 1)
         GenerateFun(writer, field_name + "InByteBuffer",
-                    "_bb: ByteBuffer, j: Int", "ByteBuffer", [&]() {
+                    "_bb: ByteBuffer, j: Int", "ByteBuffer?", [&]() {
                       OffsetWrapper(
                           writer, offset_val,
                           [&]() {
