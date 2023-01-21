@@ -33,7 +33,21 @@ namespace flatbuffers {
 
 // TODO(derekbailey): It would be better to define these as normal includes and
 // not as extern functions. But this can be done at a later time.
-extern std::unique_ptr<flatbuffers::CodeGenerator> NewCppCodeGenerator();
+//extern std::unique_ptr<flatbuffers::CodeGenerator> NewJavaCodeGenerator();
+//extern std::unique_ptr<flatbuffers::CodeGenerator> NewCSharpCodeGenerator();
+//extern std::unique_ptr<flatbuffers::CodeGenerator> NewGoCodeGenerator();
+//extern std::unique_ptr<flatbuffers::CodeGenerator> NewCppCodeGenerator();
+//extern std::unique_ptr<flatbuffers::CodeGenerator> NewPythonCodeGenerator();
+//extern std::unique_ptr<flatbuffers::CodeGenerator> NewPhpCodeGenerator();
+//extern std::unique_ptr<flatbuffers::CodeGenerator> NewTextCodeGenerator();
+//extern std::unique_ptr<flatbuffers::CodeGenerator> NewTsCodeGenerator();
+//extern std::unique_ptr<flatbuffers::CodeGenerator> NewJsonSchemaCodeGenerator();
+//extern std::unique_ptr<flatbuffers::CodeGenerator> NewDartCodeGenerator();
+//extern std::unique_ptr<flatbuffers::CodeGenerator> NewLuaCodeGenerator();
+//extern std::unique_ptr<flatbuffers::CodeGenerator> NewLobsterCodeGenerator();
+//extern std::unique_ptr<flatbuffers::CodeGenerator> NewRustCodeGenerator();
+//extern std::unique_ptr<flatbuffers::CodeGenerator> NewKotlinCodeGenerator();
+//extern std::unique_ptr<flatbuffers::CodeGenerator> NewSwiftCodeGenerator();
 
 extern void LogCompilerWarn(const std::string &warn);
 extern void LogCompilerError(const std::string &err);

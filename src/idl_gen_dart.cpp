@@ -20,6 +20,7 @@
 
 #include "flatbuffers/code_generators.h"
 #include "flatbuffers/flatbuffers.h"
+#include "flatbuffers/flatc.h"
 #include "flatbuffers/idl.h"
 #include "flatbuffers/util.h"
 #include "idl_namer.h"
@@ -1141,5 +1142,49 @@ std::string DartMakeRule(const Parser &parser, const std::string &path,
   }
   return make_rule;
 }
+
+namespace {
+
+class DartCodeGenerator : public CodeGenerator {
+  public:
+    Status GenerateCode(const Parser &parser, const std::string &path,
+    const std::string &filename) override {
+      if(!GenerateDart(parser, path, filename)) { return Status::ERROR; }
+      return Status::OK;
+    }
+
+    Status GenerateCode(const uint8_t *buffer, int64_t length) override {
+      (void) buffer;
+      (void) length;
+      return Status::NOT_IMPLEMENTED;
+    }
+
+    Status GenerateMakeRule(const Parser &parser, const std::string &path,
+    const std::string &filename, std::string &output) override {
+      output = DartMakeRule(parser, path, filename);
+      return Status::OK;
+    }
+
+    Status GenerateGrpcCode(const Parser &parser, const std::string &path, const std::string &filename) override {
+      (void) parser;
+      (void) path;
+      (void) filename;
+      return Status::NOT_IMPLEMENTED;
+    }
+
+    bool IsSchemaOnly() const override { return true; } 
+
+    bool SupportsBfbsGeneration() const override { return false; }
+
+    IDLOptions::Language Language() const override { return IDLOptions::kDart; }
+
+    std::string LanguageName() const override { return "Dart"; }
+};
+} // namespace
+
+std::unique_ptr<CodeGenerator> NewDartCodeGenerator() {
+  return std::unique_ptr<DartCodeGenerator>(new DartCodeGenerator());
+}
+
 
 }  // namespace flatbuffers
