@@ -11,6 +11,5 @@ flatbuffer_ts_library(
     name = "reflection_ts_fbs",
     package_name = "flatbuffers_reflection",
     srcs = [":reflection.fbs"],
-    include_reflection = False,
     visibility = ["//visibility:public"],
 )

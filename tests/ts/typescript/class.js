@@ -3,4 +3,4 @@ export var class_;
 (function (class_) {
     class_[class_["new_"] = 0] = "new_";
     class_[class_["instanceof_"] = 1] = "instanceof_";
-})(class_ || (class_ = {}));
+})(class_ = class_ || (class_ = {}));
