@@ -52,14 +52,14 @@ enum class BinaryRegionType {
 template<typename T>
 static inline std::string ToHex(T i, size_t width = sizeof(T)) {
   std::stringstream stream;
-  stream << std::hex << std::uppercase << std::setfill('0') << std::setw(width)
+  stream << std::hex << std::uppercase << std::setfill('0') << std::setw(static_cast<int>(width))
          << i;
   return stream.str();
 }
 
 // Specialized version for uint8_t that don't work well with std::hex.
 static inline std::string ToHex(uint8_t i) {
-  return ToHex(static_cast<int>(i), 2);
+  return ToHex<int>(static_cast<int>(i), 2);
 }
 
 enum class BinaryRegionStatus {
