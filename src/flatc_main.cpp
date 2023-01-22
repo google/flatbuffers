@@ -35,6 +35,7 @@
 #include "idl_gen_php.h"
 #include "idl_gen_python.h"
 #include "idl_gen_rust.h"
+#include "idl_gen_swift.h"
 #include "idl_gen_text.h"
 #include "idl_gen_ts.h"
 
@@ -210,6 +211,9 @@ int main(int argc, const char *argv[]) {
   std::shared_ptr<flatbuffers::CodeGenerator> rust_generator =
       flatbuffers::NewRustCodeGenerator();
 
+  std::shared_ptr<flatbuffers::CodeGenerator> swift_generator =
+      flatbuffers::NewSwiftCodeGenerator();
+
   std::shared_ptr<flatbuffers::CodeGenerator> ts_generator =
       flatbuffers::NewTsCodeGenerator();
 
@@ -247,6 +251,8 @@ int main(int argc, const char *argv[]) {
 
   flatc.RegisterCodeGenerator("--rust", rust_generator);
   flatc.RegisterCodeGenerator("-r", rust_generator);
+
+  flatc.RegisterCodeGenerator("--swift", rust_generator);
 
   flatc.RegisterCodeGenerator("--ts", ts_generator);
   flatc.RegisterCodeGenerator("-T", ts_generator);
