@@ -171,7 +171,6 @@ set(FlatBuffers_Compiler_SRCS
   src/idl_gen_binary.cpp
   src/idl_gen_binary.h
   src/idl_gen_text.cpp
-  src/idl_gen_text.h
   src/idl_gen_cpp.cpp
   src/idl_gen_cpp.h
   src/idl_gen_csharp.cpp

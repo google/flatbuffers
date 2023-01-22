@@ -1946,7 +1946,7 @@ class SwiftCodeGenerator : public CodeGenerator {
 };
 }  // namespace
 
-std::unique_ptr<CodeGenerator> newSwiftCodeGenerator() {
+std::unique_ptr<CodeGenerator> NewSwiftCodeGenerator() {
   return std::unique_ptr<SwiftCodeGenerator>(new SwiftCodeGenerator());
 }
 
