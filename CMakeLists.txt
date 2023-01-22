@@ -168,39 +168,39 @@ set(FlatBuffers_Library_SRCS
 
 set(FlatBuffers_Compiler_SRCS
   ${FlatBuffers_Library_SRCS}
-  src/idl_gen_binary.cpp
   src/idl_gen_binary.h
+  src/idl_gen_binary.cpp
   src/idl_gen_text.cpp
-  src/idl_gen_cpp.cpp
   src/idl_gen_cpp.h
-  src/idl_gen_csharp.cpp
+  src/idl_gen_cpp.cpp
   src/idl_gen_csharp.h
-  src/idl_gen_dart.cpp
+  src/idl_gen_csharp.cpp
   src/idl_gen_dart.h
-  src/idl_gen_kotlin.cpp
+  src/idl_gen_dart.cpp
   src/idl_gen_kotlin.h
-  src/idl_gen_go.cpp
+  src/idl_gen_kotlin.cpp
   src/idl_gen_go.h
-  src/idl_gen_java.cpp
+  src/idl_gen_go.cpp
   src/idl_gen_java.h
-  src/idl_gen_ts.cpp
+  src/idl_gen_java.cpp
   src/idl_gen_ts.h
-  src/idl_gen_php.cpp
+  src/idl_gen_ts.cpp
   src/idl_gen_php.h
-  src/idl_gen_python.cpp
+  src/idl_gen_php.cpp
   src/idl_gen_python.h
-  src/idl_gen_lobster.cpp
+  src/idl_gen_python.cpp
   src/idl_gen_lobster.h
-  src/idl_gen_lua.cpp
+  src/idl_gen_lobster.cpp
   src/idl_gen_lua.h
-  src/idl_gen_rust.cpp
+  src/idl_gen_lua.cpp
   src/idl_gen_rust.h
+  src/idl_gen_rust.cpp
   src/idl_gen_fbs.cpp
   src/idl_gen_grpc.cpp
-  src/idl_gen_json_schema.cpp
   src/idl_gen_json_schema.h
-  src/idl_gen_swift.cpp
+  src/idl_gen_json_schema.cpp
   src/idl_gen_swift.h
+  src/idl_gen_swift.cpp
   src/idl_namer.h
   src/namer.h
   src/flatc.cpp
