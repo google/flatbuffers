@@ -36,7 +36,6 @@
 #include "idl_gen_python.h"
 #include "idl_gen_rust.h"
 #include "idl_gen_swift.h"
-#include "idl_gen_text.h"
 #include "idl_gen_ts.h"
 
 static const char *g_program_name = nullptr;
@@ -217,9 +216,6 @@ int main(int argc, const char *argv[]) {
   std::shared_ptr<flatbuffers::CodeGenerator> ts_generator =
       flatbuffers::NewTsCodeGenerator();
 
-  std::shared_ptr<flatbuffers::CodeGenerator> text_generator =
-      flatbuffers::NewTextCodeGenerator();
-
   flatc.RegisterCodeGenerator("--binary", binary_generator);
   flatc.RegisterCodeGenerator("-b", binary_generator);
 
@@ -256,9 +252,6 @@ int main(int argc, const char *argv[]) {
 
   flatc.RegisterCodeGenerator("--ts", ts_generator);
   flatc.RegisterCodeGenerator("-T", ts_generator);
-
-  flatc.RegisterCodeGenerator("--json", text_generator);
-  flatc.RegisterCodeGenerator("-t", text_generator);
 
   // Create the FlatC options by parsing the command line arguments.
   const flatbuffers::FlatCOptions &options =
