@@ -32,7 +32,6 @@
 #include "idl_gen_json_schema.h"
 #include "idl_gen_kotlin.h"
 #include "idl_gen_lobster.h"
-#include "idl_gen_lua.h"
 #include "idl_gen_php.h"
 #include "idl_gen_python.h"
 #include "idl_gen_rust.h"
@@ -202,9 +201,6 @@ int main(int argc, const char *argv[]) {
   std::shared_ptr<flatbuffers::CodeGenerator> lobster_generator =
       flatbuffers::NewLobsterCodeGenerator();
 
-  std::shared_ptr<flatbuffers::CodeGenerator> lua_generator =
-      flatbuffers::NewLuaCodeGenerator();
-
   std::shared_ptr<flatbuffers::CodeGenerator> php_generator =
       flatbuffers::NewPhpCodeGenerator();
 
@@ -243,9 +239,6 @@ int main(int argc, const char *argv[]) {
   flatc.RegisterCodeGenerator("--kotlin", kotlin_generator);
 
   flatc.RegisterCodeGenerator("--lobster", lobster_generator);
-
-  flatc.RegisterCodeGenerator("--lua", lua_generator);
-  flatc.RegisterCodeGenerator("-l", lua_generator);
 
   flatc.RegisterCodeGenerator("--php", php_generator);
 
