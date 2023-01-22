@@ -435,41 +435,43 @@ std::string TextMakeRule(const Parser &parser, const std::string &path,
 namespace {
 
 class TextCodeGenerator : public CodeGenerator {
-  public:
-    Status GenerateCode(const Parser &parser, const std::string &path,
-    const std::string &filename) override {
-      if(!GenerateTextFile(parser, path, filename)) { return Status::ERROR; }
-      return Status::OK;
-    }
+ public:
+  Status GenerateCode(const Parser &parser, const std::string &path,
+                      const std::string &filename) override {
+    if (!GenerateTextFile(parser, path, filename)) { return Status::ERROR; }
+    return Status::OK;
+  }
 
-    Status GenerateCode(const uint8_t *buffer, int64_t length) override {
-      (void) buffer;
-      (void) length;
-      return Status::NOT_IMPLEMENTED;
-    }
+  Status GenerateCode(const uint8_t *buffer, int64_t length) override {
+    (void)buffer;
+    (void)length;
+    return Status::NOT_IMPLEMENTED;
+  }
 
-   Status GenerateMakeRule(const Parser &parser, const std::string &path,
-    const std::string &filename, std::string &output) override {
-      output = TextMakeRule(parser, path, filename);
-      return Status::OK;
-    }
+  Status GenerateMakeRule(const Parser &parser, const std::string &path,
+                          const std::string &filename,
+                          std::string &output) override {
+    output = TextMakeRule(parser, path, filename);
+    return Status::OK;
+  }
 
-    Status GenerateGrpcCode(const Parser &parser, const std::string &path, const std::string &filename) override {
-      (void) parser;
-      (void) path;
-      (void) filename;
-      return Status::NOT_IMPLEMENTED;
-    }
+  Status GenerateGrpcCode(const Parser &parser, const std::string &path,
+                          const std::string &filename) override {
+    (void)parser;
+    (void)path;
+    (void)filename;
+    return Status::NOT_IMPLEMENTED;
+  }
 
-    bool IsSchemaOnly() const override { return false; } 
+  bool IsSchemaOnly() const override { return false; }
 
-    bool SupportsBfbsGeneration() const override { return false; }
+  bool SupportsBfbsGeneration() const override { return false; }
 
-    IDLOptions::Language Language() const override { return IDLOptions::kJson; }
+  IDLOptions::Language Language() const override { return IDLOptions::kJson; }
 
-    std::string LanguageName() const override { return "text"; }
+  std::string LanguageName() const override { return "text"; }
 };
-} // namespace
+}  // namespace
 
 std::unique_ptr<CodeGenerator> NewTextCodeGenerator() {
   return std::unique_ptr<TextCodeGenerator>(new TextCodeGenerator());

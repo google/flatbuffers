@@ -1585,46 +1585,47 @@ bool GenerateGo(const Parser &parser, const std::string &path,
 namespace {
 
 class GoCodeGenerator : public CodeGenerator {
-  public:
-    Status GenerateCode(const Parser &parser, const std::string &path,
-    const std::string &filename) override {
-      if(!GenerateGo(parser, path, filename)) { return Status::ERROR; }
-      return Status::OK;
-    }
+ public:
+  Status GenerateCode(const Parser &parser, const std::string &path,
+                      const std::string &filename) override {
+    if (!GenerateGo(parser, path, filename)) { return Status::ERROR; }
+    return Status::OK;
+  }
 
-    Status GenerateCode(const uint8_t *buffer, int64_t length) override {
-      (void) buffer;
-      (void) length;
-      return Status::NOT_IMPLEMENTED;
-    }
+  Status GenerateCode(const uint8_t *buffer, int64_t length) override {
+    (void)buffer;
+    (void)length;
+    return Status::NOT_IMPLEMENTED;
+  }
 
-    Status GenerateMakeRule(const Parser &parser, const std::string &path,
-    const std::string &filename, std::string &output) override {
-      (void) parser;
-      (void) path;
-      (void) filename;
-      (void) output;
-      return Status::NOT_IMPLEMENTED;
-    }
+  Status GenerateMakeRule(const Parser &parser, const std::string &path,
+                          const std::string &filename,
+                          std::string &output) override {
+    (void)parser;
+    (void)path;
+    (void)filename;
+    (void)output;
+    return Status::NOT_IMPLEMENTED;
+  }
 
-    Status GenerateGrpcCode(const Parser &parser, const std::string &path, const std::string &filename) override {
-      if(!GenerateGoGRPC(parser, path, filename)) { return Status::ERROR; }
-      return Status::OK;
-    }
+  Status GenerateGrpcCode(const Parser &parser, const std::string &path,
+                          const std::string &filename) override {
+    if (!GenerateGoGRPC(parser, path, filename)) { return Status::ERROR; }
+    return Status::OK;
+  }
 
-    bool IsSchemaOnly() const override { return true; } 
+  bool IsSchemaOnly() const override { return true; }
 
-    bool SupportsBfbsGeneration() const override { return false; }
+  bool SupportsBfbsGeneration() const override { return false; }
 
-    IDLOptions::Language Language() const override { return IDLOptions::kGo; }
+  IDLOptions::Language Language() const override { return IDLOptions::kGo; }
 
-    std::string LanguageName() const override { return "Go"; }
+  std::string LanguageName() const override { return "Go"; }
 };
-} // namespace
+}  // namespace
 
 std::unique_ptr<CodeGenerator> NewGoCodeGenerator() {
   return std::unique_ptr<GoCodeGenerator>(new GoCodeGenerator());
 }
-
 
 }  // namespace flatbuffers

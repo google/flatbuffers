@@ -43,8 +43,8 @@ class BinaryCodeGenerator : public CodeGenerator {
   // Generate code from the provided `buffer` of given `length`. The buffer is a
   // serialized reflection.fbs.
   Status GenerateCode(const uint8_t *buffer, int64_t length) override {
-    (void) buffer;
-    (void) length;
+    (void)buffer;
+    (void)length;
     return Status::NOT_IMPLEMENTED;
   }
 
@@ -57,11 +57,10 @@ class BinaryCodeGenerator : public CodeGenerator {
 
   Status GenerateGrpcCode(const Parser &parser, const std::string &path,
                           const std::string &filename) override {
-    (void) parser;
-    (void) path;
-    (void) filename;
+    (void)parser;
+    (void)path;
+    (void)filename;
     return Status::NOT_IMPLEMENTED;
-
   }
 
   bool IsSchemaOnly() const override { return false; }

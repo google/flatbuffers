@@ -2171,39 +2171,41 @@ bool GenerateJava(const Parser &parser, const std::string &path,
 namespace {
 
 class JavaCodeGenerator : public CodeGenerator {
-  public:
-    Status GenerateCode(const Parser &parser, const std::string &path,
-    const std::string &filename) override {
-      if(!GenerateJava(parser, path, filename)) { return Status::ERROR; }
-      return Status::OK;
-    }
+ public:
+  Status GenerateCode(const Parser &parser, const std::string &path,
+                      const std::string &filename) override {
+    if (!GenerateJava(parser, path, filename)) { return Status::ERROR; }
+    return Status::OK;
+  }
 
-    Status GenerateCode(const uint8_t *buffer, int64_t length) override {
-      (void) buffer;
-      (void) length;
-      return Status::NOT_IMPLEMENTED;
-    }
+  Status GenerateCode(const uint8_t *buffer, int64_t length) override {
+    (void)buffer;
+    (void)length;
+    return Status::NOT_IMPLEMENTED;
+  }
 
-   Status GenerateMakeRule(const Parser &parser, const std::string &path,
-    const std::string &filename, std::string &output) override {
-      output = JavaMakeRule(parser, path, filename);
-      return Status::OK;
-    }
+  Status GenerateMakeRule(const Parser &parser, const std::string &path,
+                          const std::string &filename,
+                          std::string &output) override {
+    output = JavaMakeRule(parser, path, filename);
+    return Status::OK;
+  }
 
-    Status GenerateGrpcCode(const Parser &parser, const std::string &path, const std::string &filename) override {
-      if(!GenerateJavaGRPC(parser, path, filename)) { return Status::ERROR; }
-      return Status::OK;
-    }
+  Status GenerateGrpcCode(const Parser &parser, const std::string &path,
+                          const std::string &filename) override {
+    if (!GenerateJavaGRPC(parser, path, filename)) { return Status::ERROR; }
+    return Status::OK;
+  }
 
-    bool IsSchemaOnly() const override { return true; } 
+  bool IsSchemaOnly() const override { return true; }
 
-    bool SupportsBfbsGeneration() const override { return false; }
+  bool SupportsBfbsGeneration() const override { return false; }
 
-    IDLOptions::Language Language() const override { return IDLOptions::kJava; }
+  IDLOptions::Language Language() const override { return IDLOptions::kJava; }
 
-    std::string LanguageName() const override { return "Java"; }
+  std::string LanguageName() const override { return "Java"; }
 };
-} // namespace
+}  // namespace
 
 std::unique_ptr<CodeGenerator> NewJavaCodeGenerator() {
   return std::unique_ptr<JavaCodeGenerator>(new JavaCodeGenerator());

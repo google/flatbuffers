@@ -335,46 +335,51 @@ bool GenerateJsonSchema(const Parser &parser, std::string *json) {
 namespace {
 
 class JsonSchemaCodeGenerator : public CodeGenerator {
-  public:
-    Status GenerateCode(const Parser &parser, const std::string &path,
-    const std::string &filename) override {
-      if(!GenerateJsonSchema(parser, path, filename)) { return Status::ERROR; }
-      return Status::OK;
-    }
+ public:
+  Status GenerateCode(const Parser &parser, const std::string &path,
+                      const std::string &filename) override {
+    if (!GenerateJsonSchema(parser, path, filename)) { return Status::ERROR; }
+    return Status::OK;
+  }
 
-    Status GenerateCode(const uint8_t *buffer, int64_t length) override {
-      (void) buffer;
-      (void) length;
-      return Status::NOT_IMPLEMENTED;
-    }
+  Status GenerateCode(const uint8_t *buffer, int64_t length) override {
+    (void)buffer;
+    (void)length;
+    return Status::NOT_IMPLEMENTED;
+  }
 
-   Status GenerateMakeRule(const Parser &parser, const std::string &path,
-    const std::string &filename, std::string &output) override {
-      (void) parser;
-      (void) path;
-      (void) filename;
-      (void) output;
-      return Status::NOT_IMPLEMENTED;
-    }
+  Status GenerateMakeRule(const Parser &parser, const std::string &path,
+                          const std::string &filename,
+                          std::string &output) override {
+    (void)parser;
+    (void)path;
+    (void)filename;
+    (void)output;
+    return Status::NOT_IMPLEMENTED;
+  }
 
-    Status GenerateGrpcCode(const Parser &parser, const std::string &path, const std::string &filename) override {
-      (void) parser;
-      (void) path;
-      (void) filename;
-      return Status::NOT_IMPLEMENTED;
-    }
+  Status GenerateGrpcCode(const Parser &parser, const std::string &path,
+                          const std::string &filename) override {
+    (void)parser;
+    (void)path;
+    (void)filename;
+    return Status::NOT_IMPLEMENTED;
+  }
 
-    bool IsSchemaOnly() const override { return true; } 
+  bool IsSchemaOnly() const override { return true; }
 
-    bool SupportsBfbsGeneration() const override { return false; }
+  bool SupportsBfbsGeneration() const override { return false; }
 
-    IDLOptions::Language Language() const override { return IDLOptions::kJsonSchema; }
+  IDLOptions::Language Language() const override {
+    return IDLOptions::kJsonSchema;
+  }
 
-    std::string LanguageName() const override { return "JsonSchema"; }
+  std::string LanguageName() const override { return "JsonSchema"; }
 };
-} // namespace
+}  // namespace
 
 std::unique_ptr<CodeGenerator> NewJsonSchemaCodeGenerator() {
-  return std::unique_ptr<JsonSchemaCodeGenerator>(new JsonSchemaCodeGenerator());
+  return std::unique_ptr<JsonSchemaCodeGenerator>(
+      new JsonSchemaCodeGenerator());
 }
 }  // namespace flatbuffers

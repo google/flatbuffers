@@ -2168,43 +2168,44 @@ std::string TSMakeRule(const Parser &parser, const std::string &path,
 namespace {
 
 class TsCodeGenerator : public CodeGenerator {
-  public:
-    Status GenerateCode(const Parser &parser, const std::string &path,
-    const std::string &filename) override {
-      if(!GenerateTS(parser, path, filename)) { return Status::ERROR; }
-      return Status::OK;
-    }
+ public:
+  Status GenerateCode(const Parser &parser, const std::string &path,
+                      const std::string &filename) override {
+    if (!GenerateTS(parser, path, filename)) { return Status::ERROR; }
+    return Status::OK;
+  }
 
-    Status GenerateCode(const uint8_t *buffer, int64_t length) override {
-      (void) buffer;
-      (void) length;
-      return Status::NOT_IMPLEMENTED;
-    }
+  Status GenerateCode(const uint8_t *buffer, int64_t length) override {
+    (void)buffer;
+    (void)length;
+    return Status::NOT_IMPLEMENTED;
+  }
 
-    Status GenerateMakeRule(const Parser &parser, const std::string &path,
-    const std::string &filename, std::string &output) override {
-      output = TSMakeRule(parser, path, filename);
-      return Status::OK;
-    }
+  Status GenerateMakeRule(const Parser &parser, const std::string &path,
+                          const std::string &filename,
+                          std::string &output) override {
+    output = TSMakeRule(parser, path, filename);
+    return Status::OK;
+  }
 
-    Status GenerateGrpcCode(const Parser &parser, const std::string &path, const std::string &filename) override {
-      if(!GenerateTSGRPC(parser, path, filename)) { return Status::ERROR; }
-      return Status::OK;
-    }
+  Status GenerateGrpcCode(const Parser &parser, const std::string &path,
+                          const std::string &filename) override {
+    if (!GenerateTSGRPC(parser, path, filename)) { return Status::ERROR; }
+    return Status::OK;
+  }
 
-    bool IsSchemaOnly() const override { return true; } 
+  bool IsSchemaOnly() const override { return true; }
 
-    bool SupportsBfbsGeneration() const override { return false; }
+  bool SupportsBfbsGeneration() const override { return false; }
 
-    IDLOptions::Language Language() const override { return IDLOptions::kTs; }
+  IDLOptions::Language Language() const override { return IDLOptions::kTs; }
 
-    std::string LanguageName() const override { return "TS"; }
+  std::string LanguageName() const override { return "TS"; }
 };
-} // namespace
+}  // namespace
 
 std::unique_ptr<CodeGenerator> NewTsCodeGenerator() {
   return std::unique_ptr<TsCodeGenerator>(new TsCodeGenerator());
 }
-
 
 }  // namespace flatbuffers

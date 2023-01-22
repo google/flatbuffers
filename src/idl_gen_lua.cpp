@@ -748,49 +748,49 @@ bool GenerateLua(const Parser &parser, const std::string &path,
 namespace {
 
 class LuaCodeGenerator : public CodeGenerator {
-  public:
-    Status GenerateCode(const Parser &parser, const std::string &path,
-    const std::string &filename) override {
-      if(!GenerateLua(parser, path, filename)) { return Status::ERROR; }
-      return Status::OK;
-    }
+ public:
+  Status GenerateCode(const Parser &parser, const std::string &path,
+                      const std::string &filename) override {
+    if (!GenerateLua(parser, path, filename)) { return Status::ERROR; }
+    return Status::OK;
+  }
 
-    Status GenerateCode(const uint8_t *buffer, int64_t length) override {
-      (void) buffer;
-      (void) length;
-      return Status::NOT_IMPLEMENTED;
-    }
+  Status GenerateCode(const uint8_t *buffer, int64_t length) override {
+    (void)buffer;
+    (void)length;
+    return Status::NOT_IMPLEMENTED;
+  }
 
-    Status GenerateMakeRule(const Parser &parser, const std::string &path,
-    const std::string &filename, std::string &output) override {
-      (void) parser;
-      (void) path;
-      (void) filename;
-      (void) output;
-      return Status::NOT_IMPLEMENTED;
-    }
+  Status GenerateMakeRule(const Parser &parser, const std::string &path,
+                          const std::string &filename,
+                          std::string &output) override {
+    (void)parser;
+    (void)path;
+    (void)filename;
+    (void)output;
+    return Status::NOT_IMPLEMENTED;
+  }
 
-    Status GenerateGrpcCode(const Parser &parser, const std::string &path, const std::string &filename) override {
-      (void) parser;
-      (void) path;
-      (void) filename;
-      return Status::NOT_IMPLEMENTED;
-    }
+  Status GenerateGrpcCode(const Parser &parser, const std::string &path,
+                          const std::string &filename) override {
+    (void)parser;
+    (void)path;
+    (void)filename;
+    return Status::NOT_IMPLEMENTED;
+  }
 
+  bool IsSchemaOnly() const override { return true; }
 
-    bool IsSchemaOnly() const override { return true; } 
+  bool SupportsBfbsGeneration() const override { return true; }
 
-    bool SupportsBfbsGeneration() const override { return true; }
+  IDLOptions::Language Language() const override { return IDLOptions::kLua; }
 
-    IDLOptions::Language Language() const override { return IDLOptions::kLua; }
-
-    std::string LanguageName() const override { return "Lua"; }
+  std::string LanguageName() const override { return "Lua"; }
 };
-} // namespace
+}  // namespace
 
 std::unique_ptr<CodeGenerator> NewLuaCodeGenerator() {
   return std::unique_ptr<LuaCodeGenerator>(new LuaCodeGenerator());
 }
-
 
 }  // namespace flatbuffers

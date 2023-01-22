@@ -1916,46 +1916,47 @@ bool GeneratePython(const Parser &parser, const std::string &path,
 namespace {
 
 class PythonCodeGenerator : public CodeGenerator {
-  public:
-    Status GenerateCode(const Parser &parser, const std::string &path,
-    const std::string &filename) override {
-      if(!GeneratePython(parser, path, filename)) { return Status::ERROR; }
-      return Status::OK;
-    }
+ public:
+  Status GenerateCode(const Parser &parser, const std::string &path,
+                      const std::string &filename) override {
+    if (!GeneratePython(parser, path, filename)) { return Status::ERROR; }
+    return Status::OK;
+  }
 
-    Status GenerateCode(const uint8_t *buffer, int64_t length) override {
-      (void) buffer;
-      (void) length;
-      return Status::NOT_IMPLEMENTED;
-    }
+  Status GenerateCode(const uint8_t *buffer, int64_t length) override {
+    (void)buffer;
+    (void)length;
+    return Status::NOT_IMPLEMENTED;
+  }
 
-   Status GenerateMakeRule(const Parser &parser, const std::string &path,
-    const std::string &filename, std::string &output) override {
-      (void) parser;
-      (void) path;
-      (void) filename;
-      (void) output;
-      return Status::NOT_IMPLEMENTED;
-    }
+  Status GenerateMakeRule(const Parser &parser, const std::string &path,
+                          const std::string &filename,
+                          std::string &output) override {
+    (void)parser;
+    (void)path;
+    (void)filename;
+    (void)output;
+    return Status::NOT_IMPLEMENTED;
+  }
 
-    Status GenerateGrpcCode(const Parser &parser, const std::string &path, const std::string &filename) override {
-      if(!GeneratePythonGRPC(parser, path, filename)) { return Status::ERROR; }
-      return Status::OK;
-    }
+  Status GenerateGrpcCode(const Parser &parser, const std::string &path,
+                          const std::string &filename) override {
+    if (!GeneratePythonGRPC(parser, path, filename)) { return Status::ERROR; }
+    return Status::OK;
+  }
 
-    bool IsSchemaOnly() const override { return true; } 
+  bool IsSchemaOnly() const override { return true; }
 
-    bool SupportsBfbsGeneration() const override { return false; }
+  bool SupportsBfbsGeneration() const override { return false; }
 
-    IDLOptions::Language Language() const override { return IDLOptions::kPython; }
+  IDLOptions::Language Language() const override { return IDLOptions::kPython; }
 
-    std::string LanguageName() const override { return "Python"; }
+  std::string LanguageName() const override { return "Python"; }
 };
-} // namespace
+}  // namespace
 
 std::unique_ptr<CodeGenerator> NewPythonCodeGenerator() {
   return std::unique_ptr<PythonCodeGenerator>(new PythonCodeGenerator());
 }
-
 
 }  // namespace flatbuffers

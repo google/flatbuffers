@@ -19,6 +19,10 @@
 
 #include "bfbs_gen_lua.h"
 #include "bfbs_gen_nim.h"
+#include "flatbuffers/base.h"
+#include "flatbuffers/code_generator.h"
+#include "flatbuffers/flatc.h"
+#include "flatbuffers/util.h"
 #include "idl_gen_binary.h"
 #include "idl_gen_cpp.h"
 #include "idl_gen_csharp.h"
@@ -31,15 +35,9 @@
 #include "idl_gen_lua.h"
 #include "idl_gen_php.h"
 #include "idl_gen_python.h"
-#include "idl_gen_text.h"
 #include "idl_gen_rust.h"
+#include "idl_gen_text.h"
 #include "idl_gen_ts.h"
-#include "flatbuffers/base.h"
-#include "flatbuffers/code_generator.h"
-#include "flatbuffers/flatc.h"
-#include "flatbuffers/util.h"
-
-
 
 static const char *g_program_name = nullptr;
 
@@ -192,40 +190,38 @@ int main(int argc, const char *argv[]) {
   std::shared_ptr<flatbuffers::CodeGenerator> go_generator =
       flatbuffers::NewGoCodeGenerator();
 
-std::shared_ptr<flatbuffers::CodeGenerator> java_generator =
+  std::shared_ptr<flatbuffers::CodeGenerator> java_generator =
       flatbuffers::NewJavaCodeGenerator();
 
   std::shared_ptr<flatbuffers::CodeGenerator> json_schema_generator =
       flatbuffers::NewJsonSchemaCodeGenerator();
-      
-   std::shared_ptr<flatbuffers::CodeGenerator> kotlin_generator =
-      flatbuffers::NewKotlinCodeGenerator();     
-      
+
+  std::shared_ptr<flatbuffers::CodeGenerator> kotlin_generator =
+      flatbuffers::NewKotlinCodeGenerator();
+
   std::shared_ptr<flatbuffers::CodeGenerator> lobster_generator =
       flatbuffers::NewLobsterCodeGenerator();
-      
+
   std::shared_ptr<flatbuffers::CodeGenerator> lua_generator =
       flatbuffers::NewLuaCodeGenerator();
-      
+
   std::shared_ptr<flatbuffers::CodeGenerator> php_generator =
       flatbuffers::NewPhpCodeGenerator();
-      
+
   std::shared_ptr<flatbuffers::CodeGenerator> python_generator =
       flatbuffers::NewPythonCodeGenerator();
 
-   std::shared_ptr<flatbuffers::CodeGenerator> rust_generator =
-      flatbuffers::NewRustCodeGenerator();     
+  std::shared_ptr<flatbuffers::CodeGenerator> rust_generator =
+      flatbuffers::NewRustCodeGenerator();
 
   std::shared_ptr<flatbuffers::CodeGenerator> ts_generator =
       flatbuffers::NewTsCodeGenerator();
-      
+
   std::shared_ptr<flatbuffers::CodeGenerator> text_generator =
       flatbuffers::NewTextCodeGenerator();
 
-
   flatc.RegisterCodeGenerator("--binary", binary_generator);
   flatc.RegisterCodeGenerator("-b", binary_generator);
-
 
   flatc.RegisterCodeGenerator("--cpp", cpp_generator);
   flatc.RegisterCodeGenerator("-c", cpp_generator);
@@ -244,7 +240,7 @@ std::shared_ptr<flatbuffers::CodeGenerator> java_generator =
 
   flatc.RegisterCodeGenerator("--jsonschema", json_schema_generator);
 
-flatc.RegisterCodeGenerator("--kotlin", kotlin_generator);
+  flatc.RegisterCodeGenerator("--kotlin", kotlin_generator);
 
   flatc.RegisterCodeGenerator("--lobster", lobster_generator);
 
@@ -264,7 +260,6 @@ flatc.RegisterCodeGenerator("--kotlin", kotlin_generator);
 
   flatc.RegisterCodeGenerator("--json", text_generator);
   flatc.RegisterCodeGenerator("-t", text_generator);
-
 
   // Create the FlatC options by parsing the command line arguments.
   const flatbuffers::FlatCOptions &options =
