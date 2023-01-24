@@ -6,7 +6,7 @@ export var Gadget;
     Gadget[Gadget["NONE"] = 0] = "NONE";
     Gadget[Gadget["FallingTub"] = 1] = "FallingTub";
     Gadget[Gadget["HandFan"] = 2] = "HandFan";
-})(Gadget || (Gadget = {}));
+})(Gadget = Gadget || (Gadget = {}));
 export function unionToGadget(type, accessor) {
     switch (Gadget[type]) {
         case 'NONE': return null;

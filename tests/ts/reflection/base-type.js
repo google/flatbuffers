@@ -20,4 +20,4 @@ export var BaseType;
     BaseType[BaseType["Union"] = 16] = "Union";
     BaseType[BaseType["Array"] = 17] = "Array";
     BaseType[BaseType["MaxBaseType"] = 18] = "MaxBaseType";
-})(BaseType || (BaseType = {}));
+})(BaseType = BaseType || (BaseType = {}));
