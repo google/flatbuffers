@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+#include "idl_gen_lobster.h"
+
 #include <string>
 #include <unordered_set>
 

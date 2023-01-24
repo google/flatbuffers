@@ -16,6 +16,8 @@
 
 // independent from idl_parser, since this code is not needed for most clients
 
+#include "idl_gen_lua.h"
+
 #include <string>
 #include <unordered_set>
 

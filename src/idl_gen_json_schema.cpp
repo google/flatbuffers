@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+#include "idl_gen_json_schema.h"
+
 #include <algorithm>
 #include <iostream>
 #include <limits>

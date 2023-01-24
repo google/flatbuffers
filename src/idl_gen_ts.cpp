@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+#include "idl_gen_ts.h"
+
 #include <algorithm>
 #include <cassert>
 #include <cmath>

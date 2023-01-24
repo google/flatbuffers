@@ -16,6 +16,8 @@
 
 // independent from idl_parser, since this code is not needed for most clients
 
+#include "idl_gen_go.h"
+
 #include <algorithm>
 #include <cmath>
 #include <sstream>

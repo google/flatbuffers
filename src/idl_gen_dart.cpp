@@ -15,6 +15,8 @@
  */
 
 // independent from idl_parser, since this code is not needed for most clients
+#include "idl_gen_dart.h"
+
 #include <cassert>
 #include <cmath>
 

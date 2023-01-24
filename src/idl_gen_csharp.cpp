@@ -16,6 +16,8 @@
 
 // independent from idl_parser, since this code is not needed for most clients
 
+#include "idl_gen_csharp.h"
+
 #include <unordered_set>
 
 #include "flatbuffers/code_generators.h"

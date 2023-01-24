@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+#include "idl_gen_swift.h"
+
 #include <cctype>
 #include <unordered_set>
 

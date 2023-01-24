@@ -16,6 +16,8 @@
 
 // independent from idl_parser, since this code is not needed for most clients
 
+#include "idl_gen_python.h"
+
 #include <cctype>
 #include <set>
 #include <string>

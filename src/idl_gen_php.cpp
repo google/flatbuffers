@@ -16,6 +16,8 @@
 
 // independent from idl_parser, since this code is not needed for most clients
 
+#include "idl_gen_php.h"
+
 #include <string>
 
 #include "flatbuffers/code_generators.h"
