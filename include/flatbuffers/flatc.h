@@ -31,10 +31,6 @@
 
 namespace flatbuffers {
 
-// TODO(derekbailey): It would be better to define these as normal includes and
-// not as extern functions. But this can be done at a later time.
-extern std::unique_ptr<flatbuffers::CodeGenerator> NewCppCodeGenerator();
-
 extern void LogCompilerWarn(const std::string &warn);
 extern void LogCompilerError(const std::string &err);
 
