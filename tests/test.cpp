@@ -1620,6 +1620,9 @@ int FlatBufferTests(const std::string &tests_data_path) {
   VectorSpanTest();
   NativeInlineTableVectorTest();
   FixedSizedScalarKeyInStructTest();
+  StructKeyInStructTest();
+  NestedStructKeyInStructTest();
+  FixedSizedStructArrayKeyInStructTest();
   return 0;
 }
 }  // namespace
