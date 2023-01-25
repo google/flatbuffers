@@ -23,8 +23,20 @@
 #include "flatbuffers/code_generator.h"
 #include "flatbuffers/flatc.h"
 #include "flatbuffers/util.h"
-
-
+#include "idl_gen_binary.h"
+#include "idl_gen_cpp.h"
+#include "idl_gen_csharp.h"
+#include "idl_gen_dart.h"
+#include "idl_gen_go.h"
+#include "idl_gen_java.h"
+#include "idl_gen_json_schema.h"
+#include "idl_gen_kotlin.h"
+#include "idl_gen_lobster.h"
+#include "idl_gen_php.h"
+#include "idl_gen_python.h"
+#include "idl_gen_rust.h"
+#include "idl_gen_swift.h"
+#include "idl_gen_ts.h"
 
 static const char *g_program_name = nullptr;
 
@@ -162,11 +174,84 @@ int main(int argc, const char *argv[]) {
 
   flatbuffers::FlatCompiler flatc(params);
 
+  std::shared_ptr<flatbuffers::CodeGenerator> binary_generator =
+      flatbuffers::NewBinaryCodeGenerator();
+
   std::shared_ptr<flatbuffers::CodeGenerator> cpp_generator =
       flatbuffers::NewCppCodeGenerator();
 
+  std::shared_ptr<flatbuffers::CodeGenerator> csharp_generator =
+      flatbuffers::NewCSharpCodeGenerator();
+
+  std::shared_ptr<flatbuffers::CodeGenerator> dart_generator =
+      flatbuffers::NewDartCodeGenerator();
+
+  std::shared_ptr<flatbuffers::CodeGenerator> go_generator =
+      flatbuffers::NewGoCodeGenerator();
+
+  std::shared_ptr<flatbuffers::CodeGenerator> java_generator =
+      flatbuffers::NewJavaCodeGenerator();
+
+  std::shared_ptr<flatbuffers::CodeGenerator> json_schema_generator =
+      flatbuffers::NewJsonSchemaCodeGenerator();
+
+  std::shared_ptr<flatbuffers::CodeGenerator> kotlin_generator =
+      flatbuffers::NewKotlinCodeGenerator();
+
+  std::shared_ptr<flatbuffers::CodeGenerator> lobster_generator =
+      flatbuffers::NewLobsterCodeGenerator();
+
+  std::shared_ptr<flatbuffers::CodeGenerator> php_generator =
+      flatbuffers::NewPhpCodeGenerator();
+
+  std::shared_ptr<flatbuffers::CodeGenerator> python_generator =
+      flatbuffers::NewPythonCodeGenerator();
+
+  std::shared_ptr<flatbuffers::CodeGenerator> rust_generator =
+      flatbuffers::NewRustCodeGenerator();
+
+  std::shared_ptr<flatbuffers::CodeGenerator> swift_generator =
+      flatbuffers::NewSwiftCodeGenerator();
+
+  std::shared_ptr<flatbuffers::CodeGenerator> ts_generator =
+      flatbuffers::NewTsCodeGenerator();
+
+  flatc.RegisterCodeGenerator("--binary", binary_generator);
+  flatc.RegisterCodeGenerator("-b", binary_generator);
+
   flatc.RegisterCodeGenerator("--cpp", cpp_generator);
   flatc.RegisterCodeGenerator("-c", cpp_generator);
+
+  flatc.RegisterCodeGenerator("--csharp", csharp_generator);
+  flatc.RegisterCodeGenerator("-n", csharp_generator);
+
+  flatc.RegisterCodeGenerator("--dart", dart_generator);
+  flatc.RegisterCodeGenerator("-d", dart_generator);
+
+  flatc.RegisterCodeGenerator("--go", go_generator);
+  flatc.RegisterCodeGenerator("-g", go_generator);
+
+  flatc.RegisterCodeGenerator("--java", java_generator);
+  flatc.RegisterCodeGenerator("-j", java_generator);
+
+  flatc.RegisterCodeGenerator("--jsonschema", json_schema_generator);
+
+  flatc.RegisterCodeGenerator("--kotlin", kotlin_generator);
+
+  flatc.RegisterCodeGenerator("--lobster", lobster_generator);
+
+  flatc.RegisterCodeGenerator("--php", php_generator);
+
+  flatc.RegisterCodeGenerator("--python", python_generator);
+  flatc.RegisterCodeGenerator("-p", python_generator);
+
+  flatc.RegisterCodeGenerator("--rust", rust_generator);
+  flatc.RegisterCodeGenerator("-r", rust_generator);
+
+  flatc.RegisterCodeGenerator("--swift", rust_generator);
+
+  flatc.RegisterCodeGenerator("--ts", ts_generator);
+  flatc.RegisterCodeGenerator("-T", ts_generator);
 
   // Create the FlatC options by parsing the command line arguments.
   const flatbuffers::FlatCOptions &options =
