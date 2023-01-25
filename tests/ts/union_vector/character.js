@@ -11,7 +11,7 @@ export var Character;
     Character[Character["BookFan"] = 4] = "BookFan";
     Character[Character["Other"] = 5] = "Other";
     Character[Character["Unused"] = 6] = "Unused";
-})(Character || (Character = {}));
+})(Character = Character || (Character = {}));
 export function unionToCharacter(type, accessor) {
     switch (Character[type]) {
         case 'NONE': return null;
