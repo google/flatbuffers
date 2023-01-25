@@ -23,7 +23,6 @@
 
 #include "flatbuffers/code_generators.h"
 #include "flatbuffers/flatbuffers.h"
-#include "flatbuffers/flatc.h"
 #include "flatbuffers/idl.h"
 #include "flatbuffers/util.h"
 #include "idl_namer.h"

@@ -17,9 +17,6 @@
 #ifndef FLATBUFFERS_IDL_GEN_PYTHON_H_
 #define FLATBUFFERS_IDL_GEN_PYTHON_H_
 
-#include <memory>
-#include <string>
-
 #include "flatbuffers/code_generator.h"
 
 namespace flatbuffers {
