@@ -23,7 +23,7 @@
 
 namespace flatbuffers {
 
-// An code generator interface for producing converting flatbuffer schema into
+// A code generator interface for producing converting flatbuffer schema into
 // code.
 class CodeGenerator {
  public:

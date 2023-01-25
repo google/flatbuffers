@@ -168,6 +168,8 @@ set(FlatBuffers_Library_SRCS
 
 set(FlatBuffers_Compiler_SRCS
   ${FlatBuffers_Library_SRCS}
+  src/idl_gen_binary.cpp
+  src/idl_gen_text.cpp
   src/idl_gen_cpp.cpp
   src/idl_gen_csharp.cpp
   src/idl_gen_dart.cpp

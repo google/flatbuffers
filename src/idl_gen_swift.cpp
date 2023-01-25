@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+#include "idl_gen_swift.h"
+
 #include <cctype>
 #include <unordered_set>
 
@@ -1902,4 +1904,51 @@ bool GenerateSwift(const Parser &parser, const std::string &path,
   swift::SwiftGenerator generator(parser, path, file_name);
   return generator.generate();
 }
+
+namespace {
+
+class SwiftCodeGenerator : public CodeGenerator {
+ public:
+  Status GenerateCode(const Parser &parser, const std::string &path,
+                      const std::string &filename) override {
+    if (!GenerateSwift(parser, path, filename)) { return Status::ERROR; }
+    return Status::OK;
+  }
+
+  Status GenerateCode(const uint8_t *buffer, int64_t length) override {
+    (void)buffer;
+    (void)length;
+    return Status::NOT_IMPLEMENTED;
+  }
+
+  Status GenerateGrpcCode(const Parser &parser, const std::string &path,
+                          const std::string &filename) override {
+    if (!GenerateSwiftGRPC(parser, path, filename)) { return Status::ERROR; }
+    return Status::OK;
+  }
+
+  Status GenerateMakeRule(const Parser &parser, const std::string &path,
+                          const std::string &filename,
+                          std::string &output) override {
+    (void)parser;
+    (void)path;
+    (void)filename;
+    (void)output;
+    return Status::NOT_IMPLEMENTED;
+  }
+
+  bool IsSchemaOnly() const override { return true; }
+
+  bool SupportsBfbsGeneration() const override { return false; }
+
+  IDLOptions::Language Language() const override { return IDLOptions::kSwift; }
+
+  std::string LanguageName() const override { return "Swift"; }
+};
+}  // namespace
+
+std::unique_ptr<CodeGenerator> NewSwiftCodeGenerator() {
+  return std::unique_ptr<SwiftCodeGenerator>(new SwiftCodeGenerator());
+}
+
 }  // namespace flatbuffers

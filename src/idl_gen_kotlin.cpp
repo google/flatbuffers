@@ -16,6 +16,8 @@
 
 // independent from idl_parser, since this code is not needed for most clients
 
+#include "idl_gen_kotlin.h"
+
 #include <functional>
 #include <unordered_set>
 
@@ -1595,4 +1597,53 @@ bool GenerateKotlin(const Parser &parser, const std::string &path,
   kotlin::KotlinGenerator generator(parser, path, file_name);
   return generator.generate();
 }
+
+namespace {
+
+class KotlinCodeGenerator : public CodeGenerator {
+ public:
+  Status GenerateCode(const Parser &parser, const std::string &path,
+                      const std::string &filename) override {
+    if (!GenerateKotlin(parser, path, filename)) { return Status::ERROR; }
+    return Status::OK;
+  }
+
+  Status GenerateCode(const uint8_t *buffer, int64_t length) override {
+    (void)buffer;
+    (void)length;
+    return Status::NOT_IMPLEMENTED;
+  }
+
+  Status GenerateMakeRule(const Parser &parser, const std::string &path,
+                          const std::string &filename,
+                          std::string &output) override {
+    (void)parser;
+    (void)path;
+    (void)filename;
+    (void)output;
+    return Status::NOT_IMPLEMENTED;
+  }
+
+  Status GenerateGrpcCode(const Parser &parser, const std::string &path,
+                          const std::string &filename) override {
+    (void)parser;
+    (void)path;
+    (void)filename;
+    return Status::NOT_IMPLEMENTED;
+  }
+
+  bool IsSchemaOnly() const override { return true; }
+
+  bool SupportsBfbsGeneration() const override { return false; }
+
+  IDLOptions::Language Language() const override { return IDLOptions::kKotlin; }
+
+  std::string LanguageName() const override { return "Kotlin"; }
+};
+}  // namespace
+
+std::unique_ptr<CodeGenerator> NewKotlinCodeGenerator() {
+  return std::unique_ptr<KotlinCodeGenerator>(new KotlinCodeGenerator());
+}
+
 }  // namespace flatbuffers
