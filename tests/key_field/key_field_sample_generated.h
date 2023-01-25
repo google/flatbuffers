@@ -323,7 +323,7 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) Apple FLATBUFFERS_FINAL_CLASS {
       return rgb_compare_result;
     const auto lhs_color_tag = lhs_color.tag();
     const auto rhs_color_tag = rhs_color.tag();
-    if (lhs_color_tag !=  rhs_color_tag)
+    if (lhs_color_tag != rhs_color_tag)
       return static_cast<int>(lhs_color_tag > rhs_color_tag) - static_cast<int>(lhs_color_tag < rhs_color_tag);
     return 0;
   }
@@ -381,7 +381,7 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) Fruit FLATBUFFERS_FINAL_CLASS {
     const auto &rhs_a = _a;
     const auto lhs_a_tag = lhs_a.tag();
     const auto rhs_a_tag = rhs_a.tag();
-    if (lhs_a_tag !=  rhs_a_tag)
+    if (lhs_a_tag != rhs_a_tag)
       return static_cast<int>(lhs_a_tag > rhs_a_tag) - static_cast<int>(lhs_a_tag < rhs_a_tag);
     const auto rhs_a_color = rhs_a.color();
     const auto color_compare_result = lhs_a.KeyCompareWithValue(rhs_a_color);
@@ -506,8 +506,8 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) Grain FLATBUFFERS_FINAL_CLASS {
   bool KeyCompareLessThan(const Grain * const o) const {
     return KeyCompareWithValue(o->a()) < 0;
   }
-  int KeyCompareWithValue(const ::flatbuffers::Array<keyfield::sample::Rice , 3> *_a) const {
-    const ::flatbuffers::Array<keyfield::sample::Rice , 3> *curr_a = a();
+  int KeyCompareWithValue(const ::flatbuffers::Array<keyfield::sample::Rice, 3> *_a) const {
+    const ::flatbuffers::Array<keyfield::sample::Rice, 3> *curr_a = a();
     for (::flatbuffers::uoffset_t i = 0; i < curr_a->size(); i++) {
       const auto &lhs_a = *(curr_a->Get(i));
       const auto &rhs_a = *(_a->Get(i));
@@ -521,7 +521,7 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) Grain FLATBUFFERS_FINAL_CLASS {
       }
       const auto lhs_a_quantity = lhs_a.quantity();
       const auto rhs_a_quantity = rhs_a.quantity();
-      if (lhs_a_quantity !=  rhs_a_quantity)
+      if (lhs_a_quantity != rhs_a_quantity)
         return static_cast<int>(lhs_a_quantity > rhs_a_quantity) - static_cast<int>(lhs_a_quantity < rhs_a_quantity);
     }
     return 0;
