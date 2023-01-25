@@ -2278,7 +2278,7 @@ class CppGenerator : public BaseGenerator {
       code_ +=
           space + "const auto {{RHS}} = {{RHS_PREFIX}}.{{CURR_FIELD_NAME}}();";
       if (is_scalar) {
-        code_ += space + "if ({{LHS}} !=  {{RHS}})";
+        code_ += space + "if ({{LHS}} != {{RHS}})";
         code_ += space +
                  "  return static_cast<int>({{LHS}} > {{RHS}}) - "
                  "static_cast<int>({{LHS}} < {{RHS}});";
@@ -2343,7 +2343,7 @@ class CppGenerator : public BaseGenerator {
     } else if (is_array) {
       const auto &elem_type = field.value.type.VectorType();
       std::string input_type = "::flatbuffers::Array<" +
-                               GenTypeGet(elem_type, "", "", " ", false) +
+                               GenTypeGet(elem_type, "", "", "", false) +
                                ", " + NumToString(elem_type.fixed_length) + ">";
       code_.SetValue("INPUT_TYPE", input_type);
       code_ +=
