@@ -85,6 +85,8 @@ table Field {
     optional:bool = false;
     /// Number of padding octets to always add after this field. Structs only.
     padding:uint16 = 0; 
+    /// If the field uses 64-bit offsets.
+    offset64:bool = false;
 }
 
 table Object {  // Used for both tables and structs.

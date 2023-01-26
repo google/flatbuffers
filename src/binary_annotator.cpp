@@ -659,24 +659,19 @@ void BinaryAnnotator::BuildTable(const uint64_t table_offset,
     }
 
     // Read the offset
-    const bool offset64 = true;
-        // field->attributes()->LookupByKey("offset64") != nullptr;
-
     uint64_t offset = 0;
     bool has_offset_from = false;
-    uint64_t length = 0;
+    uint64_t length = sizeof(uint32_t);
     BinaryRegionType type = BinaryRegionType::UOffset;
 
-    if (offset64) {
+    if (field->offset64()) {
       length = sizeof(uint64_t);
       type = BinaryRegionType::UOffset64;
       const auto offset_from_field = ReadScalar<uint64_t>(field_offset);
       if ((has_offset_from = offset_from_field.has_value())) {
         offset = offset_from_field.value();
-        std::cout << "reading 64 bit offset: " << offset << std::endl;
       }
     } else {
-      length = sizeof(uint32_t);
       const auto offset_from_field = ReadScalar<uint32_t>(field_offset);
       if ((has_offset_from = offset_from_field.has_value())) {
         offset = offset_from_field.value();

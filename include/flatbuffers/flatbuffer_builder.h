@@ -157,7 +157,7 @@ class FlatBufferBuilder {
   }
 
   /// @brief The current size of the serialized buffer, counting from the end.
-  /// @return Returns an `uoffset_t` with the current size of the buffer.
+  /// @return Returns an `size_t` with the current size of the buffer.
   uoffset_t GetSize() const { return buf_.size(); }
 
   /// @brief Get the serialized buffer (after you call `Finish()`).
