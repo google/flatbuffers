@@ -96,8 +96,7 @@ class NimBfbsGenerator : public BaseBfbsGenerator {
         flatc_version_(flatc_version),
         namer_(NimDefaultConfig(), NimKeywords()) {}
 
-  GeneratorStatus GenerateFromSchema(const r::Schema *schema)
-      FLATBUFFERS_OVERRIDE {
+  Status GenerateFromSchema(const r::Schema *schema) FLATBUFFERS_OVERRIDE {
     ForAllEnums(schema->enums(), [&](const r::Enum *enum_def) {
       StartCodeBlock(enum_def);
       GenerateEnum(enum_def);
@@ -108,6 +107,40 @@ class NimBfbsGenerator : public BaseBfbsGenerator {
     });
     return OK;
   }
+
+  Status GenerateCode(const Parser &parser, const std::string &path,
+                      const std::string &filename) override {
+    (void)parser;
+    (void)path;
+    (void)filename;
+    return NOT_IMPLEMENTED;
+  }
+
+  Status GenerateMakeRule(const Parser &parser, const std::string &path,
+                          const std::string &filename,
+                          std::string &output) override {
+    (void)parser;
+    (void)path;
+    (void)filename;
+    (void)output;
+    return NOT_IMPLEMENTED;
+  }
+
+  Status GenerateGrpcCode(const Parser &parser, const std::string &path,
+                          const std::string &filename) override {
+    (void)parser;
+    (void)path;
+    (void)filename;
+    return NOT_IMPLEMENTED;
+  }
+
+  bool IsSchemaOnly() const override { return true; }
+
+  bool SupportsBfbsGeneration() const override { return true; }
+
+  IDLOptions::Language Language() const override { return IDLOptions::kNim; }
+
+  std::string LanguageName() const override { return "Nim"; }
 
   uint64_t SupportedAdvancedFeatures() const FLATBUFFERS_OVERRIDE {
     return r::AdvancedArrayFeatures | r::AdvancedUnionFeatures |
@@ -472,9 +505,11 @@ class NimBfbsGenerator : public BaseBfbsGenerator {
     if (IsFloatingPoint(base_type)) {
       if (field->default_real() != field->default_real()) {
         return "NaN";
-      } else if (field->default_real() == std::numeric_limits<double>::infinity()) {
+      } else if (field->default_real() ==
+                 std::numeric_limits<double>::infinity()) {
         return "Inf";
-      } else if (field->default_real() == -std::numeric_limits<double>::infinity()) {
+      } else if (field->default_real() ==
+                 -std::numeric_limits<double>::infinity()) {
         return "-Inf";
       }
       return NumToString(field->default_real());
@@ -639,7 +674,7 @@ class NimBfbsGenerator : public BaseBfbsGenerator {
 };
 }  // namespace
 
-std::unique_ptr<BfbsGenerator> NewNimBfbsGenerator(
+std::unique_ptr<CodeGenerator> NewNimBfbsGenerator(
     const std::string &flatc_version) {
   return std::unique_ptr<NimBfbsGenerator>(new NimBfbsGenerator(flatc_version));
 }
