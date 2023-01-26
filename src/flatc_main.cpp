@@ -70,34 +70,8 @@ void LogCompilerError(const std::string &err) {
 int main(int argc, const char *argv[]) {
   const std::string flatbuffers_version(flatbuffers::FLATBUFFERS_VERSION());
 
-  std::unique_ptr<flatbuffers::BfbsGenerator> bfbs_gen_lua =
-      flatbuffers::NewLuaBfbsGenerator(flatbuffers_version);
-  std::unique_ptr<flatbuffers::BfbsGenerator> bfbs_gen_nim =
-      flatbuffers::NewNimBfbsGenerator(flatbuffers_version);
-
   g_program_name = argv[0];
 
-  const flatbuffers::FlatCompiler::Generator generators[] = {
-    { flatbuffers::GenerateTextFile, "text", false, nullptr,
-      flatbuffers::IDLOptions::kJson,
-      flatbuffers::FlatCOption{
-          "t", "json", "", "Generate text output for any data definitions" },
-
-      flatbuffers::TextMakeRule, nullptr, nullptr },
-    { flatbuffers::GenerateLua, "Lua", true, nullptr,
-      flatbuffers::IDLOptions::kLua,
-      flatbuffers::FlatCOption{ "l", "lua", "",
-                                "Generate Lua files for tables/structs" },
-      nullptr, bfbs_gen_lua.get(), nullptr },
-    { nullptr, "Nim", true, nullptr, flatbuffers::IDLOptions::kNim,
-      flatbuffers::FlatCOption{ "", "nim", "",
-                                "Generate Nim files for tables/structs" },
-      nullptr, bfbs_gen_nim.get(), nullptr },
-  };
-
-  flatbuffers::FlatCompiler::InitParams params;
-  params.generators = generators;
-  params.num_generators = sizeof(generators) / sizeof(generators[0]);
   params.warn_fn = Warn;
   params.error_fn = Error;
 
