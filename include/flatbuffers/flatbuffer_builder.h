@@ -37,12 +37,6 @@
 
 namespace flatbuffers {
 
-// namespace internal {
-// template<typename SizeT = uoffset_t> class FlatBufferBuilder_;
-// }
-
-
-
 // Converts a Field ID to a virtual table offset.
 inline voffset_t FieldIndexToOffset(voffset_t field_id) {
   // Should correspond to what EndTable() below builds up.
@@ -65,19 +59,18 @@ T *data(std::vector<T, Alloc> &v) {
   return v.empty() ? reinterpret_cast<T *>(&t) : &v.front();
 }
 
-
 /// @addtogroup flatbuffers_cpp_api
 /// @{
-/// @class FlatBufferBuilder_
+/// @class FlatBufferBuilder
 /// @brief Helper class to hold data needed in creation of a FlatBuffer.
 /// To serialize data, you typically call one of the `Create*()` functions in
 /// the generated code, which in turn call a sequence of `StartTable`/
 /// `PushElement`/`AddElement`/`EndTable`, or the builtin `CreateString`/
 /// `CreateVector` functions. Do this is depth-first order to build up a tree to
 /// the root. `Finish()` wraps up the buffer ready for transport.
-template<typename SizeT> class FlatBufferBuilder_ {
+class FlatBufferBuilder {
  public:
-  /// @brief Default constructor for FlatBufferBuilder_.
+  /// @brief Default constructor for FlatBufferBuilder.
   /// @param[in] initial_size The initial size of the buffer, in bytes. Defaults
   /// to `1024`.
   /// @param[in] allocator An `Allocator` to use. If null will use
@@ -88,7 +81,7 @@ template<typename SizeT> class FlatBufferBuilder_ {
   /// minimum alignment upon reallocation. Only needed if you intend to store
   /// types with custom alignment AND you wish to read the buffer in-place
   /// directly after creation.
-  explicit FlatBufferBuilder_(
+  explicit FlatBufferBuilder(
       size_t initial_size = 1024, Allocator *allocator = nullptr,
       bool own_allocator = false,
       size_t buffer_minalign = AlignOf<largest_scalar_t>())
@@ -104,8 +97,8 @@ template<typename SizeT> class FlatBufferBuilder_ {
     EndianCheck();
   }
 
-  /// @brief Move constructor for FlatBufferBuilder_.
-  FlatBufferBuilder_(FlatBufferBuilder_ &&other) noexcept
+  /// @brief Move constructor for FlatBufferBuilder.
+  FlatBufferBuilder(FlatBufferBuilder &&other) noexcept
       : buf_(1024, nullptr, false, AlignOf<largest_scalar_t>()),
         num_field_loc(0),
         max_voffset_(0),
@@ -122,15 +115,15 @@ template<typename SizeT> class FlatBufferBuilder_ {
     Swap(other);
   }
 
-  /// @brief Move assignment operator for FlatBufferBuilder_.
-  FlatBufferBuilder_ &operator=(FlatBufferBuilder_ &&other) noexcept {
+  /// @brief Move assignment operator for FlatBufferBuilder.
+  FlatBufferBuilder &operator=(FlatBufferBuilder &&other) noexcept {
     // Move construct a temporary and swap idiom
-    FlatBufferBuilder_ temp(std::move(other));
+    FlatBufferBuilder temp(std::move(other));
     Swap(temp);
     return *this;
   }
 
-  void Swap(FlatBufferBuilder_ &other) {
+  void Swap(FlatBufferBuilder &other) {
     using std::swap;
     buf_.swap(other.buf_);
     swap(num_field_loc, other.num_field_loc);
@@ -143,7 +136,7 @@ template<typename SizeT> class FlatBufferBuilder_ {
     swap(string_pool, other.string_pool);
   }
 
-  ~FlatBufferBuilder_() {
+  ~FlatBufferBuilder() {
     if (string_pool) delete string_pool;
   }
 
@@ -152,7 +145,7 @@ template<typename SizeT> class FlatBufferBuilder_ {
     buf_.reset();  // deallocate buffer
   }
 
-  /// @brief Reset all the state in this FlatBufferBuilder_ so it can be reused
+  /// @brief Reset all the state in this FlatBufferBuilder so it can be reused
   /// to construct another buffer.
   void Clear() {
     ClearOffsets();
@@ -188,7 +181,7 @@ template<typename SizeT> class FlatBufferBuilder_ {
   uint8_t *GetCurrentBufferPointer() const { return buf_.data(); }
 
   /// @brief Get the released pointer to the serialized buffer.
-  /// @warning Do NOT attempt to use this FlatBufferBuilder_ afterwards!
+  /// @warning Do NOT attempt to use this FlatBufferBuilder afterwards!
   /// @return A `FlatBuffer` that owns the buffer and its allocator and
   /// behaves similar to a `unique_ptr` with a deleter.
   FLATBUFFERS_ATTRIBUTE([[deprecated("use Release() instead")]])
@@ -232,7 +225,7 @@ template<typename SizeT> class FlatBufferBuilder_ {
   void Finished() const {
     // If you get this assert, you're attempting to get access a buffer
     // which hasn't been finished yet. Be sure to call
-    // FlatBufferBuilder_::Finish with your root table.
+    // FlatBufferBuilder::Finish with your root table.
     // If you really need to access an unfinished buffer, call
     // GetCurrentBufferPointer instead.
     FLATBUFFERS_ASSERT(finished);
@@ -1132,7 +1125,7 @@ template<typename SizeT> class FlatBufferBuilder_ {
     Finish(root.o, file_identifier, true);
   }
 
-  void SwapBufAllocator(FlatBufferBuilder_ &other) {
+  void SwapBufAllocator(FlatBufferBuilder &other) {
     buf_.swap_allocator(other.buf_);
   }
 
@@ -1142,8 +1135,8 @@ template<typename SizeT> class FlatBufferBuilder_ {
 
  protected:
   // You shouldn't really be copying instances of this class.
-  FlatBufferBuilder_(const FlatBufferBuilder_ &);
-  FlatBufferBuilder_ &operator=(const FlatBufferBuilder_ &);
+  FlatBufferBuilder(const FlatBufferBuilder &);
+  FlatBufferBuilder &operator=(const FlatBufferBuilder &);
 
   void Finish(uoffset_t root, const char *file_identifier, bool size_prefix) {
     NotNested();
@@ -1167,7 +1160,7 @@ template<typename SizeT> class FlatBufferBuilder_ {
     voffset_t id;
   };
 
-  internal::vector_downward_<SizeT> buf_;
+  vector_downward buf_;
 
   // Accumulating offsets of table members while it is being built.
   // We store these in the scratch pad of buf_, after the vtable offsets.
@@ -1220,9 +1213,6 @@ template<typename SizeT> class FlatBufferBuilder_ {
   }
 };
 /// @}
-
-// Hack to support C++11 with default template parameters.
-using FlatBufferBuilder = FlatBufferBuilder_<uoffset_t>;
 
 /// Helpers to get a typed pointer to objects that are currently being built.
 /// @warning Creating new objects will lead to reallocations and invalidates

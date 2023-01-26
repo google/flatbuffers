@@ -15,13 +15,13 @@ class TestHeapBuilder : public flatbuffers::FlatBufferBuilder {
 
  public:
   TestHeapBuilder()
-      : FlatBufferBuilder_(2048, new OwnedAllocator(), true) {}
+      : FlatBufferBuilder(2048, new OwnedAllocator(), true) {}
 
   TestHeapBuilder(TestHeapBuilder &&other)
-      : FlatBufferBuilder_(std::move(other)) {}
+      : FlatBufferBuilder(std::move(other)) {}
 
   TestHeapBuilder &operator=(TestHeapBuilder &&other) {
-    FlatBufferBuilder_::operator=(std::move(other));
+    FlatBufferBuilder::operator=(std::move(other));
     return *this;
   }
 };
@@ -39,10 +39,10 @@ struct GrpcLikeMessageBuilder : private AllocatorMember,
 
  public:
   GrpcLikeMessageBuilder()
-      : FlatBufferBuilder_(1024, &member_allocator_, false) {}
+      : FlatBufferBuilder(1024, &member_allocator_, false) {}
 
   GrpcLikeMessageBuilder(GrpcLikeMessageBuilder &&other)
-      : FlatBufferBuilder_(1024, &member_allocator_, false) {
+      : FlatBufferBuilder(1024, &member_allocator_, false) {
     // Default construct and swap idiom.
     Swap(other);
   }
@@ -56,7 +56,7 @@ struct GrpcLikeMessageBuilder : private AllocatorMember,
 
   void Swap(GrpcLikeMessageBuilder &other) {
     // No need to swap member_allocator_ because it's stateless.
-    FlatBufferBuilder_::Swap(other);
+    FlatBufferBuilder::Swap(other);
     // After swapping the FlatBufferBuilder, we swap back the allocator, which
     // restores the original allocator back in place. This is necessary because
     // MessageBuilder's allocator is its own member (SliceAllocatorMember). The
