@@ -1,0 +1,6 @@
+table RootTable {
+  big_vector:[ubyte] (offset64);
+  a:int;
+}
+
+root_type RootTable; 

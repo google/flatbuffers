@@ -1,0 +1,25 @@
+// Annotated Flatbuffer Binary
+//
+// Schema file: tests/64bit/test_64bit.fbs
+// Binary file: tests/64bit/test_64bit.bin
+
+header:
+  +0x00 | 0C 00 00 00             | UOffset32  | 0x0000000C (12) Loc: +0x0C         | offset to root table `RootTable`
+
+vtable (RootTable):
+  +0x04 | 08 00                   | uint16_t   | 0x0008 (8)                         | size of this vtable
+  +0x06 | 14 00                   | uint16_t   | 0x0014 (20)                        | size of referring table
+  +0x08 | 04 00                   | VOffset16  | 0x0004 (4)                         | offset to field `big_vector` (id: 0)
+  +0x0A | 10 00                   | VOffset16  | 0x0010 (16)                        | offset to field `a` (id: 1)
+
+root_table (RootTable):
+  +0x0C | 08 00 00 00             | SOffset32  | 0x00000008 (8) Loc: +0x04          | offset to vtable
+  +0x10 | 10 00 00 00 00 00 00 00 | UOffset64  | 0x0000000000000010 (16) Loc: +0x20 | offset to field `big_vector` (vector)
+  +0x18 | 00 00 00 00             | uint8_t[4] | ....                               | padding
+  +0x1C | D2 04 00 00             | uint32_t   | 0x000004D2 (1234)                  | table field `a` (Int)
+
+vector (RootTable.big_vector):
+  +0x20 | 03 00 00 00             | uint32_t   | 0x00000003 (3)                     | length of vector (# items)
+  +0x24 | 01                      | uint8_t    | 0x01 (1)                           | value[0]
+  +0x25 | 02                      | uint8_t    | 0x02 (2)                           | value[1]
+  +0x26 | 03                      | uint8_t    | 0x03 (3)                           | value[2]

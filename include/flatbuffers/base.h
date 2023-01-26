@@ -324,6 +324,8 @@ namespace flatbuffers {
 // offset values between 32bit and 64bit systems.
 typedef uint32_t uoffset_t;
 
+typedef uint64_t uoffset64_t;
+
 // Signed offsets for references that can go in both directions.
 typedef int32_t soffset_t;
 

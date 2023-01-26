@@ -766,12 +766,15 @@ class CppGenerator : public BaseGenerator {
   // Return a C++ type for any type (scalar/pointer) specifically for
   // building a flatbuffer.
   std::string GenTypeWire(const Type &type, const char *postfix,
-                          bool user_facing_type) const {
+                          bool user_facing_type, bool _64_bit_offset = false) const {
     if (IsScalar(type.base_type)) {
       return GenTypeBasic(type, user_facing_type) + postfix;
     } else if (IsStruct(type)) {
       return "const " + GenTypePointer(type) + " *";
     } else {
+      if(_64_bit_offset) {
+        return "::flatbuffers::Offset64<" + GenTypePointer(type) + ">" + postfix;
+      }
       return "::flatbuffers::Offset<" + GenTypePointer(type) + ">" + postfix;
     }
   }
@@ -2896,8 +2899,9 @@ class CppGenerator : public BaseGenerator {
       // void add_name(type name) {
       //   fbb_.AddElement<type>(offset, name, default);
       // }
+      const bool is_offset_64 = field.attributes.Lookup("offset64");
       code_.SetValue("FIELD_NAME", Name(field));
-      code_.SetValue("FIELD_TYPE", GenTypeWire(field.value.type, " ", true));
+      code_.SetValue("FIELD_TYPE", GenTypeWire(field.value.type, " ", true, is_offset_64));
       code_.SetValue("ADD_OFFSET", Name(struct_def) + "::" + offset);
       code_.SetValue("ADD_NAME", name);
       code_.SetValue("ADD_VALUE", value);

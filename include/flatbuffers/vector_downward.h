@@ -25,16 +25,24 @@
 
 namespace flatbuffers {
 
+namespace internal {
+template<typename SizeT = uoffset_t> class vector_downward_;
+}
+
+// Hack to support C++11 with default template parameters.
+using vector_downward = internal::vector_downward_<>;
+
+namespace internal {
 // This is a minimal replication of std::vector<uint8_t> functionality,
 // except growing from higher to lower addresses. i.e. push_back() inserts data
 // in the lowest address in the vector.
 // Since this vector leaves the lower part unused, we support a "scratch-pad"
 // that can be stored there for temporary data, to share the allocated space.
 // Essentially, this supports 2 std::vectors in a single buffer.
-class vector_downward {
+template<typename SizeT> class vector_downward_ {
  public:
-  explicit vector_downward(size_t initial_size, Allocator *allocator,
-                           bool own_allocator, size_t buffer_minalign)
+  explicit vector_downward_(size_t initial_size, Allocator *allocator,
+                            bool own_allocator, size_t buffer_minalign)
       : allocator_(allocator),
         own_allocator_(own_allocator),
         initial_size_(initial_size),
@@ -45,7 +53,7 @@ class vector_downward {
         cur_(nullptr),
         scratch_(nullptr) {}
 
-  vector_downward(vector_downward &&other) noexcept
+  vector_downward_(vector_downward_ &&other) noexcept
       // clang-format on
       : allocator_(other.allocator_),
         own_allocator_(other.own_allocator_),
@@ -66,14 +74,14 @@ class vector_downward {
     other.scratch_ = nullptr;
   }
 
-  vector_downward &operator=(vector_downward &&other) noexcept {
+  vector_downward_ &operator=(vector_downward_ &&other) noexcept {
     // Move construct a temporary and swap idiom
-    vector_downward temp(std::move(other));
+    vector_downward_ temp(std::move(other));
     swap(temp);
     return *this;
   }
 
-  ~vector_downward() {
+  ~vector_downward_() {
     clear_buffer();
     clear_allocator();
   }
@@ -147,7 +155,7 @@ class vector_downward {
     if (len) {
       ensure_space(len);
       cur_ -= len;
-      size_ += static_cast<uoffset_t>(len);
+      size_ += static_cast<SizeT>(len);
     }
     return cur_;
   }
@@ -155,11 +163,9 @@ class vector_downward {
   // Returns nullptr if using the DefaultAllocator.
   Allocator *get_custom_allocator() { return allocator_; }
 
-  inline uoffset_t size() const { return size_; }
+  inline SizeT size() const { return size_; }
 
-  uoffset_t scratch_size() const {
-    return static_cast<uoffset_t>(scratch_ - buf_);
-  }
+  SizeT scratch_size() const { return static_cast<SizeT>(scratch_ - buf_); }
 
   size_t capacity() const { return reserved_; }
 
@@ -211,12 +217,12 @@ class vector_downward {
 
   void pop(size_t bytes_to_remove) {
     cur_ += bytes_to_remove;
-    size_ -= static_cast<uoffset_t>(bytes_to_remove);
+    size_ -= bytes_to_remove;
   }
 
   void scratch_pop(size_t bytes_to_remove) { scratch_ -= bytes_to_remove; }
 
-  void swap(vector_downward &other) {
+  void swap(vector_downward_ &other) {
     using std::swap;
     swap(allocator_, other.allocator_);
     swap(own_allocator_, other.own_allocator_);
@@ -229,7 +235,7 @@ class vector_downward {
     swap(scratch_, other.scratch_);
   }
 
-  void swap_allocator(vector_downward &other) {
+  void swap_allocator(vector_downward_ &other) {
     using std::swap;
     swap(allocator_, other.allocator_);
     swap(own_allocator_, other.own_allocator_);
@@ -237,15 +243,16 @@ class vector_downward {
 
  private:
   // You shouldn't really be copying instances of this class.
-  FLATBUFFERS_DELETE_FUNC(vector_downward(const vector_downward &));
-  FLATBUFFERS_DELETE_FUNC(vector_downward &operator=(const vector_downward &));
+  FLATBUFFERS_DELETE_FUNC(vector_downward_(const vector_downward_ &));
+  FLATBUFFERS_DELETE_FUNC(
+      vector_downward_ &operator=(const vector_downward_ &));
 
   Allocator *allocator_;
   bool own_allocator_;
   size_t initial_size_;
   size_t buffer_minalign_;
   size_t reserved_;
-  uoffset_t size_;
+  SizeT size_;
   uint8_t *buf_;
   uint8_t *cur_;  // Points at location between empty (below) and used (above).
   uint8_t *scratch_;  // Points to the end of the scratchpad in use.
@@ -268,6 +275,7 @@ class vector_downward {
   }
 };
 
+}  // namespace internal
 }  // namespace flatbuffers
 
 #endif  // FLATBUFFERS_VECTOR_DOWNWARD_H_

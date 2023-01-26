@@ -33,6 +33,14 @@ template<typename T> struct Offset {
   bool IsNull() const { return !o; }
 };
 
+template<typename T> struct Offset64 {
+  uoffset64_t o;
+  Offset64() : o(0) {}
+  Offset64(uoffset64_t _o) : o(_o) {}
+  Offset64<void> Union() const { return Offset64<void>(o); }
+  bool IsNull() const { return !o; }
+};
+
 inline void EndianCheck() {
   int endiantest = 1;
   // If this fails, see FLATBUFFERS_LITTLEENDIAN above.
@@ -42,7 +50,7 @@ inline void EndianCheck() {
 }
 
 template<typename T> FLATBUFFERS_CONSTEXPR size_t AlignOf() {
-  // clang-format off
+// clang-format off
   #ifdef _MSC_VER
     return __alignof(T);
   #else

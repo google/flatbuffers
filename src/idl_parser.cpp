@@ -19,8 +19,10 @@
 #include <list>
 #include <string>
 #include <utility>
+#include <iostream>
 
 #include "flatbuffers/base.h"
+#include "flatbuffers/buffer.h"
 #include "flatbuffers/idl.h"
 #include "flatbuffers/util.h"
 
@@ -1036,6 +1038,8 @@ CheckedError Parser::ParseField(StructDef &struct_def) {
     }
   }
 
+  field->offset64 = field->attributes.Lookup("offset64") != nullptr;
+
   // For historical convenience reasons, string keys are assumed required.
   // Scalars are kDefault unless otherwise specified.
   // Nonscalars are kOptional unless required;
@@ -1529,6 +1533,7 @@ CheckedError Parser::ParseTable(const StructDef &struct_def, std::string *value,
                   CTYPE val, valdef; \
                   ECHECK(atot(field_value.constant.c_str(), *this, &val)); \
                   ECHECK(atot(field->value.constant.c_str(), *this, &valdef)); \
+                  std::cout << "adding element: " << field->name << " val: " << field_value.offset <<  " 64-bit: " << field->offset64 << std::endl; \
                   builder_.AddElement(field_value.offset, val, valdef); \
                 } \
               } \
@@ -1543,7 +1548,13 @@ CheckedError Parser::ParseTable(const StructDef &struct_def, std::string *value,
               } else { \
                 CTYPE val; \
                 ECHECK(atot(field_value.constant.c_str(), *this, &val)); \
-                builder_.AddOffset(field_value.offset, val); \
+                std::cout << "adding offset: " << field->name << " val: " << val.o <<  " 64-bit: " << field->offset64 << std::endl; \
+                if(field->offset64) { \
+                  Offset64<void> offset(val.o); \
+                  builder_.AddOffset(field_value.offset, offset); \
+                } else { \
+                  builder_.AddOffset(field_value.offset, val); \
+                }\
               } \
               break;
             FLATBUFFERS_GEN_TYPES_POINTER(FLATBUFFERS_TD)

@@ -1,6 +1,9 @@
 #include "binary_annotator.h"
 
+#include <bits/stdint-uintn.h>
+
 #include <algorithm>
+#include <iostream>
 #include <limits>
 #include <string>
 #include <vector>
@@ -656,7 +659,30 @@ void BinaryAnnotator::BuildTable(const uint64_t table_offset,
     }
 
     // Read the offset
-    const auto offset_from_field = ReadScalar<uint32_t>(field_offset);
+    const bool offset64 = true;
+        // field->attributes()->LookupByKey("offset64") != nullptr;
+
+    uint64_t offset = 0;
+    bool has_offset_from = false;
+    uint64_t length = 0;
+    BinaryRegionType type = BinaryRegionType::UOffset;
+
+    if (offset64) {
+      length = sizeof(uint64_t);
+      type = BinaryRegionType::UOffset64;
+      const auto offset_from_field = ReadScalar<uint64_t>(field_offset);
+      if ((has_offset_from = offset_from_field.has_value())) {
+        offset = offset_from_field.value();
+        std::cout << "reading 64 bit offset: " << offset << std::endl;
+      }
+    } else {
+      length = sizeof(uint32_t);
+      const auto offset_from_field = ReadScalar<uint32_t>(field_offset);
+      if ((has_offset_from = offset_from_field.has_value())) {
+        offset = offset_from_field.value();
+      }
+    }
+    // const auto offset_from_field = ReadScalar<uint32_t>(field_offset);
     uint64_t offset_of_next_item = 0;
     BinaryRegionComment offset_field_comment;
     offset_field_comment.type = BinaryRegionCommentType::TableOffsetField;
@@ -666,7 +692,7 @@ void BinaryAnnotator::BuildTable(const uint64_t table_offset,
 
     // Validate any field that isn't inline (i.e., non-structs).
     if (!IsInlineField(field)) {
-      if (!offset_from_field.has_value()) {
+      if (!has_offset_from) {
         const uint64_t remaining = RemainingBytes(field_offset);
 
         SetError(offset_field_comment,
@@ -678,14 +704,14 @@ void BinaryAnnotator::BuildTable(const uint64_t table_offset,
         continue;
       }
 
-      offset_of_next_item = field_offset + offset_from_field.value();
+      offset_of_next_item = field_offset + offset;
 
       if (!IsValidOffset(offset_of_next_item)) {
         SetError(offset_field_comment,
                  BinaryRegionStatus::ERROR_OFFSET_OUT_OF_BINARY);
-        regions.push_back(MakeBinaryRegion(
-            field_offset, sizeof(uint32_t), BinaryRegionType::UOffset, 0,
-            offset_of_next_item, offset_field_comment));
+        regions.push_back(
+            MakeBinaryRegion(field_offset, length, type, 0,
+                             offset_of_next_item, offset_field_comment));
         continue;
       }
     }
@@ -703,7 +729,7 @@ void BinaryAnnotator::BuildTable(const uint64_t table_offset,
           offset_field_comment.default_value = "(table)";
 
           regions.push_back(MakeBinaryRegion(
-              field_offset, sizeof(uint32_t), BinaryRegionType::UOffset, 0,
+              field_offset, length, type, 0,
               offset_of_next_item, offset_field_comment));
 
           BuildTable(offset_of_next_item, BinarySectionType::Table,
@@ -714,7 +740,7 @@ void BinaryAnnotator::BuildTable(const uint64_t table_offset,
       case reflection::BaseType::String: {
         offset_field_comment.default_value = "(string)";
         regions.push_back(MakeBinaryRegion(
-            field_offset, sizeof(uint32_t), BinaryRegionType::UOffset, 0,
+            field_offset, length, type, 0,
             offset_of_next_item, offset_field_comment));
         BuildString(offset_of_next_item, table, field);
       } break;
@@ -722,7 +748,7 @@ void BinaryAnnotator::BuildTable(const uint64_t table_offset,
       case reflection::BaseType::Vector: {
         offset_field_comment.default_value = "(vector)";
         regions.push_back(MakeBinaryRegion(
-            field_offset, sizeof(uint32_t), BinaryRegionType::UOffset, 0,
+            field_offset, length, type, 0,
             offset_of_next_item, offset_field_comment));
         BuildVector(offset_of_next_item, table, field, table_offset,
                     vtable->fields);
@@ -768,8 +794,8 @@ void BinaryAnnotator::BuildTable(const uint64_t table_offset,
         offset_field_comment.default_value =
             "(union of type `" + enum_type + "`)";
 
-        regions.push_back(MakeBinaryRegion(field_offset, sizeof(uint32_t),
-                                           BinaryRegionType::UOffset, 0,
+        regions.push_back(MakeBinaryRegion(field_offset, length,
+                                           type, 0,
                                            union_offset, offset_field_comment));
 
       } break;

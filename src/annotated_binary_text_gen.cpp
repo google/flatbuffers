@@ -1,4 +1,5 @@
 #include "annotated_binary_text_gen.h"
+#include <bits/stdint-uintn.h>
 
 #include <algorithm>
 #include <fstream>
@@ -44,7 +45,9 @@ static std::string ToString(const BinarySectionType type) {
 }
 
 static bool IsOffset(const BinaryRegionType type) {
-  return type == BinaryRegionType::UOffset || type == BinaryRegionType::SOffset;
+  return type == BinaryRegionType::UOffset ||
+         type == BinaryRegionType::SOffset ||
+         type == BinaryRegionType::UOffset64;
 }
 
 template<typename T> std::string ToString(T value) {
@@ -119,6 +122,9 @@ static std::string ToValueString(const BinaryRegion &region,
     case BinaryRegionType::UType: return ToValueString<uint8_t>(region, binary);
 
     // Handle Offsets separately, incase they add additional details.
+    case BinaryRegionType::UOffset64:
+      s += ToValueString<uint64_t>(region, binary);
+      break;
     case BinaryRegionType::UOffset:
       s += ToValueString<uint32_t>(region, binary);
       break;

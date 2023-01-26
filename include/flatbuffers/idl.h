@@ -326,6 +326,7 @@ struct FieldDef : public Definition {
         shared(false),
         native_inline(false),
         flexbuffer(false),
+        offset64(false),
         presence(kDefault),
         nested_flatbuffer(nullptr),
         padding(0),
@@ -352,6 +353,7 @@ struct FieldDef : public Definition {
   bool native_inline;  // Field will be defined inline (instead of as a pointer)
                        // for native tables if field is a struct.
   bool flexbuffer;     // This field contains FlexBuffer data.
+  bool offset64;
 
   enum Presence {
     // Field must always be present.
@@ -952,6 +954,7 @@ class Parser : public ParserState {
     known_attributes_["native_default"] = true;
     known_attributes_["flexbuffer"] = true;
     known_attributes_["private"] = true;
+    known_attributes_["offset64"] = true;
   }
 
   // Copying is not allowed
