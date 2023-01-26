@@ -248,7 +248,7 @@ int main(int argc, const char *argv[]) {
   flatc.RegisterCodeGenerator("--rust", rust_generator);
   flatc.RegisterCodeGenerator("-r", rust_generator);
 
-  flatc.RegisterCodeGenerator("--swift", rust_generator);
+  flatc.RegisterCodeGenerator("--swift", swift_generator);
 
   flatc.RegisterCodeGenerator("--ts", ts_generator);
   flatc.RegisterCodeGenerator("-T", ts_generator);
