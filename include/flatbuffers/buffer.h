@@ -36,7 +36,7 @@ template<typename T> struct Offset {
 template<typename T> struct Offset64 {
   uoffset64_t o;
   Offset64() : o(0) {}
-  Offset64(uoffset64_t _o) : o(_o) {}
+  explicit Offset64(const uoffset64_t offset) : o(offset) {}
   Offset64<void> Union() const { return Offset64<void>(o); }
   bool IsNull() const { return !o; }
 };

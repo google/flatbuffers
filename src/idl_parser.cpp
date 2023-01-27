@@ -16,10 +16,10 @@
 
 #include <algorithm>
 #include <cmath>
+#include <iostream>
 #include <list>
 #include <string>
 #include <utility>
-#include <iostream>
 
 #include "flatbuffers/base.h"
 #include "flatbuffers/buffer.h"
@@ -123,6 +123,14 @@ CheckedError atot<Offset<void>>(const char *s, Parser &parser,
                                 Offset<void> *val) {
   (void)parser;
   *val = Offset<void>(atoi(s));
+  return NoError();
+}
+
+template<>
+CheckedError atot<Offset64<void>>(const char *s, Parser &parser,
+                                  Offset64<void> *val) {
+  (void)parser;
+  *val = Offset64<void>(atoi(s));
   return NoError();
 }
 
@@ -959,11 +967,11 @@ CheckedError Parser::ParseField(StructDef &struct_def) {
   ECHECK(AddField(struct_def, name, type, &field));
 
   if (typefield) {
-     // We preserve the relation between the typefield
-     // and field, so we can easily map it in the code
-     // generators.
-     typefield->sibling_union_field = field;
-     field->sibling_union_field = typefield;
+    // We preserve the relation between the typefield
+    // and field, so we can easily map it in the code
+    // generators.
+    typefield->sibling_union_field = field;
+    field->sibling_union_field = typefield;
   }
 
   if (token_ == '=') {
@@ -1038,6 +1046,7 @@ CheckedError Parser::ParseField(StructDef &struct_def) {
     }
   }
 
+  // Record that this field uses 64-bit offsets.
   field->offset64 = field->attributes.Lookup("offset64") != nullptr;
 
   // For historical convenience reasons, string keys are assumed required.
@@ -1062,7 +1071,8 @@ CheckedError Parser::ParseField(StructDef &struct_def) {
   if (field->key) {
     if (struct_def.has_key) return Error("only one field may be set as 'key'");
     struct_def.has_key = true;
-    auto is_valid = IsScalar(type.base_type) || IsString(type) || IsStruct(type);
+    auto is_valid =
+        IsScalar(type.base_type) || IsString(type) || IsStruct(type);
     if (IsArray(type)) {
       is_valid |=
           IsScalar(type.VectorType().base_type) || IsStruct(type.VectorType());
@@ -1514,7 +1524,7 @@ CheckedError Parser::ParseTable(const StructDef &struct_def, std::string *value,
       if (!struct_def.sortbysize ||
           size == SizeOf(field_value.type.base_type)) {
         switch (field_value.type.base_type) {
-// clang-format off
+          // clang-format off
           #define FLATBUFFERS_TD(ENUM, IDLTYPE, CTYPE, ...) \
             case BASE_TYPE_ ## ENUM: \
               builder_.Pad(field->padding); \
@@ -1533,7 +1543,6 @@ CheckedError Parser::ParseTable(const StructDef &struct_def, std::string *value,
                   CTYPE val, valdef; \
                   ECHECK(atot(field_value.constant.c_str(), *this, &val)); \
                   ECHECK(atot(field->value.constant.c_str(), *this, &valdef)); \
-                  std::cout << "adding element: " << field->name << " val: " << field_value.offset <<  " 64-bit: " << field->offset64 << std::endl; \
                   builder_.AddElement(field_value.offset, val, valdef); \
                 } \
               } \
@@ -1546,15 +1555,16 @@ CheckedError Parser::ParseTable(const StructDef &struct_def, std::string *value,
               if (IsStruct(field->value.type)) { \
                 SerializeStruct(*field->value.type.struct_def, field_value); \
               } else { \
-                CTYPE val; \
-                ECHECK(atot(field_value.constant.c_str(), *this, &val)); \
-                std::cout << "adding offset: " << field->name << " val: " << val.o <<  " 64-bit: " << field->offset64 << std::endl; \
+                /* Special case for fields that use 64-bit addressing */ \
                 if(field->offset64) { \
-                  Offset64<void> offset(val.o); \
+                  Offset64<void> offset; \
+                  ECHECK(atot(field_value.constant.c_str(), *this, &offset)); \
                   builder_.AddOffset(field_value.offset, offset); \
                 } else { \
+                  CTYPE val; \
+                  ECHECK(atot(field_value.constant.c_str(), *this, &val)); \
                   builder_.AddOffset(field_value.offset, val); \
-                }\
+                } \
               } \
               break;
             FLATBUFFERS_GEN_TYPES_POINTER(FLATBUFFERS_TD)
@@ -1569,7 +1579,7 @@ CheckedError Parser::ParseTable(const StructDef &struct_def, std::string *value,
         }
       }
     }
-  }
+  }  // namespace flatbuffers
   for (size_t i = 0; i < fieldn_outer; i++) field_stack_.pop_back();
 
   if (struct_def.fixed) {
@@ -1650,7 +1660,7 @@ CheckedError Parser::ParseVector(const Type &type, uoffset_t *ovalue,
     // start at the back, since we're building the data backwards.
     auto &val = field_stack_.back().first;
     switch (val.type.base_type) {
-// clang-format off
+      // clang-format off
       #define FLATBUFFERS_TD(ENUM, IDLTYPE, CTYPE,...) \
         case BASE_TYPE_ ## ENUM: \
           if (IsStruct(val.type)) SerializeStruct(*val.type.struct_def, val); \

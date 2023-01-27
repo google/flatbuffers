@@ -353,7 +353,7 @@ struct FieldDef : public Definition {
   bool native_inline;  // Field will be defined inline (instead of as a pointer)
                        // for native tables if field is a struct.
   bool flexbuffer;     // This field contains FlexBuffer data.
-  bool offset64;
+  bool offset64;       // If the field uses 64-bit offsets.
 
   enum Presence {
     // Field must always be present.
