@@ -1207,6 +1207,7 @@ class Parser : public ParserState {
   int parse_depth_counter_;  // stack-overflow guard
 #if defined(MZ_CUSTOM_FLATBUFFERS) && MZ_CUSTOM_FLATBUFFERS  // clang-format off
 public:
+  const std::unordered_map<std::string, Type> *GetPrimitiveTypes() const;
   const Type* LookupPrimitiveType(std::string const &name);
   bool ResolveDynamicType(const char *typeName, Type &type, const FieldDef *field);
   const char* LookupDynamicFieldType(const FieldDef *dynamic_field, const StructDef *struct_def);
