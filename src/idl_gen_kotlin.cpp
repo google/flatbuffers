@@ -16,6 +16,8 @@
 
 // independent from idl_parser, since this code is not needed for most clients
 
+#include "idl_gen_kotlin.h"
+
 #include <functional>
 #include <unordered_set>
 
@@ -287,6 +289,7 @@ class KotlinGenerator : public BaseGenerator {
     GenerateComment(enum_def.doc_comment, writer, &comment_config);
 
     writer += "@Suppress(\"unused\")";
+    writer += "@kotlin.ExperimentalUnsignedTypes";
     writer += "class " + namer_.Type(enum_def) + " private constructor() {";
     writer.IncrementIdentLevel();
 
@@ -313,7 +316,10 @@ class KotlinGenerator : public BaseGenerator {
       // Average distance between values above which we consider a table
       // "too sparse". Change at will.
       static const uint64_t kMaxSparseness = 5;
-      if (range / static_cast<uint64_t>(enum_def.size()) < kMaxSparseness) {
+      bool generate_names =
+          range / static_cast<uint64_t>(enum_def.size()) < kMaxSparseness &&
+          parser_.opts.mini_reflect == IDLOptions::kTypesAndNames;
+      if (generate_names) {
         GeneratePropertyOneLine(writer, "names", "Array<String>", [&]() {
           writer += "arrayOf(\\";
           auto val = enum_def.Vals().front();
@@ -489,6 +495,7 @@ class KotlinGenerator : public BaseGenerator {
     writer.SetValue("superclass", fixed ? "Struct" : "Table");
 
     writer += "@Suppress(\"unused\")";
+    writer += "@kotlin.ExperimentalUnsignedTypes";
     writer += "class {{struct_name}} : {{superclass}}() {\n";
 
     writer.IncrementIdentLevel();
@@ -519,7 +526,7 @@ class KotlinGenerator : public BaseGenerator {
           // runtime.
           GenerateFunOneLine(
               writer, "validateVersion", "", "",
-              [&]() { writer += "Constants.FLATBUFFERS_23_1_4()"; },
+              [&]() { writer += "Constants.FLATBUFFERS_23_1_21()"; },
               options.gen_jvmstatic);
 
           GenerateGetRootAsAccessors(namer_.Type(struct_def), writer, options);
@@ -1590,4 +1597,53 @@ bool GenerateKotlin(const Parser &parser, const std::string &path,
   kotlin::KotlinGenerator generator(parser, path, file_name);
   return generator.generate();
 }
+
+namespace {
+
+class KotlinCodeGenerator : public CodeGenerator {
+ public:
+  Status GenerateCode(const Parser &parser, const std::string &path,
+                      const std::string &filename) override {
+    if (!GenerateKotlin(parser, path, filename)) { return Status::ERROR; }
+    return Status::OK;
+  }
+
+  Status GenerateCode(const uint8_t *buffer, int64_t length) override {
+    (void)buffer;
+    (void)length;
+    return Status::NOT_IMPLEMENTED;
+  }
+
+  Status GenerateMakeRule(const Parser &parser, const std::string &path,
+                          const std::string &filename,
+                          std::string &output) override {
+    (void)parser;
+    (void)path;
+    (void)filename;
+    (void)output;
+    return Status::NOT_IMPLEMENTED;
+  }
+
+  Status GenerateGrpcCode(const Parser &parser, const std::string &path,
+                          const std::string &filename) override {
+    (void)parser;
+    (void)path;
+    (void)filename;
+    return Status::NOT_IMPLEMENTED;
+  }
+
+  bool IsSchemaOnly() const override { return true; }
+
+  bool SupportsBfbsGeneration() const override { return false; }
+
+  IDLOptions::Language Language() const override { return IDLOptions::kKotlin; }
+
+  std::string LanguageName() const override { return "Kotlin"; }
+};
+}  // namespace
+
+std::unique_ptr<CodeGenerator> NewKotlinCodeGenerator() {
+  return std::unique_ptr<KotlinCodeGenerator>(new KotlinCodeGenerator());
+}
+
 }  // namespace flatbuffers

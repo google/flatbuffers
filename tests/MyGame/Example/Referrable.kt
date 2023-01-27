@@ -19,6 +19,7 @@ import java.nio.ByteOrder
 import kotlin.math.sign
 
 @Suppress("unused")
+@kotlin.ExperimentalUnsignedTypes
 class Referrable : Table() {
 
     fun __init(_i: Int, _bb: ByteBuffer)  {
@@ -48,7 +49,7 @@ class Referrable : Table() {
         return (val_1 - val_2).sign
     }
     companion object {
-        fun validateVersion() = Constants.FLATBUFFERS_23_1_4()
+        fun validateVersion() = Constants.FLATBUFFERS_23_1_21()
         fun getRootAsReferrable(_bb: ByteBuffer): Referrable = getRootAsReferrable(_bb, Referrable())
         fun getRootAsReferrable(_bb: ByteBuffer, obj: Referrable): Referrable {
             _bb.order(ByteOrder.LITTLE_ENDIAN)

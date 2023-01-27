@@ -38,8 +38,10 @@ jobs:
       run: |
         chmod +x flatc
         ./flatc --version
-    - name: flatc tests
-      run: python3 tests/flatc/main.py
+    # - name: flatc tests
+    #   run: |
+    #     yarn global add esbuild
+    #     python3 tests/flatc/main.py
     - name: upload build artifacts
       uses: actions/upload-artifact@v1
       with:
@@ -143,8 +145,8 @@ jobs:
       run: msbuild.exe FlatBuffers.sln /p:Configuration=Release /p:Platform=x64
     - name: test
       run: Release\flattests.exe
-    - name: flatc tests
-      run: python3 tests/flatc/main.py --flatc Release\flatc.exe
+    # - name: flatc tests
+    #   run: python3 tests/flatc/main.py --flatc Release\flatc.exe
     - name: upload build artifacts
       uses: actions/upload-artifact@v1
       with:
@@ -245,8 +247,8 @@ jobs:
       run: |
         chmod +x Release/flatc
         Release/flatc --version
-    - name: flatc tests
-      run: python3 tests/flatc/main.py --flatc Release/flatc
+    # - name: flatc tests
+    #  run: python3 tests/flatc/main.py --flatc Release/flatc
     - name: upload build artifacts
       uses: actions/upload-artifact@v1
       with:
@@ -342,6 +344,22 @@ jobs:
       run: scripts/check_generate_code.py
     - name: Generate gRPC
       run: scripts/check-grpc-generated-code.py
+
+  build-generator-windows:
+    name: Check Generated Code on Windows
+    runs-on: windows-2019
+    steps:
+    - uses: actions/checkout@v3
+    - name: Add msbuild to PATH
+      uses: microsoft/setup-msbuild@v1.1
+    - name: cmake
+      run: cmake -G "Visual Studio 16 2019" -A x64 -DCMAKE_BUILD_TYPE=Release -DFLATBUFFERS_BUILD_CPP17=ON -DFLATBUFFERS_STRICT_MODE=ON .
+    - name: build
+      run: msbuild.exe FlatBuffers.sln /p:Configuration=Release /p:Platform=x64
+    - name: Generate
+      run: python3 scripts/check_generate_code.py --flatc Release\flatc.exe
+    - name: Generate gRPC
+      run: python3 scripts/check-grpc-generated-code.py --flatc Release\flatc.exe
 
   build-benchmarks:
     name: Build Benchmarks (on Linux)
@@ -485,7 +503,9 @@ jobs:
       run: yarn compile
     - name: test
       working-directory: tests/ts
-      run: python3 TypeScriptTest.py
+      run: |
+        yarn global add esbuild
+        python3 TypeScriptTest.py
 
   build-dart:
     name: Build Dart

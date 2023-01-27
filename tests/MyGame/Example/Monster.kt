@@ -22,6 +22,7 @@ import kotlin.math.sign
  * an example documentation comment: "monster object"
  */
 @Suppress("unused")
+@kotlin.ExperimentalUnsignedTypes
 class Monster : Table() {
 
     fun __init(_i: Int, _bb: ByteBuffer)  {
@@ -1002,7 +1003,7 @@ class Monster : Table() {
          return compareStrings(__offset(10, o1, _bb), __offset(10, o2, _bb), _bb)
     }
     companion object {
-        fun validateVersion() = Constants.FLATBUFFERS_23_1_4()
+        fun validateVersion() = Constants.FLATBUFFERS_23_1_21()
         fun getRootAsMonster(_bb: ByteBuffer): Monster = getRootAsMonster(_bb, Monster())
         fun getRootAsMonster(_bb: ByteBuffer, obj: Monster): Monster {
             _bb.order(ByteOrder.LITTLE_ENDIAN)

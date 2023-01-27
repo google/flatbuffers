@@ -19,6 +19,7 @@ import java.nio.ByteOrder
 import kotlin.math.sign
 
 @Suppress("unused")
+@kotlin.ExperimentalUnsignedTypes
 class TypeAliases : Table() {
 
     fun __init(_i: Int, _bb: ByteBuffer)  {
@@ -215,7 +216,7 @@ class TypeAliases : Table() {
         }
     }
     companion object {
-        fun validateVersion() = Constants.FLATBUFFERS_23_1_4()
+        fun validateVersion() = Constants.FLATBUFFERS_23_1_21()
         fun getRootAsTypeAliases(_bb: ByteBuffer): TypeAliases = getRootAsTypeAliases(_bb, TypeAliases())
         fun getRootAsTypeAliases(_bb: ByteBuffer, obj: TypeAliases): TypeAliases {
             _bb.order(ByteOrder.LITTLE_ENDIAN)

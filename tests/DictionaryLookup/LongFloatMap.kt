@@ -19,6 +19,7 @@ import java.nio.ByteOrder
 import kotlin.math.sign
 
 @Suppress("unused")
+@kotlin.ExperimentalUnsignedTypes
 class LongFloatMap : Table() {
 
     fun __init(_i: Int, _bb: ByteBuffer)  {
@@ -58,7 +59,7 @@ class LongFloatMap : Table() {
         }
     }
     companion object {
-        fun validateVersion() = Constants.FLATBUFFERS_23_1_4()
+        fun validateVersion() = Constants.FLATBUFFERS_23_1_21()
         fun getRootAsLongFloatMap(_bb: ByteBuffer): LongFloatMap = getRootAsLongFloatMap(_bb, LongFloatMap())
         fun getRootAsLongFloatMap(_bb: ByteBuffer, obj: LongFloatMap): LongFloatMap {
             _bb.order(ByteOrder.LITTLE_ENDIAN)

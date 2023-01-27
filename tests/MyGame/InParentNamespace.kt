@@ -19,6 +19,7 @@ import java.nio.ByteOrder
 import kotlin.math.sign
 
 @Suppress("unused")
+@kotlin.ExperimentalUnsignedTypes
 class InParentNamespace : Table() {
 
     fun __init(_i: Int, _bb: ByteBuffer)  {
@@ -29,7 +30,7 @@ class InParentNamespace : Table() {
         return this
     }
     companion object {
-        fun validateVersion() = Constants.FLATBUFFERS_23_1_4()
+        fun validateVersion() = Constants.FLATBUFFERS_23_1_21()
         fun getRootAsInParentNamespace(_bb: ByteBuffer): InParentNamespace = getRootAsInParentNamespace(_bb, InParentNamespace())
         fun getRootAsInParentNamespace(_bb: ByteBuffer, obj: InParentNamespace): InParentNamespace {
             _bb.order(ByteOrder.LITTLE_ENDIAN)

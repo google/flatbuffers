@@ -17,6 +17,7 @@ import java.nio.ByteOrder
 import kotlin.math.sign
 
 @Suppress("unused")
+@kotlin.ExperimentalUnsignedTypes
 class Attacker : Table() {
 
     fun __init(_i: Int, _bb: ByteBuffer)  {
@@ -41,7 +42,7 @@ class Attacker : Table() {
         }
     }
     companion object {
-        fun validateVersion() = Constants.FLATBUFFERS_23_1_4()
+        fun validateVersion() = Constants.FLATBUFFERS_23_1_21()
         fun getRootAsAttacker(_bb: ByteBuffer): Attacker = getRootAsAttacker(_bb, Attacker())
         fun getRootAsAttacker(_bb: ByteBuffer, obj: Attacker): Attacker {
             _bb.order(ByteOrder.LITTLE_ENDIAN)
