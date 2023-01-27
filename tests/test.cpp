@@ -42,6 +42,7 @@
 #if !defined(_MSC_VER) || _MSC_VER >= 1700
 #  include "arrays_test_generated.h"
 #endif
+#include "64bit/offset64_test.h"
 
 #include "flexbuffers_test.h"
 #include "is_quiet_nan.h"
@@ -1651,6 +1652,7 @@ int FlatBufferTests(const std::string &tests_data_path) {
   NestedStructKeyInStructTest();
   FixedSizedStructArrayKeyInStructTest();
   EmbeddedSchemaAccess();
+  Offset64Test();
   return 0;
 }
 }  // namespace
