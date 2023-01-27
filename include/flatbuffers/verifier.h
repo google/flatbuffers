@@ -34,12 +34,14 @@ class Verifier FLATBUFFERS_FINAL_CLASS {
     bool check_alignment = true;
     // If true, run verifier on nested flatbuffers
     bool check_nested_flatbuffers = true;
+    // The maximum size of a buffer.
+    size_t max_size = FLATBUFFERS_MAX_BUFFER_SIZE;
   };
 
   explicit Verifier(const uint8_t *const buf, const size_t buf_len,
                     const Options &opts)
       : buf_(buf), size_(buf_len), opts_(opts) {
-    FLATBUFFERS_ASSERT(size_ < FLATBUFFERS_MAX_BUFFER_SIZE);
+    FLATBUFFERS_ASSERT(size_ < opts.max_size);
   }
 
   // Deprecated API, please construct with Verifier::Options.
@@ -142,7 +144,7 @@ class Verifier FLATBUFFERS_FINAL_CLASS {
     // Check the whole array. If this is a string, the byte past the array must
     // be 0.
     const auto size = ReadScalar<uoffset_t>(vec);
-    const auto max_elems = FLATBUFFERS_MAX_BUFFER_SIZE / elem_size;
+    const auto max_elems = opts_.max_size / elem_size;
     if (!Check(size < max_elems))
       return false;  // Protect against byte_size overflowing.
     const auto byte_size = sizeof(size) + elem_size * size;

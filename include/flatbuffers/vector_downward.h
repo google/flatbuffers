@@ -17,8 +17,9 @@
 #ifndef FLATBUFFERS_VECTOR_DOWNWARD_H_
 #define FLATBUFFERS_VECTOR_DOWNWARD_H_
 
-#include <algorithm>
 #include <stdint.h>
+
+#include <algorithm>
 
 #include "flatbuffers/base.h"
 #include "flatbuffers/default_allocator.h"
@@ -140,9 +141,9 @@ class vector_downward {
     // If the length is larger than the unused part of the buffer, we need to
     // grow.
     if (len > unused_buffer_size()) { reallocate(len); }
-    // Beyond this, signed offsets may not have enough range:
-    // (FlatBuffers > 2GB not supported).
-    FLATBUFFERS_ASSERT(size() < FLATBUFFERS_MAX_BUFFER_SIZE);
+    // TODO(dbaileychess): Should this default to 32-bit max size with an opt
+    // in?
+    FLATBUFFERS_ASSERT(size() < FLATBUFFERS_MAX_64_BUFFER_SIZE);
     return len;
   }
 
