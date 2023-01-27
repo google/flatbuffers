@@ -24,6 +24,7 @@
 #include "flatbuffers/allocator.h"
 #include "flatbuffers/array.h"
 #include "flatbuffers/base.h"
+#include "flatbuffers/buffer.h"
 #include "flatbuffers/buffer_ref.h"
 #include "flatbuffers/default_allocator.h"
 #include "flatbuffers/detached_buffer.h"
@@ -432,11 +433,11 @@ class FlatBufferBuilder {
   // This checks a required field has been set in a given table that has
   // just been constructed.
   template<typename T> void Required(Offset<T> table, voffset_t field) {
-     auto table_ptr = reinterpret_cast<const Table *>(buf_.data_at(table.o));
+    auto table_ptr = reinterpret_cast<const Table *>(buf_.data_at(table.o));
     bool ok = table_ptr->GetOptionalFieldOffset(field) != 0;
     // If this fails, the caller will show what field needs to be set.
     FLATBUFFERS_ASSERT(ok);
-    (void)ok;  
+    (void)ok;
   }
 
   uoffset_t StartStruct(size_t alignment) {
@@ -637,14 +638,15 @@ class FlatBufferBuilder {
   /// @param[in] v A pointer to the array of type `T` to serialize into the
   /// buffer as a `vector`.
   /// @param[in] len The number of elements to serialize.
-  /// @return Returns a typed `Offset` into the serialized data indicating
+  /// @return Returns a typed `TOffset` into the serialized data indicating
   /// where the vector is stored.
-  template<typename T> Offset<Vector<T>> CreateVector(const T *v, size_t len) {
+  template<typename T, typename OffsetT = Offset<Vector<T>>>
+  OffsetT CreateVector(const T *v, size_t len) {
     // If this assert hits, you're specifying a template argument that is
     // causing the wrong overload to be selected, remove it.
     AssertScalarT<T>();
     StartVector<T>(len);
-    if (len == 0) { return Offset<Vector<T>>(EndVector(len)); }
+    if (len == 0) { return OffsetT(EndVector(len)); }
     // clang-format off
     #if FLATBUFFERS_LITTLEENDIAN
       PushBytes(reinterpret_cast<const uint8_t *>(v), len * sizeof(T));
@@ -658,7 +660,7 @@ class FlatBufferBuilder {
       }
     #endif
     // clang-format on
-    return Offset<Vector<T>>(EndVector(len));
+    return OffsetT(EndVector(len));
   }
 
   /// @brief Serialize an array like object into a FlatBuffer `vector`.
@@ -702,7 +704,7 @@ class FlatBufferBuilder {
 
   template<typename T, typename Alloc = std::allocator<T>>
   Offset64<Vector<T>> CreateVector64(const std::vector<T, Alloc> &v) {
-    return CreateVector(data(v), v.size());
+    return CreateVector<T, Offset64<Vector<T>>>(data(v), v.size());
   }
 
   // vector<bool> may be implemented using a bit-set, so we can't access it as

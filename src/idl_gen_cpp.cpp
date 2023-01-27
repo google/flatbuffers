@@ -766,16 +766,15 @@ class CppGenerator : public BaseGenerator {
   // Return a C++ type for any type (scalar/pointer) specifically for
   // building a flatbuffer.
   std::string GenTypeWire(const Type &type, const char *postfix,
-                          bool user_facing_type, bool _64_bit_offset = false) const {
+                          bool user_facing_type,
+                          bool _64_bit_offset = false) const {
     if (IsScalar(type.base_type)) {
       return GenTypeBasic(type, user_facing_type) + postfix;
     } else if (IsStruct(type)) {
       return "const " + GenTypePointer(type) + " *";
     } else {
-      if(_64_bit_offset) {
-        return "::flatbuffers::Offset64<" + GenTypePointer(type) + ">" + postfix;
-      }
-      return "::flatbuffers::Offset<" + GenTypePointer(type) + ">" + postfix;
+      return "::flatbuffers::Offset" + std::string(_64_bit_offset ? "64" : "") +
+             "<" + GenTypePointer(type) + ">" + postfix;
     }
   }
 
@@ -1794,7 +1793,8 @@ class CppGenerator : public BaseGenerator {
       if (IsStruct(vtype)) {
         type = WrapInNameSpace(*vtype.struct_def);
       } else {
-        type = GenTypeWire(vtype, "", VectorElementUserFacing(vtype));
+        type = GenTypeWire(vtype, "", VectorElementUserFacing(vtype),
+                           field.offset64);
       }
       if (TypeHasKey(vtype)) {
         code_.SetValue("PARAM_TYPE", "std::vector<" + type + "> *");
@@ -1808,7 +1808,8 @@ class CppGenerator : public BaseGenerator {
       if (field.IsScalarOptional())
         code_.SetValue("PARAM_TYPE", GenOptionalDecl(type) + " ");
       else
-        code_.SetValue("PARAM_TYPE", GenTypeWire(type, " ", true));
+        code_.SetValue("PARAM_TYPE",
+                       GenTypeWire(type, " ", true, field.offset64));
     }
     code_ += "{{PRE}}{{PARAM_TYPE}}{{PARAM_NAME}} = {{PARAM_VALUE}}\\";
   }
@@ -2636,7 +2637,7 @@ class CppGenerator : public BaseGenerator {
 
     auto offset_str = GenFieldOffsetName(field);
     if (is_scalar) {
-      const auto wire_type = GenTypeWire(type, "", false);
+      const auto wire_type = GenTypeWire(type, "", false, field.offset64);
       code_.SetValue("SET_FN", "SetField<" + wire_type + ">");
       code_.SetValue("OFFSET_NAME", offset_str);
       code_.SetValue("FIELD_TYPE", GenTypeBasic(type, true));
@@ -2862,9 +2863,9 @@ class CppGenerator : public BaseGenerator {
     // Generate code to do force_align for the vector.
     if (align > 1) {
       const auto vtype = field.value.type.VectorType();
-      const std::string &type = IsStruct(vtype)
-                                    ? WrapInNameSpace(*vtype.struct_def)
-                                    : GenTypeWire(vtype, "", false);
+      const std::string & type = IsStruct(vtype)
+                            ? WrapInNameSpace(*vtype.struct_def)
+                            : GenTypeWire(vtype, "", false, field.offset64);
       return "_fbb.ForceVectorAlignment(" + field_size + ", sizeof(" + type +
              "), " + std::to_string(static_cast<long long>(align)) + ");";
     }
@@ -2899,14 +2900,15 @@ class CppGenerator : public BaseGenerator {
       // void add_name(type name) {
       //   fbb_.AddElement<type>(offset, name, default);
       // }
-      const bool is_offset_64 = field.attributes.Lookup("offset64");
       code_.SetValue("FIELD_NAME", Name(field));
-      code_.SetValue("FIELD_TYPE", GenTypeWire(field.value.type, " ", true, is_offset_64));
+      code_.SetValue("FIELD_TYPE",
+                     GenTypeWire(field.value.type, " ", true, field.offset64));
       code_.SetValue("ADD_OFFSET", Name(struct_def) + "::" + offset);
       code_.SetValue("ADD_NAME", name);
       code_.SetValue("ADD_VALUE", value);
       if (is_scalar) {
-        const auto type = GenTypeWire(field.value.type, "", false);
+        const auto type =
+            GenTypeWire(field.value.type, "", false, field.offset64);
         code_.SetValue("ADD_FN", "AddElement<" + type + ">");
       } else if (IsStruct(field.value.type)) {
         code_.SetValue("ADD_FN", "AddStruct");
@@ -3031,9 +3033,14 @@ class CppGenerator : public BaseGenerator {
               const auto type = WrapInNameSpace(*vtype.struct_def);
               code_ += "_fbb.CreateVectorOfSortedTables<" + type + ">\\";
             } else {
-              const auto type =
-                  GenTypeWire(vtype, "", VectorElementUserFacing(vtype));
-              code_ += "_fbb.CreateVector<" + type + ">\\";
+              const auto type = GenTypeWire(
+                  vtype, "", VectorElementUserFacing(vtype), field->offset64);
+
+              // If the field uses 64-bit addressing, create a 64-bit vector.
+              code_.SetValue("64OFFSET", field->offset64 ? "64" : "");
+              code_.SetValue("TYPE", type);
+
+              code_ += "_fbb.CreateVector{{64OFFSET}}<{{TYPE}}>\\";
             }
             code_ +=
                 has_key ? "({{FIELD_NAME}}) : 0;" : "(*{{FIELD_NAME}}) : 0;";
@@ -3417,7 +3424,10 @@ class CppGenerator : public BaseGenerator {
               code += "(__va->_" + value + "[i]" + GenPtrGet(field) + ")) : 0";
               code += "; }, &_va )";
             } else {
-              code += "_fbb.CreateVector(" + value + ")";
+              // If the field uses 64-bit addressing, create a 64-bit vector.
+              code += "_fbb.CreateVector" +
+                      std::string(field.offset64 ? "64" : "") + "(" + value +
+                      ")";
             }
             break;
           }
