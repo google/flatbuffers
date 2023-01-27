@@ -158,9 +158,7 @@ int main(int argc, const char *argv[]) {
 
   flatc.RegisterCodeGenerator(
       flatbuffers::FlatCOption{ "n", "csharp", "",
-                                "Generate C# classes for tables/structs" }
-
-      ,
+                                "Generate C# classes for tables/structs" },
       csharp_generator);
 
   flatc.RegisterCodeGenerator(
@@ -210,7 +208,6 @@ int main(int argc, const char *argv[]) {
   flatc.RegisterCodeGenerator(
       flatbuffers::FlatCOption{ "", "swift", "",
                                 "Generate Swift files for tables/structs" },
-
       swift_generator);
 
   flatc.RegisterCodeGenerator(
