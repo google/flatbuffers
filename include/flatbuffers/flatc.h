@@ -114,7 +114,8 @@ class FlatCompiler {
 
   explicit FlatCompiler(const InitParams &params) : params_(params) {}
 
-  bool RegisterCodeGenerator(const std::string& flag,
+  bool RegisterCodeGenerator(const std::string &flag,
+                             const std::string &description,
                              std::shared_ptr<CodeGenerator> code_generator);
 
   int Compile(const FlatCOptions &options);

@@ -241,6 +241,9 @@ const static FlatCOption flatc_options[] = {
     "Currently this is required to generate private types in Rust" },
 };
 
+static std::stringstream short_flag_help_usage;
+static std::stringstream flag_help_usage;
+
 static void AppendTextWrappedString(std::stringstream &ss, std::string &text,
                                     size_t max_col, size_t start_col) {
   size_t max_line_length = max_col - start_col;
@@ -299,6 +302,37 @@ static void AppendOption(std::stringstream &ss, const FlatCOption &option,
   ss << "\n";
 }
 
+static void AppendOption(std::stringstream &ss, std::string flag,
+                         std::string description, size_t max_col,
+                         size_t min_col_for_description) {
+  size_t chars = 2;
+  ss << "  ";
+  if (flag[0] == '-' && flag[1] != '-') {
+    chars += 2 + flag.length();
+    ss << flag;
+    chars++;
+    ss << ", ";
+  } else {
+    chars += 3 + flag.length();
+    ss << flag << " ";
+    size_t start_of_description = chars;
+    if (start_of_description > min_col_for_description) {
+      ss << "\n";
+      start_of_description = min_col_for_description;
+      ss << std::string(start_of_description, ' ');
+    } else {
+      while (start_of_description < min_col_for_description) {
+        ss << " ";
+        start_of_description++;
+      }
+    }
+    if (!description.empty()) {
+      AppendTextWrappedString(ss, description, max_col, start_of_description);
+    }
+    ss << "\n";
+  }
+}
+
 static void AppendShortOption(std::stringstream &ss,
                               const FlatCOption &option) {
   if (!option.short_opt.empty()) {
@@ -308,16 +342,27 @@ static void AppendShortOption(std::stringstream &ss,
   if (!option.long_opt.empty()) { ss << "--" << option.long_opt; }
 }
 
+static void AppendShortOption(std::stringstream &ss, const std::string &flag) {
+  if (flag[0] == '-' && flag[1] != '-') {
+    ss << flag << "|";
+  } else {
+    ss << flag;
+  }
+}
+
 std::string FlatCompiler::GetShortUsageString(
     const std::string &program_name) const {
   std::stringstream ss;
   ss << "Usage: " << program_name << " [";
+  ss << short_flag_help_usage.str();
+
   // TODO(derekbailey): These should be generated from this.generators
   for (size_t i = 0; i < params_.num_generators; ++i) {
     const Generator &g = params_.generators[i];
     AppendShortOption(ss, g.option);
     ss << ", ";
   }
+
   for (const FlatCOption &option : flatc_options) {
     AppendShortOption(ss, option);
     ss << ", ";
@@ -335,6 +380,7 @@ std::string FlatCompiler::GetUsageString(
   std::stringstream ss;
   ss << "Usage: " << program_name
      << " [OPTION]... FILE... [-- BINARY_FILE...]\n";
+  ss << flag_help_usage.str();
   // TODO(derekbailey): These should be generated from this.generators
   for (size_t i = 0; i < params_.num_generators; ++i) {
     const Generator &g = params_.generators[i];
@@ -1018,12 +1064,18 @@ int FlatCompiler::Compile(const FlatCOptions &options) {
 }
 
 bool FlatCompiler::RegisterCodeGenerator(
-    const std::string &flag, std::shared_ptr<CodeGenerator> code_generator) {
+    const std::string &flag, const std::string &description,
+    std::shared_ptr<CodeGenerator> code_generator) {
   if (code_generators_.find(flag) != code_generators_.end()) {
     Error("multiple generators registered under: " + flag, false, false);
     return false;
   }
   code_generators_[flag] = std::move(code_generator);
+
+  AppendShortOption(short_flag_help_usage, flag);
+  AppendOption(flag_help_usage, flag, description, 80, 25);
+  if (flag[0] == '-' && flag[1] == '-') { short_flag_help_usage << ", "; }
+
   return true;
 }
 
