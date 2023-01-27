@@ -302,37 +302,6 @@ static void AppendOption(std::stringstream &ss, const FlatCOption &option,
   ss << "\n";
 }
 
-static void AppendOption(std::stringstream &ss, std::string flag,
-                         std::string description, size_t max_col,
-                         size_t min_col_for_description) {
-  size_t chars = 2;
-  ss << "  ";
-  if (flag[0] == '-' && flag[1] != '-') {
-    chars += 2 + flag.length();
-    ss << flag;
-    chars++;
-    ss << ", ";
-  } else {
-    chars += 3 + flag.length();
-    ss << flag << " ";
-    size_t start_of_description = chars;
-    if (start_of_description > min_col_for_description) {
-      ss << "\n";
-      start_of_description = min_col_for_description;
-      ss << std::string(start_of_description, ' ');
-    } else {
-      while (start_of_description < min_col_for_description) {
-        ss << " ";
-        start_of_description++;
-      }
-    }
-    if (!description.empty()) {
-      AppendTextWrappedString(ss, description, max_col, start_of_description);
-    }
-    ss << "\n";
-  }
-}
-
 static void AppendShortOption(std::stringstream &ss,
                               const FlatCOption &option) {
   if (!option.short_opt.empty()) {
@@ -340,14 +309,6 @@ static void AppendShortOption(std::stringstream &ss,
     if (!option.long_opt.empty()) { ss << "|"; }
   }
   if (!option.long_opt.empty()) { ss << "--" << option.long_opt; }
-}
-
-static void AppendShortOption(std::stringstream &ss, const std::string &flag) {
-  if (flag[0] == '-' && flag[1] != '-') {
-    ss << flag << "|";
-  } else {
-    ss << flag;
-  }
 }
 
 std::string FlatCompiler::GetShortUsageString(
@@ -1064,18 +1025,29 @@ int FlatCompiler::Compile(const FlatCOptions &options) {
 }
 
 bool FlatCompiler::RegisterCodeGenerator(
-    const std::string &flag, const std::string &description,
-    std::shared_ptr<CodeGenerator> code_generator) {
-  if (code_generators_.find(flag) != code_generators_.end()) {
-    Error("multiple generators registered under: " + flag, false, false);
+    const FlatCOption &option, std::shared_ptr<CodeGenerator> code_generator) {
+  if (!option.short_opt.empty() &&
+      code_generators_.find(option.short_opt) != code_generators_.end()) {
+    Error("multiple generators registered under: -" + option.short_opt, false,
+          false);
     return false;
+  } else {
+    std::string short_opt_flag = "-" + option.short_opt;
+    code_generators_[short_opt_flag] = code_generator;
   }
-  code_generators_[flag] = std::move(code_generator);
 
-  AppendShortOption(short_flag_help_usage, flag);
-  AppendOption(flag_help_usage, flag, description, 80, 25);
-  if (flag[0] == '-' && flag[1] == '-') { short_flag_help_usage << ", "; }
+  if (!option.long_opt.empty() &&
+      code_generators_.find(option.long_opt) != code_generators_.end()) {
+    Error("multiple generators registered under: --" + option.long_opt, false,
+          false);
+    return false;
+  } else {
+    std::string long_opt_flag = "--" + option.long_opt;
+    code_generators_[long_opt_flag] = code_generator;
+  }
 
+  AppendShortOption(short_flag_help_usage, option);
+  AppendOption(flag_help_usage, option, 80, 25);
   return true;
 }
 
