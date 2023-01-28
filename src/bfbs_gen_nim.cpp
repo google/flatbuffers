@@ -108,6 +108,8 @@ class NimBfbsGenerator : public BaseBfbsGenerator {
     return OK;
   }
 
+  using BaseBfbsGenerator::GenerateCode;
+
   Status GenerateCode(const Parser &parser, const std::string &path,
                       const std::string &filename) override {
     (void)parser;

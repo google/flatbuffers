@@ -123,14 +123,25 @@ int main(int argc, const char *argv[]) {
       flatbuffers::NewLobsterCodeGenerator());
 
   flatc.RegisterCodeGenerator(
-      flatbuffers::FlatCOption{ "", "php", "",
-                                "Generate PHP files for tables/structs" },
-      flatbuffers::NewPhpCodeGenerator());
+      flatbuffers::FlatCOption{ "l", "lua", "",
+                                "Generate Lua files for tables/structs" },
+      flatbuffers::NewLuaBfbsGenerator(flatbuffers_version));
+
+  flatc.RegisterCodeGenerator(
+      flatbuffers::FlatCOption{ "", "nim", "",
+                                "Generate Nim files for tables/structs" },
+      flatbuffers::NewNimBfbsGenerator(flatbuffers_version));
 
   flatc.RegisterCodeGenerator(
       flatbuffers::FlatCOption{ "p", "python", "",
                                 "Generate Python files for tables/structs" },
       flatbuffers::NewPythonCodeGenerator());
+
+  flatc.RegisterCodeGenerator(
+      flatbuffers::FlatCOption{ "", "php", "",
+                                "Generate PHP files for tables/structs" },
+      flatbuffers::NewPhpCodeGenerator());
+
 
   flatc.RegisterCodeGenerator(
       flatbuffers::FlatCOption{ "r", "rust", "",

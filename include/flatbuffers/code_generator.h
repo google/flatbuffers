@@ -32,7 +32,8 @@ class CodeGenerator {
   enum Status {
     OK = 0,
     ERROR = 1,
-    NOT_IMPLEMENTED = 2,
+    FAILED_VERIFICATION = 2,
+    NOT_IMPLEMENTED = 3
   };
 
   // Generate code from the provided `parser`.

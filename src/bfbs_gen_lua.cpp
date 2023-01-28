@@ -80,15 +80,17 @@ class LuaBfbsGenerator : public BaseBfbsGenerator {
         namer_(LuaDefaultConfig(), LuaKeywords()) {}
 
   Status GenerateFromSchema(const r::Schema *schema) FLATBUFFERS_OVERRIDE {
-    if (!GenerateEnums(schema->enums())) { return FAILED; }
+    if (!GenerateEnums(schema->enums())) { return ERROR; }
     if (!GenerateObjects(schema->objects(), schema->root_table())) {
       return ERROR;
     }
     return OK;
   }
 
+  using BaseBfbsGenerator::GenerateCode;
+
   Status GenerateCode(const Parser &parser, const std::string &path,
-                      const std::string &filename) override {
+                      const std::string &filename) FLATBUFFERS_OVERRIDE {
     if (!GenerateLua(parser, path, filename)) { return ERROR; }
     return OK;
   }
