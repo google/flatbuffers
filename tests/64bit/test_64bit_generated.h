@@ -114,7 +114,7 @@ inline ::flatbuffers::Offset<RootTable> CreateRootTableDirect(
     int32_t a = 0,
     const char *big_string = nullptr) {
   auto big_vector__ = big_vector ? _fbb.CreateVector64<uint8_t>(*big_vector) : 0;
-  auto big_string__ = big_string ? _fbb.CreateString<::flatbuffers::Offset64<::flatbuffers::String>>(big_string) : 0;
+  auto big_string__ = big_string ? _fbb.CreateString<::flatbuffers::Offset64>(big_string) : 0;
   return CreateRootTable(
       _fbb,
       big_vector__,
@@ -161,7 +161,7 @@ inline ::flatbuffers::Offset<RootTable> CreateRootTable(::flatbuffers::FlatBuffe
   struct _VectorArgs { ::flatbuffers::FlatBufferBuilder *__fbb; const RootTableT* __o; const ::flatbuffers::rehasher_function_t *__rehasher; } _va = { &_fbb, _o, _rehasher}; (void)_va;
   auto _big_vector = _o->big_vector.size() ? _fbb.CreateVector64(_o->big_vector) : 0;
   auto _a = _o->a;
-  auto _big_string = _o->big_string.empty() ? 0 : _fbb.CreateString<std::string, ::flatbuffers::Offset64<::flatbuffers::String>>(_o->big_string);
+  auto _big_string = _o->big_string.empty() ? 0 : _fbb.CreateString<::flatbuffers::Offset64>(_o->big_string);
   return CreateRootTable(
       _fbb,
       _big_vector,

@@ -26,7 +26,7 @@ void Offset64Test() {
         fbb.CreateVector64(data);
 
     const Offset64<String> big_string_offset =
-        fbb.CreateString<Offset64<String>>("some big string");
+        fbb.CreateString<Offset64>("some big string");
 
     RootTableBuilder root_table_builder(fbb);
     root_table_builder.add_big_vector(big_vector_offset);

@@ -3011,8 +3011,7 @@ class CppGenerator : public BaseGenerator {
               code_.SetValue(
                   "CREATE_STRING",
                   "CreateString" + std::string(field->offset64
-                                                   ? "<::flatbuffers::Offset64<"
-                                                     "::flatbuffers::String>>"
+                                                   ? "<::flatbuffers::Offset64>"
                                                    : ""));
             } else {
               code_.SetValue("CREATE_STRING", "CreateSharedString");
@@ -3300,8 +3299,7 @@ class CppGenerator : public BaseGenerator {
         if (!field.shared) {
           code += "_fbb.CreateString" +
                   std::string(field.offset64
-                                  ? "<std::string, ::flatbuffers::Offset64<"
-                                    "::flatbuffers::String>>"
+                                  ? "<::flatbuffers::Offset64>"
                                   : "") +
                   "(";
         } else {
