@@ -103,117 +103,75 @@ int main(int argc, const char *argv[]) {
 
   flatbuffers::FlatCompiler flatc(params);
 
-  std::shared_ptr<flatbuffers::CodeGenerator> binary_generator =
-      flatbuffers::NewBinaryCodeGenerator();
-
-  std::shared_ptr<flatbuffers::CodeGenerator> cpp_generator =
-      flatbuffers::NewCppCodeGenerator();
-
-  std::shared_ptr<flatbuffers::CodeGenerator> csharp_generator =
-      flatbuffers::NewCSharpCodeGenerator();
-
-  std::shared_ptr<flatbuffers::CodeGenerator> dart_generator =
-      flatbuffers::NewDartCodeGenerator();
-
-  std::shared_ptr<flatbuffers::CodeGenerator> go_generator =
-      flatbuffers::NewGoCodeGenerator();
-
-  std::shared_ptr<flatbuffers::CodeGenerator> java_generator =
-      flatbuffers::NewJavaCodeGenerator();
-
-  std::shared_ptr<flatbuffers::CodeGenerator> json_schema_generator =
-      flatbuffers::NewJsonSchemaCodeGenerator();
-
-  std::shared_ptr<flatbuffers::CodeGenerator> kotlin_generator =
-      flatbuffers::NewKotlinCodeGenerator();
-
-  std::shared_ptr<flatbuffers::CodeGenerator> lobster_generator =
-      flatbuffers::NewLobsterCodeGenerator();
-
-  std::shared_ptr<flatbuffers::CodeGenerator> php_generator =
-      flatbuffers::NewPhpCodeGenerator();
-
-  std::shared_ptr<flatbuffers::CodeGenerator> python_generator =
-      flatbuffers::NewPythonCodeGenerator();
-
-  std::shared_ptr<flatbuffers::CodeGenerator> rust_generator =
-      flatbuffers::NewRustCodeGenerator();
-
-  std::shared_ptr<flatbuffers::CodeGenerator> swift_generator =
-      flatbuffers::NewSwiftCodeGenerator();
-
-  std::shared_ptr<flatbuffers::CodeGenerator> ts_generator =
-      flatbuffers::NewTsCodeGenerator();
-
   flatc.RegisterCodeGenerator(
       flatbuffers::FlatCOption{
           "b", "binary", "",
           "Generate wire format binaries for any data definitions" },
-      binary_generator);
+      flatbuffers::NewBinaryCodeGenerator());
 
   flatc.RegisterCodeGenerator(
       flatbuffers::FlatCOption{ "c", "cpp", "",
                                 "Generate C++ headers for tables/structs" },
-      cpp_generator);
+      flatbuffers::NewCppCodeGenerator());
 
   flatc.RegisterCodeGenerator(
       flatbuffers::FlatCOption{ "n", "csharp", "",
                                 "Generate C# classes for tables/structs" },
-      csharp_generator);
+      flatbuffers::NewCSharpCodeGenerator());
 
   flatc.RegisterCodeGenerator(
       flatbuffers::FlatCOption{ "d", "dart", "",
                                 "Generate Dart classes for tables/structs" },
-      dart_generator);
+      flatbuffers::NewDartCodeGenerator());
 
   flatc.RegisterCodeGenerator(
       flatbuffers::FlatCOption{ "g", "go", "",
                                 "Generate Go files for tables/structs" },
-      go_generator);
+      flatbuffers::NewGoCodeGenerator());
 
   flatc.RegisterCodeGenerator(
       flatbuffers::FlatCOption{ "j", "java", "",
                                 "Generate Java classes for tables/structs" },
-      java_generator);
+      flatbuffers::NewJavaCodeGenerator());
 
   flatc.RegisterCodeGenerator(
       flatbuffers::FlatCOption{ "", "jsonschema", "", "Generate Json schema" },
-      json_schema_generator);
+      flatbuffers::NewJsonSchemaCodeGenerator());
 
   flatc.RegisterCodeGenerator(
       flatbuffers::FlatCOption{ "", "kotlin", "",
                                 "Generate Kotlin classes for tables/structs" },
-      kotlin_generator);
+      flatbuffers::NewKotlinCodeGenerator());
 
   flatc.RegisterCodeGenerator(
       flatbuffers::FlatCOption{ "", "lobster", "",
                                 "Generate Lobster files for tables/structs" },
-      lobster_generator);
+      flatbuffers::NewLobsterCodeGenerator());
 
   flatc.RegisterCodeGenerator(
       flatbuffers::FlatCOption{ "", "php", "",
                                 "Generate PHP files for tables/structs" },
-      php_generator);
+      flatbuffers::NewPhpCodeGenerator());
 
   flatc.RegisterCodeGenerator(
       flatbuffers::FlatCOption{ "p", "python", "",
                                 "Generate Python files for tables/structs" },
-      python_generator);
+      flatbuffers::NewPythonCodeGenerator());
 
   flatc.RegisterCodeGenerator(
       flatbuffers::FlatCOption{ "r", "rust", "",
                                 "Generate Rust files for tables/structs" },
-      rust_generator);
+      flatbuffers::NewRustCodeGenerator());
 
   flatc.RegisterCodeGenerator(
       flatbuffers::FlatCOption{ "", "swift", "",
                                 "Generate Swift files for tables/structs" },
-      swift_generator);
+      flatbuffers::NewSwiftCodeGenerator());
 
   flatc.RegisterCodeGenerator(
       flatbuffers::FlatCOption{ "T", "ts", "",
                                 "Generate TypeScript code for tables/structs" },
-      ts_generator);
+      flatbuffers::NewTsCodeGenerator());
 
   // Create the FlatC options by parsing the command line arguments.
   const flatbuffers::FlatCOptions &options =

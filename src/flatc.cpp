@@ -241,8 +241,8 @@ const static FlatCOption flatc_options[] = {
     "Currently this is required to generate private types in Rust" },
 };
 
-static std::stringstream short_flag_help_usage;
-static std::stringstream flag_help_usage;
+auto cmp = [](FlatCOption a, FlatCOption b) { return a.long_opt < b.long_opt; };
+static std::set<FlatCOption, decltype(cmp)> language_options(cmp);
 
 static void AppendTextWrappedString(std::stringstream &ss, std::string &text,
                                     size_t max_col, size_t start_col) {
@@ -315,7 +315,11 @@ std::string FlatCompiler::GetShortUsageString(
     const std::string &program_name) const {
   std::stringstream ss;
   ss << "Usage: " << program_name << " [";
-  ss << short_flag_help_usage.str();
+
+  for (const FlatCOption &option : language_options) {
+    AppendShortOption(ss, option);
+    ss << ", ";
+  }
 
   // TODO(derekbailey): These should be generated from this.generators
   for (size_t i = 0; i < params_.num_generators; ++i) {
@@ -341,7 +345,11 @@ std::string FlatCompiler::GetUsageString(
   std::stringstream ss;
   ss << "Usage: " << program_name
      << " [OPTION]... FILE... [-- BINARY_FILE...]\n";
-  ss << flag_help_usage.str();
+
+  for (const FlatCOption &option : language_options) {
+    AppendOption(ss, option, 80, 25);
+  }
+
   // TODO(derekbailey): These should be generated from this.generators
   for (size_t i = 0; i < params_.num_generators; ++i) {
     const Generator &g = params_.generators[i];
@@ -1027,27 +1035,29 @@ int FlatCompiler::Compile(const FlatCOptions &options) {
 bool FlatCompiler::RegisterCodeGenerator(
     const FlatCOption &option, std::shared_ptr<CodeGenerator> code_generator) {
   if (!option.short_opt.empty() &&
-      code_generators_.find(option.short_opt) != code_generators_.end()) {
+      code_generators_.find("-" + option.short_opt) != code_generators_.end()) {
     Error("multiple generators registered under: -" + option.short_opt, false,
           false);
     return false;
-  } else {
-    std::string short_opt_flag = "-" + option.short_opt;
-    code_generators_[short_opt_flag] = code_generator;
+  }
+
+  if (!option.short_opt.empty()) {
+    code_generators_["-" + option.short_opt] = code_generator;
   }
 
   if (!option.long_opt.empty() &&
-      code_generators_.find(option.long_opt) != code_generators_.end()) {
+      code_generators_.find("--" + option.long_opt) != code_generators_.end()) {
     Error("multiple generators registered under: --" + option.long_opt, false,
           false);
     return false;
-  } else {
-    std::string long_opt_flag = "--" + option.long_opt;
-    code_generators_[long_opt_flag] = code_generator;
   }
 
-  AppendShortOption(short_flag_help_usage, option);
-  AppendOption(flag_help_usage, option, 80, 25);
+  if (!option.long_opt.empty()) {
+    code_generators_["--" + option.long_opt] = code_generator;
+  }
+
+  language_options.insert(option);
+
   return true;
 }
 
