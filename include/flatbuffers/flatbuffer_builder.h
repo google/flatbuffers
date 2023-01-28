@@ -470,43 +470,47 @@ class FlatBufferBuilder {
   /// @param[in] str A const char pointer to the data to be stored as a string.
   /// @param[in] len The number of bytes that should be stored from `str`.
   /// @return Returns the offset in the buffer where the string starts.
-  Offset<String> CreateString(const char *str, size_t len) {
+  template<typename OffsetT = Offset<String>>
+  OffsetT CreateString(const char *str, size_t len) {
     NotNested();
     PreAlign<uoffset_t>(len + 1);  // Always 0-terminated.
     buf_.fill(1);
     PushBytes(reinterpret_cast<const uint8_t *>(str), len);
     PushElement(static_cast<uoffset_t>(len));
-    return Offset<String>(GetSize());
+    return OffsetT(GetSize());
   }
 
   /// @brief Store a string in the buffer, which is null-terminated.
   /// @param[in] str A const char pointer to a C-string to add to the buffer.
   /// @return Returns the offset in the buffer where the string starts.
-  Offset<String> CreateString(const char *str) {
-    return CreateString(str, strlen(str));
+  template<typename OffsetT = Offset<String>>
+  OffsetT CreateString(const char *str) {
+    return CreateString<OffsetT>(str, strlen(str));
   }
 
   /// @brief Store a string in the buffer, which is null-terminated.
   /// @param[in] str A char pointer to a C-string to add to the buffer.
   /// @return Returns the offset in the buffer where the string starts.
-  Offset<String> CreateString(char *str) {
-    return CreateString(str, strlen(str));
+  template<typename OffsetT = Offset<String>> OffsetT CreateString(char *str) {
+    return CreateString<OffsetT>(str, strlen(str));
   }
 
   /// @brief Store a string in the buffer, which can contain any binary data.
   /// @param[in] str A const reference to a std::string to store in the buffer.
   /// @return Returns the offset in the buffer where the string starts.
-  Offset<String> CreateString(const std::string &str) {
-    return CreateString(str.c_str(), str.length());
+  template<typename OffsetT = Offset<String>>
+  OffsetT CreateString(const std::string &str) {
+    return CreateString<OffsetT>(str.c_str(), str.length());
   }
 
-  // clang-format off
+// clang-format off
   #ifdef FLATBUFFERS_HAS_STRING_VIEW
   /// @brief Store a string in the buffer, which can contain any binary data.
   /// @param[in] str A const string_view to copy in to the buffer.
   /// @return Returns the offset in the buffer where the string starts.
-  Offset<String> CreateString(flatbuffers::string_view str) {
-    return CreateString(str.data(), str.size());
+  template<typename OffsetT = Offset<String>>
+  OffsetT CreateString(flatbuffers::string_view str) {
+    return CreateString<OffsetT>(str.data(), str.size());
   }
   #endif // FLATBUFFERS_HAS_STRING_VIEW
   // clang-format on
@@ -514,16 +518,18 @@ class FlatBufferBuilder {
   /// @brief Store a string in the buffer, which can contain any binary data.
   /// @param[in] str A const pointer to a `String` struct to add to the buffer.
   /// @return Returns the offset in the buffer where the string starts
-  Offset<String> CreateString(const String *str) {
-    return str ? CreateString(str->c_str(), str->size()) : 0;
+  template<typename OffsetT = Offset<String>>
+  OffsetT CreateString(const String *str) {
+    return str ? CreateString<OffsetT>(str->c_str(), str->size()) : 0;
   }
 
   /// @brief Store a string in the buffer, which can contain any binary data.
   /// @param[in] str A const reference to a std::string like type with support
   /// of T::c_str() and T::length() to store in the buffer.
   /// @return Returns the offset in the buffer where the string starts.
-  template<typename T> Offset<String> CreateString(const T &str) {
-    return CreateString(str.c_str(), str.length());
+  template<typename T, typename OffsetT = Offset<String>>
+  OffsetT CreateString(const T &str) {
+    return CreateString<OffsetT>(str.c_str(), str.length());
   }
 
   /// @brief Store a string in the buffer, which can contain any binary data.
@@ -647,7 +653,7 @@ class FlatBufferBuilder {
     AssertScalarT<T>();
     StartVector<T>(len);
     if (len == 0) { return OffsetT(EndVector(len)); }
-    // clang-format off
+// clang-format off
     #if FLATBUFFERS_LITTLEENDIAN
       PushBytes(reinterpret_cast<const uint8_t *>(v), len * sizeof(T));
     #else

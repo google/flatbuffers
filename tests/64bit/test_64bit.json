@@ -1,4 +1,5 @@
 {
   "big_vector": [1, 2, 3],
-  "a": 1234
+  "a": 1234,
+  "big_string": "this is a big string which has a 64-bit offset",
 }

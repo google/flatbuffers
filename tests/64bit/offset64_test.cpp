@@ -1,8 +1,9 @@
 #include "offset64_test.h"
 
 #include <stdint.h>
-#include <limits>
+
 #include <iostream>
+#include <limits>
 
 #include "flatbuffers/base.h"
 #include "flatbuffers/flatbuffers.h"
@@ -15,21 +16,24 @@ namespace tests {
 void Offset64Test() {
   flatbuffers::FlatBufferBuilder fbb;
 
-  size_t vector_size = 3LL << 3; // change to 30 to get 3 GiB.
+  size_t vector_size = 3LL << 3;  // change to 30 to get 3 GiB.
 
   {
     std::vector<uint8_t> data;
-    data.resize(vector_size); 
+    data.resize(vector_size);
 
     const Offset64<Vector<uint8_t>> big_vector_offset =
         fbb.CreateVector64(data);
 
+    const Offset64<String> big_string_offset =
+        fbb.CreateString<Offset64<String>>("some big string");
+
     RootTableBuilder root_table_builder(fbb);
     root_table_builder.add_big_vector(big_vector_offset);
+    root_table_builder.add_big_string(big_string_offset);
     const Offset<RootTable> root_table_offset = root_table_builder.Finish();
 
     fbb.Finish(root_table_offset);
-
 
     Verifier::Options options;
     // Allow the verifier to verify 64-bit buffers.
@@ -45,6 +49,8 @@ void Offset64Test() {
 
     // Expect the big vector to be properly sized.
     TEST_EQ(root_table->big_vector()->size(), vector_size);
+
+    TEST_EQ_STR(root_table->big_string()->c_str(), "some big string");
   }
 }
 

@@ -3008,7 +3008,12 @@ class CppGenerator : public BaseGenerator {
           code_.SetValue("FIELD_NAME", Name(*field));
           if (IsString(field->value.type)) {
             if (!field->shared) {
-              code_.SetValue("CREATE_STRING", "CreateString");
+              code_.SetValue(
+                  "CREATE_STRING",
+                  "CreateString" + std::string(field->offset64
+                                                   ? "<::flatbuffers::Offset64<"
+                                                     "::flatbuffers::String>>"
+                                                   : ""));
             } else {
               code_.SetValue("CREATE_STRING", "CreateSharedString");
             }
@@ -3293,7 +3298,12 @@ class CppGenerator : public BaseGenerator {
       //   _fbb.CreateSharedString(_o->field)
       case BASE_TYPE_STRING: {
         if (!field.shared) {
-          code += "_fbb.CreateString(";
+          code += "_fbb.CreateString" +
+                  std::string(field.offset64
+                                  ? "<std::string, ::flatbuffers::Offset64<"
+                                    "::flatbuffers::String>>"
+                                  : "") +
+                  "(";
         } else {
           code += "_fbb.CreateSharedString(";
         }

@@ -1,6 +1,7 @@
 table RootTable {
   big_vector:[ubyte] (offset64);
   a:int;
+  big_string:string (offset64);
 }
 
 root_type RootTable; 
