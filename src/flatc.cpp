@@ -626,6 +626,10 @@ FlatCOptions FlatCompiler::ParseFromCommandLineArguments(int argc,
       } else {
         // Look up if the command line argument refers to a code generator.
         auto code_generator_it = code_generators_.find(arg);
+        if(code_generator_it == code_generators_.end()) {
+          Error("unknown commandline argument: " + arg, true);
+        }
+
         if (code_generator_it != code_generators_.end()) {
           std::shared_ptr<CodeGenerator> code_generator =
               code_generator_it->second;
@@ -635,11 +639,9 @@ FlatCOptions FlatCompiler::ParseFromCommandLineArguments(int argc,
           options.any_generator = true;
           opts.lang_to_generate |= code_generator->Language();
 
-          if (code_generator->SupportsBfbsGeneration()) {
-            opts.binary_schema_comments = true;
-            options.requires_bfbs = true;
-          }
-
+          auto is_binary_schema = code_generator->SupportsBfbsGeneration();
+          opts.binary_schema_comments = is_binary_schema;
+          options.requires_bfbs = is_binary_schema;
           options.generators.push_back(std::move(code_generator));
         }
       }
