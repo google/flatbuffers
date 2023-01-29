@@ -36,6 +36,7 @@
 #include "idl_gen_python.h"
 #include "idl_gen_rust.h"
 #include "idl_gen_swift.h"
+#include "idl_gen_text.h"
 #include "idl_gen_ts.h"
 
 static const char *g_program_name = nullptr;
@@ -72,6 +73,7 @@ int main(int argc, const char *argv[]) {
 
   g_program_name = argv[0];
 
+  flatbuffers::FlatCompiler::InitParams params;
   params.warn_fn = Warn;
   params.error_fn = Error;
 
@@ -142,11 +144,15 @@ int main(int argc, const char *argv[]) {
                                 "Generate PHP files for tables/structs" },
       flatbuffers::NewPhpCodeGenerator());
 
-
   flatc.RegisterCodeGenerator(
       flatbuffers::FlatCOption{ "r", "rust", "",
                                 "Generate Rust files for tables/structs" },
       flatbuffers::NewRustCodeGenerator());
+
+  flatc.RegisterCodeGenerator(
+      flatbuffers::FlatCOption{
+          "t", "json", "", "Generate text output for any data definitions" },
+      flatbuffers::NewTextCodeGenerator());
 
   flatc.RegisterCodeGenerator(
       flatbuffers::FlatCOption{ "", "swift", "",
