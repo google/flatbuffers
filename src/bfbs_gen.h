@@ -19,7 +19,6 @@
 
 #include <cstdint>
 
-//#include "flatbuffers/bfbs_generator.h"
 #include "flatbuffers/code_generator.h"
 #include "flatbuffers/reflection_generated.h"
 
