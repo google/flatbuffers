@@ -15,7 +15,7 @@ if (UNIX)
 
     set(CPACK_RPM_PACKAGE_NAME "flatbuffers")
 
-    # Assume this is not a cross complation build.
+    # Assume this is not a cross compilation build.
     if(NOT CPACK_RPM_PACKAGE_ARCHITECTURE)
         set(CPACK_RPM_PACKAGE_ARCHITECTURE "${CMAKE_SYSTEM_PROCESSOR}")
     endif(NOT CPACK_RPM_PACKAGE_ARCHITECTURE)
