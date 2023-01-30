@@ -1,32 +1,12 @@
 # This is the legacy minimum version flatbuffers supported for a while.
-cmake_minimum_required(VERSION 2.8.12...3.22.1)
-
-# CMake version 3.16 is the 'de-facto' minimum version for flatbuffers. If the
-# current cmake is older than this, warn the user and include the legacy file to
-# provide some level of support.
-if(CMAKE_VERSION VERSION_LESS 3.16)
-  message(WARNING "Using cmake version ${CMAKE_VERSION} which is older than "
-  "our target version of 3.16. This will use the legacy CMakeLists.txt that "
-  "supports version 2.8.12 and higher, but not actively maintained. Consider "
-  "upgrading cmake to a newer version, as this may become a fatal error in the "
-  "future.")
-  # Use the legacy version of CMakeLists.txt
-  include(CMake/CMakeLists_legacy.cmake.in)
-  return()
-endif()
+cmake_minimum_required(VERSION 3.8...3.25.2)
 
 # Attempt to read the current version of flatbuffers by looking at the latest tag.
 include(CMake/Version.cmake)
 
-if (POLICY CMP0048)
-  cmake_policy(SET CMP0048 NEW)
-  project(FlatBuffers
-        DESCRIPTION "Flatbuffers serialization library"
+project(FlatBuffers
         VERSION ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}
         LANGUAGES CXX)
-else()
-  project(FlatBuffers)
-endif (POLICY CMP0048)
 
 # generate compile_commands.json
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
@@ -85,6 +65,12 @@ endif()
 set(MSVC_LIKE OFF)
 if(MSVC OR CMAKE_CXX_COMPILER_FRONTEND_VARIANT STREQUAL "MSVC")
     set(MSVC_LIKE ON)
+endif()
+
+if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+  set(IS_CLANG ON)
+else()
+  set(IS_CLANG OFF)
 endif()
 
 if(DEFINED FLATBUFFERS_COMPILATION_TIMINGS)
@@ -325,7 +311,7 @@ set(FlatBuffers_GRPCTest_SRCS
 # TODO(dbaileychess): Figure out how this would now work. I posted a question on
 # https://stackoverflow.com/questions/71772330/override-target-compile-options-via-cmake-command-line.
 # Append FLATBUFFERS_CXX_FLAGS to CMAKE_CXX_FLAGS.
-if(DEFINED FLATBUFFERS_CXX_FLAGS AND NOT EXISTS "${CMAKE_TOOLCHAIN_FILE}")
+if(DEFINED FLATBUFFERS_CXX_FLAGS)
   message(STATUS "extend CXX_FLAGS with ${FLATBUFFERS_CXX_FLAGS}")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${FLATBUFFERS_CXX_FLAGS}")
 endif()
@@ -338,9 +324,7 @@ function(add_fsanitize_to_target _target _sanitizer)
   else()
     # FLATBUFFERS_CODE_SANITIZE: boolean {ON,OFF,YES,NO} or string with list of sanitizer.
     # List of sanitizer is string starts with '=': "=address,undefined,thread,memory".
-    if((${CMAKE_CXX_COMPILER_ID} MATCHES "Clang") OR
-      ((${CMAKE_CXX_COMPILER_ID} MATCHES "GNU") AND NOT (CMAKE_CXX_COMPILER_VERSION VERSION_LESS "4.9"))
-    )
+    if(IS_CLANG OR (CMAKE_COMPILER_IS_GNUCXX AND CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 4.9))
       set(_sanitizer_flags "=address,undefined")
       if(_sanitizer MATCHES "=.*")
         # override default by user-defined sanitizer list
@@ -351,13 +335,14 @@ function(add_fsanitize_to_target _target _sanitizer)
         "-fsanitize${_sanitizer_flags}")
       target_link_libraries(${_target} PRIVATE
         "-fsanitize${_sanitizer_flags}")
-      set_property(TARGET ${_target} PROPERTY POSITION_INDEPENDENT_CODE ON)
+      set_target_properties(${_target} PROPERTIES POSITION_INDEPENDENT_CODE ON)
       message(STATUS "Sanitizer ${_sanitizer_flags} added to ${_target}")
     endif()
   endif()
 endfunction()
 
 function(add_pch_to_target _target _pch_header)
+  # the command is available since cmake 3.16
   if(COMMAND target_precompile_headers)
     target_precompile_headers(${_target} PRIVATE ${_pch_header})
     if(NOT MSVC)
@@ -401,11 +386,6 @@ if(MSVC_LIKE)
       >
   )
 else()
-  if("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
-    set(IS_CLANG ON)
-  else()
-    set(IS_CLANG OFF)
-  endif()
   target_compile_options(ProjectConfig
     INTERFACE
       -Wall
@@ -502,7 +482,7 @@ if(FLATBUFFERS_BUILD_FLATC)
 
   target_link_libraries(flatc PRIVATE $<BUILD_INTERFACE:ProjectConfig>)
   target_compile_options(flatc
-    PUBLIC
+    PRIVATE
       $<$<AND:$<BOOL:${MSVC_LIKE}>,$<CONFIG:Release>>:
         /MT
       >
@@ -531,7 +511,8 @@ if(FLATBUFFERS_BUILD_SHAREDLIB)
   # stability guarantees. Therefore, always use the full version as SOVERSION
   # in order to avoid breaking reverse dependencies on upgrades.
   set(FlatBuffers_Library_SONAME_FULL "${PROJECT_VERSION}")
-  set_target_properties(flatbuffers_shared PROPERTIES OUTPUT_NAME flatbuffers
+  set_target_properties(flatbuffers_shared PROPERTIES
+                        OUTPUT_NAME flatbuffers
                         SOVERSION "${FlatBuffers_Library_SONAME_FULL}"
                         VERSION "${FlatBuffers_Library_SONAME_FULL}")
   if(FLATBUFFERS_ENABLE_PCH)
@@ -678,7 +659,7 @@ if(FLATBUFFERS_BUILD_TESTS)
     add_executable(flattests_cpp17 ${FlatBuffers_Tests_CPP17_SRCS})
     add_dependencies(flattests_cpp17 generated_code)
     target_link_libraries(flattests_cpp17 PRIVATE $<BUILD_INTERFACE:ProjectConfig>)
-    target_compile_features(flattests_cpp17 PRIVATE cxx_std_17)
+    target_compile_features(flattests_cpp17 PRIVATE cxx_std_17) # requires cmake 3.8
 
     if(FLATBUFFERS_CODE_SANITIZE)
       add_fsanitize_to_target(flattests_cpp17 ${FLATBUFFERS_CODE_SANITIZE})
