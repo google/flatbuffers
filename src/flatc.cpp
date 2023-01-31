@@ -932,6 +932,12 @@ int FlatCompiler::Compile(const FlatCOptions &options) {
 
   std::unique_ptr<Parser> parser = GenerateCode(options, conform_parser);
 
+  for (const auto &code_generator : options.generators) {
+    if (code_generator->SupportsRootFileGeneration()) {
+      code_generator->GenerateRootFile(*parser, options.output_path);
+    }
+  }
+
   return 0;
 }
 

@@ -53,11 +53,17 @@ class CodeGenerator {
   virtual Status GenerateGrpcCode(const Parser &parser, const std::string &path,
                                   const std::string &filename) = 0;
 
+  virtual Status GenerateRootFile(const Parser &parser,
+                                  const std::string &path) = 0;
+
   virtual bool IsSchemaOnly() const = 0;
 
   virtual bool SupportsBfbsGeneration() const = 0;
 
+  virtual bool SupportsRootFileGeneration() const = 0;
+
   virtual IDLOptions::Language Language() const = 0;
+
   virtual std::string LanguageName() const = 0;
 
  protected:
