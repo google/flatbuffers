@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 Google Inc. All rights reserved.
+ * Copyright 2023 Google Inc. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,30 +14,16 @@
  * limitations under the License.
  */
 
-#ifndef FLATBUFFERS_BFBS_GENERATOR_H_
-#define FLATBUFFERS_BFBS_GENERATOR_H_
+#ifndef FLATBUFFERS_IDL_GEN_TEXT_H_
+#define FLATBUFFERS_IDL_GEN_TEXT_H_
 
-#include <cstdint>
+#include "flatbuffers/code_generator.h"
 
 namespace flatbuffers {
 
-enum GeneratorStatus {
-  OK,
-  FAILED,
-  FAILED_VERIFICATION,
-};
-
-// A Flatbuffer Code Generator that receives a binary serialized reflection.fbs
-// and generates code from it.
-class BfbsGenerator {
- public:
-  virtual ~BfbsGenerator() {}
-
-  // Generate code from the provided `buffer` of given `length`. The buffer is
-  // a serialized reflection.fbs.
-  virtual GeneratorStatus Generate(const uint8_t *buffer, int64_t length) = 0;
-};
+// Constructs a new Text code generator.
+std::unique_ptr<CodeGenerator> NewTextCodeGenerator();
 
 }  // namespace flatbuffers
 
-#endif  // FLATBUFFERS_BFBS_GENERATOR_H_
+#endif  // FLATBUFFERS_IDL_GEN_TEXT_H_

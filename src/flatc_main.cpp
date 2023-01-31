@@ -36,6 +36,7 @@
 #include "idl_gen_python.h"
 #include "idl_gen_rust.h"
 #include "idl_gen_swift.h"
+#include "idl_gen_text.h"
 #include "idl_gen_ts.h"
 
 static const char *g_program_name = nullptr;
@@ -70,34 +71,9 @@ void LogCompilerError(const std::string &err) {
 int main(int argc, const char *argv[]) {
   const std::string flatbuffers_version(flatbuffers::FLATBUFFERS_VERSION());
 
-  std::unique_ptr<flatbuffers::BfbsGenerator> bfbs_gen_lua =
-      flatbuffers::NewLuaBfbsGenerator(flatbuffers_version);
-  std::unique_ptr<flatbuffers::BfbsGenerator> bfbs_gen_nim =
-      flatbuffers::NewNimBfbsGenerator(flatbuffers_version);
-
   g_program_name = argv[0];
 
-  const flatbuffers::FlatCompiler::Generator generators[] = {
-    { flatbuffers::GenerateTextFile, "text", false, nullptr,
-      flatbuffers::IDLOptions::kJson,
-      flatbuffers::FlatCOption{
-          "t", "json", "", "Generate text output for any data definitions" },
-
-      flatbuffers::TextMakeRule, nullptr, nullptr },
-    { flatbuffers::GenerateLua, "Lua", true, nullptr,
-      flatbuffers::IDLOptions::kLua,
-      flatbuffers::FlatCOption{ "l", "lua", "",
-                                "Generate Lua files for tables/structs" },
-      nullptr, bfbs_gen_lua.get(), nullptr },
-    { nullptr, "Nim", true, nullptr, flatbuffers::IDLOptions::kNim,
-      flatbuffers::FlatCOption{ "", "nim", "",
-                                "Generate Nim files for tables/structs" },
-      nullptr, bfbs_gen_nim.get(), nullptr },
-  };
-
   flatbuffers::FlatCompiler::InitParams params;
-  params.generators = generators;
-  params.num_generators = sizeof(generators) / sizeof(generators[0]);
   params.warn_fn = Warn;
   params.error_fn = Error;
 
@@ -149,9 +125,14 @@ int main(int argc, const char *argv[]) {
       flatbuffers::NewLobsterCodeGenerator());
 
   flatc.RegisterCodeGenerator(
-      flatbuffers::FlatCOption{ "", "php", "",
-                                "Generate PHP files for tables/structs" },
-      flatbuffers::NewPhpCodeGenerator());
+      flatbuffers::FlatCOption{ "l", "lua", "",
+                                "Generate Lua files for tables/structs" },
+      flatbuffers::NewLuaBfbsGenerator(flatbuffers_version));
+
+  flatc.RegisterCodeGenerator(
+      flatbuffers::FlatCOption{ "", "nim", "",
+                                "Generate Nim files for tables/structs" },
+      flatbuffers::NewNimBfbsGenerator(flatbuffers_version));
 
   flatc.RegisterCodeGenerator(
       flatbuffers::FlatCOption{ "p", "python", "",
@@ -159,9 +140,19 @@ int main(int argc, const char *argv[]) {
       flatbuffers::NewPythonCodeGenerator());
 
   flatc.RegisterCodeGenerator(
+      flatbuffers::FlatCOption{ "", "php", "",
+                                "Generate PHP files for tables/structs" },
+      flatbuffers::NewPhpCodeGenerator());
+
+  flatc.RegisterCodeGenerator(
       flatbuffers::FlatCOption{ "r", "rust", "",
                                 "Generate Rust files for tables/structs" },
       flatbuffers::NewRustCodeGenerator());
+
+  flatc.RegisterCodeGenerator(
+      flatbuffers::FlatCOption{
+          "t", "json", "", "Generate text output for any data definitions" },
+      flatbuffers::NewTextCodeGenerator());
 
   flatc.RegisterCodeGenerator(
       flatbuffers::FlatCOption{ "", "swift", "",
