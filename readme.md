@@ -77,4 +77,4 @@ Please see our [Security Policy](SECURITY.md) for reporting vulnerabilities.
    [FlatBuffers Issues Tracker]: http://github.com/google/flatbuffers/issues
    [stackoverflow.com]: http://stackoverflow.com/search?q=flatbuffers
    [landing page]: https://google.github.io/flatbuffers
-   [LICENSE]: https://github.com/google/flatbuffers/blob/master/LICENSE.txt
+   [LICENSE]: https://github.com/google/flatbuffers/blob/master/LICENSE
