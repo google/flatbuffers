@@ -871,11 +871,6 @@ std::unique_ptr<Parser> FlatCompiler::GenerateCode(const FlatCOptions &options,
 }
 
 int FlatCompiler::Compile(const FlatCOptions &options) {
-  if (options.generators.empty()) {
-    Error("No code generator registered");
-    return 1;
-  }
-
   // TODO(derekbailey): change to std::optional<Parser>
   Parser conform_parser = GetConformParser(options);
 
@@ -928,6 +923,11 @@ int FlatCompiler::Compile(const FlatCOptions &options) {
 
     // We don't support doing anything else after annotating a binary.
     return 0;
+  }
+
+  if (options.generators.empty()) {
+    Error("No generator registered");
+    return -1;
   }
 
   std::unique_ptr<Parser> parser = GenerateCode(options, conform_parser);
