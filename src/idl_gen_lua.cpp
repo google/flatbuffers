@@ -780,9 +780,18 @@ class LuaCodeGenerator : public CodeGenerator {
     return Status::NOT_IMPLEMENTED;
   }
 
+  Status GenerateRootFile(const Parser &parser,
+                          const std::string &path) override {
+    (void)parser;
+    (void)path;
+    return Status::NOT_IMPLEMENTED;
+  }
+
   bool IsSchemaOnly() const override { return true; }
 
   bool SupportsBfbsGeneration() const override { return true; }
+
+  bool SupportsRootFileGeneration() const override { return false; }
 
   IDLOptions::Language Language() const override { return IDLOptions::kLua; }
 
