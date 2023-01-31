@@ -873,7 +873,7 @@ std::unique_ptr<Parser> FlatCompiler::GenerateCode(const FlatCOptions &options,
 int FlatCompiler::Compile(const FlatCOptions &options) {
   if (options.generators.empty()) {
     Error("No code generator registered");
-    return -1;
+    return 1;
   }
 
   // TODO(derekbailey): change to std::optional<Parser>

@@ -3050,6 +3050,7 @@ class RustCodeGenerator : public CodeGenerator {
   bool IsSchemaOnly() const override { return true; }
 
   bool SupportsBfbsGeneration() const override { return false; }
+
   bool SupportsRootFileGeneration() const override { return true; }
 
   IDLOptions::Language Language() const override { return IDLOptions::kRust; }
