@@ -626,24 +626,23 @@ FlatCOptions FlatCompiler::ParseFromCommandLineArguments(int argc,
       } else {
         // Look up if the command line argument refers to a code generator.
         auto code_generator_it = code_generators_.find(arg);
-        if(code_generator_it == code_generators_.end()) {
+        if (code_generator_it == code_generators_.end()) {
           Error("unknown commandline argument: " + arg, true);
+          return options;
         }
 
-        if (code_generator_it != code_generators_.end()) {
-          std::shared_ptr<CodeGenerator> code_generator =
-              code_generator_it->second;
+        std::shared_ptr<CodeGenerator> code_generator =
+            code_generator_it->second;
 
-          // TODO(derekbailey): remove in favor of just checking if
-          // generators.empty().
-          options.any_generator = true;
-          opts.lang_to_generate |= code_generator->Language();
+        // TODO(derekbailey): remove in favor of just checking if
+        // generators.empty().
+        options.any_generator = true;
+        opts.lang_to_generate |= code_generator->Language();
 
-          auto is_binary_schema = code_generator->SupportsBfbsGeneration();
-          opts.binary_schema_comments = is_binary_schema;
-          options.requires_bfbs = is_binary_schema;
-          options.generators.push_back(std::move(code_generator));
-        }
+        auto is_binary_schema = code_generator->SupportsBfbsGeneration();
+        opts.binary_schema_comments = is_binary_schema;
+        options.requires_bfbs = is_binary_schema;
+        options.generators.push_back(std::move(code_generator));
       }
     } else {
       options.filenames.push_back(flatbuffers::PosixPath(argv[argi]));
@@ -872,7 +871,10 @@ std::unique_ptr<Parser> FlatCompiler::GenerateCode(const FlatCOptions &options,
 }
 
 int FlatCompiler::Compile(const FlatCOptions &options) {
-  if (options.generators.empty()) { return 0; }
+  if (options.generators.empty()) {
+    Error("No code generator registered");
+    return -1;
+  }
 
   // TODO(derekbailey): change to std::optional<Parser>
   Parser conform_parser = GetConformParser(options);
