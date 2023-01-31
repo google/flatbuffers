@@ -26,7 +26,6 @@
 // Ensure no includes to flatc internals. bfbs_gen.h and generator.h are OK.
 #include "bfbs_gen.h"
 #include "bfbs_namer.h"
-#include "flatbuffers/bfbs_generator.h"
 
 // The intermediate representation schema.
 #include "flatbuffers/reflection.h"
@@ -79,14 +78,56 @@ class LuaBfbsGenerator : public BaseBfbsGenerator {
         flatc_version_(flatc_version),
         namer_(LuaDefaultConfig(), LuaKeywords()) {}
 
-  GeneratorStatus GenerateFromSchema(const r::Schema *schema)
-      FLATBUFFERS_OVERRIDE {
-    if (!GenerateEnums(schema->enums())) { return FAILED; }
+  Status GenerateFromSchema(const r::Schema *schema) FLATBUFFERS_OVERRIDE {
+    if (!GenerateEnums(schema->enums())) { return ERROR; }
     if (!GenerateObjects(schema->objects(), schema->root_table())) {
-      return FAILED;
+      return ERROR;
     }
     return OK;
   }
+
+  using BaseBfbsGenerator::GenerateCode;
+
+  Status GenerateCode(const Parser &parser, const std::string &path,
+                      const std::string &filename) FLATBUFFERS_OVERRIDE {
+    if (!GenerateLua(parser, path, filename)) { return ERROR; }
+    return OK;
+  }
+
+  Status GenerateMakeRule(const Parser &parser, const std::string &path,
+                          const std::string &filename,
+                          std::string &output) override {
+    (void)parser;
+    (void)path;
+    (void)filename;
+    (void)output;
+    return Status::NOT_IMPLEMENTED;
+  }
+
+  Status GenerateGrpcCode(const Parser &parser, const std::string &path,
+                          const std::string &filename) override {
+    (void)parser;
+    (void)path;
+    (void)filename;
+    return Status::NOT_IMPLEMENTED;
+  }
+
+  Status GenerateRootFile(const Parser &parser,
+                          const std::string &path) override {
+    (void)parser;
+    (void)path;
+    return Status::NOT_IMPLEMENTED;
+  }
+
+  bool IsSchemaOnly() const override { return true; }
+
+  bool SupportsBfbsGeneration() const override { return true; }
+
+  bool SupportsRootFileGeneration() const override { return false; }
+
+  IDLOptions::Language Language() const override { return IDLOptions::kLua; }
+
+  std::string LanguageName() const override { return "Lua"; }
 
   uint64_t SupportedAdvancedFeatures() const FLATBUFFERS_OVERRIDE {
     return 0xF;
@@ -625,7 +666,7 @@ class LuaBfbsGenerator : public BaseBfbsGenerator {
 };
 }  // namespace
 
-std::unique_ptr<BfbsGenerator> NewLuaBfbsGenerator(
+std::unique_ptr<CodeGenerator> NewLuaBfbsGenerator(
     const std::string &flatc_version) {
   return std::unique_ptr<LuaBfbsGenerator>(new LuaBfbsGenerator(flatc_version));
 }

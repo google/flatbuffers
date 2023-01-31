@@ -20,12 +20,12 @@
 #include <memory>
 #include <string>
 
-#include "flatbuffers/bfbs_generator.h"
+#include "flatbuffers/code_generator.h"
 
 namespace flatbuffers {
 
 // Constructs a new Lua Code generator.
-std::unique_ptr<BfbsGenerator> NewLuaBfbsGenerator(
+std::unique_ptr<CodeGenerator> NewLuaBfbsGenerator(
     const std::string &flatc_version);
 
 }  // namespace flatbuffers
