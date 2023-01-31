@@ -1641,6 +1641,7 @@ class KotlinCodeGenerator : public CodeGenerator {
   bool IsSchemaOnly() const override { return true; }
 
   bool SupportsBfbsGeneration() const override { return false; }
+
   bool SupportsRootFileGeneration() const override { return false; }
 
   IDLOptions::Language Language() const override { return IDLOptions::kKotlin; }

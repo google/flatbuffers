@@ -122,6 +122,7 @@ class LuaBfbsGenerator : public BaseBfbsGenerator {
   bool IsSchemaOnly() const override { return true; }
 
   bool SupportsBfbsGeneration() const override { return true; }
+
   bool SupportsRootFileGeneration() const override { return false; }
 
   IDLOptions::Language Language() const override { return IDLOptions::kLua; }
