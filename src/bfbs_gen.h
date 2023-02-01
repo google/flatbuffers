@@ -19,7 +19,7 @@
 
 #include <cstdint>
 
-#include "flatbuffers/bfbs_generator.h"
+#include "flatbuffers/code_generator.h"
 #include "flatbuffers/reflection_generated.h"
 
 namespace flatbuffers {
@@ -96,20 +96,19 @@ static bool IsVector(const reflection::BaseType base_type) {
 
 // A concrete base Flatbuffer Generator that specific language generators can
 // derive from.
-class BaseBfbsGenerator : public BfbsGenerator {
+class BaseBfbsGenerator : public CodeGenerator {
  public:
   virtual ~BaseBfbsGenerator() {}
   BaseBfbsGenerator() : schema_(nullptr) {}
 
-  virtual GeneratorStatus GenerateFromSchema(
+  virtual Status GenerateFromSchema(
       const reflection::Schema *schema) = 0;
 
-  //
   virtual uint64_t SupportedAdvancedFeatures() const = 0;
 
-  // Override of the Generator::generate method that does the initial
+  // Override of the Generator::GenerateCode method that does the initial
   // deserialization and verification steps.
-  GeneratorStatus Generate(const uint8_t *buffer,
+  Status GenerateCode(const uint8_t *buffer,
                            int64_t length) FLATBUFFERS_OVERRIDE {
     flatbuffers::Verifier verifier(buffer, static_cast<size_t>(length));
     if (!reflection::VerifySchemaBuffer(verifier)) {
@@ -125,7 +124,7 @@ class BaseBfbsGenerator : public BfbsGenerator {
       return FAILED_VERIFICATION;
     }
 
-    GeneratorStatus status = GenerateFromSchema(schema_);
+    Status status = GenerateFromSchema(schema_);
     schema_ = nullptr;
     return status;
   }
