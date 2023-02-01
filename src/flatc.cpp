@@ -170,6 +170,15 @@ const static FlatCOption flatc_options[] = {
   { "", "proto-namespace-suffix", "SUFFIX",
     "Add this namespace to any flatbuffers generated from protobufs." },
   { "", "oneof-union", "", "Translate .proto oneofs to flatbuffer unions." },
+  { "", "keep-proto-id", "", "Keep protobuf field ids in generated fbs file." },
+  { "", "proto-id-gap", "",
+    "Action that should be taken when a gap between protobuf ids found. "
+    "Supported values: * "
+    "'nop' - do not care about gap * 'warn' - A warning message will be shown "
+    "about the gap in protobuf ids"
+    "(default) "
+    "* 'error' - An error message will be shown and the fbs generation will be "
+    "interrupted." },
   { "", "grpc", "", "Generate GRPC interfaces for the specified languages." },
   { "", "schema", "", "Serialize schemas instead of JSON (use with -b)." },
   { "", "bfbs-filenames", "PATH",
@@ -541,6 +550,18 @@ FlatCOptions FlatCompiler::ParseFromCommandLineArguments(int argc,
         opts.proto_namespace_suffix = argv[argi];
       } else if (arg == "--oneof-union") {
         opts.proto_oneof_union = true;
+      } else if (arg == "--keep-proto-id") {
+        opts.keep_proto_id = true;
+      } else if (arg == "--proto-id-gap") {
+        if (++argi >= argc) Error("missing case style following: " + arg, true);
+        if (!strcmp(argv[argi], "nop"))
+          opts.proto_id_gap_action = IDLOptions::ProtoIdGapAction::NO_OP;
+        else if (!strcmp(argv[argi], "warn"))
+          opts.proto_id_gap_action = IDLOptions::ProtoIdGapAction::WARNING;
+        else if (!strcmp(argv[argi], "error"))
+          opts.proto_id_gap_action = IDLOptions::ProtoIdGapAction::ERROR;
+        else
+          Error("unknown case style: " + std::string(argv[argi]), true);
       } else if (arg == "--schema") {
         options.schema_binary = true;
       } else if (arg == "-M") {
