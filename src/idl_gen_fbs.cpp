@@ -15,6 +15,9 @@
  */
 
 // independent from idl_parser, since this code is not needed for most clients
+#include <unordered_map>
+#include <utility>
+#include <vector>
 
 #include "flatbuffers/code_generators.h"
 #include "flatbuffers/flatbuffers.h"
@@ -37,6 +40,184 @@ static std::string GenType(const Type &type, bool underlying = false) {
         return kTypeNames[type.base_type];
       }
   }
+}
+
+static bool HasFieldWithId(const std::vector<FieldDef *> &fields) {
+  static const std::string ID = "id";
+
+  for (const auto *field : fields) {
+    const auto *id_attribute = field->attributes.Lookup(ID);
+    if (id_attribute != nullptr && !id_attribute->constant.empty()) {
+      return true;
+    }
+  }
+  return false;
+}
+
+static bool HasNonPositiveFieldId(const std::vector<FieldDef *> &fields) {
+  static const std::string ID = "id";
+
+  for (const auto *field : fields) {
+    const auto *id_attribute = field->attributes.Lookup(ID);
+    if (id_attribute != nullptr && !id_attribute->constant.empty()) {
+      voffset_t proto_id = 0;
+      bool done = StringToNumber(id_attribute->constant.c_str(), &proto_id);
+      if (!done) { return true; }
+    }
+  }
+  return false;
+}
+
+static bool HasFieldIdFromReservedIds(
+    const std::vector<FieldDef *> &fields,
+    const std::vector<voffset_t> &reserved_ids) {
+  static const std::string ID = "id";
+
+  for (const auto *field : fields) {
+    const auto *id_attribute = field->attributes.Lookup(ID);
+    if (id_attribute != nullptr && !id_attribute->constant.empty()) {
+      voffset_t proto_id = 0;
+      bool done = StringToNumber(id_attribute->constant.c_str(), &proto_id);
+      if (!done) { return true; }
+      auto id_it =
+          std::find(std::begin(reserved_ids), std::end(reserved_ids), proto_id);
+      if (id_it != reserved_ids.end()) { return true; }
+    }
+  }
+  return false;
+}
+
+static std::vector<voffset_t> ExtractProtobufIds(
+    const std::vector<FieldDef *> &fields) {
+  static const std::string ID = "id";
+  std::vector<voffset_t> used_proto_ids;
+  for (const auto *field : fields) {
+    const auto *id_attribute = field->attributes.Lookup(ID);
+    if (id_attribute != nullptr && !id_attribute->constant.empty()) {
+      voffset_t proto_id = 0;
+      bool done = StringToNumber(id_attribute->constant.c_str(), &proto_id);
+      if (done) { used_proto_ids.push_back(proto_id); }
+    }
+  }
+
+  return used_proto_ids;
+}
+
+static bool HasTwiceUsedId(const std::vector<FieldDef *> &fields) {
+  std::vector<voffset_t> used_proto_ids = ExtractProtobufIds(fields);
+  std::sort(std::begin(used_proto_ids), std::end(used_proto_ids));
+  for (auto it = std::next(std::begin(used_proto_ids));
+       it != std::end(used_proto_ids); it++) {
+    if (*it == *std::prev(it)) { return true; }
+  }
+
+  return false;
+}
+
+static bool HasGapInProtoId(const std::vector<FieldDef *> &fields) {
+  std::vector<voffset_t> used_proto_ids = ExtractProtobufIds(fields);
+  std::sort(std::begin(used_proto_ids), std::end(used_proto_ids));
+  for (auto it = std::next(std::begin(used_proto_ids));
+       it != std::end(used_proto_ids); it++) {
+    if (*it != *std::prev(it) + 1) { return true; }
+  }
+
+  return false;
+}
+
+static bool ProtobufIdSanityCheck(const StructDef &struct_def,
+                                  IDLOptions::ProtoIdGapAction gap_action) {
+  const auto &fields = struct_def.fields.vec;
+  if (HasNonPositiveFieldId(fields)) {
+    // TODO: Use LogCompilerWarn
+    fprintf(stderr,
+                    "Field id in struct %s has a non positive number value\n",
+                    struct_def.name.c_str());
+    return false;
+  }
+
+  if (HasTwiceUsedId(fields)) {
+    // TODO: Use LogCompilerWarn
+    fprintf(stderr, "Fields in struct %s have used an id twice\n", struct_def.name.c_str());
+    return false;
+  }
+
+  if (HasFieldIdFromReservedIds(fields, struct_def.reserved_ids)) {
+    // TODO: Use LogCompilerWarn
+    fprintf(stderr,
+    "Fields in struct %s use id from reserved ids\n", struct_def.name.c_str());
+    return false;
+  }
+
+  if (gap_action != IDLOptions::ProtoIdGapAction::NO_OP) {
+    if (HasGapInProtoId(fields)) {
+      // TODO: Use LogCompilerWarn
+      fprintf(stderr, "Fields in struct %s have gap between ids\n", struct_def.name.c_str());
+      if (gap_action == IDLOptions::ProtoIdGapAction::ERROR) { return false; }
+    }
+  }
+
+  return true;
+}
+
+struct ProtobufToFbsIdMap {
+  using FieldName = std::string;
+  using FieldID = voffset_t;
+  using FieldNameToIdMap = std::unordered_map<FieldName, FieldID>;
+
+  FieldNameToIdMap field_to_id;
+  bool successful = false;
+};
+
+static ProtobufToFbsIdMap MapProtoIdsToFieldsId(
+    const StructDef &struct_def, IDLOptions::ProtoIdGapAction gap_action) {
+  const auto &fields = struct_def.fields.vec;
+
+  if (!HasFieldWithId(fields)) {
+    ProtobufToFbsIdMap result;
+    result.successful = true;
+    return result;
+  }
+
+  if (!ProtobufIdSanityCheck(struct_def, gap_action)) { return {}; }
+
+  static constexpr int UNION_ID = -1;
+  using ProtoIdFieldNamePair = std::pair<int, std::string>;
+  std::vector<ProtoIdFieldNamePair> proto_ids;
+
+  for (const auto *field : fields) {
+    const auto *id_attribute = field->attributes.Lookup("id");
+    if (id_attribute != nullptr) {
+      // When we have union but do not use union flag to keep them
+      if (id_attribute->constant.empty() &&
+          field->value.type.base_type == BASE_TYPE_UNION) {
+        proto_ids.emplace_back(UNION_ID, field->name);
+      } else {
+        voffset_t proto_id = 0;
+        StringToNumber(id_attribute->constant.c_str(), &proto_id);
+        proto_ids.emplace_back(proto_id, field->name);
+      }
+    } else {
+      // TODO: Use LogCompilerWarn
+      fprintf(stderr, "Fields id in struct %s is missing\n", struct_def.name.c_str());
+      return {};
+    }
+  }
+
+  std::sort(
+      std::begin(proto_ids), std::end(proto_ids),
+      [](const ProtoIdFieldNamePair &rhs, const ProtoIdFieldNamePair &lhs) {
+        return rhs.first < lhs.first;
+      });
+  struct ProtobufToFbsIdMap proto_to_fbs;
+
+  voffset_t id = 0;
+  for (const auto &element : proto_ids) {
+    if (element.first == UNION_ID) { id++; }
+    proto_to_fbs.field_to_id.emplace(element.second, id++);
+  }
+  proto_to_fbs.successful = true;
+  return proto_to_fbs;
 }
 
 static void GenNameSpace(const Namespace &name_space, std::string *_schema,
@@ -79,8 +260,9 @@ std::string GenerateFBS(const Parser &parser, const std::string &file_name) {
     int num_includes = 0;
     for (auto it = parser.included_files_.begin();
          it != parser.included_files_.end(); ++it) {
-      if (it->second.empty())
+      if (it->second.empty()) {
         continue;
+}
       std::string basename;
       if(parser.opts.keep_prefix) {
         basename = flatbuffers::StripExtension(it->second);
@@ -94,6 +276,7 @@ std::string GenerateFBS(const Parser &parser, const std::string &file_name) {
     if (num_includes) schema += "\n";
     // clang-format on
   }
+
   // Generate code for all the enum declarations.
   const Namespace *last_namespace = nullptr;
   for (auto enum_def_it = parser.enums_.vec.begin();
@@ -104,18 +287,22 @@ std::string GenerateFBS(const Parser &parser, const std::string &file_name) {
     }
     GenNameSpace(*enum_def.defined_namespace, &schema, &last_namespace);
     GenComment(enum_def.doc_comment, &schema, nullptr);
-    if (enum_def.is_union)
+    if (enum_def.is_union) {
       schema += "union " + enum_def.name;
-    else
+    } else {
       schema += "enum " + enum_def.name + " : ";
+    }
+
     schema += GenType(enum_def.underlying_type, true) + " {\n";
+
     for (auto it = enum_def.Vals().begin(); it != enum_def.Vals().end(); ++it) {
       auto &ev = **it;
       GenComment(ev.doc_comment, &schema, nullptr, "  ");
-      if (enum_def.is_union)
+      if (enum_def.is_union) {
         schema += "  " + GenType(ev.union_type) + ",\n";
-      else
+      } else {
         schema += "  " + ev.name + " = " + enum_def.ToString(ev) + ",\n";
+      }
     }
     schema += "}\n\n";
   }
@@ -123,9 +310,14 @@ std::string GenerateFBS(const Parser &parser, const std::string &file_name) {
   for (auto it = parser.structs_.vec.begin(); it != parser.structs_.vec.end();
        ++it) {
     StructDef &struct_def = **it;
+    const auto proto_fbs_ids =
+        MapProtoIdsToFieldsId(struct_def, parser.opts.proto_id_gap_action);
+    if (!proto_fbs_ids.successful) { return {}; }
+
     if (parser.opts.include_dependence_headers && struct_def.generated) {
       continue;
     }
+
     GenNameSpace(*struct_def.defined_namespace, &schema, &last_namespace);
     GenComment(struct_def.doc_comment, &schema, nullptr);
     schema += "table " + struct_def.name + " {\n";
@@ -136,8 +328,26 @@ std::string GenerateFBS(const Parser &parser, const std::string &file_name) {
         GenComment(field.doc_comment, &schema, nullptr, "  ");
         schema += "  " + field.name + ":" + GenType(field.value.type);
         if (field.value.constant != "0") schema += " = " + field.value.constant;
-        if (field.IsRequired()) schema += " (required)";
-        if (field.key) schema += " (key)";
+        std::vector<std::string> attributes;
+        if (field.IsRequired()) attributes.push_back("required");
+        if (field.key) attributes.push_back("key");
+
+        if (parser.opts.keep_proto_id) {
+          auto it = proto_fbs_ids.field_to_id.find(field.name);
+          if (it != proto_fbs_ids.field_to_id.end()) {
+            attributes.push_back("id: " + NumToString(it->second));
+          }  // If not found it means we do not have any ids
+        }
+
+        if (!attributes.empty()) {
+          schema += " (";
+          for (const auto &attribute : attributes) {
+            schema += attribute + ",";
+          }
+          schema.pop_back();
+          schema += ")";
+        }
+
         schema += ";\n";
       }
     }
@@ -148,8 +358,13 @@ std::string GenerateFBS(const Parser &parser, const std::string &file_name) {
 
 bool GenerateFBS(const Parser &parser, const std::string &path,
                  const std::string &file_name) {
-  return SaveFile((path + file_name + ".fbs").c_str(),
-                  GenerateFBS(parser, file_name), false);
+  const std::string fbs = GenerateFBS(parser, file_name);
+  if (fbs.empty()) { return false; }
+  // TODO: Use LogCompilerWarn
+  fprintf(stderr,
+          "When you use --proto, that you should check for conformity "
+          "yourself, using the existing --conform");
+  return SaveFile((path + file_name + ".fbs").c_str(), fbs, false);
 }
 
 }  // namespace flatbuffers
