@@ -141,9 +141,9 @@ open class FlatbufferBenchmark {
             BookReader.createBookReader(fbb, 30).toUnion()
           )
         )
-      Movie.createMovie(fbb,
-        mainCharacterType = CharacterE.MuLan,
-        mainCharacter = att) {
+      Movie.createMovie(fbb) {
+        mainCharacterType = CharacterE.MuLan
+        mainCharacter = att
         charactersType = charsType
         this.characters = characters
       }

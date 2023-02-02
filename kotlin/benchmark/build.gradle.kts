@@ -88,7 +88,7 @@ abstract class GenerateFBTestClasses : DefaultTask() {
   fun compile() {
     val execAction = getExecActionFactory()!!.newExecAction()
     val sources = inputFiles.asPath.split(":")
-    val args = mutableListOf("/Users/ppinheiro/git_tree/flatbuffers/flatc","-o", outputFolder.get(), "--${variant.get()}")
+    val args = mutableListOf("flatc","-o", outputFolder.get(), "--${variant.get()}")
     if (includeFolder.get().isNotEmpty()) {
       args.add("-I")
       args.add(includeFolder.get())
@@ -113,6 +113,7 @@ tasks.register<GenerateFBTestClasses>("generateFBTestClassesKt") {
   variant.set("kotlin-kmp")
 }
 
-project.tasks.named("compileKotlinJvm") {
-  dependsOn("generateFBTestClassesKt")
+project.tasks.forEach {
+  if (it.name.contains("compileKotlin"))
+    it.dependsOn("generateFBTestClassesKt")
 }
