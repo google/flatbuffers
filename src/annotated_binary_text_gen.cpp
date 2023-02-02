@@ -131,7 +131,7 @@ static std::string ToValueString(const BinaryRegion &region,
   // value.
   // TODO(dbaileychess): It might be nicer to put this in the comment field.
   if (IsOffset(region.type)) {
-    s += " Loc: +0x";
+    s += " Loc: 0x";
     s += ToHex(region.points_to_offset, output_config.offset_max_char);
   }
   return s;

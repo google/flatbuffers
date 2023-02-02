@@ -4,11 +4,11 @@
 // Binary file: tests/invalid_root_offset.bin
 
 header:
-  +0x0000 | FF FF 00 00             | UOffset32     | 0x0000FFFF (65535) Loc: +0xFFFF | ERROR: offset to root table `AnnotatedBinary.Foo`. Invalid offset, points outside the binary.
-  +0x0004 | 41 4E 4E 4F             | char[4]       | ANNO                            | File Identifier
+  +0x0000 | FF FF 00 00             | UOffset32     | 0x0000FFFF (65535) Loc: 0xFFFF | ERROR: offset to root table `AnnotatedBinary.Foo`. Invalid offset, points outside the binary.
+  +0x0004 | 41 4E 4E 4F             | char[4]       | ANNO                           | File Identifier
 
 unknown (no known references):
-  +0x0008 | 00 00 3A 00 68 00 0C 00 | ?uint8_t[664] | ..:.h...                        | WARN: nothing refers to this section.
+  +0x0008 | 00 00 3A 00 68 00 0C 00 | ?uint8_t[664] | ..:.h...                       | WARN: nothing refers to this section.
   +0x0010 | 07 00 00 00 08 00 10 00 |               | ........
   +0x0018 | 14 00 30 00 34 00 09 00 |               | ..0.4...
   +0x0020 | 38 00 3C 00 40 00 44 00 |               | 8.<.@.D.
