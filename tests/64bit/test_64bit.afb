@@ -4,38 +4,38 @@
 // Binary file: tests/64bit/test_64bit.bin
 
 header:
-  +0x00 | 14 00 00 00             | UOffset32  | 0x00000014 (20) Loc: +0x14         | offset to root table `RootTable`
+  +0x00 | 14 00 00 00             | UOffset32  | 0x00000014 (20) Loc: 0x14         | offset to root table `RootTable`
 
 padding:
-  +0x04 | 00 00 00 00 00 00       | uint8_t[6] | ......                             | padding
+  +0x04 | 00 00 00 00 00 00       | uint8_t[6] | ......                            | padding
 
 vtable (RootTable):
-  +0x0A | 0A 00                   | uint16_t   | 0x000A (10)                        | size of this vtable
-  +0x0C | 20 00                   | uint16_t   | 0x0020 (32)                        | size of referring table
-  +0x0E | 04 00                   | VOffset16  | 0x0004 (4)                         | offset to field `big_vector` (id: 0)
-  +0x10 | 10 00                   | VOffset16  | 0x0010 (16)                        | offset to field `a` (id: 1)
-  +0x12 | 14 00                   | VOffset16  | 0x0014 (20)                        | offset to field `big_string` (id: 2)
+  +0x0A | 0A 00                   | uint16_t   | 0x000A (10)                       | size of this vtable
+  +0x0C | 20 00                   | uint16_t   | 0x0020 (32)                       | size of referring table
+  +0x0E | 04 00                   | VOffset16  | 0x0004 (4)                        | offset to field `big_vector` (id: 0)
+  +0x10 | 10 00                   | VOffset16  | 0x0010 (16)                       | offset to field `a` (id: 1)
+  +0x12 | 14 00                   | VOffset16  | 0x0014 (20)                       | offset to field `big_string` (id: 2)
 
 root_table (RootTable):
-  +0x14 | 0A 00 00 00             | SOffset32  | 0x0000000A (10) Loc: +0x0A         | offset to vtable
-  +0x18 | 50 00 00 00 00 00 00 00 | UOffset64  | 0x0000000000000050 (80) Loc: +0x68 | offset to field `big_vector` (vector)
-  +0x20 | 00 00 00 00             | uint8_t[4] | ....                               | padding
-  +0x24 | D2 04 00 00             | uint32_t   | 0x000004D2 (1234)                  | table field `a` (Int)
-  +0x28 | 0C 00 00 00 00 00 00 00 | UOffset64  | 0x000000000000000C (12) Loc: +0x34 | offset to field `big_string` (string)
-  +0x30 | 00 00 00 00             | uint8_t[4] | ....                               | padding
+  +0x14 | 0A 00 00 00             | SOffset32  | 0x0000000A (10) Loc: 0x0A         | offset to vtable
+  +0x18 | 50 00 00 00 00 00 00 00 | UOffset64  | 0x0000000000000050 (80) Loc: 0x68 | offset to field `big_vector` (vector)
+  +0x20 | 00 00 00 00             | uint8_t[4] | ....                              | padding
+  +0x24 | D2 04 00 00             | uint32_t   | 0x000004D2 (1234)                 | table field `a` (Int)
+  +0x28 | 0C 00 00 00 00 00 00 00 | UOffset64  | 0x000000000000000C (12) Loc: 0x34 | offset to field `big_string` (string)
+  +0x30 | 00 00 00 00             | uint8_t[4] | ....                              | padding
 
 string (RootTable.big_string):
-  +0x34 | 2E 00 00 00             | uint32_t   | 0x0000002E (46)                    | length of string
-  +0x38 | 74 68 69 73 20 69 73 20 | char[46]   | this is                            | string literal
+  +0x34 | 2E 00 00 00             | uint32_t   | 0x0000002E (46)                   | length of string
+  +0x38 | 74 68 69 73 20 69 73 20 | char[46]   | this is                           | string literal
   +0x40 | 61 20 62 69 67 20 73 74 |            | a big st
   +0x48 | 72 69 6E 67 20 77 68 69 |            | ring whi
   +0x50 | 63 68 20 68 61 73 20 61 |            | ch has a
   +0x58 | 20 36 34 2D 62 69 74 20 |            |  64-bit 
   +0x60 | 6F 66 66 73 65 74       |            | offset
-  +0x66 | 00                      | char       | 0x00 (0)                           | string terminator
+  +0x66 | 00                      | char       | 0x00 (0)                          | string terminator
 
 vector (RootTable.big_vector):
-  +0x68 | 03 00 00 00             | uint32_t   | 0x00000003 (3)                     | length of vector (# items)
-  +0x6C | 01                      | uint8_t    | 0x01 (1)                           | value[0]
-  +0x6D | 02                      | uint8_t    | 0x02 (2)                           | value[1]
-  +0x6E | 03                      | uint8_t    | 0x03 (3)                           | value[2]
+  +0x68 | 03 00 00 00             | uint32_t   | 0x00000003 (3)                    | length of vector (# items)
+  +0x6C | 01                      | uint8_t    | 0x01 (1)                          | value[0]
+  +0x6D | 02                      | uint8_t    | 0x02 (2)                          | value[1]
+  +0x6E | 03                      | uint8_t    | 0x03 (3)                          | value[2]
