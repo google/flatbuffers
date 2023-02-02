@@ -10,7 +10,6 @@ import MyGame.Example.Monster
 import MyGame.Example.Vec3
 import com.google.flatbuffers.kotlin.FlatBufferBuilder
 import com.google.flatbuffers.kotlin.Offset
-import kotlinx.benchmark.Blackhole
 import org.openjdk.jmh.annotations.*
 import java.util.concurrent.TimeUnit
 
@@ -24,7 +23,7 @@ open class FlatbufferBenchmark {
   val repetition = 10000
 
   @Benchmark
-  fun monsters1KBuilder() {
+  fun monstersBuilder() {
     fbb.clear()
     val names = arrayOf(fbb.createString("Frodo"), fbb.createString("Barney"), fbb.createString("Wilma"))
     val off = arrayOf(
@@ -46,7 +45,7 @@ open class FlatbufferBenchmark {
     val testArrayOfString =
       Monster.createTestarrayofstringVector(fbb, arrayOf(fbb.createString("test1"), fbb.createString("test2")))
 
-    val all_monsters = Array(repetition) {
+    val allMonsters = Array(repetition) {
       Monster.createMonster(fbb, str) {
         pos = Vec3.createVec3(
           fbb, 1.0f, 2.0f, 3.0f, 3.0,
@@ -56,7 +55,7 @@ open class FlatbufferBenchmark {
         mana = 150
         inventory = inv
         testType = AnyE.Monster
-        test = mon2 as Offset<Any>
+        test = mon2.toUnion()
         this.test4 = test4
         testarrayofstring = testArrayOfString
         testbool = true
@@ -64,11 +63,11 @@ open class FlatbufferBenchmark {
         testarrayoftables = sortMons
       }
     }
-    fbb.createVectorOfTables(all_monsters)
+    fbb.createVectorOfTables(allMonsters)
   }
 
   @Benchmark
-  fun monsters1KManual() {
+  fun monstersManual() {
     fbb.clear()
     val names = arrayOf(fbb.createString("Frodo"), fbb.createString("Barney"), fbb.createString("Wilma"))
     val off = Array<Offset<Monster>>(3) { Offset(0) }
@@ -102,7 +101,7 @@ open class FlatbufferBenchmark {
     val testArrayOfString =
       Monster.createTestarrayofstringVector(fbb, arrayOf(fbb.createString("test1"), fbb.createString("test2")))
 
-    val all_monsters = Array(repetition) {
+    val allMonsters = Array(repetition) {
       Monster.startMonster(fbb)
       Monster.addPos(
         fbb, Vec3.createVec3(
@@ -115,7 +114,7 @@ open class FlatbufferBenchmark {
       Monster.addMana(fbb, 150)
       Monster.addInventory(fbb, inv)
       Monster.addTestType(fbb, AnyE.Monster)
-      Monster.addTest(fbb, mon2 as Offset<Any>) //TODO: Improve this
+      Monster.addTest(fbb, mon2.toUnion())
       Monster.addTest4(fbb, test4)
       Monster.addTestarrayofstring(fbb, testArrayOfString)
       Monster.addTestbool(fbb, true)
@@ -123,23 +122,23 @@ open class FlatbufferBenchmark {
       Monster.addTestarrayoftables(fbb, sortMons)
       Monster.endMonster(fbb)
     }
-    fbb.createVectorOfTables(all_monsters)
+    fbb.createVectorOfTables(allMonsters)
   }
 
   @Benchmark
-  fun movies1KBuilder() {
+  fun moviesBuilder() {
     fbb.clear()
-    val all_movies = Array(repetition) {
-      val att = Attacker.createAttacker(fbb) { swordAttackDamage = it } as Offset<Any>
+    val allMovies = Array(repetition) {
+      val att = Attacker.createAttacker(fbb) { swordAttackDamage = it }.toUnion()
       val charsType = Movie.createCharactersTypeVector(
         fbb,
         arrayOf(CharacterE.BookFan, CharacterE.BookFan, CharacterE.BookFan)
       )
       val characters = Movie.createCharactersVector(
           fbb, arrayOf(
-            BookReader.createBookReader(fbb, 10) as Offset<Any>,
-            BookReader.createBookReader(fbb, 20) as Offset<Any>,
-            BookReader.createBookReader(fbb, 30) as Offset<Any>
+            BookReader.createBookReader(fbb, 10).toUnion(),
+            BookReader.createBookReader(fbb, 20).toUnion(),
+            BookReader.createBookReader(fbb, 30).toUnion()
           )
         )
       Movie.createMovie(fbb,
@@ -149,13 +148,13 @@ open class FlatbufferBenchmark {
         this.characters = characters
       }
     }
-    fbb.createVectorOfTables(all_movies)
+    fbb.createVectorOfTables(allMovies)
   }
 
   @Benchmark
-  fun movies1KManual() {
+  fun moviesManual() {
     fbb.clear()
-    val all_movies = Array(repetition) {
+    val allMovies = Array(repetition) {
       Attacker.startAttacker(fbb)
       Attacker.addSwordAttackDamage(fbb, it)
       val att = Attacker.endAttacker(fbb)
@@ -167,21 +166,21 @@ open class FlatbufferBenchmark {
 
       val charsVec = Movie.createCharactersVector(
         fbb, arrayOf(
-          BookReader.createBookReader(fbb, 10) as Offset<Any>,
-          BookReader.createBookReader(fbb, 20) as Offset<Any>,
-          BookReader.createBookReader(fbb, 30) as Offset<Any>
+          BookReader.createBookReader(fbb, 10).toUnion(),
+          BookReader.createBookReader(fbb, 20).toUnion(),
+          BookReader.createBookReader(fbb, 30).toUnion()
         )
       )
 
       Movie.startMovie(fbb)
       Movie.addMainCharacterType(fbb, CharacterE.MuLan)
-      Movie.addMainCharacter(fbb, att as Offset<Any>)
+      Movie.addMainCharacter(fbb, att.toUnion())
 
       Movie.addCharactersType(fbb, charsType)
       Movie.addCharacters(fbb, charsVec)
       Movie.endMovie(fbb)
     }
 
-    fbb.createVectorOfTables(all_movies)
+    fbb.createVectorOfTables(allMovies)
   }
 }

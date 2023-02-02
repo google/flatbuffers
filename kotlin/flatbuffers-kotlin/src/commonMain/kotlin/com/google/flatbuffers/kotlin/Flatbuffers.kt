@@ -18,19 +18,21 @@ package com.google.flatbuffers.kotlin
 import kotlin.jvm.JvmInline
 import kotlin.math.min
 
+public typealias UnionOffset = Offset<Any>
+
 @JvmInline
-public value class Offset<T>(public val value: Int)
+public value class Offset<T>(public val value: Int) {
+  public fun toUnion(): UnionOffset = UnionOffset(value)
+}
 
 @JvmInline
 public value class ArrayOffset<T>(public val value: Int)
 
-public inline fun <T> Int.toOffset(): Offset<T> = Offset(this)
+public fun <T> Int.toOffset(): Offset<T> = Offset(this)
 
-public inline operator fun <T> Offset<T>.minus(other: Int): Offset<T> {
-  return Offset(this.value - other)
-}
+public operator fun <T> Offset<T>.minus(other: Int): Offset<T> = Offset(this.value - other)
 
-public inline operator fun <T> Int.minus(other: Offset<T>): Int {
+public operator fun <T> Int.minus(other: Offset<T>): Int {
   return this - other.value
 }
 /**

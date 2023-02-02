@@ -186,7 +186,7 @@ class KotlinKMPGenerator : public BaseGenerator {
                 case  BASE_TYPE_STRUCT:
                     return  base_type + "<" + WrapInNameSpace(*type.struct_def) + ">";
                 case BASE_TYPE_UNION:
-                    return  base_type + "<Any>";
+                    return  base_type + "<" + GenTypeBasic(type.element) + ">";
                 case BASE_TYPE_STRING:
                     return base_type + "<String>";
                 case BASE_TYPE_UTYPE:
@@ -200,7 +200,7 @@ class KotlinKMPGenerator : public BaseGenerator {
         case BASE_TYPE_STRING:
             return base_type + "<String>";
         case BASE_TYPE_UNION:
-            return base_type + "<Any>";
+            return base_type;
         default: return base_type;
     }
 

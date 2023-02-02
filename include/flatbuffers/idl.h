@@ -62,7 +62,7 @@ namespace flatbuffers {
   TD(STRING, "string", Offset<void>, int, int, StringOffset, int, unused, Offset, Offset<String>, 13) \
   TD(VECTOR, "",       Offset<void>, int, int, VectorOffset, int, unused, ArrayOffset, Offset<UOffset>, 14) \
   TD(STRUCT, "",       Offset<void>, int, int, int,          int, unused, Offset, Offset<UOffset>, 15) \
-  TD(UNION,  "",       Offset<void>, int, int, int,          int, unused, Offset, Offset<UOffset>, 16)
+  TD(UNION,  "",       Offset<void>, int, int, int,          int, unused, UnionOffset, Offset<UOffset>, 16)
 #define FLATBUFFERS_GEN_TYPE_ARRAY(TD) \
   TD(ARRAY,  "",       int,          int, int, int,          int, unused, ArrayOffset, Offset<UOffset>, 17)
 // The fields are:
