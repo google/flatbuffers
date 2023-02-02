@@ -208,7 +208,7 @@ class FlatBufferBuilderTest {
       mana = 150
       inventory = inv
       testType = AnyE.Monster
-      test = mon2 as Offset<Any>
+      test = mon2.toUnion()
       this.test4 = test4
       testarrayofstring = testArrayOfString
       testbool = true
@@ -251,16 +251,16 @@ class FlatBufferBuilderTest {
     val fbb = FlatBufferBuilder()
     val swordAttackDamage = 1
 
-    val characterVector = arrayOf(Attacker.createAttacker(fbb, swordAttackDamage))
+    val characterVector = arrayOf(Attacker.createAttacker(fbb, swordAttackDamage).toUnion())
     val characterTypeVector = arrayOf(CharacterE.MuLan)
     Movie.finishMovieBuffer(
       fbb,
       Movie.createMovie(
         fbb,
         CharacterE.MuLan,
-        characterVector[0] as Offset<Any>,
+        characterVector[0],
         Movie.createCharactersTypeVector(fbb, characterTypeVector),
-        Movie.createCharactersVector(fbb, characterVector as Array<Offset<Any>>) // TODO: fix me
+        Movie.createCharactersVector(fbb, characterVector)
       )
     )
 

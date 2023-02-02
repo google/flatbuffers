@@ -82,38 +82,19 @@ rootProject.plugins.withType<org.jetbrains.kotlin.gradle.targets.js.nodejs.NodeJ
 // Use the default greeting
 tasks.register<GenerateFBTestClasses>("generateFBTestClassesKt") {
   inputFiles.setFrom("$rootDir/../tests/monster_test.fbs",
-    "$rootDir/../tests/dictionary_lookup.fbs")
+    "$rootDir/../tests/dictionary_lookup.fbs",
+    "$rootDir/../tests/namespace_test/namespace_test1.fbs",
+    "$rootDir/../tests/namespace_test/namespace_test2.fbs",
+    "$rootDir/../tests/union_vector/union_vector.fbs",
+    "$rootDir/../tests/optional_scalars.fbs")
   includeFolder.set("$rootDir/../tests/include_test")
   outputFolder.set("${projectDir}/src/commonTest/generated/kotlin/")
   variant.set("kotlin-kmp")
 }
 
-//../flatc --cpp --java --kotlin --csharp --ts --php  -o union_vector ./union_vector/union_vector.fbs
-tasks.register<GenerateFBTestClasses>("generateFBTestClassesKtVec") {
-  inputFiles.setFrom("$rootDir/../tests/union_vector/union_vector.fbs")
-  outputFolder.set("${projectDir}/src/commonTest/generated/kotlin/")
-  variant.set("kotlin-kmp")
-}
-
-//../flatc --java --kotlin --lobster --ts optional_scalars.fbs
-tasks.register<GenerateFBTestClasses>("generateFBTestClassesKtOptionalScalars") {
-  inputFiles.setFrom("$rootDir/../tests/optional_scalars.fbs")
-  outputFolder.set("${projectDir}/src/commonTest/generated/kotlin/")
-  variant.set("kotlin-kmp")
-}
-
-//../flatc --java --kotlin --lobster --ts optional_scalars.fbs
-tasks.register<GenerateFBTestClasses>("generateFBTestClassesKtNameSpace") {
-  inputFiles.setFrom("$rootDir/../tests/namespace_test/namespace_test1.fbs", "$rootDir/../tests/namespace_test/namespace_test2.fbs")
-  outputFolder.set("${projectDir}/src/commonTest/generated/kotlin/")
-  variant.set("kotlin-kmp")
-}
 
 project.tasks.named("compileKotlinJvm") {
   dependsOn("generateFBTestClassesKt")
-  dependsOn("generateFBTestClassesKtVec")
-  dependsOn("generateFBTestClassesKtOptionalScalars")
-  dependsOn("generateFBTestClassesKtNameSpace")
 }
 
 fun String.intProperty() = findProperty(this).toString().toInt()
