@@ -19,11 +19,11 @@
 #include <functional>
 #include <unordered_set>
 
-#include "idl_gen_kotlin.h"
 #include "flatbuffers/code_generators.h"
 #include "flatbuffers/flatbuffers.h"
 #include "flatbuffers/idl.h"
 #include "flatbuffers/util.h"
+#include "idl_gen_kotlin.h"
 #include "idl_namer.h"
 
 namespace flatbuffers {
@@ -57,7 +57,7 @@ static Namer::Config KotlinDefaultConfig() {
            /*variants=*/Case::kLowerCamel,
            /*enum_variant_seperator=*/"",  // I.e. Concatenate.
            /*escape_keywords=*/Namer::Config::Escape::BeforeConvertingCase,
-           /*namespaces=*/Case::kKeep,
+           /*namespaces=*/Case::kAllLower,
            /*namespace_seperator=*/"__",
            /*object_prefix=*/"",
            /*object_suffix=*/"T",
@@ -69,19 +69,18 @@ static Namer::Config KotlinDefaultConfig() {
            /*filename_suffix=*/"",
            /*filename_extension=*/".kt" };
 }
-} // namespace
+}  // namespace
 
 class KotlinKMPGenerator : public BaseGenerator {
  public:
   KotlinKMPGenerator(const Parser &parser, const std::string &path,
-                  const std::string &file_name)
+                     const std::string &file_name)
       : BaseGenerator(parser, path, file_name, "", ".", "kt"),
         namer_(WithFlagOptions(KotlinDefaultConfig(), parser.opts, path),
                KotlinKeywords()) {}
 
   KotlinKMPGenerator &operator=(const KotlinKMPGenerator &);
   bool generate() FLATBUFFERS_OVERRIDE {
-
     std::string one_file_code;
 
     for (auto it = parser_.enums_.vec.begin(); it != parser_.enums_.vec.end();
@@ -94,8 +93,8 @@ class KotlinKMPGenerator : public BaseGenerator {
       if (parser_.opts.one_file) {
         one_file_code += enumWriter.ToString();
       } else {
-        if (!SaveType(namer_.EscapeKeyword(enum_def.name), *enum_def.defined_namespace,
-                      enumWriter.ToString(), true))
+        if (!SaveType(namer_.EscapeKeyword(enum_def.name),
+                      *enum_def.defined_namespace, enumWriter.ToString(), true))
           return false;
       }
     }
@@ -108,8 +107,9 @@ class KotlinKMPGenerator : public BaseGenerator {
       if (parser_.opts.one_file) {
         one_file_code += structWriter.ToString();
       } else {
-        if (!SaveType(namer_.EscapeKeyword(struct_def.name), *struct_def.defined_namespace,
-                      structWriter.ToString(), true))
+        if (!SaveType(namer_.EscapeKeyword(struct_def.name),
+                      *struct_def.defined_namespace, structWriter.ToString(),
+                      true))
           return false;
       }
     }
@@ -135,9 +135,7 @@ class KotlinKMPGenerator : public BaseGenerator {
       code += "package " + namespace_name;
       code += "\n\n";
     }
-    if (needs_includes) {
-      code += "import com.google.flatbuffers.kotlin.*\n";
-    }
+    if (needs_includes) { code += "import com.google.flatbuffers.kotlin.*\n"; }
     code += "import kotlin.jvm.JvmInline\n";
     code += classcode;
     const std::string dirs = namer_.Directories(ns);
@@ -153,59 +151,61 @@ class KotlinKMPGenerator : public BaseGenerator {
 
   std::string GenerateKotlinArray(const Type &type) const {
     if (IsScalar(type.base_type) && !IsEnum(type)) {
-        return GenType(type) + "Array";
+      return GenType(type) + "Array";
     }
 
     return "Array<" + GenType(type) + ">";
   }
 
   std::string GenTypeBasic(const BaseType &type) const {
-      // clang-format off
-      static const char * const kotlin_typename[] = {
-        #define FLATBUFFERS_TD(ENUM, IDLTYPE, \
-                CTYPE, JTYPE, GTYPE, NTYPE, PTYPE, RTYPE, KTYPE, ...) \
-          #KTYPE,
-          FLATBUFFERS_GEN_TYPES(FLATBUFFERS_TD)
-        #undef FLATBUFFERS_TD
-      };
-      return std::string(kotlin_typename[type]);
+    switch (type) {
+      case BASE_TYPE_NONE:
+      case BASE_TYPE_UTYPE: return "UByte";
+      case BASE_TYPE_BOOL: return "Boolean";
+      case BASE_TYPE_CHAR: return "Byte";
+      case BASE_TYPE_UCHAR: return "UByte";
+      case BASE_TYPE_SHORT: return "Short";
+      case BASE_TYPE_USHORT: return "UShort";
+      case BASE_TYPE_INT: return "Int";
+      case BASE_TYPE_UINT: return "UInt";
+      case BASE_TYPE_LONG: return "Long";
+      case BASE_TYPE_ULONG: return "ULong";
+      case BASE_TYPE_FLOAT: return "Float";
+      case BASE_TYPE_DOUBLE: return "Double";
+      case BASE_TYPE_STRING:
+      case BASE_TYPE_STRUCT: return "Offset";
+      case BASE_TYPE_UNION: return "UnionOffset";
+      case BASE_TYPE_VECTOR:
+      case BASE_TYPE_ARRAY: return "ArrayOffset";
+    }
+    return "Int";
   }
 
   std::string GenType(const Type &type) const {
-
     auto base_type = GenTypeBasic(type.base_type);
 
-    if(IsEnum(type) || type.base_type == BASE_TYPE_UTYPE) {
-        return WrapInNameSpace(type.enum_def->defined_namespace,
-                               namer_.Type(*type.enum_def));
+    if (IsEnum(type) || type.base_type == BASE_TYPE_UTYPE) {
+      return WrapInNameSpace(type.enum_def->defined_namespace,
+                             namer_.Type(*type.enum_def));
     }
-    switch(type.base_type) {
-        case BASE_TYPE_ARRAY:
-        case BASE_TYPE_VECTOR: {
-            switch (type.element) {
-                case  BASE_TYPE_STRUCT:
-                    return  base_type + "<" + WrapInNameSpace(*type.struct_def) + ">";
-                case BASE_TYPE_UNION:
-                    return  base_type + "<" + GenTypeBasic(type.element) + ">";
-                case BASE_TYPE_STRING:
-                    return base_type + "<String>";
-                case BASE_TYPE_UTYPE:
-                    return base_type + "<UByte>";
-                default:
-                    return  base_type + "<" + GenTypeBasic(type.element) + ">";
-            }
+    switch (type.base_type) {
+      case BASE_TYPE_ARRAY:
+      case BASE_TYPE_VECTOR: {
+        switch (type.element) {
+          case BASE_TYPE_STRUCT:
+            return base_type + "<" + WrapInNameSpace(*type.struct_def) + ">";
+          case BASE_TYPE_UNION:
+            return base_type + "<" + GenTypeBasic(type.element) + ">";
+          case BASE_TYPE_STRING: return base_type + "<String>";
+          case BASE_TYPE_UTYPE: return base_type + "<UByte>";
+          default: return base_type + "<" + GenTypeBasic(type.element) + ">";
         }
-        case BASE_TYPE_STRUCT:
-            return  base_type + "<" + WrapInNameSpace(*type.struct_def) + ">";
-        case BASE_TYPE_STRING:
-            return base_type + "<String>";
-        case BASE_TYPE_UNION:
-            return base_type;
-        default: return base_type;
-    }
-
-    if (type.base_type == BASE_TYPE_ARRAY && type.base_type == BASE_TYPE_ARRAY) {
-        base_type += "<" + WrapInNameSpace(*type.struct_def) + ">";
+      }
+      case BASE_TYPE_STRUCT:
+        return base_type + "<" + WrapInNameSpace(*type.struct_def) + ">";
+      case BASE_TYPE_STRING: return base_type + "<String>";
+      case BASE_TYPE_UNION: return base_type;
+      default: return base_type;
     }
     // clang-format on
   }
@@ -238,8 +238,7 @@ class KotlinKMPGenerator : public BaseGenerator {
   }
 
   std::string GenTypeGet(const Type &type) const {
-    return IsScalar(type.base_type) ? GenType(type)
-                                    : GenTypePointer(type);
+    return IsScalar(type.base_type) ? GenType(type) : GenTypePointer(type);
   }
 
   std::string GenEnumDefaultValue(const FieldDef &field) const {
@@ -254,32 +253,33 @@ class KotlinKMPGenerator : public BaseGenerator {
   // differently from GenDefaultValue, the default values are meant
   // to be inserted in the buffer as the object is building.
   std::string GenDefaultBufferValue(const FieldDef &field) const {
-      auto &value = field.value;
-      auto base_type = value.type.base_type;
-      auto field_name = field.name;
-      std::string suffix = IsScalar(base_type) ? LiteralSuffix(value.type) : "";
-      if (field.IsScalarOptional()) { return "null"; }
-      if (IsFloat(base_type)) {
-        auto val = KotlinFloatGen.GenFloatConstant(field);
-        if (base_type == BASE_TYPE_DOUBLE && val.back() == 'f') {
-          val.pop_back();
-        }
-        return val;
+    auto &value = field.value;
+    auto base_type = value.type.base_type;
+    auto field_name = field.name;
+    std::string suffix = IsScalar(base_type) ? LiteralSuffix(value.type) : "";
+    if (field.IsScalarOptional()) { return "null"; }
+    if (IsFloat(base_type)) {
+      auto val = KotlinFloatGen.GenFloatConstant(field);
+      if (base_type == BASE_TYPE_DOUBLE && val.back() == 'f') {
+        val.pop_back();
       }
+      return val;
+    }
 
-      if (base_type == BASE_TYPE_BOOL) {
-        return value.constant == "0" ? "false" : "true";
-      }
+    if (base_type == BASE_TYPE_BOOL) {
+      return value.constant == "0" ? "false" : "true";
+    }
 
-
-      if (IsEnum(field.value.type)) {
-        return value.constant + suffix;
-      } else if ((IsVector(field.value.type) && field.value.type.element == BASE_TYPE_UTYPE) ||
-                 (IsVector(field.value.type) && field.value.type.VectorType().base_type == BASE_TYPE_UNION)) {
-        return value.constant;
-      } else {
-        return value.constant + suffix;
-      }
+    if (IsEnum(field.value.type)) {
+      return value.constant + suffix;
+    } else if ((IsVector(field.value.type) &&
+                field.value.type.element == BASE_TYPE_UTYPE) ||
+               (IsVector(field.value.type) &&
+                field.value.type.VectorType().base_type == BASE_TYPE_UNION)) {
+      return value.constant;
+    } else {
+      return value.constant + suffix;
+    }
   }
 
   std::string GenDefaultValue(const FieldDef &field) const {
@@ -300,35 +300,32 @@ class KotlinKMPGenerator : public BaseGenerator {
       return value.constant == "0" ? "false" : "true";
     }
 
-
-    if (IsEnum(field.value.type) || (IsVector(field.value.type) && IsEnum(field.value.type.VectorType()))) {
+    if (IsEnum(field.value.type) ||
+        (IsVector(field.value.type) && IsEnum(field.value.type.VectorType()))) {
       return WrapEnumValue(field.value.type, value.constant + suffix);
     }
 
-    if(IsVector(field.value.type) &&
-              (field.value.type.VectorType().base_type == BASE_TYPE_UNION ||
-                 field.value.type.VectorType().base_type == BASE_TYPE_STRUCT ||
-               field.value.type.VectorType().base_type == BASE_TYPE_STRING)) {
-            return "null";
+    if (IsVector(field.value.type) &&
+        (field.value.type.VectorType().base_type == BASE_TYPE_UNION ||
+         field.value.type.VectorType().base_type == BASE_TYPE_STRUCT ||
+         field.value.type.VectorType().base_type == BASE_TYPE_STRING)) {
+      return "null";
     }
     if (IsVector(field.value.type)) {
-        switch (field.value.type.element) {
+      switch (field.value.type.element) {
         case BASE_TYPE_UTYPE:
-                return namer_.Type(*field.value.type.enum_def) + "(" + value.constant + suffix + ")";
+          return namer_.Type(*field.value.type.enum_def) + "(" +
+                 value.constant + suffix + ")";
         case BASE_TYPE_UNION:
         case BASE_TYPE_STRUCT:
-        case BASE_TYPE_STRING:
-            return "null";
-        case BASE_TYPE_BOOL:
-            return value.constant == "0" ? "false" : "true";
-        case BASE_TYPE_FLOAT:
-            return value.constant + "f";
+        case BASE_TYPE_STRING: return "null";
+        case BASE_TYPE_BOOL: return value.constant == "0" ? "false" : "true";
+        case BASE_TYPE_FLOAT: return value.constant + "f";
         case BASE_TYPE_DOUBLE: {
-            return value.constant + ".toDouble()";
+          return value.constant + ".toDouble()";
         }
-        default:
-            return value.constant + suffix;
-        }
+        default: return value.constant + suffix;
+      }
     }
     return value.constant + suffix;
   }
@@ -382,15 +379,16 @@ class KotlinKMPGenerator : public BaseGenerator {
           writer += ")";
         });
         std::string e_param = "e: " + enum_type;
-        GenerateFunOneLine(writer, "name", e_param, "String",
-                           [&]() {
-                             writer += "names[e.value.toInt()\\";
-                             if (enum_def.MinValue()->IsNonZero())
-                               writer += " - " + enum_def.MinValue()->name +
-                                         ".value.toInt()\\";
-                             writer += "]";
-                           },
-                           parser_.opts.gen_jvmstatic);
+        GenerateFunOneLine(
+            writer, "name", e_param, "String",
+            [&]() {
+              writer += "names[e.value.toInt()\\";
+              if (enum_def.MinValue()->IsNonZero())
+                writer +=
+                    " - " + enum_def.MinValue()->name + ".value.toInt()\\";
+              writer += "]";
+            },
+            parser_.opts.gen_jvmstatic);
       }
     });
     writer.DecrementIdentLevel();
@@ -419,9 +417,7 @@ class KotlinKMPGenerator : public BaseGenerator {
       case BASE_TYPE_CHAR:
       case BASE_TYPE_NONE: return bb_var_name + ".get";
       case BASE_TYPE_BOOL: return "0.toByte() != " + bb_var_name + ".get";
-      default:
-        return bb_var_name + "." +
-               namer_.Method("get", GenType(type));
+      default: return bb_var_name + "." + namer_.Method("get", GenType(type));
     }
   }
 
@@ -483,7 +479,8 @@ class KotlinKMPGenerator : public BaseGenerator {
       } else {
         auto suffix = IsEnum(field.value.type) ? ".value" : "";
         writer.SetValue("type", GenMethod(field.value.type));
-        writer.SetValue("argname", nameprefix + namer_.Variable(field) + suffix);
+        writer.SetValue("argname",
+                        nameprefix + namer_.Variable(field) + suffix);
         writer += "builder.put{{type}}({{argname}})";
       }
     }
@@ -503,14 +500,12 @@ class KotlinKMPGenerator : public BaseGenerator {
   }
 
   bool StructHasUnsignedField(StructDef &struct_def) {
-      auto vec = struct_def.fields.vec;
-      for (auto it = vec.begin(); it != vec.end(); ++it) {
-        auto &field = **it;
-        if (IsUnsigned(field.value.type.base_type)){
-            return true;
-        }
-      }
-      return false;
+    auto vec = struct_def.fields.vec;
+    for (auto it = vec.begin(); it != vec.end(); ++it) {
+      auto &field = **it;
+      if (IsUnsigned(field.value.type.base_type)) { return true; }
+    }
+    return false;
   }
 
   void GenStruct(StructDef &struct_def, CodeWriter &writer,
@@ -532,15 +527,13 @@ class KotlinKMPGenerator : public BaseGenerator {
       auto esc_type = namer_.EscapeKeyword(struct_def.name);
       // Generate the init() method that sets the field in a pre-existing
       // accessor object. This is to allow object reuse.
-      GenerateFunOneLine(writer, "init", "i: Int, buffer: ReadWriteBuffer", esc_type,
-                  [&]() { writer += "reset(i, buffer)"; });
+      GenerateFunOneLine(writer, "init", "i: Int, buffer: ReadWriteBuffer",
+                         esc_type, [&]() { writer += "reset(i, buffer)"; });
 
       // Generate assign method
-      GenerateFunOneLine(writer, "assign", "i: Int, buffer: ReadWriteBuffer", esc_type,
-                         [&]() {
-                    writer += "init(i, buffer)";
-                  });
-      writer += ""; // line break
+      GenerateFunOneLine(writer, "assign", "i: Int, buffer: ReadWriteBuffer",
+                         esc_type, [&]() { writer += "init(i, buffer)"; });
+      writer += "";  // line break
 
       // Generate all getters
       GenerateStructGetters(struct_def, writer);
@@ -555,8 +548,7 @@ class KotlinKMPGenerator : public BaseGenerator {
           // runtime.
           GenerateFunOneLine(
               writer, "validateVersion", "", "",
-              [&]() { writer += "VERSION_2_0_8"; },
-              options.gen_jvmstatic);
+              [&]() { writer += "VERSION_2_0_8"; }, options.gen_jvmstatic);
 
           writer += "";
           GenerateGetRootAsAccessors(namer_.Type(struct_def), writer, options);
@@ -565,13 +557,12 @@ class KotlinKMPGenerator : public BaseGenerator {
           GenerateBufferHasIdentifier(struct_def, writer, options);
 
           writer += "";
-          GenerateTableBuilder(struct_def, writer, options);
+          GenerateTableBuilder(struct_def, writer);
 
           writer += "";
           GenerateTableCreator(struct_def, writer, options);
 
           GenerateStartStructMethod(struct_def, writer, options);
-
 
           // Static Add for fields
           auto fields = struct_def.fields.vec;
@@ -587,7 +578,7 @@ class KotlinKMPGenerator : public BaseGenerator {
               auto vector_type = field.value.type.VectorType();
               if (!IsStruct(vector_type)) {
                 writer += "";
-                  GenerateCreateVectorField(field, writer, options);
+                GenerateCreateVectorField(field, writer, options);
               }
               writer += "";
               GenerateStartVectorField(field, writer, options);
@@ -598,7 +589,7 @@ class KotlinKMPGenerator : public BaseGenerator {
           GenerateEndStructMethod(struct_def, writer, options);
           auto file_identifier = parser_.file_identifier_;
           if (parser_.root_struct_def_ == &struct_def) {
-              writer += "";
+            writer += "";
             GenerateFinishStructBuffer(struct_def, file_identifier, writer,
                                        options);
             writer += "";
@@ -607,11 +598,11 @@ class KotlinKMPGenerator : public BaseGenerator {
           }
 
           if (struct_def.has_key) {
-              writer += "";
+            writer += "";
             GenerateLookupByKey(key_field, struct_def, writer, options);
           }
         } else {
-            writer += "";
+          writer += "";
           GenerateStaticConstructor(struct_def, writer, options);
         }
       });
@@ -636,8 +627,7 @@ class KotlinKMPGenerator : public BaseGenerator {
       auto base_type = key_field->value.type.base_type;
       writer.SetValue("struct_name", namer_.Type(struct_def));
       if (base_type == BASE_TYPE_STRING) {
-        writer +=
-            "val byteKey = key.encodeToByteArray()";
+        writer += "val byteKey = key.encodeToByteArray()";
       }
       writer += "var span = bb.getInt(vectorLocation - 4)";
       writer += "var start = 0";
@@ -716,7 +706,7 @@ class KotlinKMPGenerator : public BaseGenerator {
     // Generate end{{TableName}}(builder: FlatBufferBuilder) method
     auto name = namer_.LegacyJavaMethod2("end", struct_def, "");
     auto params = "builder: FlatBufferBuilder";
-    auto returns =  "Offset<" + namer_.Type(struct_def) + '>';
+    auto returns = "Offset<" + namer_.Type(struct_def) + '>';
     auto field_vec = struct_def.fields.vec;
 
     GenerateFun(
@@ -785,13 +775,12 @@ class KotlinKMPGenerator : public BaseGenerator {
     auto field_type = GenType(field.value.type);
     auto secondArg = namer_.Variable(field.name) + ": " + field_type;
 
-
     auto content = [&]() {
       auto method = GenMethod(field.value.type);
       auto default_value = GenDefaultBufferValue(field);
       auto field_param = namer_.Field(field);
       if (IsEnum(field.value.type) || IsStruct(field.value.type)) {
-          field_param += ".value";
+        field_param += ".value";
       }
 
       writer.SetValue("field_name", namer_.Field(field));
@@ -836,83 +825,87 @@ class KotlinKMPGenerator : public BaseGenerator {
         options.gen_jvmstatic);
   }
 
-  void GenerateTableBuilder(StructDef &struct_def, CodeWriter &writer,
-                            const IDLOptions options) const {
-      auto fields_vec = struct_def.fields.vec;
-      auto name_type = namer_.Type(struct_def);
-      auto builder_name = namer_.Type(struct_def) + "Builder";
-      auto type_name = namer_.Type(struct_def);
+  void GenerateTableBuilder(StructDef &struct_def, CodeWriter &writer) const {
+    auto fields_vec = struct_def.fields.vec;
+    auto name_type = namer_.Type(struct_def);
+    auto builder_name = namer_.Type(struct_def) + "Builder";
+    auto type_name = namer_.Type(struct_def);
 
-      std::vector<FieldDef*> required_fields;
-      std::stringstream params;
+    std::vector<FieldDef *> required_fields;
+    std::stringstream params;
 
-      params << "builder: FlatBufferBuilder";
-      // add required fields as parameters.
-      for (auto i = 0u; i < fields_vec.size(); ++i) {
-        auto &field = *fields_vec[i];
+    params << "builder: FlatBufferBuilder";
+    // add required fields as parameters.
+    for (auto i = 0u; i < fields_vec.size(); ++i) {
+      auto &field = *fields_vec[i];
 
-        if (field.value.type.base_type == BASE_TYPE_UTYPE &&
-            fields_vec[i + 1]->IsRequired()) {
-            // union type field are never marked required even
-            // if its union field countapart is. So we check it
-            // here and add if needed.
-            params << ", " << namer_.Variable(field) << ": "
-                   << GenType(field.value.type);
-            required_fields.push_back(&field);
-        }
-
-        if (!field.deprecated && field.IsRequired()) {
-           params << ", " << namer_.Variable(field) << ": "
-                  << GenType(field.value.type)
-                  << (field.IsScalarOptional() ? "?" : "");
-           required_fields.push_back(&field);
-        }
+      if (field.value.type.base_type == BASE_TYPE_UTYPE &&
+          fields_vec[i + 1]->IsRequired()) {
+        // union type field are never marked required even
+        // if its union field countapart is. So we check it
+        // here and add if needed.
+        params << ", " << namer_.Variable(field) << ": "
+               << GenType(field.value.type);
+        required_fields.push_back(&field);
       }
 
-      writer += "class " + builder_name + "(val builder: FlatBufferBuilder) {";
-      writer.IncrementIdentLevel();
-
-      // Static Add for fields
-      auto fields = struct_def.fields.vec;
-      int field_pos = -1;
-      for (auto i = 0u; i < fields_vec.size(); ++i) {
-        auto &field = *fields_vec[i];
-        field_pos++;
-        if (field.deprecated ||
-            field.IsRequired() ||
-            (field.value.type.base_type == BASE_TYPE_UTYPE &&
-                 fields_vec[i + 1]->IsRequired())) continue;
-        writer += "";
-        auto field_name = namer_.Field(field);
-        auto return_type = GenType(field.value.type);
-        auto method = GenMethod(field.value.type);
-        auto def = GenDefaultValue(field);
-        auto getter = "error(\"This methods should never be called\")";
-        auto setter = namer_.LegacyKotlinMethod("add", field, "") + "(builder, value)";
-        GenerateVarGetterSetterOneLine(writer, field_name, return_type,
-                             getter, setter);
-
+      if (!field.deprecated && field.IsRequired()) {
+        params << ", " << namer_.Variable(field) << ": "
+               << GenType(field.value.type)
+               << (field.IsScalarOptional() ? "?" : "");
+        required_fields.push_back(&field);
       }
+    }
 
-      // Declarative constructor function
-      writer.DecrementIdentLevel();
-      writer += "}";
+    writer += "class " + builder_name + "(val builder: FlatBufferBuilder) {";
+    writer.IncrementIdentLevel();
 
-      // add builder lambda
-      params << ", lambda: " << builder_name << ".() -> Unit = {}";
+    // Static Add for fields
+    auto fields = struct_def.fields.vec;
+    int field_pos = -1;
+    for (auto i = 0u; i < fields_vec.size(); ++i) {
+      auto &field = *fields_vec[i];
+      field_pos++;
+      if (field.deprecated || field.IsRequired() ||
+          (field.value.type.base_type == BASE_TYPE_UTYPE &&
+           fields_vec[i + 1]->IsRequired()))
+        continue;
+      writer += "";
+      auto field_name = namer_.Field(field);
+      auto return_type = GenType(field.value.type);
+      auto method = GenMethod(field.value.type);
+      auto def = GenDefaultValue(field);
+      auto getter = "error(\"This methods should never be called\")";
+      auto setter =
+          namer_.LegacyKotlinMethod("add", field, "") + "(builder, value)";
+      GenerateVarGetterSetterOneLine(writer, field_name, return_type, getter,
+                                     setter);
+    }
 
-      // finally, fun body
-      GenerateFun(
-          writer, "create" + name_type, params.str(), "Offset<" + name_type + '>',
-          [&]() {
-          writer += "val b = " + namer_.Type(struct_def) + "Builder(builder)";
-          writer += namer_.LegacyKotlinMethod("start", struct_def, "") + "(builder)";
-          for (auto it = required_fields.begin(); it != required_fields.end(); ++it) {
-              writer += namer_.LegacyKotlinMethod("add", **it, "") + "(builder, " + namer_.Variable(**it) + ")";
-          }
-          writer += "b.apply(lambda)";
-          writer += "return " + namer_.LegacyKotlinMethod("end", struct_def, "") + "(builder)";
-      });
+    // Declarative constructor function
+    writer.DecrementIdentLevel();
+    writer += "}";
+
+    // add builder lambda
+    params << ", lambda: " << builder_name << ".() -> Unit = {}";
+
+    // finally, fun body
+    GenerateFun(writer, "create" + name_type, params.str(),
+                "Offset<" + name_type + '>', [&]() {
+                  writer +=
+                      "val b = " + namer_.Type(struct_def) + "Builder(builder)";
+                  writer += namer_.LegacyKotlinMethod("start", struct_def, "") +
+                            "(builder)";
+                  for (auto it = required_fields.begin();
+                       it != required_fields.end(); ++it) {
+                    writer += namer_.LegacyKotlinMethod("add", **it, "") +
+                              "(builder, " + namer_.Variable(**it) + ")";
+                  }
+                  writer += "b.apply(lambda)";
+                  writer += "return " +
+                            namer_.LegacyKotlinMethod("end", struct_def, "") +
+                            "(builder)";
+                });
   }
 
   void GenerateTableCreator(StructDef &struct_def, CodeWriter &writer,
@@ -1001,7 +994,8 @@ class KotlinKMPGenerator : public BaseGenerator {
       return;
     auto name = namer_.Function(struct_def);
     GenerateFunOneLine(
-        writer, name + "BufferHasIdentifier", "buffer: ReadWriteBuffer", "Boolean",
+        writer, name + "BufferHasIdentifier", "buffer: ReadWriteBuffer",
+        "Boolean",
         [&]() {
           writer += "hasIdentifier(buffer, \"" + file_identifier + "\")";
         },
@@ -1046,12 +1040,12 @@ class KotlinKMPGenerator : public BaseGenerator {
         });
       } else if (value_base_type == BASE_TYPE_VECTOR &&
                  field.value.type.element == BASE_TYPE_STRUCT) {
-          // Accessors for vectors of structs also take accessor objects,
-          // this generates a variant without that argument.
-          // ex: fun weapons(j: Int) = weapons(Weapon(), j)
-          GenerateFunOneLine(writer, field_name, "j: Int", return_type, [&]() {
-            writer += "{{field_name}}({{field_type}}(), j)";
-          });
+        // Accessors for vectors of structs also take accessor objects,
+        // this generates a variant without that argument.
+        // ex: fun weapons(j: Int) = weapons(Weapon(), j)
+        GenerateFunOneLine(writer, field_name, "j: Int", return_type, [&]() {
+          writer += "{{field_name}}({{field_type}}(), j)";
+        });
       }
 
       if (IsScalar(value_base_type)) {
@@ -1063,7 +1057,9 @@ class KotlinKMPGenerator : public BaseGenerator {
         } else {
           GenerateGetterOneLine(writer, field_name, return_type, [&]() {
             std::string found = "{{bbgetter}}(it + bufferPos)";
-            writer += LookupFieldOneLine(offset_val, WrapEnumValue(field.value.type, found) , "{{field_default}}");
+            writer += LookupFieldOneLine(offset_val,
+                                         WrapEnumValue(field.value.type, found),
+                                         "{{field_default}}");
           });
         }
       } else {
@@ -1075,8 +1071,9 @@ class KotlinKMPGenerator : public BaseGenerator {
               // fun pos(obj: Vec3) : Vec3? = obj.assign(bufferPos + 4, bb)
               // ? adds nullability annotation
               GenerateFunOneLine(
-                  writer, field_name, "obj: " + field_type, return_type,
-                  [&]() { writer += "obj.assign(bufferPos + {{offset}}, bb)"; });
+                  writer, field_name, "obj: " + field_type, return_type, [&]() {
+                    writer += "obj.assign(bufferPos + {{offset}}, bb)";
+                  });
             } else {
               // create getter with object reuse
               // ex:
@@ -1094,7 +1091,8 @@ class KotlinKMPGenerator : public BaseGenerator {
                     auto fixed = field.value.type.struct_def->fixed;
 
                     writer.SetValue("seek", Indirect("it + bufferPos", fixed));
-                    writer += LookupFieldOneLine(offset_val, "obj.assign({{seek}}, bb)", "null");
+                    writer += LookupFieldOneLine(
+                        offset_val, "obj.assign({{seek}}, bb)", "null");
                   });
             }
             break;
@@ -1108,7 +1106,8 @@ class KotlinKMPGenerator : public BaseGenerator {
             //     }
             // ? adds nullability annotation
             GenerateGetterOneLine(writer, field_name, return_type, [&]() {
-              writer += LookupFieldOneLine(offset_val, "string(it + bufferPos)", "null");
+              writer += LookupFieldOneLine(offset_val, "string(it + bufferPos)",
+                                           "null");
             });
             break;
           case BASE_TYPE_VECTOR: {
@@ -1136,33 +1135,35 @@ class KotlinKMPGenerator : public BaseGenerator {
               std::string found = "";
               writer.SetValue("index", index);
 
-              if(IsEnum(vectortype)) {
-                  found = "{{field_type}}({{bbgetter}}({{index}}))";
+              if (IsEnum(vectortype)) {
+                found = "{{field_type}}({{bbgetter}}({{index}}))";
               } else {
-                  switch (vectortype.base_type) {
-                    case BASE_TYPE_STRUCT: {
-                      bool fixed = vectortype.struct_def->fixed;
-                      writer.SetValue("index", Indirect(index, fixed));
-                      found = "obj.assign({{index}}, bb)";
-                      break;
-                    }
-                    case BASE_TYPE_UNION:
-                      found = "{{bbgetter}}(obj, {{index}})";
-                      break;
-                  case BASE_TYPE_UTYPE:
-                      found = "{{field_type}}({{bbgetter}}({{index}}))";
-                      break;
-                    default: found = "{{bbgetter}}({{index}})";
+                switch (vectortype.base_type) {
+                  case BASE_TYPE_STRUCT: {
+                    bool fixed = vectortype.struct_def->fixed;
+                    writer.SetValue("index", Indirect(index, fixed));
+                    found = "obj.assign({{index}}, bb)";
+                    break;
                   }
+                  case BASE_TYPE_UNION:
+                    found = "{{bbgetter}}(obj, {{index}})";
+                    break;
+                  case BASE_TYPE_UTYPE:
+                    found = "{{field_type}}({{bbgetter}}({{index}}))";
+                    break;
+                  default: found = "{{bbgetter}}({{index}})";
+                }
               }
-              writer += LookupFieldOneLine(offset_val, found, "{{field_default}}");
+              writer +=
+                  LookupFieldOneLine(offset_val, found, "{{field_default}}");
             });
             break;
           }
           case BASE_TYPE_UNION:
             GenerateFunOneLine(
                 writer, field_name, "obj: " + field_type, return_type, [&]() {
-                  writer += LookupFieldOneLine(offset_val, bbgetter + "(obj, it + bufferPos)", "null");
+                  writer += LookupFieldOneLine(
+                      offset_val, bbgetter + "(obj, it + bufferPos)", "null");
                 });
             break;
           default: FLATBUFFERS_ASSERT(0);
@@ -1188,7 +1189,8 @@ class KotlinKMPGenerator : public BaseGenerator {
               auto params = "key: " + GenTypeGet(kfield.value.type);
               auto rtype = qualified_name + "?";
               GenerateFunOneLine(writer, name, params, rtype, [&]() {
-                writer += LookupFieldOneLine(offset_val,
+                writer += LookupFieldOneLine(
+                    offset_val,
                     qualified_name + ".lookupByKey(null, vector(it), key, bb)",
                     "null");
               });
@@ -1196,7 +1198,10 @@ class KotlinKMPGenerator : public BaseGenerator {
               auto param2 = "obj: " + qualified_name +
                             ", key: " + GenTypeGet(kfield.value.type);
               GenerateFunOneLine(writer, name, param2, rtype, [&]() {
-                writer += LookupFieldOneLine(offset_val, qualified_name + ".lookupByKey(obj, vector(it), key, bb)", "null");
+                writer += LookupFieldOneLine(
+                    offset_val,
+                    qualified_name + ".lookupByKey(obj, vector(it), key, bb)",
+                    "null");
               });
 
               break;
@@ -1218,8 +1223,7 @@ class KotlinKMPGenerator : public BaseGenerator {
         // fun inventoryInByteBuffer(buffer: Bytebuffer):
         //     ByteBuffer = vectorAsBuffer(buffer, 14, 1)
         GenerateFunOneLine(
-            writer, field_name + "AsBuffer", "",
-            "ReadBuffer", [&]() {
+            writer, field_name + "AsBuffer", "", "ReadBuffer", [&]() {
               writer.SetValue("end", end_idx);
               writer += "vectorAsBuffer(bb, {{offset}}, {{end}})";
             });
@@ -1239,18 +1243,21 @@ class KotlinKMPGenerator : public BaseGenerator {
               writer += nested_method_name + "(" + nested_type_name + "())";
             });
 
-        GenerateFunOneLine(writer, nested_method_name, "obj: " + nested_type_name,
-                    nested_type_name + "?", [&]() {
-                      writer += LookupFieldOneLine(offset_val, "obj.assign(indirect(vector(it)), bb)", "null");
-                    });
+        GenerateFunOneLine(
+            writer, nested_method_name, "obj: " + nested_type_name,
+            nested_type_name + "?", [&]() {
+              writer += LookupFieldOneLine(
+                  offset_val, "obj.assign(indirect(vector(it)), bb)", "null");
+            });
       }
 
-      writer += ""; // Initial line break between fields
+      writer += "";  // Initial line break between fields
     }
     if (struct_def.has_key && !struct_def.fixed) {
       // Key Comparison method
       GenerateOverrideFun(
-          writer, "keysCompare", "o1: Offset<*>, o2: Offset<*>, buffer: ReadWriteBuffer", "Int",
+          writer, "keysCompare",
+          "o1: Offset<*>, o2: Offset<*>, buffer: ReadWriteBuffer", "Int",
           [&]() {
             if (IsString(key_field->value.type)) {
               writer.SetValue("offset", NumToString(key_field->value.offset));
@@ -1283,13 +1290,11 @@ class KotlinKMPGenerator : public BaseGenerator {
   }
 
   std::string WrapEnumValue(const Type &type, const std::string value) const {
-      if (IsEnum(type)) {
-          return GenType(type) + "(" + value + ")";
-      }
-      if (IsVector(type) && IsEnum(type.VectorType())) {
-             return GenType(type.VectorType()) + "(" + value + ")";
-  }
-      return value;
+    if (IsEnum(type)) { return GenType(type) + "(" + value + ")"; }
+    if (IsVector(type) && IsEnum(type.VectorType())) {
+      return GenType(type.VectorType()) + "(" + value + ")";
+    }
+    return value;
   }
 
   void GenerateCompanionObject(CodeWriter &code,
@@ -1333,16 +1338,18 @@ class KotlinKMPGenerator : public BaseGenerator {
 
     // create convenience method that doesn't require an existing object
     GenerateJvmStaticAnnotation(writer, options.gen_jvmstatic);
-    GenerateFunOneLine(writer, "asRoot", "buffer: ReadWriteBuffer", struct_name, [&]() {
-        writer += "asRoot(buffer, {{gr_name}}())";
-    });
+    GenerateFunOneLine(writer, "asRoot", "buffer: ReadWriteBuffer", struct_name,
+                       [&]() { writer += "asRoot(buffer, {{gr_name}}())"; });
 
     // create method that allows object reuse
     // ex: fun Monster getRootAsMonster(buffer: ByteBuffer, obj: Monster) {...}
     GenerateJvmStaticAnnotation(writer, options.gen_jvmstatic);
-    GenerateFunOneLine(writer, "asRoot", "buffer: ReadWriteBuffer, obj: {{gr_name}}", struct_name, [&]() {
-        writer += "obj.assign(buffer.getInt(buffer.limit) + buffer.limit, buffer)";
-    });
+    GenerateFunOneLine(
+        writer, "asRoot", "buffer: ReadWriteBuffer, obj: {{gr_name}}",
+        struct_name, [&]() {
+          writer +=
+              "obj.assign(buffer.getInt(buffer.limit) + buffer.limit, buffer)";
+        });
   }
 
   void GenerateStaticConstructor(const StructDef &struct_def, CodeWriter &code,
@@ -1350,7 +1357,8 @@ class KotlinKMPGenerator : public BaseGenerator {
     // create a struct constructor function
     auto params = StructConstructorParams(struct_def);
     GenerateFun(
-        code, namer_.LegacyJavaMethod2("create", struct_def, ""), params, "Offset<" + namer_.Type(struct_def) + '>',
+        code, namer_.LegacyJavaMethod2("create", struct_def, ""), params,
+        "Offset<" + namer_.Type(struct_def) + '>',
         [&]() {
           GenStructBody(struct_def, code, "");
           code += "return Offset(builder.offset())";
@@ -1381,10 +1389,11 @@ class KotlinKMPGenerator : public BaseGenerator {
     return out.str();
   }
 
-  static void GenerateVarGetterSetterOneLine(CodeWriter &writer, const std::string &name,
-                             const std::string &type,
-                             const std::string &getter,
-                             const std::string &setter) {
+  static void GenerateVarGetterSetterOneLine(CodeWriter &writer,
+                                             const std::string &name,
+                                             const std::string &type,
+                                             const std::string &getter,
+                                             const std::string &setter) {
     // Generates Kotlin getter for properties
     // e.g.:
     // val prop: Mytype
@@ -1509,11 +1518,10 @@ class KotlinKMPGenerator : public BaseGenerator {
   }
 
   static std::string LookupFieldOneLine(const std::string &offset,
-                                          const std::string &found,
-                                          const std::string &not_found) {
+                                        const std::string &found,
+                                        const std::string &not_found) {
     return "lookupField(" + offset + ", " + not_found + " ) { " + found + " }";
   }
-
 
   static std::string Indirect(const std::string &index, bool fixed) {
     // We apply indirect() and struct is not fixed.
@@ -1550,7 +1558,7 @@ class KotlinKMPGenerator : public BaseGenerator {
 }  // namespace kotlin
 
 bool GenerateKotlinKMP(const Parser &parser, const std::string &path,
-                    const std::string &file_name) {
+                       const std::string &file_name) {
   kotlin::KotlinKMPGenerator generator(parser, path, file_name);
   return generator.generate();
 }
@@ -1601,7 +1609,9 @@ class KotlinKMPCodeGenerator : public CodeGenerator {
 
   bool SupportsRootFileGeneration() const override { return false; }
 
-  IDLOptions::Language Language() const override { return IDLOptions::kKotlinKmp; }
+  IDLOptions::Language Language() const override {
+    return IDLOptions::kKotlinKmp;
+  }
 
   std::string LanguageName() const override { return "Kotlin"; }
 };

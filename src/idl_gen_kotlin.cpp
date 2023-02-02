@@ -70,7 +70,7 @@ static Namer::Config KotlinDefaultConfig() {
            /*filename_suffix=*/"",
            /*filename_extension=*/".kt" };
 }
-} // namespace
+}  // namespace
 
 class KotlinGenerator : public BaseGenerator {
  public:

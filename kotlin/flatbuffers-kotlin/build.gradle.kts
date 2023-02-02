@@ -17,14 +17,15 @@ version = "2.0.0-SNAPSHOT"
 kotlin {
   explicitApi()
   jvm()
+  js(IR) {
+    browser()
+    binaries.executable()
+  }
   macosX64()
-  val xcf = XCFramework(libName)
-
-  iosArm64("iosArm64") { configureTarget(xcf) }
-  iosArm32("iosArm32") { configureTarget(xcf) }
-  iosSimulatorArm64("iosSimulatorArm64") { configureTarget(xcf) }
-
-
+  macosArm64()
+  iosArm64()
+  iosSimulatorArm64()
+  
   sourceSets {
 
     val commonMain by getting {
@@ -50,22 +51,18 @@ kotlin {
     }
 
     val macosX64Main by getting
-    val iosArm32Main by getting
+    val macosArm64Main by getting
     val iosArm64Main by getting
     val iosSimulatorArm64Main by getting
+
     val nativeMain by creating {
       // this sourceSet will hold common cold for all iOS targets
       dependsOn(commonMain)
-
+      macosArm64Main.dependsOn(this)
       macosX64Main.dependsOn(this)
-      iosArm32Main.dependsOn(this)
       iosArm64Main.dependsOn(this)
       iosSimulatorArm64Main.dependsOn(this)
     }
-    val nativeTest by creating {
-      dependsOn(nativeMain)
-    }
-
 
     all {
       languageSettings.optIn("kotlin.ExperimentalUnsignedTypes")
@@ -93,20 +90,12 @@ tasks.register<GenerateFBTestClasses>("generateFBTestClassesKt") {
 }
 
 
-project.tasks.named("compileKotlinJvm") {
-  dependsOn("generateFBTestClassesKt")
+project.tasks.forEach {
+  if (it.name.contains("compileKotlin"))
+    it.dependsOn("generateFBTestClassesKt")
 }
 
 fun String.intProperty() = findProperty(this).toString().toInt()
-
-fun KotlinNativeTarget.configureTarget(xcf: XCFrameworkConfig) {
-  binaries.framework {
-    baseName = libName
-    xcf.add(this)
-  }
-  // [Experimental] Enables export of KDoc comments to generated Objective-C headers
-  compilations["main"].kotlinOptions.freeCompilerArgs += "-Xexport-kdoc"
-}
 
 abstract class GenerateFBTestClasses : DefaultTask() {
   @get:InputFiles
@@ -134,7 +123,7 @@ abstract class GenerateFBTestClasses : DefaultTask() {
   fun compile() {
     val execAction = getExecActionFactory()!!.newExecAction()
     val sources = inputFiles.asPath.split(":")
-    val args = mutableListOf("/Users/ppinheiro/git_tree/flatbuffers/flatc","-o", outputFolder.get(), "--${variant.get()}")
+    val args = mutableListOf("flatc","-o", outputFolder.get(), "--${variant.get()}")
     if (includeFolder.get().isNotEmpty()) {
       args.add("-I")
       args.add(includeFolder.get())
