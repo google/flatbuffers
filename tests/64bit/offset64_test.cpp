@@ -23,7 +23,7 @@ void Offset64Test() {
     data.resize(vector_size);
 
     const Offset64<Vector<uint8_t>> big_vector_offset =
-        fbb.CreateVector64(data);
+        fbb.CreateVector64<uint8_t>(data);
 
     const Offset64<String> big_string_offset =
         fbb.CreateString<Offset64>("some big string");
