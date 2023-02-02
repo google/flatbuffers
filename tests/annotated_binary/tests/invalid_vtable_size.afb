@@ -4,17 +4,17 @@
 // Binary file: tests/invalid_vtable_size.bin
 
 header:
-  +0x0000 | 44 00 00 00             | UOffset32     | 0x00000044 (68) Loc: +0x0044 | offset to root table `AnnotatedBinary.Foo`
-  +0x0004 | 41 4E 4E 4F             | char[4]       | ANNO                         | File Identifier
+  +0x0000 | 44 00 00 00             | UOffset32     | 0x00000044 (68) Loc: 0x0044 | offset to root table `AnnotatedBinary.Foo`
+  +0x0004 | 41 4E 4E 4F             | char[4]       | ANNO                        | File Identifier
 
 padding:
-  +0x0008 | 00 00                   | uint8_t[2]    | ..                           | padding
+  +0x0008 | 00 00                   | uint8_t[2]    | ..                          | padding
 
 vtable (AnnotatedBinary.Foo):
-  +0x000A | FF FF                   | uint16_t      | 0xFFFF (65535)               | ERROR: size of this vtable. Longer than the binary.
+  +0x000A | FF FF                   | uint16_t      | 0xFFFF (65535)              | ERROR: size of this vtable. Longer than the binary.
 
 unknown (no known references):
-  +0x000C | 68 00 0C 00 07 00 00 00 | ?uint8_t[660] | h.......                     | WARN: nothing refers to this section.
+  +0x000C | 68 00 0C 00 07 00 00 00 | ?uint8_t[660] | h.......                    | WARN: nothing refers to this section.
   +0x0014 | 08 00 10 00 14 00 30 00 |               | ......0.
   +0x001C | 34 00 09 00 38 00 3C 00 |               | 4...8.<.
   +0x0024 | 40 00 44 00 00 00 00 00 |               | @.D.....
