@@ -64,10 +64,11 @@ enum BaseType {
   Obj = 15,
   Union = 16,
   Array = 17,
-  MaxBaseType = 18
+  Vector64 = 18,
+  MaxBaseType = 19
 };
 
-inline const BaseType (&EnumValuesBaseType())[19] {
+inline const BaseType (&EnumValuesBaseType())[20] {
   static const BaseType values[] = {
     None,
     UType,
@@ -87,13 +88,14 @@ inline const BaseType (&EnumValuesBaseType())[19] {
     Obj,
     Union,
     Array,
+    Vector64,
     MaxBaseType
   };
   return values;
 }
 
 inline const char * const *EnumNamesBaseType() {
-  static const char * const names[20] = {
+  static const char * const names[21] = {
     "None",
     "UType",
     "Bool",
@@ -112,6 +114,7 @@ inline const char * const *EnumNamesBaseType() {
     "Obj",
     "Union",
     "Array",
+    "Vector64",
     "MaxBaseType",
     nullptr
   };

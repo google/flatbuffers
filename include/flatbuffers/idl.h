@@ -61,6 +61,7 @@ namespace flatbuffers {
 #define FLATBUFFERS_GEN_TYPES_POINTER(TD) \
   TD(STRING, "string", Offset<void>, int, int, StringOffset, int, unused, Int, Offset<String>, 13) \
   TD(VECTOR, "",       Offset<void>, int, int, VectorOffset, int, unused, Int, Offset<UOffset>, 14) \
+  TD(VECTOR64, "",     Offset<void>, int, int, VectorOffset, int, unused, Int, Offset<UOffset>, 18) \
   TD(STRUCT, "",       Offset<void>, int, int, int,          int, unused, Int, Offset<UOffset>, 15) \
   TD(UNION,  "",       Offset<void>, int, int, int,          int, unused, Int, Offset<UOffset>, 16)
 #define FLATBUFFERS_GEN_TYPE_ARRAY(TD) \
@@ -531,7 +532,8 @@ inline bool IsUnionType(const Type &type) {
 }
 
 inline bool IsVector(const Type &type) {
-  return type.base_type == BASE_TYPE_VECTOR;
+  return type.base_type == BASE_TYPE_VECTOR ||
+         type.base_type == BASE_TYPE_VECTOR64;
 }
 
 inline bool IsVectorOfStruct(const Type &type) {

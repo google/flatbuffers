@@ -24,6 +24,7 @@
 #include "flatbuffers/base.h"
 #include "flatbuffers/buffer.h"
 #include "flatbuffers/idl.h"
+#include "flatbuffers/reflection_generated.h"
 #include "flatbuffers/util.h"
 
 namespace flatbuffers {
@@ -44,7 +45,8 @@ static const double kPi = 3.14159265358979323846;
 
 // The enums in the reflection schema should match the ones we use internally.
 // Compare the last element to check if these go out of sync.
-static_assert(BASE_TYPE_UNION == static_cast<BaseType>(reflection::Union),
+static_assert(BASE_TYPE_VECTOR64 ==
+                  static_cast<BaseType>(reflection::MaxBaseType - 1),
               "enums don't match");
 
 // Any parsing calls have to be wrapped in this macro, which automates
