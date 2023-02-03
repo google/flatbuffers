@@ -1881,7 +1881,7 @@ class SwiftGenerator : public BaseGenerator {
     // clang-format off
     static const char * const swift_type[] = {
       #define FLATBUFFERS_TD(ENUM, IDLTYPE, \
-              CTYPE, JTYPE, GTYPE, NTYPE, PTYPE, RTYPE, KTYPE, STYPE) \
+              CTYPE, JTYPE, GTYPE, NTYPE, PTYPE, RTYPE, KTYPE, STYPE, ...) \
         #STYPE,
         FLATBUFFERS_GEN_TYPES(FLATBUFFERS_TD)
       #undef FLATBUFFERS_TD
