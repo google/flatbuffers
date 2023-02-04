@@ -19,6 +19,7 @@
 
 #include <algorithm>
 
+#include "flatbuffers/base.h"
 #include "flatbuffers/code_generator.h"
 #include "flatbuffers/flatbuffers.h"
 #include "flatbuffers/flexbuffers.h"
@@ -130,7 +131,7 @@ struct JsonPrinter {
     const auto elem_indent = indent + Indent();
     text += '[';
     AddNewLine();
-    for (uoffset_t i = 0; i < size; i++) {
+    for (size_t i = 0; i < size; i++) {
       if (i) {
         AddComma();
         AddNewLine();
@@ -149,10 +150,10 @@ struct JsonPrinter {
     return nullptr;
   }
 
-  template<typename T>
+  template<typename T, typename SizeT = uoffset_t>
   const char *PrintVector(const void *val, const Type &type, int indent,
                    const uint8_t *prev_val) {
-    typedef Vector<T> Container;
+    typedef Vector<T, SizeT> Container;
     typedef typename PrintTag<typename Container::return_type>::type tag;
     auto &vec = *reinterpret_cast<const Container *>(val);
     return PrintContainer<Container>(tag(), vec, vec.size(), type, indent,

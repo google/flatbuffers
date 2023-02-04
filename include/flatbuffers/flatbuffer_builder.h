@@ -278,9 +278,10 @@ class FlatBufferBuilder {
     return GetSize();
   }
 
-  template<typename T> uoffset_t PushElement(Offset<T> off) {
+  template<typename T, template<typename> class OffsetT = Offset>
+  uoffset_t PushElement(OffsetT<T> off) {
     // Special case for offsets: see ReferTo below.
-    return PushElement(ReferTo(off.o));
+    return PushElement(static_cast<uoffset_t>(ReferTo(off.o)));
   }
 
   // When writing fields, we track where they are, so we can create correct
