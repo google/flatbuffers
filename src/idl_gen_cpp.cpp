@@ -721,19 +721,20 @@ class CppGenerator : public BaseGenerator {
 
   // Return a C++ type from the table in idl.h
   std::string GenTypeBasic(const Type &type, bool user_facing_type) const {
-    // clang-format off
-    static const char *const ctypename[] = {
-      #define FLATBUFFERS_TD(ENUM, IDLTYPE, CTYPE, ...) \
-        #CTYPE,
-        FLATBUFFERS_GEN_TYPES(FLATBUFFERS_TD)
-      #undef FLATBUFFERS_TD
-    };
-    // clang-format on
     if (user_facing_type) {
       if (type.enum_def) return WrapInNameSpace(*type.enum_def);
       if (type.base_type == BASE_TYPE_BOOL) return "bool";
     }
-    return ctypename[type.base_type];
+    switch (type.base_type) {
+    // clang-format off
+    #define FLATBUFFERS_TD(ENUM, IDLTYPE, CTYPE, ...) \
+      case BASE_TYPE_##ENUM: return #CTYPE;
+          FLATBUFFERS_GEN_TYPES(FLATBUFFERS_TD)
+    #undef FLATBUFFERS_TD
+    //clang-format on
+      default: FLATBUFFERS_ASSERT(0);
+    }
+    return "";
   }
 
   // Return a C++ pointer type, specialized to the actual struct/table types,
@@ -2262,11 +2263,14 @@ class CppGenerator : public BaseGenerator {
       const bool is_array = IsArray(curr_field->value.type);
       const bool is_struct = IsStruct(curr_field->value.type);
 
-      // If encouter a key field, call KeyCompareWithValue to compare this field.
+      // If encouter a key field, call KeyCompareWithValue to compare this
+      // field.
       if (curr_field->key) {
-        code_ +=
-          space + "const auto {{RHS}} = {{RHS_PREFIX}}.{{CURR_FIELD_NAME}}();";
-        code_ += space + "const auto {{CURR_FIELD_NAME}}_compare_result = {{LHS_PREFIX}}.KeyCompareWithValue({{RHS}});";
+        code_ += space +
+                 "const auto {{RHS}} = {{RHS_PREFIX}}.{{CURR_FIELD_NAME}}();";
+        code_ += space +
+                 "const auto {{CURR_FIELD_NAME}}_compare_result = "
+                 "{{LHS_PREFIX}}.KeyCompareWithValue({{RHS}});";
 
         code_ += space + "if ({{CURR_FIELD_NAME}}_compare_result != 0)";
         code_ += space + "  return {{CURR_FIELD_NAME}}_compare_result;";
@@ -2298,7 +2302,9 @@ class CppGenerator : public BaseGenerator {
 
         } else if (IsStruct(elem_type)) {
           if (curr_field->key) {
-            code_ += space + "const auto {{CURR_FIELD_NAME}}_compare_result = {{LHS_PREFIX}}.KeyCompareWithValue({{RHS}});";
+            code_ += space +
+                     "const auto {{CURR_FIELD_NAME}}_compare_result = "
+                     "{{LHS_PREFIX}}.KeyCompareWithValue({{RHS}});";
             code_ += space + "if ({{CURR_FIELD_NAME}}_compare_result != 0)";
             code_ += space + "  return {{CURR_FIELD_NAME}}_compare_result;";
             continue;
@@ -2331,7 +2337,7 @@ class CppGenerator : public BaseGenerator {
       code_ += "    return *{{FIELD_NAME}}() < *o->{{FIELD_NAME}}();";
     } else if (is_array || is_struct) {
       code_ += "    return KeyCompareWithValue(o->{{FIELD_NAME}}()) < 0;";
-    }else {
+    } else {
       code_ += "    return {{FIELD_NAME}}() < o->{{FIELD_NAME}}();";
     }
     code_ += "  }";
@@ -2343,8 +2349,8 @@ class CppGenerator : public BaseGenerator {
     } else if (is_array) {
       const auto &elem_type = field.value.type.VectorType();
       std::string input_type = "::flatbuffers::Array<" +
-                               GenTypeGet(elem_type, "", "", "", false) +
-                               ", " + NumToString(elem_type.fixed_length) + ">";
+                               GenTypeGet(elem_type, "", "", "", false) + ", " +
+                               NumToString(elem_type.fixed_length) + ">";
       code_.SetValue("INPUT_TYPE", input_type);
       code_ +=
           "  int KeyCompareWithValue(const {{INPUT_TYPE}} *_{{FIELD_NAME}}"
@@ -2367,7 +2373,8 @@ class CppGenerator : public BaseGenerator {
             "      const auto &lhs_{{FIELD_NAME}} = "
             "*(curr_{{FIELD_NAME}}->Get(i));";
         code_ +=
-            "      const auto &rhs_{{FIELD_NAME}} = *(_{{FIELD_NAME}}->Get(i));";
+            "      const auto &rhs_{{FIELD_NAME}} = "
+            "*(_{{FIELD_NAME}}->Get(i));";
         GenComparatorForStruct(*elem_type.struct_def, 6,
                                "lhs_" + code_.GetValue("FIELD_NAME"),
                                "rhs_" + code_.GetValue("FIELD_NAME"));
@@ -3980,8 +3987,8 @@ class CppCodeGenerator : public CodeGenerator {
   // Generate code from the provided `buffer` of given `length`. The buffer is a
   // serialized reflection.fbs.
   Status GenerateCode(const uint8_t *buffer, int64_t length) override {
-    (void) buffer;
-    (void) length;
+    (void)buffer;
+    (void)length;
     return Status::NOT_IMPLEMENTED;
   }
 
