@@ -1048,8 +1048,29 @@ CheckedError Parser::ParseField(StructDef &struct_def) {
     }
   }
 
+  if (field->attributes.Lookup("vector64") != nullptr) {
+    if (!IsVector(type)) {
+      return Error("`vector64` attribute can only be applied on vectors.");
+    }
+
+    // Upgrade the type to be a BASE_TYPE_VECTOR64, since the attributes are
+    // parsed after the type.
+    const BaseType element_base_type = type.element;
+    type = Type(BASE_TYPE_VECTOR64, type.struct_def, type.enum_def);
+    type.element = element_base_type;
+
+    // Since the field was already added to the parent object, update the type
+    // in place.
+    field->value.type = type;
+
+    // 64-bit vectors imply the offset64 attribute.
+    field->offset64 = true;
+  }
+
   // Record that this field uses 64-bit offsets.
-  field->offset64 = field->attributes.Lookup("offset64") != nullptr;
+  if (field->attributes.Lookup("offset64") != nullptr) {
+    field->offset64 = true;
+  }
 
   // For historical convenience reasons, string keys are assumed required.
   // Scalars are kDefault unless otherwise specified.
@@ -2000,8 +2021,7 @@ CheckedError Parser::TryTypedValue(const std::string *name, int dtoken,
       e.type.base_type = req;
     } else {
       return Error(std::string("type mismatch: expecting: ") +
-                   TypeName(e.type.base_type) +
-                   ", found: " + TypeName(req) +
+                   TypeName(e.type.base_type) + ", found: " + TypeName(req) +
                    ", name: " + (name ? *name : "") + ", value: " + e.constant);
     }
   }

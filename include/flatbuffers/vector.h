@@ -299,6 +299,9 @@ template<typename T, typename SizeT = uoffset_t> class Vector {
   }
 };
 
+template<typename T>
+using Vector64 = Vector<T, uoffset64_t>;
+
 template<class U>
 FLATBUFFERS_CONSTEXPR_CPP11 flatbuffers::span<U> make_span(Vector<U> &vec)
     FLATBUFFERS_NOEXCEPT {

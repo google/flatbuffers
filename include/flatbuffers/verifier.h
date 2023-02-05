@@ -115,7 +115,8 @@ class Verifier FLATBUFFERS_FINAL_CLASS {
   }
 
   // Verify a pointer (may be NULL) of any vector type.
-  template<typename T> bool VerifyVector(const Vector<T> *const vec) const {
+  template<typename T, typename SizeT = uoffset_t>
+  bool VerifyVector(const Vector<T, SizeT> *const vec) const {
     return !vec || VerifyVectorOrString(reinterpret_cast<const uint8_t *>(vec),
                                         sizeof(T));
   }

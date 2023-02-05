@@ -77,8 +77,7 @@ static std::string GenIncludeGuard(const std::string &file_name,
 static bool IsVectorOfPointers(const FieldDef &field) {
   const auto &type = field.value.type;
   const auto &vector_type = type.VectorType();
-  return type.base_type == BASE_TYPE_VECTOR &&
-         vector_type.base_type == BASE_TYPE_STRUCT &&
+  return IsVector(type) && vector_type.base_type == BASE_TYPE_STRUCT &&
          !vector_type.struct_def->fixed && !field.native_inline;
 }
 
@@ -737,7 +736,20 @@ class CppGenerator : public BaseGenerator {
       if (type.enum_def) return WrapInNameSpace(*type.enum_def);
       if (type.base_type == BASE_TYPE_BOOL) return "bool";
     }
+<<<<<<< HEAD
     return StringOf(type.base_type);
+=======
+    switch (type.base_type) {
+      // clang-format off
+    #define FLATBUFFERS_TD(ENUM, IDLTYPE, CTYPE, ...) \
+      case BASE_TYPE_##ENUM: return #CTYPE;
+          FLATBUFFERS_GEN_TYPES(FLATBUFFERS_TD)
+    #undef FLATBUFFERS_TD
+    //clang-format on
+      default: FLATBUFFERS_ASSERT(0);
+    }
+    return "";
+>>>>>>> c644145e (Starting to add support for vector64 type in C++)
   }
 
   // Return a C++ pointer type, specialized to the actual struct/table types,
@@ -747,10 +759,12 @@ class CppGenerator : public BaseGenerator {
       case BASE_TYPE_STRING: {
         return "::flatbuffers::String";
       }
+      case BASE_TYPE_VECTOR64: 
       case BASE_TYPE_VECTOR: {
         const auto type_name = GenTypeWire(
             type.VectorType(), "", VectorElementUserFacing(type.VectorType()));
-        return "::flatbuffers::Vector<" + type_name + ">";
+        return "::flatbuffers::Vector" + 
+        std::string((type.base_type == BASE_TYPE_VECTOR64) ? "64<" :"<") + type_name + ">";
       }
       case BASE_TYPE_STRUCT: {
         return WrapInNameSpace(*type.struct_def);
@@ -860,6 +874,7 @@ class CppGenerator : public BaseGenerator {
       case BASE_TYPE_STRING: {
         return NativeString(&field);
       }
+      case BASE_TYPE_VECTOR64:
       case BASE_TYPE_VECTOR: {
         const auto type_name = GenTypeNative(type.VectorType(), true, field);
         if (type.struct_def &&
@@ -868,8 +883,9 @@ class CppGenerator : public BaseGenerator {
               type.struct_def->attributes.Lookup("native_custom_alloc");
           return "std::vector<" + type_name + "," +
                  native_custom_alloc->constant + "<" + type_name + ">>";
-        } else
+        } else {
           return "std::vector<" + type_name + ">";
+        }
       }
       case BASE_TYPE_STRUCT: {
         auto type_name = WrapInNameSpace(*type.struct_def);
@@ -1818,7 +1834,7 @@ class CppGenerator : public BaseGenerator {
   void GenMember(const FieldDef &field) {
     if (!field.deprecated &&  // Deprecated fields won't be accessible.
         field.value.type.base_type != BASE_TYPE_UTYPE &&
-        (field.value.type.base_type != BASE_TYPE_VECTOR ||
+        (!IsVector(field.value.type) ||
          field.value.type.element != BASE_TYPE_UTYPE)) {
       auto type = GenTypeNative(field.value.type, false, field);
       auto cpp_type = field.attributes.Lookup("cpp_type");
@@ -1922,7 +1938,7 @@ class CppGenerator : public BaseGenerator {
                   Name(field) + "(" + native_default->constant + ")";
             }
           }
-        } else if (cpp_type && field.value.type.base_type != BASE_TYPE_VECTOR) {
+        } else if (cpp_type && !IsVector(field.value.type)) {
           if (!initializer_list.empty()) { initializer_list += ",\n        "; }
           initializer_list += Name(field) + "(0)";
         }
@@ -2067,7 +2083,7 @@ class CppGenerator : public BaseGenerator {
       const auto rhs_accessor = "rhs." + accessor;
       if (!field.deprecated &&  // Deprecated fields won't be accessible.
           field.value.type.base_type != BASE_TYPE_UTYPE &&
-          (field.value.type.base_type != BASE_TYPE_VECTOR ||
+          (!IsVector(field.value.type) ||
            field.value.type.element != BASE_TYPE_UTYPE)) {
         if (!compare_op.empty()) { compare_op += " &&\n      "; }
         if (struct_def.fixed || field.native_inline ||
@@ -2221,6 +2237,9 @@ class CppGenerator : public BaseGenerator {
         code_ += "{{PRE}}verifier.VerifyString({{NAME}}())\\";
         break;
       }
+      case BASE_TYPE_VECTOR64:
+        // TODO(derekbailey): add verifier support
+        break;
       case BASE_TYPE_VECTOR: {
         code_ += "{{PRE}}verifier.VerifyVector({{NAME}}())\\";
 
@@ -3042,6 +3061,7 @@ class CppGenerator : public BaseGenerator {
 
               // If the field uses 64-bit addressing, create a 64-bit vector.
               code_.SetValue("64OFFSET", field->offset64 ? "64" : "");
+              // code_.SetValue("64OFFSET", "");
               code_.SetValue("TYPE", type);
 
               code_ += "_fbb.CreateVector{{64OFFSET}}<{{TYPE}}>\\";
@@ -3130,6 +3150,7 @@ class CppGenerator : public BaseGenerator {
                                       const FieldDef *union_field) {
     std::string code;
     switch (field.value.type.base_type) {
+      case BASE_TYPE_VECTOR64:
       case BASE_TYPE_VECTOR: {
         auto name = Name(field);
         if (field.value.type.element == BASE_TYPE_UTYPE) {
@@ -3166,8 +3187,11 @@ class CppGenerator : public BaseGenerator {
                   ? ".type"
                   : (field.value.type.element == BASE_TYPE_UNION ? ".value"
                                                                  : "");
-
-          code += "for (::flatbuffers::uoffset_t _i = 0;";
+          if(field.value.type.base_type == BASE_TYPE_VECTOR64) {
+            code += "for (::flatbuffers::uoffset64_t _i = 0;";
+          } else {
+            code += "for (::flatbuffers::uoffset_t _i = 0;";
+          }
           code += " _i < _e->size(); _i++) { ";
           auto cpp_type = field.attributes.Lookup("cpp_type");
           if (cpp_type) {
@@ -3280,7 +3304,7 @@ class CppGenerator : public BaseGenerator {
     } else {
       value += Name(field);
     }
-    if (field.value.type.base_type != BASE_TYPE_VECTOR &&
+    if (!IsVector(field.value.type) &&
         field.attributes.Lookup("cpp_type")) {
       auto type = GenTypeBasic(field.value.type, false);
       value =
@@ -3328,6 +3352,7 @@ class CppGenerator : public BaseGenerator {
         //   _fbb.CreateVector<Offset<T>>(_o->field.size() [&](size_t i) {
         //     return CreateT(_fbb, _o->Get(i), rehasher);
         //   });
+      case BASE_TYPE_VECTOR64:
       case BASE_TYPE_VECTOR: {
         auto vector_type = field.value.type.VectorType();
         switch (vector_type.base_type) {
@@ -3433,9 +3458,13 @@ class CppGenerator : public BaseGenerator {
               code += "; }, &_va )";
             } else {
               // If the field uses 64-bit addressing, create a 64-bit vector.
-              code += "_fbb.CreateVector" +
+              if (field.value.type.base_type == BASE_TYPE_VECTOR64) {
+                 code += "_fbb.CreateVector64("+value+")";
+              } else {
+                     code += "_fbb.CreateVector" +
                       std::string(field.offset64 ? "64" : "") + "(" + value +
                       ")";
+              }
             }
             break;
           }

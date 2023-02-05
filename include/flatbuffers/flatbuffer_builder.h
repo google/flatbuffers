@@ -505,7 +505,7 @@ class FlatBufferBuilder {
     return CreateString<OffsetT>(str.c_str(), str.length());
   }
 
-// clang-format off
+  // clang-format off
   #ifdef FLATBUFFERS_HAS_STRING_VIEW
   /// @brief Store a string in the buffer, which can contain any binary data.
   /// @param[in] str A const string_view to copy in to the buffer.
@@ -649,15 +649,14 @@ class FlatBufferBuilder {
   /// @param[in] len The number of elements to serialize.
   /// @return Returns a typed `TOffset` into the serialized data indicating
   /// where the vector is stored.
-  template<template<typename> class OffsetT = Offset,
-           int &...ExplicitArgumentBarrier, typename T>
-  OffsetT<Vector<T>> CreateVector(const T *v, size_t len) {
+  template<typename T>
+  Offset<Vector<T>> CreateVector(const T *v, size_t len) {
     // If this assert hits, you're specifying a template argument that is
     // causing the wrong overload to be selected, remove it.
     AssertScalarT<T>();
     StartVector<T>(len);
-    if (len == 0) { return OffsetT<Vector<T>>(EndVector(len)); }
-// clang-format off
+    if (len == 0) { return Offset<Vector<T>>(EndVector(len)); }
+    // clang-format off
     #if FLATBUFFERS_LITTLEENDIAN
       PushBytes(reinterpret_cast<const uint8_t *>(v), len * sizeof(T));
     #else
@@ -670,7 +669,30 @@ class FlatBufferBuilder {
       }
     #endif
     // clang-format on
-    return OffsetT<Vector<T>>(EndVector(len));
+    return Offset<Vector<T>>(EndVector(len));
+  }
+
+  template<typename T>
+  Offset64<Vector<T>> CreateVector64(const T *v, size_t len) {
+    // If this assert hits, you're specifying a template argument that is
+    // causing the wrong overload to be selected, remove it.
+    AssertScalarT<T>();
+    StartVector<T>(len);
+    if (len == 0) { return Offset64<Vector<T>>(EndVector(len)); }
+    // clang-format off
+    #if FLATBUFFERS_LITTLEENDIAN
+      PushBytes(reinterpret_cast<const uint8_t *>(v), len * sizeof(T));
+    #else
+      if (sizeof(T) == 1) {
+        PushBytes(reinterpret_cast<const uint8_t *>(v), len);
+      } else {
+        for (auto i = len; i > 0; ) {
+          PushElement(v[--i]);
+        }
+      }
+    #endif
+    // clang-format on
+    return Offset64<Vector<T>>(EndVector(len));
   }
 
   /// @brief Serialize an array like object into a FlatBuffer `vector`.
@@ -714,7 +736,7 @@ class FlatBufferBuilder {
 
   template<typename T, typename Alloc = std::allocator<T>>
   Offset64<Vector<T>> CreateVector64(const std::vector<T, Alloc> &v) {
-    return CreateVector<Offset64>(data(v), v.size());
+    return CreateVector64(data(v), v.size());
   }
 
   // vector<bool> may be implemented using a bit-set, so we can't access it as

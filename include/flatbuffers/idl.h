@@ -61,7 +61,7 @@ namespace flatbuffers {
 #define FLATBUFFERS_GEN_TYPES_POINTER(TD) \
   TD(STRING, "string", Offset<void>, int, int, StringOffset, int, unused, Int, Offset<String>, 13) \
   TD(VECTOR, "",       Offset<void>, int, int, VectorOffset, int, unused, Int, Offset<UOffset>, 14) \
-  TD(VECTOR64, "",     Offset<void>, int, int, VectorOffset, int, unused, Int, Offset<UOffset>, 18) \
+  TD(VECTOR64, "",     Offset64<void>, int, int, VectorOffset, int, unused, Int, Offset<UOffset>, 18) \
   TD(STRUCT, "",       Offset<void>, int, int, int,          int, unused, Int, Offset<UOffset>, 15) \
   TD(UNION,  "",       Offset<void>, int, int, int,          int, unused, Int, Offset<UOffset>, 16)
 #define FLATBUFFERS_GEN_TYPE_ARRAY(TD) \
@@ -140,6 +140,8 @@ inline bool IsLong   (BaseType t) { return t == BASE_TYPE_LONG ||
 inline bool IsBool   (BaseType t) { return t == BASE_TYPE_BOOL; }
 inline bool IsOneByte(BaseType t) { return t >= BASE_TYPE_UTYPE &&
                                            t <= BASE_TYPE_UCHAR; }
+inline bool IsVector (BaseType t) { return t == BASE_TYPE_VECTOR ||
+                                           t == BASE_TYPE_VECTOR64; }
 
 inline bool IsUnsigned(BaseType t) {
   return (t == BASE_TYPE_UTYPE)  || (t == BASE_TYPE_UCHAR) ||
@@ -211,7 +213,7 @@ struct Type {
   bool Deserialize(const Parser &parser, const reflection::Type *type);
 
   BaseType base_type;
-  BaseType element;       // only set if t == BASE_TYPE_VECTOR
+  BaseType element;  // only set if t == BASE_TYPE_VECTOR or BASE_TYPE_VECTOR64
   StructDef *struct_def;  // only set if t or element == BASE_TYPE_STRUCT
   EnumDef *enum_def;      // set if t == BASE_TYPE_UNION / BASE_TYPE_UTYPE,
                           // or for an integral type derived from an enum.
@@ -532,8 +534,7 @@ inline bool IsUnionType(const Type &type) {
 }
 
 inline bool IsVector(const Type &type) {
-  return type.base_type == BASE_TYPE_VECTOR ||
-         type.base_type == BASE_TYPE_VECTOR64;
+  return IsVector(type.base_type);
 }
 
 inline bool IsVectorOfStruct(const Type &type) {
@@ -957,6 +958,7 @@ class Parser : public ParserState {
     known_attributes_["flexbuffer"] = true;
     known_attributes_["private"] = true;
     known_attributes_["offset64"] = true;
+    known_attributes_["vector64"] = true;
   }
 
   // Copying is not allowed
