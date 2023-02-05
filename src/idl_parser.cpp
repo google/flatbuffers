@@ -356,23 +356,6 @@ template<typename T> static void AssignIndices(const std::vector<T *> &defvec) {
 
 }  // namespace
 
-// clang-format off
-const char *const kTypeNames[] = {
-  #define FLATBUFFERS_TD(ENUM, IDLTYPE, ...) \
-    IDLTYPE,
-    FLATBUFFERS_GEN_TYPES(FLATBUFFERS_TD)
-  #undef FLATBUFFERS_TD
-  nullptr
-};
-
-const char kTypeSizes[] = {
-  #define FLATBUFFERS_TD(ENUM, IDLTYPE, CTYPE, ...) \
-    sizeof(CTYPE),
-    FLATBUFFERS_GEN_TYPES(FLATBUFFERS_TD)
-  #undef FLATBUFFERS_TD
-};
-// clang-format on
-
 void Parser::Message(const std::string &msg) {
   if (!error_.empty()) error_ += "\n";  // log all warnings and errors
   error_ += file_being_parsed_.length() ? AbsolutePath(file_being_parsed_) : "";
@@ -1947,8 +1930,8 @@ CheckedError Parser::ParseFunction(const std::string *name, Value &e) {
   const auto functionname = attribute_;
   if (!IsFloat(e.type.base_type)) {
     return Error(functionname + ": type of argument mismatch, expecting: " +
-                 kTypeNames[BASE_TYPE_DOUBLE] +
-                 ", found: " + kTypeNames[e.type.base_type] +
+                 TypeName(BASE_TYPE_DOUBLE) +
+                 ", found: " + TypeName(e.type.base_type) +
                  ", name: " + (name ? *name : "") + ", value: " + e.constant);
   }
   NEXT();
@@ -1994,8 +1977,8 @@ CheckedError Parser::TryTypedValue(const std::string *name, int dtoken,
       e.type.base_type = req;
     } else {
       return Error(std::string("type mismatch: expecting: ") +
-                   kTypeNames[e.type.base_type] +
-                   ", found: " + kTypeNames[req] +
+                   TypeName(e.type.base_type) +
+                   ", found: " + TypeName(req) +
                    ", name: " + (name ? *name : "") + ", value: " + e.constant);
     }
   }
@@ -2056,7 +2039,7 @@ CheckedError Parser::ParseSingleValue(const std::string *name, Value &e,
       return Error(
           std::string("type mismatch or invalid value, an initializer of "
                       "non-string field must be trivial ASCII string: type: ") +
-          kTypeNames[in_type] + ", name: " + (name ? *name : "") +
+          TypeName(in_type) + ", name: " + (name ? *name : "") +
           ", value: " + attribute_);
     }
 
@@ -2128,7 +2111,7 @@ CheckedError Parser::ParseSingleValue(const std::string *name, Value &e,
   if (!match) {
     std::string msg;
     msg += "Cannot assign token starting with '" + TokenToStringId(token_) +
-           "' to value of <" + std::string(kTypeNames[in_type]) + "> type.";
+           "' to value of <" + std::string(TypeName(in_type)) + "> type.";
     return Error(msg);
   }
   const auto match_type = e.type.base_type;  // may differ from in_type

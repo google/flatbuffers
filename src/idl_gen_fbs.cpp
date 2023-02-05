@@ -37,7 +37,7 @@ static std::string GenType(const Type &type, bool underlying = false) {
         return type.enum_def->defined_namespace->GetFullyQualifiedName(
             type.enum_def->name);
       } else {
-        return kTypeNames[type.base_type];
+        return TypeName(type.base_type);
       }
   }
 }
