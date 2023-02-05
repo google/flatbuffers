@@ -146,12 +146,29 @@ inline bool IsUnsigned(BaseType t) {
          (t == BASE_TYPE_ULONG);
 }
 
+inline size_t SizeOf(const BaseType t) {
+  switch (t) {
+  #define FLATBUFFERS_TD(ENUM, IDLTYPE, CTYPE, ...) \
+    case BASE_TYPE_##ENUM: return sizeof(CTYPE);
+      FLATBUFFERS_GEN_TYPES(FLATBUFFERS_TD)
+  #undef FLATBUFFERS_TD
+    default: FLATBUFFERS_ASSERT(0);
+  }
+  return 0;
+}
+
+inline const char* TypeName(const BaseType t) {
+  switch (t) {
+  #define FLATBUFFERS_TD(ENUM, IDLTYPE, ...) \
+    case BASE_TYPE_##ENUM: return IDLTYPE;
+      FLATBUFFERS_GEN_TYPES(FLATBUFFERS_TD)
+  #undef FLATBUFFERS_TD
+    default: FLATBUFFERS_ASSERT(0);
+  }
+  return nullptr;
+}
+
 // clang-format on
-
-extern const char *const kTypeNames[];
-extern const char kTypeSizes[];
-
-inline size_t SizeOf(BaseType t) { return kTypeSizes[t]; }
 
 struct StructDef;
 struct EnumDef;
