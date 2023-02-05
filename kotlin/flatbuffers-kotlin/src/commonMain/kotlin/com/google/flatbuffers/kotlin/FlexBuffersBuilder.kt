@@ -17,6 +17,7 @@
 
 package com.google.flatbuffers.kotlin
 
+@ExperimentalUnsignedTypes
 public class FlexBuffersBuilder(
   public val buffer: ReadWriteBuffer,
   private val shareFlag: Int = SHARE_KEYS
@@ -559,18 +560,10 @@ public class FlexBuffersBuilder(
     writeIntegerArray(0, value.size, byteWidth) { value[it].toULong() }
 
   private fun writeFloatArray(value: FloatArray) {
-    val byteWidth = Float.SIZE_BYTES
-    // since we know we are writing an array, we can avoid multiple copy/growth of the buffer by requesting
-    // the right size on the spot
-    buffer.requestCapacity(buffer.writePosition + (value.size * byteWidth))
     value.forEach { buffer.put(it) }
   }
 
   private fun writeFloatArray(value: DoubleArray) {
-    val byteWidth = Double.SIZE_BYTES
-    // since we know we are writing an array, we can avoid multiple copy/growth of the buffer by requesting
-    // the right size on the spot
-    buffer.requestCapacity(buffer.writePosition + (value.size * byteWidth))
     value.forEach { buffer.put(it) }
   }
 
@@ -580,9 +573,6 @@ public class FlexBuffersBuilder(
     byteWidth: ByteWidth,
     crossinline valueBlock: (Int) -> ULong
   ) {
-    // since we know we are writing an array, we can avoid multiple copy/growth of the buffer by requesting
-    // the right size on the spot
-    buffer.requestCapacity(buffer.writePosition + (size * byteWidth))
     return when (byteWidth.value) {
       1 -> for (i in start until start + size) {
         buffer.put(valueBlock(i).toUByte())

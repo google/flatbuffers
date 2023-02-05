@@ -719,6 +719,7 @@ struct IDLOptions {
     kSwift = 1 << 16,
     kNim = 1 << 17,
     kProto = 1 << 18,
+    kKotlinKmp = 1 << 18,
     kMAX
   };
 
@@ -1272,7 +1273,14 @@ extern bool GenerateRust(const Parser &parser, const std::string &path,
 extern bool GenerateJsonSchema(const Parser &parser, const std::string &path,
                                const std::string &file_name);
 
+// Generate Kotlin (JVM) classes
+// See idl_gen_kotlin.cpp
 extern bool GenerateKotlin(const Parser &parser, const std::string &path,
+                           const std::string &file_name);
+
+// Generate Kotlin (Multiplatfor) classes
+// See idl_gen_kotlin_kmp.cpp
+extern bool GenerateKotlinKMP(const Parser &parser, const std::string &path,
                            const std::string &file_name);
 
 // Generate Swift classes.

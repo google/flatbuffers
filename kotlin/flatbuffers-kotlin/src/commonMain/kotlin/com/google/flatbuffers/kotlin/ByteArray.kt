@@ -14,13 +14,14 @@
  * limitations under the License.
  */
 @file:Suppress("NOTHING_TO_INLINE")
+
 package com.google.flatbuffers.kotlin
 
 import kotlin.experimental.and
 
 internal fun ByteArray.getString(index: Int, size: Int): String = Utf8.decodeUtf8Array(this, index, size)
 
-internal fun ByteArray.setString(index: Int, value: String): Int =
+internal fun ByteArray.setCharSequence(index: Int, value: CharSequence): Int =
   Utf8.encodeUtf8Array(value, this, index, this.size - index)
 
 // List of functions that needs to be implemented on all platforms.
