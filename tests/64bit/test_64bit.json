@@ -1,6 +1,6 @@
 {
-  "big_vector": [1, 2, 3],
+  "far_vector": [1, 2, 3],
   "a": 1234,
-  "big_string": "this is a big string which has a 64-bit offset",
-  "vector_64": [5, 6, 7, 8]
+  "far_string": "this is a far string which has a 64-bit offset",
+  "big_vector": [5, 6, 7, 8]
 }

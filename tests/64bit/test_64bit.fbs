@@ -1,8 +1,15 @@
 table RootTable {
-  big_vector:[ubyte] (offset64);
+  // A normal 32-bit sized vector, that could be very far away (64-bit address).
+  far_vector:[ubyte] (offset64);
+
+  // An inplace value just to check that vtable offsets are correct.
   a:int;
-  big_string:string (offset64);
-  vector_64:[ubyte] (vector64);
+
+  // A normal 32-bit sized string, that could be very far away (64-bit address).
+  far_string:string (offset64);
+
+  // A big 64-bit sized vector, that could be very far away (64-bit address).
+  big_vector:[ubyte] (vector64);
 }
 
 root_type RootTable; 
