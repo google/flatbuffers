@@ -1081,7 +1081,7 @@ class Parser : public ParserState {
   void SerializeStruct(FlatBufferBuilder &builder, const StructDef &struct_def,
                        const Value &val);
   template<typename F>
-  FLATBUFFERS_CHECKED_ERROR ParseVectorDelimiters(uoffset_t &count, F body);
+  FLATBUFFERS_CHECKED_ERROR ParseVectorDelimiters(size_t &count, F body);
   FLATBUFFERS_CHECKED_ERROR ParseVector(const Type &type, uoffset_t *ovalue,
                                         FieldDef *field, size_t fieldn);
   FLATBUFFERS_CHECKED_ERROR ParseArray(Value &array);

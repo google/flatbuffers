@@ -605,16 +605,18 @@ class FlatBufferBuilder {
   }
 
   /// @cond FLATBUFFERS_INTERNAL
+  template<typename SizeT = uoffset_t>
   uoffset_t EndVector(size_t len) {
     FLATBUFFERS_ASSERT(nested);  // Hit if no corresponding StartVector.
     nested = false;
-    return PushElement(static_cast<uoffset_t>(len));
+    return PushElement(static_cast<SizeT>(len));
   }
 
+  template<typename SizeT = uoffset_t>
   void StartVector(size_t len, size_t elemsize, size_t alignment) {
     NotNested();
     nested = true;
-    PreAlign<uoffset_t>(len * elemsize);
+    PreAlign<SizeT>(len * elemsize);
     PreAlign(len * elemsize, alignment);  // Just in case elemsize > uoffset_t.
   }
 

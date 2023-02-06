@@ -1366,9 +1366,10 @@ CheckedError Parser::ParseAnyValue(Value &val, FieldDef *field,
       ECHECK(ParseString(val, field->shared));
       break;
     }
+    case BASE_TYPE_VECTOR64:
     case BASE_TYPE_VECTOR: {
       uoffset_t off;
-      ECHECK(ParseVector(val.type.VectorType(), &off, field, parent_fieldn));
+      ECHECK(ParseVector(val.type, &off, field, parent_fieldn));
       val.constant = NumToString(off);
       break;
     }
@@ -1625,7 +1626,7 @@ CheckedError Parser::ParseTable(const StructDef &struct_def, std::string *value,
 }
 
 template<typename F>
-CheckedError Parser::ParseVectorDelimiters(uoffset_t &count, F body) {
+CheckedError Parser::ParseVectorDelimiters(size_t &count, F body) {
   EXPECT('[');
   for (;;) {
     if ((!opts.strict_json || !count) && Is(']')) break;
@@ -1655,10 +1656,11 @@ CheckedError Parser::ParseAlignAttribute(const std::string &align_constant,
                NumToString(FLATBUFFERS_MAX_ALIGNMENT));
 }
 
-CheckedError Parser::ParseVector(const Type &type, uoffset_t *ovalue,
+CheckedError Parser::ParseVector(const Type &vector_type, uoffset_t *ovalue,
                                  FieldDef *field, size_t fieldn) {
-  uoffset_t count = 0;
-  auto err = ParseVectorDelimiters(count, [&](uoffset_t &) -> CheckedError {
+  Type type = vector_type.VectorType();
+  size_t count = 0;
+  auto err = ParseVectorDelimiters(count, [&](size_t &) -> CheckedError {
     Value val;
     val.type = type;
     ECHECK(ParseAnyValue(val, field, fieldn, nullptr, count, true));
@@ -1678,8 +1680,12 @@ CheckedError Parser::ParseVector(const Type &type, uoffset_t *ovalue,
   }
 
   // TODO Fix using element alignment as size (`elemsize`)!
-  builder_.StartVector(len, elemsize, alignment);
-  for (uoffset_t i = 0; i < count; i++) {
+  if (vector_type.base_type == BASE_TYPE_VECTOR64) {
+    builder_.StartVector<uoffset64_t>(len, elemsize, alignment);
+  } else {
+    builder_.StartVector(len, elemsize, alignment);
+  }
+  for (size_t i = 0; i < count; i++) {
     // start at the back, since we're building the data backwards.
     auto &val = field_stack_.back().first;
     switch (val.type.base_type) {
@@ -1701,7 +1707,11 @@ CheckedError Parser::ParseVector(const Type &type, uoffset_t *ovalue,
   }
 
   builder_.ClearOffsets();
-  *ovalue = builder_.EndVector(count);
+  if (vector_type.base_type == BASE_TYPE_VECTOR64) {
+    *ovalue = builder_.EndVector<uoffset64_t>(count);
+  } else {
+    *ovalue = builder_.EndVector(count);
+  }
 
   if (type.base_type == BASE_TYPE_STRUCT && type.struct_def->has_key) {
     // We should sort this vector. Find the key first.
@@ -1769,8 +1779,8 @@ CheckedError Parser::ParseArray(Value &array) {
   FlatBufferBuilder builder;
   const auto &type = array.type.VectorType();
   auto length = array.type.fixed_length;
-  uoffset_t count = 0;
-  auto err = ParseVectorDelimiters(count, [&](uoffset_t &) -> CheckedError {
+  size_t count = 0;
+  auto err = ParseVectorDelimiters(count, [&](size_t &) -> CheckedError {
     stack.emplace_back(Value());
     auto &val = stack.back();
     val.type = type;
@@ -3260,10 +3270,9 @@ CheckedError Parser::SkipAnyJsonValue() {
                                   });
     }
     case '[': {
-      uoffset_t count = 0;
-      return ParseVectorDelimiters(count, [&](uoffset_t &) -> CheckedError {
-        return SkipAnyJsonValue();
-      });
+      size_t count = 0;
+      return ParseVectorDelimiters(
+          count, [&](size_t &) -> CheckedError { return SkipAnyJsonValue(); });
     }
     case kTokenStringConstant:
     case kTokenIntegerConstant:
@@ -3312,8 +3321,8 @@ CheckedError Parser::ParseFlexBufferValue(flexbuffers::Builder *builder) {
     }
     case '[': {
       auto start = builder->StartVector();
-      uoffset_t count = 0;
-      ECHECK(ParseVectorDelimiters(count, [&](uoffset_t &) -> CheckedError {
+      size_t count = 0;
+      ECHECK(ParseVectorDelimiters(count, [&](size_t &) -> CheckedError {
         return ParseFlexBufferValue(builder);
       }));
       builder->EndVector(start, false, false);

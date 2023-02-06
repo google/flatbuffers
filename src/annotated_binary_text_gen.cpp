@@ -37,6 +37,7 @@ static std::string ToString(const BinarySectionType type) {
     case BinarySectionType::Struct: return "struct";
     case BinarySectionType::String: return "string";
     case BinarySectionType::Vector: return "vector";
+    case BinarySectionType::Vector64: return "vector64";
     case BinarySectionType::Unknown: return "unknown";
     case BinarySectionType::Union: return "union";
     case BinarySectionType::Padding: return "padding";

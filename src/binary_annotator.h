@@ -180,6 +180,7 @@ enum class BinarySectionType {
   Vector = 7,
   Union = 8,
   Padding = 9,
+  Vector64 = 10,
 };
 
 // A section of the binary that is grouped together in some logical manner, and
