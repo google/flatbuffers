@@ -126,7 +126,9 @@ NODE_CMD = ["node"]
 
 print("Running TypeScript Tests...")
 check_call(NODE_CMD + ["JavaScriptTest"])
-check_call(NODE_CMD + ["JavaScriptTestv1.cjs", "./monster_test_generated.cjs"])
 check_call(NODE_CMD + ["JavaScriptUnionVectorTest"])
 check_call(NODE_CMD + ["JavaScriptFlexBuffersTest"])
 check_call(NODE_CMD + ["JavaScriptComplexArraysTest"])
+
+print("Running old v1 TypeScript Tests...")
+check_call(NODE_CMD + ["JavaScriptTestv1.cjs", "./monster_test_generated.cjs"])
