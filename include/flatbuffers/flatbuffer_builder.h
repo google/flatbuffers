@@ -715,9 +715,10 @@ class FlatBufferBuilder {
     return CreateVector(data(v), v.size());
   }
 
-  template<typename T, typename Alloc = std::allocator<T>>
-  Offset64<Vector<T>> CreateVector64(const std::vector<T, Alloc> &v) {
-    return CreateVector<Offset64, Vector>(data(v), v.size());
+  template<template<typename...> class VectorT = Vector,
+           int &... ExplicitArgumentBarrier, typename T>
+  Offset64<VectorT<T>> CreateVector64(const std::vector<T> &v) {
+    return CreateVector<Offset64, VectorT>(data(v), v.size());
   }
 
   // vector<bool> may be implemented using a bit-set, so we can't access it as

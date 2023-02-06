@@ -3061,8 +3061,7 @@ class CppGenerator : public BaseGenerator {
 
               // If the field uses 64-bit addressing, create a 64-bit vector.
               code_.SetValue("64OFFSET", field->offset64 ? "64" : "");
-              // code_.SetValue("64OFFSET", "");
-              code_.SetValue("TYPE", type);
+              code_.SetValue("TYPE", field->offset64 ? "::flatbuffers::Vector" : type);
 
               code_ += "_fbb.CreateVector{{64OFFSET}}<{{TYPE}}>\\";
             }
@@ -3461,9 +3460,13 @@ class CppGenerator : public BaseGenerator {
               if (field.value.type.base_type == BASE_TYPE_VECTOR64) {
                  code += "_fbb.CreateVector64("+value+")";
               } else {
-                     code += "_fbb.CreateVector" +
-                      std::string(field.offset64 ? "64" : "") + "(" + value +
-                      ")";
+                code += "_fbb.CreateVector";
+                if(field.offset64) {
+                  // This is normal 32-bit vector, with 64-bit addressing.
+                   code += "64<::flatbuffers::Vector>";
+                }
+                code += "(" + value+")";
+                  
               }
             }
             break;
