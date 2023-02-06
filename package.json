@@ -11,18 +11,6 @@
   ],
   "main": "js/flatbuffers.js",
   "module": "mjs/flatbuffers.js",
-  "exports": {
-    ".": {
-      "node": {
-        "import": "./mjs/flatbuffers.js",
-        "require": "./js/flatbuffers.js"
-      },
-      "default": "./js/flatbuffers.js"
-    },
-    "./js/flexbuffers.js": {
-      "default": "./js/flexbuffers.js"
-    }
-  },
   "directories": {
     "doc": "docs",
     "test": "tests"
