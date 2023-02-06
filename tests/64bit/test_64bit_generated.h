@@ -43,10 +43,10 @@ struct RootTable FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
     VT_BIG_VECTOR = 10
   };
   const ::flatbuffers::Vector<uint8_t> *far_vector() const {
-    return GetPointer<const ::flatbuffers::Vector<uint8_t> *>(VT_FAR_VECTOR);
+    return GetPointer64<const ::flatbuffers::Vector<uint8_t> *>(VT_FAR_VECTOR);
   }
   ::flatbuffers::Vector<uint8_t> *mutable_far_vector() {
-    return GetPointer<::flatbuffers::Vector<uint8_t> *>(VT_FAR_VECTOR);
+    return GetPointer64<::flatbuffers::Vector<uint8_t> *>(VT_FAR_VECTOR);
   }
   int32_t a() const {
     return GetField<int32_t>(VT_A, 0);
@@ -55,25 +55,25 @@ struct RootTable FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
     return SetField<int32_t>(VT_A, _a, 0);
   }
   const ::flatbuffers::String *far_string() const {
-    return GetPointer<const ::flatbuffers::String *>(VT_FAR_STRING);
+    return GetPointer64<const ::flatbuffers::String *>(VT_FAR_STRING);
   }
   ::flatbuffers::String *mutable_far_string() {
-    return GetPointer<::flatbuffers::String *>(VT_FAR_STRING);
+    return GetPointer64<::flatbuffers::String *>(VT_FAR_STRING);
   }
   const ::flatbuffers::Vector64<uint8_t> *big_vector() const {
-    return GetPointer<const ::flatbuffers::Vector64<uint8_t> *>(VT_BIG_VECTOR);
+    return GetPointer64<const ::flatbuffers::Vector64<uint8_t> *>(VT_BIG_VECTOR);
   }
   ::flatbuffers::Vector64<uint8_t> *mutable_big_vector() {
-    return GetPointer<::flatbuffers::Vector64<uint8_t> *>(VT_BIG_VECTOR);
+    return GetPointer64<::flatbuffers::Vector64<uint8_t> *>(VT_BIG_VECTOR);
   }
   bool Verify(::flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
-           VerifyOffset(verifier, VT_FAR_VECTOR) &&
+           VerifyOffset64(verifier, VT_FAR_VECTOR) &&
            verifier.VerifyVector(far_vector()) &&
            VerifyField<int32_t>(verifier, VT_A, 4) &&
-           VerifyOffset(verifier, VT_FAR_STRING) &&
+           VerifyOffset64(verifier, VT_FAR_STRING) &&
            verifier.VerifyString(far_string()) &&
-           VerifyOffset(verifier, VT_BIG_VECTOR) &&
+           VerifyOffset64(verifier, VT_BIG_VECTOR) &&
            verifier.EndTable();
   }
   RootTableT *UnPack(const ::flatbuffers::resolver_function_t *_resolver = nullptr) const;

@@ -166,6 +166,7 @@ template<typename T, typename SizeT = uoffset_t> class Vector {
   FLATBUFFERS_ATTRIBUTE([[deprecated("use size() instead")]])
   SizeT Length() const { return size(); }
 
+  typedef SizeT size_type;
   typedef typename IndirectHelper<T>::return_type return_type;
   typedef typename IndirectHelper<T>::mutable_return_type mutable_return_type;
   typedef return_type value_type;

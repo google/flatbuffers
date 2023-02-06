@@ -36,6 +36,8 @@ class Verifier FLATBUFFERS_FINAL_CLASS {
     bool check_nested_flatbuffers = true;
     // The maximum size of a buffer.
     size_t max_size = FLATBUFFERS_MAX_BUFFER_SIZE;
+    // Use assertions to check for errors.
+    bool assert = false;
   };
 
   explicit Verifier(const uint8_t *const buf, const size_t buf_len,
@@ -60,7 +62,7 @@ class Verifier FLATBUFFERS_FINAL_CLASS {
   bool Check(const bool ok) const {
     // clang-format off
     #ifdef FLATBUFFERS_DEBUG_VERIFICATION_FAILURE
-      FLATBUFFERS_ASSERT(ok);
+       if (opts_.assert) { FLATBUFFERS_ASSERT(ok); }
     #endif
     #ifdef FLATBUFFERS_TRACK_VERIFIER_BUFFER_SIZE
       if (!ok)
@@ -206,7 +208,7 @@ class Verifier FLATBUFFERS_FINAL_CLASS {
     }
 
     // Call T::Verify, which must be in the generated code for this type.
-    const auto o = VerifyOffset(start);
+    const auto o = VerifyOffset<uoffset_t>(start);
     return Check(o != 0) &&
            reinterpret_cast<const T *>(buf_ + start + o)->Verify(*this)
     // clang-format off
@@ -247,22 +249,28 @@ class Verifier FLATBUFFERS_FINAL_CLASS {
            VerifyBufferFromStart<T>(identifier, sizeof(uoffset_t));
   }
 
-  uoffset_t VerifyOffset(const size_t start) const {
-    if (!Verify<uoffset_t>(start)) return 0;
-    const auto o = ReadScalar<uoffset_t>(buf_ + start);
+  template<typename OffsetT = uoffset_t, typename SOffsetT = soffset_t>
+  size_t VerifyOffset(const size_t start) const {
+    if (!Verify<OffsetT>(start)) return 0;
+    const auto o = ReadScalar<OffsetT>(buf_ + start);
     // May not point to itself.
     if (!Check(o != 0)) return 0;
-    // Can't wrap around / buffers are max 2GB.
-    if (!Check(static_cast<soffset_t>(o) >= 0)) return 0;
+    // Can't wrap around larger than the max size.
+    if (!Check(static_cast<SOffsetT>(o) >= 0)) return 0;
     // Must be inside the buffer to create a pointer from it (pointer outside
     // buffer is UB).
     if (!Verify(start + o, 1)) return 0;
     return o;
   }
 
-  uoffset_t VerifyOffset(const uint8_t *const base,
-                         const voffset_t start) const {
-    return VerifyOffset(static_cast<size_t>(base - buf_) + start);
+  // Specialization for 64-bit offsets.
+  template<> size_t VerifyOffset<uoffset64_t>(const size_t start) const {
+    return VerifyOffset<uoffset64_t, soffset64_t>(start);
+  }
+
+  template<typename OffsetT = uoffset_t>
+  size_t VerifyOffset(const uint8_t *const base, const voffset_t start) const {
+    return VerifyOffset<OffsetT>(static_cast<size_t>(base - buf_) + start);
   }
 
   // Called at the start of a table to increase counters measuring data

@@ -2215,7 +2215,10 @@ class CppGenerator : public BaseGenerator {
           "{{PRE}}VerifyField{{REQUIRED}}<{{SIZE}}>(verifier, "
           "{{OFFSET}}, {{ALIGN}})\\";
     } else {
-      code_ += "{{PRE}}VerifyOffset{{REQUIRED}}(verifier, {{OFFSET}})\\";
+      code_.SetValue("OFFSET_SIZE", field.offset64 ? "64" : "");
+      code_ +=
+          "{{PRE}}VerifyOffset{{OFFSET_SIZE}}{{REQUIRED}}(verifier, "
+          "{{OFFSET}})\\";
     }
 
     switch (field.value.type.base_type) {
@@ -2491,12 +2494,18 @@ class CppGenerator : public BaseGenerator {
     if (!field.IsScalarOptional()) {
       const bool is_scalar = IsScalar(type.base_type);
       std::string accessor;
-      if (is_scalar)
+      std::string offset_size = "";
+      if (is_scalar) {
         accessor = "GetField<";
-      else if (IsStruct(type))
+      } else if (IsStruct(type)) {
         accessor = "GetStruct<";
-      else
-        accessor = "GetPointer<";
+      } else {
+        if (field.offset64) {
+          accessor = "GetPointer64<";
+        } else {
+          accessor = "GetPointer<";
+        }
+      }
       auto offset_type = GenTypeGet(type, "", "const ", " *", false);
       auto call = accessor + offset_type + ">(" + offset_str;
       // Default value as second arg for non-pointer types.
@@ -2688,7 +2697,11 @@ class CppGenerator : public BaseGenerator {
     } else {
       auto postptr = " *" + NullableExtension();
       auto wire_type = GenTypeGet(type, " ", "", postptr.c_str(), true);
-      std::string accessor = IsStruct(type) ? "GetStruct<" : "GetPointer<";
+      const std::string accessor = [&]() {
+        if (IsStruct(type)) { return "GetStruct<"; }
+        if (field.offset64) { return "GetPointer64<"; }
+        return "GetPointer<";
+      }();
       auto underlying = accessor + wire_type + ">(" + offset_str + ")";
       code_.SetValue("FIELD_TYPE", wire_type);
       code_.SetValue("FIELD_VALUE", GenUnderlyingCast(field, true, underlying));

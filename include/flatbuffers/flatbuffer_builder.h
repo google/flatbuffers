@@ -159,7 +159,7 @@ class FlatBufferBuilder {
 
   /// @brief The current size of the serialized buffer, counting from the end.
   /// @return Returns an `size_t` with the current size of the buffer.
-  uoffset_t GetSize() const { return buf_.size(); }
+  size_t GetSize() const { return buf_.size(); }
 
   /// @brief Get the serialized buffer (after you call `Finish()`).
   /// @return Returns an `uint8_t` pointer to the FlatBuffer data inside the
@@ -271,7 +271,7 @@ class FlatBufferBuilder {
   }
 
   // Write a single aligned scalar to the buffer
-  template<typename T> uoffset_t PushElement(T element) {
+  template<typename T> size_t PushElement(T element) {
     AssertScalarT<T>();
     Align(sizeof(T));
     buf_.push_small(EndianScalar(element));
@@ -279,9 +279,9 @@ class FlatBufferBuilder {
   }
 
   template<typename T, template<typename> class OffsetT = Offset>
-  uoffset_t PushElement(OffsetT<T> off) {
+  size_t PushElement(OffsetT<T> off) {
     // Special case for offsets: see ReferTo below.
-    return PushElement(static_cast<uoffset_t>(ReferTo(off.o)));
+    return PushElement(ReferTo(off.o));
   }
 
   // When writing fields, we track where they are, so we can create correct
@@ -605,8 +605,7 @@ class FlatBufferBuilder {
   }
 
   /// @cond FLATBUFFERS_INTERNAL
-  template<typename SizeT = uoffset_t>
-  uoffset_t EndVector(size_t len) {
+  template<typename SizeT = uoffset_t> size_t EndVector(size_t len) {
     FLATBUFFERS_ASSERT(nested);  // Hit if no corresponding StartVector.
     nested = false;
     return PushElement(static_cast<SizeT>(len));
@@ -657,11 +656,12 @@ class FlatBufferBuilder {
            template<typename...> class VectorT = Vector,
            int &...ExplicitArgumentBarrier, typename T>
   OffsetT<VectorT<T>> CreateVector(const T *v, size_t len) {
+    typedef typename VectorT<T>::size_type size_type;
     // If this assert hits, you're specifying a template argument that is
     // causing the wrong overload to be selected, remove it.
     AssertScalarT<T>();
     StartVector<T>(len);
-    if (len == 0) { return OffsetT<VectorT<T>>(EndVector(len)); }
+    if (len == 0) { return OffsetT<VectorT<T>>(EndVector<size_type>(len)); }
     // clang-format off
     #if FLATBUFFERS_LITTLEENDIAN
       PushBytes(reinterpret_cast<const uint8_t *>(v), len * sizeof(T));
@@ -675,7 +675,7 @@ class FlatBufferBuilder {
       }
     #endif
     // clang-format on
-    return OffsetT<VectorT<T>>(EndVector(len));
+    return OffsetT<VectorT<T>>(EndVector<size_type>(len));
   }
 
   /// @brief Serialize an array like object into a FlatBuffer `vector`.
@@ -718,7 +718,7 @@ class FlatBufferBuilder {
   }
 
   template<template<typename...> class VectorT = Vector64,
-           int &... ExplicitArgumentBarrier, typename T>
+           int &...ExplicitArgumentBarrier, typename T>
   Offset64<VectorT<T>> CreateVector64(const std::vector<T> &v) {
     return CreateVector<Offset64, VectorT>(data(v), v.size());
   }
@@ -1169,7 +1169,8 @@ class FlatBufferBuilder {
                 kFileIdentifierLength);
     }
     PushElement(ReferTo(root));  // Location of root.
-    if (size_prefix) { PushElement(GetSize()); }
+    // TODO(derekbailey): update size prefix to handle 64-bit sizes.
+    if (size_prefix) { PushElement(static_cast<uoffset_t>(GetSize())); }
     finished = true;
   }
 
