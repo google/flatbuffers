@@ -2,7 +2,7 @@ table RootTable {
   big_vector:[ubyte] (offset64);
   a:int;
   big_string:string (offset64);
-  // vector_64:[ubyte] (vector64);
+  vector_64:[ubyte] (vector64);
 }
 
 root_type RootTable; 

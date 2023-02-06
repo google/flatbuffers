@@ -715,7 +715,7 @@ class FlatBufferBuilder {
     return CreateVector(data(v), v.size());
   }
 
-  template<template<typename...> class VectorT = Vector,
+  template<template<typename...> class VectorT = Vector64,
            int &... ExplicitArgumentBarrier, typename T>
   Offset64<VectorT<T>> CreateVector64(const std::vector<T> &v) {
     return CreateVector<Offset64, VectorT>(data(v), v.size());

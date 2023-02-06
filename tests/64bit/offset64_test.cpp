@@ -6,6 +6,7 @@
 #include <limits>
 
 #include "flatbuffers/base.h"
+#include "flatbuffers/buffer.h"
 #include "flatbuffers/flatbuffers.h"
 #include "test_64bit_generated.h"
 #include "test_assert.h"
@@ -23,14 +24,18 @@ void Offset64Test() {
     data.resize(vector_size);
 
     const Offset64<Vector<uint8_t>> big_vector_offset =
-        fbb.CreateVector64(data);
+        fbb.CreateVector64<Vector>(data);
 
     const Offset64<String> big_string_offset =
         fbb.CreateString<Offset64>("some big string");
 
+    const Offset64<Vector64<uint8_t>> vector_64_offset = 
+        fbb.CreateVector64(data);
+
     RootTableBuilder root_table_builder(fbb);
     root_table_builder.add_big_vector(big_vector_offset);
     root_table_builder.add_big_string(big_string_offset);
+    root_table_builder.add_vector_64(vector_64_offset);
     const Offset<RootTable> root_table_offset = root_table_builder.Finish();
 
     fbb.Finish(root_table_offset);
@@ -51,6 +56,9 @@ void Offset64Test() {
     TEST_EQ(root_table->big_vector()->size(), vector_size);
 
     TEST_EQ_STR(root_table->big_string()->c_str(), "some big string");
+
+    // Expect the vector64 to be properly sized.
+    TEST_EQ(root_table->vector_64()->size(), vector_size);
   }
 }
 
