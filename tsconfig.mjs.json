@@ -1,7 +1,7 @@
 {
   "compilerOptions": {
-    "target": "ES2020",
-    "module": "NodeNext",
+    "target": "es2020",
+    "module": "es2020",
     "lib": ["ES2020", "DOM"],
     "declaration": true,
     "outDir": "./mjs",
