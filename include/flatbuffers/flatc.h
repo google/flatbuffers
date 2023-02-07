@@ -49,6 +49,7 @@ struct FlatCOptions {
   size_t binary_files_from = std::numeric_limits<size_t>::max();
   std::string conform_to_schema;
   std::string annotate_schema;
+  bool annotate_include_vector_contents = true;
   bool any_generator = false;
   bool print_make_rules = false;
   bool raw_binary = false;
@@ -110,8 +111,7 @@ class FlatCompiler {
 
   void AnnotateBinaries(const uint8_t *binary_schema,
                         uint64_t binary_schema_size,
-                        const std::string &schema_filename,
-                        const std::vector<std::string> &binary_files);
+                        const FlatCOptions &options);
 
   void ValidateOptions(const FlatCOptions &options);
 
