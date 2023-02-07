@@ -19,8 +19,8 @@ namespace tests {
 void Offset64Test() {
   flatbuffers::FlatBufferBuilder fbb;
 
-  size_t far_vector_size = 100;
-  size_t big_vector_size = 200;
+  size_t far_vector_size = 1 << 20;
+  size_t big_vector_size = 2 << 20;
 
   {
     std::vector<uint8_t> far_data;
