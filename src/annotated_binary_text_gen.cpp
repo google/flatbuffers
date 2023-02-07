@@ -367,18 +367,18 @@ static void GenerateSection(std::ostream &os, const BinarySection &section,
 
   // As a space saving measure, skip generating every vector element, just put
   // the first and last elements in the output. Skip the whole thing if there
-  // are only two or fewer elements, as it doesn't save space.
+  // are only three or fewer elements, as it doesn't save space.
   if (section.type == BinarySectionType::Vector &&
-      !output_config.include_vector_contents && section.regions.size() > 3) {
+      !output_config.include_vector_contents && section.regions.size() > 4) {
     // Generate the length region which should be first.
     GenerateRegion(os, section.regions[0], section, binary, output_config);
 
     // Generate the first element.
     GenerateRegion(os, section.regions[1], section, binary, output_config);
 
-    // Indicate that we omitted lines.
+    // Indicate that we omitted elements.
     os << std::endl
-       << "  <" << section.regions.size() - 2 << " regions omitted>";
+       << "  <" << section.regions.size() - 3 << " regions omitted>";
 
     // Generate the last element.
     GenerateRegion(os, section.regions.back(), section, binary, output_config);
