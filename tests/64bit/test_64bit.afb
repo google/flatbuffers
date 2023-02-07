@@ -28,8 +28,7 @@ root_table (RootTable):
 vector64 (RootTable.big_vector):
   +0x38 | 04 00 00 00 00 00 00 00 | uint64_t   | 0x0000000000000004 (4)            | length of vector (# items)
   +0x40 | 05                      | uint8_t    | 0x05 (5)                          | value[0]
-  +0x41 | 06                      | uint8_t    | 0x06 (6)                          | value[1]
-  +0x42 | 07                      | uint8_t    | 0x07 (7)                          | value[2]
+  <3 regions omitted>
   +0x43 | 08                      | uint8_t    | 0x08 (8)                          | value[3]
 
 string (RootTable.far_string):
@@ -45,5 +44,5 @@ string (RootTable.far_string):
 vector (RootTable.far_vector):
   +0x78 | 03 00 00 00             | uint32_t   | 0x00000003 (3)                    | length of vector (# items)
   +0x7C | 01                      | uint8_t    | 0x01 (1)                          | value[0]
-  +0x7D | 02                      | uint8_t    | 0x02 (2)                          | value[1]
+  <2 regions omitted>
   +0x7E | 03                      | uint8_t    | 0x03 (3)                          | value[2]

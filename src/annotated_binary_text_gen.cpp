@@ -1,4 +1,5 @@
 #include "annotated_binary_text_gen.h"
+
 #include <bits/stdint-uintn.h>
 
 #include <algorithm>
@@ -375,7 +376,8 @@ static void GenerateSection(std::ostream &os, const BinarySection &section,
   // As a space saving measure, skip generating every vector element, just put
   // the first and last elements in the output. Skip the whole thing if there
   // are only three or fewer elements, as it doesn't save space.
-  if (section.type == BinarySectionType::Vector &&
+  if ((section.type == BinarySectionType::Vector ||
+       section.type == BinarySectionType::Vector64) &&
       !output_config.include_vector_contents && section.regions.size() > 4) {
     // Generate the length region which should be first.
     GenerateRegion(os, section.regions[0], section, binary, output_config);
