@@ -74,7 +74,10 @@ type MonsterT struct {
 
 func (t *MonsterT) Pack(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
 	if t == nil { return 0 }
-	nameOffset := builder.CreateString(t.Name)
+	nameOffset := flatbuffers.UOffsetT(0)
+	if t.Name != "" {
+		nameOffset = builder.CreateString(t.Name)
+	}
 	inventoryOffset := flatbuffers.UOffsetT(0)
 	if t.Inventory != nil {
 		inventoryOffset = builder.CreateByteString(t.Inventory)
@@ -579,12 +582,12 @@ func MonsterKeyCompare(o1, o2 flatbuffers.UOffsetT, buf []byte) bool {
 func (rcv *Monster) LookupByKey(key string, vectorLocation flatbuffers.UOffsetT, buf []byte) bool {
 	span := flatbuffers.GetUOffsetT(buf[vectorLocation - 4:])
 	start := flatbuffers.UOffsetT(0)
+	bKey := []byte(key)
 	for span != 0 {
 		middle := span / 2
 		tableOffset := flatbuffers.GetIndirectOffset(buf, vectorLocation+ 4 * (start + middle))
 		obj := &Monster{}
 		obj.Init(buf, tableOffset)
-		bKey := []byte(key)
 		comp := bytes.Compare(obj.Name(), bKey)
 		if comp > 0 {
 			span = middle

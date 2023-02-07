@@ -383,10 +383,10 @@ class Reference {
         type_(type) {}
 
   Reference(const uint8_t *data, uint8_t parent_width, uint8_t packed_type)
-      : data_(data), parent_width_(parent_width) {
-    byte_width_ = 1U << static_cast<BitWidth>(packed_type & 3);
-    type_ = static_cast<Type>(packed_type >> 2);
-  }
+      : data_(data),
+        parent_width_(parent_width),
+        byte_width_(static_cast<uint8_t>(1 << (packed_type & 3))),
+        type_(static_cast<Type>(packed_type >> 2)) {}
 
   Type GetType() const { return type_; }
 
@@ -1845,7 +1845,7 @@ class Verifier FLATBUFFERS_FINAL_CLASS {
         uint8_t len = 0;
         auto vtype = ToFixedTypedVectorElementType(r.type_, &len);
         if (!VerifyType(vtype)) return false;
-        return VerifyFromPointer(p, r.byte_width_ * len);
+        return VerifyFromPointer(p, static_cast<size_t>(r.byte_width_) * len);
       }
       default: return false;
     }

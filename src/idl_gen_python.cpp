@@ -16,6 +16,8 @@
 
 // independent from idl_parser, since this code is not needed for most clients
 
+#include "idl_gen_python.h"
+
 #include <cctype>
 #include <set>
 #include <string>
@@ -1910,6 +1912,60 @@ bool GeneratePython(const Parser &parser, const std::string &path,
                     const std::string &file_name) {
   python::PythonGenerator generator(parser, path, file_name);
   return generator.generate();
+}
+
+namespace {
+
+class PythonCodeGenerator : public CodeGenerator {
+ public:
+  Status GenerateCode(const Parser &parser, const std::string &path,
+                      const std::string &filename) override {
+    if (!GeneratePython(parser, path, filename)) { return Status::ERROR; }
+    return Status::OK;
+  }
+
+  Status GenerateCode(const uint8_t *buffer, int64_t length) override {
+    (void)buffer;
+    (void)length;
+    return Status::NOT_IMPLEMENTED;
+  }
+
+  Status GenerateMakeRule(const Parser &parser, const std::string &path,
+                          const std::string &filename,
+                          std::string &output) override {
+    (void)parser;
+    (void)path;
+    (void)filename;
+    (void)output;
+    return Status::NOT_IMPLEMENTED;
+  }
+
+  Status GenerateGrpcCode(const Parser &parser, const std::string &path,
+                          const std::string &filename) override {
+    if (!GeneratePythonGRPC(parser, path, filename)) { return Status::ERROR; }
+    return Status::OK;
+  }
+
+  Status GenerateRootFile(const Parser &parser,
+                          const std::string &path) override {
+    (void)parser;
+    (void)path;
+    return Status::NOT_IMPLEMENTED;
+  }
+
+  bool IsSchemaOnly() const override { return true; }
+
+  bool SupportsBfbsGeneration() const override { return false; }
+  bool SupportsRootFileGeneration() const override { return false; }
+
+  IDLOptions::Language Language() const override { return IDLOptions::kPython; }
+
+  std::string LanguageName() const override { return "Python"; }
+};
+}  // namespace
+
+std::unique_ptr<CodeGenerator> NewPythonCodeGenerator() {
+  return std::unique_ptr<PythonCodeGenerator>(new PythonCodeGenerator());
 }
 
 }  // namespace flatbuffers

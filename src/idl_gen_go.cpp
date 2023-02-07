@@ -16,6 +16,8 @@
 
 // independent from idl_parser, since this code is not needed for most clients
 
+#include "idl_gen_go.h"
+
 #include <algorithm>
 #include <cmath>
 #include <sstream>
@@ -103,10 +105,10 @@ class GoGenerator : public BaseGenerator {
     bool needs_imports = false;
     for (auto it = parser_.enums_.vec.begin(); it != parser_.enums_.vec.end();
          ++it) {
-      tracked_imported_namespaces_.clear();
-      needs_math_import_ = false;
-      needs_bytes_import_ = false;
-      needs_imports = false;
+      if (!parser_.opts.one_file) {
+        needs_imports = false;
+        ResetImports();
+      }
       std::string enumcode;
       GenEnum(**it, &enumcode);
       if ((*it)->is_union && parser_.opts.generate_object_based_api) {
@@ -124,9 +126,7 @@ class GoGenerator : public BaseGenerator {
 
     for (auto it = parser_.structs_.vec.begin();
          it != parser_.structs_.vec.end(); ++it) {
-      tracked_imported_namespaces_.clear();
-      needs_math_import_ = false;
-      needs_bytes_import_ = false;
+      if (!parser_.opts.one_file) { ResetImports(); }
       std::string declcode;
       GenStruct(**it, &declcode);
       if (parser_.opts.one_file) {
@@ -503,7 +503,9 @@ class GoGenerator : public BaseGenerator {
     auto &vector_struct_fields = vectortype.struct_def->fields.vec;
     auto kit =
         std::find_if(vector_struct_fields.begin(), vector_struct_fields.end(),
-                     [&](FieldDef *field) { return field->key; });
+                     [&](FieldDef *vector_struct_field) {
+                       return vector_struct_field->key;
+                     });
 
     auto &key_field = **kit;
     FLATBUFFERS_ASSERT(key_field.key);
@@ -915,6 +917,7 @@ class GoGenerator : public BaseGenerator {
     code += "buf []byte) bool {\n";
     code += "\tspan := flatbuffers.GetUOffsetT(buf[vectorLocation - 4:])\n";
     code += "\tstart := flatbuffers.UOffsetT(0)\n";
+    if (IsString(field.value.type)) { code += "\tbKey := []byte(key)\n"; }
     code += "\tfor span != 0 {\n";
     code += "\t\tmiddle := span / 2\n";
     code += "\t\ttableOffset := flatbuffers.GetIndirectOffset(buf, ";
@@ -924,7 +927,6 @@ class GoGenerator : public BaseGenerator {
     code += "\t\tobj.Init(buf, tableOffset)\n";
 
     if (IsString(field.value.type)) {
-      code += "\t\tbKey := []byte(key)\n";
       needs_bytes_import_ = true;
       code +=
           "\t\tcomp := bytes.Compare(obj." + namer_.Function(field.name) + "()";
@@ -1056,8 +1058,11 @@ class GoGenerator : public BaseGenerator {
       const std::string offset = field_var + "Offset";
 
       if (IsString(field.value.type)) {
-        code +=
-            "\t" + offset + " := builder.CreateString(t." + field_field + ")\n";
+        code += "\t" + offset + " := flatbuffers.UOffsetT(0)\n";
+        code += "\tif t." + field_field + " != \"\" {\n";
+        code += "\t\t" + offset + " = builder.CreateString(t." + field_field +
+                ")\n";
+        code += "\t}\n";
       } else if (IsVector(field.value.type) &&
                  field.value.type.element == BASE_TYPE_UCHAR &&
                  field.value.type.enum_def == nullptr) {
@@ -1462,6 +1467,7 @@ class GoGenerator : public BaseGenerator {
     StructBuilderBody(struct_def, "", code_ptr);
     EndBuilderBody(code_ptr);
   }
+
   // Begin by declaring namespace and imports.
   void BeginFile(const std::string &name_space_name, const bool needs_imports,
                  const bool is_enum, std::string *code_ptr) {
@@ -1501,6 +1507,13 @@ class GoGenerator : public BaseGenerator {
         code += "import \"math\"\n\n";
       }
     }
+  }
+
+  // Resets the needed imports before generating a new file.
+  void ResetImports() {
+    tracked_imported_namespaces_.clear();
+    needs_bytes_import_ = false;
+    needs_math_import_ = false;
   }
 
   // Save out the generated code for a Go Table type.
@@ -1568,6 +1581,61 @@ bool GenerateGo(const Parser &parser, const std::string &path,
                 const std::string &file_name) {
   go::GoGenerator generator(parser, path, file_name, parser.opts.go_namespace);
   return generator.generate();
+}
+
+namespace {
+
+class GoCodeGenerator : public CodeGenerator {
+ public:
+  Status GenerateCode(const Parser &parser, const std::string &path,
+                      const std::string &filename) override {
+    if (!GenerateGo(parser, path, filename)) { return Status::ERROR; }
+    return Status::OK;
+  }
+
+  Status GenerateCode(const uint8_t *buffer, int64_t length) override {
+    (void)buffer;
+    (void)length;
+    return Status::NOT_IMPLEMENTED;
+  }
+
+  Status GenerateMakeRule(const Parser &parser, const std::string &path,
+                          const std::string &filename,
+                          std::string &output) override {
+    (void)parser;
+    (void)path;
+    (void)filename;
+    (void)output;
+    return Status::NOT_IMPLEMENTED;
+  }
+
+  Status GenerateGrpcCode(const Parser &parser, const std::string &path,
+                          const std::string &filename) override {
+    if (!GenerateGoGRPC(parser, path, filename)) { return Status::ERROR; }
+    return Status::OK;
+  }
+
+  Status GenerateRootFile(const Parser &parser,
+                          const std::string &path) override {
+    (void)parser;
+    (void)path;
+    return Status::NOT_IMPLEMENTED;
+  }
+
+  bool IsSchemaOnly() const override { return true; }
+
+  bool SupportsBfbsGeneration() const override { return false; }
+
+  bool SupportsRootFileGeneration() const override { return false; }
+
+  IDLOptions::Language Language() const override { return IDLOptions::kGo; }
+
+  std::string LanguageName() const override { return "Go"; }
+};
+}  // namespace
+
+std::unique_ptr<CodeGenerator> NewGoCodeGenerator() {
+  return std::unique_ptr<GoCodeGenerator>(new GoCodeGenerator());
 }
 
 }  // namespace flatbuffers

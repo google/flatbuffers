@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 Google Inc. All rights reserved.
+ * Copyright 2023 Google Inc. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,7 +24,8 @@ class FlatBuffersMoreDefaults: XCTestCase {
     var fbb = FlatBufferBuilder()
     let root = MoreDefaults.createMoreDefaults(&fbb)
     fbb.finish(offset: root)
-    let defaults = MoreDefaults.getRootAsMoreDefaults(bb: fbb.sizedBuffer)
+    var byteBuffer = fbb.sizedBuffer
+    let defaults: MoreDefaults = getRoot(byteBuffer: &byteBuffer)
     XCTAssertEqual(defaults.emptyString, "")
     XCTAssertEqual(defaults.someString, "some")
     XCTAssertEqual(defaults.ints, [])
@@ -46,8 +47,8 @@ class FlatBuffersMoreDefaults: XCTestCase {
     XCTAssertEqual(defaults.abcs, [])
     XCTAssertEqual(defaults.bools, [])
 
-    let buffer = defaults.serialize(builder: &fbb, type: MoreDefaults.self)
-    let fDefaults = MoreDefaults.getRootAsMoreDefaults(bb: buffer)
+    var buffer = defaults.serialize(builder: &fbb, type: MoreDefaults.self)
+    let fDefaults: MoreDefaults = getRoot(byteBuffer: &buffer)
     XCTAssertEqual(fDefaults.emptyString, "")
     XCTAssertEqual(fDefaults.someString, "some")
     XCTAssertEqual(fDefaults.ints, [])
