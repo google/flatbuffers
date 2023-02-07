@@ -23,6 +23,8 @@ struct OutputConfig {
   size_t offset_max_char = 4;
 
   char delimiter = '|';
+
+  bool include_vector_contents = true;
 };
 
 static std::string ToString(const BinarySectionType type) {
@@ -85,7 +87,7 @@ static std::string ToValueString(const BinaryRegion &region,
   if (region.array_length) {
     if (region.type == BinaryRegionType::Uint8 ||
         region.type == BinaryRegionType::Unknown) {
-      // Interpet each value as a ASCII to aid debugging
+      // Interpret each value as a ASCII to aid debugging
       for (uint64_t i = 0; i < region.array_length; ++i) {
         const uint8_t c = *(binary + region.offset + i);
         s += isprint(c) ? static_cast<char>(c & 0x7F) : '.';
@@ -264,7 +266,6 @@ static void GenerateDocumentation(std::ostream &os, const BinaryRegion &region,
                                   const uint8_t *binary,
                                   DocContinuation &continuation,
                                   const OutputConfig &output_config) {
-
   // Check if there is a doc continuation that should be prioritized.
   if (continuation.value_start_column) {
     os << std::string(continuation.value_start_column - 2, ' ');
@@ -289,7 +290,7 @@ static void GenerateDocumentation(std::ostream &os, const BinaryRegion &region,
   if (region.array_length) {
     // Record where the value is first being outputted.
     continuation.value_start_column = 3 + size_of;
- 
+
     // Get the full-length value, which we will chunk below.
     const std::string value = ToValueString(region, binary, output_config);
 
@@ -363,6 +364,28 @@ static void GenerateSection(std::ostream &os, const BinarySection &section,
   os << ToString(section.type);
   if (!section.name.empty()) { os << " (" + section.name + ")"; }
   os << ":";
+
+  // As a space saving measure, skip generating every vector element, just put
+  // the first and last elements in the output. Skip the whole thing if there
+  // are only two or fewer elements, as it doesn't save space.
+  if (section.type == BinarySectionType::Vector &&
+      !output_config.include_vector_contents && section.regions.size() > 3) {
+    // Generate the length region which should be first.
+    GenerateRegion(os, section.regions[0], section, binary, output_config);
+
+    // Generate the first element.
+    GenerateRegion(os, section.regions[1], section, binary, output_config);
+
+    // Indicate that we omitted lines.
+    os << std::endl
+       << "  <" << section.regions.size() - 2 << " regions omitted>";
+
+    // Generate the last element.
+    GenerateRegion(os, section.regions.back(), section, binary, output_config);
+    os << std::endl;
+    return;
+  }
+
   for (const BinaryRegion &region : section.regions) {
     GenerateRegion(os, region, section, binary, output_config);
   }
@@ -374,6 +397,7 @@ bool AnnotatedBinaryTextGenerator::Generate(
     const std::string &filename, const std::string &schema_filename) {
   OutputConfig output_config;
   output_config.max_bytes_per_line = options_.max_bytes_per_line;
+  output_config.include_vector_contents = options_.include_vector_contents;
 
   // Given the length of the binary, we can calculate the maximum number of
   // characters to display in the offset hex: (i.e. 2 would lead to 0XFF being
