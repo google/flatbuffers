@@ -41,6 +41,9 @@ class AnnotatedBinaryTextGenerator {
     //
     // Example: binary1.bin -> binary1.afb
     std::string output_extension = "afb";
+
+    // Controls.
+    bool include_vector_contents = true;
   };
 
   explicit AnnotatedBinaryTextGenerator(

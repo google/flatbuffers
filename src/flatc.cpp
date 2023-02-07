@@ -243,6 +243,7 @@ const static FlatCOption flatc_options[] = {
     "ts_entry_points." },
   { "", "ts-entry-points", "",
     "Generate entry point typescript per namespace. Implies gen-all." },
+  { "", "annotate-sparse-vectors", "", "Don't annotate every vector element."},
   { "", "annotate", "SCHEMA",
     "Annotate the provided BINARY_FILE with the specified SCHEMA file." },
   { "", "no-leak-private-annotation", "",
@@ -371,11 +372,12 @@ std::string FlatCompiler::GetUsageString(
   return ss.str();
 }
 
-void FlatCompiler::AnnotateBinaries(
-    const uint8_t *binary_schema, const uint64_t binary_schema_size,
-    const std::string &schema_filename,
-    const std::vector<std::string> &binary_files) {
-  for (const std::string &filename : binary_files) {
+void FlatCompiler::AnnotateBinaries(const uint8_t *binary_schema,
+                                    const uint64_t binary_schema_size,
+                                    const FlatCOptions &options) {
+  const std::string &schema_filename = options.annotate_schema;
+
+  for (const std::string &filename : options.filenames) {
     std::string binary_contents;
     if (!flatbuffers::LoadFile(filename.c_str(), true, &binary_contents)) {
       Warn("unable to load binary file: " + filename);
@@ -391,13 +393,16 @@ void FlatCompiler::AnnotateBinaries(
 
     auto annotations = binary_annotator.Annotate();
 
+    flatbuffers::AnnotatedBinaryTextGenerator::Options text_gen_opts;
+    text_gen_opts.include_vector_contents =
+        options.annotate_include_vector_contents;
+
     // TODO(dbaileychess): Right now we just support a single text-based
     // output of the annotated binary schema, which we generate here. We
     // could output the raw annotations instead and have third-party tools
     // use them to generate their own output.
     flatbuffers::AnnotatedBinaryTextGenerator text_generator(
-        flatbuffers::AnnotatedBinaryTextGenerator::Options{}, annotations,
-        binary, binary_size);
+        text_gen_opts, annotations, binary, binary_size);
 
     text_generator.Generate(filename, schema_filename);
   }
@@ -641,6 +646,8 @@ FlatCOptions FlatCompiler::ParseFromCommandLineArguments(int argc,
         opts.ts_no_import_ext = true;
       } else if (arg == "--no-leak-private-annotation") {
         opts.no_leak_private_annotations = true;
+      } else if (arg == "--annotate-sparse-vectors") {
+        options.annotate_include_vector_contents = false;      
       } else if (arg == "--annotate") {
         if (++argi >= argc) Error("missing path following: " + arg, true);
         options.annotate_schema = flatbuffers::PosixPath(argv[argi]);
@@ -939,8 +946,7 @@ int FlatCompiler::Compile(const FlatCOptions &options) {
     }
 
     // Annotate the provided files with the binary_schema.
-    AnnotateBinaries(binary_schema, binary_schema_size, options.annotate_schema,
-                     options.filenames);
+    AnnotateBinaries(binary_schema, binary_schema_size, options);
 
     // We don't support doing anything else after annotating a binary.
     return 0;
