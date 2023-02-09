@@ -21,33 +21,27 @@
 
 namespace flatbuffers {
 
-// A FileWriter interface to write data to file by default or
+// A File interface to write data to file by default or
 // save only file names
-class FileWriter {
+class File {
  public:
-  virtual ~FileWriter() = default;
+  virtual ~File() = default;
 
-  enum Mode {
-    DEFAULT = 0,
-    SAVE_FILE_NAMES_ONLY = 1
-  };
+  virtual bool SaveFile(std::string file_path, std::string content);
 
-  virtual bool SaveFile();
+  virtual bool ReadFile(std::string file_path, bool binary, std::string *buf);
 
-  virtual std::string Path() const = 0;
-
-  virtual std::string FileName() const = 0;
+  virtual std::set<string> FileNames() const = 0;
   
  protected:
-  FileWriter(const std::string &path, const std::string &file_name);
+  File();
 
  private:
   // Copying is not supported.
-  FileWriter(const FileWriter &) = delete;
-  FileWriter &operator=(const FileWriter &) = delete;
+  File(const File &) = delete;
+  File &operator=(const File &) = delete;
   
-  std::string path_;
-  std::string file_name_;
+  std::set<string> files_;
 };
 
 }  // namespace flatbuffers
