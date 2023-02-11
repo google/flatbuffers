@@ -19,18 +19,16 @@
 
 namespace flatbuffers {
 
-class DefaultFile :: File {
+class FileNameManager :: File {
  public:
-  bool SaveFile(std::string file_path, std::string buf, bool binary) override {
-          std::ofstream ofs(name, binary ? std::ofstream::binary : std::ofstream::out);
-          if (!ofs.is_open()) return false;
-          ofs.write(buf.c_str(), buf.size());
-          return !ofs.bad();
+  bool SaveFile(std::string absolute_file_name, std::string buf, bool binary) override {
+    auto pair = file_names_.insert(absolute_file_name);
+    return pair.second;
   }
 
   std::string ReadFile(std::string file_path) override {
-
-
+    (void) file_path;
+    return "";
   }
 
   std::set<string> FileNames() { return file_names_; }

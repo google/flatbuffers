@@ -14,34 +14,30 @@
  * limitations under the License.
  */
 
-#ifndef FLATBUFFERS_FILE_WRITER_H_
-#define FLATBUFFERS_FILE_WRITER_H_
-
 #include <string>
+#include "include/flatbuffers/file.h"
 
 namespace flatbuffers {
 
-// A File interface to write data to file by default or
-// save only file names
-class File {
+class FileManager :: File {
  public:
-  virtual ~File() = default;
+  bool SaveFile(std::string absolute_file_name, std::string buf, bool binary) override {
+          std::ofstream ofs(absolute_file_name, binary ? std::ofstream::binary : std::ofstream::out);
+          if (!ofs.is_open()) return false;
+          ofs.write(buf.c_str(), buf.size());
+          if(!ofs.bad()) {
+            file_names_.insert(absolute_file_name);
+            return true;
+          }
+          return false;
+  }
 
-  virtual bool SaveFile(std::string file_path, std::string content);
+  std::string ReadFile(std::string file_path) override {
+    (void) file_path;
+    return "";
+  }
 
-  virtual bool ReadFile(std::string file_path, bool binary, std::string *buf);
-
-  virtual std::set<string> FileNames() const = 0;
-
- protected:
-  File();
-
- private:
-  // Copying is not supported.
-  File(const File &) = delete;
-  File &operator=(const File &) = delete;
-
-  std::set<string> files_;
+  std::set<string> FileNames() { return file_names_; }
 };
 
 }  // namespace flatbuffers
