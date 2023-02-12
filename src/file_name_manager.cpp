@@ -15,25 +15,28 @@
  */
 
 #include <string>
-#include "include/flatbuffers/file.h"
+
+#include "include/flatbuffers/file_manager.h"
 
 namespace flatbuffers {
 
-class FileNameManager :: File {
+class FileNameManager ::FileManager {
  public:
-  bool SaveFile(std::string absolute_file_name, std::string buf, bool binary) override {
+  bool SaveFile(std::string absolute_file_name, std::string content,
+                size_t len,
+                bool binary) override {
     auto pair = file_names_.insert(absolute_file_name);
     return pair.second;
   }
 
-  std::string ReadFile(std::string file_path) override {
+  bool ReadFile(std::string absolute_file_name, bool binary, std::string * buf) override {
     (void) file_path;
-    return "";
+    (void) binary;
+    (void) buf;
+    return false;
   }
 
   std::set<string> FileNames() { return file_names_; }
 };
 
 }  // namespace flatbuffers
-
-#endif  // FLATBUFFERS_FILE_WRITER_H_

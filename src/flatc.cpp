@@ -249,6 +249,8 @@ const static FlatCOption flatc_options[] = {
   { "", "no-leak-private-annotation", "",
     "Prevents multiple type of annotations within a Fbs SCHEMA file. "
     "Currently this is required to generate private types in Rust" },
+  { "", "file-names-only", "",
+    "Print out generated file names without writing to the files"},
 };
 
 auto cmp = [](FlatCOption a, FlatCOption b) { return a.long_opt < b.long_opt; };
@@ -651,6 +653,9 @@ FlatCOptions FlatCompiler::ParseFromCommandLineArguments(int argc,
       } else if (arg == "--annotate") {
         if (++argi >= argc) Error("missing path following: " + arg, true);
         options.annotate_schema = flatbuffers::PosixPath(argv[argi]);
+      } else if(arg == "--file-names-only") {
+        // TODO (khhn): Provide 2 implementation
+        options.file_names_only = true;
       } else {
         // Look up if the command line argument refers to a code generator.
         auto code_generator_it = code_generators_.find(arg);
