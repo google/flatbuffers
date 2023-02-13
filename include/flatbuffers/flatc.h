@@ -56,6 +56,7 @@ struct FlatCOptions {
   bool schema_binary = false;
   bool grpc_enabled = false;
   bool requires_bfbs = false;
+  bool file_names_only = false;
 
   std::vector<std::shared_ptr<CodeGenerator>> generators;
 };
