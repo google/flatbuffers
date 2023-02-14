@@ -962,9 +962,8 @@ class TsGenerator : public BaseGenerator {
       auto ret = "\n\nexport type " + enum_type + "Mapping = {\n";
 
       const auto union_enum_loop = [&](bool object_api) {
-        for (auto it = enum_def.Vals().begin(); it != enum_def.Vals().end();
-             ++it) {
-          const auto &ev = **it;
+        for (auto& it : enum_def.Vals()) {
+          const auto &ev = *it;
           if (ev.IsZero()) { continue; }
 
           const auto union_import =
