@@ -168,6 +168,17 @@ inline const char* TypeName(const BaseType t) {
   return nullptr;
 }
 
+inline const char* StringOf(const BaseType t) {
+  switch (t) {
+  #define FLATBUFFERS_TD(ENUM, IDLTYPE, CTYPE, ...) \
+    case BASE_TYPE_##ENUM: return #CTYPE;
+      FLATBUFFERS_GEN_TYPES(FLATBUFFERS_TD)
+  #undef FLATBUFFERS_TD
+    default: FLATBUFFERS_ASSERT(0);
+  }
+  return "";
+}
+
 // clang-format on
 
 struct StructDef;

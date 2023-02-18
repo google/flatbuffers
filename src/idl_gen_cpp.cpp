@@ -725,16 +725,7 @@ class CppGenerator : public BaseGenerator {
       if (type.enum_def) return WrapInNameSpace(*type.enum_def);
       if (type.base_type == BASE_TYPE_BOOL) return "bool";
     }
-    switch (type.base_type) {
-    // clang-format off
-    #define FLATBUFFERS_TD(ENUM, IDLTYPE, CTYPE, ...) \
-      case BASE_TYPE_##ENUM: return #CTYPE;
-          FLATBUFFERS_GEN_TYPES(FLATBUFFERS_TD)
-    #undef FLATBUFFERS_TD
-    //clang-format on
-      default: FLATBUFFERS_ASSERT(0);
-    }
-    return "";
+    return StringOf(type.base_type);
   }
 
   // Return a C++ pointer type, specialized to the actual struct/table types,
