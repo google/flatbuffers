@@ -2,14 +2,14 @@
 
 package com.google.flatbuffers.kotlin.benchmark
 
-import Attacker
-import BookReader
-import MyGame.Example.AnyE
-import MyGame.Example.Color
-import MyGame.Example.Monster
-import MyGame.Example.Vec3
+
 import com.google.flatbuffers.kotlin.FlatBufferBuilder
 import com.google.flatbuffers.kotlin.Offset
+import myGame.example.AnyE
+import myGame.example.Color
+import myGame.example.Monster
+import myGame.example.Test.Companion.createTest
+import myGame.example.Vec3
 import org.openjdk.jmh.annotations.*
 import java.util.concurrent.TimeUnit
 
@@ -38,9 +38,9 @@ open class FlatbufferBenchmark {
     val mon2 = Monster.createMonster(fbb, fbb.createString("Fred"))
 
     Monster.startTest4Vector(fbb, 2)
-    MyGame.Example.Test.createTest(fbb, 10.toShort(), 20.toByte())
-    MyGame.Example.Test.createTest(fbb, 30.toShort(), 40.toByte())
-    val test4 = fbb.endVector<MyGame.Example.Test>()
+    createTest(fbb, 10.toShort(), 20.toByte())
+    createTest(fbb, 30.toShort(), 40.toByte())
+    val test4 = fbb.endVector<myGame.example.Test>()
 
     val testArrayOfString =
       Monster.createTestarrayofstringVector(fbb, arrayOf(fbb.createString("test1"), fbb.createString("test2")))
@@ -94,9 +94,9 @@ open class FlatbufferBenchmark {
     val mon2 = Monster.endMonster(fbb)
 
     Monster.startTest4Vector(fbb, 2)
-    MyGame.Example.Test.createTest(fbb, 10.toShort(), 20.toByte())
-    MyGame.Example.Test.createTest(fbb, 30.toShort(), 40.toByte())
-    val test4 = fbb.endVector<MyGame.Example.Test>()
+    createTest(fbb, 10.toShort(), 20.toByte())
+    createTest(fbb, 30.toShort(), 40.toByte())
+    val test4 = fbb.endVector<myGame.example.Test>()
 
     val testArrayOfString =
       Monster.createTestarrayofstringVector(fbb, arrayOf(fbb.createString("test1"), fbb.createString("test2")))

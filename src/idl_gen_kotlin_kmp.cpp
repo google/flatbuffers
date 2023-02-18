@@ -49,22 +49,22 @@ static std::set<std::string> KotlinKeywords() {
 
 static Namer::Config KotlinDefaultConfig() {
   return { /*types=*/Case::kKeep,
-           /*constants=*/Case::kKeep,
+           /*constants=*/Case::kUpperCamel,
            /*methods=*/Case::kLowerCamel,
            /*functions=*/Case::kKeep,
            /*fields=*/Case::kLowerCamel,
            /*variables=*/Case::kLowerCamel,
-           /*variants=*/Case::kLowerCamel,
+           /*variants=*/Case::kUpperCamel,
            /*enum_variant_seperator=*/"",  // I.e. Concatenate.
            /*escape_keywords=*/Namer::Config::Escape::BeforeConvertingCase,
-           /*namespaces=*/Case::kAllLower,
-           /*namespace_seperator=*/"__",
+           /*namespaces=*/Case::kLowerCamel,
+           /*namespace_seperator=*/".",
            /*object_prefix=*/"",
            /*object_suffix=*/"T",
            /*keyword_prefix=*/"",
            /*keyword_suffix=*/"E",
-           /*filenames=*/Case::kKeep,
-           /*directories=*/Case::kKeep,
+           /*filenames=*/Case::kUpperCamel,
+           /*directories=*/Case::kLowerCamel,
            /*output_path=*/"",
            /*filename_suffix=*/"",
            /*filename_extension=*/".kt" };
@@ -121,6 +121,17 @@ class KotlinKMPGenerator : public BaseGenerator {
     return true;
   }
 
+  std::string TypeInNameSpace(const Namespace *ns,
+                                             const std::string &name = "") const {
+    auto qualified = namer_.Namespace(*ns);
+    return qualified.empty() ? name : qualified + qualifying_separator_ + name;
+  }
+
+  std::string TypeInNameSpace(const Definition &def,
+                                             const std::string &suffix = "") const {
+    return TypeInNameSpace(def.defined_namespace, def.name + suffix);
+  }
+
   // Save out the generated code for a single class while adding
   // declaration boilerplate.
   bool SaveType(const std::string &defname, const Namespace &ns,
@@ -129,8 +140,8 @@ class KotlinKMPGenerator : public BaseGenerator {
 
     std::string code =
         "// " + std::string(FlatBuffersGeneratedWarning()) + "\n\n";
-
-    std::string namespace_name = FullNamespace(".", ns);
+    auto qualified = ns.GetFullyQualifiedName("");
+    std::string namespace_name = namer_.Namespace(ns);
     if (!namespace_name.empty()) {
       code += "package " + namespace_name;
       code += "\n\n";
@@ -138,7 +149,7 @@ class KotlinKMPGenerator : public BaseGenerator {
     if (needs_includes) { code += "import com.google.flatbuffers.kotlin.*\n"; }
     code += "import kotlin.jvm.JvmInline\n";
     code += classcode;
-    const std::string dirs = namer_.Directories(ns);
+    const std::string dirs = namer_.Directories(ns, SkipDir::None, Case::kUnknown);
     EnsureDirExists(dirs);
     const std::string filename =
         dirs + namer_.File(defname, /*skips=*/SkipFile::Suffix);
@@ -185,7 +196,7 @@ class KotlinKMPGenerator : public BaseGenerator {
     auto base_type = GenTypeBasic(type.base_type);
 
     if (IsEnum(type) || type.base_type == BASE_TYPE_UTYPE) {
-      return WrapInNameSpace(type.enum_def->defined_namespace,
+      return TypeInNameSpace(type.enum_def->defined_namespace,
                              namer_.Type(*type.enum_def));
     }
     switch (type.base_type) {
@@ -193,7 +204,7 @@ class KotlinKMPGenerator : public BaseGenerator {
       case BASE_TYPE_VECTOR: {
         switch (type.element) {
           case BASE_TYPE_STRUCT:
-            return base_type + "<" + WrapInNameSpace(*type.struct_def) + ">";
+            return base_type + "<" + TypeInNameSpace(*type.struct_def) + ">";
           case BASE_TYPE_UNION:
             return base_type + "<" + GenTypeBasic(type.element) + ">";
           case BASE_TYPE_STRING: return base_type + "<String>";
@@ -202,7 +213,7 @@ class KotlinKMPGenerator : public BaseGenerator {
         }
       }
       case BASE_TYPE_STRUCT:
-        return base_type + "<" + WrapInNameSpace(*type.struct_def) + ">";
+        return base_type + "<" + TypeInNameSpace(*type.struct_def) + ">";
       case BASE_TYPE_STRING: return base_type + "<String>";
       case BASE_TYPE_UNION: return base_type;
       default: return base_type;
@@ -214,7 +225,7 @@ class KotlinKMPGenerator : public BaseGenerator {
     switch (type.base_type) {
       case BASE_TYPE_STRING: return "String";
       case BASE_TYPE_VECTOR: return GenTypeGet(type.VectorType());
-      case BASE_TYPE_STRUCT: return WrapInNameSpace(*type.struct_def);
+      case BASE_TYPE_STRUCT: return TypeInNameSpace(*type.struct_def);
       default: return "Table";
     }
   }
@@ -246,7 +257,7 @@ class KotlinKMPGenerator : public BaseGenerator {
     FLATBUFFERS_ASSERT(value.type.enum_def);
     auto &enum_def = *value.type.enum_def;
     auto enum_val = enum_def.FindByValue(value.constant);
-    return enum_val ? (WrapInNameSpace(enum_def) + "." + enum_val->name)
+    return enum_val ? (TypeInNameSpace(enum_def) + "." + enum_val->name)
                     : value.constant;
   }
 
@@ -349,7 +360,7 @@ class KotlinKMPGenerator : public BaseGenerator {
         auto &ev = **it;
         auto val = enum_def.ToString(ev);
         auto suffix = LiteralSuffix(enum_def.underlying_type);
-        writer.SetValue("name", namer_.LegacyKotlinVariant(ev));
+        writer.SetValue("name", namer_.Variant(ev));
         writer.SetValue("type", enum_type);
         writer.SetValue("val", val + suffix);
         GenerateComment(ev.doc_comment, writer, &comment_config);
@@ -385,7 +396,7 @@ class KotlinKMPGenerator : public BaseGenerator {
               writer += "names[e.value.toInt()\\";
               if (enum_def.MinValue()->IsNonZero())
                 writer +=
-                    " - " + enum_def.MinValue()->name + ".value.toInt()\\";
+                    " - " + namer_.Variant(*enum_def.MinValue()) + ".value.toInt()\\";
               writer += "]";
             },
             parser_.opts.gen_jvmstatic);
@@ -1184,7 +1195,7 @@ class KotlinKMPGenerator : public BaseGenerator {
           for (auto kit = fields.begin(); kit != fields.end(); ++kit) {
             auto &kfield = **kit;
             if (kfield.key) {
-              auto qualified_name = WrapInNameSpace(sd);
+              auto qualified_name = TypeInNameSpace(sd);
               auto name = namer_.Method(field, "ByKey");
               auto params = "key: " + GenTypeGet(kfield.value.type);
               auto rtype = qualified_name + "?";
@@ -1234,7 +1245,7 @@ class KotlinKMPGenerator : public BaseGenerator {
       //{ return testnestedflatbufferAsMonster(new Monster()); }
 
       if (field.nested_flatbuffer) {
-        auto nested_type_name = WrapInNameSpace(*field.nested_flatbuffer);
+        auto nested_type_name = TypeInNameSpace(*field.nested_flatbuffer);
         auto nested_method_name =
             field_name + "As" + field.nested_flatbuffer->name;
 
