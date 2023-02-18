@@ -18,17 +18,18 @@
 package com.google.flatbuffers.kotlin
 
 import Attacker
-import DictionaryLookup.LongFloatEntry
-import DictionaryLookup.LongFloatMap
+import dictionaryLookup.LongFloatEntry
+import dictionaryLookup.LongFloatMap
 import Movie
-import MyGame.Example.AnyE
-import MyGame.Example.Color
-import MyGame.Example.Monster
-import MyGame.Example.Vec3
-import NamespaceA.NamespaceB.TableInNestedNS
-import NamespaceA.TableInFirstNS
-import optional_scalars.OptionalByte
-import optional_scalars.ScalarStuff
+import myGame.example.Monster
+import myGame.example.AnyE
+import myGame.example.Color
+import myGame.example.Test.Companion.createTest
+import myGame.example.Vec3
+import namespaceA.TableInFirstNS
+import namespaceA.namespaceB.TableInNestedNS
+import optionalScalars.OptionalByte
+import optionalScalars.ScalarStuff
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
@@ -192,9 +193,9 @@ class FlatBufferBuilderTest {
     val mon2 = Monster.endMonster(fbb)
 
     Monster.startTest4Vector(fbb, 2)
-    MyGame.Example.Test.createTest(fbb, 10.toShort(), 20.toByte())
-    MyGame.Example.Test.createTest(fbb, 30.toShort(), 40.toByte())
-    val test4 = fbb.endVector<MyGame.Example.Test>()
+    createTest(fbb, 10.toShort(), 20.toByte())
+    createTest(fbb, 30.toShort(), 40.toByte())
+    val test4 = fbb.endVector<myGame.example.Test>()
 
     val testArrayOfString =
       Monster.createTestarrayofstringVector(fbb, arrayOf(fbb.createString("test1"), fbb.createString("test2")))
@@ -376,7 +377,7 @@ class FlatBufferBuilderTest {
   fun testEnums() {
     assertEquals(Color.name(Color.Red), "Red")
     assertEquals(Color.name(Color.Blue), "Blue")
-    assertEquals(AnyE.name(AnyE.NONE), "NONE")
+    assertEquals(AnyE.name(AnyE.None), "NONE")
     assertEquals(AnyE.name(AnyE.Monster), "Monster")
   }
 
