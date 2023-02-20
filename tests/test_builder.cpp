@@ -3,8 +3,6 @@
 #include "flatbuffers/stl_emulation.h"
 #include "monster_test_generated.h"
 
-using namespace MyGame::Example;
-
 struct OwnedAllocator : public flatbuffers::DefaultAllocator {};
 
 class TestHeapBuilder : public flatbuffers::FlatBufferBuilder {
@@ -142,7 +140,7 @@ void FlatBufferBuilderTest() {
 }
 
 // forward-declared in test_builder.h
-void CheckTestGeneratedIsValid(const MyGame::Example::Color&);
+void CheckTestGeneratedIsValid(const MyGame::Example::Color &);
 
 // Link-time check using pointer type.
 void CheckTestGeneratedIsValid(const MyGame::Example::Color &) {}

@@ -1,23 +1,20 @@
 #include "parser_test.h"
 
 #include <cmath>
-#include <limits>
 #include <string>
 
 #include "flatbuffers/idl.h"
+#include "infinity_constants.h"
 #include "test_assert.h"
 
 namespace flatbuffers {
 namespace tests {
 namespace {
 
-// Shortcuts for the infinity.
-static const auto infinity_f = std::numeric_limits<float>::infinity();
-static const auto infinity_d = std::numeric_limits<double>::infinity();
-
 // Test that parser errors are actually generated.
-static void TestError_(const char *src, const char *error_substr, bool strict_json,
-                const char *file, int line, const char *func) {
+static void TestError_(const char *src, const char *error_substr,
+                       bool strict_json, const char *file, int line,
+                       const char *func) {
   flatbuffers::IDLOptions opts;
   opts.strict_json = strict_json;
   flatbuffers::Parser parser(opts);
@@ -32,8 +29,8 @@ static void TestError_(const char *src, const char *error_substr, bool strict_js
   }
 }
 
-static void TestError_(const char *src, const char *error_substr, const char *file,
-                int line, const char *func) {
+static void TestError_(const char *src, const char *error_substr,
+                       const char *file, int line, const char *func) {
   TestError_(src, error_substr, false, file, line, func);
 }
 
@@ -47,7 +44,7 @@ static void TestError_(const char *src, const char *error_substr, const char *fi
 
 static bool FloatCompare(float a, float b) { return fabs(a - b) < 0.001; }
 
-} // namespace
+}  // namespace
 
 // Test that parsing errors occur as we'd expect.
 // Also useful for coverage, making sure these paths are run.
@@ -618,10 +615,10 @@ void IntegerBoundaryTest() {
 
 void ValidFloatTest() {
   // check rounding to infinity
-  TEST_EQ(TestValue<float>("{ y:+3.4029e+38 }", "float"), +infinity_f);
-  TEST_EQ(TestValue<float>("{ y:-3.4029e+38 }", "float"), -infinity_f);
-  TEST_EQ(TestValue<double>("{ y:+1.7977e+308 }", "double"), +infinity_d);
-  TEST_EQ(TestValue<double>("{ y:-1.7977e+308 }", "double"), -infinity_d);
+  TEST_EQ(TestValue<float>("{ y:+3.4029e+38 }", "float"), +infinity_f());
+  TEST_EQ(TestValue<float>("{ y:-3.4029e+38 }", "float"), -infinity_f());
+  TEST_EQ(TestValue<double>("{ y:+1.7977e+308 }", "double"), +infinity_d());
+  TEST_EQ(TestValue<double>("{ y:-1.7977e+308 }", "double"), -infinity_d());
 
   TEST_EQ(
       FloatCompare(TestValue<float>("{ y:0.0314159e+2 }", "float"), 3.14159f),
@@ -662,14 +659,14 @@ void ValidFloatTest() {
   TEST_EQ(std::isnan(TestValue<float>(nullptr, "float=nan")), true);
   TEST_EQ(std::isnan(TestValue<float>(nullptr, "float=-nan")), true);
   // check inf
-  TEST_EQ(TestValue<float>("{ y:inf }", "float"), infinity_f);
-  TEST_EQ(TestValue<float>("{ y:\"inf\" }", "float"), infinity_f);
-  TEST_EQ(TestValue<float>("{ y:\"-inf\" }", "float"), -infinity_f);
-  TEST_EQ(TestValue<float>("{ y:\"+inf\" }", "float"), infinity_f);
-  TEST_EQ(TestValue<float>("{ y:+inf }", "float"), infinity_f);
-  TEST_EQ(TestValue<float>("{ y:-inf }", "float"), -infinity_f);
-  TEST_EQ(TestValue<float>(nullptr, "float=inf"), infinity_f);
-  TEST_EQ(TestValue<float>(nullptr, "float=-inf"), -infinity_f);
+  TEST_EQ(TestValue<float>("{ y:inf }", "float"), infinity_f());
+  TEST_EQ(TestValue<float>("{ y:\"inf\" }", "float"), infinity_f());
+  TEST_EQ(TestValue<float>("{ y:\"-inf\" }", "float"), -infinity_f());
+  TEST_EQ(TestValue<float>("{ y:\"+inf\" }", "float"), infinity_f());
+  TEST_EQ(TestValue<float>("{ y:+inf }", "float"), infinity_f());
+  TEST_EQ(TestValue<float>("{ y:-inf }", "float"), -infinity_f());
+  TEST_EQ(TestValue<float>(nullptr, "float=inf"), infinity_f());
+  TEST_EQ(TestValue<float>(nullptr, "float=-inf"), -infinity_f());
   TestValue<double>(
       "{ y: [0.2, .2, 1.0, -1.0, -2., 2., 1e0, -1e0, 1.0e0, -1.0e0, -3.e2, "
       "3.0e2] }",
@@ -775,8 +772,6 @@ void UnicodeSurrogatesTest() {
       flatbuffers::FieldIndexToOffset(0));
   TEST_EQ_STR(string->c_str(), "\xF0\x9F\x92\xA9");
 }
-
-
 
 void UnknownFieldsTest() {
   flatbuffers::IDLOptions opts;

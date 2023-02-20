@@ -70,16 +70,14 @@ static_assert(flatbuffers::is_same<uint8_t, char>::value ||
 #endif
 // clang-format on
 
-using namespace MyGame::Example;
-
 void TriviallyCopyableTest() {
 // clang-format off
   #if __GNUG__ && __GNUC__ < 5 && \
       !(defined(__clang__) && __clang_major__ >= 16)
-    TEST_EQ(__has_trivial_copy(Vec3), true);
+    TEST_EQ(__has_trivial_copy(MyGame::Example::Vec3), true);
   #else
     #if __cplusplus >= 201103L
-      TEST_EQ(std::is_trivially_copyable<Vec3>::value, true);
+      TEST_EQ(std::is_trivially_copyable<MyGame::Example::Vec3>::value, true);
     #endif
   #endif
   // clang-format on
@@ -88,6 +86,11 @@ void TriviallyCopyableTest() {
 // Guard against -Wunused-function on platforms without file tests.
 #ifndef FLATBUFFERS_NO_FILE_TESTS
 void GenerateTableTextTest(const std::string &tests_data_path) {
+  using MyGame::Example::GetMonster;
+  using MyGame::Example::Monster;
+  using MyGame::Example::Test;
+  using MyGame::Example::Vec3;
+
   std::string schemafile;
   std::string jsonfile;
   bool ok =
@@ -393,6 +396,10 @@ void EndianSwapTest() {
 }
 
 void UninitializedVectorTest() {
+  using MyGame::Example::Monster;
+  using MyGame::Example::MonsterBuilder;
+  using MyGame::Example::Test;
+
   flatbuffers::FlatBufferBuilder builder;
 
   Test *buf = nullptr;
@@ -423,6 +430,9 @@ void UninitializedVectorTest() {
 }
 
 void EqualOperatorTest() {
+  using MyGame::Example::Any_Monster;
+  using MyGame::Example::MonsterT;
+
   MonsterT a;
   MonsterT b;
   // We have to reset the fields that are NaN to zero to allow the equality
@@ -554,14 +564,14 @@ void CreateSharedStringTest() {
   };
   const auto vector_offset =
       builder.CreateVector<flatbuffers::Offset<flatbuffers::String>>(array);
-  MonsterBuilder monster_builder(builder);
+  MyGame::Example::MonsterBuilder monster_builder(builder);
   monster_builder.add_name(two);
   monster_builder.add_testarrayofstring(vector_offset);
   builder.Finish(monster_builder.Finish());
 
   // Read the Monster back.
-  const auto *monster =
-      flatbuffers::GetRoot<Monster>(builder.GetBufferPointer());
+  const auto *monster = flatbuffers::GetRoot<MyGame::Example::Monster>(
+      builder.GetBufferPointer());
   TEST_EQ_STR(monster->name()->c_str(), "two");
   const auto *testarrayofstring = monster->testarrayofstring();
   TEST_EQ(testarrayofstring->size(), flatbuffers::uoffset_t(7));
@@ -912,7 +922,7 @@ void NativeTypeTest() {
 // Guard against -Wunused-function on platforms without file tests.
 #ifndef FLATBUFFERS_NO_FILE_TESTS
 // VS10 does not support typed enums, exclude from tests
-#if !defined(_MSC_VER) || _MSC_VER >= 1700
+#  if !defined(_MSC_VER) || _MSC_VER >= 1700
 void FixedLengthArrayJsonTest(const std::string &tests_data_path, bool binary) {
   // load FlatBuffer schema (.fbs) and JSON from disk
   std::string schemafile;
@@ -951,7 +961,7 @@ void FixedLengthArrayJsonTest(const std::string &tests_data_path, bool binary) {
   // First, verify it, just in case:
   flatbuffers::Verifier verifierOrg(parserOrg.builder_.GetBufferPointer(),
                                     parserOrg.builder_.GetSize());
-  TEST_EQ(VerifyArrayTableBuffer(verifierOrg), true);
+  TEST_EQ(MyGame::Example::VerifyArrayTableBuffer(verifierOrg), true);
 
   // Export to JSON
   std::string jsonGen;
@@ -965,7 +975,7 @@ void FixedLengthArrayJsonTest(const std::string &tests_data_path, bool binary) {
   // Verify buffer from generated JSON
   flatbuffers::Verifier verifierGen(parserGen.builder_.GetBufferPointer(),
                                     parserGen.builder_.GetSize());
-  TEST_EQ(VerifyArrayTableBuffer(verifierGen), true);
+  TEST_EQ(MyGame::Example::VerifyArrayTableBuffer(verifierGen), true);
 
   // Compare generated buffer to original
   TEST_EQ(parserOrg.builder_.GetSize(), parserGen.builder_.GetSize());
@@ -993,7 +1003,7 @@ void FixedLengthArraySpanTest(const std::string &tests_data_path) {
   TEST_EQ(parser.Parse(jsonfile.c_str()), true);
   auto &fbb = parser.builder_;
   auto verifier = flatbuffers::Verifier(fbb.GetBufferPointer(), fbb.GetSize());
-  TEST_EQ(true, VerifyArrayTableBuffer(verifier));
+  TEST_EQ(true, MyGame::Example::VerifyArrayTableBuffer(verifier));
 
   auto p = MyGame::Example::GetMutableArrayTable(fbb.GetBufferPointer());
   TEST_NOTNULL(p);
@@ -1032,7 +1042,7 @@ void FixedLengthArraySpanTest(const std::string &tests_data_path) {
         std::equal(const_d_c.begin(), const_d_c.end(), mutable_d_c.begin()));
   }
   // test little endian array of int32
-#  if FLATBUFFERS_LITTLEENDIAN
+#    if FLATBUFFERS_LITTLEENDIAN
   {
     flatbuffers::span<const int32_t, 2> const_d_a =
         flatbuffers::make_span(*const_nested.a());
@@ -1047,12 +1057,12 @@ void FixedLengthArraySpanTest(const std::string &tests_data_path) {
     TEST_ASSERT(
         std::equal(const_d_a.begin(), const_d_a.end(), mutable_d_a.begin()));
   }
-#  endif
+#    endif
 }
-#else
+#  else
 void FixedLengthArrayJsonTest(bool /*binary*/) {}
 void FixedLengthArraySpanTest() {}
-#endif
+#  endif
 
 void TestEmbeddedBinarySchema(const std::string &tests_data_path) {
   // load JSON from disk
@@ -1078,7 +1088,7 @@ void TestEmbeddedBinarySchema(const std::string &tests_data_path) {
   // First, verify it, just in case:
   flatbuffers::Verifier verifierOrg(parserOrg.builder_.GetBufferPointer(),
                                     parserOrg.builder_.GetSize());
-  TEST_EQ(VerifyMonsterBuffer(verifierOrg), true);
+  TEST_EQ(MyGame::Example::VerifyMonsterBuffer(verifierOrg), true);
 
   // Export to JSON
   std::string jsonGen;
@@ -1092,7 +1102,7 @@ void TestEmbeddedBinarySchema(const std::string &tests_data_path) {
   // Verify buffer from generated JSON
   flatbuffers::Verifier verifierGen(parserGen.builder_.GetBufferPointer(),
                                     parserGen.builder_.GetSize());
-  TEST_EQ(VerifyMonsterBuffer(verifierGen), true);
+  TEST_EQ(MyGame::Example::VerifyMonsterBuffer(verifierGen), true);
 
   // Compare generated buffer to original
   TEST_EQ(parserOrg.builder_.GetSize(), parserGen.builder_.GetSize());
@@ -1106,15 +1116,15 @@ void TestEmbeddedBinarySchema(const std::string &tests_data_path) {
 void NestedVerifierTest() {
   // Create a nested monster.
   flatbuffers::FlatBufferBuilder nested_builder;
-  FinishMonsterBuffer(
-      nested_builder,
-      CreateMonster(nested_builder, nullptr, 0, 0,
-                    nested_builder.CreateString("NestedMonster")));
+  FinishMonsterBuffer(nested_builder,
+                      MyGame::Example::CreateMonster(
+                          nested_builder, nullptr, 0, 0,
+                          nested_builder.CreateString("NestedMonster")));
 
   // Verify the nested monster
   flatbuffers::Verifier verifier(nested_builder.GetBufferPointer(),
                                  nested_builder.GetSize());
-  TEST_EQ(true, VerifyMonsterBuffer(verifier));
+  TEST_EQ(true, MyGame::Example::VerifyMonsterBuffer(verifier));
 
   {
     // Create the outer monster.
@@ -1126,7 +1136,7 @@ void NestedVerifierTest() {
 
     auto name = builder.CreateString("OuterMonster");
 
-    MonsterBuilder mon_builder(builder);
+    MyGame::Example::MonsterBuilder mon_builder(builder);
     mon_builder.add_name(name);
     mon_builder.add_testnestedflatbuffer(nested_monster_bytes);
     FinishMonsterBuffer(builder, mon_builder.Finish());
@@ -1134,7 +1144,7 @@ void NestedVerifierTest() {
     // Verify the root monster, which includes verifing the nested monster
     flatbuffers::Verifier verifier(builder.GetBufferPointer(),
                                    builder.GetSize());
-    TEST_EQ(true, VerifyMonsterBuffer(verifier));
+    TEST_EQ(true, MyGame::Example::VerifyMonsterBuffer(verifier));
   }
 
   {
@@ -1148,7 +1158,7 @@ void NestedVerifierTest() {
 
     auto name = builder.CreateString("OuterMonster");
 
-    MonsterBuilder mon_builder(builder);
+    MyGame::Example::MonsterBuilder mon_builder(builder);
     mon_builder.add_name(name);
     mon_builder.add_testnestedflatbuffer(nested_monster_bytes);
     FinishMonsterBuffer(builder, mon_builder.Finish());
@@ -1156,7 +1166,7 @@ void NestedVerifierTest() {
     // Verify the root monster fails, since the included nested monster fails.
     flatbuffers::Verifier verifier(builder.GetBufferPointer(),
                                    builder.GetSize());
-    TEST_EQ(false, VerifyMonsterBuffer(verifier));
+    TEST_EQ(false, MyGame::Example::VerifyMonsterBuffer(verifier));
 
     // Verify the root monster succeeds, since we've disabled checking nested
     // flatbuffers
@@ -1164,7 +1174,7 @@ void NestedVerifierTest() {
     options.check_nested_flatbuffers = false;
     flatbuffers::Verifier no_check_nested(builder.GetBufferPointer(),
                                           builder.GetSize(), options);
-    TEST_EQ(true, VerifyMonsterBuffer(no_check_nested));
+    TEST_EQ(true, MyGame::Example::VerifyMonsterBuffer(no_check_nested));
   }
 
   {
@@ -1178,7 +1188,7 @@ void NestedVerifierTest() {
 
     auto name = builder.CreateString("OuterMonster");
 
-    MonsterBuilder mon_builder(builder);
+    MyGame::Example::MonsterBuilder mon_builder(builder);
     mon_builder.add_name(name);
     mon_builder.add_testnestedflatbuffer(nested_monster_bytes);
     FinishMonsterBuffer(builder, mon_builder.Finish());
@@ -1186,7 +1196,7 @@ void NestedVerifierTest() {
     // Verify the root monster fails, since the included nested monster fails.
     flatbuffers::Verifier verifier(builder.GetBufferPointer(),
                                    builder.GetSize());
-    TEST_EQ(false, VerifyMonsterBuffer(verifier));
+    TEST_EQ(false, MyGame::Example::VerifyMonsterBuffer(verifier));
   }
 }
 
@@ -1213,6 +1223,9 @@ void TestIterators(const std::vector<T> &expected, const Container &tested) {
 }
 
 void FlatbuffersIteratorsTest() {
+  using MyGame::Example::ArrayTable;
+  using MyGame::Example::Monster;
+
   {
     flatbuffers::FlatBufferBuilder fbb;
     const std::vector<unsigned char> inv_data = { 1, 2, 3 };
@@ -1221,7 +1234,7 @@ void FlatbuffersIteratorsTest() {
       auto inv_vec = fbb.CreateVector(inv_data);
       auto empty_i64_vec =
           fbb.CreateVector(static_cast<const int64_t *>(nullptr), 0);
-      MonsterBuilder mb(fbb);
+      MyGame::Example::MonsterBuilder mb(fbb);
       mb.add_name(mon_name);
       mb.add_inventory(inv_vec);
       mb.add_vector_of_longs(empty_i64_vec);
@@ -1373,6 +1386,10 @@ void PrivateAnnotationsLeaks() {
 }
 
 void VectorSpanTest() {
+  using MyGame::Example::CreateMonster;
+  using MyGame::Example::GetMonster;
+  using MyGame::Example::GetMutableMonster;
+
   flatbuffers::FlatBufferBuilder builder;
 
   auto mloc = CreateMonster(
@@ -1460,9 +1477,7 @@ void NativeInlineTableVectorTest() {
   TestNativeInlineTableT unpacked;
   root->UnPackTo(&unpacked);
 
-  for (int i = 0; i < 10; ++i) {
-    TEST_ASSERT(unpacked.t[i] == test.t[i]);
-  }
+  for (int i = 0; i < 10; ++i) { TEST_ASSERT(unpacked.t[i] == test.t[i]); }
 
   TEST_ASSERT(unpacked.t == test.t);
 }
@@ -1470,6 +1485,9 @@ void NativeInlineTableVectorTest() {
 // Guard against -Wunused-function on platforms without file tests.
 #ifndef FLATBUFFERS_NO_FILE_TESTS
 void DoNotRequireEofTest(const std::string &tests_data_path) {
+  using MyGame::Example::GetMonster;
+  using MyGame::Example::Monster;
+
   std::string schemafile;
   bool ok = flatbuffers::LoadFile(
       (tests_data_path + "monster_test.fbs").c_str(), false, &schemafile);

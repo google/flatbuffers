@@ -2,18 +2,16 @@
 
 #include "flatbuffers/flatbuffers.h"
 #include "flatbuffers/idl.h"
+#include "monster_test_bfbs_generated.h"
 #include "monster_test_generated.h"
-#include "monster_test_bfbs_generated.h"  
 #include "optional_scalars_generated.h"
 #include "test_assert.h"
 
 namespace flatbuffers {
 namespace tests {
 
-using namespace MyGame::Example;
-
 // Check stringify of an default enum value to json
-void JsonDefaultTest(const std::string& tests_data_path) {
+void JsonDefaultTest(const std::string &tests_data_path) {
   // load FlatBuffer schema (.fbs) from disk
   std::string schemafile;
   TEST_EQ(flatbuffers::LoadFile((tests_data_path + "monster_test.fbs").c_str(),
@@ -32,7 +30,7 @@ void JsonDefaultTest(const std::string& tests_data_path) {
   parser.opts.output_enum_identifiers = true;
   flatbuffers::FlatBufferBuilder builder;
   auto name = builder.CreateString("default_enum");
-  MonsterBuilder color_monster(builder);
+  MyGame::Example::MonsterBuilder color_monster(builder);
   color_monster.add_name(name);
   FinishMonsterBuffer(builder, color_monster.Finish());
   std::string jsongen;
@@ -44,7 +42,11 @@ void JsonDefaultTest(const std::string& tests_data_path) {
   TEST_EQ(std::string::npos != jsongen.find("testf: 3.14159"), true);
 }
 
-void JsonEnumsTest(const std::string& tests_data_path) {
+void JsonEnumsTest(const std::string &tests_data_path) {
+  using MyGame::Example::Color;
+  using MyGame::Example::Color_Blue;
+  using MyGame::Example::Color_Red;
+
   // load FlatBuffer schema (.fbs) from disk
   std::string schemafile;
   TEST_EQ(flatbuffers::LoadFile((tests_data_path + "monster_test.fbs").c_str(),
@@ -60,7 +62,7 @@ void JsonEnumsTest(const std::string& tests_data_path) {
   TEST_EQ(parser.Parse(schemafile.c_str(), include_directories), true);
   flatbuffers::FlatBufferBuilder builder;
   auto name = builder.CreateString("bitflag_enum");
-  MonsterBuilder color_monster(builder);
+  MyGame::Example::MonsterBuilder color_monster(builder);
   color_monster.add_name(name);
   color_monster.add_color(Color(Color_Blue | Color_Red));
   FinishMonsterBuffer(builder, color_monster.Finish());
@@ -73,7 +75,7 @@ void JsonEnumsTest(const std::string& tests_data_path) {
   builder.Clear();
   std::string future_json;
   auto future_name = builder.CreateString("future bitflag_enum");
-  MonsterBuilder future_color(builder);
+  MyGame::Example::MonsterBuilder future_color(builder);
   future_color.add_name(future_name);
   future_color.add_color(
       static_cast<Color>((1u << 2) | Color_Blue | Color_Red));
@@ -83,7 +85,8 @@ void JsonEnumsTest(const std::string& tests_data_path) {
   TEST_EQ(std::string::npos != future_json.find("color: 13"), true);
 }
 
-void JsonOptionalTest(const std::string& tests_data_path, bool default_scalars) {
+void JsonOptionalTest(const std::string &tests_data_path,
+                      bool default_scalars) {
   // load FlatBuffer schema (.fbs) and JSON from disk
   std::string schemafile;
   std::string jsonfile;
@@ -124,7 +127,7 @@ void JsonOptionalTest(const std::string& tests_data_path, bool default_scalars) 
   TEST_EQ_STR(jsongen.c_str(), jsonfile.c_str());
 }
 
-void ParseIncorrectMonsterJsonTest(const std::string& tests_data_path) {
+void ParseIncorrectMonsterJsonTest(const std::string &tests_data_path) {
   std::string schemafile;
   TEST_EQ(flatbuffers::LoadFile((tests_data_path + "monster_test.bfbs").c_str(),
                                 true, &schemafile),

@@ -19,6 +19,7 @@ cc_test(
         "flexbuffers_test.h",
         "fuzz_test.cpp",
         "fuzz_test.h",
+        "infinity_constants.h",
         "is_quiet_nan.h",
         "json_test.cpp",
         "json_test.h",

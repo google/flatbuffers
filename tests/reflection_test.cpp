@@ -1,19 +1,19 @@
 #include "reflection_test.h"
+
 #include "arrays_test_generated.h"
 #include "flatbuffers/minireflect.h"
 #include "flatbuffers/reflection.h"
 #include "flatbuffers/reflection_generated.h"
 #include "flatbuffers/verifier.h"
-#include "test_assert.h"
 #include "monster_test.h"
 #include "monster_test_generated.h"
+#include "test_assert.h"
 
 namespace flatbuffers {
 namespace tests {
 
-using namespace MyGame::Example;
-
-void ReflectionTest(const std::string& tests_data_path, uint8_t *flatbuf, size_t length) {
+void ReflectionTest(const std::string &tests_data_path, uint8_t *flatbuf,
+                    size_t length) {
   // Load a binary schema.
   std::string bfbsfile;
   TEST_EQ(flatbuffers::LoadFile((tests_data_path + "monster_test.bfbs").c_str(),
@@ -218,7 +218,7 @@ void ReflectionTest(const std::string& tests_data_path, uint8_t *flatbuf, size_t
   flatbuffers::Verifier resize_verifier(
       reinterpret_cast<const uint8_t *>(resizingbuf.data()),
       resizingbuf.size());
-  TEST_EQ(VerifyMonsterBuffer(resize_verifier), true);
+  TEST_EQ(MyGame::Example::VerifyMonsterBuffer(resize_verifier), true);
 
   // Test buffer is valid using reflection as well
   TEST_EQ(flatbuffers::Verify(schema, *schema.root_table(), resizingbuf.data(),
@@ -237,7 +237,7 @@ void ReflectionTest(const std::string& tests_data_path, uint8_t *flatbuf, size_t
   flatbuffers::FlatBufferBuilder fbb;
   auto root_offset = flatbuffers::CopyTable(
       fbb, schema, *root_table, *flatbuffers::GetAnyRoot(flatbuf), true);
-  fbb.Finish(root_offset, MonsterIdentifier());
+  fbb.Finish(root_offset, MyGame::Example::MonsterIdentifier());
   // Test that it was copied correctly:
   AccessFlatBufferTest(fbb.GetBufferPointer(), fbb.GetSize());
 
@@ -248,8 +248,8 @@ void ReflectionTest(const std::string& tests_data_path, uint8_t *flatbuf, size_t
 }
 
 void MiniReflectFlatBuffersTest(uint8_t *flatbuf) {
-  auto s =
-      flatbuffers::FlatBufferToString(flatbuf, Monster::MiniReflectTypeTable());
+  auto s = flatbuffers::FlatBufferToString(
+      flatbuf, MyGame::Example::Monster::MiniReflectTypeTable());
   TEST_EQ_STR(
       s.c_str(),
       "{ "
@@ -285,8 +285,9 @@ void MiniReflectFlatBuffersTest(uint8_t *flatbuf) {
       "nan_default: nan "
       "}");
 
-  Test test(16, 32);
-  Vec3 vec(1, 2, 3, 1.5, Color_Red, test);
+  MyGame::Example::Test test(16, 32);
+  using MyGame::Example::Vec3;
+  Vec3 vec(1, 2, 3, 1.5, MyGame::Example::Color_Red, test);
   flatbuffers::FlatBufferBuilder vec_builder;
   vec_builder.Finish(vec_builder.CreateStruct(vec));
   auto vec_buffer = vec_builder.Release();

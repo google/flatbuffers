@@ -1,12 +1,12 @@
 #include "monster_test.h"
 
-#include <limits>
 #include <vector>
 
 #include "flatbuffers/flatbuffer_builder.h"
 #include "flatbuffers/idl.h"
 #include "flatbuffers/registry.h"
 #include "flatbuffers/verifier.h"
+#include "infinity_constants.h"
 #include "is_quiet_nan.h"
 #include "monster_extra_generated.h"
 #include "monster_test_generated.h"
@@ -15,16 +15,22 @@
 namespace flatbuffers {
 namespace tests {
 
-// Shortcuts for the infinity.
-static const auto infinity_f = std::numeric_limits<float>::infinity();
-static const auto infinity_d = std::numeric_limits<double>::infinity();
-
-using namespace MyGame::Example;
-
 // example of how to build up a serialized buffer algorithmically:
 flatbuffers::DetachedBuffer CreateFlatBufferTest(std::string &buffer) {
-  flatbuffers::FlatBufferBuilder builder;
+  using MyGame::Example::Ability;
+  using MyGame::Example::Any_Monster;
+  using MyGame::Example::AnyAmbiguousAliases_NONE;
+  using MyGame::Example::AnyUniqueAliases_NONE;
+  using MyGame::Example::Color;
+  using MyGame::Example::Color_Blue;
+  using MyGame::Example::Color_Green;
+  using MyGame::Example::Color_Red;
+  using MyGame::Example::Monster;
+  using MyGame::Example::Stat;
+  using MyGame::Example::Test;
+  using MyGame::Example::Vec3;
 
+  flatbuffers::FlatBufferBuilder builder;
   auto vec = Vec3(1, 2, 3, 0, Color_Red, Test(10, 20));
 
   auto name = builder.CreateString("MyMonster");
@@ -52,14 +58,14 @@ flatbuffers::DetachedBuffer CreateFlatBufferTest(std::string &buffer) {
   auto fred = builder.CreateString("Fred");
   auto barney = builder.CreateString("Barney");
   auto wilma = builder.CreateString("Wilma");
-  MonsterBuilder mb1(builder);
+  MyGame::Example::MonsterBuilder mb1(builder);
   mb1.add_name(fred);
   mlocs[0] = mb1.Finish();
-  MonsterBuilder mb2(builder);
+  MyGame::Example::MonsterBuilder mb2(builder);
   mb2.add_name(barney);
   mb2.add_hp(1000);
   mlocs[1] = mb2.Finish();
-  MonsterBuilder mb3(builder);
+  MyGame::Example::MonsterBuilder mb3(builder);
   mb3.add_name(wilma);
   mlocs[2] = mb3.Finish();
 
@@ -119,7 +125,7 @@ flatbuffers::DetachedBuffer CreateFlatBufferTest(std::string &buffer) {
 
   flatbuffers::Offset<Stat> mlocs_stats[1];
   auto miss = builder.CreateString("miss");
-  StatBuilder mb_miss(builder);
+  MyGame::Example::StatBuilder mb_miss(builder);
   mb_miss.add_id(miss);
   mb_miss.add_val(0);
   mb_miss.add_count(0);  // key
@@ -132,8 +138,9 @@ flatbuffers::DetachedBuffer CreateFlatBufferTest(std::string &buffer) {
   // values. They have little overhead compared to storing the table directly.
   // As a test, create a mostly empty Monster buffer:
   flatbuffers::FlatBufferBuilder nested_builder;
-  auto nmloc = CreateMonster(nested_builder, nullptr, 0, 0,
-                             nested_builder.CreateString("NestedMonster"));
+  auto nmloc = MyGame::Example::CreateMonster(
+      nested_builder, nullptr, 0, 0,
+      nested_builder.CreateString("NestedMonster"));
   FinishMonsterBuffer(nested_builder, nmloc);
   // Now we can store the buffer in the parent. Note that by default, vectors
   // are only aligned to their elements or size field, so in this case if the
@@ -190,11 +197,19 @@ flatbuffers::DetachedBuffer CreateFlatBufferTest(std::string &buffer) {
 
 //  example of accessing a buffer loaded in memory:
 void AccessFlatBufferTest(const uint8_t *flatbuf, size_t length, bool pooled) {
+  using MyGame::Example::Ability;
+  using MyGame::Example::Any_Monster;
+  using MyGame::Example::Color;
+  using MyGame::Example::Color_Blue;
+  using MyGame::Example::Color_Green;
+  using MyGame::Example::Color_Red;
+  using MyGame::Example::Monster;
+
   // First, verify the buffers integrity (optional)
   flatbuffers::Verifier verifier(flatbuf, length);
   std::vector<uint8_t> flex_reuse_tracker;
   verifier.SetFlexReuseTracker(&flex_reuse_tracker);
-  TEST_EQ(VerifyMonsterBuffer(verifier), true);
+  TEST_EQ(MyGame::Example::VerifyMonsterBuffer(verifier), true);
 
   // clang-format off
   #ifdef FLATBUFFERS_TRACK_VERIFIER_BUFFER_SIZE
@@ -204,21 +219,21 @@ void AccessFlatBufferTest(const uint8_t *flatbuf, size_t length, bool pooled) {
     std::memcpy(&test_buff[length], flatbuf, length);
 
     flatbuffers::Verifier verifier1(&test_buff[0], length);
-    TEST_EQ(VerifyMonsterBuffer(verifier1), true);
+    TEST_EQ(MyGame::Example::VerifyMonsterBuffer(verifier1), true);
     TEST_EQ(verifier1.GetComputedSize(), length);
 
     flatbuffers::Verifier verifier2(&test_buff[length], length);
-    TEST_EQ(VerifyMonsterBuffer(verifier2), true);
+    TEST_EQ(MyGame::Example::VerifyMonsterBuffer(verifier2), true);
     TEST_EQ(verifier2.GetComputedSize(), length);
   #endif
   // clang-format on
 
-  TEST_EQ(strcmp(MonsterIdentifier(), "MONS"), 0);
-  TEST_EQ(MonsterBufferHasIdentifier(flatbuf), true);
-  TEST_EQ(strcmp(MonsterExtension(), "mon"), 0);
+  TEST_EQ(strcmp(MyGame::Example::MonsterIdentifier(), "MONS"), 0);
+  TEST_EQ(MyGame::Example::MonsterBufferHasIdentifier(flatbuf), true);
+  TEST_EQ(strcmp(MyGame::Example::MonsterExtension(), "mon"), 0);
 
   // Access the buffer from the root.
-  auto monster = GetMonster(flatbuf);
+  auto monster = MyGame::Example::GetMonster(flatbuf);
 
   TEST_EQ(monster->hp(), 80);
   TEST_EQ(monster->mana(), 150);  // default
@@ -362,6 +377,7 @@ void AccessFlatBufferTest(const uint8_t *flatbuf, size_t length, bool pooled) {
   // Since Flatbuffers uses explicit mechanisms to override the default
   // compiler alignment, double check that the compiler indeed obeys them:
   // (Test consists of a short and byte):
+  using MyGame::Example::Test;
   TEST_EQ(flatbuffers::AlignOf<Test>(), 2UL);
   TEST_EQ(sizeof(Test), 4UL);
 
@@ -394,7 +410,7 @@ void AccessFlatBufferTest(const uint8_t *flatbuf, size_t length, bool pooled) {
 // Change a FlatBuffer in-place, after it has been constructed.
 void MutateFlatBuffersTest(uint8_t *flatbuf, std::size_t length) {
   // Get non-const pointer to root.
-  auto monster = GetMutableMonster(flatbuf);
+  auto monster = MyGame::Example::GetMutableMonster(flatbuf);
 
   // Each of these tests mutates, then tests, then set back to the original,
   // so we can test that the buffer in the end still passes our original test.
@@ -441,18 +457,17 @@ void MutateFlatBuffersTest(uint8_t *flatbuf, std::size_t length) {
   first->mutate_hp(1000);
 
   // Test for each loop over mutable entries
-  for (auto item: *tables)
-  {
+  for (auto item : *tables) {
     TEST_EQ(item->hp(), 1000);
     item->mutate_hp(0);
     TEST_EQ(item->hp(), 0);
     item->mutate_hp(1000);
-    break; // one iteration is enough, just testing compilation
+    break;  // one iteration is enough, just testing compilation
   }
 
   // Mutate via LookupByKey
   TEST_NOTNULL(tables->MutableLookupByKey("Barney"));
-  TEST_EQ(static_cast<Monster *>(nullptr),
+  TEST_EQ(static_cast<MyGame::Example::Monster *>(nullptr),
           tables->MutableLookupByKey("DoesntExist"));
   TEST_EQ(tables->MutableLookupByKey("Barney")->hp(), 1000);
   TEST_EQ(tables->MutableLookupByKey("Barney")->mutate_hp(0), true);
@@ -482,15 +497,17 @@ void ObjectFlatBuffersTest(uint8_t *flatbuf) {
       });
 
   // Turn a buffer into C++ objects.
-  auto monster1 = UnPackMonster(flatbuf, &resolver);
+  auto monster1 = MyGame::Example::UnPackMonster(flatbuf, &resolver);
 
   // Re-serialize the data.
+  using MyGame::Example::MonsterIdentifier;
   flatbuffers::FlatBufferBuilder fbb1;
   fbb1.Finish(CreateMonster(fbb1, monster1.get(), &rehasher),
               MonsterIdentifier());
 
   // Unpack again, and re-serialize again.
-  auto monster2 = UnPackMonster(fbb1.GetBufferPointer(), &resolver);
+  auto monster2 =
+      MyGame::Example::UnPackMonster(fbb1.GetBufferPointer(), &resolver);
   flatbuffers::FlatBufferBuilder fbb2;
   fbb2.Finish(CreateMonster(fbb2, monster2.get(), &rehasher),
               MonsterIdentifier());
@@ -521,7 +538,7 @@ void ObjectFlatBuffersTest(uint8_t *flatbuf) {
 }
 
 // Utility function to check a Monster object.
-void CheckMonsterObject(MonsterT *monster2) {
+void CheckMonsterObject(MyGame::Example::MonsterT *monster2) {
   TEST_EQ(monster2->hp, 80);
   TEST_EQ(monster2->mana, 150);  // default
   TEST_EQ_STR(monster2->name.c_str(), "MyMonster");
@@ -538,7 +555,7 @@ void CheckMonsterObject(MonsterT *monster2) {
   for (auto it = inventory.begin(); it != inventory.end(); ++it)
     TEST_EQ(*it, inv_data[it - inventory.begin()]);
 
-  TEST_EQ(monster2->color, Color_Blue);
+  TEST_EQ(monster2->color, MyGame::Example::Color_Blue);
 
   auto monster3 = monster2->test.AsMonster();
   TEST_NOTNULL(monster3);
@@ -570,6 +587,10 @@ void CheckMonsterObject(MonsterT *monster2) {
 
 // Prefix a FlatBuffer with a size field.
 void SizePrefixedTest() {
+  using MyGame::Example::CreateMonster;
+  using MyGame::Example::GetSizePrefixedMonster;
+  using MyGame::Example::VerifySizePrefixedMonsterBuffer;
+
   // Create size prefixed buffer.
   flatbuffers::FlatBufferBuilder fbb;
   FinishSizePrefixedMonsterBuffer(
@@ -589,17 +610,15 @@ void SizePrefixedTest() {
 void TestMonsterExtraFloats(const std::string &tests_data_path) {
 #if defined(FLATBUFFERS_HAS_NEW_STRTOD) && (FLATBUFFERS_HAS_NEW_STRTOD > 0)
   TEST_EQ(is_quiet_nan(1.0), false);
-  TEST_EQ(is_quiet_nan(infinity_d), false);
-  TEST_EQ(is_quiet_nan(-infinity_f), false);
+  TEST_EQ(is_quiet_nan(infinity_d()), false);
+  TEST_EQ(is_quiet_nan(-infinity_f()), false);
   TEST_EQ(is_quiet_nan(std::numeric_limits<float>::quiet_NaN()), true);
   TEST_EQ(is_quiet_nan(std::numeric_limits<double>::quiet_NaN()), true);
 
-  using namespace flatbuffers;
-  using namespace MyGame;
   // Load FlatBuffer schema (.fbs) from disk.
   std::string schemafile;
-  TEST_EQ(LoadFile((tests_data_path + "monster_extra.fbs").c_str(), false,
-                   &schemafile),
+  TEST_EQ(flatbuffers::LoadFile((tests_data_path + "monster_extra.fbs").c_str(),
+                                false, &schemafile),
           true);
   // Parse schema first, so we can use it to parse the data after.
   Parser parser;
@@ -611,19 +630,19 @@ void TestMonsterExtraFloats(const std::string &tests_data_path) {
   parser.opts.output_default_scalars_in_json = true;
   parser.opts.output_enum_identifiers = true;
   FlatBufferBuilder builder;
-  const auto def_root = MonsterExtraBuilder(builder).Finish();
+  const auto def_root = MyGame::MonsterExtraBuilder(builder).Finish();
   FinishMonsterExtraBuffer(builder, def_root);
   const auto def_obj = builder.GetBufferPointer();
-  const auto def_extra = GetMonsterExtra(def_obj);
+  const auto def_extra = MyGame::GetMonsterExtra(def_obj);
   TEST_NOTNULL(def_extra);
   TEST_EQ(is_quiet_nan(def_extra->f0()), true);
   TEST_EQ(is_quiet_nan(def_extra->f1()), true);
-  TEST_EQ(def_extra->f2(), +infinity_f);
-  TEST_EQ(def_extra->f3(), -infinity_f);
+  TEST_EQ(def_extra->f2(), +infinity_f());
+  TEST_EQ(def_extra->f3(), -infinity_f());
   TEST_EQ(is_quiet_nan(def_extra->d0()), true);
   TEST_EQ(is_quiet_nan(def_extra->d1()), true);
-  TEST_EQ(def_extra->d2(), +infinity_d);
-  TEST_EQ(def_extra->d3(), -infinity_d);
+  TEST_EQ(def_extra->d2(), +infinity_d());
+  TEST_EQ(def_extra->d3(), -infinity_d());
   std::string jsongen;
   auto result = GenerateText(parser, def_obj, &jsongen);
   TEST_EQ(result, true);
@@ -644,33 +663,40 @@ void TestMonsterExtraFloats(const std::string &tests_data_path) {
   const auto test_file = parser.builder_.GetBufferPointer();
   const auto test_size = parser.builder_.GetSize();
   Verifier verifier(test_file, test_size);
-  TEST_ASSERT(VerifyMonsterExtraBuffer(verifier));
-  const auto extra = GetMonsterExtra(test_file);
+  TEST_ASSERT(MyGame::VerifyMonsterExtraBuffer(verifier));
+  const auto extra = MyGame::GetMonsterExtra(test_file);
   TEST_NOTNULL(extra);
   TEST_EQ(is_quiet_nan(extra->f0()), true);
   TEST_EQ(is_quiet_nan(extra->f1()), true);
-  TEST_EQ(extra->f2(), +infinity_f);
-  TEST_EQ(extra->f3(), -infinity_f);
+  TEST_EQ(extra->f2(), +infinity_f());
+  TEST_EQ(extra->f3(), -infinity_f());
   TEST_EQ(is_quiet_nan(extra->d0()), true);
-  TEST_EQ(extra->d1(), +infinity_d);
-  TEST_EQ(extra->d2(), -infinity_d);
+  TEST_EQ(extra->d1(), +infinity_d());
+  TEST_EQ(extra->d2(), -infinity_d());
   TEST_EQ(is_quiet_nan(extra->d3()), true);
   TEST_NOTNULL(extra->fvec());
   TEST_EQ(extra->fvec()->size(), 4);
   TEST_EQ(extra->fvec()->Get(0), 1.0f);
-  TEST_EQ(extra->fvec()->Get(1), -infinity_f);
-  TEST_EQ(extra->fvec()->Get(2), +infinity_f);
+  TEST_EQ(extra->fvec()->Get(1), -infinity_f());
+  TEST_EQ(extra->fvec()->Get(2), +infinity_f());
   TEST_EQ(is_quiet_nan(extra->fvec()->Get(3)), true);
   TEST_NOTNULL(extra->dvec());
   TEST_EQ(extra->dvec()->size(), 4);
   TEST_EQ(extra->dvec()->Get(0), 2.0);
-  TEST_EQ(extra->dvec()->Get(1), +infinity_d);
-  TEST_EQ(extra->dvec()->Get(2), -infinity_d);
+  TEST_EQ(extra->dvec()->Get(1), +infinity_d());
+  TEST_EQ(extra->dvec()->Get(2), -infinity_d());
   TEST_EQ(is_quiet_nan(extra->dvec()->Get(3)), true);
 #endif
 }
 
 void EnumNamesTest() {
+  using MyGame::Example::Color;
+  using MyGame::Example::Color_ANY;
+  using MyGame::Example::Color_Blue;
+  using MyGame::Example::Color_Green;
+  using MyGame::Example::Color_Red;
+  using MyGame::Example::EnumNameColor;
+
   TEST_EQ_STR("Red", EnumNameColor(Color_Red));
   TEST_EQ_STR("Green", EnumNameColor(Color_Green));
   TEST_EQ_STR("Blue", EnumNameColor(Color_Blue));
@@ -686,8 +712,10 @@ void EnumNamesTest() {
 }
 
 void TypeAliasesTest() {
-  flatbuffers::FlatBufferBuilder builder;
+  using MyGame::Example::CreateTypeAliases;
+  using MyGame::Example::TypeAliases;
 
+  flatbuffers::FlatBufferBuilder builder;
   builder.Finish(CreateTypeAliases(
       builder, flatbuffers::numeric_limits<int8_t>::min(),
       flatbuffers::numeric_limits<uint8_t>::max(),
@@ -711,7 +739,7 @@ void TypeAliasesTest() {
   TEST_EQ(ta->u64(), flatbuffers::numeric_limits<uint64_t>::max());
   TEST_EQ(ta->f32(), 2.3f);
   TEST_EQ(ta->f64(), 2.3);
-  using namespace flatbuffers;  // is_same
+  using flatbuffers::is_same;
   static_assert(is_same<decltype(ta->i8()), int8_t>::value, "invalid type");
   static_assert(is_same<decltype(ta->i16()), int16_t>::value, "invalid type");
   static_assert(is_same<decltype(ta->i32()), int32_t>::value, "invalid type");
@@ -767,7 +795,7 @@ void ParseAndGenerateTextTest(const std::string &tests_data_path, bool binary) {
   // First, verify it, just in case:
   flatbuffers::Verifier verifier(parser.builder_.GetBufferPointer(),
                                  parser.builder_.GetSize());
-  TEST_EQ(VerifyMonsterBuffer(verifier), true);
+  TEST_EQ(MyGame::Example::VerifyMonsterBuffer(verifier), true);
 
   AccessFlatBufferTest(parser.builder_.GetBufferPointer(),
                        parser.builder_.GetSize(), false);
@@ -787,6 +815,7 @@ void ParseAndGenerateTextTest(const std::string &tests_data_path, bool binary) {
   registry.AddIncludeDirectory(tests_data_path.c_str());
   registry.AddIncludeDirectory(include_test_path.c_str());
   // Call this with many schemas if possible.
+  using MyGame::Example::MonsterIdentifier;
   registry.Register(MonsterIdentifier(),
                     (tests_data_path + "monster_test.fbs").c_str());
   // Now we got this set up, we can parse by just specifying the identifier,
@@ -823,11 +852,12 @@ void ParseAndGenerateTextTest(const std::string &tests_data_path, bool binary) {
 
 void UnPackTo(const uint8_t *flatbuf) {
   // Get a monster that has a name and no enemy
-  auto orig_monster = GetMonster(flatbuf);
+  auto orig_monster = MyGame::Example::GetMonster(flatbuf);
   TEST_EQ_STR(orig_monster->name()->c_str(), "MyMonster");
   TEST_ASSERT(orig_monster->enemy() == nullptr);
 
   // Create an enemy
+  using MyGame::Example::MonsterT;
   MonsterT *enemy = new MonsterT();
   enemy->name = "Enemy";
 
