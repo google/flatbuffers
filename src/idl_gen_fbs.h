@@ -21,7 +21,6 @@
 
 namespace flatbuffers {
 
-// Constructs a new Cpp code generator.
 std::unique_ptr<CodeGenerator> NewFBSCodeGenerator();
 
 }  // namespace flatbuffers
