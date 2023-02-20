@@ -32,25 +32,6 @@
 
 namespace flatbuffers {
 namespace {
-struct ImportDefinition {
-  std::string name;
-  std::string import_statement;
-  std::string export_statement;
-  std::string bare_file_path;
-  std::string rel_file_path;
-  std::string object_name;
-  const Definition *dependent = nullptr;
-  const Definition *dependency = nullptr;
-};
-
-struct NsDefinition {
-  std::string path;
-  std::string filepath;
-  std::string symbolic_name;
-  const Namespace *ns;
-  std::map<std::string, const Definition *> definitions;
-};
-
 Namer::Config TypeScriptDefaultConfig() {
   return { /*types=*/Case::kKeep,
            /*constants=*/Case::kUnknown,
@@ -102,6 +83,17 @@ namespace ts {
 // and tables) and output them to a single file.
 class TsGenerator : public BaseGenerator {
  public:
+  struct ImportDefinition {
+    std::string name;
+    std::string import_statement;
+    std::string export_statement;
+    std::string bare_file_path;
+    std::string rel_file_path;
+    std::string object_name;
+    const Definition *dependent = nullptr;
+    const Definition *dependency = nullptr;
+  };
+
   typedef std::map<std::string, ImportDefinition> import_set;
 
   TsGenerator(const Parser &parser, const std::string &path,
@@ -202,6 +194,14 @@ class TsGenerator : public BaseGenerator {
   }
 
  private:
+  struct NsDefinition {
+    std::string path;
+    std::string filepath;
+    std::string symbolic_name;
+    const Namespace *ns;
+    std::map<std::string, const Definition *> definitions;
+  };
+
   IdlNamer namer_;
 
   std::map<std::string, NsDefinition> ns_defs_;

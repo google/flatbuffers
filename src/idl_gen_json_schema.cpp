@@ -28,124 +28,6 @@ namespace flatbuffers {
 
 namespace jsons {
 
-namespace {
-
-template<class T>
-static std::string GenFullName(const T *enum_def) {
-  std::string full_name;
-  const auto &name_spaces = enum_def->defined_namespace->components;
-  for (auto ns = name_spaces.cbegin(); ns != name_spaces.cend(); ++ns) {
-    full_name.append(*ns + "_");
-  }
-  full_name.append(enum_def->name);
-  return full_name;
-}
-
-template<class T>
-static std::string GenTypeRef(const T *enum_def) {
-  return "\"$ref\" : \"#/definitions/" + GenFullName(enum_def) + "\"";
-}
-
-static std::string GenType(const std::string &name) {
-  return "\"type\" : \"" + name + "\"";
-}
-
-static std::string GenType(BaseType type) {
-  switch (type) {
-    case BASE_TYPE_BOOL: return "\"type\" : \"boolean\"";
-    case BASE_TYPE_CHAR:
-      return "\"type\" : \"integer\", \"minimum\" : " +
-             NumToString(std::numeric_limits<int8_t>::min()) +
-             ", \"maximum\" : " +
-             NumToString(std::numeric_limits<int8_t>::max());
-    case BASE_TYPE_UCHAR:
-      return "\"type\" : \"integer\", \"minimum\" : 0, \"maximum\" :" +
-             NumToString(std::numeric_limits<uint8_t>::max());
-    case BASE_TYPE_SHORT:
-      return "\"type\" : \"integer\", \"minimum\" : " +
-             NumToString(std::numeric_limits<int16_t>::min()) +
-             ", \"maximum\" : " +
-             NumToString(std::numeric_limits<int16_t>::max());
-    case BASE_TYPE_USHORT:
-      return "\"type\" : \"integer\", \"minimum\" : 0, \"maximum\" : " +
-             NumToString(std::numeric_limits<uint16_t>::max());
-    case BASE_TYPE_INT:
-      return "\"type\" : \"integer\", \"minimum\" : " +
-             NumToString(std::numeric_limits<int32_t>::min()) +
-             ", \"maximum\" : " +
-             NumToString(std::numeric_limits<int32_t>::max());
-    case BASE_TYPE_UINT:
-      return "\"type\" : \"integer\", \"minimum\" : 0, \"maximum\" : " +
-             NumToString(std::numeric_limits<uint32_t>::max());
-    case BASE_TYPE_LONG:
-      return "\"type\" : \"integer\", \"minimum\" : " +
-             NumToString(std::numeric_limits<int64_t>::min()) +
-             ", \"maximum\" : " +
-             NumToString(std::numeric_limits<int64_t>::max());
-    case BASE_TYPE_ULONG:
-      return "\"type\" : \"integer\", \"minimum\" : 0, \"maximum\" : " +
-             NumToString(std::numeric_limits<uint64_t>::max());
-    case BASE_TYPE_FLOAT:
-    case BASE_TYPE_DOUBLE: return "\"type\" : \"number\"";
-    case BASE_TYPE_STRING: return "\"type\" : \"string\"";
-    default: return "";
-  }
-}
-
-static std::string GenBaseType(const Type &type) {
-  if (type.struct_def != nullptr) { return GenTypeRef(type.struct_def); }
-  if (type.enum_def != nullptr) { return GenTypeRef(type.enum_def); }
-  return GenType(type.base_type);
-}
-
-static std::string GenArrayType(const Type &type) {
-  std::string element_type;
-  if (type.struct_def != nullptr) {
-    element_type = GenTypeRef(type.struct_def);
-  } else if (type.enum_def != nullptr) {
-    element_type = GenTypeRef(type.enum_def);
-  } else {
-    element_type = GenType(type.element);
-  }
-
-  return "\"type\" : \"array\", \"items\" : {" + element_type + "}";
-}
-
-static std::string GenType(const Type &type) {
-  switch (type.base_type) {
-    case BASE_TYPE_ARRAY: FLATBUFFERS_FALLTHROUGH();  // fall thru
-    case BASE_TYPE_VECTOR: {
-      return GenArrayType(type);
-    }
-    case BASE_TYPE_STRUCT: {
-      return GenTypeRef(type.struct_def);
-    }
-    case BASE_TYPE_UNION: {
-      std::string union_type_string("\"anyOf\": [");
-      const auto &union_types = type.enum_def->Vals();
-      for (auto ut = union_types.cbegin(); ut < union_types.cend(); ++ut) {
-        const auto &union_type = *ut;
-        if (union_type->union_type.base_type == BASE_TYPE_NONE) { continue; }
-        if (union_type->union_type.base_type == BASE_TYPE_STRUCT) {
-          union_type_string.append(
-              "{ " + GenTypeRef(union_type->union_type.struct_def) + " }");
-        }
-        if (union_type != *type.enum_def->Vals().rbegin()) {
-          union_type_string.append(",");
-        }
-      }
-      union_type_string.append("]");
-      return union_type_string;
-    }
-    case BASE_TYPE_UTYPE: return GenTypeRef(type.enum_def);
-    default: {
-      return GenBaseType(type);
-    }
-  }
-}
-
-} // namespace
-
 class JsonSchemaGenerator : public BaseGenerator {
  private:
   std::string code_;
@@ -316,6 +198,119 @@ class JsonSchemaGenerator : public BaseGenerator {
   }
 
   const std::string getJson() { return code_; }
+
+ private:
+  template<class T> static std::string GenFullName(const T *enum_def) {
+    std::string full_name;
+    const auto &name_spaces = enum_def->defined_namespace->components;
+    for (auto ns = name_spaces.cbegin(); ns != name_spaces.cend(); ++ns) {
+      full_name.append(*ns + "_");
+    }
+    full_name.append(enum_def->name);
+    return full_name;
+  }
+
+  template<class T> static std::string GenTypeRef(const T *enum_def) {
+    return "\"$ref\" : \"#/definitions/" + GenFullName(enum_def) + "\"";
+  }
+
+  static std::string GenType(const std::string &name) {
+    return "\"type\" : \"" + name + "\"";
+  }
+
+  static std::string GenType(BaseType type) {
+    switch (type) {
+      case BASE_TYPE_BOOL: return "\"type\" : \"boolean\"";
+      case BASE_TYPE_CHAR:
+        return "\"type\" : \"integer\", \"minimum\" : " +
+               NumToString(std::numeric_limits<int8_t>::min()) +
+               ", \"maximum\" : " +
+               NumToString(std::numeric_limits<int8_t>::max());
+      case BASE_TYPE_UCHAR:
+        return "\"type\" : \"integer\", \"minimum\" : 0, \"maximum\" :" +
+               NumToString(std::numeric_limits<uint8_t>::max());
+      case BASE_TYPE_SHORT:
+        return "\"type\" : \"integer\", \"minimum\" : " +
+               NumToString(std::numeric_limits<int16_t>::min()) +
+               ", \"maximum\" : " +
+               NumToString(std::numeric_limits<int16_t>::max());
+      case BASE_TYPE_USHORT:
+        return "\"type\" : \"integer\", \"minimum\" : 0, \"maximum\" : " +
+               NumToString(std::numeric_limits<uint16_t>::max());
+      case BASE_TYPE_INT:
+        return "\"type\" : \"integer\", \"minimum\" : " +
+               NumToString(std::numeric_limits<int32_t>::min()) +
+               ", \"maximum\" : " +
+               NumToString(std::numeric_limits<int32_t>::max());
+      case BASE_TYPE_UINT:
+        return "\"type\" : \"integer\", \"minimum\" : 0, \"maximum\" : " +
+               NumToString(std::numeric_limits<uint32_t>::max());
+      case BASE_TYPE_LONG:
+        return "\"type\" : \"integer\", \"minimum\" : " +
+               NumToString(std::numeric_limits<int64_t>::min()) +
+               ", \"maximum\" : " +
+               NumToString(std::numeric_limits<int64_t>::max());
+      case BASE_TYPE_ULONG:
+        return "\"type\" : \"integer\", \"minimum\" : 0, \"maximum\" : " +
+               NumToString(std::numeric_limits<uint64_t>::max());
+      case BASE_TYPE_FLOAT:
+      case BASE_TYPE_DOUBLE: return "\"type\" : \"number\"";
+      case BASE_TYPE_STRING: return "\"type\" : \"string\"";
+      default: return "";
+    }
+  }
+
+  static std::string GenBaseType(const Type &type) {
+    if (type.struct_def != nullptr) { return GenTypeRef(type.struct_def); }
+    if (type.enum_def != nullptr) { return GenTypeRef(type.enum_def); }
+    return GenType(type.base_type);
+  }
+
+  static std::string GenArrayType(const Type &type) {
+    std::string element_type;
+    if (type.struct_def != nullptr) {
+      element_type = GenTypeRef(type.struct_def);
+    } else if (type.enum_def != nullptr) {
+      element_type = GenTypeRef(type.enum_def);
+    } else {
+      element_type = GenType(type.element);
+    }
+
+    return "\"type\" : \"array\", \"items\" : {" + element_type + "}";
+  }
+
+  static std::string GenType(const Type &type) {
+    switch (type.base_type) {
+      case BASE_TYPE_ARRAY: FLATBUFFERS_FALLTHROUGH();  // fall thru
+      case BASE_TYPE_VECTOR: {
+        return GenArrayType(type);
+      }
+      case BASE_TYPE_STRUCT: {
+        return GenTypeRef(type.struct_def);
+      }
+      case BASE_TYPE_UNION: {
+        std::string union_type_string("\"anyOf\": [");
+        const auto &union_types = type.enum_def->Vals();
+        for (auto ut = union_types.cbegin(); ut < union_types.cend(); ++ut) {
+          const auto &union_type = *ut;
+          if (union_type->union_type.base_type == BASE_TYPE_NONE) { continue; }
+          if (union_type->union_type.base_type == BASE_TYPE_STRUCT) {
+            union_type_string.append(
+                "{ " + GenTypeRef(union_type->union_type.struct_def) + " }");
+          }
+          if (union_type != *type.enum_def->Vals().rbegin()) {
+            union_type_string.append(",");
+          }
+        }
+        union_type_string.append("]");
+        return union_type_string;
+      }
+      case BASE_TYPE_UTYPE: return GenTypeRef(type.enum_def);
+      default: {
+        return GenBaseType(type);
+      }
+    }
+  }
 };
 }  // namespace jsons
 
