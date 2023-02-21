@@ -15,28 +15,34 @@
  */
 
 #include <string>
+#include <set>
+#include <fstream>
 
-#include "include/flatbuffers/file_manager.h"
+#include "flatbuffers/file_manager.h"
 
 namespace flatbuffers {
 
-class FileNameManager ::FileManager {
+class FileBinaryWriter : public FileManager {
  public:
-  bool SaveFile(std::string absolute_file_name, std::string content,
-                size_t len,
-                bool binary) override {
-    auto pair = file_names_.insert(absolute_file_name);
-    return pair.second;
-  }
-
-  bool ReadFile(std::string absolute_file_name, bool binary, std::string * buf) override {
-    (void) file_path;
-    (void) binary;
-    (void) buf;
+  bool SaveFile(const std::string &absolute_file_name, const std::string &content) override {
+    std::ofstream ofs(absolute_file_name,
+                      std::ofstream::binary);
+    if (!ofs.is_open()) return false;
+    ofs.write(content.c_str(), content.size());
+    if (!ofs.bad()) {
+      file_names_.insert(absolute_file_name);
+      return true;
+    }
     return false;
   }
 
-  std::set<string> FileNames() { return file_names_; }
+  bool ReadFile(const std::string &absolute_file_name, std::string *content) override {
+    (void) absolute_file_name;
+    (void) content;
+    return false;
+  }
+
+  //std::set<std::string> FileNames() { return file_names_; }
 };
 
 }  // namespace flatbuffers
