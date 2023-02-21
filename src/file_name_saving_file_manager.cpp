@@ -25,6 +25,7 @@ namespace flatbuffers {
 class FileNameSavingFileManagerManager : public FileManager {
  public:
   bool SaveFile(const std::string &absolute_file_name, const std::string &content) override {
+    (void) content;
     auto pair = file_names_.insert(absolute_file_name);
     return pair.second;
   }
