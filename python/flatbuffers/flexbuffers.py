@@ -75,7 +75,7 @@ class BitWidth(enum.IntEnum):
   @staticmethod
   def F(value):
     """Returns the `BitWidth` to encode floating point value."""
-    if struct.unpack('f', struct.pack('f', value))[0] == value:
+    if struct.unpack('<f', struct.pack('<f', value))[0] == value:
       return BitWidth.W32
     return BitWidth.W64
 
@@ -95,20 +95,20 @@ F = {4: 'f', 8: 'd'}  # Floating point formats
 
 
 def _Unpack(fmt, buf):
-  return struct.unpack(fmt[len(buf)], buf)[0]
+  return struct.unpack('<%s' % fmt[len(buf)], buf)[0]
 
 
 def _UnpackVector(fmt, buf, length):
   byte_width = len(buf) // length
-  return struct.unpack('%d%s' % (length, fmt[byte_width]), buf)
+  return struct.unpack('<%d%s' % (length, fmt[byte_width]), buf)
 
 
 def _Pack(fmt, value, byte_width):
-  return struct.pack(fmt[byte_width], value)
+  return struct.pack('<%s' % fmt[byte_width], value)
 
 
 def _PackVector(fmt, values, byte_width):
-  return struct.pack('%d%s' % (len(values), fmt[byte_width]), *values)
+  return struct.pack('<%d%s' % (len(values), fmt[byte_width]), *values)
 
 
 def _Mutate(fmt, buf, value, byte_width, value_bit_width):
@@ -726,6 +726,15 @@ class Ref:
   @property
   def IsString(self):
     return self._type is Type.STRING
+
+  @property
+  def AsStringBytes(self):
+    if self.IsString:
+      return String(self._Indirect(), self._byte_width).Bytes
+    elif self.IsKey:
+      return self.AsKeyBytes
+    else:
+      raise self._ConvertError(Type.STRING)
 
   @property
   def AsString(self):

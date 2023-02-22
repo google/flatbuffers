@@ -16,6 +16,8 @@
 
 // independent from idl_parser, since this code is not needed for most clients
 
+#include "idl_gen_rust.h"
+
 #include <cmath>
 
 #include "flatbuffers/code_generators.h"
@@ -1629,7 +1631,7 @@ class RustGenerator : public BaseGenerator {
       code_.SetValue("OFFSET_VALUE", NumToString(field.value.offset));
       code_.SetValue("FIELD", namer_.Field(field));
       code_.SetValue("BLDR_DEF_VAL", GetDefaultValue(field, kBuilder));
-      code_.SetValue("DISCRIMINANT", namer_.Field(field) + "_type");
+      code_.SetValue("DISCRIMINANT", namer_.LegacyRustUnionTypeMethod(field));
       code_.IncrementIdentLevel();
       cb(field);
       code_.DecrementIdentLevel();
@@ -1747,7 +1749,10 @@ class RustGenerator : public BaseGenerator {
             const auto &enum_def = *type.enum_def;
             code_.SetValue("ENUM_TY", WrapInNameSpace(enum_def));
             code_.SetValue("NATIVE_ENUM_NAME", NamespacedNativeName(enum_def));
-            code_ += "  let {{FIELD}} = match self.{{FIELD}}_type() {";
+            code_.SetValue("UNION_TYPE_METHOD",
+                           namer_.LegacyRustUnionTypeMethod(field));
+
+            code_ += "  let {{FIELD}} = match self.{{UNION_TYPE_METHOD}}() {";
             code_ += "    {{ENUM_TY}}::NONE => {{NATIVE_ENUM_NAME}}::NONE,";
             ForAllUnionObjectVariantsBesidesNone(enum_def, [&] {
               code_ +=
@@ -1973,10 +1978,12 @@ class RustGenerator : public BaseGenerator {
       const EnumDef &union_def = *field.value.type.enum_def;
       code_.SetValue("UNION_TYPE", WrapInNameSpace(union_def));
       code_.SetValue("UNION_TYPE_OFFSET_NAME",
-                     namer_.LegacyRustFieldOffsetName(field) + "_TYPE");
+                     namer_.LegacyRustUnionTypeOffsetName(field));
+      code_.SetValue("UNION_TYPE_METHOD",
+                     namer_.LegacyRustUnionTypeMethod(field));
       code_ +=
           "\n     .visit_union::<{{UNION_TYPE}}, _>("
-          "\"{{FIELD}}_type\", Self::{{UNION_TYPE_OFFSET_NAME}}, "
+          "\"{{UNION_TYPE_METHOD}}\", Self::{{UNION_TYPE_OFFSET_NAME}}, "
           "\"{{FIELD}}\", Self::{{OFFSET_NAME}}, {{IS_REQ}}, "
           "|key, v, pos| {";
       code_ += "      match key {";
@@ -2045,8 +2052,10 @@ class RustGenerator : public BaseGenerator {
             const auto &enum_def = *type.enum_def;
             code_.SetValue("ENUM_TY", WrapInNameSpace(enum_def));
             code_.SetValue("FIELD", namer_.Field(field));
+            code_.SetValue("UNION_TYPE_METHOD",
+                           namer_.LegacyRustUnionTypeMethod(field));
 
-            code_ += "    match self.{{FIELD}}_type() {";
+            code_ += "    match self.{{UNION_TYPE_METHOD}}() {";
             code_ += "      {{ENUM_TY}}::NONE => (),";
             ForAllUnionObjectVariantsBesidesNone(enum_def, [&] {
               code_.SetValue("FIELD", namer_.Field(field));
@@ -2255,8 +2264,9 @@ class RustGenerator : public BaseGenerator {
         case ftUnionValue: {
           code_.SetValue("ENUM_METHOD",
                          namer_.Method(*field.value.type.enum_def));
+          code_.SetValue("DISCRIMINANT", namer_.LegacyRustUnionTypeMethod(field));
           code_ +=
-              "  let {{FIELD}}_type = "
+              "  let {{DISCRIMINANT}} = "
               "self.{{FIELD}}.{{ENUM_METHOD}}_type();";
           code_ += "  let {{FIELD}} = self.{{FIELD}}.pack(_fbb);";
           return;
@@ -2998,6 +3008,59 @@ std::string RustMakeRule(const Parser &parser, const std::string &path,
     make_rule += " " + *it;
   }
   return make_rule;
+}
+
+namespace {
+
+class RustCodeGenerator : public CodeGenerator {
+ public:
+  Status GenerateCode(const Parser &parser, const std::string &path,
+                      const std::string &filename) override {
+    if (!GenerateRust(parser, path, filename)) { return Status::ERROR; }
+    return Status::OK;
+  }
+
+  Status GenerateCode(const uint8_t *buffer, int64_t length) override {
+    (void)buffer;
+    (void)length;
+    return Status::NOT_IMPLEMENTED;
+  }
+
+  Status GenerateMakeRule(const Parser &parser, const std::string &path,
+                          const std::string &filename,
+                          std::string &output) override {
+    output = RustMakeRule(parser, path, filename);
+    return Status::OK;
+  }
+
+  Status GenerateGrpcCode(const Parser &parser, const std::string &path,
+                          const std::string &filename) override {
+    (void)parser;
+    (void)path;
+    (void)filename;
+    return Status::NOT_IMPLEMENTED;
+  }
+
+  Status GenerateRootFile(const Parser &parser,
+                          const std::string &path) override {
+    if (!GenerateRustModuleRootFile(parser, path)) { return Status::ERROR; }
+    return Status::OK;
+  }
+
+  bool IsSchemaOnly() const override { return true; }
+
+  bool SupportsBfbsGeneration() const override { return false; }
+
+  bool SupportsRootFileGeneration() const override { return true; }
+
+  IDLOptions::Language Language() const override { return IDLOptions::kRust; }
+
+  std::string LanguageName() const override { return "Rust"; }
+};
+}  // namespace
+
+std::unique_ptr<CodeGenerator> NewRustCodeGenerator() {
+  return std::unique_ptr<RustCodeGenerator>(new RustCodeGenerator());
 }
 
 }  // namespace flatbuffers

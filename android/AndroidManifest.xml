@@ -3,6 +3,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
           package="com.example.FlatBufferTest">
 
+    <uses-sdk android:minSdkVersion="14"/>
     <uses-feature android:glEsVersion="0x00020000"></uses-feature>
 
     <!-- This .apk has no Java code itself, so set hasCode to false. -->

@@ -16,6 +16,8 @@
 
 // independent from idl_parser, since this code is not needed for most clients
 
+#include "idl_gen_csharp.h"
+
 #include <unordered_set>
 
 #include "flatbuffers/code_generators.h"
@@ -655,7 +657,7 @@ class CSharpGenerator : public BaseGenerator {
       // Force compile time error if not using the same version runtime.
       code += "  public static void ValidateVersion() {";
       code += " FlatBufferConstants.";
-      code += "FLATBUFFERS_22_10_26(); ";
+      code += "FLATBUFFERS_23_1_21(); ";
       code += "}\n";
 
       // Generate a special accessor for the table that when used as the root
@@ -1425,20 +1427,23 @@ class CSharpGenerator : public BaseGenerator {
       code += "public ";
     }
     auto union_name = enum_def.name + "Union";
+    auto class_member = std::string("Value");
+    if (class_member == enum_def.name) { class_member += "_"; };
     code += "class " + union_name + " {\n";
     // Type
     code += "  public " + enum_def.name + " Type { get; set; }\n";
     // Value
-    code += "  public object Value { get; set; }\n";
+    code += "  public object " + class_member +  " { get; set; }\n";
     code += "\n";
     // Constructor
     code += "  public " + union_name + "() {\n";
     code += "    this.Type = " + enum_def.name + "." +
             enum_def.Vals()[0]->name + ";\n";
-    code += "    this.Value = null;\n";
+    code += "    this." + class_member + " = null;\n";
     code += "  }\n\n";
     // As<T>
-    code += "  public T As<T>() where T : class { return this.Value as T; }\n";
+    code += "  public T As<T>() where T : class { return this." + class_member +
+            " as T; }\n";
     // As, From
     for (auto it = enum_def.Vals().begin(); it != enum_def.Vals().end(); ++it) {
       auto &ev = **it;
@@ -1459,7 +1464,8 @@ class CSharpGenerator : public BaseGenerator {
       code += "  " + accessibility + " static " + union_name + " From" +
               ev.name + "(" + type_name + " _" + lower_ev_name +
               ") { return new " + union_name + "{ Type = " + Name(enum_def) +
-              "." + Name(ev) + ", Value = _" + lower_ev_name + " }; }\n";
+              "." + Name(ev) + ", " + class_member + " = _" + lower_ev_name +
+              " }; }\n";
     }
     code += "\n";
     // Pack()
@@ -1521,7 +1527,7 @@ class CSharpGenerator : public BaseGenerator {
               " _o, "
               "Newtonsoft.Json.JsonSerializer serializer) {\n";
       code += "    if (_o == null) return;\n";
-      code += "    serializer.Serialize(writer, _o.Value);\n";
+      code += "    serializer.Serialize(writer, _o." + class_member  + ");\n";
       code += "  }\n";
       code +=
           "  public override object ReadJson(Newtonsoft.Json.JsonReader "
@@ -1558,8 +1564,8 @@ class CSharpGenerator : public BaseGenerator {
           code += "      default: break;\n";
         } else {
           auto type_name = GenTypeGet_ObjectAPI(ev.union_type, opts);
-          code += "      case " + Name(enum_def) + "." + Name(ev) +
-                  ": _o.Value = serializer.Deserialize<" + type_name +
+          code += "      case " + Name(enum_def) + "." + Name(ev) + ": _o." +
+                  class_member + " = serializer.Deserialize<" + type_name +
                   ">(reader); break;\n";
         }
       }
@@ -1581,6 +1587,8 @@ class CSharpGenerator : public BaseGenerator {
                                 bool is_vector) const {
     auto &code = *code_ptr;
     std::string varialbe_name = "_o." + camel_name;
+    std::string class_member = "Value";
+    if (class_member == enum_def.name) class_member += "_";
     std::string type_suffix = "";
     std::string func_suffix = "()";
     std::string indent = "    ";
@@ -1608,7 +1616,8 @@ class CSharpGenerator : public BaseGenerator {
       } else {
         code += indent + "  case " + NamespacedName(enum_def) + "." + ev.name +
                 ":\n";
-        code += indent + "    " + varialbe_name + ".Value = this." + camel_name;
+        code += indent + "    " + varialbe_name + "." + class_member +
+                " = this." + camel_name;
         if (IsString(ev.union_type)) {
           code += "AsString" + func_suffix + ";\n";
         } else {
@@ -2247,6 +2256,60 @@ bool GenerateCSharp(const Parser &parser, const std::string &path,
                     const std::string &file_name) {
   csharp::CSharpGenerator generator(parser, path, file_name);
   return generator.generate();
+}
+
+namespace {
+
+class CSharpCodeGenerator : public CodeGenerator {
+ public:
+  Status GenerateCode(const Parser &parser, const std::string &path,
+                      const std::string &filename) override {
+    if (!GenerateCSharp(parser, path, filename)) { return Status::ERROR; }
+    return Status::OK;
+  }
+
+  Status GenerateCode(const uint8_t *buffer, int64_t length) override {
+    (void)buffer;
+    (void)length;
+    return Status::NOT_IMPLEMENTED;
+  }
+
+  Status GenerateMakeRule(const Parser &parser, const std::string &path,
+                          const std::string &filename,
+                          std::string &output) override {
+    output = CSharpMakeRule(parser, path, filename);
+    return Status::OK;
+  }
+
+  Status GenerateGrpcCode(const Parser &parser, const std::string &path,
+                          const std::string &filename) override {
+    (void)parser;
+    (void)path;
+    (void)filename;
+    return Status::NOT_IMPLEMENTED;
+  }
+
+  Status GenerateRootFile(const Parser &parser,
+                          const std::string &path) override {
+    (void)parser;
+    (void)path;
+    return Status::NOT_IMPLEMENTED;
+  }
+
+  bool IsSchemaOnly() const override { return true; }
+
+  bool SupportsBfbsGeneration() const override { return false; }
+
+  bool SupportsRootFileGeneration() const override { return false; }
+
+  IDLOptions::Language Language() const override { return IDLOptions::kCSharp; }
+
+  std::string LanguageName() const override { return "CSharp"; }
+};
+}  // namespace
+
+std::unique_ptr<CodeGenerator> NewCSharpCodeGenerator() {
+  return std::unique_ptr<CSharpCodeGenerator>(new CSharpCodeGenerator());
 }
 
 }  // namespace flatbuffers

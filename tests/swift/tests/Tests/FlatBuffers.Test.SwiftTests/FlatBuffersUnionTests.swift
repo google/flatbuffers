@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 Google Inc. All rights reserved.
+ * Copyright 2023 Google Inc. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -122,7 +122,8 @@ final class FlatBuffersUnionTests: XCTestCase {
       charactersVectorOffset: characterVector)
     Movie.finish(&fb, end: end)
 
-    var movie = Movie.getRootAsMovie(bb: fb.buffer)
+    var buffer = fb.buffer
+    var movie: Movie = getRoot(byteBuffer: &buffer)
     XCTAssertEqual(movie.charactersTypeCount, Int32(characterType.count))
     XCTAssertEqual(movie.charactersCount, Int32(characters.count))
 
@@ -151,7 +152,8 @@ final class FlatBuffersUnionTests: XCTestCase {
     let newMovie = Movie.pack(&fb, obj: &objc)
     fb.finish(offset: newMovie)
 
-    let packedMovie = Movie.getRootAsMovie(bb: fb.buffer)
+    var _buffer = fb.buffer
+    let packedMovie: Movie = getRoot(byteBuffer: &_buffer)
 
     XCTAssertEqual(
       packedMovie.characters(at: 0, type: BookReader_Mutable.self)?.booksRead,
@@ -185,7 +187,8 @@ final class FlatBuffersUnionTests: XCTestCase {
       charactersVectorOffset: characterVector)
     Movie.finish(&fb, end: end)
 
-    var movie = Movie.getRootAsMovie(bb: fb.sizedBuffer)
+    var buffer = fb.sizedBuffer
+    var movie: Movie = getRoot(byteBuffer: &buffer)
     XCTAssertEqual(movie.mainCharacter(type: String.self), string)
     XCTAssertEqual(
       movie.characters(at: 0, type: BookReader_Mutable.self)?.booksRead,
@@ -200,7 +203,8 @@ final class FlatBuffersUnionTests: XCTestCase {
     let newMovie = Movie.pack(&fb, obj: &objc)
     fb.finish(offset: newMovie)
 
-    let packedMovie = Movie.getRootAsMovie(bb: fb.buffer)
+    var _buffer = fb.buffer
+    let packedMovie: Movie = getRoot(byteBuffer: &_buffer)
     XCTAssertEqual(packedMovie.mainCharacter(type: String.self), string)
     XCTAssertEqual(
       packedMovie.characters(at: 0, type: BookReader_Mutable.self)?.booksRead,

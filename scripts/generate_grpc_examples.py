@@ -19,7 +19,7 @@ from pathlib import Path
 
 grpc_examples_path = Path(root_path, "grpc/examples")
 
-greeter_schema = Path(grpc_examples_path, "greeter.fbs")
+greeter_schema = str(Path(grpc_examples_path, "greeter.fbs"))
 
 COMMON_ARGS = [
     "--grpc",

@@ -16,6 +16,8 @@
 
 // independent from idl_parser, since this code is not needed for most clients
 
+#include "idl_gen_java.h"
+
 #include "flatbuffers/code_generators.h"
 #include "flatbuffers/flatbuffers.h"
 #include "flatbuffers/idl.h"
@@ -178,8 +180,22 @@ class JavaGenerator : public BaseGenerator {
     }
     if (needs_includes) {
       code +=
-          "import java.nio.*;\nimport java.lang.*;\nimport "
-          "java.util.*;\nimport com.google.flatbuffers.*;\n";
+          "import com.google.flatbuffers.BaseVector;\n"
+          "import com.google.flatbuffers.BooleanVector;\n"
+          "import com.google.flatbuffers.ByteVector;\n"
+          "import com.google.flatbuffers.Constants;\n"
+          "import com.google.flatbuffers.DoubleVector;\n"
+          "import com.google.flatbuffers.FlatBufferBuilder;\n"
+          "import com.google.flatbuffers.FloatVector;\n"
+          "import com.google.flatbuffers.IntVector;\n"
+          "import com.google.flatbuffers.LongVector;\n"
+          "import com.google.flatbuffers.ShortVector;\n"
+          "import com.google.flatbuffers.StringVector;\n"
+          "import com.google.flatbuffers.Struct;\n"
+          "import com.google.flatbuffers.Table;\n"
+          "import com.google.flatbuffers.UnionVector;\n"
+          "import java.nio.ByteBuffer;\n"
+          "import java.nio.ByteOrder;\n";
       if (parser_.opts.gen_nullable) {
         code += "\nimport javax.annotation.Nullable;\n";
       }
@@ -669,7 +685,7 @@ class JavaGenerator : public BaseGenerator {
       // Force compile time error if not using the same version runtime.
       code += "  public static void ValidateVersion() {";
       code += " Constants.";
-      code += "FLATBUFFERS_22_10_26(); ";
+      code += "FLATBUFFERS_23_1_21(); ";
       code += "}\n";
 
       // Generate a special accessor for the table that when used as the root
@@ -2151,6 +2167,58 @@ bool GenerateJava(const Parser &parser, const std::string &path,
                   const std::string &file_name) {
   java::JavaGenerator generator(parser, path, file_name);
   return generator.generate();
+}
+
+namespace {
+
+class JavaCodeGenerator : public CodeGenerator {
+ public:
+  Status GenerateCode(const Parser &parser, const std::string &path,
+                      const std::string &filename) override {
+    if (!GenerateJava(parser, path, filename)) { return Status::ERROR; }
+    return Status::OK;
+  }
+
+  Status GenerateCode(const uint8_t *buffer, int64_t length) override {
+    (void)buffer;
+    (void)length;
+    return Status::NOT_IMPLEMENTED;
+  }
+
+  Status GenerateMakeRule(const Parser &parser, const std::string &path,
+                          const std::string &filename,
+                          std::string &output) override {
+    output = JavaMakeRule(parser, path, filename);
+    return Status::OK;
+  }
+
+  Status GenerateGrpcCode(const Parser &parser, const std::string &path,
+                          const std::string &filename) override {
+    if (!GenerateJavaGRPC(parser, path, filename)) { return Status::ERROR; }
+    return Status::OK;
+  }
+
+  Status GenerateRootFile(const Parser &parser,
+                          const std::string &path) override {
+    (void)parser;
+    (void)path;
+    return Status::NOT_IMPLEMENTED;
+  }
+
+  bool IsSchemaOnly() const override { return true; }
+
+  bool SupportsBfbsGeneration() const override { return false; }
+
+  bool SupportsRootFileGeneration() const override { return false; }
+
+  IDLOptions::Language Language() const override { return IDLOptions::kJava; }
+
+  std::string LanguageName() const override { return "Java"; }
+};
+}  // namespace
+
+std::unique_ptr<CodeGenerator> NewJavaCodeGenerator() {
+  return std::unique_ptr<JavaCodeGenerator>(new JavaCodeGenerator());
 }
 
 }  // namespace flatbuffers

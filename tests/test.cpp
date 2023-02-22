@@ -20,8 +20,8 @@
 #include <memory>
 #include <string>
 
-#include "evolution_test.h"
 #include "alignment_test.h"
+#include "evolution_test.h"
 #include "flatbuffers/flatbuffers.h"
 #include "flatbuffers/idl.h"
 #include "flatbuffers/minireflect.h"
@@ -29,10 +29,11 @@
 #include "flatbuffers/util.h"
 #include "fuzz_test.h"
 #include "json_test.h"
+#include "key_field_test.h"
 #include "monster_test.h"
 #include "monster_test_generated.h"
-#include "optional_scalars_test.h"
 #include "native_inline_table_test_generated.h"
+#include "optional_scalars_test.h"
 #include "parser_test.h"
 #include "proto_test.h"
 #include "reflection_test.h"
@@ -828,6 +829,54 @@ void FixedLengthArrayConstructorTest() {
 void FixedLengthArrayConstructorTest() {}
 #endif
 
+void FixedLengthArrayOperatorEqualTest() {
+  const int32_t nested_a[2] = { 1, 2 };
+  MyGame::Example::TestEnum nested_c[2] = { MyGame::Example::TestEnum::A,
+                                            MyGame::Example::TestEnum::B };
+
+  MyGame::Example::TestEnum nested_cc[2] = { MyGame::Example::TestEnum::A,
+                                             MyGame::Example::TestEnum::C };
+  const int64_t int64_2[2] = { -2, -1 };
+
+  std::array<MyGame::Example::NestedStruct, 2> init_d = {
+    { MyGame::Example::NestedStruct(nested_a, MyGame::Example::TestEnum::B,
+                                    nested_c, int64_2),
+      MyGame::Example::NestedStruct(nested_a, MyGame::Example::TestEnum::B,
+                                    nested_c,
+                                    std::array<int64_t, 2>{ { -2, -1 } }) }
+  };
+
+  auto different = MyGame::Example::NestedStruct(
+      nested_a, MyGame::Example::TestEnum::B, nested_cc,
+      std::array<int64_t, 2>{ { -2, -1 } });
+
+  TEST_ASSERT(init_d[0] == init_d[1]);
+  TEST_ASSERT(init_d[0] != different);
+
+  std::array<MyGame::Example::ArrayStruct, 3> arr_struct = {
+    MyGame::Example::ArrayStruct(
+        8.125,
+        std::array<int32_t, 0xF>{
+            { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 } },
+        -17, init_d, 10, int64_2),
+
+    MyGame::Example::ArrayStruct(
+        8.125,
+        std::array<int32_t, 0xF>{
+            { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 } },
+        -17, init_d, 10, int64_2),
+
+    MyGame::Example::ArrayStruct(
+        8.125,
+        std::array<int32_t, 0xF>{
+            { 1000, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 } },
+        -17, init_d, 10, int64_2)
+  };
+
+  TEST_ASSERT(arr_struct[0] == arr_struct[1]);
+  TEST_ASSERT(arr_struct[1] != arr_struct[2]);
+}
+
 void NativeTypeTest() {
   const int N = 3;
 
@@ -1418,7 +1467,9 @@ void NativeInlineTableVectorTest() {
   TEST_ASSERT(unpacked.t == test.t);
 }
 
-void DoNotRequireEofTest(const std::string& tests_data_path) {
+// Guard against -Wunused-function on platforms without file tests.
+#ifndef FLATBUFFERS_NO_FILE_TESTS
+void DoNotRequireEofTest(const std::string &tests_data_path) {
   std::string schemafile;
   bool ok = flatbuffers::LoadFile(
       (tests_data_path + "monster_test.fbs").c_str(), false, &schemafile);
@@ -1432,15 +1483,15 @@ void DoNotRequireEofTest(const std::string& tests_data_path) {
   flatbuffers::Parser parser(opt);
   ok = parser.Parse(schemafile.c_str(), include_directories);
   TEST_EQ(ok, true);
-  
-  const char *str = R"(This string contains two monsters, the first one is {
+
+  const char *str = R"(Some text at the beginning. {
       "name": "Blob",
       "hp": 5
-    }
-    and the second one is {
+    }{
       "name": "Imp",
       "hp": 10
     }
+    Some extra text at the end too.
   )";
   const char *tableStart = std::strchr(str, '{');
   ok = parser.ParseJson(tableStart);
@@ -1449,10 +1500,9 @@ void DoNotRequireEofTest(const std::string& tests_data_path) {
   const Monster *monster = GetMonster(parser.builder_.GetBufferPointer());
   TEST_EQ_STR(monster->name()->c_str(), "Blob");
   TEST_EQ(monster->hp(), 5);
-  
+
   tableStart += parser.BytesConsumed();
 
-  tableStart = std::strchr(tableStart + 1, '{');
   ok = parser.ParseJson(tableStart);
   TEST_EQ(ok, true);
 
@@ -1460,6 +1510,7 @@ void DoNotRequireEofTest(const std::string& tests_data_path) {
   TEST_EQ_STR(monster->name()->c_str(), "Imp");
   TEST_EQ(monster->hp(), 10);
 }
+#endif
 
 int FlatBufferTests(const std::string &tests_data_path) {
   // Run our various test suites:
@@ -1491,8 +1542,6 @@ int FlatBufferTests(const std::string &tests_data_path) {
   FixedLengthArrayJsonTest(tests_data_path, true);
   ReflectionTest(tests_data_path, flatbuf.data(), flatbuf.size());
   ParseProtoTest(tests_data_path);
-  ParseProtoTestWithSuffix(tests_data_path);
-  ParseProtoTestWithIncludes(tests_data_path);
   EvolutionTest(tests_data_path);
   UnionDeprecationTest(tests_data_path);
   UnionVectorTest(tests_data_path);
@@ -1508,6 +1557,9 @@ int FlatBufferTests(const std::string &tests_data_path) {
   ParseIncorrectMonsterJsonTest(tests_data_path);
   FixedLengthArraySpanTest(tests_data_path);
   DoNotRequireEofTest(tests_data_path);
+#else
+  // Guard against -Wunused-parameter.
+  (void)tests_data_path;
 #endif
 
   UtilConvertCase();
@@ -1554,6 +1606,7 @@ int FlatBufferTests(const std::string &tests_data_path) {
   ParseFlexbuffersFromJsonWithNullTest();
   FlatbuffersSpanTest();
   FixedLengthArrayConstructorTest();
+  FixedLengthArrayOperatorEqualTest();
   FieldIdentifierTest();
   StringVectorDefaultsTest();
   FlexBuffersFloatingPointTest();
@@ -1564,6 +1617,10 @@ int FlatBufferTests(const std::string &tests_data_path) {
   JsonUnsortedArrayTest();
   VectorSpanTest();
   NativeInlineTableVectorTest();
+  FixedSizedScalarKeyInStructTest();
+  StructKeyInStructTest();
+  NestedStructKeyInStructTest();
+  FixedSizedStructArrayKeyInStructTest();
   return 0;
 }
 }  // namespace

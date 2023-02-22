@@ -486,7 +486,12 @@ class ByteBuffer
     }
 
     private static function validateValue($min, $max, $value, $type, $additional_notes = "") {
-        if(!($min <= $value && $value <= $max)) {
+        if (
+          !(
+            ($type === "byte" && $min <= ord($value) && ord($value) <= $max) ||
+            ($min <= $value && $value <= $max)
+          )
+        ) {
             throw new \InvalidArgumentException(sprintf("bad number %s for type %s.%s", $value, $type, $additional_notes));
         }
     }

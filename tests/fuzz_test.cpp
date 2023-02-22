@@ -234,7 +234,7 @@ void FuzzTest2() {
           break;
         default:
           // All the scalar types.
-          schema += flatbuffers::kTypeNames[base_type];
+          schema += flatbuffers::TypeName(base_type);
 
           if (!deprecated) {
             // We want each instance to use its own random value.
