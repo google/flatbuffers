@@ -8,7 +8,7 @@ class Any_ private constructor() {
         const val NONE: UByte = 0u
         const val Monster: UByte = 1u
         const val TestSimpleTableWithEnum: UByte = 2u
-        const val MyGameExample2Monster: UByte = 3u
+        const val MyGame_Example2_Monster: UByte = 3u
         val names : Array<String> = arrayOf("NONE", "Monster", "TestSimpleTableWithEnum", "MyGame_Example2_Monster")
         fun name(e: Int) : String = names[e]
     }
