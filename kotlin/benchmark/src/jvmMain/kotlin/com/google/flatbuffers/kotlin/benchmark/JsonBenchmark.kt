@@ -41,7 +41,7 @@ import java.util.concurrent.TimeUnit
 @BenchmarkMode(Mode.AverageTime)
 @OutputTimeUnit(TimeUnit.MICROSECONDS)
 @Measurement(iterations = 100, time = 1, timeUnit = TimeUnit.MICROSECONDS)
-class JsonBenchmark {
+open class JsonBenchmark {
 
   final val moshi = Moshi.Builder()
     .addLast(KotlinJsonAdapterFactory())
@@ -76,46 +76,46 @@ class JsonBenchmark {
 
   // TWITTER
   @Benchmark
-  fun readTwitterFlexBuffers(hole: Blackhole? = null) = hole?.consume(readFlexBuffers(twitterData))
+  open fun readTwitterFlexBuffers(hole: Blackhole? = null) = hole?.consume(readFlexBuffers(twitterData))
   @Benchmark
-  fun readTwitterMoshi(hole: Blackhole?) = hole?.consume(readMoshi(twitterData))
+  open fun readTwitterMoshi(hole: Blackhole?) = hole?.consume(readMoshi(twitterData))
   @Benchmark
-  fun readTwitterGson(hole: Blackhole?) = hole?.consume(readGson(twitterData))
+  open fun readTwitterGson(hole: Blackhole?) = hole?.consume(readGson(twitterData))
 
   @Benchmark
-  fun roundTripTwitterFlexBuffers(hole: Blackhole? = null) = hole?.consume(readFlexBuffers(twitterData).toJson())
+  open fun roundTripTwitterFlexBuffers(hole: Blackhole? = null) = hole?.consume(readFlexBuffers(twitterData).toJson())
   @Benchmark
-  fun roundTripTwitterMoshi(hole: Blackhole?) = hole?.consume(moshiAdapter.toJson(readMoshi(twitterData)))
+  open fun roundTripTwitterMoshi(hole: Blackhole?) = hole?.consume(moshiAdapter.toJson(readMoshi(twitterData)))
   @Benchmark
-  fun roundTripTwitterGson(hole: Blackhole?) = hole?.consume(gson.toJson(readGson(twitterData)))
+  open fun roundTripTwitterGson(hole: Blackhole?) = hole?.consume(gson.toJson(readGson(twitterData)))
 
   // CITM
   @Benchmark
-  fun readCITMFlexBuffers(hole: Blackhole? = null) = hole?.consume(readFlexBuffers(citmData))
+  open fun readCITMFlexBuffers(hole: Blackhole? = null) = hole?.consume(readFlexBuffers(citmData))
   @Benchmark
-  fun readCITMMoshi(hole: Blackhole?) = hole?.consume(moshiAdapter.toJson(readMoshi(citmData)))
+  open fun readCITMMoshi(hole: Blackhole?) = hole?.consume(moshiAdapter.toJson(readMoshi(citmData)))
   @Benchmark
-  fun readCITMGson(hole: Blackhole?) = hole?.consume(gson.toJson(readGson(citmData)))
+  open fun readCITMGson(hole: Blackhole?) = hole?.consume(gson.toJson(readGson(citmData)))
 
   @Benchmark
-  fun roundTripCITMFlexBuffers(hole: Blackhole? = null) = hole?.consume(readFlexBuffers(citmData).toJson())
+  open fun roundTripCITMFlexBuffers(hole: Blackhole? = null) = hole?.consume(readFlexBuffers(citmData).toJson())
   @Benchmark
-  fun roundTripCITMMoshi(hole: Blackhole?) = hole?.consume(moshiAdapter.toJson(readMoshi(citmData)))
+  open fun roundTripCITMMoshi(hole: Blackhole?) = hole?.consume(moshiAdapter.toJson(readMoshi(citmData)))
   @Benchmark
-  fun roundTripCITMGson(hole: Blackhole?) = hole?.consume(gson.toJson(readGson(citmData)))
+  open fun roundTripCITMGson(hole: Blackhole?) = hole?.consume(gson.toJson(readGson(citmData)))
 
   @Benchmark
-  fun writeCITMFlexBuffers(hole: Blackhole? = null) = hole?.consume(fbCitmRef.toJson())
+  open fun writeCITMFlexBuffers(hole: Blackhole? = null) = hole?.consume(fbCitmRef.toJson())
   @Benchmark
-  fun writeCITMMoshi(hole: Blackhole?) = hole?.consume(moshiAdapter.toJson(moshiCitmRef))
+  open fun writeCITMMoshi(hole: Blackhole?) = hole?.consume(moshiAdapter.toJson(moshiCitmRef))
   @Benchmark
-  fun writeCITMGson(hole: Blackhole?) = hole?.consume(gson.toJson(gsonCitmRef))
+  open fun writeCITMGson(hole: Blackhole?) = hole?.consume(gson.toJson(gsonCitmRef))
 
   // CANADA
   @Benchmark
-  fun readCanadaFlexBuffers(hole: Blackhole? = null) = hole?.consume(readFlexBuffers(canadaData))
+  open fun readCanadaFlexBuffers(hole: Blackhole? = null) = hole?.consume(readFlexBuffers(canadaData))
   @Benchmark
-  fun readCanadaMoshi(hole: Blackhole?) = hole?.consume(readMoshi(canadaData))
+  open fun readCanadaMoshi(hole: Blackhole?) = hole?.consume(readMoshi(canadaData))
   @Benchmark
-  fun readCanadaGson(hole: Blackhole?) = hole?.consume(readGson(canadaData))
+  open fun readCanadaGson(hole: Blackhole?) = hole?.consume(readGson(canadaData))
 }
