@@ -33,11 +33,22 @@ is_windows = platform.system() == "Windows"
 # Get the location of the flatc executable
 flatc_exe = Path("flatc.exe" if is_windows else "flatc")
 
+# Path separator
+path_separator  = ";" if is_windows else ":"
+
+# List of paths to search
+path_list = [root_path, Path(root_path, "Debug"), Path(root_path, "Release"), Path(root_path, "out/build/x64-Debug"), Path(root_path, "out/build/x64-Release")]
+
 # Find and assert flatc compiler is present.
-if root_path in flatc_exe.parents:
-    flatc_exe = flatc_exe.relative_to(root_path)
-flatc_path = Path(root_path, flatc_exe)
-assert flatc_path.exists(), "Cannot find the flatc compiler " + str(flatc_path)
+flatc_path = shutil.which(str(flatc_exe), path=path_separator.join([str(path) for path in path_list]))
+
+assert flatc_path is not None, "Cannot find the flatc compiler " + str(flatc_path)
+print("Found: ", flatc_path)
+
+#if root_path in flatc_exe.parents:
+#    flatc_exe = flatc_exe.relative_to(root_path)
+#flatc_path = Path(root_path, flatc_exe)
+# assert flatc_path.exists(), "Cannot find the flatc compiler " + str(flatc_path)
 
 def check_call(args, cwd=tests_path):
     subprocess.check_call(args, cwd=str(cwd), shell=is_windows)

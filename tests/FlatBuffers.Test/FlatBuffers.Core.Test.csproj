@@ -3,6 +3,7 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>netcoreapp3.1</TargetFramework>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
   </PropertyGroup>
 
   <ItemGroup>
@@ -45,6 +46,9 @@
     </Compile>
     <Compile Include="..\..\net\FlatBuffers\FlatBufferConstants.cs">
       <Link>FlatBuffers\FlatBufferConstants.cs</Link>
+    </Compile>
+	 <Compile Include="..\..\net\FlatBuffers\FlatBufferVerify.cs">
+      <Link>FlatBuffers\FlatBufferVerify.cs</Link>
     </Compile>
     <Compile Include="..\..\net\FlatBuffers\Struct.cs">
       <Link>FlatBuffers\Struct.cs</Link>
@@ -183,18 +187,19 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Content Include="..\monsterdata_test.mon">
-      <Link>Resources\monsterdata_test.mon</Link>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="..\monsterdata_test.json">
-      <Link>Resources\monsterdata_test.json</Link>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
+    <None Include="packages.config" />
   </ItemGroup>
-
   <ItemGroup>
     <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
   </ItemGroup>
+  <Target Name="PostBuild" AfterTargets="PostBuildEvent">
+    <ItemGroup>
+      <TestFiles Include="$(ProjectDir)/../monsterdata_test.mon;$(ProjectDir)/../monsterdata_test.json" />
+    </ItemGroup>
+    <Copy
+        SourceFiles="@(TestFiles)"
+        DestinationFolder="$(TargetDir)/.."
+    />
+  </Target>
 
 </Project>

@@ -7,7 +7,7 @@ import (
 	"math"
 	flatbuffers "github.com/google/flatbuffers/go"
 
-	MyGame "MyGame"
+	MyGame "tests/MyGame"
 )
 
 /// an example documentation comment: "monster object"

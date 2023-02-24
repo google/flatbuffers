@@ -17,12 +17,12 @@
 package main
 
 import (
-	order "order"
-	pizza "Pizza"
-	mygame "MyGame"          // refers to generated code
-	example "MyGame/Example" // refers to generated code
+	order "tests/order"
+	pizza "tests/Pizza"
+	mygame "tests/MyGame"                     // refers to generated code
+	example "tests/MyGame/Example"            // refers to generated code
 	"encoding/json"
-	optional_scalars "optional_scalars" // refers to generated code
+	optional_scalars "tests/optional_scalars" // refers to generated code
 
 	"bytes"
 	"flag"
@@ -157,6 +157,7 @@ func TestAll(t *testing.T) {
 	CheckReadBuffer(monsterDataCpp, 0, false, t.Fatalf)
 	CheckMutateBuffer(monsterDataCpp, 0, false, t.Fatalf)
 	CheckObjectAPI(monsterDataCpp, 0, false, t.Fatalf)
+	CheckVerifier(monsterDataCpp, false, t.Fatalf)
 
 	// Verify that vtables are deduplicated when written:
 	CheckVtableDeduplication(t.Fatalf)
@@ -219,6 +220,12 @@ func TestAll(t *testing.T) {
 // CheckReadBuffer checks that the given buffer is evaluated correctly
 // as the example Monster.
 func CheckReadBuffer(buf []byte, offset flatbuffers.UOffsetT, sizePrefix bool, fail func(string, ...interface{})) {
+
+	verifier := flatbuffers.NewVerifier(buf, offset)
+	if !verifier.VerifyBuffer(nil, sizePrefix, example.MonsterVerify) {
+		fail("CheckReadBuffer failed - invalid buffer data")
+	}
+
 	// try the two ways of generating a monster
 	var monster1 *example.Monster
 	monster2 := &example.Monster{}
@@ -398,6 +405,11 @@ func CheckMutateBuffer(org []byte, offset flatbuffers.UOffsetT, sizePrefix bool,
 	buf := make([]byte, len(org))
 	copy(buf, org)
 
+	verifier := flatbuffers.NewVerifier(buf, offset)
+	if !verifier.VerifyBuffer(nil, sizePrefix, example.MonsterVerify) {
+		fail("CheckMutateBuffer failed - invalid buffer data")
+	}
+
 	// load monster data from the buffer
 	var monster *example.Monster
 	if sizePrefix {
@@ -542,6 +554,11 @@ func CheckMutateBuffer(org []byte, offset flatbuffers.UOffsetT, sizePrefix bool,
 }
 
 func CheckObjectAPI(buf []byte, offset flatbuffers.UOffsetT, sizePrefix bool, fail func(string, ...interface{})) {
+	verifier := flatbuffers.NewVerifier(buf, offset)
+	if !verifier.VerifyBuffer(nil, sizePrefix, example.MonsterVerify) {
+		fail("CheckObjectAPI failed - invalid buffer data")
+	}
+
 	var monster *example.MonsterT
 
 	if sizePrefix {
@@ -573,6 +590,264 @@ func CheckObjectAPI(buf []byte, offset flatbuffers.UOffsetT, sizePrefix bool, fa
 	if !reflect.DeepEqual(monster, monster2) {
 		fail(FailString("Pack/Unpack()", monster, monster2))
 	}
+}
+
+func SetVOffset(t flatbuffers.Table, offsetId flatbuffers.VOffsetT, wrongValue flatbuffers.VOffsetT) bool {
+	result := false
+
+	vtable := flatbuffers.UOffsetT(flatbuffers.SOffsetT(t.Pos) - t.GetSOffsetT(t.Pos))
+	if offsetId < t.GetVOffsetT(vtable) {
+		offset := vtable + flatbuffers.UOffsetT(offsetId)
+		if offset != 0 {
+			result = t.MutateVOffsetT(flatbuffers.UOffsetT(offset), wrongValue)
+		}
+	}
+	return result
+}
+
+func IncreaseVOffset(t flatbuffers.Table, offsetId flatbuffers.VOffsetT, increaseValue flatbuffers.VOffsetT) bool {
+	result := false
+
+	vtable := flatbuffers.UOffsetT(flatbuffers.SOffsetT(t.Pos) - t.GetSOffsetT(t.Pos))
+	if offsetId < t.GetVOffsetT(vtable) {
+		offset := vtable + flatbuffers.UOffsetT(offsetId)
+		if offset != 0 {
+			oldvalue := t.GetVOffsetT(flatbuffers.UOffsetT(offset))
+			result = t.MutateVOffsetT(flatbuffers.UOffsetT(offset), oldvalue+increaseValue)
+		}
+	}
+	return result
+}
+
+func SetDataOffset(t flatbuffers.Table, offsetId flatbuffers.VOffsetT, wrongValue flatbuffers.UOffsetT) bool {
+	result := false
+
+	vtable := flatbuffers.UOffsetT(flatbuffers.SOffsetT(t.Pos) - t.GetSOffsetT(t.Pos))
+	if offsetId < t.GetVOffsetT(vtable) {
+		offset := vtable + flatbuffers.UOffsetT(offsetId)
+		if offset != 0 {
+			// Data area offset in table internal storage
+			tableDataOffset := t.Pos + flatbuffers.GetUOffsetT(t.Bytes[vtable+flatbuffers.UOffsetT(offsetId):])
+			result = t.MutateUOffsetT(flatbuffers.UOffsetT(tableDataOffset), wrongValue)
+		}
+	}
+	return result
+}
+
+func IncreaseDataOffset(t flatbuffers.Table, offsetId flatbuffers.VOffsetT, increaseValue flatbuffers.UOffsetT) bool {
+	result := false
+
+	vtable := flatbuffers.UOffsetT(flatbuffers.SOffsetT(t.Pos) - t.GetSOffsetT(t.Pos))
+	if offsetId < t.GetVOffsetT(vtable) {
+		// Get offset in VTable
+		offset := vtable + flatbuffers.UOffsetT(offsetId)
+		if offset != 0 {
+			// Offset from VTable point to table data area
+			tableDataOffset := t.Pos + t.GetUOffsetT(flatbuffers.UOffsetT(offset))
+			// Modify offset
+			oldvalue := t.GetUOffsetT(flatbuffers.UOffsetT(tableDataOffset))
+			result = t.MutateUOffsetT(flatbuffers.UOffsetT(tableDataOffset), oldvalue+increaseValue)
+		}
+	}
+	return result
+}
+
+func SetDataBufferLength(t flatbuffers.Table, offsetId flatbuffers.VOffsetT, newLength int32) bool {
+	result := false
+
+	vtable := flatbuffers.UOffsetT(flatbuffers.SOffsetT(t.Pos) - t.GetSOffsetT(t.Pos))
+	if offsetId < t.GetVOffsetT(vtable) {
+		// Get offset in VTable
+		offset := vtable + flatbuffers.UOffsetT(offsetId)
+		if offset != 0 {
+			// Offset from VTable point to table data area
+			tableDataOffset := t.Pos + t.GetUOffsetT(flatbuffers.UOffsetT(offset))
+			// Data is placed somewhere in area of buffer
+			dataOffset := tableDataOffset + t.GetUOffsetT(flatbuffers.UOffsetT(tableDataOffset))
+			// Get table length and modify
+			result = t.MutateInt32(flatbuffers.UOffsetT(dataOffset), newLength)
+		}
+	}
+	return result
+}
+
+func CheckVerifierVOffsetAlignment(buf []byte, sizePrefix bool, offsetId flatbuffers.VOffsetT, fail func(string, ...interface{})) {
+	var monster *example.Monster
+
+	workBuf := make([]byte, len(buf))
+	copy(workBuf, buf)
+
+	if sizePrefix {
+		monster = example.GetSizePrefixedRootAsMonster(workBuf, 0)
+	} else {
+		monster = example.GetRootAsMonster(workBuf, 0)
+	}
+
+	IncreaseVOffset(monster.Table(), offsetId, 1)
+
+	// Check that valid buffer is successfully validated
+	verifier := flatbuffers.NewVerifier(workBuf)
+	isValid := verifier.VerifyBuffer(nil, sizePrefix, example.MonsterVerify)
+	if isValid {
+		fail("CheckVerifierVOffsetAlignment failed - expected invalid data")
+	}
+}
+
+func CheckVerifierVOffsetValue(buf []byte, sizePrefix bool, offsetId flatbuffers.VOffsetT, fail func(string, ...interface{})) {
+	var monster *example.Monster
+
+	workBuf := make([]byte, len(buf))
+	copy(workBuf, buf)
+
+	if sizePrefix {
+		monster = example.GetSizePrefixedRootAsMonster(workBuf, 0)
+	} else {
+		monster = example.GetRootAsMonster(workBuf, 0)
+	}
+
+	SetVOffset(monster.Table(), offsetId, flatbuffers.VOffsetT(len(workBuf)+1))
+
+	// Check that valid buffer is successfully validated
+	verifier := flatbuffers.NewVerifier(workBuf)
+	isValid := verifier.VerifyBuffer(nil, sizePrefix, example.MonsterVerify)
+	if isValid {
+		fail("CheckVerifierVOffsetValue failed - expected invalid data")
+	}
+}
+
+func CheckVerifierDataOffsetAlignment(buf []byte, sizePrefix bool, offsetId flatbuffers.VOffsetT, fail func(string, ...interface{})) {
+	var monster *example.Monster
+
+	workBuf := make([]byte, len(buf))
+	copy(workBuf, buf)
+
+	if sizePrefix {
+		monster = example.GetSizePrefixedRootAsMonster(workBuf, 0)
+	} else {
+		monster = example.GetRootAsMonster(workBuf, 0)
+	}
+
+	IncreaseDataOffset(monster.Table(), offsetId, 1)
+
+	// Check that valid buffer is successfully validated
+	verifier := flatbuffers.NewVerifier(workBuf)
+	isValid := verifier.VerifyBuffer(nil, sizePrefix, example.MonsterVerify)
+	if isValid {
+		fail("CheckVerifierDataOffsetAlignment failed - expected invalid data")
+	}
+}
+
+func CheckVerifierDataOffsetValue(buf []byte, sizePrefix bool, offsetId flatbuffers.VOffsetT, fail func(string, ...interface{})) {
+	var monster *example.Monster
+
+	workBuf := make([]byte, len(buf))
+	copy(workBuf, buf)
+
+	if sizePrefix {
+		monster = example.GetSizePrefixedRootAsMonster(workBuf, 0)
+	} else {
+		monster = example.GetRootAsMonster(workBuf, 0)
+	}
+
+	SetDataOffset(monster.Table(), offsetId, flatbuffers.UOffsetT(len(workBuf)+1))
+
+	// Check that valid buffer is successfully validated
+	verifier := flatbuffers.NewVerifier(workBuf)
+	isValid := verifier.VerifyBuffer(nil, sizePrefix, example.MonsterVerify)
+	if isValid {
+		fail("CheckVerifierDataOffsetValue failed - expected invalid data")
+	}
+}
+
+func CheckVerifierDataLength(buf []byte, sizePrefix bool, offsetId flatbuffers.VOffsetT, fail func(string, ...interface{})) {
+	var monster *example.Monster
+
+	workBuf := make([]byte, len(buf))
+	copy(workBuf, buf)
+
+	if sizePrefix {
+		monster = example.GetSizePrefixedRootAsMonster(workBuf, 0)
+	} else {
+		monster = example.GetRootAsMonster(workBuf, 0)
+	}
+
+	SetDataBufferLength(monster.Table(), offsetId, int32(len(workBuf)+1))
+
+	// Check that valid buffer is successfully validated
+	verifier := flatbuffers.NewVerifier(workBuf)
+	isValid := verifier.VerifyBuffer(nil, sizePrefix, example.MonsterVerify)
+	if isValid {
+		fail("CheckVerifierDataLength failed - expected invalid data")
+	}
+}
+
+func CheckVerifierNestedBuffer(fail func(string, ...interface{})) {
+	// Monster nested child 
+	nestedBuilder := flatbuffers.NewBuilder(0)
+	example.MonsterStartInventoryVector(nestedBuilder, 100)
+	for i := byte(0); i < 100; i++ {
+		nestedBuilder.PrependByte(i)
+	}
+	nestedInv := nestedBuilder.EndVector(5)
+	nestedStringVal := nestedBuilder.CreateString("MyNestedMonster")
+	example.MonsterStart(nestedBuilder)
+	example.MonsterAddPos(nestedBuilder, example.CreateVec3(nestedBuilder, 10.0, 20.0, 30.0, 30.0, example.ColorGreen, 5, 6))
+	example.MonsterAddHp(nestedBuilder, 180)
+	example.MonsterAddName(nestedBuilder, nestedStringVal)
+	example.MonsterAddInventory(nestedBuilder, nestedInv)
+	example.MonsterAddColor(nestedBuilder, example.ColorRed)
+	nestedBuilder.Finish(example.MonsterEnd(nestedBuilder))
+	nestedBuffer := nestedBuilder.Bytes[nestedBuilder.Head():]
+
+	// Monster main 
+	builder := flatbuffers.NewBuilder(0)
+	example.MonsterStartInventoryVector(builder, 100)
+	for i := byte(0); i < 100; i++ {
+		builder.PrependByte(i)
+	}
+	inv := builder.EndVector(100)
+	nestedflatbufferOffset := builder.CreateByteVector(nestedBuffer)
+	stringOffset := builder.CreateString("MyMonster")
+	example.MonsterStart(builder)
+	example.MonsterAddPos(builder, example.CreateVec3(builder, 1.0, 2.0, 3.0, 3.0, example.ColorRed, 5, 6))
+	example.MonsterAddHp(builder, 80)
+	example.MonsterAddName(builder, stringOffset)
+	example.MonsterAddInventory(builder, inv)
+	example.MonsterAddColor(builder, example.ColorRed)
+	example.MonsterAddTestnestedflatbuffer(builder, nestedflatbufferOffset)
+	builder.Finish(example.MonsterEnd(builder))
+
+	// Check that valid buffer is successfully validated
+	verifier := flatbuffers.NewVerifier(builder.Bytes, builder.Head())
+	isValid := verifier.VerifyBuffer(nil, false, example.MonsterVerify)
+	if ! isValid {
+		fail("CheckVerifierNestedBuffer failed - expected valid data")
+	}
+}
+
+func CheckVerifier(buf []byte, sizePrefix bool, fail func(string, ...interface{})) {
+	var isValid bool
+
+	// Check that valid buffer is successfully validated
+	verifier := flatbuffers.NewVerifier(buf)
+	isValid = verifier.VerifyBuffer(nil, sizePrefix, example.MonsterVerify)
+	if !isValid {
+		fail("CheckVerifier failed - expected valid data")
+	}
+	// Check that invalid buffer validation fails
+	isValid = verifier.VerifyBuffer(nil, sizePrefix, example.StatVerify)
+	if isValid {
+		fail("CheckVerifier failed - expected invalid data")
+	}
+	// Now perform basic tests
+	CheckVerifierVOffsetValue(buf, sizePrefix, 4 /*Pos*/, fail)
+	CheckVerifierVOffsetAlignment(buf, sizePrefix, 4 /*Pos*/, fail)
+	CheckVerifierVOffsetValue(buf, sizePrefix, 40 /*Testhashs64Fnv1*/, fail)
+	CheckVerifierVOffsetAlignment(buf, sizePrefix, 40 /*Testhashs64Fnv1*/, fail)
+	CheckVerifierDataOffsetAlignment(buf, sizePrefix, 14 /*Inventory*/, fail)
+	CheckVerifierDataOffsetValue(buf, sizePrefix, 14 /*Inventory*/, fail)
+	CheckVerifierDataLength(buf, sizePrefix, 14 /*Inventory*/, fail)
+	CheckVerifierNestedBuffer(fail)
 }
 
 // Low level stress/fuzz test: serialize/deserialize a variety of
@@ -1637,6 +1912,12 @@ func CheckEnumValues(fail func(string, ...interface{})) {
 // CheckDocExample checks that the code given in FlatBuffers documentation
 // is syntactically correct.
 func CheckDocExample(buf []byte, off flatbuffers.UOffsetT, fail func(string, ...interface{})) {
+
+	inputVerifier := flatbuffers.NewVerifier(buf, off)
+	if !inputVerifier.VerifyBuffer(nil, false, example.MonsterVerify) {
+		fail("CheckDocExample failed - invalid buffer data")
+	}
+
 	monster := example.GetRootAsMonster(buf, off)
 	_ = monster.Hp()
 	_ = monster.Pos(nil)
@@ -1644,8 +1925,8 @@ func CheckDocExample(buf []byte, off flatbuffers.UOffsetT, fail func(string, ...
 		_ = monster.Inventory(i) // do something here
 	}
 
+	// Create new Monster and verify it
 	builder := flatbuffers.NewBuilder(0)
-
 	example.MonsterStartInventoryVector(builder, 5)
 	for i := 4; i >= 0; i-- {
 		builder.PrependByte(byte(i))
@@ -1658,11 +1939,46 @@ func CheckDocExample(buf []byte, off flatbuffers.UOffsetT, fail func(string, ...
 	example.MonsterAddHp(builder, 80)
 	example.MonsterAddName(builder, str)
 	example.MonsterAddInventory(builder, inv)
-	example.MonsterAddTestType(builder, 1)
+	example.MonsterAddTestType(builder, 100) // The llegal id defines valid (undefined) union type
 	example.MonsterAddColor(builder, example.ColorRed)
 	// example.MonsterAddTest(builder, mon2)
 	// example.MonsterAddTest4(builder, test4s)
-	_ = example.MonsterEnd(builder)
+	m := example.MonsterEnd(builder)
+	builder.Finish(m)
+
+	// Check that valid buffer is successfully validated
+	exampleVerifier := flatbuffers.NewVerifier(builder.FinishedBytes())
+	if !exampleVerifier.VerifyBuffer(nil, false, example.MonsterVerify) {
+		fail("CheckDocExample failed - invalid example data")
+	}
+
+	// Create new Monster and verify it
+	builder = flatbuffers.NewBuilder(0)
+	example.MonsterStartInventoryVector(builder, 5)
+	for i := 4; i >= 0; i-- {
+		builder.PrependByte(byte(i))
+	}
+	inv = builder.EndVector(5)
+
+	str = builder.CreateString("MyMonster")
+	example.MonsterStart(builder)
+	example.MonsterAddPos(builder, example.CreateVec3(builder, 1.0, 2.0, 3.0, 3.0, example.Color(4), 5, 6))
+	example.MonsterAddHp(builder, 80)
+	example.MonsterAddName(builder, str)
+	example.MonsterAddInventory(builder, inv)
+	example.MonsterAddTestType(builder, 1) // The legal id without data defines invalid union
+	example.MonsterAddColor(builder, example.ColorRed)
+	// example.MonsterAddTest(builder, mon2)
+	// example.MonsterAddTest4(builder, test4s)
+	m = example.MonsterEnd(builder)
+	builder.Finish(m)
+
+	// Check that invalid buffer (illegal union) is recognized as invalid
+	exampleVerifier = flatbuffers.NewVerifier(builder.FinishedBytes())
+	if exampleVerifier.VerifyBuffer(nil, false, example.MonsterVerify) {
+		fail("CheckDocExample failed - invalid example data")
+	}
+
 }
 
 func CheckCreateByteVector(fail func(string, ...interface{})) {

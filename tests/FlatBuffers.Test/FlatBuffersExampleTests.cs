@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+using System;
 using System.IO;
 using System.Text;
 using System.Threading;
@@ -33,7 +34,434 @@ namespace Google.FlatBuffers.Test
             TestEnums();
         }
 
-        [FlatBuffersTestMethod]
+        /// <summary> Verify Byte Buffor Method - Input: Bytebuffer for testing and VerifyTableAction method </summary>
+        public bool VerifyBuffer(ByteBuffer fbb, VerifyTableAction verifyAction)
+        {
+           bool result = false;
+           Verifier verifier = new Verifier(fbb);
+           result = verifier.VerifyBuffer("MONS", false, verifyAction);
+           return result;
+        }
+        /// <summary> Method Return U Offset value (type: [unsigned integer] - 4bytes) on position in the flat byte buffer </summary>
+        /// <param name="fbb"> Input flat byte buffer defined as ByteBuffer type </param>
+        /// <param name="pos"> Base Position in the FlatBuffer </param>
+        /// <returns> Return U Offset value </returns>
+        public uint ReadUOffsetT(ByteBuffer fbb, uint pos)
+        {
+           uint result = 0;
+           if ((pos >= 0) && (pos <= System.Int32.MaxValue))
+           {
+              result = fbb.GetUint(Convert.ToInt32(pos));
+           }
+           return result;
+        }
+        /// <summary> Method Return S Offset value (type: [signed integer] - 4bytes) on position in the flat byte buffer </summary>
+        /// <param name="fbb"> Input flat byte buffer defined as ByteBuffer type </param>
+        /// <param name="pos"> Base Position in the FlatBuffer </param>
+        /// <returns> Return S Offset value </returns>
+        public int ReadSOffsetT(ByteBuffer fbb, uint pos)
+        {
+           int result = 0;
+           if ((pos >= 0) && (pos <= System.Int32.MaxValue))
+           {
+             result = fbb.GetInt(Convert.ToInt32(pos));
+           }
+           return result;
+        }
+        /// <summary> Method Return V Offset value (type: [short] - 2bytes) on position in the flat byte buffer </summary>
+        /// <param name="fbb"> Input flat byte buffer defined as ByteBuffer type </param>
+        /// <param name="pos"> Base Position in the FlatBuffer </param>
+        /// <returns> Return V Offset value </returns>
+        public short ReadVOffsetT(ByteBuffer fbb, uint pos)
+        {
+           short result = 0;
+           if ((pos >= 0) && (pos <= System.Int32.MaxValue))
+           {
+             result = fbb.GetShort(Convert.ToInt32(pos));
+           }
+           return result;
+        }
+   
+        /// <summary> Method calculate correct offset and get Relative V Offset (type: [short] - 2bytes) value from fbb FlatBuffer.
+        ///           In the method is calculate the offset position from pos value and vtableOffset value </summary>
+        /// <param name="fbb"> Input Flat Byte Buffer use to modify (defined as ByteBuffer) </param>
+        /// <param name="pos"> Base Position in the FlatBuffer </param>
+        /// <param name="vtableOffset"> Offset value to element</param>
+        /// <returns> Return Relative V Offset value </returns>
+        public short GetVRelOffset(ByteBuffer fbb, uint pos, uint vtableOffset)
+        {
+           // First, get vtable offset
+           uint vtable = pos - Convert.ToUInt32(ReadSOffsetT(fbb, pos));
+           // Check that offset points to vtable area (is smaller than vtable size)
+           if (vtableOffset < ReadVOffsetT(fbb, vtable))
+           {
+              // Now, we can read offset value - TODO check this value against size of table data
+              return ReadVOffsetT(fbb, vtable + vtableOffset);
+           }
+           return 0;
+        }
+        /// <summary> Method set the new value in the V Offset (type: [short] - 2bytes) in offset position in the FlatBuffer.
+        ///           In the method is calculate the offset position for V Offset from pos value and offsetId value </summary>
+        /// <param name="fbb"> Input Flat Byte Buffer use to modify (defined as ByteBuffer) </param>
+        /// <param name="pos"> Base Position in the FlatBuffer </param>
+        /// <param name="offsetId"> Offset value to element</param>
+        /// <param name="newValue"> New Value of the V Offset value in offset position</param>
+        /// <returns> Return True when the newValue is set correctly </returns>
+        public bool SetVOffset(ByteBuffer fbb, uint pos, uint offsetId, short newValue)
+        {
+           bool result = false;
+           uint vtable = pos - Convert.ToUInt32(ReadSOffsetT(fbb, pos));
+           if (offsetId < ReadVOffsetT(fbb, vtable))
+           {
+              uint offset = vtable + offsetId;
+
+              if (offset != 0)
+              {
+                 fbb.PutShort(Convert.ToInt32(offset), newValue);
+                 result = true;
+              }
+           }
+           return result;
+        }
+
+        /// <summary> Method increase the V Offset value (type: [short] - 2bytes) in offset position in the FlatBuffer.
+        ///           In the method is calculate the offset position from pos value and offsetId value </summary>
+        /// <param name="fbb"> Input Flat Byte Buffer use to modify (defined as ByteBuffer) </param>
+        /// <param name="pos"> Base Position in the FlatBuffer </param>
+        /// <param name="offsetId"> Offset value to element</param>
+        /// <param name="increaseValue"> Value which will add to current value of the V Offset in the offset position</param>
+        /// <returns> Return True when the increaseValue is added correctly </returns>
+        public bool IncreaseVOffset(ByteBuffer fbb, uint pos, uint offsetId, short increaseValue)
+        {
+           bool result = false;
+           uint vtable = pos - Convert.ToUInt32(ReadSOffsetT(fbb, pos));
+           if (offsetId < ReadVOffsetT(fbb, vtable))
+           {
+           uint offset = vtable + offsetId;
+
+             if (offset != 0)
+             {
+               short oldvalue = ReadVOffsetT(fbb, offset);
+               fbb.PutShort(Convert.ToInt32(offset), Convert.ToInt16(oldvalue + increaseValue));
+               result = true;
+             }
+           }
+           return result;
+        }
+    
+        /// <summary> Method Set the new value of the Data Offset (type: [unsigned integer] - 4bytes) in tableDataOffset position in the FlatBuffer.
+        ///           In the method is calculate the position tableDataOffset from pos value and offsetId value </summary>
+        /// <param name="fbb"> Input Flat Byte Buffer use to modify (defined as ByteBuffer) </param>
+        /// <param name="pos"> Base Position in the FlatBuffer </param>
+        /// <param name="offsetId"> Offset value to element</param>
+        /// <param name="newValue"> New Value which will set as DataOffset in the tableDataOffset position</param>
+        /// <returns> Return True when the newValue is set correctly </returns>
+        public bool SetDataOffset(ByteBuffer fbb, uint pos, uint offsetId, uint newValue)
+        {
+           bool result = false;
+           uint vtable = Convert.ToUInt32(pos - ReadSOffsetT(fbb, pos));
+           if (offsetId < ReadVOffsetT(fbb, vtable))
+           {
+             uint offset = vtable + offsetId;
+             if (offset != 0)
+             {
+                // Data area offset in table internal storage
+                uint tableDataOffset = pos + ReadUOffsetT(fbb, vtable + offsetId);
+                fbb.PutUint(Convert.ToInt32(tableDataOffset), newValue);
+                result = true;
+             }
+           }
+           return result;
+        }
+        /// <summary> Method Increase the current DataOffset in tableDataOffset position in the FlatBuffer.
+        ///           In the method is calculate the position tableDataOffset from pos value and offsetId value </summary>
+        /// <param name="fbb"> Input Flat Byte Buffer use to modify (defined as ByteBuffer) </param>
+        /// <param name="pos"> Base Position in the FlatBuffer </param>
+        /// <param name="offsetId"> Offset value to element</param>
+        /// <param name="increaseValue"> Value which will add to current value of the DataOffset in the tableDataOffset position</param>
+        /// <returns> Return True when the increaseValue is added correctly </returns>
+        public bool IncreaseDataOffset(ByteBuffer fbb, uint pos, uint offsetId, uint increaseValue)
+        {
+           bool result = false;
+           uint vtable = Convert.ToUInt32(pos - ReadSOffsetT(fbb, pos));
+           if (offsetId < ReadVOffsetT(fbb, vtable))
+           {
+              uint offset = vtable + offsetId;
+              if (offset != 0)
+              {
+                 // Data area offset in table internal storage
+                 uint tableDataOffset = pos + ReadUOffsetT(fbb, vtable + offsetId);
+                 // Read old data offset value
+                 uint oldValue = ReadUOffsetT(fbb, tableDataOffset);
+                 // Modify data offset - add to oldValue offset to the incease value 
+                 fbb.PutUint(Convert.ToInt32(tableDataOffset), oldValue + increaseValue);
+                 result = true;
+              }
+           }
+           return result;
+        }
+        /// <summary> Method Set the newLength for the Data Buffer Length in dataOffset position in the FlatBuffer.
+        ///           In the method is calculate the position dataOffset from pos value and offsetId value </summary>
+        /// <param name="fbb"> Input Flat Byte Buffer to modify (defined as ByteBuffer) </param>
+        /// <param name="pos"> Base Position in the FlatBuffer </param>
+        /// <param name="offsetId"> Offset value to element</param>
+        /// <param name="newLength"> New Value of the Data Buffer Length in dataOffset position</param>
+        /// <returns> Return True when the newLength value is set correctly </returns>
+        public bool SetDataBufferLength(ByteBuffer fbb, uint pos, uint offsetId, uint newLength)
+        {
+           bool result = false;
+           uint vtable = (uint)(pos - ReadSOffsetT(fbb, pos));
+           if (offsetId < ReadVOffsetT(fbb, vtable))
+           {
+              uint offset = vtable + offsetId;
+              if (offset != 0)
+              {
+                 // Read Table Data area offset in table internal storage
+                 uint tableDataOffset = pos + ReadUOffsetT(fbb, vtable + offsetId);
+                 // Read Data offset area of buffer
+                 uint dataOffset = tableDataOffset + ReadUOffsetT(fbb, tableDataOffset);
+                 // Write the new lenght for dataOffset
+                 fbb.PutUint(Convert.ToInt32(dataOffset), newLength);
+                 result = true;
+              }
+           }
+           return result;
+        }
+        /// <summary> Method for Check in the Verifier Module the checking of the V Offset Alignment set in the offsetId position.
+        ///           The Method modify correct Value of the V Offset Alignment to wrong Value in the Flatbuffer (In the test the current Value of V Offset Alignment is increase +1).
+        ///           Expected Result of the test should be: Failure (false) </summary>
+        /// <param name="fbb"> Flat Byte Buffer used to test of the Verifier module - FlatBuffer is defined as ByteBuffer</param>
+        /// <param name="sizePrefix"> Size Prefix Flag - When is set as "true" then buffer is prefixed with content size</param>
+        /// <param name="offsetId"> Offset value to the V Offset Alignment</param>
+        /// <returns> Return True when the result if the test is equal with Expected Result </returns>
+        public bool CheckVerifierVOffsetAlignment(ByteBuffer fbb, bool sizePrefix, uint offsetId)
+        {
+           // Create and Copy the new tfbb test flatbuffer for testing (with modyfied stucture)
+           ByteBuffer tfbb = new ByteBuffer(fbb.ToArray(0, fbb.Length), 0);
+
+           uint pos = ReadUOffsetT(tfbb, 0);
+
+           bool result = IncreaseVOffset(tfbb, pos, offsetId, 1);
+
+           // Check that valid buffer is successfully validated
+           Verifier verifier = new Verifier(tfbb);
+           verifier.SetStringCheck(true);
+           verifier.SetAlignmentCheck(true);
+
+           bool isValid = verifier.VerifyBuffer("MONS", sizePrefix, MonsterVerify.Verify);
+           Assert.IsFalse(isValid);
+           return !isValid;
+        }
+
+        /// <summary> Method for Check in the Verifier Module the checking of the V Offset Value set in the offsetId position.
+        ///           The Method modify correct Value of the V Offset Value to wrong Value in the Flatbuffer(The wrong Value of V Offset is set as (fbb.Lenght +1) value).
+        ///           Expected Result of the test should be: Failure (false) </summary>
+        /// <param name="fbb"> Flat Byte Buffer used to test of the Verifier module - FlatBuffer is defined as ByteBuffer</param>
+        /// <param name="sizePrefix"> Size Prefix Flag - When is set as "true" then buffer is prefixed with content size</param>
+        /// <param name="offsetId"> Offset value to the V Offset value</param>
+        /// <returns> Return True when the result if the test is equal with Expected Result </returns>
+        public bool CheckVerifierVOffsetValue(ByteBuffer fbb, bool sizePrefix, uint offsetId)
+        {
+           // Create and Copy the new tfbb test flatbuffer for testing (with modyfied stucture)
+           ByteBuffer tfbb = new ByteBuffer(fbb.ToArray(0, fbb.Length), 0);
+
+           uint pos = ReadUOffsetT(tfbb, 0);
+
+           SetVOffset(tfbb, pos, offsetId, Convert.ToInt16(tfbb.Length + 1));
+
+           // Check that valid buffer is successfully validated
+           Verifier verifier = new Verifier(tfbb);
+
+           verifier.SetStringCheck(true);
+           verifier.SetAlignmentCheck(true);
+
+           bool isValid = verifier.VerifyBuffer("MONS", sizePrefix, MonsterVerify.Verify);
+           Assert.IsFalse(isValid);
+           return !isValid;
+        }
+
+        /// <summary> Method for Check in the Verifier Module the checking of the Data Offset Alignment set in the offsetId position.
+        ///           The Method modify correct Value of the Data Offset Alignment to wrong Value in the Flatbuffer(In the test the current Value of Data Offset Alignment is increase +1).
+        ///           Expected Result of the test should be: Failure (false) </summary>
+        /// <param name="fbb"> Flat Byte Buffer used to test of the Verifier module - FlatBuffer is defined as ByteBuffer</param>
+        /// <param name="sizePrefix"> Size Prefix Flag - When is set as "true" then buffer is prefixed with content size</param>
+        /// <param name="offsetId"> Offset value for the check Data Offset Alignment value</param>
+        /// <returns> Return True when the result if the test is equal with Expected Result </returns>
+        public bool CheckVerifierDataOffsetAlignment(ByteBuffer fbb, bool sizePrefix, uint offsetId)
+        {
+           // Create and Copy the new tfbb test flatbuffer for testing (with modyfied stucture)
+           ByteBuffer tfbb = new ByteBuffer(fbb.ToArray(0, fbb.Length), 0);
+           uint pos = ReadUOffsetT(tfbb, 0);
+
+           IncreaseDataOffset(tfbb, pos, offsetId, 1);
+           
+           // Check that valid buffer is successfully validated
+           Verifier verifier = new Verifier(tfbb);
+
+           verifier.SetStringCheck(true);
+           verifier.SetAlignmentCheck(true);
+
+           bool isValid = verifier.VerifyBuffer("MONS", sizePrefix, MonsterVerify.Verify);
+           Assert.IsFalse(isValid);
+           return !isValid;
+        }
+
+        /// <summary> Method for Check in the Verifier Module the checking of the Data Offset Value set in the offsetId position.
+        ///           The Method modify correct Value of the Data Offset to wrong Value in the FlatBuffer (The wrong Value of Data Offset is set as (fbb.Lenght +1) value).
+        ///           Expected Result of the test should be: Failure (false) </summary>
+        /// <param name="fbb"> Flat Byte Buffer used to test of the Verifier module - FlatBuffer is defined as ByteBuffer</param>
+        /// <param name="sizePrefix"> Size Prefix Flag - When is set as "true" then buffer is prefixed with content size</param>
+        /// <param name="offsetId"> Offset value for the check Data Offset value</param>
+        /// <returns> Return True when the result if the test is equal with Expected Result </returns>
+        public bool CheckVerifierDataOffsetValue(ByteBuffer fbb, bool sizePrefix, uint offsetId)
+        {
+
+           // Create and Copy the new tfbb test flatbuffer for testing (with modyfied stucture)
+           ByteBuffer tfbb = new ByteBuffer(fbb.ToArray(0, fbb.Length), 0);
+           uint pos = ReadUOffsetT(tfbb, 0);
+
+           SetDataOffset(tfbb, pos, offsetId, Convert.ToUInt32(tfbb.Length + 1));
+
+           // Check that valid buffer is successfully validated
+           Verifier verifier = new Verifier(tfbb);
+
+           verifier.SetStringCheck(true);
+           verifier.SetAlignmentCheck(true);
+
+           bool isValid = verifier.VerifyBuffer("MONS", sizePrefix, MonsterVerify.Verify);
+           Assert.IsFalse(isValid);
+           return !isValid;
+        }
+        /// <summary> Method for Check in the Verifier Module the checking of the Data Length set in the offsetId. 
+        ///           The Method modify correct Value of the Data Length to wrong Value in the FlatBuffer(The wrong Value of Data Length is set as (fbb.Lenght +1) value).
+        ///           Expected Result of the test should be: Failure (false) </summary>
+        /// <param name="fbb"> Flat Byte Buffer used to test of the Verifier module - FlatBuffer is defined as ByteBuffer</param>
+        /// <param name="sizePrefix"> Size Prefix Flag - When is set as "true" then buffer is prefixed with content size</param>
+        /// <param name="offsetId"> Offset value for the check Data Length value</param>
+        /// <returns> Return True when the result if the test is equal with Expected Result </returns>
+        public bool CheckVerifierDataLength(ByteBuffer fbb, bool sizePrefix, uint offsetId)
+        {
+           // Create and Copy the new tfbb test flatbuffer for testing (with modyfied stucture)
+           ByteBuffer tfbb = new ByteBuffer(fbb.ToArray(0, fbb.Length), 0);
+
+           uint pos = ReadUOffsetT(tfbb, 0);
+
+           SetDataBufferLength(tfbb, pos, offsetId, Convert.ToUInt32(tfbb.Length + 1));
+
+           // Check that valid buffer is successfully validated
+           Verifier verifier = new Verifier(tfbb);
+
+           verifier.SetStringCheck(true);
+           verifier.SetAlignmentCheck(true);
+
+           bool isValid = verifier.VerifyBuffer("MONS", sizePrefix, MonsterVerify.Verify);
+           Assert.IsFalse(isValid);
+           return !isValid;
+        }
+
+        /// <summary> Method for Check in the Verifier Module the checking of the Nested Buffer. 
+        ///           The Method build for test two structure Nested Buffer and Master Buffer (which included Nested Buffer).
+        ///           Expected Result of the test should be: Failure (false) </summary>
+        /// <param name="sizePrefix"> Size Prefix Flag - When is set as "true" then buffer is prefixed with content size</param>
+        /// <returns> Return True when the result if the test is equal with Expected Result </returns>
+        public bool CheckVerifierNestedBuffer(bool sizePrefix)
+        {
+           // Bulid the Moster nested child
+           var fbbNestedBuilder = new FlatBufferBuilder(1);
+           Monster.StartInventoryVector(fbbNestedBuilder, 100);
+           for (byte i = 0; i < 100; i++) 
+           {
+             fbbNestedBuilder.PutByte(i);
+           }
+           VectorOffset fbbNestedInv = fbbNestedBuilder.EndVector();
+           StringOffset fbbNestedStringVal = fbbNestedBuilder.CreateString("MyNestedMonster");
+           Monster.StartMonster(fbbNestedBuilder);
+           Monster.AddPos(fbbNestedBuilder, Vec3.CreateVec3(fbbNestedBuilder, 10.0f, 20.0f, 30.0f, 30.0, Color.Green, (short)5, (sbyte)6));
+           Monster.AddHp(fbbNestedBuilder, (short)180);
+           Monster.AddName(fbbNestedBuilder, fbbNestedStringVal);
+           Monster.AddInventory(fbbNestedBuilder, fbbNestedInv);
+           Monster.AddColor(fbbNestedBuilder, Color.Red);
+           var monNested = Monster.EndMonster(fbbNestedBuilder);
+           if (sizePrefix)
+           {
+              Monster.FinishSizePrefixedMonsterBuffer(fbbNestedBuilder, monNested);
+           }
+           else
+           {
+              Monster.FinishMonsterBuffer(fbbNestedBuilder, monNested);
+           }
+           var nestedBuffer = fbbNestedBuilder.DataBuffer.ToSizedArray();
+
+           // Build the Main Monster
+           var fbbMonsterBuilder = new FlatBufferBuilder(512);
+           Monster.StartInventoryVector(fbbMonsterBuilder, 100);
+           for (byte i = 0; i < 100; i++)
+           {
+              fbbMonsterBuilder.PutByte(i);
+           }
+           VectorOffset fbbNestedMonsterInv = fbbMonsterBuilder.EndVector();
+           var nestedflatbufferOffset = Monster.CreateTestnestedflatbufferVectorBlock(fbbMonsterBuilder, nestedBuffer);
+           StringOffset nestedMonsterStringVal = fbbMonsterBuilder.CreateString("MyMonster");
+           Monster.StartMonster(fbbMonsterBuilder);
+           Monster.AddPos(fbbMonsterBuilder, Vec3.CreateVec3(fbbMonsterBuilder, 1.0f, 2.0f, 3.0f, 3.0, Color.Red, (short)5, (sbyte)6));
+           Monster.AddHp(fbbMonsterBuilder, (short)80);
+           Monster.AddName(fbbMonsterBuilder, nestedMonsterStringVal);
+           Monster.AddInventory(fbbMonsterBuilder, fbbNestedMonsterInv);
+           Monster.AddColor(fbbMonsterBuilder, Color.Red);
+           Monster.AddTestnestedflatbuffer(fbbMonsterBuilder, nestedflatbufferOffset);
+           var monMaster = Monster.EndMonster(fbbMonsterBuilder);
+
+           if (sizePrefix)
+           {
+              Monster.FinishSizePrefixedMonsterBuffer(fbbMonsterBuilder, monMaster);
+           }
+           else
+           {
+              Monster.FinishMonsterBuffer(fbbMonsterBuilder, monMaster);
+           }
+
+           Verifier verifier = new Verifier(fbbMonsterBuilder.DataBuffer);
+           bool isValid = verifier.VerifyBuffer(null, sizePrefix, MonsterVerify.Verify);
+           Assert.IsTrue(isValid);
+           return isValid;
+        }
+
+        /// <summary> Main Method for testing the Verifier module </summary>
+        /// <param name="fbb"> Flat Byte Buffer used to test of the Verifier module - FlatBuffer is defined as ByteBuffer</param>
+        /// <param name="sizePrefix"> Size Prefix Flag - When is set as "true" then buffer is prefixed with content size</param>
+        public void TestVerifier(ByteBuffer fbb, bool sizePrefix = false)
+        {
+           // Check that valid buffer is successfully validated
+           Verifier verifier = new Verifier(fbb);
+
+           verifier.SetStringCheck(true);
+           verifier.SetAlignmentCheck(true);
+
+           bool isValid = verifier.VerifyBuffer("MONS", sizePrefix, MonsterVerify.Verify);
+           Assert.IsTrue(isValid);
+
+           // Check that invalid buffer validation fails
+           isValid = verifier.VerifyBuffer(null, sizePrefix, StatVerify.Verify);
+           Assert.IsFalse(isValid);
+
+           bool result = true;
+           // Perform basic tests for Verify Module
+           // if result == true => Test Passed | if result == false => Test Failed
+           result &= CheckVerifierVOffsetValue(fbb, sizePrefix, 4 /*Pos*/);
+           result &= CheckVerifierVOffsetAlignment(fbb, sizePrefix, 4 /*Pos*/);
+           result &= CheckVerifierVOffsetValue(fbb, sizePrefix, 40 /*Testhashs64Fnv1*/);
+           result &= CheckVerifierVOffsetAlignment(fbb, sizePrefix, 40 /*Testhashs64Fnv1*/);
+           result &= CheckVerifierDataOffsetAlignment(fbb, sizePrefix, 14 /*Inventory*/);
+           result &= CheckVerifierDataOffsetValue(fbb, sizePrefix, 14 /*Inventory*/);
+           result &= CheckVerifierDataLength(fbb, sizePrefix, 14 /*Inventory*/);
+           result &= CheckVerifierNestedBuffer(sizePrefix);
+           Assert.IsTrue(result);
+
+    }
+
+
+
+    [FlatBuffersTestMethod]
         public void CanCreateNewFlatBufferFromScratch()
         {
             CanCreateNewFlatBufferFromScratch(true);
@@ -289,6 +717,9 @@ namespace Google.FlatBuffers.Test
         {
             var data = File.ReadAllBytes(@"../monsterdata_test.mon");
             var bb = new ByteBuffer(data);
+            bool isValid = this.VerifyBuffer(bb, MonsterVerify.Verify);
+            TestVerifier(bb, false);
+
             TestBuffer(bb);
             TestObjectAPI(Monster.GetRootAsMonster(bb));
         }

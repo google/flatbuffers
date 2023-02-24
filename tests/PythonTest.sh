@@ -17,7 +17,7 @@
 pushd "$(dirname $0)" >/dev/null
 test_dir="$(pwd)"
 gen_code_path=${test_dir}
-runtime_library_dir=${test_dir}/../../python
+runtime_library_dir=${test_dir}/../python
 
 # Emit Python code for the example schema in the test dir:
 ${test_dir}/../flatc -p -o ${gen_code_path} -I include_test monster_test.fbs --gen-object-api

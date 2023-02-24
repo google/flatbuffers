@@ -91,6 +91,47 @@ Numpy is not a requirement. If numpy is not installed on your system,
 then attempting to access one of the `*asNumpy()` methods will result
 in a `NumpyRequiredForThisFeature` exception.
 
+## Buffer verification 
+
+As mentioned in [C++ Usage](@ref flatbuffers_guide_use_cpp) buffer
+accessor functions do not verify buffer offsets at run-time. 
+If it is necessary, you can optionally use a buffer verifier before you
+access the data. This verifier will check all offsets, all sizes of
+fields, and null termination of strings to ensure that when a buffer
+is accessed, all reads will end up inside the buffer.
+
+Each root type will have a verification function generated for it,
+e.g. `MonsterVerify` for `Monster` type. This can be called as
+shown:
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.py}
+    # Sequence of calls
+    verifier = flatbuffers.NewVerifier(buf)
+    verifier.SetStringCheck(True)
+    ok = verifier.VerifyBuffer('MONS', False, MonsterVerify)
+    
+    # Or single line call 
+    ok = flatbuffers.NewVerifier(buf).SetStringCheck(True). \
+       VerifyBuffer(b'MONS', False, MonsterVerify)
+       
+    # With data offset parameter
+    dataOffset = 100
+    ok = flatbuffers.NewVerifier(buf, dataOffset). \
+       SetStringCheck(True). \
+       VerifyBuffer(b'MONS', False, MonsterVerify)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+if `ok` is true, the buffer is safe to read.
+
+A second parameter of `VerifyBuffer` specifies whether buffer content is
+size prefixed or not. In the example above, the buffer is assumed to not include
+size prefix (`False`).
+
+Verifier supports options that can be set using appropriate fluent methods:
+* SetMaxDepth - limit the nesting depth. Default: 1000000
+* SetMaxTables - total amount of tables the verifier may encounter. Default: 64
+* SetAlignmentCheck - check content alignment. Default: True
+* SetStringCheck - check if strings contain termination '0' character. Default: True
+ 
+
 ## Text Parsing
 
 There currently is no support for parsing text (Schema's and JSON) directly

@@ -66,6 +66,9 @@
     <Compile Include="..\..\net\FlatBuffers\FlatBufferConstants.cs">
       <Link>FlatBuffers\FlatBufferConstants.cs</Link>
     </Compile>
+    <Compile Include="..\..\net\FlatBuffers\FlatBufferVerify.cs">
+      <Link>FlatBuffers\FlatBufferVerify.cs</Link>
+    </Compile>
     <Compile Include="..\..\net\FlatBuffers\Struct.cs">
       <Link>FlatBuffers\Struct.cs</Link>
     </Compile>
@@ -122,6 +125,9 @@
     </Compile>
     <Compile Include="..\MyGame\Example\NestedStruct.cs">
       <Link>MyGame\Example\NestedStruct.cs</Link>
+    </Compile>
+    <Compile Include="..\MyGame\Example\LongEnum.cs">
+      <Link>MyGame\Example\LongEnum.cs</Link>
     </Compile>
     <Compile Include="..\MyGame\Example\TestEnum.cs">
       <Link>MyGame\Example\TestEnum.cs</Link>
@@ -200,19 +206,12 @@
     <Compile Include="TestTable.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="..\monsterdata_test.mon">
-      <Link>Resources\monsterdata_test.mon</Link>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="..\monsterdata_test.json">
-      <Link>Resources\monsterdata_test.json</Link>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-  </ItemGroup>
-  <ItemGroup>
     <None Include="packages.config" />
   </ItemGroup>
+  <ItemGroup>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it.
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">
@@ -220,4 +219,13 @@
   <Target Name="AfterBuild">
   </Target>
   -->
+  <Target Name="PostBuild" AfterTargets="PostBuildEvent">
+    <ItemGroup>
+      <TestFiles Include="$(ProjectDir)/../monsterdata_test.mon;$(ProjectDir)/../monsterdata_test.json" />
+    </ItemGroup>
+    <Copy
+        SourceFiles="@(TestFiles)"
+        DestinationFolder="$(TargetDir)/.."
+    />
+  </Target>
 </Project>

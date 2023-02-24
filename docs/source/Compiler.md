@@ -155,6 +155,8 @@ Additional options:
 
 -   `--go-namespace` : Generate the overrided namespace in Golang.
 
+-   `--go-module-name` : Add module name prefix to import path in Golang 
+    generated files.
 -   `--go-import` : Generate the overrided import for flatbuffers in Golang.
      (default is "github.com/google/flatbuffers/go").
 
