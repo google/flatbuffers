@@ -392,7 +392,7 @@ class TsGenerator : public BaseGenerator {
     code += "}";
 
     if (enum_def.is_union) {
-      code += GenUnionMapFunc(enum_def.underlying_type, imports);
+      code += GenUnionMappingFunc(enum_def.underlying_type, imports);
       code += GenUnionConvFunc(enum_def.underlying_type, imports);
     }
 
@@ -954,14 +954,14 @@ class TsGenerator : public BaseGenerator {
     return ret;
   }
 
-  std::string GenUnionMapFunc(const Type &union_type, import_set &imports) {
+  std::string GenUnionMappingFunc(const Type &union_type, import_set &imports) {
     if (union_type.enum_def) {
       const auto &enum_def = *union_type.enum_def;
       const auto enum_type = AddImport(imports, enum_def, enum_def).name;
 
-      auto ret = "\n\nexport type " + enum_type + "Mapping = {\n";
-
-      const auto union_enum_loop = [&](bool object_api) {
+      const auto union_mapping_string = [&](bool object_api) {
+        const auto mappingName = object_api ? "MappingT" : "Mapping";
+        auto ret = "\n\nexport type " + enum_type + mappingName + " = {\n";
         for (auto& it : enum_def.Vals()) {
           const auto &ev = *it;
           if (ev.IsZero()) { continue; }
@@ -974,18 +974,14 @@ class TsGenerator : public BaseGenerator {
           ret += "  [" + enum_type + "." + namer_.Variant(ev) + "]: " +
                  union_name + ";\n";
         }
+        ret += "};";
+        return ret;
       };
 
-      union_enum_loop(false);
-
-      ret += "};";
-
+      auto ret = union_mapping_string(false);
       if (parser_.opts.generate_object_based_api) {
-        ret += "\n\nexport type " + enum_type + "MappingT = {\n";
-        union_enum_loop(true);
-        ret += "};";
+        ret += union_mapping_string(true);
       }
-
       return ret;
     }
     FLATBUFFERS_ASSERT(0);
