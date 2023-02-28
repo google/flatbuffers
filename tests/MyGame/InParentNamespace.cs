@@ -47,4 +47,16 @@ public class InParentNamespaceT
 }
 
 
+// Verification function for 'InParentNamespace' table.
+static public class InParentNamespaceVerify
+{
+  static public bool Verify(Google.FlatBuffers.Verifier verifier, uint tablePos)
+  {
+    bool result = true;
+    result = result && verifier.VerifyTableStart(tablePos);
+    result = result && verifier.VerifyTableEnd(tablePos);
+    return result;
+  }
+}
+
 }

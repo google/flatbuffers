@@ -5,6 +5,7 @@
 namespace optional_scalars
 {
 
+[Newtonsoft.Json.JsonConverter(typeof(Newtonsoft.Json.Converters.StringEnumConverter))]
 public enum OptionalByte : sbyte
 {
   None = 0,

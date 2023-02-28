@@ -47,4 +47,16 @@ public class MonsterT
 }
 
 
+// Verification function for 'Monster' table.
+static public class MonsterVerify
+{
+  static public bool Verify(Google.FlatBuffers.Verifier verifier, uint tablePos)
+  {
+    bool result = true;
+    result = result && verifier.VerifyTableStart(tablePos);
+    result = result && verifier.VerifyTableEnd(tablePos);
+    return result;
+  }
+}
+
 }

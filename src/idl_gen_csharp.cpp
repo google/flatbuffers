@@ -631,7 +631,7 @@ class CSharpGenerator : public BaseGenerator {
     code += "static public class " + struct_def.name + "Verify\n";
     code += "{\n";
     code += "  static public bool Verify";
-    code += "(Verifier verifier, uint tablePos)\n";
+    code += "(Google.FlatBuffers.Verifier verifier, uint tablePos)\n";
     code += "  {\n";
     code += "    bool result = true;\n";
     code += "    result = result && verifier.VerifyTableStart(tablePos);\n";
@@ -1595,8 +1595,8 @@ class CSharpGenerator : public BaseGenerator {
           "\n\nstatic public class " + enum_def.name + "Verify\n";
       ret += "{\n";
       ret +=
-          "  static public bool Verify(Verifier verifier, byte "
-          "typeId, uint tablePos)\n";
+          "  static public bool Verify(Google.FlatBuffers.Verifier verifier, "
+          "byte typeId, uint tablePos)\n";
       ret += "  {\n";
       ret += "    bool result = false;\n";
 
