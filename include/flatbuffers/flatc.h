@@ -88,8 +88,6 @@ class FlatCompiler {
   bool RegisterCodeGenerator(const FlatCOption &option,
                              std::shared_ptr<CodeGenerator> code_generator);
 
-  bool IsValidCodeGenerator(const std::string &arg);
-
   int Compile(const FlatCOptions &options);
 
   std::string GetShortUsageString(const std::string &program_name) const;
