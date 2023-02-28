@@ -547,17 +547,6 @@ FlatCOptions FlatCompiler::ParseFromCommandLineArguments(int argc,
         opts.size_prefixed = true;
       } else if (arg == "--") {  // Separator between text and binary inputs.
         options.binary_files_from = options.filenames.size();
-      } else if (arg == "--proto") {
-        opts.proto_mode = true;
-        if (!IsValidCodeGenerator(arg)) {
-          Error("unknown commandline argument: " + arg, true);
-          return options;
-        }
-
-        std::shared_ptr<CodeGenerator> code_generator =
-            code_generators_.find(arg)->second;
-
-        options.generators.push_back(std::move(code_generator));
       } else if (arg == "--proto-namespace-suffix") {
         if (++argi >= argc) Error("missing namespace suffix" + arg, true);
         opts.proto_namespace_suffix = argv[argi];
@@ -660,14 +649,16 @@ FlatCOptions FlatCompiler::ParseFromCommandLineArguments(int argc,
         if (++argi >= argc) Error("missing path following: " + arg, true);
         options.annotate_schema = flatbuffers::PosixPath(argv[argi]);
       } else {
-        // Look up if the command line argument refers to a code generator.
-        if (!IsValidCodeGenerator(arg)) {
+        if (arg == "--proto") { opts.proto_mode = true; }
+
+        auto code_generator_it = code_generators_.find(arg);
+        if (code_generator_it == code_generators_.end()) {
           Error("unknown commandline argument: " + arg, true);
           return options;
         }
 
         std::shared_ptr<CodeGenerator> code_generator =
-            code_generators_.find(arg)->second;
+            code_generator_it->second;
 
         // TODO(derekbailey): remove in favor of just checking if
         // generators.empty().
@@ -1000,11 +991,6 @@ bool FlatCompiler::RegisterCodeGenerator(
   language_options.insert(option);
 
   return true;
-}
-
-bool FlatCompiler::IsValidCodeGenerator(const std::string &arg) {
-  auto code_generator_it = code_generators_.find(arg);
-  return !(code_generator_it == code_generators_.end());
 }
 
 }  // namespace flatbuffers
