@@ -11,6 +11,7 @@ cc_library(
     srcs = [
         "code_generators.cpp",
         "idl_gen_fbs.cpp",
+        "idl_gen_fbs.h",
         "idl_gen_text.cpp",
         "idl_gen_text.h",
         "idl_parser.cpp",

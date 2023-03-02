@@ -15,10 +15,13 @@
  */
 
 // independent from idl_parser, since this code is not needed for most clients
+#include "idl_gen_fbs.h"
+
 #include <unordered_map>
 #include <utility>
 #include <vector>
 
+#include "flatbuffers/code_generator.h"
 #include "flatbuffers/code_generators.h"
 #include "flatbuffers/flatbuffers.h"
 #include "flatbuffers/idl.h"
@@ -130,29 +133,30 @@ static bool ProtobufIdSanityCheck(const StructDef &struct_def,
   const auto &fields = struct_def.fields.vec;
   if (HasNonPositiveFieldId(fields)) {
     // TODO: Use LogCompilerWarn
-    fprintf(stderr,
-                    "Field id in struct %s has a non positive number value\n",
-                    struct_def.name.c_str());
+    fprintf(stderr, "Field id in struct %s has a non positive number value\n",
+            struct_def.name.c_str());
     return false;
   }
 
   if (HasTwiceUsedId(fields)) {
     // TODO: Use LogCompilerWarn
-    fprintf(stderr, "Fields in struct %s have used an id twice\n", struct_def.name.c_str());
+    fprintf(stderr, "Fields in struct %s have used an id twice\n",
+            struct_def.name.c_str());
     return false;
   }
 
   if (HasFieldIdFromReservedIds(fields, struct_def.reserved_ids)) {
     // TODO: Use LogCompilerWarn
-    fprintf(stderr,
-    "Fields in struct %s use id from reserved ids\n", struct_def.name.c_str());
+    fprintf(stderr, "Fields in struct %s use id from reserved ids\n",
+            struct_def.name.c_str());
     return false;
   }
 
   if (gap_action != IDLOptions::ProtoIdGapAction::NO_OP) {
     if (HasGapInProtoId(fields)) {
       // TODO: Use LogCompilerWarn
-      fprintf(stderr, "Fields in struct %s have gap between ids\n", struct_def.name.c_str());
+      fprintf(stderr, "Fields in struct %s have gap between ids\n",
+              struct_def.name.c_str());
       if (gap_action == IDLOptions::ProtoIdGapAction::ERROR) { return false; }
     }
   }
@@ -199,7 +203,8 @@ static ProtobufToFbsIdMap MapProtoIdsToFieldsId(
       }
     } else {
       // TODO: Use LogCompilerWarn
-      fprintf(stderr, "Fields id in struct %s is missing\n", struct_def.name.c_str());
+      fprintf(stderr, "Fields id in struct %s is missing\n",
+              struct_def.name.c_str());
       return {};
     }
   }
@@ -365,6 +370,66 @@ bool GenerateFBS(const Parser &parser, const std::string &path,
           "When you use --proto, that you should check for conformity "
           "yourself, using the existing --conform");
   return SaveFile((path + file_name + ".fbs").c_str(), fbs, false);
+}
+
+namespace {
+
+class FBSCodeGenerator : public CodeGenerator {
+ public:
+  Status GenerateCode(const Parser &parser, const std::string &path,
+                      const std::string &filename) override {
+    if (!GenerateFBS(parser, path, filename)) { return Status::ERROR; }
+    return Status::OK;
+  }
+
+  // Generate code from the provided `buffer` of given `length`. The buffer is a
+  // serialized reflection.fbs.
+  Status GenerateCode(const uint8_t *buffer, int64_t length) override {
+    (void)buffer;
+    (void)length;
+    return Status::NOT_IMPLEMENTED;
+  }
+
+  Status GenerateMakeRule(const Parser &parser, const std::string &path,
+                          const std::string &filename,
+                          std::string &output) override {
+    (void)parser;
+    (void)path;
+    (void)filename;
+    (void)output;
+    return Status::NOT_IMPLEMENTED;
+  }
+
+  Status GenerateGrpcCode(const Parser &parser, const std::string &path,
+                          const std::string &filename) override {
+    (void)parser;
+    (void)path;
+    (void)filename;
+    return Status::NOT_IMPLEMENTED;
+  }
+
+  Status GenerateRootFile(const Parser &parser,
+                          const std::string &path) override {
+    (void)parser;
+    (void)path;
+    return Status::NOT_IMPLEMENTED;
+  }
+
+  bool IsSchemaOnly() const override { return false; }
+
+  bool SupportsBfbsGeneration() const override { return false; }
+
+  bool SupportsRootFileGeneration() const override { return false; }
+
+  IDLOptions::Language Language() const override { return IDLOptions::kProto; }
+
+  std::string LanguageName() const override { return "proto"; }
+};
+
+}  // namespace
+
+std::unique_ptr<CodeGenerator> NewFBSCodeGenerator() {
+  return std::unique_ptr<FBSCodeGenerator>(new FBSCodeGenerator());
 }
 
 }  // namespace flatbuffers

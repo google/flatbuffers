@@ -27,6 +27,7 @@
 #include "idl_gen_cpp.h"
 #include "idl_gen_csharp.h"
 #include "idl_gen_dart.h"
+#include "idl_gen_fbs.h"
 #include "idl_gen_go.h"
 #include "idl_gen_java.h"
 #include "idl_gen_json_schema.h"
@@ -99,6 +100,11 @@ int main(int argc, const char *argv[]) {
       flatbuffers::FlatCOption{ "d", "dart", "",
                                 "Generate Dart classes for tables/structs" },
       flatbuffers::NewDartCodeGenerator());
+
+  flatc.RegisterCodeGenerator(
+      flatbuffers::FlatCOption{ "", "proto", "",
+                                "Input is a .proto, translate to .fbs" },
+      flatbuffers::NewFBSCodeGenerator());
 
   flatc.RegisterCodeGenerator(
       flatbuffers::FlatCOption{ "g", "go", "",
