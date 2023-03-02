@@ -62,4 +62,17 @@ public class ColorTestTableT
 }
 
 
+// Verification function for 'ColorTestTable' table.
+static public class ColorTestTableVerify
+{
+  static public bool Verify(Google.FlatBuffers.Verifier verifier, uint tablePos)
+  {
+    bool result = true;
+    result = result && verifier.VerifyTableStart(tablePos);
+    result = result && verifier.VerifyField(tablePos, 4 /*Color*/, 1 /*global::NamespaceB.Color*/, 1, false);
+    result = result && verifier.VerifyTableEnd(tablePos);
+    return result;
+  }
+}
+
 }

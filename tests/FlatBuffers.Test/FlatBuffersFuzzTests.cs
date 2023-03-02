@@ -204,9 +204,21 @@ namespace Google.FlatBuffers.Test
                 1, // value 0
             },
                 builder.DataBuffer.ToFullArray());
-        }
+            Google.FlatBuffers.Verifier verifier = new Google.FlatBuffers.Verifier(builder.DataBuffer);
+            var offset = 8;
+            // table must be ok
+            Assert.IsTrue(verifier.VerifyTableStart((uint)offset));
+            // First field must be bool
+            Assert.IsTrue(verifier.VerifyField((uint)offset, 4, 1, 1, true));
+            // Check Error: Second field
+            Assert.IsFalse(verifier.VerifyField((uint)offset, 6, 1, 1, true));
+            // Check Error: First field too big alignment
+            Assert.IsFalse(verifier.VerifyField((uint)offset, 4, 1, 2, true));
+            // Check Error: First size to big
+            Assert.IsFalse(verifier.VerifyField((uint)offset, 4, 2, 1, true));
+    }
 
-        [FlatBuffersTestMethod]
+    [FlatBuffersTestMethod]
         public void TestVTableWithOneBool_DefaultValue()
         {
             var builder = new FlatBufferBuilder(1);
@@ -223,16 +235,24 @@ namespace Google.FlatBuffers.Test
                 4, 0, 0, 0, // int32 offset for start of vtable
             },
                 builder.DataBuffer.ToFullArray());
+            Google.FlatBuffers.Verifier verifier = new Google.FlatBuffers.Verifier(builder.DataBuffer);
+            var offset = 4;
+            // table must be ok
+            Assert.IsTrue(verifier.VerifyTableStart((uint)offset));
+            // First field must be bool
+            Assert.IsTrue(verifier.VerifyField((uint)offset, 4, 1, 1, false));
+            // Error Check: First field not present
+            Assert.IsFalse(verifier.VerifyField((uint)offset, 4, 1, 1, true));
         }
 
-        [FlatBuffersTestMethod]
+    [FlatBuffersTestMethod]
         public void TestVTableWithOneInt16()
         {
             var builder = new FlatBufferBuilder(1);
             builder.StartTable(1);
             Assert.ArrayEqual(new byte[] { 0 }, builder.DataBuffer.ToFullArray());
             builder.AddShort(0, 0x789A, 0);
-            builder.EndTable();
+            int offset = builder.EndTable();
             Assert.ArrayEqual(new byte[]
             {
                 0, 0, // padding to 16 bytes
@@ -244,9 +264,21 @@ namespace Google.FlatBuffers.Test
                 0x9A, 0x78, //value 0
             },
                 builder.DataBuffer.ToFullArray());
+            Google.FlatBuffers.Verifier verifier = new Google.FlatBuffers.Verifier(builder.DataBuffer);
+            offset += builder.DataBuffer.Position;
+            // table must be ok
+            Assert.IsTrue(verifier.VerifyTableStart((uint)offset));
+            // First field must be ushort
+            Assert.IsTrue(verifier.VerifyField((uint)offset, 4, 2, 2, true));
+            // Check Error: Second field
+            Assert.IsFalse(verifier.VerifyField((uint)offset, 6, 2, 2, true));
+            // Check Error: First field too big alignment
+            Assert.IsFalse(verifier.VerifyField((uint)offset, 4, 4, 2, true));
+            // Check Error: First field size to big
+            Assert.IsFalse(verifier.VerifyField((uint)offset, 4, 2, 4, true));
         }
 
-        [FlatBuffersTestMethod]
+    [FlatBuffersTestMethod]
         public void TestVTableWithTwoInt16()
         {
             var builder = new FlatBufferBuilder(1);
@@ -254,7 +286,7 @@ namespace Google.FlatBuffers.Test
             Assert.ArrayEqual(new byte[] { 0 }, builder.DataBuffer.ToFullArray());
             builder.AddShort(0, 0x3456, 0);
             builder.AddShort(1, 0x789A, 0);
-            builder.EndTable();
+            int offset = builder.EndTable();
             Assert.ArrayEqual(new byte[]
             {
                 8, 0, // vtable bytes
@@ -266,9 +298,21 @@ namespace Google.FlatBuffers.Test
                 0x56, 0x34, // value 0
             },
                 builder.DataBuffer.ToFullArray());
+            Google.FlatBuffers.Verifier verifier = new Google.FlatBuffers.Verifier(builder.DataBuffer);
+            offset += builder.DataBuffer.Position;
+            // table must be ok
+            Assert.IsTrue(verifier.VerifyTableStart((uint)offset));
+            // First field must be ushort
+            Assert.IsTrue(verifier.VerifyField((uint)offset, 4, 2, 2, true));
+            // Check Error: Second field
+            Assert.IsTrue(verifier.VerifyField((uint)offset, 6, 2, 2, true));
+            // Check Error: Second field too big alignment
+            Assert.IsFalse(verifier.VerifyField((uint)offset, 4, 4, 2, true));
+            // Check Error: Second field size to big
+            Assert.IsFalse(verifier.VerifyField((uint)offset, 4, 2, 4, true));
         }
 
-        [FlatBuffersTestMethod]
+    [FlatBuffersTestMethod]
         public void TestVTableWithInt16AndBool()
         {
             var builder = new FlatBufferBuilder(1);
@@ -276,7 +320,7 @@ namespace Google.FlatBuffers.Test
             Assert.ArrayEqual(new byte[] { 0 }, builder.DataBuffer.ToFullArray());
             builder.AddShort(0, 0x3456, 0);
             builder.AddBool(1, true, false);
-            builder.EndTable();
+            int offset = builder.EndTable();
             Assert.ArrayEqual(new byte[]
             {
                 8, 0, // vtable bytes
@@ -288,9 +332,21 @@ namespace Google.FlatBuffers.Test
                 0x56, 0x34, // value 0
             },
                 builder.DataBuffer.ToFullArray());
+            Google.FlatBuffers.Verifier verifier = new Google.FlatBuffers.Verifier(builder.DataBuffer);
+            offset += builder.DataBuffer.Position;
+            // table must be ok
+            Assert.IsTrue(verifier.VerifyTableStart((uint)offset));
+            // First field must be ushort
+            Assert.IsTrue(verifier.VerifyField((uint)offset, 4, 2, 2, true));
+            // Check Error: Second field must be bool
+            Assert.IsTrue(verifier.VerifyField((uint)offset, 6, 1, 1, true));
+            // Check Error: Second field too big alignment
+            Assert.IsFalse(verifier.VerifyField((uint)offset, 4, 4, 2, true));
+            // Check Error: Second field size to big
+            Assert.IsFalse(verifier.VerifyField((uint)offset, 4, 2, 4, true));
         }
 
-        [FlatBuffersTestMethod]
+    [FlatBuffersTestMethod]
         public void TestVTableWithEmptyVector()
         {
             var builder = new FlatBufferBuilder(1);
@@ -315,9 +371,15 @@ namespace Google.FlatBuffers.Test
                 0, 0, 0, 0,
             },
                 builder.DataBuffer.ToFullArray());
+            Google.FlatBuffers.Verifier verifier = new Google.FlatBuffers.Verifier(builder.DataBuffer);
+            uint checkOffset = 20;
+            // table must be ok
+            Assert.IsTrue(verifier.VerifyTableStart(checkOffset));
+            // First field must be vector with element size 1
+            Assert.IsTrue(verifier.VerifyVectorOfData(checkOffset, 4, 1, true));
         }
 
-        [FlatBuffersTestMethod]
+    [FlatBuffersTestMethod]
         public void TestVTableWithEmptyVectorAndScalars()
         {
             var builder = new FlatBufferBuilder(1);
@@ -342,10 +404,18 @@ namespace Google.FlatBuffers.Test
                 0, 0, 0, 0, // length of vector (not in sctruc)
             },
                 builder.DataBuffer.ToFullArray());
-        }
+            Google.FlatBuffers.Verifier verifier = new Google.FlatBuffers.Verifier(builder.DataBuffer);
+            uint checkOffset = 16;
+            // table must be ok
+            Assert.IsTrue(verifier.VerifyTableStart(checkOffset));
+            // First field must be short
+            Assert.IsTrue(verifier.VerifyField(checkOffset, 4, 2, 2, true));
+            // Second field must be vector with element size 1
+            Assert.IsTrue(verifier.VerifyVectorOfData(checkOffset, 6, 2, true));
+       }
 
 
-        [FlatBuffersTestMethod]
+    [FlatBuffersTestMethod]
         public void TestVTableWith_1xInt16_and_Vector_or_2xInt16()
         {
             var builder = new FlatBufferBuilder(1);
@@ -373,9 +443,19 @@ namespace Google.FlatBuffers.Test
                 0x34, 0x12,       // vector value 1
             },
                 builder.DataBuffer.ToFullArray());
+            Google.FlatBuffers.Verifier verifier = new Google.FlatBuffers.Verifier(builder.DataBuffer);
+            uint checkOffset = 12;
+            // table must be ok
+            Assert.IsTrue(verifier.VerifyTableStart(checkOffset));
+            // Second field must be vector with element size 2
+            Assert.IsTrue(verifier.VerifyVectorOfData(checkOffset, 6, 2, true));
+            // Check Error: Second field with too big size
+            Assert.IsFalse(verifier.VerifyVectorOfData(checkOffset, 6, 4, true));
+            // First field must be short
+            Assert.IsTrue(verifier.VerifyField(checkOffset, 4, 2, 2, true));
         }
 
-        [FlatBuffersTestMethod]
+    [FlatBuffersTestMethod]
         public void TestVTableWithAStruct_of_int8_int16_int32()
         {
             var builder = new FlatBufferBuilder(1);
@@ -403,9 +483,18 @@ namespace Google.FlatBuffers.Test
                 0x00, 0x00, 0x00, 55, // struct value 0
             },
                 builder.DataBuffer.ToFullArray());
+            Google.FlatBuffers.Verifier verifier = new Google.FlatBuffers.Verifier(builder.DataBuffer);
+            uint checkOffset = 16;
+            // table must be ok
+            Assert.IsTrue(verifier.VerifyTableStart(checkOffset));
+            // First field must be a struct with 12 bytes
+            Assert.IsTrue(verifier.VerifyField(checkOffset, 4, 12, 4, true));
+            // Check Error: First field with more than 12 bytes
+            Assert.IsFalse(verifier.VerifyField(checkOffset, 4, 16, 4, true));
         }
 
-        [FlatBuffersTestMethod]
+
+    [FlatBuffersTestMethod]
         public void TestVTableWithAVectorOf_2xStructOf_2xInt8()
         {
             var builder = new FlatBufferBuilder(1);
@@ -437,6 +526,12 @@ namespace Google.FlatBuffers.Test
                 33, // vector 0, 0
             },
                 builder.DataBuffer.ToFullArray());
+            Google.FlatBuffers.Verifier verifier = new Google.FlatBuffers.Verifier(builder.DataBuffer);
+            uint checkOffset = 16;
+            // table must be ok
+            Assert.IsTrue(verifier.VerifyTableStart(checkOffset));
+            // First field must be vector with element size 2
+            Assert.IsTrue(verifier.VerifyVectorOfData(checkOffset, 4, 2, true));
         }
 
         [FlatBuffersTestMethod]
@@ -470,6 +565,15 @@ namespace Google.FlatBuffers.Test
             byte[] unpadded = new byte[padded.Length - 12];
             Buffer.BlockCopy(padded, 12, unpadded, 0, unpadded.Length);
             Assert.ArrayEqual(unpadded, builder.DataBuffer.ToSizedArray());
+
+            Google.FlatBuffers.Verifier verifier = new Google.FlatBuffers.Verifier(builder.DataBuffer);
+            uint checkOffset = builder.DataBuffer.GetUint(builder.DataBuffer.Position) + (uint)builder.DataBuffer.Position;
+            // table must be ok
+            Assert.IsTrue(verifier.VerifyTableStart(checkOffset));
+            // First field must be a struct with 12 bytes
+            Assert.IsTrue(verifier.VerifyField(checkOffset, 4, 1, 1, true));
+            // Second field must be a struct with 12 bytes
+            Assert.IsTrue(verifier.VerifyField(checkOffset, 6, 2, 2, true));
         }
 
         [FlatBuffersTestMethod]
@@ -521,6 +625,33 @@ namespace Google.FlatBuffers.Test
                 33,
             },
                 builder.DataBuffer.ToFullArray());
+
+            // check obj1
+            Google.FlatBuffers.Verifier verifier = new Google.FlatBuffers.Verifier(builder.DataBuffer);
+            uint checkOffset = builder.DataBuffer.GetUint(builder.DataBuffer.Position) + (uint)builder.DataBuffer.Position;
+            // table must be ok
+            Assert.IsTrue(verifier.VerifyTableStart(checkOffset));
+            // First field must be a struct with 12 bytes
+            Assert.IsTrue(verifier.VerifyField(checkOffset, 4, 1, 1, true));
+            // Second field must be a struct with 12 bytes
+            Assert.IsTrue(verifier.VerifyField(checkOffset, 6, 1, 1, true));
+            // Third field must be a struct with 12 bytes
+            Assert.IsTrue(verifier.VerifyField(checkOffset, 8, 1, 1, true));
+            // Check Error: 4. field did not exist
+            Assert.IsFalse(verifier.VerifyField(checkOffset, 10, 1, 1, true));
+
+            // check obj0
+            checkOffset = 56;
+            // table must be ok
+            Assert.IsTrue(verifier.VerifyTableStart(checkOffset));
+            // First field must be a struct with 12 bytes
+            Assert.IsTrue(verifier.VerifyField(checkOffset, 4, 1, 1, true));
+            // Second field must be a struct with 12 bytes
+            Assert.IsTrue(verifier.VerifyField(checkOffset, 6, 1, 1, true));
+            // Check Error: 3. field did not exist
+            Assert.IsFalse(verifier.VerifyField(checkOffset, 8, 1, 1, true));
+            // Check Error: 4. field did not exist
+            Assert.IsFalse(verifier.VerifyField(checkOffset, 10, 1, 1, true));
         }
 
         [FlatBuffersTestMethod]
@@ -569,6 +700,16 @@ namespace Google.FlatBuffers.Test
             byte[] unpadded = new byte[padded.Length - 28];
             Buffer.BlockCopy(padded, 28, unpadded, 0, unpadded.Length);
             Assert.ArrayEqual(unpadded, builder.DataBuffer.ToSizedArray());
+
+            Google.FlatBuffers.Verifier verifier = new Google.FlatBuffers.Verifier(builder.DataBuffer);
+            uint checkOffset = builder.DataBuffer.GetUint(builder.DataBuffer.Position) + (uint)builder.DataBuffer.Position;
+            // table must be ok
+            Assert.IsTrue(verifier.VerifyTableStart(checkOffset));
+            for (var i = 0; i < 8; i++)
+            {
+                Assert.IsTrue(verifier.VerifyField(checkOffset, (short)(4 + i * 2), 1, 1, true));
+            }
+            Assert.IsFalse(verifier.VerifyField(checkOffset, (short)(4 + 8 * 2), 1, 1, true));
         }
 
         [FlatBuffersTestMethod]
@@ -639,6 +780,16 @@ namespace Google.FlatBuffers.Test
 
             },
                 builder.DataBuffer.ToFullArray());
+            Google.FlatBuffers.Verifier verifier = new Google.FlatBuffers.Verifier(builder.DataBuffer);
+            uint checkOffset = 8;
+            // table must be ok
+            Assert.IsTrue(verifier.VerifyTableStart(checkOffset));
+            // First Field must be float
+            Assert.IsTrue(verifier.VerifyField(checkOffset, 4, 4, 4, true));
+            // Check Error: First Field with to big size
+            Assert.IsFalse(verifier.VerifyField(checkOffset, 4, 8, 4, true));
+            // Check Error: First Field with to big padding
+            Assert.IsFalse(verifier.VerifyField(checkOffset, 4, 4, 8, true));
         }
 
         private void CheckObjects(int fieldCount, int objectCount)

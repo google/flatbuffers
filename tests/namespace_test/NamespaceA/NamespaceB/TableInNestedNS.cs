@@ -62,4 +62,17 @@ public class TableInNestedNST
 }
 
 
+// Verification function for 'TableInNestedNS' table.
+static public class TableInNestedNSVerify
+{
+  static public bool Verify(Google.FlatBuffers.Verifier verifier, uint tablePos)
+  {
+    bool result = true;
+    result = result && verifier.VerifyTableStart(tablePos);
+    result = result && verifier.VerifyField(tablePos, 4 /*Foo*/, 4 /*int*/, 4, false);
+    result = result && verifier.VerifyTableEnd(tablePos);
+    return result;
+  }
+}
+
 }

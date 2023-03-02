@@ -16,6 +16,7 @@ public struct Collision : IFlatbufferObject
   public static void ValidateVersion() { FlatBufferConstants.FLATBUFFERS_23_1_21(); }
   public static Collision GetRootAsCollision(ByteBuffer _bb) { return GetRootAsCollision(_bb, new Collision()); }
   public static Collision GetRootAsCollision(ByteBuffer _bb, Collision obj) { return (obj.__assign(_bb.GetInt(_bb.Position) + _bb.Position, _bb)); }
+  public static bool VerifyCollision(ByteBuffer _bb) {Google.FlatBuffers.Verifier verifier = new Google.FlatBuffers.Verifier(_bb); return verifier.VerifyBuffer("", false, CollisionVerify.Verify); }
   public void __init(int _i, ByteBuffer _bb) { __p = new Table(_i, _bb); }
   public Collision __assign(int _i, ByteBuffer _bb) { __init(_i, _bb); return this; }
 
@@ -69,5 +70,18 @@ public class CollisionT
   }
 }
 
+
+// Verification function for 'Collision' table.
+static public class CollisionVerify
+{
+  static public bool Verify(Google.FlatBuffers.Verifier verifier, uint tablePos)
+  {
+    bool result = true;
+    result = result && verifier.VerifyTableStart(tablePos);
+    result = result && verifier.VerifyField(tablePos, 4 /*Collision*/, 4 /*int*/, 4, false);
+    result = result && verifier.VerifyTableEnd(tablePos);
+    return result;
+  }
+}
 
 }

@@ -780,6 +780,7 @@ INPUT = "FlatBuffers.md" \
         "../../js/flatbuffers.js" \
         "../../php/FlatbufferBuilder.php" \
         "../../net/FlatBuffers/FlatBufferBuilder.cs" \
+		"../../net/FlatBuffers/FlatBufferVerify.cs" \
         "../../include/flatbuffers/flatbuffers.h" \
         "../../go/builder.go" \
         "../../rust/flatbuffers/src/builder.rs"

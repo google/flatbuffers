@@ -46,6 +46,9 @@
     <Compile Include="..\..\net\FlatBuffers\FlatBufferConstants.cs">
       <Link>FlatBuffers\FlatBufferConstants.cs</Link>
     </Compile>
+    <Compile Include="..\..\net\FlatBuffers\FlatBufferVerify.cs">
+      <Link>FlatBuffers\FlatBufferVerify.cs</Link>
+    </Compile>
     <Compile Include="..\..\net\FlatBuffers\Struct.cs">
       <Link>FlatBuffers\Struct.cs</Link>
     </Compile>

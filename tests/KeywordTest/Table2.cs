@@ -91,4 +91,18 @@ public class Table2T
 }
 
 
+// Verification function for 'Table2' table.
+static public class Table2Verify
+{
+  static public bool Verify(Google.FlatBuffers.Verifier verifier, uint tablePos)
+  {
+    bool result = true;
+    result = result && verifier.VerifyTableStart(tablePos);
+    result = result && verifier.VerifyField(tablePos, 4 /*TypeType*/, 1 /*KeywordTest.KeywordsInUnion*/, 1, false);
+    result = result && verifier.VerifyUnion(tablePos, 4, 6 /*Type*/, KeywordTest.KeywordsInUnionVerify.Verify, false);
+    result = result && verifier.VerifyTableEnd(tablePos);
+    return result;
+  }
+}
+
 }

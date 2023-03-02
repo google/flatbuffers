@@ -117,4 +117,19 @@ public class StatT
 }
 
 
+// Verification function for 'Stat' table.
+static public class StatVerify
+{
+  static public bool Verify(Google.FlatBuffers.Verifier verifier, uint tablePos)
+  {
+    bool result = true;
+    result = result && verifier.VerifyTableStart(tablePos);
+    result = result && verifier.VerifyString(tablePos, 4 /*Id*/, false);
+    result = result && verifier.VerifyField(tablePos, 6 /*Val*/, 8 /*long*/, 8, false);
+    result = result && verifier.VerifyField(tablePos, 8 /*Count*/, 2 /*ushort*/, 2, false);
+    result = result && verifier.VerifyTableEnd(tablePos);
+    return result;
+  }
+}
+
 }
