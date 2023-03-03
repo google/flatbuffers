@@ -20,7 +20,7 @@ class FlatbuffersConan(ConanFile):
     options = {"shared": [True, False], "fPIC": [True, False]}
     default_options = {"shared": False, "fPIC": True}
     generators = "cmake"
-    exports = "LICENSE.txt"
+    exports = "LICENSE"
     exports_sources = ["CMake/*", "include/*", "src/*", "grpc/*", "CMakeLists.txt", "conan/CMakeLists.txt"]
 
     def source(self):
@@ -56,7 +56,7 @@ class FlatbuffersConan(ConanFile):
         """
         cmake = self.configure_cmake()
         cmake.install()
-        self.copy(pattern="LICENSE.txt", dst="licenses")
+        self.copy(pattern="LICENSE", dst="licenses")
         self.copy(pattern="FindFlatBuffers.cmake", dst=os.path.join("lib", "cmake", "flatbuffers"), src="CMake")
         self.copy(pattern="flathash*", dst="bin", src="bin")
         self.copy(pattern="flatc*", dst="bin", src="bin")
