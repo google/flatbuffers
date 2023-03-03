@@ -4,6 +4,12 @@ All major or breaking changes will be documented in this file, as well as any
 new features that should be highlighted. Minor fixes or improvements are not
 necessarily listed.
 
+## [23.3.3 (Mar 3 2023)](https://github.com/google/flatbuffers/releases/tag/v23.3.3)
+
+* Refactoring of `flatc` generators to use an interface (#7797).
+
+* Removed legacy cmake support and set min to 3.8 (#7801).
+
 ## [23.1.21 (Jan 21 2023)](https://github.com/google/flatbuffers/releases/tag/v23.1.20)
 
 * Reworked entry points for Typescript/Javascript and compatibility for single
