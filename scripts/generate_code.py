@@ -507,6 +507,12 @@ if not args.skip_gen_reflection:
 # Python Reflection
 flatc_reflection(["-p"], "python/flatbuffers", "reflection")
 
+# Java Reflection
+flatc_reflection(
+    ["-j", "--java-package-prefix", "com.google.flatbuffers"],
+    "java/src/main/java", "com/google/flatbuffers/reflection"
+)
+
 # Annotation
 
 
