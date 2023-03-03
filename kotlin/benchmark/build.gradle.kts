@@ -2,16 +2,9 @@ import org.jetbrains.kotlin.ir.backend.js.compile
 
 plugins {
   kotlin("multiplatform")
-  id("org.jetbrains.kotlin.plugin.allopen") version "1.4.20"
-  id("org.jetbrains.kotlinx.benchmark") version "0.4.2"
-  id("io.morethan.jmhreport") version "0.9.0"
+  id("org.jetbrains.kotlinx.benchmark")
+  id("io.morethan.jmhreport")
   id("de.undercouch.download")
-}
-
-// allOpen plugin is needed for the benchmark annotations.
-// for more information, see https://github.com/Kotlin/kotlinx-benchmark#gradle-plugin
-allOpen {
-  annotation("org.openjdk.jmh.annotations.State")
 }
 
 group = "com.google.flatbuffers.jmh"
@@ -34,7 +27,7 @@ benchmark {
       iterationTime = 300
       iterationTimeUnit = "ms"
       // uncomment for benchmarking JSON op only
-      // include(".*JsonBenchmark.*")
+      include(".*JsonBenchmark.*")
     }
   }
   targets {
@@ -43,9 +36,7 @@ benchmark {
 }
 
 kotlin {
-  jvm {
-    withJava()
-  }
+  jvm()
 
   sourceSets {
 
@@ -58,7 +49,7 @@ kotlin {
         implementation(kotlin("stdlib-common"))
         implementation(project(":flatbuffers-kotlin"))
         implementation(libs.kotlinx.benchmark.runtime)
-
+        implementation("com.google.flatbuffers:flatbuffers-java:2.0.3")
         // json serializers
         implementation(libs.moshi.kotlin)
         implementation(libs.gson)

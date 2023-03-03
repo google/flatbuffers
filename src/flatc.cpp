@@ -115,6 +115,8 @@ const static FlatCOption flatc_options[] = {
   { "", "gen-compare", "", "Generate operator== for object-based API types." },
   { "", "gen-nullable", "",
     "Add Clang _Nullable for C++ pointer. or @Nullable for Java" },
+  { "", "java-package-prefix", "",
+    "Add a prefix to the generated package name for Java." },
   { "", "java-checkerframe", "", "Add @Pure for Java." },
   { "", "gen-generated", "", "Add @Generated annotation for Java." },
   { "", "gen-jvmstatic", "",
@@ -166,10 +168,18 @@ const static FlatCOption flatc_options[] = {
     "Allow binaries without file_identifier to be read. This may crash flatc "
     "given a mismatched schema." },
   { "", "size-prefixed", "", "Input binaries are size prefixed buffers." },
-  { "", "proto", "", "Input is a .proto, translate to .fbs." },
   { "", "proto-namespace-suffix", "SUFFIX",
     "Add this namespace to any flatbuffers generated from protobufs." },
   { "", "oneof-union", "", "Translate .proto oneofs to flatbuffer unions." },
+  { "", "keep-proto-id", "", "Keep protobuf field ids in generated fbs file." },
+  { "", "proto-id-gap", "",
+    "Action that should be taken when a gap between protobuf ids found. "
+    "Supported values: * "
+    "'nop' - do not care about gap * 'warn' - A warning message will be shown "
+    "about the gap in protobuf ids"
+    "(default) "
+    "* 'error' - An error message will be shown and the fbs generation will be "
+    "interrupted." },
   { "", "grpc", "", "Generate GRPC interfaces for the specified languages." },
   { "", "schema", "", "Serialize schemas instead of JSON (use with -b)." },
   { "", "bfbs-filenames", "PATH",
@@ -230,13 +240,20 @@ const static FlatCOption flatc_options[] = {
     "Allow a nested_flatbuffer field to be parsed as a vector of bytes "
     "in JSON, which is unsafe unless checked by a verifier afterwards." },
   { "", "ts-flat-files", "",
-    "Only generated one typescript file per .fbs file." },
+    "Generate a single typescript file per .fbs file. Implies "
+    "ts_entry_points." },
+  { "", "ts-entry-points", "",
+    "Generate entry point typescript per namespace. Implies gen-all." },
+  { "", "annotate-sparse-vectors", "", "Don't annotate every vector element." },
   { "", "annotate", "SCHEMA",
     "Annotate the provided BINARY_FILE with the specified SCHEMA file." },
   { "", "no-leak-private-annotation", "",
     "Prevents multiple type of annotations within a Fbs SCHEMA file. "
     "Currently this is required to generate private types in Rust" },
 };
+
+auto cmp = [](FlatCOption a, FlatCOption b) { return a.long_opt < b.long_opt; };
+static std::set<FlatCOption, decltype(cmp)> language_options(cmp);
 
 static void AppendTextWrappedString(std::stringstream &ss, std::string &text,
                                     size_t max_col, size_t start_col) {
@@ -309,16 +326,17 @@ std::string FlatCompiler::GetShortUsageString(
     const std::string &program_name) const {
   std::stringstream ss;
   ss << "Usage: " << program_name << " [";
-  // TODO(derekbailey): These should be generated from this.generators
-  for (size_t i = 0; i < params_.num_generators; ++i) {
-    const Generator &g = params_.generators[i];
-    AppendShortOption(ss, g.option);
+
+  for (const FlatCOption &option : language_options) {
+    AppendShortOption(ss, option);
     ss << ", ";
   }
+
   for (const FlatCOption &option : flatc_options) {
     AppendShortOption(ss, option);
     ss << ", ";
   }
+
   ss.seekp(-2, ss.cur);
   ss << "]... FILE... [-- BINARY_FILE...]";
   std::string help = ss.str();
@@ -332,13 +350,12 @@ std::string FlatCompiler::GetUsageString(
   std::stringstream ss;
   ss << "Usage: " << program_name
      << " [OPTION]... FILE... [-- BINARY_FILE...]\n";
-  // TODO(derekbailey): These should be generated from this.generators
-  for (size_t i = 0; i < params_.num_generators; ++i) {
-    const Generator &g = params_.generators[i];
-    AppendOption(ss, g.option, 80, 25);
-  }
 
+  for (const FlatCOption &option : language_options) {
+    AppendOption(ss, option, 80, 25);
+  }
   ss << "\n";
+
   for (const FlatCOption &option : flatc_options) {
     AppendOption(ss, option, 80, 25);
   }
@@ -356,11 +373,12 @@ std::string FlatCompiler::GetUsageString(
   return ss.str();
 }
 
-void FlatCompiler::AnnotateBinaries(
-    const uint8_t *binary_schema, const uint64_t binary_schema_size,
-    const std::string &schema_filename,
-    const std::vector<std::string> &binary_files) {
-  for (const std::string &filename : binary_files) {
+void FlatCompiler::AnnotateBinaries(const uint8_t *binary_schema,
+                                    const uint64_t binary_schema_size,
+                                    const FlatCOptions &options) {
+  const std::string &schema_filename = options.annotate_schema;
+
+  for (const std::string &filename : options.filenames) {
     std::string binary_contents;
     if (!flatbuffers::LoadFile(filename.c_str(), true, &binary_contents)) {
       Warn("unable to load binary file: " + filename);
@@ -376,13 +394,16 @@ void FlatCompiler::AnnotateBinaries(
 
     auto annotations = binary_annotator.Annotate();
 
+    flatbuffers::AnnotatedBinaryTextGenerator::Options text_gen_opts;
+    text_gen_opts.include_vector_contents =
+        options.annotate_include_vector_contents;
+
     // TODO(dbaileychess): Right now we just support a single text-based
     // output of the annotated binary schema, which we generate here. We
     // could output the raw annotations instead and have third-party tools
     // use them to generate their own output.
     flatbuffers::AnnotatedBinaryTextGenerator text_generator(
-        flatbuffers::AnnotatedBinaryTextGenerator::Options{}, annotations,
-        binary, binary_size);
+        text_gen_opts, annotations, binary, binary_size);
 
     text_generator.Generate(filename, schema_filename);
   }
@@ -393,9 +414,6 @@ FlatCOptions FlatCompiler::ParseFromCommandLineArguments(int argc,
   if (argc <= 1) { Error("Need to provide at least one argument."); }
 
   FlatCOptions options;
-
-  // Default all generates to disabled.
-  options.generator_enabled.resize(params_.num_generators, false);
 
   options.program_name = std::string(argv[0]);
 
@@ -500,6 +518,9 @@ FlatCOptions FlatCompiler::ParseFromCommandLineArguments(int argc,
           Error("unknown case style: " + std::string(argv[argi]), true);
       } else if (arg == "--gen-nullable") {
         opts.gen_nullable = true;
+      } else if (arg == "--java-package-prefix") {
+        if (++argi >= argc) Error("missing prefix following: " + arg, true);
+        opts.java_package_prefix = argv[argi];
       } else if (arg == "--java-checkerframework") {
         opts.java_checkerframework = true;
       } else if (arg == "--gen-generated") {
@@ -531,13 +552,23 @@ FlatCOptions FlatCompiler::ParseFromCommandLineArguments(int argc,
         opts.size_prefixed = true;
       } else if (arg == "--") {  // Separator between text and binary inputs.
         options.binary_files_from = options.filenames.size();
-      } else if (arg == "--proto") {
-        opts.proto_mode = true;
       } else if (arg == "--proto-namespace-suffix") {
         if (++argi >= argc) Error("missing namespace suffix" + arg, true);
         opts.proto_namespace_suffix = argv[argi];
       } else if (arg == "--oneof-union") {
         opts.proto_oneof_union = true;
+      } else if (arg == "--keep-proto-id") {
+        opts.keep_proto_id = true;
+      } else if (arg == "--proto-id-gap") {
+        if (++argi >= argc) Error("missing case style following: " + arg, true);
+        if (!strcmp(argv[argi], "nop"))
+          opts.proto_id_gap_action = IDLOptions::ProtoIdGapAction::NO_OP;
+        else if (!strcmp(argv[argi], "warn"))
+          opts.proto_id_gap_action = IDLOptions::ProtoIdGapAction::WARNING;
+        else if (!strcmp(argv[argi], "error"))
+          opts.proto_id_gap_action = IDLOptions::ProtoIdGapAction::ERROR;
+        else
+          Error("unknown case style: " + std::string(argv[argi]), true);
       } else if (arg == "--schema") {
         options.schema_binary = true;
       } else if (arg == "-M") {
@@ -607,52 +638,42 @@ FlatCOptions FlatCompiler::ParseFromCommandLineArguments(int argc,
       } else if (arg == "--json-nested-bytes") {
         opts.json_nested_legacy_flatbuffers = true;
       } else if (arg == "--ts-flat-files") {
-        opts.ts_flat_file = true;
+        opts.ts_flat_files = true;
+        opts.ts_entry_points = true;
+        opts.generate_all = true;
+      } else if (arg == "--ts-entry-points") {
+        opts.ts_entry_points = true;
+        opts.generate_all = true;
       } else if (arg == "--ts-no-import-ext") {
         opts.ts_no_import_ext = true;
       } else if (arg == "--no-leak-private-annotation") {
         opts.no_leak_private_annotations = true;
+      } else if (arg == "--annotate-sparse-vectors") {
+        options.annotate_include_vector_contents = false;
       } else if (arg == "--annotate") {
         if (++argi >= argc) Error("missing path following: " + arg, true);
         options.annotate_schema = flatbuffers::PosixPath(argv[argi]);
       } else {
-        // Look up if the command line argument refers to a code generator.
+        if (arg == "--proto") { opts.proto_mode = true; }
+
         auto code_generator_it = code_generators_.find(arg);
-        if (code_generator_it != code_generators_.end()) {
-          std::shared_ptr<CodeGenerator> code_generator =
-              code_generator_it->second;
-
-          // TODO(derekbailey): remove in favor of just checking if
-          // generators.empty().
-          options.any_generator = true;
-          opts.lang_to_generate |= code_generator->Language();
-
-          if (code_generator->SupportsBfbsGeneration()) {
-            opts.binary_schema_comments = true;
-            options.requires_bfbs = true;
-          }
-
-          options.generators.push_back(std::move(code_generator));
-        } else {
-          // TODO(derekbailey): deprecate the following logic in favor of the
-          // code generator map above.
-          for (size_t i = 0; i < params_.num_generators; ++i) {
-            if (arg == "--" + params_.generators[i].option.long_opt ||
-                arg == "-" + params_.generators[i].option.short_opt) {
-              options.generator_enabled[i] = true;
-              options.any_generator = true;
-              opts.lang_to_generate |= params_.generators[i].lang;
-              if (params_.generators[i].bfbs_generator) {
-                opts.binary_schema_comments = true;
-                options.requires_bfbs = true;
-              }
-              goto found;
-            }
-          }
+        if (code_generator_it == code_generators_.end()) {
           Error("unknown commandline argument: " + arg, true);
+          return options;
         }
 
-      found:;
+        std::shared_ptr<CodeGenerator> code_generator =
+            code_generator_it->second;
+
+        // TODO(derekbailey): remove in favor of just checking if
+        // generators.empty().
+        options.any_generator = true;
+        opts.lang_to_generate |= code_generator->Language();
+
+        auto is_binary_schema = code_generator->SupportsBfbsGeneration();
+        opts.binary_schema_comments = is_binary_schema;
+        options.requires_bfbs = is_binary_schema;
+        options.generators.push_back(std::move(code_generator));
       }
     } else {
       options.filenames.push_back(flatbuffers::PosixPath(argv[argi]));
@@ -863,66 +884,12 @@ std::unique_ptr<Parser> FlatCompiler::GenerateCode(const FlatCOptions &options,
       }
     }
 
-    // TODO(derekbailey): Deprecate the following in favor to the above.
-    for (size_t i = 0; i < params_.num_generators; ++i) {
-      if (options.generator_enabled[i]) {
-        if (!options.print_make_rules) {
-          flatbuffers::EnsureDirExists(options.output_path);
-
-          // Prefer bfbs generators if present.
-          if (params_.generators[i].bfbs_generator) {
-            const GeneratorStatus status =
-                params_.generators[i].bfbs_generator->Generate(bfbs_buffer,
-                                                               bfbs_length);
-            if (status != OK) {
-              Error(std::string("Unable to generate ") +
-                    params_.generators[i].lang_name + " for " + filebase +
-                    " using bfbs generator.");
-            }
-          } else {
-            if ((!params_.generators[i].schema_only ||
-                 (is_schema || is_binary_schema)) &&
-                !params_.generators[i].generate(*parser, options.output_path,
-                                                filebase)) {
-              Error(std::string("Unable to generate ") +
-                    params_.generators[i].lang_name + " for " + filebase);
-            }
-          }
-        } else {
-          if (params_.generators[i].make_rule == nullptr) {
-            Error(std::string("Cannot generate make rule for ") +
-                  params_.generators[i].lang_name);
-          } else {
-            std::string make_rule = params_.generators[i].make_rule(
-                *parser, options.output_path, filename);
-            if (!make_rule.empty())
-              printf("%s\n",
-                     flatbuffers::WordWrap(make_rule, 80, " ", " \\").c_str());
-          }
-        }
-        if (options.grpc_enabled) {
-          if (params_.generators[i].generateGRPC != nullptr) {
-            if (!params_.generators[i].generateGRPC(
-                    *parser, options.output_path, filebase)) {
-              Error(std::string("Unable to generate GRPC interface for ") +
-                    params_.generators[i].lang_name);
-            }
-          } else {
-            Warn(std::string("GRPC interface generator not implemented for ") +
-                 params_.generators[i].lang_name);
-          }
-        }
-      }
-    }
-
     if (!opts.root_type.empty()) {
       if (!parser->SetRootType(opts.root_type.c_str()))
         Error("unknown root type: " + opts.root_type);
       else if (parser->root_struct_def_->fixed)
         Error("root type must be a table");
     }
-
-    if (opts.proto_mode) GenerateFBS(*parser, options.output_path, filebase);
 
     // We do not want to generate code for the definitions in this file
     // in any files coming up next.
@@ -933,10 +900,6 @@ std::unique_ptr<Parser> FlatCompiler::GenerateCode(const FlatCOptions &options,
 }
 
 int FlatCompiler::Compile(const FlatCOptions &options) {
-  if (params_.generators == nullptr || params_.num_generators == 0) {
-    return 0;
-  }
-
   // TODO(derekbailey): change to std::optional<Parser>
   Parser conform_parser = GetConformParser(options);
 
@@ -984,25 +947,22 @@ int FlatCompiler::Compile(const FlatCOptions &options) {
     }
 
     // Annotate the provided files with the binary_schema.
-    AnnotateBinaries(binary_schema, binary_schema_size, options.annotate_schema,
-                     options.filenames);
+    AnnotateBinaries(binary_schema, binary_schema_size, options);
 
     // We don't support doing anything else after annotating a binary.
     return 0;
   }
 
+  if (options.generators.empty()) {
+    Error("No generator registered");
+    return -1;
+  }
+
   std::unique_ptr<Parser> parser = GenerateCode(options, conform_parser);
 
-  // Once all the files have been parsed, run any generators Parsing Completed
-  // function for final generation.
-  for (size_t i = 0; i < params_.num_generators; ++i) {
-    if (options.generator_enabled[i] &&
-        params_.generators[i].parsing_completed != nullptr) {
-      if (!params_.generators[i].parsing_completed(*parser,
-                                                   options.output_path)) {
-        Error("failed running parsing completed for " +
-              std::string(params_.generators[i].lang_name));
-      }
+  for (const auto &code_generator : options.generators) {
+    if (code_generator->SupportsRootFileGeneration()) {
+      code_generator->GenerateRootFile(*parser, options.output_path);
     }
   }
 
@@ -1010,12 +970,31 @@ int FlatCompiler::Compile(const FlatCOptions &options) {
 }
 
 bool FlatCompiler::RegisterCodeGenerator(
-    const std::string &flag, std::shared_ptr<CodeGenerator> code_generator) {
-  if (code_generators_.find(flag) != code_generators_.end()) {
-    Error("multiple generators registered under: " + flag, false, false);
+    const FlatCOption &option, std::shared_ptr<CodeGenerator> code_generator) {
+  if (!option.short_opt.empty() &&
+      code_generators_.find("-" + option.short_opt) != code_generators_.end()) {
+    Error("multiple generators registered under: -" + option.short_opt, false,
+          false);
     return false;
   }
-  code_generators_[flag] = std::move(code_generator);
+
+  if (!option.short_opt.empty()) {
+    code_generators_["-" + option.short_opt] = code_generator;
+  }
+
+  if (!option.long_opt.empty() &&
+      code_generators_.find("--" + option.long_opt) != code_generators_.end()) {
+    Error("multiple generators registered under: --" + option.long_opt, false,
+          false);
+    return false;
+  }
+
+  if (!option.long_opt.empty()) {
+    code_generators_["--" + option.long_opt] = code_generator;
+  }
+
+  language_options.insert(option);
+
   return true;
 }
 

@@ -24,6 +24,7 @@ from util import flatc, root_path, tests_path, args, flatc_path
 
 # Specify the other paths that will be referenced
 swift_code_gen = Path(root_path, "tests/swift/tests/CodeGenerationTests")
+ts_code_gen = Path(root_path, "tests/ts")
 samples_path = Path(root_path, "samples")
 reflection_path = Path(root_path, "reflection")
 
@@ -104,6 +105,7 @@ PHP_OPTS = ["--php"]
 DART_OPTS = ["--dart"]
 PYTHON_OPTS = ["--python"]
 BINARY_OPTS = ["-b", "--schema", "--bfbs-comments", "--bfbs-builtins"]
+PROTO_OPTS = ["--proto"]
 
 # Basic Usage
 
@@ -142,10 +144,10 @@ flatc(
 flatc(
     NO_INCL_OPTS
     + TS_OPTS,
-    schema="monster_test.fbs",
-    prefix="ts",
-    include="include_test",
-    data="monsterdata_test.json",
+    cwd=ts_code_gen,
+    schema="../monster_test.fbs",
+    include="../include_test",
+    data="../monsterdata_test.json",
 )
 
 flatc(
@@ -191,6 +193,11 @@ flatc(
     data="monsterdata_test.json",
 )
 
+flatc(
+    PROTO_OPTS,
+    schema="prototest/test.proto",
+)
+
 # For Rust we currently generate two independent schemas, with namespace_test2
 # duplicating the types in namespace_test1
 flatc(
@@ -210,37 +217,31 @@ flatc(
 
 flatc(
     BASE_OPTS + TS_OPTS,
-    prefix="ts/union_vector",
-    schema="union_vector/union_vector.fbs",
+    cwd=ts_code_gen,
+    prefix="union_vector",
+    schema="../union_vector/union_vector.fbs",
 )
 
 flatc(
     BASE_OPTS + TS_OPTS + ["--gen-name-strings", "--gen-mutable"],
-    include="include_test",
-    prefix="ts",
-    schema="monster_test.fbs",
-)
-
-# Generate the complete flat file TS of monster.
-flatc(
-    ["--ts", "--gen-all", "--ts-flat-files"],
-    include="include_test",
-    schema="monster_test.fbs",
-    prefix="ts/ts-flat-files"
+    cwd=ts_code_gen,
+    include="../include_test",
+    schema="../monster_test.fbs",
 )
 
 flatc(
     BASE_OPTS + TS_OPTS + ["-b"],
-    include="include_test",
-    prefix="ts",
-    schema="monster_test.fbs",
-    data="unicode_test.json",
+    cwd=ts_code_gen,
+    include="../include_test",
+    schema="../monster_test.fbs",
+    data="../unicode_test.json",
 )
 
 flatc(
     BASE_OPTS + TS_OPTS + ["--gen-name-strings"],
-    prefix="ts/union_vector",
-    schema="union_vector/union_vector.fbs",
+    cwd=ts_code_gen,
+    prefix="union_vector",
+    schema="../union_vector/union_vector.fbs",
 )
 
 flatc(
@@ -340,7 +341,7 @@ flatc(
 # Optional Scalars
 optional_scalars_schema = "optional_scalars.fbs"
 flatc(["--java", "--kotlin", "--lobster"], schema=optional_scalars_schema)
-flatc(TS_OPTS, schema=optional_scalars_schema, prefix="ts")
+flatc(TS_OPTS, cwd=ts_code_gen, schema="../optional_scalars.fbs")
 
 flatc(["--csharp", "--python", "--gen-object-api"], schema=optional_scalars_schema)
 
