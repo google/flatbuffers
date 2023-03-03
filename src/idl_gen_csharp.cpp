@@ -16,6 +16,8 @@
 
 // independent from idl_parser, since this code is not needed for most clients
 
+#include "idl_gen_csharp.h"
+
 #include <unordered_set>
 
 #include "flatbuffers/code_generators.h"
@@ -475,8 +477,9 @@ class CSharpGenerator : public BaseGenerator {
                                       const std::string &offset) const {
     // Use the generated type directly, to properly handle default values that
     // might not be written to the buffer.
-    return GetObjectConstructor(struct_def, data_buffer, offset) + "." +
-           Name(*key_field);
+    auto name = Name(*key_field);
+    if (name == struct_def.name) { name += "_"; }
+    return GetObjectConstructor(struct_def, data_buffer, offset) + "." + name;
   }
 
   // Direct mutation is only allowed for scalar fields.
@@ -1301,6 +1304,8 @@ class CSharpGenerator : public BaseGenerator {
     // because `key_field` is not set for struct
     if (struct_def.has_key && !struct_def.fixed) {
       FLATBUFFERS_ASSERT(key_field);
+      auto name = Name(*key_field);
+      if (name == struct_def.name) { name += "_"; }
       code += "\n  public static VectorOffset ";
       code += "CreateSortedVectorOf" + struct_def.name;
       code += "(FlatBufferBuilder builder, ";
@@ -1330,8 +1335,7 @@ class CSharpGenerator : public BaseGenerator {
           "(start + middle), bb);\n";
 
       code += "      obj_.__assign(tableOffset, bb);\n";
-      code +=
-          "      int comp = obj_." + Name(*key_field) + ".CompareTo(key);\n";
+      code += "      int comp = obj_." + name + ".CompareTo(key);\n";
       code += "      if (comp > 0) {\n";
       code += "        span = middle;\n";
       code += "      } else if (comp < 0) {\n";
@@ -2254,6 +2258,60 @@ bool GenerateCSharp(const Parser &parser, const std::string &path,
                     const std::string &file_name) {
   csharp::CSharpGenerator generator(parser, path, file_name);
   return generator.generate();
+}
+
+namespace {
+
+class CSharpCodeGenerator : public CodeGenerator {
+ public:
+  Status GenerateCode(const Parser &parser, const std::string &path,
+                      const std::string &filename) override {
+    if (!GenerateCSharp(parser, path, filename)) { return Status::ERROR; }
+    return Status::OK;
+  }
+
+  Status GenerateCode(const uint8_t *buffer, int64_t length) override {
+    (void)buffer;
+    (void)length;
+    return Status::NOT_IMPLEMENTED;
+  }
+
+  Status GenerateMakeRule(const Parser &parser, const std::string &path,
+                          const std::string &filename,
+                          std::string &output) override {
+    output = CSharpMakeRule(parser, path, filename);
+    return Status::OK;
+  }
+
+  Status GenerateGrpcCode(const Parser &parser, const std::string &path,
+                          const std::string &filename) override {
+    (void)parser;
+    (void)path;
+    (void)filename;
+    return Status::NOT_IMPLEMENTED;
+  }
+
+  Status GenerateRootFile(const Parser &parser,
+                          const std::string &path) override {
+    (void)parser;
+    (void)path;
+    return Status::NOT_IMPLEMENTED;
+  }
+
+  bool IsSchemaOnly() const override { return true; }
+
+  bool SupportsBfbsGeneration() const override { return false; }
+
+  bool SupportsRootFileGeneration() const override { return false; }
+
+  IDLOptions::Language Language() const override { return IDLOptions::kCSharp; }
+
+  std::string LanguageName() const override { return "CSharp"; }
+};
+}  // namespace
+
+std::unique_ptr<CodeGenerator> NewCSharpCodeGenerator() {
+  return std::unique_ptr<CSharpCodeGenerator>(new CSharpCodeGenerator());
 }
 
 }  // namespace flatbuffers
