@@ -115,6 +115,8 @@ const static FlatCOption flatc_options[] = {
   { "", "gen-compare", "", "Generate operator== for object-based API types." },
   { "", "gen-nullable", "",
     "Add Clang _Nullable for C++ pointer. or @Nullable for Java" },
+  { "", "java-package-prefix", "",
+    "Add a prefix to the generated package name for Java." },
   { "", "java-checkerframe", "", "Add @Pure for Java." },
   { "", "gen-generated", "", "Add @Generated annotation for Java." },
   { "", "gen-jvmstatic", "",
@@ -516,6 +518,9 @@ FlatCOptions FlatCompiler::ParseFromCommandLineArguments(int argc,
           Error("unknown case style: " + std::string(argv[argi]), true);
       } else if (arg == "--gen-nullable") {
         opts.gen_nullable = true;
+      } else if (arg == "--java-package-prefix") {
+        if (++argi >= argc) Error("missing prefix following: " + arg, true);
+        opts.java_package_prefix = argv[argi];
       } else if (arg == "--java-checkerframework") {
         opts.java_checkerframework = true;
       } else if (arg == "--gen-generated") {
