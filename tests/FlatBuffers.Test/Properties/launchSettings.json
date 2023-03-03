@@ -1,8 +1,0 @@
-{
-  "profiles": {
-    "FlatBuffers.Core.Test": {
-      "commandName": "Project",
-      "workingDirectory": "C:\\git\\flatbuffers\\tests\\FlatBuffers.Test"
-    }
-  }
-}
