@@ -19,6 +19,7 @@ import java.nio.ByteOrder
 import kotlin.math.sign
 
 @Suppress("unused")
+@kotlin.ExperimentalUnsignedTypes
 class Animal : Table() {
 
     fun __init(_i: Int, _bb: ByteBuffer)  {
@@ -31,14 +32,22 @@ class Animal : Table() {
     val name : String?
         get() {
             val o = __offset(4)
-            return if (o != 0) __string(o + bb_pos) else null
+            return if (o != 0) {
+                __string(o + bb_pos)
+            } else {
+                null
+            }
         }
     val nameAsByteBuffer : ByteBuffer get() = __vector_as_bytebuffer(4, 1)
     fun nameInByteBuffer(_bb: ByteBuffer) : ByteBuffer = __vector_in_bytebuffer(_bb, 4, 1)
     val sound : String?
         get() {
             val o = __offset(6)
-            return if (o != 0) __string(o + bb_pos) else null
+            return if (o != 0) {
+                __string(o + bb_pos)
+            } else {
+                null
+            }
         }
     val soundAsByteBuffer : ByteBuffer get() = __vector_as_bytebuffer(6, 1)
     fun soundInByteBuffer(_bb: ByteBuffer) : ByteBuffer = __vector_in_bytebuffer(_bb, 6, 1)
