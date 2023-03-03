@@ -717,6 +717,7 @@ struct IDLOptions {
     kKotlin = 1 << 15,
     kSwift = 1 << 16,
     kNim = 1 << 17,
+    kProto = 1 << 18,
     kMAX
   };
 
