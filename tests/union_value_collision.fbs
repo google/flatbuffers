@@ -3,6 +3,10 @@ namespace union_value_collsion;
 table IntValue {
 	value:int;
 }
+table Collide {
+	collide: string (key);
+	value: string;
+}
 
 union Value { IntValue }
 
@@ -12,6 +16,7 @@ union Other { IntValue }
 table Collision {
   some_value : Value;
   value : Other;
+  collide : [Collision];
 }
 
 root_type Collision;
