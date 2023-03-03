@@ -29,7 +29,7 @@
     "flatbuffers"
   ],
   "author": "The FlatBuffers project",
-  "license": "SEE LICENSE IN LICENSE.txt",
+  "license": "SEE LICENSE IN LICENSE",
   "bugs": {
     "url": "https://github.com/google/flatbuffers/issues"
   },
