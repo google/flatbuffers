@@ -639,17 +639,17 @@ namespace Google.FlatBuffers.Test
             {
                 0, 0, 0, 0,
                 0, 0, 0, 0,
-                0, 0, 0, 0,
-                0, 0, 0, 0,
                 0, 0, 0, 0, //Padding to 32 bytes
                 12, 0, 0, 0, // root of table, pointing to vtable offset
-                8, 0, // vtable bytes
-                12, 0, // object length
-                8, 0, // start of value 0
-                4, 0, // start of value 1
-                8, 0, 0, 0, // int32 offset for start of vtable
-                8, 0, 0, 0, // pointer to string
-                16, 0, 0, 0, // pointer to string
+                0, 0, // padding
+                6, 0, // vtable bytes
+                8, 0, // object length
+                4, 0, // start of value 0
+                6, 0, 0, 0, // int32 offset for start of vtable
+                4, 0, 0, 0, // pointer to vector
+                2, 0, 0, 0, // length of vector
+                8, 0, 0, 0, // int32 offset to string 1
+                16, 0, 0, 0, // int32 offset to string 2
                 6, 0, 0, 0, // length of string
                 102, 111, 111, 98, 97, 114, 0, 0, // "foobar" + padding
                 3, 0, 0, 0, // length of string
@@ -662,9 +662,7 @@ namespace Google.FlatBuffers.Test
             // table must be ok
             Assert.IsTrue(verifier.VerifyTableStart(checkOffset));
             // First field string check
-            Assert.IsTrue(verifier.VerifyString(checkOffset, 4, true));
-            // Second field string check
-            Assert.IsTrue(verifier.VerifyString(checkOffset, 6, true));
+            Assert.IsTrue(verifier.VerifyVectorOfStrings(checkOffset, 4, true));
         }
 
         [FlatBuffersTestMethod]
