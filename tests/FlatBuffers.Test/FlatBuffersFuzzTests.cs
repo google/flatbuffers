@@ -577,6 +577,97 @@ namespace Google.FlatBuffers.Test
         }
 
         [FlatBuffersTestMethod]
+        public void TestVTableWithStrings()
+        {
+            var builder = new FlatBufferBuilder(64);
+            var str1 = builder.CreateString("foo");
+            var str2 = builder.CreateString("foobar");
+            builder.StartTable(2);
+            builder.AddOffset(0, str1.Value, 0);
+            builder.AddOffset(1, str2.Value, 0);
+            var off = builder.EndTable();
+            builder.Finish(off);
+
+            byte[] padded = new byte[]
+            {
+                0, 0, 0, 0,
+                0, 0, 0, 0,
+                0, 0, 0, 0,
+                0, 0, 0, 0,
+                0, 0, 0, 0, //Padding to 32 bytes
+                12, 0, 0, 0, // root of table, pointing to vtable offset
+                8, 0, // vtable bytes
+                12, 0, // object length
+                8, 0, // start of value 0
+                4, 0, // start of value 1
+                8, 0, 0, 0, // int32 offset for start of vtable
+                8, 0, 0, 0, // pointer to string
+                16, 0, 0, 0, // pointer to string
+                6, 0, 0, 0, // length of string
+                102, 111, 111, 98, 97, 114, 0, 0, // "foobar" + padding
+                3, 0, 0, 0, // length of string
+                102, 111, 111, 0 // "bar"
+            };
+            Assert.ArrayEqual(padded, builder.DataBuffer.ToFullArray());
+
+            Google.FlatBuffers.Verifier verifier = new Google.FlatBuffers.Verifier(builder.DataBuffer);
+            uint checkOffset = builder.DataBuffer.GetUint(builder.DataBuffer.Position) + (uint)builder.DataBuffer.Position;
+            // table must be ok
+            Assert.IsTrue(verifier.VerifyTableStart(checkOffset));
+            // First field string check
+            Assert.IsTrue(verifier.VerifyString(checkOffset, 4, true));
+            // Second field string check
+            Assert.IsTrue(verifier.VerifyString(checkOffset, 6, true));
+        }
+
+        [FlatBuffersTestMethod]
+        public void TestVTableWithVectorOfStrings()
+        {
+            var builder = new FlatBufferBuilder(64);
+            var str1 = builder.CreateString("foo");
+            var str2 = builder.CreateString("foobar");
+            builder.StartVector(sizeof(int), 2, 1);
+            builder.AddOffset(str1.Value);
+            builder.AddOffset(str2.Value);
+            var vec = builder.EndVector();
+            builder.StartTable(1);
+            builder.AddOffset(0, vec.Value, 0);
+            var off = builder.EndTable();
+            builder.Finish(off);
+
+            byte[] padded = new byte[]
+            {
+                0, 0, 0, 0,
+                0, 0, 0, 0,
+                0, 0, 0, 0,
+                0, 0, 0, 0,
+                0, 0, 0, 0, //Padding to 32 bytes
+                12, 0, 0, 0, // root of table, pointing to vtable offset
+                8, 0, // vtable bytes
+                12, 0, // object length
+                8, 0, // start of value 0
+                4, 0, // start of value 1
+                8, 0, 0, 0, // int32 offset for start of vtable
+                8, 0, 0, 0, // pointer to string
+                16, 0, 0, 0, // pointer to string
+                6, 0, 0, 0, // length of string
+                102, 111, 111, 98, 97, 114, 0, 0, // "foobar" + padding
+                3, 0, 0, 0, // length of string
+                102, 111, 111, 0 // "bar"
+            };
+            Assert.ArrayEqual(padded, builder.DataBuffer.ToFullArray());
+
+            Google.FlatBuffers.Verifier verifier = new Google.FlatBuffers.Verifier(builder.DataBuffer);
+            uint checkOffset = builder.DataBuffer.GetUint(builder.DataBuffer.Position) + (uint)builder.DataBuffer.Position;
+            // table must be ok
+            Assert.IsTrue(verifier.VerifyTableStart(checkOffset));
+            // First field string check
+            Assert.IsTrue(verifier.VerifyString(checkOffset, 4, true));
+            // Second field string check
+            Assert.IsTrue(verifier.VerifyString(checkOffset, 6, true));
+        }
+
+        [FlatBuffersTestMethod]
         public void TestTwoFinishTable()
         {
             var builder = new FlatBufferBuilder(1);
