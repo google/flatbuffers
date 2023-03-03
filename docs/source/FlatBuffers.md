@@ -9,7 +9,7 @@ It was originally created at Google for game development and other
 performance-critical applications.
 
 It is available as Open Source on [GitHub](http://github.com/google/flatbuffers)
-under the Apache license, v2 (see LICENSE.txt).
+under the Apache license, v2 (see LICENSE).
 
 ## Why use FlatBuffers?
 
