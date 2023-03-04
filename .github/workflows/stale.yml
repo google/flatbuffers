@@ -4,8 +4,10 @@ permissions:
   pull-requests: write
 
 on:
+  # For manual tests.
+  workflow_dispatch:
   schedule:
-  - cron: "30 20 * * *"
+    - cron: "30 20 * * *"
 
 jobs:
   stale:
