@@ -252,6 +252,8 @@ const static FlatCOption flatc_options[] = {
     "Currently this is required to generate private types in Rust" },
   { "", "python-no-type-prefix-suffix", "",
     "Skip emission of Python functions that are prefixed with typenames" },
+  { "", "python-typing", "",
+    "Generate Python type annotations" },
 };
 
 auto cmp = [](FlatCOption a, FlatCOption b) { return a.long_opt < b.long_opt; };
