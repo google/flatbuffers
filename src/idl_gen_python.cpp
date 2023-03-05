@@ -35,6 +35,9 @@ namespace python {
 
 namespace {
 
+typedef std::pair<std::string, std::string> ImportMapEntry;
+typedef std::set<ImportMapEntry> ImportMap;
+
 static std::set<std::string> PythonKeywords() {
   return { "False", "None",   "True",     "and",   "as",     "assert",
            "break", "class",  "continue", "def",   "del",    "elif",
@@ -267,27 +270,26 @@ class PythonGenerator : public BaseGenerator {
 
   // Get the value of a fixed size array.
   void GetArrayOfStruct(const StructDef &struct_def, const FieldDef &field,
-                        std::string *code_ptr, std::set<std::string> &imports) const {
+                        std::string *code_ptr, ImportMap &imports) const {
     auto &code = *code_ptr;
     const auto vec_type = field.value.type.VectorType();
     GenReceiver(struct_def, code_ptr);
     code += namer_.Method(field);
 
-    const std::string import_stmt = "from ." + GenPackageReference(field.value.type) 
-      + " import " + TypeName(field);
+    const ImportMapEntry import_entry = { "." + GenPackageReference(field.value.type), TypeName(field) };
 
     if (parser_.opts.python_typing) {
       code += "(self, i: int)";
       code += " -> " + TypeName(field) + ":";
 
-      imports.insert(import_stmt);
+      imports.insert(import_entry);
     } else {
       code += "(self, i):";
     }
 
     if (parser_.opts.include_dependence_headers && !parser_.opts.python_typing) {
       code += GenIndents(2);
-      code += import_stmt + "\n";
+      code += "from " + import_entry.first + " import " + import_entry.second + "\n";
     }
 
     code += GenIndents(2) + "obj = " + TypeName(field) + "()";
@@ -325,18 +327,17 @@ class PythonGenerator : public BaseGenerator {
   // Get a struct by initializing an existing struct.
   // Specific to Table.
   void GetStructFieldOfTable(const StructDef &struct_def, const FieldDef &field,
-                             std::string *code_ptr, std::set<std::string> &imports) const {
+                             std::string *code_ptr, ImportMap &imports) const {
     auto &code = *code_ptr;
     GenReceiver(struct_def, code_ptr);
     code += namer_.Method(field) + "(self)";
 
-    const std::string import_stmt = "from ." + GenPackageReference(field.value.type) 
-      + " import " + TypeName(field);
+    const ImportMapEntry import_entry = { "." + GenPackageReference(field.value.type), TypeName(field) }; 
 
     if (parser_.opts.python_typing) {
       code += " -> Optional[" + TypeName(field) + "]";
-      imports.insert("from typing import Optional");
-      imports.insert(import_stmt);
+      imports.insert(ImportMapEntry { "typing", "Optional" });
+      imports.insert(import_entry);
     }
     code += ":";
     code += OffsetPrefix(field);
@@ -349,7 +350,7 @@ class PythonGenerator : public BaseGenerator {
 
     if (parser_.opts.include_dependence_headers && !parser_.opts.python_typing) {
       code += Indent + Indent + Indent;
-      code += import_stmt + "\n";
+      code += "from " + import_entry.first + " import " + import_entry.second + "\n";
     }
     code += Indent + Indent + Indent + "obj = " + TypeName(field) + "()\n";
     code += Indent + Indent + Indent + "obj.Init(self._tab.Bytes, x)\n";
@@ -359,14 +360,14 @@ class PythonGenerator : public BaseGenerator {
 
   // Get the value of a string.
   void GetStringField(const StructDef &struct_def, const FieldDef &field,
-                      std::string *code_ptr, std::set<std::string> &imports) const {
+                      std::string *code_ptr, ImportMap &imports) const {
     auto &code = *code_ptr;
     GenReceiver(struct_def, code_ptr);
     code += namer_.Method(field);
 
     if (parser_.opts.python_typing) {
       code += "(self) -> Optional[str]:";
-      imports.insert("from typing import Optional");
+      imports.insert(ImportMapEntry { "typing", "Optional" });
     } else {
       code += "(self):";
     }
@@ -379,32 +380,32 @@ class PythonGenerator : public BaseGenerator {
 
   // Get the value of a union from an object.
   void GetUnionField(const StructDef &struct_def, const FieldDef &field,
-                     std::string *code_ptr, std::set<std::string> &imports) const {
+                     std::string *code_ptr, ImportMap &imports) const {
     auto &code = *code_ptr;
     GenReceiver(struct_def, code_ptr);
     std::string return_ty = "flatbuffers.table.Table";
 
     bool is_native_table = TypeName(field) == "*flatbuffers.Table";
-    std::string import_stmt;
+    ImportMapEntry import_entry;
     if (is_native_table) {
-      import_stmt = "from flatbuffers.table import Table";
+      import_entry = ImportMapEntry { "flatbuffers.table", "Table" };
     } else {
       return_ty = TypeName(field);
-      import_stmt = "from " + GenPackageReference(field.value.type) + " import " +
-              TypeName(field);
+      import_entry = ImportMapEntry { GenPackageReference(field.value.type) , TypeName(field) };
     }
 
     code += namer_.Method(field) + "(self)";
     if (parser_.opts.python_typing) {
       code += " -> Optional[" + return_ty + "]";
-      imports.insert("from typing import Optional");
-      imports.insert(import_stmt);
+      imports.insert(ImportMapEntry { "typing", "Optional" });
+      imports.insert(import_entry);
     }
     code += ":";
     code += OffsetPrefix(field);
 
     if (!parser_.opts.python_typing) {
-      code += Indent + Indent + Indent + import_stmt + "\n";
+      code += Indent + Indent + Indent;
+      code += "from " + import_entry.first + " import " + import_entry.second + "\n";
     }
     code += Indent + Indent + Indent + "obj = Table(bytearray(), 0)\n";
     code += Indent + Indent + Indent + GenGetter(field.value.type);
@@ -427,19 +428,18 @@ class PythonGenerator : public BaseGenerator {
   // Get the value of a vector's struct member.
   void GetMemberOfVectorOfStruct(const StructDef &struct_def,
                                  const FieldDef &field,
-                                 std::string *code_ptr, std::set<std::string> &imports) const {
+                                 std::string *code_ptr, ImportMap &imports) const {
     auto &code = *code_ptr;
     auto vectortype = field.value.type.VectorType();
 
     GenReceiver(struct_def, code_ptr);
     code += namer_.Method(field);
-    const std::string import_stmt = "from ." + GenPackageReference(field.value.type)
-      + " import " + TypeName(field);
+    const ImportMapEntry import_entry = { "." + GenPackageReference(field.value.type), TypeName(field) };
  
     if (parser_.opts.python_typing) {
       code += "(self, j: int) -> Optional[" + TypeName(field) + "]";
-      imports.insert("from typing import Optional");
-      imports.insert(import_stmt);
+      imports.insert(ImportMapEntry { "typing", "Optional" });
+      imports.insert(import_entry);
     } else {
       code += "(self, j)";
     }
@@ -453,7 +453,7 @@ class PythonGenerator : public BaseGenerator {
     }
     if (parser_.opts.include_dependence_headers && !parser_.opts.python_typing) {
       code += Indent + Indent + Indent;
-      code += import_stmt + "\n";
+      code += "from " + import_entry.first + " import " + import_entry.second + "\n";
     }
     code += Indent + Indent + Indent + "obj = " + TypeName(field) + "()\n";
     code += Indent + Indent + Indent + "obj.Init(self._tab.Bytes, x)\n";
@@ -545,7 +545,7 @@ class PythonGenerator : public BaseGenerator {
   void GetVectorAsNestedFlatbuffer(const StructDef &struct_def,
                                    const FieldDef &field,
                                    std::string *code_ptr,
-                                   std::set<std::string> &imports) const {
+                                   ImportMap &imports) const {
     auto nested = field.attributes.Lookup("nested_flatbuffer");
     if (!nested) { return; }  // There is no nested flatbuffer.
 
@@ -555,15 +555,15 @@ class PythonGenerator : public BaseGenerator {
       qualified_name = nested->constant;
     }
 
-    const std::string import_stmt = "from ." + qualified_name + " import " + unqualified_name; 
+    const ImportMapEntry import_entry = { "." + qualified_name, unqualified_name }; 
 
     auto &code = *code_ptr;
     GenReceiver(struct_def, code_ptr);
     code += namer_.Method(field) + "NestedRoot(self)";
     if (parser_.opts.python_typing) {
       code += " -> Union[" + unqualified_name + ", int]";
-      imports.insert("from typing import Union");
-      imports.insert(import_stmt);
+      imports.insert(ImportMapEntry { "typing", "Union" });
+      imports.insert(import_entry);
     }
     code += ":";
 
@@ -571,7 +571,7 @@ class PythonGenerator : public BaseGenerator {
 
     if (!parser_.opts.python_typing) {
       code += Indent + Indent + Indent;
-      code += import_stmt + "\n";
+      code += "from " + import_entry.first + " import " + import_entry.second + "\n";
     }
     code += Indent + Indent + Indent + "return " + unqualified_name;
     code += ".GetRootAs";
@@ -864,7 +864,7 @@ class PythonGenerator : public BaseGenerator {
 
   // Generate a struct field, conditioned on its child type(s).
   void GenStructAccessor(const StructDef &struct_def, const FieldDef &field,
-                         std::string *code_ptr, std::set<std::string> &imports) const {
+                         std::string *code_ptr, ImportMap &imports) const {
     GenComment(field.doc_comment, code_ptr, &def_comment, Indent.c_str());
     if (IsScalar(field.value.type.base_type)) {
       if (struct_def.fixed) {
@@ -977,7 +977,7 @@ class PythonGenerator : public BaseGenerator {
   }
 
   // Generates struct or table methods.
-  void GenStruct(const StructDef &struct_def, std::string *code_ptr, std::set<std::string> &imports) const {
+  void GenStruct(const StructDef &struct_def, std::string *code_ptr, ImportMap &imports) const {
     if (struct_def.generated) return;
 
     GenComment(struct_def.doc_comment, code_ptr, &def_comment);
@@ -1956,14 +1956,16 @@ class PythonGenerator : public BaseGenerator {
 
   bool generate() {
     std::string one_file_code;
-    std::set<std::string> one_file_imports;
+    ImportMap one_file_imports;
     if (!generateEnums(&one_file_code)) return false;
     if (!generateStructs(&one_file_code, one_file_imports)) return false;
 
     if (parser_.opts.one_file) {
+      const std::string mod = file_name_ + "_generated";
+
       // Legacy file format uses keep casing.
-      return SaveType(file_name_ + "_generated.py", *parser_.current_namespace_,
-                      one_file_code, one_file_imports, true);
+      return SaveType(mod + ".py", *parser_.current_namespace_,
+                      one_file_code, one_file_imports, mod, true);
     }
 
     return true;
@@ -1983,21 +1985,23 @@ class PythonGenerator : public BaseGenerator {
       if (parser_.opts.one_file && !enumcode.empty()) {
         *one_file_code += enumcode + "\n\n";
       } else {
-        std::set<std::string> imports;
+        ImportMap imports;
+        const std::string mod = namer_.File(enum_def, SkipFile::SuffixAndExtension);
+
         if (!SaveType(namer_.File(enum_def, SkipFile::Suffix),
-                      *enum_def.defined_namespace, enumcode, imports, false))
+                      *enum_def.defined_namespace, enumcode, imports, mod, false))
           return false;
       }
     }
     return true;
   }
 
-  bool generateStructs(std::string *one_file_code, std::set<std::string> &one_file_imports) const {
+  bool generateStructs(std::string *one_file_code, ImportMap &one_file_imports) const {
     for (auto it = parser_.structs_.vec.begin();
          it != parser_.structs_.vec.end(); ++it) {
       auto &struct_def = **it;
       std::string declcode;
-      std::set<std::string> imports;
+      ImportMap imports;
       GenStruct(struct_def, &declcode, imports);
       if (parser_.opts.generate_object_based_api) {
         GenStructForObjectAPI(struct_def, &declcode);
@@ -2012,8 +2016,9 @@ class PythonGenerator : public BaseGenerator {
           one_file_imports.insert(import_str);
         }
       } else {
+        const std::string mod = namer_.File(struct_def, SkipFile::SuffixAndExtension);
         if (!SaveType(namer_.File(struct_def, SkipFile::Suffix),
-                      *struct_def.defined_namespace, declcode, imports, true))
+                      *struct_def.defined_namespace, declcode, imports, mod, true))
           return false;
       }
     }
@@ -2022,18 +2027,28 @@ class PythonGenerator : public BaseGenerator {
 
   // Begin by declaring namespace and imports.
   void BeginFile(const std::string &name_space_name, const bool needs_imports,
-                 std::string *code_ptr, const std::set<std::string> &imports) const {
+                 std::string *code_ptr, const std::string &mod, const ImportMap &imports) const {
     auto &code = *code_ptr;
     code = code + "# " + FlatBuffersGeneratedWarning() + "\n\n";
     code += "# namespace: " + name_space_name + "\n\n";
+
     if (needs_imports) {
+      const std::string local_import = "." + mod;
+
       code += "import flatbuffers\n";
       code += "from flatbuffers.compat import import_numpy\n";
       if (parser_.opts.python_typing) {
         code += "from typing import Any\n";
 
-        for (auto import_str: imports) {
-          code += import_str + "\n";
+        for (auto import_entry: imports) {
+          // If we have a file called, say, "MyType.py" and in it we have a
+          // class "MyType", we can generate imports -- usually when we
+          // have a type that contains arrays of itself -- of the type
+          // "from .MyType import MyType", which Python can't resolve. So
+          // if we are trying to import ourself, we skip.
+          if (import_entry.first != local_import) {
+            code += "from " + import_entry.first + " import " + import_entry.second + "\n";
+          }
         }
       }
       code += "np = import_numpy()\n\n";
@@ -2042,11 +2057,11 @@ class PythonGenerator : public BaseGenerator {
 
   // Save out the generated code for a Python Table type.
   bool SaveType(const std::string &defname, const Namespace &ns,
-                const std::string &classcode, const std::set<std::string> &imports, bool needs_imports) const {
+                const std::string &classcode, const ImportMap &imports, const std::string &mod, bool needs_imports) const {
     if (!classcode.length()) return true;
 
     std::string code = "";
-    BeginFile(LastNamespacePart(ns), needs_imports, &code, imports);
+    BeginFile(LastNamespacePart(ns), needs_imports, &code, mod, imports);
     code += classcode;
 
     const std::string directories =
