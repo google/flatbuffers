@@ -650,9 +650,11 @@ FlatCOptions FlatCompiler::ParseFromCommandLineArguments(int argc,
         opts.ts_no_import_ext = true;
       } else if (arg == "--no-leak-private-annotation") {
         opts.no_leak_private_annotations = true;
-       } else if (arg == "--python-no-type-prefix-suffix") {
+      } else if (arg == "--python-no-type-prefix-suffix") {
         opts.python_no_type_prefix_suffix = true;
-     } else if (arg == "--annotate-sparse-vectors") {
+      } else if (arg == "--python-typing") {
+        opts.python_typing = true;
+      } else if (arg == "--annotate-sparse-vectors") {
         options.annotate_include_vector_contents = false;
       } else if (arg == "--annotate") {
         if (++argi >= argc) Error("missing path following: " + arg, true);
