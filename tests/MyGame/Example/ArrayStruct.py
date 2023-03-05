@@ -43,8 +43,9 @@ class ArrayStruct(object):
     # ArrayStruct
     def C(self): return self._tab.Get(flatbuffers.number_types.Int8Flags, self._tab.Pos + flatbuffers.number_types.UOffsetTFlags.py_type(64))
     # ArrayStruct
-    def D(self, i: int):
-        from MyGame.Example.NestedStruct import NestedStruct
+    def D(self, i):
+        from .MyGame.Example.NestedStruct import NestedStruct
+
         obj = NestedStruct()
         obj.Init(self._tab.Bytes, self._tab.Pos + 72 + i * 32)
         return obj

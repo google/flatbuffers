@@ -28,12 +28,18 @@ class Monster(object):
     def Init(self, buf, pos):
         self._tab = flatbuffers.table.Table(buf, pos)
 
-def MonsterStart(builder): builder.StartObject(0)
+def MonsterStart(builder):
+    builder.StartObject(0)
+
 def Start(builder):
-    return MonsterStart(builder)
-def MonsterEnd(builder): return builder.EndObject()
+    MonsterStart(builder)
+
+def MonsterEnd(builder):
+    return builder.EndObject()
+
 def End(builder):
     return MonsterEnd(builder)
+
 
 class MonsterT(object):
 

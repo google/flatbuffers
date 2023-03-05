@@ -33,21 +33,30 @@ class ArrayTable(object):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(4))
         if o != 0:
             x = o + self._tab.Pos
-            from MyGame.Example.ArrayStruct import ArrayStruct
+            from .MyGame.Example.ArrayStruct import ArrayStruct
             obj = ArrayStruct()
             obj.Init(self._tab.Bytes, x)
             return obj
         return None
 
-def ArrayTableStart(builder): builder.StartObject(1)
+def ArrayTableStart(builder):
+    builder.StartObject(1)
+
 def Start(builder):
-    return ArrayTableStart(builder)
-def ArrayTableAddA(builder, a): builder.PrependStructSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(a), 0)
-def AddA(builder, a):
-    return ArrayTableAddA(builder, a)
-def ArrayTableEnd(builder): return builder.EndObject()
+    ArrayTableStart(builder)
+
+def ArrayTableAddA(builder, a):
+    builder.PrependStructSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(a), 0)
+
+def AddA(builder: flatbuffers.Builder, a: Any):
+    ArrayTableAddA(builder, a)
+
+def ArrayTableEnd(builder):
+    return builder.EndObject()
+
 def End(builder):
     return ArrayTableEnd(builder)
+
 import MyGame.Example.ArrayStruct
 try:
     from typing import Optional
