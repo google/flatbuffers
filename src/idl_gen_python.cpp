@@ -139,13 +139,15 @@ class PythonGenerator : public BaseGenerator {
     code += Indent + Indent + "return x\n";
     code += "\n";
 
-    // Add an alias with the old name
-    code += Indent + "@classmethod\n";
-    code += Indent + "def GetRootAs" + struct_type + "(cls, buf, offset=0):\n";
-    code +=
-        Indent + Indent +
-        "\"\"\"This method is deprecated. Please switch to GetRootAs.\"\"\"\n";
-    code += Indent + Indent + "return cls.GetRootAs(buf, offset)\n";
+    if (!parser_.opts.python_no_type_prefix_suffix) {
+      // Add an alias with the old name
+      code += Indent + "@classmethod\n";
+      code += Indent + "def GetRootAs" + struct_type + "(cls, buf, offset=0):\n";
+      code +=
+          Indent + Indent +
+          "\"\"\"This method is deprecated. Please switch to GetRootAs.\"\"\"\n";
+      code += Indent + Indent + "return cls.GetRootAs(buf, offset)\n";
+    }
   }
 
   // Initialize an existing object with other data, to avoid an allocation.
@@ -605,15 +607,18 @@ class PythonGenerator : public BaseGenerator {
     auto &code = *code_ptr;
     const auto struct_type = namer_.Type(struct_def);
     // Generate method with struct name.
-    code += "def " + struct_type + "Start(builder): ";
-    code += "builder.StartObject(";
-    code += NumToString(struct_def.fields.vec.size());
-    code += ")\n";
 
-    if (!parser_.opts.one_file) {
+    const auto name = parser_.opts.python_no_type_prefix_suffix ? "Start" : struct_type + "Start";
+
+    code += "def " + name + "(builder):\n";
+    code += Indent + "return builder.StartObject(";
+    code += NumToString(struct_def.fields.vec.size());
+    code += ")\n\n";
+
+    if (!parser_.opts.one_file && !parser_.opts.python_no_type_prefix_suffix) {
       // Generate method without struct name.
       code += "def Start(builder):\n";
-      code += Indent + "return " + struct_type + "Start(builder)\n";
+      code += Indent + "return " + struct_type + "Start(builder)\n\n";
     }
   }
 
@@ -624,12 +629,14 @@ class PythonGenerator : public BaseGenerator {
     const std::string field_var = namer_.Variable(field);
     const std::string field_method = namer_.Method(field);
 
+    const auto name = parser_.opts.python_no_type_prefix_suffix ? "Add" + field_method : namer_.Type(struct_def) + "Add" + field_method;
+
     // Generate method with struct name.
-    code += "def " + namer_.Type(struct_def) + "Add" + field_method;
+    code += "def " + name;
     code += "(builder, ";
     code += field_var;
-    code += "): ";
-    code += "builder.Prepend";
+    code += "):\n";
+    code += Indent + "return builder.Prepend";
     code += GenMethod(field) + "Slot(";
     code += NumToString(offset) + ", ";
     if (!IsScalar(field.value.type.base_type) && (!struct_def.fixed)) {
@@ -646,16 +653,16 @@ class PythonGenerator : public BaseGenerator {
     } else {
       code += field.value.constant;
     }
-    code += ")\n";
+    code += ")\n\n";
 
-    if (!parser_.opts.one_file) {
+    if (!parser_.opts.one_file && !parser_.opts.python_no_type_prefix_suffix) {
       // Generate method without struct name.
       code += "def Add" + field_method + "(builder, " + field_var + "):\n";
       code +=
           Indent + "return " + namer_.Type(struct_def) + "Add" + field_method;
       code += "(builder, ";
       code += field_var;
-      code += ")\n";
+      code += ")\n\n";
     }
   }
 
@@ -667,20 +674,22 @@ class PythonGenerator : public BaseGenerator {
     const std::string field_method = namer_.Method(field);
 
     // Generate method with struct name.
-    code += "def " + struct_type + "Start" + field_method;
-    code += "Vector(builder, numElems): return builder.StartVector(";
+    const auto name = parser_.opts.python_no_type_prefix_suffix ? "Start" + field_method : struct_type + "Start" + field_method;
+    code += "def " + name;
+    code += "Vector(builder, numElems):\n";
+    code += Indent + "return builder.StartVector(";
     auto vector_type = field.value.type.VectorType();
     auto alignment = InlineAlignment(vector_type);
     auto elem_size = InlineSize(vector_type);
     code += NumToString(elem_size);
     code += ", numElems, " + NumToString(alignment);
-    code += ")\n";
+    code += ")\n\n";
 
-    if (!parser_.opts.one_file) {
+    if (!parser_.opts.one_file && !parser_.opts.python_no_type_prefix_suffix) {
       // Generate method without struct name.
       code += "def Start" + field_method + "Vector(builder, numElems):\n";
       code += Indent + "return " + struct_type + "Start";
-      code += field_method + "Vector(builder, numElems)\n";
+      code += field_method + "Vector(builder, numElems)\n\n";
     }
   }
 
@@ -725,15 +734,16 @@ class PythonGenerator : public BaseGenerator {
                            std::string *code_ptr) const {
     auto &code = *code_ptr;
 
+    const auto name = parser_.opts.python_no_type_prefix_suffix ? "End" : namer_.Type(struct_def) + "End";
     // Generate method with struct name.
-    code += "def " + namer_.Type(struct_def) + "End";
-    code += "(builder): ";
-    code += "return builder.EndObject()\n";
+    code += "def " + name + "(builder)\n";
+    code += Indent + "return builder.EndObject()\n\n";
 
-    if (!parser_.opts.one_file) {
+    if (!parser_.opts.one_file && !parser_.opts.python_no_type_prefix_suffix) {
       // Generate method without struct name.
       code += "def End(builder):\n";
       code += Indent + "return " + namer_.Type(struct_def) + "End(builder)";
+      code += "\n";
     }
   }
 
