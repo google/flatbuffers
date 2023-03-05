@@ -276,7 +276,9 @@ class PythonGenerator : public BaseGenerator {
     GenReceiver(struct_def, code_ptr);
     code += namer_.Method(field);
 
-    const ImportMapEntry import_entry = { "." + GenPackageReference(field.value.type), TypeName(field) };
+    const ImportMapEntry import_entry = {
+      "." + GenPackageReference(field.value.type), TypeName(field)
+    };
 
     if (parser_.opts.python_typing) {
       code += "(self, i: int)";
@@ -289,7 +291,8 @@ class PythonGenerator : public BaseGenerator {
 
     if (parser_.opts.include_dependence_headers && !parser_.opts.python_typing) {
       code += GenIndents(2);
-      code += "from " + import_entry.first + " import " + import_entry.second + "\n";
+      code += "from " + import_entry.first + " import " + import_entry.second +
+              "\n";
     }
 
     code += GenIndents(2) + "obj = " + TypeName(field) + "()";
@@ -332,11 +335,13 @@ class PythonGenerator : public BaseGenerator {
     GenReceiver(struct_def, code_ptr);
     code += namer_.Method(field) + "(self)";
 
-    const ImportMapEntry import_entry = { "." + GenPackageReference(field.value.type), TypeName(field) }; 
+    const ImportMapEntry import_entry = {
+      "." + GenPackageReference(field.value.type), TypeName(field)
+    };
 
     if (parser_.opts.python_typing) {
       code += " -> Optional[" + TypeName(field) + "]";
-      imports.insert(ImportMapEntry { "typing", "Optional" });
+      imports.insert(ImportMapEntry{ "typing", "Optional" });
       imports.insert(import_entry);
     }
     code += ":";
@@ -350,7 +355,8 @@ class PythonGenerator : public BaseGenerator {
 
     if (parser_.opts.include_dependence_headers && !parser_.opts.python_typing) {
       code += Indent + Indent + Indent;
-      code += "from " + import_entry.first + " import " + import_entry.second + "\n";
+      code += "from " + import_entry.first + " import " + import_entry.second +
+              "\n";
     }
     code += Indent + Indent + Indent + "obj = " + TypeName(field) + "()\n";
     code += Indent + Indent + Indent + "obj.Init(self._tab.Bytes, x)\n";
@@ -367,7 +373,7 @@ class PythonGenerator : public BaseGenerator {
 
     if (parser_.opts.python_typing) {
       code += "(self) -> Optional[str]:";
-      imports.insert(ImportMapEntry { "typing", "Optional" });
+      imports.insert(ImportMapEntry{ "typing", "Optional" });
     } else {
       code += "(self):";
     }
@@ -388,16 +394,17 @@ class PythonGenerator : public BaseGenerator {
     bool is_native_table = TypeName(field) == "*flatbuffers.Table";
     ImportMapEntry import_entry;
     if (is_native_table) {
-      import_entry = ImportMapEntry { "flatbuffers.table", "Table" };
+      import_entry = ImportMapEntry{ "flatbuffers.table", "Table" };
     } else {
       return_ty = TypeName(field);
-      import_entry = ImportMapEntry { GenPackageReference(field.value.type) , TypeName(field) };
+      import_entry = ImportMapEntry{ GenPackageReference(field.value.type),
+                                     TypeName(field) };
     }
 
     code += namer_.Method(field) + "(self)";
     if (parser_.opts.python_typing) {
       code += " -> Optional[" + return_ty + "]";
-      imports.insert(ImportMapEntry { "typing", "Optional" });
+      imports.insert(ImportMapEntry{ "typing", "Optional" });
       imports.insert(import_entry);
     }
     code += ":";
@@ -405,7 +412,8 @@ class PythonGenerator : public BaseGenerator {
 
     if (!parser_.opts.python_typing) {
       code += Indent + Indent + Indent;
-      code += "from " + import_entry.first + " import " + import_entry.second + "\n";
+      code += "from " + import_entry.first + " import " + import_entry.second +
+              "\n";
     }
     code += Indent + Indent + Indent + "obj = Table(bytearray(), 0)\n";
     code += Indent + Indent + Indent + GenGetter(field.value.type);
@@ -427,18 +435,20 @@ class PythonGenerator : public BaseGenerator {
 
   // Get the value of a vector's struct member.
   void GetMemberOfVectorOfStruct(const StructDef &struct_def,
-                                 const FieldDef &field,
-                                 std::string *code_ptr, ImportMap &imports) const {
+                                 const FieldDef &field, std::string *code_ptr,
+                                 ImportMap &imports) const {
     auto &code = *code_ptr;
     auto vectortype = field.value.type.VectorType();
 
     GenReceiver(struct_def, code_ptr);
     code += namer_.Method(field);
-    const ImportMapEntry import_entry = { "." + GenPackageReference(field.value.type), TypeName(field) };
- 
+    const ImportMapEntry import_entry = {
+      "." + GenPackageReference(field.value.type), TypeName(field)
+    };
+
     if (parser_.opts.python_typing) {
       code += "(self, j: int) -> Optional[" + TypeName(field) + "]";
-      imports.insert(ImportMapEntry { "typing", "Optional" });
+      imports.insert(ImportMapEntry{ "typing", "Optional" });
       imports.insert(import_entry);
     } else {
       code += "(self, j)";
@@ -453,7 +463,8 @@ class PythonGenerator : public BaseGenerator {
     }
     if (parser_.opts.include_dependence_headers && !parser_.opts.python_typing) {
       code += Indent + Indent + Indent;
-      code += "from " + import_entry.first + " import " + import_entry.second + "\n";
+      code += "from " + import_entry.first + " import " + import_entry.second +
+              "\n";
     }
     code += Indent + Indent + Indent + "obj = " + TypeName(field) + "()\n";
     code += Indent + Indent + Indent + "obj.Init(self._tab.Bytes, x)\n";
@@ -543,8 +554,7 @@ class PythonGenerator : public BaseGenerator {
 
   // Returns a nested flatbuffer as itself.
   void GetVectorAsNestedFlatbuffer(const StructDef &struct_def,
-                                   const FieldDef &field,
-                                   std::string *code_ptr,
+                                   const FieldDef &field, std::string *code_ptr,
                                    ImportMap &imports) const {
     auto nested = field.attributes.Lookup("nested_flatbuffer");
     if (!nested) { return; }  // There is no nested flatbuffer.
@@ -555,14 +565,15 @@ class PythonGenerator : public BaseGenerator {
       qualified_name = nested->constant;
     }
 
-    const ImportMapEntry import_entry = { "." + qualified_name, unqualified_name }; 
+    const ImportMapEntry import_entry = { "." + qualified_name,
+                                          unqualified_name };
 
     auto &code = *code_ptr;
     GenReceiver(struct_def, code_ptr);
     code += namer_.Method(field) + "NestedRoot(self)";
     if (parser_.opts.python_typing) {
       code += " -> Union[" + unqualified_name + ", int]";
-      imports.insert(ImportMapEntry { "typing", "Union" });
+      imports.insert(ImportMapEntry{ "typing", "Union" });
       imports.insert(import_entry);
     }
     code += ":";
@@ -571,7 +582,8 @@ class PythonGenerator : public BaseGenerator {
 
     if (!parser_.opts.python_typing) {
       code += Indent + Indent + Indent;
-      code += "from " + import_entry.first + " import " + import_entry.second + "\n";
+      code += "from " + import_entry.first + " import " + import_entry.second +
+              "\n";
     }
     code += Indent + Indent + Indent + "return " + unqualified_name;
     code += ".GetRootAs";
@@ -977,7 +989,8 @@ class PythonGenerator : public BaseGenerator {
   }
 
   // Generates struct or table methods.
-  void GenStruct(const StructDef &struct_def, std::string *code_ptr, ImportMap &imports) const {
+  void GenStruct(const StructDef &struct_def, std::string *code_ptr,
+                 ImportMap &imports) const {
     if (struct_def.generated) return;
 
     GenComment(struct_def.doc_comment, code_ptr, &def_comment);
@@ -1964,8 +1977,8 @@ class PythonGenerator : public BaseGenerator {
       const std::string mod = file_name_ + "_generated";
 
       // Legacy file format uses keep casing.
-      return SaveType(mod + ".py", *parser_.current_namespace_,
-                      one_file_code, one_file_imports, mod, true);
+      return SaveType(mod + ".py", *parser_.current_namespace_, one_file_code,
+                      one_file_imports, mod, true);
     }
 
     return true;
@@ -1986,17 +1999,20 @@ class PythonGenerator : public BaseGenerator {
         *one_file_code += enumcode + "\n\n";
       } else {
         ImportMap imports;
-        const std::string mod = namer_.File(enum_def, SkipFile::SuffixAndExtension);
+        const std::string mod =
+            namer_.File(enum_def, SkipFile::SuffixAndExtension);
 
         if (!SaveType(namer_.File(enum_def, SkipFile::Suffix),
-                      *enum_def.defined_namespace, enumcode, imports, mod, false))
+                      *enum_def.defined_namespace, enumcode, imports, mod,
+                      false))
           return false;
       }
     }
     return true;
   }
 
-  bool generateStructs(std::string *one_file_code, ImportMap &one_file_imports) const {
+  bool generateStructs(std::string *one_file_code,
+                       ImportMap &one_file_imports) const {
     for (auto it = parser_.structs_.vec.begin();
          it != parser_.structs_.vec.end(); ++it) {
       auto &struct_def = **it;
@@ -2016,9 +2032,11 @@ class PythonGenerator : public BaseGenerator {
           one_file_imports.insert(import_str);
         }
       } else {
-        const std::string mod = namer_.File(struct_def, SkipFile::SuffixAndExtension);
+        const std::string mod =
+            namer_.File(struct_def, SkipFile::SuffixAndExtension);
         if (!SaveType(namer_.File(struct_def, SkipFile::Suffix),
-                      *struct_def.defined_namespace, declcode, imports, mod, true))
+                      *struct_def.defined_namespace, declcode, imports, mod,
+                      true))
           return false;
       }
     }
@@ -2027,7 +2045,8 @@ class PythonGenerator : public BaseGenerator {
 
   // Begin by declaring namespace and imports.
   void BeginFile(const std::string &name_space_name, const bool needs_imports,
-                 std::string *code_ptr, const std::string &mod, const ImportMap &imports) const {
+                 std::string *code_ptr, const std::string &mod,
+                 const ImportMap &imports) const {
     auto &code = *code_ptr;
     code = code + "# " + FlatBuffersGeneratedWarning() + "\n\n";
     code += "# namespace: " + name_space_name + "\n\n";
@@ -2040,14 +2059,15 @@ class PythonGenerator : public BaseGenerator {
       if (parser_.opts.python_typing) {
         code += "from typing import Any\n";
 
-        for (auto import_entry: imports) {
+        for (auto import_entry : imports) {
           // If we have a file called, say, "MyType.py" and in it we have a
           // class "MyType", we can generate imports -- usually when we
           // have a type that contains arrays of itself -- of the type
           // "from .MyType import MyType", which Python can't resolve. So
           // if we are trying to import ourself, we skip.
           if (import_entry.first != local_import) {
-            code += "from " + import_entry.first + " import " + import_entry.second + "\n";
+            code += "from " + import_entry.first + " import " +
+                    import_entry.second + "\n";
           }
         }
       }
@@ -2057,7 +2077,8 @@ class PythonGenerator : public BaseGenerator {
 
   // Save out the generated code for a Python Table type.
   bool SaveType(const std::string &defname, const Namespace &ns,
-                const std::string &classcode, const ImportMap &imports, const std::string &mod, bool needs_imports) const {
+                const std::string &classcode, const ImportMap &imports,
+                const std::string &mod, bool needs_imports) const {
     if (!classcode.length()) return true;
 
     std::string code = "";
