@@ -1955,7 +1955,8 @@ class PythonGenerator : public BaseGenerator {
     return GenTypeGet(field.value.type);
   }
 
-  std::string ReturnType(const StructDef &struct_def, const FieldDef &field) const {
+  std::string ReturnType(const StructDef &struct_def,
+                         const FieldDef &field) const {
     // If we have a class member that returns an instance of the same class,
     // for example:
     // class Field(object):
@@ -1974,9 +1975,7 @@ class PythonGenerator : public BaseGenerator {
     const std::string self_type = struct_def.name;
     std::string field_type = TypeName(field);
 
-    if (self_type == field_type) {
-      field_type = "'" + field_type + "'";
-    }
+    if (self_type == field_type) { field_type = "'" + field_type + "'"; }
 
     return field_type;
   }
