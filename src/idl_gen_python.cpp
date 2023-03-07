@@ -281,8 +281,9 @@ class PythonGenerator : public BaseGenerator {
     };
 
     if (parser_.opts.python_typing) {
+      const std::string return_type = ReturnType(struct_def, field);
       code += "(self, i: int)";
-      code += " -> " + TypeName(field) + ":";
+      code += " -> " + return_type + ":";
 
       imports.insert(import_entry);
     } else {
@@ -340,7 +341,8 @@ class PythonGenerator : public BaseGenerator {
     };
 
     if (parser_.opts.python_typing) {
-      code += " -> Optional[" + TypeName(field) + "]";
+      const std::string return_type = ReturnType(struct_def, field);
+      code += " -> Optional[" + return_type + "]";
       imports.insert(ImportMapEntry{ "typing", "Optional" });
       imports.insert(import_entry);
     }
@@ -447,7 +449,8 @@ class PythonGenerator : public BaseGenerator {
     };
 
     if (parser_.opts.python_typing) {
-      code += "(self, j: int) -> Optional[" + TypeName(field) + "]";
+      const std::string return_type = ReturnType(struct_def, field);
+      code += "(self, j: int) -> Optional[" + return_type + "]";
       imports.insert(ImportMapEntry{ "typing", "Optional" });
       imports.insert(import_entry);
     } else {
@@ -1950,6 +1953,32 @@ class PythonGenerator : public BaseGenerator {
 
   std::string TypeName(const FieldDef &field) const {
     return GenTypeGet(field.value.type);
+  }
+
+  std::string ReturnType(const StructDef &struct_def, const FieldDef &field) const {
+    // If we have a class member that returns an instance of the same class,
+    // for example:
+    // class Field(object):
+    //   def Children(self, j: int) -> Optional[Field]:
+    //     pass
+    //
+    // we need to quote the return type:
+    // class Field(object):
+    //   def Children(self, j: int) -> Optional['Field']:
+    //     pass
+    //
+    // because Python is unable to resolve the name during parse and will return
+    // an error.
+    // (see PEP 484 under forward references:
+    // https://peps.python.org/pep-0484/#forward-references)
+    const std::string self_type = struct_def.name;
+    std::string field_type = TypeName(field);
+
+    if (self_type == field_type) {
+      field_type = "'" + field_type + "'";
+    }
+
+    return field_type;
   }
 
   // Create a struct with a builder and the struct's arguments.
