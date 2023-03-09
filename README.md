@@ -17,11 +17,11 @@ maximum memory efficiency. It allows you to directly access serialized data with
 **Go to our [landing page][] to browse our documentation.**
 
 ## Supported operating systems
-* Windows
-* macOS
-* Linux
-* Android
-* And any others with a recent C++ compiler (C++ 11 and newer)
+- Windows
+- macOS
+- Linux
+- Android
+- And any others with a recent C++ compiler (C++ 11 and newer)
 
 ## Supported programming languages
 
