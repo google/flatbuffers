@@ -1975,8 +1975,7 @@ class TsGenerator : public BaseGenerator {
         GenDocComment(code_ptr);
         code += "static " + namer_.Method("add", field);
         code += "(builder:flatbuffers.Builder, " + argname + ":" +
-                GetArgType(imports, struct_def, field, /* allow null */ true) +
-                ") {\n";
+                GetArgType(imports, struct_def, field, false) + ") {\n";
         code += "  builder.addField" + GenWriteMethod(field.value.type) + "(";
         code += NumToString(it - struct_def.fields.vec.begin()) + ", ";
         if (field.value.type.base_type == BASE_TYPE_BOOL) { code += "+"; }
