@@ -92,14 +92,14 @@ void UtilConvertCase() {
     // missing.
     cases.push_back({ "single", flatbuffers::Case::kUpperCamel, "Single" });
     cases.push_back({ "Single", flatbuffers::Case::kUpperCamel, "Single" });
-    cases.push_back({ "_leading", flatbuffers::Case::kUpperCamel, "_leading" });
+    cases.push_back({ "_leading", flatbuffers::Case::kUpperCamel, "_Leading" });
     cases.push_back(
         { "trailing_", flatbuffers::Case::kUpperCamel, "Trailing_" });
     cases.push_back({ "double__underscore", flatbuffers::Case::kUpperCamel,
                       "Double_underscore" });
     cases.push_back({ "single", flatbuffers::Case::kLowerCamel, "single" });
-    cases.push_back({ "Single", flatbuffers::Case::kLowerCamel, "Single" });
-    cases.push_back({ "_leading", flatbuffers::Case::kLowerCamel, "Leading" });
+    cases.push_back({ "Single", flatbuffers::Case::kLowerCamel, "single" });
+    cases.push_back({ "_leading", flatbuffers::Case::kLowerCamel, "_Leading" });
     cases.push_back(
         { "trailing_", flatbuffers::Case::kLowerCamel, "trailing_" });
     cases.push_back({ "double__underscore", flatbuffers::Case::kLowerCamel,
