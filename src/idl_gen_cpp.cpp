@@ -736,18 +736,7 @@ class CppGenerator : public BaseGenerator {
       if (type.enum_def) return WrapInNameSpace(*type.enum_def);
       if (type.base_type == BASE_TYPE_BOOL) return "bool";
     }
-<<<<<<< HEAD
     return StringOf(type.base_type);
-=======
-    switch (type.base_type) {
-#define FLATBUFFERS_TD(ENUM, IDLTYPE, CTYPE, ...) \
-  case BASE_TYPE_##ENUM: return #CTYPE;
-      FLATBUFFERS_GEN_TYPES(FLATBUFFERS_TD)
-#undef FLATBUFFERS_TD
-      default: FLATBUFFERS_ASSERT(0);
-    }
-    return "";
->>>>>>> c644145e (Starting to add support for vector64 type in C++)
   }
 
   // Return a C++ pointer type, specialized to the actual struct/table types,
