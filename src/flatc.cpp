@@ -117,7 +117,7 @@ const static FlatCOption flatc_options[] = {
     "Add Clang _Nullable for C++ pointer. or @Nullable for Java" },
   { "", "java-package-prefix", "",
     "Add a prefix to the generated package name for Java." },
-  { "", "java-checkerframe", "", "Add @Pure for Java." },
+  { "", "java-checkerframework", "", "Add @Pure for Java." },
   { "", "gen-generated", "", "Add @Generated annotation for Java." },
   { "", "gen-jvmstatic", "",
     "Add @JvmStatic annotation for Kotlin methods in companion object for "
