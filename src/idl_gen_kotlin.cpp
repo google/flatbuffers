@@ -55,7 +55,7 @@ static Namer::Config KotlinDefaultConfig() {
            /*functions=*/Case::kKeep,
            /*fields=*/Case::kLowerCamel,
            /*variables=*/Case::kLowerCamel,
-           /*variants=*/Case::kLowerCamel,
+           /*variants=*/Case::kKeep,
            /*enum_variant_seperator=*/"",  // I.e. Concatenate.
            /*escape_keywords=*/Namer::Config::Escape::BeforeConvertingCase,
            /*namespaces=*/Case::kKeep,
@@ -301,7 +301,7 @@ class KotlinGenerator : public BaseGenerator {
         auto field_type = GenTypeBasic(enum_def.underlying_type.base_type);
         auto val = enum_def.ToString(ev);
         auto suffix = LiteralSuffix(enum_def.underlying_type.base_type);
-        writer.SetValue("name", namer_.LegacyKotlinVariant(ev));
+        writer.SetValue("name", namer_.Variant(ev.name));
         writer.SetValue("type", field_type);
         writer.SetValue("val", val + suffix);
         GenerateComment(ev.doc_comment, writer, &comment_config);
@@ -526,7 +526,7 @@ class KotlinGenerator : public BaseGenerator {
           // runtime.
           GenerateFunOneLine(
               writer, "validateVersion", "", "",
-              [&]() { writer += "Constants.FLATBUFFERS_23_1_21()"; },
+              [&]() { writer += "Constants.FLATBUFFERS_23_3_3()"; },
               options.gen_jvmstatic);
 
           GenerateGetRootAsAccessors(namer_.Type(struct_def), writer, options);

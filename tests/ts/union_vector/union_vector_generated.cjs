@@ -18,6 +18,10 @@ var __copyProps = (to, from, except, desc) => {
   return to;
 };
 var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__getProtoOf(mod)) : {}, __copyProps(
+  // If the importer is in node compatibility mode or this is not an ESM
+  // file that has been converted to a CommonJS file using a Babel-
+  // compatible transform (i.e. "__esModule" has not been set), then set
+  // "default" to the CommonJS "module.exports" for node compatibility.
   isNodeMode || !mod || !mod.__esModule ? __defProp(target, "default", { value: mod, enumerable: true }) : target,
   mod
 ));
@@ -27,13 +31,19 @@ var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: tru
 var union_vector_exports = {};
 __export(union_vector_exports, {
   Attacker: () => Attacker,
+  AttackerT: () => AttackerT,
   BookReader: () => BookReader,
+  BookReaderT: () => BookReaderT,
   Character: () => Character,
   FallingTub: () => FallingTub,
+  FallingTubT: () => FallingTubT,
   Gadget: () => Gadget,
   HandFan: () => HandFan,
+  HandFanT: () => HandFanT,
   Movie: () => Movie,
-  Rapunzel: () => Rapunzel
+  MovieT: () => MovieT,
+  Rapunzel: () => Rapunzel,
+  RapunzelT: () => RapunzelT
 });
 module.exports = __toCommonJS(union_vector_exports);
 
