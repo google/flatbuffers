@@ -8,7 +8,7 @@ ts_project(
         "byte-buffer.ts",
         "constants.ts",
         "encoding.ts",
-        "index.ts",
+        "flatbuffers.ts",
         "types.ts",
         "utils.ts",
     ],
@@ -36,4 +36,22 @@ js_library(
     package_name = "flatbuffers",
     visibility = ["//visibility:public"],
     deps = [":flatbuffers_ts"],
+)
+
+sh_binary(
+    name = "compile_flat_file",
+    srcs = ["compile_flat_file.sh"],
+    data = [
+        "@com_github_google_flatbuffers//:flatc",
+        "@nodejs_linux_amd64//:node_bin",
+        "@npm//esbuild/bin:esbuild",
+    ],
+    # We just depend directly on the linux amd64 nodejs binary, so only support
+    # running this script on amd64 for now.
+    target_compatible_with = [
+        "@platforms//cpu:x86_64",
+        "@platforms//os:linux",
+    ],
+    visibility = ["//visibility:public"],
+    deps = ["@bazel_tools//tools/bash/runfiles"],
 )

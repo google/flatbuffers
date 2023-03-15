@@ -17,6 +17,7 @@
 #ifndef FLATBUFFERS_BINARY_ANNOTATOR_H_
 #define FLATBUFFERS_BINARY_ANNOTATOR_H_
 
+#include <list>
 #include <map>
 #include <string>
 #include <vector>
@@ -52,14 +53,14 @@ enum class BinaryRegionType {
 template<typename T>
 static inline std::string ToHex(T i, size_t width = sizeof(T)) {
   std::stringstream stream;
-  stream << std::hex << std::uppercase << std::setfill('0') << std::setw(width)
-         << i;
+  stream << std::hex << std::uppercase << std::setfill('0')
+         << std::setw(static_cast<int>(width)) << i;
   return stream.str();
 }
 
 // Specialized version for uint8_t that don't work well with std::hex.
 static inline std::string ToHex(uint8_t i) {
-  return ToHex(static_cast<int>(i), 2);
+  return ToHex<int>(static_cast<int>(i), 2);
 }
 
 enum class BinaryRegionStatus {
@@ -257,6 +258,8 @@ class BinaryAnnotator {
       uint16_t offset_from_table = 0;
     };
 
+    const reflection::Object *referring_table;
+
     // Field ID -> {field def, offset from table}
     std::map<uint16_t, Entry> fields;
 
@@ -266,13 +269,18 @@ class BinaryAnnotator {
 
   uint64_t BuildHeader(uint64_t offset);
 
-  void BuildVTable(uint64_t offset, const reflection::Object *table,
-                   uint64_t offset_of_referring_table);
+  // VTables can be shared across instances or even across objects. This
+  // attempts to get an existing vtable given the offset and table type,
+  // otherwise it will built the vtable, memorize it, and return the built
+  // VTable. Returns nullptr if building the VTable fails.
+  VTable *GetOrBuildVTable(uint64_t offset, const reflection::Object *table,
+                           uint64_t offset_of_referring_table);
 
   void BuildTable(uint64_t offset, const BinarySectionType type,
                   const reflection::Object *table);
 
   uint64_t BuildStruct(uint64_t offset, std::vector<BinaryRegion> &regions,
+                       const std::string referring_field_name,
                        const reflection::Object *structure);
 
   void BuildString(uint64_t offset, const reflection::Object *table,
@@ -280,7 +288,7 @@ class BinaryAnnotator {
 
   void BuildVector(uint64_t offset, const reflection::Object *table,
                    const reflection::Field *field, uint64_t parent_table_offset,
-                   const VTable &vtable);
+                   const std::map<uint16_t, VTable::Entry> vtable_fields);
 
   std::string BuildUnion(uint64_t offset, uint8_t realized_type,
                          const reflection::Field *field);
@@ -381,7 +389,7 @@ class BinaryAnnotator {
   const uint64_t binary_length_;
 
   // Map of binary offset to vtables, to dedupe vtables.
-  std::map<uint64_t, VTable> vtables_;
+  std::map<uint64_t, std::list<VTable>> vtables_;
 
   // The annotated binary sections, index by their absolute offset.
   std::map<uint64_t, BinarySection> sections_;

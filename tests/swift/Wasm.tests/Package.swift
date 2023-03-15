@@ -30,5 +30,5 @@ let package = Package(
       name: "Wasm"),
     .testTarget(
       name: "FlatBuffers.Test.Swift.WasmTests",
-      dependencies: ["FlatBuffers"])
+      dependencies: ["FlatBuffers"]),
   ])

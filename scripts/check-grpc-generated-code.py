@@ -29,7 +29,7 @@ root_path = script_path.parent.absolute()
 print("Generating GRPC code...")
 generate_grpc_examples.GenerateGRPCExamples()
 
-result = subprocess.run(["git", "diff", "--quiet"], cwd=root_path)
+result = subprocess.run(["git", "diff", "--quiet", "--ignore-cr-at-eol"], cwd=root_path)
 
 if result.returncode != 0:
     print(

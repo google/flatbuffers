@@ -4,7 +4,7 @@
 
 public struct BytesCount: NativeStruct, Verifiable, FlatbuffersInitializable, NativeObject {
 
-  static func validateVersion() { FlatBuffersVersion_22_12_06() }
+  static func validateVersion() { FlatBuffersVersion_23_3_3() }
 
   private var _x: Int64
 
@@ -47,7 +47,7 @@ extension BytesCount: Encodable {
 
 public struct BytesCount_Mutable: FlatBufferObject {
 
-  static func validateVersion() { FlatBuffersVersion_22_12_06() }
+  static func validateVersion() { FlatBuffersVersion_23_3_3() }
   public var __buffer: ByteBuffer! { return _accessor.bb }
   private var _accessor: Struct
 
@@ -72,11 +72,9 @@ public struct BytesCount_Mutable: FlatBufferObject {
 
 public struct InternalMessage: FlatBufferObject, Verifiable, ObjectAPIPacker {
 
-  static func validateVersion() { FlatBuffersVersion_22_12_06() }
+  static func validateVersion() { FlatBuffersVersion_23_3_3() }
   public var __buffer: ByteBuffer! { return _accessor.bb }
   private var _accessor: Table
-
-  public static func getRootAsInternalMessage(bb: ByteBuffer) -> InternalMessage { return InternalMessage(Table(bb: bb, position: Int32(bb.read(def: UOffset.self, position: bb.reader)) + Int32(bb.reader))) }
 
   private init(_ t: Table) { _accessor = t }
   public init(_ bb: ByteBuffer, o: Int32) { _accessor = Table(bb: bb, position: o) }
@@ -157,11 +155,9 @@ public class InternalMessageT: NativeObject {
 }
 public struct Message: FlatBufferObject, Verifiable, ObjectAPIPacker {
 
-  static func validateVersion() { FlatBuffersVersion_22_12_06() }
+  static func validateVersion() { FlatBuffersVersion_23_3_3() }
   public var __buffer: ByteBuffer! { return _accessor.bb }
   private var _accessor: Table
-
-  public static func getRootAsMessage(bb: ByteBuffer) -> Message { return Message(Table(bb: bb, position: Int32(bb.read(def: UOffset.self, position: bb.reader)) + Int32(bb.reader))) }
 
   private init(_ t: Table) { _accessor = t }
   public init(_ bb: ByteBuffer, o: Int32) { _accessor = Table(bb: bb, position: o) }

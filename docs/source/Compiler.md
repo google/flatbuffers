@@ -90,7 +90,10 @@ Additional options:
 
 -   `--scoped-enums` : Use C++11 style scoped and strongly typed enums in
     generated C++. This also implies `--no-prefix`.
-
+    
+-   `--no-emit-min-max-enum-values` : Disable generation of MIN and MAX
+    enumerated values for scoped enums and prefixed enums.
+    
 -   `--gen-includes` : (deprecated), this is the default behavior.
                        If the original behavior is required (no include
 	                   statements) use `--no-includes.`

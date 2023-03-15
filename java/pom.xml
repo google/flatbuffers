@@ -3,7 +3,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.google.flatbuffers</groupId>
   <artifactId>flatbuffers-java</artifactId>
-  <version>22.12.06</version>
+  <version>23.3.3</version>
   <packaging>bundle</packaging>
   <name>FlatBuffers Java API</name>
   <description>
@@ -25,7 +25,7 @@
   <licenses>
     <license>
       <name>Apache License V2.0</name>
-      <url>https://raw.githubusercontent.com/google/flatbuffers/master/LICENSE.txt</url>
+      <url>https://raw.githubusercontent.com/google/flatbuffers/master/LICENSE</url>
       <distribution>repo</distribution>
     </license>
   </licenses>

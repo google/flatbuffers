@@ -19,9 +19,11 @@
 
 #include <functional>
 #include <limits>
+#include <list>
+#include <memory>
 #include <string>
 
-#include "flatbuffers/bfbs_generator.h"
+#include "flatbuffers/code_generator.h"
 #include "flatbuffers/flatbuffers.h"
 #include "flatbuffers/idl.h"
 #include "flatbuffers/util.h"
@@ -30,6 +32,33 @@ namespace flatbuffers {
 
 extern void LogCompilerWarn(const std::string &warn);
 extern void LogCompilerError(const std::string &err);
+
+struct FlatCOptions {
+  IDLOptions opts;
+
+  std::string program_name;
+
+  std::string output_path;
+
+  std::vector<std::string> filenames;
+
+  std::list<std::string> include_directories_storage;
+  std::vector<const char *> include_directories;
+  std::vector<const char *> conform_include_directories;
+  std::vector<bool> generator_enabled;
+  size_t binary_files_from = std::numeric_limits<size_t>::max();
+  std::string conform_to_schema;
+  std::string annotate_schema;
+  bool annotate_include_vector_contents = true;
+  bool any_generator = false;
+  bool print_make_rules = false;
+  bool raw_binary = false;
+  bool schema_binary = false;
+  bool grpc_enabled = false;
+  bool requires_bfbs = false;
+
+  std::vector<std::shared_ptr<CodeGenerator>> generators;
+};
 
 struct FlatCOption {
   std::string short_opt;
@@ -40,29 +69,6 @@ struct FlatCOption {
 
 class FlatCompiler {
  public:
-  // Output generator for the various programming languages and formats we
-  // support.
-  struct Generator {
-    typedef bool (*GenerateFn)(const flatbuffers::Parser &parser,
-                               const std::string &path,
-                               const std::string &file_name);
-    typedef std::string (*MakeRuleFn)(const flatbuffers::Parser &parser,
-                                      const std::string &path,
-                                      const std::string &file_name);
-    typedef bool (*ParsingCompletedFn)(const flatbuffers::Parser &parser,
-                                       const std::string &output_path);
-
-    GenerateFn generate;
-    const char *lang_name;
-    bool schema_only;
-    GenerateFn generateGRPC;
-    flatbuffers::IDLOptions::Language lang;
-    FlatCOption option;
-    MakeRuleFn make_rule;
-    BfbsGenerator *bfbs_generator;
-    ParsingCompletedFn parsing_completed;
-  };
-
   typedef void (*WarnFn)(const FlatCompiler *flatc, const std::string &warn,
                          bool show_exe_name);
 
@@ -71,29 +77,29 @@ class FlatCompiler {
 
   // Parameters required to initialize the FlatCompiler.
   struct InitParams {
-    InitParams()
-        : generators(nullptr),
-          num_generators(0),
-          warn_fn(nullptr),
-          error_fn(nullptr) {}
+    InitParams() : warn_fn(nullptr), error_fn(nullptr) {}
 
-    const Generator *generators;
-    size_t num_generators;
     WarnFn warn_fn;
     ErrorFn error_fn;
   };
 
   explicit FlatCompiler(const InitParams &params) : params_(params) {}
 
-  int Compile(int argc, const char **argv);
+  bool RegisterCodeGenerator(const FlatCOption &option,
+                             std::shared_ptr<CodeGenerator> code_generator);
 
-  std::string GetShortUsageString(const char *program_name) const;
-  std::string GetUsageString(const char *program_name) const;
+  int Compile(const FlatCOptions &options);
+
+  std::string GetShortUsageString(const std::string &program_name) const;
+  std::string GetUsageString(const std::string &program_name) const;
+
+  // Parse the FlatC options from command line arguments.
+  FlatCOptions ParseFromCommandLineArguments(int argc, const char **argv);
 
  private:
   void ParseFile(flatbuffers::Parser &parser, const std::string &filename,
                  const std::string &contents,
-                 std::vector<const char *> &include_directories) const;
+                 const std::vector<const char *> &include_directories) const;
 
   void LoadBinarySchema(Parser &parser, const std::string &filename,
                         const std::string &contents);
@@ -105,8 +111,16 @@ class FlatCompiler {
 
   void AnnotateBinaries(const uint8_t *binary_schema,
                         uint64_t binary_schema_size,
-                        const std::string & schema_filename,
-                        const std::vector<std::string> &binary_files);
+                        const FlatCOptions &options);
+
+  void ValidateOptions(const FlatCOptions &options);
+
+  Parser GetConformParser(const FlatCOptions &options);
+
+  std::unique_ptr<Parser> GenerateCode(const FlatCOptions &options,
+                                       Parser &conform_parser);
+
+  std::map<std::string, std::shared_ptr<CodeGenerator>> code_generators_;
 
   InitParams params_;
 };

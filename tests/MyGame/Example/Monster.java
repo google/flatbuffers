@@ -24,7 +24,7 @@ import java.nio.ByteOrder;
  */
 @SuppressWarnings("unused")
 public final class Monster extends Table {
-  public static void ValidateVersion() { Constants.FLATBUFFERS_22_12_06(); }
+  public static void ValidateVersion() { Constants.FLATBUFFERS_23_3_3(); }
   public static Monster getRootAsMonster(ByteBuffer _bb) { return getRootAsMonster(_bb, new Monster()); }
   public static Monster getRootAsMonster(ByteBuffer _bb, Monster obj) { _bb.order(ByteOrder.LITTLE_ENDIAN); return (obj.__assign(_bb.getInt(_bb.position()) + _bb.position(), _bb)); }
   public static boolean MonsterBufferHasIdentifier(ByteBuffer _bb) { return __has_identifier(_bb, "MONS"); }

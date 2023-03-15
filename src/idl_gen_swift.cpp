@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+#include "idl_gen_swift.h"
+
 #include <cctype>
 #include <unordered_set>
 
@@ -483,12 +485,6 @@ class SwiftGenerator : public BaseGenerator {
             "fileId: "
             "{{STRUCTNAME}}.id, addPrefix: prefix) }";
       }
-      code_ +=
-          "{{ACCESS_TYPE}} static func getRootAs{{SHORT_STRUCTNAME}}(bb: "
-          "ByteBuffer) -> "
-          "{{STRUCTNAME}} { return {{STRUCTNAME}}(Table(bb: bb, position: "
-          "Int32(bb.read(def: UOffset.self, position: bb.reader)) + "
-          "Int32(bb.reader))) }\n";
       code_ += "private init(_ t: Table) { {{ACCESS}} = t }";
     }
     code_ +=
@@ -1846,7 +1842,7 @@ class SwiftGenerator : public BaseGenerator {
   }
 
   std::string ValidateFunc() {
-    return "static func validateVersion() { FlatBuffersVersion_22_12_06() }";
+    return "static func validateVersion() { FlatBuffersVersion_23_3_3() }";
   }
 
   std::string GenType(const Type &type,
@@ -1885,7 +1881,7 @@ class SwiftGenerator : public BaseGenerator {
     // clang-format off
     static const char * const swift_type[] = {
       #define FLATBUFFERS_TD(ENUM, IDLTYPE, \
-              CTYPE, JTYPE, GTYPE, NTYPE, PTYPE, RTYPE, KTYPE, STYPE) \
+              CTYPE, JTYPE, GTYPE, NTYPE, PTYPE, RTYPE, KTYPE, STYPE, ...) \
         #STYPE,
         FLATBUFFERS_GEN_TYPES(FLATBUFFERS_TD)
       #undef FLATBUFFERS_TD
@@ -1908,4 +1904,60 @@ bool GenerateSwift(const Parser &parser, const std::string &path,
   swift::SwiftGenerator generator(parser, path, file_name);
   return generator.generate();
 }
+
+namespace {
+
+class SwiftCodeGenerator : public CodeGenerator {
+ public:
+  Status GenerateCode(const Parser &parser, const std::string &path,
+                      const std::string &filename) override {
+    if (!GenerateSwift(parser, path, filename)) { return Status::ERROR; }
+    return Status::OK;
+  }
+
+  Status GenerateCode(const uint8_t *buffer, int64_t length) override {
+    (void)buffer;
+    (void)length;
+    return Status::NOT_IMPLEMENTED;
+  }
+
+  Status GenerateGrpcCode(const Parser &parser, const std::string &path,
+                          const std::string &filename) override {
+    if (!GenerateSwiftGRPC(parser, path, filename)) { return Status::ERROR; }
+    return Status::OK;
+  }
+
+  Status GenerateMakeRule(const Parser &parser, const std::string &path,
+                          const std::string &filename,
+                          std::string &output) override {
+    (void)parser;
+    (void)path;
+    (void)filename;
+    (void)output;
+    return Status::NOT_IMPLEMENTED;
+  }
+
+  Status GenerateRootFile(const Parser &parser,
+                          const std::string &path) override {
+    (void)parser;
+    (void)path;
+    return Status::NOT_IMPLEMENTED;
+  }
+
+  bool IsSchemaOnly() const override { return true; }
+
+  bool SupportsBfbsGeneration() const override { return false; }
+
+  bool SupportsRootFileGeneration() const override { return false; }
+
+  IDLOptions::Language Language() const override { return IDLOptions::kSwift; }
+
+  std::string LanguageName() const override { return "Swift"; }
+};
+}  // namespace
+
+std::unique_ptr<CodeGenerator> NewSwiftCodeGenerator() {
+  return std::unique_ptr<SwiftCodeGenerator>(new SwiftCodeGenerator());
+}
+
 }  // namespace flatbuffers

@@ -16,6 +16,8 @@
 
 // independent from idl_parser, since this code is not needed for most clients
 
+#include "idl_gen_java.h"
+
 #include "flatbuffers/code_generators.h"
 #include "flatbuffers/flatbuffers.h"
 #include "flatbuffers/idl.h"
@@ -87,11 +89,21 @@ class JavaGenerator : public BaseGenerator {
 
  public:
   JavaGenerator(const Parser &parser, const std::string &path,
-                const std::string &file_name)
+                const std::string &file_name,
+                const std::string &package_prefix)
       : BaseGenerator(parser, path, file_name, "", ".", "java"),
-        cur_name_space_(nullptr),
+	cur_name_space_(nullptr),
         namer_(WithFlagOptions(JavaDefaultConfig(), parser.opts, path),
-               JavaKeywords()) {}
+               JavaKeywords()) {
+    if (!package_prefix.empty()) {
+      std::istringstream iss(package_prefix);
+      std::string component;
+      while(std::getline(iss, component, '.')) {
+        package_prefix_ns_.components.push_back(component);
+      }
+      package_prefix_ = package_prefix_ns_.GetFullyQualifiedName("") + ".";
+    }
+  }
 
   JavaGenerator &operator=(const JavaGenerator &);
   bool generate() {
@@ -171,7 +183,13 @@ class JavaGenerator : public BaseGenerator {
     std::string code;
     code = "// " + std::string(FlatBuffersGeneratedWarning()) + "\n\n";
 
-    const std::string namespace_name = FullNamespace(".", ns);
+    Namespace combined_ns = package_prefix_ns_;
+    std::copy(
+        ns.components.begin(),
+       	ns.components.end(),
+       	std::back_inserter(combined_ns.components));
+
+    const std::string namespace_name = FullNamespace(".", combined_ns);
     if (!namespace_name.empty()) {
       code += "package " + namespace_name + ";";
       code += "\n\n";
@@ -205,7 +223,7 @@ class JavaGenerator : public BaseGenerator {
 
     code += classcode;
     if (!namespace_name.empty()) code += "";
-    const std::string dirs = namer_.Directories(ns);
+    const std::string dirs = namer_.Directories(combined_ns);
     EnsureDirExists(dirs);
     const std::string filename =
         dirs + namer_.File(defname, /*skips=*/SkipFile::Suffix);
@@ -245,7 +263,8 @@ class JavaGenerator : public BaseGenerator {
     switch (type.base_type) {
       case BASE_TYPE_STRING: return "String";
       case BASE_TYPE_VECTOR: return GenTypeGet(type.VectorType());
-      case BASE_TYPE_STRUCT: return namer_.NamespacedType(*type.struct_def);
+      case BASE_TYPE_STRUCT:
+        return Prefixed(namer_.NamespacedType(*type.struct_def));
       case BASE_TYPE_UNION: FLATBUFFERS_FALLTHROUGH();  // else fall thru
       default: return "Table";
     }
@@ -349,8 +368,9 @@ class JavaGenerator : public BaseGenerator {
     FLATBUFFERS_ASSERT(value.type.enum_def);
     auto &enum_def = *value.type.enum_def;
     auto enum_val = enum_def.FindByValue(value.constant);
-    return enum_val ? namer_.NamespacedEnumVariant(enum_def, *enum_val)
-                    : value.constant;
+    return
+        enum_val ? Prefixed(namer_.NamespacedEnumVariant(enum_def, *enum_val))
+                 : value.constant;
   }
 
   std::string GenDefaultValue(const FieldDef &field) const {
@@ -683,7 +703,7 @@ class JavaGenerator : public BaseGenerator {
       // Force compile time error if not using the same version runtime.
       code += "  public static void ValidateVersion() {";
       code += " Constants.";
-      code += "FLATBUFFERS_22_12_06(); ";
+      code += "FLATBUFFERS_23_3_3(); ";
       code += "}\n";
 
       // Generate a special accessor for the table that when used as the root
@@ -877,7 +897,7 @@ class JavaGenerator : public BaseGenerator {
           for (auto kit = fields.begin(); kit != fields.end(); ++kit) {
             auto &key_field = **kit;
             if (key_field.key) {
-              auto qualified_name = namer_.NamespacedType(sd);
+              auto qualified_name = Prefixed(namer_.NamespacedType(sd));
               code += "  public " + qualified_name + " ";
               code += namer_.Method(field) + "ByKey(";
               code += GenTypeNameDest(key_field.value.type) + " key)";
@@ -955,7 +975,8 @@ class JavaGenerator : public BaseGenerator {
       }
       // generate object accessors if is nested_flatbuffer
       if (field.nested_flatbuffer) {
-        auto nested_type_name = namer_.NamespacedType(*field.nested_flatbuffer);
+        auto nested_type_name =
+            Prefixed(namer_.NamespacedType(*field.nested_flatbuffer));
         auto nested_method_name =
             namer_.Field(field) + "As" + field.nested_flatbuffer->name;
         auto get_nested_method_name = nested_method_name;
@@ -1435,7 +1456,7 @@ class JavaGenerator : public BaseGenerator {
                      // deleted when issue #6561 is fixed.
         }
         code += indent + "  case " +
-                namer_.NamespacedEnumVariant(enum_def, ev) + ":\n";
+                Prefixed(namer_.NamespacedEnumVariant(enum_def, ev)) + ":\n";
         auto actual_type = GenTypeGet(ev.union_type);
         code += indent + "    " + variable_name + "Value = " + field_name +
                 "(new " + actual_type + "()" + value_params + ");\n";
@@ -1633,7 +1654,8 @@ class JavaGenerator : public BaseGenerator {
               case BASE_TYPE_UNION:
                 array_type = "int";
                 element_type =
-                    namer_.NamespacedType(*field.value.type.enum_def) + "Union";
+                    Prefixed(namer_.NamespacedType(*field.value.type.enum_def))
+		    + "Union";
                 to_array = element_type + ".pack(builder,  _o." +
                            namer_.Method("get", property_name) + "()[_j])";
                 break;
@@ -1718,11 +1740,11 @@ class JavaGenerator : public BaseGenerator {
                       field.value.type.enum_def->underlying_type, false)) +
                   " _" + field_name + "Type = _o." + get_field +
                   "() == null ? " +
-                  namer_.NamespacedType(*field.value.type.enum_def) +
+                  Prefixed(namer_.NamespacedType(*field.value.type.enum_def)) +
                   ".NONE : " + "_o." + get_field + "().getType();\n";
           code += "    " + GenOffsetType() + " _" + field_name + " = _o." +
                   get_field + "() == null ? 0 : " +
-                  namer_.NamespacedType(*field.value.type.enum_def) +
+                  Prefixed(namer_.NamespacedType(*field.value.type.enum_def)) +
                   "Union.pack(builder, _o." + get_field + "());\n";
           break;
         }
@@ -1974,7 +1996,8 @@ class JavaGenerator : public BaseGenerator {
                             type_name_length, new_type_name);
         } else if (type.element == BASE_TYPE_UNION) {
           if (wrap_in_namespace) {
-            type_name = namer_.NamespacedType(*type.enum_def) + "Union";
+            type_name =
+                Prefixed(namer_.NamespacedType(*type.enum_def)) + "Union";
           } else {
             type_name = namer_.Type(*type.enum_def) + "Union";
           }
@@ -1984,7 +2007,8 @@ class JavaGenerator : public BaseGenerator {
 
       case BASE_TYPE_UNION: {
         if (wrap_in_namespace) {
-          type_name = namer_.NamespacedType(*type.enum_def) + "Union";
+          type_name =
+              Prefixed(namer_.NamespacedType(*type.enum_def)) + "Union";
         } else {
           type_name = namer_.Type(*type.enum_def) + "Union";
         }
@@ -2018,13 +2042,15 @@ class JavaGenerator : public BaseGenerator {
           type_name.replace(type_name.length() - type_name_length,
                             type_name_length, new_type_name);
         } else if (type.element == BASE_TYPE_UNION) {
-          type_name = namer_.NamespacedType(*type.enum_def) + "Union";
+          type_name =
+               Prefixed(namer_.NamespacedType(*type.enum_def)) + "Union";
         }
         break;
       }
 
       case BASE_TYPE_UNION: {
-        type_name = namer_.NamespacedType(*type.enum_def) + "Union";
+        type_name =
+            Prefixed(namer_.NamespacedType(*type.enum_def)) + "Union";
         break;
       }
       default: break;
@@ -2158,13 +2184,75 @@ class JavaGenerator : public BaseGenerator {
   // prefixed by its namespace
   const Namespace *cur_name_space_;
   const IdlNamer namer_;
+
+ private:
+  std::string Prefixed(const std::string &str) const {
+    return package_prefix_ + str;
+  }
+
+  std::string package_prefix_;
+  Namespace package_prefix_ns_;
+
 };
 }  // namespace java
 
 bool GenerateJava(const Parser &parser, const std::string &path,
                   const std::string &file_name) {
-  java::JavaGenerator generator(parser, path, file_name);
+  java::JavaGenerator generator(parser, path, file_name,
+                                parser.opts.java_package_prefix);
   return generator.generate();
+}
+
+namespace {
+
+class JavaCodeGenerator : public CodeGenerator {
+ public:
+  Status GenerateCode(const Parser &parser, const std::string &path,
+                      const std::string &filename) override {
+    if (!GenerateJava(parser, path, filename)) { return Status::ERROR; }
+    return Status::OK;
+  }
+
+  Status GenerateCode(const uint8_t *buffer, int64_t length) override {
+    (void)buffer;
+    (void)length;
+    return Status::NOT_IMPLEMENTED;
+  }
+
+  Status GenerateMakeRule(const Parser &parser, const std::string &path,
+                          const std::string &filename,
+                          std::string &output) override {
+    output = JavaMakeRule(parser, path, filename);
+    return Status::OK;
+  }
+
+  Status GenerateGrpcCode(const Parser &parser, const std::string &path,
+                          const std::string &filename) override {
+    if (!GenerateJavaGRPC(parser, path, filename)) { return Status::ERROR; }
+    return Status::OK;
+  }
+
+  Status GenerateRootFile(const Parser &parser,
+                          const std::string &path) override {
+    (void)parser;
+    (void)path;
+    return Status::NOT_IMPLEMENTED;
+  }
+
+  bool IsSchemaOnly() const override { return true; }
+
+  bool SupportsBfbsGeneration() const override { return false; }
+
+  bool SupportsRootFileGeneration() const override { return false; }
+
+  IDLOptions::Language Language() const override { return IDLOptions::kJava; }
+
+  std::string LanguageName() const override { return "Java"; }
+};
+}  // namespace
+
+std::unique_ptr<CodeGenerator> NewJavaCodeGenerator() {
+  return std::unique_ptr<JavaCodeGenerator>(new JavaCodeGenerator());
 }
 
 }  // namespace flatbuffers

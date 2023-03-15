@@ -3,6 +3,7 @@
 package MyGame.Example
 
 @Suppress("unused")
+@kotlin.ExperimentalUnsignedTypes
 class LongEnum private constructor() {
     companion object {
         const val LongOne: ULong = 2UL

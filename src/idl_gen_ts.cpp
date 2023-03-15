@@ -14,14 +14,18 @@
  * limitations under the License.
  */
 
+#include "idl_gen_ts.h"
+
 #include <algorithm>
 #include <cassert>
 #include <cmath>
+#include <iostream>
 #include <unordered_map>
 #include <unordered_set>
 
 #include "flatbuffers/code_generators.h"
 #include "flatbuffers/flatbuffers.h"
+#include "flatbuffers/flatc.h"
 #include "flatbuffers/idl.h"
 #include "flatbuffers/util.h"
 #include "idl_namer.h"
@@ -37,6 +41,14 @@ struct ImportDefinition {
   std::string object_name;
   const Definition *dependent = nullptr;
   const Definition *dependency = nullptr;
+};
+
+struct NsDefinition {
+  std::string path;
+  std::string filepath;
+  std::string symbolic_name;
+  const Namespace *ns;
+  std::map<std::string, const Definition *> definitions;
 };
 
 Namer::Config TypeScriptDefaultConfig() {
@@ -102,33 +114,26 @@ class TsGenerator : public BaseGenerator {
     generateEnums();
     generateStructs();
     generateEntry();
+    if (!generateBundle()) return false;
     return true;
-  }
-
-  bool IncludeNamespace() const {
-    // When generating a single flat file and all its includes, namespaces are
-    // important to avoid type name clashes.
-    return parser_.opts.ts_flat_file && parser_.opts.generate_all;
   }
 
   std::string GetTypeName(const EnumDef &def, const bool = false,
                           const bool force_ns_wrap = false) {
-    if (IncludeNamespace() || force_ns_wrap) {
-      return namer_.NamespacedType(def);
-    }
+    if (force_ns_wrap) { return namer_.NamespacedType(def); }
     return namer_.Type(def);
   }
 
   std::string GetTypeName(const StructDef &def, const bool object_api = false,
                           const bool force_ns_wrap = false) {
     if (object_api && parser_.opts.generate_object_based_api) {
-      if (IncludeNamespace() || force_ns_wrap) {
+      if (force_ns_wrap) {
         return namer_.NamespacedObjectType(def);
       } else {
         return namer_.ObjectType(def);
       }
     } else {
-      if (IncludeNamespace() || force_ns_wrap) {
+      if (force_ns_wrap) {
         return namer_.NamespacedType(def);
       } else {
         return namer_.Type(def);
@@ -144,58 +149,62 @@ class TsGenerator : public BaseGenerator {
 
     std::string code;
 
-    if (!parser_.opts.ts_flat_file) {
-      code += "// " + std::string(FlatBuffersGeneratedWarning()) + "\n\n";
+    code += "// " + std::string(FlatBuffersGeneratedWarning()) + "\n\n";
 
-      for (auto it = bare_imports.begin(); it != bare_imports.end(); it++) {
+    for (auto it = bare_imports.begin(); it != bare_imports.end(); it++) {
+      code += it->second.import_statement + "\n";
+    }
+    if (!bare_imports.empty()) code += "\n";
+
+    for (auto it = imports.begin(); it != imports.end(); it++) {
+      if (it->second.dependency != &definition) {
         code += it->second.import_statement + "\n";
       }
-      if (!bare_imports.empty()) code += "\n";
-
-      for (auto it = imports.begin(); it != imports.end(); it++) {
-        if (it->second.dependency != &definition) {
-          code += it->second.import_statement + "\n";
-        }
-      }
-      if (!imports.empty()) code += "\n\n";
     }
+    if (!imports.empty()) code += "\n\n";
 
     code += class_code;
 
-    if (parser_.opts.ts_flat_file) {
-      flat_file_ += code;
-      flat_file_ += "\n";
-      flat_file_definitions_.insert(&definition);
-      return true;
-    } else {
-      auto dirs = namer_.Directories(*definition.defined_namespace);
-      EnsureDirExists(dirs);
-      auto basename = dirs + namer_.File(definition, SkipFile::Suffix);
+    auto dirs = namer_.Directories(*definition.defined_namespace);
+    EnsureDirExists(dirs);
+    auto basename = dirs + namer_.File(definition, SkipFile::Suffix);
 
-      return SaveFile(basename.c_str(), code, false);
+    return SaveFile(basename.c_str(), code, false);
+  }
+
+  void TrackNsDef(const Definition &definition, std::string type_name) {
+    std::string path;
+    std::string filepath;
+    std::string symbolic_name;
+    if (definition.defined_namespace->components.size() > 0) {
+      path = namer_.Directories(*definition.defined_namespace,
+                                SkipDir::TrailingPathSeperator);
+      filepath = path + ".ts";
+      path = namer_.Directories(*definition.defined_namespace,
+                                SkipDir::OutputPathAndTrailingPathSeparator);
+      symbolic_name = definition.defined_namespace->components.back();
+    } else {
+      auto def_mod_name = namer_.File(definition, SkipFile::SuffixAndExtension);
+      symbolic_name = file_name_;
+      filepath = path_ + symbolic_name + ".ts";
+    }
+    if (ns_defs_.count(path) == 0) {
+      NsDefinition nsDef;
+      nsDef.path = path;
+      nsDef.filepath = filepath;
+      nsDef.ns = definition.defined_namespace;
+      nsDef.definitions.insert(std::make_pair(type_name, &definition));
+      nsDef.symbolic_name = symbolic_name;
+      ns_defs_[path] = nsDef;
+    } else {
+      ns_defs_[path].definitions.insert(std::make_pair(type_name, &definition));
     }
   }
 
  private:
   IdlNamer namer_;
 
-  import_set imports_all_;
-
-  // The following three members are used when generating typescript code into a
-  // single file rather than creating separate files for each type.
-
-  // flat_file_ contains the aggregated contents of the file prior to being
-  // written to disk.
-  std::string flat_file_;
-  // flat_file_definitions_ tracks which types have been written to flat_file_.
-  std::unordered_set<const Definition *> flat_file_definitions_;
-  // This maps from import names to types to import.
-  std::map<std::string, std::map<std::string, std::string>>
-      flat_file_import_declarations_;
-  // For flat file codegen, tracks whether we need to import the flatbuffers
-  // library itself (not necessary for files that solely consist of enum
-  // definitions).
-  bool import_flatbuffers_lib_ = false;
+  std::map<std::string, NsDefinition> ns_defs_;
 
   // Generate code for all enums.
   void generateEnums() {
@@ -207,8 +216,9 @@ class TsGenerator : public BaseGenerator {
       auto &enum_def = **it;
       GenEnum(enum_def, &enumcode, imports, false);
       GenEnum(enum_def, &enumcode, imports, true);
+      std::string type_name = GetTypeName(enum_def);
+      TrackNsDef(enum_def, type_name);
       SaveType(enum_def, enumcode, imports, bare_imports);
-      imports_all_.insert(imports.begin(), imports.end());
     }
   }
 
@@ -219,68 +229,107 @@ class TsGenerator : public BaseGenerator {
       import_set bare_imports;
       import_set imports;
       AddImport(bare_imports, "* as flatbuffers", "flatbuffers");
-      import_flatbuffers_lib_ = true;
       auto &struct_def = **it;
       std::string declcode;
       GenStruct(parser_, struct_def, &declcode, imports);
+      std::string type_name = GetTypeName(struct_def);
+      TrackNsDef(struct_def, type_name);
       SaveType(struct_def, declcode, imports, bare_imports);
-      imports_all_.insert(imports.begin(), imports.end());
     }
   }
 
   // Generate code for a single entry point module.
   void generateEntry() {
-    std::string code =
-        "// " + std::string(FlatBuffersGeneratedWarning()) + "\n\n";
-    if (parser_.opts.ts_flat_file) {
-      if (import_flatbuffers_lib_) {
-        code += "import * as flatbuffers from 'flatbuffers';\n";
-        code += "\n";
-      }
-      // Only include import statements when not generating all.
-      if (!parser_.opts.generate_all) {
-        for (const auto &it : flat_file_import_declarations_) {
-          // Note that we do end up generating an import for ourselves, which
-          // should generally be harmless.
-          // TODO: Make it so we don't generate a self-import; this will also
-          // require modifying AddImport to ensure that we don't use
-          // namespace-prefixed names anywhere...
-          std::string file = it.first;
-          if (file.empty()) { continue; }
-          std::string noext = flatbuffers::StripExtension(file);
-          std::string basename = flatbuffers::StripPath(noext);
-          std::string include_file = GeneratedFileName(
-              parser_.opts.include_prefix,
-              parser_.opts.keep_prefix ? noext : basename, parser_.opts);
-          // TODO: what is the right behavior when different include flags are
-          // specified here? Should we always be adding the "./" for a relative
-          // path or turn it off if --include-prefix is specified, or something
-          // else?
-          std::string include_name =
-              "./" + flatbuffers::StripExtension(include_file);
-          code += "import {";
-          for (const auto &pair : it.second) {
-            code += namer_.EscapeKeyword(pair.first) + " as " +
-                    namer_.EscapeKeyword(pair.second) + ", ";
-          }
-          code.resize(code.size() - 2);
-          code += "} from '" + include_name + ".js';\n";
+    std::string code;
+
+    // add root namespace def if not already existing from defs tracking
+    std::string root;
+    if (ns_defs_.count(root) == 0) {
+      NsDefinition nsDef;
+      nsDef.path = root;
+      nsDef.symbolic_name = file_name_;
+      nsDef.filepath = path_ + file_name_ + ".ts";
+      nsDef.ns = new Namespace();
+      ns_defs_[nsDef.path] = nsDef;
+    }
+
+    for (const auto &it : ns_defs_) {
+      code = "// " + std::string(FlatBuffersGeneratedWarning()) + "\n\n";
+      // export all definitions in ns entry point module
+      int export_counter = 0;
+      for (const auto &def : it.second.definitions) {
+        std::vector<std::string> rel_components;
+        // build path for root level vs child level
+        if (it.second.ns->components.size() > 1)
+          std::copy(it.second.ns->components.begin() + 1,
+                    it.second.ns->components.end(),
+                    std::back_inserter(rel_components));
+        else
+          std::copy(it.second.ns->components.begin(),
+                    it.second.ns->components.end(),
+                    std::back_inserter(rel_components));
+        auto base_file_name =
+            namer_.File(*(def.second), SkipFile::SuffixAndExtension);
+        auto base_name =
+            namer_.Directories(it.second.ns->components, SkipDir::OutputPath) +
+            base_file_name;
+        auto ts_file_path = base_name + ".ts";
+        auto base_name_rel = std::string("./");
+        base_name_rel +=
+            namer_.Directories(rel_components, SkipDir::OutputPath);
+        base_name_rel += base_file_name;
+        auto ts_file_path_rel = base_name_rel + ".ts";
+        auto type_name = def.first;
+        auto fully_qualified_type_name =
+            it.second.ns->GetFullyQualifiedName(type_name);
+        auto is_struct = parser_.structs_.Lookup(fully_qualified_type_name);
+        code += "export { " + type_name;
+        if (parser_.opts.generate_object_based_api && is_struct) {
+          code += ", " + type_name + parser_.opts.object_suffix;
         }
-        code += "\n";
+        code += " } from '";
+        std::string import_extension =
+            parser_.opts.ts_no_import_ext ? "" : ".js";
+        code += base_name_rel + import_extension + "';\n";
+        export_counter++;
       }
 
-      code += flat_file_;
-      const std::string filename =
-          GeneratedFileName(path_, file_name_, parser_.opts);
-      SaveFile(filename.c_str(), code, false);
-    } else {
-      for (auto it = imports_all_.begin(); it != imports_all_.end(); it++) {
-        code += it->second.export_statement + "\n";
+      // re-export child namespace(s) in parent
+      const auto child_ns_level = it.second.ns->components.size() + 1;
+      for (const auto &it2 : ns_defs_) {
+        if (it2.second.ns->components.size() != child_ns_level) continue;
+        auto ts_file_path = it2.second.path + ".ts";
+        code += "export * as " + it2.second.symbolic_name + " from './";
+        std::string rel_path = it2.second.path;
+        code += rel_path + ".js';\n";
+        export_counter++;
       }
-      const std::string path =
-          GeneratedFileName(path_, file_name_, parser_.opts);
-      SaveFile(path.c_str(), code, false);
+
+      if (export_counter > 0) SaveFile(it.second.filepath.c_str(), code, false);
     }
+  }
+
+  bool generateBundle() {
+    if (parser_.opts.ts_flat_files) {
+      std::string inputpath;
+      std::string symbolic_name = file_name_;
+      inputpath = path_ + file_name_ + ".ts";
+      std::string bundlepath =
+          GeneratedFileName(path_, file_name_, parser_.opts);
+      bundlepath = bundlepath.substr(0, bundlepath.size() - 3) + ".js";
+      std::string cmd = "esbuild";
+      cmd += " ";
+      cmd += inputpath;
+      // cmd += " --minify";
+      cmd += " --format=cjs --bundle --outfile=";
+      cmd += bundlepath;
+      cmd += " --external:flatbuffers";
+      std::cout << "Entry point " << inputpath << " generated." << std::endl;
+      std::cout << "A single file bundle can be created using fx. esbuild with:"
+                << std::endl;
+      std::cout << "> " << cmd << std::endl;
+    }
+    return true;
   }
 
   // Generate a documentation comment, if available.
@@ -831,28 +880,6 @@ class TsGenerator : public BaseGenerator {
     const std::string object_name =
         GetTypeName(dependency, /*object_api=*/true, has_name_clash);
 
-    if (parser_.opts.ts_flat_file) {
-      // In flat-file generation, do not attempt to import things from ourselves
-      // *and* do not wrap namespaces (note that this does override the logic
-      // above, but since we force all non-self-imports to use namespace-based
-      // names in flat file generation, it's fine).
-      if (dependent.file == dependency.file) {
-        name = import_name;
-      } else {
-        const std::string file =
-            RelativeToRootPath(StripFileName(AbsolutePath(dependent.file)),
-                               dependency.file)
-                // Strip the leading //
-                .substr(2);
-        flat_file_import_declarations_[file][import_name] = name;
-
-        if (parser_.opts.generate_object_based_api &&
-            SupportsObjectAPI<DefinitionT>::value) {
-          flat_file_import_declarations_[file][import_name + "T"] = object_name;
-        }
-      }
-    }
-
     const std::string symbols_expression = GenSymbolExpression(
         dependency, has_name_clash, import_name, name, object_name);
 
@@ -876,10 +903,11 @@ class TsGenerator : public BaseGenerator {
     import.object_name = object_name;
     import.bare_file_path = bare_file_path;
     import.rel_file_path = rel_file_path;
+    std::string import_extension = parser_.opts.ts_no_import_ext ? "" : ".js";
     import.import_statement = "import { " + symbols_expression + " } from '" +
-                              rel_file_path + ".js';";
+                              rel_file_path + import_extension + "';";
     import.export_statement = "export { " + symbols_expression + " } from '." +
-                              bare_file_path + ".js';";
+                              bare_file_path + import_extension + "';";
     import.dependency = &dependency;
     import.dependent = &dependent;
 
@@ -2153,6 +2181,56 @@ std::string TSMakeRule(const Parser &parser, const std::string &path,
     make_rule += " " + *it;
   }
   return make_rule;
+}
+
+namespace {
+
+class TsCodeGenerator : public CodeGenerator {
+ public:
+  Status GenerateCode(const Parser &parser, const std::string &path,
+                      const std::string &filename) override {
+    if (!GenerateTS(parser, path, filename)) { return Status::ERROR; }
+    return Status::OK;
+  }
+
+  Status GenerateCode(const uint8_t *buffer, int64_t length) override {
+    (void)buffer;
+    (void)length;
+    return Status::NOT_IMPLEMENTED;
+  }
+
+  Status GenerateMakeRule(const Parser &parser, const std::string &path,
+                          const std::string &filename,
+                          std::string &output) override {
+    output = TSMakeRule(parser, path, filename);
+    return Status::OK;
+  }
+
+  Status GenerateGrpcCode(const Parser &parser, const std::string &path,
+                          const std::string &filename) override {
+    if (!GenerateTSGRPC(parser, path, filename)) { return Status::ERROR; }
+    return Status::OK;
+  }
+
+  Status GenerateRootFile(const Parser &parser,
+                          const std::string &path) override {
+    (void)parser;
+    (void)path;
+    return Status::NOT_IMPLEMENTED;
+  }
+  bool IsSchemaOnly() const override { return true; }
+
+  bool SupportsBfbsGeneration() const override { return false; }
+  bool SupportsRootFileGeneration() const override { return false; }
+
+  IDLOptions::Language Language() const override { return IDLOptions::kTs; }
+
+  std::string LanguageName() const override { return "TS"; }
+};
+}  // namespace
+
+std::unique_ptr<CodeGenerator> NewTsCodeGenerator() {
+  return std::unique_ptr<TsCodeGenerator>(new TsCodeGenerator());
 }
 
 }  // namespace flatbuffers

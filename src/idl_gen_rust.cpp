@@ -16,6 +16,8 @@
 
 // independent from idl_parser, since this code is not needed for most clients
 
+#include "idl_gen_rust.h"
+
 #include <cmath>
 
 #include "flatbuffers/code_generators.h"
@@ -3006,6 +3008,59 @@ std::string RustMakeRule(const Parser &parser, const std::string &path,
     make_rule += " " + *it;
   }
   return make_rule;
+}
+
+namespace {
+
+class RustCodeGenerator : public CodeGenerator {
+ public:
+  Status GenerateCode(const Parser &parser, const std::string &path,
+                      const std::string &filename) override {
+    if (!GenerateRust(parser, path, filename)) { return Status::ERROR; }
+    return Status::OK;
+  }
+
+  Status GenerateCode(const uint8_t *buffer, int64_t length) override {
+    (void)buffer;
+    (void)length;
+    return Status::NOT_IMPLEMENTED;
+  }
+
+  Status GenerateMakeRule(const Parser &parser, const std::string &path,
+                          const std::string &filename,
+                          std::string &output) override {
+    output = RustMakeRule(parser, path, filename);
+    return Status::OK;
+  }
+
+  Status GenerateGrpcCode(const Parser &parser, const std::string &path,
+                          const std::string &filename) override {
+    (void)parser;
+    (void)path;
+    (void)filename;
+    return Status::NOT_IMPLEMENTED;
+  }
+
+  Status GenerateRootFile(const Parser &parser,
+                          const std::string &path) override {
+    if (!GenerateRustModuleRootFile(parser, path)) { return Status::ERROR; }
+    return Status::OK;
+  }
+
+  bool IsSchemaOnly() const override { return true; }
+
+  bool SupportsBfbsGeneration() const override { return false; }
+
+  bool SupportsRootFileGeneration() const override { return true; }
+
+  IDLOptions::Language Language() const override { return IDLOptions::kRust; }
+
+  std::string LanguageName() const override { return "Rust"; }
+};
+}  // namespace
+
+std::unique_ptr<CodeGenerator> NewRustCodeGenerator() {
+  return std::unique_ptr<RustCodeGenerator>(new RustCodeGenerator());
 }
 
 }  // namespace flatbuffers

@@ -15,9 +15,11 @@
  */
 
 // independent from idl_parser, since this code is not needed for most clients
+#include "idl_gen_text.h"
 
 #include <algorithm>
 
+#include "flatbuffers/code_generator.h"
 #include "flatbuffers/flatbuffers.h"
 #include "flatbuffers/flexbuffers.h"
 #include "flatbuffers/idl.h"
@@ -429,6 +431,63 @@ std::string TextMakeRule(const Parser &parser, const std::string &path,
     make_rule += " " + *it;
   }
   return make_rule;
+}
+
+namespace {
+
+class TextCodeGenerator : public CodeGenerator {
+ public:
+  Status GenerateCode(const Parser &parser, const std::string &path,
+                      const std::string &filename) override {
+    if (!GenerateTextFile(parser, path, filename)) { return Status::ERROR; }
+    return Status::OK;
+  }
+
+  // Generate code from the provided `buffer` of given `length`. The buffer is a
+  // serialized reflection.fbs.
+  Status GenerateCode(const uint8_t *buffer, int64_t length) override {
+    (void)buffer;
+    (void)length;
+    return Status::NOT_IMPLEMENTED;
+  }
+
+  Status GenerateMakeRule(const Parser &parser, const std::string &path,
+                          const std::string &filename,
+                          std::string &output) override {
+    output = TextMakeRule(parser, path, filename);
+    return Status::OK;
+  }
+
+  Status GenerateGrpcCode(const Parser &parser, const std::string &path,
+                          const std::string &filename) override {
+    (void)parser;
+    (void)path;
+    (void)filename;
+    return Status::NOT_IMPLEMENTED;
+  }
+
+  Status GenerateRootFile(const Parser &parser,
+                          const std::string &path) override {
+    (void)parser;
+    (void)path;
+    return Status::NOT_IMPLEMENTED;
+  }
+
+  bool IsSchemaOnly() const override { return false; }
+
+  bool SupportsBfbsGeneration() const override { return false; }
+
+  bool SupportsRootFileGeneration() const override { return false; }
+
+  IDLOptions::Language Language() const override { return IDLOptions::kJson; }
+
+  std::string LanguageName() const override { return "text"; }
+};
+
+}  // namespace
+
+std::unique_ptr<CodeGenerator> NewTextCodeGenerator() {
+  return std::unique_ptr<TextCodeGenerator>(new TextCodeGenerator());
 }
 
 }  // namespace flatbuffers

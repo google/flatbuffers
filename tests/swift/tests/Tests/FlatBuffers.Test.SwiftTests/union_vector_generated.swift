@@ -120,7 +120,7 @@ public struct GadgetUnion {
 }
 public struct Rapunzel: NativeStruct, Verifiable, FlatbuffersInitializable, NativeObject {
 
-  static func validateVersion() { FlatBuffersVersion_22_12_06() }
+  static func validateVersion() { FlatBuffersVersion_23_3_3() }
 
   private var _hairLength: Int32
 
@@ -163,7 +163,7 @@ extension Rapunzel: Encodable {
 
 public struct Rapunzel_Mutable: FlatBufferObject {
 
-  static func validateVersion() { FlatBuffersVersion_22_12_06() }
+  static func validateVersion() { FlatBuffersVersion_23_3_3() }
   public var __buffer: ByteBuffer! { return _accessor.bb }
   private var _accessor: Struct
 
@@ -188,7 +188,7 @@ public struct Rapunzel_Mutable: FlatBufferObject {
 
 public struct BookReader: NativeStruct, Verifiable, FlatbuffersInitializable, NativeObject {
 
-  static func validateVersion() { FlatBuffersVersion_22_12_06() }
+  static func validateVersion() { FlatBuffersVersion_23_3_3() }
 
   private var _booksRead: Int32
 
@@ -231,7 +231,7 @@ extension BookReader: Encodable {
 
 public struct BookReader_Mutable: FlatBufferObject {
 
-  static func validateVersion() { FlatBuffersVersion_22_12_06() }
+  static func validateVersion() { FlatBuffersVersion_23_3_3() }
   public var __buffer: ByteBuffer! { return _accessor.bb }
   private var _accessor: Struct
 
@@ -256,7 +256,7 @@ public struct BookReader_Mutable: FlatBufferObject {
 
 public struct FallingTub: NativeStruct, Verifiable, FlatbuffersInitializable, NativeObject {
 
-  static func validateVersion() { FlatBuffersVersion_22_12_06() }
+  static func validateVersion() { FlatBuffersVersion_23_3_3() }
 
   private var _weight: Int32
 
@@ -299,7 +299,7 @@ extension FallingTub: Encodable {
 
 public struct FallingTub_Mutable: FlatBufferObject {
 
-  static func validateVersion() { FlatBuffersVersion_22_12_06() }
+  static func validateVersion() { FlatBuffersVersion_23_3_3() }
   public var __buffer: ByteBuffer! { return _accessor.bb }
   private var _accessor: Struct
 
@@ -324,14 +324,12 @@ public struct FallingTub_Mutable: FlatBufferObject {
 
 public struct Attacker: FlatBufferObject, Verifiable, ObjectAPIPacker {
 
-  static func validateVersion() { FlatBuffersVersion_22_12_06() }
+  static func validateVersion() { FlatBuffersVersion_23_3_3() }
   public var __buffer: ByteBuffer! { return _accessor.bb }
   private var _accessor: Table
 
   public static var id: String { "MOVI" } 
   public static func finish(_ fbb: inout FlatBufferBuilder, end: Offset, prefix: Bool = false) { fbb.finish(offset: end, fileId: Attacker.id, addPrefix: prefix) }
-  public static func getRootAsAttacker(bb: ByteBuffer) -> Attacker { return Attacker(Table(bb: bb, position: Int32(bb.read(def: UOffset.self, position: bb.reader)) + Int32(bb.reader))) }
-
   private init(_ t: Table) { _accessor = t }
   public init(_ bb: ByteBuffer, o: Int32) { _accessor = Table(bb: bb, position: o) }
 
@@ -407,14 +405,12 @@ public class AttackerT: NativeObject {
 }
 public struct HandFan: FlatBufferObject, Verifiable, ObjectAPIPacker {
 
-  static func validateVersion() { FlatBuffersVersion_22_12_06() }
+  static func validateVersion() { FlatBuffersVersion_23_3_3() }
   public var __buffer: ByteBuffer! { return _accessor.bb }
   private var _accessor: Table
 
   public static var id: String { "MOVI" } 
   public static func finish(_ fbb: inout FlatBufferBuilder, end: Offset, prefix: Bool = false) { fbb.finish(offset: end, fileId: HandFan.id, addPrefix: prefix) }
-  public static func getRootAsHandFan(bb: ByteBuffer) -> HandFan { return HandFan(Table(bb: bb, position: Int32(bb.read(def: UOffset.self, position: bb.reader)) + Int32(bb.reader))) }
-
   private init(_ t: Table) { _accessor = t }
   public init(_ bb: ByteBuffer, o: Int32) { _accessor = Table(bb: bb, position: o) }
 
@@ -490,14 +486,12 @@ public class HandFanT: NativeObject {
 }
 public struct Movie: FlatBufferObject, Verifiable, ObjectAPIPacker {
 
-  static func validateVersion() { FlatBuffersVersion_22_12_06() }
+  static func validateVersion() { FlatBuffersVersion_23_3_3() }
   public var __buffer: ByteBuffer! { return _accessor.bb }
   private var _accessor: Table
 
   public static var id: String { "MOVI" } 
   public static func finish(_ fbb: inout FlatBufferBuilder, end: Offset, prefix: Bool = false) { fbb.finish(offset: end, fileId: Movie.id, addPrefix: prefix) }
-  public static func getRootAsMovie(bb: ByteBuffer) -> Movie { return Movie(Table(bb: bb, position: Int32(bb.read(def: UOffset.self, position: bb.reader)) + Int32(bb.reader))) }
-
   private init(_ t: Table) { _accessor = t }
   public init(_ bb: ByteBuffer, o: Int32) { _accessor = Table(bb: bb, position: o) }
 

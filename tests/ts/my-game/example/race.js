@@ -5,4 +5,4 @@ export var Race;
     Race[Race["Human"] = 0] = "Human";
     Race[Race["Dwarf"] = 1] = "Dwarf";
     Race[Race["Elf"] = 2] = "Elf";
-})(Race || (Race = {}));
+})(Race = Race || (Race = {}));

@@ -356,23 +356,6 @@ template<typename T> static void AssignIndices(const std::vector<T *> &defvec) {
 
 }  // namespace
 
-// clang-format off
-const char *const kTypeNames[] = {
-  #define FLATBUFFERS_TD(ENUM, IDLTYPE, ...) \
-    IDLTYPE,
-    FLATBUFFERS_GEN_TYPES(FLATBUFFERS_TD)
-  #undef FLATBUFFERS_TD
-  nullptr
-};
-
-const char kTypeSizes[] = {
-  #define FLATBUFFERS_TD(ENUM, IDLTYPE, CTYPE, ...) \
-    sizeof(CTYPE),
-    FLATBUFFERS_GEN_TYPES(FLATBUFFERS_TD)
-  #undef FLATBUFFERS_TD
-};
-// clang-format on
-
 void Parser::Message(const std::string &msg) {
   if (!error_.empty()) error_ += "\n";  // log all warnings and errors
   error_ += file_being_parsed_.length() ? AbsolutePath(file_being_parsed_) : "";
@@ -918,10 +901,13 @@ CheckedError Parser::ParseField(StructDef &struct_def) {
   ECHECK(ParseType(type));
 
   if (struct_def.fixed) {
-    if (IsIncompleteStruct(type) || 
+    if (IsIncompleteStruct(type) ||
         (IsArray(type) && IsIncompleteStruct(type.VectorType()))) {
-      std::string type_name = IsArray(type) ? type.VectorType().struct_def->name : type.struct_def->name;
-      return Error(std::string("Incomplete type in struct is not allowed, type name: ") + type_name);
+      std::string type_name = IsArray(type) ? type.VectorType().struct_def->name
+                                            : type.struct_def->name;
+      return Error(
+          std::string("Incomplete type in struct is not allowed, type name: ") +
+          type_name);
     }
 
     auto valid = IsScalar(type.base_type) || IsStruct(type);
@@ -969,6 +955,14 @@ CheckedError Parser::ParseField(StructDef &struct_def) {
 
   FieldDef *field;
   ECHECK(AddField(struct_def, name, type, &field));
+
+  if (typefield) {
+     // We preserve the relation between the typefield
+     // and field, so we can easily map it in the code
+     // generators.
+     typefield->sibling_union_field = field;
+     field->sibling_union_field = typefield;
+  }
 
   if (token_ == '=') {
     NEXT();
@@ -1064,8 +1058,11 @@ CheckedError Parser::ParseField(StructDef &struct_def) {
   if (field->key) {
     if (struct_def.has_key) return Error("only one field may be set as 'key'");
     struct_def.has_key = true;
-    auto is_valid = IsScalar(type.base_type) || IsString(type);
-    if (IsArray(type)) { is_valid |= IsScalar(type.VectorType().base_type); }
+    auto is_valid = IsScalar(type.base_type) || IsString(type) || IsStruct(type);
+    if (IsArray(type)) {
+      is_valid |=
+          IsScalar(type.VectorType().base_type) || IsStruct(type.VectorType());
+    }
     if (!is_valid) {
       return Error(
           "'key' field must be string, scalar type or fixed size array of "
@@ -1933,8 +1930,8 @@ CheckedError Parser::ParseFunction(const std::string *name, Value &e) {
   const auto functionname = attribute_;
   if (!IsFloat(e.type.base_type)) {
     return Error(functionname + ": type of argument mismatch, expecting: " +
-                 kTypeNames[BASE_TYPE_DOUBLE] +
-                 ", found: " + kTypeNames[e.type.base_type] +
+                 TypeName(BASE_TYPE_DOUBLE) +
+                 ", found: " + TypeName(e.type.base_type) +
                  ", name: " + (name ? *name : "") + ", value: " + e.constant);
   }
   NEXT();
@@ -1980,8 +1977,8 @@ CheckedError Parser::TryTypedValue(const std::string *name, int dtoken,
       e.type.base_type = req;
     } else {
       return Error(std::string("type mismatch: expecting: ") +
-                   kTypeNames[e.type.base_type] +
-                   ", found: " + kTypeNames[req] +
+                   TypeName(e.type.base_type) +
+                   ", found: " + TypeName(req) +
                    ", name: " + (name ? *name : "") + ", value: " + e.constant);
     }
   }
@@ -2042,7 +2039,7 @@ CheckedError Parser::ParseSingleValue(const std::string *name, Value &e,
       return Error(
           std::string("type mismatch or invalid value, an initializer of "
                       "non-string field must be trivial ASCII string: type: ") +
-          kTypeNames[in_type] + ", name: " + (name ? *name : "") +
+          TypeName(in_type) + ", name: " + (name ? *name : "") +
           ", value: " + attribute_);
     }
 
@@ -2114,7 +2111,7 @@ CheckedError Parser::ParseSingleValue(const std::string *name, Value &e,
   if (!match) {
     std::string msg;
     msg += "Cannot assign token starting with '" + TokenToStringId(token_) +
-           "' to value of <" + std::string(kTypeNames[in_type]) + "> type.";
+           "' to value of <" + std::string(TypeName(in_type)) + "> type.";
     return Error(msg);
   }
   const auto match_type = e.type.base_type;  // may differ from in_type
@@ -2278,12 +2275,8 @@ template<typename T> void EnumDef::ChangeEnumValue(EnumVal *ev, T new_value) {
 }
 
 namespace EnumHelper {
-template<BaseType E> struct EnumValType {
-  typedef int64_t type;
-};
-template<> struct EnumValType<BASE_TYPE_ULONG> {
-  typedef uint64_t type;
-};
+template<BaseType E> struct EnumValType { typedef int64_t type; };
+template<> struct EnumValType<BASE_TYPE_ULONG> { typedef uint64_t type; };
 }  // namespace EnumHelper
 
 struct EnumValBuilder {
@@ -2687,6 +2680,7 @@ CheckedError Parser::ParseDecl(const char *filename) {
       for (voffset_t i = 0; i < static_cast<voffset_t>(fields.size()); i++) {
         auto &field = *fields[i];
         const auto &id_str = field.attributes.Lookup("id")->constant;
+
         // Metadata values have a dynamic type, they can be `float`, 'int', or
         // 'string`.
         // The FieldIndexToOffset(i) expects the voffset_t so `id` is limited by
@@ -2910,8 +2904,40 @@ CheckedError Parser::ParseProtoFields(StructDef *struct_def, bool isextend,
       ECHECK(ParseProtoOption());
       EXPECT(';');
     } else if (IsIdent("reserved")) {  // Skip these.
+      /**
+       * Reserved proto ids can be comma seperated (e.g. 1,2,4,5;)
+       * or range based (e.g. 9 to 11;)
+       * or combination of them (e.g. 1,2,9 to 11,4,5;)
+       * It will be ended by a semicolon.
+       */
       NEXT();
-      while (!Is(';')) { NEXT(); }  // A variety of formats, just skip.
+      bool range = false;
+      voffset_t from = 0;
+
+      while (!Is(';')) {
+        if (token_ == kTokenIntegerConstant) {
+          voffset_t attribute = 0;
+          bool done = StringToNumber(attribute_.c_str(), &attribute);
+          if (!done)
+            return Error("Protobuf has non positive number in reserved ids");
+
+          if (range) {
+            for (voffset_t id = from + 1; id <= attribute; id++)
+              struct_def->reserved_ids.push_back(id);
+
+            range = false;
+          } else {
+            struct_def->reserved_ids.push_back(attribute);
+          }
+
+          from = attribute;
+        }
+
+        if (attribute_ == "to") range = true;
+
+        NEXT();
+      }  // A variety of formats, just skip.
+
       NEXT();
     } else if (IsIdent("map")) {
       ECHECK(ParseProtoMapField(struct_def));
@@ -2969,11 +2995,13 @@ CheckedError Parser::ParseProtoFields(StructDef *struct_def, bool isextend,
       }
       std::string name = attribute_;
       EXPECT(kTokenIdentifier);
+      std::string proto_field_id;
       if (!oneof) {
         // Parse the field id. Since we're just translating schemas, not
         // any kind of binary compatibility, we can safely ignore these, and
         // assign our own.
         EXPECT('=');
+        proto_field_id = attribute_;
         EXPECT(kTokenIntegerConstant);
       }
       FieldDef *field = nullptr;
@@ -2984,6 +3012,11 @@ CheckedError Parser::ParseProtoFields(StructDef *struct_def, bool isextend,
       }
       if (!field) ECHECK(AddField(*struct_def, name, type, &field));
       field->doc_comment = field_comment;
+      if (!proto_field_id.empty() || oneof) {
+        auto val = new Value();
+        val->constant = proto_field_id;
+        field->attributes.Add("id", val);
+      }
       if (!IsScalar(type.base_type) && required) {
         field->presence = FieldDef::kRequired;
       }
@@ -3061,6 +3094,7 @@ CheckedError Parser::ParseProtoMapField(StructDef *struct_def) {
   auto field_name = attribute_;
   NEXT();
   EXPECT('=');
+  std::string proto_field_id = attribute_;
   EXPECT(kTokenIntegerConstant);
   EXPECT(';');
 
@@ -3080,6 +3114,11 @@ CheckedError Parser::ParseProtoMapField(StructDef *struct_def) {
   field_type.struct_def = entry_table;
   FieldDef *field;
   ECHECK(AddField(*struct_def, field_name, field_type, &field));
+  if (!proto_field_id.empty()) {
+    auto val = new Value();
+    val->constant = proto_field_id;
+    field->attributes.Add("id", val);
+  }
 
   return NoError();
 }
@@ -3895,7 +3934,7 @@ bool FieldDef::Deserialize(Parser &parser, const reflection::Field *field) {
   if (IsInteger(value.type.base_type)) {
     value.constant = NumToString(field->default_integer());
   } else if (IsFloat(value.type.base_type)) {
-    value.constant = FloatToString(field->default_real(), 16);
+    value.constant = FloatToString(field->default_real(), 17);
   }
   presence = FieldDef::MakeFieldPresence(field->optional(), field->required());
   padding = field->padding();

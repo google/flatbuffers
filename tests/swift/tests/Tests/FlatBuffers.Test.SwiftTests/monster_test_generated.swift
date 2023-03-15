@@ -237,7 +237,7 @@ public struct MyGame_Example_AnyAmbiguousAliasesUnion {
 }
 public struct MyGame_Example_Test: NativeStruct, Verifiable, FlatbuffersInitializable, NativeObject {
 
-  static func validateVersion() { FlatBuffersVersion_22_12_06() }
+  static func validateVersion() { FlatBuffersVersion_23_3_3() }
 
   private var _a: Int16
   private var _b: Int8
@@ -291,7 +291,7 @@ extension MyGame_Example_Test: Encodable {
 
 public struct MyGame_Example_Test_Mutable: FlatBufferObject {
 
-  static func validateVersion() { FlatBuffersVersion_22_12_06() }
+  static func validateVersion() { FlatBuffersVersion_23_3_3() }
   public var __buffer: ByteBuffer! { return _accessor.bb }
   private var _accessor: Struct
 
@@ -318,7 +318,7 @@ public struct MyGame_Example_Test_Mutable: FlatBufferObject {
 
 public struct MyGame_Example_Vec3: NativeStruct, Verifiable, FlatbuffersInitializable, NativeObject {
 
-  static func validateVersion() { FlatBuffersVersion_22_12_06() }
+  static func validateVersion() { FlatBuffersVersion_23_3_3() }
 
   private var _x: Float32
   private var _y: Float32
@@ -413,7 +413,7 @@ extension MyGame_Example_Vec3: Encodable {
 
 public struct MyGame_Example_Vec3_Mutable: FlatBufferObject {
 
-  static func validateVersion() { FlatBuffersVersion_22_12_06() }
+  static func validateVersion() { FlatBuffersVersion_23_3_3() }
   public var __buffer: ByteBuffer! { return _accessor.bb }
   private var _accessor: Struct
 
@@ -447,7 +447,7 @@ public struct MyGame_Example_Vec3_Mutable: FlatBufferObject {
 
 public struct MyGame_Example_Ability: NativeStruct, Verifiable, FlatbuffersInitializable, NativeObject {
 
-  static func validateVersion() { FlatBuffersVersion_22_12_06() }
+  static func validateVersion() { FlatBuffersVersion_23_3_3() }
 
   private var _id: UInt32
   private var _distance: UInt32
@@ -500,7 +500,7 @@ extension MyGame_Example_Ability: Encodable {
 
 public struct MyGame_Example_Ability_Mutable: FlatBufferObject {
 
-  static func validateVersion() { FlatBuffersVersion_22_12_06() }
+  static func validateVersion() { FlatBuffersVersion_23_3_3() }
   public var __buffer: ByteBuffer! { return _accessor.bb }
   private var _accessor: Struct
 
@@ -527,7 +527,7 @@ public struct MyGame_Example_Ability_Mutable: FlatBufferObject {
 
 public struct MyGame_Example_StructOfStructs: NativeStruct, Verifiable, FlatbuffersInitializable, NativeObject {
 
-  static func validateVersion() { FlatBuffersVersion_22_12_06() }
+  static func validateVersion() { FlatBuffersVersion_23_3_3() }
 
   private var _a: MyGame_Example_Ability
   private var _b: MyGame_Example_Test
@@ -587,7 +587,7 @@ extension MyGame_Example_StructOfStructs: Encodable {
 
 public struct MyGame_Example_StructOfStructs_Mutable: FlatBufferObject {
 
-  static func validateVersion() { FlatBuffersVersion_22_12_06() }
+  static func validateVersion() { FlatBuffersVersion_23_3_3() }
   public var __buffer: ByteBuffer! { return _accessor.bb }
   private var _accessor: Struct
 
@@ -613,7 +613,7 @@ public struct MyGame_Example_StructOfStructs_Mutable: FlatBufferObject {
 
 public struct MyGame_Example_StructOfStructsOfStructs: NativeStruct, Verifiable, FlatbuffersInitializable, NativeObject {
 
-  static func validateVersion() { FlatBuffersVersion_22_12_06() }
+  static func validateVersion() { FlatBuffersVersion_23_3_3() }
 
   private var _a: MyGame_Example_StructOfStructs
 
@@ -655,7 +655,7 @@ extension MyGame_Example_StructOfStructsOfStructs: Encodable {
 
 public struct MyGame_Example_StructOfStructsOfStructs_Mutable: FlatBufferObject {
 
-  static func validateVersion() { FlatBuffersVersion_22_12_06() }
+  static func validateVersion() { FlatBuffersVersion_23_3_3() }
   public var __buffer: ByteBuffer! { return _accessor.bb }
   private var _accessor: Struct
 
@@ -679,14 +679,12 @@ public struct MyGame_Example_StructOfStructsOfStructs_Mutable: FlatBufferObject 
 
 public struct MyGame_InParentNamespace: FlatBufferObject, Verifiable, ObjectAPIPacker {
 
-  static func validateVersion() { FlatBuffersVersion_22_12_06() }
+  static func validateVersion() { FlatBuffersVersion_23_3_3() }
   public var __buffer: ByteBuffer! { return _accessor.bb }
   private var _accessor: Table
 
   public static var id: String { "MONS" } 
   public static func finish(_ fbb: inout FlatBufferBuilder, end: Offset, prefix: Bool = false) { fbb.finish(offset: end, fileId: MyGame_InParentNamespace.id, addPrefix: prefix) }
-  public static func getRootAsInParentNamespace(bb: ByteBuffer) -> MyGame_InParentNamespace { return MyGame_InParentNamespace(Table(bb: bb, position: Int32(bb.read(def: UOffset.self, position: bb.reader)) + Int32(bb.reader))) }
-
   private init(_ t: Table) { _accessor = t }
   public init(_ bb: ByteBuffer, o: Int32) { _accessor = Table(bb: bb, position: o) }
 
@@ -733,14 +731,12 @@ public class MyGame_InParentNamespaceT: NativeObject {
 }
 public struct MyGame_Example2_Monster: FlatBufferObject, Verifiable, ObjectAPIPacker {
 
-  static func validateVersion() { FlatBuffersVersion_22_12_06() }
+  static func validateVersion() { FlatBuffersVersion_23_3_3() }
   public var __buffer: ByteBuffer! { return _accessor.bb }
   private var _accessor: Table
 
   public static var id: String { "MONS" } 
   public static func finish(_ fbb: inout FlatBufferBuilder, end: Offset, prefix: Bool = false) { fbb.finish(offset: end, fileId: MyGame_Example2_Monster.id, addPrefix: prefix) }
-  public static func getRootAsMonster(bb: ByteBuffer) -> MyGame_Example2_Monster { return MyGame_Example2_Monster(Table(bb: bb, position: Int32(bb.read(def: UOffset.self, position: bb.reader)) + Int32(bb.reader))) }
-
   private init(_ t: Table) { _accessor = t }
   public init(_ bb: ByteBuffer, o: Int32) { _accessor = Table(bb: bb, position: o) }
 
@@ -787,14 +783,12 @@ public class MyGame_Example2_MonsterT: NativeObject {
 }
 internal struct MyGame_Example_TestSimpleTableWithEnum: FlatBufferObject, Verifiable, ObjectAPIPacker {
 
-  static func validateVersion() { FlatBuffersVersion_22_12_06() }
+  static func validateVersion() { FlatBuffersVersion_23_3_3() }
   internal var __buffer: ByteBuffer! { return _accessor.bb }
   private var _accessor: Table
 
   internal static var id: String { "MONS" } 
   internal static func finish(_ fbb: inout FlatBufferBuilder, end: Offset, prefix: Bool = false) { fbb.finish(offset: end, fileId: MyGame_Example_TestSimpleTableWithEnum.id, addPrefix: prefix) }
-  internal static func getRootAsTestSimpleTableWithEnum(bb: ByteBuffer) -> MyGame_Example_TestSimpleTableWithEnum { return MyGame_Example_TestSimpleTableWithEnum(Table(bb: bb, position: Int32(bb.read(def: UOffset.self, position: bb.reader)) + Int32(bb.reader))) }
-
   private init(_ t: Table) { _accessor = t }
   internal init(_ bb: ByteBuffer, o: Int32) { _accessor = Table(bb: bb, position: o) }
 
@@ -870,14 +864,12 @@ internal class MyGame_Example_TestSimpleTableWithEnumT: NativeObject {
 }
 public struct MyGame_Example_Stat: FlatBufferObject, Verifiable, ObjectAPIPacker {
 
-  static func validateVersion() { FlatBuffersVersion_22_12_06() }
+  static func validateVersion() { FlatBuffersVersion_23_3_3() }
   public var __buffer: ByteBuffer! { return _accessor.bb }
   private var _accessor: Table
 
   public static var id: String { "MONS" } 
   public static func finish(_ fbb: inout FlatBufferBuilder, end: Offset, prefix: Bool = false) { fbb.finish(offset: end, fileId: MyGame_Example_Stat.id, addPrefix: prefix) }
-  public static func getRootAsStat(bb: ByteBuffer) -> MyGame_Example_Stat { return MyGame_Example_Stat(Table(bb: bb, position: Int32(bb.read(def: UOffset.self, position: bb.reader)) + Int32(bb.reader))) }
-
   private init(_ t: Table) { _accessor = t }
   public init(_ bb: ByteBuffer, o: Int32) { _accessor = Table(bb: bb, position: o) }
 
@@ -1011,14 +1003,12 @@ public class MyGame_Example_StatT: NativeObject {
 }
 public struct MyGame_Example_Referrable: FlatBufferObject, Verifiable, ObjectAPIPacker {
 
-  static func validateVersion() { FlatBuffersVersion_22_12_06() }
+  static func validateVersion() { FlatBuffersVersion_23_3_3() }
   public var __buffer: ByteBuffer! { return _accessor.bb }
   private var _accessor: Table
 
   public static var id: String { "MONS" } 
   public static func finish(_ fbb: inout FlatBufferBuilder, end: Offset, prefix: Bool = false) { fbb.finish(offset: end, fileId: MyGame_Example_Referrable.id, addPrefix: prefix) }
-  public static func getRootAsReferrable(bb: ByteBuffer) -> MyGame_Example_Referrable { return MyGame_Example_Referrable(Table(bb: bb, position: Int32(bb.read(def: UOffset.self, position: bb.reader)) + Int32(bb.reader))) }
-
   private init(_ t: Table) { _accessor = t }
   public init(_ bb: ByteBuffer, o: Int32) { _accessor = Table(bb: bb, position: o) }
 
@@ -1119,14 +1109,12 @@ public class MyGame_Example_ReferrableT: NativeObject {
 ///  an example documentation comment: "monster object"
 public struct MyGame_Example_Monster: FlatBufferObject, Verifiable, ObjectAPIPacker {
 
-  static func validateVersion() { FlatBuffersVersion_22_12_06() }
+  static func validateVersion() { FlatBuffersVersion_23_3_3() }
   public var __buffer: ByteBuffer! { return _accessor.bb }
   private var _accessor: Table
 
   public static var id: String { "MONS" } 
   public static func finish(_ fbb: inout FlatBufferBuilder, end: Offset, prefix: Bool = false) { fbb.finish(offset: end, fileId: MyGame_Example_Monster.id, addPrefix: prefix) }
-  public static func getRootAsMonster(bb: ByteBuffer) -> MyGame_Example_Monster { return MyGame_Example_Monster(Table(bb: bb, position: Int32(bb.read(def: UOffset.self, position: bb.reader)) + Int32(bb.reader))) }
-
   private init(_ t: Table) { _accessor = t }
   public init(_ bb: ByteBuffer, o: Int32) { _accessor = Table(bb: bb, position: o) }
 
@@ -2417,14 +2405,12 @@ public class MyGame_Example_MonsterT: NativeObject {
 }
 public struct MyGame_Example_TypeAliases: FlatBufferObject, Verifiable, ObjectAPIPacker {
 
-  static func validateVersion() { FlatBuffersVersion_22_12_06() }
+  static func validateVersion() { FlatBuffersVersion_23_3_3() }
   public var __buffer: ByteBuffer! { return _accessor.bb }
   private var _accessor: Table
 
   public static var id: String { "MONS" } 
   public static func finish(_ fbb: inout FlatBufferBuilder, end: Offset, prefix: Bool = false) { fbb.finish(offset: end, fileId: MyGame_Example_TypeAliases.id, addPrefix: prefix) }
-  public static func getRootAsTypeAliases(bb: ByteBuffer) -> MyGame_Example_TypeAliases { return MyGame_Example_TypeAliases(Table(bb: bb, position: Int32(bb.read(def: UOffset.self, position: bb.reader)) + Int32(bb.reader))) }
-
   private init(_ t: Table) { _accessor = t }
   public init(_ bb: ByteBuffer, o: Int32) { _accessor = Table(bb: bb, position: o) }
 

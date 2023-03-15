@@ -8,7 +8,7 @@ export var Any;
     Any[Any["Monster"] = 1] = "Monster";
     Any[Any["TestSimpleTableWithEnum"] = 2] = "TestSimpleTableWithEnum";
     Any[Any["MyGame_Example2_Monster"] = 3] = "MyGame_Example2_Monster";
-})(Any || (Any = {}));
+})(Any = Any || (Any = {}));
 export function unionToAny(type, accessor) {
     switch (Any[type]) {
         case 'NONE': return null;

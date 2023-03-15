@@ -1,6 +1,8 @@
 #include "annotated_binary_text_gen.h"
 
 #include <algorithm>
+#include <fstream>
+#include <ostream>
 #include <sstream>
 #include <string>
 
@@ -21,6 +23,8 @@ struct OutputConfig {
   size_t offset_max_char = 4;
 
   char delimiter = '|';
+
+  bool include_vector_contents = true;
 };
 
 static std::string ToString(const BinarySectionType type) {
@@ -83,7 +87,7 @@ static std::string ToValueString(const BinaryRegion &region,
   if (region.array_length) {
     if (region.type == BinaryRegionType::Uint8 ||
         region.type == BinaryRegionType::Unknown) {
-      // Interpet each value as a ASCII to aid debugging
+      // Interpret each value as a ASCII to aid debugging
       for (uint64_t i = 0; i < region.array_length; ++i) {
         const uint8_t c = *(binary + region.offset + i);
         s += isprint(c) ? static_cast<char>(c & 0x7F) : '.';
@@ -131,7 +135,7 @@ static std::string ToValueString(const BinaryRegion &region,
   // value.
   // TODO(dbaileychess): It might be nicer to put this in the comment field.
   if (IsOffset(region.type)) {
-    s += " Loc: +0x";
+    s += " Loc: 0x";
     s += ToHex(region.points_to_offset, output_config.offset_max_char);
   }
   return s;
@@ -257,84 +261,74 @@ static std::string GenerateComment(const BinaryRegionComment &comment,
   return s;
 }
 
-static std::string GenerateDocumentation(const BinaryRegion &region,
-                                         const BinarySection &section,
-                                         const uint8_t *binary,
-                                         DocContinuation &continuation,
-                                         const OutputConfig &output_config) {
-  std::string s;
-
+static void GenerateDocumentation(std::ostream &os, const BinaryRegion &region,
+                                  const BinarySection &section,
+                                  const uint8_t *binary,
+                                  DocContinuation &continuation,
+                                  const OutputConfig &output_config) {
   // Check if there is a doc continuation that should be prioritized.
   if (continuation.value_start_column) {
-    s += std::string(continuation.value_start_column - 2, ' ');
-    s += output_config.delimiter;
-    s += " ";
+    os << std::string(continuation.value_start_column - 2, ' ');
+    os << output_config.delimiter << " ";
 
-    s += continuation.value.substr(0, output_config.max_bytes_per_line);
+    os << continuation.value.substr(0, output_config.max_bytes_per_line);
     continuation.value = continuation.value.substr(
         std::min(output_config.max_bytes_per_line, continuation.value.size()));
-    return s;
+    return;
   }
 
+  size_t size_of = 0;
   {
     std::stringstream ss;
-    ss << std::setw(output_config.largest_type_string) << std::left;
+    ss << std::setw(static_cast<int>(output_config.largest_type_string))
+       << std::left;
     ss << GenerateTypeString(region);
-    s += ss.str();
+    os << ss.str();
+    size_of = ss.str().size();
   }
-  s += " ";
-  s += output_config.delimiter;
-  s += " ";
+  os << " " << output_config.delimiter << " ";
   if (region.array_length) {
     // Record where the value is first being outputted.
-    continuation.value_start_column = s.size();
+    continuation.value_start_column = 3 + size_of;
 
     // Get the full-length value, which we will chunk below.
     const std::string value = ToValueString(region, binary, output_config);
 
     std::stringstream ss;
-    ss << std::setw(output_config.largest_value_string) << std::left;
+    ss << std::setw(static_cast<int>(output_config.largest_value_string))
+       << std::left;
     ss << value.substr(0, output_config.max_bytes_per_line);
-    s += ss.str();
+    os << ss.str();
 
     continuation.value =
         value.substr(std::min(output_config.max_bytes_per_line, value.size()));
   } else {
     std::stringstream ss;
-    ss << std::setw(output_config.largest_value_string) << std::left;
+    ss << std::setw(static_cast<int>(output_config.largest_value_string))
+       << std::left;
     ss << ToValueString(region, binary, output_config);
-    s += ss.str();
+    os << ss.str();
   }
 
-  s += " ";
-  s += output_config.delimiter;
-  s += " ";
-  s += GenerateComment(region.comment, section);
-
-  return s;
+  os << " " << output_config.delimiter << " ";
+  os << GenerateComment(region.comment, section);
 }
 
-static std::string GenerateRegion(const BinaryRegion &region,
-                                  const BinarySection &section,
-                                  const uint8_t *binary,
-                                  const OutputConfig &output_config) {
-  std::string s;
+static void GenerateRegion(std::ostream &os, const BinaryRegion &region,
+                           const BinarySection &section, const uint8_t *binary,
+                           const OutputConfig &output_config) {
   bool doc_generated = false;
   DocContinuation doc_continuation;
   for (uint64_t i = 0; i < region.length; ++i) {
     if ((i % output_config.max_bytes_per_line) == 0) {
       // Start a new line of output
-      s += '\n';
-      s += "  ";
-      s += "+0x";
-      s += ToHex(region.offset + i, output_config.offset_max_char);
-      s += " ";
-      s += output_config.delimiter;
+      os << std::endl;
+      os << "  +0x" << ToHex(region.offset + i, output_config.offset_max_char);
+      os << " " << output_config.delimiter;
     }
 
     // Add each byte
-    s += " ";
-    s += ToHex(binary[region.offset + i]);
+    os << " " << ToHex(binary[region.offset + i]);
 
     // Check for end of line or end of region conditions.
     if (((i + 1) % output_config.max_bytes_per_line == 0) ||
@@ -344,17 +338,16 @@ static std::string GenerateRegion(const BinaryRegion &region,
         // zero those out to align everything globally.
         for (uint64_t j = i + 1; (j % output_config.max_bytes_per_line) != 0;
              ++j) {
-          s += "   ";
+          os << "   ";
         }
       }
-      s += " ";
-      s += output_config.delimiter;
+      os << " " << output_config.delimiter;
       // This is the end of the first line or its the last byte of the region,
       // generate the end-of-line documentation.
       if (!doc_generated) {
-        s += " ";
-        s += GenerateDocumentation(region, section, binary, doc_continuation,
-                                   output_config);
+        os << " ";
+        GenerateDocumentation(os, region, section, binary, doc_continuation,
+                              output_config);
 
         // If we have a value in the doc continuation, that means the doc is
         // being printed on multiple lines.
@@ -362,22 +355,41 @@ static std::string GenerateRegion(const BinaryRegion &region,
       }
     }
   }
-
-  return s;
 }
 
-static std::string GenerateSection(const BinarySection &section,
-                                   const uint8_t *binary,
-                                   const OutputConfig &output_config) {
-  std::string s;
-  s += "\n";
-  s += ToString(section.type);
-  if (!section.name.empty()) { s += " (" + section.name + ")"; }
-  s += ":";
-  for (const BinaryRegion &region : section.regions) {
-    s += GenerateRegion(region, section, binary, output_config);
+static void GenerateSection(std::ostream &os, const BinarySection &section,
+                            const uint8_t *binary,
+                            const OutputConfig &output_config) {
+  os << std::endl;
+  os << ToString(section.type);
+  if (!section.name.empty()) { os << " (" + section.name + ")"; }
+  os << ":";
+
+  // As a space saving measure, skip generating every vector element, just put
+  // the first and last elements in the output. Skip the whole thing if there
+  // are only three or fewer elements, as it doesn't save space.
+  if (section.type == BinarySectionType::Vector &&
+      !output_config.include_vector_contents && section.regions.size() > 4) {
+    // Generate the length region which should be first.
+    GenerateRegion(os, section.regions[0], section, binary, output_config);
+
+    // Generate the first element.
+    GenerateRegion(os, section.regions[1], section, binary, output_config);
+
+    // Indicate that we omitted elements.
+    os << std::endl
+       << "  <" << section.regions.size() - 3 << " regions omitted>";
+
+    // Generate the last element.
+    GenerateRegion(os, section.regions.back(), section, binary, output_config);
+    os << std::endl;
+    return;
   }
-  return s;
+
+  for (const BinaryRegion &region : section.regions) {
+    GenerateRegion(os, region, section, binary, output_config);
+  }
+  os << std::endl;
 }
 }  // namespace
 
@@ -385,6 +397,7 @@ bool AnnotatedBinaryTextGenerator::Generate(
     const std::string &filename, const std::string &schema_filename) {
   OutputConfig output_config;
   output_config.max_bytes_per_line = options_.max_bytes_per_line;
+  output_config.include_vector_contents = options_.include_vector_contents;
 
   // Given the length of the binary, we can calculate the maximum number of
   // characters to display in the offset hex: (i.e. 2 would lead to 0XFF being
@@ -414,19 +427,6 @@ bool AnnotatedBinaryTextGenerator::Generate(
     }
   }
 
-  // Generate each of the binary sections
-  std::string s;
-
-  s += "// Annotated Flatbuffer Binary\n";
-  s += "//\n";
-  s += "// Schema file: " + schema_filename + "\n";
-  s += "// Binary file: " + filename + "\n";
-
-  for (const auto &section : annotations_) {
-    s += GenerateSection(section.second, binary_, output_config);
-    s += "\n";
-  }
-
   // Modify the output filename.
   std::string output_filename = StripExtension(filename);
   output_filename += options_.output_postfix;
@@ -434,7 +434,20 @@ bool AnnotatedBinaryTextGenerator::Generate(
       "." + (options_.output_extension.empty() ? GetExtension(filename)
                                                : options_.output_extension);
 
-  return SaveFile(output_filename.c_str(), s, false);
+  std::ofstream ofs(output_filename.c_str());
+
+  ofs << "// Annotated Flatbuffer Binary" << std::endl;
+  ofs << "//" << std::endl;
+  ofs << "// Schema file: " << schema_filename << std::endl;
+  ofs << "// Binary file: " << filename << std::endl;
+
+  // Generate each of the binary sections
+  for (const auto &section : annotations_) {
+    GenerateSection(ofs, section.second, binary_, output_config);
+  }
+
+  ofs.close();
+  return true;
 }
 
 }  // namespace flatbuffers

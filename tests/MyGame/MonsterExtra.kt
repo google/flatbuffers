@@ -2,11 +2,24 @@
 
 package MyGame
 
-import java.nio.*
+import com.google.flatbuffers.BaseVector
+import com.google.flatbuffers.BooleanVector
+import com.google.flatbuffers.ByteVector
+import com.google.flatbuffers.Constants
+import com.google.flatbuffers.DoubleVector
+import com.google.flatbuffers.FlatBufferBuilder
+import com.google.flatbuffers.FloatVector
+import com.google.flatbuffers.LongVector
+import com.google.flatbuffers.StringVector
+import com.google.flatbuffers.Struct
+import com.google.flatbuffers.Table
+import com.google.flatbuffers.UnionVector
+import java.nio.ByteBuffer
+import java.nio.ByteOrder
 import kotlin.math.sign
-import com.google.flatbuffers.*
 
 @Suppress("unused")
+@kotlin.ExperimentalUnsignedTypes
 class MonsterExtra : Table() {
 
     fun __init(_i: Int, _bb: ByteBuffer)  {
@@ -175,7 +188,7 @@ class MonsterExtra : Table() {
         }
     }
     companion object {
-        fun validateVersion() = Constants.FLATBUFFERS_22_12_06()
+        fun validateVersion() = Constants.FLATBUFFERS_23_3_3()
         fun getRootAsMonsterExtra(_bb: ByteBuffer): MonsterExtra = getRootAsMonsterExtra(_bb, MonsterExtra())
         fun getRootAsMonsterExtra(_bb: ByteBuffer, obj: MonsterExtra): MonsterExtra {
             _bb.order(ByteOrder.LITTLE_ENDIAN)

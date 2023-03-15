@@ -458,7 +458,8 @@ export class Builder {
     requiredField(table: Offset, field: number): void {
       const table_start = this.bb.capacity() - table;
       const vtable_start = table_start - this.bb.readInt32(table_start);
-      const ok = this.bb.readInt16(vtable_start + field) != 0;
+      const ok = field < this.bb.readInt16(vtable_start) &&
+                 this.bb.readInt16(vtable_start + field) != 0;
   
       // If this fails, the caller will show what field needs to be set.
       if (!ok) {

@@ -6,7 +6,7 @@ import FlatBuffers
 
 public struct Property: NativeStruct, Verifiable, FlatbuffersInitializable, NativeObject {
 
-  static func validateVersion() { FlatBuffersVersion_22_12_06() }
+  static func validateVersion() { FlatBuffersVersion_23_3_3() }
 
   private var _property: Bool
 
@@ -49,7 +49,7 @@ extension Property: Encodable {
 
 public struct Property_Mutable: FlatBufferObject {
 
-  static func validateVersion() { FlatBuffersVersion_22_12_06() }
+  static func validateVersion() { FlatBuffersVersion_23_3_3() }
   public var __buffer: ByteBuffer! { return _accessor.bb }
   private var _accessor: Struct
 
@@ -74,11 +74,9 @@ public struct Property_Mutable: FlatBufferObject {
 
 public struct TestMutatingBool: FlatBufferObject, Verifiable, ObjectAPIPacker {
 
-  static func validateVersion() { FlatBuffersVersion_22_12_06() }
+  static func validateVersion() { FlatBuffersVersion_23_3_3() }
   public var __buffer: ByteBuffer! { return _accessor.bb }
   private var _accessor: Table
-
-  public static func getRootAsTestMutatingBool(bb: ByteBuffer) -> TestMutatingBool { return TestMutatingBool(Table(bb: bb, position: Int32(bb.read(def: UOffset.self, position: bb.reader)) + Int32(bb.reader))) }
 
   private init(_ t: Table) { _accessor = t }
   public init(_ bb: ByteBuffer, o: Int32) { _accessor = Table(bb: bb, position: o) }
