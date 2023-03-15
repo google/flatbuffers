@@ -10,6 +10,9 @@ table RootTable {
 
   // A big 64-bit sized vector, that could be very far away (64-bit address).
   big_vector:[ubyte] (vector64);
+
+  // A normal 32-bit sized string that is no far away (32-bit address).
+  near_string:string;
 }
 
 root_type RootTable; 

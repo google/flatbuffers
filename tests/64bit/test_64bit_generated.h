@@ -28,6 +28,7 @@ struct RootTableT : public ::flatbuffers::NativeTable {
   int32_t a = 0;
   std::string far_string{};
   std::vector<uint8_t> big_vector{};
+  std::string near_string{};
 };
 
 struct RootTable FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
@@ -40,7 +41,8 @@ struct RootTable FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
     VT_FAR_VECTOR = 4,
     VT_A = 6,
     VT_FAR_STRING = 8,
-    VT_BIG_VECTOR = 10
+    VT_BIG_VECTOR = 10,
+    VT_NEAR_STRING = 12
   };
   const ::flatbuffers::Vector<uint8_t> *far_vector() const {
     return GetPointer64<const ::flatbuffers::Vector<uint8_t> *>(VT_FAR_VECTOR);
@@ -66,6 +68,12 @@ struct RootTable FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   ::flatbuffers::Vector64<uint8_t> *mutable_big_vector() {
     return GetPointer64<::flatbuffers::Vector64<uint8_t> *>(VT_BIG_VECTOR);
   }
+  const ::flatbuffers::String *near_string() const {
+    return GetPointer<const ::flatbuffers::String *>(VT_NEAR_STRING);
+  }
+  ::flatbuffers::String *mutable_near_string() {
+    return GetPointer<::flatbuffers::String *>(VT_NEAR_STRING);
+  }
   bool Verify(::flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffset64(verifier, VT_FAR_VECTOR) &&
@@ -74,6 +82,8 @@ struct RootTable FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
            VerifyOffset64(verifier, VT_FAR_STRING) &&
            verifier.VerifyString(far_string()) &&
            VerifyOffset64(verifier, VT_BIG_VECTOR) &&
+           VerifyOffset(verifier, VT_NEAR_STRING) &&
+           verifier.VerifyString(near_string()) &&
            verifier.EndTable();
   }
   RootTableT *UnPack(const ::flatbuffers::resolver_function_t *_resolver = nullptr) const;
@@ -97,6 +107,9 @@ struct RootTableBuilder {
   void add_big_vector(::flatbuffers::Offset64<::flatbuffers::Vector64<uint8_t>> big_vector) {
     fbb_.AddOffset(RootTable::VT_BIG_VECTOR, big_vector);
   }
+  void add_near_string(::flatbuffers::Offset<::flatbuffers::String> near_string) {
+    fbb_.AddOffset(RootTable::VT_NEAR_STRING, near_string);
+  }
   explicit RootTableBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
@@ -113,9 +126,11 @@ inline ::flatbuffers::Offset<RootTable> CreateRootTable(
     ::flatbuffers::Offset64<::flatbuffers::Vector<uint8_t>> far_vector = 0,
     int32_t a = 0,
     ::flatbuffers::Offset64<::flatbuffers::String> far_string = 0,
-    ::flatbuffers::Offset64<::flatbuffers::Vector64<uint8_t>> big_vector = 0) {
+    ::flatbuffers::Offset64<::flatbuffers::Vector64<uint8_t>> big_vector = 0,
+    ::flatbuffers::Offset<::flatbuffers::String> near_string = 0) {
   RootTableBuilder builder_(_fbb);
   builder_.add_big_vector(big_vector);
+  builder_.add_near_string(near_string);
   builder_.add_far_string(far_string);
   builder_.add_a(a);
   builder_.add_far_vector(far_vector);
@@ -127,16 +142,19 @@ inline ::flatbuffers::Offset<RootTable> CreateRootTableDirect(
     const std::vector<uint8_t> *far_vector = nullptr,
     int32_t a = 0,
     const char *far_string = nullptr,
-    const std::vector<uint8_t> *big_vector = nullptr) {
+    const std::vector<uint8_t> *big_vector = nullptr,
+    const char *near_string = nullptr) {
   auto far_vector__ = far_vector ? _fbb.CreateVector64<::flatbuffers::Vector>(*far_vector) : 0;
   auto far_string__ = far_string ? _fbb.CreateString<::flatbuffers::Offset64>(far_string) : 0;
   auto big_vector__ = big_vector ? _fbb.CreateVector64(*big_vector) : 0;
+  auto near_string__ = near_string ? _fbb.CreateString(near_string) : 0;
   return CreateRootTable(
       _fbb,
       far_vector__,
       a,
       far_string__,
-      big_vector__);
+      big_vector__,
+      near_string__);
 }
 
 ::flatbuffers::Offset<RootTable> CreateRootTable(::flatbuffers::FlatBufferBuilder &_fbb, const RootTableT *_o, const ::flatbuffers::rehasher_function_t *_rehasher = nullptr);
@@ -147,7 +165,8 @@ inline bool operator==(const RootTableT &lhs, const RootTableT &rhs) {
       (lhs.far_vector == rhs.far_vector) &&
       (lhs.a == rhs.a) &&
       (lhs.far_string == rhs.far_string) &&
-      (lhs.big_vector == rhs.big_vector);
+      (lhs.big_vector == rhs.big_vector) &&
+      (lhs.near_string == rhs.near_string);
 }
 
 inline bool operator!=(const RootTableT &lhs, const RootTableT &rhs) {
@@ -168,6 +187,7 @@ inline void RootTable::UnPackTo(RootTableT *_o, const ::flatbuffers::resolver_fu
   { auto _e = a(); _o->a = _e; }
   { auto _e = far_string(); if (_e) _o->far_string = _e->str(); }
   { auto _e = big_vector(); if (_e) { _o->big_vector.resize(_e->size()); std::copy(_e->begin(), _e->end(), _o->big_vector.begin()); } }
+  { auto _e = near_string(); if (_e) _o->near_string = _e->str(); }
 }
 
 inline ::flatbuffers::Offset<RootTable> RootTable::Pack(::flatbuffers::FlatBufferBuilder &_fbb, const RootTableT* _o, const ::flatbuffers::rehasher_function_t *_rehasher) {
@@ -182,12 +202,14 @@ inline ::flatbuffers::Offset<RootTable> CreateRootTable(::flatbuffers::FlatBuffe
   auto _a = _o->a;
   auto _far_string = _o->far_string.empty() ? 0 : _fbb.CreateString<::flatbuffers::Offset64>(_o->far_string);
   auto _big_vector = _o->big_vector.size() ? _fbb.CreateVector64(_o->big_vector) : 0;
+  auto _near_string = _o->near_string.empty() ? 0 : _fbb.CreateString(_o->near_string);
   return CreateRootTable(
       _fbb,
       _far_vector,
       _a,
       _far_string,
-      _big_vector);
+      _big_vector,
+      _near_string);
 }
 
 inline const ::flatbuffers::TypeTable *RootTableTypeTable() {
@@ -195,16 +217,18 @@ inline const ::flatbuffers::TypeTable *RootTableTypeTable() {
     { ::flatbuffers::ET_UCHAR, 1, -1 },
     { ::flatbuffers::ET_INT, 0, -1 },
     { ::flatbuffers::ET_STRING, 0, -1 },
-    { ::flatbuffers::ET_UCHAR, 1, -1 }
+    { ::flatbuffers::ET_UCHAR, 1, -1 },
+    { ::flatbuffers::ET_STRING, 0, -1 }
   };
   static const char * const names[] = {
     "far_vector",
     "a",
     "far_string",
-    "big_vector"
+    "big_vector",
+    "near_string"
   };
   static const ::flatbuffers::TypeTable tt = {
-    ::flatbuffers::ST_TABLE, 4, type_codes, nullptr, nullptr, nullptr, names
+    ::flatbuffers::ST_TABLE, 5, type_codes, nullptr, nullptr, nullptr, names
   };
   return &tt;
 }

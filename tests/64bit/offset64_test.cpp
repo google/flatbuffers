@@ -19,31 +19,43 @@ namespace tests {
 void Offset64Test() {
   flatbuffers::FlatBufferBuilder fbb;
 
-  size_t far_vector_size = 1 << 20;
-  size_t big_vector_size = 2 << 20;
+  size_t far_vector_size = 1LL << 20;
+  size_t big_vector_size = 2LL << 20;
 
   {
+    // First create the vectors that will be copied to the buffer.
     std::vector<uint8_t> far_data;
     far_data.resize(far_vector_size);
 
+    std::vector<uint8_t> big_data;
+    big_data.resize(big_vector_size);
+
+    // Then serialize all the fields that have 64-bit offsets, as these must be
+    // serialized before any 32-bit fields are added to the buffer.
     const Offset64<Vector<uint8_t>> far_vector_offset =
         fbb.CreateVector64<Vector>(far_data);
 
     const Offset64<String> far_string_offset =
         fbb.CreateString<Offset64>("some far string");
 
-    std::vector<uint8_t> big_data;
-    big_data.resize(big_vector_size);
-
     const Offset64<Vector64<uint8_t>> big_vector_offset =
         fbb.CreateVector64(big_data);
 
-    RootTableBuilder root_table_builder(fbb);
-    root_table_builder.add_far_vector(far_vector_offset);
-    root_table_builder.add_far_string(far_string_offset);
-    root_table_builder.add_big_vector(big_vector_offset);
-    const Offset<RootTable> root_table_offset = root_table_builder.Finish();
+    // Now that we are done with the 64-bit fields, we can create and add the
+    // normal fields.
+    const Offset<String> near_string_offset =
+        fbb.CreateString("some near string");
 
+    // Finish by building the root table by passing in all the offsets.
+    const Offset<RootTable> root_table_offset =
+        CreateRootTable(fbb, far_vector_offset, 0, far_string_offset,
+                        big_vector_offset, near_string_offset);
+
+    // TODO(derekbailey): the CreateRootTableDirect won't work correctly since
+    // it builds the offsets in definition order, not 64-bit fields first. This
+    // should be fixed, or possibly not emitted if it will play oddly.
+
+    // Finish the buffer.
     fbb.Finish(root_table_offset);
 
     std::cout << "Buffer Size: 0x" << std::hex << fbb.GetSize() << std::endl;
@@ -73,6 +85,8 @@ void Offset64Test() {
 
     // Expect the big vector to be properly sized.
     TEST_EQ(root_table->big_vector()->size(), big_vector_size);
+
+    TEST_EQ_STR(root_table->near_string()->c_str(), "some near string");
   }
 }
 
