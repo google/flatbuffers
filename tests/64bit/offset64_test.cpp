@@ -19,8 +19,9 @@ namespace tests {
 void Offset64Test() {
   flatbuffers::FlatBufferBuilder fbb;
 
-  size_t far_vector_size = 1LL << 20;
-  size_t big_vector_size = 2LL << 20;
+  size_t far_vector_size = 1LL << 2;
+  size_t big_vector_size =
+      2LL << 2;  // boost to a large number to make a big buffer
 
   {
     // First create the vectors that will be copied to the buffer.
