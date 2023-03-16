@@ -15,6 +15,7 @@
  */
 
 using System;
+using Google.FlatBuffers;
 
 namespace Google.FlatBuffers.Test
 {
@@ -204,7 +205,7 @@ namespace Google.FlatBuffers.Test
                 1, // value 0
             },
                 builder.DataBuffer.ToFullArray());
-            Google.FlatBuffers.Verifier verifier = new Google.FlatBuffers.Verifier(builder.DataBuffer);
+            var verifier = new Verifier(builder.DataBuffer);
             var offset = 8;
             // table must be ok
             Assert.IsTrue(verifier.VerifyTableStart((uint)offset));
@@ -235,7 +236,7 @@ namespace Google.FlatBuffers.Test
                 4, 0, 0, 0, // int32 offset for start of vtable
             },
                 builder.DataBuffer.ToFullArray());
-            Google.FlatBuffers.Verifier verifier = new Google.FlatBuffers.Verifier(builder.DataBuffer);
+            var verifier = new Verifier(builder.DataBuffer);
             var offset = 4;
             // table must be ok
             Assert.IsTrue(verifier.VerifyTableStart((uint)offset));
@@ -245,7 +246,7 @@ namespace Google.FlatBuffers.Test
             Assert.IsFalse(verifier.VerifyField((uint)offset, 4, 1, 1, true));
         }
 
-    [FlatBuffersTestMethod]
+        [FlatBuffersTestMethod]
         public void TestVTableWithOneInt16()
         {
             var builder = new FlatBufferBuilder(1);
@@ -264,7 +265,7 @@ namespace Google.FlatBuffers.Test
                 0x9A, 0x78, //value 0
             },
                 builder.DataBuffer.ToFullArray());
-            Google.FlatBuffers.Verifier verifier = new Google.FlatBuffers.Verifier(builder.DataBuffer);
+            var verifier = new Verifier(builder.DataBuffer);
             offset += builder.DataBuffer.Position;
             // table must be ok
             Assert.IsTrue(verifier.VerifyTableStart((uint)offset));
@@ -278,7 +279,7 @@ namespace Google.FlatBuffers.Test
             Assert.IsFalse(verifier.VerifyField((uint)offset, 4, 2, 4, true));
         }
 
-    [FlatBuffersTestMethod]
+        [FlatBuffersTestMethod]
         public void TestVTableWithTwoInt16()
         {
             var builder = new FlatBufferBuilder(1);
@@ -298,7 +299,7 @@ namespace Google.FlatBuffers.Test
                 0x56, 0x34, // value 0
             },
                 builder.DataBuffer.ToFullArray());
-            Google.FlatBuffers.Verifier verifier = new Google.FlatBuffers.Verifier(builder.DataBuffer);
+            var verifier = new Verifier(builder.DataBuffer);
             offset += builder.DataBuffer.Position;
             // table must be ok
             Assert.IsTrue(verifier.VerifyTableStart((uint)offset));
@@ -312,7 +313,7 @@ namespace Google.FlatBuffers.Test
             Assert.IsFalse(verifier.VerifyField((uint)offset, 4, 2, 4, true));
         }
 
-    [FlatBuffersTestMethod]
+        [FlatBuffersTestMethod]
         public void TestVTableWithInt16AndBool()
         {
             var builder = new FlatBufferBuilder(1);
@@ -332,7 +333,7 @@ namespace Google.FlatBuffers.Test
                 0x56, 0x34, // value 0
             },
                 builder.DataBuffer.ToFullArray());
-            Google.FlatBuffers.Verifier verifier = new Google.FlatBuffers.Verifier(builder.DataBuffer);
+            var verifier = new Verifier(builder.DataBuffer);
             offset += builder.DataBuffer.Position;
             // table must be ok
             Assert.IsTrue(verifier.VerifyTableStart((uint)offset));
@@ -346,7 +347,7 @@ namespace Google.FlatBuffers.Test
             Assert.IsFalse(verifier.VerifyField((uint)offset, 4, 2, 4, true));
         }
 
-    [FlatBuffersTestMethod]
+        [FlatBuffersTestMethod]
         public void TestVTableWithEmptyVector()
         {
             var builder = new FlatBufferBuilder(1);
@@ -371,7 +372,7 @@ namespace Google.FlatBuffers.Test
                 0, 0, 0, 0,
             },
                 builder.DataBuffer.ToFullArray());
-            Google.FlatBuffers.Verifier verifier = new Google.FlatBuffers.Verifier(builder.DataBuffer);
+            var verifier = new Verifier(builder.DataBuffer);
             uint checkOffset = 20;
             // table must be ok
             Assert.IsTrue(verifier.VerifyTableStart(checkOffset));
@@ -379,7 +380,7 @@ namespace Google.FlatBuffers.Test
             Assert.IsTrue(verifier.VerifyVectorOfData(checkOffset, 4, 1, true));
         }
 
-    [FlatBuffersTestMethod]
+        [FlatBuffersTestMethod]
         public void TestVTableWithEmptyVectorAndScalars()
         {
             var builder = new FlatBufferBuilder(1);
@@ -404,7 +405,7 @@ namespace Google.FlatBuffers.Test
                 0, 0, 0, 0, // length of vector (not in sctruc)
             },
                 builder.DataBuffer.ToFullArray());
-            Google.FlatBuffers.Verifier verifier = new Google.FlatBuffers.Verifier(builder.DataBuffer);
+            var verifier = new Verifier(builder.DataBuffer);
             uint checkOffset = 16;
             // table must be ok
             Assert.IsTrue(verifier.VerifyTableStart(checkOffset));
@@ -415,7 +416,7 @@ namespace Google.FlatBuffers.Test
        }
 
 
-    [FlatBuffersTestMethod]
+        [FlatBuffersTestMethod]
         public void TestVTableWith_1xInt16_and_Vector_or_2xInt16()
         {
             var builder = new FlatBufferBuilder(1);
@@ -443,7 +444,7 @@ namespace Google.FlatBuffers.Test
                 0x34, 0x12,       // vector value 1
             },
                 builder.DataBuffer.ToFullArray());
-            Google.FlatBuffers.Verifier verifier = new Google.FlatBuffers.Verifier(builder.DataBuffer);
+            var verifier = new Verifier(builder.DataBuffer);
             uint checkOffset = 12;
             // table must be ok
             Assert.IsTrue(verifier.VerifyTableStart(checkOffset));
@@ -455,7 +456,7 @@ namespace Google.FlatBuffers.Test
             Assert.IsTrue(verifier.VerifyField(checkOffset, 4, 2, 2, true));
         }
 
-    [FlatBuffersTestMethod]
+        [FlatBuffersTestMethod]
         public void TestVTableWithAStruct_of_int8_int16_int32()
         {
             var builder = new FlatBufferBuilder(1);
@@ -483,7 +484,7 @@ namespace Google.FlatBuffers.Test
                 0x00, 0x00, 0x00, 55, // struct value 0
             },
                 builder.DataBuffer.ToFullArray());
-            Google.FlatBuffers.Verifier verifier = new Google.FlatBuffers.Verifier(builder.DataBuffer);
+            var verifier = new Verifier(builder.DataBuffer);
             uint checkOffset = 16;
             // table must be ok
             Assert.IsTrue(verifier.VerifyTableStart(checkOffset));
@@ -494,7 +495,7 @@ namespace Google.FlatBuffers.Test
         }
 
 
-    [FlatBuffersTestMethod]
+        [FlatBuffersTestMethod]
         public void TestVTableWithAVectorOf_2xStructOf_2xInt8()
         {
             var builder = new FlatBufferBuilder(1);
@@ -526,7 +527,7 @@ namespace Google.FlatBuffers.Test
                 33, // vector 0, 0
             },
                 builder.DataBuffer.ToFullArray());
-            Google.FlatBuffers.Verifier verifier = new Google.FlatBuffers.Verifier(builder.DataBuffer);
+            var verifier = new Verifier(builder.DataBuffer);
             uint checkOffset = 16;
             // table must be ok
             Assert.IsTrue(verifier.VerifyTableStart(checkOffset));
@@ -566,7 +567,7 @@ namespace Google.FlatBuffers.Test
             Buffer.BlockCopy(padded, 12, unpadded, 0, unpadded.Length);
             Assert.ArrayEqual(unpadded, builder.DataBuffer.ToSizedArray());
 
-            Google.FlatBuffers.Verifier verifier = new Google.FlatBuffers.Verifier(builder.DataBuffer);
+            var verifier = new Verifier(builder.DataBuffer);
             uint checkOffset = builder.DataBuffer.GetUint(builder.DataBuffer.Position) + (uint)builder.DataBuffer.Position;
             // table must be ok
             Assert.IsTrue(verifier.VerifyTableStart(checkOffset));
@@ -610,7 +611,7 @@ namespace Google.FlatBuffers.Test
             };
             Assert.ArrayEqual(padded, builder.DataBuffer.ToFullArray());
 
-            Google.FlatBuffers.Verifier verifier = new Google.FlatBuffers.Verifier(builder.DataBuffer);
+            var verifier = new Verifier(builder.DataBuffer);
             uint checkOffset = builder.DataBuffer.GetUint(builder.DataBuffer.Position) + (uint)builder.DataBuffer.Position;
             // table must be ok
             Assert.IsTrue(verifier.VerifyTableStart(checkOffset));
@@ -657,7 +658,7 @@ namespace Google.FlatBuffers.Test
             };
             Assert.ArrayEqual(padded, builder.DataBuffer.ToFullArray());
 
-            Google.FlatBuffers.Verifier verifier = new Google.FlatBuffers.Verifier(builder.DataBuffer);
+            var verifier = new Verifier(builder.DataBuffer);
             uint checkOffset = builder.DataBuffer.GetUint(builder.DataBuffer.Position) + (uint)builder.DataBuffer.Position;
             // table must be ok
             Assert.IsTrue(verifier.VerifyTableStart(checkOffset));
@@ -716,7 +717,7 @@ namespace Google.FlatBuffers.Test
                 builder.DataBuffer.ToFullArray());
 
             // check obj1
-            Google.FlatBuffers.Verifier verifier = new Google.FlatBuffers.Verifier(builder.DataBuffer);
+            var verifier = new Verifier(builder.DataBuffer);
             uint checkOffset = builder.DataBuffer.GetUint(builder.DataBuffer.Position) + (uint)builder.DataBuffer.Position;
             // table must be ok
             Assert.IsTrue(verifier.VerifyTableStart(checkOffset));
@@ -790,7 +791,7 @@ namespace Google.FlatBuffers.Test
             Buffer.BlockCopy(padded, 28, unpadded, 0, unpadded.Length);
             Assert.ArrayEqual(unpadded, builder.DataBuffer.ToSizedArray());
 
-            Google.FlatBuffers.Verifier verifier = new Google.FlatBuffers.Verifier(builder.DataBuffer);
+            var verifier = new Verifier(builder.DataBuffer);
             uint checkOffset = builder.DataBuffer.GetUint(builder.DataBuffer.Position) + (uint)builder.DataBuffer.Position;
             // table must be ok
             Assert.IsTrue(verifier.VerifyTableStart(checkOffset));
@@ -869,7 +870,7 @@ namespace Google.FlatBuffers.Test
 
             },
                 builder.DataBuffer.ToFullArray());
-            Google.FlatBuffers.Verifier verifier = new Google.FlatBuffers.Verifier(builder.DataBuffer);
+            var verifier = new Verifier(builder.DataBuffer);
             uint checkOffset = 8;
             // table must be ok
             Assert.IsTrue(verifier.VerifyTableStart(checkOffset));

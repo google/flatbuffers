@@ -62,16 +62,13 @@ public class SecondTableInAT
 }
 
 
-// Verification function for 'SecondTableInA' table.
 static public class SecondTableInAVerify
 {
   static public bool Verify(Google.FlatBuffers.Verifier verifier, uint tablePos)
   {
-    bool result = true;
-    result = result && verifier.VerifyTableStart(tablePos);
-    result = result && verifier.VerifyTable(tablePos, 4 /*ReferToC*/, NamespaceC.TableInCVerify.Verify, false);
-    result = result && verifier.VerifyTableEnd(tablePos);
-    return result;
+    return verifier.VerifyTableStart(tablePos)
+      && verifier.VerifyTable(tablePos, 4 /*ReferToC*/, NamespaceC.TableInCVerify.Verify, false)
+      && verifier.VerifyTableEnd(tablePos);
   }
 }
 

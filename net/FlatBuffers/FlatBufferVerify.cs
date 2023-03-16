@@ -14,8 +14,7 @@
  * limitations under the License.
  */
 using System;
-using System.Reflection;
-using System.Collections.Generic;
+using System.Reflection;using System.Collections.Generic;
 using System.IO;
 
 namespace Google.FlatBuffers
@@ -36,18 +35,18 @@ namespace Google.FlatBuffers
 
     public Options()
     {
-      this.max_depth = DEFAULT_MAX_DEPTH;
-      this.max_tables = DEFAULT_MAX_TABLES;
-      this.string_end_check = true;
-      this.alignment_check = true;
+      max_depth = DEFAULT_MAX_DEPTH;
+      max_tables = DEFAULT_MAX_TABLES;
+      string_end_check = true;
+      alignment_check = true;
     }
 
     public Options(int maxDepth, int maxTables, bool stringEndCheck, bool alignmentCheck)
     {
-      this.max_depth = maxDepth;
-      this.max_tables = maxTables;
-      this.string_end_check = stringEndCheck;
-      this.alignment_check = alignmentCheck;
+      max_depth = maxDepth;
+      max_tables = maxTables;
+      string_end_check = stringEndCheck;
+      alignment_check = alignmentCheck;
     }
     /// <summary> Maximum depth of nested tables allowed in a valid flatbuffer. </summary>
     public int maxDepth
@@ -107,13 +106,13 @@ namespace Google.FlatBuffers
     public Verifier()
     {
       // Verifier buffer
-      this.verifier_buffer = null;
+      verifier_buffer = null;
       // Verifier settings 
-      this.verifier_options = null;
+      verifier_options = null;
       // Depth counter
-      this.depth_cnt = 0;
+      depth_cnt = 0;
       // Tables counter
-      this.num_tables_cnt = 0;
+      num_tables_cnt = 0;
     }
 
     /// <summary> The Constructor of the Verifier object with input parameters: ByteBuffer and/or Options </summary>
@@ -121,10 +120,10 @@ namespace Google.FlatBuffers
     /// <param name="options"> Options object with settings for the coniguration the Verifier </param>
     public Verifier(ByteBuffer buf, Options options = null)
     {
-      this.verifier_buffer = buf;
-      this.verifier_options = options ?? new Options();
-      this.depth_cnt = 0;
-      this.num_tables_cnt = 0;
+      verifier_buffer = buf;
+      verifier_options = options ?? new Options();
+      depth_cnt = 0;
+      num_tables_cnt = 0;
     }
 
     /// <summary> Bytes Buffer for Verify</summary>
@@ -157,28 +156,28 @@ namespace Google.FlatBuffers
     /// <param name="value"> Specify Value of the maximum depth of the structure</param>
     public Verifier SetMaxDepth(int value)
     {
-      this.verifier_options.maxDepth = value;
+      verifier_options.maxDepth = value;
       return this;
     }
     /// <summary> Specify maximum number of tables in structure </summary>
     /// <param name="value"> Specify Value of the maximum number of the tables in the structure</param>
     public Verifier SetMaxTables(int value)
     {
-      this.verifier_options.maxTables = value;
+      verifier_options.maxTables = value;
       return this;
     }
     /// <summary> Enable/disable buffer content alignment check </summary>
     /// <param name="value"> Value of the State for buffer content alignment check (Enable = true) </param>
     public Verifier SetAlignmentCheck(bool value)
     {
-      this.verifier_options.alignmentCheck = value;
+      verifier_options.alignmentCheck = value;
       return this;
     }
     /// <summary> Enable/disable checking of string termination '0' character </summary>
     /// <param name="value"> Value of the option for string termination '0' character check (Enable = true)</param>
     public Verifier SetStringCheck(bool value)
     {
-      this.verifier_options.stringEndCheck = value;
+      verifier_options.stringEndCheck = value;
       return this;
     }
 
@@ -189,21 +188,19 @@ namespace Google.FlatBuffers
     /// <returns> Return True when the Byte Buffer Identifier is present</returns>
     private bool BufferHasIdentifier(ByteBuffer buf, uint startPos, string identifier)
     {
-      bool result = true;
-
       if (identifier.Length != FILE_IDENTIFIER_LENGTH)
       {
         throw new ArgumentException("FlatBuffers: file identifier must be length" + Convert.ToString(FILE_IDENTIFIER_LENGTH));
       }
       for (int i = 0; i < FILE_IDENTIFIER_LENGTH; i++)
       {
-        if ((sbyte)identifier[i] != this.verifier_buffer.GetSbyte(Convert.ToInt32(SIZE_S_OFFSET + i + startPos)))
+        if ((sbyte)identifier[i] != verifier_buffer.GetSbyte(Convert.ToInt32(SIZE_S_OFFSET + i + startPos)))
         {
           return false;
         }
       }
 
-      return result;
+      return true;
     }
 
     /// <summary> Get UOffsetT from buffer at given position - it must be verified before read </summary>
@@ -243,12 +240,12 @@ namespace Google.FlatBuffers
       try
       {
         // First, get vtable offset
-        short vtable = Convert.ToInt16(pos - this.ReadSOffsetT(this.verifier_buffer, pos));
+        short vtable = Convert.ToInt16(pos - ReadSOffsetT(verifier_buffer, pos));
         // Check that offset points to vtable area (is smaller than vtable size)
-        if (vtableOffset < this.ReadVOffsetT(this.verifier_buffer, vtable))
+        if (vtableOffset < ReadVOffsetT(verifier_buffer, vtable))
         {
           // Now, we can read offset value - TODO check this value against size of table data
-          VOffset = this.ReadVOffsetT(this.verifier_buffer, vtable + vtableOffset);
+          VOffset = ReadVOffsetT(verifier_buffer, vtable + vtableOffset);
         }
         else
         {
@@ -273,7 +270,7 @@ namespace Google.FlatBuffers
     {
       uint UOffset = 0;
       // First, get vtable relative offset
-      short relPos = this.GetVRelOffset(Convert.ToInt32(tablePos), vtableOffset);
+      short relPos = GetVRelOffset(Convert.ToInt32(tablePos), vtableOffset);
       if (relPos != 0)
       {
         // Calculate offset based on table postion
@@ -290,14 +287,14 @@ namespace Google.FlatBuffers
     /// <returns> If complexity is too high function returns false as verification error </returns>
     private bool CheckComplexity()
     {
-      return ((this.depth <= this.options.maxDepth) && (this.numTables <= this.options.maxTables));
+      return ((depth <= options.maxDepth) && (numTables <= options.maxTables));
     }
 
     /// <summary> Check alignment of element. </summary>
     /// <returns> Return True when alignment of the element is correct</returns>
     private bool CheckAlignment(uint element, ulong align)
     {
-      return (((element & (align - 1)) == 0) || (!this.options.alignmentCheck));
+      return (((element & (align - 1)) == 0) || (!options.alignmentCheck));
     }
 
     /// <summary> Check if element is valid in buffer area. </summary> 
@@ -306,7 +303,7 @@ namespace Google.FlatBuffers
     /// <returns> Return True when Element is correct </returns>
     private bool CheckElement(uint pos, ulong elementSize)
     {
-      return ((elementSize < Convert.ToUInt64(this.verifier_buffer.Length)) && (pos <= (Convert.ToUInt32(this.verifier_buffer.Length) - elementSize)));
+      return ((elementSize < Convert.ToUInt64(verifier_buffer.Length)) && (pos <= (Convert.ToUInt32(verifier_buffer.Length) - elementSize)));
     }
     /// <summary> Check if element is a valid scalar. </summary>
     /// <param name="pos"> Value defines the offset to scalar</param>
@@ -314,12 +311,12 @@ namespace Google.FlatBuffers
     /// <returns> Return True when Scalar Element is correct </returns>
     private bool CheckScalar(uint pos, ulong elementSize)
     {
-      return ((this.CheckAlignment(pos, elementSize)) && (this.CheckElement(pos, elementSize)));
+      return ((CheckAlignment(pos, elementSize)) && (CheckElement(pos, elementSize)));
     }
     /// <summary> Check offset. It is a scalar with size of UOffsetT. </summary>
     private bool CheckOffset(uint offset)
     {
-      return (this.CheckScalar(offset, SIZE_U_OFFSET));
+      return (CheckScalar(offset, SIZE_U_OFFSET));
     }
 
     private checkElementStruct CheckVectorOrString(uint pos, ulong elementSize)
@@ -332,14 +329,14 @@ namespace Google.FlatBuffers
 
       uint vectorPos = pos;
       // Check we can read the vector/string size field (it is of uoffset size)
-      if (!this.CheckScalar(vectorPos, SIZE_U_OFFSET))
+      if (!CheckScalar(vectorPos, SIZE_U_OFFSET))
       {
         // result.elementValid = false; result.elementOffset = 0;
         return result;
       }
       // Check the whole array. If this is a string, the byte past the array
       // must be 0.
-      uint size = this.ReadUOffsetT(this.verifier_buffer, vectorPos);
+      uint size = ReadUOffsetT(verifier_buffer, vectorPos);
       ulong max_elements = (FLATBUFFERS_MAX_BUFFER_SIZE / elementSize);
       if (size >= max_elements)
       {
@@ -350,7 +347,7 @@ namespace Google.FlatBuffers
 
       uint bytes_size = SIZE_U_OFFSET + (Convert.ToUInt32(elementSize) * size);
       uint buffer_end_pos = vectorPos + bytes_size;
-      result.elementValid = this.CheckElement(vectorPos, bytes_size);
+      result.elementValid = CheckElement(vectorPos, bytes_size);
       result.elementOffset = buffer_end_pos;
       return (result);
     }
@@ -358,16 +355,11 @@ namespace Google.FlatBuffers
     /// <summary>Verify a string at given position.</summary>
     private bool CheckString(uint pos)
     {
-      var result = new checkElementStruct
+      var result = CheckVectorOrString(pos, SIZE_BYTE);
+      if (options.stringEndCheck)
       {
-        elementValid = false,
-        elementOffset = 0
-      };
-      result = this.CheckVectorOrString(pos, SIZE_BYTE);
-      if (this.options.stringEndCheck)
-      {
-        result.elementValid = result.elementValid && this.CheckScalar(result.elementOffset, 1); // Must have terminator
-        result.elementValid = result.elementValid && (this.verifier_buffer.GetSbyte(Convert.ToInt32(result.elementOffset)) == 0); // Terminating byte must be 0.
+        result.elementValid = result.elementValid && CheckScalar(result.elementOffset, 1); // Must have terminator
+        result.elementValid = result.elementValid && (verifier_buffer.GetSbyte(Convert.ToInt32(result.elementOffset)) == 0); // Terminating byte must be 0.
       }
       return result.elementValid;
     }
@@ -375,13 +367,7 @@ namespace Google.FlatBuffers
     /// <summary> Verify the vector of elements of given size </summary>
     private bool CheckVector(uint pos, ulong elementSize)
     {
-      var result = new checkElementStruct
-      {
-        elementValid = false,
-        elementOffset = 0
-      };
-
-      result = this.CheckVectorOrString(pos, elementSize);
+      var result = CheckVectorOrString(pos, elementSize);
       return result.elementValid;
     }
     /// <summary> Verify table content using structure dependent generated function </summary>
@@ -390,7 +376,7 @@ namespace Google.FlatBuffers
       return verifyAction(this, tablePos);
     }
 
-    /// <summary> String check wrapper funnction to be used in vector of strings check </summary>
+    /// <summary> String check wrapper function to be used in vector of strings check </summary>
     private bool CheckStringFunc(Verifier verifier, uint pos)
     {
       return verifier.CheckString(pos);
@@ -399,80 +385,73 @@ namespace Google.FlatBuffers
     /// <summary> Check vector of objects. Use generated object verification function </summary>
     private bool CheckVectorOfObjects(uint pos, VerifyTableAction verifyAction)
     {
-      bool result = this.CheckVector(pos, SIZE_U_OFFSET);
-      if (result)
+      if (!CheckVector(pos, SIZE_U_OFFSET))
       {
-        uint size = this.ReadUOffsetT(this.verifier_buffer, pos);
-        // Vector data starts just after vector size/length
-        uint vecStart = pos + SIZE_U_OFFSET;
-        uint vecOff = 0;
-        // Iterate offsets and verify referenced objects
-        for (uint i = 0; (i < size && result); i++)
+        return false;
+      }
+      uint size = ReadUOffsetT(verifier_buffer, pos);
+      // Vector data starts just after vector size/length
+      uint vecStart = pos + SIZE_U_OFFSET;
+      uint vecOff = 0;
+      // Iterate offsets and verify referenced objects
+      for (uint i = 0; i < size; i++)
+      {
+        vecOff = vecStart + (i * SIZE_U_OFFSET);
+        if (!CheckIndirectOffset(vecOff))
         {
-          vecOff = vecStart + (i * SIZE_U_OFFSET);
-          result = this.CheckIndirectOffset(vecOff);
-          if (result)
-          {
-            uint objOffset = this.GetIndirectOffset(vecOff);
-            result = verifyAction(this, objOffset);
-          }
+          return false;
+        }
+        uint objOffset = GetIndirectOffset(vecOff);
+        if (!verifyAction(this, objOffset))
+        {
+          return false;
         }
       }
-      return result;
+      return true;
     }
 
     /// <summary> Check if the offset referenced by offsetPos is the valid offset pointing to buffer</summary>
     //  offsetPos - offset to offset data
     private bool CheckIndirectOffset(uint pos)
     {
-      bool result = false;
-
       // Check the input offset is valid
-      result = this.CheckScalar(pos, SIZE_U_OFFSET);
-      if (result)
+      if(!CheckScalar(pos, SIZE_U_OFFSET))
       {
-        // Get indirect offset
-        uint offset = this.ReadUOffsetT(this.verifier_buffer, pos);
-        // May not point to itself neither wrap around  (buffers are max 2GB)
-        if ((offset != 0) && (offset < FLATBUFFERS_MAX_BUFFER_SIZE))
-        {
-          // Must be inside the buffer
-          result = this.CheckElement(pos + offset, 1);
-        }
-        else
-        {
-          result = false;
-        }
+        return false;
       }
-      return result;
+      // Get indirect offset
+      uint offset = ReadUOffsetT(verifier_buffer, pos);
+      // May not point to itself neither wrap around  (buffers are max 2GB)
+      if ((offset == 0) || (offset >= FLATBUFFERS_MAX_BUFFER_SIZE))
+      {
+        return false;
+      }
+      // Must be inside the buffer
+      return CheckElement(pos + offset, 1);
     }
 
     /// <summary> Check flatbuffer content using generated object verification function </summary>
     private bool CheckBufferFromStart(string identifier, uint startPos, VerifyTableAction verifyAction)
     {
-      bool result = false;
-
-      if ((identifier == null) || (identifier.Length == 0) || ((this.verifier_buffer.Length >= (SIZE_U_OFFSET + FILE_IDENTIFIER_LENGTH)) && (this.BufferHasIdentifier(this.verifier_buffer, startPos, identifier))))
+      if ((identifier != null) &&
+          (identifier.Length == 0) &&
+          ((verifier_buffer.Length < (SIZE_U_OFFSET + FILE_IDENTIFIER_LENGTH)) || (!BufferHasIdentifier(verifier_buffer, startPos, identifier))))
       {
-        result = this.CheckIndirectOffset(startPos);
-        if (result)
-        {
-          uint offset = this.GetIndirectOffset(startPos);
-          result = this.CheckTable(offset, verifyAction); //  && GetComputedSize()
-        }
+        return false;
       }
-      else
+      if(!CheckIndirectOffset(startPos))
       {
-        result = false;
+        return false;
       }
-      return result;
+      uint offset = GetIndirectOffset(startPos);
+      return CheckTable(offset, verifyAction); //  && GetComputedSize()
     }
 
     /// <summary> Get indirect offset. It is an offset referenced by offset Pos </summary>
     private uint GetIndirectOffset(uint pos)
     {
       // Get indirect offset referenced by offsetPos
-      uint offset = pos + this.ReadUOffsetT(this.verifier_buffer, pos);
+      uint offset = pos + ReadUOffsetT(verifier_buffer, pos);
       return offset;
     }
 
@@ -483,15 +462,15 @@ namespace Google.FlatBuffers
     public bool VerifyTableStart(uint tablePos)
     {
       // Starting new table verification increases complexity of structure
-      this.depth_cnt++;
-      this.num_tables_cnt++;
+      depth_cnt++;
+      num_tables_cnt++;
 
-      if (!this.CheckScalar(tablePos, SIZE_S_OFFSET))
+      if (!CheckScalar(tablePos, SIZE_S_OFFSET))
       {
         return false;
       }
-      uint vtable = (uint)(tablePos - this.ReadSOffsetT(this.verifier_buffer, Convert.ToInt32(tablePos)));
-      return ((this.CheckComplexity()) && (this.CheckScalar(vtable, SIZE_V_OFFSET)) && (this.CheckAlignment(Convert.ToUInt32(this.ReadVOffsetT(this.verifier_buffer, Convert.ToInt32(vtable))), SIZE_V_OFFSET)) && (this.CheckElement(vtable, Convert.ToUInt64(this.ReadVOffsetT(this.verifier_buffer, Convert.ToInt32(vtable))))));
+      uint vtable = (uint)(tablePos - ReadSOffsetT(verifier_buffer, Convert.ToInt32(tablePos)));
+      return ((CheckComplexity()) && (CheckScalar(vtable, SIZE_V_OFFSET)) && (CheckAlignment(Convert.ToUInt32(ReadVOffsetT(verifier_buffer, Convert.ToInt32(vtable))), SIZE_V_OFFSET)) && (CheckElement(vtable, Convert.ToUInt64(ReadVOffsetT(verifier_buffer, Convert.ToInt32(vtable))))));
     }
 
     /// <summary> Verify end of table. In practice, this function does not check buffer but handles
@@ -499,7 +478,7 @@ namespace Google.FlatBuffers
     // (this method is used internally by generated verification functions)
     public bool VerifyTableEnd(uint tablePos)
     {
-      this.depth--;
+      depth--;
       return true;
     }
 
@@ -513,18 +492,12 @@ namespace Google.FlatBuffers
     // (this method is used internally by generated verification functions)
     public bool VerifyField(uint tablePos, short offsetId, ulong elementSize, ulong align, bool required)
     {
-      bool result;
-
-      uint offset = this.GetVOffset(tablePos, offsetId);
+      uint offset = GetVOffset(tablePos, offsetId);
       if (offset != 0)
       {
-        result = ((this.CheckAlignment(offset, align)) && (this.CheckElement(offset, elementSize)));
+        return ((CheckAlignment(offset, align)) && (CheckElement(offset, elementSize)));
       }
-      else
-      {
-        result = !required; // it is OK if field is not required
-      }
-      return result;
+      return !required; // it is OK if field is not required
     }
 
     /// <summary> Verify string </summary> 
@@ -535,23 +508,17 @@ namespace Google.FlatBuffers
     // (this method is used internally by generated verification functions)
     public bool VerifyString(uint tablePos, short vOffset, bool required)
     {
-      bool result;
-
-      uint offset = this.GetVOffset(tablePos, vOffset);
-      if (offset != 0)
+      var offset = GetVOffset(tablePos, vOffset);
+      if (offset == 0)
       {
-        result = this.CheckIndirectOffset(offset);
-        if (result)
-        {
-          uint strOffset = this.GetIndirectOffset(offset);
-          result = this.CheckString(strOffset);
-        }
+        return !required;
       }
-      else
+      if (!CheckIndirectOffset(offset))
       {
-        result = !required;
+        return false;
       }
-      return result;
+      var strOffset = GetIndirectOffset(offset);
+      return CheckString(strOffset);
     }
 
     /// <summary> Verify vector of fixed size structures and scalars </summary>
@@ -563,24 +530,17 @@ namespace Google.FlatBuffers
     // (this method is used internally by generated verification functions)
     public bool VerifyVectorOfData(uint tablePos, short vOffset, ulong elementSize, bool required)
     {
-      bool result = false;
-
-      uint offset = this.GetVOffset(tablePos, vOffset);
-      if (offset != 0)
+      var offset = GetVOffset(tablePos, vOffset);
+      if (offset == 0)
       {
-        result = this.CheckIndirectOffset(offset);
-        if (result)
-        {
-          uint vecOffset = this.GetIndirectOffset(offset);
-          result = this.CheckVector(vecOffset, elementSize);
-        }
+        return !required;
       }
-      else
+      if (!CheckIndirectOffset(offset))
       {
-        result = !required;
+        return false;
       }
-
-      return result;
+      var vecOffset = GetIndirectOffset(offset);
+      return  CheckVector(vecOffset, elementSize);
     }
 
     /// <summary> Verify array of strings </summary>
@@ -591,23 +551,17 @@ namespace Google.FlatBuffers
     // (this method is used internally by generated verification functions)
     public bool VerifyVectorOfStrings(uint tablePos, short offsetId, bool required)
     {
-      bool result;
-
-      uint offset = this.GetVOffset(tablePos, offsetId);
-      if (offset != 0)
+      var offset = GetVOffset(tablePos, offsetId);
+      if (offset == 0)
       {
-        result = this.CheckIndirectOffset(offset);
-        if (result)
-        {
-          uint vecOffset = this.GetIndirectOffset(offset);
-          result = this.CheckVectorOfObjects(vecOffset, this.CheckStringFunc); 
-        }
+        return !required;
       }
-      else
+      if (!CheckIndirectOffset(offset))
       {
-        result = !required;
+        return false;
       }
-      return result;
+      var vecOffset = GetIndirectOffset(offset);
+      return CheckVectorOfObjects(vecOffset, CheckStringFunc); 
     }
 
     /// <summary> Verify vector of tables (objects). Tables are verified using generated verifyObjFunc </summary>
@@ -619,23 +573,17 @@ namespace Google.FlatBuffers
     // (this method is used internally by generated verification functions)
     public bool VerifyVectorOfTables(uint tablePos, short offsetId, VerifyTableAction verifyAction, bool required)
     {
-      bool result = false;
-
-      uint offset = this.GetVOffset(tablePos, offsetId);
-      if (result)
+      var offset = GetVOffset(tablePos, offsetId);
+      if (offset == 0)
       {
-        result = this.CheckIndirectOffset(offset);
-        if (result)
-        {
-          uint vecOffset = this.GetIndirectOffset(offset);
-          result = this.CheckVectorOfObjects(vecOffset, verifyAction);
-        }
+        return !required;
       }
-      else
+      if (!CheckIndirectOffset(offset))
       {
-        result = !required;
+        return false;
       }
-      return result;
+      var vecOffset = GetIndirectOffset(offset);
+      return CheckVectorOfObjects(vecOffset, verifyAction);
     }
 
     /// <summary> Verify table object using generated verification function. </summary>
@@ -647,24 +595,17 @@ namespace Google.FlatBuffers
     // (this method is used internally by generated verification functions)
     public bool VerifyTable(uint tablePos, short offsetId, VerifyTableAction verifyAction, bool required)
     {
-      bool result = false;
-
-      uint offset = this.GetVOffset(tablePos, offsetId);
-      if (offset != 0)
+      var offset = GetVOffset(tablePos, offsetId);
+      if (offset == 0)
       {
-        result = this.CheckIndirectOffset(offset);
-        if (result)
-        {
-          uint tabOffset = this.GetIndirectOffset(offset);
-          result = this.CheckTable(tabOffset, verifyAction);
-        }
+        return !required;
       }
-      else
+      if (!CheckIndirectOffset(offset))
       {
-        result = !required;
+        return false;
       }
-
-    return result;
+      var tabOffset = GetIndirectOffset(offset);
+      return CheckTable(tabOffset, verifyAction);
     }
 
     /// <summary> Verify nested buffer object. When verifyObjFunc is provided, it is used to verify object structure. </summary>
@@ -675,36 +616,31 @@ namespace Google.FlatBuffers
     // (this method is used internally by generated verification functions)
     public bool VerifyNestedBuffer(uint tablePos, short offsetId, VerifyTableAction verifyAction, bool required)
     {
-      bool result = false;
-
-      uint offset = this.GetVOffset(tablePos, offsetId);
-      if (offset != 0)
+      var offset = GetVOffset(tablePos, offsetId);
+      if (offset == 0)
       {
-        result = this.CheckIndirectOffset(offset);
-        if (result)
+        return !required;
+      }
+      uint vecOffset = GetIndirectOffset(offset);
+      if (!CheckVector(vecOffset, SIZE_BYTE))
+      {
+        return false;
+      }
+      if (verifyAction != null)
+      {
+        var vecLength = ReadUOffsetT(verifier_buffer, vecOffset);
+        // Buffer begins after vector length
+        var vecStart = vecOffset + SIZE_U_OFFSET;
+        // Create and Copy nested buffer bytes from part of Verify Buffer
+        var nestedByteBuffer = new ByteBuffer(verifier_buffer.ToArray(Convert.ToInt32(vecStart), Convert.ToInt32(vecLength)));
+        var nestedVerifyier = new Verifier(nestedByteBuffer, options);
+        // There is no internal identifier - use empty one
+        if (!nestedVerifyier.CheckBufferFromStart("", 0, verifyAction))
         {
-          uint vecOffset = this.GetIndirectOffset(offset);
-          result = this.CheckVector(vecOffset, SIZE_BYTE);
-          // When verifyAction method is not equal null
-          if (result && (verifyAction != null))
-          {
-            uint vecLength = this.ReadUOffsetT(this.verifier_buffer, vecOffset);
-            // Buffer begins after vector length
-            uint vecStart = vecOffset + SIZE_U_OFFSET;
-            // Create and Copy nested buffer bytes from part of Verify Buffer
-            ByteBuffer nestedByteBuffer = new ByteBuffer(this.verifier_buffer.ToArray(Convert.ToInt32(vecStart), Convert.ToInt32(vecLength)));
-            Verifier nestedVerifyier = new Verifier(nestedByteBuffer, this.options); 
-            // There is no iternal identifier - use empty one
-            result = nestedVerifyier.CheckBufferFromStart("", 0, verifyAction);
-          }
+          return false;
         }
       }
-      else
-      {
-        result = !required;
-      }
-
-      return result;
+      return true;
     }
 
     /// <summary> Verifiy static/inlined data area at absolute offset </summary>
@@ -715,7 +651,7 @@ namespace Google.FlatBuffers
     // (this method is used internally by generated verification functions)
     public bool VerifyUnionData(uint pos, ulong elementSize, ulong align)
     {
-      bool result = ((this.CheckAlignment(pos, align)) && (this.CheckElement(pos, elementSize)));
+      bool result = ((CheckAlignment(pos, align)) && (CheckElement(pos, elementSize)));
       return result;
     }
 
@@ -725,7 +661,7 @@ namespace Google.FlatBuffers
     // (this method is used internally by generated verification functions)
     public bool VerifyUnionString(uint pos)
     {
-      bool result = this.CheckString(pos);
+      bool result = CheckString(pos);
       return result;
     }
 
@@ -738,41 +674,32 @@ namespace Google.FlatBuffers
     // (this method is used internally by generated verification functions)
     public bool VerifyUnion(uint tablePos, short typeIdVOffset, short valueVOffset, VerifyUnionAction verifyAction, bool required)
     {
-      bool result = false;
-
       // Check the union type index
-      uint offset = this.GetVOffset(tablePos, typeIdVOffset);
-      if (offset != 0)
+      var offset = GetVOffset(tablePos, typeIdVOffset);
+      if (offset == 0)
       {
-        result = ((this.CheckAlignment(offset, SIZE_BYTE)) && (this.CheckElement(offset, SIZE_BYTE)));
-        if (result)
-        {
-          // Take type id
-          byte typeId = this.verifier_buffer.Get(Convert.ToInt32(offset));
-          // Check union data
-          offset = this.GetVOffset(tablePos, valueVOffset);
-          if (offset != 0)
-          {
-            result = this.CheckIndirectOffset(offset);
-            if (result)
-            {
-              // Take value offset and validate union structure
-              uint unionOffset = this.GetIndirectOffset(offset);
-              result = verifyAction(this, typeId, unionOffset);
-            }
-          }
-          else
-          {
-            // When value data is not present, allow union verification function to deal with illegal offset
-            result = verifyAction(this, typeId, Convert.ToUInt32(this.verifier_buffer.Length));
-          }
-        }
+        return !required;
       }
-      else
+      if (!((CheckAlignment(offset, SIZE_BYTE)) && (CheckElement(offset, SIZE_BYTE))))
       {
-        result = !required;
+        return false;
       }
-      return result;
+      // Check union data
+      offset = GetVOffset(tablePos, valueVOffset);
+      // Take type id
+      var typeId = verifier_buffer.Get(Convert.ToInt32(offset));
+      if (offset == 0)
+      {
+        // When value data is not present, allow union verification function to deal with illegal offset
+        return verifyAction(this, typeId, Convert.ToUInt32(verifier_buffer.Length));
+      }
+      if (!CheckIndirectOffset(offset))
+      {
+        return false;
+      }
+      // Take value offset and validate union structure
+      uint unionOffset = GetIndirectOffset(offset);
+      return verifyAction(this, typeId, unionOffset);
     }
 
     /// <summary> Verify vector of unions (objects). Unions are verified using generated verifyObjFunc </summary>
@@ -785,65 +712,60 @@ namespace Google.FlatBuffers
     // (this method is used internally by generated verification functions)
     public bool VerifyVectorOfUnion(uint tablePos, short typeOffsetId, short offsetId, VerifyUnionAction verifyAction, bool required)
     {
-      bool result = true;
-      uint offset;
       // type id offset must be valid
-      offset = this.GetVOffset(tablePos, typeOffsetId);
-      if (offset != 0)
+      var offset = GetVOffset(tablePos, typeOffsetId);
+      if (offset == 0)
       {
-        result = this.CheckIndirectOffset(offset);
-        if (result)
+        return !required;
+      }
+      if (!CheckIndirectOffset(offset))
+      {
+        return false;
+      }
+      // Get type id table absolute offset
+      var typeIdVectorOffset = GetIndirectOffset(offset);
+      // values offset must be valid
+      offset = GetVOffset(tablePos, offsetId);
+      if (!CheckIndirectOffset(offset))
+      {
+        return false;
+      }
+      var valueVectorOffset = GetIndirectOffset(offset);
+      // validate referenced vectors
+      if(!CheckVector(typeIdVectorOffset, SIZE_BYTE) ||
+         !CheckVector(valueVectorOffset, SIZE_U_OFFSET))
+      {
+        return false;
+      }
+      // Both vectors should have the same length
+      var typeIdVectorLength = ReadUOffsetT(verifier_buffer, typeIdVectorOffset);
+      var valueVectorLength = ReadUOffsetT(verifier_buffer, valueVectorOffset);
+      if (typeIdVectorLength != valueVectorLength)
+      {
+        return false;
+      }
+      // Verify each union from vectors
+      var typeIdStart = typeIdVectorOffset + SIZE_U_OFFSET;
+      var valueStart = valueVectorOffset + SIZE_U_OFFSET;
+      for (uint i = 0; i < typeIdVectorLength; i++)
+      {
+        // Get type id
+        byte typeId = verifier_buffer.Get(Convert.ToInt32(typeIdStart + i * SIZE_U_OFFSET));
+        // get offset to vector item
+        uint off = valueStart + i * SIZE_U_OFFSET;
+        // Check the vector item has a proper offset
+        if (!CheckIndirectOffset(off))
         {
-          // Get type id table absolute offset
-          uint typeIdVectorOffset = this.GetIndirectOffset(offset);
-          // values offset must be valid
-          offset = this.GetVOffset(tablePos, offsetId);
-          result = this.CheckIndirectOffset(offset);
-          if (result)
-          {
-            uint valueVectorOffset = this.GetIndirectOffset(offset);
-            // validate referenced vectors
-            result = (result && this.CheckVector(typeIdVectorOffset, SIZE_BYTE));
-            result = (result && this.CheckVector(valueVectorOffset, SIZE_U_OFFSET));
-            if (result)
-            {
-              // Both vectors should have the same length
-              uint typeIdVectorLength = this.ReadUOffsetT(this.verifier_buffer, typeIdVectorOffset);
-              uint valueVectorLength = this.ReadUOffsetT(this.verifier_buffer, valueVectorOffset);
-              if (typeIdVectorLength == valueVectorLength)
-              {
-                // Verify each union from vectors
-                uint typeIdStart = typeIdVectorOffset + SIZE_U_OFFSET;
-                uint valueStart = valueVectorOffset + SIZE_U_OFFSET;
-                for (uint i = 0; result && (i < typeIdVectorLength); i++)
-                {
-                  // Get type id
-                  byte typeId = this.verifier_buffer.Get(Convert.ToInt32(typeIdStart + i * SIZE_U_OFFSET));
-                  // get offset to vector item
-                  uint off = valueStart + i * SIZE_U_OFFSET;
-                  // Check the vector item has a proper offset
-                  result = this.CheckIndirectOffset(off);
-                  if (result)
-                  {
-                    uint valueOffset = this.GetIndirectOffset(off);
-                    // Verify object
-                    result = verifyAction(this, typeId, valueOffset);
-                  }
-                }
-              }
-              else
-              {
-                result = false;
-              }
-            }
-          }
+          return false;
+        }
+        uint valueOffset = GetIndirectOffset(off);
+        // Verify object
+        if (!verifyAction(this, typeId, valueOffset))
+        {
+          return false;
         }
       }
-      else
-      {
-        result = !required;
-      }
-      return result;
+      return true;
     }
 
     // Method verifies flatbuffer data using generated Table verification function.
@@ -875,30 +797,25 @@ namespace Google.FlatBuffers
     /// </example>
     public bool VerifyBuffer(string identifier, bool sizePrefixed, VerifyTableAction verifyAction)
     {
-      uint start;
-      bool result = false;
-        
       // Reset counters - starting verification from beginning
-      this.depth = 0;
-      this.numTables = 0;
-        
+      depth = 0;
+      numTables = 0;
+
+      var start = (uint)(verifier_buffer.Position);
       if (sizePrefixed) 
       {
         start = (uint)(verifier_buffer.Position) + SIZE_PREFIX_LENGTH;
-        result = this.CheckScalar((uint)(verifier_buffer.Position), SIZE_PREFIX_LENGTH);
-        if (result) 
+        if(!CheckScalar((uint)(verifier_buffer.Position), SIZE_PREFIX_LENGTH))
         {
-          uint size = this.ReadUOffsetT(this.verifier_buffer, (uint)(verifier_buffer.Position));
-          result = (size == ((uint)(this.verifier_buffer.Length) - start));
+          return false;
+        }
+        uint size = ReadUOffsetT(verifier_buffer, (uint)(verifier_buffer.Position));
+        if (size != ((uint)(verifier_buffer.Length) - start))
+        {
+          return false;
         }
       } 
-      else 
-      {
-        result = true;
-        start = (uint)(verifier_buffer.Position);
-      }
-      result = result && this.CheckBufferFromStart(identifier, start, verifyAction);
-      return result;
+      return CheckBufferFromStart(identifier, start, verifyAction);
     }
   }
 

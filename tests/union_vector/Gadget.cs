@@ -40,7 +40,7 @@ static public class GadgetVerify
 {
   static public bool Verify(Google.FlatBuffers.Verifier verifier, byte typeId, uint tablePos)
   {
-    bool result = false;
+    bool result = true;
     switch((Gadget)typeId)
     {
       case Gadget.FallingTub:

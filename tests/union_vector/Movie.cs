@@ -213,17 +213,14 @@ public class MovieT
 }
 
 
-// Verification function for 'Movie' table.
 static public class MovieVerify
 {
   static public bool Verify(Google.FlatBuffers.Verifier verifier, uint tablePos)
   {
-    bool result = true;
-    result = result && verifier.VerifyTableStart(tablePos);
-    result = result && verifier.VerifyField(tablePos, 4 /*MainCharacterType*/, 1 /*Character*/, 1, false);
-    result = result && verifier.VerifyUnion(tablePos, 4, 6 /*MainCharacter*/, CharacterVerify.Verify, false);
-    result = result && verifier.VerifyVectorOfData(tablePos, 8 /*CharactersType*/, 1 /*Character*/, false);
-    result = result && verifier.VerifyTableEnd(tablePos);
-    return result;
+    return verifier.VerifyTableStart(tablePos)
+      && verifier.VerifyField(tablePos, 4 /*MainCharacterType*/, 1 /*Character*/, 1, false)
+      && verifier.VerifyUnion(tablePos, 4, 6 /*MainCharacter*/, CharacterVerify.Verify, false)
+      && verifier.VerifyVectorOfData(tablePos, 8 /*CharactersType*/, 1 /*Character*/, false)
+      && verifier.VerifyTableEnd(tablePos);
   }
 }

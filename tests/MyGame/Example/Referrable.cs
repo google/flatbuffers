@@ -92,16 +92,13 @@ public class ReferrableT
 }
 
 
-// Verification function for 'Referrable' table.
 static public class ReferrableVerify
 {
   static public bool Verify(Google.FlatBuffers.Verifier verifier, uint tablePos)
   {
-    bool result = true;
-    result = result && verifier.VerifyTableStart(tablePos);
-    result = result && verifier.VerifyField(tablePos, 4 /*Id*/, 8 /*ulong*/, 8, false);
-    result = result && verifier.VerifyTableEnd(tablePos);
-    return result;
+    return verifier.VerifyTableStart(tablePos)
+      && verifier.VerifyField(tablePos, 4 /*Id*/, 8 /*ulong*/, 8, false)
+      && verifier.VerifyTableEnd(tablePos);
   }
 }
 

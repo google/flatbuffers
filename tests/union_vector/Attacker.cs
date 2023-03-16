@@ -59,15 +59,12 @@ public class AttackerT
 }
 
 
-// Verification function for 'Attacker' table.
 static public class AttackerVerify
 {
   static public bool Verify(Google.FlatBuffers.Verifier verifier, uint tablePos)
   {
-    bool result = true;
-    result = result && verifier.VerifyTableStart(tablePos);
-    result = result && verifier.VerifyField(tablePos, 4 /*SwordAttackDamage*/, 4 /*int*/, 4, false);
-    result = result && verifier.VerifyTableEnd(tablePos);
-    return result;
+    return verifier.VerifyTableStart(tablePos)
+      && verifier.VerifyField(tablePos, 4 /*SwordAttackDamage*/, 4 /*int*/, 4, false)
+      && verifier.VerifyTableEnd(tablePos);
   }
 }

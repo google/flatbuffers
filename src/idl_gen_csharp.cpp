@@ -628,21 +628,18 @@ class CSharpGenerator : public BaseGenerator {
   void GetStartOfTableVerifier(const StructDef &struct_def, std::string *code_ptr) {
     std::string &code = *code_ptr;
     code += "\n";
-    code += "// Verification function for '" + struct_def.name + "' table.\n";
     code += "static public class " + struct_def.name + "Verify\n";
     code += "{\n";
     code += "  static public bool Verify";
     code += "(Google.FlatBuffers.Verifier verifier, uint tablePos)\n";
     code += "  {\n";
-    code += "    bool result = true;\n";
-    code += "    result = result && verifier.VerifyTableStart(tablePos);\n";
+    code += "    return verifier.VerifyTableStart(tablePos)\n";
   }
 
   // Get the value of a table verification function end
   void GetEndOfTableVerifier(std::string *code_ptr) {
     std::string &code = *code_ptr;
-    code += "    result = result && verifier.VerifyTableEnd(tablePos);\n";
-    code += "    return result;\n";
+    code += "      && verifier.VerifyTableEnd(tablePos);\n";
     code += "  }\n";
     code += "}\n";
   }
@@ -670,8 +667,8 @@ class CSharpGenerator : public BaseGenerator {
     if (IsScalar(field.value.type.base_type) || IsStruct(field.value.type)) {
       code_.SetValue("ALIGN", NumToString(InlineAlignment(field.value.type)));
       code_ +=
-        "{{PRE}}    result = result && verifier.VerifyField(tablePos, "
-        "{{OFFSET}} /*{{NAME}}*/, {{INLINESIZE}} /*{{TYPE}}*/, {{ALIGN}}, {{REQUIRED_FLAG}});";
+        "{{PRE}}      && verifier.VerifyField(tablePos, "
+        "{{OFFSET}} /*{{NAME}}*/, {{INLINESIZE}} /*{{TYPE}}*/, {{ALIGN}}, {{REQUIRED_FLAG}})";
     } else {
       // TODO - probably code below should go to this 'else' - code_ += "{{PRE}}VerifyOffset{{REQUIRED}}(verifier, {{OFFSET}})\\";
     }
@@ -685,43 +682,43 @@ class CSharpGenerator : public BaseGenerator {
         // Caution: This construction assumes, that UNION type id element has been created just before union data and
         // its offset precedes union. Such assumption is common in flatbuffer implementation
         code_.SetValue("TYPE_ID_OFFSET", NumToString(field.value.offset - sizeof(voffset_t)));
-        code_ += "{{PRE}}    result = result && verifier.VerifyUnion(tablePos, {{TYPE_ID_OFFSET}}, "
-          "{{OFFSET}} /*{{NAME}}*/, {{ENUM_NAME}}Verify.Verify, {{REQUIRED_FLAG}});";
+        code_ += "{{PRE}}      && verifier.VerifyUnion(tablePos, {{TYPE_ID_OFFSET}}, "
+          "{{OFFSET}} /*{{NAME}}*/, {{ENUM_NAME}}Verify.Verify, {{REQUIRED_FLAG}})";
         break;
       }
       case BASE_TYPE_STRUCT: {
         if (!field.value.type.struct_def->fixed) {
-          code_ += "{{PRE}}    result = result && verifier.VerifyTable(tablePos, "
-            "{{OFFSET}} /*{{NAME}}*/, {{TYPE}}Verify.Verify, {{REQUIRED_FLAG}});";
+          code_ += "{{PRE}}      && verifier.VerifyTable(tablePos, "
+            "{{OFFSET}} /*{{NAME}}*/, {{TYPE}}Verify.Verify, {{REQUIRED_FLAG}})";
         }
         break;
       }
       case BASE_TYPE_STRING: {
-        code_ += "{{PRE}}    result = result && verifier.VerifyString(tablePos, "
-          "{{OFFSET}} /*{{NAME}}*/, {{REQUIRED_FLAG}});";
+        code_ += "{{PRE}}      && verifier.VerifyString(tablePos, "
+          "{{OFFSET}} /*{{NAME}}*/, {{REQUIRED_FLAG}})";
         break;
       }
       case BASE_TYPE_VECTOR: {
 
         switch (field.value.type.element) {
           case BASE_TYPE_STRING: {
-            code_ += "{{PRE}}    result = result && verifier.VerifyVectorOfStrings(tablePos, "
-              "{{OFFSET}} /*{{NAME}}*/, {{REQUIRED_FLAG}});";
+            code_ += "{{PRE}}      && verifier.VerifyVectorOfStrings(tablePos, "
+              "{{OFFSET}} /*{{NAME}}*/, {{REQUIRED_FLAG}})";
             break;
           }
           case BASE_TYPE_STRUCT: {
             if (!field.value.type.struct_def->fixed) {
-              code_ += "{{PRE}}    result = result && verifier.VerifyVectorOfTables(tablePos, "
-                "{{OFFSET}} /*{{NAME}}*/, {{TYPE}}Verify.Verify, {{REQUIRED_FLAG}});";
+              code_ += "{{PRE}}      && verifier.VerifyVectorOfTables(tablePos, "
+                "{{OFFSET}} /*{{NAME}}*/, {{TYPE}}Verify.Verify, {{REQUIRED_FLAG}})";
             } else {
               code_.SetValue(
                   "VECTOR_ELEM_INLINESIZE",
                   NumToString(InlineSize(field.value.type.VectorType())));
               code_ +=
-                  "{{PRE}}    result = result && "
+                  "{{PRE}}      && "
                   "verifier.VerifyVectorOfData(tablePos, "
                   "{{OFFSET}} /*{{NAME}}*/, {{VECTOR_ELEM_INLINESIZE}} "
-                  "/*{{TYPE}}*/, {{REQUIRED_FLAG}});";         
+                  "/*{{TYPE}}*/, {{REQUIRED_FLAG}})";
             }
             break;
           }
@@ -736,16 +733,16 @@ class CSharpGenerator : public BaseGenerator {
             if (!nfn.empty()) {
               code_.SetValue("CPP_NAME", nfn);
               // FIXME: file_identifier.
-              code_ +="{{PRE}}    result = result && verifier.VerifyNestedBuffer(tablePos, "
-                "{{OFFSET}} /*{{NAME}}*/, {{CPP_NAME}}Verify.Verify, {{REQUIRED_FLAG}});";
+              code_ += "{{PRE}}      && verifier.VerifyNestedBuffer(tablePos, "
+                "{{OFFSET}} /*{{NAME}}*/, {{CPP_NAME}}Verify.Verify, {{REQUIRED_FLAG}})";
             } else if (field.flexbuffer) {
-              code_ += "{{PRE}}    result = result && verifier.VerifyNestedBuffer(tablePos, "
-                "{{OFFSET}} /*{{NAME}}*/, null, {{REQUIRED_FLAG}});";
+              code_ += "{{PRE}}      && verifier.VerifyNestedBuffer(tablePos, "
+                "{{OFFSET}} /*{{NAME}}*/, null, {{REQUIRED_FLAG}})";
             } else {
               code_.SetValue("VECTOR_ELEM_INLINESIZE", NumToString(InlineSize(field.value.type.VectorType())));
               code_ +=
-                "{{PRE}}    result = result && verifier.VerifyVectorOfData(tablePos, "
-                "{{OFFSET}} /*{{NAME}}*/, {{VECTOR_ELEM_INLINESIZE}} /*{{TYPE}}*/, {{REQUIRED_FLAG}});";
+                "{{PRE}}      && verifier.VerifyVectorOfData(tablePos, "
+                "{{OFFSET}} /*{{NAME}}*/, {{VECTOR_ELEM_INLINESIZE}} /*{{TYPE}}*/, {{REQUIRED_FLAG}})";
             }
             break;
         }
@@ -1612,7 +1609,7 @@ class CSharpGenerator : public BaseGenerator {
           "  static public bool Verify(Google.FlatBuffers.Verifier verifier, "
           "byte typeId, uint tablePos)\n";
       ret += "  {\n";
-      ret += "    bool result = false;\n";
+      ret += "    bool result = true;\n";
 
       const auto union_enum_loop = [&]() {
         ret += "    switch((" + enum_def.name + ")typeId)\n";

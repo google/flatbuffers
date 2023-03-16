@@ -116,20 +116,17 @@ public class TableInFirstNST
 }
 
 
-// Verification function for 'TableInFirstNS' table.
 static public class TableInFirstNSVerify
 {
   static public bool Verify(Google.FlatBuffers.Verifier verifier, uint tablePos)
   {
-    bool result = true;
-    result = result && verifier.VerifyTableStart(tablePos);
-    result = result && verifier.VerifyTable(tablePos, 4 /*FooTable*/, NamespaceA.NamespaceB.TableInNestedNSVerify.Verify, false);
-    result = result && verifier.VerifyField(tablePos, 6 /*FooEnum*/, 1 /*NamespaceA.NamespaceB.EnumInNestedNS*/, 1, false);
-    result = result && verifier.VerifyField(tablePos, 8 /*FooUnionType*/, 1 /*NamespaceA.NamespaceB.UnionInNestedNS*/, 1, false);
-    result = result && verifier.VerifyUnion(tablePos, 8, 10 /*FooUnion*/, NamespaceA.NamespaceB.UnionInNestedNSVerify.Verify, false);
-    result = result && verifier.VerifyField(tablePos, 12 /*FooStruct*/, 8 /*NamespaceA.NamespaceB.StructInNestedNS*/, 4, false);
-    result = result && verifier.VerifyTableEnd(tablePos);
-    return result;
+    return verifier.VerifyTableStart(tablePos)
+      && verifier.VerifyTable(tablePos, 4 /*FooTable*/, NamespaceA.NamespaceB.TableInNestedNSVerify.Verify, false)
+      && verifier.VerifyField(tablePos, 6 /*FooEnum*/, 1 /*NamespaceA.NamespaceB.EnumInNestedNS*/, 1, false)
+      && verifier.VerifyField(tablePos, 8 /*FooUnionType*/, 1 /*NamespaceA.NamespaceB.UnionInNestedNS*/, 1, false)
+      && verifier.VerifyUnion(tablePos, 8, 10 /*FooUnion*/, NamespaceA.NamespaceB.UnionInNestedNSVerify.Verify, false)
+      && verifier.VerifyField(tablePos, 12 /*FooStruct*/, 8 /*NamespaceA.NamespaceB.StructInNestedNS*/, 4, false)
+      && verifier.VerifyTableEnd(tablePos);
   }
 }
 

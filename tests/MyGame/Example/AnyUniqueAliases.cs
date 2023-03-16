@@ -47,7 +47,7 @@ static public class AnyUniqueAliasesVerify
 {
   static public bool Verify(Google.FlatBuffers.Verifier verifier, byte typeId, uint tablePos)
   {
-    bool result = false;
+    bool result = true;
     switch((AnyUniqueAliases)typeId)
     {
       case AnyUniqueAliases.M:

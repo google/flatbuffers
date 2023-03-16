@@ -43,7 +43,7 @@ static public class ValueVerify
 {
   static public bool Verify(Google.FlatBuffers.Verifier verifier, byte typeId, uint tablePos)
   {
-    bool result = false;
+    bool result = true;
     switch((Value)typeId)
     {
       case Value.IntValue:
@@ -131,7 +131,7 @@ static public class OtherVerify
 {
   static public bool Verify(Google.FlatBuffers.Verifier verifier, byte typeId, uint tablePos)
   {
-    bool result = false;
+    bool result = true;
     switch((Other)typeId)
     {
       case Other.IntValue:
@@ -237,16 +237,13 @@ public class IntValueT
 }
 
 
-// Verification function for 'IntValue' table.
 static public class IntValueVerify
 {
   static public bool Verify(Google.FlatBuffers.Verifier verifier, uint tablePos)
   {
-    bool result = true;
-    result = result && verifier.VerifyTableStart(tablePos);
-    result = result && verifier.VerifyField(tablePos, 4 /*Value*/, 4 /*int*/, 4, false);
-    result = result && verifier.VerifyTableEnd(tablePos);
-    return result;
+    return verifier.VerifyTableStart(tablePos)
+      && verifier.VerifyField(tablePos, 4 /*Value*/, 4 /*int*/, 4, false)
+      && verifier.VerifyTableEnd(tablePos);
   }
 }
 public struct Collide : IFlatbufferObject
@@ -354,17 +351,14 @@ public class CollideT
 }
 
 
-// Verification function for 'Collide' table.
 static public class CollideVerify
 {
   static public bool Verify(Google.FlatBuffers.Verifier verifier, uint tablePos)
   {
-    bool result = true;
-    result = result && verifier.VerifyTableStart(tablePos);
-    result = result && verifier.VerifyString(tablePos, 4 /*Collide*/, true);
-    result = result && verifier.VerifyString(tablePos, 6 /*Value*/, false);
-    result = result && verifier.VerifyTableEnd(tablePos);
-    return result;
+    return verifier.VerifyTableStart(tablePos)
+      && verifier.VerifyString(tablePos, 4 /*Collide*/, true)
+      && verifier.VerifyString(tablePos, 6 /*Value*/, false)
+      && verifier.VerifyTableEnd(tablePos);
   }
 }
 public struct Collision : IFlatbufferObject
@@ -520,20 +514,17 @@ public class CollisionT
 }
 
 
-// Verification function for 'Collision' table.
 static public class CollisionVerify
 {
   static public bool Verify(Google.FlatBuffers.Verifier verifier, uint tablePos)
   {
-    bool result = true;
-    result = result && verifier.VerifyTableStart(tablePos);
-    result = result && verifier.VerifyField(tablePos, 4 /*SomeValueType*/, 1 /*union_value_collsion.Value*/, 1, false);
-    result = result && verifier.VerifyUnion(tablePos, 4, 6 /*SomeValue*/, union_value_collsion.ValueVerify.Verify, false);
-    result = result && verifier.VerifyField(tablePos, 8 /*ValueType*/, 1 /*union_value_collsion.Other*/, 1, false);
-    result = result && verifier.VerifyUnion(tablePos, 8, 10 /*Value*/, union_value_collsion.OtherVerify.Verify, false);
-    result = result && verifier.VerifyVectorOfTables(tablePos, 12 /*Collide*/, union_value_collsion.CollisionVerify.Verify, false);
-    result = result && verifier.VerifyTableEnd(tablePos);
-    return result;
+    return verifier.VerifyTableStart(tablePos)
+      && verifier.VerifyField(tablePos, 4 /*SomeValueType*/, 1 /*union_value_collsion.Value*/, 1, false)
+      && verifier.VerifyUnion(tablePos, 4, 6 /*SomeValue*/, union_value_collsion.ValueVerify.Verify, false)
+      && verifier.VerifyField(tablePos, 8 /*ValueType*/, 1 /*union_value_collsion.Other*/, 1, false)
+      && verifier.VerifyUnion(tablePos, 8, 10 /*Value*/, union_value_collsion.OtherVerify.Verify, false)
+      && verifier.VerifyVectorOfTables(tablePos, 12 /*Collide*/, union_value_collsion.CollisionVerify.Verify, false)
+      && verifier.VerifyTableEnd(tablePos);
   }
 }
 

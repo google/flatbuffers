@@ -56,7 +56,7 @@ static public class CharacterVerify
 {
   static public bool Verify(Google.FlatBuffers.Verifier verifier, byte typeId, uint tablePos)
   {
-    bool result = false;
+    bool result = true;
     switch((Character)typeId)
     {
       case Character.MuLan:

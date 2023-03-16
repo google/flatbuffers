@@ -92,19 +92,16 @@ public class KeywordsInTableT
 }
 
 
-// Verification function for 'KeywordsInTable' table.
 static public class KeywordsInTableVerify
 {
   static public bool Verify(Google.FlatBuffers.Verifier verifier, uint tablePos)
   {
-    bool result = true;
-    result = result && verifier.VerifyTableStart(tablePos);
-    result = result && verifier.VerifyField(tablePos, 4 /*Is*/, 4 /*KeywordTest.ABC*/, 4, false);
-    result = result && verifier.VerifyField(tablePos, 6 /*Private*/, 4 /*KeywordTest.@public*/, 4, false);
-    result = result && verifier.VerifyField(tablePos, 8 /*Type*/, 4 /*int*/, 4, false);
-    result = result && verifier.VerifyField(tablePos, 10 /*Default*/, 1 /*bool*/, 1, false);
-    result = result && verifier.VerifyTableEnd(tablePos);
-    return result;
+    return verifier.VerifyTableStart(tablePos)
+      && verifier.VerifyField(tablePos, 4 /*Is*/, 4 /*KeywordTest.ABC*/, 4, false)
+      && verifier.VerifyField(tablePos, 6 /*Private*/, 4 /*KeywordTest.@public*/, 4, false)
+      && verifier.VerifyField(tablePos, 8 /*Type*/, 4 /*int*/, 4, false)
+      && verifier.VerifyField(tablePos, 10 /*Default*/, 1 /*bool*/, 1, false)
+      && verifier.VerifyTableEnd(tablePos);
   }
 }
 

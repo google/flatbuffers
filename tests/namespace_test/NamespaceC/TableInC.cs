@@ -72,17 +72,14 @@ public class TableInCT
 }
 
 
-// Verification function for 'TableInC' table.
 static public class TableInCVerify
 {
   static public bool Verify(Google.FlatBuffers.Verifier verifier, uint tablePos)
   {
-    bool result = true;
-    result = result && verifier.VerifyTableStart(tablePos);
-    result = result && verifier.VerifyTable(tablePos, 4 /*ReferToA1*/, NamespaceA.TableInFirstNSVerify.Verify, false);
-    result = result && verifier.VerifyTable(tablePos, 6 /*ReferToA2*/, NamespaceA.SecondTableInAVerify.Verify, false);
-    result = result && verifier.VerifyTableEnd(tablePos);
-    return result;
+    return verifier.VerifyTableStart(tablePos)
+      && verifier.VerifyTable(tablePos, 4 /*ReferToA1*/, NamespaceA.TableInFirstNSVerify.Verify, false)
+      && verifier.VerifyTable(tablePos, 6 /*ReferToA2*/, NamespaceA.SecondTableInAVerify.Verify, false)
+      && verifier.VerifyTableEnd(tablePos);
   }
 }
 
