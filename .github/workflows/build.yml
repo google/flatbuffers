@@ -9,6 +9,7 @@ on:
       - "*" # new tag version, like `0.8.4` or else
     branches:
       - master
+      - flatbuffers-64
   pull_request:
     branches:
       - master
