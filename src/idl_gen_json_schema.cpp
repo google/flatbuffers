@@ -165,6 +165,11 @@ static std::string GenType(const Type &type) {
           union_type_string.append(
               "{ " + GenTypeRef(union_type->union_type.struct_def) + " }");
         }
+#if defined (MZ_CUSTOM_FLATBUFFERS) && MZ_CUSTOM_FLATBUFFERS // Unions support named types like SomeUnionEntry:string, so this fix can also be applied to upstream flatbuffers
+        else {
+          union_type_string.append("{ " + GenBaseType(union_type->union_type) + " }");
+        }
+#endif
         if (union_type != *type.enum_def->Vals().rbegin()) {
           union_type_string.append(",");
         }
