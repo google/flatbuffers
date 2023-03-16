@@ -529,7 +529,7 @@ The first step is to import/include the library, generated files, etc.
   #[allow(dead_code, unused_imports)]
   #[path = "./monster_generated.rs"]
   mod monster_generated;
-  pub use monster_generated::my_game::sample::{get_root_as_monster,
+  pub use monster_generated::my_game::sample::{root_as_monster,
                                                Color, Equipment,
                                                Monster, MonsterArgs,
                                                Vec3,
@@ -652,7 +652,7 @@ which will grow automatically if needed:
 ~~~{.rs}
   // Build up a serialized buffer algorithmically.
   // Initialize it with a capacity of 1024 bytes.
-  let mut builder = flatbuffers::FlatBufferBuilder::new_with_capacity(1024);
+  let mut builder = flatbuffers::FlatBufferBuilder::with_capacity(1024);
 ~~~
 </div>
 <div class="language-swift">
@@ -2309,7 +2309,7 @@ import './monster_my_game.sample_generated.dart' as myGame;
   #[allow(dead_code, unused_imports)]
   #[path = "./monster_generated.rs"]
   mod monster_generated;
-  pub use monster_generated::my_game::sample::{get_root_as_monster,
+  pub use monster_generated::my_game::sample::{root_as_monster,
                                                Color, Equipment,
                                                Monster, MonsterArgs,
                                                Vec3,
@@ -2465,7 +2465,7 @@ myGame.Monster monster = new myGame.Monster(data);
   let buf = /* the data you just read, in a &[u8] */
 
   // Get an accessor to the root object inside the buffer.
-  let monster = get_root_as_monster(buf);
+  let monster = root_as_monster(buf).unwrap();
 ~~~
 </div>
 <div class="language-swift">
