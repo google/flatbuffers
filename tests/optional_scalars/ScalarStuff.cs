@@ -22,77 +22,41 @@ public struct ScalarStuff : IFlatbufferObject
   public ScalarStuff __assign(int _i, ByteBuffer _bb) { __init(_i, _bb); return this; }
 
   public sbyte JustI8 { get { int o = __p.__offset(4); return o != 0 ? __p.bb.GetSbyte(o + __p.bb_pos) : (sbyte)0; } }
-  public bool MutateJustI8(sbyte just_i8) { int o = __p.__offset(4); if (o != 0) { __p.bb.PutSbyte(o + __p.bb_pos, just_i8); return true; } else { return false; } }
   public sbyte? MaybeI8 { get { int o = __p.__offset(6); return o != 0 ? __p.bb.GetSbyte(o + __p.bb_pos) : (sbyte?)null; } }
-  public bool MutateMaybeI8(sbyte maybe_i8) { int o = __p.__offset(6); if (o != 0) { __p.bb.PutSbyte(o + __p.bb_pos, maybe_i8); return true; } else { return false; } }
   public sbyte DefaultI8 { get { int o = __p.__offset(8); return o != 0 ? __p.bb.GetSbyte(o + __p.bb_pos) : (sbyte)42; } }
-  public bool MutateDefaultI8(sbyte default_i8) { int o = __p.__offset(8); if (o != 0) { __p.bb.PutSbyte(o + __p.bb_pos, default_i8); return true; } else { return false; } }
   public byte JustU8 { get { int o = __p.__offset(10); return o != 0 ? __p.bb.Get(o + __p.bb_pos) : (byte)0; } }
-  public bool MutateJustU8(byte just_u8) { int o = __p.__offset(10); if (o != 0) { __p.bb.Put(o + __p.bb_pos, just_u8); return true; } else { return false; } }
   public byte? MaybeU8 { get { int o = __p.__offset(12); return o != 0 ? __p.bb.Get(o + __p.bb_pos) : (byte?)null; } }
-  public bool MutateMaybeU8(byte maybe_u8) { int o = __p.__offset(12); if (o != 0) { __p.bb.Put(o + __p.bb_pos, maybe_u8); return true; } else { return false; } }
   public byte DefaultU8 { get { int o = __p.__offset(14); return o != 0 ? __p.bb.Get(o + __p.bb_pos) : (byte)42; } }
-  public bool MutateDefaultU8(byte default_u8) { int o = __p.__offset(14); if (o != 0) { __p.bb.Put(o + __p.bb_pos, default_u8); return true; } else { return false; } }
   public short JustI16 { get { int o = __p.__offset(16); return o != 0 ? __p.bb.GetShort(o + __p.bb_pos) : (short)0; } }
-  public bool MutateJustI16(short just_i16) { int o = __p.__offset(16); if (o != 0) { __p.bb.PutShort(o + __p.bb_pos, just_i16); return true; } else { return false; } }
   public short? MaybeI16 { get { int o = __p.__offset(18); return o != 0 ? __p.bb.GetShort(o + __p.bb_pos) : (short?)null; } }
-  public bool MutateMaybeI16(short maybe_i16) { int o = __p.__offset(18); if (o != 0) { __p.bb.PutShort(o + __p.bb_pos, maybe_i16); return true; } else { return false; } }
   public short DefaultI16 { get { int o = __p.__offset(20); return o != 0 ? __p.bb.GetShort(o + __p.bb_pos) : (short)42; } }
-  public bool MutateDefaultI16(short default_i16) { int o = __p.__offset(20); if (o != 0) { __p.bb.PutShort(o + __p.bb_pos, default_i16); return true; } else { return false; } }
   public ushort JustU16 { get { int o = __p.__offset(22); return o != 0 ? __p.bb.GetUshort(o + __p.bb_pos) : (ushort)0; } }
-  public bool MutateJustU16(ushort just_u16) { int o = __p.__offset(22); if (o != 0) { __p.bb.PutUshort(o + __p.bb_pos, just_u16); return true; } else { return false; } }
   public ushort? MaybeU16 { get { int o = __p.__offset(24); return o != 0 ? __p.bb.GetUshort(o + __p.bb_pos) : (ushort?)null; } }
-  public bool MutateMaybeU16(ushort maybe_u16) { int o = __p.__offset(24); if (o != 0) { __p.bb.PutUshort(o + __p.bb_pos, maybe_u16); return true; } else { return false; } }
   public ushort DefaultU16 { get { int o = __p.__offset(26); return o != 0 ? __p.bb.GetUshort(o + __p.bb_pos) : (ushort)42; } }
-  public bool MutateDefaultU16(ushort default_u16) { int o = __p.__offset(26); if (o != 0) { __p.bb.PutUshort(o + __p.bb_pos, default_u16); return true; } else { return false; } }
   public int JustI32 { get { int o = __p.__offset(28); return o != 0 ? __p.bb.GetInt(o + __p.bb_pos) : (int)0; } }
-  public bool MutateJustI32(int just_i32) { int o = __p.__offset(28); if (o != 0) { __p.bb.PutInt(o + __p.bb_pos, just_i32); return true; } else { return false; } }
   public int? MaybeI32 { get { int o = __p.__offset(30); return o != 0 ? __p.bb.GetInt(o + __p.bb_pos) : (int?)null; } }
-  public bool MutateMaybeI32(int maybe_i32) { int o = __p.__offset(30); if (o != 0) { __p.bb.PutInt(o + __p.bb_pos, maybe_i32); return true; } else { return false; } }
   public int DefaultI32 { get { int o = __p.__offset(32); return o != 0 ? __p.bb.GetInt(o + __p.bb_pos) : (int)42; } }
-  public bool MutateDefaultI32(int default_i32) { int o = __p.__offset(32); if (o != 0) { __p.bb.PutInt(o + __p.bb_pos, default_i32); return true; } else { return false; } }
   public uint JustU32 { get { int o = __p.__offset(34); return o != 0 ? __p.bb.GetUint(o + __p.bb_pos) : (uint)0; } }
-  public bool MutateJustU32(uint just_u32) { int o = __p.__offset(34); if (o != 0) { __p.bb.PutUint(o + __p.bb_pos, just_u32); return true; } else { return false; } }
   public uint? MaybeU32 { get { int o = __p.__offset(36); return o != 0 ? __p.bb.GetUint(o + __p.bb_pos) : (uint?)null; } }
-  public bool MutateMaybeU32(uint maybe_u32) { int o = __p.__offset(36); if (o != 0) { __p.bb.PutUint(o + __p.bb_pos, maybe_u32); return true; } else { return false; } }
   public uint DefaultU32 { get { int o = __p.__offset(38); return o != 0 ? __p.bb.GetUint(o + __p.bb_pos) : (uint)42; } }
-  public bool MutateDefaultU32(uint default_u32) { int o = __p.__offset(38); if (o != 0) { __p.bb.PutUint(o + __p.bb_pos, default_u32); return true; } else { return false; } }
   public long JustI64 { get { int o = __p.__offset(40); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
-  public bool MutateJustI64(long just_i64) { int o = __p.__offset(40); if (o != 0) { __p.bb.PutLong(o + __p.bb_pos, just_i64); return true; } else { return false; } }
   public long? MaybeI64 { get { int o = __p.__offset(42); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long?)null; } }
-  public bool MutateMaybeI64(long maybe_i64) { int o = __p.__offset(42); if (o != 0) { __p.bb.PutLong(o + __p.bb_pos, maybe_i64); return true; } else { return false; } }
   public long DefaultI64 { get { int o = __p.__offset(44); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)42; } }
-  public bool MutateDefaultI64(long default_i64) { int o = __p.__offset(44); if (o != 0) { __p.bb.PutLong(o + __p.bb_pos, default_i64); return true; } else { return false; } }
   public ulong JustU64 { get { int o = __p.__offset(46); return o != 0 ? __p.bb.GetUlong(o + __p.bb_pos) : (ulong)0; } }
-  public bool MutateJustU64(ulong just_u64) { int o = __p.__offset(46); if (o != 0) { __p.bb.PutUlong(o + __p.bb_pos, just_u64); return true; } else { return false; } }
   public ulong? MaybeU64 { get { int o = __p.__offset(48); return o != 0 ? __p.bb.GetUlong(o + __p.bb_pos) : (ulong?)null; } }
-  public bool MutateMaybeU64(ulong maybe_u64) { int o = __p.__offset(48); if (o != 0) { __p.bb.PutUlong(o + __p.bb_pos, maybe_u64); return true; } else { return false; } }
   public ulong DefaultU64 { get { int o = __p.__offset(50); return o != 0 ? __p.bb.GetUlong(o + __p.bb_pos) : (ulong)42; } }
-  public bool MutateDefaultU64(ulong default_u64) { int o = __p.__offset(50); if (o != 0) { __p.bb.PutUlong(o + __p.bb_pos, default_u64); return true; } else { return false; } }
   public float JustF32 { get { int o = __p.__offset(52); return o != 0 ? __p.bb.GetFloat(o + __p.bb_pos) : (float)0.0f; } }
-  public bool MutateJustF32(float just_f32) { int o = __p.__offset(52); if (o != 0) { __p.bb.PutFloat(o + __p.bb_pos, just_f32); return true; } else { return false; } }
   public float? MaybeF32 { get { int o = __p.__offset(54); return o != 0 ? __p.bb.GetFloat(o + __p.bb_pos) : (float?)null; } }
-  public bool MutateMaybeF32(float maybe_f32) { int o = __p.__offset(54); if (o != 0) { __p.bb.PutFloat(o + __p.bb_pos, maybe_f32); return true; } else { return false; } }
   public float DefaultF32 { get { int o = __p.__offset(56); return o != 0 ? __p.bb.GetFloat(o + __p.bb_pos) : (float)42.0f; } }
-  public bool MutateDefaultF32(float default_f32) { int o = __p.__offset(56); if (o != 0) { __p.bb.PutFloat(o + __p.bb_pos, default_f32); return true; } else { return false; } }
   public double JustF64 { get { int o = __p.__offset(58); return o != 0 ? __p.bb.GetDouble(o + __p.bb_pos) : (double)0.0; } }
-  public bool MutateJustF64(double just_f64) { int o = __p.__offset(58); if (o != 0) { __p.bb.PutDouble(o + __p.bb_pos, just_f64); return true; } else { return false; } }
   public double? MaybeF64 { get { int o = __p.__offset(60); return o != 0 ? __p.bb.GetDouble(o + __p.bb_pos) : (double?)null; } }
-  public bool MutateMaybeF64(double maybe_f64) { int o = __p.__offset(60); if (o != 0) { __p.bb.PutDouble(o + __p.bb_pos, maybe_f64); return true; } else { return false; } }
   public double DefaultF64 { get { int o = __p.__offset(62); return o != 0 ? __p.bb.GetDouble(o + __p.bb_pos) : (double)42.0; } }
-  public bool MutateDefaultF64(double default_f64) { int o = __p.__offset(62); if (o != 0) { __p.bb.PutDouble(o + __p.bb_pos, default_f64); return true; } else { return false; } }
   public bool JustBool { get { int o = __p.__offset(64); return o != 0 ? 0!=__p.bb.Get(o + __p.bb_pos) : (bool)false; } }
-  public bool MutateJustBool(bool just_bool) { int o = __p.__offset(64); if (o != 0) { __p.bb.Put(o + __p.bb_pos, (byte)(just_bool ? 1 : 0)); return true; } else { return false; } }
   public bool? MaybeBool { get { int o = __p.__offset(66); return o != 0 ? 0!=__p.bb.Get(o + __p.bb_pos) : (bool?)null; } }
-  public bool MutateMaybeBool(bool maybe_bool) { int o = __p.__offset(66); if (o != 0) { __p.bb.Put(o + __p.bb_pos, (byte)(maybe_bool ? 1 : 0)); return true; } else { return false; } }
   public bool DefaultBool { get { int o = __p.__offset(68); return o != 0 ? 0!=__p.bb.Get(o + __p.bb_pos) : (bool)true; } }
-  public bool MutateDefaultBool(bool default_bool) { int o = __p.__offset(68); if (o != 0) { __p.bb.Put(o + __p.bb_pos, (byte)(default_bool ? 1 : 0)); return true; } else { return false; } }
   public optional_scalars.OptionalByte JustEnum { get { int o = __p.__offset(70); return o != 0 ? (optional_scalars.OptionalByte)__p.bb.GetSbyte(o + __p.bb_pos) : optional_scalars.OptionalByte.None; } }
-  public bool MutateJustEnum(optional_scalars.OptionalByte just_enum) { int o = __p.__offset(70); if (o != 0) { __p.bb.PutSbyte(o + __p.bb_pos, (sbyte)just_enum); return true; } else { return false; } }
   public optional_scalars.OptionalByte? MaybeEnum { get { int o = __p.__offset(72); return o != 0 ? (optional_scalars.OptionalByte)__p.bb.GetSbyte(o + __p.bb_pos) : (optional_scalars.OptionalByte?)null; } }
-  public bool MutateMaybeEnum(optional_scalars.OptionalByte maybe_enum) { int o = __p.__offset(72); if (o != 0) { __p.bb.PutSbyte(o + __p.bb_pos, (sbyte)maybe_enum); return true; } else { return false; } }
   public optional_scalars.OptionalByte DefaultEnum { get { int o = __p.__offset(74); return o != 0 ? (optional_scalars.OptionalByte)__p.bb.GetSbyte(o + __p.bb_pos) : optional_scalars.OptionalByte.One; } }
-  public bool MutateDefaultEnum(optional_scalars.OptionalByte default_enum) { int o = __p.__offset(74); if (o != 0) { __p.bb.PutSbyte(o + __p.bb_pos, (sbyte)default_enum); return true; } else { return false; } }
 
   public static Offset<optional_scalars.ScalarStuff> CreateScalarStuff(FlatBufferBuilder builder,
       sbyte just_i8 = 0,
@@ -302,77 +266,41 @@ public struct ScalarStuff : IFlatbufferObject
 
 public class ScalarStuffT
 {
-  [Newtonsoft.Json.JsonProperty("just_i8")]
   public sbyte JustI8 { get; set; }
-  [Newtonsoft.Json.JsonProperty("maybe_i8")]
   public sbyte? MaybeI8 { get; set; }
-  [Newtonsoft.Json.JsonProperty("default_i8")]
   public sbyte DefaultI8 { get; set; }
-  [Newtonsoft.Json.JsonProperty("just_u8")]
   public byte JustU8 { get; set; }
-  [Newtonsoft.Json.JsonProperty("maybe_u8")]
   public byte? MaybeU8 { get; set; }
-  [Newtonsoft.Json.JsonProperty("default_u8")]
   public byte DefaultU8 { get; set; }
-  [Newtonsoft.Json.JsonProperty("just_i16")]
   public short JustI16 { get; set; }
-  [Newtonsoft.Json.JsonProperty("maybe_i16")]
   public short? MaybeI16 { get; set; }
-  [Newtonsoft.Json.JsonProperty("default_i16")]
   public short DefaultI16 { get; set; }
-  [Newtonsoft.Json.JsonProperty("just_u16")]
   public ushort JustU16 { get; set; }
-  [Newtonsoft.Json.JsonProperty("maybe_u16")]
   public ushort? MaybeU16 { get; set; }
-  [Newtonsoft.Json.JsonProperty("default_u16")]
   public ushort DefaultU16 { get; set; }
-  [Newtonsoft.Json.JsonProperty("just_i32")]
   public int JustI32 { get; set; }
-  [Newtonsoft.Json.JsonProperty("maybe_i32")]
   public int? MaybeI32 { get; set; }
-  [Newtonsoft.Json.JsonProperty("default_i32")]
   public int DefaultI32 { get; set; }
-  [Newtonsoft.Json.JsonProperty("just_u32")]
   public uint JustU32 { get; set; }
-  [Newtonsoft.Json.JsonProperty("maybe_u32")]
   public uint? MaybeU32 { get; set; }
-  [Newtonsoft.Json.JsonProperty("default_u32")]
   public uint DefaultU32 { get; set; }
-  [Newtonsoft.Json.JsonProperty("just_i64")]
   public long JustI64 { get; set; }
-  [Newtonsoft.Json.JsonProperty("maybe_i64")]
   public long? MaybeI64 { get; set; }
-  [Newtonsoft.Json.JsonProperty("default_i64")]
   public long DefaultI64 { get; set; }
-  [Newtonsoft.Json.JsonProperty("just_u64")]
   public ulong JustU64 { get; set; }
-  [Newtonsoft.Json.JsonProperty("maybe_u64")]
   public ulong? MaybeU64 { get; set; }
-  [Newtonsoft.Json.JsonProperty("default_u64")]
   public ulong DefaultU64 { get; set; }
-  [Newtonsoft.Json.JsonProperty("just_f32")]
   public float JustF32 { get; set; }
-  [Newtonsoft.Json.JsonProperty("maybe_f32")]
   public float? MaybeF32 { get; set; }
-  [Newtonsoft.Json.JsonProperty("default_f32")]
   public float DefaultF32 { get; set; }
-  [Newtonsoft.Json.JsonProperty("just_f64")]
   public double JustF64 { get; set; }
-  [Newtonsoft.Json.JsonProperty("maybe_f64")]
   public double? MaybeF64 { get; set; }
-  [Newtonsoft.Json.JsonProperty("default_f64")]
   public double DefaultF64 { get; set; }
-  [Newtonsoft.Json.JsonProperty("just_bool")]
   public bool JustBool { get; set; }
-  [Newtonsoft.Json.JsonProperty("maybe_bool")]
   public bool? MaybeBool { get; set; }
-  [Newtonsoft.Json.JsonProperty("default_bool")]
   public bool DefaultBool { get; set; }
-  [Newtonsoft.Json.JsonProperty("just_enum")]
   public optional_scalars.OptionalByte JustEnum { get; set; }
-  [Newtonsoft.Json.JsonProperty("maybe_enum")]
   public optional_scalars.OptionalByte? MaybeEnum { get; set; }
-  [Newtonsoft.Json.JsonProperty("default_enum")]
   public optional_scalars.OptionalByte DefaultEnum { get; set; }
 
   public ScalarStuffT() {
@@ -412,13 +340,6 @@ public class ScalarStuffT
     this.JustEnum = optional_scalars.OptionalByte.None;
     this.MaybeEnum = null;
     this.DefaultEnum = optional_scalars.OptionalByte.One;
-  }
-
-  public static ScalarStuffT DeserializeFromJson(string jsonText) {
-    return Newtonsoft.Json.JsonConvert.DeserializeObject<ScalarStuffT>(jsonText);
-  }
-  public string SerializeToJson() {
-    return Newtonsoft.Json.JsonConvert.SerializeObject(this, Newtonsoft.Json.Formatting.Indented);
   }
   public static ScalarStuffT DeserializeFromBinary(byte[] fbBuffer) {
     return ScalarStuff.GetRootAsScalarStuff(new ByteBuffer(fbBuffer)).UnPack();
