@@ -502,20 +502,6 @@ class FlatBufferBuilder {
   // Get an offset from the end the tail of the buffer.
   template<typename T> T GetOffset();
 
-  // Specializations to handle the 32-bit and 64-bit GetOffsets, which are
-  // relative to different things.
-  template<> uoffset_t GetOffset() { return GetSizeRelative32BitRegion(); }
-
-  template<> uoffset64_t GetOffset() {
-    const uoffset64_t size = GetSize();
-    // Keep track of the length of the 64-bit region.
-    if (size > length_of_64_bit_region_) { length_of_64_bit_region_ = size; }
-
-    // TODO(derekbailey): should assert that we don't add an 64-bit offset after
-    // adding a 32-bit one.
-    return size;
-  }
-
   /// @brief Store a string in the buffer, which can contain any binary data.
   /// @param[in] str A const char pointer to the data to be stored as a string.
   /// @param[in] len The number of bytes that should be stored from `str`.
@@ -554,7 +540,7 @@ class FlatBufferBuilder {
     return CreateString<OffsetT>(str.c_str(), str.length());
   }
 
-  // clang-format off
+// clang-format off
   #ifdef FLATBUFFERS_HAS_STRING_VIEW
   /// @brief Store a string in the buffer, which can contain any binary data.
   /// @param[in] str A const string_view to copy in to the buffer.
@@ -715,7 +701,7 @@ class FlatBufferBuilder {
       EndVector<size_type>(len);
       return OffsetT<VectorT<T>>(GetOffset<offset_type>());
     }
-    // clang-format off
+// clang-format off
     #if FLATBUFFERS_LITTLEENDIAN
       PushBytes(reinterpret_cast<const uint8_t *>(v), len * sizeof(T));
     #else
@@ -1314,6 +1300,22 @@ T *GetMutableTemporaryPointer(FlatBufferBuilder &fbb, Offset<T> offset) {
 template<typename T>
 const T *GetTemporaryPointer(FlatBufferBuilder &fbb, Offset<T> offset) {
   return GetMutableTemporaryPointer<T>(fbb, offset);
+}
+
+// Specializations to handle the 32-bit and 64-bit GetOffsets, which are
+// relative to different things.
+template<> inline uoffset_t FlatBufferBuilder::GetOffset() {
+  return GetSizeRelative32BitRegion();
+}
+
+template<> inline uoffset64_t FlatBufferBuilder::GetOffset() {
+  const uoffset64_t size = GetSize();
+  // Keep track of the length of the 64-bit region.
+  if (size > length_of_64_bit_region_) { length_of_64_bit_region_ = size; }
+
+  // TODO(derekbailey): should assert that we don't add an 64-bit offset after
+  // adding a 32-bit one.
+  return size;
 }
 
 }  // namespace flatbuffers
