@@ -655,6 +655,7 @@ struct IDLOptions {
   CaseStyle cpp_object_api_field_case_style;
   bool cpp_direct_copy;
   bool gen_nullable;
+  std::string java_package_prefix;
   bool java_checkerframework;
   bool gen_generated;
   bool gen_json_coders;
@@ -717,6 +718,7 @@ struct IDLOptions {
     kKotlin = 1 << 15,
     kSwift = 1 << 16,
     kNim = 1 << 17,
+    kProto = 1 << 18,
     kMAX
   };
 

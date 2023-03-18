@@ -477,8 +477,9 @@ class CSharpGenerator : public BaseGenerator {
                                       const std::string &offset) const {
     // Use the generated type directly, to properly handle default values that
     // might not be written to the buffer.
-    return GetObjectConstructor(struct_def, data_buffer, offset) + "." +
-           Name(*key_field);
+    auto name = Name(*key_field);
+    if (name == struct_def.name) { name += "_"; }
+    return GetObjectConstructor(struct_def, data_buffer, offset) + "." + name;
   }
 
   // Direct mutation is only allowed for scalar fields.
@@ -657,7 +658,7 @@ class CSharpGenerator : public BaseGenerator {
       // Force compile time error if not using the same version runtime.
       code += "  public static void ValidateVersion() {";
       code += " FlatBufferConstants.";
-      code += "FLATBUFFERS_23_1_21(); ";
+      code += "FLATBUFFERS_23_3_3(); ";
       code += "}\n";
 
       // Generate a special accessor for the table that when used as the root
@@ -1303,6 +1304,8 @@ class CSharpGenerator : public BaseGenerator {
     // because `key_field` is not set for struct
     if (struct_def.has_key && !struct_def.fixed) {
       FLATBUFFERS_ASSERT(key_field);
+      auto name = Name(*key_field);
+      if (name == struct_def.name) { name += "_"; }
       code += "\n  public static VectorOffset ";
       code += "CreateSortedVectorOf" + struct_def.name;
       code += "(FlatBufferBuilder builder, ";
@@ -1332,8 +1335,7 @@ class CSharpGenerator : public BaseGenerator {
           "(start + middle), bb);\n";
 
       code += "      obj_.__assign(tableOffset, bb);\n";
-      code +=
-          "      int comp = obj_." + Name(*key_field) + ".CompareTo(key);\n";
+      code += "      int comp = obj_." + name + ".CompareTo(key);\n";
       code += "      if (comp > 0) {\n";
       code += "        span = middle;\n";
       code += "      } else if (comp < 0) {\n";

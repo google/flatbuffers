@@ -105,6 +105,7 @@ PHP_OPTS = ["--php"]
 DART_OPTS = ["--dart"]
 PYTHON_OPTS = ["--python"]
 BINARY_OPTS = ["-b", "--schema", "--bfbs-comments", "--bfbs-builtins"]
+PROTO_OPTS = ["--proto"]
 
 # Basic Usage
 
@@ -190,6 +191,11 @@ flatc(
     schema="monster_test.fbs",
     include="include_test",
     data="monsterdata_test.json",
+)
+
+flatc(
+    PROTO_OPTS,
+    schema="prototest/test.proto",
 )
 
 # For Rust we currently generate two independent schemas, with namespace_test2
@@ -500,6 +506,12 @@ if not args.skip_gen_reflection:
 
 # Python Reflection
 flatc_reflection(["-p"], "python/flatbuffers", "reflection")
+
+# Java Reflection
+flatc_reflection(
+    ["-j", "--java-package-prefix", "com.google.flatbuffers"],
+    "java/src/main/java", "com/google/flatbuffers/reflection"
+)
 
 # Annotation
 
