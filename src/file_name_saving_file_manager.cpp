@@ -14,29 +14,28 @@
  * limitations under the License.
  */
 
-#include <string>
-#include <set>
 #include <fstream>
+#include <set>
+#include <string>
 
 #include "flatbuffers/file_manager.h"
 
 namespace flatbuffers {
 
-class FileNameSavingFileManagerManager : public FileManager {
+class FileNameSavingFileManager : public FileManager {
  public:
-  bool SaveFile(const std::string &absolute_file_name, const std::string &content) override {
-    (void)content;
+  FileNameSavingFileManager(std::set<std::string> file_names)
+      : file_names_(file_names) {}
+
+  bool SaveFile(const std::string &absolute_file_name, const std::string) {
     auto pair = file_names_.insert(absolute_file_name);
+    // pair.second indicates whether the insertion is
+    // successful or not.
     return pair.second;
   }
 
-  bool ReadFile(const std::string &absolute_file_name, std::string * content) override {
-    (void) absolute_file_name;
-    (void) content;
-    return false;
-  }
-
-  //std::set<std::string> FileNameSavingFileManagers() { return file_names_; }
+ private:
+  std::set<std::string> file_names_;
 };
 
 }  // namespace flatbuffers

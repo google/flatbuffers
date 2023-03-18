@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-#include <string>
-#include <set>
 #include <fstream>
+#include <set>
+#include <string>
 
 #include "flatbuffers/file_manager.h"
 
@@ -24,25 +24,13 @@ namespace flatbuffers {
 
 class FileBinaryWriter : public FileManager {
  public:
-  bool SaveFile(const std::string &absolute_file_name, const std::string &content) override {
-    std::ofstream ofs(absolute_file_name,
-                      std::ofstream::binary);
+  bool SaveFile(const std::string &absolute_file_name,
+                const std::string &content) override {
+    std::ofstream ofs(absolute_file_name, std::ofstream::binary);
     if (!ofs.is_open()) return false;
     ofs.write(content.c_str(), content.size());
-    if (!ofs.bad()) {
-      file_names_.insert(absolute_file_name);
-      return true;
-    }
-    return false;
+    return !ofs.bad();
   }
-
-  bool ReadFile(const std::string &absolute_file_name, std::string *content) override {
-    (void) absolute_file_name;
-    (void) content;
-    return false;
-  }
-
-  //std::set<std::string> FileNames() { return file_names_; }
 };
 
 }  // namespace flatbuffers

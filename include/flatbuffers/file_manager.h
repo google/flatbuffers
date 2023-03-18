@@ -17,8 +17,8 @@
 #ifndef FLATBUFFERS_FILE_MANAGER_H_
 #define FLATBUFFERS_FILE_MANAGER_H_
 
-#include <string>
 #include <set>
+#include <string>
 
 namespace flatbuffers {
 
@@ -26,24 +26,19 @@ namespace flatbuffers {
 // save only file names
 class FileManager {
  public:
+  FileManager() = default;
   virtual ~FileManager() = default;
 
-  virtual bool SaveFile(const std::string &absolute_file_name, const std::string &content) = 0;
+  virtual bool SaveFile(const std::string &absolute_file_name,
+                        const std::string &content) = 0;
 
-  virtual bool ReadFile(const std::string &absolute_file_name, std::string *content) = 0;
-
-  std::set<std::string> FileNames() { return file_names_; }
-  
-  FileManager();
-
- protected:
-  std::set<std::string> file_names_;
+  virtual bool LoadFile(const std::string &absolute_file_name,
+                        std::string *content) = 0;
 
  private:
   // Copying is not supported.
   FileManager(const FileManager &) = delete;
   FileManager &operator=(const FileManager &) = delete;
-
 };
 
 }  // namespace flatbuffers
