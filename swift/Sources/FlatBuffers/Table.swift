@@ -135,6 +135,16 @@ public struct Table {
     return bb.readSlice(index: Int(vector(at: o)), count: Int(vector(count: o)))
   }
 
+  /// Returns an UnsafeBufferPointer of type T direct to the memory inside the buffer
+  public func getBufferPointer<T>(at off: Int32) -> UnsafeBufferPointer<T>? {
+    let o = offset(off)
+    guard o != 0 else { return nil }
+    let bufOffset = Int(vector(at: o))
+    let count = Int(vector(count: o))
+    return UnsafeBufferPointer.init(start: bb.memory.advanced(by: bufOffset).assumingMemoryBound(to: T.self),
+                                    count: count)
+  }
+
   /// Vector count gets the count of Elements within the array
   /// - Parameter o: start offset of the vector
   /// - returns: Count of elements

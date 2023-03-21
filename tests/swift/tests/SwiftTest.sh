@@ -18,6 +18,7 @@ cd ${current_dir}
 cd CodeGenerationTests
 fbc --swift --gen-mutable --grpc --gen-json-emit --gen-object-api --swift-implementation-only test_import.fbs
 fbc --swift --gen-mutable --grpc --gen-json-emit --gen-object-api --no-includes test_no_include.fbs
+fbc --swift --gen-mutable --grpc --gen-json-emit --gen-object-api --swift-implementation-only swift_attributes.fbs
 cd ..
 
 cd ${current_dir}/Sources/SwiftFlatBuffers

@@ -4,29 +4,31 @@
 
 import FlatBuffers
 
-public enum Color: UInt8, Enum, Verifiable {
+public struct Color: OptionSet, Enum, Verifiable {
   public typealias T = UInt8
+  public let rawValue: T
+
+  public init(rawValue: T) {
+    self.rawValue = rawValue
+  }
+
   public static var byteSize: Int { return MemoryLayout<UInt8>.size }
   public var value: UInt8 { return self.rawValue }
-  case red = 1
+  public static let red = Color(rawValue: 1)
   ///  \brief color Green
   ///  Green is bit_flag with value (1u << 1)
-  case green = 2
+  public static let green = Color(rawValue: 2)
   ///  \brief color Blue (1u << 3)
-  case blue = 8
+  public static let blue = Color(rawValue: 8)
 
-  public static var max: Color { return .blue }
-  public static var min: Color { return .red }
+  public static let none: Color = []
+  public static let all: Color = [.red, .green, .blue]
 }
 
 extension Color: Encodable {
   public func encode(to encoder: Encoder) throws {
     var container = encoder.singleValueContainer()
-    switch self {
-    case .red: try container.encode("Red")
-    case .green: try container.encode("Green")
-    case .blue: try container.encode("Blue")
-    }
+    try container.encode(rawValue)
   }
 }
 
@@ -137,7 +139,7 @@ public struct Vec3: NativeStruct, Verifiable, FlatbuffersInitializable {
   public var y: Float32 { _y }
   public var z: Float32 { _z }
   public var test1: Double { _test1 }
-  public var test2: Color { Color(rawValue: _test2)! }
+  public var test2: Color { Color(rawValue: _test2) }
   public var test3: Test { _test3 }
 
   public static func verify<T>(_ verifier: inout Verifier, at position: Int, of type: T.Type) throws where T: Verifiable {
@@ -188,7 +190,7 @@ public struct Vec3_Mutable: FlatBufferObject {
   public var y: Float32 { return _accessor.readBuffer(of: Float32.self, at: 4) }
   public var z: Float32 { return _accessor.readBuffer(of: Float32.self, at: 8) }
   public var test1: Double { return _accessor.readBuffer(of: Double.self, at: 16) }
-  public var test2: Color { return Color(rawValue: _accessor.readBuffer(of: UInt8.self, at: 24)) ?? .red }
+  public var test2: Color { return Color(rawValue: _accessor.readBuffer(of: UInt8.self, at: 24))  }
   public var test3: Test_Mutable { return Test_Mutable(_accessor.bb, o: _accessor.postion + 26) }
 }
 
@@ -198,8 +200,6 @@ public struct Monster: FlatBufferObject, Verifiable {
   static func validateVersion() { FlatBuffersVersion_23_3_3() }
   public var __buffer: ByteBuffer! { return _accessor.bb }
   private var _accessor: Table
-
-  public static func getRootAsMonster(bb: ByteBuffer) -> Monster { return Monster(Table(bb: bb, position: Int32(bb.read(def: UOffset.self, position: bb.reader)) + Int32(bb.reader))) }
 
   private init(_ t: Table) { _accessor = t }
   public init(_ bb: ByteBuffer, o: Int32) { _accessor = Table(bb: bb, position: o) }
@@ -230,7 +230,8 @@ public struct Monster: FlatBufferObject, Verifiable {
   public var inventoryCount: Int32 { let o = _accessor.offset(VTOFFSET.inventory.v); return o == 0 ? 0 : _accessor.vector(count: o) }
   public func inventory(at index: Int32) -> UInt8 { let o = _accessor.offset(VTOFFSET.inventory.v); return o == 0 ? 0 : _accessor.directRead(of: UInt8.self, offset: _accessor.vector(at: o) + index * 1) }
   public var inventory: [UInt8] { return _accessor.getVector(at: VTOFFSET.inventory.v) ?? [] }
-  public var color: Color { let o = _accessor.offset(VTOFFSET.color.v); return o == 0 ? .blue : Color(rawValue: _accessor.readBuffer(of: UInt8.self, at: o)) ?? .blue }
+  public var inventoryAsBuffer: UnsafeBufferPointer<UInt8> { return _accessor.getBufferPointer(at: VTOFFSET.inventory.v) ?? .init(start: nil, count: 0) }
+  public var color: Color { let o = _accessor.offset(VTOFFSET.color.v); return o == 0 ? .blue : Color(rawValue: _accessor.readBuffer(of: UInt8.self, at: o))  }
   public static func startMonster(_ fbb: inout FlatBufferBuilder) -> UOffset { fbb.startTable(with: 7) }
   public static func add(pos: Vec3?, _ fbb: inout FlatBufferBuilder) { guard let pos = pos else { return }; fbb.create(struct: pos, position: VTOFFSET.pos.p) }
   public static func add(mana: Int16, _ fbb: inout FlatBufferBuilder) { fbb.add(element: mana, def: 150, at: VTOFFSET.mana.p) }

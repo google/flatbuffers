@@ -51,10 +51,12 @@ public struct MoreDefaults: FlatBufferObject, Verifiable, ObjectAPIPacker {
   public var intsCount: Int32 { let o = _accessor.offset(VTOFFSET.ints.v); return o == 0 ? 0 : _accessor.vector(count: o) }
   public func ints(at index: Int32) -> Int32 { let o = _accessor.offset(VTOFFSET.ints.v); return o == 0 ? 0 : _accessor.directRead(of: Int32.self, offset: _accessor.vector(at: o) + index * 4) }
   public var ints: [Int32] { return _accessor.getVector(at: VTOFFSET.ints.v) ?? [] }
+  public var intsAsBuffer: UnsafeBufferPointer<Int32> { return _accessor.getBufferPointer(at: VTOFFSET.ints.v) ?? .init(start: nil, count: 0) }
   public var hasFloats: Bool { let o = _accessor.offset(VTOFFSET.floats.v); return o == 0 ? false : true }
   public var floatsCount: Int32 { let o = _accessor.offset(VTOFFSET.floats.v); return o == 0 ? 0 : _accessor.vector(count: o) }
   public func floats(at index: Int32) -> Float32 { let o = _accessor.offset(VTOFFSET.floats.v); return o == 0 ? 0 : _accessor.directRead(of: Float32.self, offset: _accessor.vector(at: o) + index * 4) }
   public var floats: [Float32] { return _accessor.getVector(at: VTOFFSET.floats.v) ?? [] }
+  public var floatsAsBuffer: UnsafeBufferPointer<Float32> { return _accessor.getBufferPointer(at: VTOFFSET.floats.v) ?? .init(start: nil, count: 0) }
   public var emptyString: String? { let o = _accessor.offset(VTOFFSET.emptyString.v); return o == 0 ? "" : _accessor.string(at: o) }
   public var emptyStringSegmentArray: [UInt8]? { return _accessor.getVector(at: VTOFFSET.emptyString.v) }
   public var someString: String? { let o = _accessor.offset(VTOFFSET.someString.v); return o == 0 ? "some" : _accessor.string(at: o) }
@@ -66,6 +68,7 @@ public struct MoreDefaults: FlatBufferObject, Verifiable, ObjectAPIPacker {
   public var boolsCount: Int32 { let o = _accessor.offset(VTOFFSET.bools.v); return o == 0 ? 0 : _accessor.vector(count: o) }
   public func bools(at index: Int32) -> Bool { let o = _accessor.offset(VTOFFSET.bools.v); return o == 0 ? true : _accessor.directRead(of: Bool.self, offset: _accessor.vector(at: o) + index * 1) }
   public var bools: [Bool] { return _accessor.getVector(at: VTOFFSET.bools.v) ?? [] }
+  public var boolsAsBuffer: UnsafeBufferPointer<Bool> { return _accessor.getBufferPointer(at: VTOFFSET.bools.v) ?? .init(start: nil, count: 0) }
   public static func startMoreDefaults(_ fbb: inout FlatBufferBuilder) -> UOffset { fbb.startTable(with: 6) }
   public static func addVectorOf(ints: Offset, _ fbb: inout FlatBufferBuilder) { fbb.add(offset: ints, at: VTOFFSET.ints.p) }
   public static func addVectorOf(floats: Offset, _ fbb: inout FlatBufferBuilder) { fbb.add(offset: floats, at: VTOFFSET.floats.p) }

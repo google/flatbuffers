@@ -94,6 +94,7 @@ final class FlatBuffersVectors: XCTestCase {
     b.finish(offset: end)
     let number = Numbers.getRootAsNumbers(ByteBuffer(bytes: b.sizedByteArray))
     XCTAssertEqual(number.vArrayInt32, [1, 2, 3, 4, 5])
+    XCTAssertEqual(Array(number.vArrayInt32AsBuffer!), [1, 2, 3, 4, 5])
   }
 
   func testReadDoubleArray() {
@@ -104,6 +105,7 @@ final class FlatBuffersVectors: XCTestCase {
     b.finish(offset: end)
     let number = Numbers.getRootAsNumbers(ByteBuffer(bytes: b.sizedByteArray))
     XCTAssertEqual(number.vArrayDouble, [1, 2, 3, 4, 5])
+    XCTAssertEqual(Array(number.vArrayDoubleAsBuffer!), [1, 2, 3, 4, 5])
   }
 
   func testHasForArray() {
@@ -148,6 +150,11 @@ struct Numbers {
   var vArrayInt32: [Int32]? { __t.getVector(at: 4) }
   var vArrayDouble: [Double]? { __t.getVector(at: 4) }
   var vArrayFloat: [Float32]? { __t.getVector(at: 4) }
+
+  var vArrayIntAsBuffer: UnsafeBufferPointer<Int>? { return __t.getBufferPointer(at: 4) }
+  var vArrayInt32AsBuffer: UnsafeBufferPointer<Int32>? { return __t.getBufferPointer(at: 4) }
+  var vArrayDoubleAsBuffer: UnsafeBufferPointer<Double>? { return __t.getBufferPointer(at: 4) }
+  var vArrayFloatAsBuffer: UnsafeBufferPointer<Float32>? { return __t.getBufferPointer(at: 4) }
 
   static func createNumbersVector(
     b: inout FlatBufferBuilder,

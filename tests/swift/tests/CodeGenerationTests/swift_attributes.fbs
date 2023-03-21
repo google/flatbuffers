@@ -1,0 +1,16 @@
+attribute "swift_no_legacy_names";
+
+enum TestEnum: short (swift_no_legacy_names) {
+    FooBar,
+    BarBaz,
+    snake_case,
+    camelCase
+}
+
+enum TestEnumLegacy: short {
+    FooBar,
+    BarBaz,
+    snake_case,
+    camelCase
+}
+

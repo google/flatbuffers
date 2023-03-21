@@ -217,6 +217,11 @@ class SwiftGenerator : public BaseGenerator {
     code_ += "\n// MARK: - {{MARKVALUE}}\n";
   }
 
+  std::string VariantName(const EnumVal &ev, bool legacy) {
+    if (legacy) return namer_.LegacySwiftVariant(ev);
+    return namer_.Variant(ev.name);
+  }
+
   // MARK: - Generating structs
 
   // Generates the reader for swift
@@ -289,8 +294,12 @@ class SwiftGenerator : public BaseGenerator {
       if (!IsEnum(field.value.type)) {
         code_ += GenReaderMainBody() + "_{{FIELDVAR}} }";
       } else if (IsEnum(field.value.type)) {
-        code_ +=
-            GenReaderMainBody() + "{{VALUETYPE}}(rawValue: _{{FIELDVAR}})! }";
+        EnumDef &enum_def = *field.value.type.enum_def;
+        const bool is_bit_flags =
+            enum_def.attributes.Lookup("bit_flags") != nullptr;
+        code_ += GenReaderMainBody() +
+                 "{{VALUETYPE}}(rawValue: _{{FIELDVAR}})" +
+                 (is_bit_flags ? "" : "!") + " }";
       }
     }
     code_ += "";
@@ -355,10 +364,13 @@ class SwiftGenerator : public BaseGenerator {
         code_ +=
             GenReaderMainBody() + "return " + GenReader("VALUETYPE") + " }";
       } else if (IsEnum(field.value.type)) {
+        EnumDef &enum_def = *field.value.type.enum_def;
+        const bool is_bit_flags =
+            enum_def.attributes.Lookup("bit_flags") != nullptr;
         code_.SetValue("BASEVALUE", GenTypeBasic(field.value.type, false));
-        code_ += GenReaderMainBody() + "return " +
-                 GenEnumConstructor("{{OFFSET}}") + "?? " +
-                 GenEnumDefaultValue(field) + " }";
+        code_ +=
+            GenReaderMainBody() + "return " + GenEnumConstructor("{{OFFSET}}") +
+            (is_bit_flags ? "" : ("?? " + GenEnumDefaultValue(field))) + " }";
       } else if (IsStruct(field.value.type)) {
         code_.SetValue("VALUETYPE", GenType(field.value.type) + Mutable());
         code_ += GenReaderMainBody() + "return " +
@@ -733,12 +745,16 @@ class SwiftGenerator : public BaseGenerator {
     }
 
     if (IsEnum(field.value.type)) {
+      EnumDef &enum_def = *field.value.type.enum_def;
+      const bool is_bit_flags =
+          enum_def.attributes.Lookup("bit_flags") != nullptr;
       const auto default_value =
           field.IsOptional() ? "nil" : GenEnumDefaultValue(field);
       code_.SetValue("BASEVALUE", GenTypeBasic(field.value.type, false));
       code_ += GenReaderMainBody(optional) + "\\";
       code_ += GenOffset() + "return o == 0 ? " + default_value + " : " +
-               GenEnumConstructor("o") + "?? " + default_value + " }";
+               GenEnumConstructor("o") +
+               (is_bit_flags ? "" : ("?? " + default_value)) + " }";
       if (parser_.opts.mutable_buffer && !IsUnion(field.value.type))
         code_ += GenMutate("o", GenOffset(), true);
       return;
@@ -833,6 +849,11 @@ class SwiftGenerator : public BaseGenerator {
       code_ +=
           "{{ACCESS_TYPE}} var {{FIELDVAR}}: [{{VALUETYPE}}] { return "
           "{{ACCESS}}.getVector(at: {{TABLEOFFSET}}.{{OFFSET}}.v) ?? [] }";
+      code_ +=
+          "{{ACCESS_TYPE}} var {{FIELDVAR}}AsBuffer: "
+          "UnsafeBufferPointer<{{VALUETYPE}}> { return "
+          "{{ACCESS}}.getBufferPointer(at: {{TABLEOFFSET}}.{{OFFSET}}.v) ?? "
+          ".init(start: nil, count: 0) }";
       if (parser_.opts.mutable_buffer) code_ += GenMutateArray();
       return;
     }
@@ -842,11 +863,16 @@ class SwiftGenerator : public BaseGenerator {
       code_ +=
           "{{ACCESS}}.directRead(of: {{VALUETYPE}}.self, offset: "
           "{{ACCESS}}.vector(at: o) + index * {{SIZE}}) }";
+      // do this before we swap to mutable, we don't want the mutable version
+      code_ +=
+          "{{ACCESS_TYPE}} var {{FIELDVAR}}AsBuffer: "
+          "UnsafeBufferPointer<{{VALUETYPE}}> { return "
+          "{{ACCESS}}.getBufferPointer(at: {{TABLEOFFSET}}.{{OFFSET}}.v) ?? "
+          ".init(start: nil, count: 0) }";
       code_.SetValue("FIELDMETHOD", namer_.Method("mutable", field));
       code_.SetValue("VALUETYPE", GenType(field.value.type) + Mutable());
       code_ += GenArrayMainBody(nullable) + GenOffset() + const_string +
                GenConstructor("{{ACCESS}}.vector(at: o) + index * {{SIZE}}");
-
       return;
     }
 
@@ -907,6 +933,8 @@ class SwiftGenerator : public BaseGenerator {
 
   void GenerateEncoderUnionBody(const FieldDef &field) {
     EnumDef &union_def = *field.value.type.enum_def;
+    const bool is_legacy_naming =
+        union_def.attributes.Lookup("swift_no_legacy_names") == nullptr;
     const auto is_vector = field.value.type.base_type == BASE_TYPE_VECTOR ||
                            field.value.type.base_type == BASE_TYPE_ARRAY;
     if (field.value.type.base_type == BASE_TYPE_UTYPE ||
@@ -929,7 +957,7 @@ class SwiftGenerator : public BaseGenerator {
            ++it) {
         const auto &ev = **it;
         const auto type = GenType(ev.union_type);
-        code_.SetValue("KEY", namer_.LegacySwiftVariant(ev));
+        code_.SetValue("KEY", VariantName(ev, is_legacy_naming));
         code_.SetValue("VALUETYPE", type);
         if (ev.union_type.base_type == BASE_TYPE_NONE) { continue; }
         code_ += "case .{{KEY}}:";
@@ -950,7 +978,7 @@ class SwiftGenerator : public BaseGenerator {
          ++it) {
       const auto &ev = **it;
       const auto type = GenType(ev.union_type);
-      code_.SetValue("KEY", namer_.LegacySwiftVariant(ev));
+      code_.SetValue("KEY", VariantName(ev, is_legacy_naming));
       code_.SetValue("VALUETYPE", type);
       if (ev.union_type.base_type == BASE_TYPE_NONE) { continue; }
       code_ += "case .{{KEY}}:";
@@ -1082,6 +1110,8 @@ class SwiftGenerator : public BaseGenerator {
          field.value.type.VectorType().base_type == BASE_TYPE_UTYPE))
       return;
     EnumDef &union_def = *field.value.type.enum_def;
+    const bool is_legacy_naming =
+        union_def.attributes.Lookup("swift_no_legacy_names") == nullptr;
     code_.SetValue("VALUETYPE", namer_.NamespacedType(union_def));
     code_.SetValue("FUNCTION_NAME", is_vector ? "visitUnionVector" : "visit");
     code_ +=
@@ -1095,7 +1125,7 @@ class SwiftGenerator : public BaseGenerator {
          ++it) {
       const auto &ev = **it;
       const auto type = GenType(ev.union_type);
-      code_.SetValue("KEY", namer_.LegacySwiftVariant(ev));
+      code_.SetValue("KEY", VariantName(ev, is_legacy_naming));
       code_.SetValue("VALUETYPE", type);
       code_ += "case .{{KEY}}:";
       Indent();
@@ -1158,18 +1188,29 @@ class SwiftGenerator : public BaseGenerator {
 
   void GenEnum(const EnumDef &enum_def) {
     if (enum_def.generated) return;
+    const bool is_bit_flags =
+        enum_def.attributes.Lookup("bit_flags") != nullptr;
+    const bool is_legacy_naming =
+        enum_def.attributes.Lookup("swift_no_legacy_names") == nullptr;
     const bool is_private_access = parser_.opts.swift_implementation_only ||
        enum_def.attributes.Lookup("private") != nullptr;
     code_.SetValue("ENUM_TYPE",
                    enum_def.is_union ? "UnionEnum" : "Enum, Verifiable");
     code_.SetValue("ACCESS_TYPE", is_private_access ? "internal" : "public");
     code_.SetValue("ENUM_NAME", namer_.NamespacedType(enum_def));
-    code_.SetValue("BASE_TYPE", GenTypeBasic(enum_def.underlying_type, false));
+    code_.SetValue("BASE_TYPE",
+                   is_bit_flags
+                       ? "OptionSet"
+                       : GenTypeBasic(enum_def.underlying_type, false));
+    code_.SetValue("UNDERLYING_TYPE",
+                   GenTypeBasic(enum_def.underlying_type, false));
+    code_.SetValue("DECL_TYPE", is_bit_flags ? "struct" : "enum");
     GenComment(enum_def.doc_comment);
     code_ +=
-        "{{ACCESS_TYPE}} enum {{ENUM_NAME}}: {{BASE_TYPE}}, {{ENUM_TYPE}} {";
+        "{{ACCESS_TYPE}} {{DECL_TYPE}} {{ENUM_NAME}}: {{BASE_TYPE}}, "
+        "{{ENUM_TYPE}} {";
     Indent();
-    code_ += "{{ACCESS_TYPE}} typealias T = {{BASE_TYPE}}";
+    code_ += "{{ACCESS_TYPE}} typealias T = {{UNDERLYING_TYPE}}";
     if (enum_def.is_union) {
       code_ += "";
       code_ += "{{ACCESS_TYPE}} init?(value: T) {";
@@ -1177,25 +1218,51 @@ class SwiftGenerator : public BaseGenerator {
       code_ += "self.init(rawValue: value)";
       Outdent();
       code_ += "}\n";
+    } else if (is_bit_flags) {
+      code_ += "{{ACCESS_TYPE}} let rawValue: T";
+      code_ += "";
+      code_ += "{{ACCESS_TYPE}} init(rawValue: T) {";
+      Indent();
+      code_ += "self.rawValue = rawValue";
+      Outdent();
+      code_ += "}\n";
     }
     code_ +=
         "{{ACCESS_TYPE}} static var byteSize: Int { return "
-        "MemoryLayout<{{BASE_TYPE}}>.size "
+        "MemoryLayout<{{UNDERLYING_TYPE}}>.size "
         "}";
     code_ +=
-        "{{ACCESS_TYPE}} var value: {{BASE_TYPE}} { return self.rawValue }";
+        "{{ACCESS_TYPE}} var value: {{UNDERLYING_TYPE}} { return self.rawValue "
+        "}";
+
+    std::string all_bit_flags = "";
+
     for (auto it = enum_def.Vals().begin(); it != enum_def.Vals().end(); ++it) {
       const auto &ev = **it;
-      code_.SetValue("KEY", namer_.LegacySwiftVariant(ev));
+      const auto variant = VariantName(ev, is_legacy_naming);
+      code_.SetValue("KEY", variant);
       code_.SetValue("VALUE", enum_def.ToString(ev));
       GenComment(ev.doc_comment);
-      code_ += "case {{KEY}} = {{VALUE}}";
+      if (is_bit_flags) {
+        code_ +=
+            "{{ACCESS_TYPE}} static let {{KEY}}"
+            " = {{ENUM_NAME}}(rawValue: {{VALUE}})";
+        if (it != enum_def.Vals().begin()) all_bit_flags += ", ";
+        all_bit_flags += "." + variant;
+      } else
+        code_ += "case {{KEY}} = {{VALUE}}";
     }
     code_ += "";
-    AddMinOrMaxEnumValue(namer_.LegacySwiftVariant(*enum_def.MaxValue()),
-                         "max");
-    AddMinOrMaxEnumValue(namer_.LegacySwiftVariant(*enum_def.MinValue()),
-                         "min");
+    if (is_bit_flags) {
+      code_ += "{{ACCESS_TYPE}} static let none: {{ENUM_NAME}} = []";
+      code_ += "{{ACCESS_TYPE}} static let all: {{ENUM_NAME}} = [" +
+               all_bit_flags + "]";
+    } else {
+      AddMinOrMaxEnumValue(VariantName(*enum_def.MaxValue(), is_legacy_naming),
+                           "max");
+      AddMinOrMaxEnumValue(VariantName(*enum_def.MinValue(), is_legacy_naming),
+                           "min");
+    }
     Outdent();
     code_ += "}\n";
     if (parser_.opts.gen_json_coders) EnumEncoder(enum_def);
@@ -1225,19 +1292,28 @@ class SwiftGenerator : public BaseGenerator {
   }
 
   void EnumEncoder(const EnumDef &enum_def) {
+    const bool is_bit_flags =
+        enum_def.attributes.Lookup("bit_flags") != nullptr;
+    const bool is_legacy_naming =
+        enum_def.attributes.Lookup("swift_no_legacy_names") == nullptr;
     code_ += "extension {{ENUM_NAME}}: Encodable {";
     Indent();
     code_ += "{{ACCESS_TYPE}} func encode(to encoder: Encoder) throws {";
     Indent();
     code_ += "var container = encoder.singleValueContainer()";
-    code_ += "switch self {";
-    for (auto it = enum_def.Vals().begin(); it != enum_def.Vals().end(); ++it) {
-      const auto &ev = **it;
-      code_.SetValue("KEY", namer_.LegacySwiftVariant(ev));
-      code_.SetValue("RAWKEY", ev.name);
-      code_ += "case .{{KEY}}: try container.encode(\"{{RAWKEY}}\")";
+    if (!is_bit_flags) {
+      code_ += "switch self {";
+      for (auto it = enum_def.Vals().begin(); it != enum_def.Vals().end();
+           ++it) {
+        const auto &ev = **it;
+        code_.SetValue("KEY", VariantName(ev, is_legacy_naming));
+        code_.SetValue("RAWKEY", ev.name);
+        code_ += "case .{{KEY}}: try container.encode(\"{{RAWKEY}}\")";
+      }
+      code_ += "}";
+    } else {
+      code_ += "try container.encode(rawValue)";
     }
-    code_ += "}";
     Outdent();
     code_ += "}";
     Outdent();
@@ -1649,10 +1725,12 @@ class SwiftGenerator : public BaseGenerator {
   }
 
   void BuildUnionEnumSwitchCaseWritter(const EnumDef &ed) {
+    const bool is_legacy_naming =
+        ed.attributes.Lookup("swift_no_legacy_names") == nullptr;
     code_ += "switch type {";
     for (auto it = ed.Vals().begin(); it < ed.Vals().end(); ++it) {
       const auto ev = **it;
-      const auto variant = namer_.LegacySwiftVariant(ev);
+      const auto variant = VariantName(ev, is_legacy_naming);
       const auto type = GenType(ev.union_type);
       const auto is_struct = IsStruct(ev.union_type) ? type + Mutable() : type;
       if (ev.union_type.base_type == BASE_TYPE_NONE) { continue; }
@@ -1671,6 +1749,8 @@ class SwiftGenerator : public BaseGenerator {
                                 const std::string &indentation = "",
                                 const bool is_vector = false) {
     const auto ns_type = namer_.NamespacedType(ed);
+    const bool is_legacy_naming =
+        ed.attributes.Lookup("swift_no_legacy_names") == nullptr;
     code_.SetValue("VALUETYPE", ns_type);
     code_ += "{{ACCESS_TYPE}} var {{FIELDVAR}}: \\";
     code_ += is_vector ? "[{{VALUETYPE}}Union?]" : "{{VALUETYPE}}Union?";
@@ -1681,7 +1761,7 @@ class SwiftGenerator : public BaseGenerator {
 
     for (auto it = ed.Vals().begin(); it < ed.Vals().end(); ++it) {
       const auto ev = **it;
-      const auto variant = namer_.LegacySwiftVariant(ev);
+      const auto variant = VariantName(ev, is_legacy_naming);
       if (ev.union_type.base_type == BASE_TYPE_NONE) { continue; }
       const auto type = IsStruct(ev.union_type)
                             ? GenType(ev.union_type) + Mutable()
@@ -1816,14 +1896,16 @@ class SwiftGenerator : public BaseGenerator {
     const auto &value = field.value;
     FLATBUFFERS_ASSERT(value.type.enum_def);
     const auto &enum_def = *value.type.enum_def;
+    const bool is_legacy_naming =
+        enum_def.attributes.Lookup("swift_no_legacy_names") == nullptr;
     // Vector of enum defaults are always "[]" which never works.
     const std::string constant = IsVector(value.type) ? "0" : value.constant;
     const auto enum_val = enum_def.FindByValue(constant);
     if (enum_val) {
-      return "." + namer_.LegacySwiftVariant(*enum_val);
+      return "." + VariantName(*enum_val, is_legacy_naming);
     } else {
       const auto &ev = **enum_def.Vals().begin();
-      return "." + namer_.LegacySwiftVariant(ev);
+      return "." + VariantName(ev, is_legacy_naming);
     }
   }
 
