@@ -217,6 +217,10 @@ class FlatBuffersMonsterWriterTests: XCTestCase {
 
     XCTAssertEqual(monster.testType, .monster)
 
+    XCTAssertTrue(monster.mutate(testbool: false))
+    XCTAssertEqual(monster.testbool, false)
+    XCTAssertTrue(monster.mutate(testbool: true))
+
     XCTAssertEqual(monster.mutate(inventory: 1, at: 0), true)
     XCTAssertEqual(monster.mutate(inventory: 2, at: 1), true)
     XCTAssertEqual(monster.mutate(inventory: 3, at: 2), true)
