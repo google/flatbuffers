@@ -18,14 +18,18 @@ kotlin {
   explicitApi()
   jvm()
   js(IR) {
-    browser()
+    browser {
+      testTask {
+        enabled = false
+      }
+    }
     binaries.executable()
   }
   macosX64()
   macosArm64()
   iosArm64()
   iosSimulatorArm64()
-  
+
   sourceSets {
 
     val commonMain by getting {

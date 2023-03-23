@@ -50,13 +50,14 @@ public class FlexBuffersBuilder(
    * @return [ReadBuffer] containing the FlexBuffer message
    */
   public fun finish(): ReadBuffer {
-    // If you hit this assert, you likely have objects that were never included
+    // If you hit this, you likely have objects that were never included
     // in a parent. You need to have exactly one root to finish a buffer.
     // Check your Start/End calls are matched, and all objects are inside
     // some other object.
     if (stack.size != 1) error("There is must be only on object as root. Current ${stack.size}.")
     // Write root value.
     val byteWidth = align(stack[0].elemWidth(buffer.writePosition, 0))
+    buffer.requestAdditionalCapacity(byteWidth.value + 2)
     writeAny(stack[0], byteWidth)
     // Write root type.
     buffer.put(stack[0].storedPackedType())
@@ -199,7 +200,9 @@ public class FlexBuffersBuilder(
   public operator fun set(key: String? = null, value: String): Int {
     val iKey = putKey(key)
     val holder = if (shareFlag and SHARE_STRINGS != 0) {
-      stringValuePool.getOrPut(value) { writeString(iKey, value).also { stringValuePool[value] = it } }.copy(key = iKey)
+      stringValuePool.getOrPut(value) {
+        writeString(iKey, value).also { stringValuePool[value] = it }
+      }.copy(key = iKey)
     } else {
       writeString(iKey, value)
     }
@@ -492,13 +495,17 @@ public class FlexBuffersBuilder(
     return if ((shareFlag and SHARE_KEYS) != 0) {
       stringKeyPool.getOrPut(key) {
         val pos: Int = buffer.writePosition
-        buffer.put(key)
+        val encodedKeySize = Utf8.encodedLength(key)
+        buffer.requestAdditionalCapacity(encodedKeySize + 1)
+        buffer.put(key, encodedKeySize)
         buffer.put(ZeroByte)
         pos
       }
     } else {
       val pos: Int = buffer.writePosition
-      buffer.put(key)
+      val encodedKeySize = Utf8.encodedLength(key)
+      buffer.requestAdditionalCapacity(encodedKeySize + 1)
+      buffer.put(key, encodedKeySize)
       buffer.put(ZeroByte)
       pos
     }
@@ -511,26 +518,31 @@ public class FlexBuffersBuilder(
   }
 
   private fun writeString(key: Int, s: String): Value {
-    val size = Utf8.encodedLength(s)
-    val bitWidth = size.toULong().widthInUBits()
+    val encodedSize = Utf8.encodedLength(s)
+    val bitWidth = encodedSize.toULong().widthInUBits()
     val byteWidth = align(bitWidth)
 
-    writeInt(size, byteWidth)
+    writeInt(encodedSize, byteWidth)
 
+    buffer.requestAdditionalCapacity(encodedSize + 1)
     val sloc: Int = buffer.writePosition
-    if (size > 0)
-      buffer.put(s, size)
+    if (encodedSize > 0)
+      buffer.put(s, encodedSize)
     buffer.put(ZeroByte)
     return Value(T_STRING, key, bitWidth, sloc.toULong())
   }
 
-  private fun writeDouble(toWrite: Double, byteWidth: ByteWidth): Unit = when (byteWidth.value) {
-    4 -> buffer.put(toWrite.toFloat())
-    8 -> buffer.put(toWrite)
-    else -> Unit
+  private fun writeDouble(toWrite: Double, byteWidth: ByteWidth) {
+    buffer.requestAdditionalCapacity(byteWidth.value)
+    when (byteWidth.value) {
+      4 -> buffer.put(toWrite.toFloat())
+      8 -> buffer.put(toWrite)
+      else -> Unit
+    }
   }
 
   private fun writeOffset(toWrite: Int, byteWidth: ByteWidth) {
+    buffer.requestAdditionalCapacity(byteWidth.value)
     val relativeOffset = (buffer.writePosition - toWrite)
     if (byteWidth.value != 8 && relativeOffset >= 1L shl byteWidth.value * 8) error("invalid offset $relativeOffset, writer pos ${buffer.writePosition}")
     writeInt(relativeOffset, byteWidth)
@@ -543,6 +555,7 @@ public class FlexBuffersBuilder(
     writeInt(blob.size, byteWidth)
 
     val sloc: Int = buffer.writePosition
+    buffer.requestAdditionalCapacity(blob.size + trailing.compareTo(false))
     buffer.put(blob, 0, blob.size)
     if (trailing) {
       buffer.put(ZeroByte)
@@ -560,10 +573,12 @@ public class FlexBuffersBuilder(
     writeIntegerArray(0, value.size, byteWidth) { value[it].toULong() }
 
   private fun writeFloatArray(value: FloatArray) {
+    buffer.requestAdditionalCapacity(Float.SIZE_BYTES * value.size)
     value.forEach { buffer.put(it) }
   }
 
   private fun writeFloatArray(value: DoubleArray) {
+    buffer.requestAdditionalCapacity(Double.SIZE_BYTES * value.size)
     value.forEach { buffer.put(it) }
   }
 
@@ -573,6 +588,7 @@ public class FlexBuffersBuilder(
     byteWidth: ByteWidth,
     crossinline valueBlock: (Int) -> ULong
   ) {
+    buffer.requestAdditionalCapacity(size * byteWidth.value)
     return when (byteWidth.value) {
       1 -> for (i in start until start + size) {
         buffer.put(valueBlock(i).toUByte())
@@ -590,20 +606,26 @@ public class FlexBuffersBuilder(
     }
   }
 
-  private fun writeInt(value: Int, byteWidth: ByteWidth) = when (byteWidth.value) {
-    1 -> buffer.put(value.toUByte())
-    2 -> buffer.put(value.toUShort())
-    4 -> buffer.put(value.toUInt())
-    8 -> buffer.put(value.toULong())
-    else -> Unit
+  private fun writeInt(value: Int, byteWidth: ByteWidth) {
+    buffer.requestAdditionalCapacity(byteWidth.value)
+    when (byteWidth.value) {
+      1 -> buffer.put(value.toUByte())
+      2 -> buffer.put(value.toUShort())
+      4 -> buffer.put(value.toUInt())
+      8 -> buffer.put(value.toULong())
+      else -> Unit
+    }
   }
 
-  private fun writeInt(value: ULong, byteWidth: ByteWidth) = when (byteWidth.value) {
-    1 -> buffer.put(value.toUByte())
-    2 -> buffer.put(value.toUShort())
-    4 -> buffer.put(value.toUInt())
-    8 -> buffer.put(value)
-    else -> Unit
+  private fun writeInt(value: ULong, byteWidth: ByteWidth) {
+    buffer.requestAdditionalCapacity(byteWidth.value)
+    when(byteWidth.value) {
+      1 -> buffer.put(value.toUByte())
+      2 -> buffer.put(value.toUShort())
+      4 -> buffer.put(value.toUInt())
+      8 -> buffer.put(value)
+      else -> Unit
+    }
   }
 
   // Align to prepare for writing a scalar with a certain size.
@@ -611,6 +633,7 @@ public class FlexBuffersBuilder(
   private fun align(alignment: BitWidth): ByteWidth {
     val byteWidth = 1 shl alignment.value
     var padBytes = paddingBytes(buffer.writePosition, byteWidth)
+    buffer.requestCapacity(buffer.capacity + padBytes)
     while (padBytes-- != 0) {
       buffer.put(ZeroByte)
     }
@@ -649,6 +672,7 @@ public class FlexBuffersBuilder(
   private inline fun createVector(key: Int, start: Int, length: Int, keys: Value? = null): Value {
     return createAnyVector(key, start, length, T_VECTOR, keys) {
       // add types since we are not creating a typed vector.
+      buffer.requestAdditionalCapacity(stack.size)
       for (i in start until stack.size) {
         buffer.put(stack[i].storedPackedType(it))
       }
@@ -658,6 +682,7 @@ public class FlexBuffersBuilder(
   private fun putMap(key: Int, start: Int, length: Int, keys: Value? = null): Value {
     return createAnyVector(key, start, length, T_MAP, keys) {
       // add types since we are not creating a typed vector.
+      buffer.requestAdditionalCapacity(stack.size)
       for (i in start until stack.size) {
         buffer.put(stack[i].storedPackedType(it))
       }
@@ -682,7 +707,7 @@ public class FlexBuffersBuilder(
     keys: Value? = null,
     crossinline typeBlock: (BitWidth) -> Unit = {}
   ): Value {
-    // Figure out smallest bit width we can store this vector with.
+    // Figure out the smallest bit width we can store this vector with.
     var bitWidth = W_8.max(length.toULong().widthInUBits())
     var prefixElems = 1
     if (keys != null) {

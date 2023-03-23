@@ -110,7 +110,7 @@ public interface ReadBuffer {
   public fun getDouble(index: Int): Double
 
   /**
-   * Read an UTF-8 string from the buffer.
+   * Read a UTF-8 string from the buffer.
    * @param start initial element of the string
    * @param size size of the string in bytes.
    * @return a `String`
@@ -126,7 +126,7 @@ public interface ReadBuffer {
 
   /**
    * Expose [ReadBuffer] as an array of bytes.
-   * This method is meant to be as efficient as possible, so for a array-backed [ReadBuffer], it should
+   * This method is meant to be as efficient as possible, so for an array-backed [ReadBuffer], it should
    * return its own internal data. In case access to internal data is not possible,
    * a copy of the data into an array of bytes might occur.
    * @return [ReadBuffer] as an array of bytes
@@ -157,6 +157,29 @@ public interface ReadWriteBuffer : ReadBuffer {
    * Clears (resets) the buffer so that it can be reused. Write position will be set to the start.
    */
   public fun clear()
+
+  /**
+   * Request capacity of the buffer relative to [writePosition]. In case buffer is already larger
+   * than the requested, this method will just return true. Otherwise,
+   * It might try to resize the buffer. In case of being unable to allocate
+   * enough memory, an exception will be thrown.
+   * @param additional capacity in bytes to be added on top of [writePosition]
+   * @param copyAtEnd copy current data at the end of new underlying buffer
+   * @return new capacity in bytes
+   */
+  public fun requestAdditionalCapacity(additional: Int, copyAtEnd: Boolean = false): Int =
+    requestCapacity(writePosition + additional, copyAtEnd)
+
+  /**
+   * Request capacity of the buffer in absolute values. In case buffer is already larger
+   * than the requested the method is a no-op. Otherwise,
+   * It might try to resize the buffer. In case of being unable to allocate
+   * enough memory, an exception will be thrown.
+   * @param capacity new capacity
+   * @param copyAtEnd copy current data at the end of new underlying buffer
+   * @return new capacity in bytes
+   */
+  public fun requestCapacity(capacity: Int, copyAtEnd: Boolean = false): Int
 
   /**
    * Put a [Boolean] into the buffer at [writePosition] . Booleans as stored as single byte.
@@ -197,7 +220,7 @@ public interface ReadWriteBuffer : ReadBuffer {
   public fun put(value: Short)
 
   /**
-   * Writea [UShort] into in the buffer at [writePosition]. Write position will be incremented.
+   * Write a [UShort] into in the buffer at [writePosition]. Write position will be incremented.
    */
   public fun put(value: UShort)
 
@@ -325,6 +348,8 @@ public interface ReadWriteBuffer : ReadBuffer {
    */
   public fun set(index: Int, value: Double)
 
+  public fun fill(value: Byte, start: Int, end: Int)
+
   /**
    * Current position of the buffer to be written. It will be automatically updated on [put] operations.
    */
@@ -342,10 +367,12 @@ public interface ReadWriteBuffer : ReadBuffer {
    * Special operation where we increase the backed buffer size to [capacity]
    * and shift all already written data to the end of the buffer.
    *
-   * This function is mostly used when creating a flatbuffer message, as
+   * This function is mostly used when creating a Flatbuffer message, as
    * data is written from the end of the buffer towards index 0.
+   * @param capacity required in bytes
+   * @return new capacity in bytes
    */
-  public fun moveWrittenDataToEnd(capacity: Int)
+  public fun moveWrittenDataToEnd(capacity: Int): Int
 
   /**
    * Maximum size in bytes that the backed buffer supports.
@@ -365,6 +392,7 @@ public open class ArrayReadBuffer(protected var buffer: ByteArray,
                                   // will write first byte at position 2 of the backed buffer
                                   internal val offset: Int = 0,
                                   override val limit: Int = buffer.size - offset) : ReadBuffer {
+
 
   override fun findFirst(value: Byte, start: Int, end: Int): Int {
     val e = min(end, limit)
@@ -416,10 +444,11 @@ public open class ArrayReadBuffer(protected var buffer: ByteArray,
  *
  * This class is not thread-safe, meaning that
  * it must operate on a single thread. Operating from
- * multiple thread leads into a undefined behavior
+ * multiple thread leads into an undefined behavior
  *
  * All operations assume Little Endian byte order.
  */
+
 public class ArrayReadWriteBuffer(
   buffer: ByteArray,
   offset: Int = 0,
@@ -503,27 +532,20 @@ public class ArrayReadWriteBuffer(
 
   override fun put(value: CharSequence, encodedLength: Int): Int {
     val length = if (encodedLength != -1) encodedLength else Utf8.encodedLength(value)
-    withCapacity(writePosition + length) {
-      writePosition = setCharSequence(writePosition, value)
-    }
+    writePosition = buffer.setCharSequence(writePosition, value)
     return length
   }
 
   override fun set(index: Int, value: Boolean) {
-    withCapacity(index + 1) {
-      set(index, if (value) 1.toByte() else 0.toByte())
-    }
+    buffer[index] = if (value) 1.toByte() else 0.toByte()
   }
 
   override fun set(dstIndex: Int, src: ByteArray, srcStart: Int, srcLength: Int) {
-    withCapacity(dstIndex + srcLength + srcStart) {
-      src.copyInto(buffer, dstIndex, srcStart, srcStart + srcLength)
-    }
+    src.copyInto(buffer, dstIndex, srcStart, srcStart + srcLength)
   }
 
   override operator fun set(dstIndex: Int, src: ReadBuffer, srcStart: Int, srcLength: Int) {
-    withCapacity(dstIndex + (srcLength + srcStart)) {
-      when(src) {
+    when(src) {
         is ArrayReadBuffer -> {
           src.data().copyInto(buffer, dstIndex, src.offset + srcStart, src.offset + srcStart + srcLength)
         }
@@ -533,32 +555,32 @@ public class ArrayReadWriteBuffer(
           }
         }
       }
-    }
   }
 
-  override operator fun set(index: Int, value: Byte): Unit = withCapacity(index + 1) { set(index, value) }
-  override operator fun set(index: Int, value: UByte): Unit = withCapacity(index + 1) { setUByte(index, value) }
-  override operator fun set(index: Int, value: Short): Unit = withCapacity(index + 2) { setShort(index, value) }
-  override operator fun set(index: Int, value: UShort): Unit = withCapacity(index + 2) { setUShort(index, value) }
-  override operator fun set(index: Int, value: Int): Unit = withCapacity(index + 4) { setInt(index, value) }
-  override operator fun set(index: Int, value: UInt): Unit = withCapacity(index + 4) { setUInt(index, value) }
-  override operator fun set(index: Int, value: Long): Unit = withCapacity(index + 8) { setLong(index, value) }
-  override operator fun set(index: Int, value: ULong): Unit = withCapacity(index + 8) { setULong(index, value) }
-  override operator fun set(index: Int, value: Float): Unit = withCapacity(index + 4) { setFloat(index, value) }
-  override operator fun set(index: Int, value: Double): Unit = withCapacity(index + 8) { setDouble(index, value) }
+  override operator fun set(index: Int, value: Byte) { buffer[index] = value }
+  override operator fun set(index: Int, value: UByte) { buffer.setUByte(index, value) }
+  override operator fun set(index: Int, value: Short) { buffer.setShort(index, value) }
+  override operator fun set(index: Int, value: UShort) { buffer.setUShort(index, value) }
+  override operator fun set(index: Int, value: Int) { buffer.setInt(index, value) }
+  override operator fun set(index: Int, value: UInt) { buffer.setUInt(index, value) }
+  override operator fun set(index: Int, value: Long) { buffer.setLong(index, value) }
+  override operator fun set(index: Int, value: ULong) { buffer.setULong(index, value) }
+  override operator fun set(index: Int, value: Float) { buffer.setFloat(index, value) }
+  override operator fun set(index: Int, value: Double) { buffer.setDouble(index, value) }
+  override fun fill(value: Byte, start: Int, end: Int) { buffer.fill(value, start, end) }
 
   /**
    * Request capacity of the buffer. In case buffer is already larger
-   * than the requested, this method will just return true. Otherwise,
+   * than the requested, it is a no-op. Otherwise,
    * It might try to resize the buffer. In case of being unable to allocate
    * enough memory, an exception will be thrown.
    * @param capacity new capacity
    * @param copyAtEnd copy current data at the end of new underlying buffer
    */
-  public fun requestCapacity(capacity: Int, copyAtEnd: Boolean) {
+  override fun requestCapacity(capacity: Int, copyAtEnd: Boolean): Int {
     if (capacity < 0) error("Capacity may not be negative (likely a previous int overflow)")
 
-    if (buffer.size >= capacity) return
+    if (buffer.size >= capacity) return buffer.size
 
     if (writeLimit > 0 && writeLimit + offset >= buffer.size) error("Buffer in writeLimit mode. In writeLimit mode" +
       " the buffer does not grow automatically and any write beyond writeLimit will throw exception. " +
@@ -566,7 +588,7 @@ public class ArrayReadWriteBuffer(
     // implemented in the same growing fashion as ArrayList
     val oldCapacity = buffer.size
     if (oldCapacity == Int.MAX_VALUE - 8) { // Ensure we don't grow beyond what fits in an int.
-      error("FlatBuffers: cannot grow buffer beyond 2 gigabytes.");
+      error("FlatBuffers: cannot grow buffer beyond 2 gigabytes.")
     }
     //(old_buf_size & 0xC0000000) != 0 ? MAX_BUFFER_SIZE : old_buf_size << 1;
     var newCapacity = 8
@@ -577,23 +599,18 @@ public class ArrayReadWriteBuffer(
 
     buffer.copyInto(newBuffer, if (copyAtEnd) newBuffer.size - buffer.size else 0)
     buffer = newBuffer
+    return newCapacity
   }
 
   override fun writeSlice(offset: Int, size: Int): ReadWriteBuffer {
     return ArrayReadWriteBuffer(this.buffer, offset=offset, writeLimit=size)
   }
 
-  override fun moveWrittenDataToEnd(capacity: Int) {
-    requestCapacity(capacity, true)
-  }
+  override fun moveWrittenDataToEnd(capacity: Int): Int = requestCapacity(capacity, true)
 
   override val capacity: Int
     get() = buffer.size
 
-  private inline fun withCapacity(size: Int, crossinline action: ByteArray.() -> Unit) {
-    requestCapacity(size, false)
-    buffer.action()
-  }
 }
 
 public val emptyBuffer: ReadWriteBuffer = ArrayReadWriteBuffer(ByteArray(1))

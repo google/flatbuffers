@@ -42,12 +42,13 @@ kotlin {
         implementation(kotlin("stdlib-common"))
         implementation(project(":flatbuffers-kotlin"))
         implementation(libs.kotlinx.benchmark.runtime)
-        implementation("com.google.flatbuffers:flatbuffers-java:2.0.3")
+        implementation("com.google.flatbuffers:flatbuffers-java:23.3.3")
         // json serializers
         implementation(libs.moshi.kotlin)
         implementation(libs.gson)
       }
       kotlin.srcDir("src/jvmMain/generated/kotlin/")
+      kotlin.srcDir("src/jvmMain/generated/java/")
     }
   }
 }
@@ -73,7 +74,7 @@ abstract class GenerateFBTestClasses : DefaultTask() {
   abstract val outputFolder: Property<String>
 
   @get:Input
-  abstract val variant: Property<String>
+  abstract val variants: ListProperty<String>
 
   @Inject
   protected open fun getExecActionFactory(): org.gradle.process.internal.ExecActionFactory? {
@@ -88,7 +89,8 @@ abstract class GenerateFBTestClasses : DefaultTask() {
   fun compile() {
     val execAction = getExecActionFactory()!!.newExecAction()
     val sources = inputFiles.asPath.split(":")
-    val args = mutableListOf("flatc","-o", outputFolder.get(), "--${variant.get()}")
+    val langs = variants.get().map { "--$it" }
+    val args = mutableListOf("flatc","-o", outputFolder.get(), *langs.toTypedArray())
     if (includeFolder.get().isNotEmpty()) {
       args.add("-I")
       args.add(includeFolder.get())
@@ -102,18 +104,22 @@ abstract class GenerateFBTestClasses : DefaultTask() {
 
 // Use the default greeting
 tasks.register<GenerateFBTestClasses>("generateFBTestClassesKt") {
-  inputFiles.setFrom("$rootDir/../tests/monster_test.fbs",
-    "$rootDir/../tests/dictionary_lookup.fbs",
-    "$rootDir/../tests/union_vector/union_vector.fbs",
-    "$rootDir/../tests/optional_scalars.fbs",
-    "$rootDir/../tests/namespace_test/namespace_test1.fbs",
-    "$rootDir/../tests/namespace_test/namespace_test2.fbs")
+  inputFiles.setFrom("$projectDir/monster_test_kotlin.fbs")
   includeFolder.set("$rootDir/../tests/include_test")
   outputFolder.set("${projectDir}/src/jvmMain/generated/kotlin/")
-  variant.set("kotlin-kmp")
+  variants.addAll("kotlin-kmp")
+}
+
+tasks.register<GenerateFBTestClasses>("generateFBTestClassesJava") {
+  inputFiles.setFrom("$projectDir/monster_test_java.fbs")
+  includeFolder.set("$rootDir/../tests/include_test")
+  outputFolder.set("${projectDir}/src/jvmMain/generated/java/")
+  variants.addAll("kotlin")
 }
 
 project.tasks.forEach {
-  if (it.name.contains("compileKotlin"))
+  if (it.name.contains("compileKotlin")) {
     it.dependsOn("generateFBTestClassesKt")
+    it.dependsOn("generateFBTestClassesJava")
+  }
 }
