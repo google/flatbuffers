@@ -851,9 +851,8 @@ class SwiftGenerator : public BaseGenerator {
           "{{ACCESS}}.getVector(at: {{TABLEOFFSET}}.{{OFFSET}}.v) ?? [] }";
       code_ +=
           "{{ACCESS_TYPE}} var {{FIELDVAR}}AsBuffer: "
-          "UnsafeBufferPointer<{{VALUETYPE}}> { return "
-          "{{ACCESS}}.getBufferPointer(at: {{TABLEOFFSET}}.{{OFFSET}}.v) ?? "
-          ".init(start: nil, count: 0) }";
+          "UnsafeBufferPointer<{{VALUETYPE}}>? { return "
+          "{{ACCESS}}.getBufferPointer(at: {{TABLEOFFSET}}.{{OFFSET}}.v) }";
       if (parser_.opts.mutable_buffer) code_ += GenMutateArray();
       return;
     }
@@ -866,9 +865,8 @@ class SwiftGenerator : public BaseGenerator {
       // do this before we swap to mutable, we don't want the mutable version
       code_ +=
           "{{ACCESS_TYPE}} var {{FIELDVAR}}AsBuffer: "
-          "UnsafeBufferPointer<{{VALUETYPE}}> { return "
-          "{{ACCESS}}.getBufferPointer(at: {{TABLEOFFSET}}.{{OFFSET}}.v) ?? "
-          ".init(start: nil, count: 0) }";
+          "UnsafeBufferPointer<{{VALUETYPE}}>? { return "
+          "{{ACCESS}}.getBufferPointer(at: {{TABLEOFFSET}}.{{OFFSET}}.v) }";
       code_.SetValue("FIELDMETHOD", namer_.Method("mutable", field));
       code_.SetValue("VALUETYPE", GenType(field.value.type) + Mutable());
       code_ += GenArrayMainBody(nullable) + GenOffset() + const_string +
