@@ -230,7 +230,7 @@ public struct Monster: FlatBufferObject, Verifiable {
   public var inventoryCount: Int32 { let o = _accessor.offset(VTOFFSET.inventory.v); return o == 0 ? 0 : _accessor.vector(count: o) }
   public func inventory(at index: Int32) -> UInt8 { let o = _accessor.offset(VTOFFSET.inventory.v); return o == 0 ? 0 : _accessor.directRead(of: UInt8.self, offset: _accessor.vector(at: o) + index * 1) }
   public var inventory: [UInt8] { return _accessor.getVector(at: VTOFFSET.inventory.v) ?? [] }
-  public var inventoryAsBuffer: UnsafeBufferPointer<UInt8> { return _accessor.getBufferPointer(at: VTOFFSET.inventory.v) ?? .init(start: nil, count: 0) }
+  public var inventoryAsBuffer: UnsafeBufferPointer<UInt8>? { return _accessor.getBufferPointer(at: VTOFFSET.inventory.v) }
   public var color: Color { let o = _accessor.offset(VTOFFSET.color.v); return o == 0 ? .blue : Color(rawValue: _accessor.readBuffer(of: UInt8.self, at: o))  }
   public static func startMonster(_ fbb: inout FlatBufferBuilder) -> UOffset { fbb.startTable(with: 7) }
   public static func add(pos: Vec3?, _ fbb: inout FlatBufferBuilder) { guard let pos = pos else { return }; fbb.create(struct: pos, position: VTOFFSET.pos.p) }
