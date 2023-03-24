@@ -1837,6 +1837,14 @@ CheckedError Parser::ParseMetaData(SymbolTable<Value> *attributes) {
       EXPECT(',');
     }
   }
+  // append the global attributes, in the order they were declared global. If an attribute
+  // with the same name exists, the local declaration takes precedence.
+  for (auto& attr_name : global_attributes_.vec_keys) {
+    if (attributes->Lookup(attr_name) != nullptr) continue;
+    auto vp = global_attributes_.Lookup(attr_name);
+    auto e = new Value(*vp);
+    attributes->Add(attr_name, e);
+  }
   return NoError();
 }
 
@@ -3616,6 +3624,7 @@ CheckedError Parser::DoParse(const char *source, const char **include_paths,
       break;
     }
   }
+
   // Now parse all other kinds of declarations:
   while (token_ != kTokenEof) {
     if (opts.proto_mode) {
@@ -3665,6 +3674,10 @@ CheckedError Parser::DoParse(const char *source, const char **include_paths,
       }
       EXPECT(';');
       known_attributes_[name] = false;
+    } else if (IsIdent("global")) {
+      NEXT();
+      ECHECK(ParseMetaData(&global_attributes_));
+      EXPECT(';');
     } else if (IsIdent("rpc_service")) {
       ECHECK(ParseService(source_filename));
     } else {
