@@ -109,9 +109,9 @@ public struct optional_scalars_ScalarStuff: FlatBufferObject, Verifiable {
   public var justF64: Double { let o = _accessor.offset(VTOFFSET.justF64.v); return o == 0 ? 0.0 : _accessor.readBuffer(of: Double.self, at: o) }
   public var maybeF64: Double? { let o = _accessor.offset(VTOFFSET.maybeF64.v); return o == 0 ? nil : _accessor.readBuffer(of: Double.self, at: o) }
   public var defaultF64: Double { let o = _accessor.offset(VTOFFSET.defaultF64.v); return o == 0 ? 42.0 : _accessor.readBuffer(of: Double.self, at: o) }
-  public var justBool: Bool { let o = _accessor.offset(VTOFFSET.justBool.v); return o == 0 ? false : 0 != _accessor.readBuffer(of: Byte.self, at: o) }
-  public var maybeBool: Bool? { let o = _accessor.offset(VTOFFSET.maybeBool.v); return o == 0 ? nil : 0 != _accessor.readBuffer(of: Byte.self, at: o) }
-  public var defaultBool: Bool { let o = _accessor.offset(VTOFFSET.defaultBool.v); return o == 0 ? true : 0 != _accessor.readBuffer(of: Byte.self, at: o) }
+  public var justBool: Bool { let o = _accessor.offset(VTOFFSET.justBool.v); return o == 0 ? false : _accessor.readBuffer(of: Bool.self, at: o) }
+  public var maybeBool: Bool? { let o = _accessor.offset(VTOFFSET.maybeBool.v); return o == 0 ? nil : _accessor.readBuffer(of: Bool.self, at: o) }
+  public var defaultBool: Bool { let o = _accessor.offset(VTOFFSET.defaultBool.v); return o == 0 ? true : _accessor.readBuffer(of: Bool.self, at: o) }
   public var justEnum: optional_scalars_OptionalByte { let o = _accessor.offset(VTOFFSET.justEnum.v); return o == 0 ? .none_ : optional_scalars_OptionalByte(rawValue: _accessor.readBuffer(of: Int8.self, at: o)) ?? .none_ }
   public var maybeEnum: optional_scalars_OptionalByte? { let o = _accessor.offset(VTOFFSET.maybeEnum.v); return o == 0 ? nil : optional_scalars_OptionalByte(rawValue: _accessor.readBuffer(of: Int8.self, at: o)) ?? nil }
   public var defaultEnum: optional_scalars_OptionalByte { let o = _accessor.offset(VTOFFSET.defaultEnum.v); return o == 0 ? .one : optional_scalars_OptionalByte(rawValue: _accessor.readBuffer(of: Int8.self, at: o)) ?? .one }
