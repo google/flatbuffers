@@ -21,6 +21,8 @@ table BadAlignmentRoot {
   small: [BadAlignmentSmall];
 }
 
+// sizeof(JustSmallStruct) == 2
+// alignof(JustSmallStruct) == 1
 struct JustSmallStruct {
   var_0: uint8;
   var_1: uint8;

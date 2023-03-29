@@ -3,12 +3,11 @@
 #include "tests/alignment_test_generated.h"
 #include "flatbuffers/flatbuffer_builder.h"
 #include "test_assert.h"
-#include <iostream>
 
 namespace flatbuffers {
 namespace tests {
 
-void AlignmentTest() {  
+void AlignmentTest() {
   FlatBufferBuilder builder;
 
   BadAlignmentLarge large;
@@ -37,8 +36,12 @@ void AlignmentTest() {
   std::vector<JustSmallStruct> small_vector = {
     { 2, 1 }, { 3, 1 }, { 4, 1 }, { 5, 1 }, { 6, 1 }
   };
+  // CreateVectorOfStructs is used in the generated CreateSmallStructsDirect()
+  // method, but we test it directly
+  Offset<Vector<const JustSmallStruct *>> small_structs_offset =
+      builder.CreateVectorOfStructs<JustSmallStruct>(small_vector);
   Offset<SmallStructs> small_structs_root =
-      CreateSmallStructsDirect(builder, &small_vector);
+      CreateSmallStructs(builder, small_structs_offset);
 
   builder.Finish(small_structs_root);
 
