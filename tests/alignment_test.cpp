@@ -27,8 +27,13 @@ void AlignmentTest() {
   Verifier verifier(builder.GetBufferPointer(), builder.GetSize());
   TEST_ASSERT(VerifyBadAlignmentRootBuffer(verifier));
 
+
+  // ============= Test Small Structs Vector misalignment ========
+
   builder.Clear();
 
+  // creating 5 structs with 2 bytes each
+  // 10 bytes in total for Vector data is needed
   std::vector<JustSmallStruct> small_vector = {
     { 2, 1 }, { 3, 1 }, { 4, 1 }, { 5, 1 }, { 6, 1 }
   };
@@ -41,17 +46,12 @@ void AlignmentTest() {
                                   builder.GetSize());
   TEST_ASSERT(verifier_small_structs.VerifyBuffer<SmallStructs>(nullptr));
 
+  // Reading SmallStructs vector values back and compare with original
   auto root_msg =
       flatbuffers::GetRoot<SmallStructs>(builder.GetBufferPointer());
 
-  std::cout << "msg.size = " << root_msg->small_structs()->size() << std::endl;
   TEST_EQ(root_msg->small_structs()->size(), small_vector.size());
-
   for (size_t i = 0; i < root_msg->small_structs()->size(); ++i) {
-    std::cout << "msg.small_structs[" << i
-              << "] = " << (int)root_msg->small_structs()->Get(i)->var_0()
-              << ":" << (int)root_msg->small_structs()->Get(i)->var_1()
-              << std::endl;
     TEST_EQ(root_msg->small_structs()->Get(i)->var_0(),
             small_vector[i].var_0());
     TEST_EQ(root_msg->small_structs()->Get(i)->var_1(),
