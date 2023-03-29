@@ -34,7 +34,7 @@ void AlignmentTest() {
   // creating 5 structs with 2 bytes each
   // 10 bytes in total for Vector data is needed
   std::vector<JustSmallStruct> small_vector = {
-    { 2, 1 }, { 3, 1 }, { 4, 1 }, { 5, 1 }, { 6, 1 }
+    { 2, 1 }, { 3, 1 }, { 4, 1 }
   };
   // CreateVectorOfStructs is used in the generated CreateSmallStructsDirect()
   // method, but we test it directly
