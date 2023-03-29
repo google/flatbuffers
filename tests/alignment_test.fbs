@@ -1,9 +1,9 @@
 // sizeof(BadAlignmentSmall) == 12
 // alignof(BadAlignmentSmall) == 4
 struct BadAlignmentSmall {
-  var_0: uint8;
-  var_1: uint8;
-  // var_2: uint;
+  var_0: uint;
+  var_1: uint;
+  var_2: uint;
 }
 
 // sizeof(BadAlignmentLarge) == 8
@@ -16,14 +16,17 @@ table OuterLarge {
   large: BadAlignmentLarge;
 }
 
+table BadAlignmentRoot {
+  large: OuterLarge;
+  small: [BadAlignmentSmall];
+}
+
 struct JustSmallStruct {
   var_0: uint8;
   var_1: uint8;
 }
 
-table BadAlignmentRoot {
-  large: OuterLarge;
-  small: [BadAlignmentSmall];
+table SmallStructs {
   small_structs: [JustSmallStruct];
 }
 
