@@ -31,7 +31,7 @@ Code generation and runtime libraries for many popular languages.
 1. C++ - [snapcraft.io](https://snapcraft.io/flatbuffers)
 1. C# - [nuget.org](https://www.nuget.org/packages/Google.FlatBuffers)
 1. Dart - [pub.dev](https://pub.dev/packages/flat_buffers)
-1. Go - [go.dev](https://pkg.go.dev/github.com/google/flatbuffers/go)
+1. Go - [go.dev](https://pkg.go.dev/github.com/google/flatbuffers)
 1. Java - [Maven](https://search.maven.org/artifact/com.google.flatbuffers/flatbuffers-java)
 1. JavaScript - [NPM](https://www.npmjs.com/package/flatbuffers)
 1. Kotlin
