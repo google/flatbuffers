@@ -8,9 +8,7 @@
 namespace flatbuffers {
 namespace tests {
 
-void AlignmentTest() {
-  std::cout << "uo! 1\n";
-  
+void AlignmentTest() {  
   FlatBufferBuilder builder;
 
   BadAlignmentLarge large;
@@ -31,6 +29,12 @@ void AlignmentTest() {
 
   Offset<BadAlignmentRoot> root =
     CreateBadAlignmentRootDirect(builder, outer_large, &small_vector);
+
+  // builder.ForceVectorAlignment(small_vector.size(), sizeof(BadAlignmentSmall), 8);
+  // auto small__ = builder.CreateVectorOfStructs<BadAlignmentSmall>(small_vector);
+  // auto small__ = CreateVectorOfStructs<BadAlignmentSmall>(builder, small_vector);
+  // Offset<BadAlignmentRoot> root =
+  //     CreateBadAlignmentRoot(builder, outer_large, small__);
 
   builder.Finish(root);
 

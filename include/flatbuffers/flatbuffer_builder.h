@@ -913,8 +913,7 @@ template<bool Is64Aware = false> class FlatBufferBuilderImpl {
     typedef typename VectorT<T>::size_type LenT;
     typedef typename OffsetT<VectorT<const T *>>::offset_type offset_type;
 
-    StartVector<OffsetT, LenT>(len * sizeof(T) / AlignOf<T>(), sizeof(T),
-                               AlignOf<T>());
+    StartVector<OffsetT, LenT>(len, sizeof(T), AlignOf<T>());
     if (len > 0) {
       PushBytes(reinterpret_cast<const uint8_t *>(v), sizeof(T) * len);
     }
@@ -1384,8 +1383,7 @@ template<bool Is64Aware = false> class FlatBufferBuilderImpl {
   // Must be completed with EndVectorOfStructs().
   template<typename T, template<typename> class OffsetT = Offset>
   T *StartVectorOfStructs(size_t vector_size) {
-    StartVector<OffsetT>(vector_size * sizeof(T) / AlignOf<T>(), sizeof(T),
-                         AlignOf<T>());
+    StartVector<OffsetT>(vector_size, sizeof(T), AlignOf<T>());
     return reinterpret_cast<T *>(buf_.make_space(vector_size * sizeof(T)));
   }
 

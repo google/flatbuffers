@@ -1601,23 +1601,23 @@ static void Offset64Tests() {
 int FlatBufferTests(const std::string &tests_data_path) {
   // Run our various test suites:
 
-  // std::string rawbuf;
-  // auto flatbuf1 = CreateFlatBufferTest(rawbuf);
-  // auto flatbuf = std::move(flatbuf1);  // Test move assignment.
+  std::string rawbuf;
+  auto flatbuf1 = CreateFlatBufferTest(rawbuf);
+  auto flatbuf = std::move(flatbuf1);  // Test move assignment.
 
-  // AccessFlatBufferTest(reinterpret_cast<const uint8_t *>(rawbuf.c_str()),
-  //                      rawbuf.length());
-  // AccessFlatBufferTest(flatbuf.data(), flatbuf.size());
+  AccessFlatBufferTest(reinterpret_cast<const uint8_t *>(rawbuf.c_str()),
+                       rawbuf.length());
+  AccessFlatBufferTest(flatbuf.data(), flatbuf.size());
 
-  // MutateFlatBuffersTest(flatbuf.data(), flatbuf.size());
+  MutateFlatBuffersTest(flatbuf.data(), flatbuf.size());
 
-  // ObjectFlatBuffersTest(flatbuf.data());
-  // UnPackTo(flatbuf.data());
+  ObjectFlatBuffersTest(flatbuf.data());
+  UnPackTo(flatbuf.data());
 
-  // MiniReflectFlatBuffersTest(flatbuf.data());
-  // MiniReflectFixedLengthArrayTest();
+  MiniReflectFlatBuffersTest(flatbuf.data());
+  MiniReflectFixedLengthArrayTest();
 
-  // SizePrefixedTest();
+  SizePrefixedTest();
 
   AlignmentTest();
 

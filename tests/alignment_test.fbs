@@ -16,9 +16,15 @@ table OuterLarge {
   large: BadAlignmentLarge;
 }
 
+struct JustSmallStruct {
+  var_0: uint8;
+  var_1: uint8;
+}
+
 table BadAlignmentRoot {
   large: OuterLarge;
   small: [BadAlignmentSmall];
+  small_structs: [JustSmallStruct];
 }
 
 root_type BadAlignmentRoot;
