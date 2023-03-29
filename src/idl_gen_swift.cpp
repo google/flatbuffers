@@ -725,9 +725,9 @@ class SwiftGenerator : public BaseGenerator {
       code_.SetValue("CONSTANT", default_value);
       code_.SetValue("VALUETYPE", "Bool");
       code_ += GenReaderMainBody(optional) + "\\";
-      code_.SetValue("VALUETYPE", "Byte");
-      code_ += GenOffset() + "return o == 0 ? {{CONSTANT}} : 0 != " +
-               GenReader("VALUETYPE", "o") + " }";
+      code_ += GenOffset() +
+               "return o == 0 ? {{CONSTANT}} : " + GenReader("VALUETYPE", "o") +
+               " }";
       if (parser_.opts.mutable_buffer) code_ += GenMutate("o", GenOffset());
       return;
     }
