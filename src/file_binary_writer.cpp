@@ -31,6 +31,19 @@ class FileBinaryWriter : public FileManager {
     ofs.write(content.c_str(), content.size());
     return !ofs.bad();
   }
+
+  bool Loadfile(const std::string &absolute_file_name, std::string *output) {
+    if (DirExists(absolute_file_name.c_str())) return false;
+    std::ifstream ifs(absolute_file_name, std::ifstream::binary);
+    if (!ifs.is_open()) return false;
+    // The fastest way to read a file into a string.
+    ifs.seekg(0, std::ios::end);
+    auto size = ifs.tellg();
+    (*output).resize(static_cast<size_t>(size));
+    ifs.seekg(0, std::ios::beg);
+    ifs.read(&(*output)[0], (*output).size());
+    return !ifs.bad();
+  }
 };
 
 }  // namespace flatbuffers

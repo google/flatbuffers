@@ -20,6 +20,8 @@
 #include <set>
 #include <string>
 
+#include "flatbuffers/util.h"
+
 namespace flatbuffers {
 
 // A File interface to write data to file by default or
@@ -33,7 +35,7 @@ class FileManager {
                         const std::string &content) = 0;
 
   virtual bool LoadFile(const std::string &absolute_file_name,
-                        std::string *content) = 0;
+                        std::string *buf) = 0;
 
  private:
   // Copying is not supported.

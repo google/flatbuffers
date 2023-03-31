@@ -31,6 +31,17 @@ class FileWriter : public FileManager {
     ofs.write(content.c_str(), content.size());
     return !ofs.bad();
   }
+
+  bool Loadfile(const std::string &absolute_file_name, std::string *output) {
+    if (DirExists(absolute_file_name.c_str())) return false;
+    std::ifstream ifs(absolute_file_name, std::ifstream::in);
+    if (!ifs.is_open()) return false;
+    // This is slower, but works correctly on all platforms for text files.
+    std::ostringstream oss;
+    oss << ifs.rdbuf();
+    *output = oss.str();
+    return !ifs.bad();
+  }
 };
 
 }  // namespace flatbuffers
