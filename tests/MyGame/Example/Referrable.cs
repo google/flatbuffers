@@ -92,4 +92,14 @@ public class ReferrableT
 }
 
 
+static public class ReferrableVerify
+{
+  static public bool Verify(Google.FlatBuffers.Verifier verifier, uint tablePos)
+  {
+    return verifier.VerifyTableStart(tablePos)
+      && verifier.VerifyField(tablePos, 4 /*Id*/, 8 /*ulong*/, 8, false)
+      && verifier.VerifyTableEnd(tablePos);
+  }
+}
+
 }
