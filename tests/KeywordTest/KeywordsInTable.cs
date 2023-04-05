@@ -92,4 +92,17 @@ public class KeywordsInTableT
 }
 
 
+static public class KeywordsInTableVerify
+{
+  static public bool Verify(Google.FlatBuffers.Verifier verifier, uint tablePos)
+  {
+    return verifier.VerifyTableStart(tablePos)
+      && verifier.VerifyField(tablePos, 4 /*Is*/, 4 /*KeywordTest.ABC*/, 4, false)
+      && verifier.VerifyField(tablePos, 6 /*Private*/, 4 /*KeywordTest.@public*/, 4, false)
+      && verifier.VerifyField(tablePos, 8 /*Type*/, 4 /*int*/, 4, false)
+      && verifier.VerifyField(tablePos, 10 /*Default*/, 1 /*bool*/, 1, false)
+      && verifier.VerifyTableEnd(tablePos);
+  }
+}
+
 }

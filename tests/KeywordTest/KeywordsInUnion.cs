@@ -37,6 +37,28 @@ public class KeywordsInUnionUnion {
   }
 }
 
+
+
+static public class KeywordsInUnionVerify
+{
+  static public bool Verify(Google.FlatBuffers.Verifier verifier, byte typeId, uint tablePos)
+  {
+    bool result = true;
+    switch((KeywordsInUnion)typeId)
+    {
+      case KeywordsInUnion.@static:
+        result = KeywordTest.KeywordsInTableVerify.Verify(verifier, tablePos);
+        break;
+      case KeywordsInUnion.@internal:
+        result = KeywordTest.KeywordsInTableVerify.Verify(verifier, tablePos);
+        break;
+      default: result = true;
+        break;
+    }
+    return result;
+  }
+}
+
 public class KeywordsInUnionUnion_JsonConverter : Newtonsoft.Json.JsonConverter {
   public override bool CanConvert(System.Type objectType) {
     return objectType == typeof(KeywordsInUnionUnion) || objectType == typeof(System.Collections.Generic.List<KeywordsInUnionUnion>);

@@ -37,6 +37,25 @@ public class ValueUnion {
   }
 }
 
+
+
+static public class ValueVerify
+{
+  static public bool Verify(Google.FlatBuffers.Verifier verifier, byte typeId, uint tablePos)
+  {
+    bool result = true;
+    switch((Value)typeId)
+    {
+      case Value.IntValue:
+        result = union_value_collsion.IntValueVerify.Verify(verifier, tablePos);
+        break;
+      default: result = true;
+        break;
+    }
+    return result;
+  }
+}
+
 public class ValueUnion_JsonConverter : Newtonsoft.Json.JsonConverter {
   public override bool CanConvert(System.Type objectType) {
     return objectType == typeof(ValueUnion) || objectType == typeof(System.Collections.Generic.List<ValueUnion>);
@@ -103,6 +122,25 @@ public class OtherUnion {
       default: return 0;
       case Other.IntValue: return union_value_collsion.IntValue.Pack(builder, _o.AsIntValue()).Value;
     }
+  }
+}
+
+
+
+static public class OtherVerify
+{
+  static public bool Verify(Google.FlatBuffers.Verifier verifier, byte typeId, uint tablePos)
+  {
+    bool result = true;
+    switch((Other)typeId)
+    {
+      case Other.IntValue:
+        result = union_value_collsion.IntValueVerify.Verify(verifier, tablePos);
+        break;
+      default: result = true;
+        break;
+    }
+    return result;
   }
 }
 
@@ -198,6 +236,16 @@ public class IntValueT
   }
 }
 
+
+static public class IntValueVerify
+{
+  static public bool Verify(Google.FlatBuffers.Verifier verifier, uint tablePos)
+  {
+    return verifier.VerifyTableStart(tablePos)
+      && verifier.VerifyField(tablePos, 4 /*Value*/, 4 /*int*/, 4, false)
+      && verifier.VerifyTableEnd(tablePos);
+  }
+}
 public struct Collide : IFlatbufferObject
 {
   private Table __p;
@@ -302,6 +350,17 @@ public class CollideT
   }
 }
 
+
+static public class CollideVerify
+{
+  static public bool Verify(Google.FlatBuffers.Verifier verifier, uint tablePos)
+  {
+    return verifier.VerifyTableStart(tablePos)
+      && verifier.VerifyString(tablePos, 4 /*Collide*/, true)
+      && verifier.VerifyString(tablePos, 6 /*Value*/, false)
+      && verifier.VerifyTableEnd(tablePos);
+  }
+}
 public struct Collision : IFlatbufferObject
 {
   private Table __p;
@@ -309,6 +368,7 @@ public struct Collision : IFlatbufferObject
   public static void ValidateVersion() { FlatBufferConstants.FLATBUFFERS_23_3_3(); }
   public static Collision GetRootAsCollision(ByteBuffer _bb) { return GetRootAsCollision(_bb, new Collision()); }
   public static Collision GetRootAsCollision(ByteBuffer _bb, Collision obj) { return (obj.__assign(_bb.GetInt(_bb.Position) + _bb.Position, _bb)); }
+  public static bool VerifyCollision(ByteBuffer _bb) {Google.FlatBuffers.Verifier verifier = new Google.FlatBuffers.Verifier(_bb); return verifier.VerifyBuffer("", false, CollisionVerify.Verify); }
   public void __init(int _i, ByteBuffer _bb) { __p = new Table(_i, _bb); }
   public Collision __assign(int _i, ByteBuffer _bb) { __init(_i, _bb); return this; }
 
@@ -453,5 +513,19 @@ public class CollisionT
   }
 }
 
+
+static public class CollisionVerify
+{
+  static public bool Verify(Google.FlatBuffers.Verifier verifier, uint tablePos)
+  {
+    return verifier.VerifyTableStart(tablePos)
+      && verifier.VerifyField(tablePos, 4 /*SomeValueType*/, 1 /*union_value_collsion.Value*/, 1, false)
+      && verifier.VerifyUnion(tablePos, 4, 6 /*SomeValue*/, union_value_collsion.ValueVerify.Verify, false)
+      && verifier.VerifyField(tablePos, 8 /*ValueType*/, 1 /*union_value_collsion.Other*/, 1, false)
+      && verifier.VerifyUnion(tablePos, 8, 10 /*Value*/, union_value_collsion.OtherVerify.Verify, false)
+      && verifier.VerifyVectorOfTables(tablePos, 12 /*Collide*/, union_value_collsion.CollisionVerify.Verify, false)
+      && verifier.VerifyTableEnd(tablePos);
+  }
+}
 
 }

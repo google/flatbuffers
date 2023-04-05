@@ -208,4 +208,25 @@ public class TypeAliasesT
 }
 
 
+static public class TypeAliasesVerify
+{
+  static public bool Verify(Google.FlatBuffers.Verifier verifier, uint tablePos)
+  {
+    return verifier.VerifyTableStart(tablePos)
+      && verifier.VerifyField(tablePos, 4 /*I8*/, 1 /*sbyte*/, 1, false)
+      && verifier.VerifyField(tablePos, 6 /*U8*/, 1 /*byte*/, 1, false)
+      && verifier.VerifyField(tablePos, 8 /*I16*/, 2 /*short*/, 2, false)
+      && verifier.VerifyField(tablePos, 10 /*U16*/, 2 /*ushort*/, 2, false)
+      && verifier.VerifyField(tablePos, 12 /*I32*/, 4 /*int*/, 4, false)
+      && verifier.VerifyField(tablePos, 14 /*U32*/, 4 /*uint*/, 4, false)
+      && verifier.VerifyField(tablePos, 16 /*I64*/, 8 /*long*/, 8, false)
+      && verifier.VerifyField(tablePos, 18 /*U64*/, 8 /*ulong*/, 8, false)
+      && verifier.VerifyField(tablePos, 20 /*F32*/, 4 /*float*/, 4, false)
+      && verifier.VerifyField(tablePos, 22 /*F64*/, 8 /*double*/, 8, false)
+      && verifier.VerifyVectorOfData(tablePos, 24 /*V8*/, 1 /*sbyte*/, false)
+      && verifier.VerifyVectorOfData(tablePos, 26 /*Vf64*/, 8 /*double*/, false)
+      && verifier.VerifyTableEnd(tablePos);
+  }
+}
+
 }

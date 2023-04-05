@@ -17,6 +17,7 @@ public struct ArrayTable : IFlatbufferObject
   public static ArrayTable GetRootAsArrayTable(ByteBuffer _bb) { return GetRootAsArrayTable(_bb, new ArrayTable()); }
   public static ArrayTable GetRootAsArrayTable(ByteBuffer _bb, ArrayTable obj) { return (obj.__assign(_bb.GetInt(_bb.Position) + _bb.Position, _bb)); }
   public static bool ArrayTableBufferHasIdentifier(ByteBuffer _bb) { return Table.__has_identifier(_bb, "ARRT"); }
+  public static bool VerifyArrayTable(ByteBuffer _bb) {Google.FlatBuffers.Verifier verifier = new Google.FlatBuffers.Verifier(_bb); return verifier.VerifyBuffer("ARRT", false, ArrayTableVerify.Verify); }
   public void __init(int _i, ByteBuffer _bb) { __p = new Table(_i, _bb); }
   public ArrayTable __assign(int _i, ByteBuffer _bb) { __init(_i, _bb); return this; }
 
@@ -71,5 +72,15 @@ public class ArrayTableT
   }
 }
 
+
+static public class ArrayTableVerify
+{
+  static public bool Verify(Google.FlatBuffers.Verifier verifier, uint tablePos)
+  {
+    return verifier.VerifyTableStart(tablePos)
+      && verifier.VerifyField(tablePos, 4 /*A*/, 160 /*MyGame.Example.ArrayStruct*/, 8, false)
+      && verifier.VerifyTableEnd(tablePos);
+  }
+}
 
 }

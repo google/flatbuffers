@@ -18,6 +18,7 @@ public struct Monster : IFlatbufferObject
   public static Monster GetRootAsMonster(ByteBuffer _bb) { return GetRootAsMonster(_bb, new Monster()); }
   public static Monster GetRootAsMonster(ByteBuffer _bb, Monster obj) { return (obj.__assign(_bb.GetInt(_bb.Position) + _bb.Position, _bb)); }
   public static bool MonsterBufferHasIdentifier(ByteBuffer _bb) { return Table.__has_identifier(_bb, "MONS"); }
+  public static bool VerifyMonster(ByteBuffer _bb) {Google.FlatBuffers.Verifier verifier = new Google.FlatBuffers.Verifier(_bb); return verifier.VerifyBuffer("MONS", false, MonsterVerify.Verify); }
   public void __init(int _i, ByteBuffer _bb) { __p = new Table(_i, _bb); }
   public Monster __assign(int _i, ByteBuffer _bb) { __init(_i, _bb); return this; }
 
@@ -1099,5 +1100,75 @@ public class MonsterT
   }
 }
 
+
+static public class MonsterVerify
+{
+  static public bool Verify(Google.FlatBuffers.Verifier verifier, uint tablePos)
+  {
+    return verifier.VerifyTableStart(tablePos)
+      && verifier.VerifyField(tablePos, 4 /*Pos*/, 32 /*MyGame.Example.Vec3*/, 8, false)
+      && verifier.VerifyField(tablePos, 6 /*Mana*/, 2 /*short*/, 2, false)
+      && verifier.VerifyField(tablePos, 8 /*Hp*/, 2 /*short*/, 2, false)
+      && verifier.VerifyString(tablePos, 10 /*Name*/, true)
+      && verifier.VerifyVectorOfData(tablePos, 14 /*Inventory*/, 1 /*byte*/, false)
+      && verifier.VerifyField(tablePos, 16 /*Color*/, 1 /*MyGame.Example.Color*/, 1, false)
+      && verifier.VerifyField(tablePos, 18 /*TestType*/, 1 /*MyGame.Example.Any*/, 1, false)
+      && verifier.VerifyUnion(tablePos, 18, 20 /*Test*/, MyGame.Example.AnyVerify.Verify, false)
+      && verifier.VerifyVectorOfData(tablePos, 22 /*Test4*/, 4 /*MyGame.Example.Test*/, false)
+      && verifier.VerifyVectorOfStrings(tablePos, 24 /*Testarrayofstring*/, false)
+      && verifier.VerifyVectorOfTables(tablePos, 26 /*Testarrayoftables*/, MyGame.Example.MonsterVerify.Verify, false)
+      && verifier.VerifyTable(tablePos, 28 /*Enemy*/, MyGame.Example.MonsterVerify.Verify, false)
+      && verifier.VerifyNestedBuffer(tablePos, 30 /*Testnestedflatbuffer*/, MyGame.Example.MonsterVerify.Verify, false)
+      && verifier.VerifyTable(tablePos, 32 /*Testempty*/, MyGame.Example.StatVerify.Verify, false)
+      && verifier.VerifyField(tablePos, 34 /*Testbool*/, 1 /*bool*/, 1, false)
+      && verifier.VerifyField(tablePos, 36 /*Testhashs32Fnv1*/, 4 /*int*/, 4, false)
+      && verifier.VerifyField(tablePos, 38 /*Testhashu32Fnv1*/, 4 /*uint*/, 4, false)
+      && verifier.VerifyField(tablePos, 40 /*Testhashs64Fnv1*/, 8 /*long*/, 8, false)
+      && verifier.VerifyField(tablePos, 42 /*Testhashu64Fnv1*/, 8 /*ulong*/, 8, false)
+      && verifier.VerifyField(tablePos, 44 /*Testhashs32Fnv1a*/, 4 /*int*/, 4, false)
+      && verifier.VerifyField(tablePos, 46 /*Testhashu32Fnv1a*/, 4 /*uint*/, 4, false)
+      && verifier.VerifyField(tablePos, 48 /*Testhashs64Fnv1a*/, 8 /*long*/, 8, false)
+      && verifier.VerifyField(tablePos, 50 /*Testhashu64Fnv1a*/, 8 /*ulong*/, 8, false)
+      && verifier.VerifyVectorOfData(tablePos, 52 /*Testarrayofbools*/, 1 /*bool*/, false)
+      && verifier.VerifyField(tablePos, 54 /*Testf*/, 4 /*float*/, 4, false)
+      && verifier.VerifyField(tablePos, 56 /*Testf2*/, 4 /*float*/, 4, false)
+      && verifier.VerifyField(tablePos, 58 /*Testf3*/, 4 /*float*/, 4, false)
+      && verifier.VerifyVectorOfStrings(tablePos, 60 /*Testarrayofstring2*/, false)
+      && verifier.VerifyVectorOfData(tablePos, 62 /*Testarrayofsortedstruct*/, 8 /*MyGame.Example.Ability*/, false)
+      && verifier.VerifyNestedBuffer(tablePos, 64 /*Flex*/, null, false)
+      && verifier.VerifyVectorOfData(tablePos, 66 /*Test5*/, 4 /*MyGame.Example.Test*/, false)
+      && verifier.VerifyVectorOfData(tablePos, 68 /*VectorOfLongs*/, 8 /*long*/, false)
+      && verifier.VerifyVectorOfData(tablePos, 70 /*VectorOfDoubles*/, 8 /*double*/, false)
+      && verifier.VerifyTable(tablePos, 72 /*ParentNamespaceTest*/, MyGame.InParentNamespaceVerify.Verify, false)
+      && verifier.VerifyVectorOfTables(tablePos, 74 /*VectorOfReferrables*/, MyGame.Example.ReferrableVerify.Verify, false)
+      && verifier.VerifyField(tablePos, 76 /*SingleWeakReference*/, 8 /*ulong*/, 8, false)
+      && verifier.VerifyVectorOfData(tablePos, 78 /*VectorOfWeakReferences*/, 8 /*ulong*/, false)
+      && verifier.VerifyVectorOfTables(tablePos, 80 /*VectorOfStrongReferrables*/, MyGame.Example.ReferrableVerify.Verify, false)
+      && verifier.VerifyField(tablePos, 82 /*CoOwningReference*/, 8 /*ulong*/, 8, false)
+      && verifier.VerifyVectorOfData(tablePos, 84 /*VectorOfCoOwningReferences*/, 8 /*ulong*/, false)
+      && verifier.VerifyField(tablePos, 86 /*NonOwningReference*/, 8 /*ulong*/, 8, false)
+      && verifier.VerifyVectorOfData(tablePos, 88 /*VectorOfNonOwningReferences*/, 8 /*ulong*/, false)
+      && verifier.VerifyField(tablePos, 90 /*AnyUniqueType*/, 1 /*MyGame.Example.AnyUniqueAliases*/, 1, false)
+      && verifier.VerifyUnion(tablePos, 90, 92 /*AnyUnique*/, MyGame.Example.AnyUniqueAliasesVerify.Verify, false)
+      && verifier.VerifyField(tablePos, 94 /*AnyAmbiguousType*/, 1 /*MyGame.Example.AnyAmbiguousAliases*/, 1, false)
+      && verifier.VerifyUnion(tablePos, 94, 96 /*AnyAmbiguous*/, MyGame.Example.AnyAmbiguousAliasesVerify.Verify, false)
+      && verifier.VerifyVectorOfData(tablePos, 98 /*VectorOfEnums*/, 1 /*MyGame.Example.Color*/, false)
+      && verifier.VerifyField(tablePos, 100 /*SignedEnum*/, 1 /*MyGame.Example.Race*/, 1, false)
+      && verifier.VerifyNestedBuffer(tablePos, 102 /*Testrequirednestedflatbuffer*/, MyGame.Example.MonsterVerify.Verify, false)
+      && verifier.VerifyVectorOfTables(tablePos, 104 /*ScalarKeySortedTables*/, MyGame.Example.StatVerify.Verify, false)
+      && verifier.VerifyField(tablePos, 106 /*NativeInline*/, 4 /*MyGame.Example.Test*/, 2, false)
+      && verifier.VerifyField(tablePos, 108 /*LongEnumNonEnumDefault*/, 8 /*MyGame.Example.LongEnum*/, 8, false)
+      && verifier.VerifyField(tablePos, 110 /*LongEnumNormalDefault*/, 8 /*MyGame.Example.LongEnum*/, 8, false)
+      && verifier.VerifyField(tablePos, 112 /*NanDefault*/, 4 /*float*/, 4, false)
+      && verifier.VerifyField(tablePos, 114 /*InfDefault*/, 4 /*float*/, 4, false)
+      && verifier.VerifyField(tablePos, 116 /*PositiveInfDefault*/, 4 /*float*/, 4, false)
+      && verifier.VerifyField(tablePos, 118 /*InfinityDefault*/, 4 /*float*/, 4, false)
+      && verifier.VerifyField(tablePos, 120 /*PositiveInfinityDefault*/, 4 /*float*/, 4, false)
+      && verifier.VerifyField(tablePos, 122 /*NegativeInfDefault*/, 4 /*float*/, 4, false)
+      && verifier.VerifyField(tablePos, 124 /*NegativeInfinityDefault*/, 4 /*float*/, 4, false)
+      && verifier.VerifyField(tablePos, 126 /*DoubleInfDefault*/, 8 /*double*/, 8, false)
+      && verifier.VerifyTableEnd(tablePos);
+  }
+}
 
 }

@@ -62,4 +62,14 @@ public class SecondTableInAT
 }
 
 
+static public class SecondTableInAVerify
+{
+  static public bool Verify(Google.FlatBuffers.Verifier verifier, uint tablePos)
+  {
+    return verifier.VerifyTableStart(tablePos)
+      && verifier.VerifyTable(tablePos, 4 /*ReferToC*/, NamespaceC.TableInCVerify.Verify, false)
+      && verifier.VerifyTableEnd(tablePos);
+  }
+}
+
 }

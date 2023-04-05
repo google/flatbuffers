@@ -72,4 +72,15 @@ public class TableInCT
 }
 
 
+static public class TableInCVerify
+{
+  static public bool Verify(Google.FlatBuffers.Verifier verifier, uint tablePos)
+  {
+    return verifier.VerifyTableStart(tablePos)
+      && verifier.VerifyTable(tablePos, 4 /*ReferToA1*/, NamespaceA.TableInFirstNSVerify.Verify, false)
+      && verifier.VerifyTable(tablePos, 6 /*ReferToA2*/, NamespaceA.SecondTableInAVerify.Verify, false)
+      && verifier.VerifyTableEnd(tablePos);
+  }
+}
+
 }

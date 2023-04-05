@@ -62,4 +62,14 @@ internal partial class TestSimpleTableWithEnumT
 }
 
 
+static public class TestSimpleTableWithEnumVerify
+{
+  static public bool Verify(Google.FlatBuffers.Verifier verifier, uint tablePos)
+  {
+    return verifier.VerifyTableStart(tablePos)
+      && verifier.VerifyField(tablePos, 4 /*Color*/, 1 /*MyGame.Example.Color*/, 1, false)
+      && verifier.VerifyTableEnd(tablePos);
+  }
+}
+
 }

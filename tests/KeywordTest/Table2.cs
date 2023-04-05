@@ -91,4 +91,15 @@ public class Table2T
 }
 
 
+static public class Table2Verify
+{
+  static public bool Verify(Google.FlatBuffers.Verifier verifier, uint tablePos)
+  {
+    return verifier.VerifyTableStart(tablePos)
+      && verifier.VerifyField(tablePos, 4 /*TypeType*/, 1 /*KeywordTest.KeywordsInUnion*/, 1, false)
+      && verifier.VerifyUnion(tablePos, 4, 6 /*Type*/, KeywordTest.KeywordsInUnionVerify.Verify, false)
+      && verifier.VerifyTableEnd(tablePos);
+  }
+}
+
 }
