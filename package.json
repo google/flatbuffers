@@ -36,7 +36,6 @@
   "homepage": "https://google.github.io/flatbuffers/",
   "dependencies": {},
   "devDependencies": {
-    "@bazel/typescript": "5.2.0",
     "@types/node": "18.15.11",
     "@typescript-eslint/eslint-plugin": "^5.57.0",
     "@typescript-eslint/parser": "^5.57.0",

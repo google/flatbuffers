@@ -76,30 +76,54 @@ load("@com_github_grpc_grpc//bazel:grpc_extra_deps.bzl", "grpc_extra_deps")
 grpc_extra_deps()
 
 # rules_go from https://github.com/bazelbuild/rules_go/releases/tag/v0.34.0
+
 http_archive(
-    name = "build_bazel_rules_nodejs",
-    sha256 = "965ee2492a2b087cf9e0f2ca472aeaf1be2eb650e0cfbddf514b9a7d3ea4b02a",
-    urls = ["https://github.com/bazelbuild/rules_nodejs/releases/download/5.2.0/rules_nodejs-5.2.0.tar.gz"],
+    name = "aspect_rules_js",
+    sha256 = "124ed29fb0b3d0cba5b44f8f8e07897cf61b34e35e33b1f83d1a943dfd91b193",
+    strip_prefix = "rules_js-1.24.0",
+    url = "https://github.com/aspect-build/rules_js/releases/download/v1.24.0/rules_js-v1.24.0.tar.gz",
 )
 
-load("@build_bazel_rules_nodejs//:repositories.bzl", "build_bazel_rules_nodejs_dependencies")
+load("@aspect_rules_js//js:repositories.bzl", "rules_js_dependencies")
 
-build_bazel_rules_nodejs_dependencies()
+rules_js_dependencies()
 
-load("@build_bazel_rules_nodejs//:index.bzl", "node_repositories", "yarn_install")
+load("@aspect_rules_js//npm:npm_import.bzl", "pnpm_repository")
 
-node_repositories()
+pnpm_repository(name = "pnpm")
 
-yarn_install(
-    name = "npm",
-    exports_directories_only = False,
-    # Unfreeze to add/remove packages.
-    frozen_lockfile = False,
-    package_json = "//:package.json",
-    symlink_node_modules = False,
-    yarn_lock = "//:yarn.lock",
+
+load("@rules_nodejs//nodejs:repositories.bzl", "DEFAULT_NODE_VERSION", "nodejs_register_toolchains")
+
+nodejs_register_toolchains(
+    name = "nodejs",
+    node_version = DEFAULT_NODE_VERSION,
 )
 
-load("@build_bazel_rules_nodejs//toolchains/esbuild:esbuild_repositories.bzl", "esbuild_repositories")
-
-esbuild_repositories(npm_repository = "npm")
+#http_archive(
+#    name = "build_bazel_rules_nodejs",
+#    sha256 = "965ee2492a2b087cf9e0f2ca472aeaf1be2eb650e0cfbddf514b9a7d3ea4b02a",
+#    urls = ["https://github.com/bazelbuild/rules_nodejs/releases/download/5.2.0/rules_nodejs-5.2.0.tar.gz"],
+#)
+#
+#load("@build_bazel_rules_nodejs//:repositories.bzl", "build_bazel_rules_nodejs_dependencies")
+#
+#build_bazel_rules_nodejs_dependencies()
+#
+#load("@build_bazel_rules_nodejs//:index.bzl", "node_repositories", "yarn_install")
+#
+#node_repositories()
+#
+#yarn_install(
+#    name = "npm",
+#    exports_directories_only = False,
+#    # Unfreeze to add/remove packages.
+#    frozen_lockfile = False,
+#    package_json = "//:package.json",
+#    symlink_node_modules = False,
+#    yarn_lock = "//:yarn.lock",
+#)
+#
+#load("@build_bazel_rules_nodejs//toolchains/esbuild:esbuild_repositories.bzl", "esbuild_repositories")
+#
+#esbuild_repositories(npm_repository = "npm")
