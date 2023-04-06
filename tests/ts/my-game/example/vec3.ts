@@ -118,7 +118,7 @@ constructor(
   public y: number = 0.0,
   public z: number = 0.0,
   public test1: number = 0.0,
-  public test2: Color = 0,
+  public test2: Color = Color.Red,
   public test3: TestT|null = null
 ){}
 
