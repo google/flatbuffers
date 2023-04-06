@@ -47,6 +47,7 @@ filegroup(
         "include/flatbuffers/code_generators.h",
         "include/flatbuffers/default_allocator.h",
         "include/flatbuffers/detached_buffer.h",
+        "include/flatbuffers/file_manager.h",
         "include/flatbuffers/flatbuffer_builder.h",
         "include/flatbuffers/flatbuffers.h",
         "include/flatbuffers/flex_flat_util.h",
