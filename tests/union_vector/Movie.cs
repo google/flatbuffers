@@ -14,6 +14,7 @@ public struct Movie : IFlatbufferObject
   public static Movie GetRootAsMovie(ByteBuffer _bb) { return GetRootAsMovie(_bb, new Movie()); }
   public static Movie GetRootAsMovie(ByteBuffer _bb, Movie obj) { return (obj.__assign(_bb.GetInt(_bb.Position) + _bb.Position, _bb)); }
   public static bool MovieBufferHasIdentifier(ByteBuffer _bb) { return Table.__has_identifier(_bb, "MOVI"); }
+  public static bool VerifyMovie(ByteBuffer _bb) {Google.FlatBuffers.Verifier verifier = new Google.FlatBuffers.Verifier(_bb); return verifier.VerifyBuffer("MOVI", false, MovieVerify.Verify); }
   public void __init(int _i, ByteBuffer _bb) { __p = new Table(_i, _bb); }
   public Movie __assign(int _i, ByteBuffer _bb) { __init(_i, _bb); return this; }
 
@@ -211,3 +212,15 @@ public class MovieT
   }
 }
 
+
+static public class MovieVerify
+{
+  static public bool Verify(Google.FlatBuffers.Verifier verifier, uint tablePos)
+  {
+    return verifier.VerifyTableStart(tablePos)
+      && verifier.VerifyField(tablePos, 4 /*MainCharacterType*/, 1 /*Character*/, 1, false)
+      && verifier.VerifyUnion(tablePos, 4, 6 /*MainCharacter*/, CharacterVerify.Verify, false)
+      && verifier.VerifyVectorOfData(tablePos, 8 /*CharactersType*/, 1 /*Character*/, false)
+      && verifier.VerifyTableEnd(tablePos);
+  }
+}
