@@ -2,7 +2,8 @@
 Rules for building typescript flatbuffers with Bazel.
 """
 
-load("@build_bazel_rules_nodejs//:index.bzl", "js_library")
+load("@aspect_rules_js//js:defs.bzl", "js_library")
+load("@aspect_rules_ts//ts:defs.bzl", "ts_project")
 load(":build_defs.bzl", "flatbuffer_library_public")
 
 DEFAULT_FLATC_TS_ARGS = [
@@ -24,8 +25,7 @@ def flatbuffer_ts_library(
         flatc_args = DEFAULT_FLATC_TS_ARGS,
         visibility = None,
         restricted_to = None,
-        gen_reflections = False,
-        package_name = None):
+        gen_reflections = False):
     """Generates a ts_library rule for a given flatbuffer definition.
 
     Args:
@@ -46,7 +46,6 @@ def flatbuffer_ts_library(
         to use.
       gen_reflections: Optional, if true this will generate the flatbuffer
         reflection binaries for the schemas.
-      package_name: Optional, Package name to use for the generated code.
     """
     srcs_lib = "%s_srcs" % (name)
     out_base = [s.replace(".fbs", "").split("/")[-1].split(":")[-1] for s in srcs]
@@ -72,6 +71,37 @@ def flatbuffer_ts_library(
         target_compatible_with = target_compatible_with,
         flatc_path = "@com_github_google_flatbuffers//ts:compile_flat_file",
     )
+    ts_project(
+        name = name + "_ts",
+        srcs = outs,
+        declaration = True,
+        visibility = visibility,
+        compatible_with = compatible_with,
+        restricted_to = restricted_to,
+        target_compatible_with = target_compatible_with,
+        supports_workers = False,
+        tsconfig = {
+            # TODO(phil): Deduplicate with //ts:flatbuffer_ts.
+            "compilerOptions": {
+                "module": "commonjs",
+                "declaration": True,
+                "moduleResolution": "node",
+                "lib": [
+                    "ES2015",
+                    "ES2020.BigInt",
+                    "DOM",
+                ],
+                "strict": True,
+                "types": ["node"],
+            },
+        },
+        deps = deps + [
+            "//:node_modules/flatbuffers",
+            # TODO(phil): Figure out why @types/node isn't being picked up as a
+            # transitivie dependencies.
+            "//:node_modules/@types/node",
+        ],
+    )
     js_library(
         name = name,
         visibility = visibility,
@@ -79,7 +109,6 @@ def flatbuffer_ts_library(
         restricted_to = restricted_to,
         target_compatible_with = target_compatible_with,
         srcs = outs,
-        package_name = package_name,
     )
     native.filegroup(
         name = "%s_includes" % (name),

@@ -1,5 +1,5 @@
-load("@npm//@bazel/typescript:index.bzl", "ts_project")
-load("@build_bazel_rules_nodejs//:index.bzl", "js_library")
+load("@aspect_rules_ts//ts:defs.bzl", "ts_project")
+load("@aspect_rules_js//npm:defs.bzl", "npm_package")
 
 ts_project(
     name = "flatbuffers_ts",
@@ -31,11 +31,12 @@ ts_project(
     deps = ["@npm//@types/node"],
 )
 
-js_library(
+npm_package(
     name = "flatbuffers",
-    package_name = "flatbuffers",
+    srcs = [":flatbuffers_ts"],
+    include_external_repositories = ["*"],
+    package = "flatbuffers",
     visibility = ["//visibility:public"],
-    deps = [":flatbuffers_ts"],
 )
 
 sh_binary(

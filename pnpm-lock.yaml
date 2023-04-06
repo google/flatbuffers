@@ -17,7 +17,7 @@ devDependencies:
     specifier: ^8.37.0
     version: 8.37.0
   typescript:
-    specifier: ^5.0.3
+    specifier: 5.0.3
     version: 5.0.3
 
 packages:
