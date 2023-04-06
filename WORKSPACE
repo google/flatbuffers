@@ -100,6 +100,19 @@ nodejs_register_toolchains(
     node_version = DEFAULT_NODE_VERSION,
 )
 
+load("@aspect_rules_js//npm:npm_import.bzl", "npm_translate_lock")
+
+npm_translate_lock(
+    name = "npm",
+    pnpm_lock = "//:pnpm-lock.yaml",
+    npmrc = "//:.npmrc",
+    verify_node_modules_ignored = "//:.bazelignore",
+)
+
+load("@npm//:repositories.bzl", "npm_repositories")
+
+npm_repositories()
+
 #http_archive(
 #    name = "build_bazel_rules_nodejs",
 #    sha256 = "965ee2492a2b087cf9e0f2ca472aeaf1be2eb650e0cfbddf514b9a7d3ea4b02a",
