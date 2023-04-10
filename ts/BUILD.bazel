@@ -42,6 +42,7 @@ npm_package(
 
 esbuild_bin.esbuild_binary(
     name = "esbuild",
+    visibility = ["//visibility:public"],
 )
 
 sh_binary(

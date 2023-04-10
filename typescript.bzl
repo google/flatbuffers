@@ -2,7 +2,8 @@
 Rules for building typescript flatbuffers with Bazel.
 """
 
-load("@aspect_rules_js//js:defs.bzl", "js_library")
+load("@aspect_rules_esbuild//esbuild:defs.bzl", "esbuild")
+load("@aspect_rules_js//js:defs.bzl", "js_library", "js_run_binary")
 load("@aspect_rules_ts//ts:defs.bzl", "ts_project")
 load(":build_defs.bzl", "flatbuffer_library_public")
 
@@ -53,7 +54,8 @@ def flatbuffer_ts_library(
     if len(srcs) != 1:
         fail("flatbuffer_ts_library only supports one .fbs file per target currently.")
 
-    outs = ["%s_generated.ts" % s for s in out_base]
+    outs = ["%s.ts" % s for s in out_base]
+    cjs_outs = ["%s_generated.cjs" % s for s in out_base]
     includes = [d + "_includes" for d in deps]
     ts_deps = [d + "_ts" for d in deps]
     reflection_name = "%s_reflection" % name if gen_reflections else ""
@@ -64,13 +66,37 @@ def flatbuffer_ts_library(
         language_flag = "--ts",
         includes = includes,
         include_paths = include_paths,
-        flatc_args = flatc_args + ["--filename-suffix _generated.ts"],
+        flatc_args = flatc_args,
         compatible_with = compatible_with,
         restricted_to = restricted_to,
         reflection_name = reflection_name,
         reflection_visibility = visibility,
         target_compatible_with = target_compatible_with,
-        flatc_path = "@com_github_google_flatbuffers//ts:compile_flat_file",
+    )
+    native.genrule(
+        name = name + "_cjs",
+        srcs = [
+            srcs_lib,
+        ],
+        outs = cjs_outs,
+        cmd = " ".join([
+            "$(ESBUILD_BIN)",
+            "--format=cjs",
+            "--bundle",
+            "--outfile=$(locations :%s)" % " ".join(cjs_outs),
+            "--external:flatbuffers",
+            "--log-level=warning",
+        ]),
+        toolchains = ["@aspect_rules_esbuild//esbuild:resolved_toolchain"],
+        tools = ["@aspect_rules_esbuild//esbuild:resolved_toolchain"],
+        #args = [
+        #    "$(location :%s)" % srcs_lib,
+        #    "--format=cjs",
+        #    "--bundle",
+        #    "--outfile=$(location %s)" % cjs_outs[0],
+        #    "--external:flatbuffers",
+        #    "--log-level=warning",
+        #],
     )
     ts_project(
         name = name + "_ts",
