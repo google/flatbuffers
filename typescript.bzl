@@ -62,80 +62,84 @@ def flatbuffer_ts_library(
     flatbuffer_library_public(
         name = srcs_lib,
         srcs = srcs,
-        outs = outs,
+        outs = cjs_outs,
         language_flag = "--ts",
         includes = includes,
         include_paths = include_paths,
+        extra_env = "ESBUILD_BIN=$(ESBUILD_BIN)",
         flatc_args = flatc_args,
         compatible_with = compatible_with,
         restricted_to = restricted_to,
         reflection_name = reflection_name,
         reflection_visibility = visibility,
         target_compatible_with = target_compatible_with,
-    )
-    native.genrule(
-        name = name + "_cjs",
-        srcs = [
-            srcs_lib,
-        ],
-        outs = cjs_outs,
-        cmd = " ".join([
-            "$(ESBUILD_BIN)",
-            "--format=cjs",
-            "--bundle",
-            "--outfile=$(locations :%s)" % " ".join(cjs_outs),
-            "--external:flatbuffers",
-            "--log-level=warning",
-        ]),
+        flatc_path = "@com_github_google_flatbuffers//ts:compile_flat_file",
         toolchains = ["@aspect_rules_esbuild//esbuild:resolved_toolchain"],
         tools = ["@aspect_rules_esbuild//esbuild:resolved_toolchain"],
-        #args = [
-        #    "$(location :%s)" % srcs_lib,
-        #    "--format=cjs",
-        #    "--bundle",
-        #    "--outfile=$(location %s)" % cjs_outs[0],
-        #    "--external:flatbuffers",
-        #    "--log-level=warning",
-        #],
     )
-    ts_project(
-        name = name + "_ts",
-        srcs = outs,
-        declaration = True,
-        visibility = visibility,
-        compatible_with = compatible_with,
-        restricted_to = restricted_to,
-        target_compatible_with = target_compatible_with,
-        supports_workers = False,
-        tsconfig = {
-            # TODO(phil): Deduplicate with //ts:flatbuffer_ts.
-            "compilerOptions": {
-                "module": "commonjs",
-                "declaration": True,
-                "moduleResolution": "node",
-                "lib": [
-                    "ES2015",
-                    "ES2020.BigInt",
-                    "DOM",
-                ],
-                "strict": True,
-                "types": ["node"],
-            },
-        },
-        deps = ts_deps + [
-            "//:node_modules/flatbuffers",
-            # TODO(phil): Figure out why @types/node isn't being picked up as a
-            # transitivie dependencies.
-            "//:node_modules/@types/node",
-        ],
-    )
+    #native.genrule(
+    #    name = name + "_cjs",
+    #    srcs = [
+    #        srcs_lib,
+    #    ],
+    #    outs = cjs_outs,
+    #    cmd = " ".join([
+    #        "$(ESBUILD_BIN)",
+    #        "--format=cjs",
+    #        "--bundle",
+    #        "--outfile=$(locations :%s)" % " ".join(cjs_outs),
+    #        "--external:flatbuffers",
+    #        "--log-level=warning",
+    #    ]),
+    #    toolchains = ["@aspect_rules_esbuild//esbuild:resolved_toolchain"],
+    #    tools = ["@aspect_rules_esbuild//esbuild:resolved_toolchain"],
+    #    #args = [
+    #    #    "$(location :%s)" % srcs_lib,
+    #    #    "--format=cjs",
+    #    #    "--bundle",
+    #    #    "--outfile=$(location %s)" % cjs_outs[0],
+    #    #    "--external:flatbuffers",
+    #    #    "--log-level=warning",
+    #    #],
+    #)
+    #ts_project(
+    #    name = name + "_ts",
+    #    srcs = [srcs_lib],
+    #    declaration = True,
+    #    visibility = visibility,
+    #    compatible_with = compatible_with,
+    #    restricted_to = restricted_to,
+    #    target_compatible_with = target_compatible_with,
+    #    supports_workers = False,
+    #    tsconfig = {
+    #        # TODO(phil): Deduplicate with //ts:flatbuffer_ts.
+    #        "compilerOptions": {
+    #            "module": "commonjs",
+    #            "declaration": True,
+    #            "moduleResolution": "node",
+    #            "lib": [
+    #                "ES2015",
+    #                "ES2020.BigInt",
+    #                "DOM",
+    #            ],
+    #            "strict": True,
+    #            "types": ["node"],
+    #        },
+    #    },
+    #    deps = ts_deps + [
+    #        "//:node_modules/flatbuffers",
+    #        # TODO(phil): Figure out why @types/node isn't being picked up as a
+    #        # transitivie dependencies.
+    #        "//:node_modules/@types/node",
+    #    ],
+    #)
     js_library(
         name = name,
         visibility = visibility,
         compatible_with = compatible_with,
         restricted_to = restricted_to,
         target_compatible_with = target_compatible_with,
-        srcs = outs,
+        srcs = cjs_outs,
     )
     native.filegroup(
         name = "%s_includes" % (name),
