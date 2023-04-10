@@ -53,8 +53,9 @@ def flatbuffer_ts_library(
     if len(srcs) != 1:
         fail("flatbuffer_ts_library only supports one .fbs file per target currently.")
 
-    outs = ["%s_generated.cjs" % s for s in out_base]
+    outs = ["%s_generated.ts" % s for s in out_base]
     includes = [d + "_includes" for d in deps]
+    ts_deps = [d + "_ts" for d in deps]
     reflection_name = "%s_reflection" % name if gen_reflections else ""
     flatbuffer_library_public(
         name = srcs_lib,
@@ -63,7 +64,7 @@ def flatbuffer_ts_library(
         language_flag = "--ts",
         includes = includes,
         include_paths = include_paths,
-        flatc_args = flatc_args + ["--filename-suffix _generated"],
+        flatc_args = flatc_args + ["--filename-suffix _generated.ts"],
         compatible_with = compatible_with,
         restricted_to = restricted_to,
         reflection_name = reflection_name,
@@ -95,7 +96,7 @@ def flatbuffer_ts_library(
                 "types": ["node"],
             },
         },
-        deps = deps + [
+        deps = ts_deps + [
             "//:node_modules/flatbuffers",
             # TODO(phil): Figure out why @types/node isn't being picked up as a
             # transitivie dependencies.
