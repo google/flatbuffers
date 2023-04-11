@@ -254,6 +254,8 @@ const static FlatCOption flatc_options[] = {
     "Skip emission of Python functions that are prefixed with typenames" },
   { "", "python-typing", "",
     "Generate Python type annotations" },
+  { "", "file-names-only", "",
+    "Print out generated file names without writing to the files"},
 };
 
 auto cmp = [](FlatCOption a, FlatCOption b) { return a.long_opt < b.long_opt; };
@@ -661,6 +663,9 @@ FlatCOptions FlatCompiler::ParseFromCommandLineArguments(int argc,
       } else if (arg == "--annotate") {
         if (++argi >= argc) Error("missing path following: " + arg, true);
         options.annotate_schema = flatbuffers::PosixPath(argv[argi]);
+      } else if(arg == "--file-names-only") {
+        // TODO (khhn): Provide 2 implementation
+        options.file_names_only = true;
       } else {
         if (arg == "--proto") { opts.proto_mode = true; }
 
