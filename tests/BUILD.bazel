@@ -3,6 +3,10 @@ load("//:build_defs.bzl", "flatbuffer_cc_library")
 
 package(default_visibility = ["//visibility:private"])
 
+exports_files([
+    "monsterdata_test.mon",
+])
+
 # Test binary.
 cc_test(
     name = "flatbuffers_test",

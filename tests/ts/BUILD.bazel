@@ -1,3 +1,4 @@
+load("@aspect_rules_js//js:defs.bzl", "js_test")
 load("//:typescript.bzl", "flatbuffer_ts_library")
 
 package(default_visibility = ["//visibility:private"])
@@ -8,5 +9,23 @@ flatbuffer_ts_library(
     deps = [
         "//tests/ts/test_dir:include_ts_fbs",
         "//tests/ts/test_dir:typescript_transitive_ts_fbs",
+    ],
+)
+
+js_test(
+    name = "javascript_test",
+    entry_point = "JavaScriptTest.js",
+    include_transitive_sources = True,
+    data = [
+        "package.json",
+        "//:node_modules/flatbuffers",
+        "//tests:monsterdata_test.mon",
+    ] + glob([
+        "my-game/*.js",
+        "my-game/example/*.js",
+        "my-game/example2/*.js",
+    ]),
+    node_options = [
+        "--trace-warnings",
     ],
 )
