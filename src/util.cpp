@@ -63,8 +63,24 @@ static bool FileExistsRaw(const char *name) {
   return ifs.good();
 }
 
+static bool DirExistsRaw(const char *name) {
+  // clang-format off
+
+  #ifdef _WIN32
+    #define flatbuffers_stat _stat
+    #define FLATBUFFERS_S_IFDIR _S_IFDIR
+  #else
+    #define flatbuffers_stat stat
+    #define FLATBUFFERS_S_IFDIR S_IFDIR
+  #endif
+  // clang-format on
+  struct flatbuffers_stat file_info;
+  if (flatbuffers_stat(name, &file_info) != 0) return false;
+  return (file_info.st_mode & FLATBUFFERS_S_IFDIR) != 0;
+}
+
 static bool LoadFileRaw(const char *name, bool binary, std::string *buf) {
-  if (DirExists(name)) return false;
+  if (DirExistsRaw(name)) return false;
   std::ifstream ifs(name, binary ? std::ifstream::binary : std::ifstream::in);
   if (!ifs.is_open()) return false;
   if (binary) {
@@ -83,8 +99,57 @@ static bool LoadFileRaw(const char *name, bool binary, std::string *buf) {
   return !ifs.bad();
 }
 
-LoadFileFunction g_load_file_function = LoadFileRaw;
+static bool SaveFileRaw(const char *name, const char *buf, size_t len, bool binary) {
+  std::ofstream ofs(name, binary ? std::ofstream::binary : std::ofstream::out);
+  if (!ofs.is_open()) return false;
+  ofs.write(buf, len);
+  return !ofs.bad();
+}
+
+static void EnsureDirExistsRaw(const std::string &filepath) {
+  auto parent = StripFileName(filepath);
+  if (parent.length()) EnsureDirExists(parent);
+    // clang-format off
+
+  #ifdef _WIN32
+    (void)_mkdir(filepath.c_str());
+  #else
+    mkdir(filepath.c_str(), S_IRWXU|S_IRGRP|S_IXGRP);
+  #endif
+  // clang-format on
+}
+
+static std::string AbsolutePathRaw(const std::string &filepath) {
+  // clang-format off
+
+  #ifdef FLATBUFFERS_NO_ABSOLUTE_PATH_RESOLUTION
+    return filepath;
+  #else
+    #if defined(_WIN32) || defined(__MINGW32__) || defined(__MINGW64__) || defined(__CYGWIN__)
+      char abs_path[MAX_PATH];
+      return GetFullPathNameA(filepath.c_str(), MAX_PATH, abs_path, nullptr)
+    #else
+      char *abs_path_temp = realpath(filepath.c_str(), nullptr);
+      bool success = abs_path_temp != nullptr;
+      std::string abs_path;
+      if(success) {
+        abs_path = abs_path_temp;
+        free(abs_path_temp);
+      }
+      return success
+    #endif
+      ? abs_path
+      : filepath;
+  #endif // FLATBUFFERS_NO_ABSOLUTE_PATH_RESOLUTION
+  // clang-format on
+}
+
 FileExistsFunction g_file_exists_function = FileExistsRaw;
+DirExistsFunction g_dir_exists_function = DirExistsRaw;
+LoadFileFunction g_load_file_function = LoadFileRaw;
+SaveFileFunction g_save_file_function = SaveFileRaw;
+EnsureDirExistsFunction g_ensure_dir_exists_function = EnsureDirExistsRaw;
+AbsolutePathFunction g_absolute_path_function = AbsolutePathRaw;
 
 static std::string ToCamelCase(const std::string &input, bool is_upper) {
   std::string s;
@@ -209,38 +274,6 @@ std::string SnakeToSnake2(const std::string &s) {
 } // namespace
 
 
-bool LoadFile(const char *name, bool binary, std::string *buf) {
-  FLATBUFFERS_ASSERT(g_load_file_function);
-  return g_load_file_function(name, binary, buf);
-}
-
-bool FileExists(const char *name) {
-  FLATBUFFERS_ASSERT(g_file_exists_function);
-  return g_file_exists_function(name);
-}
-
-bool DirExists(const char *name) {
-  // clang-format off
-
-  #ifdef _WIN32
-    #define flatbuffers_stat _stat
-    #define FLATBUFFERS_S_IFDIR _S_IFDIR
-  #else
-    #define flatbuffers_stat stat
-    #define FLATBUFFERS_S_IFDIR S_IFDIR
-  #endif
-  // clang-format on
-  struct flatbuffers_stat file_info;
-  if (flatbuffers_stat(name, &file_info) != 0) return false;
-  return (file_info.st_mode & FLATBUFFERS_S_IFDIR) != 0;
-}
-
-LoadFileFunction SetLoadFileFunction(LoadFileFunction load_file_function) {
-  LoadFileFunction previous_function = g_load_file_function;
-  g_load_file_function = load_file_function ? load_file_function : LoadFileRaw;
-  return previous_function;
-}
-
 FileExistsFunction SetFileExistsFunction(
     FileExistsFunction file_exists_function) {
   FileExistsFunction previous_function = g_file_exists_function;
@@ -249,11 +282,63 @@ FileExistsFunction SetFileExistsFunction(
   return previous_function;
 }
 
+DirExistsFunction SetDirExistsFunction(DirExistsFunction dir_exists_function) {
+  DirExistsFunction previous_function = g_dir_exists_function;
+  g_dir_exists_function =
+      dir_exists_function ? dir_exists_function : DirExistsRaw;
+  return previous_function;
+}
+
+LoadFileFunction SetLoadFileFunction(LoadFileFunction load_file_function) {
+  LoadFileFunction previous_function = g_load_file_function;
+  g_load_file_function = load_file_function ? load_file_function : LoadFileRaw;
+  return previous_function;
+}
+
+SaveFileFunction SetSaveFileFunction(SaveFileFunction save_file_function) {
+  SaveFileFunction previous_function = g_save_file_function;
+  g_save_file_function =
+      save_file_function ? save_file_function : SaveFileRaw;
+  return previous_function;
+}
+
+EnsureDirExistsFunction SetEnsureDirExistsFunction(
+    EnsureDirExistsFunction ensure_dir_exists_function)
+{
+  EnsureDirExistsFunction previous_function = g_ensure_dir_exists_function;
+  g_ensure_dir_exists_function =
+      ensure_dir_exists_function
+        ? ensure_dir_exists_function : EnsureDirExistsRaw;
+  return previous_function;
+}
+
+AbsolutePathFunction SetAbsolutePathFunction(
+    AbsolutePathFunction absolute_path_function)
+{
+  AbsolutePathFunction previous_function = g_absolute_path_function;
+  g_absolute_path_function =
+      absolute_path_function ? absolute_path_function : AbsolutePathRaw;
+  return previous_function;
+}
+
+bool FileExists(const char *name) {
+  FLATBUFFERS_ASSERT(g_file_exists_function);
+  return g_file_exists_function(name);
+}
+
+bool DirExists(const char *name) {
+  FLATBUFFERS_ASSERT(g_dir_exists_function);
+  return g_dir_exists_function(name);
+}
+
+bool LoadFile(const char *name, bool binary, std::string *buf) {
+  FLATBUFFERS_ASSERT(g_load_file_function);
+  return g_load_file_function(name, binary, buf);
+}
+
 bool SaveFile(const char *name, const char *buf, size_t len, bool binary) {
-  std::ofstream ofs(name, binary ? std::ofstream::binary : std::ofstream::out);
-  if (!ofs.is_open()) return false;
-  ofs.write(buf, len);
-  return !ofs.bad();
+  FLATBUFFERS_ASSERT(g_save_file_function);
+  return g_save_file_function(name, buf, len, binary);
 }
 
 // We internally store paths in posix format ('/'). Paths supplied
@@ -321,41 +406,13 @@ std::string PosixPath(const std::string &path) {
 }
 
 void EnsureDirExists(const std::string &filepath) {
-  auto parent = StripFileName(filepath);
-  if (parent.length()) EnsureDirExists(parent);
-    // clang-format off
-
-  #ifdef _WIN32
-    (void)_mkdir(filepath.c_str());
-  #else
-    mkdir(filepath.c_str(), S_IRWXU|S_IRGRP|S_IXGRP);
-  #endif
-  // clang-format on
+  FLATBUFFERS_ASSERT(g_ensure_dir_exists_function);
+  return g_ensure_dir_exists_function(filepath);
 }
 
 std::string AbsolutePath(const std::string &filepath) {
-  // clang-format off
-
-  #ifdef FLATBUFFERS_NO_ABSOLUTE_PATH_RESOLUTION
-    return filepath;
-  #else
-    #if defined(_WIN32) || defined(__MINGW32__) || defined(__MINGW64__) || defined(__CYGWIN__)
-      char abs_path[MAX_PATH];
-      return GetFullPathNameA(filepath.c_str(), MAX_PATH, abs_path, nullptr)
-    #else
-      char *abs_path_temp = realpath(filepath.c_str(), nullptr);
-      bool success = abs_path_temp != nullptr;
-      std::string abs_path;
-      if(success) {
-        abs_path = abs_path_temp;
-        free(abs_path_temp);
-      }
-      return success
-    #endif
-      ? abs_path
-      : filepath;
-  #endif // FLATBUFFERS_NO_ABSOLUTE_PATH_RESOLUTION
-  // clang-format on
+  FLATBUFFERS_ASSERT(g_absolute_path_function);
+  return g_absolute_path_function(filepath);
 }
 
 std::string RelativeToRootPath(const std::string &project,

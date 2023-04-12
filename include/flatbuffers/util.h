@@ -407,14 +407,34 @@ inline bool StringIsFlatbufferNegativeInfinity(const std::string &s) {
   return s == "-inf" || s == "-infinity";
 }
 
-typedef bool (*LoadFileFunction)(const char *filename, bool binary,
-                                 std::string *dest);
 typedef bool (*FileExistsFunction)(const char *filename);
 
-LoadFileFunction SetLoadFileFunction(LoadFileFunction load_file_function);
+typedef bool (*DirExistsFunction)(const char* dirname);
+
+typedef bool (*LoadFileFunction)(const char *filename, bool binary,
+                                 std::string *dest);
+
+typedef bool (*SaveFileFunction)(const char *filename, const char *buf,
+                                 size_t len, bool binary);
+
+typedef void (*EnsureDirExistsFunction)(const std::string& filepath);
+
+typedef std::string (*AbsolutePathFunction)(const std::string& filepath);
 
 FileExistsFunction SetFileExistsFunction(
     FileExistsFunction file_exists_function);
+
+DirExistsFunction SetDirExistsFunction(DirExistsFunction dir_exists_function);
+
+LoadFileFunction SetLoadFileFunction(LoadFileFunction load_file_function);
+
+SaveFileFunction SetSaveFileFunction(SaveFileFunction save_file_function);
+
+EnsureDirExistsFunction SetEnsureDirExistsFunction(
+    EnsureDirExistsFunction ensure_dir_exists_function);
+
+AbsolutePathFunction SetAbsolutePathFunction(
+    AbsolutePathFunction absolute_path_function);
 
 // Check if file "name" exists.
 bool FileExists(const char *name);
