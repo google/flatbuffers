@@ -17,12 +17,12 @@
 package main
 
 import (
-	order "order"
-	pizza "Pizza"
 	mygame "MyGame"          // refers to generated code
 	example "MyGame/Example" // refers to generated code
+	pizza "Pizza"
 	"encoding/json"
 	optional_scalars "optional_scalars" // refers to generated code
+	order "order"
 
 	"bytes"
 	"flag"
@@ -1054,6 +1054,79 @@ func CheckByteLayout(fail func(string, ...interface{})) {
 
 	check([]byte{
 		12, 0, 0, 0, // root of table: points to vtable offset
+
+		8, 0, // vtable bytes
+		8, 0, // end of object from here
+		7, 0, // start of value 0
+		4, 0, // start of value 1
+
+		8, 0, 0, 0, // offset for start of vtable (int32)
+
+		66, 0, // value 1
+		0,  // padding
+		33, // value 0
+	})
+
+	// test 16b: same as test 16, size prefixed
+	b = flatbuffers.NewBuilder(0)
+	b.StartObject(2)
+	b.PrependInt8Slot(0, 33, 0)
+	b.PrependInt16Slot(1, 66, 0)
+	off = b.EndObject()
+	b.FinishSizePrefixed(off)
+
+	check([]byte{
+		20, 0, 0, 0, // size prefix
+		12, 0, 0, 0, // root of table: points to vtable offset
+
+		8, 0, // vtable bytes
+		8, 0, // end of object from here
+		7, 0, // start of value 0
+		4, 0, // start of value 1
+
+		8, 0, 0, 0, // offset for start of vtable (int32)
+
+		66, 0, // value 1
+		0,  // padding
+		33, // value 0
+	})
+
+	// test 16c: same as test 16, with file identifier
+	b = flatbuffers.NewBuilder(0)
+	b.StartObject(2)
+	b.PrependInt8Slot(0, 33, 0)
+	b.PrependInt16Slot(1, 66, 0)
+	off = b.EndObject()
+	b.FinishWithFileIdentifier(off, []byte("TEST"))
+
+	check([]byte{
+		16, 0, 0, 0, // root of table: points to vtable offset
+		'T', 'E', 'S', 'T', // file identifier
+
+		8, 0, // vtable bytes
+		8, 0, // end of object from here
+		7, 0, // start of value 0
+		4, 0, // start of value 1
+
+		8, 0, 0, 0, // offset for start of vtable (int32)
+
+		66, 0, // value 1
+		0,  // padding
+		33, // value 0
+	})
+
+	// test 16d: same as test 16, size prefixed with file identifier
+	b = flatbuffers.NewBuilder(0)
+	b.StartObject(2)
+	b.PrependInt8Slot(0, 33, 0)
+	b.PrependInt16Slot(1, 66, 0)
+	off = b.EndObject()
+	b.FinishSizePrefixedWithFileIdentifier(off, []byte("TEST"))
+
+	check([]byte{
+		24, 0, 0, 0, // size prefix
+		16, 0, 0, 0, // root of table: points to vtable offset
+		'T', 'E', 'S', 'T', // file identifier
 
 		8, 0, // vtable bytes
 		8, 0, // end of object from here
