@@ -14,12 +14,12 @@ flatbuffer_ts_library(
 
 js_test(
     name = "javascript_test",
+    chdir = package_name(),
     entry_point = "JavaScriptTest.js",
-    include_transitive_sources = True,
     data = [
         "package.json",
         "//:node_modules/flatbuffers",
-        "//tests:monsterdata_test.mon",
+        "//tests:test_data_copied_to_bin",
     ] + glob([
         "my-game/*.js",
         "my-game/example/*.js",
