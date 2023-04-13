@@ -1,17 +1,32 @@
 import assert from 'assert'
 import * as flatbuffers from 'flatbuffers'
 
-import fsoobar from './typescript_include_generated.cjs'
+import typescript_include from './typescript_include_generated.cjs'
+
+const foobar = typescript_include.foobar;
 
 function main() {
-  console.log(fsoobar);
-  console.log(foobar.foobar);
-  console.log(Object.keys(foobar));
-  console.log(foobar.Abc);
-  console.log(Object.keys(foobar.Abc));
-  assert.strictEqual(foobar.Abc.a, 234);
+  // Validate the enums.
+  assert.strictEqual(foobar.Abc.a, 0);
+  assert.strictEqual(foobar.class_.arguments_, 0);
 
-  console.log('FlatBuffers Import test: completed successfully');
+  // Validate building a table.
+  var fbb = new flatbuffers.Builder(1);
+  var name = fbb.createString("Foo Bar");
+
+  foobar.Tab.startTab(fbb);
+  foobar.Tab.addAbc(fbb, foobar.Abc.a);
+  foobar.Tab.addArg(fbb, foobar.class_.arguments_);
+  foobar.Tab.addName(fbb, name);
+  var tab = foobar.Tab.endTab(fbb);
+
+  console.log(Object.keys(foobar.Tab));
+  fbb.finish(tab);
+
+  // Call as a sanity check. Would be better to validate actual output here.
+  fbb.asUint8Array();
+
+  console.log('FlatBuffers Bazel Import test: completed successfully');
 }
 
 main();
