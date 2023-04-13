@@ -54,20 +54,18 @@ def flatbuffer_ts_library(
     if len(srcs) != 1:
         fail("flatbuffer_ts_library only supports one .fbs file per target currently.")
 
-    outs = ["%s.ts" % s for s in out_base]
-    cjs_outs = ["%s_generated.cjs" % s for s in out_base]
+    outs = ["%s_generated.cjs" % s for s in out_base]
     includes = [d + "_includes" for d in deps]
-    ts_deps = [d + "_ts" for d in deps]
     reflection_name = "%s_reflection" % name if gen_reflections else ""
     flatbuffer_library_public(
         name = srcs_lib,
         srcs = srcs,
-        outs = cjs_outs,
+        outs = outs,
         language_flag = "--ts",
         includes = includes,
         include_paths = include_paths,
         extra_env = "ESBUILD_BIN=$(ESBUILD_BIN)",
-        flatc_args = flatc_args,
+        flatc_args = flatc_args + ["--filename-suffix _generated"],
         compatible_with = compatible_with,
         restricted_to = restricted_to,
         reflection_name = reflection_name,
@@ -83,7 +81,7 @@ def flatbuffer_ts_library(
         compatible_with = compatible_with,
         restricted_to = restricted_to,
         target_compatible_with = target_compatible_with,
-        srcs = cjs_outs,
+        srcs = outs,
     )
     native.filegroup(
         name = "%s_includes" % (name),
