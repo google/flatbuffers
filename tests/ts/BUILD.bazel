@@ -12,20 +12,36 @@ flatbuffer_ts_library(
     ],
 )
 
-js_test(
-    name = "javascript_test",
+TEST_DATA = glob([
+    "my-game/*.js",
+    "my-game/example/*.js",
+    "my-game/example2/*.js",
+])
+
+TEST_UNION_VECTOR_DATA = glob([
+    "union_vector/*.js",
+])
+
+TEST_COMPLEX_ARRAYS_DATA = glob([
+    "arrays_test_complex/**/*.js",
+])
+
+[js_test(
+    name = "%s_test" % test,
     chdir = package_name(),
-    entry_point = "JavaScriptTest.js",
-    data = [
+    entry_point = "%s.js" % test,
+    data = data + [
         "package.json",
         "//:node_modules/flatbuffers",
         "//tests:test_data_copied_to_bin",
-    ] + glob([
-        "my-game/*.js",
-        "my-game/example/*.js",
-        "my-game/example2/*.js",
-    ]),
+    ],
     node_options = [
         "--trace-warnings",
     ],
-)
+) for test, data in (
+    ("JavaScriptTest", TEST_DATA),
+    ("JavaScriptUnionVectorTest", TEST_UNION_VECTOR_DATA),
+    # TODO(philsc): Figure out how to run this test with flexbuffers available.
+    #("JavaScriptFlexBuffersTest",
+    ("JavaScriptComplexArraysTest", TEST_COMPLEX_ARRAYS_DATA),
+)]
