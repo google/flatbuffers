@@ -35,9 +35,6 @@ TEST_COMPLEX_ARRAYS_DATA = glob([
         "//:node_modules/flatbuffers",
         "//tests:test_data_copied_to_bin",
     ],
-    node_options = [
-        "--trace-warnings",
-    ],
 ) for test, data in (
     ("JavaScriptTest", TEST_DATA),
     ("JavaScriptUnionVectorTest", TEST_UNION_VECTOR_DATA),

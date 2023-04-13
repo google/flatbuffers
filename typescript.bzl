@@ -77,62 +77,6 @@ def flatbuffer_ts_library(
         toolchains = ["@aspect_rules_esbuild//esbuild:resolved_toolchain"],
         tools = ["@aspect_rules_esbuild//esbuild:resolved_toolchain"],
     )
-    #native.genrule(
-    #    name = name + "_cjs",
-    #    srcs = [
-    #        srcs_lib,
-    #    ],
-    #    outs = cjs_outs,
-    #    cmd = " ".join([
-    #        "$(ESBUILD_BIN)",
-    #        "--format=cjs",
-    #        "--bundle",
-    #        "--outfile=$(locations :%s)" % " ".join(cjs_outs),
-    #        "--external:flatbuffers",
-    #        "--log-level=warning",
-    #    ]),
-    #    toolchains = ["@aspect_rules_esbuild//esbuild:resolved_toolchain"],
-    #    tools = ["@aspect_rules_esbuild//esbuild:resolved_toolchain"],
-    #    #args = [
-    #    #    "$(location :%s)" % srcs_lib,
-    #    #    "--format=cjs",
-    #    #    "--bundle",
-    #    #    "--outfile=$(location %s)" % cjs_outs[0],
-    #    #    "--external:flatbuffers",
-    #    #    "--log-level=warning",
-    #    #],
-    #)
-    #ts_project(
-    #    name = name + "_ts",
-    #    srcs = [srcs_lib],
-    #    declaration = True,
-    #    visibility = visibility,
-    #    compatible_with = compatible_with,
-    #    restricted_to = restricted_to,
-    #    target_compatible_with = target_compatible_with,
-    #    supports_workers = False,
-    #    tsconfig = {
-    #        # TODO(phil): Deduplicate with //ts:flatbuffer_ts.
-    #        "compilerOptions": {
-    #            "module": "commonjs",
-    #            "declaration": True,
-    #            "moduleResolution": "node",
-    #            "lib": [
-    #                "ES2015",
-    #                "ES2020.BigInt",
-    #                "DOM",
-    #            ],
-    #            "strict": True,
-    #            "types": ["node"],
-    #        },
-    #    },
-    #    deps = ts_deps + [
-    #        "//:node_modules/flatbuffers",
-    #        # TODO(phil): Figure out why @types/node isn't being picked up as a
-    #        # transitivie dependencies.
-    #        "//:node_modules/@types/node",
-    #    ],
-    #)
     js_library(
         name = name,
         visibility = visibility,
