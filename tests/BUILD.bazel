@@ -4,8 +4,8 @@ load("//:build_defs.bzl", "flatbuffer_cc_library")
 
 package(default_visibility = ["//visibility:private"])
 
-# rules_js works around various tooling limitations by copying everything into
-# the output directory. Make the test data available to the tests this way.
+# rules_js works around various JS tooling limitations by copying everything
+# into the output directory. Make the test data available to the tests this way.
 copy_to_bin(
     name = "test_data_copied_to_bin",
     srcs = glob([
