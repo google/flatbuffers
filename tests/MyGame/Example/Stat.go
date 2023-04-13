@@ -13,7 +13,9 @@ type StatT struct {
 }
 
 func (t *StatT) Pack(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
-	if t == nil { return 0 }
+	if t == nil {
+		return 0
+	}
 	idOffset := flatbuffers.UOffsetT(0)
 	if t.Id != "" {
 		idOffset = builder.CreateString(t.Id)
@@ -32,7 +34,9 @@ func (rcv *Stat) UnPackTo(t *StatT) {
 }
 
 func (rcv *Stat) UnPack() *StatT {
-	if rcv == nil { return nil }
+	if rcv == nil {
+		return nil
+	}
 	t := &StatT{}
 	rcv.UnPackTo(t)
 	return t
@@ -100,17 +104,17 @@ func (rcv *Stat) MutateCount(n uint16) bool {
 func StatKeyCompare(o1, o2 flatbuffers.UOffsetT, buf []byte) bool {
 	obj1 := &Stat{}
 	obj2 := &Stat{}
-	obj1.Init(buf, flatbuffers.UOffsetT(len(buf)) - o1)
-	obj2.Init(buf, flatbuffers.UOffsetT(len(buf)) - o2)
+	obj1.Init(buf, flatbuffers.UOffsetT(len(buf))-o1)
+	obj2.Init(buf, flatbuffers.UOffsetT(len(buf))-o2)
 	return obj1.Count() < obj2.Count()
 }
 
 func (rcv *Stat) LookupByKey(key uint16, vectorLocation flatbuffers.UOffsetT, buf []byte) bool {
-	span := flatbuffers.GetUOffsetT(buf[vectorLocation - 4:])
+	span := flatbuffers.GetUOffsetT(buf[vectorLocation-4:])
 	start := flatbuffers.UOffsetT(0)
 	for span != 0 {
 		middle := span / 2
-		tableOffset := flatbuffers.GetIndirectOffset(buf, vectorLocation+ 4 * (start + middle))
+		tableOffset := flatbuffers.GetIndirectOffset(buf, vectorLocation+4*(start+middle))
 		obj := &Stat{}
 		obj.Init(buf, tableOffset)
 		val := obj.Count()
