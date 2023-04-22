@@ -1,6 +1,6 @@
 workspace(name = "com_github_google_flatbuffers")
 
-load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
+load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive", "http_file")
 
 http_archive(
     name = "platforms",
@@ -140,4 +140,13 @@ load("@aspect_rules_esbuild//esbuild:repositories.bzl", "LATEST_VERSION", "esbui
 esbuild_register_toolchains(
     name = "esbuild",
     esbuild_version = LATEST_VERSION,
+)
+
+http_file(
+    name = "bazel_linux_x86_64",
+    downloaded_file_path = "bazel",
+    urls = [
+        "https://github.com/bazelbuild/bazel/releases/download/6.1.2/bazel-6.1.2-linux-x86_64",
+    ],
+    sha256 = "e89747d63443e225b140d7d37ded952dacea73aaed896bca01ccd745827c6289",
 )

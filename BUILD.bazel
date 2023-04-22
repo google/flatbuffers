@@ -39,6 +39,18 @@ config_setting(
     ],
 )
 
+filegroup(
+    name = "distribution",
+    srcs = [
+        "BUILD.bazel",
+        "WORKSPACE",
+        "build_defs.bzl",
+        "typescript.bzl",
+        "//ts:distribution",
+    ],
+    visibility = ["//visibility:public"],
+)
+
 # Public flatc library to compile flatbuffer files at runtime.
 cc_library(
     name = "flatbuffers",

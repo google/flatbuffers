@@ -42,3 +42,17 @@ TEST_COMPLEX_ARRAYS_DATA = glob([
     #("JavaScriptFlexBuffersTest",
     ("JavaScriptComplexArraysTest", TEST_COMPLEX_ARRAYS_DATA),
 )]
+
+sh_test(
+    name = "bazel_repository_test",
+    srcs = ["bazel_repository_test.sh"],
+    data = [
+        "//:distribution",
+        "@bazel_linux_x86_64//file",
+    ] + glob([
+        "bazel_repository_test_dir/**/*",
+    ], exclude=[
+        "bazel_repository_test_dir/bazel-*",
+    ]),
+    deps = ["@bazel_tools//tools/bash/runfiles"],
+)
