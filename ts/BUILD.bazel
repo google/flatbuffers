@@ -6,7 +6,6 @@ filegroup(
     srcs = [
         "BUILD.bazel",
         "compile_flat_file.sh",
-        ":index.ts",
     ] + glob([
         "*.ts",
     ]),

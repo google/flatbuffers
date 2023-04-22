@@ -46,8 +46,13 @@ filegroup(
         "WORKSPACE",
         "build_defs.bzl",
         "typescript.bzl",
+        "//grpc/src/compiler:distribution",
+        "//reflection:distribution",
+        "//src:distribution",
         "//ts:distribution",
-    ],
+    ] + glob([
+        "include/flatbuffers/*.h",
+    ]),
     visibility = ["//visibility:public"],
 )
 

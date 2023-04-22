@@ -52,7 +52,7 @@ sh_test(
     ] + glob([
         "bazel_repository_test_dir/**/*",
     ], exclude=[
-        "bazel_repository_test_dir/bazel-*",
+        "bazel_repository_test_dir/bazel-*/**",
     ]),
     deps = ["@bazel_tools//tools/bash/runfiles"],
 )
