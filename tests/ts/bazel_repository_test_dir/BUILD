@@ -7,7 +7,7 @@ npm_link_all_packages(name = "node_modules")
 
 npm_link_package(
     name = "node_modules/flatbuffers",
-    src = "//ts:flatbuffers",
+    src = "@com_github_google_flatbuffers//ts:flatbuffers",
 )
 
 flatbuffer_ts_library(
