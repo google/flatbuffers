@@ -20,7 +20,6 @@ function main() {
   foobar.Tab.addName(fbb, name);
   var tab = foobar.Tab.endTab(fbb);
 
-  console.log(Object.keys(foobar.Tab));
   fbb.finish(tab);
 
   // Call as a sanity check. Would be better to validate actual output here.
