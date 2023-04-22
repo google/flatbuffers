@@ -34,7 +34,20 @@ benchmark {
 }
 
 kotlin {
-  jvm()
+  jvm {
+    compilations {
+      val main by getting { }
+      // custom benchmark compilation
+      val benchmarks by compilations.creating {
+        defaultSourceSet {
+          dependencies {
+            // Compile against the main compilation's compile classpath and outputs:
+            implementation(main.compileDependencyFiles + main.output.classesDirs)
+          }
+        }
+      }
+    }
+  }
 
   sourceSets {
     val jvmMain by getting {
@@ -42,7 +55,7 @@ kotlin {
         implementation(kotlin("stdlib-common"))
         implementation(project(":flatbuffers-kotlin"))
         implementation(libs.kotlinx.benchmark.runtime)
-        implementation("com.google.flatbuffers:flatbuffers-java:23.3.3")
+        implementation("com.google.flatbuffers:flatbuffers-java:23.5.9")
         // json serializers
         implementation(libs.moshi.kotlin)
         implementation(libs.gson)

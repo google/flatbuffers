@@ -1,8 +1,8 @@
 [versions]
-kotlin = "1.7.21"
+kotlin = "1.8.21"
 plugin-kotlin = "1.6.10"
 plugin-gver = "0.42.0"
-kotlinx-benchmark = "0.4.6"
+kotlinx-benchmark = "0.4.8"
 junit = "4.12"
 gson = "2.8.5"
 moshi-kotlin = "1.11.0"

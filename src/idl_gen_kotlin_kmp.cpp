@@ -20,7 +20,6 @@
 #include <unordered_set>
 
 #include "flatbuffers/code_generators.h"
-#include "flatbuffers/flatbuffers.h"
 #include "flatbuffers/idl.h"
 #include "flatbuffers/util.h"
 #include "idl_gen_kotlin.h"
@@ -56,7 +55,7 @@ static Namer::Config KotlinDefaultConfig() {
            /*variables=*/Case::kLowerCamel,
            /*variants=*/Case::kUpperCamel,
            /*enum_variant_seperator=*/"",  // I.e. Concatenate.
-           /*escape_keywords=*/Namer::Config::Escape::BeforeConvertingCase,
+           /*escape_keywords=*/Namer::Config::Escape::AfterConvertingCase,
            /*namespaces=*/Case::kLowerCamel,
            /*namespace_seperator=*/".",
            /*object_prefix=*/"",
@@ -89,6 +88,8 @@ class KotlinKMPGenerator : public BaseGenerator {
       auto &enum_def = **it;
 
       GenEnum(enum_def, enumWriter);
+      enumWriter += "";
+      GenEnumOffsetAlias(enum_def, enumWriter);
 
       if (parser_.opts.one_file) {
         one_file_code += enumWriter.ToString();
@@ -103,7 +104,11 @@ class KotlinKMPGenerator : public BaseGenerator {
          it != parser_.structs_.vec.end(); ++it) {
       CodeWriter structWriter(ident_pad);
       auto &struct_def = **it;
+
       GenStruct(struct_def, structWriter, parser_.opts);
+      structWriter += "";
+      GenStructOffsetAlias(struct_def, structWriter);
+
       if (parser_.opts.one_file) {
         one_file_code += structWriter.ToString();
       } else {
@@ -122,13 +127,13 @@ class KotlinKMPGenerator : public BaseGenerator {
   }
 
   std::string TypeInNameSpace(const Namespace *ns,
-                                             const std::string &name = "") const {
+                              const std::string &name = "") const {
     auto qualified = namer_.Namespace(*ns);
     return qualified.empty() ? name : qualified + qualifying_separator_ + name;
   }
 
   std::string TypeInNameSpace(const Definition &def,
-                                             const std::string &suffix = "") const {
+                              const std::string &suffix = "") const {
     return TypeInNameSpace(def.defined_namespace, def.name + suffix);
   }
 
@@ -149,7 +154,8 @@ class KotlinKMPGenerator : public BaseGenerator {
     if (needs_includes) { code += "import com.google.flatbuffers.kotlin.*\n"; }
     code += "import kotlin.jvm.JvmInline\n";
     code += classcode;
-    const std::string dirs = namer_.Directories(ns, SkipDir::None, Case::kUnknown);
+    const std::string dirs =
+        namer_.Directories(ns, SkipDir::None, Case::kUnknown);
     EnsureDirExists(dirs);
     const std::string filename =
         dirs + namer_.File(defname, /*skips=*/SkipFile::Suffix);
@@ -160,12 +166,40 @@ class KotlinKMPGenerator : public BaseGenerator {
     return type.enum_def != nullptr && IsInteger(type.base_type);
   }
 
-  std::string GenerateKotlinArray(const Type &type) const {
+  std::string GenerateKotlinPrimiteArray(const Type &type) const {
+    if (IsScalar(type.base_type) && !IsEnum(type)) { return GenType(type); }
+
+    if (IsEnum(type) || type.base_type == BASE_TYPE_UTYPE) {
+      return TypeInNameSpace(type.enum_def->defined_namespace,
+                             namer_.Type(*type.enum_def));
+    }
+    switch (type.base_type) {
+      case BASE_TYPE_STRUCT:
+        return "Offset<" + TypeInNameSpace(*type.struct_def) + ">";
+      case BASE_TYPE_UNION: return "UnionOffset";
+      case BASE_TYPE_STRING: return "Offset<String>";
+      case BASE_TYPE_UTYPE: return "Offset<UByte>";
+      default: return "Offset<" + GenTypeBasic(type.element) + ">";
+    }
+  }
+
+  std::string GenerateKotlinOffsetArray(const Type &type) const {
     if (IsScalar(type.base_type) && !IsEnum(type)) {
       return GenType(type) + "Array";
     }
 
-    return "Array<" + GenType(type) + ">";
+    if (IsEnum(type) || type.base_type == BASE_TYPE_UTYPE) {
+      return TypeInNameSpace(type.enum_def->defined_namespace,
+                             namer_.Type(*type.enum_def) + "Array");
+    }
+    switch (type.base_type) {
+      case BASE_TYPE_STRUCT:
+        return TypeInNameSpace(*type.struct_def) + "OffsetArray";
+      case BASE_TYPE_UNION: return "UnionOffsetArray";
+      case BASE_TYPE_STRING: return "StringOffsetArray";
+      case BASE_TYPE_UTYPE: return "UByteArray";
+      default: return GenTypeBasic(type.element) + "OffsetArray";
+    }
   }
 
   std::string GenTypeBasic(const BaseType &type) const {
@@ -187,7 +221,9 @@ class KotlinKMPGenerator : public BaseGenerator {
       case BASE_TYPE_STRUCT: return "Offset";
       case BASE_TYPE_UNION: return "UnionOffset";
       case BASE_TYPE_VECTOR:
-      case BASE_TYPE_ARRAY: return "ArrayOffset";
+      case BASE_TYPE_ARRAY: return "VectorOffset";
+      // VECTOR64 not supported
+      case BASE_TYPE_VECTOR64: FLATBUFFERS_ASSERT(0);
     }
     return "Int";
   }
@@ -395,8 +431,8 @@ class KotlinKMPGenerator : public BaseGenerator {
             [&]() {
               writer += "names[e.value.toInt()\\";
               if (enum_def.MinValue()->IsNonZero())
-                writer +=
-                    " - " + namer_.Variant(*enum_def.MinValue()) + ".value.toInt()\\";
+                writer += " - " + namer_.Variant(*enum_def.MinValue()) +
+                          ".value.toInt()\\";
               writer += "]";
             },
             parser_.opts.gen_jvmstatic);
@@ -519,6 +555,44 @@ class KotlinKMPGenerator : public BaseGenerator {
     return false;
   }
 
+  // This method generate alias types for offset arrays. We need it
+  // to avoid unboxing/boxing of offsets when put into an array.
+  // e.g:
+  // Array<Offset<Monster>> generates boxing.
+  // So we creates a new type to avoid it:
+  // typealias MonterOffsetArray = IntArray
+  void GenStructOffsetAlias(StructDef &struct_def, CodeWriter &writer) const {
+    if (struct_def.generated) return;
+    auto name = namer_.Type(struct_def);
+    // This assumes offset as Ints always.
+    writer += "typealias " + name + "OffsetArray = OffsetArray<" + name + ">";
+
+    // public inline fun <T> MonsterOffsetArray(size: Int, crossinline call:
+    // (Int) -> Offset<T>): OffsetArray<T> {
+    //  return OffsetArray(IntArray(size) { call(it).value })
+    // }
+    writer += "";
+    writer += "inline fun " + name +
+              "OffsetArray(size: Int, crossinline call: (Int) -> Offset<" +
+              name + ">): " + name + "OffsetArray =";
+    writer.IncrementIdentLevel();
+    writer += name + "OffsetArray(IntArray(size) { call(it).value })";
+  }
+
+  // This method generate alias types for offset arrays. We need it
+  // to avoid unboxing/boxing of offsets when put into an array.
+  // e.g:
+  // Array<Offset<Monster>> generates boxing.
+  // So we creates a new type to avoid it:
+  // typealias MonterOffsetArray = IntArray
+  void GenEnumOffsetAlias(EnumDef &enum_def, CodeWriter &writer) const {
+    if (enum_def.generated) return;
+    // This assumes offset as Ints always.
+    writer += "typealias " + namer_.Type(enum_def) +
+              "Array = " + GenTypeBasic(enum_def.underlying_type.base_type) +
+              "Array";
+  }
+
   void GenStruct(StructDef &struct_def, CodeWriter &writer,
                  IDLOptions options) const {
     if (struct_def.generated) return;
@@ -566,9 +640,6 @@ class KotlinKMPGenerator : public BaseGenerator {
 
           writer += "";
           GenerateBufferHasIdentifier(struct_def, writer, options);
-
-          writer += "";
-          GenerateTableBuilder(struct_def, writer);
 
           writer += "";
           GenerateTableCreator(struct_def, writer, options);
@@ -715,7 +786,7 @@ class KotlinKMPGenerator : public BaseGenerator {
   void GenerateEndStructMethod(StructDef &struct_def, CodeWriter &writer,
                                const IDLOptions options) const {
     // Generate end{{TableName}}(builder: FlatBufferBuilder) method
-    auto name = namer_.LegacyJavaMethod2("end", struct_def, "");
+    auto name = namer_.Method("end", struct_def.name);
     auto params = "builder: FlatBufferBuilder";
     auto returns = "Offset<" + namer_.Type(struct_def) + '>';
     auto field_vec = struct_def.fields.vec;
@@ -729,7 +800,8 @@ class KotlinKMPGenerator : public BaseGenerator {
             auto &field = **it;
             if (field.deprecated || !field.IsRequired()) { continue; }
             writer.SetValue("offset", NumToString(field.value.offset));
-            writer += "builder.required(o, {{offset}})";
+            writer.SetValue("field_name", field.name);
+            writer += "builder.required(o, {{offset}}, \"{{field_name}}\")";
           }
           writer.DecrementIdentLevel();
           writer += "return o";
@@ -742,21 +814,20 @@ class KotlinKMPGenerator : public BaseGenerator {
                                  const IDLOptions options) const {
     auto vector_type = field.value.type.VectorType();
     auto method_name = namer_.Method("create", field, "vector");
-    auto array_param = GenerateKotlinArray(vector_type);
-    auto params = "builder: FlatBufferBuilder, data: " + array_param;
+    auto array_param = GenerateKotlinOffsetArray(vector_type);
+    auto params = "builder: FlatBufferBuilder, vector:" + array_param;
     auto return_type = GenType(field.value.type);
     writer.SetValue("size", NumToString(InlineSize(vector_type)));
     writer.SetValue("align", NumToString(InlineAlignment(vector_type)));
     writer.SetValue("root", GenMethod(vector_type));
-    writer.SetValue("suffix", IsEnum(vector_type) ? ".value" : "");
 
     GenerateFun(
         writer, method_name, params, return_type,
         [&]() {
-          writer += "builder.startVector({{size}}, data.size, {{align}})";
-          writer += "for (i in data.size - 1 downTo 0) {";
+          writer += "builder.startVector({{size}}, vector.size, {{align}})";
+          writer += "for (i in vector.size - 1 downTo 0) {";
           writer.IncrementIdentLevel();
-          writer += "builder.add{{root}}(data[i]{{suffix}})";
+          writer += "builder.add{{root}}(vector[i])";
           writer.DecrementIdentLevel();
           writer += "}";
           writer += "return builder.endVector()";
@@ -836,89 +907,6 @@ class KotlinKMPGenerator : public BaseGenerator {
         options.gen_jvmstatic);
   }
 
-  void GenerateTableBuilder(StructDef &struct_def, CodeWriter &writer) const {
-    auto fields_vec = struct_def.fields.vec;
-    auto name_type = namer_.Type(struct_def);
-    auto builder_name = namer_.Type(struct_def) + "Builder";
-    auto type_name = namer_.Type(struct_def);
-
-    std::vector<FieldDef *> required_fields;
-    std::stringstream params;
-
-    params << "builder: FlatBufferBuilder";
-    // add required fields as parameters.
-    for (auto i = 0u; i < fields_vec.size(); ++i) {
-      auto &field = *fields_vec[i];
-
-      if (field.value.type.base_type == BASE_TYPE_UTYPE &&
-          fields_vec[i + 1]->IsRequired()) {
-        // union type field are never marked required even
-        // if its union field countapart is. So we check it
-        // here and add if needed.
-        params << ", " << namer_.Variable(field) << ": "
-               << GenType(field.value.type);
-        required_fields.push_back(&field);
-      }
-
-      if (!field.deprecated && field.IsRequired()) {
-        params << ", " << namer_.Variable(field) << ": "
-               << GenType(field.value.type)
-               << (field.IsScalarOptional() ? "?" : "");
-        required_fields.push_back(&field);
-      }
-    }
-
-    writer += "class " + builder_name + "(val builder: FlatBufferBuilder) {";
-    writer.IncrementIdentLevel();
-
-    // Static Add for fields
-    auto fields = struct_def.fields.vec;
-    int field_pos = -1;
-    for (auto i = 0u; i < fields_vec.size(); ++i) {
-      auto &field = *fields_vec[i];
-      field_pos++;
-      if (field.deprecated || field.IsRequired() ||
-          (field.value.type.base_type == BASE_TYPE_UTYPE &&
-           fields_vec[i + 1]->IsRequired()))
-        continue;
-      writer += "";
-      auto field_name = namer_.Field(field);
-      auto return_type = GenType(field.value.type);
-      auto method = GenMethod(field.value.type);
-      auto def = GenDefaultValue(field);
-      auto getter = "error(\"This methods should never be called\")";
-      auto setter =
-          namer_.LegacyKotlinMethod("add", field, "") + "(builder, value)";
-      GenerateVarGetterSetterOneLine(writer, field_name, return_type, getter,
-                                     setter);
-    }
-
-    // Declarative constructor function
-    writer.DecrementIdentLevel();
-    writer += "}";
-
-    // add builder lambda
-    params << ", lambda: " << builder_name << ".() -> Unit = {}";
-
-    // finally, fun body
-    GenerateFun(writer, "create" + name_type, params.str(),
-                "Offset<" + name_type + '>', [&]() {
-                  writer +=
-                      "val b = " + namer_.Type(struct_def) + "Builder(builder)";
-                  writer += namer_.LegacyKotlinMethod("start", struct_def, "") +
-                            "(builder)";
-                  for (auto it = required_fields.begin();
-                       it != required_fields.end(); ++it) {
-                    writer += namer_.LegacyKotlinMethod("add", **it, "") +
-                              "(builder, " + namer_.Variable(**it) + ")";
-                  }
-                  writer += "b.apply(lambda)";
-                  writer += "return " +
-                            namer_.LegacyKotlinMethod("end", struct_def, "") +
-                            "(builder)";
-                });
-  }
-
   void GenerateTableCreator(StructDef &struct_def, CodeWriter &writer,
                             const IDLOptions options) const {
     // Generate a method that creates a table in one go. This is only possible
@@ -963,7 +951,8 @@ class KotlinKMPGenerator : public BaseGenerator {
           writer, name, params.str(), "Offset<" + namer_.Type(struct_def) + '>',
           [&]() {
             writer.SetValue("vec_size", NumToString(fields_vec.size()));
-
+            writer.SetValue("end_method",
+                            namer_.Method("end", struct_def.name));
             writer += "builder.startTable({{vec_size}})";
 
             auto sortbysize = struct_def.sortbysize;
@@ -992,7 +981,7 @@ class KotlinKMPGenerator : public BaseGenerator {
                 }
               }
             }
-            writer += "return end{{struct_name}}(builder)";
+            writer += "return {{end_method}}(builder)";
           },
           options.gen_jvmstatic);
     }
@@ -1568,7 +1557,7 @@ class KotlinKMPGenerator : public BaseGenerator {
 };
 }  // namespace kotlin
 
-bool GenerateKotlinKMP(const Parser &parser, const std::string &path,
+static bool GenerateKotlinKMP(const Parser &parser, const std::string &path,
                        const std::string &file_name) {
   kotlin::KotlinKMPGenerator generator(parser, path, file_name);
   return generator.generate();

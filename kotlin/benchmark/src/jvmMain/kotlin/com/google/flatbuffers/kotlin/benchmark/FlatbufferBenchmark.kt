@@ -11,7 +11,7 @@ import monster.AllMonsters.Companion.createAllMonsters
 import monster.AllMonsters.Companion.createMonstersVector
 import monster.Monster
 import monster.Monster.Companion.createInventoryVector
-import monster.Monster.Companion.createMonster
+import monster.MonsterOffsetArray
 import monster.Vec3
 import org.openjdk.jmh.annotations.*
 import java.util.concurrent.TimeUnit
@@ -31,8 +31,9 @@ open class FlatbufferBenchmark {
   fun monstersKotlin() {
     fbKotlin.clear()
     val monsterName = fbKotlin.createString("MonsterName");
-    val inv = createInventoryVector(fbKotlin, byteArrayOf(0, 1, 2, 3, 4).asUByteArray())
-    val monsters = createMonstersVector(fbKotlin, Array(repetition) {
+    val items = ubyteArrayOf(0u, 1u, 2u, 3u, 4u)
+    val inv = createInventoryVector(fbKotlin, items)
+    val monsterOffsets: MonsterOffsetArray = MonsterOffsetArray(repetition) {
       Monster.startMonster(fbKotlin)
       Monster.addName(fbKotlin, monsterName)
       Monster.addPos(fbKotlin, Vec3.createVec3(fbKotlin, 1.0f, 2.0f, 3.0f))
@@ -40,7 +41,8 @@ open class FlatbufferBenchmark {
       Monster.addMana(fbKotlin, 150)
       Monster.addInventory(fbKotlin, inv)
       Monster.endMonster(fbKotlin)
-    })
+    }
+    val monsters = createMonstersVector(fbKotlin, monsterOffsets)
     val allMonsters = createAllMonsters(fbKotlin, monsters)
     fbKotlin.finish(allMonsters)
   }

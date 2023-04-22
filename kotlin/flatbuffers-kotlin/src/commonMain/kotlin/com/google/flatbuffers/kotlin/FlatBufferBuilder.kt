@@ -336,7 +336,7 @@ public class FlatBufferBuilder @JvmOverloads constructor(
    * @param off The offset to add.
    */
   public fun add(off: Offset<*>): Unit = addOffset(off.value)
-  public fun add(off: ArrayOffset<*>): Unit = addOffset(off.value)
+  public fun add(off: VectorOffset<*>): Unit = addOffset(off.value)
   private fun addOffset(off: Int) {
     prep(Int.SIZE_BYTES, 0) // Ensure alignment is already done.
     put(buffer.capacity - space - off + Int.SIZE_BYTES)
@@ -401,11 +401,11 @@ public class FlatBufferBuilder @JvmOverloads constructor(
    * @return The offset at which the newly created array starts.
    * @see .startVector
    */
-  public fun <T> endVector(): ArrayOffset<T> {
+  public fun <T> endVector(): VectorOffset<T> {
     if (!nested) throw AssertionError("FlatBuffers: endVector called without startVector")
     nested = false
     put(vectorNumElems)
-    return ArrayOffset(offset())
+    return VectorOffset(offset())
   }
 
   public fun endString(): Offset<String> {
@@ -446,11 +446,11 @@ public class FlatBufferBuilder @JvmOverloads constructor(
    * @param offsets Offsets of the tables.
    * @return Returns offset of the vector.
    */
-  public fun <T> createVectorOfTables(offsets: Array<Offset<T>>): ArrayOffset<T> {
+  public fun <T> createVectorOfTables(offsets: Array<Offset<T>>): VectorOffset<T> {
     notNested()
     startVector(Int.SIZE_BYTES, offsets.size, Int.SIZE_BYTES)
     for (i in offsets.indices.reversed()) add(offsets[i])
-    return ArrayOffset(endVector())
+    return VectorOffset(endVector())
   }
 
   /**
@@ -460,7 +460,7 @@ public class FlatBufferBuilder @JvmOverloads constructor(
    * @param offsets Offsets of the tables.
    * @return Returns offset of the sorted vector.
    */
-  public fun <T : Table> createSortedVectorOfTables(obj: T, offsets: Array<Offset<T>>): ArrayOffset<T> {
+  public fun <T : Table> createSortedVectorOfTables(obj: T, offsets: Array<Offset<T>>): VectorOffset<T> {
     obj.sortTables(offsets, buffer)
     return createVectorOfTables(offsets)
   }
@@ -529,13 +529,13 @@ public class FlatBufferBuilder @JvmOverloads constructor(
    * @param arr A source array with data
    * @return The offset in the buffer where the encoded array starts.
    */
-  public fun createByteVector(arr: ByteArray): ArrayOffset<Byte> {
+  public fun createByteVector(arr: ByteArray): VectorOffset<Byte> {
     val length = arr.size
     startVector(1, length, 1)
     space -= length
     buffer.writePosition = space
     buffer.put(arr)
-    return ArrayOffset(endVector())
+    return VectorOffset(endVector())
   }
 
   /**
@@ -546,12 +546,12 @@ public class FlatBufferBuilder @JvmOverloads constructor(
    * @param length the number of bytes to copy from the source array.
    * @return The offset in the buffer where the encoded array starts.
    */
-  public fun createByteVector(arr: ByteArray, offset: Int, length: Int): ArrayOffset<Byte> {
+  public fun createByteVector(arr: ByteArray, offset: Int, length: Int): VectorOffset<Byte> {
     startVector(1, length, 1)
     space -= length
     buffer.writePosition = space
     buffer.put(arr, offset, length)
-    return ArrayOffset(endVector())
+    return VectorOffset(endVector())
   }
 
   /**
@@ -563,13 +563,13 @@ public class FlatBufferBuilder @JvmOverloads constructor(
    * @param data A source [ReadBuffer] with data.
    * @return The offset in the buffer where the encoded array starts.
    */
- public fun createByteVector(data: ReadBuffer, from: Int = 0, until: Int = data.limit): ArrayOffset<Byte> {
+ public fun createByteVector(data: ReadBuffer, from: Int = 0, until: Int = data.limit): VectorOffset<Byte> {
     val length: Int = until - from
     startVector(1, length, 1)
     space -= length
     buffer.writePosition = space
     buffer.put(data, from, until)
-    return ArrayOffset(endVector())
+    return VectorOffset(endVector())
   }
 
   /**
@@ -837,7 +837,7 @@ public class FlatBufferBuilder @JvmOverloads constructor(
       slot(o)
     }
   }
-  public fun add(o: Int, x: ArrayOffset<*>, d: Int) {
+  public fun add(o: Int, x: VectorOffset<*>, d: Int) {
     if (forceDefaults || x.value != d) {
       add(x)
       slot(o)
@@ -894,7 +894,6 @@ public class FlatBufferBuilder @JvmOverloads constructor(
     // Write out the current vtable.
     var i: Int = vtableInUse - 1
     // Trim trailing zeroes.
-    //TODO: maybe we can optimized by loop unrolling
     while (i >= 0 && vtable[i] == 0) {
       i--
     }
@@ -954,12 +953,12 @@ public class FlatBufferBuilder @JvmOverloads constructor(
    * @param table The offset to the start of the table from the `ByteBuffer` capacity.
    * @param field The offset to the field in the vtable.
    */
-  public fun required(table: Offset<*>, field: Int) {
+  public fun required(table: Offset<*>, field: Int, fileName: String? = null) {
     val tableStart: Int = buffer.capacity - table
     val vtableStart: Int = tableStart - buffer.getInt(tableStart)
     val ok = buffer.getShort(vtableStart + field).toInt() != 0
     // If this fails, the caller will show what field needs to be set.
-    if (!ok) throw AssertionError("FlatBuffers: field $field must be set")
+    if (!ok) throw AssertionError("FlatBuffers: field ${fileName ?: field} must be set")
   }
 
   /**

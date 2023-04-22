@@ -18,15 +18,44 @@ package com.google.flatbuffers.kotlin
 import kotlin.jvm.JvmInline
 import kotlin.math.min
 
+// For now a typealias to guarantee type safety.
 public typealias UnionOffset = Offset<Any>
+public typealias UnionOffsetArray = OffsetArray<Any>
+public typealias StringOffsetArray = OffsetArray<String>
 
+public inline fun UnionOffsetArray(size: Int, crossinline call: (Int) -> Offset<Any>): UnionOffsetArray =
+  UnionOffsetArray(IntArray(size) { call(it).value })
+public inline fun StringOffsetArray(size: Int, crossinline call: (Int) -> Offset<String>): StringOffsetArray =
+  StringOffsetArray(IntArray(size) { call(it).value })
+/**
+ * Represents a "pointer" to a pointer types (table, string, struct) within the buffer
+ */
 @JvmInline
 public value class Offset<T>(public val value: Int) {
   public fun toUnion(): UnionOffset = UnionOffset(value)
 }
 
+/**
+ * Represents an array of offsets. Used to avoid boxing
+ * offset types.
+ */
 @JvmInline
-public value class ArrayOffset<T>(public val value: Int)
+public value class OffsetArray<T>(public val value: IntArray) {
+  public inline val size: Int
+    get() = value.size
+  public inline operator fun get(index: Int): Offset<T> = Offset(value[index])
+}
+
+public inline fun <T> OffsetArray(size: Int, crossinline call: (Int) -> Offset<T>): OffsetArray<T> {
+  return OffsetArray(IntArray(size) { call(it).value })
+}
+
+
+/**
+ * Represents a "pointer" to a vector type with elements T
+ */
+@JvmInline
+public value class VectorOffset<T>(public val value: Int)
 
 public fun <T> Int.toOffset(): Offset<T> = Offset(this)
 
@@ -61,11 +90,11 @@ public open class Table {
   /**
    * Look up a field in the vtable.
    *
-   * @param vtable_offset An `int` offset to the vtable in the Table's ReadWriteBuffer.
+   * @param vtableOffset An `int` offset to the vtable in the Table's ReadWriteBuffer.
    * @return Returns an offset into the object, or `0` if the field is not present.
    */
-  public fun offset(vtable_offset: Int): Int =
-    if (vtable_offset < vtableSize) bb.getShort(vtableStart + vtable_offset).toInt() else 0
+  public fun offset(vtableOffset: Int): Int =
+    if (vtableOffset < vtableSize) bb.getShort(vtableStart + vtableOffset).toInt() else 0
 
   /**
    * Retrieve a relative offset.
@@ -190,9 +219,9 @@ public open class Table {
 
   public companion object {
 
-    public fun offset(vtable_offset: Int, offset: Offset<*>, bb: ReadWriteBuffer): Int {
+    public fun offset(vtableOffset: Int, offset: Offset<*>, bb: ReadWriteBuffer): Int {
       val vtable: Int = bb.capacity - offset.value
-      return bb.getShort(vtable + vtable_offset - bb.getInt(vtable)) + vtable
+      return bb.getShort(vtable + vtableOffset - bb.getInt(vtable)) + vtable
     }
 
     /**
@@ -237,7 +266,7 @@ public open class Table {
       t.reset(indirect(offset, bb), bb)
 
     /**
-     * Check if a [readWriteBuffer] contains a file identifier.
+     * Check if a [ReadWriteBuffer] contains a file identifier.
      *
      * @param bb A `ReadWriteBuffer` to check if it contains the identifier
      * `ident`.
@@ -294,7 +323,7 @@ public open class Table {
       val startPos: Int = offset1 + Int.SIZE_BYTES
       val len: Int = min(len1, len2)
       for (i in 0 until len) {
-        if (bb[i + startPos] != key[i]) return bb.get(i + startPos) - key[i]
+        if (bb[i + startPos] != key[i]) return bb[i + startPos] - key[i]
       }
       return len1 - len2
     }
@@ -332,5 +361,7 @@ public open class Struct {
    */
   private inline fun <reified T: Struct> reset(): T = reset(0, emptyBuffer)
 }
+
+public inline val <T> T.value: T get() = this
 
 public const val VERSION_2_0_8: Int = 1
