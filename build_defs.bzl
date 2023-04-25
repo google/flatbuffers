@@ -76,6 +76,10 @@ def flatbuffer_library_public(
         to use.
       flatc_path: Bazel target corresponding to the flatc compiler to use.
       output_to_bindir: Passed to genrule for output to bin directory.
+      tools: Optional, passed to genrule for list of tools to make available
+        during the action.
+      extra_env: Optional, must be a string of "VAR1=VAL1 VAR2=VAL2". These get
+        set as environment variables that "flatc_path" sees.
       **kwargs: Passed to the underlying genrule.
 
 

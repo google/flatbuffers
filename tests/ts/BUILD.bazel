@@ -39,7 +39,8 @@ TEST_COMPLEX_ARRAYS_DATA = glob([
     ("JavaScriptTest", TEST_DATA),
     ("JavaScriptUnionVectorTest", TEST_UNION_VECTOR_DATA),
     # TODO(philsc): Figure out how to run this test with flexbuffers available.
-    #("JavaScriptFlexBuffersTest",
+    # At the moment the flexbuffer library is not exposed as a bazel target.
+    #("JavaScriptFlexBuffersTest", TBD_DATA)
     ("JavaScriptComplexArraysTest", TEST_COMPLEX_ARRAYS_DATA),
 )]
 

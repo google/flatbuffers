@@ -2,8 +2,7 @@
 Rules for building typescript flatbuffers with Bazel.
 """
 
-load("@aspect_rules_esbuild//esbuild:defs.bzl", "esbuild")
-load("@aspect_rules_js//js:defs.bzl", "js_library", "js_run_binary")
+load("@aspect_rules_js//js:defs.bzl", "js_library")
 load(":build_defs.bzl", "flatbuffer_library_public")
 
 DEFAULT_FLATC_TS_ARGS = [
