@@ -47,7 +47,11 @@ ts_project(
         },
     },
     visibility = ["//visibility:public"],
-    deps = ["@//:node_modules/@types/node"],
+    deps = [
+        # Because the main repository instantiates the @npm repository, we need
+        # to depend on the main repository's node import.
+        "@//:node_modules/@types/node",
+    ],
 )
 
 npm_package(

@@ -15,11 +15,6 @@ npm_link_package(
     src = "//ts:flatbuffers",
 )
 
-npm_link_package(
-    name = "node_modules/flatbuffers_reflection",
-    src = "//reflection:flatbuffers_reflection",
-)
-
 exports_files([
     "LICENSE",
     "tsconfig.json",
