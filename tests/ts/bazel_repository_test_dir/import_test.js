@@ -6,7 +6,7 @@ import two_cjs from './two_generated.cjs'
 const bazel_repository_test = two_cjs.bazel_repository_test;
 
 function main() {
-  // Validate building a table.
+  // Validate building a table with a table field.
   var fbb = new flatbuffers.Builder(1);
 
   bazel_repository_test.One.startOne(fbb);
