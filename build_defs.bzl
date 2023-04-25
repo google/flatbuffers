@@ -91,6 +91,8 @@ def flatbuffer_library_public(
         include_paths = default_include_paths(flatc_path)
     include_paths_cmd = ["-I %s" % (s) for s in include_paths]
 
+    extra_env = extra_env or ""
+
     # '$(@D)' when given a single source target will give the appropriate
     # directory. Appending 'out_prefix' is only necessary when given a build
     # target with multiple sources.
