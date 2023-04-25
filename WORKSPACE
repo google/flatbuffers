@@ -102,11 +102,11 @@ http_archive(
 load("@aspect_rules_ts//ts:repositories.bzl", "rules_ts_dependencies")
 
 rules_ts_dependencies(
-    ts_version_from = "//:package.json",
     # Since rules_ts doesn't always have the newest integrity hashes, we
     # compute it manually here.
     #   $ curl --silent https://registry.npmjs.org/typescript/5.0.4 | jq ._integrity
     ts_integrity = "sha512-cW9T5W9xY37cc+jfEnaUvX91foxtHkza3Nw3wkoF4sSlKn0MONdkdEndig/qPBWXNkmplh3NzayQzCiHM4/hqw==",
+    ts_version_from = "//:package.json",
 )
 
 load("@rules_nodejs//nodejs:repositories.bzl", "DEFAULT_NODE_VERSION", "nodejs_register_toolchains")
@@ -120,12 +120,12 @@ load("@aspect_rules_js//npm:npm_import.bzl", "npm_translate_lock")
 
 npm_translate_lock(
     name = "npm",
-    pnpm_lock = "//:pnpm-lock.yaml",
     npmrc = "//:.npmrc",
-    verify_node_modules_ignored = "//:.bazelignore",
+    pnpm_lock = "//:pnpm-lock.yaml",
     # Set this to True when the lock file needs to be updated, commit the
     # changes, then set to False again.
     update_pnpm_lock = False,
+    verify_node_modules_ignored = "//:.bazelignore",
 )
 
 load("@npm//:repositories.bzl", "npm_repositories")
@@ -150,8 +150,8 @@ esbuild_register_toolchains(
 http_file(
     name = "bazel_linux_x86_64",
     downloaded_file_path = "bazel",
+    sha256 = "e89747d63443e225b140d7d37ded952dacea73aaed896bca01ccd745827c6289",
     urls = [
         "https://github.com/bazelbuild/bazel/releases/download/6.1.2/bazel-6.1.2-linux-x86_64",
     ],
-    sha256 = "e89747d63443e225b140d7d37ded952dacea73aaed896bca01ccd745827c6289",
 )

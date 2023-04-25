@@ -29,12 +29,12 @@ TEST_COMPLEX_ARRAYS_DATA = glob([
 [js_test(
     name = "%s_test" % test,
     chdir = package_name(),
-    entry_point = "%s.js" % test,
     data = data + [
         "package.json",
         "//:node_modules/flatbuffers",
         "//tests:test_data_copied_to_bin",
     ],
+    entry_point = "%s.js" % test,
 ) for test, data in (
     ("JavaScriptTest", TEST_DATA),
     ("JavaScriptUnionVectorTest", TEST_UNION_VECTOR_DATA),
@@ -50,15 +50,18 @@ sh_test(
     data = [
         "//:distribution",
         "@bazel_linux_x86_64//file",
-    ] + glob([
-        "bazel_repository_test_dir/**/*",
-    ], exclude=[
-        "bazel_repository_test_dir/bazel-*/**",
-    ]),
-    deps = ["@bazel_tools//tools/bash/runfiles"],
+    ] + glob(
+        [
+            "bazel_repository_test_dir/**/*",
+        ],
+        exclude = [
+            "bazel_repository_test_dir/bazel-*/**",
+        ],
+    ),
     # We only have x86_64 Linux bazel exposed so restrict the test to that.
     target_compatible_with = [
         "@platforms//cpu:x86_64",
         "@platforms//os:linux",
     ],
+    deps = ["@bazel_tools//tools/bash/runfiles"],
 )

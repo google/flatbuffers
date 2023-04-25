@@ -23,10 +23,10 @@ flatbuffer_ts_library(
 
 js_test(
     name = "import_test",
-    entry_point = "import_test.js",
     data = [
         "package.json",
-        ":two_fbs",
         ":node_modules/flatbuffers",
+        ":two_fbs",
     ],
+    entry_point = "import_test.js",
 )
