@@ -102,9 +102,11 @@ http_archive(
 load("@aspect_rules_ts//ts:repositories.bzl", "rules_ts_dependencies")
 
 rules_ts_dependencies(
-    ts_version = "5.0.3",
-    # curl --silent https://registry.npmjs.org/typescript/5.0.3 | jq ._integrity
-    ts_integrity = "sha512-xv8mOEDnigb/tN9PSMTwSEqAnUvkoXMQlicOb0IUVDBSQCgBSaAAROUZYy2IcUy5qU6XajK5jjjO7TMWqBTKZA==",
+    ts_version_from = "//:package.json",
+    # Since rules_ts doesn't always have the newest integrity hashes, we
+    # compute it manually here.
+    #   $ curl --silent https://registry.npmjs.org/typescript/5.0.4 | jq ._integrity
+    ts_integrity = "sha512-cW9T5W9xY37cc+jfEnaUvX91foxtHkza3Nw3wkoF4sSlKn0MONdkdEndig/qPBWXNkmplh3NzayQzCiHM4/hqw==",
 )
 
 load("@rules_nodejs//nodejs:repositories.bzl", "DEFAULT_NODE_VERSION", "nodejs_register_toolchains")
@@ -121,6 +123,9 @@ npm_translate_lock(
     pnpm_lock = "//:pnpm-lock.yaml",
     npmrc = "//:.npmrc",
     verify_node_modules_ignored = "//:.bazelignore",
+    # Set this to True when the lock file needs to be updated, commit the
+    # changes, then set to False again.
+    update_pnpm_lock = False,
 )
 
 load("@npm//:repositories.bzl", "npm_repositories")

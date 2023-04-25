@@ -41,6 +41,6 @@
     "@typescript-eslint/parser": "^5.57.0",
     "esbuild": "^0.17.14",
     "eslint": "^8.37.0",
-    "typescript": "^5.0.3"
+    "typescript": "5.0.4"
   }
 }
