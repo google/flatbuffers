@@ -10,7 +10,9 @@ type InParentNamespaceT struct {
 }
 
 func (t *InParentNamespaceT) Pack(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
-	if t == nil { return 0 }
+	if t == nil {
+		return 0
+	}
 	InParentNamespaceStart(builder)
 	return InParentNamespaceEnd(builder)
 }
@@ -19,7 +21,9 @@ func (rcv *InParentNamespace) UnPackTo(t *InParentNamespaceT) {
 }
 
 func (rcv *InParentNamespace) UnPack() *InParentNamespaceT {
-	if rcv == nil { return nil }
+	if rcv == nil {
+		return nil
+	}
 	t := &InParentNamespaceT{}
 	rcv.UnPackTo(t)
 	return t

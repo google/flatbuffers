@@ -10,7 +10,9 @@ type MonsterT struct {
 }
 
 func (t *MonsterT) Pack(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
-	if t == nil { return 0 }
+	if t == nil {
+		return 0
+	}
 	MonsterStart(builder)
 	return MonsterEnd(builder)
 }
@@ -19,7 +21,9 @@ func (rcv *Monster) UnPackTo(t *MonsterT) {
 }
 
 func (rcv *Monster) UnPack() *MonsterT {
-	if rcv == nil { return nil }
+	if rcv == nil {
+		return nil
+	}
 	t := &MonsterT{}
 	rcv.UnPackTo(t)
 	return t

@@ -13,7 +13,9 @@ type RequestT struct {
 }
 
 func (t *RequestT) Pack(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
-	if t == nil { return 0 }
+	if t == nil {
+		return 0
+	}
 	playerOffset := t.Player.Pack(builder)
 	RequestStart(builder)
 	RequestAddPlayer(builder, playerOffset)
@@ -25,7 +27,9 @@ func (rcv *Request) UnPackTo(t *RequestT) {
 }
 
 func (rcv *Request) UnPack() *RequestT {
-	if rcv == nil { return nil }
+	if rcv == nil {
+		return nil
+	}
 	t := &RequestT{}
 	rcv.UnPackTo(t)
 	return t

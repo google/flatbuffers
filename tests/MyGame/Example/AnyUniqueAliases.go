@@ -3,8 +3,8 @@
 package Example
 
 import (
-	"strconv"
 	flatbuffers "github.com/google/flatbuffers/go"
+	"strconv"
 
 	MyGame__Example2 "MyGame/Example2"
 )
@@ -64,15 +64,15 @@ func (rcv AnyUniqueAliases) UnPack(table flatbuffers.Table) *AnyUniqueAliasesT {
 	case AnyUniqueAliasesM:
 		var x Monster
 		x.Init(table.Bytes, table.Pos)
-		return &AnyUniqueAliasesT{ Type: AnyUniqueAliasesM, Value: x.UnPack() }
+		return &AnyUniqueAliasesT{Type: AnyUniqueAliasesM, Value: x.UnPack()}
 	case AnyUniqueAliasesTS:
 		var x TestSimpleTableWithEnum
 		x.Init(table.Bytes, table.Pos)
-		return &AnyUniqueAliasesT{ Type: AnyUniqueAliasesTS, Value: x.UnPack() }
+		return &AnyUniqueAliasesT{Type: AnyUniqueAliasesTS, Value: x.UnPack()}
 	case AnyUniqueAliasesM2:
 		var x MyGame__Example2.Monster
 		x.Init(table.Bytes, table.Pos)
-		return &AnyUniqueAliasesT{ Type: AnyUniqueAliasesM2, Value: x.UnPack() }
+		return &AnyUniqueAliasesT{Type: AnyUniqueAliasesM2, Value: x.UnPack()}
 	}
 	return nil
 }

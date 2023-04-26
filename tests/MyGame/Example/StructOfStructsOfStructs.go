@@ -11,7 +11,9 @@ type StructOfStructsOfStructsT struct {
 }
 
 func (t *StructOfStructsOfStructsT) Pack(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
-	if t == nil { return 0 }
+	if t == nil {
+		return 0
+	}
 	return CreateStructOfStructsOfStructs(builder, t.A.A.Id, t.A.A.Distance, t.A.B.A, t.A.B.B, t.A.C.Id, t.A.C.Distance)
 }
 func (rcv *StructOfStructsOfStructs) UnPackTo(t *StructOfStructsOfStructsT) {
@@ -19,7 +21,9 @@ func (rcv *StructOfStructsOfStructs) UnPackTo(t *StructOfStructsOfStructsT) {
 }
 
 func (rcv *StructOfStructsOfStructs) UnPack() *StructOfStructsOfStructsT {
-	if rcv == nil { return nil }
+	if rcv == nil {
+		return nil
+	}
 	t := &StructOfStructsOfStructsT{}
 	rcv.UnPackTo(t)
 	return t

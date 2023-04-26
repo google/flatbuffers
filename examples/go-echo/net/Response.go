@@ -13,7 +13,9 @@ type ResponseT struct {
 }
 
 func (t *ResponseT) Pack(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
-	if t == nil { return 0 }
+	if t == nil {
+		return 0
+	}
 	playerOffset := t.Player.Pack(builder)
 	ResponseStart(builder)
 	ResponseAddPlayer(builder, playerOffset)
@@ -25,7 +27,9 @@ func (rcv *Response) UnPackTo(t *ResponseT) {
 }
 
 func (rcv *Response) UnPack() *ResponseT {
-	if rcv == nil { return nil }
+	if rcv == nil {
+		return nil
+	}
 	t := &ResponseT{}
 	rcv.UnPackTo(t)
 	return t
