@@ -70,30 +70,54 @@ class Vec3(object):
             return obj
         return None
 
-def Vec3Start(builder): builder.StartObject(6)
+def Vec3Start(builder):
+    return builder.StartObject(6)
+
 def Start(builder):
     return Vec3Start(builder)
-def Vec3AddX(builder, x): builder.PrependFloat64Slot(0, x, 0.0)
+
+def Vec3AddX(builder, x):
+    return builder.PrependFloat64Slot(0, x, 0.0)
+
 def AddX(builder, x):
     return Vec3AddX(builder, x)
-def Vec3AddY(builder, y): builder.PrependFloat64Slot(1, y, 0.0)
+
+def Vec3AddY(builder, y):
+    return builder.PrependFloat64Slot(1, y, 0.0)
+
 def AddY(builder, y):
     return Vec3AddY(builder, y)
-def Vec3AddZ(builder, z): builder.PrependFloat64Slot(2, z, 0.0)
+
+def Vec3AddZ(builder, z):
+    return builder.PrependFloat64Slot(2, z, 0.0)
+
 def AddZ(builder, z):
     return Vec3AddZ(builder, z)
-def Vec3AddTest1(builder, test1): builder.PrependFloat64Slot(3, test1, 0.0)
+
+def Vec3AddTest1(builder, test1):
+    return builder.PrependFloat64Slot(3, test1, 0.0)
+
 def AddTest1(builder, test1):
     return Vec3AddTest1(builder, test1)
-def Vec3AddTest2(builder, test2): builder.PrependUint8Slot(4, test2, 0)
+
+def Vec3AddTest2(builder, test2):
+    return builder.PrependUint8Slot(4, test2, 0)
+
 def AddTest2(builder, test2):
     return Vec3AddTest2(builder, test2)
-def Vec3AddTest3(builder, test3): builder.PrependStructSlot(5, flatbuffers.number_types.UOffsetTFlags.py_type(test3), 0)
+
+def Vec3AddTest3(builder, test3):
+    return builder.PrependStructSlot(5, flatbuffers.number_types.UOffsetTFlags.py_type(test3), 0)
+
 def AddTest3(builder, test3):
     return Vec3AddTest3(builder, test3)
-def Vec3End(builder): return builder.EndObject()
+
+def Vec3End(builder):
+    return builder.EndObject()
+
 def End(builder):
     return Vec3End(builder)
+
 import MyGame.Example.NestedUnion.Test
 try:
     from typing import Optional
