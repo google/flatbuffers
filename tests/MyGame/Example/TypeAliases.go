@@ -102,11 +102,19 @@ func GetRootAsTypeAliases(buf []byte, offset flatbuffers.UOffsetT) *TypeAliases 
 	return x
 }
 
+func FinishTypeAliasesBuffer(builder *flatbuffers.Builder, offset flatbuffers.UOffsetT) {
+	builder.Finish(offset)
+}
+
 func GetSizePrefixedRootAsTypeAliases(buf []byte, offset flatbuffers.UOffsetT) *TypeAliases {
 	n := flatbuffers.GetUOffsetT(buf[offset+flatbuffers.SizeUint32:])
 	x := &TypeAliases{}
 	x.Init(buf, n+offset+flatbuffers.SizeUint32)
 	return x
+}
+
+func FinishSizePrefixedTypeAliasesBuffer(builder *flatbuffers.Builder, offset flatbuffers.UOffsetT) {
+	builder.FinishSizePrefixed(offset)
 }
 
 func (rcv *TypeAliases) Init(buf []byte, i flatbuffers.UOffsetT) {

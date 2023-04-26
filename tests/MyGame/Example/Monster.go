@@ -507,6 +507,8 @@ type Monster struct {
 	_tab flatbuffers.Table
 }
 
+const MonsterIdentifier = "MONS"
+
 func GetRootAsMonster(buf []byte, offset flatbuffers.UOffsetT) *Monster {
 	n := flatbuffers.GetUOffsetT(buf[offset:])
 	x := &Monster{}
@@ -514,11 +516,29 @@ func GetRootAsMonster(buf []byte, offset flatbuffers.UOffsetT) *Monster {
 	return x
 }
 
+func FinishMonsterBuffer(builder *flatbuffers.Builder, offset flatbuffers.UOffsetT) {
+	identifierBytes := []byte(MonsterIdentifier)
+	builder.FinishWithFileIdentifier(offset, identifierBytes)
+}
+
+func MonsterBufferHasIdentifier(buf []byte) bool {
+	return flatbuffers.BufferHasIdentifier(buf, MonsterIdentifier)
+}
+
 func GetSizePrefixedRootAsMonster(buf []byte, offset flatbuffers.UOffsetT) *Monster {
 	n := flatbuffers.GetUOffsetT(buf[offset+flatbuffers.SizeUint32:])
 	x := &Monster{}
 	x.Init(buf, n+offset+flatbuffers.SizeUint32)
 	return x
+}
+
+func FinishSizePrefixedMonsterBuffer(builder *flatbuffers.Builder, offset flatbuffers.UOffsetT) {
+	identifierBytes := []byte(MonsterIdentifier)
+	builder.FinishSizePrefixedWithFileIdentifier(offset, identifierBytes)
+}
+
+func SizePrefixedMonsterBufferHasIdentifier(buf []byte) bool {
+	return flatbuffers.SizePrefixedBufferHasIdentifier(buf, MonsterIdentifier)
 }
 
 func (rcv *Monster) Init(buf []byte, i flatbuffers.UOffsetT) {
