@@ -127,6 +127,7 @@ set(FlatBuffers_Library_SRCS
   include/flatbuffers/default_allocator.h
   include/flatbuffers/detached_buffer.h
   include/flatbuffers/code_generator.h
+  include/flatbuffers/file_manager.h
   include/flatbuffers/flatbuffer_builder.h
   include/flatbuffers/flatbuffers.h
   include/flatbuffers/flexbuffers.h
@@ -171,6 +172,9 @@ set(FlatBuffers_Compiler_SRCS
   src/idl_gen_grpc.cpp
   src/idl_gen_json_schema.cpp
   src/idl_gen_swift.cpp
+  src/file_name_saving_file_manager.cpp
+  src/file_binary_writer.cpp
+  src/file_writer.cpp
   src/idl_namer.h
   src/namer.h
   src/flatc.cpp

@@ -474,14 +474,13 @@ class TsGenerator : public BaseGenerator {
           return "BigInt('" + value.constant + "')";
         }
         default: {
-          if (auto val = value.type.enum_def->FindByValue(value.constant)) {
-            return AddImport(imports, *value.type.enum_def,
-                             *value.type.enum_def)
-                       .name +
-                   "." + namer_.Variant(*val);
-          } else {
-            return value.constant;
-          }
+          EnumVal *val = value.type.enum_def->FindByValue(value.constant);
+          if (val == nullptr)
+            val = const_cast<EnumVal *>(value.type.enum_def->MinValue());
+          return AddImport(imports, *value.type.enum_def,
+                            *value.type.enum_def)
+                      .name +
+                  "." + namer_.Variant(*val);
         }
       }
     }
