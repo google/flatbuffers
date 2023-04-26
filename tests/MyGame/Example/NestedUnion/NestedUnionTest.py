@@ -55,24 +55,42 @@ class NestedUnionTest(object):
             return self._tab.Get(flatbuffers.number_types.Int16Flags, o + self._tab.Pos)
         return 0
 
-def NestedUnionTestStart(builder): builder.StartObject(4)
+def NestedUnionTestStart(builder):
+    return builder.StartObject(4)
+
 def Start(builder):
     return NestedUnionTestStart(builder)
-def NestedUnionTestAddName(builder, name): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(name), 0)
+
+def NestedUnionTestAddName(builder, name):
+    return builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(name), 0)
+
 def AddName(builder, name):
     return NestedUnionTestAddName(builder, name)
-def NestedUnionTestAddDataType(builder, dataType): builder.PrependUint8Slot(1, dataType, 0)
+
+def NestedUnionTestAddDataType(builder, dataType):
+    return builder.PrependUint8Slot(1, dataType, 0)
+
 def AddDataType(builder, dataType):
     return NestedUnionTestAddDataType(builder, dataType)
-def NestedUnionTestAddData(builder, data): builder.PrependUOffsetTRelativeSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(data), 0)
+
+def NestedUnionTestAddData(builder, data):
+    return builder.PrependUOffsetTRelativeSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(data), 0)
+
 def AddData(builder, data):
     return NestedUnionTestAddData(builder, data)
-def NestedUnionTestAddId(builder, id): builder.PrependInt16Slot(3, id, 0)
+
+def NestedUnionTestAddId(builder, id):
+    return builder.PrependInt16Slot(3, id, 0)
+
 def AddId(builder, id):
     return NestedUnionTestAddId(builder, id)
-def NestedUnionTestEnd(builder): return builder.EndObject()
+
+def NestedUnionTestEnd(builder):
+    return builder.EndObject()
+
 def End(builder):
     return NestedUnionTestEnd(builder)
+
 import MyGame.Example.NestedUnion.Any
 import MyGame.Example.NestedUnion.TestSimpleTableWithEnum
 import MyGame.Example.NestedUnion.Vec3
