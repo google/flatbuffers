@@ -697,6 +697,7 @@ struct IDLOptions {
   bool no_leak_private_annotations;
   bool require_json_eof;
   bool keep_proto_id;
+  bool python_no_type_prefix_suffix;
   ProtoIdGapAction proto_id_gap_action;
 
   // Possible options for the more general generator below.
@@ -806,6 +807,7 @@ struct IDLOptions {
         no_leak_private_annotations(false),
         require_json_eof(true),
         keep_proto_id(false),
+        python_no_type_prefix_suffix(false),
         proto_id_gap_action(ProtoIdGapAction::WARNING),
         mini_reflect(IDLOptions::kNone),
         require_explicit_ids(false),
