@@ -39,15 +39,24 @@ class ArrayTable(object):
             return obj
         return None
 
-def ArrayTableStart(builder): builder.StartObject(1)
+def ArrayTableStart(builder):
+    return builder.StartObject(1)
+
 def Start(builder):
     return ArrayTableStart(builder)
-def ArrayTableAddA(builder, a): builder.PrependStructSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(a), 0)
+
+def ArrayTableAddA(builder, a):
+    return builder.PrependStructSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(a), 0)
+
 def AddA(builder, a):
     return ArrayTableAddA(builder, a)
-def ArrayTableEnd(builder): return builder.EndObject()
+
+def ArrayTableEnd(builder):
+    return builder.EndObject()
+
 def End(builder):
     return ArrayTableEnd(builder)
+
 import MyGame.Example.ArrayStruct
 try:
     from typing import Optional
