@@ -31,12 +31,20 @@ class HelloRequest(object):
             return self._tab.String(o + self._tab.Pos)
         return None
 
-def HelloRequestStart(builder): builder.StartObject(1)
+def HelloRequestStart(builder):
+    return builder.StartObject(1)
+
 def Start(builder):
     return HelloRequestStart(builder)
-def HelloRequestAddName(builder, name): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(name), 0)
+
+def HelloRequestAddName(builder, name):
+    return builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(name), 0)
+
 def AddName(builder, name):
     return HelloRequestAddName(builder, name)
-def HelloRequestEnd(builder): return builder.EndObject()
+
+def HelloRequestEnd(builder):
+    return builder.EndObject()
+
 def End(builder):
     return HelloRequestEnd(builder)
