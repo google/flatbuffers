@@ -11,7 +11,9 @@ type ReferrableT struct {
 }
 
 func (t *ReferrableT) Pack(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
-	if t == nil { return 0 }
+	if t == nil {
+		return 0
+	}
 	ReferrableStart(builder)
 	ReferrableAddId(builder, t.Id)
 	return ReferrableEnd(builder)
@@ -22,7 +24,9 @@ func (rcv *Referrable) UnPackTo(t *ReferrableT) {
 }
 
 func (rcv *Referrable) UnPack() *ReferrableT {
-	if rcv == nil { return nil }
+	if rcv == nil {
+		return nil
+	}
 	t := &ReferrableT{}
 	rcv.UnPackTo(t)
 	return t
@@ -39,11 +43,19 @@ func GetRootAsReferrable(buf []byte, offset flatbuffers.UOffsetT) *Referrable {
 	return x
 }
 
+func FinishReferrableBuffer(builder *flatbuffers.Builder, offset flatbuffers.UOffsetT) {
+	builder.Finish(offset)
+}
+
 func GetSizePrefixedRootAsReferrable(buf []byte, offset flatbuffers.UOffsetT) *Referrable {
 	n := flatbuffers.GetUOffsetT(buf[offset+flatbuffers.SizeUint32:])
 	x := &Referrable{}
 	x.Init(buf, n+offset+flatbuffers.SizeUint32)
 	return x
+}
+
+func FinishSizePrefixedReferrableBuffer(builder *flatbuffers.Builder, offset flatbuffers.UOffsetT) {
+	builder.FinishSizePrefixed(offset)
 }
 
 func (rcv *Referrable) Init(buf []byte, i flatbuffers.UOffsetT) {
@@ -70,17 +82,17 @@ func (rcv *Referrable) MutateId(n uint64) bool {
 func ReferrableKeyCompare(o1, o2 flatbuffers.UOffsetT, buf []byte) bool {
 	obj1 := &Referrable{}
 	obj2 := &Referrable{}
-	obj1.Init(buf, flatbuffers.UOffsetT(len(buf)) - o1)
-	obj2.Init(buf, flatbuffers.UOffsetT(len(buf)) - o2)
+	obj1.Init(buf, flatbuffers.UOffsetT(len(buf))-o1)
+	obj2.Init(buf, flatbuffers.UOffsetT(len(buf))-o2)
 	return obj1.Id() < obj2.Id()
 }
 
 func (rcv *Referrable) LookupByKey(key uint64, vectorLocation flatbuffers.UOffsetT, buf []byte) bool {
-	span := flatbuffers.GetUOffsetT(buf[vectorLocation - 4:])
+	span := flatbuffers.GetUOffsetT(buf[vectorLocation-4:])
 	start := flatbuffers.UOffsetT(0)
 	for span != 0 {
 		middle := span / 2
-		tableOffset := flatbuffers.GetIndirectOffset(buf, vectorLocation+ 4 * (start + middle))
+		tableOffset := flatbuffers.GetIndirectOffset(buf, vectorLocation+4*(start+middle))
 		obj := &Referrable{}
 		obj.Init(buf, tableOffset)
 		val := obj.Id()
