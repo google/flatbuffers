@@ -138,48 +138,90 @@ class MonsterExtra(object):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(22))
         return o == 0
 
-def MonsterExtraStart(builder): builder.StartObject(11)
+def MonsterExtraStart(builder):
+    return builder.StartObject(11)
+
 def Start(builder):
     return MonsterExtraStart(builder)
-def MonsterExtraAddD0(builder, d0): builder.PrependFloat64Slot(0, d0, float('nan'))
+
+def MonsterExtraAddD0(builder, d0):
+    return builder.PrependFloat64Slot(0, d0, float('nan'))
+
 def AddD0(builder, d0):
     return MonsterExtraAddD0(builder, d0)
-def MonsterExtraAddD1(builder, d1): builder.PrependFloat64Slot(1, d1, float('nan'))
+
+def MonsterExtraAddD1(builder, d1):
+    return builder.PrependFloat64Slot(1, d1, float('nan'))
+
 def AddD1(builder, d1):
     return MonsterExtraAddD1(builder, d1)
-def MonsterExtraAddD2(builder, d2): builder.PrependFloat64Slot(2, d2, float('inf'))
+
+def MonsterExtraAddD2(builder, d2):
+    return builder.PrependFloat64Slot(2, d2, float('inf'))
+
 def AddD2(builder, d2):
     return MonsterExtraAddD2(builder, d2)
-def MonsterExtraAddD3(builder, d3): builder.PrependFloat64Slot(3, d3, float('-inf'))
+
+def MonsterExtraAddD3(builder, d3):
+    return builder.PrependFloat64Slot(3, d3, float('-inf'))
+
 def AddD3(builder, d3):
     return MonsterExtraAddD3(builder, d3)
-def MonsterExtraAddF0(builder, f0): builder.PrependFloat32Slot(4, f0, float('nan'))
+
+def MonsterExtraAddF0(builder, f0):
+    return builder.PrependFloat32Slot(4, f0, float('nan'))
+
 def AddF0(builder, f0):
     return MonsterExtraAddF0(builder, f0)
-def MonsterExtraAddF1(builder, f1): builder.PrependFloat32Slot(5, f1, float('nan'))
+
+def MonsterExtraAddF1(builder, f1):
+    return builder.PrependFloat32Slot(5, f1, float('nan'))
+
 def AddF1(builder, f1):
     return MonsterExtraAddF1(builder, f1)
-def MonsterExtraAddF2(builder, f2): builder.PrependFloat32Slot(6, f2, float('inf'))
+
+def MonsterExtraAddF2(builder, f2):
+    return builder.PrependFloat32Slot(6, f2, float('inf'))
+
 def AddF2(builder, f2):
     return MonsterExtraAddF2(builder, f2)
-def MonsterExtraAddF3(builder, f3): builder.PrependFloat32Slot(7, f3, float('-inf'))
+
+def MonsterExtraAddF3(builder, f3):
+    return builder.PrependFloat32Slot(7, f3, float('-inf'))
+
 def AddF3(builder, f3):
     return MonsterExtraAddF3(builder, f3)
-def MonsterExtraAddDvec(builder, dvec): builder.PrependUOffsetTRelativeSlot(8, flatbuffers.number_types.UOffsetTFlags.py_type(dvec), 0)
+
+def MonsterExtraAddDvec(builder, dvec):
+    return builder.PrependUOffsetTRelativeSlot(8, flatbuffers.number_types.UOffsetTFlags.py_type(dvec), 0)
+
 def AddDvec(builder, dvec):
     return MonsterExtraAddDvec(builder, dvec)
-def MonsterExtraStartDvecVector(builder, numElems): return builder.StartVector(8, numElems, 8)
+
+def MonsterExtraStartDvecVector(builder, numElems):
+    return builder.StartVector(8, numElems, 8)
+
 def StartDvecVector(builder, numElems):
     return MonsterExtraStartDvecVector(builder, numElems)
-def MonsterExtraAddFvec(builder, fvec): builder.PrependUOffsetTRelativeSlot(9, flatbuffers.number_types.UOffsetTFlags.py_type(fvec), 0)
+
+def MonsterExtraAddFvec(builder, fvec):
+    return builder.PrependUOffsetTRelativeSlot(9, flatbuffers.number_types.UOffsetTFlags.py_type(fvec), 0)
+
 def AddFvec(builder, fvec):
     return MonsterExtraAddFvec(builder, fvec)
-def MonsterExtraStartFvecVector(builder, numElems): return builder.StartVector(4, numElems, 4)
+
+def MonsterExtraStartFvecVector(builder, numElems):
+    return builder.StartVector(4, numElems, 4)
+
 def StartFvecVector(builder, numElems):
     return MonsterExtraStartFvecVector(builder, numElems)
-def MonsterExtraEnd(builder): return builder.EndObject()
+
+def MonsterExtraEnd(builder):
+    return builder.EndObject()
+
 def End(builder):
     return MonsterExtraEnd(builder)
+
 try:
     from typing import List
 except:

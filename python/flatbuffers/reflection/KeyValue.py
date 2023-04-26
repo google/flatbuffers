@@ -42,15 +42,26 @@ class KeyValue(object):
             return self._tab.String(o + self._tab.Pos)
         return None
 
-def KeyValueStart(builder): builder.StartObject(2)
+def KeyValueStart(builder):
+    return builder.StartObject(2)
+
 def Start(builder):
     return KeyValueStart(builder)
-def KeyValueAddKey(builder, key): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(key), 0)
+
+def KeyValueAddKey(builder, key):
+    return builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(key), 0)
+
 def AddKey(builder, key):
     return KeyValueAddKey(builder, key)
-def KeyValueAddValue(builder, value): builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(value), 0)
+
+def KeyValueAddValue(builder, value):
+    return builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(value), 0)
+
 def AddValue(builder, value):
     return KeyValueAddValue(builder, value)
-def KeyValueEnd(builder): return builder.EndObject()
+
+def KeyValueEnd(builder):
+    return builder.EndObject()
+
 def End(builder):
     return KeyValueEnd(builder)
