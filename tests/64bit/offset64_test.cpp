@@ -67,9 +67,9 @@ void Offset64Test() {
     options.assert = true;
 
     // TODO(derekbailey): remove once we don't need to analyze the binary.
-    SaveFile("tests/64bit/offset64_test_cpp.bin",
-             reinterpret_cast<const char *>(fbb.GetBufferPointer()),
-             fbb.GetSize(), true);
+    // SaveFile("tests/64bit/offset64_test_cpp.bin",
+    //          reinterpret_cast<const char *>(fbb.GetBufferPointer()),
+    //          fbb.GetSize(), true);
 
     Verifier verifier(fbb.GetBufferPointer(), fbb.GetSize(), options);
 
