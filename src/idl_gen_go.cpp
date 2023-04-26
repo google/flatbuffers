@@ -292,6 +292,14 @@ class GoGenerator : public BaseGenerator {
     const std::string size_prefix[] = { "", "SizePrefixed" };
     const std::string struct_type = namer_.Type(struct_def);
 
+    bool has_file_identifier = (parser_.root_struct_def_ == &struct_def) &&
+                               parser_.file_identifier_.length();
+
+    if (has_file_identifier) {
+      code += "const " + struct_type + "Identifier = \"" +
+              parser_.file_identifier_ + "\"\n\n";
+    }
+
     for (int i = 0; i < 2; i++) {
       code += "func Get" + size_prefix[i] + "RootAs" + struct_type;
       code += "(buf []byte, offset flatbuffers.UOffsetT) ";
@@ -312,6 +320,26 @@ class GoGenerator : public BaseGenerator {
       }
       code += "\treturn x\n";
       code += "}\n\n";
+
+      code += "func Finish" + size_prefix[i] + struct_type +
+              "Buffer(builder *flatbuffers.Builder, offset "
+              "flatbuffers.UOffsetT) {\n";
+      if (has_file_identifier) {
+        code += "\tidentifierBytes := []byte(" + struct_type + "Identifier)\n";
+        code += "\tbuilder.Finish" + size_prefix[i] +
+                "WithFileIdentifier(offset, identifierBytes)\n";
+      } else {
+        code += "\tbuilder.Finish" + size_prefix[i] + "(offset)\n";
+      }
+      code += "}\n\n";
+
+      if (has_file_identifier) {
+        code += "func " + size_prefix[i] + struct_type +
+                "BufferHasIdentifier(buf []byte) bool {\n";
+        code += "\treturn flatbuffers." + size_prefix[i] +
+                "BufferHasIdentifier(buf, " + struct_type + "Identifier)\n";
+        code += "}\n\n";
+      }
     }
   }
 

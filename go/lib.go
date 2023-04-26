@@ -28,3 +28,23 @@ func GetSizePrefix(buf []byte, offset UOffsetT) uint32 {
 func GetIndirectOffset(buf []byte, offset UOffsetT) UOffsetT {
 	return offset + GetUOffsetT(buf[offset:])
 }
+
+// GetBufferIdentifier returns the file identifier as string
+func GetBufferIdentifier(buf []byte) string {
+	return string(buf[SizeUOffsetT:][:fileIdentifierLength])
+}
+
+// GetBufferIdentifier returns the file identifier as string for a size-prefixed buffer
+func GetSizePrefixedBufferIdentifier(buf []byte) string {
+	return string(buf[SizeUOffsetT+sizePrefixLength:][:fileIdentifierLength])
+}
+
+// BufferHasIdentifier checks if the identifier in a buffer has the expected value
+func BufferHasIdentifier(buf []byte, identifier string) bool {
+	return GetBufferIdentifier(buf) == identifier
+}
+
+// BufferHasIdentifier checks if the identifier in a buffer has the expected value for a size-prefixed buffer
+func SizePrefixedBufferHasIdentifier(buf []byte, identifier string) bool {
+	return GetSizePrefixedBufferIdentifier(buf) == identifier
+}
