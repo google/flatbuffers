@@ -22,7 +22,9 @@ type TypeAliasesT struct {
 }
 
 func (t *TypeAliasesT) Pack(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
-	if t == nil { return 0 }
+	if t == nil {
+		return 0
+	}
 	v8Offset := flatbuffers.UOffsetT(0)
 	if t.V8 != nil {
 		v8Length := len(t.V8)
@@ -81,7 +83,9 @@ func (rcv *TypeAliases) UnPackTo(t *TypeAliasesT) {
 }
 
 func (rcv *TypeAliases) UnPack() *TypeAliasesT {
-	if rcv == nil { return nil }
+	if rcv == nil {
+		return nil
+	}
 	t := &TypeAliasesT{}
 	rcv.UnPackTo(t)
 	return t
