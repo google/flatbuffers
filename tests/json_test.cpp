@@ -170,5 +170,38 @@ void JsonUnsortedArrayTest() {
   TEST_NOTNULL(monster->testarrayoftables()->LookupByKey("ccc"));
 }
 
+void JsonUnionStructTest() {
+  // schema to parse data
+  auto schema = R"(
+struct MyStruct { field: int; }
+union UnionWithStruct { MyStruct }
+table JsonUnionStructTest { union_with_struct: UnionWithStruct; }
+root_type JsonUnionStructTest;
+)";
+  // source text to parse and expected result of generation text back
+  auto json_source =R"({
+  union_with_struct_type: "MyStruct",
+  union_with_struct: {
+    field: 12345
+  }
+}
+)";
+
+  flatbuffers::Parser parser;
+  // set output language to JSON, so we assure that is supported
+  parser.opts.lang_to_generate = IDLOptions::kJson;
+  // parse schema first, so we assure that output language is supported
+  // and can use it to parse the data after
+  TEST_EQ(true, parser.Parse(schema));
+  TEST_EQ(true, parser.ParseJson(json_source));
+
+  // now generate text back from the binary, and compare the two:
+  std::string json_generated;
+  auto generate_result =
+      GenerateText(parser, parser.builder_.GetBufferPointer(), &json_generated);
+  TEST_EQ(true, generate_result);
+  TEST_EQ_STR(json_source, json_generated.c_str());
+}
+
 }  // namespace tests
 }  // namespace flatbuffers
