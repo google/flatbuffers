@@ -91,5 +91,22 @@ void Offset64Test() {
   }
 }
 
+void Offset64SerializedFirst() {
+  flatbuffers::FlatBufferBuilder fbb;
+
+  // First create the vectors that will be copied to the buffer.
+  std::vector<uint8_t> data;
+  data.resize(64);
+
+  // Then serialize all the fields that have 64-bit offsets, as these must be
+  // serialized before any 32-bit fields are added to the buffer.
+  fbb.CreateVector64(data);
+
+  // Uncommenting this line should fail the test with an assertion.
+  // fbb.CreateString("some near string");
+
+  fbb.CreateVector64(data);
+}
+
 }  // namespace tests
 }  // namespace flatbuffers

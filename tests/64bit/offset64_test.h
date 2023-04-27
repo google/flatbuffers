@@ -5,6 +5,7 @@ namespace flatbuffers {
 namespace tests {
 
 void Offset64Test();
+void Offset64SerializedFirst();
 
 }  // namespace tests
 }  // namespace flatbuffers

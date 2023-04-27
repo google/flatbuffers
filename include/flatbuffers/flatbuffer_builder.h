@@ -90,6 +90,7 @@ class FlatBufferBuilder {
         num_field_loc(0),
         max_voffset_(0),
         length_of_64_bit_region_(0),
+        can_add_64_bit_offsets_(true),
         nested(false),
         finished(false),
         minalign_(1),
@@ -105,6 +106,7 @@ class FlatBufferBuilder {
         num_field_loc(0),
         max_voffset_(0),
         length_of_64_bit_region_(0),
+        can_add_64_bit_offsets_(true),
         nested(false),
         finished(false),
         minalign_(1),
@@ -132,6 +134,7 @@ class FlatBufferBuilder {
     swap(num_field_loc, other.num_field_loc);
     swap(max_voffset_, other.max_voffset_);
     swap(length_of_64_bit_region_, other.length_of_64_bit_region_);
+    swap(can_add_64_bit_offsets_, other.can_add_64_bit_offsets_);
     swap(nested, other.nested);
     swap(finished, other.finished);
     swap(minalign_, other.minalign_);
@@ -157,7 +160,9 @@ class FlatBufferBuilder {
     nested = false;
     finished = false;
     minalign_ = 1;
+    // We are starting the buffer over again, allow 64-bit offsets to work.
     length_of_64_bit_region_ = 0;
+    can_add_64_bit_offsets_ = true;
     if (string_pool) string_pool->clear();
   }
 
@@ -335,7 +340,7 @@ class FlatBufferBuilder {
     if (!structptr) return;  // Default, don't store.
     Align(AlignOf<T>());
     buf_.push_small(*structptr);
-    TrackField(field, GetSizeRelative32BitRegion());
+    TrackField(field, GetOffset<uoffset_t>());
   }
 
   void AddStructOffset(voffset_t field, uoffset_t off) {
@@ -396,6 +401,7 @@ class FlatBufferBuilder {
     FLATBUFFERS_ASSERT(nested);
     // Write the vtable offset, which is the start of any Table.
     // We fill its value later.
+    // This is relative to the end of the 32-bit region.
     const uoffset_t vtable_offset_loc =
         static_cast<uoffset_t>(PushElement<soffset_t>(0));
     // Write a vtable, which consists entirely of voffset_t elements.
@@ -407,7 +413,7 @@ class FlatBufferBuilder {
         (std::max)(static_cast<voffset_t>(max_voffset_ + sizeof(voffset_t)),
                    FieldIndexToOffset(0));
     buf_.fill_big(max_voffset_);
-    auto table_object_size = vtable_offset_loc - start;
+    const uoffset_t table_object_size = vtable_offset_loc - start;
     // Vtable use 16bit offsets.
     FLATBUFFERS_ASSERT(table_object_size < 0x10000);
     WriteScalar<voffset_t>(buf_.data() + sizeof(voffset_t),
@@ -417,7 +423,7 @@ class FlatBufferBuilder {
     for (auto it = buf_.scratch_end() - num_field_loc * sizeof(FieldLoc);
          it < buf_.scratch_end(); it += sizeof(FieldLoc)) {
       auto field_location = reinterpret_cast<FieldLoc *>(it);
-      auto pos =
+      const voffset_t pos =
           static_cast<voffset_t>(vtable_offset_loc - field_location->off);
       // If this asserts, it means you've set a field twice.
       FLATBUFFERS_ASSERT(
@@ -447,8 +453,8 @@ class FlatBufferBuilder {
       buf_.scratch_push_small(vt_use);
     }
     // Fill the vtable offset we created above.
-    // The offset points from the beginning of the object to where the
-    // vtable is stored.
+    // The offset points from the beginning of the object to where the vtable is
+    // stored.
     // Offsets default direction is downward in memory for future format
     // flexibility (storing all vtables at the start of the file).
     WriteScalar(buf_.data_at(vtable_offset_loc + length_of_64_bit_region_),
@@ -499,9 +505,6 @@ class FlatBufferBuilder {
   }
   /// @endcond
 
-  // Get an offset from the end the tail of the buffer.
-  template<typename T> T GetOffset();
-
   /// @brief Store a string in the buffer, which can contain any binary data.
   /// @param[in] str A const char pointer to the data to be stored as a string.
   /// @param[in] len The number of bytes that should be stored from `str`.
@@ -540,7 +543,7 @@ class FlatBufferBuilder {
     return CreateString<OffsetT>(str.c_str(), str.length());
   }
 
-// clang-format off
+  // clang-format off
   #ifdef FLATBUFFERS_HAS_STRING_VIEW
   /// @brief Store a string in the buffer, which can contain any binary data.
   /// @param[in] str A const string_view to copy in to the buffer.
@@ -701,7 +704,7 @@ class FlatBufferBuilder {
       EndVector<size_type>(len);
       return OffsetT<VectorT<T>>(GetOffset<offset_type>());
     }
-// clang-format off
+    // clang-format off
     #if FLATBUFFERS_LITTLEENDIAN
       PushBytes(reinterpret_cast<const uint8_t *>(v), len * sizeof(T));
     #else
@@ -1108,7 +1111,7 @@ class FlatBufferBuilder {
     NotNested();
     StartVector(len, elemsize, alignment);
     buf_.make_space(len * elemsize);
-    auto vec_start = GetSizeRelative32BitRegion();
+    const uoffset_t vec_start = GetSizeRelative32BitRegion();
     auto vec_end = EndVector(len);
     *buf = buf_.data_at(vec_start);
     return vec_end;
@@ -1159,7 +1162,8 @@ class FlatBufferBuilder {
     NotNested();
     Align(AlignOf<T>());
     buf_.push_small(structobj);
-    return Offset<const T *>(GetSizeRelative32BitRegion());
+    return Offset<const T *>(
+        GetOffset<typename Offset<const T *>::offset_type>());
   }
 
   /// @brief Finish serializing a buffer by writing the root offset.
@@ -1243,6 +1247,12 @@ class FlatBufferBuilder {
   // This will remain 0 if no 64-bit offset types are added to the buffer.
   size_t length_of_64_bit_region_;
 
+  // When true, 64-bit offsets can still be added to the builder. When false,
+  // only 32-bit offsets can be added, and attempts to add a 64-bit offset will
+  // raise an assertion. This is typically a compile-time error in ordering the
+  // serialization of 64-bit offset fields not at the tail of the buffer.
+  bool can_add_64_bit_offsets_;
+
   // Ensure objects are not nested.
   bool nested;
 
@@ -1285,8 +1295,31 @@ class FlatBufferBuilder {
   Offset<Vector<const T *>> EndVectorOfStructs(size_t vector_size) {
     return Offset<Vector<const T *>>(EndVector(vector_size));
   }
+
+  // Get an offset from the end the tail of the buffer.
+  template<typename T> T GetOffset() {
+    // We are adding a 32-bit offset to the buffer, and no longer can allow
+    // 64-bit offsets to be added.
+    can_add_64_bit_offsets_ = false;
+
+    // Default to the end of the 32-bit region. This may or may not be the end
+    // of the buffer, depending on if any 64-bit offsets have been added.
+    return GetSizeRelative32BitRegion();
+  }
 };
 /// @}
+
+// Specializations to handle the 64-bit GetOffsets, which is relative to end of
+// the buffer.
+template<> inline uoffset64_t FlatBufferBuilder::GetOffset() {
+  // If you hit this, you're trying to add a 64-bit offset to the buffer after
+  // already adding a 32-bit offset. All 64-bit offsets have to be added to the
+  // buffer before any 32-bit offset is added. Otherwise some data might be
+  // serialized too far away to be properly address using 32-bit signed offsets.
+  FLATBUFFERS_ASSERT(can_add_64_bit_offsets_);
+
+  return length_of_64_bit_region_= GetSize();
+}
 
 /// Helpers to get a typed pointer to objects that are currently being built.
 /// @warning Creating new objects will lead to reallocations and invalidates
@@ -1300,22 +1333,6 @@ T *GetMutableTemporaryPointer(FlatBufferBuilder &fbb, Offset<T> offset) {
 template<typename T>
 const T *GetTemporaryPointer(FlatBufferBuilder &fbb, Offset<T> offset) {
   return GetMutableTemporaryPointer<T>(fbb, offset);
-}
-
-// Specializations to handle the 32-bit and 64-bit GetOffsets, which are
-// relative to different things.
-template<> inline uoffset_t FlatBufferBuilder::GetOffset() {
-  return GetSizeRelative32BitRegion();
-}
-
-template<> inline uoffset64_t FlatBufferBuilder::GetOffset() {
-  const uoffset64_t size = GetSize();
-  // Keep track of the length of the 64-bit region.
-  if (size > length_of_64_bit_region_) { length_of_64_bit_region_ = size; }
-
-  // TODO(derekbailey): should assert that we don't add an 64-bit offset after
-  // adding a 32-bit one.
-  return size;
 }
 
 }  // namespace flatbuffers
