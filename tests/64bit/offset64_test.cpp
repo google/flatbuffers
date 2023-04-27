@@ -17,7 +17,7 @@ namespace flatbuffers {
 namespace tests {
 
 void Offset64Test() {
-  flatbuffers::FlatBufferBuilder fbb;
+  flatbuffers::FlatBufferBuilder64 fbb;
 
   size_t far_vector_size = 1LL << 2;
   size_t big_vector_size =
@@ -92,7 +92,7 @@ void Offset64Test() {
 }
 
 void Offset64SerializedFirst() {
-  flatbuffers::FlatBufferBuilder fbb;
+  flatbuffers::FlatBufferBuilder64 fbb;
 
   // First create the vectors that will be copied to the buffer.
   std::vector<uint8_t> data;
@@ -102,6 +102,7 @@ void Offset64SerializedFirst() {
   // serialized before any 32-bit fields are added to the buffer.
   fbb.CreateVector64(data);
 
+  // TODO(derekbailey): figure out how to test assertions.
   // Uncommenting this line should fail the test with an assertion.
   // fbb.CreateString("some near string");
 

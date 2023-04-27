@@ -20,6 +20,9 @@
 #include <algorithm>
 #include <functional>
 #include <initializer_list>
+// TODO(derekbailey): remove after debugging issues.
+#include <iostream>
+#include <type_traits>
 
 #include "flatbuffers/allocator.h"
 #include "flatbuffers/array.h"
@@ -35,6 +38,12 @@
 #include "flatbuffers/vector.h"
 #include "flatbuffers/vector_downward.h"
 #include "flatbuffers/verifier.h"
+
+// For 64-bit builders, there are two approaches to optional change behavior at
+// compile time, SFINAE with std:enable_if or tag dispatching with type traits.
+// This controls which one is used, so we can evaluate the pros and cons of each
+// approach.
+#define USE_TAG_DISPATCHING_FOR_64_BIT_AWARE 1
 
 namespace flatbuffers {
 
@@ -69,7 +78,7 @@ T *data(std::vector<T, Alloc> &v) {
 /// `PushElement`/`AddElement`/`EndTable`, or the builtin `CreateString`/
 /// `CreateVector` functions. Do this is depth-first order to build up a tree to
 /// the root. `Finish()` wraps up the buffer ready for transport.
-class FlatBufferBuilder {
+template<bool Is64Aware = false> class FlatBufferBuilderImpl {
  public:
   /// @brief Default constructor for FlatBufferBuilder.
   /// @param[in] initial_size The initial size of the buffer, in bytes. Defaults
@@ -82,7 +91,7 @@ class FlatBufferBuilder {
   /// minimum alignment upon reallocation. Only needed if you intend to store
   /// types with custom alignment AND you wish to read the buffer in-place
   /// directly after creation.
-  explicit FlatBufferBuilder(
+  explicit FlatBufferBuilderImpl(
       size_t initial_size = 1024, Allocator *allocator = nullptr,
       bool own_allocator = false,
       size_t buffer_minalign = AlignOf<largest_scalar_t>())
@@ -101,7 +110,7 @@ class FlatBufferBuilder {
   }
 
   /// @brief Move constructor for FlatBufferBuilder.
-  FlatBufferBuilder(FlatBufferBuilder &&other) noexcept
+  FlatBufferBuilderImpl(FlatBufferBuilderImpl &&other) noexcept
       : buf_(1024, nullptr, false, AlignOf<largest_scalar_t>()),
         num_field_loc(0),
         max_voffset_(0),
@@ -121,14 +130,14 @@ class FlatBufferBuilder {
   }
 
   /// @brief Move assignment operator for FlatBufferBuilder.
-  FlatBufferBuilder &operator=(FlatBufferBuilder &&other) noexcept {
+  FlatBufferBuilderImpl &operator=(FlatBufferBuilderImpl &&other) noexcept {
     // Move construct a temporary and swap idiom
-    FlatBufferBuilder temp(std::move(other));
+    FlatBufferBuilderImpl temp(std::move(other));
     Swap(temp);
     return *this;
   }
 
-  void Swap(FlatBufferBuilder &other) {
+  void Swap(FlatBufferBuilderImpl &other) {
     using std::swap;
     buf_.swap(other.buf_);
     swap(num_field_loc, other.num_field_loc);
@@ -143,7 +152,7 @@ class FlatBufferBuilder {
     swap(string_pool, other.string_pool);
   }
 
-  ~FlatBufferBuilder() {
+  ~FlatBufferBuilderImpl() {
     if (string_pool) delete string_pool;
   }
 
@@ -170,16 +179,50 @@ class FlatBufferBuilder {
   /// @return Returns an `size_t` with the current size of the buffer.
   size_t GetSize() const { return buf_.size(); }
 
-  /// @brief The current size of the serialized buffer relative to the end of
-  /// the 32-bit region.
-  /// @return Returns an `uoffset_t` with the current size of the buffer.
-  uoffset_t GetSizeRelative32BitRegion() const {
+/// @brief The current size of the serialized buffer relative to the end of
+/// the 32-bit region.
+/// @return Returns an `uoffset_t` with the current size of the buffer.
+#if USE_TAG_DISPATCHING_FOR_64_BIT_AWARE
+  // This implementation uses tag dispatching.
+  // Suggested here: https://stackoverflow.com/a/47938888/868247
+
+  uoffset_t GetSizeRelative32BitRegion() {
+    return GetSizeRelative32BitRegion(
+        std::integral_constant<bool, Is64Aware>{});
+  }
+
+  // TODO(derekbailey): these should be private, but for now keep them together
+  // to show how they work.
+  uoffset_t GetSizeRelative32BitRegion(std::true_type is_64_aware) {
     //[32-bit region][64-bit region]
     //         [XXXXXXXXXXXXXXXXXXX] GetSize()
     //               [YYYYYYYYYYYYY] length_of_64_bit_region_
     //         [ZZZZ]                return size
     return static_cast<uoffset_t>(GetSize() - length_of_64_bit_region_);
   }
+
+  uoffset_t GetSizeRelative32BitRegion(std::false_type is_64_aware) {
+    return GetSize();
+  }
+
+#else
+  // Got the templating from: https://stackoverflow.com/a/47935516/868247
+  template<bool enable = Is64Aware>
+  typename std::enable_if<enable, uoffset_t>::type GetSizeRelative32BitRegion()
+      const {
+    //[32-bit region][64-bit region]
+    //         [XXXXXXXXXXXXXXXXXXX] GetSize()
+    //               [YYYYYYYYYYYYY] length_of_64_bit_region_
+    //         [ZZZZ]                return size
+    return static_cast<uoffset_t>(GetSize() - length_of_64_bit_region_);
+  }
+
+  template<bool enable = Is64Aware>
+  typename std::enable_if<!enable, uoffset_t>::type GetSizeRelative32BitRegion()
+      const {
+    return GetSize();
+  }
+#endif
 
   /// @brief Get the serialized buffer (after you call `Finish()`).
   /// @return Returns an `uint8_t` pointer to the FlatBuffer data inside the
@@ -543,7 +586,7 @@ class FlatBufferBuilder {
     return CreateString<OffsetT>(str.c_str(), str.length());
   }
 
-  // clang-format off
+// clang-format off
   #ifdef FLATBUFFERS_HAS_STRING_VIEW
   /// @brief Store a string in the buffer, which can contain any binary data.
   /// @param[in] str A const string_view to copy in to the buffer.
@@ -704,7 +747,7 @@ class FlatBufferBuilder {
       EndVector<size_type>(len);
       return OffsetT<VectorT<T>>(GetOffset<offset_type>());
     }
-    // clang-format off
+// clang-format off
     #if FLATBUFFERS_LITTLEENDIAN
       PushBytes(reinterpret_cast<const uint8_t *>(v), len * sizeof(T));
     #else
@@ -1187,7 +1230,7 @@ class FlatBufferBuilder {
     Finish(root.o, file_identifier, true);
   }
 
-  void SwapBufAllocator(FlatBufferBuilder &other) {
+  void SwapBufAllocator(FlatBufferBuilderImpl &other) {
     buf_.swap_allocator(other.buf_);
   }
 
@@ -1197,8 +1240,8 @@ class FlatBufferBuilder {
 
  protected:
   // You shouldn't really be copying instances of this class.
-  FlatBufferBuilder(const FlatBufferBuilder &);
-  FlatBufferBuilder &operator=(const FlatBufferBuilder &);
+  FlatBufferBuilderImpl(const FlatBufferBuilderImpl &);
+  FlatBufferBuilderImpl &operator=(const FlatBufferBuilderImpl &);
 
   void Finish(uoffset_t root, const char *file_identifier, bool size_prefix) {
     NotNested();
@@ -1296,8 +1339,14 @@ class FlatBufferBuilder {
     return Offset<Vector<const T *>>(EndVector(vector_size));
   }
 
-  // Get an offset from the end the tail of the buffer.
+#if USE_TAG_DISPATCHING_FOR_64_BIT_AWARE
+
   template<typename T> T GetOffset() {
+    return GetOffset<T>(std::integral_constant<bool, Is64Aware>{});
+  }
+
+  // Get an offset from the end the tail of the buffer.
+  template<typename T> T GetOffset(std::true_type is_64_aware) {
     // We are adding a 32-bit offset to the buffer, and no longer can allow
     // 64-bit offsets to be added.
     can_add_64_bit_offsets_ = false;
@@ -1306,19 +1355,54 @@ class FlatBufferBuilder {
     // of the buffer, depending on if any 64-bit offsets have been added.
     return GetSizeRelative32BitRegion();
   }
+
+  template<typename T> T GetOffset(std::false_type is_64_aware) {
+    // Default to the end of the 32-bit region. This may or may not be the end
+    // of the buffer, depending on if any 64-bit offsets have been added.
+    return GetSizeRelative32BitRegion();
+  }
+
+#else
+
+  template<typename T, bool enable = Is64Aware>
+  typename std::enable_if<enable, T>::type GetOffset() {
+    // We are adding a 32-bit offset to the buffer, and no longer can allow
+    // 64-bit offsets to be added.
+    can_add_64_bit_offsets_ = false;
+
+    // Default to the end of the 32-bit region. This may or may not be the end
+    // of the buffer, depending on if any 64-bit offsets have been added.
+    return GetSizeRelative32BitRegion();
+  }
+
+  template<typename T, bool enable = Is64Aware>
+  typename std::enable_if<!enable, T>::type GetOffset() {
+    // Default to the end of the 32-bit region. This may or may not be the end
+    // of the buffer, depending on if any 64-bit offsets have been added.
+    return GetSizeRelative32BitRegion();
+  }
+
+#endif
 };
 /// @}
 
+// Hack to `FlatBufferBuilder` mean `FlatBufferBuilder<false>` or
+// `FlatBufferBuilder<>`, where the template < > syntax is required.
+typedef FlatBufferBuilderImpl<false> FlatBufferBuilder;
+typedef FlatBufferBuilderImpl<true> FlatBufferBuilder64;
+
 // Specializations to handle the 64-bit GetOffsets, which is relative to end of
 // the buffer.
-template<> inline uoffset64_t FlatBufferBuilder::GetOffset() {
+template<>
+template<>
+inline uoffset64_t FlatBufferBuilder64::GetOffset<uoffset64_t>() {
   // If you hit this, you're trying to add a 64-bit offset to the buffer after
   // already adding a 32-bit offset. All 64-bit offsets have to be added to the
   // buffer before any 32-bit offset is added. Otherwise some data might be
   // serialized too far away to be properly address using 32-bit signed offsets.
   FLATBUFFERS_ASSERT(can_add_64_bit_offsets_);
 
-  return length_of_64_bit_region_= GetSize();
+  return length_of_64_bit_region_ = GetSize();
 }
 
 /// Helpers to get a typed pointer to objects that are currently being built.

@@ -88,12 +88,12 @@ struct RootTable FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   }
   RootTableT *UnPack(const ::flatbuffers::resolver_function_t *_resolver = nullptr) const;
   void UnPackTo(RootTableT *_o, const ::flatbuffers::resolver_function_t *_resolver = nullptr) const;
-  static ::flatbuffers::Offset<RootTable> Pack(::flatbuffers::FlatBufferBuilder &_fbb, const RootTableT* _o, const ::flatbuffers::rehasher_function_t *_rehasher = nullptr);
+  static ::flatbuffers::Offset<RootTable> Pack(::flatbuffers::FlatBufferBuilder64 &_fbb, const RootTableT* _o, const ::flatbuffers::rehasher_function_t *_rehasher = nullptr);
 };
 
 struct RootTableBuilder {
   typedef RootTable Table;
-  ::flatbuffers::FlatBufferBuilder &fbb_;
+  ::flatbuffers::FlatBufferBuilder64 &fbb_;
   ::flatbuffers::uoffset_t start_;
   void add_far_vector(::flatbuffers::Offset64<::flatbuffers::Vector<uint8_t>> far_vector) {
     fbb_.AddOffset(RootTable::VT_FAR_VECTOR, far_vector);
@@ -110,7 +110,7 @@ struct RootTableBuilder {
   void add_near_string(::flatbuffers::Offset<::flatbuffers::String> near_string) {
     fbb_.AddOffset(RootTable::VT_NEAR_STRING, near_string);
   }
-  explicit RootTableBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
+  explicit RootTableBuilder(::flatbuffers::FlatBufferBuilder64 &_fbb)
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
@@ -122,7 +122,7 @@ struct RootTableBuilder {
 };
 
 inline ::flatbuffers::Offset<RootTable> CreateRootTable(
-    ::flatbuffers::FlatBufferBuilder &_fbb,
+    ::flatbuffers::FlatBufferBuilder64 &_fbb,
     ::flatbuffers::Offset64<::flatbuffers::Vector<uint8_t>> far_vector = 0,
     int32_t a = 0,
     ::flatbuffers::Offset64<::flatbuffers::String> far_string = 0,
@@ -138,7 +138,7 @@ inline ::flatbuffers::Offset<RootTable> CreateRootTable(
 }
 
 inline ::flatbuffers::Offset<RootTable> CreateRootTableDirect(
-    ::flatbuffers::FlatBufferBuilder &_fbb,
+    ::flatbuffers::FlatBufferBuilder64 &_fbb,
     const std::vector<uint8_t> *far_vector = nullptr,
     int32_t a = 0,
     const char *far_string = nullptr,
@@ -157,7 +157,7 @@ inline ::flatbuffers::Offset<RootTable> CreateRootTableDirect(
       near_string__);
 }
 
-::flatbuffers::Offset<RootTable> CreateRootTable(::flatbuffers::FlatBufferBuilder &_fbb, const RootTableT *_o, const ::flatbuffers::rehasher_function_t *_rehasher = nullptr);
+::flatbuffers::Offset<RootTable> CreateRootTable(::flatbuffers::FlatBufferBuilder64 &_fbb, const RootTableT *_o, const ::flatbuffers::rehasher_function_t *_rehasher = nullptr);
 
 
 inline bool operator==(const RootTableT &lhs, const RootTableT &rhs) {
@@ -190,14 +190,14 @@ inline void RootTable::UnPackTo(RootTableT *_o, const ::flatbuffers::resolver_fu
   { auto _e = near_string(); if (_e) _o->near_string = _e->str(); }
 }
 
-inline ::flatbuffers::Offset<RootTable> RootTable::Pack(::flatbuffers::FlatBufferBuilder &_fbb, const RootTableT* _o, const ::flatbuffers::rehasher_function_t *_rehasher) {
+inline ::flatbuffers::Offset<RootTable> RootTable::Pack(::flatbuffers::FlatBufferBuilder64 &_fbb, const RootTableT* _o, const ::flatbuffers::rehasher_function_t *_rehasher) {
   return CreateRootTable(_fbb, _o, _rehasher);
 }
 
-inline ::flatbuffers::Offset<RootTable> CreateRootTable(::flatbuffers::FlatBufferBuilder &_fbb, const RootTableT *_o, const ::flatbuffers::rehasher_function_t *_rehasher) {
+inline ::flatbuffers::Offset<RootTable> CreateRootTable(::flatbuffers::FlatBufferBuilder64 &_fbb, const RootTableT *_o, const ::flatbuffers::rehasher_function_t *_rehasher) {
   (void)_rehasher;
   (void)_o;
-  struct _VectorArgs { ::flatbuffers::FlatBufferBuilder *__fbb; const RootTableT* __o; const ::flatbuffers::rehasher_function_t *__rehasher; } _va = { &_fbb, _o, _rehasher}; (void)_va;
+  struct _VectorArgs { ::flatbuffers::FlatBufferBuilder64 *__fbb; const RootTableT* __o; const ::flatbuffers::rehasher_function_t *__rehasher; } _va = { &_fbb, _o, _rehasher}; (void)_va;
   auto _far_vector = _o->far_vector.size() ? _fbb.CreateVector64<::flatbuffers::Vector>(_o->far_vector) : 0;
   auto _a = _o->a;
   auto _far_string = _o->far_string.empty() ? 0 : _fbb.CreateString<::flatbuffers::Offset64>(_o->far_string);
@@ -260,13 +260,13 @@ inline bool VerifySizePrefixedRootTableBuffer(
 }
 
 inline void FinishRootTableBuffer(
-    ::flatbuffers::FlatBufferBuilder &fbb,
+    ::flatbuffers::FlatBufferBuilder64 &fbb,
     ::flatbuffers::Offset<RootTable> root) {
   fbb.Finish(root);
 }
 
 inline void FinishSizePrefixedRootTableBuffer(
-    ::flatbuffers::FlatBufferBuilder &fbb,
+    ::flatbuffers::FlatBufferBuilder64 &fbb,
     ::flatbuffers::Offset<RootTable> root) {
   fbb.FinishSizePrefixed(root);
 }

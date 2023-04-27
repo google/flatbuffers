@@ -8,20 +8,20 @@ using namespace MyGame::Example;
 
 struct OwnedAllocator : public flatbuffers::DefaultAllocator {};
 
-class TestHeapBuilder : public flatbuffers::FlatBufferBuilder {
+class TestHeapBuilder : public flatbuffers::FlatBufferBuilderImpl<false> {
  private:
   TestHeapBuilder(const TestHeapBuilder &);
   TestHeapBuilder &operator=(const TestHeapBuilder &);
 
  public:
   TestHeapBuilder()
-      : FlatBufferBuilder(2048, new OwnedAllocator(), true) {}
+      : FlatBufferBuilderImpl(2048, new OwnedAllocator(), true) {}
 
   TestHeapBuilder(TestHeapBuilder &&other)
-      : FlatBufferBuilder(std::move(other)) {}
+      : FlatBufferBuilderImpl(std::move(other)) {}
 
   TestHeapBuilder &operator=(TestHeapBuilder &&other) {
-    FlatBufferBuilder::operator=(std::move(other));
+    flatbuffers::FlatBufferBuilder::operator=(std::move(other));
     return *this;
   }
 };
@@ -39,10 +39,10 @@ struct GrpcLikeMessageBuilder : private AllocatorMember,
 
  public:
   GrpcLikeMessageBuilder()
-      : FlatBufferBuilder(1024, &member_allocator_, false) {}
+      : FlatBufferBuilderImpl(1024, &member_allocator_, false) {}
 
   GrpcLikeMessageBuilder(GrpcLikeMessageBuilder &&other)
-      : FlatBufferBuilder(1024, &member_allocator_, false) {
+      : FlatBufferBuilderImpl(1024, &member_allocator_, false) {
     // Default construct and swap idiom.
     Swap(other);
   }
@@ -56,7 +56,7 @@ struct GrpcLikeMessageBuilder : private AllocatorMember,
 
   void Swap(GrpcLikeMessageBuilder &other) {
     // No need to swap member_allocator_ because it's stateless.
-    FlatBufferBuilder::Swap(other);
+    flatbuffers::FlatBufferBuilder::Swap(other);
     // After swapping the FlatBufferBuilder, we swap back the allocator, which
     // restores the original allocator back in place. This is necessary because
     // MessageBuilder's allocator is its own member (SliceAllocatorMember). The

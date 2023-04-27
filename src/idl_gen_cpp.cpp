@@ -272,6 +272,25 @@ class CppGenerator : public BaseGenerator {
     }
   }
 
+  void MarkIf64BitBuilderIsNeeded() {
+    if (needs_64_bit_builder_) { return; }
+    for (auto t : parser_.structs_.vec) {
+      if (t == nullptr) continue;
+      for (auto f : t->fields.vec) {
+        if (f == nullptr) continue;
+        if (f->offset64) {
+          needs_64_bit_builder_ = true;
+          break;
+        }
+      }
+    }
+  }
+
+  std::string GetBuilder() {
+    return std::string("::flatbuffers::FlatBufferBuilder") +
+           (needs_64_bit_builder_ ? "64" : "");
+  }
+
   void GenExtraIncludes() {
     for (const std::string &cpp_include : opts_.cpp_includes) {
       code_ += "#include \"" + cpp_include + "\"";
@@ -395,6 +414,9 @@ class CppGenerator : public BaseGenerator {
   // Iterate through all definitions we haven't generate code for (enums,
   // structs, and tables) and output them to a single file.
   bool generate() {
+    // Check if we require a 64-bit flatbuffer builder.
+    MarkIf64BitBuilderIsNeeded();
+
     code_.Clear();
     code_ += "// " + std::string(FlatBuffersGeneratedWarning()) + "\n\n";
 
@@ -625,7 +647,7 @@ class CppGenerator : public BaseGenerator {
 
       // Finish a buffer with a given root object:
       code_ += "inline void Finish{{STRUCT_NAME}}Buffer(";
-      code_ += "    ::flatbuffers::FlatBufferBuilder &fbb,";
+      code_ += "    " + GetBuilder() + " &fbb,";
       code_ += "    ::flatbuffers::Offset<{{CPP_NAME}}> root) {";
       if (parser_.file_identifier_.length())
         code_ += "  fbb.Finish(root, {{STRUCT_NAME}}Identifier());";
@@ -635,7 +657,7 @@ class CppGenerator : public BaseGenerator {
       code_ += "";
 
       code_ += "inline void FinishSizePrefixed{{STRUCT_NAME}}Buffer(";
-      code_ += "    ::flatbuffers::FlatBufferBuilder &fbb,";
+      code_ += "    " + GetBuilder() + " &fbb,";
       code_ += "    ::flatbuffers::Offset<{{CPP_NAME}}> root) {";
       if (parser_.file_identifier_.length())
         code_ += "  fbb.FinishSizePrefixed(root, {{STRUCT_NAME}}Identifier());";
@@ -695,6 +717,7 @@ class CppGenerator : public BaseGenerator {
 
   const IDLOptionsCpp opts_;
   const TypedFloatConstantGenerator float_const_gen_;
+  bool needs_64_bit_builder_ = false;
 
   const Namespace *CurrentNameSpace() const { return cur_name_space_; }
 
@@ -1022,8 +1045,8 @@ class CppGenerator : public BaseGenerator {
 
   std::string UnionPackSignature(const EnumDef &enum_def, bool inclass) {
     return "::flatbuffers::Offset<void> " +
-           (inclass ? "" : Name(enum_def) + "Union::") +
-           "Pack(::flatbuffers::FlatBufferBuilder &_fbb, " +
+           (inclass ? "" : Name(enum_def) + "Union::") + "Pack(" +
+           GetBuilder() + " &_fbb, " +
            "const ::flatbuffers::rehasher_function_t *_rehasher" +
            (inclass ? " = nullptr" : "") + ") const";
   }
@@ -1031,8 +1054,7 @@ class CppGenerator : public BaseGenerator {
   std::string TableCreateSignature(const StructDef &struct_def, bool predecl,
                                    const IDLOptions &opts) {
     return "::flatbuffers::Offset<" + Name(struct_def) + "> Create" +
-           Name(struct_def) +
-           "(::flatbuffers::FlatBufferBuilder &_fbb, const " +
+           Name(struct_def) + "(" + GetBuilder() + " &_fbb, const " +
            NativeName(Name(struct_def), &struct_def, opts) +
            " *_o, const ::flatbuffers::rehasher_function_t *_rehasher" +
            (predecl ? " = nullptr" : "") + ")";
@@ -1042,7 +1064,7 @@ class CppGenerator : public BaseGenerator {
                                  const IDLOptions &opts) {
     return std::string(inclass ? "static " : "") + "::flatbuffers::Offset<" +
            Name(struct_def) + "> " + (inclass ? "" : Name(struct_def) + "::") +
-           "Pack(::flatbuffers::FlatBufferBuilder &_fbb, " + "const " +
+           "Pack(" + GetBuilder() + " &_fbb, " + "const " +
            NativeName(Name(struct_def), &struct_def, opts) + "* _o, " +
            "const ::flatbuffers::rehasher_function_t *_rehasher" +
            (inclass ? " = nullptr" : "") + ")";
@@ -1107,9 +1129,10 @@ class CppGenerator : public BaseGenerator {
                     ? bt - BASE_TYPE_UTYPE + ET_UTYPE
                     : ET_SEQUENCE;
       int ref_idx = -1;
-      std::string ref_name = type.struct_def ? WrapInNameSpace(*type.struct_def)
-                             : type.enum_def ? WrapInNameSpace(*type.enum_def)
-                                             : "";
+      std::string ref_name =
+          type.struct_def
+              ? WrapInNameSpace(*type.struct_def)
+              : type.enum_def ? WrapInNameSpace(*type.enum_def) : "";
       if (!ref_name.empty()) {
         auto rit = type_refs.begin();
         for (; rit != type_refs.end(); ++rit) {
@@ -2899,7 +2922,7 @@ class CppGenerator : public BaseGenerator {
     // Generate a builder struct:
     code_ += "struct {{STRUCT_NAME}}Builder {";
     code_ += "  typedef {{STRUCT_NAME}} Table;";
-    code_ += "  ::flatbuffers::FlatBufferBuilder &fbb_;";
+    code_ += "  " + GetBuilder() + " &fbb_;";
     code_ += "  ::flatbuffers::uoffset_t start_;";
 
     bool has_string_or_vector_fields = false;
@@ -2948,9 +2971,9 @@ class CppGenerator : public BaseGenerator {
     }
 
     // Builder constructor
-    code_ +=
-        "  explicit {{STRUCT_NAME}}Builder(::flatbuffers::FlatBufferBuilder "
-        "&_fbb)";
+    code_ += "  explicit {{STRUCT_NAME}}Builder(" + GetBuilder() +
+             " "
+             "&_fbb)";
     code_ += "        : fbb_(_fbb) {";
     code_ += "    start_ = fbb_.StartTable();";
     code_ += "  }";
@@ -2977,7 +3000,7 @@ class CppGenerator : public BaseGenerator {
     code_ +=
         "inline ::flatbuffers::Offset<{{STRUCT_NAME}}> "
         "Create{{STRUCT_NAME}}(";
-    code_ += "    ::flatbuffers::FlatBufferBuilder &_fbb\\";
+    code_ += "    " + GetBuilder() + " &_fbb\\";
     for (const auto &field : struct_def.fields.vec) {
       if (!field->deprecated) { GenParam(*field, false, ",\n    "); }
     }
@@ -3015,7 +3038,7 @@ class CppGenerator : public BaseGenerator {
       code_ +=
           "inline ::flatbuffers::Offset<{{STRUCT_NAME}}> "
           "Create{{STRUCT_NAME}}Direct(";
-      code_ += "    ::flatbuffers::FlatBufferBuilder &_fbb\\";
+      code_ += "    " + GetBuilder() + " &_fbb\\";
       for (const auto &field : struct_def.fields.vec) {
         if (!field->deprecated) { GenParam(*field, true, ",\n    "); }
       }
@@ -3598,7 +3621,9 @@ class CppGenerator : public BaseGenerator {
 
       code_ +=
           "  struct _VectorArgs "
-          "{ ::flatbuffers::FlatBufferBuilder *__fbb; "
+          "{ " +
+          GetBuilder() +
+          " *__fbb; "
           "const " +
           NativeName(Name(struct_def), &struct_def, opts_) +
           "* __o; "
