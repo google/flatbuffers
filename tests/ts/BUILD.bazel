@@ -64,15 +64,15 @@ sh_test(
             "bazel_repository_test_dir/bazel-*/**",
         ],
     ),
-    # We only have x86_64 Linux bazel exposed so restrict the test to that.
-    target_compatible_with = [
-        "@platforms//cpu:x86_64",
-        "@platforms//os:linux",
-    ],
     tags = [
         # Since we have bazel downloading external repositories inside this
         # test, we need to give it access to the internet.
         "requires-network",
+    ],
+    # We only have x86_64 Linux bazel exposed so restrict the test to that.
+    target_compatible_with = [
+        "@platforms//cpu:x86_64",
+        "@platforms//os:linux",
     ],
     deps = ["@bazel_tools//tools/bash/runfiles"],
 )
