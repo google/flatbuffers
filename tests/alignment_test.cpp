@@ -54,7 +54,8 @@ void AlignmentTest() {
       flatbuffers::GetRoot<SmallStructs>(builder.GetBufferPointer());
 
   TEST_EQ(root_msg->small_structs()->size(), small_vector.size());
-  for (size_t i = 0; i < root_msg->small_structs()->size(); ++i) {
+  for (flatbuffers::uoffset_t i = 0; i < root_msg->small_structs()->size();
+       ++i) {
     TEST_EQ(root_msg->small_structs()->Get(i)->var_0(),
             small_vector[i].var_0());
     TEST_EQ(root_msg->small_structs()->Get(i)->var_1(),
