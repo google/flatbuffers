@@ -3,7 +3,6 @@
 package MyGame.Example
 
 @Suppress("unused")
-@kotlin.ExperimentalUnsignedTypes
 class Race private constructor() {
     companion object {
         const val None: Byte = -1
