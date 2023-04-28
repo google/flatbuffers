@@ -16,8 +16,9 @@ static const auto infinity_f = std::numeric_limits<float>::infinity();
 static const auto infinity_d = std::numeric_limits<double>::infinity();
 
 // Test that parser errors are actually generated.
-static void TestError_(const char *src, const char *error_substr, bool strict_json,
-                const char *file, int line, const char *func) {
+static void TestError_(const char *src, const char *error_substr,
+                       bool strict_json, const char *file, int line,
+                       const char *func) {
   flatbuffers::IDLOptions opts;
   opts.strict_json = strict_json;
   flatbuffers::Parser parser(opts);
@@ -32,8 +33,8 @@ static void TestError_(const char *src, const char *error_substr, bool strict_js
   }
 }
 
-static void TestError_(const char *src, const char *error_substr, const char *file,
-                int line, const char *func) {
+static void TestError_(const char *src, const char *error_substr,
+                       const char *file, int line, const char *func) {
   TestError_(src, error_substr, false, file, line, func);
 }
 
@@ -47,7 +48,7 @@ static void TestError_(const char *src, const char *error_substr, const char *fi
 
 static bool FloatCompare(float a, float b) { return fabs(a - b) < 0.001; }
 
-} // namespace
+}  // namespace
 
 // Test that parsing errors occur as we'd expect.
 // Also useful for coverage, making sure these paths are run.
@@ -124,6 +125,15 @@ void ErrorTest() {
   // An identifier can't start from sign (+|-)
   TestError("table X { -Y: int; } root_type Y: {Y:1.0}", "identifier");
   TestError("table X { +Y: int; } root_type Y: {Y:1.0}", "identifier");
+
+  // Offset64
+  TestError("table X { a:int (vector64); }", "`vector64` attribute");
+  TestError("table X { a:int (offset64); }", "`offset64` attribute");
+  TestError("table X { a:string (vector64); }", "`vector64` attribute");
+  TestError("table y { a:int; } table X { a:y (offset64); }",
+            "`offset64` attribute");
+  TestError("struct y { a:int; } table X { a:y (offset64); }",
+            "`offset64` attribute");
 }
 
 void EnumOutOfRangeTest() {
@@ -775,8 +785,6 @@ void UnicodeSurrogatesTest() {
       flatbuffers::FieldIndexToOffset(0));
   TEST_EQ_STR(string->c_str(), "\xF0\x9F\x92\xA9");
 }
-
-
 
 void UnknownFieldsTest() {
   flatbuffers::IDLOptions opts;

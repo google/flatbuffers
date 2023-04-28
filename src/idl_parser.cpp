@@ -1069,6 +1069,19 @@ CheckedError Parser::ParseField(StructDef &struct_def) {
 
   // Record that this field uses 64-bit offsets.
   if (field->attributes.Lookup("offset64") != nullptr) {
+    // TODO(derekbailey): this is where we can disable string support for
+    // offset64, as that is not a hard requirement to have.
+    if (!IsString(type) && !IsVector(type)) {
+      return Error(
+          "only string and vectors can have `offset64` attribute applied");
+    }
+
+    // TODO(derekbailey): would be nice to have this be a recommendation or hint
+    // instead of a warning.
+    if (type.base_type == BASE_TYPE_VECTOR64) {
+      Warning("attribute `vector64` implies `offset64` and isn't required.");
+    }
+
     field->offset64 = true;
   }
 
