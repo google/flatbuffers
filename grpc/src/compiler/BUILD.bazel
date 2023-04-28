@@ -5,16 +5,6 @@ package(
 )
 
 filegroup(
-    name = "distribution",
-    srcs = [
-        "BUILD.bazel",
-    ] + glob([
-        "*.cc",
-        "*.h",
-    ]),
-)
-
-filegroup(
     name = "common_headers",
     srcs = [
         "schema_interface.h",

@@ -5,17 +5,6 @@ package(
     default_visibility = ["//visibility:private"],
 )
 
-filegroup(
-    name = "distribution",
-    srcs = [
-        "BUILD.bazel",
-    ] + glob([
-        "*.cpp",
-        "*.h",
-    ]),
-    visibility = ["//visibility:public"],
-)
-
 # Public flatc library to compile flatbuffer files at runtime.
 cc_library(
     name = "flatbuffers",

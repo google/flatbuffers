@@ -1,19 +1,7 @@
-load("@aspect_bazel_lib//lib:copy_to_bin.bzl", "copy_to_bin")
 load("@rules_cc//cc:defs.bzl", "cc_test")
 load("//:build_defs.bzl", "flatbuffer_cc_library")
 
 package(default_visibility = ["//visibility:private"])
-
-# rules_js works around various JS tooling limitations by copying everything
-# into the output directory. Make the test data available to the tests this way.
-copy_to_bin(
-    name = "test_data_copied_to_bin",
-    srcs = glob([
-        "*.mon",
-        "*.json",
-    ]),
-    visibility = ["//tests/ts:__subpackages__"],
-)
 
 # Test binary.
 cc_test(
