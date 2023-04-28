@@ -233,12 +233,17 @@ namespace flatbuffers {
       }
       #define FLATBUFFERS_HAS_STRING_VIEW 1
     // Check for absl::string_view
-    #elif __has_include("absl/strings/string_view.h") && (__cplusplus >= 201411)
-      #include "absl/strings/string_view.h"
-      namespace flatbuffers {
-        typedef absl::string_view string_view;
-      }
-      #define FLATBUFFERS_HAS_STRING_VIEW 1
+    #elif __has_include("absl/strings/string_view.h") && \
+          __has_include("absl/base/config.h") && \
+          (__cplusplus >= 201411)
+      #include "absl/base/config.h"
+      #if !defined(ABSL_USES_STD_STRING_VIEW)
+        #include "absl/strings/string_view.h"
+        namespace flatbuffers {
+          typedef absl::string_view string_view;
+        }
+        #define FLATBUFFERS_HAS_STRING_VIEW 1
+      #endif
     #endif
   #endif // __has_include
 #endif // !FLATBUFFERS_HAS_STRING_VIEW
