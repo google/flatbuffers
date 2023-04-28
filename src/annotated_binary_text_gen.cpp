@@ -1,8 +1,7 @@
 #include "annotated_binary_text_gen.h"
 
-#include <bits/stdint-uintn.h>
-
 #include <algorithm>
+#include <cstdint>
 #include <fstream>
 #include <ostream>
 #include <sstream>

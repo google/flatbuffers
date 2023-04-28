@@ -1,8 +1,7 @@
 #include "binary_annotator.h"
 
-#include <bits/stdint-uintn.h>
-
 #include <algorithm>
+#include <cstdint>
 #include <iostream>
 #include <limits>
 #include <string>
