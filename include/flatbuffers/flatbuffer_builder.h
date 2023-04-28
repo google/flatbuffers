@@ -43,7 +43,7 @@
 // compile time, SFINAE with std:enable_if or tag dispatching with type traits.
 // This controls which one is used, so we can evaluate the pros and cons of each
 // approach.
-#define USE_TAG_DISPATCHING_FOR_64_BIT_AWARE 1
+#define USE_TAG_DISPATCHING_FOR_64_BIT_AWARE 0
 
 namespace flatbuffers {
 
@@ -99,7 +99,7 @@ template<bool Is64Aware = false> class FlatBufferBuilderImpl {
         num_field_loc(0),
         max_voffset_(0),
         length_of_64_bit_region_(0),
-        can_add_64_bit_offsets_(true),
+        can_add_64_bit_offsets_(Is64Aware),
         nested(false),
         finished(false),
         minalign_(1),
@@ -115,7 +115,7 @@ template<bool Is64Aware = false> class FlatBufferBuilderImpl {
         num_field_loc(0),
         max_voffset_(0),
         length_of_64_bit_region_(0),
-        can_add_64_bit_offsets_(true),
+        can_add_64_bit_offsets_(Is64Aware),
         nested(false),
         finished(false),
         minalign_(1),
@@ -169,9 +169,12 @@ template<bool Is64Aware = false> class FlatBufferBuilderImpl {
     nested = false;
     finished = false;
     minalign_ = 1;
-    // We are starting the buffer over again, allow 64-bit offsets to work.
+
+    // We are starting the buffer over again, allow 64-bit offsets to work, if
+    // enabled in the builder.
     length_of_64_bit_region_ = 0;
-    can_add_64_bit_offsets_ = true;
+    can_add_64_bit_offsets_ = Is64Aware;
+
     if (string_pool) string_pool->clear();
   }
 
@@ -220,7 +223,7 @@ template<bool Is64Aware = false> class FlatBufferBuilderImpl {
   template<bool enable = Is64Aware>
   typename std::enable_if<!enable, uoffset_t>::type GetSizeRelative32BitRegion()
       const {
-    return GetSize();
+    return static_cast<uoffset_t>(GetSize());
   }
 #endif
 
@@ -383,7 +386,7 @@ template<bool Is64Aware = false> class FlatBufferBuilderImpl {
     if (!structptr) return;  // Default, don't store.
     Align(AlignOf<T>());
     buf_.push_small(*structptr);
-    TrackField(field, GetOffset<uoffset_t>());
+    TrackField(field, CalculateOffset<uoffset_t>());
   }
 
   void AddStructOffset(voffset_t field, uoffset_t off) {
@@ -562,7 +565,8 @@ template<bool Is64Aware = false> class FlatBufferBuilderImpl {
     buf_.fill(1);
     PushBytes(reinterpret_cast<const uint8_t *>(str), len);
     PushElement(static_cast<uoffset_t>(len));
-    return OffsetT<String>(GetOffset<typename OffsetT<String>::offset_type>());
+    return OffsetT<String>(
+        CalculateOffset<typename OffsetT<String>::offset_type>());
   }
 
   /// @brief Store a string in the buffer, which is null-terminated.
@@ -589,7 +593,7 @@ template<bool Is64Aware = false> class FlatBufferBuilderImpl {
     return CreateString<OffsetT>(str.c_str(), str.length());
   }
 
-  // clang-format off
+// clang-format off
   #ifdef FLATBUFFERS_HAS_STRING_VIEW
   /// @brief Store a string in the buffer, which can contain any binary data.
   /// @param[in] str A const string_view to copy in to the buffer.
@@ -751,9 +755,9 @@ template<bool Is64Aware = false> class FlatBufferBuilderImpl {
     StartVector<T, size_t>(len);
     if (len == 0) {
       EndVector<LenT>(len);
-      return OffsetT<VectorT<T>>(GetOffset<offset_type>());
+      return OffsetT<VectorT<T>>(CalculateOffset<offset_type>());
     }
-    // clang-format off
+// clang-format off
     #if FLATBUFFERS_LITTLEENDIAN
       PushBytes(reinterpret_cast<const uint8_t *>(v), len * sizeof(T));
     #else
@@ -767,7 +771,7 @@ template<bool Is64Aware = false> class FlatBufferBuilderImpl {
     #endif
     // clang-format on
     EndVector<LenT>(len);
-    return OffsetT<VectorT<T>>(GetOffset<offset_type>());
+    return OffsetT<VectorT<T>>(CalculateOffset<offset_type>());
   }
 
   /// @brief Serialize an array like object into a FlatBuffer `vector`.
@@ -1105,7 +1109,7 @@ template<bool Is64Aware = false> class FlatBufferBuilderImpl {
 
   /// @cond FLATBUFFERS_INTERNAL
   template<typename T> struct TableKeyComparator {
-    TableKeyComparator(vector_downward &buf) : buf_(buf) {}
+    explicit TableKeyComparator(vector_downward &buf) : buf_(buf) {}
     TableKeyComparator(const TableKeyComparator &other) : buf_(other.buf_) {}
     bool operator()(const Offset<T> &a, const Offset<T> &b) const {
       auto table_a = reinterpret_cast<T *>(buf_.data_at(a.o));
@@ -1212,7 +1216,7 @@ template<bool Is64Aware = false> class FlatBufferBuilderImpl {
     Align(AlignOf<T>());
     buf_.push_small(structobj);
     return Offset<const T *>(
-        GetOffset<typename Offset<const T *>::offset_type>());
+        CalculateOffset<typename Offset<const T *>::offset_type>());
   }
 
   /// @brief Finish serializing a buffer by writing the root offset.
@@ -1288,7 +1292,12 @@ template<bool Is64Aware = false> class FlatBufferBuilderImpl {
   // their size (e.g. Offset is a uint32_t type), the boundary of the 32-/64-bit
   // regions must be tracked.
   //
+  // [    Complete FlatBuffer     ]
   // [32-bit region][64-bit region]
+  //               ^              ^
+  //               |              Tail of the buffer.
+  //               |
+  //               Tail of the 32-bit region of the buffer.
   //
   // This keeps track of the size of the 64-bit region so that the tail of the
   // 32-bit region can be calculated as `GetSize() - length_of_64_bit_region_`.
@@ -1315,7 +1324,7 @@ template<bool Is64Aware = false> class FlatBufferBuilderImpl {
   bool dedup_vtables_;
 
   struct StringOffsetCompare {
-    StringOffsetCompare(const vector_downward &buf) : buf_(&buf) {}
+    explicit StringOffsetCompare(const vector_downward &buf) : buf_(&buf) {}
     bool operator()(const Offset<String> &a, const Offset<String> &b) const {
       auto stra = reinterpret_cast<const String *>(buf_->data_at(a.o));
       auto strb = reinterpret_cast<const String *>(buf_->data_at(b.o));
@@ -1347,12 +1356,12 @@ template<bool Is64Aware = false> class FlatBufferBuilderImpl {
 
 #if USE_TAG_DISPATCHING_FOR_64_BIT_AWARE
 
-  template<typename T> T GetOffset() {
-    return GetOffset<T>(std::integral_constant<bool, Is64Aware>{});
+  template<typename T> T CalculateOffset() {
+    return CalculateOffset<T>(std::integral_constant<bool, Is64Aware>{});
   }
 
   // Get an offset from the end the tail of the buffer.
-  template<typename T> T GetOffset(std::true_type is_64_aware) {
+  template<typename T> T CalculateOffset(std::true_type is_64_aware) {
     // We are adding a 32-bit offset to the buffer, and no longer can allow
     // 64-bit offsets to be added.
     can_add_64_bit_offsets_ = false;
@@ -1362,7 +1371,7 @@ template<bool Is64Aware = false> class FlatBufferBuilderImpl {
     return GetSizeRelative32BitRegion();
   }
 
-  template<typename T> T GetOffset(std::false_type is_64_aware) {
+  template<typename T> T CalculateOffset(std::false_type is_64_aware) {
     // Default to the end of the 32-bit region. This may or may not be the end
     // of the buffer, depending on if any 64-bit offsets have been added.
     return GetSizeRelative32BitRegion();
@@ -1371,7 +1380,7 @@ template<bool Is64Aware = false> class FlatBufferBuilderImpl {
 #else
 
   template<typename T, bool enable = Is64Aware>
-  typename std::enable_if<enable, T>::type GetOffset() {
+  typename std::enable_if<enable, T>::type CalculateOffset() {
     // We are adding a 32-bit offset to the buffer, and no longer can allow
     // 64-bit offsets to be added.
     can_add_64_bit_offsets_ = false;
@@ -1382,7 +1391,7 @@ template<bool Is64Aware = false> class FlatBufferBuilderImpl {
   }
 
   template<typename T, bool enable = Is64Aware>
-  typename std::enable_if<!enable, T>::type GetOffset() {
+  typename std::enable_if<!enable, T>::type CalculateOffset() {
     // Default to the end of the 32-bit region. This may or may not be the end
     // of the buffer, depending on if any 64-bit offsets have been added.
     return GetSizeRelative32BitRegion();
@@ -1397,18 +1406,24 @@ template<bool Is64Aware = false> class FlatBufferBuilderImpl {
 typedef FlatBufferBuilderImpl<false> FlatBufferBuilder;
 typedef FlatBufferBuilderImpl<true> FlatBufferBuilder64;
 
-// Specializations to handle the 64-bit GetOffsets, which is relative to end of
-// the buffer.
+// Specializations to handle the 64-bit CalculateOffset, which is relative to
+// end of the buffer.
 template<>
 template<>
-inline uoffset64_t FlatBufferBuilder64::GetOffset<uoffset64_t>() {
+inline uoffset64_t FlatBufferBuilder64::CalculateOffset<uoffset64_t>() {
   // If you hit this, you're trying to add a 64-bit offset to the buffer after
   // already adding a 32-bit offset. All 64-bit offsets have to be added to the
   // buffer before any 32-bit offset is added. Otherwise some data might be
   // serialized too far away to be properly address using 32-bit signed offsets.
   FLATBUFFERS_ASSERT(can_add_64_bit_offsets_);
 
-  return length_of_64_bit_region_ = GetSize();
+  // Store how big the 64-bit region of the buffer is, so we can determine where
+  // the 32/64 bit boundary is.
+  // TODO(derekbailey): do we need to assert that this new value is larger than
+  // the current value?
+  length_of_64_bit_region_ = GetSize();
+
+  return length_of_64_bit_region_;
 }
 
 /// Helpers to get a typed pointer to objects that are currently being built.
