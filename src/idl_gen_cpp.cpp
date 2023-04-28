@@ -108,7 +108,7 @@ struct IDLOptionsCpp : public IDLOptions {
 
 // Iterates over all the fields of the object first by Offset type (Offset64 
 // before Offset32) and then by definition order.
-void ForAllFieldsOrderedByOffset(
+static void ForAllFieldsOrderedByOffset(
     const StructDef &object, std::function<void(const FieldDef *field)> func) {
   // Loop over all the fields and call the func on all offset64 fields.
   for (const FieldDef *field_def : object.fields.vec) {
