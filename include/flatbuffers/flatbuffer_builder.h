@@ -693,7 +693,7 @@ template<bool Is64Aware = false> class FlatBufferBuilderImpl {
   }
 
   /// @cond FLATBUFFERS_INTERNAL
-  template<typename SizeT = uoffset_t> size_t EndVector(size_t len) {
+  template<typename SizeT = uoffset_t> uoffset_t EndVector(size_t len) {
     FLATBUFFERS_ASSERT(nested);  // Hit if no corresponding StartVector.
     nested = false;
     return PushElement(static_cast<SizeT>(len));
