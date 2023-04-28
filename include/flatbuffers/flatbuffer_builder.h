@@ -1397,6 +1397,26 @@ template<bool Is64Aware = false> class FlatBufferBuilderImpl {
     return GetSizeRelative32BitRegion();
   }
 
+  // Specializations to handle the 64-bit CalculateOffset, which is relative to
+  // end of the buffer.
+  template<bool enable = Is64Aware>
+  typename std::enable_if<enable, uoffset64_t>::type CalculateOffset() {
+    // If you hit this, you're trying to add a 64-bit offset to the buffer after
+    // already adding a 32-bit offset. All 64-bit offsets have to be added to
+    // the buffer before any 32-bit offset is added. Otherwise some data might
+    // be serialized too far away to be properly address using 32-bit signed
+    // offsets.
+    FLATBUFFERS_ASSERT(can_add_64_bit_offsets_);
+
+    // Store how big the 64-bit region of the buffer is, so we can determine
+    // where the 32/64 bit boundary is.
+    // TODO(derekbailey): do we need to assert that this new value is larger
+    // than the current value?
+    length_of_64_bit_region_ = GetSize();
+
+    return length_of_64_bit_region_;
+  }
+
 #endif
 };
 /// @}
@@ -1405,26 +1425,6 @@ template<bool Is64Aware = false> class FlatBufferBuilderImpl {
 // `FlatBufferBuilder<>`, where the template < > syntax is required.
 typedef FlatBufferBuilderImpl<false> FlatBufferBuilder;
 typedef FlatBufferBuilderImpl<true> FlatBufferBuilder64;
-
-// Specializations to handle the 64-bit CalculateOffset, which is relative to
-// end of the buffer.
-template<>
-template<>
-inline uoffset64_t FlatBufferBuilder64::CalculateOffset<uoffset64_t>() {
-  // If you hit this, you're trying to add a 64-bit offset to the buffer after
-  // already adding a 32-bit offset. All 64-bit offsets have to be added to the
-  // buffer before any 32-bit offset is added. Otherwise some data might be
-  // serialized too far away to be properly address using 32-bit signed offsets.
-  FLATBUFFERS_ASSERT(can_add_64_bit_offsets_);
-
-  // Store how big the 64-bit region of the buffer is, so we can determine where
-  // the 32/64 bit boundary is.
-  // TODO(derekbailey): do we need to assert that this new value is larger than
-  // the current value?
-  length_of_64_bit_region_ = GetSize();
-
-  return length_of_64_bit_region_;
-}
 
 /// Helpers to get a typed pointer to objects that are currently being built.
 /// @warning Creating new objects will lead to reallocations and invalidates
