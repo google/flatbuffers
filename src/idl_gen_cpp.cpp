@@ -106,6 +106,21 @@ struct IDLOptionsCpp : public IDLOptions {
       : IDLOptions(opts), g_cpp_std(CPP_STD_11), g_only_fixed_enums(true) {}
 };
 
+// Iterates over all the fields of the object first by Offset type (Offset64 
+// before Offset32) and then by definition order.
+void ForAllFieldsOrderedByOffset(
+    const StructDef &object, std::function<void(const FieldDef *field)> func) {
+  // Loop over all the fields and call the func on all offset64 fields.
+  for (const FieldDef *field_def : object.fields.vec) {
+    if (field_def->offset64) { func(field_def); }
+  }
+  // Loop over all the fields a second time and call the func on all offset
+  // fields.
+  for (const FieldDef *field_def : object.fields.vec) {
+    if (!field_def->offset64) { func(field_def); }
+  }
+}
+
 class CppGenerator : public BaseGenerator {
  public:
   CppGenerator(const Parser &parser, const std::string &path,
@@ -1129,10 +1144,9 @@ class CppGenerator : public BaseGenerator {
                     ? bt - BASE_TYPE_UTYPE + ET_UTYPE
                     : ET_SEQUENCE;
       int ref_idx = -1;
-      std::string ref_name =
-          type.struct_def
-              ? WrapInNameSpace(*type.struct_def)
-              : type.enum_def ? WrapInNameSpace(*type.enum_def) : "";
+      std::string ref_name = type.struct_def ? WrapInNameSpace(*type.struct_def)
+                             : type.enum_def ? WrapInNameSpace(*type.enum_def)
+                                             : "";
       if (!ref_name.empty()) {
         auto rit = type_refs.begin();
         for (; rit != type_refs.end(); ++rit) {
@@ -3047,68 +3061,72 @@ class CppGenerator : public BaseGenerator {
           struct_def.defined_namespace->GetFullyQualifiedName("Create");
       code_.SetValue("CREATE_NAME", TranslateNameSpace(qualified_create_name));
       code_ += ") {";
-      for (const auto &field : struct_def.fields.vec) {
-        if (!field->deprecated) {
-          code_.SetValue("FIELD_NAME", Name(*field));
-          if (IsString(field->value.type)) {
-            if (!field->shared) {
-              code_.SetValue(
-                  "CREATE_STRING",
-                  "CreateString" + std::string(field->offset64
-                                                   ? "<::flatbuffers::Offset64>"
-                                                   : ""));
-            } else {
-              code_.SetValue("CREATE_STRING", "CreateSharedString");
-            }
-            code_ +=
-                "  auto {{FIELD_NAME}}__ = {{FIELD_NAME}} ? "
-                "_fbb.{{CREATE_STRING}}({{FIELD_NAME}}) : 0;";
-          } else if (IsVector(field->value.type)) {
-            const std::string force_align_code =
-                GenVectorForceAlign(*field, Name(*field) + "->size()");
-            if (!force_align_code.empty()) {
-              code_ += "  if ({{FIELD_NAME}}) { " + force_align_code + " }";
-            }
-            code_ += "  auto {{FIELD_NAME}}__ = {{FIELD_NAME}} ? \\";
-            const auto vtype = field->value.type.VectorType();
-            const auto has_key = TypeHasKey(vtype);
-            if (IsStruct(vtype)) {
-              const auto type = WrapInNameSpace(*vtype.struct_def);
-              code_ += (has_key ? "_fbb.CreateVectorOfSortedStructs<"
-                                : "_fbb.CreateVectorOfStructs<") +
-                       type + ">\\";
-            } else if (has_key) {
-              const auto type = WrapInNameSpace(*vtype.struct_def);
-              code_ += "_fbb.CreateVectorOfSortedTables<" + type + ">\\";
-            } else {
-              const auto type = GenTypeWire(
-                  vtype, "", VectorElementUserFacing(vtype), field->offset64);
+      // Offset64 bit fields need to be added to the buffer first, so here we
+      // loop over the fields in order of their offset size, followed by their
+      // definition order. Otherwise the emitted code might add a Offset
+      // followed by an Offset64 which would trigger an assertion.
 
-              if (field->value.type.base_type == BASE_TYPE_VECTOR64) {
-                code_ += "_fbb.CreateVector64\\";
-              } else {
-                // If the field uses 64-bit addressing, create a 64-bit vector.
-                code_.SetValue("64OFFSET", field->offset64 ? "64" : "");
-                code_.SetValue(
-                    "TYPE", field->offset64 ? "::flatbuffers::Vector" : type);
-
-                code_ += "_fbb.CreateVector{{64OFFSET}}<{{TYPE}}>\\";
-              }
-            }
-            code_ +=
-                has_key ? "({{FIELD_NAME}}) : 0;" : "(*{{FIELD_NAME}}) : 0;";
+      // TODO(derekbailey): maybe optimize for the case where there is no
+      // 64offsets in the whole schema?
+      ForAllFieldsOrderedByOffset(struct_def, [&](const FieldDef *field) {
+        if (field->deprecated) { return; }
+        code_.SetValue("FIELD_NAME", Name(*field));
+        if (IsString(field->value.type)) {
+          if (!field->shared) {
+            code_.SetValue(
+                "CREATE_STRING",
+                "CreateString" + std::string(field->offset64
+                                                 ? "<::flatbuffers::Offset64>"
+                                                 : ""));
+          } else {
+            code_.SetValue("CREATE_STRING", "CreateSharedString");
           }
+          code_ +=
+              "  auto {{FIELD_NAME}}__ = {{FIELD_NAME}} ? "
+              "_fbb.{{CREATE_STRING}}({{FIELD_NAME}}) : 0;";
+        } else if (IsVector(field->value.type)) {
+          const std::string force_align_code =
+              GenVectorForceAlign(*field, Name(*field) + "->size()");
+          if (!force_align_code.empty()) {
+            code_ += "  if ({{FIELD_NAME}}) { " + force_align_code + " }";
+          }
+          code_ += "  auto {{FIELD_NAME}}__ = {{FIELD_NAME}} ? \\";
+          const auto vtype = field->value.type.VectorType();
+          const auto has_key = TypeHasKey(vtype);
+          if (IsStruct(vtype)) {
+            const auto type = WrapInNameSpace(*vtype.struct_def);
+            code_ += (has_key ? "_fbb.CreateVectorOfSortedStructs<"
+                              : "_fbb.CreateVectorOfStructs<") +
+                     type + ">\\";
+          } else if (has_key) {
+            const auto type = WrapInNameSpace(*vtype.struct_def);
+            code_ += "_fbb.CreateVectorOfSortedTables<" + type + ">\\";
+          } else {
+            const auto type = GenTypeWire(
+                vtype, "", VectorElementUserFacing(vtype), field->offset64);
+
+            if (field->value.type.base_type == BASE_TYPE_VECTOR64) {
+              code_ += "_fbb.CreateVector64\\";
+            } else {
+              // If the field uses 64-bit addressing, create a 64-bit vector.
+              code_.SetValue("64OFFSET", field->offset64 ? "64" : "");
+              code_.SetValue("TYPE",
+                             field->offset64 ? "::flatbuffers::Vector" : type);
+
+              code_ += "_fbb.CreateVector{{64OFFSET}}<{{TYPE}}>\\";
+            }
+          }
+          code_ += has_key ? "({{FIELD_NAME}}) : 0;" : "(*{{FIELD_NAME}}) : 0;";
         }
-      }
+      });
       code_ += "  return {{CREATE_NAME}}{{STRUCT_NAME}}(";
       code_ += "      _fbb\\";
       for (const auto &field : struct_def.fields.vec) {
-        if (!field->deprecated) {
-          code_.SetValue("FIELD_NAME", Name(*field));
-          code_ += ",\n      {{FIELD_NAME}}\\";
-          if (IsString(field->value.type) || IsVector(field->value.type)) {
-            code_ += "__\\";
-          }
+        if (field->deprecated) { continue; }
+        code_.SetValue("FIELD_NAME", Name(*field));
+        code_ += ",\n      {{FIELD_NAME}}\\";
+        if (IsString(field->value.type) || IsVector(field->value.type)) {
+          code_ += "__\\";
         }
       }
       code_ += ");";

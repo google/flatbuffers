@@ -165,8 +165,8 @@ inline ::flatbuffers::Offset<RootTable> CreateRootTableDirect(
   auto far_vector__ = far_vector ? _fbb.CreateVector64<::flatbuffers::Vector>(*far_vector) : 0;
   auto far_string__ = far_string ? _fbb.CreateString<::flatbuffers::Offset64>(far_string) : 0;
   auto big_vector__ = big_vector ? _fbb.CreateVector64(*big_vector) : 0;
-  auto near_string__ = near_string ? _fbb.CreateString(near_string) : 0;
   auto nested_root__ = nested_root ? _fbb.CreateVector64(*nested_root) : 0;
+  auto near_string__ = near_string ? _fbb.CreateString(near_string) : 0;
   return CreateRootTable(
       _fbb,
       far_vector__,

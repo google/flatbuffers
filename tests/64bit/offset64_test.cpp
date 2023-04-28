@@ -4,6 +4,7 @@
 
 #include <cstdint>
 #include <fstream>
+// TODO(derekbailey): remove when done debugging
 #include <iostream>
 #include <limits>
 #include <ostream>
@@ -29,12 +30,12 @@ void Offset64Test() {
     std::vector<uint8_t> far_data;
     far_data.resize(far_vector_size);
     far_data[0] = 4;
-    far_data[far_vector_size-1] = 2;
+    far_data[far_vector_size - 1] = 2;
 
     std::vector<uint8_t> big_data;
     big_data.resize(big_vector_size);
     big_data[0] = 8;
-    big_data[big_vector_size-1] = 3;
+    big_data[big_vector_size - 1] = 3;
 
     // Then serialize all the fields that have 64-bit offsets, as these must be
     // serialized before any 32-bit fields are added to the buffer.
@@ -57,14 +58,8 @@ void Offset64Test() {
         CreateRootTable(fbb, far_vector_offset, 0, far_string_offset,
                         big_vector_offset, near_string_offset);
 
-    // TODO(derekbailey): the CreateRootTableDirect won't work correctly since
-    // it builds the offsets in definition order, not 64-bit fields first. This
-    // should be fixed, or possibly not emitted if it will play oddly.
-
     // Finish the buffer.
     fbb.Finish(root_table_offset);
-
-    std::cout << "Buffer Size: 0x" << std::hex << fbb.GetSize() << std::endl;
 
     Verifier::Options options;
     // Allow the verifier to verify 64-bit buffers.
@@ -132,7 +127,7 @@ void Offset64NestedFlatBuffer() {
   // Finish the buffer.
   fbb.Finish(root_table_offset);
 
-  // Ensure the buffer is valid. 
+  // Ensure the buffer is valid.
   const RootTable *root_table = GetRootTable(fbb.GetBufferPointer());
   TEST_EQ_STR(root_table->near_string()->c_str(), "nested: some near string");
 
@@ -155,10 +150,6 @@ void Offset64NestedFlatBuffer() {
     // Finish by building the root table by passing in all the offsets.
     const Offset<RootTable> root_table_offset = CreateRootTable(
         fbb, 0, 0, 0, 0, near_string_offset, nested_flatbuffer_offset);
-
-    // TODO(derekbailey): the CreateRootTableDirect won't work correctly since
-    // it builds the offsets in definition order, not 64-bit fields first. This
-    // should be fixed, or possibly not emitted if it will play oddly.
 
     // Finish the buffer.
     fbb.Finish(root_table_offset);
@@ -186,6 +177,37 @@ void Offset64NestedFlatBuffer() {
     TEST_EQ_STR(root_table->nested_root_nested_root()->near_string()->c_str(),
                 "nested: some near string");
   }
+}
+
+void Offset64CreateDirect() {
+  flatbuffers::FlatBufferBuilder64 fbb;
+
+  // Create a vector of some data
+  std::vector<uint8_t> data{ 0, 1, 2 };
+
+  // Call the "Direct" creation method to ensure that things are added to the
+  // buffer in the correct order, Offset64 first followed by any Offsets.
+  const Offset<RootTable> root_table_offset = CreateRootTableDirect(
+      fbb, &data, 0, "some far string", &data, "some near string");
+
+  // Finish the buffer.
+  fbb.Finish(root_table_offset);
+
+  Verifier::Options options;
+  // Allow the verifier to verify 64-bit buffers.
+  options.max_size = FLATBUFFERS_MAX_64_BUFFER_SIZE;
+  options.assert = true;
+
+  Verifier verifier(fbb.GetBufferPointer(), fbb.GetSize(), options);
+
+  TEST_EQ(VerifyRootTableBuffer(verifier), true);
+
+  // Verify the data.
+  const RootTable *root_table = GetRootTable(fbb.GetBufferPointer());
+  TEST_EQ(root_table->far_vector()->size(), data.size());
+  TEST_EQ(root_table->big_vector()->size(), data.size());
+  TEST_EQ_STR(root_table->far_string()->c_str(), "some far string");
+  TEST_EQ_STR(root_table->near_string()->c_str(), "some near string");
 }
 
 }  // namespace tests
