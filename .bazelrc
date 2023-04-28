@@ -1,1 +1,0 @@
-build --deleted_packages=tests/ts/bazel_repository_test_dir
