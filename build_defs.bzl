@@ -48,10 +48,7 @@ def flatbuffer_library_public(
         restricted_to = None,
         target_compatible_with = None,
         flatc_path = "@com_github_google_flatbuffers//:flatc",
-        output_to_bindir = False,
-        tools = None,
-        extra_env = None,
-        **kwargs):
+        output_to_bindir = False):
     """Generates code files for reading/writing the given flatbuffers in the requested language using the public compiler.
 
     Args:
@@ -76,11 +73,6 @@ def flatbuffer_library_public(
         to use.
       flatc_path: Bazel target corresponding to the flatc compiler to use.
       output_to_bindir: Passed to genrule for output to bin directory.
-      tools: Optional, passed to genrule for list of tools to make available
-        during the action.
-      extra_env: Optional, must be a string of "VAR1=VAL1 VAR2=VAL2". These get
-        set as environment variables that "flatc_path" sees.
-      **kwargs: Passed to the underlying genrule.
 
 
     This rule creates a filegroup(name) with all generated source files, and
@@ -91,8 +83,6 @@ def flatbuffer_library_public(
         include_paths = default_include_paths(flatc_path)
     include_paths_cmd = ["-I %s" % (s) for s in include_paths]
 
-    extra_env = extra_env or ""
-
     # '$(@D)' when given a single source target will give the appropriate
     # directory. Appending 'out_prefix' is only necessary when given a build
     # target with multiple sources.
@@ -102,7 +92,7 @@ def flatbuffer_library_public(
     genrule_cmd = " ".join([
         "SRCS=($(SRCS));",
         "for f in $${SRCS[@]:0:%s}; do" % len(srcs),
-        "OUTPUT_FILE=\"$(OUTS)\" %s $(location %s)" % (extra_env, flatc_path),
+        "OUTPUT_FILE=\"$(OUTS)\" $(location %s)" % (flatc_path),
         " ".join(include_paths_cmd),
         " ".join(flatc_args),
         language_flag,
@@ -115,13 +105,12 @@ def flatbuffer_library_public(
         srcs = srcs + includes,
         outs = outs,
         output_to_bindir = output_to_bindir,
-        tools = (tools or []) + [flatc_path],
+        tools = [flatc_path],
         cmd = genrule_cmd,
         compatible_with = compatible_with,
         target_compatible_with = target_compatible_with,
         restricted_to = restricted_to,
         message = "Generating flatbuffer files for %s:" % (name),
-        **kwargs
     )
     if reflection_name:
         reflection_genrule_cmd = " ".join([
