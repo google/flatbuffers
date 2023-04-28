@@ -13,6 +13,9 @@ table RootTable {
 
   // A normal 32-bit sized string that is no far away (32-bit address).
   near_string:string;
+
+  // A big 64-bit sized vector that is a nested flatbuffers (64-bit address).
+  nested_root:[ubyte] (vector64, nested_flatbuffer: "RootTable");
 }
 
 root_type RootTable; 

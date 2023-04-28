@@ -6,6 +6,7 @@ namespace tests {
 
 void Offset64Test();
 void Offset64SerializedFirst();
+void Offset64NestedFlatBuffer();
 
 }  // namespace tests
 }  // namespace flatbuffers

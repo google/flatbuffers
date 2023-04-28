@@ -536,15 +536,18 @@ template<bool Is64Aware = false> class FlatBufferBuilderImpl {
   }
 
   // Aligns such that when "len" bytes are written, an object can be written
-  // after it with "alignment" without padding.
+  // after it (forward in the buffer) with "alignment" without padding.
   void PreAlign(size_t len, size_t alignment) {
     if (len == 0) return;
     TrackMinAlign(alignment);
     buf_.fill(PaddingBytes(GetSize() + len, alignment));
   }
-  template<typename T> void PreAlign(size_t len) {
-    AssertScalarT<T>();
-    PreAlign(len, AlignOf<T>());
+
+  // Aligns such than when "len" bytes are written, an object of type `AlignT`
+  // can be written after it (forward in the buffer) without padding.
+  template<typename AlignT> void PreAlign(size_t len) {
+    AssertScalarT<AlignT>();
+    PreAlign(len, AlignOf<AlignT>());
   }
   /// @endcond
 
@@ -586,7 +589,7 @@ template<bool Is64Aware = false> class FlatBufferBuilderImpl {
     return CreateString<OffsetT>(str.c_str(), str.length());
   }
 
-// clang-format off
+  // clang-format off
   #ifdef FLATBUFFERS_HAS_STRING_VIEW
   /// @brief Store a string in the buffer, which can contain any binary data.
   /// @param[in] str A const string_view to copy in to the buffer.
@@ -692,16 +695,18 @@ template<bool Is64Aware = false> class FlatBufferBuilderImpl {
     return PushElement(static_cast<SizeT>(len));
   }
 
-  template<typename SizeT = uoffset_t>
+  template<typename LenT = uint32_t>
   void StartVector(size_t len, size_t elemsize, size_t alignment) {
     NotNested();
     nested = true;
-    PreAlign<SizeT>(len * elemsize);
+    // Align to the Length type of the vector (either 32-bit or 64-bit), so
+    // that the length of the buffer can be added without padding.
+    PreAlign<LenT>(len * elemsize);
     PreAlign(len * elemsize, alignment);  // Just in case elemsize > uoffset_t.
   }
 
-  template<typename T> void StartVector(size_t len) {
-    return StartVector(len, sizeof(T), AlignOf<T>());
+  template<typename T, typename LenT = uint32_t> void StartVector(size_t len) {
+    return StartVector<LenT>(len, sizeof(T), AlignOf<T>());
   }
 
   // Call this right before StartVector/CreateVector if you want to force the
@@ -737,17 +742,18 @@ template<bool Is64Aware = false> class FlatBufferBuilderImpl {
            template<typename...> class VectorT = Vector,
            int &...ExplicitArgumentBarrier, typename T>
   OffsetT<VectorT<T>> CreateVector(const T *v, size_t len) {
-    typedef typename VectorT<T>::size_type size_type;
+    // The type of the length field in the vector.
+    typedef typename VectorT<T>::size_type LenT;
     typedef typename OffsetT<VectorT<T>>::offset_type offset_type;
     // If this assert hits, you're specifying a template argument that is
     // causing the wrong overload to be selected, remove it.
     AssertScalarT<T>();
-    StartVector<T>(len);
+    StartVector<T, size_t>(len);
     if (len == 0) {
-      EndVector<size_type>(len);
+      EndVector<LenT>(len);
       return OffsetT<VectorT<T>>(GetOffset<offset_type>());
     }
-// clang-format off
+    // clang-format off
     #if FLATBUFFERS_LITTLEENDIAN
       PushBytes(reinterpret_cast<const uint8_t *>(v), len * sizeof(T));
     #else
@@ -760,7 +766,7 @@ template<bool Is64Aware = false> class FlatBufferBuilderImpl {
       }
     #endif
     // clang-format on
-    EndVector<size_type>(len);
+    EndVector<LenT>(len);
     return OffsetT<VectorT<T>>(GetOffset<offset_type>());
   }
 
