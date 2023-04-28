@@ -30,7 +30,7 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     - name: cmake
-      run: CXX=${{ matrix.cxx }} cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release -DFLATBUFFERS_STRICT_MODE=ON .
+      run: CXX=${{ matrix.cxx }} cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release -DFLATBUFFERS_STRICT_MODE=ON -DFLATBUFFERS_STATIC_FLATC=ON .
     - name: build
       run: make -j
     - name: test
@@ -60,11 +60,11 @@ jobs:
     - name: Generate SLSA subjects - clang
       if: matrix.cxx == 'clang++-12' && startsWith(github.ref, 'refs/tags/')
       id: hash-clang
-      run: echo "::set-output name=hashes::$(sha256sum Linux.flatc.binary.${{ matrix.cxx }}.zip | base64 -w0)"
+      run: echo "hashes=$(sha256sum Linux.flatc.binary.${{ matrix.cxx }}.zip | base64 -w0)" >> $GITHUB_OUTPUT
     - name: Generate SLSA subjects - gcc
       if: matrix.cxx == 'g++-10' && startsWith(github.ref, 'refs/tags/')
       id: hash-gcc
-      run: echo "::set-output name=hashes::$(sha256sum Linux.flatc.binary.${{ matrix.cxx }}.zip | base64 -w0)"
+      run: echo "hashes=$(sha256sum Linux.flatc.binary.${{ matrix.cxx }}.zip | base64 -w0)" >> $GITHUB_OUTPUT
       
   build-linux-no-file-tests:    
     name: Build Linux with -DFLATBUFFERS_NO_FILE_TESTS
@@ -166,7 +166,7 @@ jobs:
       if: startsWith(github.ref, 'refs/tags/')
       id: hash
       shell: bash
-      run: echo "::set-output name=hashes::$(sha256sum Windows.flatc.binary.zip | base64 -w0)"
+      run: echo "hashes=$(sha256sum Windows.flatc.binary.zip | base64 -w0)" >> $GITHUB_OUTPUT
 
   build-windows-2017:
     name: Build Windows 2017
@@ -267,7 +267,7 @@ jobs:
     - name: Generate SLSA subjects
       if: startsWith(github.ref, 'refs/tags/')
       id: hash
-      run: echo "::set-output name=hashes::$(shasum -a 256 MacIntel.flatc.binary.zip | base64)"
+      run: echo "hashes=$(shasum -a 256 MacIntel.flatc.binary.zip | base64)" >> $GITHUB_OUTPUT
 
   build-mac-universal:
     permissions:
@@ -310,7 +310,7 @@ jobs:
     - name: Generate SLSA subjects
       if: startsWith(github.ref, 'refs/tags/')
       id: hash
-      run: echo "::set-output name=hashes::$(shasum -a 256 Mac.flatc.binary.zip | base64)"
+      run: echo "hashes=$(shasum -a 256 Mac.flatc.binary.zip | base64)" >> $GITHUB_OUTPUT
 
   build-android:
    name: Build Android (on Linux)
@@ -561,7 +561,7 @@ jobs:
           echo "$MAC_DIGESTS" | base64 -d >> checksums.txt
           echo "$MACINTEL_DIGESTS" | base64 -d >> checksums.txt
           echo "$WINDOWS_DIGESTS" | base64 -d >> checksums.txt
-          echo "::set-output name=digests::$(cat checksums.txt | base64 -w0)"
+          echo "digests=$(cat checksums.txt | base64 -w0)" >> $GITHUB_OUTPUT
 
   provenance:
     if: startsWith(github.ref, 'refs/tags/')

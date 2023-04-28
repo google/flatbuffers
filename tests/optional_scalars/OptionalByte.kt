@@ -3,7 +3,6 @@
 package optional_scalars
 
 @Suppress("unused")
-@kotlin.ExperimentalUnsignedTypes
 class OptionalByte private constructor() {
     companion object {
         const val None: Byte = 0
