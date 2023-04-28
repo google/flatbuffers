@@ -957,7 +957,12 @@ class Parser : public ParserState {
     known_attributes_["native_default"] = true;
     known_attributes_["flexbuffer"] = true;
     known_attributes_["private"] = true;
+
+    // An attribute added to a field to indicate that is uses 64-bit addressing.
     known_attributes_["offset64"] = true;
+
+    // An attribute added to a vector field to indicate that it uses 64-bit
+    // addressing and it has a 64-bit length.
     known_attributes_["vector64"] = true;
   }
 
@@ -1146,6 +1151,7 @@ class Parser : public ParserState {
   bool SupportsAdvancedArrayFeatures() const;
   bool SupportsOptionalScalars() const;
   bool SupportsDefaultVectorsAndStrings() const;
+  bool Supports64BitOffsets() const;
   Namespace *UniqueNamespace(Namespace *ns);
 
   FLATBUFFERS_CHECKED_ERROR RecurseError();

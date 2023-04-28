@@ -1072,6 +1072,14 @@ CheckedError Parser::ParseField(StructDef &struct_def) {
     field->offset64 = true;
   }
 
+  // Check if we have a 64-bit offset field, that it is supported by the
+  // specified generated languages.
+  if (field->offset64 && !Supports64BitOffsets()) {
+    return Error(
+        "fields using 64-bit offsets are not yet supported in at least one of "
+        "the specified programming languages.");
+  }
+
   // For historical convenience reasons, string keys are assumed required.
   // Scalars are kDefault unless otherwise specified.
   // Nonscalars are kOptional unless required;
@@ -2646,6 +2654,11 @@ bool Parser::SupportsAdvancedArrayFeatures() const {
           ~(IDLOptions::kCpp | IDLOptions::kPython | IDLOptions::kJava |
             IDLOptions::kCSharp | IDLOptions::kJsonSchema | IDLOptions::kJson |
             IDLOptions::kBinary | IDLOptions::kRust | IDLOptions::kTs)) == 0;
+}
+
+bool Parser::Supports64BitOffsets() const {
+  return (opts.lang_to_generate &
+          ~(IDLOptions::kCpp | IDLOptions::kJson | IDLOptions::kBinary)) == 0;
 }
 
 Namespace *Parser::UniqueNamespace(Namespace *ns) {
