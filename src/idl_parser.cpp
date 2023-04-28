@@ -1556,7 +1556,7 @@ CheckedError Parser::ParseTable(const StructDef &struct_def, std::string *value,
       if (!struct_def.sortbysize ||
           size == SizeOf(field_value.type.base_type)) {
         switch (field_value.type.base_type) {
-          // clang-format off
+// clang-format off
           #define FLATBUFFERS_TD(ENUM, IDLTYPE, CTYPE, ...) \
             case BASE_TYPE_ ## ENUM: \
               builder_.Pad(field->padding); \
@@ -1697,7 +1697,7 @@ CheckedError Parser::ParseVector(const Type &vector_type, uoffset_t *ovalue,
     // start at the back, since we're building the data backwards.
     auto &val = field_stack_.back().first;
     switch (val.type.base_type) {
-      // clang-format off
+// clang-format off
       #define FLATBUFFERS_TD(ENUM, IDLTYPE, CTYPE,...) \
         case BASE_TYPE_ ## ENUM: \
           if (IsStruct(val.type)) SerializeStruct(*val.type.struct_def, val); \
@@ -4330,12 +4330,18 @@ std::string Parser::ConformTo(const Parser &base) {
       auto field_base = struct_def_base->fields.Lookup(field.name);
       const auto qualified_field_name = qualified_name + "." + field.name;
       if (field_base) {
-        if (field.value.offset != field_base->value.offset)
+        if (field.value.offset != field_base->value.offset) {
           return "offsets differ for field: " + qualified_field_name;
-        if (field.value.constant != field_base->value.constant)
+        }
+        if (field.value.constant != field_base->value.constant) {
           return "defaults differ for field: " + qualified_field_name;
-        if (!EqualByName(field.value.type, field_base->value.type))
+        }
+        if (!EqualByName(field.value.type, field_base->value.type)) {
           return "types differ for field: " + qualified_field_name;
+        }
+        if (field.offset64 != field_base->offset64) {
+          return "offset types differ for field: " + qualified_field_name;
+        }
       } else {
         // Doesn't have to exist, deleting fields is fine.
         // But we should check if there is a field that has the same offset
