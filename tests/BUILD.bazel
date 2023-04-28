@@ -113,6 +113,7 @@ cc_test(
         ":monster_test_cc_fbs",
         ":native_type_test_cc_fbs",
         "//:flatbuffers",
+        "//src:generate_fbs",
     ],
 )
 

@@ -1,5 +1,7 @@
 #include "proto_test.h"
 
+#include "flatbuffers/code_generator.h"
+#include "idl_gen_fbs.h"
 #include "test_assert.h"
 
 namespace flatbuffers {
@@ -15,7 +17,7 @@ void RunTest(const flatbuffers::IDLOptions &opts, const std::string &proto_path,
   TEST_EQ(parser.Parse(proto_file.c_str(), include_directories), true);
 
   // Generate fbs.
-  auto fbs = flatbuffers::GenerateFBS(parser, "test");
+  auto fbs = flatbuffers::GenerateFBS(parser, "test", true);
 
   // Ensure generated file is parsable.
   flatbuffers::Parser parser2;
@@ -25,7 +27,7 @@ void RunTest(const flatbuffers::IDLOptions &opts, const std::string &proto_path,
     flatbuffers::Parser import_parser(opts);
     TEST_EQ(import_parser.Parse(import_proto_file.c_str(), include_directories),
             true);
-    auto import_fbs = flatbuffers::GenerateFBS(import_parser, "test");
+    auto import_fbs = flatbuffers::GenerateFBS(import_parser, "test", true);
     // Since `imported.fbs` isn't in the filesystem AbsolutePath can't figure it
     // out by itself. We manually construct it so Parser works.
     std::string imported_fbs = flatbuffers::PosixPath(
@@ -222,6 +224,8 @@ void ParseCorruptedProto(const std::string &proto_path) {
 
   std::string proto_file;
 
+  std::unique_ptr<CodeGenerator> fbs_generator = NewFBSCodeGenerator(true);
+
   // Parse proto with non positive id.
   {
     flatbuffers::Parser parser(opts);
@@ -230,8 +234,8 @@ void ParseCorruptedProto(const std::string &proto_path) {
                               false, &proto_file),
         true);
     TEST_EQ(parser.Parse(proto_file.c_str(), include_directories), true);
-    auto fbs = flatbuffers::GenerateFBS(parser, "test");
-    TEST_EQ(fbs.empty(), true);
+    TEST_NE(fbs_generator->GenerateCode(parser, "temp.fbs", "test"),
+            CodeGenerator::Status::OK);
   }
 
   // Parse proto with twice id.
@@ -241,8 +245,8 @@ void ParseCorruptedProto(const std::string &proto_path) {
                                   false, &proto_file),
             true);
     TEST_EQ(parser.Parse(proto_file.c_str(), include_directories), true);
-    auto fbs = flatbuffers::GenerateFBS(parser, "test");
-    TEST_EQ(fbs.empty(), true);
+    TEST_NE(fbs_generator->GenerateCode(parser, "temp.fbs", "test"),
+            CodeGenerator::Status::OK);
   }
 
   // Parse proto with using reserved id.
@@ -252,8 +256,8 @@ void ParseCorruptedProto(const std::string &proto_path) {
                                   false, &proto_file),
             true);
     TEST_EQ(parser.Parse(proto_file.c_str(), include_directories), true);
-    auto fbs = flatbuffers::GenerateFBS(parser, "test");
-    TEST_EQ(fbs.empty(), true);
+    TEST_NE(fbs_generator->GenerateCode(parser, "temp.fbs", "test"),
+            CodeGenerator::Status::OK);
   }
 
   // Parse proto with error on gap.
@@ -264,8 +268,9 @@ void ParseCorruptedProto(const std::string &proto_path) {
                                   &proto_file),
             true);
     TEST_EQ(parser.Parse(proto_file.c_str(), include_directories), true);
-    auto fbs = flatbuffers::GenerateFBS(parser, "test");
-    TEST_EQ(fbs.empty(), true);
+
+    TEST_NE(fbs_generator->GenerateCode(parser, "temp.fbs", "test"),
+            CodeGenerator::Status::OK);
   }
 }
 
