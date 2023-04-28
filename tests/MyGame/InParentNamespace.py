@@ -29,10 +29,10 @@ class InParentNamespace(object):
         self._tab = flatbuffers.table.Table(buf, pos)
 
 def InParentNamespaceStart(builder):
-    return builder.StartObject(0)
+    builder.StartObject(0)
 
 def Start(builder):
-    return InParentNamespaceStart(builder)
+    InParentNamespaceStart(builder)
 
 def InParentNamespaceEnd(builder):
     return builder.EndObject()
