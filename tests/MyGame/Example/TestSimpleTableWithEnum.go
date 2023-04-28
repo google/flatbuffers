@@ -11,7 +11,9 @@ type TestSimpleTableWithEnumT struct {
 }
 
 func (t *TestSimpleTableWithEnumT) Pack(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
-	if t == nil { return 0 }
+	if t == nil {
+		return 0
+	}
 	TestSimpleTableWithEnumStart(builder)
 	TestSimpleTableWithEnumAddColor(builder, t.Color)
 	return TestSimpleTableWithEnumEnd(builder)
@@ -22,7 +24,9 @@ func (rcv *TestSimpleTableWithEnum) UnPackTo(t *TestSimpleTableWithEnumT) {
 }
 
 func (rcv *TestSimpleTableWithEnum) UnPack() *TestSimpleTableWithEnumT {
-	if rcv == nil { return nil }
+	if rcv == nil {
+		return nil
+	}
 	t := &TestSimpleTableWithEnumT{}
 	rcv.UnPackTo(t)
 	return t
@@ -39,11 +43,19 @@ func GetRootAsTestSimpleTableWithEnum(buf []byte, offset flatbuffers.UOffsetT) *
 	return x
 }
 
+func FinishTestSimpleTableWithEnumBuffer(builder *flatbuffers.Builder, offset flatbuffers.UOffsetT) {
+	builder.Finish(offset)
+}
+
 func GetSizePrefixedRootAsTestSimpleTableWithEnum(buf []byte, offset flatbuffers.UOffsetT) *TestSimpleTableWithEnum {
 	n := flatbuffers.GetUOffsetT(buf[offset+flatbuffers.SizeUint32:])
 	x := &TestSimpleTableWithEnum{}
 	x.Init(buf, n+offset+flatbuffers.SizeUint32)
 	return x
+}
+
+func FinishSizePrefixedTestSimpleTableWithEnumBuffer(builder *flatbuffers.Builder, offset flatbuffers.UOffsetT) {
+	builder.FinishSizePrefixed(offset)
 }
 
 func (rcv *TestSimpleTableWithEnum) Init(buf []byte, i flatbuffers.UOffsetT) {

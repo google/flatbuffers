@@ -1557,6 +1557,7 @@ int FlatBufferTests(const std::string &tests_data_path) {
   ParseIncorrectMonsterJsonTest(tests_data_path);
   FixedLengthArraySpanTest(tests_data_path);
   DoNotRequireEofTest(tests_data_path);
+  JsonUnionStructTest();
 #else
   // Guard against -Wunused-parameter.
   (void)tests_data_path;

@@ -32,16 +32,16 @@ class HelloRequest(object):
         return None
 
 def HelloRequestStart(builder):
-    return builder.StartObject(1)
+    builder.StartObject(1)
 
 def Start(builder):
-    return HelloRequestStart(builder)
+    HelloRequestStart(builder)
 
 def HelloRequestAddName(builder, name):
-    return builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(name), 0)
+    builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(name), 0)
 
-def AddName(builder, name):
-    return HelloRequestAddName(builder, name)
+def AddName(builder: flatbuffers.Builder, name: int):
+    HelloRequestAddName(builder, name)
 
 def HelloRequestEnd(builder):
     return builder.EndObject()

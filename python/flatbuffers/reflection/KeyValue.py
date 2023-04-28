@@ -43,22 +43,22 @@ class KeyValue(object):
         return None
 
 def KeyValueStart(builder):
-    return builder.StartObject(2)
+    builder.StartObject(2)
 
 def Start(builder):
-    return KeyValueStart(builder)
+    KeyValueStart(builder)
 
 def KeyValueAddKey(builder, key):
-    return builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(key), 0)
+    builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(key), 0)
 
-def AddKey(builder, key):
-    return KeyValueAddKey(builder, key)
+def AddKey(builder: flatbuffers.Builder, key: int):
+    KeyValueAddKey(builder, key)
 
 def KeyValueAddValue(builder, value):
-    return builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(value), 0)
+    builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(value), 0)
 
-def AddValue(builder, value):
-    return KeyValueAddValue(builder, value)
+def AddValue(builder: flatbuffers.Builder, value: int):
+    KeyValueAddValue(builder, value)
 
 def KeyValueEnd(builder):
     return builder.EndObject()
