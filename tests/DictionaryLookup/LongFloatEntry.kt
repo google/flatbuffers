@@ -19,7 +19,6 @@ import java.nio.ByteOrder
 import kotlin.math.sign
 
 @Suppress("unused")
-@kotlin.ExperimentalUnsignedTypes
 class LongFloatEntry : Table() {
 
     fun __init(_i: Int, _bb: ByteBuffer)  {
