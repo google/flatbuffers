@@ -36,16 +36,16 @@ class TestSimpleTableWithEnum(object):
         return 2
 
 def TestSimpleTableWithEnumStart(builder):
-    return builder.StartObject(1)
+    builder.StartObject(1)
 
 def Start(builder):
-    return TestSimpleTableWithEnumStart(builder)
+    TestSimpleTableWithEnumStart(builder)
 
 def TestSimpleTableWithEnumAddColor(builder, color):
-    return builder.PrependUint8Slot(0, color, 2)
+    builder.PrependUint8Slot(0, color, 2)
 
-def AddColor(builder, color):
-    return TestSimpleTableWithEnumAddColor(builder, color)
+def AddColor(builder: flatbuffers.Builder, color: int):
+    TestSimpleTableWithEnumAddColor(builder, color)
 
 def TestSimpleTableWithEnumEnd(builder):
     return builder.EndObject()
