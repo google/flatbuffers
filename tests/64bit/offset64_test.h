@@ -8,6 +8,7 @@ void Offset64Test();
 void Offset64SerializedFirst();
 void Offset64NestedFlatBuffer();
 void Offset64CreateDirect();
+void Offset64Evolution();
 
 }  // namespace tests
 }  // namespace flatbuffers

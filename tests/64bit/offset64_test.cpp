@@ -9,8 +9,11 @@
 #include <limits>
 #include <ostream>
 
+#include "evolution/v1_generated.h"
+#include "evolution/v2_generated.h"
 #include "flatbuffers/base.h"
 #include "flatbuffers/buffer.h"
+#include "flatbuffers/flatbuffer_builder.h"
 #include "flatbuffers/flatbuffers.h"
 #include "test_64bit_generated.h"
 #include "test_assert.h"
@@ -208,6 +211,94 @@ void Offset64CreateDirect() {
   TEST_EQ(root_table->big_vector()->size(), data.size());
   TEST_EQ_STR(root_table->far_string()->c_str(), "some far string");
   TEST_EQ_STR(root_table->near_string()->c_str(), "some near string");
+}
+
+void Offset64Evolution() {
+  // Some common data for the tests.
+  const std::vector<uint8_t> data = { 1, 2, 3, 4 };
+  const std::vector<uint8_t> big_data = { 6, 7, 8, 9, 10 };
+
+  // Built V1 read V2
+  {
+    // Use the 32-bit builder since V1 doesn't have any 64-bit offsets.
+    FlatBufferBuilder builder;
+
+    builder.Finish(v1::CreateRootTableDirect(builder, 1234, &data));
+
+    // Use each version to get a view at the root table.
+    auto v1_root = v1::GetRootTable(builder.GetBufferPointer());
+    auto v2_root = v2::GetRootTable(builder.GetBufferPointer());
+
+    // Test field equivalents for fields common to V1 and V2.
+    TEST_EQ(v1_root->a(), v2_root->a());
+
+    TEST_EQ(v1_root->b(), v2_root->b());
+    TEST_EQ(v1_root->b()->Get(2), 3);
+    TEST_EQ(v2_root->b()->Get(2), 3);
+
+    // This field is added in V2, so it should be null since V1 couldn't have
+    // written it.
+    TEST_ASSERT(v2_root->big_vector() == nullptr);
+  }
+
+  // Built V2 read V1
+  {
+    // Use the 64-bit builder since V2 has 64-bit offsets.
+    FlatBufferBuilder64 builder;
+
+    builder.Finish(v2::CreateRootTableDirect(builder, 1234, &data, &big_data));
+
+    // Use each version to get a view at the root table.
+    auto v1_root = v1::GetRootTable(builder.GetBufferPointer());
+    auto v2_root = v2::GetRootTable(builder.GetBufferPointer());
+
+    // Test field equivalents for fields common to V1 and V2.
+    TEST_EQ(v1_root->a(), v2_root->a());
+
+    TEST_EQ(v1_root->b(), v2_root->b());
+    TEST_EQ(v1_root->b()->Get(2), 3);
+    TEST_EQ(v2_root->b()->Get(2), 3);
+
+    // Test that V2 can read the big vector, which V1 doesn't even have
+    // accessors for (i.e. v1_root->big_vector() doesn't exist).
+    TEST_ASSERT(v2_root->big_vector() != nullptr);
+    TEST_EQ(v2_root->big_vector()->size(), big_data.size());
+    TEST_EQ(v2_root->big_vector()->Get(2), 8);
+  }
+
+  // Built V2 read V1, bigger than max 32-bit buffer sized.
+  // This checks that even a large buffer can still be read by V1.
+  {
+    // Use the 64-bit builder since V2 has 64-bit offsets.
+    FlatBufferBuilder64 builder;
+
+    std::vector<uint8_t> giant_data;
+    giant_data.resize(1LL << 31);
+    giant_data[2] = 42;
+
+    builder.Finish(
+        v2::CreateRootTableDirect(builder, 1234, &data, &giant_data));
+
+    // Ensure the buffer is bigger than the 32-bit size limit for V1.
+    TEST_ASSERT(builder.GetSize() > FLATBUFFERS_MAX_BUFFER_SIZE);
+
+    // Use each version to get a view at the root table.
+    auto v1_root = v1::GetRootTable(builder.GetBufferPointer());
+    auto v2_root = v2::GetRootTable(builder.GetBufferPointer());
+
+    // Test field equivalents for fields common to V1 and V2.
+    TEST_EQ(v1_root->a(), v2_root->a());
+
+    TEST_EQ(v1_root->b(), v2_root->b());
+    TEST_EQ(v1_root->b()->Get(2), 3);
+    TEST_EQ(v2_root->b()->Get(2), 3);
+
+    // Test that V2 can read the big vector, which V1 doesn't even have
+    // accessors for (i.e. v1_root->big_vector() doesn't exist).
+    TEST_ASSERT(v2_root->big_vector() != nullptr);
+    TEST_EQ(v2_root->big_vector()->size(), giant_data.size());
+    TEST_EQ(v2_root->big_vector()->Get(2), 42);
+  }
 }
 
 }  // namespace tests

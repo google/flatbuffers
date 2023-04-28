@@ -163,7 +163,7 @@ class Field(object):
             return bool(self._tab.Get(flatbuffers.number_types.BoolFlags, o + self._tab.Pos))
         return False
 
-def FieldStart(builder): 
+def FieldStart(builder):
     builder.StartObject(14)
 
 def Start(builder):
@@ -256,12 +256,17 @@ def AddOptional(builder: flatbuffers.Builder, optional: bool):
 def FieldAddPadding(builder, padding):
     builder.PrependUint16Slot(12, padding, 0)
 
-def AddPadding(builder, padding):
-    return FieldAddPadding(builder, padding)
-def FieldAddOffset64(builder, offset64): builder.PrependBoolSlot(13, offset64, 0)
-def AddOffset64(builder, offset64):
-    return FieldAddOffset64(builder, offset64)
-def FieldEnd(builder): 
+def AddPadding(builder: flatbuffers.Builder, padding: int):
+    FieldAddPadding(builder, padding)
+
+def FieldAddOffset64(builder, offset64):
+    builder.PrependBoolSlot(13, offset64, 0)
+
+def AddOffset64(builder: flatbuffers.Builder, offset64: bool):
+    FieldAddOffset64(builder, offset64)
+
+def FieldEnd(builder):
     return builder.EndObject()
+
 def End(builder):
     return FieldEnd(builder)
