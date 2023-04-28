@@ -36,16 +36,16 @@ class Referrable(object):
         return 0
 
 def ReferrableStart(builder):
-    return builder.StartObject(1)
+    builder.StartObject(1)
 
 def Start(builder):
-    return ReferrableStart(builder)
+    ReferrableStart(builder)
 
 def ReferrableAddId(builder, id):
-    return builder.PrependUint64Slot(0, id, 0)
+    builder.PrependUint64Slot(0, id, 0)
 
-def AddId(builder, id):
-    return ReferrableAddId(builder, id)
+def AddId(builder: flatbuffers.Builder, id: int):
+    ReferrableAddId(builder, id)
 
 def ReferrableEnd(builder):
     return builder.EndObject()

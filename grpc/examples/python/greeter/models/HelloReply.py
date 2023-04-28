@@ -32,16 +32,16 @@ class HelloReply(object):
         return None
 
 def HelloReplyStart(builder):
-    return builder.StartObject(1)
+    builder.StartObject(1)
 
 def Start(builder):
-    return HelloReplyStart(builder)
+    HelloReplyStart(builder)
 
 def HelloReplyAddMessage(builder, message):
-    return builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(message), 0)
+    builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(message), 0)
 
-def AddMessage(builder, message):
-    return HelloReplyAddMessage(builder, message)
+def AddMessage(builder: flatbuffers.Builder, message: int):
+    HelloReplyAddMessage(builder, message)
 
 def HelloReplyEnd(builder):
     return builder.EndObject()

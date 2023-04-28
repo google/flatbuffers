@@ -4,17 +4,18 @@
 
 import flatbuffers
 from flatbuffers.compat import import_numpy
+from typing import Any
 np = import_numpy()
 
 class NestedStruct(object):
     __slots__ = ['_tab']
 
     @classmethod
-    def SizeOf(cls):
+    def SizeOf(cls) -> int:
         return 32
 
     # NestedStruct
-    def Init(self, buf, pos):
+    def Init(self, buf: bytes, pos: int):
         self._tab = flatbuffers.table.Table(buf, pos)
 
     # NestedStruct
@@ -31,11 +32,11 @@ class NestedStruct(object):
         return self._tab.GetArrayAsNumpy(flatbuffers.number_types.Int32Flags, self._tab.Pos + 0, self.ALength())
 
     # NestedStruct
-    def ALength(self):
+    def ALength(self) -> int:
         return 2
 
     # NestedStruct
-    def AIsNone(self):
+    def AIsNone(self) -> bool:
         return False
 
     # NestedStruct
@@ -54,11 +55,11 @@ class NestedStruct(object):
         return self._tab.GetArrayAsNumpy(flatbuffers.number_types.Int8Flags, self._tab.Pos + 9, self.CLength())
 
     # NestedStruct
-    def CLength(self):
+    def CLength(self) -> int:
         return 2
 
     # NestedStruct
-    def CIsNone(self):
+    def CIsNone(self) -> bool:
         return False
 
     # NestedStruct
@@ -75,11 +76,11 @@ class NestedStruct(object):
         return self._tab.GetArrayAsNumpy(flatbuffers.number_types.Int64Flags, self._tab.Pos + 16, self.DLength())
 
     # NestedStruct
-    def DLength(self):
+    def DLength(self) -> int:
         return 2
 
     # NestedStruct
-    def DIsNone(self):
+    def DIsNone(self) -> bool:
         return False
 
 

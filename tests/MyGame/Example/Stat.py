@@ -50,28 +50,28 @@ class Stat(object):
         return 0
 
 def StatStart(builder):
-    return builder.StartObject(3)
+    builder.StartObject(3)
 
 def Start(builder):
-    return StatStart(builder)
+    StatStart(builder)
 
 def StatAddId(builder, id):
-    return builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(id), 0)
+    builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(id), 0)
 
-def AddId(builder, id):
-    return StatAddId(builder, id)
+def AddId(builder: flatbuffers.Builder, id: int):
+    StatAddId(builder, id)
 
 def StatAddVal(builder, val):
-    return builder.PrependInt64Slot(1, val, 0)
+    builder.PrependInt64Slot(1, val, 0)
 
-def AddVal(builder, val):
-    return StatAddVal(builder, val)
+def AddVal(builder: flatbuffers.Builder, val: int):
+    StatAddVal(builder, val)
 
 def StatAddCount(builder, count):
-    return builder.PrependUint16Slot(2, count, 0)
+    builder.PrependUint16Slot(2, count, 0)
 
-def AddCount(builder, count):
-    return StatAddCount(builder, count)
+def AddCount(builder: flatbuffers.Builder, count: int):
+    StatAddCount(builder, count)
 
 def StatEnd(builder):
     return builder.EndObject()
