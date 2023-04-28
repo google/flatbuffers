@@ -634,6 +634,7 @@ if(FLATBUFFERS_BUILD_TESTS)
   add_executable(flattests ${FlatBuffers_Tests_SRCS})
   target_link_libraries(flattests PRIVATE $<BUILD_INTERFACE:ProjectConfig>)
 
+  target_include_directories(flattests PUBLIC src)
   add_dependencies(flattests generated_code)
 
   if(FLATBUFFERS_CODE_SANITIZE)
