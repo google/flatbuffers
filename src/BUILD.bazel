@@ -5,20 +5,38 @@ package(
     default_visibility = ["//visibility:private"],
 )
 
+cc_library(
+    name = "code_generators",
+    srcs = ["code_generators.cpp"],
+    hdrs = [
+        "//:public_headers",
+    ],
+    strip_include_prefix = "/include",
+    visibility = ["//:__subpackages__"],
+)
+
+cc_library(
+    name = "generate_fbs",
+    srcs = ["idl_gen_fbs.cpp"],
+    hdrs = ["idl_gen_fbs.h"],
+    strip_include_prefix = "/src",
+    visibility = ["//:__subpackages__"],
+    deps = [":code_generators"],
+)
+
 # Public flatc library to compile flatbuffer files at runtime.
 cc_library(
     name = "flatbuffers",
     srcs = [
-        "code_generators.cpp",
-        "idl_gen_fbs.cpp",
-        "idl_gen_fbs.h",
         "idl_gen_text.cpp",
         "idl_gen_text.h",
         "idl_parser.cpp",
         "reflection.cpp",
         "util.cpp",
     ],
-    hdrs = ["//:public_headers"],
+    hdrs = [
+        "//:public_headers",
+    ],
     linkopts = select({
         # TODO: Bazel uses `clang` instead of `clang++` to link
         # C++ code on BSD. Temporarily adding these linker flags while
@@ -30,6 +48,10 @@ cc_library(
     }),
     strip_include_prefix = "/include",
     visibility = ["//:__subpackages__"],
+    deps = [
+        ":code_generators",
+        ":generate_fbs",
+    ],
 )
 
 # Public flatc compiler library.
