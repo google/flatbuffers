@@ -105,6 +105,7 @@ cc_test(
     includes = [
         "",
         "include/",
+        "//src",
     ],
     deps = [
         ":alignment_test_cc_fbs",
@@ -113,6 +114,7 @@ cc_test(
         ":monster_test_cc_fbs",
         ":native_type_test_cc_fbs",
         "//:flatbuffers",
+        "//src:flatbuffers",
     ],
 )
 

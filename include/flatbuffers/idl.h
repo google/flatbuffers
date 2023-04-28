@@ -1287,9 +1287,10 @@ extern bool GenerateSwift(const Parser &parser, const std::string &path,
 // Generate a schema file from the internal representation, useful after
 // parsing a .proto schema.
 extern std::string GenerateFBS(const Parser &parser,
-                               const std::string &file_name);
+                               const std::string &file_name,
+                               bool no_log);
 extern bool GenerateFBS(const Parser &parser, const std::string &path,
-                        const std::string &file_name);
+                        const std::string &file_name, bool no_log);
 
 // Generate a make rule for the generated TypeScript code.
 // See idl_gen_ts.cpp.

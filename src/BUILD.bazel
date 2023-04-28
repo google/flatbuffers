@@ -29,7 +29,7 @@ cc_library(
         "//conditions:default": [],
     }),
     strip_include_prefix = "/include",
-    visibility = ["//:__pkg__"],
+    visibility = ["//:__subpackages__"],
 )
 
 # Public flatc compiler library.
