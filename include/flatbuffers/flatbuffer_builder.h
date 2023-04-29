@@ -1114,14 +1114,14 @@ template<bool Is64Aware = false> class FlatBufferBuilderImpl {
 
   /// @cond FLATBUFFERS_INTERNAL
   template<typename T> struct TableKeyComparator {
-    explicit TableKeyComparator(vector_downward &buf) : buf_(buf) {}
+    explicit TableKeyComparator(vector_downward<size_t> &buf) : buf_(buf) {}
     TableKeyComparator(const TableKeyComparator &other) : buf_(other.buf_) {}
     bool operator()(const Offset<T> &a, const Offset<T> &b) const {
       auto table_a = reinterpret_cast<T *>(buf_.data_at(a.o));
       auto table_b = reinterpret_cast<T *>(buf_.data_at(b.o));
       return table_a->KeyCompareLessThan(table_b);
     }
-    vector_downward &buf_;
+    vector_downward<size_t> &buf_;
 
    private:
     FLATBUFFERS_DELETE_FUNC(
@@ -1281,7 +1281,7 @@ template<bool Is64Aware = false> class FlatBufferBuilderImpl {
     voffset_t id;
   };
 
-  vector_downward buf_;
+  vector_downward<size_t> buf_;
 
   // Accumulating offsets of table members while it is being built.
   // We store these in the scratch pad of buf_, after the vtable offsets.
@@ -1329,14 +1329,14 @@ template<bool Is64Aware = false> class FlatBufferBuilderImpl {
   bool dedup_vtables_;
 
   struct StringOffsetCompare {
-    explicit StringOffsetCompare(const vector_downward &buf) : buf_(&buf) {}
+    explicit StringOffsetCompare(const vector_downward<size_t> &buf) : buf_(&buf) {}
     bool operator()(const Offset<String> &a, const Offset<String> &b) const {
       auto stra = reinterpret_cast<const String *>(buf_->data_at(a.o));
       auto strb = reinterpret_cast<const String *>(buf_->data_at(b.o));
       return StringLessThan(stra->data(), stra->size(), strb->data(),
                             strb->size());
     }
-    const vector_downward *buf_;
+    const vector_downward<size_t> *buf_;
   };
 
   // For use with CreateSharedString. Instantiated on first use only.
@@ -1447,4 +1447,4 @@ const T *GetTemporaryPointer(FlatBufferBuilder &fbb, Offset<T> offset) {
 
 }  // namespace flatbuffers
 
-#endif  // FLATBUFFERS_VECTOR_DOWNWARD_H_
+#endif  // FLATBUFFERS_FLATBUFFER_BUILDER_H_
