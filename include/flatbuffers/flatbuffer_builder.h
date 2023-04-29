@@ -40,8 +40,8 @@ namespace flatbuffers {
 // Converts a Field ID to a virtual table offset.
 inline voffset_t FieldIndexToOffset(voffset_t field_id) {
   // Should correspond to what EndTable() below builds up.
-  const int fixed_fields = 2;  // Vtable size and Object Size.
-  return static_cast<voffset_t>((field_id + fixed_fields) * sizeof(voffset_t));
+  const voffset_t fixed_fields = 2 * sizeof(voffset_t);  // Vtable size and Object Size.
+  return fixed_fields + field_id  * sizeof(voffset_t);
 }
 
 template<typename T, typename Alloc = std::allocator<T>>
@@ -360,7 +360,7 @@ class FlatBufferBuilder {
     FLATBUFFERS_ASSERT(nested);
     // Write the vtable offset, which is the start of any Table.
     // We fill its value later.
-    auto vtableoffsetloc = PushElement<soffset_t>(0);
+    const uoffset_t vtableoffsetloc = PushElement<soffset_t>(0);
     // Write a vtable, which consists entirely of voffset_t elements.
     // It starts with the number of offsets, followed by a type id, followed
     // by the offsets themselves. In reverse:
@@ -400,7 +400,7 @@ class FlatBufferBuilder {
         auto vt2_size = ReadScalar<voffset_t>(vt2);
         if (vt1_size != vt2_size || 0 != memcmp(vt2, vt1, vt1_size)) continue;
         vt_use = *vt_offset_ptr;
-        buf_.pop(GetSize() - vtableoffsetloc);
+        buf_.pop(GetSize() - static_cast<size_t>(vtableoffsetloc));
         break;
       }
     }
@@ -525,7 +525,7 @@ class FlatBufferBuilder {
     FLATBUFFERS_ASSERT(FLATBUFFERS_GENERAL_HEAP_ALLOC_OK);
     if (!string_pool)
       string_pool = new StringOffsetMap(StringOffsetCompare(buf_));
-    auto size_before_string = buf_.size();
+    const size_t size_before_string = buf_.size();
     // Must first serialize the string, since the set is all offsets into
     // buffer.
     auto off = CreateString(str, len);
