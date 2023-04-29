@@ -26,7 +26,7 @@ static BinaryRegion MakeBinaryRegion(
     const uint64_t offset = 0, const uint64_t length = 0,
     const BinaryRegionType type = BinaryRegionType::Unknown,
     const uint64_t array_length = 0, const uint64_t points_to_offset = 0,
-    const BinaryRegionComment comment = {}) {
+    BinaryRegionComment comment = {}) {
   BinaryRegion region;
   region.offset = offset;
   region.length = length;
@@ -39,7 +39,7 @@ static BinaryRegion MakeBinaryRegion(
 
 static BinarySection MakeBinarySection(
     const std::string &name, const BinarySectionType type,
-    const std::vector<BinaryRegion> regions) {
+    std::vector<BinaryRegion> regions) {
   BinarySection section;
   section.name = name;
   section.type = type;

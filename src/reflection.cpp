@@ -506,7 +506,9 @@ class ResizeContext {
         // Recurse.
         switch (base_type) {
           case reflection::Obj: {
-            ResizeTable(*subobjectdef, reinterpret_cast<Table *>(ref));
+            if (subobjectdef) {
+              ResizeTable(*subobjectdef, reinterpret_cast<Table *>(ref));
+            }
             break;
           }
           case reflection::Vector: {
@@ -564,7 +566,7 @@ void SetString(const reflection::Schema &schema, const std::string &val,
     // Clear the old string, since we don't want parts of it remaining.
     memset(flatbuf->data() + start, 0, str->size());
     // Different size, we must expand (or contract).
-    ResizeContext(schema, start, delta, flatbuf, root_table);
+    ResizeContext ctx(schema, start, delta, flatbuf, root_table);
     // Set the new length.
     WriteScalar(flatbuf->data() + str_start,
                 static_cast<uoffset_t>(val.size()));
@@ -590,7 +592,7 @@ uint8_t *ResizeAnyVector(const reflection::Schema &schema, uoffset_t newsize,
       auto size_clear = -delta_elem * elem_size;
       memset(flatbuf->data() + start - size_clear, 0, size_clear);
     }
-    ResizeContext(schema, start, delta_bytes, flatbuf, root_table);
+    ResizeContext ctx(schema, start, delta_bytes, flatbuf, root_table);
     WriteScalar(flatbuf->data() + vec_start, newsize);  // Length field.
     // Set new elements to 0.. this can be overwritten by the caller.
     if (delta_elem > 0) {
