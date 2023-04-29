@@ -36,10 +36,12 @@ namespace flatbuffers {
 class vector_downward {
  public:
   explicit vector_downward(size_t initial_size, Allocator *allocator,
-                           bool own_allocator, size_t buffer_minalign)
+                           bool own_allocator, size_t buffer_minalign,
+                           const size_t max_size = FLATBUFFERS_MAX_BUFFER_SIZE)
       : allocator_(allocator),
         own_allocator_(own_allocator),
         initial_size_(initial_size),
+        max_size_(max_size),
         buffer_minalign_(buffer_minalign),
         reserved_(0),
         size_(0),
@@ -52,6 +54,7 @@ class vector_downward {
       : allocator_(other.allocator_),
         own_allocator_(other.own_allocator_),
         initial_size_(other.initial_size_),
+        max_size_(other.max_size_),
         buffer_minalign_(other.buffer_minalign_),
         reserved_(other.reserved_),
         size_(other.size_),
@@ -141,9 +144,7 @@ class vector_downward {
     // If the length is larger than the unused part of the buffer, we need to
     // grow.
     if (len > unused_buffer_size()) { reallocate(len); }
-    // TODO(dbaileychess): Should this default to 32-bit max size with an opt
-    // in?
-    FLATBUFFERS_ASSERT(size() < FLATBUFFERS_MAX_64_BUFFER_SIZE);
+    FLATBUFFERS_ASSERT(size() < max_size_);
     return len;
   }
 
@@ -234,6 +235,7 @@ class vector_downward {
     swap(buffer_minalign_, other.buffer_minalign_);
     swap(reserved_, other.reserved_);
     swap(size_, other.size_);
+    swap(max_size_, other.max_size_);
     swap(buf_, other.buf_);
     swap(cur_, other.cur_);
     swap(scratch_, other.scratch_);
@@ -253,6 +255,9 @@ class vector_downward {
   Allocator *allocator_;
   bool own_allocator_;
   size_t initial_size_;
+
+  // The maximum size the vector can be.
+  size_t max_size_;
   size_t buffer_minalign_;
   size_t reserved_;
   size_t size_;

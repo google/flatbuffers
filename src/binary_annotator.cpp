@@ -39,9 +39,9 @@ static BinaryRegion MakeBinaryRegion(
   return region;
 }
 
-static BinarySection MakeBinarySection(
-    const std::string &name, const BinarySectionType type,
-    std::vector<BinaryRegion> regions) {
+static BinarySection MakeBinarySection(const std::string &name,
+                                       const BinarySectionType type,
+                                       std::vector<BinaryRegion> regions) {
   BinarySection section;
   section.name = name;
   section.type = type;
@@ -659,22 +659,15 @@ void BinaryAnnotator::BuildTable(const uint64_t table_offset,
 
     // Read the offset
     uint64_t offset = 0;
-    bool has_offset_from = false;
     uint64_t length = sizeof(uint32_t);
-    BinaryRegionType type = BinaryRegionType::UOffset;
+    BinaryRegionType region_type = BinaryRegionType::UOffset;
 
     if (field->offset64()) {
       length = sizeof(uint64_t);
-      type = BinaryRegionType::UOffset64;
-      const auto offset_from_field = ReadScalar<uint64_t>(field_offset);
-      if ((has_offset_from = offset_from_field.has_value())) {
-        offset = offset_from_field.value();
-      }
+      region_type = BinaryRegionType::UOffset64;
+      offset = ReadScalar<uint64_t>(field_offset).value_or(0);
     } else {
-      const auto offset_from_field = ReadScalar<uint32_t>(field_offset);
-      if ((has_offset_from = offset_from_field.has_value())) {
-        offset = offset_from_field.value();
-      }
+      offset = ReadScalar<uint32_t>(field_offset).value_or(0);
     }
     // const auto offset_from_field = ReadScalar<uint32_t>(field_offset);
     uint64_t offset_of_next_item = 0;
@@ -686,7 +679,7 @@ void BinaryAnnotator::BuildTable(const uint64_t table_offset,
 
     // Validate any field that isn't inline (i.e., non-structs).
     if (!IsInlineField(field)) {
-      if (!has_offset_from) {
+      if (offset == 0) {
         const uint64_t remaining = RemainingBytes(field_offset);
 
         SetError(offset_field_comment,
@@ -703,7 +696,7 @@ void BinaryAnnotator::BuildTable(const uint64_t table_offset,
       if (!IsValidOffset(offset_of_next_item)) {
         SetError(offset_field_comment,
                  BinaryRegionStatus::ERROR_OFFSET_OUT_OF_BINARY);
-        regions.push_back(MakeBinaryRegion(field_offset, length, type, 0,
+        regions.push_back(MakeBinaryRegion(field_offset, length, region_type, 0,
                                            offset_of_next_item,
                                            offset_field_comment));
         continue;
@@ -722,8 +715,8 @@ void BinaryAnnotator::BuildTable(const uint64_t table_offset,
         } else {
           offset_field_comment.default_value = "(table)";
 
-          regions.push_back(MakeBinaryRegion(field_offset, length, type, 0,
-                                             offset_of_next_item,
+          regions.push_back(MakeBinaryRegion(field_offset, length, region_type,
+                                             0, offset_of_next_item,
                                              offset_field_comment));
 
           BuildTable(offset_of_next_item, BinarySectionType::Table,
@@ -733,7 +726,7 @@ void BinaryAnnotator::BuildTable(const uint64_t table_offset,
 
       case reflection::BaseType::String: {
         offset_field_comment.default_value = "(string)";
-        regions.push_back(MakeBinaryRegion(field_offset, length, type, 0,
+        regions.push_back(MakeBinaryRegion(field_offset, length, region_type, 0,
                                            offset_of_next_item,
                                            offset_field_comment));
         BuildString(offset_of_next_item, table, field);
@@ -741,7 +734,7 @@ void BinaryAnnotator::BuildTable(const uint64_t table_offset,
 
       case reflection::BaseType::Vector: {
         offset_field_comment.default_value = "(vector)";
-        regions.push_back(MakeBinaryRegion(field_offset, length, type, 0,
+        regions.push_back(MakeBinaryRegion(field_offset, length, region_type, 0,
                                            offset_of_next_item,
                                            offset_field_comment));
         BuildVector(offset_of_next_item, table, field, table_offset,
@@ -749,7 +742,7 @@ void BinaryAnnotator::BuildTable(const uint64_t table_offset,
       } break;
       case reflection::BaseType::Vector64: {
         offset_field_comment.default_value = "(vector64)";
-        regions.push_back(MakeBinaryRegion(field_offset, length, type, 0,
+        regions.push_back(MakeBinaryRegion(field_offset, length, region_type, 0,
                                            offset_of_next_item,
                                            offset_field_comment));
         BuildVector(offset_of_next_item, table, field, table_offset,
@@ -796,7 +789,7 @@ void BinaryAnnotator::BuildTable(const uint64_t table_offset,
         offset_field_comment.default_value =
             "(union of type `" + enum_type + "`)";
 
-        regions.push_back(MakeBinaryRegion(field_offset, length, type, 0,
+        regions.push_back(MakeBinaryRegion(field_offset, length, region_type, 0,
                                            union_offset, offset_field_comment));
 
       } break;
@@ -1016,31 +1009,25 @@ void BinaryAnnotator::BuildVector(
   const bool is_64_bit_vector =
       field->type()->base_type() == reflection::BaseType::Vector64;
 
-  bool has_vector_length = false;
-  uint64_t vector_length_value = 0;
+  flatbuffers::Optional<uint64_t> vector_length;
   uint32_t vector_length_size_type = 0;
   BinaryRegionType region_type = BinaryRegionType::Uint32;
   BinarySectionType section_type = BinarySectionType::Vector;
 
   if (is_64_bit_vector) {
-    const auto vector_length = ReadScalar<uint64_t>(vector_offset);
-    if ((has_vector_length = vector_length.has_value())) {
-      vector_length_value = vector_length.value();
-    }
+    auto v = ReadScalar<uint64_t>(vector_offset);
+    if (v.has_value()) { vector_length = v.value(); }
     vector_length_size_type = sizeof(uint64_t);
     region_type = BinaryRegionType::Uint64;
     section_type = BinarySectionType::Vector64;
   } else {
-    const auto vector_length = ReadScalar<uint32_t>(vector_offset);
-    if ((has_vector_length = vector_length.has_value())) {
-      vector_length_value = vector_length.value();
-    }
+    auto v = ReadScalar<uint32_t>(vector_offset);
+    if (v.has_value()) { vector_length = v.value(); }
     vector_length_size_type = sizeof(uint32_t);
     region_type = BinaryRegionType::Uint32;
     section_type = BinarySectionType::Vector;
   }
 
-  const auto vector_length = ReadScalar<uint32_t>(vector_offset);
   if (!vector_length.has_value()) {
     const uint64_t remaining = RemainingBytes(vector_offset);
     SetError(vector_length_comment, BinaryRegionStatus::ERROR_INCOMPLETE_BINARY,
@@ -1060,7 +1047,7 @@ void BinaryAnnotator::BuildVector(
   // Validate there are enough bytes left in the binary to process all the
   // items.
   const uint64_t last_item_offset = vector_offset + vector_length_size_type +
-                                    vector_length_value * GetElementSize(field);
+                                    vector_length.value() * GetElementSize(field);
 
   if (!IsValidOffset(last_item_offset - 1)) {
     SetError(vector_length_comment, BinaryRegionStatus::ERROR_LENGTH_TOO_LONG);

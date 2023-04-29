@@ -50,8 +50,9 @@ namespace flatbuffers {
 // Converts a Field ID to a virtual table offset.
 inline voffset_t FieldIndexToOffset(voffset_t field_id) {
   // Should correspond to what EndTable() below builds up.
-  const voffset_t fixed_fields = 2 * sizeof(voffset_t);  // Vtable size and Object Size.
-  return fixed_fields + field_id  * sizeof(voffset_t);
+  const voffset_t fixed_fields =
+      2 * sizeof(voffset_t);  // Vtable size and Object Size.
+  return fixed_fields + field_id * sizeof(voffset_t);
 }
 
 template<typename T, typename Alloc = std::allocator<T>>
@@ -95,7 +96,9 @@ template<bool Is64Aware = false> class FlatBufferBuilderImpl {
       size_t initial_size = 1024, Allocator *allocator = nullptr,
       bool own_allocator = false,
       size_t buffer_minalign = AlignOf<largest_scalar_t>())
-      : buf_(initial_size, allocator, own_allocator, buffer_minalign),
+      : buf_(initial_size, allocator, own_allocator, buffer_minalign,
+             Is64Aware ? FLATBUFFERS_MAX_64_BUFFER_SIZE
+                       : FLATBUFFERS_MAX_BUFFER_SIZE),
         num_field_loc(0),
         max_voffset_(0),
         length_of_64_bit_region_(0),
@@ -111,7 +114,9 @@ template<bool Is64Aware = false> class FlatBufferBuilderImpl {
 
   /// @brief Move constructor for FlatBufferBuilder.
   FlatBufferBuilderImpl(FlatBufferBuilderImpl &&other) noexcept
-      : buf_(1024, nullptr, false, AlignOf<largest_scalar_t>()),
+      : buf_(1024, nullptr, false, AlignOf<largest_scalar_t>(),
+             Is64Aware ? FLATBUFFERS_MAX_64_BUFFER_SIZE
+                       : FLATBUFFERS_MAX_BUFFER_SIZE),
         num_field_loc(0),
         max_voffset_(0),
         length_of_64_bit_region_(0),
@@ -593,7 +598,7 @@ template<bool Is64Aware = false> class FlatBufferBuilderImpl {
     return CreateString<OffsetT>(str.c_str(), str.length());
   }
 
-// clang-format off
+  // clang-format off
   #ifdef FLATBUFFERS_HAS_STRING_VIEW
   /// @brief Store a string in the buffer, which can contain any binary data.
   /// @param[in] str A const string_view to copy in to the buffer.
@@ -757,7 +762,7 @@ template<bool Is64Aware = false> class FlatBufferBuilderImpl {
       EndVector<LenT>(len);
       return OffsetT<VectorT<T>>(CalculateOffset<offset_type>());
     }
-// clang-format off
+    // clang-format off
     #if FLATBUFFERS_LITTLEENDIAN
       PushBytes(reinterpret_cast<const uint8_t *>(v), len * sizeof(T));
     #else
