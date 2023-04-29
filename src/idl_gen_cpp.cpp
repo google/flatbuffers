@@ -22,6 +22,7 @@
 #include <memory>
 #include <string>
 #include <unordered_set>
+#include <utility>
 
 #include "flatbuffers/base.h"
 #include "flatbuffers/code_generators.h"
@@ -965,9 +966,9 @@ class CppGenerator : public BaseGenerator {
   std::string GetUnionElement(const EnumVal &ev, bool native_type,
                               const IDLOptions &opts) {
     if (ev.union_type.base_type == BASE_TYPE_STRUCT) {
-      auto name = ev.union_type.struct_def->name;
+      std::string name = ev.union_type.struct_def->name;
       if (native_type) {
-        name = NativeName(name, ev.union_type.struct_def, opts);
+        name = NativeName(std::move(name), ev.union_type.struct_def, opts);
       }
       return WrapInNameSpace(ev.union_type.struct_def->defined_namespace, name);
     } else if (IsString(ev.union_type)) {
@@ -985,8 +986,8 @@ class CppGenerator : public BaseGenerator {
   }
 
   std::string UnionVectorVerifySignature(const EnumDef &enum_def) {
-    auto name = Name(enum_def);
-    auto type = opts_.scoped_enums ? name : "uint8_t";
+    const std::string name = Name(enum_def);
+    const std::string & type = opts_.scoped_enums ? name : "uint8_t";
     return "bool Verify" + name + "Vector" +
            "(::flatbuffers::Verifier &verifier, " +
            "const ::flatbuffers::Vector<::flatbuffers::Offset<void>> "
@@ -1806,7 +1807,7 @@ class CppGenerator : public BaseGenerator {
          field.value.type.element != BASE_TYPE_UTYPE)) {
       auto type = GenTypeNative(field.value.type, false, field);
       auto cpp_type = field.attributes.Lookup("cpp_type");
-      auto full_type =
+      const std::string & full_type =
           (cpp_type
                ? (IsVector(field.value.type)
                       ? "std::vector<" +
@@ -1953,7 +1954,7 @@ class CppGenerator : public BaseGenerator {
         if (!initializer_list.empty()) { initializer_list += ",\n        "; }
         const auto cpp_type = field->attributes.Lookup("cpp_type");
         const auto cpp_ptr_type = field->attributes.Lookup("cpp_ptr_type");
-        auto type_name = (cpp_type) ? cpp_type->constant
+        const std::string & type_name = (cpp_type) ? cpp_type->constant
                                     : GenTypeNative(type, /*invector*/ false,
                                                     *field, /*forcopy*/ true);
         const bool is_ptr = !(IsStruct(type) && field->native_inline) ||
@@ -1975,7 +1976,7 @@ class CppGenerator : public BaseGenerator {
         if (vec_type.base_type == BASE_TYPE_UTYPE) continue;
         const auto cpp_type = field->attributes.Lookup("cpp_type");
         const auto cpp_ptr_type = field->attributes.Lookup("cpp_ptr_type");
-        const auto type_name = (cpp_type)
+        const std::string & type_name = (cpp_type)
                                    ? cpp_type->constant
                                    : GenTypeNative(vec_type, /*invector*/ true,
                                                    *field, /*forcopy*/ true);
@@ -2834,7 +2835,7 @@ class CppGenerator : public BaseGenerator {
     // Generate code to do force_align for the vector.
     if (align > 1) {
       const auto vtype = field.value.type.VectorType();
-      const auto type = IsStruct(vtype) ? WrapInNameSpace(*vtype.struct_def)
+      const std::string & type = IsStruct(vtype) ? WrapInNameSpace(*vtype.struct_def)
                                         : GenTypeWire(vtype, "", false);
       return "_fbb.ForceVectorAlignment(" + field_size + ", sizeof(" + type +
              "), " + std::to_string(static_cast<long long>(align)) + ");";
@@ -3356,7 +3357,7 @@ class CppGenerator : public BaseGenerator {
           }
           case BASE_TYPE_UTYPE: {
             value = StripUnionType(value);
-            auto type = opts_.scoped_enums ? Name(*field.value.type.enum_def)
+            const std::string & type = opts_.scoped_enums ? Name(*field.value.type.enum_def)
                                            : "uint8_t";
             auto enum_value = "__va->_" + value + "[i].type";
             if (!opts_.scoped_enums)
@@ -3423,7 +3424,7 @@ class CppGenerator : public BaseGenerator {
           }
         } else {
           // _o->field ? CreateT(_fbb, _o->field.get(), _rehasher);
-          const auto type = field.value.type.struct_def->name;
+          const std::string & type = field.value.type.struct_def->name;
           code += value + " ? Create" + type;
           code += "(_fbb, " + value;
           if (!field.native_inline) code += GenPtrGet(field);
@@ -3809,7 +3810,7 @@ class CppGenerator : public BaseGenerator {
       const auto field_type = GenTypeGet(type, " ", is_array ? "" : "const ",
                                          is_array ? "" : " &", true);
       auto member = Name(*field) + "_";
-      auto value =
+      const std::string & value =
           is_scalar ? "::flatbuffers::EndianScalar(" + member + ")" : member;
 
       code_.SetValue("FIELD_NAME", Name(*field));
@@ -3918,7 +3919,7 @@ bool GenerateCPP(const Parser &parser, const std::string &path,
   cpp::IDLOptionsCpp opts(parser.opts);
   // The '--cpp_std' argument could be extended (like ASAN):
   // Example: "flatc --cpp_std c++17:option1:option2".
-  auto cpp_std = !opts.cpp_std.empty() ? opts.cpp_std : "C++11";
+  std::string cpp_std = !opts.cpp_std.empty() ? opts.cpp_std : "C++11";
   std::transform(cpp_std.begin(), cpp_std.end(), cpp_std.begin(), CharToUpper);
   if (cpp_std == "C++0X") {
     opts.g_cpp_std = cpp::CPP_STD_X0;
