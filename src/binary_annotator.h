@@ -258,7 +258,7 @@ class BinaryAnnotator {
       uint16_t offset_from_table = 0;
     };
 
-    const reflection::Object *referring_table;
+    const reflection::Object *referring_table = nullptr;
 
     // Field ID -> {field def, offset from table}
     std::map<uint16_t, Entry> fields;
