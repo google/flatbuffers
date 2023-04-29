@@ -422,7 +422,7 @@ void MutateFlatBuffersTest(uint8_t *flatbuf, std::size_t length) {
 
   // Mutate structs.
   auto pos = monster->mutable_pos();
-  auto test3 = pos->mutable_test3();  // Struct inside a struct.
+  auto & test3 = pos->mutable_test3();  // Struct inside a struct.
   test3.mutate_a(50);                 // Struct fields never fail.
   TEST_EQ(test3.a(), 50);
   test3.mutate_a(10);
@@ -508,7 +508,7 @@ void ObjectFlatBuffersTest(uint8_t *flatbuf) {
   CheckMonsterObject(monster2.get());
 
   // Test object copy.
-  auto monster3 = *monster2;
+  MonsterT monster3 = *monster2;
   flatbuffers::FlatBufferBuilder fbb3;
   fbb3.Finish(CreateMonster(fbb3, &monster3, &rehasher), MonsterIdentifier());
   const auto len3 = fbb3.GetSize();
