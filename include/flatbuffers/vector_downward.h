@@ -17,7 +17,7 @@
 #ifndef FLATBUFFERS_VECTOR_DOWNWARD_H_
 #define FLATBUFFERS_VECTOR_DOWNWARD_H_
 
-#include <stdint.h>
+#include <cstdint>
 
 #include <algorithm>
 
@@ -33,11 +33,10 @@ namespace flatbuffers {
 // Since this vector leaves the lower part unused, we support a "scratch-pad"
 // that can be stored there for temporary data, to share the allocated space.
 // Essentially, this supports 2 std::vectors in a single buffer.
-template<typename SizeT = size_t>
-class vector_downward {
+template<typename SizeT = uoffset_t> class vector_downward {
  public:
-  explicit vector_downward(SizeT initial_size, Allocator *allocator,
-                           bool own_allocator, SizeT buffer_minalign,
+  explicit vector_downward(size_t initial_size, Allocator *allocator,
+                           bool own_allocator, size_t buffer_minalign,
                            const SizeT max_size = FLATBUFFERS_MAX_BUFFER_SIZE)
       : allocator_(allocator),
         own_allocator_(own_allocator),
@@ -114,7 +113,7 @@ class vector_downward {
   }
 
   // Relinquish the pointer to the caller.
-  uint8_t *release_raw(SizeT &allocated_bytes, SizeT &offset) {
+  uint8_t *release_raw(size_t &allocated_bytes, size_t &offset) {
     auto *buf = buf_;
     allocated_bytes = reserved_;
     offset = vector_downward::offset();
@@ -140,7 +139,7 @@ class vector_downward {
     return fb;
   }
 
-  SizeT ensure_space(SizeT len) {
+  size_t ensure_space(size_t len) {
     FLATBUFFERS_ASSERT(cur_ >= scratch_ && scratch_ >= buf_);
     // If the length is larger than the unused part of the buffer, we need to
     // grow.
@@ -149,11 +148,11 @@ class vector_downward {
     return len;
   }
 
-  inline uint8_t *make_space(SizeT len) {
+  inline uint8_t *make_space(size_t len) {
     if (len) {
       ensure_space(len);
       cur_ -= len;
-      size_ += len;
+      size_ += static_cast<SizeT>(len);
     }
     return cur_;
   }
@@ -162,18 +161,18 @@ class vector_downward {
   Allocator *get_custom_allocator() { return allocator_; }
 
   // The current offset into the buffer.
-  SizeT offset() const { return cur_ - buf_; }
+  size_t offset() const { return cur_ - buf_; }
 
   // The total size of the vector (both the buffer and scratch parts).
   inline SizeT size() const { return size_; }
 
   // The size of the buffer part of the vector that is currently unused.
-  SizeT unused_buffer_size() const { return cur_ - scratch_; }
+  SizeT unused_buffer_size() const { return static_cast<SizeT>(cur_ - scratch_); }
 
   // The size of the scratch part of the vector.
-  SizeT scratch_size() const { return scratch_ - buf_; }
+  SizeT scratch_size() const { return static_cast<SizeT>(scratch_ - buf_); }
 
-  SizeT capacity() const { return reserved_; }
+  size_t capacity() const { return reserved_; }
 
   uint8_t *data() const {
     FLATBUFFERS_ASSERT(cur_);
@@ -190,9 +189,9 @@ class vector_downward {
     return scratch_;
   }
 
-  uint8_t *data_at(SizeT offset) const { return buf_ + reserved_ - offset; }
+  uint8_t *data_at(size_t offset) const { return buf_ + reserved_ - offset; }
 
-  void push(const uint8_t *bytes, SizeT num) {
+  void push(const uint8_t *bytes, size_t num) {
     if (num > 0) { memcpy(make_space(num), bytes, num); }
   }
 
@@ -210,23 +209,23 @@ class vector_downward {
 
   // fill() is most frequently called with small byte counts (<= 4),
   // which is why we're using loops rather than calling memset.
-  void fill(SizeT zero_pad_bytes) {
+  void fill(size_t zero_pad_bytes) {
     make_space(zero_pad_bytes);
-    for (SizeT i = 0; i < zero_pad_bytes; i++) cur_[i] = 0;
+    for (size_t i = 0; i < zero_pad_bytes; i++) cur_[i] = 0;
   }
 
   // Version for when we know the size is larger.
   // Precondition: zero_pad_bytes > 0
-  void fill_big(SizeT zero_pad_bytes) {
+  void fill_big(size_t zero_pad_bytes) {
     memset(make_space(zero_pad_bytes), 0, zero_pad_bytes);
   }
 
-  void pop(SizeT bytes_to_remove) {
+  void pop(size_t bytes_to_remove) {
     cur_ += bytes_to_remove;
-    size_ -= bytes_to_remove;
+    size_ -= static_cast<SizeT>(bytes_to_remove);
   }
 
-  void scratch_pop(SizeT bytes_to_remove) { scratch_ -= bytes_to_remove; }
+  void scratch_pop(size_t bytes_to_remove) { scratch_ -= bytes_to_remove; }
 
   void swap(vector_downward &other) {
     using std::swap;
@@ -255,18 +254,18 @@ class vector_downward {
 
   Allocator *allocator_;
   bool own_allocator_;
-  SizeT initial_size_;
+  size_t initial_size_;
 
   // The maximum size the vector can be.
   SizeT max_size_;
-  SizeT buffer_minalign_;
-  SizeT reserved_;
+  size_t buffer_minalign_;
+  size_t reserved_;
   SizeT size_;
   uint8_t *buf_;
   uint8_t *cur_;  // Points at location between empty (below) and used (above).
   uint8_t *scratch_;  // Points to the end of the scratchpad in use.
 
-  void reallocate(SizeT len) {
+  void reallocate(size_t len) {
     auto old_reserved = reserved_;
     auto old_size = size();
     auto old_scratch_size = scratch_size();

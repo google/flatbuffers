@@ -1288,7 +1288,7 @@ CheckedError Parser::ParseComma() {
 CheckedError Parser::ParseAnyValue(Value &val, FieldDef *field,
                                    size_t parent_fieldn,
                                    const StructDef *parent_struct_def,
-                                   uoffset_t count, bool inside_vector) {
+                                   size_t count, bool inside_vector) {
   switch (val.type.base_type) {
     case BASE_TYPE_UNION: {
       FLATBUFFERS_ASSERT(field);
@@ -1358,7 +1358,7 @@ CheckedError Parser::ParseAnyValue(Value &val, FieldDef *field,
           return Error(
               "union types vector smaller than union values vector for: " +
               field->name);
-        enum_idx = vector_of_union_types->Get(count);
+        enum_idx = vector_of_union_types->Get(static_cast<uoffset_t>(count));
       } else {
         ECHECK(atot(constant.c_str(), *this, &enum_idx));
       }

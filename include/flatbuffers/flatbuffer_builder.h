@@ -81,6 +81,11 @@ T *data(std::vector<T, Alloc> &v) {
 /// the root. `Finish()` wraps up the buffer ready for transport.
 template<bool Is64Aware = false> class FlatBufferBuilderImpl {
  public:
+  // This switches the size type of the builder, based on if its 64-bit aware
+  // (uoffset64_t) or not (uoffset_t).
+  typedef
+      typename std::conditional<Is64Aware, uoffset64_t, uoffset_t>::type SizeT;
+
   /// @brief Default constructor for FlatBufferBuilder.
   /// @param[in] initial_size The initial size of the buffer, in bytes. Defaults
   /// to `1024`.
@@ -97,8 +102,8 @@ template<bool Is64Aware = false> class FlatBufferBuilderImpl {
       bool own_allocator = false,
       size_t buffer_minalign = AlignOf<largest_scalar_t>())
       : buf_(initial_size, allocator, own_allocator, buffer_minalign,
-             Is64Aware ? FLATBUFFERS_MAX_64_BUFFER_SIZE
-                       : FLATBUFFERS_MAX_BUFFER_SIZE),
+             static_cast<SizeT>(Is64Aware ? FLATBUFFERS_MAX_64_BUFFER_SIZE
+                                          : FLATBUFFERS_MAX_BUFFER_SIZE)),
         num_field_loc(0),
         max_voffset_(0),
         length_of_64_bit_region_(0),
@@ -115,8 +120,8 @@ template<bool Is64Aware = false> class FlatBufferBuilderImpl {
   /// @brief Move constructor for FlatBufferBuilder.
   FlatBufferBuilderImpl(FlatBufferBuilderImpl &&other) noexcept
       : buf_(1024, nullptr, false, AlignOf<largest_scalar_t>(),
-             Is64Aware ? FLATBUFFERS_MAX_64_BUFFER_SIZE
-                       : FLATBUFFERS_MAX_BUFFER_SIZE),
+             static_cast<SizeT>(Is64Aware ? FLATBUFFERS_MAX_64_BUFFER_SIZE
+                                          : FLATBUFFERS_MAX_BUFFER_SIZE)),
         num_field_loc(0),
         max_voffset_(0),
         length_of_64_bit_region_(0),
@@ -184,8 +189,8 @@ template<bool Is64Aware = false> class FlatBufferBuilderImpl {
   }
 
   /// @brief The current size of the serialized buffer, counting from the end.
-  /// @return Returns an `size_t` with the current size of the buffer.
-  size_t GetSize() const { return buf_.size(); }
+  /// @return Returns an `SizeT` with the current size of the buffer.
+  SizeT GetSize() const { return buf_.size(); }
 
 /// @brief The current size of the serialized buffer relative to the end of
 /// the 32-bit region.
@@ -415,6 +420,11 @@ template<bool Is64Aware = false> class FlatBufferBuilderImpl {
     Align(sizeof(uoffset64_t));
     // 64-bit offsets are relative to tail of the whole buffer
     return ReferTo(off, GetSize());
+  }
+
+  template<typename T, typename T2> T ReferTo(const T off, const T2 size) {
+    FLATBUFFERS_ASSERT(off && off <= size);
+    return size - off + static_cast<T>(sizeof(T));
   }
 
   template<typename T> T ReferTo(const T off, const T size) {
@@ -698,10 +708,10 @@ template<bool Is64Aware = false> class FlatBufferBuilderImpl {
   }
 
   /// @cond FLATBUFFERS_INTERNAL
-  template<typename SizeT = uoffset_t> uoffset_t EndVector(size_t len) {
+  template<typename LenT = uoffset_t> uoffset_t EndVector(size_t len) {
     FLATBUFFERS_ASSERT(nested);  // Hit if no corresponding StartVector.
     nested = false;
-    return PushElement(static_cast<SizeT>(len));
+    return PushElement(static_cast<LenT>(len));
   }
 
   template<typename LenT = uint32_t>
@@ -757,7 +767,7 @@ template<bool Is64Aware = false> class FlatBufferBuilderImpl {
     // If this assert hits, you're specifying a template argument that is
     // causing the wrong overload to be selected, remove it.
     AssertScalarT<T>();
-    StartVector<T, size_t>(len);
+    StartVector<T, LenT>(len);
     if (len == 0) {
       EndVector<LenT>(len);
       return OffsetT<VectorT<T>>(CalculateOffset<offset_type>());
@@ -1114,14 +1124,14 @@ template<bool Is64Aware = false> class FlatBufferBuilderImpl {
 
   /// @cond FLATBUFFERS_INTERNAL
   template<typename T> struct TableKeyComparator {
-    explicit TableKeyComparator(vector_downward<size_t> &buf) : buf_(buf) {}
+    explicit TableKeyComparator(vector_downward<SizeT> &buf) : buf_(buf) {}
     TableKeyComparator(const TableKeyComparator &other) : buf_(other.buf_) {}
     bool operator()(const Offset<T> &a, const Offset<T> &b) const {
       auto table_a = reinterpret_cast<T *>(buf_.data_at(a.o));
       auto table_b = reinterpret_cast<T *>(buf_.data_at(b.o));
       return table_a->KeyCompareLessThan(table_b);
     }
-    vector_downward<size_t> &buf_;
+    vector_downward<SizeT> &buf_;
 
    private:
     FLATBUFFERS_DELETE_FUNC(
@@ -1281,7 +1291,7 @@ template<bool Is64Aware = false> class FlatBufferBuilderImpl {
     voffset_t id;
   };
 
-  vector_downward<size_t> buf_;
+  vector_downward<SizeT> buf_;
 
   // Accumulating offsets of table members while it is being built.
   // We store these in the scratch pad of buf_, after the vtable offsets.
@@ -1329,14 +1339,15 @@ template<bool Is64Aware = false> class FlatBufferBuilderImpl {
   bool dedup_vtables_;
 
   struct StringOffsetCompare {
-    explicit StringOffsetCompare(const vector_downward<size_t> &buf) : buf_(&buf) {}
+    explicit StringOffsetCompare(const vector_downward<SizeT> &buf)
+        : buf_(&buf) {}
     bool operator()(const Offset<String> &a, const Offset<String> &b) const {
       auto stra = reinterpret_cast<const String *>(buf_->data_at(a.o));
       auto strb = reinterpret_cast<const String *>(buf_->data_at(b.o));
       return StringLessThan(stra->data(), stra->size(), strb->data(),
                             strb->size());
     }
-    const vector_downward<size_t> *buf_;
+    const vector_downward<SizeT> *buf_;
   };
 
   // For use with CreateSharedString. Instantiated on first use only.

@@ -1074,7 +1074,7 @@ class Parser : public ParserState {
   FLATBUFFERS_CHECKED_ERROR ParseAnyValue(Value &val, FieldDef *field,
                                           size_t parent_fieldn,
                                           const StructDef *parent_struct_def,
-                                          uoffset_t count,
+                                          size_t count,
                                           bool inside_vector = false);
   template<typename F>
   FLATBUFFERS_CHECKED_ERROR ParseTableDelimiters(size_t &fieldn,
