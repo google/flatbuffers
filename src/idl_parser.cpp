@@ -1702,7 +1702,9 @@ CheckedError Parser::ParseVector(const Type &vector_type, uoffset_t *ovalue,
 
   // TODO Fix using element alignment as size (`elemsize`)!
   if (vector_type.base_type == BASE_TYPE_VECTOR64) {
-    builder_.StartVector<uoffset64_t>(len, elemsize, alignment);
+    // TODO(derekbailey): this requires a 64-bit builder.
+    // builder_.StartVector<Offset64, uoffset64_t>(len, elemsize, alignment);
+    builder_.StartVector(len, elemsize, alignment);
   } else {
     builder_.StartVector(len, elemsize, alignment);
   }
