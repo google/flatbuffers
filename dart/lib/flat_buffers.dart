@@ -304,7 +304,7 @@ class Builder {
     assert(_inVTable);
     // Prepare for writing the VTable.
     _prepare(_sizeofInt32, 1);
-    var tableTail = _tail;
+    final tableTail = _tail;
     // Prepare the size of the current table.
     final currentVTable = _currentVTable!;
     currentVTable.tableSize = tableTail - _currentTableEndTail;
@@ -514,7 +514,7 @@ class Builder {
     var tail = _tail;
     _setUint32AtTail(tail, values.length);
     tail -= _sizeofUint32;
-    for (var value in values) {
+    for (final value in values) {
       _setUint32AtTail(tail, tail - value);
       tail -= _sizeofUint32;
     }
@@ -529,7 +529,7 @@ class Builder {
     var tail = _tail;
     _setUint32AtTail(tail, values.length);
     tail -= _sizeofUint32;
-    for (var value in values) {
+    for (final value in values) {
       _setFloat64AtTail(tail, value);
       tail -= _sizeofFloat64;
     }
@@ -544,7 +544,7 @@ class Builder {
     var tail = _tail;
     _setUint32AtTail(tail, values.length);
     tail -= _sizeofUint32;
-    for (var value in values) {
+    for (final value in values) {
       _setFloat32AtTail(tail, value);
       tail -= _sizeofFloat32;
     }
@@ -559,7 +559,7 @@ class Builder {
     var tail = _tail;
     _setUint32AtTail(tail, values.length);
     tail -= _sizeofUint32;
-    for (var value in values) {
+    for (final value in values) {
       _setInt64AtTail(tail, value);
       tail -= _sizeofInt64;
     }
@@ -574,7 +574,7 @@ class Builder {
     var tail = _tail;
     _setUint32AtTail(tail, values.length);
     tail -= _sizeofUint32;
-    for (var value in values) {
+    for (final value in values) {
       _setUint64AtTail(tail, value);
       tail -= _sizeofUint64;
     }
@@ -589,7 +589,7 @@ class Builder {
     var tail = _tail;
     _setUint32AtTail(tail, values.length);
     tail -= _sizeofUint32;
-    for (var value in values) {
+    for (final value in values) {
       _setInt32AtTail(tail, value);
       tail -= _sizeofInt32;
     }
@@ -604,7 +604,7 @@ class Builder {
     var tail = _tail;
     _setUint32AtTail(tail, values.length);
     tail -= _sizeofUint32;
-    for (var value in values) {
+    for (final value in values) {
       _setUint32AtTail(tail, value);
       tail -= _sizeofUint32;
     }
@@ -619,7 +619,7 @@ class Builder {
     var tail = _tail;
     _setUint32AtTail(tail, values.length);
     tail -= _sizeofUint32;
-    for (var value in values) {
+    for (final value in values) {
       _setInt16AtTail(tail, value);
       tail -= _sizeofInt16;
     }
@@ -634,7 +634,7 @@ class Builder {
     var tail = _tail;
     _setUint32AtTail(tail, values.length);
     tail -= _sizeofUint32;
-    for (var value in values) {
+    for (final value in values) {
       _setUint16AtTail(tail, value);
       tail -= _sizeofUint16;
     }
@@ -669,7 +669,7 @@ class Builder {
     var tail = _tail;
     _setUint32AtTail(tail, values.length);
     tail -= _sizeofUint32;
-    for (var value in values) {
+    for (final value in values) {
       _setUint8AtTail(tail, value);
       tail -= _sizeofUint8;
     }
@@ -777,17 +777,17 @@ class Builder {
       _maxAlign = size;
     }
     // Prepare amount of required space.
-    var dataSize = size * count + additionalBytes;
-    var alignDelta = (-(_tail + dataSize)) & (size - 1);
-    var bufSize = alignDelta + dataSize;
+    final dataSize = size * count + additionalBytes;
+    final alignDelta = (-(_tail + dataSize)) & (size - 1);
+    final bufSize = alignDelta + dataSize;
     // Ensure that we have the required amount of space.
     {
-      var oldCapacity = _buf.lengthInBytes;
+      final oldCapacity = _buf.lengthInBytes;
       if (_tail + bufSize > oldCapacity) {
-        var desiredNewCapacity = (oldCapacity + bufSize) * 2;
+        final desiredNewCapacity = (oldCapacity + bufSize) * 2;
         var deltaCapacity = desiredNewCapacity - oldCapacity;
         deltaCapacity += (-deltaCapacity) & (_maxAlign - 1);
-        var newCapacity = oldCapacity + deltaCapacity;
+        final newCapacity = oldCapacity + deltaCapacity;
         _buf = _allocator.resize(_buf, newCapacity, _tail, 0);
       }
     }
@@ -1023,22 +1023,22 @@ abstract class Reader<T> {
   /// Read the value of the given [field] in the given [object].
   @pragma('vm:prefer-inline')
   T vTableGet(BufferContext object, int offset, int field, T defaultValue) {
-    var fieldOffset = _vTableFieldOffset(object, offset, field);
+    final fieldOffset = _vTableFieldOffset(object, offset, field);
     return fieldOffset == 0 ? defaultValue : read(object, offset + fieldOffset);
   }
 
   /// Read the value of the given [field] in the given [object].
   @pragma('vm:prefer-inline')
   T? vTableGetNullable(BufferContext object, int offset, int field) {
-    var fieldOffset = _vTableFieldOffset(object, offset, field);
+    final fieldOffset = _vTableFieldOffset(object, offset, field);
     return fieldOffset == 0 ? null : read(object, offset + fieldOffset);
   }
 
   @pragma('vm:prefer-inline')
   int _vTableFieldOffset(BufferContext object, int offset, int field) {
-    var vTableSOffset = object._getInt32(offset);
-    var vTableOffset = offset - vTableSOffset;
-    var vTableSize = object._getUint16(vTableOffset);
+    final vTableSOffset = object._getInt32(offset);
+    final vTableOffset = offset - vTableSOffset;
+    final vTableSize = object._getUint16(vTableOffset);
     if (field >= vTableSize) return 0;
     return object._getUint16(vTableOffset + field);
   }
@@ -1057,9 +1057,9 @@ class StringReader extends Reader<String> {
   @override
   @pragma('vm:prefer-inline')
   String read(BufferContext bc, int offset) {
-    var strOffset = bc.derefObject(offset);
-    var length = bc._getUint32(strOffset);
-    var bytes = bc._asUint8List(strOffset + _sizeofUint32, length);
+    final strOffset = bc.derefObject(offset);
+    final length = bc._getUint32(strOffset);
+    final bytes = bc._asUint8List(strOffset + _sizeofUint32, length);
     if (asciiOptimization && _isLatin(bytes)) {
       return String.fromCharCodes(bytes);
     }
@@ -1068,7 +1068,7 @@ class StringReader extends Reader<String> {
 
   @pragma('vm:prefer-inline')
   static bool _isLatin(Uint8List bytes) {
-    var length = bytes.length;
+    final length = bytes.length;
     for (var i = 0; i < length; i++) {
       if (bytes[i] > 127) {
         return false;
@@ -1104,7 +1104,7 @@ abstract class TableReader<T> extends Reader<T> {
 
   @override
   T read(BufferContext bc, int offset) {
-    var objectOffset = bc.derefObject(offset);
+    final objectOffset = bc.derefObject(offset);
     return createObject(bc, objectOffset);
   }
 }
