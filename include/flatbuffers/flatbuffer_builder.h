@@ -18,6 +18,7 @@
 #define FLATBUFFERS_FLATBUFFER_BUILDER_H_
 
 #include <algorithm>
+#include <cstdint>
 #include <functional>
 #include <initializer_list>
 // TODO(derekbailey): remove after debugging issues.
@@ -311,13 +312,12 @@ template<bool Is64Aware = false> class FlatBufferBuilderImpl {
   }
 
   // Write a single aligned scalar to the buffer
-  template<typename T> uoffset_t PushElement(T element) {
+  template<typename T, typename ReturnT = uoffset_t>
+  ReturnT PushElement(T element) {
     AssertScalarT<T>();
     Align(sizeof(T));
     buf_.push_small(EndianScalar(element));
-    // For now this is always relative to the end of the 32-bit region. Once
-    // tables support 64-bit offset, this will have to be revisited.
-    return GetSizeRelative32BitRegion();
+    return CalculateOffset<ReturnT>();
   }
 
   template<typename T, template<typename> class OffsetT = Offset>
@@ -568,7 +568,7 @@ template<bool Is64Aware = false> class FlatBufferBuilderImpl {
     return CreateString<OffsetT>(str.c_str(), str.length());
   }
 
-// clang-format off
+  // clang-format off
   #ifdef FLATBUFFERS_HAS_STRING_VIEW
   /// @brief Store a string in the buffer, which can contain any binary data.
   /// @param[in] str A const string_view to copy in to the buffer.
@@ -670,10 +670,11 @@ template<bool Is64Aware = false> class FlatBufferBuilderImpl {
   }
 
   /// @cond FLATBUFFERS_INTERNAL
-  template<typename LenT = uoffset_t> uoffset_t EndVector(size_t len) {
+  template<typename LenT = uoffset_t, typename ReturnT = uoffset_t>
+  ReturnT EndVector(size_t len) {
     FLATBUFFERS_ASSERT(nested);  // Hit if no corresponding StartVector.
     nested = false;
-    return PushElement(static_cast<LenT>(len));
+    return PushElement<LenT, ReturnT>(static_cast<LenT>(len));
   }
 
   template<template<typename> class OffsetT = Offset, typename LenT = uint32_t>
@@ -747,8 +748,7 @@ template<bool Is64Aware = false> class FlatBufferBuilderImpl {
     #endif
       // clang-format on
     }
-    EndVector<LenT>(len);
-    return OffsetT<VectorT<T>>(CalculateOffset<offset_type>());
+    return OffsetT<VectorT<T>>(EndVector<LenT, offset_type>(len));
   }
 
   /// @brief Serialize an array like object into a FlatBuffer `vector`.
@@ -1411,9 +1411,8 @@ inline Offset64<String> FlatBufferBuilder64::CreateString(const char *str,
 // TODO(derekbailey): it would be nice to combine these two methods.
 template<>
 template<>
-inline void FlatBufferBuilder64::StartVector<Offset64, uint32_t>(size_t len,
-                                                          size_t elemsize,
-                                                          size_t alignment) {
+inline void FlatBufferBuilder64::StartVector<Offset64, uint32_t>(
+    size_t len, size_t elemsize, size_t alignment) {
   CanAddOffset64();
   // TODO(derekbailey): the call through uses `Offset` to distinguish this
   // from a recursive call, find a better way to do this without confusing
@@ -1423,9 +1422,8 @@ inline void FlatBufferBuilder64::StartVector<Offset64, uint32_t>(size_t len,
 
 template<>
 template<>
-inline void FlatBufferBuilder64::StartVector<Offset64, uint64_t>(size_t len,
-                                                          size_t elemsize,
-                                                          size_t alignment) {
+inline void FlatBufferBuilder64::StartVector<Offset64, uint64_t>(
+    size_t len, size_t elemsize, size_t alignment) {
   CanAddOffset64();
   StartVector<Offset, uint64_t>(len, elemsize, alignment);
 }
