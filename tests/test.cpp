@@ -1540,6 +1540,16 @@ void DoNotRequireEofTest(const std::string &tests_data_path) {
 }
 #endif
 
+static void Offset64Tests() {
+  Offset64Test();
+  Offset64SerializedFirst();
+  Offset64NestedFlatBuffer();
+  Offset64CreateDirect();
+  Offset64Evolution();
+  Offset64VectorOfStructs();
+  Offset64SizePrefix();
+}
+
 int FlatBufferTests(const std::string &tests_data_path) {
   // Run our various test suites:
 
@@ -1651,12 +1661,7 @@ int FlatBufferTests(const std::string &tests_data_path) {
   NestedStructKeyInStructTest();
   FixedSizedStructArrayKeyInStructTest();
   EmbeddedSchemaAccess();
-  Offset64Test();
-  Offset64SerializedFirst();
-  Offset64NestedFlatBuffer();
-  Offset64CreateDirect();
-  Offset64Evolution();
-  Offset64VectorOfStructs();
+  Offset64Tests();
   return 0;
 }
 }  // namespace

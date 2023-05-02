@@ -193,7 +193,7 @@ inline const v2::RootTable *GetRootTable(const void *buf) {
 }
 
 inline const v2::RootTable *GetSizePrefixedRootTable(const void *buf) {
-  return ::flatbuffers::GetSizePrefixedRoot<v2::RootTable>(buf);
+  return ::flatbuffers::GetSizePrefixedRoot<v2::RootTable,::flatbuffers::uoffset64_t>(buf);
 }
 
 inline RootTable *GetMutableRootTable(void *buf) {
@@ -201,7 +201,7 @@ inline RootTable *GetMutableRootTable(void *buf) {
 }
 
 inline v2::RootTable *GetMutableSizePrefixedRootTable(void *buf) {
-  return ::flatbuffers::GetMutableSizePrefixedRoot<v2::RootTable>(buf);
+  return ::flatbuffers::GetMutableSizePrefixedRoot<v2::RootTable,::flatbuffers::uoffset64_t>(buf);
 }
 
 inline bool VerifyRootTableBuffer(
@@ -211,7 +211,7 @@ inline bool VerifyRootTableBuffer(
 
 inline bool VerifySizePrefixedRootTableBuffer(
     ::flatbuffers::Verifier &verifier) {
-  return verifier.VerifySizePrefixedBuffer<v2::RootTable>(nullptr);
+  return verifier.VerifySizePrefixedBuffer<v2::RootTable,::flatbuffers::uoffset64_t>(nullptr);
 }
 
 inline void FinishRootTableBuffer(

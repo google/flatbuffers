@@ -61,7 +61,7 @@ inline void EndianCheck() {
 }
 
 template<typename T> FLATBUFFERS_CONSTEXPR size_t AlignOf() {
-  // clang-format off
+// clang-format off
   #ifdef _MSC_VER
     return __alignof(T);
   #else
@@ -179,17 +179,18 @@ template<typename T> T *GetMutableRoot(void *buf) {
       EndianScalar(*reinterpret_cast<uoffset_t *>(buf)));
 }
 
-template<typename T> T *GetMutableSizePrefixedRoot(void *buf) {
-  return GetMutableRoot<T>(reinterpret_cast<uint8_t *>(buf) +
-                           sizeof(uoffset_t));
+template<typename T, typename SizeT = uoffset_t>
+T *GetMutableSizePrefixedRoot(void *buf) {
+  return GetMutableRoot<T>(reinterpret_cast<uint8_t *>(buf) + sizeof(SizeT));
 }
 
 template<typename T> const T *GetRoot(const void *buf) {
   return GetMutableRoot<T>(const_cast<void *>(buf));
 }
 
-template<typename T> const T *GetSizePrefixedRoot(const void *buf) {
-  return GetRoot<T>(reinterpret_cast<const uint8_t *>(buf) + sizeof(uoffset_t));
+template<typename T, typename SizeT = uoffset_t>
+const T *GetSizePrefixedRoot(const void *buf) {
+  return GetRoot<T>(reinterpret_cast<const uint8_t *>(buf) + sizeof(SizeT));
 }
 
 }  // namespace flatbuffers

@@ -242,11 +242,11 @@ class Verifier FLATBUFFERS_FINAL_CLASS {
     return VerifyBufferFromStart<T>(identifier, 0);
   }
 
-  template<typename T>
+  template<typename T, typename SizeT = uoffset_t>
   bool VerifySizePrefixedBuffer(const char *const identifier) {
-    return Verify<uoffset_t>(0U) &&
-           Check(ReadScalar<uoffset_t>(buf_) == size_ - sizeof(uoffset_t)) &&
-           VerifyBufferFromStart<T>(identifier, sizeof(uoffset_t));
+    return Verify<SizeT>(0U) &&
+           Check(ReadScalar<SizeT>(buf_) == size_ - sizeof(SizeT)) &&
+           VerifyBufferFromStart<T>(identifier, sizeof(SizeT));
   }
 
   template<typename OffsetT = uoffset_t, typename SOffsetT = soffset_t>

@@ -7,6 +7,7 @@
 #include <string>
 #include <vector>
 
+#include "flatbuffers/base.h"
 #include "flatbuffers/reflection.h"
 #include "flatbuffers/util.h"
 #include "flatbuffers/verifier.h"
@@ -120,12 +121,15 @@ static BinarySection GenerateMissingSection(const uint64_t offset,
 
 std::map<uint64_t, BinarySection> BinaryAnnotator::Annotate() {
   flatbuffers::Verifier verifier(bfbs_, static_cast<size_t>(bfbs_length_));
-  if (!reflection::VerifySchemaBuffer(verifier)) { return {}; }
+
+  if ((is_size_prefixed_ &&
+       !reflection::VerifySizePrefixedSchemaBuffer(verifier)) ||
+      !reflection::VerifySchemaBuffer(verifier)) {
+    return {};
+  }
 
   // The binary is too short to read as a flatbuffers.
-  // TODO(dbaileychess): We could spit out the annotated buffer sections, but
-  // I'm not sure if it is worth it.
-  if (binary_length_ < 4) { return {}; }
+  if (binary_length_ < FLATBUFFERS_MIN_BUFFER_SIZE) { return {}; }
 
   // Make sure we start with a clean slate.
   vtables_.clear();
@@ -153,7 +157,41 @@ std::map<uint64_t, BinarySection> BinaryAnnotator::Annotate() {
 }
 
 uint64_t BinaryAnnotator::BuildHeader(const uint64_t header_offset) {
-  const auto root_table_offset = ReadScalar<uint32_t>(header_offset);
+  uint64_t offset = header_offset;
+  std::vector<BinaryRegion> regions;
+
+  // If this binary is a size prefixed one, attempt to parse the size.
+  if (is_size_prefixed_) {
+    BinaryRegionComment prefix_length_comment;
+    prefix_length_comment.type = BinaryRegionCommentType::SizePrefix;
+
+    bool has_prefix_value = false;
+    const auto prefix_length = ReadScalar<uoffset64_t>(offset);
+    if (*prefix_length <= binary_length_) {
+      regions.push_back(MakeBinaryRegion(offset, sizeof(uoffset64_t),
+                                         BinaryRegionType::Uint64, 0, 0,
+                                         prefix_length_comment));
+      offset += sizeof(uoffset64_t);
+      has_prefix_value = true;
+    }
+
+    if (!has_prefix_value) {
+      const auto prefix_length = ReadScalar<uoffset_t>(offset);
+      if (*prefix_length <= binary_length_) {
+        regions.push_back(MakeBinaryRegion(offset, sizeof(uoffset_t),
+                                           BinaryRegionType::Uint32, 0, 0,
+                                           prefix_length_comment));
+        offset += sizeof(uoffset_t);
+        has_prefix_value = true;
+      }
+    }
+
+    if (!has_prefix_value) {
+      SetError(prefix_length_comment, BinaryRegionStatus::ERROR);
+    }
+  }
+
+  const auto root_table_offset = ReadScalar<uint32_t>(offset);
 
   if (!root_table_offset.has_value()) {
     // This shouldn't occur, since we validate the min size of the buffer
@@ -161,22 +199,20 @@ uint64_t BinaryAnnotator::BuildHeader(const uint64_t header_offset) {
     return std::numeric_limits<uint64_t>::max();
   }
 
-  std::vector<BinaryRegion> regions;
-  uint64_t offset = header_offset;
-  // TODO(dbaileychess): sized prefixed value
+  const auto root_table_loc = offset + *root_table_offset;
 
   BinaryRegionComment root_offset_comment;
   root_offset_comment.type = BinaryRegionCommentType::RootTableOffset;
   root_offset_comment.name = schema_->root_table()->name()->str();
 
-  if (!IsValidOffset(root_table_offset.value())) {
+  if (!IsValidOffset(root_table_loc)) {
     SetError(root_offset_comment,
              BinaryRegionStatus::ERROR_OFFSET_OUT_OF_BINARY);
   }
 
-  regions.push_back(
-      MakeBinaryRegion(offset, sizeof(uint32_t), BinaryRegionType::UOffset, 0,
-                       root_table_offset.value(), root_offset_comment));
+  regions.push_back(MakeBinaryRegion(offset, sizeof(uint32_t),
+                                     BinaryRegionType::UOffset, 0,
+                                     root_table_loc, root_offset_comment));
   offset += sizeof(uint32_t);
 
   if (IsValidRead(offset, flatbuffers::kFileIdentifierLength) &&
@@ -195,7 +231,7 @@ uint64_t BinaryAnnotator::BuildHeader(const uint64_t header_offset) {
   AddSection(header_offset, MakeBinarySection("", BinarySectionType::Header,
                                               std::move(regions)));
 
-  return root_table_offset.value();
+  return root_table_loc;
 }
 
 BinaryAnnotator::VTable *BinaryAnnotator::GetOrBuildVTable(
@@ -1046,8 +1082,9 @@ void BinaryAnnotator::BuildVector(
 
   // Validate there are enough bytes left in the binary to process all the
   // items.
-  const uint64_t last_item_offset = vector_offset + vector_length_size_type +
-                                    vector_length.value() * GetElementSize(field);
+  const uint64_t last_item_offset =
+      vector_offset + vector_length_size_type +
+      vector_length.value() * GetElementSize(field);
 
   if (!IsValidOffset(last_item_offset - 1)) {
     SetError(vector_length_comment, BinaryRegionStatus::ERROR_LENGTH_TOO_LONG);

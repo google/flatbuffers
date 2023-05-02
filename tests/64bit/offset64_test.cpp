@@ -4,8 +4,6 @@
 
 #include <cstdint>
 #include <fstream>
-// TODO(derekbailey): remove when done debugging
-#include <iostream>
 #include <limits>
 #include <ostream>
 
@@ -342,6 +340,39 @@ void Offset64VectorOfStructs() {
   TEST_EQ(root_table->big_struct_vector()->Get(1)->b(), 82.8);
   TEST_EQ(root_table->big_struct_vector()->Get(2)->a(), 92);
   TEST_EQ(root_table->big_struct_vector()->Get(2)->b(), 92.8);
+}
+
+void Offset64SizePrefix() {
+  FlatBufferBuilder64 builder;
+
+  // First serialize a nested buffer.
+  const Offset<String> near_string_offset =
+      builder.CreateString("some near string");
+
+  // Finish by building the root table by passing in all the offsets.
+  const Offset<RootTable> root_table_offset =
+      CreateRootTable(builder, 0, 0, 0, 0, near_string_offset, 0);
+
+  // Finish the buffer.
+  FinishSizePrefixedRootTableBuffer(builder, root_table_offset);
+
+  TEST_EQ(GetPrefixedSize<uoffset64_t>(builder.GetBufferPointer()),
+          builder.GetSize() - sizeof(uoffset64_t));
+
+  Verifier::Options options;
+  // Allow the verifier to verify 64-bit buffers.
+  options.max_size = FLATBUFFERS_MAX_64_BUFFER_SIZE;
+  options.assert = true;
+
+  Verifier verifier(builder.GetBufferPointer(), builder.GetSize(), options);
+
+  TEST_EQ(VerifySizePrefixedRootTableBuffer(verifier), true);
+
+  const RootTable *root_table =
+      GetSizePrefixedRootTable(builder.GetBufferPointer());
+
+  // Verify the fields.
+  TEST_EQ_STR(root_table->near_string()->c_str(), "some near string");
 }
 
 }  // namespace tests

@@ -566,6 +566,8 @@ class CppGenerator : public BaseGenerator {
       code_.SetValue("STRUCT_NAME", name);
       code_.SetValue("CPP_NAME", cpp_name);
       code_.SetValue("NULLABLE_EXT", NullableExtension());
+      code_.SetValue(
+          "SIZE_T", needs_64_bit_builder_ ? ",::flatbuffers::uoffset64_t" : "");
 
       // The root datatype accessor:
       code_ += "inline \\";
@@ -582,7 +584,8 @@ class CppGenerator : public BaseGenerator {
           "*{{NULLABLE_EXT}}GetSizePrefixed{{STRUCT_NAME}}(const void "
           "*buf) {";
       code_ +=
-          "  return ::flatbuffers::GetSizePrefixedRoot<{{CPP_NAME}}>(buf);";
+          "  return "
+          "::flatbuffers::GetSizePrefixedRoot<{{CPP_NAME}}{{SIZE_T}}>(buf);";
       code_ += "}";
       code_ += "";
 
@@ -601,7 +604,8 @@ class CppGenerator : public BaseGenerator {
             "*buf) {";
         code_ +=
             "  return "
-            "::flatbuffers::GetMutableSizePrefixedRoot<{{CPP_NAME}}>(buf);";
+            "::flatbuffers::GetMutableSizePrefixedRoot<{{CPP_NAME}}{{SIZE_T}}>("
+            "buf);";
         code_ += "}";
         code_ += "";
       }
@@ -648,7 +652,8 @@ class CppGenerator : public BaseGenerator {
       code_ += "inline bool VerifySizePrefixed{{STRUCT_NAME}}Buffer(";
       code_ += "    ::flatbuffers::Verifier &verifier) {";
       code_ +=
-          "  return verifier.VerifySizePrefixedBuffer<{{CPP_NAME}}>({{ID}});";
+          "  return "
+          "verifier.VerifySizePrefixedBuffer<{{CPP_NAME}}{{SIZE_T}}>({{ID}});";
       code_ += "}";
       code_ += "";
 

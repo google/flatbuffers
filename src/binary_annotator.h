@@ -245,12 +245,14 @@ class BinaryAnnotator {
   explicit BinaryAnnotator(const uint8_t *const bfbs,
                            const uint64_t bfbs_length,
                            const uint8_t *const binary,
-                           const uint64_t binary_length)
+                           const uint64_t binary_length,
+                           const bool is_size_prefixed)
       : bfbs_(bfbs),
         bfbs_length_(bfbs_length),
         schema_(reflection::GetSchema(bfbs)),
         binary_(binary),
-        binary_length_(binary_length) {}
+        binary_length_(binary_length),
+        is_size_prefixed_(is_size_prefixed) {}
 
   std::map<uint64_t, BinarySection> Annotate();
 
@@ -390,6 +392,7 @@ class BinaryAnnotator {
   // The binary data itself.
   const uint8_t *binary_;
   const uint64_t binary_length_;
+  const bool is_size_prefixed_;
 
   // Map of binary offset to vtables, to dedupe vtables.
   std::map<uint64_t, std::list<VTable>> vtables_;

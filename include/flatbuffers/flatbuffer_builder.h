@@ -566,7 +566,7 @@ template<bool Is64Aware = false> class FlatBufferBuilderImpl {
     return CreateString<OffsetT>(str.c_str(), str.length());
   }
 
-  // clang-format off
+// clang-format off
   #ifdef FLATBUFFERS_HAS_STRING_VIEW
   /// @brief Store a string in the buffer, which can contain any binary data.
   /// @param[in] str A const string_view to copy in to the buffer.
@@ -1245,18 +1245,24 @@ template<bool Is64Aware = false> class FlatBufferBuilderImpl {
   void Finish(uoffset_t root, const char *file_identifier, bool size_prefix) {
     NotNested();
     buf_.clear_scratch();
+
+    const size_t prefix_size = size_prefix ? sizeof(SizeT) : 0;
+    // Make sure we track the alignment of the size prefix.
+    TrackMinAlign(prefix_size);
+
+    const size_t root_offset_size = sizeof(uoffset_t);
+    const size_t file_id_size = file_identifier ? kFileIdentifierLength : 0;
+
     // This will cause the whole buffer to be aligned.
-    PreAlign((size_prefix ? sizeof(uoffset_t) : 0) + sizeof(uoffset_t) +
-                 (file_identifier ? kFileIdentifierLength : 0),
-             minalign_);
+    PreAlign(prefix_size + root_offset_size + file_id_size, minalign_);
+
     if (file_identifier) {
       FLATBUFFERS_ASSERT(strlen(file_identifier) == kFileIdentifierLength);
       PushBytes(reinterpret_cast<const uint8_t *>(file_identifier),
                 kFileIdentifierLength);
     }
     PushElement(ReferTo(root));  // Location of root.
-    // TODO(derekbailey): update size prefix to handle 64-bit sizes.
-    if (size_prefix) { PushElement(static_cast<uoffset_t>(GetSize())); }
+    if (size_prefix) { PushElement(GetSize()); }
     finished = true;
   }
 
@@ -1425,8 +1431,7 @@ inline Offset64<String> FlatBufferBuilder64::CreateString(const char *str,
 }
 
 // Used to distinguish from real Offsets.
-template<typename T = void>
-struct EmptyOffset{};
+template<typename T = void> struct EmptyOffset {};
 
 // TODO(derekbailey): it would be nice to combine these two methods.
 template<>
