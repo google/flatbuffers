@@ -66,6 +66,7 @@ struct RootTable FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
            VerifyOffset(verifier, VT_B) &&
            verifier.VerifyVector(b()) &&
            VerifyOffset64(verifier, VT_BIG_VECTOR) &&
+           verifier.VerifyVector(big_vector()) &&
            verifier.EndTable();
   }
   RootTableT *UnPack(const ::flatbuffers::resolver_function_t *_resolver = nullptr) const;

@@ -163,12 +163,16 @@ struct RootTable FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
            VerifyOffset64(verifier, VT_FAR_STRING) &&
            verifier.VerifyString(far_string()) &&
            VerifyOffset64(verifier, VT_BIG_VECTOR) &&
+           verifier.VerifyVector(big_vector()) &&
            VerifyOffset(verifier, VT_NEAR_STRING) &&
            verifier.VerifyString(near_string()) &&
            VerifyOffset64(verifier, VT_NESTED_ROOT) &&
+           verifier.VerifyVector(nested_root()) &&
+           verifier.VerifyNestedFlatBuffer<RootTable>(nested_root(), nullptr) &&
            VerifyOffset64(verifier, VT_FAR_STRUCT_VECTOR) &&
            verifier.VerifyVector(far_struct_vector()) &&
            VerifyOffset64(verifier, VT_BIG_STRUCT_VECTOR) &&
+           verifier.VerifyVector(big_struct_vector()) &&
            verifier.EndTable();
   }
   RootTableT *UnPack(const ::flatbuffers::resolver_function_t *_resolver = nullptr) const;

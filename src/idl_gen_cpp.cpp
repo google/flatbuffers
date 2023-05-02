@@ -2267,8 +2267,6 @@ class CppGenerator : public BaseGenerator {
         break;
       }
       case BASE_TYPE_VECTOR64:
-        // TODO(derekbailey): add verifier support
-        break;
       case BASE_TYPE_VECTOR: {
         code_ += "{{PRE}}verifier.VerifyVector({{NAME}}())\\";
 

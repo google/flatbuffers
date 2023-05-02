@@ -117,16 +117,16 @@ class Verifier FLATBUFFERS_FINAL_CLASS {
   }
 
   // Verify a pointer (may be NULL) of any vector type.
-  template<typename T, typename SizeT = uoffset_t>
+  template<int &..., typename T, typename SizeT = uoffset_t>
   bool VerifyVector(const Vector<T, SizeT> *const vec) const {
     return !vec || VerifyVectorOrString(reinterpret_cast<const uint8_t *>(vec),
                                         sizeof(T));
   }
 
   // Verify a pointer (may be NULL) of a vector to struct.
-  template<typename T>
-  bool VerifyVector(const Vector<const T *> *const vec) const {
-    return VerifyVector(reinterpret_cast<const Vector<T> *>(vec));
+  template<int &..., typename T, typename SizeT = uoffset_t>
+  bool VerifyVector(const Vector<const T *, SizeT> *const vec) const {
+    return VerifyVector(reinterpret_cast<const Vector<T, SizeT> *>(vec));
   }
 
   // Verify a pointer (may be NULL) to string.
@@ -219,8 +219,8 @@ class Verifier FLATBUFFERS_FINAL_CLASS {
     // clang-format on
   }
 
-  template<typename T>
-  bool VerifyNestedFlatBuffer(const Vector<uint8_t> *const buf,
+  template<typename T, int &..., typename SizeT = uoffset_t>
+  bool VerifyNestedFlatBuffer(const Vector<uint8_t, SizeT> *const buf,
                               const char *const identifier) {
     // Caller opted out of this.
     if (!opts_.check_nested_flatbuffers) return true;

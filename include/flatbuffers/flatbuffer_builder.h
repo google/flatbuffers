@@ -1424,16 +1424,17 @@ inline Offset64<String> FlatBufferBuilder64::CreateString(const char *str,
       CalculateOffset<typename Offset64<String>::offset_type>());
 }
 
+// Used to distinguish from real Offsets.
+template<typename T = void>
+struct EmptyOffset{};
+
 // TODO(derekbailey): it would be nice to combine these two methods.
 template<>
 template<>
 inline void FlatBufferBuilder64::StartVector<Offset64, uint32_t>(
     size_t len, size_t elemsize, size_t alignment) {
   CanAddOffset64();
-  // TODO(derekbailey): the call through uses `Offset` to distinguish this
-  // from a recursive call, find a better way to do this without confusing
-  // things.
-  StartVector<Offset, uint32_t>(len, elemsize, alignment);
+  StartVector<EmptyOffset, uint32_t>(len, elemsize, alignment);
 }
 
 template<>
@@ -1441,7 +1442,7 @@ template<>
 inline void FlatBufferBuilder64::StartVector<Offset64, uint64_t>(
     size_t len, size_t elemsize, size_t alignment) {
   CanAddOffset64();
-  StartVector<Offset, uint64_t>(len, elemsize, alignment);
+  StartVector<EmptyOffset, uint64_t>(len, elemsize, alignment);
 }
 
 /// Helpers to get a typed pointer to objects that are currently being built.
