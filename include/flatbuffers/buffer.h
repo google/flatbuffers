@@ -27,19 +27,21 @@ namespace flatbuffers {
 // Value is allowed to be 0 to indicate a null object (see e.g. AddOffset).
 template<typename T> struct Offset {
   typedef uoffset_t offset_type;
-  uoffset_t o;
+
+  offset_type o;
   Offset() : o(0) {}
-  Offset(uoffset_t _o) : o(_o) {}
-  Offset<void> Union() const { return Offset<void>(o); }
+  Offset(const offset_type _o) : o(_o) {}
+  Offset<void> Union() const { return o; }
   bool IsNull() const { return !o; }
 };
 
 template<typename T> struct Offset64 {
   typedef uoffset64_t offset_type;
-  uoffset64_t o;
+
+  offset_type o;
   Offset64() : o(0) {}
-  Offset64(const uoffset64_t offset) : o(offset) {}
-  Offset64<void> Union() const { return Offset64<void>(o); }
+  Offset64(const offset_type offset) : o(offset) {}
+  Offset64<void> Union() const { return o; }
   bool IsNull() const { return !o; }
 };
 
@@ -52,7 +54,7 @@ inline void EndianCheck() {
 }
 
 template<typename T> FLATBUFFERS_CONSTEXPR size_t AlignOf() {
-// clang-format off
+  // clang-format off
   #ifdef _MSC_VER
     return __alignof(T);
   #else
@@ -115,7 +117,8 @@ template<typename T> struct IndirectHelper<Offset64<T>> {
   }
   static mutable_return_type Read(uint8_t *p, uoffset64_t i) {
     p += i * sizeof(uoffset64_t);
-    return reinterpret_cast<mutable_return_type>(p + ReadScalar<uoffset64_t>(p));
+    return reinterpret_cast<mutable_return_type>(p +
+                                                 ReadScalar<uoffset64_t>(p));
   }
 };
 template<typename T> struct IndirectHelper<const T *> {

@@ -159,31 +159,8 @@ template<typename T, uint16_t length> class Array {
 
 // Specialization for Array[struct] with access using Offset<void> pointer.
 // This specialization used by idl_gen_text.cpp.
-template<typename T, uint16_t length> class Array<Offset<T>, length> {
-  static_assert(flatbuffers::is_same<T, void>::value, "unexpected type T");
-
- public:
-  typedef const void *return_type;
-  typedef uint16_t size_type;
-
-  const uint8_t *Data() const { return data_; }
-
-  // Make idl_gen_text.cpp::PrintContainer happy.
-  return_type operator[](uoffset_t) const {
-    FLATBUFFERS_ASSERT(false);
-    return nullptr;
-  }
-
- private:
-  // This class is only used to access pre-existing data.
-  Array();
-  Array(const Array &);
-  Array &operator=(const Array &);
-
-  uint8_t data_[1];
-};
-
-template<typename T, uint16_t length> class Array<Offset64<T>, length> {
+template<typename T, uint16_t length, template<typename> class OffsetT>
+class Array<OffsetT<T>, length> {
   static_assert(flatbuffers::is_same<T, void>::value, "unexpected type T");
 
  public:
