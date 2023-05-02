@@ -94,31 +94,23 @@ template<typename T> struct IndirectHelper {
     return Read(const_cast<const uint8_t *>(p), i);
   }
 };
-template<typename T> struct IndirectHelper<Offset<T>> {
+
+template<typename T, template<typename> class OffsetT>
+struct IndirectHelper<OffsetT<T>> {
   typedef const T *return_type;
   typedef T *mutable_return_type;
-  static const size_t element_stride = sizeof(uoffset_t);
-  static return_type Read(const uint8_t *p, uoffset_t i) {
-    p += i * sizeof(uoffset_t);
-    return reinterpret_cast<return_type>(p + ReadScalar<uoffset_t>(p));
+  typedef typename OffsetT<T>::offset_type offset_type;
+
+  static const size_t element_stride = sizeof(offset_type);
+
+  static return_type Read(const uint8_t *p, offset_type i) {
+    p += i * element_stride;
+    return reinterpret_cast<return_type>(p + ReadScalar<offset_type>(p));
   }
-  static mutable_return_type Read(uint8_t *p, uoffset_t i) {
-    p += i * sizeof(uoffset_t);
-    return reinterpret_cast<mutable_return_type>(p + ReadScalar<uoffset_t>(p));
-  }
-};
-template<typename T> struct IndirectHelper<Offset64<T>> {
-  typedef const T *return_type;
-  typedef T *mutable_return_type;
-  static const size_t element_stride = sizeof(uoffset64_t);
-  static return_type Read(const uint8_t *p, uoffset64_t i) {
-    p += i * sizeof(uoffset64_t);
-    return reinterpret_cast<return_type>(p + ReadScalar<uoffset64_t>(p));
-  }
-  static mutable_return_type Read(uint8_t *p, uoffset64_t i) {
-    p += i * sizeof(uoffset64_t);
+  static mutable_return_type Read(uint8_t *p, offset_type i) {
+    p += i * element_stride;
     return reinterpret_cast<mutable_return_type>(p +
-                                                 ReadScalar<uoffset64_t>(p));
+                                                 ReadScalar<offset_type>(p));
   }
 };
 template<typename T> struct IndirectHelper<const T *> {
