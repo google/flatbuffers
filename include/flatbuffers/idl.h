@@ -213,7 +213,8 @@ struct Type {
   bool Deserialize(const Parser &parser, const reflection::Type *type);
 
   BaseType base_type;
-  BaseType element;  // only set if t == BASE_TYPE_VECTOR or BASE_TYPE_VECTOR64
+  BaseType element;       // only set if t == BASE_TYPE_VECTOR or 
+                          // BASE_TYPE_VECTOR64
   StructDef *struct_def;  // only set if t or element == BASE_TYPE_STRUCT
   EnumDef *enum_def;      // set if t == BASE_TYPE_UNION / BASE_TYPE_UTYPE,
                           // or for an integral type derived from an enum.

@@ -1,27 +1,28 @@
 #include "test_builder.h"
 
-#include "flatbuffers/base.h"
+#include "flatbuffers/flatbuffer_builder.h"
 #include "flatbuffers/stl_emulation.h"
 #include "monster_test_generated.h"
 
 using namespace MyGame::Example;
+using namespace flatbuffers;
 
-struct OwnedAllocator : public flatbuffers::DefaultAllocator {};
+struct OwnedAllocator : public DefaultAllocator {};
 
-class TestHeapBuilder : public flatbuffers::FlatBufferBuilderImpl<false> {
+class TestHeapBuilder : public FlatBufferBuilder {
  private:
   TestHeapBuilder(const TestHeapBuilder &);
   TestHeapBuilder &operator=(const TestHeapBuilder &);
 
  public:
   TestHeapBuilder()
-      : FlatBufferBuilderImpl(2048, new OwnedAllocator(), true) {}
+      : FlatBufferBuilder(2048, new OwnedAllocator(), true) {}
 
   TestHeapBuilder(TestHeapBuilder &&other)
-      : FlatBufferBuilderImpl(std::move(other)) {}
+      : FlatBufferBuilder(std::move(other)) {}
 
   TestHeapBuilder &operator=(TestHeapBuilder &&other) {
-    flatbuffers::FlatBufferBuilder::operator=(std::move(other));
+    FlatBufferBuilder::operator=(std::move(other));
     return *this;
   }
 };
@@ -32,17 +33,17 @@ struct AllocatorMember {
 };
 
 struct GrpcLikeMessageBuilder : private AllocatorMember,
-                                public flatbuffers::FlatBufferBuilder {
+                                public FlatBufferBuilder {
  private:
   GrpcLikeMessageBuilder(const GrpcLikeMessageBuilder &);
   GrpcLikeMessageBuilder &operator=(const GrpcLikeMessageBuilder &);
 
  public:
   GrpcLikeMessageBuilder()
-      : FlatBufferBuilderImpl(1024, &member_allocator_, false) {}
+      : FlatBufferBuilder(1024, &member_allocator_, false) {}
 
   GrpcLikeMessageBuilder(GrpcLikeMessageBuilder &&other)
-      : FlatBufferBuilderImpl(1024, &member_allocator_, false) {
+      : FlatBufferBuilder(1024, &member_allocator_, false) {
     // Default construct and swap idiom.
     Swap(other);
   }
@@ -56,7 +57,7 @@ struct GrpcLikeMessageBuilder : private AllocatorMember,
 
   void Swap(GrpcLikeMessageBuilder &other) {
     // No need to swap member_allocator_ because it's stateless.
-    flatbuffers::FlatBufferBuilder::Swap(other);
+    FlatBufferBuilder::Swap(other);
     // After swapping the FlatBufferBuilder, we swap back the allocator, which
     // restores the original allocator back in place. This is necessary because
     // MessageBuilder's allocator is its own member (SliceAllocatorMember). The

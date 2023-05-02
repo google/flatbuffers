@@ -1624,7 +1624,7 @@ CheckedError Parser::ParseTable(const StructDef &struct_def, std::string *value,
         }
       }
     }
-  }  // namespace flatbuffers
+  }
   for (size_t i = 0; i < fieldn_outer; i++) field_stack_.pop_back();
 
   if (struct_def.fixed) {
