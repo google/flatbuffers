@@ -134,6 +134,25 @@ void ErrorTest() {
             "`offset64` attribute");
   TestError("struct y { a:int; } table X { a:y (offset64); }",
             "`offset64` attribute");
+  TestError("table y { a:int; } table X { a:y (vector64); }",
+            "`vector64` attribute");
+  TestError("union Y { } table X { ys:Y (offset64); }", "`offset64` attribute");
+
+  TestError("table Y { a:int; } table X { ys:[Y] (offset64); }",
+            "only vectors of scalars are allowed to be 64-bit.");
+  TestError("table Y { a:int; } table X { ys:[Y] (vector64); }",
+            "only vectors of scalars are allowed to be 64-bit.");
+  TestError("union Y { } table X { ys:[Y] (vector64); }",
+            "only vectors of scalars are allowed to be 64-bit.");
+
+  // TOOD(derekbailey): the following three could be allowed once the code gen
+  // supports the output.
+  TestError("table X { y:[string] (offset64); }",
+            "only vectors of scalars are allowed to be 64-bit.");
+  TestError("table X { y:[string] (vector64); }",
+            "only vectors of scalars are allowed to be 64-bit.");
+  TestError("enum X:byte {Z} table X { y:[X] (offset64); }",
+            "only vectors of scalars are allowed to be 64-bit.");
 }
 
 void EnumOutOfRangeTest() {

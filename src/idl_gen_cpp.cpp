@@ -106,7 +106,7 @@ struct IDLOptionsCpp : public IDLOptions {
       : IDLOptions(opts), g_cpp_std(CPP_STD_11), g_only_fixed_enums(true) {}
 };
 
-// Iterates over all the fields of the object first by Offset type (Offset64 
+// Iterates over all the fields of the object first by Offset type (Offset64
 // before Offset32) and then by definition order.
 static void ForAllFieldsOrderedByOffset(
     const StructDef &object, std::function<void(const FieldDef *field)> func) {
@@ -2921,9 +2921,9 @@ class CppGenerator : public BaseGenerator {
     // Generate code to do force_align for the vector.
     if (align > 1) {
       const auto vtype = field.value.type.VectorType();
-      const std::string & type = IsStruct(vtype)
-                            ? WrapInNameSpace(*vtype.struct_def)
-                            : GenTypeWire(vtype, "", false, field.offset64);
+      const std::string &type =
+          IsStruct(vtype) ? WrapInNameSpace(*vtype.struct_def)
+                          : GenTypeWire(vtype, "", false, field.offset64);
       return "_fbb.ForceVectorAlignment(" + field_size + ", sizeof(" + type +
              "), " + std::to_string(static_cast<long long>(align)) + ");";
     }
@@ -3096,7 +3096,8 @@ class CppGenerator : public BaseGenerator {
           if (IsStruct(vtype)) {
             const auto type = WrapInNameSpace(*vtype.struct_def);
             code_ += (has_key ? "_fbb.CreateVectorOfSortedStructs<"
-                              : "_fbb.CreateVectorOfStructs<") +
+                              : std::string("_fbb.CreateVectorOfStructs") +
+                                    (field->offset64 ? "64<" : "<")) +
                      type + ">\\";
           } else if (has_key) {
             const auto type = WrapInNameSpace(*vtype.struct_def);
@@ -3437,6 +3438,9 @@ class CppGenerator : public BaseGenerator {
                 code += ")";
               } else {
                 code += "_fbb.CreateVectorOfStructs";
+                if(field.offset64) {
+                  code += "64";
+                }
                 code += "(" + value + ")";
               }
             } else {

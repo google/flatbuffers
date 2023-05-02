@@ -22,7 +22,7 @@ namespace flatbuffers {
 namespace tests {
 
 void Offset64Test() {
-  flatbuffers::FlatBufferBuilder64 builder;
+  FlatBufferBuilder64 builder;
 
   const size_t far_vector_size = 1LL << 2;
   const size_t big_vector_size = 1LL << 31;
@@ -96,7 +96,7 @@ void Offset64Test() {
 }
 
 void Offset64SerializedFirst() {
-  flatbuffers::FlatBufferBuilder64 fbb;
+  FlatBufferBuilder64 fbb;
 
   // First create the vectors that will be copied to the buffer.
   std::vector<uint8_t> data;
@@ -114,7 +114,7 @@ void Offset64SerializedFirst() {
 }
 
 void Offset64NestedFlatBuffer() {
-  flatbuffers::FlatBufferBuilder64 fbb;
+  FlatBufferBuilder64 fbb;
 
   // First serialize a nested buffer.
   const Offset<String> near_string_offset =
@@ -180,7 +180,7 @@ void Offset64NestedFlatBuffer() {
 }
 
 void Offset64CreateDirect() {
-  flatbuffers::FlatBufferBuilder64 fbb;
+  FlatBufferBuilder64 fbb;
 
   // Create a vector of some data
   std::vector<uint8_t> data{ 0, 1, 2 };
@@ -296,6 +296,39 @@ void Offset64Evolution() {
     TEST_EQ(v2_root->big_vector()->size(), giant_data.size());
     TEST_EQ(v2_root->big_vector()->Get(2), 42);
   }
+}
+
+void Offset64VectorOfStructs() {
+  FlatBufferBuilder64 builder;
+
+  std::vector<LeafStruct> leaves;
+  leaves.emplace_back(LeafStruct{ 123, 4.567 });
+  leaves.emplace_back(LeafStruct{ 987, 6.543 });
+
+  // Call the "Direct" creation method to ensure that things are added to the
+  // buffer in the correct order, Offset64 first followed by any Offsets.
+  const Offset<RootTable> root_table_offset = CreateRootTableDirect(
+      builder, nullptr, 0, nullptr, nullptr, nullptr, nullptr, &leaves);
+
+  // Finish the buffer.
+  builder.Finish(root_table_offset);
+
+   Verifier::Options options;
+  // Allow the verifier to verify 64-bit buffers.
+  options.max_size = FLATBUFFERS_MAX_64_BUFFER_SIZE;
+  options.assert = true;
+
+  Verifier verifier(builder.GetBufferPointer(), builder.GetSize(), options);
+
+  TEST_EQ(VerifyRootTableBuffer(verifier), true);
+
+  // Verify the data.
+  const RootTable *root_table = GetRootTable(builder.GetBufferPointer());
+  TEST_EQ(root_table->big_struct_vector()->size(), leaves.size());
+  TEST_EQ(root_table->big_struct_vector()->Get(0)->a(), 123);
+  TEST_EQ(root_table->big_struct_vector()->Get(0)->b(), 4.567);
+  TEST_EQ(root_table->big_struct_vector()->Get(1)->a(), 987);
+  TEST_EQ(root_table->big_struct_vector()->Get(1)->b(), 6.543);
 }
 
 }  // namespace tests

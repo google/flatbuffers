@@ -4,59 +4,71 @@
 // Binary file: tests/64bit/test_64bit.bin
 
 header:
-  +0x00 | 14 00 00 00             | UOffset32  | 0x00000014 (20) Loc: 0x14          | offset to root table `RootTable`
+  +0x00 | 1C 00 00 00             | UOffset32  | 0x0000001C (28) Loc: 0x1C          | offset to root table `RootTable`
 
 padding:
-  +0x04 | 00 00                   | uint8_t[2] | ..                                 | padding
+  +0x04 | 00 00 00 00 00 00       | uint8_t[6] | ......                             | padding
 
 vtable (RootTable):
-  +0x06 | 0E 00                   | uint16_t   | 0x000E (14)                        | size of this vtable
-  +0x08 | 30 00                   | uint16_t   | 0x0030 (48)                        | size of referring table
-  +0x0A | 04 00                   | VOffset16  | 0x0004 (4)                         | offset to field `far_vector` (id: 0)
-  +0x0C | 10 00                   | VOffset16  | 0x0010 (16)                        | offset to field `a` (id: 1)
-  +0x0E | 14 00                   | VOffset16  | 0x0014 (20)                        | offset to field `far_string` (id: 2)
-  +0x10 | 24 00                   | VOffset16  | 0x0024 (36)                        | offset to field `big_vector` (id: 3)
-  +0x12 | 20 00                   | VOffset16  | 0x0020 (32)                        | offset to field `near_string` (id: 4)
+  +0x0A | 12 00                   | uint16_t   | 0x0012 (18)                        | size of this vtable
+  +0x0C | 38 00                   | uint16_t   | 0x0038 (56)                        | size of referring table
+  +0x0E | 04 00                   | VOffset16  | 0x0004 (4)                         | offset to field `far_vector` (id: 0)
+  +0x10 | 10 00                   | VOffset16  | 0x0010 (16)                        | offset to field `a` (id: 1)
+  +0x12 | 14 00                   | VOffset16  | 0x0014 (20)                        | offset to field `far_string` (id: 2)
+  +0x14 | 2C 00                   | VOffset16  | 0x002C (44)                        | offset to field `big_vector` (id: 3)
+  +0x16 | 20 00                   | VOffset16  | 0x0020 (32)                        | offset to field `near_string` (id: 4)
+  +0x18 | 00 00                   | VOffset16  | 0x0000 (0)                         | offset to field `nested_root` (id: 5) <null> (Vector64)
+  +0x1A | 24 00                   | VOffset16  | 0x0024 (36)                        | offset to field `big_struct_vector` (id: 6)
 
 root_table (RootTable):
-  +0x14 | 0E 00 00 00             | SOffset32  | 0x0000000E (14) Loc: 0x06          | offset to vtable
-  +0x18 | A0 00 00 00 00 00 00 00 | UOffset64  | 0x00000000000000A0 (160) Loc: 0xB8 | offset to field `far_vector` (vector)
-  +0x20 | 00 00 00 00             | uint8_t[4] | ....                               | padding
-  +0x24 | D2 04 00 00             | uint32_t   | 0x000004D2 (1234)                  | table field `a` (Int)
-  +0x28 | 5C 00 00 00 00 00 00 00 | UOffset64  | 0x000000000000005C (92) Loc: 0x84  | offset to field `far_string` (string)
-  +0x30 | 00 00 00 00             | uint8_t[4] | ....                               | padding
-  +0x34 | 10 00 00 00             | UOffset32  | 0x00000010 (16) Loc: 0x44          | offset to field `near_string` (string)
-  +0x38 | 40 00 00 00 00 00 00 00 | UOffset64  | 0x0000000000000040 (64) Loc: 0x78  | offset to field `big_vector` (vector64)
-  +0x40 | 00 00 00 00             | uint8_t[4] | ....                               | padding
+  +0x1C | 12 00 00 00             | SOffset32  | 0x00000012 (18) Loc: 0x0A          | offset to vtable
+  +0x20 | D0 00 00 00 00 00 00 00 | UOffset64  | 0x00000000000000D0 (208) Loc: 0xF0 | offset to field `far_vector` (vector)
+  +0x28 | 00 00 00 00             | uint8_t[4] | ....                               | padding
+  +0x2C | D2 04 00 00             | uint32_t   | 0x000004D2 (1234)                  | table field `a` (Int)
+  +0x30 | 8C 00 00 00 00 00 00 00 | UOffset64  | 0x000000000000008C (140) Loc: 0xBC | offset to field `far_string` (string)
+  +0x38 | 00 00 00 00             | uint8_t[4] | ....                               | padding
+  +0x3C | 40 00 00 00             | UOffset32  | 0x00000040 (64) Loc: 0x7C          | offset to field `near_string` (string)
+  +0x40 | 14 00 00 00 00 00 00 00 | UOffset64  | 0x0000000000000014 (20) Loc: 0x54  | offset to field `big_struct_vector` (vector)
+  +0x48 | 68 00 00 00 00 00 00 00 | UOffset64  | 0x0000000000000068 (104) Loc: 0xB0 | offset to field `big_vector` (vector64)
+  +0x50 | 00 00 00 00             | uint8_t[4] | ....                               | padding
+
+vector (RootTable.big_struct_vector):
+  +0x54 | 02 00 00 00             | uint32_t   | 0x00000002 (2)                     | length of vector (# items)
+  +0x58 | 0C 00 00 00             | uint32_t   | 0x0000000C (12)                    | struct field `[0].a` of 'LeafStruct' (Int)
+  <4 regions omitted>
+  +0x70 | 33 33 33 33 33 33 22 40 | double     | 0x4022333333333333 (9.1)           | struct field `[1].b` of 'LeafStruct' (Double)
+
+padding:
+  +0x78 | 00 00 00 00             | uint8_t[4] | ....                               | padding
 
 string (RootTable.near_string):
-  +0x44 | 2F 00 00 00             | uint32_t   | 0x0000002F (47)                    | length of string
-  +0x48 | 74 68 69 73 20 69 73 20 | char[47]   | this is                            | string literal
-  +0x50 | 61 20 6E 65 61 72 20 73 |            | a near s
-  +0x58 | 74 72 69 6E 67 20 77 68 |            | tring wh
-  +0x60 | 69 63 68 20 68 61 73 20 |            | ich has 
-  +0x68 | 61 20 33 32 2D 62 69 74 |            | a 32-bit
-  +0x70 | 20 6F 66 66 73 65 74    |            |  offset
-  +0x77 | 00                      | char       | 0x00 (0)                           | string terminator
+  +0x7C | 2F 00 00 00             | uint32_t   | 0x0000002F (47)                    | length of string
+  +0x80 | 74 68 69 73 20 69 73 20 | char[47]   | this is                            | string literal
+  +0x88 | 61 20 6E 65 61 72 20 73 |            | a near s
+  +0x90 | 74 72 69 6E 67 20 77 68 |            | tring wh
+  +0x98 | 69 63 68 20 68 61 73 20 |            | ich has 
+  +0xA0 | 61 20 33 32 2D 62 69 74 |            | a 32-bit
+  +0xA8 | 20 6F 66 66 73 65 74    |            |  offset
+  +0xAF | 00                      | char       | 0x00 (0)                           | string terminator
 
 vector64 (RootTable.big_vector):
-  +0x78 | 04 00 00 00 00 00 00 00 | uint64_t   | 0x0000000000000004 (4)             | length of vector (# items)
-  +0x80 | 05                      | uint8_t    | 0x05 (5)                           | value[0]
+  +0xB0 | 04 00 00 00 00 00 00 00 | uint64_t   | 0x0000000000000004 (4)             | length of vector (# items)
+  +0xB8 | 05                      | uint8_t    | 0x05 (5)                           | value[0]
   <2 regions omitted>
-  +0x83 | 08                      | uint8_t    | 0x08 (8)                           | value[3]
+  +0xBB | 08                      | uint8_t    | 0x08 (8)                           | value[3]
 
 string (RootTable.far_string):
-  +0x84 | 2E 00 00 00             | uint32_t   | 0x0000002E (46)                    | length of string
-  +0x88 | 74 68 69 73 20 69 73 20 | char[46]   | this is                            | string literal
-  +0x90 | 61 20 66 61 72 20 73 74 |            | a far st
-  +0x98 | 72 69 6E 67 20 77 68 69 |            | ring whi
-  +0xA0 | 63 68 20 68 61 73 20 61 |            | ch has a
-  +0xA8 | 20 36 34 2D 62 69 74 20 |            |  64-bit 
-  +0xB0 | 6F 66 66 73 65 74       |            | offset
-  +0xB6 | 00                      | char       | 0x00 (0)                           | string terminator
+  +0xBC | 2E 00 00 00             | uint32_t   | 0x0000002E (46)                    | length of string
+  +0xC0 | 74 68 69 73 20 69 73 20 | char[46]   | this is                            | string literal
+  +0xC8 | 61 20 66 61 72 20 73 74 |            | a far st
+  +0xD0 | 72 69 6E 67 20 77 68 69 |            | ring whi
+  +0xD8 | 63 68 20 68 61 73 20 61 |            | ch has a
+  +0xE0 | 20 36 34 2D 62 69 74 20 |            |  64-bit 
+  +0xE8 | 6F 66 66 73 65 74       |            | offset
+  +0xEE | 00                      | char       | 0x00 (0)                           | string terminator
 
 vector (RootTable.far_vector):
-  +0xB8 | 03 00 00 00             | uint32_t   | 0x00000003 (3)                     | length of vector (# items)
-  +0xBC | 01                      | uint8_t    | 0x01 (1)                           | value[0]
-  +0xBD | 02                      | uint8_t    | 0x02 (2)                           | value[1]
-  +0xBE | 03                      | uint8_t    | 0x03 (3)                           | value[2]
+  +0xF0 | 03 00 00 00             | uint32_t   | 0x00000003 (3)                     | length of vector (# items)
+  +0xF4 | 01                      | uint8_t    | 0x01 (1)                           | value[0]
+  +0xF5 | 02                      | uint8_t    | 0x02 (2)                           | value[1]
+  +0xF6 | 03                      | uint8_t    | 0x03 (3)                           | value[2]

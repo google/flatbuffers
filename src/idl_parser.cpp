@@ -1069,13 +1069,6 @@ CheckedError Parser::ParseField(StructDef &struct_def) {
 
   // Record that this field uses 64-bit offsets.
   if (field->attributes.Lookup("offset64") != nullptr) {
-    // TODO(derekbailey): this is where we can disable string support for
-    // offset64, as that is not a hard requirement to have.
-    if (!IsString(type) && !IsVector(type)) {
-      return Error(
-          "only string and vectors can have `offset64` attribute applied");
-    }
-
     // TODO(derekbailey): would be nice to have this be a recommendation or hint
     // instead of a warning.
     if (type.base_type == BASE_TYPE_VECTOR64) {
@@ -1085,12 +1078,33 @@ CheckedError Parser::ParseField(StructDef &struct_def) {
     field->offset64 = true;
   }
 
-  // Check if we have a 64-bit offset field, that it is supported by the
-  // specified generated languages.
-  if (field->offset64 && !Supports64BitOffsets()) {
-    return Error(
-        "fields using 64-bit offsets are not yet supported in at least one of "
-        "the specified programming languages.");
+  // Check for common conditions with Offset64 fields.
+  if (field->offset64) {
+    // TODO(derekbailey): this is where we can disable string support for
+    // offset64, as that is not a hard requirement to have.
+    if (!IsString(type) && !IsVector(type)) {
+      return Error(
+          "only string and vectors can have `offset64` attribute applied");
+    }
+
+    // If this is a Vector, only scalar and scalar-like (structs) items are
+    // allowed.
+    // TODO(derekbailey): allow vector of strings, just require that the strings
+    // are Offset64<string>.
+    if (IsVector(type) &&
+        !((IsScalar(type.element) && !IsEnum(type.VectorType())) ||
+          IsStruct(type.VectorType()))) {
+      return Error("only vectors of scalars are allowed to be 64-bit.");
+    }
+
+    // Lastly, check if it is supported by the specified generated languages. Do
+    // this last so the above checks can inform the user of schema errors to fix
+    // first.
+    if (!Supports64BitOffsets()) {
+      return Error(
+          "fields using 64-bit offsets are not yet supported in at least one "
+          "of the specified programming languages.");
+    }
   }
 
   // For historical convenience reasons, string keys are assumed required.
@@ -1569,7 +1583,7 @@ CheckedError Parser::ParseTable(const StructDef &struct_def, std::string *value,
       if (!struct_def.sortbysize ||
           size == SizeOf(field_value.type.base_type)) {
         switch (field_value.type.base_type) {
-// clang-format off
+          // clang-format off
           #define FLATBUFFERS_TD(ENUM, IDLTYPE, CTYPE, ...) \
             case BASE_TYPE_ ## ENUM: \
               builder_.Pad(field->padding); \
@@ -1712,7 +1726,7 @@ CheckedError Parser::ParseVector(const Type &vector_type, uoffset_t *ovalue,
     // start at the back, since we're building the data backwards.
     auto &val = field_stack_.back().first;
     switch (val.type.base_type) {
-// clang-format off
+      // clang-format off
       #define FLATBUFFERS_TD(ENUM, IDLTYPE, CTYPE,...) \
         case BASE_TYPE_ ## ENUM: \
           if (IsStruct(val.type)) SerializeStruct(*val.type.struct_def, val); \

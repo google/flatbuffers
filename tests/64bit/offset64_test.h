@@ -9,6 +9,7 @@ void Offset64SerializedFirst();
 void Offset64NestedFlatBuffer();
 void Offset64CreateDirect();
 void Offset64Evolution();
+void Offset64VectorOfStructs();
 
 }  // namespace tests
 }  // namespace flatbuffers

@@ -1656,6 +1656,7 @@ int FlatBufferTests(const std::string &tests_data_path) {
   Offset64NestedFlatBuffer();
   Offset64CreateDirect();
   Offset64Evolution();
+  Offset64VectorOfStructs();
   return 0;
 }
 }  // namespace
