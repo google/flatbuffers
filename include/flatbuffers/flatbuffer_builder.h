@@ -568,7 +568,7 @@ template<bool Is64Aware = false> class FlatBufferBuilderImpl {
     return CreateString<OffsetT>(str.c_str(), str.length());
   }
 
-// clang-format off
+  // clang-format off
   #ifdef FLATBUFFERS_HAS_STRING_VIEW
   /// @brief Store a string in the buffer, which can contain any binary data.
   /// @param[in] str A const string_view to copy in to the buffer.
@@ -892,50 +892,19 @@ template<bool Is64Aware = false> class FlatBufferBuilderImpl {
   /// @param[in] len The number of elements to serialize.
   /// @return Returns a typed `Offset` into the serialized data indicating
   /// where the vector is stored.
-  template<typename T, template<typename> class OffsetT = Offset>
-  OffsetT<Vector<const T *>> CreateVectorOfStructs(const T *v, size_t len) {
-    StartVector<OffsetT>(len * sizeof(T) / AlignOf<T>(), sizeof(T),
-                         AlignOf<T>());
+  template<typename T, template<typename...> class OffsetT = Offset,
+           template<typename...> class VectorT = Vector>
+  OffsetT<VectorT<const T *>> CreateVectorOfStructs(const T *v, size_t len) {
+    // The type of the length field in the vector.
+    typedef typename VectorT<T>::size_type LenT;
+    typedef typename OffsetT<VectorT<const T *>>::offset_type offset_type;
+
+    StartVector<OffsetT, LenT>(len * sizeof(T) / AlignOf<T>(), sizeof(T),
+                               AlignOf<T>());
     if (len > 0) {
       PushBytes(reinterpret_cast<const uint8_t *>(v), sizeof(T) * len);
     }
-    return OffsetT<Vector<const T *>>(
-        EndVector<typename Vector<const T *>::size_type,
-                  typename OffsetT<Vector<const T *>>::offset_type>(len));
-  }
-
-  /// @brief Serialize an array of native structs into a FlatBuffer `vector`.
-  /// @tparam T The data type of the struct array elements.
-  /// @tparam S The data type of the native struct array elements.
-  /// @param[in] v A pointer to the array of type `S` to serialize into the
-  /// buffer as a `vector`.
-  /// @param[in] len The number of elements to serialize.
-  /// @param[in] pack_func Pointer to a function to convert the native struct
-  /// to the FlatBuffer struct.
-  /// @return Returns a typed `Offset` into the serialized data indicating
-  /// where the vector is stored.
-  template<typename T, typename S>
-  Offset<Vector<const T *>> CreateVectorOfNativeStructs(
-      const S *v, size_t len, T (*const pack_func)(const S &)) {
-    FLATBUFFERS_ASSERT(pack_func);
-    auto structs = StartVectorOfStructs<T>(len);
-    for (size_t i = 0; i < len; i++) { structs[i] = pack_func(v[i]); }
-    return EndVectorOfStructs<T>(len);
-  }
-
-  /// @brief Serialize an array of native structs into a FlatBuffer `vector`.
-  /// @tparam T The data type of the struct array elements.
-  /// @tparam S The data type of the native struct array elements.
-  /// @param[in] v A pointer to the array of type `S` to serialize into the
-  /// buffer as a `vector`.
-  /// @param[in] len The number of elements to serialize.
-  /// @return Returns a typed `Offset` into the serialized data indicating
-  /// where the vector is stored.
-  template<typename T, typename S>
-  Offset<Vector<const T *>> CreateVectorOfNativeStructs(const S *v,
-                                                        size_t len) {
-    extern T Pack(const S &);
-    return CreateVectorOfNativeStructs(v, len, Pack);
+    return OffsetT<VectorT<const T *>>(EndVector<LenT, offset_type>(len));
   }
 
   /// @brief Serialize an array of structs into a FlatBuffer `vector`.
@@ -983,17 +952,52 @@ template<bool Is64Aware = false> class FlatBufferBuilderImpl {
   /// serialize into the buffer as a `vector`.
   /// @return Returns a typed `Offset` into the serialized data indicating
   /// where the vector is stored.
-  template<typename T, template<typename> class OffsetT = Offset,
+  template<typename T, template<typename...> class OffsetT = Offset,
+           template<typename...> class VectorT = Vector,
            typename Alloc = std::allocator<T>>
-  OffsetT<Vector<const T *>> CreateVectorOfStructs(
+  OffsetT<VectorT<const T *>> CreateVectorOfStructs(
       const std::vector<T, Alloc> &v) {
-    return CreateVectorOfStructs<T, OffsetT>(data(v), v.size());
+    return CreateVectorOfStructs<T, OffsetT, VectorT>(data(v), v.size());
   }
 
-  template<typename T, typename Alloc = std::allocator<T>>
-  Offset64<Vector<const T *>> CreateVectorOfStructs64(
-      const std::vector<T, Alloc> &v) {
-    return CreateVectorOfStructs<T, Offset64>(data(v), v.size());
+  template<template<typename...> class VectorT = Vector64, int &..., typename T>
+  Offset64<VectorT<const T *>> CreateVectorOfStructs64(
+      const std::vector<T> &v) {
+    return CreateVectorOfStructs<T, Offset64, VectorT>(data(v), v.size());
+  }
+
+  /// @brief Serialize an array of native structs into a FlatBuffer `vector`.
+  /// @tparam T The data type of the struct array elements.
+  /// @tparam S The data type of the native struct array elements.
+  /// @param[in] v A pointer to the array of type `S` to serialize into the
+  /// buffer as a `vector`.
+  /// @param[in] len The number of elements to serialize.
+  /// @param[in] pack_func Pointer to a function to convert the native struct
+  /// to the FlatBuffer struct.
+  /// @return Returns a typed `Offset` into the serialized data indicating
+  /// where the vector is stored.
+  template<typename T, typename S>
+  Offset<Vector<const T *>> CreateVectorOfNativeStructs(
+      const S *v, size_t len, T (*const pack_func)(const S &)) {
+    FLATBUFFERS_ASSERT(pack_func);
+    auto structs = StartVectorOfStructs<T>(len);
+    for (size_t i = 0; i < len; i++) { structs[i] = pack_func(v[i]); }
+    return EndVectorOfStructs<T>(len);
+  }
+
+  /// @brief Serialize an array of native structs into a FlatBuffer `vector`.
+  /// @tparam T The data type of the struct array elements.
+  /// @tparam S The data type of the native struct array elements.
+  /// @param[in] v A pointer to the array of type `S` to serialize into the
+  /// buffer as a `vector`.
+  /// @param[in] len The number of elements to serialize.
+  /// @return Returns a typed `Offset` into the serialized data indicating
+  /// where the vector is stored.
+  template<typename T, typename S>
+  Offset<Vector<const T *>> CreateVectorOfNativeStructs(const S *v,
+                                                        size_t len) {
+    extern T Pack(const S &);
+    return CreateVectorOfNativeStructs(v, len, Pack);
   }
 
   /// @brief Serialize a `std::vector` of native structs into a FlatBuffer

@@ -84,6 +84,7 @@ struct RootTableT : public ::flatbuffers::NativeTable {
   std::vector<uint8_t> big_vector{};
   std::string near_string{};
   std::vector<uint8_t> nested_root{};
+  std::vector<LeafStruct> far_struct_vector{};
   std::vector<LeafStruct> big_struct_vector{};
 };
 
@@ -100,7 +101,8 @@ struct RootTable FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
     VT_BIG_VECTOR = 10,
     VT_NEAR_STRING = 12,
     VT_NESTED_ROOT = 14,
-    VT_BIG_STRUCT_VECTOR = 16
+    VT_FAR_STRUCT_VECTOR = 16,
+    VT_BIG_STRUCT_VECTOR = 18
   };
   const ::flatbuffers::Vector<uint8_t> *far_vector() const {
     return GetPointer64<const ::flatbuffers::Vector<uint8_t> *>(VT_FAR_VECTOR);
@@ -141,11 +143,17 @@ struct RootTable FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   const RootTable *nested_root_nested_root() const {
     return ::flatbuffers::GetRoot<RootTable>(nested_root()->Data());
   }
-  const ::flatbuffers::Vector<const LeafStruct *> *big_struct_vector() const {
-    return GetPointer64<const ::flatbuffers::Vector<const LeafStruct *> *>(VT_BIG_STRUCT_VECTOR);
+  const ::flatbuffers::Vector<const LeafStruct *> *far_struct_vector() const {
+    return GetPointer64<const ::flatbuffers::Vector<const LeafStruct *> *>(VT_FAR_STRUCT_VECTOR);
   }
-  ::flatbuffers::Vector<const LeafStruct *> *mutable_big_struct_vector() {
-    return GetPointer64<::flatbuffers::Vector<const LeafStruct *> *>(VT_BIG_STRUCT_VECTOR);
+  ::flatbuffers::Vector<const LeafStruct *> *mutable_far_struct_vector() {
+    return GetPointer64<::flatbuffers::Vector<const LeafStruct *> *>(VT_FAR_STRUCT_VECTOR);
+  }
+  const ::flatbuffers::Vector64<const LeafStruct *> *big_struct_vector() const {
+    return GetPointer64<const ::flatbuffers::Vector64<const LeafStruct *> *>(VT_BIG_STRUCT_VECTOR);
+  }
+  ::flatbuffers::Vector64<const LeafStruct *> *mutable_big_struct_vector() {
+    return GetPointer64<::flatbuffers::Vector64<const LeafStruct *> *>(VT_BIG_STRUCT_VECTOR);
   }
   bool Verify(::flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
@@ -158,8 +166,9 @@ struct RootTable FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
            VerifyOffset(verifier, VT_NEAR_STRING) &&
            verifier.VerifyString(near_string()) &&
            VerifyOffset64(verifier, VT_NESTED_ROOT) &&
+           VerifyOffset64(verifier, VT_FAR_STRUCT_VECTOR) &&
+           verifier.VerifyVector(far_struct_vector()) &&
            VerifyOffset64(verifier, VT_BIG_STRUCT_VECTOR) &&
-           verifier.VerifyVector(big_struct_vector()) &&
            verifier.EndTable();
   }
   RootTableT *UnPack(const ::flatbuffers::resolver_function_t *_resolver = nullptr) const;
@@ -189,7 +198,10 @@ struct RootTableBuilder {
   void add_nested_root(::flatbuffers::Offset64<::flatbuffers::Vector64<uint8_t>> nested_root) {
     fbb_.AddOffset(RootTable::VT_NESTED_ROOT, nested_root);
   }
-  void add_big_struct_vector(::flatbuffers::Offset64<::flatbuffers::Vector<const LeafStruct *>> big_struct_vector) {
+  void add_far_struct_vector(::flatbuffers::Offset64<::flatbuffers::Vector<const LeafStruct *>> far_struct_vector) {
+    fbb_.AddOffset(RootTable::VT_FAR_STRUCT_VECTOR, far_struct_vector);
+  }
+  void add_big_struct_vector(::flatbuffers::Offset64<::flatbuffers::Vector64<const LeafStruct *>> big_struct_vector) {
     fbb_.AddOffset(RootTable::VT_BIG_STRUCT_VECTOR, big_struct_vector);
   }
   explicit RootTableBuilder(::flatbuffers::FlatBufferBuilder64 &_fbb)
@@ -211,11 +223,13 @@ inline ::flatbuffers::Offset<RootTable> CreateRootTable(
     ::flatbuffers::Offset64<::flatbuffers::Vector64<uint8_t>> big_vector = 0,
     ::flatbuffers::Offset<::flatbuffers::String> near_string = 0,
     ::flatbuffers::Offset64<::flatbuffers::Vector64<uint8_t>> nested_root = 0,
-    ::flatbuffers::Offset64<::flatbuffers::Vector<const LeafStruct *>> big_struct_vector = 0) {
+    ::flatbuffers::Offset64<::flatbuffers::Vector<const LeafStruct *>> far_struct_vector = 0,
+    ::flatbuffers::Offset64<::flatbuffers::Vector64<const LeafStruct *>> big_struct_vector = 0) {
   RootTableBuilder builder_(_fbb);
+  builder_.add_big_struct_vector(big_struct_vector);
   builder_.add_nested_root(nested_root);
   builder_.add_big_vector(big_vector);
-  builder_.add_big_struct_vector(big_struct_vector);
+  builder_.add_far_struct_vector(far_struct_vector);
   builder_.add_near_string(near_string);
   builder_.add_far_string(far_string);
   builder_.add_a(a);
@@ -231,12 +245,14 @@ inline ::flatbuffers::Offset<RootTable> CreateRootTableDirect(
     const std::vector<uint8_t> *big_vector = nullptr,
     const char *near_string = nullptr,
     const std::vector<uint8_t> *nested_root = nullptr,
+    const std::vector<LeafStruct> *far_struct_vector = nullptr,
     const std::vector<LeafStruct> *big_struct_vector = nullptr) {
   auto far_vector__ = far_vector ? _fbb.CreateVector64<::flatbuffers::Vector>(*far_vector) : 0;
   auto far_string__ = far_string ? _fbb.CreateString<::flatbuffers::Offset64>(far_string) : 0;
   auto big_vector__ = big_vector ? _fbb.CreateVector64(*big_vector) : 0;
   auto nested_root__ = nested_root ? _fbb.CreateVector64(*nested_root) : 0;
-  auto big_struct_vector__ = big_struct_vector ? _fbb.CreateVectorOfStructs64<LeafStruct>(*big_struct_vector) : 0;
+  auto far_struct_vector__ = far_struct_vector ? _fbb.CreateVectorOfStructs64<::flatbuffers::Vector>(*far_struct_vector) : 0;
+  auto big_struct_vector__ = big_struct_vector ? _fbb.CreateVectorOfStructs64(*big_struct_vector) : 0;
   auto near_string__ = near_string ? _fbb.CreateString(near_string) : 0;
   return CreateRootTable(
       _fbb,
@@ -246,6 +262,7 @@ inline ::flatbuffers::Offset<RootTable> CreateRootTableDirect(
       big_vector__,
       near_string__,
       nested_root__,
+      far_struct_vector__,
       big_struct_vector__);
 }
 
@@ -260,6 +277,7 @@ inline bool operator==(const RootTableT &lhs, const RootTableT &rhs) {
       (lhs.big_vector == rhs.big_vector) &&
       (lhs.near_string == rhs.near_string) &&
       (lhs.nested_root == rhs.nested_root) &&
+      (lhs.far_struct_vector == rhs.far_struct_vector) &&
       (lhs.big_struct_vector == rhs.big_struct_vector);
 }
 
@@ -283,7 +301,8 @@ inline void RootTable::UnPackTo(RootTableT *_o, const ::flatbuffers::resolver_fu
   { auto _e = big_vector(); if (_e) { _o->big_vector.resize(_e->size()); std::copy(_e->begin(), _e->end(), _o->big_vector.begin()); } }
   { auto _e = near_string(); if (_e) _o->near_string = _e->str(); }
   { auto _e = nested_root(); if (_e) { _o->nested_root.resize(_e->size()); std::copy(_e->begin(), _e->end(), _o->nested_root.begin()); } }
-  { auto _e = big_struct_vector(); if (_e) { _o->big_struct_vector.resize(_e->size()); for (::flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->big_struct_vector[_i] = *_e->Get(_i); } } else { _o->big_struct_vector.resize(0); } }
+  { auto _e = far_struct_vector(); if (_e) { _o->far_struct_vector.resize(_e->size()); for (::flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->far_struct_vector[_i] = *_e->Get(_i); } } else { _o->far_struct_vector.resize(0); } }
+  { auto _e = big_struct_vector(); if (_e) { _o->big_struct_vector.resize(_e->size()); for (::flatbuffers::uoffset64_t _i = 0; _i < _e->size(); _i++) { _o->big_struct_vector[_i] = *_e->Get(_i); } } else { _o->big_struct_vector.resize(0); } }
 }
 
 inline ::flatbuffers::Offset<RootTable> RootTable::Pack(::flatbuffers::FlatBufferBuilder64 &_fbb, const RootTableT* _o, const ::flatbuffers::rehasher_function_t *_rehasher) {
@@ -300,6 +319,7 @@ inline ::flatbuffers::Offset<RootTable> CreateRootTable(::flatbuffers::FlatBuffe
   auto _big_vector = _o->big_vector.size() ? _fbb.CreateVector64(_o->big_vector) : 0;
   auto _near_string = _o->near_string.empty() ? 0 : _fbb.CreateString(_o->near_string);
   auto _nested_root = _o->nested_root.size() ? _fbb.CreateVector64(_o->nested_root) : 0;
+  auto _far_struct_vector = _o->far_struct_vector.size() ? _fbb.CreateVectorOfStructs64<::flatbuffers::Vector>(_o->far_struct_vector) : 0;
   auto _big_struct_vector = _o->big_struct_vector.size() ? _fbb.CreateVectorOfStructs64(_o->big_struct_vector) : 0;
   return CreateRootTable(
       _fbb,
@@ -309,6 +329,7 @@ inline ::flatbuffers::Offset<RootTable> CreateRootTable(::flatbuffers::FlatBuffe
       _big_vector,
       _near_string,
       _nested_root,
+      _far_struct_vector,
       _big_struct_vector);
 }
 
@@ -336,6 +357,7 @@ inline const ::flatbuffers::TypeTable *RootTableTypeTable() {
     { ::flatbuffers::ET_UCHAR, 1, -1 },
     { ::flatbuffers::ET_STRING, 0, -1 },
     { ::flatbuffers::ET_UCHAR, 1, -1 },
+    { ::flatbuffers::ET_SEQUENCE, 1, 0 },
     { ::flatbuffers::ET_SEQUENCE, 1, 0 }
   };
   static const ::flatbuffers::TypeFunction type_refs[] = {
@@ -348,10 +370,11 @@ inline const ::flatbuffers::TypeTable *RootTableTypeTable() {
     "big_vector",
     "near_string",
     "nested_root",
+    "far_struct_vector",
     "big_struct_vector"
   };
   static const ::flatbuffers::TypeTable tt = {
-    ::flatbuffers::ST_TABLE, 7, type_codes, type_refs, nullptr, nullptr, names
+    ::flatbuffers::ST_TABLE, 8, type_codes, type_refs, nullptr, nullptr, names
   };
   return &tt;
 }

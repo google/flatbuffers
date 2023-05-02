@@ -7,33 +7,33 @@ header:
   +0x00 | 1C 00 00 00             | UOffset32  | 0x0000001C (28) Loc: 0x1C          | offset to root table `RootTable`
 
 padding:
-  +0x04 | 00 00 00 00 00 00       | uint8_t[6] | ......                             | padding
+  +0x04 | 00 00 00 00             | uint8_t[4] | ....                               | padding
 
 vtable (RootTable):
-  +0x0A | 12 00                   | uint16_t   | 0x0012 (18)                        | size of this vtable
-  +0x0C | 38 00                   | uint16_t   | 0x0038 (56)                        | size of referring table
-  +0x0E | 04 00                   | VOffset16  | 0x0004 (4)                         | offset to field `far_vector` (id: 0)
-  +0x10 | 10 00                   | VOffset16  | 0x0010 (16)                        | offset to field `a` (id: 1)
-  +0x12 | 14 00                   | VOffset16  | 0x0014 (20)                        | offset to field `far_string` (id: 2)
-  +0x14 | 2C 00                   | VOffset16  | 0x002C (44)                        | offset to field `big_vector` (id: 3)
-  +0x16 | 20 00                   | VOffset16  | 0x0020 (32)                        | offset to field `near_string` (id: 4)
-  +0x18 | 00 00                   | VOffset16  | 0x0000 (0)                         | offset to field `nested_root` (id: 5) <null> (Vector64)
-  +0x1A | 24 00                   | VOffset16  | 0x0024 (36)                        | offset to field `big_struct_vector` (id: 6)
+  +0x08 | 14 00                   | uint16_t   | 0x0014 (20)                        | size of this vtable
+  +0x0A | 34 00                   | uint16_t   | 0x0034 (52)                        | size of referring table
+  +0x0C | 04 00                   | VOffset16  | 0x0004 (4)                         | offset to field `far_vector` (id: 0)
+  +0x0E | 10 00                   | VOffset16  | 0x0010 (16)                        | offset to field `a` (id: 1)
+  +0x10 | 14 00                   | VOffset16  | 0x0014 (20)                        | offset to field `far_string` (id: 2)
+  +0x12 | 24 00                   | VOffset16  | 0x0024 (36)                        | offset to field `big_vector` (id: 3)
+  +0x14 | 20 00                   | VOffset16  | 0x0020 (32)                        | offset to field `near_string` (id: 4)
+  +0x16 | 00 00                   | VOffset16  | 0x0000 (0)                         | offset to field `nested_root` (id: 5) <null> (Vector64)
+  +0x18 | 00 00                   | VOffset16  | 0x0000 (0)                         | offset to field `far_struct_vector` (id: 6) <null> (Vector)
+  +0x1A | 2C 00                   | VOffset16  | 0x002C (44)                        | offset to field `big_struct_vector` (id: 7)
 
 root_table (RootTable):
-  +0x1C | 12 00 00 00             | SOffset32  | 0x00000012 (18) Loc: 0x0A          | offset to vtable
+  +0x1C | 14 00 00 00             | SOffset32  | 0x00000014 (20) Loc: 0x08          | offset to vtable
   +0x20 | D0 00 00 00 00 00 00 00 | UOffset64  | 0x00000000000000D0 (208) Loc: 0xF0 | offset to field `far_vector` (vector)
   +0x28 | 00 00 00 00             | uint8_t[4] | ....                               | padding
   +0x2C | D2 04 00 00             | uint32_t   | 0x000004D2 (1234)                  | table field `a` (Int)
   +0x30 | 8C 00 00 00 00 00 00 00 | UOffset64  | 0x000000000000008C (140) Loc: 0xBC | offset to field `far_string` (string)
   +0x38 | 00 00 00 00             | uint8_t[4] | ....                               | padding
   +0x3C | 40 00 00 00             | UOffset32  | 0x00000040 (64) Loc: 0x7C          | offset to field `near_string` (string)
-  +0x40 | 14 00 00 00 00 00 00 00 | UOffset64  | 0x0000000000000014 (20) Loc: 0x54  | offset to field `big_struct_vector` (vector)
-  +0x48 | 68 00 00 00 00 00 00 00 | UOffset64  | 0x0000000000000068 (104) Loc: 0xB0 | offset to field `big_vector` (vector64)
-  +0x50 | 00 00 00 00             | uint8_t[4] | ....                               | padding
+  +0x40 | 70 00 00 00 00 00 00 00 | UOffset64  | 0x0000000000000070 (112) Loc: 0xB0 | offset to field `big_vector` (vector64)
+  +0x48 | 08 00 00 00 00 00 00 00 | UOffset64  | 0x0000000000000008 (8) Loc: 0x50   | offset to field `big_struct_vector` (vector64)
 
-vector (RootTable.big_struct_vector):
-  +0x54 | 02 00 00 00             | uint32_t   | 0x00000002 (2)                     | length of vector (# items)
+vector64 (RootTable.big_struct_vector):
+  +0x50 | 02 00 00 00 00 00 00 00 | uint64_t   | 0x0000000000000002 (2)             | length of vector (# items)
   +0x58 | 0C 00 00 00             | uint32_t   | 0x0000000C (12)                    | struct field `[0].a` of 'LeafStruct' (Int)
   <4 regions omitted>
   +0x70 | 33 33 33 33 33 33 22 40 | double     | 0x4022333333333333 (9.1)           | struct field `[1].b` of 'LeafStruct' (Double)

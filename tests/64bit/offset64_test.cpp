@@ -301,19 +301,24 @@ void Offset64Evolution() {
 void Offset64VectorOfStructs() {
   FlatBufferBuilder64 builder;
 
-  std::vector<LeafStruct> leaves;
-  leaves.emplace_back(LeafStruct{ 123, 4.567 });
-  leaves.emplace_back(LeafStruct{ 987, 6.543 });
+  std::vector<LeafStruct> far_leaves;
+  far_leaves.emplace_back(LeafStruct{ 123, 4.567 });
+  far_leaves.emplace_back(LeafStruct{ 987, 6.543 });
 
-  // Call the "Direct" creation method to ensure that things are added to the
-  // buffer in the correct order, Offset64 first followed by any Offsets.
-  const Offset<RootTable> root_table_offset = CreateRootTableDirect(
-      builder, nullptr, 0, nullptr, nullptr, nullptr, nullptr, &leaves);
+  std::vector<LeafStruct> big_leaves;
+  big_leaves.emplace_back(LeafStruct{ 72, 72.8 });
+  big_leaves.emplace_back(LeafStruct{ 82, 82.8 });
+  big_leaves.emplace_back(LeafStruct{ 92, 92.8 });
+
+  // Add the two vectors of leaf structs.
+  const Offset<RootTable> root_table_offset =
+      CreateRootTableDirect(builder, nullptr, 0, nullptr, nullptr, nullptr,
+                            nullptr, &far_leaves, &big_leaves);
 
   // Finish the buffer.
   builder.Finish(root_table_offset);
 
-   Verifier::Options options;
+  Verifier::Options options;
   // Allow the verifier to verify 64-bit buffers.
   options.max_size = FLATBUFFERS_MAX_64_BUFFER_SIZE;
   options.assert = true;
@@ -324,11 +329,19 @@ void Offset64VectorOfStructs() {
 
   // Verify the data.
   const RootTable *root_table = GetRootTable(builder.GetBufferPointer());
-  TEST_EQ(root_table->big_struct_vector()->size(), leaves.size());
-  TEST_EQ(root_table->big_struct_vector()->Get(0)->a(), 123);
-  TEST_EQ(root_table->big_struct_vector()->Get(0)->b(), 4.567);
-  TEST_EQ(root_table->big_struct_vector()->Get(1)->a(), 987);
-  TEST_EQ(root_table->big_struct_vector()->Get(1)->b(), 6.543);
+  TEST_EQ(root_table->far_struct_vector()->size(), far_leaves.size());
+  TEST_EQ(root_table->far_struct_vector()->Get(0)->a(), 123);
+  TEST_EQ(root_table->far_struct_vector()->Get(0)->b(), 4.567);
+  TEST_EQ(root_table->far_struct_vector()->Get(1)->a(), 987);
+  TEST_EQ(root_table->far_struct_vector()->Get(1)->b(), 6.543);
+
+  TEST_EQ(root_table->big_struct_vector()->size(), big_leaves.size());
+  TEST_EQ(root_table->big_struct_vector()->Get(0)->a(), 72);
+  TEST_EQ(root_table->big_struct_vector()->Get(0)->b(), 72.8);
+  TEST_EQ(root_table->big_struct_vector()->Get(1)->a(), 82);
+  TEST_EQ(root_table->big_struct_vector()->Get(1)->b(), 82.8);
+  TEST_EQ(root_table->big_struct_vector()->Get(2)->a(), 92);
+  TEST_EQ(root_table->big_struct_vector()->Get(2)->b(), 92.8);
 }
 
 }  // namespace tests

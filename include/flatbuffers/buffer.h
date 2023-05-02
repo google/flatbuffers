@@ -54,7 +54,7 @@ inline void EndianCheck() {
 }
 
 template<typename T> FLATBUFFERS_CONSTEXPR size_t AlignOf() {
-  // clang-format off
+// clang-format off
   #ifdef _MSC_VER
     return __alignof(T);
   #else
@@ -87,41 +87,59 @@ template<typename T> struct IndirectHelper {
   typedef T return_type;
   typedef T mutable_return_type;
   static const size_t element_stride = sizeof(T);
-  static return_type Read(const uint8_t *p, size_t i) {
+
+  static return_type Read(const uint8_t *p, const size_t i) {
     return EndianScalar((reinterpret_cast<const T *>(p))[i]);
   }
-  static return_type Read(uint8_t *p, size_t i) {
-    return Read(const_cast<const uint8_t *>(p), i);
+  static mutable_return_type Read(uint8_t *p, const size_t i) {
+    return reinterpret_cast<mutable_return_type>(
+        Read(const_cast<const uint8_t *>(p), i));
   }
 };
 
+// For vector of Offsets.
 template<typename T, template<typename> class OffsetT>
 struct IndirectHelper<OffsetT<T>> {
   typedef const T *return_type;
   typedef T *mutable_return_type;
   typedef typename OffsetT<T>::offset_type offset_type;
-
   static const size_t element_stride = sizeof(offset_type);
 
-  static return_type Read(const uint8_t *p, offset_type i) {
-    p += i * element_stride;
-    return reinterpret_cast<return_type>(p + ReadScalar<offset_type>(p));
+  static return_type Read(const uint8_t *const p, const size_t i) {
+    // Offsets are relative to themselves, so first update the pointer to
+    // point to the offset location.
+    const uint8_t *const offset_location = p + i * element_stride;
+
+    // Then read the scalar value of the offset (which may be 32 or 64-bits) and
+    // then determine the relative location from the offset location.
+    return reinterpret_cast<return_type>(
+        offset_location + ReadScalar<offset_type>(offset_location));
   }
-  static mutable_return_type Read(uint8_t *p, offset_type i) {
-    p += i * element_stride;
-    return reinterpret_cast<mutable_return_type>(p +
-                                                 ReadScalar<offset_type>(p));
+  static mutable_return_type Read(uint8_t *const p, const size_t i) {
+    // Offsets are relative to themselves, so first update the pointer to
+    // point to the offset location.
+    uint8_t *const offset_location = p + i * element_stride;
+
+    // Then read the scalar value of the offset (which may be 32 or 64-bits) and
+    // then determine the relative location from the offset location.
+    return reinterpret_cast<mutable_return_type>(
+        offset_location + ReadScalar<offset_type>(offset_location));
   }
 };
+
+// For vector of structs.
 template<typename T> struct IndirectHelper<const T *> {
   typedef const T *return_type;
   typedef T *mutable_return_type;
   static const size_t element_stride = sizeof(T);
-  static return_type Read(const uint8_t *p, uoffset_t i) {
-    return reinterpret_cast<return_type>(p + i * sizeof(T));
+
+  static return_type Read(const uint8_t *const p, const size_t i) {
+    // Structs are stored inline, relative to the first struct pointer.
+    return reinterpret_cast<return_type>(p + i * element_stride);
   }
-  static mutable_return_type Read(uint8_t *p, uoffset_t i) {
-    return reinterpret_cast<mutable_return_type>(p + i * sizeof(T));
+  static mutable_return_type Read(uint8_t *const p, const size_t i) {
+    // Structs are stored inline, relative to the first struct pointer.
+    return reinterpret_cast<mutable_return_type>(p + i * element_stride);
   }
 };
 

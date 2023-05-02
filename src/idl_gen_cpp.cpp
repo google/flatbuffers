@@ -3094,11 +3094,23 @@ class CppGenerator : public BaseGenerator {
           const auto vtype = field->value.type.VectorType();
           const auto has_key = TypeHasKey(vtype);
           if (IsStruct(vtype)) {
-            const auto type = WrapInNameSpace(*vtype.struct_def);
-            code_ += (has_key ? "_fbb.CreateVectorOfSortedStructs<"
-                              : std::string("_fbb.CreateVectorOfStructs") +
-                                    (field->offset64 ? "64<" : "<")) +
-                     type + ">\\";
+            const std::string type = WrapInNameSpace(*vtype.struct_def);
+            if (has_key) {
+              code_ += "_fbb.CreateVectorOfSortedStructs<" + type + ">\\";
+            } else {
+              // If the field uses 64-bit addressing, create a 64-bit vector.
+              if (field->value.type.base_type == BASE_TYPE_VECTOR64) {
+                code_ += "_fbb.CreateVectorOfStructs64\\";
+              } else {
+                code_ += "_fbb.CreateVectorOfStructs\\";
+                if (field->offset64) {
+                  // This is normal 32-bit vector, with 64-bit addressing.
+                  code_ += "64<::flatbuffers::Vector>\\";
+                } else {
+                  code_ += "<" + type + ">\\";
+                }
+              }
+            }
           } else if (has_key) {
             const auto type = WrapInNameSpace(*vtype.struct_def);
             code_ += "_fbb.CreateVectorOfSortedTables<" + type + ">\\";
@@ -3437,9 +3449,15 @@ class CppGenerator : public BaseGenerator {
                 }
                 code += ")";
               } else {
-                code += "_fbb.CreateVectorOfStructs";
-                if(field.offset64) {
-                  code += "64";
+                // If the field uses 64-bit addressing, create a 64-bit vector.
+                if (field.value.type.base_type == BASE_TYPE_VECTOR64) {
+                  code += "_fbb.CreateVectorOfStructs64";
+                } else {
+                  code += "_fbb.CreateVectorOfStructs";
+                  if (field.offset64) {
+                    // This is normal 32-bit vector, with 64-bit addressing.
+                    code += "64<::flatbuffers::Vector>";
+                  }
                 }
                 code += "(" + value + ")";
               }
