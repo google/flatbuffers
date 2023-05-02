@@ -45,27 +45,27 @@ namespace flatbuffers {
 // of type tokens.
 // clang-format off
 #define FLATBUFFERS_GEN_TYPES_SCALAR(TD) \
-  TD(NONE,   "",       uint8_t,  byte,   byte,    byte,   uint8,   u8,   UByte, UInt8, 0) \
-  TD(UTYPE,  "",       uint8_t,  byte,   byte,    byte,   uint8,   u8,   UByte, UInt8, 1) /* begin scalar/int */ \
-  TD(BOOL,   "bool",   uint8_t,  boolean,bool,    bool,   bool,    bool, Boolean, Bool, 2) \
-  TD(CHAR,   "byte",   int8_t,   byte,   int8,    sbyte,  int8,    i8,   Byte, Int8, 3) \
-  TD(UCHAR,  "ubyte",  uint8_t,  byte,   byte,    byte,   uint8,   u8,   UByte, UInt8, 4) \
-  TD(SHORT,  "short",  int16_t,  short,  int16,   short,  int16,   i16,  Short, Int16, 5) \
-  TD(USHORT, "ushort", uint16_t, short,  uint16,  ushort, uint16,  u16,  UShort, UInt16, 6) \
-  TD(INT,    "int",    int32_t,  int,    int32,   int,    int32,   i32,  Int, Int32, 7) \
-  TD(UINT,   "uint",   uint32_t, int,    uint32,  uint,   uint32,  u32,  UInt, UInt32, 8) \
-  TD(LONG,   "long",   int64_t,  long,   int64,   long,   int64,   i64,  Long, Int64, 9) \
-  TD(ULONG,  "ulong",  uint64_t, long,   uint64,  ulong,  uint64,  u64,  ULong, UInt64, 10) /* end int */ \
-  TD(FLOAT,  "float",  float,    float,  float32, float,  float32, f32,  Float, Float32, 11) /* begin float */ \
-  TD(DOUBLE, "double", double,   double, float64, double, float64, f64,  Double, Double, 12) /* end float/scalar */
+  TD(NONE,     "",       uint8_t,  byte,   byte,    byte,   uint8,   u8,   UByte, UInt8, 0) \
+  TD(UTYPE,    "",       uint8_t,  byte,   byte,    byte,   uint8,   u8,   UByte, UInt8, 1) /* begin scalar/int */ \
+  TD(BOOL,     "bool",   uint8_t,  boolean,bool,    bool,   bool,    bool, Boolean, Bool, 2) \
+  TD(CHAR,     "byte",   int8_t,   byte,   int8,    sbyte,  int8,    i8,   Byte, Int8, 3) \
+  TD(UCHAR,    "ubyte",  uint8_t,  byte,   byte,    byte,   uint8,   u8,   UByte, UInt8, 4) \
+  TD(SHORT,    "short",  int16_t,  short,  int16,   short,  int16,   i16,  Short, Int16, 5) \
+  TD(USHORT,   "ushort", uint16_t, short,  uint16,  ushort, uint16,  u16,  UShort, UInt16, 6) \
+  TD(INT,      "int",    int32_t,  int,    int32,   int,    int32,   i32,  Int, Int32, 7) \
+  TD(UINT,     "uint",   uint32_t, int,    uint32,  uint,   uint32,  u32,  UInt, UInt32, 8) \
+  TD(LONG,     "long",   int64_t,  long,   int64,   long,   int64,   i64,  Long, Int64, 9) \
+  TD(ULONG,    "ulong",  uint64_t, long,   uint64,  ulong,  uint64,  u64,  ULong, UInt64, 10) /* end int */ \
+  TD(FLOAT,    "float",  float,    float,  float32, float,  float32, f32,  Float, Float32, 11) /* begin float */ \
+  TD(DOUBLE,   "double", double,   double, float64, double, float64, f64,  Double, Double, 12) /* end float/scalar */
 #define FLATBUFFERS_GEN_TYPES_POINTER(TD) \
-  TD(STRING, "string", Offset<void>, int, int, StringOffset, int, unused, Int, Offset<String>, 13) \
-  TD(VECTOR, "",       Offset<void>, int, int, VectorOffset, int, unused, Int, Offset<UOffset>, 14) \
-  TD(VECTOR64, "",     Offset64<void>, int, int, VectorOffset, int, unused, Int, Offset<UOffset>, 18) \
-  TD(STRUCT, "",       Offset<void>, int, int, int,          int, unused, Int, Offset<UOffset>, 15) \
-  TD(UNION,  "",       Offset<void>, int, int, int,          int, unused, Int, Offset<UOffset>, 16)
+  TD(STRING,   "string", Offset<void>,   int, int, StringOffset, int, unused, Int, Offset<String>, 13) \
+  TD(VECTOR,   "",       Offset<void>,   int, int, VectorOffset, int, unused, Int, Offset<UOffset>, 14) \
+  TD(VECTOR64, "",       Offset64<void>, int, int, VectorOffset, int, unused, Int, Offset<UOffset>, 18) \
+  TD(STRUCT,   "",       Offset<void>,   int, int, int,          int, unused, Int, Offset<UOffset>, 15) \
+  TD(UNION,    "",       Offset<void>,   int, int, int,          int, unused, Int, Offset<UOffset>, 16)
 #define FLATBUFFERS_GEN_TYPE_ARRAY(TD) \
-  TD(ARRAY,  "",       int,          int, int, int,          int, unused, Int, Offset<UOffset>, 17)
+  TD(ARRAY,    "",       int,            int, int, int,          int, unused, Int, Offset<UOffset>, 17)
 // The fields are:
 // - enum
 // - FlatBuffers schema type.
@@ -213,7 +213,7 @@ struct Type {
   bool Deserialize(const Parser &parser, const reflection::Type *type);
 
   BaseType base_type;
-  BaseType element;       // only set if t == BASE_TYPE_VECTOR or 
+  BaseType element;       // only set if t == BASE_TYPE_VECTOR or
                           // BASE_TYPE_VECTOR64
   StructDef *struct_def;  // only set if t or element == BASE_TYPE_STRUCT
   EnumDef *enum_def;      // set if t == BASE_TYPE_UNION / BASE_TYPE_UTYPE,
@@ -534,9 +534,7 @@ inline bool IsUnionType(const Type &type) {
   return IsUnion(type) && IsInteger(type.base_type);
 }
 
-inline bool IsVector(const Type &type) {
-  return IsVector(type.base_type);
-}
+inline bool IsVector(const Type &type) { return IsVector(type.base_type); }
 
 inline bool IsVectorOfStruct(const Type &type) {
   return IsVector(type) && IsStruct(type.VectorType());
@@ -1302,8 +1300,7 @@ extern bool GenerateSwift(const Parser &parser, const std::string &path,
 // Generate a schema file from the internal representation, useful after
 // parsing a .proto schema.
 extern std::string GenerateFBS(const Parser &parser,
-                               const std::string &file_name,
-                               bool no_log);
+                               const std::string &file_name, bool no_log);
 extern bool GenerateFBS(const Parser &parser, const std::string &path,
                         const std::string &file_name, bool no_log);
 

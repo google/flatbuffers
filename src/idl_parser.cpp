@@ -1576,6 +1576,9 @@ CheckedError Parser::ParseTable(const StructDef &struct_def, std::string *value,
   for (size_t size = struct_def.sortbysize ? sizeof(largest_scalar_t) : 1; size;
        size /= 2) {
     // Go through elements in reverse, since we're building the data backwards.
+    // TODO(derekbailey): this doesn't work when there are Offset64 fields, as
+    // those have to be built first. So this needs to be changed to iterate over
+    // Offset64 then Offset32 fields.
     for (auto it = field_stack_.rbegin();
          it != field_stack_.rbegin() + fieldn_outer; ++it) {
       auto &field_value = it->first;

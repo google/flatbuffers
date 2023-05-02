@@ -25,25 +25,32 @@ namespace flatbuffers {
 
 // Wrapper for uoffset_t to allow safe template specialization.
 // Value is allowed to be 0 to indicate a null object (see e.g. AddOffset).
-template<typename T> struct Offset {
+template<typename T = void> struct Offset {
+  // The type of offset to use.
   typedef uoffset_t offset_type;
 
   offset_type o;
   Offset() : o(0) {}
   Offset(const offset_type _o) : o(_o) {}
-  Offset<void> Union() const { return o; }
+  Offset<> Union() const { return o; }
   bool IsNull() const { return !o; }
 };
 
-template<typename T> struct Offset64 {
+// Wrapper for uoffset64_t Offsets.
+template<typename T = void> struct Offset64 {
+  // The type of offset to use.
   typedef uoffset64_t offset_type;
 
   offset_type o;
   Offset64() : o(0) {}
   Offset64(const offset_type offset) : o(offset) {}
-  Offset64<void> Union() const { return o; }
+  Offset64<> Union() const { return o; }
   bool IsNull() const { return !o; }
 };
+
+// Litmus check for ensuring the Offsets are the expected size.
+static_assert(sizeof(Offset<>) == 4, "Offset has wrong size");
+static_assert(sizeof(Offset64<>) == 8, "Offset64 has wrong size");
 
 inline void EndianCheck() {
   int endiantest = 1;
@@ -54,7 +61,7 @@ inline void EndianCheck() {
 }
 
 template<typename T> FLATBUFFERS_CONSTEXPR size_t AlignOf() {
-// clang-format off
+  // clang-format off
   #ifdef _MSC_VER
     return __alignof(T);
   #else

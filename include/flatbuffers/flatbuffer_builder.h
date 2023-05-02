@@ -21,8 +21,6 @@
 #include <cstdint>
 #include <functional>
 #include <initializer_list>
-// TODO(derekbailey): remove after debugging issues.
-#include <iostream>
 #include <type_traits>
 
 #include "flatbuffers/allocator.h"
