@@ -1200,13 +1200,14 @@ class Parser : public ParserState {
 // strict_json adds "quotes" around field names if true.
 // If the flatbuffer cannot be encoded in JSON (e.g., it contains non-UTF-8
 // byte arrays in String values), returns false.
-extern bool GenerateTextFromTable(const Parser &parser, const void *table,
-                                  const std::string &tablename,
-                                  std::string *text);
-extern bool GenerateText(const Parser &parser, const void *flatbuffer,
-                         std::string *text);
-extern bool GenerateTextFile(const Parser &parser, const std::string &path,
-                             const std::string &file_name);
+extern const char *GenerateTextFromTable(const Parser &parser, const void *table,
+                                         const std::string &tablename,
+                                         std::string *text);
+extern const char *GenerateText(const Parser &parser, const void *flatbuffer,
+                                std::string *text);
+extern const char *GenerateTextFile(const Parser &parser,
+                                    const std::string &path,
+                                    const std::string &file_name);
 
 // Generate Json schema to string
 // See idl_gen_json_schema.cpp.

@@ -869,7 +869,8 @@ std::unique_ptr<Parser> FlatCompiler::GenerateCode(const FlatCOptions &options,
               code_generator->GenerateCode(bfbs_buffer, bfbs_length);
           if (status != CodeGenerator::Status::OK) {
             Error("Unable to generate " + code_generator->LanguageName() +
-                  " for " + filebase + " using bfbs generator.");
+                  " for " + filebase + code_generator->status_detail +
+                  " using bfbs generator.");
           }
         } else {
           if ((!code_generator->IsSchemaOnly() ||
@@ -878,7 +879,7 @@ std::unique_ptr<Parser> FlatCompiler::GenerateCode(const FlatCOptions &options,
                                            filebase) !=
                   CodeGenerator::Status::OK) {
             Error("Unable to generate " + code_generator->LanguageName() +
-                  " for " + filebase);
+                  " for " + filebase + code_generator->status_detail);
           }
         }
       }
