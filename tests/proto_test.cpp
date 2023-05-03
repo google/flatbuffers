@@ -317,9 +317,9 @@ void ParseProtoBufAsciiTest() {
   TEST_EQ(parser.Parse("{ A [1 2] C { B:2 }}"), true);
   // Similarly, in text output, it should omit these.
   std::string text;
-  auto ok = flatbuffers::GenerateText(
+  auto err = flatbuffers::GenerateText(
       parser, parser.builder_.GetBufferPointer(), &text);
-  TEST_EQ(ok, true);
+  TEST_NULL(err);
   TEST_EQ_STR(text.c_str(),
               "{\n  A [\n    1\n    2\n  ]\n  C {\n    B: 2\n  }\n}\n");
 }

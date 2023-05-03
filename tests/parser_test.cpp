@@ -455,8 +455,8 @@ T TestValue(const char *json, const char *type_name,
   // Check with print.
   std::string print_back;
   parser.opts.indent_step = -1;
-  TEST_EQ(GenerateText(parser, parser.builder_.GetBufferPointer(), &print_back),
-          true);
+  TEST_NULL(
+      GenerateText(parser, parser.builder_.GetBufferPointer(), &print_back));
   // restore value from its default
   if (check_default) { TEST_EQ(parser.Parse(print_back.c_str()), true); }
 
@@ -713,7 +713,7 @@ void UnicodeTest() {
   parser.opts.indent_step = -1;
   auto result =
       GenerateText(parser, parser.builder_.GetBufferPointer(), &jsongen);
-  TEST_EQ(result, true);
+  TEST_NULL(result);
   TEST_EQ_STR(jsongen.c_str(),
               "{F: \"\\u20AC\\u00A2\\u30E6\\u30FC\\u30B6\\u30FC"
               "\\u5225\\u30B5\\u30A4\\u30C8\\u20AC\\u0080\\uD83D\\uDE0E\"}");
@@ -733,7 +733,7 @@ void UnicodeTestAllowNonUTF8() {
   parser.opts.indent_step = -1;
   auto result =
       GenerateText(parser, parser.builder_.GetBufferPointer(), &jsongen);
-  TEST_EQ(result, true);
+  TEST_NULL(result);
   TEST_EQ_STR(
       jsongen.c_str(),
       "{F: \"\\u20AC\\u00A2\\u30E6\\u30FC\\u30B6\\u30FC"
@@ -759,7 +759,7 @@ void UnicodeTestGenerateTextFailsOnNonUTF8() {
   parser.opts.allow_non_utf8 = false;
   auto result =
       GenerateText(parser, parser.builder_.GetBufferPointer(), &jsongen);
-  TEST_EQ(result, false);
+  TEST_EQ_STR(result, "string contains non-utf8 bytes");
 }
 
 void UnicodeSurrogatesTest() {
@@ -800,7 +800,7 @@ void UnknownFieldsTest() {
   parser.opts.indent_step = -1;
   auto result =
       GenerateText(parser, parser.builder_.GetBufferPointer(), &jsongen);
-  TEST_EQ(result, true);
+  TEST_NULL(result);
   TEST_EQ_STR(jsongen.c_str(), "{str: \"test\",i: 10}");
 }
 

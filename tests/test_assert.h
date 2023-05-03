@@ -19,6 +19,7 @@
 #define TEST_EQ(exp, val) TestEq(exp, val, "'" #exp "' != '" #val "'", __FILE__, __LINE__, "")
 #define TEST_NE(exp, val) TestNe(exp, val, "'" #exp "' == '" #val "'", __FILE__, __LINE__, "")
 #define TEST_ASSERT(val)  TestEq(true, !!(val), "'" "true" "' != '" #val "'", __FILE__, __LINE__, "")
+#define TEST_NULL(val) TestEq(true, (val) == nullptr, "'" "nullptr" "' != '" #val "'", __FILE__, __LINE__, "")
 #define TEST_NOTNULL(val) TestEq(true, (val) != nullptr, "'" "nullptr" "' == '" #val "'", __FILE__, __LINE__, "")
 #define TEST_EQ_STR(exp, val) TestEqStr(exp, val, "'" #exp "' != '" #val "'", __FILE__, __LINE__, "")
 
