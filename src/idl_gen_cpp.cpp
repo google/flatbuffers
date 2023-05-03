@@ -987,7 +987,7 @@ class CppGenerator : public BaseGenerator {
 
   std::string UnionVectorVerifySignature(const EnumDef &enum_def) {
     const std::string name = Name(enum_def);
-    const std::string & type = opts_.scoped_enums ? name : "uint8_t";
+    const std::string &type = opts_.scoped_enums ? name : "uint8_t";
     return "bool Verify" + name + "Vector" +
            "(::flatbuffers::Verifier &verifier, " +
            "const ::flatbuffers::Vector<::flatbuffers::Offset<void>> "
@@ -1807,7 +1807,7 @@ class CppGenerator : public BaseGenerator {
          field.value.type.element != BASE_TYPE_UTYPE)) {
       auto type = GenTypeNative(field.value.type, false, field);
       auto cpp_type = field.attributes.Lookup("cpp_type");
-      const std::string & full_type =
+      const std::string &full_type =
           (cpp_type
                ? (IsVector(field.value.type)
                       ? "std::vector<" +
@@ -1954,9 +1954,10 @@ class CppGenerator : public BaseGenerator {
         if (!initializer_list.empty()) { initializer_list += ",\n        "; }
         const auto cpp_type = field->attributes.Lookup("cpp_type");
         const auto cpp_ptr_type = field->attributes.Lookup("cpp_ptr_type");
-        const std::string & type_name = (cpp_type) ? cpp_type->constant
-                                    : GenTypeNative(type, /*invector*/ false,
-                                                    *field, /*forcopy*/ true);
+        const std::string &type_name =
+            (cpp_type) ? cpp_type->constant
+                       : GenTypeNative(type, /*invector*/ false, *field,
+                                       /*forcopy*/ true);
         const bool is_ptr = !(IsStruct(type) && field->native_inline) ||
                             (cpp_type && cpp_ptr_type->constant != "naked");
         CodeWriter cw;
@@ -1976,10 +1977,10 @@ class CppGenerator : public BaseGenerator {
         if (vec_type.base_type == BASE_TYPE_UTYPE) continue;
         const auto cpp_type = field->attributes.Lookup("cpp_type");
         const auto cpp_ptr_type = field->attributes.Lookup("cpp_ptr_type");
-        const std::string & type_name = (cpp_type)
-                                   ? cpp_type->constant
-                                   : GenTypeNative(vec_type, /*invector*/ true,
-                                                   *field, /*forcopy*/ true);
+        const std::string &type_name =
+            (cpp_type) ? cpp_type->constant
+                       : GenTypeNative(vec_type, /*invector*/ true, *field,
+                                       /*forcopy*/ true);
         const bool is_ptr = IsVectorOfPointers(*field) ||
                             (cpp_type && cpp_ptr_type->constant != "naked");
         CodeWriter cw("  ");
@@ -2733,9 +2734,10 @@ class CppGenerator : public BaseGenerator {
       if (!nfn.empty()) {
         code_.SetValue("CPP_NAME", nfn);
         code_ += "  const {{CPP_NAME}} *{{FIELD_NAME}}_nested_root() const {";
+        code_ += "    const auto _f = {{FIELD_NAME}}();";
         code_ +=
-            "    return "
-            "::flatbuffers::GetRoot<{{CPP_NAME}}>({{FIELD_NAME}}()->Data());";
+            "    return _f ? ::flatbuffers::GetRoot<{{CPP_NAME}}>(_f->Data())";
+        code_ += "              : nullptr;";
         code_ += "  }";
       }
 
@@ -2745,9 +2747,9 @@ class CppGenerator : public BaseGenerator {
             " const {";
         // Both Data() and size() are const-methods, therefore call order
         // doesn't matter.
-        code_ +=
-            "    return flexbuffers::GetRoot({{FIELD_NAME}}()->Data(), "
-            "{{FIELD_NAME}}()->size());";
+        code_ += "    const auto _f = {{FIELD_NAME}}();";
+        code_ += "    return _f ? flexbuffers::GetRoot(_f->Data(), _f->size())";
+        code_ += "              : flexbuffers::Reference();";
         code_ += "  }";
       }
 
@@ -2835,8 +2837,9 @@ class CppGenerator : public BaseGenerator {
     // Generate code to do force_align for the vector.
     if (align > 1) {
       const auto vtype = field.value.type.VectorType();
-      const std::string & type = IsStruct(vtype) ? WrapInNameSpace(*vtype.struct_def)
-                                        : GenTypeWire(vtype, "", false);
+      const std::string &type = IsStruct(vtype)
+                                    ? WrapInNameSpace(*vtype.struct_def)
+                                    : GenTypeWire(vtype, "", false);
       return "_fbb.ForceVectorAlignment(" + field_size + ", sizeof(" + type +
              "), " + std::to_string(static_cast<long long>(align)) + ");";
     }
@@ -3357,8 +3360,9 @@ class CppGenerator : public BaseGenerator {
           }
           case BASE_TYPE_UTYPE: {
             value = StripUnionType(value);
-            const std::string & type = opts_.scoped_enums ? Name(*field.value.type.enum_def)
-                                           : "uint8_t";
+            const std::string &type = opts_.scoped_enums
+                                          ? Name(*field.value.type.enum_def)
+                                          : "uint8_t";
             auto enum_value = "__va->_" + value + "[i].type";
             if (!opts_.scoped_enums)
               enum_value = "static_cast<uint8_t>(" + enum_value + ")";
@@ -3424,7 +3428,7 @@ class CppGenerator : public BaseGenerator {
           }
         } else {
           // _o->field ? CreateT(_fbb, _o->field.get(), _rehasher);
-          const std::string & type = field.value.type.struct_def->name;
+          const std::string &type = field.value.type.struct_def->name;
           code += value + " ? Create" + type;
           code += "(_fbb, " + value;
           if (!field.native_inline) code += GenPtrGet(field);
@@ -3810,7 +3814,7 @@ class CppGenerator : public BaseGenerator {
       const auto field_type = GenTypeGet(type, " ", is_array ? "" : "const ",
                                          is_array ? "" : " &", true);
       auto member = Name(*field) + "_";
-      const std::string & value =
+      const std::string &value =
           is_scalar ? "::flatbuffers::EndianScalar(" + member + ")" : member;
 
       code_.SetValue("FIELD_NAME", Name(*field));
