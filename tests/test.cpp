@@ -120,12 +120,12 @@ void GenerateTableTextTest(const std::string &tests_data_path) {
   std::string jsongen;
   auto result = GenerateTextFromTable(parser, monster, "MyGame.Example.Monster",
                                       &jsongen);
-  TEST_EQ(result, true);
+  TEST_NULL(result);
   // Test sub table
   const Vec3 *pos = monster->pos();
   jsongen.clear();
   result = GenerateTextFromTable(parser, pos, "MyGame.Example.Vec3", &jsongen);
-  TEST_EQ(result, true);
+  TEST_NULL(result);
   TEST_EQ_STR(
       jsongen.c_str(),
       "{x: 1.0,y: 2.0,z: 3.0,test1: 3.0,test2: \"Green\",test3: {a: 5,b: 6}}");
@@ -133,13 +133,13 @@ void GenerateTableTextTest(const std::string &tests_data_path) {
   jsongen.clear();
   result =
       GenerateTextFromTable(parser, &test3, "MyGame.Example.Test", &jsongen);
-  TEST_EQ(result, true);
+  TEST_NULL(result);
   TEST_EQ_STR(jsongen.c_str(), "{a: 5,b: 6}");
   const Test *test4 = monster->test4()->Get(0);
   jsongen.clear();
   result =
       GenerateTextFromTable(parser, test4, "MyGame.Example.Test", &jsongen);
-  TEST_EQ(result, true);
+  TEST_NULL(result);
   TEST_EQ_STR(jsongen.c_str(), "{a: 10,b: 20}");
 }
 
@@ -337,7 +337,7 @@ void UnionVectorTest(const std::string &tests_data_path) {
   // Generate text using parsed schema.
   std::string jsongen;
   auto result = GenerateText(parser, fbb.GetBufferPointer(), &jsongen);
-  TEST_EQ(result, true);
+  TEST_NULL(result);
   TEST_EQ_STR(jsongen.c_str(),
               "{\n"
               "  main_character_type: \"Rapunzel\",\n"
@@ -955,9 +955,8 @@ void FixedLengthArrayJsonTest(const std::string &tests_data_path, bool binary) {
 
   // Export to JSON
   std::string jsonGen;
-  TEST_EQ(
-      GenerateText(parserOrg, parserOrg.builder_.GetBufferPointer(), &jsonGen),
-      true);
+  TEST_NULL(
+      GenerateText(parserOrg, parserOrg.builder_.GetBufferPointer(), &jsonGen));
 
   // Import from JSON
   TEST_EQ(parserGen.Parse(jsonGen.c_str()), true);
@@ -1082,9 +1081,8 @@ void TestEmbeddedBinarySchema(const std::string &tests_data_path) {
 
   // Export to JSON
   std::string jsonGen;
-  TEST_EQ(
-      GenerateText(parserOrg, parserOrg.builder_.GetBufferPointer(), &jsonGen),
-      true);
+  TEST_NULL(
+      GenerateText(parserOrg, parserOrg.builder_.GetBufferPointer(), &jsonGen));
 
   // Import from JSON
   TEST_EQ(parserGen.Parse(jsonGen.c_str()), true);

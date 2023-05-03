@@ -36,6 +36,8 @@ class CodeGenerator {
     NOT_IMPLEMENTED = 3
   };
 
+  std::string status_detail;
+
   // Generate code from the provided `parser`.
   //
   // DEPRECATED: prefer using the other overload of GenerateCode for bfbs.
