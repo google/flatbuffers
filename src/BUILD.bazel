@@ -5,6 +5,17 @@ package(
     default_visibility = ["//visibility:private"],
 )
 
+filegroup(
+    name = "distribution",
+    srcs = [
+        "BUILD.bazel",
+    ] + glob([
+        "*.cpp",
+        "*.h",
+    ]),
+    visibility = ["//visibility:public"],
+)
+
 cc_library(
     name = "code_generators",
     srcs = ["code_generators.cpp"],
