@@ -173,6 +173,7 @@ inline bool BufferHasIdentifier(const void *buf, const char *identifier,
 /// @cond FLATBUFFERS_INTERNAL
 // Helpers to get a typed pointer to the root object contained in the buffer.
 template<typename T> T *GetMutableRoot(void *buf) {
+  if(!buf) return nullptr;
   EndianCheck();
   return reinterpret_cast<T *>(
       reinterpret_cast<uint8_t *>(buf) +

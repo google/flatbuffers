@@ -141,7 +141,9 @@ struct RootTable FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
     return GetPointer64<::flatbuffers::Vector64<uint8_t> *>(VT_NESTED_ROOT);
   }
   const RootTable *nested_root_nested_root() const {
-    return ::flatbuffers::GetRoot<RootTable>(nested_root()->Data());
+    const auto _f = nested_root();
+    return _f ? ::flatbuffers::GetRoot<RootTable>(_f->Data())
+              : nullptr;
   }
   const ::flatbuffers::Vector<const LeafStruct *> *far_struct_vector() const {
     return GetPointer64<const ::flatbuffers::Vector<const LeafStruct *> *>(VT_FAR_STRUCT_VECTOR);

@@ -117,42 +117,43 @@ class Verifier FLATBUFFERS_FINAL_CLASS {
   }
 
   // Verify a pointer (may be NULL) of any vector type.
-  template<int &..., typename T, typename SizeT = uoffset_t>
-  bool VerifyVector(const Vector<T, SizeT> *const vec) const {
-    return !vec || VerifyVectorOrString(reinterpret_cast<const uint8_t *>(vec),
-                                        sizeof(T));
+  template<int &..., typename T, typename LenT>
+  bool VerifyVector(const Vector<T, LenT> *const vec) const {
+    return !vec || VerifyVectorOrString<LenT>(
+                       reinterpret_cast<const uint8_t *>(vec), sizeof(T));
   }
 
   // Verify a pointer (may be NULL) of a vector to struct.
-  template<int &..., typename T, typename SizeT = uoffset_t>
-  bool VerifyVector(const Vector<const T *, SizeT> *const vec) const {
-    return VerifyVector(reinterpret_cast<const Vector<T, SizeT> *>(vec));
+  template<int &..., typename T, typename LenT>
+  bool VerifyVector(const Vector<const T *, LenT> *const vec) const {
+    return VerifyVector(reinterpret_cast<const Vector<T, LenT> *>(vec));
   }
 
   // Verify a pointer (may be NULL) to string.
   bool VerifyString(const String *const str) const {
     size_t end;
-    return !str || (VerifyVectorOrString(reinterpret_cast<const uint8_t *>(str),
-                                         1, &end) &&
+    return !str || (VerifyVectorOrString<uoffset_t>(
+                        reinterpret_cast<const uint8_t *>(str), 1, &end) &&
                     Verify(end, 1) &&           // Must have terminator
                     Check(buf_[end] == '\0'));  // Terminating byte must be 0.
   }
 
   // Common code between vectors and strings.
+  template<typename LenT = uoffset_t>
   bool VerifyVectorOrString(const uint8_t *const vec, const size_t elem_size,
                             size_t *const end = nullptr) const {
-    const auto veco = static_cast<size_t>(vec - buf_);
+    const auto vec_offset = static_cast<size_t>(vec - buf_);
     // Check we can read the size field.
-    if (!Verify<uoffset_t>(veco)) return false;
+    if (!Verify<LenT>(vec_offset)) return false;
     // Check the whole array. If this is a string, the byte past the array must
     // be 0.
-    const auto size = ReadScalar<uoffset_t>(vec);
+    const LenT size = ReadScalar<LenT>(vec);
     const auto max_elems = opts_.max_size / elem_size;
     if (!Check(size < max_elems))
       return false;  // Protect against byte_size overflowing.
-    const auto byte_size = sizeof(size) + elem_size * size;
-    if (end) *end = veco + byte_size;
-    return Verify(veco, byte_size);
+    const auto byte_size = sizeof(LenT) + elem_size * size;
+    if (end) *end = vec_offset + byte_size;
+    return Verify(vec_offset, byte_size);
   }
 
   // Special case for string contents, after the above has been called.
@@ -219,7 +220,7 @@ class Verifier FLATBUFFERS_FINAL_CLASS {
     // clang-format on
   }
 
-  template<typename T, int &..., typename SizeT = uoffset_t>
+  template<typename T, int &..., typename SizeT>
   bool VerifyNestedFlatBuffer(const Vector<uint8_t, SizeT> *const buf,
                               const char *const identifier) {
     // Caller opted out of this.
@@ -231,7 +232,7 @@ class Verifier FLATBUFFERS_FINAL_CLASS {
     // If there is a nested buffer, it must be greater than the min size.
     if (!Check(buf->size() >= FLATBUFFERS_MIN_BUFFER_SIZE)) return false;
 
-    Verifier nested_verifier(buf->data(), buf->size());
+    Verifier nested_verifier(buf->data(), buf->size(), opts_);
     return nested_verifier.VerifyBuffer<T>(identifier);
   }
 
