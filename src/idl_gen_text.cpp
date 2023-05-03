@@ -382,7 +382,7 @@ static const char *GenerateTextImpl(const Parser &parser, const Table *table,
 const char *GenerateTextFromTable(const Parser &parser, const void *table,
                            const std::string &table_name, std::string *_text) {
   auto struct_def = parser.LookupStruct(table_name);
-  if (struct_def == nullptr) { return false; }
+  if (struct_def == nullptr) { return "unknown struct"; }
   auto root = static_cast<const Table *>(table);
   return GenerateTextImpl(parser, root, *struct_def, _text);
 }
