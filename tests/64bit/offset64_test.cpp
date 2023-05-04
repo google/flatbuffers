@@ -375,5 +375,74 @@ void Offset64SizePrefix() {
   TEST_EQ_STR(root_table->near_string()->c_str(), "some near string");
 }
 
+void Offset64ManyVectors() {
+  FlatBufferBuilder64 builder;
+
+  // Setup some data to serialize.
+  std::vector<int8_t> data;
+  data.resize(20);
+  data.front() = 42;
+  data.back() = 18;
+
+  const size_t kNumVectors = 20;
+
+  // First serialize all the 64-bit address vectors. We need to store all the
+  // offsets to later add to a wrapper table. We cannot serialize one vector and
+  // then add it to a table immediately, as it would violate the strict ordering
+  // of putting all 64-bit things at the tail of the buffer.
+  std::array<Offset64<Vector<int8_t>>, kNumVectors> offsets_64bit;
+  for (size_t i = 0; i < kNumVectors; ++i) {
+    offsets_64bit[i] = builder.CreateVector64<Vector>(data);
+  }
+
+  // Create some unrelated, 64-bit offset value for later testing.
+  const Offset64<String> far_string_offset =
+      builder.CreateString<Offset64>("some far string");
+
+  // Now place all the offsets into their own wrapper tables. Again, we have to
+  // store the offsets before we can add them to the root table vector.
+  std::array<Offset<WrapperTable>, kNumVectors> offsets_wrapper;
+  for (size_t i = 0; i < kNumVectors; ++i) {
+    offsets_wrapper[i] = CreateWrapperTable(builder, offsets_64bit[i]);
+  }
+
+  // Now create the 32-bit vector that is stored in the root table.
+  // TODO(derekbailey): the array type wasn't auto deduced, see if that could be
+  // fixed.
+  const Offset<Vector<Offset<WrapperTable>>> many_vectors_offset =
+      builder.CreateVector<Offset<WrapperTable>>(offsets_wrapper);
+
+  // Finish by building using the root table builder, to exercise a different
+  // code path than the other tests.
+  RootTableBuilder root_table_builder(builder);
+  root_table_builder.add_many_vectors(many_vectors_offset);
+  root_table_builder.add_far_string(far_string_offset);
+  const Offset<RootTable> root_table_offset = root_table_builder.Finish();
+
+  // Finish the buffer.
+  FinishRootTableBuffer(builder, root_table_offset);
+
+  Verifier::Options options;
+  // Allow the verifier to verify 64-bit buffers.
+  options.max_size = FLATBUFFERS_MAX_64_BUFFER_SIZE;
+  options.assert = true;
+
+  Verifier verifier(builder.GetBufferPointer(), builder.GetSize(), options);
+
+  TEST_EQ(VerifyRootTableBuffer(verifier), true);
+
+  const RootTable *root_table = GetRootTable(builder.GetBufferPointer());
+
+  // Verify the fields.
+  TEST_EQ_STR(root_table->far_string()->c_str(), "some far string");
+  TEST_EQ(root_table->many_vectors()->size(), kNumVectors);
+
+  // Spot check one of the vectors.
+  TEST_EQ(root_table->many_vectors()->Get(12)->vector()->size(), data.size());
+  TEST_EQ(root_table->many_vectors()->Get(12)->vector()->Get(0), 42);
+  TEST_EQ(root_table->many_vectors()->Get(12)->vector()->Get(data.size() - 1),
+          18);
+}
+
 }  // namespace tests
 }  // namespace flatbuffers

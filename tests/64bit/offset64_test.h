@@ -11,6 +11,7 @@ void Offset64CreateDirect();
 void Offset64Evolution();
 void Offset64VectorOfStructs();
 void Offset64SizePrefix();
+void Offset64ManyVectors();
 
 }  // namespace tests
 }  // namespace flatbuffers
