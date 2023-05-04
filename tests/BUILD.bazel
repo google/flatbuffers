@@ -1,6 +1,6 @@
 load("@aspect_bazel_lib//lib:copy_to_bin.bzl", "copy_to_bin")
 load("@rules_cc//cc:defs.bzl", "cc_test")
-load("//:build_defs.bzl", "flatbuffer_cc_library")
+load("//:build_defs.bzl", "flatbuffer_cc_library", "DEFAULT_FLATC_ARGS")
 
 package(default_visibility = ["//visibility:private"])
 
@@ -185,6 +185,12 @@ flatbuffer_cc_library(
     include_paths = ["tests/include_test"],
     visibility = ["//grpc/tests:__subpackages__"],
     deps = [":include_test_fbs"],
+    flatc_args = DEFAULT_FLATC_ARGS + [
+        "--bfbs-comments",
+        "--bfbs-builtins",
+        "--bfbs-gen-embed", 
+        "--bfbs-filenames tests",
+    ],
 )
 
 # Test that running without --no-includes works properly (monster_test doesn't
