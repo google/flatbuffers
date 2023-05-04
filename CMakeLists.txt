@@ -614,7 +614,6 @@ if(FLATBUFFERS_BUILD_TESTS)
   file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/samples" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}")
 
   # TODO Add (monster_test.fbs monsterdata_test.json)->monsterdata_test.mon
-  compile_flatbuffers_schema_to_cpp(tests/monster_test.fbs)
   compile_flatbuffers_schema_to_binary(tests/monster_test.fbs)
   compile_flatbuffers_schema_to_cpp_opt(tests/namespace_test/namespace_test1.fbs "--no-includes;--gen-compare;--gen-name-strings")
   compile_flatbuffers_schema_to_cpp_opt(tests/namespace_test/namespace_test2.fbs "--no-includes;--gen-compare;--gen-name-strings")
