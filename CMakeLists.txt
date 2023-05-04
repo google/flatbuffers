@@ -236,29 +236,6 @@ set(FlatBuffers_Tests_SRCS
   tests/alignment_test.cpp
   include/flatbuffers/code_generators.h
   src/code_generators.cpp
-  # file generate by running compiler on tests/monster_test.fbs
-  ${CMAKE_CURRENT_BINARY_DIR}/tests/monster_test_generated.h
-  # file generate by running compiler on namespace_test/namespace_test1.fbs
-  ${CMAKE_CURRENT_BINARY_DIR}/tests/namespace_test/namespace_test1_generated.h
-  ${CMAKE_CURRENT_BINARY_DIR}/tests/namespace_test/namespace_test2_generated.h
-  # file generate by running compiler on union_vector/union_vector.fbs
-  ${CMAKE_CURRENT_BINARY_DIR}/tests/union_vector/union_vector_generated.h
-  # file generate by running compiler on tests/arrays_test.fbs
-  ${CMAKE_CURRENT_BINARY_DIR}/tests/arrays_test_generated.h
-  # file generate by running compiler on tests/native_type_test.fbs
-  ${CMAKE_CURRENT_BINARY_DIR}/tests/native_type_test_generated.h
-  # file generate by running compiler on tests/monster_extra.fbs
-  ${CMAKE_CURRENT_BINARY_DIR}/tests/monster_extra_generated.h
-  # file generate by running compiler on tests/monster_test.fbs
-  ${CMAKE_CURRENT_BINARY_DIR}/tests/monster_test_bfbs_generated.h
-  # file generate by running compiler on tests/optional_scalars.fbs
-  ${CMAKE_CURRENT_BINARY_DIR}/tests/optional_scalars_generated.h
-  # file generate by running compiler on tests/native_inline_table_test.fbs
-  ${CMAKE_CURRENT_BINARY_DIR}/tests/native_inline_table_test_generated.h
-  # file generate by running compiler on tests/alignment_test.fbs
-  ${CMAKE_CURRENT_BINARY_DIR}/tests/alignment_test_generated.h
-  # file generate by running compiler on tests/key_field/key_field_sample.fbs
-  ${CMAKE_CURRENT_BINARY_DIR}/tests/key_field/key_field_sample_generated.h
 )
 
 set(FlatBuffers_Tests_CPP17_SRCS
