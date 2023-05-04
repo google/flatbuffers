@@ -283,7 +283,7 @@ class CppGenerator : public BaseGenerator {
   void GenEmbeddedIncludes() {
     if (parser_.opts.binary_schema_gen_embed && parser_.root_struct_def_) {
       const std::string file_path =
-          GeneratedFileName(/*path=*/"", file_name_ + "_bfbs", opts_);
+          GeneratedFileName(opts_.include_prefix, file_name_ + "_bfbs", opts_);
       code_ += "// For access to the binary schema that produced this file.";
       code_ += "#include \"" + file_path + "\"";
       code_ += "";
