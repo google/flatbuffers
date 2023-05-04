@@ -1103,7 +1103,7 @@ void TestEmbeddedBinarySchema(const std::string &tests_data_path) {
 #endif
 
 template<typename T>
-void EmbeddedSchemaAccessByType(const T& t) {
+void EmbeddedSchemaAccessByType(const T&) {
   // Get the binary schema from the Type itself.
   typename T::BinarySchema binary_schema = T::GetBinarySchema();
 
