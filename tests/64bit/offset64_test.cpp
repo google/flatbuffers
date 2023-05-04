@@ -438,10 +438,9 @@ void Offset64ManyVectors() {
   TEST_EQ(root_table->many_vectors()->size(), kNumVectors);
 
   // Spot check one of the vectors.
-  TEST_EQ(root_table->many_vectors()->Get(12)->vector()->size(), data.size());
+  TEST_EQ(root_table->many_vectors()->Get(12)->vector()->size(), 20);
   TEST_EQ(root_table->many_vectors()->Get(12)->vector()->Get(0), 42);
-  TEST_EQ(root_table->many_vectors()->Get(12)->vector()->Get(data.size() - 1),
-          18);
+  TEST_EQ(root_table->many_vectors()->Get(12)->vector()->Get(19), 18);
 }
 
 }  // namespace tests
