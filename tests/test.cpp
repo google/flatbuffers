@@ -74,7 +74,7 @@ static_assert(flatbuffers::is_same<uint8_t, char>::value ||
 using namespace MyGame::Example;
 
 void TriviallyCopyableTest() {
-  // clang-format off
+// clang-format off
   #if __GNUG__ && __GNUC__ < 5 && \
       !(defined(__clang__) && __clang_major__ >= 16)
     TEST_EQ(__has_trivial_copy(Vec3), true);
@@ -913,7 +913,7 @@ void NativeTypeTest() {
 // Guard against -Wunused-function on platforms without file tests.
 #ifndef FLATBUFFERS_NO_FILE_TESTS
 // VS10 does not support typed enums, exclude from tests
-#if !defined(_MSC_VER) || _MSC_VER >= 1700
+#  if !defined(_MSC_VER) || _MSC_VER >= 1700
 void FixedLengthArrayJsonTest(const std::string &tests_data_path, bool binary) {
   // load FlatBuffer schema (.fbs) and JSON from disk
   std::string schemafile;
@@ -1032,7 +1032,7 @@ void FixedLengthArraySpanTest(const std::string &tests_data_path) {
         std::equal(const_d_c.begin(), const_d_c.end(), mutable_d_c.begin()));
   }
   // test little endian array of int32
-#  if FLATBUFFERS_LITTLEENDIAN
+#    if FLATBUFFERS_LITTLEENDIAN
   {
     flatbuffers::span<const int32_t, 2> const_d_a =
         flatbuffers::make_span(*const_nested.a());
@@ -1047,12 +1047,12 @@ void FixedLengthArraySpanTest(const std::string &tests_data_path) {
     TEST_ASSERT(
         std::equal(const_d_a.begin(), const_d_a.end(), mutable_d_a.begin()));
   }
-#  endif
+#    endif
 }
-#else
+#  else
 void FixedLengthArrayJsonTest(bool /*binary*/) {}
 void FixedLengthArraySpanTest() {}
-#endif
+#  endif
 
 void TestEmbeddedBinarySchema(const std::string &tests_data_path) {
   // load JSON from disk
@@ -1102,18 +1102,15 @@ void TestEmbeddedBinarySchema(const std::string &tests_data_path) {
 }
 #endif
 
-template<typename T> void EmbeddedSchemaAccessByType(const T &) {
+template<typename T> void EmbeddedSchemaAccessByType() {
   // Get the binary schema from the Type itself.
-  typename T::TableType::BinarySchema binary_schema =
-      T::TableType::GetBinarySchema();
-
   // Verify the schema is OK.
-  flatbuffers::Verifier verifierEmbeddedSchema(binary_schema.data(),
-                                               binary_schema.size());
+  flatbuffers::Verifier verifierEmbeddedSchema(
+      T::TableType::BinarySchema::data(), T::TableType::BinarySchema::size());
   TEST_EQ(reflection::VerifySchemaBuffer(verifierEmbeddedSchema), true);
 
   // Reflect it.
-  auto schema = reflection::GetSchema(binary_schema.data());
+  auto schema = reflection::GetSchema(T::TableType::BinarySchema::data());
 
   // This should equal the expected root table.
   TEST_EQ_STR(schema->root_table()->name()->c_str(), "MyGame.Example.Monster");
@@ -1121,22 +1118,19 @@ template<typename T> void EmbeddedSchemaAccessByType(const T &) {
 
 void EmbeddedSchemaAccess() {
   // Get the binary schema for the monster.
-  Monster::BinarySchema binary_schema = Monster::GetBinarySchema();
-
   // Verify the schema is OK.
-  flatbuffers::Verifier verifierEmbeddedSchema(binary_schema.data(),
-                                               binary_schema.size());
+  flatbuffers::Verifier verifierEmbeddedSchema(Monster::BinarySchema::data(),
+                                               Monster::BinarySchema::size());
   TEST_EQ(reflection::VerifySchemaBuffer(verifierEmbeddedSchema), true);
 
   // Reflect it.
-  auto schema = reflection::GetSchema(binary_schema.data());
+  auto schema = reflection::GetSchema(Monster::BinarySchema::data());
 
   // This should equal the expected root table.
   TEST_EQ_STR(schema->root_table()->name()->c_str(), "MyGame.Example.Monster");
 
   // Repeat above, but do so through a template parameter:
-  StatT stat;
-  EmbeddedSchemaAccessByType(stat);
+  EmbeddedSchemaAccessByType<StatT>();
 }
 
 void NestedVerifierTest() {
