@@ -59,6 +59,7 @@ struct ReferrableT;
 struct Monster;
 struct MonsterBuilder;
 struct MonsterT;
+struct MonsterBinarySchema;
 
 struct TypeAliases;
 struct TypeAliasesBuilder;

@@ -435,6 +435,13 @@ class CppGenerator : public BaseGenerator {
           auto nativeName = NativeName(Name(*struct_def), struct_def, opts_);
           if (!struct_def->fixed) { code_ += "struct " + nativeName + ";"; }
         }
+
+        if (opts_.binary_schema_gen_embed && parser_.root_struct_def_ &&
+            parser_.root_struct_def_ == struct_def) {
+          SetNameSpace(parser_.root_struct_def_->defined_namespace);
+          code_ +=
+              "struct " + Name(*parser_.root_struct_def_) + "BinarySchema;";
+        }
         code_ += "";
       }
     }
