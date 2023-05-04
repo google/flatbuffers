@@ -25,6 +25,7 @@
 #include "flatbuffers/flatbuffers.h"
 #include "flatbuffers/idl.h"
 #include "flatbuffers/minireflect.h"
+#include "flatbuffers/reflection_generated.h"
 #include "flatbuffers/registry.h"
 #include "flatbuffers/util.h"
 #include "fuzz_test.h"
@@ -1101,6 +1102,45 @@ void TestEmbeddedBinarySchema(const std::string &tests_data_path) {
 }
 #endif
 
+template<typename T>
+void EmbeddedSchemaAccessByType(const T& t) {
+  // Get the binary schema from the Type itself.
+  typename T::BinarySchema binary_schema = T::GetBinarySchema();
+
+  // Verify the schema is OK.
+  flatbuffers::Verifier verifierEmbeddedSchema(binary_schema.data(),
+                                               binary_schema.size());
+  TEST_EQ(reflection::VerifySchemaBuffer(verifierEmbeddedSchema), true);
+
+  // Reflect it.
+  auto schema = reflection::GetSchema(binary_schema.data());
+
+  // This should equal the expected root table.
+  TEST_EQ_STR(schema->root_table()->name()->c_str(),
+              "MyGame.Example.Monster");
+}
+
+void EmbeddedSchemaAccess() {
+  // Get the binary schema for the monster.
+  MonsterT::BinarySchema binary_schema = MonsterT::GetBinarySchema();
+
+   // Verify the schema is OK. 
+  flatbuffers::Verifier verifierEmbeddedSchema(binary_schema.data(),
+                                               binary_schema.size());
+  TEST_EQ(reflection::VerifySchemaBuffer(verifierEmbeddedSchema), true);
+
+  // Reflect it.
+  auto schema = reflection::GetSchema(binary_schema.data());
+
+  // This should equal the expected root table.
+  TEST_EQ_STR(schema->root_table()->name()->c_str(),
+              "MyGame.Example.Monster");
+
+  // Repeat above, but do so through a template parameter:
+  StatT stat;
+  EmbeddedSchemaAccessByType(stat);
+}
+
 void NestedVerifierTest() {
   // Create a nested monster.
   flatbuffers::FlatBufferBuilder nested_builder;
@@ -1620,6 +1660,7 @@ int FlatBufferTests(const std::string &tests_data_path) {
   StructKeyInStructTest();
   NestedStructKeyInStructTest();
   FixedSizedStructArrayKeyInStructTest();
+  EmbeddedSchemaAccess();
   return 0;
 }
 }  // namespace

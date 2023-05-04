@@ -15,6 +15,9 @@ static_assert(FLATBUFFERS_VERSION_MAJOR == 23 &&
               FLATBUFFERS_VERSION_REVISION == 3,
              "Non-compatible flatbuffers version included");
 
+// For access to the binary schema that produced this file.
+#include "monster_test_bfbs_generated.h"
+
 namespace MyGame {
 
 struct InParentNamespace;
@@ -941,6 +944,12 @@ inline bool operator!=(const StructOfStructsOfStructs &lhs, const StructOfStruct
 
 struct InParentNamespaceT : public ::flatbuffers::NativeTable {
   typedef InParentNamespace TableType;
+
+  typedef MyGame::Example::MonsterBinarySchema BinarySchema;
+  static BinarySchema& GetBinarySchema() {
+    static BinarySchema instance_;
+    return instance_;
+   }
 };
 
 struct InParentNamespace FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
@@ -985,6 +994,12 @@ namespace Example2 {
 
 struct MonsterT : public ::flatbuffers::NativeTable {
   typedef Monster TableType;
+
+  typedef MyGame::Example::MonsterBinarySchema BinarySchema;
+  static BinarySchema& GetBinarySchema() {
+    static BinarySchema instance_;
+    return instance_;
+   }
 };
 
 struct Monster FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
@@ -1032,6 +1047,12 @@ namespace Example {
 struct TestSimpleTableWithEnumT : public ::flatbuffers::NativeTable {
   typedef TestSimpleTableWithEnum TableType;
   MyGame::Example::Color color = MyGame::Example::Color_Green;
+
+  typedef MyGame::Example::MonsterBinarySchema BinarySchema;
+  static BinarySchema& GetBinarySchema() {
+    static BinarySchema instance_;
+    return instance_;
+   }
 };
 
 struct TestSimpleTableWithEnum FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
@@ -1092,6 +1113,12 @@ struct StatT : public ::flatbuffers::NativeTable {
   std::string id{};
   int64_t val = 0;
   uint16_t count = 0;
+
+  typedef MyGame::Example::MonsterBinarySchema BinarySchema;
+  static BinarySchema& GetBinarySchema() {
+    static BinarySchema instance_;
+    return instance_;
+   }
 };
 
 struct Stat FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
@@ -1196,6 +1223,12 @@ inline ::flatbuffers::Offset<Stat> CreateStatDirect(
 struct ReferrableT : public ::flatbuffers::NativeTable {
   typedef Referrable TableType;
   uint64_t id = 0;
+
+  typedef MyGame::Example::MonsterBinarySchema BinarySchema;
+  static BinarySchema& GetBinarySchema() {
+    static BinarySchema instance_;
+    return instance_;
+   }
 };
 
 struct Referrable FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
@@ -1321,6 +1354,12 @@ struct MonsterT : public ::flatbuffers::NativeTable {
   MonsterT(const MonsterT &o);
   MonsterT(MonsterT&&) FLATBUFFERS_NOEXCEPT = default;
   MonsterT &operator=(MonsterT o) FLATBUFFERS_NOEXCEPT;
+
+  typedef MyGame::Example::MonsterBinarySchema BinarySchema;
+  static BinarySchema& GetBinarySchema() {
+    static BinarySchema instance_;
+    return instance_;
+   }
 };
 
 /// an example documentation comment: "monster object"
@@ -2424,6 +2463,12 @@ struct TypeAliasesT : public ::flatbuffers::NativeTable {
   double f64 = 0.0;
   std::vector<int8_t> v8{};
   std::vector<double> vf64{};
+
+  typedef MyGame::Example::MonsterBinarySchema BinarySchema;
+  static BinarySchema& GetBinarySchema() {
+    static BinarySchema instance_;
+    return instance_;
+   }
 };
 
 struct TypeAliases FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {

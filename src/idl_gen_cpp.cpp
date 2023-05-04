@@ -280,6 +280,16 @@ class CppGenerator : public BaseGenerator {
     if (!opts_.cpp_includes.empty()) { code_ += ""; }
   }
 
+  void GenEmbeddedIncludes() {
+    if (parser_.opts.binary_schema_gen_embed && parser_.root_struct_def_) {
+      const std::string file_path =
+          GeneratedFileName(/*path=*/"", file_name_ + "_bfbs", opts_);
+      code_ += "// For access to the binary schema that produced this file.";
+      code_ += "#include \"" + file_path + "\"";
+      code_ += "";
+    }
+  }
+
   std::string EscapeKeyword(const std::string &name) const {
     return keywords_.find(name) == keywords_.end() ? name : name + "_";
   }
@@ -408,6 +418,7 @@ class CppGenerator : public BaseGenerator {
 
     if (opts_.include_dependence_headers) { GenIncludeDependencies(); }
     GenExtraIncludes();
+    GenEmbeddedIncludes();
 
     FLATBUFFERS_ASSERT(!cur_name_space_);
 
@@ -2148,8 +2159,22 @@ class CppGenerator : public BaseGenerator {
     GenOperatorNewDelete(struct_def);
     GenDefaultConstructor(struct_def);
     GenCopyMoveCtorAndAssigOpDecls(struct_def);
+    GenBinarySchemaAccessor(parser_.root_struct_def_);
     code_ += "};";
     code_ += "";
+  }
+
+  void GenBinarySchemaAccessor(const StructDef *struct_def) {
+    if (struct_def && opts_.binary_schema_gen_embed) {
+      code_.SetValue("STRUCT_NAME", WrapInNameSpace(*struct_def));
+
+      code_ += "";
+      code_ += "  typedef {{STRUCT_NAME}}BinarySchema BinarySchema;";
+      code_ += "  static BinarySchema& GetBinarySchema() {";
+      code_ += "    static BinarySchema instance_;";
+      code_ += "    return instance_;";
+      code_ += "   }";
+    }
   }
 
   void GenNativeTablePost(const StructDef &struct_def) {
