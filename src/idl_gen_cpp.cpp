@@ -2159,21 +2159,21 @@ class CppGenerator : public BaseGenerator {
     GenOperatorNewDelete(struct_def);
     GenDefaultConstructor(struct_def);
     GenCopyMoveCtorAndAssigOpDecls(struct_def);
-    GenBinarySchemaAccessor(parser_.root_struct_def_);
     code_ += "};";
     code_ += "";
   }
 
   void GenBinarySchemaAccessor(const StructDef *struct_def) {
     if (struct_def && opts_.binary_schema_gen_embed) {
-      code_.SetValue("STRUCT_NAME", WrapInNameSpace(*struct_def));
+      code_.SetValue("EMBED_STRUCT_NAME", WrapInNameSpace(*struct_def));
 
       code_ += "";
-      code_ += "  typedef {{STRUCT_NAME}}BinarySchema BinarySchema;";
+      code_ += "  typedef {{EMBED_STRUCT_NAME}}BinarySchema BinarySchema;";
       code_ += "  static BinarySchema& GetBinarySchema() {";
       code_ += "    static BinarySchema instance_;";
       code_ += "    return instance_;";
-      code_ += "   }";
+      code_ += "  }";
+      code_ += "";
     }
   }
 
@@ -2712,6 +2712,8 @@ class CppGenerator : public BaseGenerator {
       code_ += "  typedef {{NATIVE_NAME}} NativeTableType;";
     }
     code_ += "  typedef {{STRUCT_NAME}}Builder Builder;";
+    GenBinarySchemaAccessor(parser_.root_struct_def_);
+
     if (opts_.g_cpp_std >= cpp::CPP_STD_17) { code_ += "  struct Traits;"; }
     if (opts_.mini_reflect != IDLOptions::kNone) {
       code_ +=

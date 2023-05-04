@@ -74,7 +74,7 @@ static_assert(flatbuffers::is_same<uint8_t, char>::value ||
 using namespace MyGame::Example;
 
 void TriviallyCopyableTest() {
-// clang-format off
+  // clang-format off
   #if __GNUG__ && __GNUC__ < 5 && \
       !(defined(__clang__) && __clang_major__ >= 16)
     TEST_EQ(__has_trivial_copy(Vec3), true);
@@ -1102,10 +1102,10 @@ void TestEmbeddedBinarySchema(const std::string &tests_data_path) {
 }
 #endif
 
-template<typename T>
-void EmbeddedSchemaAccessByType(const T&) {
+template<typename T> void EmbeddedSchemaAccessByType(const T &) {
   // Get the binary schema from the Type itself.
-  typename T::BinarySchema binary_schema = T::GetBinarySchema();
+  typename T::TableType::BinarySchema binary_schema =
+      T::TableType::GetBinarySchema();
 
   // Verify the schema is OK.
   flatbuffers::Verifier verifierEmbeddedSchema(binary_schema.data(),
@@ -1116,15 +1116,14 @@ void EmbeddedSchemaAccessByType(const T&) {
   auto schema = reflection::GetSchema(binary_schema.data());
 
   // This should equal the expected root table.
-  TEST_EQ_STR(schema->root_table()->name()->c_str(),
-              "MyGame.Example.Monster");
+  TEST_EQ_STR(schema->root_table()->name()->c_str(), "MyGame.Example.Monster");
 }
 
 void EmbeddedSchemaAccess() {
   // Get the binary schema for the monster.
-  MonsterT::BinarySchema binary_schema = MonsterT::GetBinarySchema();
+  Monster::BinarySchema binary_schema = Monster::GetBinarySchema();
 
-   // Verify the schema is OK. 
+  // Verify the schema is OK.
   flatbuffers::Verifier verifierEmbeddedSchema(binary_schema.data(),
                                                binary_schema.size());
   TEST_EQ(reflection::VerifySchemaBuffer(verifierEmbeddedSchema), true);
@@ -1133,8 +1132,7 @@ void EmbeddedSchemaAccess() {
   auto schema = reflection::GetSchema(binary_schema.data());
 
   // This should equal the expected root table.
-  TEST_EQ_STR(schema->root_table()->name()->c_str(),
-              "MyGame.Example.Monster");
+  TEST_EQ_STR(schema->root_table()->name()->c_str(), "MyGame.Example.Monster");
 
   // Repeat above, but do so through a template parameter:
   StatT stat;
@@ -1498,9 +1496,7 @@ void NativeInlineTableVectorTest() {
   TestNativeInlineTableT unpacked;
   root->UnPackTo(&unpacked);
 
-  for (int i = 0; i < 10; ++i) {
-    TEST_ASSERT(unpacked.t[i] == test.t[i]);
-  }
+  for (int i = 0; i < 10; ++i) { TEST_ASSERT(unpacked.t[i] == test.t[i]); }
 
   TEST_ASSERT(unpacked.t == test.t);
 }

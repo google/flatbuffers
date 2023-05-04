@@ -944,17 +944,18 @@ inline bool operator!=(const StructOfStructsOfStructs &lhs, const StructOfStruct
 
 struct InParentNamespaceT : public ::flatbuffers::NativeTable {
   typedef InParentNamespace TableType;
-
-  typedef MyGame::Example::MonsterBinarySchema BinarySchema;
-  static BinarySchema& GetBinarySchema() {
-    static BinarySchema instance_;
-    return instance_;
-   }
 };
 
 struct InParentNamespace FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   typedef InParentNamespaceT NativeTableType;
   typedef InParentNamespaceBuilder Builder;
+
+  typedef MyGame::Example::MonsterBinarySchema BinarySchema;
+  static BinarySchema& GetBinarySchema() {
+    static BinarySchema instance_;
+    return instance_;
+  }
+
   static const ::flatbuffers::TypeTable *MiniReflectTypeTable() {
     return InParentNamespaceTypeTable();
   }
@@ -994,17 +995,18 @@ namespace Example2 {
 
 struct MonsterT : public ::flatbuffers::NativeTable {
   typedef Monster TableType;
-
-  typedef MyGame::Example::MonsterBinarySchema BinarySchema;
-  static BinarySchema& GetBinarySchema() {
-    static BinarySchema instance_;
-    return instance_;
-   }
 };
 
 struct Monster FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   typedef MonsterT NativeTableType;
   typedef MonsterBuilder Builder;
+
+  typedef MyGame::Example::MonsterBinarySchema BinarySchema;
+  static BinarySchema& GetBinarySchema() {
+    static BinarySchema instance_;
+    return instance_;
+  }
+
   static const ::flatbuffers::TypeTable *MiniReflectTypeTable() {
     return MonsterTypeTable();
   }
@@ -1047,17 +1049,18 @@ namespace Example {
 struct TestSimpleTableWithEnumT : public ::flatbuffers::NativeTable {
   typedef TestSimpleTableWithEnum TableType;
   MyGame::Example::Color color = MyGame::Example::Color_Green;
-
-  typedef MyGame::Example::MonsterBinarySchema BinarySchema;
-  static BinarySchema& GetBinarySchema() {
-    static BinarySchema instance_;
-    return instance_;
-   }
 };
 
 struct TestSimpleTableWithEnum FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   typedef TestSimpleTableWithEnumT NativeTableType;
   typedef TestSimpleTableWithEnumBuilder Builder;
+
+  typedef MyGame::Example::MonsterBinarySchema BinarySchema;
+  static BinarySchema& GetBinarySchema() {
+    static BinarySchema instance_;
+    return instance_;
+  }
+
   static const ::flatbuffers::TypeTable *MiniReflectTypeTable() {
     return TestSimpleTableWithEnumTypeTable();
   }
@@ -1113,17 +1116,18 @@ struct StatT : public ::flatbuffers::NativeTable {
   std::string id{};
   int64_t val = 0;
   uint16_t count = 0;
-
-  typedef MyGame::Example::MonsterBinarySchema BinarySchema;
-  static BinarySchema& GetBinarySchema() {
-    static BinarySchema instance_;
-    return instance_;
-   }
 };
 
 struct Stat FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   typedef StatT NativeTableType;
   typedef StatBuilder Builder;
+
+  typedef MyGame::Example::MonsterBinarySchema BinarySchema;
+  static BinarySchema& GetBinarySchema() {
+    static BinarySchema instance_;
+    return instance_;
+  }
+
   static const ::flatbuffers::TypeTable *MiniReflectTypeTable() {
     return StatTypeTable();
   }
@@ -1223,17 +1227,18 @@ inline ::flatbuffers::Offset<Stat> CreateStatDirect(
 struct ReferrableT : public ::flatbuffers::NativeTable {
   typedef Referrable TableType;
   uint64_t id = 0;
-
-  typedef MyGame::Example::MonsterBinarySchema BinarySchema;
-  static BinarySchema& GetBinarySchema() {
-    static BinarySchema instance_;
-    return instance_;
-   }
 };
 
 struct Referrable FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   typedef ReferrableT NativeTableType;
   typedef ReferrableBuilder Builder;
+
+  typedef MyGame::Example::MonsterBinarySchema BinarySchema;
+  static BinarySchema& GetBinarySchema() {
+    static BinarySchema instance_;
+    return instance_;
+  }
+
   static const ::flatbuffers::TypeTable *MiniReflectTypeTable() {
     return ReferrableTypeTable();
   }
@@ -1354,18 +1359,19 @@ struct MonsterT : public ::flatbuffers::NativeTable {
   MonsterT(const MonsterT &o);
   MonsterT(MonsterT&&) FLATBUFFERS_NOEXCEPT = default;
   MonsterT &operator=(MonsterT o) FLATBUFFERS_NOEXCEPT;
-
-  typedef MyGame::Example::MonsterBinarySchema BinarySchema;
-  static BinarySchema& GetBinarySchema() {
-    static BinarySchema instance_;
-    return instance_;
-   }
 };
 
 /// an example documentation comment: "monster object"
 struct Monster FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   typedef MonsterT NativeTableType;
   typedef MonsterBuilder Builder;
+
+  typedef MyGame::Example::MonsterBinarySchema BinarySchema;
+  static BinarySchema& GetBinarySchema() {
+    static BinarySchema instance_;
+    return instance_;
+  }
+
   static const ::flatbuffers::TypeTable *MiniReflectTypeTable() {
     return MonsterTypeTable();
   }
@@ -2463,17 +2469,18 @@ struct TypeAliasesT : public ::flatbuffers::NativeTable {
   double f64 = 0.0;
   std::vector<int8_t> v8{};
   std::vector<double> vf64{};
-
-  typedef MyGame::Example::MonsterBinarySchema BinarySchema;
-  static BinarySchema& GetBinarySchema() {
-    static BinarySchema instance_;
-    return instance_;
-   }
 };
 
 struct TypeAliases FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   typedef TypeAliasesT NativeTableType;
   typedef TypeAliasesBuilder Builder;
+
+  typedef MyGame::Example::MonsterBinarySchema BinarySchema;
+  static BinarySchema& GetBinarySchema() {
+    static BinarySchema instance_;
+    return instance_;
+  }
+
   static const ::flatbuffers::TypeTable *MiniReflectTypeTable() {
     return TypeAliasesTypeTable();
   }
