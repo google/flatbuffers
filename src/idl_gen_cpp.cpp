@@ -280,6 +280,16 @@ class CppGenerator : public BaseGenerator {
     if (!opts_.cpp_includes.empty()) { code_ += ""; }
   }
 
+  void GenEmbeddedIncludes() {
+    if (parser_.opts.binary_schema_gen_embed && parser_.root_struct_def_) {
+      const std::string file_path =
+          GeneratedFileName(opts_.include_prefix, file_name_ + "_bfbs", opts_);
+      code_ += "// For access to the binary schema that produced this file.";
+      code_ += "#include \"" + file_path + "\"";
+      code_ += "";
+    }
+  }
+
   std::string EscapeKeyword(const std::string &name) const {
     return keywords_.find(name) == keywords_.end() ? name : name + "_";
   }
@@ -408,6 +418,7 @@ class CppGenerator : public BaseGenerator {
 
     if (opts_.include_dependence_headers) { GenIncludeDependencies(); }
     GenExtraIncludes();
+    GenEmbeddedIncludes();
 
     FLATBUFFERS_ASSERT(!cur_name_space_);
 
@@ -2152,6 +2163,15 @@ class CppGenerator : public BaseGenerator {
     code_ += "";
   }
 
+  // Adds a typedef to the binary schema type so one could get the bfbs based
+  // on the type at runtime.
+  void GenBinarySchemaTypeDef(const StructDef *struct_def) {
+    if (struct_def && opts_.binary_schema_gen_embed) {
+      code_ += "  typedef " + WrapInNameSpace(*struct_def) +
+               "BinarySchema BinarySchema;";
+    }
+  }
+
   void GenNativeTablePost(const StructDef &struct_def) {
     if (opts_.gen_compare) {
       const auto native_name = NativeName(Name(struct_def), &struct_def, opts_);
@@ -2687,6 +2707,8 @@ class CppGenerator : public BaseGenerator {
       code_ += "  typedef {{NATIVE_NAME}} NativeTableType;";
     }
     code_ += "  typedef {{STRUCT_NAME}}Builder Builder;";
+    GenBinarySchemaTypeDef(parser_.root_struct_def_);
+
     if (opts_.g_cpp_std >= cpp::CPP_STD_17) { code_ += "  struct Traits;"; }
     if (opts_.mini_reflect != IDLOptions::kNone) {
       code_ +=
