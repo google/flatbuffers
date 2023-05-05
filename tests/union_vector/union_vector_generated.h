@@ -1274,16 +1274,16 @@ inline void FinishSizePrefixedMovieBuffer(
   fbb.FinishSizePrefixed(root, MovieIdentifier());
 }
 
-inline flatbuffers::unique_ptr<MovieT> UnPackMovie(
+inline std::unique_ptr<MovieT> UnPackMovie(
     const void *buf,
     const ::flatbuffers::resolver_function_t *res = nullptr) {
-  return flatbuffers::unique_ptr<MovieT>(GetMovie(buf)->UnPack(res));
+  return std::unique_ptr<MovieT>(GetMovie(buf)->UnPack(res));
 }
 
-inline flatbuffers::unique_ptr<MovieT> UnPackSizePrefixedMovie(
+inline std::unique_ptr<MovieT> UnPackSizePrefixedMovie(
     const void *buf,
     const ::flatbuffers::resolver_function_t *res = nullptr) {
-  return flatbuffers::unique_ptr<MovieT>(GetSizePrefixedMovie(buf)->UnPack(res));
+  return std::unique_ptr<MovieT>(GetSizePrefixedMovie(buf)->UnPack(res));
 }
 
 #endif  // FLATBUFFERS_GENERATED_UNIONVECTOR_H_
