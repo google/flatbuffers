@@ -13,6 +13,9 @@ static_assert(FLATBUFFERS_VERSION_MAJOR == 23 &&
               FLATBUFFERS_VERSION_REVISION == 3,
              "Non-compatible flatbuffers version included");
 
+// For access to the binary schema that produced this file.
+#include "test_64bit_bfbs_generated.h"
+
 struct LeafStruct;
 
 struct WrapperTable;
@@ -92,6 +95,7 @@ struct WrapperTableT : public ::flatbuffers::NativeTable {
 struct WrapperTable FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   typedef WrapperTableT NativeTableType;
   typedef WrapperTableBuilder Builder;
+  typedef RootTableBinarySchema BinarySchema;
   static const ::flatbuffers::TypeTable *MiniReflectTypeTable() {
     return WrapperTableTypeTable();
   }
@@ -172,6 +176,7 @@ struct RootTableT : public ::flatbuffers::NativeTable {
 struct RootTable FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   typedef RootTableT NativeTableType;
   typedef RootTableBuilder Builder;
+  typedef RootTableBinarySchema BinarySchema;
   static const ::flatbuffers::TypeTable *MiniReflectTypeTable() {
     return RootTableTypeTable();
   }
