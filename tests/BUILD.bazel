@@ -20,6 +20,12 @@ cc_test(
     name = "flatbuffers_test",
     testonly = 1,
     srcs = [
+        "64bit/evolution/v1_generated.h",
+        "64bit/evolution/v2_generated.h",
+        "64bit/offset64_test.cpp",
+        "64bit/offset64_test.h",
+        "64bit/test_64bit_bfbs_generated.h",
+        "64bit/test_64bit_generated.h",
         "alignment_test.cpp",
         "alignment_test.h",
         "alignment_test_generated.h",
