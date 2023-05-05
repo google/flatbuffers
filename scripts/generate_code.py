@@ -69,8 +69,6 @@ CS_OPTS = ["--csharp", "--cs-gen-json-serializer"]
 CPP_OPTS = [
     "--cpp",
     "--gen-compare",
-    "--cpp-ptr-type",
-    "flatbuffers::unique_ptr",
 ] + (["--cpp-std", "c++0x"] if args.cpp_0x else [])
 
 CPP_17_OPTS = NO_INCL_OPTS + [
@@ -213,8 +211,6 @@ flatc(
     [
         "--cpp",
         "--reflect-names",
-        "--cpp-ptr-type",
-        "flatbuffers::unique_ptr",
         "--no-includes",
         "--gen-mutable",
         "--gen-object-api",

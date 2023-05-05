@@ -321,16 +321,16 @@ inline void FinishSizePrefixedApplicationDataBuffer(
   fbb.FinishSizePrefixed(root);
 }
 
-inline flatbuffers::unique_ptr<Geometry::ApplicationDataT> UnPackApplicationData(
+inline std::unique_ptr<Geometry::ApplicationDataT> UnPackApplicationData(
     const void *buf,
     const ::flatbuffers::resolver_function_t *res = nullptr) {
-  return flatbuffers::unique_ptr<Geometry::ApplicationDataT>(GetApplicationData(buf)->UnPack(res));
+  return std::unique_ptr<Geometry::ApplicationDataT>(GetApplicationData(buf)->UnPack(res));
 }
 
-inline flatbuffers::unique_ptr<Geometry::ApplicationDataT> UnPackSizePrefixedApplicationData(
+inline std::unique_ptr<Geometry::ApplicationDataT> UnPackSizePrefixedApplicationData(
     const void *buf,
     const ::flatbuffers::resolver_function_t *res = nullptr) {
-  return flatbuffers::unique_ptr<Geometry::ApplicationDataT>(GetSizePrefixedApplicationData(buf)->UnPack(res));
+  return std::unique_ptr<Geometry::ApplicationDataT>(GetSizePrefixedApplicationData(buf)->UnPack(res));
 }
 
 }  // namespace Geometry
