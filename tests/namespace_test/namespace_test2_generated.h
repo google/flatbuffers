@@ -69,10 +69,10 @@ struct TableInFirstNST : public ::flatbuffers::NativeTable {
   static FLATBUFFERS_CONSTEXPR_CPP11 const char *GetFullyQualifiedName() {
     return "NamespaceA.TableInFirstNST";
   }
-  flatbuffers::unique_ptr<NamespaceA::NamespaceB::TableInNestedNST> foo_table{};
+  std::unique_ptr<NamespaceA::NamespaceB::TableInNestedNST> foo_table{};
   NamespaceA::NamespaceB::EnumInNestedNS foo_enum = NamespaceA::NamespaceB::EnumInNestedNS_A;
   NamespaceA::NamespaceB::UnionInNestedNSUnion foo_union{};
-  flatbuffers::unique_ptr<NamespaceA::NamespaceB::StructInNestedNS> foo_struct{};
+  std::unique_ptr<NamespaceA::NamespaceB::StructInNestedNS> foo_struct{};
   TableInFirstNST() = default;
   TableInFirstNST(const TableInFirstNST &o);
   TableInFirstNST(TableInFirstNST&&) FLATBUFFERS_NOEXCEPT = default;
@@ -203,8 +203,8 @@ struct TableInCT : public ::flatbuffers::NativeTable {
   static FLATBUFFERS_CONSTEXPR_CPP11 const char *GetFullyQualifiedName() {
     return "NamespaceC.TableInCT";
   }
-  flatbuffers::unique_ptr<NamespaceA::TableInFirstNST> refer_to_a1{};
-  flatbuffers::unique_ptr<NamespaceA::SecondTableInAT> refer_to_a2{};
+  std::unique_ptr<NamespaceA::TableInFirstNST> refer_to_a1{};
+  std::unique_ptr<NamespaceA::SecondTableInAT> refer_to_a2{};
   TableInCT() = default;
   TableInCT(const TableInCT &o);
   TableInCT(TableInCT&&) FLATBUFFERS_NOEXCEPT = default;
@@ -291,7 +291,7 @@ struct SecondTableInAT : public ::flatbuffers::NativeTable {
   static FLATBUFFERS_CONSTEXPR_CPP11 const char *GetFullyQualifiedName() {
     return "NamespaceA.SecondTableInAT";
   }
-  flatbuffers::unique_ptr<NamespaceC::TableInCT> refer_to_c{};
+  std::unique_ptr<NamespaceC::TableInCT> refer_to_c{};
   SecondTableInAT() = default;
   SecondTableInAT(const SecondTableInAT &o);
   SecondTableInAT(SecondTableInAT&&) FLATBUFFERS_NOEXCEPT = default;
@@ -393,11 +393,11 @@ inline TableInFirstNST *TableInFirstNS::UnPack(const ::flatbuffers::resolver_fun
 inline void TableInFirstNS::UnPackTo(TableInFirstNST *_o, const ::flatbuffers::resolver_function_t *_resolver) const {
   (void)_o;
   (void)_resolver;
-  { auto _e = foo_table(); if (_e) { if(_o->foo_table) { _e->UnPackTo(_o->foo_table.get(), _resolver); } else { _o->foo_table = flatbuffers::unique_ptr<NamespaceA::NamespaceB::TableInNestedNST>(_e->UnPack(_resolver)); } } else if (_o->foo_table) { _o->foo_table.reset(); } }
+  { auto _e = foo_table(); if (_e) { if(_o->foo_table) { _e->UnPackTo(_o->foo_table.get(), _resolver); } else { _o->foo_table = std::unique_ptr<NamespaceA::NamespaceB::TableInNestedNST>(_e->UnPack(_resolver)); } } else if (_o->foo_table) { _o->foo_table.reset(); } }
   { auto _e = foo_enum(); _o->foo_enum = _e; }
   { auto _e = foo_union_type(); _o->foo_union.type = _e; }
   { auto _e = foo_union(); if (_e) _o->foo_union.value = NamespaceA::NamespaceB::UnionInNestedNSUnion::UnPack(_e, foo_union_type(), _resolver); }
-  { auto _e = foo_struct(); if (_e) _o->foo_struct = flatbuffers::unique_ptr<NamespaceA::NamespaceB::StructInNestedNS>(new NamespaceA::NamespaceB::StructInNestedNS(*_e)); }
+  { auto _e = foo_struct(); if (_e) _o->foo_struct = std::unique_ptr<NamespaceA::NamespaceB::StructInNestedNS>(new NamespaceA::NamespaceB::StructInNestedNS(*_e)); }
 }
 
 inline ::flatbuffers::Offset<TableInFirstNS> TableInFirstNS::Pack(::flatbuffers::FlatBufferBuilder &_fbb, const TableInFirstNST* _o, const ::flatbuffers::rehasher_function_t *_rehasher) {
@@ -458,8 +458,8 @@ inline TableInCT *TableInC::UnPack(const ::flatbuffers::resolver_function_t *_re
 inline void TableInC::UnPackTo(TableInCT *_o, const ::flatbuffers::resolver_function_t *_resolver) const {
   (void)_o;
   (void)_resolver;
-  { auto _e = refer_to_a1(); if (_e) { if(_o->refer_to_a1) { _e->UnPackTo(_o->refer_to_a1.get(), _resolver); } else { _o->refer_to_a1 = flatbuffers::unique_ptr<NamespaceA::TableInFirstNST>(_e->UnPack(_resolver)); } } else if (_o->refer_to_a1) { _o->refer_to_a1.reset(); } }
-  { auto _e = refer_to_a2(); if (_e) { if(_o->refer_to_a2) { _e->UnPackTo(_o->refer_to_a2.get(), _resolver); } else { _o->refer_to_a2 = flatbuffers::unique_ptr<NamespaceA::SecondTableInAT>(_e->UnPack(_resolver)); } } else if (_o->refer_to_a2) { _o->refer_to_a2.reset(); } }
+  { auto _e = refer_to_a1(); if (_e) { if(_o->refer_to_a1) { _e->UnPackTo(_o->refer_to_a1.get(), _resolver); } else { _o->refer_to_a1 = std::unique_ptr<NamespaceA::TableInFirstNST>(_e->UnPack(_resolver)); } } else if (_o->refer_to_a1) { _o->refer_to_a1.reset(); } }
+  { auto _e = refer_to_a2(); if (_e) { if(_o->refer_to_a2) { _e->UnPackTo(_o->refer_to_a2.get(), _resolver); } else { _o->refer_to_a2 = std::unique_ptr<NamespaceA::SecondTableInAT>(_e->UnPack(_resolver)); } } else if (_o->refer_to_a2) { _o->refer_to_a2.reset(); } }
 }
 
 inline ::flatbuffers::Offset<TableInC> TableInC::Pack(::flatbuffers::FlatBufferBuilder &_fbb, const TableInCT* _o, const ::flatbuffers::rehasher_function_t *_rehasher) {
@@ -511,7 +511,7 @@ inline SecondTableInAT *SecondTableInA::UnPack(const ::flatbuffers::resolver_fun
 inline void SecondTableInA::UnPackTo(SecondTableInAT *_o, const ::flatbuffers::resolver_function_t *_resolver) const {
   (void)_o;
   (void)_resolver;
-  { auto _e = refer_to_c(); if (_e) { if(_o->refer_to_c) { _e->UnPackTo(_o->refer_to_c.get(), _resolver); } else { _o->refer_to_c = flatbuffers::unique_ptr<NamespaceC::TableInCT>(_e->UnPack(_resolver)); } } else if (_o->refer_to_c) { _o->refer_to_c.reset(); } }
+  { auto _e = refer_to_c(); if (_e) { if(_o->refer_to_c) { _e->UnPackTo(_o->refer_to_c.get(), _resolver); } else { _o->refer_to_c = std::unique_ptr<NamespaceC::TableInCT>(_e->UnPack(_resolver)); } } else if (_o->refer_to_c) { _o->refer_to_c.reset(); } }
 }
 
 inline ::flatbuffers::Offset<SecondTableInA> SecondTableInA::Pack(::flatbuffers::FlatBufferBuilder &_fbb, const SecondTableInAT* _o, const ::flatbuffers::rehasher_function_t *_rehasher) {
