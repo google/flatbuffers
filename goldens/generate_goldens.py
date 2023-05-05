@@ -23,9 +23,9 @@ GenerateGo()
 GenerateJava()
 GenerateKotlin()
 GenerateLobster()
-# TODO this doesn't respect the output prefix, fix and reenable
-#GenerateLua()
-GenerateNim()
+# TODO these doesn't respect the output prefix, fix and reenable
+# GenerateLua()
+# GenerateNim()
 GeneratePhp()
 GeneratePython()
 GenerateRust()
