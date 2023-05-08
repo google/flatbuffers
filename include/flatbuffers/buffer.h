@@ -61,7 +61,7 @@ inline void EndianCheck() {
 }
 
 template<typename T> FLATBUFFERS_CONSTEXPR size_t AlignOf() {
-// clang-format off
+  // clang-format off
   #ifdef _MSC_VER
     return __alignof(T);
   #else
@@ -110,9 +110,9 @@ struct IndirectHelper<OffsetT<T>> {
   typedef const T *return_type;
   typedef T *mutable_return_type;
   typedef typename OffsetT<T>::offset_type offset_type;
-  static const size_t element_stride = sizeof(offset_type);
+  static const offset_type element_stride = sizeof(offset_type);
 
-  static return_type Read(const uint8_t *const p, const size_t i) {
+  static return_type Read(const uint8_t *const p, const offset_type i) {
     // Offsets are relative to themselves, so first update the pointer to
     // point to the offset location.
     const uint8_t *const offset_location = p + i * element_stride;
@@ -122,7 +122,7 @@ struct IndirectHelper<OffsetT<T>> {
     return reinterpret_cast<return_type>(
         offset_location + ReadScalar<offset_type>(offset_location));
   }
-  static mutable_return_type Read(uint8_t *const p, const size_t i) {
+  static mutable_return_type Read(uint8_t *const p, const offset_type i) {
     // Offsets are relative to themselves, so first update the pointer to
     // point to the offset location.
     uint8_t *const offset_location = p + i * element_stride;
@@ -173,7 +173,7 @@ inline bool BufferHasIdentifier(const void *buf, const char *identifier,
 /// @cond FLATBUFFERS_INTERNAL
 // Helpers to get a typed pointer to the root object contained in the buffer.
 template<typename T> T *GetMutableRoot(void *buf) {
-  if(!buf) return nullptr;
+  if (!buf) return nullptr;
   EndianCheck();
   return reinterpret_cast<T *>(
       reinterpret_cast<uint8_t *>(buf) +
