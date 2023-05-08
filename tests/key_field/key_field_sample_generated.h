@@ -1006,16 +1006,16 @@ inline void FinishSizePrefixedFooTableBuffer(
   fbb.FinishSizePrefixed(root);
 }
 
-inline flatbuffers::unique_ptr<keyfield::sample::FooTableT> UnPackFooTable(
+inline std::unique_ptr<keyfield::sample::FooTableT> UnPackFooTable(
     const void *buf,
     const ::flatbuffers::resolver_function_t *res = nullptr) {
-  return flatbuffers::unique_ptr<keyfield::sample::FooTableT>(GetFooTable(buf)->UnPack(res));
+  return std::unique_ptr<keyfield::sample::FooTableT>(GetFooTable(buf)->UnPack(res));
 }
 
-inline flatbuffers::unique_ptr<keyfield::sample::FooTableT> UnPackSizePrefixedFooTable(
+inline std::unique_ptr<keyfield::sample::FooTableT> UnPackSizePrefixedFooTable(
     const void *buf,
     const ::flatbuffers::resolver_function_t *res = nullptr) {
-  return flatbuffers::unique_ptr<keyfield::sample::FooTableT>(GetSizePrefixedFooTable(buf)->UnPack(res));
+  return std::unique_ptr<keyfield::sample::FooTableT>(GetSizePrefixedFooTable(buf)->UnPack(res));
 }
 
 }  // namespace sample

@@ -526,6 +526,7 @@ if(FLATBUFFERS_BUILD_TESTS)
   compile_schema_for_test(tests/alignment_test.fbs "${FLATC_OPT_COMP}")
   compile_schema_for_test(tests/native_inline_table_test.fbs "${FLATC_OPT_COMP}")
   compile_schema_for_test(tests/native_type_test.fbs "${FLATC_OPT}")
+  compile_schema_for_test(tests/key_field/key_field_sample.fbs "${FLATC_OPT_COMP}")
 
   if(FLATBUFFERS_CODE_SANITIZE)
     add_fsanitize_to_target(flattests ${FLATBUFFERS_CODE_SANITIZE})
