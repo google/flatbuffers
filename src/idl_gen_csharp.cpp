@@ -826,7 +826,7 @@ class CSharpGenerator : public BaseGenerator {
       // Force compile time error if not using the same version runtime.
       code += "  public static void ValidateVersion() {";
       code += " FlatBufferConstants.";
-      code += "FLATBUFFERS_23_5_8(); ";
+      code += "FLATBUFFERS_23_5_9(); ";
       code += "}\n";
 
       // Generate a special accessor for the table that when used as the root
