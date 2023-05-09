@@ -4,6 +4,10 @@ All major or breaking changes will be documented in this file, as well as any
 new features that should be highlighted. Minor fixes or improvements are not
 necessarily listed.
 
+## [23.5.9 (May 9 2023)](https://github.com/google/flatbuffers/releases/tag/v23.5.9)
+
+* 64-bit support for C++ (#7935)
+
 ## [23.5.8 (May 8 2023)](https://github.com/google/flatbuffers/releases/tag/v23.5.8)
 
 * add key_field to compiled tests
