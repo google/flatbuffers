@@ -9,8 +9,8 @@
 // Ensure the included flatbuffers.h is the same version as when this file was
 // generated, otherwise it may not be compatible.
 static_assert(FLATBUFFERS_VERSION_MAJOR == 23 &&
-              FLATBUFFERS_VERSION_MINOR == 3 &&
-              FLATBUFFERS_VERSION_REVISION == 3,
+              FLATBUFFERS_VERSION_MINOR == 5 &&
+              FLATBUFFERS_VERSION_REVISION == 9,
              "Non-compatible flatbuffers version included");
 
 struct NativeInlineTable;
@@ -214,7 +214,7 @@ inline TestNativeInlineTableT *TestNativeInlineTable::UnPack(const ::flatbuffers
 inline void TestNativeInlineTable::UnPackTo(TestNativeInlineTableT *_o, const ::flatbuffers::resolver_function_t *_resolver) const {
   (void)_o;
   (void)_resolver;
-  { auto _e = t(); if (_e) { _o->t.resize(_e->size()); for (::flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->t[_i] = *flatbuffers::unique_ptr<NativeInlineTableT>(_e->Get(_i)->UnPack(_resolver)); } } else { _o->t.resize(0); } }
+  { auto _e = t(); if (_e) { _o->t.resize(_e->size()); for (::flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->t[_i] = *std::unique_ptr<NativeInlineTableT>(_e->Get(_i)->UnPack(_resolver)); } } else { _o->t.resize(0); } }
 }
 
 inline ::flatbuffers::Offset<TestNativeInlineTable> TestNativeInlineTable::Pack(::flatbuffers::FlatBufferBuilder &_fbb, const TestNativeInlineTableT* _o, const ::flatbuffers::rehasher_function_t *_rehasher) {

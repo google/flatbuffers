@@ -9,8 +9,8 @@
 // Ensure the included flatbuffers.h is the same version as when this file was
 // generated, otherwise it may not be compatible.
 static_assert(FLATBUFFERS_VERSION_MAJOR == 23 &&
-              FLATBUFFERS_VERSION_MINOR == 3 &&
-              FLATBUFFERS_VERSION_REVISION == 3,
+              FLATBUFFERS_VERSION_MINOR == 5 &&
+              FLATBUFFERS_VERSION_REVISION == 9,
              "Non-compatible flatbuffers version included");
 
 #include "native_type_test_impl.h"
@@ -321,16 +321,16 @@ inline void FinishSizePrefixedApplicationDataBuffer(
   fbb.FinishSizePrefixed(root);
 }
 
-inline flatbuffers::unique_ptr<Geometry::ApplicationDataT> UnPackApplicationData(
+inline std::unique_ptr<Geometry::ApplicationDataT> UnPackApplicationData(
     const void *buf,
     const ::flatbuffers::resolver_function_t *res = nullptr) {
-  return flatbuffers::unique_ptr<Geometry::ApplicationDataT>(GetApplicationData(buf)->UnPack(res));
+  return std::unique_ptr<Geometry::ApplicationDataT>(GetApplicationData(buf)->UnPack(res));
 }
 
-inline flatbuffers::unique_ptr<Geometry::ApplicationDataT> UnPackSizePrefixedApplicationData(
+inline std::unique_ptr<Geometry::ApplicationDataT> UnPackSizePrefixedApplicationData(
     const void *buf,
     const ::flatbuffers::resolver_function_t *res = nullptr) {
-  return flatbuffers::unique_ptr<Geometry::ApplicationDataT>(GetSizePrefixedApplicationData(buf)->UnPack(res));
+  return std::unique_ptr<Geometry::ApplicationDataT>(GetSizePrefixedApplicationData(buf)->UnPack(res));
 }
 
 }  // namespace Geometry

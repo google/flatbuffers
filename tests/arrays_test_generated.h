@@ -9,8 +9,8 @@
 // Ensure the included flatbuffers.h is the same version as when this file was
 // generated, otherwise it may not be compatible.
 static_assert(FLATBUFFERS_VERSION_MAJOR == 23 &&
-              FLATBUFFERS_VERSION_MINOR == 3 &&
-              FLATBUFFERS_VERSION_REVISION == 3,
+              FLATBUFFERS_VERSION_MINOR == 5 &&
+              FLATBUFFERS_VERSION_REVISION == 9,
              "Non-compatible flatbuffers version included");
 
 namespace MyGame {
@@ -271,7 +271,7 @@ inline bool operator!=(const ArrayStruct &lhs, const ArrayStruct &rhs) {
 
 struct ArrayTableT : public ::flatbuffers::NativeTable {
   typedef ArrayTable TableType;
-  flatbuffers::unique_ptr<MyGame::Example::ArrayStruct> a{};
+  std::unique_ptr<MyGame::Example::ArrayStruct> a{};
   ArrayTableT() = default;
   ArrayTableT(const ArrayTableT &o);
   ArrayTableT(ArrayTableT&&) FLATBUFFERS_NOEXCEPT = default;
@@ -360,7 +360,7 @@ inline ArrayTableT *ArrayTable::UnPack(const ::flatbuffers::resolver_function_t 
 inline void ArrayTable::UnPackTo(ArrayTableT *_o, const ::flatbuffers::resolver_function_t *_resolver) const {
   (void)_o;
   (void)_resolver;
-  { auto _e = a(); if (_e) _o->a = flatbuffers::unique_ptr<MyGame::Example::ArrayStruct>(new MyGame::Example::ArrayStruct(*_e)); }
+  { auto _e = a(); if (_e) _o->a = std::unique_ptr<MyGame::Example::ArrayStruct>(new MyGame::Example::ArrayStruct(*_e)); }
 }
 
 inline ::flatbuffers::Offset<ArrayTable> ArrayTable::Pack(::flatbuffers::FlatBufferBuilder &_fbb, const ArrayTableT* _o, const ::flatbuffers::rehasher_function_t *_rehasher) {
@@ -521,16 +521,16 @@ inline void FinishSizePrefixedArrayTableBuffer(
   fbb.FinishSizePrefixed(root, ArrayTableIdentifier());
 }
 
-inline flatbuffers::unique_ptr<MyGame::Example::ArrayTableT> UnPackArrayTable(
+inline std::unique_ptr<MyGame::Example::ArrayTableT> UnPackArrayTable(
     const void *buf,
     const ::flatbuffers::resolver_function_t *res = nullptr) {
-  return flatbuffers::unique_ptr<MyGame::Example::ArrayTableT>(GetArrayTable(buf)->UnPack(res));
+  return std::unique_ptr<MyGame::Example::ArrayTableT>(GetArrayTable(buf)->UnPack(res));
 }
 
-inline flatbuffers::unique_ptr<MyGame::Example::ArrayTableT> UnPackSizePrefixedArrayTable(
+inline std::unique_ptr<MyGame::Example::ArrayTableT> UnPackSizePrefixedArrayTable(
     const void *buf,
     const ::flatbuffers::resolver_function_t *res = nullptr) {
-  return flatbuffers::unique_ptr<MyGame::Example::ArrayTableT>(GetSizePrefixedArrayTable(buf)->UnPack(res));
+  return std::unique_ptr<MyGame::Example::ArrayTableT>(GetSizePrefixedArrayTable(buf)->UnPack(res));
 }
 
 }  // namespace Example
