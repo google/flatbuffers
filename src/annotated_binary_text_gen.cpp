@@ -1,6 +1,7 @@
 #include "annotated_binary_text_gen.h"
 
 #include <algorithm>
+#include <cstdint>
 #include <fstream>
 #include <ostream>
 #include <sstream>
@@ -36,6 +37,7 @@ static std::string ToString(const BinarySectionType type) {
     case BinarySectionType::Struct: return "struct";
     case BinarySectionType::String: return "string";
     case BinarySectionType::Vector: return "vector";
+    case BinarySectionType::Vector64: return "vector64";
     case BinarySectionType::Unknown: return "unknown";
     case BinarySectionType::Union: return "union";
     case BinarySectionType::Padding: return "padding";
@@ -44,7 +46,9 @@ static std::string ToString(const BinarySectionType type) {
 }
 
 static bool IsOffset(const BinaryRegionType type) {
-  return type == BinaryRegionType::UOffset || type == BinaryRegionType::SOffset;
+  return type == BinaryRegionType::UOffset ||
+         type == BinaryRegionType::SOffset ||
+         type == BinaryRegionType::UOffset64;
 }
 
 template<typename T> std::string ToString(T value) {
@@ -119,6 +123,9 @@ static std::string ToValueString(const BinaryRegion &region,
     case BinaryRegionType::UType: return ToValueString<uint8_t>(region, binary);
 
     // Handle Offsets separately, incase they add additional details.
+    case BinaryRegionType::UOffset64:
+      s += ToValueString<uint64_t>(region, binary);
+      break;
     case BinaryRegionType::UOffset:
       s += ToValueString<uint32_t>(region, binary);
       break;
@@ -368,7 +375,8 @@ static void GenerateSection(std::ostream &os, const BinarySection &section,
   // As a space saving measure, skip generating every vector element, just put
   // the first and last elements in the output. Skip the whole thing if there
   // are only three or fewer elements, as it doesn't save space.
-  if (section.type == BinarySectionType::Vector &&
+  if ((section.type == BinarySectionType::Vector ||
+       section.type == BinarySectionType::Vector64) &&
       !output_config.include_vector_contents && section.regions.size() > 4) {
     // Generate the length region which should be first.
     GenerateRegion(os, section.regions[0], section, binary, output_config);

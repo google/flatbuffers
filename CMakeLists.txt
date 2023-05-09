@@ -234,6 +234,8 @@ set(FlatBuffers_Tests_SRCS
   tests/native_type_test_impl.cpp
   tests/alignment_test.h
   tests/alignment_test.cpp
+  tests/64bit/offset64_test.h
+  tests/64bit/offset64_test.cpp
   include/flatbuffers/code_generators.h
   src/code_generators.cpp
 )
@@ -527,6 +529,9 @@ if(FLATBUFFERS_BUILD_TESTS)
   compile_schema_for_test(tests/native_inline_table_test.fbs "${FLATC_OPT_COMP}")
   compile_schema_for_test(tests/native_type_test.fbs "${FLATC_OPT}")
   compile_schema_for_test(tests/key_field/key_field_sample.fbs "${FLATC_OPT_COMP}")
+  compile_schema_for_test(tests/64bit/test_64bit.fbs "${FLATC_OPT_COMP};--bfbs-gen-embed")
+  compile_schema_for_test(tests/64bit/evolution/v1.fbs "${FLATC_OPT_COMP}")
+  compile_schema_for_test(tests/64bit/evolution/v2.fbs "${FLATC_OPT_COMP}")
 
   if(FLATBUFFERS_CODE_SANITIZE)
     add_fsanitize_to_target(flattests ${FLATBUFFERS_CODE_SANITIZE})
