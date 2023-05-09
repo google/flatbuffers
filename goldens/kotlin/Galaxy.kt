@@ -32,7 +32,7 @@ class Galaxy : Table() {
             return if(o != 0) bb.getLong(o + bb_pos) else 0L
         }
     companion object {
-        fun validateVersion() = Constants.FLATBUFFERS_23_3_3()
+        fun validateVersion() = Constants.FLATBUFFERS_23_5_8()
         fun getRootAsGalaxy(_bb: ByteBuffer): Galaxy = getRootAsGalaxy(_bb, Galaxy())
         fun getRootAsGalaxy(_bb: ByteBuffer, obj: Galaxy): Galaxy {
             _bb.order(ByteOrder.LITTLE_ENDIAN)
