@@ -9,8 +9,8 @@
 // Ensure the included flatbuffers.h is the same version as when this file was
 // generated, otherwise it may not be compatible.
 static_assert(FLATBUFFERS_VERSION_MAJOR == 23 &&
-              FLATBUFFERS_VERSION_MINOR == 3 &&
-              FLATBUFFERS_VERSION_REVISION == 3,
+              FLATBUFFERS_VERSION_MINOR == 5 &&
+              FLATBUFFERS_VERSION_REVISION == 8,
              "Non-compatible flatbuffers version included");
 
 // For access to the binary schema that produced this file.
@@ -166,7 +166,7 @@ struct RootTableT : public ::flatbuffers::NativeTable {
   std::vector<uint8_t> nested_root{};
   std::vector<LeafStruct> far_struct_vector{};
   std::vector<LeafStruct> big_struct_vector{};
-  std::vector<flatbuffers::unique_ptr<WrapperTableT>> many_vectors{};
+  std::vector<std::unique_ptr<WrapperTableT>> many_vectors{};
   RootTableT() = default;
   RootTableT(const RootTableT &o);
   RootTableT(RootTableT&&) FLATBUFFERS_NOEXCEPT = default;
@@ -426,7 +426,7 @@ inline bool operator==(const RootTableT &lhs, const RootTableT &rhs) {
       (lhs.nested_root == rhs.nested_root) &&
       (lhs.far_struct_vector == rhs.far_struct_vector) &&
       (lhs.big_struct_vector == rhs.big_struct_vector) &&
-      (lhs.many_vectors.size() == rhs.many_vectors.size() && std::equal(lhs.many_vectors.cbegin(), lhs.many_vectors.cend(), rhs.many_vectors.cbegin(), [](flatbuffers::unique_ptr<WrapperTableT> const &a, flatbuffers::unique_ptr<WrapperTableT> const &b) { return (a == b) || (a && b && *a == *b); }));
+      (lhs.many_vectors.size() == rhs.many_vectors.size() && std::equal(lhs.many_vectors.cbegin(), lhs.many_vectors.cend(), rhs.many_vectors.cbegin(), [](std::unique_ptr<WrapperTableT> const &a, std::unique_ptr<WrapperTableT> const &b) { return (a == b) || (a && b && *a == *b); }));
 }
 
 inline bool operator!=(const RootTableT &lhs, const RootTableT &rhs) {
@@ -477,7 +477,7 @@ inline void RootTable::UnPackTo(RootTableT *_o, const ::flatbuffers::resolver_fu
   { auto _e = nested_root(); if (_e) { _o->nested_root.resize(_e->size()); std::copy(_e->begin(), _e->end(), _o->nested_root.begin()); } }
   { auto _e = far_struct_vector(); if (_e) { _o->far_struct_vector.resize(_e->size()); for (::flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->far_struct_vector[_i] = *_e->Get(_i); } } else { _o->far_struct_vector.resize(0); } }
   { auto _e = big_struct_vector(); if (_e) { _o->big_struct_vector.resize(_e->size()); for (::flatbuffers::uoffset64_t _i = 0; _i < _e->size(); _i++) { _o->big_struct_vector[_i] = *_e->Get(_i); } } else { _o->big_struct_vector.resize(0); } }
-  { auto _e = many_vectors(); if (_e) { _o->many_vectors.resize(_e->size()); for (::flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { if(_o->many_vectors[_i]) { _e->Get(_i)->UnPackTo(_o->many_vectors[_i].get(), _resolver); } else { _o->many_vectors[_i] = flatbuffers::unique_ptr<WrapperTableT>(_e->Get(_i)->UnPack(_resolver)); }; } } else { _o->many_vectors.resize(0); } }
+  { auto _e = many_vectors(); if (_e) { _o->many_vectors.resize(_e->size()); for (::flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { if(_o->many_vectors[_i]) { _e->Get(_i)->UnPackTo(_o->many_vectors[_i].get(), _resolver); } else { _o->many_vectors[_i] = std::unique_ptr<WrapperTableT>(_e->Get(_i)->UnPack(_resolver)); }; } } else { _o->many_vectors.resize(0); } }
 }
 
 inline ::flatbuffers::Offset<RootTable> RootTable::Pack(::flatbuffers::FlatBufferBuilder64 &_fbb, const RootTableT* _o, const ::flatbuffers::rehasher_function_t *_rehasher) {
@@ -610,16 +610,16 @@ inline void FinishSizePrefixedRootTableBuffer(
   fbb.FinishSizePrefixed(root);
 }
 
-inline flatbuffers::unique_ptr<RootTableT> UnPackRootTable(
+inline std::unique_ptr<RootTableT> UnPackRootTable(
     const void *buf,
     const ::flatbuffers::resolver_function_t *res = nullptr) {
-  return flatbuffers::unique_ptr<RootTableT>(GetRootTable(buf)->UnPack(res));
+  return std::unique_ptr<RootTableT>(GetRootTable(buf)->UnPack(res));
 }
 
-inline flatbuffers::unique_ptr<RootTableT> UnPackSizePrefixedRootTable(
+inline std::unique_ptr<RootTableT> UnPackSizePrefixedRootTable(
     const void *buf,
     const ::flatbuffers::resolver_function_t *res = nullptr) {
-  return flatbuffers::unique_ptr<RootTableT>(GetSizePrefixedRootTable(buf)->UnPack(res));
+  return std::unique_ptr<RootTableT>(GetSizePrefixedRootTable(buf)->UnPack(res));
 }
 
 #endif  // FLATBUFFERS_GENERATED_TEST64BIT_H_

@@ -9,8 +9,8 @@
 // Ensure the included flatbuffers.h is the same version as when this file was
 // generated, otherwise it may not be compatible.
 static_assert(FLATBUFFERS_VERSION_MAJOR == 23 &&
-              FLATBUFFERS_VERSION_MINOR == 3 &&
-              FLATBUFFERS_VERSION_REVISION == 3,
+              FLATBUFFERS_VERSION_MINOR == 5 &&
+              FLATBUFFERS_VERSION_REVISION == 8,
              "Non-compatible flatbuffers version included");
 
 namespace v2 {
@@ -226,16 +226,16 @@ inline void FinishSizePrefixedRootTableBuffer(
   fbb.FinishSizePrefixed(root);
 }
 
-inline flatbuffers::unique_ptr<v2::RootTableT> UnPackRootTable(
+inline std::unique_ptr<v2::RootTableT> UnPackRootTable(
     const void *buf,
     const ::flatbuffers::resolver_function_t *res = nullptr) {
-  return flatbuffers::unique_ptr<v2::RootTableT>(GetRootTable(buf)->UnPack(res));
+  return std::unique_ptr<v2::RootTableT>(GetRootTable(buf)->UnPack(res));
 }
 
-inline flatbuffers::unique_ptr<v2::RootTableT> UnPackSizePrefixedRootTable(
+inline std::unique_ptr<v2::RootTableT> UnPackSizePrefixedRootTable(
     const void *buf,
     const ::flatbuffers::resolver_function_t *res = nullptr) {
-  return flatbuffers::unique_ptr<v2::RootTableT>(GetSizePrefixedRootTable(buf)->UnPack(res));
+  return std::unique_ptr<v2::RootTableT>(GetSizePrefixedRootTable(buf)->UnPack(res));
 }
 
 }  // namespace v2
