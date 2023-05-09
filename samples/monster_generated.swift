@@ -36,7 +36,7 @@ public enum MyGame_Sample_Equipment: UInt8, UnionEnum {
 
 public struct MyGame_Sample_Vec3: NativeStruct, Verifiable, FlatbuffersInitializable {
 
-  static func validateVersion() { FlatBuffersVersion_23_3_3() }
+  static func validateVersion() { FlatBuffersVersion_23_5_8() }
 
   private var _x: Float32
   private var _y: Float32
@@ -72,7 +72,7 @@ public struct MyGame_Sample_Vec3: NativeStruct, Verifiable, FlatbuffersInitializ
 
 public struct MyGame_Sample_Vec3_Mutable: FlatBufferObject {
 
-  static func validateVersion() { FlatBuffersVersion_23_3_3() }
+  static func validateVersion() { FlatBuffersVersion_23_5_8() }
   public var __buffer: ByteBuffer! { return _accessor.bb }
   private var _accessor: Struct
 
@@ -88,7 +88,7 @@ public struct MyGame_Sample_Vec3_Mutable: FlatBufferObject {
 
 public struct MyGame_Sample_Monster: FlatBufferObject, Verifiable {
 
-  static func validateVersion() { FlatBuffersVersion_23_3_3() }
+  static func validateVersion() { FlatBuffersVersion_23_5_8() }
   public var __buffer: ByteBuffer! { return _accessor.bb }
   private var _accessor: Table
 
@@ -200,7 +200,7 @@ public struct MyGame_Sample_Monster: FlatBufferObject, Verifiable {
 
 public struct MyGame_Sample_Weapon: FlatBufferObject, Verifiable {
 
-  static func validateVersion() { FlatBuffersVersion_23_3_3() }
+  static func validateVersion() { FlatBuffersVersion_23_5_8() }
   public var __buffer: ByteBuffer! { return _accessor.bb }
   private var _accessor: Table
 

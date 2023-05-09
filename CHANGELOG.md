@@ -4,6 +4,49 @@ All major or breaking changes will be documented in this file, as well as any
 new features that should be highlighted. Minor fixes or improvements are not
 necessarily listed.
 
+## [23.5.8 (May 8 2023)](https://github.com/google/flatbuffers/releases/tag/v23.5.8)
+
+* add key_field to compiled tests
+* Add golden language directory
+* Rework cmake flatc codegeneration (#7938)
+* remove defining generated files in test srcs
+* Add binary schema reflection (#7932)
+* Migrate from rules_nodejs to rules_js/rules_ts (take 2) (#7928)
+* `flat_buffers.dart`: mark const variable finals for internal Dart linters
+* fixed some windows warnings (#7929)
+* inject no long for FBS generation to remove logs in flattests (#7926)
+* Revert "Migrate from rules_nodejs to rules_js/rules_ts (#7923)" (#7927)
+* Migrate from rules_nodejs to rules_js/rules_ts (#7923)
+* Only generate @kotlin.ExperimentalUnsigned annotation on create*Vector methods having an unsigned array type parameter. (#7881)
+* additional check for absl::string_view availability (#7897)
+* Optionally generate Python type annotations (#7858)
+* Replace deprecated command with environment file (#7921)
+* drop glibc from runtime dependencies (#7906)
+* Make JSON supporting advanced union features (#7869)
+* Allow to use functions from `BuildFlatBuffers.cmake` from a flatbuffers installation installed with CMake. (#7912)
+* TS/JS: Use TypeError instead of Error when appropriate (#7910)
+* Go: make generated code more compliant to "go fmt" (#7907)
+* Support file_identifier in Go (#7904)
+* Optionally generate type prefixes and suffixes for python code (#7857)
+* Go: add test for FinishWithFileIdentifier (#7905)
+* Fix go_sample.sh (#7903)
+* [TS/JS] Upgrade dependencies (#7889)
+* Add a FileWriter interface (#7821)
+* TS/JS: Use minvalue from enum if not found (#7888)
+* [CS] Verifier (#7850)
+* README.md: PyPI case typo (#7880)
+* Update go documentation link to point to root module (#7879)
+* use Bool for flatbuffers bool instead of Byte (#7876)
+* fix using null string in vector (#7872)
+* Add `flatbuffers-64` branch to CI for pushes
+* made changes to the rust docs so they would compile. new_with_capacity is deprecated should use with_capacity, get_root_as_monster should be root_as_monster (#7871)
+* Adding comment for code clarification (#7856)
+* ToCamelCase() when kLowerCamel now converts first char to lower. (#7838)
+* Fix help output for --java-checkerframework (#7854)
+* Update filename to README.md and improve formatting (#7855)
+* Update stale.yml
+* Updated remaining usages of LICENSE.txt
+
 ## [23.3.3 (Mar 3 2023)](https://github.com/google/flatbuffers/releases/tag/v23.3.3)
 
 * Refactoring of `flatc` generators to use an interface (#7797).
