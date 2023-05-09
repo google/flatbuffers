@@ -77,8 +77,7 @@ static std::string GenIncludeGuard(const std::string &file_name,
 static bool IsVectorOfPointers(const FieldDef &field) {
   const auto &type = field.value.type;
   const auto &vector_type = type.VectorType();
-  return type.base_type == BASE_TYPE_VECTOR &&
-         vector_type.base_type == BASE_TYPE_STRUCT &&
+  return IsVector(type) && vector_type.base_type == BASE_TYPE_STRUCT &&
          !vector_type.struct_def->fixed && !field.native_inline;
 }
 
@@ -106,6 +105,21 @@ struct IDLOptionsCpp : public IDLOptions {
   IDLOptionsCpp(const IDLOptions &opts)
       : IDLOptions(opts), g_cpp_std(CPP_STD_11), g_only_fixed_enums(true) {}
 };
+
+// Iterates over all the fields of the object first by Offset type (Offset64
+// before Offset32) and then by definition order.
+static void ForAllFieldsOrderedByOffset(
+    const StructDef &object, std::function<void(const FieldDef *field)> func) {
+  // Loop over all the fields and call the func on all offset64 fields.
+  for (const FieldDef *field_def : object.fields.vec) {
+    if (field_def->offset64) { func(field_def); }
+  }
+  // Loop over all the fields a second time and call the func on all offset
+  // fields.
+  for (const FieldDef *field_def : object.fields.vec) {
+    if (!field_def->offset64) { func(field_def); }
+  }
+}
 
 class CppGenerator : public BaseGenerator {
  public:
@@ -273,6 +287,25 @@ class CppGenerator : public BaseGenerator {
     }
   }
 
+  void MarkIf64BitBuilderIsNeeded() {
+    if (needs_64_bit_builder_) { return; }
+    for (auto t : parser_.structs_.vec) {
+      if (t == nullptr) continue;
+      for (auto f : t->fields.vec) {
+        if (f == nullptr) continue;
+        if (f->offset64) {
+          needs_64_bit_builder_ = true;
+          break;
+        }
+      }
+    }
+  }
+
+  std::string GetBuilder() {
+    return std::string("::flatbuffers::FlatBufferBuilder") +
+           (needs_64_bit_builder_ ? "64" : "");
+  }
+
   void GenExtraIncludes() {
     for (const std::string &cpp_include : opts_.cpp_includes) {
       code_ += "#include \"" + cpp_include + "\"";
@@ -396,6 +429,9 @@ class CppGenerator : public BaseGenerator {
   // Iterate through all definitions we haven't generate code for (enums,
   // structs, and tables) and output them to a single file.
   bool generate() {
+    // Check if we require a 64-bit flatbuffer builder.
+    MarkIf64BitBuilderIsNeeded();
+
     code_.Clear();
     code_ += "// " + std::string(FlatBuffersGeneratedWarning()) + "\n\n";
 
@@ -530,6 +566,8 @@ class CppGenerator : public BaseGenerator {
       code_.SetValue("STRUCT_NAME", name);
       code_.SetValue("CPP_NAME", cpp_name);
       code_.SetValue("NULLABLE_EXT", NullableExtension());
+      code_.SetValue(
+          "SIZE_T", needs_64_bit_builder_ ? ",::flatbuffers::uoffset64_t" : "");
 
       // The root datatype accessor:
       code_ += "inline \\";
@@ -546,7 +584,8 @@ class CppGenerator : public BaseGenerator {
           "*{{NULLABLE_EXT}}GetSizePrefixed{{STRUCT_NAME}}(const void "
           "*buf) {";
       code_ +=
-          "  return ::flatbuffers::GetSizePrefixedRoot<{{CPP_NAME}}>(buf);";
+          "  return "
+          "::flatbuffers::GetSizePrefixedRoot<{{CPP_NAME}}{{SIZE_T}}>(buf);";
       code_ += "}";
       code_ += "";
 
@@ -565,7 +604,8 @@ class CppGenerator : public BaseGenerator {
             "*buf) {";
         code_ +=
             "  return "
-            "::flatbuffers::GetMutableSizePrefixedRoot<{{CPP_NAME}}>(buf);";
+            "::flatbuffers::GetMutableSizePrefixedRoot<{{CPP_NAME}}{{SIZE_T}}>("
+            "buf);";
         code_ += "}";
         code_ += "";
       }
@@ -612,7 +652,8 @@ class CppGenerator : public BaseGenerator {
       code_ += "inline bool VerifySizePrefixed{{STRUCT_NAME}}Buffer(";
       code_ += "    ::flatbuffers::Verifier &verifier) {";
       code_ +=
-          "  return verifier.VerifySizePrefixedBuffer<{{CPP_NAME}}>({{ID}});";
+          "  return "
+          "verifier.VerifySizePrefixedBuffer<{{CPP_NAME}}{{SIZE_T}}>({{ID}});";
       code_ += "}";
       code_ += "";
 
@@ -626,7 +667,7 @@ class CppGenerator : public BaseGenerator {
 
       // Finish a buffer with a given root object:
       code_ += "inline void Finish{{STRUCT_NAME}}Buffer(";
-      code_ += "    ::flatbuffers::FlatBufferBuilder &fbb,";
+      code_ += "    " + GetBuilder() + " &fbb,";
       code_ += "    ::flatbuffers::Offset<{{CPP_NAME}}> root) {";
       if (parser_.file_identifier_.length())
         code_ += "  fbb.Finish(root, {{STRUCT_NAME}}Identifier());";
@@ -636,7 +677,7 @@ class CppGenerator : public BaseGenerator {
       code_ += "";
 
       code_ += "inline void FinishSizePrefixed{{STRUCT_NAME}}Buffer(";
-      code_ += "    ::flatbuffers::FlatBufferBuilder &fbb,";
+      code_ += "    " + GetBuilder() + " &fbb,";
       code_ += "    ::flatbuffers::Offset<{{CPP_NAME}}> root) {";
       if (parser_.file_identifier_.length())
         code_ += "  fbb.FinishSizePrefixed(root, {{STRUCT_NAME}}Identifier());";
@@ -696,6 +737,7 @@ class CppGenerator : public BaseGenerator {
 
   const IDLOptionsCpp opts_;
   const TypedFloatConstantGenerator float_const_gen_;
+  bool needs_64_bit_builder_ = false;
 
   const Namespace *CurrentNameSpace() const { return cur_name_space_; }
 
@@ -747,10 +789,14 @@ class CppGenerator : public BaseGenerator {
       case BASE_TYPE_STRING: {
         return "::flatbuffers::String";
       }
+      case BASE_TYPE_VECTOR64:
       case BASE_TYPE_VECTOR: {
         const auto type_name = GenTypeWire(
             type.VectorType(), "", VectorElementUserFacing(type.VectorType()));
-        return "::flatbuffers::Vector<" + type_name + ">";
+        return "::flatbuffers::Vector" +
+               std::string((type.base_type == BASE_TYPE_VECTOR64) ? "64<"
+                                                                  : "<") +
+               type_name + ">";
       }
       case BASE_TYPE_STRUCT: {
         return WrapInNameSpace(*type.struct_def);
@@ -766,13 +812,15 @@ class CppGenerator : public BaseGenerator {
   // Return a C++ type for any type (scalar/pointer) specifically for
   // building a flatbuffer.
   std::string GenTypeWire(const Type &type, const char *postfix,
-                          bool user_facing_type) const {
+                          bool user_facing_type,
+                          bool _64_bit_offset = false) const {
     if (IsScalar(type.base_type)) {
       return GenTypeBasic(type, user_facing_type) + postfix;
     } else if (IsStruct(type)) {
       return "const " + GenTypePointer(type) + " *";
     } else {
-      return "::flatbuffers::Offset<" + GenTypePointer(type) + ">" + postfix;
+      return "::flatbuffers::Offset" + std::string(_64_bit_offset ? "64" : "") +
+             "<" + GenTypePointer(type) + ">" + postfix;
     }
   }
 
@@ -858,6 +906,7 @@ class CppGenerator : public BaseGenerator {
       case BASE_TYPE_STRING: {
         return NativeString(&field);
       }
+      case BASE_TYPE_VECTOR64:
       case BASE_TYPE_VECTOR: {
         const auto type_name = GenTypeNative(type.VectorType(), true, field);
         if (type.struct_def &&
@@ -866,8 +915,9 @@ class CppGenerator : public BaseGenerator {
               type.struct_def->attributes.Lookup("native_custom_alloc");
           return "std::vector<" + type_name + "," +
                  native_custom_alloc->constant + "<" + type_name + ">>";
-        } else
+        } else {
           return "std::vector<" + type_name + ">";
+        }
       }
       case BASE_TYPE_STRUCT: {
         auto type_name = WrapInNameSpace(*type.struct_def);
@@ -1015,8 +1065,8 @@ class CppGenerator : public BaseGenerator {
 
   std::string UnionPackSignature(const EnumDef &enum_def, bool inclass) {
     return "::flatbuffers::Offset<void> " +
-           (inclass ? "" : Name(enum_def) + "Union::") +
-           "Pack(::flatbuffers::FlatBufferBuilder &_fbb, " +
+           (inclass ? "" : Name(enum_def) + "Union::") + "Pack(" +
+           GetBuilder() + " &_fbb, " +
            "const ::flatbuffers::rehasher_function_t *_rehasher" +
            (inclass ? " = nullptr" : "") + ") const";
   }
@@ -1024,8 +1074,7 @@ class CppGenerator : public BaseGenerator {
   std::string TableCreateSignature(const StructDef &struct_def, bool predecl,
                                    const IDLOptions &opts) {
     return "::flatbuffers::Offset<" + Name(struct_def) + "> Create" +
-           Name(struct_def) +
-           "(::flatbuffers::FlatBufferBuilder &_fbb, const " +
+           Name(struct_def) + "(" + GetBuilder() + " &_fbb, const " +
            NativeName(Name(struct_def), &struct_def, opts) +
            " *_o, const ::flatbuffers::rehasher_function_t *_rehasher" +
            (predecl ? " = nullptr" : "") + ")";
@@ -1035,7 +1084,7 @@ class CppGenerator : public BaseGenerator {
                                  const IDLOptions &opts) {
     return std::string(inclass ? "static " : "") + "::flatbuffers::Offset<" +
            Name(struct_def) + "> " + (inclass ? "" : Name(struct_def) + "::") +
-           "Pack(::flatbuffers::FlatBufferBuilder &_fbb, " + "const " +
+           "Pack(" + GetBuilder() + " &_fbb, " + "const " +
            NativeName(Name(struct_def), &struct_def, opts) + "* _o, " +
            "const ::flatbuffers::rehasher_function_t *_rehasher" +
            (inclass ? " = nullptr" : "") + ")";
@@ -1791,7 +1840,8 @@ class CppGenerator : public BaseGenerator {
       if (IsStruct(vtype)) {
         type = WrapInNameSpace(*vtype.struct_def);
       } else {
-        type = GenTypeWire(vtype, "", VectorElementUserFacing(vtype));
+        type = GenTypeWire(vtype, "", VectorElementUserFacing(vtype),
+                           field.offset64);
       }
       if (TypeHasKey(vtype)) {
         code_.SetValue("PARAM_TYPE", "std::vector<" + type + "> *");
@@ -1805,7 +1855,8 @@ class CppGenerator : public BaseGenerator {
       if (field.IsScalarOptional())
         code_.SetValue("PARAM_TYPE", GenOptionalDecl(type) + " ");
       else
-        code_.SetValue("PARAM_TYPE", GenTypeWire(type, " ", true));
+        code_.SetValue("PARAM_TYPE",
+                       GenTypeWire(type, " ", true, field.offset64));
     }
     code_ += "{{PRE}}{{PARAM_TYPE}}{{PARAM_NAME}} = {{PARAM_VALUE}}\\";
   }
@@ -1814,7 +1865,7 @@ class CppGenerator : public BaseGenerator {
   void GenMember(const FieldDef &field) {
     if (!field.deprecated &&  // Deprecated fields won't be accessible.
         field.value.type.base_type != BASE_TYPE_UTYPE &&
-        (field.value.type.base_type != BASE_TYPE_VECTOR ||
+        (!IsVector(field.value.type) ||
          field.value.type.element != BASE_TYPE_UTYPE)) {
       auto type = GenTypeNative(field.value.type, false, field);
       auto cpp_type = field.attributes.Lookup("cpp_type");
@@ -1918,7 +1969,7 @@ class CppGenerator : public BaseGenerator {
                   Name(field) + "(" + native_default->constant + ")";
             }
           }
-        } else if (cpp_type && field.value.type.base_type != BASE_TYPE_VECTOR) {
+        } else if (cpp_type && !IsVector(field.value.type)) {
           if (!initializer_list.empty()) { initializer_list += ",\n        "; }
           initializer_list += Name(field) + "(0)";
         }
@@ -2063,7 +2114,7 @@ class CppGenerator : public BaseGenerator {
       const auto rhs_accessor = "rhs." + accessor;
       if (!field.deprecated &&  // Deprecated fields won't be accessible.
           field.value.type.base_type != BASE_TYPE_UTYPE &&
-          (field.value.type.base_type != BASE_TYPE_VECTOR ||
+          (!IsVector(field.value.type) ||
            field.value.type.element != BASE_TYPE_UTYPE)) {
         if (!compare_op.empty()) { compare_op += " &&\n      "; }
         if (struct_def.fixed || field.native_inline ||
@@ -2195,7 +2246,10 @@ class CppGenerator : public BaseGenerator {
           "{{PRE}}VerifyField{{REQUIRED}}<{{SIZE}}>(verifier, "
           "{{OFFSET}}, {{ALIGN}})\\";
     } else {
-      code_ += "{{PRE}}VerifyOffset{{REQUIRED}}(verifier, {{OFFSET}})\\";
+      code_.SetValue("OFFSET_SIZE", field.offset64 ? "64" : "");
+      code_ +=
+          "{{PRE}}VerifyOffset{{OFFSET_SIZE}}{{REQUIRED}}(verifier, "
+          "{{OFFSET}})\\";
     }
 
     switch (field.value.type.base_type) {
@@ -2217,6 +2271,7 @@ class CppGenerator : public BaseGenerator {
         code_ += "{{PRE}}verifier.VerifyString({{NAME}}())\\";
         break;
       }
+      case BASE_TYPE_VECTOR64:
       case BASE_TYPE_VECTOR: {
         code_ += "{{PRE}}verifier.VerifyVector({{NAME}}())\\";
 
@@ -2468,12 +2523,18 @@ class CppGenerator : public BaseGenerator {
     if (!field.IsScalarOptional()) {
       const bool is_scalar = IsScalar(type.base_type);
       std::string accessor;
-      if (is_scalar)
+      std::string offset_size = "";
+      if (is_scalar) {
         accessor = "GetField<";
-      else if (IsStruct(type))
+      } else if (IsStruct(type)) {
         accessor = "GetStruct<";
-      else
-        accessor = "GetPointer<";
+      } else {
+        if (field.offset64) {
+          accessor = "GetPointer64<";
+        } else {
+          accessor = "GetPointer<";
+        }
+      }
       auto offset_type = GenTypeGet(type, "", "const ", " *", false);
       auto call = accessor + offset_type + ">(" + offset_str;
       // Default value as second arg for non-pointer types.
@@ -2633,7 +2694,7 @@ class CppGenerator : public BaseGenerator {
 
     auto offset_str = GenFieldOffsetName(field);
     if (is_scalar) {
-      const auto wire_type = GenTypeWire(type, "", false);
+      const auto wire_type = GenTypeWire(type, "", false, field.offset64);
       code_.SetValue("SET_FN", "SetField<" + wire_type + ">");
       code_.SetValue("OFFSET_NAME", offset_str);
       code_.SetValue("FIELD_TYPE", GenTypeBasic(type, true));
@@ -2665,7 +2726,11 @@ class CppGenerator : public BaseGenerator {
     } else {
       auto postptr = " *" + NullableExtension();
       auto wire_type = GenTypeGet(type, " ", "", postptr.c_str(), true);
-      std::string accessor = IsStruct(type) ? "GetStruct<" : "GetPointer<";
+      const std::string accessor = [&]() {
+        if (IsStruct(type)) { return "GetStruct<"; }
+        if (field.offset64) { return "GetPointer64<"; }
+        return "GetPointer<";
+      }();
       auto underlying = accessor + wire_type + ">(" + offset_str + ")";
       code_.SetValue("FIELD_TYPE", wire_type);
       code_.SetValue("FIELD_VALUE", GenUnderlyingCast(field, true, underlying));
@@ -2859,9 +2924,9 @@ class CppGenerator : public BaseGenerator {
     // Generate code to do force_align for the vector.
     if (align > 1) {
       const auto vtype = field.value.type.VectorType();
-      const std::string &type = IsStruct(vtype)
-                                    ? WrapInNameSpace(*vtype.struct_def)
-                                    : GenTypeWire(vtype, "", false);
+      const std::string &type =
+          IsStruct(vtype) ? WrapInNameSpace(*vtype.struct_def)
+                          : GenTypeWire(vtype, "", false, field.offset64);
       return "_fbb.ForceVectorAlignment(" + field_size + ", sizeof(" + type +
              "), " + std::to_string(static_cast<long long>(align)) + ");";
     }
@@ -2874,7 +2939,7 @@ class CppGenerator : public BaseGenerator {
     // Generate a builder struct:
     code_ += "struct {{STRUCT_NAME}}Builder {";
     code_ += "  typedef {{STRUCT_NAME}} Table;";
-    code_ += "  ::flatbuffers::FlatBufferBuilder &fbb_;";
+    code_ += "  " + GetBuilder() + " &fbb_;";
     code_ += "  ::flatbuffers::uoffset_t start_;";
 
     bool has_string_or_vector_fields = false;
@@ -2897,12 +2962,14 @@ class CppGenerator : public BaseGenerator {
       //   fbb_.AddElement<type>(offset, name, default);
       // }
       code_.SetValue("FIELD_NAME", Name(field));
-      code_.SetValue("FIELD_TYPE", GenTypeWire(field.value.type, " ", true));
+      code_.SetValue("FIELD_TYPE",
+                     GenTypeWire(field.value.type, " ", true, field.offset64));
       code_.SetValue("ADD_OFFSET", Name(struct_def) + "::" + offset);
       code_.SetValue("ADD_NAME", name);
       code_.SetValue("ADD_VALUE", value);
       if (is_scalar) {
-        const auto type = GenTypeWire(field.value.type, "", false);
+        const auto type =
+            GenTypeWire(field.value.type, "", false, field.offset64);
         code_.SetValue("ADD_FN", "AddElement<" + type + ">");
       } else if (IsStruct(field.value.type)) {
         code_.SetValue("ADD_FN", "AddStruct");
@@ -2921,9 +2988,9 @@ class CppGenerator : public BaseGenerator {
     }
 
     // Builder constructor
-    code_ +=
-        "  explicit {{STRUCT_NAME}}Builder(::flatbuffers::FlatBufferBuilder "
-        "&_fbb)";
+    code_ += "  explicit {{STRUCT_NAME}}Builder(" + GetBuilder() +
+             " "
+             "&_fbb)";
     code_ += "        : fbb_(_fbb) {";
     code_ += "    start_ = fbb_.StartTable();";
     code_ += "  }";
@@ -2950,7 +3017,7 @@ class CppGenerator : public BaseGenerator {
     code_ +=
         "inline ::flatbuffers::Offset<{{STRUCT_NAME}}> "
         "Create{{STRUCT_NAME}}(";
-    code_ += "    ::flatbuffers::FlatBufferBuilder &_fbb\\";
+    code_ += "    " + GetBuilder() + " &_fbb\\";
     for (const auto &field : struct_def.fields.vec) {
       if (!field->deprecated) { GenParam(*field, false, ",\n    "); }
     }
@@ -2988,7 +3055,7 @@ class CppGenerator : public BaseGenerator {
       code_ +=
           "inline ::flatbuffers::Offset<{{STRUCT_NAME}}> "
           "Create{{STRUCT_NAME}}Direct(";
-      code_ += "    ::flatbuffers::FlatBufferBuilder &_fbb\\";
+      code_ += "    " + GetBuilder() + " &_fbb\\";
       for (const auto &field : struct_def.fields.vec) {
         if (!field->deprecated) { GenParam(*field, true, ",\n    "); }
       }
@@ -2997,54 +3064,85 @@ class CppGenerator : public BaseGenerator {
           struct_def.defined_namespace->GetFullyQualifiedName("Create");
       code_.SetValue("CREATE_NAME", TranslateNameSpace(qualified_create_name));
       code_ += ") {";
-      for (const auto &field : struct_def.fields.vec) {
-        if (!field->deprecated) {
-          code_.SetValue("FIELD_NAME", Name(*field));
-          if (IsString(field->value.type)) {
-            if (!field->shared) {
-              code_.SetValue("CREATE_STRING", "CreateString");
-            } else {
-              code_.SetValue("CREATE_STRING", "CreateSharedString");
-            }
-            code_ +=
-                "  auto {{FIELD_NAME}}__ = {{FIELD_NAME}} ? "
-                "_fbb.{{CREATE_STRING}}({{FIELD_NAME}}) : 0;";
-          } else if (IsVector(field->value.type)) {
-            const std::string force_align_code =
-                GenVectorForceAlign(*field, Name(*field) + "->size()");
-            if (!force_align_code.empty()) {
-              code_ += "  if ({{FIELD_NAME}}) { " + force_align_code + " }";
-            }
-            code_ += "  auto {{FIELD_NAME}}__ = {{FIELD_NAME}} ? \\";
-            const auto vtype = field->value.type.VectorType();
-            const auto has_key = TypeHasKey(vtype);
-            if (IsStruct(vtype)) {
-              const auto type = WrapInNameSpace(*vtype.struct_def);
-              code_ += (has_key ? "_fbb.CreateVectorOfSortedStructs<"
-                                : "_fbb.CreateVectorOfStructs<") +
-                       type + ">\\";
-            } else if (has_key) {
-              const auto type = WrapInNameSpace(*vtype.struct_def);
-              code_ += "_fbb.CreateVectorOfSortedTables<" + type + ">\\";
-            } else {
-              const auto type =
-                  GenTypeWire(vtype, "", VectorElementUserFacing(vtype));
-              code_ += "_fbb.CreateVector<" + type + ">\\";
-            }
-            code_ +=
-                has_key ? "({{FIELD_NAME}}) : 0;" : "(*{{FIELD_NAME}}) : 0;";
+      // Offset64 bit fields need to be added to the buffer first, so here we
+      // loop over the fields in order of their offset size, followed by their
+      // definition order. Otherwise the emitted code might add a Offset
+      // followed by an Offset64 which would trigger an assertion.
+
+      // TODO(derekbailey): maybe optimize for the case where there is no
+      // 64offsets in the whole schema?
+      ForAllFieldsOrderedByOffset(struct_def, [&](const FieldDef *field) {
+        if (field->deprecated) { return; }
+        code_.SetValue("FIELD_NAME", Name(*field));
+        if (IsString(field->value.type)) {
+          if (!field->shared) {
+            code_.SetValue(
+                "CREATE_STRING",
+                "CreateString" + std::string(field->offset64
+                                                 ? "<::flatbuffers::Offset64>"
+                                                 : ""));
+          } else {
+            code_.SetValue("CREATE_STRING", "CreateSharedString");
           }
+          code_ +=
+              "  auto {{FIELD_NAME}}__ = {{FIELD_NAME}} ? "
+              "_fbb.{{CREATE_STRING}}({{FIELD_NAME}}) : 0;";
+        } else if (IsVector(field->value.type)) {
+          const std::string force_align_code =
+              GenVectorForceAlign(*field, Name(*field) + "->size()");
+          if (!force_align_code.empty()) {
+            code_ += "  if ({{FIELD_NAME}}) { " + force_align_code + " }";
+          }
+          code_ += "  auto {{FIELD_NAME}}__ = {{FIELD_NAME}} ? \\";
+          const auto vtype = field->value.type.VectorType();
+          const auto has_key = TypeHasKey(vtype);
+          if (IsStruct(vtype)) {
+            const std::string type = WrapInNameSpace(*vtype.struct_def);
+            if (has_key) {
+              code_ += "_fbb.CreateVectorOfSortedStructs<" + type + ">\\";
+            } else {
+              // If the field uses 64-bit addressing, create a 64-bit vector.
+              if (field->value.type.base_type == BASE_TYPE_VECTOR64) {
+                code_ += "_fbb.CreateVectorOfStructs64\\";
+              } else {
+                code_ += "_fbb.CreateVectorOfStructs\\";
+                if (field->offset64) {
+                  // This is normal 32-bit vector, with 64-bit addressing.
+                  code_ += "64<::flatbuffers::Vector>\\";
+                } else {
+                  code_ += "<" + type + ">\\";
+                }
+              }
+            }
+          } else if (has_key) {
+            const auto type = WrapInNameSpace(*vtype.struct_def);
+            code_ += "_fbb.CreateVectorOfSortedTables<" + type + ">\\";
+          } else {
+            const auto type = GenTypeWire(
+                vtype, "", VectorElementUserFacing(vtype), field->offset64);
+
+            if (field->value.type.base_type == BASE_TYPE_VECTOR64) {
+              code_ += "_fbb.CreateVector64\\";
+            } else {
+              // If the field uses 64-bit addressing, create a 64-bit vector.
+              code_.SetValue("64OFFSET", field->offset64 ? "64" : "");
+              code_.SetValue("TYPE",
+                             field->offset64 ? "::flatbuffers::Vector" : type);
+
+              code_ += "_fbb.CreateVector{{64OFFSET}}<{{TYPE}}>\\";
+            }
+          }
+          code_ += has_key ? "({{FIELD_NAME}}) : 0;" : "(*{{FIELD_NAME}}) : 0;";
         }
-      }
+      });
       code_ += "  return {{CREATE_NAME}}{{STRUCT_NAME}}(";
       code_ += "      _fbb\\";
       for (const auto &field : struct_def.fields.vec) {
-        if (!field->deprecated) {
-          code_.SetValue("FIELD_NAME", Name(*field));
-          code_ += ",\n      {{FIELD_NAME}}\\";
-          if (IsString(field->value.type) || IsVector(field->value.type)) {
-            code_ += "__\\";
-          }
+        if (field->deprecated) { continue; }
+        code_.SetValue("FIELD_NAME", Name(*field));
+        code_ += ",\n      {{FIELD_NAME}}\\";
+        if (IsString(field->value.type) || IsVector(field->value.type)) {
+          code_ += "__\\";
         }
       }
       code_ += ");";
@@ -3115,6 +3213,7 @@ class CppGenerator : public BaseGenerator {
                                       const FieldDef *union_field) {
     std::string code;
     switch (field.value.type.base_type) {
+      case BASE_TYPE_VECTOR64:
       case BASE_TYPE_VECTOR: {
         auto name = Name(field);
         if (field.value.type.element == BASE_TYPE_UTYPE) {
@@ -3151,8 +3250,11 @@ class CppGenerator : public BaseGenerator {
                   ? ".type"
                   : (field.value.type.element == BASE_TYPE_UNION ? ".value"
                                                                  : "");
-
-          code += "for (::flatbuffers::uoffset_t _i = 0;";
+          if (field.value.type.base_type == BASE_TYPE_VECTOR64) {
+            code += "for (::flatbuffers::uoffset64_t _i = 0;";
+          } else {
+            code += "for (::flatbuffers::uoffset_t _i = 0;";
+          }
           code += " _i < _e->size(); _i++) { ";
           auto cpp_type = field.attributes.Lookup("cpp_type");
           if (cpp_type) {
@@ -3265,8 +3367,7 @@ class CppGenerator : public BaseGenerator {
     } else {
       value += Name(field);
     }
-    if (field.value.type.base_type != BASE_TYPE_VECTOR &&
-        field.attributes.Lookup("cpp_type")) {
+    if (!IsVector(field.value.type) && field.attributes.Lookup("cpp_type")) {
       auto type = GenTypeBasic(field.value.type, false);
       value =
           "_rehasher ? "
@@ -3282,7 +3383,10 @@ class CppGenerator : public BaseGenerator {
       //   _fbb.CreateSharedString(_o->field)
       case BASE_TYPE_STRING: {
         if (!field.shared) {
-          code += "_fbb.CreateString(";
+          code +=
+              "_fbb.CreateString" +
+              std::string(field.offset64 ? "<::flatbuffers::Offset64>" : "") +
+              "(";
         } else {
           code += "_fbb.CreateSharedString(";
         }
@@ -3309,6 +3413,7 @@ class CppGenerator : public BaseGenerator {
         //   _fbb.CreateVector<Offset<T>>(_o->field.size() [&](size_t i) {
         //     return CreateT(_fbb, _o->Get(i), rehasher);
         //   });
+      case BASE_TYPE_VECTOR64:
       case BASE_TYPE_VECTOR: {
         auto vector_type = field.value.type.VectorType();
         switch (vector_type.base_type) {
@@ -3347,7 +3452,16 @@ class CppGenerator : public BaseGenerator {
                 }
                 code += ")";
               } else {
-                code += "_fbb.CreateVectorOfStructs";
+                // If the field uses 64-bit addressing, create a 64-bit vector.
+                if (field.value.type.base_type == BASE_TYPE_VECTOR64) {
+                  code += "_fbb.CreateVectorOfStructs64";
+                } else {
+                  code += "_fbb.CreateVectorOfStructs";
+                  if (field.offset64) {
+                    // This is normal 32-bit vector, with 64-bit addressing.
+                    code += "64<::flatbuffers::Vector>";
+                  }
+                }
                 code += "(" + value + ")";
               }
             } else {
@@ -3413,7 +3527,17 @@ class CppGenerator : public BaseGenerator {
               code += "(__va->_" + value + "[i]" + GenPtrGet(field) + ")) : 0";
               code += "; }, &_va )";
             } else {
-              code += "_fbb.CreateVector(" + value + ")";
+              // If the field uses 64-bit addressing, create a 64-bit vector.
+              if (field.value.type.base_type == BASE_TYPE_VECTOR64) {
+                code += "_fbb.CreateVector64(" + value + ")";
+              } else {
+                code += "_fbb.CreateVector";
+                if (field.offset64) {
+                  // This is normal 32-bit vector, with 64-bit addressing.
+                  code += "64<::flatbuffers::Vector>";
+                }
+                code += "(" + value + ")";
+              }
             }
             break;
           }
@@ -3540,7 +3664,9 @@ class CppGenerator : public BaseGenerator {
 
       code_ +=
           "  struct _VectorArgs "
-          "{ ::flatbuffers::FlatBufferBuilder *__fbb; "
+          "{ " +
+          GetBuilder() +
+          " *__fbb; "
           "const " +
           NativeName(Name(struct_def), &struct_def, opts_) +
           "* __o; "

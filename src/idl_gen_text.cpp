@@ -19,6 +19,7 @@
 
 #include <algorithm>
 
+#include "flatbuffers/base.h"
 #include "flatbuffers/code_generator.h"
 #include "flatbuffers/flatbuffers.h"
 #include "flatbuffers/flexbuffers.h"
@@ -101,13 +102,13 @@ struct JsonPrinter {
 
   // Print a vector or an array of JSON values, comma seperated, wrapped in
   // "[]".
-  template<typename Container>
-  const char *PrintContainer(PrintScalarTag, const Container &c, size_t size,
+  template<typename Container, typename SizeT = typename Container::size_type>
+  const char *PrintContainer(PrintScalarTag, const Container &c, SizeT size,
                       const Type &type, int indent, const uint8_t *) {
     const auto elem_indent = indent + Indent();
     text += '[';
     AddNewLine();
-    for (uoffset_t i = 0; i < size; i++) {
+    for (SizeT i = 0; i < size; i++) {
       if (i) {
         AddComma();
         AddNewLine();
@@ -123,14 +124,14 @@ struct JsonPrinter {
 
   // Print a vector or an array of JSON values, comma seperated, wrapped in
   // "[]".
-  template<typename Container>
-  const char *PrintContainer(PrintPointerTag, const Container &c, size_t size,
+  template<typename Container, typename SizeT = typename Container::size_type>
+  const char *PrintContainer(PrintPointerTag, const Container &c, SizeT size,
                       const Type &type, int indent, const uint8_t *prev_val) {
     const auto is_struct = IsStruct(type);
     const auto elem_indent = indent + Indent();
     text += '[';
     AddNewLine();
-    for (uoffset_t i = 0; i < size; i++) {
+    for (SizeT i = 0; i < size; i++) {
       if (i) {
         AddComma();
         AddNewLine();
@@ -149,10 +150,10 @@ struct JsonPrinter {
     return nullptr;
   }
 
-  template<typename T>
+  template<typename T, typename SizeT = uoffset_t>
   const char *PrintVector(const void *val, const Type &type, int indent,
                    const uint8_t *prev_val) {
-    typedef Vector<T> Container;
+    typedef Vector<T, SizeT> Container;
     typedef typename PrintTag<typename Container::return_type>::type tag;
     auto &vec = *reinterpret_cast<const Container *>(val);
     return PrintContainer<Container>(tag(), vec, vec.size(), type, indent,
@@ -161,8 +162,9 @@ struct JsonPrinter {
 
   // Print an array a sequence of JSON values, comma separated, wrapped in "[]".
   template<typename T>
-  const char *PrintArray(const void *val, size_t size, const Type &type,
-                         int indent) {
+  const char *PrintArray(const void *val, uint16_t size, const Type &type,
+                        
+                  int indent) {
     typedef Array<T, 0xFFFF> Container;
     typedef typename PrintTag<typename Container::return_type>::type tag;
     auto &arr = *reinterpret_cast<const Container *>(val);
@@ -240,7 +242,7 @@ struct JsonPrinter {
   }
 
   template<typename T> static T GetFieldDefault(const FieldDef &fd) {
-    T val;
+    T val{};
     auto check = StringToNumber(fd.value.constant.c_str(), &val);
     (void)check;
     FLATBUFFERS_ASSERT(check);

@@ -117,6 +117,7 @@ set(FlatBuffers_Library_SRCS
     ${FLATBUFFERS_DIR}/src/binary_annotator.cpp
     ${FLATBUFFERS_DIR}/src/util.cpp
     ${FLATBUFFERS_DIR}/tests/test_assert.cpp
+    ${FLATBUFFERS_DIR}/tests/64bit/test_64bit_bfbs_generated.h
 )
 
 include_directories(${FLATBUFFERS_DIR}/include)
@@ -173,6 +174,16 @@ add_custom_command(
   COMMAND ${CMAKE_COMMAND} -E copy
   ${CMAKE_SOURCE_DIR}/../annotated_binary/annotated_binary.bin
   ${CMAKE_CURRENT_BINARY_DIR}/seed_annotator/annotated_binary.bin
+)
+
+add_executable(64bit_fuzzer flatbuffers_64bit_fuzzer.cc)
+target_link_libraries(64bit_fuzzer PRIVATE flatbuffers_fuzzed)
+add_custom_command(
+  TARGET 64bit_fuzzer PRE_BUILD
+
+  COMMAND ${CMAKE_COMMAND} -E copy
+  ${CMAKE_SOURCE_DIR}/../64bit/test_64bit.bin
+  ${CMAKE_CURRENT_BINARY_DIR}/seed_64bit/test_64bit.bin
 )
 
 # Build debugger for weird cases found with fuzzer.

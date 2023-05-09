@@ -42,7 +42,7 @@
 #if !defined(_MSC_VER) || _MSC_VER >= 1700
 #  include "arrays_test_generated.h"
 #endif
-
+#include "64bit/offset64_test.h"
 #include "flexbuffers_test.h"
 #include "is_quiet_nan.h"
 #include "monster_test_bfbs_generated.h"  // Generated using --bfbs-comments --bfbs-builtins --cpp --bfbs-gen-embed
@@ -74,7 +74,7 @@ static_assert(flatbuffers::is_same<uint8_t, char>::value ||
 using namespace MyGame::Example;
 
 void TriviallyCopyableTest() {
-// clang-format off
+  // clang-format off
   #if __GNUG__ && __GNUC__ < 5 && \
       !(defined(__clang__) && __clang_major__ >= 16)
     TEST_EQ(__has_trivial_copy(Vec3), true);
@@ -1540,6 +1540,17 @@ void DoNotRequireEofTest(const std::string &tests_data_path) {
 }
 #endif
 
+static void Offset64Tests() {
+  Offset64Test();
+  Offset64SerializedFirst();
+  Offset64NestedFlatBuffer();
+  Offset64CreateDirect();
+  Offset64Evolution();
+  Offset64VectorOfStructs();
+  Offset64SizePrefix();
+  Offset64ManyVectors();
+}
+
 int FlatBufferTests(const std::string &tests_data_path) {
   // Run our various test suites:
 
@@ -1651,6 +1662,7 @@ int FlatBufferTests(const std::string &tests_data_path) {
   NestedStructKeyInStructTest();
   FixedSizedStructArrayKeyInStructTest();
   EmbeddedSchemaAccess();
+  Offset64Tests();
   return 0;
 }
 }  // namespace

@@ -910,7 +910,7 @@ class Monster extends Table
 
     /**
      * @param FlatBufferBuilder $builder
-     * @param int
+     * @param VectorOffset
      * @return void
      */
     public static function addPos(FlatBufferBuilder $builder, $pos)
@@ -1111,7 +1111,7 @@ class Monster extends Table
 
     /**
      * @param FlatBufferBuilder $builder
-     * @param int
+     * @param VectorOffset
      * @return void
      */
     public static function addEnemy(FlatBufferBuilder $builder, $enemy)
@@ -1155,7 +1155,7 @@ class Monster extends Table
 
     /**
      * @param FlatBufferBuilder $builder
-     * @param int
+     * @param VectorOffset
      * @return void
      */
     public static function addTestempty(FlatBufferBuilder $builder, $testempty)
@@ -1523,7 +1523,7 @@ class Monster extends Table
 
     /**
      * @param FlatBufferBuilder $builder
-     * @param int
+     * @param VectorOffset
      * @return void
      */
     public static function addParentNamespaceTest(FlatBufferBuilder $builder, $parentNamespaceTest)
@@ -1875,7 +1875,7 @@ class Monster extends Table
 
     /**
      * @param FlatBufferBuilder $builder
-     * @param int
+     * @param VectorOffset
      * @return void
      */
     public static function addNativeInline(FlatBufferBuilder $builder, $nativeInline)
