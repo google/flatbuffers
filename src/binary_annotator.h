@@ -48,6 +48,7 @@ enum class BinaryRegionType {
   Float = 15,
   Double = 16,
   UType = 17,
+  UOffset64 = 18,
 };
 
 template<typename T>
@@ -179,6 +180,7 @@ enum class BinarySectionType {
   Vector = 7,
   Union = 8,
   Padding = 9,
+  Vector64 = 10,
 };
 
 // A section of the binary that is grouped together in some logical manner, and
@@ -216,6 +218,7 @@ inline static BinaryRegionType GetRegionType(reflection::BaseType base_type) {
 inline static std::string ToString(const BinaryRegionType type) {
   switch (type) {
     case BinaryRegionType::UOffset: return "UOffset32";
+    case BinaryRegionType::UOffset64: return "UOffset64";
     case BinaryRegionType::SOffset: return "SOffset32";
     case BinaryRegionType::VOffset: return "VOffset16";
     case BinaryRegionType::Bool: return "bool";
@@ -242,12 +245,14 @@ class BinaryAnnotator {
   explicit BinaryAnnotator(const uint8_t *const bfbs,
                            const uint64_t bfbs_length,
                            const uint8_t *const binary,
-                           const uint64_t binary_length)
+                           const uint64_t binary_length,
+                           const bool is_size_prefixed)
       : bfbs_(bfbs),
         bfbs_length_(bfbs_length),
         schema_(reflection::GetSchema(bfbs)),
         binary_(binary),
-        binary_length_(binary_length) {}
+        binary_length_(binary_length),
+        is_size_prefixed_(is_size_prefixed) {}
 
   std::map<uint64_t, BinarySection> Annotate();
 
@@ -387,6 +392,7 @@ class BinaryAnnotator {
   // The binary data itself.
   const uint8_t *binary_;
   const uint64_t binary_length_;
+  const bool is_size_prefixed_;
 
   // Map of binary offset to vtables, to dedupe vtables.
   std::map<uint64_t, std::list<VTable>> vtables_;
