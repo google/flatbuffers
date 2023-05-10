@@ -74,7 +74,7 @@ static Namer::Config PythonDefaultConfig() {
 static const CommentConfig def_comment = { nullptr, "#", nullptr };
 static const std::string Indent = "    ";
 
-} // namespace
+}  // namespace
 
 class PythonGenerator : public BaseGenerator {
  public:
@@ -149,10 +149,11 @@ class PythonGenerator : public BaseGenerator {
     if (!parser_.opts.python_no_type_prefix_suffix) {
       // Add an alias with the old name
       code += Indent + "@classmethod\n";
-      code += Indent + "def GetRootAs" + struct_type + "(cls, buf, offset=0):\n";
       code +=
-          Indent + Indent +
-          "\"\"\"This method is deprecated. Please switch to GetRootAs.\"\"\"\n";
+          Indent + "def GetRootAs" + struct_type + "(cls, buf, offset=0):\n";
+      code += Indent + Indent +
+              "\"\"\"This method is deprecated. Please switch to "
+              "GetRootAs.\"\"\"\n";
       code += Indent + Indent + "return cls.GetRootAs(buf, offset)\n";
     }
   }
@@ -179,16 +180,15 @@ class PythonGenerator : public BaseGenerator {
 
     GenReceiver(struct_def, code_ptr);
     code += namer_.Method(field) + "Length(self)";
-    if (parser_.opts.python_typing) {
-      code += " -> int";
-    }
+    if (parser_.opts.python_typing) { code += " -> int"; }
     code += ":";
-    if(!IsArray(field.value.type)){
-      code += OffsetPrefix(field,false);
+    if (!IsArray(field.value.type)) {
+      code += OffsetPrefix(field, false);
       code += GenIndents(3) + "return self._tab.VectorLen(o)";
       code += GenIndents(2) + "return 0\n\n";
-    }else{
-      code += GenIndents(2) + "return "+NumToString(field.value.type.fixed_length)+"\n\n";
+    } else {
+      code += GenIndents(2) + "return " +
+              NumToString(field.value.type.fixed_length) + "\n\n";
     }
   }
 
@@ -199,17 +199,15 @@ class PythonGenerator : public BaseGenerator {
 
     GenReceiver(struct_def, code_ptr);
     code += namer_.Method(field) + "IsNone(self)";
-    if (parser_.opts.python_typing) {
-      code += " -> bool";
-    }
+    if (parser_.opts.python_typing) { code += " -> bool"; }
     code += ":";
-    if(!IsArray(field.value.type)){
+    if (!IsArray(field.value.type)) {
       code += GenIndents(2) +
               "o = flatbuffers.number_types.UOffsetTFlags.py_type" +
               "(self._tab.Offset(" + NumToString(field.value.offset) + "))";
       code += GenIndents(2) + "return o == 0";
     } else {
-      //assume that we always have an array as memory is preassigned
+      // assume that we always have an array as memory is preassigned
       code += GenIndents(2) + "return False";
     }
     code += "\n\n";
@@ -290,7 +288,8 @@ class PythonGenerator : public BaseGenerator {
       code += "(self, i):";
     }
 
-    if (parser_.opts.include_dependence_headers && !parser_.opts.python_typing) {
+    if (parser_.opts.include_dependence_headers &&
+        !parser_.opts.python_typing) {
       code += GenIndents(2);
       code += "from " + import_entry.first + " import " + import_entry.second +
               "\n";
@@ -317,8 +316,9 @@ class PythonGenerator : public BaseGenerator {
     code += NumToString(field.value.offset) + " + i * ";
     code += NumToString(InlineSize(field.value.type.VectorType()));
     code += ")) for i in range(";
-    code += "self."+namer_.Method(field)+"Length()" + ")]";
-    code += GenIndents(2) +"elif j >= 0 and j < self."+namer_.Method(field)+"Length():";
+    code += "self." + namer_.Method(field) + "Length()" + ")]";
+    code += GenIndents(2) + "elif j >= 0 and j < self." + namer_.Method(field) +
+            "Length():";
     code += GenIndents(3) + "return " + GenGetter(field.value.type);
     code += "self._tab.Pos + flatbuffers.number_types.UOffsetTFlags.py_type(";
     code += NumToString(field.value.offset) + " + j * ";
@@ -355,7 +355,8 @@ class PythonGenerator : public BaseGenerator {
       code += "x = self._tab.Indirect(o + self._tab.Pos)\n";
     }
 
-    if (parser_.opts.include_dependence_headers && !parser_.opts.python_typing) {
+    if (parser_.opts.include_dependence_headers &&
+        !parser_.opts.python_typing) {
       code += Indent + Indent + Indent;
       code += "from " + import_entry.first + " import " + import_entry.second +
               "\n";
@@ -464,7 +465,8 @@ class PythonGenerator : public BaseGenerator {
     if (!(vectortype.struct_def->fixed)) {
       code += Indent + Indent + Indent + "x = self._tab.Indirect(x)\n";
     }
-    if (parser_.opts.include_dependence_headers && !parser_.opts.python_typing) {
+    if (parser_.opts.include_dependence_headers &&
+        !parser_.opts.python_typing) {
       code += Indent + Indent + Indent;
       code += "from " + import_entry.first + " import " + import_entry.second +
               "\n";
@@ -543,7 +545,7 @@ class PythonGenerator : public BaseGenerator {
 
     GenReceiver(struct_def, code_ptr);
     code += namer_.Method(field) + "AsNumpy(self):";
-    if(!IsArray(field.value.type)){
+    if (!IsArray(field.value.type)) {
       code += OffsetPrefix(field, false);
 
       code += GenIndents(3);
@@ -557,11 +559,13 @@ class PythonGenerator : public BaseGenerator {
       } else {
         code += GenIndents(2) + "return 0\n";
       }
-    }else{
+    } else {
       code += GenIndents(2) + "return ";
       code += "self._tab.GetArrayAsNumpy(flatbuffers.number_types.";
       code += namer_.Method(GenTypeGet(field.value.type.VectorType()));
-      code += "Flags, self._tab.Pos + "+NumToString(field.value.offset)+", "+NumToString("self."+namer_.Method(field)+"Length()")+")\n";
+      code += "Flags, self._tab.Pos + " + NumToString(field.value.offset) +
+              ", " + NumToString("self." + namer_.Method(field) + "Length()") +
+              ")\n";
     }
     code += "\n";
   }
@@ -588,9 +592,7 @@ class PythonGenerator : public BaseGenerator {
 
     const std::string unqualified_name = nested->constant;
     std::string qualified_name = NestedFlatbufferType(unqualified_name);
-    if (qualified_name.empty()) {
-      qualified_name = nested->constant;
-    }
+    if (qualified_name.empty()) { qualified_name = nested->constant; }
 
     const ImportMapEntry import_entry = { "." + qualified_name,
                                           unqualified_name };
@@ -728,7 +730,9 @@ class PythonGenerator : public BaseGenerator {
     const auto struct_type = namer_.Type(struct_def);
     // Generate method with struct name.
 
-    const auto name = parser_.opts.python_no_type_prefix_suffix ? "Start" : struct_type + "Start";
+    const auto name = parser_.opts.python_no_type_prefix_suffix
+                          ? "Start"
+                          : struct_type + "Start";
 
     code += "def " + name;
     if (parser_.opts.python_typing) {
@@ -760,7 +764,9 @@ class PythonGenerator : public BaseGenerator {
     const std::string field_method = namer_.Method(field);
     const std::string field_ty = GenFieldTy(field);
 
-    const auto name = parser_.opts.python_no_type_prefix_suffix ? "Add" + field_method : namer_.Type(struct_def) + "Add" + field_method;
+    const auto name = parser_.opts.python_no_type_prefix_suffix
+                          ? "Add" + field_method
+                          : namer_.Type(struct_def) + "Add" + field_method;
 
     // Generate method with struct name.
     code += "def " + name;
@@ -791,9 +797,9 @@ class PythonGenerator : public BaseGenerator {
 
     if (!parser_.opts.one_file && !parser_.opts.python_no_type_prefix_suffix) {
       // Generate method without struct name.
-      code += "def Add" + field_method + "(builder: flatbuffers.Builder, " + field_var + ": " + field_ty + "):\n";
-      code +=
-          Indent + namer_.Type(struct_def) + "Add" + field_method;
+      code += "def Add" + field_method + "(builder: flatbuffers.Builder, " +
+              field_var + ": " + field_ty + "):\n";
+      code += Indent + namer_.Type(struct_def) + "Add" + field_method;
       code += "(builder, ";
       code += field_var;
       code += ")\n\n";
@@ -808,7 +814,9 @@ class PythonGenerator : public BaseGenerator {
     const std::string field_method = namer_.Method(field);
 
     // Generate method with struct name.
-    const auto name = parser_.opts.python_no_type_prefix_suffix ? "Start" + field_method : struct_type + "Start" + field_method;
+    const auto name = parser_.opts.python_no_type_prefix_suffix
+                          ? "Start" + field_method
+                          : struct_type + "Start" + field_method;
     code += "def " + name;
     if (parser_.opts.python_typing) {
       code += "Vector(builder, numElems: int) -> int:\n";
@@ -826,7 +834,8 @@ class PythonGenerator : public BaseGenerator {
 
     if (!parser_.opts.one_file && !parser_.opts.python_no_type_prefix_suffix) {
       // Generate method without struct name.
-      code += "def Start" + field_method + "Vector(builder, numElems: int) -> int:\n";
+      code += "def Start" + field_method +
+              "Vector(builder, numElems: int) -> int:\n";
       code += Indent + "return " + struct_type + "Start";
       code += field_method + "Vector(builder, numElems)\n\n";
     }
@@ -873,7 +882,9 @@ class PythonGenerator : public BaseGenerator {
                            std::string *code_ptr) const {
     auto &code = *code_ptr;
 
-    const auto name = parser_.opts.python_no_type_prefix_suffix ? "End" : namer_.Type(struct_def) + "End";
+    const auto name = parser_.opts.python_no_type_prefix_suffix
+                          ? "End"
+                          : namer_.Type(struct_def) + "End";
     // Generate method with struct name.
     if (parser_.opts.python_typing) {
       code += "def " + name + "(builder: flatbuffers.Builder) -> int:\n";
@@ -947,7 +958,9 @@ class PythonGenerator : public BaseGenerator {
           }
           break;
         }
-        case BASE_TYPE_UNION: GetUnionField(struct_def, field, code_ptr, imports); break;
+        case BASE_TYPE_UNION:
+          GetUnionField(struct_def, field, code_ptr, imports);
+          break;
         default: FLATBUFFERS_ASSERT(0);
       }
     }
@@ -1284,14 +1297,15 @@ class PythonGenerator : public BaseGenerator {
   }
 
   void InitializeFromPackedBuf(const StructDef &struct_def,
-                         std::string *code_ptr) const {
+                               std::string *code_ptr) const {
     auto &code = *code_ptr;
     const auto struct_var = namer_.Variable(struct_def);
     const auto struct_type = namer_.Type(struct_def);
 
     code += GenIndents(1) + "@classmethod";
     code += GenIndents(1) + "def InitFromPackedBuf(cls, buf, pos=0):";
-    code += GenIndents(2) + "n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, pos)";
+    code += GenIndents(2) +
+            "n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, pos)";
     code += GenIndents(2) + "return cls.InitFromBuf(buf, pos+n)";
     code += "\n";
   }
@@ -1316,14 +1330,15 @@ class PythonGenerator : public BaseGenerator {
     code += GenIndents(1) + "def __eq__(self, other):";
     code += GenIndents(2) + "return type(self) == type(other)";
     for (auto it = struct_def.fields.vec.begin();
-            it != struct_def.fields.vec.end(); ++it) {
-          auto &field = **it;
-          if (field.deprecated) continue;
+         it != struct_def.fields.vec.end(); ++it) {
+      auto &field = **it;
+      if (field.deprecated) continue;
 
-          // Wrties the comparison statement for this field.
-          const auto field_field = namer_.Field(field);
-          code += " and \\" + GenIndents(3) + "self." + field_field + " == " + "other." + field_field;
-        }
+      // Wrties the comparison statement for this field.
+      const auto field_field = namer_.Field(field);
+      code += " and \\" + GenIndents(3) + "self." + field_field +
+              " == " + "other." + field_field;
+    }
     code += "\n";
   }
 
@@ -1346,8 +1361,9 @@ class PythonGenerator : public BaseGenerator {
       code += field_type + "()";
     }
     code += ") is not None:";
-    code += GenIndents(3) + "self." + field_field + " = " + namer_.ObjectType(field_type) +
-            + ".InitFromObj(" + struct_var + "." + field_method + "(";
+    code += GenIndents(3) + "self." + field_field + " = " +
+            namer_.ObjectType(field_type) + +".InitFromObj(" + struct_var +
+            "." + field_method + "(";
     // A struct's accessor requires a struct buf instance.
     if (struct_def.fixed && field.value.type.base_type == BASE_TYPE_STRUCT) {
       code += field_type + "()";
@@ -1397,8 +1413,9 @@ class PythonGenerator : public BaseGenerator {
             "(i) is None:";
     code += GenIndents(5) + "self." + field_field + ".append(None)";
     code += GenIndents(4) + "else:";
-    code += GenIndents(5) + one_instance + " = " + namer_.ObjectType(field_type) +
-            ".InitFromObj(" + struct_var + "." + field_method + "(i))";
+    code += GenIndents(5) + one_instance + " = " +
+            namer_.ObjectType(field_type) + ".InitFromObj(" + struct_var + "." +
+            field_method + "(i))";
     code +=
         GenIndents(5) + "self." + field_field + ".append(" + one_instance + ")";
   }
@@ -1428,8 +1445,9 @@ class PythonGenerator : public BaseGenerator {
             "(i) is None:";
     code += GenIndents(5) + "self." + field_field + ".append(None)";
     code += GenIndents(4) + "else:";
-    code += GenIndents(5) + one_instance + " = " + namer_.ObjectType(field_type) +
-            ".InitFromObj(" + struct_var + "." + field_method + "(i))";
+    code += GenIndents(5) + one_instance + " = " +
+            namer_.ObjectType(field_type) + ".InitFromObj(" + struct_var + "." +
+            field_method + "(i))";
     code +=
         GenIndents(5) + "self." + field_field + ".append(" + one_instance + ")";
   }
@@ -1809,9 +1827,7 @@ class PythonGenerator : public BaseGenerator {
 
     InitializeFromObjForObject(struct_def, &code);
 
-    if (parser_.opts.gen_compare) {
-      GenCompareOperator(struct_def, &code);
-    }
+    if (parser_.opts.gen_compare) { GenCompareOperator(struct_def, &code); }
 
     GenUnPack(struct_def, &code);
 
@@ -1920,17 +1936,11 @@ class PythonGenerator : public BaseGenerator {
   std::string GenFieldTy(const FieldDef &field) const {
     if (IsScalar(field.value.type.base_type) || IsArray(field.value.type)) {
       const std::string ty = GenTypeBasic(field.value.type);
-      if (ty.find("int") != std::string::npos) {
-        return "int";
-      }
+      if (ty.find("int") != std::string::npos) { return "int"; }
 
-      if (ty.find("float") != std::string::npos) {
-        return "float";
-      }
+      if (ty.find("float") != std::string::npos) { return "float"; }
 
-      if (ty == "bool") {
-        return "bool";
-      }
+      if (ty == "bool") { return "bool"; }
 
       return "Any";
     } else {
@@ -2081,13 +2091,9 @@ class PythonGenerator : public BaseGenerator {
       }
 
       if (parser_.opts.one_file) {
-        if (!declcode.empty()) {
-          *one_file_code += declcode + "\n\n";
-        }
+        if (!declcode.empty()) { *one_file_code += declcode + "\n\n"; }
 
-        for (auto import_str: imports) {
-          one_file_imports.insert(import_str);
-        }
+        for (auto import_str : imports) { one_file_imports.insert(import_str); }
       } else {
         const std::string mod =
             namer_.File(struct_def, SkipFile::SuffixAndExtension);
@@ -2165,7 +2171,7 @@ class PythonGenerator : public BaseGenerator {
 }  // namespace python
 
 static bool GeneratePython(const Parser &parser, const std::string &path,
-                    const std::string &file_name) {
+                           const std::string &file_name) {
   python::PythonGenerator generator(parser, path, file_name);
   return generator.generate();
 }
@@ -2180,9 +2186,8 @@ class PythonCodeGenerator : public CodeGenerator {
     return Status::OK;
   }
 
-  Status GenerateCode(const uint8_t *buffer, int64_t length) override {
-    (void)buffer;
-    (void)length;
+  Status GenerateCode(const uint8_t *, int64_t,
+                      const CodeGenOptions &) override {
     return Status::NOT_IMPLEMENTED;
   }
 

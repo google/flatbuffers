@@ -253,8 +253,9 @@ static void GenNameSpace(const Namespace &name_space, std::string *_schema,
 }
 
 // Generate a flatbuffer schema from the Parser's internal representation.
-static std::string GenerateFBS(const Parser &parser, const std::string &file_name,
-                        bool no_log = false) {
+static std::string GenerateFBS(const Parser &parser,
+                               const std::string &file_name,
+                               bool no_log = false) {
   // Proto namespaces may clash with table names, escape the ones that were
   // generated from a table:
   for (auto it = parser.namespaces_.begin(); it != parser.namespaces_.end();
@@ -376,7 +377,7 @@ static std::string GenerateFBS(const Parser &parser, const std::string &file_nam
 }
 
 static bool GenerateFBS(const Parser &parser, const std::string &path,
-                 const std::string &file_name, bool no_log = false) {
+                        const std::string &file_name, bool no_log = false) {
   const std::string fbs = GenerateFBS(parser, file_name, no_log);
   if (fbs.empty()) { return false; }
   // TODO: Use LogCompilerWarn
@@ -387,7 +388,6 @@ static bool GenerateFBS(const Parser &parser, const std::string &path,
   }
   return SaveFile((path + file_name + ".fbs").c_str(), fbs, false);
 }
-
 
 class FBSCodeGenerator : public CodeGenerator {
  public:
@@ -400,16 +400,15 @@ class FBSCodeGenerator : public CodeGenerator {
   }
 
   Status GenerateCodeString(const Parser &parser, const std::string &filename,
-                              std::string &output) override {
+                            std::string &output) override {
     output = GenerateFBS(parser, filename, no_log_);
     return Status::OK;
   }
 
   // Generate code from the provided `buffer` of given `length`. The buffer is a
   // serialized reflection.fbs.
-  Status GenerateCode(const uint8_t *buffer, int64_t length) override {
-    (void)buffer;
-    (void)length;
+  Status GenerateCode(const uint8_t *, int64_t,
+                      const CodeGenOptions &) override {
     return Status::NOT_IMPLEMENTED;
   }
 

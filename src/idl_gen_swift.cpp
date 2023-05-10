@@ -148,7 +148,7 @@ static std::string GenArrayMainBody(const std::string &optional) {
          optional + " { ";
 }
 
-} // namespace
+}  // namespace
 
 class SwiftGenerator : public BaseGenerator {
  private:
@@ -261,8 +261,7 @@ class SwiftGenerator : public BaseGenerator {
       code_ += "private var _{{FIELDVAR}}: " + valueType;
       const auto accessing_value = IsEnum(field.value.type) ? ".value" : "";
       const auto base_value =
-          IsStruct(field.value.type) ? (type + "()")
-          : SwiftConstant(field);
+          IsStruct(field.value.type) ? (type + "()") : SwiftConstant(field);
 
       main_constructor.push_back("_" + field_var + " = " + field_var +
                                  accessing_value);
@@ -720,8 +719,7 @@ class SwiftGenerator : public BaseGenerator {
 
     if (IsBool(field.value.type.base_type)) {
       std::string default_value =
-          field.IsOptional() ? "nil"
-                             : SwiftConstant(field);
+          field.IsOptional() ? "nil" : SwiftConstant(field);
       code_.SetValue("CONSTANT", default_value);
       code_.SetValue("VALUETYPE", "Bool");
       code_ += GenReaderMainBody(optional) + "\\";
@@ -984,8 +982,9 @@ class SwiftGenerator : public BaseGenerator {
       } else if (IsEnum(type) && !field.IsOptional()) {
         code_.SetValue("CONSTANT", GenEnumDefaultValue(field));
         code_ += "if {{FIELDVAR}} != {{CONSTANT}} {";
-      } else if (IsFloat(type.base_type) && StringIsFlatbufferNan(field.value.constant)) {
-	code_ += "if !{{FIELDVAR}}.isNaN {";
+      } else if (IsFloat(type.base_type) &&
+                 StringIsFlatbufferNan(field.value.constant)) {
+        code_ += "if !{{FIELDVAR}}.isNaN {";
       } else if (IsScalar(type.base_type) && !IsEnum(type) &&
                  !IsBool(type.base_type) && !field.IsOptional()) {
         code_ += "if {{FIELDVAR}} != {{CONSTANT}} {";
@@ -1158,8 +1157,9 @@ class SwiftGenerator : public BaseGenerator {
 
   void GenEnum(const EnumDef &enum_def) {
     if (enum_def.generated) return;
-    const bool is_private_access = parser_.opts.swift_implementation_only ||
-       enum_def.attributes.Lookup("private") != nullptr;
+    const bool is_private_access =
+        parser_.opts.swift_implementation_only ||
+        enum_def.attributes.Lookup("private") != nullptr;
     code_.SetValue("ENUM_TYPE",
                    enum_def.is_union ? "UnionEnum" : "Enum, Verifiable");
     code_.SetValue("ACCESS_TYPE", is_private_access ? "internal" : "public");
@@ -1579,7 +1579,8 @@ class SwiftGenerator : public BaseGenerator {
         if (IsBool(field.value.type.base_type)) {
           code_ += "{{ACCESS_TYPE}} var {{FIELDVAR}}: Bool" + nullable;
           if (!field.IsOptional())
-            base_constructor.push_back(field_var + " = " + SwiftConstant(field));
+            base_constructor.push_back(field_var + " = " +
+                                       SwiftConstant(field));
         }
       }
     }
@@ -1827,15 +1828,17 @@ class SwiftGenerator : public BaseGenerator {
     }
   }
 
-  std::string SwiftConstant(const FieldDef& field) {
+  std::string SwiftConstant(const FieldDef &field) {
     const auto default_value =
-        StringIsFlatbufferNan(field.value.constant) ? ".nan" :
-        StringIsFlatbufferPositiveInfinity(field.value.constant) ? ".infinity" :
-        StringIsFlatbufferNegativeInfinity(field.value.constant) ? "-.infinity" :
-        IsBool(field.value.type.base_type) ? ("0" == field.value.constant ? "false" : "true") :
-        field.value.constant;
+        StringIsFlatbufferNan(field.value.constant)                ? ".nan"
+        : StringIsFlatbufferPositiveInfinity(field.value.constant) ? ".infinity"
+        : StringIsFlatbufferNegativeInfinity(field.value.constant)
+            ? "-.infinity"
+        : IsBool(field.value.type.base_type)
+            ? ("0" == field.value.constant ? "false" : "true")
+            : field.value.constant;
     return default_value;
- }
+  }
 
   std::string GenEnumConstructor(const std::string &at) {
     return "{{VALUETYPE}}(rawValue: " + GenReader("BASEVALUE", at) + ") ";
@@ -1901,7 +1904,7 @@ class SwiftGenerator : public BaseGenerator {
 }  // namespace swift
 
 static bool GenerateSwift(const Parser &parser, const std::string &path,
-                   const std::string &file_name) {
+                          const std::string &file_name) {
   swift::SwiftGenerator generator(parser, path, file_name);
   return generator.generate();
 }
@@ -1916,9 +1919,8 @@ class SwiftCodeGenerator : public CodeGenerator {
     return Status::OK;
   }
 
-  Status GenerateCode(const uint8_t *buffer, int64_t length) override {
-    (void)buffer;
-    (void)length;
+  Status GenerateCode(const uint8_t *, int64_t,
+                      const CodeGenOptions &) override {
     return Status::NOT_IMPLEMENTED;
   }
 

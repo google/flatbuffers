@@ -34,13 +34,13 @@ namespace flatbuffers {
 namespace {
 
 static std::string BinaryFileName(const Parser &parser, const std::string &path,
-                           const std::string &file_name) {
+                                  const std::string &file_name) {
   auto ext = parser.file_extension_.length() ? parser.file_extension_ : "bin";
   return path + file_name + "." + ext;
 }
 
 static bool GenerateBinary(const Parser &parser, const std::string &path,
-                    const std::string &file_name) {
+                           const std::string &file_name) {
   if (parser.opts.use_flexbuffers) {
     auto data_vec = parser.flex_builder_.GetBuffer();
     auto data_ptr = reinterpret_cast<char *>(data(data_vec));
@@ -57,7 +57,7 @@ static bool GenerateBinary(const Parser &parser, const std::string &path,
 }
 
 static std::string BinaryMakeRule(const Parser &parser, const std::string &path,
-                           const std::string &file_name) {
+                                  const std::string &file_name) {
   if (!parser.builder_.GetSize()) return "";
   std::string filebase =
       flatbuffers::StripPath(flatbuffers::StripExtension(file_name));
@@ -81,9 +81,8 @@ class BinaryCodeGenerator : public CodeGenerator {
 
   // Generate code from the provided `buffer` of given `length`. The buffer is a
   // serialized reflection.fbs.
-  Status GenerateCode(const uint8_t *buffer, int64_t length) override {
-    (void)buffer;
-    (void)length;
+  Status GenerateCode(const uint8_t *, int64_t,
+                      const CodeGenOptions &) override {
     return Status::NOT_IMPLEMENTED;
   }
 
