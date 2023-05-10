@@ -18,6 +18,10 @@ var __copyProps = (to, from, except, desc) => {
   return to;
 };
 var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__getProtoOf(mod)) : {}, __copyProps(
+  // If the importer is in node compatibility mode or this is not an ESM
+  // file that has been converted to a CommonJS file using a Babel-
+  // compatible transform (i.e. "__esModule" has not been set), then set
+  // "default" to the CommonJS "module.exports" for node compatibility.
   isNodeMode || !mod || !mod.__esModule ? __defProp(target, "default", { value: mod, enumerable: true }) : target,
   mod
 ));
@@ -928,6 +932,10 @@ var Monster2 = class {
     const offset = this.bb.__offset(this.bb_pos, 24);
     return offset ? this.bb.__vector_len(this.bb_pos + offset) : 0;
   }
+  /**
+   * an example documentation comment: this will end up in the generated code
+   * multiline too
+   */
   testarrayoftables(index, obj) {
     const offset = this.bb.__offset(this.bb_pos, 26);
     return offset ? (obj || new Monster2()).__init(this.bb.__indirect(this.bb.__vector(this.bb_pos + offset) + index * 4), this.bb) : null;
