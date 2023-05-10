@@ -1670,12 +1670,7 @@ int FlatBufferTests(const std::string &tests_data_path) {
 }  // namespace flatbuffers
 
 int main(int argc, const char *argv[]) {
-  std::string tests_data_path =
-#ifdef BAZEL_TEST_DATA_PATH
-      "../com_github_google_flatbuffers/tests/";
-#else
-      "tests/";
-#endif
+  std::string tests_data_path = "tests/";
 
   for (int argi = 1; argi < argc; argi++) {
     std::string arg = argv[argi];
