@@ -177,7 +177,7 @@ class Verifier FLATBUFFERS_FINAL_CLASS {
     return true;
   }
 
-  __suppress_ubsan__("unsigned-integer-overflow") bool VerifyTableStart(
+  FLATBUFFERS_SUPPRESS_UBSAN("unsigned-integer-overflow") bool VerifyTableStart(
       const uint8_t *const table) {
     // Check the vtable offset.
     const auto tableo = static_cast<size_t>(table - buf_);
