@@ -516,10 +516,12 @@ function(compile_schema_for_samples SRC_FBS OPT)
 endfunction()
 
 if(FLATBUFFERS_BUILD_TESTS)
-  include_directories(${CMAKE_CURRENT_BINARY_DIR}/tests)
   add_executable(flattests ${FlatBuffers_Tests_SRCS})
   target_link_libraries(flattests PRIVATE $<BUILD_INTERFACE:ProjectConfig>)
-  target_include_directories(flattests PUBLIC src)
+  target_include_directories(flattests PUBLIC src tests)
+
+  # Have tests load data from the source directory, not the build directory.
+  add_definitions(-DFLATBUFFERS_TEST_PATH_PREFIX=${CMAKE_CURRENT_SOURCE_DIR}/)
 
   # The flattest target needs some generated files
   SET(FLATC_OPT --cpp --gen-mutable --gen-object-api --reflect-names)
@@ -552,6 +554,7 @@ if(FLATBUFFERS_BUILD_TESTS)
   if(FLATBUFFERS_BUILD_CPP17)
     add_executable(flattests_cpp17 ${FlatBuffers_Tests_CPP17_SRCS})
     target_link_libraries(flattests_cpp17 PRIVATE $<BUILD_INTERFACE:ProjectConfig>)
+    target_include_directories(flattests_cpp17 PUBLIC src tests)
     target_compile_features(flattests_cpp17 PRIVATE cxx_std_17) # requires cmake 3.8
 
     if(FLATBUFFERS_CODE_SANITIZE)
