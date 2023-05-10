@@ -101,15 +101,15 @@ class BaseBfbsGenerator : public CodeGenerator {
   virtual ~BaseBfbsGenerator() {}
   BaseBfbsGenerator() : schema_(nullptr) {}
 
-  virtual Status GenerateFromSchema(
-      const reflection::Schema *schema) = 0;
+  virtual Status GenerateFromSchema(const reflection::Schema *schema,
+                                    const CodeGenOptions &options) = 0;
 
   virtual uint64_t SupportedAdvancedFeatures() const = 0;
 
   // Override of the Generator::GenerateCode method that does the initial
   // deserialization and verification steps.
-  Status GenerateCode(const uint8_t *buffer,
-                           int64_t length) FLATBUFFERS_OVERRIDE {
+  Status GenerateCode(const uint8_t *buffer, int64_t length,
+                      const CodeGenOptions &options) FLATBUFFERS_OVERRIDE {
     flatbuffers::Verifier verifier(buffer, static_cast<size_t>(length));
     if (!reflection::VerifySchemaBuffer(verifier)) {
       return FAILED_VERIFICATION;
@@ -124,7 +124,7 @@ class BaseBfbsGenerator : public CodeGenerator {
       return FAILED_VERIFICATION;
     }
 
-    Status status = GenerateFromSchema(schema_);
+    Status status = GenerateFromSchema(schema_, options);
     schema_ = nullptr;
     return status;
   }
