@@ -71,7 +71,6 @@ cc_test(
     ],
     copts = [
         "-DFLATBUFFERS_TRACK_VERIFIER_BUFFER_SIZE",
-        "-DBAZEL_TEST_DATA_PATH",
     ],
     data = [
         ":alignment_test.fbs",

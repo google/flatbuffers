@@ -76,6 +76,28 @@ jobs:
     - name: build
       run: make -j
 
+  build-linux-out-of-source:    
+    name: Build Linux with out-of-source build location
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - name: make build directory
+      run: mkdir build
+    - name: cmake
+      working-directory: build
+      run: >
+        CXX=clang++-12 cmake .. -G "Unix Makefiles" -DFLATBUFFERS_STRICT_MODE=ON
+        -DFLATBUFFERS_BUILD_CPP17=ON -DFLATBUFFERS_CPP_STD=17
+    - name: build
+      working-directory: build
+      run: make -j
+    - name: test
+      working-directory: build
+      run: pwd && ./flattests
+    - name: test C++17
+      working-directory: build
+      run: ./flattests_cpp17
+
   build-linux-cpp-std:
     name: Build Linux C++
     runs-on: ubuntu-latest
