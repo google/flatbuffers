@@ -18,6 +18,10 @@ var __copyProps = (to, from, except, desc) => {
   return to;
 };
 var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__getProtoOf(mod)) : {}, __copyProps(
+  // If the importer is in node compatibility mode or this is not an ESM
+  // file that has been converted to a CommonJS file using a Babel-
+  // compatible transform (i.e. "__esModule" has not been set), then set
+  // "default" to the CommonJS "module.exports" for node compatibility.
   isNodeMode || !mod || !mod.__esModule ? __defProp(target, "default", { value: mod, enumerable: true }) : target,
   mod
 ));
@@ -246,6 +250,9 @@ var Type = class {
     this.bb.writeUint16(this.bb_pos + offset, value);
     return true;
   }
+  /**
+   * The size (octets) of the `base_type` field.
+   */
   baseSize() {
     const offset = this.bb.__offset(this.bb_pos, 12);
     return offset ? this.bb.readUint32(this.bb_pos + offset) : 4;
@@ -258,6 +265,9 @@ var Type = class {
     this.bb.writeUint32(this.bb_pos + offset, value);
     return true;
   }
+  /**
+   * The size (octets) of the `element` field, if present.
+   */
   elementSize() {
     const offset = this.bb.__offset(this.bb_pos, 14);
     return offset ? this.bb.readUint32(this.bb_pos + offset) : 0;
@@ -779,6 +789,9 @@ var Field = class {
     this.bb.writeInt8(this.bb_pos + offset, +value);
     return true;
   }
+  /**
+   * Number of padding octets to always add after this field. Structs only.
+   */
   padding() {
     const offset = this.bb.__offset(this.bb_pos, 28);
     return offset ? this.bb.readUint16(this.bb_pos + offset) : 0;
@@ -1551,6 +1564,10 @@ var Schema = class {
     this.bb.writeUint64(this.bb_pos + offset, value);
     return true;
   }
+  /**
+   * All the files used in this compilation. Files are relative to where
+   * flatc was invoked.
+   */
   fbsFiles(index, obj) {
     const offset = this.bb.__offset(this.bb_pos, 18);
     return offset ? (obj || new SchemaFile()).__init(this.bb.__indirect(this.bb.__vector(this.bb_pos + offset) + index * 4), this.bb) : null;
