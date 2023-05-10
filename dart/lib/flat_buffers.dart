@@ -654,7 +654,7 @@ class Builder {
     var tail = _tail;
     _setUint32AtTail(tail, values.length);
     tail -= _sizeofUint32;
-    for (var value in values) {
+    for (final value in values) {
       _setInt8AtTail(tail, value);
       tail -= _sizeofUint8;
     }
