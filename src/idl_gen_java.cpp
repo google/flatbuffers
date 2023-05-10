@@ -2196,7 +2196,7 @@ class JavaGenerator : public BaseGenerator {
 };
 }  // namespace java
 
-bool GenerateJava(const Parser &parser, const std::string &path,
+static bool GenerateJava(const Parser &parser, const std::string &path,
                   const std::string &file_name) {
   java::JavaGenerator generator(parser, path, file_name,
                                 parser.opts.java_package_prefix);

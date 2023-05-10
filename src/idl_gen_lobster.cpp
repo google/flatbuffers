@@ -398,7 +398,7 @@ class LobsterGenerator : public BaseGenerator {
 
 }  // namespace lobster
 
-bool GenerateLobster(const Parser &parser, const std::string &path,
+static bool GenerateLobster(const Parser &parser, const std::string &path,
                      const std::string &file_name) {
   lobster::LobsterGenerator generator(parser, path, file_name);
   return generator.generate();

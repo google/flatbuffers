@@ -48,6 +48,9 @@ class CodeGenerator {
   virtual Status GenerateCodeString(const Parser &parser,
                                     const std::string &filename,
                                     std::string &output) {
+    (void)parser;
+    (void)filename;
+    (void)output;
     return Status::NOT_IMPLEMENTED;
   }
 

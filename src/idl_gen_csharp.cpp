@@ -2498,7 +2498,7 @@ class CSharpGenerator : public BaseGenerator {
 };
 }  // namespace csharp
 
-bool GenerateCSharp(const Parser &parser, const std::string &path,
+static bool GenerateCSharp(const Parser &parser, const std::string &path,
                     const std::string &file_name) {
   csharp::CSharpGenerator generator(parser, path, file_name);
   return generator.generate();
