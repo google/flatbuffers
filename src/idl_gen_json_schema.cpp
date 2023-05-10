@@ -326,13 +326,6 @@ bool GenerateJsonSchema(const Parser &parser, const std::string &path,
   return generator.save();
 }
 
-bool GenerateJsonSchema(const Parser &parser, std::string *json) {
-  jsons::JsonSchemaGenerator generator(parser, "", "");
-  if (!generator.generate()) { return false; }
-  *json = generator.getJson();
-  return true;
-}
-
 namespace {
 
 class JsonSchemaCodeGenerator : public CodeGenerator {

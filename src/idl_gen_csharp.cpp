@@ -2523,7 +2523,7 @@ class CSharpCodeGenerator : public CodeGenerator {
   Status GenerateMakeRule(const Parser &parser, const std::string &path,
                           const std::string &filename,
                           std::string &output) override {
-    output = CSharpMakeRule(parser, path, filename);
+    output = JavaCSharpMakeRule(false, parser, path, filename);
     return Status::OK;
   }
 

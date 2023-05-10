@@ -26,6 +26,7 @@
 // Ensure no includes to flatc internals. bfbs_gen.h and generator.h are OK.
 #include "bfbs_gen.h"
 #include "bfbs_namer.h"
+#include "idl_gen_lua.h"
 
 // The intermediate representation schema.
 #include "flatbuffers/reflection.h"

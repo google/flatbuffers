@@ -24,6 +24,9 @@ namespace flatbuffers {
 // Constructs a new Lua code generator.
 std::unique_ptr<CodeGenerator> NewLuaCodeGenerator();
 
+bool GenerateLua(const Parser &parser, const std::string &path,
+                 const std::string &file_name);
+
 }  // namespace flatbuffers
 
 #endif  // FLATBUFFERS_IDL_GEN_LUA_H_

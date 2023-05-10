@@ -2222,7 +2222,7 @@ class JavaCodeGenerator : public CodeGenerator {
   Status GenerateMakeRule(const Parser &parser, const std::string &path,
                           const std::string &filename,
                           std::string &output) override {
-    output = JavaMakeRule(parser, path, filename);
+    output = JavaCSharpMakeRule(true, parser, path, filename);
     return Status::OK;
   }
 

@@ -399,6 +399,12 @@ class FBSCodeGenerator : public CodeGenerator {
     return Status::OK;
   }
 
+  Status GenerateCodeString(const Parser &parser, const std::string &filename,
+                              std::string &output) override {
+    output = GenerateFBS(parser, filename, no_log_);
+    return Status::OK;
+  }
+
   // Generate code from the provided `buffer` of given `length`. The buffer is a
   // serialized reflection.fbs.
   Status GenerateCode(const uint8_t *buffer, int64_t length) override {
