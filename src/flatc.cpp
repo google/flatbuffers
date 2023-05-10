@@ -968,7 +968,7 @@ int FlatCompiler::Compile(const FlatCOptions &options) {
     return 0;
   }
 
-  if (options.generators.empty()) {
+  if (options.generators.empty() && options.conform_to_schema.empty()) {
     Error("No generator registered");
     return -1;
   }
