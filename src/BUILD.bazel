@@ -125,8 +125,6 @@ cc_library(
         "idl_gen_kotlin.h",
         "idl_gen_lobster.cpp",
         "idl_gen_lobster.h",
-        "idl_gen_lua.cpp",
-        "idl_gen_lua.h",
         "idl_gen_php.cpp",
         "idl_gen_php.h",
         "idl_gen_python.cpp",
