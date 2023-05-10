@@ -477,10 +477,9 @@ class TsGenerator : public BaseGenerator {
           EnumVal *val = value.type.enum_def->FindByValue(value.constant);
           if (val == nullptr)
             val = const_cast<EnumVal *>(value.type.enum_def->MinValue());
-          return AddImport(imports, *value.type.enum_def,
-                            *value.type.enum_def)
-                      .name +
-                  "." + namer_.Variant(*val);
+          return AddImport(imports, *value.type.enum_def, *value.type.enum_def)
+                     .name +
+                 "." + namer_.Variant(*val);
         }
       }
     }
@@ -2162,13 +2161,13 @@ class TsGenerator : public BaseGenerator {
 }  // namespace ts
 
 static bool GenerateTS(const Parser &parser, const std::string &path,
-                const std::string &file_name) {
+                       const std::string &file_name) {
   ts::TsGenerator generator(parser, path, file_name);
   return generator.generate();
 }
 
 static std::string TSMakeRule(const Parser &parser, const std::string &path,
-                       const std::string &file_name) {
+                              const std::string &file_name) {
   std::string filebase =
       flatbuffers::StripPath(flatbuffers::StripExtension(file_name));
   ts::TsGenerator generator(parser, path, file_name);
@@ -2192,9 +2191,8 @@ class TsCodeGenerator : public CodeGenerator {
     return Status::OK;
   }
 
-  Status GenerateCode(const uint8_t *buffer, int64_t length) override {
-    (void)buffer;
-    (void)length;
+  Status GenerateCode(const uint8_t *, int64_t,
+                      const CodeGenOptions &) override {
     return Status::NOT_IMPLEMENTED;
   }
 

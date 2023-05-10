@@ -4067,7 +4067,7 @@ class CppGenerator : public BaseGenerator {
 }  // namespace cpp
 
 static bool GenerateCPP(const Parser &parser, const std::string &path,
-                 const std::string &file_name) {
+                        const std::string &file_name) {
   cpp::IDLOptionsCpp opts(parser.opts);
   // The '--cpp_std' argument could be extended (like ASAN):
   // Example: "flatc --cpp_std c++17:option1:option2".
@@ -4106,7 +4106,7 @@ static bool GenerateCPP(const Parser &parser, const std::string &path,
 }
 
 static std::string CPPMakeRule(const Parser &parser, const std::string &path,
-                        const std::string &file_name) {
+                               const std::string &file_name) {
   const auto filebase = StripPath(StripExtension(file_name));
   cpp::CppGenerator geneartor(parser, path, file_name, parser.opts);
   const auto included_files = parser.GetIncludedFilesRecursive(file_name);
@@ -4130,9 +4130,8 @@ class CppCodeGenerator : public CodeGenerator {
 
   // Generate code from the provided `buffer` of given `length`. The buffer is a
   // serialized reflection.fbs.
-  Status GenerateCode(const uint8_t *buffer, int64_t length) override {
-    (void)buffer;
-    (void)length;
+  Status GenerateCode(const uint8_t *, int64_t,
+                      const CodeGenOptions &) override {
     return Status::NOT_IMPLEMENTED;
   }
 

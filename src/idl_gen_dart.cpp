@@ -90,8 +90,8 @@ class DartGenerator : public BaseGenerator {
 
   template<typename T>
   void import_generator(const std::vector<T *> &definitions,
-                         const std::string &included,
-                         std::set<std::string> &imports) {
+                        const std::string &included,
+                        std::set<std::string> &imports) {
     for (const auto &item : definitions) {
       if (item->file == included) {
         std::string component = namer_.Namespace(*item->defined_namespace);
@@ -760,9 +760,7 @@ class DartGenerator : public BaseGenerator {
 
   std::string getDefaultValue(const Value &value) const {
     if (!value.constant.empty() && value.constant != "0") {
-      if (IsBool(value.type.base_type)) {
-        return "true";
-      }
+      if (IsBool(value.type.base_type)) { return "true"; }
       if (IsScalar(value.type.base_type)) {
         if (StringIsFlatbufferNan(value.constant)) {
           return "double.nan";
@@ -1125,13 +1123,13 @@ class DartGenerator : public BaseGenerator {
 }  // namespace dart
 
 static bool GenerateDart(const Parser &parser, const std::string &path,
-                  const std::string &file_name) {
+                         const std::string &file_name) {
   dart::DartGenerator generator(parser, path, file_name);
   return generator.generate();
 }
 
 static std::string DartMakeRule(const Parser &parser, const std::string &path,
-                         const std::string &file_name) {
+                                const std::string &file_name) {
   auto filebase =
       flatbuffers::StripPath(flatbuffers::StripExtension(file_name));
   dart::DartGenerator generator(parser, path, file_name);
@@ -1154,9 +1152,8 @@ class DartCodeGenerator : public CodeGenerator {
     return Status::OK;
   }
 
-  Status GenerateCode(const uint8_t *buffer, int64_t length) override {
-    (void)buffer;
-    (void)length;
+  Status GenerateCode(const uint8_t *, int64_t,
+                      const CodeGenOptions &) override {
     return Status::NOT_IMPLEMENTED;
   }
 
