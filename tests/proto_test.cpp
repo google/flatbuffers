@@ -17,7 +17,10 @@ void RunTest(const flatbuffers::IDLOptions &opts, const std::string &proto_path,
   TEST_EQ(parser.Parse(proto_file.c_str(), include_directories), true);
 
   // Generate fbs.
-  auto fbs = flatbuffers::GenerateFBS(parser, "test", true);
+  std::unique_ptr<CodeGenerator> fbs_generator = NewFBSCodeGenerator(true);
+  std::string fbs;
+  TEST_EQ(fbs_generator->GenerateCodeString(parser, "test", fbs),
+          CodeGenerator::Status::OK);
 
   // Ensure generated file is parsable.
   flatbuffers::Parser parser2;
@@ -27,7 +30,10 @@ void RunTest(const flatbuffers::IDLOptions &opts, const std::string &proto_path,
     flatbuffers::Parser import_parser(opts);
     TEST_EQ(import_parser.Parse(import_proto_file.c_str(), include_directories),
             true);
-    auto import_fbs = flatbuffers::GenerateFBS(import_parser, "test", true);
+    std::string import_fbs;
+    TEST_EQ(fbs_generator->GenerateCodeString(import_parser, "test", import_fbs),
+            CodeGenerator::Status::OK);
+    // auto import_fbs = flatbuffers::GenerateFBS(import_parser, "test", true);
     // Since `imported.fbs` isn't in the filesystem AbsolutePath can't figure it
     // out by itself. We manually construct it so Parser works.
     std::string imported_fbs = flatbuffers::PosixPath(

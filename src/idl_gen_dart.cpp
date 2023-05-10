@@ -1124,13 +1124,13 @@ class DartGenerator : public BaseGenerator {
 };
 }  // namespace dart
 
-bool GenerateDart(const Parser &parser, const std::string &path,
+static bool GenerateDart(const Parser &parser, const std::string &path,
                   const std::string &file_name) {
   dart::DartGenerator generator(parser, path, file_name);
   return generator.generate();
 }
 
-std::string DartMakeRule(const Parser &parser, const std::string &path,
+static std::string DartMakeRule(const Parser &parser, const std::string &path,
                          const std::string &file_name) {
   auto filebase =
       flatbuffers::StripPath(flatbuffers::StripExtension(file_name));

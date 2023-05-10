@@ -2498,7 +2498,7 @@ class CSharpGenerator : public BaseGenerator {
 };
 }  // namespace csharp
 
-bool GenerateCSharp(const Parser &parser, const std::string &path,
+static bool GenerateCSharp(const Parser &parser, const std::string &path,
                     const std::string &file_name) {
   csharp::CSharpGenerator generator(parser, path, file_name);
   return generator.generate();
@@ -2523,7 +2523,7 @@ class CSharpCodeGenerator : public CodeGenerator {
   Status GenerateMakeRule(const Parser &parser, const std::string &path,
                           const std::string &filename,
                           std::string &output) override {
-    output = CSharpMakeRule(parser, path, filename);
+    output = JavaCSharpMakeRule(false, parser, path, filename);
     return Status::OK;
   }
 

@@ -1593,7 +1593,7 @@ class KotlinGenerator : public BaseGenerator {
 };
 }  // namespace kotlin
 
-bool GenerateKotlin(const Parser &parser, const std::string &path,
+static bool GenerateKotlin(const Parser &parser, const std::string &path,
                     const std::string &file_name) {
   kotlin::KotlinGenerator generator(parser, path, file_name);
   return generator.generate();

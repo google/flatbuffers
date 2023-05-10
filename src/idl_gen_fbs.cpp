@@ -28,6 +28,7 @@
 #include "flatbuffers/util.h"
 
 namespace flatbuffers {
+namespace {
 
 static std::string GenType(const Type &type, bool underlying = false) {
   switch (type.base_type) {
@@ -252,7 +253,7 @@ static void GenNameSpace(const Namespace &name_space, std::string *_schema,
 }
 
 // Generate a flatbuffer schema from the Parser's internal representation.
-std::string GenerateFBS(const Parser &parser, const std::string &file_name,
+static std::string GenerateFBS(const Parser &parser, const std::string &file_name,
                         bool no_log = false) {
   // Proto namespaces may clash with table names, escape the ones that were
   // generated from a table:
@@ -374,7 +375,7 @@ std::string GenerateFBS(const Parser &parser, const std::string &file_name,
   return schema;
 }
 
-bool GenerateFBS(const Parser &parser, const std::string &path,
+static bool GenerateFBS(const Parser &parser, const std::string &path,
                  const std::string &file_name, bool no_log = false) {
   const std::string fbs = GenerateFBS(parser, file_name, no_log);
   if (fbs.empty()) { return false; }
@@ -387,7 +388,6 @@ bool GenerateFBS(const Parser &parser, const std::string &path,
   return SaveFile((path + file_name + ".fbs").c_str(), fbs, false);
 }
 
-namespace {
 
 class FBSCodeGenerator : public CodeGenerator {
  public:
@@ -396,6 +396,12 @@ class FBSCodeGenerator : public CodeGenerator {
   Status GenerateCode(const Parser &parser, const std::string &path,
                       const std::string &filename) override {
     if (!GenerateFBS(parser, path, filename, no_log_)) { return Status::ERROR; }
+    return Status::OK;
+  }
+
+  Status GenerateCodeString(const Parser &parser, const std::string &filename,
+                              std::string &output) override {
+    output = GenerateFBS(parser, filename, no_log_);
     return Status::OK;
   }
 

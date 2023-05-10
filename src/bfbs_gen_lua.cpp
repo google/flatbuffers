@@ -88,10 +88,9 @@ class LuaBfbsGenerator : public BaseBfbsGenerator {
 
   using BaseBfbsGenerator::GenerateCode;
 
-  Status GenerateCode(const Parser &parser, const std::string &path,
-                      const std::string &filename) FLATBUFFERS_OVERRIDE {
-    if (!GenerateLua(parser, path, filename)) { return ERROR; }
-    return OK;
+  Status GenerateCode(const Parser &, const std::string &,
+                      const std::string &) FLATBUFFERS_OVERRIDE {
+    return Status::NOT_IMPLEMENTED;
   }
 
   Status GenerateMakeRule(const Parser &parser, const std::string &path,

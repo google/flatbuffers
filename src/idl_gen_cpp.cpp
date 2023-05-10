@@ -4066,7 +4066,7 @@ class CppGenerator : public BaseGenerator {
 
 }  // namespace cpp
 
-bool GenerateCPP(const Parser &parser, const std::string &path,
+static bool GenerateCPP(const Parser &parser, const std::string &path,
                  const std::string &file_name) {
   cpp::IDLOptionsCpp opts(parser.opts);
   // The '--cpp_std' argument could be extended (like ASAN):
@@ -4105,7 +4105,7 @@ bool GenerateCPP(const Parser &parser, const std::string &path,
   return generator.generate();
 }
 
-std::string CPPMakeRule(const Parser &parser, const std::string &path,
+static std::string CPPMakeRule(const Parser &parser, const std::string &path,
                         const std::string &file_name) {
   const auto filebase = StripPath(StripExtension(file_name));
   cpp::CppGenerator geneartor(parser, path, file_name, parser.opts);

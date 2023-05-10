@@ -279,7 +279,7 @@ static bool IsOptionalToBuilder(const FieldDef &field) {
 }
 } // namespace
 
-bool GenerateRustModuleRootFile(const Parser &parser,
+static bool GenerateRustModuleRootFile(const Parser &parser,
                                 const std::string &output_dir) {
   if (!parser.opts.rust_module_root_file) {
     // Don't generate a root file when generating one file. This isn't an error
@@ -2989,13 +2989,13 @@ class RustGenerator : public BaseGenerator {
 
 }  // namespace rust
 
-bool GenerateRust(const Parser &parser, const std::string &path,
+static bool GenerateRust(const Parser &parser, const std::string &path,
                   const std::string &file_name) {
   rust::RustGenerator generator(parser, path, file_name);
   return generator.generate();
 }
 
-std::string RustMakeRule(const Parser &parser, const std::string &path,
+static std::string RustMakeRule(const Parser &parser, const std::string &path,
                          const std::string &file_name) {
   std::string filebase =
       flatbuffers::StripPath(flatbuffers::StripExtension(file_name));

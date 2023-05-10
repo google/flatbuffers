@@ -30,9 +30,7 @@
 
 namespace flatbuffers {
 
-namespace {
-
-static std::string JavaCSharpMakeRule(const bool java, const Parser &parser,
+std::string JavaCSharpMakeRule(const bool java, const Parser &parser,
                                const std::string &path,
                                const std::string &file_name) {
   const std::string file_extension = java ? ".java" : ".cs";
@@ -63,18 +61,6 @@ static std::string JavaCSharpMakeRule(const bool java, const Parser &parser,
   }
   return make_rule;
 }
-
-
-static std::string BinaryFileName(const Parser &parser, const std::string &path,
-                           const std::string &file_name) {
-  auto ext = parser.file_extension_.length() ? parser.file_extension_ : "bin";
-  return path + file_name + "." + ext;
-}
-
-} // namespace
-
-
-
 
 void CodeWriter::operator+=(std::string text) {
   if (!ignore_ident_ && !text.empty()) AppendIdent(stream_);
@@ -344,48 +330,6 @@ std::string SimpleFloatConstantGenerator::Inf(float v) const {
 
 std::string SimpleFloatConstantGenerator::NaN(float v) const {
   return this->NaN(static_cast<double>(v));
-}
-
-
-std::string JavaMakeRule(const Parser &parser, const std::string &path,
-                         const std::string &file_name) {
-  return JavaCSharpMakeRule(true, parser, path, file_name);
-}
-std::string CSharpMakeRule(const Parser &parser, const std::string &path,
-                           const std::string &file_name) {
-  return JavaCSharpMakeRule(false, parser, path, file_name);
-}
-
-bool GenerateBinary(const Parser &parser, const std::string &path,
-                    const std::string &file_name) {
-  if (parser.opts.use_flexbuffers) {
-    auto data_vec = parser.flex_builder_.GetBuffer();
-    auto data_ptr = reinterpret_cast<char *>(data(data_vec));
-    return !parser.flex_builder_.GetSize() ||
-           flatbuffers::SaveFile(
-               BinaryFileName(parser, path, file_name).c_str(), data_ptr,
-               parser.flex_builder_.GetSize(), true);
-  }
-  return !parser.builder_.GetSize() ||
-         flatbuffers::SaveFile(
-             BinaryFileName(parser, path, file_name).c_str(),
-             reinterpret_cast<char *>(parser.builder_.GetBufferPointer()),
-             parser.builder_.GetSize(), true);
-}
-
-std::string BinaryMakeRule(const Parser &parser, const std::string &path,
-                           const std::string &file_name) {
-  if (!parser.builder_.GetSize()) return "";
-  std::string filebase =
-      flatbuffers::StripPath(flatbuffers::StripExtension(file_name));
-  std::string make_rule =
-      BinaryFileName(parser, path, filebase) + ": " + file_name;
-  auto included_files =
-      parser.GetIncludedFilesRecursive(parser.root_struct_def_->file);
-  for (auto it = included_files.begin(); it != included_files.end(); ++it) {
-    make_rule += " " + *it;
-  }
-  return make_rule;
 }
 
 }  // namespace flatbuffers

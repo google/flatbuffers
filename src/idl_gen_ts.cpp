@@ -2161,13 +2161,13 @@ class TsGenerator : public BaseGenerator {
 };  // namespace ts
 }  // namespace ts
 
-bool GenerateTS(const Parser &parser, const std::string &path,
+static bool GenerateTS(const Parser &parser, const std::string &path,
                 const std::string &file_name) {
   ts::TsGenerator generator(parser, path, file_name);
   return generator.generate();
 }
 
-std::string TSMakeRule(const Parser &parser, const std::string &path,
+static std::string TSMakeRule(const Parser &parser, const std::string &path,
                        const std::string &file_name) {
   std::string filebase =
       flatbuffers::StripPath(flatbuffers::StripExtension(file_name));
