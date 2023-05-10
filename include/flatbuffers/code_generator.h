@@ -44,6 +44,16 @@ class CodeGenerator {
   virtual Status GenerateCode(const Parser &parser, const std::string &path,
                               const std::string &filename) = 0;
 
+  // Generate code from the provided `parser` and place it in the output.
+  virtual Status GenerateCodeString(const Parser &parser,
+                                    const std::string &filename,
+                                    std::string &output) {
+    (void)parser;
+    (void)filename;
+    (void)output;
+    return Status::NOT_IMPLEMENTED;
+  }
+
   // Generate code from the provided `buffer` of given `length`. The buffer is a
   // serialized reflection.fbs.
   virtual Status GenerateCode(const uint8_t *buffer, int64_t length) = 0;
