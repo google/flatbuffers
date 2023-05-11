@@ -30,8 +30,12 @@ namespace flatbuffers {
 
 struct PrintScalarTag {};
 struct PrintPointerTag {};
-template<typename T> struct PrintTag { typedef PrintScalarTag type; };
-template<> struct PrintTag<const void *> { typedef PrintPointerTag type; };
+template<typename T> struct PrintTag {
+  typedef PrintScalarTag type;
+};
+template<> struct PrintTag<const void *> {
+  typedef PrintPointerTag type;
+};
 
 struct JsonPrinter {
   // If indentation is less than 0, that indicates we don't want any newlines

@@ -1212,7 +1212,8 @@ class Parser : public ParserState {
 // strict_json adds "quotes" around field names if true.
 // If the flatbuffer cannot be encoded in JSON (e.g., it contains non-UTF-8
 // byte arrays in String values), returns false.
-extern const char *GenerateTextFromTable(const Parser &parser, const void *table,
+extern const char *GenerateTextFromTable(const Parser &parser,
+                                         const void *table,
                                          const std::string &tablename,
                                          std::string *text);
 extern const char *GenerateText(const Parser &parser, const void *flatbuffer,
