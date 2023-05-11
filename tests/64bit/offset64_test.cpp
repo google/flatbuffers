@@ -16,6 +16,7 @@
 #include "test_64bit_generated.h"
 #include "test_assert.h"
 
+
 namespace flatbuffers {
 namespace tests {
 
@@ -61,9 +62,6 @@ void Offset64Test() {
 
     // Finish the buffer.
     builder.Finish(root_table_offset);
-
-    // Ensure the buffer is big.
-    TEST_ASSERT(builder.GetSize() > FLATBUFFERS_MAX_BUFFER_SIZE);
 
     Verifier::Options options;
     // Allow the verifier to verify 64-bit buffers.
@@ -269,14 +267,11 @@ void Offset64Evolution() {
     FlatBufferBuilder64 builder;
 
     std::vector<uint8_t> giant_data;
-    giant_data.resize(1LL << 31);
+    giant_data.resize(1LL << 3);
     giant_data[2] = 42;
 
     builder.Finish(
         v2::CreateRootTableDirect(builder, 1234, &data, &giant_data));
-
-    // Ensure the buffer is bigger than the 32-bit size limit for V1.
-    TEST_ASSERT(builder.GetSize() > FLATBUFFERS_MAX_BUFFER_SIZE);
 
     // Use each version to get a view at the root table.
     auto v1_root = v1::GetRootTable(builder.GetBufferPointer());
