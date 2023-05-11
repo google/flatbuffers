@@ -147,12 +147,10 @@ struct VectorReverseIterator : public std::reverse_iterator<Iterator> {
 // Vector::data() assumes the vector elements start after the length field.
 template<typename T, typename SizeT = uoffset_t> class Vector {
  public:
-  typedef VectorIterator<T,
-                         typename IndirectHelper<T>::mutable_return_type,
+  typedef VectorIterator<T, typename IndirectHelper<T>::mutable_return_type,
                          uint8_t *, SizeT>
       iterator;
-  typedef VectorConstIterator<T, typename IndirectHelper<T>::return_type,
-                              SizeT>
+  typedef VectorConstIterator<T, typename IndirectHelper<T>::return_type, SizeT>
       const_iterator;
   typedef VectorReverseIterator<iterator> reverse_iterator;
   typedef VectorReverseIterator<const_iterator> const_reverse_iterator;
@@ -171,8 +169,7 @@ template<typename T, typename SizeT = uoffset_t> class Vector {
 
   typedef SizeT size_type;
   typedef typename IndirectHelper<T>::return_type return_type;
-  typedef typename IndirectHelper<T>::mutable_return_type
-      mutable_return_type;
+  typedef typename IndirectHelper<T>::mutable_return_type mutable_return_type;
   typedef return_type value_type;
 
   return_type Get(SizeT i) const {

@@ -90,13 +90,12 @@ static std::string ToCamelCase(const std::string &input, bool is_upper) {
   std::string s;
   for (size_t i = 0; i < input.length(); i++) {
     if (!i && input[i] == '_') {
-        s += input[i];
-        // we ignore leading underscore but make following
-        // alphabet char upper.
-        if (i + 1 < input.length() && is_alpha(input[i + 1]))
-            s += CharToUpper(input[++i]);
-    }
-    else if (!i)
+      s += input[i];
+      // we ignore leading underscore but make following
+      // alphabet char upper.
+      if (i + 1 < input.length() && is_alpha(input[i + 1]))
+        s += CharToUpper(input[++i]);
+    } else if (!i)
       s += is_upper ? CharToUpper(input[i]) : CharToLower(input[i]);
     else if (input[i] == '_' && i + 1 < input.length())
       s += CharToUpper(input[++i]);
@@ -116,7 +115,10 @@ static std::string ToSnakeCase(const std::string &input, bool screaming) {
     } else if (!islower(input[i])) {
       // Prevent duplicate underscores for Upper_Snake_Case strings
       // and UPPERCASE strings.
-      if (islower(input[i - 1]) || (isdigit(input[i-1]) && !isdigit(input[i]))) { s += '_'; }
+      if (islower(input[i - 1]) ||
+          (isdigit(input[i - 1]) && !isdigit(input[i]))) {
+        s += '_';
+      }
       s += screaming ? CharToUpper(input[i]) : CharToLower(input[i]);
     } else {
       s += screaming ? CharToUpper(input[i]) : input[i];
@@ -126,7 +128,7 @@ static std::string ToSnakeCase(const std::string &input, bool screaming) {
 }
 
 std::string ToAll(const std::string &input,
-                         std::function<char(const char)> transform) {
+                  std::function<char(const char)> transform) {
   std::string s;
   for (size_t i = 0; i < input.length(); i++) { s += transform(input[i]); }
   return s;
@@ -142,7 +144,10 @@ std::string CamelToSnake(const std::string &input) {
     } else if (!islower(input[i])) {
       // Prevent duplicate underscores for Upper_Snake_Case strings
       // and UPPERCASE strings.
-      if (islower(input[i - 1]) || (isdigit(input[i-1]) && !isdigit(input[i]))) { s += '_'; }
+      if (islower(input[i - 1]) ||
+          (isdigit(input[i - 1]) && !isdigit(input[i]))) {
+        s += '_';
+      }
       s += CharToLower(input[i]);
     } else {
       s += input[i];
@@ -184,7 +189,6 @@ std::string ToDasher(const std::string &input) {
   return s;
 }
 
-
 // Converts foo_bar_123baz_456 to foo_bar123_baz456
 std::string SnakeToSnake2(const std::string &s) {
   if (s.length() <= 1) return s;
@@ -206,8 +210,7 @@ std::string SnakeToSnake2(const std::string &s) {
   return result;
 }
 
-} // namespace
-
+}  // namespace
 
 bool LoadFile(const char *name, bool binary, std::string *buf) {
   FLATBUFFERS_ASSERT(g_load_file_function);
