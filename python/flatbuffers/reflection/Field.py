@@ -40,7 +40,7 @@ class Field(object):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(6))
         if o != 0:
             x = self._tab.Indirect(o + self._tab.Pos)
-            from reflection.Type import Type
+            from .reflection.Type import Type
             obj = Type()
             obj.Init(self._tab.Bytes, x)
             return obj
@@ -102,7 +102,7 @@ class Field(object):
             x = self._tab.Vector(o)
             x += flatbuffers.number_types.UOffsetTFlags.py_type(j) * 4
             x = self._tab.Indirect(x)
-            from reflection.KeyValue import KeyValue
+            from .reflection.KeyValue import KeyValue
             obj = KeyValue()
             obj.Init(self._tab.Bytes, x)
             return obj
@@ -155,54 +155,118 @@ class Field(object):
             return self._tab.Get(flatbuffers.number_types.Uint16Flags, o + self._tab.Pos)
         return 0
 
-def FieldStart(builder): builder.StartObject(13)
+    # If the field uses 64-bit offsets.
+    # Field
+    def Offset64(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(30))
+        if o != 0:
+            return bool(self._tab.Get(flatbuffers.number_types.BoolFlags, o + self._tab.Pos))
+        return False
+
+def FieldStart(builder):
+    builder.StartObject(14)
+
 def Start(builder):
-    return FieldStart(builder)
-def FieldAddName(builder, name): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(name), 0)
-def AddName(builder, name):
-    return FieldAddName(builder, name)
-def FieldAddType(builder, type): builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(type), 0)
-def AddType(builder, type):
-    return FieldAddType(builder, type)
-def FieldAddId(builder, id): builder.PrependUint16Slot(2, id, 0)
-def AddId(builder, id):
-    return FieldAddId(builder, id)
-def FieldAddOffset(builder, offset): builder.PrependUint16Slot(3, offset, 0)
-def AddOffset(builder, offset):
-    return FieldAddOffset(builder, offset)
-def FieldAddDefaultInteger(builder, defaultInteger): builder.PrependInt64Slot(4, defaultInteger, 0)
-def AddDefaultInteger(builder, defaultInteger):
-    return FieldAddDefaultInteger(builder, defaultInteger)
-def FieldAddDefaultReal(builder, defaultReal): builder.PrependFloat64Slot(5, defaultReal, 0.0)
-def AddDefaultReal(builder, defaultReal):
-    return FieldAddDefaultReal(builder, defaultReal)
-def FieldAddDeprecated(builder, deprecated): builder.PrependBoolSlot(6, deprecated, 0)
-def AddDeprecated(builder, deprecated):
-    return FieldAddDeprecated(builder, deprecated)
-def FieldAddRequired(builder, required): builder.PrependBoolSlot(7, required, 0)
-def AddRequired(builder, required):
-    return FieldAddRequired(builder, required)
-def FieldAddKey(builder, key): builder.PrependBoolSlot(8, key, 0)
-def AddKey(builder, key):
-    return FieldAddKey(builder, key)
-def FieldAddAttributes(builder, attributes): builder.PrependUOffsetTRelativeSlot(9, flatbuffers.number_types.UOffsetTFlags.py_type(attributes), 0)
-def AddAttributes(builder, attributes):
-    return FieldAddAttributes(builder, attributes)
-def FieldStartAttributesVector(builder, numElems): return builder.StartVector(4, numElems, 4)
-def StartAttributesVector(builder, numElems):
+    FieldStart(builder)
+
+def FieldAddName(builder, name):
+    builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(name), 0)
+
+def AddName(builder: flatbuffers.Builder, name: int):
+    FieldAddName(builder, name)
+
+def FieldAddType(builder, type):
+    builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(type), 0)
+
+def AddType(builder: flatbuffers.Builder, type: int):
+    FieldAddType(builder, type)
+
+def FieldAddId(builder, id):
+    builder.PrependUint16Slot(2, id, 0)
+
+def AddId(builder: flatbuffers.Builder, id: int):
+    FieldAddId(builder, id)
+
+def FieldAddOffset(builder, offset):
+    builder.PrependUint16Slot(3, offset, 0)
+
+def AddOffset(builder: flatbuffers.Builder, offset: int):
+    FieldAddOffset(builder, offset)
+
+def FieldAddDefaultInteger(builder, defaultInteger):
+    builder.PrependInt64Slot(4, defaultInteger, 0)
+
+def AddDefaultInteger(builder: flatbuffers.Builder, defaultInteger: int):
+    FieldAddDefaultInteger(builder, defaultInteger)
+
+def FieldAddDefaultReal(builder, defaultReal):
+    builder.PrependFloat64Slot(5, defaultReal, 0.0)
+
+def AddDefaultReal(builder: flatbuffers.Builder, defaultReal: float):
+    FieldAddDefaultReal(builder, defaultReal)
+
+def FieldAddDeprecated(builder, deprecated):
+    builder.PrependBoolSlot(6, deprecated, 0)
+
+def AddDeprecated(builder: flatbuffers.Builder, deprecated: bool):
+    FieldAddDeprecated(builder, deprecated)
+
+def FieldAddRequired(builder, required):
+    builder.PrependBoolSlot(7, required, 0)
+
+def AddRequired(builder: flatbuffers.Builder, required: bool):
+    FieldAddRequired(builder, required)
+
+def FieldAddKey(builder, key):
+    builder.PrependBoolSlot(8, key, 0)
+
+def AddKey(builder: flatbuffers.Builder, key: bool):
+    FieldAddKey(builder, key)
+
+def FieldAddAttributes(builder, attributes):
+    builder.PrependUOffsetTRelativeSlot(9, flatbuffers.number_types.UOffsetTFlags.py_type(attributes), 0)
+
+def AddAttributes(builder: flatbuffers.Builder, attributes: int):
+    FieldAddAttributes(builder, attributes)
+
+def FieldStartAttributesVector(builder, numElems):
+    return builder.StartVector(4, numElems, 4)
+
+def StartAttributesVector(builder, numElems: int) -> int:
     return FieldStartAttributesVector(builder, numElems)
-def FieldAddDocumentation(builder, documentation): builder.PrependUOffsetTRelativeSlot(10, flatbuffers.number_types.UOffsetTFlags.py_type(documentation), 0)
-def AddDocumentation(builder, documentation):
-    return FieldAddDocumentation(builder, documentation)
-def FieldStartDocumentationVector(builder, numElems): return builder.StartVector(4, numElems, 4)
-def StartDocumentationVector(builder, numElems):
+
+def FieldAddDocumentation(builder, documentation):
+    builder.PrependUOffsetTRelativeSlot(10, flatbuffers.number_types.UOffsetTFlags.py_type(documentation), 0)
+
+def AddDocumentation(builder: flatbuffers.Builder, documentation: int):
+    FieldAddDocumentation(builder, documentation)
+
+def FieldStartDocumentationVector(builder, numElems):
+    return builder.StartVector(4, numElems, 4)
+
+def StartDocumentationVector(builder, numElems: int) -> int:
     return FieldStartDocumentationVector(builder, numElems)
-def FieldAddOptional(builder, optional): builder.PrependBoolSlot(11, optional, 0)
-def AddOptional(builder, optional):
-    return FieldAddOptional(builder, optional)
-def FieldAddPadding(builder, padding): builder.PrependUint16Slot(12, padding, 0)
-def AddPadding(builder, padding):
-    return FieldAddPadding(builder, padding)
-def FieldEnd(builder): return builder.EndObject()
+
+def FieldAddOptional(builder, optional):
+    builder.PrependBoolSlot(11, optional, 0)
+
+def AddOptional(builder: flatbuffers.Builder, optional: bool):
+    FieldAddOptional(builder, optional)
+
+def FieldAddPadding(builder, padding):
+    builder.PrependUint16Slot(12, padding, 0)
+
+def AddPadding(builder: flatbuffers.Builder, padding: int):
+    FieldAddPadding(builder, padding)
+
+def FieldAddOffset64(builder, offset64):
+    builder.PrependBoolSlot(13, offset64, 0)
+
+def AddOffset64(builder: flatbuffers.Builder, offset64: bool):
+    FieldAddOffset64(builder, offset64)
+
+def FieldEnd(builder):
+    return builder.EndObject()
+
 def End(builder):
     return FieldEnd(builder)

@@ -23,9 +23,10 @@ public final class BaseType {
   public static final byte Obj = 15;
   public static final byte Union = 16;
   public static final byte Array = 17;
-  public static final byte MaxBaseType = 18;
+  public static final byte Vector64 = 18;
+  public static final byte MaxBaseType = 19;
 
-  public static final String[] names = { "None", "UType", "Bool", "Byte", "UByte", "Short", "UShort", "Int", "UInt", "Long", "ULong", "Float", "Double", "String", "Vector", "Obj", "Union", "Array", "MaxBaseType", };
+  public static final String[] names = { "None", "UType", "Bool", "Byte", "UByte", "Short", "UShort", "Int", "UInt", "Long", "ULong", "Float", "Double", "String", "Vector", "Obj", "Union", "Array", "Vector64", "MaxBaseType", };
 
   public static String name(int e) { return names[e]; }
 }

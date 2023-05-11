@@ -19,7 +19,6 @@ import java.nio.ByteOrder
 import kotlin.math.sign
 
 @Suppress("unused")
-@kotlin.ExperimentalUnsignedTypes
 class LongFloatEntry : Table() {
 
     fun __init(_i: Int, _bb: ByteBuffer)  {
@@ -45,7 +44,7 @@ class LongFloatEntry : Table() {
         return (val_1 - val_2).sign
     }
     companion object {
-        fun validateVersion() = Constants.FLATBUFFERS_23_3_3()
+        fun validateVersion() = Constants.FLATBUFFERS_23_5_9()
         fun getRootAsLongFloatEntry(_bb: ByteBuffer): LongFloatEntry = getRootAsLongFloatEntry(_bb, LongFloatEntry())
         fun getRootAsLongFloatEntry(_bb: ByteBuffer, obj: LongFloatEntry): LongFloatEntry {
             _bb.order(ByteOrder.LITTLE_ENDIAN)

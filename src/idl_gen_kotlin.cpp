@@ -70,7 +70,7 @@ static Namer::Config KotlinDefaultConfig() {
            /*filename_suffix=*/"",
            /*filename_extension=*/".kt" };
 }
-} // namespace
+}  // namespace
 
 class KotlinGenerator : public BaseGenerator {
  public:
@@ -289,7 +289,6 @@ class KotlinGenerator : public BaseGenerator {
     GenerateComment(enum_def.doc_comment, writer, &comment_config);
 
     writer += "@Suppress(\"unused\")";
-    writer += "@kotlin.ExperimentalUnsignedTypes";
     writer += "class " + namer_.Type(enum_def) + " private constructor() {";
     writer.IncrementIdentLevel();
 
@@ -495,7 +494,6 @@ class KotlinGenerator : public BaseGenerator {
     writer.SetValue("superclass", fixed ? "Struct" : "Table");
 
     writer += "@Suppress(\"unused\")";
-    writer += "@kotlin.ExperimentalUnsignedTypes";
     writer += "class {{struct_name}} : {{superclass}}() {\n";
 
     writer.IncrementIdentLevel();
@@ -526,7 +524,7 @@ class KotlinGenerator : public BaseGenerator {
           // runtime.
           GenerateFunOneLine(
               writer, "validateVersion", "", "",
-              [&]() { writer += "Constants.FLATBUFFERS_23_3_3()"; },
+              [&]() { writer += "Constants.FLATBUFFERS_23_5_9()"; },
               options.gen_jvmstatic);
 
           GenerateGetRootAsAccessors(namer_.Type(struct_def), writer, options);
@@ -703,6 +701,9 @@ class KotlinGenerator : public BaseGenerator {
     writer.SetValue("root", GenMethod(vector_type));
     writer.SetValue("cast", CastToSigned(vector_type));
 
+    if (IsUnsigned(vector_type.base_type)) {
+      writer += "@kotlin.ExperimentalUnsignedTypes";
+    }
     GenerateFun(
         writer, method_name, params, "Int",
         [&]() {
@@ -1592,8 +1593,8 @@ class KotlinGenerator : public BaseGenerator {
 };
 }  // namespace kotlin
 
-bool GenerateKotlin(const Parser &parser, const std::string &path,
-                    const std::string &file_name) {
+static bool GenerateKotlin(const Parser &parser, const std::string &path,
+                           const std::string &file_name) {
   kotlin::KotlinGenerator generator(parser, path, file_name);
   return generator.generate();
 }
@@ -1608,9 +1609,8 @@ class KotlinCodeGenerator : public CodeGenerator {
     return Status::OK;
   }
 
-  Status GenerateCode(const uint8_t *buffer, int64_t length) override {
-    (void)buffer;
-    (void)length;
+  Status GenerateCode(const uint8_t *, int64_t,
+                      const CodeGenOptions &) override {
     return Status::NOT_IMPLEMENTED;
   }
 

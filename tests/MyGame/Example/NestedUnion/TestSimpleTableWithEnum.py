@@ -4,13 +4,14 @@
 
 import flatbuffers
 from flatbuffers.compat import import_numpy
+from typing import Any
 np = import_numpy()
 
 class TestSimpleTableWithEnum(object):
     __slots__ = ['_tab']
 
     @classmethod
-    def GetRootAs(cls, buf, offset=0):
+    def GetRootAs(cls, buf, offset: int = 0):
         n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, offset)
         x = TestSimpleTableWithEnum()
         x.Init(buf, n + offset)
@@ -21,7 +22,7 @@ class TestSimpleTableWithEnum(object):
         """This method is deprecated. Please switch to GetRootAs."""
         return cls.GetRootAs(buf, offset)
     # TestSimpleTableWithEnum
-    def Init(self, buf, pos):
+    def Init(self, buf: bytes, pos: int):
         self._tab = flatbuffers.table.Table(buf, pos)
 
     # TestSimpleTableWithEnum
@@ -31,15 +32,24 @@ class TestSimpleTableWithEnum(object):
             return self._tab.Get(flatbuffers.number_types.Uint8Flags, o + self._tab.Pos)
         return 2
 
-def TestSimpleTableWithEnumStart(builder): builder.StartObject(1)
-def Start(builder):
-    return TestSimpleTableWithEnumStart(builder)
-def TestSimpleTableWithEnumAddColor(builder, color): builder.PrependUint8Slot(0, color, 2)
-def AddColor(builder, color):
-    return TestSimpleTableWithEnumAddColor(builder, color)
-def TestSimpleTableWithEnumEnd(builder): return builder.EndObject()
-def End(builder):
+def TestSimpleTableWithEnumStart(builder: flatbuffers.Builder):
+    builder.StartObject(1)
+
+def Start(builder: flatbuffers.Builder):
+    TestSimpleTableWithEnumStart(builder)
+
+def TestSimpleTableWithEnumAddColor(builder: flatbuffers.Builder, color: int):
+    builder.PrependUint8Slot(0, color, 2)
+
+def AddColor(builder: flatbuffers.Builder, color: int):
+    TestSimpleTableWithEnumAddColor(builder, color)
+
+def TestSimpleTableWithEnumEnd(builder: flatbuffers.Builder) -> int:
+    return builder.EndObject()
+
+def End(builder: flatbuffers.Builder) -> int:
     return TestSimpleTableWithEnumEnd(builder)
+
 
 class TestSimpleTableWithEnumT(object):
 

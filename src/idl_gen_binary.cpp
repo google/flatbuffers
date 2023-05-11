@@ -31,8 +31,45 @@
 #include "flatbuffers/util.h"
 
 namespace flatbuffers {
-
 namespace {
+
+static std::string BinaryFileName(const Parser &parser, const std::string &path,
+                                  const std::string &file_name) {
+  auto ext = parser.file_extension_.length() ? parser.file_extension_ : "bin";
+  return path + file_name + "." + ext;
+}
+
+static bool GenerateBinary(const Parser &parser, const std::string &path,
+                           const std::string &file_name) {
+  if (parser.opts.use_flexbuffers) {
+    auto data_vec = parser.flex_builder_.GetBuffer();
+    auto data_ptr = reinterpret_cast<char *>(data(data_vec));
+    return !parser.flex_builder_.GetSize() ||
+           flatbuffers::SaveFile(
+               BinaryFileName(parser, path, file_name).c_str(), data_ptr,
+               parser.flex_builder_.GetSize(), true);
+  }
+  return !parser.builder_.GetSize() ||
+         flatbuffers::SaveFile(
+             BinaryFileName(parser, path, file_name).c_str(),
+             reinterpret_cast<char *>(parser.builder_.GetBufferPointer()),
+             parser.builder_.GetSize(), true);
+}
+
+static std::string BinaryMakeRule(const Parser &parser, const std::string &path,
+                                  const std::string &file_name) {
+  if (!parser.builder_.GetSize()) return "";
+  std::string filebase =
+      flatbuffers::StripPath(flatbuffers::StripExtension(file_name));
+  std::string make_rule =
+      BinaryFileName(parser, path, filebase) + ": " + file_name;
+  auto included_files =
+      parser.GetIncludedFilesRecursive(parser.root_struct_def_->file);
+  for (auto it = included_files.begin(); it != included_files.end(); ++it) {
+    make_rule += " " + *it;
+  }
+  return make_rule;
+}
 
 class BinaryCodeGenerator : public CodeGenerator {
  public:
@@ -44,9 +81,8 @@ class BinaryCodeGenerator : public CodeGenerator {
 
   // Generate code from the provided `buffer` of given `length`. The buffer is a
   // serialized reflection.fbs.
-  Status GenerateCode(const uint8_t *buffer, int64_t length) override {
-    (void)buffer;
-    (void)length;
+  Status GenerateCode(const uint8_t *, int64_t,
+                      const CodeGenOptions &) override {
     return Status::NOT_IMPLEMENTED;
   }
 

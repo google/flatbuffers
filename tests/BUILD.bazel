@@ -1,13 +1,31 @@
+load("@aspect_bazel_lib//lib:copy_to_bin.bzl", "copy_to_bin")
 load("@rules_cc//cc:defs.bzl", "cc_test")
-load("//:build_defs.bzl", "flatbuffer_cc_library")
+load("//:build_defs.bzl", "DEFAULT_FLATC_ARGS", "flatbuffer_cc_library")
 
 package(default_visibility = ["//visibility:private"])
+
+# rules_js works around various JS tooling limitations by copying everything
+# into the output directory. Make the test data available to the tests this way.
+copy_to_bin(
+    name = "test_data_copied_to_bin",
+    srcs = glob([
+        "*.mon",
+        "*.json",
+    ]),
+    visibility = ["//tests/ts:__subpackages__"],
+)
 
 # Test binary.
 cc_test(
     name = "flatbuffers_test",
     testonly = 1,
     srcs = [
+        "64bit/evolution/v1_generated.h",
+        "64bit/evolution/v2_generated.h",
+        "64bit/offset64_test.cpp",
+        "64bit/offset64_test.h",
+        "64bit/test_64bit_bfbs_generated.h",
+        "64bit/test_64bit_generated.h",
         "alignment_test.cpp",
         "alignment_test.h",
         "alignment_test_generated.h",
@@ -53,7 +71,6 @@ cc_test(
     ],
     copts = [
         "-DFLATBUFFERS_TRACK_VERIFIER_BUFFER_SIZE",
-        "-DBAZEL_TEST_DATA_PATH",
     ],
     data = [
         ":alignment_test.fbs",
@@ -113,6 +130,7 @@ cc_test(
         ":monster_test_cc_fbs",
         ":native_type_test_cc_fbs",
         "//:flatbuffers",
+        "//src:generate_fbs",
     ],
 )
 
@@ -147,6 +165,7 @@ cc_library(
     ],
     hdrs = [
         "monster_test.grpc.fb.h",
+        "monster_test_bfbs_generated.h",
         "monster_test_generated.h",
     ],
     includes = ["."],
@@ -169,6 +188,13 @@ flatbuffer_cc_library(
 flatbuffer_cc_library(
     name = "monster_test_cc_fbs",
     srcs = ["monster_test.fbs"],
+    outs = ["monster_test_bfbs_generated.h"],
+    flatc_args = DEFAULT_FLATC_ARGS + [
+        "--bfbs-comments",
+        "--bfbs-builtins",
+        "--bfbs-gen-embed",
+        "--bfbs-filenames tests",
+    ],
     include_paths = ["tests/include_test"],
     visibility = ["//grpc/tests:__subpackages__"],
     deps = [":include_test_fbs"],

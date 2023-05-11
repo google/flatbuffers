@@ -23,6 +23,10 @@
 
 namespace flatbuffers {
 
+struct CodeGenOptions {
+  std::string output_path;
+};
+
 // A code generator interface for producing converting flatbuffer schema into
 // code.
 class CodeGenerator {
@@ -36,15 +40,28 @@ class CodeGenerator {
     NOT_IMPLEMENTED = 3
   };
 
+  std::string status_detail;
+
   // Generate code from the provided `parser`.
   //
   // DEPRECATED: prefer using the other overload of GenerateCode for bfbs.
   virtual Status GenerateCode(const Parser &parser, const std::string &path,
                               const std::string &filename) = 0;
 
+  // Generate code from the provided `parser` and place it in the output.
+  virtual Status GenerateCodeString(const Parser &parser,
+                                    const std::string &filename,
+                                    std::string &output) {
+    (void)parser;
+    (void)filename;
+    (void)output;
+    return Status::NOT_IMPLEMENTED;
+  }
+
   // Generate code from the provided `buffer` of given `length`. The buffer is a
   // serialized reflection.fbs.
-  virtual Status GenerateCode(const uint8_t *buffer, int64_t length) = 0;
+  virtual Status GenerateCode(const uint8_t *buffer, int64_t length,
+                              const CodeGenOptions &options) = 0;
 
   virtual Status GenerateMakeRule(const Parser &parser, const std::string &path,
                                   const std::string &filename,

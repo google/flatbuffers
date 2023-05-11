@@ -19,7 +19,6 @@ import java.nio.ByteOrder
 import kotlin.math.sign
 
 @Suppress("unused")
-@kotlin.ExperimentalUnsignedTypes
 class ScalarStuff : Table() {
 
     fun __init(_i: Int, _bb: ByteBuffer)  {
@@ -210,7 +209,7 @@ class ScalarStuff : Table() {
             return if(o != 0) bb.get(o + bb_pos) else 1
         }
     companion object {
-        fun validateVersion() = Constants.FLATBUFFERS_23_3_3()
+        fun validateVersion() = Constants.FLATBUFFERS_23_5_9()
         fun getRootAsScalarStuff(_bb: ByteBuffer): ScalarStuff = getRootAsScalarStuff(_bb, ScalarStuff())
         fun getRootAsScalarStuff(_bb: ByteBuffer, obj: ScalarStuff): ScalarStuff {
             _bb.order(ByteOrder.LITTLE_ENDIAN)

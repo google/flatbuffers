@@ -21,7 +21,7 @@ import java.nio.ByteOrder;
 
 @SuppressWarnings("unused")
 public final class Field extends Table {
-  public static void ValidateVersion() { Constants.FLATBUFFERS_23_3_3(); }
+  public static void ValidateVersion() { Constants.FLATBUFFERS_23_5_9(); }
   public static Field getRootAsField(ByteBuffer _bb) { return getRootAsField(_bb, new Field()); }
   public static Field getRootAsField(ByteBuffer _bb, Field obj) { _bb.order(ByteOrder.LITTLE_ENDIAN); return (obj.__assign(_bb.getInt(_bb.position()) + _bb.position(), _bb)); }
   public void __init(int _i, ByteBuffer _bb) { __reset(_i, _bb); }
@@ -55,6 +55,10 @@ public final class Field extends Table {
    * Number of padding octets to always add after this field. Structs only.
    */
   public int padding() { int o = __offset(28); return o != 0 ? bb.getShort(o + bb_pos) & 0xFFFF : 0; }
+  /**
+   * If the field uses 64-bit offsets.
+   */
+  public boolean offset64() { int o = __offset(30); return o != 0 ? 0!=bb.get(o + bb_pos) : false; }
 
   public static int createField(FlatBufferBuilder builder,
       int nameOffset,
@@ -69,8 +73,9 @@ public final class Field extends Table {
       int attributesOffset,
       int documentationOffset,
       boolean optional,
-      int padding) {
-    builder.startTable(13);
+      int padding,
+      boolean offset64) {
+    builder.startTable(14);
     Field.addDefaultReal(builder, defaultReal);
     Field.addDefaultInteger(builder, defaultInteger);
     Field.addDocumentation(builder, documentationOffset);
@@ -80,6 +85,7 @@ public final class Field extends Table {
     Field.addPadding(builder, padding);
     Field.addOffset(builder, offset);
     Field.addId(builder, id);
+    Field.addOffset64(builder, offset64);
     Field.addOptional(builder, optional);
     Field.addKey(builder, key);
     Field.addRequired(builder, required);
@@ -87,7 +93,7 @@ public final class Field extends Table {
     return Field.endField(builder);
   }
 
-  public static void startField(FlatBufferBuilder builder) { builder.startTable(13); }
+  public static void startField(FlatBufferBuilder builder) { builder.startTable(14); }
   public static void addName(FlatBufferBuilder builder, int nameOffset) { builder.addOffset(nameOffset); builder.slot(0); }
   public static void addType(FlatBufferBuilder builder, int typeOffset) { builder.addOffset(1, typeOffset, 0); }
   public static void addId(FlatBufferBuilder builder, int id) { builder.addShort(2, (short) id, (short) 0); }
@@ -105,6 +111,7 @@ public final class Field extends Table {
   public static void startDocumentationVector(FlatBufferBuilder builder, int numElems) { builder.startVector(4, numElems, 4); }
   public static void addOptional(FlatBufferBuilder builder, boolean optional) { builder.addBoolean(11, optional, false); }
   public static void addPadding(FlatBufferBuilder builder, int padding) { builder.addShort(12, (short) padding, (short) 0); }
+  public static void addOffset64(FlatBufferBuilder builder, boolean offset64) { builder.addBoolean(13, offset64, false); }
   public static int endField(FlatBufferBuilder builder) {
     int o = builder.endTable();
     builder.required(o, 4);  // name

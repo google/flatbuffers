@@ -16,8 +16,9 @@ static const auto infinity_f = std::numeric_limits<float>::infinity();
 static const auto infinity_d = std::numeric_limits<double>::infinity();
 
 // Test that parser errors are actually generated.
-static void TestError_(const char *src, const char *error_substr, bool strict_json,
-                const char *file, int line, const char *func) {
+static void TestError_(const char *src, const char *error_substr,
+                       bool strict_json, const char *file, int line,
+                       const char *func) {
   flatbuffers::IDLOptions opts;
   opts.strict_json = strict_json;
   flatbuffers::Parser parser(opts);
@@ -32,8 +33,8 @@ static void TestError_(const char *src, const char *error_substr, bool strict_js
   }
 }
 
-static void TestError_(const char *src, const char *error_substr, const char *file,
-                int line, const char *func) {
+static void TestError_(const char *src, const char *error_substr,
+                       const char *file, int line, const char *func) {
   TestError_(src, error_substr, false, file, line, func);
 }
 
@@ -47,7 +48,7 @@ static void TestError_(const char *src, const char *error_substr, const char *fi
 
 static bool FloatCompare(float a, float b) { return fabs(a - b) < 0.001; }
 
-} // namespace
+}  // namespace
 
 // Test that parsing errors occur as we'd expect.
 // Also useful for coverage, making sure these paths are run.
@@ -124,6 +125,34 @@ void ErrorTest() {
   // An identifier can't start from sign (+|-)
   TestError("table X { -Y: int; } root_type Y: {Y:1.0}", "identifier");
   TestError("table X { +Y: int; } root_type Y: {Y:1.0}", "identifier");
+
+  // Offset64
+  TestError("table X { a:int (vector64); }", "`vector64` attribute");
+  TestError("table X { a:int (offset64); }", "`offset64` attribute");
+  TestError("table X { a:string (vector64); }", "`vector64` attribute");
+  TestError("table y { a:int; } table X { a:y (offset64); }",
+            "`offset64` attribute");
+  TestError("struct y { a:int; } table X { a:y (offset64); }",
+            "`offset64` attribute");
+  TestError("table y { a:int; } table X { a:y (vector64); }",
+            "`vector64` attribute");
+  TestError("union Y { } table X { ys:Y (offset64); }", "`offset64` attribute");
+
+  TestError("table Y { a:int; } table X { ys:[Y] (offset64); }",
+            "only vectors of scalars are allowed to be 64-bit.");
+  TestError("table Y { a:int; } table X { ys:[Y] (vector64); }",
+            "only vectors of scalars are allowed to be 64-bit.");
+  TestError("union Y { } table X { ys:[Y] (vector64); }",
+            "only vectors of scalars are allowed to be 64-bit.");
+
+  // TOOD(derekbailey): the following three could be allowed once the code gen
+  // supports the output.
+  TestError("table X { y:[string] (offset64); }",
+            "only vectors of scalars are allowed to be 64-bit.");
+  TestError("table X { y:[string] (vector64); }",
+            "only vectors of scalars are allowed to be 64-bit.");
+  TestError("enum X:byte {Z} table X { y:[X] (offset64); }",
+            "only vectors of scalars are allowed to be 64-bit.");
 }
 
 void EnumOutOfRangeTest() {
@@ -455,8 +484,8 @@ T TestValue(const char *json, const char *type_name,
   // Check with print.
   std::string print_back;
   parser.opts.indent_step = -1;
-  TEST_EQ(GenerateText(parser, parser.builder_.GetBufferPointer(), &print_back),
-          true);
+  TEST_NULL(
+      GenerateText(parser, parser.builder_.GetBufferPointer(), &print_back));
   // restore value from its default
   if (check_default) { TEST_EQ(parser.Parse(print_back.c_str()), true); }
 
@@ -713,7 +742,7 @@ void UnicodeTest() {
   parser.opts.indent_step = -1;
   auto result =
       GenerateText(parser, parser.builder_.GetBufferPointer(), &jsongen);
-  TEST_EQ(result, true);
+  TEST_NULL(result);
   TEST_EQ_STR(jsongen.c_str(),
               "{F: \"\\u20AC\\u00A2\\u30E6\\u30FC\\u30B6\\u30FC"
               "\\u5225\\u30B5\\u30A4\\u30C8\\u20AC\\u0080\\uD83D\\uDE0E\"}");
@@ -733,7 +762,7 @@ void UnicodeTestAllowNonUTF8() {
   parser.opts.indent_step = -1;
   auto result =
       GenerateText(parser, parser.builder_.GetBufferPointer(), &jsongen);
-  TEST_EQ(result, true);
+  TEST_NULL(result);
   TEST_EQ_STR(
       jsongen.c_str(),
       "{F: \"\\u20AC\\u00A2\\u30E6\\u30FC\\u30B6\\u30FC"
@@ -759,7 +788,7 @@ void UnicodeTestGenerateTextFailsOnNonUTF8() {
   parser.opts.allow_non_utf8 = false;
   auto result =
       GenerateText(parser, parser.builder_.GetBufferPointer(), &jsongen);
-  TEST_EQ(result, false);
+  TEST_EQ_STR(result, "string contains non-utf8 bytes");
 }
 
 void UnicodeSurrogatesTest() {
@@ -775,8 +804,6 @@ void UnicodeSurrogatesTest() {
       flatbuffers::FieldIndexToOffset(0));
   TEST_EQ_STR(string->c_str(), "\xF0\x9F\x92\xA9");
 }
-
-
 
 void UnknownFieldsTest() {
   flatbuffers::IDLOptions opts;
@@ -800,7 +827,7 @@ void UnknownFieldsTest() {
   parser.opts.indent_step = -1;
   auto result =
       GenerateText(parser, parser.builder_.GetBufferPointer(), &jsongen);
-  TEST_EQ(result, true);
+  TEST_NULL(result);
   TEST_EQ_STR(jsongen.c_str(), "{str: \"test\",i: 10}");
 }
 

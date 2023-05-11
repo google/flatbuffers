@@ -4,13 +4,16 @@
 
 import flatbuffers
 from flatbuffers.compat import import_numpy
+from typing import Any
+from flatbuffers.table import Table
+from typing import Optional
 np = import_numpy()
 
 class NestedUnionTest(object):
     __slots__ = ['_tab']
 
     @classmethod
-    def GetRootAs(cls, buf, offset=0):
+    def GetRootAs(cls, buf, offset: int = 0):
         n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, offset)
         x = NestedUnionTest()
         x.Init(buf, n + offset)
@@ -21,11 +24,11 @@ class NestedUnionTest(object):
         """This method is deprecated. Please switch to GetRootAs."""
         return cls.GetRootAs(buf, offset)
     # NestedUnionTest
-    def Init(self, buf, pos):
+    def Init(self, buf: bytes, pos: int):
         self._tab = flatbuffers.table.Table(buf, pos)
 
     # NestedUnionTest
-    def Name(self):
+    def Name(self) -> Optional[str]:
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(4))
         if o != 0:
             return self._tab.String(o + self._tab.Pos)
@@ -39,10 +42,9 @@ class NestedUnionTest(object):
         return 0
 
     # NestedUnionTest
-    def Data(self):
+    def Data(self) -> Optional[flatbuffers.table.Table]:
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(8))
         if o != 0:
-            from flatbuffers.table import Table
             obj = Table(bytearray(), 0)
             self._tab.Union(obj, o)
             return obj
@@ -55,24 +57,42 @@ class NestedUnionTest(object):
             return self._tab.Get(flatbuffers.number_types.Int16Flags, o + self._tab.Pos)
         return 0
 
-def NestedUnionTestStart(builder): builder.StartObject(4)
-def Start(builder):
-    return NestedUnionTestStart(builder)
-def NestedUnionTestAddName(builder, name): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(name), 0)
-def AddName(builder, name):
-    return NestedUnionTestAddName(builder, name)
-def NestedUnionTestAddDataType(builder, dataType): builder.PrependUint8Slot(1, dataType, 0)
-def AddDataType(builder, dataType):
-    return NestedUnionTestAddDataType(builder, dataType)
-def NestedUnionTestAddData(builder, data): builder.PrependUOffsetTRelativeSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(data), 0)
-def AddData(builder, data):
-    return NestedUnionTestAddData(builder, data)
-def NestedUnionTestAddId(builder, id): builder.PrependInt16Slot(3, id, 0)
-def AddId(builder, id):
-    return NestedUnionTestAddId(builder, id)
-def NestedUnionTestEnd(builder): return builder.EndObject()
-def End(builder):
+def NestedUnionTestStart(builder: flatbuffers.Builder):
+    builder.StartObject(4)
+
+def Start(builder: flatbuffers.Builder):
+    NestedUnionTestStart(builder)
+
+def NestedUnionTestAddName(builder: flatbuffers.Builder, name: int):
+    builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(name), 0)
+
+def AddName(builder: flatbuffers.Builder, name: int):
+    NestedUnionTestAddName(builder, name)
+
+def NestedUnionTestAddDataType(builder: flatbuffers.Builder, dataType: int):
+    builder.PrependUint8Slot(1, dataType, 0)
+
+def AddDataType(builder: flatbuffers.Builder, dataType: int):
+    NestedUnionTestAddDataType(builder, dataType)
+
+def NestedUnionTestAddData(builder: flatbuffers.Builder, data: int):
+    builder.PrependUOffsetTRelativeSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(data), 0)
+
+def AddData(builder: flatbuffers.Builder, data: int):
+    NestedUnionTestAddData(builder, data)
+
+def NestedUnionTestAddId(builder: flatbuffers.Builder, id: int):
+    builder.PrependInt16Slot(3, id, 0)
+
+def AddId(builder: flatbuffers.Builder, id: int):
+    NestedUnionTestAddId(builder, id)
+
+def NestedUnionTestEnd(builder: flatbuffers.Builder) -> int:
+    return builder.EndObject()
+
+def End(builder: flatbuffers.Builder) -> int:
     return NestedUnionTestEnd(builder)
+
 import MyGame.Example.NestedUnion.Any
 import MyGame.Example.NestedUnion.TestSimpleTableWithEnum
 import MyGame.Example.NestedUnion.Vec3

@@ -37,8 +37,8 @@ class FileNameSavingFileManager : public FileManager {
   }
 
   bool Loadfile(const std::string &absolute_file_name, std::string *content) {
-    (void) absolute_file_name;
-    (void) content;
+    (void)absolute_file_name;
+    (void)content;
     return false;
   }
 

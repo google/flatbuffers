@@ -1,6 +1,6 @@
 workspace(name = "com_github_google_flatbuffers")
 
-load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
+load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive", "http_file")
 
 http_archive(
     name = "platforms",
@@ -76,30 +76,81 @@ load("@com_github_grpc_grpc//bazel:grpc_extra_deps.bzl", "grpc_extra_deps")
 grpc_extra_deps()
 
 # rules_go from https://github.com/bazelbuild/rules_go/releases/tag/v0.34.0
+
 http_archive(
-    name = "build_bazel_rules_nodejs",
-    sha256 = "965ee2492a2b087cf9e0f2ca472aeaf1be2eb650e0cfbddf514b9a7d3ea4b02a",
-    urls = ["https://github.com/bazelbuild/rules_nodejs/releases/download/5.2.0/rules_nodejs-5.2.0.tar.gz"],
+    name = "aspect_rules_js",
+    sha256 = "124ed29fb0b3d0cba5b44f8f8e07897cf61b34e35e33b1f83d1a943dfd91b193",
+    strip_prefix = "rules_js-1.24.0",
+    url = "https://github.com/aspect-build/rules_js/releases/download/v1.24.0/rules_js-v1.24.0.tar.gz",
 )
 
-load("@build_bazel_rules_nodejs//:repositories.bzl", "build_bazel_rules_nodejs_dependencies")
+load("@aspect_rules_js//js:repositories.bzl", "rules_js_dependencies")
 
-build_bazel_rules_nodejs_dependencies()
+rules_js_dependencies()
 
-load("@build_bazel_rules_nodejs//:index.bzl", "node_repositories", "yarn_install")
+load("@aspect_rules_js//npm:npm_import.bzl", "npm_translate_lock", "pnpm_repository")
 
-node_repositories()
+pnpm_repository(name = "pnpm")
 
-yarn_install(
+http_archive(
+    name = "aspect_rules_ts",
+    sha256 = "8eb25d1fdafc0836f5778d33fb8eaac37c64176481d67872b54b0a05de5be5c0",
+    strip_prefix = "rules_ts-1.3.3",
+    url = "https://github.com/aspect-build/rules_ts/releases/download/v1.3.3/rules_ts-v1.3.3.tar.gz",
+)
+
+load("@aspect_rules_ts//ts:repositories.bzl", "rules_ts_dependencies")
+
+rules_ts_dependencies(
+    # Since rules_ts doesn't always have the newest integrity hashes, we
+    # compute it manually here.
+    #   $ curl --silent https://registry.npmjs.org/typescript/5.0.4 | jq ._integrity
+    ts_integrity = "sha512-cW9T5W9xY37cc+jfEnaUvX91foxtHkza3Nw3wkoF4sSlKn0MONdkdEndig/qPBWXNkmplh3NzayQzCiHM4/hqw==",
+    ts_version_from = "//:package.json",
+)
+
+load("@rules_nodejs//nodejs:repositories.bzl", "DEFAULT_NODE_VERSION", "nodejs_register_toolchains")
+
+nodejs_register_toolchains(
+    name = "nodejs",
+    node_version = DEFAULT_NODE_VERSION,
+)
+
+npm_translate_lock(
     name = "npm",
-    exports_directories_only = False,
-    # Unfreeze to add/remove packages.
-    frozen_lockfile = False,
-    package_json = "//:package.json",
-    symlink_node_modules = False,
-    yarn_lock = "//:yarn.lock",
+    npmrc = "//:.npmrc",
+    pnpm_lock = "//:pnpm-lock.yaml",
+    # Set this to True when the lock file needs to be updated, commit the
+    # changes, then set to False again.
+    update_pnpm_lock = False,
+    verify_node_modules_ignored = "//:.bazelignore",
 )
 
-load("@build_bazel_rules_nodejs//toolchains/esbuild:esbuild_repositories.bzl", "esbuild_repositories")
+load("@npm//:repositories.bzl", "npm_repositories")
 
-esbuild_repositories(npm_repository = "npm")
+npm_repositories()
+
+http_archive(
+    name = "aspect_rules_esbuild",
+    sha256 = "2ea31bd97181a315e048be693ddc2815fddda0f3a12ca7b7cc6e91e80f31bac7",
+    strip_prefix = "rules_esbuild-0.14.4",
+    url = "https://github.com/aspect-build/rules_esbuild/releases/download/v0.14.4/rules_esbuild-v0.14.4.tar.gz",
+)
+
+# Register a toolchain containing esbuild npm package and native bindings
+load("@aspect_rules_esbuild//esbuild:repositories.bzl", "LATEST_VERSION", "esbuild_register_toolchains")
+
+esbuild_register_toolchains(
+    name = "esbuild",
+    esbuild_version = LATEST_VERSION,
+)
+
+http_file(
+    name = "bazel_linux_x86_64",
+    downloaded_file_path = "bazel",
+    executable = True,
+    sha256 = "e89747d63443e225b140d7d37ded952dacea73aaed896bca01ccd745827c6289",
+    urls = [
+        "https://github.com/bazelbuild/bazel/releases/download/6.1.2/bazel-6.1.2-linux-x86_64",
+    ],
+)

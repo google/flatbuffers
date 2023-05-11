@@ -292,6 +292,14 @@ class GoGenerator : public BaseGenerator {
     const std::string size_prefix[] = { "", "SizePrefixed" };
     const std::string struct_type = namer_.Type(struct_def);
 
+    bool has_file_identifier = (parser_.root_struct_def_ == &struct_def) &&
+                               parser_.file_identifier_.length();
+
+    if (has_file_identifier) {
+      code += "const " + struct_type + "Identifier = \"" +
+              parser_.file_identifier_ + "\"\n\n";
+    }
+
     for (int i = 0; i < 2; i++) {
       code += "func Get" + size_prefix[i] + "RootAs" + struct_type;
       code += "(buf []byte, offset flatbuffers.UOffsetT) ";
@@ -312,6 +320,26 @@ class GoGenerator : public BaseGenerator {
       }
       code += "\treturn x\n";
       code += "}\n\n";
+
+      code += "func Finish" + size_prefix[i] + struct_type +
+              "Buffer(builder *flatbuffers.Builder, offset "
+              "flatbuffers.UOffsetT) {\n";
+      if (has_file_identifier) {
+        code += "\tidentifierBytes := []byte(" + struct_type + "Identifier)\n";
+        code += "\tbuilder.Finish" + size_prefix[i] +
+                "WithFileIdentifier(offset, identifierBytes)\n";
+      } else {
+        code += "\tbuilder.Finish" + size_prefix[i] + "(offset)\n";
+      }
+      code += "}\n\n";
+
+      if (has_file_identifier) {
+        code += "func " + size_prefix[i] + struct_type +
+                "BufferHasIdentifier(buf []byte) bool {\n";
+        code += "\treturn flatbuffers." + size_prefix[i] +
+                "BufferHasIdentifier(buf, " + struct_type + "Identifier)\n";
+        code += "}\n\n";
+      }
     }
   }
 
@@ -513,7 +541,7 @@ class GoGenerator : public BaseGenerator {
     GenReceiver(struct_def, code_ptr);
     code += " " + namer_.Field(field) + "ByKey";
     code += "(obj *" + TypeName(field);
-    code += ", key " + NativeType(key_field.value.type) + ") bool" +
+    code += ", key " + NativeType(key_field.value.type) + ") bool " +
             OffsetPrefix(field);
     code += "\t\tx := rcv._tab.Vector(o)\n";
     code += "\t\treturn ";
@@ -892,8 +920,8 @@ class GoGenerator : public BaseGenerator {
     code += "o1, o2 flatbuffers.UOffsetT, buf []byte) bool {\n";
     code += "\tobj1 := &" + namer_.Type(struct_def) + "{}\n";
     code += "\tobj2 := &" + namer_.Type(struct_def) + "{}\n";
-    code += "\tobj1.Init(buf, flatbuffers.UOffsetT(len(buf)) - o1)\n";
-    code += "\tobj2.Init(buf, flatbuffers.UOffsetT(len(buf)) - o2)\n";
+    code += "\tobj1.Init(buf, flatbuffers.UOffsetT(len(buf))-o1)\n";
+    code += "\tobj2.Init(buf, flatbuffers.UOffsetT(len(buf))-o2)\n";
     if (IsString(field.value.type)) {
       code += "\treturn string(obj1." + namer_.Function(field.name) + "()) < ";
       code += "string(obj2." + namer_.Function(field.name) + "())\n";
@@ -915,13 +943,13 @@ class GoGenerator : public BaseGenerator {
     code += "key " + NativeType(field.value.type) + ", ";
     code += "vectorLocation flatbuffers.UOffsetT, ";
     code += "buf []byte) bool {\n";
-    code += "\tspan := flatbuffers.GetUOffsetT(buf[vectorLocation - 4:])\n";
+    code += "\tspan := flatbuffers.GetUOffsetT(buf[vectorLocation-4:])\n";
     code += "\tstart := flatbuffers.UOffsetT(0)\n";
     if (IsString(field.value.type)) { code += "\tbKey := []byte(key)\n"; }
     code += "\tfor span != 0 {\n";
     code += "\t\tmiddle := span / 2\n";
     code += "\t\ttableOffset := flatbuffers.GetIndirectOffset(buf, ";
-    code += "vectorLocation+ 4 * (start + middle))\n";
+    code += "vectorLocation+4*(start+middle))\n";
 
     code += "\t\tobj := &" + namer_.Type(struct_def) + "{}\n";
     code += "\t\tobj.Init(buf, tableOffset)\n";
@@ -1032,8 +1060,8 @@ class GoGenerator : public BaseGenerator {
 
       code += "\t\treturn &" +
               WrapInNameSpaceAndTrack(&enum_def, NativeName(enum_def)) +
-              "{ Type: " + namer_.EnumVariant(enum_def, ev) +
-              ", Value: x.UnPack() }\n";
+              "{Type: " + namer_.EnumVariant(enum_def, ev) +
+              ", Value: x.UnPack()}\n";
     }
     code += "\t}\n";
     code += "\treturn nil\n";
@@ -1046,7 +1074,7 @@ class GoGenerator : public BaseGenerator {
 
     code += "func (t *" + NativeName(struct_def) +
             ") Pack(builder *flatbuffers.Builder) flatbuffers.UOffsetT {\n";
-    code += "\tif t == nil { return 0 }\n";
+    code += "\tif t == nil {\n\t\treturn 0\n\t}\n";
     for (auto it = struct_def.fields.vec.begin();
          it != struct_def.fields.vec.end(); ++it) {
       const FieldDef &field = **it;
@@ -1116,8 +1144,7 @@ class GoGenerator : public BaseGenerator {
         if (field.value.type.struct_def->fixed) continue;
         code += "\t" + offset + " := t." + field_field + ".Pack(builder)\n";
       } else if (field.value.type.base_type == BASE_TYPE_UNION) {
-        code += "\t" + offset + " := t." + field_field + ".Pack(builder)\n";
-        code += "\t\n";
+        code += "\t" + offset + " := t." + field_field + ".Pack(builder)\n\n";
       } else {
         FLATBUFFERS_ASSERT(0);
       }
@@ -1233,7 +1260,7 @@ class GoGenerator : public BaseGenerator {
 
     code += "func (rcv *" + struct_type + ") UnPack() *" +
             NativeName(struct_def) + " {\n";
-    code += "\tif rcv == nil { return nil }\n";
+    code += "\tif rcv == nil {\n\t\treturn nil\n\t}\n";
     code += "\tt := &" + NativeName(struct_def) + "{}\n";
     code += "\trcv.UnPackTo(t)\n";
     code += "\treturn t\n";
@@ -1245,7 +1272,7 @@ class GoGenerator : public BaseGenerator {
 
     code += "func (t *" + NativeName(struct_def) +
             ") Pack(builder *flatbuffers.Builder) flatbuffers.UOffsetT {\n";
-    code += "\tif t == nil { return 0 }\n";
+    code += "\tif t == nil {\n\t\treturn 0\n\t}\n";
     code += "\treturn Create" + namer_.Type(struct_def) + "(builder";
     StructPackArgs(struct_def, "", code_ptr);
     code += ")\n";
@@ -1289,7 +1316,7 @@ class GoGenerator : public BaseGenerator {
 
     code += "func (rcv *" + namer_.Type(struct_def) + ") UnPack() *" +
             NativeName(struct_def) + " {\n";
-    code += "\tif rcv == nil { return nil }\n";
+    code += "\tif rcv == nil {\n\t\treturn nil\n\t}\n";
     code += "\tt := &" + NativeName(struct_def) + "{}\n";
     code += "\trcv.UnPackTo(t)\n";
     code += "\treturn t\n";
@@ -1477,15 +1504,17 @@ class GoGenerator : public BaseGenerator {
     code += "package " + name_space_name + "\n\n";
     if (needs_imports) {
       code += "import (\n";
+      // standard imports, in alphabetical order for go fmt
       if (needs_bytes_import_) code += "\t\"bytes\"\n";
-      // math is needed to support non-finite scalar default values.
-      if (needs_math_import_) { code += "\t\"math\"\n"; }
-      if (is_enum) { code += "\t\"strconv\"\n"; }
       if (!parser_.opts.go_import.empty()) {
         code += "\tflatbuffers \"" + parser_.opts.go_import + "\"\n";
       } else {
         code += "\tflatbuffers \"github.com/google/flatbuffers/go\"\n";
       }
+      // math is needed to support non-finite scalar default values.
+      if (needs_math_import_) { code += "\t\"math\"\n"; }
+      if (is_enum) { code += "\t\"strconv\"\n"; }
+
       if (tracked_imported_namespaces_.size() > 0) {
         code += "\n";
         for (auto it = tracked_imported_namespaces_.begin();
@@ -1577,8 +1606,8 @@ class GoGenerator : public BaseGenerator {
 };
 }  // namespace go
 
-bool GenerateGo(const Parser &parser, const std::string &path,
-                const std::string &file_name) {
+static bool GenerateGo(const Parser &parser, const std::string &path,
+                       const std::string &file_name) {
   go::GoGenerator generator(parser, path, file_name, parser.opts.go_namespace);
   return generator.generate();
 }
@@ -1593,9 +1622,8 @@ class GoCodeGenerator : public CodeGenerator {
     return Status::OK;
   }
 
-  Status GenerateCode(const uint8_t *buffer, int64_t length) override {
-    (void)buffer;
-    (void)length;
+  Status GenerateCode(const uint8_t *, int64_t,
+                      const CodeGenOptions &) override {
     return Status::NOT_IMPLEMENTED;
   }
 

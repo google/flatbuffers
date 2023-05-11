@@ -28,6 +28,7 @@ ts_code_gen = Path(root_path, "tests/ts")
 samples_path = Path(root_path, "samples")
 reflection_path = Path(root_path, "reflection")
 
+
 # Generate the code for flatbuffers reflection schema
 def flatc_reflection(options, location, target):
     full_options = ["--no-prefix"] + options
@@ -45,12 +46,14 @@ def flatc_reflection(options, location, target):
         shutil.move(str(new_reflection_path), str(original_reflection_path))
     shutil.rmtree(str(Path(reflection_path, temp_dir)))
 
+
 def flatc_annotate(schema, file, include=None, cwd=tests_path):
     cmd = [str(flatc_path)]
     if include:
         cmd += ["-I"] + [include]
     cmd += ["--annotate", schema, file]
     result = subprocess.run(cmd, cwd=str(cwd), check=True)
+
 
 # Glob a pattern relative to file path
 def glob(path, pattern):
@@ -66,8 +69,6 @@ CS_OPTS = ["--csharp", "--cs-gen-json-serializer"]
 CPP_OPTS = [
     "--cpp",
     "--gen-compare",
-    "--cpp-ptr-type",
-    "flatbuffers::unique_ptr",
 ] + (["--cpp-std", "c++0x"] if args.cpp_0x else [])
 
 CPP_17_OPTS = NO_INCL_OPTS + [
@@ -97,13 +98,13 @@ SWIFT_OPTS_CODE_GEN = [
     "--swift",
     "--gen-json-emit",
     "--bfbs-filenames",
-    str(swift_code_gen)
+    str(swift_code_gen),
 ]
 JAVA_OPTS = ["--java"]
 KOTLIN_OPTS = ["--kotlin"]
 PHP_OPTS = ["--php"]
 DART_OPTS = ["--dart"]
-PYTHON_OPTS = ["--python"]
+PYTHON_OPTS = ["--python", "--python-typing"]
 BINARY_OPTS = ["-b", "--schema", "--bfbs-comments", "--bfbs-builtins"]
 PROTO_OPTS = ["--proto"]
 
@@ -128,22 +129,19 @@ flatc(
 )
 
 flatc(
-    NO_INCL_OPTS
-    + DART_OPTS,
+    NO_INCL_OPTS + DART_OPTS,
     schema="include_test/include_test1.fbs",
     include="include_test/sub",
 )
 
 flatc(
-    NO_INCL_OPTS
-    + DART_OPTS,
+    NO_INCL_OPTS + DART_OPTS,
     schema="include_test/sub/include_test2.fbs",
     include="include_test",
 )
 
 flatc(
-    NO_INCL_OPTS
-    + TS_OPTS,
+    NO_INCL_OPTS + TS_OPTS,
     cwd=ts_code_gen,
     schema="../monster_test.fbs",
     include="../include_test",
@@ -210,6 +208,23 @@ flatc(
 )
 
 flatc(
+    [
+        "--cpp",
+        "--reflect-names",
+        "--no-includes",
+        "--gen-mutable",
+        "--gen-object-api",
+        "--gen-compare",
+        "--gen-name-strings",
+    ],
+    prefix="namespace_test",
+    schema=[
+        "namespace_test/namespace_test1.fbs",
+        "namespace_test/namespace_test2.fbs",
+    ],
+)
+
+flatc(
     BASE_OPTS + CPP_OPTS + CS_OPTS + JAVA_OPTS + KOTLIN_OPTS + PHP_OPTS,
     prefix="union_vector",
     schema="union_vector/union_vector.fbs",
@@ -268,13 +283,11 @@ flatc(
 flatc_annotate(
     schema="../reflection/reflection.fbs",
     file="monster_test.bfbs",
-    include="include_test"
+    include="include_test",
 )
 
 flatc_annotate(
-    schema="monster_test.fbs",
-    file="monsterdata_test.mon",
-    include="include_test"
+    schema="monster_test.fbs", file="monsterdata_test.mon", include="include_test"
 )
 
 flatc(
@@ -358,7 +371,7 @@ flatc(["--csharp", "--gen-object-api"], schema=type_field_collsion_schema)
 flatc(
     CS_OPTS + ["--gen-object-api", "--gen-onefile"],
     prefix="union_value_collsion",
-    schema="union_value_collision.fbs"
+    schema="union_value_collision.fbs",
 )
 
 # Generate string/vector default code for tests
@@ -415,13 +428,13 @@ flatc(
 flatc(
     SWIFT_OPTS_CODE_GEN + BASE_OPTS + ["--grpc", "--swift-implementation-only"],
     schema="test_import.fbs",
-    cwd=swift_code_gen
+    cwd=swift_code_gen,
 )
 
 flatc(
     SWIFT_OPTS_CODE_GEN + NO_INCL_OPTS + ["--grpc"],
     schema="test_no_include.fbs",
-    cwd=swift_code_gen
+    cwd=swift_code_gen,
 )
 
 # Swift Wasm Tests
@@ -454,7 +467,9 @@ flatc(
     schema="monster_test.fbs",
 )
 flatc(
-    CPP_OPTS + NO_INCL_OPTS + ["--grpc", "--filename-suffix", "_suffix", "--filename-ext", "hpp"],
+    CPP_OPTS
+    + NO_INCL_OPTS
+    + ["--grpc", "--filename-suffix", "_suffix", "--filename-ext", "hpp"],
     include="include_test",
     prefix="monster_test_suffix",
     schema="monster_test.fbs",
@@ -482,7 +497,11 @@ flatc(
 # Private annotations
 annotations_test_schema = "private_annotation_test.fbs"
 
-flatc(RUST_OPTS + ["--no-leak-private-annotation", "--gen-object-api"], prefix="private_annotation_test", schema=annotations_test_schema)
+flatc(
+    RUST_OPTS + ["--no-leak-private-annotation", "--gen-object-api"],
+    prefix="private_annotation_test",
+    schema=annotations_test_schema,
+)
 
 # Sample files
 samples_schema = "monster.fbs"
@@ -510,7 +529,8 @@ flatc_reflection(["-p"], "python/flatbuffers", "reflection")
 # Java Reflection
 flatc_reflection(
     ["-j", "--java-package-prefix", "com.google.flatbuffers"],
-    "java/src/main/java", "com/google/flatbuffers/reflection"
+    "java/src/main/java",
+    "com/google/flatbuffers/reflection",
 )
 
 # Annotation

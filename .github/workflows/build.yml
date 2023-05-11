@@ -30,7 +30,7 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     - name: cmake
-      run: CXX=${{ matrix.cxx }} cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release -DFLATBUFFERS_STRICT_MODE=ON .
+      run: CXX=${{ matrix.cxx }} cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release -DFLATBUFFERS_STRICT_MODE=ON -DFLATBUFFERS_STATIC_FLATC=ON .
     - name: build
       run: make -j
     - name: test
@@ -60,11 +60,11 @@ jobs:
     - name: Generate SLSA subjects - clang
       if: matrix.cxx == 'clang++-12' && startsWith(github.ref, 'refs/tags/')
       id: hash-clang
-      run: echo "::set-output name=hashes::$(sha256sum Linux.flatc.binary.${{ matrix.cxx }}.zip | base64 -w0)"
+      run: echo "hashes=$(sha256sum Linux.flatc.binary.${{ matrix.cxx }}.zip | base64 -w0)" >> $GITHUB_OUTPUT
     - name: Generate SLSA subjects - gcc
       if: matrix.cxx == 'g++-10' && startsWith(github.ref, 'refs/tags/')
       id: hash-gcc
-      run: echo "::set-output name=hashes::$(sha256sum Linux.flatc.binary.${{ matrix.cxx }}.zip | base64 -w0)"
+      run: echo "hashes=$(sha256sum Linux.flatc.binary.${{ matrix.cxx }}.zip | base64 -w0)" >> $GITHUB_OUTPUT
       
   build-linux-no-file-tests:    
     name: Build Linux with -DFLATBUFFERS_NO_FILE_TESTS
@@ -75,6 +75,28 @@ jobs:
       run: CXX=clang++-12 cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release -DFLATBUFFERS_STRICT_MODE=ON -DFLATBUFFERS_CXX_FLAGS="-DFLATBUFFERS_NO_FILE_TESTS" .
     - name: build
       run: make -j
+
+  build-linux-out-of-source:    
+    name: Build Linux with out-of-source build location
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - name: make build directory
+      run: mkdir build
+    - name: cmake
+      working-directory: build
+      run: >
+        CXX=clang++-12 cmake .. -G "Unix Makefiles" -DFLATBUFFERS_STRICT_MODE=ON
+        -DFLATBUFFERS_BUILD_CPP17=ON -DFLATBUFFERS_CPP_STD=17
+    - name: build
+      working-directory: build
+      run: make -j
+    - name: test
+      working-directory: build
+      run: pwd && ./flattests
+    - name: test C++17
+      working-directory: build
+      run: ./flattests_cpp17
 
   build-linux-cpp-std:
     name: Build Linux C++
@@ -166,7 +188,7 @@ jobs:
       if: startsWith(github.ref, 'refs/tags/')
       id: hash
       shell: bash
-      run: echo "::set-output name=hashes::$(sha256sum Windows.flatc.binary.zip | base64 -w0)"
+      run: echo "hashes=$(sha256sum Windows.flatc.binary.zip | base64 -w0)" >> $GITHUB_OUTPUT
 
   build-windows-2017:
     name: Build Windows 2017
@@ -267,7 +289,7 @@ jobs:
     - name: Generate SLSA subjects
       if: startsWith(github.ref, 'refs/tags/')
       id: hash
-      run: echo "::set-output name=hashes::$(shasum -a 256 MacIntel.flatc.binary.zip | base64)"
+      run: echo "hashes=$(shasum -a 256 MacIntel.flatc.binary.zip | base64)" >> $GITHUB_OUTPUT
 
   build-mac-universal:
     permissions:
@@ -310,7 +332,7 @@ jobs:
     - name: Generate SLSA subjects
       if: startsWith(github.ref, 'refs/tags/')
       id: hash
-      run: echo "::set-output name=hashes::$(shasum -a 256 Mac.flatc.binary.zip | base64)"
+      run: echo "hashes=$(shasum -a 256 Mac.flatc.binary.zip | base64)" >> $GITHUB_OUTPUT
 
   build-android:
    name: Build Android (on Linux)
@@ -561,7 +583,7 @@ jobs:
           echo "$MAC_DIGESTS" | base64 -d >> checksums.txt
           echo "$MACINTEL_DIGESTS" | base64 -d >> checksums.txt
           echo "$WINDOWS_DIGESTS" | base64 -d >> checksums.txt
-          echo "::set-output name=digests::$(cat checksums.txt | base64 -w0)"
+          echo "digests=$(cat checksums.txt | base64 -w0)" >> $GITHUB_OUTPUT
 
   provenance:
     if: startsWith(github.ref, 'refs/tags/')

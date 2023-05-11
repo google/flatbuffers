@@ -9,8 +9,8 @@
 // Ensure the included flatbuffers.h is the same version as when this file was
 // generated, otherwise it may not be compatible.
 static_assert(FLATBUFFERS_VERSION_MAJOR == 23 &&
-              FLATBUFFERS_VERSION_MINOR == 3 &&
-              FLATBUFFERS_VERSION_REVISION == 3,
+              FLATBUFFERS_VERSION_MINOR == 5 &&
+              FLATBUFFERS_VERSION_REVISION == 9,
              "Non-compatible flatbuffers version included");
 
 struct BadAlignmentSmall;
@@ -130,7 +130,7 @@ inline bool operator!=(const BadAlignmentLarge &lhs, const BadAlignmentLarge &rh
 
 struct OuterLargeT : public ::flatbuffers::NativeTable {
   typedef OuterLarge TableType;
-  flatbuffers::unique_ptr<BadAlignmentLarge> large{};
+  std::unique_ptr<BadAlignmentLarge> large{};
   OuterLargeT() = default;
   OuterLargeT(const OuterLargeT &o);
   OuterLargeT(OuterLargeT&&) FLATBUFFERS_NOEXCEPT = default;
@@ -192,7 +192,7 @@ inline ::flatbuffers::Offset<OuterLarge> CreateOuterLarge(
 
 struct BadAlignmentRootT : public ::flatbuffers::NativeTable {
   typedef BadAlignmentRoot TableType;
-  flatbuffers::unique_ptr<OuterLargeT> large{};
+  std::unique_ptr<OuterLargeT> large{};
   std::vector<BadAlignmentSmall> small{};
   BadAlignmentRootT() = default;
   BadAlignmentRootT(const BadAlignmentRootT &o);
@@ -308,7 +308,7 @@ inline OuterLargeT *OuterLarge::UnPack(const ::flatbuffers::resolver_function_t 
 inline void OuterLarge::UnPackTo(OuterLargeT *_o, const ::flatbuffers::resolver_function_t *_resolver) const {
   (void)_o;
   (void)_resolver;
-  { auto _e = large(); if (_e) _o->large = flatbuffers::unique_ptr<BadAlignmentLarge>(new BadAlignmentLarge(*_e)); }
+  { auto _e = large(); if (_e) _o->large = std::unique_ptr<BadAlignmentLarge>(new BadAlignmentLarge(*_e)); }
 }
 
 inline ::flatbuffers::Offset<OuterLarge> OuterLarge::Pack(::flatbuffers::FlatBufferBuilder &_fbb, const OuterLargeT* _o, const ::flatbuffers::rehasher_function_t *_rehasher) {
@@ -357,7 +357,7 @@ inline BadAlignmentRootT *BadAlignmentRoot::UnPack(const ::flatbuffers::resolver
 inline void BadAlignmentRoot::UnPackTo(BadAlignmentRootT *_o, const ::flatbuffers::resolver_function_t *_resolver) const {
   (void)_o;
   (void)_resolver;
-  { auto _e = large(); if (_e) { if(_o->large) { _e->UnPackTo(_o->large.get(), _resolver); } else { _o->large = flatbuffers::unique_ptr<OuterLargeT>(_e->UnPack(_resolver)); } } else if (_o->large) { _o->large.reset(); } }
+  { auto _e = large(); if (_e) { if(_o->large) { _e->UnPackTo(_o->large.get(), _resolver); } else { _o->large = std::unique_ptr<OuterLargeT>(_e->UnPack(_resolver)); } } else if (_o->large) { _o->large.reset(); } }
   { auto _e = small(); if (_e) { _o->small.resize(_e->size()); for (::flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->small[_i] = *_e->Get(_i); } } else { _o->small.resize(0); } }
 }
 
@@ -482,16 +482,16 @@ inline void FinishSizePrefixedBadAlignmentRootBuffer(
   fbb.FinishSizePrefixed(root);
 }
 
-inline flatbuffers::unique_ptr<BadAlignmentRootT> UnPackBadAlignmentRoot(
+inline std::unique_ptr<BadAlignmentRootT> UnPackBadAlignmentRoot(
     const void *buf,
     const ::flatbuffers::resolver_function_t *res = nullptr) {
-  return flatbuffers::unique_ptr<BadAlignmentRootT>(GetBadAlignmentRoot(buf)->UnPack(res));
+  return std::unique_ptr<BadAlignmentRootT>(GetBadAlignmentRoot(buf)->UnPack(res));
 }
 
-inline flatbuffers::unique_ptr<BadAlignmentRootT> UnPackSizePrefixedBadAlignmentRoot(
+inline std::unique_ptr<BadAlignmentRootT> UnPackSizePrefixedBadAlignmentRoot(
     const void *buf,
     const ::flatbuffers::resolver_function_t *res = nullptr) {
-  return flatbuffers::unique_ptr<BadAlignmentRootT>(GetSizePrefixedBadAlignmentRoot(buf)->UnPack(res));
+  return std::unique_ptr<BadAlignmentRootT>(GetSizePrefixedBadAlignmentRoot(buf)->UnPack(res));
 }
 
 #endif  // FLATBUFFERS_GENERATED_ALIGNMENTTEST_H_

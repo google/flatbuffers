@@ -30,8 +30,7 @@ namespace jsons {
 
 namespace {
 
-template<class T>
-static std::string GenFullName(const T *enum_def) {
+template<class T> static std::string GenFullName(const T *enum_def) {
   std::string full_name;
   const auto &name_spaces = enum_def->defined_namespace->components;
   for (auto ns = name_spaces.cbegin(); ns != name_spaces.cend(); ++ns) {
@@ -41,8 +40,7 @@ static std::string GenFullName(const T *enum_def) {
   return full_name;
 }
 
-template<class T>
-static std::string GenTypeRef(const T *enum_def) {
+template<class T> static std::string GenTypeRef(const T *enum_def) {
   return "\"$ref\" : \"#/definitions/" + GenFullName(enum_def) + "\"";
 }
 
@@ -144,7 +142,7 @@ static std::string GenType(const Type &type) {
   }
 }
 
-} // namespace
+}  // namespace
 
 class JsonSchemaGenerator : public BaseGenerator {
  private:
@@ -319,18 +317,11 @@ class JsonSchemaGenerator : public BaseGenerator {
 };
 }  // namespace jsons
 
-bool GenerateJsonSchema(const Parser &parser, const std::string &path,
-                        const std::string &file_name) {
+static bool GenerateJsonSchema(const Parser &parser, const std::string &path,
+                               const std::string &file_name) {
   jsons::JsonSchemaGenerator generator(parser, path, file_name);
   if (!generator.generate()) { return false; }
   return generator.save();
-}
-
-bool GenerateJsonSchema(const Parser &parser, std::string *json) {
-  jsons::JsonSchemaGenerator generator(parser, "", "");
-  if (!generator.generate()) { return false; }
-  *json = generator.getJson();
-  return true;
 }
 
 namespace {
@@ -343,9 +334,8 @@ class JsonSchemaCodeGenerator : public CodeGenerator {
     return Status::OK;
   }
 
-  Status GenerateCode(const uint8_t *buffer, int64_t length) override {
-    (void)buffer;
-    (void)length;
+  Status GenerateCode(const uint8_t *, int64_t,
+                      const CodeGenOptions &) override {
     return Status::NOT_IMPLEMENTED;
   }
 
