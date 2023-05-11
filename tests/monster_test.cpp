@@ -171,7 +171,7 @@ flatbuffers::DetachedBuffer CreateFlatBufferTest(std::string &buffer) {
 
   FinishMonsterBuffer(builder, mloc);
 
-  // clang-format off
+// clang-format off
   #ifdef FLATBUFFERS_TEST_VERBOSE
   // print byte data for debugging:
   auto p = builder.GetBufferPointer();
@@ -196,7 +196,7 @@ void AccessFlatBufferTest(const uint8_t *flatbuf, size_t length, bool pooled) {
   verifier.SetFlexReuseTracker(&flex_reuse_tracker);
   TEST_EQ(VerifyMonsterBuffer(verifier), true);
 
-  // clang-format off
+// clang-format off
   #ifdef FLATBUFFERS_TRACK_VERIFIER_BUFFER_SIZE
     std::vector<uint8_t> test_buff;
     test_buff.resize(length * 2);
@@ -422,8 +422,8 @@ void MutateFlatBuffersTest(uint8_t *flatbuf, std::size_t length) {
 
   // Mutate structs.
   auto pos = monster->mutable_pos();
-  auto & test3 = pos->mutable_test3();  // Struct inside a struct.
-  test3.mutate_a(50);                 // Struct fields never fail.
+  auto &test3 = pos->mutable_test3();  // Struct inside a struct.
+  test3.mutate_a(50);                  // Struct fields never fail.
   TEST_EQ(test3.a(), 50);
   test3.mutate_a(10);
 
@@ -441,13 +441,12 @@ void MutateFlatBuffersTest(uint8_t *flatbuf, std::size_t length) {
   first->mutate_hp(1000);
 
   // Test for each loop over mutable entries
-  for (auto item: *tables)
-  {
+  for (auto item : *tables) {
     TEST_EQ(item->hp(), 1000);
     item->mutate_hp(0);
     TEST_EQ(item->hp(), 0);
     item->mutate_hp(1000);
-    break; // one iteration is enough, just testing compilation
+    break;  // one iteration is enough, just testing compilation
   }
 
   // Mutate via LookupByKey
@@ -584,6 +583,17 @@ void SizePrefixedTest() {
   TEST_EQ(m->mana(), 200);
   TEST_EQ(m->hp(), 300);
   TEST_EQ_STR(m->name()->c_str(), "bob");
+
+  {
+    // Verify that passing a larger size is OK, but not a smaller
+    flatbuffers::Verifier verifier_larger(fbb.GetBufferPointer(),
+                                          fbb.GetSize() + 10);
+    TEST_EQ(VerifySizePrefixedMonsterBuffer(verifier_larger), true);
+
+    flatbuffers::Verifier verifier_smaller(fbb.GetBufferPointer(),
+                                           fbb.GetSize() - 10);
+    TEST_EQ(VerifySizePrefixedMonsterBuffer(verifier_smaller), false);
+  }
 }
 
 void TestMonsterExtraFloats(const std::string &tests_data_path) {
