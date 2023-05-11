@@ -3,7 +3,9 @@
 #include <limits>
 #include <vector>
 
+#include "flatbuffers/base.h"
 #include "flatbuffers/flatbuffer_builder.h"
+#include "flatbuffers/flatbuffers.h"
 #include "flatbuffers/idl.h"
 #include "flatbuffers/registry.h"
 #include "flatbuffers/verifier.h"
@@ -171,7 +173,7 @@ flatbuffers::DetachedBuffer CreateFlatBufferTest(std::string &buffer) {
 
   FinishMonsterBuffer(builder, mloc);
 
-// clang-format off
+  // clang-format off
   #ifdef FLATBUFFERS_TEST_VERBOSE
   // print byte data for debugging:
   auto p = builder.GetBufferPointer();
@@ -196,7 +198,7 @@ void AccessFlatBufferTest(const uint8_t *flatbuf, size_t length, bool pooled) {
   verifier.SetFlexReuseTracker(&flex_reuse_tracker);
   TEST_EQ(VerifyMonsterBuffer(verifier), true);
 
-// clang-format off
+  // clang-format off
   #ifdef FLATBUFFERS_TRACK_VERIFIER_BUFFER_SIZE
     std::vector<uint8_t> test_buff;
     test_buff.resize(length * 2);
@@ -577,6 +579,15 @@ void SizePrefixedTest() {
   // Verify it.
   flatbuffers::Verifier verifier(fbb.GetBufferPointer(), fbb.GetSize());
   TEST_EQ(VerifySizePrefixedMonsterBuffer(verifier), true);
+
+  // The prefixed size doesn't include itself, so substract the size of the
+  // prefix
+  TEST_EQ(GetPrefixedSize(fbb.GetBufferPointer()),
+          fbb.GetSize() - sizeof(uoffset_t));
+
+  // Getting the buffer length does include the prefix size, so it should be the
+  // full lenght.
+  TEST_EQ(GetSizePrefixedBufferLength(fbb.GetBufferPointer()), fbb.GetSize());
 
   // Access it.
   auto m = GetSizePrefixedMonster(fbb.GetBufferPointer());
