@@ -85,13 +85,12 @@ inline SizeT GetPrefixedSize(const uint8_t *buf) {
 //
 // This includes the size of the prefix as well as the buffer:
 //
-//  [size prefix][flatbuffer] 
+//  [size prefix][flatbuffer]
 //  |---------length--------|
 template<typename SizeT = uoffset_t>
-inline SizeT GetSizePrefixedBufferLength(const uint8_t * const buf) {
+inline SizeT GetSizePrefixedBufferLength(const uint8_t *const buf) {
   return ReadScalar<SizeT>(buf) + sizeof(SizeT);
 }
-
 
 // Base class for native objects (FlatBuffer data de-serialized into native
 // C++ data structures).

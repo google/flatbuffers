@@ -1,6 +1,6 @@
-#include <limits>
-
 #include "flexbuffers_test.h"
+
+#include <limits>
 
 #include "flatbuffers/flexbuffers.h"
 #include "flatbuffers/idl.h"

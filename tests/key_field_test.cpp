@@ -38,7 +38,6 @@ void FixedSizedScalarKeyInStructTest() {
   bars.push_back(Bar(flatbuffers::make_span(test_float_array4), 1));
   auto bar_vec = fbb.CreateVectorOfSortedStructs(&bars);
 
-
   auto t = CreateFooTable(fbb, 1, 2, test_string, baz_vec, bar_vec);
 
   fbb.Finish(t);
@@ -51,15 +50,11 @@ void FixedSizedScalarKeyInStructTest() {
   TEST_EQ(sorted_baz_vec->Get(3)->b(), 4);
 
   uint8_t test_array[4];
-  auto* key_array = &flatbuffers::CastToArray(test_array);
+  auto *key_array = &flatbuffers::CastToArray(test_array);
   key_array->CopyFromSpan(flatbuffers::make_span(test_array1));
 
-
-  TEST_NOTNULL(
-      sorted_baz_vec->LookupByKey(key_array));
-  TEST_EQ(
-      sorted_baz_vec->LookupByKey(key_array)->b(),
-      4);
+  TEST_NOTNULL(sorted_baz_vec->LookupByKey(key_array));
+  TEST_EQ(sorted_baz_vec->LookupByKey(key_array)->b(), 4);
   uint8_t array_int[4] = { 7, 2, 3, 0 };
   key_array->CopyFromSpan(flatbuffers::make_span(array_int));
   TEST_EQ(sorted_baz_vec->LookupByKey(key_array),
@@ -70,7 +65,7 @@ void FixedSizedScalarKeyInStructTest() {
   TEST_EQ(sorted_bar_vec->Get(3)->b(), 4);
 
   float test_float_array[3];
-  auto* key_float_array = &flatbuffers::CastToArray(test_float_array);
+  auto *key_float_array = &flatbuffers::CastToArray(test_float_array);
   key_float_array->CopyFromSpan(flatbuffers::make_span(test_float_array1));
   TEST_NOTNULL(sorted_bar_vec->LookupByKey(key_float_array));
   TEST_EQ(sorted_bar_vec->LookupByKey(key_float_array)->b(), 3);
@@ -104,7 +99,6 @@ void StructKeyInStructTest() {
 
   auto orc = foo_builder.Finish();
   fbb.Finish(orc);
-
 
   uint8_t *buf = fbb.GetBufferPointer();
   auto foo_table = GetFooTable(buf);
@@ -153,9 +147,14 @@ void NestedStructKeyInStructTest() {
   TEST_EQ(sorted_fruit_vec->Get(0)->b(), 3);
   TEST_EQ(sorted_fruit_vec->Get(1)->b(), 1);
   TEST_EQ(sorted_fruit_vec->Get(2)->b(), 2);
-  TEST_EQ(sorted_fruit_vec->LookupByKey(Apple(2, Color(flatbuffers::make_span(test_float_array2), 1)))->b(), 1);
-  TEST_EQ(sorted_fruit_vec->LookupByKey(Apple(1, Color(flatbuffers::make_span(test_float_array2), 1))), static_cast<const Fruit *>(nullptr));
-
+  TEST_EQ(sorted_fruit_vec
+              ->LookupByKey(
+                  Apple(2, Color(flatbuffers::make_span(test_float_array2), 1)))
+              ->b(),
+          1);
+  TEST_EQ(sorted_fruit_vec->LookupByKey(
+              Apple(1, Color(flatbuffers::make_span(test_float_array2), 1))),
+          static_cast<const Fruit *>(nullptr));
 }
 
 void FixedSizedStructArrayKeyInStructTest() {
