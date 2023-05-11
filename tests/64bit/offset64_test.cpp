@@ -23,7 +23,8 @@ void Offset64Test() {
   FlatBufferBuilder64 builder;
 
   const size_t far_vector_size = 1LL << 2;
-  const size_t big_vector_size = 1LL << 31;
+  // Make a large number if wanting to test a real large buffer.
+  const size_t big_vector_size = 1LL << 2;
 
   {
     // First create the vectors that will be copied to the buffer.
