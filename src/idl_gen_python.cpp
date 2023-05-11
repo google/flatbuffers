@@ -773,8 +773,13 @@ class PythonGenerator : public BaseGenerator {
 
     if (!parser_.opts.one_file && !parser_.opts.python_no_type_prefix_suffix) {
       // Generate method without struct name.
-      code += "def Add" + field_method + "(builder: flatbuffers.Builder, " +
-              field_var + ": " + field_ty + "):\n";
+      code += "def Add" + field_method;
+      if (parser_.opts.python_typing) {
+        code += "(builder: flatbuffers.Builder, " + field_var + ": " + field_ty;
+      } else {
+        code += "(builder, " + field_var;
+      }
+      code += "):\n";
       code += Indent + namer_.Type(struct_def) + "Add" + field_method;
       code += "(builder, ";
       code += field_var;
