@@ -1218,6 +1218,8 @@ extern const char *GenTextFromTable(const Parser &parser, const void *table,
                                     std::string *text);
 extern const char *GenText(const Parser &parser, const void *flatbuffer,
                            std::string *text);
+extern const char *GenTextFile(const Parser &parser, const std::string &path,
+                               const std::string &file_name);
 
 // Generate GRPC Cpp interfaces.
 // See idl_gen_grpc.cpp.
