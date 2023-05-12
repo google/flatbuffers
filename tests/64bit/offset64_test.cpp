@@ -7,15 +7,14 @@
 #include <limits>
 #include <ostream>
 
-#include "evolution/v1_generated.h"
-#include "evolution/v2_generated.h"
 #include "flatbuffers/base.h"
 #include "flatbuffers/buffer.h"
 #include "flatbuffers/flatbuffer_builder.h"
 #include "flatbuffers/flatbuffers.h"
-#include "test_64bit_generated.h"
-#include "test_assert.h"
-
+#include "tests/64bit/evolution/v1_generated.h"
+#include "tests/64bit/evolution/v2_generated.h"
+#include "tests/64bit/test_64bit_generated.h"
+#include "tests/test_assert.h"
 
 namespace flatbuffers {
 namespace tests {
