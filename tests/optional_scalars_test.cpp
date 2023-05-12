@@ -1,13 +1,14 @@
 #include "optional_scalars_test.h"
+
 #include <string>
 #include <vector>
+
 #include "flatbuffers/idl.h"
 #include "optional_scalars_generated.h"
 #include "test_assert.h"
 
-namespace flatbuffers{
-  namespace tests{
-
+namespace flatbuffers {
+namespace tests {
 
 void OptionalScalarsTest() {
   // Simple schemas and a "has optional scalar" sentinal.
@@ -97,5 +98,5 @@ void OptionalScalarsTest() {
   TEST_ASSERT(opts->maybe_i32() == flatbuffers::Optional<int64_t>(-1));
 }
 
-  }
-}
+}  // namespace tests
+}  // namespace flatbuffers

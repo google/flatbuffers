@@ -30,8 +30,12 @@ namespace flatbuffers {
 
 struct PrintScalarTag {};
 struct PrintPointerTag {};
-template<typename T> struct PrintTag { typedef PrintScalarTag type; };
-template<> struct PrintTag<const void *> { typedef PrintPointerTag type; };
+template<typename T> struct PrintTag {
+  typedef PrintScalarTag type;
+};
+template<> struct PrintTag<const void *> {
+  typedef PrintPointerTag type;
+};
 
 struct JsonPrinter {
   // If indentation is less than 0, that indicates we don't want any newlines
@@ -380,9 +384,8 @@ static const char *GenerateTextImpl(const Parser &parser, const Table *table,
 }
 
 // Generate a text representation of a flatbuffer in JSON format.
-const char *GenerateTextFromTable(const Parser &parser, const void *table,
-                                  const std::string &table_name,
-                                  std::string *_text) {
+const char *GenTextFromTable(const Parser &parser, const void *table,
+                             const std::string &table_name, std::string *_text) {
   auto struct_def = parser.LookupStruct(table_name);
   if (struct_def == nullptr) { return "unknown struct"; }
   auto root = static_cast<const Table *>(table);
@@ -390,8 +393,8 @@ const char *GenerateTextFromTable(const Parser &parser, const void *table,
 }
 
 // Generate a text representation of a flatbuffer in JSON format.
-const char *GenerateText(const Parser &parser, const void *flatbuffer,
-                         std::string *_text) {
+const char *GenText(const Parser &parser, const void *flatbuffer,
+                    std::string *_text) {
   FLATBUFFERS_ASSERT(parser.root_struct_def_);  // call SetRootType()
   auto root = parser.opts.size_prefixed ? GetSizePrefixedRoot<Table>(flatbuffer)
                                         : GetRoot<Table>(flatbuffer);
@@ -403,9 +406,8 @@ static std::string TextFileName(const std::string &path,
   return path + file_name + ".json";
 }
 
-static const char *GenerateTextFile(const Parser &parser,
-                                    const std::string &path,
-                                    const std::string &file_name) {
+const char *GenTextFile(const Parser &parser, const std::string &path,
+                             const std::string &file_name) {
   if (parser.opts.use_flexbuffers) {
     std::string json;
     parser.flex_root_.ToString(true, parser.opts.strict_json, json);
@@ -416,7 +418,7 @@ static const char *GenerateTextFile(const Parser &parser,
   }
   if (!parser.builder_.GetSize() || !parser.root_struct_def_) return nullptr;
   std::string text;
-  auto err = GenerateText(parser, parser.builder_.GetBufferPointer(), &text);
+  auto err = GenText(parser, parser.builder_.GetBufferPointer(), &text);
   if (err) return err;
   return flatbuffers::SaveFile(TextFileName(path, file_name).c_str(), text,
                                false)
@@ -444,7 +446,7 @@ class TextCodeGenerator : public CodeGenerator {
  public:
   Status GenerateCode(const Parser &parser, const std::string &path,
                       const std::string &filename) override {
-    auto err = GenerateTextFile(parser, path, filename);
+    auto err = GenTextFile(parser, path, filename);
     if (err) {
       status_detail = " (" + std::string(err) + ")";
       return Status::ERROR;
