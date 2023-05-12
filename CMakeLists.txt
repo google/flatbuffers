@@ -491,12 +491,13 @@ endif()
 function(compile_schema SRC_FBS OPT OUT_GEN_FILE) 
   get_filename_component(SRC_FBS_DIR ${SRC_FBS} PATH)
   string(REGEX REPLACE "\\.fbs$" "_generated.h" GEN_HEADER ${SRC_FBS})
-  add_custom_command(TARGET flatc POST_BUILD
-      COMMAND "${FLATBUFFERS_FLATC_EXECUTABLE}"
+  add_custom_command(
+    OUTPUT ${GEN_HEADER}
+    COMMAND "${FLATBUFFERS_FLATC_EXECUTABLE}"
       ${OPT}
       -o "${SRC_FBS_DIR}"
       "${CMAKE_CURRENT_SOURCE_DIR}/${SRC_FBS}"
-    BYPRODUCTS ${GEN_HEADER}
+    DEPENDS flatc
     COMMENT "flatc generation: `${SRC_FBS}` -> `${GEN_HEADER}`"
     )
   set(${OUT_GEN_FILE} ${GEN_HEADER} PARENT_SCOPE)
