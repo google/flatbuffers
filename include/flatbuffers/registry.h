@@ -52,7 +52,7 @@ class Registry {
     Parser parser;
     if (!LoadSchema(ident, &parser)) return false;
     // Now we're ready to generate text.
-    auto err = GenerateText(parser, flatbuf, dest);
+    auto err = GenText(parser, flatbuf, dest);
     if (err) {
       lasterror_ =
           "unable to generate text for FlatBuffer binary: " + std::string(err);

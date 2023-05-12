@@ -36,7 +36,7 @@ void JsonDefaultTest(const std::string &tests_data_path) {
   color_monster.add_name(name);
   FinishMonsterBuffer(builder, color_monster.Finish());
   std::string jsongen;
-  auto result = GenerateText(parser, builder.GetBufferPointer(), &jsongen);
+  auto result = GenText(parser, builder.GetBufferPointer(), &jsongen);
   TEST_NULL(result);
   // default value of the "color" field is Blue
   TEST_EQ(std::string::npos != jsongen.find("color: \"Blue\""), true);
@@ -65,7 +65,7 @@ void JsonEnumsTest(const std::string &tests_data_path) {
   color_monster.add_color(Color(Color_Blue | Color_Red));
   FinishMonsterBuffer(builder, color_monster.Finish());
   std::string jsongen;
-  auto result = GenerateText(parser, builder.GetBufferPointer(), &jsongen);
+  auto result = GenText(parser, builder.GetBufferPointer(), &jsongen);
   TEST_NULL(result);
   TEST_EQ(std::string::npos != jsongen.find("color: \"Red Blue\""), true);
   // Test forward compatibility with 'output_enum_identifiers = true'.
@@ -78,7 +78,7 @@ void JsonEnumsTest(const std::string &tests_data_path) {
   future_color.add_color(
       static_cast<Color>((1u << 2) | Color_Blue | Color_Red));
   FinishMonsterBuffer(builder, future_color.Finish());
-  result = GenerateText(parser, builder.GetBufferPointer(), &future_json);
+  result = GenText(parser, builder.GetBufferPointer(), &future_json);
   TEST_NULL(result);
   TEST_EQ(std::string::npos != future_json.find("color: 13"), true);
 }
@@ -119,8 +119,7 @@ void JsonOptionalTest(const std::string &tests_data_path,
   // to ensure it is correct, we now generate text back from the binary,
   // and compare the two:
   std::string jsongen;
-  auto result =
-      GenerateText(parser, parser.builder_.GetBufferPointer(), &jsongen);
+  auto result = GenText(parser, parser.builder_.GetBufferPointer(), &jsongen);
   TEST_NULL(result);
   TEST_EQ_STR(jsongen.c_str(), jsonfile.c_str());
 }
@@ -199,7 +198,7 @@ root_type JsonUnionStructTest;
   // now generate text back from the binary, and compare the two:
   std::string json_generated;
   auto generate_result =
-      GenerateText(parser, parser.builder_.GetBufferPointer(), &json_generated);
+      GenText(parser, parser.builder_.GetBufferPointer(), &json_generated);
   TEST_NULL(generate_result);
   TEST_EQ_STR(json_source, json_generated.c_str());
 }
