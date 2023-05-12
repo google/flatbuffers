@@ -849,8 +849,8 @@ class TsGenerator : public BaseGenerator {
     }
 
     if (enum_def.is_union) {
-      symbols_expression += ", unionTo" + name;
-      symbols_expression += ", unionListTo" + name;
+      symbols_expression += (", " + namer_.Function("unionTo" + name));
+      symbols_expression += (", " + namer_.Function("unionListTo" + name));
     }
 
     return symbols_expression;
