@@ -484,8 +484,7 @@ T TestValue(const char *json, const char *type_name,
   // Check with print.
   std::string print_back;
   parser.opts.indent_step = -1;
-  TEST_NULL(
-      GenerateText(parser, parser.builder_.GetBufferPointer(), &print_back));
+  TEST_NULL(GenText(parser, parser.builder_.GetBufferPointer(), &print_back));
   // restore value from its default
   if (check_default) { TEST_EQ(parser.Parse(print_back.c_str()), true); }
 
@@ -740,8 +739,7 @@ void UnicodeTest() {
           true);
   std::string jsongen;
   parser.opts.indent_step = -1;
-  auto result =
-      GenerateText(parser, parser.builder_.GetBufferPointer(), &jsongen);
+  auto result = GenText(parser, parser.builder_.GetBufferPointer(), &jsongen);
   TEST_NULL(result);
   TEST_EQ_STR(jsongen.c_str(),
               "{F: \"\\u20AC\\u00A2\\u30E6\\u30FC\\u30B6\\u30FC"
@@ -760,8 +758,7 @@ void UnicodeTestAllowNonUTF8() {
       true);
   std::string jsongen;
   parser.opts.indent_step = -1;
-  auto result =
-      GenerateText(parser, parser.builder_.GetBufferPointer(), &jsongen);
+  auto result = GenText(parser, parser.builder_.GetBufferPointer(), &jsongen);
   TEST_NULL(result);
   TEST_EQ_STR(
       jsongen.c_str(),
@@ -783,11 +780,10 @@ void UnicodeTestGenerateTextFailsOnNonUTF8() {
       true);
   std::string jsongen;
   parser.opts.indent_step = -1;
-  // Now, disallow non-UTF-8 (the default behavior) so GenerateText indicates
+  // Now, disallow non-UTF-8 (the default behavior) so GenText indicates
   // failure.
   parser.opts.allow_non_utf8 = false;
-  auto result =
-      GenerateText(parser, parser.builder_.GetBufferPointer(), &jsongen);
+  auto result = GenText(parser, parser.builder_.GetBufferPointer(), &jsongen);
   TEST_EQ_STR(result, "string contains non-utf8 bytes");
 }
 
@@ -825,8 +821,7 @@ void UnknownFieldsTest() {
 
   std::string jsongen;
   parser.opts.indent_step = -1;
-  auto result =
-      GenerateText(parser, parser.builder_.GetBufferPointer(), &jsongen);
+  auto result = GenText(parser, parser.builder_.GetBufferPointer(), &jsongen);
   TEST_NULL(result);
   TEST_EQ_STR(jsongen.c_str(), "{str: \"test\",i: 10}");
 }

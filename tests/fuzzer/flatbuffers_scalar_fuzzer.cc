@@ -218,8 +218,7 @@ bool Parse(flatbuffers::Parser &parser, const std::string &json,
            std::string *_text) {
   auto done = parser.ParseJson(json.c_str());
   if (done) {
-    TEST_EQ(GenerateText(parser, parser.builder_.GetBufferPointer(), _text),
-            true);
+    TEST_NULL(GenText(parser, parser.builder_.GetBufferPointer(), _text));
   } else {
     *_text = parser.error_;
   }
@@ -358,9 +357,9 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
       }
       // Compare with print.
       std::string ref_string, def_string;
-      FLATBUFFERS_ASSERT(GenerateText(
+      FLATBUFFERS_ASSERT(!GenText(
           parser, parser.builder_.GetBufferPointer(), &ref_string));
-      FLATBUFFERS_ASSERT(GenerateText(
+      FLATBUFFERS_ASSERT(!GenText(
           def_parser, def_parser.builder_.GetBufferPointer(), &def_string));
       if (ref_string != def_string) {
         TEST_OUTPUT_LINE("Stage 3.2 failed: '%s' != '%s'", def_string.c_str(),

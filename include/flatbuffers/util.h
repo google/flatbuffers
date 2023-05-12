@@ -623,7 +623,7 @@ inline bool EscapeString(const char *s, size_t length, std::string *_text,
               // we previously checked for non-UTF-8, so we shouldn't reach
               // here.
               //
-              // 2) We reached here by someone calling GenerateText()
+              // 2) We reached here by someone calling GenText()
               // on a previously-serialized flatbuffer. The data might have
               // non-UTF-8 Strings, or might be corrupt.
               //
