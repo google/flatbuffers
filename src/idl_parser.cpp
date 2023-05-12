@@ -947,8 +947,12 @@ CheckedError Parser::ParseField(StructDef &struct_def) {
   if (type.base_type == BASE_TYPE_UNION) {
     // For union fields, add a second auto-generated field to hold the type,
     // with a special suffix.
-    ECHECK(AddField(struct_def, name + UnionTypeFieldSuffix(),
-                    type.enum_def->underlying_type, &typefield));
+
+    // To ensure compatibility with many codes that rely on the BASE_TYPE_UTYPE value to identify union type fields.
+    Type union_type(type.enum_def->underlying_type);
+    union_type.base_type = BASE_TYPE_UTYPE;
+    ECHECK(AddField(struct_def, name + UnionTypeFieldSuffix(),union_type, &typefield));
+    
   } else if (IsVector(type) && type.element == BASE_TYPE_UNION) {
     advanced_features_ |= reflection::AdvancedUnionFeatures;
     // Only cpp, js and ts supports the union vector feature so far.
@@ -2368,8 +2372,12 @@ template<typename T> void EnumDef::ChangeEnumValue(EnumVal *ev, T new_value) {
 }
 
 namespace EnumHelper {
-template<BaseType E> struct EnumValType { typedef int64_t type; };
-template<> struct EnumValType<BASE_TYPE_ULONG> { typedef uint64_t type; };
+template<BaseType E> struct EnumValType {
+  typedef int64_t type;
+};
+template<> struct EnumValType<BASE_TYPE_ULONG> {
+  typedef uint64_t type;
+};
 }  // namespace EnumHelper
 
 struct EnumValBuilder {
@@ -2478,23 +2486,39 @@ CheckedError Parser::ParseEnum(const bool is_union, EnumDef **dest,
         &GetPooledString(RelativeToRootPath(opts.project_root, filename));
   }
   enum_def->doc_comment = enum_comment;
-  if (!is_union && !opts.proto_mode) {
+  if (!opts.proto_mode) {
     // Give specialized error message, since this type spec used to
     // be optional in the first FlatBuffers release.
+    bool explicit_underlying_type = false;
     if (!Is(':')) {
-      return Error(
-          "must specify the underlying integer type for this"
-          " enum (e.g. \': short\', which was the default).");
+      // Enum is forced to have an explicit underlying type in declaration.
+      if (!is_union) {
+        return Error(
+            "must specify the underlying integer type for this"
+            " enum (e.g. \': short\', which was the default).");
+      }
     } else {
+      // Union underlying type is only supported for cpp
+      if (is_union && !SupportsUnionUnderlyingType()) {
+        return Error(
+            "Underlying type for union is not yet supported in at least one of "
+            "the specified programming languages.");
+      }
       NEXT();
+      explicit_underlying_type = true;
     }
-    // Specify the integer type underlying this enum.
-    ECHECK(ParseType(enum_def->underlying_type));
-    if (!IsInteger(enum_def->underlying_type.base_type) ||
-        IsBool(enum_def->underlying_type.base_type))
-      return Error("underlying enum type must be integral");
-    // Make this type refer back to the enum it was derived from.
-    enum_def->underlying_type.enum_def = enum_def;
+
+    if (explicit_underlying_type) {
+      // Specify the integer type underlying this enum.
+      ECHECK(ParseType(enum_def->underlying_type));
+      if (!IsInteger(enum_def->underlying_type.base_type) || IsBool(enum_def->underlying_type.base_type)) {
+        return Error("underlying " + std::string(is_union ? "union" : "enum") + "type must be integral");
+      }
+        
+      // Make this type refer back to the enum it was derived from.
+      enum_def->underlying_type.enum_def = enum_def;
+    }
+
   }
   ECHECK(ParseMetaData(&enum_def->attributes));
   const auto underlying_type = enum_def->underlying_type.base_type;
@@ -2691,6 +2715,10 @@ bool Parser::SupportsAdvancedArrayFeatures() const {
 bool Parser::Supports64BitOffsets() const {
   return (opts.lang_to_generate &
           ~(IDLOptions::kCpp | IDLOptions::kJson | IDLOptions::kBinary)) == 0;
+}
+
+bool Parser::SupportsUnionUnderlyingType() const {
+    return (opts.lang_to_generate & ~IDLOptions::kCpp) == 0;
 }
 
 Namespace *Parser::UniqueNamespace(Namespace *ns) {

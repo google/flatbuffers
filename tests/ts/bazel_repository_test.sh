@@ -17,7 +17,7 @@ source "${RUNFILES_DIR:-/dev/null}/$f" 2>/dev/null || \
 BAZEL_BIN="$(rlocation bazel_linux_x86_64/file/bazel)"
 readonly BAZEL_BIN
 
-if [[ ! -e "${BAZEL_BIN}" ]]; then
+if [[ ! -x "${BAZEL_BIN}" ]]; then
     echo "Failed to find the bazel binary." >&2
     exit 1
 fi

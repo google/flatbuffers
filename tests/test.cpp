@@ -39,6 +39,7 @@
 #include "proto_test.h"
 #include "reflection_test.h"
 #include "union_vector/union_vector_generated.h"
+#include "union_underlying_type_test_generated.h"
 #if !defined(_MSC_VER) || _MSC_VER >= 1700
 #  include "arrays_test_generated.h"
 #endif
@@ -119,13 +120,13 @@ void GenerateTableTextTest(const std::string &tests_data_path) {
   TEST_EQ(abilities->Get(2)->distance(), 12);
 
   std::string jsongen;
-  auto result = GenerateTextFromTable(parser, monster, "MyGame.Example.Monster",
+  auto result = GenTextFromTable(parser, monster, "MyGame.Example.Monster",
                                       &jsongen);
   TEST_NULL(result);
   // Test sub table
   const Vec3 *pos = monster->pos();
   jsongen.clear();
-  result = GenerateTextFromTable(parser, pos, "MyGame.Example.Vec3", &jsongen);
+  result = GenTextFromTable(parser, pos, "MyGame.Example.Vec3", &jsongen);
   TEST_NULL(result);
   TEST_EQ_STR(
       jsongen.c_str(),
@@ -133,13 +134,13 @@ void GenerateTableTextTest(const std::string &tests_data_path) {
   const Test &test3 = pos->test3();
   jsongen.clear();
   result =
-      GenerateTextFromTable(parser, &test3, "MyGame.Example.Test", &jsongen);
+      GenTextFromTable(parser, &test3, "MyGame.Example.Test", &jsongen);
   TEST_NULL(result);
   TEST_EQ_STR(jsongen.c_str(), "{a: 5,b: 6}");
   const Test *test4 = monster->test4()->Get(0);
   jsongen.clear();
   result =
-      GenerateTextFromTable(parser, test4, "MyGame.Example.Test", &jsongen);
+      GenTextFromTable(parser, test4, "MyGame.Example.Test", &jsongen);
   TEST_NULL(result);
   TEST_EQ_STR(jsongen.c_str(), "{a: 10,b: 20}");
 }
@@ -337,7 +338,7 @@ void UnionVectorTest(const std::string &tests_data_path) {
 
   // Generate text using parsed schema.
   std::string jsongen;
-  auto result = GenerateText(parser, fbb.GetBufferPointer(), &jsongen);
+  auto result = GenText(parser, fbb.GetBufferPointer(), &jsongen);
   TEST_NULL(result);
   TEST_EQ_STR(jsongen.c_str(),
               "{\n"
@@ -957,7 +958,7 @@ void FixedLengthArrayJsonTest(const std::string &tests_data_path, bool binary) {
   // Export to JSON
   std::string jsonGen;
   TEST_NULL(
-      GenerateText(parserOrg, parserOrg.builder_.GetBufferPointer(), &jsonGen));
+      GenText(parserOrg, parserOrg.builder_.GetBufferPointer(), &jsonGen));
 
   // Import from JSON
   TEST_EQ(parserGen.Parse(jsonGen.c_str()), true);
@@ -1083,7 +1084,7 @@ void TestEmbeddedBinarySchema(const std::string &tests_data_path) {
   // Export to JSON
   std::string jsonGen;
   TEST_NULL(
-      GenerateText(parserOrg, parserOrg.builder_.GetBufferPointer(), &jsonGen));
+      GenText(parserOrg, parserOrg.builder_.GetBufferPointer(), &jsonGen));
 
   // Import from JSON
   TEST_EQ(parserGen.Parse(jsonGen.c_str()), true);
@@ -1540,6 +1541,41 @@ void DoNotRequireEofTest(const std::string &tests_data_path) {
 }
 #endif
 
+void UnionUnderlyingTypeTest() {
+    using namespace UnionUnderlyingType;
+    TEST_ASSERT(sizeof(ABC) == sizeof(uint32_t));
+    TEST_ASSERT(ABC::ABC_A == 555);
+    TEST_ASSERT(ABC::ABC_B == 666);
+    TEST_ASSERT(ABC::ABC_C == 777);
+
+    DT buffer;
+    AT a;
+    a.a = 42;
+    BT b;
+    b.b = "foo";
+    CT c;
+    c.c = true;
+    buffer.test_union = ABCUnion();
+    buffer.test_union.Set(a);
+    buffer.test_vector_of_union.resize(3);
+    buffer.test_vector_of_union[0].Set(a);
+    buffer.test_vector_of_union[1].Set(b);
+    buffer.test_vector_of_union[2].Set(c);
+
+    flatbuffers::FlatBufferBuilder fbb;
+    auto offset = D::Pack(fbb, &buffer);
+    fbb.Finish(offset);
+
+    auto *root =
+    flatbuffers::GetRoot<D>(fbb.GetBufferPointer());
+    DT unpacked;
+    root->UnPackTo(&unpacked);
+
+    TEST_ASSERT(unpacked.test_union == buffer.test_union);
+    TEST_ASSERT(unpacked.test_vector_of_union == buffer.test_vector_of_union);
+
+}
+
 static void Offset64Tests() {
   Offset64Test();
   Offset64SerializedFirst();
@@ -1663,6 +1699,7 @@ int FlatBufferTests(const std::string &tests_data_path) {
   FixedSizedStructArrayKeyInStructTest();
   EmbeddedSchemaAccess();
   Offset64Tests();
+  UnionUnderlyingTypeTest();
   return 0;
 }
 }  // namespace

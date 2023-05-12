@@ -15,8 +15,7 @@ class TestHeapBuilder : public FlatBufferBuilder {
   TestHeapBuilder &operator=(const TestHeapBuilder &);
 
  public:
-  TestHeapBuilder()
-      : FlatBufferBuilder(2048, new OwnedAllocator(), true) {}
+  TestHeapBuilder() : FlatBufferBuilder(2048, new OwnedAllocator(), true) {}
 
   TestHeapBuilder(TestHeapBuilder &&other)
       : FlatBufferBuilder(std::move(other)) {}
@@ -144,7 +143,7 @@ void FlatBufferBuilderTest() {
 }
 
 // forward-declared in test_builder.h
-void CheckTestGeneratedIsValid(const MyGame::Example::Color&);
+void CheckTestGeneratedIsValid(const MyGame::Example::Color &);
 
 // Link-time check using pointer type.
 void CheckTestGeneratedIsValid(const MyGame::Example::Color &) {}

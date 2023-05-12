@@ -31,8 +31,9 @@ void RunTest(const flatbuffers::IDLOptions &opts, const std::string &proto_path,
     TEST_EQ(import_parser.Parse(import_proto_file.c_str(), include_directories),
             true);
     std::string import_fbs;
-    TEST_EQ(fbs_generator->GenerateCodeString(import_parser, "test", import_fbs),
-            CodeGenerator::Status::OK);
+    TEST_EQ(
+        fbs_generator->GenerateCodeString(import_parser, "test", import_fbs),
+        CodeGenerator::Status::OK);
     // auto import_fbs = flatbuffers::GenerateFBS(import_parser, "test", true);
     // Since `imported.fbs` isn't in the filesystem AbsolutePath can't figure it
     // out by itself. We manually construct it so Parser works.
@@ -323,7 +324,8 @@ void ParseProtoBufAsciiTest() {
   TEST_EQ(parser.Parse("{ A [1 2] C { B:2 }}"), true);
   // Similarly, in text output, it should omit these.
   std::string text;
-  auto err = flatbuffers::GenerateText(
+  auto err =
+      flatbuffers::GenText(
       parser, parser.builder_.GetBufferPointer(), &text);
   TEST_NULL(err);
   TEST_EQ_STR(text.c_str(),

@@ -1151,6 +1151,7 @@ class Parser : public ParserState {
   bool SupportsOptionalScalars() const;
   bool SupportsDefaultVectorsAndStrings() const;
   bool Supports64BitOffsets() const;
+  bool SupportsUnionUnderlyingType() const;
   Namespace *UniqueNamespace(Namespace *ns);
 
   FLATBUFFERS_CHECKED_ERROR RecurseError();
@@ -1210,13 +1211,16 @@ class Parser : public ParserState {
 // if it is less than 0, no linefeeds will be generated either.
 // See idl_gen_text.cpp.
 // strict_json adds "quotes" around field names if true.
-// If the flatbuffer cannot be encoded in JSON (e.g., it contains non-UTF-8
-// byte arrays in String values), returns false.
-extern const char *GenerateTextFromTable(const Parser &parser, const void *table,
-                                         const std::string &tablename,
-                                         std::string *text);
-extern const char *GenerateText(const Parser &parser, const void *flatbuffer,
-                                std::string *text);
+// These functions return nullptr on success, or an error string,
+// which may happen if the flatbuffer cannot be encoded in JSON (e.g.,
+// it contains non-UTF-8 byte arrays in String values).
+extern const char *GenTextFromTable(const Parser &parser, const void *table,
+                                    const std::string &tablename,
+                                    std::string *text);
+extern const char *GenText(const Parser &parser, const void *flatbuffer,
+                           std::string *text);
+extern const char *GenTextFile(const Parser &parser, const std::string &path,
+                               const std::string &file_name);
 
 // Generate GRPC Cpp interfaces.
 // See idl_gen_grpc.cpp.

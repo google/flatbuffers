@@ -81,6 +81,17 @@ inline SizeT GetPrefixedSize(const uint8_t *buf) {
   return ReadScalar<SizeT>(buf);
 }
 
+// Gets the total length of the buffer given a sized prefixed FlatBuffer.
+//
+// This includes the size of the prefix as well as the buffer:
+//
+//  [size prefix][flatbuffer]
+//  |---------length--------|
+template<typename SizeT = uoffset_t>
+inline SizeT GetSizePrefixedBufferLength(const uint8_t *const buf) {
+  return ReadScalar<SizeT>(buf) + sizeof(SizeT);
+}
+
 // Base class for native objects (FlatBuffer data de-serialized into native
 // C++ data structures).
 // Contains no functionality, purely documentative.

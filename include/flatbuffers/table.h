@@ -153,7 +153,7 @@ class Table {
     return verifier.Check(field_offset != 0) &&
            verifier.VerifyOffset<OffsetT>(data_, field_offset);
   }
- 
+
   bool VerifyOffset64(const Verifier &verifier, voffset_t field) const {
     return VerifyOffset<uoffset64_t>(verifier, field);
   }

@@ -177,8 +177,8 @@ class Verifier FLATBUFFERS_FINAL_CLASS {
     return true;
   }
 
-  FLATBUFFERS_SUPPRESS_UBSAN("unsigned-integer-overflow") bool VerifyTableStart(
-      const uint8_t *const table) {
+  FLATBUFFERS_SUPPRESS_UBSAN("unsigned-integer-overflow")
+  bool VerifyTableStart(const uint8_t *const table) {
     // Check the vtable offset.
     const auto tableo = static_cast<size_t>(table - buf_);
     if (!Verify<soffset_t>(tableo)) return false;
@@ -246,7 +246,9 @@ class Verifier FLATBUFFERS_FINAL_CLASS {
   template<typename T, typename SizeT = uoffset_t>
   bool VerifySizePrefixedBuffer(const char *const identifier) {
     return Verify<SizeT>(0U) &&
-           Check(ReadScalar<SizeT>(buf_) == size_ - sizeof(SizeT)) &&
+           // Ensure the prefixed size is within the bounds of the provided
+           // length.
+           Check(ReadScalar<SizeT>(buf_) + sizeof(SizeT) <= size_) &&
            VerifyBufferFromStart<T>(identifier, sizeof(SizeT));
   }
 

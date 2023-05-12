@@ -17,9 +17,8 @@
 #ifndef FLATBUFFERS_VECTOR_DOWNWARD_H_
 #define FLATBUFFERS_VECTOR_DOWNWARD_H_
 
-#include <cstdint>
-
 #include <algorithm>
+#include <cstdint>
 
 #include "flatbuffers/base.h"
 #include "flatbuffers/default_allocator.h"
@@ -167,7 +166,9 @@ template<typename SizeT = uoffset_t> class vector_downward {
   inline SizeT size() const { return size_; }
 
   // The size of the buffer part of the vector that is currently unused.
-  SizeT unused_buffer_size() const { return static_cast<SizeT>(cur_ - scratch_); }
+  SizeT unused_buffer_size() const {
+    return static_cast<SizeT>(cur_ - scratch_);
+  }
 
   // The size of the scratch part of the vector.
   SizeT scratch_size() const { return static_cast<SizeT>(scratch_ - buf_); }
