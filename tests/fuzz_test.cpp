@@ -273,8 +273,7 @@ void FuzzTest2() {
 
   std::string jsongen;
   parser.opts.indent_step = 0;
-  auto result =
-      GenerateText(parser, parser.builder_.GetBufferPointer(), &jsongen);
+  auto result = GenText(parser, parser.builder_.GetBufferPointer(), &jsongen);
   TEST_NULL(result);
 
   if (jsongen != json) {
