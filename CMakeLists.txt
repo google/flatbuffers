@@ -518,7 +518,15 @@ endfunction()
 if(FLATBUFFERS_BUILD_TESTS)
   add_executable(flattests ${FlatBuffers_Tests_SRCS})
   target_link_libraries(flattests PRIVATE $<BUILD_INTERFACE:ProjectConfig>)
-  target_include_directories(flattests PUBLIC src tests)
+  target_include_directories(flattests PUBLIC 
+    # Ideally everything is fully qualified from the root directories
+    ${CMAKE_CURRENT_SOURCE_DIR}
+    ${CMAKE_CURRENT_BINARY_DIR}
+    # TODO(derekbailey): update includes to fully qualify src/ and tests/
+    src 
+    tests 
+    ${CMAKE_CURRENT_BINARY_DIR}/tests 
+  )
 
   # Have tests load data from the source directory, not the build directory.
   add_definitions(-DFLATBUFFERS_TEST_PATH_PREFIX=${CMAKE_CURRENT_SOURCE_DIR}/)
@@ -528,6 +536,7 @@ if(FLATBUFFERS_BUILD_TESTS)
   SET(FLATC_OPT_COMP ${FLATC_OPT};--gen-compare)
 
   compile_schema_for_test(tests/alignment_test.fbs "${FLATC_OPT_COMP}")
+  compile_schema_for_test(tests/arrays_test.fbs "${FLATC_OPT_COMP};--scoped-enums")
   compile_schema_for_test(tests/native_inline_table_test.fbs "${FLATC_OPT_COMP}")
   compile_schema_for_test(tests/native_type_test.fbs "${FLATC_OPT}")
   compile_schema_for_test(tests/key_field/key_field_sample.fbs "${FLATC_OPT_COMP}")
