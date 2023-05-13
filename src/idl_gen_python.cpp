@@ -275,7 +275,7 @@ class PythonGenerator : public BaseGenerator {
     code += namer_.Method(field);
 
     const ImportMapEntry import_entry = {
-      "." + GenPackageReference(field.value.type), TypeName(field)
+      GenPackageReference(field.value.type), TypeName(field)
     };
 
     if (parser_.opts.python_typing) {
@@ -337,7 +337,7 @@ class PythonGenerator : public BaseGenerator {
     code += namer_.Method(field) + "(self)";
 
     const ImportMapEntry import_entry = {
-      "." + GenPackageReference(field.value.type), TypeName(field)
+      GenPackageReference(field.value.type), TypeName(field)
     };
 
     if (parser_.opts.python_typing) {
@@ -446,7 +446,7 @@ class PythonGenerator : public BaseGenerator {
     GenReceiver(struct_def, code_ptr);
     code += namer_.Method(field);
     const ImportMapEntry import_entry = {
-      "." + GenPackageReference(field.value.type), TypeName(field)
+      GenPackageReference(field.value.type), TypeName(field)
     };
 
     if (parser_.opts.python_typing) {
@@ -570,7 +570,7 @@ class PythonGenerator : public BaseGenerator {
     std::string qualified_name = NestedFlatbufferType(unqualified_name);
     if (qualified_name.empty()) { qualified_name = nested->constant; }
 
-    const ImportMapEntry import_entry = { "." + qualified_name,
+    const ImportMapEntry import_entry = { qualified_name,
                                           unqualified_name };
 
     auto &code = *code_ptr;
