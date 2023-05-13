@@ -509,7 +509,7 @@ endfunction()
 
 function(compile_schema_for_samples SRC_FBS OPT)
   compile_schema("${SRC_FBS}" "${OPT}" GEN_FILE)
-  target_sources(sample_lib PRIVATE ${GEN_FILE})
+  target_sources(flatsample PRIVATE ${GEN_FILE})
 endfunction()
 
 if(FLATBUFFERS_BUILD_TESTS)
@@ -553,16 +553,16 @@ if(FLATBUFFERS_BUILD_TESTS)
 
   # Add a library so there is a single target that the generated samples can 
   # link too.
-  add_library(sample_lib STATIC)
+  add_library(flatsample INTERFACE)
 
-  # Since sample_lib has no sources, we have to explicitly set the linker lang.
-  set_target_properties(sample_lib PROPERTIES LINKER_LANGUAGE CXX)
+  # Since flatsample has no sources, we have to explicitly set the linker lang.
+  set_target_properties(flatsample PROPERTIES LINKER_LANGUAGE CXX)
   
   compile_schema_for_samples(samples/monster.fbs "${FLATC_OPT_COMP}")
 
-  target_link_libraries(flatsamplebinary PRIVATE $<BUILD_INTERFACE:ProjectConfig> sample_lib)
-  target_link_libraries(flatsampletext PRIVATE $<BUILD_INTERFACE:ProjectConfig> sample_lib)
-  target_link_libraries(flatsamplebfbs PRIVATE $<BUILD_INTERFACE:ProjectConfig> sample_lib)
+  target_link_libraries(flatsamplebinary PRIVATE $<BUILD_INTERFACE:ProjectConfig> flatsample)
+  target_link_libraries(flatsampletext PRIVATE $<BUILD_INTERFACE:ProjectConfig> flatsample)
+  target_link_libraries(flatsamplebfbs PRIVATE $<BUILD_INTERFACE:ProjectConfig> flatsample)
 
   if(FLATBUFFERS_BUILD_CPP17)
     add_executable(flattests_cpp17 ${FlatBuffers_Tests_CPP17_SRCS})
