@@ -65,6 +65,7 @@ cc_test(
         "test_assert.h",
         "test_builder.cpp",
         "test_builder.h",
+        "union_underlying_type_test_generated.h",
         "union_vector/union_vector_generated.h",
         "util_test.cpp",
         "util_test.h",

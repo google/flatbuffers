@@ -111,6 +111,13 @@ void ConformTest() {
   test_conform(ref2, "enum E:int32 { A } table T2 { df:byte; f:E; }",
                "field renamed to different type: T2.df (renamed from T2.f)");
 
+  // Check enum underlying type changes.
+  test_conform("enum E:int32 {A}", "enum E: byte {A}", "underlying type differ for enum: E");
+  
+  // Check union underlying type changes.
+  const char ref3[] = "table A {} table B {} union C {A, B}";
+  test_conform(ref3, "table A {} table B {} union C:int32 {A, B}", "underlying type differ for union: C");
+
   // Check conformity for Offset64-related changes.
   {
     const char ref[] = "table T { a:[uint8]; b:string; }";

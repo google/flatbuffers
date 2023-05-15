@@ -1151,6 +1151,7 @@ class Parser : public ParserState {
   bool SupportsOptionalScalars() const;
   bool SupportsDefaultVectorsAndStrings() const;
   bool Supports64BitOffsets() const;
+  bool SupportsUnionUnderlyingType() const;
   Namespace *UniqueNamespace(Namespace *ns);
 
   FLATBUFFERS_CHECKED_ERROR RecurseError();
