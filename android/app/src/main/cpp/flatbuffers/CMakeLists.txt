@@ -48,26 +48,9 @@ set(FlatBuffers_Library_SRCS
         ${FLATBUFFERS_SRC}/src/code_generators.cpp
         )
 
-set(FlatBuffers_Test_SRCS
-        ${FLATBUFFERS_SRC}/tests/test.cpp
-        ${FLATBUFFERS_SRC}/tests/test_assert.h
-        ${FLATBUFFERS_SRC}/tests/test_builder.h
-        ${FLATBUFFERS_SRC}/tests/test_assert.cpp
-        ${FLATBUFFERS_SRC}/tests/test_builder.cpp
-        ${FLATBUFFERS_SRC}/tests/native_type_test_impl.h
-        ${FLATBUFFERS_SRC}/tests/native_type_test_impl.cpp
-)
-
 add_library( # Sets the name of the library.
              flatbuffers
 
              ${FlatBuffers_Library_SRCS}
-             ${FlatBuffers_Test_SRCS}
              ${Generated_SRCS}
-)
-
-add_library( # Sets the name of the library.
-             flatbuffers_tests
-
-             ${FlatBuffers_Test_SRCS}
 )
