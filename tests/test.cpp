@@ -39,6 +39,7 @@
 #include "proto_test.h"
 #include "reflection_test.h"
 #include "union_vector/union_vector_generated.h"
+#include "union_underlying_type_test_generated.h"
 #if !defined(_MSC_VER) || _MSC_VER >= 1700
 #  include "arrays_test_generated.h"
 #endif
@@ -1540,6 +1541,41 @@ void DoNotRequireEofTest(const std::string &tests_data_path) {
 }
 #endif
 
+void UnionUnderlyingTypeTest() {
+    using namespace UnionUnderlyingType;
+    TEST_ASSERT(sizeof(ABC) == sizeof(uint32_t));
+    TEST_ASSERT(ABC::ABC_A == 555);
+    TEST_ASSERT(ABC::ABC_B == 666);
+    TEST_ASSERT(ABC::ABC_C == 777);
+
+    DT buffer;
+    AT a;
+    a.a = 42;
+    BT b;
+    b.b = "foo";
+    CT c;
+    c.c = true;
+    buffer.test_union = ABCUnion();
+    buffer.test_union.Set(a);
+    buffer.test_vector_of_union.resize(3);
+    buffer.test_vector_of_union[0].Set(a);
+    buffer.test_vector_of_union[1].Set(b);
+    buffer.test_vector_of_union[2].Set(c);
+
+    flatbuffers::FlatBufferBuilder fbb;
+    auto offset = D::Pack(fbb, &buffer);
+    fbb.Finish(offset);
+
+    auto *root =
+    flatbuffers::GetRoot<D>(fbb.GetBufferPointer());
+    DT unpacked;
+    root->UnPackTo(&unpacked);
+
+    TEST_ASSERT(unpacked.test_union == buffer.test_union);
+    TEST_ASSERT(unpacked.test_vector_of_union == buffer.test_vector_of_union);
+
+}
+
 static void Offset64Tests() {
   Offset64Test();
   Offset64SerializedFirst();
@@ -1663,6 +1699,7 @@ int FlatBufferTests(const std::string &tests_data_path) {
   FixedSizedStructArrayKeyInStructTest();
   EmbeddedSchemaAccess();
   Offset64Tests();
+  UnionUnderlyingTypeTest();
   return 0;
 }
 }  // namespace
