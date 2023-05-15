@@ -4452,6 +4452,10 @@ std::string Parser::ConformTo(const Parser &base) {
           return "values differ for enum: " + enum_val.name;
       }
     }
+    // Check underlying type changes
+    if (enum_def_base->underlying_type.base_type != enum_def.underlying_type.base_type) {
+      return "underlying type differ for " + std::string(enum_def.is_union ? "union: " : "enum: ") + qualified_name;
+    }
   }
   return "";
 }
