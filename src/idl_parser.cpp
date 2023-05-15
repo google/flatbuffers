@@ -2722,7 +2722,7 @@ bool Parser::Supports64BitOffsets() const {
 }
 
 bool Parser::SupportsUnionUnderlyingType() const {
-    return (opts.lang_to_generate & ~IDLOptions::kCpp) == 0;
+    return (opts.lang_to_generate & ~(IDLOptions::kCpp | IDLOptions::kTs)) == 0;
 }
 
 Namespace *Parser::UniqueNamespace(Namespace *ns) {

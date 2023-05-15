@@ -845,7 +845,7 @@ void ParseUnionTest() {
   // Test union underlying type
   const char *source = "table A {} table B {} union U : int {A, B} table C {test_union: U; test_vector_of_union: [U];}";
   flatbuffers::Parser parser3;
-  parser3.opts.lang_to_generate = flatbuffers::IDLOptions::kCpp;
+  parser3.opts.lang_to_generate = flatbuffers::IDLOptions::kCpp | flatbuffers::IDLOptions::kTs;
   TEST_EQ(parser3.Parse(source), true);
   
   parser3.opts.lang_to_generate &= flatbuffers::IDLOptions::kJava;

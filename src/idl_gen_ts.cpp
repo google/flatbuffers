@@ -408,7 +408,7 @@ class TsGenerator : public BaseGenerator {
     switch (type.base_type) {
       case BASE_TYPE_BOOL:
       case BASE_TYPE_CHAR: return "Int8";
-      case BASE_TYPE_UTYPE:
+      case BASE_TYPE_UTYPE: return GenType(GetUnionUnderlyingType(type));
       case BASE_TYPE_UCHAR: return "Uint8";
       case BASE_TYPE_SHORT: return "Int16";
       case BASE_TYPE_USHORT: return "Uint16";
@@ -562,11 +562,26 @@ class TsGenerator : public BaseGenerator {
     }
   }
 
+  static Type GetUnionUnderlyingType(const Type &type)
+  {
+    if (type.enum_def != nullptr && 
+        type.enum_def->underlying_type.base_type != type.base_type) {
+      return type.enum_def->underlying_type;
+    } else {
+        return Type(BASE_TYPE_UCHAR);
+    }
+  }
+
+  static Type GetUnderlyingVectorType(const Type &vector_type)
+  {
+    return (vector_type.base_type == BASE_TYPE_UTYPE) ? GetUnionUnderlyingType(vector_type) : vector_type;
+  }
+
   // Returns the method name for use with add/put calls.
   std::string GenWriteMethod(const Type &type) {
     // Forward to signed versions since unsigned versions don't exist
     switch (type.base_type) {
-      case BASE_TYPE_UTYPE:
+      case BASE_TYPE_UTYPE: return GenWriteMethod(GetUnionUnderlyingType(type));
       case BASE_TYPE_UCHAR: return GenWriteMethod(Type(BASE_TYPE_CHAR));
       case BASE_TYPE_USHORT: return GenWriteMethod(Type(BASE_TYPE_SHORT));
       case BASE_TYPE_UINT: return GenWriteMethod(Type(BASE_TYPE_INT));
@@ -1763,7 +1778,8 @@ class TsGenerator : public BaseGenerator {
             auto vectortype = field.value.type.VectorType();
             auto vectortypename =
                 GenTypeName(imports, struct_def, vectortype, false);
-            auto inline_size = InlineSize(vectortype);
+            auto type = GetUnderlyingVectorType(vectortype);
+            auto inline_size = InlineSize(type);
             auto index = GenBBAccess() +
                          ".__vector(this.bb_pos + offset) + index" +
                          MaybeScale(inline_size);
@@ -1994,8 +2010,9 @@ class TsGenerator : public BaseGenerator {
 
         if (IsVector(field.value.type)) {
           auto vector_type = field.value.type.VectorType();
-          auto alignment = InlineAlignment(vector_type);
-          auto elem_size = InlineSize(vector_type);
+          auto type = GetUnderlyingVectorType(vector_type);
+          auto alignment = InlineAlignment(type);
+          auto elem_size = InlineSize(type);
 
           // Generate a method to create a vector from a JavaScript array
           if (!IsStruct(vector_type)) {
