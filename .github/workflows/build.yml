@@ -444,14 +444,23 @@ jobs:
       # gradlew
       run: gradle jvmMainClasses jvmTest jsTest jsBrowserTest
 
-  build-rust:
-    name: Build Rust
+  build-rust-linux:
+    name: Build Rust Linux
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
     - name: test
       working-directory: tests
       run: bash RustTest.sh
+  
+  build-rust-windows:
+    name: Build Rust Windows
+    runs-on: windows-2019
+    steps:
+    - uses: actions/checkout@v3
+    - name: test
+      working-directory: tests
+      run: ./RustTest.bat
 
   build-python:
     name: Build Python

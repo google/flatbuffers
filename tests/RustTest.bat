@@ -15,16 +15,19 @@ rem limitations under the License.
 
 rem Compile then run the Rust test.
 
-cd rust_usage_test
+cd rust_serialize_test
+cargo run -- --quiet || exit /b 1
+
+cd ../rust_no_std_compilation_test
+rustup install nightly
+rustup component add rust-src --toolchain nightly
+rustup target add thumbv7m-none-eabi
+cargo +nightly build || exit /b 1
+
+cd ../rust_usage_test
 cargo test -- --quiet || exit /b 1
 cargo run --bin=flatbuffers_alloc_check || exit /b 1
 cargo run --bin=flexbuffers_alloc_check || exit /b 1
 cargo run --bin=monster_example || exit /b 1
 cd ..
 
-cd rust_no_std_compilation_test
-rustup install nightly
-rustup component add rust-src --toolchain nightly
-rustup target add thumbv7m-none-eabi
-cargo build || exit /b 1
-cd ..
