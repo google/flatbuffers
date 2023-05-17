@@ -56,10 +56,10 @@ void AlignmentTest() {
   TEST_EQ(root_msg->small_structs()->size(), small_vector.size());
   for (flatbuffers::uoffset_t i = 0; i < root_msg->small_structs()->size();
        ++i) {
-    TEST_EQ(root_msg->small_structs()->Get(i)->var_0(),
-            small_vector[i].var_0());
-    TEST_EQ(root_msg->small_structs()->Get(i)->var_1(),
-            small_vector[i].var_1());
+    TEST_EQ(small_vector[i].var_0(),
+            root_msg->small_structs()->Get(i)->var_0());
+    TEST_EQ(small_vector[i].var_1(),
+            root_msg->small_structs()->Get(i)->var_1());
   }
 }
 
