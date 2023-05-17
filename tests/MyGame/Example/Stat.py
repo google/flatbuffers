@@ -58,19 +58,19 @@ def Start(builder):
 def StatAddId(builder, id):
     builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(id), 0)
 
-def AddId(builder: flatbuffers.Builder, id: int):
+def AddId(builder, id):
     StatAddId(builder, id)
 
 def StatAddVal(builder, val):
     builder.PrependInt64Slot(1, val, 0)
 
-def AddVal(builder: flatbuffers.Builder, val: int):
+def AddVal(builder, val):
     StatAddVal(builder, val)
 
 def StatAddCount(builder, count):
     builder.PrependUint16Slot(2, count, 0)
 
-def AddCount(builder: flatbuffers.Builder, count: int):
+def AddCount(builder, count):
     StatAddCount(builder, count)
 
 def StatEnd(builder):

@@ -42,7 +42,7 @@ class Object(object):
             x = self._tab.Vector(o)
             x += flatbuffers.number_types.UOffsetTFlags.py_type(j) * 4
             x = self._tab.Indirect(x)
-            from .reflection.Field import Field
+            from reflection.Field import Field
             obj = Field()
             obj.Init(self._tab.Bytes, x)
             return obj
@@ -88,7 +88,7 @@ class Object(object):
             x = self._tab.Vector(o)
             x += flatbuffers.number_types.UOffsetTFlags.py_type(j) * 4
             x = self._tab.Indirect(x)
-            from .reflection.KeyValue import KeyValue
+            from reflection.KeyValue import KeyValue
             obj = KeyValue()
             obj.Init(self._tab.Bytes, x)
             return obj
@@ -143,13 +143,13 @@ def Start(builder):
 def ObjectAddName(builder, name):
     builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(name), 0)
 
-def AddName(builder: flatbuffers.Builder, name: int):
+def AddName(builder, name):
     ObjectAddName(builder, name)
 
 def ObjectAddFields(builder, fields):
     builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(fields), 0)
 
-def AddFields(builder: flatbuffers.Builder, fields: int):
+def AddFields(builder, fields):
     ObjectAddFields(builder, fields)
 
 def ObjectStartFieldsVector(builder, numElems):
@@ -161,25 +161,25 @@ def StartFieldsVector(builder, numElems: int) -> int:
 def ObjectAddIsStruct(builder, isStruct):
     builder.PrependBoolSlot(2, isStruct, 0)
 
-def AddIsStruct(builder: flatbuffers.Builder, isStruct: bool):
+def AddIsStruct(builder, isStruct):
     ObjectAddIsStruct(builder, isStruct)
 
 def ObjectAddMinalign(builder, minalign):
     builder.PrependInt32Slot(3, minalign, 0)
 
-def AddMinalign(builder: flatbuffers.Builder, minalign: int):
+def AddMinalign(builder, minalign):
     ObjectAddMinalign(builder, minalign)
 
 def ObjectAddBytesize(builder, bytesize):
     builder.PrependInt32Slot(4, bytesize, 0)
 
-def AddBytesize(builder: flatbuffers.Builder, bytesize: int):
+def AddBytesize(builder, bytesize):
     ObjectAddBytesize(builder, bytesize)
 
 def ObjectAddAttributes(builder, attributes):
     builder.PrependUOffsetTRelativeSlot(5, flatbuffers.number_types.UOffsetTFlags.py_type(attributes), 0)
 
-def AddAttributes(builder: flatbuffers.Builder, attributes: int):
+def AddAttributes(builder, attributes):
     ObjectAddAttributes(builder, attributes)
 
 def ObjectStartAttributesVector(builder, numElems):
@@ -191,7 +191,7 @@ def StartAttributesVector(builder, numElems: int) -> int:
 def ObjectAddDocumentation(builder, documentation):
     builder.PrependUOffsetTRelativeSlot(6, flatbuffers.number_types.UOffsetTFlags.py_type(documentation), 0)
 
-def AddDocumentation(builder: flatbuffers.Builder, documentation: int):
+def AddDocumentation(builder, documentation):
     ObjectAddDocumentation(builder, documentation)
 
 def ObjectStartDocumentationVector(builder, numElems):
@@ -203,7 +203,7 @@ def StartDocumentationVector(builder, numElems: int) -> int:
 def ObjectAddDeclarationFile(builder, declarationFile):
     builder.PrependUOffsetTRelativeSlot(7, flatbuffers.number_types.UOffsetTFlags.py_type(declarationFile), 0)
 
-def AddDeclarationFile(builder: flatbuffers.Builder, declarationFile: int):
+def AddDeclarationFile(builder, declarationFile):
     ObjectAddDeclarationFile(builder, declarationFile)
 
 def ObjectEnd(builder):

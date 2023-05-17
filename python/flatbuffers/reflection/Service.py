@@ -42,7 +42,7 @@ class Service(object):
             x = self._tab.Vector(o)
             x += flatbuffers.number_types.UOffsetTFlags.py_type(j) * 4
             x = self._tab.Indirect(x)
-            from .reflection.RPCCall import RPCCall
+            from reflection.RPCCall import RPCCall
             obj = RPCCall()
             obj.Init(self._tab.Bytes, x)
             return obj
@@ -67,7 +67,7 @@ class Service(object):
             x = self._tab.Vector(o)
             x += flatbuffers.number_types.UOffsetTFlags.py_type(j) * 4
             x = self._tab.Indirect(x)
-            from .reflection.KeyValue import KeyValue
+            from reflection.KeyValue import KeyValue
             obj = KeyValue()
             obj.Init(self._tab.Bytes, x)
             return obj
@@ -122,13 +122,13 @@ def Start(builder):
 def ServiceAddName(builder, name):
     builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(name), 0)
 
-def AddName(builder: flatbuffers.Builder, name: int):
+def AddName(builder, name):
     ServiceAddName(builder, name)
 
 def ServiceAddCalls(builder, calls):
     builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(calls), 0)
 
-def AddCalls(builder: flatbuffers.Builder, calls: int):
+def AddCalls(builder, calls):
     ServiceAddCalls(builder, calls)
 
 def ServiceStartCallsVector(builder, numElems):
@@ -140,7 +140,7 @@ def StartCallsVector(builder, numElems: int) -> int:
 def ServiceAddAttributes(builder, attributes):
     builder.PrependUOffsetTRelativeSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(attributes), 0)
 
-def AddAttributes(builder: flatbuffers.Builder, attributes: int):
+def AddAttributes(builder, attributes):
     ServiceAddAttributes(builder, attributes)
 
 def ServiceStartAttributesVector(builder, numElems):
@@ -152,7 +152,7 @@ def StartAttributesVector(builder, numElems: int) -> int:
 def ServiceAddDocumentation(builder, documentation):
     builder.PrependUOffsetTRelativeSlot(3, flatbuffers.number_types.UOffsetTFlags.py_type(documentation), 0)
 
-def AddDocumentation(builder: flatbuffers.Builder, documentation: int):
+def AddDocumentation(builder, documentation):
     ServiceAddDocumentation(builder, documentation)
 
 def ServiceStartDocumentationVector(builder, numElems):
@@ -164,7 +164,7 @@ def StartDocumentationVector(builder, numElems: int) -> int:
 def ServiceAddDeclarationFile(builder, declarationFile):
     builder.PrependUOffsetTRelativeSlot(4, flatbuffers.number_types.UOffsetTFlags.py_type(declarationFile), 0)
 
-def AddDeclarationFile(builder: flatbuffers.Builder, declarationFile: int):
+def AddDeclarationFile(builder, declarationFile):
     ServiceAddDeclarationFile(builder, declarationFile)
 
 def ServiceEnd(builder):
