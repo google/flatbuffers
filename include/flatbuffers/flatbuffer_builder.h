@@ -722,9 +722,8 @@ template<bool Is64Aware = false> class FlatBufferBuilderImpl {
   /// @param[in] len The number of elements to serialize.
   /// @return Returns a typed `TOffset` into the serialized data indicating
   /// where the vector is stored.
-  template<template<typename...> class OffsetT = Offset,
-           template<typename...> class VectorT = Vector,
-           int &...ExplicitArgumentBarrier, typename T>
+  template<typename T, template<typename...> class OffsetT = Offset,
+           template<typename...> class VectorT = Vector>
   OffsetT<VectorT<T>> CreateVector(const T *v, size_t len) {
     // The type of the length field in the vector.
     typedef typename VectorT<T>::size_type LenT;
@@ -793,7 +792,7 @@ template<bool Is64Aware = false> class FlatBufferBuilderImpl {
   template<template<typename...> class VectorT = Vector64,
            int &...ExplicitArgumentBarrier, typename T>
   Offset64<VectorT<T>> CreateVector64(const std::vector<T> &v) {
-    return CreateVector<Offset64, VectorT>(data(v), v.size());
+    return CreateVector<T, Offset64, VectorT>(data(v), v.size());
   }
 
   // vector<bool> may be implemented using a bit-set, so we can't access it as
