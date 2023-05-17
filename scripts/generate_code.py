@@ -340,6 +340,12 @@ flatc(
 )
 
 flatc(
+    RUST_OPTS,
+    prefix="rust_namer_test",
+    schema="rust_namer_test.fbs",
+)
+
+flatc(
     BASE_OPTS + PYTHON_OPTS,
     schema="arrays_test.fbs",
 )
