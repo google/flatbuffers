@@ -146,7 +146,8 @@ class IdlNamer : public Namer {
 
   std::string LegacyRustUnionTypeMethod(const FieldDef &d) {
     // assert d is a union
-    return Method(d.name + "_type");
+    // d should convert case but not escape keywords due to historical reasons
+    return ConvertCase(d.name, config_.fields, Case::kLowerCamel) + "_type";
   }
 
  private:
