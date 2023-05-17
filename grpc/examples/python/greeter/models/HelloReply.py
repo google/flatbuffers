@@ -40,7 +40,7 @@ def Start(builder):
 def HelloReplyAddMessage(builder, message):
     builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(message), 0)
 
-def AddMessage(builder: flatbuffers.Builder, message: int):
+def AddMessage(builder, message):
     HelloReplyAddMessage(builder, message)
 
 def HelloReplyEnd(builder):
