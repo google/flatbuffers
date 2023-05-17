@@ -1302,11 +1302,6 @@ template<bool Is64Aware = false> class FlatBufferBuilderImpl {
   // This will remain 0 if no 64-bit offset types are added to the buffer.
   size_t length_of_64_bit_region_;
 
-  // When true, 64-bit offsets can still be added to the builder. When false,
-  // only 32-bit offsets can be added, and attempts to add a 64-bit offset will
-  // raise an assertion. This is typically a compile-time error in ordering the
-  // serialization of 64-bit offset fields not at the tail of the buffer.
-
   // Ensure objects are not nested.
   bool nested;
 
@@ -1417,8 +1412,8 @@ template<bool Is64Aware = false> class FlatBufferBuilderImpl {
 
 // Hack to `FlatBufferBuilder` mean `FlatBufferBuilder<false>` or
 // `FlatBufferBuilder<>`, where the template < > syntax is required.
-typedef FlatBufferBuilderImpl<false> FlatBufferBuilder;
-typedef FlatBufferBuilderImpl<true> FlatBufferBuilder64;
+using FlatBufferBuilder = FlatBufferBuilderImpl<false>;
+using FlatBufferBuilder64 = FlatBufferBuilderImpl<true>;
 
 // These are external due to GCC not allowing them in the class.
 // See: https://stackoverflow.com/q/8061456/868247
