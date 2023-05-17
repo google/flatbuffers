@@ -44,7 +44,7 @@ def Start(builder):
 def TestSimpleTableWithEnumAddColor(builder, color):
     builder.PrependUint8Slot(0, color, 2)
 
-def AddColor(builder: flatbuffers.Builder, color: int):
+def AddColor(builder, color):
     TestSimpleTableWithEnumAddColor(builder, color)
 
 def TestSimpleTableWithEnumEnd(builder):
