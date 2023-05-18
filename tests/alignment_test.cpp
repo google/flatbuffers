@@ -17,7 +17,7 @@ void AlignmentTest() {
   BadAlignmentSmall *small;
   Offset<Vector<const BadAlignmentSmall *>> small_offset =
       builder.CreateUninitializedVectorOfStructs(9, &small);
-  (void)small; // We do not have to write data to trigger the test failure
+  (void)small;  // We do not have to write data to trigger the test failure
 
   Offset<BadAlignmentRoot> root =
       CreateBadAlignmentRoot(builder, outer_large, small_offset);
