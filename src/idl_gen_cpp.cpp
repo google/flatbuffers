@@ -377,10 +377,8 @@ class CppGenerator : public BaseGenerator {
         code_ += "#pragma clang system_header\n\n";
       }
 
-      code_ += "#include \"flatbuffers/flatbuffers.h\"";
-      code_ += "";
-      GenFlatbuffersVersionCheck();
-      code_ += "";
+      code_ += "#include <cstddef>";
+      code_ += "#include <cstdint>";
 
       SetNameSpace(struct_def.defined_namespace);
       auto name = Name(struct_def);

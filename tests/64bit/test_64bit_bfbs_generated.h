@@ -4,15 +4,8 @@
 #ifndef FLATBUFFERS_GENERATED_TEST64BIT_BFBS_H_
 #define FLATBUFFERS_GENERATED_TEST64BIT_BFBS_H_
 
-#include "flatbuffers/flatbuffers.h"
-
-// Ensure the included flatbuffers.h is the same version as when this file was
-// generated, otherwise it may not be compatible.
-static_assert(FLATBUFFERS_VERSION_MAJOR == 23 &&
-              FLATBUFFERS_VERSION_MINOR == 5 &&
-              FLATBUFFERS_VERSION_REVISION == 9,
-             "Non-compatible flatbuffers version included");
-
+#include <cstddef>
+#include <cstdint>
 struct RootTableBinarySchema {
   static const uint8_t *data() {
     // Buffer containing the binary schema.
