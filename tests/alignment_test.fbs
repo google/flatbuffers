@@ -32,4 +32,4 @@ table SmallStructs {
   small_structs: [JustSmallStruct];
 }
 
-root_type BadAlignmentRoot;
+root_type SmallStructs;

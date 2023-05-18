@@ -2,6 +2,7 @@
 
 #include "tests/alignment_test_generated.h"
 #include "flatbuffers/flatbuffer_builder.h"
+#include "flatbuffers/util.h"
 #include "test_assert.h"
 
 namespace flatbuffers {
@@ -24,7 +25,7 @@ void AlignmentTest() {
   builder.Finish(root);
 
   Verifier verifier(builder.GetBufferPointer(), builder.GetSize());
-  TEST_ASSERT(VerifyBadAlignmentRootBuffer(verifier));
+  TEST_ASSERT(verifier.VerifyBuffer<BadAlignmentRoot>(nullptr));
 
 
   // ============= Test Small Structs Vector misalignment ========
@@ -44,6 +45,14 @@ void AlignmentTest() {
       CreateSmallStructs(builder, small_structs_offset);
 
   builder.Finish(small_structs_root);
+
+  // Save the binary that we later can annotate with `flatc --annotate` command
+  // NOTE: the conversion of the JSON data to --binary via `flatc --binary`
+  //       command is not changed with that fix and was always producing the
+  //       correct binary data.
+  // SaveFile("alignment_test_{before,after}_fix.bin",
+  //          reinterpret_cast<char *>(builder.GetBufferPointer()),
+  //          builder.GetSize(), true);
 
   Verifier verifier_small_structs(builder.GetBufferPointer(),
                                   builder.GetSize());
