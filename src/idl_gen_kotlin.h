@@ -24,6 +24,8 @@ namespace flatbuffers {
 // Constructs a new Kotlin code generator.
 std::unique_ptr<CodeGenerator> NewKotlinCodeGenerator();
 
+// Constructs a new Kotlin code generator.
+std::unique_ptr<CodeGenerator> NewKotlinKMPCodeGenerator();
 }  // namespace flatbuffers
 
 #endif  // FLATBUFFERS_IDL_GEN_KOTLIN_H_

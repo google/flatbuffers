@@ -1,5 +1,3 @@
-import org.jetbrains.kotlin.ir.backend.js.compile
-
 plugins {
   kotlin("multiplatform")
   id("org.jetbrains.kotlinx.benchmark")
@@ -39,11 +37,6 @@ kotlin {
   jvm()
 
   sourceSets {
-
-    all {
-      languageSettings.enableLanguageFeature("InlineClasses")
-    }
-
     val jvmMain by getting {
       dependencies {
         implementation(kotlin("stdlib-common"))
