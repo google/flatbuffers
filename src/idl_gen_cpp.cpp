@@ -377,10 +377,8 @@ class CppGenerator : public BaseGenerator {
         code_ += "#pragma clang system_header\n\n";
       }
 
-      code_ += "#include \"flatbuffers/flatbuffers.h\"";
-      code_ += "";
-      GenFlatbuffersVersionCheck();
-      code_ += "";
+      code_ += "#include <cstddef>";
+      code_ += "#include <cstdint>";
 
       SetNameSpace(struct_def.defined_namespace);
       auto name = Name(struct_def);
@@ -779,7 +777,12 @@ class CppGenerator : public BaseGenerator {
       if (type.enum_def) return WrapInNameSpace(*type.enum_def);
       if (type.base_type == BASE_TYPE_BOOL) return "bool";
     }
-    return StringOf(type.base_type);
+    // Get real underlying type for union type 
+    auto base_type = type.base_type;
+    if (type.base_type == BASE_TYPE_UTYPE && type.enum_def != nullptr) {
+        base_type = type.enum_def->underlying_type.base_type;
+    }
+    return StringOf(base_type);
   }
 
   // Return a C++ pointer type, specialized to the actual struct/table types,
@@ -1048,7 +1051,7 @@ class CppGenerator : public BaseGenerator {
 
   std::string UnionVectorVerifySignature(const EnumDef &enum_def) {
     const std::string name = Name(enum_def);
-    const std::string &type = opts_.scoped_enums ? name : "uint8_t";
+    const std::string &type = opts_.scoped_enums ? name : GenTypeBasic(enum_def.underlying_type, false); 
     return "bool Verify" + name + "Vector" +
            "(::flatbuffers::Verifier &verifier, " +
            "const ::flatbuffers::Vector<::flatbuffers::Offset<void>> "
@@ -3496,12 +3499,13 @@ class CppGenerator : public BaseGenerator {
           }
           case BASE_TYPE_UTYPE: {
             value = StripUnionType(value);
+            auto underlying_type = GenTypeBasic(vector_type, false);
             const std::string &type = opts_.scoped_enums
                                           ? Name(*field.value.type.enum_def)
-                                          : "uint8_t";
+                                          : underlying_type;
             auto enum_value = "__va->_" + value + "[i].type";
             if (!opts_.scoped_enums)
-              enum_value = "static_cast<uint8_t>(" + enum_value + ")";
+              enum_value = "static_cast<" + underlying_type + ">(" + enum_value + ")";
 
             code += "_fbb.CreateVector<" + type + ">(" + value +
                     ".size(), [](size_t i, _VectorArgs *__va) { return " +

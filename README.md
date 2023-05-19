@@ -87,7 +87,7 @@ Code generation and runtime libraries for many popular languages.
 
 ## Versioning
 
-FlatBuffers does not follow traditional Semver versioning (see [rationale](https://github.com/google/flatbuffers/wiki/Versioning)) but rather uses a format of the date of the release.
+FlatBuffers does not follow traditional SemVer versioning (see [rationale](https://github.com/google/flatbuffers/wiki/Versioning)) but rather uses a format of the date of the release.
 
 ## Contribution
 

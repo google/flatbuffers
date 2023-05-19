@@ -5,7 +5,7 @@
 import flatbuffers
 from flatbuffers.compat import import_numpy
 from typing import Any
-from .MyGame.Example.NestedStruct import NestedStruct
+from MyGame.Example.NestedStruct import NestedStruct
 np = import_numpy()
 
 class ArrayStruct(object):

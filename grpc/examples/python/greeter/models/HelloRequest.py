@@ -40,7 +40,7 @@ def Start(builder):
 def HelloRequestAddName(builder, name):
     builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(name), 0)
 
-def AddName(builder: flatbuffers.Builder, name: int):
+def AddName(builder, name):
     HelloRequestAddName(builder, name)
 
 def HelloRequestEnd(builder):

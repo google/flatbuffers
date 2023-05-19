@@ -646,7 +646,7 @@ void TestMonsterExtraFloats(const std::string &tests_data_path) {
   TEST_EQ(def_extra->d2(), +infinity_d);
   TEST_EQ(def_extra->d3(), -infinity_d);
   std::string jsongen;
-  auto result = GenerateText(parser, def_obj, &jsongen);
+  auto result = GenText(parser, def_obj, &jsongen);
   TEST_NULL(result);
   // Check expected default values.
   TEST_EQ(std::string::npos != jsongen.find("f0: nan"), true);
@@ -796,8 +796,7 @@ void ParseAndGenerateTextTest(const std::string &tests_data_path, bool binary) {
   // to ensure it is correct, we now generate text back from the binary,
   // and compare the two:
   std::string jsongen;
-  auto result =
-      GenerateText(parser, parser.builder_.GetBufferPointer(), &jsongen);
+  auto result = GenText(parser, parser.builder_.GetBufferPointer(), &jsongen);
   TEST_NULL(result);
   TEST_EQ_STR(jsongen.c_str(), jsonfile.c_str());
 
@@ -836,8 +835,7 @@ void ParseAndGenerateTextTest(const std::string &tests_data_path, bool binary) {
   // request natural printing for utf-8 strings
   parser.opts.natural_utf8 = true;
   parser.opts.strict_json = true;
-  TEST_NULL(
-      GenerateText(parser, parser.builder_.GetBufferPointer(), &jsongen_utf8));
+  TEST_NULL(GenText(parser, parser.builder_.GetBufferPointer(), &jsongen_utf8));
   TEST_EQ_STR(jsongen_utf8.c_str(), jsonfile_utf8.c_str());
 }
 

@@ -69,13 +69,13 @@ def Start(builder):
 def SchemaFileAddFilename(builder, filename):
     builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(filename), 0)
 
-def AddFilename(builder: flatbuffers.Builder, filename: int):
+def AddFilename(builder, filename):
     SchemaFileAddFilename(builder, filename)
 
 def SchemaFileAddIncludedFilenames(builder, includedFilenames):
     builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(includedFilenames), 0)
 
-def AddIncludedFilenames(builder: flatbuffers.Builder, includedFilenames: int):
+def AddIncludedFilenames(builder, includedFilenames):
     SchemaFileAddIncludedFilenames(builder, includedFilenames)
 
 def SchemaFileStartIncludedFilenamesVector(builder, numElems):

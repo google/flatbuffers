@@ -117,6 +117,11 @@ flatc(
 )
 esbuild("typescript_keywords.ts", "typescript_keywords_generated.cjs")
 
+flatc(
+    options=["--ts", "--reflect-names", "--gen-name-strings", "--gen-mutable", "--gen-object-api", "--ts-entry-points", "--ts-flat-files"],
+    schema="../union_underlying_type_test.fbs"
+)
+
 print("Running TypeScript Compiler...")
 check_call(["tsc"])
 print("Running TypeScript Compiler in old node resolution mode for no_import_ext...")
@@ -129,6 +134,7 @@ check_call(NODE_CMD + ["JavaScriptTest"])
 check_call(NODE_CMD + ["JavaScriptUnionVectorTest"])
 check_call(NODE_CMD + ["JavaScriptFlexBuffersTest"])
 check_call(NODE_CMD + ["JavaScriptComplexArraysTest"])
+check_call(NODE_CMD + ["JavaScriptUnionUnderlyingTypeTest"])
 
 print("Running old v1 TypeScript Tests...")
 check_call(NODE_CMD + ["JavaScriptTestv1.cjs", "./monster_test_generated.cjs"])

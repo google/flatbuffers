@@ -161,67 +161,67 @@ def Start(builder):
 def TypeAliasesAddI8(builder, i8):
     builder.PrependInt8Slot(0, i8, 0)
 
-def AddI8(builder: flatbuffers.Builder, i8: int):
+def AddI8(builder, i8):
     TypeAliasesAddI8(builder, i8)
 
 def TypeAliasesAddU8(builder, u8):
     builder.PrependUint8Slot(1, u8, 0)
 
-def AddU8(builder: flatbuffers.Builder, u8: int):
+def AddU8(builder, u8):
     TypeAliasesAddU8(builder, u8)
 
 def TypeAliasesAddI16(builder, i16):
     builder.PrependInt16Slot(2, i16, 0)
 
-def AddI16(builder: flatbuffers.Builder, i16: int):
+def AddI16(builder, i16):
     TypeAliasesAddI16(builder, i16)
 
 def TypeAliasesAddU16(builder, u16):
     builder.PrependUint16Slot(3, u16, 0)
 
-def AddU16(builder: flatbuffers.Builder, u16: int):
+def AddU16(builder, u16):
     TypeAliasesAddU16(builder, u16)
 
 def TypeAliasesAddI32(builder, i32):
     builder.PrependInt32Slot(4, i32, 0)
 
-def AddI32(builder: flatbuffers.Builder, i32: int):
+def AddI32(builder, i32):
     TypeAliasesAddI32(builder, i32)
 
 def TypeAliasesAddU32(builder, u32):
     builder.PrependUint32Slot(5, u32, 0)
 
-def AddU32(builder: flatbuffers.Builder, u32: int):
+def AddU32(builder, u32):
     TypeAliasesAddU32(builder, u32)
 
 def TypeAliasesAddI64(builder, i64):
     builder.PrependInt64Slot(6, i64, 0)
 
-def AddI64(builder: flatbuffers.Builder, i64: int):
+def AddI64(builder, i64):
     TypeAliasesAddI64(builder, i64)
 
 def TypeAliasesAddU64(builder, u64):
     builder.PrependUint64Slot(7, u64, 0)
 
-def AddU64(builder: flatbuffers.Builder, u64: int):
+def AddU64(builder, u64):
     TypeAliasesAddU64(builder, u64)
 
 def TypeAliasesAddF32(builder, f32):
     builder.PrependFloat32Slot(8, f32, 0.0)
 
-def AddF32(builder: flatbuffers.Builder, f32: float):
+def AddF32(builder, f32):
     TypeAliasesAddF32(builder, f32)
 
 def TypeAliasesAddF64(builder, f64):
     builder.PrependFloat64Slot(9, f64, 0.0)
 
-def AddF64(builder: flatbuffers.Builder, f64: float):
+def AddF64(builder, f64):
     TypeAliasesAddF64(builder, f64)
 
 def TypeAliasesAddV8(builder, v8):
     builder.PrependUOffsetTRelativeSlot(10, flatbuffers.number_types.UOffsetTFlags.py_type(v8), 0)
 
-def AddV8(builder: flatbuffers.Builder, v8: int):
+def AddV8(builder, v8):
     TypeAliasesAddV8(builder, v8)
 
 def TypeAliasesStartV8Vector(builder, numElems):
@@ -233,7 +233,7 @@ def StartV8Vector(builder, numElems: int) -> int:
 def TypeAliasesAddVf64(builder, vf64):
     builder.PrependUOffsetTRelativeSlot(11, flatbuffers.number_types.UOffsetTFlags.py_type(vf64), 0)
 
-def AddVf64(builder: flatbuffers.Builder, vf64: int):
+def AddVf64(builder, vf64):
     TypeAliasesAddVf64(builder, vf64)
 
 def TypeAliasesStartVf64Vector(builder, numElems):

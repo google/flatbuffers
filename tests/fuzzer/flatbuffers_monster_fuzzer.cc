@@ -78,8 +78,8 @@ std::string do_test(const flatbuffers::IDLOptions &opts,
     flatbuffers::Verifier verifier(parser_.builder_.GetBufferPointer(),
                                    parser_.builder_.GetSize());
     TEST_EQ(true, MyGame::Example::VerifyMonsterBuffer(verifier));
-    TEST_ASSERT(
-        GenerateText(parser_, parser_.builder_.GetBufferPointer(), &jsongen));
+    TEST_NULL(
+        GenText(parser_, parser_.builder_.GetBufferPointer(), &jsongen));
   } else if (check_parser) {
     TEST_OUTPUT_LINE("parser failed with JSON:\n%s", input_json.c_str());
     TEST_EQ_STR("", parser_.error_.c_str());

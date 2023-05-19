@@ -44,7 +44,7 @@ def Start(builder):
 def ReferrableAddId(builder, id):
     builder.PrependUint64Slot(0, id, 0)
 
-def AddId(builder: flatbuffers.Builder, id: int):
+def AddId(builder, id):
     ReferrableAddId(builder, id)
 
 def ReferrableEnd(builder):
