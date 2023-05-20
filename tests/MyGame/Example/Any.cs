@@ -14,6 +14,31 @@ public enum Any : byte
   MyGame_Example2_Monster = 3,
 };
 
+
+
+static public class AnyVerify
+{
+  static public bool Verify(Google.FlatBuffers.Verifier verifier, byte typeId, uint tablePos)
+  {
+    bool result = true;
+    switch((Any)typeId)
+    {
+      case Any.Monster:
+        result = MyGame.Example.MonsterVerify.Verify(verifier, tablePos);
+        break;
+      case Any.TestSimpleTableWithEnum:
+        result = MyGame.Example.TestSimpleTableWithEnumVerify.Verify(verifier, tablePos);
+        break;
+      case Any.MyGame_Example2_Monster:
+        result = MyGame.Example2.MonsterVerify.Verify(verifier, tablePos);
+        break;
+      default: result = true;
+        break;
+    }
+    return result;
+  }
+}
+
 public class AnyUnion {
   public Any Type { get; set; }
   public object Value { get; set; }
@@ -38,31 +63,6 @@ public class AnyUnion {
       case Any.TestSimpleTableWithEnum: return MyGame.Example.TestSimpleTableWithEnum.Pack(builder, _o.AsTestSimpleTableWithEnum()).Value;
       case Any.MyGame_Example2_Monster: return MyGame.Example2.Monster.Pack(builder, _o.AsMyGame_Example2_Monster()).Value;
     }
-  }
-}
-
-
-
-static public class AnyVerify
-{
-  static public bool Verify(Google.FlatBuffers.Verifier verifier, byte typeId, uint tablePos)
-  {
-    bool result = true;
-    switch((Any)typeId)
-    {
-      case Any.Monster:
-        result = MyGame.Example.MonsterVerify.Verify(verifier, tablePos);
-        break;
-      case Any.TestSimpleTableWithEnum:
-        result = MyGame.Example.TestSimpleTableWithEnumVerify.Verify(verifier, tablePos);
-        break;
-      case Any.MyGame_Example2_Monster:
-        result = MyGame.Example2.MonsterVerify.Verify(verifier, tablePos);
-        break;
-      default: result = true;
-        break;
-    }
-    return result;
   }
 }
 
