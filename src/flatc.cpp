@@ -117,7 +117,7 @@ const static FlatCOption flatc_options[] = {
     "Add Clang _Nullable for C++ pointer. or @Nullable for Java" },
   { "", "java-package-prefix", "",
     "Add a prefix to the generated package name for Java." },
-  { "", "java-checkerframe", "", "Add @Pure for Java." },
+  { "", "java-checkerframework", "", "Add @Pure for Java." },
   { "", "gen-generated", "", "Add @Generated annotation for Java." },
   { "", "gen-jvmstatic", "",
     "Add @JvmStatic annotation for Kotlin methods in companion object for "
@@ -250,6 +250,11 @@ const static FlatCOption flatc_options[] = {
   { "", "no-leak-private-annotation", "",
     "Prevents multiple type of annotations within a Fbs SCHEMA file. "
     "Currently this is required to generate private types in Rust" },
+  { "", "python-no-type-prefix-suffix", "",
+    "Skip emission of Python functions that are prefixed with typenames" },
+  { "", "python-typing", "", "Generate Python type annotations" },
+  { "", "file-names-only", "",
+    "Print out generated file names without writing to the files" },
 };
 
 auto cmp = [](FlatCOption a, FlatCOption b) { return a.long_opt < b.long_opt; };
@@ -388,9 +393,11 @@ void FlatCompiler::AnnotateBinaries(const uint8_t *binary_schema,
     const uint8_t *binary =
         reinterpret_cast<const uint8_t *>(binary_contents.c_str());
     const size_t binary_size = binary_contents.size();
+    const bool is_size_prefixed = options.opts.size_prefixed;
 
     flatbuffers::BinaryAnnotator binary_annotator(
-        binary_schema, binary_schema_size, binary, binary_size);
+        binary_schema, binary_schema_size, binary, binary_size,
+        is_size_prefixed);
 
     auto annotations = binary_annotator.Annotate();
 
@@ -648,11 +655,18 @@ FlatCOptions FlatCompiler::ParseFromCommandLineArguments(int argc,
         opts.ts_no_import_ext = true;
       } else if (arg == "--no-leak-private-annotation") {
         opts.no_leak_private_annotations = true;
+      } else if (arg == "--python-no-type-prefix-suffix") {
+        opts.python_no_type_prefix_suffix = true;
+      } else if (arg == "--python-typing") {
+        opts.python_typing = true;
       } else if (arg == "--annotate-sparse-vectors") {
         options.annotate_include_vector_contents = false;
       } else if (arg == "--annotate") {
         if (++argi >= argc) Error("missing path following: " + arg, true);
         options.annotate_schema = flatbuffers::PosixPath(argv[argi]);
+      } else if (arg == "--file-names-only") {
+        // TODO (khhn): Provide 2 implementation
+        options.file_names_only = true;
       } else {
         if (arg == "--proto") { opts.proto_mode = true; }
 
@@ -852,11 +866,15 @@ std::unique_ptr<Parser> FlatCompiler::GenerateCode(const FlatCOptions &options,
 
         // Prefer bfbs generators if present.
         if (code_generator->SupportsBfbsGeneration()) {
-          const CodeGenerator::Status status =
-              code_generator->GenerateCode(bfbs_buffer, bfbs_length);
+          CodeGenOptions code_gen_options;
+          code_gen_options.output_path = options.output_path;
+
+          const CodeGenerator::Status status = code_generator->GenerateCode(
+              bfbs_buffer, bfbs_length, code_gen_options);
           if (status != CodeGenerator::Status::OK) {
             Error("Unable to generate " + code_generator->LanguageName() +
-                  " for " + filebase + " using bfbs generator.");
+                  " for " + filebase + code_generator->status_detail +
+                  " using bfbs generator.");
           }
         } else {
           if ((!code_generator->IsSchemaOnly() ||
@@ -865,7 +883,7 @@ std::unique_ptr<Parser> FlatCompiler::GenerateCode(const FlatCOptions &options,
                                            filebase) !=
                   CodeGenerator::Status::OK) {
             Error("Unable to generate " + code_generator->LanguageName() +
-                  " for " + filebase);
+                  " for " + filebase + code_generator->status_detail);
           }
         }
       }
@@ -953,7 +971,7 @@ int FlatCompiler::Compile(const FlatCOptions &options) {
     return 0;
   }
 
-  if (options.generators.empty()) {
+  if (options.generators.empty() && options.conform_to_schema.empty()) {
     Error("No generator registered");
     return -1;
   }

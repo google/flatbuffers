@@ -237,7 +237,7 @@ public struct MyGame_Example_AnyAmbiguousAliasesUnion {
 }
 public struct MyGame_Example_Test: NativeStruct, Verifiable, FlatbuffersInitializable, NativeObject {
 
-  static func validateVersion() { FlatBuffersVersion_23_1_21() }
+  static func validateVersion() { FlatBuffersVersion_23_5_9() }
 
   private var _a: Int16
   private var _b: Int8
@@ -291,7 +291,7 @@ extension MyGame_Example_Test: Encodable {
 
 public struct MyGame_Example_Test_Mutable: FlatBufferObject {
 
-  static func validateVersion() { FlatBuffersVersion_23_1_21() }
+  static func validateVersion() { FlatBuffersVersion_23_5_9() }
   public var __buffer: ByteBuffer! { return _accessor.bb }
   private var _accessor: Struct
 
@@ -318,7 +318,7 @@ public struct MyGame_Example_Test_Mutable: FlatBufferObject {
 
 public struct MyGame_Example_Vec3: NativeStruct, Verifiable, FlatbuffersInitializable, NativeObject {
 
-  static func validateVersion() { FlatBuffersVersion_23_1_21() }
+  static func validateVersion() { FlatBuffersVersion_23_5_9() }
 
   private var _x: Float32
   private var _y: Float32
@@ -413,7 +413,7 @@ extension MyGame_Example_Vec3: Encodable {
 
 public struct MyGame_Example_Vec3_Mutable: FlatBufferObject {
 
-  static func validateVersion() { FlatBuffersVersion_23_1_21() }
+  static func validateVersion() { FlatBuffersVersion_23_5_9() }
   public var __buffer: ByteBuffer! { return _accessor.bb }
   private var _accessor: Struct
 
@@ -447,7 +447,7 @@ public struct MyGame_Example_Vec3_Mutable: FlatBufferObject {
 
 public struct MyGame_Example_Ability: NativeStruct, Verifiable, FlatbuffersInitializable, NativeObject {
 
-  static func validateVersion() { FlatBuffersVersion_23_1_21() }
+  static func validateVersion() { FlatBuffersVersion_23_5_9() }
 
   private var _id: UInt32
   private var _distance: UInt32
@@ -500,7 +500,7 @@ extension MyGame_Example_Ability: Encodable {
 
 public struct MyGame_Example_Ability_Mutable: FlatBufferObject {
 
-  static func validateVersion() { FlatBuffersVersion_23_1_21() }
+  static func validateVersion() { FlatBuffersVersion_23_5_9() }
   public var __buffer: ByteBuffer! { return _accessor.bb }
   private var _accessor: Struct
 
@@ -527,7 +527,7 @@ public struct MyGame_Example_Ability_Mutable: FlatBufferObject {
 
 public struct MyGame_Example_StructOfStructs: NativeStruct, Verifiable, FlatbuffersInitializable, NativeObject {
 
-  static func validateVersion() { FlatBuffersVersion_23_1_21() }
+  static func validateVersion() { FlatBuffersVersion_23_5_9() }
 
   private var _a: MyGame_Example_Ability
   private var _b: MyGame_Example_Test
@@ -587,7 +587,7 @@ extension MyGame_Example_StructOfStructs: Encodable {
 
 public struct MyGame_Example_StructOfStructs_Mutable: FlatBufferObject {
 
-  static func validateVersion() { FlatBuffersVersion_23_1_21() }
+  static func validateVersion() { FlatBuffersVersion_23_5_9() }
   public var __buffer: ByteBuffer! { return _accessor.bb }
   private var _accessor: Struct
 
@@ -613,7 +613,7 @@ public struct MyGame_Example_StructOfStructs_Mutable: FlatBufferObject {
 
 public struct MyGame_Example_StructOfStructsOfStructs: NativeStruct, Verifiable, FlatbuffersInitializable, NativeObject {
 
-  static func validateVersion() { FlatBuffersVersion_23_1_21() }
+  static func validateVersion() { FlatBuffersVersion_23_5_9() }
 
   private var _a: MyGame_Example_StructOfStructs
 
@@ -655,7 +655,7 @@ extension MyGame_Example_StructOfStructsOfStructs: Encodable {
 
 public struct MyGame_Example_StructOfStructsOfStructs_Mutable: FlatBufferObject {
 
-  static func validateVersion() { FlatBuffersVersion_23_1_21() }
+  static func validateVersion() { FlatBuffersVersion_23_5_9() }
   public var __buffer: ByteBuffer! { return _accessor.bb }
   private var _accessor: Struct
 
@@ -679,7 +679,7 @@ public struct MyGame_Example_StructOfStructsOfStructs_Mutable: FlatBufferObject 
 
 public struct MyGame_InParentNamespace: FlatBufferObject, Verifiable, ObjectAPIPacker {
 
-  static func validateVersion() { FlatBuffersVersion_23_1_21() }
+  static func validateVersion() { FlatBuffersVersion_23_5_9() }
   public var __buffer: ByteBuffer! { return _accessor.bb }
   private var _accessor: Table
 
@@ -731,7 +731,7 @@ public class MyGame_InParentNamespaceT: NativeObject {
 }
 public struct MyGame_Example2_Monster: FlatBufferObject, Verifiable, ObjectAPIPacker {
 
-  static func validateVersion() { FlatBuffersVersion_23_1_21() }
+  static func validateVersion() { FlatBuffersVersion_23_5_9() }
   public var __buffer: ByteBuffer! { return _accessor.bb }
   private var _accessor: Table
 
@@ -783,7 +783,7 @@ public class MyGame_Example2_MonsterT: NativeObject {
 }
 internal struct MyGame_Example_TestSimpleTableWithEnum: FlatBufferObject, Verifiable, ObjectAPIPacker {
 
-  static func validateVersion() { FlatBuffersVersion_23_1_21() }
+  static func validateVersion() { FlatBuffersVersion_23_5_9() }
   internal var __buffer: ByteBuffer! { return _accessor.bb }
   private var _accessor: Table
 
@@ -864,7 +864,7 @@ internal class MyGame_Example_TestSimpleTableWithEnumT: NativeObject {
 }
 public struct MyGame_Example_Stat: FlatBufferObject, Verifiable, ObjectAPIPacker {
 
-  static func validateVersion() { FlatBuffersVersion_23_1_21() }
+  static func validateVersion() { FlatBuffersVersion_23_5_9() }
   public var __buffer: ByteBuffer! { return _accessor.bb }
   private var _accessor: Table
 
@@ -1003,7 +1003,7 @@ public class MyGame_Example_StatT: NativeObject {
 }
 public struct MyGame_Example_Referrable: FlatBufferObject, Verifiable, ObjectAPIPacker {
 
-  static func validateVersion() { FlatBuffersVersion_23_1_21() }
+  static func validateVersion() { FlatBuffersVersion_23_5_9() }
   public var __buffer: ByteBuffer! { return _accessor.bb }
   private var _accessor: Table
 
@@ -1109,7 +1109,7 @@ public class MyGame_Example_ReferrableT: NativeObject {
 ///  an example documentation comment: "monster object"
 public struct MyGame_Example_Monster: FlatBufferObject, Verifiable, ObjectAPIPacker {
 
-  static func validateVersion() { FlatBuffersVersion_23_1_21() }
+  static func validateVersion() { FlatBuffersVersion_23_5_9() }
   public var __buffer: ByteBuffer! { return _accessor.bb }
   private var _accessor: Table
 
@@ -1221,8 +1221,8 @@ public struct MyGame_Example_Monster: FlatBufferObject, Verifiable, ObjectAPIPac
   public var testnestedflatbuffer: [UInt8] { return _accessor.getVector(at: VTOFFSET.testnestedflatbuffer.v) ?? [] }
   public func mutate(testnestedflatbuffer: UInt8, at index: Int32) -> Bool { let o = _accessor.offset(VTOFFSET.testnestedflatbuffer.v); return _accessor.directMutate(testnestedflatbuffer, index: _accessor.vector(at: o) + index * 1) }
   public var testempty: MyGame_Example_Stat? { let o = _accessor.offset(VTOFFSET.testempty.v); return o == 0 ? nil : MyGame_Example_Stat(_accessor.bb, o: _accessor.indirect(o + _accessor.postion)) }
-  public var testbool: Bool { let o = _accessor.offset(VTOFFSET.testbool.v); return o == 0 ? false : 0 != _accessor.readBuffer(of: Byte.self, at: o) }
-  @discardableResult public func mutate(testbool: Byte) -> Bool {let o = _accessor.offset(VTOFFSET.testbool.v);  return _accessor.mutate(testbool, index: o) }
+  public var testbool: Bool { let o = _accessor.offset(VTOFFSET.testbool.v); return o == 0 ? false : _accessor.readBuffer(of: Bool.self, at: o) }
+  @discardableResult public func mutate(testbool: Bool) -> Bool {let o = _accessor.offset(VTOFFSET.testbool.v);  return _accessor.mutate(testbool, index: o) }
   public var testhashs32Fnv1: Int32 { let o = _accessor.offset(VTOFFSET.testhashs32Fnv1.v); return o == 0 ? 0 : _accessor.readBuffer(of: Int32.self, at: o) }
   @discardableResult public func mutate(testhashs32Fnv1: Int32) -> Bool {let o = _accessor.offset(VTOFFSET.testhashs32Fnv1.v);  return _accessor.mutate(testhashs32Fnv1, index: o) }
   public var testhashu32Fnv1: UInt32 { let o = _accessor.offset(VTOFFSET.testhashu32Fnv1.v); return o == 0 ? 0 : _accessor.readBuffer(of: UInt32.self, at: o) }
@@ -2405,7 +2405,7 @@ public class MyGame_Example_MonsterT: NativeObject {
 }
 public struct MyGame_Example_TypeAliases: FlatBufferObject, Verifiable, ObjectAPIPacker {
 
-  static func validateVersion() { FlatBuffersVersion_23_1_21() }
+  static func validateVersion() { FlatBuffersVersion_23_5_9() }
   public var __buffer: ByteBuffer! { return _accessor.bb }
   private var _accessor: Table
 

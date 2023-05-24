@@ -4,15 +4,8 @@
 #ifndef FLATBUFFERS_GENERATED_MONSTERTEST_MYGAME_EXAMPLE_BFBS_H_
 #define FLATBUFFERS_GENERATED_MONSTERTEST_MYGAME_EXAMPLE_BFBS_H_
 
-#include "flatbuffers/flatbuffers.h"
-
-// Ensure the included flatbuffers.h is the same version as when this file was
-// generated, otherwise it may not be compatible.
-static_assert(FLATBUFFERS_VERSION_MAJOR == 23 &&
-              FLATBUFFERS_VERSION_MINOR == 1 &&
-              FLATBUFFERS_VERSION_REVISION == 21,
-             "Non-compatible flatbuffers version included");
-
+#include <cstddef>
+#include <cstdint>
 namespace MyGame {
 namespace Example {
 

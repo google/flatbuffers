@@ -13,7 +13,7 @@ public struct Table2 : IFlatbufferObject
 {
   private Table __p;
   public ByteBuffer ByteBuffer { get { return __p.bb; } }
-  public static void ValidateVersion() { FlatBufferConstants.FLATBUFFERS_23_1_21(); }
+  public static void ValidateVersion() { FlatBufferConstants.FLATBUFFERS_23_5_9(); }
   public static Table2 GetRootAsTable2(ByteBuffer _bb) { return GetRootAsTable2(_bb, new Table2()); }
   public static Table2 GetRootAsTable2(ByteBuffer _bb, Table2 obj) { return (obj.__assign(_bb.GetInt(_bb.Position) + _bb.Position, _bb)); }
   public void __init(int _i, ByteBuffer _bb) { __p = new Table(_i, _bb); }
@@ -90,5 +90,16 @@ public class Table2T
   }
 }
 
+
+static public class Table2Verify
+{
+  static public bool Verify(Google.FlatBuffers.Verifier verifier, uint tablePos)
+  {
+    return verifier.VerifyTableStart(tablePos)
+      && verifier.VerifyField(tablePos, 4 /*TypeType*/, 1 /*KeywordTest.KeywordsInUnion*/, 1, false)
+      && verifier.VerifyUnion(tablePos, 4, 6 /*Type*/, KeywordTest.KeywordsInUnionVerify.Verify, false)
+      && verifier.VerifyTableEnd(tablePos);
+  }
+}
 
 }

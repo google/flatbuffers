@@ -46,7 +46,7 @@ extern "C" int LLVMFuzzerInitialize(int *, char ***argv) {
 
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
   flatbuffers::BinaryAnnotator annotator(schema_bfbs_, schema_bfbs_length_,
-                                         data, size);
+                                         data, size, false);
 
   annotator.Annotate();
   return 0;

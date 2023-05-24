@@ -4,13 +4,16 @@
 
 import flatbuffers
 from flatbuffers.compat import import_numpy
+from typing import Any
+from MyGame.Example.NestedUnion.Test import Test
+from typing import Optional
 np = import_numpy()
 
 class Vec3(object):
     __slots__ = ['_tab']
 
     @classmethod
-    def GetRootAs(cls, buf, offset=0):
+    def GetRootAs(cls, buf, offset: int = 0):
         n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, offset)
         x = Vec3()
         x.Init(buf, n + offset)
@@ -21,7 +24,7 @@ class Vec3(object):
         """This method is deprecated. Please switch to GetRootAs."""
         return cls.GetRootAs(buf, offset)
     # Vec3
-    def Init(self, buf, pos):
+    def Init(self, buf: bytes, pos: int):
         self._tab = flatbuffers.table.Table(buf, pos)
 
     # Vec3
@@ -60,40 +63,63 @@ class Vec3(object):
         return 0
 
     # Vec3
-    def Test3(self):
+    def Test3(self) -> Optional[Test]:
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(14))
         if o != 0:
             x = o + self._tab.Pos
-            from MyGame.Example.NestedUnion.Test import Test
             obj = Test()
             obj.Init(self._tab.Bytes, x)
             return obj
         return None
 
-def Vec3Start(builder): builder.StartObject(6)
-def Start(builder):
-    return Vec3Start(builder)
-def Vec3AddX(builder, x): builder.PrependFloat64Slot(0, x, 0.0)
-def AddX(builder, x):
-    return Vec3AddX(builder, x)
-def Vec3AddY(builder, y): builder.PrependFloat64Slot(1, y, 0.0)
-def AddY(builder, y):
-    return Vec3AddY(builder, y)
-def Vec3AddZ(builder, z): builder.PrependFloat64Slot(2, z, 0.0)
-def AddZ(builder, z):
-    return Vec3AddZ(builder, z)
-def Vec3AddTest1(builder, test1): builder.PrependFloat64Slot(3, test1, 0.0)
-def AddTest1(builder, test1):
-    return Vec3AddTest1(builder, test1)
-def Vec3AddTest2(builder, test2): builder.PrependUint8Slot(4, test2, 0)
-def AddTest2(builder, test2):
-    return Vec3AddTest2(builder, test2)
-def Vec3AddTest3(builder, test3): builder.PrependStructSlot(5, flatbuffers.number_types.UOffsetTFlags.py_type(test3), 0)
-def AddTest3(builder, test3):
-    return Vec3AddTest3(builder, test3)
-def Vec3End(builder): return builder.EndObject()
-def End(builder):
+def Vec3Start(builder: flatbuffers.Builder):
+    builder.StartObject(6)
+
+def Start(builder: flatbuffers.Builder):
+    Vec3Start(builder)
+
+def Vec3AddX(builder: flatbuffers.Builder, x: float):
+    builder.PrependFloat64Slot(0, x, 0.0)
+
+def AddX(builder: flatbuffers.Builder, x: float):
+    Vec3AddX(builder, x)
+
+def Vec3AddY(builder: flatbuffers.Builder, y: float):
+    builder.PrependFloat64Slot(1, y, 0.0)
+
+def AddY(builder: flatbuffers.Builder, y: float):
+    Vec3AddY(builder, y)
+
+def Vec3AddZ(builder: flatbuffers.Builder, z: float):
+    builder.PrependFloat64Slot(2, z, 0.0)
+
+def AddZ(builder: flatbuffers.Builder, z: float):
+    Vec3AddZ(builder, z)
+
+def Vec3AddTest1(builder: flatbuffers.Builder, test1: float):
+    builder.PrependFloat64Slot(3, test1, 0.0)
+
+def AddTest1(builder: flatbuffers.Builder, test1: float):
+    Vec3AddTest1(builder, test1)
+
+def Vec3AddTest2(builder: flatbuffers.Builder, test2: int):
+    builder.PrependUint8Slot(4, test2, 0)
+
+def AddTest2(builder: flatbuffers.Builder, test2: int):
+    Vec3AddTest2(builder, test2)
+
+def Vec3AddTest3(builder: flatbuffers.Builder, test3: Any):
+    builder.PrependStructSlot(5, flatbuffers.number_types.UOffsetTFlags.py_type(test3), 0)
+
+def AddTest3(builder: flatbuffers.Builder, test3: Any):
+    Vec3AddTest3(builder, test3)
+
+def Vec3End(builder: flatbuffers.Builder) -> int:
+    return builder.EndObject()
+
+def End(builder: flatbuffers.Builder) -> int:
     return Vec3End(builder)
+
 import MyGame.Example.NestedUnion.Test
 try:
     from typing import Optional

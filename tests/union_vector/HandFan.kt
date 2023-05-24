@@ -17,7 +17,6 @@ import java.nio.ByteOrder
 import kotlin.math.sign
 
 @Suppress("unused")
-@kotlin.ExperimentalUnsignedTypes
 class HandFan : Table() {
 
     fun __init(_i: Int, _bb: ByteBuffer)  {
@@ -42,7 +41,7 @@ class HandFan : Table() {
         }
     }
     companion object {
-        fun validateVersion() = Constants.FLATBUFFERS_23_1_21()
+        fun validateVersion() = Constants.FLATBUFFERS_23_5_9()
         fun getRootAsHandFan(_bb: ByteBuffer): HandFan = getRootAsHandFan(_bb, HandFan())
         fun getRootAsHandFan(_bb: ByteBuffer, obj: HandFan): HandFan {
             _bb.order(ByteOrder.LITTLE_ENDIAN)

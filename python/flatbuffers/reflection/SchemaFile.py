@@ -60,18 +60,32 @@ class SchemaFile(object):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(6))
         return o == 0
 
-def SchemaFileStart(builder): builder.StartObject(2)
+def SchemaFileStart(builder):
+    builder.StartObject(2)
+
 def Start(builder):
-    return SchemaFileStart(builder)
-def SchemaFileAddFilename(builder, filename): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(filename), 0)
+    SchemaFileStart(builder)
+
+def SchemaFileAddFilename(builder, filename):
+    builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(filename), 0)
+
 def AddFilename(builder, filename):
-    return SchemaFileAddFilename(builder, filename)
-def SchemaFileAddIncludedFilenames(builder, includedFilenames): builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(includedFilenames), 0)
+    SchemaFileAddFilename(builder, filename)
+
+def SchemaFileAddIncludedFilenames(builder, includedFilenames):
+    builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(includedFilenames), 0)
+
 def AddIncludedFilenames(builder, includedFilenames):
-    return SchemaFileAddIncludedFilenames(builder, includedFilenames)
-def SchemaFileStartIncludedFilenamesVector(builder, numElems): return builder.StartVector(4, numElems, 4)
-def StartIncludedFilenamesVector(builder, numElems):
+    SchemaFileAddIncludedFilenames(builder, includedFilenames)
+
+def SchemaFileStartIncludedFilenamesVector(builder, numElems):
+    return builder.StartVector(4, numElems, 4)
+
+def StartIncludedFilenamesVector(builder, numElems: int) -> int:
     return SchemaFileStartIncludedFilenamesVector(builder, numElems)
-def SchemaFileEnd(builder): return builder.EndObject()
+
+def SchemaFileEnd(builder):
+    return builder.EndObject()
+
 def End(builder):
     return SchemaFileEnd(builder)

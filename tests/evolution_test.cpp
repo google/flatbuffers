@@ -80,7 +80,6 @@ void EvolutionTest(const std::string &tests_data_path) {
 #endif
 }
 
-
 void ConformTest() {
   const char ref[] = "table T { A:int; } enum E:byte { A }";
 
@@ -111,9 +110,48 @@ void ConformTest() {
   const char ref2[] = "enum E:byte { A } table T2 { f:E; } ";
   test_conform(ref2, "enum E:int32 { A } table T2 { df:byte; f:E; }",
                "field renamed to different type: T2.df (renamed from T2.f)");
+
+  // Check enum underlying type changes.
+  test_conform("enum E:int32 {A}", "enum E: byte {A}", "underlying type differ for enum: E");
+  
+  // Check union underlying type changes.
+  const char ref3[] = "table A {} table B {} union C {A, B}";
+  test_conform(ref3, "table A {} table B {} union C:int32 {A, B}", "underlying type differ for union: C");
+
+  // Check conformity for Offset64-related changes.
+  {
+    const char ref[] = "table T { a:[uint8]; b:string; }";
+
+    // Adding a 'vector64' changes the type.
+    test_conform(ref, "table T { a:[uint8] (vector64); b:string; }",
+                 "types differ for field: T.a");
+
+    // Adding a 'offset64' to the vector changes the type.
+    test_conform(ref, "table T { a:[uint8] (offset64); b:string; }",
+                 "offset types differ for field: T.a");
+
+    // Adding a 'offset64' to the string also changes the type.
+    test_conform(ref, "table T { a:[uint8]; b:string (offset64); }",
+                 "offset types differ for field: T.b");
+
+    // Now try the opposite direction of removing an attribute from an existing
+    // field.
+
+    // Removing a 'vector64' changes the type.
+    test_conform("table T { a:[uint8] (vector64); b:string; }", ref,
+                 "types differ for field: T.a");
+
+    // Removing a 'offset64' to the string also changes the type.
+    test_conform("table T { a:[uint8] (offset64); b:string; }", ref,
+                 "offset types differ for field: T.a");
+
+    // Remove a 'offset64' to the string also changes the type.
+    test_conform("table T { a:[uint8]; b:string (offset64); }", ref,
+                 "offset types differ for field: T.b");
+  }
 }
 
-void UnionDeprecationTest(const std::string& tests_data_path) {
+void UnionDeprecationTest(const std::string &tests_data_path) {
   const int NUM_VERSIONS = 2;
   std::string schemas[NUM_VERSIONS];
   std::string jsonfiles[NUM_VERSIONS];

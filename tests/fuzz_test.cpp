@@ -1,6 +1,6 @@
-#include <algorithm>
-
 #include "fuzz_test.h"
+
+#include <algorithm>
 
 #include "flatbuffers/flatbuffers.h"
 #include "flatbuffers/idl.h"
@@ -22,7 +22,7 @@ void lcg_reset() { lcg_seed = 48271; }
 
 template<typename T>
 static void CompareTableFieldValue(flatbuffers::Table *table,
-                            flatbuffers::voffset_t voffset, T val) {
+                                   flatbuffers::voffset_t voffset, T val) {
   T read = table->GetField(voffset, static_cast<T>(0));
   TEST_EQ(read, val);
 }
@@ -273,9 +273,8 @@ void FuzzTest2() {
 
   std::string jsongen;
   parser.opts.indent_step = 0;
-  auto result =
-      GenerateText(parser, parser.builder_.GetBufferPointer(), &jsongen);
-  TEST_EQ(result, true);
+  auto result = GenText(parser, parser.builder_.GetBufferPointer(), &jsongen);
+  TEST_NULL(result);
 
   if (jsongen != json) {
     // These strings are larger than a megabyte, so we show the bytes around

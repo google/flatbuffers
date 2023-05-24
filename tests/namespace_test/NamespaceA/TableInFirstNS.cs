@@ -13,7 +13,7 @@ public struct TableInFirstNS : IFlatbufferObject
 {
   private Table __p;
   public ByteBuffer ByteBuffer { get { return __p.bb; } }
-  public static void ValidateVersion() { FlatBufferConstants.FLATBUFFERS_23_1_21(); }
+  public static void ValidateVersion() { FlatBufferConstants.FLATBUFFERS_23_5_9(); }
   public static TableInFirstNS GetRootAsTableInFirstNS(ByteBuffer _bb) { return GetRootAsTableInFirstNS(_bb, new TableInFirstNS()); }
   public static TableInFirstNS GetRootAsTableInFirstNS(ByteBuffer _bb, TableInFirstNS obj) { return (obj.__assign(_bb.GetInt(_bb.Position) + _bb.Position, _bb)); }
   public void __init(int _i, ByteBuffer _bb) { __p = new Table(_i, _bb); }
@@ -115,5 +115,19 @@ public class TableInFirstNST
   }
 }
 
+
+static public class TableInFirstNSVerify
+{
+  static public bool Verify(Google.FlatBuffers.Verifier verifier, uint tablePos)
+  {
+    return verifier.VerifyTableStart(tablePos)
+      && verifier.VerifyTable(tablePos, 4 /*FooTable*/, NamespaceA.NamespaceB.TableInNestedNSVerify.Verify, false)
+      && verifier.VerifyField(tablePos, 6 /*FooEnum*/, 1 /*NamespaceA.NamespaceB.EnumInNestedNS*/, 1, false)
+      && verifier.VerifyField(tablePos, 8 /*FooUnionType*/, 1 /*NamespaceA.NamespaceB.UnionInNestedNS*/, 1, false)
+      && verifier.VerifyUnion(tablePos, 8, 10 /*FooUnion*/, NamespaceA.NamespaceB.UnionInNestedNSVerify.Verify, false)
+      && verifier.VerifyField(tablePos, 12 /*FooStruct*/, 8 /*NamespaceA.NamespaceB.StructInNestedNS*/, 4, false)
+      && verifier.VerifyTableEnd(tablePos);
+  }
+}
 
 }

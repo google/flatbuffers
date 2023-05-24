@@ -4,13 +4,16 @@
 
 import flatbuffers
 from flatbuffers.compat import import_numpy
+from typing import Any
+from MyGame.Example.ArrayStruct import ArrayStruct
+from typing import Optional
 np = import_numpy()
 
 class ArrayTable(object):
     __slots__ = ['_tab']
 
     @classmethod
-    def GetRootAs(cls, buf, offset=0):
+    def GetRootAs(cls, buf, offset: int = 0):
         n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, offset)
         x = ArrayTable()
         x.Init(buf, n + offset)
@@ -25,29 +28,37 @@ class ArrayTable(object):
         return flatbuffers.util.BufferHasIdentifier(buf, offset, b"\x41\x52\x52\x54", size_prefixed=size_prefixed)
 
     # ArrayTable
-    def Init(self, buf, pos):
+    def Init(self, buf: bytes, pos: int):
         self._tab = flatbuffers.table.Table(buf, pos)
 
     # ArrayTable
-    def A(self):
+    def A(self) -> Optional[ArrayStruct]:
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(4))
         if o != 0:
             x = o + self._tab.Pos
-            from MyGame.Example.ArrayStruct import ArrayStruct
             obj = ArrayStruct()
             obj.Init(self._tab.Bytes, x)
             return obj
         return None
 
-def ArrayTableStart(builder): builder.StartObject(1)
-def Start(builder):
-    return ArrayTableStart(builder)
-def ArrayTableAddA(builder, a): builder.PrependStructSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(a), 0)
-def AddA(builder, a):
-    return ArrayTableAddA(builder, a)
-def ArrayTableEnd(builder): return builder.EndObject()
-def End(builder):
+def ArrayTableStart(builder: flatbuffers.Builder):
+    builder.StartObject(1)
+
+def Start(builder: flatbuffers.Builder):
+    ArrayTableStart(builder)
+
+def ArrayTableAddA(builder: flatbuffers.Builder, a: Any):
+    builder.PrependStructSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(a), 0)
+
+def AddA(builder: flatbuffers.Builder, a: Any):
+    ArrayTableAddA(builder, a)
+
+def ArrayTableEnd(builder: flatbuffers.Builder) -> int:
+    return builder.EndObject()
+
+def End(builder: flatbuffers.Builder) -> int:
     return ArrayTableEnd(builder)
+
 import MyGame.Example.ArrayStruct
 try:
     from typing import Optional

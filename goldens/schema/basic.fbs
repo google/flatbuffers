@@ -1,0 +1,13 @@
+// This file should contain the basics of flatbuffers that all languages should
+// support.
+
+table Galaxy {
+  num_stars:long;
+}
+
+table Universe {
+  age:double;
+  galaxies:[Galaxy];
+}
+
+root_type Universe;

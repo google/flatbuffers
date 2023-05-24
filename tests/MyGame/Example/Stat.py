@@ -49,21 +49,36 @@ class Stat(object):
             return self._tab.Get(flatbuffers.number_types.Uint16Flags, o + self._tab.Pos)
         return 0
 
-def StatStart(builder): builder.StartObject(3)
+def StatStart(builder):
+    builder.StartObject(3)
+
 def Start(builder):
-    return StatStart(builder)
-def StatAddId(builder, id): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(id), 0)
+    StatStart(builder)
+
+def StatAddId(builder, id):
+    builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(id), 0)
+
 def AddId(builder, id):
-    return StatAddId(builder, id)
-def StatAddVal(builder, val): builder.PrependInt64Slot(1, val, 0)
+    StatAddId(builder, id)
+
+def StatAddVal(builder, val):
+    builder.PrependInt64Slot(1, val, 0)
+
 def AddVal(builder, val):
-    return StatAddVal(builder, val)
-def StatAddCount(builder, count): builder.PrependUint16Slot(2, count, 0)
+    StatAddVal(builder, val)
+
+def StatAddCount(builder, count):
+    builder.PrependUint16Slot(2, count, 0)
+
 def AddCount(builder, count):
-    return StatAddCount(builder, count)
-def StatEnd(builder): return builder.EndObject()
+    StatAddCount(builder, count)
+
+def StatEnd(builder):
+    return builder.EndObject()
+
 def End(builder):
     return StatEnd(builder)
+
 
 class StatT(object):
 

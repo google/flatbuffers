@@ -15,4 +15,6 @@ fuzz-*.log
 annotated_binary.bfbs
 annotated_binary.bin
 
+test_64bit.bin
+
 monster_test.bfbs

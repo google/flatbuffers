@@ -19,6 +19,7 @@ import java.nio.ByteOrder
 import kotlin.math.sign
 
 @Suppress("unused")
+@kotlin.ExperimentalUnsignedTypes
 class Animal : Table() {
 
     fun __init(_i: Int, _bb: ByteBuffer)  {
@@ -31,14 +32,22 @@ class Animal : Table() {
     val name : String?
         get() {
             val o = __offset(4)
-            return if (o != 0) __string(o + bb_pos) else null
+            return if (o != 0) {
+                __string(o + bb_pos)
+            } else {
+                null
+            }
         }
     val nameAsByteBuffer : ByteBuffer get() = __vector_as_bytebuffer(4, 1)
     fun nameInByteBuffer(_bb: ByteBuffer) : ByteBuffer = __vector_in_bytebuffer(_bb, 4, 1)
     val sound : String?
         get() {
             val o = __offset(6)
-            return if (o != 0) __string(o + bb_pos) else null
+            return if (o != 0) {
+                __string(o + bb_pos)
+            } else {
+                null
+            }
         }
     val soundAsByteBuffer : ByteBuffer get() = __vector_as_bytebuffer(6, 1)
     fun soundInByteBuffer(_bb: ByteBuffer) : ByteBuffer = __vector_in_bytebuffer(_bb, 6, 1)
@@ -48,7 +57,7 @@ class Animal : Table() {
             return if(o != 0) bb.getShort(o + bb_pos).toUShort() else 0u
         }
     companion object {
-        fun validateVersion() = Constants.FLATBUFFERS_23_1_21()
+        fun validateVersion() = Constants.FLATBUFFERS_23_5_9()
         fun getRootAsAnimal(_bb: ByteBuffer): Animal = getRootAsAnimal(_bb, Animal())
         fun getRootAsAnimal(_bb: ByteBuffer, obj: Animal): Animal {
             _bb.order(ByteOrder.LITTLE_ENDIAN)

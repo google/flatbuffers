@@ -65,7 +65,11 @@ namespace Google.FlatBuffers
         // Create a .NET String from UTF-8 data stored inside the flatbuffer.
         public string __string(int offset)
         {
-            offset += bb.GetInt(offset);
+            int stringOffset = bb.GetInt(offset);
+            if (stringOffset == 0)
+                return null;
+
+            offset += stringOffset;
             var len = bb.GetInt(offset);
             var startPos = offset + sizeof(int);
             return bb.GetStringUTF8(startPos, len);

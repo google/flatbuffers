@@ -18,6 +18,10 @@ var __copyProps = (to, from, except, desc) => {
   return to;
 };
 var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__getProtoOf(mod)) : {}, __copyProps(
+  // If the importer is in node compatibility mode or this is not an ESM
+  // file that has been converted to a CommonJS file using a Babel-
+  // compatible transform (i.e. "__esModule" has not been set), then set
+  // "default" to the CommonJS "module.exports" for node compatibility.
   isNodeMode || !mod || !mod.__esModule ? __defProp(target, "default", { value: mod, enumerable: true }) : target,
   mod
 ));
@@ -27,7 +31,8 @@ var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: tru
 var monster_test_exports = {};
 __export(monster_test_exports, {
   MyGame: () => my_game_exports,
-  TableA: () => TableA
+  TableA: () => TableA,
+  TableAT: () => TableAT
 });
 module.exports = __toCommonJS(monster_test_exports);
 
@@ -167,6 +172,7 @@ __export(my_game_exports, {
   Example: () => example_exports,
   Example2: () => example2_exports,
   InParentNamespace: () => InParentNamespace,
+  InParentNamespaceT: () => InParentNamespaceT,
   OtherNameSpace: () => other_name_space_exports
 });
 
@@ -227,21 +233,31 @@ var InParentNamespaceT = class {
 var example_exports = {};
 __export(example_exports, {
   Ability: () => Ability,
+  AbilityT: () => AbilityT,
   Any: () => Any,
   AnyAmbiguousAliases: () => AnyAmbiguousAliases,
   AnyUniqueAliases: () => AnyUniqueAliases,
   Color: () => Color,
   LongEnum: () => LongEnum,
   Monster: () => Monster2,
+  MonsterT: () => MonsterT2,
   Race: () => Race,
   Referrable: () => Referrable,
+  ReferrableT: () => ReferrableT,
   Stat: () => Stat,
+  StatT: () => StatT,
   StructOfStructs: () => StructOfStructs,
   StructOfStructsOfStructs: () => StructOfStructsOfStructs,
+  StructOfStructsOfStructsT: () => StructOfStructsOfStructsT,
+  StructOfStructsT: () => StructOfStructsT,
   Test: () => Test,
   TestSimpleTableWithEnum: () => TestSimpleTableWithEnum,
+  TestSimpleTableWithEnumT: () => TestSimpleTableWithEnumT,
+  TestT: () => TestT,
   TypeAliases: () => TypeAliases,
-  Vec3: () => Vec3
+  TypeAliasesT: () => TypeAliasesT,
+  Vec3: () => Vec3,
+  Vec3T: () => Vec3T
 });
 
 // my-game/example/ability.js
@@ -802,7 +818,7 @@ var Vec3 = class {
   }
 };
 var Vec3T = class {
-  constructor(x = 0, y = 0, z = 0, test1 = 0, test2 = 0, test3 = null) {
+  constructor(x = 0, y = 0, z = 0, test1 = 0, test2 = Color.Red, test3 = null) {
     this.x = x;
     this.y = y;
     this.z = z;
@@ -916,6 +932,10 @@ var Monster2 = class {
     const offset = this.bb.__offset(this.bb_pos, 24);
     return offset ? this.bb.__vector_len(this.bb_pos + offset) : 0;
   }
+  /**
+   * an example documentation comment: this will end up in the generated code
+   * multiline too
+   */
   testarrayoftables(index, obj) {
     const offset = this.bb.__offset(this.bb_pos, 26);
     return offset ? (obj || new Monster2()).__init(this.bb.__indirect(this.bb.__vector(this.bb_pos + offset) + index * 4), this.bb) : null;
@@ -2502,7 +2522,8 @@ var TypeAliasesT = class {
 // my-game/example2.js
 var example2_exports = {};
 __export(example2_exports, {
-  Monster: () => Monster
+  Monster: () => Monster,
+  MonsterT: () => MonsterT
 });
 
 // my-game/other-name-space.js
@@ -2510,7 +2531,9 @@ var other_name_space_exports = {};
 __export(other_name_space_exports, {
   FromInclude: () => FromInclude,
   TableB: () => TableB,
-  Unused: () => Unused
+  TableBT: () => TableBT,
+  Unused: () => Unused,
+  UnusedT: () => UnusedT
 });
 
 // my-game/other-name-space/from-include.js

@@ -939,8 +939,8 @@ class PhpGenerator : public BaseGenerator {
 };
 }  // namespace php
 
-bool GeneratePhp(const Parser &parser, const std::string &path,
-                 const std::string &file_name) {
+static bool GeneratePhp(const Parser &parser, const std::string &path,
+                        const std::string &file_name) {
   php::PhpGenerator generator(parser, path, file_name);
   return generator.generate();
 }
@@ -955,9 +955,8 @@ class PhpCodeGenerator : public CodeGenerator {
     return Status::OK;
   }
 
-  Status GenerateCode(const uint8_t *buffer, int64_t length) override {
-    (void)buffer;
-    (void)length;
+  Status GenerateCode(const uint8_t *, int64_t,
+                      const CodeGenOptions &) override {
     return Status::NOT_IMPLEMENTED;
   }
 

@@ -11,8 +11,8 @@
 // Ensure the included flatbuffers.h is the same version as when this file was
 // generated, otherwise it may not be compatible.
 static_assert(FLATBUFFERS_VERSION_MAJOR == 23 &&
-              FLATBUFFERS_VERSION_MINOR == 1 &&
-              FLATBUFFERS_VERSION_REVISION == 21,
+              FLATBUFFERS_VERSION_MINOR == 5 &&
+              FLATBUFFERS_VERSION_REVISION == 9,
              "Non-compatible flatbuffers version included");
 
 namespace MyGame {
@@ -1500,7 +1500,9 @@ struct Monster FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
     return GetPointer<::flatbuffers::Vector<uint8_t> *>(VT_TESTNESTEDFLATBUFFER);
   }
   const MyGame::Example::Monster *testnestedflatbuffer_nested_root() const {
-    return ::flatbuffers::GetRoot<MyGame::Example::Monster>(testnestedflatbuffer()->Data());
+    const auto _f = testnestedflatbuffer();
+    return _f ? ::flatbuffers::GetRoot<MyGame::Example::Monster>(_f->Data())
+              : nullptr;
   }
   const MyGame::Example::Stat *testempty() const {
     return GetPointer<const MyGame::Example::Stat *>(VT_TESTEMPTY);
@@ -1605,7 +1607,9 @@ struct Monster FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
     return GetPointer<::flatbuffers::Vector<uint8_t> *>(VT_FLEX);
   }
   flexbuffers::Reference flex_flexbuffer_root() const {
-    return flexbuffers::GetRoot(flex()->Data(), flex()->size());
+    const auto _f = flex();
+    return _f ? flexbuffers::GetRoot(_f->Data(), _f->size())
+              : flexbuffers::Reference();
   }
   const ::flatbuffers::Vector<const MyGame::Example::Test *> *test5() const {
     return GetPointer<const ::flatbuffers::Vector<const MyGame::Example::Test *> *>(VT_TEST5);
@@ -1735,7 +1739,9 @@ struct Monster FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
     return GetPointer<::flatbuffers::Vector<uint8_t> *>(VT_TESTREQUIREDNESTEDFLATBUFFER);
   }
   const MyGame::Example::Monster *testrequirednestedflatbuffer_nested_root() const {
-    return ::flatbuffers::GetRoot<MyGame::Example::Monster>(testrequirednestedflatbuffer()->Data());
+    const auto _f = testrequirednestedflatbuffer();
+    return _f ? ::flatbuffers::GetRoot<MyGame::Example::Monster>(_f->Data())
+              : nullptr;
   }
   const ::flatbuffers::Vector<::flatbuffers::Offset<MyGame::Example::Stat>> *scalar_key_sorted_tables() const {
     return GetPointer<const ::flatbuffers::Vector<::flatbuffers::Offset<MyGame::Example::Stat>> *>(VT_SCALAR_KEY_SORTED_TABLES);

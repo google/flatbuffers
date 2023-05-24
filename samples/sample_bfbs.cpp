@@ -59,13 +59,13 @@ int main(int /*argc*/, const char * /*argv*/[]) {
   // to ensure it is correct, we now generate text back from the binary,
   // and compare the two:
   std::string jsongen1;
-  if (!GenerateText(parser1, parser1.builder_.GetBufferPointer(), &jsongen1)) {
+  if (GenText(parser1, parser1.builder_.GetBufferPointer(), &jsongen1)) {
     printf("Couldn't serialize parsed data to JSON!\n");
     return 1;
   }
 
   std::string jsongen2;
-  if (!GenerateText(parser2, parser2.builder_.GetBufferPointer(), &jsongen2)) {
+  if (GenText(parser2, parser2.builder_.GetBufferPointer(), &jsongen2)) {
     printf("Couldn't serialize parsed data to JSON!\n");
     return 1;
   }

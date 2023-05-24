@@ -31,12 +31,20 @@ class HelloReply(object):
             return self._tab.String(o + self._tab.Pos)
         return None
 
-def HelloReplyStart(builder): builder.StartObject(1)
+def HelloReplyStart(builder):
+    builder.StartObject(1)
+
 def Start(builder):
-    return HelloReplyStart(builder)
-def HelloReplyAddMessage(builder, message): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(message), 0)
+    HelloReplyStart(builder)
+
+def HelloReplyAddMessage(builder, message):
+    builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(message), 0)
+
 def AddMessage(builder, message):
-    return HelloReplyAddMessage(builder, message)
-def HelloReplyEnd(builder): return builder.EndObject()
+    HelloReplyAddMessage(builder, message)
+
+def HelloReplyEnd(builder):
+    return builder.EndObject()
+
 def End(builder):
     return HelloReplyEnd(builder)

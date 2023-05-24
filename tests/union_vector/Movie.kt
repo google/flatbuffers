@@ -17,7 +17,6 @@ import java.nio.ByteOrder
 import kotlin.math.sign
 
 @Suppress("unused")
-@kotlin.ExperimentalUnsignedTypes
 class Movie : Table() {
 
     fun __init(_i: Int, _bb: ByteBuffer)  {
@@ -80,7 +79,7 @@ class Movie : Table() {
             val o = __offset(10); return if (o != 0) __vector_len(o) else 0
         }
     companion object {
-        fun validateVersion() = Constants.FLATBUFFERS_23_1_21()
+        fun validateVersion() = Constants.FLATBUFFERS_23_5_9()
         fun getRootAsMovie(_bb: ByteBuffer): Movie = getRootAsMovie(_bb, Movie())
         fun getRootAsMovie(_bb: ByteBuffer, obj: Movie): Movie {
             _bb.order(ByteOrder.LITTLE_ENDIAN)
@@ -99,6 +98,7 @@ class Movie : Table() {
         fun addMainCharacterType(builder: FlatBufferBuilder, mainCharacterType: UByte) = builder.addByte(0, mainCharacterType.toByte(), 0)
         fun addMainCharacter(builder: FlatBufferBuilder, mainCharacter: Int) = builder.addOffset(1, mainCharacter, 0)
         fun addCharactersType(builder: FlatBufferBuilder, charactersType: Int) = builder.addOffset(2, charactersType, 0)
+        @kotlin.ExperimentalUnsignedTypes
         fun createCharactersTypeVector(builder: FlatBufferBuilder, data: UByteArray) : Int {
             builder.startVector(1, data.size, 1)
             for (i in data.size - 1 downTo 0) {

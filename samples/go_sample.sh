@@ -41,23 +41,18 @@ fi
 
 echo Compiling and running the Go sample.
 
-# Go requires a particular layout of files in order to link the necessary
-# packages. Copy these files to the respective directores to compile the
-# sample.
-mkdir -p ${sampledir}/go_gen/src/MyGame/Sample
-mkdir -p ${sampledir}/go_gen/src/github.com/google/flatbuffers/go
-cp MyGame/Sample/*.go ${sampledir}/go_gen/src/MyGame/Sample/
-cp ${sampledir}/../go/* ${sampledir}/go_gen/src/github.com/google/flatbuffers/go
-
-# Export the `GOPATH`, so that `go` will know which directories to search for
-# the libraries.
-export GOPATH=${sampledir}/go_gen/
+# Workaround for https://github.com/google/flatbuffers/issues/7780:
+# go mod replace requires a go.mod file in the target directory,
+# but there currently isn't one in the ../go directory.
+# So we copy the ../go directory to go_gen and manually create go_gen/go.mod
+mkdir -p ${sampledir}/go_gen
+cp ${sampledir}/../go/* ${sampledir}/go_gen
+( cd ${sampledir}/go_gen && go mod init github.com/google/flatbuffers/go )
 
 # Compile and execute the sample.
 go build -o go_sample sample_binary.go
 ./go_sample
 
 # Clean up the temporary files.
-rm -rf MyGame/
 rm -rf ${sampledir}/go_gen/
 rm go_sample

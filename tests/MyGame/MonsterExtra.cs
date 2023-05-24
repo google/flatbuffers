@@ -13,10 +13,11 @@ public struct MonsterExtra : IFlatbufferObject
 {
   private Table __p;
   public ByteBuffer ByteBuffer { get { return __p.bb; } }
-  public static void ValidateVersion() { FlatBufferConstants.FLATBUFFERS_23_1_21(); }
+  public static void ValidateVersion() { FlatBufferConstants.FLATBUFFERS_23_5_9(); }
   public static MonsterExtra GetRootAsMonsterExtra(ByteBuffer _bb) { return GetRootAsMonsterExtra(_bb, new MonsterExtra()); }
   public static MonsterExtra GetRootAsMonsterExtra(ByteBuffer _bb, MonsterExtra obj) { return (obj.__assign(_bb.GetInt(_bb.Position) + _bb.Position, _bb)); }
   public static bool MonsterExtraBufferHasIdentifier(ByteBuffer _bb) { return Table.__has_identifier(_bb, "MONE"); }
+  public static bool VerifyMonsterExtra(ByteBuffer _bb) {Google.FlatBuffers.Verifier verifier = new Google.FlatBuffers.Verifier(_bb); return verifier.VerifyBuffer("MONE", false, MonsterExtraVerify.Verify); }
   public void __init(int _i, ByteBuffer _bb) { __p = new Table(_i, _bb); }
   public MonsterExtra __assign(int _i, ByteBuffer _bb) { __init(_i, _bb); return this; }
 
@@ -205,5 +206,24 @@ public class MonsterExtraT
   }
 }
 
+
+static public class MonsterExtraVerify
+{
+  static public bool Verify(Google.FlatBuffers.Verifier verifier, uint tablePos)
+  {
+    return verifier.VerifyTableStart(tablePos)
+      && verifier.VerifyField(tablePos, 4 /*D0*/, 8 /*double*/, 8, false)
+      && verifier.VerifyField(tablePos, 6 /*D1*/, 8 /*double*/, 8, false)
+      && verifier.VerifyField(tablePos, 8 /*D2*/, 8 /*double*/, 8, false)
+      && verifier.VerifyField(tablePos, 10 /*D3*/, 8 /*double*/, 8, false)
+      && verifier.VerifyField(tablePos, 12 /*F0*/, 4 /*float*/, 4, false)
+      && verifier.VerifyField(tablePos, 14 /*F1*/, 4 /*float*/, 4, false)
+      && verifier.VerifyField(tablePos, 16 /*F2*/, 4 /*float*/, 4, false)
+      && verifier.VerifyField(tablePos, 18 /*F3*/, 4 /*float*/, 4, false)
+      && verifier.VerifyVectorOfData(tablePos, 20 /*Dvec*/, 8 /*double*/, false)
+      && verifier.VerifyVectorOfData(tablePos, 22 /*Fvec*/, 4 /*float*/, false)
+      && verifier.VerifyTableEnd(tablePos);
+  }
+}
 
 }

@@ -3,12 +3,12 @@
   <PropertyGroup>
     <TargetFrameworks>netstandard2.1;netstandard2.0;net46</TargetFrameworks>
     <Description>A cross-platform memory efficient serialization library</Description>
-    <PackageVersion>23.1.21</PackageVersion>
+    <PackageVersion>23.5.9</PackageVersion>
     <Authors>Google LLC</Authors>
     <PackageProjectUrl>https://github.com/google/flatbuffers</PackageProjectUrl>
     <RepositoryUrl>https://github.com/google/flatbuffers</RepositoryUrl>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
-    <PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
+    <PackageLicenseFile>LICENSE</PackageLicenseFile>
     <PackageIcon>flatbuffers.png</PackageIcon>
     <PackageTags>Google;FlatBuffers;Serialization;Buffer;Binary;zero copy</PackageTags>
     <Copyright>Copyright 2022 Google LLC</Copyright>
@@ -39,7 +39,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="..\..\LICENSE.txt" Pack="true" PackagePath="" />
+    <None Include="..\..\LICENSE" Pack="true" PackagePath="" />
     <None Include="flatbuffers.png" Pack="true" PackagePath="" />
   </ItemGroup>
 

@@ -9,8 +9,8 @@
 // Ensure the included flatbuffers.h is the same version as when this file was
 // generated, otherwise it may not be compatible.
 static_assert(FLATBUFFERS_VERSION_MAJOR == 23 &&
-              FLATBUFFERS_VERSION_MINOR == 1 &&
-              FLATBUFFERS_VERSION_REVISION == 21,
+              FLATBUFFERS_VERSION_MINOR == 5 &&
+              FLATBUFFERS_VERSION_REVISION == 9,
              "Non-compatible flatbuffers version included");
 
 namespace optional_scalars {
@@ -944,16 +944,16 @@ inline void FinishSizePrefixedScalarStuffBuffer(
   fbb.FinishSizePrefixed(root, ScalarStuffIdentifier());
 }
 
-inline flatbuffers::unique_ptr<optional_scalars::ScalarStuffT> UnPackScalarStuff(
+inline std::unique_ptr<optional_scalars::ScalarStuffT> UnPackScalarStuff(
     const void *buf,
     const ::flatbuffers::resolver_function_t *res = nullptr) {
-  return flatbuffers::unique_ptr<optional_scalars::ScalarStuffT>(GetScalarStuff(buf)->UnPack(res));
+  return std::unique_ptr<optional_scalars::ScalarStuffT>(GetScalarStuff(buf)->UnPack(res));
 }
 
-inline flatbuffers::unique_ptr<optional_scalars::ScalarStuffT> UnPackSizePrefixedScalarStuff(
+inline std::unique_ptr<optional_scalars::ScalarStuffT> UnPackSizePrefixedScalarStuff(
     const void *buf,
     const ::flatbuffers::resolver_function_t *res = nullptr) {
-  return flatbuffers::unique_ptr<optional_scalars::ScalarStuffT>(GetSizePrefixedScalarStuff(buf)->UnPack(res));
+  return std::unique_ptr<optional_scalars::ScalarStuffT>(GetSizePrefixedScalarStuff(buf)->UnPack(res));
 }
 
 }  // namespace optional_scalars

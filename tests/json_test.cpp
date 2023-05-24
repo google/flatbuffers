@@ -2,8 +2,8 @@
 
 #include "flatbuffers/flatbuffers.h"
 #include "flatbuffers/idl.h"
+#include "monster_test_bfbs_generated.h"
 #include "monster_test_generated.h"
-#include "monster_test_bfbs_generated.h"  
 #include "optional_scalars_generated.h"
 #include "test_assert.h"
 
@@ -13,7 +13,7 @@ namespace tests {
 using namespace MyGame::Example;
 
 // Check stringify of an default enum value to json
-void JsonDefaultTest(const std::string& tests_data_path) {
+void JsonDefaultTest(const std::string &tests_data_path) {
   // load FlatBuffer schema (.fbs) from disk
   std::string schemafile;
   TEST_EQ(flatbuffers::LoadFile((tests_data_path + "monster_test.fbs").c_str(),
@@ -36,15 +36,15 @@ void JsonDefaultTest(const std::string& tests_data_path) {
   color_monster.add_name(name);
   FinishMonsterBuffer(builder, color_monster.Finish());
   std::string jsongen;
-  auto result = GenerateText(parser, builder.GetBufferPointer(), &jsongen);
-  TEST_EQ(result, true);
+  auto result = GenText(parser, builder.GetBufferPointer(), &jsongen);
+  TEST_NULL(result);
   // default value of the "color" field is Blue
   TEST_EQ(std::string::npos != jsongen.find("color: \"Blue\""), true);
   // default value of the "testf" field is 3.14159
   TEST_EQ(std::string::npos != jsongen.find("testf: 3.14159"), true);
 }
 
-void JsonEnumsTest(const std::string& tests_data_path) {
+void JsonEnumsTest(const std::string &tests_data_path) {
   // load FlatBuffer schema (.fbs) from disk
   std::string schemafile;
   TEST_EQ(flatbuffers::LoadFile((tests_data_path + "monster_test.fbs").c_str(),
@@ -65,8 +65,8 @@ void JsonEnumsTest(const std::string& tests_data_path) {
   color_monster.add_color(Color(Color_Blue | Color_Red));
   FinishMonsterBuffer(builder, color_monster.Finish());
   std::string jsongen;
-  auto result = GenerateText(parser, builder.GetBufferPointer(), &jsongen);
-  TEST_EQ(result, true);
+  auto result = GenText(parser, builder.GetBufferPointer(), &jsongen);
+  TEST_NULL(result);
   TEST_EQ(std::string::npos != jsongen.find("color: \"Red Blue\""), true);
   // Test forward compatibility with 'output_enum_identifiers = true'.
   // Current Color doesn't have '(1u << 2)' field, let's add it.
@@ -78,12 +78,13 @@ void JsonEnumsTest(const std::string& tests_data_path) {
   future_color.add_color(
       static_cast<Color>((1u << 2) | Color_Blue | Color_Red));
   FinishMonsterBuffer(builder, future_color.Finish());
-  result = GenerateText(parser, builder.GetBufferPointer(), &future_json);
-  TEST_EQ(result, true);
+  result = GenText(parser, builder.GetBufferPointer(), &future_json);
+  TEST_NULL(result);
   TEST_EQ(std::string::npos != future_json.find("color: 13"), true);
 }
 
-void JsonOptionalTest(const std::string& tests_data_path, bool default_scalars) {
+void JsonOptionalTest(const std::string &tests_data_path,
+                      bool default_scalars) {
   // load FlatBuffer schema (.fbs) and JSON from disk
   std::string schemafile;
   std::string jsonfile;
@@ -118,13 +119,12 @@ void JsonOptionalTest(const std::string& tests_data_path, bool default_scalars) 
   // to ensure it is correct, we now generate text back from the binary,
   // and compare the two:
   std::string jsongen;
-  auto result =
-      GenerateText(parser, parser.builder_.GetBufferPointer(), &jsongen);
-  TEST_EQ(result, true);
+  auto result = GenText(parser, parser.builder_.GetBufferPointer(), &jsongen);
+  TEST_NULL(result);
   TEST_EQ_STR(jsongen.c_str(), jsonfile.c_str());
 }
 
-void ParseIncorrectMonsterJsonTest(const std::string& tests_data_path) {
+void ParseIncorrectMonsterJsonTest(const std::string &tests_data_path) {
   std::string schemafile;
   TEST_EQ(flatbuffers::LoadFile((tests_data_path + "monster_test.bfbs").c_str(),
                                 true, &schemafile),
@@ -168,6 +168,39 @@ void JsonUnsortedArrayTest() {
   TEST_NOTNULL(monster->testarrayoftables()->LookupByKey("aaa"));
   TEST_NOTNULL(monster->testarrayoftables()->LookupByKey("bbb"));
   TEST_NOTNULL(monster->testarrayoftables()->LookupByKey("ccc"));
+}
+
+void JsonUnionStructTest() {
+  // schema to parse data
+  auto schema = R"(
+struct MyStruct { field: int; }
+union UnionWithStruct { MyStruct }
+table JsonUnionStructTest { union_with_struct: UnionWithStruct; }
+root_type JsonUnionStructTest;
+)";
+  // source text to parse and expected result of generation text back
+  auto json_source = R"({
+  union_with_struct_type: "MyStruct",
+  union_with_struct: {
+    field: 12345
+  }
+}
+)";
+
+  flatbuffers::Parser parser;
+  // set output language to JSON, so we assure that is supported
+  parser.opts.lang_to_generate = IDLOptions::kJson;
+  // parse schema first, so we assure that output language is supported
+  // and can use it to parse the data after
+  TEST_EQ(true, parser.Parse(schema));
+  TEST_EQ(true, parser.ParseJson(json_source));
+
+  // now generate text back from the binary, and compare the two:
+  std::string json_generated;
+  auto generate_result =
+      GenText(parser, parser.builder_.GetBufferPointer(), &json_generated);
+  TEST_NULL(generate_result);
+  TEST_EQ_STR(json_source, json_generated.c_str());
 }
 
 }  // namespace tests

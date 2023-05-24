@@ -28,6 +28,7 @@
 #include "bfbs_namer.h"
 
 // The intermediate representation schema.
+#include "flatbuffers/code_generator.h"
 #include "flatbuffers/reflection.h"
 #include "flatbuffers/reflection_generated.h"
 
@@ -78,7 +79,10 @@ class LuaBfbsGenerator : public BaseBfbsGenerator {
         flatc_version_(flatc_version),
         namer_(LuaDefaultConfig(), LuaKeywords()) {}
 
-  Status GenerateFromSchema(const r::Schema *schema) FLATBUFFERS_OVERRIDE {
+  Status GenerateFromSchema(const r::Schema *schema,
+                            const CodeGenOptions &options)
+      FLATBUFFERS_OVERRIDE {
+    options_ = options;
     if (!GenerateEnums(schema->enums())) { return ERROR; }
     if (!GenerateObjects(schema->objects(), schema->root_table())) {
       return ERROR;
@@ -88,10 +92,9 @@ class LuaBfbsGenerator : public BaseBfbsGenerator {
 
   using BaseBfbsGenerator::GenerateCode;
 
-  Status GenerateCode(const Parser &parser, const std::string &path,
-                      const std::string &filename) FLATBUFFERS_OVERRIDE {
-    if (!GenerateLua(parser, path, filename)) { return ERROR; }
-    return OK;
+  Status GenerateCode(const Parser &, const std::string &,
+                      const std::string &) override {
+    return Status::NOT_IMPLEMENTED;
   }
 
   Status GenerateMakeRule(const Parser &parser, const std::string &path,
@@ -653,12 +656,15 @@ class LuaBfbsGenerator : public BaseBfbsGenerator {
 
     // TODO(derekbailey): figure out a save file without depending on util.h
     EnsureDirExists(path);
-    const std::string file_name = path + "/" + namer_.File(name);
+    const std::string file_name =
+        options_.output_path + path + "/" + namer_.File(name);
     SaveFile(file_name.c_str(), code, false);
   }
 
   std::unordered_set<std::string> keywords_;
   std::map<std::string, std::string> requires_;
+  CodeGenOptions options_;
+
   const r::Object *current_obj_;
   const r::Enum *current_enum_;
   const std::string flatc_version_;

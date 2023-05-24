@@ -280,120 +280,234 @@ class ScalarStuff(object):
             return self._tab.Get(flatbuffers.number_types.Int8Flags, o + self._tab.Pos)
         return 1
 
-def ScalarStuffStart(builder): builder.StartObject(36)
+def ScalarStuffStart(builder):
+    builder.StartObject(36)
+
 def Start(builder):
-    return ScalarStuffStart(builder)
-def ScalarStuffAddJustI8(builder, justI8): builder.PrependInt8Slot(0, justI8, 0)
+    ScalarStuffStart(builder)
+
+def ScalarStuffAddJustI8(builder, justI8):
+    builder.PrependInt8Slot(0, justI8, 0)
+
 def AddJustI8(builder, justI8):
-    return ScalarStuffAddJustI8(builder, justI8)
-def ScalarStuffAddMaybeI8(builder, maybeI8): builder.PrependInt8Slot(1, maybeI8, None)
+    ScalarStuffAddJustI8(builder, justI8)
+
+def ScalarStuffAddMaybeI8(builder, maybeI8):
+    builder.PrependInt8Slot(1, maybeI8, None)
+
 def AddMaybeI8(builder, maybeI8):
-    return ScalarStuffAddMaybeI8(builder, maybeI8)
-def ScalarStuffAddDefaultI8(builder, defaultI8): builder.PrependInt8Slot(2, defaultI8, 42)
+    ScalarStuffAddMaybeI8(builder, maybeI8)
+
+def ScalarStuffAddDefaultI8(builder, defaultI8):
+    builder.PrependInt8Slot(2, defaultI8, 42)
+
 def AddDefaultI8(builder, defaultI8):
-    return ScalarStuffAddDefaultI8(builder, defaultI8)
-def ScalarStuffAddJustU8(builder, justU8): builder.PrependUint8Slot(3, justU8, 0)
+    ScalarStuffAddDefaultI8(builder, defaultI8)
+
+def ScalarStuffAddJustU8(builder, justU8):
+    builder.PrependUint8Slot(3, justU8, 0)
+
 def AddJustU8(builder, justU8):
-    return ScalarStuffAddJustU8(builder, justU8)
-def ScalarStuffAddMaybeU8(builder, maybeU8): builder.PrependUint8Slot(4, maybeU8, None)
+    ScalarStuffAddJustU8(builder, justU8)
+
+def ScalarStuffAddMaybeU8(builder, maybeU8):
+    builder.PrependUint8Slot(4, maybeU8, None)
+
 def AddMaybeU8(builder, maybeU8):
-    return ScalarStuffAddMaybeU8(builder, maybeU8)
-def ScalarStuffAddDefaultU8(builder, defaultU8): builder.PrependUint8Slot(5, defaultU8, 42)
+    ScalarStuffAddMaybeU8(builder, maybeU8)
+
+def ScalarStuffAddDefaultU8(builder, defaultU8):
+    builder.PrependUint8Slot(5, defaultU8, 42)
+
 def AddDefaultU8(builder, defaultU8):
-    return ScalarStuffAddDefaultU8(builder, defaultU8)
-def ScalarStuffAddJustI16(builder, justI16): builder.PrependInt16Slot(6, justI16, 0)
+    ScalarStuffAddDefaultU8(builder, defaultU8)
+
+def ScalarStuffAddJustI16(builder, justI16):
+    builder.PrependInt16Slot(6, justI16, 0)
+
 def AddJustI16(builder, justI16):
-    return ScalarStuffAddJustI16(builder, justI16)
-def ScalarStuffAddMaybeI16(builder, maybeI16): builder.PrependInt16Slot(7, maybeI16, None)
+    ScalarStuffAddJustI16(builder, justI16)
+
+def ScalarStuffAddMaybeI16(builder, maybeI16):
+    builder.PrependInt16Slot(7, maybeI16, None)
+
 def AddMaybeI16(builder, maybeI16):
-    return ScalarStuffAddMaybeI16(builder, maybeI16)
-def ScalarStuffAddDefaultI16(builder, defaultI16): builder.PrependInt16Slot(8, defaultI16, 42)
+    ScalarStuffAddMaybeI16(builder, maybeI16)
+
+def ScalarStuffAddDefaultI16(builder, defaultI16):
+    builder.PrependInt16Slot(8, defaultI16, 42)
+
 def AddDefaultI16(builder, defaultI16):
-    return ScalarStuffAddDefaultI16(builder, defaultI16)
-def ScalarStuffAddJustU16(builder, justU16): builder.PrependUint16Slot(9, justU16, 0)
+    ScalarStuffAddDefaultI16(builder, defaultI16)
+
+def ScalarStuffAddJustU16(builder, justU16):
+    builder.PrependUint16Slot(9, justU16, 0)
+
 def AddJustU16(builder, justU16):
-    return ScalarStuffAddJustU16(builder, justU16)
-def ScalarStuffAddMaybeU16(builder, maybeU16): builder.PrependUint16Slot(10, maybeU16, None)
+    ScalarStuffAddJustU16(builder, justU16)
+
+def ScalarStuffAddMaybeU16(builder, maybeU16):
+    builder.PrependUint16Slot(10, maybeU16, None)
+
 def AddMaybeU16(builder, maybeU16):
-    return ScalarStuffAddMaybeU16(builder, maybeU16)
-def ScalarStuffAddDefaultU16(builder, defaultU16): builder.PrependUint16Slot(11, defaultU16, 42)
+    ScalarStuffAddMaybeU16(builder, maybeU16)
+
+def ScalarStuffAddDefaultU16(builder, defaultU16):
+    builder.PrependUint16Slot(11, defaultU16, 42)
+
 def AddDefaultU16(builder, defaultU16):
-    return ScalarStuffAddDefaultU16(builder, defaultU16)
-def ScalarStuffAddJustI32(builder, justI32): builder.PrependInt32Slot(12, justI32, 0)
+    ScalarStuffAddDefaultU16(builder, defaultU16)
+
+def ScalarStuffAddJustI32(builder, justI32):
+    builder.PrependInt32Slot(12, justI32, 0)
+
 def AddJustI32(builder, justI32):
-    return ScalarStuffAddJustI32(builder, justI32)
-def ScalarStuffAddMaybeI32(builder, maybeI32): builder.PrependInt32Slot(13, maybeI32, None)
+    ScalarStuffAddJustI32(builder, justI32)
+
+def ScalarStuffAddMaybeI32(builder, maybeI32):
+    builder.PrependInt32Slot(13, maybeI32, None)
+
 def AddMaybeI32(builder, maybeI32):
-    return ScalarStuffAddMaybeI32(builder, maybeI32)
-def ScalarStuffAddDefaultI32(builder, defaultI32): builder.PrependInt32Slot(14, defaultI32, 42)
+    ScalarStuffAddMaybeI32(builder, maybeI32)
+
+def ScalarStuffAddDefaultI32(builder, defaultI32):
+    builder.PrependInt32Slot(14, defaultI32, 42)
+
 def AddDefaultI32(builder, defaultI32):
-    return ScalarStuffAddDefaultI32(builder, defaultI32)
-def ScalarStuffAddJustU32(builder, justU32): builder.PrependUint32Slot(15, justU32, 0)
+    ScalarStuffAddDefaultI32(builder, defaultI32)
+
+def ScalarStuffAddJustU32(builder, justU32):
+    builder.PrependUint32Slot(15, justU32, 0)
+
 def AddJustU32(builder, justU32):
-    return ScalarStuffAddJustU32(builder, justU32)
-def ScalarStuffAddMaybeU32(builder, maybeU32): builder.PrependUint32Slot(16, maybeU32, None)
+    ScalarStuffAddJustU32(builder, justU32)
+
+def ScalarStuffAddMaybeU32(builder, maybeU32):
+    builder.PrependUint32Slot(16, maybeU32, None)
+
 def AddMaybeU32(builder, maybeU32):
-    return ScalarStuffAddMaybeU32(builder, maybeU32)
-def ScalarStuffAddDefaultU32(builder, defaultU32): builder.PrependUint32Slot(17, defaultU32, 42)
+    ScalarStuffAddMaybeU32(builder, maybeU32)
+
+def ScalarStuffAddDefaultU32(builder, defaultU32):
+    builder.PrependUint32Slot(17, defaultU32, 42)
+
 def AddDefaultU32(builder, defaultU32):
-    return ScalarStuffAddDefaultU32(builder, defaultU32)
-def ScalarStuffAddJustI64(builder, justI64): builder.PrependInt64Slot(18, justI64, 0)
+    ScalarStuffAddDefaultU32(builder, defaultU32)
+
+def ScalarStuffAddJustI64(builder, justI64):
+    builder.PrependInt64Slot(18, justI64, 0)
+
 def AddJustI64(builder, justI64):
-    return ScalarStuffAddJustI64(builder, justI64)
-def ScalarStuffAddMaybeI64(builder, maybeI64): builder.PrependInt64Slot(19, maybeI64, None)
+    ScalarStuffAddJustI64(builder, justI64)
+
+def ScalarStuffAddMaybeI64(builder, maybeI64):
+    builder.PrependInt64Slot(19, maybeI64, None)
+
 def AddMaybeI64(builder, maybeI64):
-    return ScalarStuffAddMaybeI64(builder, maybeI64)
-def ScalarStuffAddDefaultI64(builder, defaultI64): builder.PrependInt64Slot(20, defaultI64, 42)
+    ScalarStuffAddMaybeI64(builder, maybeI64)
+
+def ScalarStuffAddDefaultI64(builder, defaultI64):
+    builder.PrependInt64Slot(20, defaultI64, 42)
+
 def AddDefaultI64(builder, defaultI64):
-    return ScalarStuffAddDefaultI64(builder, defaultI64)
-def ScalarStuffAddJustU64(builder, justU64): builder.PrependUint64Slot(21, justU64, 0)
+    ScalarStuffAddDefaultI64(builder, defaultI64)
+
+def ScalarStuffAddJustU64(builder, justU64):
+    builder.PrependUint64Slot(21, justU64, 0)
+
 def AddJustU64(builder, justU64):
-    return ScalarStuffAddJustU64(builder, justU64)
-def ScalarStuffAddMaybeU64(builder, maybeU64): builder.PrependUint64Slot(22, maybeU64, None)
+    ScalarStuffAddJustU64(builder, justU64)
+
+def ScalarStuffAddMaybeU64(builder, maybeU64):
+    builder.PrependUint64Slot(22, maybeU64, None)
+
 def AddMaybeU64(builder, maybeU64):
-    return ScalarStuffAddMaybeU64(builder, maybeU64)
-def ScalarStuffAddDefaultU64(builder, defaultU64): builder.PrependUint64Slot(23, defaultU64, 42)
+    ScalarStuffAddMaybeU64(builder, maybeU64)
+
+def ScalarStuffAddDefaultU64(builder, defaultU64):
+    builder.PrependUint64Slot(23, defaultU64, 42)
+
 def AddDefaultU64(builder, defaultU64):
-    return ScalarStuffAddDefaultU64(builder, defaultU64)
-def ScalarStuffAddJustF32(builder, justF32): builder.PrependFloat32Slot(24, justF32, 0.0)
+    ScalarStuffAddDefaultU64(builder, defaultU64)
+
+def ScalarStuffAddJustF32(builder, justF32):
+    builder.PrependFloat32Slot(24, justF32, 0.0)
+
 def AddJustF32(builder, justF32):
-    return ScalarStuffAddJustF32(builder, justF32)
-def ScalarStuffAddMaybeF32(builder, maybeF32): builder.PrependFloat32Slot(25, maybeF32, None)
+    ScalarStuffAddJustF32(builder, justF32)
+
+def ScalarStuffAddMaybeF32(builder, maybeF32):
+    builder.PrependFloat32Slot(25, maybeF32, None)
+
 def AddMaybeF32(builder, maybeF32):
-    return ScalarStuffAddMaybeF32(builder, maybeF32)
-def ScalarStuffAddDefaultF32(builder, defaultF32): builder.PrependFloat32Slot(26, defaultF32, 42.0)
+    ScalarStuffAddMaybeF32(builder, maybeF32)
+
+def ScalarStuffAddDefaultF32(builder, defaultF32):
+    builder.PrependFloat32Slot(26, defaultF32, 42.0)
+
 def AddDefaultF32(builder, defaultF32):
-    return ScalarStuffAddDefaultF32(builder, defaultF32)
-def ScalarStuffAddJustF64(builder, justF64): builder.PrependFloat64Slot(27, justF64, 0.0)
+    ScalarStuffAddDefaultF32(builder, defaultF32)
+
+def ScalarStuffAddJustF64(builder, justF64):
+    builder.PrependFloat64Slot(27, justF64, 0.0)
+
 def AddJustF64(builder, justF64):
-    return ScalarStuffAddJustF64(builder, justF64)
-def ScalarStuffAddMaybeF64(builder, maybeF64): builder.PrependFloat64Slot(28, maybeF64, None)
+    ScalarStuffAddJustF64(builder, justF64)
+
+def ScalarStuffAddMaybeF64(builder, maybeF64):
+    builder.PrependFloat64Slot(28, maybeF64, None)
+
 def AddMaybeF64(builder, maybeF64):
-    return ScalarStuffAddMaybeF64(builder, maybeF64)
-def ScalarStuffAddDefaultF64(builder, defaultF64): builder.PrependFloat64Slot(29, defaultF64, 42.0)
+    ScalarStuffAddMaybeF64(builder, maybeF64)
+
+def ScalarStuffAddDefaultF64(builder, defaultF64):
+    builder.PrependFloat64Slot(29, defaultF64, 42.0)
+
 def AddDefaultF64(builder, defaultF64):
-    return ScalarStuffAddDefaultF64(builder, defaultF64)
-def ScalarStuffAddJustBool(builder, justBool): builder.PrependBoolSlot(30, justBool, 0)
+    ScalarStuffAddDefaultF64(builder, defaultF64)
+
+def ScalarStuffAddJustBool(builder, justBool):
+    builder.PrependBoolSlot(30, justBool, 0)
+
 def AddJustBool(builder, justBool):
-    return ScalarStuffAddJustBool(builder, justBool)
-def ScalarStuffAddMaybeBool(builder, maybeBool): builder.PrependBoolSlot(31, maybeBool, None)
+    ScalarStuffAddJustBool(builder, justBool)
+
+def ScalarStuffAddMaybeBool(builder, maybeBool):
+    builder.PrependBoolSlot(31, maybeBool, None)
+
 def AddMaybeBool(builder, maybeBool):
-    return ScalarStuffAddMaybeBool(builder, maybeBool)
-def ScalarStuffAddDefaultBool(builder, defaultBool): builder.PrependBoolSlot(32, defaultBool, 1)
+    ScalarStuffAddMaybeBool(builder, maybeBool)
+
+def ScalarStuffAddDefaultBool(builder, defaultBool):
+    builder.PrependBoolSlot(32, defaultBool, 1)
+
 def AddDefaultBool(builder, defaultBool):
-    return ScalarStuffAddDefaultBool(builder, defaultBool)
-def ScalarStuffAddJustEnum(builder, justEnum): builder.PrependInt8Slot(33, justEnum, 0)
+    ScalarStuffAddDefaultBool(builder, defaultBool)
+
+def ScalarStuffAddJustEnum(builder, justEnum):
+    builder.PrependInt8Slot(33, justEnum, 0)
+
 def AddJustEnum(builder, justEnum):
-    return ScalarStuffAddJustEnum(builder, justEnum)
-def ScalarStuffAddMaybeEnum(builder, maybeEnum): builder.PrependInt8Slot(34, maybeEnum, None)
+    ScalarStuffAddJustEnum(builder, justEnum)
+
+def ScalarStuffAddMaybeEnum(builder, maybeEnum):
+    builder.PrependInt8Slot(34, maybeEnum, None)
+
 def AddMaybeEnum(builder, maybeEnum):
-    return ScalarStuffAddMaybeEnum(builder, maybeEnum)
-def ScalarStuffAddDefaultEnum(builder, defaultEnum): builder.PrependInt8Slot(35, defaultEnum, 1)
+    ScalarStuffAddMaybeEnum(builder, maybeEnum)
+
+def ScalarStuffAddDefaultEnum(builder, defaultEnum):
+    builder.PrependInt8Slot(35, defaultEnum, 1)
+
 def AddDefaultEnum(builder, defaultEnum):
-    return ScalarStuffAddDefaultEnum(builder, defaultEnum)
-def ScalarStuffEnd(builder): return builder.EndObject()
+    ScalarStuffAddDefaultEnum(builder, defaultEnum)
+
+def ScalarStuffEnd(builder):
+    return builder.EndObject()
+
 def End(builder):
     return ScalarStuffEnd(builder)
+
 
 class ScalarStuffT(object):
 

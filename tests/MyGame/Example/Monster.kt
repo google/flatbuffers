@@ -22,7 +22,6 @@ import kotlin.math.sign
  * an example documentation comment: "monster object"
  */
 @Suppress("unused")
-@kotlin.ExperimentalUnsignedTypes
 class Monster : Table() {
 
     fun __init(_i: Int, _bb: ByteBuffer)  {
@@ -1003,7 +1002,7 @@ class Monster : Table() {
          return compareStrings(__offset(10, o1, _bb), __offset(10, o2, _bb), _bb)
     }
     companion object {
-        fun validateVersion() = Constants.FLATBUFFERS_23_1_21()
+        fun validateVersion() = Constants.FLATBUFFERS_23_5_9()
         fun getRootAsMonster(_bb: ByteBuffer): Monster = getRootAsMonster(_bb, Monster())
         fun getRootAsMonster(_bb: ByteBuffer, obj: Monster): Monster {
             _bb.order(ByteOrder.LITTLE_ENDIAN)
@@ -1019,6 +1018,7 @@ class Monster : Table() {
             builder.slot(3)
         }
         fun addInventory(builder: FlatBufferBuilder, inventory: Int) = builder.addOffset(5, inventory, 0)
+        @kotlin.ExperimentalUnsignedTypes
         fun createInventoryVector(builder: FlatBufferBuilder, data: UByteArray) : Int {
             builder.startVector(1, data.size, 1)
             for (i in data.size - 1 downTo 0) {
@@ -1052,6 +1052,7 @@ class Monster : Table() {
         fun startTestarrayoftablesVector(builder: FlatBufferBuilder, numElems: Int) = builder.startVector(4, numElems, 4)
         fun addEnemy(builder: FlatBufferBuilder, enemy: Int) = builder.addOffset(12, enemy, 0)
         fun addTestnestedflatbuffer(builder: FlatBufferBuilder, testnestedflatbuffer: Int) = builder.addOffset(13, testnestedflatbuffer, 0)
+        @kotlin.ExperimentalUnsignedTypes
         fun createTestnestedflatbufferVector(builder: FlatBufferBuilder, data: UByteArray) : Int {
             builder.startVector(1, data.size, 1)
             for (i in data.size - 1 downTo 0) {
@@ -1094,6 +1095,7 @@ class Monster : Table() {
         fun addTestarrayofsortedstruct(builder: FlatBufferBuilder, testarrayofsortedstruct: Int) = builder.addOffset(29, testarrayofsortedstruct, 0)
         fun startTestarrayofsortedstructVector(builder: FlatBufferBuilder, numElems: Int) = builder.startVector(8, numElems, 4)
         fun addFlex(builder: FlatBufferBuilder, flex: Int) = builder.addOffset(30, flex, 0)
+        @kotlin.ExperimentalUnsignedTypes
         fun createFlexVector(builder: FlatBufferBuilder, data: UByteArray) : Int {
             builder.startVector(1, data.size, 1)
             for (i in data.size - 1 downTo 0) {
@@ -1134,6 +1136,7 @@ class Monster : Table() {
         fun startVectorOfReferrablesVector(builder: FlatBufferBuilder, numElems: Int) = builder.startVector(4, numElems, 4)
         fun addSingleWeakReference(builder: FlatBufferBuilder, singleWeakReference: ULong) = builder.addLong(36, singleWeakReference.toLong(), 0)
         fun addVectorOfWeakReferences(builder: FlatBufferBuilder, vectorOfWeakReferences: Int) = builder.addOffset(37, vectorOfWeakReferences, 0)
+        @kotlin.ExperimentalUnsignedTypes
         fun createVectorOfWeakReferencesVector(builder: FlatBufferBuilder, data: ULongArray) : Int {
             builder.startVector(8, data.size, 8)
             for (i in data.size - 1 downTo 0) {
@@ -1153,6 +1156,7 @@ class Monster : Table() {
         fun startVectorOfStrongReferrablesVector(builder: FlatBufferBuilder, numElems: Int) = builder.startVector(4, numElems, 4)
         fun addCoOwningReference(builder: FlatBufferBuilder, coOwningReference: ULong) = builder.addLong(39, coOwningReference.toLong(), 0)
         fun addVectorOfCoOwningReferences(builder: FlatBufferBuilder, vectorOfCoOwningReferences: Int) = builder.addOffset(40, vectorOfCoOwningReferences, 0)
+        @kotlin.ExperimentalUnsignedTypes
         fun createVectorOfCoOwningReferencesVector(builder: FlatBufferBuilder, data: ULongArray) : Int {
             builder.startVector(8, data.size, 8)
             for (i in data.size - 1 downTo 0) {
@@ -1163,6 +1167,7 @@ class Monster : Table() {
         fun startVectorOfCoOwningReferencesVector(builder: FlatBufferBuilder, numElems: Int) = builder.startVector(8, numElems, 8)
         fun addNonOwningReference(builder: FlatBufferBuilder, nonOwningReference: ULong) = builder.addLong(41, nonOwningReference.toLong(), 0)
         fun addVectorOfNonOwningReferences(builder: FlatBufferBuilder, vectorOfNonOwningReferences: Int) = builder.addOffset(42, vectorOfNonOwningReferences, 0)
+        @kotlin.ExperimentalUnsignedTypes
         fun createVectorOfNonOwningReferencesVector(builder: FlatBufferBuilder, data: ULongArray) : Int {
             builder.startVector(8, data.size, 8)
             for (i in data.size - 1 downTo 0) {
@@ -1176,6 +1181,7 @@ class Monster : Table() {
         fun addAnyAmbiguousType(builder: FlatBufferBuilder, anyAmbiguousType: UByte) = builder.addByte(45, anyAmbiguousType.toByte(), 0)
         fun addAnyAmbiguous(builder: FlatBufferBuilder, anyAmbiguous: Int) = builder.addOffset(46, anyAmbiguous, 0)
         fun addVectorOfEnums(builder: FlatBufferBuilder, vectorOfEnums: Int) = builder.addOffset(47, vectorOfEnums, 0)
+        @kotlin.ExperimentalUnsignedTypes
         fun createVectorOfEnumsVector(builder: FlatBufferBuilder, data: UByteArray) : Int {
             builder.startVector(1, data.size, 1)
             for (i in data.size - 1 downTo 0) {
@@ -1186,6 +1192,7 @@ class Monster : Table() {
         fun startVectorOfEnumsVector(builder: FlatBufferBuilder, numElems: Int) = builder.startVector(1, numElems, 1)
         fun addSignedEnum(builder: FlatBufferBuilder, signedEnum: Byte) = builder.addByte(48, signedEnum, -1)
         fun addTestrequirednestedflatbuffer(builder: FlatBufferBuilder, testrequirednestedflatbuffer: Int) = builder.addOffset(49, testrequirednestedflatbuffer, 0)
+        @kotlin.ExperimentalUnsignedTypes
         fun createTestrequirednestedflatbufferVector(builder: FlatBufferBuilder, data: UByteArray) : Int {
             builder.startVector(1, data.size, 1)
             for (i in data.size - 1 downTo 0) {

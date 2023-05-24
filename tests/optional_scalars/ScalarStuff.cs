@@ -13,10 +13,11 @@ public struct ScalarStuff : IFlatbufferObject
 {
   private Table __p;
   public ByteBuffer ByteBuffer { get { return __p.bb; } }
-  public static void ValidateVersion() { FlatBufferConstants.FLATBUFFERS_23_1_21(); }
+  public static void ValidateVersion() { FlatBufferConstants.FLATBUFFERS_23_5_9(); }
   public static ScalarStuff GetRootAsScalarStuff(ByteBuffer _bb) { return GetRootAsScalarStuff(_bb, new ScalarStuff()); }
   public static ScalarStuff GetRootAsScalarStuff(ByteBuffer _bb, ScalarStuff obj) { return (obj.__assign(_bb.GetInt(_bb.Position) + _bb.Position, _bb)); }
   public static bool ScalarStuffBufferHasIdentifier(ByteBuffer _bb) { return Table.__has_identifier(_bb, "NULL"); }
+  public static bool VerifyScalarStuff(ByteBuffer _bb) {Google.FlatBuffers.Verifier verifier = new Google.FlatBuffers.Verifier(_bb); return verifier.VerifyBuffer("NULL", false, ScalarStuffVerify.Verify); }
   public void __init(int _i, ByteBuffer _bb) { __p = new Table(_i, _bb); }
   public ScalarStuff __assign(int _i, ByteBuffer _bb) { __init(_i, _bb); return this; }
 
@@ -350,5 +351,50 @@ public class ScalarStuffT
   }
 }
 
+
+static public class ScalarStuffVerify
+{
+  static public bool Verify(Google.FlatBuffers.Verifier verifier, uint tablePos)
+  {
+    return verifier.VerifyTableStart(tablePos)
+      && verifier.VerifyField(tablePos, 4 /*JustI8*/, 1 /*sbyte*/, 1, false)
+      && verifier.VerifyField(tablePos, 6 /*MaybeI8*/, 1 /*sbyte*/, 1, false)
+      && verifier.VerifyField(tablePos, 8 /*DefaultI8*/, 1 /*sbyte*/, 1, false)
+      && verifier.VerifyField(tablePos, 10 /*JustU8*/, 1 /*byte*/, 1, false)
+      && verifier.VerifyField(tablePos, 12 /*MaybeU8*/, 1 /*byte*/, 1, false)
+      && verifier.VerifyField(tablePos, 14 /*DefaultU8*/, 1 /*byte*/, 1, false)
+      && verifier.VerifyField(tablePos, 16 /*JustI16*/, 2 /*short*/, 2, false)
+      && verifier.VerifyField(tablePos, 18 /*MaybeI16*/, 2 /*short*/, 2, false)
+      && verifier.VerifyField(tablePos, 20 /*DefaultI16*/, 2 /*short*/, 2, false)
+      && verifier.VerifyField(tablePos, 22 /*JustU16*/, 2 /*ushort*/, 2, false)
+      && verifier.VerifyField(tablePos, 24 /*MaybeU16*/, 2 /*ushort*/, 2, false)
+      && verifier.VerifyField(tablePos, 26 /*DefaultU16*/, 2 /*ushort*/, 2, false)
+      && verifier.VerifyField(tablePos, 28 /*JustI32*/, 4 /*int*/, 4, false)
+      && verifier.VerifyField(tablePos, 30 /*MaybeI32*/, 4 /*int*/, 4, false)
+      && verifier.VerifyField(tablePos, 32 /*DefaultI32*/, 4 /*int*/, 4, false)
+      && verifier.VerifyField(tablePos, 34 /*JustU32*/, 4 /*uint*/, 4, false)
+      && verifier.VerifyField(tablePos, 36 /*MaybeU32*/, 4 /*uint*/, 4, false)
+      && verifier.VerifyField(tablePos, 38 /*DefaultU32*/, 4 /*uint*/, 4, false)
+      && verifier.VerifyField(tablePos, 40 /*JustI64*/, 8 /*long*/, 8, false)
+      && verifier.VerifyField(tablePos, 42 /*MaybeI64*/, 8 /*long*/, 8, false)
+      && verifier.VerifyField(tablePos, 44 /*DefaultI64*/, 8 /*long*/, 8, false)
+      && verifier.VerifyField(tablePos, 46 /*JustU64*/, 8 /*ulong*/, 8, false)
+      && verifier.VerifyField(tablePos, 48 /*MaybeU64*/, 8 /*ulong*/, 8, false)
+      && verifier.VerifyField(tablePos, 50 /*DefaultU64*/, 8 /*ulong*/, 8, false)
+      && verifier.VerifyField(tablePos, 52 /*JustF32*/, 4 /*float*/, 4, false)
+      && verifier.VerifyField(tablePos, 54 /*MaybeF32*/, 4 /*float*/, 4, false)
+      && verifier.VerifyField(tablePos, 56 /*DefaultF32*/, 4 /*float*/, 4, false)
+      && verifier.VerifyField(tablePos, 58 /*JustF64*/, 8 /*double*/, 8, false)
+      && verifier.VerifyField(tablePos, 60 /*MaybeF64*/, 8 /*double*/, 8, false)
+      && verifier.VerifyField(tablePos, 62 /*DefaultF64*/, 8 /*double*/, 8, false)
+      && verifier.VerifyField(tablePos, 64 /*JustBool*/, 1 /*bool*/, 1, false)
+      && verifier.VerifyField(tablePos, 66 /*MaybeBool*/, 1 /*bool*/, 1, false)
+      && verifier.VerifyField(tablePos, 68 /*DefaultBool*/, 1 /*bool*/, 1, false)
+      && verifier.VerifyField(tablePos, 70 /*JustEnum*/, 1 /*optional_scalars.OptionalByte*/, 1, false)
+      && verifier.VerifyField(tablePos, 72 /*MaybeEnum*/, 1 /*optional_scalars.OptionalByte*/, 1, false)
+      && verifier.VerifyField(tablePos, 74 /*DefaultEnum*/, 1 /*optional_scalars.OptionalByte*/, 1, false)
+      && verifier.VerifyTableEnd(tablePos);
+  }
+}
 
 }

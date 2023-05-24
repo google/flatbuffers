@@ -35,15 +35,24 @@ class Referrable(object):
             return self._tab.Get(flatbuffers.number_types.Uint64Flags, o + self._tab.Pos)
         return 0
 
-def ReferrableStart(builder): builder.StartObject(1)
+def ReferrableStart(builder):
+    builder.StartObject(1)
+
 def Start(builder):
-    return ReferrableStart(builder)
-def ReferrableAddId(builder, id): builder.PrependUint64Slot(0, id, 0)
+    ReferrableStart(builder)
+
+def ReferrableAddId(builder, id):
+    builder.PrependUint64Slot(0, id, 0)
+
 def AddId(builder, id):
-    return ReferrableAddId(builder, id)
-def ReferrableEnd(builder): return builder.EndObject()
+    ReferrableAddId(builder, id)
+
+def ReferrableEnd(builder):
+    return builder.EndObject()
+
 def End(builder):
     return ReferrableEnd(builder)
+
 
 class ReferrableT(object):
 

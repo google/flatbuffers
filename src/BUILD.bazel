@@ -5,20 +5,49 @@ package(
     default_visibility = ["//visibility:private"],
 )
 
+filegroup(
+    name = "distribution",
+    srcs = [
+        "BUILD.bazel",
+    ] + glob([
+        "*.cpp",
+        "*.h",
+    ]),
+    visibility = ["//visibility:public"],
+)
+
+cc_library(
+    name = "code_generators",
+    srcs = ["code_generators.cpp"],
+    hdrs = [
+        "//:public_headers",
+    ],
+    strip_include_prefix = "/include",
+    visibility = ["//:__subpackages__"],
+)
+
+cc_library(
+    name = "generate_fbs",
+    srcs = ["idl_gen_fbs.cpp"],
+    hdrs = ["idl_gen_fbs.h"],
+    strip_include_prefix = "/src",
+    visibility = ["//:__subpackages__"],
+    deps = [":code_generators"],
+)
+
 # Public flatc library to compile flatbuffer files at runtime.
 cc_library(
     name = "flatbuffers",
     srcs = [
-        "code_generators.cpp",
-        "idl_gen_fbs.cpp",
-        "idl_gen_fbs.h",
         "idl_gen_text.cpp",
         "idl_gen_text.h",
         "idl_parser.cpp",
         "reflection.cpp",
         "util.cpp",
     ],
-    hdrs = ["//:public_headers"],
+    hdrs = [
+        "//:public_headers",
+    ],
     linkopts = select({
         # TODO: Bazel uses `clang` instead of `clang++` to link
         # C++ code on BSD. Temporarily adding these linker flags while
@@ -29,7 +58,11 @@ cc_library(
         "//conditions:default": [],
     }),
     strip_include_prefix = "/include",
-    visibility = ["//:__pkg__"],
+    visibility = ["//:__subpackages__"],
+    deps = [
+        ":code_generators",
+        ":generate_fbs",
+    ],
 )
 
 # Public flatc compiler library.
@@ -69,6 +102,9 @@ cc_library(
         "bfbs_gen_nim.cpp",
         "bfbs_gen_nim.h",
         "bfbs_namer.h",
+        "file_binary_writer.cpp",
+        "file_name_saving_file_manager.cpp",
+        "file_writer.cpp",
         "flatc_main.cpp",
         "idl_gen_binary.cpp",
         "idl_gen_binary.h",
@@ -89,8 +125,6 @@ cc_library(
         "idl_gen_kotlin.h",
         "idl_gen_lobster.cpp",
         "idl_gen_lobster.h",
-        "idl_gen_lua.cpp",
-        "idl_gen_lua.h",
         "idl_gen_php.cpp",
         "idl_gen_php.h",
         "idl_gen_python.cpp",

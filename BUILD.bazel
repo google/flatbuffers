@@ -1,9 +1,18 @@
+load("@aspect_rules_js//npm:defs.bzl", "npm_link_package")
+load("@npm//:defs.bzl", "npm_link_all_packages")
 load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library")
 
 licenses(["notice"])
 
 package(
     default_visibility = ["//visibility:public"],
+)
+
+npm_link_all_packages(name = "node_modules")
+
+npm_link_package(
+    name = "node_modules/flatbuffers",
+    src = "//ts:flatbuffers",
 )
 
 exports_files([
@@ -23,6 +32,23 @@ config_setting(
     constraint_values = [
         "@platforms//os:openbsd",
     ],
+)
+
+filegroup(
+    name = "distribution",
+    srcs = [
+        "BUILD.bazel",
+        "WORKSPACE",
+        "build_defs.bzl",
+        "typescript.bzl",
+        "//grpc/src/compiler:distribution",
+        "//reflection:distribution",
+        "//src:distribution",
+        "//ts:distribution",
+    ] + glob([
+        "include/flatbuffers/*.h",
+    ]),
+    visibility = ["//visibility:public"],
 )
 
 # Public flatc library to compile flatbuffer files at runtime.
@@ -47,6 +73,7 @@ filegroup(
         "include/flatbuffers/code_generators.h",
         "include/flatbuffers/default_allocator.h",
         "include/flatbuffers/detached_buffer.h",
+        "include/flatbuffers/file_manager.h",
         "include/flatbuffers/flatbuffer_builder.h",
         "include/flatbuffers/flatbuffers.h",
         "include/flatbuffers/flex_flat_util.h",
