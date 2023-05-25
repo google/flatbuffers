@@ -33,7 +33,8 @@
       "type" : "object",
       "properties" : {
         "a" : {
-                "type" : "integer", "minimum" : -2147483648, "maximum" : 2147483647
+                "type" : "integer", "minimum" : -2147483648, "maximum" : 2147483647,
+                "default" : 0
               }
       },
       "additionalProperties" : false
@@ -72,10 +73,12 @@
       "type" : "object",
       "properties" : {
         "a" : {
-                "type" : "integer", "minimum" : -32768, "maximum" : 32767
+                "type" : "integer", "minimum" : -32768, "maximum" : 32767,
+                "default" : 0
               },
         "b" : {
-                "type" : "integer", "minimum" : -128, "maximum" : 127
+                "type" : "integer", "minimum" : -128, "maximum" : 127,
+                "default" : 0
               }
       },
       "additionalProperties" : false
@@ -84,7 +87,8 @@
       "type" : "object",
       "properties" : {
         "color" : {
-                "$ref" : "#/definitions/MyGame_Example_Color"
+                "$ref" : "#/definitions/MyGame_Example_Color",
+                "default" : "Blue"
               }
       },
       "additionalProperties" : false
@@ -93,19 +97,24 @@
       "type" : "object",
       "properties" : {
         "x" : {
-                "type" : "number"
+                "type" : "number",
+                "default" : 0.0
               },
         "y" : {
-                "type" : "number"
+                "type" : "number",
+                "default" : 0.0
               },
         "z" : {
-                "type" : "number"
+                "type" : "number",
+                "default" : 0.0
               },
         "test1" : {
-                "type" : "number"
+                "type" : "number",
+                "default" : 0.0
               },
         "test2" : {
-                "$ref" : "#/definitions/MyGame_Example_Color"
+                "$ref" : "#/definitions/MyGame_Example_Color",
+                "default" : "Red"
               },
         "test3" : {
                 "$ref" : "#/definitions/MyGame_Example_Test"
@@ -117,10 +126,12 @@
       "type" : "object",
       "properties" : {
         "id" : {
-                "type" : "integer", "minimum" : 0, "maximum" : 4294967295
+                "type" : "integer", "minimum" : 0, "maximum" : 4294967295,
+                "default" : 0
               },
         "distance" : {
-                "type" : "integer", "minimum" : 0, "maximum" : 4294967295
+                "type" : "integer", "minimum" : 0, "maximum" : 4294967295,
+                "default" : 0
               }
       },
       "additionalProperties" : false
@@ -156,10 +167,12 @@
                 "type" : "string"
               },
         "val" : {
-                "type" : "integer", "minimum" : -9223372036854775808, "maximum" : 9223372036854775807
+                "type" : "integer", "minimum" : -9223372036854775808, "maximum" : 9223372036854775807,
+                "default" : 0
               },
         "count" : {
-                "type" : "integer", "minimum" : 0, "maximum" : 65535
+                "type" : "integer", "minimum" : 0, "maximum" : 65535,
+                "default" : 0
               }
       },
       "additionalProperties" : false
@@ -168,7 +181,8 @@
       "type" : "object",
       "properties" : {
         "id" : {
-                "type" : "integer", "minimum" : 0, "maximum" : 18446744073709551615
+                "type" : "integer", "minimum" : 0, "maximum" : 18446744073709551615,
+                "default" : 0
               }
       },
       "additionalProperties" : false
@@ -181,17 +195,20 @@
                 "$ref" : "#/definitions/MyGame_Example_Vec3"
               },
         "mana" : {
-                "type" : "integer", "minimum" : -32768, "maximum" : 32767
+                "type" : "integer", "minimum" : -32768, "maximum" : 32767,
+                "default" : 150
               },
         "hp" : {
-                "type" : "integer", "minimum" : -32768, "maximum" : 32767
+                "type" : "integer", "minimum" : -32768, "maximum" : 32767,
+                "default" : 100
               },
         "name" : {
                 "type" : "string"
               },
         "friendly" : {
                 "type" : "boolean",
-                "deprecated" : true
+                "deprecated" : true,
+                "default" : false
               },
         "inventory" : {
                 "type" : "array", "items" : {"type" : "integer", "minimum" : 0, "maximum" :255}
@@ -200,7 +217,8 @@
                 "$ref" : "#/definitions/MyGame_Example_Color"
               },
         "test_type" : {
-                "$ref" : "#/definitions/MyGame_Example_Any"
+                "$ref" : "#/definitions/MyGame_Example_Any",
+                "default" : "NONE"
               },
         "test" : {
                 "anyOf": [{ "$ref" : "#/definitions/MyGame_Example_Monster" },{ "$ref" : "#/definitions/MyGame_Example_TestSimpleTableWithEnum" },{ "$ref" : "#/definitions/MyGame_Example2_Monster" }]
@@ -225,43 +243,55 @@
                 "$ref" : "#/definitions/MyGame_Example_Stat"
               },
         "testbool" : {
-                "type" : "boolean"
+                "type" : "boolean",
+                "default" : false
               },
         "testhashs32_fnv1" : {
-                "type" : "integer", "minimum" : -2147483648, "maximum" : 2147483647
+                "type" : "integer", "minimum" : -2147483648, "maximum" : 2147483647,
+                "default" : 0
               },
         "testhashu32_fnv1" : {
-                "type" : "integer", "minimum" : 0, "maximum" : 4294967295
+                "type" : "integer", "minimum" : 0, "maximum" : 4294967295,
+                "default" : 0
               },
         "testhashs64_fnv1" : {
-                "type" : "integer", "minimum" : -9223372036854775808, "maximum" : 9223372036854775807
+                "type" : "integer", "minimum" : -9223372036854775808, "maximum" : 9223372036854775807,
+                "default" : 0
               },
         "testhashu64_fnv1" : {
-                "type" : "integer", "minimum" : 0, "maximum" : 18446744073709551615
+                "type" : "integer", "minimum" : 0, "maximum" : 18446744073709551615,
+                "default" : 0
               },
         "testhashs32_fnv1a" : {
-                "type" : "integer", "minimum" : -2147483648, "maximum" : 2147483647
+                "type" : "integer", "minimum" : -2147483648, "maximum" : 2147483647,
+                "default" : 0
               },
         "testhashu32_fnv1a" : {
-                "type" : "integer", "minimum" : 0, "maximum" : 4294967295
+                "type" : "integer", "minimum" : 0, "maximum" : 4294967295,
+                "default" : 0
               },
         "testhashs64_fnv1a" : {
-                "type" : "integer", "minimum" : -9223372036854775808, "maximum" : 9223372036854775807
+                "type" : "integer", "minimum" : -9223372036854775808, "maximum" : 9223372036854775807,
+                "default" : 0
               },
         "testhashu64_fnv1a" : {
-                "type" : "integer", "minimum" : 0, "maximum" : 18446744073709551615
+                "type" : "integer", "minimum" : 0, "maximum" : 18446744073709551615,
+                "default" : 0
               },
         "testarrayofbools" : {
                 "type" : "array", "items" : {"type" : "boolean"}
               },
         "testf" : {
-                "type" : "number"
+                "type" : "number",
+                "default" : 3.14159
               },
         "testf2" : {
-                "type" : "number"
+                "type" : "number",
+                "default" : 3.0
               },
         "testf3" : {
-                "type" : "number"
+                "type" : "number",
+                "default" : 0.0
               },
         "testarrayofstring2" : {
                 "type" : "array", "items" : {"type" : "string"}
@@ -288,7 +318,8 @@
                 "type" : "array", "items" : {"$ref" : "#/definitions/MyGame_Example_Referrable"}
               },
         "single_weak_reference" : {
-                "type" : "integer", "minimum" : 0, "maximum" : 18446744073709551615
+                "type" : "integer", "minimum" : 0, "maximum" : 18446744073709551615,
+                "default" : 0
               },
         "vector_of_weak_references" : {
                 "type" : "array", "items" : {"type" : "integer", "minimum" : 0, "maximum" : 18446744073709551615}
@@ -297,25 +328,29 @@
                 "type" : "array", "items" : {"$ref" : "#/definitions/MyGame_Example_Referrable"}
               },
         "co_owning_reference" : {
-                "type" : "integer", "minimum" : 0, "maximum" : 18446744073709551615
+                "type" : "integer", "minimum" : 0, "maximum" : 18446744073709551615,
+                "default" : 0
               },
         "vector_of_co_owning_references" : {
                 "type" : "array", "items" : {"type" : "integer", "minimum" : 0, "maximum" : 18446744073709551615}
               },
         "non_owning_reference" : {
-                "type" : "integer", "minimum" : 0, "maximum" : 18446744073709551615
+                "type" : "integer", "minimum" : 0, "maximum" : 18446744073709551615,
+                "default" : 0
               },
         "vector_of_non_owning_references" : {
                 "type" : "array", "items" : {"type" : "integer", "minimum" : 0, "maximum" : 18446744073709551615}
               },
         "any_unique_type" : {
-                "$ref" : "#/definitions/MyGame_Example_AnyUniqueAliases"
+                "$ref" : "#/definitions/MyGame_Example_AnyUniqueAliases",
+                "default" : "NONE"
               },
         "any_unique" : {
                 "anyOf": [{ "$ref" : "#/definitions/MyGame_Example_Monster" },{ "$ref" : "#/definitions/MyGame_Example_TestSimpleTableWithEnum" },{ "$ref" : "#/definitions/MyGame_Example2_Monster" }]
               },
         "any_ambiguous_type" : {
-                "$ref" : "#/definitions/MyGame_Example_AnyAmbiguousAliases"
+                "$ref" : "#/definitions/MyGame_Example_AnyAmbiguousAliases",
+                "default" : "NONE"
               },
         "any_ambiguous" : {
                 "anyOf": [{ "$ref" : "#/definitions/MyGame_Example_Monster" },{ "$ref" : "#/definitions/MyGame_Example_Monster" },{ "$ref" : "#/definitions/MyGame_Example_Monster" }]
@@ -336,10 +371,12 @@
                 "$ref" : "#/definitions/MyGame_Example_Test"
               },
         "long_enum_non_enum_default" : {
-                "$ref" : "#/definitions/MyGame_Example_LongEnum"
+                "$ref" : "#/definitions/MyGame_Example_LongEnum",
+                "default" : "LongOne"
               },
         "long_enum_normal_default" : {
-                "$ref" : "#/definitions/MyGame_Example_LongEnum"
+                "$ref" : "#/definitions/MyGame_Example_LongEnum",
+                "default" : "LongBig"
               },
         "nan_default" : {
                 "type" : "number"
@@ -373,34 +410,44 @@
       "type" : "object",
       "properties" : {
         "i8" : {
-                "type" : "integer", "minimum" : -128, "maximum" : 127
+                "type" : "integer", "minimum" : -128, "maximum" : 127,
+                "default" : 0
               },
         "u8" : {
-                "type" : "integer", "minimum" : 0, "maximum" :255
+                "type" : "integer", "minimum" : 0, "maximum" :255,
+                "default" : 0
               },
         "i16" : {
-                "type" : "integer", "minimum" : -32768, "maximum" : 32767
+                "type" : "integer", "minimum" : -32768, "maximum" : 32767,
+                "default" : 0
               },
         "u16" : {
-                "type" : "integer", "minimum" : 0, "maximum" : 65535
+                "type" : "integer", "minimum" : 0, "maximum" : 65535,
+                "default" : 0
               },
         "i32" : {
-                "type" : "integer", "minimum" : -2147483648, "maximum" : 2147483647
+                "type" : "integer", "minimum" : -2147483648, "maximum" : 2147483647,
+                "default" : 0
               },
         "u32" : {
-                "type" : "integer", "minimum" : 0, "maximum" : 4294967295
+                "type" : "integer", "minimum" : 0, "maximum" : 4294967295,
+                "default" : 0
               },
         "i64" : {
-                "type" : "integer", "minimum" : -9223372036854775808, "maximum" : 9223372036854775807
+                "type" : "integer", "minimum" : -9223372036854775808, "maximum" : 9223372036854775807,
+                "default" : 0
               },
         "u64" : {
-                "type" : "integer", "minimum" : 0, "maximum" : 18446744073709551615
+                "type" : "integer", "minimum" : 0, "maximum" : 18446744073709551615,
+                "default" : 0
               },
         "f32" : {
-                "type" : "number"
+                "type" : "number",
+                "default" : 0.0
               },
         "f64" : {
-                "type" : "number"
+                "type" : "number",
+                "default" : 0.0
               },
         "v8" : {
                 "type" : "array", "items" : {"type" : "integer", "minimum" : -128, "maximum" : 127}

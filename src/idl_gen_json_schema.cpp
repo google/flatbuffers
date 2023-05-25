@@ -142,7 +142,29 @@ static std::string GenType(const Type &type) {
   }
 }
 
-}  // namespace
+static std::string GenDefault(const Value &value) {
+  auto type = value.type;
+  std::string defaultInfo;
+  if (IsScalar(type.base_type)) {
+    if (IsBool(type.base_type)) {
+      defaultInfo += (value.constant == "0") ? "false" : "true";
+    } else if (IsEnum(type)) {
+      auto id = static_cast<size_t>(StringToUInt(value.constant.c_str(), 10));
+      if (id < type.enum_def->Vals().size()) {
+        defaultInfo += "\"" + type.enum_def->Vals()[id]->name + "\"";
+      }
+    } else {
+      double number;
+      if (StringToNumber(value.constant.c_str(), &number) &&
+        !std::isinf(number) && !std::isnan(number)) {
+        defaultInfo += value.constant;
+      }
+    }
+  }
+  return defaultInfo;
+}
+
+} // namespace
 
 class JsonSchemaGenerator : public BaseGenerator {
  private:
@@ -270,7 +292,11 @@ class JsonSchemaGenerator : public BaseGenerator {
           typeLine +=
               "," + NewLine() + Indent(8) + "\"description\" : " + description;
         }
-
+        auto defaultValue = GenDefault(property->value);
+        if (defaultValue != "") {
+          typeLine +=
+              "," + NewLine() + Indent(8) + "\"default\" : " + defaultValue;
+        }
         typeLine += NewLine() + Indent(7) + "}";
         if (property != properties.back()) { typeLine.append(","); }
         code_ += typeLine + NewLine();

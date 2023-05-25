@@ -14,7 +14,8 @@
                 "maxItems": 2
               },
         "b" : {
-                "$ref" : "#/definitions/MyGame_Example_TestEnum"
+                "$ref" : "#/definitions/MyGame_Example_TestEnum",
+                "default" : "A"
               },
         "c" : {
                 "type" : "array", "items" : {"$ref" : "#/definitions/MyGame_Example_TestEnum"},
@@ -33,7 +34,8 @@
       "type" : "object",
       "properties" : {
         "a" : {
-                "type" : "number"
+                "type" : "number",
+                "default" : 0.0
               },
         "b" : {
                 "type" : "array", "items" : {"type" : "integer", "minimum" : -2147483648, "maximum" : 2147483647},
@@ -41,7 +43,8 @@
                 "maxItems": 15
               },
         "c" : {
-                "type" : "integer", "minimum" : -128, "maximum" : 127
+                "type" : "integer", "minimum" : -128, "maximum" : 127,
+                "default" : 0
               },
         "d" : {
                 "type" : "array", "items" : {"$ref" : "#/definitions/MyGame_Example_NestedStruct"},
@@ -49,7 +52,8 @@
                 "maxItems": 2
               },
         "e" : {
-                "type" : "integer", "minimum" : -2147483648, "maximum" : 2147483647
+                "type" : "integer", "minimum" : -2147483648, "maximum" : 2147483647,
+                "default" : 0
               },
         "f" : {
                 "type" : "array", "items" : {"type" : "integer", "minimum" : -9223372036854775808, "maximum" : 9223372036854775807},
