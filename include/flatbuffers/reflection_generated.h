@@ -10,7 +10,7 @@
 // generated, otherwise it may not be compatible.
 static_assert(FLATBUFFERS_VERSION_MAJOR == 23 &&
               FLATBUFFERS_VERSION_MINOR == 5 &&
-              FLATBUFFERS_VERSION_REVISION == 9,
+              FLATBUFFERS_VERSION_REVISION == 26,
              "Non-compatible flatbuffers version included");
 
 namespace reflection {
