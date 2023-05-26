@@ -17,13 +17,18 @@
 
 package com.google.flatbuffers.kotlin
 
-public inline class BitWidth(public val value: Int) {
+import kotlin.jvm.JvmInline
+
+@JvmInline
+public value class BitWidth(public val value: Int) {
   public inline fun max(other: BitWidth): BitWidth = if (this.value >= other.value) this else other
 }
 
-public inline class ByteWidth(public val value: Int)
+@JvmInline
+public value class ByteWidth(public val value: Int)
 
-public inline class FlexBufferType(public val value: Int) {
+@JvmInline
+public value class FlexBufferType(public val value: Int) {
   public operator fun minus(other: FlexBufferType): FlexBufferType = FlexBufferType(this.value - other.value)
   public operator fun plus(other: FlexBufferType): FlexBufferType = FlexBufferType(this.value + other.value)
   public operator fun compareTo(other: FlexBufferType): Int = this.value - other.value
@@ -108,11 +113,12 @@ internal fun FlexBufferType.isIndirectScalar(): Boolean = when (this) {
 internal fun FlexBufferType.isTypedVector(): Boolean =
   this >= T_VECTOR_INT && this <= T_VECTOR_STRING_DEPRECATED || this == T_VECTOR_BOOL
 
-internal fun FlexBufferType.isTypedVectorElementType(): Boolean = (this.value in T_INT.value..T_KEY.value) || this == T_BOOL
+internal fun FlexBufferType.isTypedVectorElementType(): Boolean =
+  (this.value in T_INT.value..T_KEY.value) || this == T_BOOL
 
 // returns the typed vector of a given scalar type.
 internal fun FlexBufferType.toTypedVector(): FlexBufferType = (this - T_INT) + T_VECTOR_INT
-// returns the element type of a given typed vector.
+// returns the element type of given typed vector.
 internal fun FlexBufferType.toElementTypedVector(): FlexBufferType = this - T_VECTOR_INT + T_INT
 
 // Holds information about the elements inserted on the buffer.
@@ -126,7 +132,8 @@ internal data class Value(
 
   inline fun storedPackedType(parentBitWidth: BitWidth = W_8): Byte = packedType(storedWidth(parentBitWidth), type)
 
-  private inline fun packedType(bitWidth: BitWidth, type: FlexBufferType): Byte = (bitWidth.value or (type.value shl 2)).toByte()
+  private inline fun packedType(bitWidth: BitWidth, type: FlexBufferType): Byte =
+    (bitWidth.value or (type.value shl 2)).toByte()
 
   private inline fun storedWidth(parentBitWidth: BitWidth): BitWidth =
     if (type.isInline()) minBitWidth.max(parentBitWidth) else minBitWidth
@@ -199,7 +206,6 @@ internal fun FlexBufferType.typeToString(): String = when (this) {
 }
 
 // Few repeated values used in hot path is cached here
-internal val emptyBuffer = ArrayReadWriteBuffer(1)
 internal fun emptyBlob() = Blob(emptyBuffer, 1, ByteWidth(1))
 internal fun emptyVector() = Vector(emptyBuffer, 1, ByteWidth(1))
 internal fun emptyMap() = Map(ArrayReadWriteBuffer(3), 3, ByteWidth(1))

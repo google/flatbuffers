@@ -14,13 +14,14 @@
  * limitations under the License.
  */
 @file:Suppress("NOTHING_TO_INLINE")
+
 package com.google.flatbuffers.kotlin
 
 import kotlin.experimental.and
 
 internal fun ByteArray.getString(index: Int, size: Int): String = Utf8.decodeUtf8Array(this, index, size)
 
-internal fun ByteArray.setString(index: Int, value: String): Int =
+internal fun ByteArray.setCharSequence(index: Int, value: CharSequence): Int =
   Utf8.encodeUtf8Array(value, this, index, this.size - index)
 
 // List of functions that needs to be implemented on all platforms.
@@ -35,7 +36,7 @@ internal expect inline fun ByteArray.getFloat(index: Int): Float
 internal expect inline fun ByteArray.getDouble(index: Int): Double
 
 internal expect inline fun ByteArray.setUByte(index: Int, value: UByte)
-internal expect inline fun ByteArray.setShort(index: Int, value: Short)
+public expect inline fun ByteArray.setShort(index: Int, value: Short)
 internal expect inline fun ByteArray.setUShort(index: Int, value: UShort)
 internal expect inline fun ByteArray.setInt(index: Int, value: Int)
 internal expect inline fun ByteArray.setUInt(index: Int, value: UInt)
@@ -102,43 +103,20 @@ public object ByteArrayOps {
   public inline fun setUInt(ary: ByteArray, index: Int, value: UInt): Unit = setInt(ary, index, value.toInt())
 
   public inline fun setLong(ary: ByteArray, index: Int, value: Long) {
-    var idx = index
     var i = value.toInt()
-    ary[idx++] = (i and 0xff).toByte()
-    ary[idx++] = (i shr 8 and 0xff).toByte()
-    ary[idx++] = (i shr 16 and 0xff).toByte()
-    ary[idx++] = (i shr 24 and 0xff).toByte()
+    setInt(ary, index, i)
     i = (value shr 32).toInt()
-    ary[idx++] = (i and 0xff).toByte()
-    ary[idx++] = (i shr 8 and 0xff).toByte()
-    ary[idx++] = (i shr 16 and 0xff).toByte()
-    ary[idx] = (i shr 24 and 0xff).toByte()
+    setInt(ary, index + 4, i)
   }
 
   public inline fun setULong(ary: ByteArray, index: Int, value: ULong): Unit = setLong(ary, index, value.toLong())
 
   public inline fun setFloat(ary: ByteArray, index: Int, value: Float) {
-    var idx = index
-    val iValue: Int = value.toRawBits()
-    ary[idx++] = (iValue and 0xff).toByte()
-    ary[idx++] = (iValue shr 8 and 0xff).toByte()
-    ary[idx++] = (iValue shr 16 and 0xff).toByte()
-    ary[idx] = (iValue shr 24 and 0xff).toByte()
+    setInt(ary, index, value.toRawBits())
   }
 
   public inline fun setDouble(ary: ByteArray, index: Int, value: Double) {
-    var idx = index
-    val lValue: Long = value.toRawBits()
-    var i = lValue.toInt()
-    ary[idx++] = (i and 0xff).toByte()
-    ary[idx++] = (i shr 8 and 0xff).toByte()
-    ary[idx++] = (i shr 16 and 0xff).toByte()
-    ary[idx++] = (i shr 24 and 0xff).toByte()
-    i = (lValue shr 32).toInt()
-    ary[idx++] = (i and 0xff).toByte()
-    ary[idx++] = (i shr 8 and 0xff).toByte()
-    ary[idx++] = (i shr 16 and 0xff).toByte()
-    ary[idx] = (i shr 24 and 0xff).toByte()
+    setLong(ary, index, value.toRawBits())
   }
 
   public inline fun getFloat(ary: ByteArray, index: Int): Float = Float.fromBits(getInt(ary, index))
