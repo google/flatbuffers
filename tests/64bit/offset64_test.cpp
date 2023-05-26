@@ -438,5 +438,21 @@ void Offset64ManyVectors() {
   TEST_EQ(root_table->many_vectors()->Get(12)->vector()->Get(19), 18);
 }
 
+void Offset64ForceAlign() {
+  FlatBufferBuilder64 builder;
+
+  // Setup some data to serialize that is less than the force_align size of 32
+  // bytes.
+  std::vector<uint8_t> data{ 1, 2, 3 };
+
+  // Use the CreateDirect which calls the ForceVectorAlign
+  const auto root_table_offset =
+      CreateRootTableDirect(builder, nullptr, 0, nullptr, nullptr, nullptr,
+                            nullptr, nullptr, nullptr, nullptr, &data);
+
+  // Finish the buffer.
+  FinishRootTableBuffer(builder, root_table_offset);
+}
+
 }  // namespace tests
 }  // namespace flatbuffers
