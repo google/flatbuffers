@@ -167,6 +167,7 @@ struct RootTableT : public ::flatbuffers::NativeTable {
   std::vector<LeafStruct> far_struct_vector{};
   std::vector<LeafStruct> big_struct_vector{};
   std::vector<std::unique_ptr<WrapperTableT>> many_vectors{};
+  std::vector<uint8_t> forced_aligned_vector{};
   RootTableT() = default;
   RootTableT(const RootTableT &o);
   RootTableT(RootTableT&&) FLATBUFFERS_NOEXCEPT = default;
@@ -189,7 +190,8 @@ struct RootTable FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
     VT_NESTED_ROOT = 14,
     VT_FAR_STRUCT_VECTOR = 16,
     VT_BIG_STRUCT_VECTOR = 18,
-    VT_MANY_VECTORS = 20
+    VT_MANY_VECTORS = 20,
+    VT_FORCED_ALIGNED_VECTOR = 22
   };
   const ::flatbuffers::Vector<uint8_t> *far_vector() const {
     return GetPointer64<const ::flatbuffers::Vector<uint8_t> *>(VT_FAR_VECTOR);
@@ -250,6 +252,12 @@ struct RootTable FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   ::flatbuffers::Vector<::flatbuffers::Offset<WrapperTable>> *mutable_many_vectors() {
     return GetPointer<::flatbuffers::Vector<::flatbuffers::Offset<WrapperTable>> *>(VT_MANY_VECTORS);
   }
+  const ::flatbuffers::Vector64<uint8_t> *forced_aligned_vector() const {
+    return GetPointer64<const ::flatbuffers::Vector64<uint8_t> *>(VT_FORCED_ALIGNED_VECTOR);
+  }
+  ::flatbuffers::Vector64<uint8_t> *mutable_forced_aligned_vector() {
+    return GetPointer64<::flatbuffers::Vector64<uint8_t> *>(VT_FORCED_ALIGNED_VECTOR);
+  }
   bool Verify(::flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffset64(verifier, VT_FAR_VECTOR) &&
@@ -271,6 +279,8 @@ struct RootTable FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
            VerifyOffset(verifier, VT_MANY_VECTORS) &&
            verifier.VerifyVector(many_vectors()) &&
            verifier.VerifyVectorOfTables(many_vectors()) &&
+           VerifyOffset64(verifier, VT_FORCED_ALIGNED_VECTOR) &&
+           verifier.VerifyVector(forced_aligned_vector()) &&
            verifier.EndTable();
   }
   RootTableT *UnPack(const ::flatbuffers::resolver_function_t *_resolver = nullptr) const;
@@ -309,6 +319,9 @@ struct RootTableBuilder {
   void add_many_vectors(::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<WrapperTable>>> many_vectors) {
     fbb_.AddOffset(RootTable::VT_MANY_VECTORS, many_vectors);
   }
+  void add_forced_aligned_vector(::flatbuffers::Offset64<::flatbuffers::Vector64<uint8_t>> forced_aligned_vector) {
+    fbb_.AddOffset(RootTable::VT_FORCED_ALIGNED_VECTOR, forced_aligned_vector);
+  }
   explicit RootTableBuilder(::flatbuffers::FlatBufferBuilder64 &_fbb)
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
@@ -330,8 +343,10 @@ inline ::flatbuffers::Offset<RootTable> CreateRootTable(
     ::flatbuffers::Offset64<::flatbuffers::Vector64<uint8_t>> nested_root = 0,
     ::flatbuffers::Offset64<::flatbuffers::Vector<const LeafStruct *>> far_struct_vector = 0,
     ::flatbuffers::Offset64<::flatbuffers::Vector64<const LeafStruct *>> big_struct_vector = 0,
-    ::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<WrapperTable>>> many_vectors = 0) {
+    ::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<WrapperTable>>> many_vectors = 0,
+    ::flatbuffers::Offset64<::flatbuffers::Vector64<uint8_t>> forced_aligned_vector = 0) {
   RootTableBuilder builder_(_fbb);
+  builder_.add_forced_aligned_vector(forced_aligned_vector);
   builder_.add_big_struct_vector(big_struct_vector);
   builder_.add_nested_root(nested_root);
   builder_.add_big_vector(big_vector);
@@ -354,13 +369,16 @@ inline ::flatbuffers::Offset<RootTable> CreateRootTableDirect(
     const std::vector<uint8_t> *nested_root = nullptr,
     const std::vector<LeafStruct> *far_struct_vector = nullptr,
     const std::vector<LeafStruct> *big_struct_vector = nullptr,
-    const std::vector<::flatbuffers::Offset<WrapperTable>> *many_vectors = nullptr) {
+    const std::vector<::flatbuffers::Offset<WrapperTable>> *many_vectors = nullptr,
+    const std::vector<uint8_t> *forced_aligned_vector = nullptr) {
   auto far_vector__ = far_vector ? _fbb.CreateVector64<::flatbuffers::Vector>(*far_vector) : 0;
   auto far_string__ = far_string ? _fbb.CreateString<::flatbuffers::Offset64>(far_string) : 0;
   auto big_vector__ = big_vector ? _fbb.CreateVector64(*big_vector) : 0;
   auto nested_root__ = nested_root ? _fbb.CreateVector64(*nested_root) : 0;
   auto far_struct_vector__ = far_struct_vector ? _fbb.CreateVectorOfStructs64<::flatbuffers::Vector>(*far_struct_vector) : 0;
   auto big_struct_vector__ = big_struct_vector ? _fbb.CreateVectorOfStructs64(*big_struct_vector) : 0;
+  if (forced_aligned_vector) { _fbb.ForceVectorAlignment64(forced_aligned_vector->size(), sizeof(uint8_t), 32); }
+  auto forced_aligned_vector__ = forced_aligned_vector ? _fbb.CreateVector64(*forced_aligned_vector) : 0;
   auto near_string__ = near_string ? _fbb.CreateString(near_string) : 0;
   auto many_vectors__ = many_vectors ? _fbb.CreateVector<::flatbuffers::Offset<WrapperTable>>(*many_vectors) : 0;
   return CreateRootTable(
@@ -373,7 +391,8 @@ inline ::flatbuffers::Offset<RootTable> CreateRootTableDirect(
       nested_root__,
       far_struct_vector__,
       big_struct_vector__,
-      many_vectors__);
+      many_vectors__,
+      forced_aligned_vector__);
 }
 
 ::flatbuffers::Offset<RootTable> CreateRootTable(::flatbuffers::FlatBufferBuilder64 &_fbb, const RootTableT *_o, const ::flatbuffers::rehasher_function_t *_rehasher = nullptr);
@@ -426,7 +445,8 @@ inline bool operator==(const RootTableT &lhs, const RootTableT &rhs) {
       (lhs.nested_root == rhs.nested_root) &&
       (lhs.far_struct_vector == rhs.far_struct_vector) &&
       (lhs.big_struct_vector == rhs.big_struct_vector) &&
-      (lhs.many_vectors.size() == rhs.many_vectors.size() && std::equal(lhs.many_vectors.cbegin(), lhs.many_vectors.cend(), rhs.many_vectors.cbegin(), [](std::unique_ptr<WrapperTableT> const &a, std::unique_ptr<WrapperTableT> const &b) { return (a == b) || (a && b && *a == *b); }));
+      (lhs.many_vectors.size() == rhs.many_vectors.size() && std::equal(lhs.many_vectors.cbegin(), lhs.many_vectors.cend(), rhs.many_vectors.cbegin(), [](std::unique_ptr<WrapperTableT> const &a, std::unique_ptr<WrapperTableT> const &b) { return (a == b) || (a && b && *a == *b); })) &&
+      (lhs.forced_aligned_vector == rhs.forced_aligned_vector);
 }
 
 inline bool operator!=(const RootTableT &lhs, const RootTableT &rhs) {
@@ -442,7 +462,8 @@ inline RootTableT::RootTableT(const RootTableT &o)
         near_string(o.near_string),
         nested_root(o.nested_root),
         far_struct_vector(o.far_struct_vector),
-        big_struct_vector(o.big_struct_vector) {
+        big_struct_vector(o.big_struct_vector),
+        forced_aligned_vector(o.forced_aligned_vector) {
   many_vectors.reserve(o.many_vectors.size());
   for (const auto &many_vectors_ : o.many_vectors) { many_vectors.emplace_back((many_vectors_) ? new WrapperTableT(*many_vectors_) : nullptr); }
 }
@@ -457,6 +478,7 @@ inline RootTableT &RootTableT::operator=(RootTableT o) FLATBUFFERS_NOEXCEPT {
   std::swap(far_struct_vector, o.far_struct_vector);
   std::swap(big_struct_vector, o.big_struct_vector);
   std::swap(many_vectors, o.many_vectors);
+  std::swap(forced_aligned_vector, o.forced_aligned_vector);
   return *this;
 }
 
@@ -478,6 +500,7 @@ inline void RootTable::UnPackTo(RootTableT *_o, const ::flatbuffers::resolver_fu
   { auto _e = far_struct_vector(); if (_e) { _o->far_struct_vector.resize(_e->size()); for (::flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->far_struct_vector[_i] = *_e->Get(_i); } } else { _o->far_struct_vector.resize(0); } }
   { auto _e = big_struct_vector(); if (_e) { _o->big_struct_vector.resize(_e->size()); for (::flatbuffers::uoffset64_t _i = 0; _i < _e->size(); _i++) { _o->big_struct_vector[_i] = *_e->Get(_i); } } else { _o->big_struct_vector.resize(0); } }
   { auto _e = many_vectors(); if (_e) { _o->many_vectors.resize(_e->size()); for (::flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { if(_o->many_vectors[_i]) { _e->Get(_i)->UnPackTo(_o->many_vectors[_i].get(), _resolver); } else { _o->many_vectors[_i] = std::unique_ptr<WrapperTableT>(_e->Get(_i)->UnPack(_resolver)); }; } } else { _o->many_vectors.resize(0); } }
+  { auto _e = forced_aligned_vector(); if (_e) { _o->forced_aligned_vector.resize(_e->size()); std::copy(_e->begin(), _e->end(), _o->forced_aligned_vector.begin()); } }
 }
 
 inline ::flatbuffers::Offset<RootTable> RootTable::Pack(::flatbuffers::FlatBufferBuilder64 &_fbb, const RootTableT* _o, const ::flatbuffers::rehasher_function_t *_rehasher) {
@@ -497,6 +520,8 @@ inline ::flatbuffers::Offset<RootTable> CreateRootTable(::flatbuffers::FlatBuffe
   auto _far_struct_vector = _o->far_struct_vector.size() ? _fbb.CreateVectorOfStructs64<::flatbuffers::Vector>(_o->far_struct_vector) : 0;
   auto _big_struct_vector = _o->big_struct_vector.size() ? _fbb.CreateVectorOfStructs64(_o->big_struct_vector) : 0;
   auto _many_vectors = _o->many_vectors.size() ? _fbb.CreateVector<::flatbuffers::Offset<WrapperTable>> (_o->many_vectors.size(), [](size_t i, _VectorArgs *__va) { return CreateWrapperTable(*__va->__fbb, __va->__o->many_vectors[i].get(), __va->__rehasher); }, &_va ) : 0;
+  _fbb.ForceVectorAlignment64(_o->forced_aligned_vector.size(), sizeof(uint8_t), 32);
+  auto _forced_aligned_vector = _o->forced_aligned_vector.size() ? _fbb.CreateVector64(_o->forced_aligned_vector) : 0;
   return CreateRootTable(
       _fbb,
       _far_vector,
@@ -507,7 +532,8 @@ inline ::flatbuffers::Offset<RootTable> CreateRootTable(::flatbuffers::FlatBuffe
       _nested_root,
       _far_struct_vector,
       _big_struct_vector,
-      _many_vectors);
+      _many_vectors,
+      _forced_aligned_vector);
 }
 
 inline const ::flatbuffers::TypeTable *LeafStructTypeTable() {
@@ -549,7 +575,8 @@ inline const ::flatbuffers::TypeTable *RootTableTypeTable() {
     { ::flatbuffers::ET_UCHAR, 1, -1 },
     { ::flatbuffers::ET_SEQUENCE, 1, 0 },
     { ::flatbuffers::ET_SEQUENCE, 1, 0 },
-    { ::flatbuffers::ET_SEQUENCE, 1, 1 }
+    { ::flatbuffers::ET_SEQUENCE, 1, 1 },
+    { ::flatbuffers::ET_UCHAR, 1, -1 }
   };
   static const ::flatbuffers::TypeFunction type_refs[] = {
     LeafStructTypeTable,
@@ -564,10 +591,11 @@ inline const ::flatbuffers::TypeTable *RootTableTypeTable() {
     "nested_root",
     "far_struct_vector",
     "big_struct_vector",
-    "many_vectors"
+    "many_vectors",
+    "forced_aligned_vector"
   };
   static const ::flatbuffers::TypeTable tt = {
-    ::flatbuffers::ST_TABLE, 9, type_codes, type_refs, nullptr, nullptr, names
+    ::flatbuffers::ST_TABLE, 10, type_codes, type_refs, nullptr, nullptr, names
   };
   return &tt;
 }
