@@ -123,6 +123,7 @@ cc_library(
         "idl_gen_json_schema.h",
         "idl_gen_kotlin.cpp",
         "idl_gen_kotlin.h",
+        "idl_gen_kotlin_kmp.cpp",
         "idl_gen_lobster.cpp",
         "idl_gen_lobster.h",
         "idl_gen_php.cpp",

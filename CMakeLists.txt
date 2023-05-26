@@ -160,6 +160,7 @@ set(FlatBuffers_Compiler_SRCS
   src/idl_gen_csharp.cpp
   src/idl_gen_dart.cpp
   src/idl_gen_kotlin.cpp
+  src/idl_gen_kotlin_kmp.cpp
   src/idl_gen_go.cpp
   src/idl_gen_java.cpp
   src/idl_gen_ts.cpp

@@ -185,15 +185,19 @@ class Namer {
   // right seperator. Output path prefixing and the trailing separator may be
   // skiped using `skips`.
   // Callers may want to use `EnsureDirExists` with the result.
+  // input_case is used to tell how to modify namespace. e.g. kUpperCamel will
+  // add a underscode between case changes, so MyGame turns into My_Game
+  // (depending also on the output_case).
   virtual std::string Directories(const std::vector<std::string> &directories,
-                                  SkipDir skips = SkipDir::None) const {
+                                  SkipDir skips = SkipDir::None,
+                                  Case input_case = Case::kUpperCamel) const {
     const bool skip_output_path =
         (skips & SkipDir::OutputPath) != SkipDir::None;
     const bool skip_trailing_seperator =
         (skips & SkipDir::TrailingPathSeperator) != SkipDir::None;
     std::string result = skip_output_path ? "" : config_.output_path;
     for (auto d = directories.begin(); d != directories.end(); d++) {
-      result += ConvertCase(*d, config_.directories, Case::kUpperCamel);
+      result += ConvertCase(*d, config_.directories, input_case);
       result.push_back(kPathSeparator);
     }
     if (skip_trailing_seperator && !result.empty()) result.pop_back();

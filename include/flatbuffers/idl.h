@@ -342,7 +342,10 @@ struct FieldDef : public Definition {
   bool Deserialize(Parser &parser, const reflection::Field *field);
 
   bool IsScalarOptional() const {
-    return IsScalar(value.type.base_type) && IsOptional();
+    return IsScalar() && IsOptional();
+  }
+  bool IsScalar() const {
+      return ::flatbuffers::IsScalar(value.type.base_type);
   }
   bool IsOptional() const { return presence == kOptional; }
   bool IsRequired() const { return presence == kRequired; }
@@ -725,6 +728,7 @@ struct IDLOptions {
     kSwift = 1 << 16,
     kNim = 1 << 17,
     kProto = 1 << 18,
+    kKotlinKmp = 1 << 19,
     kMAX
   };
 

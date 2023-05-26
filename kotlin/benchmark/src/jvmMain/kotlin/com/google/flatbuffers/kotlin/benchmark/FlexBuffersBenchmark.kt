@@ -13,6 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+@file:OptIn(ExperimentalUnsignedTypes::class)
+
 package com.google.flatbuffers.kotlin.benchmark
 import com.google.flatbuffers.ArrayReadWriteBuf
 import com.google.flatbuffers.FlexBuffers

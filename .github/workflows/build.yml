@@ -422,9 +422,14 @@ jobs:
       with:
         distribution: 'temurin'
         java-version: '11'
+    - name: Build flatc
+      run: |
+       cmake -DFLATBUFFERS_BUILD_TESTS=OFF -DFLATBUFFERS_BUILD_FLATLIB=OFF -DFLATBUFFERS_BUILD_FLATHASH=OFF .
+       make -j
+       echo "${PWD}" >> $GITHUB_PATH
     - name: Build
       working-directory: kotlin
-      run: ./gradlew clean iosX64Test macosX64Test
+      run: ./gradlew clean iosSimulatorArm64Test macosX64Test macosArm64Test
 
   build-kotlin-linux:
     name: Build Kotlin Linux
@@ -437,6 +442,11 @@ jobs:
         distribution: 'temurin'
         java-version: '11'
     - uses: gradle/wrapper-validation-action@v1.0.5
+    - name: Build flatc
+      run: |
+       cmake -DFLATBUFFERS_BUILD_TESTS=OFF -DFLATBUFFERS_BUILD_FLATLIB=OFF -DFLATBUFFERS_BUILD_FLATHASH=OFF .
+       make -j
+       echo "${PWD}" >> $GITHUB_PATH
     - name: Build
       working-directory: kotlin
       # we are using docker's version of gradle

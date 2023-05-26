@@ -48,6 +48,7 @@ java:
 kotlin:
   - '**/*.kt'
   - src/idl_gen_kotlin.cpp
+  - src/idl_gen_kotlin_kmp.cpp
 
 lua:
   - '**/*.lua'
