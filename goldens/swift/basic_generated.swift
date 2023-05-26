@@ -6,7 +6,7 @@ import FlatBuffers
 
 public struct Galaxy: FlatBufferObject, Verifiable {
 
-  static func validateVersion() { FlatBuffersVersion_23_5_9() }
+  static func validateVersion() { FlatBuffersVersion_23_5_26() }
   public var __buffer: ByteBuffer! { return _accessor.bb }
   private var _accessor: Table
 
@@ -41,7 +41,7 @@ public struct Galaxy: FlatBufferObject, Verifiable {
 
 public struct Universe: FlatBufferObject, Verifiable {
 
-  static func validateVersion() { FlatBuffersVersion_23_5_9() }
+  static func validateVersion() { FlatBuffersVersion_23_5_26() }
   public var __buffer: ByteBuffer! { return _accessor.bb }
   private var _accessor: Table
 
