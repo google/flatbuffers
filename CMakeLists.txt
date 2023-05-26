@@ -497,7 +497,7 @@ function(compile_schema SRC_FBS OPT OUT_GEN_FILE)
       ${OPT}
       -o "${SRC_FBS_DIR}"
       "${CMAKE_CURRENT_SOURCE_DIR}/${SRC_FBS}"
-    DEPENDS flatc
+    DEPENDS flatc ${SRC_FBS}
     COMMENT "flatc generation: `${SRC_FBS}` -> `${GEN_HEADER}`"
     )
   set(${OUT_GEN_FILE} ${GEN_HEADER} PARENT_SCOPE)

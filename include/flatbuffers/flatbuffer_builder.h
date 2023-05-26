@@ -566,7 +566,7 @@ template<bool Is64Aware = false> class FlatBufferBuilderImpl {
     return CreateString<OffsetT>(str.c_str(), str.length());
   }
 
-  // clang-format off
+// clang-format off
   #ifdef FLATBUFFERS_HAS_STRING_VIEW
   /// @brief Store a string in the buffer, which can contain any binary data.
   /// @param[in] str A const string_view to copy in to the buffer.
@@ -698,10 +698,25 @@ template<bool Is64Aware = false> class FlatBufferBuilderImpl {
   // normally dictate.
   // This is useful when storing a nested_flatbuffer in a vector of bytes,
   // or when storing SIMD floats, etc.
-  void ForceVectorAlignment(size_t len, size_t elemsize, size_t alignment) {
+  void ForceVectorAlignment(const size_t len, const size_t elemsize,
+                            const size_t alignment) {
     if (len == 0) return;
     FLATBUFFERS_ASSERT(VerifyAlignmentRequirements(alignment));
     PreAlign(len * elemsize, alignment);
+  }
+
+  template<bool is_64 = Is64Aware>
+  typename std::enable_if<is_64, void>::type ForceVectorAlignment64(
+      const size_t len, const size_t elemsize, const size_t alignment) {
+    // If you hit this assertion, you are trying to force alignment on a
+    // vector with offset64 after serializing a 32-bit offset. 
+    FLATBUFFERS_ASSERT(GetSize() == length_of_64_bit_region_);
+
+    // Call through.
+    ForceVectorAlignment(len, elemsize, alignment);
+
+    // Update the 64 bit region.
+    length_of_64_bit_region_ = GetSize();
   }
 
   // Similar to ForceVectorAlignment but for String fields.
@@ -733,7 +748,7 @@ template<bool Is64Aware = false> class FlatBufferBuilderImpl {
     AssertScalarT<T>();
     StartVector<T, OffsetT, LenT>(len);
     if (len > 0) {
-      // clang-format off
+// clang-format off
       #if FLATBUFFERS_LITTLEENDIAN
         PushBytes(reinterpret_cast<const uint8_t *>(v), len * sizeof(T));
       #else

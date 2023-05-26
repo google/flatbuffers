@@ -44,6 +44,10 @@ table RootTable {
   // nested vecotrs (e.g.: [[type]] ), so going through a wrapper table allows
   // this.
   many_vectors:[WrapperTable];
+
+  // A vector that has force_align to test that the 32/64 bit region of the
+  // builder is respected.
+  forced_aligned_vector:[ubyte] (vector64, force_align:32);
 }
 
 root_type RootTable; 

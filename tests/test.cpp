@@ -1585,6 +1585,7 @@ static void Offset64Tests() {
   Offset64VectorOfStructs();
   Offset64SizePrefix();
   Offset64ManyVectors();
+  Offset64ForceAlign();
 }
 
 int FlatBufferTests(const std::string &tests_data_path) {
