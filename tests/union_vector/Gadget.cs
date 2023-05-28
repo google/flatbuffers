@@ -34,28 +34,6 @@ public class GadgetUnion {
   }
 }
 
-
-
-static public class GadgetVerify
-{
-  static public bool Verify(Google.FlatBuffers.Verifier verifier, byte typeId, uint tablePos)
-  {
-    bool result = true;
-    switch((Gadget)typeId)
-    {
-      case Gadget.FallingTub:
-        result = verifier.VerifyUnionData(tablePos, 4, 4);
-        break;
-      case Gadget.HandFan:
-        result = HandFanVerify.Verify(verifier, tablePos);
-        break;
-      default: result = true;
-        break;
-    }
-    return result;
-  }
-}
-
 public class GadgetUnion_JsonConverter : Newtonsoft.Json.JsonConverter {
   public override bool CanConvert(System.Type objectType) {
     return objectType == typeof(GadgetUnion) || objectType == typeof(System.Collections.Generic.List<GadgetUnion>);
@@ -95,6 +73,28 @@ public class GadgetUnion_JsonConverter : Newtonsoft.Json.JsonConverter {
       case Gadget.HandFan: _o.Value = serializer.Deserialize<HandFanT>(reader); break;
     }
     return _o;
+  }
+}
+
+
+
+static public class GadgetVerify
+{
+  static public bool Verify(Google.FlatBuffers.Verifier verifier, byte typeId, uint tablePos)
+  {
+    bool result = true;
+    switch((Gadget)typeId)
+    {
+      case Gadget.FallingTub:
+        result = verifier.VerifyUnionData(tablePos, 4, 4);
+        break;
+      case Gadget.HandFan:
+        result = HandFanVerify.Verify(verifier, tablePos);
+        break;
+      default: result = true;
+        break;
+    }
+    return result;
   }
 }
 

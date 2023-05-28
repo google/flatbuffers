@@ -14,31 +14,6 @@ public enum Any : byte
   MyGame_Example2_Monster = 3,
 };
 
-
-
-static public class AnyVerify
-{
-  static public bool Verify(Google.FlatBuffers.Verifier verifier, byte typeId, uint tablePos)
-  {
-    bool result = true;
-    switch((Any)typeId)
-    {
-      case Any.Monster:
-        result = MyGame.Example.MonsterVerify.Verify(verifier, tablePos);
-        break;
-      case Any.TestSimpleTableWithEnum:
-        result = MyGame.Example.TestSimpleTableWithEnumVerify.Verify(verifier, tablePos);
-        break;
-      case Any.MyGame_Example2_Monster:
-        result = MyGame.Example2.MonsterVerify.Verify(verifier, tablePos);
-        break;
-      default: result = true;
-        break;
-    }
-    return result;
-  }
-}
-
 public class AnyUnion {
   public Any Type { get; set; }
   public object Value { get; set; }
@@ -106,6 +81,31 @@ public class AnyUnion_JsonConverter : Newtonsoft.Json.JsonConverter {
       case Any.MyGame_Example2_Monster: _o.Value = serializer.Deserialize<MyGame.Example2.MonsterT>(reader); break;
     }
     return _o;
+  }
+}
+
+
+
+static public class AnyVerify
+{
+  static public bool Verify(Google.FlatBuffers.Verifier verifier, byte typeId, uint tablePos)
+  {
+    bool result = true;
+    switch((Any)typeId)
+    {
+      case Any.Monster:
+        result = MyGame.Example.MonsterVerify.Verify(verifier, tablePos);
+        break;
+      case Any.TestSimpleTableWithEnum:
+        result = MyGame.Example.TestSimpleTableWithEnumVerify.Verify(verifier, tablePos);
+        break;
+      case Any.MyGame_Example2_Monster:
+        result = MyGame.Example2.MonsterVerify.Verify(verifier, tablePos);
+        break;
+      default: result = true;
+        break;
+    }
+    return result;
   }
 }
 

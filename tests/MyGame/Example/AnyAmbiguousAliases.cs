@@ -14,31 +14,6 @@ public enum AnyAmbiguousAliases : byte
   M3 = 3,
 };
 
-
-
-static public class AnyAmbiguousAliasesVerify
-{
-  static public bool Verify(Google.FlatBuffers.Verifier verifier, byte typeId, uint tablePos)
-  {
-    bool result = true;
-    switch((AnyAmbiguousAliases)typeId)
-    {
-      case AnyAmbiguousAliases.M1:
-        result = MyGame.Example.MonsterVerify.Verify(verifier, tablePos);
-        break;
-      case AnyAmbiguousAliases.M2:
-        result = MyGame.Example.MonsterVerify.Verify(verifier, tablePos);
-        break;
-      case AnyAmbiguousAliases.M3:
-        result = MyGame.Example.MonsterVerify.Verify(verifier, tablePos);
-        break;
-      default: result = true;
-        break;
-    }
-    return result;
-  }
-}
-
 public class AnyAmbiguousAliasesUnion {
   public AnyAmbiguousAliases Type { get; set; }
   public object Value { get; set; }
@@ -106,6 +81,31 @@ public class AnyAmbiguousAliasesUnion_JsonConverter : Newtonsoft.Json.JsonConver
       case AnyAmbiguousAliases.M3: _o.Value = serializer.Deserialize<MyGame.Example.MonsterT>(reader); break;
     }
     return _o;
+  }
+}
+
+
+
+static public class AnyAmbiguousAliasesVerify
+{
+  static public bool Verify(Google.FlatBuffers.Verifier verifier, byte typeId, uint tablePos)
+  {
+    bool result = true;
+    switch((AnyAmbiguousAliases)typeId)
+    {
+      case AnyAmbiguousAliases.M1:
+        result = MyGame.Example.MonsterVerify.Verify(verifier, tablePos);
+        break;
+      case AnyAmbiguousAliases.M2:
+        result = MyGame.Example.MonsterVerify.Verify(verifier, tablePos);
+        break;
+      case AnyAmbiguousAliases.M3:
+        result = MyGame.Example.MonsterVerify.Verify(verifier, tablePos);
+        break;
+      default: result = true;
+        break;
+    }
+    return result;
   }
 }
 
