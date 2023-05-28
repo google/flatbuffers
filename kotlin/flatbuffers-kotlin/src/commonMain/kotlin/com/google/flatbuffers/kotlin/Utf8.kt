@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 @file:Suppress("NOTHING_TO_INLINE")
+
 package com.google.flatbuffers.kotlin
 
 public object Utf8 {
@@ -32,15 +33,15 @@ public object Utf8 {
     var i = 0
 
     // This loop optimizes for pure ASCII.
-    while (i < utf16Length && sequence[i].toInt() < 0x80) {
+    while (i < utf16Length && sequence[i].code < 0x80) {
       i++
     }
 
     // This loop optimizes for chars less than 0x800.
     while (i < utf16Length) {
       val c = sequence[i]
-      if (c.toInt() < 0x800) {
-        utf8Length += 0x7f - c.toInt() ushr 31 // branch free!
+      if (c.code < 0x800) {
+        utf8Length += 0x7f - c.code ushr 31 // branch free!
       } else {
         utf8Length += encodedLengthGeneral(sequence, i)
         break
@@ -60,8 +61,8 @@ public object Utf8 {
     var i = start
     while (i < utf16Length) {
       val c = sequence[i]
-      if (c.toInt() < 0x800) {
-        utf8Length += 0x7f - c.toInt() ushr 31 // branch free!
+      if (c.code < 0x800) {
+        utf8Length += 0x7f - c.code ushr 31 // branch free!
       } else {
         utf8Length += 2
         if (c.isSurrogate()) {
@@ -109,7 +110,7 @@ public object Utf8 {
   public inline fun isFourByte(b: Byte): Boolean = b < 0xF8.toByte()
 
   public fun handleOneByte(byte1: Byte, resultArr: CharArray, resultPos: Int) {
-    resultArr[resultPos] = byte1.toChar()
+    resultArr[resultPos] = byte1.toInt().toChar()
   }
 
   public fun handleTwoBytes(
@@ -209,21 +210,21 @@ public object Utf8 {
       return 0
     }
     val c = input[start]
-    return if (c.toInt() < 0x80) {
+    return if (c.code < 0x80) {
       // One byte (0xxx xxxx)
-      out[0] = c.toByte()
+      out[0] = c.code.toByte()
       1
-    } else if (c.toInt() < 0x800) {
+    } else if (c.code < 0x800) {
       // Two bytes (110x xxxx 10xx xxxx)
-      out[0] = (0xC0 or (c.toInt() ushr 6)).toByte()
-      out[1] = (0x80 or (0x3F and c.toInt())).toByte()
+      out[0] = (0xC0 or (c.code ushr 6)).toByte()
+      out[1] = (0x80 or (0x3F and c.code)).toByte()
       2
     } else if (c < Char.MIN_SURROGATE || Char.MAX_SURROGATE < c) {
       // Three bytes (1110 xxxx 10xx xxxx 10xx xxxx)
       // Maximum single-char code point is 0xFFFF, 16 bits.
-      out[0] = (0xE0 or (c.toInt() ushr 12)).toByte()
-      out[1] = (0x80 or (0x3F and (c.toInt() ushr 6))).toByte()
-      out[2] = (0x80 or (0x3F and c.toInt())).toByte()
+      out[0] = (0xE0 or (c.code ushr 12)).toByte()
+      out[1] = (0x80 or (0x3F and (c.code ushr 6))).toByte()
+      out[2] = (0x80 or (0x3F and c.code)).toByte()
       3
     } else {
       // Four bytes (1111 xxxx 10xx xxxx 10xx xxxx 10xx xxxx)
@@ -330,7 +331,10 @@ public object Utf8 {
     return resultArr.concatToString(0, resultPos)
   }
 
-  public fun encodeUtf8Array(input: CharSequence, out: ByteArray, offset: Int = 0, length: Int = out.size - offset): Int {
+  public fun encodeUtf8Array(input: CharSequence,
+                             out: ByteArray,
+                             offset: Int = 0,
+                             length: Int = out.size - offset): Int {
     val utf16Length = input.length
     var j = offset
     var i = 0
@@ -341,8 +345,8 @@ public object Utf8 {
     if (utf16Length == 0)
       return 0
     var cc: Char = input[i]
-    while (i < utf16Length && i + j < limit && input[i].also { cc = it }.toInt() < 0x80) {
-      out[j + i] = cc.toByte()
+    while (i < utf16Length && i + j < limit && input[i].also { cc = it }.code < 0x80) {
+      out[j + i] = cc.code.toByte()
       i++
     }
     if (i == utf16Length) {
@@ -352,16 +356,16 @@ public object Utf8 {
     var c: Char
     while (i < utf16Length) {
       c = input[i]
-      if (c.toInt() < 0x80 && j < limit) {
-        out[j++] = c.toByte()
-      } else if (c.toInt() < 0x800 && j <= limit - 2) { // 11 bits, two UTF-8 bytes
-        out[j++] = (0xF shl 6 or (c.toInt() ushr 6)).toByte()
-        out[j++] = (0x80 or (0x3F and c.toInt())).toByte()
+      if (c.code < 0x80 && j < limit) {
+        out[j++] = c.code.toByte()
+      } else if (c.code < 0x800 && j <= limit - 2) { // 11 bits, two UTF-8 bytes
+        out[j++] = (0xF shl 6 or (c.code ushr 6)).toByte()
+        out[j++] = (0x80 or (0x3F and c.code)).toByte()
       } else if ((c < Char.MIN_SURROGATE || Char.MAX_SURROGATE < c) && j <= limit - 3) {
         // Maximum single-char code point is 0xFFFF, 16 bits, three UTF-8 bytes
-        out[j++] = (0xF shl 5 or (c.toInt() ushr 12)).toByte()
-        out[j++] = (0x80 or (0x3F and (c.toInt() ushr 6))).toByte()
-        out[j++] = (0x80 or (0x3F and c.toInt())).toByte()
+        out[j++] = (0xF shl 5 or (c.code ushr 12)).toByte()
+        out[j++] = (0x80 or (0x3F and (c.code ushr 6))).toByte()
+        out[j++] = (0x80 or (0x3F and c.code)).toByte()
       } else if (j <= limit - 4) {
         // Minimum code point represented by a surrogate pair is 0x10000, 17 bits,
         // four UTF-8 bytes
@@ -384,7 +388,7 @@ public object Utf8 {
         ) {
           errorSurrogate(i, utf16Length)
         }
-        error("Failed writing character ${c.toShort().toString(radix = 16)} at index $j")
+        error("Failed writing character ${c.code.toShort().toString(radix = 16)} at index $j")
       }
       i++
     }
@@ -400,13 +404,13 @@ public object Utf8 {
         return toCodePoint(c1, c2)
       }
     }
-    return c1.toInt()
+    return c1.code
   }
 
   private fun isSurrogatePair(high: Char, low: Char) = high.isHighSurrogate() and low.isLowSurrogate()
 
-  private fun toCodePoint(high: Char, low: Char): Int = (high.toInt() shl 10) + low.toInt() +
-    (MIN_SUPPLEMENTARY_CODE_POINT - (Char.MIN_HIGH_SURROGATE.toInt() shl 10) - Char.MIN_LOW_SURROGATE.toInt())
+  private fun toCodePoint(high: Char, low: Char): Int = (high.code shl 10) + low.code +
+    (MIN_SUPPLEMENTARY_CODE_POINT - (Char.MIN_HIGH_SURROGATE.code shl 10) - Char.MIN_LOW_SURROGATE.code)
 
   private fun errorSurrogate(i: Int, utf16Length: Int): Unit =
     error("Unpaired surrogate at index $i of $utf16Length length")

@@ -1,5 +1,3 @@
-import org.jetbrains.kotlin.ir.backend.js.compile
-
 plugins {
   kotlin("multiplatform")
   id("org.jetbrains.kotlinx.benchmark")
@@ -27,7 +25,7 @@ benchmark {
       iterationTime = 300
       iterationTimeUnit = "ms"
       // uncomment for benchmarking JSON op only
-      include(".*JsonBenchmark.*")
+       include(".*FlatbufferBenchmark.*")
     }
   }
   targets {
@@ -36,24 +34,34 @@ benchmark {
 }
 
 kotlin {
-  jvm()
+  jvm {
+    compilations {
+      val main by getting { }
+      // custom benchmark compilation
+      val benchmarks by compilations.creating {
+        defaultSourceSet {
+          dependencies {
+            // Compile against the main compilation's compile classpath and outputs:
+            implementation(main.compileDependencyFiles + main.output.classesDirs)
+          }
+        }
+      }
+    }
+  }
 
   sourceSets {
-
-    all {
-      languageSettings.enableLanguageFeature("InlineClasses")
-    }
-
     val jvmMain by getting {
       dependencies {
         implementation(kotlin("stdlib-common"))
         implementation(project(":flatbuffers-kotlin"))
         implementation(libs.kotlinx.benchmark.runtime)
-        implementation("com.google.flatbuffers:flatbuffers-java:2.0.3")
         // json serializers
         implementation(libs.moshi.kotlin)
         implementation(libs.gson)
       }
+      kotlin.srcDir("src/jvmMain/generated/kotlin/")
+      kotlin.srcDir("src/jvmMain/generated/java/")
+      kotlin.srcDir("../../java/src/main/java")
     }
   }
 }
@@ -66,4 +74,65 @@ tasks.register<de.undercouch.gradle.tasks.download.Download>("downloadMultipleFi
   src(listOf("$baseUrl/canada.json", "$baseUrl/twitter.json", "$baseUrl/citm_catalog.json"))
   dest(File("${project.projectDir.absolutePath}/src/jvmMain/resources"))
   overwrite(false)
+}
+
+abstract class GenerateFBTestClasses : DefaultTask() {
+  @get:InputFiles
+  abstract val inputFiles: ConfigurableFileCollection
+
+  @get:Input
+  abstract val includeFolder: Property<String>
+
+  @get:Input
+  abstract val outputFolder: Property<String>
+
+  @get:Input
+  abstract val variants: ListProperty<String>
+
+  @Inject
+  protected open fun getExecActionFactory(): org.gradle.process.internal.ExecActionFactory? {
+    throw UnsupportedOperationException()
+  }
+
+  init {
+    includeFolder.set("")
+  }
+
+  @TaskAction
+  fun compile() {
+    val execAction = getExecActionFactory()!!.newExecAction()
+    val sources = inputFiles.asPath.split(":")
+    val langs = variants.get().map { "--$it" }
+    val args = mutableListOf("flatc","-o", outputFolder.get(), *langs.toTypedArray())
+    if (includeFolder.get().isNotEmpty()) {
+      args.add("-I")
+      args.add(includeFolder.get())
+    }
+    args.addAll(sources)
+    println(args)
+    execAction.commandLine = args
+    print(execAction.execute())
+  }
+}
+
+// Use the default greeting
+tasks.register<GenerateFBTestClasses>("generateFBTestClassesKt") {
+  inputFiles.setFrom("$projectDir/monster_test_kotlin.fbs")
+  includeFolder.set("$rootDir/../tests/include_test")
+  outputFolder.set("${projectDir}/src/jvmMain/generated/kotlin/")
+  variants.addAll("kotlin-kmp")
+}
+
+tasks.register<GenerateFBTestClasses>("generateFBTestClassesJava") {
+  inputFiles.setFrom("$projectDir/monster_test_java.fbs")
+  includeFolder.set("$rootDir/../tests/include_test")
+  outputFolder.set("${projectDir}/src/jvmMain/generated/java/")
+  variants.addAll("kotlin")
+}
+
+project.tasks.forEach {
+  if (it.name.contains("compileKotlin")) {
+    it.dependsOn("generateFBTestClassesKt")
+    it.dependsOn("generateFBTestClassesJava")
+  }
 }
