@@ -21,6 +21,7 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 
 class FlexBuffersTest {
+
   @Test
   fun testWriteInt() {
     val values = listOf(

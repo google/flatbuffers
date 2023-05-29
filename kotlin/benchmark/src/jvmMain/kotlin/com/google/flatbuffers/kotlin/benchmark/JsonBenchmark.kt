@@ -53,9 +53,10 @@ open class JsonBenchmark {
 
   val fbParser = JSONParser()
 
-  final val twitterData = this.javaClass.classLoader.getResourceAsStream("twitter.json")!!.readBytes()
-  final val canadaData = this.javaClass.classLoader.getResourceAsStream("canada.json")!!.readBytes()
-  final val citmData = this.javaClass.classLoader.getResourceAsStream("citm_catalog.json")!!.readBytes()
+  final val classLoader = this.javaClass.classLoader
+  final val twitterData = classLoader.getResourceAsStream("twitter.json")!!.readBytes()
+  final val canadaData = classLoader.getResourceAsStream("canada.json")!!.readBytes()
+  final val citmData = classLoader.getResourceAsStream("citm_catalog.json")!!.readBytes()
 
   val fbCitmRef = JSONParser().parse(ArrayReadBuffer(citmData))
   val moshiCitmRef = moshi.adapter(Map::class.java).fromJson(citmData.decodeToString())

@@ -160,6 +160,7 @@ set(FlatBuffers_Compiler_SRCS
   src/idl_gen_csharp.cpp
   src/idl_gen_dart.cpp
   src/idl_gen_kotlin.cpp
+  src/idl_gen_kotlin_kmp.cpp
   src/idl_gen_go.cpp
   src/idl_gen_java.cpp
   src/idl_gen_ts.cpp
@@ -496,7 +497,7 @@ function(compile_schema SRC_FBS OPT OUT_GEN_FILE)
       ${OPT}
       -o "${SRC_FBS_DIR}"
       "${CMAKE_CURRENT_SOURCE_DIR}/${SRC_FBS}"
-    DEPENDS flatc
+    DEPENDS flatc ${SRC_FBS}
     COMMENT "flatc generation: `${SRC_FBS}` -> `${GEN_HEADER}`"
     )
   set(${OUT_GEN_FILE} ${GEN_HEADER} PARENT_SCOPE)
