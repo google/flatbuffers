@@ -1,3 +1,5 @@
+import groovy.xml.XmlParser
+
 plugins {
   kotlin("multiplatform")
   id("org.jetbrains.kotlinx.benchmark")
@@ -7,6 +9,18 @@ plugins {
 
 group = "com.google.flatbuffers.jmh"
 version = "2.0.0-SNAPSHOT"
+
+// Reads latest version from Java's runtime pom.xml,
+// so we can use it for benchmarking against Kotlin's
+// runtime
+fun readJavaFlatBufferVersion(): String {
+  val pom = XmlParser().parse(File("../java/pom.xml"))
+  val versionTag = pom.children().find {
+    val node = it as groovy.util.Node
+    node.name().toString().contains("version")
+  } as groovy.util.Node
+  return versionTag.value().toString()
+}
 
 // This plugin generates a static html page with the aggregation
 // of all benchmarks ran. very useful visualization tool.
@@ -55,13 +69,13 @@ kotlin {
         implementation(kotlin("stdlib-common"))
         implementation(project(":flatbuffers-kotlin"))
         implementation(libs.kotlinx.benchmark.runtime)
+        implementation("com.google.flatbuffers:flatbuffers-java:${readJavaFlatBufferVersion()}")
         // json serializers
         implementation(libs.moshi.kotlin)
         implementation(libs.gson)
       }
       kotlin.srcDir("src/jvmMain/generated/kotlin/")
       kotlin.srcDir("src/jvmMain/generated/java/")
-      kotlin.srcDir("../../java/src/main/java")
     }
   }
 }
