@@ -384,12 +384,26 @@ static const char *GenerateTextImpl(const Parser &parser, const Table *table,
 }
 
 // Generate a text representation of a flatbuffer in JSON format.
+// Deprecated: please use `GenTextFromTable`
+bool GenerateTextFromTable(const Parser &parser, const void *table,
+                             const std::string &table_name,
+                             std::string *_text) {
+  return GenTextFromTable(parser, table, table_name, _text) != nullptr;
+}
+
+// Generate a text representation of a flatbuffer in JSON format.
 const char *GenTextFromTable(const Parser &parser, const void *table,
                              const std::string &table_name, std::string *_text) {
   auto struct_def = parser.LookupStruct(table_name);
   if (struct_def == nullptr) { return "unknown struct"; }
   auto root = static_cast<const Table *>(table);
   return GenerateTextImpl(parser, root, *struct_def, _text);
+}
+
+// Deprecated: please use `GenText`
+const char *GenerateText(const Parser &parser, const void *flatbuffer,
+                         std::string *_text) {
+  return GenText(parser, flatbuffer, _text);
 }
 
 // Generate a text representation of a flatbuffer in JSON format.
@@ -404,6 +418,12 @@ const char *GenText(const Parser &parser, const void *flatbuffer,
 static std::string TextFileName(const std::string &path,
                                 const std::string &file_name) {
   return path + file_name + ".json";
+}
+
+// Deprecated: please use `GenTextFile`
+const char *GenerateTextFile(const Parser &parser, const std::string &path,
+                             const std::string &file_name) {
+  return GenTextFile(parser, path, file_name);
 }
 
 const char *GenTextFile(const Parser &parser, const std::string &path,
