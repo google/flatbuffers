@@ -87,6 +87,7 @@ def flatbuffer_library_public(
     optionally a Fileset([reflection_name]) with all generated reflection
     binaries.
     """
+    reflection_include_paths = include_paths
     if include_paths == None:
         include_paths = default_include_paths(flatc_path)
     include_paths_cmd = ["-I %s" % (s) for s in include_paths]
@@ -124,13 +125,16 @@ def flatbuffer_library_public(
         **kwargs
     )
     if reflection_name:
+        if reflection_include_paths == None:
+            reflection_include_paths = default_include_paths(TRUE_FLATC_PATH)
+        reflection_include_paths_cmd = ["-I %s" % (s) for s in reflection_include_paths]
         reflection_genrule_cmd = " ".join([
             "SRCS=($(SRCS));",
             "for f in $${SRCS[@]:0:%s}; do" % len(srcs),
             "$(location %s)" % (TRUE_FLATC_PATH),
             "-b --schema",
             " ".join(flatc_args),
-            " ".join(include_paths_cmd),
+            " ".join(reflection_include_paths_cmd),
             language_flag,
             output_directory,
             "$$f;",
