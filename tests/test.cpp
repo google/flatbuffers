@@ -20,7 +20,7 @@
 #include <memory>
 #include <string>
 
-#if defined(__ANDRIOD__)
+#if defined(__ANDROID__)
 #define INCLUDE_64_BIT_TESTS 0
 #else
 #define INCLUDE_64_BIT_TESTS 1
