@@ -614,10 +614,6 @@ class KotlinKMPGenerator : public BaseGenerator {
       // accessor object. This is to allow object reuse.
       GenerateFunOneLine(writer, "init", "i: Int, buffer: ReadWriteBuffer",
                          esc_type, [&]() { writer += "reset(i, buffer)"; });
-
-      // Generate assign method
-      GenerateFunOneLine(writer, "assign", "i: Int, buffer: ReadWriteBuffer",
-                         esc_type, [&]() { writer += "init(i, buffer)"; });
       writer += "";  // line break
 
       // Generate all getters
@@ -740,7 +736,7 @@ class KotlinKMPGenerator : public BaseGenerator {
       writer += "}";  // end comp < 0
       writer += "else -> {";
       writer.IncrementIdentLevel();
-      writer += "return (obj ?: {{struct_name}}()).assign(tableOffset, bb)";
+      writer += "return (obj ?: {{struct_name}}()).init(tableOffset, bb)";
       writer.DecrementIdentLevel();
       writer += "}";  // end else
       writer.DecrementIdentLevel();
@@ -1068,11 +1064,11 @@ class KotlinKMPGenerator : public BaseGenerator {
             if (struct_def.fixed) {
               // create getter with object reuse
               // ex:
-              // fun pos(obj: Vec3) : Vec3? = obj.assign(bufferPos + 4, bb)
+              // fun pos(obj: Vec3) : Vec3? = obj.init(bufferPos + 4, bb)
               // ? adds nullability annotation
               GenerateFunOneLine(
                   writer, field_name, "obj: " + field_type, return_type, [&]() {
-                    writer += "obj.assign(bufferPos + {{offset}}, bb)";
+                    writer += "obj.init(bufferPos + {{offset}}, bb)";
                   });
             } else {
               // create getter with object reuse
@@ -1080,7 +1076,7 @@ class KotlinKMPGenerator : public BaseGenerator {
               //  fun pos(obj: Vec3) : Vec3? {
               //      val o = offset(4)
               //      return if(o != 0) {
-              //          obj.assign(o + bufferPos, bb)
+              //          obj.init(o + bufferPos, bb)
               //      else {
               //          null
               //      }
@@ -1092,7 +1088,7 @@ class KotlinKMPGenerator : public BaseGenerator {
 
                     writer.SetValue("seek", Indirect("it + bufferPos", fixed));
                     writer += LookupFieldOneLine(
-                        offset_val, "obj.assign({{seek}}, bb)", "null");
+                        offset_val, "obj.init({{seek}}, bb)", "null");
                   });
             }
             break;
@@ -1142,7 +1138,7 @@ class KotlinKMPGenerator : public BaseGenerator {
                   case BASE_TYPE_STRUCT: {
                     bool fixed = vectortype.struct_def->fixed;
                     writer.SetValue("index", Indirect(index, fixed));
-                    found = "obj.assign({{index}}, bb)";
+                    found = "obj.init({{index}}, bb)";
                     break;
                   }
                   case BASE_TYPE_UNION:
@@ -1247,7 +1243,7 @@ class KotlinKMPGenerator : public BaseGenerator {
             writer, nested_method_name, "obj: " + nested_type_name,
             nested_type_name + "?", [&]() {
               writer += LookupFieldOneLine(
-                  offset_val, "obj.assign(indirect(vector(it)), bb)", "null");
+                  offset_val, "obj.init(indirect(vector(it)), bb)", "null");
             });
       }
 
@@ -1348,7 +1344,7 @@ class KotlinKMPGenerator : public BaseGenerator {
         writer, "asRoot", "buffer: ReadWriteBuffer, obj: {{gr_name}}",
         struct_name, [&]() {
           writer +=
-              "obj.assign(buffer.getInt(buffer.limit) + buffer.limit, buffer)";
+              "obj.init(buffer.getInt(buffer.limit) + buffer.limit, buffer)";
         });
   }
 
