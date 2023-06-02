@@ -81,10 +81,10 @@ public open class Table {
   /** Used to hold the vtable size.  */
   public var vtableSize: Int = 0
 
-  protected inline fun <reified T> Int.invalid(default: T, valid: (Int) -> T) : T =
+  protected inline fun <reified T> Int.invalid(default: T, crossinline valid: (Int) -> T) : T =
     if (this != 0) valid(this) else default
 
-  protected inline fun <reified T> lookupField(i: Int, default: T, found: (Int) -> T) : T =
+  protected inline fun <reified T> lookupField(i: Int, default: T, crossinline found: (Int) -> T) : T =
     offset(i).invalid(default) { found(it) }
 
   /**

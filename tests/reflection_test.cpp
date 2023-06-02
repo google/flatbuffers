@@ -1,6 +1,6 @@
 #include "reflection_test.h"
 
-#include "arrays_test_generated.h"
+#include "tests/arrays_test_generated.h"
 #include "flatbuffers/minireflect.h"
 #include "flatbuffers/reflection.h"
 #include "flatbuffers/reflection_generated.h"
