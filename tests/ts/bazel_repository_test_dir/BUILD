@@ -30,3 +30,12 @@ js_test(
     ],
     entry_point = "import_test.js",
 )
+
+js_test(
+    name = "independent_deps_test",
+    data = [
+        "package.json",
+        ":node_modules/lodash",
+    ],
+    entry_point = "independent_deps_test.js",
+)
