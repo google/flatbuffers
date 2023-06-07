@@ -2155,6 +2155,22 @@ class RustGenerator : public BaseGenerator {
         code_ += "  {{FUNC_BODY}}({{FIELD_OFFSET}}, {{FIELD}});";
       }
       code_ += "}";
+
+      // Generate functions to set data, consuming and returning the builder,
+      // allowing for chaining calls. These take one of two forms.
+      code_ += "#[inline]";
+      code_ +=
+          "pub fn {{FIELD}}(self, {{FIELD}}: "
+          "{{FIELD_TYPE}}) -> Self {";
+      if (is_scalar && !field.IsOptional()) {
+        code_ +=
+            "  {{FUNC_BODY}}({{FIELD_OFFSET}}, {{FIELD}}, "
+            "{{BLDR_DEF_VAL}});";
+      } else {
+        code_ += "  {{FUNC_BODY}}({{FIELD_OFFSET}}, {{FIELD}});";
+      }
+      code_ += "  self";
+      code_ += "}";
     });
 
     // Struct initializer (all fields required);
