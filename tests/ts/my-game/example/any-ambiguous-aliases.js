@@ -6,7 +6,7 @@ export var AnyAmbiguousAliases;
     AnyAmbiguousAliases[AnyAmbiguousAliases["M1"] = 1] = "M1";
     AnyAmbiguousAliases[AnyAmbiguousAliases["M2"] = 2] = "M2";
     AnyAmbiguousAliases[AnyAmbiguousAliases["M3"] = 3] = "M3";
-})(AnyAmbiguousAliases = AnyAmbiguousAliases || (AnyAmbiguousAliases = {}));
+})(AnyAmbiguousAliases || (AnyAmbiguousAliases = {}));
 export function unionToAnyAmbiguousAliases(type, accessor) {
     switch (AnyAmbiguousAliases[type]) {
         case 'NONE': return null;

@@ -4,4 +4,4 @@ export var TestEnum;
     TestEnum[TestEnum["A"] = 0] = "A";
     TestEnum[TestEnum["B"] = 1] = "B";
     TestEnum[TestEnum["C"] = 2] = "C";
-})(TestEnum = TestEnum || (TestEnum = {}));
+})(TestEnum || (TestEnum = {}));

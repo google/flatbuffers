@@ -8,7 +8,7 @@ export var AnyUniqueAliases;
     AnyUniqueAliases[AnyUniqueAliases["M"] = 1] = "M";
     AnyUniqueAliases[AnyUniqueAliases["TS"] = 2] = "TS";
     AnyUniqueAliases[AnyUniqueAliases["M2"] = 3] = "M2";
-})(AnyUniqueAliases = AnyUniqueAliases || (AnyUniqueAliases = {}));
+})(AnyUniqueAliases || (AnyUniqueAliases = {}));
 export function unionToAnyUniqueAliases(type, accessor) {
     switch (AnyUniqueAliases[type]) {
         case 'NONE': return null;

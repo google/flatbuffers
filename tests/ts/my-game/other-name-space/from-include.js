@@ -2,4 +2,4 @@
 export var FromInclude;
 (function (FromInclude) {
     FromInclude["IncludeVal"] = "0";
-})(FromInclude = FromInclude || (FromInclude = {}));
+})(FromInclude || (FromInclude = {}));

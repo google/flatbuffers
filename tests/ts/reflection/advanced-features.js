@@ -8,4 +8,4 @@ export var AdvancedFeatures;
     AdvancedFeatures["AdvancedUnionFeatures"] = "2";
     AdvancedFeatures["OptionalScalars"] = "4";
     AdvancedFeatures["DefaultVectorsAndStrings"] = "8";
-})(AdvancedFeatures = AdvancedFeatures || (AdvancedFeatures = {}));
+})(AdvancedFeatures || (AdvancedFeatures = {}));
