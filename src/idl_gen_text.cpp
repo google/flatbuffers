@@ -120,7 +120,7 @@ struct JsonPrinter {
     if (!size)
     { // do not spare a line on empty arrays
       text += ']';
-      return true;
+      return nullptr;
     }
 // clang-format on
 #  endif  // defined(MZ_CUSTOM_FLATBUFFERS) && MZ_CUSTOM_FLATBUFFERS
@@ -153,7 +153,7 @@ struct JsonPrinter {
     if (!size)
     { // do not spare a line on empty arrays
       text += ']';
-      return true;
+      return nullptr;
     }
 // clang-format on
 #endif  // defined(MZ_CUSTOM_FLATBUFFERS) && MZ_CUSTOM_FLATBUFFERS
@@ -331,7 +331,7 @@ struct JsonPrinter {
       auto typeNameFieldDef = struct_def->fields.Lookup(typeNameField->constant);
       if (!typeNameFieldDef)
       {
-        return false;
+        return "type not found";
       }
 
       auto typeName = table->GetPointer<String*>(typeNameFieldDef->value.offset)->c_str();
@@ -353,18 +353,19 @@ struct JsonPrinter {
         {
           auto str = (const char *)data->Data();
           auto size = std::min(strlen(str), std::max<size_t>(0, data->size() - 1));
-          return EscapeString(str, size, &text, opts.allow_non_utf8, opts.natural_utf8);
+          bool ok = EscapeString(str, size, &text, opts.allow_non_utf8, opts.natural_utf8);
+          return ok ? nullptr : "string contains non-utf8 bytes";
         }
         switch (type.base_type) 
         {
           #undef FLATBUFFERS_TD
           #define FLATBUFFERS_TD(ENUM, IDLTYPE, CTYPE, ...) \
             case BASE_TYPE_ ## ENUM: \
-              return PrintScalar<CTYPE>(*((CTYPE*)(data->Data())), type, indent); 
+              PrintScalar<CTYPE>(*((CTYPE*)(data->Data())), type, indent);  return nullptr;
               FLATBUFFERS_GEN_TYPES_SCALAR(FLATBUFFERS_TD)
           #undef FLATBUFFERS_TD
         }
-        return false;
+        return "Unsupported type";
       }
     }
 #endif  // defined(MZ_CUSTOM_FLATBUFFERS) && MZ_CUSTOM_FLATBUFFERS // clang-format on
