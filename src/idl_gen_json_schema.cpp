@@ -424,6 +424,15 @@ class JsonSchemaCodeGenerator : public CodeGenerator {
     return Status::OK;
   }
 
+  Status GenerateCodeString(const Parser &parser,
+                                    const std::string &filename,
+                                    std::string &output) override {
+    jsons::JsonSchemaGenerator generator(parser, "", "");
+    if (!generator.generate()) { return Status::ERROR;; }
+    output = generator.getJson();
+    return Status::OK;
+  }
+
   Status GenerateCode(const uint8_t *, int64_t,
                       const CodeGenOptions &) override {
     return Status::NOT_IMPLEMENTED;
