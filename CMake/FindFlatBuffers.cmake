@@ -16,46 +16,45 @@
 # Find the flatbuffers schema compiler
 #
 # Output Variables:
-# * FLATBUFFERS_FLATC_EXECUTABLE the flatc compiler executable
-# * FLATBUFFERS_FOUND
+# * FLATBUFFERS_FLATC_EXECUTABLE - The flatc compiler executable
+# * FLATBUFFERS_FLATC_VERSION - The version of flatc found.
+# * FlatBuffers_FOUND - Whether flatc was found.
+# * FLATBUFFERS_FOUND - Legacy alias of the above (all caps).
 #
-# Provides:
-# * FLATBUFFERS_GENERATE_C_HEADERS(Name <files>) creates the C++ headers
-#   for the given flatbuffer schema files.
-#   Returns the header files in ${Name}_OUTPUTS
+# If flatc is found, the following imported target is created:
+# * flatbuffers::flatc - Imported target for the compiler
 
 set(FLATBUFFERS_CMAKE_DIR ${CMAKE_CURRENT_LIST_DIR})
 
 find_program(FLATBUFFERS_FLATC_EXECUTABLE NAMES flatc)
-find_path(FLATBUFFERS_INCLUDE_DIR NAMES flatbuffers/flatbuffers.h)
+
+if(EXISTS ${FLATBUFFERS_FLATC_EXECUTABLE})
+  # detect version
+  execute_process(COMMAND ${FLATBUFFERS_FLATC_EXECUTABLE} --version
+    RESULT_VARIABLE FLATBUFFERS_FLATC_VERSION_RESULT
+    OUTPUT_VARIABLE FLATBUFFERS_FLATC_VERSION_OUTPUT)
+
+  if(FLATBUFFERS_FLATC_VERSION_RESULT EQUAL 0)
+    # The output looks like "flatc version 23.3.3", so use a regex to trim out the part we need
+    string(REGEX REPLACE "flatc version ([0-9]+\\.[0-9]+\\.[0-9]+).*" "\\1" FLATBUFFERS_FLATC_VERSION ${FLATBUFFERS_FLATC_VERSION_OUTPUT})
+  else()
+    message(WARNING "Failed to execute flatc to check version")
+  endif()
+endif()
 
 include(FindPackageHandleStandardArgs)
 find_package_handle_standard_args(FlatBuffers
-  DEFAULT_MSG FLATBUFFERS_FLATC_EXECUTABLE FLATBUFFERS_INCLUDE_DIR)
+  VERSION_VAR FLATBUFFERS_FLATC_VERSION
+  REQUIRED_VARS FLATBUFFERS_FLATC_EXECUTABLE)
 
-if(FLATBUFFERS_FOUND)
-  function(FLATBUFFERS_GENERATE_C_HEADERS Name)
-    set(FLATC_OUTPUTS)
-    foreach(FILE ${ARGN})
-      get_filename_component(FLATC_OUTPUT ${FILE} NAME_WE)
-      set(FLATC_OUTPUT
-        "${CMAKE_CURRENT_BINARY_DIR}/${FLATC_OUTPUT}_generated.h")
-      list(APPEND FLATC_OUTPUTS ${FLATC_OUTPUT})
+# CMake standard requires the found var to match the case of the filename.
+# Provide legacy alias for all-caps.
+set(FLATBUFFERS_FOUND ${FlatBuffers_FOUND})
 
-      add_custom_command(OUTPUT ${FLATC_OUTPUT}
-        COMMAND ${FLATBUFFERS_FLATC_EXECUTABLE}
-        ARGS -c -o "${CMAKE_CURRENT_BINARY_DIR}/" ${FILE}
-        DEPENDS ${FILE}
-        COMMENT "Building C++ header for ${FILE}"
-        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
-    endforeach()
-    set(${Name}_OUTPUTS ${FLATC_OUTPUTS} PARENT_SCOPE)
-  endfunction()
-
-  set(FLATBUFFERS_INCLUDE_DIRS ${FLATBUFFERS_INCLUDE_DIR})
-  include_directories(${CMAKE_BINARY_DIR})
-else()
-  set(FLATBUFFERS_INCLUDE_DIR)
+if(FlatBuffers_FOUND)
+  # Provide imported target for the executable
+  add_executable(flatbuffers::flatc IMPORTED GLOBAL)
+  set_property(TARGET flatbuffers::flatc PROPERTY IMPORTED_LOCATION ${FLATBUFFERS_FLATC_EXECUTABLE})
 endif()
 
 include("${FLATBUFFERS_CMAKE_DIR}/BuildFlatBuffers.cmake")
