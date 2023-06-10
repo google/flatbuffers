@@ -377,6 +377,7 @@ else()
 
       # This isn't working for some reason: $<$<CXX_COMPILER_ID:CLANG>:
       $<$<BOOL:${IS_CLANG}>:
+        -Wdocumentation
         -Wnewline-eof
         -Wno-unknown-warning-option
         -Wmissing-declarations
