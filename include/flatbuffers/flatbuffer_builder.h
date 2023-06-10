@@ -1371,7 +1371,6 @@ template<bool Is64Aware = false> class FlatBufferBuilderImpl {
   /// @brief Store a string in the buffer, which can contain any binary data.
   /// @param[in] str A const char pointer to the data to be stored as a string.
   /// @param[in] len The number of bytes that should be stored from `str`.
-  /// @return Returns the offset in the buffer where the string starts.
   void CreateStringImpl(const char *str, size_t len) {
     NotNested();
     PreAlign<uoffset_t>(len + 1);  // Always 0-terminated.
