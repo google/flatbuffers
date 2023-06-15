@@ -1128,10 +1128,7 @@ class Builder FLATBUFFERS_FINAL_CLASS {
 
   size_t EndMap(size_t start) {
     // We should have interleaved keys and values on the stack.
-    // Make sure it is an even number:
-    auto len = stack_.size() - start;
-    FLATBUFFERS_ASSERT(!(len & 1));
-    len /= 2;
+    auto len = MapElementCount(start);
     // Make sure keys are all strings:
     for (auto key = start; key < stack_.size(); key += 2) {
       FLATBUFFERS_ASSERT(stack_[key].type_ == FBT_KEY);
@@ -1289,6 +1286,14 @@ class Builder FLATBUFFERS_FINAL_CLASS {
     EndMap(start);
   }
 
+  size_t MapElementCount(size_t start) {
+    // Make sure it is an even number:
+    auto len = stack_.size() - start;
+    FLATBUFFERS_ASSERT(!(len & 1));
+    len /= 2;
+    return len;
+  }
+
   // If you wish to share a value explicitly (a value not shared automatically
   // through one of the BUILDER_FLAG_SHARE_* flags) you can do so with these
   // functions. Or if you wish to turn those flags off for performance reasons
@@ -1305,6 +1310,12 @@ class Builder FLATBUFFERS_FINAL_CLASS {
   void ReuseValue(const char *key, Value v) {
     Key(key);
     ReuseValue(v);
+  }
+
+  // Undo the last element serialized. Call once for a value and once for a
+  // key.
+  void Undo() {
+      stack_.pop_back();
   }
 
   // Overloaded Add that tries to call the correct function above.
