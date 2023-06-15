@@ -784,6 +784,9 @@ void FixedLengthArrayTest() {
   (void)ap;
   for (size_t i = 0; i < arr_size; ++i) { TEST_EQ(non_zero_memory[i], 0); }
 }
+#  if defined(_MSC_VER) && defined(_DEBUG)
+#    undef new
+#  endif
 #else
 void FixedLengthArrayTest() {}
 #endif  // !defined(_MSC_VER) || _MSC_VER >= 1700
@@ -891,8 +894,8 @@ void NativeTypeTest() {
   const int N = 3;
 
   Geometry::ApplicationDataT src_data;
-  src_data.position =
-      std::make_unique<Native::Vector3D>(Native::Vector3D(1.0f, 2.0f, 3.0f));
+  src_data.position = flatbuffers::unique_ptr<Native::Vector3D>(
+      new Native::Vector3D(1.0f, 2.0f, 3.0f));
   src_data.position_native = Native::Vector3D(4.0f, 5.0f, 6.0f);
   src_data.vectors.reserve(N);
   src_data.vectors_alt.reserve(N);
