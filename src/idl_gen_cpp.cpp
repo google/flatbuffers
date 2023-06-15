@@ -3187,7 +3187,10 @@ class CppGenerator : public BaseGenerator {
             const auto pack_name = struct_attrs.Lookup("native_type_pack_name");
             if (pack_name) { unpack_call += pack_name->constant; }
             unpack_call += "(*" + val + ")";
-            return unpack_call;
+            if (invector || afield.native_inline) { return unpack_call; }
+            const auto name = native_type->constant;
+            const auto ptype = GenTypeNativePtr(name, &afield, true);
+            return ptype + "(new " + name + "(" + unpack_call + "))";
           } else if (invector || afield.native_inline) {
             return "*" + val;
           } else {
@@ -3575,7 +3578,7 @@ class CppGenerator : public BaseGenerator {
             const auto pack_name =
                 struct_attribs.Lookup("native_type_pack_name");
             if (pack_name) { code += pack_name->constant; }
-            code += "(" + value + ")";
+            code += (field.native_inline ? "(" : "(*") + value + ")";
           } else if (field.native_inline) {
             code += "&" + value;
           } else {
