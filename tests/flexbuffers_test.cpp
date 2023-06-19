@@ -1,6 +1,6 @@
-#include <limits>
-
 #include "flexbuffers_test.h"
+
+#include <limits>
 
 #include "flatbuffers/flexbuffers.h"
 #include "flatbuffers/idl.h"
@@ -132,6 +132,12 @@ void FlexBuffersTest() {
   // And from FlexBuffer back to JSON:
   auto jsonback = jroot.ToString();
   TEST_EQ_STR(jsontest, jsonback.c_str());
+  // With indentation:
+  std::string jsonback_indented;
+  jroot.ToString(true, false, jsonback_indented, true, 0, "  ");
+  auto jsontest_indented =
+    "{\n  a: [\n    123,\n    456.0\n  ],\n  b: \"hello\",\n  c: true,\n  d: false\n}";
+  TEST_EQ_STR(jsontest_indented, jsonback_indented.c_str());
 
   slb.Clear();
   slb.Vector([&]() {

@@ -17,10 +17,6 @@ class MessageBuilder;
 }
 }  // namespace flatbuffers
 
-template<class T, class U> struct is_same { static const bool value = false; };
-
-template<class T> struct is_same<T, T> { static const bool value = true; };
-
 inline std::string m1_name() { return "Cyberdemon"; }
 inline std::string m2_name() { return "Imp"; }
 inline MyGame::Example::Color m1_color() {
@@ -166,7 +162,7 @@ struct BuilderTests {
   }
 
   static void builder_swap_before_finish_test(
-      bool run = is_same<DestBuilder, SrcBuilder>::value) {
+      bool run = std::is_same<DestBuilder, SrcBuilder>::value) {
     /// Swap is allowed only when lhs and rhs are the same concrete type.
     if (run) {
       SrcBuilder src;
@@ -186,7 +182,7 @@ struct BuilderTests {
   }
 
   static void builder_swap_after_finish_test(
-      bool run = is_same<DestBuilder, SrcBuilder>::value) {
+      bool run = std::is_same<DestBuilder, SrcBuilder>::value) {
     /// Swap is allowed only when lhs and rhs are the same concrete type.
     if (run) {
       SrcBuilder src;

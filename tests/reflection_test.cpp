@@ -1,19 +1,21 @@
 #include "reflection_test.h"
-#include "arrays_test_generated.h"
+
+#include "tests/arrays_test_generated.h"
 #include "flatbuffers/minireflect.h"
 #include "flatbuffers/reflection.h"
 #include "flatbuffers/reflection_generated.h"
 #include "flatbuffers/verifier.h"
-#include "test_assert.h"
 #include "monster_test.h"
 #include "monster_test_generated.h"
+#include "test_assert.h"
 
 namespace flatbuffers {
 namespace tests {
 
 using namespace MyGame::Example;
 
-void ReflectionTest(const std::string& tests_data_path, uint8_t *flatbuf, size_t length) {
+void ReflectionTest(const std::string &tests_data_path, uint8_t *flatbuf,
+                    size_t length) {
   // Load a binary schema.
   std::string bfbsfile;
   TEST_EQ(flatbuffers::LoadFile((tests_data_path + "monster_test.bfbs").c_str(),

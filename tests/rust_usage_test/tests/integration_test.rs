@@ -78,6 +78,11 @@ mod arrays_test_generated;
 #[path = "../../keyword_test/mod.rs"]
 mod keyword_test_generated;
 
+// Test rust namer, should not cause compiling issues
+#[allow(dead_code, unused_imports, clippy::all)]
+#[path = "../../rust_namer_test/mod.rs"]
+mod rust_namer_test;
+
 #[rustfmt::skip] // TODO: Use standard rust formatting and remove dead code.
 #[allow(dead_code)]
 mod flatbuffers_tests {

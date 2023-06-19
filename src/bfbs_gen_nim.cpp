@@ -28,6 +28,7 @@
 #include "bfbs_namer.h"
 
 // The intermediate representation schema.
+#include "flatbuffers/code_generator.h"
 #include "flatbuffers/reflection.h"
 #include "flatbuffers/reflection_generated.h"
 
@@ -95,7 +96,10 @@ class NimBfbsGenerator : public BaseBfbsGenerator {
         flatc_version_(flatc_version),
         namer_(NimDefaultConfig(), NimKeywords()) {}
 
-  Status GenerateFromSchema(const r::Schema *schema) FLATBUFFERS_OVERRIDE {
+  Status GenerateFromSchema(const r::Schema *schema,
+                            const CodeGenOptions &options)
+      FLATBUFFERS_OVERRIDE {
+    options_ = options;
     ForAllEnums(schema->enums(), [&](const r::Enum *enum_def) {
       StartCodeBlock(enum_def);
       GenerateEnum(enum_def);
@@ -671,12 +675,15 @@ class NimBfbsGenerator : public BaseBfbsGenerator {
 
     // TODO(derekbailey): figure out a save file without depending on util.h
     EnsureDirExists(path);
-    const std::string file_name = path + "/" + namer_.File(name);
+    const std::string file_name =
+        options_.output_path + path + "/" + namer_.File(name);
     SaveFile(file_name.c_str(), code, false);
   }
 
   std::unordered_set<std::string> keywords_;
   std::map<std::string, std::string> imports_;
+  CodeGenOptions options_;
+
   const r::Object *current_obj_;
   const r::Enum *current_enum_;
   const std::string flatc_version_;

@@ -9,8 +9,8 @@
 // Ensure the included flatbuffers.h is the same version as when this file was
 // generated, otherwise it may not be compatible.
 static_assert(FLATBUFFERS_VERSION_MAJOR == 23 &&
-              FLATBUFFERS_VERSION_MINOR == 3 &&
-              FLATBUFFERS_VERSION_REVISION == 3,
+              FLATBUFFERS_VERSION_MINOR == 5 &&
+              FLATBUFFERS_VERSION_REVISION == 26,
              "Non-compatible flatbuffers version included");
 
 struct Attacker;
@@ -1274,16 +1274,16 @@ inline void FinishSizePrefixedMovieBuffer(
   fbb.FinishSizePrefixed(root, MovieIdentifier());
 }
 
-inline flatbuffers::unique_ptr<MovieT> UnPackMovie(
+inline std::unique_ptr<MovieT> UnPackMovie(
     const void *buf,
     const ::flatbuffers::resolver_function_t *res = nullptr) {
-  return flatbuffers::unique_ptr<MovieT>(GetMovie(buf)->UnPack(res));
+  return std::unique_ptr<MovieT>(GetMovie(buf)->UnPack(res));
 }
 
-inline flatbuffers::unique_ptr<MovieT> UnPackSizePrefixedMovie(
+inline std::unique_ptr<MovieT> UnPackSizePrefixedMovie(
     const void *buf,
     const ::flatbuffers::resolver_function_t *res = nullptr) {
-  return flatbuffers::unique_ptr<MovieT>(GetSizePrefixedMovie(buf)->UnPack(res));
+  return std::unique_ptr<MovieT>(GetSizePrefixedMovie(buf)->UnPack(res));
 }
 
 #endif  // FLATBUFFERS_GENERATED_UNIONVECTOR_H_

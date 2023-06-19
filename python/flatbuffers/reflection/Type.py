@@ -81,37 +81,37 @@ def Start(builder):
 def TypeAddBaseType(builder, baseType):
     builder.PrependInt8Slot(0, baseType, 0)
 
-def AddBaseType(builder: flatbuffers.Builder, baseType: int):
+def AddBaseType(builder, baseType):
     TypeAddBaseType(builder, baseType)
 
 def TypeAddElement(builder, element):
     builder.PrependInt8Slot(1, element, 0)
 
-def AddElement(builder: flatbuffers.Builder, element: int):
+def AddElement(builder, element):
     TypeAddElement(builder, element)
 
 def TypeAddIndex(builder, index):
     builder.PrependInt32Slot(2, index, -1)
 
-def AddIndex(builder: flatbuffers.Builder, index: int):
+def AddIndex(builder, index):
     TypeAddIndex(builder, index)
 
 def TypeAddFixedLength(builder, fixedLength):
     builder.PrependUint16Slot(3, fixedLength, 0)
 
-def AddFixedLength(builder: flatbuffers.Builder, fixedLength: int):
+def AddFixedLength(builder, fixedLength):
     TypeAddFixedLength(builder, fixedLength)
 
 def TypeAddBaseSize(builder, baseSize):
     builder.PrependUint32Slot(4, baseSize, 4)
 
-def AddBaseSize(builder: flatbuffers.Builder, baseSize: int):
+def AddBaseSize(builder, baseSize):
     TypeAddBaseSize(builder, baseSize)
 
 def TypeAddElementSize(builder, elementSize):
     builder.PrependUint32Slot(5, elementSize, 0)
 
-def AddElementSize(builder: flatbuffers.Builder, elementSize: int):
+def AddElementSize(builder, elementSize):
     TypeAddElementSize(builder, elementSize)
 
 def TypeEnd(builder):

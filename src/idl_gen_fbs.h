@@ -21,7 +21,7 @@
 
 namespace flatbuffers {
 
-std::unique_ptr<CodeGenerator> NewFBSCodeGenerator();
+std::unique_ptr<CodeGenerator> NewFBSCodeGenerator(bool no_log = false);
 
 }  // namespace flatbuffers
 

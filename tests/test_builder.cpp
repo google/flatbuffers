@@ -1,20 +1,21 @@
 #include "test_builder.h"
 
+#include "flatbuffers/flatbuffer_builder.h"
 #include "flatbuffers/stl_emulation.h"
 #include "monster_test_generated.h"
 
 using namespace MyGame::Example;
+using namespace flatbuffers;
 
-struct OwnedAllocator : public flatbuffers::DefaultAllocator {};
+struct OwnedAllocator : public DefaultAllocator {};
 
-class TestHeapBuilder : public flatbuffers::FlatBufferBuilder {
+class TestHeapBuilder : public FlatBufferBuilder {
  private:
   TestHeapBuilder(const TestHeapBuilder &);
   TestHeapBuilder &operator=(const TestHeapBuilder &);
 
  public:
-  TestHeapBuilder()
-      : flatbuffers::FlatBufferBuilder(2048, new OwnedAllocator(), true) {}
+  TestHeapBuilder() : FlatBufferBuilder(2048, new OwnedAllocator(), true) {}
 
   TestHeapBuilder(TestHeapBuilder &&other)
       : FlatBufferBuilder(std::move(other)) {}
@@ -31,14 +32,14 @@ struct AllocatorMember {
 };
 
 struct GrpcLikeMessageBuilder : private AllocatorMember,
-                                public flatbuffers::FlatBufferBuilder {
+                                public FlatBufferBuilder {
  private:
   GrpcLikeMessageBuilder(const GrpcLikeMessageBuilder &);
   GrpcLikeMessageBuilder &operator=(const GrpcLikeMessageBuilder &);
 
  public:
   GrpcLikeMessageBuilder()
-      : flatbuffers::FlatBufferBuilder(1024, &member_allocator_, false) {}
+      : FlatBufferBuilder(1024, &member_allocator_, false) {}
 
   GrpcLikeMessageBuilder(GrpcLikeMessageBuilder &&other)
       : FlatBufferBuilder(1024, &member_allocator_, false) {
@@ -142,7 +143,7 @@ void FlatBufferBuilderTest() {
 }
 
 // forward-declared in test_builder.h
-void CheckTestGeneratedIsValid(const MyGame::Example::Color&);
+void CheckTestGeneratedIsValid(const MyGame::Example::Color &);
 
 // Link-time check using pointer type.
 void CheckTestGeneratedIsValid(const MyGame::Example::Color &) {}

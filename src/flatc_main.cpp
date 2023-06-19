@@ -126,6 +126,11 @@ int main(int argc, const char *argv[]) {
       flatbuffers::NewKotlinCodeGenerator());
 
   flatc.RegisterCodeGenerator(
+      flatbuffers::FlatCOption{ "", "kotlin-kmp", "",
+                                "Generate Kotlin multiplatform classes for tables/structs" },
+      flatbuffers::NewKotlinKMPCodeGenerator());
+
+  flatc.RegisterCodeGenerator(
       flatbuffers::FlatCOption{ "", "lobster", "",
                                 "Generate Lobster files for tables/structs" },
       flatbuffers::NewLobsterCodeGenerator());

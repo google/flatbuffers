@@ -88,8 +88,9 @@ class IdlNamer : public Namer {
   }
 
   std::string Directories(const struct Namespace &ns,
-                          SkipDir skips = SkipDir::None) const {
-    return Directories(ns.components, skips);
+                          SkipDir skips = SkipDir::None,
+                          Case input_case = Case::kUpperCamel) const {
+    return Directories(ns.components, skips, input_case);
   }
 
   // Legacy fields do not really follow the usual config and should be
@@ -146,7 +147,8 @@ class IdlNamer : public Namer {
 
   std::string LegacyRustUnionTypeMethod(const FieldDef &d) {
     // assert d is a union
-    return Method(d.name + "_type");
+    // d should convert case but not escape keywords due to historical reasons
+    return ConvertCase(d.name, config_.fields, Case::kLowerCamel) + "_type";
   }
 
  private:

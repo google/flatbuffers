@@ -1606,8 +1606,8 @@ class GoGenerator : public BaseGenerator {
 };
 }  // namespace go
 
-bool GenerateGo(const Parser &parser, const std::string &path,
-                const std::string &file_name) {
+static bool GenerateGo(const Parser &parser, const std::string &path,
+                       const std::string &file_name) {
   go::GoGenerator generator(parser, path, file_name, parser.opts.go_namespace);
   return generator.generate();
 }
@@ -1622,9 +1622,8 @@ class GoCodeGenerator : public CodeGenerator {
     return Status::OK;
   }
 
-  Status GenerateCode(const uint8_t *buffer, int64_t length) override {
-    (void)buffer;
-    (void)length;
+  Status GenerateCode(const uint8_t *, int64_t,
+                      const CodeGenOptions &) override {
     return Status::NOT_IMPLEMENTED;
   }
 

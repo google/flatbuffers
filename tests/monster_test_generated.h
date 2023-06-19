@@ -11,9 +11,12 @@
 // Ensure the included flatbuffers.h is the same version as when this file was
 // generated, otherwise it may not be compatible.
 static_assert(FLATBUFFERS_VERSION_MAJOR == 23 &&
-              FLATBUFFERS_VERSION_MINOR == 3 &&
-              FLATBUFFERS_VERSION_REVISION == 3,
+              FLATBUFFERS_VERSION_MINOR == 5 &&
+              FLATBUFFERS_VERSION_REVISION == 26,
              "Non-compatible flatbuffers version included");
+
+// For access to the binary schema that produced this file.
+#include "monster_test_bfbs_generated.h"
 
 namespace MyGame {
 
@@ -946,6 +949,7 @@ struct InParentNamespaceT : public ::flatbuffers::NativeTable {
 struct InParentNamespace FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   typedef InParentNamespaceT NativeTableType;
   typedef InParentNamespaceBuilder Builder;
+  typedef MyGame::Example::MonsterBinarySchema BinarySchema;
   static const ::flatbuffers::TypeTable *MiniReflectTypeTable() {
     return InParentNamespaceTypeTable();
   }
@@ -990,6 +994,7 @@ struct MonsterT : public ::flatbuffers::NativeTable {
 struct Monster FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   typedef MonsterT NativeTableType;
   typedef MonsterBuilder Builder;
+  typedef MyGame::Example::MonsterBinarySchema BinarySchema;
   static const ::flatbuffers::TypeTable *MiniReflectTypeTable() {
     return MonsterTypeTable();
   }
@@ -1037,6 +1042,7 @@ struct TestSimpleTableWithEnumT : public ::flatbuffers::NativeTable {
 struct TestSimpleTableWithEnum FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   typedef TestSimpleTableWithEnumT NativeTableType;
   typedef TestSimpleTableWithEnumBuilder Builder;
+  typedef MyGame::Example::MonsterBinarySchema BinarySchema;
   static const ::flatbuffers::TypeTable *MiniReflectTypeTable() {
     return TestSimpleTableWithEnumTypeTable();
   }
@@ -1097,6 +1103,7 @@ struct StatT : public ::flatbuffers::NativeTable {
 struct Stat FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   typedef StatT NativeTableType;
   typedef StatBuilder Builder;
+  typedef MyGame::Example::MonsterBinarySchema BinarySchema;
   static const ::flatbuffers::TypeTable *MiniReflectTypeTable() {
     return StatTypeTable();
   }
@@ -1201,6 +1208,7 @@ struct ReferrableT : public ::flatbuffers::NativeTable {
 struct Referrable FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   typedef ReferrableT NativeTableType;
   typedef ReferrableBuilder Builder;
+  typedef MyGame::Example::MonsterBinarySchema BinarySchema;
   static const ::flatbuffers::TypeTable *MiniReflectTypeTable() {
     return ReferrableTypeTable();
   }
@@ -1259,7 +1267,7 @@ inline ::flatbuffers::Offset<Referrable> CreateReferrable(
 
 struct MonsterT : public ::flatbuffers::NativeTable {
   typedef Monster TableType;
-  flatbuffers::unique_ptr<MyGame::Example::Vec3> pos{};
+  std::unique_ptr<MyGame::Example::Vec3> pos{};
   int16_t mana = 150;
   int16_t hp = 100;
   std::string name{};
@@ -1268,10 +1276,10 @@ struct MonsterT : public ::flatbuffers::NativeTable {
   MyGame::Example::AnyUnion test{};
   std::vector<MyGame::Example::Test> test4{};
   std::vector<std::string> testarrayofstring{};
-  std::vector<flatbuffers::unique_ptr<MyGame::Example::MonsterT>> testarrayoftables{};
-  flatbuffers::unique_ptr<MyGame::Example::MonsterT> enemy{};
+  std::vector<std::unique_ptr<MyGame::Example::MonsterT>> testarrayoftables{};
+  std::unique_ptr<MyGame::Example::MonsterT> enemy{};
   std::vector<uint8_t> testnestedflatbuffer{};
-  flatbuffers::unique_ptr<MyGame::Example::StatT> testempty{};
+  std::unique_ptr<MyGame::Example::StatT> testempty{};
   bool testbool = false;
   int32_t testhashs32_fnv1 = 0;
   uint32_t testhashu32_fnv1 = 0;
@@ -1291,13 +1299,13 @@ struct MonsterT : public ::flatbuffers::NativeTable {
   std::vector<MyGame::Example::Test> test5{};
   std::vector<int64_t> vector_of_longs{};
   std::vector<double> vector_of_doubles{};
-  flatbuffers::unique_ptr<MyGame::InParentNamespaceT> parent_namespace_test{};
-  std::vector<flatbuffers::unique_ptr<MyGame::Example::ReferrableT>> vector_of_referrables{};
+  std::unique_ptr<MyGame::InParentNamespaceT> parent_namespace_test{};
+  std::vector<std::unique_ptr<MyGame::Example::ReferrableT>> vector_of_referrables{};
   ReferrableT *single_weak_reference = nullptr;
   std::vector<ReferrableT *> vector_of_weak_references{};
-  std::vector<flatbuffers::unique_ptr<MyGame::Example::ReferrableT>> vector_of_strong_referrables{};
+  std::vector<std::unique_ptr<MyGame::Example::ReferrableT>> vector_of_strong_referrables{};
   ReferrableT *co_owning_reference = nullptr;
-  std::vector<flatbuffers::unique_ptr<ReferrableT>> vector_of_co_owning_references{};
+  std::vector<std::unique_ptr<ReferrableT>> vector_of_co_owning_references{};
   ReferrableT *non_owning_reference = nullptr;
   std::vector<ReferrableT *> vector_of_non_owning_references{};
   MyGame::Example::AnyUniqueAliasesUnion any_unique{};
@@ -1305,7 +1313,7 @@ struct MonsterT : public ::flatbuffers::NativeTable {
   std::vector<MyGame::Example::Color> vector_of_enums{};
   MyGame::Example::Race signed_enum = MyGame::Example::Race_None;
   std::vector<uint8_t> testrequirednestedflatbuffer{};
-  std::vector<flatbuffers::unique_ptr<MyGame::Example::StatT>> scalar_key_sorted_tables{};
+  std::vector<std::unique_ptr<MyGame::Example::StatT>> scalar_key_sorted_tables{};
   MyGame::Example::Test native_inline{};
   MyGame::Example::LongEnum long_enum_non_enum_default = static_cast<MyGame::Example::LongEnum>(0);
   MyGame::Example::LongEnum long_enum_normal_default = MyGame::Example::LongEnum_LongOne;
@@ -1327,6 +1335,7 @@ struct MonsterT : public ::flatbuffers::NativeTable {
 struct Monster FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   typedef MonsterT NativeTableType;
   typedef MonsterBuilder Builder;
+  typedef MyGame::Example::MonsterBinarySchema BinarySchema;
   static const ::flatbuffers::TypeTable *MiniReflectTypeTable() {
     return MonsterTypeTable();
   }
@@ -1487,7 +1496,9 @@ struct Monster FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
     return GetPointer<::flatbuffers::Vector<uint8_t> *>(VT_TESTNESTEDFLATBUFFER);
   }
   const MyGame::Example::Monster *testnestedflatbuffer_nested_root() const {
-    return ::flatbuffers::GetRoot<MyGame::Example::Monster>(testnestedflatbuffer()->Data());
+    const auto _f = testnestedflatbuffer();
+    return _f ? ::flatbuffers::GetRoot<MyGame::Example::Monster>(_f->Data())
+              : nullptr;
   }
   const MyGame::Example::Stat *testempty() const {
     return GetPointer<const MyGame::Example::Stat *>(VT_TESTEMPTY);
@@ -1592,7 +1603,9 @@ struct Monster FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
     return GetPointer<::flatbuffers::Vector<uint8_t> *>(VT_FLEX);
   }
   flexbuffers::Reference flex_flexbuffer_root() const {
-    return flexbuffers::GetRoot(flex()->Data(), flex()->size());
+    const auto _f = flex();
+    return _f ? flexbuffers::GetRoot(_f->Data(), _f->size())
+              : flexbuffers::Reference();
   }
   const ::flatbuffers::Vector<const MyGame::Example::Test *> *test5() const {
     return GetPointer<const ::flatbuffers::Vector<const MyGame::Example::Test *> *>(VT_TEST5);
@@ -1722,7 +1735,9 @@ struct Monster FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
     return GetPointer<::flatbuffers::Vector<uint8_t> *>(VT_TESTREQUIREDNESTEDFLATBUFFER);
   }
   const MyGame::Example::Monster *testrequirednestedflatbuffer_nested_root() const {
-    return ::flatbuffers::GetRoot<MyGame::Example::Monster>(testrequirednestedflatbuffer()->Data());
+    const auto _f = testrequirednestedflatbuffer();
+    return _f ? ::flatbuffers::GetRoot<MyGame::Example::Monster>(_f->Data())
+              : nullptr;
   }
   const ::flatbuffers::Vector<::flatbuffers::Offset<MyGame::Example::Stat>> *scalar_key_sorted_tables() const {
     return GetPointer<const ::flatbuffers::Vector<::flatbuffers::Offset<MyGame::Example::Stat>> *>(VT_SCALAR_KEY_SORTED_TABLES);
@@ -2423,6 +2438,7 @@ struct TypeAliasesT : public ::flatbuffers::NativeTable {
 struct TypeAliases FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   typedef TypeAliasesT NativeTableType;
   typedef TypeAliasesBuilder Builder;
+  typedef MyGame::Example::MonsterBinarySchema BinarySchema;
   static const ::flatbuffers::TypeTable *MiniReflectTypeTable() {
     return TypeAliasesTypeTable();
   }
@@ -2855,7 +2871,7 @@ inline bool operator==(const MonsterT &lhs, const MonsterT &rhs) {
       (lhs.test == rhs.test) &&
       (lhs.test4 == rhs.test4) &&
       (lhs.testarrayofstring == rhs.testarrayofstring) &&
-      (lhs.testarrayoftables.size() == rhs.testarrayoftables.size() && std::equal(lhs.testarrayoftables.cbegin(), lhs.testarrayoftables.cend(), rhs.testarrayoftables.cbegin(), [](flatbuffers::unique_ptr<MyGame::Example::MonsterT> const &a, flatbuffers::unique_ptr<MyGame::Example::MonsterT> const &b) { return (a == b) || (a && b && *a == *b); })) &&
+      (lhs.testarrayoftables.size() == rhs.testarrayoftables.size() && std::equal(lhs.testarrayoftables.cbegin(), lhs.testarrayoftables.cend(), rhs.testarrayoftables.cbegin(), [](std::unique_ptr<MyGame::Example::MonsterT> const &a, std::unique_ptr<MyGame::Example::MonsterT> const &b) { return (a == b) || (a && b && *a == *b); })) &&
       ((lhs.enemy == rhs.enemy) || (lhs.enemy && rhs.enemy && *lhs.enemy == *rhs.enemy)) &&
       (lhs.testnestedflatbuffer == rhs.testnestedflatbuffer) &&
       ((lhs.testempty == rhs.testempty) || (lhs.testempty && rhs.testempty && *lhs.testempty == *rhs.testempty)) &&
@@ -2879,10 +2895,10 @@ inline bool operator==(const MonsterT &lhs, const MonsterT &rhs) {
       (lhs.vector_of_longs == rhs.vector_of_longs) &&
       (lhs.vector_of_doubles == rhs.vector_of_doubles) &&
       ((lhs.parent_namespace_test == rhs.parent_namespace_test) || (lhs.parent_namespace_test && rhs.parent_namespace_test && *lhs.parent_namespace_test == *rhs.parent_namespace_test)) &&
-      (lhs.vector_of_referrables.size() == rhs.vector_of_referrables.size() && std::equal(lhs.vector_of_referrables.cbegin(), lhs.vector_of_referrables.cend(), rhs.vector_of_referrables.cbegin(), [](flatbuffers::unique_ptr<MyGame::Example::ReferrableT> const &a, flatbuffers::unique_ptr<MyGame::Example::ReferrableT> const &b) { return (a == b) || (a && b && *a == *b); })) &&
+      (lhs.vector_of_referrables.size() == rhs.vector_of_referrables.size() && std::equal(lhs.vector_of_referrables.cbegin(), lhs.vector_of_referrables.cend(), rhs.vector_of_referrables.cbegin(), [](std::unique_ptr<MyGame::Example::ReferrableT> const &a, std::unique_ptr<MyGame::Example::ReferrableT> const &b) { return (a == b) || (a && b && *a == *b); })) &&
       (lhs.single_weak_reference == rhs.single_weak_reference) &&
       (lhs.vector_of_weak_references == rhs.vector_of_weak_references) &&
-      (lhs.vector_of_strong_referrables.size() == rhs.vector_of_strong_referrables.size() && std::equal(lhs.vector_of_strong_referrables.cbegin(), lhs.vector_of_strong_referrables.cend(), rhs.vector_of_strong_referrables.cbegin(), [](flatbuffers::unique_ptr<MyGame::Example::ReferrableT> const &a, flatbuffers::unique_ptr<MyGame::Example::ReferrableT> const &b) { return (a == b) || (a && b && *a == *b); })) &&
+      (lhs.vector_of_strong_referrables.size() == rhs.vector_of_strong_referrables.size() && std::equal(lhs.vector_of_strong_referrables.cbegin(), lhs.vector_of_strong_referrables.cend(), rhs.vector_of_strong_referrables.cbegin(), [](std::unique_ptr<MyGame::Example::ReferrableT> const &a, std::unique_ptr<MyGame::Example::ReferrableT> const &b) { return (a == b) || (a && b && *a == *b); })) &&
       (lhs.co_owning_reference == rhs.co_owning_reference) &&
       (lhs.vector_of_co_owning_references == rhs.vector_of_co_owning_references) &&
       (lhs.non_owning_reference == rhs.non_owning_reference) &&
@@ -2892,7 +2908,7 @@ inline bool operator==(const MonsterT &lhs, const MonsterT &rhs) {
       (lhs.vector_of_enums == rhs.vector_of_enums) &&
       (lhs.signed_enum == rhs.signed_enum) &&
       (lhs.testrequirednestedflatbuffer == rhs.testrequirednestedflatbuffer) &&
-      (lhs.scalar_key_sorted_tables.size() == rhs.scalar_key_sorted_tables.size() && std::equal(lhs.scalar_key_sorted_tables.cbegin(), lhs.scalar_key_sorted_tables.cend(), rhs.scalar_key_sorted_tables.cbegin(), [](flatbuffers::unique_ptr<MyGame::Example::StatT> const &a, flatbuffers::unique_ptr<MyGame::Example::StatT> const &b) { return (a == b) || (a && b && *a == *b); })) &&
+      (lhs.scalar_key_sorted_tables.size() == rhs.scalar_key_sorted_tables.size() && std::equal(lhs.scalar_key_sorted_tables.cbegin(), lhs.scalar_key_sorted_tables.cend(), rhs.scalar_key_sorted_tables.cbegin(), [](std::unique_ptr<MyGame::Example::StatT> const &a, std::unique_ptr<MyGame::Example::StatT> const &b) { return (a == b) || (a && b && *a == *b); })) &&
       (lhs.native_inline == rhs.native_inline) &&
       (lhs.long_enum_non_enum_default == rhs.long_enum_non_enum_default) &&
       (lhs.long_enum_normal_default == rhs.long_enum_normal_default) &&
@@ -3048,7 +3064,7 @@ inline MonsterT *Monster::UnPack(const ::flatbuffers::resolver_function_t *_reso
 inline void Monster::UnPackTo(MonsterT *_o, const ::flatbuffers::resolver_function_t *_resolver) const {
   (void)_o;
   (void)_resolver;
-  { auto _e = pos(); if (_e) _o->pos = flatbuffers::unique_ptr<MyGame::Example::Vec3>(new MyGame::Example::Vec3(*_e)); }
+  { auto _e = pos(); if (_e) _o->pos = std::unique_ptr<MyGame::Example::Vec3>(new MyGame::Example::Vec3(*_e)); }
   { auto _e = mana(); _o->mana = _e; }
   { auto _e = hp(); _o->hp = _e; }
   { auto _e = name(); if (_e) _o->name = _e->str(); }
@@ -3058,10 +3074,10 @@ inline void Monster::UnPackTo(MonsterT *_o, const ::flatbuffers::resolver_functi
   { auto _e = test(); if (_e) _o->test.value = MyGame::Example::AnyUnion::UnPack(_e, test_type(), _resolver); }
   { auto _e = test4(); if (_e) { _o->test4.resize(_e->size()); for (::flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->test4[_i] = *_e->Get(_i); } } else { _o->test4.resize(0); } }
   { auto _e = testarrayofstring(); if (_e) { _o->testarrayofstring.resize(_e->size()); for (::flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->testarrayofstring[_i] = _e->Get(_i)->str(); } } else { _o->testarrayofstring.resize(0); } }
-  { auto _e = testarrayoftables(); if (_e) { _o->testarrayoftables.resize(_e->size()); for (::flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { if(_o->testarrayoftables[_i]) { _e->Get(_i)->UnPackTo(_o->testarrayoftables[_i].get(), _resolver); } else { _o->testarrayoftables[_i] = flatbuffers::unique_ptr<MyGame::Example::MonsterT>(_e->Get(_i)->UnPack(_resolver)); }; } } else { _o->testarrayoftables.resize(0); } }
-  { auto _e = enemy(); if (_e) { if(_o->enemy) { _e->UnPackTo(_o->enemy.get(), _resolver); } else { _o->enemy = flatbuffers::unique_ptr<MyGame::Example::MonsterT>(_e->UnPack(_resolver)); } } else if (_o->enemy) { _o->enemy.reset(); } }
+  { auto _e = testarrayoftables(); if (_e) { _o->testarrayoftables.resize(_e->size()); for (::flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { if(_o->testarrayoftables[_i]) { _e->Get(_i)->UnPackTo(_o->testarrayoftables[_i].get(), _resolver); } else { _o->testarrayoftables[_i] = std::unique_ptr<MyGame::Example::MonsterT>(_e->Get(_i)->UnPack(_resolver)); }; } } else { _o->testarrayoftables.resize(0); } }
+  { auto _e = enemy(); if (_e) { if(_o->enemy) { _e->UnPackTo(_o->enemy.get(), _resolver); } else { _o->enemy = std::unique_ptr<MyGame::Example::MonsterT>(_e->UnPack(_resolver)); } } else if (_o->enemy) { _o->enemy.reset(); } }
   { auto _e = testnestedflatbuffer(); if (_e) { _o->testnestedflatbuffer.resize(_e->size()); std::copy(_e->begin(), _e->end(), _o->testnestedflatbuffer.begin()); } }
-  { auto _e = testempty(); if (_e) { if(_o->testempty) { _e->UnPackTo(_o->testempty.get(), _resolver); } else { _o->testempty = flatbuffers::unique_ptr<MyGame::Example::StatT>(_e->UnPack(_resolver)); } } else if (_o->testempty) { _o->testempty.reset(); } }
+  { auto _e = testempty(); if (_e) { if(_o->testempty) { _e->UnPackTo(_o->testempty.get(), _resolver); } else { _o->testempty = std::unique_ptr<MyGame::Example::StatT>(_e->UnPack(_resolver)); } } else if (_o->testempty) { _o->testempty.reset(); } }
   { auto _e = testbool(); _o->testbool = _e; }
   { auto _e = testhashs32_fnv1(); _o->testhashs32_fnv1 = _e; }
   { auto _e = testhashu32_fnv1(); _o->testhashu32_fnv1 = _e; }
@@ -3081,11 +3097,11 @@ inline void Monster::UnPackTo(MonsterT *_o, const ::flatbuffers::resolver_functi
   { auto _e = test5(); if (_e) { _o->test5.resize(_e->size()); for (::flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->test5[_i] = *_e->Get(_i); } } else { _o->test5.resize(0); } }
   { auto _e = vector_of_longs(); if (_e) { _o->vector_of_longs.resize(_e->size()); for (::flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->vector_of_longs[_i] = _e->Get(_i); } } else { _o->vector_of_longs.resize(0); } }
   { auto _e = vector_of_doubles(); if (_e) { _o->vector_of_doubles.resize(_e->size()); for (::flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->vector_of_doubles[_i] = _e->Get(_i); } } else { _o->vector_of_doubles.resize(0); } }
-  { auto _e = parent_namespace_test(); if (_e) { if(_o->parent_namespace_test) { _e->UnPackTo(_o->parent_namespace_test.get(), _resolver); } else { _o->parent_namespace_test = flatbuffers::unique_ptr<MyGame::InParentNamespaceT>(_e->UnPack(_resolver)); } } else if (_o->parent_namespace_test) { _o->parent_namespace_test.reset(); } }
-  { auto _e = vector_of_referrables(); if (_e) { _o->vector_of_referrables.resize(_e->size()); for (::flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { if(_o->vector_of_referrables[_i]) { _e->Get(_i)->UnPackTo(_o->vector_of_referrables[_i].get(), _resolver); } else { _o->vector_of_referrables[_i] = flatbuffers::unique_ptr<MyGame::Example::ReferrableT>(_e->Get(_i)->UnPack(_resolver)); }; } } else { _o->vector_of_referrables.resize(0); } }
+  { auto _e = parent_namespace_test(); if (_e) { if(_o->parent_namespace_test) { _e->UnPackTo(_o->parent_namespace_test.get(), _resolver); } else { _o->parent_namespace_test = std::unique_ptr<MyGame::InParentNamespaceT>(_e->UnPack(_resolver)); } } else if (_o->parent_namespace_test) { _o->parent_namespace_test.reset(); } }
+  { auto _e = vector_of_referrables(); if (_e) { _o->vector_of_referrables.resize(_e->size()); for (::flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { if(_o->vector_of_referrables[_i]) { _e->Get(_i)->UnPackTo(_o->vector_of_referrables[_i].get(), _resolver); } else { _o->vector_of_referrables[_i] = std::unique_ptr<MyGame::Example::ReferrableT>(_e->Get(_i)->UnPack(_resolver)); }; } } else { _o->vector_of_referrables.resize(0); } }
   { auto _e = single_weak_reference(); /*scalar resolver, naked*/ if (_resolver) (*_resolver)(reinterpret_cast<void **>(&_o->single_weak_reference), static_cast<::flatbuffers::hash_value_t>(_e)); else _o->single_weak_reference = nullptr; }
   { auto _e = vector_of_weak_references(); if (_e) { _o->vector_of_weak_references.resize(_e->size()); for (::flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { /*vector resolver, naked*/ if (_resolver) (*_resolver)(reinterpret_cast<void **>(&_o->vector_of_weak_references[_i]), static_cast<::flatbuffers::hash_value_t>(_e->Get(_i))); else _o->vector_of_weak_references[_i] = nullptr; } } else { _o->vector_of_weak_references.resize(0); } }
-  { auto _e = vector_of_strong_referrables(); if (_e) { _o->vector_of_strong_referrables.resize(_e->size()); for (::flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { if(_o->vector_of_strong_referrables[_i]) { _e->Get(_i)->UnPackTo(_o->vector_of_strong_referrables[_i].get(), _resolver); } else { _o->vector_of_strong_referrables[_i] = flatbuffers::unique_ptr<MyGame::Example::ReferrableT>(_e->Get(_i)->UnPack(_resolver)); }; } } else { _o->vector_of_strong_referrables.resize(0); } }
+  { auto _e = vector_of_strong_referrables(); if (_e) { _o->vector_of_strong_referrables.resize(_e->size()); for (::flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { if(_o->vector_of_strong_referrables[_i]) { _e->Get(_i)->UnPackTo(_o->vector_of_strong_referrables[_i].get(), _resolver); } else { _o->vector_of_strong_referrables[_i] = std::unique_ptr<MyGame::Example::ReferrableT>(_e->Get(_i)->UnPack(_resolver)); }; } } else { _o->vector_of_strong_referrables.resize(0); } }
   { auto _e = co_owning_reference(); /*scalar resolver, naked*/ if (_resolver) (*_resolver)(reinterpret_cast<void **>(&_o->co_owning_reference), static_cast<::flatbuffers::hash_value_t>(_e)); else _o->co_owning_reference = nullptr; }
   { auto _e = vector_of_co_owning_references(); if (_e) { _o->vector_of_co_owning_references.resize(_e->size()); for (::flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { /*vector resolver, default_ptr_type*/ if (_resolver) (*_resolver)(reinterpret_cast<void **>(&_o->vector_of_co_owning_references[_i]), static_cast<::flatbuffers::hash_value_t>(_e->Get(_i)));/* else do nothing */; } } else { _o->vector_of_co_owning_references.resize(0); } }
   { auto _e = non_owning_reference(); /*scalar resolver, naked*/ if (_resolver) (*_resolver)(reinterpret_cast<void **>(&_o->non_owning_reference), static_cast<::flatbuffers::hash_value_t>(_e)); else _o->non_owning_reference = nullptr; }
@@ -3097,7 +3113,7 @@ inline void Monster::UnPackTo(MonsterT *_o, const ::flatbuffers::resolver_functi
   { auto _e = vector_of_enums(); if (_e) { _o->vector_of_enums.resize(_e->size()); for (::flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->vector_of_enums[_i] = static_cast<MyGame::Example::Color>(_e->Get(_i)); } } else { _o->vector_of_enums.resize(0); } }
   { auto _e = signed_enum(); _o->signed_enum = _e; }
   { auto _e = testrequirednestedflatbuffer(); if (_e) { _o->testrequirednestedflatbuffer.resize(_e->size()); std::copy(_e->begin(), _e->end(), _o->testrequirednestedflatbuffer.begin()); } }
-  { auto _e = scalar_key_sorted_tables(); if (_e) { _o->scalar_key_sorted_tables.resize(_e->size()); for (::flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { if(_o->scalar_key_sorted_tables[_i]) { _e->Get(_i)->UnPackTo(_o->scalar_key_sorted_tables[_i].get(), _resolver); } else { _o->scalar_key_sorted_tables[_i] = flatbuffers::unique_ptr<MyGame::Example::StatT>(_e->Get(_i)->UnPack(_resolver)); }; } } else { _o->scalar_key_sorted_tables.resize(0); } }
+  { auto _e = scalar_key_sorted_tables(); if (_e) { _o->scalar_key_sorted_tables.resize(_e->size()); for (::flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { if(_o->scalar_key_sorted_tables[_i]) { _e->Get(_i)->UnPackTo(_o->scalar_key_sorted_tables[_i].get(), _resolver); } else { _o->scalar_key_sorted_tables[_i] = std::unique_ptr<MyGame::Example::StatT>(_e->Get(_i)->UnPack(_resolver)); }; } } else { _o->scalar_key_sorted_tables.resize(0); } }
   { auto _e = native_inline(); if (_e) _o->native_inline = *_e; }
   { auto _e = long_enum_non_enum_default(); _o->long_enum_non_enum_default = _e; }
   { auto _e = long_enum_normal_default(); _o->long_enum_normal_default = _e; }
@@ -4208,16 +4224,16 @@ inline void FinishSizePrefixedMonsterBuffer(
   fbb.FinishSizePrefixed(root, MonsterIdentifier());
 }
 
-inline flatbuffers::unique_ptr<MyGame::Example::MonsterT> UnPackMonster(
+inline std::unique_ptr<MyGame::Example::MonsterT> UnPackMonster(
     const void *buf,
     const ::flatbuffers::resolver_function_t *res = nullptr) {
-  return flatbuffers::unique_ptr<MyGame::Example::MonsterT>(GetMonster(buf)->UnPack(res));
+  return std::unique_ptr<MyGame::Example::MonsterT>(GetMonster(buf)->UnPack(res));
 }
 
-inline flatbuffers::unique_ptr<MyGame::Example::MonsterT> UnPackSizePrefixedMonster(
+inline std::unique_ptr<MyGame::Example::MonsterT> UnPackSizePrefixedMonster(
     const void *buf,
     const ::flatbuffers::resolver_function_t *res = nullptr) {
-  return flatbuffers::unique_ptr<MyGame::Example::MonsterT>(GetSizePrefixedMonster(buf)->UnPack(res));
+  return std::unique_ptr<MyGame::Example::MonsterT>(GetSizePrefixedMonster(buf)->UnPack(res));
 }
 
 }  // namespace Example

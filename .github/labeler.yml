@@ -48,11 +48,11 @@ java:
 kotlin:
   - '**/*.kt'
   - src/idl_gen_kotlin.cpp
+  - src/idl_gen_kotlin_kmp.cpp
 
 lua:
   - '**/*.lua'
   - lua/**/*
-  - src/idl_gen_lua.cpp
   - src/bfbs_gen_lua.cpp
 
 lobster:

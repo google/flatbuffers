@@ -1,7 +1,7 @@
 #include "alignment_test.h"
 
+#include "tests/alignment_test_generated.h"
 #include "flatbuffers/flatbuffer_builder.h"
-#include "alignment_test_generated.h"
 #include "test_assert.h"
 
 namespace flatbuffers {
@@ -16,7 +16,7 @@ void AlignmentTest() {
   BadAlignmentSmall *small;
   Offset<Vector<const BadAlignmentSmall *>> small_offset =
       builder.CreateUninitializedVectorOfStructs(9, &small);
-  (void)small; // We do not have to write data to trigger the test failure
+  (void)small;  // We do not have to write data to trigger the test failure
 
   Offset<BadAlignmentRoot> root =
       CreateBadAlignmentRoot(builder, outer_large, small_offset);

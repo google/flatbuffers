@@ -70,7 +70,7 @@ static Namer::Config KotlinDefaultConfig() {
            /*filename_suffix=*/"",
            /*filename_extension=*/".kt" };
 }
-} // namespace
+}  // namespace
 
 class KotlinGenerator : public BaseGenerator {
  public:
@@ -524,7 +524,7 @@ class KotlinGenerator : public BaseGenerator {
           // runtime.
           GenerateFunOneLine(
               writer, "validateVersion", "", "",
-              [&]() { writer += "Constants.FLATBUFFERS_23_3_3()"; },
+              [&]() { writer += "Constants.FLATBUFFERS_23_5_26()"; },
               options.gen_jvmstatic);
 
           GenerateGetRootAsAccessors(namer_.Type(struct_def), writer, options);
@@ -1593,8 +1593,8 @@ class KotlinGenerator : public BaseGenerator {
 };
 }  // namespace kotlin
 
-bool GenerateKotlin(const Parser &parser, const std::string &path,
-                    const std::string &file_name) {
+static bool GenerateKotlin(const Parser &parser, const std::string &path,
+                           const std::string &file_name) {
   kotlin::KotlinGenerator generator(parser, path, file_name);
   return generator.generate();
 }
@@ -1609,9 +1609,8 @@ class KotlinCodeGenerator : public CodeGenerator {
     return Status::OK;
   }
 
-  Status GenerateCode(const uint8_t *buffer, int64_t length) override {
-    (void)buffer;
-    (void)length;
+  Status GenerateCode(const uint8_t *, int64_t,
+                      const CodeGenOptions &) override {
     return Status::NOT_IMPLEMENTED;
   }
 
