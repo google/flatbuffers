@@ -175,15 +175,14 @@ function(build_flatbuffers flatbuffers_schemas
   endif()
 endfunction()
 
-# Creates a target that can be linked against that generates flatbuffer headers.
+# Creates a target that can be linked against that provides compiled versions of flatbuffer schemas.
 #
-# This function takes a target name and a list of schemas. You can also specify
-# other flagc flags using the FLAGS option to change the behavior of the flatc
+# This function takes a target name and a list of schemas. Custom commands will be created
+# to generate the schemas, such that linking to the target passed as the TARGET argument
+# will make the schema headers available.
+#
+# You can also specify other flagc flags using the FLAGS option to change the behavior of the flatc
 # tool.
-#
-# When the target_link_libraries is done within a different directory than
-# flatbuffers_generate_headers is called, then the target should also be dependent
-# the custom generation target called GENERATE_<TARGET>.
 #
 # Arguments:
 #   TARGET: The name of the target to generate.
@@ -211,8 +210,6 @@ endfunction()
 #         PRIVATE my_generated_headers_target
 #     )
 #
-# Optional (only needed within different directory):
-#     add_dependencies(app GENERATE_my_generated_headers_target)
 function(flatbuffers_generate_headers)
   # Parse function arguments.
   set(options)
@@ -315,7 +312,13 @@ function(flatbuffers_generate_headers)
   # Set up interface library.
   # This library is for users to link to, and depends on the custom target (so all the custom commands get run).
   # It also adds the appropriate include paths.
-  add_library(${FLATBUFFERS_GENERATE_HEADERS_TARGET} INTERFACE)
+  # If there are no source files we use an interface library, otherwise compile the source files into a static lib.
+  if("${all_generated_source_files}" STREQUAL "")
+    add_library(${FLATBUFFERS_GENERATE_HEADERS_TARGET} INTERFACE)
+  else()
+    add_library(${FLATBUFFERS_GENERATE_HEADERS_TARGET} STATIC ${all_generated_source_files})
+  endif()
+
   add_dependencies(
     ${FLATBUFFERS_GENERATE_HEADERS_TARGET}
     ${generate_target})

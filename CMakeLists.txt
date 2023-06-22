@@ -86,7 +86,7 @@ endif()
 if(NOT FLATBUFFERS_BUILD_FLATC)
   # If we aren't supposed to build flatc, see if we can find it.
   find_package(FlatBuffers ${FLATBUFFERS_VERSION_NOCOMMIT})
-  set(FLATBUFFERS_FLATC_TARGET ${FLATBUFFERS_FLATC_EXECUTABLE})
+  set(FLATBUFFERS_FLATC_COMMAND ${FLATBUFFERS_FLATC_EXECUTABLE})
 
   if(NOT FlatBuffers_FOUND AND FLATBUFFERS_BUILD_TESTS)
     message(WARNING
@@ -469,7 +469,7 @@ if(FLATBUFFERS_BUILD_FLATC)
   endif()
   if(NOT FLATBUFFERS_FLATC_EXECUTABLE)
     set(FLATBUFFERS_FLATC_EXECUTABLE $<TARGET_FILE:flatc>)
-    set(FLATBUFFERS_FLATC_TARGET flatc)
+    set(FLATBUFFERS_FLATC_COMMAND flatc)
   endif()
   if(FLATBUFFERS_STATIC_FLATC AND NOT MSVC)
     target_link_libraries(flatc PRIVATE -static)
@@ -506,7 +506,7 @@ function(compile_schema SRC_FBS OPT OUT_GEN_FILE)
       ${OPT}
       -o "${SRC_FBS_DIR}"
       "${CMAKE_CURRENT_SOURCE_DIR}/${SRC_FBS}"
-    DEPENDS ${FLATBUFFERS_FLATC_TARGET} ${SRC_FBS}
+    DEPENDS ${FLATBUFFERS_FLATC_COMMAND} ${SRC_FBS}
     COMMENT "flatc generation: `${SRC_FBS}` -> `${GEN_HEADER}`"
     )
   set(${OUT_GEN_FILE} ${GEN_HEADER} PARENT_SCOPE)

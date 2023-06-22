@@ -23,6 +23,9 @@
 #
 # If flatc is found, the following imported target is created:
 # * flatbuffers::flatc - Imported target for the compiler
+#
+# If flatc is found, the following function is provided to compile the schemas into C headers:
+# * flatbuffers_generate_headers() [see BuildFlatBuffers.cmake for signature]
 
 set(FLATBUFFERS_CMAKE_DIR ${CMAKE_CURRENT_LIST_DIR})
 
@@ -58,7 +61,7 @@ if(FlatBuffers_FOUND)
 
   # LEGACY function for generating C headers from a flatbuffer.
   # Deprecated, use flatbuffers_generate_headers() from BuildFlatBuffers.cmake instead,
-  # which allows passing options and generating C++ targets
+  # which allows passing options and generating library targets
   function(FLATBUFFERS_GENERATE_C_HEADERS Name)
     set(FLATC_OUTPUTS)
     foreach(FILE ${ARGN})
@@ -76,6 +79,6 @@ if(FlatBuffers_FOUND)
     endforeach()
     set(${Name}_OUTPUTS ${FLATC_OUTPUTS} PARENT_SCOPE)
   endfunction()
-endif()
 
-include("${FLATBUFFERS_CMAKE_DIR}/BuildFlatBuffers.cmake")
+  include("${FLATBUFFERS_CMAKE_DIR}/BuildFlatBuffers.cmake")
+endif()
