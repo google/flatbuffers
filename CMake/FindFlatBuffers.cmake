@@ -55,6 +55,27 @@ if(FlatBuffers_FOUND)
   # Provide imported target for the executable
   add_executable(flatbuffers::flatc IMPORTED GLOBAL)
   set_property(TARGET flatbuffers::flatc PROPERTY IMPORTED_LOCATION ${FLATBUFFERS_FLATC_EXECUTABLE})
+
+  # LEGACY function for generating C headers from a flatbuffer.
+  # Deprecated, use flatbuffers_generate_headers() from BuildFlatBuffers.cmake instead,
+  # which allows passing options and generating C++ targets
+  function(FLATBUFFERS_GENERATE_C_HEADERS Name)
+    set(FLATC_OUTPUTS)
+    foreach(FILE ${ARGN})
+      get_filename_component(FLATC_OUTPUT ${FILE} NAME_WE)
+      set(FLATC_OUTPUT
+        "${CMAKE_CURRENT_BINARY_DIR}/${FLATC_OUTPUT}_generated.h")
+      list(APPEND FLATC_OUTPUTS ${FLATC_OUTPUT})
+
+      add_custom_command(OUTPUT ${FLATC_OUTPUT}
+        COMMAND ${FLATBUFFERS_FLATC_EXECUTABLE}
+        ARGS -c -o "${CMAKE_CURRENT_BINARY_DIR}/" ${FILE}
+        DEPENDS ${FILE} ${FLATBUFFERS_FLATC_EXECUTABLE}
+        COMMENT "Building C++ header for ${FILE}"
+        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
+    endforeach()
+    set(${Name}_OUTPUTS ${FLATC_OUTPUTS} PARENT_SCOPE)
+  endfunction()
 endif()
 
 include("${FLATBUFFERS_CMAKE_DIR}/BuildFlatBuffers.cmake")
