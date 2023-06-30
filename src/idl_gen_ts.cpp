@@ -366,6 +366,18 @@ class TsGenerator : public BaseGenerator {
     code += "export enum ";
     code += GetTypeName(enum_def);
     code += " {\n";
+    if (enum_def.attributes.Lookup("bit_flags") != nullptr) {
+      code += "  _None = ";
+      switch (enum_def.underlying_type.base_type) {
+        case BASE_TYPE_LONG:
+        case BASE_TYPE_ULONG: {
+          code += "'0'";
+          break;
+        }
+        default: code += "0";      
+      }
+      code += enum_def.Vals().begin() != enum_def.Vals().end() ? ",\n" : "\n";
+    }
     for (auto it = enum_def.Vals().begin(); it != enum_def.Vals().end(); ++it) {
       auto &ev = **it;
       if (!ev.doc_comment.empty()) {

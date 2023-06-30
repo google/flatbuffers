@@ -4,6 +4,7 @@
  * Composite components of Monster color.
  */
 export enum Color {
+  _None = 0,
   Red = 1,
 
   /**
