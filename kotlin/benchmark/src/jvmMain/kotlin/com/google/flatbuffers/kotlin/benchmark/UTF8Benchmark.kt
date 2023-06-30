@@ -35,14 +35,14 @@ import kotlin.random.Random
 @BenchmarkMode(Mode.AverageTime)
 @OutputTimeUnit(TimeUnit.MICROSECONDS)
 @Measurement(iterations = 100, time = 1, timeUnit = TimeUnit.MICROSECONDS)
-class UTF8Benchmark {
+open class UTF8Benchmark {
 
-  private final val sampleSize = 5000
-  private final val stringSize = 25
-  final var sampleSmallUtf8 = (0..sampleSize).map { populateUTF8(stringSize) }.toList()
-  final var sampleSmallUtf8Decoded = sampleSmallUtf8.map { it.encodeToByteArray() }.toList()
-  final var sampleSmallAscii = (0..sampleSize).map { populateAscii(stringSize) }.toList()
-  final var sampleSmallAsciiDecoded = sampleSmallAscii.map { it.encodeToByteArray() }.toList()
+  private val sampleSize = 5000
+  private val stringSize = 25
+  private var sampleSmallUtf8 = (0..sampleSize).map { populateUTF8(stringSize) }.toList()
+  private var sampleSmallUtf8Decoded = sampleSmallUtf8.map { it.encodeToByteArray() }.toList()
+  private var sampleSmallAscii = (0..sampleSize).map { populateAscii(stringSize) }.toList()
+  private var sampleSmallAsciiDecoded = sampleSmallAscii.map { it.encodeToByteArray() }.toList()
 
   @Setup
   fun setUp() {

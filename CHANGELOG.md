@@ -4,6 +4,11 @@ All major or breaking changes will be documented in this file, as well as any
 new features that should be highlighted. Minor fixes or improvements are not
 necessarily listed.
 
+## [23.5.26 (May 26 2023)](https://github.com/google/flatbuffers/releases/tag/v23.5.26)
+
+* Mostly bug fixing for 64-bit support
+* Adds support for specifying underling type of unions in C++ and TS/JS (#7954)
+
 ## [23.5.9 (May 9 2023)](https://github.com/google/flatbuffers/releases/tag/v23.5.9)
 
 * 64-bit support for C++ (#7935)

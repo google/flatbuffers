@@ -10,5 +10,6 @@ genrule(
 flatbuffer_ts_library(
     name = "reflection_ts_fbs",
     srcs = [":reflection.fbs"],
+    gen_reflections = True,
     visibility = ["//visibility:public"],
 )

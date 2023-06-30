@@ -20,6 +20,12 @@
 #include <memory>
 #include <string>
 
+#if defined(__ANDROID__)
+#define INCLUDE_64_BIT_TESTS 0
+#else
+#define INCLUDE_64_BIT_TESTS 1
+#endif
+
 #include "alignment_test.h"
 #include "evolution_test.h"
 #include "flatbuffers/flatbuffers.h"
@@ -38,12 +44,14 @@
 #include "parser_test.h"
 #include "proto_test.h"
 #include "reflection_test.h"
-#include "union_vector/union_vector_generated.h"
+#include "tests/union_vector/union_vector_generated.h"
 #include "union_underlying_type_test_generated.h"
 #if !defined(_MSC_VER) || _MSC_VER >= 1700
-#  include "arrays_test_generated.h"
+#  include "tests/arrays_test_generated.h"
 #endif
-#include "64bit/offset64_test.h"
+#if INCLUDE_64_BIT_TESTS
+#include "tests/64bit/offset64_test.h"
+#endif
 #include "flexbuffers_test.h"
 #include "is_quiet_nan.h"
 #include "monster_test_bfbs_generated.h"  // Generated using --bfbs-comments --bfbs-builtins --cpp --bfbs-gen-embed
@@ -1544,9 +1552,9 @@ void DoNotRequireEofTest(const std::string &tests_data_path) {
 void UnionUnderlyingTypeTest() {
     using namespace UnionUnderlyingType;
     TEST_ASSERT(sizeof(ABC) == sizeof(uint32_t));
-    TEST_ASSERT(ABC::ABC_A == 555);
-    TEST_ASSERT(ABC::ABC_B == 666);
-    TEST_ASSERT(ABC::ABC_C == 777);
+    TEST_ASSERT(static_cast<int32_t>(ABC::A) == 555);
+    TEST_ASSERT(static_cast<int32_t>(ABC::B) == 666);
+    TEST_ASSERT(static_cast<int32_t>(ABC::C) == 777);
 
     DT buffer;
     AT a;
@@ -1577,6 +1585,7 @@ void UnionUnderlyingTypeTest() {
 }
 
 static void Offset64Tests() {
+#if INCLUDE_64_BIT_TESTS
   Offset64Test();
   Offset64SerializedFirst();
   Offset64NestedFlatBuffer();
@@ -1585,6 +1594,8 @@ static void Offset64Tests() {
   Offset64VectorOfStructs();
   Offset64SizePrefix();
   Offset64ManyVectors();
+  Offset64ForceAlign();
+#endif
 }
 
 int FlatBufferTests(const std::string &tests_data_path) {

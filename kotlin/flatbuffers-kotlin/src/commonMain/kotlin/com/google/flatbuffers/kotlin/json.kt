@@ -19,6 +19,7 @@ package com.google.flatbuffers.kotlin
 
 import com.google.flatbuffers.kotlin.FlexBuffersBuilder.Companion.SHARE_KEYS_AND_STRINGS
 import kotlin.experimental.and
+import kotlin.jvm.JvmInline
 import kotlin.math.pow
 
 /**
@@ -72,19 +73,19 @@ public fun Map.toJson(): String = ArrayReadWriteBuffer(1024).let { toJson(it); i
  * @param out [ReadWriteBuffer] the JSON will be written.
  */
 public fun Map.toJson(out: ReadWriteBuffer) {
-  out.put('{'.toByte())
+  out.put('{'.code.toByte())
   // key values pairs
   for (i in 0 until size) {
     val key = keyAt(i)
     out.jsonEscape(buffer, key.start, key.sizeInBytes)
-    out.put(':'.toByte())
+    out.put(':'.code.toByte())
     get(i).toJson(out)
     if (i != size - 1) {
-      out.put(','.toByte())
+      out.put(','.code.toByte())
     }
   }
   // close bracket
-  out.put('}'.toByte())
+  out.put('}'.code.toByte())
 }
 
 /**
@@ -97,20 +98,21 @@ public fun Vector.toJson(): String = ArrayReadWriteBuffer(1024).let { toJson(it)
  * @param out that the JSON is being concatenated.
  */
 public fun Vector.toJson(out: ReadWriteBuffer) {
-  out.put('['.toByte())
-  for (i in 0 until size) {
+  out.put('['.code.toByte())
+  for (i in indices) {
     get(i).toJson(out)
     if (i != size - 1) {
-      out.put(','.toByte())
+      out.put(','.code.toByte())
     }
   }
-  out.put(']'.toByte())
+  out.put(']'.code.toByte())
 }
 
 /**
  * JSONParser class is used to parse a JSON as FlexBuffers. Calling [JSONParser.parse] fiils [output]
  * and returns a [Reference] ready to be used.
  */
+@ExperimentalUnsignedTypes
 public class JSONParser(public var output: FlexBuffersBuilder = FlexBuffersBuilder(1024, SHARE_KEYS_AND_STRINGS)) {
   private var readPos = 0
   private var scopes = ScopeStack()
@@ -150,7 +152,7 @@ public class JSONParser(public var output: FlexBuffersBuilder = FlexBuffersBuild
       TOK_NULL -> T_NULL.also { output.putNull(key) }
       TOK_BEGIN_QUOTE -> parseString(data, key)
       TOK_NUMBER -> parseNumber(data, data.data(), key)
-      else -> makeError(data, "Unexpected Character while parsing", 'x'.toByte())
+      else -> makeError(data, "Unexpected Character while parsing", 'x'.code.toByte())
     }
   }
 
@@ -590,7 +592,7 @@ public class JSONParser(public var output: FlexBuffersBuilder = FlexBuffersBuild
         val end = i + 4
         while (i < end) {
           val part: Byte = data[i]
-          result = (result.toInt() shl 4).toChar()
+          result = (result.code shl 4).toChar()
           result += when (part) {
             in CHAR_0..CHAR_9 -> part - CHAR_0
             in CHAR_a..CHAR_f -> part - CHAR_a + 10
@@ -606,13 +608,13 @@ public class JSONParser(public var output: FlexBuffersBuilder = FlexBuffersBuild
       CHAR_r -> '\r'
       CHAR_n -> '\n'
       CHAR_f -> 12.toChar() // '\f'
-      CHAR_DOUBLE_QUOTE, CHAR_BACKSLASH, CHAR_FORWARDSLASH -> byte1.toChar()
+      CHAR_DOUBLE_QUOTE, CHAR_BACKSLASH, CHAR_FORWARDSLASH -> byte1.toInt().toChar()
       else -> makeError(data, "Invalid escape sequence.", byte1)
     }
   }
 
   private fun Byte.print(): String = when (this) {
-    in 0x21..0x7E -> "'${this.toChar()}'" // visible ascii chars
+    in 0x21..0x7E -> "'${this.toInt().toChar()}'" // visible ascii chars
     CHAR_EOF -> "EOF"
     else -> "'0x${this.toString(16)}'"
   }
@@ -685,20 +687,21 @@ private inline fun ReadWriteBuffer.jsonEscape(data: ReadBuffer, start: Int, size
 
 // Following escape strategy defined in RFC7159.
 private val JSON_ESCAPE_CHARS: Array<ByteArray?> = arrayOfNulls<ByteArray>(128).apply {
-  this['\n'.toInt()] = "\\n".encodeToByteArray()
-  this['\t'.toInt()] = "\\t".encodeToByteArray()
-  this['\r'.toInt()] = "\\r".encodeToByteArray()
-  this['\b'.toInt()] = "\\b".encodeToByteArray()
+  this['\n'.code] = "\\n".encodeToByteArray()
+  this['\t'.code] = "\\t".encodeToByteArray()
+  this['\r'.code] = "\\r".encodeToByteArray()
+  this['\b'.code] = "\\b".encodeToByteArray()
   this[0x0c] = "\\f".encodeToByteArray()
-  this['"'.toInt()] = "\\\"".encodeToByteArray()
-  this['\\'.toInt()] = "\\\\".encodeToByteArray()
+  this['"'.code] = "\\\"".encodeToByteArray()
+  this['\\'.code] = "\\\\".encodeToByteArray()
   for (i in 0..0x1f) {
     this[i] = "\\u${i.toPaddedHex()}".encodeToByteArray()
   }
 }
 
 // Scope is used to the define current space that the scanner is operating.
-private inline class Scope(val id: Int)
+@JvmInline
+private value class Scope(val id: Int)
 private val SCOPE_DOC_EMPTY = Scope(0)
 private val SCOPE_DOC_FILLED = Scope(1)
 private val SCOPE_OBJ_EMPTY = Scope(2)
@@ -738,7 +741,8 @@ private class ScopeStack(
   }
 }
 
-private inline class Token(val id: Int) {
+@JvmInline
+private value class Token(val id: Int) {
   fun print(): String = when (this) {
     TOK_EOF -> "TOK_EOF"
     TOK_NONE -> "TOK_NONE"
@@ -767,41 +771,41 @@ private val TOK_FALSE = Token(7)
 private val TOK_NULL = Token(8)
 private val TOK_BEGIN_QUOTE = Token(9)
 
-private const val CHAR_NEWLINE = '\n'.toByte()
-private const val CHAR_OPEN_OBJECT = '{'.toByte()
-private const val CHAR_COLON = ':'.toByte()
-private const val CHAR_CLOSE_OBJECT = '}'.toByte()
-private const val CHAR_OPEN_ARRAY = '['.toByte()
-private const val CHAR_CLOSE_ARRAY = ']'.toByte()
-private const val CHAR_DOUBLE_QUOTE = '"'.toByte()
-private const val CHAR_BACKSLASH = '\\'.toByte()
-private const val CHAR_FORWARDSLASH = '/'.toByte()
-private const val CHAR_f = 'f'.toByte()
-private const val CHAR_a = 'a'.toByte()
-private const val CHAR_r = 'r'.toByte()
-private const val CHAR_t = 't'.toByte()
-private const val CHAR_n = 'n'.toByte()
-private const val CHAR_b = 'b'.toByte()
-private const val CHAR_e = 'e'.toByte()
-private const val CHAR_E = 'E'.toByte()
-private const val CHAR_u = 'u'.toByte()
-private const val CHAR_A = 'A'.toByte()
-private const val CHAR_F = 'F'.toByte()
+private const val CHAR_NEWLINE = '\n'.code.toByte()
+private const val CHAR_OPEN_OBJECT = '{'.code.toByte()
+private const val CHAR_COLON = ':'.code.toByte()
+private const val CHAR_CLOSE_OBJECT = '}'.code.toByte()
+private const val CHAR_OPEN_ARRAY = '['.code.toByte()
+private const val CHAR_CLOSE_ARRAY = ']'.code.toByte()
+private const val CHAR_DOUBLE_QUOTE = '"'.code.toByte()
+private const val CHAR_BACKSLASH = '\\'.code.toByte()
+private const val CHAR_FORWARDSLASH = '/'.code.toByte()
+private const val CHAR_f = 'f'.code.toByte()
+private const val CHAR_a = 'a'.code.toByte()
+private const val CHAR_r = 'r'.code.toByte()
+private const val CHAR_t = 't'.code.toByte()
+private const val CHAR_n = 'n'.code.toByte()
+private const val CHAR_b = 'b'.code.toByte()
+private const val CHAR_e = 'e'.code.toByte()
+private const val CHAR_E = 'E'.code.toByte()
+private const val CHAR_u = 'u'.code.toByte()
+private const val CHAR_A = 'A'.code.toByte()
+private const val CHAR_F = 'F'.code.toByte()
 private const val CHAR_EOF = (-1).toByte()
-private const val CHAR_COMMA = ','.toByte()
-private const val CHAR_0 = '0'.toByte()
-private const val CHAR_1 = '1'.toByte()
-private const val CHAR_2 = '2'.toByte()
-private const val CHAR_3 = '3'.toByte()
-private const val CHAR_4 = '4'.toByte()
-private const val CHAR_5 = '5'.toByte()
-private const val CHAR_6 = '6'.toByte()
-private const val CHAR_7 = '7'.toByte()
-private const val CHAR_8 = '8'.toByte()
-private const val CHAR_9 = '9'.toByte()
-private const val CHAR_MINUS = '-'.toByte()
-private const val CHAR_PLUS = '+'.toByte()
-private const val CHAR_DOT = '.'.toByte()
+private const val CHAR_COMMA = ','.code.toByte()
+private const val CHAR_0 = '0'.code.toByte()
+private const val CHAR_1 = '1'.code.toByte()
+private const val CHAR_2 = '2'.code.toByte()
+private const val CHAR_3 = '3'.code.toByte()
+private const val CHAR_4 = '4'.code.toByte()
+private const val CHAR_5 = '5'.code.toByte()
+private const val CHAR_6 = '6'.code.toByte()
+private const val CHAR_7 = '7'.code.toByte()
+private const val CHAR_8 = '8'.code.toByte()
+private const val CHAR_9 = '9'.code.toByte()
+private const val CHAR_MINUS = '-'.code.toByte()
+private const val CHAR_PLUS = '+'.code.toByte()
+private const val CHAR_DOT = '.'.code.toByte()
 
 // This template utilizes the One Definition Rule to create global arrays in a
 // header. As seen in:
