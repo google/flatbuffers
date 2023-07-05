@@ -20,6 +20,11 @@ class HelloRequest(object):
     def GetRootAsHelloRequest(cls, buf, offset=0):
         """This method is deprecated. Please switch to GetRootAs."""
         return cls.GetRootAs(buf, offset)
+
+    @classmethod
+    def VerifyHelloRequest(cls, buf, offset=0, size_prefixed=False):
+        return flatbuffers.NewVerifier(buf, offset).VerifyBuffer(None, size_prefixed, HelloRequestVerify)
+
     # HelloRequest
     def Init(self, buf, pos):
         self._tab = flatbuffers.table.Table(buf, pos)
@@ -48,3 +53,13 @@ def HelloRequestEnd(builder):
 
 def End(builder):
     return HelloRequestEnd(builder)
+
+
+# Verification function for 'HelloRequest' table.
+def HelloRequestVerify(verifier, pos):
+    result = True
+    result = result and verifier.VerifyTableStart(pos)
+    result = result and verifier.VerifyString(pos, 4, False) # field: name, type: [string]
+    result = result and verifier.VerifyTableEnd(pos)
+    return result
+

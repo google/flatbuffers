@@ -23,6 +23,11 @@ class NestedUnionTest(object):
     def GetRootAsNestedUnionTest(cls, buf, offset=0):
         """This method is deprecated. Please switch to GetRootAs."""
         return cls.GetRootAs(buf, offset)
+
+    @classmethod
+    def VerifyNestedUnionTest(cls, buf, offset=0, size_prefixed=False):
+        return flatbuffers.NewVerifier(buf, offset).VerifyBuffer(None, size_prefixed, NestedUnionTestVerify)
+
     # NestedUnionTest
     def Init(self, buf: bytes, pos: int):
         self._tab = flatbuffers.table.Table(buf, pos)
@@ -151,3 +156,16 @@ class NestedUnionTestT(object):
         NestedUnionTestAddId(builder, self.id)
         nestedUnionTest = NestedUnionTestEnd(builder)
         return nestedUnionTest
+
+
+# Verification function for 'NestedUnionTest' table.
+def NestedUnionTestVerify(verifier, pos):
+    result = True
+    result = result and verifier.VerifyTableStart(pos)
+    result = result and verifier.VerifyString(pos, 4, False) # field: name, type: [string]
+    result = result and verifier.VerifyField(pos, 6, 1, 1, False)  # field: dataType, type: [uint8]
+    result = result and verifier.VerifyUnion(pos, 6, 8, MyGame.Example.NestedUnion.Any.AnyVerify, False)  # field: data, type: [Any]
+    result = result and verifier.VerifyField(pos, 10, 2, 2, False)  # field: id, type: [int16]
+    result = result and verifier.VerifyTableEnd(pos)
+    return result
+

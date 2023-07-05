@@ -22,3 +22,18 @@ def AnyUniqueAliasesCreator(unionType, table):
         import MyGame.Example2.Monster
         return MyGame.Example2.Monster.MonsterT.InitFromBuf(table.Bytes, table.Pos)
     return None
+
+def AnyUniqueAliasesVerify(verifier, typeId, pos):
+    if typeId == AnyUniqueAliases().M:
+        import MyGame.Example.Monster
+        return MyGame.Example.Monster.MonsterVerify(verifier, pos)
+
+    if typeId == AnyUniqueAliases().TS:
+        import MyGame.Example.TestSimpleTableWithEnum
+        return MyGame.Example.TestSimpleTableWithEnum.TestSimpleTableWithEnumVerify(verifier, pos)
+
+    if typeId == AnyUniqueAliases().M2:
+        import MyGame.Example2.Monster
+        return MyGame.Example2.Monster.MonsterVerify(verifier, pos)
+
+    return True

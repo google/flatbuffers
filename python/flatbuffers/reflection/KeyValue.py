@@ -20,9 +20,15 @@ class KeyValue(object):
     def GetRootAsKeyValue(cls, buf, offset=0):
         """This method is deprecated. Please switch to GetRootAs."""
         return cls.GetRootAs(buf, offset)
+
     @classmethod
     def KeyValueBufferHasIdentifier(cls, buf, offset, size_prefixed=False):
         return flatbuffers.util.BufferHasIdentifier(buf, offset, b"\x42\x46\x42\x53", size_prefixed=size_prefixed)
+
+
+    @classmethod
+    def VerifyKeyValue(cls, buf, offset=0, size_prefixed=False):
+        return flatbuffers.NewVerifier(buf, offset).VerifyBuffer(b"\x42\x46\x42\x53", size_prefixed, KeyValueVerify)
 
     # KeyValue
     def Init(self, buf, pos):
@@ -65,3 +71,14 @@ def KeyValueEnd(builder):
 
 def End(builder):
     return KeyValueEnd(builder)
+
+
+# Verification function for 'KeyValue' table.
+def KeyValueVerify(verifier, pos):
+    result = True
+    result = result and verifier.VerifyTableStart(pos)
+    result = result and verifier.VerifyString(pos, 4, True) # field: key, type: [string]
+    result = result and verifier.VerifyString(pos, 6, False) # field: value, type: [string]
+    result = result and verifier.VerifyTableEnd(pos)
+    return result
+

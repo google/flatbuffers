@@ -20,9 +20,15 @@ class Schema(object):
     def GetRootAsSchema(cls, buf, offset=0):
         """This method is deprecated. Please switch to GetRootAs."""
         return cls.GetRootAs(buf, offset)
+
     @classmethod
     def SchemaBufferHasIdentifier(cls, buf, offset, size_prefixed=False):
         return flatbuffers.util.BufferHasIdentifier(buf, offset, b"\x42\x46\x42\x53", size_prefixed=size_prefixed)
+
+
+    @classmethod
+    def VerifySchema(cls, buf, offset=0, size_prefixed=False):
+        return flatbuffers.NewVerifier(buf, offset).VerifyBuffer(b"\x42\x46\x42\x53", size_prefixed, SchemaVerify)
 
     # Schema
     def Init(self, buf, pos):
@@ -245,3 +251,20 @@ def SchemaEnd(builder):
 
 def End(builder):
     return SchemaEnd(builder)
+
+
+# Verification function for 'Schema' table.
+def SchemaVerify(verifier, pos):
+    result = True
+    result = result and verifier.VerifyTableStart(pos)
+    result = result and verifier.VerifyVectorOfTables(pos, 4, reflection.Object.ObjectVerify, True)  # field: objects, type: [Object]
+    result = result and verifier.VerifyVectorOfTables(pos, 6, reflection.Enum.EnumVerify, True)  # field: enums, type: [Enum]
+    result = result and verifier.VerifyString(pos, 8, False) # field: fileIdent, type: [string]
+    result = result and verifier.VerifyString(pos, 10, False) # field: fileExt, type: [string]
+    result = result and verifier.VerifyTable(pos, 12, reflection.Object.ObjectVerify, False)  # field: rootTable, type: [Object]
+    result = result and verifier.VerifyVectorOfTables(pos, 14, reflection.Service.ServiceVerify, False)  # field: services, type: [Service]
+    result = result and verifier.VerifyField(pos, 16, 8, 8, False)  # field: advancedFeatures, type: [uint64]
+    result = result and verifier.VerifyVectorOfTables(pos, 18, reflection.SchemaFile.SchemaFileVerify, False)  # field: fbsFiles, type: [SchemaFile]
+    result = result and verifier.VerifyTableEnd(pos)
+    return result
+

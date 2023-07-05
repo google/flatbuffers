@@ -20,9 +20,15 @@ class Type(object):
     def GetRootAsType(cls, buf, offset=0):
         """This method is deprecated. Please switch to GetRootAs."""
         return cls.GetRootAs(buf, offset)
+
     @classmethod
     def TypeBufferHasIdentifier(cls, buf, offset, size_prefixed=False):
         return flatbuffers.util.BufferHasIdentifier(buf, offset, b"\x42\x46\x42\x53", size_prefixed=size_prefixed)
+
+
+    @classmethod
+    def VerifyType(cls, buf, offset=0, size_prefixed=False):
+        return flatbuffers.NewVerifier(buf, offset).VerifyBuffer(b"\x42\x46\x42\x53", size_prefixed, TypeVerify)
 
     # Type
     def Init(self, buf, pos):
@@ -119,3 +125,18 @@ def TypeEnd(builder):
 
 def End(builder):
     return TypeEnd(builder)
+
+
+# Verification function for 'Type' table.
+def TypeVerify(verifier, pos):
+    result = True
+    result = result and verifier.VerifyTableStart(pos)
+    result = result and verifier.VerifyField(pos, 4, 1, 1, False)  # field: baseType, type: [int8]
+    result = result and verifier.VerifyField(pos, 6, 1, 1, False)  # field: element, type: [int8]
+    result = result and verifier.VerifyField(pos, 8, 4, 4, False)  # field: index, type: [int32]
+    result = result and verifier.VerifyField(pos, 10, 2, 2, False)  # field: fixedLength, type: [uint16]
+    result = result and verifier.VerifyField(pos, 12, 4, 4, False)  # field: baseSize, type: [uint32]
+    result = result and verifier.VerifyField(pos, 14, 4, 4, False)  # field: elementSize, type: [uint32]
+    result = result and verifier.VerifyTableEnd(pos)
+    return result
+

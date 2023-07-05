@@ -20,9 +20,15 @@ class InParentNamespace(object):
     def GetRootAsInParentNamespace(cls, buf, offset=0):
         """This method is deprecated. Please switch to GetRootAs."""
         return cls.GetRootAs(buf, offset)
+
     @classmethod
     def InParentNamespaceBufferHasIdentifier(cls, buf, offset, size_prefixed=False):
         return flatbuffers.util.BufferHasIdentifier(buf, offset, b"\x4D\x4F\x4E\x53", size_prefixed=size_prefixed)
+
+
+    @classmethod
+    def VerifyInParentNamespace(cls, buf, offset=0, size_prefixed=False):
+        return flatbuffers.NewVerifier(buf, offset).VerifyBuffer(b"\x4D\x4F\x4E\x53", size_prefixed, InParentNamespaceVerify)
 
     # InParentNamespace
     def Init(self, buf, pos):
@@ -74,3 +80,12 @@ class InParentNamespaceT(object):
         InParentNamespaceStart(builder)
         inParentNamespace = InParentNamespaceEnd(builder)
         return inParentNamespace
+
+
+# Verification function for 'InParentNamespace' table.
+def InParentNamespaceVerify(verifier, pos):
+    result = True
+    result = result and verifier.VerifyTableStart(pos)
+    result = result and verifier.VerifyTableEnd(pos)
+    return result
+

@@ -20,6 +20,11 @@ class HelloReply(object):
     def GetRootAsHelloReply(cls, buf, offset=0):
         """This method is deprecated. Please switch to GetRootAs."""
         return cls.GetRootAs(buf, offset)
+
+    @classmethod
+    def VerifyHelloReply(cls, buf, offset=0, size_prefixed=False):
+        return flatbuffers.NewVerifier(buf, offset).VerifyBuffer(None, size_prefixed, HelloReplyVerify)
+
     # HelloReply
     def Init(self, buf, pos):
         self._tab = flatbuffers.table.Table(buf, pos)
@@ -48,3 +53,13 @@ def HelloReplyEnd(builder):
 
 def End(builder):
     return HelloReplyEnd(builder)
+
+
+# Verification function for 'HelloReply' table.
+def HelloReplyVerify(verifier, pos):
+    result = True
+    result = result and verifier.VerifyTableStart(pos)
+    result = result and verifier.VerifyString(pos, 4, False) # field: message, type: [string]
+    result = result and verifier.VerifyTableEnd(pos)
+    return result
+

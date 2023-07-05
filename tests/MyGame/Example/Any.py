@@ -22,3 +22,18 @@ def AnyCreator(unionType, table):
         import MyGame.Example2.Monster
         return MyGame.Example2.Monster.MonsterT.InitFromBuf(table.Bytes, table.Pos)
     return None
+
+def AnyVerify(verifier, typeId, pos):
+    if typeId == Any().Monster:
+        import MyGame.Example.Monster
+        return MyGame.Example.Monster.MonsterVerify(verifier, pos)
+
+    if typeId == Any().TestSimpleTableWithEnum:
+        import MyGame.Example.TestSimpleTableWithEnum
+        return MyGame.Example.TestSimpleTableWithEnum.TestSimpleTableWithEnumVerify(verifier, pos)
+
+    if typeId == Any().MyGame_Example2_Monster:
+        import MyGame.Example2.Monster
+        return MyGame.Example2.Monster.MonsterVerify(verifier, pos)
+
+    return True

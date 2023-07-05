@@ -20,9 +20,15 @@ class RPCCall(object):
     def GetRootAsRPCCall(cls, buf, offset=0):
         """This method is deprecated. Please switch to GetRootAs."""
         return cls.GetRootAs(buf, offset)
+
     @classmethod
     def RPCCallBufferHasIdentifier(cls, buf, offset, size_prefixed=False):
         return flatbuffers.util.BufferHasIdentifier(buf, offset, b"\x42\x46\x42\x53", size_prefixed=size_prefixed)
+
+
+    @classmethod
+    def VerifyRPCCall(cls, buf, offset=0, size_prefixed=False):
+        return flatbuffers.NewVerifier(buf, offset).VerifyBuffer(b"\x42\x46\x42\x53", size_prefixed, RPCCallVerify)
 
     # RPCCall
     def Init(self, buf, pos):
@@ -155,3 +161,17 @@ def RPCCallEnd(builder):
 
 def End(builder):
     return RPCCallEnd(builder)
+
+
+# Verification function for 'RPCCall' table.
+def RPCCallVerify(verifier, pos):
+    result = True
+    result = result and verifier.VerifyTableStart(pos)
+    result = result and verifier.VerifyString(pos, 4, True) # field: name, type: [string]
+    result = result and verifier.VerifyTable(pos, 6, reflection.Object.ObjectVerify, True)  # field: request, type: [Object]
+    result = result and verifier.VerifyTable(pos, 8, reflection.Object.ObjectVerify, True)  # field: response, type: [Object]
+    result = result and verifier.VerifyVectorOfTables(pos, 10, reflection.KeyValue.KeyValueVerify, False)  # field: attributes, type: [KeyValue]
+    result = result and verifier.VerifyVectorOfStrings(pos, 12, False)  # field: documentation, type: [string]
+    result = result and verifier.VerifyTableEnd(pos)
+    return result
+

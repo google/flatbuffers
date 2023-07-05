@@ -20,9 +20,15 @@ class Stat(object):
     def GetRootAsStat(cls, buf, offset=0):
         """This method is deprecated. Please switch to GetRootAs."""
         return cls.GetRootAs(buf, offset)
+
     @classmethod
     def StatBufferHasIdentifier(cls, buf, offset, size_prefixed=False):
         return flatbuffers.util.BufferHasIdentifier(buf, offset, b"\x4D\x4F\x4E\x53", size_prefixed=size_prefixed)
+
+
+    @classmethod
+    def VerifyStat(cls, buf, offset=0, size_prefixed=False):
+        return flatbuffers.NewVerifier(buf, offset).VerifyBuffer(b"\x4D\x4F\x4E\x53", size_prefixed, StatVerify)
 
     # Stat
     def Init(self, buf, pos):
@@ -124,3 +130,15 @@ class StatT(object):
         StatAddCount(builder, self.count)
         stat = StatEnd(builder)
         return stat
+
+
+# Verification function for 'Stat' table.
+def StatVerify(verifier, pos):
+    result = True
+    result = result and verifier.VerifyTableStart(pos)
+    result = result and verifier.VerifyString(pos, 4, False) # field: id, type: [string]
+    result = result and verifier.VerifyField(pos, 6, 8, 8, False)  # field: val, type: [int64]
+    result = result and verifier.VerifyField(pos, 8, 2, 2, False)  # field: count, type: [uint16]
+    result = result and verifier.VerifyTableEnd(pos)
+    return result
+

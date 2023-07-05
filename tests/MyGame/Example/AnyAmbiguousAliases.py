@@ -22,3 +22,18 @@ def AnyAmbiguousAliasesCreator(unionType, table):
         import MyGame.Example.Monster
         return MyGame.Example.Monster.MonsterT.InitFromBuf(table.Bytes, table.Pos)
     return None
+
+def AnyAmbiguousAliasesVerify(verifier, typeId, pos):
+    if typeId == AnyAmbiguousAliases().M1:
+        import MyGame.Example.Monster
+        return MyGame.Example.Monster.MonsterVerify(verifier, pos)
+
+    if typeId == AnyAmbiguousAliases().M2:
+        import MyGame.Example.Monster
+        return MyGame.Example.Monster.MonsterVerify(verifier, pos)
+
+    if typeId == AnyAmbiguousAliases().M3:
+        import MyGame.Example.Monster
+        return MyGame.Example.Monster.MonsterVerify(verifier, pos)
+
+    return True

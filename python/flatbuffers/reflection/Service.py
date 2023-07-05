@@ -20,9 +20,15 @@ class Service(object):
     def GetRootAsService(cls, buf, offset=0):
         """This method is deprecated. Please switch to GetRootAs."""
         return cls.GetRootAs(buf, offset)
+
     @classmethod
     def ServiceBufferHasIdentifier(cls, buf, offset, size_prefixed=False):
         return flatbuffers.util.BufferHasIdentifier(buf, offset, b"\x42\x46\x42\x53", size_prefixed=size_prefixed)
+
+
+    @classmethod
+    def VerifyService(cls, buf, offset=0, size_prefixed=False):
+        return flatbuffers.NewVerifier(buf, offset).VerifyBuffer(b"\x42\x46\x42\x53", size_prefixed, ServiceVerify)
 
     # Service
     def Init(self, buf, pos):
@@ -172,3 +178,17 @@ def ServiceEnd(builder):
 
 def End(builder):
     return ServiceEnd(builder)
+
+
+# Verification function for 'Service' table.
+def ServiceVerify(verifier, pos):
+    result = True
+    result = result and verifier.VerifyTableStart(pos)
+    result = result and verifier.VerifyString(pos, 4, True) # field: name, type: [string]
+    result = result and verifier.VerifyVectorOfTables(pos, 6, reflection.RPCCall.RPCCallVerify, False)  # field: calls, type: [RPCCall]
+    result = result and verifier.VerifyVectorOfTables(pos, 8, reflection.KeyValue.KeyValueVerify, False)  # field: attributes, type: [KeyValue]
+    result = result and verifier.VerifyVectorOfStrings(pos, 10, False)  # field: documentation, type: [string]
+    result = result and verifier.VerifyString(pos, 12, False) # field: declarationFile, type: [string]
+    result = result and verifier.VerifyTableEnd(pos)
+    return result
+

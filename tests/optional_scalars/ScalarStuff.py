@@ -20,9 +20,15 @@ class ScalarStuff(object):
     def GetRootAsScalarStuff(cls, buf, offset=0):
         """This method is deprecated. Please switch to GetRootAs."""
         return cls.GetRootAs(buf, offset)
+
     @classmethod
     def ScalarStuffBufferHasIdentifier(cls, buf, offset, size_prefixed=False):
         return flatbuffers.util.BufferHasIdentifier(buf, offset, b"\x4E\x55\x4C\x4C", size_prefixed=size_prefixed)
+
+
+    @classmethod
+    def VerifyScalarStuff(cls, buf, offset=0, size_prefixed=False):
+        return flatbuffers.NewVerifier(buf, offset).VerifyBuffer(b"\x4E\x55\x4C\x4C", size_prefixed, ScalarStuffVerify)
 
     # ScalarStuff
     def Init(self, buf, pos):
@@ -649,3 +655,48 @@ class ScalarStuffT(object):
         ScalarStuffAddDefaultEnum(builder, self.defaultEnum)
         scalarStuff = ScalarStuffEnd(builder)
         return scalarStuff
+
+
+# Verification function for 'ScalarStuff' table.
+def ScalarStuffVerify(verifier, pos):
+    result = True
+    result = result and verifier.VerifyTableStart(pos)
+    result = result and verifier.VerifyField(pos, 4, 1, 1, False)  # field: justI8, type: [int8]
+    result = result and verifier.VerifyField(pos, 6, 1, 1, False)  # field: maybeI8, type: [int8]
+    result = result and verifier.VerifyField(pos, 8, 1, 1, False)  # field: defaultI8, type: [int8]
+    result = result and verifier.VerifyField(pos, 10, 1, 1, False)  # field: justU8, type: [uint8]
+    result = result and verifier.VerifyField(pos, 12, 1, 1, False)  # field: maybeU8, type: [uint8]
+    result = result and verifier.VerifyField(pos, 14, 1, 1, False)  # field: defaultU8, type: [uint8]
+    result = result and verifier.VerifyField(pos, 16, 2, 2, False)  # field: justI16, type: [int16]
+    result = result and verifier.VerifyField(pos, 18, 2, 2, False)  # field: maybeI16, type: [int16]
+    result = result and verifier.VerifyField(pos, 20, 2, 2, False)  # field: defaultI16, type: [int16]
+    result = result and verifier.VerifyField(pos, 22, 2, 2, False)  # field: justU16, type: [uint16]
+    result = result and verifier.VerifyField(pos, 24, 2, 2, False)  # field: maybeU16, type: [uint16]
+    result = result and verifier.VerifyField(pos, 26, 2, 2, False)  # field: defaultU16, type: [uint16]
+    result = result and verifier.VerifyField(pos, 28, 4, 4, False)  # field: justI32, type: [int32]
+    result = result and verifier.VerifyField(pos, 30, 4, 4, False)  # field: maybeI32, type: [int32]
+    result = result and verifier.VerifyField(pos, 32, 4, 4, False)  # field: defaultI32, type: [int32]
+    result = result and verifier.VerifyField(pos, 34, 4, 4, False)  # field: justU32, type: [uint32]
+    result = result and verifier.VerifyField(pos, 36, 4, 4, False)  # field: maybeU32, type: [uint32]
+    result = result and verifier.VerifyField(pos, 38, 4, 4, False)  # field: defaultU32, type: [uint32]
+    result = result and verifier.VerifyField(pos, 40, 8, 8, False)  # field: justI64, type: [int64]
+    result = result and verifier.VerifyField(pos, 42, 8, 8, False)  # field: maybeI64, type: [int64]
+    result = result and verifier.VerifyField(pos, 44, 8, 8, False)  # field: defaultI64, type: [int64]
+    result = result and verifier.VerifyField(pos, 46, 8, 8, False)  # field: justU64, type: [uint64]
+    result = result and verifier.VerifyField(pos, 48, 8, 8, False)  # field: maybeU64, type: [uint64]
+    result = result and verifier.VerifyField(pos, 50, 8, 8, False)  # field: defaultU64, type: [uint64]
+    result = result and verifier.VerifyField(pos, 52, 4, 4, False)  # field: justF32, type: [float32]
+    result = result and verifier.VerifyField(pos, 54, 4, 4, False)  # field: maybeF32, type: [float32]
+    result = result and verifier.VerifyField(pos, 56, 4, 4, False)  # field: defaultF32, type: [float32]
+    result = result and verifier.VerifyField(pos, 58, 8, 8, False)  # field: justF64, type: [float64]
+    result = result and verifier.VerifyField(pos, 60, 8, 8, False)  # field: maybeF64, type: [float64]
+    result = result and verifier.VerifyField(pos, 62, 8, 8, False)  # field: defaultF64, type: [float64]
+    result = result and verifier.VerifyField(pos, 64, 1, 1, False)  # field: justBool, type: [bool]
+    result = result and verifier.VerifyField(pos, 66, 1, 1, False)  # field: maybeBool, type: [bool]
+    result = result and verifier.VerifyField(pos, 68, 1, 1, False)  # field: defaultBool, type: [bool]
+    result = result and verifier.VerifyField(pos, 70, 1, 1, False)  # field: justEnum, type: [int8]
+    result = result and verifier.VerifyField(pos, 72, 1, 1, False)  # field: maybeEnum, type: [int8]
+    result = result and verifier.VerifyField(pos, 74, 1, 1, False)  # field: defaultEnum, type: [int8]
+    result = result and verifier.VerifyTableEnd(pos)
+    return result
+

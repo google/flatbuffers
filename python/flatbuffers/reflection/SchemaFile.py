@@ -23,9 +23,15 @@ class SchemaFile(object):
     def GetRootAsSchemaFile(cls, buf, offset=0):
         """This method is deprecated. Please switch to GetRootAs."""
         return cls.GetRootAs(buf, offset)
+
     @classmethod
     def SchemaFileBufferHasIdentifier(cls, buf, offset, size_prefixed=False):
         return flatbuffers.util.BufferHasIdentifier(buf, offset, b"\x42\x46\x42\x53", size_prefixed=size_prefixed)
+
+
+    @classmethod
+    def VerifySchemaFile(cls, buf, offset=0, size_prefixed=False):
+        return flatbuffers.NewVerifier(buf, offset).VerifyBuffer(b"\x42\x46\x42\x53", size_prefixed, SchemaFileVerify)
 
     # SchemaFile
     def Init(self, buf, pos):
@@ -89,3 +95,14 @@ def SchemaFileEnd(builder):
 
 def End(builder):
     return SchemaFileEnd(builder)
+
+
+# Verification function for 'SchemaFile' table.
+def SchemaFileVerify(verifier, pos):
+    result = True
+    result = result and verifier.VerifyTableStart(pos)
+    result = result and verifier.VerifyString(pos, 4, True) # field: filename, type: [string]
+    result = result and verifier.VerifyVectorOfStrings(pos, 6, False)  # field: includedFilenames, type: [string]
+    result = result and verifier.VerifyTableEnd(pos)
+    return result
+

@@ -23,6 +23,11 @@ class Vec3(object):
     def GetRootAsVec3(cls, buf, offset=0):
         """This method is deprecated. Please switch to GetRootAs."""
         return cls.GetRootAs(buf, offset)
+
+    @classmethod
+    def VerifyVec3(cls, buf, offset=0, size_prefixed=False):
+        return flatbuffers.NewVerifier(buf, offset).VerifyBuffer(None, size_prefixed, Vec3Verify)
+
     # Vec3
     def Init(self, buf: bytes, pos: int):
         self._tab = flatbuffers.table.Table(buf, pos)
@@ -179,3 +184,18 @@ class Vec3T(object):
             Vec3AddTest3(builder, test3)
         vec3 = Vec3End(builder)
         return vec3
+
+
+# Verification function for 'Vec3' table.
+def Vec3Verify(verifier, pos):
+    result = True
+    result = result and verifier.VerifyTableStart(pos)
+    result = result and verifier.VerifyField(pos, 4, 8, 8, False)  # field: x, type: [float64]
+    result = result and verifier.VerifyField(pos, 6, 8, 8, False)  # field: y, type: [float64]
+    result = result and verifier.VerifyField(pos, 8, 8, 8, False)  # field: z, type: [float64]
+    result = result and verifier.VerifyField(pos, 10, 8, 8, False)  # field: test1, type: [float64]
+    result = result and verifier.VerifyField(pos, 12, 1, 1, False)  # field: test2, type: [uint8]
+    result = result and verifier.VerifyField(pos, 14, 4, 2, False)  # field: test3, type: [Test]
+    result = result and verifier.VerifyTableEnd(pos)
+    return result
+

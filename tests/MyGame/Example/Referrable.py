@@ -20,9 +20,15 @@ class Referrable(object):
     def GetRootAsReferrable(cls, buf, offset=0):
         """This method is deprecated. Please switch to GetRootAs."""
         return cls.GetRootAs(buf, offset)
+
     @classmethod
     def ReferrableBufferHasIdentifier(cls, buf, offset, size_prefixed=False):
         return flatbuffers.util.BufferHasIdentifier(buf, offset, b"\x4D\x4F\x4E\x53", size_prefixed=size_prefixed)
+
+
+    @classmethod
+    def VerifyReferrable(cls, buf, offset=0, size_prefixed=False):
+        return flatbuffers.NewVerifier(buf, offset).VerifyBuffer(b"\x4D\x4F\x4E\x53", size_prefixed, ReferrableVerify)
 
     # Referrable
     def Init(self, buf, pos):
@@ -89,3 +95,13 @@ class ReferrableT(object):
         ReferrableAddId(builder, self.id)
         referrable = ReferrableEnd(builder)
         return referrable
+
+
+# Verification function for 'Referrable' table.
+def ReferrableVerify(verifier, pos):
+    result = True
+    result = result and verifier.VerifyTableStart(pos)
+    result = result and verifier.VerifyField(pos, 4, 8, 8, False)  # field: id, type: [uint64]
+    result = result and verifier.VerifyTableEnd(pos)
+    return result
+

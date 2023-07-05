@@ -47,6 +47,18 @@ def AnyCreator(unionType, table):
         return MonsterT.InitFromBuf(table.Bytes, table.Pos)
     return None
 
+def AnyVerify(verifier, typeId, pos):
+    if typeId == Any().Monster:
+        return MonsterVerify(verifier, pos)
+
+    if typeId == Any().TestSimpleTableWithEnum:
+        return TestSimpleTableWithEnumVerify(verifier, pos)
+
+    if typeId == Any().MyGame_Example2_Monster:
+        return MonsterVerify(verifier, pos)
+
+    return True
+
 
 class AnyUniqueAliases(object):
     NONE = 0
@@ -65,6 +77,18 @@ def AnyUniqueAliasesCreator(unionType, table):
     if unionType == AnyUniqueAliases().M2:
         return MonsterT.InitFromBuf(table.Bytes, table.Pos)
     return None
+
+def AnyUniqueAliasesVerify(verifier, typeId, pos):
+    if typeId == AnyUniqueAliases().M:
+        return MonsterVerify(verifier, pos)
+
+    if typeId == AnyUniqueAliases().TS:
+        return TestSimpleTableWithEnumVerify(verifier, pos)
+
+    if typeId == AnyUniqueAliases().M2:
+        return MonsterVerify(verifier, pos)
+
+    return True
 
 
 class AnyAmbiguousAliases(object):
@@ -85,6 +109,18 @@ def AnyAmbiguousAliasesCreator(unionType, table):
         return MonsterT.InitFromBuf(table.Bytes, table.Pos)
     return None
 
+def AnyAmbiguousAliasesVerify(verifier, typeId, pos):
+    if typeId == AnyAmbiguousAliases().M1:
+        return MonsterVerify(verifier, pos)
+
+    if typeId == AnyAmbiguousAliases().M2:
+        return MonsterVerify(verifier, pos)
+
+    if typeId == AnyAmbiguousAliases().M3:
+        return MonsterVerify(verifier, pos)
+
+    return True
+
 
 class InParentNamespace(object):
     __slots__ = ['_tab']
@@ -100,9 +136,15 @@ class InParentNamespace(object):
     def GetRootAsInParentNamespace(cls, buf, offset=0):
         """This method is deprecated. Please switch to GetRootAs."""
         return cls.GetRootAs(buf, offset)
+
     @classmethod
     def InParentNamespaceBufferHasIdentifier(cls, buf, offset, size_prefixed=False):
         return flatbuffers.util.BufferHasIdentifier(buf, offset, b"\x4D\x4F\x4E\x53", size_prefixed=size_prefixed)
+
+
+    @classmethod
+    def VerifyInParentNamespace(cls, buf, offset=0, size_prefixed=False):
+        return flatbuffers.NewVerifier(buf, offset).VerifyBuffer(b"\x4D\x4F\x4E\x53", size_prefixed, InParentNamespaceVerify)
 
     # InParentNamespace
     def Init(self, buf, pos):
@@ -151,6 +193,15 @@ class InParentNamespaceT(object):
         return inParentNamespace
 
 
+# Verification function for 'InParentNamespace' table.
+def InParentNamespaceVerify(verifier, pos):
+    result = True
+    result = result and verifier.VerifyTableStart(pos)
+    result = result and verifier.VerifyTableEnd(pos)
+    return result
+
+
+
 class Monster(object):
     __slots__ = ['_tab']
 
@@ -165,9 +216,15 @@ class Monster(object):
     def GetRootAsMonster(cls, buf, offset=0):
         """This method is deprecated. Please switch to GetRootAs."""
         return cls.GetRootAs(buf, offset)
+
     @classmethod
     def MonsterBufferHasIdentifier(cls, buf, offset, size_prefixed=False):
         return flatbuffers.util.BufferHasIdentifier(buf, offset, b"\x4D\x4F\x4E\x53", size_prefixed=size_prefixed)
+
+
+    @classmethod
+    def VerifyMonster(cls, buf, offset=0, size_prefixed=False):
+        return flatbuffers.NewVerifier(buf, offset).VerifyBuffer(b"\x4D\x4F\x4E\x53", size_prefixed, MonsterVerify)
 
     # Monster
     def Init(self, buf, pos):
@@ -214,6 +271,15 @@ class MonsterT(object):
         MonsterStart(builder)
         monster = MonsterEnd(builder)
         return monster
+
+
+# Verification function for 'Monster' table.
+def MonsterVerify(verifier, pos):
+    result = True
+    result = result and verifier.VerifyTableStart(pos)
+    result = result and verifier.VerifyTableEnd(pos)
+    return result
+
 
 
 class Test(object):
@@ -290,9 +356,15 @@ class TestSimpleTableWithEnum(object):
     def GetRootAsTestSimpleTableWithEnum(cls, buf, offset=0):
         """This method is deprecated. Please switch to GetRootAs."""
         return cls.GetRootAs(buf, offset)
+
     @classmethod
     def TestSimpleTableWithEnumBufferHasIdentifier(cls, buf, offset, size_prefixed=False):
         return flatbuffers.util.BufferHasIdentifier(buf, offset, b"\x4D\x4F\x4E\x53", size_prefixed=size_prefixed)
+
+
+    @classmethod
+    def VerifyTestSimpleTableWithEnum(cls, buf, offset=0, size_prefixed=False):
+        return flatbuffers.NewVerifier(buf, offset).VerifyBuffer(b"\x4D\x4F\x4E\x53", size_prefixed, TestSimpleTableWithEnumVerify)
 
     # TestSimpleTableWithEnum
     def Init(self, buf, pos):
@@ -351,6 +423,16 @@ class TestSimpleTableWithEnumT(object):
         TestSimpleTableWithEnumAddColor(builder, self.color)
         testSimpleTableWithEnum = TestSimpleTableWithEnumEnd(builder)
         return testSimpleTableWithEnum
+
+
+# Verification function for 'TestSimpleTableWithEnum' table.
+def TestSimpleTableWithEnumVerify(verifier, pos):
+    result = True
+    result = result and verifier.VerifyTableStart(pos)
+    result = result and verifier.VerifyField(pos, 4, 1, 1, False)  # field: color, type: [uint8]
+    result = result and verifier.VerifyTableEnd(pos)
+    return result
+
 
 
 class Vec3(object):
@@ -678,9 +760,15 @@ class Stat(object):
     def GetRootAsStat(cls, buf, offset=0):
         """This method is deprecated. Please switch to GetRootAs."""
         return cls.GetRootAs(buf, offset)
+
     @classmethod
     def StatBufferHasIdentifier(cls, buf, offset, size_prefixed=False):
         return flatbuffers.util.BufferHasIdentifier(buf, offset, b"\x4D\x4F\x4E\x53", size_prefixed=size_prefixed)
+
+
+    @classmethod
+    def VerifyStat(cls, buf, offset=0, size_prefixed=False):
+        return flatbuffers.NewVerifier(buf, offset).VerifyBuffer(b"\x4D\x4F\x4E\x53", size_prefixed, StatVerify)
 
     # Stat
     def Init(self, buf, pos):
@@ -770,6 +858,18 @@ class StatT(object):
         return stat
 
 
+# Verification function for 'Stat' table.
+def StatVerify(verifier, pos):
+    result = True
+    result = result and verifier.VerifyTableStart(pos)
+    result = result and verifier.VerifyString(pos, 4, False) # field: id, type: [string]
+    result = result and verifier.VerifyField(pos, 6, 8, 8, False)  # field: val, type: [int64]
+    result = result and verifier.VerifyField(pos, 8, 2, 2, False)  # field: count, type: [uint16]
+    result = result and verifier.VerifyTableEnd(pos)
+    return result
+
+
+
 class Referrable(object):
     __slots__ = ['_tab']
 
@@ -784,9 +884,15 @@ class Referrable(object):
     def GetRootAsReferrable(cls, buf, offset=0):
         """This method is deprecated. Please switch to GetRootAs."""
         return cls.GetRootAs(buf, offset)
+
     @classmethod
     def ReferrableBufferHasIdentifier(cls, buf, offset, size_prefixed=False):
         return flatbuffers.util.BufferHasIdentifier(buf, offset, b"\x4D\x4F\x4E\x53", size_prefixed=size_prefixed)
+
+
+    @classmethod
+    def VerifyReferrable(cls, buf, offset=0, size_prefixed=False):
+        return flatbuffers.NewVerifier(buf, offset).VerifyBuffer(b"\x4D\x4F\x4E\x53", size_prefixed, ReferrableVerify)
 
     # Referrable
     def Init(self, buf, pos):
@@ -847,6 +953,16 @@ class ReferrableT(object):
         return referrable
 
 
+# Verification function for 'Referrable' table.
+def ReferrableVerify(verifier, pos):
+    result = True
+    result = result and verifier.VerifyTableStart(pos)
+    result = result and verifier.VerifyField(pos, 4, 8, 8, False)  # field: id, type: [uint64]
+    result = result and verifier.VerifyTableEnd(pos)
+    return result
+
+
+
 # an example documentation comment: "monster object"
 class Monster(object):
     __slots__ = ['_tab']
@@ -862,9 +978,15 @@ class Monster(object):
     def GetRootAsMonster(cls, buf, offset=0):
         """This method is deprecated. Please switch to GetRootAs."""
         return cls.GetRootAs(buf, offset)
+
     @classmethod
     def MonsterBufferHasIdentifier(cls, buf, offset, size_prefixed=False):
         return flatbuffers.util.BufferHasIdentifier(buf, offset, b"\x4D\x4F\x4E\x53", size_prefixed=size_prefixed)
+
+
+    @classmethod
+    def VerifyMonster(cls, buf, offset=0, size_prefixed=False):
+        return flatbuffers.NewVerifier(buf, offset).VerifyBuffer(b"\x4D\x4F\x4E\x53", size_prefixed, MonsterVerify)
 
     # Monster
     def Init(self, buf, pos):
@@ -2505,6 +2627,76 @@ class MonsterT(object):
         return monster
 
 
+# Verification function for 'Monster' table.
+def MonsterVerify(verifier, pos):
+    result = True
+    result = result and verifier.VerifyTableStart(pos)
+    result = result and verifier.VerifyField(pos, 4, 32, 8, False)  # field: pos, type: [Vec3]
+    result = result and verifier.VerifyField(pos, 6, 2, 2, False)  # field: mana, type: [int16]
+    result = result and verifier.VerifyField(pos, 8, 2, 2, False)  # field: hp, type: [int16]
+    result = result and verifier.VerifyString(pos, 10, True) # field: name, type: [string]
+    result = result and verifier.VerifyVectorOfData(pos, 14, 1, False) # field: inventory, type: [uint8]
+    result = result and verifier.VerifyField(pos, 16, 1, 1, False)  # field: color, type: [uint8]
+    result = result and verifier.VerifyField(pos, 18, 1, 1, False)  # field: testType, type: [uint8]
+    result = result and verifier.VerifyUnion(pos, 18, 20, AnyVerify, False)  # field: test, type: [Any]
+    result = result and verifier.VerifyVectorOfData(pos, 22, 4, False)  # field: test4, type: [Test]
+    result = result and verifier.VerifyVectorOfStrings(pos, 24, False)  # field: testarrayofstring, type: [string]
+    result = result and verifier.VerifyVectorOfTables(pos, 26, MonsterVerify, False)  # field: testarrayoftables, type: [Monster]
+    result = result and verifier.VerifyTable(pos, 28, MonsterVerify, False)  # field: enemy, type: [Monster]
+    result = result and verifier.VerifyVectorOfData(pos, 30, 1, False) # field: testnestedflatbuffer, type: [uint8]
+    result = result and verifier.VerifyTable(pos, 32, StatVerify, False)  # field: testempty, type: [Stat]
+    result = result and verifier.VerifyField(pos, 34, 1, 1, False)  # field: testbool, type: [bool]
+    result = result and verifier.VerifyField(pos, 36, 4, 4, False)  # field: testhashs32Fnv1, type: [int32]
+    result = result and verifier.VerifyField(pos, 38, 4, 4, False)  # field: testhashu32Fnv1, type: [uint32]
+    result = result and verifier.VerifyField(pos, 40, 8, 8, False)  # field: testhashs64Fnv1, type: [int64]
+    result = result and verifier.VerifyField(pos, 42, 8, 8, False)  # field: testhashu64Fnv1, type: [uint64]
+    result = result and verifier.VerifyField(pos, 44, 4, 4, False)  # field: testhashs32Fnv1a, type: [int32]
+    result = result and verifier.VerifyField(pos, 46, 4, 4, False)  # field: testhashu32Fnv1a, type: [uint32]
+    result = result and verifier.VerifyField(pos, 48, 8, 8, False)  # field: testhashs64Fnv1a, type: [int64]
+    result = result and verifier.VerifyField(pos, 50, 8, 8, False)  # field: testhashu64Fnv1a, type: [uint64]
+    result = result and verifier.VerifyVectorOfData(pos, 52, 1, False) # field: testarrayofbools, type: [bool]
+    result = result and verifier.VerifyField(pos, 54, 4, 4, False)  # field: testf, type: [float32]
+    result = result and verifier.VerifyField(pos, 56, 4, 4, False)  # field: testf2, type: [float32]
+    result = result and verifier.VerifyField(pos, 58, 4, 4, False)  # field: testf3, type: [float32]
+    result = result and verifier.VerifyVectorOfStrings(pos, 60, False)  # field: testarrayofstring2, type: [string]
+    result = result and verifier.VerifyVectorOfData(pos, 62, 8, False)  # field: testarrayofsortedstruct, type: [Ability]
+    result = result and verifier.VerifyNestedBuffer(pos, 64, None, False)  # field: flex, type: [uint8]
+    result = result and verifier.VerifyVectorOfData(pos, 66, 4, False)  # field: test5, type: [Test]
+    result = result and verifier.VerifyVectorOfData(pos, 68, 8, False) # field: vectorOfLongs, type: [int64]
+    result = result and verifier.VerifyVectorOfData(pos, 70, 8, False) # field: vectorOfDoubles, type: [float64]
+    result = result and verifier.VerifyTable(pos, 72, InParentNamespaceVerify, False)  # field: parentNamespaceTest, type: [InParentNamespace]
+    result = result and verifier.VerifyVectorOfTables(pos, 74, ReferrableVerify, False)  # field: vectorOfReferrables, type: [Referrable]
+    result = result and verifier.VerifyField(pos, 76, 8, 8, False)  # field: singleWeakReference, type: [uint64]
+    result = result and verifier.VerifyVectorOfData(pos, 78, 8, False) # field: vectorOfWeakReferences, type: [uint64]
+    result = result and verifier.VerifyVectorOfTables(pos, 80, ReferrableVerify, False)  # field: vectorOfStrongReferrables, type: [Referrable]
+    result = result and verifier.VerifyField(pos, 82, 8, 8, False)  # field: coOwningReference, type: [uint64]
+    result = result and verifier.VerifyVectorOfData(pos, 84, 8, False) # field: vectorOfCoOwningReferences, type: [uint64]
+    result = result and verifier.VerifyField(pos, 86, 8, 8, False)  # field: nonOwningReference, type: [uint64]
+    result = result and verifier.VerifyVectorOfData(pos, 88, 8, False) # field: vectorOfNonOwningReferences, type: [uint64]
+    result = result and verifier.VerifyField(pos, 90, 1, 1, False)  # field: anyUniqueType, type: [uint8]
+    result = result and verifier.VerifyUnion(pos, 90, 92, AnyUniqueAliasesVerify, False)  # field: anyUnique, type: [AnyUniqueAliases]
+    result = result and verifier.VerifyField(pos, 94, 1, 1, False)  # field: anyAmbiguousType, type: [uint8]
+    result = result and verifier.VerifyUnion(pos, 94, 96, AnyAmbiguousAliasesVerify, False)  # field: anyAmbiguous, type: [AnyAmbiguousAliases]
+    result = result and verifier.VerifyVectorOfData(pos, 98, 1, False) # field: vectorOfEnums, type: [uint8]
+    result = result and verifier.VerifyField(pos, 100, 1, 1, False)  # field: signedEnum, type: [int8]
+    result = result and verifier.VerifyVectorOfData(pos, 102, 1, False) # field: testrequirednestedflatbuffer, type: [uint8]
+    result = result and verifier.VerifyVectorOfTables(pos, 104, StatVerify, False)  # field: scalarKeySortedTables, type: [Stat]
+    result = result and verifier.VerifyField(pos, 106, 4, 2, False)  # field: nativeInline, type: [Test]
+    result = result and verifier.VerifyField(pos, 108, 8, 8, False)  # field: longEnumNonEnumDefault, type: [uint64]
+    result = result and verifier.VerifyField(pos, 110, 8, 8, False)  # field: longEnumNormalDefault, type: [uint64]
+    result = result and verifier.VerifyField(pos, 112, 4, 4, False)  # field: nanDefault, type: [float32]
+    result = result and verifier.VerifyField(pos, 114, 4, 4, False)  # field: infDefault, type: [float32]
+    result = result and verifier.VerifyField(pos, 116, 4, 4, False)  # field: positiveInfDefault, type: [float32]
+    result = result and verifier.VerifyField(pos, 118, 4, 4, False)  # field: infinityDefault, type: [float32]
+    result = result and verifier.VerifyField(pos, 120, 4, 4, False)  # field: positiveInfinityDefault, type: [float32]
+    result = result and verifier.VerifyField(pos, 122, 4, 4, False)  # field: negativeInfDefault, type: [float32]
+    result = result and verifier.VerifyField(pos, 124, 4, 4, False)  # field: negativeInfinityDefault, type: [float32]
+    result = result and verifier.VerifyField(pos, 126, 8, 8, False)  # field: doubleInfDefault, type: [float64]
+    result = result and verifier.VerifyTableEnd(pos)
+    return result
+
+
+
 class TypeAliases(object):
     __slots__ = ['_tab']
 
@@ -2519,9 +2711,15 @@ class TypeAliases(object):
     def GetRootAsTypeAliases(cls, buf, offset=0):
         """This method is deprecated. Please switch to GetRootAs."""
         return cls.GetRootAs(buf, offset)
+
     @classmethod
     def TypeAliasesBufferHasIdentifier(cls, buf, offset, size_prefixed=False):
         return flatbuffers.util.BufferHasIdentifier(buf, offset, b"\x4D\x4F\x4E\x53", size_prefixed=size_prefixed)
+
+
+    @classmethod
+    def VerifyTypeAliases(cls, buf, offset=0, size_prefixed=False):
+        return flatbuffers.NewVerifier(buf, offset).VerifyBuffer(b"\x4D\x4F\x4E\x53", size_prefixed, TypeAliasesVerify)
 
     # TypeAliases
     def Init(self, buf, pos):
@@ -2803,5 +3001,26 @@ class TypeAliasesT(object):
             TypeAliasesAddVf64(builder, vf64)
         typeAliases = TypeAliasesEnd(builder)
         return typeAliases
+
+
+# Verification function for 'TypeAliases' table.
+def TypeAliasesVerify(verifier, pos):
+    result = True
+    result = result and verifier.VerifyTableStart(pos)
+    result = result and verifier.VerifyField(pos, 4, 1, 1, False)  # field: i8, type: [int8]
+    result = result and verifier.VerifyField(pos, 6, 1, 1, False)  # field: u8, type: [uint8]
+    result = result and verifier.VerifyField(pos, 8, 2, 2, False)  # field: i16, type: [int16]
+    result = result and verifier.VerifyField(pos, 10, 2, 2, False)  # field: u16, type: [uint16]
+    result = result and verifier.VerifyField(pos, 12, 4, 4, False)  # field: i32, type: [int32]
+    result = result and verifier.VerifyField(pos, 14, 4, 4, False)  # field: u32, type: [uint32]
+    result = result and verifier.VerifyField(pos, 16, 8, 8, False)  # field: i64, type: [int64]
+    result = result and verifier.VerifyField(pos, 18, 8, 8, False)  # field: u64, type: [uint64]
+    result = result and verifier.VerifyField(pos, 20, 4, 4, False)  # field: f32, type: [float32]
+    result = result and verifier.VerifyField(pos, 22, 8, 8, False)  # field: f64, type: [float64]
+    result = result and verifier.VerifyVectorOfData(pos, 24, 1, False) # field: v8, type: [int8]
+    result = result and verifier.VerifyVectorOfData(pos, 26, 8, False) # field: vf64, type: [float64]
+    result = result and verifier.VerifyTableEnd(pos)
+    return result
+
 
 

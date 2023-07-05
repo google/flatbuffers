@@ -18,3 +18,14 @@ def AnyCreator(unionType, table):
         import MyGame.Example.NestedUnion.TestSimpleTableWithEnum
         return MyGame.Example.NestedUnion.TestSimpleTableWithEnum.TestSimpleTableWithEnumT.InitFromBuf(table.Bytes, table.Pos)
     return None
+
+def AnyVerify(verifier, typeId, pos):
+    if typeId == Any().Vec3:
+        import MyGame.Example.NestedUnion.Vec3
+        return MyGame.Example.NestedUnion.Vec3.Vec3Verify(verifier, pos)
+
+    if typeId == Any().TestSimpleTableWithEnum:
+        import MyGame.Example.NestedUnion.TestSimpleTableWithEnum
+        return MyGame.Example.NestedUnion.TestSimpleTableWithEnum.TestSimpleTableWithEnumVerify(verifier, pos)
+
+    return True

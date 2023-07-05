@@ -20,9 +20,15 @@ class TypeAliases(object):
     def GetRootAsTypeAliases(cls, buf, offset=0):
         """This method is deprecated. Please switch to GetRootAs."""
         return cls.GetRootAs(buf, offset)
+
     @classmethod
     def TypeAliasesBufferHasIdentifier(cls, buf, offset, size_prefixed=False):
         return flatbuffers.util.BufferHasIdentifier(buf, offset, b"\x4D\x4F\x4E\x53", size_prefixed=size_prefixed)
+
+
+    @classmethod
+    def VerifyTypeAliases(cls, buf, offset=0, size_prefixed=False):
+        return flatbuffers.NewVerifier(buf, offset).VerifyBuffer(b"\x4D\x4F\x4E\x53", size_prefixed, TypeAliasesVerify)
 
     # TypeAliases
     def Init(self, buf, pos):
@@ -351,3 +357,24 @@ class TypeAliasesT(object):
             TypeAliasesAddVf64(builder, vf64)
         typeAliases = TypeAliasesEnd(builder)
         return typeAliases
+
+
+# Verification function for 'TypeAliases' table.
+def TypeAliasesVerify(verifier, pos):
+    result = True
+    result = result and verifier.VerifyTableStart(pos)
+    result = result and verifier.VerifyField(pos, 4, 1, 1, False)  # field: i8, type: [int8]
+    result = result and verifier.VerifyField(pos, 6, 1, 1, False)  # field: u8, type: [uint8]
+    result = result and verifier.VerifyField(pos, 8, 2, 2, False)  # field: i16, type: [int16]
+    result = result and verifier.VerifyField(pos, 10, 2, 2, False)  # field: u16, type: [uint16]
+    result = result and verifier.VerifyField(pos, 12, 4, 4, False)  # field: i32, type: [int32]
+    result = result and verifier.VerifyField(pos, 14, 4, 4, False)  # field: u32, type: [uint32]
+    result = result and verifier.VerifyField(pos, 16, 8, 8, False)  # field: i64, type: [int64]
+    result = result and verifier.VerifyField(pos, 18, 8, 8, False)  # field: u64, type: [uint64]
+    result = result and verifier.VerifyField(pos, 20, 4, 4, False)  # field: f32, type: [float32]
+    result = result and verifier.VerifyField(pos, 22, 8, 8, False)  # field: f64, type: [float64]
+    result = result and verifier.VerifyVectorOfData(pos, 24, 1, False) # field: v8, type: [int8]
+    result = result and verifier.VerifyVectorOfData(pos, 26, 8, False) # field: vf64, type: [float64]
+    result = result and verifier.VerifyTableEnd(pos)
+    return result
+

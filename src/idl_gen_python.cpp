@@ -985,27 +985,228 @@ class PythonGenerator : public BaseGenerator {
     GetEndOffsetOnTable(struct_def, code_ptr);
   }
 
-  // Generate function to check for proper file identifier
-  void GenHasFileIdentifier(const StructDef &struct_def,
-                            std::string *code_ptr) const {
-    auto &code = *code_ptr;
+  // Generate struct or table methods.
+  void GenStructVerifier(const StructDef &struct_def, std::string *code_ptr) const {
+    if (struct_def.generated) return;
+
+    // TODO: FROM GO cur_name_space_ = struct_def.defined_namespace;
+
+    // Generate verifiers
+    if (struct_def.fixed) {
+      // Fixed size structures do not require table members
+      // verification - instead structure size is verified using VerifyField
+    } else {
+      // Create table verification function
+       GenTableVerifier(struct_def, code_ptr);
+    }
+  }
+
+  
+  // Get the value of a table verification function start
+  void GetStartOfTableVerifier(const StructDef &struct_def, std::string *code_ptr) const {
+    std::string &code = *code_ptr;
+    code += "\n";
+    code += "\n";
+    code += "# Verification function for '" + namer_.Type(struct_def) + "' table.\n";
+    code += "def " + namer_.Type(struct_def) + "Verify(verifier, pos):\n";
+    code += Indent + "result = True\n";
+    code += Indent + "result = result and verifier.VerifyTableStart(pos)\n";
+  }
+
+  // Get the value of a table verification function end
+  void GetEndOfTableVerifier(std::string *code_ptr) const {
+    std::string &code = *code_ptr;
+    code += Indent + "result = result and verifier.VerifyTableEnd(pos)\n";
+    code += Indent + "return result\n";
+    code += "\n";
+  }
+
+  std::string GetNestedFlatBufferName(const FieldDef &field) const {
+    std::string name = "";
+    auto nested = field.attributes.Lookup("nested_flatbuffer");
+    if (nested) {
+      auto unqualified_name = nested->constant;
+      if (parser_.LookupStruct(unqualified_name)) {
+        name = namer_.NamespacedType(parser_.current_namespace_->components, unqualified_name) + "." + unqualified_name;
+      }
+    };
+    return name;
+  }
+
+  // Generate the code to call the appropriate Verify function(s) for a field.
+  void GenVerifyCall(CodeWriter &code_, const FieldDef &field, const char *prefix)  const {
+    code_.SetValue("PRE", prefix);
+    code_.SetValue("INDENT1", Indent);
+    code_.SetValue("INDENT2", Indent + Indent);
+    code_.SetValue("NAME", namer_.Field(field.name));
+    code_.SetValue("REQUIRED", field.IsRequired() ? "Required" : "");
+    code_.SetValue("REQUIRED_FLAG", field.IsRequired() ? "True" : "False");
+    code_.SetValue("TYPE", TypeName(field));
+    if (parser_.opts.include_dependence_headers) {
+      code_.SetValue("PACKAGE_REFERENCE_PREFIX", GenPackageReference(field.value.type) + ".");
+    } else {
+      code_.SetValue("PACKAGE_REFERENCE_PREFIX", "");
+    }
+    code_.SetValue("PACKAGE_REFERENCE", GenPackageReference(field.value.type));
+    code_.SetValue("INLINESIZE", NumToString(InlineSize(field.value.type)));
+    code_.SetValue("OFFSET", NumToString(field.value.offset));
+    
+    if (IsScalar(field.value.type.base_type) || IsStruct(field.value.type)) {
+      code_.SetValue("ALIGN", NumToString(InlineAlignment(field.value.type)));
+      code_ +=
+        "{{PRE}}{{INDENT1}}result = result and verifier.VerifyField(pos, "
+        "{{OFFSET}}, {{INLINESIZE}}, {{ALIGN}}, {{REQUIRED_FLAG}})  # field: {{NAME}}, type: [{{TYPE}}]";
+    } else {
+      // TODO - probably code below should go to this 'else' - code_ += "{{PRE}}VerifyOffset{{REQUIRED}}(verifier, {{OFFSET}})\\";
+    }
+
+    switch (field.value.type.base_type) {
+      case BASE_TYPE_UNION: {
+        if (parser_.opts.include_dependence_headers) {
+          code_.SetValue("ENUM_PACKAGE_PREFIX", GenPackageReference(field.value.type) + ".");
+        } else {
+          code_.SetValue("ENUM_PACKAGE_PREFIX", "");
+        }
+        code_.SetValue("ENUM_NAME", field.value.type.enum_def->name);
+        code_.SetValue("SUFFIX", UnionTypeFieldSuffix());
+        // Caution: This construction assumes, that UNION type id element has been created just before union data and
+        // its offset precedes union. Such assumption is common in flatbuffer implementation
+        code_.SetValue("TYPE_ID_OFFSET", NumToString(field.value.offset - sizeof(voffset_t)));
+        code_ += "{{PRE}}{{INDENT1}}result = result and verifier.VerifyUnion(pos, {{TYPE_ID_OFFSET}}, "
+          "{{OFFSET}}, {{ENUM_PACKAGE_PREFIX}}{{ENUM_NAME}}Verify, {{REQUIRED_FLAG}})  # field: {{NAME}}, type: [{{ENUM_NAME}}]";
+        break;
+      }
+      case BASE_TYPE_STRUCT: {
+        if (!field.value.type.struct_def->fixed) {
+          code_ += "{{PRE}}{{INDENT1}}result = result and verifier.VerifyTable(pos, "
+            "{{OFFSET}}, {{PACKAGE_REFERENCE_PREFIX}}{{TYPE}}Verify, {{REQUIRED_FLAG}})  # field: {{NAME}}, type: [{{TYPE}}]";
+        }
+        break;
+      }
+      case BASE_TYPE_STRING: {
+        code_ += "{{PRE}}{{INDENT1}}result = result and verifier.VerifyString(pos, "
+          "{{OFFSET}}, {{REQUIRED_FLAG}}) # field: {{NAME}}, type: [{{TYPE}}]";
+        break;
+      }
+      case BASE_TYPE_VECTOR: {
+
+        switch (field.value.type.element) {
+          case BASE_TYPE_STRING: {
+            code_ += "{{PRE}}{{INDENT1}}result = result and verifier.VerifyVectorOfStrings(pos, "
+              "{{OFFSET}}, {{REQUIRED_FLAG}})  # field: {{NAME}}, type: [{{TYPE}}]";
+            break;
+          }
+          case BASE_TYPE_STRUCT: {
+            if (!field.value.type.struct_def->fixed) {
+              code_ += "{{PRE}}{{INDENT1}}result = result and verifier.VerifyVectorOfTables(pos, "
+                "{{OFFSET}}, {{PACKAGE_REFERENCE_PREFIX}}{{TYPE}}Verify, {{REQUIRED_FLAG}})  # field: {{NAME}}, type: [{{TYPE}}]";
+            } else {
+              code_.SetValue(
+                  "VECTOR_ELEM_INLINESIZE",
+                  NumToString(InlineSize(field.value.type.VectorType())));
+              code_ +=
+                  "{{PRE}}{{INDENT1}}result = result and verifier.VerifyVectorOfData(pos, "
+                  "{{OFFSET}}, {{VECTOR_ELEM_INLINESIZE}}, {{REQUIRED_FLAG}}) "
+                  " # field: {{NAME}}, type: [{{TYPE}}]";         
+            }
+            break;
+          }
+          case BASE_TYPE_UNION: {
+            // Vectors of unions are not yet supported for python
+            break;
+          }
+          default:
+            // Generate verifier for vector of data.
+            // It may be either nested flatbuffer of just vector of bytes
+            auto nfn = GetNestedFlatBufferName(field);
+            if (!nfn.empty()) {
+              code_.SetValue("CPP_NAME", nfn);
+              // FIXME: file_identifier.
+              code_ +="{{PRE}}{{INDENT1}}result = result and verifier.VerifyNestedBuffer(pos, "
+                "{{OFFSET}}, {{CPP_NAME}}Verify, {{REQUIRED_FLAG}})  # field: {{NAME}}, type: [{{TYPE}}]";
+            } else if (field.flexbuffer) {
+              code_ += "{{PRE}}{{INDENT1}}result = result and verifier.VerifyNestedBuffer(pos, "
+                "{{OFFSET}}, None, {{REQUIRED_FLAG}})  # field: {{NAME}}, type: [{{TYPE}}]";
+            } else {
+              code_.SetValue("VECTOR_ELEM_INLINESIZE", NumToString(InlineSize(field.value.type.VectorType())));
+              code_ +=
+                "{{PRE}}{{INDENT1}}result = result and verifier.VerifyVectorOfData(pos, "
+                  "{{OFFSET}}, {{VECTOR_ELEM_INLINESIZE}}, {{REQUIRED_FLAG}}) # field: {{NAME}}, type: [{{TYPE}}]";
+            }
+            break;
+        }
+
+        break;
+      }
+      default: {
+        break;
+      }
+    }
+  }
+
+  // Generate table constructors, conditioned on its members' types.
+  void GenTableVerifier(const StructDef &struct_def, std::string *code_ptr) const {
+    CodeWriter code_;
+    
+    GetStartOfTableVerifier(struct_def, code_ptr);
+
+    // Generate struct fields accessors
+    for (auto it = struct_def.fields.vec.begin();
+         it != struct_def.fields.vec.end(); ++it) {
+      auto &field = **it;
+      if (field.deprecated) continue;
+
+      GenVerifyCall(code_, field, "");
+    }
+
+    *code_ptr += code_.ToString();
+    
+    GetEndOfTableVerifier(code_ptr);
+  }
+
+  std::string ExcapedFileIdentifier() const {
+    if (parser_.file_identifier_.length() == 0) return "None";
     std::string escapedID;
     // In the event any of file_identifier characters are special(NULL, \, etc),
     // problems occur. To prevent this, convert all chars to their hex-escaped
     // equivalent.
+    escapedID = "b\"";
     for (auto it = parser_.file_identifier_.begin();
          it != parser_.file_identifier_.end(); ++it) {
       escapedID += "\\x" + IntToStringHex(*it, 2);
     }
+    escapedID += "\"";
+    return escapedID;
+  }
 
+  // Generate function to check for proper file identifier
+  void GenHasFileIdentifier(const StructDef &struct_def,
+                            std::string *code_ptr) const {
+    auto &code = *code_ptr;
+
+    code += "\n";
     code += Indent + "@classmethod\n";
     code += Indent + "def " + namer_.Type(struct_def);
     code += "BufferHasIdentifier(cls, buf, offset, size_prefixed=False):";
     code += "\n";
     code += Indent + Indent;
-    code += "return flatbuffers.util.BufferHasIdentifier(buf, offset, b\"";
-    code += escapedID;
-    code += "\", size_prefixed=size_prefixed)\n";
+    code += "return flatbuffers.util.BufferHasIdentifier(buf, offset, ";
+    code += ExcapedFileIdentifier();
+    code += ", size_prefixed=size_prefixed)\n";
+    code += "\n";
+  }
+
+  void GenVerifier(const StructDef& struct_def, std::string* code_ptr) const {
+    auto &code = *code_ptr;
+    code += "\n";
+    code += Indent + "@classmethod\n";
+    code += Indent + "def Verify" + namer_.Type(struct_def);
+    code += "(cls, buf, offset=0, size_prefixed=False):";
+    code += "\n";
+    code += Indent + Indent;
+    code += "return flatbuffers.NewVerifier(buf, offset).VerifyBuffer(";
+    code += ExcapedFileIdentifier();
+    code += ", size_prefixed, " + namer_.Type(struct_def) + "Verify)\n";
     code += "\n";
   }
 
@@ -1024,6 +1225,7 @@ class PythonGenerator : public BaseGenerator {
         // Generate a special function to test file_identifier
         GenHasFileIdentifier(struct_def, code_ptr);
       }
+      GenVerifier(struct_def, code_ptr);
     } else {
       // Generates the SizeOf method for all structs.
       GenStructSizeOf(struct_def, code_ptr);
@@ -1855,6 +2057,58 @@ class PythonGenerator : public BaseGenerator {
   }
 
   // Creates an union object based on union type.
+  void GenUnionVerifier(const EnumDef &enum_def, std::string *code_ptr) const {
+    if (enum_def.generated) return;
+
+    auto &code = *code_ptr;
+    const auto enum_fn = namer_.Function(enum_def.name);
+
+    code += "\n";
+    code += "def " + enum_fn + "Verify(verifier, typeId, pos):";
+    
+    for (auto it = enum_def.Vals().begin(); it != enum_def.Vals().end(); ++it) {
+      auto &ev = **it;
+      // Union only supports string and table.
+      switch (ev.union_type.base_type) {
+        case BASE_TYPE_STRUCT:
+          GenUnionVerifierForStruct(enum_def, ev, &code);
+          break;
+        case BASE_TYPE_STRING:
+          // Not supported
+          break;
+        default: break;
+      }
+    }
+    code += GenIndents(1) + "return True";
+    code += "\n";
+  }
+
+  // Generate enum verifier.
+  void GenUnionVerifierForStruct(const EnumDef &enum_def, const EnumVal &ev,
+                                std::string *code_ptr) const {
+    auto &code = *code_ptr;
+    const auto union_type = namer_.Type(enum_def.name);
+    const auto variant = namer_.Variant(ev.name);
+    auto field_type = ev.union_type.struct_def->name;
+
+    code += GenIndents(1) + "if typeId == " + union_type + "()." +
+            variant + ":";
+    if (parser_.opts.include_dependence_headers) {
+      auto package_reference = GenPackageReference(ev.union_type);
+      code += GenIndents(2) + "import " + package_reference;
+      field_type = package_reference + "." + field_type;
+    }
+    if (! ev.union_type.struct_def->fixed) {
+      code += GenIndents(2) + "return " + field_type + "Verify(verifier, pos)\n";
+    } else {
+      code += GenIndents(2) + "return  verifier.VerifyUnionData(pos, " +
+        NumToString(InlineSize(ev.union_type)) + ", " +
+        NumToString(InlineAlignment(ev.union_type)) + 
+        ")\n";
+    }
+  }
+
+  // Creates an union object based on union type.
   void GenUnionCreator(const EnumDef &enum_def, std::string *code_ptr) const {
     if (enum_def.generated) return;
 
@@ -2036,6 +2290,7 @@ class PythonGenerator : public BaseGenerator {
       GenEnum(enum_def, &enumcode);
       if (parser_.opts.generate_object_based_api & enum_def.is_union) {
         GenUnionCreator(enum_def, &enumcode);
+        GenUnionVerifier(enum_def, &enumcode);
       }
 
       if (parser_.opts.one_file && !enumcode.empty()) {
@@ -2065,6 +2320,7 @@ class PythonGenerator : public BaseGenerator {
       if (parser_.opts.generate_object_based_api) {
         GenStructForObjectAPI(struct_def, &declcode);
       }
+      GenStructVerifier(struct_def, &declcode);
 
       if (parser_.opts.one_file) {
         if (!declcode.empty()) { *one_file_code += declcode + "\n\n"; }

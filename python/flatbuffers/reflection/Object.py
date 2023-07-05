@@ -20,9 +20,15 @@ class Object(object):
     def GetRootAsObject(cls, buf, offset=0):
         """This method is deprecated. Please switch to GetRootAs."""
         return cls.GetRootAs(buf, offset)
+
     @classmethod
     def ObjectBufferHasIdentifier(cls, buf, offset, size_prefixed=False):
         return flatbuffers.util.BufferHasIdentifier(buf, offset, b"\x42\x46\x42\x53", size_prefixed=size_prefixed)
+
+
+    @classmethod
+    def VerifyObject(cls, buf, offset=0, size_prefixed=False):
+        return flatbuffers.NewVerifier(buf, offset).VerifyBuffer(b"\x42\x46\x42\x53", size_prefixed, ObjectVerify)
 
     # Object
     def Init(self, buf, pos):
@@ -211,3 +217,20 @@ def ObjectEnd(builder):
 
 def End(builder):
     return ObjectEnd(builder)
+
+
+# Verification function for 'Object' table.
+def ObjectVerify(verifier, pos):
+    result = True
+    result = result and verifier.VerifyTableStart(pos)
+    result = result and verifier.VerifyString(pos, 4, True) # field: name, type: [string]
+    result = result and verifier.VerifyVectorOfTables(pos, 6, reflection.Field.FieldVerify, True)  # field: fields, type: [Field]
+    result = result and verifier.VerifyField(pos, 8, 1, 1, False)  # field: isStruct, type: [bool]
+    result = result and verifier.VerifyField(pos, 10, 4, 4, False)  # field: minalign, type: [int32]
+    result = result and verifier.VerifyField(pos, 12, 4, 4, False)  # field: bytesize, type: [int32]
+    result = result and verifier.VerifyVectorOfTables(pos, 14, reflection.KeyValue.KeyValueVerify, False)  # field: attributes, type: [KeyValue]
+    result = result and verifier.VerifyVectorOfStrings(pos, 16, False)  # field: documentation, type: [string]
+    result = result and verifier.VerifyString(pos, 18, False) # field: declarationFile, type: [string]
+    result = result and verifier.VerifyTableEnd(pos)
+    return result
+

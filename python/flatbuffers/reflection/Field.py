@@ -20,9 +20,15 @@ class Field(object):
     def GetRootAsField(cls, buf, offset=0):
         """This method is deprecated. Please switch to GetRootAs."""
         return cls.GetRootAs(buf, offset)
+
     @classmethod
     def FieldBufferHasIdentifier(cls, buf, offset, size_prefixed=False):
         return flatbuffers.util.BufferHasIdentifier(buf, offset, b"\x42\x46\x42\x53", size_prefixed=size_prefixed)
+
+
+    @classmethod
+    def VerifyField(cls, buf, offset=0, size_prefixed=False):
+        return flatbuffers.NewVerifier(buf, offset).VerifyBuffer(b"\x42\x46\x42\x53", size_prefixed, FieldVerify)
 
     # Field
     def Init(self, buf, pos):
@@ -270,3 +276,26 @@ def FieldEnd(builder):
 
 def End(builder):
     return FieldEnd(builder)
+
+
+# Verification function for 'Field' table.
+def FieldVerify(verifier, pos):
+    result = True
+    result = result and verifier.VerifyTableStart(pos)
+    result = result and verifier.VerifyString(pos, 4, True) # field: name, type: [string]
+    result = result and verifier.VerifyTable(pos, 6, reflection.Type.TypeVerify, True)  # field: type, type: [Type]
+    result = result and verifier.VerifyField(pos, 8, 2, 2, False)  # field: id, type: [uint16]
+    result = result and verifier.VerifyField(pos, 10, 2, 2, False)  # field: offset, type: [uint16]
+    result = result and verifier.VerifyField(pos, 12, 8, 8, False)  # field: defaultInteger, type: [int64]
+    result = result and verifier.VerifyField(pos, 14, 8, 8, False)  # field: defaultReal, type: [float64]
+    result = result and verifier.VerifyField(pos, 16, 1, 1, False)  # field: deprecated, type: [bool]
+    result = result and verifier.VerifyField(pos, 18, 1, 1, False)  # field: required, type: [bool]
+    result = result and verifier.VerifyField(pos, 20, 1, 1, False)  # field: key, type: [bool]
+    result = result and verifier.VerifyVectorOfTables(pos, 22, reflection.KeyValue.KeyValueVerify, False)  # field: attributes, type: [KeyValue]
+    result = result and verifier.VerifyVectorOfStrings(pos, 24, False)  # field: documentation, type: [string]
+    result = result and verifier.VerifyField(pos, 26, 1, 1, False)  # field: optional, type: [bool]
+    result = result and verifier.VerifyField(pos, 28, 2, 2, False)  # field: padding, type: [uint16]
+    result = result and verifier.VerifyField(pos, 30, 1, 1, False)  # field: offset64, type: [bool]
+    result = result and verifier.VerifyTableEnd(pos)
+    return result
+

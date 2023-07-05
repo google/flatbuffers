@@ -23,9 +23,15 @@ class ArrayTable(object):
     def GetRootAsArrayTable(cls, buf, offset=0):
         """This method is deprecated. Please switch to GetRootAs."""
         return cls.GetRootAs(buf, offset)
+
     @classmethod
     def ArrayTableBufferHasIdentifier(cls, buf, offset, size_prefixed=False):
         return flatbuffers.util.BufferHasIdentifier(buf, offset, b"\x41\x52\x52\x54", size_prefixed=size_prefixed)
+
+
+    @classmethod
+    def VerifyArrayTable(cls, buf, offset=0, size_prefixed=False):
+        return flatbuffers.NewVerifier(buf, offset).VerifyBuffer(b"\x41\x52\x52\x54", size_prefixed, ArrayTableVerify)
 
     # ArrayTable
     def Init(self, buf: bytes, pos: int):
@@ -103,3 +109,13 @@ class ArrayTableT(object):
             ArrayTableAddA(builder, a)
         arrayTable = ArrayTableEnd(builder)
         return arrayTable
+
+
+# Verification function for 'ArrayTable' table.
+def ArrayTableVerify(verifier, pos):
+    result = True
+    result = result and verifier.VerifyTableStart(pos)
+    result = result and verifier.VerifyField(pos, 4, 160, 8, False)  # field: a, type: [ArrayStruct]
+    result = result and verifier.VerifyTableEnd(pos)
+    return result
+

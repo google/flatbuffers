@@ -20,9 +20,15 @@ class Enum(object):
     def GetRootAsEnum(cls, buf, offset=0):
         """This method is deprecated. Please switch to GetRootAs."""
         return cls.GetRootAs(buf, offset)
+
     @classmethod
     def EnumBufferHasIdentifier(cls, buf, offset, size_prefixed=False):
         return flatbuffers.util.BufferHasIdentifier(buf, offset, b"\x42\x46\x42\x53", size_prefixed=size_prefixed)
+
+
+    @classmethod
+    def VerifyEnum(cls, buf, offset=0, size_prefixed=False):
+        return flatbuffers.NewVerifier(buf, offset).VerifyBuffer(b"\x42\x46\x42\x53", size_prefixed, EnumVerify)
 
     # Enum
     def Init(self, buf, pos):
@@ -202,3 +208,19 @@ def EnumEnd(builder):
 
 def End(builder):
     return EnumEnd(builder)
+
+
+# Verification function for 'Enum' table.
+def EnumVerify(verifier, pos):
+    result = True
+    result = result and verifier.VerifyTableStart(pos)
+    result = result and verifier.VerifyString(pos, 4, True) # field: name, type: [string]
+    result = result and verifier.VerifyVectorOfTables(pos, 6, reflection.EnumVal.EnumValVerify, True)  # field: values, type: [EnumVal]
+    result = result and verifier.VerifyField(pos, 8, 1, 1, False)  # field: isUnion, type: [bool]
+    result = result and verifier.VerifyTable(pos, 10, reflection.Type.TypeVerify, True)  # field: underlyingType, type: [Type]
+    result = result and verifier.VerifyVectorOfTables(pos, 12, reflection.KeyValue.KeyValueVerify, False)  # field: attributes, type: [KeyValue]
+    result = result and verifier.VerifyVectorOfStrings(pos, 14, False)  # field: documentation, type: [string]
+    result = result and verifier.VerifyString(pos, 16, False) # field: declarationFile, type: [string]
+    result = result and verifier.VerifyTableEnd(pos)
+    return result
+

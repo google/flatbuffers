@@ -20,9 +20,15 @@ class Monster(object):
     def GetRootAsMonster(cls, buf, offset=0):
         """This method is deprecated. Please switch to GetRootAs."""
         return cls.GetRootAs(buf, offset)
+
     @classmethod
     def MonsterBufferHasIdentifier(cls, buf, offset, size_prefixed=False):
         return flatbuffers.util.BufferHasIdentifier(buf, offset, b"\x4D\x4F\x4E\x53", size_prefixed=size_prefixed)
+
+
+    @classmethod
+    def VerifyMonster(cls, buf, offset=0, size_prefixed=False):
+        return flatbuffers.NewVerifier(buf, offset).VerifyBuffer(b"\x4D\x4F\x4E\x53", size_prefixed, MonsterVerify)
 
     # Monster
     def Init(self, buf, pos):
@@ -74,3 +80,12 @@ class MonsterT(object):
         MonsterStart(builder)
         monster = MonsterEnd(builder)
         return monster
+
+
+# Verification function for 'Monster' table.
+def MonsterVerify(verifier, pos):
+    result = True
+    result = result and verifier.VerifyTableStart(pos)
+    result = result and verifier.VerifyTableEnd(pos)
+    return result
+

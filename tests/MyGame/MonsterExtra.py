@@ -21,9 +21,15 @@ class MonsterExtra(object):
     def GetRootAsMonsterExtra(cls, buf, offset=0):
         """This method is deprecated. Please switch to GetRootAs."""
         return cls.GetRootAs(buf, offset)
+
     @classmethod
     def MonsterExtraBufferHasIdentifier(cls, buf, offset, size_prefixed=False):
         return flatbuffers.util.BufferHasIdentifier(buf, offset, b"\x4D\x4F\x4E\x45", size_prefixed=size_prefixed)
+
+
+    @classmethod
+    def VerifyMonsterExtra(cls, buf, offset=0, size_prefixed=False):
+        return flatbuffers.NewVerifier(buf, offset).VerifyBuffer(b"\x4D\x4F\x4E\x45", size_prefixed, MonsterExtraVerify)
 
     # MonsterExtra
     def Init(self, buf: bytes, pos: int):
@@ -333,3 +339,22 @@ class MonsterExtraT(object):
             MonsterExtraAddFvec(builder, fvec)
         monsterExtra = MonsterExtraEnd(builder)
         return monsterExtra
+
+
+# Verification function for 'MonsterExtra' table.
+def MonsterExtraVerify(verifier, pos):
+    result = True
+    result = result and verifier.VerifyTableStart(pos)
+    result = result and verifier.VerifyField(pos, 4, 8, 8, False)  # field: d0, type: [float64]
+    result = result and verifier.VerifyField(pos, 6, 8, 8, False)  # field: d1, type: [float64]
+    result = result and verifier.VerifyField(pos, 8, 8, 8, False)  # field: d2, type: [float64]
+    result = result and verifier.VerifyField(pos, 10, 8, 8, False)  # field: d3, type: [float64]
+    result = result and verifier.VerifyField(pos, 12, 4, 4, False)  # field: f0, type: [float32]
+    result = result and verifier.VerifyField(pos, 14, 4, 4, False)  # field: f1, type: [float32]
+    result = result and verifier.VerifyField(pos, 16, 4, 4, False)  # field: f2, type: [float32]
+    result = result and verifier.VerifyField(pos, 18, 4, 4, False)  # field: f3, type: [float32]
+    result = result and verifier.VerifyVectorOfData(pos, 20, 8, False) # field: dvec, type: [float64]
+    result = result and verifier.VerifyVectorOfData(pos, 22, 4, False) # field: fvec, type: [float32]
+    result = result and verifier.VerifyTableEnd(pos)
+    return result
+

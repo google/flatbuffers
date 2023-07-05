@@ -20,9 +20,15 @@ class TestSimpleTableWithEnum(object):
     def GetRootAsTestSimpleTableWithEnum(cls, buf, offset=0):
         """This method is deprecated. Please switch to GetRootAs."""
         return cls.GetRootAs(buf, offset)
+
     @classmethod
     def TestSimpleTableWithEnumBufferHasIdentifier(cls, buf, offset, size_prefixed=False):
         return flatbuffers.util.BufferHasIdentifier(buf, offset, b"\x4D\x4F\x4E\x53", size_prefixed=size_prefixed)
+
+
+    @classmethod
+    def VerifyTestSimpleTableWithEnum(cls, buf, offset=0, size_prefixed=False):
+        return flatbuffers.NewVerifier(buf, offset).VerifyBuffer(b"\x4D\x4F\x4E\x53", size_prefixed, TestSimpleTableWithEnumVerify)
 
     # TestSimpleTableWithEnum
     def Init(self, buf, pos):
@@ -89,3 +95,13 @@ class TestSimpleTableWithEnumT(object):
         TestSimpleTableWithEnumAddColor(builder, self.color)
         testSimpleTableWithEnum = TestSimpleTableWithEnumEnd(builder)
         return testSimpleTableWithEnum
+
+
+# Verification function for 'TestSimpleTableWithEnum' table.
+def TestSimpleTableWithEnumVerify(verifier, pos):
+    result = True
+    result = result and verifier.VerifyTableStart(pos)
+    result = result and verifier.VerifyField(pos, 4, 1, 1, False)  # field: color, type: [uint8]
+    result = result and verifier.VerifyTableEnd(pos)
+    return result
+

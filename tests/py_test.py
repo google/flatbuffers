@@ -24,6 +24,8 @@ import random
 import timeit
 import unittest
 
+from flatbuffers import encode
+from flatbuffers import packer
 from flatbuffers import compat
 from flatbuffers import util
 from flatbuffers.compat import range_func as compat_range
@@ -96,6 +98,13 @@ def assertRaises(test_case, fn, exception_class):
   test_case.assertTrue(exc is not None)
   test_case.assertTrue(isinstance(exc, exception_class))
 
+def verifyBuffer(buf, head, identifier, sizePrefix, verifyFunc):
+  # Verify provided buffer data. Function should be used at any place where
+  # buffer checking can be performed expected
+  isValid = flatbuffers.NewVerifier(buf, head). \
+    SetMaxDepth(10).SetMaxTables(100).SetStringCheck(True).SetAlignmentCheck(True). \
+    VerifyBuffer(identifier, sizePrefix, verifyFunc)
+  return isValid
 
 class TestWireFormat(unittest.TestCase):
 
@@ -127,6 +136,272 @@ class TestWireFormat(unittest.TestCase):
     f.close()
 
 
+class TestVerifier(unittest.TestCase):
+
+  def setUp(self):
+    f = open('monsterdata_test.mon', 'rb')
+    self.data = f.read()
+    f.close()
+    self.monster = _MONSTER.Monster.GetRootAs(bytearray(self.data), 0)
+    self.table = self.monster._tab
+    self.verifier = flatbuffers.NewVerifier(self.table.Bytes)
+    return
+    
+  def setVOffset(self, t, offsetId, wrongValue):
+    result = False
+
+    vtable = t.Pos - t.Get(N.SOffsetTFlags, t.Pos)
+    vtableEnd = t.Get(N.VOffsetTFlags, vtable)
+    if offsetId < vtableEnd:
+        offset = vtable + offsetId
+        if offset != 0:
+          result =  encode.Write(packer.voffset, t.Bytes, offset, wrongValue)
+    return result
+
+  def increaseVOffset(self, t, offsetId, increaseValue):
+    result = False
+
+    vtable = t.Pos - t.Get(N.SOffsetTFlags, t.Pos)
+    vtableEnd = t.Get(N.VOffsetTFlags, vtable)
+    if offsetId < vtableEnd:
+        offset = vtable + offsetId
+        if offset != 0:
+          oldValue = t.Get(N.VOffsetTFlags, offset)
+          result =  encode.Write(packer.voffset, t.Bytes, offset, oldValue + increaseValue)
+    return result
+
+
+  def setDataOffset(self, t, offsetId, wrongValue):
+    result = False
+
+    vtable = t.Pos - t.Get(N.SOffsetTFlags, t.Pos)
+    vtableEnd = t.Get(N.VOffsetTFlags, vtable)
+    if offsetId < vtableEnd:
+        offset = vtable + offsetId
+        if offset != 0:
+          # Data area offset in table internal storage
+          tableDataOffset = t.Pos + t.Get(N.UOffsetTFlags, offset)
+          result =  encode.Write(packer.uoffset, t.Bytes, tableDataOffset, wrongValue)
+    return result
+
+
+  def increaseDataOffset(self, t, offsetId, increaseValue):
+    result = False
+
+    vtable = t.Pos - t.Get(N.SOffsetTFlags, t.Pos)
+    vtableEnd = t.Get(N.VOffsetTFlags, vtable)
+    if offsetId < vtableEnd:
+        offset = vtable + offsetId
+        if offset != 0:
+          # Data area offset in table internal storage
+          tableDataOffset = t.Pos + t.Get(N.UOffsetTFlags, offset)
+          # Modify offset
+          oldvalue = t.Get(N.UOffsetTFlags, tableDataOffset)
+          result =  encode.Write(packer.uoffset, t.Bytes, tableDataOffset, oldvalue + increaseValue)
+    return result
+
+
+  def setDataBufferLength(self, t, offsetId, newLength):
+    result = False
+
+    vtable = t.Pos - t.Get(N.SOffsetTFlags, t.Pos)
+    vtableEnd = t.Get(N.VOffsetTFlags, vtable)
+    if offsetId < vtableEnd:
+        offset = vtable + offsetId
+        if offset != 0:
+          # Data area offset in table internal storage
+          tableDataOffset = t.Pos + t.Get(N.UOffsetTFlags, offset)
+          # Modify offset
+          dataOffset = tableDataOffset + t.Get(N.UOffsetTFlags, tableDataOffset)
+          result =  encode.Write(packer.uoffset, t.Bytes, dataOffset, newLength)
+    return result
+
+
+    
+  def test_VerifierVOffsetAlignment_Pos(self):
+    # Increase offset by "1" - it is not well alligned
+    self.increaseVOffset(self.table, 4, 1)
+    
+    # Check that buffer validation fails
+    isValid = self.verifier.VerifyBuffer(b'MONS', False, _MONSTER.MonsterVerify)
+    self.assertFalse(isValid)
+    return
+
+
+
+  def test_VerifierVOffsetValue_Pos(self):
+    # Set offset outside buffer
+    self.setVOffset(self.table, 4, len(self.table.Bytes) + 1)
+    
+    # Check that buffer validation fails
+    isValid = self.verifier.VerifyBuffer(b'MONS', False, _MONSTER.MonsterVerify)
+    self.assertFalse(isValid)
+    return
+
+
+  def test_VerifierVOffsetAlignment_Inventory(self):
+    # Increase offset by "1" - it is not well alligned
+    self.increaseDataOffset(self.table, 14, 1)
+    
+    # Check that buffer validation fails
+    isValid = self.verifier.VerifyBuffer(b'MONS', False, _MONSTER.MonsterVerify)
+    self.assertFalse(isValid)
+    return
+
+
+  def test_VerifierDataOffsetValue_Inventory(self):
+    # Set offset outside buffer
+    self.setDataOffset(self.table, 14, len(self.table.Bytes) + 1)
+    
+    # Check that buffer validation fails
+    isValid = self.verifier.VerifyBuffer(b'MONS', False, _MONSTER.MonsterVerify)
+    self.assertFalse(isValid)
+    return
+
+
+  def test_VerifierVOffsetAlignment_Testhashs64Fnv1(self):
+    # Increase offset by "1" - it is not well alligned
+    self.increaseVOffset(self.table, 40, 1)
+    
+    # Check that buffer validation fails
+    isValid = self.verifier.VerifyBuffer(b'MONS', False, _MONSTER.MonsterVerify)
+    self.assertFalse(isValid)
+    return
+
+
+  def test_VerifierDataOffsetValue_Testhashs64Fnv1(self):
+    # Set offset outside buffer
+    self.setVOffset(self.table, 40, len(self.table.Bytes) + 1)
+    
+    # Check that buffer validation fails
+    isValid = self.verifier.VerifyBuffer(b'MONS', False, _MONSTER.MonsterVerify)
+    self.assertFalse(isValid)
+    return
+
+
+  def test_VerifierDataLength_Inventory(self):
+    # Set length bigger then buffer size
+    self.setDataBufferLength(self.table, 14, len(self.table.Bytes) + 1)
+    
+    # Check that buffer validation fails
+    isValid = self.verifier.VerifyBuffer(b'MONS', False, _MONSTER.MonsterVerify)
+    self.assertFalse(isValid)
+    return
+
+
+  def test_verifierIdentifier(self):
+    # Get new, fresh verifier
+    verifier = flatbuffers.NewVerifier(bytearray(self.data))
+    verifier.SetMaxDepth(100)
+
+    # Validate original buffer using proper name
+    isValid = self.verifier.VerifyBuffer(b'MONS', False, _MONSTER.MonsterVerify)
+    self.assertTrue(isValid)
+
+    # Validate original buffer using wrong name
+    isValid = self.verifier.VerifyBuffer(b'VXYZ', False, _MONSTER.MonsterVerify)
+    self.assertFalse(isValid)
+    
+
+  def test_verifierFluentCall(self):
+    # Validate original buffer using fluent call
+    isValid = flatbuffers.NewVerifier(bytearray(self.data)). \
+      SetMaxDepth(10).SetMaxTables(100).SetStringCheck(True).SetAlignmentCheck(True). \
+      VerifyBuffer(b'MONS', False, _MONSTER.MonsterVerify)
+    self.assertTrue(isValid)
+  
+  def test_verifierIntegrated(self):
+    isValid = _MONSTER.Monster.VerifyMonster(self.data)
+    self.assertTrue(isValid)
+
+
+  def test_unionValid(self):
+    builder = flatbuffers.Builder(0)
+    
+    _MONSTER.MonsterStartInventoryVector(builder, 5)
+    for i in range(0, 5):
+      builder.PrependByte(i)
+
+    inv = builder.EndVector()
+    
+    stringOffset = builder.CreateString("MyMonster")
+    _MONSTER.MonsterStart(builder)
+    _MONSTER.MonsterAddPos(builder, _VEC3.CreateVec3(builder, 1.0, 2.0, 3.0, 3.0, _COLOR.Color.Red, 5, 6))
+    _MONSTER.MonsterAddHp(builder, 80)
+    _MONSTER.MonsterAddName(builder, stringOffset)
+    _MONSTER.MonsterAddInventory(builder, inv)
+    _MONSTER.MonsterAddTestType(builder, 100) # The illegal id defines valid (undefined) union type
+    _MONSTER.MonsterAddColor(builder, _COLOR.Color.Red)
+    m = _MONSTER.MonsterEnd(builder)
+    builder.Finish(m)
+
+    buf = builder.Output()
+    self.assertTrue(verifyBuffer(buf, 0, None, False, _MONSTER.MonsterVerify))
+
+
+  def test_unionInvalid(self):
+    builder = flatbuffers.Builder(0)
+    
+    _MONSTER.MonsterStartInventoryVector(builder, 5)
+    for i in range(0, 5):
+      builder.PrependByte(i)
+
+    inv = builder.EndVector()
+    
+    stringOffset = builder.CreateString("MyMonster")
+    _MONSTER.MonsterStart(builder)
+    _MONSTER.MonsterAddPos(builder, _VEC3.CreateVec3(builder, 1.0, 2.0, 3.0, 3.0, _COLOR.Color.Red, 5, 6))
+    _MONSTER.MonsterAddHp(builder, 80)
+    _MONSTER.MonsterAddName(builder, stringOffset)
+    _MONSTER.MonsterAddInventory(builder, inv)
+    _MONSTER.MonsterAddTestType(builder, 1) # The legal id without data defines invalid union
+    _MONSTER.MonsterAddColor(builder, _COLOR.Color.Red)
+    m = _MONSTER.MonsterEnd(builder)
+    builder.Finish(m)
+
+    buf = builder.Output()
+    self.assertFalse(verifyBuffer(buf, 0, None, False, _MONSTER.MonsterVerify))
+
+    
+  def test_nestedBuffer(self):
+    # Monster nested child 
+    nestedBuilder = flatbuffers.Builder(0)
+    _MONSTER.MonsterStartInventoryVector(nestedBuilder, 100)
+    for i in range(0, 100):
+      nestedBuilder.PrependByte(i)
+    nestedInv = nestedBuilder.EndVector()
+    nestedStringOffset = nestedBuilder.CreateString("MyNestedMonster")
+    _MONSTER.MonsterStart(nestedBuilder)
+    _MONSTER.MonsterAddPos(nestedBuilder, _VEC3.CreateVec3(nestedBuilder, 10.0, 20.0, 30.0, 30.0, _COLOR.Color.Green, 5, 6))
+    _MONSTER.MonsterAddHp(nestedBuilder, 180)
+    _MONSTER.MonsterAddName(nestedBuilder, nestedStringOffset)
+    _MONSTER.MonsterAddInventory(nestedBuilder, nestedInv)
+    _MONSTER.MonsterAddColor(nestedBuilder, _COLOR.Color.Red)
+    nestedBuilder.Finish(_MONSTER.MonsterEnd(nestedBuilder))
+    nestedBuffer = nestedBuilder.Output()
+    
+    # Monster main 
+    builder = flatbuffers.Builder(0)
+    _MONSTER.MonsterStartInventoryVector(builder, 100)
+    for i in range(0, 100):
+      builder.PrependByte(i)
+    inv = builder.EndVector()
+    nestedflatbufferOffset = builder.CreateByteVector(nestedBuffer)
+    stringOffset = builder.CreateString("MyMonster")
+    _MONSTER.MonsterStart(builder)
+    _MONSTER.MonsterAddPos(builder, _VEC3.CreateVec3(builder, 1.0, 2.0, 3.0, 3.0, _COLOR.Color.Red, 5, 6))
+    _MONSTER.MonsterAddHp(builder, 80)
+    _MONSTER.MonsterAddName(builder, stringOffset)
+    _MONSTER.MonsterAddInventory(builder, inv)
+    _MONSTER.MonsterAddColor(builder, _COLOR.Color.Red)
+    _MONSTER.MonsterAddTestnestedflatbuffer(builder, nestedflatbufferOffset)
+    builder.Finish(_MONSTER.MonsterEnd(builder))
+
+    # Check that valid buffer is successfully validated
+    isValid = verifyBuffer(builder.Bytes, builder.Head(), None, False, _MONSTER.MonsterVerify)
+    self.assertTrue(isValid)
+   
+
 class TestObjectBasedAPI(unittest.TestCase):
   """ Tests the generated object based API."""
 
@@ -150,6 +425,8 @@ class TestObjectBasedAPI(unittest.TestCase):
         b1.FinishSizePrefixed(monsterT1.Pack(b1))
       else:
         b1.Finish(monsterT1.Pack(b1))
+      # Verification of repacked Monster
+      self.assertTrue(verifyBuffer(b1.Bytes, b1.Head(), None, sizePrefix, _MONSTER.MonsterVerify))
       CheckReadBuffer(b1.Bytes, b1.Head(), sizePrefix)
 
     # Deserializes the buffer into Python object again.
@@ -163,6 +440,8 @@ class TestObjectBasedAPI(unittest.TestCase):
         b2.FinishSizePrefixed(monsterT2.Pack(b2))
       else:
         b2.Finish(monsterT2.Pack(b2))
+      # Verification of repacked Monster
+      self.assertTrue(verifyBuffer(b2.Bytes, b2.Head(), None, sizePrefix, _MONSTER.MonsterVerify))
       CheckReadBuffer(b2.Bytes, b2.Head(), sizePrefix)
 
   def test_default_values_with_pack_and_unpack(self):
@@ -177,6 +456,9 @@ class TestObjectBasedAPI(unittest.TestCase):
     gen_mon = _MONSTER.MonsterEnd(b1)
     b1.Finish(gen_mon)
 
+    # Verification of buffer with defaults should fail because required values are not set
+    self.assertFalse(verifyBuffer(b1.Bytes, b1.Head(), None, False, _MONSTER.MonsterVerify))
+
     # Converts the flatbuffer into the object class.
     monster1 = _MONSTER.Monster.GetRootAs(b1.Bytes, b1.Head())
     monsterT1 = _MONSTER.MonsterT.InitFromObj(monster1)
@@ -184,6 +466,10 @@ class TestObjectBasedAPI(unittest.TestCase):
     # Packs the object class into another flatbuffer.
     b2 = flatbuffers.Builder(0)
     b2.Finish(monsterT1.Pack(b2))
+
+    # Verification of copied object should fail as well
+    self.assertFalse(verifyBuffer(b2.Bytes, b2.Head(), None, False, _MONSTER.MonsterVerify))
+
     monster2 = _MONSTER.Monster.GetRootAs(b2.Bytes, b2.Head())
     # Checks the default values.
     self.assertTrue(monster2.Pos() is None)
@@ -612,6 +898,9 @@ def CheckReadBuffer(buf, offset, sizePrefix=False, file_identifier=None):
     """ An assertion helper that is separated from TestCase classes. """
     if not stmt:
       raise AssertionError('CheckReadBuffer case failed')
+
+  # Verification of repacked Monster
+  asserter(verifyBuffer(buf, offset, file_identifier, sizePrefix, _MONSTER.MonsterVerify))    
 
   if file_identifier:
     # test prior to removal of size_prefix

@@ -21,9 +21,15 @@ class Monster(object):
     def GetRootAsMonster(cls, buf, offset=0):
         """This method is deprecated. Please switch to GetRootAs."""
         return cls.GetRootAs(buf, offset)
+
     @classmethod
     def MonsterBufferHasIdentifier(cls, buf, offset, size_prefixed=False):
         return flatbuffers.util.BufferHasIdentifier(buf, offset, b"\x4D\x4F\x4E\x53", size_prefixed=size_prefixed)
+
+
+    @classmethod
+    def VerifyMonster(cls, buf, offset=0, size_prefixed=False):
+        return flatbuffers.NewVerifier(buf, offset).VerifyBuffer(b"\x4D\x4F\x4E\x53", size_prefixed, MonsterVerify)
 
     # Monster
     def Init(self, buf, pos):
@@ -1937,3 +1943,73 @@ class MonsterT(object):
         MonsterAddDoubleInfDefault(builder, self.doubleInfDefault)
         monster = MonsterEnd(builder)
         return monster
+
+
+# Verification function for 'Monster' table.
+def MonsterVerify(verifier, pos):
+    result = True
+    result = result and verifier.VerifyTableStart(pos)
+    result = result and verifier.VerifyField(pos, 4, 32, 8, False)  # field: pos, type: [Vec3]
+    result = result and verifier.VerifyField(pos, 6, 2, 2, False)  # field: mana, type: [int16]
+    result = result and verifier.VerifyField(pos, 8, 2, 2, False)  # field: hp, type: [int16]
+    result = result and verifier.VerifyString(pos, 10, True) # field: name, type: [string]
+    result = result and verifier.VerifyVectorOfData(pos, 14, 1, False) # field: inventory, type: [uint8]
+    result = result and verifier.VerifyField(pos, 16, 1, 1, False)  # field: color, type: [uint8]
+    result = result and verifier.VerifyField(pos, 18, 1, 1, False)  # field: testType, type: [uint8]
+    result = result and verifier.VerifyUnion(pos, 18, 20, MyGame.Example.Any.AnyVerify, False)  # field: test, type: [Any]
+    result = result and verifier.VerifyVectorOfData(pos, 22, 4, False)  # field: test4, type: [Test]
+    result = result and verifier.VerifyVectorOfStrings(pos, 24, False)  # field: testarrayofstring, type: [string]
+    result = result and verifier.VerifyVectorOfTables(pos, 26, MyGame.Example.Monster.MonsterVerify, False)  # field: testarrayoftables, type: [Monster]
+    result = result and verifier.VerifyTable(pos, 28, MyGame.Example.Monster.MonsterVerify, False)  # field: enemy, type: [Monster]
+    result = result and verifier.VerifyVectorOfData(pos, 30, 1, False) # field: testnestedflatbuffer, type: [uint8]
+    result = result and verifier.VerifyTable(pos, 32, MyGame.Example.Stat.StatVerify, False)  # field: testempty, type: [Stat]
+    result = result and verifier.VerifyField(pos, 34, 1, 1, False)  # field: testbool, type: [bool]
+    result = result and verifier.VerifyField(pos, 36, 4, 4, False)  # field: testhashs32Fnv1, type: [int32]
+    result = result and verifier.VerifyField(pos, 38, 4, 4, False)  # field: testhashu32Fnv1, type: [uint32]
+    result = result and verifier.VerifyField(pos, 40, 8, 8, False)  # field: testhashs64Fnv1, type: [int64]
+    result = result and verifier.VerifyField(pos, 42, 8, 8, False)  # field: testhashu64Fnv1, type: [uint64]
+    result = result and verifier.VerifyField(pos, 44, 4, 4, False)  # field: testhashs32Fnv1a, type: [int32]
+    result = result and verifier.VerifyField(pos, 46, 4, 4, False)  # field: testhashu32Fnv1a, type: [uint32]
+    result = result and verifier.VerifyField(pos, 48, 8, 8, False)  # field: testhashs64Fnv1a, type: [int64]
+    result = result and verifier.VerifyField(pos, 50, 8, 8, False)  # field: testhashu64Fnv1a, type: [uint64]
+    result = result and verifier.VerifyVectorOfData(pos, 52, 1, False) # field: testarrayofbools, type: [bool]
+    result = result and verifier.VerifyField(pos, 54, 4, 4, False)  # field: testf, type: [float32]
+    result = result and verifier.VerifyField(pos, 56, 4, 4, False)  # field: testf2, type: [float32]
+    result = result and verifier.VerifyField(pos, 58, 4, 4, False)  # field: testf3, type: [float32]
+    result = result and verifier.VerifyVectorOfStrings(pos, 60, False)  # field: testarrayofstring2, type: [string]
+    result = result and verifier.VerifyVectorOfData(pos, 62, 8, False)  # field: testarrayofsortedstruct, type: [Ability]
+    result = result and verifier.VerifyNestedBuffer(pos, 64, None, False)  # field: flex, type: [uint8]
+    result = result and verifier.VerifyVectorOfData(pos, 66, 4, False)  # field: test5, type: [Test]
+    result = result and verifier.VerifyVectorOfData(pos, 68, 8, False) # field: vectorOfLongs, type: [int64]
+    result = result and verifier.VerifyVectorOfData(pos, 70, 8, False) # field: vectorOfDoubles, type: [float64]
+    result = result and verifier.VerifyTable(pos, 72, MyGame.InParentNamespace.InParentNamespaceVerify, False)  # field: parentNamespaceTest, type: [InParentNamespace]
+    result = result and verifier.VerifyVectorOfTables(pos, 74, MyGame.Example.Referrable.ReferrableVerify, False)  # field: vectorOfReferrables, type: [Referrable]
+    result = result and verifier.VerifyField(pos, 76, 8, 8, False)  # field: singleWeakReference, type: [uint64]
+    result = result and verifier.VerifyVectorOfData(pos, 78, 8, False) # field: vectorOfWeakReferences, type: [uint64]
+    result = result and verifier.VerifyVectorOfTables(pos, 80, MyGame.Example.Referrable.ReferrableVerify, False)  # field: vectorOfStrongReferrables, type: [Referrable]
+    result = result and verifier.VerifyField(pos, 82, 8, 8, False)  # field: coOwningReference, type: [uint64]
+    result = result and verifier.VerifyVectorOfData(pos, 84, 8, False) # field: vectorOfCoOwningReferences, type: [uint64]
+    result = result and verifier.VerifyField(pos, 86, 8, 8, False)  # field: nonOwningReference, type: [uint64]
+    result = result and verifier.VerifyVectorOfData(pos, 88, 8, False) # field: vectorOfNonOwningReferences, type: [uint64]
+    result = result and verifier.VerifyField(pos, 90, 1, 1, False)  # field: anyUniqueType, type: [uint8]
+    result = result and verifier.VerifyUnion(pos, 90, 92, MyGame.Example.AnyUniqueAliases.AnyUniqueAliasesVerify, False)  # field: anyUnique, type: [AnyUniqueAliases]
+    result = result and verifier.VerifyField(pos, 94, 1, 1, False)  # field: anyAmbiguousType, type: [uint8]
+    result = result and verifier.VerifyUnion(pos, 94, 96, MyGame.Example.AnyAmbiguousAliases.AnyAmbiguousAliasesVerify, False)  # field: anyAmbiguous, type: [AnyAmbiguousAliases]
+    result = result and verifier.VerifyVectorOfData(pos, 98, 1, False) # field: vectorOfEnums, type: [uint8]
+    result = result and verifier.VerifyField(pos, 100, 1, 1, False)  # field: signedEnum, type: [int8]
+    result = result and verifier.VerifyVectorOfData(pos, 102, 1, False) # field: testrequirednestedflatbuffer, type: [uint8]
+    result = result and verifier.VerifyVectorOfTables(pos, 104, MyGame.Example.Stat.StatVerify, False)  # field: scalarKeySortedTables, type: [Stat]
+    result = result and verifier.VerifyField(pos, 106, 4, 2, False)  # field: nativeInline, type: [Test]
+    result = result and verifier.VerifyField(pos, 108, 8, 8, False)  # field: longEnumNonEnumDefault, type: [uint64]
+    result = result and verifier.VerifyField(pos, 110, 8, 8, False)  # field: longEnumNormalDefault, type: [uint64]
+    result = result and verifier.VerifyField(pos, 112, 4, 4, False)  # field: nanDefault, type: [float32]
+    result = result and verifier.VerifyField(pos, 114, 4, 4, False)  # field: infDefault, type: [float32]
+    result = result and verifier.VerifyField(pos, 116, 4, 4, False)  # field: positiveInfDefault, type: [float32]
+    result = result and verifier.VerifyField(pos, 118, 4, 4, False)  # field: infinityDefault, type: [float32]
+    result = result and verifier.VerifyField(pos, 120, 4, 4, False)  # field: positiveInfinityDefault, type: [float32]
+    result = result and verifier.VerifyField(pos, 122, 4, 4, False)  # field: negativeInfDefault, type: [float32]
+    result = result and verifier.VerifyField(pos, 124, 4, 4, False)  # field: negativeInfinityDefault, type: [float32]
+    result = result and verifier.VerifyField(pos, 126, 8, 8, False)  # field: doubleInfDefault, type: [float64]
+    result = result and verifier.VerifyTableEnd(pos)
+    return result
+
