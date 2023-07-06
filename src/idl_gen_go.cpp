@@ -1383,7 +1383,11 @@ class GoGenerator : public BaseGenerator {
       #undef FLATBUFFERS_TD
     };
     // clang-format on
-    return ctypename[type.base_type];
+    const Type *actual_type = &type;
+    if (type.enum_def != nullptr) {
+      actual_type = &type.enum_def->underlying_type;
+    }
+    return ctypename[actual_type->base_type];
   }
 
   std::string GenTypePointer(const Type &type) {
