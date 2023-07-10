@@ -48,8 +48,7 @@ func FinishTestSimpleTableWithEnumBuffer(builder *flatbuffers.Builder, offset fl
 }
 
 func VerifyTestSimpleTableWithEnum(buf []byte) bool {
-	return flatbuffers.NewVerifier(buf).VerifyBuffer(nil, false, TestSimpleTableWithEnumVerify)
-
+	return flatbuffers.NewVerifier(buf).VerifyBuffer("", false, TestSimpleTableWithEnumVerify)
 }
 
 func GetSizePrefixedRootAsTestSimpleTableWithEnum(buf []byte, offset flatbuffers.UOffsetT) *TestSimpleTableWithEnum {
@@ -64,8 +63,7 @@ func FinishSizePrefixedTestSimpleTableWithEnumBuffer(builder *flatbuffers.Builde
 }
 
 func SizePrefixedVerifyTestSimpleTableWithEnum(buf []byte) bool {
-	return flatbuffers.NewVerifier(buf).VerifyBuffer(nil, true, TestSimpleTableWithEnumVerify)
-
+	return flatbuffers.NewVerifier(buf).VerifyBuffer("", true, TestSimpleTableWithEnumVerify)
 }
 
 func (rcv *TestSimpleTableWithEnum) Init(buf []byte, i flatbuffers.UOffsetT) {

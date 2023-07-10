@@ -22,8 +22,7 @@ func FinishHelloReplyBuffer(builder *flatbuffers.Builder, offset flatbuffers.UOf
 }
 
 func VerifyHelloReply(buf []byte) bool {
-	return flatbuffers.NewVerifier(buf).VerifyBuffer(nil, false, HelloReplyVerify)
-
+	return flatbuffers.NewVerifier(buf).VerifyBuffer("", false, HelloReplyVerify)
 }
 
 func GetSizePrefixedRootAsHelloReply(buf []byte, offset flatbuffers.UOffsetT) *HelloReply {
@@ -38,8 +37,7 @@ func FinishSizePrefixedHelloReplyBuffer(builder *flatbuffers.Builder, offset fla
 }
 
 func SizePrefixedVerifyHelloReply(buf []byte) bool {
-	return flatbuffers.NewVerifier(buf).VerifyBuffer(nil, true, HelloReplyVerify)
-
+	return flatbuffers.NewVerifier(buf).VerifyBuffer("", true, HelloReplyVerify)
 }
 
 func (rcv *HelloReply) Init(buf []byte, i flatbuffers.UOffsetT) {

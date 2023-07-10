@@ -48,8 +48,7 @@ func FinishReferrableBuffer(builder *flatbuffers.Builder, offset flatbuffers.UOf
 }
 
 func VerifyReferrable(buf []byte) bool {
-	return flatbuffers.NewVerifier(buf).VerifyBuffer(nil, false, ReferrableVerify)
-
+	return flatbuffers.NewVerifier(buf).VerifyBuffer("", false, ReferrableVerify)
 }
 
 func GetSizePrefixedRootAsReferrable(buf []byte, offset flatbuffers.UOffsetT) *Referrable {
@@ -64,8 +63,7 @@ func FinishSizePrefixedReferrableBuffer(builder *flatbuffers.Builder, offset fla
 }
 
 func SizePrefixedVerifyReferrable(buf []byte) bool {
-	return flatbuffers.NewVerifier(buf).VerifyBuffer(nil, true, ReferrableVerify)
-
+	return flatbuffers.NewVerifier(buf).VerifyBuffer("", true, ReferrableVerify)
 }
 
 func (rcv *Referrable) Init(buf []byte, i flatbuffers.UOffsetT) {

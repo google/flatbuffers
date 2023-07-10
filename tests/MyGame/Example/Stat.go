@@ -58,8 +58,7 @@ func FinishStatBuffer(builder *flatbuffers.Builder, offset flatbuffers.UOffsetT)
 }
 
 func VerifyStat(buf []byte) bool {
-	return flatbuffers.NewVerifier(buf).VerifyBuffer(nil, false, StatVerify)
-
+	return flatbuffers.NewVerifier(buf).VerifyBuffer("", false, StatVerify)
 }
 
 func GetSizePrefixedRootAsStat(buf []byte, offset flatbuffers.UOffsetT) *Stat {
@@ -74,8 +73,7 @@ func FinishSizePrefixedStatBuffer(builder *flatbuffers.Builder, offset flatbuffe
 }
 
 func SizePrefixedVerifyStat(buf []byte) bool {
-	return flatbuffers.NewVerifier(buf).VerifyBuffer(nil, true, StatVerify)
-
+	return flatbuffers.NewVerifier(buf).VerifyBuffer("", true, StatVerify)
 }
 
 func (rcv *Stat) Init(buf []byte, i flatbuffers.UOffsetT) {

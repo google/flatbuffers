@@ -107,8 +107,7 @@ func FinishTypeAliasesBuffer(builder *flatbuffers.Builder, offset flatbuffers.UO
 }
 
 func VerifyTypeAliases(buf []byte) bool {
-	return flatbuffers.NewVerifier(buf).VerifyBuffer(nil, false, TypeAliasesVerify)
-
+	return flatbuffers.NewVerifier(buf).VerifyBuffer("", false, TypeAliasesVerify)
 }
 
 func GetSizePrefixedRootAsTypeAliases(buf []byte, offset flatbuffers.UOffsetT) *TypeAliases {
@@ -123,8 +122,7 @@ func FinishSizePrefixedTypeAliasesBuffer(builder *flatbuffers.Builder, offset fl
 }
 
 func SizePrefixedVerifyTypeAliases(buf []byte) bool {
-	return flatbuffers.NewVerifier(buf).VerifyBuffer(nil, true, TypeAliasesVerify)
-
+	return flatbuffers.NewVerifier(buf).VerifyBuffer("", true, TypeAliasesVerify)
 }
 
 func (rcv *TypeAliases) Init(buf []byte, i flatbuffers.UOffsetT) {

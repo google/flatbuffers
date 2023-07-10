@@ -58,9 +58,10 @@ func getBufferIdentifier(buf []byte, sizePrefixed bool) []byte {
 }
 
 // Check if there is identifier in buffer
-func bufferHasIdentifier(buf []byte, identifier []byte, sizePrefixed bool) bool {
+func bufferHasIdentifier(buf []byte, identifier string, sizePrefixed bool) bool {
 	bufferIdentifier := getBufferIdentifier(buf, sizePrefixed)
-	return reflect.DeepEqual(identifier, bufferIdentifier)
+	bufferCheck := []byte(identifier)
+	return reflect.DeepEqual(bufferCheck, bufferIdentifier)
 }
 
 // Get UOffsetT from the begining of buffer - it must be verified before read
@@ -222,7 +223,7 @@ func (verifier *Verifier) checkIndirectOffset(pos UOffsetT) bool {
 }
 
 // Check flatbuffer content using generated object verification function
-func (verifier *Verifier) checkBufferFromStart(identifier []byte, start UOffsetT, verifyObjFunc VerifyTableFunc) bool {
+func (verifier *Verifier) checkBufferFromStart(identifier string, start UOffsetT, verifyObjFunc VerifyTableFunc) bool {
 	var result bool
 	if len(identifier) == 0 || (USizeT(len(verifier.Buf)) >= USizeT(verifier.Pos) && (USizeT(len(verifier.Buf))-USizeT(verifier.Pos)) >= (SizeUOffsetT+fileIdentifierLength) && bufferHasIdentifier(verifier.Buf[start:], identifier, false)) {
 		result = verifier.checkIndirectOffset(start)
@@ -398,7 +399,7 @@ func (verifier *Verifier) VerifyNestedBuffer(tablePos UOffsetT, offsetId VOffset
 				nestedBuffer := verifier.Buf[vectorStart : vectorStart + UOffsetT(vectorLength)]
 				nestedVerifier := &Verifier{Buf: nestedBuffer, Pos: 0, options: verifier.options}
 				// There is no iternal identifier - use empty one
-				var identifier []byte
+				var identifier string
 				result = nestedVerifier.checkBufferFromStart(identifier, 0, verifyObjFunc)
 			}
 		}
@@ -453,11 +454,11 @@ func (verifier *Verifier) VerifyUnion(tablePos UOffsetT, typeIdVOffset VOffsetT,
 // Example:
 //
 //	/* Verify Monster table. Ignore buffer name and assume buffer does not contain data length prefix */
-//	isValid := verifier.VerifyBuffer([]byte{}, false, MonsterVerify)
+//	isValid := verifier.VerifyBuffer(nil, false, MonsterVerify)
 //
 //	/* Verify Monster table. Buffer name is 'MONS' and contains data length prefix */
 //	isValid := verifier.VerifyBuffer("MONS", true, MonsterVerify)
-func (verifier *Verifier) VerifyBuffer(identifier []byte, sizePrefixed bool, verifyObjFunc VerifyTableFunc) bool {
+func (verifier *Verifier) VerifyBuffer(identifier string, sizePrefixed bool, verifyObjFunc VerifyTableFunc) bool {
 	var start UOffsetT
 	var result bool
 

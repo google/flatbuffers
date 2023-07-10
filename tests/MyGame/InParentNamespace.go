@@ -45,8 +45,7 @@ func FinishInParentNamespaceBuffer(builder *flatbuffers.Builder, offset flatbuff
 }
 
 func VerifyInParentNamespace(buf []byte) bool {
-	return flatbuffers.NewVerifier(buf).VerifyBuffer(nil, false, InParentNamespaceVerify)
-
+	return flatbuffers.NewVerifier(buf).VerifyBuffer("", false, InParentNamespaceVerify)
 }
 
 func GetSizePrefixedRootAsInParentNamespace(buf []byte, offset flatbuffers.UOffsetT) *InParentNamespace {
@@ -61,8 +60,7 @@ func FinishSizePrefixedInParentNamespaceBuffer(builder *flatbuffers.Builder, off
 }
 
 func SizePrefixedVerifyInParentNamespace(buf []byte) bool {
-	return flatbuffers.NewVerifier(buf).VerifyBuffer(nil, true, InParentNamespaceVerify)
-
+	return flatbuffers.NewVerifier(buf).VerifyBuffer("", true, InParentNamespaceVerify)
 }
 
 func (rcv *InParentNamespace) Init(buf []byte, i flatbuffers.UOffsetT) {

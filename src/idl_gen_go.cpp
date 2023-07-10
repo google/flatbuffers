@@ -347,14 +347,13 @@ class GoGenerator : public BaseGenerator {
       code += "func " + size_prefix[i] + "Verify" + struct_type +
               "(buf []byte) bool {\n";
       if (has_file_identifier) {
-        code += "\tidentifierBytes := []byte(" + struct_type + "Identifier)\n";
         code +=
             "\treturn "
-            "flatbuffers.NewVerifier(buf).VerifyBuffer(identifierBytes, " +
+            "flatbuffers.NewVerifier(buf).VerifyBuffer(" + struct_type + "Identifier, " +
             is_size[i] + ", " + struct_type + "Verify)\n";
       } else {
-        code += "\treturn flatbuffers.NewVerifier(buf).VerifyBuffer(nil, " +
-                is_size[i] + ", " + struct_type + "Verify)\n\n";
+        code += "\treturn flatbuffers.NewVerifier(buf).VerifyBuffer(\"\", " +
+                is_size[i] + ", " + struct_type + "Verify)\n";
       }
       code += "}\n\n";
     }

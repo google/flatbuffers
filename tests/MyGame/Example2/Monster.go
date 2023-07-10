@@ -45,8 +45,7 @@ func FinishMonsterBuffer(builder *flatbuffers.Builder, offset flatbuffers.UOffse
 }
 
 func VerifyMonster(buf []byte) bool {
-	return flatbuffers.NewVerifier(buf).VerifyBuffer(nil, false, MonsterVerify)
-
+	return flatbuffers.NewVerifier(buf).VerifyBuffer("", false, MonsterVerify)
 }
 
 func GetSizePrefixedRootAsMonster(buf []byte, offset flatbuffers.UOffsetT) *Monster {
@@ -61,8 +60,7 @@ func FinishSizePrefixedMonsterBuffer(builder *flatbuffers.Builder, offset flatbu
 }
 
 func SizePrefixedVerifyMonster(buf []byte) bool {
-	return flatbuffers.NewVerifier(buf).VerifyBuffer(nil, true, MonsterVerify)
-
+	return flatbuffers.NewVerifier(buf).VerifyBuffer("", true, MonsterVerify)
 }
 
 func (rcv *Monster) Init(buf []byte, i flatbuffers.UOffsetT) {

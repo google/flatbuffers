@@ -245,7 +245,7 @@ func CheckReadBuffer(buf []byte, offset flatbuffers.UOffsetT, sizePrefix bool, f
 		}
 	}
 	verifier := flatbuffers.NewVerifier(buf, offset)
-	if !verifier.VerifyBuffer(nil, sizePrefix, example.MonsterVerify) {
+	if !verifier.VerifyBuffer("", sizePrefix, example.MonsterVerify) {
 		fail("CheckReadBuffer failed - invalid buffer data")
 	}
 
@@ -454,7 +454,7 @@ func CheckMutateBuffer(org []byte, offset flatbuffers.UOffsetT, sizePrefix bool,
 	copy(buf, org)
 
 	verifier := flatbuffers.NewVerifier(buf, offset)
-	if !verifier.VerifyBuffer(nil, sizePrefix, example.MonsterVerify) {
+	if !verifier.VerifyBuffer("", sizePrefix, example.MonsterVerify) {
 		fail("CheckMutateBuffer failed - invalid buffer data")
 	}
 
@@ -603,7 +603,7 @@ func CheckMutateBuffer(org []byte, offset flatbuffers.UOffsetT, sizePrefix bool,
 
 func CheckObjectAPI(buf []byte, offset flatbuffers.UOffsetT, sizePrefix bool, fail func(string, ...interface{})) {
 	verifier := flatbuffers.NewVerifier(buf, offset)
-	if !verifier.VerifyBuffer(nil, sizePrefix, example.MonsterVerify) {
+	if !verifier.VerifyBuffer("", sizePrefix, example.MonsterVerify) {
 		fail("CheckObjectAPI failed - invalid buffer data")
 	}
 
@@ -735,7 +735,7 @@ func CheckVerifierVOffsetAlignment(buf []byte, sizePrefix bool, offsetId flatbuf
 
 	// Check that valid buffer is successfully validated
 	verifier := flatbuffers.NewVerifier(workBuf)
-	isValid := verifier.VerifyBuffer(nil, sizePrefix, example.MonsterVerify)
+	isValid := verifier.VerifyBuffer("", sizePrefix, example.MonsterVerify)
 	if isValid {
 		fail("CheckVerifierVOffsetAlignment failed - expected invalid data")
 	}
@@ -757,7 +757,7 @@ func CheckVerifierVOffsetValue(buf []byte, sizePrefix bool, offsetId flatbuffers
 
 	// Check that valid buffer is successfully validated
 	verifier := flatbuffers.NewVerifier(workBuf)
-	isValid := verifier.VerifyBuffer(nil, sizePrefix, example.MonsterVerify)
+	isValid := verifier.VerifyBuffer("", sizePrefix, example.MonsterVerify)
 	if isValid {
 		fail("CheckVerifierVOffsetValue failed - expected invalid data")
 	}
@@ -779,7 +779,7 @@ func CheckVerifierDataOffsetAlignment(buf []byte, sizePrefix bool, offsetId flat
 
 	// Check that valid buffer is successfully validated
 	verifier := flatbuffers.NewVerifier(workBuf)
-	isValid := verifier.VerifyBuffer(nil, sizePrefix, example.MonsterVerify)
+	isValid := verifier.VerifyBuffer("", sizePrefix, example.MonsterVerify)
 	if isValid {
 		fail("CheckVerifierDataOffsetAlignment failed - expected invalid data")
 	}
@@ -801,7 +801,7 @@ func CheckVerifierDataOffsetValue(buf []byte, sizePrefix bool, offsetId flatbuff
 
 	// Check that valid buffer is successfully validated
 	verifier := flatbuffers.NewVerifier(workBuf)
-	isValid := verifier.VerifyBuffer(nil, sizePrefix, example.MonsterVerify)
+	isValid := verifier.VerifyBuffer("", sizePrefix, example.MonsterVerify)
 	if isValid {
 		fail("CheckVerifierDataOffsetValue failed - expected invalid data")
 	}
@@ -823,7 +823,7 @@ func CheckVerifierDataLength(buf []byte, sizePrefix bool, offsetId flatbuffers.V
 
 	// Check that valid buffer is successfully validated
 	verifier := flatbuffers.NewVerifier(workBuf)
-	isValid := verifier.VerifyBuffer(nil, sizePrefix, example.MonsterVerify)
+	isValid := verifier.VerifyBuffer("", sizePrefix, example.MonsterVerify)
 	if isValid {
 		fail("CheckVerifierDataLength failed - expected invalid data")
 	}
@@ -867,7 +867,7 @@ func CheckVerifierNestedBuffer(fail func(string, ...interface{})) {
 
 	// Check that valid buffer is successfully validated
 	verifier := flatbuffers.NewVerifier(builder.Bytes, builder.Head())
-	isValid := verifier.VerifyBuffer(nil, false, example.MonsterVerify)
+	isValid := verifier.VerifyBuffer("", false, example.MonsterVerify)
 	if !isValid {
 		fail("CheckVerifierNestedBuffer failed - expected valid data")
 	}
@@ -878,12 +878,12 @@ func CheckVerifier(buf []byte, sizePrefix bool, fail func(string, ...interface{}
 
 	// Check that valid buffer is successfully validated
 	verifier := flatbuffers.NewVerifier(buf)
-	isValid = verifier.VerifyBuffer(nil, sizePrefix, example.MonsterVerify)
+	isValid = verifier.VerifyBuffer("", sizePrefix, example.MonsterVerify)
 	if !isValid {
 		fail("CheckVerifier failed - expected valid data")
 	}
 	// Check that invalid buffer validation fails
-	isValid = verifier.VerifyBuffer(nil, sizePrefix, example.StatVerify)
+	isValid = verifier.VerifyBuffer("", sizePrefix, example.StatVerify)
 	if isValid {
 		fail("CheckVerifier failed - expected invalid data")
 	}
@@ -2072,7 +2072,7 @@ func CheckDocExample(buf []byte, off flatbuffers.UOffsetT, fail func(string, ...
 
 	// Check that valid buffer is successfully validated
 	exampleVerifier := flatbuffers.NewVerifier(builder.FinishedBytes())
-	if !exampleVerifier.VerifyBuffer(nil, false, example.MonsterVerify) {
+	if !exampleVerifier.VerifyBuffer("", false, example.MonsterVerify) {
 		fail("CheckDocExample failed - invalid example data")
 	}
 
@@ -2099,7 +2099,7 @@ func CheckDocExample(buf []byte, off flatbuffers.UOffsetT, fail func(string, ...
 
 	// Check that invalid buffer (illegal union) is recognized as invalid
 	exampleVerifier = flatbuffers.NewVerifier(builder.FinishedBytes())
-	if exampleVerifier.VerifyBuffer(nil, false, example.MonsterVerify) {
+	if exampleVerifier.VerifyBuffer("", false, example.MonsterVerify) {
 		fail("CheckDocExample failed - invalid example data")
 	}
 
