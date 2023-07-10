@@ -81,13 +81,10 @@ func AnyAmbiguousAliasesVerify(verifier *flatbuffers.Verifier, typeId byte, tabl
 	switch AnyAmbiguousAliases(typeId) {
 	case AnyAmbiguousAliasesM1:
 		result = MonsterVerify(verifier, tablePos)
-		break
 	case AnyAmbiguousAliasesM2:
 		result = MonsterVerify(verifier, tablePos)
-		break
 	case AnyAmbiguousAliasesM3:
 		result = MonsterVerify(verifier, tablePos)
-		break
 	default:
 		result = true
 	}

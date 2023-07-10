@@ -83,13 +83,10 @@ func AnyUniqueAliasesVerify(verifier *flatbuffers.Verifier, typeId byte, tablePo
 	switch AnyUniqueAliases(typeId) {
 	case AnyUniqueAliasesM:
 		result = MonsterVerify(verifier, tablePos)
-		break
 	case AnyUniqueAliasesTS:
 		result = TestSimpleTableWithEnumVerify(verifier, tablePos)
-		break
 	case AnyUniqueAliasesM2:
 		result = MonsterVerify(verifier, tablePos)
-		break
 	default:
 		result = true
 	}

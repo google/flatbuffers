@@ -1263,13 +1263,11 @@ class GoGenerator : public BaseGenerator {
     code += "\tcase " + enum_def.name + ev.name + ":\n";
     if (! ev.union_type.struct_def->fixed) {
       code += "\t\tresult = " + field_type + "Verify(verifier, tablePos)\n";
-      code += "\t\tbreak\n";
     } else {
       code += "\t\tresult = verifier.VerifyUnionData(tablePos, " +
         NumToString(InlineSize(ev.union_type)) + ", " +
         NumToString(InlineAlignment(ev.union_type)) + 
         ")\n";
-      code += "\t\tbreak\n";
     }
   }
 

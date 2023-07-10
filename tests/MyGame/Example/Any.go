@@ -83,13 +83,10 @@ func AnyVerify(verifier *flatbuffers.Verifier, typeId byte, tablePos flatbuffers
 	switch Any(typeId) {
 	case AnyMonster:
 		result = MonsterVerify(verifier, tablePos)
-		break
 	case AnyTestSimpleTableWithEnum:
 		result = TestSimpleTableWithEnumVerify(verifier, tablePos)
-		break
 	case AnyMyGame_Example2_Monster:
 		result = MonsterVerify(verifier, tablePos)
-		break
 	default:
 		result = true
 	}

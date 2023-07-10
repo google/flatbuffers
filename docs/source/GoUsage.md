@@ -102,27 +102,27 @@ is accessed, all reads will end up inside the buffer.
 Each root type will have a verification function generated for it,
 e.g. `VerifyMonster`. This can be called as shown:
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.go}
-    ok := VerifyMonster(buf);
+    ok := VerifyMonster(buf)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 if `ok` is true, the buffer is safe to read.
 
 For a more detailed control of verification `MonsterVerify` for `Monster`
 type can be used: 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.go}
-    # Sequence of calls
+    // Sequence of calls
     verifier := flatbuffers.NewVerifier(buf)
     verifier.SetStringCheck(True)
-    ok := verifier.VerifyBuffer(b'MONS', False, MonsterVerify)
+    ok := verifier.VerifyBuffer("MONS", False, MonsterVerify)
     
-    # Or single line call 
-    ok := flatbuffers.NewVerifier(buf).SetStringCheck(True). \
-       VerifyBuffer(b'MONS', False, MonsterVerify)
+    // Or single line call 
+    ok := flatbuffers.NewVerifier(buf).SetStringCheck(True).
+       VerifyBuffer("MONS", False, MonsterVerify)
 
-    # With data offset parameter
+    // With data offset parameter
     dataOffset := 100
-    ok := flatbuffers.NewVerifier(buf, dataOffset). \
-       SetStringCheck(True). \
-       VerifyBuffer([]byte("MONS"), False, MonsterVerify)
+    ok := flatbuffers.NewVerifier(buf, dataOffset).
+       SetStringCheck(True).
+       VerifyBuffer("MONS", False, MonsterVerify)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 if `ok` is true, the buffer is safe to read.
 
