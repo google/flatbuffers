@@ -44,6 +44,11 @@ func FinishMonsterBuffer(builder *flatbuffers.Builder, offset flatbuffers.UOffse
 	builder.Finish(offset)
 }
 
+func VerifyMonster(buf []byte) bool {
+	return flatbuffers.NewVerifier(buf).VerifyBuffer(nil, false, MonsterVerify)
+
+}
+
 func GetSizePrefixedRootAsMonster(buf []byte, offset flatbuffers.UOffsetT) *Monster {
 	n := flatbuffers.GetUOffsetT(buf[offset+flatbuffers.SizeUint32:])
 	x := &Monster{}
@@ -53,6 +58,11 @@ func GetSizePrefixedRootAsMonster(buf []byte, offset flatbuffers.UOffsetT) *Mons
 
 func FinishSizePrefixedMonsterBuffer(builder *flatbuffers.Builder, offset flatbuffers.UOffsetT) {
 	builder.FinishSizePrefixed(offset)
+}
+
+func SizePrefixedVerifyMonster(buf []byte) bool {
+	return flatbuffers.NewVerifier(buf).VerifyBuffer(nil, true, MonsterVerify)
+
 }
 
 func (rcv *Monster) Init(buf []byte, i flatbuffers.UOffsetT) {
@@ -69,4 +79,12 @@ func MonsterStart(builder *flatbuffers.Builder) {
 }
 func MonsterEnd(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
 	return builder.EndObject()
+}
+
+// Verification function for 'Monster' table.
+func MonsterVerify(verifier *flatbuffers.Verifier, tablePos flatbuffers.UOffsetT) bool {
+	result := true
+	result = result && verifier.VerifyTableStart(tablePos)
+	result = result && verifier.VerifyTableEnd(tablePos)
+	return result
 }

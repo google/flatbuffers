@@ -106,6 +106,11 @@ func FinishTypeAliasesBuffer(builder *flatbuffers.Builder, offset flatbuffers.UO
 	builder.Finish(offset)
 }
 
+func VerifyTypeAliases(buf []byte) bool {
+	return flatbuffers.NewVerifier(buf).VerifyBuffer(nil, false, TypeAliasesVerify)
+
+}
+
 func GetSizePrefixedRootAsTypeAliases(buf []byte, offset flatbuffers.UOffsetT) *TypeAliases {
 	n := flatbuffers.GetUOffsetT(buf[offset+flatbuffers.SizeUint32:])
 	x := &TypeAliases{}
@@ -115,6 +120,11 @@ func GetSizePrefixedRootAsTypeAliases(buf []byte, offset flatbuffers.UOffsetT) *
 
 func FinishSizePrefixedTypeAliasesBuffer(builder *flatbuffers.Builder, offset flatbuffers.UOffsetT) {
 	builder.FinishSizePrefixed(offset)
+}
+
+func SizePrefixedVerifyTypeAliases(buf []byte) bool {
+	return flatbuffers.NewVerifier(buf).VerifyBuffer(nil, true, TypeAliasesVerify)
+
 }
 
 func (rcv *TypeAliases) Init(buf []byte, i flatbuffers.UOffsetT) {
@@ -345,4 +355,24 @@ func TypeAliasesStartVf64Vector(builder *flatbuffers.Builder, numElems int) flat
 }
 func TypeAliasesEnd(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
 	return builder.EndObject()
+}
+
+// Verification function for 'TypeAliases' table.
+func TypeAliasesVerify(verifier *flatbuffers.Verifier, tablePos flatbuffers.UOffsetT) bool {
+	result := true
+	result = result && verifier.VerifyTableStart(tablePos)
+	result = result && verifier.VerifyField(tablePos, 4 /*I8*/, 1 /*int8*/, 1, false)
+	result = result && verifier.VerifyField(tablePos, 6 /*U8*/, 1 /*byte*/, 1, false)
+	result = result && verifier.VerifyField(tablePos, 8 /*I16*/, 2 /*int16*/, 2, false)
+	result = result && verifier.VerifyField(tablePos, 10 /*U16*/, 2 /*uint16*/, 2, false)
+	result = result && verifier.VerifyField(tablePos, 12 /*I32*/, 4 /*int32*/, 4, false)
+	result = result && verifier.VerifyField(tablePos, 14 /*U32*/, 4 /*uint32*/, 4, false)
+	result = result && verifier.VerifyField(tablePos, 16 /*I64*/, 8 /*int64*/, 8, false)
+	result = result && verifier.VerifyField(tablePos, 18 /*U64*/, 8 /*uint64*/, 8, false)
+	result = result && verifier.VerifyField(tablePos, 20 /*F32*/, 4 /*float32*/, 4, false)
+	result = result && verifier.VerifyField(tablePos, 22 /*F64*/, 8 /*float64*/, 8, false)
+	result = result && verifier.VerifyVectorOfData(tablePos, 24 /*V8*/, 1 /*int8*/, false)
+	result = result && verifier.VerifyVectorOfData(tablePos, 26 /*Vf64*/, 8 /*float64*/, false)
+	result = result && verifier.VerifyTableEnd(tablePos)
+	return result
 }

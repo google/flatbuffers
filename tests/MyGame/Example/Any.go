@@ -76,3 +76,22 @@ func (rcv Any) UnPack(table flatbuffers.Table) *AnyT {
 	}
 	return nil
 }
+
+func AnyVerify(verifier *flatbuffers.Verifier, typeId byte, tablePos flatbuffers.UOffsetT) bool {
+	var result bool
+
+	switch Any(typeId) {
+	case AnyMonster:
+		result = MonsterVerify(verifier, tablePos)
+		break
+	case AnyTestSimpleTableWithEnum:
+		result = TestSimpleTableWithEnumVerify(verifier, tablePos)
+		break
+	case AnyMyGame_Example2_Monster:
+		result = MonsterVerify(verifier, tablePos)
+		break
+	default:
+		result = true
+	}
+	return result
+}

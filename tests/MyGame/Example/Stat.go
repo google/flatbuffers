@@ -57,6 +57,11 @@ func FinishStatBuffer(builder *flatbuffers.Builder, offset flatbuffers.UOffsetT)
 	builder.Finish(offset)
 }
 
+func VerifyStat(buf []byte) bool {
+	return flatbuffers.NewVerifier(buf).VerifyBuffer(nil, false, StatVerify)
+
+}
+
 func GetSizePrefixedRootAsStat(buf []byte, offset flatbuffers.UOffsetT) *Stat {
 	n := flatbuffers.GetUOffsetT(buf[offset+flatbuffers.SizeUint32:])
 	x := &Stat{}
@@ -66,6 +71,11 @@ func GetSizePrefixedRootAsStat(buf []byte, offset flatbuffers.UOffsetT) *Stat {
 
 func FinishSizePrefixedStatBuffer(builder *flatbuffers.Builder, offset flatbuffers.UOffsetT) {
 	builder.FinishSizePrefixed(offset)
+}
+
+func SizePrefixedVerifyStat(buf []byte) bool {
+	return flatbuffers.NewVerifier(buf).VerifyBuffer(nil, true, StatVerify)
+
 }
 
 func (rcv *Stat) Init(buf []byte, i flatbuffers.UOffsetT) {
@@ -160,4 +170,15 @@ func StatAddCount(builder *flatbuffers.Builder, count uint16) {
 }
 func StatEnd(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
 	return builder.EndObject()
+}
+
+// Verification function for 'Stat' table.
+func StatVerify(verifier *flatbuffers.Verifier, tablePos flatbuffers.UOffsetT) bool {
+	result := true
+	result = result && verifier.VerifyTableStart(tablePos)
+	result = result && verifier.VerifyString(tablePos, 4 /*Id*/, false)
+	result = result && verifier.VerifyField(tablePos, 6 /*Val*/, 8 /*int64*/, 8, false)
+	result = result && verifier.VerifyField(tablePos, 8 /*Count*/, 2 /*uint16*/, 2, false)
+	result = result && verifier.VerifyTableEnd(tablePos)
+	return result
 }

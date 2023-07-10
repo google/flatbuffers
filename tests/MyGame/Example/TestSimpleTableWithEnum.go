@@ -47,6 +47,11 @@ func FinishTestSimpleTableWithEnumBuffer(builder *flatbuffers.Builder, offset fl
 	builder.Finish(offset)
 }
 
+func VerifyTestSimpleTableWithEnum(buf []byte) bool {
+	return flatbuffers.NewVerifier(buf).VerifyBuffer(nil, false, TestSimpleTableWithEnumVerify)
+
+}
+
 func GetSizePrefixedRootAsTestSimpleTableWithEnum(buf []byte, offset flatbuffers.UOffsetT) *TestSimpleTableWithEnum {
 	n := flatbuffers.GetUOffsetT(buf[offset+flatbuffers.SizeUint32:])
 	x := &TestSimpleTableWithEnum{}
@@ -56,6 +61,11 @@ func GetSizePrefixedRootAsTestSimpleTableWithEnum(buf []byte, offset flatbuffers
 
 func FinishSizePrefixedTestSimpleTableWithEnumBuffer(builder *flatbuffers.Builder, offset flatbuffers.UOffsetT) {
 	builder.FinishSizePrefixed(offset)
+}
+
+func SizePrefixedVerifyTestSimpleTableWithEnum(buf []byte) bool {
+	return flatbuffers.NewVerifier(buf).VerifyBuffer(nil, true, TestSimpleTableWithEnumVerify)
+
 }
 
 func (rcv *TestSimpleTableWithEnum) Init(buf []byte, i flatbuffers.UOffsetT) {
@@ -87,4 +97,13 @@ func TestSimpleTableWithEnumAddColor(builder *flatbuffers.Builder, color Color) 
 }
 func TestSimpleTableWithEnumEnd(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
 	return builder.EndObject()
+}
+
+// Verification function for 'TestSimpleTableWithEnum' table.
+func TestSimpleTableWithEnumVerify(verifier *flatbuffers.Verifier, tablePos flatbuffers.UOffsetT) bool {
+	result := true
+	result = result && verifier.VerifyTableStart(tablePos)
+	result = result && verifier.VerifyField(tablePos, 4 /*Color*/, 1 /*Color*/, 1, false)
+	result = result && verifier.VerifyTableEnd(tablePos)
+	return result
 }
