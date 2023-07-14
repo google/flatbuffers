@@ -604,6 +604,11 @@ class GoGenerator : public BaseGenerator {
         // a nested struct, prefix the name with the field name.
         StructBuilderArgs(*field.value.type.struct_def,
                           (nameprefix + (field.name + "_")).c_str(), code_ptr);
+      } else if (IsArray(field.value.type)) {
+        std::string &code = *code_ptr;
+        code += std::string(", ") + nameprefix;
+        code += namer_.Variable(field);
+        code += " []" + GenTypeGet(field.value.type.VectorType());
       } else {
         std::string &code = *code_ptr;
         code += std::string(", ") + nameprefix;
@@ -634,6 +639,19 @@ class GoGenerator : public BaseGenerator {
       if (IsStruct(field.value.type)) {
         StructBuilderBody(*field.value.type.struct_def,
                           (nameprefix + (field.name + "_")).c_str(), code_ptr);
+      } else if (IsArray(field.value.type)) {
+        code += "\tfor i := " + std::to_string(field.value.type.fixed_length) +
+                "; i >= 0; i-- {\n";
+        code += "\t\tif len(" + namer_.Variable(field) + ") < i+1 {\n";
+        code += "\t\t\tbuilder.Place" +
+                namer_.Method(GenTypeBasic(field.value.type.VectorType())) +
+                "(0)\n";
+        code += "\t\t} else {\n";
+        code += "\t\t\tbuilder.Place" +
+                namer_.Method(GenTypeBasic(field.value.type.VectorType())) +
+                "(data[i])\n";
+        code += "\t\t}\n";
+        code += "\t}\n";
       } else {
         code += "\tbuilder.Prepend" + GenMethod(field) + "(";
         code += CastToBaseType(field.value.type,
@@ -760,6 +778,40 @@ class GoGenerator : public BaseGenerator {
             }
           } else {
             GetMemberOfVectorOfNonStruct(struct_def, field, code_ptr);
+          }
+          break;
+        }
+        case BASE_TYPE_ARRAY: {
+          std::string &code = *code_ptr;
+          auto vectortype = field.value.type.VectorType();
+          if (vectortype.base_type == BASE_TYPE_STRUCT) {
+            GetMemberOfVectorOfStruct(struct_def, field, code_ptr);
+            // TODO(michaeltle): Support querying fixed struct by key.
+            // Currently, we only support keyed tables.
+            if (!vectortype.struct_def->fixed &&
+                vectortype.struct_def->has_key) {
+              GetMemberOfVectorOfStructByKey(struct_def, field, code_ptr);
+            }
+          } else {
+            GenReceiver(struct_def, code_ptr);
+            code += " " + namer_.Function(field);
+            code += "(j int) " + GenTypeGet(vectortype) + " ";
+            code += OffsetPrefix(field);
+            code += "\t\ta := rcv._tab.Vector(o)\n";
+            code += "\t\treturn " +
+                    CastToEnum(field.value.type,
+                               GenGetter(field.value.type) +
+                                   "(a + flatbuffers.UOffsetT(j*" +
+                                   NumToString(InlineSize(vectortype)) + "))");
+            code += "\n\t}\n";
+            if (IsString(vectortype)) {
+              code += "\treturn nil\n";
+            } else if (vectortype.base_type == BASE_TYPE_BOOL) {
+              code += "\treturn false\n";
+            } else {
+              code += "\treturn 0\n";
+            }
+            code += "}\n\n";
           }
           break;
         }
@@ -1362,6 +1414,7 @@ class GoGenerator : public BaseGenerator {
     switch (type.base_type) {
       case BASE_TYPE_STRING: return "rcv._tab.ByteVector";
       case BASE_TYPE_UNION: return "rcv._tab.Union";
+      case BASE_TYPE_ARRAY:
       case BASE_TYPE_VECTOR: return GenGetter(type.VectorType());
       default: return "rcv._tab.Get" + namer_.Function(GenTypeBasic(type));
     }
