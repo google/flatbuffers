@@ -903,13 +903,12 @@ class TsGenerator : public BaseGenerator {
     std::string rel_file_path;
     const auto &dep_comps = dependent.defined_namespace->components;
     if (dependent.defined_namespace == nullptr || dep_comps.size() == 0) {
-        rel_file_path += ".";
+      rel_file_path += ".";
     } else {
-        for (size_t i = 0; i < dep_comps.size(); i++) {
-            rel_file_path += i == 0 ? ".." : (kPathSeparator + std::string(".."));
-        }
+      for (size_t i = 0; i < dep_comps.size(); i++) {
+        rel_file_path += i == 0 ? ".." : (kPathSeparator + std::string(".."));
+      }
     }
-    
 
     bare_file_path +=
         kPathSeparator +
