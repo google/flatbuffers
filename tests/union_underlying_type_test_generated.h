@@ -48,74 +48,74 @@ inline const ::flatbuffers::TypeTable *CTypeTable();
 
 inline const ::flatbuffers::TypeTable *DTypeTable();
 
-enum ABC : int32_t {
-  ABC_NONE = 0,
-  ABC_A = 555,
-  ABC_B = 666,
-  ABC_C = 777,
-  ABC_MIN = ABC_NONE,
-  ABC_MAX = ABC_C
+enum class ABC : int32_t {
+  NONE = 0,
+  A = 555,
+  B = 666,
+  C = 777,
+  MIN = NONE,
+  MAX = C
 };
 
 inline const ABC (&EnumValuesABC())[4] {
   static const ABC values[] = {
-    ABC_NONE,
-    ABC_A,
-    ABC_B,
-    ABC_C
+    ABC::NONE,
+    ABC::A,
+    ABC::B,
+    ABC::C
   };
   return values;
 }
 
 inline const char *EnumNameABC(ABC e) {
   switch (e) {
-    case ABC_NONE: return "NONE";
-    case ABC_A: return "A";
-    case ABC_B: return "B";
-    case ABC_C: return "C";
+    case ABC::NONE: return "NONE";
+    case ABC::A: return "A";
+    case ABC::B: return "B";
+    case ABC::C: return "C";
     default: return "";
   }
 }
 
 template<typename T> struct ABCTraits {
-  static const ABC enum_value = ABC_NONE;
+  static const ABC enum_value = ABC::NONE;
 };
 
 template<> struct ABCTraits<UnionUnderlyingType::A> {
-  static const ABC enum_value = ABC_A;
+  static const ABC enum_value = ABC::A;
 };
 
 template<> struct ABCTraits<UnionUnderlyingType::B> {
-  static const ABC enum_value = ABC_B;
+  static const ABC enum_value = ABC::B;
 };
 
 template<> struct ABCTraits<UnionUnderlyingType::C> {
-  static const ABC enum_value = ABC_C;
+  static const ABC enum_value = ABC::C;
 };
 
 template<typename T> struct ABCUnionTraits {
-  static const ABC enum_value = ABC_NONE;
+  static const ABC enum_value = ABC::NONE;
 };
 
 template<> struct ABCUnionTraits<UnionUnderlyingType::AT> {
-  static const ABC enum_value = ABC_A;
+  static const ABC enum_value = ABC::A;
 };
 
 template<> struct ABCUnionTraits<UnionUnderlyingType::BT> {
-  static const ABC enum_value = ABC_B;
+  static const ABC enum_value = ABC::B;
 };
 
 template<> struct ABCUnionTraits<UnionUnderlyingType::CT> {
-  static const ABC enum_value = ABC_C;
+  static const ABC enum_value = ABC::C;
 };
 
 struct ABCUnion {
   ABC type;
   void *value;
 
-  ABCUnion() : type(ABC_NONE), value(nullptr) {}
+  ABCUnion() : type(ABC::NONE), value(nullptr) {}
   ABCUnion(ABCUnion&& u) FLATBUFFERS_NOEXCEPT :
-    type(ABC_NONE), value(nullptr)
+    type(ABC::NONE), value(nullptr)
     { std::swap(type, u.type); std::swap(value, u.value); }
   ABCUnion(const ABCUnion &);
   ABCUnion &operator=(const ABCUnion &u)
@@ -131,7 +131,7 @@ struct ABCUnion {
     typedef typename std::remove_reference<T>::type RT;
     Reset();
     type = ABCUnionTraits<RT>::enum_value;
-    if (type != ABC_NONE) {
+    if (type != ABC::NONE) {
       value = new RT(std::forward<T>(val));
     }
   }
@@ -140,27 +140,27 @@ struct ABCUnion {
   ::flatbuffers::Offset<void> Pack(::flatbuffers::FlatBufferBuilder &_fbb, const ::flatbuffers::rehasher_function_t *_rehasher = nullptr) const;
 
   UnionUnderlyingType::AT *AsA() {
-    return type == ABC_A ?
+    return type == ABC::A ?
       reinterpret_cast<UnionUnderlyingType::AT *>(value) : nullptr;
   }
   const UnionUnderlyingType::AT *AsA() const {
-    return type == ABC_A ?
+    return type == ABC::A ?
       reinterpret_cast<const UnionUnderlyingType::AT *>(value) : nullptr;
   }
   UnionUnderlyingType::BT *AsB() {
-    return type == ABC_B ?
+    return type == ABC::B ?
       reinterpret_cast<UnionUnderlyingType::BT *>(value) : nullptr;
   }
   const UnionUnderlyingType::BT *AsB() const {
-    return type == ABC_B ?
+    return type == ABC::B ?
       reinterpret_cast<const UnionUnderlyingType::BT *>(value) : nullptr;
   }
   UnionUnderlyingType::CT *AsC() {
-    return type == ABC_C ?
+    return type == ABC::C ?
       reinterpret_cast<UnionUnderlyingType::CT *>(value) : nullptr;
   }
   const UnionUnderlyingType::CT *AsC() const {
-    return type == ABC_C ?
+    return type == ABC::C ?
       reinterpret_cast<const UnionUnderlyingType::CT *>(value) : nullptr;
   }
 };
@@ -169,18 +169,18 @@ struct ABCUnion {
 inline bool operator==(const ABCUnion &lhs, const ABCUnion &rhs) {
   if (lhs.type != rhs.type) return false;
   switch (lhs.type) {
-    case ABC_NONE: {
+    case ABC::NONE: {
       return true;
     }
-    case ABC_A: {
+    case ABC::A: {
       return *(reinterpret_cast<const UnionUnderlyingType::AT *>(lhs.value)) ==
              *(reinterpret_cast<const UnionUnderlyingType::AT *>(rhs.value));
     }
-    case ABC_B: {
+    case ABC::B: {
       return *(reinterpret_cast<const UnionUnderlyingType::BT *>(lhs.value)) ==
              *(reinterpret_cast<const UnionUnderlyingType::BT *>(rhs.value));
     }
-    case ABC_C: {
+    case ABC::C: {
       return *(reinterpret_cast<const UnionUnderlyingType::CT *>(lhs.value)) ==
              *(reinterpret_cast<const UnionUnderlyingType::CT *>(rhs.value));
     }
@@ -195,7 +195,7 @@ inline bool operator!=(const ABCUnion &lhs, const ABCUnion &rhs) {
 }
 
 bool VerifyABC(::flatbuffers::Verifier &verifier, const void *obj, ABC type);
-bool VerifyABCVector(::flatbuffers::Verifier &verifier, const ::flatbuffers::Vector<::flatbuffers::Offset<void>> *values, const ::flatbuffers::Vector<int32_t> *types);
+bool VerifyABCVector(::flatbuffers::Verifier &verifier, const ::flatbuffers::Vector<::flatbuffers::Offset<void>> *values, const ::flatbuffers::Vector<ABC> *types);
 
 struct AT : public ::flatbuffers::NativeTable {
   typedef A TableType;
@@ -407,22 +407,22 @@ struct D FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   }
   template<typename T> const T *test_union_as() const;
   const UnionUnderlyingType::A *test_union_as_A() const {
-    return test_union_type() == UnionUnderlyingType::ABC_A ? static_cast<const UnionUnderlyingType::A *>(test_union()) : nullptr;
+    return test_union_type() == UnionUnderlyingType::ABC::A ? static_cast<const UnionUnderlyingType::A *>(test_union()) : nullptr;
   }
   const UnionUnderlyingType::B *test_union_as_B() const {
-    return test_union_type() == UnionUnderlyingType::ABC_B ? static_cast<const UnionUnderlyingType::B *>(test_union()) : nullptr;
+    return test_union_type() == UnionUnderlyingType::ABC::B ? static_cast<const UnionUnderlyingType::B *>(test_union()) : nullptr;
   }
   const UnionUnderlyingType::C *test_union_as_C() const {
-    return test_union_type() == UnionUnderlyingType::ABC_C ? static_cast<const UnionUnderlyingType::C *>(test_union()) : nullptr;
+    return test_union_type() == UnionUnderlyingType::ABC::C ? static_cast<const UnionUnderlyingType::C *>(test_union()) : nullptr;
   }
   void *mutable_test_union() {
     return GetPointer<void *>(VT_TEST_UNION);
   }
-  const ::flatbuffers::Vector<int32_t> *test_vector_of_union_type() const {
-    return GetPointer<const ::flatbuffers::Vector<int32_t> *>(VT_TEST_VECTOR_OF_UNION_TYPE);
+  const ::flatbuffers::Vector<UnionUnderlyingType::ABC> *test_vector_of_union_type() const {
+    return GetPointer<const ::flatbuffers::Vector<UnionUnderlyingType::ABC> *>(VT_TEST_VECTOR_OF_UNION_TYPE);
   }
-  ::flatbuffers::Vector<int32_t> *mutable_test_vector_of_union_type() {
-    return GetPointer<::flatbuffers::Vector<int32_t> *>(VT_TEST_VECTOR_OF_UNION_TYPE);
+  ::flatbuffers::Vector<UnionUnderlyingType::ABC> *mutable_test_vector_of_union_type() {
+    return GetPointer<::flatbuffers::Vector<UnionUnderlyingType::ABC> *>(VT_TEST_VECTOR_OF_UNION_TYPE);
   }
   const ::flatbuffers::Vector<::flatbuffers::Offset<void>> *test_vector_of_union() const {
     return GetPointer<const ::flatbuffers::Vector<::flatbuffers::Offset<void>> *>(VT_TEST_VECTOR_OF_UNION);
@@ -469,7 +469,7 @@ struct DBuilder {
   void add_test_union(::flatbuffers::Offset<void> test_union) {
     fbb_.AddOffset(D::VT_TEST_UNION, test_union);
   }
-  void add_test_vector_of_union_type(::flatbuffers::Offset<::flatbuffers::Vector<int32_t>> test_vector_of_union_type) {
+  void add_test_vector_of_union_type(::flatbuffers::Offset<::flatbuffers::Vector<UnionUnderlyingType::ABC>> test_vector_of_union_type) {
     fbb_.AddOffset(D::VT_TEST_VECTOR_OF_UNION_TYPE, test_vector_of_union_type);
   }
   void add_test_vector_of_union(::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<void>>> test_vector_of_union) {
@@ -488,9 +488,9 @@ struct DBuilder {
 
 inline ::flatbuffers::Offset<D> CreateD(
     ::flatbuffers::FlatBufferBuilder &_fbb,
-    UnionUnderlyingType::ABC test_union_type = UnionUnderlyingType::ABC_NONE,
+    UnionUnderlyingType::ABC test_union_type = UnionUnderlyingType::ABC::NONE,
     ::flatbuffers::Offset<void> test_union = 0,
-    ::flatbuffers::Offset<::flatbuffers::Vector<int32_t>> test_vector_of_union_type = 0,
+    ::flatbuffers::Offset<::flatbuffers::Vector<UnionUnderlyingType::ABC>> test_vector_of_union_type = 0,
     ::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<void>>> test_vector_of_union = 0) {
   DBuilder builder_(_fbb);
   builder_.add_test_vector_of_union(test_vector_of_union);
@@ -502,11 +502,11 @@ inline ::flatbuffers::Offset<D> CreateD(
 
 inline ::flatbuffers::Offset<D> CreateDDirect(
     ::flatbuffers::FlatBufferBuilder &_fbb,
-    UnionUnderlyingType::ABC test_union_type = UnionUnderlyingType::ABC_NONE,
+    UnionUnderlyingType::ABC test_union_type = UnionUnderlyingType::ABC::NONE,
     ::flatbuffers::Offset<void> test_union = 0,
-    const std::vector<int32_t> *test_vector_of_union_type = nullptr,
+    const std::vector<UnionUnderlyingType::ABC> *test_vector_of_union_type = nullptr,
     const std::vector<::flatbuffers::Offset<void>> *test_vector_of_union = nullptr) {
-  auto test_vector_of_union_type__ = test_vector_of_union_type ? _fbb.CreateVector<int32_t>(*test_vector_of_union_type) : 0;
+  auto test_vector_of_union_type__ = test_vector_of_union_type ? _fbb.CreateVector<UnionUnderlyingType::ABC>(*test_vector_of_union_type) : 0;
   auto test_vector_of_union__ = test_vector_of_union ? _fbb.CreateVector<::flatbuffers::Offset<void>>(*test_vector_of_union) : 0;
   return UnionUnderlyingType::CreateD(
       _fbb,
@@ -666,7 +666,7 @@ inline ::flatbuffers::Offset<D> CreateD(::flatbuffers::FlatBufferBuilder &_fbb, 
   struct _VectorArgs { ::flatbuffers::FlatBufferBuilder *__fbb; const DT* __o; const ::flatbuffers::rehasher_function_t *__rehasher; } _va = { &_fbb, _o, _rehasher}; (void)_va;
   auto _test_union_type = _o->test_union.type;
   auto _test_union = _o->test_union.Pack(_fbb);
-  auto _test_vector_of_union_type = _o->test_vector_of_union.size() ? _fbb.CreateVector<int32_t>(_o->test_vector_of_union.size(), [](size_t i, _VectorArgs *__va) { return static_cast<int32_t>(__va->__o->test_vector_of_union[i].type); }, &_va) : 0;
+  auto _test_vector_of_union_type = _o->test_vector_of_union.size() ? _fbb.CreateVector<ABC>(_o->test_vector_of_union.size(), [](size_t i, _VectorArgs *__va) { return __va->__o->test_vector_of_union[i].type; }, &_va) : 0;
   auto _test_vector_of_union = _o->test_vector_of_union.size() ? _fbb.CreateVector<::flatbuffers::Offset<void>>(_o->test_vector_of_union.size(), [](size_t i, _VectorArgs *__va) { return __va->__o->test_vector_of_union[i].Pack(*__va->__fbb, __va->__rehasher); }, &_va) : 0;
   return UnionUnderlyingType::CreateD(
       _fbb,
@@ -678,18 +678,18 @@ inline ::flatbuffers::Offset<D> CreateD(::flatbuffers::FlatBufferBuilder &_fbb, 
 
 inline bool VerifyABC(::flatbuffers::Verifier &verifier, const void *obj, ABC type) {
   switch (type) {
-    case ABC_NONE: {
+    case ABC::NONE: {
       return true;
     }
-    case ABC_A: {
+    case ABC::A: {
       auto ptr = reinterpret_cast<const UnionUnderlyingType::A *>(obj);
       return verifier.VerifyTable(ptr);
     }
-    case ABC_B: {
+    case ABC::B: {
       auto ptr = reinterpret_cast<const UnionUnderlyingType::B *>(obj);
       return verifier.VerifyTable(ptr);
     }
-    case ABC_C: {
+    case ABC::C: {
       auto ptr = reinterpret_cast<const UnionUnderlyingType::C *>(obj);
       return verifier.VerifyTable(ptr);
     }
@@ -697,7 +697,7 @@ inline bool VerifyABC(::flatbuffers::Verifier &verifier, const void *obj, ABC ty
   }
 }
 
-inline bool VerifyABCVector(::flatbuffers::Verifier &verifier, const ::flatbuffers::Vector<::flatbuffers::Offset<void>> *values, const ::flatbuffers::Vector<int32_t> *types) {
+inline bool VerifyABCVector(::flatbuffers::Verifier &verifier, const ::flatbuffers::Vector<::flatbuffers::Offset<void>> *values, const ::flatbuffers::Vector<ABC> *types) {
   if (!values || !types) return !values && !types;
   if (values->size() != types->size()) return false;
   for (::flatbuffers::uoffset_t i = 0; i < values->size(); ++i) {
@@ -712,15 +712,15 @@ inline bool VerifyABCVector(::flatbuffers::Verifier &verifier, const ::flatbuffe
 inline void *ABCUnion::UnPack(const void *obj, ABC type, const ::flatbuffers::resolver_function_t *resolver) {
   (void)resolver;
   switch (type) {
-    case ABC_A: {
+    case ABC::A: {
       auto ptr = reinterpret_cast<const UnionUnderlyingType::A *>(obj);
       return ptr->UnPack(resolver);
     }
-    case ABC_B: {
+    case ABC::B: {
       auto ptr = reinterpret_cast<const UnionUnderlyingType::B *>(obj);
       return ptr->UnPack(resolver);
     }
-    case ABC_C: {
+    case ABC::C: {
       auto ptr = reinterpret_cast<const UnionUnderlyingType::C *>(obj);
       return ptr->UnPack(resolver);
     }
@@ -731,15 +731,15 @@ inline void *ABCUnion::UnPack(const void *obj, ABC type, const ::flatbuffers::re
 inline ::flatbuffers::Offset<void> ABCUnion::Pack(::flatbuffers::FlatBufferBuilder &_fbb, const ::flatbuffers::rehasher_function_t *_rehasher) const {
   (void)_rehasher;
   switch (type) {
-    case ABC_A: {
+    case ABC::A: {
       auto ptr = reinterpret_cast<const UnionUnderlyingType::AT *>(value);
       return CreateA(_fbb, ptr, _rehasher).Union();
     }
-    case ABC_B: {
+    case ABC::B: {
       auto ptr = reinterpret_cast<const UnionUnderlyingType::BT *>(value);
       return CreateB(_fbb, ptr, _rehasher).Union();
     }
-    case ABC_C: {
+    case ABC::C: {
       auto ptr = reinterpret_cast<const UnionUnderlyingType::CT *>(value);
       return CreateC(_fbb, ptr, _rehasher).Union();
     }
@@ -749,15 +749,15 @@ inline ::flatbuffers::Offset<void> ABCUnion::Pack(::flatbuffers::FlatBufferBuild
 
 inline ABCUnion::ABCUnion(const ABCUnion &u) : type(u.type), value(nullptr) {
   switch (type) {
-    case ABC_A: {
+    case ABC::A: {
       value = new UnionUnderlyingType::AT(*reinterpret_cast<UnionUnderlyingType::AT *>(u.value));
       break;
     }
-    case ABC_B: {
+    case ABC::B: {
       value = new UnionUnderlyingType::BT(*reinterpret_cast<UnionUnderlyingType::BT *>(u.value));
       break;
     }
-    case ABC_C: {
+    case ABC::C: {
       value = new UnionUnderlyingType::CT(*reinterpret_cast<UnionUnderlyingType::CT *>(u.value));
       break;
     }
@@ -768,17 +768,17 @@ inline ABCUnion::ABCUnion(const ABCUnion &u) : type(u.type), value(nullptr) {
 
 inline void ABCUnion::Reset() {
   switch (type) {
-    case ABC_A: {
+    case ABC::A: {
       auto ptr = reinterpret_cast<UnionUnderlyingType::AT *>(value);
       delete ptr;
       break;
     }
-    case ABC_B: {
+    case ABC::B: {
       auto ptr = reinterpret_cast<UnionUnderlyingType::BT *>(value);
       delete ptr;
       break;
     }
-    case ABC_C: {
+    case ABC::C: {
       auto ptr = reinterpret_cast<UnionUnderlyingType::CT *>(value);
       delete ptr;
       break;
@@ -786,7 +786,7 @@ inline void ABCUnion::Reset() {
     default: break;
   }
   value = nullptr;
-  type = ABC_NONE;
+  type = ABC::NONE;
 }
 
 inline const ::flatbuffers::TypeTable *ABCTypeTable() {
