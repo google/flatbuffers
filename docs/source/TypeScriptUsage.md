@@ -94,3 +94,44 @@ To use:
 
 There currently is no support for parsing text (Schema's and JSON) directly
 from TypeScript.
+
+## Buffer verification 
+
+As mentioned in [C++ Usage](@ref flatbuffers_guide_use_cpp) buffer
+accessor functions do not verify buffer offsets at run-time. 
+If it is necessary, you can optionally use a buffer verifier before you
+access the data. This verifier will check all offsets, all sizes of
+fields, and null termination of strings to ensure that when a buffer
+is accessed, all reads will end up inside the buffer.
+
+Each root type will have a verification function generated for it,
+e.g. `Monster.verifyMonster`. This can be called as shown:
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.ts}
+    let ok = Monster.verifyMonster(buf);
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+if `ok` is true, the buffer is safe to read.
+
+For a more detailed control of verification `monsterVerify` 
+for `Monster` type can be used: 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.ts}
+    # Sequence of calls
+    var verifier = flatbuffers.newVerifier(buf)
+    let verifier.setStringCheck(true)
+    let ok = verifier.verifyBuffer("MONS", false, monsterVerify)
+    
+    # Or single line call 
+    let ok = flatbuffers.newVerifier(buf).setStringCheck(true). \
+        verifyBuffer("MONS", false, MonsterVerify)
+        
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+if `ok` is true, the buffer is safe to read.
+
+A second parameter of `verifyBuffer` specifies whether buffer content is
+size prefixed or not. In the example above, the buffer is assumed to not include
+size prefix (`false`).
+
+Verifier supports options that can be set using appropriate fluent methods:
+* setMaxDepth - limit the nesting depth. Default: 1000000
+* setMaxTables - total amount of tables the verifier may encounter. Default: 64
+* setAlignmentCheck - check content alignment. Default: True
+* setStringCheck - check if strings contain termination '0' character. Default: true
