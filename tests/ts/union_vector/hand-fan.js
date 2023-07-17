@@ -62,3 +62,11 @@ export class HandFanT {
         return HandFan.createHandFan(builder, this.length);
     }
 }
+// Verification function for 'HandFan' table.
+export function handFanVerify(verifier, tablePos) {
+    let result = true;
+    result = result && verifier.verifyTableStart(tablePos);
+    result = result && verifier.verifyField(tablePos, 4 /*Length*/, 4 /*Int32*/, 4, false);
+    result = result && verifier.verifyTableEnd(tablePos);
+    return result;
+}

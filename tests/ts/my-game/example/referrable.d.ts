@@ -22,3 +22,4 @@ export declare class ReferrableT implements flatbuffers.IGeneratedObject {
     constructor(id?: bigint);
     pack(builder: flatbuffers.Builder): flatbuffers.Offset;
 }
+export declare function referrableVerify(verifier: flatbuffers.Verifier, tablePos: flatbuffers.UOffset): boolean;

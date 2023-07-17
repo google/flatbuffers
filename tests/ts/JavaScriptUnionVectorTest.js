@@ -4,7 +4,7 @@ import * as flatbuffers from 'flatbuffers'
 import { Character } from './union_vector/character.js'
 import { BookReader, BookReaderT } from './union_vector/book-reader.js'
 import { Attacker, AttackerT } from './union_vector/attacker.js'
-import { Movie, MovieT } from './union_vector/movie.js'
+import { Movie, MovieT, movieVerify } from './union_vector/movie.js'
 
 var charTypes = [
   Character.Belle,
@@ -84,13 +84,20 @@ function createMovie(fbb) {
   Movie.finishMovieBuffer(fbb, Movie.endMovie(fbb))
 }
 
+function verifyBuffer(buf) {
+  // Check that buffer content is valid
+  let isValid = flatbuffers.newVerifier(buf).verifyBuffer(null, false, movieVerify)
+  assert.ok(isValid)
+}
+
 function main() {
   var fbb = new flatbuffers.Builder();
 
   createMovie(fbb);
 
   var buf = new flatbuffers.ByteBuffer(fbb.asUint8Array());
-
+  verifyBuffer(buf);
+  
   var movie = Movie.getRootAsMovie(buf);
   testMovieBuf(movie);
 
@@ -103,6 +110,7 @@ function main() {
   fbb.clear();
   Movie.finishMovieBuffer(fbb, movie_to.pack(fbb));
   var unpackBuf = new flatbuffers.ByteBuffer(fbb.asUint8Array());
+  verifyBuffer(unpackBuf);
   testMovieBuf(Movie.getRootAsMovie(unpackBuf));
   
   console.log('FlatBuffers union vector test: completed successfully');

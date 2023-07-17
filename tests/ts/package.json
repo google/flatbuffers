@@ -1,6 +1,7 @@
 {
     "type": "module",
     "dependencies": {
+        "esbuild": "0.18.11",
         "flatbuffers": "../../"
     }
 }

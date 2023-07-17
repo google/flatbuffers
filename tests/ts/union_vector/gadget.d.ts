@@ -1,3 +1,4 @@
+import * as flatbuffers from 'flatbuffers';
 import { FallingTub } from './falling-tub.js';
 import { HandFan } from './hand-fan.js';
 export declare enum Gadget {
@@ -7,3 +8,4 @@ export declare enum Gadget {
 }
 export declare function unionToGadget(type: Gadget, accessor: (obj: FallingTub | HandFan) => FallingTub | HandFan | null): FallingTub | HandFan | null;
 export declare function unionListToGadget(type: Gadget, accessor: (index: number, obj: FallingTub | HandFan) => FallingTub | HandFan | null, index: number): FallingTub | HandFan | null;
+export declare function gadgetVerify(verifier: flatbuffers.Verifier, typeId: number, tablePos: flatbuffers.UOffset): boolean;

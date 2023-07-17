@@ -130,3 +130,14 @@ pack(builder:flatbuffers.Builder): flatbuffers.Offset {
   );
 }
 }
+
+// Verification function for 'Tab' table.
+export function tabVerify(verifier: flatbuffers.Verifier, tablePos: flatbuffers.UOffset): boolean {
+  let result = true;
+  result = result && verifier.verifyTableStart(tablePos);
+  result = result && verifier.verifyField(tablePos, 4 /*Abc*/, 4 /*Int32*/, 4, false);
+  result = result && verifier.verifyField(tablePos, 6 /*Arg*/, 4 /*Int32*/, 4, false);
+  result = result && verifier.verifyString(tablePos, 8 /*Name*/, false);
+  result = result && verifier.verifyTableEnd(tablePos);
+  return result;
+}

@@ -80,3 +80,4 @@ export declare class TypeAliasesT implements flatbuffers.IGeneratedObject {
     constructor(i8?: number, u8?: number, i16?: number, u16?: number, i32?: number, u32?: number, i64?: bigint, u64?: bigint, f32?: number, f64?: number, v8?: (number)[], vf64?: (number)[]);
     pack(builder: flatbuffers.Builder): flatbuffers.Offset;
 }
+export declare function typeAliasesVerify(verifier: flatbuffers.Verifier, tablePos: flatbuffers.UOffset): boolean;

@@ -55,3 +55,4 @@ export declare class EnumT implements flatbuffers.IGeneratedObject {
     constructor(name?: string | Uint8Array | null, values?: (EnumValT)[], isUnion?: boolean, underlyingType?: TypeT | null, attributes?: (KeyValueT)[], documentation?: (string)[], declarationFile?: string | Uint8Array | null);
     pack(builder: flatbuffers.Builder): flatbuffers.Offset;
 }
+export declare function enum_Verify(verifier: flatbuffers.Verifier, tablePos: flatbuffers.UOffset): boolean;

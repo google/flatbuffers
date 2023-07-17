@@ -64,3 +64,11 @@ pack(builder:flatbuffers.Builder): flatbuffers.Offset {
   return InParentNamespace.createInParentNamespace(builder);
 }
 }
+
+// Verification function for 'InParentNamespace' table.
+export function inParentNamespaceVerify(verifier: flatbuffers.Verifier, tablePos: flatbuffers.UOffset): boolean {
+  let result = true;
+  result = result && verifier.verifyTableStart(tablePos);
+  result = result && verifier.verifyTableEnd(tablePos);
+  return result;
+}

@@ -93,3 +93,12 @@ pack(builder:flatbuffers.Builder): flatbuffers.Offset {
   );
 }
 }
+
+// Verification function for 'Referrable' table.
+export function referrableVerify(verifier: flatbuffers.Verifier, tablePos: flatbuffers.UOffset): boolean {
+  let result = true;
+  result = result && verifier.verifyTableStart(tablePos);
+  result = result && verifier.verifyField(tablePos, 4 /*Id*/, 8 /*Uint64*/, 8, false);
+  result = result && verifier.verifyTableEnd(tablePos);
+  return result;
+}

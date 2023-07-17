@@ -2,9 +2,9 @@
 
 import * as flatbuffers from 'flatbuffers';
 
-import { EnumVal, EnumValT } from '../reflection/enum-val.js';
-import { KeyValue, KeyValueT } from '../reflection/key-value.js';
-import { Type, TypeT } from '../reflection/type.js';
+import { EnumVal, enumValVerify, EnumValT } from '../reflection/enum-val.js';
+import { KeyValue, keyValueVerify, KeyValueT } from '../reflection/key-value.js';
+import { Type, typeVerify, TypeT } from '../reflection/type.js';
 
 
 export class Enum implements flatbuffers.IUnpackableObject<EnumT> {
@@ -231,4 +231,19 @@ pack(builder:flatbuffers.Builder): flatbuffers.Offset {
 
   return Enum.endEnum(builder);
 }
+}
+
+// Verification function for 'Enum' table.
+export function enum_Verify(verifier: flatbuffers.Verifier, tablePos: flatbuffers.UOffset): boolean {
+  let result = true;
+  result = result && verifier.verifyTableStart(tablePos);
+  result = result && verifier.verifyString(tablePos, 4 /*Name*/, true);
+  result = result && verifier.verifyVectorOfTables(tablePos, 6 /*Values*/, enumValVerify, true);
+  result = result && verifier.verifyField(tablePos, 8 /*IsUnion*/, 1 /*Int8*/, 1, false);
+  result = result && verifier.verifyTable(tablePos, 10 /*UnderlyingType*/, typeVerify, true);
+  result = result && verifier.verifyVectorOfTables(tablePos, 12 /*Attributes*/, keyValueVerify, false);
+  result = result && verifier.verifyVectorOfStrings(tablePos, 14 /*Documentation*/, false);
+  result = result && verifier.verifyString(tablePos, 16 /*DeclarationFile*/, false);
+  result = result && verifier.verifyTableEnd(tablePos);
+  return result;
 }

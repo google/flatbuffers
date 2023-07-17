@@ -2,9 +2,9 @@
 
 import * as flatbuffers from 'flatbuffers';
 
-import { Attacker, AttackerT } from './attacker.js';
+import { Attacker, attackerVerify, AttackerT } from './attacker.js';
 import { BookReader, BookReaderT } from './book-reader.js';
-import { Character, unionToCharacter, unionListToCharacter } from './character.js';
+import { Character, unionToCharacter, unionListToCharacter, characterVerify } from './character.js';
 import { Rapunzel, RapunzelT } from './rapunzel.js';
 
 
@@ -28,6 +28,12 @@ static getSizePrefixedRootAsMovie(bb:flatbuffers.ByteBuffer, obj?:Movie):Movie {
 
 static bufferHasIdentifier(bb:flatbuffers.ByteBuffer):boolean {
   return bb.__has_identifier('MOVI');
+}
+
+static verifyMovie(bb:flatbuffers.ByteBuffer, sizePrefix?:boolean):boolean {
+  let verifier = flatbuffers.newVerifier(bb);
+  if (sizePrefix == null) sizePrefix = true;
+  return verifier.verifyBuffer('MOVI', sizePrefix, movieVerify);
 }
 
 mainCharacterType():Character {
@@ -208,4 +214,16 @@ pack(builder:flatbuffers.Builder): flatbuffers.Offset {
     characters
   );
 }
+}
+
+// Verification function for 'Movie' table.
+export function movieVerify(verifier: flatbuffers.Verifier, tablePos: flatbuffers.UOffset): boolean {
+  let result = true;
+  result = result && verifier.verifyTableStart(tablePos);
+  result = result && verifier.verifyField(tablePos, 4 /*MainCharacterType*/, 1 /*Uint8*/, 1, false);
+  result = result && verifier.verifyUnion(tablePos, 4, 6 /*MainCharacter*/, characterVerify, false);
+  result = result && verifier.verifyVectorOfData(tablePos, 8 /*CharactersType*/, 1 /*Uint8*/, false);
+  result = result && verifier.verifyVectorOfUnions(tablePos, 8, 10 /*Characters*/, characterVerify, false);
+  result = result && verifier.verifyTableEnd(tablePos);
+  return result;
 }

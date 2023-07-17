@@ -20,3 +20,4 @@ export declare class AttackerT implements flatbuffers.IGeneratedObject {
     constructor(swordAttackDamage?: number);
     pack(builder: flatbuffers.Builder): flatbuffers.Offset;
 }
+export declare function attackerVerify(verifier: flatbuffers.Verifier, tablePos: flatbuffers.UOffset): boolean;

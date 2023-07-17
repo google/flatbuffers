@@ -36,6 +36,11 @@ export declare class Field implements flatbuffers.IUnpackableObject<FieldT> {
      */
     padding(): number;
     mutate_padding(value: number): boolean;
+    /**
+     * If the field uses 64-bit offsets.
+     */
+    offset64(): boolean;
+    mutate_offset64(value: boolean): boolean;
     static getFullyQualifiedName(): string;
     static startField(builder: flatbuffers.Builder): void;
     static addName(builder: flatbuffers.Builder, nameOffset: flatbuffers.Offset): void;
@@ -55,6 +60,7 @@ export declare class Field implements flatbuffers.IUnpackableObject<FieldT> {
     static startDocumentationVector(builder: flatbuffers.Builder, numElems: number): void;
     static addOptional(builder: flatbuffers.Builder, optional: boolean): void;
     static addPadding(builder: flatbuffers.Builder, padding: number): void;
+    static addOffset64(builder: flatbuffers.Builder, offset64: boolean): void;
     static endField(builder: flatbuffers.Builder): flatbuffers.Offset;
     unpack(): FieldT;
     unpackTo(_o: FieldT): void;
@@ -73,6 +79,8 @@ export declare class FieldT implements flatbuffers.IGeneratedObject {
     documentation: (string)[];
     optional: boolean;
     padding: number;
-    constructor(name?: string | Uint8Array | null, type?: TypeT | null, id?: number, offset?: number, defaultInteger?: bigint, defaultReal?: number, deprecated?: boolean, required?: boolean, key?: boolean, attributes?: (KeyValueT)[], documentation?: (string)[], optional?: boolean, padding?: number);
+    offset64: boolean;
+    constructor(name?: string | Uint8Array | null, type?: TypeT | null, id?: number, offset?: number, defaultInteger?: bigint, defaultReal?: number, deprecated?: boolean, required?: boolean, key?: boolean, attributes?: (KeyValueT)[], documentation?: (string)[], optional?: boolean, padding?: number, offset64?: boolean);
     pack(builder: flatbuffers.Builder): flatbuffers.Offset;
 }
+export declare function fieldVerify(verifier: flatbuffers.Verifier, tablePos: flatbuffers.UOffset): boolean;

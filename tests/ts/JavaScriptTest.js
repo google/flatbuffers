@@ -1,11 +1,12 @@
 // Run this using JavaScriptTest.sh
 import assert from 'assert'
 import fs from 'fs'
+import path from 'path'
 import * as flatbuffers from 'flatbuffers'
 
-import { Monster, MonsterT } from './my-game/example/monster.js'
+import { Monster, MonsterT, monsterVerify } from './my-game/example/monster.js'
 import { Test, TestT } from './my-game/example/test.js'
-import { Stat } from './my-game/example/stat.js'
+import { Stat, statVerify } from './my-game/example/stat.js'
 import { Vec3 } from './my-game/example/vec3.js'
 import { Color } from './my-game/example/color.js';
 import { Any } from './my-game/example/any.js';
@@ -20,7 +21,11 @@ function main() {
 
   var bb = new flatbuffers.ByteBuffer(data);
   testBuffer(bb);
-
+  testVerifier(bb);
+  testVerifierFromFile();
+  testVerifierUnion();
+  testVerifierNestedBuffer();
+  
   // Second, let's create a FlatBuffer from scratch in JavaScript, and test it also.
   // We use an initial size of 1 to exercise the reallocation algorithm,
   // normally a size larger than the typical FlatBuffer you generate would be
@@ -109,6 +114,290 @@ function serializeAndTest(fbb) {
 
   testBuffer(fbb.dataBuffer());
 }
+
+function verifyBuffer(buf, sizePrefixed) {
+  var verifier = new flatbuffers.Verifier(buf);
+  var isValid = verifier.verifyBuffer("MONS", sizePrefixed, monsterVerify);
+  return isValid;
+}        
+
+
+function readUOffsetT(buf, pos) {
+  return buf.readUint32(pos);
+}
+
+
+function readSOffsetT(buf, pos) {
+  return buf.readInt32(pos);
+}
+
+
+function readVOffsetT (buf, pos) {
+  return buf.readUint16(pos);
+}
+
+
+function getVRelOffset(bb, pos, vtableOffset) {
+  // First, get vtable offset
+  var vtable = pos - readSOffsetT(bb, pos);
+  // Check that offset points to vtable area (is smaller than vtable size)
+  if (vtableOffset < readVOffsetT(bb, vtable)) {
+    // Now, we can read offset value - TODO check this value against size of table data
+    return readVOffsetT(bb, vtable + vtableOffset);
+  }
+  return 0;
+}
+
+
+function setVOffset(bb, pos, offsetId, wrongValue) {
+  let vtable = pos - readSOffsetT(bb, pos)
+  if (offsetId < readVOffsetT(bb, vtable)) {
+    let offset = vtable + offsetId
+    if (offset != 0) {
+      bb.writeInt16(offset, wrongValue)
+    }
+  }
+  return
+}
+
+function increaseVOffset(bb, pos, offsetId, increaseValue) {
+  let vtable = pos - readSOffsetT(bb, pos)
+  if (offsetId < readVOffsetT(bb, vtable)) {
+    let offset = vtable + offsetId
+    if (offset != 0) {
+      let oldvalue = readVOffsetT(bb, offset)
+      bb.writeInt16(offset, oldvalue + increaseValue)
+    }
+  }
+  return
+}
+
+function setDataOffset(bb, pos, offsetId, wrongValue) {
+  let vtable = pos - readSOffsetT(bb, pos)
+  if (offsetId < readVOffsetT(bb, vtable)) {
+    let offset = vtable + offsetId
+    if (offset != 0) {
+      // Data area offset in table internal storage
+      let tableDataOffset = pos + readUOffsetT(bb, vtable + offsetId)
+      bb.writeUint32(tableDataOffset, wrongValue)
+    }
+  }
+  return
+}
+
+
+function increaseDataOffset(bb, pos, offsetId, increaseValue) {
+  let vtable = pos - readSOffsetT(bb, pos)
+  if (offsetId < readVOffsetT(bb, vtable)) {
+    let offset = vtable + offsetId
+    if (offset != 0) {
+      // Data area offset in table internal storage
+      let tableDataOffset = pos + readUOffsetT(bb, vtable + offsetId)
+      // Modify offset
+      let oldvalue = readUOffsetT(bb, tableDataOffset)
+      bb.writeUint32(tableDataOffset, oldvalue + increaseValue)
+    }
+  }
+  return
+}
+
+function setDataBufferLength(bb, pos, offsetId, newLength) {
+  let vtable = pos - readSOffsetT(bb, pos)
+  if (offsetId < readVOffsetT(bb, vtable)) {
+    let offset = vtable + offsetId
+    if (offset != 0) {
+      // Data area offset in table internal storage
+      let tableDataOffset = pos + readUOffsetT(bb, vtable + offsetId)
+      // Data is placed somewhere in area of buffer
+      let dataOffset = tableDataOffset + readUOffsetT(bb, tableDataOffset)
+      // Get table length and modify
+      bb.writeUint32(dataOffset, newLength)
+    }
+  }
+  return
+}
+
+
+function checkVerifierVOffsetAlignment(bb, sizePrefix, offsetId) {
+  let nbb = flatbuffers.ByteBuffer.allocate(bb.capacity())
+  nbb.bytes().set(bb.bytes(), 0, bb.capacity());
+  let pos = readUOffsetT(nbb, 0)
+
+  increaseVOffset(nbb, pos, offsetId, 1)
+
+  // Check that valid buffer is successfully validated
+  let verifier = flatbuffers.newVerifier(nbb)
+  assert.ok(! verifier.verifyBuffer("MONS", sizePrefix, monsterVerify))
+}
+
+
+function checkVerifierVOffsetValue(bb, sizePrefix, offsetId) {
+  let nbb = flatbuffers.ByteBuffer.allocate(bb.capacity())
+  nbb.bytes().set(bb.bytes(), 0, bb.capacity());
+  let pos = readUOffsetT(nbb, 0)
+
+  setVOffset(nbb, pos, offsetId, nbb.capacity() + 1)
+
+  // Check that valid buffer is successfully validated
+  let verifier = flatbuffers.newVerifier(nbb)
+  assert.ok(! verifier.verifyBuffer("MONS", sizePrefix, monsterVerify))
+}
+
+function checkVerifierDataOffsetAlignment(bb, sizePrefix, offsetId) {
+  let nbb = flatbuffers.ByteBuffer.allocate(bb.capacity())
+  nbb.bytes().set(bb.bytes(), 0, bb.capacity());
+  let pos = readUOffsetT(nbb, 0)
+
+  increaseDataOffset(nbb, pos, offsetId, 1)
+
+  // Check that valid buffer is successfully validated
+  let verifier = flatbuffers.newVerifier(nbb)
+  assert.ok(! verifier.verifyBuffer("MONS", sizePrefix, monsterVerify))
+}
+
+function checkVerifierDataOffsetValue(bb, sizePrefix, offsetId) {
+  let nbb = flatbuffers.ByteBuffer.allocate(bb.capacity())
+  nbb.bytes().set(bb.bytes(), 0, bb.capacity());
+  let pos = readUOffsetT(nbb, 0)
+
+
+  setDataOffset(nbb, pos, offsetId, nbb.capacity() + 1)
+
+  // Check that valid buffer is successfully validated
+  let verifier = flatbuffers.newVerifier(nbb)
+  assert.ok(! verifier.verifyBuffer("MONS", sizePrefix, monsterVerify))
+}
+
+function checkVerifierDataLength(bb, sizePrefix, offsetId) {
+  let nbb = flatbuffers.ByteBuffer.allocate(bb.capacity())
+  nbb.bytes().set(bb.bytes(), 0, bb.capacity());
+  let pos = readUOffsetT(nbb, 0)
+
+  setDataBufferLength(nbb, pos, offsetId, nbb.capacity() + 1)
+
+  // Check that valid buffer is successfully validated
+  let verifier = flatbuffers.newVerifier(nbb)
+  assert.ok(! verifier.verifyBuffer("MONS", sizePrefix, monsterVerify))
+}
+
+function testVerifierFromFile() {
+  var correct = fs.readFileSync('../monsterdata_test.mon');
+  var bb = new flatbuffers.ByteBuffer(new Uint8Array(correct))
+  let verifier = flatbuffers.newVerifier(bb)
+  let isValid = verifier.verifyBuffer("MONS", false, monsterVerify)
+  assert.ok(isValid)
+}
+
+
+function testVerifier(bb, sizePrefix = false) {
+  // Check that valid buffer is successfully validated
+  let verifier = flatbuffers.newVerifier(bb)
+  let isValid = verifier.verifyBuffer(null, sizePrefix, monsterVerify)
+  assert.ok(isValid)
+  
+  // Check that invalid buffer validation fails
+  isValid = verifier.verifyBuffer(null, sizePrefix, statVerify)
+  assert.ok(! isValid)
+
+  // Now perform basic tests
+  checkVerifierVOffsetValue(bb, sizePrefix, 4 /*Pos*/)
+  checkVerifierVOffsetAlignment(bb, sizePrefix, 4 /*Pos*/)
+  checkVerifierVOffsetValue(bb, sizePrefix, 40 /*Testhashs64Fnv1*/)
+  checkVerifierVOffsetAlignment(bb, sizePrefix, 40 /*Testhashs64Fnv1*/)
+  checkVerifierDataOffsetAlignment(bb, sizePrefix, 14 /*Inventory*/)
+  checkVerifierDataOffsetValue(bb, sizePrefix, 14 /*Inventory*/)
+  checkVerifierDataLength(bb, sizePrefix, 14 /*Inventory*/)
+}
+
+
+function testVerifierUnion() {
+  var fbb = new flatbuffers.Builder();
+  var str = fbb.createString('MyMonster');
+  var inv = Monster.createInventoryVector(fbb, [0, 1, 2, 3, 4]); 
+  
+  Monster.startMonster(fbb);
+  Monster.addPos(fbb, Vec3.createVec3(fbb, 1, 2, 3, 3, Color.Green, 5, 6));
+  Monster.addHp(fbb, 80);
+  Monster.addName(fbb, str);
+  Monster.addInventory(fbb, inv);
+  Monster.addTestType(fbb, 100); // The llegal id defines valid (undefined) union type
+  Monster.addColor(fbb, Color.Red)
+  var mon = Monster.endMonster(fbb);
+  Monster.finishMonsterBuffer(fbb, mon);
+
+  // Check that valid buffer is successfully validated
+  let verifier = flatbuffers.newVerifier(fbb.dataBuffer())
+  let isValid = verifier.verifyBuffer(null, false, monsterVerify)
+  assert.ok(isValid)
+
+  // Do the same using byte buffer copy    
+  var bb = new flatbuffers.ByteBuffer(fbb.asUint8Array());
+  isValid = verifier.verifyBuffer(null, false, monsterVerify)
+  assert.ok(isValid)
+
+  var fbb = new flatbuffers.Builder();
+  var str = fbb.createString('MyMonster');
+  var inv = Monster.createInventoryVector(fbb, [0, 1, 2, 3, 4]); 
+  
+  Monster.startMonster(fbb);
+  Monster.addPos(fbb, Vec3.createVec3(fbb, 1, 2, 3, 3, Color.Green, 5, 6));
+  Monster.addHp(fbb, 80);
+  Monster.addName(fbb, str);
+  Monster.addInventory(fbb, inv);
+  Monster.addTestType(fbb, Any.Monster);
+  Monster.addColor(fbb, Color.Red)
+  var mon = Monster.endMonster(fbb);
+  Monster.finishMonsterBuffer(fbb, mon);
+  
+  // Check that invalid buffer is recognized as invalid
+  verifier = flatbuffers.newVerifier(fbb.dataBuffer())
+  isValid = verifier.verifyBuffer(null, false, monsterVerify)
+  assert.ok(! isValid)
+}
+
+
+function testVerifierNestedBuffer() {
+  // Monster nested child 
+  var nestedBuilder = new flatbuffers.Builder();
+  let nestedInventoryArray = new Uint8Array(100);
+  for (let i = 0; i < 100; i++) {
+    nestedInventoryArray[100 - i - 1] = i;
+  }
+  let nestedInv = Monster.createInventoryVector(nestedBuilder, nestedInventoryArray);
+  var nestedStringOffset = nestedBuilder.createString('MyNestedMonster');
+  Monster.startMonster(nestedBuilder);
+  Monster.addPos(nestedBuilder, Vec3.createVec3(nestedBuilder, 10.0, 20.0, 30.0, 30.0, Color.Green, 5, 6));
+  Monster.addHp(nestedBuilder, 180);
+  Monster.addName(nestedBuilder, nestedStringOffset);
+  Monster.addInventory(nestedBuilder, nestedInv);
+  Monster.addColor(nestedBuilder, Color.Red);
+  Monster.finishMonsterBuffer(nestedBuilder, Monster.endMonster(nestedBuilder));
+  let nestedBuffer = nestedBuilder.asUint8Array();
+  
+  // Monster main 
+  var fbb = new flatbuffers.Builder();
+  let inventoryArray = new Uint8Array(100);
+  for (let i = 0; i < 100; i++) {
+    inventoryArray[100 - i - 1] = i;
+  }
+  let inv = Monster.createInventoryVector(fbb, inventoryArray);
+  var nestedflatbufferOffset = Monster.createTestnestedflatbufferVector(fbb, nestedBuffer);
+  var stringOffset = fbb.createString('MyMonster');
+  Monster.startMonster(fbb);
+  Monster.addPos(fbb, Vec3.createVec3(fbb, 1, 2, 3, 3, Color.Green, 5, 6));
+  Monster.addHp(fbb, 80);
+  Monster.addName(fbb, stringOffset);
+  Monster.addInventory(fbb, inv);
+  Monster.addColor(fbb, Color.Red)
+  Monster.addTestnestedflatbuffer(fbb, nestedflatbufferOffset)
+  Monster.finishMonsterBuffer(fbb, Monster.endMonster(fbb));
+  
+  // Check that valid buffer is successfully validated
+  let verifier = flatbuffers.newVerifier(fbb.dataBuffer())
+  let isValid = verifier.verifyBuffer(null, false, monsterVerify)
+  assert.ok(isValid)
+}
+
 
 function testMutation(bb) {
   var monster = Monster.getRootAsMonster(bb);
@@ -263,12 +552,14 @@ function test64bit() {
   var mon = Monster.endMonster(fbb);
 
   Monster.finishMonsterBuffer(fbb, mon);
+  assert.ok(verifyBuffer(fbb.dataBuffer(), false));
   var bytes = fbb.asUint8Array();
 
   ////////////////////////////////////////////////////////////////
 
   var bb = new flatbuffers.ByteBuffer(bytes);
   assert.ok(Monster.bufferHasIdentifier(bb));
+  assert.ok(verifyBuffer(bb, false));
   var mon = Monster.getRootAsMonster(bb);
 
   var stat = mon.testempty();
@@ -325,8 +616,11 @@ function testUnicode() {
   Monster.addTestarrayoftables(fbb, testarrayoftablesOffset);
   Monster.addName(fbb, name);
   Monster.finishSizePrefixedMonsterBuffer(fbb, Monster.endMonster(fbb));
+  assert.ok(verifyBuffer(fbb.dataBuffer(), true));
+  assert.ok(!verifyBuffer(fbb.dataBuffer(), false));
   var bb = new flatbuffers.ByteBuffer(fbb.asUint8Array())
   bb.setPosition(4);
+  assert.ok(verifyBuffer(bb), false);
   testReadingUnicode(bb);
 }
 

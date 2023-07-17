@@ -49,7 +49,7 @@ module.exports = __toCommonJS(union_vector_exports);
 
 // union_vector/attacker.js
 var flatbuffers = __toESM(require("flatbuffers"), 1);
-var Attacker = class {
+var Attacker = class _Attacker {
   constructor() {
     this.bb = null;
     this.bb_pos = 0;
@@ -60,11 +60,11 @@ var Attacker = class {
     return this;
   }
   static getRootAsAttacker(bb, obj) {
-    return (obj || new Attacker()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+    return (obj || new _Attacker()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
   }
   static getSizePrefixedRootAsAttacker(bb, obj) {
     bb.setPosition(bb.position() + flatbuffers.SIZE_PREFIX_LENGTH);
-    return (obj || new Attacker()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+    return (obj || new _Attacker()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
   }
   swordAttackDamage() {
     const offset = this.bb.__offset(this.bb_pos, 4);
@@ -92,9 +92,9 @@ var Attacker = class {
     return offset;
   }
   static createAttacker(builder, swordAttackDamage) {
-    Attacker.startAttacker(builder);
-    Attacker.addSwordAttackDamage(builder, swordAttackDamage);
-    return Attacker.endAttacker(builder);
+    _Attacker.startAttacker(builder);
+    _Attacker.addSwordAttackDamage(builder, swordAttackDamage);
+    return _Attacker.endAttacker(builder);
   }
   unpack() {
     return new AttackerT(this.swordAttackDamage());
@@ -111,6 +111,13 @@ var AttackerT = class {
     return Attacker.createAttacker(builder, this.swordAttackDamage);
   }
 };
+function attackerVerify(verifier, tablePos) {
+  let result = true;
+  result = result && verifier.verifyTableStart(tablePos);
+  result = result && verifier.verifyField(tablePos, 4, 4, 4, false);
+  result = result && verifier.verifyTableEnd(tablePos);
+  return result;
+}
 
 // union_vector/book-reader.js
 var BookReader = class {
@@ -212,7 +219,7 @@ var Character;
   Character2[Character2["BookFan"] = 4] = "BookFan";
   Character2[Character2["Other"] = 5] = "Other";
   Character2[Character2["Unused"] = 6] = "Unused";
-})(Character = Character || (Character = {}));
+})(Character || (Character = {}));
 function unionToCharacter(type, accessor) {
   switch (Character[type]) {
     case "NONE":
@@ -252,6 +259,32 @@ function unionListToCharacter(type, accessor, index) {
     default:
       return null;
   }
+}
+function characterVerify(verifier, typeId, tablePos) {
+  let result = false;
+  switch (Character[typeId]) {
+    case "MuLan":
+      result = attackerVerify(verifier, tablePos);
+      break;
+    case "Rapunzel":
+      result = verifier.verifyUnionData(tablePos, 4, 4);
+      break;
+    case "Belle":
+      result = verifier.verifyUnionData(tablePos, 4, 4);
+      break;
+    case "BookFan":
+      result = verifier.verifyUnionData(tablePos, 4, 4);
+      break;
+    case "Other":
+      result = verifier.verifyUnionString(tablePos);
+      break;
+    case "Unused":
+      result = verifier.verifyUnionString(tablePos);
+      break;
+    default:
+      result = true;
+  }
+  return result;
 }
 
 // union_vector/falling-tub.js
@@ -301,7 +334,7 @@ var FallingTubT = class {
 
 // union_vector/hand-fan.js
 var flatbuffers2 = __toESM(require("flatbuffers"), 1);
-var HandFan = class {
+var HandFan = class _HandFan {
   constructor() {
     this.bb = null;
     this.bb_pos = 0;
@@ -312,11 +345,11 @@ var HandFan = class {
     return this;
   }
   static getRootAsHandFan(bb, obj) {
-    return (obj || new HandFan()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+    return (obj || new _HandFan()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
   }
   static getSizePrefixedRootAsHandFan(bb, obj) {
     bb.setPosition(bb.position() + flatbuffers2.SIZE_PREFIX_LENGTH);
-    return (obj || new HandFan()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+    return (obj || new _HandFan()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
   }
   length() {
     const offset = this.bb.__offset(this.bb_pos, 4);
@@ -344,9 +377,9 @@ var HandFan = class {
     return offset;
   }
   static createHandFan(builder, length) {
-    HandFan.startHandFan(builder);
-    HandFan.addLength(builder, length);
-    return HandFan.endHandFan(builder);
+    _HandFan.startHandFan(builder);
+    _HandFan.addLength(builder, length);
+    return _HandFan.endHandFan(builder);
   }
   unpack() {
     return new HandFanT(this.length());
@@ -370,11 +403,11 @@ var Gadget;
   Gadget2[Gadget2["NONE"] = 0] = "NONE";
   Gadget2[Gadget2["FallingTub"] = 1] = "FallingTub";
   Gadget2[Gadget2["HandFan"] = 2] = "HandFan";
-})(Gadget = Gadget || (Gadget = {}));
+})(Gadget || (Gadget = {}));
 
 // union_vector/movie.js
 var flatbuffers3 = __toESM(require("flatbuffers"), 1);
-var Movie = class {
+var Movie = class _Movie {
   constructor() {
     this.bb = null;
     this.bb_pos = 0;
@@ -385,14 +418,20 @@ var Movie = class {
     return this;
   }
   static getRootAsMovie(bb, obj) {
-    return (obj || new Movie()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+    return (obj || new _Movie()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
   }
   static getSizePrefixedRootAsMovie(bb, obj) {
     bb.setPosition(bb.position() + flatbuffers3.SIZE_PREFIX_LENGTH);
-    return (obj || new Movie()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+    return (obj || new _Movie()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
   }
   static bufferHasIdentifier(bb) {
     return bb.__has_identifier("MOVI");
+  }
+  static verifyMovie(bb, sizePrefix) {
+    let verifier = flatbuffers3.newVerifier(bb);
+    if (sizePrefix == null)
+      sizePrefix = true;
+    return verifier.verifyBuffer("MOVI", sizePrefix, movieVerify);
   }
   mainCharacterType() {
     const offset = this.bb.__offset(this.bb_pos, 4);
@@ -471,12 +510,12 @@ var Movie = class {
     builder.finish(offset, "MOVI", true);
   }
   static createMovie(builder, mainCharacterType, mainCharacterOffset, charactersTypeOffset, charactersOffset) {
-    Movie.startMovie(builder);
-    Movie.addMainCharacterType(builder, mainCharacterType);
-    Movie.addMainCharacter(builder, mainCharacterOffset);
-    Movie.addCharactersType(builder, charactersTypeOffset);
-    Movie.addCharacters(builder, charactersOffset);
-    return Movie.endMovie(builder);
+    _Movie.startMovie(builder);
+    _Movie.addMainCharacterType(builder, mainCharacterType);
+    _Movie.addMainCharacter(builder, mainCharacterOffset);
+    _Movie.addCharactersType(builder, charactersTypeOffset);
+    _Movie.addCharacters(builder, charactersOffset);
+    return _Movie.endMovie(builder);
   }
   unpack() {
     return new MovieT(this.mainCharacterType(), (() => {
@@ -556,3 +595,13 @@ var MovieT = class {
     return Movie.createMovie(builder, this.mainCharacterType, mainCharacter, charactersType, characters);
   }
 };
+function movieVerify(verifier, tablePos) {
+  let result = true;
+  result = result && verifier.verifyTableStart(tablePos);
+  result = result && verifier.verifyField(tablePos, 4, 1, 1, false);
+  result = result && verifier.verifyUnion(tablePos, 4, 6, characterVerify, false);
+  result = result && verifier.verifyVectorOfData(tablePos, 8, 1, false);
+  result = result && verifier.verifyVectorOfUnions(tablePos, 8, 10, characterVerify, false);
+  result = result && verifier.verifyTableEnd(tablePos);
+  return result;
+}

@@ -86,3 +86,12 @@ export class SchemaFileT {
         return SchemaFile.createSchemaFile(builder, filename, includedFilenames);
     }
 }
+// Verification function for 'SchemaFile' table.
+export function schemaFileVerify(verifier, tablePos) {
+    let result = true;
+    result = result && verifier.verifyTableStart(tablePos);
+    result = result && verifier.verifyString(tablePos, 4 /*Filename*/, true);
+    result = result && verifier.verifyVectorOfStrings(tablePos, 6 /*IncludedFilenames*/, false);
+    result = result && verifier.verifyTableEnd(tablePos);
+    return result;
+}

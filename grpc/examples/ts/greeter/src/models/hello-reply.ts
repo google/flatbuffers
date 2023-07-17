@@ -56,3 +56,12 @@ static deserialize(buffer: Uint8Array):HelloReply {
   return HelloReply.getRootAsHelloReply(new flatbuffers.ByteBuffer(buffer))
 }
 }
+
+// Verification function for 'HelloReply' table.
+export function helloReplyVerify(verifier: flatbuffers.Verifier, tablePos: flatbuffers.UOffset): boolean {
+  let result = true;
+  result = result && verifier.verifyTableStart(tablePos);
+  result = result && verifier.verifyString(tablePos, 4 /*Message*/, false);
+  result = result && verifier.verifyTableEnd(tablePos);
+  return result;
+}

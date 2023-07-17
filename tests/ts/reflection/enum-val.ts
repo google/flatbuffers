@@ -2,8 +2,8 @@
 
 import * as flatbuffers from 'flatbuffers';
 
-import { KeyValue, KeyValueT } from '../reflection/key-value.js';
-import { Type, TypeT } from '../reflection/type.js';
+import { KeyValue, keyValueVerify, KeyValueT } from '../reflection/key-value.js';
+import { Type, typeVerify, TypeT } from '../reflection/type.js';
 
 
 export class EnumVal implements flatbuffers.IUnpackableObject<EnumValT> {
@@ -178,4 +178,17 @@ pack(builder:flatbuffers.Builder): flatbuffers.Offset {
 
   return EnumVal.endEnumVal(builder);
 }
+}
+
+// Verification function for 'EnumVal' table.
+export function enumValVerify(verifier: flatbuffers.Verifier, tablePos: flatbuffers.UOffset): boolean {
+  let result = true;
+  result = result && verifier.verifyTableStart(tablePos);
+  result = result && verifier.verifyString(tablePos, 4 /*Name*/, true);
+  result = result && verifier.verifyField(tablePos, 6 /*Value*/, 8 /*Int64*/, 8, false);
+  result = result && verifier.verifyTable(tablePos, 10 /*UnionType*/, typeVerify, false);
+  result = result && verifier.verifyVectorOfStrings(tablePos, 12 /*Documentation*/, false);
+  result = result && verifier.verifyVectorOfTables(tablePos, 14 /*Attributes*/, keyValueVerify, false);
+  result = result && verifier.verifyTableEnd(tablePos);
+  return result;
 }

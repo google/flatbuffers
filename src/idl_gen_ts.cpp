@@ -214,6 +214,7 @@ class TsGenerator : public BaseGenerator {
       import_set imports;
       std::string enumcode;
       auto &enum_def = **it;
+      AddImport(bare_imports, "* as flatbuffers", "flatbuffers");
       GenEnum(enum_def, &enumcode, imports, false);
       GenEnum(enum_def, &enumcode, imports, true);
       std::string type_name = GetTypeName(enum_def);
@@ -232,9 +233,218 @@ class TsGenerator : public BaseGenerator {
       auto &struct_def = **it;
       std::string declcode;
       GenStruct(parser_, struct_def, &declcode, imports);
+      GenStructVerifier(struct_def, &declcode, imports);
       std::string type_name = GetTypeName(struct_def);
       TrackNsDef(struct_def, type_name);
       SaveType(struct_def, declcode, imports, bare_imports);
+    }
+  }
+
+  
+  // Generate the code to call the appropriate Verify function(s) for a field.
+  void GenVerifyCall(CodeWriter &code_, const FieldDef &field, const char *prefix, import_set imports) {
+    std::string type = GenType(field.value.type);
+    code_.SetValue("PRE", prefix);
+    code_.SetValue("NAME", ConvertCase(field.name, Case::kUpperCamel));
+    code_.SetValue("REQUIRED", field.IsRequired() ? "Required" : "");
+    code_.SetValue("REQUIRED_FLAG", field.IsRequired() ? "true" : "false");
+    code_.SetValue("TYPE", type);
+    code_.SetValue("INLINESIZE", NumToString(InlineSize(field.value.type)));
+    code_.SetValue("OFFSET", NumToString(field.value.offset));
+    
+    if (IsScalar(field.value.type.base_type) || IsStruct(field.value.type)) {
+      code_.SetValue("ALIGN", NumToString(InlineAlignment(field.value.type)));
+      code_ +=
+        "{{PRE}}  result = result && verifier.verifyField(tablePos, "
+        "{{OFFSET}} /*{{NAME}}*/, {{INLINESIZE}} /*{{TYPE}}*/, {{ALIGN}}, {{REQUIRED_FLAG}});";
+    } else {
+      // TODO - probably code below should go to this 'else' - code_ += "{{PRE}}VerifyOffset{{REQUIRED}}(verifier, {{OFFSET}})\\";
+    }
+
+    switch (field.value.type.base_type) {
+      case BASE_TYPE_UNION: {
+        code_.SetValue("ENUM_NAME", namer_.Function(field.value.type.enum_def->name));
+        code_.SetValue("SUFFIX", UnionTypeFieldSuffix());
+        // Caution: This construction assumes, that UNION type id element has been created just before union data and
+        // its offset precedes union. Such assumption is common in flatbuffer implementation
+        code_.SetValue("TYPE_ID_OFFSET",
+                       NumToString(field.value.offset - sizeof(voffset_t)));
+        code_ +=
+            "{{PRE}}  result = result && verifier.verifyUnion(tablePos, "
+            "{{TYPE_ID_OFFSET}}, "
+            "{{OFFSET}} /*{{NAME}}*/, {{ENUM_NAME}}Verify, {{REQUIRED_FLAG}});";
+        break;      }
+      case BASE_TYPE_STRUCT: {
+        if (!field.value.type.struct_def->fixed) {
+          code_.SetValue(
+              "STRUCT_TYPE",
+              namer_.Function(AddImport(imports, *(field.value.type.struct_def),
+                                        *(field.value.type.struct_def))
+                                  .name));
+          code_ +=
+              "{{PRE}}  result = result && verifier.verifyTable(tablePos, "
+              "{{OFFSET}} /*{{NAME}}*/, {{STRUCT_TYPE}}Verify, "
+              "{{REQUIRED_FLAG}});";
+        }
+        break;
+      }
+      case BASE_TYPE_STRING: {
+        code_ +=
+            "{{PRE}}  result = result && verifier.verifyString(tablePos, "
+            "{{OFFSET}} /*{{NAME}}*/, {{REQUIRED_FLAG}});";
+        break;
+      }
+      case BASE_TYPE_VECTOR: {
+
+        switch (field.value.type.element) {
+          case BASE_TYPE_STRING: {
+            code_ +=
+                "{{PRE}}  result = result && "
+                "verifier.verifyVectorOfStrings(tablePos, "
+                "{{OFFSET}} /*{{NAME}}*/, {{REQUIRED_FLAG}});";
+            break;
+          }
+          case BASE_TYPE_STRUCT: {
+            if (!field.value.type.struct_def->fixed) {
+              code_.SetValue(
+                  "STRUCT_TYPE",
+                  namer_.Function(AddImport(imports,
+                                            *(field.value.type.struct_def),
+                                            *(field.value.type.struct_def))
+                                      .name));
+              code_ +=
+                  "{{PRE}}  result = result && "
+                  "verifier.verifyVectorOfTables(tablePos, "
+                  "{{OFFSET}} /*{{NAME}}*/, {{STRUCT_TYPE}}Verify, "
+                  "{{REQUIRED_FLAG}});";
+            } else {
+              code_.SetValue(
+                  "VECTOR_ELEM_INLINESIZE",
+                  NumToString(InlineSize(field.value.type.VectorType())));
+              code_ +=
+                  "{{PRE}}  result = result && "
+                  "verifier.verifyVectorOfData(tablePos, "
+                  "{{OFFSET}} /*{{NAME}}*/, {{VECTOR_ELEM_INLINESIZE}} "
+                  "/*{{TYPE}}*/, {{REQUIRED_FLAG}});";         
+            }
+            break;
+          }
+          case BASE_TYPE_UNION: {
+            code_.SetValue("ENUM_NAME", field.value.type.enum_def->name);
+            code_.SetValue("TYPE_ID_VECTOR_OFFSET",
+                           NumToString(field.value.offset - sizeof(voffset_t)));
+            auto enumDef = AddImport(imports, *(field.value.type.enum_def),
+                                     *(field.value.type.enum_def))
+                               .name;
+            code_.SetValue("VERIFY_FUNCTION", namer_.Function(enumDef));
+            code_ +=
+                "{{PRE}}  result = result && "
+                "verifier.verifyVectorOfUnions(tablePos, "
+                "{{TYPE_ID_VECTOR_OFFSET}}, {{OFFSET}} /*{{NAME}}*/, "
+                "{{VERIFY_FUNCTION}}Verify, "
+                "{{REQUIRED_FLAG}});";
+            break;
+          }
+          default:
+            // Generate verifier for vector of data.
+            // It may be either nested flatbuffer of just vector of bytes
+            auto nfn = GetNestedFlatBufferName(field);
+            if (!nfn.empty()) {
+              code_.SetValue("CPP_NAME", namer_.Function(nfn));
+              // FIXME: file_identifier.
+              code_ +="{{PRE}}  result = result && verifier.verifyNestedBuffer(tablePos, "
+                "{{OFFSET}} /*{{NAME}}*/, {{CPP_NAME}}Verify, {{REQUIRED_FLAG}});";
+            } else if (field.flexbuffer) {
+              code_ += "{{PRE}}  result = result && verifier.verifyNestedBuffer(tablePos, "
+                "{{OFFSET}} /*{{NAME}}*/, null, {{REQUIRED_FLAG}});";
+            } else {
+              code_.SetValue("VECTOR_ELEM_INLINESIZE", NumToString(InlineSize(field.value.type.VectorType())));
+              code_ +=
+                "{{PRE}}  result = result && verifier.verifyVectorOfData(tablePos, "
+                "{{OFFSET}} /*{{NAME}}*/, {{VECTOR_ELEM_INLINESIZE}} /*{{TYPE}}*/, {{REQUIRED_FLAG}});";
+            }
+            break;
+        }
+
+        break;
+      }
+      default: {
+        break;
+      }
+    }
+  }
+
+  std::string GetNestedFlatBufferName(const FieldDef &field) {
+    auto nested = field.attributes.Lookup("nested_flatbuffer");
+    if (!nested) return "";
+    std::string qualified_name = nested->constant;
+    auto nested_root = parser_.LookupStruct(nested->constant);
+    if (nested_root == nullptr) {
+      qualified_name =
+          parser_.current_namespace_->GetFullyQualifiedName(nested->constant);
+      nested_root = parser_.LookupStruct(qualified_name);
+    }
+    FLATBUFFERS_ASSERT(nested_root);  // Guaranteed to exist by parser.
+    auto name = nested_root->name;
+    return name;
+  }
+
+  // Get the value of a table verification function start
+  void GetStartOfTableVerifier(const StructDef &struct_def, std::string *code_ptr) {
+    std::string &code = *code_ptr;
+    
+    code += "\n";
+    code += "// Verification function for '" + GetTypeName(struct_def) +
+            "' table.\n";
+    code += "export function " + namer_.Function(GetTypeName(struct_def)) +
+            "Verify";
+    code += "(verifier: flatbuffers.Verifier, tablePos: flatbuffers.UOffset): boolean {\n";
+    code += "  let result = true;\n";
+    code += "  result = result && verifier.verifyTableStart(tablePos);\n";
+  }
+
+  // Get the value of a table verification function end
+  void GetEndOfTableVerifier(std::string *code_ptr) {
+    std::string &code = *code_ptr;
+    code += "  result = result && verifier.verifyTableEnd(tablePos);\n";
+    code += "  return result;\n";
+    code += "}\n";
+  }
+
+  // Generate table constructors, conditioned on its members' types.
+  void GenTableVerifier(const StructDef &struct_def, std::string *code_ptr, import_set imports) {
+    CodeWriter code_;
+    
+    GetStartOfTableVerifier(struct_def, code_ptr);
+
+    // Generate struct fields accessors
+    for (auto it = struct_def.fields.vec.begin();
+         it != struct_def.fields.vec.end(); ++it) {
+      auto &field = **it;
+      if (field.deprecated) continue;
+
+      GenVerifyCall(code_, field, "", imports);
+    }
+
+    *code_ptr += code_.ToString();
+    
+    GetEndOfTableVerifier(code_ptr);
+  }
+  
+
+  // Generate struct or table methods.
+  void GenStructVerifier(const StructDef &struct_def, std::string *code_ptr, import_set imports) {
+    if (struct_def.generated) return;
+
+//    cur_name_space_ = struct_def.defined_namespace;
+
+    // Generate verifiers
+    if (struct_def.fixed) {
+      // Fixed size structures do not require table members
+      // verification - instead structure size is verified using VerifyField
+    } else {
+      // Create table verification function
+       GenTableVerifier(struct_def, code_ptr, imports);
     }
   }
 
@@ -399,6 +609,7 @@ class TsGenerator : public BaseGenerator {
 
     if (enum_def.is_union) {
       code += GenUnionConvFunc(enum_def.underlying_type, imports);
+      code += GenUnionVerify(enum_def.underlying_type, imports);
     }
 
     code += "\n";
@@ -833,6 +1044,10 @@ class TsGenerator : public BaseGenerator {
     if (has_name_clash) {
       // We have a name clash
       symbols_expression += import_name + " as " + name;
+      if (!struct_def.fixed) {
+        symbols_expression +=
+            ", " + namer_.Function(import_name) + "Verify as " + namer_.Function(name) + "Verify";
+      }
 
       if (parser_.opts.generate_object_based_api) {
         symbols_expression += ", " +
@@ -842,6 +1057,9 @@ class TsGenerator : public BaseGenerator {
     } else {
       // No name clash, use the provided name
       symbols_expression += name;
+      if (!struct_def.fixed) {
+        symbols_expression += ", " + namer_.Function(name) + "Verify";
+      }
 
       if (parser_.opts.generate_object_based_api) {
         symbols_expression += ", " + object_name;
@@ -866,6 +1084,7 @@ class TsGenerator : public BaseGenerator {
     if (enum_def.is_union) {
       symbols_expression += (", " + namer_.Function("unionTo" + name));
       symbols_expression += (", " + namer_.Function("unionListTo" + name));
+      symbols_expression += (", " + namer_.Function(name) + "Verify");
     }
 
     return symbols_expression;
@@ -1032,6 +1251,66 @@ class TsGenerator : public BaseGenerator {
              ") => " + valid_union_type_with_null +
              ", \n  index: number\n): " + valid_union_type_with_null + " {\n";
       union_enum_loop("accessor(index, ");
+      ret += "}";
+
+      return ret;
+    }
+    FLATBUFFERS_ASSERT(0);
+    return "";
+  }
+
+  std::string GenUnionVerify(const Type &union_type, import_set &imports) {
+    if (union_type.enum_def) {
+      const auto &enum_def = *union_type.enum_def;
+
+      const auto valid_union_type = GenUnionTypeTS(enum_def, imports);
+      const auto valid_union_type_with_null = valid_union_type + "|null";
+
+      auto ret = "\n\nexport function " +
+                 namer_.Function(GetTypeName(enum_def)) + "Verify" +
+                 "(verifier: flatbuffers.Verifier, typeId: number, tablePos: "
+                 "flatbuffers.UOffset) : boolean" +
+                 "{\n" + "  let result: boolean = false\n";
+
+      const auto enum_type = AddImport(imports, enum_def, enum_def).name;
+
+      const auto union_enum_loop = [&]() {
+        ret += "  switch(" + enum_type + "[typeId]) {\n";
+
+        for (auto it = enum_def.Vals().begin(); it != enum_def.Vals().end(); ++it) {
+          const auto &ev = **it;
+          if (ev.IsZero()) { continue; }
+
+          ret += "    case '" + namer_.Variant(ev) + "':\n";
+
+          if (IsString(ev.union_type)) {
+            ret +=
+                "     result = verifier.verifyUnionString(tablePos);\n";
+            ret += "      break;";
+          } else if (ev.union_type.base_type == BASE_TYPE_STRUCT) {
+            if (! ev.union_type.struct_def->fixed) {
+              const auto type = AddImport(imports, enum_def, *ev.union_type.struct_def).name;
+              ret += "      result = " + namer_.Function(type) +
+                     "Verify(verifier, tablePos);\n";
+            } else {
+              ret += "      result = verifier.verifyUnionData(tablePos, " +
+                  NumToString(InlineSize(ev.union_type)) + ", " +
+                  NumToString(InlineAlignment(ev.union_type)) + 
+                ");\n";;
+            }
+            ret += "      break;";
+          } else {
+            FLATBUFFERS_ASSERT(false);
+          }
+          ret += "\n";
+        }
+
+        ret += "    default: result = true;\n";
+        ret += "  }\n";
+        ret += "  return result;\n";
+      };
+
+      union_enum_loop();
       ret += "}";
 
       return ret;
@@ -1583,15 +1862,27 @@ class TsGenerator : public BaseGenerator {
     GenerateRootAccessor(struct_def, code_ptr, code, object_name, false);
     GenerateRootAccessor(struct_def, code_ptr, code, object_name, true);
 
+
     // Generate the identifier check method
-    if (!struct_def.fixed && parser_.root_struct_def_ == &struct_def &&
-        !parser_.file_identifier_.empty()) {
-      GenDocComment(code_ptr);
-      code +=
-          "static bufferHasIdentifier(bb:flatbuffers.ByteBuffer):boolean "
-          "{\n";
-      code += "  return bb.__has_identifier('" + parser_.file_identifier_;
-      code += "');\n}\n\n";
+    if (!struct_def.fixed && parser_.root_struct_def_ == &struct_def ) {
+      std::string identifier = "null";
+      if (!parser_.file_identifier_.empty()) {
+        GenDocComment(code_ptr);
+        identifier = "'" + parser_.file_identifier_ + "'";
+        code +=
+            "static bufferHasIdentifier(bb:flatbuffers.ByteBuffer):boolean "
+            "{\n";
+        code += "  return bb.__has_identifier(" + identifier;
+        code += ");\n}\n\n";
+      }
+      code += "static verify" + object_name +
+              "(bb:flatbuffers.ByteBuffer, "
+              "sizePrefix?:boolean):boolean {\n";
+      code += "  let verifier = flatbuffers.newVerifier(bb);\n";
+      code += "  if (sizePrefix == null) sizePrefix = true;\n";
+      code += "  return verifier.verifyBuffer(" + identifier +
+              ", sizePrefix, " + namer_.Function(object_name) +
+              "Verify);\n}\n\n";
     }
 
     // Emit field accessors

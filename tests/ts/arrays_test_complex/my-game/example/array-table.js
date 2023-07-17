@@ -21,6 +21,12 @@ export class ArrayTable {
     static bufferHasIdentifier(bb) {
         return bb.__has_identifier('RHUB');
     }
+    static verifyArrayTable(bb, sizePrefix) {
+        let verifier = flatbuffers.newVerifier(bb);
+        if (sizePrefix == null)
+            sizePrefix = true;
+        return verifier.verifyBuffer('RHUB', sizePrefix, arrayTableVerify);
+    }
     a(optionalEncoding) {
         const offset = this.bb.__offset(this.bb_pos, 4);
         return offset ? this.bb.__string(this.bb_pos + offset, optionalEncoding) : null;
@@ -71,4 +77,13 @@ export class ArrayTableT {
         ArrayTable.addCUnderscore(builder, (this.cUnderscore !== null ? this.cUnderscore.pack(builder) : 0));
         return ArrayTable.endArrayTable(builder);
     }
+}
+// Verification function for 'ArrayTable' table.
+export function arrayTableVerify(verifier, tablePos) {
+    let result = true;
+    result = result && verifier.verifyTableStart(tablePos);
+    result = result && verifier.verifyString(tablePos, 4 /*A*/, false);
+    result = result && verifier.verifyField(tablePos, 6 /*CUnderscore*/, 2656 /*ArrayStruct*/, 8, false);
+    result = result && verifier.verifyTableEnd(tablePos);
+    return result;
 }

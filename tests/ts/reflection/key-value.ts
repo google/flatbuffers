@@ -96,3 +96,13 @@ pack(builder:flatbuffers.Builder): flatbuffers.Offset {
   );
 }
 }
+
+// Verification function for 'KeyValue' table.
+export function keyValueVerify(verifier: flatbuffers.Verifier, tablePos: flatbuffers.UOffset): boolean {
+  let result = true;
+  result = result && verifier.verifyTableStart(tablePos);
+  result = result && verifier.verifyString(tablePos, 4 /*Key*/, true);
+  result = result && verifier.verifyString(tablePos, 6 /*Value*/, false);
+  result = result && verifier.verifyTableEnd(tablePos);
+  return result;
+}

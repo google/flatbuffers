@@ -29,6 +29,7 @@ ts_project(
         "flatbuffers.ts",
         "types.ts",
         "utils.ts",
+        "verify.ts",
         ":index.ts",
     ],
     declaration = True,

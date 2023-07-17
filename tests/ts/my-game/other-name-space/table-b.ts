@@ -2,7 +2,7 @@
 
 import * as flatbuffers from 'flatbuffers';
 
-import { TableA, TableAT } from '../../table-a.js';
+import { TableA, tableAVerify, TableAT } from '../../table-a.js';
 
 
 export class TableB implements flatbuffers.IUnpackableObject<TableBT> {
@@ -84,4 +84,13 @@ pack(builder:flatbuffers.Builder): flatbuffers.Offset {
     a
   );
 }
+}
+
+// Verification function for 'TableB' table.
+export function tableBVerify(verifier: flatbuffers.Verifier, tablePos: flatbuffers.UOffset): boolean {
+  let result = true;
+  result = result && verifier.verifyTableStart(tablePos);
+  result = result && verifier.verifyTable(tablePos, 4 /*A*/, tableAVerify, false);
+  result = result && verifier.verifyTableEnd(tablePos);
+  return result;
 }

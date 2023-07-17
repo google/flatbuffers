@@ -22,3 +22,4 @@ export declare class TableAT implements flatbuffers.IGeneratedObject {
     constructor(b?: TableBT | null);
     pack(builder: flatbuffers.Builder): flatbuffers.Offset;
 }
+export declare function tableAVerify(verifier: flatbuffers.Verifier, tablePos: flatbuffers.UOffset): boolean;

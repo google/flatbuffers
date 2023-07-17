@@ -18,3 +18,4 @@ export declare class InParentNamespaceT implements flatbuffers.IGeneratedObject 
     constructor();
     pack(builder: flatbuffers.Builder): flatbuffers.Offset;
 }
+export declare function inParentNamespaceVerify(verifier: flatbuffers.Verifier, tablePos: flatbuffers.UOffset): boolean;

@@ -124,3 +124,13 @@ pack(builder:flatbuffers.Builder): flatbuffers.Offset {
   );
 }
 }
+
+// Verification function for 'SchemaFile' table.
+export function schemaFileVerify(verifier: flatbuffers.Verifier, tablePos: flatbuffers.UOffset): boolean {
+  let result = true;
+  result = result && verifier.verifyTableStart(tablePos);
+  result = result && verifier.verifyString(tablePos, 4 /*Filename*/, true);
+  result = result && verifier.verifyVectorOfStrings(tablePos, 6 /*IncludedFilenames*/, false);
+  result = result && verifier.verifyTableEnd(tablePos);
+  return result;
+}

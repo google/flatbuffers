@@ -1,3 +1,4 @@
+import * as flatbuffers from 'flatbuffers';
 import { Attacker } from './attacker.js';
 import { BookReader } from './book-reader.js';
 import { Rapunzel } from './rapunzel.js';
@@ -12,3 +13,4 @@ export declare enum Character {
 }
 export declare function unionToCharacter(type: Character, accessor: (obj: Attacker | BookReader | Rapunzel | string) => Attacker | BookReader | Rapunzel | string | null): Attacker | BookReader | Rapunzel | string | null;
 export declare function unionListToCharacter(type: Character, accessor: (index: number, obj: Attacker | BookReader | Rapunzel | string) => Attacker | BookReader | Rapunzel | string | null, index: number): Attacker | BookReader | Rapunzel | string | null;
+export declare function characterVerify(verifier: flatbuffers.Verifier, typeId: number, tablePos: flatbuffers.UOffset): boolean;

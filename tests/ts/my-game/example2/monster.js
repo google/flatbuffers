@@ -48,3 +48,10 @@ export class MonsterT {
         return Monster.createMonster(builder);
     }
 }
+// Verification function for 'Monster' table.
+export function monsterVerify(verifier, tablePos) {
+    let result = true;
+    result = result && verifier.verifyTableStart(tablePos);
+    result = result && verifier.verifyTableEnd(tablePos);
+    return result;
+}

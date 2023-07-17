@@ -2,8 +2,8 @@
 
 import * as flatbuffers from 'flatbuffers';
 
-import { KeyValue, KeyValueT } from '../reflection/key-value.js';
-import { Object_, Object_T } from '../reflection/object.js';
+import { KeyValue, keyValueVerify, KeyValueT } from '../reflection/key-value.js';
+import { Object_, object_Verify, Object_T } from '../reflection/object.js';
 
 
 export class RPCCall implements flatbuffers.IUnpackableObject<RPCCallT> {
@@ -170,4 +170,17 @@ pack(builder:flatbuffers.Builder): flatbuffers.Offset {
 
   return RPCCall.endRPCCall(builder);
 }
+}
+
+// Verification function for 'RPCCall' table.
+export function rpccallVerify(verifier: flatbuffers.Verifier, tablePos: flatbuffers.UOffset): boolean {
+  let result = true;
+  result = result && verifier.verifyTableStart(tablePos);
+  result = result && verifier.verifyString(tablePos, 4 /*Name*/, true);
+  result = result && verifier.verifyTable(tablePos, 6 /*Request*/, object_Verify, true);
+  result = result && verifier.verifyTable(tablePos, 8 /*Response*/, object_Verify, true);
+  result = result && verifier.verifyVectorOfTables(tablePos, 10 /*Attributes*/, keyValueVerify, false);
+  result = result && verifier.verifyVectorOfStrings(tablePos, 12 /*Documentation*/, false);
+  result = result && verifier.verifyTableEnd(tablePos);
+  return result;
 }

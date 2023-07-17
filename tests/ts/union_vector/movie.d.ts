@@ -10,6 +10,7 @@ export declare class Movie implements flatbuffers.IUnpackableObject<MovieT> {
     static getRootAsMovie(bb: flatbuffers.ByteBuffer, obj?: Movie): Movie;
     static getSizePrefixedRootAsMovie(bb: flatbuffers.ByteBuffer, obj?: Movie): Movie;
     static bufferHasIdentifier(bb: flatbuffers.ByteBuffer): boolean;
+    static verifyMovie(bb: flatbuffers.ByteBuffer, sizePrefix?: boolean): boolean;
     mainCharacterType(): Character;
     mainCharacter<T extends flatbuffers.Table>(obj: any | string): any | string | null;
     charactersType(index: number): Character | null;
@@ -42,3 +43,4 @@ export declare class MovieT implements flatbuffers.IGeneratedObject {
     constructor(mainCharacterType?: Character, mainCharacter?: AttackerT | BookReaderT | RapunzelT | string | null, charactersType?: (Character)[], characters?: (AttackerT | BookReaderT | RapunzelT | string)[]);
     pack(builder: flatbuffers.Builder): flatbuffers.Offset;
 }
+export declare function movieVerify(verifier: flatbuffers.Verifier, tablePos: flatbuffers.UOffset): boolean;

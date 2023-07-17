@@ -18,3 +18,4 @@ export declare class MonsterT implements flatbuffers.IGeneratedObject {
     constructor();
     pack(builder: flatbuffers.Builder): flatbuffers.Offset;
 }
+export declare function monsterVerify(verifier: flatbuffers.Verifier, tablePos: flatbuffers.UOffset): boolean;

@@ -2,7 +2,7 @@
 
 import * as flatbuffers from 'flatbuffers';
 
-import { TableB, TableBT } from './my-game/other-name-space/table-b.js';
+import { TableB, tableBVerify, TableBT } from './my-game/other-name-space/table-b.js';
 
 
 export class TableA implements flatbuffers.IUnpackableObject<TableAT> {
@@ -84,4 +84,13 @@ pack(builder:flatbuffers.Builder): flatbuffers.Offset {
     b
   );
 }
+}
+
+// Verification function for 'TableA' table.
+export function tableAVerify(verifier: flatbuffers.Verifier, tablePos: flatbuffers.UOffset): boolean {
+  let result = true;
+  result = result && verifier.verifyTableStart(tablePos);
+  result = result && verifier.verifyTable(tablePos, 4 /*B*/, tableBVerify, false);
+  result = result && verifier.verifyTableEnd(tablePos);
+  return result;
 }

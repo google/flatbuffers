@@ -47,3 +47,4 @@ export declare class TypeT implements flatbuffers.IGeneratedObject {
     constructor(baseType?: BaseType, element?: BaseType, index?: number, fixedLength?: number, baseSize?: number, elementSize?: number);
     pack(builder: flatbuffers.Builder): flatbuffers.Offset;
 }
+export declare function typeVerify(verifier: flatbuffers.Verifier, tablePos: flatbuffers.UOffset): boolean;

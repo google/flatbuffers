@@ -30,3 +30,4 @@ export declare class StatT implements flatbuffers.IGeneratedObject {
     constructor(id?: string | Uint8Array | null, val?: bigint, count?: number);
     pack(builder: flatbuffers.Builder): flatbuffers.Offset;
 }
+export declare function statVerify(verifier: flatbuffers.Verifier, tablePos: flatbuffers.UOffset): boolean;

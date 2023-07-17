@@ -62,3 +62,11 @@ export class AttackerT {
         return Attacker.createAttacker(builder, this.swordAttackDamage);
     }
 }
+// Verification function for 'Attacker' table.
+export function attackerVerify(verifier, tablePos) {
+    let result = true;
+    result = result && verifier.verifyTableStart(tablePos);
+    result = result && verifier.verifyField(tablePos, 4 /*SwordAttackDamage*/, 4 /*Int32*/, 4, false);
+    result = result && verifier.verifyTableEnd(tablePos);
+    return result;
+}

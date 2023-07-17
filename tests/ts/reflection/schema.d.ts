@@ -10,6 +10,7 @@ export declare class Schema implements flatbuffers.IUnpackableObject<SchemaT> {
     static getRootAsSchema(bb: flatbuffers.ByteBuffer, obj?: Schema): Schema;
     static getSizePrefixedRootAsSchema(bb: flatbuffers.ByteBuffer, obj?: Schema): Schema;
     static bufferHasIdentifier(bb: flatbuffers.ByteBuffer): boolean;
+    static verifySchema(bb: flatbuffers.ByteBuffer, sizePrefix?: boolean): boolean;
     objects(index: number, obj?: Object_): Object_ | null;
     objectsLength(): number;
     enums(index: number, obj?: Enum): Enum | null;
@@ -65,3 +66,4 @@ export declare class SchemaT implements flatbuffers.IGeneratedObject {
     constructor(objects?: (Object_T)[], enums?: (EnumT)[], fileIdent?: string | Uint8Array | null, fileExt?: string | Uint8Array | null, rootTable?: Object_T | null, services?: (ServiceT)[], advancedFeatures?: bigint, fbsFiles?: (SchemaFileT)[]);
     pack(builder: flatbuffers.Builder): flatbuffers.Offset;
 }
+export declare function schemaVerify(verifier: flatbuffers.Verifier, tablePos: flatbuffers.UOffset): boolean;

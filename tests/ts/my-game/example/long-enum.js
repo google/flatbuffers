@@ -4,4 +4,4 @@ export var LongEnum;
     LongEnum["LongOne"] = "2";
     LongEnum["LongTwo"] = "4";
     LongEnum["LongBig"] = "1099511627776";
-})(LongEnum = LongEnum || (LongEnum = {}));
+})(LongEnum || (LongEnum = {}));

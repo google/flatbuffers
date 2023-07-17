@@ -2,8 +2,8 @@
 
 import * as flatbuffers from 'flatbuffers';
 
-import { Field, FieldT } from '../reflection/field.js';
-import { KeyValue, KeyValueT } from '../reflection/key-value.js';
+import { Field, fieldVerify, FieldT } from '../reflection/field.js';
+import { KeyValue, keyValueVerify, KeyValueT } from '../reflection/key-value.js';
 
 
 export class Object_ implements flatbuffers.IUnpackableObject<Object_T> {
@@ -274,4 +274,20 @@ pack(builder:flatbuffers.Builder): flatbuffers.Offset {
     declarationFile
   );
 }
+}
+
+// Verification function for 'Object_' table.
+export function object_Verify(verifier: flatbuffers.Verifier, tablePos: flatbuffers.UOffset): boolean {
+  let result = true;
+  result = result && verifier.verifyTableStart(tablePos);
+  result = result && verifier.verifyString(tablePos, 4 /*Name*/, true);
+  result = result && verifier.verifyVectorOfTables(tablePos, 6 /*Fields*/, fieldVerify, true);
+  result = result && verifier.verifyField(tablePos, 8 /*IsStruct*/, 1 /*Int8*/, 1, false);
+  result = result && verifier.verifyField(tablePos, 10 /*Minalign*/, 4 /*Int32*/, 4, false);
+  result = result && verifier.verifyField(tablePos, 12 /*Bytesize*/, 4 /*Int32*/, 4, false);
+  result = result && verifier.verifyVectorOfTables(tablePos, 14 /*Attributes*/, keyValueVerify, false);
+  result = result && verifier.verifyVectorOfStrings(tablePos, 16 /*Documentation*/, false);
+  result = result && verifier.verifyString(tablePos, 18 /*DeclarationFile*/, false);
+  result = result && verifier.verifyTableEnd(tablePos);
+  return result;
 }

@@ -1,3 +1,4 @@
+import * as flatbuffers from 'flatbuffers';
 import { Monster } from '../../my-game/example/monster.js';
 export declare enum AnyAmbiguousAliases {
     NONE = 0,
@@ -7,3 +8,4 @@ export declare enum AnyAmbiguousAliases {
 }
 export declare function unionToAnyAmbiguousAliases(type: AnyAmbiguousAliases, accessor: (obj: Monster) => Monster | null): Monster | null;
 export declare function unionListToAnyAmbiguousAliases(type: AnyAmbiguousAliases, accessor: (index: number, obj: Monster) => Monster | null, index: number): Monster | null;
+export declare function anyAmbiguousAliasesVerify(verifier: flatbuffers.Verifier, typeId: number, tablePos: flatbuffers.UOffset): boolean;

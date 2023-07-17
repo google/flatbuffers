@@ -69,3 +69,11 @@ export class TestSimpleTableWithEnumT {
         return TestSimpleTableWithEnum.createTestSimpleTableWithEnum(builder, this.color);
     }
 }
+// Verification function for 'TestSimpleTableWithEnum' table.
+export function testSimpleTableWithEnumVerify(verifier, tablePos) {
+    let result = true;
+    result = result && verifier.verifyTableStart(tablePos);
+    result = result && verifier.verifyField(tablePos, 4 /*Color*/, 1 /*Uint8*/, 1, false);
+    result = result && verifier.verifyTableEnd(tablePos);
+    return result;
+}

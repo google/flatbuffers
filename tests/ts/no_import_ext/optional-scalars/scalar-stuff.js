@@ -21,6 +21,12 @@ export class ScalarStuff {
     static bufferHasIdentifier(bb) {
         return bb.__has_identifier('NULL');
     }
+    static verifyScalarStuff(bb, sizePrefix) {
+        let verifier = flatbuffers.newVerifier(bb);
+        if (sizePrefix == null)
+            sizePrefix = true;
+        return verifier.verifyBuffer('NULL', sizePrefix, scalarStuffVerify);
+    }
     justI8() {
         const offset = this.bb.__offset(this.bb_pos, 4);
         return offset ? this.bb.readInt8(this.bb_pos + offset) : 0;
@@ -341,4 +347,47 @@ export class ScalarStuff {
         ScalarStuff.addDefaultEnum(builder, defaultEnum);
         return ScalarStuff.endScalarStuff(builder);
     }
+}
+// Verification function for 'ScalarStuff' table.
+export function scalarStuffVerify(verifier, tablePos) {
+    let result = true;
+    result = result && verifier.verifyTableStart(tablePos);
+    result = result && verifier.verifyField(tablePos, 4 /*JustI8*/, 1 /*Int8*/, 1, false);
+    result = result && verifier.verifyField(tablePos, 6 /*MaybeI8*/, 1 /*Int8*/, 1, false);
+    result = result && verifier.verifyField(tablePos, 8 /*DefaultI8*/, 1 /*Int8*/, 1, false);
+    result = result && verifier.verifyField(tablePos, 10 /*JustU8*/, 1 /*Uint8*/, 1, false);
+    result = result && verifier.verifyField(tablePos, 12 /*MaybeU8*/, 1 /*Uint8*/, 1, false);
+    result = result && verifier.verifyField(tablePos, 14 /*DefaultU8*/, 1 /*Uint8*/, 1, false);
+    result = result && verifier.verifyField(tablePos, 16 /*JustI16*/, 2 /*Int16*/, 2, false);
+    result = result && verifier.verifyField(tablePos, 18 /*MaybeI16*/, 2 /*Int16*/, 2, false);
+    result = result && verifier.verifyField(tablePos, 20 /*DefaultI16*/, 2 /*Int16*/, 2, false);
+    result = result && verifier.verifyField(tablePos, 22 /*JustU16*/, 2 /*Uint16*/, 2, false);
+    result = result && verifier.verifyField(tablePos, 24 /*MaybeU16*/, 2 /*Uint16*/, 2, false);
+    result = result && verifier.verifyField(tablePos, 26 /*DefaultU16*/, 2 /*Uint16*/, 2, false);
+    result = result && verifier.verifyField(tablePos, 28 /*JustI32*/, 4 /*Int32*/, 4, false);
+    result = result && verifier.verifyField(tablePos, 30 /*MaybeI32*/, 4 /*Int32*/, 4, false);
+    result = result && verifier.verifyField(tablePos, 32 /*DefaultI32*/, 4 /*Int32*/, 4, false);
+    result = result && verifier.verifyField(tablePos, 34 /*JustU32*/, 4 /*Uint32*/, 4, false);
+    result = result && verifier.verifyField(tablePos, 36 /*MaybeU32*/, 4 /*Uint32*/, 4, false);
+    result = result && verifier.verifyField(tablePos, 38 /*DefaultU32*/, 4 /*Uint32*/, 4, false);
+    result = result && verifier.verifyField(tablePos, 40 /*JustI64*/, 8 /*Int64*/, 8, false);
+    result = result && verifier.verifyField(tablePos, 42 /*MaybeI64*/, 8 /*Int64*/, 8, false);
+    result = result && verifier.verifyField(tablePos, 44 /*DefaultI64*/, 8 /*Int64*/, 8, false);
+    result = result && verifier.verifyField(tablePos, 46 /*JustU64*/, 8 /*Uint64*/, 8, false);
+    result = result && verifier.verifyField(tablePos, 48 /*MaybeU64*/, 8 /*Uint64*/, 8, false);
+    result = result && verifier.verifyField(tablePos, 50 /*DefaultU64*/, 8 /*Uint64*/, 8, false);
+    result = result && verifier.verifyField(tablePos, 52 /*JustF32*/, 4 /*Float32*/, 4, false);
+    result = result && verifier.verifyField(tablePos, 54 /*MaybeF32*/, 4 /*Float32*/, 4, false);
+    result = result && verifier.verifyField(tablePos, 56 /*DefaultF32*/, 4 /*Float32*/, 4, false);
+    result = result && verifier.verifyField(tablePos, 58 /*JustF64*/, 8 /*Float64*/, 8, false);
+    result = result && verifier.verifyField(tablePos, 60 /*MaybeF64*/, 8 /*Float64*/, 8, false);
+    result = result && verifier.verifyField(tablePos, 62 /*DefaultF64*/, 8 /*Float64*/, 8, false);
+    result = result && verifier.verifyField(tablePos, 64 /*JustBool*/, 1 /*Int8*/, 1, false);
+    result = result && verifier.verifyField(tablePos, 66 /*MaybeBool*/, 1 /*Int8*/, 1, false);
+    result = result && verifier.verifyField(tablePos, 68 /*DefaultBool*/, 1 /*Int8*/, 1, false);
+    result = result && verifier.verifyField(tablePos, 70 /*JustEnum*/, 1 /*Int8*/, 1, false);
+    result = result && verifier.verifyField(tablePos, 72 /*MaybeEnum*/, 1 /*Int8*/, 1, false);
+    result = result && verifier.verifyField(tablePos, 74 /*DefaultEnum*/, 1 /*Int8*/, 1, false);
+    result = result && verifier.verifyTableEnd(tablePos);
+    return result;
 }

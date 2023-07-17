@@ -4,7 +4,7 @@ import * as flatbuffers from 'flatbuffers';
 
 import { Abc } from '../foobar/abc.js';
 import { class_ as foobar_class_ } from '../foobar/class.js';
-import { Schema, SchemaT } from '../reflection/schema.js';
+import { Schema, schemaVerify, SchemaT } from '../reflection/schema.js';
 import { class_ } from '../typescript/class.js';
 
 
@@ -219,4 +219,19 @@ pack(builder:flatbuffers.Builder): flatbuffers.Offset {
 
   return Object_.endObject(builder);
 }
+}
+
+// Verification function for 'Object_' table.
+export function object_Verify(verifier: flatbuffers.Verifier, tablePos: flatbuffers.UOffset): boolean {
+  let result = true;
+  result = result && verifier.verifyTableStart(tablePos);
+  result = result && verifier.verifyField(tablePos, 4 /*Return*/, 4 /*Int32*/, 4, false);
+  result = result && verifier.verifyField(tablePos, 6 /*If*/, 4 /*Int32*/, 4, false);
+  result = result && verifier.verifyField(tablePos, 8 /*Switch*/, 4 /*Int32*/, 4, false);
+  result = result && verifier.verifyField(tablePos, 10 /*Enum*/, 4 /*Int32*/, 4, false);
+  result = result && verifier.verifyField(tablePos, 12 /*Enum2*/, 4 /*Int32*/, 4, false);
+  result = result && verifier.verifyField(tablePos, 14 /*Enum3*/, 4 /*Int32*/, 4, false);
+  result = result && verifier.verifyTable(tablePos, 16 /*Reflect*/, schemaVerify, false);
+  result = result && verifier.verifyTableEnd(tablePos);
+  return result;
 }

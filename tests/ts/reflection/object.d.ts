@@ -60,3 +60,4 @@ export declare class Object_T implements flatbuffers.IGeneratedObject {
     constructor(name?: string | Uint8Array | null, fields?: (FieldT)[], isStruct?: boolean, minalign?: number, bytesize?: number, attributes?: (KeyValueT)[], documentation?: (string)[], declarationFile?: string | Uint8Array | null);
     pack(builder: flatbuffers.Builder): flatbuffers.Offset;
 }
+export declare function object_Verify(verifier: flatbuffers.Verifier, tablePos: flatbuffers.UOffset): boolean;

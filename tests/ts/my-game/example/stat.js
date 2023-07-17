@@ -97,3 +97,13 @@ export class StatT {
         return Stat.createStat(builder, id, this.val, this.count);
     }
 }
+// Verification function for 'Stat' table.
+export function statVerify(verifier, tablePos) {
+    let result = true;
+    result = result && verifier.verifyTableStart(tablePos);
+    result = result && verifier.verifyString(tablePos, 4 /*Id*/, false);
+    result = result && verifier.verifyField(tablePos, 6 /*Val*/, 8 /*Int64*/, 8, false);
+    result = result && verifier.verifyField(tablePos, 8 /*Count*/, 2 /*Uint16*/, 2, false);
+    result = result && verifier.verifyTableEnd(tablePos);
+    return result;
+}

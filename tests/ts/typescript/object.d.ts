@@ -46,3 +46,4 @@ export declare class Object_T implements flatbuffers.IGeneratedObject {
     constructor(return_?: number, if_?: number, switch_?: number, enum_?: class_, enum2?: foobar_class_, enum3?: Abc, reflect?: SchemaT | null);
     pack(builder: flatbuffers.Builder): flatbuffers.Offset;
 }
+export declare function object_Verify(verifier: flatbuffers.Verifier, tablePos: flatbuffers.UOffset): boolean;

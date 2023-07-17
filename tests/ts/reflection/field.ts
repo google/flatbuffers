@@ -2,8 +2,8 @@
 
 import * as flatbuffers from 'flatbuffers';
 
-import { KeyValue, KeyValueT } from '../reflection/key-value.js';
-import { Type, TypeT } from '../reflection/type.js';
+import { KeyValue, keyValueVerify, KeyValueT } from '../reflection/key-value.js';
+import { Type, typeVerify, TypeT } from '../reflection/type.js';
 
 
 export class Field implements flatbuffers.IUnpackableObject<FieldT> {
@@ -205,12 +205,31 @@ mutate_padding(value:number):boolean {
   return true;
 }
 
+/**
+ * If the field uses 64-bit offsets.
+ */
+offset64():boolean {
+  const offset = this.bb!.__offset(this.bb_pos, 30);
+  return offset ? !!this.bb!.readInt8(this.bb_pos + offset) : false;
+}
+
+mutate_offset64(value:boolean):boolean {
+  const offset = this.bb!.__offset(this.bb_pos, 30);
+
+  if (offset === 0) {
+    return false;
+  }
+
+  this.bb!.writeInt8(this.bb_pos + offset, +value);
+  return true;
+}
+
 static getFullyQualifiedName():string {
   return 'reflection.Field';
 }
 
 static startField(builder:flatbuffers.Builder) {
-  builder.startObject(13);
+  builder.startObject(14);
 }
 
 static addName(builder:flatbuffers.Builder, nameOffset:flatbuffers.Offset) {
@@ -289,6 +308,10 @@ static addPadding(builder:flatbuffers.Builder, padding:number) {
   builder.addFieldInt16(12, padding, 0);
 }
 
+static addOffset64(builder:flatbuffers.Builder, offset64:boolean) {
+  builder.addFieldInt8(13, +offset64, +false);
+}
+
 static endField(builder:flatbuffers.Builder):flatbuffers.Offset {
   const offset = builder.endObject();
   builder.requiredField(offset, 4) // name
@@ -311,7 +334,8 @@ unpack(): FieldT {
     this.bb!.createObjList<KeyValue, KeyValueT>(this.attributes.bind(this), this.attributesLength()),
     this.bb!.createScalarList<string>(this.documentation.bind(this), this.documentationLength()),
     this.optional(),
-    this.padding()
+    this.padding(),
+    this.offset64()
   );
 }
 
@@ -330,6 +354,7 @@ unpackTo(_o: FieldT): void {
   _o.documentation = this.bb!.createScalarList<string>(this.documentation.bind(this), this.documentationLength());
   _o.optional = this.optional();
   _o.padding = this.padding();
+  _o.offset64 = this.offset64();
 }
 }
 
@@ -347,7 +372,8 @@ constructor(
   public attributes: (KeyValueT)[] = [],
   public documentation: (string)[] = [],
   public optional: boolean = false,
-  public padding: number = 0
+  public padding: number = 0,
+  public offset64: boolean = false
 ){}
 
 
@@ -371,7 +397,30 @@ pack(builder:flatbuffers.Builder): flatbuffers.Offset {
   Field.addDocumentation(builder, documentation);
   Field.addOptional(builder, this.optional);
   Field.addPadding(builder, this.padding);
+  Field.addOffset64(builder, this.offset64);
 
   return Field.endField(builder);
 }
+}
+
+// Verification function for 'Field' table.
+export function fieldVerify(verifier: flatbuffers.Verifier, tablePos: flatbuffers.UOffset): boolean {
+  let result = true;
+  result = result && verifier.verifyTableStart(tablePos);
+  result = result && verifier.verifyString(tablePos, 4 /*Name*/, true);
+  result = result && verifier.verifyTable(tablePos, 6 /*Type*/, typeVerify, true);
+  result = result && verifier.verifyField(tablePos, 8 /*Id*/, 2 /*Uint16*/, 2, false);
+  result = result && verifier.verifyField(tablePos, 10 /*Offset*/, 2 /*Uint16*/, 2, false);
+  result = result && verifier.verifyField(tablePos, 12 /*DefaultInteger*/, 8 /*Int64*/, 8, false);
+  result = result && verifier.verifyField(tablePos, 14 /*DefaultReal*/, 8 /*Float64*/, 8, false);
+  result = result && verifier.verifyField(tablePos, 16 /*Deprecated*/, 1 /*Int8*/, 1, false);
+  result = result && verifier.verifyField(tablePos, 18 /*Required*/, 1 /*Int8*/, 1, false);
+  result = result && verifier.verifyField(tablePos, 20 /*Key*/, 1 /*Int8*/, 1, false);
+  result = result && verifier.verifyVectorOfTables(tablePos, 22 /*Attributes*/, keyValueVerify, false);
+  result = result && verifier.verifyVectorOfStrings(tablePos, 24 /*Documentation*/, false);
+  result = result && verifier.verifyField(tablePos, 26 /*Optional*/, 1 /*Int8*/, 1, false);
+  result = result && verifier.verifyField(tablePos, 28 /*Padding*/, 2 /*Uint16*/, 2, false);
+  result = result && verifier.verifyField(tablePos, 30 /*Offset64*/, 1 /*Int8*/, 1, false);
+  result = result && verifier.verifyTableEnd(tablePos);
+  return result;
 }

@@ -136,3 +136,14 @@ pack(builder:flatbuffers.Builder): flatbuffers.Offset {
   );
 }
 }
+
+// Verification function for 'Stat' table.
+export function statVerify(verifier: flatbuffers.Verifier, tablePos: flatbuffers.UOffset): boolean {
+  let result = true;
+  result = result && verifier.verifyTableStart(tablePos);
+  result = result && verifier.verifyString(tablePos, 4 /*Id*/, false);
+  result = result && verifier.verifyField(tablePos, 6 /*Val*/, 8 /*Int64*/, 8, false);
+  result = result && verifier.verifyField(tablePos, 8 /*Count*/, 2 /*Uint16*/, 2, false);
+  result = result && verifier.verifyTableEnd(tablePos);
+  return result;
+}

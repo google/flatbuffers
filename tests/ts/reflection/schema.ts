@@ -2,10 +2,10 @@
 
 import * as flatbuffers from 'flatbuffers';
 
-import { Enum, EnumT } from '../reflection/enum.js';
-import { Object_, Object_T } from '../reflection/object.js';
-import { SchemaFile, SchemaFileT } from '../reflection/schema-file.js';
-import { Service, ServiceT } from '../reflection/service.js';
+import { Enum, enum_Verify, EnumT } from '../reflection/enum.js';
+import { Object_, object_Verify, Object_T } from '../reflection/object.js';
+import { SchemaFile, schemaFileVerify, SchemaFileT } from '../reflection/schema-file.js';
+import { Service, serviceVerify, ServiceT } from '../reflection/service.js';
 
 
 export class Schema implements flatbuffers.IUnpackableObject<SchemaT> {
@@ -28,6 +28,12 @@ static getSizePrefixedRootAsSchema(bb:flatbuffers.ByteBuffer, obj?:Schema):Schem
 
 static bufferHasIdentifier(bb:flatbuffers.ByteBuffer):boolean {
   return bb.__has_identifier('BFBS');
+}
+
+static verifySchema(bb:flatbuffers.ByteBuffer, sizePrefix?:boolean):boolean {
+  let verifier = flatbuffers.newVerifier(bb);
+  if (sizePrefix == null) sizePrefix = true;
+  return verifier.verifyBuffer('BFBS', sizePrefix, schemaVerify);
 }
 
 objects(index: number, obj?:Object_):Object_|null {
@@ -273,4 +279,20 @@ pack(builder:flatbuffers.Builder): flatbuffers.Offset {
 
   return Schema.endSchema(builder);
 }
+}
+
+// Verification function for 'Schema' table.
+export function schemaVerify(verifier: flatbuffers.Verifier, tablePos: flatbuffers.UOffset): boolean {
+  let result = true;
+  result = result && verifier.verifyTableStart(tablePos);
+  result = result && verifier.verifyVectorOfTables(tablePos, 4 /*Objects*/, object_Verify, true);
+  result = result && verifier.verifyVectorOfTables(tablePos, 6 /*Enums*/, enum_Verify, true);
+  result = result && verifier.verifyString(tablePos, 8 /*FileIdent*/, false);
+  result = result && verifier.verifyString(tablePos, 10 /*FileExt*/, false);
+  result = result && verifier.verifyTable(tablePos, 12 /*RootTable*/, object_Verify, false);
+  result = result && verifier.verifyVectorOfTables(tablePos, 14 /*Services*/, serviceVerify, false);
+  result = result && verifier.verifyField(tablePos, 16 /*AdvancedFeatures*/, 8 /*Uint64*/, 8, false);
+  result = result && verifier.verifyVectorOfTables(tablePos, 18 /*FbsFiles*/, schemaFileVerify, false);
+  result = result && verifier.verifyTableEnd(tablePos);
+  return result;
 }

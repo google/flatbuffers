@@ -94,3 +94,12 @@ pack(builder:flatbuffers.Builder): flatbuffers.Offset {
   );
 }
 }
+
+// Verification function for 'TestSimpleTableWithEnum' table.
+export function testSimpleTableWithEnumVerify(verifier: flatbuffers.Verifier, tablePos: flatbuffers.UOffset): boolean {
+  let result = true;
+  result = result && verifier.verifyTableStart(tablePos);
+  result = result && verifier.verifyField(tablePos, 4 /*Color*/, 1 /*Uint8*/, 1, false);
+  result = result && verifier.verifyTableEnd(tablePos);
+  return result;
+}

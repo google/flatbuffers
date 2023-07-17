@@ -85,3 +85,12 @@ pack(builder:flatbuffers.Builder): flatbuffers.Offset {
   );
 }
 }
+
+// Verification function for 'Attacker' table.
+export function attackerVerify(verifier: flatbuffers.Verifier, tablePos: flatbuffers.UOffset): boolean {
+  let result = true;
+  result = result && verifier.verifyTableStart(tablePos);
+  result = result && verifier.verifyField(tablePos, 4 /*SwordAttackDamage*/, 4 /*Int32*/, 4, false);
+  result = result && verifier.verifyTableEnd(tablePos);
+  return result;
+}

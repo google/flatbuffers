@@ -40,3 +40,4 @@ export declare class RPCCallT implements flatbuffers.IGeneratedObject {
     constructor(name?: string | Uint8Array | null, request?: Object_T | null, response?: Object_T | null, attributes?: (KeyValueT)[], documentation?: (string)[]);
     pack(builder: flatbuffers.Builder): flatbuffers.Offset;
 }
+export declare function rpccallVerify(verifier: flatbuffers.Verifier, tablePos: flatbuffers.UOffset): boolean;

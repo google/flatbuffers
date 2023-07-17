@@ -41,3 +41,4 @@ export declare class EnumValT implements flatbuffers.IGeneratedObject {
     constructor(name?: string | Uint8Array | null, value?: bigint, unionType?: TypeT | null, documentation?: (string)[], attributes?: (KeyValueT)[]);
     pack(builder: flatbuffers.Builder): flatbuffers.Offset;
 }
+export declare function enumValVerify(verifier: flatbuffers.Verifier, tablePos: flatbuffers.UOffset): boolean;

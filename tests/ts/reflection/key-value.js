@@ -67,3 +67,12 @@ export class KeyValueT {
         return KeyValue.createKeyValue(builder, key, value);
     }
 }
+// Verification function for 'KeyValue' table.
+export function keyValueVerify(verifier, tablePos) {
+    let result = true;
+    result = result && verifier.verifyTableStart(tablePos);
+    result = result && verifier.verifyString(tablePos, 4 /*Key*/, true);
+    result = result && verifier.verifyString(tablePos, 6 /*Value*/, false);
+    result = result && verifier.verifyTableEnd(tablePos);
+    return result;
+}

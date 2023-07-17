@@ -20,3 +20,4 @@ export declare class HandFanT implements flatbuffers.IGeneratedObject {
     constructor(length?: number);
     pack(builder: flatbuffers.Builder): flatbuffers.Offset;
 }
+export declare function handFanVerify(verifier: flatbuffers.Verifier, tablePos: flatbuffers.UOffset): boolean;

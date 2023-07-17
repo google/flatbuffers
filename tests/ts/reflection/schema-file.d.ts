@@ -38,3 +38,4 @@ export declare class SchemaFileT implements flatbuffers.IGeneratedObject {
     constructor(filename?: string | Uint8Array | null, includedFilenames?: (string)[]);
     pack(builder: flatbuffers.Builder): flatbuffers.Offset;
 }
+export declare function schemaFileVerify(verifier: flatbuffers.Verifier, tablePos: flatbuffers.UOffset): boolean;

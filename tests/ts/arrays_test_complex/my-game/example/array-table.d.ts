@@ -7,6 +7,7 @@ export declare class ArrayTable implements flatbuffers.IUnpackableObject<ArrayTa
     static getRootAsArrayTable(bb: flatbuffers.ByteBuffer, obj?: ArrayTable): ArrayTable;
     static getSizePrefixedRootAsArrayTable(bb: flatbuffers.ByteBuffer, obj?: ArrayTable): ArrayTable;
     static bufferHasIdentifier(bb: flatbuffers.ByteBuffer): boolean;
+    static verifyArrayTable(bb: flatbuffers.ByteBuffer, sizePrefix?: boolean): boolean;
     a(): string | null;
     a(optionalEncoding: flatbuffers.Encoding): string | Uint8Array | null;
     cUnderscore(obj?: ArrayStruct): ArrayStruct | null;
@@ -26,3 +27,4 @@ export declare class ArrayTableT implements flatbuffers.IGeneratedObject {
     constructor(a?: string | Uint8Array | null, cUnderscore?: ArrayStructT | null);
     pack(builder: flatbuffers.Builder): flatbuffers.Offset;
 }
+export declare function arrayTableVerify(verifier: flatbuffers.Verifier, tablePos: flatbuffers.UOffset): boolean;

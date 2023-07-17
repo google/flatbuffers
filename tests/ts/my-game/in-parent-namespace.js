@@ -48,3 +48,10 @@ export class InParentNamespaceT {
         return InParentNamespace.createInParentNamespace(builder);
     }
 }
+// Verification function for 'InParentNamespace' table.
+export function inParentNamespaceVerify(verifier, tablePos) {
+    let result = true;
+    result = result && verifier.verifyTableStart(tablePos);
+    result = result && verifier.verifyTableEnd(tablePos);
+    return result;
+}

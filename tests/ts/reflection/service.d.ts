@@ -48,3 +48,4 @@ export declare class ServiceT implements flatbuffers.IGeneratedObject {
     constructor(name?: string | Uint8Array | null, calls?: (RPCCallT)[], attributes?: (KeyValueT)[], documentation?: (string)[], declarationFile?: string | Uint8Array | null);
     pack(builder: flatbuffers.Builder): flatbuffers.Offset;
 }
+export declare function serviceVerify(verifier: flatbuffers.Verifier, tablePos: flatbuffers.UOffset): boolean;

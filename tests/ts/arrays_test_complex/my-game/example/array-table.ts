@@ -27,6 +27,12 @@ static bufferHasIdentifier(bb:flatbuffers.ByteBuffer):boolean {
   return bb.__has_identifier('RHUB');
 }
 
+static verifyArrayTable(bb:flatbuffers.ByteBuffer, sizePrefix?:boolean):boolean {
+  let verifier = flatbuffers.newVerifier(bb);
+  if (sizePrefix == null) sizePrefix = true;
+  return verifier.verifyBuffer('RHUB', sizePrefix, arrayTableVerify);
+}
+
 a():string|null
 a(optionalEncoding:flatbuffers.Encoding):string|Uint8Array|null
 a(optionalEncoding?:any):string|Uint8Array|null {
@@ -99,4 +105,14 @@ pack(builder:flatbuffers.Builder): flatbuffers.Offset {
 
   return ArrayTable.endArrayTable(builder);
 }
+}
+
+// Verification function for 'ArrayTable' table.
+export function arrayTableVerify(verifier: flatbuffers.Verifier, tablePos: flatbuffers.UOffset): boolean {
+  let result = true;
+  result = result && verifier.verifyTableStart(tablePos);
+  result = result && verifier.verifyString(tablePos, 4 /*A*/, false);
+  result = result && verifier.verifyField(tablePos, 6 /*CUnderscore*/, 2656 /*ArrayStruct*/, 8, false);
+  result = result && verifier.verifyTableEnd(tablePos);
+  return result;
 }

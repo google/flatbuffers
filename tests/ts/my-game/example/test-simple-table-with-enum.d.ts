@@ -23,3 +23,4 @@ export declare class TestSimpleTableWithEnumT implements flatbuffers.IGeneratedO
     constructor(color?: Color);
     pack(builder: flatbuffers.Builder): flatbuffers.Offset;
 }
+export declare function testSimpleTableWithEnumVerify(verifier: flatbuffers.Verifier, tablePos: flatbuffers.UOffset): boolean;

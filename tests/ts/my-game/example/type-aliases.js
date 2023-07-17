@@ -288,3 +288,22 @@ export class TypeAliasesT {
         return TypeAliases.createTypeAliases(builder, this.i8, this.u8, this.i16, this.u16, this.i32, this.u32, this.i64, this.u64, this.f32, this.f64, v8, vf64);
     }
 }
+// Verification function for 'TypeAliases' table.
+export function typeAliasesVerify(verifier, tablePos) {
+    let result = true;
+    result = result && verifier.verifyTableStart(tablePos);
+    result = result && verifier.verifyField(tablePos, 4 /*I8*/, 1 /*Int8*/, 1, false);
+    result = result && verifier.verifyField(tablePos, 6 /*U8*/, 1 /*Uint8*/, 1, false);
+    result = result && verifier.verifyField(tablePos, 8 /*I16*/, 2 /*Int16*/, 2, false);
+    result = result && verifier.verifyField(tablePos, 10 /*U16*/, 2 /*Uint16*/, 2, false);
+    result = result && verifier.verifyField(tablePos, 12 /*I32*/, 4 /*Int32*/, 4, false);
+    result = result && verifier.verifyField(tablePos, 14 /*U32*/, 4 /*Uint32*/, 4, false);
+    result = result && verifier.verifyField(tablePos, 16 /*I64*/, 8 /*Int64*/, 8, false);
+    result = result && verifier.verifyField(tablePos, 18 /*U64*/, 8 /*Uint64*/, 8, false);
+    result = result && verifier.verifyField(tablePos, 20 /*F32*/, 4 /*Float32*/, 4, false);
+    result = result && verifier.verifyField(tablePos, 22 /*F64*/, 8 /*Float64*/, 8, false);
+    result = result && verifier.verifyVectorOfData(tablePos, 24 /*V8*/, 1 /*Int8*/, false);
+    result = result && verifier.verifyVectorOfData(tablePos, 26 /*Vf64*/, 8 /*Float64*/, false);
+    result = result && verifier.verifyTableEnd(tablePos);
+    return result;
+}

@@ -159,3 +159,16 @@ export class TypeT {
         return Type.createType(builder, this.baseType, this.element, this.index, this.fixedLength, this.baseSize, this.elementSize);
     }
 }
+// Verification function for 'Type' table.
+export function typeVerify(verifier, tablePos) {
+    let result = true;
+    result = result && verifier.verifyTableStart(tablePos);
+    result = result && verifier.verifyField(tablePos, 4 /*BaseType*/, 1 /*Int8*/, 1, false);
+    result = result && verifier.verifyField(tablePos, 6 /*Element*/, 1 /*Int8*/, 1, false);
+    result = result && verifier.verifyField(tablePos, 8 /*Index*/, 4 /*Int32*/, 4, false);
+    result = result && verifier.verifyField(tablePos, 10 /*FixedLength*/, 2 /*Uint16*/, 2, false);
+    result = result && verifier.verifyField(tablePos, 12 /*BaseSize*/, 4 /*Uint32*/, 4, false);
+    result = result && verifier.verifyField(tablePos, 14 /*ElementSize*/, 4 /*Uint32*/, 4, false);
+    result = result && verifier.verifyTableEnd(tablePos);
+    return result;
+}

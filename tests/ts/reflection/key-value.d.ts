@@ -24,3 +24,4 @@ export declare class KeyValueT implements flatbuffers.IGeneratedObject {
     constructor(key?: string | Uint8Array | null, value?: string | Uint8Array | null);
     pack(builder: flatbuffers.Builder): flatbuffers.Offset;
 }
+export declare function keyValueVerify(verifier: flatbuffers.Verifier, tablePos: flatbuffers.UOffset): boolean;
