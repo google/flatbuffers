@@ -296,5 +296,61 @@ void ParseFlexbuffersFromJsonWithNullTest() {
   }
 }
 
+void FlexBuffersNullTerminationTest() {
+  // test null termination verification in Key
+  {
+    flexbuffers::Builder fbb;
+
+    fbb.Key("test string");
+    fbb.Finish();
+
+    auto buf_copy = fbb.GetBuffer();
+
+    TEST_EQ(flexbuffers::VerifyBuffer(buf_copy.data(),
+                                      buf_copy.size()),
+            true);
+
+    auto root = flexbuffers::GetRoot(buf_copy);
+
+    TEST_ASSERT(root.IsKey());
+    auto k = root.AsKey();
+
+    //corrupt null terminator
+    const_cast<char*>(k)[strlen(k)] = 1;
+
+    //verification should fail
+    TEST_EQ(flexbuffers::VerifyBuffer(buf_copy.data(),
+                                      buf_copy.size()),
+            false);
+  }
+
+  // test null termination verification in String
+  {
+    flexbuffers::Builder fbb;
+
+    fbb.String("test string");
+    fbb.Finish();
+
+    auto buf_copy = fbb.GetBuffer();
+
+    TEST_EQ(flexbuffers::VerifyBuffer(buf_copy.data(),
+                                      buf_copy.size()),
+            true);
+
+    auto root = flexbuffers::GetRoot(buf_copy);
+
+    TEST_ASSERT(root.IsString());
+    auto s = root.AsString();
+
+    //corrupt null terminator
+    const_cast<char*>(s.c_str())[s.size()] = 1;
+
+    //verification should fail
+    TEST_EQ(flexbuffers::VerifyBuffer(buf_copy.data(),
+                                      buf_copy.size()),
+            false);
+  }
+}
+
 }  // namespace tests
 }  // namespace flatbuffers
