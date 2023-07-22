@@ -350,6 +350,37 @@ void FlexBuffersNullTerminationTest() {
                                       buf_copy.size()),
             false);
   }
+  {
+    flexbuffers::Builder fbb;
+    //not null terminated
+    fbb.Key("1234567890", 5);
+    fbb.Finish();
+
+    TEST_EQ(flexbuffers::VerifyBuffer(fbb.GetBuffer().data(),
+                                      fbb.GetBuffer().size()),
+            true);
+
+    auto root = flexbuffers::GetRoot(fbb.GetBuffer());
+    auto k = root.AsKey();
+    TEST_EQ(strlen(k), 5);
+  }
+  {
+    flexbuffers::Builder fbb;
+    //not null terminated
+    fbb.String("1234567890", 5);
+    fbb.Finish();
+
+    TEST_EQ(flexbuffers::VerifyBuffer(fbb.GetBuffer().data(),
+                                      fbb.GetBuffer().size()),
+            true);
+
+    auto root = flexbuffers::GetRoot(fbb.GetBuffer());
+
+    TEST_ASSERT(root.IsString());
+    auto k = root.AsString();
+
+    TEST_EQ(strlen(k.c_str()), 5);
+  }
 }
 
 }  // namespace tests
