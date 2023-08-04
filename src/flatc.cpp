@@ -187,6 +187,7 @@ const static FlatCOption flatc_options[] = {
     "relative to. The 'root' is denoted with  `//`. E.g. if PATH=/a/b/c "
     "then /a/d/e.fbs will be serialized as //../d/e.fbs. (PATH defaults to the "
     "directory of the first provided schema file." },
+  { "", "bfbs-absolute-paths", "", "Uses absolute paths instead of relative paths in the BFBS output." },
   { "", "bfbs-comments", "", "Add doc comments to the binary schema files." },
   { "", "bfbs-builtins", "",
     "Add builtin attributes to the binary schema files." },
@@ -594,6 +595,8 @@ FlatCOptions FlatCompiler::ParseFromCommandLineArguments(int argc,
         opts.binary_schema_builtins = true;
       } else if (arg == "--bfbs-gen-embed") {
         opts.binary_schema_gen_embed = true;
+      } else if (arg == "--bfbs-absolute-paths") {
+        opts.binary_schema_absolute_paths = true;
       } else if (arg == "--reflect-types") {
         opts.mini_reflect = IDLOptions::kTypes;
       } else if (arg == "--reflect-names") {
