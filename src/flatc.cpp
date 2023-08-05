@@ -253,6 +253,8 @@ const static FlatCOption flatc_options[] = {
   { "", "python-no-type-prefix-suffix", "",
     "Skip emission of Python functions that are prefixed with typenames" },
   { "", "python-typing", "", "Generate Python type annotations" },
+  { "", "ts-omit-entrypoint", "",
+    "Omit emission of namespace entrypoint file" },
   { "", "file-names-only", "",
     "Print out generated file names without writing to the files" },
 };
@@ -659,6 +661,8 @@ FlatCOptions FlatCompiler::ParseFromCommandLineArguments(int argc,
         opts.python_no_type_prefix_suffix = true;
       } else if (arg == "--python-typing") {
         opts.python_typing = true;
+      } else if (arg == "--ts-omit-entrypoint") {
+        opts.ts_omit_entrypoint = true;
       } else if (arg == "--annotate-sparse-vectors") {
         options.annotate_include_vector_contents = false;
       } else if (arg == "--annotate") {
