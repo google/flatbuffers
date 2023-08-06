@@ -819,7 +819,7 @@ struct IDLOptions {
         keep_proto_id(false),
         python_no_type_prefix_suffix(false),
         python_typing(false),
-        ts_skip_entrypoint(false),
+        ts_omit_entrypoint(false),
         proto_id_gap_action(ProtoIdGapAction::WARNING),
         mini_reflect(IDLOptions::kNone),
         require_explicit_ids(false),
