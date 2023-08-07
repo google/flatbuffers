@@ -375,7 +375,7 @@ class PythonGenerator : public BaseGenerator {
     code += namer_.Method(field);
 
     if (parser_.opts.python_typing) {
-      code += "(self) -> Optional[str]:";
+      code += "(self) -> Optional[bytes]:";
       imports.insert(ImportMapEntry{ "typing", "Optional" });
     } else {
       code += "(self):";
