@@ -113,7 +113,7 @@ class TsGenerator : public BaseGenerator {
   bool generate() {
     generateEnums();
     generateStructs();
-    generateEntry();
+    if (!parser_.opts.ts_omit_entrypoint) { generateEntry(); }
     if (!generateBundle()) return false;
     return true;
   }
