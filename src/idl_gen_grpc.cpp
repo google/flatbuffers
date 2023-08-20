@@ -441,7 +441,7 @@ class PythonGRPCGenerator : public flatbuffers::BaseGenerator {
           NamespaceDir(*def->defined_namespace) + file_name_ + "_grpc_fb.py";
       return SaveFile(filename.c_str(), final_code, false);
     }
-    return true
+    return true;
   }
 };
 
