@@ -387,7 +387,7 @@ var ArrayStructT = class {
 
 // arrays_test_complex/my-game/example/array-table.js
 var flatbuffers = __toESM(require("flatbuffers"), 1);
-var ArrayTable = class {
+var ArrayTable = class _ArrayTable {
   constructor() {
     this.bb = null;
     this.bb_pos = 0;
@@ -398,11 +398,11 @@ var ArrayTable = class {
     return this;
   }
   static getRootAsArrayTable(bb, obj) {
-    return (obj || new ArrayTable()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+    return (obj || new _ArrayTable()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
   }
   static getSizePrefixedRootAsArrayTable(bb, obj) {
     bb.setPosition(bb.position() + flatbuffers.SIZE_PREFIX_LENGTH);
-    return (obj || new ArrayTable()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+    return (obj || new _ArrayTable()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
   }
   static bufferHasIdentifier(bb) {
     return bb.__has_identifier("RHUB");
