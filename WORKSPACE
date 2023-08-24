@@ -79,9 +79,9 @@ grpc_extra_deps()
 
 http_archive(
     name = "aspect_rules_js",
-    sha256 = "124ed29fb0b3d0cba5b44f8f8e07897cf61b34e35e33b1f83d1a943dfd91b193",
-    strip_prefix = "rules_js-1.24.0",
-    url = "https://github.com/aspect-build/rules_js/releases/download/v1.24.0/rules_js-v1.24.0.tar.gz",
+    sha256 = "bdbd6df52fc7963f55281fe0a140e21de8ec587ab711a8a2fff0715b6710a4f8",
+    strip_prefix = "rules_js-1.32.0",
+    url = "https://github.com/aspect-build/rules_js/releases/download/v1.32.0/rules_js-v1.32.0.tar.gz",
 )
 
 load("@aspect_rules_js//js:repositories.bzl", "rules_js_dependencies")
@@ -94,9 +94,9 @@ pnpm_repository(name = "pnpm")
 
 http_archive(
     name = "aspect_rules_ts",
-    sha256 = "8eb25d1fdafc0836f5778d33fb8eaac37c64176481d67872b54b0a05de5be5c0",
-    strip_prefix = "rules_ts-1.3.3",
-    url = "https://github.com/aspect-build/rules_ts/releases/download/v1.3.3/rules_ts-v1.3.3.tar.gz",
+    sha256 = "4c3f34fff9f96ffc9c26635d8235a32a23a6797324486c7d23c1dfa477e8b451",
+    strip_prefix = "rules_ts-1.4.5",
+    url = "https://github.com/aspect-build/rules_ts/releases/download/v1.4.5/rules_ts-v1.4.5.tar.gz",
 )
 
 load("@aspect_rules_ts//ts:repositories.bzl", "rules_ts_dependencies")
@@ -132,25 +132,25 @@ npm_repositories()
 
 http_archive(
     name = "aspect_rules_esbuild",
-    sha256 = "2ea31bd97181a315e048be693ddc2815fddda0f3a12ca7b7cc6e91e80f31bac7",
-    strip_prefix = "rules_esbuild-0.14.4",
-    url = "https://github.com/aspect-build/rules_esbuild/releases/download/v0.14.4/rules_esbuild-v0.14.4.tar.gz",
+    sha256 = "098e38e5ee868c14a6484ba263b79e57d48afacfc361ba30137c757a9c4716d6",
+    strip_prefix = "rules_esbuild-0.15.0",
+    url = "https://github.com/aspect-build/rules_esbuild/releases/download/v0.15.0/rules_esbuild-v0.15.0.tar.gz",
 )
 
 # Register a toolchain containing esbuild npm package and native bindings
-load("@aspect_rules_esbuild//esbuild:repositories.bzl", "LATEST_VERSION", "esbuild_register_toolchains")
+load("@aspect_rules_esbuild//esbuild:repositories.bzl", "LATEST_ESBUILD_VERSION", "esbuild_register_toolchains")
 
 esbuild_register_toolchains(
     name = "esbuild",
-    esbuild_version = LATEST_VERSION,
+    esbuild_version = LATEST_ESBUILD_VERSION,
 )
 
 http_file(
     name = "bazel_linux_x86_64",
     downloaded_file_path = "bazel",
     executable = True,
-    sha256 = "e89747d63443e225b140d7d37ded952dacea73aaed896bca01ccd745827c6289",
+    sha256 = "e78fc3394deae5408d6f49a15c7b1e615901969ecf6e50d55ef899996b0b8458",
     urls = [
-        "https://github.com/bazelbuild/bazel/releases/download/6.1.2/bazel-6.1.2-linux-x86_64",
+        "https://github.com/bazelbuild/bazel/releases/download/6.3.2/bazel-6.3.2-linux-x86_64",
     ],
 )
