@@ -2113,12 +2113,13 @@ class JavaGenerator : public BaseGenerator {
               " " + field_name + ") { " + array_validation + "this." +
               field_name + " = " + field_name + "; }\n\n";
     }
-    // Generate Constructor
+
+
+    // Generate Empty Param Constructor
     code += "\n";
     code += "  public " + class_name + "() {\n";
-    for (auto it = struct_def.fields.vec.begin();
-         it != struct_def.fields.vec.end(); ++it) {
-      const auto &field = **it;
+    for (auto it : struct_def.fields.vec) {
+      const auto &field = *it;
       if (field.deprecated) continue;
       if (field.value.type.base_type == BASE_TYPE_UTYPE) continue;
       if (field.value.type.element == BASE_TYPE_UTYPE) continue;
@@ -2156,6 +2157,33 @@ class JavaGenerator : public BaseGenerator {
       }
     }
     code += "  }\n";
+
+    // Generate Full Param Constructor
+    code += "\n";
+    code += "  public " + class_name + "(";
+    auto last_param = struct_def.fields.vec[struct_def.fields.vec.size() - 1];
+    for (auto it : struct_def.fields.vec) {
+      const auto &field = *it;
+      if (field.deprecated) continue;
+      if (field.value.type.base_type == BASE_TYPE_UTYPE) continue;
+      if (field.value.type.element == BASE_TYPE_UTYPE) continue;
+      const auto type_name = GenTypeGet_ObjectAPI(field.value.type, false, true);
+      code += type_name + " " + namer_.Field(field);
+      if (last_param != it) {
+        code += ", ";
+      }
+    }
+    code += ") {\n";
+    for (auto it : struct_def.fields.vec) {
+      const auto &field = *it;
+      if (field.deprecated) continue;
+      if (field.value.type.base_type == BASE_TYPE_UTYPE) continue;
+      if (field.value.type.element == BASE_TYPE_UTYPE) continue;
+      const auto get_field = namer_.Method("get", field);
+      code += "    this." + namer_.Field(field) + " = " + namer_.Field(field) + ";";
+    }
+    code += "  }\n";
+
     if (parser_.root_struct_def_ == &struct_def) {
       const std::string struct_type = namer_.Type(struct_def);
       code += "  public static " + class_name +
