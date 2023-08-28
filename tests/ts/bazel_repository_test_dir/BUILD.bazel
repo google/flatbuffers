@@ -1,6 +1,6 @@
 load("@aspect_rules_js//js:defs.bzl", "js_test")
-load("@com_github_google_flatbuffers//:typescript.bzl", "flatbuffer_ts_library")
 load("@aspect_rules_js//npm:defs.bzl", "npm_link_package")
+load("@com_github_google_flatbuffers//:typescript.bzl", "flatbuffer_ts_library")
 load("@npm//:defs.bzl", "npm_link_all_packages")
 
 npm_link_all_packages(name = "node_modules")
