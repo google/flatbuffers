@@ -1,5 +1,5 @@
-load("@aspect_rules_ts//ts:defs.bzl", "ts_project")
 load("@aspect_rules_js//npm:defs.bzl", "npm_package")
+load("@aspect_rules_ts//ts:defs.bzl", "ts_project")
 load("@flatbuffers_npm//:npm_link_all_packages.bzl", "npm_link_all_packages")
 
 filegroup(
