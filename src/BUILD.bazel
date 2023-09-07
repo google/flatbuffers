@@ -147,6 +147,7 @@ cc_library(
     ],
     strip_include_prefix = "/include",
     visibility = ["//:__pkg__"],
+    alwayslink = 1,
     deps = [
         ":flatc_library",
         "//grpc/src/compiler:cpp_generator",
