@@ -1,4 +1,3 @@
-# https://beta.ruff.rs
 name: ruff
 on:
   push:
