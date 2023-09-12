@@ -77,6 +77,7 @@ Namer::Config NimDefaultConfig() {
            /*filename_extension=*/".nim" };
 }
 
+const std::string Indent = "  ";
 const std::string Export = "*";
 const std::set<std::string> builtin_types = {
   "uint8",   "uint8",  "bool",   "int8",  "uint8",   "int16",
