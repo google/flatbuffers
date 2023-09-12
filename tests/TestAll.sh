@@ -16,7 +16,7 @@ sh PythonTest.sh
 
 echo "************************ TypeScript:"
 
-python3 TypeScriptTest.py
+python3 ts/TypeScriptTest.py
 
 echo "************************ C++:"
 
