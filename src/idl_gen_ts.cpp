@@ -2000,11 +2000,7 @@ class TsGenerator : public BaseGenerator {
         if (!IsScalar(field.value.type.base_type)) {
           code += "0";
         } else if (HasNullDefault(field)) {
-          if (IsLong(field.value.type.base_type)) {
-            code += "BigInt(0)";
-          } else {
-            code += "0";
-          }
+          code += "null";
         } else {
           if (field.value.type.base_type == BASE_TYPE_BOOL) { code += "+"; }
           code += GenDefaultValue(field, imports);
