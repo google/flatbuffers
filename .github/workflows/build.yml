@@ -578,8 +578,7 @@ jobs:
     - uses: jiro4989/setup-nim-action@v1
     - name: install library
       working-directory: nim
-      run: nimble -y develop
-      run: nimble install
+      run: nimble -y develop && nimble install
     - name: test
       working-directory: tests/nim
       run: python3 testnim.py
