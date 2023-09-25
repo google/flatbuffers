@@ -5,3 +5,4 @@ edition = "2018"
 
 [dependencies]
 flatbuffers-reflection = { path = "../../rust/reflection" }
+flatbuffers = { path = "../../rust/flatbuffers" }
