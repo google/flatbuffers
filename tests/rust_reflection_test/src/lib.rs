@@ -1,5 +1,7 @@
 use flatbuffers_reflection::reflection::{root_as_schema, BaseType, Field};
 use flatbuffers_reflection::{
+    get_any_field_float, get_any_field_float_in_struct, get_any_field_integer,
+    get_any_field_integer_in_struct, get_any_field_string, get_any_field_string_in_struct,
     get_any_root, get_field_float, get_field_integer, get_field_string, get_field_struct,
     get_field_struct_in_struct,
 };
@@ -8,6 +10,8 @@ use flatbuffers::FlatBufferBuilder;
 
 use std::fs::File;
 use std::io::Read;
+
+use assert_approx_eq::assert_approx_eq;
 
 #[allow(dead_code, unused_imports)]
 #[path = "../../monster_test/mod.rs"]
@@ -367,6 +371,555 @@ fn test_buffer_nested_struct_diff_type_fails() {
         res.unwrap_err().to_string(),
         "Failed to get data of type Obj from field of type Float"
     );
+}
+
+#[test]
+fn test_buffer_i16_as_integer_succeeds() {
+    let buffer = create_test_buffer();
+    let root_table = unsafe { get_any_root(&buffer) };
+    let schema = load_file_as_buffer("../monster_test.bfbs");
+    let i16_field = get_schema_field(&schema, "hp");
+
+    let value = unsafe { get_any_field_integer(&root_table, &i16_field) };
+
+    assert!(value.is_ok());
+    assert_eq!(value.unwrap(), 32767);
+}
+
+#[test]
+fn test_buffer_f32_as_integer_succeeds() {
+    let buffer = create_test_buffer();
+    let root_table = unsafe { get_any_root(&buffer) };
+    let schema = load_file_as_buffer("../monster_test.bfbs");
+    let f32_field = get_schema_field(&schema, "testf");
+
+    let value = unsafe { get_any_field_integer(&root_table, &f32_field) };
+
+    assert!(value.is_ok());
+    assert_eq!(value.unwrap(), 3);
+}
+
+#[test]
+fn test_buffer_inf_as_integer_succeeds() {
+    let buffer = create_test_buffer();
+    let root_table = unsafe { get_any_root(&buffer) };
+    let schema = load_file_as_buffer("../monster_test.bfbs");
+    let inf_field = get_schema_field(&schema, "inf_default");
+
+    let value = unsafe { get_any_field_integer(&root_table, &inf_field) };
+
+    assert!(value.is_ok());
+    assert_eq!(value.unwrap(), 0);
+}
+
+#[test]
+fn test_buffer_bool_as_integer_succeeds() {
+    let buffer = create_test_buffer();
+    let root_table = unsafe { get_any_root(&buffer) };
+    let schema = load_file_as_buffer("../monster_test.bfbs");
+    let bool_field = get_schema_field(&schema, "testbool");
+
+    let value = unsafe { get_any_field_integer(&root_table, &bool_field) };
+
+    assert!(value.is_ok());
+    assert_eq!(value.unwrap(), 0);
+}
+
+#[test]
+fn test_buffer_nan_as_integer_fails() {
+    let buffer = create_test_buffer();
+    let root_table = unsafe { get_any_root(&buffer) };
+    let schema = load_file_as_buffer("../monster_test.bfbs");
+    let nan_field = get_schema_field(&schema, "nan_default");
+
+    let value = unsafe { get_any_field_integer(&root_table, &nan_field) };
+
+    assert!(value.is_err());
+    assert_eq!(
+        value.unwrap_err().to_string(),
+        "Failed to get data of type i64 from field of type Float"
+    );
+}
+
+#[test]
+fn test_buffer_string_as_integer_fails() {
+    let buffer = create_test_buffer();
+    let root_table = unsafe { get_any_root(&buffer) };
+    let schema = load_file_as_buffer("../monster_test.bfbs");
+    let string_field = get_schema_field(&schema, "name");
+
+    let value = unsafe { get_any_field_integer(&root_table, &string_field) };
+
+    assert!(value.is_err());
+    assert_eq!(
+        value.unwrap_err().to_string(),
+        "Failed to get data of type i64 from field of type String"
+    );
+}
+
+#[test]
+fn test_buffer_i16_as_float_succeeds() {
+    let buffer = create_test_buffer();
+    let root_table = unsafe { get_any_root(&buffer) };
+    let schema = load_file_as_buffer("../monster_test.bfbs");
+    let i16_field = get_schema_field(&schema, "hp");
+
+    let value = unsafe { get_any_field_float(&root_table, &i16_field) };
+
+    assert!(value.is_ok());
+    assert_eq!(value.unwrap(), 32767f64);
+}
+
+#[test]
+fn test_buffer_f32_as_float_succeeds() {
+    let buffer = create_test_buffer();
+    let root_table = unsafe { get_any_root(&buffer) };
+    let schema = load_file_as_buffer("../monster_test.bfbs");
+    let f32_field = get_schema_field(&schema, "testf");
+
+    let value = unsafe { get_any_field_float(&root_table, &f32_field) };
+
+    assert!(value.is_ok());
+    assert_approx_eq!(value.unwrap(), 3.14);
+}
+
+#[test]
+fn test_buffer_string_as_float_fails() {
+    let buffer = create_test_buffer();
+    let root_table = unsafe { get_any_root(&buffer) };
+    let schema = load_file_as_buffer("../monster_test.bfbs");
+    let string_field = get_schema_field(&schema, "name");
+
+    let value = unsafe { get_any_field_float(&root_table, &string_field) };
+
+    assert!(value.is_err());
+    assert_eq!(
+        value.unwrap_err().to_string(),
+        "Failed to get data of type f64 from field of type String"
+    );
+}
+
+#[test]
+fn test_buffer_i16_as_string_succeeds() {
+    let buffer = create_test_buffer();
+    let root_table = unsafe { get_any_root(&buffer) };
+    let schema = load_file_as_buffer("../monster_test.bfbs");
+    let i16_field = get_schema_field(&schema, "hp");
+
+    let value = unsafe {
+        get_any_field_string(
+            &root_table,
+            &i16_field,
+            &root_as_schema(schema.as_slice()).unwrap(),
+        )
+    };
+
+    assert_eq!(value, String::from("32767"));
+}
+
+#[test]
+fn test_buffer_f32_as_string_succeeds() {
+    let buffer = create_test_buffer();
+    let root_table = unsafe { get_any_root(&buffer) };
+    let schema = load_file_as_buffer("../monster_test.bfbs");
+    let f32_field = get_schema_field(&schema, "testf");
+
+    let mut value = unsafe {
+        get_any_field_string(
+            &root_table,
+            &f32_field,
+            &root_as_schema(schema.as_slice()).unwrap(),
+        )
+    };
+
+    value.truncate(4);
+    assert_eq!(value, String::from("3.14"));
+}
+
+#[test]
+fn test_buffer_string_as_string_succeeds() {
+    let buffer = create_test_buffer();
+    let root_table = unsafe { get_any_root(&buffer) };
+    let schema = load_file_as_buffer("../monster_test.bfbs");
+    let string_field = get_schema_field(&schema, "name");
+
+    let value = unsafe {
+        get_any_field_string(
+            &root_table,
+            &string_field,
+            &root_as_schema(schema.as_slice()).unwrap(),
+        )
+    };
+
+    assert_eq!(value, "MyMonster");
+}
+
+#[test]
+fn test_buffer_i16_in_struct_as_integer_succeeds() {
+    let buffer = create_test_buffer();
+    let root_table = unsafe { get_any_root(&buffer) };
+    let schema = load_file_as_buffer("../monster_test.bfbs");
+    let struct_field = get_schema_field(&schema, "pos");
+    let struct_value = unsafe {
+        get_field_struct(&root_table, &struct_field)
+            .unwrap()
+            .unwrap()
+    };
+    let struct_schema = root_as_schema(schema.as_slice())
+        .unwrap()
+        .objects()
+        .get(struct_field.type_().index() as usize);
+    let nested_struct_field = struct_schema
+        .fields()
+        .lookup_by_key("test3", |field, key| field.key_compare_with_value(key))
+        .unwrap();
+    let nested_struct_value =
+        unsafe { get_field_struct_in_struct(&struct_value, &nested_struct_field).unwrap() };
+    let nested_struct_schema = root_as_schema(schema.as_slice())
+        .unwrap()
+        .objects()
+        .get(nested_struct_field.type_().index() as usize);
+    let i16_in_struct = nested_struct_schema
+        .fields()
+        .lookup_by_key("a", |field, key| field.key_compare_with_value(key))
+        .unwrap();
+
+    let value = unsafe { get_any_field_integer_in_struct(&nested_struct_value, &i16_in_struct) };
+
+    assert!(value.is_ok());
+    assert_eq!(value.unwrap(), 5);
+}
+
+#[test]
+fn test_buffer_f32_in_struct_as_integer_succeeds() {
+    let buffer = create_test_buffer();
+    let root_table = unsafe { get_any_root(&buffer) };
+    let schema = load_file_as_buffer("../monster_test.bfbs");
+    let struct_field = get_schema_field(&schema, "pos");
+    let struct_value = unsafe {
+        get_field_struct(&root_table, &struct_field)
+            .unwrap()
+            .unwrap()
+    };
+    let struct_schema = root_as_schema(schema.as_slice())
+        .unwrap()
+        .objects()
+        .get(struct_field.type_().index() as usize);
+    let f32_in_struct = struct_schema
+        .fields()
+        .lookup_by_key("x", |field, key| field.key_compare_with_value(key))
+        .unwrap();
+
+    let value = unsafe { get_any_field_integer_in_struct(&struct_value, &f32_in_struct) };
+
+    assert!(value.is_ok());
+    assert_eq!(value.unwrap(), 1);
+}
+
+#[test]
+fn test_buffer_enum_in_struct_as_integer_succeeds() {
+    let buffer = create_test_buffer();
+    let root_table = unsafe { get_any_root(&buffer) };
+    let schema = load_file_as_buffer("../monster_test.bfbs");
+    let struct_field = get_schema_field(&schema, "pos");
+    let struct_value = unsafe {
+        get_field_struct(&root_table, &struct_field)
+            .unwrap()
+            .unwrap()
+    };
+    let struct_schema = root_as_schema(schema.as_slice())
+        .unwrap()
+        .objects()
+        .get(struct_field.type_().index() as usize);
+    let enum_in_struct = struct_schema
+        .fields()
+        .lookup_by_key("test2", |field, key| field.key_compare_with_value(key))
+        .unwrap();
+
+    let value = unsafe { get_any_field_integer_in_struct(&struct_value, &enum_in_struct) };
+
+    assert!(value.is_ok());
+    assert_eq!(value.unwrap(), 2);
+}
+
+#[test]
+fn test_buffer_struct_in_struct_as_integer_fails() {
+    let buffer = create_test_buffer();
+    let root_table = unsafe { get_any_root(&buffer) };
+    let schema = load_file_as_buffer("../monster_test.bfbs");
+    let struct_field = get_schema_field(&schema, "pos");
+    let struct_value = unsafe {
+        get_field_struct(&root_table, &struct_field)
+            .unwrap()
+            .unwrap()
+    };
+    let struct_schema = root_as_schema(schema.as_slice())
+        .unwrap()
+        .objects()
+        .get(struct_field.type_().index() as usize);
+    let struct_in_struct = struct_schema
+        .fields()
+        .lookup_by_key("test3", |field, key| field.key_compare_with_value(key))
+        .unwrap();
+
+    let value = unsafe { get_any_field_integer_in_struct(&struct_value, &struct_in_struct) };
+
+    assert!(value.is_err());
+    assert_eq!(
+        value.unwrap_err().to_string(),
+        "Failed to get data of type i64 from field of type Obj"
+    );
+}
+
+#[test]
+fn test_buffer_i16_in_struct_as_float_succeeds() {
+    let buffer = create_test_buffer();
+    let root_table = unsafe { get_any_root(&buffer) };
+    let schema = load_file_as_buffer("../monster_test.bfbs");
+    let struct_field = get_schema_field(&schema, "pos");
+    let struct_value = unsafe {
+        get_field_struct(&root_table, &struct_field)
+            .unwrap()
+            .unwrap()
+    };
+    let struct_schema = root_as_schema(schema.as_slice())
+        .unwrap()
+        .objects()
+        .get(struct_field.type_().index() as usize);
+    let nested_struct_field = struct_schema
+        .fields()
+        .lookup_by_key("test3", |field, key| field.key_compare_with_value(key))
+        .unwrap();
+    let nested_struct_value =
+        unsafe { get_field_struct_in_struct(&struct_value, &nested_struct_field).unwrap() };
+    let nested_struct_schema = root_as_schema(schema.as_slice())
+        .unwrap()
+        .objects()
+        .get(nested_struct_field.type_().index() as usize);
+    let i16_in_struct = nested_struct_schema
+        .fields()
+        .lookup_by_key("a", |field, key| field.key_compare_with_value(key))
+        .unwrap();
+
+    let value = unsafe { get_any_field_float_in_struct(&nested_struct_value, &i16_in_struct) };
+
+    assert!(value.is_ok());
+    assert_eq!(value.unwrap(), 5f64);
+}
+
+#[test]
+fn test_buffer_f32_in_struct_as_float_succeeds() {
+    let buffer = create_test_buffer();
+    let root_table = unsafe { get_any_root(&buffer) };
+    let schema = load_file_as_buffer("../monster_test.bfbs");
+    let struct_field = get_schema_field(&schema, "pos");
+    let struct_value = unsafe {
+        get_field_struct(&root_table, &struct_field)
+            .unwrap()
+            .unwrap()
+    };
+    let struct_schema = root_as_schema(schema.as_slice())
+        .unwrap()
+        .objects()
+        .get(struct_field.type_().index() as usize);
+    let f32_in_struct = struct_schema
+        .fields()
+        .lookup_by_key("x", |field, key| field.key_compare_with_value(key))
+        .unwrap();
+
+    let value = unsafe { get_any_field_float_in_struct(&struct_value, &f32_in_struct) };
+
+    assert!(value.is_ok());
+    assert_eq!(value.unwrap(), 1f64);
+}
+
+#[test]
+fn test_buffer_enum_in_struct_as_float_succeeds() {
+    let buffer = create_test_buffer();
+    let root_table = unsafe { get_any_root(&buffer) };
+    let schema = load_file_as_buffer("../monster_test.bfbs");
+    let struct_field = get_schema_field(&schema, "pos");
+    let struct_value = unsafe {
+        get_field_struct(&root_table, &struct_field)
+            .unwrap()
+            .unwrap()
+    };
+    let struct_schema = root_as_schema(schema.as_slice())
+        .unwrap()
+        .objects()
+        .get(struct_field.type_().index() as usize);
+    let enum_in_struct = struct_schema
+        .fields()
+        .lookup_by_key("test2", |field, key| field.key_compare_with_value(key))
+        .unwrap();
+
+    let value = unsafe { get_any_field_float_in_struct(&struct_value, &enum_in_struct) };
+
+    assert!(value.is_ok());
+    assert_eq!(value.unwrap(), 2f64);
+}
+
+#[test]
+fn test_buffer_struct_in_struct_as_float_fails() {
+    let buffer = create_test_buffer();
+    let root_table = unsafe { get_any_root(&buffer) };
+    let schema = load_file_as_buffer("../monster_test.bfbs");
+    let struct_field = get_schema_field(&schema, "pos");
+    let struct_value = unsafe {
+        get_field_struct(&root_table, &struct_field)
+            .unwrap()
+            .unwrap()
+    };
+    let struct_schema = root_as_schema(schema.as_slice())
+        .unwrap()
+        .objects()
+        .get(struct_field.type_().index() as usize);
+    let struct_in_struct = struct_schema
+        .fields()
+        .lookup_by_key("test3", |field, key| field.key_compare_with_value(key))
+        .unwrap();
+
+    let value = unsafe { get_any_field_float_in_struct(&struct_value, &struct_in_struct) };
+
+    assert!(value.is_err());
+    assert_eq!(
+        value.unwrap_err().to_string(),
+        "Failed to get data of type f64 from field of type Obj"
+    );
+}
+
+#[test]
+fn test_buffer_i16_in_struct_as_string_succeeds() {
+    let buffer = create_test_buffer();
+    let root_table = unsafe { get_any_root(&buffer) };
+    let schema = load_file_as_buffer("../monster_test.bfbs");
+    let struct_field = get_schema_field(&schema, "pos");
+    let struct_value = unsafe {
+        get_field_struct(&root_table, &struct_field)
+            .unwrap()
+            .unwrap()
+    };
+    let struct_schema = root_as_schema(schema.as_slice())
+        .unwrap()
+        .objects()
+        .get(struct_field.type_().index() as usize);
+    let nested_struct_field = struct_schema
+        .fields()
+        .lookup_by_key("test3", |field, key| field.key_compare_with_value(key))
+        .unwrap();
+    let nested_struct_value =
+        unsafe { get_field_struct_in_struct(&struct_value, &nested_struct_field).unwrap() };
+    let nested_struct_schema = root_as_schema(schema.as_slice())
+        .unwrap()
+        .objects()
+        .get(nested_struct_field.type_().index() as usize);
+    let i16_in_struct = nested_struct_schema
+        .fields()
+        .lookup_by_key("a", |field, key| field.key_compare_with_value(key))
+        .unwrap();
+
+    let value = unsafe {
+        get_any_field_string_in_struct(
+            &nested_struct_value,
+            &i16_in_struct,
+            &root_as_schema(schema.as_slice()).unwrap(),
+        )
+    };
+
+    assert_eq!(value, String::from("5"));
+}
+
+#[test]
+fn test_buffer_f32_in_struct_as_string_succeeds() {
+    let buffer = create_test_buffer();
+    let root_table = unsafe { get_any_root(&buffer) };
+    let schema = load_file_as_buffer("../monster_test.bfbs");
+    let struct_field = get_schema_field(&schema, "pos");
+    let struct_value = unsafe {
+        get_field_struct(&root_table, &struct_field)
+            .unwrap()
+            .unwrap()
+    };
+    let struct_schema = root_as_schema(schema.as_slice())
+        .unwrap()
+        .objects()
+        .get(struct_field.type_().index() as usize);
+    let f32_in_struct = struct_schema
+        .fields()
+        .lookup_by_key("x", |field, key| field.key_compare_with_value(key))
+        .unwrap();
+
+    let value = unsafe {
+        get_any_field_string_in_struct(
+            &struct_value,
+            &f32_in_struct,
+            &root_as_schema(schema.as_slice()).unwrap(),
+        )
+    };
+
+    assert_eq!(value, String::from("1"));
+}
+
+#[test]
+fn test_buffer_enum_in_struct_as_string_succeeds() {
+    let buffer = create_test_buffer();
+    let root_table = unsafe { get_any_root(&buffer) };
+    let schema = load_file_as_buffer("../monster_test.bfbs");
+    let struct_field = get_schema_field(&schema, "pos");
+    let struct_value = unsafe {
+        get_field_struct(&root_table, &struct_field)
+            .unwrap()
+            .unwrap()
+    };
+    let struct_schema = root_as_schema(schema.as_slice())
+        .unwrap()
+        .objects()
+        .get(struct_field.type_().index() as usize);
+    let enum_in_struct = struct_schema
+        .fields()
+        .lookup_by_key("test2", |field, key| field.key_compare_with_value(key))
+        .unwrap();
+
+    let value = unsafe {
+        get_any_field_string_in_struct(
+            &struct_value,
+            &enum_in_struct,
+            &root_as_schema(schema.as_slice()).unwrap(),
+        )
+    };
+
+    assert_eq!(value, String::from("2"));
+}
+
+#[test]
+fn test_buffer_struct_in_struct_as_string_succeeds() {
+    let buffer = create_test_buffer();
+    let root_table = unsafe { get_any_root(&buffer) };
+    let schema = load_file_as_buffer("../monster_test.bfbs");
+    let struct_field = get_schema_field(&schema, "pos");
+    let struct_value = unsafe {
+        get_field_struct(&root_table, &struct_field)
+            .unwrap()
+            .unwrap()
+    };
+    let struct_schema = root_as_schema(schema.as_slice())
+        .unwrap()
+        .objects()
+        .get(struct_field.type_().index() as usize);
+    let struct_in_struct = struct_schema
+        .fields()
+        .lookup_by_key("test3", |field, key| field.key_compare_with_value(key))
+        .unwrap();
+
+    let value = unsafe {
+        get_any_field_string_in_struct(
+            &struct_value,
+            &struct_in_struct,
+            &root_as_schema(schema.as_slice()).unwrap(),
+        )
+    };
+
+    assert_eq!(value, String::from("MyGame.Example.Test { a: 5, b: 6, }"));
 }
 
 fn load_file_as_buffer(path: &str) -> Vec<u8> {
