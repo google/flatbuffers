@@ -15,6 +15,8 @@
  */
 
 mod reflection_generated;
+mod r#struct;
+pub use crate::r#struct::Struct;
 pub use crate::reflection_generated::reflection;
 
 use flatbuffers::{Follow, ForwardsUOffset, Table};
@@ -116,6 +118,58 @@ pub unsafe fn get_field_string<'a>(
     }
 
     Ok(table.get::<ForwardsUOffset<&'a str>>(field.offset(), Some("")))
+}
+
+/// Gets a [Struct] table field given its exact type. Returns [None] if the field is not set. Returns error if the type doesn't match.
+///
+/// # Safety
+///
+/// The value of the corresponding slot must have type Struct
+pub unsafe fn get_field_struct<'a>(
+    table: &'a Table,
+    field: &Field,
+) -> FlatbufferResult<Option<Struct<'a>>> {
+    // TODO inherited from C++: This does NOT check if the field is a table or struct, but we'd need
+    // access to the schema to check the is_struct flag.
+    if field.type_().base_type() != BaseType::Obj {
+        return Err(FlatbufferError::FieldTypeMismatch(
+            String::from("Obj"),
+            field
+                .type_()
+                .base_type()
+                .variant_name()
+                .unwrap_or_default()
+                .to_string(),
+        ));
+    }
+
+    Ok(table.get::<Struct>(field.offset(), None))
+}
+
+/// Gets a [Struct] struct field given its exact type. Returns error if the type doesn't match.
+///
+/// # Safety
+///
+/// The value of the corresponding slot must have type Struct.
+pub unsafe fn get_field_struct_in_struct<'a>(
+    st: &'a Struct,
+    field: &Field,
+) -> FlatbufferResult<Struct<'a>> {
+    // TODO inherited from C++: This does NOT check if the field is a table or struct, but we'd need
+    // access to the schema to check the is_struct flag.
+    if field.type_().base_type() != BaseType::Obj {
+        return Err(FlatbufferError::FieldTypeMismatch(
+            String::from("Obj"),
+            field
+                .type_()
+                .base_type()
+                .variant_name()
+                .unwrap_or_default()
+                .to_string(),
+        ));
+    }
+
+    Ok(st.get::<Struct>(field.offset() as usize))
 }
 
 /// Returns the size of a scalar type in the `BaseType` enum. In the case of structs, returns the size of their offset (`UOffsetT`) in the buffer.
