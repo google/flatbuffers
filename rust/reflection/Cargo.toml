@@ -5,3 +5,5 @@ edition = "2021"
 
 [dependencies]
 flatbuffers = { path = "../flatbuffers"}
+num = "0.4.1"
+thiserror = "1.0"
