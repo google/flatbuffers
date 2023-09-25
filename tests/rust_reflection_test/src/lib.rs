@@ -1,5 +1,8 @@
 use flatbuffers_reflection::reflection::{root_as_schema, BaseType, Field};
-use flatbuffers_reflection::{get_any_root, get_field_float, get_field_integer, get_field_string};
+use flatbuffers_reflection::{
+    get_any_root, get_field_float, get_field_integer, get_field_string, get_field_struct,
+    get_field_struct_in_struct,
+};
 
 use flatbuffers::FlatBufferBuilder;
 
@@ -274,6 +277,95 @@ fn test_buffer_string_diff_type_fails() {
     assert_eq!(
         value.unwrap_err().to_string(),
         "Failed to get data of type String from field of type Float"
+    );
+}
+
+#[test]
+fn test_buffer_struct_same_type_succeeds() {
+    let buffer = create_test_buffer();
+    let root_table = unsafe { get_any_root(&buffer) };
+    let schema = load_file_as_buffer("../monster_test.bfbs");
+    let struct_field = get_schema_field(&schema, "pos");
+
+    let res = unsafe { get_field_struct(&root_table, &struct_field) };
+
+    assert!(res.is_ok());
+    let optional_value = res.unwrap();
+    assert!(optional_value.is_some());
+    assert_eq!(optional_value.unwrap().buf(), &buffer);
+    assert!(optional_value.unwrap().loc() > root_table.loc());
+}
+
+#[test]
+fn test_buffer_struct_diff_type_fails() {
+    let buffer = create_test_buffer();
+    let root_table = unsafe { get_any_root(&buffer) };
+    let schema = load_file_as_buffer("../monster_test.bfbs");
+    let f32_field = get_schema_field(&schema, "testf");
+
+    let res = unsafe { get_field_struct(&root_table, &f32_field) };
+
+    assert!(res.is_err());
+    assert_eq!(
+        res.unwrap_err().to_string(),
+        "Failed to get data of type Obj from field of type Float"
+    );
+}
+
+#[test]
+fn test_buffer_nested_struct_same_type_succeeds() {
+    let buffer = create_test_buffer();
+    let root_table = unsafe { get_any_root(&buffer) };
+    let schema = load_file_as_buffer("../monster_test.bfbs");
+    let struct_field = get_schema_field(&schema, "pos");
+    let struct_value = unsafe {
+        get_field_struct(&root_table, &struct_field)
+            .unwrap()
+            .unwrap()
+    };
+    let struct_schema = root_as_schema(schema.as_slice())
+        .unwrap()
+        .objects()
+        .get(struct_field.type_().index() as usize);
+    let nested_struct_field = struct_schema
+        .fields()
+        .lookup_by_key("test3", |field, key| field.key_compare_with_value(key))
+        .unwrap();
+
+    let res = unsafe { get_field_struct_in_struct(&struct_value, &nested_struct_field) };
+
+    assert!(res.is_ok());
+    let value = res.unwrap();
+    assert_eq!(value.buf(), &buffer);
+    assert!(value.loc() > struct_value.loc());
+}
+
+#[test]
+fn test_buffer_nested_struct_diff_type_fails() {
+    let buffer = create_test_buffer();
+    let root_table = unsafe { get_any_root(&buffer) };
+    let schema = load_file_as_buffer("../monster_test.bfbs");
+    let struct_field = get_schema_field(&schema, "pos");
+    let struct_value = unsafe {
+        get_field_struct(&root_table, &struct_field)
+            .unwrap()
+            .unwrap()
+    };
+    let struct_schema = root_as_schema(schema.as_slice())
+        .unwrap()
+        .objects()
+        .get(struct_field.type_().index() as usize);
+    let nested_float_field = struct_schema
+        .fields()
+        .lookup_by_key("x", |field, key| field.key_compare_with_value(key))
+        .unwrap();
+
+    let res = unsafe { get_field_struct_in_struct(&struct_value, &nested_float_field) };
+
+    assert!(res.is_err());
+    assert_eq!(
+        res.unwrap_err().to_string(),
+        "Failed to get data of type Obj from field of type Float"
     );
 }
 
