@@ -20,9 +20,10 @@ pub use crate::r#struct::Struct;
 pub use crate::reflection_generated::reflection;
 
 use flatbuffers::{Follow, ForwardsUOffset, Table};
-use reflection_generated::reflection::{BaseType, Field};
+use reflection_generated::reflection::{BaseType, Field, Object, Schema};
 
 use core::mem::size_of;
+use escape_string::escape;
 use num::traits::float::Float;
 use num::traits::int::PrimInt;
 use num::traits::FromPrimitive;
@@ -172,6 +173,95 @@ pub unsafe fn get_field_struct_in_struct<'a>(
     Ok(st.get::<Struct>(field.offset() as usize))
 }
 
+/// Returns the value of any table field as a 64-bit int, regardless of what type it is. Returns default integer if the field is not set or error if the value cannot be parsed as integer.
+/// [num_traits](https://docs.rs/num-traits/latest/num_traits/cast/trait.NumCast.html) is used for number casting.
+///
+/// # Safety
+///
+/// [table] must contain recursively valid offsets that match the [field].
+pub unsafe fn get_any_field_integer(table: &Table, field: &Field) -> FlatbufferResult<i64> {
+    if let Some(field_loc) = get_field_loc(table, field) {
+        get_any_value_integer(field.type_().base_type(), table.buf(), field_loc)
+    } else {
+        Ok(field.default_integer())
+    }
+}
+
+/// Returns the value of any table field as a 64-bit floating point, regardless of what type it is. Returns default float if the field is not set or error if the value cannot be parsed as float.
+///
+/// # Safety
+///
+/// [table] must contain recursively valid offsets that match the [field].
+pub unsafe fn get_any_field_float(table: &Table, field: &Field) -> FlatbufferResult<f64> {
+    if let Some(field_loc) = get_field_loc(table, field) {
+        get_any_value_float(field.type_().base_type(), table.buf(), field_loc)
+    } else {
+        Ok(field.default_real())
+    }
+}
+
+/// Returns the value of any table field as a string, regardless of what type it is. Returns empty string if the field is not set.
+///
+/// # Safety
+///
+/// [table] must contain recursively valid offsets that match the [field].
+pub unsafe fn get_any_field_string(table: &Table, field: &Field, schema: &Schema) -> String {
+    if let Some(field_loc) = get_field_loc(table, field) {
+        get_any_value_string(
+            field.type_().base_type(),
+            table.buf(),
+            field_loc,
+            schema,
+            field.type_().index() as usize,
+        )
+    } else {
+        String::from("")
+    }
+}
+
+/// Returns the value of any struct field as a 64-bit int, regardless of what type it is. Returns error if the value cannot be parsed as integer.
+///
+/// # Safety
+///
+/// [st] must contain valid offsets that match the [field].
+pub unsafe fn get_any_field_integer_in_struct(st: &Struct, field: &Field) -> FlatbufferResult<i64> {
+    let field_loc = st.loc() + field.offset() as usize;
+
+    get_any_value_integer(field.type_().base_type(), st.buf(), field_loc)
+}
+
+/// Returns the value of any struct field as a 64-bit floating point, regardless of what type it is. Returns error if the value cannot be parsed as float.
+///
+/// # Safety
+///
+/// [st] must contain valid offsets that match the [field].
+pub unsafe fn get_any_field_float_in_struct(st: &Struct, field: &Field) -> FlatbufferResult<f64> {
+    let field_loc = st.loc() + field.offset() as usize;
+
+    get_any_value_float(field.type_().base_type(), st.buf(), field_loc)
+}
+
+/// Returns the value of any struct field as a string, regardless of what type it is.
+///
+/// # Safety
+///
+/// [st] must contain valid offsets that match the [field].
+pub unsafe fn get_any_field_string_in_struct(
+    st: &Struct,
+    field: &Field,
+    schema: &Schema,
+) -> String {
+    let field_loc = st.loc() + field.offset() as usize;
+
+    get_any_value_string(
+        field.type_().base_type(),
+        st.buf(),
+        field_loc,
+        schema,
+        field.type_().index() as usize,
+    )
+}
+
 /// Returns the size of a scalar type in the `BaseType` enum. In the case of structs, returns the size of their offset (`UOffsetT`) in the buffer.
 fn get_type_size(base_type: BaseType) -> usize {
     match base_type {
@@ -186,5 +276,142 @@ fn get_type_size(base_type: BaseType) -> usize {
         | BaseType::Union => 4,
         BaseType::Long | BaseType::ULong | BaseType::Double | BaseType::Vector64 => 8,
         _ => 0,
+    }
+}
+
+/// Returns the absolute field location in the buffer and [None] if the field is not populated.
+pub fn get_field_loc(table: &Table, field: &Field) -> Option<usize> {
+    let field_offset = table.vtable().get(field.offset()) as usize;
+    if field_offset == 0 {
+        return None;
+    }
+
+    Some(table.loc() + field_offset)
+}
+
+/// Reads value as a 64-bit int from the provided byte slice at the specified location. Returns error if the value cannot be parsed as integer.
+///
+/// # Safety
+///
+/// Caller must ensure `buf.len() >= loc + size_of::<T>()` at all the access layers.
+unsafe fn get_any_value_integer(
+    base_type: BaseType,
+    buf: &[u8],
+    loc: usize,
+) -> FlatbufferResult<i64> {
+    match base_type {
+        BaseType::UType | BaseType::UByte => i64::from_u8(u8::follow(buf, loc)),
+        BaseType::Bool => bool::follow(buf, loc).try_into().ok(),
+        BaseType::Byte => i64::from_i8(i8::follow(buf, loc)),
+        BaseType::Short => i64::from_i16(i16::follow(buf, loc)),
+        BaseType::UShort => i64::from_u16(u16::follow(buf, loc)),
+        BaseType::Int => i64::from_i32(i32::follow(buf, loc)),
+        BaseType::UInt => i64::from_u32(u32::follow(buf, loc)),
+        BaseType::Long => Some(i64::follow(buf, loc)),
+        BaseType::ULong => i64::from_u64(u64::follow(buf, loc)),
+        BaseType::Float => i64::from_f32(f32::follow(buf, loc)),
+        BaseType::Double => i64::from_f64(f64::follow(buf, loc)),
+        BaseType::String => ForwardsUOffset::<&str>::follow(buf, loc)
+            .parse::<i64>()
+            .ok(),
+        _ => None, // Tables & vectors do not make sense.
+    }
+    .ok_or(FlatbufferError::FieldTypeMismatch(
+        String::from("i64"),
+        base_type.variant_name().unwrap_or_default().to_string(),
+    ))
+}
+
+/// Reads value as a 64-bit floating point from the provided byte slice at the specified location. Returns error if the value cannot be parsed as float.
+///
+/// # Safety
+///
+/// Caller must ensure `buf.len() >= loc + size_of::<T>()` at all the access layers.
+unsafe fn get_any_value_float(
+    base_type: BaseType,
+    buf: &[u8],
+    loc: usize,
+) -> FlatbufferResult<f64> {
+    match base_type {
+        BaseType::UType | BaseType::UByte => f64::from_u8(u8::follow(buf, loc)),
+        BaseType::Bool => bool::follow(buf, loc).try_into().ok(),
+        BaseType::Byte => f64::from_i8(i8::follow(buf, loc)),
+        BaseType::Short => f64::from_i16(i16::follow(buf, loc)),
+        BaseType::UShort => f64::from_u16(u16::follow(buf, loc)),
+        BaseType::Int => f64::from_i32(i32::follow(buf, loc)),
+        BaseType::UInt => f64::from_u32(u32::follow(buf, loc)),
+        BaseType::Long => f64::from_i64(i64::follow(buf, loc)),
+        BaseType::ULong => f64::from_u64(u64::follow(buf, loc)),
+        BaseType::Float => f64::from_f32(f32::follow(buf, loc)),
+        BaseType::Double => Some(f64::follow(buf, loc)),
+        BaseType::String => ForwardsUOffset::<&str>::follow(buf, loc)
+            .parse::<f64>()
+            .ok(),
+        _ => None,
+    }
+    .ok_or(FlatbufferError::FieldTypeMismatch(
+        String::from("f64"),
+        base_type.variant_name().unwrap_or_default().to_string(),
+    ))
+}
+
+/// Reads value as a string from the provided byte slice at the specified location.
+///
+/// # Safety
+///
+/// Caller must ensure `buf.len() >= loc + size_of::<T>()` at all the access layers.
+unsafe fn get_any_value_string(
+    base_type: BaseType,
+    buf: &[u8],
+    loc: usize,
+    schema: &Schema,
+    type_index: usize,
+) -> String {
+    match base_type {
+        BaseType::Float | BaseType::Double => get_any_value_float(base_type, buf, loc)
+            .unwrap_or_default()
+            .to_string(),
+        BaseType::String => {
+            String::from_utf8_lossy(ForwardsUOffset::<&[u8]>::follow(buf, loc)).to_string()
+        }
+        BaseType::Obj => {
+            // Converts the table to a string. This is mostly for debugging purposes,
+            // and does NOT promise to be JSON compliant.
+            // Also prefixes the type.
+            let object: Object = schema.objects().get(type_index);
+            let mut s = object.name().to_string();
+            s += " { ";
+            if object.is_struct() {
+                let st: Struct<'_> = Struct::follow(buf, loc);
+                for field in object.fields() {
+                    let field_value = get_any_field_string_in_struct(&st, &field, schema);
+                    s += field.name();
+                    s += ": ";
+                    s += field_value.as_str();
+                    s += ", ";
+                }
+            } else {
+                let table = ForwardsUOffset::<Table>::follow(buf, loc);
+                for field in object.fields() {
+                    if table.vtable().get(field.offset()) == 0 {
+                        continue;
+                    }
+                    let mut field_value = get_any_field_string(&table, &field, schema);
+                    if field.type_().base_type() == BaseType::String {
+                        field_value = escape(field_value.as_str()).to_string();
+                    }
+                    s += field.name();
+                    s += ": ";
+                    s += field_value.as_str();
+                    s += ", ";
+                }
+            }
+            s + "}"
+        }
+        BaseType::Vector => String::from("[(elements)]"), // TODO inherited from C++: implement this as well.
+        BaseType::Union => String::from("(union)"), // TODO inherited from C++: implement this as well.
+        _ => get_any_value_integer(base_type, buf, loc)
+            .unwrap_or_default()
+            .to_string(),
     }
 }
