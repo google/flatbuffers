@@ -20,7 +20,8 @@ pub use crate::r#struct::Struct;
 pub use crate::reflection_generated::reflection;
 
 use flatbuffers::{
-    emplace_scalar, EndianScalar, Follow, ForwardsUOffset, InvalidFlatbuffer, Table,
+    emplace_scalar, read_scalar, EndianScalar, Follow, ForwardsUOffset, InvalidFlatbuffer,
+    SOffsetT, Table, UOffsetT, VOffsetT, Vector, SIZE_SOFFSET, SIZE_UOFFSET,
 };
 use reflection_generated::reflection::{BaseType, Field, Object, Schema};
 
@@ -30,6 +31,7 @@ use num::traits::float::Float;
 use num::traits::int::PrimInt;
 use num::traits::FromPrimitive;
 use std::error;
+use stdint::uintmax_t;
 use thiserror::Error;
 
 #[derive(Error, Debug)]
@@ -42,6 +44,10 @@ pub enum FlatbufferError {
     SetValueNotSupported(),
     #[error(transparent)]
     ParseFloatError(#[from] std::num::ParseFloatError),
+    #[error(transparent)]
+    TryFromIntError(#[from] std::num::TryFromIntError),
+    #[error("Couldn't set string because cache vector is polluted")]
+    SetStringPolluted(),
 }
 
 pub type FlatbufferResult<T, E = FlatbufferError> = core::result::Result<T, E>;
@@ -389,6 +395,122 @@ pub unsafe fn set_field<T: EndianScalar>(
 
     // SAFETY: the buffer range was verified above.
     unsafe { Ok(emplace_scalar::<T>(&mut buf[field_loc..], v)) }
+}
+
+/// Sets a string field to a new value. Returns error if the field is not originally set or is not of string type in which cases the [buf] stays intact. Returns error if the [buf] fails to be updated.
+///
+/// # Safety
+///
+/// [buf] must contain a valid root table and valid offset to it and conform to the [schema].
+pub unsafe fn set_string(
+    buf: &mut Vec<u8>,
+    table_loc: usize,
+    field: &Field,
+    v: &str,
+    schema: &Schema,
+) -> FlatbufferResult<()> {
+    if v.is_empty() {
+        return Ok(());
+    }
+
+    let field_type = field.type_().base_type();
+    if field_type != BaseType::String {
+        return Err(FlatbufferError::FieldTypeMismatch(
+            String::from("String"),
+            field_type.variant_name().unwrap_or_default().to_string(),
+        ));
+    }
+
+    let table = Table::follow(buf, table_loc);
+
+    let Some(field_loc) = get_field_loc(&table, field) else {
+        return Err(FlatbufferError::SetValueNotSupported());
+    };
+
+    if buf.len() < field_loc + get_type_size(field_type) {
+        return Err(FlatbufferError::VerificationError(
+            InvalidFlatbuffer::RangeOutOfBounds {
+                range: core::ops::Range {
+                    start: field_loc,
+                    end: field_loc.saturating_add(get_type_size(field_type)),
+                },
+                error_trace: Default::default(),
+            },
+        ));
+    }
+
+    // SAFETY: the buffer range was verified above.
+    let string_loc = unsafe { deref_uoffset(buf, field_loc)? };
+    if buf.len() < string_loc.saturating_add(SIZE_UOFFSET) {
+        return Err(FlatbufferError::VerificationError(
+            InvalidFlatbuffer::RangeOutOfBounds {
+                range: core::ops::Range {
+                    start: string_loc,
+                    end: string_loc.saturating_add(SIZE_UOFFSET),
+                },
+                error_trace: Default::default(),
+            },
+        ));
+    }
+
+    // SAFETY: the buffer range was verified above.
+    let len_old = unsafe { read_uoffset(buf, string_loc) };
+    if buf.len()
+        < string_loc
+            .saturating_add(SIZE_UOFFSET)
+            .saturating_add(len_old.try_into()?)
+    {
+        return Err(FlatbufferError::VerificationError(
+            InvalidFlatbuffer::RangeOutOfBounds {
+                range: core::ops::Range {
+                    start: string_loc,
+                    end: string_loc
+                        .saturating_add(SIZE_UOFFSET)
+                        .saturating_add(len_old.try_into()?),
+                },
+                error_trace: Default::default(),
+            },
+        ));
+    }
+
+    let len_new = v.len();
+    let delta = len_new as isize - len_old as isize;
+    let mut bytes_to_insert = v.as_bytes().to_vec();
+
+    if delta != 0 {
+        // Rounds the delta up to the nearest multiple of the maximum int size to keep the types after the insersion point aligned.
+        let mask = (size_of::<uintmax_t>() - 1) as isize;
+        let offset = (delta + mask) & !mask;
+        let mut visited_vec = vec![false; buf.len()];
+
+        if offset != 0 {
+            update_offset(
+                buf,
+                table_loc,
+                &mut visited_vec,
+                &schema.root_table().unwrap(),
+                schema,
+                string_loc,
+                offset,
+            )?;
+
+            // Sets the new length.
+            emplace_scalar::<SOffsetT>(
+                &mut buf[string_loc..string_loc + SIZE_UOFFSET],
+                len_new.try_into()?,
+            );
+        }
+
+        // Pads the bytes vector with 0 if `offset` doesn't equal `delta`.
+        bytes_to_insert.resize(bytes_to_insert.len() + (offset - delta) as usize, 0);
+    }
+
+    // Replaces the data.
+    buf.splice(
+        string_loc + SIZE_SOFFSET..string_loc + SIZE_UOFFSET + usize::try_from(len_old)?,
+        bytes_to_insert,
+    );
+    Ok(())
 }
 
 /// Returns the size of a scalar type in the `BaseType` enum. In the case of structs, returns the size of their offset (`UOffsetT`) in the buffer.
@@ -759,4 +881,200 @@ fn set_any_value_float(
 
 fn is_scalar(base_type: BaseType) -> bool {
     return base_type <= BaseType::Double;
+}
+
+/// Iterates through the buffer and updates all the relative offsets affected by the insertion.
+///
+/// # Safety
+///
+/// Caller must ensure [buf] contains valid data that conforms to [schema].
+unsafe fn update_offset(
+    buf: &mut [u8],
+    table_loc: usize,
+    updated: &mut [bool],
+    object: &Object,
+    schema: &Schema,
+    insertion_loc: usize,
+    offset: isize,
+) -> FlatbufferResult<()> {
+    if updated.len() != buf.len() {
+        return Err(FlatbufferError::SetStringPolluted());
+    }
+
+    if updated[table_loc] {
+        return Ok(());
+    }
+
+    let slice = &mut buf[table_loc..table_loc + SIZE_SOFFSET];
+    let vtable_offset = isize::try_from(read_scalar::<SOffsetT>(slice))?;
+    let vtable_loc = (isize::try_from(table_loc)? - vtable_offset).try_into()?;
+
+    if insertion_loc <= table_loc {
+        // Checks if insertion point is between the table and a vtable that
+        // precedes it.
+        if (vtable_loc..table_loc).contains(&insertion_loc) {
+            emplace_scalar::<SOffsetT>(slice, (vtable_offset + offset).try_into()?);
+            updated[table_loc] = true;
+        }
+
+        // Early out: since all fields inside the table must point forwards in
+        // memory, if the insertion point is before the table we can stop here.
+        return Ok(());
+    }
+
+    for field in object.fields() {
+        let field_type = field.type_().base_type();
+        if is_scalar(field_type) {
+            continue;
+        }
+
+        let field_offset = VOffsetT::follow(buf, vtable_loc.saturating_add(field.offset().into()));
+        if field_offset == 0 {
+            continue;
+        }
+
+        let field_loc = table_loc + usize::from(field_offset);
+        if updated[field_loc] {
+            continue;
+        }
+
+        if field_type == BaseType::Obj
+            && schema
+                .objects()
+                .get(field.type_().index().try_into()?)
+                .is_struct()
+        {
+            continue;
+        }
+
+        // Updates the relative offset from table to actual data if needed
+        let slice = &mut buf[field_loc..field_loc + SIZE_UOFFSET];
+        let field_value_offset = read_scalar::<UOffsetT>(slice);
+        let field_value_loc = field_loc.saturating_add(field_value_offset.try_into()?);
+        if (field_loc..field_value_loc).contains(&insertion_loc) {
+            emplace_scalar::<UOffsetT>(
+                slice,
+                (isize::try_from(field_value_offset)? + offset).try_into()?,
+            );
+            updated[field_loc] = true;
+        }
+
+        match field_type {
+            BaseType::Obj => {
+                let field_obj = schema.objects().get(field.type_().index().try_into()?);
+                update_offset(
+                    buf,
+                    field_value_loc,
+                    updated,
+                    &field_obj,
+                    schema,
+                    insertion_loc,
+                    offset,
+                )?;
+            }
+            BaseType::Vector => {
+                let elem_type = field.type_().element();
+                if elem_type != BaseType::Obj || elem_type != BaseType::String {
+                    continue;
+                }
+                if elem_type == BaseType::Obj
+                    && schema
+                        .objects()
+                        .get(field.type_().index().try_into()?)
+                        .is_struct()
+                {
+                    continue;
+                }
+                let vec_size = usize::try_from(read_uoffset(buf, field_value_loc))?;
+                for index in 0..vec_size {
+                    let elem_loc = field_value_loc + SIZE_UOFFSET + index * SIZE_UOFFSET;
+                    if updated[elem_loc] {
+                        continue;
+                    }
+                    let slice = &mut buf[elem_loc..elem_loc + SIZE_UOFFSET];
+                    let elem_value_offset = read_scalar::<UOffsetT>(slice);
+                    let elem_value_loc = elem_loc.saturating_add(elem_value_offset.try_into()?);
+                    if (elem_loc..elem_value_loc).contains(&insertion_loc) {
+                        emplace_scalar::<UOffsetT>(
+                            slice,
+                            (isize::try_from(elem_value_offset)? + offset).try_into()?,
+                        );
+                        updated[elem_loc] = true;
+                    }
+
+                    if elem_type == BaseType::Obj {
+                        let elem_obj = schema.objects().get(field.type_().index().try_into()?);
+                        update_offset(
+                            buf,
+                            elem_value_loc,
+                            updated,
+                            &elem_obj,
+                            schema,
+                            insertion_loc,
+                            offset,
+                        )?;
+                    }
+                }
+            }
+            BaseType::Union => {
+                let union_enum = schema.enums().get(field.type_().index().try_into()?);
+                let union_type = object
+                    .fields()
+                    .lookup_by_key(field.name().to_string() + "_type", |field, key| {
+                        field.key_compare_with_value(key)
+                    })
+                    .unwrap();
+                let union_type_loc = vtable_loc.saturating_add(union_type.offset().into());
+                let union_type_offset = VOffsetT::follow(buf, union_type_loc);
+                let union_type_value =
+                    u8::follow(buf, table_loc.saturating_add(union_type_offset.into()));
+                let union_enum_value = union_enum
+                    .values()
+                    .lookup_by_key(union_type_value.into(), |value, key| {
+                        value.key_compare_with_value(*key)
+                    })
+                    .unwrap();
+                let union_object = schema
+                    .objects()
+                    .get(union_enum_value.union_type().unwrap().index().try_into()?);
+                update_offset(
+                    buf,
+                    field_value_loc,
+                    updated,
+                    &union_object,
+                    schema,
+                    insertion_loc,
+                    offset,
+                )?;
+            }
+            _ => (),
+        }
+    }
+
+    // Checks if the vtable offset points beyond the insertion point.
+    if (table_loc..vtable_loc).contains(&insertion_loc) {
+        let slice = &mut buf[table_loc..table_loc + SIZE_SOFFSET];
+        emplace_scalar::<SOffsetT>(slice, (vtable_offset - offset).try_into()?);
+        updated[table_loc] = true;
+    }
+    Ok(())
+}
+
+/// Returns the absolute location of the data (e.g. string) in the buffer when the field contains relative offset (`UOffsetT`) to the data.
+///
+/// # Safety
+///
+/// The value of the corresponding slot must have type `UOffsetT`.
+unsafe fn deref_uoffset(buf: &[u8], field_loc: usize) -> FlatbufferResult<usize> {
+    Ok(field_loc.saturating_add(read_uoffset(buf, field_loc).try_into()?))
+}
+
+/// Reads the value of `UOffsetT` at the give location.
+///
+/// # Safety
+///
+/// The value of the corresponding slot must have type `UOffsetT`.
+unsafe fn read_uoffset(buf: &[u8], loc: usize) -> UOffsetT {
+    let slice = &buf[loc..loc + SIZE_UOFFSET];
+    read_scalar::<UOffsetT>(slice)
 }
