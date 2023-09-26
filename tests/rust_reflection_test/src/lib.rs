@@ -4,7 +4,7 @@ use flatbuffers_reflection::{
     get_any_field_integer_in_struct, get_any_field_string, get_any_field_string_in_struct,
     get_any_root, get_field_float, get_field_integer, get_field_string, get_field_struct,
     get_field_struct_in_struct, set_any_field_float, set_any_field_integer, set_any_field_string,
-    set_field,
+    set_field, set_string,
 };
 
 use flatbuffers::FlatBufferBuilder;
@@ -1237,6 +1237,129 @@ fn test_buffer_set_f32_to_f32_unset_fails() {
     assert_eq!(
         res.unwrap_err().to_string(),
         "Set field value not supported for non-populated or non-scalar fields"
+    );
+}
+
+#[test]
+fn test_buffer_set_string_same_str_succeeds() {
+    let mut buffer = create_test_buffer();
+    let table_loc = unsafe { get_any_root(&buffer) }.loc();
+    let schema = load_file_as_buffer("../monster_test.bfbs");
+    let string_field = get_schema_field(&schema, "name");
+
+    let res = unsafe {
+        set_string(
+            &mut buffer,
+            table_loc,
+            &string_field,
+            "MyMonster",
+            &root_as_schema(schema.as_slice()).unwrap(),
+        )
+    };
+
+    assert!(res.is_ok());
+    let updated_table = unsafe { get_any_root(&buffer) };
+    let updated_value = unsafe { get_field_string(&updated_table, &string_field) };
+    assert!(updated_value.is_ok());
+    assert_eq!(updated_value.unwrap(), Some("MyMonster"));
+}
+
+#[test]
+fn test_buffer_set_string_same_size_succeeds() {
+    let mut buffer = create_test_buffer();
+    let table_loc = unsafe { get_any_root(&buffer) }.loc();
+    let schema = load_file_as_buffer("../monster_test.bfbs");
+    let string_field = get_schema_field(&schema, "name");
+
+    let res = unsafe {
+        set_string(
+            &mut buffer,
+            table_loc,
+            &string_field,
+            "YoMonster",
+            &root_as_schema(schema.as_slice()).unwrap(),
+        )
+    };
+
+    assert!(res.is_ok());
+    let updated_table = unsafe { get_any_root(&buffer) };
+    let updated_value = unsafe { get_field_string(&updated_table, &string_field) };
+    assert!(updated_value.is_ok());
+    assert_eq!(updated_value.unwrap(), Some("YoMonster"));
+}
+
+#[test]
+fn test_buffer_set_string_bigger_size_succeeds() {
+    let mut buffer = create_test_buffer();
+    let table_loc = unsafe { get_any_root(&buffer) }.loc();
+    let schema = load_file_as_buffer("../monster_test.bfbs");
+    let string_field = get_schema_field(&schema, "name");
+
+    let res = unsafe {
+        set_string(
+            &mut buffer,
+            table_loc,
+            &string_field,
+            "AStringWithSlightlyBiggerSize",
+            &root_as_schema(schema.as_slice()).unwrap(),
+        )
+    };
+
+    assert!(res.is_ok());
+    let updated_table = unsafe { get_any_root(&buffer) };
+    let updated_value = unsafe { get_field_string(&updated_table, &string_field) };
+    assert!(updated_value.is_ok());
+    assert_eq!(
+        updated_value.unwrap(),
+        Some("AStringWithSlightlyBiggerSize")
+    );
+}
+
+#[test]
+fn test_buffer_set_string_smaller_size_succeeds() {
+    let mut buffer = create_test_buffer();
+    let table_loc = unsafe { get_any_root(&buffer) }.loc();
+    let schema = load_file_as_buffer("../monster_test.bfbs");
+    let string_field = get_schema_field(&schema, "name");
+
+    let res = unsafe {
+        set_string(
+            &mut buffer,
+            table_loc,
+            &string_field,
+            "s",
+            &root_as_schema(schema.as_slice()).unwrap(),
+        )
+    };
+
+    assert!(res.is_ok());
+    let updated_table = unsafe { get_any_root(&buffer) };
+    let updated_value = unsafe { get_field_string(&updated_table, &string_field) };
+    assert!(updated_value.is_ok());
+    assert_eq!(updated_value.unwrap(), Some("s"));
+}
+
+#[test]
+fn test_buffer_set_string_diff_type_fails() {
+    let mut buffer = create_test_buffer();
+    let table_loc = unsafe { get_any_root(&buffer) }.loc();
+    let schema = load_file_as_buffer("../monster_test.bfbs");
+    let f32_field = get_schema_field(&schema, "testf");
+
+    let res = unsafe {
+        set_string(
+            &mut buffer,
+            table_loc,
+            &f32_field,
+            "any",
+            &root_as_schema(schema.as_slice()).unwrap(),
+        )
+    };
+
+    assert!(res.is_err());
+    assert_eq!(
+        res.unwrap_err().to_string(),
+        "Failed to convert between data type String and field type Float"
     );
 }
 

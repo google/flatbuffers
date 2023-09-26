@@ -6,5 +6,7 @@ edition = "2021"
 [dependencies]
 flatbuffers = { path = "../flatbuffers"}
 escape_string = "0.1.2"
+stdint = "0.2.0"
 num = "0.4.1"
+anyhow = "1.0.75"
 thiserror = "1.0"
