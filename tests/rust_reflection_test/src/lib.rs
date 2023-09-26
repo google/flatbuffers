@@ -3,7 +3,8 @@ use flatbuffers_reflection::{
     get_any_field_float, get_any_field_float_in_struct, get_any_field_integer,
     get_any_field_integer_in_struct, get_any_field_string, get_any_field_string_in_struct,
     get_any_root, get_field_float, get_field_integer, get_field_string, get_field_struct,
-    get_field_struct_in_struct,
+    get_field_struct_in_struct, set_any_field_float, set_any_field_integer, set_any_field_string,
+    set_field,
 };
 
 use flatbuffers::FlatBufferBuilder;
@@ -222,7 +223,7 @@ fn test_buffer_integer_diff_size_fails() {
     assert!(value.is_err());
     assert_eq!(
         value.unwrap_err().to_string(),
-        "Failed to get data of type i64 from field of type Short"
+        "Failed to convert between data type i64 and field type Short"
     );
 }
 
@@ -251,7 +252,7 @@ fn test_buffer_float_diff_type_fails() {
     assert!(value.is_err());
     assert_eq!(
         value.unwrap_err().to_string(),
-        "Failed to get data of type f64 from field of type Float"
+        "Failed to convert between data type f64 and field type Float"
     );
 }
 
@@ -280,7 +281,7 @@ fn test_buffer_string_diff_type_fails() {
     assert!(value.is_err());
     assert_eq!(
         value.unwrap_err().to_string(),
-        "Failed to get data of type String from field of type Float"
+        "Failed to convert between data type String and field type Float"
     );
 }
 
@@ -312,7 +313,7 @@ fn test_buffer_struct_diff_type_fails() {
     assert!(res.is_err());
     assert_eq!(
         res.unwrap_err().to_string(),
-        "Failed to get data of type Obj from field of type Float"
+        "Failed to convert between data type Obj and field type Float"
     );
 }
 
@@ -369,7 +370,7 @@ fn test_buffer_nested_struct_diff_type_fails() {
     assert!(res.is_err());
     assert_eq!(
         res.unwrap_err().to_string(),
-        "Failed to get data of type Obj from field of type Float"
+        "Failed to convert between data type Obj and field type Float"
     );
 }
 
@@ -437,7 +438,7 @@ fn test_buffer_nan_as_integer_fails() {
     assert!(value.is_err());
     assert_eq!(
         value.unwrap_err().to_string(),
-        "Failed to get data of type i64 from field of type Float"
+        "Failed to convert between data type i64 and field type Float"
     );
 }
 
@@ -453,7 +454,7 @@ fn test_buffer_string_as_integer_fails() {
     assert!(value.is_err());
     assert_eq!(
         value.unwrap_err().to_string(),
-        "Failed to get data of type i64 from field of type String"
+        "Failed to convert between data type i64 and field type String"
     );
 }
 
@@ -495,7 +496,7 @@ fn test_buffer_string_as_float_fails() {
     assert!(value.is_err());
     assert_eq!(
         value.unwrap_err().to_string(),
-        "Failed to get data of type f64 from field of type String"
+        "Failed to convert between data type f64 and field type String"
     );
 }
 
@@ -667,7 +668,7 @@ fn test_buffer_struct_in_struct_as_integer_fails() {
     assert!(value.is_err());
     assert_eq!(
         value.unwrap_err().to_string(),
-        "Failed to get data of type i64 from field of type Obj"
+        "Failed to convert between data type i64 and field type Obj"
     );
 }
 
@@ -784,7 +785,7 @@ fn test_buffer_struct_in_struct_as_float_fails() {
     assert!(value.is_err());
     assert_eq!(
         value.unwrap_err().to_string(),
-        "Failed to get data of type f64 from field of type Obj"
+        "Failed to convert between data type f64 and field type Obj"
     );
 }
 
@@ -920,6 +921,323 @@ fn test_buffer_struct_in_struct_as_string_succeeds() {
     };
 
     assert_eq!(value, String::from("MyGame.Example.Test { a: 5, b: 6, }"));
+}
+
+#[test]
+fn test_buffer_set_valid_int_to_i16_succeeds() {
+    let mut buffer = create_test_buffer();
+    let table_loc = unsafe { get_any_root(&buffer) }.loc();
+    let schema = load_file_as_buffer("../monster_test.bfbs");
+    let i16_field = get_schema_field(&schema, "hp");
+
+    let res = unsafe { set_any_field_integer(&mut buffer, table_loc, &i16_field, 111) };
+
+    assert!(res.is_ok());
+    let updated_table = unsafe { get_any_root(&buffer) };
+    let updated_value = unsafe { get_field_integer::<i16>(&updated_table, &i16_field) };
+    assert!(updated_value.is_ok());
+    assert_eq!(updated_value.unwrap(), Some(111));
+}
+
+#[test]
+fn test_buffer_set_integer_to_f32_succeeds() {
+    let mut buffer = create_test_buffer();
+    let table_loc = unsafe { get_any_root(&buffer) }.loc();
+    let schema = load_file_as_buffer("../monster_test.bfbs");
+    let f32_field = get_schema_field(&schema, "testf");
+
+    let res = unsafe { set_any_field_integer(&mut buffer, table_loc, &f32_field, 111) };
+
+    assert!(res.is_ok());
+    let updated_table = unsafe { get_any_root(&buffer) };
+    let updated_value = unsafe { get_field_float::<f32>(&updated_table, &f32_field) };
+    assert!(updated_value.is_ok());
+    assert_approx_eq!(updated_value.unwrap().unwrap(), 111f32);
+}
+
+#[test]
+fn test_buffer_set_overflow_to_i16_fails() {
+    let mut buffer = create_test_buffer();
+    let table_loc = unsafe { get_any_root(&buffer) }.loc();
+    let schema = load_file_as_buffer("../monster_test.bfbs");
+    let i16_field = get_schema_field(&schema, "hp");
+
+    let res = unsafe { set_any_field_integer(&mut buffer, table_loc, &i16_field, 32768) };
+
+    assert!(res.is_err());
+    assert_eq!(
+        res.unwrap_err().to_string(),
+        "Failed to convert between data type i64 and field type Short"
+    );
+}
+
+#[test]
+fn test_buffer_set_integer_to_string_fails() {
+    let mut buffer = create_test_buffer();
+    let table_loc = unsafe { get_any_root(&buffer) }.loc();
+    let schema = load_file_as_buffer("../monster_test.bfbs");
+    let string_field = get_schema_field(&schema, "name");
+
+    let res = unsafe { set_any_field_integer(&mut buffer, table_loc, &string_field, 1) };
+
+    assert!(res.is_err());
+    assert_eq!(
+        res.unwrap_err().to_string(),
+        "Set field value not supported for non-populated or non-scalar fields"
+    );
+}
+
+#[test]
+fn test_buffer_set_integer_to_unset_fails() {
+    let mut buffer = create_test_buffer();
+    let table_loc = unsafe { get_any_root(&buffer) }.loc();
+    let schema = load_file_as_buffer("../monster_test.bfbs");
+    let unset_field = get_schema_field(&schema, "testf3");
+
+    let res = unsafe { set_any_field_integer(&mut buffer, table_loc, &unset_field, 1) };
+
+    assert!(res.is_err());
+    assert_eq!(
+        res.unwrap_err().to_string(),
+        "Set field value not supported for non-populated or non-scalar fields"
+    );
+}
+
+#[test]
+fn test_buffer_set_valid_float_to_f32_succeeds() {
+    let mut buffer = create_test_buffer();
+    let table_loc = unsafe { get_any_root(&buffer) }.loc();
+    let schema = load_file_as_buffer("../monster_test.bfbs");
+    let f32_field = get_schema_field(&schema, "testf");
+
+    let res = unsafe { set_any_field_float(&mut buffer, table_loc, &f32_field, 111.11) };
+
+    assert!(res.is_ok());
+    let updated_table = unsafe { get_any_root(&buffer) };
+    let updated_value = unsafe { get_field_float::<f32>(&updated_table, &f32_field) };
+    assert!(updated_value.is_ok());
+    assert_approx_eq!(updated_value.unwrap().unwrap(), 111.11);
+}
+
+#[test]
+fn test_buffer_set_float_to_i16_succeeds() {
+    let mut buffer = create_test_buffer();
+    let table_loc = unsafe { get_any_root(&buffer) }.loc();
+    let schema = load_file_as_buffer("../monster_test.bfbs");
+    let i16_field = get_schema_field(&schema, "hp");
+
+    let res = unsafe { set_any_field_float(&mut buffer, table_loc, &i16_field, 111.11) };
+
+    assert!(res.is_ok());
+    let updated_table = unsafe { get_any_root(&buffer) };
+    let updated_value = unsafe { get_field_integer::<i16>(&updated_table, &i16_field) };
+    assert!(updated_value.is_ok());
+    assert_eq!(updated_value.unwrap(), Some(111));
+}
+
+#[test]
+fn test_buffer_set_overflow_to_f32_fails() {
+    let mut buffer = create_test_buffer();
+    let table_loc = unsafe { get_any_root(&buffer) }.loc();
+    let schema = load_file_as_buffer("../monster_test.bfbs");
+    let f32_field = get_schema_field(&schema, "testf");
+
+    let res = unsafe { set_any_field_float(&mut buffer, table_loc, &f32_field, f64::MAX) };
+
+    assert!(res.is_err());
+    assert_eq!(
+        res.unwrap_err().to_string(),
+        "Failed to convert between data type f64 and field type Float"
+    );
+}
+
+#[test]
+fn test_buffer_set_float_to_string_fails() {
+    let mut buffer = create_test_buffer();
+    let table_loc = unsafe { get_any_root(&buffer) }.loc();
+    let schema = load_file_as_buffer("../monster_test.bfbs");
+    let string_field = get_schema_field(&schema, "name");
+
+    let res = unsafe { set_any_field_float(&mut buffer, table_loc, &string_field, 1.1) };
+
+    assert!(res.is_err());
+    assert_eq!(
+        res.unwrap_err().to_string(),
+        "Set field value not supported for non-populated or non-scalar fields"
+    );
+}
+
+#[test]
+fn test_buffer_set_float_to_unset_fails() {
+    let mut buffer = create_test_buffer();
+    let table_loc = unsafe { get_any_root(&buffer) }.loc();
+    let schema = load_file_as_buffer("../monster_test.bfbs");
+    let unset_field = get_schema_field(&schema, "testf3");
+
+    let res = unsafe { set_any_field_float(&mut buffer, table_loc, &unset_field, 1.1) };
+
+    assert!(res.is_err());
+    assert_eq!(
+        res.unwrap_err().to_string(),
+        "Set field value not supported for non-populated or non-scalar fields"
+    );
+}
+
+#[test]
+fn test_buffer_set_float_str_to_f32_succeeds() {
+    let mut buffer = create_test_buffer();
+    let table_loc = unsafe { get_any_root(&buffer) }.loc();
+    let schema = load_file_as_buffer("../monster_test.bfbs");
+    let f32_field = get_schema_field(&schema, "testf");
+
+    let res = unsafe { set_any_field_string(&mut buffer, table_loc, &f32_field, "111.11") };
+
+    assert!(res.is_ok());
+    let updated_table = unsafe { get_any_root(&buffer) };
+    let updated_value = unsafe { get_field_float::<f32>(&updated_table, &f32_field) };
+    assert!(updated_value.is_ok());
+    assert_approx_eq!(updated_value.unwrap().unwrap(), 111.11);
+}
+
+#[test]
+fn test_buffer_set_int_str_to_i16_succeeds() {
+    let mut buffer = create_test_buffer();
+    let table_loc = unsafe { get_any_root(&buffer) }.loc();
+    let schema = load_file_as_buffer("../monster_test.bfbs");
+    let i16_field = get_schema_field(&schema, "hp");
+
+    let res = unsafe { set_any_field_string(&mut buffer, table_loc, &i16_field, "111") };
+
+    assert!(res.is_ok());
+    let updated_table = unsafe { get_any_root(&buffer) };
+    let updated_value = unsafe { get_field_integer::<i16>(&updated_table, &i16_field) };
+    assert!(updated_value.is_ok());
+    assert_eq!(updated_value.unwrap(), Some(111));
+}
+
+#[test]
+fn test_buffer_set_non_num_str_to_f32_fails() {
+    let mut buffer = create_test_buffer();
+    let table_loc = unsafe { get_any_root(&buffer) }.loc();
+    let schema = load_file_as_buffer("../monster_test.bfbs");
+    let f32_field = get_schema_field(&schema, "testf");
+
+    let res = unsafe { set_any_field_string(&mut buffer, table_loc, &f32_field, "any") };
+
+    assert!(res.is_err());
+    assert_eq!(res.unwrap_err().to_string(), "invalid float literal");
+}
+
+#[test]
+fn test_buffer_set_int_str_to_string_fails() {
+    let mut buffer = create_test_buffer();
+    let table_loc = unsafe { get_any_root(&buffer) }.loc();
+    let schema = load_file_as_buffer("../monster_test.bfbs");
+    let string_field = get_schema_field(&schema, "name");
+
+    let res = unsafe { set_any_field_string(&mut buffer, table_loc, &string_field, "1") };
+
+    assert!(res.is_err());
+    assert_eq!(
+        res.unwrap_err().to_string(),
+        "Set field value not supported for non-populated or non-scalar fields"
+    );
+}
+
+#[test]
+fn test_buffer_set_int_str_to_unset_fails() {
+    let mut buffer = create_test_buffer();
+    let table_loc = unsafe { get_any_root(&buffer) }.loc();
+    let schema = load_file_as_buffer("../monster_test.bfbs");
+    let unset_field = get_schema_field(&schema, "testf3");
+
+    let res = unsafe { set_any_field_string(&mut buffer, table_loc, &unset_field, "1") };
+
+    assert!(res.is_err());
+    assert_eq!(
+        res.unwrap_err().to_string(),
+        "Set field value not supported for non-populated or non-scalar fields"
+    );
+}
+
+#[test]
+fn test_buffer_set_i16_to_i16_succeeds() {
+    let mut buffer = create_test_buffer();
+    let table_loc = unsafe { get_any_root(&buffer) }.loc();
+    let schema = load_file_as_buffer("../monster_test.bfbs");
+    let i16_field = get_schema_field(&schema, "hp");
+
+    let res = unsafe { set_field::<i16>(&mut buffer, table_loc, &i16_field, 111) };
+
+    assert!(res.is_ok());
+    let updated_table = unsafe { get_any_root(&buffer) };
+    let updated_value = unsafe { get_field_integer::<i16>(&updated_table, &i16_field) };
+    assert!(updated_value.is_ok());
+    assert_eq!(updated_value.unwrap(), Some(111));
+}
+
+#[test]
+fn test_buffer_set_i32_to_i16_fails() {
+    let mut buffer = create_test_buffer();
+    let table_loc = unsafe { get_any_root(&buffer) }.loc();
+    let schema = load_file_as_buffer("../monster_test.bfbs");
+    let i16_field = get_schema_field(&schema, "hp");
+
+    let res = unsafe { set_field::<i32>(&mut buffer, table_loc, &i16_field, 111) };
+
+    assert!(res.is_err());
+    assert_eq!(
+        res.unwrap_err().to_string(),
+        "Failed to convert between data type i32 and field type Short"
+    );
+}
+
+#[test]
+fn test_buffer_set_f32_to_f32_succeeds() {
+    let mut buffer = create_test_buffer();
+    let table_loc = unsafe { get_any_root(&buffer) }.loc();
+    let schema = load_file_as_buffer("../monster_test.bfbs");
+    let f32_field = get_schema_field(&schema, "testf");
+
+    let res = unsafe { set_field::<f32>(&mut buffer, table_loc, &f32_field, 111.11) };
+
+    assert!(res.is_ok());
+    let updated_table = unsafe { get_any_root(&buffer) };
+    let updated_value = unsafe { get_field_float::<f32>(&updated_table, &f32_field) };
+    assert!(updated_value.is_ok());
+    assert_approx_eq!(updated_value.unwrap().unwrap(), 111.11);
+}
+
+#[test]
+fn test_buffer_set_f64_to_f32_fails() {
+    let mut buffer = create_test_buffer();
+    let table_loc = unsafe { get_any_root(&buffer) }.loc();
+    let schema = load_file_as_buffer("../monster_test.bfbs");
+    let f32_field = get_schema_field(&schema, "testf");
+
+    let res = unsafe { set_field::<f64>(&mut buffer, table_loc, &f32_field, 111.11) };
+
+    assert!(res.is_err());
+    assert_eq!(
+        res.unwrap_err().to_string(),
+        "Failed to convert between data type f64 and field type Float"
+    );
+}
+
+#[test]
+fn test_buffer_set_f32_to_f32_unset_fails() {
+    let mut buffer = create_test_buffer();
+    let table_loc = unsafe { get_any_root(&buffer) }.loc();
+    let schema = load_file_as_buffer("../monster_test.bfbs");
+    let unset_field = get_schema_field(&schema, "testf3");
+
+    let res = unsafe { set_field::<f32>(&mut buffer, table_loc, &unset_field, 111.11) };
+
+    assert!(res.is_err());
+    assert_eq!(
+        res.unwrap_err().to_string(),
+        "Set field value not supported for non-populated or non-scalar fields"
+    );
 }
 
 fn load_file_as_buffer(path: &str) -> Vec<u8> {

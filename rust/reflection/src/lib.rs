@@ -19,7 +19,9 @@ mod r#struct;
 pub use crate::r#struct::Struct;
 pub use crate::reflection_generated::reflection;
 
-use flatbuffers::{Follow, ForwardsUOffset, Table};
+use flatbuffers::{
+    emplace_scalar, EndianScalar, Follow, ForwardsUOffset, InvalidFlatbuffer, Table,
+};
 use reflection_generated::reflection::{BaseType, Field, Object, Schema};
 
 use core::mem::size_of;
@@ -27,12 +29,19 @@ use escape_string::escape;
 use num::traits::float::Float;
 use num::traits::int::PrimInt;
 use num::traits::FromPrimitive;
+use std::error;
 use thiserror::Error;
 
 #[derive(Error, Debug)]
 pub enum FlatbufferError {
-    #[error("Failed to get data of type {0} from field of type {1}")]
+    #[error(transparent)]
+    VerificationError(#[from] flatbuffers::InvalidFlatbuffer),
+    #[error("Failed to convert between data type {0} and field type {1}")]
     FieldTypeMismatch(String, String),
+    #[error("Set field value not supported for non-populated or non-scalar fields")]
+    SetValueNotSupported(),
+    #[error(transparent)]
+    ParseFloatError(#[from] std::num::ParseFloatError),
 }
 
 pub type FlatbufferResult<T, E = FlatbufferError> = core::result::Result<T, E>;
@@ -262,6 +271,126 @@ pub unsafe fn get_any_field_string_in_struct(
     )
 }
 
+/// Sets any table field with the value of a 64-bit integer. Returns error if the field is not originally set or is with non-scalar value or the provided value cannot be cast into the field type.
+///
+/// # Safety
+///
+/// [buf] must contain a valid root table and valid offset to it.
+pub unsafe fn set_any_field_integer(
+    buf: &mut [u8],
+    table_loc: usize,
+    field: &Field,
+    v: i64,
+) -> FlatbufferResult<()> {
+    let field_type = field.type_().base_type();
+    let table = Table::follow(buf, table_loc);
+
+    let Some(field_loc) = get_field_loc(&table, field) else {
+        return Err(FlatbufferError::SetValueNotSupported());
+    };
+
+    if !is_scalar(field_type) {
+        return Err(FlatbufferError::SetValueNotSupported());
+    }
+
+    set_any_value_integer(field_type, buf, field_loc, v)
+}
+
+/// Sets any table field with the value of a 64-bit floating point. Returns error if the field is not originally set or is with non-scalar value or the provided value cannot be cast into the field type.
+///
+/// # Safety
+///
+/// [buf] must contain a valid root table and valid offset to it.
+pub unsafe fn set_any_field_float(
+    buf: &mut [u8],
+    table_loc: usize,
+    field: &Field,
+    v: f64,
+) -> FlatbufferResult<()> {
+    let field_type = field.type_().base_type();
+    let table = Table::follow(buf, table_loc);
+
+    let Some(field_loc) = get_field_loc(&table, field) else {
+        return Err(FlatbufferError::SetValueNotSupported());
+    };
+
+    if !is_scalar(field_type) {
+        return Err(FlatbufferError::SetValueNotSupported());
+    }
+
+    set_any_value_float(field_type, buf, field_loc, v)
+}
+
+/// Sets any table field with the value of a string. Returns error if the field is not originally set or is with non-scalar value or the provided value cannot be parsed as the field type.
+///
+/// # Safety
+///
+/// [buf] must contain a valid root table and valid offset to it.
+pub unsafe fn set_any_field_string(
+    buf: &mut [u8],
+    table_loc: usize,
+    field: &Field,
+    v: &str,
+) -> FlatbufferResult<()> {
+    let field_type = field.type_().base_type();
+    let table = Table::follow(buf, table_loc);
+
+    let Some(field_loc) = get_field_loc(&table, field) else {
+        return Err(FlatbufferError::SetValueNotSupported());
+    };
+
+    if !is_scalar(field_type) {
+        return Err(FlatbufferError::SetValueNotSupported());
+    }
+
+    set_any_value_float(field_type, buf, field_loc, v.parse::<f64>()?)
+}
+
+/// Sets any scalar field given its exact type. Returns error if the field is not originally set or is with non-scalar value.
+///
+/// # Safety
+///
+/// [buf] must contain a valid root table and valid offset to it.
+pub unsafe fn set_field<T: EndianScalar>(
+    buf: &mut [u8],
+    table_loc: usize,
+    field: &Field,
+    v: T,
+) -> FlatbufferResult<()> {
+    let field_type = field.type_().base_type();
+    let table = Table::follow(buf, table_loc);
+
+    if !is_scalar(field_type) {
+        return Err(FlatbufferError::SetValueNotSupported());
+    }
+
+    if core::mem::size_of::<T>() != get_type_size(field_type) {
+        return Err(FlatbufferError::FieldTypeMismatch(
+            std::any::type_name::<T>().to_string(),
+            field_type.variant_name().unwrap_or_default().to_string(),
+        ));
+    }
+
+    let Some(field_loc) = get_field_loc(&table, field) else {
+        return Err(FlatbufferError::SetValueNotSupported());
+    };
+
+    if buf.len() < field_loc.saturating_add(get_type_size(field_type)) {
+        return Err(FlatbufferError::VerificationError(
+            InvalidFlatbuffer::RangeOutOfBounds {
+                range: core::ops::Range {
+                    start: field_loc,
+                    end: field_loc.saturating_add(get_type_size(field_type)),
+                },
+                error_trace: Default::default(),
+            },
+        ));
+    }
+
+    // SAFETY: the buffer range was verified above.
+    unsafe { Ok(emplace_scalar::<T>(&mut buf[field_loc..], v)) }
+}
+
 /// Returns the size of a scalar type in the `BaseType` enum. In the case of structs, returns the size of their offset (`UOffsetT`) in the buffer.
 fn get_type_size(base_type: BaseType) -> usize {
     match base_type {
@@ -280,7 +409,11 @@ fn get_type_size(base_type: BaseType) -> usize {
 }
 
 /// Returns the absolute field location in the buffer and [None] if the field is not populated.
-pub fn get_field_loc(table: &Table, field: &Field) -> Option<usize> {
+///
+/// # Safety
+///
+/// [table] must contain a valid vtable.
+unsafe fn get_field_loc(table: &Table, field: &Field) -> Option<usize> {
     let field_offset = table.vtable().get(field.offset()) as usize;
     if field_offset == 0 {
         return None;
@@ -414,4 +547,216 @@ unsafe fn get_any_value_string(
             .unwrap_or_default()
             .to_string(),
     }
+}
+
+/// Sets any scalar value with a 64-bit integer. Returns error if the value is not successfully replaced.
+fn set_any_value_integer(
+    base_type: BaseType,
+    buf: &mut [u8],
+    field_loc: usize,
+    v: i64,
+) -> FlatbufferResult<()> {
+    if buf.len() < get_type_size(base_type) {
+        return Err(FlatbufferError::VerificationError(
+            InvalidFlatbuffer::RangeOutOfBounds {
+                range: core::ops::Range {
+                    start: field_loc,
+                    end: field_loc.saturating_add(get_type_size(base_type)),
+                },
+                error_trace: Default::default(),
+            },
+        ));
+    }
+    let buf = &mut buf[field_loc..];
+    let type_name = base_type.variant_name().unwrap_or_default().to_string();
+
+    macro_rules! try_emplace {
+        ($ty:ty, $value:expr) => {
+            if let Ok(v) = TryInto::<$ty>::try_into($value) {
+                // SAFETY: buffer size is verified at the beginning of this function.
+                unsafe { Ok(emplace_scalar::<$ty>(buf, v)) }
+            } else {
+                Err(FlatbufferError::FieldTypeMismatch(
+                    String::from("i64"),
+                    type_name,
+                ))
+            }
+        };
+    }
+
+    match base_type {
+        BaseType::UType | BaseType::UByte => {
+            try_emplace!(u8, v)
+        }
+        BaseType::Bool => {
+            // SAFETY: buffer size is verified at the beginning of this function.
+            unsafe { Ok(emplace_scalar::<bool>(buf, v != 0)) }
+        }
+        BaseType::Byte => {
+            try_emplace!(i8, v)
+        }
+        BaseType::Short => {
+            try_emplace!(i16, v)
+        }
+        BaseType::UShort => {
+            try_emplace!(u16, v)
+        }
+        BaseType::Int => {
+            try_emplace!(i32, v)
+        }
+        BaseType::UInt => {
+            try_emplace!(u32, v)
+        }
+        BaseType::Long => {
+            // SAFETY: buffer size is verified at the beginning of this function.
+            unsafe { Ok(emplace_scalar::<i64>(buf, v)) }
+        }
+        BaseType::ULong => {
+            try_emplace!(u64, v)
+        }
+        BaseType::Float => {
+            if let Some(value) = f32::from_i64(v) {
+                // SAFETY: buffer size is verified at the beginning of this function.
+                unsafe { Ok(emplace_scalar::<f32>(buf, value)) }
+            } else {
+                Err(FlatbufferError::FieldTypeMismatch(
+                    String::from("i64"),
+                    type_name,
+                ))
+            }
+        }
+        BaseType::Double => {
+            if let Some(value) = f64::from_i64(v) {
+                // SAFETY: buffer size is verified at the beginning of this function.
+                unsafe { Ok(emplace_scalar::<f64>(buf, value)) }
+            } else {
+                Err(FlatbufferError::FieldTypeMismatch(
+                    String::from("i64"),
+                    type_name,
+                ))
+            }
+        }
+        _ => Err(FlatbufferError::SetValueNotSupported()),
+    }
+}
+
+/// Sets any scalar value with a 64-bit floating point. Returns error if the value is not successfully replaced.
+fn set_any_value_float(
+    base_type: BaseType,
+    buf: &mut [u8],
+    field_loc: usize,
+    v: f64,
+) -> FlatbufferResult<()> {
+    if buf.len() < get_type_size(base_type) {
+        return Err(FlatbufferError::VerificationError(
+            InvalidFlatbuffer::RangeOutOfBounds {
+                range: core::ops::Range {
+                    start: field_loc,
+                    end: field_loc.saturating_add(get_type_size(base_type)),
+                },
+                error_trace: Default::default(),
+            },
+        ));
+    }
+    let buf = &mut buf[field_loc..];
+    let type_name = base_type.variant_name().unwrap_or_default().to_string();
+
+    match base_type {
+        BaseType::UType | BaseType::UByte => {
+            if let Some(value) = u8::from_f64(v) {
+                // SAFETY: buffer size is verified at the beginning of this function.
+                unsafe {
+                    return Ok(emplace_scalar::<u8>(buf, value));
+                }
+            }
+        }
+        BaseType::Bool => {
+            // SAFETY: buffer size is verified at the beginning of this function.
+            unsafe {
+                return Ok(emplace_scalar::<bool>(buf, v != 0f64));
+            }
+        }
+        BaseType::Byte => {
+            if let Some(value) = i8::from_f64(v) {
+                // SAFETY: buffer size is verified at the beginning of this function.
+                unsafe {
+                    return Ok(emplace_scalar::<i8>(buf, value));
+                }
+            }
+        }
+        BaseType::Short => {
+            if let Some(value) = i16::from_f64(v) {
+                // SAFETY: buffer size is verified at the beginning of this function.
+                unsafe {
+                    return Ok(emplace_scalar::<i16>(buf, value));
+                }
+            }
+        }
+        BaseType::UShort => {
+            if let Some(value) = u16::from_f64(v) {
+                // SAFETY: buffer size is verified at the beginning of this function.
+                unsafe {
+                    return Ok(emplace_scalar::<u16>(buf, value));
+                }
+            }
+        }
+        BaseType::Int => {
+            if let Some(value) = i32::from_f64(v) {
+                // SAFETY: buffer size is verified at the beginning of this function.
+                unsafe {
+                    return Ok(emplace_scalar::<i32>(buf, value));
+                }
+            }
+        }
+        BaseType::UInt => {
+            if let Some(value) = u32::from_f64(v) {
+                // SAFETY: buffer size is verified at the beginning of this function.
+                unsafe {
+                    return Ok(emplace_scalar::<u32>(buf, value));
+                }
+            }
+        }
+        BaseType::Long => {
+            if let Some(value) = i64::from_f64(v) {
+                // SAFETY: buffer size is verified at the beginning of this function.
+                unsafe {
+                    return Ok(emplace_scalar::<i64>(buf, value));
+                }
+            }
+        }
+        BaseType::ULong => {
+            if let Some(value) = u64::from_f64(v) {
+                // SAFETY: buffer size is verified at the beginning of this function.
+                unsafe {
+                    return Ok(emplace_scalar::<u64>(buf, value));
+                }
+            }
+        }
+        BaseType::Float => {
+            if let Some(value) = f32::from_f64(v) {
+                // Value converted to inf if overflow occurs
+                if value != f32::INFINITY {
+                    // SAFETY: buffer size is verified at the beginning of this function.
+                    unsafe {
+                        return Ok(emplace_scalar::<f32>(buf, value));
+                    }
+                }
+            }
+        }
+        BaseType::Double => {
+            // SAFETY: buffer size is verified at the beginning of this function.
+            unsafe {
+                return Ok(emplace_scalar::<f64>(buf, v));
+            }
+        }
+        _ => return Err(FlatbufferError::SetValueNotSupported()),
+    }
+    return Err(FlatbufferError::FieldTypeMismatch(
+        String::from("f64"),
+        type_name,
+    ));
+}
+
+fn is_scalar(base_type: BaseType) -> bool {
+    return base_type <= BaseType::Double;
 }
