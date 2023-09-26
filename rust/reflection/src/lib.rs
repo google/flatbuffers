@@ -19,7 +19,7 @@ mod r#struct;
 pub use crate::r#struct::Struct;
 pub use crate::reflection_generated::reflection;
 
-use flatbuffers::{Follow, ForwardsUOffset, Table};
+use flatbuffers::{emplace_scalar, EndianScalar, Follow, ForwardsUOffset, Table};
 use reflection_generated::reflection::{BaseType, Field, Object, Schema};
 
 use core::mem::size_of;
@@ -203,6 +203,96 @@ pub unsafe fn get_any_field_string_in_struct(
     )
 }
 
+/// Sets any table field with the value of a 64-bit integer. Returns false if the field doesn't point to a valid buffer location or is with non-scalar value or the provided value cannot be cast into the field type.
+///
+/// # Safety
+///
+/// The [buf] must be valid.
+pub unsafe fn set_any_field_integer<'a>(buf: &'a mut [u8], field: &Field, v: i64) -> bool {
+    let field_type = field.type_().base_type();
+    let table = get_any_root(buf);
+
+    if let Some(field_loc) = get_field_loc(&table, field) {
+        if !is_scalar(field_type) || buf.len() < field_loc + get_type_size(field_type) {
+            return false;
+        }
+
+        // SAFETY: the index was verified above.
+        unsafe { set_any_value_integer(field_type, &mut buf[field_loc..], v) }
+    } else {
+        false
+    }
+}
+
+/// Sets any table field with the value of a 64-bit floating point. Returns false if the field doesn't point to a valid buffer location or is with non-scalar value or the provided value cannot be cast into the field type.
+///
+/// # Safety
+///
+/// The [buf] must be valid.
+pub unsafe fn set_any_field_float<'a>(buf: &'a mut [u8], field: &Field, v: f64) -> bool {
+    let field_type = field.type_().base_type();
+    let table = get_any_root(buf);
+
+    if let Some(field_loc) = get_field_loc(&table, field) {
+        if !is_scalar(field_type) || buf.len() < field_loc + get_type_size(field_type) {
+            return false;
+        }
+
+        // SAFETY: the index was verified above.
+        unsafe { set_any_value_float(field_type, &mut buf[field_loc..], v) }
+    } else {
+        false
+    }
+}
+
+/// Sets any table field with the value of a string. Returns false if the field doesn't point to a valid buffer location or is with non-scalar value or the provided value cannot be parsed as the field type.
+///
+/// # Safety
+///
+/// The [buf] must be valid.
+pub unsafe fn set_any_field_string<'a>(buf: &'a mut [u8], field: &Field, v: &str) -> bool {
+    let field_type = field.type_().base_type();
+    let table = get_any_root(buf);
+
+    if let Some(field_loc) = get_field_loc(&table, field) {
+        if !is_scalar(field_type) || buf.len() < field_loc + get_type_size(field_type) {
+            return false;
+        }
+
+        if let Ok(value) = v.parse::<f64>() {
+            // SAFETY: the index was verified above.
+            return unsafe { set_any_value_float(field_type, &mut buf[field_loc..], value) };
+        }
+    }
+    false
+}
+
+/// Sets any scalar field given its exact type. Returns false if the field doesn't point to a valid buffer location or is with non-scalar value.
+///
+/// # Safety
+///
+/// The [buf] must be valid.
+pub unsafe fn set_field<'a, T: EndianScalar>(buf: &'a mut [u8], field: &Field, v: T) -> bool {
+    let field_type = field.type_().base_type();
+    let table = get_any_root(buf);
+
+    if !is_scalar(field_type) || core::mem::size_of::<T>() != get_type_size(field_type) {
+        return false;
+    }
+
+    if let Some(field_loc) = get_field_loc(&table, field) {
+        if buf.len() < field_loc + get_type_size(field_type) {
+            return false;
+        }
+
+        // SAFETY: the index was verified above.
+        unsafe { emplace_scalar::<T>(&mut buf[field_loc..], v) };
+        true
+    } else {
+        false
+    }
+}
+
 /// Returns the size of a scalar type in the `BaseType` enum. In the case of structs, returns the size of their offset (`UOffsetT`) in the buffer.
 fn get_type_size(base_type: BaseType) -> usize {
     match base_type {
@@ -221,7 +311,7 @@ fn get_type_size(base_type: BaseType) -> usize {
 }
 
 /// Returns the absolute field location in the buffer and [None] if the field is not populated.
-pub fn get_field_loc(table: &Table, field: &Field) -> Option<usize> {
+fn get_field_loc(table: &Table, field: &Field) -> Option<usize> {
     let field_offset = table.vtable().get(field.offset()) as usize;
     if field_offset == 0 {
         return None;
@@ -337,4 +427,167 @@ unsafe fn get_any_value_string(
             .unwrap_or_default()
             .to_string(),
     }
+}
+
+/// Sets any scalar value with a 64-bit integer. Returns true if the value is successfully replaced otherwise returns false.
+///
+/// # Safety
+///
+/// Caller must ensure `buf.len() >= loc + size_of::<T>()`.
+unsafe fn set_any_value_integer(base_type: BaseType, buf: &mut [u8], v: i64) -> bool {
+    match base_type {
+        BaseType::UType | BaseType::UByte => {
+            if let Some(value) = u8::from_i64(v) {
+                emplace_scalar::<u8>(buf, value)
+            } else {
+                return false;
+            }
+        }
+        BaseType::Bool => emplace_scalar::<bool>(buf, v != 0),
+        BaseType::Byte => {
+            if let Some(value) = i8::from_i64(v) {
+                emplace_scalar::<i8>(buf, value)
+            } else {
+                return false;
+            }
+        }
+        BaseType::Short => {
+            if let Some(value) = i16::from_i64(v) {
+                emplace_scalar::<i16>(buf, value)
+            } else {
+                return false;
+            }
+        }
+        BaseType::UShort => {
+            if let Some(value) = u16::from_i64(v) {
+                emplace_scalar::<u16>(buf, value)
+            } else {
+                return false;
+            }
+        }
+        BaseType::Int => {
+            if let Some(value) = i32::from_i64(v) {
+                emplace_scalar::<i32>(buf, value)
+            } else {
+                return false;
+            }
+        }
+        BaseType::UInt => {
+            if let Some(value) = u32::from_i64(v) {
+                emplace_scalar::<u32>(buf, value)
+            } else {
+                return false;
+            }
+        }
+        BaseType::Long => emplace_scalar::<i64>(buf, v),
+        BaseType::ULong => {
+            if let Some(value) = u64::from_i64(v) {
+                emplace_scalar::<u64>(buf, value)
+            } else {
+                return false;
+            }
+        }
+        BaseType::Float => {
+            if let Some(value) = f32::from_i64(v) {
+                emplace_scalar::<f32>(buf, value)
+            } else {
+                return false;
+            }
+        }
+        BaseType::Double => {
+            if let Some(value) = f64::from_i64(v) {
+                emplace_scalar::<f64>(buf, value)
+            } else {
+                return false;
+            }
+        }
+        _ => return false,
+    }
+    true
+}
+
+/// Sets any scalar value with a 64-bit floating point. Returns true if the value is successfully replaced otherwise returns false.
+///
+/// # Safety
+///
+/// Caller must ensure `buf.len() >= loc + size_of::<T>()`.
+unsafe fn set_any_value_float(base_type: BaseType, buf: &mut [u8], v: f64) -> bool {
+    match base_type {
+        BaseType::UType | BaseType::UByte => {
+            if let Some(value) = u8::from_f64(v) {
+                emplace_scalar::<u8>(buf, value)
+            } else {
+                return false;
+            }
+        }
+        BaseType::Bool => emplace_scalar::<bool>(buf, v != 0f64),
+        BaseType::Byte => {
+            if let Some(value) = i8::from_f64(v) {
+                emplace_scalar::<i8>(buf, value)
+            } else {
+                return false;
+            }
+        }
+        BaseType::Short => {
+            if let Some(value) = i16::from_f64(v) {
+                emplace_scalar::<i16>(buf, value)
+            } else {
+                return false;
+            }
+        }
+        BaseType::UShort => {
+            if let Some(value) = u16::from_f64(v) {
+                emplace_scalar::<u16>(buf, value)
+            } else {
+                return false;
+            }
+        }
+        BaseType::Int => {
+            if let Some(value) = i32::from_f64(v) {
+                emplace_scalar::<i32>(buf, value)
+            } else {
+                return false;
+            }
+        }
+        BaseType::UInt => {
+            if let Some(value) = u32::from_f64(v) {
+                emplace_scalar::<u32>(buf, value)
+            } else {
+                return false;
+            }
+        }
+        BaseType::Long => {
+            if let Some(value) = i64::from_f64(v) {
+                emplace_scalar::<i64>(buf, value)
+            } else {
+                return false;
+            }
+        }
+        BaseType::ULong => {
+            if let Some(value) = u64::from_f64(v) {
+                emplace_scalar::<u64>(buf, value)
+            } else {
+                return false;
+            }
+        }
+        BaseType::Float => {
+            if let Some(value) = f32::from_f64(v) {
+                // Value converted to inf if overflow occurs
+                if value != f32::INFINITY {
+                    emplace_scalar::<f32>(buf, value)
+                } else {
+                    return false;
+                }
+            } else {
+                return false;
+            }
+        }
+        BaseType::Double => emplace_scalar::<f64>(buf, v),
+        _ => return false,
+    }
+    true
+}
+
+fn is_scalar(base_type: BaseType) -> bool {
+    return base_type <= BaseType::Double;
 }
