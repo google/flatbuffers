@@ -154,6 +154,64 @@ class FlatBuffersMonsterWriterTests: XCTestCase {
           byteBuffer: &byteBuffer) as MyGame_Example_Monster))
   }
 
+  func testUnalignedRead() {
+    // Aligned read
+    let fbb = createMonster(withPrefix: false)
+    let testAligned: () -> Bool = {
+      var buffer = fbb.sizedBuffer
+      var monster: Monster = getRoot(byteBuffer: &buffer)
+      self.readFlatbufferMonster(monster: &monster)
+      return true
+    }
+    XCTAssertEqual(testAligned(), true)
+    let testUnaligned: () -> Bool = {
+      var bytes: [UInt8] = [0x00]
+      bytes.append(contentsOf: fbb.sizedByteArray)
+      return bytes.withUnsafeMutableBytes { ptr in
+        guard var baseAddress = ptr.baseAddress else {
+          XCTFail("Base pointer is not defined")
+          return false
+        }
+        baseAddress = baseAddress.advanced(by: 1)
+        let unlignedPtr = UnsafeMutableRawPointer(baseAddress)
+        var bytes = ByteBuffer(
+          assumingMemoryBound: unlignedPtr,
+          capacity: ptr.count - 1,
+          allowReadingUnalignedBuffers: true)
+        var monster: Monster = getRoot(byteBuffer: &bytes)
+        self.readFlatbufferMonster(monster: &monster)
+        return true
+      }
+    }
+    XCTAssertEqual(testUnaligned(), true)
+  }
+
+  func testCopyUnalignedToAlignedBuffers() {
+    // Aligned read
+    let fbb = createMonster(withPrefix: true)
+    let testUnaligned: () -> Bool = {
+      var bytes: [UInt8] = [0x00]
+      bytes.append(contentsOf: fbb.sizedByteArray)
+      return bytes.withUnsafeMutableBytes { ptr in
+        guard var baseAddress = ptr.baseAddress else {
+          XCTFail("Base pointer is not defined")
+          return false
+        }
+        baseAddress = baseAddress.advanced(by: 1)
+        let unlignedPtr = UnsafeMutableRawPointer(baseAddress)
+        let bytes = ByteBuffer(
+          assumingMemoryBound: unlignedPtr,
+          capacity: ptr.count - 1,
+          allowReadingUnalignedBuffers: false)
+        var newBuf = FlatBuffersUtils.removeSizePrefix(bb: bytes)
+        var monster: Monster = getRoot(byteBuffer: &newBuf)
+        self.readFlatbufferMonster(monster: &monster)
+        return true
+      }
+    }
+    XCTAssertEqual(testUnaligned(), true)
+  }
+
   func readMonster(monster: Monster) {
     var monster = monster
     readFlatbufferMonster(monster: &monster)
