@@ -709,7 +709,7 @@ template<bool Is64Aware = false> class FlatBufferBuilderImpl {
   typename std::enable_if<is_64, void>::type ForceVectorAlignment64(
       const size_t len, const size_t elemsize, const size_t alignment) {
     // If you hit this assertion, you are trying to force alignment on a
-    // vector with offset64 after serializing a 32-bit offset. 
+    // vector with offset64 after serializing a 32-bit offset.
     FLATBUFFERS_ASSERT(GetSize() == length_of_64_bit_region_);
 
     // Call through.
@@ -1471,7 +1471,7 @@ T *GetMutableTemporaryPointer(FlatBufferBuilder &fbb, Offset<T> offset) {
 }
 
 template<typename T>
-const T *GetTemporaryPointer(FlatBufferBuilder &fbb, Offset<T> offset) {
+const T *GetTemporaryPointer(const FlatBufferBuilder &fbb, Offset<T> offset) {
   return GetMutableTemporaryPointer<T>(fbb, offset);
 }
 
