@@ -520,8 +520,8 @@ class PhpGenerator : public BaseGenerator {
       auto &field = **it;
 
       if (field.deprecated) continue;
+      if (it != struct_def.fields.vec.begin()) { code += ", "; }
       code += "$" + field.name;
-      if (!(it == (--struct_def.fields.vec.end()))) { code += ", "; }
     }
     code += ")\n";
     code += Indent + "{\n";
