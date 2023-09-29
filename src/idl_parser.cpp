@@ -2104,7 +2104,7 @@ CheckedError Parser::ParseSingleValue(const std::string *name, Value &e,
     // Get an indentifier: NAN, INF, or function name like cos/sin/deg.
     NEXT();
     if (token_ != kTokenIdentifier) return Error("constant name expected");
-    attribute_.insert(0, 1, sign);
+    attribute_.insert(size_t(0), size_t(1), sign);
   }
 
   const auto in_type = e.type.base_type;
@@ -3429,7 +3429,7 @@ CheckedError Parser::ParseFlexBufferValue(flexbuffers::Builder *builder) {
       NEXT();
       if (token_ != kTokenIdentifier)
         return Error("floating-point constant expected");
-      attribute_.insert(0, 1, sign);
+      attribute_.insert(size_t(0), size_t(1), sign);
       ECHECK(ParseFlexBufferNumericConstant(builder));
       NEXT();
       break;
