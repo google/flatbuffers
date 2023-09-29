@@ -289,10 +289,12 @@ namespace flatbuffers {
   #define FLATBUFFERS_SUPPRESS_UBSAN(type)
 #endif
 
-// This is constexpr function used for checking compile-time constants.
-// Avoid `#pragma warning(disable: 4127) // C4127: expression is constant`.
-template<typename T> FLATBUFFERS_CONSTEXPR inline bool IsConstTrue(T t) {
-  return !!t;
+namespace flatbuffers {
+  // This is constexpr function used for checking compile-time constants.
+  // Avoid `#pragma warning(disable: 4127) // C4127: expression is constant`.
+  template<typename T> FLATBUFFERS_CONSTEXPR inline bool IsConstTrue(T t) {
+    return !!t;
+  }
 }
 
 // Enable C++ attribute [[]] if std:c++17 or higher.
