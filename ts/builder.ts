@@ -202,42 +202,42 @@ export class Builder {
       this.writeFloat64(value);
     }
   
-    addFieldInt8(voffset: number, value: number, defaultValue: number): void {
+    addFieldInt8(voffset: number, value: number, defaultValue: number|null): void {
       if (this.force_defaults || value != defaultValue) {
         this.addInt8(value);
         this.slot(voffset);
       }
     }
   
-    addFieldInt16(voffset: number, value: number, defaultValue: number): void {
+    addFieldInt16(voffset: number, value: number, defaultValue: number|null): void {
       if (this.force_defaults || value != defaultValue) {
         this.addInt16(value);
         this.slot(voffset);
       }
     }
   
-    addFieldInt32(voffset: number, value: number, defaultValue: number): void {
+    addFieldInt32(voffset: number, value: number, defaultValue: number|null): void {
       if (this.force_defaults || value != defaultValue) {
         this.addInt32(value);
         this.slot(voffset);
       }
     }
   
-    addFieldInt64(voffset: number, value: bigint, defaultValue: bigint): void {
+    addFieldInt64(voffset: number, value: bigint, defaultValue: bigint|null): void {
       if (this.force_defaults || value !== defaultValue) {
         this.addInt64(value);
         this.slot(voffset);
       }
     }
   
-    addFieldFloat32(voffset: number, value: number, defaultValue: number): void {
+    addFieldFloat32(voffset: number, value: number, defaultValue: number|null): void {
       if (this.force_defaults || value != defaultValue) {
         this.addFloat32(value);
         this.slot(voffset);
       }
     }
   
-    addFieldFloat64(voffset: number, value: number, defaultValue: number): void {
+    addFieldFloat64(voffset: number, value: number, defaultValue: number|null): void {
       if (this.force_defaults || value != defaultValue) {
         this.addFloat64(value);
         this.slot(voffset);
