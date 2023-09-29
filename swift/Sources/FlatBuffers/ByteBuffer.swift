@@ -117,6 +117,8 @@ public struct ByteBuffer {
   public var memory: UnsafeMutableRawPointer { _storage.memory }
   /// Current capacity for the buffer
   public var capacity: Int { _storage.capacity }
+  /// Crash if the trying to read an unaligned buffer instead of allowing users to read them.
+  public let allowReadingUnalignedBuffers: Bool
 
   /// Constructor that creates a Flatbuffer object from a UInt8
   /// - Parameter bytes: Array of UInt8
@@ -124,6 +126,7 @@ public struct ByteBuffer {
     var b = bytes
     _storage = Storage(count: bytes.count, alignment: alignment)
     _writerSize = _storage.capacity
+    allowReadingUnalignedBuffers = false
     b.withUnsafeMutableBytes { bufferPointer in
       self._storage.copy(from: bufferPointer.baseAddress!, count: bytes.count)
     }
@@ -136,6 +139,7 @@ public struct ByteBuffer {
     var b = data
     _storage = Storage(count: data.count, alignment: alignment)
     _writerSize = _storage.capacity
+    allowReadingUnalignedBuffers = false
     b.withUnsafeMutableBytes { bufferPointer in
       self._storage.copy(from: bufferPointer.baseAddress!, count: data.count)
     }
@@ -148,6 +152,7 @@ public struct ByteBuffer {
     let size = size.convertToPowerofTwo
     _storage = Storage(count: size, alignment: alignment)
     _storage.initialize(for: size)
+    allowReadingUnalignedBuffers = false
   }
 
   #if swift(>=5.0) && !os(WASI)
@@ -161,6 +166,7 @@ public struct ByteBuffer {
   {
     _storage = Storage(count: count, alignment: alignment)
     _writerSize = _storage.capacity
+    allowReadingUnalignedBuffers = false
     contiguousBytes.withUnsafeBytes { buf in
       _storage.copy(from: buf.baseAddress!, count: buf.count)
     }
@@ -172,10 +178,12 @@ public struct ByteBuffer {
   /// - Parameter capacity: The size of the given memory region
   public init(
     assumingMemoryBound memory: UnsafeMutableRawPointer,
-    capacity: Int)
+    capacity: Int,
+    allowReadingUnalignedBuffers allowUnalignedBuffers: Bool = false)
   {
     _storage = Storage(memory: memory, capacity: capacity, unowned: true)
     _writerSize = capacity
+    allowReadingUnalignedBuffers = allowUnalignedBuffers
   }
 
   /// Creates a copy of the buffer that's being built by calling sizedBuffer
@@ -186,6 +194,7 @@ public struct ByteBuffer {
     _storage = Storage(count: count, alignment: alignment)
     _storage.copy(from: memory, count: count)
     _writerSize = _storage.capacity
+    allowReadingUnalignedBuffers = false
   }
 
   /// Creates a copy of the existing flatbuffer, by copying it to a different memory.
@@ -201,6 +210,7 @@ public struct ByteBuffer {
     _storage = Storage(count: count, alignment: alignment)
     _storage.copy(from: memory, count: count)
     _writerSize = removeBytes
+    allowReadingUnalignedBuffers = false
   }
 
   /// Fills the buffer with padding by adding to the writersize
@@ -234,8 +244,13 @@ public struct ByteBuffer {
   mutating func push<T: NativeStruct>(struct value: T, size: Int) {
     ensureSpace(size: size)
     var v = value
-    memcpy(_storage.memory.advanced(by: writerIndex &- size), &v, size)
-    _writerSize = _writerSize &+ size
+    withUnsafeBytes(of: &v) {
+      memcpy(
+        _storage.memory.advanced(by: writerIndex &- size),
+        $0.baseAddress!,
+        size)
+      self._writerSize = self._writerSize &+ size
+    }
   }
 
   /// Adds an object of type Scalar into the buffer
@@ -247,8 +262,13 @@ public struct ByteBuffer {
   mutating func push<T: Scalar>(value: T, len: Int) {
     ensureSpace(size: len)
     var v = value
-    memcpy(_storage.memory.advanced(by: writerIndex &- len), &v, len)
-    _writerSize = _writerSize &+ len
+    withUnsafeBytes(of: &v) {
+      memcpy(
+        _storage.memory.advanced(by: writerIndex &- len),
+        $0.baseAddress!,
+        len)
+      self._writerSize = self._writerSize &+ len
+    }
   }
 
   /// Adds a string to the buffer using swift.utf8 object
@@ -352,7 +372,12 @@ public struct ByteBuffer {
   ///   - position: the index of the object in the buffer
   @inline(__always)
   public func read<T>(def: T.Type, position: Int) -> T {
-    _storage.memory.advanced(by: position).load(as: T.self)
+    #if swift(>=5.7)
+    if allowReadingUnalignedBuffers {
+      return _storage.memory.advanced(by: position).loadUnaligned(as: T.self)
+    }
+    #endif
+    return _storage.memory.advanced(by: position).load(as: T.self)
   }
 
   /// Reads a slice from the memory assuming a type of T
