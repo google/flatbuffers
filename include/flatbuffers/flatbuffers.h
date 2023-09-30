@@ -248,31 +248,31 @@ inline const char *flatbuffers_version_string() {
 
 // clang-format off
 #define FLATBUFFERS_DEFINE_BITMASK_OPERATORS(E, T)\
-    inline E operator | (E lhs, E rhs){\
+    inline FLATBUFFERS_CONSTEXPR_CPP11 E operator | (E lhs, E rhs){\
         return E(T(lhs) | T(rhs));\
     }\
-    inline E operator & (E lhs, E rhs){\
+    inline FLATBUFFERS_CONSTEXPR_CPP11 E operator & (E lhs, E rhs){\
         return E(T(lhs) & T(rhs));\
     }\
-    inline E operator ^ (E lhs, E rhs){\
+    inline FLATBUFFERS_CONSTEXPR_CPP11 E operator ^ (E lhs, E rhs){\
         return E(T(lhs) ^ T(rhs));\
     }\
-    inline E operator ~ (E lhs){\
+    inline FLATBUFFERS_CONSTEXPR_CPP11 E operator ~ (E lhs){\
         return E(~T(lhs));\
     }\
-    inline E operator |= (E &lhs, E rhs){\
+    inline FLATBUFFERS_CONSTEXPR_CPP11 E operator |= (E &lhs, E rhs){\
         lhs = lhs | rhs;\
         return lhs;\
     }\
-    inline E operator &= (E &lhs, E rhs){\
+    inline FLATBUFFERS_CONSTEXPR_CPP11 E operator &= (E &lhs, E rhs){\
         lhs = lhs & rhs;\
         return lhs;\
     }\
-    inline E operator ^= (E &lhs, E rhs){\
+    inline FLATBUFFERS_CONSTEXPR_CPP11 E operator ^= (E &lhs, E rhs){\
         lhs = lhs ^ rhs;\
         return lhs;\
     }\
-    inline bool operator !(E rhs) \
+    inline FLATBUFFERS_CONSTEXPR_CPP11 bool operator !(E rhs) \
     {\
         return !bool(T(rhs)); \
     }

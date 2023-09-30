@@ -13,7 +13,7 @@
   #define FLATBUFFERS_NO_FILE_TESTS
 #else
   #define TEST_OUTPUT_LINE(...) \
-      do { printf(__VA_ARGS__); printf("\n"); } while(!IsConstTrue(true))
+      do { printf(__VA_ARGS__); printf("\n"); } while(!flatbuffers::IsConstTrue(true))
 #endif
 
 #define TEST_EQ(exp, val) TestEq(exp, val, "'" #exp "' != '" #val "'", __FILE__, __LINE__, "")
