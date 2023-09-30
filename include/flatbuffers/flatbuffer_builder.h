@@ -1472,7 +1472,7 @@ T *GetMutableTemporaryPointer(FlatBufferBuilder &fbb, Offset<T> offset) {
 }
 
 template<typename T>
-const T *GetTemporaryPointer(FlatBufferBuilder &fbb, Offset<T> offset) {
+const T *GetTemporaryPointer(const FlatBufferBuilder &fbb, Offset<T> offset) {
   return GetMutableTemporaryPointer<T>(fbb, offset);
 }
 
