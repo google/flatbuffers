@@ -115,7 +115,7 @@ var flatbuffers3 = __toESM(require("flatbuffers"), 1);
 
 // reflection/key-value.js
 var flatbuffers = __toESM(require("flatbuffers"), 1);
-var KeyValue = class {
+var KeyValue = class _KeyValue {
   constructor() {
     this.bb = null;
     this.bb_pos = 0;
@@ -126,11 +126,11 @@ var KeyValue = class {
     return this;
   }
   static getRootAsKeyValue(bb, obj) {
-    return (obj || new KeyValue()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+    return (obj || new _KeyValue()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
   }
   static getSizePrefixedRootAsKeyValue(bb, obj) {
     bb.setPosition(bb.position() + flatbuffers.SIZE_PREFIX_LENGTH);
-    return (obj || new KeyValue()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+    return (obj || new _KeyValue()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
   }
   key(optionalEncoding) {
     const offset = this.bb.__offset(this.bb_pos, 4);
@@ -158,10 +158,10 @@ var KeyValue = class {
     return offset;
   }
   static createKeyValue(builder, keyOffset, valueOffset) {
-    KeyValue.startKeyValue(builder);
-    KeyValue.addKey(builder, keyOffset);
-    KeyValue.addValue(builder, valueOffset);
-    return KeyValue.endKeyValue(builder);
+    _KeyValue.startKeyValue(builder);
+    _KeyValue.addKey(builder, keyOffset);
+    _KeyValue.addValue(builder, valueOffset);
+    return _KeyValue.endKeyValue(builder);
   }
   unpack() {
     return new KeyValueT(this.key(), this.value());
@@ -185,7 +185,7 @@ var KeyValueT = class {
 
 // reflection/type.js
 var flatbuffers2 = __toESM(require("flatbuffers"), 1);
-var Type = class {
+var Type = class _Type {
   constructor() {
     this.bb = null;
     this.bb_pos = 0;
@@ -196,11 +196,11 @@ var Type = class {
     return this;
   }
   static getRootAsType(bb, obj) {
-    return (obj || new Type()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+    return (obj || new _Type()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
   }
   static getSizePrefixedRootAsType(bb, obj) {
     bb.setPosition(bb.position() + flatbuffers2.SIZE_PREFIX_LENGTH);
-    return (obj || new Type()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+    return (obj || new _Type()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
   }
   baseType() {
     const offset = this.bb.__offset(this.bb_pos, 4);
@@ -309,14 +309,14 @@ var Type = class {
     return offset;
   }
   static createType(builder, baseType, element, index, fixedLength, baseSize, elementSize) {
-    Type.startType(builder);
-    Type.addBaseType(builder, baseType);
-    Type.addElement(builder, element);
-    Type.addIndex(builder, index);
-    Type.addFixedLength(builder, fixedLength);
-    Type.addBaseSize(builder, baseSize);
-    Type.addElementSize(builder, elementSize);
-    return Type.endType(builder);
+    _Type.startType(builder);
+    _Type.addBaseType(builder, baseType);
+    _Type.addElement(builder, element);
+    _Type.addIndex(builder, index);
+    _Type.addFixedLength(builder, fixedLength);
+    _Type.addBaseSize(builder, baseSize);
+    _Type.addElementSize(builder, elementSize);
+    return _Type.endType(builder);
   }
   unpack() {
     return new TypeT(this.baseType(), this.element(), this.index(), this.fixedLength(), this.baseSize(), this.elementSize());
@@ -345,7 +345,7 @@ var TypeT = class {
 };
 
 // reflection/enum-val.js
-var EnumVal = class {
+var EnumVal = class _EnumVal {
   constructor() {
     this.bb = null;
     this.bb_pos = 0;
@@ -356,11 +356,11 @@ var EnumVal = class {
     return this;
   }
   static getRootAsEnumVal(bb, obj) {
-    return (obj || new EnumVal()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+    return (obj || new _EnumVal()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
   }
   static getSizePrefixedRootAsEnumVal(bb, obj) {
     bb.setPosition(bb.position() + flatbuffers3.SIZE_PREFIX_LENGTH);
-    return (obj || new EnumVal()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+    return (obj || new _EnumVal()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
   }
   name(optionalEncoding) {
     const offset = this.bb.__offset(this.bb_pos, 4);
@@ -479,7 +479,7 @@ var EnumValT = class {
 };
 
 // reflection/enum.js
-var Enum = class {
+var Enum = class _Enum {
   constructor() {
     this.bb = null;
     this.bb_pos = 0;
@@ -490,11 +490,11 @@ var Enum = class {
     return this;
   }
   static getRootAsEnum(bb, obj) {
-    return (obj || new Enum()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+    return (obj || new _Enum()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
   }
   static getSizePrefixedRootAsEnum(bb, obj) {
     bb.setPosition(bb.position() + flatbuffers4.SIZE_PREFIX_LENGTH);
-    return (obj || new Enum()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+    return (obj || new _Enum()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
   }
   name(optionalEncoding) {
     const offset = this.bb.__offset(this.bb_pos, 4);
@@ -652,7 +652,7 @@ var EnumT = class {
 
 // reflection/field.js
 var flatbuffers5 = __toESM(require("flatbuffers"), 1);
-var Field = class {
+var Field = class _Field {
   constructor() {
     this.bb = null;
     this.bb_pos = 0;
@@ -663,11 +663,11 @@ var Field = class {
     return this;
   }
   static getRootAsField(bb, obj) {
-    return (obj || new Field()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+    return (obj || new _Field()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
   }
   static getSizePrefixedRootAsField(bb, obj) {
     bb.setPosition(bb.position() + flatbuffers5.SIZE_PREFIX_LENGTH);
-    return (obj || new Field()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+    return (obj || new _Field()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
   }
   name(optionalEncoding) {
     const offset = this.bb.__offset(this.bb_pos, 4);
@@ -935,7 +935,7 @@ var FieldT = class {
 
 // reflection/object.js
 var flatbuffers6 = __toESM(require("flatbuffers"), 1);
-var Object_ = class {
+var Object_ = class _Object_ {
   constructor() {
     this.bb = null;
     this.bb_pos = 0;
@@ -946,11 +946,11 @@ var Object_ = class {
     return this;
   }
   static getRootAsObject(bb, obj) {
-    return (obj || new Object_()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+    return (obj || new _Object_()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
   }
   static getSizePrefixedRootAsObject(bb, obj) {
     bb.setPosition(bb.position() + flatbuffers6.SIZE_PREFIX_LENGTH);
-    return (obj || new Object_()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+    return (obj || new _Object_()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
   }
   name(optionalEncoding) {
     const offset = this.bb.__offset(this.bb_pos, 4);
@@ -1087,16 +1087,16 @@ var Object_ = class {
     return offset;
   }
   static createObject(builder, nameOffset, fieldsOffset, isStruct, minalign, bytesize, attributesOffset, documentationOffset, declarationFileOffset) {
-    Object_.startObject(builder);
-    Object_.addName(builder, nameOffset);
-    Object_.addFields(builder, fieldsOffset);
-    Object_.addIsStruct(builder, isStruct);
-    Object_.addMinalign(builder, minalign);
-    Object_.addBytesize(builder, bytesize);
-    Object_.addAttributes(builder, attributesOffset);
-    Object_.addDocumentation(builder, documentationOffset);
-    Object_.addDeclarationFile(builder, declarationFileOffset);
-    return Object_.endObject(builder);
+    _Object_.startObject(builder);
+    _Object_.addName(builder, nameOffset);
+    _Object_.addFields(builder, fieldsOffset);
+    _Object_.addIsStruct(builder, isStruct);
+    _Object_.addMinalign(builder, minalign);
+    _Object_.addBytesize(builder, bytesize);
+    _Object_.addAttributes(builder, attributesOffset);
+    _Object_.addDocumentation(builder, documentationOffset);
+    _Object_.addDeclarationFile(builder, declarationFileOffset);
+    return _Object_.endObject(builder);
   }
   unpack() {
     return new Object_T(this.name(), this.bb.createObjList(this.fields.bind(this), this.fieldsLength()), this.isStruct(), this.minalign(), this.bytesize(), this.bb.createObjList(this.attributes.bind(this), this.attributesLength()), this.bb.createScalarList(this.documentation.bind(this), this.documentationLength()), this.declarationFile());
@@ -1135,7 +1135,7 @@ var Object_T = class {
 
 // reflection/rpccall.js
 var flatbuffers7 = __toESM(require("flatbuffers"), 1);
-var RPCCall = class {
+var RPCCall = class _RPCCall {
   constructor() {
     this.bb = null;
     this.bb_pos = 0;
@@ -1146,11 +1146,11 @@ var RPCCall = class {
     return this;
   }
   static getRootAsRPCCall(bb, obj) {
-    return (obj || new RPCCall()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+    return (obj || new _RPCCall()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
   }
   static getSizePrefixedRootAsRPCCall(bb, obj) {
     bb.setPosition(bb.position() + flatbuffers7.SIZE_PREFIX_LENGTH);
-    return (obj || new RPCCall()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+    return (obj || new _RPCCall()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
   }
   name(optionalEncoding) {
     const offset = this.bb.__offset(this.bb_pos, 4);
@@ -1268,7 +1268,7 @@ var flatbuffers10 = __toESM(require("flatbuffers"), 1);
 
 // reflection/schema-file.js
 var flatbuffers8 = __toESM(require("flatbuffers"), 1);
-var SchemaFile = class {
+var SchemaFile = class _SchemaFile {
   constructor() {
     this.bb = null;
     this.bb_pos = 0;
@@ -1279,11 +1279,11 @@ var SchemaFile = class {
     return this;
   }
   static getRootAsSchemaFile(bb, obj) {
-    return (obj || new SchemaFile()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+    return (obj || new _SchemaFile()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
   }
   static getSizePrefixedRootAsSchemaFile(bb, obj) {
     bb.setPosition(bb.position() + flatbuffers8.SIZE_PREFIX_LENGTH);
-    return (obj || new SchemaFile()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+    return (obj || new _SchemaFile()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
   }
   filename(optionalEncoding) {
     const offset = this.bb.__offset(this.bb_pos, 4);
@@ -1325,10 +1325,10 @@ var SchemaFile = class {
     return offset;
   }
   static createSchemaFile(builder, filenameOffset, includedFilenamesOffset) {
-    SchemaFile.startSchemaFile(builder);
-    SchemaFile.addFilename(builder, filenameOffset);
-    SchemaFile.addIncludedFilenames(builder, includedFilenamesOffset);
-    return SchemaFile.endSchemaFile(builder);
+    _SchemaFile.startSchemaFile(builder);
+    _SchemaFile.addFilename(builder, filenameOffset);
+    _SchemaFile.addIncludedFilenames(builder, includedFilenamesOffset);
+    return _SchemaFile.endSchemaFile(builder);
   }
   unpack() {
     return new SchemaFileT(this.filename(), this.bb.createScalarList(this.includedFilenames.bind(this), this.includedFilenamesLength()));
@@ -1352,7 +1352,7 @@ var SchemaFileT = class {
 
 // reflection/service.js
 var flatbuffers9 = __toESM(require("flatbuffers"), 1);
-var Service = class {
+var Service = class _Service {
   constructor() {
     this.bb = null;
     this.bb_pos = 0;
@@ -1363,11 +1363,11 @@ var Service = class {
     return this;
   }
   static getRootAsService(bb, obj) {
-    return (obj || new Service()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+    return (obj || new _Service()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
   }
   static getSizePrefixedRootAsService(bb, obj) {
     bb.setPosition(bb.position() + flatbuffers9.SIZE_PREFIX_LENGTH);
-    return (obj || new Service()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+    return (obj || new _Service()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
   }
   name(optionalEncoding) {
     const offset = this.bb.__offset(this.bb_pos, 4);
@@ -1458,13 +1458,13 @@ var Service = class {
     return offset;
   }
   static createService(builder, nameOffset, callsOffset, attributesOffset, documentationOffset, declarationFileOffset) {
-    Service.startService(builder);
-    Service.addName(builder, nameOffset);
-    Service.addCalls(builder, callsOffset);
-    Service.addAttributes(builder, attributesOffset);
-    Service.addDocumentation(builder, documentationOffset);
-    Service.addDeclarationFile(builder, declarationFileOffset);
-    return Service.endService(builder);
+    _Service.startService(builder);
+    _Service.addName(builder, nameOffset);
+    _Service.addCalls(builder, callsOffset);
+    _Service.addAttributes(builder, attributesOffset);
+    _Service.addDocumentation(builder, documentationOffset);
+    _Service.addDeclarationFile(builder, declarationFileOffset);
+    return _Service.endService(builder);
   }
   unpack() {
     return new ServiceT(this.name(), this.bb.createObjList(this.calls.bind(this), this.callsLength()), this.bb.createObjList(this.attributes.bind(this), this.attributesLength()), this.bb.createScalarList(this.documentation.bind(this), this.documentationLength()), this.declarationFile());
@@ -1496,7 +1496,7 @@ var ServiceT = class {
 };
 
 // reflection/schema.js
-var Schema = class {
+var Schema = class _Schema {
   constructor() {
     this.bb = null;
     this.bb_pos = 0;
@@ -1507,11 +1507,11 @@ var Schema = class {
     return this;
   }
   static getRootAsSchema(bb, obj) {
-    return (obj || new Schema()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+    return (obj || new _Schema()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
   }
   static getSizePrefixedRootAsSchema(bb, obj) {
     bb.setPosition(bb.position() + flatbuffers10.SIZE_PREFIX_LENGTH);
-    return (obj || new Schema()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+    return (obj || new _Schema()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
   }
   static bufferHasIdentifier(bb) {
     return bb.__has_identifier("BFBS");
@@ -1728,7 +1728,7 @@ var class_2;
 })(class_2 = class_2 || (class_2 = {}));
 
 // typescript/object.js
-var Object_2 = class {
+var Object_2 = class _Object_ {
   constructor() {
     this.bb = null;
     this.bb_pos = 0;
@@ -1739,11 +1739,11 @@ var Object_2 = class {
     return this;
   }
   static getRootAsObject(bb, obj) {
-    return (obj || new Object_2()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+    return (obj || new _Object_()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
   }
   static getSizePrefixedRootAsObject(bb, obj) {
     bb.setPosition(bb.position() + flatbuffers11.SIZE_PREFIX_LENGTH);
-    return (obj || new Object_2()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+    return (obj || new _Object_()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
   }
   return_() {
     const offset = this.bb.__offset(this.bb_pos, 4);
