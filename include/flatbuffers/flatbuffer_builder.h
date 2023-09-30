@@ -45,8 +45,9 @@ inline voffset_t FieldIndexToOffset(voffset_t field_id) {
   // Should correspond to what EndTable() below builds up.
   const voffset_t fixed_fields =
       2 * sizeof(voffset_t);  // Vtable size and Object Size.
-  return fixed_fields + field_id * sizeof(voffset_t);
-}
+  size_t offset = fixed_fields + field_id * sizeof(voffset_t);
+  FLATBUFFERS_ASSERT(offset < std::numeric_limits<voffset_t>::max());
+  return static_cast<voffset_t>(offset);}
 
 template<typename T, typename Alloc = std::allocator<T>>
 const T *data(const std::vector<T, Alloc> &v) {
@@ -709,7 +710,7 @@ template<bool Is64Aware = false> class FlatBufferBuilderImpl {
   typename std::enable_if<is_64, void>::type ForceVectorAlignment64(
       const size_t len, const size_t elemsize, const size_t alignment) {
     // If you hit this assertion, you are trying to force alignment on a
-    // vector with offset64 after serializing a 32-bit offset. 
+    // vector with offset64 after serializing a 32-bit offset.
     FLATBUFFERS_ASSERT(GetSize() == length_of_64_bit_region_);
 
     // Call through.
@@ -879,7 +880,9 @@ template<bool Is64Aware = false> class FlatBufferBuilderImpl {
   /// where the vector is stored.
   template<class It>
   Offset<Vector<Offset<String>>> CreateVectorOfStrings(It begin, It end) {
-    auto size = std::distance(begin, end);
+    auto distance = std::distance(begin, end);
+    FLATBUFFERS_ASSERT(distance >= 0);
+    auto size = static_cast<size_t>(distance);
     auto scratch_buffer_usage = size * sizeof(Offset<String>);
     // If there is not enough space to store the offsets, there definitely won't
     // be enough space to store all the strings. So ensuring space for the
@@ -889,7 +892,7 @@ template<bool Is64Aware = false> class FlatBufferBuilderImpl {
       buf_.scratch_push_small(CreateString(*it));
     }
     StartVector<Offset<String>>(size);
-    for (auto i = 1; i <= size; i++) {
+    for (size_t i = 1; i <= size; i++) {
       // Note we re-evaluate the buf location each iteration to account for any
       // underlying buffer resizing that may occur.
       PushElement(*reinterpret_cast<Offset<String> *>(
@@ -913,8 +916,7 @@ template<bool Is64Aware = false> class FlatBufferBuilderImpl {
     typedef typename VectorT<T>::size_type LenT;
     typedef typename OffsetT<VectorT<const T *>>::offset_type offset_type;
 
-    StartVector<OffsetT, LenT>(len * sizeof(T) / AlignOf<T>(), sizeof(T),
-                               AlignOf<T>());
+    StartVector<OffsetT, LenT>(len, sizeof(T), AlignOf<T>());
     if (len > 0) {
       PushBytes(reinterpret_cast<const uint8_t *>(v), sizeof(T) * len);
     }
@@ -1384,8 +1386,7 @@ template<bool Is64Aware = false> class FlatBufferBuilderImpl {
   // Must be completed with EndVectorOfStructs().
   template<typename T, template<typename> class OffsetT = Offset>
   T *StartVectorOfStructs(size_t vector_size) {
-    StartVector<OffsetT>(vector_size * sizeof(T) / AlignOf<T>(), sizeof(T),
-                         AlignOf<T>());
+    StartVector<OffsetT>(vector_size, sizeof(T), AlignOf<T>());
     return reinterpret_cast<T *>(buf_.make_space(vector_size * sizeof(T)));
   }
 
