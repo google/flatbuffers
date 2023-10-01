@@ -422,7 +422,7 @@ namespace Google.FlatBuffers.Test
       
             // Get the full array back out and ensure they are equivalent
             var bbArray = uut.ToArray<T>(nOffset, data.Count);
-            Assert.ArrayEqual(data.ToArray(), bbArray);
+            Assert.ArrayEqual(data, bbArray);
         }
     
         public unsafe void ByteBuffer_Put_IntPtr_Helper<T>(T[] data, int typeSize)
@@ -643,7 +643,7 @@ namespace Google.FlatBuffers.Test
             float[] data = null;
             Assert.Throws<ArgumentNullException>(() => uut.Put(1024, data));
 
-            ArraySegment<float> dataArraySegment = default;
+            ArraySegment<float> dataArraySegment = default(ArraySegment<float>);
             Assert.Throws<ArgumentNullException>(() => uut.Put(1024, dataArraySegment));
 
             IntPtr dataPtr = IntPtr.Zero;

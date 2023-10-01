@@ -37,25 +37,6 @@ public class ValueUnion {
   }
 }
 
-
-
-static public class ValueVerify
-{
-  static public bool Verify(Google.FlatBuffers.Verifier verifier, byte typeId, uint tablePos)
-  {
-    bool result = true;
-    switch((Value)typeId)
-    {
-      case Value.IntValue:
-        result = union_value_collsion.IntValueVerify.Verify(verifier, tablePos);
-        break;
-      default: result = true;
-        break;
-    }
-    return result;
-  }
-}
-
 public class ValueUnion_JsonConverter : Newtonsoft.Json.JsonConverter {
   public override bool CanConvert(System.Type objectType) {
     return objectType == typeof(ValueUnion) || objectType == typeof(System.Collections.Generic.List<ValueUnion>);
@@ -97,6 +78,25 @@ public class ValueUnion_JsonConverter : Newtonsoft.Json.JsonConverter {
   }
 }
 
+
+
+static public class ValueVerify
+{
+  static public bool Verify(Google.FlatBuffers.Verifier verifier, byte typeId, uint tablePos)
+  {
+    bool result = true;
+    switch((Value)typeId)
+    {
+      case Value.IntValue:
+        result = union_value_collsion.IntValueVerify.Verify(verifier, tablePos);
+        break;
+      default: result = true;
+        break;
+    }
+    return result;
+  }
+}
+
 [Newtonsoft.Json.JsonConverter(typeof(Newtonsoft.Json.Converters.StringEnumConverter))]
 public enum Other : byte
 {
@@ -122,25 +122,6 @@ public class OtherUnion {
       default: return 0;
       case Other.IntValue: return union_value_collsion.IntValue.Pack(builder, _o.AsIntValue()).Value;
     }
-  }
-}
-
-
-
-static public class OtherVerify
-{
-  static public bool Verify(Google.FlatBuffers.Verifier verifier, byte typeId, uint tablePos)
-  {
-    bool result = true;
-    switch((Other)typeId)
-    {
-      case Other.IntValue:
-        result = union_value_collsion.IntValueVerify.Verify(verifier, tablePos);
-        break;
-      default: result = true;
-        break;
-    }
-    return result;
   }
 }
 
@@ -182,6 +163,25 @@ public class OtherUnion_JsonConverter : Newtonsoft.Json.JsonConverter {
       case Other.IntValue: _o.Value = serializer.Deserialize<union_value_collsion.IntValueT>(reader); break;
     }
     return _o;
+  }
+}
+
+
+
+static public class OtherVerify
+{
+  static public bool Verify(Google.FlatBuffers.Verifier verifier, byte typeId, uint tablePos)
+  {
+    bool result = true;
+    switch((Other)typeId)
+    {
+      case Other.IntValue:
+        result = union_value_collsion.IntValueVerify.Verify(verifier, tablePos);
+        break;
+      default: result = true;
+        break;
+    }
+    return result;
   }
 }
 
