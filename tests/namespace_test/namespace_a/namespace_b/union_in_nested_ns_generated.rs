@@ -115,7 +115,7 @@ impl UnionInNestedNST {
       Self::TableInNestedNS(_) => UnionInNestedNS::TableInNestedNS,
     }
   }
-  pub fn pack(&self, fbb: &mut flatbuffers::FlatBufferBuilder) -> Option<flatbuffers::WIPOffset<flatbuffers::UnionWIPOffset>> {
+  pub fn pack<'b, A: flatbuffers::Allocator + 'b>(&self, fbb: &mut flatbuffers::FlatBufferBuilder<'b, A>) -> Option<flatbuffers::WIPOffset<flatbuffers::UnionWIPOffset>> {
     match self {
       Self::NONE => None,
       Self::TableInNestedNS(v) => Some(v.pack(fbb).as_union_value()),

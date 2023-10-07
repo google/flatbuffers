@@ -38,8 +38,8 @@ impl<'a> Referrable<'a> {
     Referrable { _tab: table }
   }
   #[allow(unused_mut)]
-  pub fn create<'bldr: 'args, 'args: 'mut_bldr, 'mut_bldr>(
-    _fbb: &'mut_bldr mut flatbuffers::FlatBufferBuilder<'bldr>,
+  pub fn create<'bldr: 'args, 'args: 'mut_bldr, 'mut_bldr, A: flatbuffers::Allocator + 'bldr>(
+    _fbb: &'mut_bldr mut flatbuffers::FlatBufferBuilder<'bldr, A>,
     args: &'args ReferrableArgs
   ) -> flatbuffers::WIPOffset<Referrable<'bldr>> {
     let mut builder = ReferrableBuilder::new(_fbb);
@@ -108,17 +108,17 @@ impl Serialize for Referrable<'_> {
   }
 }
 
-pub struct ReferrableBuilder<'a: 'b, 'b> {
-  fbb_: &'b mut flatbuffers::FlatBufferBuilder<'a>,
+pub struct ReferrableBuilder<'a: 'b, 'b, A: flatbuffers::Allocator + 'a> {
+  fbb_: &'b mut flatbuffers::FlatBufferBuilder<'a, A>,
   start_: flatbuffers::WIPOffset<flatbuffers::TableUnfinishedWIPOffset>,
 }
-impl<'a: 'b, 'b> ReferrableBuilder<'a, 'b> {
+impl<'a: 'b, 'b, A: flatbuffers::Allocator + 'a> ReferrableBuilder<'a, 'b, A> {
   #[inline]
   pub fn add_id(&mut self, id: u64) {
     self.fbb_.push_slot::<u64>(Referrable::VT_ID, id, 0);
   }
   #[inline]
-  pub fn new(_fbb: &'b mut flatbuffers::FlatBufferBuilder<'a>) -> ReferrableBuilder<'a, 'b> {
+  pub fn new(_fbb: &'b mut flatbuffers::FlatBufferBuilder<'a, A>) -> ReferrableBuilder<'a, 'b, A> {
     let start = _fbb.start_table();
     ReferrableBuilder {
       fbb_: _fbb,
@@ -152,9 +152,9 @@ impl Default for ReferrableT {
   }
 }
 impl ReferrableT {
-  pub fn pack<'b>(
+  pub fn pack<'b, A: flatbuffers::Allocator + 'b>(
     &self,
-    _fbb: &mut flatbuffers::FlatBufferBuilder<'b>
+    _fbb: &mut flatbuffers::FlatBufferBuilder<'b, A>
   ) -> flatbuffers::WIPOffset<Referrable<'b>> {
     let id = self.id;
     Referrable::create(_fbb, &ReferrableArgs{

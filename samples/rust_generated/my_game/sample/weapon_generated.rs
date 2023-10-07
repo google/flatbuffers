@@ -37,8 +37,8 @@ impl<'a> Weapon<'a> {
     Weapon { _tab: table }
   }
   #[allow(unused_mut)]
-  pub fn create<'bldr: 'args, 'args: 'mut_bldr, 'mut_bldr>(
-    _fbb: &'mut_bldr mut flatbuffers::FlatBufferBuilder<'bldr>,
+  pub fn create<'bldr: 'args, 'args: 'mut_bldr, 'mut_bldr, A: flatbuffers::Allocator + 'bldr>(
+    _fbb: &'mut_bldr mut flatbuffers::FlatBufferBuilder<'bldr, A>,
     args: &'args WeaponArgs<'args>
   ) -> flatbuffers::WIPOffset<Weapon<'bldr>> {
     let mut builder = WeaponBuilder::new(_fbb);
@@ -101,11 +101,11 @@ impl<'a> Default for WeaponArgs<'a> {
   }
 }
 
-pub struct WeaponBuilder<'a: 'b, 'b> {
-  fbb_: &'b mut flatbuffers::FlatBufferBuilder<'a>,
+pub struct WeaponBuilder<'a: 'b, 'b, A: flatbuffers::Allocator + 'a> {
+  fbb_: &'b mut flatbuffers::FlatBufferBuilder<'a, A>,
   start_: flatbuffers::WIPOffset<flatbuffers::TableUnfinishedWIPOffset>,
 }
-impl<'a: 'b, 'b> WeaponBuilder<'a, 'b> {
+impl<'a: 'b, 'b, A: flatbuffers::Allocator + 'a> WeaponBuilder<'a, 'b, A> {
   #[inline]
   pub fn add_name(&mut self, name: flatbuffers::WIPOffset<&'b  str>) {
     self.fbb_.push_slot_always::<flatbuffers::WIPOffset<_>>(Weapon::VT_NAME, name);
@@ -115,7 +115,7 @@ impl<'a: 'b, 'b> WeaponBuilder<'a, 'b> {
     self.fbb_.push_slot::<i16>(Weapon::VT_DAMAGE, damage, 0);
   }
   #[inline]
-  pub fn new(_fbb: &'b mut flatbuffers::FlatBufferBuilder<'a>) -> WeaponBuilder<'a, 'b> {
+  pub fn new(_fbb: &'b mut flatbuffers::FlatBufferBuilder<'a, A>) -> WeaponBuilder<'a, 'b, A> {
     let start = _fbb.start_table();
     WeaponBuilder {
       fbb_: _fbb,
@@ -152,9 +152,9 @@ impl Default for WeaponT {
   }
 }
 impl WeaponT {
-  pub fn pack<'b>(
+  pub fn pack<'b, A: flatbuffers::Allocator + 'b>(
     &self,
-    _fbb: &mut flatbuffers::FlatBufferBuilder<'b>
+    _fbb: &mut flatbuffers::FlatBufferBuilder<'b, A>
   ) -> flatbuffers::WIPOffset<Weapon<'b>> {
     let name = self.name.as_ref().map(|x|{
       _fbb.create_string(x)
