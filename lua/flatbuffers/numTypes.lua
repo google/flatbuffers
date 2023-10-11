@@ -69,7 +69,7 @@ local bool_mt =
     name = "bool",
     packFmt = "<I1",
     Pack = function(self, value) return value and "1" or "0" end,
-    Unpack = function(self, buf, pos) return string.sub(buf.str, pos, pos) == "1" end,
+    Unpack = function(self, buf, pos) return string.sub(buf.str, pos + 1, pos + 1) == "1" end,
     ValidNumber = function(self, n) return true end, -- anything is a valid boolean in Lua
     EnforceNumber = function(self, n) end, -- anything is a valid boolean in Lua
     EnforceNumbers = function(self, a, b) end, -- anything is a valid boolean in Lua
