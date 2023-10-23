@@ -2699,7 +2699,7 @@ class PythonGenerator : public BaseGenerator {
           // have a type that contains arrays of itself -- of the type
           // "from .MyType import MyType", which Python can't resolve. So
           // if we are trying to import ourself, we skip.
-          if (import_entry.first != local_import) {
+          if (import_entry.first != mod) {
             code += "from " + import_entry.first + " import " +
                     import_entry.second + "\n";
           }
