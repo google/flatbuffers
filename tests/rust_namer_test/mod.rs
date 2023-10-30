@@ -18,4 +18,6 @@ pub mod rust_namer_test {
   pub use self::player_input_change_generated::*;
   mod game_message_wrapper_generated;
   pub use self::game_message_wrapper_generated::*;
+  mod possibly_reserved_words_generated;
+  pub use self::possibly_reserved_words_generated::*;
 } // rust_namer_test

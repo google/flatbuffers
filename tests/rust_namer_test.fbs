@@ -16,12 +16,21 @@ table PlayerInputChange {}
 
 union GameMessage
 {
-    PlayerStatEvent,
-    PlayerSpectate,
+  PlayerStatEvent,
+  PlayerSpectate,
 	PlayerInputChange
 }
 
 table GameMessageWrapper
 {
 	Message:GameMessage;
+}
+
+struct PossiblyReservedWords
+{
+  // Keywords reserved by Rust namer
+  follow: float;
+  push: float;
+  size: float;
+  alignment: float;
 }
