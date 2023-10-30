@@ -31,6 +31,7 @@ struct PossiblyReservedWords
   // Keywords reserved by Rust namer
   follow: float;
   push: float;
+  // Keywords no longer reserved by Rust namer
   size: float;
   alignment: float;
 }
