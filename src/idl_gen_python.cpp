@@ -106,7 +106,13 @@ class PythonGenerator : public BaseGenerator {
   // Begin enum code with a class declaration.
   void BeginEnum(const EnumDef &enum_def, std::string *code_ptr) const {
     auto &code = *code_ptr;
-    code += "class " + namer_.Type(enum_def) + "(object):\n";
+    if (parser_.opts.python_typing) {
+      code += "from enum import IntEnum\n";
+      code += "class " + namer_.Type(enum_def) + "(IntEnum):\n";
+    }
+    else {
+      code += "class " + namer_.Type(enum_def) + "(object):\n";
+    }
   }
 
   // Starts a new line and then indents.

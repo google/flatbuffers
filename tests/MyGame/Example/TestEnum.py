@@ -2,7 +2,8 @@
 
 # namespace: Example
 
-class TestEnum(object):
+from enum import IntEnum
+class TestEnum(IntEnum):
     A = 0
     B = 1
     C = 2

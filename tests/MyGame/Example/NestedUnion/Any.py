@@ -2,7 +2,8 @@
 
 # namespace: NestedUnion
 
-class Any(object):
+from enum import IntEnum
+class Any(IntEnum):
     NONE = 0
     Vec3 = 1
     TestSimpleTableWithEnum = 2
