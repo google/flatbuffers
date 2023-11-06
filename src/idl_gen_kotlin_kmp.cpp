@@ -782,7 +782,7 @@ class KotlinKMPGenerator : public BaseGenerator {
   void GenerateEndStructMethod(StructDef &struct_def, CodeWriter &writer,
                                const IDLOptions options) const {
     // Generate end{{TableName}}(builder: FlatBufferBuilder) method
-    auto name = namer_.Method("end", struct_def.name);
+    auto name = namer_.LegacyJavaMethod2("end", struct_def, "");
     auto params = "builder: FlatBufferBuilder";
     auto returns = "Offset<" + namer_.Type(struct_def) + '>';
     auto field_vec = struct_def.fields.vec;
@@ -948,7 +948,7 @@ class KotlinKMPGenerator : public BaseGenerator {
           [&]() {
             writer.SetValue("vec_size", NumToString(fields_vec.size()));
             writer.SetValue("end_method",
-                            namer_.Method("end", struct_def.name));
+                            namer_.LegacyJavaMethod2("end", struct_def, ""));
             writer += "builder.startTable({{vec_size}})";
 
             auto sortbysize = struct_def.sortbysize;
