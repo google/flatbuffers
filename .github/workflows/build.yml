@@ -113,8 +113,12 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     - name: cmake
+      # Need to use libc++ not libstdc++ for std 23 because libstdc++
+      # 10.3.0 doesn't support std 23
       run: >
-        CXX=${{ matrix.cxx }} cmake -G "Unix Makefiles"
+        CXX=${{ matrix.cxx }}
+        CXXFLAGS=${{ (matrix.cxx == 'clang++-14' && matrix.std >= 23) && '-stdlib=libc++' || '' }}
+        cmake -G "Unix Makefiles"
         -DCMAKE_BUILD_TYPE=Release -DFLATBUFFERS_STRICT_MODE=ON
         -DFLATBUFFERS_CPP_STD=${{ matrix.std }}
         -DFLATBUFFERS_BUILD_CPP17=${{ matrix.std >= 17 && 'On' || 'Off'}}
