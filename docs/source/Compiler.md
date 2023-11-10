@@ -233,5 +233,10 @@ Additional options:
     vector of bytes in JSON, which is unsafe unless checked by a verifier
     afterwards.
 
+-   `--python-no-type-prefix-suffix` : Skip emission of Python functions that are prefixed
+    with typenames
+
+-   `--python-typing` : Generate Python type annotations
+
 NOTE: short-form options for generators are deprecated, use the long form
 whenever possible.
