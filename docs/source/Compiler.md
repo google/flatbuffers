@@ -23,31 +23,35 @@ For any schema input files, one or more generators can be specified:
 
 -   `--java`, `-j` : Generate Java code.
 
--   `--kotlin`, `-k` : Generate Kotlin code.
+-   `--kotlin` , `--kotlin-kmp` : Generate Kotlin code.
 
 -   `--csharp`, `-n` : Generate C# code.
 
 -   `--go`, `-g` : Generate Go code.
 
--   `--python`, `-p`: Generate Python code.
+-   `--python`, `-p` : Generate Python code.
 
--   `--js`, `-s`: Generate JavaScript code.
+-   `--js`, `-s` : Generate JavaScript code.
 
--   `--ts`: Generate TypeScript code.
+-   `--ts`, `-T` : Generate TypeScript code.
 
--   `--php`: Generate PHP code.
+-   `--php` : Generate PHP code.
 
--   `--grpc`: Generate RPC stub code for GRPC.
+-   `--grpc` : Generate RPC stub code for GRPC.
 
--   `--dart`: Generate Dart code.
+-   `--dart`, `-d` : Generate Dart code.
 
--   `--lua`: Generate Lua code.
+-   `--lua`, `-l` : Generate Lua code.
 
--   `--lobster`: Generate Lobster code.
+-   `--lobster` : Generate Lobster code.
 
 -   `--rust`, `-r` : Generate Rust code.
 
--   `--swift`: Generate Swift code.
+-   `--swift` : Generate Swift code.
+
+-   `--nim` : Generate Nim code.
+
+
 
 For any data input files:
 
@@ -57,6 +61,8 @@ For any data input files:
 
 -   `--json`, `-t` : If data is contained in this file, generate a
     `filename.json` representing the data in the flatbuffer.
+
+-   `--jsonschema` : Generate Json schema
 
 Additional options:
 
