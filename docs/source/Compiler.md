@@ -115,7 +115,7 @@ Additional options:
 
 -   `--gen-compare`  :  Generate operator== for object-based API types.
 
--   `--gen-nullable` : Add Clang _Nullable for C++ pointer. or @Nullable for Java.
+-   `--gen-nullable` : Add Clang \_Nullable for C++ pointer. or @Nullable for Java.
 
 -   `--gen-generated` : Add @Generated annotation for Java.
 
@@ -189,7 +189,7 @@ Additional options:
     `--conform PATH`.
 
 -   `--filename-suffix SUFFIX` : The suffix appended to the generated
-    file names. Default is '_generated'.
+    file names. Default is '\_generated'.
 
 -   `--filename-ext EXTENSION` : The extension appended to the generated
     file names. Default is language-specific (e.g. "h" for C++). This
