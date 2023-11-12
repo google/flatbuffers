@@ -473,6 +473,14 @@ public struct FlatBufferBuilder {
     return endVector(len: size)
   }
 
+  @inline(__always)
+  mutating public func createVector(bytes: ContiguousBytes) -> Offset {
+    let size = bytes.withUnsafeBytes { ptr in ptr.count }
+    startVector(size, elementSize: MemoryLayout<UInt8>.size)
+    _bb.push(bytes: bytes)
+    return endVector(len: size)
+  }
+
   /// Creates a vector of type ``Enum`` into the ``ByteBuffer``
   ///
   /// ``createVector(_:)-9h189`` writes a vector of type ``Enum`` into
