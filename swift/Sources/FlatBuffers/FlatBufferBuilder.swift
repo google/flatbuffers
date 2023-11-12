@@ -473,6 +473,7 @@ public struct FlatBufferBuilder {
     return endVector(len: size)
   }
 
+  #if swift(>=5.0) && !os(WASI)
   @inline(__always)
   mutating public func createVector(bytes: ContiguousBytes) -> Offset {
     let size = bytes.withUnsafeBytes { ptr in ptr.count }
@@ -480,6 +481,7 @@ public struct FlatBufferBuilder {
     _bb.push(bytes: bytes)
     return endVector(len: size)
   }
+  #endif
 
   /// Creates a vector of type ``Enum`` into the ``ByteBuffer``
   ///
