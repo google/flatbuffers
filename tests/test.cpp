@@ -834,6 +834,24 @@ void FixedLengthArrayConstructorTest() {
   TEST_EQ(arr_struct.e(), 10);
   TEST_EQ(arr_struct.f()->Get(0), -2);
   TEST_EQ(arr_struct.f()->Get(1), -1);
+
+  // Test for each loop over NestedStruct entries
+  for (auto i : *arr_struct.d()) {
+    for (auto a : *i->a()) {
+      TEST_EQ(a, 1);
+      break;  // one iteration is enough, just testing compilation
+    }
+    TEST_EQ(i->b(), MyGame::Example::TestEnum::B);
+    for (auto c : *i->c()) {
+      TEST_EQ(c, MyGame::Example::TestEnum::A);
+      break;  // one iteration is enough, just testing compilation
+    }
+    for (auto d : *i->d()) {
+      TEST_EQ(d, -2);
+      break;  // one iteration is enough, just testing compilation
+    }
+    break;  // one iteration is enough, just testing compilation
+  }
 }
 #else
 void FixedLengthArrayConstructorTest() {}

@@ -27,7 +27,7 @@ struct String;
 
 // An STL compatible iterator implementation for Vector below, effectively
 // calling Get() for every element.
-template<typename T, typename IT, typename Data = uint8_t *,
+template<typename IT, typename IH, typename Data = uint8_t *,
          typename SizeT = uoffset_t>
 struct VectorIterator {
   typedef std::random_access_iterator_tag iterator_category;
@@ -36,7 +36,7 @@ struct VectorIterator {
   typedef IT *pointer;
   typedef IT &reference;
 
-  static const SizeT element_stride = IndirectHelper<T>::element_stride;
+  static const SizeT element_stride = IH::element_stride;
 
   VectorIterator(Data data, SizeT i) : data_(data + element_stride * i) {}
   VectorIterator(const VectorIterator &other) : data_(other.data_) {}
@@ -70,11 +70,11 @@ struct VectorIterator {
 
   // Note: return type is incompatible with the standard
   // `reference operator*()`.
-  IT operator*() const { return IndirectHelper<T>::Read(data_, 0); }
+  IT operator*() const { return IH::Read(data_, 0); }
 
   // Note: return type is incompatible with the standard
   // `pointer operator->()`.
-  IT operator->() const { return IndirectHelper<T>::Read(data_, 0); }
+  IT operator->() const { return IH::Read(data_, 0); }
 
   VectorIterator &operator++() {
     data_ += element_stride;
@@ -120,8 +120,8 @@ struct VectorIterator {
   Data data_;
 };
 
-template<typename T, typename IT, typename SizeT = uoffset_t>
-using VectorConstIterator = VectorIterator<T, IT, const uint8_t *, SizeT>;
+template<typename IT, typename IH, typename SizeT = uoffset_t>
+using VectorConstIterator = VectorIterator<IT, IH, const uint8_t *, SizeT>;
 
 template<typename Iterator>
 struct VectorReverseIterator : public std::reverse_iterator<Iterator> {
@@ -147,10 +147,11 @@ struct VectorReverseIterator : public std::reverse_iterator<Iterator> {
 // Vector::data() assumes the vector elements start after the length field.
 template<typename T, typename SizeT = uoffset_t> class Vector {
  public:
-  typedef VectorIterator<T, typename IndirectHelper<T>::mutable_return_type,
-                         uint8_t *, SizeT>
+  typedef VectorIterator<typename IndirectHelper<T>::mutable_return_type,
+                         IndirectHelper<T>, uint8_t *, SizeT>
       iterator;
-  typedef VectorConstIterator<T, typename IndirectHelper<T>::return_type, SizeT>
+  typedef VectorConstIterator<typename IndirectHelper<T>::return_type,
+                              IndirectHelper<T>, SizeT>
       const_iterator;
   typedef VectorReverseIterator<iterator> reverse_iterator;
   typedef VectorReverseIterator<const_iterator> const_reverse_iterator;
