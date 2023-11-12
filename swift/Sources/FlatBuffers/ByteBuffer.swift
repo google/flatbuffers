@@ -240,8 +240,8 @@ public struct ByteBuffer {
   #if swift(>=5.0) && !os(WASI)
   @inline(__always)
   @usableFromInline
-  mutating func push<T: ContiguousBytes>(value: T) {
-    value.withUnsafeBytes { ptr in
+  mutating func push<T: ContiguousBytes>(bytes: T) {
+    bytes.withUnsafeBytes { ptr in
       ensureSpace(size: ptr.count)
       _storage.memory
         .advanced(by: writerIndex &- ptr.count)
