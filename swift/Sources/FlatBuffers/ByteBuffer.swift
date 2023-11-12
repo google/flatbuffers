@@ -235,6 +235,22 @@ public struct ByteBuffer {
     }
   }
 
+  /// Adds a `ContiguousBytes` to buffer memory
+  /// - Parameter value: bytes to copy
+  #if swift(>=5.0) && !os(WASI)
+  @inline(__always)
+  @usableFromInline
+  mutating func push<T: ContiguousBytes>(value: T) {
+    value.withUnsafeBytes { ptr in
+      ensureSpace(size: ptr.count)
+      _storage.memory
+        .advanced(by: writerIndex &- ptr.count)
+        .copyMemory(from: ptr.baseAddress!, byteCount: ptr.count)
+      self._writerSize = self._writerSize &+ ptr.count
+    }
+  }
+  #endif
+
   /// Adds an object of type NativeStruct into the buffer
   /// - Parameters:
   ///   - value: Object  that will be written to the buffer
