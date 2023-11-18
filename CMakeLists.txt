@@ -276,6 +276,11 @@ set(FlatBuffers_GRPCTest_SRCS
   grpc/tests/message_builder_test.cpp
 )
 
+# Seems libstdc++ doesn't support all of C++23 yet, use libc++j for now.
+if(IS_CLANG AND FLATBUFFERS_CPP_STD GREATER_EQUAL 23)
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++")
+endif()
+
 # TODO(dbaileychess): Figure out how this would now work. I posted a question on
 # https://stackoverflow.com/questions/71772330/override-target-compile-options-via-cmake-command-line.
 # Append FLATBUFFERS_CXX_FLAGS to CMAKE_CXX_FLAGS.
@@ -556,7 +561,11 @@ if(FLATBUFFERS_BUILD_TESTS)
 
   # Add a library so there is a single target that the generated samples can 
   # link too.
-  add_library(flatsample STATIC)
+  if(MSVC_LIKE)
+    add_library(flatsample INFTERFACE)
+  else()
+    add_library(flatsample STATIC)
+  endif()
 
   # Since flatsample has no sources, we have to explicitly set the linker lang.
   set_target_properties(flatsample PROPERTIES LINKER_LANGUAGE CXX)
