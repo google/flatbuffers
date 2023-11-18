@@ -25,7 +25,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        cxx: [g++-10, clang++-14]
+        cxx: [g++-13, clang++-15]
       fail-fast: false
     steps:
     - uses: actions/checkout@v3
@@ -58,11 +58,11 @@ jobs:
       with:
         files: Linux.flatc.binary.${{ matrix.cxx }}.zip
     - name: Generate SLSA subjects - clang
-      if: matrix.cxx == 'clang++-14' && startsWith(github.ref, 'refs/tags/')
+      if: matrix.cxx == 'clang++-15' && startsWith(github.ref, 'refs/tags/')
       id: hash-clang
       run: echo "hashes=$(sha256sum Linux.flatc.binary.${{ matrix.cxx }}.zip | base64 -w0)" >> $GITHUB_OUTPUT
     - name: Generate SLSA subjects - gcc
-      if: matrix.cxx == 'g++-10' && startsWith(github.ref, 'refs/tags/')
+      if: matrix.cxx == 'g++-13' && startsWith(github.ref, 'refs/tags/')
       id: hash-gcc
       run: echo "hashes=$(sha256sum Linux.flatc.binary.${{ matrix.cxx }}.zip | base64 -w0)" >> $GITHUB_OUTPUT
 
@@ -72,7 +72,7 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     - name: cmake
-      run: CXX=clang++-14 cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release -DFLATBUFFERS_STRICT_MODE=ON -DFLATBUFFERS_CXX_FLAGS="-DFLATBUFFERS_NO_FILE_TESTS" .
+      run: CXX=clang++-15 cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release -DFLATBUFFERS_STRICT_MODE=ON -DFLATBUFFERS_CXX_FLAGS="-DFLATBUFFERS_NO_FILE_TESTS" .
     - name: build
       run: make -j
 
@@ -86,7 +86,7 @@ jobs:
     - name: cmake
       working-directory: build
       run: >
-        CXX=clang++-14 cmake .. -G "Unix Makefiles" -DFLATBUFFERS_STRICT_MODE=ON
+        CXX=clang++-15 cmake .. -G "Unix Makefiles" -DFLATBUFFERS_STRICT_MODE=ON
         -DFLATBUFFERS_BUILD_CPP17=ON -DFLATBUFFERS_CPP_STD=17
     - name: build
       working-directory: build
@@ -105,11 +105,12 @@ jobs:
       fail-fast: false
       matrix:
         std: [11, 14, 17, 20, 23]
-        cxx: [g++-10, clang++-14]
+        cxx: [g++-13, clang++-15]
         exclude:
-          # GCC 10.3.0 doesn't support std 23
-          - cxx: g++-10
-            std: 23
+          # Clang++15 10.3.0 stdlibc++ doesn't fully support std 23
+          - cxx: clang++-15
+            std: 23        
+
     steps:
     - uses: actions/checkout@v3
     - name: cmake
@@ -358,7 +359,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        cxx: [g++-10, clang++-14]
+        cxx: [g++-13, clang++-15]
     steps:
     - uses: actions/checkout@v3
     - name: cmake
@@ -389,7 +390,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        cxx: [g++-10]
+        cxx: [g++-13]
     steps:
     - uses: actions/checkout@v3
     - name: cmake
