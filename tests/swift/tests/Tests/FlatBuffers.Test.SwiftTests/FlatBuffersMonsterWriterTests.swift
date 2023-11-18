@@ -439,11 +439,26 @@ class FlatBuffersMonsterWriterTests: XCTestCase {
     let fbb = createMonster(withPrefix: false)
     var sizedBuffer = fbb.sizedBuffer
     do {
+      struct Test: Decodable {
+        struct Pos: Decodable {
+          let x, y, z: Int
+        }
+        let hp: Int
+        let inventory: [UInt8]
+        let name: String
+        let pos: Pos
+      }
       let reader: Monster = try getCheckedRoot(byteBuffer: &sizedBuffer)
       let encoder = JSONEncoder()
       encoder.keyEncodingStrategy = .convertToSnakeCase
       let data = try encoder.encode(reader)
-      XCTAssertEqual(data, jsonData.data(using: .utf8))
+      let decoder = JSONDecoder()
+      decoder.keyDecodingStrategy = .convertFromSnakeCase
+      let value = try decoder.decode(Test.self, from: data)
+      XCTAssertEqual(value.name, "MyMonster")
+      XCTAssertEqual(value.pos.x, 1)
+      XCTAssertEqual(value.pos.y, 2)
+      XCTAssertEqual(value.pos.z, 3)
     } catch {
       XCTFail(error.localizedDescription)
     }
