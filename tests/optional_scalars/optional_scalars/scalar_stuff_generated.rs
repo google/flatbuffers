@@ -71,8 +71,8 @@ impl<'a> ScalarStuff<'a> {
     ScalarStuff { _tab: table }
   }
   #[allow(unused_mut)]
-  pub fn create<'bldr: 'args, 'args: 'mut_bldr, 'mut_bldr>(
-    _fbb: &'mut_bldr mut flatbuffers::FlatBufferBuilder<'bldr>,
+  pub fn create<'bldr: 'args, 'args: 'mut_bldr, 'mut_bldr, A: flatbuffers::Allocator + 'bldr>(
+    _fbb: &'mut_bldr mut flatbuffers::FlatBufferBuilder<'bldr, A>,
     args: &'args ScalarStuffArgs
   ) -> flatbuffers::WIPOffset<ScalarStuff<'bldr>> {
     let mut builder = ScalarStuffBuilder::new(_fbb);
@@ -575,11 +575,11 @@ impl<'a> Default for ScalarStuffArgs {
   }
 }
 
-pub struct ScalarStuffBuilder<'a: 'b, 'b> {
-  fbb_: &'b mut flatbuffers::FlatBufferBuilder<'a>,
+pub struct ScalarStuffBuilder<'a: 'b, 'b, A: flatbuffers::Allocator + 'a> {
+  fbb_: &'b mut flatbuffers::FlatBufferBuilder<'a, A>,
   start_: flatbuffers::WIPOffset<flatbuffers::TableUnfinishedWIPOffset>,
 }
-impl<'a: 'b, 'b> ScalarStuffBuilder<'a, 'b> {
+impl<'a: 'b, 'b, A: flatbuffers::Allocator + 'a> ScalarStuffBuilder<'a, 'b, A> {
   #[inline]
   pub fn add_just_i8(&mut self, just_i8: i8) {
     self.fbb_.push_slot::<i8>(ScalarStuff::VT_JUST_I8, just_i8, 0);
@@ -725,7 +725,7 @@ impl<'a: 'b, 'b> ScalarStuffBuilder<'a, 'b> {
     self.fbb_.push_slot::<OptionalByte>(ScalarStuff::VT_DEFAULT_ENUM, default_enum, OptionalByte::One);
   }
   #[inline]
-  pub fn new(_fbb: &'b mut flatbuffers::FlatBufferBuilder<'a>) -> ScalarStuffBuilder<'a, 'b> {
+  pub fn new(_fbb: &'b mut flatbuffers::FlatBufferBuilder<'a, A>) -> ScalarStuffBuilder<'a, 'b, A> {
     let start = _fbb.start_table();
     ScalarStuffBuilder {
       fbb_: _fbb,
@@ -864,9 +864,9 @@ impl Default for ScalarStuffT {
   }
 }
 impl ScalarStuffT {
-  pub fn pack<'b>(
+  pub fn pack<'b, A: flatbuffers::Allocator + 'b>(
     &self,
-    _fbb: &mut flatbuffers::FlatBufferBuilder<'b>
+    _fbb: &mut flatbuffers::FlatBufferBuilder<'b, A>
   ) -> flatbuffers::WIPOffset<ScalarStuff<'b>> {
     let just_i8 = self.just_i8;
     let maybe_i8 = self.maybe_i8;
@@ -1019,13 +1019,13 @@ pub fn scalar_stuff_size_prefixed_buffer_has_identifier(buf: &[u8]) -> bool {
 pub const SCALAR_STUFF_EXTENSION: &str = "mon";
 
 #[inline]
-pub fn finish_scalar_stuff_buffer<'a, 'b>(
-    fbb: &'b mut flatbuffers::FlatBufferBuilder<'a>,
+pub fn finish_scalar_stuff_buffer<'a, 'b, A: flatbuffers::Allocator + 'a>(
+    fbb: &'b mut flatbuffers::FlatBufferBuilder<'a, A>,
     root: flatbuffers::WIPOffset<ScalarStuff<'a>>) {
   fbb.finish(root, Some(SCALAR_STUFF_IDENTIFIER));
 }
 
 #[inline]
-pub fn finish_size_prefixed_scalar_stuff_buffer<'a, 'b>(fbb: &'b mut flatbuffers::FlatBufferBuilder<'a>, root: flatbuffers::WIPOffset<ScalarStuff<'a>>) {
+pub fn finish_size_prefixed_scalar_stuff_buffer<'a, 'b, A: flatbuffers::Allocator + 'a>(fbb: &'b mut flatbuffers::FlatBufferBuilder<'a, A>, root: flatbuffers::WIPOffset<ScalarStuff<'a>>) {
   fbb.finish_size_prefixed(root, Some(SCALAR_STUFF_IDENTIFIER));
 }

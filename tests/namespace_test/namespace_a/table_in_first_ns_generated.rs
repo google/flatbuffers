@@ -40,8 +40,8 @@ impl<'a> TableInFirstNS<'a> {
     TableInFirstNS { _tab: table }
   }
   #[allow(unused_mut)]
-  pub fn create<'bldr: 'args, 'args: 'mut_bldr, 'mut_bldr>(
-    _fbb: &'mut_bldr mut flatbuffers::FlatBufferBuilder<'bldr>,
+  pub fn create<'bldr: 'args, 'args: 'mut_bldr, 'mut_bldr, A: flatbuffers::Allocator + 'bldr>(
+    _fbb: &'mut_bldr mut flatbuffers::FlatBufferBuilder<'bldr, A>,
     args: &'args TableInFirstNSArgs<'args>
   ) -> flatbuffers::WIPOffset<TableInFirstNS<'bldr>> {
     let mut builder = TableInFirstNSBuilder::new(_fbb);
@@ -170,11 +170,11 @@ impl<'a> Default for TableInFirstNSArgs<'a> {
   }
 }
 
-pub struct TableInFirstNSBuilder<'a: 'b, 'b> {
-  fbb_: &'b mut flatbuffers::FlatBufferBuilder<'a>,
+pub struct TableInFirstNSBuilder<'a: 'b, 'b, A: flatbuffers::Allocator + 'a> {
+  fbb_: &'b mut flatbuffers::FlatBufferBuilder<'a, A>,
   start_: flatbuffers::WIPOffset<flatbuffers::TableUnfinishedWIPOffset>,
 }
-impl<'a: 'b, 'b> TableInFirstNSBuilder<'a, 'b> {
+impl<'a: 'b, 'b, A: flatbuffers::Allocator + 'a> TableInFirstNSBuilder<'a, 'b, A> {
   #[inline]
   pub fn add_foo_table(&mut self, foo_table: flatbuffers::WIPOffset<namespace_b::TableInNestedNS<'b >>) {
     self.fbb_.push_slot_always::<flatbuffers::WIPOffset<namespace_b::TableInNestedNS>>(TableInFirstNS::VT_FOO_TABLE, foo_table);
@@ -196,7 +196,7 @@ impl<'a: 'b, 'b> TableInFirstNSBuilder<'a, 'b> {
     self.fbb_.push_slot_always::<&namespace_b::StructInNestedNS>(TableInFirstNS::VT_FOO_STRUCT, foo_struct);
   }
   #[inline]
-  pub fn new(_fbb: &'b mut flatbuffers::FlatBufferBuilder<'a>) -> TableInFirstNSBuilder<'a, 'b> {
+  pub fn new(_fbb: &'b mut flatbuffers::FlatBufferBuilder<'a, A>) -> TableInFirstNSBuilder<'a, 'b, A> {
     let start = _fbb.start_table();
     TableInFirstNSBuilder {
       fbb_: _fbb,
@@ -252,9 +252,9 @@ impl Default for TableInFirstNST {
   }
 }
 impl TableInFirstNST {
-  pub fn pack<'b>(
+  pub fn pack<'b, A: flatbuffers::Allocator + 'b>(
     &self,
-    _fbb: &mut flatbuffers::FlatBufferBuilder<'b>
+    _fbb: &mut flatbuffers::FlatBufferBuilder<'b, A>
   ) -> flatbuffers::WIPOffset<TableInFirstNS<'b>> {
     let foo_table = self.foo_table.as_ref().map(|x|{
       x.pack(_fbb)

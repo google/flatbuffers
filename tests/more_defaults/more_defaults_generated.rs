@@ -41,8 +41,8 @@ impl<'a> MoreDefaults<'a> {
     MoreDefaults { _tab: table }
   }
   #[allow(unused_mut)]
-  pub fn create<'bldr: 'args, 'args: 'mut_bldr, 'mut_bldr>(
-    _fbb: &'mut_bldr mut flatbuffers::FlatBufferBuilder<'bldr>,
+  pub fn create<'bldr: 'args, 'args: 'mut_bldr, 'mut_bldr, A: flatbuffers::Allocator + 'bldr>(
+    _fbb: &'mut_bldr mut flatbuffers::FlatBufferBuilder<'bldr, A>,
     args: &'args MoreDefaultsArgs<'args>
   ) -> flatbuffers::WIPOffset<MoreDefaults<'bldr>> {
     let mut builder = MoreDefaultsBuilder::new(_fbb);
@@ -173,11 +173,11 @@ impl<'a> Default for MoreDefaultsArgs<'a> {
   }
 }
 
-pub struct MoreDefaultsBuilder<'a: 'b, 'b> {
-  fbb_: &'b mut flatbuffers::FlatBufferBuilder<'a>,
+pub struct MoreDefaultsBuilder<'a: 'b, 'b, A: flatbuffers::Allocator + 'a> {
+  fbb_: &'b mut flatbuffers::FlatBufferBuilder<'a, A>,
   start_: flatbuffers::WIPOffset<flatbuffers::TableUnfinishedWIPOffset>,
 }
-impl<'a: 'b, 'b> MoreDefaultsBuilder<'a, 'b> {
+impl<'a: 'b, 'b, A: flatbuffers::Allocator + 'a> MoreDefaultsBuilder<'a, 'b, A> {
   #[inline]
   pub fn add_ints(&mut self, ints: flatbuffers::WIPOffset<flatbuffers::Vector<'b , i32>>) {
     self.fbb_.push_slot_always::<flatbuffers::WIPOffset<_>>(MoreDefaults::VT_INTS, ints);
@@ -203,7 +203,7 @@ impl<'a: 'b, 'b> MoreDefaultsBuilder<'a, 'b> {
     self.fbb_.push_slot_always::<flatbuffers::WIPOffset<_>>(MoreDefaults::VT_BOOLS, bools);
   }
   #[inline]
-  pub fn new(_fbb: &'b mut flatbuffers::FlatBufferBuilder<'a>) -> MoreDefaultsBuilder<'a, 'b> {
+  pub fn new(_fbb: &'b mut flatbuffers::FlatBufferBuilder<'a, A>) -> MoreDefaultsBuilder<'a, 'b, A> {
     let start = _fbb.start_table();
     MoreDefaultsBuilder {
       fbb_: _fbb,
@@ -252,9 +252,9 @@ impl Default for MoreDefaultsT {
   }
 }
 impl MoreDefaultsT {
-  pub fn pack<'b>(
+  pub fn pack<'b, A: flatbuffers::Allocator + 'b>(
     &self,
-    _fbb: &mut flatbuffers::FlatBufferBuilder<'b>
+    _fbb: &mut flatbuffers::FlatBufferBuilder<'b, A>
   ) -> flatbuffers::WIPOffset<MoreDefaults<'b>> {
     let ints = Some({
       let x = &self.ints;
