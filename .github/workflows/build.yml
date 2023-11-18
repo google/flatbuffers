@@ -13,6 +13,9 @@ on:
     branches:
       - master
 
+defaults:
+  runs-on: ubuntu-22.04-64core
+
 jobs:
   build-linux:
     permissions:
@@ -97,7 +100,6 @@ jobs:
 
   build-linux-cpp-std:
     name: Build Linux C++
-    runs-on: ubuntu-22.04-64core
     strategy:
       fail-fast: false
       matrix:
