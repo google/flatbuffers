@@ -97,7 +97,7 @@ jobs:
 
   build-linux-cpp-std:
     name: Build Linux C++
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04-64core
     strategy:
       fail-fast: false
       matrix:
