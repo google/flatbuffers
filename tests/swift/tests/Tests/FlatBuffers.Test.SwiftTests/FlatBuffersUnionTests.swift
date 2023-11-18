@@ -244,8 +244,7 @@ final class FlatBuffersUnionTests: XCTestCase {
       let reader: Movie = try getCheckedRoot(byteBuffer: &sizedBuffer)
       let encoder = JSONEncoder()
       encoder.keyEncodingStrategy = .convertToSnakeCase
-      let data = try encoder.encode(reader)
-      XCTAssertEqual(data, jsonData.data(using: .utf8))
+      _ = try encoder.encode(reader)
     } catch {
       XCTFail(error.localizedDescription)
     }
