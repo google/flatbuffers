@@ -106,6 +106,10 @@ jobs:
       matrix:
         std: [11, 14, 17, 20, 23]
         cxx: [g++-13, clang++-15]
+        exclude:
+          # Clang++15 10.3.0 stdlibc++ doesn't fully support std 23
+          - cxx: clang++-15
+            std: 23        
 
     steps:
     - uses: actions/checkout@v3

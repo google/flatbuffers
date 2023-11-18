@@ -276,12 +276,6 @@ set(FlatBuffers_GRPCTest_SRCS
   grpc/tests/message_builder_test.cpp
 )
 
-# Seems libstdc++ doesn't support all of C++23 yet, use libc++j for now.
-if(IS_CLANG AND FLATBUFFERS_CPP_STD GREATER_EQUAL 23)
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++")
-  set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -stdlib=libc++ -lc++abi")
-endif()
-
 # TODO(dbaileychess): Figure out how this would now work. I posted a question on
 # https://stackoverflow.com/questions/71772330/override-target-compile-options-via-cmake-command-line.
 # Append FLATBUFFERS_CXX_FLAGS to CMAKE_CXX_FLAGS.
