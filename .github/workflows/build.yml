@@ -126,7 +126,7 @@ jobs:
 
   build-windows-cpp-std:
     name: Build Windows C++
-    runs-on: windows-2022-64core
+    runs-on: windows-2022
     strategy:
       matrix:
         std: [11, 14, 17, 20, 23]
@@ -155,7 +155,7 @@ jobs:
     outputs:
       digests: ${{ steps.hash.outputs.hashes }}
     name: Build Windows 2019
-    runs-on: windows-2022-64core
+    runs-on: windows-latest
     steps:
     - uses: actions/checkout@v3
     - name: Add msbuild to PATH
@@ -188,7 +188,7 @@ jobs:
 
   build-windows-2017:
     name: Build Windows 2017
-    runs-on: windows-2022-64core
+    runs-on: windows-latest
     steps:
     - uses: actions/checkout@v3
     - name: Add msbuild to PATH
@@ -202,7 +202,7 @@ jobs:
 
   build-windows-2015:
     name: Build Windows 2015
-    runs-on: windows-2022-64core
+    runs-on: windows-latest
     steps:
     - uses: actions/checkout@v3
     - name: Add msbuild to PATH
@@ -364,7 +364,7 @@ jobs:
 
   build-generator-windows:
     name: Check Generated Code on Windows
-    runs-on: windows-2022-64core
+    runs-on: windows-latest
     steps:
     - uses: actions/checkout@v3
     - name: Add msbuild to PATH
