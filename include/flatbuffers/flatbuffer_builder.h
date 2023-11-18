@@ -589,14 +589,14 @@ template<bool Is64Aware = false> class FlatBufferBuilderImpl {
 
   /// @brief Store a string in the buffer, which can contain any binary data.
   /// @param[in] str A const reference to a std::string like type with support
-  /// of T::c_str() and T::length() to store in the buffer.
+  /// of T::data() and T::length() to store in the buffer.
   /// @return Returns the offset in the buffer where the string starts.
   template<template<typename> class OffsetT = Offset,
            // No need to explicitly declare the T type, let the compiler deduce
            // it.
            int &...ExplicitArgumentBarrier, typename T>
   OffsetT<String> CreateString(const T &str) {
-    return CreateString<OffsetT>(str.c_str(), str.length());
+    return CreateString<OffsetT>(str.data(), str.length());
   }
 
   /// @brief Store a string in the buffer, which can contain any binary data.
