@@ -9,7 +9,6 @@ on:
       - "*" # new tag version, like `0.8.4` or else
     branches:
       - master
-      - flatbuffers-64
   pull_request:
     branches:
       - master
@@ -39,10 +38,6 @@ jobs:
       run: |
         chmod +x flatc
         ./flatc --version
-    # - name: flatc tests
-    #   run: |
-    #     yarn global add esbuild
-    #     python3 tests/flatc/main.py
     - name: upload build artifacts
       uses: actions/upload-artifact@v1
       with:
@@ -75,6 +70,8 @@ jobs:
       run: CXX=clang++-15 cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release -DFLATBUFFERS_STRICT_MODE=ON -DFLATBUFFERS_CXX_FLAGS="-DFLATBUFFERS_NO_FILE_TESTS" .
     - name: build
       run: make -j
+    - name: test
+      run: ./flattests
 
   build-linux-out-of-source:
     name: Build Linux with out-of-source build location
@@ -169,8 +166,6 @@ jobs:
       run: msbuild.exe FlatBuffers.sln /p:Configuration=Release /p:Platform=x64
     - name: test
       run: Release\flattests.exe
-    # - name: flatc tests
-    #   run: python3 tests/flatc/main.py --flatc Release\flatc.exe
     - name: upload build artifacts
       uses: actions/upload-artifact@v1
       with:
@@ -271,8 +266,6 @@ jobs:
       run: |
         chmod +x Release/flatc
         Release/flatc --version
-    # - name: flatc tests
-    #  run: python3 tests/flatc/main.py --flatc Release/flatc
     - name: upload build artifacts
       uses: actions/upload-artifact@v1
       with:
