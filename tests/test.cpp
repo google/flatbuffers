@@ -86,7 +86,7 @@ void TriviallyCopyableTest() {
   // clang-format off
   #if __GNUG__ && __GNUC__ < 5 && \
       !(defined(__clang__) && __clang_major__ >= 16)
-    TEST_EQ(__has_trivial_copy(Vec3), true);
+    TEST_EQ(__is_trivially_copyable(Vec3), true);
   #else
     #if __cplusplus >= 201103L
       TEST_EQ(std::is_trivially_copyable<Vec3>::value, true);

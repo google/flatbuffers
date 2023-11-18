@@ -47,8 +47,8 @@ impl<'a> TypeAliases<'a> {
     TypeAliases { _tab: table }
   }
   #[allow(unused_mut)]
-  pub fn create<'bldr: 'args, 'args: 'mut_bldr, 'mut_bldr>(
-    _fbb: &'mut_bldr mut flatbuffers::FlatBufferBuilder<'bldr>,
+  pub fn create<'bldr: 'args, 'args: 'mut_bldr, 'mut_bldr, A: flatbuffers::Allocator + 'bldr>(
+    _fbb: &'mut_bldr mut flatbuffers::FlatBufferBuilder<'bldr, A>,
     args: &'args TypeAliasesArgs<'args>
   ) -> flatbuffers::WIPOffset<TypeAliases<'bldr>> {
     let mut builder = TypeAliasesBuilder::new(_fbb);
@@ -243,11 +243,11 @@ impl<'a> Default for TypeAliasesArgs<'a> {
   }
 }
 
-pub struct TypeAliasesBuilder<'a: 'b, 'b> {
-  fbb_: &'b mut flatbuffers::FlatBufferBuilder<'a>,
+pub struct TypeAliasesBuilder<'a: 'b, 'b, A: flatbuffers::Allocator + 'a> {
+  fbb_: &'b mut flatbuffers::FlatBufferBuilder<'a, A>,
   start_: flatbuffers::WIPOffset<flatbuffers::TableUnfinishedWIPOffset>,
 }
-impl<'a: 'b, 'b> TypeAliasesBuilder<'a, 'b> {
+impl<'a: 'b, 'b, A: flatbuffers::Allocator + 'a> TypeAliasesBuilder<'a, 'b, A> {
   #[inline]
   pub fn add_i8_(&mut self, i8_: i8) {
     self.fbb_.push_slot::<i8>(TypeAliases::VT_I8_, i8_, 0);
@@ -297,7 +297,7 @@ impl<'a: 'b, 'b> TypeAliasesBuilder<'a, 'b> {
     self.fbb_.push_slot_always::<flatbuffers::WIPOffset<_>>(TypeAliases::VT_VF64, vf64);
   }
   #[inline]
-  pub fn new(_fbb: &'b mut flatbuffers::FlatBufferBuilder<'a>) -> TypeAliasesBuilder<'a, 'b> {
+  pub fn new(_fbb: &'b mut flatbuffers::FlatBufferBuilder<'a, A>) -> TypeAliasesBuilder<'a, 'b, A> {
     let start = _fbb.start_table();
     TypeAliasesBuilder {
       fbb_: _fbb,
@@ -364,9 +364,9 @@ impl Default for TypeAliasesT {
   }
 }
 impl TypeAliasesT {
-  pub fn pack<'b>(
+  pub fn pack<'b, A: flatbuffers::Allocator + 'b>(
     &self,
-    _fbb: &mut flatbuffers::FlatBufferBuilder<'b>
+    _fbb: &mut flatbuffers::FlatBufferBuilder<'b, A>
   ) -> flatbuffers::WIPOffset<TypeAliases<'b>> {
     let i8_ = self.i8_;
     let u8_ = self.u8_;
