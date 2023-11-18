@@ -279,6 +279,7 @@ set(FlatBuffers_GRPCTest_SRCS
 # Seems libstdc++ doesn't support all of C++23 yet, use libc++j for now.
 if(IS_CLANG AND FLATBUFFERS_CPP_STD GREATER_EQUAL 23)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++")
+  set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -stdlib=libc++ -lc++abi")
 endif()
 
 # TODO(dbaileychess): Figure out how this would now work. I posted a question on
@@ -561,8 +562,8 @@ if(FLATBUFFERS_BUILD_TESTS)
 
   # Add a library so there is a single target that the generated samples can 
   # link too.
-  if(MSVC_LIKE)
-    add_library(flatsample INFTERFACE)
+  if(MSVC)
+    add_library(flatsample INTERFACE)
   else()
     add_library(flatsample STATIC)
   endif()
