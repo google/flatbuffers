@@ -9,7 +9,6 @@ on:
       - "*" # new tag version, like `0.8.4` or else
     branches:
       - master
-      - flatbuffers-64
   pull_request:
     branches:
       - master
@@ -25,7 +24,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        cxx: [g++-10, clang++-12]
+        cxx: [g++-13, clang++-15]
       fail-fast: false
     steps:
     - uses: actions/checkout@v3
@@ -39,10 +38,6 @@ jobs:
       run: |
         chmod +x flatc
         ./flatc --version
-    # - name: flatc tests
-    #   run: |
-    #     yarn global add esbuild
-    #     python3 tests/flatc/main.py
     - name: upload build artifacts
       uses: actions/upload-artifact@v1
       with:
@@ -58,25 +53,27 @@ jobs:
       with:
         files: Linux.flatc.binary.${{ matrix.cxx }}.zip
     - name: Generate SLSA subjects - clang
-      if: matrix.cxx == 'clang++-12' && startsWith(github.ref, 'refs/tags/')
+      if: matrix.cxx == 'clang++-15' && startsWith(github.ref, 'refs/tags/')
       id: hash-clang
       run: echo "hashes=$(sha256sum Linux.flatc.binary.${{ matrix.cxx }}.zip | base64 -w0)" >> $GITHUB_OUTPUT
     - name: Generate SLSA subjects - gcc
-      if: matrix.cxx == 'g++-10' && startsWith(github.ref, 'refs/tags/')
+      if: matrix.cxx == 'g++-13' && startsWith(github.ref, 'refs/tags/')
       id: hash-gcc
       run: echo "hashes=$(sha256sum Linux.flatc.binary.${{ matrix.cxx }}.zip | base64 -w0)" >> $GITHUB_OUTPUT
-      
-  build-linux-no-file-tests:    
+
+  build-linux-no-file-tests:
     name: Build Linux with -DFLATBUFFERS_NO_FILE_TESTS
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
     - name: cmake
-      run: CXX=clang++-12 cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release -DFLATBUFFERS_STRICT_MODE=ON -DFLATBUFFERS_CXX_FLAGS="-DFLATBUFFERS_NO_FILE_TESTS" .
+      run: CXX=clang++-15 cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release -DFLATBUFFERS_STRICT_MODE=ON -DFLATBUFFERS_CXX_FLAGS="-DFLATBUFFERS_NO_FILE_TESTS" .
     - name: build
       run: make -j
+    - name: test
+      run: ./flattests
 
-  build-linux-out-of-source:    
+  build-linux-out-of-source:
     name: Build Linux with out-of-source build location
     runs-on: ubuntu-latest
     steps:
@@ -86,7 +83,7 @@ jobs:
     - name: cmake
       working-directory: build
       run: >
-        CXX=clang++-12 cmake .. -G "Unix Makefiles" -DFLATBUFFERS_STRICT_MODE=ON
+        CXX=clang++-15 cmake .. -G "Unix Makefiles" -DFLATBUFFERS_STRICT_MODE=ON
         -DFLATBUFFERS_BUILD_CPP17=ON -DFLATBUFFERS_CPP_STD=17
     - name: build
       working-directory: build
@@ -105,17 +102,18 @@ jobs:
       fail-fast: false
       matrix:
         std: [11, 14, 17, 20, 23]
-        cxx: [g++-10, clang++-12]
+        cxx: [g++-13, clang++-15]
         exclude:
-          # GCC 10.3.0 doesn't support std 23
-          - cxx: g++-10
-            std: 23
+          # Clang++15 10.3.0 stdlibc++ doesn't fully support std 23
+          - cxx: clang++-15
+            std: 23        
+
     steps:
     - uses: actions/checkout@v3
     - name: cmake
       run: >
-        CXX=${{ matrix.cxx }} cmake -G "Unix Makefiles" 
-        -DCMAKE_BUILD_TYPE=Release -DFLATBUFFERS_STRICT_MODE=ON 
+        CXX=${{ matrix.cxx }} cmake -G "Unix Makefiles"
+        -DCMAKE_BUILD_TYPE=Release -DFLATBUFFERS_STRICT_MODE=ON
         -DFLATBUFFERS_CPP_STD=${{ matrix.std }}
         -DFLATBUFFERS_BUILD_CPP17=${{ matrix.std >= 17 && 'On' || 'Off'}}
     - name: build
@@ -139,8 +137,8 @@ jobs:
       uses: microsoft/setup-msbuild@v1.1
     - name: cmake
       run: >
-        cmake -G "Visual Studio 16 2019" -A x64 -DCMAKE_BUILD_TYPE=Release 
-        -DFLATBUFFERS_STRICT_MODE=ON 
+        cmake -G "Visual Studio 16 2019" -A x64 -DCMAKE_BUILD_TYPE=Release
+        -DFLATBUFFERS_STRICT_MODE=ON
         -DFLATBUFFERS_CPP_STD=${{ matrix.std }}
         -DFLATBUFFERS_BUILD_CPP17=${{ matrix.std >= 17 && 'On' || 'Off'}}
     - name: build
@@ -156,7 +154,7 @@ jobs:
       contents: write
     outputs:
       digests: ${{ steps.hash.outputs.hashes }}
-    name: Build Windows 2019 
+    name: Build Windows 2019
     runs-on: windows-2019
     steps:
     - uses: actions/checkout@v3
@@ -168,8 +166,6 @@ jobs:
       run: msbuild.exe FlatBuffers.sln /p:Configuration=Release /p:Platform=x64
     - name: test
       run: Release\flattests.exe
-    # - name: flatc tests
-    #   run: python3 tests/flatc/main.py --flatc Release\flatc.exe
     - name: upload build artifacts
       uses: actions/upload-artifact@v1
       with:
@@ -225,7 +221,7 @@ jobs:
       matrix:
         configuration: [
           '',
-          '-p:UnsafeByteBuffer=true', 
+          '-p:UnsafeByteBuffer=true',
           # Fails two tests currently.
           #'-p:EnableSpanT=true,UnsafeByteBuffer=true'
           ]
@@ -233,7 +229,7 @@ jobs:
     - uses: actions/checkout@v3
     - name: Setup .NET Core SDK
       uses: actions/setup-dotnet@v3
-      with: 
+      with:
         dotnet-version: '3.1.x'
     - name: Build
       run: |
@@ -270,8 +266,6 @@ jobs:
       run: |
         chmod +x Release/flatc
         Release/flatc --version
-    # - name: flatc tests
-    #  run: python3 tests/flatc/main.py --flatc Release/flatc
     - name: upload build artifacts
       uses: actions/upload-artifact@v1
       with:
@@ -358,7 +352,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        cxx: [g++-10, clang++-12]
+        cxx: [g++-13, clang++-15]
     steps:
     - uses: actions/checkout@v3
     - name: cmake
@@ -389,7 +383,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        cxx: [g++-10]
+        cxx: [g++-13]
     steps:
     - uses: actions/checkout@v3
     - name: cmake
@@ -462,7 +456,7 @@ jobs:
     - name: test
       working-directory: tests
       run: bash RustTest.sh
-  
+
   build-rust-windows:
     name: Build Rust Windows
     runs-on: windows-2019
@@ -578,7 +572,7 @@ jobs:
     - uses: jiro4989/setup-nim-action@v1
     - name: install library
       working-directory: nim
-      run: nimble -y develop
+      run: nimble -y develop && nimble install
     - name: test
       working-directory: tests/nim
       run: python3 testnim.py

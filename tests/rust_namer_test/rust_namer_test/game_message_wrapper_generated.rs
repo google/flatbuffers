@@ -37,8 +37,8 @@ impl<'a> GameMessageWrapper<'a> {
     GameMessageWrapper { _tab: table }
   }
   #[allow(unused_mut)]
-  pub fn create<'bldr: 'args, 'args: 'mut_bldr, 'mut_bldr>(
-    _fbb: &'mut_bldr mut flatbuffers::FlatBufferBuilder<'bldr>,
+  pub fn create<'bldr: 'args, 'args: 'mut_bldr, 'mut_bldr, A: flatbuffers::Allocator + 'bldr>(
+    _fbb: &'mut_bldr mut flatbuffers::FlatBufferBuilder<'bldr, A>,
     args: &'args GameMessageWrapperArgs
   ) -> flatbuffers::WIPOffset<GameMessageWrapper<'bldr>> {
     let mut builder = GameMessageWrapperBuilder::new(_fbb);
@@ -166,11 +166,11 @@ impl<'a> Default for GameMessageWrapperArgs {
   }
 }
 
-pub struct GameMessageWrapperBuilder<'a: 'b, 'b> {
-  fbb_: &'b mut flatbuffers::FlatBufferBuilder<'a>,
+pub struct GameMessageWrapperBuilder<'a: 'b, 'b, A: flatbuffers::Allocator + 'a> {
+  fbb_: &'b mut flatbuffers::FlatBufferBuilder<'a, A>,
   start_: flatbuffers::WIPOffset<flatbuffers::TableUnfinishedWIPOffset>,
 }
-impl<'a: 'b, 'b> GameMessageWrapperBuilder<'a, 'b> {
+impl<'a: 'b, 'b, A: flatbuffers::Allocator + 'a> GameMessageWrapperBuilder<'a, 'b, A> {
   #[inline]
   pub fn add_Message_type(&mut self, Message_type: GameMessage) {
     self.fbb_.push_slot::<GameMessage>(GameMessageWrapper::VT_MESSAGE_TYPE, Message_type, GameMessage::NONE);
@@ -180,7 +180,7 @@ impl<'a: 'b, 'b> GameMessageWrapperBuilder<'a, 'b> {
     self.fbb_.push_slot_always::<flatbuffers::WIPOffset<_>>(GameMessageWrapper::VT_MESSAGE, Message);
   }
   #[inline]
-  pub fn new(_fbb: &'b mut flatbuffers::FlatBufferBuilder<'a>) -> GameMessageWrapperBuilder<'a, 'b> {
+  pub fn new(_fbb: &'b mut flatbuffers::FlatBufferBuilder<'a, A>) -> GameMessageWrapperBuilder<'a, 'b, A> {
     let start = _fbb.start_table();
     GameMessageWrapperBuilder {
       fbb_: _fbb,
@@ -241,9 +241,9 @@ impl Default for GameMessageWrapperT {
   }
 }
 impl GameMessageWrapperT {
-  pub fn pack<'b>(
+  pub fn pack<'b, A: flatbuffers::Allocator + 'b>(
     &self,
-    _fbb: &mut flatbuffers::FlatBufferBuilder<'b>
+    _fbb: &mut flatbuffers::FlatBufferBuilder<'b, A>
   ) -> flatbuffers::WIPOffset<GameMessageWrapper<'b>> {
     let Message_type = self.Message.game_message_type();
     let Message = self.Message.pack(_fbb);

@@ -42,8 +42,15 @@ public class Utf8Old extends Utf8 {
     }
   }
 
+  // ThreadLocal.withInitial() is not used to make the following code compatible with Android API
+  // level 23.
   private static final ThreadLocal<Cache> CACHE =
-      ThreadLocal.withInitial(() -> new Cache());
+      new ThreadLocal<Cache>() {
+        @Override
+        protected Cache initialValue() {
+          return new Cache();
+        }
+      };
 
   // Play some games so that the old encoder doesn't pay twice for computing
   // the length of the encoded string.
