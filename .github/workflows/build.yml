@@ -21,7 +21,7 @@ jobs:
       digests-gcc: ${{ steps.hash-gcc.outputs.hashes }}
       digests-clang: ${{ steps.hash-clang.outputs.hashes }}
     name: Build Linux
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04-64core
     strategy:
       matrix:
         cxx: [g++-13, clang++-15]
@@ -63,7 +63,7 @@ jobs:
 
   build-linux-no-file-tests:
     name: Build Linux with -DFLATBUFFERS_NO_FILE_TESTS
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04-64core
     steps:
     - uses: actions/checkout@v3
     - name: cmake
@@ -75,7 +75,7 @@ jobs:
 
   build-linux-out-of-source:
     name: Build Linux with out-of-source build location
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04-64core
     steps:
     - uses: actions/checkout@v3
     - name: make build directory
@@ -97,7 +97,7 @@ jobs:
 
   build-linux-cpp-std:
     name: Build Linux C++
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04-64core
     strategy:
       fail-fast: false
       matrix:
@@ -124,7 +124,7 @@ jobs:
       if: matrix.std >= 17
       run: ./flattests_cpp17
 
-  build-windows-cpp-std:
+  build-cpp-std:
     name: Build Windows C++
     runs-on: windows-2019
     strategy:
@@ -216,7 +216,7 @@ jobs:
 
   build-dotnet-windows:
     name: Build .NET Windows
-    runs-on: windows-2019
+    runs-on: windows-2022-64core
     strategy:
       matrix:
         configuration: [
@@ -330,7 +330,7 @@ jobs:
 
   build-android:
    name: Build Android (on Linux)
-   runs-on: ubuntu-latest
+   runs-on: ubuntu-22.04-64core
    steps:
    - uses: actions/checkout@v3
    - name: set up Java
@@ -349,7 +349,7 @@ jobs:
 
   build-generator:
     name: Check Generated Code
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04-64core
     strategy:
       matrix:
         cxx: [g++-13, clang++-15]
@@ -380,7 +380,7 @@ jobs:
 
   build-benchmarks:
     name: Build Benchmarks (on Linux)
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04-64core
     strategy:
       matrix:
         cxx: [g++-13]
@@ -398,7 +398,7 @@ jobs:
 
   build-java:
     name: Build Java
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04-64core
     steps:
     - uses: actions/checkout@v3
     - name: test
@@ -427,7 +427,7 @@ jobs:
 
   build-kotlin-linux:
     name: Build Kotlin Linux
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04-64core
     steps:
     - name: Checkout
       uses: actions/checkout@v3
@@ -450,7 +450,7 @@ jobs:
 
   build-rust-linux:
     name: Build Rust Linux
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04-64core
     steps:
     - uses: actions/checkout@v3
     - name: test
@@ -459,7 +459,7 @@ jobs:
 
   build-rust-windows:
     name: Build Rust Windows
-    runs-on: windows-2019
+    runs-on: windows-2022-64core
     steps:
     - uses: actions/checkout@v3
     - name: test
@@ -468,7 +468,7 @@ jobs:
 
   build-python:
     name: Build Python
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04-64core
     steps:
     - uses: actions/checkout@v3
     - name: flatc
@@ -480,7 +480,7 @@ jobs:
 
   build-go:
     name: Build Go
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04-64core
     steps:
     - uses: actions/checkout@v3
     - name: flatc
@@ -492,7 +492,7 @@ jobs:
 
   build-php:
    name: Build PHP
-   runs-on: ubuntu-latest
+   runs-on: ubuntu-22.04-64core
    steps:
    - uses: actions/checkout@v3
    - name: flatc
@@ -506,7 +506,7 @@ jobs:
 
   build-swift:
     name: Build Swift
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04-64core
     steps:
     - uses: actions/checkout@v3
     - name: test
@@ -517,7 +517,7 @@ jobs:
 
   build-swift-wasm:
     name: Build Swift Wasm
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04-64core
     container:
       image: ghcr.io/swiftwasm/carton:0.15.3
     steps:
@@ -530,7 +530,7 @@ jobs:
 
   build-ts:
     name: Build TS
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04-64core
     steps:
     - uses: actions/checkout@v3
     - name: flatc
@@ -548,7 +548,7 @@ jobs:
 
   build-dart:
     name: Build Dart
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04-64core
     steps:
       - uses: actions/checkout@v3
       - uses: dart-lang/setup-dart@v1
@@ -563,7 +563,7 @@ jobs:
 
   build-nim:
     name: Build Nim
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04-64core
     steps:
     - uses: actions/checkout@v3
     - name: flatc
@@ -582,7 +582,7 @@ jobs:
     needs: [build-linux, build-windows, build-mac-intel, build-mac-universal]
     outputs:
       digests: ${{ steps.hash.outputs.digests }}
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04-64core
     steps:
       - name: Merge results
         id: hash
