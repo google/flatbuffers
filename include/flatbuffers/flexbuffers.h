@@ -1720,7 +1720,7 @@ class Verifier FLATBUFFERS_FINAL_CLASS {
         max_vectors_(buf_len),
         check_alignment_(_check_alignment),
         reuse_tracker_(reuse_tracker) {
-    FLATBUFFERS_ASSERT(size_ < FLATBUFFERS_MAX_BUFFER_SIZE);
+    FLATBUFFERS_ASSERT(static_cast<int32_t>(size_) < FLATBUFFERS_MAX_BUFFER_SIZE);
     if (reuse_tracker_) {
       reuse_tracker_->clear();
       reuse_tracker_->resize(size_, PackedType(BIT_WIDTH_8, FBT_NULL));

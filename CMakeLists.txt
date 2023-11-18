@@ -556,7 +556,7 @@ if(FLATBUFFERS_BUILD_TESTS)
 
   # Add a library so there is a single target that the generated samples can 
   # link too.
-  add_library(flatsample INTERFACE)
+  add_library(flatsample STATIC)
 
   # Since flatsample has no sources, we have to explicitly set the linker lang.
   set_target_properties(flatsample PROPERTIES LINKER_LANGUAGE CXX)
