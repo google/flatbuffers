@@ -37,8 +37,8 @@ impl<'a> Table2<'a> {
     Table2 { _tab: table }
   }
   #[allow(unused_mut)]
-  pub fn create<'bldr: 'args, 'args: 'mut_bldr, 'mut_bldr>(
-    _fbb: &'mut_bldr mut flatbuffers::FlatBufferBuilder<'bldr>,
+  pub fn create<'bldr: 'args, 'args: 'mut_bldr, 'mut_bldr, A: flatbuffers::Allocator + 'bldr>(
+    _fbb: &'mut_bldr mut flatbuffers::FlatBufferBuilder<'bldr, A>,
     args: &'args Table2Args
   ) -> flatbuffers::WIPOffset<Table2<'bldr>> {
     let mut builder = Table2Builder::new(_fbb);
@@ -145,11 +145,11 @@ impl<'a> Default for Table2Args {
   }
 }
 
-pub struct Table2Builder<'a: 'b, 'b> {
-  fbb_: &'b mut flatbuffers::FlatBufferBuilder<'a>,
+pub struct Table2Builder<'a: 'b, 'b, A: flatbuffers::Allocator + 'a> {
+  fbb_: &'b mut flatbuffers::FlatBufferBuilder<'a, A>,
   start_: flatbuffers::WIPOffset<flatbuffers::TableUnfinishedWIPOffset>,
 }
-impl<'a: 'b, 'b> Table2Builder<'a, 'b> {
+impl<'a: 'b, 'b, A: flatbuffers::Allocator + 'a> Table2Builder<'a, 'b, A> {
   #[inline]
   pub fn add_type_type(&mut self, type_type: KeywordsInUnion) {
     self.fbb_.push_slot::<KeywordsInUnion>(Table2::VT_TYPE_TYPE, type_type, KeywordsInUnion::NONE);
@@ -159,7 +159,7 @@ impl<'a: 'b, 'b> Table2Builder<'a, 'b> {
     self.fbb_.push_slot_always::<flatbuffers::WIPOffset<_>>(Table2::VT_TYPE_, type_);
   }
   #[inline]
-  pub fn new(_fbb: &'b mut flatbuffers::FlatBufferBuilder<'a>) -> Table2Builder<'a, 'b> {
+  pub fn new(_fbb: &'b mut flatbuffers::FlatBufferBuilder<'a, A>) -> Table2Builder<'a, 'b, A> {
     let start = _fbb.start_table();
     Table2Builder {
       fbb_: _fbb,
@@ -213,9 +213,9 @@ impl Default for Table2T {
   }
 }
 impl Table2T {
-  pub fn pack<'b>(
+  pub fn pack<'b, A: flatbuffers::Allocator + 'b>(
     &self,
-    _fbb: &mut flatbuffers::FlatBufferBuilder<'b>
+    _fbb: &mut flatbuffers::FlatBufferBuilder<'b, A>
   ) -> flatbuffers::WIPOffset<Table2<'b>> {
     let type_type = self.type_.keywords_in_union_type();
     let type_ = self.type_.pack(_fbb);

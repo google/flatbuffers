@@ -35,8 +35,8 @@ impl<'a> PlayerStatEvent<'a> {
     PlayerStatEvent { _tab: table }
   }
   #[allow(unused_mut)]
-  pub fn create<'bldr: 'args, 'args: 'mut_bldr, 'mut_bldr>(
-    _fbb: &'mut_bldr mut flatbuffers::FlatBufferBuilder<'bldr>,
+  pub fn create<'bldr: 'args, 'args: 'mut_bldr, 'mut_bldr, A: flatbuffers::Allocator + 'bldr>(
+    _fbb: &'mut_bldr mut flatbuffers::FlatBufferBuilder<'bldr, A>,
     _args: &'args PlayerStatEventArgs
   ) -> flatbuffers::WIPOffset<PlayerStatEvent<'bldr>> {
     let mut builder = PlayerStatEventBuilder::new(_fbb);
@@ -70,13 +70,13 @@ impl<'a> Default for PlayerStatEventArgs {
   }
 }
 
-pub struct PlayerStatEventBuilder<'a: 'b, 'b> {
-  fbb_: &'b mut flatbuffers::FlatBufferBuilder<'a>,
+pub struct PlayerStatEventBuilder<'a: 'b, 'b, A: flatbuffers::Allocator + 'a> {
+  fbb_: &'b mut flatbuffers::FlatBufferBuilder<'a, A>,
   start_: flatbuffers::WIPOffset<flatbuffers::TableUnfinishedWIPOffset>,
 }
-impl<'a: 'b, 'b> PlayerStatEventBuilder<'a, 'b> {
+impl<'a: 'b, 'b, A: flatbuffers::Allocator + 'a> PlayerStatEventBuilder<'a, 'b, A> {
   #[inline]
-  pub fn new(_fbb: &'b mut flatbuffers::FlatBufferBuilder<'a>) -> PlayerStatEventBuilder<'a, 'b> {
+  pub fn new(_fbb: &'b mut flatbuffers::FlatBufferBuilder<'a, A>) -> PlayerStatEventBuilder<'a, 'b, A> {
     let start = _fbb.start_table();
     PlayerStatEventBuilder {
       fbb_: _fbb,
@@ -107,9 +107,9 @@ impl Default for PlayerStatEventT {
   }
 }
 impl PlayerStatEventT {
-  pub fn pack<'b>(
+  pub fn pack<'b, A: flatbuffers::Allocator + 'b>(
     &self,
-    _fbb: &mut flatbuffers::FlatBufferBuilder<'b>
+    _fbb: &mut flatbuffers::FlatBufferBuilder<'b, A>
   ) -> flatbuffers::WIPOffset<PlayerStatEvent<'b>> {
     PlayerStatEvent::create(_fbb, &PlayerStatEventArgs{
     })

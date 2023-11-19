@@ -35,8 +35,8 @@ impl<'a> InParentNamespace<'a> {
     InParentNamespace { _tab: table }
   }
   #[allow(unused_mut)]
-  pub fn create<'bldr: 'args, 'args: 'mut_bldr, 'mut_bldr>(
-    _fbb: &'mut_bldr mut flatbuffers::FlatBufferBuilder<'bldr>,
+  pub fn create<'bldr: 'args, 'args: 'mut_bldr, 'mut_bldr, A: flatbuffers::Allocator + 'bldr>(
+    _fbb: &'mut_bldr mut flatbuffers::FlatBufferBuilder<'bldr, A>,
     _args: &'args InParentNamespaceArgs
   ) -> flatbuffers::WIPOffset<InParentNamespace<'bldr>> {
     let mut builder = InParentNamespaceBuilder::new(_fbb);
@@ -70,13 +70,13 @@ impl<'a> Default for InParentNamespaceArgs {
   }
 }
 
-pub struct InParentNamespaceBuilder<'a: 'b, 'b> {
-  fbb_: &'b mut flatbuffers::FlatBufferBuilder<'a>,
+pub struct InParentNamespaceBuilder<'a: 'b, 'b, A: flatbuffers::Allocator + 'a> {
+  fbb_: &'b mut flatbuffers::FlatBufferBuilder<'a, A>,
   start_: flatbuffers::WIPOffset<flatbuffers::TableUnfinishedWIPOffset>,
 }
-impl<'a: 'b, 'b> InParentNamespaceBuilder<'a, 'b> {
+impl<'a: 'b, 'b, A: flatbuffers::Allocator + 'a> InParentNamespaceBuilder<'a, 'b, A> {
   #[inline]
-  pub fn new(_fbb: &'b mut flatbuffers::FlatBufferBuilder<'a>) -> InParentNamespaceBuilder<'a, 'b> {
+  pub fn new(_fbb: &'b mut flatbuffers::FlatBufferBuilder<'a, A>) -> InParentNamespaceBuilder<'a, 'b, A> {
     let start = _fbb.start_table();
     InParentNamespaceBuilder {
       fbb_: _fbb,
@@ -107,9 +107,9 @@ impl Default for InParentNamespaceT {
   }
 }
 impl InParentNamespaceT {
-  pub fn pack<'b>(
+  pub fn pack<'b, A: flatbuffers::Allocator + 'b>(
     &self,
-    _fbb: &mut flatbuffers::FlatBufferBuilder<'b>
+    _fbb: &mut flatbuffers::FlatBufferBuilder<'b, A>
   ) -> flatbuffers::WIPOffset<InParentNamespace<'b>> {
     InParentNamespace::create(_fbb, &InParentNamespaceArgs{
     })
