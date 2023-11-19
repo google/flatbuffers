@@ -9,6 +9,23 @@ use core::cmp::Ordering;
 extern crate flatbuffers;
 use self::flatbuffers::{EndianScalar, Follow};
 
+#[allow(unused_imports, dead_code)]
+pub mod flatbuffers {
+
+  use core::mem;
+  use core::cmp::Ordering;
+
+  extern crate flatbuffers;
+  use self::flatbuffers::{EndianScalar, Follow};
+#[allow(unused_imports, dead_code)]
+pub mod goldens {
+
+  use core::mem;
+  use core::cmp::Ordering;
+
+  extern crate flatbuffers;
+  use self::flatbuffers::{EndianScalar, Follow};
+
 pub enum GalaxyOffset {}
 #[derive(Copy, Clone, PartialEq)]
 
@@ -32,8 +49,8 @@ impl<'a> Galaxy<'a> {
     Galaxy { _tab: table }
   }
   #[allow(unused_mut)]
-  pub fn create<'bldr: 'args, 'args: 'mut_bldr, 'mut_bldr>(
-    _fbb: &'mut_bldr mut flatbuffers::FlatBufferBuilder<'bldr>,
+  pub fn create<'bldr: 'args, 'args: 'mut_bldr, 'mut_bldr, A: flatbuffers::Allocator + 'bldr>(
+    _fbb: &'mut_bldr mut flatbuffers::FlatBufferBuilder<'bldr, A>,
     args: &'args GalaxyArgs
   ) -> flatbuffers::WIPOffset<Galaxy<'bldr>> {
     let mut builder = GalaxyBuilder::new(_fbb);
@@ -75,17 +92,17 @@ impl<'a> Default for GalaxyArgs {
   }
 }
 
-pub struct GalaxyBuilder<'a: 'b, 'b> {
-  fbb_: &'b mut flatbuffers::FlatBufferBuilder<'a>,
+pub struct GalaxyBuilder<'a: 'b, 'b, A: flatbuffers::Allocator + 'a> {
+  fbb_: &'b mut flatbuffers::FlatBufferBuilder<'a, A>,
   start_: flatbuffers::WIPOffset<flatbuffers::TableUnfinishedWIPOffset>,
 }
-impl<'a: 'b, 'b> GalaxyBuilder<'a, 'b> {
+impl<'a: 'b, 'b, A: flatbuffers::Allocator + 'a> GalaxyBuilder<'a, 'b, A> {
   #[inline]
   pub fn add_num_stars(&mut self, num_stars: i64) {
     self.fbb_.push_slot::<i64>(Galaxy::VT_NUM_STARS, num_stars, 0);
   }
   #[inline]
-  pub fn new(_fbb: &'b mut flatbuffers::FlatBufferBuilder<'a>) -> GalaxyBuilder<'a, 'b> {
+  pub fn new(_fbb: &'b mut flatbuffers::FlatBufferBuilder<'a, A>) -> GalaxyBuilder<'a, 'b, A> {
     let start = _fbb.start_table();
     GalaxyBuilder {
       fbb_: _fbb,
@@ -130,8 +147,8 @@ impl<'a> Universe<'a> {
     Universe { _tab: table }
   }
   #[allow(unused_mut)]
-  pub fn create<'bldr: 'args, 'args: 'mut_bldr, 'mut_bldr>(
-    _fbb: &'mut_bldr mut flatbuffers::FlatBufferBuilder<'bldr>,
+  pub fn create<'bldr: 'args, 'args: 'mut_bldr, 'mut_bldr, A: flatbuffers::Allocator + 'bldr>(
+    _fbb: &'mut_bldr mut flatbuffers::FlatBufferBuilder<'bldr, A>,
     args: &'args UniverseArgs<'args>
   ) -> flatbuffers::WIPOffset<Universe<'bldr>> {
     let mut builder = UniverseBuilder::new(_fbb);
@@ -184,11 +201,11 @@ impl<'a> Default for UniverseArgs<'a> {
   }
 }
 
-pub struct UniverseBuilder<'a: 'b, 'b> {
-  fbb_: &'b mut flatbuffers::FlatBufferBuilder<'a>,
+pub struct UniverseBuilder<'a: 'b, 'b, A: flatbuffers::Allocator + 'a> {
+  fbb_: &'b mut flatbuffers::FlatBufferBuilder<'a, A>,
   start_: flatbuffers::WIPOffset<flatbuffers::TableUnfinishedWIPOffset>,
 }
-impl<'a: 'b, 'b> UniverseBuilder<'a, 'b> {
+impl<'a: 'b, 'b, A: flatbuffers::Allocator + 'a> UniverseBuilder<'a, 'b, A> {
   #[inline]
   pub fn add_age(&mut self, age: f64) {
     self.fbb_.push_slot::<f64>(Universe::VT_AGE, age, 0.0);
@@ -198,7 +215,7 @@ impl<'a: 'b, 'b> UniverseBuilder<'a, 'b> {
     self.fbb_.push_slot_always::<flatbuffers::WIPOffset<_>>(Universe::VT_GALAXIES, galaxies);
   }
   #[inline]
-  pub fn new(_fbb: &'b mut flatbuffers::FlatBufferBuilder<'a>) -> UniverseBuilder<'a, 'b> {
+  pub fn new(_fbb: &'b mut flatbuffers::FlatBufferBuilder<'a, A>) -> UniverseBuilder<'a, 'b, A> {
     let start = _fbb.start_table();
     UniverseBuilder {
       fbb_: _fbb,
@@ -281,13 +298,16 @@ pub unsafe fn size_prefixed_root_as_universe_unchecked(buf: &[u8]) -> Universe {
   flatbuffers::size_prefixed_root_unchecked::<Universe>(buf)
 }
 #[inline]
-pub fn finish_universe_buffer<'a, 'b>(
-    fbb: &'b mut flatbuffers::FlatBufferBuilder<'a>,
+pub fn finish_universe_buffer<'a, 'b, A: flatbuffers::Allocator + 'a>(
+    fbb: &'b mut flatbuffers::FlatBufferBuilder<'a, A>,
     root: flatbuffers::WIPOffset<Universe<'a>>) {
   fbb.finish(root, None);
 }
 
 #[inline]
-pub fn finish_size_prefixed_universe_buffer<'a, 'b>(fbb: &'b mut flatbuffers::FlatBufferBuilder<'a>, root: flatbuffers::WIPOffset<Universe<'a>>) {
+pub fn finish_size_prefixed_universe_buffer<'a, 'b, A: flatbuffers::Allocator + 'a>(fbb: &'b mut flatbuffers::FlatBufferBuilder<'a, A>, root: flatbuffers::WIPOffset<Universe<'a>>) {
   fbb.finish_size_prefixed(root, None);
 }
+}  // pub mod goldens
+}  // pub mod flatbuffers
+
