@@ -20,6 +20,7 @@
 #include <algorithm>
 
 #include "flatbuffers/base.h"
+#include "flatbuffers/stl_emulation.h"
 
 namespace flatbuffers {
 
@@ -91,16 +92,42 @@ static inline bool StringLessThan(const char *a_data, uoffset_t a_size,
 // The typedef is for the convenience of callers of this function
 // (avoiding the need for a trailing return decltype)
 template<typename T> struct IndirectHelper {
-  typedef T return_type;
-  typedef T mutable_return_type;
-  static const size_t element_stride = sizeof(T);
+ private:
+  typedef typename std::remove_pointer<T>::type pointee_type;
+  typedef std::is_scalar<pointee_type> scalar_tag;
 
-  static return_type Read(const uint8_t *p, const size_t i) {
-    return EndianScalar((reinterpret_cast<const T *>(p))[i]);
+ public:
+  typedef typename conditional<scalar_tag::value, pointee_type,
+                               const pointee_type *>::type return_type;
+  typedef typename conditional<scalar_tag::value, pointee_type,
+                               pointee_type *>::type mutable_return_type;
+  static const size_t element_stride = sizeof(pointee_type);
+
+  // For vector of scalars
+  template<typename U = pointee_type>
+  static typename std::enable_if<scalar_tag::value, U>::type Read(
+      const uint8_t *p, const size_t i) {
+    return EndianScalar((reinterpret_cast<const U *>(p))[i]);
   }
-  static mutable_return_type Read(uint8_t *p, const size_t i) {
+  template<typename U = pointee_type>
+  static typename std::enable_if<scalar_tag::value, U>::type Read(
+      uint8_t *p, const size_t i) {
     return reinterpret_cast<mutable_return_type>(
         Read(const_cast<const uint8_t *>(p), i));
+  }
+
+  // For vector of structs
+  template<typename U = pointee_type>
+  static typename std::enable_if<!scalar_tag::value, const U *>::type Read(
+      const uint8_t *const p, const size_t i) {
+    // Structs are stored inline, relative to the first struct pointer.
+    return reinterpret_cast<return_type>(p + i * element_stride);
+  }
+  template<typename U = pointee_type>
+  static typename std::enable_if<!scalar_tag::value, U *>::type Read(
+      uint8_t *const p, const size_t i) {
+    // Structs are stored inline, relative to the first struct pointer.
+    return reinterpret_cast<mutable_return_type>(p + i * element_stride);
   }
 };
 
@@ -131,22 +158,6 @@ struct IndirectHelper<OffsetT<T>> {
     // then determine the relative location from the offset location.
     return reinterpret_cast<mutable_return_type>(
         offset_location + ReadScalar<offset_type>(offset_location));
-  }
-};
-
-// For vector of structs.
-template<typename T> struct IndirectHelper<const T *> {
-  typedef const T *return_type;
-  typedef T *mutable_return_type;
-  static const size_t element_stride = sizeof(T);
-
-  static return_type Read(const uint8_t *const p, const size_t i) {
-    // Structs are stored inline, relative to the first struct pointer.
-    return reinterpret_cast<return_type>(p + i * element_stride);
-  }
-  static mutable_return_type Read(uint8_t *const p, const size_t i) {
-    // Structs are stored inline, relative to the first struct pointer.
-    return reinterpret_cast<mutable_return_type>(p + i * element_stride);
   }
 };
 
