@@ -2483,7 +2483,7 @@ CheckedError Parser::ParseEnum(const bool is_union, EnumDef **dest,
   ECHECK(StartEnum(enum_name, is_union, &enum_def));
   if (filename != nullptr && !opts.project_root.empty()) {
     enum_def->declaration_file =
-        &GetPooledString(RelativeToRootPath(opts.project_root, filename));
+        &GetPooledString(FilePath(opts.project_root, filename, opts.binary_schema_absolute_paths));
   }
   enum_def->doc_comment = enum_comment;
   if (!opts.proto_mode) {
@@ -2762,7 +2762,7 @@ CheckedError Parser::ParseDecl(const char *filename) {
   struct_def->fixed = fixed;
   if (filename && !opts.project_root.empty()) {
     struct_def->declaration_file =
-        &GetPooledString(RelativeToRootPath(opts.project_root, filename));
+        &GetPooledString(FilePath(opts.project_root, filename, opts.binary_schema_absolute_paths));
   }
   ECHECK(ParseMetaData(&struct_def->attributes));
   struct_def->sortbysize =
@@ -2856,7 +2856,7 @@ CheckedError Parser::ParseService(const char *filename) {
   service_def.defined_namespace = current_namespace_;
   if (filename != nullptr && !opts.project_root.empty()) {
     service_def.declaration_file =
-        &GetPooledString(RelativeToRootPath(opts.project_root, filename));
+        &GetPooledString(FilePath(opts.project_root, filename, opts.binary_schema_absolute_paths));
   }
   if (services_.Add(current_namespace_->GetFullyQualifiedName(service_name),
                     &service_def))
@@ -3937,11 +3937,12 @@ void Parser::Serialize() {
     std::vector<Offset<flatbuffers::String>> included_files;
     for (auto f = files_included_per_file_.begin();
          f != files_included_per_file_.end(); f++) {
-      const auto filename__ = builder_.CreateSharedString(
-          RelativeToRootPath(opts.project_root, f->first));
+
+      const auto filename__ = builder_.CreateSharedString(FilePath(
+          opts.project_root, f->first, opts.binary_schema_absolute_paths));
       for (auto i = f->second.begin(); i != f->second.end(); i++) {
         included_files.push_back(builder_.CreateSharedString(
-            RelativeToRootPath(opts.project_root, i->filename)));
+            FilePath(opts.project_root, i->filename, opts.binary_schema_absolute_paths)));
       }
       const auto included_files__ = builder_.CreateVector(included_files);
       included_files.clear();
