@@ -676,6 +676,7 @@ struct IDLOptions {
   bool binary_schema_comments;
   bool binary_schema_builtins;
   bool binary_schema_gen_embed;
+  bool binary_schema_absolute_paths;
   std::string go_import;
   std::string go_namespace;
   std::string go_module_name;
@@ -796,6 +797,7 @@ struct IDLOptions {
         binary_schema_comments(false),
         binary_schema_builtins(false),
         binary_schema_gen_embed(false),
+        binary_schema_absolute_paths(false),
         protobuf_ascii_alike(false),
         size_prefixed(false),
         force_defaults(false),
