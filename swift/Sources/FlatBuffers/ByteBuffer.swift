@@ -243,9 +243,10 @@ public struct ByteBuffer {
   mutating func push(bytes: ContiguousBytes) {
     bytes.withUnsafeBytes { ptr in
       ensureSpace(size: ptr.count)
-      _storage.memory
-        .advanced(by: writerIndex &- ptr.count)
-        .copyMemory(from: ptr.baseAddress!, byteCount: ptr.count)
+      memcpy(
+        _storage.memory.advanced(by: writerIndex &- ptr.count),
+            UnsafeRawPointer(ptr.baseAddress!),
+            ptr.count)
       self._writerSize = self._writerSize &+ ptr.count
     }
   }
