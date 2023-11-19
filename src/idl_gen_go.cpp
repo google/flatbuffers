@@ -102,39 +102,9 @@ class GoGenerator : public BaseGenerator {
 
   bool generate() {
     std::string one_file_code;
-    bool needs_imports = false;
-    for (auto it = parser_.enums_.vec.begin(); it != parser_.enums_.vec.end();
-         ++it) {
-      if (!parser_.opts.one_file) {
-        needs_imports = false;
-        ResetImports();
-      }
-      std::string enumcode;
-      GenEnum(**it, &enumcode);
-      if ((*it)->is_union && parser_.opts.generate_object_based_api) {
-        GenNativeUnion(**it, &enumcode);
-        GenNativeUnionPack(**it, &enumcode);
-        GenNativeUnionUnPack(**it, &enumcode);
-        needs_imports = true;
-      }
-      if (parser_.opts.one_file) {
-        one_file_code += enumcode;
-      } else {
-        if (!SaveType(**it, enumcode, needs_imports, true)) return false;
-      }
-    }
 
-    for (auto it = parser_.structs_.vec.begin();
-         it != parser_.structs_.vec.end(); ++it) {
-      if (!parser_.opts.one_file) { ResetImports(); }
-      std::string declcode;
-      GenStruct(**it, &declcode);
-      if (parser_.opts.one_file) {
-        one_file_code += declcode;
-      } else {
-        if (!SaveType(**it, declcode, true, false)) return false;
-      }
-    }
+    if (!generateEnums(&one_file_code)) return false;
+    if (!generateStructs(&one_file_code)) return false;
 
     if (parser_.opts.one_file) {
       std::string code = "";
@@ -150,6 +120,54 @@ class GoGenerator : public BaseGenerator {
   }
 
  private:
+  bool generateEnums(std::string *one_file_code) {
+    bool needs_imports = false;
+    for (auto it = parser_.enums_.vec.begin(); it != parser_.enums_.vec.end();
+         ++it) {
+      if (!parser_.opts.one_file) {
+        needs_imports = false;
+        ResetImports();
+      }
+      auto &enum_def = **it;
+      std::string enumcode;
+      GenEnum(enum_def, &enumcode);
+      if (enum_def.is_union && parser_.opts.generate_object_based_api) {
+        GenNativeUnionCreator(enum_def, &enumcode);
+        needs_imports = true;
+      }
+      if (parser_.opts.one_file) {
+        *one_file_code += enumcode;
+      } else {
+        if (!SaveType(enum_def, enumcode, needs_imports, true)) return false;
+      }
+    }
+    return true;
+  }
+
+  void GenNativeUnionCreator(const EnumDef &enum_def, std::string *code_ptr) {
+    if (enum_def.generated) return;
+
+    GenNativeUnion(enum_def, code_ptr);
+    GenNativeUnionPack(enum_def, code_ptr);
+    GenNativeUnionUnPack(enum_def, code_ptr);
+  }
+
+  bool generateStructs(std::string *one_file_code) {
+    for (auto it = parser_.structs_.vec.begin();
+         it != parser_.structs_.vec.end(); ++it) {
+      if (!parser_.opts.one_file) { ResetImports(); }
+      std::string declcode;
+      auto &struct_def = **it;
+      GenStruct(struct_def, &declcode);
+      if (parser_.opts.one_file) {
+        *one_file_code += declcode;
+      } else {
+        if (!SaveType(struct_def, declcode, true, false)) return false;
+      }
+    }
+    return true;
+  }
+
   Namespace go_namespace_;
   Namespace *cur_name_space_;
   const IdlNamer namer_;
@@ -176,7 +194,8 @@ class GoGenerator : public BaseGenerator {
 
     code += "type " + namer_.Type(struct_def) + " struct {\n\t";
 
-    // _ is reserved in flatbuffers field names, so no chance of name conflict:
+    // _ is reserved in flatbuffers field names, so no chance of name
+    // conflict:
     code += "_tab ";
     code += struct_def.fixed ? "flatbuffers.Struct" : "flatbuffers.Table";
     code += "\n}\n\n";
@@ -1012,6 +1031,8 @@ class GoGenerator : public BaseGenerator {
   }
 
   void GenNativeUnion(const EnumDef &enum_def, std::string *code_ptr) {
+    if (enum_def.generated) return;
+
     std::string &code = *code_ptr;
     code += "type " + NativeName(enum_def) + " struct {\n";
     code += "\tType " + namer_.Type(enum_def) + "\n";
@@ -1020,6 +1041,8 @@ class GoGenerator : public BaseGenerator {
   }
 
   void GenNativeUnionPack(const EnumDef &enum_def, std::string *code_ptr) {
+    if (enum_def.generated) return;
+
     std::string &code = *code_ptr;
     code += "func (t *" + NativeName(enum_def) +
             ") Pack(builder *flatbuffers.Builder) flatbuffers.UOffsetT {\n";
@@ -1040,6 +1063,8 @@ class GoGenerator : public BaseGenerator {
   }
 
   void GenNativeUnionUnPack(const EnumDef &enum_def, std::string *code_ptr) {
+    if (enum_def.generated) return;
+
     std::string &code = *code_ptr;
 
     code += "func (rcv " + namer_.Type(enum_def) +
