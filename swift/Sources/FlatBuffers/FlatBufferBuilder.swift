@@ -473,6 +473,16 @@ public struct FlatBufferBuilder {
     return endVector(len: size)
   }
 
+  @inline(__always) @inlinable
+  mutating public func createVector<T: FixedWidthInteger>(ints: [T]) -> Offset {
+    startVector(ints.count, elementSize: MemoryLayout<T>.size)
+    var littleEndianInts = ints.map { $0.littleEndian }
+    littleEndianInts.withUnsafeBytes { ptr in
+      _bb.push(bytes: ptr)
+    }
+    return endVector(len: ints.count)
+  }
+
   #if swift(>=5.0) && !os(WASI)
   @inline(__always)
   mutating public func createVector(bytes: ContiguousBytes) -> Offset {
