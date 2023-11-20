@@ -228,10 +228,13 @@ public struct ByteBuffer {
   @inline(__always)
   @usableFromInline
   mutating func push<T: Scalar>(elements: [T]) {
-    let size = elements.count &* MemoryLayout<T>.size
-    ensureSpace(size: size)
-    elements.reversed().forEach { s in
-      push(value: s, len: MemoryLayout.size(ofValue: s))
+    elements.withUnsafeBytes { ptr in
+      ensureSpace(size: ptr.count)
+      memcpy(
+        _storage.memory.advanced(by: writerIndex &- ptr.count),
+        UnsafeRawPointer(ptr.baseAddress!),
+        ptr.count)
+      self._writerSize = self._writerSize &+ ptr.count
     }
   }
 
