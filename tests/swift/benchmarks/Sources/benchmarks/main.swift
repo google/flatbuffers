@@ -32,14 +32,14 @@ benchmark("100Strings") {
   }
 }
 
-benchmark("100Bytes-Old") {
+benchmark("100Bytes") {
   var fb = FlatBufferBuilder(initialSize: 1<<20)
   for _ in 0..<1_000_000 {
     _ = fb.createVector(bytes)
   }
 }
 
-benchmark("100Bytes-Contiguous") {
+benchmark("100Bytes-ContiguousBytes") {
   var fb = FlatBufferBuilder(initialSize: 1<<20)
   for _ in 0..<1_000_000 {
     _ = fb.createVector(bytes: bytes)
