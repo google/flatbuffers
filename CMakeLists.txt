@@ -598,7 +598,7 @@ if(FLATBUFFERS_BUILD_GRPCTEST)
   find_package(protobuf CONFIG REQUIRED)
   find_package(gRPC CONFIG REQUIRED)
   add_executable(grpctest ${FlatBuffers_GRPCTest_SRCS})
-  target_link_libraries(grpctext
+  target_link_libraries(grpctest
     PRIVATE
       $<BUILD_INTERFACE:ProjectConfig>
       gRPC::grpc++_unsecure
