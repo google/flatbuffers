@@ -484,4 +484,21 @@ class FlatBuffersMonsterWriterTests: XCTestCase {
     #endif
   }
 
+  func testContiguousBytes() {
+    let byteArray: [UInt8] = [3, 1, 4, 1, 5, 9]
+    var fbb = FlatBufferBuilder(initialSize: 1)
+    let name = fbb.create(string: "Frodo")
+    let bytes = fbb.createVector(bytes: byteArray)
+    let root = Monster.createMonster(
+      &fbb,
+      nameOffset: name,
+      inventoryVectorOffset: bytes)
+    fbb.finish(offset: root)
+    var buffer = fbb.sizedBuffer
+    let monster: Monster = getRoot(byteBuffer: &buffer)
+    let values = monster.inventory
+
+    XCTAssertEqual(byteArray, values)
+  }
+
 }
