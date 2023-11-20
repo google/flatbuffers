@@ -121,12 +121,17 @@ public struct ByteBuffer {
   public let allowReadingUnalignedBuffers: Bool
 
   /// Constructor that creates a Flatbuffer object from a UInt8
-  /// - Parameter bytes: Array of UInt8
-  public init(bytes: [UInt8]) {
+  /// - Parameter 
+  ///   - bytes: Array of UInt8
+  ///   - allowReadingUnalignedBuffers: allow reading from unaligned buffer
+  public init(
+    bytes: [UInt8], 
+    allowReadingUnalignedBuffers allowUnalignedBuffers: Bool = false)
+  {
     var b = bytes
     _storage = Storage(count: bytes.count, alignment: alignment)
     _writerSize = _storage.capacity
-    allowReadingUnalignedBuffers = false
+    allowReadingUnalignedBuffers = allowUnalignedBuffers
     b.withUnsafeMutableBytes { bufferPointer in
       self._storage.copy(from: bufferPointer.baseAddress!, count: bytes.count)
     }
@@ -134,12 +139,17 @@ public struct ByteBuffer {
 
   #if !os(WASI)
   /// Constructor that creates a Flatbuffer from the Swift Data type object
-  /// - Parameter data: Swift data Object
-  public init(data: Data) {
+  /// - Parameter 
+  ///   - data: Swift data Object
+  ///   - allowReadingUnalignedBuffers: allow reading from unaligned buffer
+  public init(
+    data: Data, 
+    allowReadingUnalignedBuffers allowUnalignedBuffers: Bool = false)
+  {
     var b = data
     _storage = Storage(count: data.count, alignment: alignment)
     _writerSize = _storage.capacity
-    allowReadingUnalignedBuffers = false
+    allowReadingUnalignedBuffers = allowUnalignedBuffers
     b.withUnsafeMutableBytes { bufferPointer in
       self._storage.copy(from: bufferPointer.baseAddress!, count: data.count)
     }
@@ -147,7 +157,9 @@ public struct ByteBuffer {
   #endif
 
   /// Constructor that creates a Flatbuffer instance with a size
-  /// - Parameter size: Length of the buffer
+  /// - Parameter:
+  ///   - size: Length of the buffer
+  ///   - allowReadingUnalignedBuffers: allow reading from unaligned buffer
   init(initialSize size: Int) {
     let size = size.convertToPowerofTwo
     _storage = Storage(count: size, alignment: alignment)
@@ -160,13 +172,15 @@ public struct ByteBuffer {
   /// - Parameters:
   ///   - contiguousBytes: Binary stripe to use as the buffer
   ///   - count: amount of readable bytes
+  ///   - allowReadingUnalignedBuffers: allow reading from unaligned buffer
   public init<Bytes: ContiguousBytes>(
     contiguousBytes: Bytes,
-    count: Int)
+    count: Int, 
+    allowReadingUnalignedBuffers allowUnalignedBuffers: Bool = false)
   {
     _storage = Storage(count: count, alignment: alignment)
     _writerSize = _storage.capacity
-    allowReadingUnalignedBuffers = false
+    allowReadingUnalignedBuffers = allowUnalignedBuffers
     contiguousBytes.withUnsafeBytes { buf in
       _storage.copy(from: buf.baseAddress!, count: buf.count)
     }
@@ -174,8 +188,10 @@ public struct ByteBuffer {
   #endif
 
   /// Constructor that creates a Flatbuffer from unsafe memory region without copying
-  /// - Parameter assumingMemoryBound: The unsafe memory region
-  /// - Parameter capacity: The size of the given memory region
+  /// - Parameter:
+  ///   - assumingMemoryBound: The unsafe memory region
+  ///   - capacity: The size of the given memory region
+  ///   - allowReadingUnalignedBuffers: allow reading from unaligned buffer
   public init(
     assumingMemoryBound memory: UnsafeMutableRawPointer,
     capacity: Int,
@@ -190,11 +206,16 @@ public struct ByteBuffer {
   /// - Parameters:
   ///   - memory: Current memory of the buffer
   ///   - count: count of bytes
-  init(memory: UnsafeMutableRawPointer, count: Int) {
+  ///   - allowReadingUnalignedBuffers: allow reading from unaligned buffer
+  init(
+    memory: UnsafeMutableRawPointer, 
+    count: Int,
+    allowReadingUnalignedBuffers allowUnalignedBuffers: Bool = false)
+  {
     _storage = Storage(count: count, alignment: alignment)
     _storage.copy(from: memory, count: count)
     _writerSize = _storage.capacity
-    allowReadingUnalignedBuffers = false
+    allowReadingUnalignedBuffers = allowUnalignedBuffers
   }
 
   /// Creates a copy of the existing flatbuffer, by copying it to a different memory.
@@ -202,15 +223,17 @@ public struct ByteBuffer {
   ///   - memory: Current memory of the buffer
   ///   - count: count of bytes
   ///   - removeBytes: Removes a number of bytes from the current size
+  ///   - allowReadingUnalignedBuffers: allow reading from unaligned buffer
   init(
     memory: UnsafeMutableRawPointer,
     count: Int,
-    removing removeBytes: Int)
+    removing removeBytes: Int,
+    allowReadingUnalignedBuffers allowUnalignedBuffers: Bool = false) 
   {
     _storage = Storage(count: count, alignment: alignment)
     _storage.copy(from: memory, count: count)
     _writerSize = removeBytes
-    allowReadingUnalignedBuffers = false
+    allowReadingUnalignedBuffers = allowUnalignedBuffers
   }
 
   /// Fills the buffer with padding by adding to the writersize
