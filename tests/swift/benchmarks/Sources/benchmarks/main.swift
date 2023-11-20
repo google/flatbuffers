@@ -46,20 +46,6 @@ benchmark("100Bytes-Contiguous") {
   }
 }
 
-benchmark("100Ints-Old") {
-  var fb = FlatBufferBuilder(initialSize: 1<<20)
-  for _ in 0..<1_000_000 {
-    _ = fb.createVector(ints)
-  }
-}
-
-benchmark("100Ints-FixedWidthInteger") {
-  var fb = FlatBufferBuilder(initialSize: 1<<20)
-  for _ in 0..<1_000_000 {
-    _ = fb.createVector(ints: ints)
-  }
-}
-
 benchmark("FlatBufferBuilder.add") {
   var fb = FlatBufferBuilder(initialSize: 1024 * 1024 * 32)
   for _ in 0..<1_000_000 {
@@ -102,7 +88,6 @@ benchmark("structs") {
 
 let str = (0...99).map { _ -> String in "x" }.joined()
 let bytes: [UInt8] = Array(repeating: 42, count: 100)
-let ints: [Int] = Array(repeating: 42, count: 100)
 
 @usableFromInline
 struct AA: NativeStruct {
