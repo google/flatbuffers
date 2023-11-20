@@ -228,12 +228,32 @@ public struct ByteBuffer {
   @inline(__always)
   @usableFromInline
   mutating func push<T: Scalar>(elements: [T]) {
-    let size = elements.count &* MemoryLayout<T>.size
-    ensureSpace(size: size)
-    elements.reversed().forEach { s in
-      push(value: s, len: MemoryLayout.size(ofValue: s))
+    elements.withUnsafeBytes { ptr in
+      ensureSpace(size: ptr.count)
+      memcpy(
+        _storage.memory.advanced(by: writerIndex &- ptr.count),
+        UnsafeRawPointer(ptr.baseAddress!),
+        ptr.count)
+      self._writerSize = self._writerSize &+ ptr.count
     }
   }
+
+  /// Adds a `ContiguousBytes` to buffer memory
+  /// - Parameter value: bytes to copy
+  #if swift(>=5.0) && !os(WASI)
+  @inline(__always)
+  @usableFromInline
+  mutating func push(bytes: ContiguousBytes) {
+    bytes.withUnsafeBytes { ptr in
+      ensureSpace(size: ptr.count)
+      memcpy(
+        _storage.memory.advanced(by: writerIndex &- ptr.count),
+            UnsafeRawPointer(ptr.baseAddress!),
+            ptr.count)
+      self._writerSize = self._writerSize &+ ptr.count
+    }
+  }
+  #endif
 
   /// Adds an object of type NativeStruct into the buffer
   /// - Parameters:
