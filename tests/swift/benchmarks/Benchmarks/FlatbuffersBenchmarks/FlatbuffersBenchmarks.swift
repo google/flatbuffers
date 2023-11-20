@@ -70,6 +70,24 @@ let benchmarks = {
     fb.clear()
   }
 
+  Benchmark("Vector 1 Bytes") { benchmark in
+    var fb = FlatBufferBuilder(initialSize: 1<<20)
+    benchmark.startMeasurement()
+    for i in benchmark.scaledIterations {
+      _ = fb.createVector(bytes: bytes)
+    }
+    benchmark.stopMeasurement()
+  }
+
+  Benchmark("Vector 1 Ints") { benchmark in
+    var fb = FlatBufferBuilder(initialSize: 1<<20)
+    benchmark.startMeasurement()
+    for i in benchmark.scaledIterations {
+      _ = fb.createVector(ints)
+    }
+    benchmark.stopMeasurement()
+  }
+
   Benchmark("Vector 100 Ints") { benchmark in
     var fb = FlatBufferBuilder(initialSize: 1<<20)
     benchmark.startMeasurement()
