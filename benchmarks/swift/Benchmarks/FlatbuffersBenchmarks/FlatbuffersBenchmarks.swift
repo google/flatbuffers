@@ -41,27 +41,33 @@ let benchmarks = {
     AA(a: 2.4, b: 2.4),
   ]
 
-  let metrics: [BenchmarkMetric] = [.cpuTotal, .wallClock, .mallocCountTotal, .releaseCount, .peakMemoryResident]
+  let metrics: [BenchmarkMetric] = [
+    .cpuTotal,
+    .wallClock,
+    .mallocCountTotal,
+    .releaseCount,
+    .peakMemoryResident,
+  ]
   let maxIterations = 1_000_000
   let maxDuration: Duration = .seconds(3)
   let singleConfiguration: Benchmark.Configuration = .init(
-        metrics: metrics,
-        warmupIterations: 1,
-        scalingFactor: .one,
-        maxDuration: maxDuration,
-        maxIterations: maxIterations)
+    metrics: metrics,
+    warmupIterations: 1,
+    scalingFactor: .one,
+    maxDuration: maxDuration,
+    maxIterations: maxIterations)
   let kiloConfiguration: Benchmark.Configuration = .init(
-        metrics: metrics,
-        warmupIterations: 1,
-        scalingFactor: .kilo,
-        maxDuration: maxDuration,
-        maxIterations: maxIterations)
+    metrics: metrics,
+    warmupIterations: 1,
+    scalingFactor: .kilo,
+    maxDuration: maxDuration,
+    maxIterations: maxIterations)
   let megaConfiguration: Benchmark.Configuration = .init(
-        metrics: metrics,
-        warmupIterations: 1,
-        scalingFactor: .mega,
-        maxDuration: maxDuration,
-        maxIterations: maxIterations)
+    metrics: metrics,
+    warmupIterations: 1,
+    scalingFactor: .mega,
+    maxDuration: maxDuration,
+    maxIterations: maxIterations)
 
   Benchmark.defaultConfiguration = megaConfiguration
 
@@ -71,11 +77,19 @@ let benchmarks = {
     }
   }
 
+  Benchmark("Clearing 1GB", configuration: singleConfiguration) { benchmark in
+    var fb = FlatBufferBuilder(initialSize: 1_024_000_000)
+    benchmark.startMeasurement()
+    for _ in benchmark.scaledIterations {
+      blackHole(fb.clear())
+    }
+  }
+
   Benchmark("Strings 10") { benchmark in
     var fb = FlatBufferBuilder(initialSize: 1<<20)
     benchmark.startMeasurement()
     for _ in benchmark.scaledIterations {
-        blackHole(fb.create(string: str10))
+      blackHole(fb.create(string: str10))
     }
   }
 
@@ -83,7 +97,7 @@ let benchmarks = {
     var fb = FlatBufferBuilder(initialSize: 1<<20)
     benchmark.startMeasurement()
     for _ in benchmark.scaledIterations {
-        blackHole(fb.create(string: str100))
+      blackHole(fb.create(string: str100))
     }
   }
 
@@ -91,7 +105,7 @@ let benchmarks = {
     var fb = FlatBufferBuilder(initialSize: 1<<20)
     benchmark.startMeasurement()
     for _ in benchmark.scaledIterations {
-        blackHole(fb.createVector(bytes: bytes))
+      blackHole(fb.createVector(bytes: bytes))
     }
   }
 
@@ -99,7 +113,7 @@ let benchmarks = {
     var fb = FlatBufferBuilder(initialSize: 1<<20)
     benchmark.startMeasurement()
     for _ in benchmark.scaledIterations {
-        blackHole(fb.createVector(ints))
+      blackHole(fb.createVector(ints))
     }
   }
 
@@ -107,7 +121,7 @@ let benchmarks = {
     var fb = FlatBufferBuilder(initialSize: 1<<20)
     benchmark.startMeasurement()
     for i in benchmark.scaledIterations {
-        blackHole(fb.createVector(ints))
+      blackHole(fb.createVector(ints))
     }
   }
 
@@ -115,7 +129,7 @@ let benchmarks = {
     var fb = FlatBufferBuilder(initialSize: 1<<20)
     benchmark.startMeasurement()
     for i in benchmark.scaledIterations {
-        blackHole(fb.createVector(bytes))
+      blackHole(fb.createVector(bytes))
     }
   }
 
@@ -123,11 +137,14 @@ let benchmarks = {
     var fb = FlatBufferBuilder(initialSize: 1<<20)
     benchmark.startMeasurement()
     for i in benchmark.scaledIterations {
-        blackHole(fb.createVector(bytes: bytes))
+      blackHole(fb.createVector(bytes: bytes))
     }
   }
 
-  Benchmark("FlatBufferBuilder Add", configuration: kiloConfiguration) { benchmark in
+  Benchmark(
+    "FlatBufferBuilder Add",
+    configuration: kiloConfiguration)
+  { benchmark in
     var fb = FlatBufferBuilder(initialSize: 1024 * 1024 * 32)
     benchmark.startMeasurement()
     for _ in benchmark.scaledIterations {
@@ -148,11 +165,11 @@ let benchmarks = {
 
     benchmark.startMeasurement()
     for _ in benchmark.scaledIterations {
-        let vector = fb.createVector(
-          ofStructs: array)
-        let start = fb.startTable(with: 1)
-        fb.add(offset: vector, at: 4)
-        offsets.append(Offset(offset: fb.endTable(at: start)))
+      let vector = fb.createVector(
+        ofStructs: array)
+      let start = fb.startTable(with: 1)
+      fb.add(offset: vector, at: 4)
+      offsets.append(Offset(offset: fb.endTable(at: start)))
     }
 
     let vector = fb.createVector(ofOffsets: offsets)

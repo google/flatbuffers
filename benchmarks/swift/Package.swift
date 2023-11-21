@@ -23,7 +23,7 @@ let package = Package(
     .macOS(.v13),
   ],
   dependencies: [
-    .package(path: "../../.."),
+    .package(path: "../.."),
     .package(
       url: "https://github.com/ordo-one/package-benchmark",
       from: "1.12.0"),
