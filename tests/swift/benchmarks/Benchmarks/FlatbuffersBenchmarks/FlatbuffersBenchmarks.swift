@@ -31,7 +31,8 @@ struct AA: NativeStruct {
 let benchmarks = {
   let ints: [Int] = Array(repeating: 42, count: 100)
   let bytes: [UInt8] = Array(repeating: 42, count: 100)
-  let str = (0...99).map { _ -> String in "x" }.joined()
+  let str10 = (0...9).map { _ -> String in "x" }.joined()
+  let str100 = (0...99).map { _ -> String in "x" }.joined()
   let array: [AA] = [
     AA(a: 2.4, b: 2.4),
     AA(a: 2.4, b: 2.4),
@@ -40,8 +41,32 @@ let benchmarks = {
     AA(a: 2.4, b: 2.4),
   ]
 
-  Benchmark("Allocating") { benchmark in
-    for i in benchmark.scaledIterations {
+  let metrics: [BenchmarkMetric] = [.cpuTotal, .wallClock, .mallocCountTotal, .releaseCount, .peakMemoryResident]
+  let maxIterations = 1_000_000
+  let maxDuration: Duration = .seconds(3)
+  let singleConfiguration: Benchmark.Configuration = .init(
+        metrics: metrics,
+        warmupIterations: 1,
+        scalingFactor: .one,
+        maxDuration: maxDuration,
+        maxIterations: maxIterations)
+  let kiloConfiguration: Benchmark.Configuration = .init(
+        metrics: metrics,
+        warmupIterations: 1,
+        scalingFactor: .kilo,
+        maxDuration: maxDuration,
+        maxIterations: maxIterations)
+  let megaConfiguration: Benchmark.Configuration = .init(
+        metrics: metrics,
+        warmupIterations: 1,
+        scalingFactor: .mega,
+        maxDuration: maxDuration,
+        maxIterations: maxIterations)
+
+  Benchmark.defaultConfiguration = megaConfiguration
+
+  Benchmark("Allocating 1GB", configuration: singleConfiguration) { benchmark in
+    for _ in benchmark.scaledIterations {
       blackHole(FlatBufferBuilder(initialSize: 1_024_000_000))
     }
   }
@@ -49,101 +74,76 @@ let benchmarks = {
   Benchmark("Strings 10") { benchmark in
     var fb = FlatBufferBuilder(initialSize: 1<<20)
     benchmark.startMeasurement()
-    for i in benchmark.scaledIterations {
-      for _ in 0..<1_000_000 {
-        _ = fb.create(string: "foobarbaz")
-      }
+    for _ in benchmark.scaledIterations {
+        blackHole(fb.create(string: str10))
     }
-    benchmark.stopMeasurement()
-    fb.clear()
   }
 
   Benchmark("Strings 100") { benchmark in
     var fb = FlatBufferBuilder(initialSize: 1<<20)
     benchmark.startMeasurement()
-    for i in benchmark.scaledIterations {
-      for _ in 0..<1_000_000 {
-        _ = fb.create(string: str)
-      }
+    for _ in benchmark.scaledIterations {
+        blackHole(fb.create(string: str100))
     }
-    benchmark.stopMeasurement()
-    fb.clear()
   }
 
   Benchmark("Vector 1 Bytes") { benchmark in
     var fb = FlatBufferBuilder(initialSize: 1<<20)
     benchmark.startMeasurement()
-    for i in benchmark.scaledIterations {
-      _ = fb.createVector(bytes: bytes)
+    for _ in benchmark.scaledIterations {
+        blackHole(fb.createVector(bytes: bytes))
     }
-    benchmark.stopMeasurement()
   }
 
   Benchmark("Vector 1 Ints") { benchmark in
     var fb = FlatBufferBuilder(initialSize: 1<<20)
     benchmark.startMeasurement()
-    for i in benchmark.scaledIterations {
-      _ = fb.createVector(ints)
+    for _ in benchmark.scaledIterations {
+        blackHole(fb.createVector(ints))
     }
-    benchmark.stopMeasurement()
   }
 
   Benchmark("Vector 100 Ints") { benchmark in
     var fb = FlatBufferBuilder(initialSize: 1<<20)
     benchmark.startMeasurement()
     for i in benchmark.scaledIterations {
-      for _ in 0..<1_000_000 {
-        _ = fb.createVector(ints)
-      }
+        blackHole(fb.createVector(ints))
     }
-    benchmark.stopMeasurement()
   }
 
   Benchmark("Vector 100 Bytes") { benchmark in
     var fb = FlatBufferBuilder(initialSize: 1<<20)
     benchmark.startMeasurement()
     for i in benchmark.scaledIterations {
-      for _ in 0..<1_000_000 {
-        _ = fb.createVector(bytes)
-      }
+        blackHole(fb.createVector(bytes))
     }
-    benchmark.stopMeasurement()
   }
 
   Benchmark("Vector 100 ContiguousBytes") { benchmark in
     var fb = FlatBufferBuilder(initialSize: 1<<20)
     benchmark.startMeasurement()
     for i in benchmark.scaledIterations {
-      for _ in 0..<1_000_000 {
-        _ = fb.createVector(bytes: bytes)
-      }
+        blackHole(fb.createVector(bytes: bytes))
     }
-    benchmark.stopMeasurement()
   }
 
-  Benchmark("FlatBufferBuilder Add") { benchmark in
+  Benchmark("FlatBufferBuilder Add", configuration: kiloConfiguration) { benchmark in
     var fb = FlatBufferBuilder(initialSize: 1024 * 1024 * 32)
     benchmark.startMeasurement()
     for _ in benchmark.scaledIterations {
-      for _ in 0..<1_000_000 {
-        let off = fb.create(string: "T")
-        let s = fb.startTable(with: 4)
-        fb.add(element: 3.2, def: 0, at: 2)
-        fb.add(element: 4.2, def: 0, at: 4)
-        fb.add(element: 5.2, def: 0, at: 6)
-        fb.add(offset: off, at: 8)
-        _ = fb.endTable(at: s)
-      }
+      let off = fb.create(string: "T")
+      let s = fb.startTable(with: 4)
+      fb.add(element: 3.2, def: 0, at: 2)
+      fb.add(element: 4.2, def: 0, at: 4)
+      fb.add(element: 5.2, def: 0, at: 6)
+      fb.add(offset: off, at: 8)
+      blackHole(fb.endTable(at: s))
     }
-    benchmark.stopMeasurement()
-    fb.clear()
   }
 
-  Benchmark("structs") { benchmark in
-    let structCount = 1_000_000
-
+  Benchmark("Structs", configuration: kiloConfiguration) { benchmark in
+    let structCount = 1_000
     let rawSize = ((16 * 5) * structCount) / 1024
-
     var fb = FlatBufferBuilder(initialSize: Int32(rawSize * 1600))
 
     benchmark.startMeasurement()
@@ -162,7 +162,5 @@ let benchmarks = {
       let root = Offset(offset: fb.endTable(at: start))
       fb.finish(offset: root)
     }
-    benchmark.stopMeasurement()
-    fb.clear()
   }
 }
