@@ -141,8 +141,8 @@ let benchmarks = {
     }
   }
 
-  Benchmark("Structs", configuration: kiloConfiguration) { benchmark in
-    let structCount = 1_000
+  Benchmark("Structs", configuration: singleConfiguration) { benchmark in
+    let structCount = 1_000_000
     let rawSize = ((16 * 5) * structCount) / 1024
     var fb = FlatBufferBuilder(initialSize: Int32(rawSize * 1600))
 
