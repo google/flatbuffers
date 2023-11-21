@@ -141,26 +141,24 @@ let benchmarks = {
     }
   }
 
-  Benchmark("Structs", configuration: singleConfiguration) { benchmark in
-    let structCount = 1_000_000
-    let rawSize = ((16 * 5) * structCount) / 1024
+  Benchmark("Structs") { benchmark in
+    let rawSize = ((16 * 5) * benchmark.scaledIterations.count) / 1024
     var fb = FlatBufferBuilder(initialSize: Int32(rawSize * 1600))
+    var offsets: [Offset] = []
 
     benchmark.startMeasurement()
     for _ in benchmark.scaledIterations {
-      var offsets: [Offset] = []
-      for _ in 0..<structCount {
         let vector = fb.createVector(
           ofStructs: array)
         let start = fb.startTable(with: 1)
         fb.add(offset: vector, at: 4)
         offsets.append(Offset(offset: fb.endTable(at: start)))
-      }
-      let vector = fb.createVector(ofOffsets: offsets)
-      let start = fb.startTable(with: 1)
-      fb.add(offset: vector, at: 4)
-      let root = Offset(offset: fb.endTable(at: start))
-      fb.finish(offset: root)
     }
+
+    let vector = fb.createVector(ofOffsets: offsets)
+    let start = fb.startTable(with: 1)
+    fb.add(offset: vector, at: 4)
+    let root = Offset(offset: fb.endTable(at: start))
+    fb.finish(offset: root)
   }
 }
