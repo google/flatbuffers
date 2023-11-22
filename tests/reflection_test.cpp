@@ -203,7 +203,7 @@ void ReflectionTest(const std::string &tests_data_path, uint8_t *flatbuf,
   // offset 0.
   flatbuffers::ResizeVector<flatbuffers::Offset<flatbuffers::String>>(
       schema, 3, 0, *rtestarrayofstring, &resizingbuf);
-  // Here we just create a buffer that contans a single string, but this
+  // Here we just create a buffer that contains a single string, but this
   // could also be any complex set of tables and other values.
   flatbuffers::FlatBufferBuilder stringfbb;
   stringfbb.Finish(stringfbb.CreateString("hank"));
