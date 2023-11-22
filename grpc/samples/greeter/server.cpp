@@ -30,7 +30,7 @@ class GreeterServiceImpl final : public Greeter::Service {
 
     // The `ReleaseMessage<T>()` function detaches the message from the
     // builder, so we can transfer the resopnse to gRPC while simultaneously
-    // detaching that memory buffer from the builer.
+    // detaching that memory buffer from the builder.
     *response_msg = mb_.ReleaseMessage<HelloReply>();
     assert(response_msg->Verify());
 
