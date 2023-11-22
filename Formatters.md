@@ -17,6 +17,6 @@ C++ uses `clang-format` as it's formatter. Run the following script `sh scripts/
 
 Swift uses swiftformat as it's formatter. Take a look at [how to install here](https://github.com/nicklockwood/SwiftFormat/blob/master/README.md#how-do-i-install-it). Run the following command `swiftformat --config swift.swiftformat .` in the root directory of the project
 
-## Typescript
+## TypeScript
 
-Typescript uses eslint as it's linter. Take a look at [how to install here](https://eslint.org/docs/user-guide/getting-started). Run the following command `eslint ts/** --ext .ts` in the root directory of the project
+TypeScript uses eslint as it's linter. Take a look at [how to install here](https://eslint.org/docs/user-guide/getting-started). Run the following command `eslint ts/** --ext .ts` in the root directory of the project

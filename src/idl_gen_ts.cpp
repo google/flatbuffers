@@ -74,7 +74,7 @@ Namer::Config TypeScriptDefaultConfig() {
            /*filename_extension=*/".ts" };
 }
 
-std::set<std::string> TypescriptKeywords() {
+std::set<std::string> TypeScriptKeywords() {
   // List of keywords retrieved from here:
   // https://github.com/microsoft/TypeScript/issues/2536
   return {
@@ -108,7 +108,7 @@ class TsGenerator : public BaseGenerator {
               const std::string &file_name)
       : BaseGenerator(parser, path, file_name, "", "_", "ts"),
         namer_(WithFlagOptions(TypeScriptDefaultConfig(), parser.opts, path),
-               TypescriptKeywords()) {}
+               TypeScriptKeywords()) {}
 
   bool generate() {
     generateEnums();

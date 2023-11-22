@@ -93,7 +93,7 @@ necessarily listed.
 
 ## [23.1.21 (Jan 21 2023)](https://github.com/google/flatbuffers/releases/tag/v23.1.20)
 
-* Reworked entry points for Typescript/JavaScript and compatibility for single
+* Reworked entry points for TypeScript/JavaScript and compatibility for single
   file build (#7510)
 
 ## [23.1.20 (Jan 20 2023)](https://github.com/google/flatbuffers/releases/tag/v23.1.20)
