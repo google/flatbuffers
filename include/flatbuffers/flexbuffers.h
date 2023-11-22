@@ -1190,7 +1190,7 @@ class Builder FLATBUFFERS_FINAL_CLASS {
     // we're not breaking binary search.
     // Or, we can track if the map is sorted as keys are added which would be
     // be quite cheap (cheaper than checking it here), so we can skip this
-    // step automatically when appliccable, and encourage people to write in
+    // step automatically when applicable, and encourage people to write in
     // sorted fashion.
     // std::sort is typically already a lot faster on sorted data though.
     auto dict = reinterpret_cast<TwoValue *>(stack_.data() + start);
