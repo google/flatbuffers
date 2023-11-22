@@ -1617,7 +1617,7 @@ class PythonGenerator : public BaseGenerator {
     code += "\n";
   }
 
-  // Gets the accoresponding python builtin type of a BaseType for scalars and
+  // Gets the corresponding python builtin type of a BaseType for scalars and
   // string.
   std::string GetBasePythonTypeForScalarAndString(
       const BaseType &base_type) const {
