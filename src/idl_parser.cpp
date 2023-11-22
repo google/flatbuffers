@@ -2101,7 +2101,7 @@ CheckedError Parser::ParseSingleValue(const std::string *name, Value &e,
                                       bool check_now) {
   if (token_ == '+' || token_ == '-') {
     const char sign = static_cast<char>(token_);
-    // Get an indentifier: NAN, INF, or function name like cos/sin/deg.
+    // Get an identifier: NAN, INF, or function name like cos/sin/deg.
     NEXT();
     if (token_ != kTokenIdentifier) return Error("constant name expected");
     attribute_.insert(size_t(0), size_t(1), sign);

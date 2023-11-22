@@ -185,7 +185,7 @@ list of `FILES...`.
 -   `--go-import` : Generate the overrided import for flatbuffers in Golang.
      (default is "github.com/google/flatbuffers/go").
 
--   `--raw-binary` : Allow binaries without a file_indentifier to be read.
+-   `--raw-binary` : Allow binaries without a file_identifier to be read.
     This may crash flatc given a mismatched schema.
 
 -   `--size-prefixed` : Input binaries are size prefixed buffers.
