@@ -2354,7 +2354,7 @@ class CppGenerator : public BaseGenerator {
       const bool is_array = IsArray(curr_field->value.type);
       const bool is_struct = IsStruct(curr_field->value.type);
 
-      // If encouter a key field, call KeyCompareWithValue to compare this
+      // If encounter a key field, call KeyCompareWithValue to compare this
       // field.
       if (curr_field->key) {
         code_ += space +
