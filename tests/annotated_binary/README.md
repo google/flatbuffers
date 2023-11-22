@@ -41,7 +41,7 @@ The offset is the 1st column, expressed in hexadecimal format (e.g. `+0x003c`).
 
 ### Binary Sections
 
-Binary sections are comprised of contigious [binary regions](#binary-regions) 
+Binary sections are comprised of contiguous [binary regions](#binary-regions) 
 that are logically grouped together. For example, a binary section may be a
 single instance of a flatbuffer `Table` or its `vtable`. The sections may be 
 labelled with the name of the associated type, as defined in the input schema.
@@ -59,7 +59,7 @@ vtable (AnnotatedBinary.Bar):
 
 ### Binary Regions
 
-Binary regions are contigious bytes regions that are grouped together to form 
+Binary regions are contiguous bytes regions that are grouped together to form 
 some sort of value, e.g. a `scalar` or an array of scalars. A binary region may
 be split up over multiple text lines, if the size of the region is large.
 
