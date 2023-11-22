@@ -172,8 +172,8 @@
     <Compile Include="..\nested_namespace_test\nested_namespace_test3_generated.cs">
       <Link>nested_namespace_test\nested_namespace_test3_generated.cs</Link>
     </Compile>
-    <Compile Include="..\union_value_collsion\union_value_collision_generated.cs">
-      <Link>union_value_collsion\union_value_collision_generated.cs</Link>
+    <Compile Include="..\union_value_collision\union_value_collision_generated.cs">
+      <Link>union_value_collision\union_value_collision_generated.cs</Link>
     </Compile>
   </ItemGroup>
 

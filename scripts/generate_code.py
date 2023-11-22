@@ -368,15 +368,15 @@ flatc(RUST_OPTS, prefix="optional_scalars", schema=optional_scalars_schema)
 
 flatc(NO_INCL_OPTS + CPP_OPTS, schema=optional_scalars_schema)
 
-# Type / field collsion
-type_field_collsion_schema = "type_field_collsion.fbs"
+# Type / field collision
+type_field_collision_schema = "type_field_collision.fbs"
 
-flatc(["--csharp", "--gen-object-api"], schema=type_field_collsion_schema)
+flatc(["--csharp", "--gen-object-api"], schema=type_field_collision_schema)
 
 # Union / value collision
 flatc(
     CS_OPTS + ["--gen-object-api", "--gen-onefile"],
-    prefix="union_value_collsion",
+    prefix="union_value_collision",
     schema="union_value_collision.fbs",
 )
 

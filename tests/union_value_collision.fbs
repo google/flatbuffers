@@ -1,4 +1,4 @@
-namespace union_value_collsion;
+namespace union_value_collision;
 
 table IntValue {
 	value:int;
