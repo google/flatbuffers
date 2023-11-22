@@ -386,7 +386,7 @@ jobs:
       run: mvn test
 
   build-kotlin-macos:
-    name: Build Kotlin MacOS
+    name: Build Kotlin macOS
     runs-on: macos-13
     steps:
     - name: Checkout

@@ -26,7 +26,7 @@ MakeFiles"`
     cmake -G "Visual Studio 17 2022" -DCMAKE_BUILD_TYPE=Release
     ```
 
-=== "MacOS"
+=== "macOS"
 
     ```sh
     cmake -G "Xcode" -DCMAKE_BUILD_TYPE=Release
@@ -62,7 +62,7 @@ Once the project files are generated, build as normal for your platform.
     msbuild.exe FlatBuffers.sln
     ```
 
-=== "MacOS"
+=== "macOS"
 
     ```sh
     xcodebuild -toolchain clang -configuration Release
