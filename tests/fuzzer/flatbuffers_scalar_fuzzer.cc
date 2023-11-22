@@ -283,7 +283,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
   // Each test should pass at least two times to ensure that the parser doesn't
   // have any hidden-states or locale-depended effects.
   for (auto cnt = 0; cnt < (extra_rep_number + 2); cnt++) {
-    // Each even run (0,2,4..) will test locale independed code.
+    // Each even run (0,2,4..) will test locale independent code.
     auto use_locale = !!OneTimeTestInit::test_locale() && (0 == (cnt % 2));
     // Set new locale.
     if (use_locale) {

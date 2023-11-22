@@ -8,7 +8,7 @@ extern "C" void __debugbreak();
 extern "C" void __builtin_trap(void);
 #endif
 
-// Declare Debug/Release independed assert macro.
+// Declare Debug/Release independent assert macro.
 #define fuzzer_assert_impl(x) (!!(x) ? static_cast<void>(0) : __builtin_trap())
 
 #endif // !FUZZER_ASSERT_IMPL_H_
