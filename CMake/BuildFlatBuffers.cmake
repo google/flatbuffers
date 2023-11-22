@@ -339,7 +339,7 @@ endfunction()
 # can also specify other flagc flags and options to change the behavior of the
 # flatc compiler.
 #
-# Adding this target to your executable ensurses that the flatbuffer binaries
+# Adding this target to your executable ensures that the flatbuffer binaries
 # are compiled before your executable is run.
 #
 # Arguments:
