@@ -355,7 +355,7 @@ function testByteBuffer(Assert $assert) {
     $uut = Google\FlatBuffers\ByteBuffer::wrap($buffer);
     $uut->putShort(0, 1);
 
-    // Ensure Endiannes was written correctly
+    // Ensure Endianness was written correctly
     $assert->Equal(chr(0x01), $uut->_buffer[0]);
     $assert->Equal(chr(0x00), $uut->_buffer[1]);
 
@@ -363,7 +363,7 @@ function testByteBuffer(Assert $assert) {
     $uut = Google\FlatBuffers\ByteBuffer::wrap($buffer);
     $uut->putShort(0, -32768);
 
-    // Ensure Endiannes was written correctly
+    // Ensure Endianness was written correctly
     $assert->Equal(chr(0x00), $uut->_buffer[0]);
     $assert->Equal(chr(0x80), $uut->_buffer[1]);
 
