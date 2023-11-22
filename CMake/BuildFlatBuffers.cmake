@@ -271,7 +271,7 @@ function(flatbuffers_generate_headers)
     list(APPEND all_generated_source_files ${generated_source_file})
     list(APPEND generated_custom_commands "${generated_include}" "${generated_source_file}")
 
-    # Geneate the binary flatbuffers schemas if instructed to.
+    # Generate the binary flatbuffers schemas if instructed to.
     if (NOT ${FLATBUFFERS_GENERATE_HEADERS_BINARY_SCHEMAS_DIR} STREQUAL "")
       set(binary_schema
           "${FLATBUFFERS_GENERATE_HEADERS_BINARY_SCHEMAS_DIR}/${filename}.bfbs")
