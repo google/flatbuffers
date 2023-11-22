@@ -84,7 +84,7 @@ def assert_file_contains(file, needles):
         contents = file.read()
         for needle in [needles] if isinstance(needles, str) else needles:
             assert needle in contents, (
-                "coudn't find '" + needle + "' in file: " + str(file)
+                "couldn't find '" + needle + "' in file: " + str(file)
             )
     return file
 
