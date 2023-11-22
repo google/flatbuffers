@@ -611,7 +611,7 @@ final class FlatbufferBuilder
         }
 
         for ($j = 0, $i = 0; $i < $len; $i++) {
-            // check ACII
+            // check ASCII
             if ($bytes[$j] == "\x09" ||
                 $bytes[$j] == "\x0A" ||
                 $bytes[$j] == "\x0D" ||
