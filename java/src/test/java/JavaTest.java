@@ -995,7 +995,7 @@ public class JavaTest {
         FlexBuffers.getRoot(b.getBuffer()).toString());
     }
 
-    @org.junit.Test public void testFlexBuferEmpty() {
+    @org.junit.Test public void testFlexBufferEmpty() {
         FlexBuffers.Blob blob = FlexBuffers.Blob.empty();
         FlexBuffers.Map ary = FlexBuffers.Map.empty();
         FlexBuffers.Vector map = FlexBuffers.Vector.empty();
