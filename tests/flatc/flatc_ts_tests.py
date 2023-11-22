@@ -54,7 +54,7 @@ class TsTests():
         # Foo should be generated in place and exports the Foo table.
         assert_file_and_contents("foo.ts", "export class Foo {")
 
-        # Bar should also be generatd in place and exports the Bar table.
+        # Bar should also be generated in place and exports the Bar table.
         assert_file_and_contents("bar.ts", "export class Bar {")
 
     def BaseWithNamespace(self):
