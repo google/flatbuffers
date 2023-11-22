@@ -10,7 +10,7 @@ JSON parsers, printers.
 Great care has been taken to ensure compatibility with the main `flatc`
 project.
 
-## General Documention
+## General Documentation
 
 - [Tutorial](../tutorial.md) - select C as language
   when scrolling down
