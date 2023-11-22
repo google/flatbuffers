@@ -87,7 +87,7 @@ public func getPrefixedSizeRoot<T: FlatBufferObject>(
 /// - Returns: Returns a valid, checked Flatbuffers object
 ///
 /// ``getCheckedRoot(byteBuffer:options:)`` Takes in a ``ByteBuffer`` and verifies
-/// that by creating a ``Verifier`` and checkes if all the `Bytes` and correctly aligned
+/// that by creating a ``Verifier`` and checks if all the `Bytes` and correctly aligned
 /// and within the ``ByteBuffer`` range.
 public func getCheckedRoot<T: FlatBufferObject & Verifiable>(
   byteBuffer: inout ByteBuffer,
