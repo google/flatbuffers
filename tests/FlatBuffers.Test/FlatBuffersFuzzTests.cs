@@ -148,7 +148,7 @@ namespace Google.FlatBuffers.Test
         }
 
         [FlatBuffersTestMethod]
-        public void TestCreateArbitarytring()
+        public void TestCreateArbitaryString()
         {
             var builder = new FlatBufferBuilder(1);
             builder.CreateString("\x01\x02\x03");
