@@ -20,7 +20,7 @@ use crate::flexbuffer_type::FlexBufferType;
 use crate::flexbuffer_type::FlexBufferType::*;
 
 /// Internal representation of FlexBuffer Types and Data before writing.
-/// These get placed on the builder's stack and are eventually commited.
+/// These get placed on the builder's stack and are eventually committed.
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum Value {
     // Inline types

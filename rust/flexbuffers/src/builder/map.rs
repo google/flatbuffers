@@ -18,7 +18,7 @@ use super::{Builder, Pushable, Value, VectorBuilder};
 ///
 /// ## Side effect when dropped:
 /// When this is dropped, or `end_map` is called, the map is
-/// commited to the buffer. If this map is the root of the flexbuffer, then the
+/// committed to the buffer. If this map is the root of the flexbuffer, then the
 /// root is written and the flexbuffer is complete.
 /// ## Panics:
 /// -  Duplicate keys will result in a panic in both debug and release mode.
