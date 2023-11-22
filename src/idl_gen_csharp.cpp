@@ -1072,7 +1072,7 @@ class CSharpGenerator : public BaseGenerator {
               code += offset_prefix + GenGetter(Type(BASE_TYPE_STRING));
               code += "(o + __p.bb_pos) : null";
             }
-            // As<> accesors for Unions
+            // As<> assessors for Unions
             // Loop through all the possible union types and generate an As
             // accessor that casts to the correct type.
             for (auto uit = field.value.type.enum_def->Vals().begin();
