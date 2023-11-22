@@ -505,7 +505,7 @@ void EqualOperatorTest() {
     a.testarrayoftables.back()->nan_default = 0;
     TEST_EQ(a == b, false);
 
-    // Adding an equalivant table to the other monster vector should make it
+    // Adding an equivalent table to the other monster vector should make it
     // equal again.
     b.testarrayoftables.push_back(
         flatbuffers::unique_ptr<MonsterT>(new MonsterT));
