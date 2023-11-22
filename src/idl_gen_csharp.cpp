@@ -894,7 +894,7 @@ class CSharpGenerator : public BaseGenerator {
       }
     }
 
-    // Generate the __init method that sets the field in a pre-existing
+    // Generate the __init method that sets the field in a preexisting
     // accessor object. This is to allow object reuse.
     code += "  public void __init(int _i, ByteBuffer _bb) ";
     code += "{ ";
@@ -1573,7 +1573,7 @@ class CSharpGenerator : public BaseGenerator {
     if (!struct_def.attributes.Lookup("private")) code += "public ";
     code += "static struct Vector : BaseVector\n{\n";
 
-    // Generate the __assign method that sets the field in a pre-existing
+    // Generate the __assign method that sets the field in a preexisting
     // accessor object. This is to allow object reuse.
     std::string method_indent = "    ";
     code += method_indent + "public Vector ";

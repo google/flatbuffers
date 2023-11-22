@@ -499,7 +499,7 @@ class KotlinGenerator : public BaseGenerator {
     writer.IncrementIdentLevel();
 
     {
-      // Generate the __init() method that sets the field in a pre-existing
+      // Generate the __init() method that sets the field in a preexisting
       // accessor object. This is to allow object reuse.
       GenerateFun(writer, "__init", "_i: Int, _bb: ByteBuffer", "",
                   [&]() { writer += "__reset(_i, _bb)"; });

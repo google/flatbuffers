@@ -206,7 +206,7 @@ class LuaBfbsGenerator : public BaseBfbsGenerator {
         code += "\n";
       }
 
-      // Generates a init method that receives a pre-existing accessor object,
+      // Generates a init method that receives a preexisting accessor object,
       // so that objects can be reused.
 
       code += "function mt:Init(buf, pos)\n";

@@ -739,7 +739,7 @@ class JavaGenerator : public BaseGenerator {
         }
       }
     }
-    // Generate the __init method that sets the field in a pre-existing
+    // Generate the __init method that sets the field in a preexisting
     // accessor object. This is to allow object reuse.
     code += "  public void __init(int _i, ByteBuffer _bb) ";
     code += "{ ";
@@ -1304,7 +1304,7 @@ class JavaGenerator : public BaseGenerator {
     code += "class Vector extends ";
     code += "BaseVector {\n";
 
-    // Generate the __assign method that sets the field in a pre-existing
+    // Generate the __assign method that sets the field in a preexisting
     // accessor object. This is to allow object reuse.
     std::string method_indent = "    ";
     code += method_indent + "public Vector ";

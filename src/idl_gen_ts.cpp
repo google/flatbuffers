@@ -1576,7 +1576,7 @@ class TsGenerator : public BaseGenerator {
     code += "  bb: flatbuffers.ByteBuffer|null = null;\n";
     code += "  bb_pos = 0;\n";
 
-    // Generate the __init method that sets the field in a pre-existing
+    // Generate the __init method that sets the field in a preexisting
     // accessor object. This is to allow object reuse.
     code +=
         "  __init(i:number, bb:flatbuffers.ByteBuffer):" + object_name + " {\n";

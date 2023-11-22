@@ -610,7 +610,7 @@ class KotlinKMPGenerator : public BaseGenerator {
 
     {
       auto esc_type = namer_.EscapeKeyword(struct_def.name);
-      // Generate the init() method that sets the field in a pre-existing
+      // Generate the init() method that sets the field in a preexisting
       // accessor object. This is to allow object reuse.
       GenerateFunOneLine(writer, "init", "i: Int, buffer: ReadWriteBuffer",
                          esc_type, [&]() { writer += "reset(i, buffer)"; });

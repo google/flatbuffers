@@ -192,7 +192,7 @@ class Builder(object):
         """
         WriteVtable serializes the vtable for the current object, if needed.
 
-        Before writing out the vtable, this checks pre-existing vtables for
+        Before writing out the vtable, this checks preexisting vtables for
         equality to this one. If an equal vtable is found, point the object to
         the existing vtable and return.
 

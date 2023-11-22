@@ -897,7 +897,7 @@ class GoGenerator : public BaseGenerator {
       // the root type.
       NewRootTypeFromBuffer(struct_def, code_ptr);
     }
-    // Generate the Init method that sets the field in a pre-existing
+    // Generate the Init method that sets the field in a preexisting
     // accessor object. This is to allow object reuse.
     InitializeExisting(struct_def, code_ptr);
     // Generate _tab accessor

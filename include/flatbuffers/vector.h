@@ -295,7 +295,7 @@ template<typename T, typename SizeT = uoffset_t> class Vector {
   }
 
  protected:
-  // This class is only used to access pre-existing data. Don't ever
+  // This class is only used to access preexisting data. Don't ever
   // try to construct these manually.
   Vector();
 

@@ -137,7 +137,7 @@ template<typename T, uint16_t length> class Array {
     for (size_type k = 0; k < length; k++) { Mutate(k, src[k]); }
   }
 
-  // This class is only used to access pre-existing data. Don't ever
+  // This class is only used to access preexisting data. Don't ever
   // try to construct these manually.
   // 'constexpr' allows us to use 'size()' at compile time.
   // @note Must not use 'FLATBUFFERS_CONSTEXPR' here, as const is not allowed on
@@ -176,7 +176,7 @@ class Array<OffsetT<T>, length> {
   }
 
  private:
-  // This class is only used to access pre-existing data.
+  // This class is only used to access preexisting data.
   Array();
   Array(const Array &);
   Array &operator=(const Array &);

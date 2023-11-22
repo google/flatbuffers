@@ -794,7 +794,7 @@ class PhpGenerator : public BaseGenerator {
       }
     }
 
-    // Generate the Init method that sets the field in a pre-existing
+    // Generate the Init method that sets the field in a preexisting
     // accessor object. This is to allow object reuse.
     InitializeExisting(struct_def, code_ptr);
     for (auto it = struct_def.fields.vec.begin();

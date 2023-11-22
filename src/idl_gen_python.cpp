@@ -1582,7 +1582,7 @@ class PythonGenerator : public BaseGenerator {
       // Generates the SizeOf method for all structs.
       GenStructSizeOf(struct_def, code_ptr);
     }
-    // Generates the Init method that sets the field in a pre-existing
+    // Generates the Init method that sets the field in a preexisting
     // accessor object. This is to allow object reuse.
     InitializeExisting(struct_def, code_ptr);
     for (auto it = struct_def.fields.vec.begin();
