@@ -42,7 +42,7 @@ extension Verifiable {
   ///   - verifier: Verifier that hosts the buffer
   ///   - position: Current position within the buffer
   ///   - type: The type of the object to be verified
-  /// - Throws: Erros thrown from `isAligned` & `rangeInBuffer`
+  /// - Throws: Errors thrown from `isAligned` & `rangeInBuffer`
   /// - Returns: a tuple of the start position and the count of objects within the range
   @discardableResult
   public static func verifyRange<T>(
