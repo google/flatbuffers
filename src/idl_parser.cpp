@@ -2532,7 +2532,7 @@ CheckedError Parser::ParseEnum(const bool is_union, EnumDef **dest,
   }
   EnumValBuilder evb(*this, *enum_def);
   EXPECT('{');
-  // A lot of code generatos expect that an enum is not-empty.
+  // A lot of code generators expect that an enum is not-empty.
   if ((is_union || Is('}')) && !opts.proto_mode) {
     evb.CreateEnumerator("NONE");
     ECHECK(evb.AcceptEnumerator());
