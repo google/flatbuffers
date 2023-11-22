@@ -208,7 +208,7 @@ namespace Google.FlatBuffers
         /// Checks if the Type provided is supported as scalar value
         /// </summary>
         /// <typeparam name="T">The Type to check</typeparam>
-        /// <returns>True if the type is a scalar type that is supported, falsed otherwise</returns>
+        /// <returns>True if the type is a scalar type that is supported, false otherwise</returns>
         public static bool IsSupportedType<T>()
         {
             return genericSizes.ContainsKey(typeof(T));
