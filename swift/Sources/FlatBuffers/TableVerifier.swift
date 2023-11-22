@@ -195,7 +195,7 @@ public struct TableVerifier {
     }
   }
 
-  /// Finishs the current Table verifier, and subtracts the current
+  /// Finishes the current Table verifier, and subtracts the current
   /// table from the incremented depth.
   public mutating func finish() {
     _verifier.finish()

@@ -338,7 +338,7 @@ class TestAllMutableCodePathsOfExampleSchema(unittest.TestCase):
     return monster
 
   def _create_and_load_object_class(self, b):
-    """ Finishs the creation of a monster flatbuffer and loads it into an
+    """ Finishes the creation of a monster flatbuffer and loads it into an
 
         object class.
     """
