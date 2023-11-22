@@ -239,7 +239,7 @@ void AccessFlatBufferTest(const uint8_t *flatbuf, size_t length, bool pooled) {
   TEST_EQ(VectorLength(inventory), 10UL);  // Works even if inventory is null.
   TEST_NOTNULL(inventory);
   unsigned char inv_data[] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
-  // Check compatibilty of iterators with STL.
+  // Check compatibility of iterators with STL.
   std::vector<unsigned char> inv_vec(inventory->begin(), inventory->end());
   size_t n = 0;
   for (auto it = inventory->begin(); it != inventory->end(); ++it, ++n) {

@@ -25,7 +25,7 @@ if (UNIX)
     set(CPACK_RESOURCE_FILE_LICENSE ${CMAKE_SOURCE_DIR}/LICENSE)
     set(CPACK_PACKAGE_DESCRIPTION_FILE ${CMAKE_SOURCE_DIR}/CMake/DESCRIPTION.txt)
 
-    # This may reduce rpm compatiblity with very old systems.
+    # This may reduce rpm compatibility with very old systems.
     set(CPACK_RPM_COMPRESSION_TYPE lzma)
     
     set(CPACK_RPM_PACKAGE_NAME "flatbuffers")

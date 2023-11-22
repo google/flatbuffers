@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-""" A tiny version of `six` to help with backwards compability. Also includes
+""" A tiny version of `six` to help with backwards compatibility. Also includes
  compatibility helpers for numpy. """
 
 import sys
