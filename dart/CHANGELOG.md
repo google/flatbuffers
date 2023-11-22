@@ -2,7 +2,7 @@
 
 ## 23.5.26
 
-- omit type annotationes for local variables (#7067, #7069, #7070)
+- omit type annotations for local variables (#7067, #7069, #7070)
 - remove BSD 3-clause license (#7073)
 - correctly parse lists of enums (#7157)
 - align naming conventions for generated code (#7187)
