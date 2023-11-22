@@ -2529,7 +2529,7 @@ class TestVtableDeduplication(unittest.TestCase):
         240,
         255,
         255,
-        255,  # == -12. offset to dedupped vtable.
+        255,  # == -12. offset to deduped vtable.
         99,
         0,
         88,
@@ -2537,7 +2537,7 @@ class TestVtableDeduplication(unittest.TestCase):
         248,
         255,
         255,
-        255,  # == -8. offset to dedupped vtable.
+        255,  # == -8. offset to deduped vtable.
         66,
         0,
         55,

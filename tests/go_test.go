@@ -1515,11 +1515,11 @@ func CheckVtableDeduplication(fail func(string, ...interface{})) {
 	got := b.Bytes[b.Head():]
 
 	want := []byte{
-		240, 255, 255, 255, // == -12. offset to dedupped vtable.
+		240, 255, 255, 255, // == -12. offset to deduped vtable.
 		99, 0,
 		88,
 		77,
-		248, 255, 255, 255, // == -8. offset to dedupped vtable.
+		248, 255, 255, 255, // == -8. offset to deduped vtable.
 		66, 0,
 		55,
 		44,
