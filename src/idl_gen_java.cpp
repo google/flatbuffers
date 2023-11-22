@@ -1449,7 +1449,7 @@ class JavaGenerator : public BaseGenerator {
         if (ev.union_type.base_type == BASE_TYPE_STRING ||
             (ev.union_type.base_type == BASE_TYPE_STRUCT &&
              ev.union_type.struct_def->fixed)) {
-          continue;  // This branch is due to bad implemantation of Unions in
+          continue;  // This branch is due to bad implementation of Unions in
                      // Java which doesn't handle non Table types. Should be
                      // deleted when issue #6561 is fixed.
         }
