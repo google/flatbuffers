@@ -166,7 +166,7 @@ open class FlexBuffersBenchmark {
   }
 
   @Benchmark
-  open fun stringMapBytIndexKotlin(blackhole: Blackhole) {
+  open fun stringMapByteIndexKotlin(blackhole: Blackhole) {
     val kBuilder = FlexBuffersBuilder(initialCapacity, FlexBuffersBuilder.SHARE_KEYS_AND_STRINGS)
     val pos = kBuilder.startMap()
     for (i in stringKey.indices) {
