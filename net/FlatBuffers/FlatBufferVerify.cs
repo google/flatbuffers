@@ -117,7 +117,7 @@ namespace Google.FlatBuffers
 
     /// <summary> The Constructor of the Verifier object with input parameters: ByteBuffer and/or Options </summary>
     /// <param name="buf"> Input flat byte buffer defined as ByteBuffer type</param>
-    /// <param name="options"> Options object with settings for the coniguration the Verifier </param>
+    /// <param name="options"> Options object with settings for the configuration the Verifier </param>
     public Verifier(ByteBuffer buf, Options options = null)
     {
       verifier_buffer = buf;
