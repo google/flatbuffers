@@ -230,7 +230,7 @@ void FlexBuffersDeprecatedTest() {
   TEST_EQ(flexbuffers::VerifyBuffer(slb.GetBuffer().data(),
                                     slb.GetBuffer().size(), nullptr),
           true);
-  // So now lets read this data back.
+  // So now let's read this data back.
   // For existing data, since we have no way of knowing what the actual
   // bit-width of the size field of the string is, we are going to ignore this
   // field, and instead treat these strings as FBT_KEY (null-terminated), so we
