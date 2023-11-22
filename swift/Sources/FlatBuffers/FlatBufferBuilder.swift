@@ -38,7 +38,7 @@ public struct FlatBufferBuilder {
   private var _vtables: [UOffset] = []
   /// A check if the buffer is being written into by a different table
   private var isNested = false
-  /// Dictonary that stores a map of all the strings that were written to the buffer
+  /// Dictionary that stores a map of all the strings that were written to the buffer
   private var stringOffsetMap: [String: Offset] = [:]
   /// A check to see if finish(::) was ever called to retreive data object
   private var finished = false
