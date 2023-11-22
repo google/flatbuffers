@@ -1477,7 +1477,7 @@ void BinaryAnnotator::FixMissingSections() {
         section.regions.back().offset + section.regions.back().length;
 
     if (offset < section_start_offset) {
-      // We are at an offset that is less then the current section.
+      // We are at an offset that is less than the current section.
       const uint64_t pad_bytes = section_start_offset - offset + 1;
 
       sections_to_insert.push_back(
