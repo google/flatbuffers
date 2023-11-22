@@ -30,7 +30,7 @@ anymore.** You simply stop writing them to the buffer.
 
 Its encouraged to mark the field deprecated by adding the `deprecated`
 attribute. This will skip the generation of accessors and setters in the code,
-to enforce the field not to be used any more.
+to enforce the field not to be used anymore.
 
 ### Name Changes
 
