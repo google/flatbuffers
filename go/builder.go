@@ -586,7 +586,7 @@ func (b *Builder) Slot(slotnum int) {
 }
 
 // FinishWithFileIdentifier finalizes a buffer, pointing to the given `rootTable`.
-// as well as applys a file identifier
+// as well as applies a file identifier
 func (b *Builder) FinishWithFileIdentifier(rootTable UOffsetT, fid []byte) {
 	if fid == nil || len(fid) != fileIdentifierLength {
 		panic("incorrect file identifier length")
