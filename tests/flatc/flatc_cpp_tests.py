@@ -101,7 +101,7 @@ class CppTests:
 
         assert_file_and_contents("foo_generated.h", '#include "test/bar_generated.h"')
 
-    def IncludePrefixAbolutePath(self):
+    def IncludePrefixAbsolutePath(self):
         # Generate just foo with the import of bar keeping the prefix of where it is located.
         flatc(["--cpp", "--include-prefix", "test", make_absolute("foo.fbs")])
 
@@ -202,7 +202,7 @@ class CppTests:
             "../.tmp/bar_generated.h", '#include "test/baz/baz_generated.h"'
         )
 
-    def KeepPrefixIncludePrefixoutPathAbsoluePaths_SuperDirectoryReference(self):
+    def KeepPrefixIncludePrefixoutPathAbsolutePaths_SuperDirectoryReference(self):
         # Generate bar_with_foo that references a type in a super directory.
         flatc(
             [
