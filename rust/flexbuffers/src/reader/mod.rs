@@ -60,7 +60,7 @@ pub enum Error {
     KeyNotFound,
     /// Failed to parse a Utf8 string.
     /// The Option will be `None` if and only if this Error was deserialized.
-    // NOTE: std::str::Utf8Error does not implement Serialize, Deserialize, nor Default. We tell
+    // NOTE: None of Serialize, Deserialize, and Default are implemented by std::str::Utf8Error. We tell
     // serde to skip the field and default to None. We prefer to have the boxed error so it can be
     // used with std::error::Error::source, though another (worse) option could be to drop that
     // information.
