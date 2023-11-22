@@ -1419,7 +1419,7 @@ class CSharpGenerator : public BaseGenerator {
             code += "(";
             // At the moment there is no support of the type Vector with
             // optional enum, e.g. if we have enum type SomeEnum there is no way
-            // to define `SomeEmum?[] enums` in FlatBuffer schema, so isOptional
+            // to define `SomeEnum?[] enums` in FlatBuffer schema, so isOptional
             // = false
             code += SourceCastBasic(vector_type, false);
             code += "data[i]";
