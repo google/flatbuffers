@@ -2012,7 +2012,7 @@ class CppGenerator : public BaseGenerator {
   // declarations if required. Tables that are default-copyable do not get
   // user-provided copy/move constructors and assignment operators so they
   // remain aggregates.
-  void GenCopyMoveCtorAndAssigOpDecls(const StructDef &struct_def) {
+  void GenCopyMoveCtorAndAssignOpDecls(const StructDef &struct_def) {
     if (opts_.g_cpp_std < cpp::CPP_STD_11) return;
     if (!NeedsCopyCtorAssignOp(struct_def)) return;
     code_.SetValue("NATIVE_NAME",
@@ -2232,7 +2232,7 @@ class CppGenerator : public BaseGenerator {
     for (const auto field : struct_def.fields.vec) { GenMember(*field); }
     GenOperatorNewDelete(struct_def);
     GenDefaultConstructor(struct_def);
-    GenCopyMoveCtorAndAssigOpDecls(struct_def);
+    GenCopyMoveCtorAndAssignOpDecls(struct_def);
     code_ += "};";
     code_ += "";
   }
