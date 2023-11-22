@@ -2,7 +2,7 @@ import endian
 
 
 type
-   uoffset* = uint32 ## offset in to the buffer
+   uoffset* = uint32 ## offset into the buffer
    soffset* = int32 ## offset from start of table, to a vtable
    voffset* = uint16 ## offset from start of table to value
 
