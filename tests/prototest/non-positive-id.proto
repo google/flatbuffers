@@ -1,4 +1,4 @@
-// Sample .proto file that we can not translate to the corresponding .fbs because it has non-positive ids.
+// Sample .proto file that we cannot translate to the corresponding .fbs because it has non-positive ids.
 
 option some_option = is_ignored;
 

@@ -1587,7 +1587,7 @@ func CheckNotInObjectError(fail func(string, ...interface{})) {
 	b.EndObject()
 }
 
-// CheckStringIsNestedError verifies that a string can not be created inside
+// CheckStringIsNestedError verifies that a string cannot be created inside
 // another object.
 func CheckStringIsNestedError(fail func(string, ...interface{})) {
 	b := flatbuffers.NewBuilder(0)
@@ -1645,7 +1645,7 @@ func CheckSharedStrings(fail func(string, ...interface{})) {
 	}
 }
 
-// CheckByteStringIsNestedError verifies that a bytestring can not be created
+// CheckByteStringIsNestedError verifies that a bytestring cannot be created
 // inside another object.
 func CheckByteStringIsNestedError(fail func(string, ...interface{})) {
 	b := flatbuffers.NewBuilder(0)

@@ -254,7 +254,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
   BreakSequence(input, "//", '@');  // "//" -> "@/"
   BreakSequence(input, "/*", '@');  // "/*" -> "@*"
   // { "$schema: "text" } is exceptional case.
-  // This key:value ignored by the parser. Numbers can not have $.
+  // This key:value ignored by the parser. Numbers cannot have $.
   BreakSequence(input, "$schema", '@');  // "$schema" -> "@schema"
   // Break all known scalar functions (todo: add them to regex?):
   for (auto f : { "deg", "rad", "sin", "cos", "tan", "asin", "acos", "atan" }) {

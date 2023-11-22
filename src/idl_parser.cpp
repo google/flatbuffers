@@ -900,7 +900,7 @@ CheckedError Parser::ParseField(StructDef &struct_def) {
   std::string name = attribute_;
 
   if (LookupCreateStruct(name, false, false))
-    return Error("field name can not be the same as table/struct name");
+    return Error("field name cannot be the same as table/struct name");
 
   if (!IsLowerSnakeCase(name)) {
     Warning("field names should be lowercase snake_case, got: " + name);

@@ -290,7 +290,7 @@ impl<'fbb, A: Allocator> FlatBufferBuilder<'fbb, A> {
     #[inline]
     pub fn start_table(&mut self) -> WIPOffset<TableUnfinishedWIPOffset> {
         self.assert_not_nested(
-            "start_table can not be called when a table or vector is under construction",
+            "start_table cannot be called when a table or vector is under construction",
         );
         self.nested = true;
 
@@ -325,7 +325,7 @@ impl<'fbb, A: Allocator> FlatBufferBuilder<'fbb, A> {
     #[inline]
     pub fn start_vector<T: Push>(&mut self, num_items: usize) {
         self.assert_not_nested(
-            "start_vector can not be called when a table or vector is under construction",
+            "start_vector cannot be called when a table or vector is under construction",
         );
         self.nested = true;
         self.align(num_items * T::size(), T::alignment().max_of(SIZE_UOFFSET));
@@ -348,7 +348,7 @@ impl<'fbb, A: Allocator> FlatBufferBuilder<'fbb, A> {
     #[inline]
     pub fn create_shared_string<'a: 'b, 'b>(&'a mut self, s: &'b str) -> WIPOffset<&'fbb str> {
         self.assert_not_nested(
-            "create_shared_string can not be called when a table or vector is under construction",
+            "create_shared_string cannot be called when a table or vector is under construction",
         );
 
         // Saves a ref to allocator since rust doesnt like us refrencing it
@@ -388,7 +388,7 @@ impl<'fbb, A: Allocator> FlatBufferBuilder<'fbb, A> {
     #[inline]
     pub fn create_string<'a: 'b, 'b>(&'a mut self, s: &'b str) -> WIPOffset<&'fbb str> {
         self.assert_not_nested(
-            "create_string can not be called when a table or vector is under construction",
+            "create_string cannot be called when a table or vector is under construction",
         );
         WIPOffset::new(self.create_byte_string(s.as_bytes()).value())
     }
@@ -397,7 +397,7 @@ impl<'fbb, A: Allocator> FlatBufferBuilder<'fbb, A> {
     #[inline]
     pub fn create_byte_string(&mut self, data: &[u8]) -> WIPOffset<&'fbb [u8]> {
         self.assert_not_nested(
-            "create_byte_string can not be called when a table or vector is under construction",
+            "create_byte_string cannot be called when a table or vector is under construction",
         );
         self.align(data.len() + 1, PushAlignment::new(SIZE_UOFFSET));
         self.push(0u8);
