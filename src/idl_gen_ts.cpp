@@ -1060,7 +1060,7 @@ class TsGenerator : public BaseGenerator {
       const std::string union_accessor = "this." + field_name;
 
       const auto union_has_string = UnionHasStringType(enum_def);
-      const auto field_binded_method = "this." + field_name + ".bind(this)";
+      const auto field_bound_method = "this." + field_name + ".bind(this)";
 
       std::string ret;
 
@@ -1070,7 +1070,7 @@ class TsGenerator : public BaseGenerator {
         ret = "(() => {\n";
         ret += "      const temp = " + conversion_function + "(this." +
                namer_.Method(field_name, "Type") + "(), " +
-               field_binded_method + ");\n";
+               field_bound_method + ");\n";
         ret += "      if(temp === null) { return null; }\n";
         ret += union_has_string
                    ? "      if(typeof temp === 'string') { return temp; }\n"
@@ -1095,7 +1095,7 @@ class TsGenerator : public BaseGenerator {
                "[targetEnum!] === 'NONE') { "
                "continue; }\n\n";
         ret += "      const temp = " + conversion_function + "(targetEnum, " +
-               field_binded_method + ", targetEnumIndex);\n";
+               field_bound_method + ", targetEnumIndex);\n";
         ret += "      if(temp === null) { continue; }\n";
         ret += union_has_string ? "      if(typeof temp === 'string') { "
                                   "ret.push(temp); continue; }\n"
@@ -1207,7 +1207,7 @@ class TsGenerator : public BaseGenerator {
 
       const auto field_method = namer_.Method(field);
       const auto field_field = namer_.Field(field);
-      const std::string field_binded_method =
+      const std::string field_bound_method =
           "this." + field_method + ".bind(this)";
 
       std::string field_val;
@@ -1282,7 +1282,7 @@ class TsGenerator : public BaseGenerator {
 
                 field_val = GenBBAccess() + ".createObjList<" + vectortypename +
                             ", " + field_type_name + ">(" +
-                            field_binded_method + ", " +
+                            field_bound_method + ", " +
                             NumToString(field.value.type.fixed_length) + ")";
 
                 if (sd.fixed) {
@@ -1304,7 +1304,7 @@ class TsGenerator : public BaseGenerator {
               case BASE_TYPE_STRING: {
                 field_type += "string)[]";
                 field_val = GenBBAccess() + ".createScalarList<string>(" +
-                            field_binded_method + ", this." +
+                            field_bound_method + ", this." +
                             namer_.Field(field, "Length") + "())";
                 field_offset_decl =
                     AddImport(imports, struct_def, struct_def).name + "." +
@@ -1338,7 +1338,7 @@ class TsGenerator : public BaseGenerator {
                 }
                 field_type += ")[]";
                 field_val = GenBBAccess() + ".createScalarList<" +
-                            vectortypename + ">(" + field_binded_method + ", " +
+                            vectortypename + ">(" + field_bound_method + ", " +
                             NumToString(field.value.type.fixed_length) + ")";
 
                 field_offset_decl =
@@ -1371,7 +1371,7 @@ class TsGenerator : public BaseGenerator {
 
                 field_val = GenBBAccess() + ".createObjList<" + vectortypename +
                             ", " + field_type_name + ">(" +
-                            field_binded_method + ", this." +
+                            field_bound_method + ", this." +
                             namer_.Method(field, "Length") + "())";
 
                 if (sd.fixed) {
@@ -1393,7 +1393,7 @@ class TsGenerator : public BaseGenerator {
               case BASE_TYPE_STRING: {
                 field_type += "string)[]";
                 field_val = GenBBAccess() + ".createScalarList<string>(" +
-                            field_binded_method + ", this." +
+                            field_bound_method + ", this." +
                             namer_.Field(field, "Length") + "())";
                 field_offset_decl =
                     AddImport(imports, struct_def, struct_def).name + "." +
@@ -1427,7 +1427,7 @@ class TsGenerator : public BaseGenerator {
                 }
                 field_type += ")[]";
                 field_val = GenBBAccess() + ".createScalarList<" +
-                            vectortypename + ">(" + field_binded_method +
+                            vectortypename + ">(" + field_bound_method +
                             ", this." + namer_.Method(field, "Length") + "())";
 
                 field_offset_decl =

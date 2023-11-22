@@ -411,16 +411,16 @@ class FlatBuffersMonsterWriterTests: XCTestCase {
     monster.withUnsafePointerToTest4 { ptr in
       guard let ptr = ptr.baseAddress else { return }
 
-      let bindedMemory: UnsafeBufferPointer<MyGame_Example_Test> =
+      let boundMemory: UnsafeBufferPointer<MyGame_Example_Test> =
         UnsafeBufferPointer(
           start: ptr.bindMemory(
             to: MyGame_Example_Test.self,
             capacity: Int(monster.test4Count)),
           count: Int(monster.test4Count))
       var pointerSum = 0
-      for pointee in bindedMemory.startIndex..<bindedMemory.endIndex {
-        pointerSum += Int(bindedMemory[pointee].a) +
-          Int(bindedMemory[pointee].b)
+      for pointee in boundMemory.startIndex..<boundMemory.endIndex {
+        pointerSum += Int(boundMemory[pointee].a) +
+          Int(boundMemory[pointee].b)
       }
       XCTAssertEqual(pointerSum, 100)
     }
