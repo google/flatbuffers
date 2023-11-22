@@ -68,7 +68,7 @@ function mt:Slice(startPos, endPos)
     end
 end
 
--- Grow the binary array to a new size, placing the exisiting data
+-- Grow the binary array to a new size, placing the existing data
 -- at then end of the new array
 function mt:Grow(newsize)
     -- the new table to store the data

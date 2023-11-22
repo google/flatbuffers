@@ -105,7 +105,7 @@ function mt:WriteVtable()
     self:PrependSOffsetTRelative(0)
     local objectOffset = self:Offset()
 
-    local exisitingVTable
+    local existingVTable
     local i = #self.vtables
     while i >= 1 do
         if self.vtables[i] == 0 then
@@ -127,14 +127,14 @@ function mt:WriteVtable()
         local vt2 = self.bytes:Slice(vt2Start+metadata,vt2End)
 
         if vtableEqual(self.currentVTable, objectOffset, vt2) then
-            exisitingVTable = vt2Offset
+            existingVTable = vt2Offset
             break
         end
 
         i = i - 1
     end
 
-    if not exisitingVTable then
+    if not existingVTable then
         i = #self.currentVTable
         while i >= 1 do
             local off = 0
@@ -161,7 +161,7 @@ function mt:WriteVtable()
     else
         local objectStart = self.bytes.size - objectOffset
         self.head = objectStart
-        self.bytes:Set(SOffsetT:Pack(exisitingVTable - objectOffset),self.head)
+        self.bytes:Set(SOffsetT:Pack(existingVTable - objectOffset),self.head)
     end
 
     self.currentVTable = nil
