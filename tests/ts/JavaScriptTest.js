@@ -364,7 +364,7 @@ function fieldIndexToOffset(field_id) {
 function fuzzTest1() {
 
   // Values we're testing against: chosen to ensure no bits get chopped
-  // off anywhere, and also be different from eachother.
+  // off anywhere, and also be different from each other.
   var bool_val   = true;
   var char_val   = -127;  // 0x81
   var uchar_val  = 0xFF;

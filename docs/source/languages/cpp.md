@@ -256,7 +256,7 @@ Finally, the following top-level attributes:
 ## External references
 
 An additional feature of the object API is the ability to allow you to load
-multiple independent FlatBuffers, and have them refer to eachothers objects
+multiple independent FlatBuffers, and have them refer to each others objects
 using hashes which are then represented as typed pointers in the object API.
 
 To make this work have a field in the objects you want to referred to which is

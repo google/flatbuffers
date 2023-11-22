@@ -616,7 +616,7 @@ func CheckObjectAPI(buf []byte, offset flatbuffers.UOffsetT, sizePrefix bool, fa
 func checkFuzz(fuzzFields, fuzzObjects int, fail func(string, ...interface{})) {
 
 	// Values we're testing against: chosen to ensure no bits get chopped
-	// off anywhere, and also be different from eachother.
+	// off anywhere, and also be different from each other.
 	boolVal := true
 	int8Val := int8(-127) // 0x81
 	uint8Val := uint8(0xFF)

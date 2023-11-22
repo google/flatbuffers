@@ -766,7 +766,7 @@ class TestFuzz(unittest.TestCase):
                                                ofInt64Bytes, 0)
 
   # Values we're testing against: chosen to ensure no bits get chopped
-  # off anywhere, and also be different from eachother.
+  # off anywhere, and also be different from each other.
   boolVal = True
   int8Val = N.Int8Flags.py_type(-127)  # 0x81
   uint8Val = N.Uint8Flags.py_type(0xFF)

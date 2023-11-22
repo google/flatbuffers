@@ -33,7 +33,7 @@ static void CompareTableFieldValue(flatbuffers::Table *table,
 // different kinds of data in different combinations
 void FuzzTest1() {
   // Values we're testing against: chosen to ensure no bits get chopped
-  // off anywhere, and also be different from eachother.
+  // off anywhere, and also be different from each other.
   const uint8_t bool_val = true;
   const int8_t char_val = -127;  // 0x81
   const uint8_t uchar_val = 0xFF;

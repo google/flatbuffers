@@ -196,7 +196,7 @@ function fuzzTest1(Assert $assert)
 {
 
     // Values we're testing against: chosen to ensure no bits get chopped
-    // off anywhere, and also be different from eachother.
+    // off anywhere, and also be different from each other.
     $bool_val = true;
     $char_val = -127; // 0x81
     $uchar_val = 0xFF;
