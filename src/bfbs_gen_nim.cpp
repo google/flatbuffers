@@ -663,7 +663,7 @@ class NimBfbsGenerator : public BaseBfbsGenerator {
     }
     code += code_block;
 
-    // Namespaces are '.' deliminted, so replace it with the path separator.
+    // Namespaces are '.' delimited, so replace it with the path separator.
     std::string path = ns;
 
     if (ns.empty()) {
