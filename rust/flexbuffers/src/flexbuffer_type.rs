@@ -28,7 +28,7 @@
 ///
 /// * Typed vectors do not store this extra type information and fixed length
 /// typed vectors do not store length. Whether a vector is stored as a typed
-/// vector or fixed length typed vector is determined dymaically from the
+/// vector or fixed length typed vector is determined dynamically from the
 /// given data.
 ///
 /// * Indirect numbers are stored as an offset instead of inline. Using
