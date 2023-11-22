@@ -39,7 +39,7 @@ Platform: iOS                  | ?      | ?     | ?        | ?     | ?      | ? 
 Engine: Unity                  | ?      | ?     | Yes      | ?     | ?      | ?     | ?   | ?      | ?   | ?       | No      | ?      | No
 Primary authors (github)       | aard   | aard  | ev/js/df | rw    | rw     | ew/ev | kr  | mik    | ch  | df      | aard    | rw/cn  | mi/mz
 
-Above | Github username
+Above | GitHub username
 ----- | -----------------------------
 aard  | aardappel (previously: gwvo)
 ch    | chobie

@@ -11,5 +11,5 @@ other performance-critical applications.
 * [Landing Page](https://google.github.io/flatbuffers/)
 * [Rust sample binary](https://github.com/google/flatbuffers/blob/master/samples/sample_binary.rs)
 * [Schema**less** format, Flexbuffers](https://crates.io/crates/flexbuffers)
-* [Github](https://github.com/google/flatbuffers)
+* [GitHub](https://github.com/google/flatbuffers)
 
