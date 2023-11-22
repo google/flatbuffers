@@ -22,7 +22,7 @@ cd tests\annotated_binary
 ..\..\flatc --annotate annotated_binary.fbs -- annotated_binary.bin
 ```
 
-The `annotated_binary.bin` is the flatbufer binary of the data contained within
+The `annotated_binary.bin` is the flatbuffer binary of the data contained within
  `annotated_binary.json`, which was made by the following command:
 
 ```sh

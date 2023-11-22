@@ -44,7 +44,7 @@ impl core::convert::AsRef<[ErrorTraceDetail]> for ErrorTrace {
     }
 }
 
-/// Describes how a flatuffer is invalid and, for data errors, roughly where. No extra tracing
+/// Describes how a flatbuffer is invalid and, for data errors, roughly where. No extra tracing
 /// information is given for DoS detecting errors since it will probably be a lot.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum InvalidFlatbuffer {
