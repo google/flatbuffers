@@ -586,7 +586,7 @@ final class FlatbufferBuilder
         $this->notNested();
         $this->vector_num_elems = $num_elems;
         $this->prep(Constants::SIZEOF_INT, $elem_size * $num_elems);
-        $this->prep($alignment, $elem_size * $num_elems); // Just in case alignemnt > int;
+        $this->prep($alignment, $elem_size * $num_elems); // Just in case alignment > int;
     }
 
     /**
