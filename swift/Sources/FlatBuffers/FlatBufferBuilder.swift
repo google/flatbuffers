@@ -623,9 +623,7 @@ public struct FlatBufferBuilder {
     startVector(
       structs.count * MemoryLayout<T>.size,
       elementSize: MemoryLayout<T>.alignment)
-    for i in structs.reversed() {
-      _ = create(struct: i)
-    }
+    _bb.push(elements: structs)
     return endVector(len: structs.count)
   }
 

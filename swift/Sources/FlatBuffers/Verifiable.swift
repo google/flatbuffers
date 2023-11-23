@@ -129,7 +129,9 @@ public enum Vector<U, S>: Verifiable where U: Verifiable, S: Verifiable {
       let range = try verifyRange(&verifier, at: position, of: UOffset.self)
       for index in stride(
         from: range.start,
-        to: Int(clamping: range.start &+ (range.count &* MemoryLayout<Int32>.size)),
+        to: Int(
+          clamping: range
+            .start &+ (range.count &* MemoryLayout<Int32>.size)),
         by: MemoryLayout<UOffset>.size)
       {
         try U.verify(&verifier, at: index, of: U.self)

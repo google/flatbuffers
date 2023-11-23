@@ -1,4 +1,4 @@
-// swift-tools-version:5.1
+// swift-tools-version:5.8
 /*
  * Copyright 2020 Google Inc. All rights reserved.
  *
@@ -20,15 +20,23 @@ import PackageDescription
 let package = Package(
   name: "benchmarks",
   platforms: [
-    .macOS(.v10_14),
+    .macOS(.v13),
   ],
   dependencies: [
-    .package(path: "../../.."),
-    .package(url: "https://github.com/google/swift-benchmark", from: "0.1.0"),
+    .package(path: "../.."),
+    .package(
+      url: "https://github.com/ordo-one/package-benchmark",
+      from: "1.12.0"),
   ],
   targets: [
-    .target(
-      name: "benchmarks",
-      dependencies: ["FlatBuffers",
-                     .product(name: "Benchmark", package: "swift-benchmark")]),
+    .executableTarget(
+      name: "FlatbuffersBenchmarks",
+      dependencies: [
+        .product(name: "FlatBuffers", package: "flatbuffers"),
+        .product(name: "Benchmark", package: "package-benchmark"),
+      ],
+      path: "Benchmarks/FlatbuffersBenchmarks",
+      plugins: [
+        .plugin(name: "BenchmarkPlugin", package: "package-benchmark"),
+      ]),
   ])
