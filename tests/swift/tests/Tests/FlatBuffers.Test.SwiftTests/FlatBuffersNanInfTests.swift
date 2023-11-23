@@ -67,9 +67,9 @@ final class FlatBuffersNanInfTests: XCTestCase {
       let data = try encoder.encode(reader)
       let decoder = JSONDecoder()
       decoder.nonConformingFloatDecodingStrategy = .convertFromString(
-          positiveInfinity: "inf",
-          negativeInfinity: "-inf",
-          nan: "nan")
+        positiveInfinity: "inf",
+        negativeInfinity: "-inf",
+        nan: "nan")
       decoder.keyDecodingStrategy = .convertFromSnakeCase
       let value = try decoder.decode(Test.self, from: data)
       XCTAssertEqual(value.value, 100)
