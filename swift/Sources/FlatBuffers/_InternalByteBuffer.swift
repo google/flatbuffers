@@ -51,7 +51,7 @@ struct _InternalByteBuffer {
     func initialize(for size: Int) {
       assert(
         !unowned,
-        "initalize should NOT be called on a buffer that is built by assumingMemoryBound")
+        "initialize should NOT be called on a buffer that is built by assumingMemoryBound")
       memset(memory, 0, size)
     }
 
