@@ -56,7 +56,7 @@ extension String: Verifiable {
 
 extension String: FlatbuffersInitializable {
 
-  /// Initailizes a string from a Flatbuffers ByteBuffer
+  /// Initializes a string from a Flatbuffers ByteBuffer
   /// - Parameters:
   ///   - bb: ByteBuffer containing the readable string
   ///   - o: Current position
