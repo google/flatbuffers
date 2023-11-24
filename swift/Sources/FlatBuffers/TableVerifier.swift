@@ -30,7 +30,7 @@ public struct TableVerifier {
   /// Length of current VTable
   fileprivate var _vtableLength: Int
 
-  /// `Verifier` object created in the base verifable call.
+  /// `Verifier` object created in the base verifiable call.
   fileprivate var _verifier: Verifier
 
   /// Creates a `TableVerifier` verifier that allows the Flatbuffer object
