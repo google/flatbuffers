@@ -32,7 +32,7 @@ pub use vector::VectorReader;
 /// All the possible errors when reading a flexbuffer.
 #[derive(Debug, PartialEq, Eq, Clone, Serialize, Deserialize)]
 pub enum Error {
-    /// One of the following data errors occured:
+    /// One of the following data errors occurred:
     ///
     /// *    The read flexbuffer had an offset that pointed outside the flexbuffer.
     /// *    The 'negative indices' where length and map keys are stored were out of bounds
