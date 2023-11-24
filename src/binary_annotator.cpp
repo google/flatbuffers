@@ -537,7 +537,7 @@ void BinaryAnnotator::BuildTable(const uint64_t table_offset,
                                     vtable_offset_comment)));
 
     // There isn't much to do with an invalid vtable offset, as we won't be able
-    // to intepret the rest of the table fields.
+    // to interpret the rest of the table fields.
     return;
   }
 
