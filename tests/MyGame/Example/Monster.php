@@ -125,7 +125,7 @@ class Monster extends Table
     }
 
     /**
-     * @returnint
+     * @return int
      */
     public function getTest($obj)
     {
@@ -621,7 +621,7 @@ class Monster extends Table
     }
 
     /**
-     * @returnint
+     * @return int
      */
     public function getAnyUnique($obj)
     {
@@ -639,7 +639,7 @@ class Monster extends Table
     }
 
     /**
-     * @returnint
+     * @return int
      */
     public function getAnyAmbiguous($obj)
     {
