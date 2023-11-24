@@ -874,7 +874,7 @@ extension FlatBufferBuilder: CustomDebugStringConvertible {
     var memory: UnsafeMutableRawBufferPointer!
     /// Capacity of the current buffer
     var capacity: Int = 0
-    /// Maximuim offset written to the class
+    /// Maximum offset written to the class
     var maxOffset: VOffset = 0
     /// number of fields written into the buffer
     var numOfFields: Int = 0
