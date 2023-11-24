@@ -122,7 +122,7 @@ fn generated_code_creates_correct_example() {
 }
 
 #[test]
-fn struct_netsted_struct_is_32_bytes() {
+fn struct_nested_struct_is_32_bytes() {
     assert_eq!(32, ::core::mem::size_of::<NestedStruct>());
 }
 
