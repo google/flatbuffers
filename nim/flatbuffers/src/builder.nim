@@ -116,13 +116,13 @@ proc PrependSlot*[T](this; o: int; x, d: T) =
          this.Prepend(x)
       this.Slot(o)
 
-proc AssertStuctInline(this; obj: uoffset) =
+proc AssertStructInline(this; obj: uoffset) =
    if obj != this.Offset:
       quit("flatbuffers: Tried to write a Struct at an Offset that is different from the current Offset of the Builder.")
 
 proc PrependStructSlot*(this; o: int; x: uoffset; d: uoffset) =
    if x != d:
-      this.AssertStuctInline(x)
+      this.AssertStructInline(x)
       this.Slot(o)
 
 proc Add*[T](this; n: T) =

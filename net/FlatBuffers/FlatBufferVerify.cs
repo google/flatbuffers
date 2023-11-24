@@ -705,7 +705,7 @@ namespace Google.FlatBuffers
     /// <summary> Verify vector of unions (objects). Unions are verified using generated verifyObjFunc </summary>
     /// <param name="tablePos"> Position of the Table</param>
     /// <param name="typeOffsetId"> Offset in the Table (Union type id)</param>
-    /// <param name="offsetId"> Offset to vector of Data Stucture offset</param>
+    /// <param name="offsetId"> Offset to vector of Data Structure offset</param>
     /// <param name="verifyAction"> Verification Method used for Union</param>
     /// <param name="required"> Required Value when the offset == 0 </param>
     /// <returns>Return True when the verification of the Vector of Unions passed</returns>

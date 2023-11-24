@@ -402,7 +402,7 @@ namespace Google.FlatBuffers.Test
                 8, 0, 0, 0, // int32 offset for start of vtable
                 8, 0, 0, 0, // value 1
                 0, 0, 55, 0, // value 0
-                0, 0, 0, 0, // length of vector (not in sctruc)
+                0, 0, 0, 0, // length of vector (not in struct)
             },
                 builder.DataBuffer.ToFullArray());
             var verifier = new Verifier(builder.DataBuffer);
