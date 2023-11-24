@@ -92,7 +92,7 @@ namespace Google.FlatBuffers
 
 #if ENABLE_SPAN_T && UNSAFE_BYTEBUFFER
         // Get the data of a vector whoses offset is stored at "offset" in this object as an
-        // Spant&lt;byte&gt;. If the vector is not present in the ByteBuffer,
+        // Span&lt;byte&gt;. If the vector is not present in the ByteBuffer,
         // then an empty span will be returned.
         public Span<T> __vector_as_span<T>(int offset, int elementSize) where T : struct
         {
