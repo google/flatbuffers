@@ -186,7 +186,7 @@ class Namer {
   // skiped using `skips`.
   // Callers may want to use `EnsureDirExists` with the result.
   // input_case is used to tell how to modify namespace. e.g. kUpperCamel will
-  // add a underscode between case changes, so MyGame turns into My_Game
+  // add an underscore between case changes, so MyGame turns into My_Game
   // (depending also on the output_case).
   virtual std::string Directories(const std::vector<std::string> &directories,
                                   SkipDir skips = SkipDir::None,
