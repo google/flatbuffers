@@ -222,7 +222,7 @@ class LuaBfbsGenerator : public BaseBfbsGenerator {
         const std::string field_name = namer_.Field(*field);
         const r::BaseType base_type = field->type()->base_type();
 
-        // Generate some fixed strings so we don't repeat outselves later.
+        // Generate some fixed strings so we don't repeat ourselves later.
         const std::string getter_signature =
             "function mt:" + field_name + "()\n";
         const std::string offset_prefix = "local o = self.view:Offset(" +
