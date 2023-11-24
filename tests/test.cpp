@@ -1170,7 +1170,7 @@ void NestedVerifierTest() {
     mon_builder.add_testnestedflatbuffer(nested_monster_bytes);
     FinishMonsterBuffer(builder, mon_builder.Finish());
 
-    // Verify the root monster, which includes verifing the nested monster
+    // Verify the root monster, which includes verifying the nested monster
     flatbuffers::Verifier verifier(builder.GetBufferPointer(),
                                    builder.GetSize());
     TEST_EQ(true, VerifyMonsterBuffer(verifier));

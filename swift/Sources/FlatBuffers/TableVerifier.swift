@@ -133,7 +133,7 @@ public struct TableVerifier {
     if let _key = keyPos,
        let _val = valPos
     {
-      /// verifiying that the key is within the buffer
+      /// verifying that the key is within the buffer
       try T.T.verify(&_verifier, at: _key, of: T.T.self)
       guard let _enum = try T.init(value: _verifier._buffer.read(
         def: T.T.self,
