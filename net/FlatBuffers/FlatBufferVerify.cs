@@ -236,7 +236,7 @@ namespace Google.FlatBuffers
     private short GetVRelOffset(int pos, short vtableOffset)
     {
       short VOffset = 0;
-      // Used try/catch because pos typa as int 32bit
+      // Used try/catch because pos typa is int 32bit
       try
       {
         // First, get vtable offset
