@@ -27,7 +27,7 @@ public enum FlatbuffersErrors: Error, Equatable {
   case prefixedSizeNotEqualToBufferSize
   /// Thrown when buffer is bigger than the allowed 2GiB
   case exceedsMaxSizeAllowed
-  /// Thrown when there is an missaligned pointer at position
+  /// Thrown when there is an misaligned pointer at position
   /// of type
   case missAlignedPointer(position: Int, type: String)
   /// Thrown when trying to read a value that goes out of the
