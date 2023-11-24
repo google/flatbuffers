@@ -48,7 +48,7 @@ void ReflectionTest(const std::string &tests_data_path, uint8_t *flatbuf,
                   ->c_str(),
               "//include_test/sub/include_test2.fbs");
 
-  // Check scheam filenames and their includes.
+  // Check schema filenames and their includes.
   TEST_EQ(schema.fbs_files()->size(), 3);
 
   const auto fbs0 = schema.fbs_files()->Get(0);
