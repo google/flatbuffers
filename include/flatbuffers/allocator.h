@@ -35,7 +35,7 @@ class Allocator {
 
   // Reallocate `new_size` bytes of memory, replacing the old region of size
   // `old_size` at `p`. In contrast to a normal realloc, this grows downwards,
-  // and is intended specifcally for `vector_downward` use.
+  // and is intended specifically for `vector_downward` use.
   // `in_use_back` and `in_use_front` indicate how much of `old_size` is
   // actually in use at each end, and needs to be copied.
   virtual uint8_t *reallocate_downward(uint8_t *old_p, size_t old_size,
