@@ -313,7 +313,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
     }
 
     // Try to make quoted string and test it.
-    std::string qouted_input;
+    std::string quoted_input;
     if (true == recheck.quoted) {
       // we can't simply remove quotes, they may be nested "'12'".
       // Original string "\'12\'" converted to "'12'".
@@ -322,14 +322,14 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
       assert(recheck.len >= 2);
     } else {
       const auto quote = (flags & flags_quotes_kind) ? '\"' : '\'';
-      qouted_input = input;  // copy
-      qouted_input.insert(recheck.pos + recheck.len, 1, quote);
-      qouted_input.insert(recheck.pos, 1, quote);
+      quoted_input = input;  // copy
+      quoted_input.insert(recheck.pos + recheck.len, 1, quote);
+      quoted_input.insert(recheck.pos, 1, quote);
     }
 
     // Test quoted version of the string
-    if (!qouted_input.empty()) {
-      auto fix_scalar = "{\"Y\" : " + qouted_input + "}";
+    if (!quoted_input.empty()) {
+      auto fix_scalar = "{\"Y\" : " + quoted_input + "}";
       std::string fix_back;
       auto fix_done = Parse(parser, fix_scalar, &fix_back);
 
