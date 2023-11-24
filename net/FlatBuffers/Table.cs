@@ -91,7 +91,7 @@ namespace Google.FlatBuffers
         }
 
 #if ENABLE_SPAN_T && UNSAFE_BYTEBUFFER
-        // Get the data of a vector whoses offset is stored at "offset" in this object as an
+        // Get the data of a vector whose offset is stored at "offset" in this object as an
         // Span&lt;byte&gt;. If the vector is not present in the ByteBuffer,
         // then an empty span will be returned.
         public Span<T> __vector_as_span<T>(int offset, int elementSize) where T : struct
@@ -113,7 +113,7 @@ namespace Google.FlatBuffers
             return MemoryMarshal.Cast<byte, T>(bb.ToSpan(pos, len * elementSize));
         }
 #else
-        // Get the data of a vector whoses offset is stored at "offset" in this object as an
+        // Get the data of a vector whose offset is stored at "offset" in this object as an
         // ArraySegment&lt;byte&gt;. If the vector is not present in the ByteBuffer,
         // then a null value will be returned.
         public ArraySegment<byte>? __vector_as_arraysegment(int offset)
@@ -130,7 +130,7 @@ namespace Google.FlatBuffers
         }
 #endif
 
-        // Get the data of a vector whoses offset is stored at "offset" in this object as an
+        // Get the data of a vector whose offset is stored at "offset" in this object as an
         // T[]. If the vector is not present in the ByteBuffer, then a null value will be
         // returned.
         public T[] __vector_as_array<T>(int offset)
