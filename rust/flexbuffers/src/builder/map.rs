@@ -22,7 +22,7 @@ use super::{Builder, Pushable, Value, VectorBuilder};
 /// root is written and the flexbuffer is complete.
 /// ## Panics:
 /// -  Duplicate keys will result in a panic in both debug and release mode.
-/// -  Keys with internal nulls results in a panic in debug mode and result in silent truncaction
+/// -  Keys with internal nulls results in a panic in debug mode and result in silent truncation
 ///    in release mode.
 pub struct MapBuilder<'a> {
     pub(super) builder: &'a mut Builder,
