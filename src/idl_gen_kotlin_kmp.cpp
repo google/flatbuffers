@@ -1167,7 +1167,7 @@ class KotlinKMPGenerator : public BaseGenerator {
       }
 
       if (value_base_type == BASE_TYPE_VECTOR) {
-        // Generate Lenght functions for vectors
+        // Generate Length functions for vectors
         GenerateGetterOneLine(writer, field_name + "Length", "Int", [&]() {
           writer += LookupFieldOneLine(offset_val, "vectorLength(it)", "0");
         });

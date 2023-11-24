@@ -379,7 +379,7 @@ namespace Google.FlatBuffers.Test
         }
 
         [FlatBuffersTestMethod]
-        public void TestFixedLenghtArrays()
+        public void TestFixedLengthArrays()
         {
             FlatBufferBuilder builder = new FlatBufferBuilder(100);
 

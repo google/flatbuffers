@@ -613,7 +613,7 @@ void SizePrefixedTest() {
           fbb.GetSize() - sizeof(uoffset_t));
 
   // Getting the buffer length does include the prefix size, so it should be the
-  // full lenght.
+  // full length.
   TEST_EQ(GetSizePrefixedBufferLength(fbb.GetBufferPointer()), fbb.GetSize());
 
   // Access it.

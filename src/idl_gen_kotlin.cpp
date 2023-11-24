@@ -1110,7 +1110,7 @@ class KotlinGenerator : public BaseGenerator {
       }
 
       if (value_base_type == BASE_TYPE_VECTOR) {
-        // Generate Lenght functions for vectors
+        // Generate Length functions for vectors
         GenerateGetter(writer, field_name + "Length", "Int", [&]() {
           writer += OffsetWrapperOneLine(offset_val, "__vector_len(o)", "0");
         });
