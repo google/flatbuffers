@@ -169,7 +169,7 @@ public struct Verifier {
     return _buffer.read(def: T.self, position: position)
   }
 
-  /// derefrences an offset within a vtable to get the position of the field
+  /// dereferences an offset within a vtable to get the position of the field
   /// in the bytebuffer
   /// - Parameter position: Current readable position
   /// - Throws: `inBuffer` errors & `signedOffsetOutOfBounds`

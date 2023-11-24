@@ -54,7 +54,7 @@ public struct TableVerifier {
   }
 
   /// Dereference the current object position from the `VTable`
-  /// - Parameter field: Current VTable refrence to  position.
+  /// - Parameter field: Current VTable reference to  position.
   /// - Throws: A `FlatbuffersErrors` incase the voffset is not aligned/outOfBounds/apparentSizeTooLarge
   /// - Returns: An optional position for current field
   internal mutating func dereference(_ field: VOffset) throws -> Int? {
