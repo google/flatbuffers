@@ -2,12 +2,19 @@
 // @generated
 extern crate alloc;
 extern crate flatbuffers;
+#[allow(unused_imports)]
 use alloc::boxed::Box;
+#[allow(unused_imports)]
 use alloc::string::{String, ToString};
+#[allow(unused_imports)]
 use alloc::vec::Vec;
+#[allow(unused_imports)]
 use core::mem;
+#[allow(unused_imports)]
 use core::cmp::Ordering;
+#[allow(unused_imports)]
 use self::flatbuffers::{EndianScalar, Follow};
+#[allow(unused_imports)]
 use super::*;
 // struct Ability, aligned to 4
 #[repr(transparent)]
