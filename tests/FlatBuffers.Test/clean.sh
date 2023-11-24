@@ -7,4 +7,4 @@
 [ -d packages ] && rm -rf packages
 [ -d .tmp ] && rm -rf .tmp
 [ -f nuget.exe ] && rm nuget.exe
-[ -f dotnet-intall.sh ] && rm dotnet-install.sh
+[ -f dotnet-install.sh ] && rm dotnet-install.sh
