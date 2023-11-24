@@ -91,7 +91,7 @@ impl flatbuffers::EndianScalar for Any {
   }
 }
 
-impl<'a> flatbuffers::Verifiable for Any {
+impl flatbuffers::Verifiable for Any {
   #[inline]
   fn run_verifier(
     v: &mut flatbuffers::Verifier, pos: usize

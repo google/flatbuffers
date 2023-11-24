@@ -83,7 +83,7 @@ impl flatbuffers::EndianScalar for UnionInNestedNS {
   }
 }
 
-impl<'a> flatbuffers::Verifiable for UnionInNestedNS {
+impl flatbuffers::Verifiable for UnionInNestedNS {
   #[inline]
   fn run_verifier(
     v: &mut flatbuffers::Verifier, pos: usize

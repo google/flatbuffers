@@ -87,7 +87,7 @@ impl flatbuffers::EndianScalar for KeywordsInUnion {
   }
 }
 
-impl<'a> flatbuffers::Verifiable for KeywordsInUnion {
+impl flatbuffers::Verifiable for KeywordsInUnion {
   #[inline]
   fn run_verifier(
     v: &mut flatbuffers::Verifier, pos: usize

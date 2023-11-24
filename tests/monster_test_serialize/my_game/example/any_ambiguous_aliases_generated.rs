@@ -102,7 +102,7 @@ impl flatbuffers::EndianScalar for AnyAmbiguousAliases {
   }
 }
 
-impl<'a> flatbuffers::Verifiable for AnyAmbiguousAliases {
+impl flatbuffers::Verifiable for AnyAmbiguousAliases {
   #[inline]
   fn run_verifier(
     v: &mut flatbuffers::Verifier, pos: usize

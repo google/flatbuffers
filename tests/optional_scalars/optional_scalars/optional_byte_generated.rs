@@ -87,7 +87,7 @@ impl flatbuffers::EndianScalar for OptionalByte {
   }
 }
 
-impl<'a> flatbuffers::Verifiable for OptionalByte {
+impl flatbuffers::Verifiable for OptionalByte {
   #[inline]
   fn run_verifier(
     v: &mut flatbuffers::Verifier, pos: usize

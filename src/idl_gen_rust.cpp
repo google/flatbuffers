@@ -908,7 +908,7 @@ class RustGenerator : public BaseGenerator {
     code_ += "";
 
     // Generate verifier - deferring to the base type.
-    code_ += "impl<'a> flatbuffers::Verifiable for {{ENUM_TY}} {";
+    code_ += "impl flatbuffers::Verifiable for {{ENUM_TY}} {";
     code_ += "  #[inline]";
     code_ += "  fn run_verifier(";
     code_ += "    v: &mut flatbuffers::Verifier, pos: usize";

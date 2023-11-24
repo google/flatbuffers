@@ -87,7 +87,7 @@ impl flatbuffers::EndianScalar for ABC {
   }
 }
 
-impl<'a> flatbuffers::Verifiable for ABC {
+impl flatbuffers::Verifiable for ABC {
   #[inline]
   fn run_verifier(
     v: &mut flatbuffers::Verifier, pos: usize

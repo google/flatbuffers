@@ -83,7 +83,7 @@ impl flatbuffers::EndianScalar for Equipment {
   }
 }
 
-impl<'a> flatbuffers::Verifiable for Equipment {
+impl flatbuffers::Verifiable for Equipment {
   #[inline]
   fn run_verifier(
     v: &mut flatbuffers::Verifier, pos: usize

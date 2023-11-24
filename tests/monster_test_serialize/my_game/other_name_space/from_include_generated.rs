@@ -90,7 +90,7 @@ impl flatbuffers::EndianScalar for FromInclude {
   }
 }
 
-impl<'a> flatbuffers::Verifiable for FromInclude {
+impl flatbuffers::Verifiable for FromInclude {
   #[inline]
   fn run_verifier(
     v: &mut flatbuffers::Verifier, pos: usize

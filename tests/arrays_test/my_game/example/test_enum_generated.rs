@@ -87,7 +87,7 @@ impl flatbuffers::EndianScalar for TestEnum {
   }
 }
 
-impl<'a> flatbuffers::Verifiable for TestEnum {
+impl flatbuffers::Verifiable for TestEnum {
   #[inline]
   fn run_verifier(
     v: &mut flatbuffers::Verifier, pos: usize

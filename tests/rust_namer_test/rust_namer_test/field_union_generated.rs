@@ -83,7 +83,7 @@ impl flatbuffers::EndianScalar for FieldUnion {
   }
 }
 
-impl<'a> flatbuffers::Verifiable for FieldUnion {
+impl flatbuffers::Verifiable for FieldUnion {
   #[inline]
   fn run_verifier(
     v: &mut flatbuffers::Verifier, pos: usize

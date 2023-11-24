@@ -72,7 +72,7 @@ impl flatbuffers::EndianScalar for LongEnum {
   }
 }
 
-impl<'a> flatbuffers::Verifiable for LongEnum {
+impl flatbuffers::Verifiable for LongEnum {
   #[inline]
   fn run_verifier(
     v: &mut flatbuffers::Verifier, pos: usize
