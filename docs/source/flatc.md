@@ -180,9 +180,9 @@ list of `FILES...`.
 
 -   `--object-suffix` : Customise class suffix for C++ object-based API.
 
--   `--go-namespace` : Generate the overrided namespace in Golang.
+-   `--go-namespace` : Generate the overridden namespace in Golang.
 
--   `--go-import` : Generate the overrided import for flatbuffers in Golang.
+-   `--go-import` : Generate the overridden import for flatbuffers in Golang.
      (default is "github.com/google/flatbuffers/go").
 
 -   `--raw-binary` : Allow binaries without a file_identifier to be read.
