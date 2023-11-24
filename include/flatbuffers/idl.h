@@ -114,7 +114,7 @@ switch (type) {
 
 // Create an enum for all the types above.
 #ifdef __GNUC__
-__extension__  // Stop GCC complaining about trailing comma with -Wpendantic.
+__extension__  // Stop GCC complaining about trailing comma with -Wpedantic.
 #endif
 enum BaseType {
   #define FLATBUFFERS_TD(ENUM, IDLTYPE, \

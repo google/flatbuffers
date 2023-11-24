@@ -171,7 +171,7 @@ static T *LookupTableByName(const SymbolTable<T> &table,
   TD(FloatConstant, 259, "float constant") \
   TD(Identifier, 260, "identifier")
 #ifdef __GNUC__
-__extension__  // Stop GCC complaining about trailing comma with -Wpendantic.
+__extension__  // Stop GCC complaining about trailing comma with -Wpedantic.
 #endif
 enum {
   #define FLATBUFFERS_TOKEN(NAME, VALUE, STRING) kToken ## NAME = VALUE,
