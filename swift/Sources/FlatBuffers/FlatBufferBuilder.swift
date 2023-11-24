@@ -751,7 +751,7 @@ public struct FlatBufferBuilder {
     return offset
   }
 
-  // MARK: - Inseting offsets
+  // MARK: - Insetting offsets
 
   /// Writes the ``Offset`` of an already written table
   ///
