@@ -162,10 +162,10 @@ def run():
     assert s.Val() == test_stat_val
     assert s.Count() == test_stat_count
 
-    monster_reponses = stub.Retrieve(stat_response)
+    monster_responses = stub.Retrieve(stat_response)
     count = 0
-    for monster_reponse in monster_reponses:
-        m = Monster.Monster().GetRootAsMonster(monster_reponse, 0)
+    for monster_response in monster_responses:
+        m = Monster.Monster().GetRootAsMonster(monster_response, 0)
         assert m.Name().decode("utf-8") == test_monsters_name_retrieve[count]
         count = count + 1
 
