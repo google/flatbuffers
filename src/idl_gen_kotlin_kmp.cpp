@@ -54,10 +54,10 @@ static Namer::Config KotlinDefaultConfig() {
            /*fields=*/Case::kLowerCamel,
            /*variables=*/Case::kLowerCamel,
            /*variants=*/Case::kUpperCamel,
-           /*enum_variant_seperator=*/"",  // I.e. Concatenate.
+           /*enum_variant_separator=*/"",  // I.e. Concatenate.
            /*escape_keywords=*/Namer::Config::Escape::AfterConvertingCase,
            /*namespaces=*/Case::kLowerCamel,
-           /*namespace_seperator=*/".",
+           /*namespace_separator=*/".",
            /*object_prefix=*/"",
            /*object_suffix=*/"T",
            /*keyword_prefix=*/"",

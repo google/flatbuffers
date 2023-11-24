@@ -59,10 +59,10 @@ Namer::Config TypeScriptDefaultConfig() {
            /*fields=*/Case::kLowerCamel,
            /*variables=*/Case::kLowerCamel,
            /*variants=*/Case::kKeep,
-           /*enum_variant_seperator=*/"::",
+           /*enum_variant_separator=*/"::",
            /*escape_keywords=*/Namer::Config::Escape::AfterConvertingCase,
            /*namespaces=*/Case::kKeep,
-           /*namespace_seperator=*/"_",
+           /*namespace_separator=*/"_",
            /*object_prefix=*/"",
            /*object_suffix=*/"T",
            /*keyword_prefix=*/"",
@@ -179,7 +179,7 @@ class TsGenerator : public BaseGenerator {
     std::string symbolic_name;
     if (definition.defined_namespace->components.size() > 0) {
       path = namer_.Directories(*definition.defined_namespace,
-                                SkipDir::TrailingPathSeperator);
+                                SkipDir::TrailingPathSeparator);
       filepath = path + ".ts";
       path = namer_.Directories(*definition.defined_namespace,
                                 SkipDir::OutputPathAndTrailingPathSeparator);

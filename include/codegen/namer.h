@@ -20,8 +20,8 @@ enum class SkipDir {
   None = 0,
   // Skip prefixing the -o $output_path.
   OutputPath = 1,
-  // Skip trailing path seperator.
-  TrailingPathSeperator = 2,
+  // Skip trailing path separator.
+  TrailingPathSeparator = 2,
   OutputPathAndTrailingPathSeparator = 3,
 };
 inline SkipDir operator&(SkipDir a, SkipDir b) {
@@ -57,9 +57,9 @@ class Namer {
     // Case style for flatbuffers-defined variants.
     // e.g. `enum class Enum { MyVariant, }`
     Case variants;
-    // Seperator for qualified enum names.
+    // Separator for qualified enum names.
     // e.g. `Enum::MyVariant` uses `::`.
-    std::string enum_variant_seperator;
+    std::string enum_variant_separator;
 
     // Configures, when formatting code, whether symbols are checked against
     // keywords and escaped before or after case conversion. It does not make
@@ -75,8 +75,8 @@ class Namer {
 
     // e.g. `namespace my_namespace {}`
     Case namespaces;
-    // The seperator between namespaces in a namespace path.
-    std::string namespace_seperator;
+    // The separator between namespaces in a namespace path.
+    std::string namespace_separator;
 
     // Object API.
     // Native versions flatbuffers types have this prefix.
@@ -155,7 +155,7 @@ class Namer {
   virtual std::string Namespace(const std::vector<std::string> &ns) const {
     std::string result;
     for (auto it = ns.begin(); it != ns.end(); it++) {
-      if (it != ns.begin()) result += config_.namespace_seperator;
+      if (it != ns.begin()) result += config_.namespace_separator;
       result += Namespace(*it);
     }
     return result;
@@ -163,7 +163,7 @@ class Namer {
 
   virtual std::string NamespacedType(const std::vector<std::string> &ns,
                                      const std::string &s) const {
-    return (ns.empty() ? "" : (Namespace(ns) + config_.namespace_seperator)) +
+    return (ns.empty() ? "" : (Namespace(ns) + config_.namespace_separator)) +
            Type(s);
   }
 
@@ -182,7 +182,7 @@ class Namer {
   }
 
   // Formats `directories` prefixed with the output_path and joined with the
-  // right seperator. Output path prefixing and the trailing separator may be
+  // right separator. Output path prefixing and the trailing separator may be
   // skiped using `skips`.
   // Callers may want to use `EnsureDirExists` with the result.
   // input_case is used to tell how to modify namespace. e.g. kUpperCamel will
@@ -193,14 +193,14 @@ class Namer {
                                   Case input_case = Case::kUpperCamel) const {
     const bool skip_output_path =
         (skips & SkipDir::OutputPath) != SkipDir::None;
-    const bool skip_trailing_seperator =
-        (skips & SkipDir::TrailingPathSeperator) != SkipDir::None;
+    const bool skip_trailing_separator =
+        (skips & SkipDir::TrailingPathSeparator) != SkipDir::None;
     std::string result = skip_output_path ? "" : config_.output_path;
     for (auto d = directories.begin(); d != directories.end(); d++) {
       result += ConvertCase(*d, config_.directories, input_case);
       result.push_back(kPathSeparator);
     }
-    if (skip_trailing_seperator && !result.empty()) result.pop_back();
+    if (skip_trailing_separator && !result.empty()) result.pop_back();
     return result;
   }
 

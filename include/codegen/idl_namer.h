@@ -49,7 +49,7 @@ class IdlNamer : public Namer {
   std::string Variant(const EnumVal &s) const { return Variant(s.name); }
 
   std::string EnumVariant(const EnumDef &e, const EnumVal &v) const {
-    return Type(e) + config_.enum_variant_seperator + Variant(v);
+    return Type(e) + config_.enum_variant_separator + Variant(v);
   }
 
   std::string ObjectType(const StructDef &d) const {
@@ -156,7 +156,7 @@ class IdlNamer : public Namer {
                                const std::string &str) const {
     std::string ret;
     if (ns != nullptr) { ret += Namespace(ns->components); }
-    if (!ret.empty()) ret += config_.namespace_seperator;
+    if (!ret.empty()) ret += config_.namespace_separator;
     return ret + str;
   }
 };
