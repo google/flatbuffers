@@ -290,7 +290,7 @@ class NimBfbsGenerator : public BaseBfbsGenerator {
         code += "  for i in countup(0, len - 1):\n";
         code += "    result.add(self." + field_name + "(i))\n";
 
-        (void)IsSingleByte(vector_base_type);  // unnused function warning
+        (void)IsSingleByte(vector_base_type);  // unused function warning
       }
     });
 
