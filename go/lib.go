@@ -24,7 +24,7 @@ func GetSizePrefix(buf []byte, offset UOffsetT) uint32 {
 	return GetUint32(buf[offset:])
 }
 
-// GetIndirectOffset retrives the relative offset in the provided buffer stored at `offset`.
+// GetIndirectOffset retrieves the relative offset in the provided buffer stored at `offset`.
 func GetIndirectOffset(buf []byte, offset UOffsetT) UOffsetT {
 	return offset + GetUOffsetT(buf[offset:])
 }
