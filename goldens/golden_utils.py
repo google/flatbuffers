@@ -18,7 +18,7 @@ from scripts.util import flatc
 
 
 def flatc_golden(options, schema, prefix):
-    # wrap the generic flatc call with specifis for these goldens.
+    # wrap the generic flatc call with specifics for these goldens.
     flatc(
         options=options,
         # where the files are generated, typically the language (e.g. "cpp").
