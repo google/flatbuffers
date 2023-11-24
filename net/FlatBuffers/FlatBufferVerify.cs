@@ -482,7 +482,7 @@ namespace Google.FlatBuffers
       return true;
     }
 
-    /// <summary> Verifiy static/inlined data area field </summary>
+    /// <summary> Verify static/inlined data area field </summary>
     /// <param name="tablePos"> Position in the Table</param>
     /// <param name="offsetId"> Offset to the static/inlined data element </param>
     /// <param name="elementSize"> Size of the element </param>
@@ -643,7 +643,7 @@ namespace Google.FlatBuffers
       return true;
     }
 
-    /// <summary> Verifiy static/inlined data area at absolute offset </summary>
+    /// <summary> Verify static/inlined data area at absolute offset </summary>
     /// <param name="pos"> Position of static/inlined data area in the Byte Buffer</param>
     /// <param name="elementSize"> Size of the union data</param>
     /// <param name="align"> Alignment bool value </param>
