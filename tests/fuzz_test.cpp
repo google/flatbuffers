@@ -156,7 +156,7 @@ void FuzzTest2() {
   // num_struct_definitions will be structs, the rest tables. For each
   // generate random fields, some of which may be struct/table types
   // referring to previously generated structs/tables.
-  // Simultanenously, we generate instances_per_definition JSON data
+  // Simultaneously, we generate instances_per_definition JSON data
   // definitions, which will have identical structure to the schema
   // being generated. We generate multiple instances such that when creating
   // hierarchy, we get some variety by picking one randomly.
