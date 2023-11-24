@@ -183,7 +183,7 @@ class Namer {
 
   // Formats `directories` prefixed with the output_path and joined with the
   // right separator. Output path prefixing and the trailing separator may be
-  // skiped using `skips`.
+  // skipped using `skips`.
   // Callers may want to use `EnsureDirExists` with the result.
   // input_case is used to tell how to modify namespace. e.g. kUpperCamel will
   // add an underscore between case changes, so MyGame turns into My_Game
