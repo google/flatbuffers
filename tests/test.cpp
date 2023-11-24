@@ -499,7 +499,7 @@ void EqualOperatorTest() {
     TEST_EQ(a == b, true);
 
     // Adding only a table to one of the monster vectors should make it not
-    // equal (due to size mistmatch).
+    // equal (due to size mismatch).
     a.testarrayoftables.push_back(
         flatbuffers::unique_ptr<MonsterT>(new MonsterT));
     a.testarrayoftables.back()->nan_default = 0;
