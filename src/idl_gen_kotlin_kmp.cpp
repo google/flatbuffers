@@ -166,7 +166,7 @@ class KotlinKMPGenerator : public BaseGenerator {
     return type.enum_def != nullptr && IsInteger(type.base_type);
   }
 
-  std::string GenerateKotlinPrimiteArray(const Type &type) const {
+  std::string GenerateKotlinPrimitiveArray(const Type &type) const {
     if (IsScalar(type.base_type) && !IsEnum(type)) { return GenType(type); }
 
     if (IsEnum(type) || type.base_type == BASE_TYPE_UTYPE) {
