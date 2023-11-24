@@ -84,7 +84,7 @@ as C++-like types which are the standard fix-width scalars. For the above
 example, the type is `uint16_t` which is a 16-bit unsigned integer type.
 
 The fourth column shows the raw bytes as a compacted, big-endian value. The raw
-bytes are duplicated in this fashion since it is more intutive to read the data
+bytes are duplicated in this fashion since it is more intuitive to read the data
 in the big-endian format (e.g., `0x0008`). This value is followed by the decimal
 representation of the value (e.g., `(8)`). (For strings, the raw string value
 is shown instead). 
