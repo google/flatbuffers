@@ -16,7 +16,7 @@ main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(BuilderTest);
     defineReflectiveTests(ObjectAPITest);
-    defineReflectiveTests(CheckOtherLangaugesData);
+    defineReflectiveTests(CheckOtherLanguagesData);
     defineReflectiveTests(GeneratorTest);
     defineReflectiveTests(ListOfEnumsTest);
   });
@@ -27,7 +27,7 @@ int indexToField(int index) {
 }
 
 @reflectiveTest
-class CheckOtherLangaugesData {
+class CheckOtherLanguagesData {
   test_cppData() async {
     List<int> data = await io.File(path.join(
       path.context.current,

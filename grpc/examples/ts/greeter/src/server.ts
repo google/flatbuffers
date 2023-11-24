@@ -15,7 +15,7 @@ const greeter: IGreeterServer = {
     },
     async SayManyHellos(call: grpc.ServerWritableStream<HelloRequest, HelloReply>): Promise<void> {
         const name = call.request.name();
-        console.log(`${call.request.name()} saying hi in different langagues`);
+        console.log(`${call.request.name()} saying hi in different languages`);
         ['Hi', 'Hallo', 'Ciao'].forEach(element => {
             const builder = new flatbuffers.Builder();
             const offset = builder.createString(`${element} ${name}`);
