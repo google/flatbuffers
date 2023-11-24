@@ -47,7 +47,7 @@ pub enum FlexBufferType {
     /// Variable width floating point: `f32, f64`
     Float = 3,
     Bool = 26,
-    /// Null termintated, utf8 string. Typically used with `Map`s.
+    /// Null terminated, utf8 string. Typically used with `Map`s.
     Key = 4,
     /// Stored with a unsigned integer length, then UTF-8 bytes, and an extra null terminator that
     /// is not counted with the length.

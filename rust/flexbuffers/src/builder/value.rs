@@ -29,7 +29,7 @@ pub enum Value {
     UInt(u64),
     Float(f64),
     Bool(bool),
-    /// Null termintated, c_string. Only used with `Map`s.
+    /// Null terminated, c_string. Only used with `Map`s.
     Key(usize),
     /// The other ~20 or so types.
     Reference {
