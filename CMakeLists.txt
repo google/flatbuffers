@@ -328,7 +328,7 @@ include_directories(grpc)
 
 # Creates an interface library that stores the configuration settings that each
 # target links too. This is a compromise between setting configuration globally
-# with add_compile_options() and the more targetted target_compile_options().
+# with add_compile_options() and the more targeted target_compile_options().
 # This way each target in this file can share settings and override them if
 # needed.
 add_library(ProjectConfig INTERFACE)
