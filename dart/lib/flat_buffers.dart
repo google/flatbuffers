@@ -489,7 +489,7 @@ class Builder {
     _currentTableEndTail = _tail;
   }
 
-  /// Finish a Struct vector.  Most callers should preferto use [writeListOfStructs].
+  /// Finish a Struct vector.  Most callers should prefer to use [writeListOfStructs].
   ///
   /// Most callers should prefer [writeListOfStructs].
   int endStructVector(int count) {
