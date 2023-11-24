@@ -202,7 +202,7 @@ class CppTests:
             "../.tmp/bar_generated.h", '#include "test/baz/baz_generated.h"'
         )
 
-    def KeepPrefixIncludePrefixoutPathAbsolutePaths_SuperDirectoryReference(self):
+    def KeepPrefixIncludePrefixOutPathAbsolutePaths_SuperDirectoryReference(self):
         # Generate bar_with_foo that references a type in a super directory.
         flatc(
             [
@@ -227,7 +227,7 @@ class CppTests:
             ],
         )
 
-    def KeepPrefixIncludePrefixoutPath_SuperDirectoryReference(self):
+    def KeepPrefixIncludePrefixOutPath_SuperDirectoryReference(self):
         # Generate bar_with_foo that references a type in a super directory.
         flatc(
             [
