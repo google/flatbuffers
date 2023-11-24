@@ -79,7 +79,7 @@ for the wire format.
 
 The third column is the type to interpret the bytes as. Some types are special
 to flatbuffer internals (e.g. `SOffet32`, `Offset32`, and `VOffset16`) which are
-used by flatbuffers to point to various offsetes. The other types are specified
+used by flatbuffers to point to various offsets. The other types are specified
 as C++-like types which are the standard fix-width scalars. For the above
 example, the type is `uint16_t` which is a 16-bit unsigned integer type.
 
