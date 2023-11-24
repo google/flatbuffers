@@ -506,7 +506,7 @@ class CppGenerator : public BaseGenerator {
       code_ += "";
     }
 
-    // Generate preablmle code for mini reflection.
+    // Generate preamble code for mini reflection.
     if (opts_.mini_reflect != IDLOptions::kNone) {
       // To break cyclic dependencies, first pre-declare all tables/structs.
       for (const auto &struct_def : parser_.structs_.vec) {
