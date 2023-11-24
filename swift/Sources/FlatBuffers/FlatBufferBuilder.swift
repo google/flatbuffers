@@ -131,7 +131,7 @@ public struct FlatBufferBuilder {
     serializeDefaults force: Bool = false)
   {
     assert(initialSize > 0, "Size should be greater than zero!")
-    guard isLitteEndian else {
+    guard isLittleEndian else {
       fatalError(
         "Reading/Writing a buffer in big endian machine is not supported on swift")
     }
