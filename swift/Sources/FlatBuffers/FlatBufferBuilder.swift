@@ -40,7 +40,7 @@ public struct FlatBufferBuilder {
   private var isNested = false
   /// Dictionary that stores a map of all the strings that were written to the buffer
   private var stringOffsetMap: [String: Offset] = [:]
-  /// A check to see if finish(::) was ever called to retreive data object
+  /// A check to see if finish(::) was ever called to retrieve data object
   private var finished = false
   /// A check to see if the buffer should serialize Default values
   private var serializeDefaults: Bool
