@@ -870,7 +870,7 @@ extension FlatBufferBuilder: CustomDebugStringConvertible {
     private var memoryInUse = false
     /// Size of FieldLoc in memory
     let size = MemoryLayout<FieldLoc>.stride
-    /// Memeory buffer
+    /// Memory buffer
     var memory: UnsafeMutableRawBufferPointer!
     /// Capacity of the current buffer
     var capacity: Int = 0
