@@ -465,7 +465,7 @@ class PhpGenerator : public BaseGenerator {
     }
   }
 
-  // Recursively generate struct construction statements and instert manual
+  // Recursively generate struct construction statements and insert manual
   // padding.
   static void StructBuilderBody(const StructDef &struct_def,
                                 const char *nameprefix, std::string *code_ptr) {

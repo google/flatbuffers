@@ -341,7 +341,7 @@ class LobsterGenerator : public BaseGenerator {
     }
   }
 
-  // Recursively generate struct construction statements and instert manual
+  // Recursively generate struct construction statements and insert manual
   // padding.
   void StructBuilderBody(const StructDef &struct_def, const char *nameprefix,
                          std::string *code_ptr) {
