@@ -633,9 +633,9 @@ namespace Google.FlatBuffers
         var vecStart = vecOffset + SIZE_U_OFFSET;
         // Create and Copy nested buffer bytes from part of Verify Buffer
         var nestedByteBuffer = new ByteBuffer(verifier_buffer.ToArray(Convert.ToInt32(vecStart), Convert.ToInt32(vecLength)));
-        var nestedVerifyier = new Verifier(nestedByteBuffer, options);
+        var nestedVerifier = new Verifier(nestedByteBuffer, options);
         // There is no internal identifier - use empty one
-        if (!nestedVerifyier.CheckBufferFromStart("", 0, verifyAction))
+        if (!nestedVerifier.CheckBufferFromStart("", 0, verifyAction))
         {
           return false;
         }
