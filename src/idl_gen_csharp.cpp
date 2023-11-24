@@ -544,7 +544,7 @@ class CSharpGenerator : public BaseGenerator {
     }
   }
 
-  // Recusively generate struct construction statements of the form:
+  // Recursively generate struct construction statements of the form:
   // builder.putType(name);
   // and insert manual padding.
   void GenStructBody(const StructDef &struct_def, std::string *code_ptr,
