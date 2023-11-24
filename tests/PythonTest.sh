@@ -66,7 +66,7 @@ run_tests pypy 100 100 100 100 false
 #       http://bugs.jython.org/issue2188
 
 if [ ${#interpreters_tested[@]} -eq 0 ]; then
-  echo "No Python interpeters found on this system, could not run tests."
+  echo "No Python interpreters found on this system, could not run tests."
   exit 1
 fi
 
