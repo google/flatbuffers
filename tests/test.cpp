@@ -1289,7 +1289,7 @@ void FlatbuffersIteratorsTest() {
 }
 
 void PrivateAnnotationsLeaks() {
-  // Simple schemas and a "has optional scalar" sentinal.
+  // Simple schemas and a "has optional scalar" sentinel.
   std::vector<std::string> schemas;
   std::vector<std::string> failure_schemas;
 
