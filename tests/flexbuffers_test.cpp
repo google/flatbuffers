@@ -235,7 +235,7 @@ void FlexBuffersDeprecatedTest() {
   // bit-width of the size field of the string is, we are going to ignore this
   // field, and instead treat these strings as FBT_KEY (null-terminated), so we
   // can deal with strings of arbitrary length. This of course truncates strings
-  // with embedded nulls, but we think that that is preferrable over truncating
+  // with embedded nulls, but we think that that is preferable over truncating
   // strings >= 256 bytes.
   auto vec = flexbuffers::GetRoot(slb.GetBuffer()).AsTypedVector();
   // Even though this was serialized as FBT_VECTOR_STRING, it is read as
