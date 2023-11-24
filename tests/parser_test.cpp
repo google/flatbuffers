@@ -145,7 +145,7 @@ void ErrorTest() {
   TestError("union Y { } table X { ys:[Y] (vector64); }",
             "only vectors of scalars are allowed to be 64-bit.");
 
-  // TOOD(derekbailey): the following three could be allowed once the code gen
+  // TODO(derekbailey): the following three could be allowed once the code gen
   // supports the output.
   TestError("table X { y:[string] (offset64); }",
             "only vectors of scalars are allowed to be 64-bit.");
