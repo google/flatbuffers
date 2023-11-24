@@ -1079,7 +1079,7 @@ class Parser : public ParserState {
 
   // @brief Verify that any of 'opts.lang_to_generate' supports Optional scalars
   // in a schema.
-  // @param opts Options used to parce a schema and generate code.
+  // @param opts Options used to parse a schema and generate code.
   static bool SupportsOptionalScalars(const flatbuffers::IDLOptions &opts);
 
   // Get the set of included files that are directly referenced by the file
