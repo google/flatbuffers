@@ -563,7 +563,7 @@ final class FlatbufferBuilder
      * Adds on offset, relative to where it will be written.
      * @param $off The offset to add to the buffer.
      * @throws \Exception Throws an exception if `$off` is greater than the underlying ByteBuffer's
-     * offest.
+     * offset.
      */
     public function addOffset($off)
     {
@@ -896,7 +896,7 @@ final class FlatbufferBuilder
 
     /**
      * Finalize a buffer, pointing to the given `$root_table`.
-     * @param $root_table An offest to be added to the buffer.
+     * @param $root_table An offset to be added to the buffer.
      * @param $file_identifier A FlatBuffer file identifier to be added to the
      *     buffer before `$root_table`. This defaults to `null`.
      * @throws InvalidArgumentException Thrown if an invalid `$identifier` is

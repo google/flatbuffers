@@ -2570,7 +2570,7 @@ class TestVtableDeduplication(unittest.TestCase):
     table1 = flatbuffers.table.Table(b.Bytes, len(b.Bytes) - obj1)
     table2 = flatbuffers.table.Table(b.Bytes, len(b.Bytes) - obj2)
 
-    def _checkTable(tab, voffsett_value, b, c, d):
+    def _checkTable(tab, voffset_value, b, c, d):
       # vtable size
       got = tab.GetVOffsetTSlot(0, 0)
       self.assertEqual(12, got, 'case 0, 0')
@@ -2581,7 +2581,7 @@ class TestVtableDeduplication(unittest.TestCase):
 
       # default value
       got = tab.GetVOffsetTSlot(4, 0)
-      self.assertEqual(voffsett_value, got, 'case 4, 0')
+      self.assertEqual(voffset_value, got, 'case 4, 0')
 
       got = tab.GetSlot(6, 0, N.Uint8Flags)
       self.assertEqual(b, got, 'case 6, 0')

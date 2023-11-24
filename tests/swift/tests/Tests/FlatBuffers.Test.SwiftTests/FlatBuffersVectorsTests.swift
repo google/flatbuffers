@@ -128,10 +128,10 @@ final class FlatBuffersVectors: XCTestCase {
     let emptyVector = [UInt8]()
     let emptyOffset = builder.createVector(emptyVector)
     let nonEmptyVector = [1, 2, 3]
-    let nonEmptyVectorOffest = builder.createVector(nonEmptyVector)
+    let nonEmptyVectorOffset = builder.createVector(nonEmptyVector)
     let start = Swift_Tests_Vectors.startVectors(&builder)
     Swift_Tests_Vectors.addVectorOf(empty: emptyOffset, &builder)
-    Swift_Tests_Vectors.addVectorOf(array: nonEmptyVectorOffest, &builder)
+    Swift_Tests_Vectors.addVectorOf(array: nonEmptyVectorOffset, &builder)
     let finish = Swift_Tests_Vectors.endVectors(&builder, start: start)
     builder.finish(offset: finish)
 
