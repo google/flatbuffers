@@ -913,7 +913,7 @@ void FieldIdentifierTest() {
   TEST_EQ(false, Parser().Parse("table T{ f: int (id:1.0); }"));
   TEST_EQ(false, Parser().Parse("table T{ f: int (id:-1); g: int (id:0); }"));
   TEST_EQ(false, Parser().Parse("table T{ f: int (id:129496726); }"));
-  // A unuion filed occupies two ids: enumerator + pointer (offset).
+  // A union filed occupies two ids: enumerator + pointer (offset).
   TEST_EQ(false,
           Parser().Parse("union X{} table T{ u: X(id:0); table F{x:int;\n}"));
   // Positive tests for unions
