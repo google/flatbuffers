@@ -397,7 +397,7 @@ static void GenerateClientReadableStreamInterface(
   printer->Print(vars, (main + options + end_function).c_str());
 }
 
-static void GenerateDepluxStreamInterface(
+static void GenerateDuplexStreamInterface(
     grpc_generator::Printer *printer,
     std::map<grpc::string, grpc::string> *dictionary) {
   auto vars = *dictionary;
@@ -433,7 +433,7 @@ static void GenerateClientInterface(const grpc_generator::Service *service,
       continue;
     }
     if (method->BidiStreaming()) {
-      GenerateDepluxStreamInterface(printer, &vars);
+      GenerateDuplexStreamInterface(printer, &vars);
       continue;
     }
 
@@ -475,7 +475,7 @@ static void GenerateClientClassInterface(
       continue;
     }
     if (method->BidiStreaming()) {
-      GenerateDepluxStreamInterface(printer, &vars);
+      GenerateDuplexStreamInterface(printer, &vars);
       continue;
     }
 
