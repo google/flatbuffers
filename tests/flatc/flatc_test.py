@@ -130,7 +130,7 @@ def run_all(*modules):
                 print(" [FAILED]: " + str(e))
                 module_failing = module_failing + 1
         print(
-            "{0}: {1} of {2} passsed".format(
+            "{0}: {1} of {2} passed".format(
                 module.__name__, module_passing, module_passing + module_failing
             )
         )
