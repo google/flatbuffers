@@ -41,7 +41,7 @@ table RootTable {
   //
   // This demonstrates how you could have many vectors in the buffer, by 
   // effectively having a vector of 64-bit vectors. The IDL doesn't support
-  // nested vecotrs (e.g.: [[type]] ), so going through a wrapper table allows
+  // nested vectors (e.g.: [[type]] ), so going through a wrapper table allows
   // this.
   many_vectors:[WrapperTable];
 
