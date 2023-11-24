@@ -110,7 +110,7 @@ class Builder(object):
       finished: A boolean determining if the Builder has been finalized.
     """
 
-    ## @cond FLATBUFFERS_INTENRAL
+    ## @cond FLATBUFFERS_INTERNAL
     __slots__ = ("Bytes", "current_vtable", "head", "minalign", "objectEnd",
                  "vtables", "nested", "forceDefaults", "finished", "vectorNumElems",
                  "sharedStrings")
