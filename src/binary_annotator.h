@@ -105,7 +105,7 @@ enum class BinaryRegionCommentType {
   // The size of the vtable.
   VTableSize,
   // The size of the referring table.
-  VTableRefferingTableLength,
+  VTableReferringTableLength,
   // Offsets to vtable fields.
   VTableFieldOffset,
   // Offsets to unknown vtable fields.

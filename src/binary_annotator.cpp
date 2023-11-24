@@ -306,7 +306,7 @@ BinaryAnnotator::VTable *BinaryAnnotator::GetOrBuildVTable(
 
   BinaryRegionComment ref_table_len_comment;
   ref_table_len_comment.type =
-      BinaryRegionCommentType::VTableRefferingTableLength;
+      BinaryRegionCommentType::VTableReferringTableLength;
 
   // Ensure we can read the next uint16_t field, which is the size of the
   // referring table.
