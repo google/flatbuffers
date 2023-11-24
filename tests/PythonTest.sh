@@ -70,7 +70,7 @@ if [ ${#interpreters_tested[@]} -eq 0 ]; then
   exit 1
 fi
 
-# Run test suite with default python intereter.
+# Run test suite with default python interpreter.
 # (If the Python program `coverage` is available, it will be run, too.
 #  Install `coverage` with `pip install coverage`.)
 if $(which coverage >/dev/null); then
