@@ -560,7 +560,7 @@ class KotlinKMPGenerator : public BaseGenerator {
   // e.g:
   // Array<Offset<Monster>> generates boxing.
   // So we creates a new type to avoid it:
-  // typealias MonterOffsetArray = IntArray
+  // typealias MonsterOffsetArray = IntArray
   void GenStructOffsetAlias(StructDef &struct_def, CodeWriter &writer) const {
     if (struct_def.generated) return;
     auto name = namer_.Type(struct_def);
@@ -584,7 +584,7 @@ class KotlinKMPGenerator : public BaseGenerator {
   // e.g:
   // Array<Offset<Monster>> generates boxing.
   // So we creates a new type to avoid it:
-  // typealias MonterOffsetArray = IntArray
+  // typealias MonsterOffsetArray = IntArray
   void GenEnumOffsetAlias(EnumDef &enum_def, CodeWriter &writer) const {
     if (enum_def.generated) return;
     // This assumes offset as Ints always.

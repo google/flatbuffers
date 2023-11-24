@@ -32,11 +32,11 @@ open class FlatbufferBenchmark {
   val fbDeserializationJava = com.google.flatbuffers.FlatBufferBuilder(1024 * repetition)
 
   init {
-      populateMosterKotlin(fbDeserializationKotlin)
-      populateMosterJava(fbDeserializationJava)
+      populateMonsterKotlin(fbDeserializationKotlin)
+      populateMonsterJava(fbDeserializationJava)
   }
   @OptIn(ExperimentalUnsignedTypes::class)
-  private fun populateMosterKotlin(fb: FlatBufferBuilder) {
+  private fun populateMonsterKotlin(fb: FlatBufferBuilder) {
     fb.clear()
     val monsterName = fb.createString("MonsterName");
     val items = ubyteArrayOf(0u, 1u, 2u, 3u, 4u)
@@ -57,7 +57,7 @@ open class FlatbufferBenchmark {
   }
 
   @OptIn(ExperimentalUnsignedTypes::class)
-  private fun populateMosterJava(fb: com.google.flatbuffers.FlatBufferBuilder){
+  private fun populateMonsterJava(fb: com.google.flatbuffers.FlatBufferBuilder){
     fb.clear()
     val monsterName = fb.createString("MonsterName");
     val inv = JMonster.createInventoryVector(fb, ubyteArrayOf(0u, 1u, 2u, 3u, 4u))
@@ -76,7 +76,7 @@ open class FlatbufferBenchmark {
   }
   @Benchmark
   fun monstersSerializationKotlin() {
-    populateMosterKotlin(fbKotlin)
+    populateMonsterKotlin(fbKotlin)
   }
 
   @OptIn(ExperimentalUnsignedTypes::class)
@@ -102,7 +102,7 @@ open class FlatbufferBenchmark {
   }
   @Benchmark
   fun monstersSerializationJava() {
-    populateMosterJava(fbJava)
+    populateMonsterJava(fbJava)
   }
 
   @Benchmark

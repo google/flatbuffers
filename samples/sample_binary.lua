@@ -32,7 +32,7 @@ weapon.AddName(builder, weaponTwo)
 weapon.AddDamage(builder, 5)
 local axe = weapon.End(builder)
 
--- Serialize a name for our mosnter, called 'orc'
+-- Serialize a name for our monster, called 'orc'
 local name = builder:CreateString("Orc")
 
 -- Create a `vector` representing the inventory of the Orc. Each number
