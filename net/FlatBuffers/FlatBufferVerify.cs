@@ -261,7 +261,7 @@ namespace Google.FlatBuffers
 
     }
     /// <summary> Get table data area absolute offset from vtable. Result is the absolute buffer offset.
-    /// The result value offset cannot be '0' (pointing to itself) so after validation this method returnes '0'
+    /// The result value offset cannot be '0' (pointing to itself) so after validation this method returns '0'
     /// value as a marker for missing optional entry </summary>
     /// <param name="tablePos"> Table Position value in the Byte Buffer </param>
     /// <param name="vtableOffset"> offset value in the Table</param>
