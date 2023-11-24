@@ -1769,7 +1769,7 @@ class PythonGenerator : public BaseGenerator {
       }
 
       const auto default_value = GetDefaultValue(field);
-      // Wrties the init statement.
+      // Writes the init statement.
       const auto field_field = namer_.Field(field);
       code += GenIndents(2) + "self." + field_field + " = " + default_value +
               "  # type: " + field_type;
@@ -1864,7 +1864,7 @@ class PythonGenerator : public BaseGenerator {
       auto &field = **it;
       if (field.deprecated) continue;
 
-      // Wrties the comparison statement for this field.
+      // Writes the comparison statement for this field.
       const auto field_field = namer_.Field(field);
       code += " and \\" + GenIndents(3) + "self." + field_field +
               " == " + "other." + field_field;
