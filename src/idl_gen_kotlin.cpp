@@ -606,7 +606,7 @@ class KotlinGenerator : public BaseGenerator {
         writer += GenOffsetGetter(key_field) + "\\";
         writer += ", byteKey, bb)";
       } else {
-        auto cast = CastToUsigned(key_field->value.type);
+        auto cast = CastToUnsigned(key_field->value.type);
         auto get_val = GenLookupByKey(key_field, "bb");
         writer += "val value = " + get_val + cast;
         writer += "val comp = value.compareTo(key)";
@@ -928,7 +928,7 @@ class KotlinGenerator : public BaseGenerator {
       auto field_default_value = GenDefaultValue(field);
       auto return_type = GetterReturnType(field);
       auto bbgetter = ByteBufferGetter(field.value.type, "bb");
-      auto ucast = CastToUsigned(field);
+      auto ucast = CastToUnsigned(field);
       auto offset_val = NumToString(field.value.offset);
       auto offset_prefix =
           "val o = __offset(" + offset_val + "); return o != 0 ? ";
@@ -1286,18 +1286,18 @@ class KotlinGenerator : public BaseGenerator {
     }
   }
 
-  static std::string CastToUsigned(const FieldDef &field) {
-    return CastToUsigned(field.value.type);
+  static std::string CastToUnsigned(const FieldDef &field) {
+    return CastToUnsigned(field.value.type);
   }
 
-  static std::string CastToUsigned(const Type type) {
+  static std::string CastToUnsigned(const Type type) {
     switch (type.base_type) {
       case BASE_TYPE_UINT: return ".toUInt()";
       case BASE_TYPE_UCHAR:
       case BASE_TYPE_UTYPE: return ".toUByte()";
       case BASE_TYPE_USHORT: return ".toUShort()";
       case BASE_TYPE_ULONG: return ".toULong()";
-      case BASE_TYPE_VECTOR: return CastToUsigned(type.VectorType());
+      case BASE_TYPE_VECTOR: return CastToUnsigned(type.VectorType());
       default: return "";
     }
   }
