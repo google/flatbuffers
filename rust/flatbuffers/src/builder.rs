@@ -351,7 +351,7 @@ impl<'fbb, A: Allocator> FlatBufferBuilder<'fbb, A> {
             "create_shared_string cannot be called when a table or vector is under construction",
         );
 
-        // Saves a ref to allocator since rust doesnt like us refrencing it
+        // Saves a ref to allocator since rust doesnt like us referencing it
         // in the binary_search_by code.
         let buf = &self.allocator;
 
