@@ -135,7 +135,7 @@ pub struct Table2Args {
     pub type_type: KeywordsInUnion,
     pub type_: Option<flatbuffers::WIPOffset<flatbuffers::UnionWIPOffset>>,
 }
-impl<'a> Default for Table2Args {
+impl Default for Table2Args {
   #[inline]
   fn default() -> Self {
     Table2Args {

@@ -62,7 +62,7 @@ impl flatbuffers::Verifiable for FieldTable<'_> {
 }
 pub struct FieldTableArgs {
 }
-impl<'a> Default for FieldTableArgs {
+impl Default for FieldTableArgs {
   #[inline]
   fn default() -> Self {
     FieldTableArgs {

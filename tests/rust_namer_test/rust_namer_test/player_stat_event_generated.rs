@@ -62,7 +62,7 @@ impl flatbuffers::Verifiable for PlayerStatEvent<'_> {
 }
 pub struct PlayerStatEventArgs {
 }
-impl<'a> Default for PlayerStatEventArgs {
+impl Default for PlayerStatEventArgs {
   #[inline]
   fn default() -> Self {
     PlayerStatEventArgs {

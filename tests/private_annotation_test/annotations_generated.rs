@@ -76,7 +76,7 @@ impl flatbuffers::Verifiable for Annotations<'_> {
 pub(crate) struct AnnotationsArgs {
     pub value: i32,
 }
-impl<'a> Default for AnnotationsArgs {
+impl Default for AnnotationsArgs {
   #[inline]
   fn default() -> Self {
     AnnotationsArgs {

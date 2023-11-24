@@ -2038,7 +2038,7 @@ class RustGenerator : public BaseGenerator {
     code_ += "}";
 
     // Generate an impl of Default for the *Args type:
-    code_ += "impl<'a> Default for {{STRUCT_TY}}Args{{MAYBE_LT}} {";
+    code_ += "impl{{MAYBE_LT}} Default for {{STRUCT_TY}}Args{{MAYBE_LT}} {";
     code_ += "  #[inline]";
     code_ += "  fn default() -> Self {";
     code_ += "    {{STRUCT_TY}}Args {";

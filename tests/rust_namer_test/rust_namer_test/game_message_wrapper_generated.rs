@@ -156,7 +156,7 @@ pub struct GameMessageWrapperArgs {
     pub Message_type: GameMessage,
     pub Message: Option<flatbuffers::WIPOffset<flatbuffers::UnionWIPOffset>>,
 }
-impl<'a> Default for GameMessageWrapperArgs {
+impl Default for GameMessageWrapperArgs {
   #[inline]
   fn default() -> Self {
     GameMessageWrapperArgs {

@@ -76,7 +76,7 @@ impl flatbuffers::Verifiable for TestSimpleTableWithEnum<'_> {
 pub struct TestSimpleTableWithEnumArgs {
     pub color: Color,
 }
-impl<'a> Default for TestSimpleTableWithEnumArgs {
+impl Default for TestSimpleTableWithEnumArgs {
   #[inline]
   fn default() -> Self {
     TestSimpleTableWithEnumArgs {

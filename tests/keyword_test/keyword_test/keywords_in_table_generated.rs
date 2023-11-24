@@ -115,7 +115,7 @@ pub struct KeywordsInTableArgs {
     pub type_: i32,
     pub default: bool,
 }
-impl<'a> Default for KeywordsInTableArgs {
+impl Default for KeywordsInTableArgs {
   #[inline]
   fn default() -> Self {
     KeywordsInTableArgs {

@@ -114,7 +114,7 @@ pub struct RootTableArgs {
     pub field42_type: FieldUnion,
     pub field42: Option<flatbuffers::WIPOffset<flatbuffers::UnionWIPOffset>>,
 }
-impl<'a> Default for RootTableArgs {
+impl Default for RootTableArgs {
   #[inline]
   fn default() -> Self {
     RootTableArgs {

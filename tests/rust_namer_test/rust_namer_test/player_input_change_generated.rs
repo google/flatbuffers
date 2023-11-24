@@ -62,7 +62,7 @@ impl flatbuffers::Verifiable for PlayerInputChange<'_> {
 }
 pub struct PlayerInputChangeArgs {
 }
-impl<'a> Default for PlayerInputChangeArgs {
+impl Default for PlayerInputChangeArgs {
   #[inline]
   fn default() -> Self {
     PlayerInputChangeArgs {
