@@ -688,7 +688,7 @@ CheckedError Parser::Next() {
           // hex-float can't begin with '.'
           auto use_hex = dot_lvl && (c == '0') && is_alpha_char(*cursor_, 'X');
           if (use_hex) start_digits = ++cursor_;  // '0x' is the prefix, skip it
-          // Read an integer number or mantisa of float-point number.
+          // Read an integer number or mantissa of float-point number.
           do {
             if (use_hex) {
               while (is_xdigit(*cursor_)) cursor_++;
