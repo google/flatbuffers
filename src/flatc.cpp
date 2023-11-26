@@ -727,6 +727,11 @@ void FlatCompiler::ValidateOptions(const FlatCOptions &options) {
 flatbuffers::Parser FlatCompiler::GetConformParser(
     const FlatCOptions &options) {
   flatbuffers::Parser conform_parser;
+
+  // conform parser should check advanced options,
+  // so, it have to have knowledge about languages:
+  conform_parser.opts.lang_to_generate = options.opts.lang_to_generate;
+
   if (!options.conform_to_schema.empty()) {
     std::string contents;
     if (!flatbuffers::LoadFile(options.conform_to_schema.c_str(), true,
