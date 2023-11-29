@@ -81,7 +81,7 @@ def AddIncludedFilenames(builder, includedFilenames):
 def SchemaFileStartIncludedFilenamesVector(builder, numElems):
     return builder.StartVector(4, numElems, 4)
 
-def StartIncludedFilenamesVector(builder, numElems: int) -> int:
+def StartIncludedFilenamesVector(builder, numElems):
     return SchemaFileStartIncludedFilenamesVector(builder, numElems)
 
 def SchemaFileEnd(builder):

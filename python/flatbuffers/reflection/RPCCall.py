@@ -135,7 +135,7 @@ def AddAttributes(builder, attributes):
 def RPCCallStartAttributesVector(builder, numElems):
     return builder.StartVector(4, numElems, 4)
 
-def StartAttributesVector(builder, numElems: int) -> int:
+def StartAttributesVector(builder, numElems):
     return RPCCallStartAttributesVector(builder, numElems)
 
 def RPCCallAddDocumentation(builder, documentation):
@@ -147,7 +147,7 @@ def AddDocumentation(builder, documentation):
 def RPCCallStartDocumentationVector(builder, numElems):
     return builder.StartVector(4, numElems, 4)
 
-def StartDocumentationVector(builder, numElems: int) -> int:
+def StartDocumentationVector(builder, numElems):
     return RPCCallStartDocumentationVector(builder, numElems)
 
 def RPCCallEnd(builder):
