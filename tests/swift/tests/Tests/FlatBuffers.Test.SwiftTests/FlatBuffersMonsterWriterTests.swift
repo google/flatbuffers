@@ -34,10 +34,10 @@ class FlatBuffersMonsterWriterTests: XCTestCase {
   }
 
   func testReadFromOtherLanguages() {
-    let path = FileManager.default.currentDirectoryPath
     let url = URL(fileURLWithPath: path, isDirectory: true)
-      .appendingPathComponent("monsterdata_test").appendingPathExtension("mon")
-    guard let data = try? Data(contentsOf: url) else { return }
+      .appendingPathComponent("monsterdata_test")
+      .appendingPathExtension("mon")
+    let data = try! Data(contentsOf: url)
     let _data = ByteBuffer(data: data)
     readVerifiedMonster(fb: _data)
   }
@@ -152,6 +152,64 @@ class FlatBuffersMonsterWriterTests: XCTestCase {
       try readMonster(
         monster: getCheckedRoot(
           byteBuffer: &byteBuffer) as MyGame_Example_Monster))
+  }
+
+  func testUnalignedRead() {
+    // Aligned read
+    let fbb = createMonster(withPrefix: false)
+    let testAligned: () -> Bool = {
+      var buffer = fbb.sizedBuffer
+      var monster: Monster = getRoot(byteBuffer: &buffer)
+      self.readFlatbufferMonster(monster: &monster)
+      return true
+    }
+    XCTAssertEqual(testAligned(), true)
+    let testUnaligned: () -> Bool = {
+      var bytes: [UInt8] = [0x00]
+      bytes.append(contentsOf: fbb.sizedByteArray)
+      return bytes.withUnsafeMutableBytes { ptr in
+        guard var baseAddress = ptr.baseAddress else {
+          XCTFail("Base pointer is not defined")
+          return false
+        }
+        baseAddress = baseAddress.advanced(by: 1)
+        let unlignedPtr = UnsafeMutableRawPointer(baseAddress)
+        var bytes = ByteBuffer(
+          assumingMemoryBound: unlignedPtr,
+          capacity: ptr.count - 1,
+          allowReadingUnalignedBuffers: true)
+        var monster: Monster = getRoot(byteBuffer: &bytes)
+        self.readFlatbufferMonster(monster: &monster)
+        return true
+      }
+    }
+    XCTAssertEqual(testUnaligned(), true)
+  }
+
+  func testCopyUnalignedToAlignedBuffers() {
+    // Aligned read
+    let fbb = createMonster(withPrefix: true)
+    let testUnaligned: () -> Bool = {
+      var bytes: [UInt8] = [0x00]
+      bytes.append(contentsOf: fbb.sizedByteArray)
+      return bytes.withUnsafeMutableBytes { ptr in
+        guard var baseAddress = ptr.baseAddress else {
+          XCTFail("Base pointer is not defined")
+          return false
+        }
+        baseAddress = baseAddress.advanced(by: 1)
+        let unlignedPtr = UnsafeMutableRawPointer(baseAddress)
+        let bytes = ByteBuffer(
+          assumingMemoryBound: unlignedPtr,
+          capacity: ptr.count - 1,
+          allowReadingUnalignedBuffers: false)
+        var newBuf = FlatBuffersUtils.removeSizePrefix(bb: bytes)
+        var monster: Monster = getRoot(byteBuffer: &newBuf)
+        self.readFlatbufferMonster(monster: &monster)
+        return true
+      }
+    }
+    XCTAssertEqual(testUnaligned(), true)
   }
 
   func readMonster(monster: Monster) {
@@ -381,11 +439,26 @@ class FlatBuffersMonsterWriterTests: XCTestCase {
     let fbb = createMonster(withPrefix: false)
     var sizedBuffer = fbb.sizedBuffer
     do {
+      struct Test: Decodable {
+        struct Pos: Decodable {
+          let x, y, z: Int
+        }
+        let hp: Int
+        let inventory: [UInt8]
+        let name: String
+        let pos: Pos
+      }
       let reader: Monster = try getCheckedRoot(byteBuffer: &sizedBuffer)
       let encoder = JSONEncoder()
       encoder.keyEncodingStrategy = .convertToSnakeCase
       let data = try encoder.encode(reader)
-      XCTAssertEqual(data, jsonData.data(using: .utf8))
+      let decoder = JSONDecoder()
+      decoder.keyDecodingStrategy = .convertFromSnakeCase
+      let value = try decoder.decode(Test.self, from: data)
+      XCTAssertEqual(value.name, "MyMonster")
+      XCTAssertEqual(value.pos.x, 1)
+      XCTAssertEqual(value.pos.y, 2)
+      XCTAssertEqual(value.pos.z, 3)
     } catch {
       XCTFail(error.localizedDescription)
     }
@@ -396,4 +469,36 @@ class FlatBuffersMonsterWriterTests: XCTestCase {
     {\"hp\":80,\"inventory\":[0,1,2,3,4],\"test\":{\"name\":\"Fred\"},\"testarrayofstring\":[\"test1\",\"test2\"],\"testarrayoftables\":[{\"name\":\"Barney\"},{\"name\":\"Frodo\"},{\"name\":\"Wilma\"}],\"test4\":[{\"a\":30,\"b\":40},{\"a\":10,\"b\":20}],\"testbool\":true,\"test_type\":\"Monster\",\"pos\":{\"y\":2,\"test3\":{\"a\":5,\"b\":6},\"z\":3,\"x\":1,\"test1\":3,\"test2\":\"Green\"},\"name\":\"MyMonster\"}
     """
   }
+
+  private var path: String {
+    #if os(macOS)
+    // Gets the current path of this test file then
+    // strips out the nested directories.
+    let filePath = URL(filePath: #file)
+      .deletingLastPathComponent()
+      .deletingLastPathComponent()
+      .deletingLastPathComponent()
+    return filePath.absoluteString
+    #else
+    return FileManager.default.currentDirectoryPath
+    #endif
+  }
+
+  func testContiguousBytes() {
+    let byteArray: [UInt8] = [3, 1, 4, 1, 5, 9]
+    var fbb = FlatBufferBuilder(initialSize: 1)
+    let name = fbb.create(string: "Frodo")
+    let bytes = fbb.createVector(bytes: byteArray)
+    let root = Monster.createMonster(
+      &fbb,
+      nameOffset: name,
+      inventoryVectorOffset: bytes)
+    fbb.finish(offset: root)
+    var buffer = fbb.sizedBuffer
+    let monster: Monster = getRoot(byteBuffer: &buffer)
+    let values = monster.inventory
+
+    XCTAssertEqual(byteArray, values)
+  }
+
 }

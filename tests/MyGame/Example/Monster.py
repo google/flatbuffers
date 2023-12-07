@@ -911,7 +911,7 @@ def AddInventory(builder, inventory):
 def MonsterStartInventoryVector(builder, numElems):
     return builder.StartVector(1, numElems, 1)
 
-def StartInventoryVector(builder, numElems: int) -> int:
+def StartInventoryVector(builder, numElems):
     return MonsterStartInventoryVector(builder, numElems)
 
 def MonsterAddColor(builder, color):
@@ -941,7 +941,7 @@ def AddTest4(builder, test4):
 def MonsterStartTest4Vector(builder, numElems):
     return builder.StartVector(4, numElems, 2)
 
-def StartTest4Vector(builder, numElems: int) -> int:
+def StartTest4Vector(builder, numElems):
     return MonsterStartTest4Vector(builder, numElems)
 
 def MonsterAddTestarrayofstring(builder, testarrayofstring):
@@ -953,7 +953,7 @@ def AddTestarrayofstring(builder, testarrayofstring):
 def MonsterStartTestarrayofstringVector(builder, numElems):
     return builder.StartVector(4, numElems, 4)
 
-def StartTestarrayofstringVector(builder, numElems: int) -> int:
+def StartTestarrayofstringVector(builder, numElems):
     return MonsterStartTestarrayofstringVector(builder, numElems)
 
 def MonsterAddTestarrayoftables(builder, testarrayoftables):
@@ -965,7 +965,7 @@ def AddTestarrayoftables(builder, testarrayoftables):
 def MonsterStartTestarrayoftablesVector(builder, numElems):
     return builder.StartVector(4, numElems, 4)
 
-def StartTestarrayoftablesVector(builder, numElems: int) -> int:
+def StartTestarrayoftablesVector(builder, numElems):
     return MonsterStartTestarrayoftablesVector(builder, numElems)
 
 def MonsterAddEnemy(builder, enemy):
@@ -983,7 +983,7 @@ def AddTestnestedflatbuffer(builder, testnestedflatbuffer):
 def MonsterStartTestnestedflatbufferVector(builder, numElems):
     return builder.StartVector(1, numElems, 1)
 
-def StartTestnestedflatbufferVector(builder, numElems: int) -> int:
+def StartTestnestedflatbufferVector(builder, numElems):
     return MonsterStartTestnestedflatbufferVector(builder, numElems)
 
 def MonsterMakeTestnestedflatbufferVectorFromBytes(builder, bytes):
@@ -1062,7 +1062,7 @@ def AddTestarrayofbools(builder, testarrayofbools):
 def MonsterStartTestarrayofboolsVector(builder, numElems):
     return builder.StartVector(1, numElems, 1)
 
-def StartTestarrayofboolsVector(builder, numElems: int) -> int:
+def StartTestarrayofboolsVector(builder, numElems):
     return MonsterStartTestarrayofboolsVector(builder, numElems)
 
 def MonsterAddTestf(builder, testf):
@@ -1092,7 +1092,7 @@ def AddTestarrayofstring2(builder, testarrayofstring2):
 def MonsterStartTestarrayofstring2Vector(builder, numElems):
     return builder.StartVector(4, numElems, 4)
 
-def StartTestarrayofstring2Vector(builder, numElems: int) -> int:
+def StartTestarrayofstring2Vector(builder, numElems):
     return MonsterStartTestarrayofstring2Vector(builder, numElems)
 
 def MonsterAddTestarrayofsortedstruct(builder, testarrayofsortedstruct):
@@ -1104,7 +1104,7 @@ def AddTestarrayofsortedstruct(builder, testarrayofsortedstruct):
 def MonsterStartTestarrayofsortedstructVector(builder, numElems):
     return builder.StartVector(8, numElems, 4)
 
-def StartTestarrayofsortedstructVector(builder, numElems: int) -> int:
+def StartTestarrayofsortedstructVector(builder, numElems):
     return MonsterStartTestarrayofsortedstructVector(builder, numElems)
 
 def MonsterAddFlex(builder, flex):
@@ -1116,7 +1116,7 @@ def AddFlex(builder, flex):
 def MonsterStartFlexVector(builder, numElems):
     return builder.StartVector(1, numElems, 1)
 
-def StartFlexVector(builder, numElems: int) -> int:
+def StartFlexVector(builder, numElems):
     return MonsterStartFlexVector(builder, numElems)
 
 def MonsterAddTest5(builder, test5):
@@ -1128,7 +1128,7 @@ def AddTest5(builder, test5):
 def MonsterStartTest5Vector(builder, numElems):
     return builder.StartVector(4, numElems, 2)
 
-def StartTest5Vector(builder, numElems: int) -> int:
+def StartTest5Vector(builder, numElems):
     return MonsterStartTest5Vector(builder, numElems)
 
 def MonsterAddVectorOfLongs(builder, vectorOfLongs):
@@ -1140,7 +1140,7 @@ def AddVectorOfLongs(builder, vectorOfLongs):
 def MonsterStartVectorOfLongsVector(builder, numElems):
     return builder.StartVector(8, numElems, 8)
 
-def StartVectorOfLongsVector(builder, numElems: int) -> int:
+def StartVectorOfLongsVector(builder, numElems):
     return MonsterStartVectorOfLongsVector(builder, numElems)
 
 def MonsterAddVectorOfDoubles(builder, vectorOfDoubles):
@@ -1152,7 +1152,7 @@ def AddVectorOfDoubles(builder, vectorOfDoubles):
 def MonsterStartVectorOfDoublesVector(builder, numElems):
     return builder.StartVector(8, numElems, 8)
 
-def StartVectorOfDoublesVector(builder, numElems: int) -> int:
+def StartVectorOfDoublesVector(builder, numElems):
     return MonsterStartVectorOfDoublesVector(builder, numElems)
 
 def MonsterAddParentNamespaceTest(builder, parentNamespaceTest):
@@ -1170,7 +1170,7 @@ def AddVectorOfReferrables(builder, vectorOfReferrables):
 def MonsterStartVectorOfReferrablesVector(builder, numElems):
     return builder.StartVector(4, numElems, 4)
 
-def StartVectorOfReferrablesVector(builder, numElems: int) -> int:
+def StartVectorOfReferrablesVector(builder, numElems):
     return MonsterStartVectorOfReferrablesVector(builder, numElems)
 
 def MonsterAddSingleWeakReference(builder, singleWeakReference):
@@ -1188,7 +1188,7 @@ def AddVectorOfWeakReferences(builder, vectorOfWeakReferences):
 def MonsterStartVectorOfWeakReferencesVector(builder, numElems):
     return builder.StartVector(8, numElems, 8)
 
-def StartVectorOfWeakReferencesVector(builder, numElems: int) -> int:
+def StartVectorOfWeakReferencesVector(builder, numElems):
     return MonsterStartVectorOfWeakReferencesVector(builder, numElems)
 
 def MonsterAddVectorOfStrongReferrables(builder, vectorOfStrongReferrables):
@@ -1200,7 +1200,7 @@ def AddVectorOfStrongReferrables(builder, vectorOfStrongReferrables):
 def MonsterStartVectorOfStrongReferrablesVector(builder, numElems):
     return builder.StartVector(4, numElems, 4)
 
-def StartVectorOfStrongReferrablesVector(builder, numElems: int) -> int:
+def StartVectorOfStrongReferrablesVector(builder, numElems):
     return MonsterStartVectorOfStrongReferrablesVector(builder, numElems)
 
 def MonsterAddCoOwningReference(builder, coOwningReference):
@@ -1218,7 +1218,7 @@ def AddVectorOfCoOwningReferences(builder, vectorOfCoOwningReferences):
 def MonsterStartVectorOfCoOwningReferencesVector(builder, numElems):
     return builder.StartVector(8, numElems, 8)
 
-def StartVectorOfCoOwningReferencesVector(builder, numElems: int) -> int:
+def StartVectorOfCoOwningReferencesVector(builder, numElems):
     return MonsterStartVectorOfCoOwningReferencesVector(builder, numElems)
 
 def MonsterAddNonOwningReference(builder, nonOwningReference):
@@ -1236,7 +1236,7 @@ def AddVectorOfNonOwningReferences(builder, vectorOfNonOwningReferences):
 def MonsterStartVectorOfNonOwningReferencesVector(builder, numElems):
     return builder.StartVector(8, numElems, 8)
 
-def StartVectorOfNonOwningReferencesVector(builder, numElems: int) -> int:
+def StartVectorOfNonOwningReferencesVector(builder, numElems):
     return MonsterStartVectorOfNonOwningReferencesVector(builder, numElems)
 
 def MonsterAddAnyUniqueType(builder, anyUniqueType):
@@ -1272,7 +1272,7 @@ def AddVectorOfEnums(builder, vectorOfEnums):
 def MonsterStartVectorOfEnumsVector(builder, numElems):
     return builder.StartVector(1, numElems, 1)
 
-def StartVectorOfEnumsVector(builder, numElems: int) -> int:
+def StartVectorOfEnumsVector(builder, numElems):
     return MonsterStartVectorOfEnumsVector(builder, numElems)
 
 def MonsterAddSignedEnum(builder, signedEnum):
@@ -1290,7 +1290,7 @@ def AddTestrequirednestedflatbuffer(builder, testrequirednestedflatbuffer):
 def MonsterStartTestrequirednestedflatbufferVector(builder, numElems):
     return builder.StartVector(1, numElems, 1)
 
-def StartTestrequirednestedflatbufferVector(builder, numElems: int) -> int:
+def StartTestrequirednestedflatbufferVector(builder, numElems):
     return MonsterStartTestrequirednestedflatbufferVector(builder, numElems)
 
 def MonsterMakeTestrequirednestedflatbufferVectorFromBytes(builder, bytes):
@@ -1309,7 +1309,7 @@ def AddScalarKeySortedTables(builder, scalarKeySortedTables):
 def MonsterStartScalarKeySortedTablesVector(builder, numElems):
     return builder.StartVector(4, numElems, 4)
 
-def StartScalarKeySortedTablesVector(builder, numElems: int) -> int:
+def StartScalarKeySortedTablesVector(builder, numElems):
     return MonsterStartScalarKeySortedTablesVector(builder, numElems)
 
 def MonsterAddNativeInline(builder, nativeInline):

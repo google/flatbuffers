@@ -66,6 +66,9 @@
     <Compile Include="..\..\net\FlatBuffers\FlatBufferConstants.cs">
       <Link>FlatBuffers\FlatBufferConstants.cs</Link>
     </Compile>
+    <Compile Include="..\..\net\FlatBuffers\FlatBufferVerify.cs">
+      <Link>FlatBuffers\FlatBufferVerify.cs</Link>
+    </Compile>
     <Compile Include="..\..\net\FlatBuffers\Struct.cs">
       <Link>FlatBuffers\Struct.cs</Link>
     </Compile>
@@ -119,6 +122,9 @@
     </Compile>
     <Compile Include="..\MyGame\Example\ArrayStruct.cs">
       <Link>MyGame\Example\ArrayStruct.cs</Link>
+    </Compile>
+    <Compile Include="..\MyGame\Example\LongEnum.cs">
+      <Link>MyGame\Example\LongEnum.cs</Link>
     </Compile>
     <Compile Include="..\MyGame\Example\NestedStruct.cs">
       <Link>MyGame\Example\NestedStruct.cs</Link>

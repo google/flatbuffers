@@ -187,6 +187,7 @@ const static FlatCOption flatc_options[] = {
     "relative to. The 'root' is denoted with  `//`. E.g. if PATH=/a/b/c "
     "then /a/d/e.fbs will be serialized as //../d/e.fbs. (PATH defaults to the "
     "directory of the first provided schema file." },
+  { "", "bfbs-absolute-paths", "", "Uses absolute paths instead of relative paths in the BFBS output." },
   { "", "bfbs-comments", "", "Add doc comments to the binary schema files." },
   { "", "bfbs-builtins", "",
     "Add builtin attributes to the binary schema files." },
@@ -253,6 +254,8 @@ const static FlatCOption flatc_options[] = {
   { "", "python-no-type-prefix-suffix", "",
     "Skip emission of Python functions that are prefixed with typenames" },
   { "", "python-typing", "", "Generate Python type annotations" },
+  { "", "ts-omit-entrypoint", "",
+    "Omit emission of namespace entrypoint file" },
   { "", "file-names-only", "",
     "Print out generated file names without writing to the files" },
 };
@@ -594,6 +597,8 @@ FlatCOptions FlatCompiler::ParseFromCommandLineArguments(int argc,
         opts.binary_schema_builtins = true;
       } else if (arg == "--bfbs-gen-embed") {
         opts.binary_schema_gen_embed = true;
+      } else if (arg == "--bfbs-absolute-paths") {
+        opts.binary_schema_absolute_paths = true;
       } else if (arg == "--reflect-types") {
         opts.mini_reflect = IDLOptions::kTypes;
       } else if (arg == "--reflect-names") {
@@ -659,6 +664,8 @@ FlatCOptions FlatCompiler::ParseFromCommandLineArguments(int argc,
         opts.python_no_type_prefix_suffix = true;
       } else if (arg == "--python-typing") {
         opts.python_typing = true;
+      } else if (arg == "--ts-omit-entrypoint") {
+        opts.ts_omit_entrypoint = true;
       } else if (arg == "--annotate-sparse-vectors") {
         options.annotate_include_vector_contents = false;
       } else if (arg == "--annotate") {
@@ -720,6 +727,11 @@ void FlatCompiler::ValidateOptions(const FlatCOptions &options) {
 flatbuffers::Parser FlatCompiler::GetConformParser(
     const FlatCOptions &options) {
   flatbuffers::Parser conform_parser;
+
+  // conform parser should check advanced options,
+  // so, it have to have knowledge about languages:
+  conform_parser.opts.lang_to_generate = options.opts.lang_to_generate;
+
   if (!options.conform_to_schema.empty()) {
     std::string contents;
     if (!flatbuffers::LoadFile(options.conform_to_schema.c_str(), true,

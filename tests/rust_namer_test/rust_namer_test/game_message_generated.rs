@@ -127,7 +127,7 @@ impl GameMessageT {
       Self::PlayerInputChange(_) => GameMessage::PlayerInputChange,
     }
   }
-  pub fn pack(&self, fbb: &mut flatbuffers::FlatBufferBuilder) -> Option<flatbuffers::WIPOffset<flatbuffers::UnionWIPOffset>> {
+  pub fn pack<'b, A: flatbuffers::Allocator + 'b>(&self, fbb: &mut flatbuffers::FlatBufferBuilder<'b, A>) -> Option<flatbuffers::WIPOffset<flatbuffers::UnionWIPOffset>> {
     match self {
       Self::NONE => None,
       Self::PlayerStatEvent(v) => Some(v.pack(fbb).as_union_value()),

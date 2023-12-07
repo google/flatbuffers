@@ -17,5 +17,6 @@ export declare enum BaseType {
     Obj = 15,
     Union = 16,
     Array = 17,
-    MaxBaseType = 18
+    Vector64 = 18,
+    MaxBaseType = 19
 }

@@ -59,8 +59,6 @@ struct Vec3 (force_align: 8) {
   test3:Test;
 }
 
-// Stats for monster
-
 struct Ability {
   id:uint(key);
   distance:uint;

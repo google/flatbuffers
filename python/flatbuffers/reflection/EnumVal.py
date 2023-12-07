@@ -131,7 +131,7 @@ def AddDocumentation(builder, documentation):
 def EnumValStartDocumentationVector(builder, numElems):
     return builder.StartVector(4, numElems, 4)
 
-def StartDocumentationVector(builder, numElems: int) -> int:
+def StartDocumentationVector(builder, numElems):
     return EnumValStartDocumentationVector(builder, numElems)
 
 def EnumValAddAttributes(builder, attributes):
@@ -143,7 +143,7 @@ def AddAttributes(builder, attributes):
 def EnumValStartAttributesVector(builder, numElems):
     return builder.StartVector(4, numElems, 4)
 
-def StartAttributesVector(builder, numElems: int) -> int:
+def StartAttributesVector(builder, numElems):
     return EnumValStartAttributesVector(builder, numElems)
 
 def EnumValEnd(builder):

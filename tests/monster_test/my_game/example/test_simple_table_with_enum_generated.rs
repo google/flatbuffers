@@ -36,8 +36,8 @@ impl<'a> TestSimpleTableWithEnum<'a> {
     TestSimpleTableWithEnum { _tab: table }
   }
   #[allow(unused_mut)]
-  pub fn create<'bldr: 'args, 'args: 'mut_bldr, 'mut_bldr>(
-    _fbb: &'mut_bldr mut flatbuffers::FlatBufferBuilder<'bldr>,
+  pub fn create<'bldr: 'args, 'args: 'mut_bldr, 'mut_bldr, A: flatbuffers::Allocator + 'bldr>(
+    _fbb: &'mut_bldr mut flatbuffers::FlatBufferBuilder<'bldr, A>,
     args: &'args TestSimpleTableWithEnumArgs
   ) -> flatbuffers::WIPOffset<TestSimpleTableWithEnum<'bldr>> {
     let mut builder = TestSimpleTableWithEnumBuilder::new(_fbb);
@@ -85,17 +85,17 @@ impl<'a> Default for TestSimpleTableWithEnumArgs {
   }
 }
 
-pub struct TestSimpleTableWithEnumBuilder<'a: 'b, 'b> {
-  fbb_: &'b mut flatbuffers::FlatBufferBuilder<'a>,
+pub struct TestSimpleTableWithEnumBuilder<'a: 'b, 'b, A: flatbuffers::Allocator + 'a> {
+  fbb_: &'b mut flatbuffers::FlatBufferBuilder<'a, A>,
   start_: flatbuffers::WIPOffset<flatbuffers::TableUnfinishedWIPOffset>,
 }
-impl<'a: 'b, 'b> TestSimpleTableWithEnumBuilder<'a, 'b> {
+impl<'a: 'b, 'b, A: flatbuffers::Allocator + 'a> TestSimpleTableWithEnumBuilder<'a, 'b, A> {
   #[inline]
   pub fn add_color(&mut self, color: Color) {
     self.fbb_.push_slot::<Color>(TestSimpleTableWithEnum::VT_COLOR, color, Color::Green);
   }
   #[inline]
-  pub fn new(_fbb: &'b mut flatbuffers::FlatBufferBuilder<'a>) -> TestSimpleTableWithEnumBuilder<'a, 'b> {
+  pub fn new(_fbb: &'b mut flatbuffers::FlatBufferBuilder<'a, A>) -> TestSimpleTableWithEnumBuilder<'a, 'b, A> {
     let start = _fbb.start_table();
     TestSimpleTableWithEnumBuilder {
       fbb_: _fbb,
@@ -129,9 +129,9 @@ impl Default for TestSimpleTableWithEnumT {
   }
 }
 impl TestSimpleTableWithEnumT {
-  pub fn pack<'b>(
+  pub fn pack<'b, A: flatbuffers::Allocator + 'b>(
     &self,
-    _fbb: &mut flatbuffers::FlatBufferBuilder<'b>
+    _fbb: &mut flatbuffers::FlatBufferBuilder<'b, A>
   ) -> flatbuffers::WIPOffset<TestSimpleTableWithEnum<'b>> {
     let color = self.color;
     TestSimpleTableWithEnum::create(_fbb, &TestSimpleTableWithEnumArgs{

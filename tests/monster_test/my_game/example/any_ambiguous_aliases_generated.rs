@@ -127,7 +127,7 @@ impl AnyAmbiguousAliasesT {
       Self::M3(_) => AnyAmbiguousAliases::M3,
     }
   }
-  pub fn pack(&self, fbb: &mut flatbuffers::FlatBufferBuilder) -> Option<flatbuffers::WIPOffset<flatbuffers::UnionWIPOffset>> {
+  pub fn pack<'b, A: flatbuffers::Allocator + 'b>(&self, fbb: &mut flatbuffers::FlatBufferBuilder<'b, A>) -> Option<flatbuffers::WIPOffset<flatbuffers::UnionWIPOffset>> {
     match self {
       Self::NONE => None,
       Self::M1(v) => Some(v.pack(fbb).as_union_value()),

@@ -431,6 +431,10 @@ class CSharpGenerator : public BaseGenerator {
     if (opts.generate_object_based_api) {
       GenEnum_ObjectAPI(enum_def, code_ptr, opts);
     }
+
+    if (enum_def.is_union) {
+      code += GenUnionVerify(enum_def.underlying_type);
+    }
   }
 
   bool HasUnionStringValue(const EnumDef &enum_def) const {
@@ -1754,8 +1758,6 @@ class CSharpGenerator : public BaseGenerator {
     code += "    }\n";
     code += "  }\n";
     code += "}\n\n";
-
-    code += GenUnionVerify(enum_def.underlying_type);
 
     // JsonConverter
     if (opts.cs_gen_json_serializer) {

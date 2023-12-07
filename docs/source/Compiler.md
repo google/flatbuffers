@@ -23,31 +23,35 @@ For any schema input files, one or more generators can be specified:
 
 -   `--java`, `-j` : Generate Java code.
 
--   `--kotlin`, `-k` : Generate Kotlin code.
+-   `--kotlin` , `--kotlin-kmp` : Generate Kotlin code.
 
 -   `--csharp`, `-n` : Generate C# code.
 
 -   `--go`, `-g` : Generate Go code.
 
--   `--python`, `-p`: Generate Python code.
+-   `--python`, `-p` : Generate Python code.
 
--   `--js`, `-s`: Generate JavaScript code.
+-   `--js`, `-s` : Generate JavaScript code.
 
--   `--ts`: Generate TypeScript code.
+-   `--ts`, `-T` : Generate TypeScript code.
 
--   `--php`: Generate PHP code.
+-   `--php` : Generate PHP code.
 
--   `--grpc`: Generate RPC stub code for GRPC.
+-   `--grpc` : Generate RPC stub code for GRPC.
 
--   `--dart`: Generate Dart code.
+-   `--dart`, `-d` : Generate Dart code.
 
--   `--lua`: Generate Lua code.
+-   `--lua`, `-l` : Generate Lua code.
 
--   `--lobster`: Generate Lobster code.
+-   `--lobster` : Generate Lobster code.
 
 -   `--rust`, `-r` : Generate Rust code.
 
--   `--swift`: Generate Swift code.
+-   `--swift` : Generate Swift code.
+
+-   `--nim` : Generate Nim code.
+
+
 
 For any data input files:
 
@@ -57,6 +61,8 @@ For any data input files:
 
 -   `--json`, `-t` : If data is contained in this file, generate a
     `filename.json` representing the data in the flatbuffer.
+
+-   `--jsonschema` : Generate Json schema
 
 Additional options:
 
@@ -115,7 +121,7 @@ Additional options:
 
 -   `--gen-compare`  :  Generate operator== for object-based API types.
 
--   `--gen-nullable` : Add Clang _Nullable for C++ pointer. or @Nullable for Java.
+-   `--gen-nullable` : Add Clang \_Nullable for C++ pointer. or @Nullable for Java.
 
 -   `--gen-generated` : Add @Generated annotation for Java.
 
@@ -189,7 +195,7 @@ Additional options:
     `--conform PATH`.
 
 -   `--filename-suffix SUFFIX` : The suffix appended to the generated
-    file names. Default is '_generated'.
+    file names. Default is '\_generated'.
 
 -   `--filename-ext EXTENSION` : The extension appended to the generated
     file names. Default is language-specific (e.g. "h" for C++). This
@@ -226,6 +232,11 @@ Additional options:
 -   `--json-nested-bytes` : Allow a nested_flatbuffer field to be parsed as a
     vector of bytes in JSON, which is unsafe unless checked by a verifier
     afterwards.
+
+-   `--python-no-type-prefix-suffix` : Skip emission of Python functions that are prefixed
+    with typenames
+
+-   `--python-typing` : Generate Python type annotations
 
 NOTE: short-form options for generators are deprecated, use the long form
 whenever possible.

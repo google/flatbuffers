@@ -336,6 +336,10 @@ void EnsureDirExists(const std::string &filepath) {
   // clang-format on
 }
 
+std::string FilePath(const std::string& project, const std::string& filePath, bool absolute) {
+    return (absolute) ? AbsolutePath(filePath) : RelativeToRootPath(project, filePath);
+}
+
 std::string AbsolutePath(const std::string &filepath) {
   // clang-format off
 

@@ -227,7 +227,7 @@ def AddV8(builder, v8):
 def TypeAliasesStartV8Vector(builder, numElems):
     return builder.StartVector(1, numElems, 1)
 
-def StartV8Vector(builder, numElems: int) -> int:
+def StartV8Vector(builder, numElems):
     return TypeAliasesStartV8Vector(builder, numElems)
 
 def TypeAliasesAddVf64(builder, vf64):
@@ -239,7 +239,7 @@ def AddVf64(builder, vf64):
 def TypeAliasesStartVf64Vector(builder, numElems):
     return builder.StartVector(8, numElems, 8)
 
-def StartVf64Vector(builder, numElems: int) -> int:
+def StartVf64Vector(builder, numElems):
     return TypeAliasesStartVf64Vector(builder, numElems)
 
 def TypeAliasesEnd(builder):

@@ -113,7 +113,7 @@ class TsGenerator : public BaseGenerator {
   bool generate() {
     generateEnums();
     generateStructs();
-    generateEntry();
+    if (!parser_.opts.ts_omit_entrypoint) { generateEntry(); }
     if (!generateBundle()) return false;
     return true;
   }
@@ -149,7 +149,8 @@ class TsGenerator : public BaseGenerator {
 
     std::string code;
 
-    code += "// " + std::string(FlatBuffersGeneratedWarning()) + "\n\n";
+    code += "// " + std::string(FlatBuffersGeneratedWarning()) + "\n\n" +
+        "/* eslint-disable @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any, @typescript-eslint/no-non-null-assertion */\n\n";
 
     for (auto it = bare_imports.begin(); it != bare_imports.end(); it++) {
       code += it->second.import_statement + "\n";
@@ -254,7 +255,9 @@ class TsGenerator : public BaseGenerator {
     }
 
     for (const auto &it : ns_defs_) {
-      code = "// " + std::string(FlatBuffersGeneratedWarning()) + "\n\n";
+      code = "// " + std::string(FlatBuffersGeneratedWarning()) + "\n\n" +
+        "/* eslint-disable @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any, @typescript-eslint/no-non-null-assertion */\n\n";
+      
       // export all definitions in ns entry point module
       int export_counter = 0;
       for (const auto &def : it.second.definitions) {
@@ -1997,11 +2000,7 @@ class TsGenerator : public BaseGenerator {
         if (!IsScalar(field.value.type.base_type)) {
           code += "0";
         } else if (HasNullDefault(field)) {
-          if (IsLong(field.value.type.base_type)) {
-            code += "BigInt(0)";
-          } else {
-            code += "0";
-          }
+          code += "null";
         } else {
           if (field.value.type.base_type == BASE_TYPE_BOOL) { code += "+"; }
           code += GenDefaultValue(field, imports);

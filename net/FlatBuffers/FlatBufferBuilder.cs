@@ -67,7 +67,7 @@ namespace Google.FlatBuffers
         }
 
         /// <summary>
-        /// Create a FlatBufferBuilder backed by the pased in ByteBuffer
+        /// Create a FlatBufferBuilder backed by the passed in ByteBuffer
         /// </summary>
         /// <param name="buffer">The ByteBuffer to write to</param>
         public FlatBufferBuilder(ByteBuffer buffer)

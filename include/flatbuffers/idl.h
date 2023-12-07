@@ -676,6 +676,7 @@ struct IDLOptions {
   bool binary_schema_comments;
   bool binary_schema_builtins;
   bool binary_schema_gen_embed;
+  bool binary_schema_absolute_paths;
   std::string go_import;
   std::string go_namespace;
   std::string go_module_name;
@@ -706,6 +707,7 @@ struct IDLOptions {
   bool keep_proto_id;
   bool python_no_type_prefix_suffix;
   bool python_typing;
+  bool ts_omit_entrypoint;
   ProtoIdGapAction proto_id_gap_action;
 
   // Possible options for the more general generator below.
@@ -795,6 +797,7 @@ struct IDLOptions {
         binary_schema_comments(false),
         binary_schema_builtins(false),
         binary_schema_gen_embed(false),
+        binary_schema_absolute_paths(false),
         protobuf_ascii_alike(false),
         size_prefixed(false),
         force_defaults(false),
@@ -818,6 +821,7 @@ struct IDLOptions {
         keep_proto_id(false),
         python_no_type_prefix_suffix(false),
         python_typing(false),
+        ts_omit_entrypoint(false),
         proto_id_gap_action(ProtoIdGapAction::WARNING),
         mini_reflect(IDLOptions::kNone),
         require_explicit_ids(false),

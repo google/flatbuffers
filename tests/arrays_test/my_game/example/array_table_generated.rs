@@ -36,8 +36,8 @@ impl<'a> ArrayTable<'a> {
     ArrayTable { _tab: table }
   }
   #[allow(unused_mut)]
-  pub fn create<'bldr: 'args, 'args: 'mut_bldr, 'mut_bldr>(
-    _fbb: &'mut_bldr mut flatbuffers::FlatBufferBuilder<'bldr>,
+  pub fn create<'bldr: 'args, 'args: 'mut_bldr, 'mut_bldr, A: flatbuffers::Allocator + 'bldr>(
+    _fbb: &'mut_bldr mut flatbuffers::FlatBufferBuilder<'bldr, A>,
     args: &'args ArrayTableArgs<'args>
   ) -> flatbuffers::WIPOffset<ArrayTable<'bldr>> {
     let mut builder = ArrayTableBuilder::new(_fbb);
@@ -87,17 +87,17 @@ impl<'a> Default for ArrayTableArgs<'a> {
   }
 }
 
-pub struct ArrayTableBuilder<'a: 'b, 'b> {
-  fbb_: &'b mut flatbuffers::FlatBufferBuilder<'a>,
+pub struct ArrayTableBuilder<'a: 'b, 'b, A: flatbuffers::Allocator + 'a> {
+  fbb_: &'b mut flatbuffers::FlatBufferBuilder<'a, A>,
   start_: flatbuffers::WIPOffset<flatbuffers::TableUnfinishedWIPOffset>,
 }
-impl<'a: 'b, 'b> ArrayTableBuilder<'a, 'b> {
+impl<'a: 'b, 'b, A: flatbuffers::Allocator + 'a> ArrayTableBuilder<'a, 'b, A> {
   #[inline]
   pub fn add_a(&mut self, a: &ArrayStruct) {
     self.fbb_.push_slot_always::<&ArrayStruct>(ArrayTable::VT_A, a);
   }
   #[inline]
-  pub fn new(_fbb: &'b mut flatbuffers::FlatBufferBuilder<'a>) -> ArrayTableBuilder<'a, 'b> {
+  pub fn new(_fbb: &'b mut flatbuffers::FlatBufferBuilder<'a, A>) -> ArrayTableBuilder<'a, 'b, A> {
     let start = _fbb.start_table();
     ArrayTableBuilder {
       fbb_: _fbb,
@@ -131,9 +131,9 @@ impl Default for ArrayTableT {
   }
 }
 impl ArrayTableT {
-  pub fn pack<'b>(
+  pub fn pack<'b, A: flatbuffers::Allocator + 'b>(
     &self,
-    _fbb: &mut flatbuffers::FlatBufferBuilder<'b>
+    _fbb: &mut flatbuffers::FlatBufferBuilder<'b, A>
   ) -> flatbuffers::WIPOffset<ArrayTable<'b>> {
     let a_tmp = self.a.as_ref().map(|x| x.pack());
     let a = a_tmp.as_ref();
@@ -217,13 +217,13 @@ pub fn array_table_size_prefixed_buffer_has_identifier(buf: &[u8]) -> bool {
 pub const ARRAY_TABLE_EXTENSION: &str = "mon";
 
 #[inline]
-pub fn finish_array_table_buffer<'a, 'b>(
-    fbb: &'b mut flatbuffers::FlatBufferBuilder<'a>,
+pub fn finish_array_table_buffer<'a, 'b, A: flatbuffers::Allocator + 'a>(
+    fbb: &'b mut flatbuffers::FlatBufferBuilder<'a, A>,
     root: flatbuffers::WIPOffset<ArrayTable<'a>>) {
   fbb.finish(root, Some(ARRAY_TABLE_IDENTIFIER));
 }
 
 #[inline]
-pub fn finish_size_prefixed_array_table_buffer<'a, 'b>(fbb: &'b mut flatbuffers::FlatBufferBuilder<'a>, root: flatbuffers::WIPOffset<ArrayTable<'a>>) {
+pub fn finish_size_prefixed_array_table_buffer<'a, 'b, A: flatbuffers::Allocator + 'a>(fbb: &'b mut flatbuffers::FlatBufferBuilder<'a, A>, root: flatbuffers::WIPOffset<ArrayTable<'a>>) {
   fbb.finish_size_prefixed(root, Some(ARRAY_TABLE_IDENTIFIER));
 }

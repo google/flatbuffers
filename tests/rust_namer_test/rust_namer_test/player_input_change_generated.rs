@@ -35,8 +35,8 @@ impl<'a> PlayerInputChange<'a> {
     PlayerInputChange { _tab: table }
   }
   #[allow(unused_mut)]
-  pub fn create<'bldr: 'args, 'args: 'mut_bldr, 'mut_bldr>(
-    _fbb: &'mut_bldr mut flatbuffers::FlatBufferBuilder<'bldr>,
+  pub fn create<'bldr: 'args, 'args: 'mut_bldr, 'mut_bldr, A: flatbuffers::Allocator + 'bldr>(
+    _fbb: &'mut_bldr mut flatbuffers::FlatBufferBuilder<'bldr, A>,
     _args: &'args PlayerInputChangeArgs
   ) -> flatbuffers::WIPOffset<PlayerInputChange<'bldr>> {
     let mut builder = PlayerInputChangeBuilder::new(_fbb);
@@ -70,13 +70,13 @@ impl<'a> Default for PlayerInputChangeArgs {
   }
 }
 
-pub struct PlayerInputChangeBuilder<'a: 'b, 'b> {
-  fbb_: &'b mut flatbuffers::FlatBufferBuilder<'a>,
+pub struct PlayerInputChangeBuilder<'a: 'b, 'b, A: flatbuffers::Allocator + 'a> {
+  fbb_: &'b mut flatbuffers::FlatBufferBuilder<'a, A>,
   start_: flatbuffers::WIPOffset<flatbuffers::TableUnfinishedWIPOffset>,
 }
-impl<'a: 'b, 'b> PlayerInputChangeBuilder<'a, 'b> {
+impl<'a: 'b, 'b, A: flatbuffers::Allocator + 'a> PlayerInputChangeBuilder<'a, 'b, A> {
   #[inline]
-  pub fn new(_fbb: &'b mut flatbuffers::FlatBufferBuilder<'a>) -> PlayerInputChangeBuilder<'a, 'b> {
+  pub fn new(_fbb: &'b mut flatbuffers::FlatBufferBuilder<'a, A>) -> PlayerInputChangeBuilder<'a, 'b, A> {
     let start = _fbb.start_table();
     PlayerInputChangeBuilder {
       fbb_: _fbb,
@@ -107,9 +107,9 @@ impl Default for PlayerInputChangeT {
   }
 }
 impl PlayerInputChangeT {
-  pub fn pack<'b>(
+  pub fn pack<'b, A: flatbuffers::Allocator + 'b>(
     &self,
-    _fbb: &mut flatbuffers::FlatBufferBuilder<'b>
+    _fbb: &mut flatbuffers::FlatBufferBuilder<'b, A>
   ) -> flatbuffers::WIPOffset<PlayerInputChange<'b>> {
     PlayerInputChange::create(_fbb, &PlayerInputChangeArgs{
     })
