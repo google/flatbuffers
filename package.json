@@ -34,8 +34,8 @@
     "url": "https://github.com/google/flatbuffers/issues"
   },
   "homepage": "https://google.github.io/flatbuffers/",
-  "dependencies": {},
   "devDependencies": {
+    "@types/node": "^20.10.4",
     "@typescript-eslint/eslint-plugin": "^6.13.2",
     "@typescript-eslint/parser": "^6.13.2",
     "esbuild": "^0.19.8",
