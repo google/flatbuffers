@@ -2104,7 +2104,7 @@ CheckedError Parser::ParseSingleValue(const std::string *name, Value &e,
     // Get an indentifier: NAN, INF, or function name like cos/sin/deg.
     NEXT();
     if (token_ != kTokenIdentifier) return Error("constant name expected");
-    attribute_.insert(0, 1, sign);
+    attribute_.insert(size_t(0), size_t(1), sign);
   }
 
   const auto in_type = e.type.base_type;
@@ -2118,7 +2118,7 @@ CheckedError Parser::ParseSingleValue(const std::string *name, Value &e,
   auto match = false;
 
   #define IF_ECHECK_(force, dtoken, check, req)    \
-    if (!match && ((dtoken) == token_) && ((check) || IsConstTrue(force))) \
+    if (!match && ((dtoken) == token_) && ((check) || flatbuffers::IsConstTrue(force))) \
       ECHECK(TryTypedValue(name, dtoken, check, e, req, &match))
   #define TRY_ECHECK(dtoken, check, req) IF_ECHECK_(false, dtoken, check, req)
   #define FORCE_ECHECK(dtoken, check, req) IF_ECHECK_(true, dtoken, check, req)
@@ -2483,7 +2483,7 @@ CheckedError Parser::ParseEnum(const bool is_union, EnumDef **dest,
   ECHECK(StartEnum(enum_name, is_union, &enum_def));
   if (filename != nullptr && !opts.project_root.empty()) {
     enum_def->declaration_file =
-        &GetPooledString(RelativeToRootPath(opts.project_root, filename));
+        &GetPooledString(FilePath(opts.project_root, filename, opts.binary_schema_absolute_paths));
   }
   enum_def->doc_comment = enum_comment;
   if (!opts.proto_mode) {
@@ -2762,7 +2762,7 @@ CheckedError Parser::ParseDecl(const char *filename) {
   struct_def->fixed = fixed;
   if (filename && !opts.project_root.empty()) {
     struct_def->declaration_file =
-        &GetPooledString(RelativeToRootPath(opts.project_root, filename));
+        &GetPooledString(FilePath(opts.project_root, filename, opts.binary_schema_absolute_paths));
   }
   ECHECK(ParseMetaData(&struct_def->attributes));
   struct_def->sortbysize =
@@ -2856,7 +2856,7 @@ CheckedError Parser::ParseService(const char *filename) {
   service_def.defined_namespace = current_namespace_;
   if (filename != nullptr && !opts.project_root.empty()) {
     service_def.declaration_file =
-        &GetPooledString(RelativeToRootPath(opts.project_root, filename));
+        &GetPooledString(FilePath(opts.project_root, filename, opts.binary_schema_absolute_paths));
   }
   if (services_.Add(current_namespace_->GetFullyQualifiedName(service_name),
                     &service_def))
@@ -3425,7 +3425,7 @@ CheckedError Parser::ParseFlexBufferValue(flexbuffers::Builder *builder) {
       NEXT();
       if (token_ != kTokenIdentifier)
         return Error("floating-point constant expected");
-      attribute_.insert(0, 1, sign);
+      attribute_.insert(size_t(0), size_t(1), sign);
       ECHECK(ParseFlexBufferNumericConstant(builder));
       NEXT();
       break;
@@ -3937,11 +3937,12 @@ void Parser::Serialize() {
     std::vector<Offset<flatbuffers::String>> included_files;
     for (auto f = files_included_per_file_.begin();
          f != files_included_per_file_.end(); f++) {
-      const auto filename__ = builder_.CreateSharedString(
-          RelativeToRootPath(opts.project_root, f->first));
+
+      const auto filename__ = builder_.CreateSharedString(FilePath(
+          opts.project_root, f->first, opts.binary_schema_absolute_paths));
       for (auto i = f->second.begin(); i != f->second.end(); i++) {
         included_files.push_back(builder_.CreateSharedString(
-            RelativeToRootPath(opts.project_root, i->filename)));
+            FilePath(opts.project_root, i->filename, opts.binary_schema_absolute_paths)));
       }
       const auto included_files__ = builder_.CreateVector(included_files);
       included_files.clear();

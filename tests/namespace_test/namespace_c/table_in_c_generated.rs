@@ -37,8 +37,8 @@ impl<'a> TableInC<'a> {
     TableInC { _tab: table }
   }
   #[allow(unused_mut)]
-  pub fn create<'bldr: 'args, 'args: 'mut_bldr, 'mut_bldr>(
-    _fbb: &'mut_bldr mut flatbuffers::FlatBufferBuilder<'bldr>,
+  pub fn create<'bldr: 'args, 'args: 'mut_bldr, 'mut_bldr, A: flatbuffers::Allocator + 'bldr>(
+    _fbb: &'mut_bldr mut flatbuffers::FlatBufferBuilder<'bldr, A>,
     args: &'args TableInCArgs<'args>
   ) -> flatbuffers::WIPOffset<TableInC<'bldr>> {
     let mut builder = TableInCBuilder::new(_fbb);
@@ -103,11 +103,11 @@ impl<'a> Default for TableInCArgs<'a> {
   }
 }
 
-pub struct TableInCBuilder<'a: 'b, 'b> {
-  fbb_: &'b mut flatbuffers::FlatBufferBuilder<'a>,
+pub struct TableInCBuilder<'a: 'b, 'b, A: flatbuffers::Allocator + 'a> {
+  fbb_: &'b mut flatbuffers::FlatBufferBuilder<'a, A>,
   start_: flatbuffers::WIPOffset<flatbuffers::TableUnfinishedWIPOffset>,
 }
-impl<'a: 'b, 'b> TableInCBuilder<'a, 'b> {
+impl<'a: 'b, 'b, A: flatbuffers::Allocator + 'a> TableInCBuilder<'a, 'b, A> {
   #[inline]
   pub fn add_refer_to_a1(&mut self, refer_to_a1: flatbuffers::WIPOffset<super::namespace_a::TableInFirstNS<'b >>) {
     self.fbb_.push_slot_always::<flatbuffers::WIPOffset<super::namespace_a::TableInFirstNS>>(TableInC::VT_REFER_TO_A1, refer_to_a1);
@@ -117,7 +117,7 @@ impl<'a: 'b, 'b> TableInCBuilder<'a, 'b> {
     self.fbb_.push_slot_always::<flatbuffers::WIPOffset<super::namespace_a::SecondTableInA>>(TableInC::VT_REFER_TO_A2, refer_to_a2);
   }
   #[inline]
-  pub fn new(_fbb: &'b mut flatbuffers::FlatBufferBuilder<'a>) -> TableInCBuilder<'a, 'b> {
+  pub fn new(_fbb: &'b mut flatbuffers::FlatBufferBuilder<'a, A>) -> TableInCBuilder<'a, 'b, A> {
     let start = _fbb.start_table();
     TableInCBuilder {
       fbb_: _fbb,
@@ -154,9 +154,9 @@ impl Default for TableInCT {
   }
 }
 impl TableInCT {
-  pub fn pack<'b>(
+  pub fn pack<'b, A: flatbuffers::Allocator + 'b>(
     &self,
-    _fbb: &mut flatbuffers::FlatBufferBuilder<'b>
+    _fbb: &mut flatbuffers::FlatBufferBuilder<'b, A>
   ) -> flatbuffers::WIPOffset<TableInC<'b>> {
     let refer_to_a1 = self.refer_to_a1.as_ref().map(|x|{
       x.pack(_fbb)

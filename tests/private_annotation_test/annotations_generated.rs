@@ -36,8 +36,8 @@ impl<'a> Annotations<'a> {
     Annotations { _tab: table }
   }
   #[allow(unused_mut)]
-  pub fn create<'bldr: 'args, 'args: 'mut_bldr, 'mut_bldr>(
-    _fbb: &'mut_bldr mut flatbuffers::FlatBufferBuilder<'bldr>,
+  pub fn create<'bldr: 'args, 'args: 'mut_bldr, 'mut_bldr, A: flatbuffers::Allocator + 'bldr>(
+    _fbb: &'mut_bldr mut flatbuffers::FlatBufferBuilder<'bldr, A>,
     args: &'args AnnotationsArgs
   ) -> flatbuffers::WIPOffset<Annotations<'bldr>> {
     let mut builder = AnnotationsBuilder::new(_fbb);
@@ -85,17 +85,17 @@ impl<'a> Default for AnnotationsArgs {
   }
 }
 
-pub(crate) struct AnnotationsBuilder<'a: 'b, 'b> {
-  fbb_: &'b mut flatbuffers::FlatBufferBuilder<'a>,
+pub(crate) struct AnnotationsBuilder<'a: 'b, 'b, A: flatbuffers::Allocator + 'a> {
+  fbb_: &'b mut flatbuffers::FlatBufferBuilder<'a, A>,
   start_: flatbuffers::WIPOffset<flatbuffers::TableUnfinishedWIPOffset>,
 }
-impl<'a: 'b, 'b> AnnotationsBuilder<'a, 'b> {
+impl<'a: 'b, 'b, A: flatbuffers::Allocator + 'a> AnnotationsBuilder<'a, 'b, A> {
   #[inline]
   pub fn add_value(&mut self, value: i32) {
     self.fbb_.push_slot::<i32>(Annotations::VT_VALUE, value, 0);
   }
   #[inline]
-  pub fn new(_fbb: &'b mut flatbuffers::FlatBufferBuilder<'a>) -> AnnotationsBuilder<'a, 'b> {
+  pub fn new(_fbb: &'b mut flatbuffers::FlatBufferBuilder<'a, A>) -> AnnotationsBuilder<'a, 'b, A> {
     let start = _fbb.start_table();
     AnnotationsBuilder {
       fbb_: _fbb,
@@ -129,9 +129,9 @@ impl Default for AnnotationsT {
   }
 }
 impl AnnotationsT {
-  pub fn pack<'b>(
+  pub fn pack<'b, A: flatbuffers::Allocator + 'b>(
     &self,
-    _fbb: &mut flatbuffers::FlatBufferBuilder<'b>
+    _fbb: &mut flatbuffers::FlatBufferBuilder<'b, A>
   ) -> flatbuffers::WIPOffset<Annotations<'b>> {
     let value = self.value;
     Annotations::create(_fbb, &AnnotationsArgs{

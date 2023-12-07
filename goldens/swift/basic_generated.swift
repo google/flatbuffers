@@ -4,7 +4,7 @@
 
 import FlatBuffers
 
-public struct Galaxy: FlatBufferObject, Verifiable {
+public struct flatbuffers_goldens_Galaxy: FlatBufferObject, Verifiable {
 
   static func validateVersion() { FlatBuffersVersion_23_5_26() }
   public var __buffer: ByteBuffer! { return _accessor.bb }
@@ -27,9 +27,9 @@ public struct Galaxy: FlatBufferObject, Verifiable {
     _ fbb: inout FlatBufferBuilder,
     numStars: Int64 = 0
   ) -> Offset {
-    let __start = Galaxy.startGalaxy(&fbb)
-    Galaxy.add(numStars: numStars, &fbb)
-    return Galaxy.endGalaxy(&fbb, start: __start)
+    let __start = flatbuffers_goldens_Galaxy.startGalaxy(&fbb)
+    flatbuffers_goldens_Galaxy.add(numStars: numStars, &fbb)
+    return flatbuffers_goldens_Galaxy.endGalaxy(&fbb, start: __start)
   }
 
   public static func verify<T>(_ verifier: inout Verifier, at position: Int, of type: T.Type) throws where T: Verifiable {
@@ -39,7 +39,7 @@ public struct Galaxy: FlatBufferObject, Verifiable {
   }
 }
 
-public struct Universe: FlatBufferObject, Verifiable {
+public struct flatbuffers_goldens_Universe: FlatBufferObject, Verifiable {
 
   static func validateVersion() { FlatBuffersVersion_23_5_26() }
   public var __buffer: ByteBuffer! { return _accessor.bb }
@@ -58,7 +58,7 @@ public struct Universe: FlatBufferObject, Verifiable {
   public var age: Double { let o = _accessor.offset(VTOFFSET.age.v); return o == 0 ? 0.0 : _accessor.readBuffer(of: Double.self, at: o) }
   public var hasGalaxies: Bool { let o = _accessor.offset(VTOFFSET.galaxies.v); return o == 0 ? false : true }
   public var galaxiesCount: Int32 { let o = _accessor.offset(VTOFFSET.galaxies.v); return o == 0 ? 0 : _accessor.vector(count: o) }
-  public func galaxies(at index: Int32) -> Galaxy? { let o = _accessor.offset(VTOFFSET.galaxies.v); return o == 0 ? nil : Galaxy(_accessor.bb, o: _accessor.indirect(_accessor.vector(at: o) + index * 4)) }
+  public func galaxies(at index: Int32) -> flatbuffers_goldens_Galaxy? { let o = _accessor.offset(VTOFFSET.galaxies.v); return o == 0 ? nil : flatbuffers_goldens_Galaxy(_accessor.bb, o: _accessor.indirect(_accessor.vector(at: o) + index * 4)) }
   public static func startUniverse(_ fbb: inout FlatBufferBuilder) -> UOffset { fbb.startTable(with: 2) }
   public static func add(age: Double, _ fbb: inout FlatBufferBuilder) { fbb.add(element: age, def: 0.0, at: VTOFFSET.age.p) }
   public static func addVectorOf(galaxies: Offset, _ fbb: inout FlatBufferBuilder) { fbb.add(offset: galaxies, at: VTOFFSET.galaxies.p) }
@@ -68,16 +68,16 @@ public struct Universe: FlatBufferObject, Verifiable {
     age: Double = 0.0,
     galaxiesVectorOffset galaxies: Offset = Offset()
   ) -> Offset {
-    let __start = Universe.startUniverse(&fbb)
-    Universe.add(age: age, &fbb)
-    Universe.addVectorOf(galaxies: galaxies, &fbb)
-    return Universe.endUniverse(&fbb, start: __start)
+    let __start = flatbuffers_goldens_Universe.startUniverse(&fbb)
+    flatbuffers_goldens_Universe.add(age: age, &fbb)
+    flatbuffers_goldens_Universe.addVectorOf(galaxies: galaxies, &fbb)
+    return flatbuffers_goldens_Universe.endUniverse(&fbb, start: __start)
   }
 
   public static func verify<T>(_ verifier: inout Verifier, at position: Int, of type: T.Type) throws where T: Verifiable {
     var _v = try verifier.visitTable(at: position)
     try _v.visit(field: VTOFFSET.age.p, fieldName: "age", required: false, type: Double.self)
-    try _v.visit(field: VTOFFSET.galaxies.p, fieldName: "galaxies", required: false, type: ForwardOffset<Vector<ForwardOffset<Galaxy>, Galaxy>>.self)
+    try _v.visit(field: VTOFFSET.galaxies.p, fieldName: "galaxies", required: false, type: ForwardOffset<Vector<ForwardOffset<flatbuffers_goldens_Galaxy>, flatbuffers_goldens_Galaxy>>.self)
     _v.finish()
   }
 }

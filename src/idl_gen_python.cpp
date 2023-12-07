@@ -815,8 +815,12 @@ class PythonGenerator : public BaseGenerator {
 
     if (!parser_.opts.one_file && !parser_.opts.python_no_type_prefix_suffix) {
       // Generate method without struct name.
-      code += "def Start" + field_method +
-              "Vector(builder, numElems: int) -> int:\n";
+      if (parser_.opts.python_typing) {
+        code += "def Start" + field_method +
+                "Vector(builder, numElems: int) -> int:\n";
+      } else {
+        code += "def Start" + field_method + "Vector(builder, numElems):\n";
+      }
       code += Indent + "return " + struct_type + "Start";
       code += field_method + "Vector(builder, numElems)\n\n";
     }
