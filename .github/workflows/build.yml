@@ -149,6 +149,43 @@ jobs:
       if: matrix.std >= 17
       run: Release\flattests_cpp17.exe
 
+  build-windows:
+    permissions:
+      contents: write
+    outputs:
+      digests: ${{ steps.hash.outputs.hashes }}
+    name: Build Windows 2019
+    runs-on: windows-2019
+    steps:
+    - uses: actions/checkout@v3
+    - name: Add msbuild to PATH
+      uses: microsoft/setup-msbuild@v1.1
+    - name: cmake
+      run: cmake -G "Visual Studio 16 2019" -A x64 -DCMAKE_BUILD_TYPE=Release -DFLATBUFFERS_BUILD_CPP17=ON -DFLATBUFFERS_STRICT_MODE=ON .
+    - name: build
+      run: msbuild.exe FlatBuffers.sln /p:Configuration=Release /p:Platform=x64
+    - name: test
+      run: Release\flattests.exe
+    - name: upload build artifacts
+      uses: actions/upload-artifact@v1
+      with:
+        name: Windows flatc binary
+        path: Release\flatc.exe
+    # Below if only for release.
+    - name: Zip file
+      if: startsWith(github.ref, 'refs/tags/')
+      run: move Release/flatc.exe . && Compress-Archive flatc.exe Windows.flatc.binary.zip
+    - name: Release binary
+      uses: softprops/action-gh-release@v1
+      if: startsWith(github.ref, 'refs/tags/')
+      with:
+        files: Windows.flatc.binary.zip
+    - name: Generate SLSA subjects
+      if: startsWith(github.ref, 'refs/tags/')
+      id: hash
+      shell: bash
+      run: echo "hashes=$(sha256sum Windows.flatc.binary.zip | base64 -w0)" >> $GITHUB_OUTPUT
+
   build-dotnet-windows:
     name: Build .NET Windows
     runs-on: windows-2022-64core
