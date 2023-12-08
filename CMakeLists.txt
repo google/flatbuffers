@@ -556,7 +556,7 @@ if(FLATBUFFERS_BUILD_TESTS)
 
   # Add a library so there is a single target that the generated samples can 
   # link too.
-  if(MSVC)
+  if(MSVC OR ${CMAKE_VERSION} VERSION_GREATER_EQUAL "3.20.0")
     add_library(flatsample INTERFACE)
   else()
     add_library(flatsample STATIC)
@@ -598,7 +598,7 @@ if(FLATBUFFERS_BUILD_GRPCTEST)
   find_package(protobuf CONFIG REQUIRED)
   find_package(gRPC CONFIG REQUIRED)
   add_executable(grpctest ${FlatBuffers_GRPCTest_SRCS})
-  target_link_libraries(grpctext
+  target_link_libraries(grpctest
     PRIVATE
       $<BUILD_INTERFACE:ProjectConfig>
       gRPC::grpc++_unsecure

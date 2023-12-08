@@ -177,7 +177,7 @@ def AddObjects(builder, objects):
 def SchemaStartObjectsVector(builder, numElems):
     return builder.StartVector(4, numElems, 4)
 
-def StartObjectsVector(builder, numElems: int) -> int:
+def StartObjectsVector(builder, numElems):
     return SchemaStartObjectsVector(builder, numElems)
 
 def SchemaAddEnums(builder, enums):
@@ -189,7 +189,7 @@ def AddEnums(builder, enums):
 def SchemaStartEnumsVector(builder, numElems):
     return builder.StartVector(4, numElems, 4)
 
-def StartEnumsVector(builder, numElems: int) -> int:
+def StartEnumsVector(builder, numElems):
     return SchemaStartEnumsVector(builder, numElems)
 
 def SchemaAddFileIdent(builder, fileIdent):
@@ -219,7 +219,7 @@ def AddServices(builder, services):
 def SchemaStartServicesVector(builder, numElems):
     return builder.StartVector(4, numElems, 4)
 
-def StartServicesVector(builder, numElems: int) -> int:
+def StartServicesVector(builder, numElems):
     return SchemaStartServicesVector(builder, numElems)
 
 def SchemaAddAdvancedFeatures(builder, advancedFeatures):
@@ -237,7 +237,7 @@ def AddFbsFiles(builder, fbsFiles):
 def SchemaStartFbsFilesVector(builder, numElems):
     return builder.StartVector(4, numElems, 4)
 
-def StartFbsFilesVector(builder, numElems: int) -> int:
+def StartFbsFilesVector(builder, numElems):
     return SchemaStartFbsFilesVector(builder, numElems)
 
 def SchemaEnd(builder):
