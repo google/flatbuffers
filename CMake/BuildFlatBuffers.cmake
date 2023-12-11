@@ -253,6 +253,7 @@ function(flatbuffers_generate_headers)
     list(APPEND FLATBUFFERS_GENERATE_HEADERS_FLAGS 
          "--include-prefix" ${FLATBUFFERS_GENERATE_HEADERS_INCLUDE_PREFIX})
   endif()
+  file(MAKE_DIRECTORY ${generated_include_dir})
 
   set(all_generated_files)
 
