@@ -46,7 +46,7 @@ __export(foobar_exports, {
 var Abc;
 (function(Abc2) {
   Abc2[Abc2["a"] = 0] = "a";
-})(Abc = Abc || (Abc = {}));
+})(Abc || (Abc = {}));
 
 // reflection.js
 var reflection_exports = {};
@@ -81,7 +81,7 @@ var AdvancedFeatures;
   AdvancedFeatures2["AdvancedUnionFeatures"] = "2";
   AdvancedFeatures2["OptionalScalars"] = "4";
   AdvancedFeatures2["DefaultVectorsAndStrings"] = "8";
-})(AdvancedFeatures = AdvancedFeatures || (AdvancedFeatures = {}));
+})(AdvancedFeatures || (AdvancedFeatures = {}));
 
 // reflection/base-type.js
 var BaseType;
@@ -104,8 +104,9 @@ var BaseType;
   BaseType2[BaseType2["Obj"] = 15] = "Obj";
   BaseType2[BaseType2["Union"] = 16] = "Union";
   BaseType2[BaseType2["Array"] = 17] = "Array";
-  BaseType2[BaseType2["MaxBaseType"] = 18] = "MaxBaseType";
-})(BaseType = BaseType || (BaseType = {}));
+  BaseType2[BaseType2["Vector64"] = 18] = "Vector64";
+  BaseType2[BaseType2["MaxBaseType"] = 19] = "MaxBaseType";
+})(BaseType || (BaseType = {}));
 
 // reflection/enum.js
 var flatbuffers4 = __toESM(require("flatbuffers"), 1);
@@ -804,11 +805,26 @@ var Field = class _Field {
     this.bb.writeUint16(this.bb_pos + offset, value);
     return true;
   }
+  /**
+   * If the field uses 64-bit offsets.
+   */
+  offset64() {
+    const offset = this.bb.__offset(this.bb_pos, 30);
+    return offset ? !!this.bb.readInt8(this.bb_pos + offset) : false;
+  }
+  mutate_offset64(value) {
+    const offset = this.bb.__offset(this.bb_pos, 30);
+    if (offset === 0) {
+      return false;
+    }
+    this.bb.writeInt8(this.bb_pos + offset, +value);
+    return true;
+  }
   static getFullyQualifiedName() {
     return "reflection.Field";
   }
   static startField(builder) {
-    builder.startObject(13);
+    builder.startObject(14);
   }
   static addName(builder, nameOffset) {
     builder.addFieldOffset(0, nameOffset, 0);
@@ -869,6 +885,9 @@ var Field = class _Field {
   static addPadding(builder, padding) {
     builder.addFieldInt16(12, padding, 0);
   }
+  static addOffset64(builder, offset64) {
+    builder.addFieldInt8(13, +offset64, 0);
+  }
   static endField(builder) {
     const offset = builder.endObject();
     builder.requiredField(offset, 4);
@@ -876,7 +895,7 @@ var Field = class _Field {
     return offset;
   }
   unpack() {
-    return new FieldT(this.name(), this.type() !== null ? this.type().unpack() : null, this.id(), this.offset(), this.defaultInteger(), this.defaultReal(), this.deprecated(), this.required(), this.key(), this.bb.createObjList(this.attributes.bind(this), this.attributesLength()), this.bb.createScalarList(this.documentation.bind(this), this.documentationLength()), this.optional(), this.padding());
+    return new FieldT(this.name(), this.type() !== null ? this.type().unpack() : null, this.id(), this.offset(), this.defaultInteger(), this.defaultReal(), this.deprecated(), this.required(), this.key(), this.bb.createObjList(this.attributes.bind(this), this.attributesLength()), this.bb.createScalarList(this.documentation.bind(this), this.documentationLength()), this.optional(), this.padding(), this.offset64());
   }
   unpackTo(_o) {
     _o.name = this.name();
@@ -892,10 +911,11 @@ var Field = class _Field {
     _o.documentation = this.bb.createScalarList(this.documentation.bind(this), this.documentationLength());
     _o.optional = this.optional();
     _o.padding = this.padding();
+    _o.offset64 = this.offset64();
   }
 };
 var FieldT = class {
-  constructor(name = null, type = null, id = 0, offset = 0, defaultInteger = BigInt("0"), defaultReal = 0, deprecated = false, required = false, key = false, attributes = [], documentation = [], optional = false, padding = 0) {
+  constructor(name = null, type = null, id = 0, offset = 0, defaultInteger = BigInt("0"), defaultReal = 0, deprecated = false, required = false, key = false, attributes = [], documentation = [], optional = false, padding = 0, offset64 = false) {
     this.name = name;
     this.type = type;
     this.id = id;
@@ -909,6 +929,7 @@ var FieldT = class {
     this.documentation = documentation;
     this.optional = optional;
     this.padding = padding;
+    this.offset64 = offset64;
   }
   pack(builder) {
     const name = this.name !== null ? builder.createString(this.name) : 0;
@@ -929,6 +950,7 @@ var FieldT = class {
     Field.addDocumentation(builder, documentation);
     Field.addOptional(builder, this.optional);
     Field.addPadding(builder, this.padding);
+    Field.addOffset64(builder, this.offset64);
     return Field.endField(builder);
   }
 };
@@ -1718,14 +1740,14 @@ var flatbuffers11 = __toESM(require("flatbuffers"), 1);
 var class_;
 (function(class_3) {
   class_3[class_3["arguments_"] = 0] = "arguments_";
-})(class_ = class_ || (class_ = {}));
+})(class_ || (class_ = {}));
 
 // typescript/class.js
 var class_2;
 (function(class_3) {
   class_3[class_3["new_"] = 0] = "new_";
   class_3[class_3["instanceof_"] = 1] = "instanceof_";
-})(class_2 = class_2 || (class_2 = {}));
+})(class_2 || (class_2 = {}));
 
 // typescript/object.js
 var Object_2 = class _Object_ {

@@ -104,8 +104,8 @@ load("@aspect_rules_ts//ts:repositories.bzl", "rules_ts_dependencies")
 rules_ts_dependencies(
     # Since rules_ts doesn't always have the newest integrity hashes, we
     # compute it manually here.
-    #   $ curl --silent https://registry.npmjs.org/typescript/5.0.4 | jq ._integrity
-    ts_integrity = "sha512-cW9T5W9xY37cc+jfEnaUvX91foxtHkza3Nw3wkoF4sSlKn0MONdkdEndig/qPBWXNkmplh3NzayQzCiHM4/hqw==",
+    #   $ curl --silent https://registry.npmjs.org/typescript/5.3.3 | jq ._integrity
+    ts_integrity = "sha512-pXWcraxM0uxAS+tN0AG/BF2TyqmHO014Z070UsJ+pFvYuRSq8KH8DmWpnbXe0pEPDHXZV3FcAbJkijJ5oNEnWw==",
     ts_version_from = "//:package.json",
 )
 

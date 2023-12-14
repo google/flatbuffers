@@ -378,7 +378,7 @@ var AnyAmbiguousAliases;
   AnyAmbiguousAliases2[AnyAmbiguousAliases2["M1"] = 1] = "M1";
   AnyAmbiguousAliases2[AnyAmbiguousAliases2["M2"] = 2] = "M2";
   AnyAmbiguousAliases2[AnyAmbiguousAliases2["M3"] = 3] = "M3";
-})(AnyAmbiguousAliases = AnyAmbiguousAliases || (AnyAmbiguousAliases = {}));
+})(AnyAmbiguousAliases || (AnyAmbiguousAliases = {}));
 function unionToAnyAmbiguousAliases(type, accessor) {
   switch (AnyAmbiguousAliases[type]) {
     case "NONE":
@@ -403,7 +403,7 @@ var Color;
   Color2[Color2["Red"] = 1] = "Red";
   Color2[Color2["Green"] = 2] = "Green";
   Color2[Color2["Blue"] = 8] = "Blue";
-})(Color = Color || (Color = {}));
+})(Color || (Color = {}));
 
 // my-game/example/test-simple-table-with-enum.js
 var TestSimpleTableWithEnum = class _TestSimpleTableWithEnum {
@@ -482,7 +482,7 @@ var AnyUniqueAliases;
   AnyUniqueAliases2[AnyUniqueAliases2["M"] = 1] = "M";
   AnyUniqueAliases2[AnyUniqueAliases2["TS"] = 2] = "TS";
   AnyUniqueAliases2[AnyUniqueAliases2["M2"] = 3] = "M2";
-})(AnyUniqueAliases = AnyUniqueAliases || (AnyUniqueAliases = {}));
+})(AnyUniqueAliases || (AnyUniqueAliases = {}));
 function unionToAnyUniqueAliases(type, accessor) {
   switch (AnyUniqueAliases[type]) {
     case "NONE":
@@ -505,7 +505,7 @@ var Race;
   Race2[Race2["Human"] = 0] = "Human";
   Race2[Race2["Dwarf"] = 1] = "Dwarf";
   Race2[Race2["Elf"] = 2] = "Elf";
-})(Race = Race || (Race = {}));
+})(Race || (Race = {}));
 
 // my-game/example/referrable.js
 var flatbuffers6 = __toESM(require("flatbuffers"), 1);
@@ -2093,7 +2093,7 @@ var Any;
   Any2[Any2["Monster"] = 1] = "Monster";
   Any2[Any2["TestSimpleTableWithEnum"] = 2] = "TestSimpleTableWithEnum";
   Any2[Any2["MyGame_Example2_Monster"] = 3] = "MyGame_Example2_Monster";
-})(Any = Any || (Any = {}));
+})(Any || (Any = {}));
 function unionToAny(type, accessor) {
   switch (Any[type]) {
     case "NONE":
@@ -2115,7 +2115,7 @@ var LongEnum;
   LongEnum2["LongOne"] = "2";
   LongEnum2["LongTwo"] = "4";
   LongEnum2["LongBig"] = "1099511627776";
-})(LongEnum = LongEnum || (LongEnum = {}));
+})(LongEnum || (LongEnum = {}));
 
 // my-game/example/struct-of-structs.js
 var StructOfStructs = class {
@@ -2540,7 +2540,7 @@ __export(other_name_space_exports, {
 var FromInclude;
 (function(FromInclude2) {
   FromInclude2["IncludeVal"] = "0";
-})(FromInclude = FromInclude || (FromInclude = {}));
+})(FromInclude || (FromInclude = {}));
 
 // my-game/other-name-space/unused.js
 var Unused = class {
