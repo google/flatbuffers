@@ -212,7 +212,7 @@ var Character;
   Character2[Character2["BookFan"] = 4] = "BookFan";
   Character2[Character2["Other"] = 5] = "Other";
   Character2[Character2["Unused"] = 6] = "Unused";
-})(Character = Character || (Character = {}));
+})(Character || (Character = {}));
 function unionToCharacter(type, accessor) {
   switch (Character[type]) {
     case "NONE":
@@ -370,7 +370,7 @@ var Gadget;
   Gadget2[Gadget2["NONE"] = 0] = "NONE";
   Gadget2[Gadget2["FallingTub"] = 1] = "FallingTub";
   Gadget2[Gadget2["HandFan"] = 2] = "HandFan";
-})(Gadget = Gadget || (Gadget = {}));
+})(Gadget || (Gadget = {}));
 
 // union_vector/movie.js
 var flatbuffers3 = __toESM(require("flatbuffers"), 1);
