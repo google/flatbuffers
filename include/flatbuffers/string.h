@@ -31,6 +31,11 @@ struct String : public Vector<char> {
   flatbuffers::string_view string_view() const {
     return flatbuffers::string_view(c_str(), size());
   }
+
+  /* implicit */
+  operator flatbuffers::string_view() const {
+    return flatbuffers::string_view(c_str(), size());
+  }
   #endif // FLATBUFFERS_HAS_STRING_VIEW
   // clang-format on
 
