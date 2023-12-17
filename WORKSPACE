@@ -24,12 +24,6 @@ load(
 
 apple_rules_dependencies()
 
-http_archive(
-    name = "build_bazel_rules_swift",
-    sha256 = "a2fd565e527f83fb3f9eb07eb9737240e668c9242d3bc318712efa54a7deda97",
-    url = "https://github.com/bazelbuild/rules_swift/releases/download/0.27.0/rules_swift.0.27.0.tar.gz",
-)
-
 load(
     "@build_bazel_rules_swift//swift:repositories.bzl",
     "swift_rules_dependencies",
@@ -43,6 +37,13 @@ load(
 )
 
 swift_rules_extra_dependencies()
+
+load(
+    "@build_bazel_apple_support//lib:repositories.bzl",
+    "apple_support_dependencies",
+)
+
+apple_support_dependencies()
 
 http_archive(
     name = "io_bazel_rules_go",
