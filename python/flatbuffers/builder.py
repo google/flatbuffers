@@ -146,6 +146,20 @@ class Builder(object):
         ## @endcond
         self.finished = False
 
+    def Clear(self) -> None:
+        ## @cond FLATBUFFERS_INTERNAL
+        self.current_vtable = None
+        self.head = UOffsetTFlags.py_type(len(self.Bytes))
+        self.minalign = 1
+        self.objectEnd = None
+        self.vtables = {}
+        self.nested = False
+        self.forceDefaults = False
+        self.sharedStrings = {}
+        self.vectorNumElems = None
+        ## @endcond
+        self.finished = False
+
     def Output(self):
         """Return the portion of the buffer that has been used for writing data.
 
