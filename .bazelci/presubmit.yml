@@ -1,5 +1,6 @@
 ---
 buildifier: latest
+bazel: 6.4.0
 platforms:
   ubuntu1804:
     environment:
