@@ -750,7 +750,7 @@ class JavaGenerator : public BaseGenerator {
     for (auto it = struct_def.fields.vec.begin();
          it != struct_def.fields.vec.end(); ++it) {
       auto &field = **it;
-      if (field.deprecated) continue;
+      if (field.deprecated == FieldDef::kDeprecated) continue;
       GenComment(field.doc_comment, &code, &comment_config, "  ");
       const std::string type_name = GenTypeGet(field.value.type);
       const std::string type_name_dest = GenTypeNameDest(field.value.type);
@@ -993,7 +993,8 @@ class JavaGenerator : public BaseGenerator {
         code += "bb) : null; }\n";
       }
       // Generate mutators for scalar fields or vectors of scalars.
-      if (parser_.opts.mutable_buffer) {
+      if (field.deprecated != FieldDef::kDeprecatedReadOnly &&
+          parser_.opts.mutable_buffer) {
         auto is_series = (IsSeries(field.value.type));
         const auto &underlying_type =
             is_series ? field.value.type.VectorType() : field.value.type;
@@ -1488,7 +1489,7 @@ class JavaGenerator : public BaseGenerator {
     for (auto it = struct_def.fields.vec.begin();
          it != struct_def.fields.vec.end(); ++it) {
       const auto &field = **it;
-      if (field.deprecated) continue;
+      if (field.deprecated == FieldDef::kDeprecated) continue;
       if (field.value.type.base_type == BASE_TYPE_UTYPE) continue;
       if (field.value.type.element == BASE_TYPE_UTYPE) continue;
       const auto accessor = namer_.Method(field);
@@ -2078,7 +2079,7 @@ class JavaGenerator : public BaseGenerator {
     for (auto it = struct_def.fields.vec.begin();
          it != struct_def.fields.vec.end(); ++it) {
       const auto &field = **it;
-      if (field.deprecated) continue;
+      if (field.deprecated == FieldDef::kDeprecated) continue;
       if (field.value.type.base_type == BASE_TYPE_UTYPE) continue;
       if (field.value.type.element == BASE_TYPE_UTYPE) continue;
       auto type_name = GenTypeGet_ObjectAPI(field.value.type, false, true);
@@ -2119,7 +2120,7 @@ class JavaGenerator : public BaseGenerator {
     for (auto it = struct_def.fields.vec.begin();
          it != struct_def.fields.vec.end(); ++it) {
       const auto &field = **it;
-      if (field.deprecated) continue;
+      if (field.deprecated == FieldDef::kDeprecated) continue;
       if (field.value.type.base_type == BASE_TYPE_UTYPE) continue;
       if (field.value.type.element == BASE_TYPE_UTYPE) continue;
       const auto get_field = namer_.Method("get", field);

@@ -1003,7 +1003,7 @@ class KotlinKMPGenerator : public BaseGenerator {
     FieldDef *key_field = nullptr;
     for (auto it = fields_vec.begin(); it != fields_vec.end(); ++it) {
       auto &field = **it;
-      if (field.deprecated) continue;
+      if (field.deprecated == FieldDef::kDeprecated) continue;
       if (field.key) key_field = &field;
 
       GenerateComment(field.doc_comment, writer, &comment_config);

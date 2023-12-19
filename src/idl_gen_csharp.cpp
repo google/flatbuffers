@@ -789,7 +789,7 @@ class CSharpGenerator : public BaseGenerator {
     for (auto it = struct_def.fields.vec.begin();
          it != struct_def.fields.vec.end(); ++it) {
       auto &field = **it;
-      if (field.deprecated) continue;
+      if (field.deprecated == FieldDef::kDeprecated) continue;
 
       GenVerifyCall(code_, field, "");
     }
@@ -908,7 +908,7 @@ class CSharpGenerator : public BaseGenerator {
     for (auto it = struct_def.fields.vec.begin();
          it != struct_def.fields.vec.end(); ++it) {
       auto &field = **it;
-      if (field.deprecated) continue;
+      if (field.deprecated == FieldDef::kDeprecated) continue;
       GenComment(field.doc_comment, code_ptr, &comment_config, "  ");
       std::string type_name = GenTypeGet(field.value.type);
       std::string type_name_dest = GenTypeGet(field.value.type);
@@ -1208,7 +1208,8 @@ class CSharpGenerator : public BaseGenerator {
         code += "__p.bb) : null; }\n";
       }
       // Generate mutators for scalar fields or vectors of scalars.
-      if (parser_.opts.mutable_buffer) {
+      if (field.deprecated != FieldDef::kDeprecatedReadOnly &&
+          parser_.opts.mutable_buffer) {
         auto is_series = (IsSeries(field.value.type));
         const auto &underlying_type =
             is_series ? field.value.type.VectorType() : field.value.type;
@@ -1920,7 +1921,7 @@ class CSharpGenerator : public BaseGenerator {
     for (auto it = struct_def.fields.vec.begin();
          it != struct_def.fields.vec.end(); ++it) {
       auto &field = **it;
-      if (field.deprecated) continue;
+      if (field.deprecated == FieldDef::kDeprecated) continue;
       auto camel_name = Name(field);
       if (camel_name == struct_def.name) { camel_name += "_"; }
       auto camel_name_short = Name(field);
@@ -2382,7 +2383,7 @@ class CSharpGenerator : public BaseGenerator {
     for (auto it = struct_def.fields.vec.begin();
          it != struct_def.fields.vec.end(); ++it) {
       auto &field = **it;
-      if (field.deprecated) continue;
+      if (field.deprecated == FieldDef::kDeprecated) continue;
       if (field.value.type.base_type == BASE_TYPE_UTYPE) continue;
       if (field.value.type.element == BASE_TYPE_UTYPE) continue;
       auto type_name = GenTypeGet_ObjectAPI(field.value.type, opts);
@@ -2451,7 +2452,7 @@ class CSharpGenerator : public BaseGenerator {
     for (auto it = struct_def.fields.vec.begin();
          it != struct_def.fields.vec.end(); ++it) {
       auto &field = **it;
-      if (field.deprecated) continue;
+      if (field.deprecated == FieldDef::kDeprecated) continue;
       if (field.value.type.base_type == BASE_TYPE_UTYPE) continue;
       if (field.value.type.element == BASE_TYPE_UTYPE) continue;
       auto camel_name = Name(field);

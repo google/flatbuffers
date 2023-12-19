@@ -51,7 +51,7 @@ int main(int /*argc*/, const char * /*argv*/[]) {
 
   // Shortcut for creating monster with all fields set:
   auto orc = CreateMonster(builder, &position, 150, 80, name, inventory,
-                           Color_Red, weapons, Equipment_Weapon, axe.Union());
+                           weapons, Equipment_Weapon, axe.Union());
 
   builder.Finish(orc);  // Serialize the root of the object.
 

@@ -283,7 +283,7 @@ class LobsterGenerator : public BaseGenerator {
     for (auto it = struct_def.fields.vec.begin();
          it != struct_def.fields.vec.end(); ++it) {
       auto &field = **it;
-      if (field.deprecated) continue;
+      if (field.deprecated == FieldDef::kDeprecated) continue;
       GenStructAccessor(struct_def, field, code_ptr);
     }
     code += "\n";

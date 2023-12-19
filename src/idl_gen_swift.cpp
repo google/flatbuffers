@@ -442,7 +442,7 @@ class SwiftGenerator : public BaseGenerator {
       for (auto it = struct_def.fields.vec.begin();
            it != struct_def.fields.vec.end(); ++it) {
         const auto &field = **it;
-        if (field.deprecated) { continue; }
+        if (field.deprecated == FieldDef::kDeprecated) { continue; }
         code_.SetValue("OFFSET_NAME", namer_.Variable(field));
         code_.SetValue("OFFSET_VALUE", NumToString(field.value.offset));
         code_ += "case {{OFFSET_NAME}} = {{OFFSET_VALUE}}";
@@ -689,7 +689,7 @@ class SwiftGenerator : public BaseGenerator {
     for (auto it = struct_def.fields.vec.begin();
          it != struct_def.fields.vec.end(); ++it) {
       const auto &field = **it;
-      if (field.deprecated) continue;
+      if (field.deprecated == FieldDef::kDeprecated) continue;
       GenTableReaderFields(field);
     }
   }
@@ -713,7 +713,9 @@ class SwiftGenerator : public BaseGenerator {
         !IsBool(field.value.type.base_type)) {
       code_ += GenReaderMainBody(optional) + GenOffset() + const_string +
                GenReader("VALUETYPE", "o") + " }";
-      if (parser_.opts.mutable_buffer) code_ += GenMutate("o", GenOffset());
+      if (field.deprecated != FieldDef::kDeprecatedReadOnly &&
+          parser_.opts.mutable_buffer)
+        code_ += GenMutate("o", GenOffset());
       return;
     }
 
@@ -726,7 +728,9 @@ class SwiftGenerator : public BaseGenerator {
       code_ += GenOffset() +
                "return o == 0 ? {{CONSTANT}} : " + GenReader("VALUETYPE", "o") +
                " }";
-      if (parser_.opts.mutable_buffer) code_ += GenMutate("o", GenOffset());
+      if (field.deprecated != FieldDef::kDeprecatedReadOnly &&
+          parser_.opts.mutable_buffer)
+        code_ += GenMutate("o", GenOffset());
       return;
     }
 
@@ -737,7 +741,8 @@ class SwiftGenerator : public BaseGenerator {
       code_ += GenReaderMainBody(optional) + "\\";
       code_ += GenOffset() + "return o == 0 ? " + default_value + " : " +
                GenEnumConstructor("o") + "?? " + default_value + " }";
-      if (parser_.opts.mutable_buffer && !IsUnion(field.value.type))
+      if (field.deprecated != FieldDef::kDeprecatedReadOnly &&
+          parser_.opts.mutable_buffer && !IsUnion(field.value.type))
         code_ += GenMutate("o", GenOffset(), true);
       return;
     }
@@ -831,7 +836,9 @@ class SwiftGenerator : public BaseGenerator {
       code_ +=
           "{{ACCESS_TYPE}} var {{FIELDVAR}}: [{{VALUETYPE}}] { return "
           "{{ACCESS}}.getVector(at: {{TABLEOFFSET}}.{{OFFSET}}.v) ?? [] }";
-      if (parser_.opts.mutable_buffer) code_ += GenMutateArray();
+      if (field.deprecated != FieldDef::kDeprecatedReadOnly &&
+          parser_.opts.mutable_buffer)
+        code_ += GenMutateArray();
       GenUnsafeBufferPointer(field);
       return;
     }
@@ -1062,7 +1069,7 @@ class SwiftGenerator : public BaseGenerator {
     for (auto it = struct_def.fields.vec.begin();
          it != struct_def.fields.vec.end(); ++it) {
       const auto &field = **it;
-      if (field.deprecated) continue;
+      if (field.deprecated == FieldDef::kDeprecated) continue;
       const auto offset = NumToString(field.value.offset);
 
       code_.SetValue("FIELDVAR", namer_.Variable(field));
@@ -1291,7 +1298,7 @@ class SwiftGenerator : public BaseGenerator {
     for (auto it = struct_def.fields.vec.begin();
          it != struct_def.fields.vec.end(); ++it) {
       const auto &field = **it;
-      if (field.deprecated) continue;
+      if (field.deprecated == FieldDef::kDeprecated) continue;
 
       const auto type = GenType(field.value.type);
       code_.SetValue("FIELDVAR", namer_.Variable(field));
@@ -1316,7 +1323,7 @@ class SwiftGenerator : public BaseGenerator {
     for (auto it = struct_def.fields.vec.begin();
          it != struct_def.fields.vec.end(); ++it) {
       const auto &field = **it;
-      if (field.deprecated) continue;
+      if (field.deprecated == FieldDef::kDeprecated) continue;
       BuildObjectAPIConstructorBody(field, struct_def.fixed, buffer_constructor,
                                     base_constructor);
     }

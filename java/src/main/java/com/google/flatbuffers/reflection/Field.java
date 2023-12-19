@@ -37,28 +37,29 @@ public final class Field extends Table {
   public long defaultInteger() { int o = __offset(12); return o != 0 ? bb.getLong(o + bb_pos) : 0L; }
   public double defaultReal() { int o = __offset(14); return o != 0 ? bb.getDouble(o + bb_pos) : 0.0; }
   public boolean deprecated() { int o = __offset(16); return o != 0 ? 0!=bb.get(o + bb_pos) : false; }
-  public boolean required() { int o = __offset(18); return o != 0 ? 0!=bb.get(o + bb_pos) : false; }
-  public boolean key() { int o = __offset(20); return o != 0 ? 0!=bb.get(o + bb_pos) : false; }
+  public boolean deprecatedReadonly() { int o = __offset(18); return o != 0 ? 0!=bb.get(o + bb_pos) : false; }
+  public boolean required() { int o = __offset(20); return o != 0 ? 0!=bb.get(o + bb_pos) : false; }
+  public boolean key() { int o = __offset(22); return o != 0 ? 0!=bb.get(o + bb_pos) : false; }
   public com.google.flatbuffers.reflection.KeyValue attributes(int j) { return attributes(new com.google.flatbuffers.reflection.KeyValue(), j); }
-  public com.google.flatbuffers.reflection.KeyValue attributes(com.google.flatbuffers.reflection.KeyValue obj, int j) { int o = __offset(22); return o != 0 ? obj.__assign(__indirect(__vector(o) + j * 4), bb) : null; }
-  public int attributesLength() { int o = __offset(22); return o != 0 ? __vector_len(o) : 0; }
-  public com.google.flatbuffers.reflection.KeyValue attributesByKey(String key) { int o = __offset(22); return o != 0 ? com.google.flatbuffers.reflection.KeyValue.__lookup_by_key(null, __vector(o), key, bb) : null; }
-  public com.google.flatbuffers.reflection.KeyValue attributesByKey(com.google.flatbuffers.reflection.KeyValue obj, String key) { int o = __offset(22); return o != 0 ? com.google.flatbuffers.reflection.KeyValue.__lookup_by_key(obj, __vector(o), key, bb) : null; }
+  public com.google.flatbuffers.reflection.KeyValue attributes(com.google.flatbuffers.reflection.KeyValue obj, int j) { int o = __offset(24); return o != 0 ? obj.__assign(__indirect(__vector(o) + j * 4), bb) : null; }
+  public int attributesLength() { int o = __offset(24); return o != 0 ? __vector_len(o) : 0; }
+  public com.google.flatbuffers.reflection.KeyValue attributesByKey(String key) { int o = __offset(24); return o != 0 ? com.google.flatbuffers.reflection.KeyValue.__lookup_by_key(null, __vector(o), key, bb) : null; }
+  public com.google.flatbuffers.reflection.KeyValue attributesByKey(com.google.flatbuffers.reflection.KeyValue obj, String key) { int o = __offset(24); return o != 0 ? com.google.flatbuffers.reflection.KeyValue.__lookup_by_key(obj, __vector(o), key, bb) : null; }
   public com.google.flatbuffers.reflection.KeyValue.Vector attributesVector() { return attributesVector(new com.google.flatbuffers.reflection.KeyValue.Vector()); }
-  public com.google.flatbuffers.reflection.KeyValue.Vector attributesVector(com.google.flatbuffers.reflection.KeyValue.Vector obj) { int o = __offset(22); return o != 0 ? obj.__assign(__vector(o), 4, bb) : null; }
-  public String documentation(int j) { int o = __offset(24); return o != 0 ? __string(__vector(o) + j * 4) : null; }
-  public int documentationLength() { int o = __offset(24); return o != 0 ? __vector_len(o) : 0; }
+  public com.google.flatbuffers.reflection.KeyValue.Vector attributesVector(com.google.flatbuffers.reflection.KeyValue.Vector obj) { int o = __offset(24); return o != 0 ? obj.__assign(__vector(o), 4, bb) : null; }
+  public String documentation(int j) { int o = __offset(26); return o != 0 ? __string(__vector(o) + j * 4) : null; }
+  public int documentationLength() { int o = __offset(26); return o != 0 ? __vector_len(o) : 0; }
   public StringVector documentationVector() { return documentationVector(new StringVector()); }
-  public StringVector documentationVector(StringVector obj) { int o = __offset(24); return o != 0 ? obj.__assign(__vector(o), 4, bb) : null; }
-  public boolean optional() { int o = __offset(26); return o != 0 ? 0!=bb.get(o + bb_pos) : false; }
+  public StringVector documentationVector(StringVector obj) { int o = __offset(26); return o != 0 ? obj.__assign(__vector(o), 4, bb) : null; }
+  public boolean optional() { int o = __offset(28); return o != 0 ? 0!=bb.get(o + bb_pos) : false; }
   /**
    * Number of padding octets to always add after this field. Structs only.
    */
-  public int padding() { int o = __offset(28); return o != 0 ? bb.getShort(o + bb_pos) & 0xFFFF : 0; }
+  public int padding() { int o = __offset(30); return o != 0 ? bb.getShort(o + bb_pos) & 0xFFFF : 0; }
   /**
    * If the field uses 64-bit offsets.
    */
-  public boolean offset64() { int o = __offset(30); return o != 0 ? 0!=bb.get(o + bb_pos) : false; }
+  public boolean offset64() { int o = __offset(32); return o != 0 ? 0!=bb.get(o + bb_pos) : false; }
 
   public static int createField(FlatBufferBuilder builder,
       int nameOffset,
@@ -68,6 +69,7 @@ public final class Field extends Table {
       long defaultInteger,
       double defaultReal,
       boolean deprecated,
+      boolean deprecatedReadonly,
       boolean required,
       boolean key,
       int attributesOffset,
@@ -75,7 +77,7 @@ public final class Field extends Table {
       boolean optional,
       int padding,
       boolean offset64) {
-    builder.startTable(14);
+    builder.startTable(15);
     Field.addDefaultReal(builder, defaultReal);
     Field.addDefaultInteger(builder, defaultInteger);
     Field.addDocumentation(builder, documentationOffset);
@@ -89,11 +91,12 @@ public final class Field extends Table {
     Field.addOptional(builder, optional);
     Field.addKey(builder, key);
     Field.addRequired(builder, required);
+    Field.addDeprecatedReadonly(builder, deprecatedReadonly);
     Field.addDeprecated(builder, deprecated);
     return Field.endField(builder);
   }
 
-  public static void startField(FlatBufferBuilder builder) { builder.startTable(14); }
+  public static void startField(FlatBufferBuilder builder) { builder.startTable(15); }
   public static void addName(FlatBufferBuilder builder, int nameOffset) { builder.addOffset(nameOffset); builder.slot(0); }
   public static void addType(FlatBufferBuilder builder, int typeOffset) { builder.addOffset(1, typeOffset, 0); }
   public static void addId(FlatBufferBuilder builder, int id) { builder.addShort(2, (short) id, (short) 0); }
@@ -101,17 +104,18 @@ public final class Field extends Table {
   public static void addDefaultInteger(FlatBufferBuilder builder, long defaultInteger) { builder.addLong(4, defaultInteger, 0L); }
   public static void addDefaultReal(FlatBufferBuilder builder, double defaultReal) { builder.addDouble(5, defaultReal, 0.0); }
   public static void addDeprecated(FlatBufferBuilder builder, boolean deprecated) { builder.addBoolean(6, deprecated, false); }
-  public static void addRequired(FlatBufferBuilder builder, boolean required) { builder.addBoolean(7, required, false); }
-  public static void addKey(FlatBufferBuilder builder, boolean key) { builder.addBoolean(8, key, false); }
-  public static void addAttributes(FlatBufferBuilder builder, int attributesOffset) { builder.addOffset(9, attributesOffset, 0); }
+  public static void addDeprecatedReadonly(FlatBufferBuilder builder, boolean deprecatedReadonly) { builder.addBoolean(7, deprecatedReadonly, false); }
+  public static void addRequired(FlatBufferBuilder builder, boolean required) { builder.addBoolean(8, required, false); }
+  public static void addKey(FlatBufferBuilder builder, boolean key) { builder.addBoolean(9, key, false); }
+  public static void addAttributes(FlatBufferBuilder builder, int attributesOffset) { builder.addOffset(10, attributesOffset, 0); }
   public static int createAttributesVector(FlatBufferBuilder builder, int[] data) { builder.startVector(4, data.length, 4); for (int i = data.length - 1; i >= 0; i--) builder.addOffset(data[i]); return builder.endVector(); }
   public static void startAttributesVector(FlatBufferBuilder builder, int numElems) { builder.startVector(4, numElems, 4); }
-  public static void addDocumentation(FlatBufferBuilder builder, int documentationOffset) { builder.addOffset(10, documentationOffset, 0); }
+  public static void addDocumentation(FlatBufferBuilder builder, int documentationOffset) { builder.addOffset(11, documentationOffset, 0); }
   public static int createDocumentationVector(FlatBufferBuilder builder, int[] data) { builder.startVector(4, data.length, 4); for (int i = data.length - 1; i >= 0; i--) builder.addOffset(data[i]); return builder.endVector(); }
   public static void startDocumentationVector(FlatBufferBuilder builder, int numElems) { builder.startVector(4, numElems, 4); }
-  public static void addOptional(FlatBufferBuilder builder, boolean optional) { builder.addBoolean(11, optional, false); }
-  public static void addPadding(FlatBufferBuilder builder, int padding) { builder.addShort(12, (short) padding, (short) 0); }
-  public static void addOffset64(FlatBufferBuilder builder, boolean offset64) { builder.addBoolean(13, offset64, false); }
+  public static void addOptional(FlatBufferBuilder builder, boolean optional) { builder.addBoolean(12, optional, false); }
+  public static void addPadding(FlatBufferBuilder builder, int padding) { builder.addShort(13, (short) padding, (short) 0); }
+  public static void addOffset64(FlatBufferBuilder builder, boolean offset64) { builder.addBoolean(14, offset64, false); }
   public static int endField(FlatBufferBuilder builder) {
     int o = builder.endTable();
     builder.required(o, 4);  // name
