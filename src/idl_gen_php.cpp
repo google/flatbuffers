@@ -79,6 +79,7 @@ class PhpGenerator : public BaseGenerator {
       code += "use \\Google\\FlatBuffers\\Table;\n";
       code += "use \\Google\\FlatBuffers\\ByteBuffer;\n";
       code += "use \\Google\\FlatBuffers\\FlatBufferBuilder;\n";
+      code += "use \\Google\\FlatBuffers\\Constants;\n";
       code += "\n";
     }
   }
@@ -138,19 +139,26 @@ class PhpGenerator : public BaseGenerator {
 
   // Initialize a new struct or table from existing data.
   static void NewRootTypeFromBuffer(const StructDef &struct_def,
-                                    std::string *code_ptr) {
+                                    std::string *code_ptr,
+                                    bool size_prefixed) {
     std::string &code = *code_ptr;
+    std::string sizePrefixed("SizePrefixed");
 
     code += Indent + "/**\n";
     code += Indent + " * @param ByteBuffer $bb\n";
     code += Indent + " * @return " + struct_def.name + "\n";
     code += Indent + " */\n";
-    code += Indent + "public static function getRootAs";
+    code += Indent + "public static function get" + 
+            (size_prefixed ? sizePrefixed : "") + "RootAs";
     code += struct_def.name;
     code += "(ByteBuffer $bb)\n";
     code += Indent + "{\n";
 
     code += Indent + Indent + "$obj = new " + struct_def.name + "();\n";
+    if (size_prefixed) {
+      code += Indent + Indent;
+      code += "$bb->setPosition($bb->getPosition() + Constants::SIZEOF_INT);\n";
+    }
     code += Indent + Indent;
     code += "return ($obj->init($bb->getInt($bb->getPosition())";
     code += " + $bb->getPosition(), $bb));\n";
@@ -637,6 +645,31 @@ class PhpGenerator : public BaseGenerator {
     code += Indent + "}\n\n";
   }
 
+  void GenerateFinisher(const StructDef &struct_def, std::string &code,
+                        bool size_prefixed) {
+    if (parser_.root_struct_def_ == &struct_def) {
+      std::string sizePrefixed("SizePrefixed");
+
+      code += "\n";
+      code += Indent + "public static function finish";
+      code += size_prefixed ? sizePrefixed : "";
+      code += struct_def.name;
+      code += "Buffer(FlatBufferBuilder $builder, $offset)\n";
+      code += Indent + "{\n";
+      code += Indent + Indent + "$builder->finish($offset";
+
+      if (!parser_.file_identifier_.empty()) {
+        code += ", \"" + parser_.file_identifier_ + "\"";
+      }
+      if (size_prefixed) {
+        if (parser_.file_identifier_.empty()) { code += ", null"; }
+        code += ", true";
+      }
+      code += ");\n";
+      code += Indent + "}\n";
+    }
+  }
+
   // Get the offset of the end of a table.
   void GetEndOffsetOnTable(const StructDef &struct_def, std::string *code_ptr) {
     std::string &code = *code_ptr;
@@ -662,19 +695,8 @@ class PhpGenerator : public BaseGenerator {
     code += Indent + Indent + "return $o;\n";
     code += Indent + "}\n";
 
-    if (parser_.root_struct_def_ == &struct_def) {
-      code += "\n";
-      code += Indent + "public static function finish";
-      code += struct_def.name;
-      code += "Buffer(FlatBufferBuilder $builder, $offset)\n";
-      code += Indent + "{\n";
-      code += Indent + Indent + "$builder->finish($offset";
-
-      if (parser_.file_identifier_.length())
-        code += ", \"" + parser_.file_identifier_ + "\"";
-      code += ");\n";
-      code += Indent + "}\n";
-    }
+    GenerateFinisher(struct_def, code, false);
+    GenerateFinisher(struct_def, code, true);
   }
 
   // Generate a struct field, conditioned on its child type(s).
@@ -759,7 +781,8 @@ class PhpGenerator : public BaseGenerator {
     if (!struct_def.fixed) {
       // Generate a special accessor for the table that has been declared as
       // the root type.
-      NewRootTypeFromBuffer(struct_def, code_ptr);
+      NewRootTypeFromBuffer(struct_def, code_ptr, false);
+      NewRootTypeFromBuffer(struct_def, code_ptr, true);
     }
 
     std::string &code = *code_ptr;

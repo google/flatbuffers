@@ -899,30 +899,50 @@ final class FlatbufferBuilder
      * @param $root_table An offest to be added to the buffer.
      * @param $file_identifier A FlatBuffer file identifier to be added to the
      *     buffer before `$root_table`. This defaults to `null`.
+     * @param $size_prefix Whether to include the prefix size or not in the
+     *     buffer. This defaults to `false`.
      * @throws InvalidArgumentException Thrown if an invalid `$identifier` is
      *     given, where its length is not equal to
      *    `Constants::FILE_IDENTIFIER_LENGTH`.
      */
-    public function finish($root_table, $identifier = null)
+    public function finish($root_table, $identifier = null, $size_prefix = false)
     {
+        $prep_size = $size_prefix ? Constants::SIZEOF_INT : 0;
         if ($identifier == null) {
-            $this->prep($this->minalign, Constants::SIZEOF_INT);
+            $this->prep($this->minalign, Constants::SIZEOF_INT + $prep_size);
             $this->addOffset($root_table);
+            if ($prep_size) {
+                $this->addInt($this->bb->capacity() - $this->space);
+            }
             $this->bb->setPosition($this->space);
         } else {
-            $this->prep($this->minalign, Constants::SIZEOF_INT + Constants::FILE_IDENTIFIER_LENGTH);
+            $this->prep($this->minalign,
+                        Constants::SIZEOF_INT + Constants::FILE_IDENTIFIER_LENGTH + $prep_size);
             if (strlen($identifier) != Constants::FILE_IDENTIFIER_LENGTH) {
                 throw new \InvalidArgumentException(
                     sprintf("FlatBuffers: file identifier must be length %d",
                         Constants::FILE_IDENTIFIER_LENGTH));
             }
 
-            for ($i = Constants::FILE_IDENTIFIER_LENGTH - 1; $i >= 0;
-                  $i--) {
+            for ($i = Constants::FILE_IDENTIFIER_LENGTH - 1; $i >= 0; $i--) {
                 $this->addByte(ord($identifier[$i]));
             }
-            $this->finish($root_table);
+            $this->finish($root_table, null, $size_prefix);
         }
+    }
+
+    /**
+     * Finalize a buffer, pointing to the given `$rootTable` with a size prefix.
+     * @param $root_table An offest to be added to the buffer.
+     * @param $file_identifier A FlatBuffer file identifier to be added to the
+     *     buffer before `$root_table`. This defaults to `null`.
+     * @throws InvalidArgumentException Thrown if an invalid `$identifier` is
+     *     given, where its length is not equal to
+     *    `Constants::FILE_IDENTIFIER_LENGTH`.
+     */
+    public function finishSizePrefixed($root_table, $identifier = null)
+    {
+        return $this->finish($root_table, $identifier, true);
     }
 
     /**

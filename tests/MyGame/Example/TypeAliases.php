@@ -7,6 +7,7 @@ use \Google\FlatBuffers\Struct;
 use \Google\FlatBuffers\Table;
 use \Google\FlatBuffers\ByteBuffer;
 use \Google\FlatBuffers\FlatBufferBuilder;
+use \Google\FlatBuffers\Constants;
 
 class TypeAliases extends Table
 {
@@ -17,6 +18,17 @@ class TypeAliases extends Table
     public static function getRootAsTypeAliases(ByteBuffer $bb)
     {
         $obj = new TypeAliases();
+        return ($obj->init($bb->getInt($bb->getPosition()) + $bb->getPosition(), $bb));
+    }
+
+    /**
+     * @param ByteBuffer $bb
+     * @return TypeAliases
+     */
+    public static function getSizePrefixedRootAsTypeAliases(ByteBuffer $bb)
+    {
+        $obj = new TypeAliases();
+        $bb->setPosition($bb->getPosition() + Constants::SIZEOF_INT);
         return ($obj->init($bb->getInt($bb->getPosition()) + $bb->getPosition(), $bb));
     }
 

@@ -27,7 +27,36 @@ function main()
     // normally a size larger than the typical FlatBuffer you generate would be
     // better for performance.
     $fbb = new Google\FlatBuffers\FlatBufferBuilder(1);
+    createMonster($fbb, true);
+    checkSizePrefixedBuffer($fbb, $assert);
+    test_buffer($assert, $fbb->dataBuffer(), true);
 
+    $fbb = new Google\FlatBuffers\FlatBufferBuilder(1);
+    createMonster($fbb, false);
+    test_buffer($assert, $fbb->dataBuffer());
+
+    // Test it:    
+    testByteBuffer($assert);
+    fuzzTest1($assert);
+//    testUnicode($assert);
+
+    echo 'FlatBuffers php test: completed successfully' . PHP_EOL;
+}
+
+try {
+    main();
+    exit(0);
+} catch(Exception $e) {
+    printf("Fatal error: Uncaught exception '%s' with message '%s. in %s:%d\n", get_class($e), $e->getMessage(), $e->getFile(), $e->getLine());
+    printf("Stack trace:\n");
+    echo $e->getTraceAsString() . PHP_EOL;
+    printf("  thrown in in %s:%d\n", $e->getFile(), $e->getLine());
+
+    die(-1);
+}
+
+function createMonster(Google\FlatBuffers\FlatBufferBuilder $fbb,
+                       bool $sizePrefix = false) {
     // We set up the same values as monsterdata.json:
     $str = $fbb->createString("MyMonster");
     $name = $fbb->createString('Fred');
@@ -70,34 +99,28 @@ function main()
     \MyGame\Example\Monster::AddTestbool($fbb, true);
     $mon = \MyGame\Example\Monster::EndMonster($fbb);
 
-    \MyGame\Example\Monster::FinishMonsterBuffer($fbb, $mon);
-
-    // Test it:
-    test_buffer($assert, $fbb->dataBuffer());
-
-    testByteBuffer($assert);
-    fuzzTest1($assert);
-//    testUnicode($assert);
-
-    echo 'FlatBuffers php test: completed successfully' . PHP_EOL;
+    if ($sizePrefix) {
+        \MyGame\Example\Monster::finishSizePrefixedMonsterBuffer($fbb, $mon);
+    } else {
+        \MyGame\Example\Monster::finishMonsterBuffer($fbb, $mon);
+    }
 }
 
-try {
-    main();
-    exit(0);
-} catch(Exception $e) {
-    printf("Fatal error: Uncaught exception '%s' with message '%s. in %s:%d\n", get_class($e), $e->getMessage(), $e->getFile(), $e->getLine());
-    printf("Stack trace:\n");
-    echo $e->getTraceAsString() . PHP_EOL;
-    printf("  thrown in in %s:%d\n", $e->getFile(), $e->getLine());
-
-    die(-1);
+function checkSizePrefixedBuffer(Google\FlatBuffers\FlatBufferBuilder $fbb,
+                                 Assert $assert) {
+	// Check that the size prefix is the size of the buffer of minus 4 bytes
+	$size = $fbb->bb->getInt($fbb->bb->capacity() - $fbb->offset());
+	$expectedSize = $fbb->offset() - 4;
+	$assert->strictEqual($size, $expectedSize);
 }
 
-function test_buffer(Assert $assert, Google\FlatBuffers\ByteBuffer $bb) {
-
-    $assert->ok(MyGame\Example\Monster::MonsterBufferHasIdentifier($bb));
-    $monster = \MyGame\Example\Monster::GetRootAsMonster($bb);
+function test_buffer(Assert $assert, Google\FlatBuffers\ByteBuffer $bb, $size_prefixed = false) {
+    if ($size_prefixed) {
+        $monster = \MyGame\Example\Monster::getSizePrefixedRootAsMonster($bb);
+    } else {
+        $monster = \MyGame\Example\Monster::GetRootAsMonster($bb);
+    }
+    $assert->ok(\MyGame\Example\Monster::MonsterBufferHasIdentifier($bb, $size_prefixed));
 
     $assert->strictEqual($monster->GetHp(), 80);
     $assert->strictEqual($monster->GetMana(), 150); // default

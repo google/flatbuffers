@@ -7,6 +7,7 @@ use \Google\FlatBuffers\Struct;
 use \Google\FlatBuffers\Table;
 use \Google\FlatBuffers\ByteBuffer;
 use \Google\FlatBuffers\FlatBufferBuilder;
+use \Google\FlatBuffers\Constants;
 
 class Stat extends Table
 {
@@ -17,6 +18,17 @@ class Stat extends Table
     public static function getRootAsStat(ByteBuffer $bb)
     {
         $obj = new Stat();
+        return ($obj->init($bb->getInt($bb->getPosition()) + $bb->getPosition(), $bb));
+    }
+
+    /**
+     * @param ByteBuffer $bb
+     * @return Stat
+     */
+    public static function getSizePrefixedRootAsStat(ByteBuffer $bb)
+    {
+        $obj = new Stat();
+        $bb->setPosition($bb->getPosition() + Constants::SIZEOF_INT);
         return ($obj->init($bb->getInt($bb->getPosition()) + $bb->getPosition(), $bb));
     }
 
