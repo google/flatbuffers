@@ -221,21 +221,13 @@ template<bool Is64Aware = false> class FlatBufferBuilderImpl {
   /// @return Returns a `uint8_t` pointer to the unfinished buffer.
   uint8_t *GetCurrentBufferPointer() const { return buf_.data(); }
 
-  /// @brief Get the released pointer to the serialized buffer.
-  /// @warning Do NOT attempt to use this FlatBufferBuilder afterwards!
-  /// @return A `FlatBuffer` that owns the buffer and its allocator and
-  /// behaves similar to a `unique_ptr` with a deleter.
-  FLATBUFFERS_ATTRIBUTE([[deprecated("use Release() instead")]])
-  DetachedBuffer ReleaseBufferPointer() {
-    Finished();
-    return buf_.release();
-  }
-
   /// @brief Get the released DetachedBuffer.
   /// @return A `DetachedBuffer` that owns the buffer and its allocator.
   DetachedBuffer Release() {
     Finished();
-    return buf_.release();
+    DetachedBuffer buffer = buf_.release();
+    Clear();
+    return buffer;
   }
 
   /// @brief Get the released pointer to the serialized buffer.
@@ -246,10 +238,12 @@ template<bool Is64Aware = false> class FlatBufferBuilderImpl {
   /// @return A raw pointer to the start of the memory block containing
   /// the serialized `FlatBuffer`.
   /// @remark If the allocator is owned, it gets deleted when the destructor is
-  /// called..
+  /// called.
   uint8_t *ReleaseRaw(size_t &size, size_t &offset) {
     Finished();
-    return buf_.release_raw(size, offset);
+    uint8_t* raw = buf_.release_raw(size, offset);
+    Clear();
+    return raw;
   }
 
   /// @brief get the minimum alignment this buffer needs to be accessed
@@ -1261,6 +1255,9 @@ template<bool Is64Aware = false> class FlatBufferBuilderImpl {
   FlatBufferBuilderImpl &operator=(const FlatBufferBuilderImpl &);
 
   void Finish(uoffset_t root, const char *file_identifier, bool size_prefix) {
+    // A buffer can only be finished once. To reuse a builder use `clear()`.
+    FLATBUFFERS_ASSERT(!finished);
+
     NotNested();
     buf_.clear_scratch();
 
