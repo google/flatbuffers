@@ -4,8 +4,8 @@
 
 set TEMP_BIN=.tmp
 
-@REM Run the .NET Core tests
-set CORE_FILE=FlatBuffers.Core.Test
+@REM Run the .NET tests
+set CORE_FILE=FlatBuffers.Test
 set CORE_PROJ_FILE=%CORE_FILE%.csproj
 set CORE_SLN_FILE=%CORE_FILE%.sln
 dotnet new sln --force --name %CORE_FILE%
