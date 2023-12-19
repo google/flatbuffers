@@ -539,9 +539,24 @@ export class Builder {
       this.addInt8(0);
       this.startVector(1, utf8.length, 1);
       this.bb.setPosition(this.space -= utf8.length);
-      for (let i = 0, offset = this.space, bytes = this.bb.bytes(); i < utf8.length; i++) {
-        bytes[offset++] = utf8[i];
+      this.bb.bytes().set(utf8, this.space);
+      return this.endVector();
+    }
+  
+    /**
+     * Create a byte vector.
+     *
+     * @param v The bytes to add
+     * @returns The offset in the buffer where the byte vector starts
+     */
+    createByteVector(v: Uint8Array | null | undefined): Offset {
+      if (v === null || v === undefined) {
+        return 0;
       }
+
+      this.startVector(1, v.length, 1);
+      this.bb.setPosition(this.space -= v.length);
+      this.bb.bytes().set(v, this.space);
       return this.endVector();
     }
   
