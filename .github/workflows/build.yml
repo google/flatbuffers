@@ -106,7 +106,7 @@ jobs:
         exclude:
           # Clang++15 10.3.0 stdlibc++ doesn't fully support std 23
           - cxx: clang++-15
-            std: 23        
+            std: 23
 
     steps:
     - uses: actions/checkout@v3
@@ -186,34 +186,6 @@ jobs:
       shell: bash
       run: echo "hashes=$(sha256sum Windows.flatc.binary.zip | base64 -w0)" >> $GITHUB_OUTPUT
 
-  build-windows-2017:
-    name: Build Windows 2017
-    runs-on: windows-2019
-    steps:
-    - uses: actions/checkout@v3
-    - name: Add msbuild to PATH
-      uses: microsoft/setup-msbuild@v1.1
-    - name: cmake
-      run: cmake -G "Visual Studio 16 2019" -A x64 -DCMAKE_BUILD_TYPE=Release -DFLATBUFFERS_STRICT_MODE=ON .
-    - name: build tool version 15 (VS 2017)
-      run: msbuild.exe FlatBuffers.sln /p:Configuration=Release /p:Platform=x64 /p:VisualStudioVersion=15.0
-    - name: test
-      run: Release\flattests.exe
-
-  build-windows-2015:
-    name: Build Windows 2015
-    runs-on: windows-2019
-    steps:
-    - uses: actions/checkout@v3
-    - name: Add msbuild to PATH
-      uses: microsoft/setup-msbuild@v1.1
-    - name: cmake
-      run: cmake -G "Visual Studio 14 2015" -A x64 -DCMAKE_BUILD_TYPE=Release -DFLATBUFFERS_STRICT_MODE=ON .
-    - name: build tool version 14 (VS 2015)
-      run: msbuild.exe FlatBuffers.sln /p:Configuration=Release /p:Platform=x64 /p:VisualStudioVersion=14.0
-    - name: test
-      run: Release\flattests.exe
-
   build-dotnet-windows:
     name: Build .NET Windows
     runs-on: windows-2022-64core
@@ -230,17 +202,17 @@ jobs:
     - name: Setup .NET Core SDK
       uses: actions/setup-dotnet@v3
       with:
-        dotnet-version: '3.1.x'
+        dotnet-version: '8.0.x'
     - name: Build
       run: |
         cd tests\FlatBuffers.Test
-        dotnet new sln --force --name FlatBuffers.Core.Test
-        dotnet sln FlatBuffers.Core.Test.sln add FlatBuffers.Core.Test.csproj
-        dotnet build -c Release ${{matrix.configuration}} -o out FlatBuffers.Core.Test.sln
+        dotnet new sln --force --name FlatBuffers.Test
+        dotnet sln FlatBuffers.Test.sln add FlatBuffers.Test.csproj
+        dotnet build -c Release ${{matrix.configuration}} -o out FlatBuffers.Test.sln
     - name: Run
       run: |
         cd tests\FlatBuffers.Test
-        out\FlatBuffers.Core.Test.exe
+        out\FlatBuffers.Test.exe
 
   build-mac-intel:
     permissions:
