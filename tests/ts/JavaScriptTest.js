@@ -48,6 +48,7 @@ function main() {
   testNullStrings();
   testSharedStrings();
   testVectorOfStructs();
+  testCreateByteVector();
 
   console.log('FlatBuffers test: completed successfully');
 }
@@ -475,6 +476,22 @@ function testVectorOfStructs() {
   assert.strictEqual(decodedMonster.test4[0].b, 2);
   assert.strictEqual(decodedMonster.test4[1].a, 3);
   assert.strictEqual(decodedMonster.test4[1].b, 4);
+}
+
+function testCreateByteVector() {
+  const data = Uint8Array.from([1, 2, 3, 4, 5]);
+
+  const builder = new flatbuffers.Builder();
+  const required = builder.createString("required");
+  const offset = builder.createByteVector(data);
+  
+  Monster.startMonster(builder);
+  Monster.addName(builder, required);
+  Monster.addInventory(builder, offset)
+  builder.finish(Monster.endMonster(builder));
+
+  let decodedMonster = Monster.getRootAsMonster(builder.dataBuffer());
+  assert.deepEqual(decodedMonster.inventoryArray(), data);
 }
 
 main();
