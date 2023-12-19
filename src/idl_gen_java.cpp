@@ -44,6 +44,7 @@ static Namer::Config JavaDefaultConfig() {
     /*namespace_seperator=*/".",
     /*object_prefix=*/"",
     /*object_suffix=*/"T",
+    /*keywords_case_sensitive=*/true,
     /*keyword_prefix=*/"",
     /*keyword_suffix=*/"_",
     /*filenames=*/Case::kKeep,

@@ -87,6 +87,8 @@ class Namer {
     std::string object_suffix;
 
     // Keywords.
+    // If the keywords list is case sensitive. It is usually true.
+    bool keywords_case_sensitive;
     // Prefix used to escape keywords. It is usually empty string.
     std::string keyword_prefix;
     // Suffix used to escape keywords. It is usually "_".
@@ -205,7 +207,16 @@ class Namer {
   }
 
   virtual std::string EscapeKeyword(const std::string &name) const {
-    if (keywords_.find(name) == keywords_.end()) {
+    std::string name_cased(name);
+
+    if (!config_.keywords_case_sensitive) {
+      // Standard languages *usually* don't use non-ASCII characters for
+      // keywords, therefore this operations should be safe.
+      for (auto chr = name_cased.begin(); chr != name_cased.end(); chr++) {
+        *chr = std::tolower(*chr);
+      }
+    }
+    if (keywords_.find(name_cased) == keywords_.end()) {
       return name;
     } else {
       return config_.keyword_prefix + name + config_.keyword_suffix;

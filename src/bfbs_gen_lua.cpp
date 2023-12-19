@@ -59,6 +59,7 @@ Namer::Config LuaDefaultConfig() {
            /*namespace_seperator=*/"__",
            /*object_prefix=*/"",
            /*object_suffix=*/"",
+           /*keywords_case_sensitive=*/true,
            /*keyword_prefix=*/"",
            /*keyword_suffix=*/"_",
            /*filenames=*/Case::kKeep,
