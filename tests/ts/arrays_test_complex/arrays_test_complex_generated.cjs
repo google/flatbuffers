@@ -207,7 +207,7 @@ var TestEnum;
   TestEnum2[TestEnum2["A"] = 0] = "A";
   TestEnum2[TestEnum2["B"] = 1] = "B";
   TestEnum2[TestEnum2["C"] = 2] = "C";
-})(TestEnum = TestEnum || (TestEnum = {}));
+})(TestEnum || (TestEnum = {}));
 
 // arrays_test_complex/my-game/example/nested-struct.js
 var NestedStruct = class {
