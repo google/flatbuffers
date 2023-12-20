@@ -3,8 +3,8 @@ use flatbuffers_reflection::{
     get_any_field_float, get_any_field_float_in_struct, get_any_field_integer,
     get_any_field_integer_in_struct, get_any_field_string, get_any_field_string_in_struct,
     get_any_root, get_field_float, get_field_integer, get_field_string, get_field_struct,
-    get_field_struct_in_struct, set_any_field_float, set_any_field_integer, set_any_field_string,
-    set_field, set_string,
+    get_field_struct_in_struct, get_field_table, get_field_vector, set_any_field_float,
+    set_any_field_integer, set_any_field_string, set_field, set_string,
 };
 
 use flatbuffers::FlatBufferBuilder;
@@ -292,6 +292,74 @@ fn test_buffer_struct_diff_type_fails() {
     let value = unsafe { get_field_struct(&root_table, &f32_field) };
 
     assert_eq!(value, None);
+}
+
+#[test]
+fn test_buffer_vector_same_type_succeeds() {
+    let buffer = create_test_buffer();
+    let root_table = unsafe { get_any_root(&buffer) };
+    let schema = load_file_as_buffer("../monster_test.bfbs");
+    let vector_field = get_schema_field(&schema, "inventory");
+
+    let value = unsafe { get_field_vector::<u8>(&root_table, &vector_field) };
+
+    assert!(value.is_some());
+    let vector = value.unwrap();
+    assert_eq!(vector.len(), 5);
+    assert_eq!(vector.get(0), 0);
+    assert_eq!(vector.get(1), 1);
+    assert_eq!(vector.get(2), 2);
+    assert_eq!(vector.get(3), 3);
+    assert_eq!(vector.get(4), 4);
+}
+
+#[test]
+fn test_buffer_vector_diff_type_fails() {
+    let buffer = create_test_buffer();
+    let root_table = unsafe { get_any_root(&buffer) };
+    let schema = load_file_as_buffer("../monster_test.bfbs");
+    let f32_field = get_schema_field(&schema, "testf");
+
+    let value = unsafe { get_field_vector::<u8>(&root_table, &f32_field) };
+
+    assert!(value.is_none());
+}
+
+#[test]
+fn test_buffer_table_same_type_succeeds() {
+    let buffer = create_test_buffer();
+    let root_table = unsafe { get_any_root(&buffer) };
+    let schema = load_file_as_buffer("../monster_test.bfbs");
+    let table_field = get_schema_field(&schema, "testempty");
+
+    let value = unsafe { get_field_table(&root_table, &table_field) };
+
+    assert!(value.is_some());
+    let nested_table = value.unwrap();
+    let nested_table_fields = &root_as_schema(schema.as_slice())
+        .unwrap()
+        .objects()
+        .get(table_field.type_().index() as usize)
+        .fields();
+    let nested_table_field = nested_table_fields
+        .lookup_by_key("id", |field: &Field<'_>, key| {
+            field.key_compare_with_value(key)
+        })
+        .unwrap();
+    let nested_table_id = unsafe { get_field_string(&nested_table, &nested_table_field) };
+    assert_eq!(nested_table_id, Some("Fred"));
+}
+
+#[test]
+fn test_buffer_table_diff_type_fails() {
+    let buffer = create_test_buffer();
+    let root_table = unsafe { get_any_root(&buffer) };
+    let schema = load_file_as_buffer("../monster_test.bfbs");
+    let f32_field = get_schema_field(&schema, "testf");
+
+    let value = unsafe { get_field_table(&root_table, &f32_field) };
+
+    assert!(value.is_none());
 }
 
 #[test]
@@ -1162,6 +1230,13 @@ fn create_test_buffer() -> Vec<u8> {
             name: Some(builder.create_string("MyMonster")),
             pos: Some(&pos),
             test_type: my_game::example::Any::Monster,
+            testempty: Some(my_game::example::Stat::create(
+                &mut builder,
+                &my_game::example::StatArgs {
+                    id: Some(fred_name),
+                    ..Default::default()
+                },
+            )),
             test: Some(
                 my_game::example::Monster::create(
                     &mut builder,

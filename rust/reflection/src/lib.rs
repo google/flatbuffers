@@ -105,6 +105,37 @@ pub unsafe fn get_field_struct<'a>(table: &'a Table, field: &Field) -> Option<St
     table.get::<Struct>(field.offset(), None)
 }
 
+/// Gets a Vector table field given its exact type. Returns empty vector if the field is not set. Returns [None] if the type doesn't match.
+///
+/// # Safety
+///
+/// The value of the corresponding slot must have type Vector
+pub unsafe fn get_field_vector<'a, T: Follow<'a, Inner = T>>(
+    table: &'a Table,
+    field: &Field,
+) -> Option<Vector<'a, T>> {
+    if field.type_().base_type() != BaseType::Vector
+        || core::mem::size_of::<T>() != get_type_size(field.type_().element())
+    {
+        return None;
+    }
+
+    table.get::<ForwardsUOffset<Vector<'a, T>>>(field.offset(), Some(Vector::<T>::default()))
+}
+
+/// Gets a Table table field given its exact type. Returns `None` if the field is not set or the type doesn't match.
+///
+/// # Safety
+///
+/// The value of the corresponding slot must have type Table
+pub unsafe fn get_field_table<'a>(table: &'a Table, field: &Field) -> Option<Table<'a>> {
+    if field.type_().base_type() != BaseType::Obj {
+        return None;
+    }
+
+    table.get::<ForwardsUOffset<Table<'a>>>(field.offset(), None)
+}
+
 /// Gets a `Struct` struct field given its exact type.
 ///
 /// # Safety
